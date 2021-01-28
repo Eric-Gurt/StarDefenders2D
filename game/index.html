@@ -1,0 +1,780 @@
+<html>
+    <head>
+	<title>Star Defenders</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<style>
+	    body
+	    {
+		font-family: Verdana;
+		font-size: 13px;
+		background: repeating-linear-gradient( -45deg, black 0px, black 5.1px, #0b0b0b 5.1px, #0b0b0b 10.2px );
+		cursor: default;
+		height: 100%;
+		overflow: hidden;
+	    }
+	    *::-moz-selection { background-color: red; }
+	    *::selection { background-color: red; }
+	    input
+	    {
+		border: none;
+		background-color: #414141;
+		padding: 6px;
+		height: 30px;
+		color: white;
+		border-radius: 0;
+		cursor: hand;
+		outline: none;
+		margin-top: 3px;
+	    }
+	    input:active
+	    {
+		background-color: #000000;
+	    }
+	    input[type=color]
+	    {
+		background-color: #111111;
+		padding: 4px;
+	    }
+	    input::-webkit-color-swatch
+	    {
+		border: 1px solid black;
+	    }
+	    
+	    
+	    input[type=checkbox]
+	    {
+		width: 20px;
+		height: 20px;
+		vertical-align: middle;
+	    }
+	    input[type=button]
+	    {
+		padding-left: 12px;
+		padding-right: 12px;
+	    }
+	    
+	    
+	    
+	    
+	    
+	    input:hover, input:focus
+	    {
+		background-color: #425380 !important;
+	    }
+	    .set_block
+	    {
+		display: inline-block;
+		vertical-align: top;
+		width: 230px;
+		padding-bottom: 10px;
+	    }
+	    .sdtitle
+	    {
+		color: #5ce98a;
+	    }
+	    .sdgroup
+	    {
+		padding:5px;
+		padding-top:10px;
+		color:#666666;
+	    }
+	    a, a:link, a:visited
+	    {
+		color: #6f87ac;
+		text-decoration: none;
+	    }
+	    a:hover
+	    {
+		color:white;
+	    }
+	    a:active
+	    {
+		color:black;
+	    }
+	    
+	    
+	    .r_conteiner
+	    {
+		display:block;
+		padding:1vh;
+		background-color:rgba(0,0,0,0.35); /* 0.2 */
+		border-radius:1vh;
+		vertical-align: middle;
+		border:0px;
+		
+		-webkit-touch-callout: none; /* iOS Safari */
+		-webkit-user-select: none; /* Safari */
+		-khtml-user-select: none; /* Konqueror HTML */
+		-moz-user-select: none; /* Old versions of Firefox */
+		-ms-user-select: none; /* Internet Explorer/Edge */
+		user-select: none; /* Non-prefixed version, currently
+				supported by Chrome, Edge, Opera and Firefox */
+	    }
+	</style>
+    </head>
+    <body>
+	<script src="socket.io/socket.io.js"></script>
+	<script type="text/javascript" src="mespeak/mespeak.js"></script>
+	<script src="game.js" type="module"></script>
+	
+	<div id="mobile_ui" style="display:none;z-index:100;position:fixed;left:0;top:0">
+	    
+        	<span id="mobile_move_button" class="r_conteiner" style="
+                position: fixed;
+                left: 5vh;
+                width: 30vh;
+                height: 30vh;
+                background-color: #ffffff0d;
+                bottom: 5vh;
+                border-radius: 20vh;
+                text-align: center;
+                line-height: 30vh;
+                margin: 0px;
+                padding: 0px;
+                font-size: 3vh;
+                color: #ffffff24;
+            ">Move</span>
+<!--
+<span id="mobile_jump_button" class="r_conteiner" style="
+                position: fixed;
+                left: 36vh;
+                width: 14vh;
+                height: 14vh;
+                background-color: #ffffff0d;
+                bottom: 24vh;
+                border-radius: 20vh;
+                text-align: center;
+                line-height: 14vh;
+                margin: 0px;
+                padding: 0px;
+                font-size: 3vh;
+                color: #ffffff24;
+            ">Jump</span>
+            
+            <span id="mobile_zoom_button" class="r_conteiner" style="
+                position: fixed;
+                left: 37vh;
+                width: 14vh;
+                height: 14vh;
+                background-color: #ffffff0d;
+                bottom: 6vh;
+                border-radius: 20vh;
+                text-align: center;
+                line-height: 14vh;
+                margin: 0px;
+                padding: 0px;
+                font-size: 3vh;
+                color: #ffffff24;
+            ">Zoom</span>
+
+<span id="mobile_crouch_button" class="r_conteiner" style="
+                position: fixed;
+                left: 40%;
+                width: 14vh;
+                height: 14vh;
+                background-color: #ffffff0d;
+                bottom: 6vh;
+                border-radius: 20vh;
+                text-align: center;
+                line-height: 14vh;
+                margin: 0px;
+                padding: 0px;
+                font-size: 3vh;
+                color: #ffffff24;
+            ">Crouch</span>-->
+
+<span id="mobile_reload_button" class="r_conteiner" style="
+                position: fixed;
+                right: 40%;
+                width: 14vh;
+                height: 14vh;
+                background-color: #ffffff0d;
+                bottom: 6vh;
+                border-radius: 20vh;
+                text-align: center;
+                line-height: 14vh;
+                margin: 0px;
+                padding: 0px;
+                font-size: 3vh;
+                color: #ffffff24;
+            ">Reload</span>
+
+<span id="mobile_1_button" class="r_conteiner" style="
+                position: fixed;
+                right: 49vh;
+                width: 14vh;
+                height: 14vh;
+                background-color: #ffffff0d;
+                bottom: 6vh;
+                border-radius: 20vh;
+                text-align: center;
+                line-height: 14vh;
+                margin: 0px;
+                padding: 0px;
+                font-size: 3vh;
+                color: #ffffff24;
+            ">Pistol</span>
+<span id="mobile_2_button" class="r_conteiner" style="
+                position: fixed;
+                right: 49vh;
+                width: 14vh;
+                height: 14vh;
+                background-color: #ffffff0d;
+                bottom: 24vh;
+                border-radius: 20vh;
+                text-align: center;
+                line-height: 14vh;
+                margin: 0px;
+                padding: 0px;
+                font-size: 3vh;
+                color: #ffffff24;
+            ">Rifle</span>
+
+<span id="mobile_3_button" class="r_conteiner" style="
+                position: fixed;
+                right: 41vh;
+                width: 14vh;
+                height: 14vh;
+                background-color: #ffffff0d;
+                bottom: 40vh;
+                border-radius: 20vh;
+                text-align: center;
+                line-height: 14vh;
+                margin: 0px;
+                padding: 0px;
+                font-size: 3vh;
+                color: #ffffff24;
+            ">Shogtun</span>
+
+<span id="mobile_4_button" class="r_conteiner" style="
+                position: fixed;
+                right: 24vh;
+                width: 14vh;
+                height: 14vh;
+                background-color: #ffffff0d;
+                bottom: 49vh;
+                border-radius: 20vh;
+                text-align: center;
+                line-height: 14vh;
+                margin: 0px;
+                padding: 0px;
+                font-size: 3vh;
+                color: #ffffff24;
+            ">Sniper</span>
+
+<span id="mobile_5_button" class="r_conteiner" style="
+                position: fixed;
+                right: 5vh;
+                width: 14vh;
+                height: 14vh;
+                background-color: #ffffff0d;
+                bottom: 48vh;
+                border-radius: 20vh;
+                text-align: center;
+                line-height: 14vh;
+                margin: 0px;
+                padding: 0px;
+                font-size: 3vh;
+                color: #ffffff24;
+            ">RL</span>
+
+            <span id="mobile_shoot_button" class="r_conteiner" style="
+                position: fixed;
+                right: 5vh;
+                width: 40vh;
+                height: 40vh;
+                background-color: #ffffff0d;
+                bottom: 5vh;
+                border-radius: 20vh;
+                text-align: center;
+                line-height: 40vh;
+                margin: 0px;
+                padding: 0px;
+                font-size: 3vh;
+                color: #ffffff24;
+            ">Shoot</span>
+            
+            <span id="mobile_x_button" class="r_conteiner" style="
+                position: fixed;
+                right: 5vh;
+                width: 14vh;
+                height: 14vh;
+                background-color: #ffffff0d;
+                bottom: 70vh;
+                border-radius: 20vh;
+                text-align: center;
+                line-height: 14vh;
+                margin: 0px;
+                padding: 0px;
+                font-size: 3vh;
+                color: #ffffff24;
+            ">Build</span>
+	    
+	    <span id="mobile_s_button" class="r_conteiner" style="
+                position: fixed;
+                right: 25vh;
+                width: 14vh;
+                height: 14vh;
+                background-color: #ffffff0d;
+                bottom: 70vh;
+                border-radius: 20vh;
+                text-align: center;
+                line-height: 14vh;
+                margin: 0px;
+                padding: 0px;
+                font-size: 3vh;
+                color: #ffffff24;
+            ">Sword</span>
+	    
+	</div>
+	<div id="settings_container" style="
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		margin-left: -300px;
+		margin-top: -310px;
+		display: block;
+		background-color: black;
+		width: 600px;
+		height: 620px;
+		color: white;
+		padding: 20px;
+		box-sizing: border-box;">
+	    <div style="
+    position: absolute;
+    right: 20px;
+    top: -50px;
+    font-size: 30px;
+    color: #2f2f2f;
+    text-align: right;
+    ">Star Defenders<br>
+	    <div style="font-size:10px;color:#355a52;font-weight: bold;">v0.9</div></div>
+	    
+	    <div style="position: absolute; left: calc( 100% + 20px ); top:0; width: 300px; height: 100%;
+		box-sizing: border-box; background-color: black;
+		padding: 20px;">
+		<span class="sdtitle">What's new?:</span><br>
+		<div class="sdgroup">
+		    28 January 2020: High latency players should have less problems with server teleporting them back to where it thinks they should be (short key presses used to be ignored before, which was more noticeable for players with high latency).<br><br>
+		    25 January 2020: Fixed memory leak, some other bug fixes, ground is now stronger if players dig too deep, day/night-ish cycle.<br><br>
+		    24 January 2020: More bug fixes and optimizations! Added turrets, matter containers and reworked spike traps. Also world is now endless and bounds can shift as long as there is no alive players on another side of a map.<br><br>
+		    22 January 2020: First bug fixes and disabled water due to heavy lag. Chat should work now too!<br><br>
+		    21 January 2020: First public release!
+		</div>
+	    </div>
+	    
+	    <div style="position: absolute; right: calc( 100% + 20px ); top:0; width: 300px; height: 100%;
+		box-sizing: border-box; background-color: black;
+		padding: 20px;">
+		<span class="sdtitle">About Star Defenders:</span><br>
+		<div class="sdgroup">
+		    Star Defenders is a sandbox-based 2D game with slightly different approach than regular game in same genre would have. It is developed by <a href="https://www.gevanni.com" target="_blank">Eric Gurt</a> in 2021 (first prototype was much earlier though).<br><br>
+		    Game should be playable at this stage. All world logic is handled by server - connection is established using websockets (<a href="https://socket.io/" target="_blank">socket.io</a>). So basically unlike Star Defenders 3D this one is not peer-to-peer.<br>
+		    <br>
+		    Feel free to let me know what you think about this game on <a href="https://twitter.com/eric_gurt" target="_blank">my twitter page</a>.<br>
+		    <br>
+		    This game was meant to test out some stuff including meaningful stress testing - so feel free to tell your friends about it :P
+		</div>
+	    </div>
+		
+	    <span class="sdtitle">Your name:</span><br>
+	    <input type="text" id="hero_name" size="30" maxlength="30" value="Star Defender">
+	    <br>
+	    <br>
+	     
+	    <span class="sdtitle">Appearence:</span><br>
+	    <input type="color" id="color_bright" value="#c0c0c0">
+	    <label for="color_bright">Helmet and jetpack (bright shade)</label>
+	    <br>
+	    
+	    <input type="color" id="color_dark" value="#808080">
+	    <label for="color_dark">Helmet, jetpack and armor plates (dark shade)</label>
+	    <br>
+	    
+	    <input type="color" id="color_visor" value="#ff0000">
+	    <label for="color_visor">Visor</label>
+	    <br>
+	    
+	    <!--<input type="color" id="color_splashy" value="#800000">
+	    <label for="color_splashy">Splashy stuff</label>
+	    <br>-->
+	    
+	    <input type="color" id="color_suit" value="#000080">
+	    <label for="color_suit">Upper suit color</label>
+	    <br>
+	    
+	    <input type="color" id="color_suit2" value="#000080">
+	    <label for="color_suit2">Lower suit color</label>
+	    <br>
+	    
+	    <input type="color" id="color_dark2" value="#808080">
+	    <label for="color_dark2">Lower suit armor plates</label>
+	    <br>
+	    
+	    <input type="color" id="color_shoes" value="#000000">
+	    <label for="color_shoes">Shoes</label>
+	    <br>
+	    
+	    <input type="color" id="color_skin" value="#808000">
+	    <label for="color_skin">Gloves &amp; neck color</label>
+	    <br>
+	    <br>
+	    
+	    
+	    <div class="set_block">
+		<span class="sdtitle">Start with:</span><br>
+		<input type="checkbox" id="start_with1" value="pistol_and_buildtool">
+		<label for="start_with1">Pistol and build tool</label>
+		<br>
+		<input type="checkbox" id="start_with2" value="sword_and_buildtool" checked>
+		<label for="start_with2">Sword and build tool</label>
+	    </div>
+	    
+	    <div class="set_block">
+		<span class="sdtitle">Character's voice (eSpeak):</span><br>
+		<input type="checkbox" id="voice1" value="low" onclick="globalThis.TestVoice(this)">
+		<label for="voice1">Lowest pitch</label>
+		<br>
+		<input type="checkbox" id="voice2" value="high" onclick="globalThis.TestVoice(this)">
+		<label for="voice2">Low pitch</label>
+		<br>
+		<input type="checkbox" id="voice3" value="high" onclick="globalThis.TestVoice(this)" checked>
+		<label for="voice3">Default</label>
+		<br>
+		<input type="checkbox" id="voice4" value="high" onclick="globalThis.TestVoice(this)">
+		<label for="voice4">High pitch</label>
+		<br>
+		<input type="checkbox" id="voice5" value="high" onclick="globalThis.TestVoice(this)">
+		<label for="voice5">Highest pitch</label>
+	    </div>
+	    <!--
+	    <div class="set_block">
+		Send microphone input as chat messages:<br>
+		<input type="checkbox" id="voice_chat1" value="no" checked>
+		<label for="voice_chat1">No</label>
+		<br>
+		<input type="checkbox" id="voice_chat2" value="yes" onclick="globalThis.StartVoiceRecognition()">
+		<label for="voice_chat2">Yes (Chrome-only, delayed)</label>
+	    </div>
+	    -->
+	    
+	    <div class="set_block">
+		<span class="sdtitle">Assign instructor on start:</span><br>
+		<input type="checkbox" id="hints1" value="no">
+		<label for="hints1">No</label>
+		<br>
+		<input type="checkbox" id="hints2" value="yes" checked>
+		<label for="hints2">Yes</label>
+	    </div>
+	    
+	    <div class="set_block">
+		<span class="sdtitle">Show debug info:</span><br>
+		<input type="checkbox" id="bugs1" value="no" checked>
+		<label for="bugs1">No</label>
+		<br>
+		<input type="checkbox" id="bugs2" value="yes">
+		<label for="bugs2">Yes</label>
+	    </div>
+	    
+	    
+	    <br>
+	    <br>
+	    
+	    <input type="button" style="background-color:#2b7939; width: 300px;" id="start_btn" onclick="sdWorld.Start( globalThis.GetPlayerSettings() );" value="Play with other players"> <input type="button" onclick="globalThis.ResetSkin();" value="Reset skin to default">
+	    
+	    <canvas style="position: absolute;right: 40px;top: 40px;border-radius: 20px;box-shadow: 0 0 0px 5px #7b321963;" id="skin_preview" width="128" height="128"></canvas>
+	</div>
+
+	<script>
+	{
+	    globalThis.connection_established = false;
+	    
+	    let settings_container = document.getElementById( 'settings_container' );
+	    let start_btn = document.getElementById( 'start_btn' );
+	    
+	    let inputs = [];
+	    let inputs_hash = {};
+	    
+	    let skin_preview = document.getElementById( 'skin_preview' );
+	    let ctx = skin_preview.getContext("2d");
+	    ctx.imageSmoothingEnabled = false;
+	    
+	    globalThis.settings_container = settings_container;
+	    globalThis.players_online = '?';
+	    globalThis.players_playing = '?';
+	    
+	    let format = ( v )=>
+	    {
+		v += '';
+		
+		let p = v.length - 3;
+		
+		while ( p > 0 )
+		{
+		    v = v.slice( 0, p ) + ' ' + v.slice( p );
+		    p -= 3;
+		}
+		
+		return v;
+	    };
+	    
+	    let DrawPreview = function()
+	    {
+		settings_container.style.transform = 'scale(' + Math.min( document.body.clientWidth / 1260, Math.min( document.body.clientHeight / 760, 1 ) ) + ')';
+		
+		if ( !ctx.drawImageFilterCache )
+		{
+		    if ( typeof sdRenderer !== 'undefined' )
+		    if ( typeof sdWorld !== 'undefined' )
+		    if ( typeof sdCharacter !== 'undefined' )
+		    if ( typeof sdGun !== 'undefined' )
+		    sdRenderer.AddCacheDrawMethod( ctx );
+		}
+		
+		if ( !ctx.drawImageFilterCache )
+		return;
+	    
+		start_btn.value = 'Play with ' + format( globalThis.players_playing ) + ' other players (' + format( globalThis.players_online ) + ' online)';
+	    
+		ctx.fillStyle = '#7b3219';
+		//ctx.fillStyle = '#111111';
+		ctx.fillRect( 0, 0, 128, 128 );
+	    
+		ctx.save();
+
+		let ent = new sdCharacter({ x:-1, y:0,  });
+		let ent2;
+			
+		if ( inputs_hash[ 'start_with2' ].el.checked )
+		{
+		    ent2 = new sdGun({ x:0, y:0, class: sdGun.CLASS_SWORD });
+		    ent._inventory[ 0 ] = ent2;
+		    ent2._held_by = ent;
+		}
+		else
+		{
+		    ent2 = new sdGun({ x:0, y:0, class: sdGun.CLASS_PISTOL });
+		    ent._inventory[ 1 ] = ent2;
+		    ent2._held_by = ent;
+	        }	
+		
+		
+		if ( !inputs_hash[ 'start_with2' ].el.checked )
+		ent.gun_slot = ( sdWorld.time % 4000 ) < 2000 ? 0 : 1;
+		
+		ent._an = Math.PI / 2;
+		ent.act_x = 1;
+		ent.stands = true;
+		ent._anim_walk = ( sdWorld.time / 100 ) % 10;
+		
+		ent.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter( globalThis.GetPlayerSettings() );
+		
+		if ( sdWorld.time % 5000 < 500 )
+		ent.pain_anim = 10 / ( sdWorld.time % 5000 ) / 500;
+		
+		if ( ( sdWorld.time + 500 ) % 2000 < 250 )
+		{
+		    ent.fire_anim = 5 / ( ( sdWorld.time + 500 ) % 2000 ) / 250;
+		    
+		    if ( !inputs_hash[ 'start_with2' ].el.checked )
+		    ent2.muzzle = 5 / ( ( sdWorld.time + 500 ) % 2000 ) / 250;
+		}
+
+		ctx.scale( 4,4 );
+		ctx.translate( 16, 14 );
+
+		ent.Draw( ctx );
+
+		ent.remove();
+		ent._remove();
+
+		ent2.remove();
+		ent2._remove();
+
+		ctx.restore();
+	    };
+	    globalThis.preview_fnc = DrawPreview;
+	    globalThis.preview_interval = setInterval( globalThis.preview_fnc, 16 );
+	    
+	    function LoopThrough( settings_container )
+	    {
+		for ( let i = 0; i < settings_container.childNodes.length; i++ )
+		{
+		    if ( settings_container.childNodes[ i ].childNodes.length > 0 )
+		    {
+			LoopThrough( settings_container.childNodes[ i ] );
+		    }
+		    
+		    if ( settings_container.childNodes[ i ].nodeName === 'INPUT' )
+		    if ( settings_container.childNodes[ i ].id )
+		    {
+			let obj = { 
+			    el: settings_container.childNodes[ i ],
+			    default_value: null
+			};
+
+			if ( obj.el.type === 'checkbox' )
+			{
+			    Object.defineProperty( obj.el, "value", 
+			    {
+				get: function()
+				{ return this.checked; },
+				set: function(value)
+				{ 
+				    value = ( value === 'true' || value === true ); // localStorage stuff
+				    this.checked = value; }
+			    });
+			}
+
+			obj.default_value = settings_container.childNodes[ i ].value;
+
+			inputs.push( obj );
+			inputs_hash[ settings_container.childNodes[ i ].id ] = obj;
+
+			try {
+			    let v = localStorage.getItem( obj.el.id );
+			    if ( v !== null )
+			    {
+				console.log( obj.el.id, 'set to ', v );
+				obj.el.value = v;
+			    }
+			} catch(e){}
+
+
+			obj.el.addEventListener('change', ()=>
+			{
+			    globalThis.GetPlayerSettings( obj.el );
+
+			    globalThis.SavePlayerSettings();
+			});
+		    }
+		}
+	    }
+	    LoopThrough( settings_container );
+	    
+	    let JustOne = function( prefix, last_changed_el )
+	    {
+		let els = [];
+		
+		for ( let i = 1; inputs_hash[ prefix + i ]; i++ )
+		els.push( inputs_hash[ prefix + i ].el );
+	    
+		let checked_tot = 0;
+		
+		for ( let i = 0; i < els.length; i++ )
+		if ( els[ i ].checked )
+		checked_tot++;
+	    
+		if ( checked_tot !== 1 )
+		{
+		    for ( let i = 0; i < els.length; i++ )
+		    els[ i ].checked = ( els[ i ] === last_changed_el );
+		
+		    if ( last_changed_el === null )
+		    els[ 0 ].checked = true;
+		}
+	    };
+	    
+	    globalThis.enable_debug_info = false;
+	    
+	    globalThis.GetPlayerSettings = function( last_changed_el=null )
+	    {
+		let ret = {};
+		
+		JustOne( 'start_with', last_changed_el );
+		JustOne( 'voice', last_changed_el );
+		//JustOne( 'voice_chat', last_changed_el );
+		JustOne( 'hints', last_changed_el );
+		JustOne( 'bugs', last_changed_el );
+		
+		for ( let i = 0; i < inputs.length; i++ )
+		{
+		    let obj = inputs[ i ];
+		    
+		    ret[ obj.el.id ] = obj.el.value;
+		}
+		
+		return ret;
+	    };
+	    globalThis.SavePlayerSettings = function() // Should be done after validation which is done by globalThis.GetPlayerSettings
+	    {
+		for ( let i = 0; i < inputs.length; i++ )
+		{
+		    let obj = inputs[ i ];
+		    
+		    try {
+			localStorage.setItem( obj.el.id, obj.el.value );
+		    } catch(e){}
+		}
+	    };
+	    
+	    globalThis.ResetSkin = function()
+	    {
+		for ( let i = 0; i < inputs.length; i++ )
+		inputs[ i ].el.value = inputs[ i ].default_value;
+	     
+		globalThis.GetPlayerSettings();
+		globalThis.SavePlayerSettings();
+	    };
+	    
+	    globalThis.TestVoice = function( last_changed_el, phrase='in space, nobody can hear you' )
+	    {
+		let s = globalThis.GetPlayerSettings( last_changed_el );
+		
+		let _voice = sdWorld.ConvertPlayerDescriptionToVoice( s );
+		
+		_voice.amplitude = sdSound.volume_speech * 100;
+		
+		meSpeak.stop();
+		meSpeak.speak( phrase, _voice );
+	    };
+	    
+	    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+	    const SpeechGrammarList = window.webkitSpeechGrammarList || window.SpeechGrammarList;
+	    
+	    const recognition = new SpeechRecognition();
+	    
+	    recognition.continuous = true;
+	    recognition.lang = 'en-US';
+	    recognition.interimResults = false;
+	    recognition.maxAlternatives = 1;
+	    
+	    let crashed = false;
+	    
+	    globalThis.StartVoiceRecognition = function()
+	    {
+		if ( inputs_hash[ 'voice_chat2' ] )
+		if ( inputs_hash[ 'voice_chat2' ].el.checked )
+		{
+		    recognition.start();
+		    crashed = false;
+		}
+	    };
+	    globalThis.StartVoiceRecognition();
+	    
+	    globalThis.recognition = recognition;
+	   
+	    recognition.onresult = function( event )
+	    {
+		const last = event.results.length - 1;
+		
+		globalThis.TestVoice( null, event.results[ last ][ 0 ].transcript );
+		
+		globalThis.socket.emit( 'CHAT', event.results[ last ][ 0 ].transcript.trim() );
+	    };
+	    recognition.onend = (e)=>
+	    {
+		console.log( 'onend' );
+		if ( !crashed )
+		recognition.start();
+	    };
+	    recognition.onerror = function(event) {
+	      console.log( 'Error occurred in recognition: ' + event.error );
+	      crashed = true;
+	    };
+
+	}
+	</script>
+    </body>
+</html>

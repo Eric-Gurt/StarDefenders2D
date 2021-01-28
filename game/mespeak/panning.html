@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>mSpeak.js Stereo Panning Demo</title>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans&amp;subset=latin" rel="stylesheet" type="text/css" />
+    <link href="https://fonts.googleapis.com/css?family=Lato:300&amp;subset=latin" rel="stylesheet" type="text/css" />
+
+<script>
+
+var reader = (function () {
+
+	var theSentence, sentences, reading, queue = [], speakTimer, voicesToLoad,
+		dialogElement, dialogScrollHeight;
+
+	var characters = {
+		user: {
+			amplitude: 100,
+			pitch: 63,
+			speed: 175,
+			wordgap: 1,
+			voice: 'en/en-us',
+			variant: 'f2',
+			pan: -0.8
+		},
+		doctor: {
+			amplitude: 100,
+			pitch: 51,
+			speed: 176,
+			wordgap: 1,
+			voice: 'en/en-rp',
+			variant: 'm7',
+			pan: 0.8
+		}
+	};
+
+	function start() {
+		if (speakTimer) clearTimeout(speakTimer);
+		if (sentences && typeof theSentence !== 'undefined') {
+			var el = sentences[theSentence];
+			if (el) el.className = '';
+		}
+		sentences = document.querySelectorAll('#theDialog p');
+		dialogElement = document.getElementById('theDialog');
+		dialogScrollHeight = dialogElement.scrollHeight;
+		reading = true;
+		theSentence = 0;
+		queue.length = 0;
+		setButtons(false, true, false, true);
+		dialogElement.scrollTop = 0;
+		read();
+	}
+
+	function read() {
+		var el = sentences[theSentence];
+		el.className = 'current';
+		if (theSentence === 0) {
+			characters.user.rawdata = false;
+			meSpeak.speak(
+				el.textContent || el.innerText || 'Oops!',
+				characters.user,
+				readCallback
+			);
+		}
+		else if (queue.length) {
+			meSpeak.play(queue.shift(), 1, readCallback, 0, theSentence % 2? 0.8:-0.8);
+		}
+		else {
+			return;
+		}
+		var nextSentence = theSentence + 1;
+		if (nextSentence < sentences.length) {
+			el = sentences[nextSentence];
+			var opts = nextSentence % 2? characters.doctor:characters.user;
+			opts.rawdata = true;
+			meSpeak.speak(
+				el.textContent || el.innerText || 'Oops!',
+				opts,
+				function(success, id, stream) {
+					if (success) {
+						queue.push(stream);
+						if (nextSentence === theSentence) read();
+					}
+				}
+			);
+		}
+	}
+
+	function readCallback(success) {
+		if (speakTimer) clearTimeout(speakTimer);
+		var lastEl = sentences[theSentence];
+		if (success && ++theSentence<sentences.length) {
+			var el = sentences[theSentence];
+			dialogElement.scrollTop = Math.max(0,
+				Math.min(
+					dialogScrollHeight,
+					el.offsetTop - dialogElement.offsetTop - (dialogElement.offsetHeight/2 -el.offsetHeight)
+				)
+			);
+			if (reading) {
+				speakTimer=setTimeout(read, 1);
+			}
+			else {
+				el.className = 'next';
+				setButtons(true, false, true, false);
+			}
+		}
+		else {
+			theSentence = 0;
+			setButtons(true, false, false, false);
+		}
+		lastEl.className = '';
+	}
+
+	function pause() {
+		reading = !reading;
+		if (reading) {
+			setButtons(false, true, false, true);
+			speakTimer = setTimeout(read, 1);
+		}
+		else {
+			setButtons(false, false, false, true);
+		}
+	}
+
+	function stop() {
+		if (speakTimer) clearTimeout(speakTimer);
+		reading = false;
+		if (typeof theSentence !== 'undefined') sentences[theSentence].className = '';
+		theSentence = 0;
+		meSpeak.stop();
+		setButtons(true, false, false, false);
+	}
+
+	function setButtons(b1, b2, b3, b4) {
+		document.getElementById('buttonStart').disabled = !b1;
+		document.getElementById('buttonPause').disabled = !b2;
+		document.getElementById('buttonContinue').disabled = !b3;
+		document.getElementById('buttonStop').disabled = !b4;
+	}
+
+	function voiceLoaded() {
+		function initButtons() {
+			setButtons(true, false, false);
+		}
+		if (--voicesToLoad === 0) {
+			if (document.readyState === 'loading') {
+				// wait for DOM
+				document.addEventListener('DOMContentLoaded', initButtons, false);
+			}
+			else {
+				initButtons();
+			}
+		}
+	}
+
+	function loadMeSpeak() {
+		var script = document.createElement('script');
+		script.src = 'mespeak.js';
+		script.onload = function() {
+			if (typeof meSpeak !== 'undefined' && meSpeak.canPlay()) {
+				voicesToLoad = 2;
+				meSpeak.loadVoice('en/en-rp', voiceLoaded);
+				meSpeak.loadVoice('en/en-us', voiceLoaded);
+			}
+			else {
+				alert('Sorry, your browser doesn\'t feature the standars required to execute the scripts on this page.');
+			}
+		};
+		document.querySelector('head').appendChild(script);
+	}
+
+	loadMeSpeak();
+
+	return {
+		'start': start,
+		'stop': stop,
+		'pause': pause
+	};
+
+})();
+
+</script>
+
+<style>
+body, html { margin: 0; padding: 0; }
+body { background-color: #e2e3e4; font-size: 16px; }
+
+div#content
+{
+	position: relative;
+	width: 880px;
+	max-width: 100%;
+	box-sizing: border-box;
+	padding: 30px 40px 60px 40px;
+	margin: 2em auto 4em auto;
+	background-color: #fafafb;
+	color: #111;
+	font-family: 'Open Sans',sans-serif;
+	font-size: 13px;
+	line-height: 18px;
+	clear: both;
+}
+
+h1
+{
+	font-family: 'Lato',sans-serif;
+	font-weight: 300;
+	font-size: 40px;
+	color: #222;
+	line-height: 46px;
+	margin: 0 0 1em 0;
+}
+h1 em { color: #2681a7; font-style: normal; }
+
+#theButtons
+{
+	margin: 1.5em 0 0 11px;
+	padding: 0;
+}
+
+button {
+	padding: 4px;
+	width: 7em;
+	white-space: nowrap;
+	margin-right: 0.8em;
+	text-align: center;
+}
+
+#theDialog
+{
+	margin: 1.5em 0 0.5em 0;
+	padding: 1px;
+	border: 1px #ccc solid;
+	width: auto;
+	max-height: 400px;
+	overflow-y: scroll;
+	font-family: 'Source Code Pro', sans-serif;
+	font-weight: 400;
+	font-size: 12px;
+	line-height: 17px;
+	color: #222;
+}
+
+#theDialog p
+{
+	margin: 0;
+	padding: 4px 4px 4px 12px;
+}
+
+#theDialog p.next {
+	background-color: #f2f3f5;
+	background-image: none;
+}
+#theDialog p.current {
+	background-color: #d9f49e;
+	background-image: none;
+	color: #111;
+}
+
+p.note { color: #333; }
+
+a { color: #006f9e; text-decoration: none; }
+a:hover,a:focus { color: #2681a7; text-decoration: underline; }
+a:active { color: #cd360e; text-decoration: underline; }
+
+p.ref,p.homelink {margin-top: 3em; }
+
+dl { display: block; }
+dt { vertical-align: top; float: left; }
+dd { margin-left: 2.25em; vertical-align: top; }
+dd:after { content: ""; clear: both; display: table; }
+</style>
+</head>
+<body>
+<div id="content">
+	<h1><em>meSpeak.js</em> Stereo Panning Demo</h1>
+	
+	<p>This is an example for stereo panning with <em>meSpeak.js 2.0</em>. The dialog, a sample transcript of a session with Joseph Weizenbaum's famous <a href="https://www.masswerk.at/eliza/" target="_blank">ELIZA</a> natural language conversation program <a href="#Eliza">[1]</a>, is read by two distinctive characters: A female, US-English speaking voice representing the user, positioned 80% to the left, and a male character using the Englisch Received Pronunciation (RP), who inpersonates the virtual doctor, speaking from 80% to the right.</p>
+	
+	<div id="theButtons">
+		<button id="buttonStart" disabled="true" onclick="reader.start()">Read</button>
+		<button id="buttonPause" disabled="true" onclick="reader.pause()">Pause</button>
+		<button id="buttonContinue" disabled="true" onclick="reader.pause()">Continue</button>
+		<button id="buttonStop" disabled="true" onclick="reader.stop()">Stop</button>
+	</div>
+	<div id="theDialog">
+		<p>Men are all alike.</p>
+		<p>IN WHAT WAY?</p>
+		<p>They're always bugging us about something or other.</p>
+		<p>CAN YOU THINK OF A SPECIFIC EXAMPLE?</p>
+		<p>Well, my boyfriend made me come here.</p>
+		<p>YOUR BOYFRIEND MADE YOU COME HERE?</p>
+		<p>He says I'm depressed much of the time.</p>
+		<p>I AM SORRY TO HEAR YOU ARE DEPRESSED.</p>
+		<p>It's true. I am unhappy.</p>
+		<p>DO YOU THINK COMING HERE WILL HELP YOU NOT TO BE UNHAPPY.</p>
+		<p>I need some help, that much seems certain.</p>
+		<p>WHAT WOULD IT MEAN TO YOU IF YOU GOT SOME HELP?</p>
+		<p>Perhaps I could learn to get along with my mother.</p>
+		<p>TELL ME MORE ABOUT YOUR FAMILY.</p>
+		<p>My mother takes care of me.</p>
+		<p>WHO ELSE IN YOUR FAMILY TAKES CARE OF YOU?</p>
+		<p>My father.</p>
+		<p>YOUR FATHER?</p>
+		<p>You are like my father in some ways.</p>
+		<p>WHAT RESEMBLANCE DO YOU SEE?</p>
+		<p>You are not very aggressive but I think you don't want me to notice that.</p>
+		<p>WHAT MAKES YOU THINK I AM NOT VERY AGGRESSIVE?</p>
+		<p>You don't argue with me.</p>
+		<p>WHY DO YOU THINK I DON'T ARGUE WITH YOU?</p>
+		<p>You are afraid of me.</p>
+		<p>DOES IT PLEASE YOU TO BELIEVE I AM AFRAID OF YOU?</p>
+		<p>My father is afraid of everybody.</p>
+		<p>WHAT ELSE COMES TO YOUR MIND WHEN YOU THINK OF YOUR FATHER?</p>
+		<p>Bullies.</p>
+		<p>DOES THAT HAVE ANYTHING TO DO WITH THE FACT THAT YOUR BOYFRIEND MADE YOU COME HERE?</p>
+	</div>
+	<p>(The capitalized lines are the machine responses.)</p>
+	<p class="ref">References:</p>
+	<dl>
+		<dt id="Eliza">[1]</td>
+		<dd>
+			Weizenbaum, Joseph &quot;ELIZA &#150; A Computer Program For the Study of Natural Language
+			Communication Between Man and Machine&quot;<br />
+			in: Communications of the ACM; Volume 9 , Issue 1 (January 1966): p 36-45.
+		</dd>
+	</dl>
+	<p class="homelink">&copy; 2019 Norbert Landsteiner, <a href="http://www.masswerk.at/" target="_top">www.masswerk.at</a>, <a href="http://www.masswerk.at/mespeak" target="_top">www.masswerk.at/mespeak</a></p>
+</div>
+</body>
+</html>
