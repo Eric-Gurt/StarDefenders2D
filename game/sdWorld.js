@@ -358,7 +358,7 @@ class sdWorld
 				let enemy_rand_num = Math.random();
 				let random_enemy;
 				
-				if ( Math.pow( enemy_rand_num, 4 ) > 1 / hp_mult )
+				if ( Math.pow( enemy_rand_num, 5 ) > 1 / hp_mult )
 				random_enemy = 'sdOctopus';
 				else
 				if ( Math.pow( enemy_rand_num, 2 ) > 0.8 / hp_mult )

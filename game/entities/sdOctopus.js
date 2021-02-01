@@ -63,6 +63,9 @@ class sdOctopus extends sdEntity
 		
 		this.side = 1;
 		
+		this._consumed_matter = [];
+		this._consumed_guns = [];
+		
 		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
@@ -110,6 +113,24 @@ class sdOctopus extends sdEntity
 			if ( initiator )
 			if ( initiator._socket )
 			initiator._socket.score += 10;
+	
+			while ( this._consumed_matter.length > 0 )
+			{
+				sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 1, this._consumed_matter[ 0 ].extra / sdWorld.crystal_shard_value );
+				
+				this._consumed_matter.shift();
+			}
+			
+			while ( this._consumed_guns.length > 0 )
+			{
+				let ent = new sdGun({ class:this._consumed_guns[ 0 ], x: this.x, y:this.y });
+				ent.sx = sx + Math.random() * 8 - 4;
+				ent.sy = sy + Math.random() * 8 - 4;
+				ent.ttl = sdGun.disowned_guns_ttl;
+				sdEntity.entities.push( ent );
+				
+				this._consumed_guns.shift();
+			}
 		}
 		
 		if ( this._hea < -this._hmax / 80 * 100 )
@@ -238,7 +259,16 @@ class sdOctopus extends sdEntity
 					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, [ 'sdOctopus' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
 					{
 						from_entity.Damage( 50 );
-
+						
+						if ( from_entity._is_being_removed )
+						if ( from_entity.GetClass() === 'sdGun' )
+						{
+							if ( from_entity.class === sdGun.CLASS_CRYSTAL_SHARD )
+							this._consumed_matter.push( from_entity.extra );
+							else
+							this._consumed_guns.push( from_entity.class );
+						}
+						
 						this._hea = Math.min( this._hmax, this._hea + 25 );
 
 						sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
