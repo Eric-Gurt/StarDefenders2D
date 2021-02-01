@@ -62,6 +62,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_GROUND });
 		sdShop.options.push({ _class: 'sdCom' });
 		sdShop.options.push({ _class: 'sdTeleport' });
+		sdShop.options.push({ _class: 'sdAntigravity' });
 		
 
 		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP });
@@ -71,6 +72,10 @@ class sdShop
 		
 		sdShop.options.push({ _class: 'sdTurret' });
 		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 });
+		
+		sdShop.options.push({ _class: 'sdOctopus' });
+		sdShop.options.push({ _class: 'sdQuickie' });
+		sdShop.options.push({ _class: 'sdVirus' });
 		
 		for ( var i = 0; i < 3; i++ )
 		{
@@ -136,7 +141,7 @@ class sdShop
 			upgrade_hook:
 			{
 				max_level: 1,
-				matter_cost: 100,
+				matter_cost: 75,
 				action: ( character, level_purchased )=>
 				{
 					character._hook_allowed = true;
@@ -145,7 +150,7 @@ class sdShop
 			upgrade_jetpack:
 			{
 				max_level: 1,
-				matter_cost: 50,
+				matter_cost: 75,
 				action: ( character, level_purchased )=>
 				{
 					character._jetpack_allowed = true;
@@ -154,7 +159,7 @@ class sdShop
 			upgrade_invisibility:
 			{
 				max_level: 1,
-				matter_cost: 75,
+				matter_cost: 150,
 				action: ( character, level_purchased )=>
 				{
 					character._ghost_allowed = true;
@@ -163,7 +168,7 @@ class sdShop
 			upgrade_coms:
 			{
 				max_level: 1,
-				matter_cost: 100,
+				matter_cost: 75,
 				action: ( character, level_purchased )=>
 				{
 					character._coms_allowed = true;

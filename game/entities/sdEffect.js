@@ -189,6 +189,24 @@ class sdEffect extends sdEntity
 		{
 			let spoken = this._text;
 			
+			if ( spoken === 'ty' )
+			spoken = 'thank you';
+			
+			if ( spoken === 'np' )
+			spoken = 'no problems';
+			
+			if ( spoken === 'smh' )
+			spoken = 'shaking my head';
+			
+			if ( spoken === 'brb' )
+			spoken = 'be right back';
+			
+			if ( spoken === 'idk' )
+			spoken = 'i don\'t know';
+			
+			if ( spoken === 'jk' )
+			spoken = 'joking';
+			
 			spoken = spoken.split('-').join('');
 			
 			spoken = spoken.split(':)').join('smileyface');
@@ -232,6 +250,10 @@ class sdEffect extends sdEntity
 			}
 			  //debugger;
 		}
+	}
+	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
+	{
+		return [ 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdCrystal' ];
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{

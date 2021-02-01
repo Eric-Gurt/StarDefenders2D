@@ -271,8 +271,8 @@ class sdCharacter extends sdEntity
 				if ( this._socket )
 				if ( this._socket.score > 0 )
 				{
-					initiator._socket.score += ~~( this._socket.score * 0.5 );
-					this._socket.score = 0;
+					initiator._socket.score += ~~( ( this._socket.score - 1 ) * 0.5 );
+					this._socket.score = 1; // Or else body will break on respawn
 				}
 			}
 			else
@@ -551,7 +551,7 @@ class sdCharacter extends sdEntity
 					this.act_y = 0;
 				}*/
 				
-				if ( this._key_states.GetKey( 'Mouse2' ) && this._hook_allowed )
+				if ( this.hea > 0 && this._key_states.GetKey( 'Mouse2' ) && this._hook_allowed )
 				{
 					if ( this._hook_once )
 					{
@@ -929,6 +929,7 @@ class sdCharacter extends sdEntity
 
 					//console.warn( { x: this.x, y: this.y, type:sdEffect.TYPE_GIB, sx: this.sx + Math.sin(a)*s, sy: this.sy + Math.cos(a)*s } )
 
+					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD });
 					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s });
 				}
 			}
@@ -1014,6 +1015,12 @@ class sdCharacter extends sdEntity
 						}
 					}
 				}
+			}
+			else
+			if ( from_entity.GetClass() === 'sdBlock' )
+			if ( from_entity._contains_class === 'sdQuickie' )
+			{
+				from_entity.Damage( 1 ); // Will break
 			}
 		}
 	}

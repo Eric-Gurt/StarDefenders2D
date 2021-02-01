@@ -55,7 +55,7 @@ class sdBlock extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 		
-		if ( this._contains_class === 'sdVirus' )
+		if ( this._contains_class === 'sdVirus' || this._contains_class === 'sdQuickie' )
 		dmg = this._hea + 1;
 		
 		if ( this._hea > 0 )
@@ -100,6 +100,16 @@ class sdBlock extends sdEntity
 		this.HandleDestructionUpdate();
 		
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+		
+		/*if ( sdWorld.is_server )
+		for ( var i = 0; i < sdEntity.entities.length; i++ )
+		{
+			if ( sdEntity.entities[ i ].x === params.x )
+			if ( sdEntity.entities[ i ].y === params.y )
+			{
+				debugger;
+			}
+		}*/
 	}
 	MeasureMatterCost()
 	{

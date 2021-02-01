@@ -390,6 +390,7 @@ class sdDoor extends sdEntity
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
 		if ( sdEntity.entities[ i ].GetClass() === 'sdCom' )
 		if ( sdWorld.Dist2D( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this.x0, this.y0 ) < sdCom.retransmit_range )
+		if ( sdWorld.CheckLineOfSight( this.x0, this.y0, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
 		{
 			ctx.beginPath();
 			ctx.moveTo( sdEntity.entities[ i ].x - this.x, sdEntity.entities[ i ].y - this.y );

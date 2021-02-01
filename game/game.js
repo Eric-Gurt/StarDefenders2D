@@ -31,6 +31,9 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdWeather from './entities/sdWeather.js';
 	import sdTurret from './entities/sdTurret.js';
 	import sdMatterContainer from './entities/sdMatterContainer.js';
+	import sdQuickie from './entities/sdQuickie.js';
+	import sdOctopus from './entities/sdOctopus.js';
+	import sdAntigravity from './entities/sdAntigravity.js';
 
 
 	sdWorld.init_class();
@@ -57,6 +60,9 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdWeather.init_class();
 	sdTurret.init_class();
 	sdMatterContainer.init_class();
+	sdQuickie.init_class();
+	sdOctopus.init_class();
+	sdAntigravity.init_class();
 	
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;

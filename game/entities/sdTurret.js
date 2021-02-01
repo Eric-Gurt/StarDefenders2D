@@ -86,9 +86,9 @@ class sdTurret extends sdEntity
 						{
 							if ( e !== this._owner || sdWorld.GetComsNear( this.x, this.y ).length > 0 )
 							if ( ( e.GetClass() === 'sdCharacter' && sdWorld.GetComsNear( this.x, this.y, null, e._net_id ).length === 0 ) || 
-								 e.GetClass() === 'sdVirus' )
+								 e.GetClass() === 'sdVirus' || e.GetClass() === 'sdQuickie' )
 							{
-								if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor' ] ) )
+								if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
 								{
 									this._target = e;
 									break;
@@ -153,6 +153,7 @@ class sdTurret extends sdEntity
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
 		if ( sdEntity.entities[ i ].GetClass() === 'sdCom' )
 		if ( sdWorld.Dist2D( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this.x, this.y ) < sdCom.retransmit_range )
+		if ( sdWorld.CheckLineOfSight( this.x, this.y, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
 		{
 			ctx.beginPath();
 			ctx.moveTo( sdEntity.entities[ i ].x - this.x, sdEntity.entities[ i ].y - this.y );

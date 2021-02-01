@@ -55,7 +55,12 @@ class sdCrystal extends sdEntity
 		this._hea -= dmg;
 		
 		if ( this._hea <= 0 )
-		this.remove();
+		{
+			sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:1 });
+			this.remove();
+		}
+		else
+		sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, volume:1 });
 	}
 	Impulse( x, y )
 	{
@@ -109,7 +114,7 @@ class sdCrystal extends sdEntity
 	}
 	onRemove() // Class-specific, if needed
 	{
-		sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
+		//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
 		
 		sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
 			Math.ceil( Math.max( 5, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),

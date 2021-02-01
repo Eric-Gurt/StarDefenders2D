@@ -14,6 +14,8 @@ class sdCom extends sdEntity
 		sdCom.retransmit_range = 200; // Messages within this range are retransmitted to other coms
 		sdCom.max_subscribers = 32;
 		
+		sdCom.com_visibility_ignored_classes = [ 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdMatterContainer', 'sdTeleport' ];
+		
 		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
 	}
 	get hitbox_x1() { return -4; }
@@ -97,6 +99,7 @@ class sdCom extends sdEntity
 		
 		let nearby_coms = sdWorld.GetComsNear( this.x, this.y, null, null );
 		for ( var i = 0; i < nearby_coms.length; i++ )
+		if ( sdWorld.CheckLineOfSight( this.x, this.y, nearby_coms[ i ].x, nearby_coms[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
 		{
 			if ( append1_or_remove0_or_inherit_back2 === 2 )
 			{
@@ -133,6 +136,7 @@ class sdCom extends sdEntity
 			 sdEntity.entities[ i ].GetClass() === 'sdTurret' || 
 			 ( sdEntity.entities[ i ].GetClass() === 'sdBlock' && sdEntity.entities[ i ].material === sdBlock.MATERIAL_SHARP ) )
 		if ( sdWorld.Dist2D( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this.x, this.y ) < sdCom.retransmit_range )
+		if ( sdWorld.CheckLineOfSight( this.x, this.y, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
 		{
             
 			ctx.beginPath();

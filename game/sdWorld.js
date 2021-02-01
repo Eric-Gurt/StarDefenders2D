@@ -355,13 +355,26 @@ class sdWorld
 			
 			if ( y >= from_y )
 			{
+				let enemy_rand_num = Math.random();
+				let random_enemy;
+				
+				if ( Math.pow( enemy_rand_num, 4 ) > 1 / hp_mult )
+				random_enemy = 'sdOctopus';
+				else
+				if ( Math.pow( enemy_rand_num, 2 ) > 0.8 / hp_mult )
+				random_enemy = 'sdQuickie';
+				else
+				random_enemy = 'sdVirus';
+				
+				
+				
 				ent = new sdBlock({ 
 					x:x, 
 					y:y, 
 					width:16, 
 					height:16,
 					material: sdBlock.MATERIAL_GROUND,
-					contains_class: ( Math.random() > 0.75 / hp_mult ) ? ( Math.random() < 0.3 / hp_mult ? 'sdVirus' : 'sdCrystal' ) : null,
+					contains_class: ( Math.random() > 0.75 / hp_mult ) ? ( Math.random() < 0.3 ? random_enemy : 'sdCrystal' ) : null,
 					filter: f
 					//filter: 'hue-rotate('+(~~(Math.sin( ( Math.min( from_y, sdWorld.world_bounds.y2 - 256 ) - y ) * 0.005 )*360))+'deg)' 
 				});
@@ -684,6 +697,13 @@ class sdWorld
 		}
 	}
 	
+
+	static shuffleArray(array) {
+		for (let i = array.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[array[i], array[j]] = [array[j], array[i]];
+		}
+	}
 	static Dist2D_Vector_pow2( tox, toy )
 	{
 		return ( tox*tox + toy*toy );

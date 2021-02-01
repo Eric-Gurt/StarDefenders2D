@@ -6,31 +6,33 @@ import sdEffect from './sdEffect.js';
 import sdGun from './sdGun.js';
 import sdWater from './sdWater.js';
 
-class sdVirus extends sdEntity
+import sdBlock from './sdBlock.js';
+
+class sdQuickie extends sdEntity
 {
 	static init_class()
 	{
-		sdVirus.img_virus = sdWorld.CreateImageFromFile( 'virus' );
-		sdVirus.img_virus_walk = sdWorld.CreateImageFromFile( 'virus_walk' );
+		sdQuickie.img_quickie_idle1 = sdWorld.CreateImageFromFile( 'quickie_idle1' );
+		sdQuickie.img_quickie_idle2 = sdWorld.CreateImageFromFile( 'quickie_idle2' );
+		sdQuickie.img_quickie_walk1 = sdWorld.CreateImageFromFile( 'quickie_walk1' );
+		sdQuickie.img_quickie_walk2 = sdWorld.CreateImageFromFile( 'quickie_walk2' );
 		
-		sdVirus.death_imgs = [
-			sdWorld.CreateImageFromFile( 'virus_death1' ),
-			sdWorld.CreateImageFromFile( 'virus_death2' ),
-			sdWorld.CreateImageFromFile( 'virus_death3' ),
-			sdWorld.CreateImageFromFile( 'virus_death4' ),
-			sdWorld.CreateImageFromFile( 'virus_death5' )
+		sdQuickie.death_imgs = [
+			sdWorld.CreateImageFromFile( 'quickie_death1' ),
+			sdWorld.CreateImageFromFile( 'quickie_death2' ),
+			sdWorld.CreateImageFromFile( 'quickie_death3' )
 		];
-		sdVirus.death_duration = 10;
-		sdVirus.post_death_ttl = 90;
+		sdQuickie.death_duration = 10;
+		sdQuickie.post_death_ttl = 90;
 		
-		sdVirus.max_seek_range = 1000;
+		sdQuickie.max_seek_range = 1000;
 		
 		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
 	}
 	get hitbox_x1() { return -6; }
 	get hitbox_x2() { return 6; }
-	get hitbox_y1() { return ( this.death_anim === 0 ) ? -5 : 1; }
-	get hitbox_y2() { return 4; }
+	get hitbox_y1() { return -5; }
+	get hitbox_y2() { return 5; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return this.death_anim === 0; }
@@ -42,7 +44,7 @@ class sdVirus extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 80;
+		this._hmax = 50;
 		this._hea = this._hmax;
 		
 		this.death_anim = 0;
@@ -55,7 +57,7 @@ class sdVirus extends sdEntity
 		
 		this.side = 1;
 		
-		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
+		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
@@ -63,14 +65,14 @@ class sdVirus extends sdEntity
 		if ( character.hea > 0 )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
-			if ( di < sdVirus.max_seek_range )
+			if ( di < sdQuickie.max_seek_range )
 			if ( this._current_target === null || 
 				 this._current_target.hea <= 0 || 
 				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
 			{
 				this._current_target = character;
 
-				sdSound.PlaySound({ name:'virus_alert', x:this.x, y:this.y, volume: 0.5 });
+				sdSound.PlaySound({ name:'quickie_alert', x:this.x, y:this.y, volume: 0.5 });
 			}
 		}
 	}
@@ -80,7 +82,7 @@ class sdVirus extends sdEntity
 	}
 	GetBleedEffectFilter()
 	{
-		return this.filter;
+		return 'hue-rotate(-56deg)'; // Yellow
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -107,8 +109,8 @@ class sdVirus extends sdEntity
 	}
 	Impulse( x, y )
 	{
-		this.sx += x * 0.1;
-		this.sy += y * 0.1;
+		this.sx += x * 0.2;
+		this.sy += y * 0.2;
 	}
 	Impact( vel ) // fall damage basically
 	{
@@ -120,9 +122,12 @@ class sdVirus extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
+		
+		
 		if ( this._hea <= 0 )
 		{
-			if ( this.death_anim < sdVirus.death_duration + sdVirus.post_death_ttl )
+			if ( this.death_anim < sdQuickie.death_duration + sdQuickie.post_death_ttl )
 			this.death_anim += GSPEED;
 			else
 			this.remove();
@@ -130,7 +135,7 @@ class sdVirus extends sdEntity
 		else
 		if ( this._current_target )
 		{
-			if ( this._current_target._is_being_removed || this._current_target.ghosting || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdVirus.max_seek_range + 32 )
+			if ( this._current_target._is_being_removed || this._current_target.ghosting || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdQuickie.max_seek_range + 32 )
 			this._current_target = null;
 			else
 			{
@@ -138,23 +143,33 @@ class sdVirus extends sdEntity
 			
 				if ( this._last_jump < sdWorld.time - 100 )
 				//if ( this._last_stand_on )
-				if ( !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) )
+				if ( in_water || !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) )
 				{
 					this._last_jump = sdWorld.time;
 					
-					let dx = ( this._current_target.x - this.x ) * 0.1;
-					let dy = ( this._current_target.y - this.y ) * 0.1;
+					let dx = ( this._current_target.x - this.x );
+					let dy = ( this._current_target.y - this.y );
 					
-					dy -= Math.abs( dx ) * 0.5;
+					//dy -= Math.abs( dx ) * 0.5;
+					
+					if ( dx > 0 )
+					dx = 5;
+					else
+					dx = -5;
+					
+					if ( dy > 0 )
+					dy = 1;
+					else
+					dy = -1;
 					
 					let di = sdWorld.Dist2D_Vector( dx, dy );
-					if ( di > 7 )
+					if ( di > 5 )
 					{
 						dx /= di;
 						dy /= di;
 						
-						dx *= 7;
-						dy *= 7;
+						dx *= 5;
+						dy *= 5;
 					}
 					
 					this.sx = dx;
@@ -166,26 +181,30 @@ class sdVirus extends sdEntity
 			}
 		}
 		
-		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
-		
 		if ( in_water )
 		{
 			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.87, GSPEED );
 			this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.87, GSPEED );
+			
+			if ( this._hea > 0 )
+			this.sy -= sdWorld.gravity * GSPEED * 2;
 		}
-		//else
-		//{
-			this.sy += sdWorld.gravity * GSPEED;
-		//}
+		
+		this.sy += sdWorld.gravity * GSPEED;
+		
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 		
 		if ( this.death_anim === 0 )
 		if ( this._current_target )
-		if ( this._last_bite < sdWorld.time - 1000 )
+		if ( this._last_bite < sdWorld.time - 500 )
 		{
 			let nears = sdWorld.GetAnythingNear( this.x, this.y, 8 );
 			let from_entity;
+				
+			sdWorld.shuffleArray( nears );
+			
+			let max_targets = 3;
 			
 			for ( var i = 0; i < nears.length; i++ )
 			{
@@ -193,16 +212,22 @@ class sdVirus extends sdEntity
 					
 				let xx = from_entity.x + ( from_entity.hitbox_x1 + from_entity.hitbox_x2 ) / 2;
 				let yy = from_entity.y + ( from_entity.hitbox_y1 + from_entity.hitbox_y2 ) / 2;
-				
-				if ( from_entity.GetClass() === 'sdCharacter' )
+
+				if ( from_entity.GetClass() === 'sdCharacter' ||
+					 from_entity.GetClass() === 'sdBlock' ||
+					 from_entity.GetClass() === 'sdMatterContainer' ||
+					 from_entity.GetClass() === 'sdDoor' ||
+					 from_entity.GetClass() === 'sdTurret' )
 				{
 					this._last_bite = sdWorld.time;
-					from_entity.Damage( 30 );
+					from_entity.Damage( 15 );
 					
-					this._hea = Math.min( this._hmax, this._hea + 15 );
+					this._hea = Math.min( this._hmax, this._hea + 7 );
 
 					sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 					
+					max_targets--;
+					if ( max_targets <= 0 )
 					break;
 				}
 			}
@@ -211,29 +236,34 @@ class sdVirus extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, "Virus" );
+		sdEntity.Tooltip( ctx, "Quickie" );
 	}
 	Draw( ctx, attached )
 	{
-		ctx.filter = this.filter;
+		//ctx.filter = this.filter;
 		
 		ctx.scale( this.side, 1 );
 		
 		if ( this.death_anim > 0 )
 		{
-			if ( this.death_anim > sdVirus.death_duration + sdVirus.post_death_ttl - 30 )
+			if ( this.death_anim > sdQuickie.death_duration + sdQuickie.post_death_ttl - 30 )
 			{
 				ctx.globalAlpha = 0.5;
 			}
 			
-			let frame = Math.min( sdVirus.death_imgs.length - 1, ~~( ( this.death_anim / sdVirus.death_duration ) * sdVirus.death_imgs.length ) );
-			ctx.drawImageFilterCache( sdVirus.death_imgs[ frame ], - 16, - 16, 32,32 );
+			let frame = Math.min( sdQuickie.death_imgs.length - 1, ~~( ( this.death_anim / sdQuickie.death_duration ) * sdQuickie.death_imgs.length ) );
+			ctx.drawImageFilterCache( sdQuickie.death_imgs[ frame ], - 16, - 16, 32,32 );
 		}
 		else
-		ctx.drawImageFilterCache( ( sdWorld.time % 400 < 200 ) ? sdVirus.img_virus : sdVirus.img_virus_walk, - 16, - 16, 32,32 );
+		{
+			if ( Math.abs( this.sx ) < 2 )
+			ctx.drawImageFilterCache( ( sdWorld.time % 400 < 200 ) ? sdQuickie.img_quickie_idle1 : sdQuickie.img_quickie_idle2, - 16, - 16, 32,32 );
+			else
+			ctx.drawImageFilterCache( ( sdWorld.time % 400 < 200 ) ? sdQuickie.img_quickie_walk1 : sdQuickie.img_quickie_walk2, - 16, - 16, 32,32 );
+		}
 		
 		ctx.globalAlpha = 1;
-		ctx.filter = 'none';
+		//ctx.filter = 'none';
 	}
 	/*onMovementInRange( from_entity )
 	{
@@ -244,7 +274,7 @@ class sdVirus extends sdEntity
 		//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
 		
 		if ( sdWorld.is_server )
-		if ( this.death_anim < sdVirus.death_duration + sdVirus.post_death_ttl ) // not gone by time
+		if ( this.death_anim < sdQuickie.death_duration + sdQuickie.post_death_ttl ) // not gone by time
 		{
 			let a,s,x,y,k;
 			
@@ -272,6 +302,6 @@ class sdVirus extends sdEntity
 		return 0; // Hack
 	}
 }
-//sdVirus.init_class();
+//sdQuickie.init_class();
 
-export default sdVirus;
+export default sdQuickie;

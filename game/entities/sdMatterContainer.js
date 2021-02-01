@@ -18,6 +18,9 @@ class sdMatterContainer extends sdEntity
 	get hitbox_y1() { return -14; }
 	get hitbox_y2() { return 14; }
 	
+	get spawn_align_x(){ return 8; };
+	get spawn_align_y(){ return 8; };
+	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
 	
@@ -123,6 +126,8 @@ class sdMatterContainer extends sdEntity
 	
 	MeasureMatterCost()
 	{
+	//	return 0; // Hack
+		
 		return this._hmax * sdWorld.damage_to_matter + this.matter;
 	}
 }

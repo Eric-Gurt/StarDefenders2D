@@ -87,7 +87,7 @@ class sdGun extends sdEntity
 				muzzle_x: 7,
 				ammo_capacity: -1,
 				count: 1,
-				projectile_properties: { _rail: true, _damage: 70, color: '#62c8f2' }
+				projectile_properties: { _rail: true, _damage: 70, color: '#62c8f2', _knock_scale:0.01 }
 			},
 			{
 				image: sdWorld.CreateImageFromFile( 'rocket' ),
@@ -99,7 +99,7 @@ class sdGun extends sdEntity
 				spread: 0.05,
 				projectile_velocity: 14,
 				count: 1,
-				projectile_properties: { _explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 2, color:sdEffect.default_explosion_color }
+				projectile_properties: { _explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color }
 			},
 			{
 				image: sdWorld.CreateImageFromFile( 'medikit' ),
@@ -205,7 +205,11 @@ class sdGun extends sdEntity
 	{
 		this._hea -= dmg;
 		if ( this._hea <= 0 )
-		this.remove();
+		{
+			if ( this.class === sdGun.CLASS_CRYSTAL_SHARD )
+			sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, volume:1 });
+			this.remove();
+		}
 	}
 	
 	constructor( params )

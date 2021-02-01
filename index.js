@@ -80,6 +80,9 @@ import sdBG from './game/entities/sdBG.js';
 import sdWeather from './game/entities/sdWeather.js';
 import sdTurret from './game/entities/sdTurret.js';
 import sdMatterContainer from './game/entities/sdMatterContainer.js';
+import sdQuickie from './game/entities/sdQuickie.js';
+import sdOctopus from './game/entities/sdOctopus.js';
+import sdAntigravity from './game/entities/sdAntigravity.js';
 
 
 import sdShop from './game/client/sdShop.js';
@@ -151,6 +154,9 @@ sdBG.init_class();
 sdWeather.init_class();
 sdTurret.init_class();
 sdMatterContainer.init_class();
+sdQuickie.init_class();
+sdOctopus.init_class();
+sdAntigravity.init_class();
 
 globalThis.sdWorld = sdWorld;
 
@@ -783,8 +789,14 @@ io.on("connection", (socket) =>
 		{
 			let ent = sdEntity.GetObjectByClassAndNetId( 'sdCom', net_id );
 			if ( ent !== null )
-			if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdCom.action_range ) >= 0 )
-			ent.NotifyAboutNewSubscribers( 1, [ socket.character._net_id ] );
+			{
+				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdCom.action_range ) >= 0 )
+				ent.NotifyAboutNewSubscribers( 1, [ socket.character._net_id ] );
+				else
+				socket.emit('SERVICE_MESSAGE', 'Communication node is too far' );
+			}
+			else
+			socket.emit('SERVICE_MESSAGE', 'Communication node no longer exists' );
 		}
 	});
 	socket.on('COM_UNSUB', ( net_id ) => { 
@@ -794,6 +806,8 @@ io.on("connection", (socket) =>
 			let ent = sdEntity.GetObjectByClassAndNetId( 'sdCom', net_id );
 			if ( ent !== null )
 			ent.NotifyAboutNewSubscribers( 0, [ socket.character._net_id ] );
+			else
+			socket.emit('SERVICE_MESSAGE', 'Communication node no longer exists' );
 		}
 	});
 	socket.on('COM_KICK', ( arr ) => { 
@@ -804,8 +818,14 @@ io.on("connection", (socket) =>
 			let net_id_to_kick = arr[ 1 ];
 			let ent = sdEntity.GetObjectByClassAndNetId( 'sdCom', net_id );
 			if ( ent !== null )
-			if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdCom.action_range ) >= 0 )
-			ent.NotifyAboutNewSubscribers( 0, [ net_id_to_kick ] );
+			{
+				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdCom.action_range ) >= 0 )
+				ent.NotifyAboutNewSubscribers( 0, [ net_id_to_kick ] );
+				else
+				socket.emit('SERVICE_MESSAGE', 'Communication node is too far' );
+			}
+			else
+			socket.emit('SERVICE_MESSAGE', 'Communication node no longer exists' );
 		}
 	});
 	
