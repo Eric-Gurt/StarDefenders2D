@@ -73,10 +73,6 @@ class sdShop
 		sdShop.options.push({ _class: 'sdTurret' });
 		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 });
 		
-		sdShop.options.push({ _class: 'sdOctopus' });
-		sdShop.options.push({ _class: 'sdQuickie' });
-		sdShop.options.push({ _class: 'sdVirus' });
-		
 		for ( var i = 0; i < 3; i++ )
 		{
 			let filter = '';
@@ -181,6 +177,11 @@ class sdShop
 			sdShop.options.push({ _class: null, matter_cost: sdShop.upgrades[ i ].matter_cost, upgrade_name: i });
 		}
 		
+		
+		sdShop.options.push({ _class: 'sdOctopus' });
+		sdShop.options.push({ _class: 'sdQuickie' });
+		sdShop.options.push({ _class: 'sdVirus' });
+		sdShop.options.push({ _class: 'sdCharacter' });
 		
 		sdShop.potential_selection = -1;
 	}

@@ -350,7 +350,7 @@ class sdOctopus extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		return 0; // Hack
+		return 500; // Hack
 	}
 }
 //sdOctopus.init_class();

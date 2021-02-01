@@ -269,7 +269,7 @@ class sdVirus extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		return 0; // Hack
+		return 200; // Hack
 	}
 }
 //sdVirus.init_class();

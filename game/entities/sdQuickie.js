@@ -299,7 +299,7 @@ class sdQuickie extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		return 0; // Hack
+		return 300; // Hack
 	}
 }
 //sdQuickie.init_class();
