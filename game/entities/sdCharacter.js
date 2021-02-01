@@ -1383,7 +1383,7 @@ class sdCharacter extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		return this.hmax * sdWorld.damage_to_matter;
+		return 200; // Hack
 	}
 	Say( t, to_self=true, force_client_side=false )
 	{

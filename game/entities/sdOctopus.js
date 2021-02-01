@@ -46,7 +46,7 @@ class sdOctopus extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 5000;
+		this._hmax = 3000;
 		this._hea = this._hmax;
 		
 		this.death_anim = 0;
@@ -109,7 +109,7 @@ class sdOctopus extends sdEntity
 
 			if ( initiator )
 			if ( initiator._socket )
-			initiator._socket.score += 1;
+			initiator._socket.score += 10;
 		}
 		
 		if ( this._hea < -this._hmax / 80 * 100 )
@@ -225,9 +225,8 @@ class sdOctopus extends sdEntity
 					let xx = from_entity.x + ( from_entity.hitbox_x1 + from_entity.hitbox_x2 ) / 2;
 					let yy = from_entity.y + ( from_entity.hitbox_y1 + from_entity.hitbox_y2 ) / 2;
 
-					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, [ 'sdOctopus' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
 					if ( from_entity.GetClass() === 'sdCharacter' ||
-						 ( from_entity.GetClass() === 'sdBlock' && from_entity.material === sdBlock.MATERIAL_WALL ) ||
+						 ( from_entity.GetClass() === 'sdBlock' && !from_entity._natural ) ||
 						 from_entity.GetClass() === 'sdCom' ||
 						 from_entity.GetClass() === 'sdCrystal' ||
 						 from_entity.GetClass() === 'sdTurret' ||
@@ -236,6 +235,7 @@ class sdOctopus extends sdEntity
 						 ( from_entity.GetClass() === 'sdGun' && from_entity.class !== sdGun.CLASS_BUILD_TOOL && from_entity.class !== sdGun.CLASS_MEDIKIT && ( from_entity._held_by === null || from_entity._held_by.gun_slot === sdGun.classes[ from_entity.class ].slot ) ) || // Yes, held guns too, but only currently held guns. Except for build tool and medikit
 						 from_entity.GetClass() === 'sdTeleport' ||
 						 from_entity.GetClass() === 'sdVirus' )
+					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, [ 'sdOctopus' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
 					{
 						from_entity.Damage( 50 );
 

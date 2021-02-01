@@ -66,6 +66,7 @@ class sdAntigravity extends sdEntity
 		
 		var x = this.x;
 		var y = this.y;
+		let non_recursive = [];
 		for ( var xx = -2; xx <= 2; xx++ )
 		for ( var yy = -12; yy <= 2; yy++ )
 		{
@@ -75,16 +76,22 @@ class sdAntigravity extends sdEntity
 			if ( Math.abs( arr[ i ].x - this.x ) < 16 )
 			if ( arr[ i ].y < this.y )
 			if ( !arr[ i ].is_static )
-			if ( sdWorld.CheckLineOfSight( this.x, this.y, arr[ i ].x, arr[ i ].y, this, null, [ 'sdBlock' ] ) )
 			{
-				//if ( sdWorld.inDist2D( arr[ i ].x, arr[ i ].y, x, y, 30 ) >= 0 )
+				if ( non_recursive.indexOf( arr[ i ] ) === -1 )
 				{
-					arr[ i ].sy -= GSPEED * sdWorld.gravity * 0.9;
-					
-					if ( arr[ i ].GetClass() === 'sdCharacter' )
+					non_recursive.push( arr[ i ] );
+					if ( sdWorld.CheckLineOfSight( this.x, this.y, arr[ i ].x, arr[ i ].y, this, null, [ 'sdBlock' ] ) )
 					{
-						if ( arr[ i ].hea > 0 )
-						arr[ i ].sy += GSPEED * arr[ i ].act_y * 0.1;
+						//if ( sdWorld.inDist2D( arr[ i ].x, arr[ i ].y, x, y, 30 ) >= 0 )
+						{
+							arr[ i ].sy -= GSPEED * sdWorld.gravity * 0.9;
+
+							if ( arr[ i ].GetClass() === 'sdCharacter' )
+							{
+								if ( arr[ i ].hea > 0 )
+								arr[ i ].sy += GSPEED * arr[ i ].act_y * 0.1;
+							}
+						}
 					}
 				}
 			}

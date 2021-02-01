@@ -375,7 +375,8 @@ class sdWorld
 					height:16,
 					material: sdBlock.MATERIAL_GROUND,
 					contains_class: ( Math.random() > 0.75 / hp_mult ) ? ( Math.random() < 0.3 ? random_enemy : 'sdCrystal' ) : null,
-					filter: f
+					filter: f,
+					natural: true
 					//filter: 'hue-rotate('+(~~(Math.sin( ( Math.min( from_y, sdWorld.world_bounds.y2 - 256 ) - y ) * 0.005 )*360))+'deg)' 
 				});
 				

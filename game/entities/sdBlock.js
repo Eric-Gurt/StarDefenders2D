@@ -90,6 +90,8 @@ class sdBlock extends sdEntity
 		
 		this.filter = params.filter || '';
 		
+		this._natural = params.natural === true;
+		
 		if ( this.material === sdBlock.MATERIAL_SHARP )
 		{
 			this._owner = params.owner || null; // Useful in case of sharp trap
