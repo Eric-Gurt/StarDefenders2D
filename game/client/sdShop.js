@@ -6,6 +6,7 @@ import sdWorld from '../sdWorld.js';
 import sdEntity from '../entities/sdEntity.js';
 import sdGun from '../entities/sdGun.js';
 import sdBlock from '../entities/sdBlock.js';
+import sdBG from '../entities/sdBG.js';
 import sdRenderer from './sdRenderer.js';
 import sdContextMenu from './sdContextMenu.js';
 
@@ -21,15 +22,34 @@ class sdShop
 		sdShop.scroll_y = 0;
 		sdShop.scroll_y_target = 0;
 		
+		sdShop.current_category = 'root'; // root category
+		
 		sdShop.max_y = 0;
 		
-		function AddBuildPack( filter )
+		sdShop.options.push({ _class: null, image: 'return', _category:'!root',  _opens_category:'root' });
+		sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, _category:'root', _opens_category:'Walls' });
+		sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, material: sdBG.MATERIAL_PLATFORMS, _category:'root', _opens_category:'Background walls' });
+		sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, _category:'root', _opens_category:'Doors' });
+		sdShop.options.push({ _class: 'sdCom', _category:'root', _opens_category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_RIFLE, _category:'root', _opens_category:'Equipment' });
+		sdShop.options.push({ _class: null, image: 'upgrade', _category:'root', _opens_category:'upgrades' });
+		sdShop.options.push({ _class: 'sdVirus', _category:'root', _opens_category:'Development tests' });
+		
+		function AddBuildPack( filter, i )
 		{
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, filter: filter });
-			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, filter: filter });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, filter: filter });
-			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, filter: filter });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, filter: filter });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, filter: filter, _category:'Walls' });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, filter: filter, _category:'Walls' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, filter: filter, _category:'Walls' });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, filter: filter, _category:'Walls' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, filter: filter, _category:'Walls' });
+			
+			//if ( i !== 0 )
+			//{
+				sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: filter + 'brightness(1.5)', material: sdBG.MATERIAL_PLATFORMS_COLORED, _category:'Background walls' });
+				sdShop.options.push({ _class: 'sdBG', width: 32, height: 16, filter: filter + 'brightness(1.5)', material: sdBG.MATERIAL_PLATFORMS_COLORED, _category:'Background walls' });
+				sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, filter: filter + 'brightness(1.5)', material: sdBG.MATERIAL_PLATFORMS_COLORED, _category:'Background walls' });
+				sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter + 'brightness(1.5)', material: sdBG.MATERIAL_PLATFORMS_COLORED, _category:'Background walls' });
+			//}
 		}
 		
 		for ( var i = 0; i < 11; i++ )
@@ -44,34 +64,32 @@ class sdShop
 			filter += ' saturate(4)';
 			if ( i === 10 )
 			filter += ' saturate(2)';
-			//if ( i === 11 )
-			//filter += ' saturate(2)';
 		
-			AddBuildPack( filter );
+			AddBuildPack( filter, i );
 			
 			if ( i !== 6 )
 			if ( i !== 7 )
 			if ( i !== 8 )
-			sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter });
+			sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, _category:'Doors' });
 		}
 		AddBuildPack( 'hue-rotate(-90deg) contrast(0.5) brightness(1.5) saturate(0)' );
 			
 		AddBuildPack( 'hue-rotate(-90deg) saturate(0)' );
-		sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: 'saturate(0)' });
+		sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: 'saturate(0)', _category:'Doors' });
 
-		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_GROUND });
-		sdShop.options.push({ _class: 'sdCom' });
-		sdShop.options.push({ _class: 'sdTeleport' });
-		sdShop.options.push({ _class: 'sdAntigravity' });
+		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_GROUND, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdCom', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdTeleport', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment' });
 		
 
-		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP });
-		sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, material:sdBlock.MATERIAL_SHARP });
-		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, material:sdBlock.MATERIAL_SHARP });
-		sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, material:sdBlock.MATERIAL_SHARP });
+		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, material:sdBlock.MATERIAL_SHARP, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, material:sdBlock.MATERIAL_SHARP, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, material:sdBlock.MATERIAL_SHARP, _category:'Base equipment' });
 		
-		sdShop.options.push({ _class: 'sdTurret' });
-		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 });
+		sdShop.options.push({ _class: 'sdTurret', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640, _category:'Base equipment' });
 		
 		for ( var i = 0; i < 3; i++ )
 		{
@@ -80,10 +98,10 @@ class sdShop
 			filter = 'brightness(0.5)';
 			if ( i === 2 )
 			filter = 'brightness(1.5)';
-			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: filter });
-			sdShop.options.push({ _class: 'sdBG', width: 32, height: 16, filter: filter });
-			sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, filter: filter });
-			sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter });
+			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: filter, _category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 32, height: 16, filter: filter, _category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, filter: filter, _category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter, _category:'Background walls' });
 		}
 		
 		//sdShop.options.push({ _class: 'sdWater' });
@@ -93,7 +111,8 @@ class sdShop
 		{
 			sdShop.options.push({
 				_class: 'sdGun',
-				class: i//sdGun.classes[ i ]
+				class: i, 
+				_category:'Equipment'
 			});
 		}
 		
@@ -174,14 +193,16 @@ class sdShop
 		for ( var i in sdShop.upgrades )
 		{
 			sdShop.upgrades[ i ].image = sdWorld.CreateImageFromFile( i );
-			sdShop.options.push({ _class: null, matter_cost: sdShop.upgrades[ i ].matter_cost, upgrade_name: i });
+			sdShop.options.push({ _class: null, matter_cost: sdShop.upgrades[ i ].matter_cost, upgrade_name: i, 
+				_category:'upgrades' });
 		}
 		
 		
-		sdShop.options.push({ _class: 'sdOctopus' });
-		sdShop.options.push({ _class: 'sdQuickie' });
-		sdShop.options.push({ _class: 'sdVirus' });
-		sdShop.options.push({ _class: 'sdCharacter' });
+		sdShop.options.push({ _class: 'sdOctopus', _category:'Development tests' });
+		sdShop.options.push({ _class: 'sdQuickie', _category:'Development tests' });
+		sdShop.options.push({ _class: 'sdVirus', _category:'Development tests' });
+		sdShop.options.push({ _class: 'sdCharacter', _category:'Development tests' });
+		sdShop.options.push({ _class: 'sdAsteroid', _category:'Development tests' });
 		
 		sdShop.potential_selection = -1;
 	}
@@ -195,8 +216,10 @@ class sdShop
 		
 		let old_active_build_settings = sdWorld.my_entity._build_params;
 			
-		ctx.fillStyle = 'rgba(0,0,0,0.8)';
+		ctx.fillStyle = 'rgb(0,0,0)';
+		ctx.globalAlpha = 0.8;
 		ctx.fillRect( 20, 20, sdRenderer.screen_width - 40, sdRenderer.screen_height - 40 );
+		ctx.globalAlpha = 1;
 		
 		ctx.save();
 		{
@@ -221,10 +244,21 @@ class sdShop
 			let yy = 40 + sdShop.scroll_y;
 
 			sdShop.potential_selection = -1;
-
+			
+			let current_shop_options = [];
 			for ( var i = 0; i < sdShop.options.length; i++ )
 			{
-				sdWorld.my_entity._build_params = sdShop.options[ i ];
+				if ( sdShop.options[ i ]._category === sdShop.current_category || 
+					 ( sdShop.options[ i ]._category.charAt( 0 ) === '!' && sdShop.options[ i ]._category.substring( 1 ) !== sdShop.current_category ) ) // !root case
+				{
+					current_shop_options.push( sdShop.options[ i ] );
+					sdShop.options[ i ]._main_array_index = i;
+				}
+			}
+			
+			for ( var i = 0; i < current_shop_options.length; i++ )
+			{
+				sdWorld.my_entity._build_params = current_shop_options[ i ];
 
 				ctx.save();
 				ctx.translate( xx, yy );
@@ -238,15 +272,23 @@ class sdShop
 				let max_level = 0;
 				let cur_level = 0;
 
+				
 				if ( sdWorld.my_entity._build_params._class === null )
 				{
-					matter_cost = sdWorld.my_entity._build_params.matter_cost;
+					if ( typeof sdWorld.my_entity._build_params._opens_category !== 'undefined' )
+					{
+						matter_cost = 0;
+					}
+					else
+					{
+						matter_cost = sdWorld.my_entity._build_params.matter_cost;
 
-					max_level = sdShop.upgrades[ sdWorld.my_entity._build_params.upgrade_name ].max_level;
-					cur_level = ( sdWorld.my_entity._upgrade_counters[ sdWorld.my_entity._build_params.upgrade_name ] || 0 );
+						max_level = sdShop.upgrades[ sdWorld.my_entity._build_params.upgrade_name ].max_level;
+						cur_level = ( sdWorld.my_entity._upgrade_counters[ sdWorld.my_entity._build_params.upgrade_name ] || 0 );
 
-					if ( cur_level >= max_level )
-					selectable = false;
+						if ( cur_level >= max_level )
+						selectable = false;
+					}
 				}
 				else
 				{
@@ -254,15 +296,25 @@ class sdShop
 					ent.x = -100;
 					ent.y = 0;
 
+					if ( typeof sdWorld.my_entity._build_params._opens_category !== 'undefined' )
+					{
+						matter_cost = 0;
+					}
+					else
 					matter_cost = ent.MeasureMatterCost();
 				}
 
 				if ( selectable )
 				{
+					ctx.globalAlpha = 0.2;
 					if ( sdWorld.my_entity.matter >= matter_cost )
-					ctx.fillStyle = 'rgba(0,255,0,0.2)';
+					{
+						ctx.fillStyle = 'rgb(0,255,0)';
+					}
 					else
-					ctx.fillStyle = 'rgba(255,0,0,0.2)';
+					{
+						ctx.fillStyle = 'rgb(255,0,0)';
+					}
 
 					if ( sdWorld.mouse_screen_x >= xx - 10 )
 					if ( sdWorld.mouse_screen_x < xx + 64 + 10 )
@@ -270,17 +322,20 @@ class sdShop
 					if ( sdWorld.mouse_screen_y < yy + 64 + 10 )
 					if ( sdShop.potential_selection === -1 )
 					{
-						sdShop.potential_selection = i;
-						ctx.fillStyle = 'rgba(255,255,0,0.3)';
+						sdShop.potential_selection = sdWorld.my_entity._build_params._main_array_index; // i;
+						
+						ctx.fillStyle = 'rgb(255,255,0)';
+						ctx.globalAlpha = 0.3;
 					}
 					ctx.fillRect( -5,-5, 32+10,32+10 );
+					ctx.globalAlpha = 1;
 				}
 
 				
 
-				if ( sdShop.options[ i ]._cache )
+				if ( sdWorld.my_entity._build_params._cache )
 				{
-					ctx.drawImage( sdShop.options[ i ]._cache, 0,0 );
+					ctx.drawImage( sdWorld.my_entity._build_params._cache, 0,0 );
 				}
 				else
 				{
@@ -309,11 +364,25 @@ class sdShop
 						ctx2.restore();
 					}
 					else
+					if ( sdWorld.my_entity._build_params.image )
+					{
+						if ( !sdWorld.my_entity._build_params.image_obj )
+						{
+							let obj = sdWorld.my_entity._build_params;
+							sdWorld.my_entity._build_params.image_obj = sdWorld.CreateImageFromFile( sdWorld.my_entity._build_params.image, ()=>
+							{
+								obj._cache = null;
+							});
+						}
+					
+						ctx2.drawImage( sdWorld.my_entity._build_params.image_obj, 0,0, 32,32 );
+					}
+					else
 					{
 						ctx2.drawImage( sdShop.upgrades[ sdWorld.my_entity._build_params.upgrade_name ].image, 0,0, 32,32 );
 					}
 					
-					sdShop.options[ i ]._cache = canvas;
+					sdWorld.my_entity._build_params._cache = canvas;
 				}
 				
 				if ( ent )
@@ -324,23 +393,7 @@ class sdShop
 					ent._remove();
 				}
 				
-				/*if ( ent )
-				{
-					ctx.translate( 16 - ( ent.hitbox_x2 + ent.hitbox_x1 ) / 2, 16 - ( ent.hitbox_y2 + ent.hitbox_y1 ) / 2 );
-					
-					ctx.save();
-					ent.DrawBG( ctx, false );
-					ctx.restore();
-					ent.Draw( ctx );
-
-					ent.remove();
-					ent._remove();
-				}
-				else
-				{
-					ctx.drawImage( sdShop.upgrades[ sdWorld.my_entity._build_params.upgrade_name ].image, 0,0, 32,32 );
-				}*/
-
+				
 				if ( max_level > 0 )
 				{
 					ctx.fillStyle = '#ffffff';
@@ -363,12 +416,80 @@ class sdShop
 		}
 		ctx.restore();
 		
+		if ( sdShop.potential_selection !== -1 )	
+		{
+			const capitalize = (s) => {
+				if (typeof s !== 'string') return '';
+				return s.charAt(0).toUpperCase() + s.slice(1);
+			};
+
+			ctx.font = "12px Verdana";
+			
+			let t = 'No description for ' + JSON.stringify( sdShop.options[ sdShop.potential_selection ] );
+			
+			if ( sdShop.options[ sdShop.potential_selection ]._opens_category )
+			{
+				if ( sdShop.options[ sdShop.potential_selection ]._opens_category === 'root' )
+				t = 'Click to leave this category';
+				else
+				t = 'Click to enter category "' + sdShop.options[ sdShop.potential_selection ]._opens_category + '"';
+			}
+			else
+			{
+				if ( sdShop.options[ sdShop.potential_selection ]._class !== null )
+				{
+					let c = sdShop.options[ sdShop.potential_selection ]._class.slice( 2 );
+					
+					if ( c === 'BG' )
+					c = 'Background wall';
+					else
+					c = c.replace(/([A-Z])/g, ' $1').trim();
+				
+					if ( c === 'Block' )
+					{
+						if ( sdShop.options[ sdShop.potential_selection ].material === sdBlock.MATERIAL_WALL )
+						c = 'Wall';
+						if ( sdShop.options[ sdShop.potential_selection ].material === sdBlock.MATERIAL_GROUND )
+						c = 'Ground';
+						if ( sdShop.options[ sdShop.potential_selection ].material === sdBlock.MATERIAL_SHARP )
+						c = 'Trap';
+					}
+					
+					t = 'Click to select "' + c + '" as a build object. Then click to place this object in world.';
+				}
+				else
+				if ( sdShop.options[ sdShop.potential_selection ].upgrade_name )
+				t = 'Click to select "' + capitalize( sdShop.options[ sdShop.potential_selection ].upgrade_name.split('_').join(' ') ) + '" as an upgrade. Then click anywhere to upgrade.';
+				
+			}
+			
+			let d = ctx.measureText( t );
+			
+			ctx.fillStyle = '#000000';
+			ctx.globalAlpha = 0.8;
+			ctx.fillRect( sdWorld.mouse_screen_x + 16, sdWorld.mouse_screen_y + 32, d.width + 10, 12 + 10 );
+			ctx.globalAlpha = 1;
+			
+			ctx.fillStyle = '#ffffff';
+			ctx.textAlign = 'left';
+			ctx.fillText( t, sdWorld.mouse_screen_x + 16 + 5, sdWorld.mouse_screen_y + 32 + 12 + 5 );
+		}
+
+		
 		sdWorld.my_entity._build_params = old_active_build_settings;
 	}
 	static MouseDown( e )
 	{
 		if ( sdShop.open )
 		{
+			if ( !sdWorld.my_entity )
+			{
+				sdShop.open = false;
+				return false;
+			}
+			
+			let selected = true;
+				
 			if ( e.which === 1 )
 			{
 				//
@@ -377,13 +498,25 @@ class sdShop
 					sdWorld.my_entity._build_params = null;
 				}
 				else
-				sdWorld.my_entity._build_params = sdShop.options[ sdShop.potential_selection ];
+				{
+					if ( sdShop.options[ sdShop.potential_selection ]._opens_category )
+					{
+						sdShop.current_category = sdShop.options[ sdShop.potential_selection ]._opens_category;
+						selected = false;
+					}
+					else
+					sdWorld.my_entity._build_params = sdShop.options[ sdShop.potential_selection ];
+				}
 				
+				if ( selected )
 				globalThis.socket.emit( 'BUILD_SEL', sdShop.potential_selection );
 			}
 			
-			sdShop.open = false;
-			sdRenderer.UpdateCursor();
+			if ( selected )
+			{
+				sdShop.open = false;
+				sdRenderer.UpdateCursor();
+			}
 			return true; // Block input
 		}
 		else

@@ -28,7 +28,7 @@ class sdOctopus extends sdEntity
 		
 		sdOctopus.max_seek_range = 1000;
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	// 8 as max dimension so it can fit into one block
 	get hitbox_x1() { return -8; }
@@ -70,6 +70,7 @@ class sdOctopus extends sdEntity
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
+		if ( this._hea > 0 )
 		if ( !character.ghosting )
 		if ( character.hea > 0 )
 		{
@@ -116,7 +117,7 @@ class sdOctopus extends sdEntity
 	
 			while ( this._consumed_matter.length > 0 )
 			{
-				sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 1, this._consumed_matter[ 0 ].extra / sdWorld.crystal_shard_value );
+				sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 1, this._consumed_matter[ 0 ].extra / sdWorld.crystal_shard_value ); // Probably error here, shards do not appear to be pickable, possibly due to NaN here
 				
 				this._consumed_matter.shift();
 			}
@@ -124,8 +125,8 @@ class sdOctopus extends sdEntity
 			while ( this._consumed_guns.length > 0 )
 			{
 				let ent = new sdGun({ class:this._consumed_guns[ 0 ], x: this.x, y:this.y });
-				ent.sx = sx + Math.random() * 8 - 4;
-				ent.sy = sy + Math.random() * 8 - 4;
+				ent.sx = this.sx + Math.random() * 8 - 4;
+				ent.sy = this.sy + Math.random() * 8 - 4;
 				ent.ttl = sdGun.disowned_guns_ttl;
 				sdEntity.entities.push( ent );
 				
@@ -255,7 +256,9 @@ class sdOctopus extends sdEntity
 						 from_entity.GetClass() === 'sdMatterContainer' ||
 						 ( from_entity.GetClass() === 'sdGun' && from_entity.class !== sdGun.CLASS_BUILD_TOOL && from_entity.class !== sdGun.CLASS_MEDIKIT && ( from_entity._held_by === null || from_entity._held_by.gun_slot === sdGun.classes[ from_entity.class ].slot ) ) || // Yes, held guns too, but only currently held guns. Except for build tool and medikit
 						 from_entity.GetClass() === 'sdTeleport' ||
-						 from_entity.GetClass() === 'sdVirus' )
+						 from_entity.GetClass() === 'sdVirus' ||
+						 ( typeof from_entity.hea !== 'undefined' && from_entity.hea <= 0 ) ||
+						 ( typeof from_entity._hea !== 'undefined' && from_entity._hea <= 0 ) )
 					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, [ 'sdOctopus' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
 					{
 						from_entity.Damage( 50 );

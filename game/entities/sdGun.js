@@ -194,7 +194,7 @@ class sdGun extends sdEntity
 			}
 		];
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -4; }
 	get hitbox_x2() { return 4; }
@@ -596,7 +596,7 @@ class sdGun extends sdEntity
 			}
 
 			
-			ctx.drawImage( image, - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
 			
 			ctx.filter = 'none';
 			

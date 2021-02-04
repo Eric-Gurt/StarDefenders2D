@@ -11,16 +11,23 @@ class sdBG extends sdEntity
 	static init_class()
 	{
 		sdBG.img_bg22 = sdWorld.CreateImageFromFile( 'bg' );
+		sdBG.img_bg22_blue = sdWorld.CreateImageFromFile( 'bg_blue' );
 		
+		// Better to keep these same as in sdBlock, so 3D effects will work as intended
 		sdBG.MATERIAL_PLATFORMS = 0;
 		sdBG.MATERIAL_GROUND = 1;
+		// 2
+		sdBG.MATERIAL_PLATFORMS_COLORED = 3;
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return 0; }
 	get hitbox_x2() { return this.width; }
 	get hitbox_y1() { return 0; }
 	get hitbox_y2() { return this.height; }
+	
+	DrawIn3D()
+	{ return FakeCanvasContext.DRAW_IN_3D_BOX; }
 	
 	get hard_collision()
 	{ return true; }
@@ -76,6 +83,9 @@ class sdBG extends sdEntity
 		
 		if ( this.material === sdBG.MATERIAL_PLATFORMS )
 		ctx.drawImageFilterCache( sdBG.img_bg22, 0, 0, w,h, 0,0, w,h );
+		else
+		if ( this.material === sdBG.MATERIAL_PLATFORMS_COLORED )
+		ctx.drawImageFilterCache( sdBG.img_bg22_blue, 0, 0, w,h, 0,0, w,h );
 		else
 		if ( this.material === sdBG.MATERIAL_GROUND )
 		ctx.drawImageFilterCache( sdBlock.img_ground11, 0, 0, w,h, 0,0, w,h );

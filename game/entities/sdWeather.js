@@ -18,8 +18,12 @@ class sdWeather extends sdEntity
 		for ( var i = 0; i < 300; i++ )
 		sdWeather.pattern.push({ x:Math.random(), y:Math.random(), last_vis:false, last_y:0, last_x:0 });
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
+	
+	IsGlobalEntity() // Should never change
+	{ return true; }
+	
 	get hitbox_x1() { return 0; }
 	get hitbox_x2() { return 0; }
 	get hitbox_y1() { return 0; }
@@ -41,6 +45,7 @@ class sdWeather extends sdEntity
 		sdWeather.only_instance = this;
 		
 		this._rain_ammount = 0;
+		this._asteroid_spam_ammount = 0;
 		
 		this.raining_intensity = 0;
 		
@@ -94,6 +99,12 @@ class sdWeather extends sdEntity
 				this._asteroid_timer_scale_next = Math.random();
 			}
 			
+			if ( this._asteroid_spam_ammount > 0 )
+			{
+				this._asteroid_spam_ammount -= GSPEED * 1;
+				this._asteroid_timer += GSPEED * 40;
+			}
+			
 			if ( this._rain_ammount > 0 )
 			{
 				this.raining_intensity = Math.min( 100, this.raining_intensity + GSPEED * 0.1 );
@@ -124,7 +135,13 @@ class sdWeather extends sdEntity
 			{
 				this._time_until_event = Math.random() * 30 * 60 * 8; // once in an ~8 minutes
 				
+				let r = ~~( Math.random() * 2 );
+				
+				if ( r === 0 )
 				this._rain_ammount = 30 * 15 * ( 1 + Math.random() * 2 ); // start rain for ~15 seconds
+			
+				if ( r === 1 )
+				this._asteroid_spam_ammount = 30 * 15 * ( 1 + Math.random() * 2 );
 			}
 		}
 		else

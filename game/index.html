@@ -34,7 +34,8 @@
 	    input[type=color]
 	    {
 		background-color: #111111;
-		padding: 4px;
+		padding: 1px;
+		height: 20px;
 	    }
 	    input::-webkit-color-swatch
 	    {
@@ -68,10 +69,32 @@
 		vertical-align: top;
 		width: 230px;
 		padding-bottom: 10px;
+		transition: all 0.2s ease;
+		color: transparent;
+		height: 20px;
+		padding: 10px;
+		background-color: transparent;
+	    }
+	    .set_block input
+	    {
+		height: 0;
+		transition: all 0.2s ease;
+	    }
+	    .set_block:hover
+	    {
+		font-size: unset;
+		color: unset;
+		height: unset;
+		background-color: #1e3424;
+	    }
+	    .set_block:hover input
+	    {
+		height: 20px;
 	    }
 	    .sdtitle
 	    {
 		color: #5ce98a;
+		font-size: 12px;
 	    }
 	    .sdgroup
 	    {
@@ -115,6 +138,12 @@
     </head>
     <body>
 	<script src="socket.io/socket.io.js"></script>
+	<script src="libs/three.js"></script>
+	<script src="libs/three-examples/BufferGeometryUtils.js"></script>
+	<script src="libs/three-examples/MeshLine.js"></script>
+	<script src="libs/FakeCanvasContext.js"></script>
+	<!--<script src="libs/canvas-webgl.js"></script>
+	<script src="libs/earcut.js"></script>-->
 	<script type="text/javascript" src="mespeak/mespeak.js"></script>
 	<script src="game.js" type="module"></script>
 	
@@ -353,9 +382,10 @@
 	    
 	    <div style="position: absolute; left: calc( 100% + 20px ); top:0; width: 300px; height: 100%;
 		box-sizing: border-box; background-color: black;
-		padding: 20px;">
+		padding: 20px; overflow-y: scroll;">
 		<span class="sdtitle">What's new?:</span><br>
 		<div class="sdgroup">
+		     4 February 2021: Asteroid shower event (alters rain randomly); 3D render with minimal changes to source code (works mostly on top of used Canvas API); World saving and backuping (I'd expect resotred entities to act strange); Some other small changes.<br><br>
 		    1 February 2021: Few new entities ("Octopus", "Quickie" and "Antigravity") added; Communication nodes will require direct visibility in order to interact with each other and controllable entities (haven't tested that well).<br><br>
 		    28 January 2021: High latency players should have less problems with server teleporting them back to where it thinks they should be (short key presses used to be ignored before, which was more noticeable for players with high latency).<br><br>
 		    25 January 2021: Fixed memory leak, some other bug fixes, ground is now stronger if players dig too deep, day/night-ish cycle.<br><br>
@@ -426,7 +456,7 @@
 	    
 	    
 	    <div class="set_block">
-		<span class="sdtitle">Start with:</span><br>
+		<span class="sdtitle">Start with</span><br>
 		<input type="checkbox" id="start_with1" value="pistol_and_buildtool">
 		<label for="start_with1">Pistol and build tool</label>
 		<br>
@@ -434,8 +464,49 @@
 		<label for="start_with2">Sword and build tool</label>
 	    </div>
 	    
+	    <!--
 	    <div class="set_block">
-		<span class="sdtitle">Character's voice (eSpeak):</span><br>
+		Send microphone input as chat messages:<br>
+		<input type="checkbox" id="voice_chat1" value="no" checked>
+		<label for="voice_chat1">No</label>
+		<br>
+		<input type="checkbox" id="voice_chat2" value="yes" onclick="globalThis.StartVoiceRecognition()">
+		<label for="voice_chat2">Yes (Chrome-only, delayed)</label>
+	    </div>
+	    -->
+	    
+	    <div class="set_block">
+		<span class="sdtitle">Assign instructor on start</span><br>
+		<input type="checkbox" id="hints1" value="no">
+		<label for="hints1">No</label>
+		<br>
+		<input type="checkbox" id="hints2" value="yes" checked>
+		<label for="hints2">Yes</label>
+	    </div>
+	    
+	    <div class="set_block">
+		<span class="sdtitle">Visual settings</span><br>
+		<input type="checkbox" id="visuals1" value="no">
+		<label for="visuals1">2D (old, unoptimized)</label>
+		<br>
+		<input type="checkbox" id="visuals2" value="yes">
+		<label for="visuals2">3D (GPU accelerated)</label>
+		<br>
+		<input type="checkbox" id="visuals3" value="yes" checked>
+		<label for="visuals3">3D+ (GPU accelerated)</label>
+	    </div>
+	    
+	    <div class="set_block">
+		<span class="sdtitle">Show debug info</span><br>
+		<input type="checkbox" id="bugs1" value="no" checked>
+		<label for="bugs1">No</label>
+		<br>
+		<input type="checkbox" id="bugs2" value="yes">
+		<label for="bugs2">Yes</label>
+	    </div>
+	    
+	    <div class="set_block">
+		<span class="sdtitle">Character's voice (eSpeak)</span><br>
 		<input type="checkbox" id="voice1" value="low" onclick="globalThis.TestVoice(this)">
 		<label for="voice1">Lowest pitch</label>
 		<br>
@@ -451,40 +522,12 @@
 		<input type="checkbox" id="voice5" value="high" onclick="globalThis.TestVoice(this)">
 		<label for="voice5">Highest pitch</label>
 	    </div>
-	    <!--
-	    <div class="set_block">
-		Send microphone input as chat messages:<br>
-		<input type="checkbox" id="voice_chat1" value="no" checked>
-		<label for="voice_chat1">No</label>
-		<br>
-		<input type="checkbox" id="voice_chat2" value="yes" onclick="globalThis.StartVoiceRecognition()">
-		<label for="voice_chat2">Yes (Chrome-only, delayed)</label>
-	    </div>
-	    -->
 	    
-	    <div class="set_block">
-		<span class="sdtitle">Assign instructor on start:</span><br>
-		<input type="checkbox" id="hints1" value="no">
-		<label for="hints1">No</label>
-		<br>
-		<input type="checkbox" id="hints2" value="yes" checked>
-		<label for="hints2">Yes</label>
-	    </div>
-	    
-	    <div class="set_block">
-		<span class="sdtitle">Show debug info:</span><br>
-		<input type="checkbox" id="bugs1" value="no" checked>
-		<label for="bugs1">No</label>
-		<br>
-		<input type="checkbox" id="bugs2" value="yes">
-		<label for="bugs2">Yes</label>
-	    </div>
-	    
-	    
-	    <br>
-	    <br>
+	    <div style="position:absolute;left:20px;bottom:20px">
 	    
 	    <input type="button" style="background-color:#2b7939; width: 300px;" id="start_btn" onclick="sdWorld.Start( globalThis.GetPlayerSettings() );" value="Play with other players"> <input type="button" onclick="globalThis.ResetSkin();" value="Reset skin to default">
+	    
+	    </div>
 	    
 	    <canvas style="position: absolute;right: 40px;top: 40px;border-radius: 20px;box-shadow: 0 0 0px 5px #7b321963;" id="skin_preview" width="128" height="128"></canvas>
 	</div>
@@ -690,6 +733,8 @@
 		//JustOne( 'voice_chat', last_changed_el );
 		JustOne( 'hints', last_changed_el );
 		JustOne( 'bugs', last_changed_el );
+		JustOne( 'visuals', last_changed_el );
+		
 		
 		for ( let i = 0; i < inputs.length; i++ )
 		{

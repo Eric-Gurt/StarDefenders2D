@@ -14,6 +14,8 @@
 //import heapdump from 'heapdump';
 //import ofe from 'ofe';
 
+import zlib from 'zlib';
+
 import _app from 'express';
 const app = _app();
 
@@ -60,7 +62,7 @@ const io = new Server( httpsServer ? httpsServer : httpServer, {
   maxHttpBufferSize: 512 // 512 is minimum that works
 });
 	
-
+// let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Old register for object spawn code
 import sdWorld from './game/sdWorld.js';
 
 import sdEntity from './game/entities/sdEntity.js';
@@ -142,7 +144,8 @@ sdEffect.init_class();
 sdGun.init_class(); // must be after sdEffect
 sdBlock.init_class();
 sdCrystal.init_class();
-sdShop.init_class();
+sdBG.init_class();
+sdShop.init_class(); // requires sdBG
 sdBullet.init_class();
 sdCom.init_class();
 sdAsteroid.init_class();
@@ -150,7 +153,6 @@ sdVirus.init_class();
 sdTeleport.init_class();
 sdDoor.init_class();
 sdWater.init_class();
-sdBG.init_class();
 sdWeather.init_class();
 sdTurret.init_class();
 sdMatterContainer.init_class();
@@ -159,6 +161,9 @@ sdOctopus.init_class();
 sdAntigravity.init_class();
 
 globalThis.sdWorld = sdWorld;
+globalThis.sdShop = sdShop;
+
+let frame = 0;
 
 function file_exists( url )
 {
@@ -211,13 +216,210 @@ var sockets_by_ip = {}; // values are arrays (for easier user counting per ip)
 sdWorld.sockets = sockets;
 
 
-sdEntity.global_entities.push( new sdWeather({}) );
-/*for ( var i = 0; i < 800 / 32; i++ )
-{
-	sdEntity.entities.push( new sdBlock({ x:i*32, y:(~~( - Math.random() * 5 ))*32-32 }) );
-}*/
 
-sdWorld.ChangeWorldBounds( -16 * 10, -16 * 10, 16 * 10, 16 * 10 );
+
+
+
+
+
+
+let snapshot_path = __dirname + '/star_defenders_snapshot.v';
+let is_terminating = false;
+{
+	// World save test
+	let snapshot_save_busy = false;
+	function SaveSnapshot( callback )
+	{
+		if ( snapshot_save_busy || is_terminating )
+		return;
+
+		let start_time = Date.now();
+
+		snapshot_save_busy = true;
+
+		let entities = [];
+		
+
+		let save_obj = 
+		{
+			bounds: sdWorld.world_bounds,
+			entity_net_ids: sdEntity.entity_net_ids,
+			base_ground_level1: sdWorld.base_ground_level1,
+			base_ground_level2: sdWorld.base_ground_level2,
+			entities: entities
+		};
+
+		for ( var i = 0; i < sdEntity.entities.length; i++ )
+		entities.push( sdEntity.entities[ i ].GetSnapshot( frame, true ) );
+
+
+		let snapshot_made_time = Date.now();
+
+
+		let json = JSON.stringify( save_obj );
+
+		let json_made_time = Date.now();
+
+		let deflate_done_time = 0;
+		let save_done_time = 0;
+
+		function Report( err )
+		{
+			console.log('Backup timings report (ms): ' + [
+				snapshot_made_time - start_time,
+				json_made_time - snapshot_made_time,
+				deflate_done_time - json_made_time,
+				save_done_time - deflate_done_time
+			].join(', ') );
+			
+			if ( callback )
+			callback( err );
+		}
+
+		// zlib.deflate(buffer
+		zlib.deflate( json, ( err, buffer )=>{
+
+			deflate_done_time = Date.now();
+
+			if ( err )
+			{
+				console.warn( 'Compression error: ', err );
+
+				Report( true );
+				snapshot_save_busy = false;
+			}
+			else
+			{
+				// This must run inside a function marked `async`:
+				//const file = await fs.readFile('filename.txt', 'utf8');
+				fs.writeFile( snapshot_path, buffer, ( err )=>
+				{
+					save_done_time = Date.now();
+
+					if ( err )
+					{
+						console.warn( 'Snapshot was not saved: ', err );
+					}
+					else
+					console.log('Snapshot saved.');
+
+
+					Report( false );
+					snapshot_save_busy = false;
+				});
+				fs.writeFile( snapshot_path + '.raw.v', json, ( err )=>
+				{
+				});
+			}
+
+		});
+	}
+	//setInterval( SaveSnapshot, 1000 * 60 * 60 ); // Once per hour
+	setInterval( ()=>{
+		
+		for ( var i = 0; i < sockets.length; i++ )
+		sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server: Backup is being done!' );
+
+		SaveSnapshot( ( err )=>
+		{
+			for ( var i = 0; i < sockets.length; i++ )
+			sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server: Backup is compelte ('+(err?'Error!':'successfully')+')!' );
+		})
+	}, 1000 * 60 * 15 ); // Once per 15 minutes
+
+	let termination_initiated = false;
+	function onBeforeTurnOff()
+	{
+		if ( termination_initiated )
+		return;
+	
+		termination_initiated = true;
+		console.warn('SIGTERM signal received. Backup time?');
+		
+		for ( var i = 0; i < sockets.length; i++ )
+		sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server reboot: Game server got SIGTERM signal from operating system. Attempting to save world state...' );
+	
+		SaveSnapshot( ( err )=>{
+			
+			console.warn('SaveSnapshot called callback (error='+err+'), saying goodbye to everyone and quiting process.');
+		
+			is_terminating = true;
+			
+			for ( var i = 0; i < sockets.length; i++ )
+			sockets[ i ].emit( 'SERVICE_MESSAGE', err ? 'Server reboot: Unable to save world snapshot...' : 'Server reboot: World snapshot has been saved! See you soon!' );
+		
+			setTimeout( ()=>
+			{
+				process.exit(1);
+			}, 500 );
+
+		});
+	}
+	process.on( 'SIGTERM', onBeforeTurnOff );
+	process.on( 'SIGINT', onBeforeTurnOff );
+}
+
+try
+{
+	let packed_snapshot = fs.readFileSync( snapshot_path );
+	let json = zlib.inflateSync( packed_snapshot );
+	let save_obj = JSON.parse( json );
+	
+	
+	/*
+		let save_obj = 
+		{
+			bounds: sdWorld.world_bounds,
+			entity_net_ids: sdEntity.entity_net_ids,
+			base_ground_level1: sdWorld.base_ground_level1,
+			base_ground_level2: sdWorld.base_ground_level2,
+			entities: entities
+		};
+	*/
+	sdWorld.world_bounds = save_obj.bounds;
+	sdEntity.entity_net_ids = save_obj.entity_net_ids;
+	sdWorld.base_ground_level1 = save_obj.base_ground_level1;
+	sdWorld.base_ground_level2 = save_obj.base_ground_level2;
+	
+	let i;
+	
+	for ( i = 0; i < save_obj.entities.length; i++ )
+	{
+		try
+		{
+			sdEntity.GetObjectFromSnapshot( save_obj.entities[ i ] );
+		}
+		catch( e )
+		{
+			console.warn('entity snapshot wasn\'t decoded because it contains errors: ', save_obj.entities[ i ] );
+		}
+	}
+
+	console.log('Continuing from where we\'ve stopped (snapshot decoded)!');
+}
+catch( e )
+{
+	console.log('Snapshot wasn\'t found or contains errors. Doing fresh start.');
+}
+
+
+
+
+if ( sdEntity.global_entities.length === 0 )
+{
+	console.log( 'Recreating sdWeather' );
+	//sdEntity.global_entities.push( new sdWeather({}) );
+	sdEntity.entities.push( new sdWeather({}) );
+}
+
+if ( sdWorld.world_bounds.x1 === 0 )
+if ( sdWorld.world_bounds.x2 === 0 )
+if ( sdWorld.world_bounds.y1 === 0 )
+if ( sdWorld.world_bounds.y2 === 0 )
+{
+	console.log( 'Reinitializing world bounds' );
+	sdWorld.ChangeWorldBounds( -16 * 10, -16 * 10, 16 * 10, 16 * 10 );
+}
 
 // World bounds shifter
 setInterval( ()=>
@@ -300,7 +502,6 @@ setInterval( ()=>
 	
 }, 500 );
 //}, 50 ); // Hack
-
 
 
 io.on("error", ( e ) => 
@@ -633,8 +834,10 @@ io.on("connection", (socket) =>
 		if ( socket.character ) 
 		if ( typeof v === 'number' )
 		{
-			if ( typeof sdShop.options[ v ] !== 'undefined' )
-			socket.character._build_params = sdShop.options[ v ];
+			if ( typeof sdShop.options[ v ] !== 'undefined' && !sdShop.options[ v ]._opens_category )
+			{
+				socket.character._build_params = sdShop.options[ v ];
+			}
 			else
 			socket.character._build_params = null;
 		}
@@ -650,6 +853,7 @@ io.on("connection", (socket) =>
 		if ( typeof arr[ 4 ] === 'number' )
 		if ( typeof arr[ 5 ] === 'number' )
 		if ( typeof arr[ 6 ] === 'number' )
+		if ( typeof arr[ 7 ] === 'number' )
 		{ 
 			socket.character.look_x = arr[ 0 ]; 
 			socket.character.look_y = arr[ 1 ];
@@ -749,6 +953,24 @@ io.on("connection", (socket) =>
 							socket.next_position_correction_allowed = sdWorld.time + 100;
 							socket.character.x += dx;
 							socket.character.y += dy;
+							/*
+							let stand_on_net_id = arr[ 7 ]; // _net_id of stand_on target
+							if ( typeof sdEntity.entities_by_net_id_cache[ stand_on_net_id ] !== 'undefined' )
+							{
+								let ent = sdEntity.entities_by_net_id_cache[ stand_on_net_id ];
+								if ( !ent._is_being_removed )
+								{
+									if ( Math.abs( socket.character.x + socket.character.hitbox_x2 - ( ent.x + socket.character.hitbox_x1 ) ) < 2 )
+									{
+										socket.character.x = ent.x + socket.character.hitbox_x1 - socket.character.hitbox_x2 + 2;
+									}
+									else
+									if ( Math.abs( socket.character.x + socket.character.hitbox_x1 - ( ent.x + socket.character.hitbox_x2 ) ) < 2 )
+									{
+										socket.character.x = ent.x + socket.character.hitbox_x2 - socket.character.hitbox_x1 - 2;
+									}
+								}
+							}*/
 
 							corrected = true;
 						}
@@ -878,7 +1100,6 @@ io.on("connection", (socket) =>
 {
 	console.log('listening on *:3000');
 });
-let frame = 0;
 setInterval( ()=>
 {
 	//console.log( 'game_ttl', game_ttl );
@@ -1014,6 +1235,7 @@ setInterval( ()=>
 					snapshot.push( sdEntity.global_entities[ i2 ].GetSnapshot( frame ) );
 
 					for ( var i2 = 0; i2 < observed_entities.length; i2++ )
+					if ( !observed_entities[ i2 ].IsGlobalEntity() ) // Global entities are already sent few lines above
 					snapshot.push( observed_entities[ i2 ].GetSnapshot( frame ) );
 				
 					//var isTransportWritable = socket.io.engine && socket.io.engine.transport && socket.io.engine.transport.writable;

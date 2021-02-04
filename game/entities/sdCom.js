@@ -16,7 +16,7 @@ class sdCom extends sdEntity
 		
 		sdCom.com_visibility_ignored_classes = [ 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdMatterContainer', 'sdTeleport' ];
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -4; }
 	get hitbox_x2() { return 5; }
@@ -133,6 +133,7 @@ class sdCom extends sdEntity
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
 		if ( sdEntity.entities[ i ].GetClass() === 'sdCom' || 
 			 sdEntity.entities[ i ].GetClass() === 'sdDoor' || 
+			 sdEntity.entities[ i ].GetClass() === 'sdTeleport' || 
 			 sdEntity.entities[ i ].GetClass() === 'sdTurret' || 
 			 ( sdEntity.entities[ i ].GetClass() === 'sdBlock' && sdEntity.entities[ i ].material === sdBlock.MATERIAL_SHARP ) )
 		if ( sdWorld.Dist2D( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this.x, this.y ) < sdCom.retransmit_range )

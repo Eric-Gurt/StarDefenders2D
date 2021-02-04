@@ -27,7 +27,7 @@ class sdQuickie extends sdEntity
 		
 		sdQuickie.max_seek_range = 1000;
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -6; }
 	get hitbox_x2() { return 6; }
@@ -61,6 +61,7 @@ class sdQuickie extends sdEntity
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
+		if ( this._hea > 0 )
 		if ( !character.ghosting )
 		if ( character.hea > 0 )
 		{

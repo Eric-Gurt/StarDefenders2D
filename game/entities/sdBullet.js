@@ -16,7 +16,7 @@ class sdBullet extends sdEntity
 			'grenade': sdWorld.CreateImageFromFile( 'grenade' )
 		};
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return this.is_grenade ? -2 : 0; }
 	get hitbox_x2() { return this.is_grenade ? 2 : 0; }
@@ -204,7 +204,7 @@ class sdBullet extends sdEntity
 				if ( !this._wave )
 				sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect() });
 			
-				from_entity.Damage( this._damage );
+				from_entity.Damage( this._damage, this._owner );
 				
 				from_entity.Impulse( this.sx * Math.abs( this._damage ) * this._knock_scale, 
 									 this.sy * Math.abs( this._damage ) * this._knock_scale );

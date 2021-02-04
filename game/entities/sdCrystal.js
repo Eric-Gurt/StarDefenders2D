@@ -11,7 +11,7 @@ class sdCrystal extends sdEntity
 		sdCrystal.img_crystal = sdWorld.CreateImageFromFile( 'crystal' );
 		sdCrystal.img_crystal_empty = sdWorld.CreateImageFromFile( 'crystal_empty' );
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -4; }
 	get hitbox_x2() { return 5; }
@@ -47,9 +47,22 @@ class sdCrystal extends sdEntity
 		this.matter = this.matter_max;
 		
 		this._hea = 60;
+		
+		this._damagable_in = sdWorld.time + 1000; // Suggested by zimmermannliam, will only work for sdCharacter damage
 	}
 	Damage( dmg, initiator=null )
 	{
+		if ( !sdWorld.is_server )
+		return;
+	
+		if ( initiator !== null )
+		if ( initiator.GetClass() === 'sdCharacter' )
+		if ( sdWorld.time < this._damagable_in )
+		{
+			sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
+			return;
+		}
+		
 		dmg = Math.abs( dmg );
 		
 		this._hea -= dmg;

@@ -47,8 +47,10 @@ class sdChat
 	}
 	static Draw( ctx )
 	{
-		ctx.fillStyle = 'rgba(0,0,0,0.5)';
+		ctx.fillStyle = 'rgba(0,0,0)';
+		ctx.globalAlpha = 0.5;
 		ctx.fillRect( 10, sdRenderer.screen_height - 40, sdRenderer.screen_width - 20, 30 );
+		ctx.globalAlpha = 1;
 
 		ctx.fillStyle = '#ffffff';
 		ctx.font = "12px Verdana";

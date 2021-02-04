@@ -24,9 +24,11 @@ class sdBlock extends sdEntity
 		sdBlock.img_sharp = sdWorld.CreateImageFromFile( 'sharp2' );
 		sdBlock.img_sharp_inactive = sdWorld.CreateImageFromFile( 'sharp2_inactive' );
 		
+		// Better to keep these same as in sdBG, so 3D effects will work as intended
 		sdBlock.MATERIAL_WALL = 0;
 		sdBlock.MATERIAL_GROUND = 1;
 		sdBlock.MATERIAL_SHARP = 2;
+		// 3
 		
 		sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
 		
@@ -37,12 +39,150 @@ class sdBlock extends sdEntity
 			sdWorld.CreateImageFromFile( 'cracks3' )
 		];
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
+	
+	static Install3DSupport()
+	{
+		if ( typeof window !== 'undefined' )
+		{
+			sdBlock.cracks[ 1 ].expand = true;
+			sdBlock.cracks[ 2 ].expand = true;
+			sdBlock.cracks[ 3 ].expand = true;
+
+			if ( !sdRenderer.ctx )
+			debugger; // Later operation won't work without this one
+		
+			const filter = [ 'sdBlock', 'sdBG' ];
+
+			if ( typeof sdRenderer.ctx.FakeStart !== 'undefined' )
+			{
+				//sdBlock.prototype.DrawBG = sdBG.prototype.DrawBG;
+				
+				
+				
+				sdBlock.prototype.DrawBG = function( ctx, attached )
+				{
+					if ( this.material === sdBlock.MATERIAL_SHARP )
+					return;
+					
+					let visible = false;
+					
+					if ( !visible )
+					if ( sdWorld.camera.y < this.y )
+					{
+						if ( this._vis_block_top && this._vis_block_top._is_being_removed )
+						this._vis_block_top = null;
+						
+						if ( !this._vis_block_top )
+						{
+							sdWorld.last_hit_entity = null;
+							sdWorld.CheckWallExists( this.x + 8, this.y - 8, null, null, filter );
+							if ( this.width > 16 && sdWorld.last_hit_entity )
+							{
+								sdWorld.last_hit_entity = null;
+								sdWorld.CheckWallExists( this.x + 16 + 8, this.y - 8, null, null, filter );
+							}
+							this._vis_block_top = sdWorld.last_hit_entity;
+						}
+						
+						if ( !this._vis_block_top )
+						visible = true;
+					}
+			
+					if ( !visible )
+					if ( sdWorld.camera.y > this.y + this.height )
+					{
+						if ( this._vis_block_bottom && this._vis_block_bottom._is_being_removed )
+						this._vis_block_bottom = null;
+					
+						if ( !this._vis_block_bottom )
+						{
+							sdWorld.last_hit_entity = null;
+							sdWorld.CheckWallExists( this.x + 8, this.y + this.height + 8, null, null, filter );
+							if ( this.width > 16 && sdWorld.last_hit_entity )
+							{
+								sdWorld.last_hit_entity = null;
+								sdWorld.CheckWallExists( this.x + 16 + 8, this.y + this.height + 8, null, null, filter );
+							}
+							this._vis_block_bottom = sdWorld.last_hit_entity;
+						}
+						
+						if ( !this._vis_block_bottom )
+						visible = true;
+					}
+					
+					if ( !visible )
+					if ( sdWorld.camera.x < this.x )
+					{
+						if ( this._vis_block_left && this._vis_block_left._is_being_removed )
+						this._vis_block_left = null;
+					
+						if ( !this._vis_block_left )
+						{
+							sdWorld.last_hit_entity = null;
+							sdWorld.CheckWallExists( this.x - 8, this.y + 8, null, null, filter );
+							if ( this.height > 16 && sdWorld.last_hit_entity )
+							{
+								sdWorld.last_hit_entity = null;
+								sdWorld.CheckWallExists( this.x - 8, this.y + 16 + 8, null, null, filter );
+							}
+							this._vis_block_left = sdWorld.last_hit_entity;
+						}
+						
+						if ( !this._vis_block_left )
+						visible = true;
+					}
+
+					if ( !visible )
+					if ( sdWorld.camera.x > this.x + this.width )
+					{
+						if ( this._vis_block_right && this._vis_block_right._is_being_removed )
+						this._vis_block_right = null;
+					
+						if ( !this._vis_block_right )
+						{
+							sdWorld.last_hit_entity = null;
+							sdWorld.CheckWallExists( this.x + this.width + 8, this.y + 8, null, null, filter );
+							if ( this.height > 16 && sdWorld.last_hit_entity )
+							{
+								sdWorld.last_hit_entity = null;
+								sdWorld.CheckWallExists( this.x + this.width + 8, this.y + 16 + 8, null, null, filter );
+							}
+							this._vis_block_right = sdWorld.last_hit_entity;
+						}
+						
+						if ( !this._vis_block_right )
+						visible = true;
+					}
+					
+					this._vis_back = visible;
+					
+					if ( visible )
+					sdBG.prototype.DrawBG.call( this, ctx, attached );
+				};
+			}
+		}
+	}
+	
 	get hitbox_x1() { return 0; }
 	get hitbox_x2() { return this.width; }
 	get hitbox_y1() { return 0; }
 	get hitbox_y2() { return this.height; }
+	
+	DrawIn3D()
+	{ 
+		return FakeCanvasContext.DRAW_IN_3D_BOX; 
+	}
+	
+	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+	{
+		// Glowing lines prevention
+		if ( sdRenderer._visual_settings === 3 )
+		return [ 0, 0, 0.002 * Math.abs( sdWorld.camera.y - ( this.y + this.height / 2 ) ) ];
+	
+		return null;
+	}
 	
 	get hard_collision()
 	{ return this.material !== sdBlock.MATERIAL_SHARP; }
@@ -110,6 +250,7 @@ class sdBlock extends sdEntity
 			if ( sdEntity.entities[ i ].y === params.y )
 			{
 				debugger;
+				throw new Error('Double wall bug detected');
 			}
 		}*/
 	}
@@ -162,6 +303,7 @@ class sdBlock extends sdEntity
 				this._update_version++;
 			}
 			else
+			if ( this._hea === this._hmax )
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		}
 		else

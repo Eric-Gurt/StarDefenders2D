@@ -55,8 +55,8 @@ class sdWorld
 			x2: 0, 
 			y2: 0
 		};
-		sdWorld.base_ground_level1 = [];
-		sdWorld.base_ground_level2 = [];
+		sdWorld.base_ground_level1 = {};
+		sdWorld.base_ground_level2 = {};
 		/*sdWorld.world_bounds = { 
 			x1: 0, 
 			y1: -2000, 
@@ -458,7 +458,8 @@ class sdWorld
 		for ( let i = 0; i < sdEntity.entities.length; i++ )
 		{
 			var e = sdEntity.entities[ i ];
-			if ( e.x + e.hitbox_x2 < x1 || e.x + e.hitbox_x1 > x2 || e.y + e.hitbox_y2 < y1 || e.y + e.hitbox_y1 > y2 )
+			//if ( e.x + e.hitbox_x2 < x1 || e.x + e.hitbox_x1 > x2 || e.y + e.hitbox_y2 < y1 || e.y + e.hitbox_y1 > y2 ) Ground overlap problem
+			if ( e.x < x1 || e.x >= x2 || e.y < y1 || e.y >= y2 )
 			{
 				e.remove();
 				e._remove();
@@ -903,14 +904,28 @@ class sdWorld
 							
 							if ( arr_i === 0 )
 							{
-								let id = sdEntity.entities.indexOf( e );
-								if ( id === -1 )
+								/*if ( e.IsGlobalEntity() )
 								{
-									console.log('Removing unlisted entity, hiberstate was '+hiber_state );
-									debugger;
+									let id = sdEntity.global_entities.indexOf( e );
+									if ( id === -1 )
+									{
+										console.log('Removing unlisted global_entity, hiberstate was ' + hiber_state );
+										debugger;
+									}
+									else
+									sdEntity.global_entities.splice( id, 1 );
 								}
 								else
-								sdEntity.entities.splice( id, 1 );
+								{*/
+									let id = sdEntity.entities.indexOf( e );
+									if ( id === -1 )
+									{
+										console.log('Removing unlisted entity, hiberstate was ' + hiber_state );
+										debugger;
+									}
+									else
+									sdEntity.entities.splice( id, 1 );
+								//}
 							}
 							
 							if ( arr[ i ] === e ) // Removal did not happen?
@@ -1220,7 +1235,7 @@ class sdWorld
 		
 		return _voice;
 	}
-	static CreateImageFromFile( filename )
+	static CreateImageFromFile( filename, cb=null )
 	{
 		if ( sdWorld.is_server )
 		return null;
@@ -1229,7 +1244,11 @@ class sdWorld
 		img.src = './assets/' + filename + '.png';
 		
 		img.loaded = false;
-		img.onload = ()=>{ img.loaded = true; };
+		img.onload = ()=>{ 
+			img.loaded = true; 
+			if ( cb )
+			cb();
+		};
 		
 		return img;
 	}
@@ -1244,6 +1263,8 @@ class sdWorld
 			let socket = globalThis.socket;
 			
 			globalThis.enable_debug_info = player_settings['bugs2'];
+			
+			sdRenderer.visual_settings = player_settings['visuals1'] * 1 + player_settings['visuals2'] * 2 + player_settings['visuals3'] * 3;
 
 			socket.emit( 'RESPAWN', player_settings );
 

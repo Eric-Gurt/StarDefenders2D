@@ -19,12 +19,23 @@ class sdDoor extends sdEntity
 		sdDoor.img_door_closed = sdWorld.CreateImageFromFile( 'door2' );
 		sdDoor.img_door_path = sdWorld.CreateImageFromFile( 'door_open' );
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -16; }
 	get hitbox_x2() { return 16; }
 	get hitbox_y1() { return -16; }
 	get hitbox_y2() { return 16; }
+	
+	DrawIn3D()
+	{ return FakeCanvasContext.DRAW_IN_3D_BOX; }
+	
+	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+	{ 
+		if ( layer === -1 )
+		return [ 0, 0, -0.01 ];
+	
+		return [ 0, 0.01, 0.3 ]; // 0, 0.01, 0.01 was good until I added sdBlock offset that hides seam on high visual settings
+	}
 	
 	get hard_collision()
 	{ return true; }
@@ -307,8 +318,11 @@ class sdDoor extends sdEntity
 	}
 	DrawBG( ctx, attached )
 	{
-		if ( this.openness > 0 )
+		if ( this.openness > 0 || typeof ctx.FakeStart !== 'undefined' )
 		{
+			if ( this.x0 === undefined )
+			ctx.drawImage( sdDoor.img_door_path, -16 - this.x, -16 - this.y, 32,32 );
+			else
 			ctx.drawImage( sdDoor.img_door_path, -16 - this.x + this.x0, -16 - this.y + this.y0, 32,32 );
 		}
 	}
@@ -317,7 +331,8 @@ class sdDoor extends sdEntity
 		if ( this.x0 === undefined && this._net_id !== undefined ) // Client-side doors won't not have any _net_id
 		{
 			ctx.filter = this.filter;
-			ctx.drawImage( sdDoor.img_door_closed, -16, -16, 32,32 );
+			ctx.drawImageFilterCache( sdDoor.img_door_closed, -16, -16, 32,32 );
+			ctx.filter = 'none';
 		
 			if ( sdBlock.cracks[ this.destruction_frame ] !== null )
 			ctx.drawImage( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
@@ -336,7 +351,8 @@ class sdDoor extends sdEntity
 					ctx.clip();
 
 					ctx.filter = this.filter;
-					ctx.drawImage( sdDoor.img_door, -16, -16, 32,32 );
+					ctx.drawImageFilterCache( sdDoor.img_door, -16, -16, 32,32 );
+					ctx.filter = 'none';
 		
 					if ( sdBlock.cracks[ this.destruction_frame ] !== null )
 					ctx.drawImage( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
@@ -346,14 +362,14 @@ class sdDoor extends sdEntity
 			else
 			{
 				ctx.filter = this.filter;
-				ctx.drawImage( sdDoor.img_door, -16, -16, 32,32 );
+				ctx.drawImageFilterCache( sdDoor.img_door, -16, -16, 32,32 );
+				ctx.filter = 'none';
 		
 				if ( sdBlock.cracks[ this.destruction_frame ] !== null )
 				ctx.drawImage( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
 			}
 		}
 	
-		ctx.filter = 'none';
 	}
 	
 	HandleDestructionUpdate()

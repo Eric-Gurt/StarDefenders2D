@@ -13,7 +13,7 @@ class sdTurret extends sdEntity
 		sdTurret.img_turret = sdWorld.CreateImageFromFile( 'turret' );
 		sdTurret.img_turret_fire = sdWorld.CreateImageFromFile( 'turret_fire' );
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -3; }
 	get hitbox_x2() { return 3; }
@@ -86,7 +86,7 @@ class sdTurret extends sdEntity
 						{
 							if ( e !== this._owner || sdWorld.GetComsNear( this.x, this.y ).length > 0 )
 							if ( ( e.GetClass() === 'sdCharacter' && sdWorld.GetComsNear( this.x, this.y, null, e._net_id ).length === 0 ) || 
-								 e.GetClass() === 'sdVirus' || e.GetClass() === 'sdQuickie' )
+								 e.GetClass() === 'sdVirus' || e.GetClass() === 'sdQuickie' || e.GetClass() === 'sdOctopus' )
 							{
 								if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
 								{

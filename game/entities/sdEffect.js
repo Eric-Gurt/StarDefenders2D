@@ -135,12 +135,15 @@ class sdEffect extends sdEntity
 			speed: 1 / ( 15 * 30 )
 		};
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -1; }
 	get hitbox_x2() { return 1; }
 	get hitbox_y1() { return -1; }
 	get hitbox_y2() { return 1; }
+	
+	CameraDistanceScale3D( layer ) // so far layer is only FG (1), usually only used by chat messages
+	{ return ( this._type === sdEffect.TYPE_CHAT ) ? 0.8 : 1; }
 	
 	constructor( params )
 	{
@@ -160,6 +163,9 @@ class sdEffect extends sdEntity
 		this._x2 = params.x2;
 		this._y2 = params.y2;
 		this._color = params.color;
+		
+		this._sd_tint_filter = null;//sdWorld.hexToRgb( params.color );
+		
 		/*
 		if ( this._type === sdEffect.TYPE_EXPLOSION )
 		if ( this._color === undefined )
@@ -206,6 +212,21 @@ class sdEffect extends sdEntity
 			
 			if ( spoken === 'jk' )
 			spoken = 'joking';
+			
+			if ( spoken === 'wdym' || spoken === 'wdym?' )
+			spoken = 'what do you mean?';
+			
+			if ( spoken === 'kys' )
+			spoken = 'please commit no live';
+			
+			if ( spoken === 'btw' )
+			spoken = 'by the way';
+			
+			if ( spoken === 'tf' )
+			spoken = 'the fuck';
+			
+			if ( spoken === 'fk' )
+			spoken = 'fuck';
 			
 			spoken = spoken.split('-').join('');
 			
@@ -397,8 +418,10 @@ class sdEffect extends sdEntity
                 ctx.translate( 0, sdWorld.camera.y - sdRenderer.screen_height / 2 / sdWorld.camera.scale + 15 - this.y );
             }
 			
-			ctx.fillStyle = 'rgba(0,0,0,0.7)';
+			ctx.fillStyle = 'rgb(0,0,0)';
+			ctx.globalAlpha = 0.7;
 			ctx.fillRect( -details.width / 2 - 2, -7, details.width + 4, 10 );
+			ctx.globalAlpha = 1;
 
 			
 			if ( this._attachment )
@@ -444,7 +467,7 @@ class sdEffect extends sdEntity
 			let h = 37;
 			
 			ctx.translate( -w/2, -h/2 );
-			
+			/*
 			var canvas2 = sdEffect.explosion_canvas;
 			var ctx2 = sdEffect.explosion_ctx;
 			{
@@ -458,7 +481,19 @@ class sdEffect extends sdEntity
 			}
 			ctx.globalCompositeOperation = "lighter";
 			ctx.drawImage( canvas2,0,0 );
-			ctx.globalCompositeOperation = "source-over";
+			ctx.globalCompositeOperation = "source-over";*/
+			
+			if ( this._sd_tint_filter === null )
+			{
+				this._sd_tint_filter = sdWorld.hexToRgb( this._color );
+				this._sd_tint_filter[ 0 ] /= 255;
+				this._sd_tint_filter[ 1 ] /= 255;
+				this._sd_tint_filter[ 2 ] /= 255;
+			}
+			
+            ctx.sd_tint_filter = this._sd_tint_filter;
+			ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], xx*w, yy*h+1, w,h-2, 0,0,w,h );
+			ctx.sd_tint_filter = null;
 		}
 	}
 }

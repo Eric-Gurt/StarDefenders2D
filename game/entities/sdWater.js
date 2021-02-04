@@ -23,12 +23,15 @@ class sdWater extends sdEntity
 		sdWater.sleep_tim_max = 30;
 		sdWater.considerable_delata_volume_for_awakeness = 0.001;
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return 0; }
 	get hitbox_x2() { return 16; }
 	get hitbox_y1() { return 0; }
 	get hitbox_y2() { return 16; }
+	
+	DrawIn3D()
+	{ return FakeCanvasContext.DRAW_IN_3D_LIQUID; }
 	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return true; }

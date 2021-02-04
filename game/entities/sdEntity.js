@@ -4,7 +4,7 @@
 import sdWorld from '../sdWorld.js';
 //import sdEffect from './sdEffect.js';
 
-var entity_net_ids = 0;
+//var entity_net_ids = 0;
 
 class sdEntity
 {
@@ -12,7 +12,7 @@ class sdEntity
 	{
 		console.warn('sdEntity class initiated');
 		sdEntity.entities = [];
-		sdEntity.global_entities = []; // sdWeather
+		sdEntity.global_entities = []; // sdWeather. This array contains extra copies of entities that exist in primary array, which is sdEntity.entities. Entities add themselves here and remove themselves whenever proper disposer like _remove is called.
 		
 		sdEntity.active_entities = [];
 		
@@ -24,12 +24,26 @@ class sdEntity
 		//if ( !sdWorld.is_server )
 		sdEntity.entities_by_net_id_cache = {};
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdEntity.entity_net_ids = 0;
+		
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
+	IsGlobalEntity() // Should never change
+	{ return false; }
+	
 	get hitbox_x1() { return -5; }
 	get hitbox_x2() { return 5; }
 	get hitbox_y1() { return -5; }
 	get hitbox_y2() { return 5; }
+	
+	DrawIn3D()
+	{ return FakeCanvasContext.DRAW_IN_3D_FLAT; }
+	
+	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG, return null or array of [x,y,z] offsets
+	{ return null; }
+	
+	CameraDistanceScale3D( layer ) // so far called for layer FG (which is 1), usually only used by chat messages
+	{ return 1; }
 	
 	get substeps() // Bullets will need more
 	{ return 1; }
@@ -272,7 +286,7 @@ class sdEntity
 		
 		if ( sdWorld.is_server )
 		{
-			this._net_id = entity_net_ids++;
+			this._net_id = sdEntity.entity_net_ids++;
 			
 			//if ( !sdWorld.is_server )
 			sdEntity.entities_by_net_id_cache[ this._net_id ] = this;
@@ -291,6 +305,10 @@ class sdEntity
 		
 		this._snapshot_cache_frame = 0;
 		this._snapshot_cache = null;
+		
+		
+		if ( this.IsGlobalEntity() )
+		sdEntity.global_entities.push( this );
 	}
 	SetHiberState( v )
 	{
@@ -347,7 +365,7 @@ class sdEntity
 	{
 		return this.constructor.name;
 	}
-	GetSnapshot( current_frame )
+	GetSnapshot( current_frame, save_as_much_as_possible=false )
 	{
 		if ( current_frame !== this._snapshot_cache_frame )
 		{
@@ -372,9 +390,9 @@ class sdEntity
 			
 			for ( var prop in this )
 			{
-				if ( prop.charAt( 0 ) !== '_' )
+				if ( prop.charAt( 0 ) !== '_' || ( save_as_much_as_possible && prop !== '_hiberstate' && prop !== '_last_x' && prop !== '_last_y' && ( typeof this[ prop ] === 'number' || typeof this[ prop ] === 'string' || typeof this[ prop ] === 'boolean' ) ) )
 				{
-					if ( typeof this[ prop ] === 'number' )
+					if ( !save_as_much_as_possible && typeof this[ prop ] === 'number' ) // Do not do number rounding if world is being saved
 					{
 						if ( prop === 'sx' || prop === 'sy' )
 						this._snapshot_cache[ prop ] = Math.round( this[ prop ] * 100 ) / 100;
@@ -510,7 +528,10 @@ class sdEntity
 		
 		//if ( globalThis[ snapshot._class ] === undefined )
 		if ( typeof sdWorld.entity_classes[ snapshot._class ] === 'undefined' )
-		throw new Error( 'Unknown entity class. Download?' );
+		{
+			console.log( 'Known entity classes: ', sdWorld.entity_classes );
+			throw new Error( 'Unknown entity class "'+snapshot._class+'". Download?' );
+		}
 	
 		var ret = new sdWorld.entity_classes[ snapshot._class ]({ x:snapshot.x, y:snapshot.y });//globalThis[ snapshot._class ];
 		ret._net_id = snapshot._net_id;
@@ -521,6 +542,31 @@ class sdEntity
 		sdEntity.entities.push( ret );
 	
 		return ret;
+	}
+	static GuessEntityName( net_id ) // For client-side coms
+	{
+		if ( typeof sdEntity.entities_by_net_id_cache[ net_id ] === 'undefined' )
+		{
+			return 'user #' + net_id;
+		}
+		else
+		{
+			let e = sdEntity.entities_by_net_id_cache[ net_id ];
+			if ( e.GetClass() === 'sdCharacter' )
+			{
+				let s = e.title;
+				
+				if ( e._is_being_removed )
+				s += ' [ body is broken ]';
+				else
+				if ( e.hea <= 0 )
+				s += ' [ dead ]';
+				
+				return s;
+			}
+			else
+			return e.GetClass() + '#' + net_id;
+		}
 	}
 	TransferMatter( to, how_much, GSPEED )
 	{
@@ -558,6 +604,17 @@ class sdEntity
 		this.SetHiberState( sdEntity.HIBERSTATE_REMOVED );
 		
 		sdWorld.UpdateHashPosition( this, false );
+		
+		if ( this.IsGlobalEntity() )
+		{
+			let i = sdEntity.global_entities.indexOf( this );
+			if ( i === -1 )
+			{
+				debugger;
+			}
+			else
+			sdEntity.global_entities.splice( i, 1 );
+		}
 		
 		if ( this._net_id !== undefined ) // client-side entities
 		{

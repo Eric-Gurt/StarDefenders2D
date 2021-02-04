@@ -52,7 +52,7 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.disowned_body_ttl = 60 * 60;
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	GetHitDamageMultiplier( x, y )
 	{
@@ -600,7 +600,9 @@ class sdCharacter extends sdEntity
 						this.hook_y = this._hook_relative_to.y + this._hook_relative_y;
 					}
 					
-					let cur_di = sdWorld.Dist2D( this.x, this.y, this.hook_x, this.hook_y );
+					let from_y = this.y + ( this.hitbox_y1 + this.hitbox_y2 ) / 2;
+					
+					let cur_di = sdWorld.Dist2D( this.x, from_y, this.hook_x, this.hook_y );
 
 					if ( this._hook_len === -1 )
 					this._hook_len = cur_di;
@@ -611,7 +613,7 @@ class sdCharacter extends sdEntity
 
 					let pull_force = -( this._hook_len - cur_di ) / 15;
 					let vx = ( this.hook_x - this.x ) / cur_di;
-					let vy = ( this.hook_y - this.y ) / cur_di;
+					let vy = ( this.hook_y - from_y ) / cur_di;
 					
 					if ( this._hook_relative_to )
 					{
@@ -673,7 +675,8 @@ class sdCharacter extends sdEntity
 				this.x += 0.5;
 			}
 			
-			if ( !this.CanMoveWithoutOverlap( this.x, this.y + ( this.UseServerCollisions() ? 2 : 3 ), 1 ) )
+			//if ( !this.CanMoveWithoutOverlap( this.x, this.y + ( this.UseServerCollisions() ? 2 : 3 ), 1 ) ) Has egde-stand-constant-fall bug, not sure why it was done like that exactly
+			if ( !this.CanMoveWithoutOverlap( this.x, this.y + ( this.UseServerCollisions() ? 2 : 3 ), 0 ) )
 			//if ( !this.CanMoveWithoutOverlap( this.x, this.y + 2, 1 ) )
 			{
 				this.stands = true;
@@ -1199,10 +1202,12 @@ class sdCharacter extends sdEntity
 		
 		if ( this.hook_x !== 0 || this.hook_y !== 0 )
 		{
+			let from_y = this.y + ( this.hitbox_y1 + this.hitbox_y2 ) / 2;
+			
 			ctx.lineWidth = 1;
 			ctx.strokeStyle = '#c0c0c0';
 			ctx.beginPath();
-			ctx.moveTo( 0,0 );
+			ctx.moveTo( 0,from_y - this.y );
 			ctx.lineTo( this.hook_x - this.x, this.hook_y - this.y );
 			ctx.stroke();
 		}

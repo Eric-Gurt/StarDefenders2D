@@ -3,6 +3,9 @@ import sdRenderer from './sdRenderer.js';
 import sdWorld from '../sdWorld.js';
 import sdShop from './sdShop.js';
 import sdCom from '../entities/sdCom.js';
+import sdEntity from '../entities/sdEntity.js';
+
+
 
 class sdContextMenu
 {
@@ -60,7 +63,7 @@ class sdContextMenu
 						for ( var i = 0; i < sdContextMenu.current_target.subscribers.length; i++ )
 						{
 							let net_id = sdContextMenu.current_target.subscribers[ i ];
-							sdContextMenu.options.push({ title: 'Kick user ' + net_id,
+							sdContextMenu.options.push({ title: 'Kick ' + sdEntity.GuessEntityName( net_id )/*user ' + net_id*/,
 								action: ()=>
 								{
 									globalThis.socket.emit( 'COM_KICK', [ sdContextMenu.current_target._net_id, net_id ] );
@@ -127,10 +130,13 @@ class sdContextMenu
 		{
 			ctx.translate( sdContextMenu.x, sdContextMenu.y );
 
-			let width = 180;
+			//let width = 180;
+			let width = 260;
 
-			ctx.fillStyle = 'rgba(0,0,0,0.7)';
+			ctx.fillStyle = 'rgb(0,0,0)';
+			ctx.globalAlpha = 0.7;
 			ctx.fillRect( 0, 0, width, ( sdContextMenu.options.length + 1 ) * ( 30 ) );
+			ctx.globalAlpha = 1;
 
 			sdContextMenu.potential_option = null;
 			
@@ -156,8 +162,10 @@ class sdContextMenu
 					{
 						sdContextMenu.potential_option = sdContextMenu.options[ i ];
 						
-						ctx.fillStyle = 'rgba(255,255,0,0.3)';
+						ctx.fillStyle = 'rgb(255,255,0)';
+						ctx.globalAlpha = 0.3;
 						ctx.fillRect( 1, ( i + 1 ) * 30 + 1, width-2, 28 );
+						ctx.globalAlpha = 1;
 					}
 				}
 				

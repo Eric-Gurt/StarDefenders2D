@@ -9,7 +9,7 @@ class sdAsteroid extends sdEntity
 	{
 		sdAsteroid.img_asteroid = sdWorld.CreateImageFromFile( 'asteroid' );
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -6; }
 	get hitbox_x2() { return 6; }
@@ -23,8 +23,8 @@ class sdAsteroid extends sdEntity
 		this._hmax = 200;
 		this._hea = this._hmax;
 		
-		this.sx = Math.random() * 6 - 3;
-		this.sy = 5;
+		this.sx = Math.random() * 12 - 6;
+		this.sy = 10;
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -59,7 +59,10 @@ class sdAsteroid extends sdEntity
 		ctx.rotate( this._an );
 
 		ctx.drawImage( image, - 16, - 16, 32,32 );
-
+	}
+	MeasureMatterCost()
+	{
+		return 100; // Hack
 	}
 };
 export default sdAsteroid;

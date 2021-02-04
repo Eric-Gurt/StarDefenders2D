@@ -1,4 +1,6 @@
 
+/* global FakeCanvasContext */
+
 import sdWorld from '../sdWorld.js';
 import sdShop from '../client/sdShop.js';
 import sdChat from '../client/sdChat.js';
@@ -6,6 +8,8 @@ import sdContextMenu from '../client/sdContextMenu.js';
 
 import sdEntity from '../entities/sdEntity.js';
 import sdWeather from '../entities/sdWeather.js';
+import sdBlock from '../entities/sdBlock.js';
+
 
 class sdRenderer
 {
@@ -45,7 +49,12 @@ class sdRenderer
 		
 		document.body.insertBefore( canvas, null );
 		
-		sdRenderer.ctx = canvas.getContext("2d");
+		sdRenderer._visual_settings = 0;
+		
+		//sdRenderer.ctx = canvas.getContext("2d");
+		//sdRenderer.ctx = canvas.getContext('webgl-2d');
+		//sdRenderer.ctx = new FakeCanvasContext( canvas );
+		sdRenderer.ctx = null;
 		
 		
 		if ( typeof window !== 'undefined' )
@@ -62,17 +71,40 @@ class sdRenderer
 				sdWorld.target_scale = 2 / 800 * sdRenderer.screen_width;
 				sdWorld.target_scale = Math.round( sdWorld.target_scale * 8 ) / 8; // Should be rounded too
 				
-				sdRenderer.sky_gradient = sdRenderer.ctx.createLinearGradient( 0, 0, 0, sdRenderer.screen_height );
-				sdRenderer.sky_gradient.addColorStop( 0, '#7b3219' );
-				sdRenderer.sky_gradient.addColorStop( 1, '#b75455' );
+				if ( sdRenderer.ctx )
+				{
+					if ( sdRenderer.ctx.renderer )
+					{
+						sdRenderer.ctx.camera.aspect = window.innerWidth / window.innerHeight;
+						sdRenderer.ctx.renderer.setSize( window.innerWidth, window.innerHeight );
+
+						sdRenderer.ctx.camera.position.x = window.innerWidth / 2;
+						sdRenderer.ctx.camera.position.y = window.innerHeight / 2;
+						sdRenderer.ctx.camera.position.z = -811 * ( 1 * window.innerHeight / 937 );
+						
+						sdRenderer.ctx.camera.near = 400 * ( 1 * window.innerHeight / 937 );
+						sdRenderer.ctx.camera.far = 1000 * ( 1 * window.innerHeight / 937 );
+
+						sdRenderer.ctx.camera.updateProjectionMatrix();
+					}
+
+					sdRenderer.sky_gradient = sdRenderer.ctx.createLinearGradient( 0, 0, 0, sdRenderer.screen_height );
+					sdRenderer.sky_gradient.addColorStop( 0, '#7b3219' );
+					sdRenderer.sky_gradient.addColorStop( 1, '#b75455' );
+				}
 			};
-			window.onresize();
+			//window.onresize();
+			
+			sdRenderer.img_dark_lands = sdWorld.CreateImageFromFile( 'dark_lands' );
 		}
 		
 		sdRenderer.image_filter_cache = new Map();
 	
 		sdRenderer.AddCacheDrawMethod = function( ctx0 )
 		{
+			ctx0.sd_filter = null;
+			ctx0.sd_tint_filter = null;
+			
 			ctx0.drawImageFilterCache = function( ...args )
 			{
 				if ( args[ 0 ].loaded === false )
@@ -80,11 +112,12 @@ class sdRenderer
 				
 				const filter = ctx0.filter; // native
 				const sd_filter = ctx0.sd_filter; // custom filter, { colorA:replacementA, colorB:replacementB }
+				const sd_tint_filter = ctx0.sd_tint_filter; // custom filter, [ r, g, b ], multiplies
 
 
-				if ( sd_filter || filter !== 'none' )
+				if ( sd_filter || sd_tint_filter || filter !== 'none' )
 				{
-					const complex_filter_name = filter + '/' + JSON.stringify( sd_filter );
+					const complex_filter_name = filter + '/' + ( sd_filter ? JSON.stringify( sd_filter ) : '' ) + '/' + ( sd_tint_filter ? JSON.stringify( sd_tint_filter ) : '' );
 
 					let image_obj = args[ 0 ];
 
@@ -102,11 +135,12 @@ class sdRenderer
 					if ( typeof image_obj_cache[ complex_filter_name ] === 'undefined' )
 					{
 						if ( typeof OffscreenCanvas !== 'undefined' )
-						image_obj_cache[ complex_filter_name ] = new OffscreenCanvas( 32, 32 );
+						image_obj_cache[ complex_filter_name ] = new OffscreenCanvas( image_obj.width, image_obj.height );
 						else
 						{
 							image_obj_cache[ complex_filter_name ] = document.createElement('canvas');
-							image_obj_cache[ complex_filter_name ].width = image_obj_cache[ complex_filter_name ].height = 32;
+							image_obj_cache[ complex_filter_name ].width = image_obj.width;
+							image_obj_cache[ complex_filter_name ].height = image_obj.height;
 						}
 						let ctx = image_obj_cache[ complex_filter_name ].getContext("2d");
 
@@ -115,7 +149,8 @@ class sdRenderer
 						let args2 = args.slice( 0 ); // Copy
 						args2[ 1 ] = 0; // Reset position
 						args2[ 2 ] = 0;
-						ctx.drawImage( ...args2 );
+						//ctx.drawImage( ...args2 );
+						ctx.drawImage( args[ 0 ], 0, 0 );
 						
 						let apply_sd_filter = false;
 						
@@ -126,9 +161,9 @@ class sdRenderer
 							break;
 						}
 						
-						if ( apply_sd_filter )
+						if ( apply_sd_filter || sd_tint_filter )
 						{
-							let image_data = ctx.getImageData(0,0,32,32);
+							let image_data = ctx.getImageData( 0, 0, ctx.canvas.width, ctx.canvas.height );
 							let data = image_data.data; // Uint8ClampedArray
 							/*
 							let array_buffer = data.buffer;
@@ -143,6 +178,8 @@ class sdRenderer
 							}
 							debugger;*/
 							let r,g,b;
+							
+							if ( sd_filter )
 							for ( let i = 0; i < data.length; i += 4 )
 							{
 								//data[ i ] = 255;
@@ -163,26 +200,90 @@ class sdRenderer
 									}
 								}
 							}
+							
+							if ( sd_tint_filter )
+							for ( let i = 0; i < data.length; i += 4 )
+							if ( data[ i+3 ] > 0 )
+							{
+								data[ i ] *= sd_tint_filter[ 0 ];
+								data[ i+1 ] *= sd_tint_filter[ 1 ];
+								data[ i+2 ] *= sd_tint_filter[ 2 ];
+							}
+
 							ctx.putImageData( image_data, 0, 0 );
 						}
 					}
 					
 					ctx0.filter = 'none';
 
+					//ctx0.drawImage( image_obj_cache[ complex_filter_name ], ...args.slice( 1 ) );
 					ctx0.drawImage( image_obj_cache[ complex_filter_name ], ...args.slice( 1 ) );
 					
 					ctx0.filter = filter;
 
 					return;
 				}
-
+				else
 				//if ( args.length === 3 )
 				ctx0.drawImage( ...args );
 
 			};
 		};
-		sdRenderer.AddCacheDrawMethod( sdRenderer.ctx );
 	}
+	
+	static set visual_settings( v )
+	{
+		if ( v === sdRenderer._visual_settings )
+		return;
+	
+		if ( sdRenderer._visual_settings === 0 )
+		{
+			sdRenderer._visual_settings = v;
+			
+			if ( v === 1 )
+			sdRenderer.ctx = sdRenderer.canvas.getContext("2d");
+			else
+			sdRenderer.ctx = new FakeCanvasContext( sdRenderer.canvas );
+		
+			sdRenderer.AddCacheDrawMethod( sdRenderer.ctx );
+			
+			if ( v === 2 )
+			{
+				if ( sdRenderer.ctx.sky.parent );
+				sdRenderer.ctx.sky.parent.remove( sdRenderer.ctx.sky );
+				
+				if ( sdRenderer.ctx.sun.parent );
+				sdRenderer.ctx.sun.parent.remove( sdRenderer.ctx.sun );
+				
+				sdRenderer.ctx.renderer.shadowMap.enabled = false;
+			}
+			else
+			if ( v === 3 )
+			{
+				if ( !sdRenderer.ctx.sky.parent );
+				sdRenderer.ctx.sky.parent.add( sdRenderer.ctx.sky );
+				
+				if ( !sdRenderer.ctx.sun.parent );
+				sdRenderer.ctx.sun.parent.add( sdRenderer.ctx.sun );
+				
+				sdRenderer.ctx.renderer.shadowMap.enabled = true;
+			}
+			
+			if ( v === 2 || v === 3 )
+			{
+				sdBlock.Install3DSupport();
+			}
+			
+			window.onresize();
+		}
+		else
+		alert('Application restart required for visual settings to change once again');
+	}
+	static get visual_settings()
+	{
+		return sdRenderer._visual_settings;
+	}
+	
 	static UseCrosshair()
 	{
 		if ( sdShop.open || sdContextMenu.open )
@@ -205,6 +306,19 @@ class sdRenderer
 		
 		var ctx = sdRenderer.ctx;
 		
+		if ( ctx === null )
+		{
+			return; // Context settings are not decided yet
+		}
+		
+		if ( typeof ctx.FakeStart !== 'undefined' )
+		ctx.FakeStart();
+	
+		ctx.z_offset = 0;
+		ctx.z_depth = 0;
+		ctx.draw_offset = -100;
+		ctx.camera_relative_world_scale = 1.2;
+		
 		ctx.imageSmoothingEnabled = false;
 		
 		// BG
@@ -215,12 +329,23 @@ class sdRenderer
 			ctx.fillStyle = sdRenderer.sky_gradient;
 			ctx.fillRect( 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
 			
+			//ctx.drawImage( sdRenderer.img_dark_lands, 0,0, sdRenderer.screen_width, sdRenderer.screen_height );
+			
+			
 			if ( sdWeather.only_instance )
 			{
 				ctx.fillStyle = '#000000';
 				ctx.globalAlpha = Math.cos( sdWeather.only_instance.day_time / ( 30 * 60 * 24 ) * Math.PI * 2 ) * 0.5 + 0.5;
-				ctx.fillRect( 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
+				if ( ctx.sky )
+				ctx.sky.intensity = ( 1 - ctx.globalAlpha * 0.5 ) * 0.7;
+				if ( ctx.sun )
+				ctx.sun.intensity = ( 1 - ctx.globalAlpha * 0.5 );
+			
+				//ctx.fillRect( 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
+				ctx.drawImage( sdRenderer.img_dark_lands, 0,0, sdRenderer.screen_width, sdRenderer.screen_height );
+				
 				ctx.globalAlpha = 1;
+				
 			}
 		}
 		
@@ -235,6 +360,17 @@ class sdRenderer
 		
 		// In-world
 		{
+			ctx.draw_offset = 0;
+			ctx.camera_relative_world_scale = 1;
+			
+			
+
+			let min_x = sdWorld.camera.x - 800/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width - 64;
+			let max_x = sdWorld.camera.x + 800/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width + 64;
+
+			let min_y = sdWorld.camera.y - 400/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width - 64;
+			let max_y = sdWorld.camera.y + 400/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width + 64;
+			
 			//ctx.fillStyle = '#7b3219';
 			//ctx.fillRect( sdWorld.camera.x - sdRenderer.screen_width, 0, sdRenderer.screen_width * 2, sdRenderer.screen_height );
 			
@@ -250,9 +386,19 @@ class sdRenderer
 					xx, 
 					yy, 32,32 );
 			}*/
+			ctx.z_offset = -32 * sdWorld.camera.scale;
+			ctx.z_depth = 16 * sdWorld.camera.scale;
+			
 			for ( var i = 0; i < sdEntity.entities.length; i++ )
 			if ( sdEntity.entities[ i ].DrawBG !== sdEntity.prototype.DrawBG )
+			if ( sdEntity.entities[ i ].x + sdEntity.entities[ i ].hitbox_x2 > min_x )
+			if ( sdEntity.entities[ i ].x + sdEntity.entities[ i ].hitbox_x1 < max_x )
+			if ( sdEntity.entities[ i ].y + sdEntity.entities[ i ].hitbox_y2 > min_y )
+			if ( sdEntity.entities[ i ].y + sdEntity.entities[ i ].hitbox_y1 < max_y )
 			{
+				ctx.volumetric_mode = sdEntity.entities[ i ].DrawIn3D( -1 );
+				ctx.object_offset = sdEntity.entities[ i ].ObjectOffset3D( -1 );
+				
 				ctx.save();
 				try
 				{
@@ -267,8 +413,20 @@ class sdRenderer
 				}
 				ctx.restore();
 			}
+			
+			ctx.z_offset = -16 * sdWorld.camera.scale;
+			ctx.z_depth = 16 * sdWorld.camera.scale;
+			
 			for ( var i = 0; i < sdEntity.entities.length; i++ )
+			if ( ( sdEntity.entities[ i ].x + sdEntity.entities[ i ].hitbox_x2 > min_x &&
+				   sdEntity.entities[ i ].x + sdEntity.entities[ i ].hitbox_x1 < max_x &&
+				   sdEntity.entities[ i ].y + sdEntity.entities[ i ].hitbox_y2 > min_y &&
+				   sdEntity.entities[ i ].y + sdEntity.entities[ i ].hitbox_y1 < max_y ) ||
+				   sdEntity.entities[ i ] === sdWeather.only_instance )
 			{
+				ctx.volumetric_mode = sdEntity.entities[ i ].DrawIn3D( 0 );
+				ctx.object_offset = sdEntity.entities[ i ].ObjectOffset3D( 0 );
+				
 				ctx.save();
 				try
 				{
@@ -283,23 +441,46 @@ class sdRenderer
 				}
 				ctx.restore();
 			}
+			
+			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_FLAT;
+			
+			//ctx.z_offset = 0 * sdWorld.camera.scale;
+			//ctx.z_depth = 16 * sdWorld.camera.scale;
 			for ( var i = 0; i < sdEntity.entities.length; i++ )
 			if ( sdEntity.entities[ i ].DrawFG !== sdEntity.prototype.DrawFG )
 			{
-				ctx.save();
-				try
+				ctx.volumetric_mode = sdEntity.entities[ i ].DrawIn3D( 1 );
+				ctx.object_offset = sdEntity.entities[ i ].ObjectOffset3D( 1 );
+				ctx.camera_relative_world_scale = sdEntity.entities[ i ].CameraDistanceScale3D( 1 );
+				
+				if ( ctx.camera_relative_world_scale < 1 ||
+					 ( sdEntity.entities[ i ].x + sdEntity.entities[ i ].hitbox_x2 > min_x &&
+				       sdEntity.entities[ i ].x + sdEntity.entities[ i ].hitbox_x1 < max_x &&
+				       sdEntity.entities[ i ].y + sdEntity.entities[ i ].hitbox_y2 > min_y &&
+				       sdEntity.entities[ i ].y + sdEntity.entities[ i ].hitbox_y1 < max_y ) )
 				{
-					ctx.translate( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
-		
-					// TODO: Add bounds check, thought that is maybe pointless if server won't tell offscreen info
-					sdEntity.entities[ i ].DrawFG( ctx, false );
+					ctx.save();
+					try
+					{
+						ctx.translate( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+
+						// TODO: Add bounds check, thought that is maybe pointless if server won't tell offscreen info
+						sdEntity.entities[ i ].DrawFG( ctx, false );
+					}
+					catch( e )
+					{
+						console.log( 'Image could not be drawn for ',sdEntity.entities[ i ],e );
+					}
+					ctx.restore();
 				}
-				catch( e )
-				{
-					console.log( 'Image could not be drawn for ',sdEntity.entities[ i ],e );
-				}
-				ctx.restore();
 			}
+			
+			//ctx.draw_offset = 0;
+			
+			ctx.object_offset = null;
+			
+			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_FLAT;
+			ctx.camera_relative_world_scale = 0.5;
 			
 			ctx.fillStyle = '#000000';
 			for ( var step = 1; step <= 4; step++ )
@@ -439,6 +620,11 @@ class sdRenderer
 		
 		ctx.resetTransform();
 		
+		ctx.z_offset = 0;
+		ctx.z_depth = 0;
+		ctx.draw_offset = 100;
+		ctx.camera_relative_world_scale = 0.5;
+		
 		// On-screen foregroud
 		if ( sdWorld.my_entity )
 		{
@@ -527,6 +713,9 @@ class sdRenderer
 			
 			ctx.fillText( sdRenderer.service_mesage, sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 - 30 );
 		}
+		
+		if ( typeof ctx.FakeEnd !== 'undefined' )
+		ctx.FakeEnd();
 	}
 }
 //sdRenderer.init_class();

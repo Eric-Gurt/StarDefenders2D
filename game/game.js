@@ -47,6 +47,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdGun.init_class(); // must be after sdEffect
 	sdBlock.init_class();
 	sdCrystal.init_class();
+	sdBG.init_class();
 	sdShop.init_class();
 	sdChat.init_class();
 	sdBullet.init_class();
@@ -56,7 +57,6 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdTeleport.init_class();
 	sdDoor.init_class();
 	sdWater.init_class();
-	sdBG.init_class();
 	sdWeather.init_class();
 	sdTurret.init_class();
 	sdMatterContainer.init_class();
@@ -128,6 +128,9 @@ meSpeak.loadVoice("voices/en/en.json");
 	{
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
 		sdEntity.entities[ i ].remove();
+	
+		for ( var i = 0; i < sdEntity.global_entities.length; i++ )
+		sdEntity.global_entities[ i ].remove();
 	
 		sdWorld.my_entity = null;
 		sdWorld.my_entity_net_id = undefined;
@@ -263,7 +266,7 @@ meSpeak.loadVoice("voices/en/en.json");
 				socket.last_sync = sdWorld.time;
 
 				if ( sdWorld.my_entity )
-				socket.volatile.emit( 'M', [ sdWorld.my_entity.look_x, sdWorld.my_entity.look_y, sdWorld.camera.x, sdWorld.camera.y, sdWorld.camera.scale, sdWorld.my_entity.x, sdWorld.my_entity.y ] );
+				socket.volatile.emit( 'M', [ sdWorld.my_entity.look_x, sdWorld.my_entity.look_y, sdWorld.camera.x, sdWorld.camera.y, sdWorld.camera.scale, sdWorld.my_entity.x, sdWorld.my_entity.y, ( sdWorld.my_entity.stands && sdWorld.my_entity._stands_on ) ? sdWorld.my_entity._stands_on._net_id : -1 ] );
 			}
 
 			sdRenderer.Render();
@@ -284,6 +287,16 @@ meSpeak.loadVoice("voices/en/en.json");
 	
 	window.onkeydown = ( e )=>
 	{
+		if ( sdShop.open )
+		{
+			if ( e.key === 'BrowserBack' )
+			{
+				sdShop.current_category = 'root';
+				e.preventDefault();
+				return false;
+			}
+		}
+		
 		if ( sdChat.KeyDown( e ) )
 		return;
 	

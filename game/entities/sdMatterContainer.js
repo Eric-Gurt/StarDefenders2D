@@ -11,7 +11,7 @@ class sdMatterContainer extends sdEntity
 		sdMatterContainer.img_matter_container = sdWorld.CreateImageFromFile( 'matter_container' );
 		sdMatterContainer.img_matter_container_empty = sdWorld.CreateImageFromFile( 'matter_container_empty' );
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -10; }
 	get hitbox_x2() { return 10; }

@@ -13,7 +13,7 @@ class sdAntigravity extends sdEntity
 	{
 		sdAntigravity.img_antigravity = sdWorld.CreateImageFromFile( 'antigravity' );
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -16; }
 	get hitbox_x2() { return 16; }
