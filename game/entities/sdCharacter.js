@@ -76,6 +76,8 @@ class sdCharacter extends sdEntity
 		super( params );
 		
 		this.title = 'Random Hero #' + this._net_id;
+		this._my_hash = undefined; // Will be used to let players repsawn within same entity if it exists on map
+		this._old_score = 0; // This value is only read/written to when player disconnects and reconnects
 		
 		this._fall_sound_time = 0;
 		
@@ -351,9 +353,14 @@ class sdCharacter extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		//this.matter = 10000; // Hack
-		//this.hea = 10000; // Hack
-		
+		/*
+		this.matter_max = 1000; // Hack
+		this.matter = this.matter_max; // Hack
+		this.hea = this.hmax; // Hack
+		this._dying = false; // Hack
+		this._air = sdCharacter.air_max;
+		*/
+	   
 		if ( this.hea <= 0 )
 		{
 			if ( this.death_anim < 90 )

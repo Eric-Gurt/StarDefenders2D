@@ -4,6 +4,9 @@ import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdAsteroid from './sdAsteroid.js';
 
+import sdCube from './sdCube.js';
+
+
 import sdRenderer from '../client/sdRenderer.js';
 
 class sdWeather extends sdEntity
@@ -126,22 +129,42 @@ class sdWeather extends sdEntity
 					if ( sdWorld.sockets[ i ].character.pain_anim <= 0 && sdWorld.sockets[ i ].character.hea > 0 )
 					sdWorld.SendEffect({ x:sdWorld.sockets[ i ].character.x, y:sdWorld.sockets[ i ].character.y + sdWorld.sockets[ i ].character.hitbox_y1, type:sdWorld.sockets[ i ].character.GetBleedEffect(), filter:sdWorld.sockets[ i ].character.GetBleedEffectFilter() });
 					
-					sdWorld.sockets[ i ].character.Damage( GSPEED * this.raining_intensity / 200 );
+					sdWorld.sockets[ i ].character.Damage( GSPEED * this.raining_intensity / 240 );
 				}
 			}
 			
 			this._time_until_event -= GSPEED;
 			if ( this._time_until_event < 0 )
 			{
-				this._time_until_event = Math.random() * 30 * 60 * 8; // once in an ~8 minutes
+				this._time_until_event = Math.random() * 30 * 60 * 5.5; // once in an ~4 minutes (was 8 but more events kinds = less events sort of)
 				
-				let r = ~~( Math.random() * 2 );
+				let r = ~~( Math.random() * 3 );
 				
 				if ( r === 0 )
 				this._rain_ammount = 30 * 15 * ( 1 + Math.random() * 2 ); // start rain for ~15 seconds
 			
 				if ( r === 1 )
 				this._asteroid_spam_ammount = 30 * 15 * ( 1 + Math.random() * 2 );
+			
+				if ( r === 2 )
+				{
+					for ( let t = Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) + 1; t > 0; t-- )
+					if ( sdCube.alive_cube_counter < 20 )
+					{
+						let cube = new sdCube({ 
+							x:sdWorld.world_bounds.x1 + 32 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 - 64 ), 
+							y:sdWorld.world_bounds.y1 + 32,
+							is_huge: ( sdCube.alive_huge_cube_counter >= sdWorld.GetPlayingPlayersCount() ) ? false : ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.1 )
+						});
+						cube.sy += 10;
+						sdEntity.entities.push( cube );
+						
+						if ( !cube.CanMoveWithoutOverlap( cube.x, cube.y, 0 ) )
+						cube.remove();
+						else
+						sdWorld.UpdateHashPosition( cube, false ); // Prevent inersection with other ones
+					}
+				}
 			}
 		}
 		else

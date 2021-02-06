@@ -89,6 +89,8 @@ class sdWater extends sdEntity
 					throw new Error('What are we doing here?');
 				}
 			}*/
+			
+			sdWorld.UpdateHashPosition( this, false ); // Without this, new water objects will only discover each other after one first think event (and by that time multiple water objects will overlap each other). This could be called at sdEntity super constructor but some entities don't know their bounds by that time
 		}
 	}
 	
@@ -313,9 +315,9 @@ class sdWater extends sdEntity
 				this._update_version++;
 			}
 
-			let arr_here = this._hash_position;
+			//let arr_here = this._hash_position;
 
-			if ( arr_here !== null )
+			//if ( arr_here !== null )
 			{
 				let wall_under = sdWorld.CheckWallExists( this.x + 8, this.y + 16 + 8, null, null, sdWater.classes_to_interact_with );
 

@@ -245,7 +245,7 @@ class sdGun extends sdEntity
 		else
 		{
 			if ( this._held_by.GetClass() === 'sdCharacter' )
-			if ( !this._held_by.ghosting )
+			if ( !this._held_by.ghosting || this._held_by.IsVisible( observer_character ) )
 			{
 				return ( this._held_by.gun_slot === sdGun.classes[ this.class ].slot );
 			}

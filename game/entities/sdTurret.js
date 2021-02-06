@@ -84,9 +84,9 @@ class sdTurret extends sdEntity
 						if ( ( e.hea || e._hea ) > 0 )
 						if ( e.IsVisible( this._owner ) )
 						{
-							if ( e !== this._owner || sdWorld.GetComsNear( this.x, this.y ).length > 0 )
-							if ( ( e.GetClass() === 'sdCharacter' && sdWorld.GetComsNear( this.x, this.y, null, e._net_id ).length === 0 ) || 
-								 e.GetClass() === 'sdVirus' || e.GetClass() === 'sdQuickie' || e.GetClass() === 'sdOctopus' )
+							if ( e !== this._owner || sdWorld.GetComsNear( this.x, this.y, null, null, true ).length > 0 )
+							if ( ( e.GetClass() === 'sdCharacter' && sdWorld.GetComsNear( this.x, this.y, null, e._net_id, true ).length === 0 ) || 
+								 e.GetClass() === 'sdVirus' || e.GetClass() === 'sdQuickie' || e.GetClass() === 'sdOctopus' || e.GetClass() === 'sdCube' )
 							{
 								if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
 								{
@@ -162,7 +162,7 @@ class sdTurret extends sdEntity
 		}
 
 		ctx.beginPath();
-		ctx.arc( 0,0, sdTurret.retransmit_range, 0, Math.PI*2 );
+		ctx.arc( 0,0, sdCom.retransmit_range, 0, Math.PI*2 );
 		ctx.stroke();
 		
 		ctx.lineDashOffset = 0;

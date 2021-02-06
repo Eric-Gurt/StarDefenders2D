@@ -9,6 +9,8 @@ import sdContextMenu from '../client/sdContextMenu.js';
 import sdEntity from '../entities/sdEntity.js';
 import sdWeather from '../entities/sdWeather.js';
 import sdBlock from '../entities/sdBlock.js';
+import sdEffect from '../entities/sdEffect.js';
+
 
 
 class sdRenderer
@@ -422,7 +424,8 @@ class sdRenderer
 				   sdEntity.entities[ i ].x + sdEntity.entities[ i ].hitbox_x1 < max_x &&
 				   sdEntity.entities[ i ].y + sdEntity.entities[ i ].hitbox_y2 > min_y &&
 				   sdEntity.entities[ i ].y + sdEntity.entities[ i ].hitbox_y1 < max_y ) ||
-				   sdEntity.entities[ i ] === sdWeather.only_instance )
+				   sdEntity.entities[ i ] === sdWeather.only_instance ||
+				   ( sdEntity.entities[ i ].__proto__.constructor === sdEffect.prototype.constructor && sdEntity.entities[ i ]._type === sdEffect.TYPE_BEAM ) ) // sdWorld.my_entity.__proto__.constructor
 			{
 				ctx.volumetric_mode = sdEntity.entities[ i ].DrawIn3D( 0 );
 				ctx.object_offset = sdEntity.entities[ i ].ObjectOffset3D( 0 );

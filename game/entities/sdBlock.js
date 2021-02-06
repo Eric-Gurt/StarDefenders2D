@@ -194,6 +194,8 @@ class sdBlock extends sdEntity
 	{
 		if ( !sdWorld.is_server )
 		return;
+	
+		dmg = Math.abs( dmg );
 		
 		if ( this._contains_class === 'sdVirus' || this._contains_class === 'sdQuickie' )
 		dmg = this._hea + 1;
@@ -382,6 +384,7 @@ class sdBlock extends sdEntity
 			{
 				let ent = new sdWorld.entity_classes[ this._contains_class ]({ x: this.x + this.width / 2, y: this.y + this.height / 2 });
 				sdEntity.entities.push( ent );
+				sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
 			}
 
 			let nears = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, Math.max( this.width, this.height ) / 2 + 16 );

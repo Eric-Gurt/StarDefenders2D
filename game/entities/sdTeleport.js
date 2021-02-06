@@ -148,7 +148,7 @@ class sdTeleport extends sdEntity
 		if ( from_entity.GetClass() !== 'sdEffect' )
 		if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null )
 		{	
-			let coms_near = sdWorld.GetComsNear( this.x, this.y );
+			let coms_near = sdWorld.GetComsNear( this.x, this.y, null, null, true );
 
 			let allowed = ( coms_near.length === 0 );
 

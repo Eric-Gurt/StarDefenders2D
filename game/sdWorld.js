@@ -92,6 +92,8 @@ class sdWorld
 		//sdWorld.active_build_settings = { _class: 'sdBlock', width:32, height:32 }; // Changes every time some client tries to build something
 		
 		sdWorld.leaders = [];
+		
+		sdWorld.el_hit_cache = [];
 
 		function MobileCheck() 
 		{
@@ -332,6 +334,24 @@ class sdWorld
 	
 		window.onresize();
 	}
+	
+	
+
+	static GetPlayingPlayersCount()
+	{
+		let c = 0;
+
+		for ( let i = 0; i < sdWorld.sockets.length; i++ )
+		if ( sdWorld.sockets[ i ].character !== null )
+		if ( sdWorld.sockets[ i ].character.hea > 0 )
+		if ( !sdWorld.sockets[ i ].character._is_being_removed )
+		{
+			c++;
+		}
+
+		return c;
+	}
+	
 	static ChangeWorldBounds( x1, y1, x2, y2 )
 	{
 		var ent;
@@ -563,18 +583,29 @@ class sdWorld
 			throw new Error('Should not happen');
 			
 			let initial_rand = Math.random() * Math.PI * 2;
-			for ( let an = 0; an < 16; an++ )
+			let steps = Math.min( 50, Math.max( 16, params.radius / 70 * 50 ) );
+			let an;
+			let bullet_obj;
+			for ( let s = 0; s < steps; s++ )
 			{
+				an = s / steps * Math.PI * 2;
 				
-				let bullet_obj = new sdBullet({ 
+				bullet_obj = new sdBullet({ 
 					x: params.x + Math.sin( an + initial_rand ) * 1, 
 					y: params.y + Math.cos( an + initial_rand ) * 1 
 				});
+				bullet_obj._wave = true;
+				/*
 				bullet_obj.sx = Math.sin( an + initial_rand ) * params.radius;
 				bullet_obj.sy = Math.cos( an + initial_rand ) * params.radius;
-				bullet_obj._wave = true;
-				bullet_obj.time_left = 2;
-				bullet_obj._damage = 10 * ( params.damage_scale || 1 ) * ( params.radius / 19 );
+				bullet_obj.time_left = 2;*/
+				
+				bullet_obj.sx = Math.sin( an + initial_rand ) * 16;
+				bullet_obj.sy = Math.cos( an + initial_rand ) * 16;
+				bullet_obj.time_left = params.radius / 16 * 2;
+				
+				//bullet_obj._damage = 80 * ( params.damage_scale || 1 ) * ( params.radius / 19 ) / steps;
+				bullet_obj._damage = 140 * ( params.damage_scale || 1 ) * ( params.radius / 19 ) / steps;
 				bullet_obj._owner = params.owner || null;
 				sdEntity.entities.push( bullet_obj );
 			}
@@ -587,7 +618,7 @@ class sdWorld
 		for ( var i = 0; i < sdWorld.sockets.length; i++ )
 		{
 			var socket = sdWorld.sockets[ i ];
-			
+
 			if ( 
 				 ( socket.character && socket.character.hea > 0 && 
 				   extra_affected_chars.indexOf( socket.character ) !== -1 ) ||
@@ -595,7 +626,7 @@ class sdWorld
 				 sdWorld.CanSocketSee( socket, params.x, params.y ) || 
 				 
 				 ( typeof params.x2 !== 'undefined' && 
-				   typeof params.y2 !== 'undefined' && 
+				   typeof params.y2 !== 'undefined' &&
 				   sdWorld.CanSocketSee( socket, params.x2, params.y2 ) ) ) // rails
 			{
 				socket.emit( command, params );
@@ -606,7 +637,7 @@ class sdWorld
 	{
 		sdWorld.SendEffect( params, 'S' );
 	}
-	static GetComsNear( _x, _y, append_to=null, require_auth_for_net_id=null )
+	static GetComsNear( _x, _y, append_to=null, require_auth_for_net_id=null, return_arr_of_one_with_lowest_net_id=false )
 	{
 		let ret = append_to || [];
 		
@@ -623,23 +654,32 @@ class sdWorld
 			if ( arr[ i ].GetClass() === 'sdCom' )
 			if ( require_auth_for_net_id === null || arr[ i ].subscribers.indexOf( require_auth_for_net_id ) !== -1 )
 			if ( ret.indexOf( arr[ i ] ) === -1 )
-			ret.push( arr[ i ] );
+			if ( sdWorld.CheckLineOfSight( _x, _y, arr[ i ].x, arr[ i ].y, null, sdCom.com_visibility_ignored_classes, null ) )
+			{
+				if ( ret.length > 0 && return_arr_of_one_with_lowest_net_id )
+				{
+					if ( ret[ 0 ]._net_id > arr[ i ] )
+					ret[ 0 ] = arr[ i ];
+				}
+				else
+				ret.push( arr[ i ] );
+			}
 		}
 		return ret;
 	}
-	static GetCharactersNear( _x, _y, append_to=null, require_auth_for_net_id_by_list=null )
+	static GetCharactersNear( _x, _y, append_to=null, require_auth_for_net_id_by_list=null, range=sdCom.retransmit_range )
 	{
 		let ret = append_to || [];
 		
-		let min_x = _x - sdCom.retransmit_range - 32;
-		let max_x = _x + sdCom.retransmit_range + 32;
-		let min_y = _y - sdCom.retransmit_range - 32;
-		let max_y = _y + sdCom.retransmit_range + 32;
+		let min_x = ~~((_x - range)/32);
+		let max_x = ~~((_x + range)/32);
+		let min_y = ~~((_y - range)/32);
+		let max_y = ~~((_y + range)/32);
 		let x, y, arr, i;
-		for ( x = min_x; x <= max_x; x += 32 )
-		for ( y = min_y; y <= max_y; y += 32 )
+		for ( x = min_x; x <= max_x; x++ )
+		for ( y = min_y; y <= max_y; y++ )
 		{
-			arr = sdWorld.RequireHashPosition( x, y );
+			arr = sdWorld.RequireHashPosition( x * 32, y * 32 );
 			for ( i = 0; i < arr.length; i++ )
 			if ( arr[ i ].GetClass() === 'sdCharacter' )
 			if ( require_auth_for_net_id_by_list === null || ( arr[ i ]._coms_allowed && require_auth_for_net_id_by_list.indexOf( arr[ i ]._net_id ) !== -1 ) )
@@ -648,21 +688,26 @@ class sdWorld
 		}
 		return ret;
 	}
-	static GetAnythingNear( _x, _y, range, append_to=null )
+	static GetAnythingNear( _x, _y, range, append_to=null, specific_classes=null )
 	{
 		let ret = append_to || [];
 		
-		let min_x = _x - range - 32;
+		/*let min_x = _x - range - 32;
 		let max_x = _x + range + 32;
 		let min_y = _y - range - 32;
-		let max_y = _y + range + 32;
+		let max_y = _y + range + 32;*/
+		let min_x = ~~((_x - range)/32);
+		let max_x = ~~((_x + range)/32);
+		let min_y = ~~((_y - range)/32);
+		let max_y = ~~((_y + range)/32);
 		let x, y, arr, i;
 		let cx,cy;
-		for ( x = min_x; x <= max_x; x += 32 )
-		for ( y = min_y; y <= max_y; y += 32 )
+		for ( x = min_x; x <= max_x; x++ )
+		for ( y = min_y; y <= max_y; y++ )
 		{
-			arr = sdWorld.RequireHashPosition( x, y );
+			arr = sdWorld.RequireHashPosition( x * 32, y * 32 );
 			for ( i = 0; i < arr.length; i++ )
+			if ( specific_classes === null || specific_classes.indexOf( arr[ i ].GetClass() ) !== -1 )
 			if ( ret.indexOf( arr[ i ] ) === -1 )
 			{
 				cx = Math.max( arr[ i ].x + arr[ i ].hitbox_x1, Math.min( _x, arr[ i ].x + arr[ i ].hitbox_x2 ) );
@@ -785,7 +830,10 @@ class sdWorld
 		if ( !sdWorld.world_hash_positions.has( x ) )
 		{
 			let arr = [];
+			
 			arr.hash = x;
+			//arr.unlinked = false; // Debugging client-side non-coliding sdBlock-s (they somehow point towards removed hashes
+			
 			sdWorld.world_hash_positions.set( x, arr );
 			
 			if ( sdWorld.world_hash_positions_recheck_keys.indexOf( x ) === -1 )
@@ -795,12 +843,63 @@ class sdWorld
 		return sdWorld.world_hash_positions.get( x );
 		
 	}
+	static ArraysEqualIgnoringOrder( a, b )
+	{
+		if ( a.length !== b.length )
+		return false;
+	
+		for ( var i = 0; i < a.length; i++ )
+		{
+			if ( b.indexOf( a[ i ] ) === -1 )
+			return false;
+		}
+	
+		return true; // Try false here if method fails for some reason
+	}
 	static UpdateHashPosition( entity, delay_callback_calls )
 	{
-		let new_hash_position = entity._is_being_removed ? null : sdWorld.RequireHashPosition( entity.x, entity.y );
+		//let new_hash_position = entity._is_being_removed ? null : sdWorld.RequireHashPosition( entity.x, entity.y );
 		
-		if ( entity._hash_position !== new_hash_position )
+		
+		
+		let new_affected_hash_arrays = [];
+		if ( !entity._is_being_removed && !delay_callback_calls ) // delay_callback_calls is useful here as it will delay .hitbox_x2 access which in case of sdBlock will be undefined at the very beginning, due to .width not specified yet
 		{
+			let from_x = ~~( ( entity.x + entity.hitbox_x1 ) / 32 );
+			let to_x = ~~( ( entity.x + entity.hitbox_x2 ) / 32 );
+			let from_y = ~~( ( entity.y + entity.hitbox_y1 ) / 32 );
+			let to_y = ~~( ( entity.y + entity.hitbox_y2 ) / 32 );
+			
+			if ( to_x - from_x < 32 && to_y - from_y < 32 )
+			{
+				var xx, yy;
+				
+				for ( xx = from_x; xx <= to_x; xx++ )
+				for ( yy = from_y; yy <= to_y; yy++ )
+				new_affected_hash_arrays.push( sdWorld.RequireHashPosition( xx * 32, yy * 32 ) );
+			}
+			else
+			debugger; // ~~ operation overflow is taking place? Or object is just too huge?
+		}
+		
+		//if ( entity._hash_position !== new_hash_position )
+		if ( !sdWorld.ArraysEqualIgnoringOrder( entity._affected_hash_arrays, new_affected_hash_arrays ) )
+		{
+			for ( var i = 0; i < entity._affected_hash_arrays.length; i++ )
+			{
+				var ind = entity._affected_hash_arrays[ i ].indexOf( entity );
+				if ( ind === -1 )
+				throw new Error('Bad hash object - it should contain this entity but it does not');
+			
+				entity._affected_hash_arrays[ i ].splice( ind, 1 );
+					
+				if ( entity._affected_hash_arrays[ i ].length === 0 && new_affected_hash_arrays.indexOf( entity._affected_hash_arrays[ i ] ) === -1 ) // Empty and not going to re-add(!)
+				{
+					//entity._affected_hash_arrays[ i ].unlinked = globalThis.getStackTrace();
+					sdWorld.world_hash_positions.delete( entity._affected_hash_arrays[ i ].hash );
+				}
+			}
+			/*
 			if ( entity._hash_position !== null )
 			{
 				let ind = entity._hash_position.indexOf( entity );
@@ -812,11 +911,24 @@ class sdWorld
 				{
 					sdWorld.world_hash_positions.delete( entity._hash_position.hash );
 				}
+			}*/
+			
+			for ( var i = 0; i < new_affected_hash_arrays.length; i++ )
+			{
+				//if ( new_affected_hash_arrays[ i ].unlinked )
+				//throw new Error('Adding to unlinked hash');
+				
+				new_affected_hash_arrays[ i ].push( entity );
+				
+				if ( new_affected_hash_arrays[ i ].length > 1000 ) // Dealing with NaN bounds?
+				debugger;
 			}
-
+		
+			entity._affected_hash_arrays = new_affected_hash_arrays;
+			/*
 			entity._hash_position = new_hash_position;
 			if ( new_hash_position !== null )
-			entity._hash_position.push( entity );
+			entity._hash_position.push( entity );*/
 		}
 		
 		if ( entity._is_being_removed )
@@ -830,8 +942,12 @@ class sdWorld
 		}
 		else
 		{
+			entity._last_x = entity.x;
+			entity._last_y = entity.y;
+
 			var map = new Map();
-			for ( var x = -1; x <= 1; x++ )
+			/*var map = new Map();
+			for ( var x = -1; x <= 1; x++ ) // TODO: Use box query method?
 			for ( var y = -1; y <= 1; y++ )
 			{
 				var local_hash_array = sdWorld.RequireHashPosition( entity.x + x * 32, entity.y + y * 32 );
@@ -839,7 +955,12 @@ class sdWorld
 				{
 					map.set( local_hash_array[ i ], local_hash_array[ i ] );
 				}
-			}
+			}*/
+			
+			for ( var i2 = 0; i2 < new_affected_hash_arrays.length; i2++ )
+			for ( var i = 0; i < new_affected_hash_arrays[ i2 ].length; i++ )
+			map.set( new_affected_hash_arrays[ i2 ][ i ], new_affected_hash_arrays[ i2 ][ i ] );
+
 			// Make entities reach to each other in both directions
 			map.forEach( ( another_entity )=>
 			{
@@ -938,12 +1059,12 @@ class sdWorld
 						let time_to = Date.now();
 						if ( time_to - time_from > 5 )
 						sdWorld.SendEffect({ x:e.x, y:e.y, type:sdEffect.TYPE_LAG, text:e.GetClass()+': '+(time_to - time_from)+'ms' });
-
+						
 						if ( e._last_x !== e.x ||
 							 e._last_y !== e.y )
 						{
-							e._last_x = e.x;
-							e._last_y = e.y;
+							//e._last_x = e.x;
+							//e._last_y = e.y;
 
 							if ( !e._is_being_removed )
 							sdWorld.UpdateHashPosition( e, false );
@@ -1006,7 +1127,10 @@ class sdWorld
 			
 			if ( sdWorld.world_hash_positions.has( x ) )
 			if ( sdWorld.world_hash_positions.get( x ).length === 0 )
-			sdWorld.world_hash_positions.delete( x );
+			{
+				//sdWorld.world_hash_positions.get( x ).unlinked = globalThis.getStackTrace();
+				sdWorld.world_hash_positions.delete( x );
+			}
 	
 			sdWorld.world_hash_positions_recheck_keys.shift();
 		}
@@ -1031,11 +1155,85 @@ class sdWorld
 			sdWorld.last_hit_entity = null;
 			return true;
 		}
+		
+		//let el_hit_cache = new WeakMap();
+		//let el_hit_cache = sdWorld.el_hit_cache;
+		//let el_hit_cache_len = 0;
 	
 		let arr;
 		let i;
 		
-		var xx_from = x1 - 32;
+		var xx_from = ~~( x1 / 32 ); // Overshoot no longer needed, due to big entities now taking all needed hash arrays
+		var yy_from = ~~( y1 / 32 );
+		var xx_to = ~~( x2 / 32 );
+		var yy_to = ~~( y2 / 32 );
+	
+		//for ( var xx = -1; xx <= 2; xx++ )
+		//for ( var yy = -1; yy <= 2; yy++ )
+		//for ( var xx = -1; xx <= 0; xx++ ) Was not enough for doors, sometimes they would have left vertical part lacking collision with players
+		//for ( var yy = -1; yy <= 0; yy++ )
+		//for ( var xx = -1; xx <= 1; xx++ )
+		//for ( var yy = -1; yy <= 1; yy++ )
+		for ( var xx = xx_from; xx <= xx_to; xx++ )
+		for ( var yy = yy_from; yy <= yy_to; yy++ )
+		{
+			//arr = sdWorld.RequireHashPosition( x1 + xx * 32, y1 + yy * 32 );
+			//arr = sdWorld.RequireHashPosition( x2 + xx * 32, y2 + yy * 32 ); // Better player-matter container collisions. Worse for player-block cases
+			arr = sdWorld.RequireHashPosition( xx * 32, yy * 32 );
+			
+			//ent_skip: 
+			for ( i = 0; i < arr.length; i++ )
+			{
+				/*for ( var i2 = 0; i2 < el_hit_cache_len; i2++ )
+				{
+					if ( el_hit_cache[ i2 ] === arr[ i ] )
+					continue ent_skip;
+				}
+				
+				el_hit_cache[ el_hit_cache_len++ ] = arr[ i ];*/
+				
+				
+				if ( x2 >= arr[ i ].x + arr[ i ].hitbox_x1 )
+				if ( x1 <= arr[ i ].x + arr[ i ].hitbox_x2 )
+				if ( y2 >= arr[ i ].y + arr[ i ].hitbox_y1 )
+				if ( y1 <= arr[ i ].y + arr[ i ].hitbox_y2 )
+				if ( arr[ i ].hard_collision || include_only_specific_classes )
+				if ( ignore_entity === null || arr[ i ].IsBGEntity() === ignore_entity.IsBGEntity() )
+				if ( arr[ i ] !== ignore_entity )
+				{
+					if ( include_only_specific_classes && include_only_specific_classes.indexOf( arr[ i ].GetClass() ) === -1 )
+					{
+					}
+					else
+					if ( ignore_entity_classes !== null && ignore_entity_classes.indexOf( arr[ i ].GetClass() ) !== -1 )
+					{
+					}
+					else
+					{
+						sdWorld.last_hit_entity = arr[ i ];
+						return true;
+					}
+				}
+			}
+		}
+	
+		return false;
+	}
+	/*static CheckWallExistsBox( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null ) // under 32x32 boxes unless line with arr = sdWorld.RequireHashPosition( x1 + xx * 32, y1 + yy * 32 ); changed
+	{
+		if ( y1 < sdWorld.world_bounds.y1 || 
+			 y2 > sdWorld.world_bounds.y2 || 
+			 x1 < sdWorld.world_bounds.x1 ||
+			 x2 > sdWorld.world_bounds.x2 )
+		{
+			sdWorld.last_hit_entity = null;
+			return true;
+		}
+	
+		let arr;
+		let i;
+		
+		var xx_from = x1 - 32; // TODO: Overshoot no longer needed, due to big entities now taking all needed hash arrays?
 		var yy_from = y1 - 32;
 		var xx_to = x2 + 32;
 		var yy_to = y2 + 32;
@@ -1078,7 +1276,7 @@ class sdWorld
 		}
 	
 		return false;
-	}
+	}*/
 	static CheckLineOfSight( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null )
 	{
 		var di = sdWorld.Dist2D( x1,y1,x2,y2 );
@@ -1111,10 +1309,11 @@ class sdWorld
 		//for ( var yy = -1; yy <= 2; yy++ )
 		//for ( var xx = -1; xx <= 0; xx++ ) Was not enough for doors, sometimes they would have left vertical part lacking collision with players
 		//for ( var yy = -1; yy <= 0; yy++ )
-		for ( var xx = -1; xx <= 1; xx++ )
-		for ( var yy = -1; yy <= 1; yy++ )
+		//for ( var xx = -1; xx <= 1; xx++ ) // TODO: Overshoot no longer needed, due to big entities now taking all needed hash arrays?
+		//for ( var yy = -1; yy <= 1; yy++ )
 		{
-			arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
+			//arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
+			arr = sdWorld.RequireHashPosition( x, y );
 			for ( i = 0; i < arr.length; i++ )
 			if ( arr[ i ].hard_collision || include_only_specific_classes )
 			if ( arr[ i ] !== ignore_entity )
@@ -1252,7 +1451,7 @@ class sdWorld
 		
 		return img;
 	}
-	static Start( player_settings )
+	static Start( player_settings, full_reset=false )
 	{
 		if ( !globalThis.connection_established )
 		{
@@ -1265,6 +1464,26 @@ class sdWorld
 			globalThis.enable_debug_info = player_settings['bugs2'];
 			
 			sdRenderer.visual_settings = player_settings['visuals1'] * 1 + player_settings['visuals2'] * 2 + player_settings['visuals3'] * 3;
+			
+			player_settings.full_reset = full_reset;
+			player_settings.my_hash = Math.random() + ''; // Sort of password
+			player_settings.my_net_id = undefined;
+			
+			try 
+			{
+				let v;
+				
+			    v = localStorage.getItem( 'my_hash' );
+			    if ( v !== null )
+				player_settings.my_hash = v;
+				else
+				localStorage.setItem( 'my_hash', player_settings.my_hash );
+			
+			    v = localStorage.getItem( 'my_net_id' );
+			    if ( v !== null )
+				player_settings.my_net_id = v;
+			
+			} catch(e){}
 
 			socket.emit( 'RESPAWN', player_settings );
 

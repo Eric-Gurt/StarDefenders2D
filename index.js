@@ -33,6 +33,7 @@ const httpServer = http.createServer( app );
 let   httpsServer = null;
 
 var isWin = process.platform === "win32";
+globalThis.isWin = isWin;
 
 if ( !isWin )
 {
@@ -59,7 +60,7 @@ const io = new Server( httpsServer ? httpsServer : httpServer, {
   // ...
   pingInterval: 30000,
   pingTimeout: 15000,
-  maxHttpBufferSize: 512 // 512 is minimum that works
+  maxHttpBufferSize: 1024 // 512 is minimum that works (but lacks long-name support on join)
 });
 	
 // let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Old register for object spawn code
@@ -85,6 +86,7 @@ import sdMatterContainer from './game/entities/sdMatterContainer.js';
 import sdQuickie from './game/entities/sdQuickie.js';
 import sdOctopus from './game/entities/sdOctopus.js';
 import sdAntigravity from './game/entities/sdAntigravity.js';
+import sdCube from './game/entities/sdCube.js';
 
 
 import sdShop from './game/client/sdShop.js';
@@ -159,6 +161,7 @@ sdMatterContainer.init_class();
 sdQuickie.init_class();
 sdOctopus.init_class();
 sdAntigravity.init_class();
+sdCube.init_class();
 
 globalThis.sdWorld = sdWorld;
 globalThis.sdShop = sdShop;
@@ -391,7 +394,7 @@ try
 		}
 		catch( e )
 		{
-			console.warn('entity snapshot wasn\'t decoded because it contains errors: ', save_obj.entities[ i ] );
+			console.warn('entity snapshot wasn\'t decoded because it contains errors: ', e, save_obj.entities[ i ] );
 		}
 	}
 
@@ -422,6 +425,7 @@ if ( sdWorld.world_bounds.y2 === 0 )
 }
 
 // World bounds shifter
+//if ( false )
 setInterval( ()=>
 {
 	let x1 = sdWorld.world_bounds.x1;
@@ -510,7 +514,7 @@ io.on("error", ( e ) =>
 });
 
 const DEBUG_CONNECTIONS = false;
-
+/*
 function GetPlayingPlayersCount()
 {
 	let c = 0;
@@ -525,6 +529,9 @@ function GetPlayingPlayersCount()
 		
 	return c;
 }
+*/
+const GetPlayingPlayersCount = sdWorld.GetPlayingPlayersCount;
+
 let game_ttl = 0; // Prevent frozen state
 function IsGameActive()
 {
@@ -606,67 +613,129 @@ io.on("connection", (socket) =>
 		
 		socket.post_death_spectate_ttl = 30;
 		
-		if ( socket.character )
-		{
-			socket.character.title = 'Disconnected ' + socket.character.title;
-				
-			if ( socket.score <= 0 )
-			{
-				socket.character.remove();
-			}
-			else
-			{
-				if ( socket.character.hea > 0 )
-				socket.character.Damage( socket.character.hea ); // With weapon drop
-			}
-		
-			socket.character._socket = null;
-		
-			socket.character = null;
-		}
+		let old_score = socket.score;
 		
 		socket.score = 0;
 		
-		let character_entity = new sdCharacter({ x:0, y:0 });
+		let character_entity = null;
+		
+		function RemoveOldPlayerOnSocket()
+		{
+			if ( socket.character )
+			{
+				socket.character.title = 'Disconnected ' + socket.character.title;
 
+				if ( old_score <= 0 )
+				{
+					socket.character.remove();
+				}
+				else
+				{
+					if ( socket.character.hea > 0 )
+					socket.character.Damage( socket.character.hea ); // With weapon drop
+				}
+
+				socket.character._socket = null;
+
+				socket.character = null;
+			}
+		}
+		function SpawnNewPlayer()
+		{
+			character_entity = new sdCharacter({ x:0, y:0 });
+			{
+				let x,y;
+				let tr = 1000;
+				do
+				{
+					x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+					y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+					if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+					if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+					if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+					{
+						character_entity.x = x;
+						character_entity.y = y;
+
+						//sdWorld.UpdateHashPosition( ent, false );
+
+						break;
+					}
+
+					tr--;
+					if ( tr < 0 )
+					{
+						break;
+					}
+				} while( true );
+			}
+		}
+		function TryToAssignDisconnectedPlayerEntity()
+		{
+			//player_settings.full_reset = full_reset;
+			//player_settings.my_hash = Math.random() + '';
+			//player_settings.my_net_id = undefined;
+			
+			if ( typeof sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ] === 'object' )
+			if ( !sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._is_being_removed )
+			{
+				if ( sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._my_hash === player_settings.my_hash )
+				if ( !sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._socket )
+				{
+					sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._socket = socket;
+					socket.character = sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ];
+					
+					character_entity = sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ];
+					
+					socket.score = character_entity._old_score;
+					character_entity._old_score = 0;
+				}
+			}
+			
+			if ( character_entity === null )
+			player_settings.full_reset = true; // Full reset if no player can be found
+		}
+		
+		if ( typeof player_settings.hero_name === 'string' )
+		{
+			if ( player_settings.hero_name.length <= 30 )
+			{
+				//player_settings.hero_name;
+			}
+			else
+			{
+				player_settings.hero_name = player_settings.hero_name.substring( 0, 30 );
+				socket.emit('SERVICE_MESSAGE', 'That is a long name, my friend' );
+			}
+		}
+		else
+		player_settings.hero_name = '?';
+		
+		TryToAssignDisconnectedPlayerEntity();
+		
+		if ( player_settings.full_reset )
+		{
+			RemoveOldPlayerOnSocket();
+			SpawnNewPlayer();
+			
+			if ( typeof player_settings.my_hash === 'string' )
+			character_entity._my_hash = player_settings.my_hash;
+		}
+		else
+		{
+			
+		}
 		character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter( player_settings );
 		character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( player_settings );
 		
-		if ( typeof player_settings.hero_name === 'string' )
-		if ( player_settings.hero_name.length <= 30 )
 		character_entity.title = player_settings.hero_name;
 		
 		//character_entity.sd_filter = {};
 		//sdWorld.ReplaceColorInSDFilter( character_entity.sd_filter, [ 0,0,128 ], [ 128,0,0 ] );
 
 		character_entity._socket = socket; // prevent json appearence
-		{
-			let x,y;
-			let tr = 1000;
-			do
-			{
-				x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
-				y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-				if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-				if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-				if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
-				{
-					character_entity.x = x;
-					character_entity.y = y;
-
-					//sdWorld.UpdateHashPosition( ent, false );
-
-					break;
-				}
-
-				tr--;
-				if ( tr < 0 )
-				{
-					break;
-				}
-			} while( true );
-		}
+		
 		//playing_players++;
 		
 		
@@ -797,20 +866,23 @@ io.on("connection", (socket) =>
 
 		socket.character = character_entity;
 		
-		let guns = [ sdGun.CLASS_BUILD_TOOL ];
-		if ( player_settings.start_with1 )
-		guns.push( sdGun.CLASS_PISTOL );
-		else
-		guns.push( sdGun.CLASS_SWORD );
-   
-		for ( var i = 0; i < sdGun.classes.length; i++ )
-		if ( guns.indexOf( i ) !== -1 )
+		if ( player_settings.full_reset )
 		{
-			let gun = new sdGun({ x:character_entity.x, y:character_entity.y, class: i });
-			sdEntity.entities.push( gun );
-			
-			if ( i !== sdGun.CLASS_BUILD_TOOL )
-			character_entity.gun_slot = sdGun.classes[ i ].slot;
+			let guns = [ sdGun.CLASS_BUILD_TOOL ];
+			if ( player_settings.start_with1 )
+			guns.push( sdGun.CLASS_PISTOL );
+			else
+			guns.push( sdGun.CLASS_SWORD );
+
+			for ( var i = 0; i < sdGun.classes.length; i++ )
+			if ( guns.indexOf( i ) !== -1 )
+			{
+				let gun = new sdGun({ x:character_entity.x, y:character_entity.y, class: i });
+				sdEntity.entities.push( gun );
+
+				if ( i !== sdGun.CLASS_BUILD_TOOL )
+				character_entity.gun_slot = sdGun.classes[ i ].slot;
+			}
 		}
 		
 	});
@@ -1000,8 +1072,21 @@ io.on("connection", (socket) =>
 		if ( socket.character ) 
 		if ( !socket.character._is_being_removed ) 
 		{
-			socket.character.remove();
-			socket.character = null;
+			socket.character._old_score = socket.score;
+			
+			if ( socket.score > 0 )
+			{
+				socket.character._socket = null;
+				socket.character = null;
+			}
+			else
+			{
+				socket.character.remove();
+				socket.character._socket = null;
+				socket.character = null;
+			}
+			
+			socket.score = 0;
 		}
 	});
 	
@@ -1068,19 +1153,23 @@ io.on("connection", (socket) =>
 			{
 				socket.character.title = 'Disconnected ' + socket.character.title;
 				
+				socket.character._old_score = socket.score;
+				
 				if ( socket.score <= 0 )
 				{
 					socket.character.remove();
 				}
 				else
 				{
-					if ( socket.character.hea > 0 )
-					socket.character.Damage( socket.character.hea ); // With weapon drop
+					//if ( socket.character.hea > 0 )
+					//socket.character.Damage( socket.character.hea ); // With weapon drop
 				}
 
 				socket.character._socket = null;
 
 				socket.character = null;
+				
+				socket.score = 0;
 			}
 
 			sockets.splice( sockets.indexOf( socket ), 1 );

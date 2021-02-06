@@ -14,7 +14,7 @@ class sdCom extends sdEntity
 		sdCom.retransmit_range = 200; // Messages within this range are retransmitted to other coms
 		sdCom.max_subscribers = 32;
 		
-		sdCom.com_visibility_ignored_classes = [ 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdMatterContainer', 'sdTeleport' ];
+		sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdMatterContainer', 'sdTeleport' ];
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -131,19 +131,26 @@ class sdCom extends sdEntity
 		ctx.lineDashOffset = ( sdWorld.time % 1000 ) / 250 * 2;
 
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
+		if ( sdEntity.entities[ i ] !== this )
 		if ( sdEntity.entities[ i ].GetClass() === 'sdCom' || 
 			 sdEntity.entities[ i ].GetClass() === 'sdDoor' || 
 			 sdEntity.entities[ i ].GetClass() === 'sdTeleport' || 
 			 sdEntity.entities[ i ].GetClass() === 'sdTurret' || 
 			 ( sdEntity.entities[ i ].GetClass() === 'sdBlock' && sdEntity.entities[ i ].material === sdBlock.MATERIAL_SHARP ) )
-		if ( sdWorld.Dist2D( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this.x, this.y ) < sdCom.retransmit_range )
-		if ( sdWorld.CheckLineOfSight( this.x, this.y, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
 		{
-            
-			ctx.beginPath();
-			ctx.moveTo( sdEntity.entities[ i ].x - this.x, sdEntity.entities[ i ].y - this.y );
-			ctx.lineTo( 0,0 );
-			ctx.stroke();
+			// Door case
+			var xx = ( sdEntity.entities[ i ].x0 !== undefined ) ? sdEntity.entities[ i ].x0 : sdEntity.entities[ i ].x;
+			var yy = ( sdEntity.entities[ i ].y0 !== undefined ) ? sdEntity.entities[ i ].y0 : sdEntity.entities[ i ].y;
+			if ( sdWorld.Dist2D( xx, yy, this.x, this.y ) < sdCom.retransmit_range )
+			if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this, sdCom.com_visibility_ignored_classes, null ) )
+			{
+				ctx.beginPath();
+
+				ctx.moveTo( xx - this.x, yy - this.y );
+
+				ctx.lineTo( 0,0 );
+				ctx.stroke();
+			}
 		}
 
 		ctx.beginPath();

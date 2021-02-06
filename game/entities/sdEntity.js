@@ -141,6 +141,7 @@ class sdEntity
 			{
 				if ( sdWorld.last_hit_entity )
 				if ( this.hard_collision )
+				if ( typeof sdWorld.last_hit_entity.sy !== 'undefined' )
 				sdWorld.last_hit_entity.sy += this.sy;
 				//sdWorld.last_hit_entity.Impulse( 0, this.sy );
 			
@@ -156,6 +157,7 @@ class sdEntity
 			{
 				if ( sdWorld.last_hit_entity )
 				if ( this.hard_collision )
+				if ( typeof sdWorld.last_hit_entity.sx !== 'undefined' )
 				sdWorld.last_hit_entity.sx += this.sx;
 				//sdWorld.last_hit_entity.Impulse( this.sx, 0 );
 			
@@ -171,7 +173,10 @@ class sdEntity
 				if ( sdWorld.last_hit_entity )
 				if ( this.hard_collision )
 				{
+					if ( typeof sdWorld.last_hit_entity.sx !== 'undefined' )
 					sdWorld.last_hit_entity.sx += this.sx;
+				
+					if ( typeof sdWorld.last_hit_entity.sy !== 'undefined' )
 					sdWorld.last_hit_entity.sy += this.sy;
 				}
 			
@@ -263,6 +268,18 @@ class sdEntity
 	{
 		return '';
 	}
+	
+	get _hash_position()
+	{
+		debugger; // Get rid of it, use this._affected_hash_arrays instead
+		throw new Error('Get rid of this property');
+	}
+	set _hash_position( v )
+	{
+		debugger; // Get rid of it, use this._affected_hash_arrays instead
+		throw new Error('Get rid of this property');
+	}
+	
 	constructor( params )
 	{
 		//this._stack_trace = globalThis.getStackTrace();
@@ -278,7 +295,8 @@ class sdEntity
 		if ( this.is_static )
 		this._update_version = 0;
 		
-		this._hash_position = null;
+		//this._hash_position = null;
+		this._affected_hash_arrays = []; // Every time entity moves - these are ones where entity will be excluded, and then new hash array group will be set. Will be tiny for small objects and can get quite large for larger entities.
 		sdWorld.UpdateHashPosition( this, true );
 		
 		this._is_being_removed = false;
@@ -329,6 +347,11 @@ class sdEntity
 			{
 				if ( v === sdEntity.HIBERSTATE_HIBERNATED || v === sdEntity.HIBERSTATE_REMOVED || v === sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP )
 				{
+					if ( this._affected_hash_arrays.length === 0 ) // Usually it is a sign that entity (ex. sdBlock) just spawned and wasn't added to any hash arrays for collision and visibility checks (alternatively _last_x/y === undefined check could be here, but probably not needed or not efficient). Hibernation would prevent that event further so we do it now
+					{
+						sdWorld.UpdateHashPosition( this, false );
+					}
+					
 					if ( this._hiberstate === sdEntity.HIBERSTATE_ACTIVE )
 					{
 						
@@ -540,6 +563,7 @@ class sdEntity
 		ret.ApplySnapshot( snapshot );
 		
 		sdEntity.entities.push( ret );
+		//sdWorld.UpdateHashPosition( ret, false ); // Will prevent sdBlock from occasionally not having collisions on client-side (it will rest in hibernated state, probably because of that. It is kind of a bug though)
 	
 		return ret;
 	}

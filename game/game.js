@@ -34,6 +34,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdQuickie from './entities/sdQuickie.js';
 	import sdOctopus from './entities/sdOctopus.js';
 	import sdAntigravity from './entities/sdAntigravity.js';
+	import sdCube from './entities/sdCube.js';
 
 
 	sdWorld.init_class();
@@ -63,6 +64,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdQuickie.init_class();
 	sdOctopus.init_class();
 	sdAntigravity.init_class();
+	sdCube.init_class();
 	
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;
@@ -202,6 +204,11 @@ meSpeak.loadVoice("voices/en/en.json");
 	{
 		sdWorld.my_entity_net_id = _net_id;
 		
+		try 
+		{
+			localStorage.setItem( 'my_net_id', _net_id );
+		} catch(e){}
+		
 		sdWorld.ResolveMyEntityByNetId();
 	});
 	socket.on( 'SET sdShop.options', ( arr )=>
@@ -306,7 +313,7 @@ meSpeak.loadVoice("voices/en/en.json");
 			socket.emit( 'K1', e.code );
 		}
 		
-		if ( e.code === 'Escape' || e.code === 'Space' || e.code === 'KeyR' )
+		if ( e.code === 'Escape' || e.code === 'Space' || ( e.code === 'KeyR' && sdWorld.mobile ) )
 		{
 			if ( sdWorld.my_entity === null || sdWorld.my_entity.hea <= 0 || sdWorld.my_entity._is_being_removed )
 			if ( sdRenderer.canvas.style.display === 'block' )
@@ -315,7 +322,7 @@ meSpeak.loadVoice("voices/en/en.json");
 				sdWorld.Stop();
 			
 				if ( e.code === 'Space' || e.code === 'KeyR' )
-				sdWorld.Start( globalThis.GetPlayerSettings() );
+				sdWorld.Start( globalThis.GetPlayerSettings(), true );
 			}
 		}
 	};

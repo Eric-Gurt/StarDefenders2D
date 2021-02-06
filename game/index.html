@@ -79,6 +79,7 @@
 	    {
 		height: 0;
 		transition: all 0.2s ease;
+		opacity: 0;
 	    }
 	    .set_block:hover
 	    {
@@ -90,6 +91,7 @@
 	    .set_block:hover input
 	    {
 		height: 20px;
+		opacity: 1;
 	    }
 	    .sdtitle
 	    {
@@ -385,7 +387,8 @@
 		padding: 20px; overflow-y: scroll;">
 		<span class="sdtitle">What's new?:</span><br>
 		<div class="sdgroup">
-		     4 February 2021: Asteroid shower event (alters rain randomly); 3D render with minimal changes to source code (works mostly on top of used Canvas API); World saving and backuping (I'd expect resotred entities to act strange); Some other small changes.<br><br>
+		     5 February 2021: New enemy (somewhat smarter one); Players that have positive score will stay on map (players should be able to reconnect at any time without losing their character, they still can be consumed by map bounds though); Larger entities have proper collision now; Some optimizations.<br><br>
+		     4 February 2021: Asteroid shower event (alters rain randomly); 3D render with minimal changes to source code (works mostly on top of used Canvas API); World saving and backuping (I'd expect restored entities to act sometimes strange); Some other small changes.<br><br>
 		    1 February 2021: Few new entities ("Octopus", "Quickie" and "Antigravity") added; Communication nodes will require direct visibility in order to interact with each other and controllable entities (haven't tested that well).<br><br>
 		    28 January 2021: High latency players should have less problems with server teleporting them back to where it thinks they should be (short key presses used to be ignored before, which was more noticeable for players with high latency).<br><br>
 		    25 January 2021: Fixed memory leak, some other bug fixes, ground is now stronger if players dig too deep, day/night-ish cycle.<br><br>

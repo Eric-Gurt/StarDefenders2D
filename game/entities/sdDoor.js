@@ -149,7 +149,7 @@ class sdDoor extends sdEntity
 			}
 			if ( ents_near.length > 0 )
 			{
-				let coms_near = sdWorld.GetComsNear( this.x0, this.y0 );
+				let coms_near = sdWorld.GetComsNear( this.x0, this.y0, null, null, true );
 				
 				outer:
 				for ( let i = 0; i < coms_near.length; i++ )
@@ -398,6 +398,9 @@ class sdDoor extends sdEntity
 	}
 	DrawConnections( ctx )
 	{
+		var x0 = this.x0 || this.x;
+		var y0 = this.y0 || this.y;
+		
 		ctx.lineWidth = 1;
 		ctx.strokeStyle = '#ffffff';
 		ctx.setLineDash([2, 2]);
@@ -405,17 +408,17 @@ class sdDoor extends sdEntity
 
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
 		if ( sdEntity.entities[ i ].GetClass() === 'sdCom' )
-		if ( sdWorld.Dist2D( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this.x0, this.y0 ) < sdCom.retransmit_range )
-		if ( sdWorld.CheckLineOfSight( this.x0, this.y0, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
+		if ( sdWorld.Dist2D( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, x0, y0 ) < sdCom.retransmit_range )
+		if ( sdWorld.CheckLineOfSight( x0, y0, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
 		{
 			ctx.beginPath();
 			ctx.moveTo( sdEntity.entities[ i ].x - this.x, sdEntity.entities[ i ].y - this.y );
-			ctx.lineTo( this.x0 - this.x, this.y0 - this.y );
+			ctx.lineTo( x0 - this.x, y0 - this.y );
 			ctx.stroke();
 		}
 
 		ctx.beginPath();
-		ctx.arc( this.x0 - this.x, this.y0 - this.y, sdDoor.connection_range, 0, Math.PI*2 );
+		ctx.arc( x0 - this.x, y0 - this.y, sdCom.retransmit_range, 0, Math.PI*2 );
 		ctx.stroke();
 		
 		ctx.lineDashOffset = 0;
@@ -430,7 +433,7 @@ class sdDoor extends sdEntity
 		if ( from_entity.GetClass() !== 'sdEffect' )
 		if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null )
 		{	
-			let nearbies = sdWorld.GetAnythingNear( this.x, this.y, sdDoor.connection_range );
+			let nearbies = sdWorld.GetAnythingNear( this.x, this.y, sdCom.retransmit_range );
 			
 			let best_tele = null;
 			let best_di = -1;

@@ -161,61 +161,64 @@ class sdBullet extends sdEntity
 	}
 	onMovementInRange( from_entity )
 	{
-		if ( from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
-		//if ( from_entity.GetClass() === 'sdCharacter' || 
-		//	 from_entity.GetClass() === 'sdVirus' )
+		if ( this._owner !== from_entity )
 		{
-			if ( this._owner !== from_entity )
+			if ( from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
+			//if ( from_entity.GetClass() === 'sdCharacter' || 
+			//	 from_entity.GetClass() === 'sdVirus' )
+			{
+
+				{
+					if ( sdWorld.is_server ) // Or else fake self-knock
+					if ( this._damage !== 0 )
+					{
+						if ( this._damage > 1 )
+						if ( from_entity._last_hit_time !== sdWorld.time ) // Prevent flood from splash damage bullets
+						{
+							from_entity._last_hit_time = sdWorld.time;
+							sdSound.PlaySound({ name:'player_hit', x:this.x, y:this.y, volume:0.5 });
+						}
+
+						sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
+
+						from_entity.Damage( from_entity.GetHitDamageMultiplier( this.x, this.y ) * this._damage, this._owner );
+						from_entity.Impulse( this.sx * Math.abs( this._damage ) * this._knock_scale, 
+											 this.sy * Math.abs( this._damage ) * this._knock_scale );
+
+						this._damage = 0; // for healguns
+					}
+
+					this._last_target = from_entity;
+
+					this.remove();
+					return;
+				}
+			}
+			else
+			if ( !this.is_grenade )
+			//if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdCrystal' ) // Including any else rigid bodies
+			if ( typeof from_entity.hea !== 'undefined' || typeof from_entity._hea !== 'undefined' || ( this._bg_shooter && from_entity.GetClass() === 'sdBG' ) )
+			if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null ) // guns can be hit only when are not held by anyone
 			{
 				if ( sdWorld.is_server ) // Or else fake self-knock
 				if ( this._damage !== 0 )
 				{
-					if ( this._damage > 1 )
-					if ( from_entity._last_hit_time !== sdWorld.time ) // Prevent flood from splash damage bullets
-					{
-						from_entity._last_hit_time = sdWorld.time;
-						sdSound.PlaySound({ name:'player_hit', x:this.x, y:this.y, volume:0.5 });
-					}
-					
-					sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
+					if ( !this._wave )
+					sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect() });
 
-					from_entity.Damage( from_entity.GetHitDamageMultiplier( this.x, this.y ) * this._damage, this._owner );
+					from_entity.Damage( this._damage, this._owner );
+
 					from_entity.Impulse( this.sx * Math.abs( this._damage ) * this._knock_scale, 
 										 this.sy * Math.abs( this._damage ) * this._knock_scale );
-										 
+
 					this._damage = 0; // for healguns
 				}
-				
+
 				this._last_target = from_entity;
-			
+
 				this.remove();
 				return;
 			}
-		}
-		else
-		if ( !this.is_grenade )
-		//if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdCrystal' ) // Including any else rigid bodies
-		if ( typeof from_entity.hea !== 'undefined' || typeof from_entity._hea !== 'undefined' || ( this._bg_shooter && from_entity.GetClass() === 'sdBG' ) )
-		if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null ) // guns can be hit only when are not held by anyone
-		{
-			if ( sdWorld.is_server ) // Or else fake self-knock
-			if ( this._damage !== 0 )
-			{
-				if ( !this._wave )
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect() });
-			
-				from_entity.Damage( this._damage, this._owner );
-				
-				from_entity.Impulse( this.sx * Math.abs( this._damage ) * this._knock_scale, 
-									 this.sy * Math.abs( this._damage ) * this._knock_scale );
-									 
-				this._damage = 0; // for healguns
-			}
-			
-			this._last_target = from_entity;
-			
-			this.remove();
-			return;
 		}
 	}
 	Draw( ctx, attached )

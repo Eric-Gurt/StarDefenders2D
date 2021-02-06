@@ -76,6 +76,8 @@ class FakeCanvasContext
 		
 		this.renderer.setClearColor( new THREE.Color( 0x330000 ), 1 );
 		
+		this.renderer.sortObjects = false;
+		
 		this.renderer.shadowMap.enabled = true;
 		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;//THREE.PCFShadowMap;
 		
@@ -169,6 +171,9 @@ class FakeCanvasContext
 		this.shapes = null;
 		
 		this.debug_new = false;
+		
+		this.graphics_complain_skips = 30;
+		this.graphics_complain_spoken = false;
 		
 		this._stroke_ptr = {};
 	}
@@ -584,6 +589,21 @@ class FakeCanvasContext
 	}
 	arc( x, y, di, from_an, to_an )
 	{
+		if ( isNaN( x ) || isNaN( y ) || isNaN( di ) )
+			debugger
+				
+		// ctx.arc( this.x0 - this.x, this.y0 - this.y, sdDoor.connection_range, 0, Math.PI*2 );
+		var steps = Math.min( 50, Math.max( 16, ~~( Math.PI * di * ( to_an - from_an ) / 50 ) ) );
+		
+		for ( var i = 0; i <= steps; i++ )
+		{
+			var an = from_an + ( to_an - from_an ) * i / steps;
+			
+			if ( i === 0 )
+			this.moveTo( x + Math.cos( an ) * di, y + Math.sin( an ) * di );
+			else
+			this.lineTo( x + Math.cos( an ) * di, y + Math.sin( an ) * di );
+		}
 	}
 	rect( x0, y0, x1, y1 )
 	{
@@ -596,12 +616,21 @@ class FakeCanvasContext
 		for ( var i = 0; i < this.shapes.length; i++ )
 		{
 			const points = [];
+				
+			let full_length = 0;
+				
 			for ( var i2 = 0; i2 < this.shapes[ i ].length; i2++ )
 			{
 				//let p = new THREE.Vector3( this.shapes[ i ][ i2 ].x, this.shapes[ i ][ i2 ].y, 0 );
 
 				//points.push( p );
 				points.push( this.shapes[ i ][ i2 ].x / this.renderer.domElement.width * this.renderer.domElement.height, this.shapes[ i ][ i2 ].y, 0 );
+				
+				if ( i2 > 0 )
+				{
+					full_length += sdWorld.Dist2D_Vector( ( points[ points.length - 3 ] - points[ points.length - 6 ] ) * this.renderer.domElement.width / this.renderer.domElement.height, 
+														  ( points[ points.length - 2 ] - points[ points.length - 5 ] ) );
+				}
 				
 			}
 			if ( points.length > 1 )
@@ -616,7 +645,7 @@ class FakeCanvasContext
 				
 				this.DrawObject( line, 0, 0, 1, 1 );*/
 			
-				let scale = 1 / sdWorld.Dist2D_Vector( ( points[ 0 ] - points[ 3 ] ) * this.renderer.domElement.width / this.renderer.domElement.height, points[ 1 ] - points[ 4 ] );
+				let scale = 1 / full_length; // sdWorld.Dist2D_Vector( ( points[ 0 ] - points[ 3 ] ) * this.renderer.domElement.width / this.renderer.domElement.height, points[ 1 ] - points[ 4 ] );
 				
 				const line = new MeshLine(); // Buffer geometry
 				
@@ -680,7 +709,11 @@ class FakeCanvasContext
 	}
 	FakeEnd()
 	{
+		let time_start = Date.now();
+		
 		this.renderer.render( this.scene, this.camera );
+		
+		let time_end = Date.now();
 		
 		for ( var i = this.draws.length - 1; i >= 0; i-- )
 		{
@@ -694,6 +727,78 @@ class FakeCanvasContext
 			this.draws.splice( i, 1 );
 			continue;
 		}
+		
+		if ( time_end - time_start > 10 )
+		{
+			if ( !this.graphics_complain_spoken )
+			if ( this.graphics_complain_skips-- <= 0 )
+			if ( sdRenderer.service_mesage_until - sdWorld.time < 1000 )
+			{
+				//this.graphics_complain_spoken = true;
+				
+				let details = 'Details: ?';
+				let msg = 'Note: Low framerate. Game might run better once "Visual settings" will be changed at game start. Also, make sure "Use hardware acceleration when available" is enabled at your browser\'s settings.';
+
+				const gl = sdRenderer.ctx.renderer.getContext();//document.createElement('canvas').getContext('webgl');
+				if (!gl)
+				{
+					msg = 'Error: No WebGL. Was it disabled by editing web browser shortcut to include " -disable-webgl"? Because of lack of WebGL game won\'t be able to appear on your screen.';
+					return;
+				}
+				else
+				{
+					const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+					if ( debugInfo )
+					{
+						var renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+						details = 'Vendor: ' + gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) + ' :: Renderer: ' + renderer;
+
+						if ( renderer === 'Google SwiftShader' )
+						{
+							msg = 'Note: Looks like "Use hardware acceleration when available" is not enabled at your browser\'s settings. Lack of this setting most probably will cause bad performance in-game.';
+						}
+						else
+						if ( renderer.indexOf( 'Intel(R) HD Graphics' ) !== -1 )
+						{
+							msg = 'Note: Integrated graphics adapter is being used by your web browser. In case if you have non-integreated graphics adapter - we recommend configuring it for your web browser in order to have better performance. It is also known to be an issue where some browsers simply can not be set to use more efficient graphics adapter even if one was clearly configured to be used (any non-Microsoft Edge browsers under Windows 10). Also, make sure "Use hardware acceleration when available" is enabled at your browser\'s settings - this might help too.';
+						}
+						else
+						{
+							//msg = 'No potential performance issues were found based on detected graphics adapter.'
+						}
+					} 
+					else
+					details = 'Note: No WEBGL_debug_renderer_info (WebGL is available but details could not be retrieved).';
+
+					if ( navigator.userAgent.toLowerCase().indexOf('firefox') > -1 )
+					msg = 'Note: This game\'s performance under Firefox web browser can appear worse if compared to game\'s performance under webkit-based web browsers, like Microsoft Edge or at least Google Chrome (Chrome might have certain performance issues as well due to hardware acceleration not working. You can chek if this message appears in it though).';
+				}
+				
+				
+				if ( sdWorld.my_key_states.GetKey( 'KeyI' ) )
+				{
+					alert( msg + '\n\n' + details );
+					this.graphics_complain_spoken = true;
+				}
+				else
+				if ( sdWorld.my_key_states.GetKey( 'KeyK' ) )
+				{
+					sdRenderer.service_mesage_until = 0;
+					this.graphics_complain_spoken = true;
+				}
+				else
+				{
+					sdRenderer.service_mesage_until = sdWorld.time + 1000;
+					//sdRenderer.service_mesage = msg + ' ("i" for adapter info, "k" to close)';
+					sdRenderer.service_mesage = 'Low framerate. Press "i" key for performance details & suggestions (you might be disconnected), or press "k" to ignore.';
+				}
+			}
+		}
+		else
+		{
+			this.graphics_complain_skips = 30;
+		}
+		
 	}
 }
 FakeCanvasContext.init_class();

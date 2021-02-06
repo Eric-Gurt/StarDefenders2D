@@ -232,21 +232,14 @@ class sdOctopus extends sdEntity
 			{
 				this._last_bite = sdWorld.time; // So it is not so much calc intensive
 						
-				let nears = sdWorld.GetAnythingNear( this.x, this.y, 170 );
+				let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 170 );
 				let from_entity;
 				
-				sdWorld.shuffleArray( nears );
-
-
-				//let hits_left = 4;
-
-				for ( var i = 0; i < nears.length; i++ )
+				let nears = [];
+				for ( var i = 0; i < nears_raw.length; i++ )
 				{
-					from_entity = nears[ i ];
+					from_entity = nears_raw[ i ];
 					
-					let xx = from_entity.x + ( from_entity.hitbox_x1 + from_entity.hitbox_x2 ) / 2;
-					let yy = from_entity.y + ( from_entity.hitbox_y1 + from_entity.hitbox_y2 ) / 2;
-
 					if ( from_entity.GetClass() === 'sdCharacter' ||
 						 ( from_entity.GetClass() === 'sdBlock' && !from_entity._natural ) ||
 						 from_entity.GetClass() === 'sdCom' ||
@@ -259,6 +252,46 @@ class sdOctopus extends sdEntity
 						 from_entity.GetClass() === 'sdVirus' ||
 						 ( typeof from_entity.hea !== 'undefined' && from_entity.hea <= 0 ) ||
 						 ( typeof from_entity._hea !== 'undefined' && from_entity._hea <= 0 ) )
+					{
+						let rank = Math.random() * 0.1;
+						
+						if ( from_entity._held_by )
+						rank += 2;
+						
+						if ( from_entity.GetClass() === 'sdCharacter' && from_entity.hea > 0 )
+						rank += 1;
+						
+						nears.push( { ent: from_entity, rank: rank } );
+					}
+				}
+				
+				nears.sort((a,b)=>{
+					return a.rank - b.rank;
+				});
+				
+				//sdWorld.shuffleArray( nears );
+
+				//let hits_left = 4;
+
+				for ( var i = 0; i < nears.length; i++ )
+				{
+					from_entity = nears[ i ].ent;
+					
+					let xx = from_entity.x + ( from_entity.hitbox_x1 + from_entity.hitbox_x2 ) / 2;
+					let yy = from_entity.y + ( from_entity.hitbox_y1 + from_entity.hitbox_y2 ) / 2;
+
+					/*if ( from_entity.GetClass() === 'sdCharacter' ||
+						 ( from_entity.GetClass() === 'sdBlock' && !from_entity._natural ) ||
+						 from_entity.GetClass() === 'sdCom' ||
+						 from_entity.GetClass() === 'sdCrystal' ||
+						 from_entity.GetClass() === 'sdTurret' ||
+						 from_entity.GetClass() === 'sdDoor' ||
+						 from_entity.GetClass() === 'sdMatterContainer' ||
+						 ( from_entity.GetClass() === 'sdGun' && from_entity.class !== sdGun.CLASS_BUILD_TOOL && from_entity.class !== sdGun.CLASS_MEDIKIT && ( from_entity._held_by === null || from_entity._held_by.gun_slot === sdGun.classes[ from_entity.class ].slot ) ) || // Yes, held guns too, but only currently held guns. Except for build tool and medikit
+						 from_entity.GetClass() === 'sdTeleport' ||
+						 from_entity.GetClass() === 'sdVirus' ||
+						 ( typeof from_entity.hea !== 'undefined' && from_entity.hea <= 0 ) ||
+						 ( typeof from_entity._hea !== 'undefined' && from_entity._hea <= 0 ) )*/
 					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, [ 'sdOctopus' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
 					{
 						from_entity.Damage( 50 );

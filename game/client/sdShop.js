@@ -33,6 +33,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdCom', _category:'root', _opens_category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_RIFLE, _category:'root', _opens_category:'Equipment' });
 		sdShop.options.push({ _class: null, image: 'upgrade', _category:'root', _opens_category:'upgrades' });
+		if ( globalThis.isWin )
 		sdShop.options.push({ _class: 'sdVirus', _category:'root', _opens_category:'Development tests' });
 		
 		function AddBuildPack( filter, i )
@@ -197,12 +198,16 @@ class sdShop
 				_category:'upgrades' });
 		}
 		
-		
-		sdShop.options.push({ _class: 'sdOctopus', _category:'Development tests' });
-		sdShop.options.push({ _class: 'sdQuickie', _category:'Development tests' });
-		sdShop.options.push({ _class: 'sdVirus', _category:'Development tests' });
-		sdShop.options.push({ _class: 'sdCharacter', _category:'Development tests' });
-		sdShop.options.push({ _class: 'sdAsteroid', _category:'Development tests' });
+		if ( globalThis.isWin )
+		{
+			sdShop.options.push({ _class: 'sdOctopus', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdQuickie', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdVirus', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCharacter', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdAsteroid', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCube', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCube', is_huge:true, _category:'Development tests' });
+		}
 		
 		sdShop.potential_selection = -1;
 	}
@@ -345,6 +350,8 @@ class sdShop
 					
 					let ctx2 = canvas.getContext("2d");
 					sdRenderer.AddCacheDrawMethod( ctx2 );
+					
+					ctx2.imageSmoothingEnabled = false;
 					
 					if ( ent )
 					{
