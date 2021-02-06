@@ -295,6 +295,7 @@ class sdGun extends sdEntity
 			{
 				//console.log('Unplaceable' , sdCharacter.last_build_deny_reason );
 				
+				if ( this._held_by ) // Apparently can be not held at this moment
 				this._held_by.Say( sdCharacter.last_build_deny_reason );
 				
 				//console.log( 'say complete' );
