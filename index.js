@@ -91,47 +91,58 @@ import sdCube from './game/entities/sdCube.js';
 
 import sdShop from './game/client/sdShop.js';
 
+let enf_once = true;
 globalThis.EnforceChangeLog = function EnforceChangeLog( mat, property_to_enforce, value_as_string=true )
-{
-	console.log('Enforcing method applied');
-
-	let enforced_prop = '_enfroce_' + property_to_enforce;
-	mat[ enforced_prop ] = mat[ property_to_enforce ];
-
-	mat[ property_to_enforce ] = null;
-
-	Object.defineProperty( mat, property_to_enforce, 
 	{
-		get: function () { return mat[ enforced_prop ]; },
-		set: function ( v ) { 
-
-			if ( mat[ enforced_prop ] !== v )
-			{
-				if ( v === undefined )
-				{
-					throw new Error('undef set');
-				}
-				
-				if ( value_as_string )
-				console.warn( mat,'.'+property_to_enforce+' = '+v );
-				else
-				console.warn( mat,'.'+property_to_enforce+' = ',v );
-
-				mat[ enforced_prop ] = v;
-			}
-
+		if ( enf_once )
+		{
+			enf_once = false;
+			console.warn('Enforcing method applied');
 		}
-	});
 
-	mat[ property_to_enforce+'_unenforce' ] = function()
-	{
+		let enforced_prop = '_enfroce_' + property_to_enforce;
+		mat[ enforced_prop ] = mat[ property_to_enforce ];
+
+		mat[ property_to_enforce ] = null;
+
 		Object.defineProperty( mat, property_to_enforce, 
 		{
 			get: function () { return mat[ enforced_prop ]; },
-			set: function ( v ) { mat[ enforced_prop ] = v; }
+			set: function ( v ) { 
+
+				if ( mat[ enforced_prop ] !== v )
+				{
+					if ( v === undefined )
+					{
+						throw new Error('undef set');
+					}
+
+					if ( value_as_string )
+					console.warn( mat,'.'+property_to_enforce+' = '+v );
+					else
+					console.warn( mat,'.'+property_to_enforce+' = ',v );
+
+					mat[ enforced_prop ] = v;
+				}
+
+			}
 		});
+
+		mat[ property_to_enforce+'_unenforce' ] = function()
+		{
+			let old_val = mat[ property_to_enforce ];
+			
+			delete mat[ property_to_enforce ];
+			
+			mat[ property_to_enforce ] = old_val;
+			/*
+			Object.defineProperty( mat, property_to_enforce, 
+			{
+				get: function () { return mat[ enforced_prop ]; },
+				set: function ( v ) { mat[ enforced_prop ] = v; }
+			});*/
+		};
 	};
-};
 globalThis.getStackTrace = ()=>
 {
 	var obj = {};
@@ -1090,7 +1101,11 @@ io.on("connection", (socket) =>
 		}
 	});
 	
-	socket.on('COM_SUB', ( net_id ) => { 
+	socket.on('COM_SUB', ( arr ) => { 
+		let net_id = arr[ 0 ];
+		let new_sub = arr[ 1 ];
+		
+		if ( typeof new_sub === 'number' || typeof new_sub === 'string' )
 		if ( socket.character ) 
 		if ( socket.character.hea > 0 ) 
 		{
@@ -1098,7 +1113,7 @@ io.on("connection", (socket) =>
 			if ( ent !== null )
 			{
 				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdCom.action_range ) >= 0 )
-				ent.NotifyAboutNewSubscribers( 1, [ socket.character._net_id ] );
+				ent.NotifyAboutNewSubscribers( 1, [ new_sub ] );
 				else
 				socket.emit('SERVICE_MESSAGE', 'Communication node is too far' );
 			}

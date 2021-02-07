@@ -85,8 +85,10 @@ class sdTurret extends sdEntity
 						if ( e.IsVisible( this._owner ) )
 						{
 							if ( e !== this._owner || sdWorld.GetComsNear( this.x, this.y, null, null, true ).length > 0 )
-							if ( ( e.GetClass() === 'sdCharacter' && sdWorld.GetComsNear( this.x, this.y, null, e._net_id, true ).length === 0 ) || 
-								 e.GetClass() === 'sdVirus' || e.GetClass() === 'sdQuickie' || e.GetClass() === 'sdOctopus' || e.GetClass() === 'sdCube' )
+							if ( e.GetClass() === 'sdCharacter' || e.GetClass() === 'sdVirus' || e.GetClass() === 'sdQuickie' || e.GetClass() === 'sdOctopus' || e.GetClass() === 'sdCube' )
+							//if ( ( e.GetClass() === 'sdCharacter' && sdWorld.GetComsNear( this.x, this.y, null, e._net_id, true ).length === 0 ) || 
+							//	 e.GetClass() === 'sdVirus' || e.GetClass() === 'sdQuickie' || e.GetClass() === 'sdOctopus' || e.GetClass() === 'sdCube' )
+							if ( sdWorld.GetComsNear( this.x, this.y, null, e._net_id, true ).length === 0 && sdWorld.GetComsNear( this.x, this.y, null, e.GetClass(), true ).length === 0 )
 							{
 								if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
 								{

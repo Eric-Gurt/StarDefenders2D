@@ -652,7 +652,7 @@ class sdWorld
 			arr = sdWorld.RequireHashPosition( x, y );
 			for ( i = 0; i < arr.length; i++ )
 			if ( arr[ i ].GetClass() === 'sdCom' )
-			if ( require_auth_for_net_id === null || arr[ i ].subscribers.indexOf( require_auth_for_net_id ) !== -1 )
+			if ( require_auth_for_net_id === null || arr[ i ].subscribers.indexOf( require_auth_for_net_id ) !== -1 /*|| arr[ i ].subscribers.indexOf( 'sdCharacter' ) !== -1*/ )
 			if ( ret.indexOf( arr[ i ] ) === -1 )
 			if ( sdWorld.CheckLineOfSight( _x, _y, arr[ i ].x, arr[ i ].y, null, sdCom.com_visibility_ignored_classes, null ) )
 			{

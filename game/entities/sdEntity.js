@@ -569,6 +569,18 @@ class sdEntity
 	}
 	static GuessEntityName( net_id ) // For client-side coms
 	{
+		if ( typeof net_id === 'string' )
+		{
+			if ( net_id === 'sdCharacter' )
+			return 'all players';
+			if ( net_id === 'sdCrystal' )
+			return 'all crystals';
+			if ( net_id === 'sdCube' )
+			return 'all Cubes';
+		
+			return net_id;
+		}
+	
 		if ( typeof sdEntity.entities_by_net_id_cache[ net_id ] === 'undefined' )
 		{
 			return 'user #' + net_id;

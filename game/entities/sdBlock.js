@@ -320,7 +320,8 @@ class sdBlock extends sdEntity
 		if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null ) // Do not react to held guns
 		{
 			if ( this.spikes_ani === 0 )
-			if ( sdWorld.GetComsNear( this.x + this.width / 2, this.y + this.height / 2, null, from_entity._net_id ).length === 0 ) // Do not damage teammates
+			//if ( sdWorld.GetComsNear( this.x + this.width / 2, this.y + this.height / 2, null, from_entity._net_id ).length === 0 ) // Do not damage teammates
+			if ( sdWorld.GetComsNear( this.x + this.width / 2, this.y + this.height / 2, null, from_entity._net_id, true ).length === 0 && sdWorld.GetComsNear( this.x + this.width / 2, this.y + this.height / 2, null, from_entity.GetClass(), true ).length === 0 )
 			{
 				this.spikes_ani = 30;
 				this._update_version++;

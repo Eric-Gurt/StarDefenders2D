@@ -259,6 +259,8 @@ class sdGun extends sdEntity
 		{
 			if ( this._held_by._inventory[ sdGun.classes[ this.class ].slot ] === this )
 			this._held_by._inventory[ sdGun.classes[ this.class ].slot ] = null;
+			else
+			console.warn('Warning: Held sdGun is removed but different entity is at same exact slot!...');
 		
 			this._held_by = null;
 		}
@@ -280,13 +282,23 @@ class sdGun extends sdEntity
 			if ( this._held_by._build_params === null )
 			return Infinity; // Unable to place anyway
 			
+			globalThis.EnforceChangeLog( this, '_held_by' );
+			
 			if ( this._held_by._build_params._class === null ) // Upgrades
 			{
 				if ( ( this._held_by._upgrade_counters[ this._held_by._build_params.upgrade_name ] || 0 ) >= sdShop.upgrades[ this._held_by._build_params.upgrade_name ].max_level )
-				return Infinity; // Maxed out
+				{
+					this._held_by_unenforce();
+				
+					return Infinity; // Maxed out
+				}
 				
 				if ( this._held_by._build_params.matter_cost )
-				return this._held_by._build_params.matter_cost;
+				{
+					this._held_by_unenforce();
+				
+					return this._held_by._build_params.matter_cost;
+				}
 			}
 		
 			let ent = this._held_by.CreateBuildObject( return_infinity_on_build_tool_fail_placement );
@@ -300,6 +312,8 @@ class sdGun extends sdEntity
 				
 				//console.log( 'say complete' );
 				
+				this._held_by_unenforce();
+				
 				return Infinity; // Unable to place anyway
 			}
 		
@@ -311,6 +325,9 @@ class sdGun extends sdEntity
 			ent._remove();
 			
 			//console.log('costs '+cost);
+			
+			this._held_by_unenforce();
+			
 			return cost;
 		}
 		
@@ -355,6 +372,18 @@ class sdGun extends sdEntity
 	}
 	Shoot( background_shoot=0 ) // It becomes 1 when player holds shift
 	{
+		if ( this._held_by === null )
+		{
+			console.warn( 'Server logic error: Something calls .Shoot method of sdGun but sdGun has no owner - report this error if you understand how, when or why it happens.' );
+			
+			debugger;
+			
+			for ( var i = 0; i < sdWorld.sockets.length; i++ )
+			sdWorld.sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server logic error: Something calls .Shoot method of sdGun but sdGun has no owner - report this error if you understand how, when or why it happens.' );
+		
+			return false;
+		}
+			
 		if ( this.reload_time_left <= 0 )
 		{
 			if ( this._ammo_left === -123 )

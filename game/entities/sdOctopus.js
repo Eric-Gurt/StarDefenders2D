@@ -266,7 +266,7 @@ class sdOctopus extends sdEntity
 				}
 				
 				nears.sort((a,b)=>{
-					return a.rank - b.rank;
+					return b.rank - a.rank;
 				});
 				
 				//sdWorld.shuffleArray( nears );

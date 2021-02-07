@@ -202,6 +202,7 @@ class sdCube extends sdEntity
 
 					let closest = null;
 					let closest_di = Infinity;
+					let closest_di_real = Infinity;
 
 					for ( let i = 0; i < sdWorld.sockets.length; i++ )
 					{
@@ -210,9 +211,15 @@ class sdCube extends sdEntity
 						if ( !sdWorld.sockets[ i ].character._is_being_removed )
 						{
 							let di = sdWorld.Dist2D( this.x, this.y, sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y );
+							let di_real = di;
+							
+							if ( sdCube.IsTargetFriendly( sdWorld.sockets[ i ].character ) )
+							di += 1000;
+							
 							if ( di < closest_di )
 							{
 								closest_di = di;
+								closest_di_real = di_real;
 								closest = sdWorld.sockets[ i ].character;
 							}
 						}
@@ -226,13 +233,17 @@ class sdCube extends sdEntity
 						this._move_dir_x = Math.cos( an_desired ) * 3;
 						this._move_dir_y = Math.sin( an_desired ) * 3;
 						
-						if ( closest_di < sdCube.attack_range ) // close enough to dodge obstacles
+						if ( closest_di_real < sdCube.attack_range ) // close enough to dodge obstacles
 						{
 							let an = Math.random() * Math.PI * 2;
 
 							this._move_dir_x = Math.cos( an );
 							this._move_dir_y = Math.sin( an );
 
+							if ( sdCube.IsTargetFriendly( closest ) ) // Don't follow if friendly player near
+							{
+							}
+							else
 							if ( !sdWorld.CheckLineOfSight( this.x, this.y, closest.x, closest.y, this, sdCom.com_visibility_ignored_classes, null ) )
 							{
 								for ( let ideas = Math.max( 5, 40 / sdCube.alive_cube_counter ); ideas > 0; ideas-- )
@@ -337,8 +348,8 @@ class sdCube extends sdEntity
 					let targets = [];
 
 					for ( let i = 0; i < targets_raw.length; i++ )
-					if ( ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ].hea > 0 ) ||
-						   targets_raw[ i ].GetClass() === 'sdTurret' )
+					if ( ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ].hea > 0 && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) ||
+						 ( targets_raw[ i ].GetClass() === 'sdTurret' && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) )
 					if ( sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdCube' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
 					targets.push( targets_raw[ i ] );
 
@@ -413,6 +424,22 @@ class sdCube extends sdEntity
 			
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
+	
+	static IsTargetFriendly( ent ) // Assumes _nature_damage and _player_damage are defined properties, thus will work mostly only for sdCharacter
+	{
+		if ( ent.GetClass() === 'sdCharacter' )
+		if ( ent._nature_damage >= ent._player_damage + 60 )
+		return false;
+
+		if ( ent.GetClass() === 'sdTurret' )
+		if ( ent._target )
+		if ( ent._target.GetClass() === 'sdCube' )
+		//if ( sdWorld.GetComsNear( ent.x, ent.y, null, 'sdCube', true ).length === 0 )
+		return false;
+	
+		return true;
+	}
+	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		//if ( this.death_anim === 0 )

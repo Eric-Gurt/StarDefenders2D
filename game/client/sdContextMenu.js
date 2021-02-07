@@ -53,11 +53,23 @@ class sdContextMenu
 					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdCom.action_range ) >= 0 )
 					{
 						if ( sdContextMenu.current_target.subscribers.indexOf( sdWorld.my_entity._net_id ) === -1 )
-						sdContextMenu.options.push({ title: 'Subscribe to network',
-							action: ()=>
-							{
-								globalThis.socket.emit( 'COM_SUB', sdContextMenu.current_target._net_id );
-							}
+						sdContextMenu.options.push({ title: 'Subscribe myself to network',
+							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, sdWorld.my_entity._net_id ] ); }
+						});
+					
+						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdCharacter' ) === -1 )
+						sdContextMenu.options.push({ title: 'Subscribe all players',
+							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdCharacter' ] ); }
+						});
+					
+						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdCrystal' ) === -1 )
+						sdContextMenu.options.push({ title: 'Subscribe all crystals',
+							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdCrystal' ] ); }
+						});
+					
+						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdCube' ) === -1 )
+						sdContextMenu.options.push({ title: 'Subscribe all Cubes',
+							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdCube' ] ); }
 						});
 						
 						for ( var i = 0; i < sdContextMenu.current_target.subscribers.length; i++ )

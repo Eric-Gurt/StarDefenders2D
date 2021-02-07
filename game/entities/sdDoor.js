@@ -155,7 +155,7 @@ class sdDoor extends sdEntity
 				for ( let i = 0; i < coms_near.length; i++ )
 				{
 					for ( let i2 = 0; i2 < ents_near.length; i2++ )
-					if ( coms_near[ i ].subscribers.indexOf( ents_near[ i2 ]._net_id ) !== -1 )
+					if ( coms_near[ i ].subscribers.indexOf( ents_near[ i2 ]._net_id ) !== -1 || coms_near[ i ].subscribers.indexOf( ents_near[ i2 ].GetClass() ) !== -1 )
 					{
 						if ( this.opening_tim === 0 )
 						sdSound.PlaySound({ name:'door_start', x:this.x, y:this.y, volume:0.5 });

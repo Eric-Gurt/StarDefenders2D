@@ -77,9 +77,14 @@ meSpeak.loadVoice("voices/en/en.json");
 	globalThis.sdWeather = sdWeather;
 	
 
+let enf_once = true;
 	globalThis.EnforceChangeLog = function EnforceChangeLog( mat, property_to_enforce, value_as_string=true )
 	{
-		console.log('Enforcing method applied');
+		if ( enf_once )
+		{
+			enf_once = false;
+			console.warn('Enforcing method applied');
+		}
 
 		let enforced_prop = '_enfroce_' + property_to_enforce;
 		mat[ enforced_prop ] = mat[ property_to_enforce ];
@@ -111,11 +116,17 @@ meSpeak.loadVoice("voices/en/en.json");
 
 		mat[ property_to_enforce+'_unenforce' ] = function()
 		{
+			let old_val = mat[ property_to_enforce ];
+			
+			delete mat[ property_to_enforce ];
+			
+			mat[ property_to_enforce ] = old_val;
+			/*
 			Object.defineProperty( mat, property_to_enforce, 
 			{
 				get: function () { return mat[ enforced_prop ]; },
 				set: function ( v ) { mat[ enforced_prop ] = v; }
-			});
+			});*/
 		};
 	};
 	globalThis.getStackTrace = ()=>

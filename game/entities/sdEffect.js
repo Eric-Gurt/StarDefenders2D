@@ -247,6 +247,8 @@ class sdEffect extends sdEntity
 			
 			spoken = spoken.split(':D').join('happy face');
 			
+			spoken = spoken.split('Z').join('z'); // pronounce bug
+			
 			let that = this;
 			
 			let t = meSpeak.speak( spoken, {

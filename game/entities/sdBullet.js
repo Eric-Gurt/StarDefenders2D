@@ -3,6 +3,7 @@ import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 
 import sdEffect from './sdEffect.js';
+import sdCube from './sdCube.js';
 import sdSound from '../sdSound.js';
 
 
@@ -180,8 +181,19 @@ class sdBullet extends sdEntity
 						}
 
 						sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
+						
+						let dmg = from_entity.GetHitDamageMultiplier( this.x, this.y ) * this._damage;
+						
+						if ( this._owner )
+						if ( from_entity.hea > 0 || from_entity._hea > 0 )
+						{
+							if ( from_entity.GetClass() === 'sdCharacter' && !sdCube.IsTargetFriendly( from_entity ) )
+							this._owner._player_damage += dmg;
+							else
+							this._owner._nature_damage += dmg;
+						}
 
-						from_entity.Damage( from_entity.GetHitDamageMultiplier( this.x, this.y ) * this._damage, this._owner );
+						from_entity.Damage( dmg, this._owner );
 						from_entity.Impulse( this.sx * Math.abs( this._damage ) * this._knock_scale, 
 											 this.sy * Math.abs( this._damage ) * this._knock_scale );
 
@@ -206,10 +218,19 @@ class sdBullet extends sdEntity
 					if ( !this._wave )
 					sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect() });
 
-					from_entity.Damage( this._damage, this._owner );
+					let dmg = this._damage;
 
-					from_entity.Impulse( this.sx * Math.abs( this._damage ) * this._knock_scale, 
-										 this.sy * Math.abs( this._damage ) * this._knock_scale );
+					if ( this._owner )
+					if ( from_entity.hea > 0 || from_entity._hea > 0 )
+					{
+						if ( from_entity.GetClass() === 'sdCube' || from_entity.GetClass() === 'sdCrystal' )
+						this._owner._nature_damage += dmg;
+					}
+
+					from_entity.Damage( dmg, this._owner );
+
+					from_entity.Impulse( this.sx * Math.abs( dmg ) * this._knock_scale, 
+										 this.sy * Math.abs( dmg ) * this._knock_scale );
 
 					this._damage = 0; // for healguns
 				}

@@ -79,6 +79,10 @@ class sdCharacter extends sdEntity
 		this._my_hash = undefined; // Will be used to let players repsawn within same entity if it exists on map
 		this._old_score = 0; // This value is only read/written to when player disconnects and reconnects
 		
+		// Some stats for Cubes to either attack or ignore players
+		this._nature_damage = 0;
+		this._player_damage = 0;
+		
 		this._fall_sound_time = 0;
 		
 		this.sx = 0;

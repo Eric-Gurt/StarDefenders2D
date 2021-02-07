@@ -153,7 +153,7 @@ class sdTeleport extends sdEntity
 			let allowed = ( coms_near.length === 0 );
 
 			for ( let i = 0; i < coms_near.length; i++ )
-			if ( coms_near[ i ].subscribers.indexOf( from_entity._net_id ) !== -1 )
+			if ( coms_near[ i ].subscribers.indexOf( from_entity._net_id ) !== -1 || coms_near[ i ].subscribers.indexOf( from_entity.GetClass() ) !== -1 )
 			{
 				allowed = true;
 				break;
