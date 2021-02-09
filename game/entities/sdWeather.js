@@ -136,7 +136,7 @@ class sdWeather extends sdEntity
 			this._time_until_event -= GSPEED;
 			if ( this._time_until_event < 0 )
 			{
-				this._time_until_event = Math.random() * 30 * 60 * 6.3; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
+				this._time_until_event = Math.random() * 30 * 60 * 8; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
 				
 				let r = ~~( Math.random() * 3 );
 				

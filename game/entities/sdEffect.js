@@ -225,6 +225,12 @@ class sdEffect extends sdEntity
 			if ( spoken === 'tf' )
 			spoken = 'the fuck';
 			
+			if ( spoken === 'gj' )
+			spoken = 'good job';
+			
+			if ( spoken === 'ffs' )
+			spoken = 'for the fuck\'s sake';
+			
 			if ( spoken === 'fk' )
 			spoken = 'fuck';
 			

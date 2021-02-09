@@ -8,6 +8,8 @@ import sdWeather from './entities/sdWeather.js';
 import sdBlock from './entities/sdBlock.js';
 import sdBG from './entities/sdBG.js';
 import sdWater from './entities/sdWater.js';
+import sdCharacter from './entities/sdCharacter.js';
+
 
 
 import sdRenderer from './client/sdRenderer.js';
@@ -92,6 +94,8 @@ class sdWorld
 		//sdWorld.active_build_settings = { _class: 'sdBlock', width:32, height:32 }; // Changes every time some client tries to build something
 		
 		sdWorld.leaders = [];
+		
+		sdWorld.GSPEED = 0;
 		
 		sdWorld.el_hit_cache = [];
 
@@ -248,9 +252,9 @@ class sdWorld
 				if ( document.getElementById( 'mobile_ui' ).style.display === 'none' )
 				return;
 			
-				sdWorld.GoFullscreen();
+				//sdWorld.GoFullscreen();
 				
-				screen.orientation.lock('landscape');
+				//screen.orientation.lock('landscape');
 			
 				for ( var i = 0; i < buttons.length; i++ )
 				{
@@ -266,7 +270,7 @@ class sdWorld
 						
 						buttons[ i ].element.style.backgroundColor = '#000000';
 						
-						e.preventDefault();
+						//e.preventDefault();
 						break;
 					}
 				}
@@ -285,7 +289,7 @@ class sdWorld
 					
 						buttons[ i ].element.style.backgroundColor = '#ffffff0d';
 						
-						e.preventDefault();
+						//e.preventDefault();
 						break;
 					}
 				}
@@ -308,7 +312,7 @@ class sdWorld
 						buttons[ i ].action_hold( e.changedTouches[ 0 ].pageX - button_x, e.changedTouches[ 0 ].pageY - button_y, button_radius );
 						
 						
-						e.preventDefault();
+						//e.preventDefault();
 						break;
 					}
 				}
@@ -317,22 +321,56 @@ class sdWorld
 	}
 	static GoFullscreen()
 	{
-		if (!document.fullscreenElement && 
-			!document.mozFullScreenElement && !document.webkitFullscreenElement) {
-			if (document.documentElement.requestFullscreen) {
-			document.documentElement.requestFullscreen();
-			} else if (document.documentElement.mozRequestFullScreen) {
-			document.documentElement.mozRequestFullScreen();
-			} else if (document.documentElement.webkitRequestFullscreen) {
-			document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+		
+		try
+		{
+			
+			//if ( !document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement) 
+			//{
+				if (document.documentElement.requestFullscreen) 
+				{
+					document.documentElement.requestFullscreen().then( s2 ).catch( s2 );
+				} 
+				/*else 
+				if (document.documentElement.mozRequestFullScreen) 
+				{
+					document.documentElement.mozRequestFullScreen();
+				} 
+				else 
+				if (document.documentElement.webkitRequestFullscreen) 
+				{
+					document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+				}*/
+			//} 
+			//else
+			//{
+			//}
+		}
+		catch( e )
+		{
+			console.warn( e );
+			s2();
+		}
+	
+		function s2()
+		{
+			try
+			{
+				if ( document.pointerLockElement !== sdRenderer.canvas )
+				sdRenderer.canvas.requestPointerLock().then( s3 ).catch( s3 );
 			}
-		} else {
+			catch( e )
+			{
+				s3();
+			}
 		}
 
-		if ( document.pointerLockElement !== sdRenderer.canvas )
-		sdRenderer.canvas.requestPointerLock();
-	
-		window.onresize();
+		function s3()
+		{
+			screen.orientation.lock('landscape');
+			
+			window.onresize();
+		}
 	}
 	
 	
@@ -412,6 +450,8 @@ class sdWorld
 				
 				let ent2 = new sdWater({ x:x, y:y, volume:(y===sdWorld.base_ground_level)?0.5:1 });
 				sdEntity.entities.push( ent2 );
+				
+				//sdWater.SpawnWaterHere( x, y, (y===sdWorld.base_ground_level)?0.5:1 );
 			}
 
 			sdEntity.entities.push( ent );
@@ -629,7 +669,8 @@ class sdWorld
 				   typeof params.y2 !== 'undefined' &&
 				   sdWorld.CanSocketSee( socket, params.x2, params.y2 ) ) ) // rails
 			{
-				socket.emit( command, params );
+				//socket.emit( command, params );
+				socket.sd_events.push( [ command, params ] );
 			}
 		}
 	}
@@ -651,7 +692,9 @@ class sdWorld
 		{
 			arr = sdWorld.RequireHashPosition( x, y );
 			for ( i = 0; i < arr.length; i++ )
-			if ( arr[ i ].GetClass() === 'sdCom' )
+			//if ( arr[ i ].GetClass() === 'sdCom' ) can take up to 11% of execution time
+			//if ( arr[ i ] instanceof sdCom )
+			if ( arr[ i ].is( sdCom ) )
 			if ( require_auth_for_net_id === null || arr[ i ].subscribers.indexOf( require_auth_for_net_id ) !== -1 /*|| arr[ i ].subscribers.indexOf( 'sdCharacter' ) !== -1*/ )
 			if ( ret.indexOf( arr[ i ] ) === -1 )
 			if ( sdWorld.CheckLineOfSight( _x, _y, arr[ i ].x, arr[ i ].y, null, sdCom.com_visibility_ignored_classes, null ) )
@@ -681,7 +724,9 @@ class sdWorld
 		{
 			arr = sdWorld.RequireHashPosition( x * 32, y * 32 );
 			for ( i = 0; i < arr.length; i++ )
-			if ( arr[ i ].GetClass() === 'sdCharacter' )
+			//if ( arr[ i ].GetClass() === 'sdCharacter' )
+			//if ( arr[ i ] instanceof sdCharacter )
+			if ( arr[ i ].is( sdCharacter ) )
 			if ( require_auth_for_net_id_by_list === null || ( arr[ i ]._coms_allowed && require_auth_for_net_id_by_list.indexOf( arr[ i ]._net_id ) !== -1 ) )
 			if ( ret.indexOf( arr[ i ] ) === -1 )
 			ret.push( arr[ i ] );
@@ -856,7 +901,7 @@ class sdWorld
 	
 		return true; // Try false here if method fails for some reason
 	}
-	static UpdateHashPosition( entity, delay_callback_calls )
+	static UpdateHashPosition( entity, delay_callback_calls, allow_calling_movement_in_range=true ) // allow_calling_movement_in_range better be false when it is not decided whether entity will be physically placed in world or won't be (so sdBlock SHARP won't kill initiator in the middle of Shoot method of a gun, which was causing crash)
 	{
 		//let new_hash_position = entity._is_being_removed ? null : sdWorld.RequireHashPosition( entity.x, entity.y );
 		
@@ -934,7 +979,7 @@ class sdWorld
 		if ( entity._is_being_removed )
 		return;
 		
-		if ( delay_callback_calls )
+		if ( delay_callback_calls || !allow_calling_movement_in_range )
 		{
 			// Trigger instant collision check
 			entity._last_x = undefined;
@@ -998,6 +1043,7 @@ class sdWorld
 		//{
 			let GSPEED = Math.min( 1, Math.max( 0, ( sdWorld.time - old_time ) / 1000 * 30 ) );// / substeps;
 
+			sdWorld.GSPEED = GSPEED;
 			//console.log( GSPEED );
 
 			for ( var arr_i = 0; arr_i < 2; arr_i++ )
@@ -1423,12 +1469,12 @@ class sdWorld
 		}
 		if ( player_description['voice4'] )
 		{
-			_voice.variant = 'f1';
+			_voice.variant = 'f1'; // f5
 			_voice.pitch = 75;
 		}
 		if ( player_description['voice5'] )
 		{
-			_voice.variant = 'f1';
+			_voice.variant = 'f1'; // f5
 			_voice.pitch = 100;
 		}
 		
@@ -1497,6 +1543,12 @@ class sdWorld
 			}
 
 			globalThis.meSpeak.stop();
+		}
+		
+		if ( sdWorld.mobile )
+		{
+			sdSound.AllowSound();
+			sdWorld.GoFullscreen();
 		}
 	}
 	static Stop()

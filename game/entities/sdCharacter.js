@@ -69,7 +69,18 @@ class sdCharacter extends sdEntity
 	}
 	AllowClientSideState() // Conditions to ignore sdWorld.my_entity_protected_vars
 	{
-		return ( this.hea > 0 && ( this.hook_x === 0 && this.hook_y === 0 ) ); // Hook does not work well with position corrections for laggy players
+		return ( this.hea > 0 && sdWorld.time > this._position_velocity_forced_until && ( this.hook_x === 0 && this.hook_y === 0 ) ); // Hook does not work well with position corrections for laggy players
+	}
+	ApplyServerSidePositionAndVelocity( restrict_correction, sx, sy ) // restrict_correction is usually ever only true when player should get position correction restriction, assuming some server-side events exist that control player (grappling hook case)
+	{
+		if ( sdWorld.is_server )
+		{
+			if ( restrict_correction )
+			this._position_velocity_forced_until = sdWorld.time + 200; // Somewhat equal to max ping?
+		
+			this._force_add_sx = sx;
+			this._force_add_sy = sy;
+		}
 	}
 	constructor( params )
 	{
@@ -87,6 +98,11 @@ class sdCharacter extends sdEntity
 		
 		this.sx = 0;
 		this.sy = 0;
+		
+		// Disables position correction during short period of time (whenever player is pushed, teleported, attacked by sdOctopus etc). Basically stuff that client can't calculate (since projectiles deal no damage nor knock effect)
+		this._position_velocity_forced_until = 0;
+		this._force_add_sx = 0;
+		this._force_add_sy = 0;
 
 		this._side = 1;
 		this.stands = false;
@@ -268,6 +284,9 @@ class sdCharacter extends sdEntity
 
 			if ( this.hea <= 0 && was_alive )
 			{
+				if ( this.hea < -100 )
+				sdSound.PlaySound({ name:'sd_death2', x:this.x, y:this.y, volume:1, pitch:this.GetVoicePitch() });
+				else
 				sdSound.PlaySound({ name:'sd_death', x:this.x, y:this.y, volume:1, pitch:this.GetVoicePitch() });
 			
 				this.DropWeapons();
@@ -342,6 +361,7 @@ class sdCharacter extends sdEntity
 	{
 		this.sx += x * 0.1;
 		this.sy += y * 0.1;
+		this.ApplyServerSidePositionAndVelocity( false, x * 0.1, y * 0.1 );
 	}
 	
 	UseServerCollisions()
@@ -630,11 +650,17 @@ class sdCharacter extends sdEntity
 					{
 						if ( typeof this._hook_relative_to.sx !== 'undefined' )
 						{
+							let lx = this._hook_relative_to.sx;
+							let ly = this._hook_relative_to.sy;
+							
 							this._hook_relative_to.sx -= vx * pull_force * GSPEED;
 							this._hook_relative_to.sy -= vy * pull_force * GSPEED;
 
                             this._hook_relative_to.sx = sdWorld.MorphWithTimeScale( this._hook_relative_to.sx, this.sx, 0.8, GSPEED );
                             this._hook_relative_to.sy = sdWorld.MorphWithTimeScale( this._hook_relative_to.sy, this.sy, 0.8, GSPEED );
+							
+							if ( this._hook_relative_to.is( sdCharacter ) )
+							this._hook_relative_to.ApplyServerSidePositionAndVelocity( true, this._hook_relative_to.sx - lx, this._hook_relative_to.sy - ly );
 
 							pull_force /= 2;
 						}
@@ -1194,7 +1220,7 @@ class sdCharacter extends sdEntity
 		{
 			if ( !this.CheckBuildObjectPossibilityNow( fake_ent ) )
 			{
-				fake_ent.onRemove = sdEntity.prototype.onRemove; // Disable any removal logic
+				fake_ent.onRemove = fake_ent.onRemoveAsFakeEntity; // Disable any removal logic
 				fake_ent.remove();
 				fake_ent._remove();
 				return null;
@@ -1425,7 +1451,8 @@ class sdCharacter extends sdEntity
 					if ( this._socket )
 					{
 						params.attachment = [ params.attachment.GetClass(), params.attachment._net_id ];
-						this._socket.emit( 'EFF', params );
+						//this._socket.emit( 'EFF', params );
+						this._socket.sd_events.push( [ 'EFF', params ] );
 					}
 				}
 				else

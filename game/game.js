@@ -35,6 +35,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdOctopus from './entities/sdOctopus.js';
 	import sdAntigravity from './entities/sdAntigravity.js';
 	import sdCube from './entities/sdCube.js';
+	import sdLamp from './entities/sdLamp.js';
 
 
 	sdWorld.init_class();
@@ -65,6 +66,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdOctopus.init_class();
 	sdAntigravity.init_class();
 	sdCube.init_class();
+	sdLamp.init_class();
 	
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;
@@ -135,6 +137,8 @@ let enf_once = true;
 		Error.captureStackTrace( obj, globalThis.getStackTrace );
 		return obj.stack;
 	};
+	
+	let sd_events = [];
 
 	//socket.emit('SYNC', 'Random text');
 	socket.on('connect', () =>
@@ -173,7 +177,7 @@ let enf_once = true;
 	});
 
 	let old_snapshot_entities = [];
-	socket.on( 'RES', ( snapshot )=>
+	/*socket.on( 'RES', ( snapshot )=>
 	{
 		let new_snapshot_entities = [];
 		for ( var i = 0; i < snapshot.length; i++ )
@@ -194,6 +198,93 @@ let enf_once = true;
 		if ( sdWorld.my_entity === null || sdWorld.my_entity_net_id !== sdWorld.my_entity._net_id )
 		sdWorld.ResolveMyEntityByNetId();
 	});
+	*/
+	socket.on( 'RESv2', ( stuff_arr )=>
+	{
+		let snapshot = stuff_arr[ 0 ];
+		let score = stuff_arr[ 1 ];
+		let leaders = stuff_arr[ 2 ];
+		let sd_events = stuff_arr[ 3 ];
+		
+		let _force_add_sx = stuff_arr[ 4 ];
+		let _force_add_sy = stuff_arr[ 5 ];
+		let _position_velocity_forced_until = sdWorld.time + ( stuff_arr[ 6 ] || -1 );
+		
+		// snapshot
+		{
+			let new_snapshot_entities = [];
+			for ( var i = 0; i < snapshot.length; i++ )
+			{
+				new_snapshot_entities.push( sdEntity.GetObjectFromSnapshot( snapshot[ i ] ) );
+			}
+
+			for ( var i = 0; i < old_snapshot_entities.length; i++ )
+			{
+				if ( new_snapshot_entities.indexOf( old_snapshot_entities[ i ] ) === -1 )
+				{
+					if ( !old_snapshot_entities[ i ].is_static ) // Keep statics
+					old_snapshot_entities[ i ].remove();
+				}
+			}
+			old_snapshot_entities = new_snapshot_entities;
+
+			if ( sdWorld.my_entity === null || sdWorld.my_entity_net_id !== sdWorld.my_entity._net_id )
+			sdWorld.ResolveMyEntityByNetId();
+		}
+		
+		// score
+		sdWorld.my_score = score;
+		
+		// leaders
+		if ( leaders )
+		{
+			sdWorld.leaders = leaders[ 0 ];
+			globalThis.players_playing = leaders[ 1 ];
+		}
+		
+		// sd_events
+		for ( var i = 0; i < sd_events.length; i++ )
+		{
+			var type = sd_events[ i ][ 0 ];
+			var params = sd_events[ i ][ 1 ];
+			
+			if ( type === 'EFF' ) // particles
+			{
+				var ef = new sdEffect( params );
+				sdEntity.entities.push( ef );
+			}
+			else
+			if ( type === 'S' ) // sound
+			{
+				params._server_allowed = true;
+				sdSound.PlaySound( params );
+			}
+			else
+			if ( type === 'ONLINE' ) // update online stats (in-game only)
+			{
+				globalThis.players_online = params[ 0 ];
+				globalThis.players_playing = params[ 1 ];
+			}
+			else
+			if ( type === 'C' ) // position correction failed
+			{
+				if ( sdWorld.my_entity )
+				{
+					sdWorld.my_entity.x = params[ 0 ];
+					sdWorld.my_entity.y = params[ 1 ];
+					sdWorld.my_entity.sx = params[ 2 ];
+					sdWorld.my_entity.sy = params[ 3 ];
+				}
+			}
+			else
+			debugger;
+		}
+		
+		// server-side velocity changes
+		sdWorld.my_entity.sx += _force_add_sx;
+		sdWorld.my_entity.sy += _force_add_sy;
+		sdWorld.my_entity._position_velocity_forced_until = _position_velocity_forced_until;
+	});
 	
 	
 	socket.on( 'SERVICE_MESSAGE', ( v )=>
@@ -202,15 +293,15 @@ let enf_once = true;
 		sdRenderer.service_mesage = v;
 	});
 	
-	socket.on( 'SCORE', ( v )=>
+	/*socket.on( 'SCORE', ( v )=>
 	{
 		sdWorld.my_score = v;
-	});
-	socket.on( 'LEADERS', ( arr )=>
+	});*/
+	/*socket.on( 'LEADERS', ( arr )=>
 	{
 		sdWorld.leaders = arr[ 0 ];
 		globalThis.players_playing = arr[ 1 ];
-	});
+	});*/
 	socket.on( 'SET sdWorld.my_entity', ( _net_id )=>
 	{
 		sdWorld.my_entity_net_id = _net_id;
@@ -226,11 +317,11 @@ let enf_once = true;
 	{
 		sdShop.options = arr;
 	});	
-	socket.on( 'ONLINE', ( arr )=>
+	socket.on( 'ONLINE', ( arr )=> // Character customization screen -only
 	{
 		globalThis.players_online = arr[ 0 ];
 		globalThis.players_playing = arr[ 1 ];
-	});	
+	});
 	socket.on( 'UPGRADE_SET', ( arr )=>
 	{
 		if ( sdWorld.my_entity )
@@ -240,17 +331,17 @@ let enf_once = true;
 			sdShop.upgrades[ arr[ 0 ] ].action( sdWorld.my_entity, arr[ 1 ] );
 		}
 	});	
-	socket.on( 'EFF', ( params )=> // particles
+	/*socket.on( 'EFF', ( params )=> // particles
 	{
 		var ef = new sdEffect( params );
 		sdEntity.entities.push( ef );
 	});
-	socket.on( 'S', ( params )=> // particles
+	socket.on( 'S', ( params )=> // sound
 	{
 		params._server_allowed = true;
 		sdSound.PlaySound( params );
-	});
-	socket.on( 'C', ( arr )=> // Position correction was rejected
+	});*/
+	/*socket.on( 'C', ( arr )=> // Position correction was rejected
 	{
 		if ( sdWorld.my_entity )
 		{
@@ -262,7 +353,7 @@ let enf_once = true;
 			//sdRenderer.service_mesage_until = sdWorld.time + 3000;
 			//sdRenderer.service_mesage = 'Got position correction rejection ('+sdWorld.time+')';
 		}
-	});
+	});*/
 	
 	/*setInterval( ()=>
 	{
@@ -285,6 +376,21 @@ let enf_once = true;
 
 				if ( sdWorld.my_entity )
 				socket.volatile.emit( 'M', [ sdWorld.my_entity.look_x, sdWorld.my_entity.look_y, sdWorld.camera.x, sdWorld.camera.y, sdWorld.camera.scale, sdWorld.my_entity.x, sdWorld.my_entity.y, ( sdWorld.my_entity.stands && sdWorld.my_entity._stands_on ) ? sdWorld.my_entity._stands_on._net_id : -1 ] );
+			
+				if ( sd_events.length > 0 )
+				{
+					if ( sd_events.length > 32 )
+					{
+						socket.emit( 'Kv2', sd_events.slice( 0, 32 ) );
+						sd_events = sd_events.slice( 32 );
+						console.log('Too many events to server are being sent (' + sd_events.length + ') - this might cause input delay on server-side');
+					}
+					else
+					{
+						socket.emit( 'Kv2', sd_events );
+						sd_events.length = 0;
+					}
+				}
 			}
 
 			sdRenderer.Render();
@@ -321,7 +427,9 @@ let enf_once = true;
 		if ( key_states.GetKey( e.code ) !== 1 )
 		{
 			key_states.SetKey( e.code, 1 );
-			socket.emit( 'K1', e.code );
+			
+			//socket.emit( 'K1', e.code );
+			sd_events.push( [ 'K1', e.code ] );
 		}
 		
 		if ( e.code === 'Escape' || e.code === 'Space' || ( e.code === 'KeyR' && sdWorld.mobile ) )
@@ -351,7 +459,10 @@ let enf_once = true;
 		if ( key_states.GetKey( e.code ) !== 0 )
 		{
 			key_states.SetKey( e.code, 0 );
-			socket.emit( 'K0', e.code );
+			
+			//socket.emit( 'K0', e.code );
+			sd_events.push( [ 'K0', e.code ] );
+			
 		}
 	};
 	window.onmousemove = ( e )=>
@@ -367,6 +478,12 @@ let enf_once = true;
 	};
 	window.onmousedown = ( e )=>
 	{
+		if ( sdWorld.mobile )
+		{
+			sdSound.AllowSound();
+			sdWorld.GoFullscreen();
+		}
+		
 		if ( sdRenderer.canvas.style.display !== 'block' )
 		return;
 		
@@ -380,12 +497,16 @@ let enf_once = true;
 		return;
 	
 		if ( sdWorld.mobile )
-		return;
+		{
+			e.preventDefault();
+			return;
+		}
 		
 		let code = 'Mouse' + e.which;
 		key_states.SetKey( code, 1 );
 		
-		socket.emit( 'K1', code );
+		//socket.emit( 'K1', code );
+		sd_events.push( [ 'K1', code ] );
 		
 		e.preventDefault();
 	};
@@ -395,12 +516,16 @@ let enf_once = true;
 		return;
 	
 		if ( sdWorld.mobile )
-		return;
+		{
+			e.preventDefault();
+			return;
+		}
 
 		let code = 'Mouse' + e.which;
 		key_states.SetKey( code, 0 );
 		
-		socket.emit( 'K0', code );
+		//socket.emit( 'K0', code );
+		sd_events.push( [ 'K0', code ] );
 		
 		e.preventDefault();
 	};

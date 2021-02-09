@@ -20,6 +20,7 @@ class FakeCanvasContext
 		this.renderer = null;
 		
 		this.draws = []; // arr of Mesh
+		this.sold_meshes = new Map(); // map[ mat ] of maps[ geom ] of meshes that are not needed and can potentially be reused in next frame
 		
 		const texture = new THREE.TextureLoader().load( "assets/bg.png" );
 		texture.wrapS = THREE.RepeatWrapping;
@@ -79,7 +80,10 @@ class FakeCanvasContext
 		this.renderer.sortObjects = false;
 		
 		this.renderer.shadowMap.enabled = true;
-		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;//THREE.PCFShadowMap;
+		this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+		//this.renderer.shadowMap.type = THREE.PCFShadowMap;
+		
+		//this.renderer.physicallyCorrectLights = true;
 		
 		const alight = new THREE.AmbientLight( 0xffffff, 0.7 ); // 0.5
 		this.scene.add( alight );
@@ -176,6 +180,11 @@ class FakeCanvasContext
 		this.graphics_complain_spoken = false;
 		
 		this._stroke_ptr = {};
+
+		this._gl = this.renderer.getContext();
+		this._debugInfo = this._gl.getExtension('WEBGL_debug_renderer_info');
+		this._renderer = this._debugInfo ? this._gl.getParameter( this._debugInfo.UNMASKED_RENDERER_WEBGL ) : null;
+		this._vendor = this._debugInfo ? this._gl.getParameter( this._debugInfo.UNMASKED_VENDOR_WEBGL ) : null;
 	}
 	
 	
@@ -333,7 +342,7 @@ class FakeCanvasContext
 				
 				if ( this.draw_offset === 0 && this.camera_relative_world_scale === 1 && sdRenderer._visual_settings === 3 )
 				{
-					//r = new THREE.MeshPhongMaterial({ color: 0xffffff, side: THREE.DoubleSide, map: t });
+					//r = new THREE.MeshPhongMaterial({ color: 0xffffff, side: THREE.DoubleSide, map: t }); Accurate when it comes to lights and pretty slow
 					r = new THREE.MeshLambertMaterial({ color: 0xffffff, side: THREE.DoubleSide, map: t });
 				}
 				else
@@ -421,7 +430,7 @@ class FakeCanvasContext
 	
 	fillRect( destination_x, destination_y, destination_w, destination_h )
 	{
-		let m = new THREE.Mesh( this.geometries_by_draw_in[ this.volumetric_mode ], this.RequireMaterial( this.fillStyle, 0, 0, 32, 32, this.volumetric_mode, this.globalAlpha ) );
+		let m = this.RequireMesh( this.geometries_by_draw_in[ this.volumetric_mode ], this.RequireMaterial( this.fillStyle, 0, 0, 32, 32, this.volumetric_mode, this.globalAlpha ) );
 		
 		this.DrawObject( m, destination_x, destination_y, destination_w, destination_h );
 	}
@@ -456,7 +465,7 @@ class FakeCanvasContext
 	{
 		let mat = this.RequireMaterial( text, this.font, this.textAlign, this.fillStyle, max_width, FakeCanvasContext.DRAW_IN_3D_FLAT, this.globalAlpha, 1 * this.transform.elements[ 5 ] );
 		
-		let m = new THREE.Mesh( this.geometries_by_draw_in[ FakeCanvasContext.DRAW_IN_3D_FLAT ], mat );
+		let m = this.RequireMesh( this.geometries_by_draw_in[ FakeCanvasContext.DRAW_IN_3D_FLAT ], mat );
 		
 		if ( mat.userData.textAlign === 'left' )
 		this.DrawObject( m, x, y - mat.userData.height / 2, mat.userData.width, mat.userData.height );
@@ -473,6 +482,88 @@ class FakeCanvasContext
 		
 		return this.ctx_text_measure.measureText( text );
 	}
+	
+	RequireMesh( geom, mat )
+	{
+		let r = null;
+		
+		if ( this.sold_meshes.has( mat ) )
+		{
+			let map_of_geom_arrays = this.sold_meshes.get( mat );
+			
+			if ( map_of_geom_arrays.has( geom ) )
+			{
+				let arr_of_geoms = map_of_geom_arrays.get( geom );
+				
+				//if ( arr_of_geoms.length > 0 )
+				//{
+					r = arr_of_geoms.shift();
+					
+					if ( arr_of_geoms.length === 0 )
+					{
+						if ( map_of_geom_arrays.size === 1 )
+						{
+							this.sold_meshes.delete( mat );
+						}
+						else
+						{
+							map_of_geom_arrays.delete( geom );
+
+							if ( map_of_geom_arrays.size === 0 )
+							this.sold_meshes.delete( mat );
+						}
+					}
+
+				//}
+			}
+		}
+		
+		/*for ( var i = 0; i < this.sold_meshes.length; i++ )
+		{
+			var d = this.sold_meshes[ i ];
+			
+			if ( d.material === mat )
+			if ( d.geometry === geom )
+			{
+				this.sold_meshes.splice( i, 1 );
+				return d;
+			}
+		}*/
+		
+		if ( r )
+		return r;
+	
+		return new THREE.Mesh( geom, mat );
+	}
+	
+	DrawLamp( x, y ) // World coordinates
+	{
+		//this.lamps.push( { x:x, y:y, color:'#ffffff' } );
+		// Too slow
+		/*let m;
+
+		//let m = new THREE.PointLight( 0xffffff, 1, 0, 1 );
+		m = new THREE.SpotLight( 0xffffff, 10, 1000, Math.PI / 2 * 0.6, 1 );
+		m.add( m.target );
+		m.target.position.z = 100;    
+
+        //m.castShadow = false;
+        //m.shadow.camera.far = 100;
+		//m.shadow.camera.near = 0.01;
+		//m.shadow.bias = 0.02;
+		m.shadow.normalBias = 3;
+
+		//m.shadow.camera.updateProjectionMatrix();
+
+
+
+		this.z_offset += 64;
+
+		this.DrawObject( m, destination_x, destination_y, 1, 1 );
+
+		this.z_offset -= 64;*/
+	}
+	
 	drawImage( image, ...args )
 	{
 		if ( image.loaded === false )
@@ -522,7 +613,7 @@ class FakeCanvasContext
 		
 		
 		
-		let m = new THREE.Mesh( this.geometries_by_draw_in[ this.volumetric_mode ], this.RequireMaterial( image, source_x, source_y, source_w, source_h, this.volumetric_mode, this.globalAlpha ) );
+		let m = this.RequireMesh( this.geometries_by_draw_in[ this.volumetric_mode ], this.RequireMaterial( image, source_x, source_y, source_w, source_h, this.volumetric_mode, this.globalAlpha ) );
 		
 		this.DrawObject( m, destination_x, destination_y, destination_w, destination_h );
 	}
@@ -566,8 +657,11 @@ class FakeCanvasContext
 			m.receiveShadow = true;
 		}
 		
-		if ( typeof m.material.userData.customDepthMaterial !== 'undefined' )
-		m.customDepthMaterial = m.material.userData.customDepthMaterial;
+		if ( m.material )
+		{
+			if ( typeof m.material.userData.customDepthMaterial !== 'undefined' )
+			m.customDepthMaterial = m.material.userData.customDepthMaterial;
+		}
 
 		this.scene.add( m );
 		this.draws.push( m );
@@ -654,7 +748,7 @@ class FakeCanvasContext
 
 				line.setPoints( points );
 				
-				let m = new THREE.Mesh( line, material );
+				let m = this.RequireMesh( line, material );
 				
 				m.userData.disposer = this.disposer;
 				
@@ -688,8 +782,8 @@ class FakeCanvasContext
 		{
 			this.gc_loopie = ( this.gc_loopie + 1 ) % this.texture_cache_keys.length;
 			
-			let cache = this.texture_cache.get( this.texture_cache_keys[ this.gc_loopie ] );
-			if ( cache._last_used < this.frame )
+			var cache = this.texture_cache.get( this.texture_cache_keys[ this.gc_loopie ] );
+			if ( cache._last_used < this.frame - 30 ) // At least 1 second old, useful for rain case
 			{
 				for ( var key in cache )
 				if ( key !== '_last_used' )
@@ -715,14 +809,50 @@ class FakeCanvasContext
 		
 		let time_end = Date.now();
 		
+		//this.last_lamps = this.lamps;
+		//this.lamps = [];
+		
+		// Remove unneded sold meshes
+		//for ( var i = 0; i < this.sold_meshes.length; i++ )
+		for ( const map_of_geom_arrs of this.sold_meshes )
+		for ( const arr_of_geoms of map_of_geom_arrs )
+		{
+			for ( var i = 0; i < arr_of_geoms.length; i++ )
+			{
+				var d = arr_of_geoms[ i ];
+
+				if ( typeof d.userData.disposer !== 'undefined' )
+				d.userData.disposer( d );
+			}
+		};
+		//this.sold_meshes.length = 0;
+		this.sold_meshes.clear();
+		
 		for ( var i = this.draws.length - 1; i >= 0; i-- )
 		{
 			var d = this.draws[ i ];
 			
 			this.scene.remove( d );
 			
-			if ( typeof d.userData.disposer !== 'undefined' )
-			d.userData.disposer( d );
+			//if ( typeof d.userData.disposer !== 'undefined' )
+			//d.userData.disposer( d );
+		
+			//this.sold_meshes.push( d ); 
+		
+			// Schedule for either reuse or remove
+			if ( d.material ) // Actual Mesh, not a lamp
+			{
+				if ( !this.sold_meshes.has( d.material ) )
+				this.sold_meshes.set( d.material, new Map() );
+
+				let map_of_geom_arrs = this.sold_meshes.get( d.material );
+
+				if ( !map_of_geom_arrs.has( d.geometry ) )
+				map_of_geom_arrs.set( d.geometry, [ d ] );
+				else
+				map_of_geom_arrs.get( d.geometry ).push( d );
+			}
+			
 			
 			this.draws.splice( i, 1 );
 			continue;
@@ -739,26 +869,23 @@ class FakeCanvasContext
 				let details = 'Details: ?';
 				let msg = 'Note: Low framerate. Game might run better once "Visual settings" will be changed at game start. Also, make sure "Use hardware acceleration when available" is enabled at your browser\'s settings.';
 
-				const gl = sdRenderer.ctx.renderer.getContext();//document.createElement('canvas').getContext('webgl');
-				if (!gl)
+				if ( !this._gl )
 				{
 					msg = 'Error: No WebGL. Was it disabled by editing web browser shortcut to include " -disable-webgl"? Because of lack of WebGL game won\'t be able to appear on your screen.';
 					return;
 				}
 				else
 				{
-					const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-					if ( debugInfo )
+					if ( this._debugInfo )
 					{
-						var renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-						details = 'Vendor: ' + gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) + ' :: Renderer: ' + renderer;
+						details = 'Vendor: ' + this._vendor + ' :: Renderer: ' + this._renderer;
 
-						if ( renderer === 'Google SwiftShader' )
+						if ( this._renderer === 'Google SwiftShader' )
 						{
 							msg = 'Note: Looks like "Use hardware acceleration when available" is not enabled at your browser\'s settings. Lack of this setting most probably will cause bad performance in-game.';
 						}
 						else
-						if ( renderer.indexOf( 'Intel(R) HD Graphics' ) !== -1 )
+						if ( this._renderer.indexOf( 'Intel(R) HD Graphics' ) !== -1 )
 						{
 							msg = 'Note: Integrated graphics adapter is being used by your web browser. In case if you have non-integreated graphics adapter - we recommend configuring it for your web browser in order to have better performance. It is also known to be an issue where some browsers simply can not be set to use more efficient graphics adapter even if one was clearly configured to be used (any non-Microsoft Edge browsers under Windows 10). Also, make sure "Use hardware acceleration when available" is enabled at your browser\'s settings - this might help too.';
 						}
@@ -796,7 +923,7 @@ class FakeCanvasContext
 		}
 		else
 		{
-			this.graphics_complain_skips = 30;
+			this.graphics_complain_skips = 60;
 		}
 		
 	}

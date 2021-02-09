@@ -143,6 +143,7 @@ class sdTeleport extends sdEntity
 	}
 	onMovementInRange( from_entity )
 	{
+		if ( sdWorld.is_server )
 		if ( this.delay === 0 )
 		if ( !from_entity.is_static )
 		if ( from_entity.GetClass() !== 'sdEffect' )
@@ -194,6 +195,11 @@ class sdTeleport extends sdEntity
 
 					from_entity.x += best_tele.x - this.x;
 					from_entity.y += best_tele.y - this.y;
+					
+					if ( from_entity.GetClass() === 'sdCharacter' )
+					{
+						from_entity.ApplyServerSidePositionAndVelocity( true, 0, 0 );
+					}
 
 					sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 					sdSound.PlaySound({ name:'teleport', x:best_tele.x, y:best_tele.y, volume:0.5 });

@@ -3,6 +3,10 @@ import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
+import sdBlock from './sdBlock.js';
+import sdCharacter from './sdCharacter.js';
+import sdDoor from './sdDoor.js';
+
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -64,6 +68,88 @@ class sdAntigravity extends sdEntity
 			this._hea = Math.min( this._hea + GSPEED, this._hmax );
 		}
 		
+		var non_recursive = new Map();
+		
+		for ( var t = 0; t < 2; t++ )
+		{
+			var x1 = this.x + this.hitbox_x1 + ( this.hitbox_x2 - this.hitbox_x1 ) / 2 * t;
+			var y1 = this.y - 16;
+			
+			var x2 = x1 + ( this.hitbox_x2 - this.hitbox_x1 ) / 2;
+			var y2 = y1 + 16;
+			
+			var max_h = 16;
+			
+			var worked_out_arrs = [];
+		
+			//progress_loop:
+			for ( var s = 0; s < max_h; s++ )
+			{
+				//var arr = sdWorld.RequireHashPosition( x, y );
+				
+				var xx_from = ~~( x1 / 32 ); // Overshoot no longer needed, due to big entities now taking all needed hash arrays
+				var yy_from = ~~( y1 / 32 );
+				var xx_to = ~~( x2 / 32 );
+				var yy_to = ~~( y2 / 32 );
+				
+				for ( var xx = xx_from; xx <= xx_to; xx++ )
+				for ( var yy = yy_from; yy <= yy_to; yy++ )
+				{
+					var arr = sdWorld.RequireHashPosition( xx * 32, yy * 32 );
+					
+					if ( worked_out_arrs.indexOf( arr ) === -1 )
+					{
+						worked_out_arrs.push( arr );
+
+						for ( var i = 0; i < arr.length; i++ )
+						//if ( !arr[ i ].is_static || arr[ i ] instanceof sdBlock || arr[ i ] instanceof sdDoor )
+						//if ( !arr[ i ].is_static || arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) )
+						if ( !arr[ i ].IsBGEntity() && ( !arr[ i ].is_static || arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) ) ) // Faster?
+						if ( !non_recursive.has( arr[ i ]._net_id ) )
+						{
+							if ( x2 > arr[ i ].x + arr[ i ].hitbox_x1 )
+							if ( x1 < arr[ i ].x + arr[ i ].hitbox_x2 )
+							if ( y2 > arr[ i ].y + arr[ i ].hitbox_y1 )
+							if ( y1 < arr[ i ].y + arr[ i ].hitbox_y2 )
+							{
+								//if ( arr[ i ] instanceof sdBlock || arr[ i ] instanceof sdDoor )
+								if ( arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) )
+								{
+									max_h = 0; // Stop elevation
+
+									//if ( Math.random() < 0.01 )
+									//sdWorld.SendEffect({ x:x1+(x2-x1)*Math.round(Math.random()), y:y1+(y2-y1)*Math.round(Math.random()), type:sdEffect.TYPE_WALL_HIT });
+								}
+								else
+								{
+									non_recursive.set( arr[ i ]._net_id, 1 );
+
+									if ( Math.abs( arr[ i ].x - this.x ) < 16 )
+									{
+										arr[ i ].sy -= GSPEED * sdWorld.gravity * 0.9;
+
+										//if ( arr[ i ].GetClass() === 'sdCharacter' )
+										//if ( arr[ i ] instanceof sdCharacter )
+										if ( arr[ i ].is( sdCharacter ) )
+										{
+											if ( arr[ i ].hea > 0 )
+											arr[ i ].sy += GSPEED * arr[ i ].act_y * 0.1;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				
+				y1 -= 16;
+				y2 -= 16;
+			}
+		}
+		
+		
+		
+		/*
 		var x = this.x;
 		var y = this.y;
 		let non_recursive = [];
@@ -95,7 +181,7 @@ class sdAntigravity extends sdEntity
 					}
 				}
 			}
-		}
+		}*/
 	}
 	get title()
 	{

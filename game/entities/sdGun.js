@@ -282,20 +282,20 @@ class sdGun extends sdEntity
 			if ( this._held_by._build_params === null )
 			return Infinity; // Unable to place anyway
 			
-			globalThis.EnforceChangeLog( this, '_held_by' );
+			//globalThis.EnforceChangeLog( this, '_held_by' );
 			
 			if ( this._held_by._build_params._class === null ) // Upgrades
 			{
 				if ( ( this._held_by._upgrade_counters[ this._held_by._build_params.upgrade_name ] || 0 ) >= sdShop.upgrades[ this._held_by._build_params.upgrade_name ].max_level )
 				{
-					this._held_by_unenforce();
+					//this._held_by_unenforce();
 				
 					return Infinity; // Maxed out
 				}
 				
 				if ( this._held_by._build_params.matter_cost )
 				{
-					this._held_by_unenforce();
+					//this._held_by_unenforce();
 				
 					return this._held_by._build_params.matter_cost;
 				}
@@ -312,7 +312,7 @@ class sdGun extends sdEntity
 				
 				//console.log( 'say complete' );
 				
-				this._held_by_unenforce();
+				//this._held_by_unenforce();
 				
 				return Infinity; // Unable to place anyway
 			}
@@ -320,13 +320,13 @@ class sdGun extends sdEntity
 			let cost = ent.MeasureMatterCost();
 			
 			
-			ent.onRemove = sdEntity.prototype.onRemove; // Disable any removal logic
+			ent.onRemove = ent.onRemoveAsFakeEntity; // Disable any removal logic
 			ent.remove();
 			ent._remove();
 			
 			//console.log('costs '+cost);
 			
-			this._held_by_unenforce();
+			//this._held_by_unenforce();
 			
 			return cost;
 		}

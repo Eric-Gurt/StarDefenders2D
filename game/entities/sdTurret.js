@@ -5,6 +5,11 @@ import sdCom from './sdCom.js';
 import sdBullet from './sdBullet.js';
 import sdSound from '../sdSound.js';
 
+import sdCharacter from './sdCharacter.js';
+import sdVirus from './sdVirus.js';
+import sdQuickie from './sdQuickie.js';
+import sdOctopus from './sdOctopus.js';
+import sdCube from './sdCube.js';
 
 class sdTurret extends sdEntity
 {
@@ -69,9 +74,36 @@ class sdTurret extends sdEntity
 		{
 			if ( this._seek_timer <= 0 )
 			{
-				this._seek_timer = 15;
+				this._seek_timer = 10 + Math.random() * 10;
 
 				this._target = null;
+				
+				const that = this;
+				
+				let coms_near = sdWorld.GetComsNear( this.x, this.y, null, null, true );
+				
+				//let class_cache = {};
+				function RuleAllowedByNodes( c )
+				{
+					for ( var i = 0; i < coms_near.length; i++ )
+					{
+						if ( coms_near[ i ].subscribers.indexOf( c ) !== -1 )
+						return false;
+					}
+					return true;
+				}
+				
+				//let net_id_cache = {};
+				/*function NetIDSearch( _net_id )
+				{
+					//if ( !net_id_cache[ _net_id ] )
+					//net_id_cache[ _net_id ] = sdWorld.GetComsNear( that.x, that.y, null, _net_id, true ).length;
+				
+					return net_id_cache[ _net_id ];
+				}*/
+				
+				//let coms_near_len = sdWorld.GetComsNear( this.x, this.y, null, null, true ).length;
+				let coms_near_len = coms_near.length;
 
 				for ( var x = this.x - 300; x < this.x + 300; x += 32 )
 				for ( var y = this.y - 300; y < this.y + 300; y += 32 )
@@ -81,14 +113,15 @@ class sdTurret extends sdEntity
 					{
 						var e = arr[ i2 ];
 						
+						if ( e.is( sdCharacter ) || e.is( sdVirus ) || e.is( sdQuickie ) || e.is( sdOctopus ) || e.is( sdCube ) )
 						if ( ( e.hea || e._hea ) > 0 )
 						if ( e.IsVisible( this._owner ) )
 						{
-							if ( e !== this._owner || sdWorld.GetComsNear( this.x, this.y, null, null, true ).length > 0 )
-							if ( e.GetClass() === 'sdCharacter' || e.GetClass() === 'sdVirus' || e.GetClass() === 'sdQuickie' || e.GetClass() === 'sdOctopus' || e.GetClass() === 'sdCube' )
-							//if ( ( e.GetClass() === 'sdCharacter' && sdWorld.GetComsNear( this.x, this.y, null, e._net_id, true ).length === 0 ) || 
-							//	 e.GetClass() === 'sdVirus' || e.GetClass() === 'sdQuickie' || e.GetClass() === 'sdOctopus' || e.GetClass() === 'sdCube' )
-							if ( sdWorld.GetComsNear( this.x, this.y, null, e._net_id, true ).length === 0 && sdWorld.GetComsNear( this.x, this.y, null, e.GetClass(), true ).length === 0 )
+							if ( e !== this._owner || coms_near_len > 0 )
+							//if ( e.GetClass() === 'sdCharacter' || e.GetClass() === 'sdVirus' || e.GetClass() === 'sdQuickie' || e.GetClass() === 'sdOctopus' || e.GetClass() === 'sdCube' )
+							//if ( e instanceof sdCharacter || e instanceof sdVirus || e instanceof sdQuickie || e instanceof sdOctopus || e instanceof sdCube )
+							//if ( NetIDSearch( e._net_id ) === 0 && ClassSearch( e.GetClass() ) === 0 )
+							if ( RuleAllowedByNodes( e._net_id ) && RuleAllowedByNodes( e.GetClass() ) )
 							{
 								if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
 								{

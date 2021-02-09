@@ -143,7 +143,7 @@ class sdEntity
 				if ( this.hard_collision )
 				if ( typeof sdWorld.last_hit_entity.sy !== 'undefined' )
 				sdWorld.last_hit_entity.sy += this.sy;
-				//sdWorld.last_hit_entity.Impulse( 0, this.sy );
+				//sdWorld.last_hit_entity.Impulse( 0, this.sy ); Impulse is reworked and needs some kind of hint that Impulse is not server-side only, so velocity change isn't doubled on client-side
 			
 				this.Impact( Math.abs( this.sy ) * ( 1 + bounce_intensity ) );
 				this.sy = - this.sy * bounce_intensity;
@@ -159,7 +159,7 @@ class sdEntity
 				if ( this.hard_collision )
 				if ( typeof sdWorld.last_hit_entity.sx !== 'undefined' )
 				sdWorld.last_hit_entity.sx += this.sx;
-				//sdWorld.last_hit_entity.Impulse( this.sx, 0 );
+				//sdWorld.last_hit_entity.Impulse( this.sx, 0 ); Impulse is reworked and needs some kind of hint that Impulse is not server-side only, so velocity change isn't doubled on client-side
 			
 				this.Impact( Math.abs( this.sx ) * ( 1 + bounce_intensity ) );
 				this.sx = - this.sx * bounce_intensity;
@@ -199,7 +199,11 @@ class sdEntity
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 	}
-	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
+	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions. Most probably will have conflicts with .GetNonIgnoredEntityClasses()
+	{
+		return null;
+	}
+	GetNonIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions. Most probably will have conflicts with .GetIgnoredEntityClasses()
 	{
 		return null;
 	}
@@ -213,7 +217,7 @@ class sdEntity
 				new_x + this.hitbox_x1 + safe_bound, 
 				new_y + this.hitbox_y1 + safe_bound, 
 				new_x + this.hitbox_x2 - safe_bound, 
-				new_y + this.hitbox_y2 - safe_bound, this, ignored_classes ) )
+				new_y + this.hitbox_y2 - safe_bound, this, ignored_classes, this.GetNonIgnoredEntityClasses() ) )
 		return false;
 		
 		/*if ( sdWorld.CheckWallExists( new_x + this.hitbox_x1 + safe_bound, new_y + this.hitbox_y2 - safe_bound, this, ignored_classes ) )
@@ -324,11 +328,12 @@ class sdEntity
 		this._snapshot_cache_frame = 0;
 		this._snapshot_cache = null;
 		
+		//this._is_real = ( typeof params.is_real !== 'undefined' ) ? params.is_real : true; // Build tools spawns entities with ._is_real === false (this is not handled on client-side since damage generally can't be dealt on client-side anyway), it will prevent them from reacting to impact (sdBlock for example would be able to kill spawner sdCharacter and cause gun to throw an error without this)
 		
 		if ( this.IsGlobalEntity() )
 		sdEntity.global_entities.push( this );
 	}
-	SetHiberState( v )
+	SetHiberState( v, allow_calling_movement_in_range=true )
 	{
 		if ( v !== this._hiberstate )
 		{
@@ -349,7 +354,7 @@ class sdEntity
 				{
 					if ( this._affected_hash_arrays.length === 0 ) // Usually it is a sign that entity (ex. sdBlock) just spawned and wasn't added to any hash arrays for collision and visibility checks (alternatively _last_x/y === undefined check could be here, but probably not needed or not efficient). Hibernation would prevent that event further so we do it now
 					{
-						sdWorld.UpdateHashPosition( this, false );
+						sdWorld.UpdateHashPosition( this, false, allow_calling_movement_in_range );
 					}
 					
 					if ( this._hiberstate === sdEntity.HIBERSTATE_ACTIVE )
@@ -377,6 +382,20 @@ class sdEntity
 				debugger;
 			}
 		}
+		/*
+		if ( this.GetClass() === 'sdBG' )
+		if ( sdWorld.is_server )
+		{
+			let that = this;
+			
+			that._last_hibernation_change = globalThis.getStackTrace();
+					
+			setTimeout( ()=>
+			{
+				if ( sdEntity.active_entities.indexOf( that ) !== -1 )
+				debugger;
+			},1000);
+		}*/
 	}
 	
 	
@@ -387,6 +406,10 @@ class sdEntity
 	GetClass()
 	{
 		return this.constructor.name;
+	}
+	is( c )
+	{
+		return this.constructor === c.prototype.constructor;
 	}
 	GetSnapshot( current_frame, save_as_much_as_possible=false )
 	{
@@ -449,21 +472,41 @@ class sdEntity
 	}
 	ApplySnapshot( snapshot )
 	{
+		const my_entity = sdWorld.my_entity;
+		
 		if ( snapshot._net_id !== this._net_id )
 		debugger;
 		if ( snapshot._class !== this.GetClass() )
 		debugger;
+	
+		let my_entity_protected_vars = null;
 			
 		for ( var prop in snapshot )
 		{
 			if ( prop !== '_net_id' )
 			if ( prop !== '_class' )
 			{
-				if ( sdWorld.my_entity !== this || typeof sdWorld.my_entity_protected_vars[ prop ] === 'undefined' || !this.AllowClientSideState() )
-				this[ prop ] = snapshot[ prop ];
+				if ( my_entity !== this )
+				{
+					this[ prop ] = snapshot[ prop ];
+				}
+				else
+				{
+					if ( !my_entity_protected_vars )
+					my_entity_protected_vars = sdWorld.my_entity_protected_vars;
+					
+					if ( typeof my_entity_protected_vars[ prop ] === 'undefined' || !this.AllowClientSideState() )
+					this[ prop ] = snapshot[ prop ];
+				}
 			}
 		}
 		
+		if ( sdWorld.is_server )
+		{
+			if ( typeof snapshot._hiberstate !== 'undefined' )
+			this.SetHiberState( snapshot._hiberstate );
+		}
+		else
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 	}
 	static GetObjectByClassAndNetId( _class, _net_id )
@@ -668,6 +711,9 @@ class sdEntity
 	{
 	}
 	onRemove() // Class-specific, if needed
+	{
+	}
+	onRemoveAsFakeEntity() // Will be called instead of onRemove() if entity was never added to world
 	{
 	}
 	onMovementInRange( from_entity )

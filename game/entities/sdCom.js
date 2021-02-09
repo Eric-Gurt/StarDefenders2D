@@ -14,7 +14,7 @@ class sdCom extends sdEntity
 		sdCom.retransmit_range = 200; // Messages within this range are retransmitted to other coms
 		sdCom.max_subscribers = 32;
 		
-		sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdMatterContainer', 'sdTeleport', 'sdCrystal' ];
+		sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdMatterContainer', 'sdTeleport', 'sdCrystal', 'sdLamp' ];
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}

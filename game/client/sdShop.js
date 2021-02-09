@@ -82,6 +82,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdCom', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdTeleport', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdLamp', _category:'Base equipment' });
 		
 
 		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, _category:'Base equipment' });
@@ -207,6 +208,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdAsteroid', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', is_huge:true, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdWater', _category:'Development tests' });
 		}
 		
 		sdShop.potential_selection = -1;

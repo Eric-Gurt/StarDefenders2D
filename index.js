@@ -87,9 +87,12 @@ import sdQuickie from './game/entities/sdQuickie.js';
 import sdOctopus from './game/entities/sdOctopus.js';
 import sdAntigravity from './game/entities/sdAntigravity.js';
 import sdCube from './game/entities/sdCube.js';
+import sdLamp from './game/entities/sdLamp.js';
 
 
 import sdShop from './game/client/sdShop.js';
+
+console.warn = console.trace; // Adding stack trace support for console.warn, which it doesn't have by default for some reason in Node.JS
 
 let enf_once = true;
 globalThis.EnforceChangeLog = function EnforceChangeLog( mat, property_to_enforce, value_as_string=true )
@@ -173,6 +176,7 @@ sdQuickie.init_class();
 sdOctopus.init_class();
 sdAntigravity.init_class();
 sdCube.init_class();
+sdLamp.init_class();
 
 globalThis.sdWorld = sdWorld;
 globalThis.sdShop = sdShop;
@@ -324,7 +328,7 @@ let is_terminating = false;
 				fs.writeFile( snapshot_path + '.raw.v', json, ( err )=>
 				{
 				});
-			}
+			}9
 
 		});
 	}
@@ -583,12 +587,19 @@ io.on("connection", (socket) =>
 	
 	socket.character = null;
 	
+	socket.sd_events = []; // Mobile devices should work better if they won't be flooded with separate TCP event messages.
+	
 	socket.respawn_block_until = sdWorld.time + 400;
 	
 	{
 		let pc = GetPlayingPlayersCount();
 		for ( var i = 0; i < sockets.length; i++ )
-		sockets[ i ].emit( 'ONLINE', [ sockets.length, pc ] );
+		{
+			if ( sockets[ i ].character && !sockets[ i ].character._is_being_removed )
+			sockets[ i ].sd_events.push( [ 'ONLINE', [ sockets.length, pc ] ] ); // In-game case
+			else
+			sockets[ i ].emit( 'ONLINE', [ sockets.length, pc ] ); // Character cusomization screen
+		}
 	}
 	
 	//globalThis.EnforceChangeLog( sockets, sockets.indexOf( socket ) );
@@ -619,6 +630,8 @@ io.on("connection", (socket) =>
 			socket.emit('SERVICE_MESSAGE', 'Respawn rejected - too quickly (wait ' + ( socket.respawn_block_until - sdWorld.time ) + 'ms)' );
 			return;
 		}
+		
+		socket.sd_events = []; // Just in case? There was some source of 600+ events stacked, possibly during start screen waiting or maybe even during player being removed. Lots of 'C' events too
 		
 		socket.respawn_block_until = sdWorld.time + 400;
 		
@@ -899,8 +912,32 @@ io.on("connection", (socket) =>
 	});
 	
 	// Input
-	socket.on('K1', ( key ) => { if ( socket.character ) socket.character._key_states.SetKey( key, 1 ); });
-	socket.on('K0', ( key ) => { if ( socket.character ) socket.character._key_states.SetKey( key, 0 ); });
+	//socket.on('K1', ( key ) => { if ( socket.character ) socket.character._key_states.SetKey( key, 1 ); }); Mobile users send these too quickly as for TCP connection
+	//socket.on('K0', ( key ) => { if ( socket.character ) socket.character._key_states.SetKey( key, 0 ); });
+	
+	socket.on('Kv2', ( sd_events )=>
+	{
+		if ( sd_events instanceof Array )
+		if ( sd_events.length < 32 )
+		for ( var i = 0; i < sd_events.length; i++ )
+		{
+			if ( sd_events[ i ].length !== 2 )
+			return;
+		
+			var type = sd_events[ i ][ 0 ];
+			var key = sd_events[ i ][ 1 ];
+			
+			if ( socket.character )
+			{
+				if ( type === 'K1' )
+				socket.character._key_states.SetKey( key, 1 );
+				else
+				if ( type === 'K0' )
+				socket.character._key_states.SetKey( key, 0 );
+			}
+		}
+	});
+	
 	socket.on('CHAT', ( t ) => { 
 		
 		if ( t.length > 100 )
@@ -947,10 +984,11 @@ io.on("connection", (socket) =>
 		
 			if ( sdWorld.time > socket.next_position_correction_allowed )
 			{
+				let corrected = false;
+					
 				//if ( socket.character.hea > 0 )
 				if ( socket.character.AllowClientSideState() ) // Health and hook change
 				{
-					let corrected = false;
 			
 					var dx = arr[ 5 ] - socket.character.x;
 					var dy = arr[ 6 ] - socket.character.y;
@@ -1062,7 +1100,8 @@ io.on("connection", (socket) =>
 					if ( !corrected )
 					{
 						socket.next_position_correction_allowed = sdWorld.time + 50;
-						socket.emit( 'C', [ socket.character.x, socket.character.y, socket.character.sx, socket.character.sy ] );
+						//socket.emit( 'C', [ socket.character.x, socket.character.y, socket.character.sx, socket.character.sy ] );
+						socket.sd_events.push( [ 'C', [ socket.character.x, socket.character.y, socket.character.sx, socket.character.sy ] ] );
 					}
 				}
 			}
@@ -1235,6 +1274,8 @@ setInterval( ()=>
 				
 				if ( sdWorld.time > socket.last_sync + sdWorld.max_update_rate && socket.client.conn.transport.writable ) // Buffering prevention?
 				{
+					let previous_sync_time = socket.last_sync;
+					
 					socket.last_sync = sdWorld.time;
 
 					var snapshot = [];
@@ -1346,19 +1387,52 @@ setInterval( ()=>
 					//console.log( isTransportWritable );
 					
 					//socket.broadcast.emit( snapshot );
-					socket.emit('RES', snapshot );
+					
+					//socket.emit('RES', snapshot );
 
-					socket.emit('SCORE', socket.score );
+					//socket.emit('SCORE', socket.score );
+					
+					let leaders = null;
+					
+					if ( sdWorld.time > socket.last_sync_score + 5000 )
+					{
+						socket.last_sync_score = sdWorld.time;
+
+						//socket.emit('LEADERS', [ sdWorld.leaders, GetPlayingPlayersCount() ] );
+						leaders = [ sdWorld.leaders, GetPlayingPlayersCount() ];
+					}
+					
+					let sd_events = [];
+					
+					if ( socket.sd_events.length > 100 )
+					{
+						console.log('socket.sd_events overflow (last sync was ' + ( sdWorld.time - previous_sync_time ) + 'ms ago): ', socket.sd_events );
+						
+						sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server: .sd_events overflow (' + socket.sd_events.length + ' events were skipped). Some sounds and effects might not spawn as result of that.' );
+						
+						socket.sd_events.length = 0;
+					}
+					
+					while ( sd_events.length < 10 && socket.sd_events.length > 0 )
+					sd_events.push( socket.sd_events.pop() );
+					
+					socket.emit('RESv2', [ 
+						snapshot, // 0
+						socket.score, // 1
+						leaders, // 2
+						sd_events, // 3
+						socket.character._force_add_sx, // 4
+						socket.character._force_add_sy, // 5
+						Math.max( -1, socket.character._position_velocity_forced_until - sdWorld.time ) // 6
+					] );
+					
+					socket.character._force_add_sx = 0;
+					socket.character._force_add_sy = 0;
 
 					socket.observed_entities = observed_entities;
 				}
 
-				if ( sdWorld.time > socket.last_sync_score + 5000 )
-				{
-					socket.last_sync_score = sdWorld.time;
-
-					socket.emit('LEADERS', [ sdWorld.leaders, GetPlayingPlayersCount() ] );
-				}
+				
 			}
 		}
 		//sockets_array_locked = false;

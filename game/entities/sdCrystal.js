@@ -89,22 +89,41 @@ class sdCrystal extends sdEntity
 		
 		this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
 
+		//let inner_range = [];
+		//let outer_range = [];
+
 		var x = this.x;
 		var y = this.y;
-		for ( var xx = -2; xx <= 2; xx++ )
-		for ( var yy = -2; yy <= 2; yy++ )
+		//for ( var xx = -2; xx <= 2; xx++ )
+		//for ( var yy = -2; yy <= 2; yy++ )
+		for ( var xx = -1; xx <= 1; xx++ )
+		for ( var yy = -1; yy <= 1; yy++ )
 		{
 			var arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
 			for ( var i = 0; i < arr.length; i++ )
-			if ( arr[ i ] !== this )
 			if ( typeof arr[ i ].matter !== 'undefined' )
+			if ( sdWorld.inDist2D( arr[ i ].x, arr[ i ].y, x, y, 30 ) >= 0 )
+			if ( arr[ i ] !== this )
 			{
-				if ( sdWorld.inDist2D( arr[ i ].x, arr[ i ].y, x, y, 30 ) >= 0 )
+				/*if ( Math.abs( xx ) >= 2 || Math.abs( yy ) >= 2 )
 				{
-					this.TransferMatter( arr[ i ], 0.01, GSPEED );
+					outer_range.push( arr[ i ] );
 				}
+				else
+				{
+					inner_range.push( arr[ i ] );
+				}*/
+				//debugger; // Does this even happen?
+				
+				this.TransferMatter( arr[ i ], 0.01, GSPEED );
 			}
 		}
+		
+		/*for ( var i = 0; i < outer_range.length; i++ )
+		{
+			if ( inner_range.indexOf( outer_range[ i ] ) === -1 )
+			debugger; // If this never happens - shrink range check
+		}*/
 
 	}
 	DrawHUD( ctx, attached ) // foreground layer

@@ -65,6 +65,22 @@ class sdBlock extends sdEntity
 				{
 					if ( this.material === sdBlock.MATERIAL_SHARP )
 					return;
+
+					for ( var a = 0; a < this._affected_hash_arrays.length; a++ )
+					{
+						for ( var i = 0; i < this._affected_hash_arrays[ a ].length; i++ )
+						{
+							var e = this._affected_hash_arrays[ a ][ i ];
+							if ( e instanceof sdBG )
+							{
+								if ( this.x + this.hitbox_x1 >= e.x + e.hitbox_x1 )
+								if ( this.x + this.hitbox_x2 <= e.x + e.hitbox_x2 )
+								if ( this.y + this.hitbox_y1 >= e.y + e.hitbox_y1 )
+								if ( this.y + this.hitbox_y2 <= e.y + e.hitbox_y2 )
+    							return;
+	    					}
+						}
+					}
 					
 					let visible = false;
 					
@@ -121,7 +137,7 @@ class sdBlock extends sdEntity
 						if ( !this._vis_block_left )
 						{
 							sdWorld.last_hit_entity = null;
-							sdWorld.CheckWallExists( this.x - 8, this.y + 8, null, null, filter );
+							sdWorld.CheckWallExists( this.x - 8, this.y + Math.min( 8, this.height / 2 ), null, null, filter ); // Math.min is for half-block support
 							if ( this.height > 16 && sdWorld.last_hit_entity )
 							{
 								sdWorld.last_hit_entity = null;
@@ -143,7 +159,7 @@ class sdBlock extends sdEntity
 						if ( !this._vis_block_right )
 						{
 							sdWorld.last_hit_entity = null;
-							sdWorld.CheckWallExists( this.x + this.width + 8, this.y + 8, null, null, filter );
+							sdWorld.CheckWallExists( this.x + this.width + 8, this.y + Math.min( 8, this.height / 2 ), null, null, filter );// Math.min is for half-block support
 							if ( this.height > 16 && sdWorld.last_hit_entity )
 							{
 								sdWorld.last_hit_entity = null;
@@ -243,7 +259,7 @@ class sdBlock extends sdEntity
 		this.destruction_frame = 0;
 		this.HandleDestructionUpdate();
 		
-		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED, false ); // 2nd parameter is important as it will prevent temporary entities from reacting to world entities around it (which can happen for example during item price measure - something like sdBlock can kill player-initiator and cause server crash)
 		
 		/*if ( sdWorld.is_server )
 		for ( var i = 0; i < sdEntity.entities.length; i++ )

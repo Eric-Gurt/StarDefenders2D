@@ -69,18 +69,18 @@ class sdMatterContainer extends sdEntity
 		
 		var x = this.x;
 		var y = this.y;
-		for ( var xx = -2; xx <= 2; xx++ )
-		for ( var yy = -2; yy <= 2; yy++ )
+		//for ( var xx = -2; xx <= 2; xx++ )
+		//for ( var yy = -2; yy <= 2; yy++ )
+		for ( var xx = -1; xx <= 1; xx++ )
+		for ( var yy = -1; yy <= 1; yy++ )
 		{
 			var arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
 			for ( var i = 0; i < arr.length; i++ )
-			if ( arr[ i ] !== this )
 			if ( typeof arr[ i ].matter !== 'undefined' )
+			if ( sdWorld.inDist2D( arr[ i ].x, arr[ i ].y, x, y, 30 ) >= 0 )
+			if ( arr[ i ] !== this )
 			{
-				if ( sdWorld.inDist2D( arr[ i ].x, arr[ i ].y, x, y, 30 ) >= 0 )
-				{
-					this.TransferMatter( arr[ i ], 0.01, GSPEED );
-				}
+				this.TransferMatter( arr[ i ], 0.01, GSPEED );
 			}
 		}
 

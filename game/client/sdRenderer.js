@@ -10,8 +10,9 @@ import sdEntity from '../entities/sdEntity.js';
 import sdWeather from '../entities/sdWeather.js';
 import sdBlock from '../entities/sdBlock.js';
 import sdEffect from '../entities/sdEffect.js';
+import sdGun from '../entities/sdGun.js';
 
-
+import sdLamp from '../entities/sdLamp.js';
 
 class sdRenderer
 {
@@ -339,9 +340,33 @@ class sdRenderer
 				ctx.fillStyle = '#000000';
 				ctx.globalAlpha = Math.cos( sdWeather.only_instance.day_time / ( 30 * 60 * 24 ) * Math.PI * 2 ) * 0.5 + 0.5;
 				if ( ctx.sky )
-				ctx.sky.intensity = ( 1 - ctx.globalAlpha * 0.5 ) * 0.7;
-				if ( ctx.sun )
-				ctx.sun.intensity = ( 1 - ctx.globalAlpha * 0.5 );
+				{	
+					let br = false;
+					
+					if ( sdWorld.my_entity )
+					for ( var i = 0; i < sdLamp.lamps.length; i++ )
+					if ( sdWorld.inDist2D( sdLamp.lamps[ i ].x, sdLamp.lamps[ i ].y, sdWorld.my_entity.x, sdWorld.my_entity.y, 800 ) > 0 )
+					if ( sdWorld.CheckLineOfSight( sdLamp.lamps[ i ].x, sdLamp.lamps[ i ].y, sdWorld.my_entity.x, sdWorld.my_entity.y, sdLamp.lamps[ i ], null, [ 'sdBlock', 'sdDoor' ] ) )
+					{
+						br = true;
+						break;
+					}
+					
+					let GSPEED = sdWorld.GSPEED;
+					
+					if ( br )
+					{
+						ctx.sky.intensity = sdWorld.MorphWithTimeScale( ctx.sky.intensity, 1, 0.98, GSPEED );
+						ctx.sun.intensity = sdWorld.MorphWithTimeScale( ctx.sun.intensity, 0.4, 0.98, GSPEED );
+					}
+					else
+					{
+						ctx.sky.intensity = sdWorld.MorphWithTimeScale( ctx.sky.intensity, ( 1 - ctx.globalAlpha * 0.5 ) * 0.7, 0.98, GSPEED );
+						ctx.sun.intensity = sdWorld.MorphWithTimeScale( ctx.sun.intensity, ( 1 - ctx.globalAlpha * 0.5 ), 0.98, GSPEED );
+					}
+				}
+			
+				
 			
 				//ctx.fillRect( 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
 				ctx.drawImage( sdRenderer.img_dark_lands, 0,0, sdRenderer.screen_width, sdRenderer.screen_height );
@@ -391,90 +416,105 @@ class sdRenderer
 			ctx.z_offset = -32 * sdWorld.camera.scale;
 			ctx.z_depth = 16 * sdWorld.camera.scale;
 			
+			const void_draw = sdEntity.prototype.DrawBG;
+			
 			for ( var i = 0; i < sdEntity.entities.length; i++ )
-			if ( sdEntity.entities[ i ].DrawBG !== sdEntity.prototype.DrawBG )
-			if ( sdEntity.entities[ i ].x + sdEntity.entities[ i ].hitbox_x2 > min_x )
-			if ( sdEntity.entities[ i ].x + sdEntity.entities[ i ].hitbox_x1 < max_x )
-			if ( sdEntity.entities[ i ].y + sdEntity.entities[ i ].hitbox_y2 > min_y )
-			if ( sdEntity.entities[ i ].y + sdEntity.entities[ i ].hitbox_y1 < max_y )
 			{
-				ctx.volumetric_mode = sdEntity.entities[ i ].DrawIn3D( -1 );
-				ctx.object_offset = sdEntity.entities[ i ].ObjectOffset3D( -1 );
-				
-				ctx.save();
-				try
+				const e = sdEntity.entities[ i ];
+				if ( e.DrawBG !== void_draw )
+				if ( e.x + e.hitbox_x2 > min_x )
+				if ( e.x + e.hitbox_x1 < max_x )
+				if ( e.y + e.hitbox_y2 > min_y )
+				if ( e.y + e.hitbox_y1 < max_y )
 				{
-					ctx.translate( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
-		
-					// TODO: Add bounds check, thought that is maybe pointless if server won't tell offscreen info
-					sdEntity.entities[ i ].DrawBG( ctx, false );
+					ctx.volumetric_mode = e.DrawIn3D( -1 );
+					ctx.object_offset = e.ObjectOffset3D( -1 );
+
+					ctx.save();
+					try
+					{
+						ctx.translate( e.x, e.y );
+
+						// TODO: Add bounds check, thought that is maybe pointless if server won't tell offscreen info
+						e.DrawBG( ctx, false );
+					}
+					catch( err )
+					{
+						console.log( 'Image could not be drawn for ', e, err );
+					}
+					ctx.restore();
 				}
-				catch( e )
-				{
-					console.log( 'Image could not be drawn for ',sdEntity.entities[ i ],e );
-				}
-				ctx.restore();
 			}
 			
 			ctx.z_offset = -16 * sdWorld.camera.scale;
 			ctx.z_depth = 16 * sdWorld.camera.scale;
 			
 			for ( var i = 0; i < sdEntity.entities.length; i++ )
-			if ( ( sdEntity.entities[ i ].x + sdEntity.entities[ i ].hitbox_x2 > min_x &&
-				   sdEntity.entities[ i ].x + sdEntity.entities[ i ].hitbox_x1 < max_x &&
-				   sdEntity.entities[ i ].y + sdEntity.entities[ i ].hitbox_y2 > min_y &&
-				   sdEntity.entities[ i ].y + sdEntity.entities[ i ].hitbox_y1 < max_y ) ||
-				   sdEntity.entities[ i ] === sdWeather.only_instance ||
-				   ( sdEntity.entities[ i ].__proto__.constructor === sdEffect.prototype.constructor && sdEntity.entities[ i ]._type === sdEffect.TYPE_BEAM ) ) // sdWorld.my_entity.__proto__.constructor
 			{
-				ctx.volumetric_mode = sdEntity.entities[ i ].DrawIn3D( 0 );
-				ctx.object_offset = sdEntity.entities[ i ].ObjectOffset3D( 0 );
+				const e = sdEntity.entities[ i ];
 				
-				ctx.save();
-				try
+				if ( ( e.x + e.hitbox_x2 > min_x &&
+					   e.x + e.hitbox_x1 < max_x &&
+					   e.y + e.hitbox_y2 > min_y &&
+					   e.y + e.hitbox_y1 < max_y ) ||
+					   e === sdWeather.only_instance ||
+					   ( e.__proto__.constructor === sdEffect.prototype.constructor && e._type === sdEffect.TYPE_BEAM ) ) // sdWorld.my_entity.__proto__.constructor
 				{
-					ctx.translate( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
-		
-					// TODO: Add bounds check, thought that is maybe pointless if server won't tell offscreen info
-					sdEntity.entities[ i ].Draw( ctx, false );
+					ctx.volumetric_mode = e.DrawIn3D( 0 );
+					ctx.object_offset = e.ObjectOffset3D( 0 );
+
+					ctx.save();
+					try
+					{
+						ctx.translate( e.x, e.y );
+
+						// TODO: Add bounds check, thought that is maybe pointless if server won't tell offscreen info
+						e.Draw( ctx, false );
+					}
+					catch( err )
+					{
+						console.log( 'Image could not be drawn for ', e, err );
+					}
+					ctx.restore();
 				}
-				catch( e )
-				{
-					console.log( 'Image could not be drawn for ',sdEntity.entities[ i ],e );
-				}
-				ctx.restore();
 			}
 			
 			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_FLAT;
 			
+			const void_draw_fg = sdEntity.prototype.DrawFG;
+			
 			//ctx.z_offset = 0 * sdWorld.camera.scale;
 			//ctx.z_depth = 16 * sdWorld.camera.scale;
 			for ( var i = 0; i < sdEntity.entities.length; i++ )
-			if ( sdEntity.entities[ i ].DrawFG !== sdEntity.prototype.DrawFG )
 			{
-				ctx.volumetric_mode = sdEntity.entities[ i ].DrawIn3D( 1 );
-				ctx.object_offset = sdEntity.entities[ i ].ObjectOffset3D( 1 );
-				ctx.camera_relative_world_scale = sdEntity.entities[ i ].CameraDistanceScale3D( 1 );
+				const e = sdEntity.entities[ i ];
 				
-				if ( ctx.camera_relative_world_scale < 1 ||
-					 ( sdEntity.entities[ i ].x + sdEntity.entities[ i ].hitbox_x2 > min_x &&
-				       sdEntity.entities[ i ].x + sdEntity.entities[ i ].hitbox_x1 < max_x &&
-				       sdEntity.entities[ i ].y + sdEntity.entities[ i ].hitbox_y2 > min_y &&
-				       sdEntity.entities[ i ].y + sdEntity.entities[ i ].hitbox_y1 < max_y ) )
+				if ( e.DrawFG !== void_draw_fg )
 				{
-					ctx.save();
-					try
-					{
-						ctx.translate( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+					ctx.volumetric_mode = e.DrawIn3D( 1 );
+					ctx.object_offset = e.ObjectOffset3D( 1 );
+					ctx.camera_relative_world_scale = e.CameraDistanceScale3D( 1 );
 
-						// TODO: Add bounds check, thought that is maybe pointless if server won't tell offscreen info
-						sdEntity.entities[ i ].DrawFG( ctx, false );
-					}
-					catch( e )
+					if ( ctx.camera_relative_world_scale < 1 ||
+						 ( e.x + e.hitbox_x2 > min_x &&
+						   e.x + e.hitbox_x1 < max_x &&
+						   e.y + e.hitbox_y2 > min_y &&
+						   e.y + e.hitbox_y1 < max_y ) )
 					{
-						console.log( 'Image could not be drawn for ',sdEntity.entities[ i ],e );
+						ctx.save();
+						try
+						{
+							ctx.translate( e.x, e.y );
+
+							// TODO: Add bounds check, thought that is maybe pointless if server won't tell offscreen info
+							e.DrawFG( ctx, false );
+						}
+						catch( err )
+						{
+							console.log( 'Image could not be drawn for ', e, err );
+						}
+						ctx.restore();
 					}
-					ctx.restore();
 				}
 			}
 			
@@ -594,6 +634,11 @@ class sdRenderer
 			}
 			
 			
+			
+			ctx.z_offset = 0;
+			ctx.z_depth = 0;
+			ctx.draw_offset = 100;
+			ctx.camera_relative_world_scale = 0.5;
 			
 			// Ingame hud
 			if ( sdWorld.my_entity )
