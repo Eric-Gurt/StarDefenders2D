@@ -31,6 +31,7 @@ npm install express --save
 npm install jade --save
 
 PS: You'll probably need latest Node.JS version. If something does not work - you can contact me or discuss it at #sd-discussion at PB2's discord server.
+
 PSS: It is all pretty much same for Windows, just download Node.JS from their official website ( https://nodejs.org ), then follow the instructions towards running simple express application. Eventually just put game files instead that index.js file and run it. For debugging using Chromium browsers you can run it with line:
 
 node --inspect index.js
