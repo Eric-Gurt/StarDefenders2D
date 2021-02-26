@@ -92,6 +92,7 @@ class sdShop
 		
 		sdShop.options.push({ _class: 'sdTurret', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdCommandCentre', _category:'Base equipment' });
 		
 		for ( var i = 0; i < 3; i++ )
 		{
@@ -117,6 +118,7 @@ class sdShop
 				_category:'Equipment'
 			});
 		}
+		sdShop.options.push({ _class: 'sdBomb', _category:'Equipment' });
 		
 		sdShop.upgrades = {
 			upgrade_suit:
@@ -148,11 +150,11 @@ class sdShop
 			},
 			upgrade_energy:
 			{
-				max_level: 20,
-				matter_cost: 1 / 10 * 450,
+				max_level: 40,
+				matter_cost: 45,
 				action: ( character, level_purchased )=>
 				{
-					character.matter_max = Math.round( 50 + level_purchased / 10 * 450 );
+					character.matter_max = Math.round( 50 + level_purchased * 45 ); // Max is 1850
 				}
 			},
 			upgrade_hook:

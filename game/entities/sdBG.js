@@ -61,6 +61,8 @@ class sdBG extends sdEntity
 		
 		this.filter = params.filter || '';
 		
+		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
+		
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false ); // 2nd parameter is important as it will prevent temporary entities from reacting to world entities around it (which can happen for example during item price measure - something like sdBlock can kill player-initiator and cause server crash)
 	}
 	MeasureMatterCost()

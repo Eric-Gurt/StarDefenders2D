@@ -10,6 +10,8 @@ import sdVirus from './sdVirus.js';
 import sdQuickie from './sdQuickie.js';
 import sdOctopus from './sdOctopus.js';
 import sdCube from './sdCube.js';
+import sdBomb from './sdBomb.js';
+
 
 class sdTurret extends sdEntity
 {
@@ -113,7 +115,7 @@ class sdTurret extends sdEntity
 					{
 						var e = arr[ i2 ];
 						
-						if ( e.is( sdCharacter ) || e.is( sdVirus ) || e.is( sdQuickie ) || e.is( sdOctopus ) || e.is( sdCube ) )
+						if ( e.is( sdCharacter ) || e.is( sdVirus ) || e.is( sdQuickie ) || e.is( sdOctopus ) || e.is( sdCube ) || e.is( sdBomb ) )
 						if ( ( e.hea || e._hea ) > 0 )
 						if ( e.IsVisible( this._owner ) )
 						{
@@ -123,7 +125,7 @@ class sdTurret extends sdEntity
 							//if ( NetIDSearch( e._net_id ) === 0 && ClassSearch( e.GetClass() ) === 0 )
 							if ( RuleAllowedByNodes( e._net_id ) && RuleAllowedByNodes( e.GetClass() ) )
 							{
-								if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
+								if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdCommandCentre' ] ) )
 								{
 									this._target = e;
 									break;
@@ -188,7 +190,8 @@ class sdTurret extends sdEntity
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
 		if ( sdEntity.entities[ i ].GetClass() === 'sdCom' )
 		if ( sdWorld.Dist2D( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this.x, this.y ) < sdCom.retransmit_range )
-		if ( sdWorld.CheckLineOfSight( this.x, this.y, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
+		//if ( sdWorld.CheckLineOfSight( this.x, this.y, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
+		if ( sdWorld.CheckLineOfSight( this.x, this.y, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, null, sdCom.com_visibility_unignored_classes ) )
 		{
 			ctx.beginPath();
 			ctx.moveTo( sdEntity.entities[ i ].x - this.x, sdEntity.entities[ i ].y - this.y );

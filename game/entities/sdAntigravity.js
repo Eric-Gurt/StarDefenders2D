@@ -52,6 +52,8 @@ class sdAntigravity extends sdEntity
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 		
+		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
+		
 		//this._update_version++
 	}
 	MeasureMatterCost()

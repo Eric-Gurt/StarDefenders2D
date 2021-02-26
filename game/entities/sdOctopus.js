@@ -46,7 +46,7 @@ class sdOctopus extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 3000;
+		this._hmax = 2000;
 		this._hea = this._hmax;
 		
 		this.death_anim = 0;
@@ -63,7 +63,7 @@ class sdOctopus extends sdEntity
 		
 		this.side = 1;
 		
-		this._consumed_matter = [];
+		//this._consumed_matter = [];
 		this._consumed_guns = [];
 		
 		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
@@ -115,12 +115,12 @@ class sdOctopus extends sdEntity
 			if ( initiator._socket )
 			initiator._socket.score += 10;
 	
-			while ( this._consumed_matter.length > 0 )
+			/*while ( this._consumed_matter.length > 0 )
 			{
 				sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 1, this._consumed_matter[ 0 ].extra / sdWorld.crystal_shard_value ); // Probably error here, shards do not appear to be pickable, possibly due to NaN here
 				
 				this._consumed_matter.shift();
-			}
+			}*/
 			
 			while ( this._consumed_guns.length > 0 )
 			{
@@ -300,7 +300,9 @@ class sdOctopus extends sdEntity
 						if ( from_entity.GetClass() === 'sdGun' )
 						{
 							if ( from_entity.class === sdGun.CLASS_CRYSTAL_SHARD )
-							this._consumed_matter.push( from_entity.extra );
+							{
+								//this._consumed_matter.push( from_entity.extra );
+							}
 							else
 							this._consumed_guns.push( from_entity.class );
 						}

@@ -88,6 +88,8 @@ import sdOctopus from './game/entities/sdOctopus.js';
 import sdAntigravity from './game/entities/sdAntigravity.js';
 import sdCube from './game/entities/sdCube.js';
 import sdLamp from './game/entities/sdLamp.js';
+import sdCommandCentre from './game/entities/sdCommandCentre.js';
+import sdBomb from './game/entities/sdBomb.js';
 
 
 import sdShop from './game/client/sdShop.js';
@@ -177,6 +179,8 @@ sdOctopus.init_class();
 sdAntigravity.init_class();
 sdCube.init_class();
 sdLamp.init_class();
+sdCommandCentre.init_class();
+sdBomb.init_class();
 
 globalThis.sdWorld = sdWorld;
 globalThis.sdShop = sdShop;
@@ -455,31 +459,49 @@ setInterval( ()=>
 	let y2_locked = false;
 	
 	for ( let i = 0; i < sockets.length; i++ )
-	if ( sockets[ i ].character !== null )
-	if ( sockets[ i ].character.hea > 0 )
-	if ( !sockets[ i ].character._is_being_removed )
 	{
-		if ( sockets[ i ].character.x < ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 )
-		x1_locked = true;
-		else
-		x2_locked = true;
+		var ent = sockets[ i ].character;
+		if ( ent !== null )
+		if ( ent.hea > 0 )
+		if ( !ent._is_being_removed )
+		{
+			if ( ent.x < ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 )
+			x1_locked = true;
+			else
+			x2_locked = true;
+
+			if ( ent.y < ( sdWorld.world_bounds.y1 + sdWorld.world_bounds.y2 ) / 2 )
+			y1_locked = true;
+			else
+			y2_locked = true;
+
+			if ( ent.x > sdWorld.world_bounds.x2 - 16 * 40 )
+			x2 += 16 * 5;
+
+			if ( ent.x < sdWorld.world_bounds.x1 + 16 * 40 )
+			x1 -= 16 * 5;
+
+			if ( ent.y > sdWorld.world_bounds.y2 - 16 * 40 )
+			y2 += 16 * 5;
+
+			if ( ent.y < sdWorld.world_bounds.y1 + 16 * 40 )
+			y1 -= 16 * 5;
+		}
+	}
 	
-		if ( sockets[ i ].character.y < ( sdWorld.world_bounds.y1 + sdWorld.world_bounds.y2 ) / 2 )
+	for ( let i = 0; i < sdCommandCentre.centres.length; i++ )
+	{
+		var ent = sdCommandCentre.centres[ i ];
+		
+		if ( ent.x < sdWorld.world_bounds.x1 + 1000 )
+		x1_locked = true;
+		if ( ent.x > sdWorld.world_bounds.x2 - 1000 )
+		x2_locked = true;
+
+		if ( ent.y < sdWorld.world_bounds.y1 + 1000 )
 		y1_locked = true;
-		else
+		if ( ent.y > sdWorld.world_bounds.y2 - 1000 )
 		y2_locked = true;
-		
-		if ( sockets[ i ].character.x > sdWorld.world_bounds.x2 - 16 * 40 )
-		x2 += 16 * 5;
-		
-		if ( sockets[ i ].character.x < sdWorld.world_bounds.x1 + 16 * 40 )
-		x1 -= 16 * 5;
-		
-		if ( sockets[ i ].character.y > sdWorld.world_bounds.y2 - 16 * 40 )
-		y2 += 16 * 5;
-		
-		if ( sockets[ i ].character.y < sdWorld.world_bounds.y1 + 16 * 40 )
-		y1 -= 16 * 5;
 	}
 	
 	if ( sdWorld.world_bounds.x1 !== x1 ||
@@ -563,7 +585,18 @@ function IsGameActive()
 //main_socket.on('connection', (socket) =>
 io.on("connection", (socket) => 
 {
-	const ip = socket.client.conn.remoteAddress;
+	let ip = socket.client.conn.remoteAddress;
+	
+	ip = ip.split(':');
+	
+	// To subnet format
+	let ip2 = ip[ ip.length - 1 ].split('.');
+	ip2[ ip2.length - 1 ] = '*';
+	ip[ ip.length - 1 ] = ip2.join('.');
+	
+	ip = ip.join(':');
+	
+	
 	
 	if ( DEBUG_CONNECTIONS )
 	console.log( 'a user connected: ' + ip );
@@ -572,7 +605,7 @@ io.on("connection", (socket) =>
 	sockets_by_ip[ ip ] = [ socket ]; // Accept [ 1 / 2 ]
 	else
 	{
-		if ( sockets_by_ip[ ip ].length + 1 > 8 )
+		if ( sockets_by_ip[ ip ].length + 1 > 10 )
 		{
 			if ( DEBUG_CONNECTIONS )
 			console.log( 'Rejected, ' + sockets_by_ip[ ip ].length + ' active connections from same ip ' + ip );
@@ -590,6 +623,7 @@ io.on("connection", (socket) =>
 	socket.sd_events = []; // Mobile devices should work better if they won't be flooded with separate TCP event messages.
 	
 	socket.respawn_block_until = sdWorld.time + 400;
+	socket.ffa_warning = 0; // Will be used for slower respawn
 	
 	{
 		let pc = GetPlayingPlayersCount();
@@ -623,11 +657,24 @@ io.on("connection", (socket) =>
 	
 	socket.post_death_spectate_ttl = 0;
 	
+	socket.SyncFFAWarning = ()=>
+	{
+		// Sync respawn blocks
+		for ( var i = 0; i < sockets_by_ip[ ip ].length; i++ )
+		{
+			socket.respawn_block_until = Math.max( socket.respawn_block_until, sockets_by_ip[ ip ][ i ].respawn_block_until );
+			socket.ffa_warning = Math.max( socket.ffa_warning, sockets_by_ip[ ip ][ i ].ffa_warning );
+		}
+	};
+	
 	socket.on('RESPAWN', ( player_settings ) => { 
+		
+		socket.SyncFFAWarning();
 		
 		if ( sdWorld.time < socket.respawn_block_until )
 		{
-			socket.emit('SERVICE_MESSAGE', 'Respawn rejected - too quickly (wait ' + ( socket.respawn_block_until - sdWorld.time ) + 'ms)' );
+			//socket.emit('SERVICE_MESSAGE', 'Respawn rejected - too quickly (wait ' + ( socket.respawn_block_until - sdWorld.time ) + 'ms)' );
+			socket.emit('SERVICE_MESSAGE', 'Respawn rejected - too quickly (wait ' + Math.ceil( ( socket.respawn_block_until - sdWorld.time ) / 100 ) / 10 + ' seconds)' );
 			return;
 		}
 		
@@ -669,7 +716,7 @@ io.on("connection", (socket) =>
 			character_entity = new sdCharacter({ x:0, y:0 });
 			{
 				let x,y;
-				let tr = 1000;
+				let tr = 10000;
 				do
 				{
 					x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );

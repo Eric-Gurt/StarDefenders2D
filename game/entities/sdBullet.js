@@ -4,6 +4,7 @@ import sdEntity from './sdEntity.js';
 
 import sdEffect from './sdEffect.js';
 import sdCube from './sdCube.js';
+import sdCharacter from './sdCharacter.js';
 import sdSound from '../sdSound.js';
 
 
@@ -58,6 +59,11 @@ class sdBullet extends sdEntity
 		this._damage = 10;
 		this.time_left = 30;
 		
+		this._return_damage_to_owner = false; // Stimpack and medikit
+		this._custom_target_reaction = null;
+		
+		this._armor_penetration_level = 10; // Defines damage that is compared to target's ._armor_level in order to potentially be able or unable to deal any damage
+		
 		this._rail = false;
 		this._explosion_radius = 0;
 		this.model = null; // Custom image model
@@ -72,6 +78,7 @@ class sdBullet extends sdEntity
 		this._bg_shooter = false;
 		
 		this._owner = null;
+		this._can_hit_owner = false;
 	}
 	onRemove()
 	{
@@ -84,7 +91,8 @@ class sdBullet extends sdEntity
 			y:this.y, 
 			radius:this._explosion_radius, 
 			damage_scale: ( this._owner && this._owner.GetClass() === 'sdCharacter' ? this._owner._damage_mult : 1 ), 
-			type:sdEffect.TYPE_EXPLOSION, 
+			type:sdEffect.TYPE_EXPLOSION,
+			armor_penetration_level: this._armor_penetration_level,
 			owner:this._owner,
 			color:this.color 
 		});
@@ -113,11 +121,17 @@ class sdBullet extends sdEntity
 			}
 		}
 	
-		if ( this._damage < 0 ) // healgun
+		//if ( this._damage < 0 ) // healgun
+		if ( this._damage !== 0 ) // Didn't hit anyting
+		if ( this._return_damage_to_owner )
 		{
 			if ( this._owner )
 			{
 				this._owner.Damage( this._damage );
+				
+				if ( this._custom_target_reaction )
+				this._custom_target_reaction( this, this._owner );
+			
 				this._damage = 0;
 			}
 		}
@@ -128,7 +142,7 @@ class sdBullet extends sdEntity
 	}
 	
 	get bounce_intensity()
-	{ return 0.3; }
+	{ return 0.55; } // 0.3 not felt right
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -162,7 +176,7 @@ class sdBullet extends sdEntity
 	}
 	onMovementInRange( from_entity )
 	{
-		if ( this._owner !== from_entity )
+		if ( this._owner !== from_entity || this._can_hit_owner )
 		{
 			if ( from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
 			//if ( from_entity.GetClass() === 'sdCharacter' || 
@@ -184,18 +198,25 @@ class sdBullet extends sdEntity
 						
 						let dmg = from_entity.GetHitDamageMultiplier( this.x, this.y ) * this._damage;
 						
+						let old_hea = ( from_entity.hea || from_entity._hea || 0 );
+
+						from_entity.Damage( dmg, this._owner );
+						
+						if ( this._custom_target_reaction )
+						this._custom_target_reaction( this, from_entity );
+						
+						from_entity.Impulse( this.sx * Math.abs( this._damage ) * this._knock_scale, 
+											 this.sy * Math.abs( this._damage ) * this._knock_scale );
+						
 						if ( this._owner )
-						if ( from_entity.hea > 0 || from_entity._hea > 0 )
+						if ( old_hea > 0 )
+						if ( old_hea !== ( from_entity.hea || from_entity._hea || 0 ) ) // Any damage actually dealt
 						{
 							if ( from_entity.GetClass() === 'sdCharacter' && !sdCube.IsTargetFriendly( from_entity ) )
 							this._owner._player_damage += dmg;
 							else
 							this._owner._nature_damage += dmg;
 						}
-
-						from_entity.Damage( dmg, this._owner );
-						from_entity.Impulse( this.sx * Math.abs( this._damage ) * this._knock_scale, 
-											 this.sy * Math.abs( this._damage ) * this._knock_scale );
 
 						this._damage = 0; // for healguns
 					}
@@ -215,22 +236,53 @@ class sdBullet extends sdEntity
 				if ( sdWorld.is_server ) // Or else fake self-knock
 				if ( this._damage !== 0 )
 				{
-					if ( !this._wave )
-					sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect() });
-
-					let dmg = this._damage;
-
-					if ( this._owner )
-					if ( from_entity.hea > 0 || from_entity._hea > 0 )
+					if ( typeof from_entity._armor_protection_level === 'undefined' || this._armor_penetration_level >= from_entity._armor_protection_level )
 					{
-						if ( from_entity.GetClass() === 'sdCube' || from_entity.GetClass() === 'sdCrystal' )
-						this._owner._nature_damage += dmg;
+						if ( !this._wave )
+						sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect() });
+
+						let dmg = this._damage;
+
+						let old_hea = ( from_entity.hea || from_entity._hea || 0 );
+
+						from_entity.Damage( dmg, this._owner );
+
+						if ( this._custom_target_reaction )
+						this._custom_target_reaction( this, from_entity );
+
+						from_entity.Impulse( this.sx * Math.abs( dmg ) * this._knock_scale, 
+											 this.sy * Math.abs( dmg ) * this._knock_scale );
+
+						if ( this._owner )
+						if ( old_hea > 0 )
+						if ( old_hea !== ( from_entity.hea || from_entity._hea || 0 ) ) // Any damage actually dealt
+						{
+							if ( from_entity.GetClass() === 'sdCube' || from_entity.GetClass() === 'sdCrystal' )
+							this._owner._nature_damage += dmg;
+						}
 					}
-
-					from_entity.Damage( dmg, this._owner );
-
-					from_entity.Impulse( this.sx * Math.abs( dmg ) * this._knock_scale, 
-										 this.sy * Math.abs( dmg ) * this._knock_scale );
+					else
+					{
+						if ( !this._wave )
+						{
+							sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_WALL_HIT });
+							sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
+							
+							if ( this._owner )
+							if ( this._owner.is( sdCharacter ) )
+							{
+								if ( from_entity._armor_protection_level > 3 )
+								this._owner.Say( 'Regular weapons won\'t work here. What about big explosions?' );
+								else
+								{
+									if ( Math.random() < 0.5 )
+									this._owner.Say( 'Can\'t damage that' );
+									else
+									this._owner.Say( 'I need damage upgrade' );
+								}
+							}
+						}
+					}
 
 					this._damage = 0; // for healguns
 				}

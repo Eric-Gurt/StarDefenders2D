@@ -242,6 +242,8 @@ class sdBlock extends sdEntity
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 		
+		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
+		
 		this._contains_class = params.contains_class || null;
 		//this._hidden_crystal = params.hidden_crystal || false;
 		//this._hidden_virus = params.hidden_virus || false;

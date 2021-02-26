@@ -36,6 +36,8 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdAntigravity from './entities/sdAntigravity.js';
 	import sdCube from './entities/sdCube.js';
 	import sdLamp from './entities/sdLamp.js';
+	import sdCommandCentre from './entities/sdCommandCentre.js';
+	import sdBomb from './entities/sdBomb.js';
 
 
 	sdWorld.init_class();
@@ -67,6 +69,8 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdAntigravity.init_class();
 	sdCube.init_class();
 	sdLamp.init_class();
+	sdCommandCentre.init_class();
+	sdBomb.init_class();
 	
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;
@@ -409,6 +413,13 @@ let enf_once = true;
 	let key_states = new sdKeyStates();
 	sdWorld.my_key_states = key_states;
 	
+	const KeyCodeRemap = {
+		ArrowUp: 'KeyW',
+		ArrowDown: 'KeyS',
+		ArrowLeft: 'KeyA',
+		ArrowRight: 'KeyD',
+	};
+	
 	window.onkeydown = ( e )=>
 	{
 		if ( sdShop.open )
@@ -424,23 +435,28 @@ let enf_once = true;
 		if ( sdChat.KeyDown( e ) )
 		return;
 	
-		if ( key_states.GetKey( e.code ) !== 1 )
+		let code = e.code;
+		
+		if ( KeyCodeRemap[ code ] )
+		code = KeyCodeRemap[ code ];
+		
+		if ( key_states.GetKey( code ) !== 1 )
 		{
-			key_states.SetKey( e.code, 1 );
+			key_states.SetKey( code, 1 );
 			
-			//socket.emit( 'K1', e.code );
-			sd_events.push( [ 'K1', e.code ] );
+			//socket.emit( 'K1', code );
+			sd_events.push( [ 'K1', code ] );
 		}
 		
-		if ( e.code === 'Escape' || e.code === 'Space' || ( e.code === 'KeyR' && sdWorld.mobile ) )
+		if ( code === 'Escape' || code === 'Space' || ( code === 'KeyR' && sdWorld.mobile ) )
 		{
 			if ( sdWorld.my_entity === null || sdWorld.my_entity.hea <= 0 || sdWorld.my_entity._is_being_removed )
 			if ( sdRenderer.canvas.style.display === 'block' )
 			{
-				if ( e.code === 'Escape' )
+				if ( code === 'Escape' )
 				sdWorld.Stop();
 			
-				if ( e.code === 'Space' || e.code === 'KeyR' )
+				if ( code === 'Space' || code === 'KeyR' )
 				sdWorld.Start( globalThis.GetPlayerSettings(), true );
 			}
 		}
@@ -456,12 +472,17 @@ let enf_once = true;
 			// Let release keys when chatting
 		}
 	
-		if ( key_states.GetKey( e.code ) !== 0 )
+		let code = e.code;
+		
+		if ( KeyCodeRemap[ code ] )
+		code = KeyCodeRemap[ code ];
+	
+		if ( key_states.GetKey( code ) !== 0 )
 		{
-			key_states.SetKey( e.code, 0 );
+			key_states.SetKey( code, 0 );
 			
-			//socket.emit( 'K0', e.code );
-			sd_events.push( [ 'K0', e.code ] );
+			//socket.emit( 'K0', code );
+			sd_events.push( [ 'K0', code ] );
 			
 		}
 	};

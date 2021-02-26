@@ -54,6 +54,18 @@ class sdCharacter extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
+	
+	get substeps() // sdCharacter that is being controlled by player will need more
+	{
+		if ( !sdWorld.is_server )
+		{
+			if ( sdWorld.my_entity === this )
+			return Math.ceil( sdWorld.GSPEED ); // More if GSPEED is more than 1
+		}
+		
+		return 1;
+	}
+	
 	GetHitDamageMultiplier( x, y )
 	{
 		if ( this.hea > 0 )
@@ -93,6 +105,8 @@ class sdCharacter extends sdEntity
 		// Some stats for Cubes to either attack or ignore players
 		this._nature_damage = 0;
 		this._player_damage = 0;
+		
+		this._non_innocent_until = 0; // Used to determine who gone FFA first
 		
 		this._fall_sound_time = 0;
 		
@@ -192,6 +206,8 @@ class sdCharacter extends sdEntity
 		this.matter = 50;
 		this.matter_max = 50;
 		
+		this.stim_ef = 0; // Stimpack effect
+		
 		this._matter_old = this.matter;
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
@@ -279,6 +295,14 @@ class sdCharacter extends sdEntity
 			
 		if ( dmg > 0 )
 		{
+			if ( was_alive )
+			{
+				if ( initiator )
+				if ( initiator.is( sdCharacter ) )
+				if ( initiator._socket )
+				if ( sdWorld.time >= this._non_innocent_until ) // Victim is innocent
+				initiator._non_innocent_until = sdWorld.time + 1000 * 30;
+			}
 
 			this.hea -= dmg;
 
@@ -292,12 +316,27 @@ class sdCharacter extends sdEntity
 				this.DropWeapons();
 				
 				if ( initiator )
+				if ( initiator.is( sdCharacter ) )
 				if ( initiator._socket )
-				if ( this._socket )
-				if ( this._socket.score > 0 )
 				{
-					initiator._socket.score += ~~( ( this._socket.score - 1 ) * 0.5 );
-					this._socket.score = 1; // Or else body will break on respawn
+					if ( this._socket )
+					if ( this._socket.score > 0 )
+					{
+						initiator._socket.score += ~~( ( this._socket.score - 1 ) * 0.5 );
+						this._socket.score = 1; // Or else body will break on respawn
+					}
+					
+					//console.log( 'initiator._socket.ffa_warning', initiator._socket.ffa_warning );
+
+					if ( sdWorld.time < initiator._non_innocent_until ) // Attacker is not innocent
+					{
+						if ( initiator._socket.ffa_warning === 0 )
+						initiator._socket.emit('SERVICE_MESSAGE', 'Your respawn rate was temporarily decreased' );
+
+						initiator._socket.SyncFFAWarning();
+						initiator._socket.ffa_warning += 1;
+						initiator._socket.respawn_block_until = sdWorld.time + initiator._socket.ffa_warning * 5000;
+					}
 				}
 			}
 			else
@@ -348,6 +387,9 @@ class sdCharacter extends sdEntity
 					let share = Math.min( Math.max( 0, initiator._socket.score ), 10 );
 					initiator._socket.score -= share;
 					this._socket.score += share;
+					
+					if ( this._non_innocent_until < sdWorld.time ) // Healed player is innocent
+					initiator._socket.ffa_warning = Math.max( initiator._socket.ffa_warning - 1, 0 );
 				}
 			}
 			
@@ -441,7 +483,7 @@ class sdCharacter extends sdEntity
 
 			if ( this.reload_anim > 0 )
 			{
-				this.reload_anim -= GSPEED;
+				this.reload_anim -= GSPEED * ( ( this.stim_ef > 0 ) ? 2 : 1 );
 
 				if ( this.reload_anim <= 0 )
 				{
@@ -526,6 +568,11 @@ class sdCharacter extends sdEntity
 			
 		
 			this._side = ( this.x < this.look_x ) ? 1 : -1;
+		}
+		
+		if ( this.stim_ef > 0 )
+		{
+			this.stim_ef = Math.max( 0, this.stim_ef - GSPEED );
 		}
 		
 		//let new_x = this.x + this.sx * GSPEED;
@@ -780,7 +827,7 @@ class sdCharacter extends sdEntity
 			
 			let fuel_cost = GSPEED * sdWorld.Dist2D_Vector( x_force, y_force );
 
-			if ( this.stands || this.in_water || this.act_y !== -1 || this._key_states.GetKey( 'KeyX' ) || this.matter < fuel_cost || this.hea <= 0 )
+			if ( ( this.stands && this.act_y !== -1 ) || this.in_water || this.act_y !== -1 || this._key_states.GetKey( 'KeyX' ) || this.matter < fuel_cost || this.hea <= 0 )
 			this.flying = false;
 			else
 			{
@@ -1209,6 +1256,16 @@ class sdCharacter extends sdEntity
 		
 		if ( fake_ent.hea !== undefined )
 		fake_ent.hea *= this._build_hp_mult; // Or else initial damage might instantly destroy it
+	
+		if ( fake_ent._armor_protection_level !== undefined )
+		if ( this._upgrade_counters[ 'upgrade_build_hp' ] )
+		{
+			fake_ent._armor_protection_level = this._upgrade_counters[ 'upgrade_build_hp' ]; // Because starts at 1
+			
+			if ( fake_ent.is( sdBlock ) )
+			if ( fake_ent.material !== sdBlock.MATERIAL_WALL )
+			fake_ent._armor_protection_level = 0;
+		}
 		
 		if ( fake_ent.RequireSpawnAlign() )
 		{

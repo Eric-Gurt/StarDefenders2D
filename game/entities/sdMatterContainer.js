@@ -2,7 +2,6 @@
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
-import sdGun from './sdGun.js';
 
 class sdMatterContainer extends sdEntity
 {
@@ -69,15 +68,15 @@ class sdMatterContainer extends sdEntity
 		
 		var x = this.x;
 		var y = this.y;
-		//for ( var xx = -2; xx <= 2; xx++ )
-		//for ( var yy = -2; yy <= 2; yy++ )
-		for ( var xx = -1; xx <= 1; xx++ )
-		for ( var yy = -1; yy <= 1; yy++ )
+		for ( var xx = -2; xx <= 2; xx++ )
+		for ( var yy = -2; yy <= 2; yy++ )
+		//for ( var xx = -1; xx <= 1; xx++ )
+		//for ( var yy = -1; yy <= 1; yy++ )
 		{
 			var arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
 			for ( var i = 0; i < arr.length; i++ )
 			if ( typeof arr[ i ].matter !== 'undefined' )
-			if ( sdWorld.inDist2D( arr[ i ].x, arr[ i ].y, x, y, 30 ) >= 0 )
+			if ( sdWorld.inDist2D( arr[ i ].x, arr[ i ].y, x, y, 50 ) >= 0 )
 			if ( arr[ i ] !== this )
 			{
 				this.TransferMatter( arr[ i ], 0.01, GSPEED );
@@ -111,17 +110,6 @@ class sdMatterContainer extends sdEntity
 			Math.ceil( Math.max( 5, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
 			this.matter_max / 40
 		);
-		/*if ( sdWorld.is_server )
-		{
-			for ( var i = 0; i < 5; i++ )
-			{
-				let ent = new sdGun({ class:sdGun.CLASS_CRYSTAL_SHARD, x: this.x, y:this.y });
-				ent.sx = this.sx + Math.random() * 8 - 4;
-				ent.sy = this.sy + Math.random() * 8 - 4;
-				ent.ttl = 30 * 7 * ( 0.7 + Math.random() * 0.3 );
-				sdEntity.entities.push( ent );
-			}
-		}*/
 	}
 	
 	MeasureMatterCost()

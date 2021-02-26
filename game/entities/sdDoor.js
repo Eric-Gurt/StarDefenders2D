@@ -69,6 +69,8 @@ class sdDoor extends sdEntity
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 		
+		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
+		
 		this.x0 = undefined;
 		this.y0 = undefined;
 		
@@ -409,7 +411,8 @@ class sdDoor extends sdEntity
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
 		if ( sdEntity.entities[ i ].GetClass() === 'sdCom' )
 		if ( sdWorld.Dist2D( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, x0, y0 ) < sdCom.retransmit_range )
-		if ( sdWorld.CheckLineOfSight( x0, y0, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
+		//if ( sdWorld.CheckLineOfSight( x0, y0, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
+		if ( sdWorld.CheckLineOfSight( x0, y0, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, null, sdCom.com_visibility_unignored_classes ) )
 		{
 			ctx.beginPath();
 			ctx.moveTo( sdEntity.entities[ i ].x - this.x, sdEntity.entities[ i ].y - this.y );

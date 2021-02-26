@@ -88,6 +88,10 @@ class sdEntity
 		return sdWorld.is_server;
 	}
 	
+	onBuilt() // Entity was successfully built and added to world, server-side
+	{
+	}
+	
 	ApplyVelocityAndCollisions( GSPEED, step_size=0, apply_friction=false ) // step_size can be used by entities that can use stairs
 	{
 		let new_x = this.x + this.sx * GSPEED;

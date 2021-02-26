@@ -43,6 +43,7 @@ class sdGun extends sdEntity
 		sdGun.CLASS_GRENADE_LAUNCHER = 9;
 		sdGun.CLASS_SNIPER = 10;
 		sdGun.CLASS_SWORD = 11;
+		sdGun.CLASS_STIMPACK = 12;
 		
 		sdGun.classes = 
 		[
@@ -77,6 +78,7 @@ class sdGun extends sdEntity
 				ammo_capacity: 8,
 				count: 5,
 				spread: 0.1,
+				matter_cost: 40,
 				projectile_properties: { _damage: 20 }
 			},
 			{
@@ -87,6 +89,7 @@ class sdGun extends sdEntity
 				muzzle_x: 7,
 				ammo_capacity: -1,
 				count: 1,
+				matter_cost: 50,
 				projectile_properties: { _rail: true, _damage: 70, color: '#62c8f2', _knock_scale:0.01 }
 			},
 			{
@@ -99,6 +102,7 @@ class sdGun extends sdEntity
 				spread: 0.05,
 				projectile_velocity: 14,
 				count: 1,
+				matter_cost: 60,
 				projectile_properties: { _explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color }
 			},
 			{
@@ -109,7 +113,7 @@ class sdGun extends sdEntity
 				muzzle_x: null,
 				ammo_capacity: -1,
 				count: 1,
-				projectile_properties: { time_left: 1, _damage: -20, color: 'transparent' }
+				projectile_properties: { time_left: 1, _damage: -20, color: 'transparent', _return_damage_to_owner:true }
 			},
 			{
 				image: sdWorld.CreateImageFromFile( 'spark' ),
@@ -119,6 +123,7 @@ class sdGun extends sdEntity
 				muzzle_x: 7,
 				ammo_capacity: 16,
 				count: 1,
+				matter_cost: 60,
 				projectile_properties: { _explosion_radius: 10, model: 'ball', _damage: 5, color:'#00ffff' }
 			},
 			{
@@ -164,6 +169,7 @@ class sdGun extends sdEntity
 				spread: 0.05,
 				count: 1,
 				projectile_velocity: 7,
+				matter_cost: 60,
 				projectile_properties: { _explosion_radius: 13, time_left: 30 * 3, model: 'grenade', _damage: 13 * 2, color:sdEffect.default_explosion_color, is_grenade: true }
 			},
 			{
@@ -178,6 +184,7 @@ class sdGun extends sdEntity
 				ammo_capacity: -1,
 				count: 1,
 				projectile_velocity: 16 * 2,
+				matter_cost: 60,
 				projectile_properties: { _damage: 105, _knock_scale:0.01 }
 			},
 			{
@@ -191,6 +198,24 @@ class sdGun extends sdEntity
 				count: 1,
 				projectile_velocity: 16 * 1.5,
 				projectile_properties: { time_left: 1, _damage: 35, color: 'transparent', _knock_scale:0.025 }
+			},
+			{
+				image: sdWorld.CreateImageFromFile( 'stimpack' ),
+				sound: 'gun_stimpack',
+				slot: 7,
+				reload_time: 30 * 3,
+				muzzle_x: null,
+				ammo_capacity: -1,
+				count: 1,
+				matter_cost: 300,
+				projectile_properties: { time_left: 1, _damage: 50, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
+					{
+						if ( target_entity.is( sdCharacter ) )
+						{
+							target_entity.stim_ef = 30 * 10;
+						}
+					}
+				}
 			}
 		];
 		
@@ -334,6 +359,9 @@ class sdGun extends sdEntity
 		if ( this.class === sdGun.CLASS_SWORD )
 		return 0;
 		
+		if ( this.class === sdGun.CLASS_PISTOL )
+		return 0;
+		
 		return ( Math.abs( sdGun.classes[ this.class ].projectile_properties._damage * this._held_by._damage_mult ) * sdGun.classes[ this.class ].count + 
 				( sdGun.classes[ this.class ].projectile_properties._rail ? 30 : 0 ) + 
 				( sdGun.classes[ this.class ].projectile_properties._explosion_radius > 0 ? 20 : 0 ) ) * sdWorld.damage_to_matter;
@@ -447,6 +475,8 @@ class sdGun extends sdEntity
 
 							if ( typeof ent._hmax !== 'undefined' )
 							ent.Damage( ent._hmax * 0.9 ); // Start with low hp
+						
+							ent.onBuilt();
 
 							sdEntity.entities.push( ent );
 						}
@@ -484,6 +514,11 @@ class sdGun extends sdEntity
 						}
 						
 						bullet_obj._damage *= bullet_obj._owner._damage_mult;
+						
+						if ( bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ] )
+						bullet_obj._armor_penetration_level = bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ];
+						else
+						bullet_obj._armor_penetration_level = 0;
 						
 						bullet_obj._owner.Impulse( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale, -bullet_obj.sy * 0.3 * bullet_obj._knock_scale );
 
@@ -525,7 +560,7 @@ class sdGun extends sdEntity
 		else
 		{
 			if ( this.reload_time_left > 0 )
-			this.reload_time_left = Math.max( 0, this.reload_time_left - GSPEED );
+			this.reload_time_left = Math.max( 0, this.reload_time_left - GSPEED * ( ( this._held_by && this._held_by.stim_ef > 0 ) ? 2 : 1 ) );
 		}
 		
 		if ( this.ttl > 0 )
@@ -648,7 +683,7 @@ class sdGun extends sdEntity
 		if ( this.class === sdGun.CLASS_CRYSTAL_SHARD )
 		return this.extra;
 	
-		return 30;
+		return sdGun.classes[ this.class ].matter_cost || 30;
 	}
 }
 //sdGun.init_class();

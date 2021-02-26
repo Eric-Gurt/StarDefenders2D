@@ -14,7 +14,9 @@ class sdCom extends sdEntity
 		sdCom.retransmit_range = 200; // Messages within this range are retransmitted to other coms
 		sdCom.max_subscribers = 32;
 		
-		sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdMatterContainer', 'sdTeleport', 'sdCrystal', 'sdLamp' ];
+		//sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdMatterContainer', 'sdTeleport', 'sdCrystal', 'sdLamp', 'sdCube' ];
+		sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdTeleport', 'sdCube' ]; // Used for sdCube pathfinding now...
+		sdCom.com_visibility_unignored_classes = [ 'sdBlock' ];
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -99,7 +101,8 @@ class sdCom extends sdEntity
 		
 		let nearby_coms = sdWorld.GetComsNear( this.x, this.y, null, null );
 		for ( var i = 0; i < nearby_coms.length; i++ )
-		if ( sdWorld.CheckLineOfSight( this.x, this.y, nearby_coms[ i ].x, nearby_coms[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
+		//if ( sdWorld.CheckLineOfSight( this.x, this.y, nearby_coms[ i ].x, nearby_coms[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
+		if ( sdWorld.CheckLineOfSight( this.x, this.y, nearby_coms[ i ].x, nearby_coms[ i ].y, this, null, sdCom.com_visibility_unignored_classes ) )
 		{
 			if ( append1_or_remove0_or_inherit_back2 === 2 )
 			{
@@ -142,7 +145,8 @@ class sdCom extends sdEntity
 			var xx = ( sdEntity.entities[ i ].x0 !== undefined ) ? sdEntity.entities[ i ].x0 : sdEntity.entities[ i ].x;
 			var yy = ( sdEntity.entities[ i ].y0 !== undefined ) ? sdEntity.entities[ i ].y0 : sdEntity.entities[ i ].y;
 			if ( sdWorld.Dist2D( xx, yy, this.x, this.y ) < sdCom.retransmit_range )
-			if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this, sdCom.com_visibility_ignored_classes, null ) )
+			//if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this, sdCom.com_visibility_ignored_classes, null ) )
+			if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this, null, sdCom.com_visibility_unignored_classes ) )
 			{
 				ctx.beginPath();
 

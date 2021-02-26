@@ -644,9 +644,13 @@ class sdWorld
 				bullet_obj.sy = Math.cos( an + initial_rand ) * 16;
 				bullet_obj.time_left = params.radius / 16 * 2;
 				
+				if ( params.armor_penetration_level !== undefined )
+				bullet_obj._armor_penetration_level = params.armor_penetration_level;
+				
 				//bullet_obj._damage = 80 * ( params.damage_scale || 1 ) * ( params.radius / 19 ) / steps;
 				bullet_obj._damage = 140 * ( params.damage_scale || 1 ) * ( params.radius / 19 ) / steps;
 				bullet_obj._owner = params.owner || null;
+				bullet_obj._can_hit_owner = true;
 				sdEntity.entities.push( bullet_obj );
 			}
 			delete params.damage_scale;
@@ -697,7 +701,8 @@ class sdWorld
 			if ( arr[ i ].is( sdCom ) )
 			if ( require_auth_for_net_id === null || arr[ i ].subscribers.indexOf( require_auth_for_net_id ) !== -1 /*|| arr[ i ].subscribers.indexOf( 'sdCharacter' ) !== -1*/ )
 			if ( ret.indexOf( arr[ i ] ) === -1 )
-			if ( sdWorld.CheckLineOfSight( _x, _y, arr[ i ].x, arr[ i ].y, null, sdCom.com_visibility_ignored_classes, null ) )
+			//if ( sdWorld.CheckLineOfSight( _x, _y, arr[ i ].x, arr[ i ].y, null, sdCom.com_visibility_ignored_classes, null ) )
+			if ( sdWorld.CheckLineOfSight( _x, _y, arr[ i ].x, arr[ i ].y, null, null, sdCom.com_visibility_unignored_classes ) )
 			{
 				if ( ret.length > 0 && return_arr_of_one_with_lowest_net_id )
 				{
@@ -1041,7 +1046,21 @@ class sdWorld
 		
 		//for ( var step = 0; step < substeps; step++ )
 		//{
-			let GSPEED = Math.min( 1, Math.max( 0, ( sdWorld.time - old_time ) / 1000 * 30 ) );// / substeps;
+			let GSPEED = ( sdWorld.time - old_time ) / 1000 * 30; // / substeps;
+			
+			if ( GSPEED < 0 ) // Overflow? Probably would never happen normally
+			GSPEED = 0;
+			else
+			if ( sdWorld.is_server )
+			{
+				if ( GSPEED > 1 ) // Should be best for hitdetection
+				GSPEED = 1;
+			}
+			else
+			{
+				if ( GSPEED > 10 ) // Should be best for weaker devices, just so at least server would not initiate player teleportation back to where he thinks player is
+				GSPEED = 10;
+			}
 
 			sdWorld.GSPEED = GSPEED;
 			//console.log( GSPEED );
@@ -1157,8 +1176,21 @@ class sdWorld
 			let sockets = sdWorld.sockets;
 			sdWorld.leaders.length = 0;
 			for ( let i2 = 0; i2 < sockets.length; i2++ )
-			if ( sockets[ i2 ].character && !sockets[ i2 ].character._is_being_removed )
-			sdWorld.leaders.push({ name:sockets[ i2 ].character.title, score:sockets[ i2 ].score });
+			{
+				if ( sockets[ i2 ].character && !sockets[ i2 ].character._is_being_removed )
+				sdWorld.leaders.push({ name:sockets[ i2 ].character.title, score:sockets[ i2 ].score });
+			
+				if ( sockets[ i2 ].ffa_warning > 0 )
+				{
+					sockets[ i2 ].ffa_warning -= GSPEED / ( 30 * 60 * 5 ); // .ffa_warning is decreased by 1 once in 5 minutes
+					
+					if ( sockets[ i2 ].ffa_warning <= 0 )
+					{
+						sockets[ i2 ].ffa_warning = 0;
+						sockets[ i2 ].emit('SERVICE_MESSAGE', 'Your respawn rate has been restored' );
+					}
+				}
+			}
 
 			sdWorld.leaders.sort((a,b)=>{return b.score - a.score;});
 			

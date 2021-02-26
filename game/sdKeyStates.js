@@ -52,7 +52,7 @@ class sdKeyStates
 		return this.key_states[ key ];
 	}
 	SetKey( key, value )
-	{
+	{	
 		if ( typeof this.key_states[ key ] === 'undefined' )
 		return;
 	
