@@ -587,7 +587,11 @@ class sdRenderer
 				{
 					ctx.translate( sdWorld.my_entity.x, sdWorld.my_entity.y );
 		
-					// TODO: Add bounds check, thought that is maybe pointless if server won't tell offscreen info
+					// TODO: Add bounds check, though that is maybe pointless if server won't tell offscreen info
+					
+					if ( sdWorld.my_entity.driver_of )
+					sdWorld.my_entity.driver_of.DrawHUD( ctx, false );
+					else
 					sdWorld.my_entity.DrawHUD( ctx, false );
 				}
 				catch( e )
@@ -614,6 +618,7 @@ class sdRenderer
 				}
 				if ( best_ent )
 				if ( best_ent !== sdWorld.my_entity )
+				if ( best_ent !== sdWorld.my_entity.driver_of )
 				{
 					ctx.save();
 					try

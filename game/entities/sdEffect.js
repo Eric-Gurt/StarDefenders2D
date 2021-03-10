@@ -178,7 +178,15 @@ class sdEffect extends sdEntity
 		
 		this._text = ( params.text !== undefined ) ? params.text : null;
 		//this._attachment = params.attachment || null;
+		
+		if ( params.attachment instanceof Array )
 		this._attachment = params.attachment ? sdEntity.GetObjectByClassAndNetId( params.attachment[ 0 ], params.attachment[ 1 ] ) : null;
+		else
+		if ( params.attachment instanceof sdEntity )
+		this._attachment = params.attachment;
+		else
+		this._attachment = null;
+
 		this._attachment_x = params.attachment_x;
 		this._attachment_y = params.attachment_y;
 		
@@ -203,6 +211,15 @@ class sdEffect extends sdEntity
 			
 			if ( spoken === 'smh' )
 			spoken = 'shaking my head';
+			
+			if ( spoken === 'ngl' )
+			spoken = 'not gonna lie';
+			
+			if ( spoken === 'afk' )
+			spoken = 'away from keyboard';
+			
+			if ( spoken === 'ig' )
+			spoken = 'I guess';
 			
 			if ( spoken === 'brb' )
 			spoken = 'be right back';
@@ -499,9 +516,13 @@ class sdEffect extends sdEntity
 				this._sd_tint_filter[ 2 ] /= 255;
 			}
 			
-            ctx.sd_tint_filter = this._sd_tint_filter;
-			ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], xx*w, yy*h+1, w,h-2, 0,0,w,h );
-			ctx.sd_tint_filter = null;
+			ctx.blend_mode = THREE.AdditiveBlending;
+			{
+				ctx.sd_tint_filter = this._sd_tint_filter;
+				ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], xx*w, yy*h+1, w,h-2, 0,0,w,h );
+				ctx.sd_tint_filter = null;
+			}
+			ctx.blend_mode = THREE.NormalBlending;
 		}
 	}
 }

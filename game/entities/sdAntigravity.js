@@ -70,7 +70,7 @@ class sdAntigravity extends sdEntity
 			this._hea = Math.min( this._hea + GSPEED, this._hmax );
 		}
 		
-		var non_recursive = new Map();
+		var non_recursive = new WeakSet();
 		
 		for ( var t = 0; t < 2; t++ )
 		{
@@ -81,12 +81,17 @@ class sdAntigravity extends sdEntity
 			var y2 = y1 + 16;
 			
 			var max_h = 16;
+		
+			//var non_recursive = new Map();
 			
-			var worked_out_arrs = [];
+			//var worked_out_arrs = [];
 		
 			//progress_loop:
 			for ( var s = 0; s < max_h; s++ )
 			{
+				//if ( Math.random() < 0.01 )
+				//sdWorld.SendEffect({ x:x1+(x2-x1)*Math.random(), y:y1+(y2-y1)*Math.random(), type:sdEffect.TYPE_WALL_HIT });
+								
 				//var arr = sdWorld.RequireHashPosition( x, y );
 				
 				var xx_from = ~~( x1 / 32 ); // Overshoot no longer needed, due to big entities now taking all needed hash arrays
@@ -99,15 +104,16 @@ class sdAntigravity extends sdEntity
 				{
 					var arr = sdWorld.RequireHashPosition( xx * 32, yy * 32 );
 					
-					if ( worked_out_arrs.indexOf( arr ) === -1 )
+					//if ( worked_out_arrs.indexOf( arr ) === -1 )
 					{
-						worked_out_arrs.push( arr );
+						//worked_out_arrs.push( arr );
 
 						for ( var i = 0; i < arr.length; i++ )
 						//if ( !arr[ i ].is_static || arr[ i ] instanceof sdBlock || arr[ i ] instanceof sdDoor )
 						//if ( !arr[ i ].is_static || arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) )
 						if ( !arr[ i ].IsBGEntity() && ( !arr[ i ].is_static || arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) ) ) // Faster?
-						if ( !non_recursive.has( arr[ i ]._net_id ) )
+						//if ( !non_recursive.has( arr[ i ]._net_id ) )
+						if ( !non_recursive.has( arr[ i ] ) )
 						{
 							if ( x2 > arr[ i ].x + arr[ i ].hitbox_x1 )
 							if ( x1 < arr[ i ].x + arr[ i ].hitbox_x2 )
@@ -124,18 +130,34 @@ class sdAntigravity extends sdEntity
 								}
 								else
 								{
-									non_recursive.set( arr[ i ]._net_id, 1 );
+									//non_recursive.set( arr[ i ]._net_id, 1 );
+									non_recursive.add( arr[ i ] );
 
 									if ( Math.abs( arr[ i ].x - this.x ) < 16 )
 									{
-										arr[ i ].sy -= GSPEED * sdWorld.gravity * 0.9;
+										//arr[ i ].sy -= GSPEED * sdWorld.gravity * 0.9;
 
 										//if ( arr[ i ].GetClass() === 'sdCharacter' )
 										//if ( arr[ i ] instanceof sdCharacter )
 										if ( arr[ i ].is( sdCharacter ) )
 										{
-											if ( arr[ i ].hea > 0 )
-											arr[ i ].sy += GSPEED * arr[ i ].act_y * 0.1;
+											if ( sdWorld.is_server )
+											{
+												let old_sy = arr[ i ].sy;
+												
+												arr[ i ].sy -= GSPEED * sdWorld.gravity * 0.9;
+
+												if ( arr[ i ].hea > 0 )
+												{
+													arr[ i ].sy += GSPEED * arr[ i ].act_y * 0.1;
+
+													arr[ i ].ApplyServerSidePositionAndVelocity( false, 0, arr[ i ].sy - old_sy );
+												}
+											}
+										}
+										else
+										{
+											arr[ i ].sy -= GSPEED * sdWorld.gravity * 0.9;
 										}
 									}
 								}

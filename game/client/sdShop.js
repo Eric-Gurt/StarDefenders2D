@@ -7,6 +7,7 @@ import sdEntity from '../entities/sdEntity.js';
 import sdGun from '../entities/sdGun.js';
 import sdBlock from '../entities/sdBlock.js';
 import sdBG from '../entities/sdBG.js';
+import sdTurret from '../entities/sdTurret.js';
 import sdRenderer from './sdRenderer.js';
 import sdContextMenu from './sdContextMenu.js';
 
@@ -32,9 +33,16 @@ class sdShop
 		sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, _category:'root', _opens_category:'Doors' });
 		sdShop.options.push({ _class: 'sdCom', _category:'root', _opens_category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_RIFLE, _category:'root', _opens_category:'Equipment' });
+		sdShop.options.push({ _class: null, image: 'vehicle', _category:'root', _opens_category:'Vehicles' });
 		sdShop.options.push({ _class: null, image: 'upgrade', _category:'root', _opens_category:'upgrades' });
+		
 		if ( globalThis.isWin )
 		sdShop.options.push({ _class: 'sdVirus', _category:'root', _opens_category:'Development tests' });
+	
+		sdShop.options.push({ _class: 'sdHover', _category:'Vehicles' });
+		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles' });
+		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles' });
+		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles' });
 		
 		function AddBuildPack( filter, i )
 		{
@@ -83,6 +91,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdTeleport', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdLamp', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdStorage', _category:'Base equipment' });
 		
 
 		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, _category:'Base equipment' });
@@ -90,7 +99,8 @@ class sdShop
 		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, material:sdBlock.MATERIAL_SHARP, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, material:sdBlock.MATERIAL_SHARP, _category:'Base equipment' });
 		
-		sdShop.options.push({ _class: 'sdTurret', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_LASER, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_ROCKET, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdCommandCentre', _category:'Base equipment' });
 		

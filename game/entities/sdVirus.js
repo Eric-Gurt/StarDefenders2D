@@ -60,7 +60,7 @@ class sdVirus extends sdEntity
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( this._hea > 0 )
-		if ( !character.ghosting )
+		if ( character.IsVisible() )
 		if ( character.hea > 0 )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
@@ -106,19 +106,23 @@ class sdVirus extends sdEntity
 		if ( this._hea < -this._hmax / 80 * 100 )
 		this.remove();
 	}
+	
+	get mass() { return 30; }
 	Impulse( x, y )
 	{
-		this.sx += x * 0.1;
-		this.sy += y * 0.1;
+		this.sx += x / this.mass;
+		this.sy += y / this.mass;
+		//this.sx += x * 0.1;
+		//this.sy += y * 0.1;
 	}
-	Impact( vel ) // fall damage basically
+	/*Impact( vel ) // fall damage basically
 	{
 		// less fall damage
 		if ( vel > 10 )
 		{
 			this.Damage( ( vel - 4 ) * 15 );
 		}
-	}
+	}*/
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this._hea <= 0 )
@@ -131,7 +135,7 @@ class sdVirus extends sdEntity
 		else
 		if ( this._current_target )
 		{
-			if ( this._current_target._is_being_removed || this._current_target.ghosting || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdVirus.max_seek_range + 32 )
+			if ( this._current_target._is_being_removed || !this._current_target.IsVisible() || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdVirus.max_seek_range + 32 )
 			this._current_target = null;
 			else
 			{
@@ -198,7 +202,7 @@ class sdVirus extends sdEntity
 				if ( from_entity.GetClass() === 'sdCharacter' )
 				{
 					this._last_bite = sdWorld.time;
-					from_entity.Damage( 30 );
+					from_entity.Damage( 30, this );
 					
 					this._hea = Math.min( this._hmax, this._hea + 15 );
 

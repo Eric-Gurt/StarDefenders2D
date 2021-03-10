@@ -38,6 +38,8 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdLamp from './entities/sdLamp.js';
 	import sdCommandCentre from './entities/sdCommandCentre.js';
 	import sdBomb from './entities/sdBomb.js';
+	import sdHover from './entities/sdHover.js';
+	import sdStorage from './entities/sdStorage.js';
 
 
 	sdWorld.init_class();
@@ -71,6 +73,9 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdLamp.init_class();
 	sdCommandCentre.init_class();
 	sdBomb.init_class();
+	sdHover.init_class();
+	sdStorage.init_class();
+	
 	
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;

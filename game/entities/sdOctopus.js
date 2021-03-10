@@ -71,7 +71,7 @@ class sdOctopus extends sdEntity
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( this._hea > 0 )
-		if ( !character.ghosting )
+		if ( character.IsVisible() )
 		if ( character.hea > 0 )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
@@ -137,19 +137,23 @@ class sdOctopus extends sdEntity
 		if ( this._hea < -this._hmax / 80 * 100 )
 		this.remove();
 	}
+	get mass() { return 300; }
 	Impulse( x, y )
 	{
-		this.sx += x * 0.01;
-		this.sy += y * 0.01;
+		this.sx += x / this.mass;
+		this.sy += y / this.mass;
+		
+		//this.sx += x * 0.01;
+		//this.sy += y * 0.01;
 	}
-	Impact( vel ) // fall damage basically
+	/*Impact( vel ) // fall damage basically
 	{
 		// less fall damage
 		if ( vel > 10 )
 		{
 			this.Damage( ( vel - 4 ) * 15 );
 		}
-	}
+	}*/
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
@@ -165,7 +169,7 @@ class sdOctopus extends sdEntity
 		else
 		if ( this._current_target )
 		{
-			if ( this._current_target._is_being_removed || this._current_target.ghosting || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdOctopus.max_seek_range + 32 )
+			if ( this._current_target._is_being_removed || !this._current_target.IsVisible() || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdOctopus.max_seek_range + 32 )
 			this._current_target = null;
 			else
 			{
@@ -240,7 +244,7 @@ class sdOctopus extends sdEntity
 				{
 					from_entity = nears_raw[ i ];
 					
-					if ( from_entity.GetClass() === 'sdCharacter' ||
+					if ( ( from_entity.GetClass() === 'sdCharacter' && from_entity.IsVisible() ) ||
 						 ( from_entity.GetClass() === 'sdBlock' && !from_entity._natural ) ||
 						 from_entity.GetClass() === 'sdCom' ||
 						 from_entity.GetClass() === 'sdCrystal' ||
@@ -294,7 +298,7 @@ class sdOctopus extends sdEntity
 						 ( typeof from_entity._hea !== 'undefined' && from_entity._hea <= 0 ) )*/
 					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, [ 'sdOctopus' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
 					{
-						from_entity.Damage( 50 );
+						from_entity.Damage( 50, this );
 						
 						if ( from_entity._is_being_removed )
 						if ( from_entity.GetClass() === 'sdGun' )

@@ -180,6 +180,8 @@ class FakeCanvasContext
 		this.graphics_complain_spoken = false;
 		
 		this._stroke_ptr = {};
+		
+		this.blend_mode = THREE.NormalBlending;
 
 		this._gl = this.renderer.getContext();
 		this._debugInfo = this._gl.getExtension('WEBGL_debug_renderer_info');
@@ -356,6 +358,8 @@ class FakeCanvasContext
 					r.polygonOffsetUnits = -1;
 				}
 			}
+			
+			r.blending = this.blend_mode;
 			
 			if ( volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX )
 			{

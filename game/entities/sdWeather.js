@@ -5,6 +5,10 @@ import sdEffect from './sdEffect.js';
 import sdAsteroid from './sdAsteroid.js';
 
 import sdCube from './sdCube.js';
+import sdBlock from './sdBlock.js';
+import sdCharacter from './sdCharacter.js';
+import sdGun from './sdGun.js';
+
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -124,6 +128,7 @@ class sdWeather extends sdEntity
 			if ( sdWorld.sockets[ i ].character )
 			if ( !sdWorld.sockets[ i ].character._is_being_removed )
 			{
+				if ( sdWorld.sockets[ i ].character.driver_of === null )
 				if ( this.TraceDamagePossibleHere( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y ) )
 				{
 					if ( sdWorld.sockets[ i ].character.pain_anim <= 0 && sdWorld.sockets[ i ].character.hea > 0 )
@@ -133,12 +138,18 @@ class sdWeather extends sdEntity
 				}
 			}
 			
+			// Hack
+			//if ( this._time_until_event > 90 )
+			//this._time_until_event = 90;
+			
 			this._time_until_event -= GSPEED;
 			if ( this._time_until_event < 0 )
 			{
 				this._time_until_event = Math.random() * 30 * 60 * 8; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
 				
-				let r = ~~( Math.random() * 3 );
+				let r = ~~( Math.random() * 4 );
+				
+				//r = 3; // Hack
 				
 				if ( r === 0 )
 				this._rain_ammount = 30 * 15 * ( 1 + Math.random() * 2 ); // start rain for ~15 seconds
@@ -163,6 +174,88 @@ class sdWeather extends sdEntity
 						cube.remove();
 						else
 						sdWorld.UpdateHashPosition( cube, false ); // Prevent inersection with other ones
+					}
+				}
+				
+				if ( r === 3 )
+				{
+					let ais = 0;
+					
+					for ( var i = 0; i < sdCharacter.characters.length; i++ )
+					if ( sdCharacter.characters[ i ].hea > 0 )
+					if ( !sdCharacter.characters[ i ]._is_being_removed )
+					if ( sdCharacter.characters[ i ]._ai )
+					{
+						ais++;
+					}
+					
+					let instances = 0;
+					let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
+					
+					let left_side = ( Math.random() < 0.5 );
+					
+					while ( instances < instances_tot && ais < 8 )
+					{
+
+						let character_entity = new sdCharacter({ x:0, y:0 });
+
+						sdEntity.entities.push( character_entity );
+
+						{
+							let x,y;
+							let tr = 1000;
+							do
+							{
+								if ( left_side )
+								x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
+								else
+								x = sdWorld.world_bounds.x2 - 16 - 16 * instances;
+
+								y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+								if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+								if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+								if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+								{
+									character_entity.x = x;
+									character_entity.y = y;
+
+									//sdWorld.UpdateHashPosition( ent, false );
+
+									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE }) );
+
+									let falkok_settings = {"hero_name":"Falkok","color_bright":"#6b0000","color_dark":"#420000","color_visor":"#ff0000","color_suit":"#240000","color_suit2":"#2e0000","color_dark2":"#560101","color_shoes":"#000000","color_skin":"#240000","helmet1":false,"helmet2":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
+
+									character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter( falkok_settings );
+									character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( falkok_settings );
+									character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( falkok_settings );
+									character_entity.title = falkok_settings.hero_name;
+
+									character_entity.matter = 75;
+									character_entity.matter_max = 75;
+
+									character_entity.hea = 115; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
+									character_entity.hmax = 115;
+
+									character_entity._damage_mult = 1 / 4;
+
+									character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+									character_entity._ai_enabled = true;
+
+									break;
+								}
+
+								tr--;
+								if ( tr < 0 )
+								{
+									character_entity.remove();
+									break;
+								}
+							} while( true );
+						}
+						
+						instances++;
+						ais++;
 					}
 				}
 			}

@@ -62,7 +62,7 @@ class sdQuickie extends sdEntity
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( this._hea > 0 )
-		if ( !character.ghosting )
+		if ( character.IsVisible() )
 		if ( character.hea > 0 )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
@@ -108,19 +108,23 @@ class sdQuickie extends sdEntity
 		if ( this._hea < -this._hmax / 80 * 100 )
 		this.remove();
 	}
+	
+	get mass() { return 15; }
 	Impulse( x, y )
 	{
-		this.sx += x * 0.2;
-		this.sy += y * 0.2;
+		this.sx += x / this.mass;
+		this.sy += y / this.mass;
+		//this.sx += x * 0.2;
+		//this.sy += y * 0.2;
 	}
-	Impact( vel ) // fall damage basically
+	/*Impact( vel ) // fall damage basically
 	{
 		// less fall damage
 		if ( vel > 10 )
 		{
 			this.Damage( ( vel - 4 ) * 15 );
 		}
-	}
+	}*/
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
@@ -136,7 +140,7 @@ class sdQuickie extends sdEntity
 		else
 		if ( this._current_target )
 		{
-			if ( this._current_target._is_being_removed || this._current_target.ghosting || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdQuickie.max_seek_range + 32 )
+			if ( this._current_target._is_being_removed || !this._current_target.IsVisible() || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdQuickie.max_seek_range + 32 )
 			this._current_target = null;
 			else
 			{
@@ -221,7 +225,7 @@ class sdQuickie extends sdEntity
 					 from_entity.GetClass() === 'sdTurret' )
 				{
 					this._last_bite = sdWorld.time;
-					from_entity.Damage( 15 );
+					from_entity.Damage( 15, this );
 					
 					this._hea = Math.min( this._hmax, this._hea + 7 );
 

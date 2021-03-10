@@ -49,6 +49,8 @@ class sdTeleport extends sdEntity
 		{
 			this._hea -= dmg;
 			
+			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+			
 			this.SetDelay( 90 );
 			
 			this._regen_timeout = 60;
@@ -88,16 +90,28 @@ class sdTeleport extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		let can_hibernateA = false;
+		let can_hibernateB = false;
+		
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
 		{
 			if ( this._hea < this._hmax )
 			this._hea = Math.min( this._hea + GSPEED, this._hmax );
+			else
+			can_hibernateA = true;
 		}
 		
 		if ( this.delay > 0 )
 		this.SetDelay( this.delay - GSPEED );
+		else
+		can_hibernateB = true;
+	
+		if ( can_hibernateA && can_hibernateB )
+		{
+			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+		}
 	}
 	get title()
 	{
@@ -149,7 +163,7 @@ class sdTeleport extends sdEntity
 		if ( !from_entity.is_static )
 		if ( from_entity.GetClass() !== 'sdEffect' )
 		if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null )
-		{	
+		{
 			let coms_near = sdWorld.GetComsNear( this.x, this.y, null, null, true );
 
 			let allowed = ( coms_near.length === 0 );
@@ -191,6 +205,9 @@ class sdTeleport extends sdEntity
 
 				if ( best_tele )
 				{
+					this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					best_tele.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					
 					this.SetDelay( 90 );
 					best_tele.SetDelay( 90 );
 
@@ -208,6 +225,8 @@ class sdTeleport extends sdEntity
 			}
 			else
 			{
+				this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					
 				// Unauthorized access
 				this.SetDelay( 90 );
 			}

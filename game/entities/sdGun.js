@@ -44,6 +44,8 @@ class sdGun extends sdEntity
 		sdGun.CLASS_SNIPER = 10;
 		sdGun.CLASS_SWORD = 11;
 		sdGun.CLASS_STIMPACK = 12;
+		sdGun.CLASS_FALKOK_RIFLE = 13;
+		sdGun.CLASS_TRIPLE_RAIL = 14;
 		
 		sdGun.classes = 
 		[
@@ -90,7 +92,7 @@ class sdGun extends sdEntity
 				ammo_capacity: -1,
 				count: 1,
 				matter_cost: 50,
-				projectile_properties: { _rail: true, _damage: 70, color: '#62c8f2', _knock_scale:0.01 }
+				projectile_properties: { _rail: true, _damage: 70, color: '#62c8f2', _knock_scale:0.01 * 8 }
 			},
 			{
 				image: sdWorld.CreateImageFromFile( 'rocket' ),
@@ -107,13 +109,13 @@ class sdGun extends sdEntity
 			},
 			{
 				image: sdWorld.CreateImageFromFile( 'medikit' ),
-				sound: 'gun_medikit',
+				sound: 'gun_defibrillator',
 				slot: 6,
 				reload_time: 25,
 				muzzle_x: null,
 				ammo_capacity: -1,
 				count: 1,
-				projectile_properties: { time_left: 1, _damage: -20, color: 'transparent', _return_damage_to_owner:true }
+				projectile_properties: { time_left: 2, _damage: -20, color: 'transparent', _return_damage_to_owner:true }
 			},
 			{
 				image: sdWorld.CreateImageFromFile( 'spark' ),
@@ -185,7 +187,7 @@ class sdGun extends sdEntity
 				count: 1,
 				projectile_velocity: 16 * 2,
 				matter_cost: 60,
-				projectile_properties: { _damage: 105, _knock_scale:0.01 }
+				projectile_properties: { _damage: 105, _knock_scale:0.01 * 8 }
 			},
 			{
 				image: sdWorld.CreateImageFromFile( 'sword' ),
@@ -197,18 +199,19 @@ class sdGun extends sdEntity
 				ammo_capacity: -1,
 				count: 1,
 				projectile_velocity: 16 * 1.5,
-				projectile_properties: { time_left: 1, _damage: 35, color: 'transparent', _knock_scale:0.025 }
+				projectile_properties: { time_left: 1, _damage: 35, color: 'transparent', _knock_scale:0.025 * 8 }
 			},
 			{
 				image: sdWorld.CreateImageFromFile( 'stimpack' ),
-				sound: 'gun_stimpack',
+				sound: 'gun_defibrillator',
+				sound_pitch: 0.5,
 				slot: 7,
 				reload_time: 30 * 3,
 				muzzle_x: null,
 				ammo_capacity: -1,
 				count: 1,
 				matter_cost: 300,
-				projectile_properties: { time_left: 1, _damage: 50, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
+				projectile_properties: { time_left: 2, _damage: 50, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
 					{
 						if ( target_entity.is( sdCharacter ) )
 						{
@@ -216,6 +219,29 @@ class sdGun extends sdEntity
 						}
 					}
 				}
+			},
+			{
+				image: sdWorld.CreateImageFromFile( 'f_rifle' ),
+				sound: 'gun_f_rifle',
+				slot: 2,
+				reload_time: 3,
+				muzzle_x: 7,
+				ammo_capacity: 35,
+				spread: 0.02,
+				count: 1,
+				projectile_properties: { _damage: 25, color:'#7acaff' },
+				spawnable: false
+			},
+			{
+				image: sdWorld.CreateImageFromFile( 'triple_rail' ),
+				sound: 'cube_attack',
+				slot: 4,
+				reload_time: 3,
+				muzzle_x: 7,
+				ammo_capacity: 10, // 3
+				count: 1,
+				projectile_properties: { _rail: true, _damage: 15, color: '#62c8f2', _knock_scale:0.01 * 8 }, // 70
+				spawnable: false
 			}
 		];
 		
@@ -236,7 +262,10 @@ class sdGun extends sdEntity
 			this.remove();
 		}
 	}
-	
+	IsTargetable() // Guns are not targetable when held, same for sdCharacters that are driving something
+	{
+		return ( this._held_by === null );
+	}
 	constructor( params )
 	{
 		super( params );
@@ -247,6 +276,7 @@ class sdGun extends sdEntity
 		this.reload_time_left = 0;
 		this.muzzle = 0;
 		
+		// Old way of entity pointers I guess
 		this._held_by = null;
 		this.held_by_net_id = -1;
 		this.held_by_class = '';
@@ -271,6 +301,7 @@ class sdGun extends sdEntity
 		{
 			if ( this._held_by.GetClass() === 'sdCharacter' )
 			if ( !this._held_by.ghosting || this._held_by.IsVisible( observer_character ) )
+			if ( !this._held_by.driver_of )
 			{
 				return ( this._held_by.gun_slot === sdGun.classes[ this.class ].slot );
 			}
@@ -448,7 +479,7 @@ class sdGun extends sdEntity
 				}
 				
 				if ( sdGun.classes[ this.class ].sound )
-				sdSound.PlaySound({ name:sdGun.classes[ this.class ].sound, x:this.x, y:this.y, volume:0.5 });
+				sdSound.PlaySound({ name:sdGun.classes[ this.class ].sound, x:this.x, y:this.y, volume:0.5, pitch: sdGun.classes[ this.class ].sound_pitch || 1 });
 			
 				this.reload_time_left = sdGun.classes[ this.class ].reload_time;
 				

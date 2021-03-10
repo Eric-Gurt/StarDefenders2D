@@ -11,6 +11,9 @@ class sdCom extends sdEntity
 		sdCom.img_com = sdWorld.CreateImageFromFile( 'com' );
 		
 		sdCom.action_range = 32; // How far character needs to stand in order to manipualte it
+		sdCom.action_range_command_centre = 64; // How far character needs to stand in order to manipualte it
+		sdCom.vehicle_entrance_radius = 64;
+		
 		sdCom.retransmit_range = 200; // Messages within this range are retransmitted to other coms
 		sdCom.max_subscribers = 32;
 		
@@ -38,6 +41,10 @@ class sdCom extends sdEntity
 	
 	Damage( dmg, initiator=null )
 	{
+		dmg = Math.abs( dmg );
+
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+			
 		if ( this._hea > 0 )
 		{
 			this._hea -= dmg;
@@ -58,8 +65,17 @@ class sdCom extends sdEntity
 		
 		this.subscribers = []; // _net_ids
 		
+		this._owner = null; // Only used to add creator to subscribers list on spawn
+		
 		if ( sdWorld.is_server )
-		this.NotifyAboutNewSubscribers( 2 );
+		{
+			this.NotifyAboutNewSubscribers( 2 );
+		}
+	}
+	onBuilt()
+	{
+		if ( this._owner )
+		this.NotifyAboutNewSubscribers( 1, [ this._owner._net_id ] );
 	}
 	NotifyAboutNewSubscribers( append1_or_remove0_or_inherit_back2, subs, counter_recursive_array=null ) // inherit_back is for new coms
 	{
@@ -119,6 +135,8 @@ class sdCom extends sdEntity
 		else
 		if ( this._hea < this._hmax )
 		this._hea = Math.min( this._hea + GSPEED, this._hmax );
+		else
+		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
@@ -163,6 +181,10 @@ class sdCom extends sdEntity
 		
 		ctx.lineDashOffset = 0;
 		ctx.setLineDash([]);
+	}
+	onRemove()
+	{
+		sdWorld.BasicEntityBreakEffect( this, 3 );
 	}
 	Draw( ctx, attached )
 	{
