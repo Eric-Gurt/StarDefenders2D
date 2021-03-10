@@ -2,7 +2,9 @@
 
 
 import sdWorld from '../sdWorld.js';
+//import sdSound from '../sdSound.js';
 //import sdEffect from './sdEffect.js';
+
 
 //var entity_net_ids = 0;
 
@@ -25,6 +27,8 @@ class sdEntity
 		sdEntity.entities_by_net_id_cache = {};
 		
 		sdEntity.entity_net_ids = 0;
+		
+		sdEntity.matter_discretion_frames = 5; // Matter transfer happens once per this many frames, this value also scales GSPEED applied for matter transfer
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -57,11 +61,21 @@ class sdEntity
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these.
 	{ return false; }
 	
+	IsTargetable() // Guns are not targetable when held, same for sdCharacters that are driving something
+	{
+		return true;
+	}
+	
 	Impact( vel ) // fall damage basically
 	{
-		if ( vel > 7 )
+		//if ( this.GetClass() === 'sdCharacter' )
+		//console.log('Impact',vel);
+		
+		//if ( vel > 7 )
+		if ( vel > 6 ) // For new mass-based model
 		{
-			this.Damage( ( vel - 4 ) * 15 );
+			//this.Damage( ( vel - 4 ) * 15 );
+			this.Damage( ( vel - 3 ) * 15 );
 		}
 	}
 	
@@ -92,7 +106,7 @@ class sdEntity
 	{
 	}
 	
-	ApplyVelocityAndCollisions( GSPEED, step_size=0, apply_friction=false ) // step_size can be used by entities that can use stairs
+	ApplyVelocityAndCollisions( GSPEED, step_size=0, apply_friction=false, impact_scale=1 ) // step_size can be used by entities that can use stairs
 	{
 		let new_x = this.x + this.sx * GSPEED;
 		let new_y = this.y + this.sy * GSPEED;
@@ -143,13 +157,21 @@ class sdEntity
 
 			if ( this.CanMoveWithoutOverlap( new_x, this.y, safe_overlap ) )
 			{
+				let self_effect_scale = 1;
+				
 				if ( sdWorld.last_hit_entity )
 				if ( this.hard_collision )
-				if ( typeof sdWorld.last_hit_entity.sy !== 'undefined' )
-				sdWorld.last_hit_entity.sy += this.sy;
-				//sdWorld.last_hit_entity.Impulse( 0, this.sy ); Impulse is reworked and needs some kind of hint that Impulse is not server-side only, so velocity change isn't doubled on client-side
-			
-				this.Impact( Math.abs( this.sy ) * ( 1 + bounce_intensity ) );
+				{
+					self_effect_scale = sdWorld.last_hit_entity.mass / ( sdWorld.last_hit_entity.mass + this.mass );
+					
+					if ( typeof sdWorld.last_hit_entity.sy !== 'undefined' )
+					{
+						sdWorld.last_hit_entity.sy += this.sy * ( 1 - self_effect_scale );
+						//sdWorld.last_hit_entity.Impulse( 0, this.sy ); Impulse is reworked and needs some kind of hint that Impulse is not server-side only, so velocity change isn't doubled on client-side
+					}
+					sdWorld.last_hit_entity.Impact( Math.abs( this.sy ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
+				}
+				this.Impact( Math.abs( this.sy ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
 				this.sy = - this.sy * bounce_intensity;
 				this.x = new_x;
 				
@@ -159,13 +181,21 @@ class sdEntity
 			else
 			if ( this.CanMoveWithoutOverlap( this.x, new_y, safe_overlap ) )
 			{
+				let self_effect_scale = 1;
+				
 				if ( sdWorld.last_hit_entity )
 				if ( this.hard_collision )
-				if ( typeof sdWorld.last_hit_entity.sx !== 'undefined' )
-				sdWorld.last_hit_entity.sx += this.sx;
-				//sdWorld.last_hit_entity.Impulse( this.sx, 0 ); Impulse is reworked and needs some kind of hint that Impulse is not server-side only, so velocity change isn't doubled on client-side
-			
-				this.Impact( Math.abs( this.sx ) * ( 1 + bounce_intensity ) );
+				{
+					self_effect_scale = sdWorld.last_hit_entity.mass / ( sdWorld.last_hit_entity.mass + this.mass );
+					
+					if ( typeof sdWorld.last_hit_entity.sx !== 'undefined' )
+					{
+						sdWorld.last_hit_entity.sx += this.sx * ( 1 - self_effect_scale );
+						//sdWorld.last_hit_entity.Impulse( this.sx, 0 ); Impulse is reworked and needs some kind of hint that Impulse is not server-side only, so velocity change isn't doubled on client-side
+					}
+					sdWorld.last_hit_entity.Impact( Math.abs( this.sx ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
+				}
+				this.Impact( Math.abs( this.sx ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
 				this.sx = - this.sx * bounce_intensity;
 				this.y = new_y;
 				
@@ -174,17 +204,23 @@ class sdEntity
 			}
 			else
 			{
+				let self_effect_scale = 1;
+				
 				if ( sdWorld.last_hit_entity )
 				if ( this.hard_collision )
 				{
+					self_effect_scale = sdWorld.last_hit_entity.mass / ( sdWorld.last_hit_entity.mass + this.mass );
+					
 					if ( typeof sdWorld.last_hit_entity.sx !== 'undefined' )
-					sdWorld.last_hit_entity.sx += this.sx;
+					sdWorld.last_hit_entity.sx += this.sx * ( 1 - self_effect_scale );
 				
 					if ( typeof sdWorld.last_hit_entity.sy !== 'undefined' )
-					sdWorld.last_hit_entity.sy += this.sy;
+					sdWorld.last_hit_entity.sy += this.sy * ( 1 - self_effect_scale );
+				
+					sdWorld.last_hit_entity.Impact( sdWorld.Dist2D_Vector( this.sx, this.sy ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
 				}
 			
-				this.Impact( sdWorld.Dist2D_Vector( this.sx, this.sy ) * ( 1 + bounce_intensity ) );
+				this.Impact( sdWorld.Dist2D_Vector( this.sx, this.sy ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
 				this.sx = - this.sx * bounce_intensity;
 				this.sy = - this.sy * bounce_intensity;
 			}
@@ -440,26 +476,32 @@ class sdEntity
 			
 			for ( var prop in this )
 			{
-				if ( prop.charAt( 0 ) !== '_' || ( save_as_much_as_possible && prop !== '_hiberstate' && prop !== '_last_x' && prop !== '_last_y' && ( typeof this[ prop ] === 'number' || typeof this[ prop ] === 'string' || typeof this[ prop ] === 'boolean' ) ) )
+				if ( prop.charAt( 0 ) !== '_' || 
+					 ( save_as_much_as_possible && prop !== '_hiberstate' && prop !== '_last_x' && prop !== '_last_y' && ( typeof this[ prop ] === 'number' || typeof this[ prop ] === 'string' || typeof this[ prop ] === 'boolean' /*|| ( typeof this[ prop ] === 'object' && typeof this[ prop ]._net_id !== 'undefined' && typeof this[ prop ]._class !== 'undefined' )*/ || this.ExtraSerialzableFieldTest( prop ) ) ) )
 				{
-					if ( !save_as_much_as_possible && typeof this[ prop ] === 'number' ) // Do not do number rounding if world is being saved
+					var v = this[ prop ];
+					
+					if ( this[ prop ] !== null )
+					{
+						/*if ( typeof this[ prop ] === 'object' )
+						if ( prop !== 'sd_filter' )
+							debugger;*/
+						
+						if ( typeof this[ prop ] === 'object' && typeof this[ prop ]._net_id !== 'undefined' && typeof this[ prop ].constructor !== 'undefined' )
+						{
+							v = { _net_id: this[ prop ]._net_id, _class: this[ prop ].constructor.name };
+						}
+					}
+					
+					if ( !save_as_much_as_possible && typeof v === 'number' ) // Do not do number rounding if world is being saved
 					{
 						if ( prop === 'sx' || prop === 'sy' )
-						this._snapshot_cache[ prop ] = Math.round( this[ prop ] * 100 ) / 100;
+						this._snapshot_cache[ prop ] = Math.round( v * 100 ) / 100;
 						else
-						this._snapshot_cache[ prop ] = Math.round( this[ prop ] );
-					
-						//this[ prop ] = Math.round( this[ prop ] * 100 ) / 100;
-					
-						//this._snapshot_cache[ prop ] = this[ prop ];
+						this._snapshot_cache[ prop ] = Math.round( v );
 					}
 					else
-					/*if ( this[ prop ] instanceof sdEntity )
-					{
-						throw this[ prop ];
-					}
-					else*/
-					this._snapshot_cache[ prop ] = this[ prop ];
+					this._snapshot_cache[ prop ] = v;
 				}
 			}
 		}
@@ -468,6 +510,10 @@ class sdEntity
 		//console.log( JSON.stringify( this._snapshot_cache ) );
 		
 		return this._snapshot_cache;
+	}
+	ExtraSerialzableFieldTest( prop ) // Some object properties testing might go here, for snapshots only
+	{
+		return false; 
 	}
 	
 	AllowClientSideState() // Conditions to ignore sdWorld.my_entity_protected_vars
@@ -490,6 +536,36 @@ class sdEntity
 			if ( prop !== '_net_id' )
 			if ( prop !== '_class' )
 			{
+				if ( snapshot[ prop ] !== null )
+				if ( typeof snapshot[ prop ] === 'object' )
+				{
+					if ( snapshot[ prop ]._net_id )
+					if ( snapshot[ prop ]._class )
+					{
+						if ( this[ prop ] && this[ prop ]._net_id === snapshot[ prop ]._net_id )
+						{
+							snapshot[ prop ] = this[ prop ];
+						}
+						else
+						{
+							let new_val = sdEntity.GetObjectByClassAndNetId( snapshot[ prop ]._class, snapshot[ prop ]._net_id );
+							
+							if ( new_val === null )
+							{
+								if ( sdWorld.is_server )
+								{
+									sdWorld.unresolved_entity_pointers.push([ this, prop, snapshot[ prop ]._class, snapshot[ prop ]._net_id ]);
+									
+									//throw new Error('Unresolvable sdEntity pointer at ApplySnapshot. This isn\'t good especially if world snapshot is loaded...');
+									//debugger; // Unresolvable sdEntity pointer at ApplySnapshot. This isn't good especially if world snapshot is loaded...
+								}
+							}
+							
+							snapshot[ prop ] = new_val;
+						}
+					}
+				}
+				
 				if ( my_entity !== this )
 				{
 					this[ prop ] = snapshot[ prop ];
@@ -513,7 +589,7 @@ class sdEntity
 		else
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 	}
-	static GetObjectByClassAndNetId( _class, _net_id )
+	static GetObjectByClassAndNetId( _class, _net_id ) // GetEntityByNetID // FindEntityByNetID
 	{
 		if ( _class === '' )
 		return null;
@@ -537,9 +613,25 @@ class sdEntity
 	
 	
 	
-		// Fast way
-	
-		let possible_ent = sdEntity.entities_by_net_id_cache[ _net_id ];
+		
+		let possible_ent = undefined;
+		
+		if ( sdWorld.is_server )
+		possible_ent = sdEntity.entities_by_net_id_cache[ _net_id ]; // Fast way
+		else
+		{
+			let searched_class = sdWorld.entity_classes[ _class ];
+			for ( var i = 0; i < sdEntity.entities.length; i++ )
+			{
+				//if ( sdEntity.entities[ i ].GetClass() === _class )
+				if ( sdEntity.entities[ i ].is( searched_class ) ) // Should be faster
+				if ( sdEntity.entities[ i ]._net_id === _net_id )
+				{
+					possible_ent = sdEntity.entities[ i ];
+					break;
+				}
+			}
+		}
 	
 		if ( possible_ent === undefined )
 		{
@@ -651,18 +743,129 @@ class sdEntity
 			return e.GetClass() + '#' + net_id;
 		}
 	}
+	MatterGlow( how_much=0.01, radius=30, GSPEED )
+	{
+		//sdEntity.matter_discretion_frames
+		
+		if ( sdWorld.is_server )
+		{
+			if ( typeof this._matter_discretion_frame === 'undefined' )
+			this._matter_discretion_frame = ~~( Math.random() * sdEntity.matter_discretion_frames );
+
+			this._matter_discretion_frame--;
+
+			if ( this._matter_discretion_frame > 0 )
+			return;
+
+			this._matter_discretion_frame += sdEntity.matter_discretion_frames;
+			GSPEED *= sdEntity.matter_discretion_frames;
+		}
+		
+		if ( radius > 64 )
+		{
+			debugger; // Not needed yet?
+		}
+		else
+		if ( radius > 32 )
+		{
+			var x = this.x;
+			var y = this.y;
+			for ( var xx = -2; xx <= 2; xx++ )
+			for ( var yy = -2; yy <= 2; yy++ )
+			//for ( var xx = -1; xx <= 1; xx++ )
+			//for ( var yy = -1; yy <= 1; yy++ )
+			{
+				var arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
+				for ( var i = 0; i < arr.length; i++ )
+				if ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' )
+				if ( sdWorld.inDist2D_Boolean( arr[ i ].x, arr[ i ].y, x, y, radius ) >= 0 )
+				if ( arr[ i ] !== this )
+				{
+					this.TransferMatter( arr[ i ], how_much, GSPEED );
+				}
+			}
+		}
+		else
+		{
+			var x = this.x;
+			var y = this.y;
+			//for ( var xx = -2; xx <= 2; xx++ )
+			//for ( var yy = -2; yy <= 2; yy++ )
+			for ( var xx = -1; xx <= 1; xx++ )
+			for ( var yy = -1; yy <= 1; yy++ )
+			{
+				var arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
+				for ( var i = 0; i < arr.length; i++ )
+				if ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' )
+				if ( sdWorld.inDist2D_Boolean( arr[ i ].x, arr[ i ].y, x, y, radius ) >= 0 )
+				if ( arr[ i ] !== this )
+				{
+					this.TransferMatter( arr[ i ], 0.01, GSPEED );
+				}
+			}
+		}
+	}
+	addEventListener( str, method ) // Not all entities will support these
+	{
+		this._listeners[ str ].push( method );
+	}
+	removeEventListener( str, method ) // Not all entities will support these
+	{
+		let i = this._listeners[ str ].indexOf( method );
+		if ( i !== -1 )
+		this._listeners[ str ].splice( i, 1 );
+		//else
+		//debugger;
+	}
 	TransferMatter( to, how_much, GSPEED )
 	{
-		how_much = this.matter * how_much * GSPEED;
+		let this_matter = ( this.matter || this._matter || 0 );
+		let to_matter = ( to.matter || to._matter || 0 );
+		let to_matter_max = ( to.matter_max || to._matter_max || 0 );
 		
-		if ( how_much > this.matter )
-		how_much = this.matter;
+		how_much = this_matter * how_much * GSPEED;
+		
+		if ( how_much > this_matter )
+		how_much = this_matter;
 	
-		if ( how_much > to.matter_max - to.matter )
-		how_much = to.matter_max - to.matter;
+		if ( how_much > to_matter_max - to_matter )
+		how_much = to_matter_max - to_matter;
 	
-		this.matter -= how_much;
-		to.matter += how_much;
+		if ( isNaN( how_much ) )
+		{
+			debugger;
+			how_much = 0;
+		}
+	
+		if ( typeof this.matter !== 'undefined' )
+		{
+			if ( isNaN( this.matter ) )
+			debugger;
+			
+			this.matter -= how_much;
+		}
+		else
+		{
+			if ( isNaN( this._matter ) )
+			debugger;
+		
+			this._matter -= how_much;
+		}
+	
+		if ( typeof to.matter !== 'undefined' )
+		{
+			if ( isNaN( to.matter ) )
+			debugger;
+		
+			to.matter += how_much;
+		}
+		else
+		{
+			if ( isNaN( to._matter ) )
+			debugger;
+		
+			to._matter += how_much;
+		}
 	}
 	Think( GSPEED )
 	{
@@ -726,20 +929,22 @@ class sdEntity
 	Damage( dmg, initiator=null )
 	{
 	}
+	
+	get mass() { return this.is_static ? 100 : 5; }
 	Impulse( sx, sy )
 	{
 	}
 	Draw( ctx, attached )
 	{
 	}
-	static Tooltip( ctx, t )
+	static Tooltip( ctx, t, x=0, y=0, color='#ffffff' )
 	{
 		ctx.font = "5.5px Verdana";
 		ctx.textAlign = 'center';
 		ctx.fillStyle = '#000000';
-		ctx.fillText(t, 0, -24.5 ); 
-		ctx.fillStyle = '#ffffff';
-		ctx.fillText(t, 0, -25 ); 
+		ctx.fillText(t, 0 + x, -24.5 + y ); 
+		ctx.fillStyle = color;
+		ctx.fillText(t, 0 + x, -25 + y ); 
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{

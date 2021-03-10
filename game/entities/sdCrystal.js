@@ -31,6 +31,11 @@ class sdCrystal extends sdEntity
 		
 		let r = Math.random();
 		
+		
+		
+		if ( r < 0.03125 ) // Red, new
+		this.matter_max *= 32;
+		else
 		if ( r < 0.0625 )
 		this.matter_max *= 16;
 		else
@@ -75,10 +80,14 @@ class sdCrystal extends sdEntity
 		else
 		sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, volume:1 });
 	}
+	
+	get mass() { return 30; }
 	Impulse( x, y )
 	{
-		this.sx += x * 0.1;
-		this.sy += y * 0.1;
+		this.sx += x / this.mass;
+		this.sy += y / this.mass;
+		//this.sx += x * 0.1;
+		//this.sy += y * 0.1;
 	}
 	
 	onThink( GSPEED ) // Class-specific, if needed
@@ -89,42 +98,7 @@ class sdCrystal extends sdEntity
 		
 		this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
 
-		//let inner_range = [];
-		//let outer_range = [];
-
-		var x = this.x;
-		var y = this.y;
-		//for ( var xx = -2; xx <= 2; xx++ )
-		//for ( var yy = -2; yy <= 2; yy++ )
-		for ( var xx = -1; xx <= 1; xx++ )
-		for ( var yy = -1; yy <= 1; yy++ )
-		{
-			var arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
-			for ( var i = 0; i < arr.length; i++ )
-			if ( typeof arr[ i ].matter !== 'undefined' )
-			if ( sdWorld.inDist2D( arr[ i ].x, arr[ i ].y, x, y, 30 ) >= 0 )
-			if ( arr[ i ] !== this )
-			{
-				/*if ( Math.abs( xx ) >= 2 || Math.abs( yy ) >= 2 )
-				{
-					outer_range.push( arr[ i ] );
-				}
-				else
-				{
-					inner_range.push( arr[ i ] );
-				}*/
-				//debugger; // Does this even happen?
-				
-				this.TransferMatter( arr[ i ], 0.01, GSPEED );
-			}
-		}
-		
-		/*for ( var i = 0; i < outer_range.length; i++ )
-		{
-			if ( inner_range.indexOf( outer_range[ i ] ) === -1 )
-			debugger; // If this never happens - shrink range check
-		}*/
-
+		this.MatterGlow( 0.01, 30, GSPEED );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
@@ -146,23 +120,10 @@ class sdCrystal extends sdEntity
 	}
 	onRemove() // Class-specific, if needed
 	{
-		//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
-		
 		sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
 			Math.ceil( Math.max( 5, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
 			this.matter_max / 40
 		);
-		/*if ( sdWorld.is_server )
-		{
-			for ( var i = 0; i < 5; i++ )
-			{
-				let ent = new sdGun({ class:sdGun.CLASS_CRYSTAL_SHARD, x: this.x, y:this.y });
-				ent.sx = this.sx + Math.random() * 8 - 4;
-				ent.sy = this.sy + Math.random() * 8 - 4;
-				ent.ttl = 30 * 7 * ( 0.7 + Math.random() * 0.3 );
-				sdEntity.entities.push( ent );
-			}
-		}*/
 	}
 }
 //sdCrystal.init_class();

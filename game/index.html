@@ -90,7 +90,7 @@
 	    }
 	    .set_block:hover input
 	    {
-		height: 20px;
+		height: 15px;
 		opacity: 1;
 	    }
 	    .sdtitle
@@ -387,6 +387,8 @@
 		padding: 20px; overflow-y: scroll;">
 		<span class="sdtitle">What's new?:</span><br>
 		<div class="sdgroup">
+		    2 March 2021: Downed players & cubes will emit matter now; Item pickup sound added; sdCommandCentres will now expire if no player has more than 300 matter within time span of 24 hours; World maximum size increased by 2 times in both directions; Water was significantly simplified.<br><br>
+		    26 February 2021: sdMatterContainer range increased from 30 to 50; upgrade_energy max level increased from 20 to 40 (maximum 1850 energy); New players should spawn on ground with much higher probability rather than in bases; Grenade bounce multiplier changed from 0.3 to 0.55; Pistol attack matter cost changed to 0; Damaged spawn-protected crystals should be no longer seen by sdCube-s as negative activity; Stim-packs; FFA players should receive slightly longer respawn time, if they die; Jetpack no longer canceled when player accidentally stands on something; In addition to damage/protection upgrades, some entities are now capable of completely canceling lower level damage; sdOctopus max health decreased from 3000 to 2000.<br><br>
 		    9 February 2021: Some server-side optimizations (for sdCrystal, sdAntigravity, sdMatterContainer, sdTurret, sdCom) for cases when too many entities are made as well as when entities have too many of other entities in close range (hopefully nothing stops working as intended).<br><br>
 		     5 February 2021: New enemy (somewhat smarter one); Players that have positive score will stay on map (players should be able to reconnect at any time without losing their character, they still can be consumed by map bounds though); Larger entities have proper collision now; Some optimizations.<br><br>
 		     4 February 2021: Asteroid shower event (alters rain randomly); 3D render with minimal changes to source code (works mostly on top of used Canvas API); World saving and backuping (I'd expect restored entities to act sometimes strange); Some other small changes.<br><br>
@@ -501,6 +503,27 @@
 	    </div>
 	    
 	    <div class="set_block">
+		<span class="sdtitle">Helmet</span><br>
+		<input type="checkbox" id="helmet1" value="1">
+		<label for="helmet1">Star Defender</label>
+		<br>
+		<input type="checkbox" id="helmet2" value="2">
+		<label for="helmet2">Falkok</label>
+		<br>
+		<input type="checkbox" id="helmet3" value="3">
+		<label for="helmet3">Eyes</label>
+		<br>
+		<input type="checkbox" id="helmet4" value="4">
+		<label for="helmet4">Dino</label>
+		<br>
+		<input type="checkbox" id="helmet5" value="5">
+		<label for="helmet5">V</label>
+		<br>
+		<input type="checkbox" id="helmet6" value="6">
+		<label for="helmet6">Open</label>
+	    </div>
+	    
+	    <div class="set_block">
 		<span class="sdtitle">Show debug info</span><br>
 		<input type="checkbox" id="bugs1" value="no" checked>
 		<label for="bugs1">No</label>
@@ -525,6 +548,12 @@
 		<br>
 		<input type="checkbox" id="voice5" value="high" onclick="globalThis.TestVoice(this)">
 		<label for="voice5">Highest pitch</label>
+		<br>
+		<input type="checkbox" id="voice6" value="high" onclick="globalThis.TestVoice(this)">
+		<label for="voice6">Falkok</label>
+		<br>
+		<input type="checkbox" id="voice7" value="high" onclick="globalThis.TestVoice(this)">
+		<label for="voice7">Robotic</label>
 	    </div>
 	    
 	    <div style="position:absolute;left:20px;bottom:20px">
@@ -619,6 +648,7 @@
 		ent._anim_walk = ( sdWorld.time / 100 ) % 10;
 		
 		ent.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter( globalThis.GetPlayerSettings() );
+		ent.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( globalThis.GetPlayerSettings() );
 		
 		if ( sdWorld.time % 5000 < 500 )
 		ent.pain_anim = 10 / ( sdWorld.time % 5000 ) / 500;
@@ -740,6 +770,7 @@
 		JustOne( 'hints', last_changed_el );
 		JustOne( 'bugs', last_changed_el );
 		JustOne( 'visuals', last_changed_el );
+		JustOne( 'helmet', last_changed_el );
 		
 		
 		for ( let i = 0; i < inputs.length; i++ )

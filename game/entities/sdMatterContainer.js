@@ -2,6 +2,8 @@
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
+import sdCharacter from './sdCharacter.js';
+import sdCrystal from './sdCrystal.js';
 
 class sdMatterContainer extends sdEntity
 {
@@ -66,6 +68,8 @@ class sdMatterContainer extends sdEntity
 			}
 		}
 		
+		this.MatterGlow( 0.01, 50, GSPEED );
+		/*
 		var x = this.x;
 		var y = this.y;
 		for ( var xx = -2; xx <= 2; xx++ )
@@ -75,14 +79,13 @@ class sdMatterContainer extends sdEntity
 		{
 			var arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
 			for ( var i = 0; i < arr.length; i++ )
-			if ( typeof arr[ i ].matter !== 'undefined' )
+			if ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' )
 			if ( sdWorld.inDist2D( arr[ i ].x, arr[ i ].y, x, y, 50 ) >= 0 )
 			if ( arr[ i ] !== this )
 			{
 				this.TransferMatter( arr[ i ], 0.01, GSPEED );
 			}
-		}
-
+		}*/
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
@@ -110,6 +113,8 @@ class sdMatterContainer extends sdEntity
 			Math.ceil( Math.max( 5, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
 			this.matter_max / 40
 		);
+
+		sdWorld.BasicEntityBreakEffect( this, 10 );
 	}
 	
 	MeasureMatterCost()

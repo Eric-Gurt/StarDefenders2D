@@ -23,7 +23,7 @@ class sdWorld
 		sdWorld.logic_rate = 16; // for server
 		sdWorld.max_update_rate = 64;
 		
-		sdWorld.time = 0;
+		sdWorld.time = Date.now(); // Can be important because some entities (sdCommandCentre) use sdWorld.time as default destruction time, which will be instantly without setting this value
 		sdWorld.frame = 0;
 		
 		sdWorld.gravity = 0.3;
@@ -98,6 +98,11 @@ class sdWorld
 		sdWorld.GSPEED = 0;
 		
 		sdWorld.el_hit_cache = [];
+		
+		sdWorld.unresolved_entity_pointers = null; // Temporarily becomes array during backup loading just so cross pointer properties can be set (for example driver and vehicle)
+
+		sdWorld.fake_empty_array = { length:0 };
+		Object.freeze( sdWorld.fake_empty_array );
 
 		function MobileCheck() 
 		{
@@ -562,7 +567,7 @@ class sdWorld
 			}
 		}
 	}
-	static SendEffect( params, command='EFF' ) // 'S' for sound
+	static SendEffect( params, command='EFF', exclusive_to_sockets_arr=null ) // 'S' for sound
 	{
 		if ( !sdWorld.is_server )
 		return;
@@ -650,7 +655,12 @@ class sdWorld
 				//bullet_obj._damage = 80 * ( params.damage_scale || 1 ) * ( params.radius / 19 ) / steps;
 				bullet_obj._damage = 140 * ( params.damage_scale || 1 ) * ( params.radius / 19 ) / steps;
 				bullet_obj._owner = params.owner || null;
+				
+				if ( params.can_hit_owner !== undefined )
+				bullet_obj._can_hit_owner = params.can_hit_owner;
+				else
 				bullet_obj._can_hit_owner = true;
+				
 				sdEntity.entities.push( bullet_obj );
 			}
 			delete params.damage_scale;
@@ -659,9 +669,11 @@ class sdWorld
 			delete params.owner;
 		}
 		
-		for ( var i = 0; i < sdWorld.sockets.length; i++ )
+		let socket_arr = exclusive_to_sockets_arr ? exclusive_to_sockets_arr : sdWorld.sockets;
+		
+		for ( var i = 0; i < socket_arr.length; i++ )
 		{
-			var socket = sdWorld.sockets[ i ];
+			var socket = socket_arr[ i ];
 
 			if ( 
 				 ( socket.character && socket.character.hea > 0 && 
@@ -678,9 +690,9 @@ class sdWorld
 			}
 		}
 	}
-	static SendSound( params )
+	static SendSound( params, exclusive_to_sockets_arr=null )
 	{
-		sdWorld.SendEffect( params, 'S' );
+		sdWorld.SendEffect( params, 'S', exclusive_to_sockets_arr );
 	}
 	static GetComsNear( _x, _y, append_to=null, require_auth_for_net_id=null, return_arr_of_one_with_lowest_net_id=false )
 	{
@@ -786,7 +798,9 @@ class sdWorld
 					
 					sdWorld.camera.x = sdWorld.my_entity.x;
 					sdWorld.camera.y = sdWorld.my_entity.y;
-
+					
+					sdWorld.my_entity.look_x = sdWorld.camera.x;
+					sdWorld.my_entity.look_y = sdWorld.camera.y;
 					
 					return;
 				}
@@ -834,6 +848,27 @@ class sdWorld
 
 		return Math.sqrt( di );
 	}
+	static inDist2D_Boolean( x1, y1, x2, y2, rad )
+	{
+		if ( x1 <= x2 - rad )
+		return false;
+
+		if ( x1 >= x2 + rad )
+		return false;
+
+		if ( y1 <= y2 - rad )
+		return false;
+
+		if ( y1 >= y2 + rad )
+		return false;
+
+		var di = sdWorld.Dist2D_Vector_pow2( x1-x2, y1-y2 );
+
+		if ( di > rad * rad )
+		return false;
+
+		return true;
+	}
 	static MorphWithTimeScale( current, to, remain, _GSPEED, snap_range=0 )
 	{
 		remain = Math.pow( remain, _GSPEED );
@@ -845,7 +880,7 @@ class sdWorld
 
 		return current;
 	}
-	static RequireHashPosition( x, y )
+	static RequireHashPosition( x, y, spawn_if_empty=false )
 	{
 		/*
 		x = ~~( x / 32 );
@@ -879,15 +914,22 @@ class sdWorld
 		
 		if ( !sdWorld.world_hash_positions.has( x ) )
 		{
-			let arr = [];
-			
-			arr.hash = x;
-			//arr.unlinked = false; // Debugging client-side non-coliding sdBlock-s (they somehow point towards removed hashes
-			
-			sdWorld.world_hash_positions.set( x, arr );
-			
-			if ( sdWorld.world_hash_positions_recheck_keys.indexOf( x ) === -1 )
-			sdWorld.world_hash_positions_recheck_keys.push( x );
+			if ( spawn_if_empty )
+			{
+				let arr = [];
+
+				arr.hash = x;
+				//arr.unlinked = false; // Debugging client-side non-coliding sdBlock-s (they somehow point towards removed hashes
+
+				sdWorld.world_hash_positions.set( x, arr );
+
+				if ( sdWorld.world_hash_positions_recheck_keys.indexOf( x ) === -1 )
+				sdWorld.world_hash_positions_recheck_keys.push( x );
+			}
+			else
+			{
+				return sdWorld.fake_empty_array;
+			}
 		}
 		
 		return sdWorld.world_hash_positions.get( x );
@@ -926,7 +968,7 @@ class sdWorld
 				
 				for ( xx = from_x; xx <= to_x; xx++ )
 				for ( yy = from_y; yy <= to_y; yy++ )
-				new_affected_hash_arrays.push( sdWorld.RequireHashPosition( xx * 32, yy * 32 ) );
+				new_affected_hash_arrays.push( sdWorld.RequireHashPosition( xx * 32, yy * 32, true ) );
 			}
 			else
 			debugger; // ~~ operation overflow is taking place? Or object is just too huge?
@@ -1106,7 +1148,7 @@ class sdWorld
 									let id = sdEntity.entities.indexOf( e );
 									if ( id === -1 )
 									{
-										console.log('Removing unlisted entity, hiberstate was ' + hiber_state );
+										console.log('Removing unlisted entity ' + e.GetClass() + ', hiberstate was ' + hiber_state );
 										debugger;
 									}
 									else
@@ -1418,6 +1460,40 @@ class sdWorld
 	
 		return false;
 	}
+	
+	
+	static BasicEntityBreakEffect( that, debris_count=3, max_rand_velocity=3, volume=0.25, pitch=1 )
+	{
+		if ( sdWorld.is_server )
+		{
+			sdSound.PlaySound({ name:'block4', 
+				x: that.x, 
+				y: that.y, 
+				volume: volume, 
+				pitch: pitch });
+			
+			if ( that.sx === undefined )
+			that.sx = 0;
+			
+			if ( that.sy === undefined )
+			that.sy = 0;
+
+			for ( let i = 0; i < debris_count; i++ )
+			{
+				let a = Math.random() * 2 * Math.PI;
+				let s = Math.random() * max_rand_velocity;
+
+				let k = Math.random();
+
+				let x = that.x + that.hitbox_x1 + Math.random() * ( that.hitbox_x2 - that.hitbox_x1 );
+				let y = that.y + that.hitbox_y1 + Math.random() * ( that.hitbox_y2 - that.hitbox_y1 );
+				
+				//console.log( 'BasicEntityBreakEffect', that.sx, k, a, s );
+
+				sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: that.sx*k + Math.sin(a)*s, sy: that.sy*k + Math.cos(a)*s, filter:that.GetBleedEffectFilter() });
+			}
+		}
+	}
 	static hexToRgb(hex) 
 	{
 		var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -1473,7 +1549,21 @@ class sdWorld
 		sdWorld.ReplaceColorInSDFilter( ret, '#000000', player_description['color_shoes'] );
 		sdWorld.ReplaceColorInSDFilter( ret, '#808000', player_description['color_skin'] );
 		
+		if ( player_description['voice6'] ) // Falkok voice
+		sdWorld.ReplaceColorInSDFilter( ret, '#800000', '#006480' ); // hue +73 deg
+		
+		if ( player_description['voice7'] ) // Robot voice
+		sdWorld.ReplaceColorInSDFilter( ret, '#800000', '#000000' ); // hue +73 deg
+		
 		return ret;
+	}
+	static ConvertPlayerDescriptionToHelmet( player_description )
+	{
+		for ( var i = 1; i < sdCharacter.img_helmets.length; i++ )
+		if ( player_description[ 'helmet' + i ] )
+		return i;
+
+		return 1;
 	}
 	static ConvertPlayerDescriptionToVoice( player_description )
 	{
@@ -1508,6 +1598,18 @@ class sdWorld
 		{
 			_voice.variant = 'f1'; // f5
 			_voice.pitch = 100;
+		}
+		if ( player_description['voice6'] )
+		{
+			_voice.variant = 'whisperf';
+			_voice.pitch = 20;
+			_voice.speed = 160;
+		}
+		if ( player_description['voice7'] )
+		{
+			_voice.variant = 'klatt3';
+			_voice.pitch = 0;
+			_voice.speed = 175;
 		}
 		
 		return _voice;

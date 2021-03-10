@@ -29,11 +29,18 @@ class sdContextMenu
 			{
 				sdContextMenu.options = [];
 				
-				sdContextMenu.options.push({ title: 'Extract from location',
+				sdContextMenu.options.push({ title: 'Quit and forget this character',
 					action: ()=>
 					{
 						//globalThis.socket.emit( 'SELF_EXTRACT' );
 						sdWorld.Stop();
+					}
+				});
+				
+				sdContextMenu.options.push({ title: 'Reset respawn point',
+					action: ()=>
+					{
+						globalThis.socket.emit( 'CC_SET_SPAWN', [ -1 ] );
 					}
 				});
 			}
@@ -46,6 +53,23 @@ class sdContextMenu
 					if ( sdContextMenu.current_target.hea > 0 )
 					{
 					}
+				}
+				else
+				if ( sdContextMenu.current_target.GetClass() === 'sdCommandCentre' )
+				{
+					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdCom.action_range_command_centre ) >= 0 )
+					{
+						sdContextMenu.options.push({ title: 'Set as respawn point',
+							action: ()=> { globalThis.socket.emit( 'CC_SET_SPAWN', [ sdContextMenu.current_target._net_id ] ); }
+						});
+					}
+				
+					sdContextMenu.options.push({ title: 'Reset respawn point',
+						action: ()=>
+						{
+							globalThis.socket.emit( 'CC_SET_SPAWN', [ -1 ] );
+						}
+					});
 				}
 				else
 				if ( sdContextMenu.current_target.GetClass() === 'sdCom' )

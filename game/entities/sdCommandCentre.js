@@ -3,6 +3,7 @@ import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
+import sdCharacter from './sdCharacter.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -15,6 +16,8 @@ class sdCommandCentre extends sdEntity
 		sdCommandCentre.img_cc = sdWorld.CreateImageFromFile( 'command_centre' );
 		
 		sdCommandCentre.centres = [];
+		
+		sdCommandCentre.time_to_live_without_matter_keepers_near = 1000 * 60 * 60 * 24; // 24 h
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -33,19 +36,44 @@ class sdCommandCentre extends sdEntity
 	{
 		if ( !sdWorld.is_server )
 		return;
+	
+		dmg = Math.abs( dmg );
 		
 		if ( this.hea > 0 )
 		{
 			this.hea -= dmg;
 			
 			this._update_version++;
-			
-			this._regen_timeout = 30 * 10;
 
 			if ( this.hea <= 0 )
-			this.remove();
+			{
+				for ( var i = 0; i < sdWorld.sockets.length; i++ )
+				if ( sdWorld.sockets[ i ].command_centre === this )
+				sdWorld.sockets[ i ].emit( 'SERVICE_MESSAGE', 'Your respawn point Command Centre has been destroyed!' );
+
+				this.remove();
+			}
+			else
+			{
+				if ( this._regen_timeout <= 0 )
+				{
+					for ( var i = 0; i < sdWorld.sockets.length; i++ )
+					if ( sdWorld.sockets[ i ].command_centre === this )
+					sdWorld.sockets[ i ].emit( 'SERVICE_MESSAGE', 'Your respawn point Command Centre is under attack!' );
+				}
+				this._regen_timeout = 30 * 10;
+			}
 		}
 	}
+	// Moved to index.js
+	/*SyncedToPlayer( character ) // Shortcut for enemies to react to players
+	{
+		if ( this.self_destruct_on < sdCommandCentre.time_to_live_without_matter_keepers_near - 60 ) // Update once per minute
+		if ( character.matter > sdCharacter.matter_required_to_destroy_command_center )
+		{
+			this.self_destruct_on = sdWorld.time + sdCommandCentre.time_to_live_without_matter_keepers_near;
+		}
+	}*/
 	constructor( params )
 	{
 		super( params );
@@ -56,6 +84,8 @@ class sdCommandCentre extends sdEntity
 		
 		this.delay = 0;
 		//this._update_version++
+		
+		this.self_destruct_on = sdWorld.time + sdCommandCentre.time_to_live_without_matter_keepers_near; // Exists for 24 hours by default
 		
 		sdCommandCentre.centres.push( this );
 	}
@@ -72,7 +102,7 @@ class sdCommandCentre extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		this._armor_protection_level = 0; // Never has protection unless full health reached
+		//this._armor_protection_level = 0; // Never has protection unless full health reached
 			
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
@@ -88,7 +118,16 @@ class sdCommandCentre extends sdEntity
 				this._update_version++;
 			}
 			else
-			this._armor_protection_level = 4;
+			this._armor_protection_level = 4; // Once reached max HP - it can be only destroyed with big explosions
+		}
+		
+		if ( sdWorld.time > this.self_destruct_on )
+		{
+			for ( var i = 0; i < sdWorld.sockets.length; i++ )
+			sdWorld.sockets[ i ].emit( 'SERVICE_MESSAGE', 'Some Command Centre has expired' );
+		
+			//throw new Error('this.self_destruct_on = '+sdWorld.time+'::'+this.self_destruct_on+'::'+sdCommandCentre.time_to_live_without_matter_keepers_near);
+			this.remove();
 		}
 	}
 	get title()
@@ -101,15 +140,20 @@ class sdCommandCentre extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, this.title );
+		sdEntity.Tooltip( ctx, this.title, 0, -10 );
+		
+		if ( this.self_destruct_on > sdWorld.time + sdCommandCentre.time_to_live_without_matter_keepers_near - 10 * 1000 )
+		sdEntity.Tooltip( ctx, 'No expiration', 0, -3, '#66ff66' );
+		else
+		sdEntity.Tooltip( ctx, Math.ceil( ( this.self_destruct_on - sdWorld.time ) / ( 1000 * 60 * 60 ) ) + ' hours left', 0, -3, '#ffff66' );
 		
 		let w = 40;
 	
 		ctx.fillStyle = '#000000';
-		ctx.fillRect( 0 - w / 2, 0 - 20, w, 3 );
+		ctx.fillRect( 0 - w / 2, 0 - 26, w, 3 );
 
 		ctx.fillStyle = '#FF0000';
-		ctx.fillRect( 1 - w / 2, 1 - 20, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
+		ctx.fillRect( 1 - w / 2, 1 - 26, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
 	}
 	
 	onRemove() // Class-specific, if needed

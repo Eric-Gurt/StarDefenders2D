@@ -90,6 +90,8 @@ import sdCube from './game/entities/sdCube.js';
 import sdLamp from './game/entities/sdLamp.js';
 import sdCommandCentre from './game/entities/sdCommandCentre.js';
 import sdBomb from './game/entities/sdBomb.js';
+import sdHover from './game/entities/sdHover.js';
+import sdStorage from './game/entities/sdStorage.js';
 
 
 import sdShop from './game/client/sdShop.js';
@@ -163,7 +165,6 @@ sdGun.init_class(); // must be after sdEffect
 sdBlock.init_class();
 sdCrystal.init_class();
 sdBG.init_class();
-sdShop.init_class(); // requires sdBG
 sdBullet.init_class();
 sdCom.init_class();
 sdAsteroid.init_class();
@@ -181,6 +182,11 @@ sdCube.init_class();
 sdLamp.init_class();
 sdCommandCentre.init_class();
 sdBomb.init_class();
+sdHover.init_class();
+sdStorage.init_class();
+
+
+sdShop.init_class(); // requires plenty of classes due to consts usage
 
 globalThis.sdWorld = sdWorld;
 globalThis.sdShop = sdShop;
@@ -405,6 +411,8 @@ try
 	
 	let i;
 	
+	sdWorld.unresolved_entity_pointers = [];
+	
 	for ( i = 0; i < save_obj.entities.length; i++ )
 	{
 		try
@@ -416,6 +424,22 @@ try
 			console.warn('entity snapshot wasn\'t decoded because it contains errors: ', e, save_obj.entities[ i ] );
 		}
 	}
+	let arr;
+	for ( i = 0; i < sdWorld.unresolved_entity_pointers.length; i++ )
+	{
+		arr = sdWorld.unresolved_entity_pointers[ i ];
+		
+		arr[ 0 ][ arr[ 1 ] ] = sdEntity.GetObjectByClassAndNetId( arr[ 2 ], arr[ 3 ] );
+		
+		if ( arr[ 0 ][ arr[ 1 ] ] === null )
+		{
+			console.warn('Entity pointer could not be resolved even at later stage for ' + arr[ 0 ].GetClass() + '.' + arr[ 1 ] + ' :: ' + arr[ 2 ] + ' :: ' + arr[ 3 ] );
+			debugger;
+		}
+		
+		//sdWorld.unresolved_entity_pointers.push([ snapshot, prop, snapshot[ prop ]._class, snapshot[ prop ]._net_id ]);
+	}
+	sdWorld.unresolved_entity_pointers = null;
 
 	console.log('Continuing from where we\'ve stopped (snapshot decoded)!');
 }
@@ -445,6 +469,7 @@ if ( sdWorld.world_bounds.y2 === 0 )
 
 // World bounds shifter
 //if ( false )
+const world_edge_think_rate = 500;
 setInterval( ()=>
 {
 	let x1 = sdWorld.world_bounds.x1;
@@ -458,6 +483,32 @@ setInterval( ()=>
 	let x2_locked = false;
 	let y2_locked = false;
 	
+	let top_matter = 0;
+	
+
+	for ( let i = 0; i < no_respawn_areas.length; i++ )
+	{
+		if ( sdWorld.time > no_respawn_areas[ i ].until )
+		{
+			no_respawn_areas.splice( i, 1 );
+			i--;
+			continue;
+		}
+		
+		if ( no_respawn_areas[ i ].entity )
+		{
+			if ( no_respawn_areas[ i ].entity._is_being_removed )
+			{
+				no_respawn_areas.splice( i, 1 );
+				i--;
+				continue;
+			}
+			
+			no_respawn_areas[ i ].x = no_respawn_areas[ i ].entity.x;
+			no_respawn_areas[ i ].y = no_respawn_areas[ i ].entity.y;
+		}
+	}
+	
 	for ( let i = 0; i < sockets.length; i++ )
 	{
 		var ent = sockets[ i ].character;
@@ -465,6 +516,9 @@ setInterval( ()=>
 		if ( ent.hea > 0 )
 		if ( !ent._is_being_removed )
 		{
+			if ( ent.matter > top_matter )
+			top_matter = ent.matter;
+			
 			if ( ent.x < ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 )
 			x1_locked = true;
 			else
@@ -493,6 +547,12 @@ setInterval( ()=>
 	{
 		var ent = sdCommandCentre.centres[ i ];
 		
+		if ( top_matter >= sdCharacter.matter_required_to_destroy_command_center )
+		if ( ent.self_destruct_on < sdWorld.time + sdCommandCentre.time_to_live_without_matter_keepers_near - 1000 * 5 )
+		{
+			ent.self_destruct_on = Math.min( ent.self_destruct_on + world_edge_think_rate * 2, sdWorld.time + sdCommandCentre.time_to_live_without_matter_keepers_near );
+		}
+		
 		if ( ent.x < sdWorld.world_bounds.x1 + 1000 )
 		x1_locked = true;
 		if ( ent.x > sdWorld.world_bounds.x2 - 1000 )
@@ -509,13 +569,17 @@ setInterval( ()=>
 		 sdWorld.world_bounds.x2 !== x2 ||
 		 sdWorld.world_bounds.y2 !== y2 )
 	{
-		let min_width = 3200; // % 16
-		let min_height = 1600; // % 16
+		let min_width = 3200 * 2; // % 16
+		let min_height = 1600 * 2; // % 16
 		
 		if ( x2 - x1 > min_width )
 		{
 			if ( x1_locked && x2_locked )
-			{ return; }
+			{
+				x1 = sdWorld.world_bounds.x1;
+				x2 = sdWorld.world_bounds.x2;
+				//return; 
+			}
 			else
 			{
 				if ( x1_locked )
@@ -528,7 +592,11 @@ setInterval( ()=>
 		if ( y2 - y1 > min_height )
 		{
 			if ( y1_locked && y2_locked )
-			{ return; }
+			{
+				y1 = sdWorld.world_bounds.y1;
+				y2 = sdWorld.world_bounds.y2;
+				//return;
+			}
 			else
 			{
 				if ( y1_locked )
@@ -538,11 +606,15 @@ setInterval( ()=>
 			}
 		}
 		
+		if ( sdWorld.world_bounds.x1 !== x1 ||
+			 sdWorld.world_bounds.y1 !== y1 ||
+			 sdWorld.world_bounds.x2 !== x2 ||
+			 sdWorld.world_bounds.y2 !== y2 )
 		sdWorld.ChangeWorldBounds( x1, y1, x2, y2 );
 	}
 	
-}, 500 );
-//}, 50 ); // Hack
+}, world_edge_think_rate );
+//}, world_edge_think_rate ); // Hack
 
 
 io.on("error", ( e ) => 
@@ -582,10 +654,34 @@ function IsGameActive()
 	return ( game_ttl > 0 );
 }
 
+var no_respawn_areas = []; // arr of { x, y, radius, until }
+
+function BadSpawn( x, y, entity=null )
+{
+	no_respawn_areas.push({
+		x:x,
+		y:y,
+		radius:150,
+		until: sdWorld.time + 1000 * 60 // 1 minute at area
+	});
+	
+	if ( entity )
+	no_respawn_areas.push({
+		x:x,
+		y:y,
+		entity: entity,
+		radius:250,
+		until: sdWorld.time + 1000 * 60 * 5 // 5 minutes around entity that damaged
+	});
+}
+
 //main_socket.on('connection', (socket) =>
 io.on("connection", (socket) => 
 {
 	let ip = socket.client.conn.remoteAddress;
+	
+	//let my_command_centre = null;
+	socket.command_centre = null;
 	
 	ip = ip.split(':');
 	
@@ -644,8 +740,12 @@ io.on("connection", (socket) =>
 	socket.camera = { x:0,y:0,scale:1 };
 	
 	socket.observed_entities = [];
-	socket.known_statics = [];
-	socket.known_statics_versions = [];
+	
+	//socket.known_statics = [];
+	//socket.known_statics_versions = [];
+	
+	//socket.known_statics_map = new WeakMap();
+	socket.known_statics_versions_map = new Map();
 
 
 	socket.on("error", ( e ) => 
@@ -680,7 +780,8 @@ io.on("connection", (socket) =>
 		
 		socket.sd_events = []; // Just in case? There was some source of 600+ events stacked, possibly during start screen waiting or maybe even during player being removed. Lots of 'C' events too
 		
-		socket.respawn_block_until = sdWorld.time + 400;
+		//socket.respawn_block_until = sdWorld.time + 400;
+		socket.respawn_block_until = sdWorld.time + 2000; // Will be overriden if player respawned near his command centre
 		
 		socket.post_death_spectate_ttl = 30;
 		
@@ -696,15 +797,15 @@ io.on("connection", (socket) =>
 			{
 				socket.character.title = 'Disconnected ' + socket.character.title;
 
-				if ( old_score <= 0 )
+				/*if ( old_score <= 0 )
 				{
 					socket.character.remove();
 				}
 				else
-				{
+				{*/
 					if ( socket.character.hea > 0 )
 					socket.character.Damage( socket.character.hea ); // With weapon drop
-				}
+				//}
 
 				socket.character._socket = null;
 
@@ -715,28 +816,87 @@ io.on("connection", (socket) =>
 		{
 			character_entity = new sdCharacter({ x:0, y:0 });
 			{
-				let x,y;
-				let tr = 10000;
+				let x,y,bad_areas_near,i;
+				let tr = 0;
+				let max_tr = 10000;
 				do
 				{
 					x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
 					y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+					
+					if ( socket.command_centre )
+					{
+						if ( socket.command_centre._is_being_removed )
+						{
+							socket.command_centre = null;
+							socket.emit('SERVICE_MESSAGE', 'Command Centre no longer exists' );
+						}
+						else
+						{
+							if ( tr < max_tr * 0.05 )
+							{
+								x = socket.command_centre.x - 100 + Math.random() * 200;
+								y = socket.command_centre.y - 100 + Math.random() * 200;
+							}
+							else
+							if ( tr < max_tr * 0.1 )
+							{
+								x = socket.command_centre.x - 500 + Math.random() * 1000;
+								y = socket.command_centre.y - 500 + Math.random() * 1000;
+							}
+							else
+							if ( tr < max_tr * 0.15 )
+							{
+								x = socket.command_centre.x - 500 + Math.random() * 1000;
+								y = socket.command_centre.y - 500 + Math.random() * 1000;
+							}
+						}
+					}
+					
+					bad_areas_near = 0;
+					
+					for ( i = 0; i < no_respawn_areas.length; i++ )
+					if ( sdWorld.inDist2D_Boolean( x, y, no_respawn_areas[ i ].x, no_respawn_areas[ i ].y, no_respawn_areas[ i ].radius ) )
+					{
+						bad_areas_near++;
+						break;
+					}
 
-					if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-					if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-					if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+					if ( tr > max_tr * 0.6 || bad_areas_near === 0 )
+					if ( tr > max_tr * 0.8 || ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) && !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) ) )
+					if ( tr > max_tr * 0.4 || socket.command_centre || sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
 					{
 						character_entity.x = x;
 						character_entity.y = y;
 
 						//sdWorld.UpdateHashPosition( ent, false );
+						
+						if ( socket.command_centre )
+						{
+							if ( Math.abs( socket.command_centre.x - x ) <= 200 && Math.abs( socket.command_centre.y - y ) <= 200 )
+							{
+								socket.respawn_block_until = sdWorld.time + 1000 * 10; // Not too frequently
+							}
+							else
+							if ( Math.abs( socket.command_centre.x - x ) <= 500 && Math.abs( socket.command_centre.y - y ) <= 500 )
+							{
+								socket.respawn_block_until = sdWorld.time + 1000 * 10; // Not too frequently
+								
+								socket.emit('SERVICE_MESSAGE', 'Unable to respawn too close to Command Centre (possibly due to recent spawnkills near Command Center)' );
+							}
+							else
+							socket.emit('SERVICE_MESSAGE', 'Unable to respawn near Command Centre (possibly due to recent spawnkills near Command Center)' );
+								
+						}
 
 						break;
 					}
 
-					tr--;
-					if ( tr < 0 )
+					tr++;
+					if ( tr > max_tr )
 					{
+						character_entity.x = x;
+						character_entity.y = y;
 						break;
 					}
 				} while( true );
@@ -800,6 +960,8 @@ io.on("connection", (socket) =>
 		character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter( player_settings );
 		character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( player_settings );
 		
+		character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( player_settings );
+		
 		character_entity.title = player_settings.hero_name;
 		
 		//character_entity.sd_filter = {};
@@ -842,6 +1004,8 @@ io.on("connection", (socket) =>
 			];
 			
 			let my_character_entity = character_entity;
+			
+			
 			
 			let instructor_entity = new sdCharacter({ x:my_character_entity.x + 32, y:my_character_entity.y - 32 });
 			let instructor_gun = new sdGun({ x:instructor_entity.x, y:instructor_entity.y, class:sdGun.CLASS_RAILGUN });
@@ -934,6 +1098,22 @@ io.on("connection", (socket) =>
 		socket.emit('SET sdShop.options', sdShop.options );
 
 		sdEntity.entities.push( character_entity );
+		
+		const EarlyDamageTaken = ( character_entity, dmg, initiator )=>
+		{
+			if ( character_entity.hea - dmg <= 30 )
+			{
+				BadSpawn( character_entity.x, character_entity.y, initiator );
+				character_entity.removeEventListener( 'DAMAGE', EarlyDamageTaken );
+			}
+		};
+		
+		character_entity.addEventListener( 'DAMAGE', EarlyDamageTaken );
+		
+		setTimeout( ()=>
+		{
+			character_entity.removeEventListener( 'DAMAGE', EarlyDamageTaken );
+		}, 5000 );
 
 		socket.character = character_entity;
 		
@@ -1169,9 +1349,16 @@ io.on("connection", (socket) =>
 		if ( socket.character ) 
 		if ( !socket.character._is_being_removed ) 
 		{
-			socket.character._old_score = socket.score;
+			//socket.character._old_score = socket.score;
 			
-			if ( socket.score > 0 )
+			if ( socket.character.hea > 0 )
+			{
+				socket.character.remove();
+				socket.character._socket = null;
+				socket.character = null;
+			}
+			
+			/*if ( socket.score > 0 )
 			{
 				socket.character._socket = null;
 				socket.character = null;
@@ -1181,13 +1368,59 @@ io.on("connection", (socket) =>
 				socket.character.remove();
 				socket.character._socket = null;
 				socket.character = null;
-			}
+			}*/
 			
 			socket.score = 0;
 		}
 	});
 	
+	socket.on('CC_SET_SPAWN', ( arr ) => { 
+		
+		if ( !( arr instanceof Array ) )
+		return;
+	
+		let net_id = arr[ 0 ];
+		
+		if ( typeof net_id === 'number' )
+		if ( socket.character ) 
+		if ( socket.character.hea > 0 ) 
+		{
+			if ( net_id === -1 )
+			{
+				if ( socket.command_centre )
+				{
+					socket.command_centre = null;
+					socket.emit('SERVICE_MESSAGE', 'Respawn point unset' );
+				}
+				else
+				socket.emit('SERVICE_MESSAGE', 'Respawn point was\'t set yet (can be set at any nearby Command Centre)' );
+			}
+			else
+			{
+				let ent = sdEntity.GetObjectByClassAndNetId( 'sdCommandCentre', net_id );
+				if ( ent !== null )
+				{
+					if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdCom.action_range_command_centre ) >= 0 )
+					{
+						socket.command_centre = ent;
+						socket.emit('SERVICE_MESSAGE', 'Respawn point set' );
+					}
+					else
+					socket.emit('SERVICE_MESSAGE', 'Command Centre is too far' );
+				}
+				else
+				{
+					socket.emit('SERVICE_MESSAGE', 'Command Centre no longer exists' );
+				}
+			}
+		}
+	});
+	
 	socket.on('COM_SUB', ( arr ) => { 
+		
+		if ( !( arr instanceof Array ) )
+		return;
+	
 		let net_id = arr[ 0 ];
 		let new_sub = arr[ 1 ];
 		
@@ -1208,6 +1441,10 @@ io.on("connection", (socket) =>
 		}
 	});
 	socket.on('COM_UNSUB', ( net_id ) => { 
+		
+		if ( typeof net_id !== 'number' )
+		return;
+		
 		if ( socket.character ) 
 		if ( socket.character.hea > 0 ) 
 		{
@@ -1219,6 +1456,10 @@ io.on("connection", (socket) =>
 		}
 	});
 	socket.on('COM_KICK', ( arr ) => { 
+		
+		if ( !( arr instanceof Array ) )
+		return;
+	
 		if ( socket.character ) 
 		if ( socket.character.hea > 0 ) 
 		{
@@ -1256,7 +1497,7 @@ io.on("connection", (socket) =>
 				
 				socket.character._old_score = socket.score;
 				
-				if ( socket.score <= 0 )
+				/*if ( socket.score <= 0 )
 				{
 					socket.character.remove();
 				}
@@ -1264,7 +1505,7 @@ io.on("connection", (socket) =>
 				{
 					//if ( socket.character.hea > 0 )
 					//socket.character.Damage( socket.character.hea ); // With weapon drop
-				}
+				}*/
 
 				socket.character._socket = null;
 
@@ -1328,7 +1569,10 @@ setInterval( ()=>
 					var snapshot = [];
 
 					var observed_entities = [];
-					var observed_statics = [];
+					//var observed_statics = [];
+					
+					var observed_statics_map = new WeakSet();
+					
 					/*for ( var i2 = 0; i2 < sdEntity.entities.length; i2++ )
 					{
 						if ( sdEntity.entities[ i2 ].x > socket.character.x - 800 )
@@ -1375,9 +1619,10 @@ setInterval( ()=>
 						{
 							if ( arr[ i2 ].is_static )
 							{
-								observed_statics.push( arr[ i2 ] );
+								//observed_statics.push( arr[ i2 ] );
+								observed_statics_map.add( arr[ i2 ] );
 
-								var pos_in_known = socket.known_statics.indexOf( arr[ i2 ] );
+								/*var pos_in_known = socket.known_statics.indexOf( arr[ i2 ] );
 
 								if ( pos_in_known === -1 )
 								{
@@ -1390,6 +1635,19 @@ setInterval( ()=>
 								{
 									if ( socket.known_statics_versions[ pos_in_known ] !== arr[ i2 ]._update_version )
 									snapshot.push( arr[ i2 ].GetSnapshot( frame ) ); // Update actually needed
+								}*/
+								
+								if ( socket.known_statics_versions_map.has( arr[ i2 ] ) )
+								{
+									if ( socket.known_statics_versions_map.get( arr[ i2 ] ) !== arr[ i2 ]._update_version )
+									snapshot.push( arr[ i2 ].GetSnapshot( frame ) ); // Update actually needed
+								}
+								else
+								{
+									//socket.known_statics_map.set( arr[ i2 ], arr[ i2 ] );
+									socket.known_statics_versions_map.set( arr[ i2 ], arr[ i2 ]._update_version );
+
+									snapshot.push( arr[ i2 ].GetSnapshot( frame ) );
 								}
 							}
 							else
@@ -1400,7 +1658,7 @@ setInterval( ()=>
 					}
 
 					// Forget offscreen statics (and removed ones)
-					for ( var i2 = 0; i2 < socket.known_statics.length; i2++ )
+					/*for ( var i2 = 0; i2 < socket.known_statics.length; i2++ )
 					{
 						if ( observed_statics.indexOf( socket.known_statics[ i2 ] ) === -1 )
 						{
@@ -1417,11 +1675,33 @@ setInterval( ()=>
 							i2--;
 							continue;
 						}
-					}
+					}*/
+					socket.known_statics_versions_map.forEach( ( value, key, map )=>
+					{
+						//if ( observed_statics.indexOf( key ) === -1 )
+						if ( !observed_statics_map.has( key ) )
+						{
+							let snapshot_of_deletion = { 
+								_class: key.GetClass(), 
+								_net_id: key._net_id,
+								_is_being_removed: true,
+								_broken: key._is_being_removed
+							};
+							snapshot.push( snapshot_of_deletion );
+
+							socket.known_statics_versions_map.delete( key );
+						}
+					} );
 
 					if ( !socket.character._is_being_removed )
 					if ( observed_entities.indexOf( socket.character ) === -1 )
-					observed_entities.push( socket.character );
+					{
+						observed_entities.push( socket.character );
+						
+						if ( socket.character.driver_of )
+						if ( observed_entities.indexOf( socket.character.driver_of ) === -1 )
+						observed_entities.push( socket.character.driver_of );
+					}
 
 					for ( var i2 = 0; i2 < sdEntity.global_entities.length; i2++ ) // So it is drawn on back
 					snapshot.push( sdEntity.global_entities[ i2 ].GetSnapshot( frame ) );

@@ -73,6 +73,9 @@ class sdCube extends sdEntity
 		
 		this._alert_intensity = 0; // Grows until some value and only then it will shoot
 		
+		this.matter_max = ( this.is_huge ? 4 : 1 ) * 160;
+		this.matter = this.matter_max;
+		
 		sdCube.alive_cube_counter++;
 		
 		if ( this.is_huge )
@@ -146,6 +149,30 @@ class sdCube extends sdEntity
 				else
 				initiator._socket.score += 20;
 			}
+			let r = Math.random();
+			
+			//console.log( 'CLASS_TRIPLE_RAIL drop chances: ' + r + ' < ' + ( this.is_huge ? 0.4 : 0.1 ) * 0.25 );
+			
+			if ( r < ( this.is_huge ? 0.4 : 0.1 ) * 0.5 ) // 0.25 was not enough for some rather strange reason (something like 1 drop out of 55 cube kills that wasn't even noticed by anyone)
+			{
+				let x = this.x;
+				let y = this.y;
+				let sx = this.sx;
+				let sy = this.sy;
+				
+				//console.log( 'CLASS_TRIPLE_RAIL should drop in 500 ms: ' + [ x, y, sx, sy ].join(',') );
+				
+				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+					let gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_TRIPLE_RAIL });
+					gun.sx = sx;
+					gun.sy = sy;
+					sdEntity.entities.push( gun );
+					
+					//console.log( gun );
+					//debugger;
+					
+				}, 500 );
+			}
 
 			this.remove();
 		}
@@ -153,19 +180,23 @@ class sdCube extends sdEntity
 		//if ( this.hea < -this._hmax / 80 * 100 )
 		//this.remove();
 	}
+	
+	get mass() { return this.is_huge ? 30*4 : 30; }
 	Impulse( x, y )
 	{
-		this.sx += x * 0.1 * ( this.is_huge ? 0.25 : 1 );
-		this.sy += y * 0.1 * ( this.is_huge ? 0.25 : 1 );
+		this.sx += x / this.mass;
+		this.sy += y / this.mass;
+		//this.sx += x * 0.1 * ( this.is_huge ? 0.25 : 1 );
+		//this.sy += y * 0.1 * ( this.is_huge ? 0.25 : 1 );
 	}
-	Impact( vel ) // fall damage basically
+	/*Impact( vel ) // fall damage basically
 	{
 		// less fall damage
 		if ( vel > 10 )
 		{
 			this.Damage( ( vel - 4 ) * 15 );
 		}
-	}
+	}*/
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this.regen_timeout <= 0 )
@@ -188,11 +219,29 @@ class sdCube extends sdEntity
 			this.death_anim += GSPEED;
 			//else
 			//this.remove();
+			
+			this.MatterGlow( 0.01, 30, GSPEED );
+			/*var x = this.x;
+			var y = this.y;
+			for ( var xx = -1; xx <= 1; xx++ )
+			for ( var yy = -1; yy <= 1; yy++ )
+			{
+				var arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
+				for ( var i = 0; i < arr.length; i++ )
+				if ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' )
+				if ( sdWorld.inDist2D( arr[ i ].x, arr[ i ].y, x, y, 30 ) >= 0 )
+				if ( arr[ i ] !== this )
+				{
+					this.TransferMatter( arr[ i ], 0.01, GSPEED );
+				}
+			}*/
 		}
 		else
 		{
 			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.87, GSPEED );
 			this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.87, GSPEED );
+			
+			this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
 			
 			if ( sdWorld.is_server )
 			{
@@ -466,7 +515,15 @@ class sdCube extends sdEntity
 			if ( this.regen_timeout > 45 )
 			ctx.drawImageFilterCache( sdCube.img_cube_hurt, - 16, - 16, 32,32 );
 			else
-			ctx.drawImageFilterCache( sdCube.img_cube_idle, - 16, - 16, 32,32 );
+			{
+				ctx.drawImageFilterCache( sdCube.img_cube_idle, - 16, - 16, 32,32 );
+				
+				if ( this.matter < this.matter_max )
+				{
+					ctx.globalAlpha = ( 1 - this.matter / this.matter_max ) * ( Math.sin( sdWorld.time / 2000 * Math.PI ) * 0.5 + 0.5 );
+					ctx.drawImageFilterCache( sdCube.img_cube_sleep, - 16, - 16, 32,32 );
+				}
+			}
 		}
 		else
 		ctx.drawImageFilterCache( sdCube.img_cube_sleep, - 16, - 16, 32,32 );
@@ -482,7 +539,7 @@ class sdCube extends sdEntity
 	onRemove() // Class-specific, if needed
 	{
 		sdCube.alive_cube_counter--;
-		
+								
 		if ( this.is_huge )
 		sdCube.alive_huge_cube_counter--;
 		

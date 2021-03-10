@@ -11,6 +11,10 @@ import sdEffect from './sdEffect.js';
 import sdBullet from './sdBullet.js';
 import sdBlock from './sdBlock.js';
 import sdWater from './sdWater.js';
+import sdCube from './sdCube.js';
+import sdCom from './sdCom.js';
+import sdHover from './sdHover.js';
+
 
 import sdShop from '../client/sdShop.js';
 
@@ -20,11 +24,41 @@ class sdCharacter extends sdEntity
 {
 	static init_class()
 	{
+		
 		sdCharacter.img_legs_idle = sdWorld.CreateImageFromFile( 'legs_idle' );
 		sdCharacter.img_legs_walk1 = sdWorld.CreateImageFromFile( 'legs_walk1' );
 		sdCharacter.img_legs_walk2 = sdWorld.CreateImageFromFile( 'legs_walk2' );
 		sdCharacter.img_legs_crouch = sdWorld.CreateImageFromFile( 'legs_crouch' );
 		sdCharacter.img_legs_crouch_walk1 = sdWorld.CreateImageFromFile( 'legs_crouch_walk1' );
+		
+		sdCharacter.img_helmets = [
+			null,
+			sdWorld.CreateImageFromFile( 'helmet_star_defender' ),
+			sdWorld.CreateImageFromFile( 'helmet_falkok' ),
+			sdWorld.CreateImageFromFile( 'helmet_eyes' ),
+			sdWorld.CreateImageFromFile( 'helmet_dino' ),
+			sdWorld.CreateImageFromFile( 'helmet_v' ),
+			sdWorld.CreateImageFromFile( 'helmet_open' )
+		];
+		
+		// x y rotation, for images below
+		sdCharacter.head_pos = {
+			img_body_idle: [ 14, 11, 0 ],
+			img_body_armed: [ 14, 11, 0 ],
+			img_body_fire1: [ 13, 11, 0 ],
+			img_body_fire2: [ 13, 11, 0 ],
+			img_body_melee1: [ 16, 12, 0 ],
+			img_body_melee2: [ 15, 11, 0 ],
+			img_body_reload1: [ 16, 13, 22 ], // 45
+			img_body_reload2: [ 15, 12, 0 ],
+			img_body_hurt: [ 12, 11, -15 ],
+			
+			// death
+			img_death1: [ 10, 13, -90 ],
+			img_death2: [ 9, 18, -90 ],
+			img_death3: [ 6, 28, -90 ],
+			img_death4: [ 6, 29, -90 ]
+		};
 		
 		sdCharacter.img_body_idle = sdWorld.CreateImageFromFile( 'body_idle' );
 		sdCharacter.img_body_armed = sdWorld.CreateImageFromFile( 'body_armed' );
@@ -40,7 +74,7 @@ class sdCharacter extends sdEntity
 		sdCharacter.img_death2 = sdWorld.CreateImageFromFile( 'death2' );
 		sdCharacter.img_death3 = sdWorld.CreateImageFromFile( 'death3' );
 		sdCharacter.img_death4 = sdWorld.CreateImageFromFile( 'death4' );
-		sdCharacter.img_death4_visor_tint = sdWorld.CreateImageFromFile( 'death4_visor_tint' );
+		//sdCharacter.img_death4_visor_tint = sdWorld.CreateImageFromFile( 'death4_visor_tint' );
 		
 		sdCharacter.img_jetpack = sdWorld.CreateImageFromFile( 'jetpack' );
 		
@@ -50,9 +84,50 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.last_build_deny_reason = null;
 		
-		sdCharacter.disowned_body_ttl = 60 * 60;
+		sdCharacter.disowned_body_ttl = 30 * 60 * 1; // 1 min
+	
+		sdCharacter.starter_matter = 50;
+		sdCharacter.matter_required_to_destroy_command_center = 300; // Will be used to measure command centres' self-destruct if no characters with enough matter will showup near them
+		
+		sdCharacter.characters = []; // Used for AI counting
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
+	}
+	
+	GetBleedEffect()
+	{
+		if ( this._voice.variant === 'whisperf' )
+		return sdEffect.TYPE_BLOOD_GREEN;
+		
+		if ( this._voice.variant === 'klatt3' )
+		return sdEffect.TYPE_WALL_HIT;
+	
+		return sdEffect.TYPE_BLOOD;
+	}
+	GetBleedEffectFilter()
+	{
+		if ( this._voice.variant === 'whisperf' )
+		return 'hue-rotate(73deg)';
+	
+		return '';
+	}
+	
+	DrawHelmet( ctx, frame )
+	{
+		ctx.save();
+		
+		var x, y, an;
+		
+		x = sdCharacter.head_pos[ frame ][ 0 ] - 16;
+		y = sdCharacter.head_pos[ frame ][ 1 ] - 16;
+		an = sdCharacter.head_pos[ frame ][ 2 ];
+
+		ctx.translate( x, y );
+		ctx.rotate( an / 180 * Math.PI );
+
+		ctx.drawImageFilterCache( sdCharacter.img_helmets[ this.helmet ], - 16, - 16, 32,32 );
+		
+		ctx.restore();
 	}
 	
 	get substeps() // sdCharacter that is being controlled by player will need more
@@ -90,13 +165,41 @@ class sdCharacter extends sdEntity
 			if ( restrict_correction )
 			this._position_velocity_forced_until = sdWorld.time + 200; // Somewhat equal to max ping?
 		
-			this._force_add_sx = sx;
-			this._force_add_sy = sy;
+			this._force_add_sx += sx;
+			this._force_add_sy += sy;
 		}
+	}
+	ExtraSerialzableFieldTest( prop )
+	{
+		if ( prop === '_voice' ) return true;
+		//if ( prop === '_ai' ) return true; Bad idea, object pointers here
+		if ( prop === '_upgrade_counters' ) return true;
+		
+		return false;
+	}
+	IsTargetable() // Guns are not targetable when held, same for sdCharacters that are driving something
+	{
+		return ( this.driver_of === null );
 	}
 	constructor( params )
 	{
 		super( params );
+		
+		this._socket = null; // undefined causes troubles
+		
+		this.helmet = 1;
+		
+		this._in_water = false;
+		
+		this.driver_of = null;
+		this._potential_vehicle = null; // Points at vehicle which player recently did hit
+		
+		this._listeners = {
+			DAMAGE: []
+		};
+		
+		this._ai = null; // Object, won't be saved to snapshot
+		this._ai_enabled = false;
 		
 		this.title = 'Random Hero #' + this._net_id;
 		this._my_hash = undefined; // Will be used to let players repsawn within same entity if it exists on map
@@ -127,7 +230,7 @@ class sdCharacter extends sdEntity
 		this._dying = false;
 		this._dying_bleed_tim = 0;
 
-		this.anim_death = 0;
+		//this.anim_death = 0;
 		this._anim_walk = 0;
 		this.fire_anim = 0;
 		this.reload_anim = 0;
@@ -147,7 +250,7 @@ class sdCharacter extends sdEntity
 		
 		this._crouch_intens = 0;
 		
-		this._ignored_guns = []
+		this._ignored_guns = [];
 		this._ignored_guns_until = [];
 		
 		this._inventory = []; this._inventory.length = 10; this._inventory.fill( null );
@@ -192,6 +295,9 @@ class sdCharacter extends sdEntity
 		//this.filter = params.filter || '';
 		this.sd_filter = params.sd_filter || null; // Custom per-pixel filter
 		
+		this._sd_filter_old = null;
+		this._sd_filter_darkened = null;
+		
 		this._voice = {
 			wordgap: 0,
 			pitch: 50,
@@ -203,12 +309,16 @@ class sdCharacter extends sdEntity
 		
 		//this.team_id = 0; // 0 is FFA team
 	
-		this.matter = 50;
-		this.matter_max = 50;
+		this.matter = sdCharacter.starter_matter;
+		this.matter_max = sdCharacter.starter_matter;
 		
 		this.stim_ef = 0; // Stimpack effect
 		
 		this._matter_old = this.matter;
+		
+		this._last_damage_upg_complain = 0;
+		
+		sdCharacter.characters.push( this );
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
@@ -217,6 +327,9 @@ class sdCharacter extends sdEntity
 	
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
 	{
+		if ( this.driver_of )
+		return false;
+		
 		if ( !this.ghosting )
 		return true;
 	
@@ -271,7 +384,7 @@ class sdCharacter extends sdEntity
 //0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7
 
 	get hard_collision() // For world geometry where players can walk
-	{ return ( this.death_anim < 20 ); }
+	{ return ( this.death_anim < 20 && !this.driver_of ); }
 	
 	GetVoicePitch()
 	{
@@ -290,6 +403,9 @@ class sdCharacter extends sdEntity
 	
 		if ( initiator === this )
 		initiator = null;
+	
+		for ( var i = 0; i < this._listeners.DAMAGE.length; i++ )
+		this._listeners.DAMAGE[ i ]( this, dmg, initiator );
 			
 		let was_alive = ( this.hea > 0 );
 			
@@ -297,6 +413,12 @@ class sdCharacter extends sdEntity
 		{
 			if ( was_alive )
 			{
+				if ( this._ai )
+				{
+					if ( initiator )
+					this._ai.target = initiator;
+				}
+				else
 				if ( initiator )
 				if ( initiator.is( sdCharacter ) )
 				if ( initiator._socket )
@@ -308,10 +430,27 @@ class sdCharacter extends sdEntity
 
 			if ( this.hea <= 0 && was_alive )
 			{
-				if ( this.hea < -100 )
-				sdSound.PlaySound({ name:'sd_death2', x:this.x, y:this.y, volume:1, pitch:this.GetVoicePitch() });
+				if ( this._voice.variant === 'klatt3' )
+				{
+					this.Say( [ 'Critical damage!', 'Shutting down' ][ ~~( Math.random() * 2 ) ], false, false, true );
+				}
 				else
-				sdSound.PlaySound({ name:'sd_death', x:this.x, y:this.y, volume:1, pitch:this.GetVoicePitch() });
+				if ( this._voice.variant === 'whisperf' )
+				{
+					sdSound.PlaySound({ name:'f_death' + ~~(1+Math.random() * 3), x:this.x, y:this.y, volume:0.4 });
+				}
+				else
+				{
+					if ( this.hea < -100 )
+					sdSound.PlaySound({ name:'sd_death2', x:this.x, y:this.y, volume:1, pitch:this.GetVoicePitch() });
+					else
+					sdSound.PlaySound({ name:'sd_death', x:this.x, y:this.y, volume:1, pitch:this.GetVoicePitch() });
+				}
+				
+				if ( this.driver_of )
+				{
+					this.driver_of.ExcludeDriver( this );
+				}
 			
 				this.DropWeapons();
 				
@@ -319,23 +458,30 @@ class sdCharacter extends sdEntity
 				if ( initiator.is( sdCharacter ) )
 				if ( initiator._socket )
 				{
-					if ( this._socket )
-					if ( this._socket.score > 0 )
+					if ( this._ai_enabled )
 					{
-						initiator._socket.score += ~~( ( this._socket.score - 1 ) * 0.5 );
-						this._socket.score = 1; // Or else body will break on respawn
+						initiator._socket.score += 2;
 					}
-					
-					//console.log( 'initiator._socket.ffa_warning', initiator._socket.ffa_warning );
-
-					if ( sdWorld.time < initiator._non_innocent_until ) // Attacker is not innocent
+					else
 					{
-						if ( initiator._socket.ffa_warning === 0 )
-						initiator._socket.emit('SERVICE_MESSAGE', 'Your respawn rate was temporarily decreased' );
+						if ( this._socket )
+						if ( this._socket.score > 0 )
+						{
+							initiator._socket.score += ~~( ( this._socket.score - 1 ) * 0.5 );
+							this._socket.score = 1; // Or else body will break on respawn
+						}
 
-						initiator._socket.SyncFFAWarning();
-						initiator._socket.ffa_warning += 1;
-						initiator._socket.respawn_block_until = sdWorld.time + initiator._socket.ffa_warning * 5000;
+						//console.log( 'initiator._socket.ffa_warning', initiator._socket.ffa_warning );
+
+						if ( sdWorld.time < initiator._non_innocent_until ) // Attacker is not innocent
+						{
+							if ( initiator._socket.ffa_warning === 0 )
+							initiator._socket.emit('SERVICE_MESSAGE', 'Your respawn rate was temporarily decreased' );
+
+							initiator._socket.SyncFFAWarning();
+							initiator._socket.ffa_warning += 1;
+							initiator._socket.respawn_block_until = sdWorld.time + initiator._socket.ffa_warning * 5000;
+						}
 					}
 				}
 			}
@@ -346,19 +492,24 @@ class sdCharacter extends sdEntity
 				{
 					if ( this.pain_anim <= 0 )
 					{
+						if ( this._voice.variant === 'klatt3' )
+						{
+							this.Say( [ 'Ouch!', 'Aaa!', 'Uh!' ][ ~~( Math.random() * 3 ) ], false, false );
+						}
+						else
+						if ( this._voice.variant === 'whisperf' )
+						sdSound.PlaySound({ name:'f_pain' + ~~(2+Math.random() * 3), x:this.x, y:this.y, volume:( ( dmg > 1 )? 1 : 0.5 ) * 0.4 }); // less volume for bleeding
+						else
 						sdSound.PlaySound({ name:'sd_hurt' + ~~(1+Math.random() * 2), x:this.x, y:this.y, pitch:this.GetVoicePitch(), volume:( dmg > 1 )? 1 : 0.5 }); // less volume for bleeding
+					
 						this.pain_anim = 10;
 					}
 				}
 			}
 			
 			
-			if ( this.hea < -150 )
+			if ( this.hea < -200 )
 			{
-				for ( var x = this.hitbox_x1; x < this.hitbox_x2; x += 4 )
-				{
-					sdWorld.SendEffect({ x:this.x + x - 3 + Math.random() * 3, y:this.y + 16 - 3 + Math.random() * 3, type:sdEffect.TYPE_BLOOD });
-				}
 				this.remove();
 			}
 			
@@ -384,12 +535,18 @@ class sdCharacter extends sdEntity
 				if ( initiator._socket )
 				if ( this._socket )
 				{
-					let share = Math.min( Math.max( 0, initiator._socket.score ), 10 );
-					initiator._socket.score -= share;
-					this._socket.score += share;
-					
-					if ( this._non_innocent_until < sdWorld.time ) // Healed player is innocent
-					initiator._socket.ffa_warning = Math.max( initiator._socket.ffa_warning - 1, 0 );
+					if ( this._ai_enabled )
+					{
+					}
+					else
+					{
+						let share = Math.min( Math.max( 0, initiator._socket.score ), 10 );
+						initiator._socket.score -= share;
+						this._socket.score += share;
+
+						if ( this._non_innocent_until < sdWorld.time ) // Healed player is innocent
+						initiator._socket.ffa_warning = Math.max( initiator._socket.ffa_warning - 1, 0 );
+					}
 				}
 			}
 			
@@ -399,11 +556,17 @@ class sdCharacter extends sdEntity
 			this.hea = this.hmax;
 		}
 	}
+	
+	get mass() { return 80; }
 	Impulse( x, y )
 	{
-		this.sx += x * 0.1;
+		this.sx += x / this.mass;
+		this.sy += y / this.mass;
+		this.ApplyServerSidePositionAndVelocity( false, x / this.mass, y / this.mass );
+		
+		/*this.sx += x * 0.1;
 		this.sy += y * 0.1;
-		this.ApplyServerSidePositionAndVelocity( false, x * 0.1, y * 0.1 );
+		this.ApplyServerSidePositionAndVelocity( false, x * 0.1, y * 0.1 );*/
 	}
 	
 	UseServerCollisions()
@@ -417,6 +580,138 @@ class sdCharacter extends sdEntity
 		return false;
 	}
 	
+	AILogic( GSPEED )
+	{
+		if ( !sdWorld.is_server )
+		return;
+		
+		if ( typeof this._ai.next_action === 'undefined' )
+		this._ai.next_action = 30;
+	
+		if ( typeof this._ai.direction === 'undefined' )
+		this._ai.direction = ( Math.random() < 0.5 ) ? 1 : -1;
+	
+		if ( ( this._ai.direction > 0 && this.x > sdWorld.world_bounds.x2 - 32 ) || ( this._ai.direction > 0 && this.x < sdWorld.world_bounds.x1 + 32 ) )
+		{
+			this.remove();
+			return;
+		}
+	
+		this._ai.next_action -= GSPEED;
+		
+		if ( this._ai.next_action <= 0 )
+		{
+			this._ai.next_action = 5 + Math.random() * 10;
+			
+			this.gun_slot = 2;
+			
+			let closest = null;
+			let closest_di = Infinity;
+			//let closest_di_real = Infinity;
+			
+			// Occasionally change direction?
+			if ( Math.random() < 0.01 )
+			this._ai.direction = ( Math.random() < 0.5 ) ? 1 : -1;
+			
+			
+			if ( this._ai.target )
+			{
+				if ( ( this._ai.target.hea || this._ai.target._hea || 0 ) > 0 && this._ai.target.IsVisible( this ) && sdWorld.Dist2D( this.x, this.y, this._ai.target.x, this._ai.target.y ) < 800 )
+				{
+					closest = this._ai.target;
+				}
+				else
+				this._ai.target = null;
+			}
+			
+			if ( !closest )
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			{
+				var ent = sdWorld.sockets[ i ].character;
+					
+				if ( ent )
+				if ( ent.hea > 0 )
+				if ( !ent._is_being_removed )
+				{
+					let di = sdWorld.Dist2D( this.x, this.y, ent.x, ent.y );
+					//let di_real = di;
+
+					if ( di < 400 )
+					//if ( !sdCube.IsTargetFriendly( ent ) )
+					if ( ent.IsVisible( this ) )
+					if ( sdWorld.CheckLineOfSight( this.x, this.y, ent.x, ent.y, this, sdCom.com_visibility_ignored_classes, null ) )
+					{
+						if ( di < closest_di )
+						{
+							closest_di = di;
+							//closest_di_real = di_real;
+							closest = ent;
+						}
+					}
+				}
+			}
+				
+			this._key_states.SetKey( 'KeyA', 0 );
+			this._key_states.SetKey( 'KeyD', 0 );
+			this._key_states.SetKey( 'KeyW', 0 );
+			this._key_states.SetKey( 'KeyS', 0 );
+			
+			this._key_states.SetKey( 'Mouse1', 0 );
+			
+			if ( closest )
+			{
+				if ( !this._ai.target )
+				{
+					sdSound.PlaySound({ name:'f_welcome1', x:this.x, y:this.y, volume:0.4 });
+				}
+				
+				this._ai.target = closest;
+				this._ai.target_local_y = closest.hitbox_y1 + ( closest.hitbox_y2 - closest.hitbox_y1 ) * Math.random();
+
+				
+				if ( Math.random() < 0.3 )
+				this._key_states.SetKey( 'KeyA', 1 );
+				
+				if ( Math.random() < 0.3 )
+				this._key_states.SetKey( 'KeyD', 1 );
+				
+				if ( Math.random() < 0.2 )
+				this._key_states.SetKey( 'KeyW', 1 );
+				
+				if ( Math.random() < 0.4 )
+				this._key_states.SetKey( 'KeyS', 1 );
+			
+				if ( Math.random() < 0.2 )
+				{
+					this._key_states.SetKey( 'Mouse1', 1 );
+				}
+			}
+			else
+			{
+				if ( this._ai.direction > 0 )
+				this._key_states.SetKey( 'KeyD', ( Math.random() < 0.5 ) ? 1 : 0 );
+				else
+				this._key_states.SetKey( 'KeyA', ( Math.random() < 0.5 ) ? 1 : 0 );
+			
+				
+				//if ( Math.random() < 0.2 )
+				if ( sdWorld.CheckWallExistsBox( this.x + this._ai.direction * 16 - 16, this.y + this.hitbox_y2 - 32 + 1, this.x + this._ai.direction * 16 + 16, this.y + this.hitbox_y2 - 1, this, null, null ) )
+				this._key_states.SetKey( 'KeyW', 1 );
+			}
+		}
+		
+		if ( this._ai.target && this._ai.target.IsVisible( this ) )
+		{
+			this.look_x = sdWorld.MorphWithTimeScale( this.look_x, this._ai.target.x, 0.8, GSPEED );
+			this.look_y = sdWorld.MorphWithTimeScale( this.look_y, this._ai.target.y + ( this._ai.target_local_y || 0 ), 0.8, GSPEED );
+		}
+		else
+		{
+			this.look_x = sdWorld.MorphWithTimeScale( this.look_x, this.x + this._ai.direction * 400, 0.9, GSPEED );
+			this.look_y = sdWorld.MorphWithTimeScale( this.look_y, this.y + Math.sin( sdWorld.time / 2000 * Math.PI ) * 50, 0.9, GSPEED );
+		}
+	}
+	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		/*
@@ -427,12 +722,38 @@ class sdCharacter extends sdEntity
 		this._air = sdCharacter.air_max;
 		*/
 	   
+		if ( this._ai_enabled )
+		{
+			if ( !this._ai )
+			this._ai = {};
+		
+			this.AILogic( GSPEED );
+		}
+	   
 		if ( this.hea <= 0 )
 		{
+			this.MatterGlow( 0.01, 30, GSPEED );
+				
 			if ( this.death_anim < 90 )
 			this.death_anim += GSPEED;
 			else
 			{
+				/*for ( var xx = -1; xx <= 1; xx++ )
+				for ( var yy = -1; yy <= 1; yy++ )
+				{
+					var x = this.x;
+					var y = this.y;
+					
+					var arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
+					for ( var i = 0; i < arr.length; i++ )
+					if ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' )
+					if ( sdWorld.inDist2D( arr[ i ].x, arr[ i ].y, x, y, 30 ) >= 0 )
+					if ( arr[ i ] !== this )
+					{
+						this.TransferMatter( arr[ i ], 0.01, GSPEED );
+					}
+				}*/
+				
 				if ( this._socket === null )
 				{
 					this.death_anim += GSPEED;
@@ -452,7 +773,7 @@ class sdCharacter extends sdEntity
 				if ( this._dying_bleed_tim <= 0 )
 				{
 					this._dying_bleed_tim = 15;
-					sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_BLOOD });
+					sdWorld.SendEffect({ x:this.x, y:this.y, type:this.GetBleedEffect(), filter:this.GetBleedEffectFilter() });
 				}
 				else
 				this._dying_bleed_tim -= GSPEED;
@@ -466,7 +787,7 @@ class sdCharacter extends sdEntity
 					{
 						if ( this.matter > GSPEED )
 						{
-							this.matter -= GSPEED * 0.3;
+							this.matter -= GSPEED * 0.15; // 0.3
 							this.Damage( -GSPEED );
 						}
 					}
@@ -503,6 +824,7 @@ class sdCharacter extends sdEntity
 					}
 					else
 					{
+						if ( !this.driver_of )
 						if ( this._key_states.GetKey( 'Mouse1' ) )
 						{
 
@@ -672,6 +994,11 @@ class sdCharacter extends sdEntity
 				
 				if ( this.hook_x !== 0 || this.hook_y !== 0 )
 				{
+					/*let my_ent = this;
+					
+					if ( this.driver_of )
+					my_ent = this.driver_of;*/
+					
 					if ( this._hook_relative_to )
 					{
 						this.hook_x = this._hook_relative_to.x + this._hook_relative_x;
@@ -693,6 +1020,8 @@ class sdCharacter extends sdEntity
 					let vx = ( this.hook_x - this.x ) / cur_di;
 					let vy = ( this.hook_y - from_y ) / cur_di;
 					
+					let self_effect_scale = 1;
+					
 					if ( this._hook_relative_to )
 					{
 						if ( typeof this._hook_relative_to.sx !== 'undefined' )
@@ -700,11 +1029,13 @@ class sdCharacter extends sdEntity
 							let lx = this._hook_relative_to.sx;
 							let ly = this._hook_relative_to.sy;
 							
-							this._hook_relative_to.sx -= vx * pull_force * GSPEED;
-							this._hook_relative_to.sy -= vy * pull_force * GSPEED;
-
-                            this._hook_relative_to.sx = sdWorld.MorphWithTimeScale( this._hook_relative_to.sx, this.sx, 0.8, GSPEED );
-                            this._hook_relative_to.sy = sdWorld.MorphWithTimeScale( this._hook_relative_to.sy, this.sy, 0.8, GSPEED );
+							self_effect_scale = this._hook_relative_to.mass / ( this._hook_relative_to.mass + this.mass );
+					
+							this._hook_relative_to.sx -= vx * pull_force * GSPEED * ( 1 - self_effect_scale );
+							this._hook_relative_to.sy -= vy * pull_force * GSPEED * ( 1 - self_effect_scale );
+							
+                            this._hook_relative_to.sx = sdWorld.MorphWithTimeScale( this._hook_relative_to.sx, this.sx, 0.8, GSPEED * ( 1 - self_effect_scale ) );
+                            this._hook_relative_to.sy = sdWorld.MorphWithTimeScale( this._hook_relative_to.sy, this.sy, 0.8, GSPEED * ( 1 - self_effect_scale ) );
 							
 							if ( this._hook_relative_to.is( sdCharacter ) )
 							this._hook_relative_to.ApplyServerSidePositionAndVelocity( true, this._hook_relative_to.sx - lx, this._hook_relative_to.sy - ly );
@@ -720,8 +1051,8 @@ class sdCharacter extends sdEntity
 						}
 					}
 
-					this.sx += vx * pull_force * GSPEED;
-					this.sy += vy * pull_force * GSPEED;
+					this.sx += vx * pull_force * GSPEED * self_effect_scale;
+					this.sy += vy * pull_force * GSPEED * self_effect_scale;
 				}
 
 			}
@@ -799,20 +1130,38 @@ class sdCharacter extends sdEntity
 		
 		let e_state = this._key_states.GetKey( 'KeyE' );
 		
+		if ( this.hea > 0 )
 		if ( e_state )
 		if ( e_state !== this._last_e_state )
-		if ( this._ghost_allowed )
-		this.ghosting = !this.ghosting;
+		{
+			if ( this.driver_of )
+			{
+				this.driver_of.ExcludeDriver( this );
+				//this.driver_of = null;
+			}
+			else
+			{
+				if ( this._potential_vehicle && this._potential_vehicle.hea > 0 && !this._potential_vehicle._is_being_removed && sdWorld.inDist2D_Boolean( this.x, this.y, this._potential_vehicle.x, this._potential_vehicle.y, sdCom.vehicle_entrance_radius ) )
+				{
+					this._potential_vehicle.AddDriver( this );
+				}
+				else
+				if ( this._ghost_allowed )
+				this.ghosting = !this.ghosting;
+			}
+		}
 	
 		this._last_e_state = e_state;
 		
 		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
 		
+		this._in_water = in_water;
+		
 		if ( this.ghosting )
 		{
 			let fuel_cost = 0.4 * GSPEED;
 			
-			if ( this.matter < fuel_cost || this.hea <= 0 )
+			if ( this.matter < fuel_cost || this.hea <= 0 || this.driver_of )
 			this.ghosting = false;
 			else
 			this.matter -= fuel_cost;
@@ -827,7 +1176,7 @@ class sdCharacter extends sdEntity
 			
 			let fuel_cost = GSPEED * sdWorld.Dist2D_Vector( x_force, y_force );
 
-			if ( ( this.stands && this.act_y !== -1 ) || this.in_water || this.act_y !== -1 || this._key_states.GetKey( 'KeyX' ) || this.matter < fuel_cost || this.hea <= 0 )
+			if ( ( this.stands && this.act_y !== -1 ) || this.driver_of || this._in_water || this.act_y !== -1 || this._key_states.GetKey( 'KeyX' ) || this.matter < fuel_cost || this.hea <= 0 )
 			this.flying = false;
 			else
 			{
@@ -844,6 +1193,7 @@ class sdCharacter extends sdEntity
 		else
 		{
 			if ( sdWorld.is_server )
+			if ( !this.driver_of )
 			if ( this._jetpack_allowed &&
 				 this.act_y === -1 &&
 				 this._last_act_y !== -1 &&
@@ -882,7 +1232,7 @@ class sdCharacter extends sdEntity
 		}
 		else
 		{
-			if ( this.stands && ( this._stands_on !== this._hook_relative_to || ( this.hook_x === 0 && this.hook_y === 0 ) ) )
+			if ( this.stands && !this.driver_of && ( this._stands_on !== this._hook_relative_to || ( this.hook_x === 0 && this.hook_y === 0 ) ) )
 			{
 				if ( this.sy > 1 )
 				{
@@ -978,6 +1328,14 @@ class sdCharacter extends sdEntity
 			}
 		}
 		
+		if ( this.driver_of )
+		{
+			this.x = this.driver_of.x;
+			this.y = this.driver_of.y;
+			this.sx = this.driver_of.sx;
+			this.sy = this.driver_of.sy;
+		}
+		else
 		this.ApplyVelocityAndCollisions( GSPEED, ( this.hea > 0 ) ? ( this.act_y !== 1 ? 10 : 3 ) : 0 );
 		/*
 		if ( sdWorld.last_hit_entity )
@@ -988,12 +1346,18 @@ class sdCharacter extends sdEntity
 		}*/
 	}
 
-	GetBleedEffect()
+	onRemoveAsFakeEntity()
 	{
-		return sdEffect.TYPE_BLOOD;
+		sdCharacter.characters.splice( sdCharacter.characters.indexOf( this ), 1 );
 	}
+	
 	onRemove() // Class-specific, if needed
 	{
+		sdCharacter.characters.splice( sdCharacter.characters.indexOf( this ), 1 );
+		
+		if ( this.driver_of )
+		this.driver_of.ExcludeDriver( this );
+		
 		this.DropWeapons();
 		
 		if ( sdWorld.is_server )
@@ -1002,7 +1366,14 @@ class sdCharacter extends sdEntity
 			{
 				let a,s,x,y,k;
 
+				if ( this.GetBleedEffect() === sdEffect.TYPE_BLOOD || this.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
 				sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:2 }); // 3 was fine
+				else
+				sdSound.PlaySound({ name:'block4', 
+					x:this.x, y:this.y, 
+					volume: 0.25, 
+					pitch: 1 });
+			
 
 				for ( let i = 0; i < 6; i++ )
 				{
@@ -1016,8 +1387,21 @@ class sdCharacter extends sdEntity
 
 					//console.warn( { x: this.x, y: this.y, type:sdEffect.TYPE_GIB, sx: this.sx + Math.sin(a)*s, sy: this.sy + Math.cos(a)*s } )
 
-					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD });
-					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s });
+					if ( this.GetBleedEffect() === sdEffect.TYPE_BLOOD )
+					{
+						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD });
+						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s });
+					}
+					else
+					if ( this.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
+					{
+						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter() });
+						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, filter:this.GetBleedEffectFilter(), sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s });
+					}
+					else
+					{
+						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s });
+					}
 				}
 			}
 		}
@@ -1072,7 +1456,15 @@ class sdCharacter extends sdEntity
 		if ( this.hea > 0 )
 		if ( sdWorld.is_server )
 		{
-			if ( from_entity.GetClass() === 'sdGun' )
+			if ( from_entity.is( sdBlock ) )
+			{
+				if ( from_entity._contains_class === 'sdQuickie' )
+				{
+					from_entity.Damage( 1 ); // Will break
+				}
+			}
+			else
+			if ( from_entity.is( sdGun ) )
 			{
 				for ( var i = 0; i < this._ignored_guns_until.length; i++ )
 				{
@@ -1099,22 +1491,24 @@ class sdCharacter extends sdEntity
 							this._inventory[ sdGun.classes[ from_entity.class ].slot ] = from_entity;
 							from_entity._held_by = this;
 							from_entity.ttl = -1;
+							
+							if ( this._socket )
+							sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:1.5 }, [ this._socket ] );
 						}
 					}
 				}
 			}
 			else
-			if ( from_entity.GetClass() === 'sdBlock' )
-			if ( from_entity._contains_class === 'sdQuickie' )
+			if ( from_entity.is( sdHover ) )
 			{
-				from_entity.Damage( 1 ); // Will break
+				this._potential_vehicle = from_entity;
 			}
 		}
 	}
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		if ( this.death_anim < 20 )
+		if ( this.death_anim < 20 && !this.driver_of )
 		{
 			let w = 20;
 			
@@ -1208,7 +1602,7 @@ class sdCharacter extends sdEntity
 		{
 			if ( sdWorld.Dist2D( this.x, this.y, this._build_params.x, this._build_params.y ) < 64 )
 			{
-				if ( this.stands || this.flying )
+				if ( this.stands || this._in_water || this.flying )
 				return true;
 				else
 				sdCharacter.last_build_deny_reason = 'I\'d need to stand on something or at least use jetpack';
@@ -1233,6 +1627,8 @@ class sdCharacter extends sdEntity
 	
 		if ( this._build_params._class === null ) // Upgrades
 		return null;
+	
+		//this._build_params._spawner = this;
 		
 		let fake_ent = new sdWorld.entity_classes[ this._build_params._class ]( this._build_params );
 		
@@ -1287,13 +1683,14 @@ class sdCharacter extends sdEntity
 		return fake_ent;
 	}
 	Draw( ctx, attached )
-	{	
+	{
 		if ( this.ghosting )
 		ctx.globalAlpha = 0.3;
 		
 		//ctx.filter = this.filter;
 		ctx.sd_filter = this.sd_filter;
 		
+		if ( !attached )
 		if ( this.hook_x !== 0 || this.hook_y !== 0 )
 		{
 			let from_y = this.y + ( this.hitbox_y1 + this.hitbox_y2 ) / 2;
@@ -1306,175 +1703,233 @@ class sdCharacter extends sdEntity
 			ctx.stroke();
 		}
 		
-		if ( this.death_anim > 0 )
+		if ( !this.driver_of || attached )
 		{
-			ctx.scale( this._side, 1 );
-			
-			if ( this.death_anim > sdCharacter.disowned_body_ttl - 30 )
-			ctx.globalAlpha = 0.5;
-			
-			if ( this.death_anim < 10 )
-			ctx.drawImageFilterCache( sdCharacter.img_death1, - 16, - 16, 32,32 );
-			else
-			if ( this.death_anim < 20 )
-			ctx.drawImageFilterCache( sdCharacter.img_death2, - 16, - 16, 32,32 );
-			else
-			if ( this.death_anim < 30 )
-			ctx.drawImageFilterCache( sdCharacter.img_death3, - 16, - 16, 32,32 );
-			else
-			{
-				if ( this._speak_id !== -1 )
-				{
-					meSpeak.stop( this._speak_id );
-					this._speak_id = -1;
-				}
-				
-				ctx.drawImageFilterCache( sdCharacter.img_death4, - 16, - 16, 32,32 );
-				ctx.drawImageFilterCache( sdCharacter.img_death4_visor_tint, - 16, - 16, 32,32 );
-			}
-		}
-		else
-		{
-			
-			var image = sdCharacter.img_legs_idle;
-
-			//ctx.fillRect( -4 + 8 * Math.sin( this.tilt / 100 ), -4 - 8 * Math.cos( this.tilt / 100 ), 8, 8 );
-
-			if ( this.stands )
-			{
-				if ( this._crouch_intens > 0.25 )
-				{
-					if ( Math.abs( this._anim_walk - 5 ) < 5 / 2 * 1 )
-					image = sdCharacter.img_legs_crouch;
-					else
-					image = sdCharacter.img_legs_crouch_walk1;
-				}
-				else
-				if ( this.act_x !== 0 )
-				{
-					if ( Math.abs( this._anim_walk - 5 ) < 5 / 3 * 1 )
-					{
-					}
-					else
-					if ( Math.abs( this._anim_walk - 5 ) < 5 / 3 * 2 )
-					image = sdCharacter.img_legs_walk1;
-					else
-					image = sdCharacter.img_legs_walk2;
-				}
-			}
-			else
-			image = sdCharacter.img_legs_walk2;
-
-			ctx.rotate( this.tilt / 100 );
-
-			ctx.scale( this._side, 1 );
-
-			ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
-
-			image = sdCharacter.img_body_idle;
-
-			let gun_offset_x = 0;
-			let gun_offset_y = 0;
-
-			if ( this.pain_anim > 0 )
-			image = sdCharacter.img_body_hurt;
-
-			//if ( this.gun_slot === 0 )
-			if ( !this._inventory[ this.gun_slot ] )
-			{
-			}
-			else
-			{
-				if ( this.reload_anim > 0 )
-				{
-					if ( this.reload_anim > 30 / 3 * 2 )
-					image = sdCharacter.img_body_reload2;
-					else
-					if ( this.reload_anim > 30 / 3 * 1 )
-					image = sdCharacter.img_body_reload1;
-					else
-					image = sdCharacter.img_body_reload2;
-
-
-					gun_offset_x -= 1;
-					gun_offset_y += 1;
-				}
-				else
-				{
-					if ( this.pain_anim <= 0 )
-					image = sdCharacter.img_body_armed;
-
-					if ( this.gun_slot === 0 )
-					{
-						if ( this.fire_anim > 2.5 )
-						{
-							image = sdCharacter.img_body_melee2;
-							gun_offset_x += 1;
-						}
-						else
-						if ( this.fire_anim > 0 )
-						{
-							image = sdCharacter.img_body_melee1;
-							gun_offset_x += 3;
-						}
-					}
-					else
-					{
-						if ( this.fire_anim > 2.5 )
-						{
-							image = sdCharacter.img_body_fire2;
-							gun_offset_x -= 3;
-						}
-						else
-						if ( this.fire_anim > 0 )
-						{
-							image = sdCharacter.img_body_fire1;
-							gun_offset_x -= 2;
-						}
-					}
-				}
-			}
-
-			if ( image === sdCharacter.img_body_hurt )
-			{
-				gun_offset_x = -1;
-				gun_offset_y = 2;
-			}
-
-			let an = Math.atan2( 
-					( this.y - this.look_y ) , 
-					( ( this.x - this.look_x ) * this._side - 3 * Math.abs( this.y - this.look_y ) ) ) - Math.PI;
-
-
-			ctx.translate( - 2, 5 );
-			ctx.rotate( an );
-			ctx.translate( 2,  - 5 );
-			
-			ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
-
-			//ctx.filter = 'none';
-			ctx.sd_filter = null;
-			
-			if ( this.flying )
-			{
-				ctx.drawImageFilterCache( sdCharacter.img_jetpack, - 16, - 16, 32,32 );
-			}
-
-			if ( this._inventory[ this.gun_slot ] )
-			{
-				ctx.translate( 5 + gun_offset_x, -2 + gun_offset_y );
-
-				ctx.rotate( -an );
-				ctx.rotate( -this.tilt / 100 * this._side );
-
-				ctx.rotate( ( -this._an ) * this._side + Math.PI / 2 );
-				/*
-				ctx.rotate( Math.atan2( 
-					( this.y - this.look_y ) , 
-					( ( this.x - this.look_x ) * this._side ) ) - Math.PI );*/
 		
-				this._inventory[ this.gun_slot ].Draw( ctx, true );
+			var frame;
+
+			if ( this.death_anim > 0 )
+			{
+				ctx.scale( this._side, 1 );
+
+				if ( this.death_anim > sdCharacter.disowned_body_ttl - 30 )
+				ctx.globalAlpha = 0.5;
+
+				if ( this.death_anim < 10 )
+				{
+					frame = 'img_death1';
+					ctx.drawImageFilterCache( sdCharacter.img_death1, - 16, - 16, 32,32 );
+				}
+				else
+				if ( this.death_anim < 20 )
+				{
+					frame = 'img_death2';
+					ctx.drawImageFilterCache( sdCharacter.img_death2, - 16, - 16, 32,32 );
+				}
+				else
+				if ( this.death_anim < 30 )
+				{
+					frame = 'img_death3';
+					ctx.drawImageFilterCache( sdCharacter.img_death3, - 16, - 16, 32,32 );
+				}
+				else
+				{
+					if ( this._speak_id !== -1 )
+					{
+						meSpeak.stop( this._speak_id );
+						this._speak_id = -1;
+					}
+
+
+
+
+					if ( this.sd_filter !== this._sd_filter_old )
+					{
+						this._sd_filter_old = this.sd_filter;
+
+						this._sd_filter_darkened = Object.assign( {}, this.sd_filter );
+
+						this._sd_filter_darkened[ 255 ][ 0 ][ 0 ][ 0 ] = ~~( this._sd_filter_darkened[ 255 ][ 0 ][ 0 ][ 0 ] * 0.5 );
+						this._sd_filter_darkened[ 255 ][ 0 ][ 0 ][ 1 ] = ~~( this._sd_filter_darkened[ 255 ][ 0 ][ 0 ][ 1 ] * 0.5 );
+						this._sd_filter_darkened[ 255 ][ 0 ][ 0 ][ 2 ] = ~~( this._sd_filter_darkened[ 255 ][ 0 ][ 0 ][ 2 ] * 0.5 );
+					}
+
+					ctx.sd_filter = this._sd_filter_darkened;
+
+
+					frame = 'img_death4';
+					ctx.drawImageFilterCache( sdCharacter.img_death4, - 16, - 16, 32,32 );
+					//ctx.drawImageFilterCache( sdCharacter.img_death4_visor_tint, - 16, - 16, 32,32 );
+				}
+
+				this.DrawHelmet( ctx, frame );
 			}
+			else
+			{
+				var image = sdCharacter.img_legs_idle;
+
+				//ctx.fillRect( -4 + 8 * Math.sin( this.tilt / 100 ), -4 - 8 * Math.cos( this.tilt / 100 ), 8, 8 );
+
+				if ( this.stands )
+				{
+					if ( this._crouch_intens > 0.25 )
+					{
+						if ( Math.abs( this._anim_walk - 5 ) < 5 / 2 * 1 )
+						image = sdCharacter.img_legs_crouch;
+						else
+						image = sdCharacter.img_legs_crouch_walk1;
+					}
+					else
+					if ( this.act_x !== 0 )
+					{
+						if ( Math.abs( this._anim_walk - 5 ) < 5 / 3 * 1 )
+						{
+						}
+						else
+						if ( Math.abs( this._anim_walk - 5 ) < 5 / 3 * 2 )
+						image = sdCharacter.img_legs_walk1;
+						else
+						image = sdCharacter.img_legs_walk2;
+					}
+				}
+				else
+				image = sdCharacter.img_legs_walk2;
+
+				ctx.rotate( this.tilt / 100 );
+
+				ctx.scale( this._side, 1 );
+
+				if ( !attached ) // Hide legs if in vehicle... Simple solution for now
+				ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
+
+				image = sdCharacter.img_body_idle;
+				frame = 'img_body_idle';
+
+				let gun_offset_x = 0;
+				let gun_offset_y = 0;
+
+				if ( this.pain_anim > 0 )
+				{
+					image = sdCharacter.img_body_hurt;
+					frame = 'img_body_hurt';
+				}
+
+				//if ( this.gun_slot === 0 )
+				if ( !this._inventory[ this.gun_slot ] )
+				{
+				}
+				else
+				{
+					if ( this.reload_anim > 0 )
+					{
+						if ( this.reload_anim > 30 / 3 * 2 )
+						{
+							image = sdCharacter.img_body_reload2;
+							frame = 'img_body_reload2';
+						}
+						else
+						if ( this.reload_anim > 30 / 3 * 1 )
+						{
+							image = sdCharacter.img_body_reload1;
+							frame = 'img_body_reload1';
+						}
+						else
+						{
+							image = sdCharacter.img_body_reload2;
+							frame = 'img_body_reload2';
+						}
+
+
+						gun_offset_x -= 1;
+						gun_offset_y += 1;
+					}
+					else
+					{
+						if ( this.pain_anim <= 0 )
+						{
+							image = sdCharacter.img_body_armed;
+							frame = 'img_body_armed';
+						}
+
+						if ( this.gun_slot === 0 )
+						{
+							if ( this.fire_anim > 2.5 )
+							{
+								image = sdCharacter.img_body_melee2;
+								frame = 'img_body_melee2';
+								gun_offset_x += 1;
+							}
+							else
+							if ( this.fire_anim > 0 )
+							{
+								image = sdCharacter.img_body_melee1;
+								frame = 'img_body_melee1';
+								gun_offset_x += 3;
+							}
+						}
+						else
+						{
+							if ( this.fire_anim > 2.5 )
+							{
+								image = sdCharacter.img_body_fire2;
+								frame = 'img_body_fire2';
+								gun_offset_x -= 3;
+							}
+							else
+							if ( this.fire_anim > 0 )
+							{
+								image = sdCharacter.img_body_fire1;
+								frame = 'img_body_fire1';
+								gun_offset_x -= 2;
+							}
+						}
+					}
+				}
+
+				if ( image === sdCharacter.img_body_hurt )
+				{
+					gun_offset_x = -1;
+					gun_offset_y = 2;
+				}
+
+				let an = Math.atan2( 
+						( this.y - this.look_y ) , 
+						( ( this.x - this.look_x ) * this._side - 3 * Math.abs( this.y - this.look_y ) ) ) - Math.PI;
+
+
+				ctx.translate( - 2, 5 );
+				ctx.rotate( an );
+				ctx.translate( 2,  - 5 );
+
+				ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
+
+				this.DrawHelmet( ctx, frame );
+
+				//ctx.filter = 'none';
+				ctx.sd_filter = null;
+
+				if ( this.flying )
+				{
+					ctx.drawImageFilterCache( sdCharacter.img_jetpack, - 16, - 16, 32,32 );
+				}
+
+				if ( this._inventory[ this.gun_slot ] && !attached ) // Hide guns in vehicle too
+				{
+					ctx.translate( 5 + gun_offset_x, -2 + gun_offset_y );
+
+					ctx.rotate( -an );
+					ctx.rotate( -this.tilt / 100 * this._side );
+
+					ctx.rotate( ( -this._an ) * this._side + Math.PI / 2 );
+					/*
+					ctx.rotate( Math.atan2( 
+						( this.y - this.look_y ) , 
+						( ( this.x - this.look_x ) * this._side ) ) - Math.PI );*/
+
+					this._inventory[ this.gun_slot ].Draw( ctx, true );
+				}
+			}
+
 		}
 		
 		//ctx.filter = 'none';
@@ -1484,7 +1939,7 @@ class sdCharacter extends sdEntity
 	{
 		return 200; // Hack
 	}
-	Say( t, to_self=true, force_client_side=false )
+	Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false )
 	{
 		let params = { 
 			x:this.x, 
@@ -1499,7 +1954,7 @@ class sdCharacter extends sdEntity
 
 		if ( sdWorld.is_server )
 		{
-			if ( sdWorld.time > this._say_allowed_in )
+			if ( sdWorld.time > this._say_allowed_in || ignore_rate_limit )
 			{
 				this._say_allowed_in = sdWorld.time + t.length * 50;
 				

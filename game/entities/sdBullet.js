@@ -67,7 +67,7 @@ class sdBullet extends sdEntity
 		this._rail = false;
 		this._explosion_radius = 0;
 		this.model = null; // Custom image model
-		this._knock_scale = 0.05;
+		this._knock_scale = 0.05 * 8; // Without * 8 in old mass model
 		this._hook = false;
 		this._wave = false; // hidden & instant
 		
@@ -176,13 +176,13 @@ class sdBullet extends sdEntity
 	}
 	onMovementInRange( from_entity )
 	{
-		if ( this._owner !== from_entity || this._can_hit_owner )
+		if ( ( this._owner !== from_entity && ( !this._owner || !this._owner._owner || this._owner._owner !== from_entity ) ) || this._can_hit_owner ) // 2nd rule is for turret bullet to not hit turret owner
 		{
 			if ( from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
 			//if ( from_entity.GetClass() === 'sdCharacter' || 
 			//	 from_entity.GetClass() === 'sdVirus' )
 			{
-
+				if ( from_entity.IsTargetable() )
 				{
 					if ( sdWorld.is_server ) // Or else fake self-knock
 					if ( this._damage !== 0 )
@@ -231,7 +231,8 @@ class sdBullet extends sdEntity
 			if ( !this.is_grenade )
 			//if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdCrystal' ) // Including any else rigid bodies
 			if ( typeof from_entity.hea !== 'undefined' || typeof from_entity._hea !== 'undefined' || ( this._bg_shooter && from_entity.GetClass() === 'sdBG' ) )
-			if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null ) // guns can be hit only when are not held by anyone
+			//if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null ) // guns can be hit only when are not held by anyone
+			if ( from_entity.IsTargetable() )
 			{
 				if ( sdWorld.is_server ) // Or else fake self-knock
 				if ( this._damage !== 0 )
@@ -275,10 +276,15 @@ class sdBullet extends sdEntity
 								this._owner.Say( 'Regular weapons won\'t work here. What about big explosions?' );
 								else
 								{
-									if ( Math.random() < 0.5 )
-									this._owner.Say( 'Can\'t damage that' );
-									else
-									this._owner.Say( 'I need damage upgrade' );
+									if ( this._owner._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
+									{
+										this._owner._last_damage_upg_complain = sdWorld.time;
+										
+										if ( Math.random() < 0.5 )
+										this._owner.Say( 'Can\'t damage that' );
+										else
+										this._owner.Say( 'I need damage upgrade' );
+									}
 								}
 							}
 						}

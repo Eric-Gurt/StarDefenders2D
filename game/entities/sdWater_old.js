@@ -2,8 +2,6 @@
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
-import sdBlock from './sdBlock.js';
-import sdDoor from './sdDoor.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -22,6 +20,8 @@ class sdWater extends sdEntity
 		
 		sdWater.img_water_flow = sdWorld.CreateImageFromFile( 'water_flow' );
 		
+		sdWater.sleep_tim_max = 30;
+		sdWater.considerable_delata_volume_for_awakeness = 0.001;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -43,17 +43,30 @@ class sdWater extends sdEntity
 		this.type = params.type || sdWater.TYPE_WATER;
 		
 		this._volume = params.volume || 1;
+		//this.can_flow_sideways = false;
+		//this.wall_under = false;
+		
+		this._sleep_tim = sdWater.sleep_tim_max; // When it reaches 0 - it freezes
 		
 		if ( sdWater.DEBUG )
 		this.a = false; // awakeness for client, for debugging
 		
 		this.v = 100; // rounded volume for clients
 		
-		this._think_offset = ~~( Math.random() * 15 );
-		
+		//this._rare_tim = ~~Math.random() * 10;
+			
 		if ( sdWorld.is_server )
 		{
-			
+			/*
+			if ( !sdEntity.entities_tot_max )
+			sdEntity.entities_tot_max = 0;
+		
+			if ( sdEntity.entities_tot_max < sdEntity.entities.length )
+			{
+				sdEntity.entities_tot_max = sdEntity.entities.length;
+				console.log( 'sdEntity.entities.length becomes '+sdEntity.entities.length );
+			}*/
+		
 			// Remove existing water, just in case
 			let arr_under = sdWorld.RequireHashPosition( this.x, this.y );
 			for ( var i = 0; i < arr_under.length; i++ )
@@ -66,11 +79,25 @@ class sdWater extends sdEntity
 					this.remove();
 				}
 			}
+			/*
+			for ( var i = 0; i < sdEntity.entities.length; i++ )
+			{
+				if ( sdEntity.entities[ i ] instanceof sdWater )
+				if ( sdEntity.entities[ i ].x === this.x )
+				if ( sdEntity.entities[ i ].y === this.y )
+				{
+					throw new Error('What are we doing here?');
+				}
+			}*/
 			
 			sdWorld.UpdateHashPosition( this, false ); // Without this, new water objects will only discover each other after one first think event (and by that time multiple water objects will overlap each other). This could be called at sdEntity super constructor but some entities don't know their bounds by that time
 		}
 	}
 	
+	/*IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
+	{
+		return ( this._volume > 0.1 );
+	}*/
 	
 	MeasureMatterCost()
 	{
@@ -96,6 +123,125 @@ class sdWater extends sdEntity
 		}
 	}
 				
+	FlowTowards( nx, ny, my_share_ammount )
+	{
+		if ( my_share_ammount > this._volume ) // Happens rarely
+		my_share_ammount = this._volume;
+	
+		if ( nx >= sdWorld.world_bounds.x2 || nx <= sdWorld.world_bounds.x1 || 
+			 ny >= sdWorld.world_bounds.y2 || ny <= sdWorld.world_bounds.y1 )
+		return false;
+
+		let arr_under = sdWorld.RequireHashPosition( nx, ny );
+
+		let water_under = false;
+
+		for ( var i = 0; i < arr_under.length; i++ )
+		{
+			if ( arr_under[ i ] instanceof sdWater )
+			if ( arr_under[ i ].x === nx && arr_under[ i ].y === ny )
+			{
+				let can_share = Math.min( 1 - arr_under[ i ]._volume, my_share_ammount );
+				
+				if ( this.y === arr_under[ i ].y )
+				{
+					if ( this._volume <= arr_under[ i ]._volume )
+					return false;
+				
+					if ( this._volume - can_share < arr_under[ i ]._volume + can_share )
+					{
+						// this._volume - can_share = arr_under[ i ]._volume + can_share
+						// this._volume = arr_under[ i ]._volume + 2 * can_share
+						// this._volume - arr_under[ i ]._volume = 2 * can_share
+						// ( this._volume - arr_under[ i ]._volume ) / 2 = can_share
+						can_share = ( this._volume - arr_under[ i ]._volume ) / 2;
+					}
+				}
+				
+				if ( can_share > 0 )
+				{
+					arr_under[ i ]._volume += can_share;
+					this._volume -= can_share;
+
+					//arr_under[ i ]._update_version++;
+					//this._update_version++;
+					
+					if ( can_share > sdWater.considerable_delata_volume_for_awakeness )
+					{
+						this.AwakeSelfAndNear();
+						arr_under[ i ].AwakeSelfAndNear();
+						//this._sleep_tim = arr_under[ i ]._sleep_tim = sdWater.sleep_tim_max;
+					}
+					else
+					this._sleep_tim = arr_under[ i ]._sleep_tim = Math.max( this._sleep_tim, arr_under[ i ]._sleep_tim );
+					
+					if ( this._volume <= 0 )
+					{
+						this.remove();
+						return false;
+					}
+				}
+				else
+				return true; // flow sideways
+			
+				water_under = true;
+				break;
+			}
+		}
+		if ( !water_under )
+		{
+			if ( ny > this.y || my_share_ammount === this._volume )
+			{
+				if ( this._volume > sdWater.considerable_delata_volume_for_awakeness )
+				{
+					this.AwakeSelfAndNear();
+					//this._sleep_tim = sdWater.sleep_tim_max;
+				}
+				
+				this.x = nx;
+				this.y = ny;
+				this._update_version++;
+				
+				if ( this._volume > sdWater.considerable_delata_volume_for_awakeness )
+				{
+					this.AwakeSelfAndNear();
+					//this._sleep_tim = sdWater.sleep_tim_max;
+				}
+				//this._update_version++;
+			}
+			else
+			{
+				let ent = new sdWater({ x:nx, y:ny, type:this.type });
+				ent._volume = my_share_ammount;
+				this._volume -= my_share_ammount;
+				sdEntity.entities.push( ent );
+				
+				sdWorld.UpdateHashPosition( ent, false ); // Might be useful against memory leaks?
+				
+				
+
+				if ( my_share_ammount > sdWater.considerable_delata_volume_for_awakeness )
+				{
+					//this._sleep_tim = ent._sleep_tim = sdWater.sleep_tim_max;
+					this.AwakeSelfAndNear();
+					ent.AwakeSelfAndNear();
+				}
+				else
+				this._sleep_tim = ent._sleep_tim = this._sleep_tim;
+
+				
+				
+				//this._update_version++;
+				
+				if ( this._volume <= 0 )
+				this.remove();
+			}
+			
+			return false;
+		}
+		
+		return false;
+	}
 	
 	AwakeSelfAndNear( recursive_catcher=null ) // Might need array for recursion
 	{
@@ -109,24 +255,11 @@ class sdWater extends sdEntity
 			recursive_catcher.push( this );
 		}
 		
-		//if ( this._hiberstate !== sdEntity.HIBERSTATE_ACTIVE )
-		{
-
-			//this._sleep_tim = sdWater.sleep_tim_max;
-			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-
-			let e;
-
-			for ( var x = -1; x <= 1; x++ )
-			for ( var y = -1; y <= 1; y++ )
-			if ( x !== 0 || y !== 0 )
-			{
-				e = this.GetWaterObjectAt( this.x + x * 16, this.y + y * 16 );
-				if ( e )
-				e.AwakeSelfAndNear( recursive_catcher );
-			}
-		}
-		/*
+		this._sleep_tim = sdWater.sleep_tim_max;
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		
+		let e;
+		
 		e = this.GetWaterObjectAt( this.x, this.y - 16 );
 		if ( e )
 		e.AwakeSelfAndNear( recursive_catcher );
@@ -141,12 +274,6 @@ class sdWater extends sdEntity
 		if ( e )
 		e.AwakeSelfAndNear( recursive_catcher );
 		//e._sleep_tim = sdWater.sleep_tim_max;
-	
-		e = this.GetWaterObjectAt( this.x, this.y + 16 );
-		if ( e )
-		e.AwakeSelfAndNear( recursive_catcher );
-		//e._sleep_tim = sdWater.sleep_tim_max;
-		*/
 	}
 
 	onThink( GSPEED ) // Class-specific, if needed
@@ -154,139 +281,15 @@ class sdWater extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
-		this._think_offset--;
-		
-		if ( this._think_offset < 0 )
+		/*this._rare_tim--;
+		if ( this._rare_tim < 0 )
 		{
-			this._think_offset += 15;
+			this._rare_tim += 10;
+			GSPEED *= 10;
 		}
 		else
-		return;
+		return;*/
 	
-		var arr = sdWorld.RequireHashPosition( this.x + 8, this.y + 8 + 16 );
-		/*for ( var i = 0; i < arr.length; i++ )
-		{
-			if ( arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) )
-			if ( arr[ i ].x + arr[ i ].hitbox_x1 < this.x + 16 )
-			if ( arr[ i ].x + arr[ i ].hitbox_x2 > this.x )
-			if ( arr[ i ].y + arr[ i ].hitbox_y1 < this.y + 16 + 16 )
-			if ( arr[ i ].y + arr[ i ].hitbox_y2 > this.y + 16 )
-			{
-				this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
-				return;
-			}
-		}*/
-		for ( var i = 0; i < arr.length; i++ )
-		{
-			if ( arr[ i ].is( sdWater ) || arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) )
-			if ( arr[ i ].x + arr[ i ].hitbox_x1 < this.x + 16 )
-			if ( arr[ i ].x + arr[ i ].hitbox_x2 > this.x )
-			if ( arr[ i ].y + arr[ i ].hitbox_y1 < this.y + 16 + 16 )
-			if ( arr[ i ].y + arr[ i ].hitbox_y2 > this.y + 16 )
-			if ( this !== arr[ i ] )
-			{
-				var can_flow_left = true;
-				var can_flow_right = true;
-				
-				if ( this.y + 16 >= sdWorld.world_bounds.y2 )
-				{
-					can_flow_left = false;
-					can_flow_right = false;
-				}
-				else
-				{
-					var down_left = sdWorld.RequireHashPosition( this.x + 8 - 16, this.y + 8 + 16 );
-					var down_right = sdWorld.RequireHashPosition( this.x + 8 + 16, this.y + 8 + 16 );
-
-					for ( var i2 = 0; i2 < down_left.length; i2++ )
-					{
-						if ( down_left[ i2 ].is( sdWater ) || down_left[ i2 ].is( sdBlock ) || down_left[ i2 ].is( sdDoor ) )
-						if ( down_left[ i2 ].x + down_left[ i2 ].hitbox_x1 < this.x + 16 - 16 )
-						if ( down_left[ i2 ].x + down_left[ i2 ].hitbox_x2 > this.x - 16 )
-						if ( down_left[ i2 ].y + down_left[ i2 ].hitbox_y1 < this.y + 16 + 16 )
-						if ( down_left[ i2 ].y + down_left[ i2 ].hitbox_y2 > this.y + 16 )
-						{
-							can_flow_left = false;
-							break;
-						}
-					}
-
-					for ( var i2 = 0; i2 < down_right.length; i2++ )
-					{
-						if ( down_right[ i2 ].is( sdWater ) || down_right[ i2 ].is( sdBlock ) || down_right[ i2 ].is( sdDoor ) )
-						if ( down_right[ i2 ].x + down_right[ i2 ].hitbox_x1 < this.x + 16 + 16 )
-						if ( down_right[ i2 ].x + down_right[ i2 ].hitbox_x2 > this.x + 16 )
-						if ( down_right[ i2 ].y + down_right[ i2 ].hitbox_y1 < this.y + 16 + 16 )
-						if ( down_right[ i2 ].y + down_right[ i2 ].hitbox_y2 > this.y + 16 )
-						{
-							can_flow_right = false;
-							break;
-						}
-					}
-
-					if ( can_flow_left )
-					if ( this.x - 16 < sdWorld.world_bounds.x1 )
-					can_flow_left = false;
-
-					if ( can_flow_right )
-					if ( this.x + 16 >= sdWorld.world_bounds.x2 )
-					can_flow_right = false;
-				}
-					
-				if ( can_flow_left )
-				{
-					let catcher = [];
-					this.AwakeSelfAndNear( catcher );
-					
-					this.x -= 16;
-					this.y += 16;
-					this._update_version++;
-					sdWorld.UpdateHashPosition( this, false );
-					
-					this.AwakeSelfAndNear( catcher );
-					return;
-				}
-				else
-				if ( can_flow_right )
-				{
-					let catcher = [];
-					this.AwakeSelfAndNear( catcher );
-					
-					this.x += 16;
-					this.y += 16;
-					this._update_version++;
-					sdWorld.UpdateHashPosition( this, false );
-					
-					this.AwakeSelfAndNear( catcher );
-					return;
-				}
-				else
-				{
-					this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
-					return;
-				}
-			}
-		}
-		
-		if ( this.y + 16 >= sdWorld.world_bounds.y2 )
-		{
-			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
-			return;
-		}
-		else
-		{
-			let catcher = [];
-			this.AwakeSelfAndNear( catcher );
-
-			this.y += 16;
-			this._update_version++;
-			sdWorld.UpdateHashPosition( this, false );
-
-			this.AwakeSelfAndNear( catcher );
-			return;
-		}
-	
-		/*
 		if ( sdWater.DEBUG )
 		this.a = this._sleep_tim > 0;
 	
@@ -374,7 +377,6 @@ class sdWater extends sdEntity
 		{
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		}
-		*/
 	}
 	DrawFG( ctx, attached )
 	{
