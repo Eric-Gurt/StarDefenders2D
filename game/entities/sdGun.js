@@ -288,6 +288,7 @@ class sdGun extends sdEntity
 		return ( this._held_by === null );
 	}
 	
+	
 	constructor( params )
 	{
 		super( params );
@@ -302,6 +303,8 @@ class sdGun extends sdEntity
 		this._held_by = null;
 		this.held_by_net_id = -1;
 		this.held_by_class = '';
+		
+		this._held_by_removed_panic = 0;
 		
 		this._ammo_left = -123;
 		
@@ -601,6 +604,7 @@ class sdGun extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		
 		if ( !sdWorld.is_server )
 		{
 			let old_held_by = this._held_by;
@@ -625,6 +629,27 @@ class sdGun extends sdEntity
 		}
 		else
 		{
+			
+			if ( this._held_by )
+			if ( this._held_by._is_being_removed )
+			{
+				this._held_by_removed_panic++;
+				
+				if ( this._held_by_removed_panic === 10 )
+				{
+					
+					console.log( 'Floating weapon bug just happened: this['+this._net_id+']._held_by._is_being_removed. Held by '+this._held_by.GetClass()+' aka '+this._held_by.title );
+					
+					debugger;
+
+					//throw new Error('Terminating due to bug found (gun held by something that is removed yet gun logic still being executed)...');
+					
+
+					for ( var i = 0; i < sdWorld.sockets.length; i++ )
+					sdWorld.sockets[ i ].emit( 'SERVICE_MESSAGE', 'Floating gun bug happened, please report what caused it. Gun is held by removed '+this._held_by.GetClass()+' ('+this._held_by.title+')' );
+				}
+			}
+
 			if ( this.reload_time_left > 0 )
 			this.reload_time_left = Math.max( 0, this.reload_time_left - GSPEED * ( ( this._held_by && this._held_by.stim_ef > 0 ) ? 2 : 1 ) );
 		}

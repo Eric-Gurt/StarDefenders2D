@@ -378,6 +378,17 @@ class sdEntity
 	{
 		if ( v !== this._hiberstate )
 		{
+			if ( sdWorld.is_server )
+			if ( v === sdEntity.HIBERSTATE_ACTIVE )
+			if ( this._hiberstate === sdEntity.HIBERSTATE_REMOVED )
+			{
+				if ( this._is_being_removed )
+				{
+					debugger;
+					throw new Error('Logic error: ' + this.GetClass() + ' is not allowed to become active after was removed');
+				}
+			}
+
 			//if ( !this._hiberstate_history )
 			//this._hiberstate_history = [];
 		
@@ -901,7 +912,7 @@ class sdEntity
 	}
 	_remove()
 	{
-		this._is_being_removed = true; // Just in case?
+		this._is_being_removed = true; // Just in case? Never needed but OnThink might return true for removal without .remove() call
 		
 		this.onRemove();
 		

@@ -1365,6 +1365,7 @@ class sdCharacter extends sdEntity
 	
 	onRemove() // Class-specific, if needed
 	{
+		//console.log( this.title + '['+this._net_id+'] is being removed' );
 		sdCharacter.characters.splice( sdCharacter.characters.indexOf( this ), 1 );
 		
 		if ( this.driver_of )
@@ -1437,9 +1438,11 @@ class sdCharacter extends sdEntity
 		let slot = this._inventory.indexOf( ent );
 		if ( slot === -1 )
 		{
-			if ( sdWorld.is_server )
-			throw new Error('Should not happen');
-			else
+			//if ( sdWorld.is_server )
+			//throw new Error('Should not happen');
+			//else
+			
+			console.warn( 'Should not happen' ); // Rarely happened on server, not sure what caused this. Could be related to floating guns in mid-air, which happened after client self-initated respawn while he already had character in world but snapshots were simply not sent to players due to bug.
 			return;
 		}
 		
@@ -1450,6 +1453,8 @@ class sdCharacter extends sdEntity
 	{
 		if ( this._inventory[ i ] )
 		{
+			//console.log( this.title + ' drops gun ' + this._inventory[ i ]._net_id );
+		
 			if ( typeof this._inventory[ i ]._held_by === 'undefined' )
 			debugger; // Pickable items should have this property
 
@@ -1473,6 +1478,8 @@ class sdCharacter extends sdEntity
 			this._inventory[ i ]._held_by = null;
 			this._inventory[ i ] = null;
 		}
+		//else
+		//console.log( this.title + ' is unable to drop drop gun with slot ' + i );
 	}
 
 	onMovementInRange( from_entity )
@@ -1514,6 +1521,8 @@ class sdCharacter extends sdEntity
 						if ( !sdGun.classes[ from_entity.class ].onPickupAttempt || 
 							  sdGun.classes[ from_entity.class ].onPickupAttempt( this, from_entity ) )
 						{	
+							//console.warn( this.title + '['+this._net_id+'] picks up gun ' + from_entity._net_id + ' // this._is_being_removed = ' + this._is_being_removed );
+							
 							this._inventory[ sdGun.classes[ from_entity.class ].slot ] = from_entity;
 							from_entity._held_by = this;
 							from_entity.ttl = -1;
