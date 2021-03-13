@@ -13,6 +13,7 @@ import sdCube from './sdCube.js';
 import sdBomb from './sdBomb.js';
 import sdGun from './sdGun.js';
 import sdEffect from './sdEffect.js';
+import sdAsp from './sdAsp.js';
 
 
 class sdTurret extends sdEntity
@@ -25,7 +26,7 @@ class sdTurret extends sdEntity
 		sdTurret.img_turret2 = sdWorld.CreateImageFromFile( 'turret2' );
 		sdTurret.img_turret2_fire = sdWorld.CreateImageFromFile( 'turret2_fire' );
 		
-		sdTurret.targetable_classes = new WeakSet( [ sdCharacter, sdVirus, sdQuickie, sdOctopus, sdCube, sdBomb ] );
+		sdTurret.targetable_classes = new WeakSet( [ sdCharacter, sdVirus, sdQuickie, sdOctopus, sdCube, sdBomb, sdAsp ] );
 		
 		sdTurret.KIND_LASER = 0;
 		sdTurret.KIND_ROCKET = 1;
@@ -47,6 +48,9 @@ class sdTurret extends sdEntity
 	
 	Damage( dmg, initiator=null )
 	{
+		if ( !sdWorld.is_server )
+		return;
+	
 		if ( this._hea > 0 )
 		{
 			this._hea -= dmg;
@@ -169,7 +173,7 @@ class sdTurret extends sdEntity
 				if ( this.kind === sdTurret.KIND_ROCKET )
 				vel = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_velocity;
 				
-				this.an = Math.atan2( this._target.y + this._target.sy * di / 15 - this.y, this._target.x + this._target.sx * di / 15 - this.x ) * 100;
+				this.an = Math.atan2( this._target.y + this._target.sy * di / vel - this.y, this._target.x + this._target.sx * di / vel - this.x ) * 100;
 				
 				if ( this.fire_timer <= 0 )
 				{

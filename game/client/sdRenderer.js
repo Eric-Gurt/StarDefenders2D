@@ -702,6 +702,12 @@ class sdRenderer
 			ctx.fillStyle = '#ffff00';
 			ctx.fillText("Score: " + Math.floor( sdWorld.my_score ), 190, 17 );
 			
+			if ( globalThis.enable_debug_info )
+			{
+				ctx.fillStyle = '#AAAAff';
+				ctx.fillText("Last long server frame time took: " + Math.floor( sdWorld.last_frame_time ) + "ms (slowest case entity was "+sdWorld.last_slowest_class+")", 280, 17 );
+			}
+			
 			ctx.fillStyle = '#AAAAAA';
 			ctx.fillText("Leaderboard:", sdRenderer.screen_width - 200 - 5 + 5, 20 );
 			

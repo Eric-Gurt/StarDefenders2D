@@ -221,6 +221,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCube', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', is_huge:true, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdAsp', _category:'Development tests' });
 		}
 		
 		sdShop.potential_selection = -1;
@@ -475,6 +476,10 @@ class sdShop
 						if ( sdShop.options[ sdShop.potential_selection ].material === sdBlock.MATERIAL_SHARP )
 						c = 'Trap';
 					}
+				
+					if ( c === 'Gun' )
+					if ( sdGun.classes[ sdShop.options[ sdShop.potential_selection ].class ].title )
+					c = sdGun.classes[ sdShop.options[ sdShop.potential_selection ].class ].title;
 					
 					t = 'Click to select "' + c + '" as a build object. Then click to place this object in world.';
 				}

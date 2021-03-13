@@ -1,10 +1,13 @@
 
+/* global Infinity */
+
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdBullet from './sdBullet.js';
 import sdEffect from './sdEffect.js';
 import sdCharacter from './sdCharacter.js';
+import sdStorage from './sdStorage.js';
 
 import sdShop from '../client/sdShop.js';
 
@@ -52,6 +55,7 @@ class sdGun extends sdEntity
 			{
 				image: sdWorld.CreateImageFromFile( 'pistol' ),
 				sound: 'gun_pistol',
+				title: 'Pistol',
 				slot: 1,
 				reload_time: 10,
 				muzzle_x: 5,
@@ -63,6 +67,7 @@ class sdGun extends sdEntity
 			{
 				image: sdWorld.CreateImageFromFile( 'rifle' ),
 				sound: 'gun_rifle',
+				title: 'Assault rifle',
 				slot: 2,
 				reload_time: 3,
 				muzzle_x: 7,
@@ -74,6 +79,7 @@ class sdGun extends sdEntity
 			{
 				image: sdWorld.CreateImageFromFile( 'shotgun' ),
 				sound: 'gun_shotgun',
+				title: 'Shotgun',
 				slot: 3,
 				reload_time: 20,
 				muzzle_x: 9,
@@ -86,6 +92,7 @@ class sdGun extends sdEntity
 			{
 				image: sdWorld.CreateImageFromFile( 'railgun' ),
 				sound: 'gun_railgun',
+				title: 'Railgun',
 				slot: 4,
 				reload_time: 30,
 				muzzle_x: 7,
@@ -97,6 +104,7 @@ class sdGun extends sdEntity
 			{
 				image: sdWorld.CreateImageFromFile( 'rocket' ),
 				sound: 'gun_rocket',
+				title: 'Rocket launcher',
 				slot: 5,
 				reload_time: 30,
 				muzzle_x: 7,
@@ -110,6 +118,7 @@ class sdGun extends sdEntity
 			{
 				image: sdWorld.CreateImageFromFile( 'medikit' ),
 				sound: 'gun_defibrillator',
+				title: 'Defibrillator',
 				slot: 6,
 				reload_time: 25,
 				muzzle_x: null,
@@ -120,6 +129,7 @@ class sdGun extends sdEntity
 			{
 				image: sdWorld.CreateImageFromFile( 'spark' ),
 				sound: 'gun_spark',
+				title: 'Spark',
 				slot: 8,
 				reload_time: 7,
 				muzzle_x: 7,
@@ -131,6 +141,7 @@ class sdGun extends sdEntity
 			{
 				image: sdWorld.CreateImageFromFile( 'buildtool' ),
 				sound: 'gun_buildtool',
+				title: 'Build tool',
 				slot: 9,
 				reload_time: 15,
 				muzzle_x: null,
@@ -141,6 +152,7 @@ class sdGun extends sdEntity
 			},
 			{
 				image: sdWorld.CreateImageFromFile( 'crystal_shard' ),
+				title: 'Crystal shard',
 				slot: 0,
 				reload_time: 25,
 				muzzle_x: null,
@@ -164,6 +176,7 @@ class sdGun extends sdEntity
 			{
 				image: sdWorld.CreateImageFromFile( 'grenade_launcher' ),
 				sound: 'gun_grenade_launcher',
+				title: 'Grenade launcher',
 				slot: 5,
 				reload_time: 20,
 				muzzle_x: 7,
@@ -180,6 +193,7 @@ class sdGun extends sdEntity
 				image1: [ sdWorld.CreateImageFromFile( 'sniper1' ), sdWorld.CreateImageFromFile( 'sniper1b' ) ],
 				image2: [ sdWorld.CreateImageFromFile( 'sniper2' ), sdWorld.CreateImageFromFile( 'sniper2b' ) ],
 				sound: 'gun_sniper',
+				title: 'Sniper rifle',
 				slot: 4,
 				reload_time: 90,
 				muzzle_x: 11,
@@ -192,6 +206,7 @@ class sdGun extends sdEntity
 			{
 				image: sdWorld.CreateImageFromFile( 'sword' ),
 				//sound: 'gun_medikit',
+				title: 'Sword',
 				image_no_matter: sdWorld.CreateImageFromFile( 'sword_disabled' ),
 				slot: 0,
 				reload_time: 8,
@@ -204,6 +219,7 @@ class sdGun extends sdEntity
 			{
 				image: sdWorld.CreateImageFromFile( 'stimpack' ),
 				sound: 'gun_defibrillator',
+				title: 'Stimpack',
 				sound_pitch: 0.5,
 				slot: 7,
 				reload_time: 30 * 3,
@@ -223,6 +239,7 @@ class sdGun extends sdEntity
 			{
 				image: sdWorld.CreateImageFromFile( 'f_rifle' ),
 				sound: 'gun_f_rifle',
+				title: 'Assault Rifle C-01r',
 				slot: 2,
 				reload_time: 3,
 				muzzle_x: 7,
@@ -235,6 +252,7 @@ class sdGun extends sdEntity
 			{
 				image: sdWorld.CreateImageFromFile( 'triple_rail' ),
 				sound: 'cube_attack',
+				title: 'Cube-gun',
 				slot: 4,
 				reload_time: 3,
 				muzzle_x: 7,
@@ -254,6 +272,9 @@ class sdGun extends sdEntity
 	
 	Damage( dmg, initiator=null )
 	{
+		if ( !sdWorld.is_server )
+		return;
+	
 		this._hea -= dmg;
 		if ( this._hea <= 0 )
 		{
@@ -266,6 +287,7 @@ class sdGun extends sdEntity
 	{
 		return ( this._held_by === null );
 	}
+	
 	constructor( params )
 	{
 		super( params );
@@ -276,7 +298,7 @@ class sdGun extends sdEntity
 		this.reload_time_left = 0;
 		this.muzzle = 0;
 		
-		// Old way of entity pointers I guess
+		// Old way of entity pointers I guess. ApplySnapshot handles this case but only for sdGun case
 		this._held_by = null;
 		this.held_by_net_id = -1;
 		this.held_by_class = '';
@@ -299,7 +321,14 @@ class sdGun extends sdEntity
 		return true;
 		else
 		{
-			if ( this._held_by.GetClass() === 'sdCharacter' )
+			if ( this._held_by.is( sdStorage ) )
+			{
+				if ( observer_character )
+				if ( sdWorld.inDist2D_Boolean( observer_character.x, observer_character.y, this.x, this.y ) < sdStorage.access_range )
+				return true;
+			}
+			else
+			if ( this._held_by.is( sdCharacter ) )
 			if ( !this._held_by.ghosting || this._held_by.IsVisible( observer_character ) )
 			if ( !this._held_by.driver_of )
 			{
@@ -313,11 +342,13 @@ class sdGun extends sdEntity
 	{
 		if ( this._held_by )
 		{
+			this._held_by.DropSpecificWeapon( this );
+			/*
 			if ( this._held_by._inventory[ sdGun.classes[ this.class ].slot ] === this )
 			this._held_by._inventory[ sdGun.classes[ this.class ].slot ] = null;
 			else
 			console.warn('Warning: Held sdGun is removed but different entity is at same exact slot!...');
-		
+			*/
 			this._held_by = null;
 		}
 	}
@@ -579,14 +610,18 @@ class sdGun extends sdEntity
 			if ( old_held_by !== this._held_by )
 			{
 				if ( old_held_by )
+				if ( old_held_by.is( sdCharacter ) )
 				if ( old_held_by._inventory[ sdGun.classes[ this.class ].slot ] === this )
 				old_held_by._inventory[ sdGun.classes[ this.class ].slot ] = null;
 			}
 			
 			if ( this._held_by )
+			if ( this._held_by.is( sdCharacter ) )
 			{
 				this._held_by._inventory[ sdGun.classes[ this.class ].slot ] = this;
 			}
+			
+			// Other kinds of entities like sdStorage will handle pointers properly without extra logic here (since they are public and entity pointers will naturally work)
 		}
 		else
 		{

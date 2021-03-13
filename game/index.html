@@ -49,6 +49,15 @@
 		height: 20px;
 		vertical-align: middle;
 	    }
+	    input[type=checkbox]::after
+	    {
+		display: block;
+		content: " ";
+		position: absolute;
+		width: 220px;
+		height: 20px;
+		box-sizing: border-box;
+	    }
 	    input[type=button]
 	    {
 		padding-left: 12px;
@@ -71,9 +80,11 @@
 		padding-bottom: 10px;
 		transition: all 0.2s ease;
 		color: transparent;
-		height: 20px;
+		height: 15px;
 		padding: 10px;
 		background-color: transparent;
+		position: relative;
+		user-select: none;
 	    }
 	    .set_block input
 	    {
@@ -83,12 +94,18 @@
 	    }
 	    .set_block:hover
 	    {
+		background-color: #0d1710;
+		cursor: pointer;
+	    }
+	    .set_block:focus-within
+	    {
 		font-size: unset;
 		color: unset;
 		height: unset;
 		background-color: #1e3424;
+		outline: none;
 	    }
-	    .set_block:hover input
+	    .set_block:focus-within input
 	    {
 		height: 15px;
 		opacity: 1;
@@ -387,6 +404,7 @@
 		padding: 20px; overflow-y: scroll;">
 		<span class="sdtitle">What's new?:</span><br>
 		<div class="sdgroup">
+		    11 March 2021: Something that won't work with ground that was created from previous version of game; bugfixes; weapon storages should work now; more information for connection/performance issues in debug mode - feel free to report when these heavy lags happen.<br><br>
 		    2 March 2021: Downed players & cubes will emit matter now; Item pickup sound added; sdCommandCentres will now expire if no player has more than 300 matter within time span of 24 hours; World maximum size increased by 2 times in both directions; Water was significantly simplified.<br><br>
 		    26 February 2021: sdMatterContainer range increased from 30 to 50; upgrade_energy max level increased from 20 to 40 (maximum 1850 energy); New players should spawn on ground with much higher probability rather than in bases; Grenade bounce multiplier changed from 0.3 to 0.55; Pistol attack matter cost changed to 0; Damaged spawn-protected crystals should be no longer seen by sdCube-s as negative activity; Stim-packs; FFA players should receive slightly longer respawn time, if they die; Jetpack no longer canceled when player accidentally stands on something; In addition to damage/protection upgrades, some entities are now capable of completely canceling lower level damage; sdOctopus max health decreased from 3000 to 2000.<br><br>
 		    9 February 2021: Some server-side optimizations (for sdCrystal, sdAntigravity, sdMatterContainer, sdTurret, sdCom) for cases when too many entities are made as well as when entities have too many of other entities in close range (hopefully nothing stops working as intended).<br><br>
@@ -461,7 +479,7 @@
 	    <br>
 	    
 	    
-	    <div class="set_block">
+	    <div class="set_block" tabindex="1">
 		<span class="sdtitle">Start with</span><br>
 		<input type="checkbox" id="start_with1" value="pistol_and_buildtool">
 		<label for="start_with1">Pistol and build tool</label>
@@ -471,7 +489,7 @@
 	    </div>
 	    
 	    <!--
-	    <div class="set_block">
+	    <div class="set_block" tabindex="1">
 		Send microphone input as chat messages:<br>
 		<input type="checkbox" id="voice_chat1" value="no" checked>
 		<label for="voice_chat1">No</label>
@@ -481,7 +499,7 @@
 	    </div>
 	    -->
 	    
-	    <div class="set_block">
+	    <div class="set_block" tabindex="1">
 		<span class="sdtitle">Assign instructor on start</span><br>
 		<input type="checkbox" id="hints1" value="no">
 		<label for="hints1">No</label>
@@ -490,7 +508,7 @@
 		<label for="hints2">Yes</label>
 	    </div>
 	    
-	    <div class="set_block">
+	    <div class="set_block" tabindex="1">
 		<span class="sdtitle">Visual settings</span><br>
 		<input type="checkbox" id="visuals1" value="no">
 		<label for="visuals1">2D (old, unoptimized)</label>
@@ -502,7 +520,7 @@
 		<label for="visuals3">3D+ (GPU accelerated)</label>
 	    </div>
 	    
-	    <div class="set_block">
+	    <div class="set_block" tabindex="1">
 		<span class="sdtitle">Helmet</span><br>
 		<input type="checkbox" id="helmet1" value="1">
 		<label for="helmet1">Star Defender</label>
@@ -523,7 +541,7 @@
 		<label for="helmet6">Open</label>
 	    </div>
 	    
-	    <div class="set_block">
+	    <div class="set_block" tabindex="1">
 		<span class="sdtitle">Show debug info</span><br>
 		<input type="checkbox" id="bugs1" value="no" checked>
 		<label for="bugs1">No</label>
@@ -532,7 +550,7 @@
 		<label for="bugs2">Yes</label>
 	    </div>
 	    
-	    <div class="set_block">
+	    <div class="set_block" tabindex="1">
 		<span class="sdtitle">Character's voice (eSpeak)</span><br>
 		<input type="checkbox" id="voice1" value="low" onclick="globalThis.TestVoice(this)">
 		<label for="voice1">Lowest pitch</label>

@@ -4,6 +4,7 @@ import sdWorld from '../sdWorld.js';
 import sdShop from './sdShop.js';
 import sdCom from '../entities/sdCom.js';
 import sdEntity from '../entities/sdEntity.js';
+import sdStorage from '../entities/sdStorage.js';
 
 
 
@@ -48,6 +49,25 @@ class sdContextMenu
 			{
 				sdContextMenu.options = [];
 				
+				if ( sdContextMenu.current_target.GetClass() === 'sdStorage' )
+				{
+					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdStorage.access_range ) >= 0 )
+					{
+						let items = sdContextMenu.current_target.GetItems();
+						
+						for ( var i = 0; i < items.length; i++ )
+						{
+							let net_id = items[ i ]._net_id;
+							sdContextMenu.options.push({ title: 'Get ' + sdEntity.GuessEntityName( net_id )/*user ' + net_id*/,
+								action: ()=>
+								{
+									globalThis.socket.emit( 'STORAGE_GET', [ sdContextMenu.current_target._net_id, net_id ] );
+								}
+							});
+						}
+					}
+				}
+				else
 				if ( sdContextMenu.current_target.GetClass() === 'sdCharacter' )
 				{
 					if ( sdContextMenu.current_target.hea > 0 )

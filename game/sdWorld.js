@@ -41,6 +41,9 @@ class sdWorld
 			scale:1
 		};
 		
+		sdWorld.last_frame_time = 0; // For lag reporting
+		sdWorld.last_slowest_class = 'nothing';
+		
 		sdWorld.target_scale = 2;
 		
 		sdWorld.my_key_states = null; // Will be assigned to active entity to allow client-side movement
@@ -427,7 +430,12 @@ class sdWorld
 				if ( Math.pow( enemy_rand_num, 2 ) > 0.8 / hp_mult )
 				random_enemy = 'sdQuickie';
 				else
-				random_enemy = 'sdVirus';
+				{
+					if ( Math.random() < 0.2 )
+					random_enemy = 'sdAsp';
+					else
+					random_enemy = 'sdVirus';
+				}
 				
 				
 				
@@ -1083,6 +1091,29 @@ class sdWorld
 		
 		sdWorld.time = Date.now();
 		
+		let t2 = sdWorld.time;
+		
+		let times = {};
+		
+		let worst_case = 0;
+		
+		function IncludeTimeCost( _class, time_add )
+		{
+			if ( sdWorld.is_server )
+			{
+				if ( typeof times[ _class ] === 'undefined' )
+				times[ _class ] = time_add;
+				else
+				times[ _class ] += time_add;
+
+				if ( times[ _class ] > worst_case )
+				{
+					worst_case = times[ _class ];
+					sdWorld.last_slowest_class = _class;
+				}
+			}
+		}
+		
 		//let substeps = sdWorld.is_server ? 2 : 2;
 		//let substeps = 2;
 		
@@ -1115,10 +1146,11 @@ class sdWorld
 				loop1: for ( var i = 0; i < arr.length; i++ )
 				{
 					var e = arr[ i ];
+					
+					let time_from = Date.now();
 
 					for ( var step = 0; step < e.substeps || e.progress_until_removed; step++ )
 					{
-						let time_from = Date.now();
 						
 						if ( e._is_being_removed || 
 							 e.Think( GSPEED / e.substeps ) )
@@ -1163,9 +1195,6 @@ class sdWorld
 							}
 							continue loop1; // Or else it will try to get removed in each substep of a bullet
 						}
-						let time_to = Date.now();
-						if ( time_to - time_from > 5 )
-						sdWorld.SendEffect({ x:e.x, y:e.y, type:sdEffect.TYPE_LAG, text:e.GetClass()+': '+(time_to - time_from)+'ms' });
 						
 						if ( e._last_x !== e.x ||
 							 e._last_y !== e.y )
@@ -1177,6 +1206,12 @@ class sdWorld
 							sdWorld.UpdateHashPosition( e, false );
 						}
 					}
+					
+					let time_to = Date.now();
+					if ( time_to - time_from > 5 )
+					sdWorld.SendEffect({ x:e.x, y:e.y, type:sdEffect.TYPE_LAG, text:e.GetClass()+': '+(time_to - time_from)+'ms' });
+				
+					IncludeTimeCost( e.GetClass(), time_to - time_from );
 				}
 			}
 
@@ -1203,6 +1238,18 @@ class sdWorld
 					//sdWorld.camera.x = sdWorld.my_entity.x;
 					//sdWorld.camera.y = sdWorld.my_entity.y;
 					//sdWorld.camera.scale = 2;
+					
+					
+					
+					if ( sdWorld.camera.x < sdWorld.my_entity.x - 400 )
+					sdWorld.camera.x = sdWorld.my_entity.x - 400;
+					if ( sdWorld.camera.x > sdWorld.my_entity.x + 400 )
+					sdWorld.camera.x = sdWorld.my_entity.x + 400;
+
+					if ( sdWorld.camera.y < sdWorld.my_entity.y - 200 )
+					sdWorld.camera.y = sdWorld.my_entity.y - 200;
+					if ( sdWorld.camera.y > sdWorld.my_entity.y + 200 )
+					sdWorld.camera.y = sdWorld.my_entity.y + 200;
 
 
 					sdWorld.my_entity.look_x = sdWorld.mouse_screen_x / sdWorld.camera.scale + sdWorld.camera.x - sdRenderer.screen_width / 2 / sdWorld.camera.scale;
@@ -1212,6 +1259,8 @@ class sdWorld
 				sdSound.HandleMatterChargeLoop( GSPEED );
 			}
 		//}
+		
+		let t3 = Date.now();
 		
 		if ( sdWorld.is_server )
 		{
@@ -1240,6 +1289,9 @@ class sdWorld
 			sdWorld.leaders = sdWorld.leaders.slice( 0, 15 );
 		}
 		
+		let t4 = Date.now();
+		IncludeTimeCost( 'leaders_and_warnings', t4 - t3 );
+		
 		if ( sdWorld.world_hash_positions_recheck_keys.length > 0 )
 		for ( var s = Math.max( 32, sdWorld.world_hash_positions_recheck_keys.length * 0.1 ); s >= 0; s-- )
 		{
@@ -1253,6 +1305,15 @@ class sdWorld
 			}
 	
 			sdWorld.world_hash_positions_recheck_keys.shift();
+		}
+		
+		let t5 = Date.now();
+		IncludeTimeCost( 'world_hash_positions_recheck_keys', t5 - t4 );
+		
+		if ( sdWorld.is_server )
+		{
+			sdWorld.last_frame_time = t5 - t2;
+			//sdWorld.last_slowest_class = 'nothing';
 		}
 		
 		// Keep it last:

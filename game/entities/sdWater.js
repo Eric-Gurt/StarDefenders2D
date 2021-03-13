@@ -92,6 +92,7 @@ class sdWater extends sdEntity
 		{
 			if ( arr_under[ i ] instanceof sdWater )
 			if ( arr_under[ i ].x === nx && arr_under[ i ].y === ny )
+			if ( !arr_under[ i ]._is_being_removed )
 			return arr_under[ i ];
 		}
 	}

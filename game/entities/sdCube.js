@@ -547,7 +547,7 @@ class sdCube extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		return 500; // Hack
+		return 0; // Hack
 	}
 }
 //sdCube.init_class();

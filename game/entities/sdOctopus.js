@@ -5,7 +5,7 @@ import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdGun from './sdGun.js';
 import sdWater from './sdWater.js';
-
+import sdCom from './sdCom.js';
 import sdBlock from './sdBlock.js';
 
 class sdOctopus extends sdEntity
@@ -71,7 +71,7 @@ class sdOctopus extends sdEntity
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( this._hea > 0 )
-		if ( character.IsVisible() )
+		if ( character.IsTargetable() && character.IsVisible() )
 		if ( character.hea > 0 )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
@@ -169,7 +169,7 @@ class sdOctopus extends sdEntity
 		else
 		if ( this._current_target )
 		{
-			if ( this._current_target._is_being_removed || !this._current_target.IsVisible() || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdOctopus.max_seek_range + 32 )
+			if ( this._current_target._is_being_removed || !this._current_target.IsTargetable() || !this._current_target.IsVisible() || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdOctopus.max_seek_range + 32 )
 			this._current_target = null;
 			else
 			{
@@ -244,7 +244,7 @@ class sdOctopus extends sdEntity
 				{
 					from_entity = nears_raw[ i ];
 					
-					if ( ( from_entity.GetClass() === 'sdCharacter' && from_entity.IsVisible() ) ||
+					if ( ( from_entity.GetClass() === 'sdCharacter' && from_entity.IsTargetable() && from_entity.IsVisible() ) ||
 						 ( from_entity.GetClass() === 'sdBlock' && !from_entity._natural ) ||
 						 from_entity.GetClass() === 'sdCom' ||
 						 from_entity.GetClass() === 'sdCrystal' ||
@@ -296,7 +296,7 @@ class sdOctopus extends sdEntity
 						 from_entity.GetClass() === 'sdVirus' ||
 						 ( typeof from_entity.hea !== 'undefined' && from_entity.hea <= 0 ) ||
 						 ( typeof from_entity._hea !== 'undefined' && from_entity._hea <= 0 ) )*/
-					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, [ 'sdOctopus' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
+					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
 					{
 						from_entity.Damage( 50, this );
 						
@@ -422,7 +422,7 @@ class sdOctopus extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		return 500; // Hack
+		return 0; // Hack
 	}
 }
 //sdOctopus.init_class();

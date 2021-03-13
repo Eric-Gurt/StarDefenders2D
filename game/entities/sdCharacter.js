@@ -187,6 +187,8 @@ class sdCharacter extends sdEntity
 		
 		this._socket = null; // undefined causes troubles
 		
+		this.lag = false;
+		
 		this.helmet = 1;
 		
 		this._in_water = false;
@@ -328,6 +330,7 @@ class sdCharacter extends sdEntity
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
 	{
 		if ( this.driver_of )
+		if ( !this.driver_of.IsVisible( observer_character ) )
 		return false;
 		
 		if ( !this.ghosting )
@@ -395,6 +398,15 @@ class sdCharacter extends sdEntity
 	
 		
 		return ( v + 1 * 6 ) / 7;
+	}
+	Impact( vel ) // fall damage basically
+	{
+		//if ( vel > 7 )
+		if ( vel > 6.5 ) // For new mass-based model
+		{
+			//this.Damage( ( vel - 4 ) * 15 );
+			this.Damage( ( vel - 3 ) * 17 );
+		}
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -722,14 +734,6 @@ class sdCharacter extends sdEntity
 		this._air = sdCharacter.air_max;
 		*/
 	   
-		if ( this._ai_enabled )
-		{
-			if ( !this._ai )
-			this._ai = {};
-		
-			this.AILogic( GSPEED );
-		}
-	   
 		if ( this.hea <= 0 )
 		{
 			this.MatterGlow( 0.01, 30, GSPEED );
@@ -766,6 +770,14 @@ class sdCharacter extends sdEntity
 		}
 		else
 		{
+			if ( this._ai_enabled )
+			{
+				if ( !this._ai )
+				this._ai = {};
+
+				this.AILogic( GSPEED );
+			}
+
 			if ( this._dying )
 			{
 				this.Damage( GSPEED * 0.1 );
@@ -1420,6 +1432,20 @@ class sdCharacter extends sdEntity
 		for ( var i = 0; i < this._inventory.length; i++ )
 		this.DropWeapon( i );
 	}
+	DropSpecificWeapon( ent ) // sdGun keepers need this method for case of sdGun removal
+	{
+		let slot = this._inventory.indexOf( ent );
+		if ( slot === -1 )
+		{
+			if ( sdWorld.is_server )
+			throw new Error('Should not happen');
+			else
+			return;
+		}
+		
+	
+		this.DropWeapon( slot );
+	}
 	DropWeapon( i ) // by slot
 	{
 		if ( this._inventory[ i ] )
@@ -1598,7 +1624,7 @@ class sdCharacter extends sdEntity
 	{
 		//if ( !fake_ent.IsBGEntity )
 		fake_ent.GetIgnoredEntityClasses = sdEntity.prototype.GetIgnoredEntityClasses; // Discard effect of this method because doors will have problems in else case
-		if ( fake_ent.CanMoveWithoutOverlap( fake_ent.x, fake_ent.y, 1 ) )
+		if ( fake_ent.CanMoveWithoutOverlap( fake_ent.x, fake_ent.y, 0.00001 ) ) // Very small so entity's velocity can be enough to escape this overlap
 		{
 			if ( sdWorld.Dist2D( this.x, this.y, this._build_params.x, this._build_params.y ) < 64 )
 			{
@@ -1686,6 +1712,15 @@ class sdCharacter extends sdEntity
 	{
 		if ( this.ghosting )
 		ctx.globalAlpha = 0.3;
+	
+		if ( this.lag )
+		if ( globalThis.enable_debug_info )
+		{
+			ctx.fillStyle = '#000000';
+			ctx.fillText( 'Connection problem', 0, -24.5 - 5, 50 ); 
+			ctx.fillStyle = '#ffff00';
+			ctx.fillText( 'Connection problem', 0, -25 - 5, 50 );
+		}
 		
 		//ctx.filter = this.filter;
 		ctx.sd_filter = this.sd_filter;

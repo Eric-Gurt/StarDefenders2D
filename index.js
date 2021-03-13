@@ -1,4 +1,6 @@
 
+/* global globalThis, process */
+
 // http://localhost:3000
 
 /*
@@ -60,7 +62,13 @@ const io = new Server( httpsServer ? httpsServer : httpServer, {
   // ...
   pingInterval: 30000,
   pingTimeout: 15000,
-  maxHttpBufferSize: 1024 // 512 is minimum that works (but lacks long-name support on join)
+  maxHttpBufferSize: 1024, // 512 is minimum that works (but lacks long-name support on join)
+  perMessageDeflate: {
+    threshold: 1024
+  }, // Promised to be laggy but with traffic bottlenecking it might be the only way (and nature of barely optimized network snapshots)
+  httpCompression: {
+    threshold: 1024
+  }
 });
 	
 // let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Old register for object spawn code
@@ -92,6 +100,7 @@ import sdCommandCentre from './game/entities/sdCommandCentre.js';
 import sdBomb from './game/entities/sdBomb.js';
 import sdHover from './game/entities/sdHover.js';
 import sdStorage from './game/entities/sdStorage.js';
+import sdAsp from './game/entities/sdAsp.js';
 
 
 import sdShop from './game/client/sdShop.js';
@@ -184,6 +193,7 @@ sdCommandCentre.init_class();
 sdBomb.init_class();
 sdHover.init_class();
 sdStorage.init_class();
+sdAsp.init_class();
 
 
 sdShop.init_class(); // requires plenty of classes due to consts usage
@@ -338,7 +348,7 @@ let is_terminating = false;
 				fs.writeFile( snapshot_path + '.raw.v', json, ( err )=>
 				{
 				});
-			}9
+			}
 
 		});
 	}
@@ -352,7 +362,7 @@ let is_terminating = false;
 		{
 			for ( var i = 0; i < sockets.length; i++ )
 			sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server: Backup is compelte ('+(err?'Error!':'successfully')+')!' );
-		})
+		});
 	}, 1000 * 60 * 15 ); // Once per 15 minutes
 
 	let termination_initiated = false;
@@ -483,6 +493,57 @@ setInterval( ()=>
 	let x2_locked = false;
 	let y2_locked = false;
 	
+	let x1_locked_by = [];
+	let y1_locked_by = [];
+	let x2_locked_by = [];
+	let y2_locked_by = [];
+	
+	let edge_cursious = []; // -1
+	let edge_cursious_ent = [];
+	
+	function TellReason()
+	{
+		for ( var i = 0; i < edge_cursious_ent.length; i++ )
+		{
+			if ( edge_cursious_ent[ i ]._socket )
+			{
+				let blocking_by = [];
+				
+				switch ( edge_cursious[ i ] )
+				{
+					case 0: for ( var i2 = 0; i2 < x1_locked_by.length; i2++ ) blocking_by.push( sdEntity.GuessEntityName( x1_locked_by[ i2 ]._net_id ) ); break;
+					case 1: for ( var i2 = 0; i2 < x2_locked_by.length; i2++ ) blocking_by.push( sdEntity.GuessEntityName( x2_locked_by[ i2 ]._net_id ) ); break;
+					case 2: for ( var i2 = 0; i2 < y1_locked_by.length; i2++ ) blocking_by.push( sdEntity.GuessEntityName( y1_locked_by[ i2 ]._net_id ) ); break;
+					case 3: for ( var i2 = 0; i2 < y2_locked_by.length; i2++ ) blocking_by.push( sdEntity.GuessEntityName( y2_locked_by[ i2 ]._net_id ) ); break;
+				}
+				
+				for ( var i2 = 0; i2 < blocking_by.length; i2++ )
+				{
+					let count = 1;
+					for ( var i3 = i2 + 1; i3 < blocking_by.length; i3++ )
+					{
+						if ( blocking_by[ i2 ] === blocking_by[ i3 ] )
+						{
+							count++;
+							blocking_by.splice( i3, 1 );
+							i3--;
+							continue;
+						}
+					}
+					if ( count > 1 )
+					{
+						blocking_by[ i2 ] = blocking_by[ i2 ] + ' x' + count;
+					}
+				}
+				
+				if ( blocking_by.length === 1 )
+				edge_cursious_ent[ i ]._socket.emit('SERVICE_MESSAGE', 'World can not be extended past this point - ' + blocking_by.join(', ') + ' is at the opposite edge of playable area' );
+				else
+				edge_cursious_ent[ i ]._socket.emit('SERVICE_MESSAGE', 'World can not be extended past this point - ' + blocking_by.join(', ') + ' are at the opposite edge of playable area' );
+			}
+		}
+	}
+	
 	let top_matter = 0;
 	
 
@@ -519,27 +580,82 @@ setInterval( ()=>
 			if ( ent.matter > top_matter )
 			top_matter = ent.matter;
 			
-			if ( ent.x < ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 )
-			x1_locked = true;
-			else
-			x2_locked = true;
+			if ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 > 4000 )
+			{
+				if ( ent.x < sdWorld.world_bounds.x1 + 2000 )
+				{
+					x1_locked = true;
+					x1_locked_by.push( ent );
+				}
 
+				if ( ent.x > sdWorld.world_bounds.x2 - 2000 )
+				{
+					x2_locked = true;
+					x2_locked_by.push( ent );
+				}
+			}
+
+
+			if ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 > 2000 )
+			{
+				if ( ent.y < sdWorld.world_bounds.y1 + 1000 )
+				{
+					y1_locked = true;
+					y1_locked_by.push( ent );
+				}
+
+				if ( ent.y > sdWorld.world_bounds.y2 - 1000 )
+				{
+					y2_locked = true;
+					y2_locked_by.push( ent );
+				}
+			}
+			/*
 			if ( ent.y < ( sdWorld.world_bounds.y1 + sdWorld.world_bounds.y2 ) / 2 )
 			y1_locked = true;
 			else
-			y2_locked = true;
+			y2_locked = true;*/
 
 			if ( ent.x > sdWorld.world_bounds.x2 - 16 * 40 )
-			x2 += 16 * 5;
+			{
+				x2 += 16 * 5;
+				
+				if ( ent.x > sdWorld.world_bounds.x2 - 32 )
+				{
+					edge_cursious.push( 0 );
+					edge_cursious_ent.push( ent );
+				}
+			}
 
 			if ( ent.x < sdWorld.world_bounds.x1 + 16 * 40 )
-			x1 -= 16 * 5;
+			{
+				x1 -= 16 * 5;
+				if ( ent.x < sdWorld.world_bounds.x1 + 32 )
+				{
+					edge_cursious.push( 1 );
+					edge_cursious_ent.push( ent );
+				}
+			}
 
 			if ( ent.y > sdWorld.world_bounds.y2 - 16 * 40 )
-			y2 += 16 * 5;
+			{
+				y2 += 16 * 5;
+				if ( ent.y > sdWorld.world_bounds.y2 - 32 )
+				{
+					edge_cursious.push( 2 );
+					edge_cursious_ent.push( ent );
+				}
+			}
 
 			if ( ent.y < sdWorld.world_bounds.y1 + 16 * 40 )
-			y1 -= 16 * 5;
+			{
+				y1 -= 16 * 5;
+				if ( ent.y < sdWorld.world_bounds.y1 + 32 )
+				{
+					edge_cursious.push( 3 );
+					edge_cursious_ent.push( ent );
+				}
+			}
 		}
 	}
 	
@@ -554,14 +670,26 @@ setInterval( ()=>
 		}
 		
 		if ( ent.x < sdWorld.world_bounds.x1 + 1000 )
-		x1_locked = true;
+		{
+			x1_locked = true;
+			x1_locked_by.push( ent );
+		}
 		if ( ent.x > sdWorld.world_bounds.x2 - 1000 )
-		x2_locked = true;
+		{
+			x2_locked = true;
+			x2_locked_by.push( ent );
+		}
 
 		if ( ent.y < sdWorld.world_bounds.y1 + 1000 )
-		y1_locked = true;
+		{
+			y1_locked = true;
+			y1_locked_by.push( ent );
+		}
 		if ( ent.y > sdWorld.world_bounds.y2 - 1000 )
-		y2_locked = true;
+		{
+			y2_locked = true;
+			y2_locked_by.push( ent );
+		}
 	}
 	
 	if ( sdWorld.world_bounds.x1 !== x1 ||
@@ -611,6 +739,12 @@ setInterval( ()=>
 			 sdWorld.world_bounds.x2 !== x2 ||
 			 sdWorld.world_bounds.y2 !== y2 )
 		sdWorld.ChangeWorldBounds( x1, y1, x2, y2 );
+		else
+		TellReason();
+	}
+	else
+	{
+		TellReason();
 	}
 	
 }, world_edge_think_rate );
@@ -1477,6 +1611,30 @@ io.on("connection", (socket) =>
 			socket.emit('SERVICE_MESSAGE', 'Communication node no longer exists' );
 		}
 	});
+	socket.on('STORAGE_GET', ( arr ) => { 
+		
+		if ( !( arr instanceof Array ) )
+		return;
+	
+		if ( socket.character ) 
+		if ( socket.character.hea > 0 ) 
+		{
+			let net_id = arr[ 0 ];
+			let net_id_to_get = arr[ 1 ];
+			let ent = sdEntity.GetObjectByClassAndNetId( 'sdStorage', net_id );
+			if ( ent !== null )
+			{
+				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdStorage.access_range ) >= 0 )
+				{
+					ent.ExtractItem( net_id_to_get, socket.character );
+				}
+				else
+				socket.emit('SERVICE_MESSAGE', 'Storage is too far' );
+			}
+			else
+			socket.emit('SERVICE_MESSAGE', 'Storage no longer exists' );
+		}
+	});
 	
 	
 	socket.on('disconnect', () => 
@@ -1531,6 +1689,10 @@ io.on("connection", (socket) =>
 {
 	console.log('listening on *:3000');
 });
+
+let only_do_nth_connection_per_frame = 1;
+let nth_connection_shift = 0;
+
 setInterval( ()=>
 {
 	//console.log( 'game_ttl', game_ttl );
@@ -1540,6 +1702,32 @@ setInterval( ()=>
 		game_ttl--;
 		
 		sdWorld.HandleWorldLogic();
+		
+		let unwritable = 0;
+		for ( var i = 0; i < sockets.length; i++ )
+		{
+			var socket = sockets[ i ];
+			
+			if ( !socket.client.conn.transport.writable )
+			unwritable++;
+		}
+		
+		if ( unwritable === sockets.length )
+		{
+			if ( only_do_nth_connection_per_frame < sockets.length )
+			console.log( sdWorld.time + ': only_do_nth_connection_per_frame increases to ' + (only_do_nth_connection_per_frame + 1) + ' (all sockets are non-writable)' );
+		
+			only_do_nth_connection_per_frame = Math.min( Math.max( 1, sockets.length ), only_do_nth_connection_per_frame + 1 );
+		}
+		else
+		{
+			if ( only_do_nth_connection_per_frame > 1 )
+			console.log( sdWorld.time + ': only_do_nth_connection_per_frame decreases to ' + (only_do_nth_connection_per_frame - 1) + ' (all sockets are writable)' );
+		
+			only_do_nth_connection_per_frame = Math.max( 1, only_do_nth_connection_per_frame - 1 );
+		}
+		
+		nth_connection_shift = ( nth_connection_shift + 1 ) % only_do_nth_connection_per_frame;
 
 		//sockets_array_locked = true;
 		for ( var i = 0; i < sockets.length; i++ )
@@ -1559,7 +1747,12 @@ setInterval( ()=>
 					
 			if ( socket.character && ( !socket.character._is_being_removed || socket.post_death_spectate_ttl > 0 ) )
 			{
+				if ( sdWorld.time > socket.last_sync + sdWorld.max_update_rate )
+				{
+					socket.character.lag = !socket.client.conn.transport.writable;
+				}
 				
+				if ( i % only_do_nth_connection_per_frame === nth_connection_shift )
 				if ( sdWorld.time > socket.last_sync + sdWorld.max_update_rate && socket.client.conn.transport.writable ) // Buffering prevention?
 				{
 					let previous_sync_time = socket.last_sync;
@@ -1733,7 +1926,7 @@ setInterval( ()=>
 					
 					if ( socket.sd_events.length > 100 )
 					{
-						console.log('socket.sd_events overflow (last sync was ' + ( sdWorld.time - previous_sync_time ) + 'ms ago): ', socket.sd_events );
+						//console.log('socket.sd_events overflow (last sync was ' + ( sdWorld.time - previous_sync_time ) + 'ms ago): ', socket.sd_events );
 						
 						sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server: .sd_events overflow (' + socket.sd_events.length + ' events were skipped). Some sounds and effects might not spawn as result of that.' );
 						
@@ -1743,14 +1936,16 @@ setInterval( ()=>
 					while ( sd_events.length < 10 && socket.sd_events.length > 0 )
 					sd_events.push( socket.sd_events.pop() );
 					
-					socket.emit('RESv2', [ 
+					socket.compress( true ).emit('RESv2', [ 
 						snapshot, // 0
 						socket.score, // 1
 						leaders, // 2
 						sd_events, // 3
 						socket.character._force_add_sx, // 4
 						socket.character._force_add_sy, // 5
-						Math.max( -1, socket.character._position_velocity_forced_until - sdWorld.time ) // 6
+						Math.max( -1, socket.character._position_velocity_forced_until - sdWorld.time ), // 6
+						sdWorld.last_frame_time, // 7
+						sdWorld.last_slowest_class // 8
 					] );
 					
 					socket.character._force_add_sx = 0;

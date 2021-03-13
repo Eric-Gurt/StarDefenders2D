@@ -40,6 +40,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdBomb from './entities/sdBomb.js';
 	import sdHover from './entities/sdHover.js';
 	import sdStorage from './entities/sdStorage.js';
+	import sdAsp from './entities/sdAsp.js';
 
 
 	sdWorld.init_class();
@@ -75,6 +76,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdBomb.init_class();
 	sdHover.init_class();
 	sdStorage.init_class();
+	sdAsp.init_class();
 	
 	
 	globalThis.sdCharacter = sdCharacter; // for console access
@@ -218,6 +220,12 @@ let enf_once = true;
 		let _force_add_sx = stuff_arr[ 4 ];
 		let _force_add_sy = stuff_arr[ 5 ];
 		let _position_velocity_forced_until = sdWorld.time + ( stuff_arr[ 6 ] || -1 );
+		
+		if ( ( stuff_arr[ 7 ] || 0 ) > 32 )
+		{
+			sdWorld.last_frame_time = stuff_arr[ 7 ] || 0;
+			sdWorld.last_slowest_class = stuff_arr[ 8 ] || '';
+		}
 		
 		// snapshot
 		{
@@ -422,7 +430,7 @@ let enf_once = true;
 		ArrowUp: 'KeyW',
 		ArrowDown: 'KeyS',
 		ArrowLeft: 'KeyA',
-		ArrowRight: 'KeyD',
+		ArrowRight: 'KeyD'
 	};
 	
 	window.onkeydown = ( e )=>

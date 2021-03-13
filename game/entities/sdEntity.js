@@ -68,9 +68,6 @@ class sdEntity
 	
 	Impact( vel ) // fall damage basically
 	{
-		//if ( this.GetClass() === 'sdCharacter' )
-		//console.log('Impact',vel);
-		
 		//if ( vel > 7 )
 		if ( vel > 6 ) // For new mass-based model
 		{
@@ -96,6 +93,9 @@ class sdEntity
 	
 	get bounce_intensity()
 	{ return 0; }
+	
+	get friction_remain()
+	{ return 0.8; }
 	
 	UseServerCollisions()
 	{
@@ -132,6 +132,7 @@ class sdEntity
 			//new_y = Math.round( new_y );
 			
 			let bounce_intensity = this.bounce_intensity;
+			let friction_remain = this.friction_remain;
 			
 			if ( step_size > 0 )
 			if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) < 7 )
@@ -176,7 +177,7 @@ class sdEntity
 				this.x = new_x;
 				
 				if ( apply_friction )
-				this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.8, GSPEED );
+				this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, friction_remain, GSPEED );
 			}
 			else
 			if ( this.CanMoveWithoutOverlap( this.x, new_y, safe_overlap ) )
@@ -200,7 +201,7 @@ class sdEntity
 				this.y = new_y;
 				
 				if ( apply_friction )
-				this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.8, GSPEED );
+				this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, friction_remain, GSPEED );
 			}
 			else
 			{
@@ -542,7 +543,7 @@ class sdEntity
 					if ( snapshot[ prop ]._net_id )
 					if ( snapshot[ prop ]._class )
 					{
-						if ( this[ prop ] && this[ prop ]._net_id === snapshot[ prop ]._net_id )
+						if ( this[ prop ] && !this[ prop ]._is_being_removed && this[ prop ]._net_id === snapshot[ prop ]._net_id )
 						{
 							snapshot[ prop ] = this[ prop ];
 						}
@@ -585,6 +586,12 @@ class sdEntity
 		{
 			if ( typeof snapshot._hiberstate !== 'undefined' )
 			this.SetHiberState( snapshot._hiberstate );
+		
+			// Guns still use old pointer method
+			if ( this.GetClass() === 'sdGun' )
+			{
+				this._held_by = sdEntity.GetObjectByClassAndNetId( this.held_by_class, this.held_by_net_id );
+			}
 		}
 		else
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
@@ -706,7 +713,7 @@ class sdEntity
 	
 		return ret;
 	}
-	static GuessEntityName( net_id ) // For client-side coms
+	static GuessEntityName( net_id ) // For client-side coms, also for server bound extend report
 	{
 		if ( typeof net_id === 'string' )
 		{
@@ -727,6 +734,12 @@ class sdEntity
 		else
 		{
 			let e = sdEntity.entities_by_net_id_cache[ net_id ];
+			
+			if ( e.GetClass() === 'sdCommandCentre' )
+			{
+				return 'Command centre';
+			}
+			else
 			if ( e.GetClass() === 'sdCharacter' )
 			{
 				let s = e.title;
@@ -738,6 +751,11 @@ class sdEntity
 				s += ' [ dead ]';
 				
 				return s;
+			}
+			else
+			if ( e.GetClass() === 'sdGun' )
+			{
+				return sdWorld.entity_classes.sdGun.classes[ e.class ].title;
 			}
 			else
 			return e.GetClass() + '#' + net_id;

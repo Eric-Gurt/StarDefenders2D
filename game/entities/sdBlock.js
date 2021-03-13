@@ -215,7 +215,7 @@ class sdBlock extends sdEntity
 	
 		dmg = Math.abs( dmg );
 		
-		if ( this._contains_class === 'sdVirus' || this._contains_class === 'sdQuickie' )
+		if ( this._contains_class === 'sdVirus' || this._contains_class === 'sdQuickie' || this._contains_class === 'sdAsp' )
 		dmg = this._hea + 1;
 		
 		if ( this._hea > 0 )
@@ -223,6 +223,9 @@ class sdBlock extends sdEntity
 			this._hea -= dmg;
 			this.HandleDestructionUpdate();
 			
+			if ( this.material === sdBlock.MATERIAL_GROUND )
+			this._regen_timeout = 120; // Longer so digging can be less accurate towards specific block
+			else
 			this._regen_timeout = 60;
 
 			if ( this._hea <= 0 )

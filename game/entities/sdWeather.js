@@ -8,6 +8,7 @@ import sdCube from './sdCube.js';
 import sdBlock from './sdBlock.js';
 import sdCharacter from './sdCharacter.js';
 import sdGun from './sdGun.js';
+import sdAsp from './sdAsp.js';
 
 
 
@@ -147,7 +148,7 @@ class sdWeather extends sdEntity
 			{
 				this._time_until_event = Math.random() * 30 * 60 * 8; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
 				
-				let r = ~~( Math.random() * 4 );
+				let r = ~~( Math.random() * 5 );
 				
 				//r = 3; // Hack
 				
@@ -256,6 +257,25 @@ class sdWeather extends sdEntity
 						
 						instances++;
 						ais++;
+					}
+				}
+				
+				if ( r === 4 )
+				{
+					for ( let t = Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) + 1; t > 0; t-- )
+					if ( sdAsp.asps_tot < 25 )
+					{
+						let asp = new sdAsp({ 
+							x:sdWorld.world_bounds.x1 + 32 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 - 64 ), 
+							y:sdWorld.world_bounds.y1 + 32,
+						});
+						asp.sy += 10;
+						sdEntity.entities.push( asp );
+
+						if ( !asp.CanMoveWithoutOverlap( asp.x, asp.y, 0 ) )
+						asp.remove();
+						else
+						sdWorld.UpdateHashPosition( asp, false ); // Prevent inersection with other ones
 					}
 				}
 			}

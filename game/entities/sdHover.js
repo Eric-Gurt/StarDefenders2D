@@ -181,7 +181,7 @@ class sdHover extends sdEntity
 					
 					setTimeout( ()=>
 					{
-						if ( !that._is_being_removed )
+						if ( !that._is_being_removed || i === 0 )
 						{
 							var a = Math.random() * 2 * Math.PI;
 							var s = Math.random() * 10;
@@ -371,6 +371,10 @@ class sdHover extends sdEntity
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true, 5 );
 	}
+	
+	get friction_remain()
+	{ return this.driver0 ? 0.95 : 0.8; }
+	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.hea <= 0 )

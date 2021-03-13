@@ -182,6 +182,16 @@ class sdSound
 		let y = params.y;
 		let volume = params.volume || 1;
 		let rate = params.pitch || 1;
+		
+		if ( x < sdWorld.world_bounds.x1 )
+		return;
+		if ( x >= sdWorld.world_bounds.x2 )
+		return;
+		
+		if ( y < sdWorld.world_bounds.y1 )
+		return;
+		if ( y >= sdWorld.world_bounds.y2 )
+		return;
 	
 		if ( typeof sdSound.sounds[ name ] === 'undefined' )
 		{

@@ -251,6 +251,9 @@ class sdEffect extends sdEntity
 			if ( spoken === 'fk' )
 			spoken = 'fuck';
 			
+			if ( spoken === 'nvm' )
+			spoken = 'nevermind';
+			
 			spoken = spoken.split('-').join('');
 			
 			spoken = spoken.split(':)').join('smileyface');
@@ -274,6 +277,8 @@ class sdEffect extends sdEntity
 			
 			let that = this;
 			
+			let since = sdWorld.time;
+			
 			let t = meSpeak.speak( spoken, {
 					amplitude: 100 * sdSound.volume_speech * sdSound.GetDistanceMultForPosition( this.x, this.y ),
 					wordgap: params.voice.wordgap,
@@ -283,6 +288,9 @@ class sdEffect extends sdEntity
 				}, 
 				(e)=>
 				{ 
+					if ( sdWorld.time - since < 3000 )
+					setTimeout(()=>{ that.remove();},3000);
+					else
 					setTimeout(()=>{ that.remove();},100);
 				} 
 			);
@@ -296,10 +304,21 @@ class sdEffect extends sdEntity
 			}
 			  //debugger;
 		}
+		
+		
+		if ( this.x < sdWorld.world_bounds.x1 )
+		this.remove();
+		if ( this.x >= sdWorld.world_bounds.x2 )
+		this.remove();
+		
+		if ( this.y < sdWorld.world_bounds.y1 )
+		this.remove();
+		if ( this.y >= sdWorld.world_bounds.y2 )
+		this.remove();
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return [ 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdCrystal' ];
+		return [ 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdCrystal', 'sdAsp' ];
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{

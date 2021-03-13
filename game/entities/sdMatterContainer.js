@@ -43,6 +43,9 @@ class sdMatterContainer extends sdEntity
 	}
 	Damage( dmg, initiator=null )
 	{
+		if ( !sdWorld.is_server )
+		return;
+	
 		dmg = Math.abs( dmg );
 		
 		this._hea -= dmg;
