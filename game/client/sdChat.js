@@ -7,6 +7,8 @@ class sdChat
 	{
 		sdChat.open = false;
 		sdChat.text = '';
+		
+		sdChat.blink_offset = 0;
 	}
 	static KeyDown( e )
 	{
@@ -28,6 +30,8 @@ class sdChat
 		{
 			sdChat.text = sdChat.text.slice( 0, sdChat.text.length - 1 );
 		}
+		
+		sdChat.blink_offset = sdWorld.time;
 		
 		return sdChat.open;
 	}
@@ -54,8 +58,19 @@ class sdChat
 
 		ctx.fillStyle = '#ffffff';
 		ctx.font = "12px Verdana";
+		
 		ctx.textAlign = 'left';
-		ctx.fillText( 'Say: ' + sdChat.text, 20, sdRenderer.screen_height - 21 );
+		ctx.fillText( 'Say:', 20, sdRenderer.screen_height - 21 );
+		
+		
+		
+		if ( sdChat.text.length > 0 && sdChat.text.charAt( 0 ) === '/' )
+		{
+		    ctx.font = "16px Courier";
+		    ctx.fillStyle = '#00ffaa';
+	    }
+		
+		ctx.fillText( sdChat.text + ( ( sdWorld.time - sdChat.blink_offset ) % 1000 < 500 ? '_' : '' ), 20 + 35, sdRenderer.screen_height - 21 );
 	}
 }
 

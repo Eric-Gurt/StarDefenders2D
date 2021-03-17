@@ -306,7 +306,7 @@ let enf_once = true;
 	
 	socket.on( 'SERVICE_MESSAGE', ( v )=>
 	{
-		sdRenderer.service_mesage_until = sdWorld.time + 5000;
+		sdRenderer.service_mesage_until = sdWorld.time + 6500;
 		sdRenderer.service_mesage = v;
 	});
 	

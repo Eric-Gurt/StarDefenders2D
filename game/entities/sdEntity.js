@@ -601,7 +601,16 @@ class sdEntity
 			// Guns still use old pointer method
 			if ( this.GetClass() === 'sdGun' )
 			{
-				this._held_by = sdEntity.GetObjectByClassAndNetId( this.held_by_class, this.held_by_net_id );
+				let potential_held_by = sdEntity.GetObjectByClassAndNetId( this.held_by_class, this.held_by_net_id );
+				
+				if ( potential_held_by.GetClass() === 'sdCharacter' )
+				{
+					// Will automatically pick-up
+				}
+				else
+				{
+					this._held_by = potential_held_by;
+				}
 			}
 		}
 		else

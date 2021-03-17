@@ -98,8 +98,10 @@ class sdMatterContainer extends sdEntity
 	{
 		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16, - 16, 32,32 );
 		
-		if ( this.matter_max > 40 )
-		ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
+		//if ( this.matter_max > 40 )
+		//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
+	
+		ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
 	
 		ctx.globalAlpha = this.matter / this.matter_max;
 		

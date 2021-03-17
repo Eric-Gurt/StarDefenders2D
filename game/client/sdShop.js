@@ -101,7 +101,9 @@ class sdShop
 		
 		sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_LASER, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_ROCKET, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 / 2, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdCommandCentre', _category:'Base equipment' });
 		
 		for ( var i = 0; i < 3; i++ )

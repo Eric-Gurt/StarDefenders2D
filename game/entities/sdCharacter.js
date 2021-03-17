@@ -241,7 +241,7 @@ class sdCharacter extends sdEntity
 
 		this.act_x = 0;
 		this.act_y = 0;
-		this.act_fire = 0;
+		//this.act_fire = 0;
 
 		this.look_x = 0;
 		this.look_y = 0;

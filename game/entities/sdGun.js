@@ -740,8 +740,10 @@ class sdGun extends sdEntity
 			if ( this.class === sdGun.CLASS_CRYSTAL_SHARD )
 			{
 				let v = this.extra / sdWorld.crystal_shard_value * 40;
-				if ( v > 40 )
-				ctx.filter = 'hue-rotate(' + ( v - 40 ) + 'deg)';
+				/*if ( v > 40 )
+				ctx.filter = 'hue-rotate(' + ( v - 40 ) + 'deg)';*/
+			
+				ctx.filter = sdWorld.GetCrystalHue( v );
 			}
 			
 			if ( this.class === sdGun.CLASS_SWORD )

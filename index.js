@@ -56,7 +56,13 @@ if ( !isWin )
 
 	}, 2147483647 );
 }
-const __dirname = ( isWin ) ? path.resolve() : '/home/admin/sd2d/';
+
+//debugger
+
+const __dirname = ( isWin ) ? 
+	path.resolve()
+	: 
+	'/home/admin/sd2d/';
 
 const io = new Server( httpsServer ? httpsServer : httpServer, {
   // ...
@@ -101,6 +107,7 @@ import sdBomb from './game/entities/sdBomb.js';
 import sdHover from './game/entities/sdHover.js';
 import sdStorage from './game/entities/sdStorage.js';
 import sdAsp from './game/entities/sdAsp.js';
+import sdModeration from './game/server/sdModeration.js';
 
 
 import sdShop from './game/client/sdShop.js';
@@ -195,15 +202,15 @@ sdHover.init_class();
 sdStorage.init_class();
 sdAsp.init_class();
 
-
 sdShop.init_class(); // requires plenty of classes due to consts usage
 
 globalThis.sdWorld = sdWorld;
 globalThis.sdShop = sdShop;
+globalThis.sdModeration = sdModeration;
 
 let frame = 0;
 
-function file_exists( url )
+/*function file_exists( url )
 {
 	return fs.stat( url, function(err, stat) 
 	{
@@ -217,7 +224,9 @@ function file_exists( url )
 		}
 	});
 
-}
+}*/
+const file_exists = fs.existsSync;
+globalThis.file_exists = file_exists;
 
 // Wider url catcher breaks socket?
 app.get('/*', (req, res) => 
@@ -260,13 +269,22 @@ sdWorld.sockets = sockets;
 
 
 
+const snapshot_path_const = __dirname + '/star_defenders_snapshot.v';
+const timewarp_path_const = __dirname + '/star_defenders_timewarp.v';
+const moderation_data_path_const = __dirname + '/moderation_data.v';
+const superuser_pass_path = __dirname + '/superuser_pass.v';
 
-let snapshot_path = __dirname + '/star_defenders_snapshot.v';
+sdWorld.snapshot_path_const = snapshot_path_const;
+sdWorld.timewarp_path_const = timewarp_path_const;
+sdWorld.moderation_data_path_const = moderation_data_path_const;
+sdWorld.superuser_pass_path = superuser_pass_path;
+
+//let snapshot_path = __dirname + '/star_defenders_snapshot.v';
 let is_terminating = false;
 {
 	// World save test
 	let snapshot_save_busy = false;
-	function SaveSnapshot( callback )
+	function SaveSnapshot( snapshot_path, callback )
 	{
 		if ( snapshot_save_busy || is_terminating )
 		return;
@@ -352,13 +370,19 @@ let is_terminating = false;
 
 		});
 	}
-	//setInterval( SaveSnapshot, 1000 * 60 * 60 ); // Once per hour
+	
+	sdWorld.SaveSnapshot = SaveSnapshot;
+	sdWorld.PreventSnapshotSaving = () =>
+	{
+		snapshot_save_busy = true;
+	};
+	
 	setInterval( ()=>{
 		
 		for ( var i = 0; i < sockets.length; i++ )
 		sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server: Backup is being done!' );
 
-		SaveSnapshot( ( err )=>
+		SaveSnapshot( snapshot_path_const, ( err )=>
 		{
 			for ( var i = 0; i < sockets.length; i++ )
 			sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server: Backup is compelte ('+(err?'Error!':'successfully')+')!' );
@@ -377,7 +401,7 @@ let is_terminating = false;
 		for ( var i = 0; i < sockets.length; i++ )
 		sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server reboot: Game server got SIGTERM signal from operating system. Attempting to save world state...' );
 	
-		SaveSnapshot( ( err )=>{
+		SaveSnapshot( snapshot_path_const, ( err )=>{
 			
 			console.warn('SaveSnapshot called callback (error='+err+'), saying goodbye to everyone and quiting process.');
 		
@@ -399,6 +423,8 @@ let is_terminating = false;
 
 try
 {
+	const snapshot_path = snapshot_path_const;
+	
 	let packed_snapshot = fs.readFileSync( snapshot_path );
 	let json = zlib.inflateSync( packed_snapshot );
 	let save_obj = JSON.parse( json );
@@ -452,10 +478,12 @@ try
 	sdWorld.unresolved_entity_pointers = null;
 
 	console.log('Continuing from where we\'ve stopped (snapshot decoded)!');
+	//fs.writeFile( 'sd2d_server_started_here.v', 'Continuing from where we\'ve stopped (snapshot decoded)!', ( err )=>{} );
 }
 catch( e )
 {
 	console.log('Snapshot wasn\'t found or contains errors. Doing fresh start.');
+	//fs.writeFile( 'sd2d_server_started_here.v', 'Snapshot wasn\'t found or contains errors. Doing fresh start.' + JSON.stringify( e ), ( err )=>{} );
 }
 
 
@@ -751,6 +779,13 @@ setInterval( ()=>
 //}, world_edge_think_rate ); // Hack
 
 
+/*if ( sdWorld.is_server )
+{
+	await new Promise(resolve => setTimeout(resolve, 10000));
+}*/
+sdModeration.init_class();
+
+
 io.on("error", ( e ) => 
 {
 	console.warn( 'Global socket Error: ', e );
@@ -880,6 +915,8 @@ io.on("connection", (socket) =>
 	
 	//socket.known_statics_map = new WeakMap();
 	socket.known_statics_versions_map = new Map();
+	
+	socket.my_hash = null;
 
 
 	socket.on("error", ( e ) => 
@@ -911,6 +948,8 @@ io.on("connection", (socket) =>
 			socket.emit('SERVICE_MESSAGE', 'Respawn rejected - too quickly (wait ' + Math.ceil( ( socket.respawn_block_until - sdWorld.time ) / 100 ) / 10 + ' seconds)' );
 			return;
 		}
+		
+		socket.my_hash = player_settings.my_hash;
 		
 		socket.sd_events = []; // Just in case? There was some source of 600+ events stacked, possibly during start screen waiting or maybe even during player being removed. Lots of 'C' events too
 		
@@ -1300,6 +1339,17 @@ io.on("connection", (socket) =>
 	});
 	
 	socket.on('CHAT', ( t ) => { 
+		
+		if ( t.charAt( 0 ) === '/' )
+		{
+			if ( t.length > 1000 )
+			t = 'Error: Command is too long';
+			else
+			{
+				sdModeration.CommandReceived( socket, t );
+				return;
+			}
+		}
 		
 		if ( t.length > 100 )
 		{
@@ -1714,15 +1764,15 @@ setInterval( ()=>
 		
 		if ( unwritable === sockets.length )
 		{
-			if ( only_do_nth_connection_per_frame < sockets.length )
-			console.log( sdWorld.time + ': only_do_nth_connection_per_frame increases to ' + (only_do_nth_connection_per_frame + 1) + ' (all sockets are non-writable)' );
+			//if ( only_do_nth_connection_per_frame < sockets.length )
+			//console.log( sdWorld.time + ': only_do_nth_connection_per_frame increases to ' + (only_do_nth_connection_per_frame + 1) + ' (all sockets are non-writable)' );
 		
 			only_do_nth_connection_per_frame = Math.min( Math.max( 1, sockets.length ), only_do_nth_connection_per_frame + 1 );
 		}
 		else
 		{
-			if ( only_do_nth_connection_per_frame > 1 )
-			console.log( sdWorld.time + ': only_do_nth_connection_per_frame decreases to ' + (only_do_nth_connection_per_frame - 1) + ' (all sockets are writable)' );
+			//if ( only_do_nth_connection_per_frame > 1 )
+			//console.log( sdWorld.time + ': only_do_nth_connection_per_frame decreases to ' + (only_do_nth_connection_per_frame - 1) + ' (all sockets are writable)' );
 		
 			only_do_nth_connection_per_frame = Math.max( 1, only_do_nth_connection_per_frame - 1 );
 		}

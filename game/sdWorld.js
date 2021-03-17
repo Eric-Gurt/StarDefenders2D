@@ -1522,6 +1522,21 @@ class sdWorld
 		return false;
 	}
 	
+	static GetCrystalHue( v )
+	{
+		if ( v > 40 )
+		{
+			if ( v === 5120 )
+		    return 'hue-rotate(200deg) brightness(1.3) drop-shadow(0px 0px 7px #FFFFAA)';
+			else
+			if ( v === 2560 )
+			return 'hue-rotate(170deg) brightness(0.8) contrast(2)';
+			else
+			return 'hue-rotate('+( v - 40 )+'deg)';
+		}
+		
+		return '';
+	}
 	
 	static BasicEntityBreakEffect( that, debris_count=3, max_rand_velocity=3, volume=0.25, pitch=1 )
 	{
@@ -1707,8 +1722,20 @@ class sdWorld
 			sdRenderer.visual_settings = player_settings['visuals1'] * 1 + player_settings['visuals2'] * 2 + player_settings['visuals3'] * 3;
 			
 			player_settings.full_reset = full_reset;
-			player_settings.my_hash = Math.random() + ''; // Sort of password
+			player_settings.my_hash = [ Math.random(), Math.random(), Math.random(), Math.random(), Math.random() ].join(''); // Sort of password
 			player_settings.my_net_id = undefined;
+			
+			/*try 
+			{
+				let v;
+				
+				v = localStorage.getItem( 'perm_password' );
+				if ( v !== null )
+				player_settings.perm_password = v;
+				else
+				localStorage.setItem( 'perm_password', player_settings.perm_password );
+
+			} catch(e){}*/
 			
 			try 
 			{
