@@ -29,7 +29,7 @@ class sdVirus extends sdEntity
 		sdVirus.max_seek_range = 1000;
 		
 		sdVirus.normal_max_health = 80;
-		sdVirus.normal_max_health_max = 800;
+		sdVirus.normal_max_health_max = 800 * 3; 
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -189,6 +189,13 @@ class sdVirus extends sdEntity
 			this.Damage( ( vel - 4 ) * 15 );
 		}
 	}*/
+	Impact( vel ) // fall damage basically
+	{
+		if ( vel > 7 ) // less fall damage
+		{
+			this.Damage( ( vel - 3 ) * 15 );
+		}
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this._hea <= 0 )

@@ -83,7 +83,7 @@ class sdDoor extends sdEntity
 		
 		this.destruction_frame = 0;
 		
-		this._malfunction = false; // True if origin sdBlocks were removed, will cause door to close
+		this.malfunction = false; // True if origin sdBlocks were removed, will cause door to close
 		
 		this.filter = params.filter;
 	}
@@ -139,7 +139,8 @@ class sdDoor extends sdEntity
 		else
 		{
 			
-			let ents_near = sdWorld.GetAnythingNear( this.x0, this.y0, 32 );
+			//let ents_near = sdWorld.GetAnythingNear( this.x0, this.y0, 32 );
+			let ents_near = this.GetAnythingNearCache( this.x0, this.y0, 32 );
 			for ( let i = 0; i < ents_near.length; i++ )
 			{
 				if ( ents_near[ i ].is_static || ents_near[ i ]._net_id === undefined ) // skip statics and ones that dont exist on server
@@ -149,9 +150,11 @@ class sdDoor extends sdEntity
 					continue;
 				}
 			}
+			
 			if ( ents_near.length > 0 )
 			{
-				let coms_near = sdWorld.GetComsNear( this.x0, this.y0, null, null, true );
+				//let coms_near = sdWorld.GetComsNear( this.x0, this.y0, null, null, true );
+				let coms_near = this.GetComsNearCache( this.x0, this.y0, null, null, true );
 				
 				outer:
 				for ( let i = 0; i < coms_near.length; i++ )
@@ -181,7 +184,7 @@ class sdDoor extends sdEntity
 			
 			
 			
-			if ( this.opening_tim > 0 && !this._malfunction )
+			if ( this.opening_tim > 0 && !this.malfunction )
 			{
 				if ( this.openness < 32 )
 				{
@@ -252,13 +255,13 @@ class sdDoor extends sdEntity
 				}
 			}
 			
-			if ( this._malfunction )
+			if ( this.malfunction )
 			{
 				if ( this.openness === 0 )
 				{
 					this._update_version++;	
 					this.x0 = undefined; // Reinit
-					this._malfunction = false;
+					this.malfunction = false;
 				}
 			}
 			else
@@ -287,7 +290,7 @@ class sdDoor extends sdEntity
 
 				if ( !ok )
 				{
-					this._malfunction = true;
+					this.malfunction = true;
 					/*
 					this.openness = 0;
 					this.x = this.x0;

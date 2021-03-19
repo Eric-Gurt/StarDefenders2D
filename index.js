@@ -28,7 +28,12 @@ import fs from 'fs';
 import http from "http";
 import https from "https";
 
-import { Server } from "socket.io";
+import pkg from '@geckos.io/server'; // 
+const geckos = pkg.default;
+
+//import { Server } from "socket.io";
+
+const SOCKET_IO_MODE = ( typeof Server !== 'undefined' ); // In else case geckos.io
 
 
 const httpServer = http.createServer( app );
@@ -64,18 +69,40 @@ const __dirname = ( isWin ) ?
 	: 
 	'/home/admin/sd2d/';
 
-const io = new Server( httpsServer ? httpsServer : httpServer, {
-  // ...
-  pingInterval: 30000,
-  pingTimeout: 15000,
-  maxHttpBufferSize: 1024, // 512 is minimum that works (but lacks long-name support on join)
-  perMessageDeflate: {
-    threshold: 1024
-  }, // Promised to be laggy but with traffic bottlenecking it might be the only way (and nature of barely optimized network snapshots)
-  httpCompression: {
-    threshold: 1024
-  }
-});
+let io;
+
+if ( SOCKET_IO_MODE ) // Socket.io
+{
+	io = new Server( httpsServer ? httpsServer : httpServer, {
+	  // ...
+	  pingInterval: 30000,
+	  pingTimeout: 15000,
+	  maxHttpBufferSize: 1024, // 512 is minimum that works (but lacks long-name support on join)
+	  perMessageDeflate: {
+		threshold: 1024
+	  }, // Promised to be laggy but with traffic bottlenecking it might be the only way (and nature of barely optimized network snapshots)
+	  httpCompression: {
+		threshold: 1024
+	  }
+	});
+}
+else // Geckos
+{
+	console.log( 'geckos is ', geckos );
+	io = geckos({
+		authorization: async function( auth, request, response )
+		{
+			//debugger;
+			//response.setHeader('www-authenticate', 'Test testa="testb"');
+			
+			return { ip:request.connection.remoteAddress }; // or request.headers['x-forwarded-for'] if server is behind proxy
+		},
+		cors: { allowAuthorization: true }
+	});
+	//io.listen( 3001 );
+	
+	io.addServer( httpsServer ? httpsServer : httpServer );
+}
 	
 // let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Old register for object spawn code
 import sdWorld from './game/sdWorld.js';
@@ -401,7 +428,7 @@ let is_terminating = false;
 		for ( var i = 0; i < sockets.length; i++ )
 		sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server reboot: Game server got SIGTERM signal from operating system. Attempting to save world state...' );
 	
-		SaveSnapshot( snapshot_path_const, ( err )=>{
+		const proceed = ( err )=>{
 			
 			console.warn('SaveSnapshot called callback (error='+err+'), saying goodbye to everyone and quiting process.');
 		
@@ -415,7 +442,12 @@ let is_terminating = false;
 				process.exit(1);
 			}, 500 );
 
-		});
+		};
+	
+		if ( snapshot_save_busy )
+		setTimeout( proceed, 5000 ); // Let 5 seconds to complete saving
+		else
+		SaveSnapshot( snapshot_path_const, proceed );
 	}
 	process.on( 'SIGTERM', onBeforeTurnOff );
 	process.on( 'SIGINT', onBeforeTurnOff );
@@ -785,6 +817,22 @@ setInterval( ()=>
 }*/
 sdModeration.init_class();
 
+if ( !SOCKET_IO_MODE )
+{
+	//const old_on = io.on;
+	io.on = ( event, action )=>
+	{
+		if ( event === 'connection' )
+		{
+			io.onConnection( action );
+		}
+		else
+		{
+			console.warn('Event '+event+' is not supported in geckos mode');
+			//old_on.call( io, event, action );
+		}
+	};
+}
 
 io.on("error", ( e ) => 
 {
@@ -843,14 +891,107 @@ function BadSpawn( x, y, entity=null )
 		until: sdWorld.time + 1000 * 60 * 5 // 5 minutes around entity that damaged
 	});
 }
-
-//main_socket.on('connection', (socket) =>
+let next_drop_log = 0;
 io.on("connection", (socket) => 
+//io.onConnection( socket =>
 {
-	let ip = socket.client.conn.remoteAddress;
+	//socket.packets_sent = 0;
+	//socket.packets_dropped = 0;
+	if ( !SOCKET_IO_MODE )
+	{
+		const old_on = socket.on;
+		socket.on = ( event, action )=>
+		{
+			if ( event === 'disconnect' )
+			socket.onDisconnect( action );
+			else
+			old_on.call( socket, event, action );
+		};
+		
+		socket.disconnect = socket.close;
+		
+		socket.compress = ( b )=>{ return socket; };
+		
+		socket.volatile = socket;
+		
+		socket.sent_result_ok = 0;
+		socket.sent_result_dropped = 0;
+		
+		socket.left_overs = {};
+		socket.lost_messages = [];
+		
+		socket.sent_messages = new Map(); // { data: full_msg, time: sdWorld.time, arrived: false }
+		socket.sent_messages_first = 0;
+		socket.sent_messages_last = 0;
+		
+		socket.myDrop = ( drop ) => // { event, data }
+		{
+			
+			/*if ( drop.reason !== 'DROPPED_FROM_BUFFERING' )
+			{
+				if ( sdWorld.time > next_drop_log )
+				{	
+					next_drop_log = sdWorld.time + 1000 * 60;
+					console.log('Dropped packet: ', drop );
+					debugger;
+				}
+			}
+			else
+			{
+			}*/
+			
+			if ( drop.event === 'RESv2' )
+			{
+				socket.sent_result_dropped++;
+				
+				let ent, ind, i2;
+				
+				for ( let i = 0; i < drop.data[ 0 ].length; i++ )
+				{
+					//console.log('Found dropped entity: ' + drop.data[ 0 ][ i ]._class + '['+drop.data[ 0 ][ i ]._net_id+']' );
+							
+					socket.left_overs[ drop.data[ 0 ][ i ]._net_id ] = drop.data[ 0 ][ i ];
+					
+				}
+				for ( let i = 0; i < drop.data[ 3 ].length; i++ )
+				{
+					if ( drop.data[ 3 ][ i ][ 0 ] === 'EFF' && ( drop.data[ 3 ][ i ][ 1 ].type === sdEffect.TYPE_CHAT || drop.data[ 3 ][ i ][ 1 ].type === sdEffect.TYPE_BEAM || drop.data[ 3 ][ i ][ 1 ].type === sdEffect.TYPE_EXPLOSION || drop.data[ 3 ][ i ][ 1 ].type === sdEffect.TYPE_BLOOD ) )
+					socket.lost_messages.push( drop.data[ 3 ][ i ] );
+				}
+			}
+		};
+		
+		const old_emit = socket.emit;
+		socket.emit = ( event, action )=>
+		{
+			if ( event === 'RESv2' )
+			{
+				socket.sent_result_ok++;
+			}
+			
+			old_emit.call( socket, event, action );
+		};
+		
+		socket.client = { conn: { transport: { writable: true } } }; // Fake object just to keep main logic working
+	}
+	
+	let ip = null;
+	let details = null;
+		
+	if ( SOCKET_IO_MODE )
+	ip = socket.client.conn.remoteAddress;
+	else
+	{
+		ip = '?:?:?:?';
+		
+		if ( socket.userData.ip !== undefined )
+		ip = socket.userData.ip;
+	}
 	
 	//let my_command_centre = null;
 	socket.command_centre = null;
+	
+	socket.max_update_rate = sdWorld.max_update_rate;
 	
 	ip = ip.split(':');
 	
@@ -864,7 +1005,9 @@ io.on("connection", (socket) =>
 	
 	
 	if ( DEBUG_CONNECTIONS )
-	console.log( 'a user connected: ' + ip );
+	{
+		console.log( 'a user connected: ' + ip + ' aka ' + JSON.stringify( details ) );
+	}
 	
 	if ( typeof sockets_by_ip[ ip ] === 'undefined' )
 	sockets_by_ip[ ip ] = [ socket ]; // Accept [ 1 / 2 ]
@@ -875,7 +1018,11 @@ io.on("connection", (socket) =>
 			if ( DEBUG_CONNECTIONS )
 			console.log( 'Rejected, ' + sockets_by_ip[ ip ].length + ' active connections from same ip ' + ip );
 		
+			//if ( socket.disconnect )
 			socket.disconnect();
+			//else
+			//socket.close();
+		
 			return;
 		}
 		
@@ -1085,15 +1232,26 @@ io.on("connection", (socket) =>
 			if ( !sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._is_being_removed )
 			{
 				if ( sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._my_hash === player_settings.my_hash )
-				if ( !sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._socket )
 				{
-					sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._socket = socket;
-					socket.character = sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ];
+					if ( sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._socket )
+					{
+						if ( sockets_by_ip[ ip ].indexOf( sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._socket ) !== -1 )
+						{
+							//await sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._socket.close(); // Try to disconnect old connection, can happen in geckos case if player reconnects too quickly
+							sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._socket.CharacterDisconnectLogic();
+						}
+					}
 					
-					character_entity = sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ];
-					
-					socket.score = character_entity._old_score;
-					character_entity._old_score = 0;
+					if ( !sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._socket )
+					{
+						sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._socket = socket;
+						socket.character = sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ];
+
+						character_entity = sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ];
+
+						socket.score = character_entity._old_score;
+						character_entity._old_score = 0;
+					}
 				}
 			}
 			
@@ -1266,9 +1424,9 @@ io.on("connection", (socket) =>
 		}
 
 
-		socket.emit('SET sdWorld.my_entity', character_entity._net_id );
+		socket.emit('SET sdWorld.my_entity', character_entity._net_id, { reliable: true, runs: 100 } );
 
-		socket.emit('SET sdShop.options', sdShop.options );
+		socket.emit('SET sdShop.options', sdShop.options, { reliable: true, runs: 100 } );
 
 		sdEntity.entities.push( character_entity );
 		
@@ -1385,13 +1543,27 @@ io.on("connection", (socket) =>
 		if ( typeof arr[ 5 ] === 'number' )
 		if ( typeof arr[ 6 ] === 'number' )
 		if ( typeof arr[ 7 ] === 'number' )
+		if ( typeof arr[ 8 ] === 'object' )
 		{ 
+			//messages_to_report_arrival
 			socket.character.look_x = arr[ 0 ]; 
 			socket.character.look_y = arr[ 1 ];
 			
 			socket.camera.x = arr[ 2 ];
 			socket.camera.y = arr[ 3 ];
 			socket.camera.scale = arr[ 4 ];
+			
+			let messages_to_report_arrival = arr[ 8 ];
+			
+			for ( let i = 0; i < Math.min( 100, messages_to_report_arrival.length ); i++ )
+			{
+				let id = messages_to_report_arrival[ i ];
+				if ( id >= socket.sent_messages_first && id < socket.sent_messages_last )
+				{
+					let msg = socket.sent_messages.get( id );
+					msg.arrived = true;
+				}
+			}
 		
 			if ( sdWorld.time > socket.next_position_correction_allowed )
 			{
@@ -1686,6 +1858,21 @@ io.on("connection", (socket) =>
 		}
 	});
 	
+	socket.CharacterDisconnectLogic = ()=>
+	{
+		if ( socket.character )
+		{
+			socket.character.title = 'Disconnected ' + socket.character.title;
+
+			socket.character._old_score = socket.score;
+
+			socket.character._socket = null;
+
+			socket.character = null;
+
+			socket.score = 0;
+		}
+	};
 	
 	socket.on('disconnect', () => 
 	{
@@ -1699,28 +1886,7 @@ io.on("connection", (socket) =>
 			if ( DEBUG_CONNECTIONS )
 			console.log('user disconnected');
 
-			if ( socket.character )
-			{
-				socket.character.title = 'Disconnected ' + socket.character.title;
-				
-				socket.character._old_score = socket.score;
-				
-				/*if ( socket.score <= 0 )
-				{
-					socket.character.remove();
-				}
-				else
-				{
-					//if ( socket.character.hea > 0 )
-					//socket.character.Damage( socket.character.hea ); // With weapon drop
-				}*/
-
-				socket.character._socket = null;
-
-				socket.character = null;
-				
-				socket.score = 0;
-			}
+			socket.CharacterDisconnectLogic();
 
 			sockets.splice( sockets.indexOf( socket ), 1 );
 			
@@ -1760,6 +1926,8 @@ setInterval( ()=>
 			
 			if ( !socket.client.conn.transport.writable )
 			unwritable++;
+		
+			//sdWorld.max_update_rate;
 		}
 		
 		if ( unwritable === sockets.length )
@@ -1784,6 +1952,27 @@ setInterval( ()=>
 		{
 			var socket = sockets[ i ]; // can disappear from array in the middle of loop
 
+			if ( !SOCKET_IO_MODE )
+			{
+				
+				if ( socket.sent_result_ok > 10 )
+				{
+					if ( socket.sent_result_dropped / socket.sent_result_ok > 0.2 )
+					socket.max_update_rate = Math.min( 200, socket.max_update_rate + 16 );
+				
+					if ( socket.sent_result_dropped / socket.sent_result_ok <= 0.005 )
+					socket.max_update_rate = Math.max( 16, socket.max_update_rate - 1 );
+						
+					//socket.max_update_rate = socket.max_update_rate * 0.9 + 0.1 * Math.min( 200, Math.max( 16, sdWorld.max_update_rate / ( socket.sent_result_ok ) * ( socket.sent_result_dropped ) ) );
+				}
+				if ( socket.sent_result_ok > 20 )
+				{
+					socket.sent_result_ok *= 0.8;
+					socket.sent_result_dropped *= 0.8;
+				}
+			}
+			//else
+			//socket.max_update_rate = sdWorld.max_update_rate;
 
 			if ( !socket.character || socket.character._is_being_removed )
 			{
@@ -1797,13 +1986,13 @@ setInterval( ()=>
 					
 			if ( socket.character && ( !socket.character._is_being_removed || socket.post_death_spectate_ttl > 0 ) )
 			{
-				if ( sdWorld.time > socket.last_sync + sdWorld.max_update_rate )
+				if ( sdWorld.time > socket.last_sync + socket.max_update_rate )
 				{
 					socket.character.lag = !socket.client.conn.transport.writable;
 				}
 				
 				if ( i % only_do_nth_connection_per_frame === nth_connection_shift )
-				if ( sdWorld.time > socket.last_sync + sdWorld.max_update_rate && socket.client.conn.transport.writable ) // Buffering prevention?
+				if ( sdWorld.time > socket.last_sync + socket.max_update_rate && socket.client.conn.transport.writable ) // Buffering prevention?
 				{
 					let previous_sync_time = socket.last_sync;
 					
@@ -1852,6 +2041,10 @@ setInterval( ()=>
 					min_y -= 32 * 3;
 					max_x += 32 * 3;
 					max_y += 32 * 3;
+					
+					const MaxCompleteEntitiesCount = 50;
+					
+					//let random_upgrade_for = [];
 
 					for ( var x = min_x; x < max_x; x += 32 )
 					for ( var y = min_y; y < max_y; y += 32 )
@@ -1882,16 +2075,21 @@ setInterval( ()=>
 								
 								if ( socket.known_statics_versions_map.has( arr[ i2 ] ) )
 								{
-									if ( socket.known_statics_versions_map.get( arr[ i2 ] ) !== arr[ i2 ]._update_version )
+									if ( socket.known_statics_versions_map.get( arr[ i2 ] ) !== arr[ i2 ]._update_version && snapshot.length < MaxCompleteEntitiesCount )
 									snapshot.push( arr[ i2 ].GetSnapshot( frame ) ); // Update actually needed
+									//else
+									//random_upgrade_for.push( arr[ i2 ] );
 								}
 								else
+								if ( snapshot.length < MaxCompleteEntitiesCount )
 								{
 									//socket.known_statics_map.set( arr[ i2 ], arr[ i2 ] );
 									socket.known_statics_versions_map.set( arr[ i2 ], arr[ i2 ]._update_version );
 
 									snapshot.push( arr[ i2 ].GetSnapshot( frame ) );
 								}
+								//else
+								//random_upgrade_for.push( arr[ i2 ] );
 							}
 							else
 							observed_entities.push( arr[ i2 ] );
@@ -1984,9 +2182,73 @@ setInterval( ()=>
 					}
 					
 					while ( sd_events.length < 10 && socket.sd_events.length > 0 )
-					sd_events.push( socket.sd_events.pop() );
+					sd_events.push( socket.sd_events.shift() );
+				
+					let leftovers_tot = Object.keys( socket.left_overs ).length;
+					if ( leftovers_tot > 10000 )
+					{
+						console.log('socket.left_overs.length = ' + leftovers_tot + '... giving up with resends' );
+						socket.left_overs = {};
+					}
+				
+					for ( let m = socket.sent_messages_first; m < socket.sent_messages_last; m++ )
+					{
+						let msg = socket.sent_messages.get( m );
+						if ( !msg.arrived )
+						if ( msg.time < sdWorld.time - 350 )
+						{
+							socket.myDrop({ event:'RESv2', data:msg.data }); // { event, data }
+							
+							msg.arrived = true; // Prevent resend
+						}
+					}
+				
+					let v = 0;
+					for ( let prop in socket.left_overs )
+					{
+						let possibly_ent = sdEntity.entities_by_net_id_cache[ socket.left_overs[ prop ]._net_id ];
+						
+						if ( possibly_ent && !possibly_ent.is_static )
+						{
+							//console.log('Dropped packet entity is not static, skip: ' + possibly_ent.GetClass() + '['+possibly_ent._net_id+']' );
+							continue;
+						}
 					
-					socket.compress( true ).emit('RESv2', [ 
+						let found = false;
+					
+						for ( let s = 0; s < snapshot.length; s++ )
+						if ( snapshot[ s ]._net_id === socket.left_overs[ prop ]._net_id )
+						{
+							delete socket.left_overs[ prop ];
+							
+							//console.log('Dropped packet entity was already in snapshot: ' + snapshot[ s ]._class + '['+snapshot[ s ]._net_id+']' );
+							found = true;
+							break;
+						}
+
+						if ( !found )
+						{
+							if ( v <= leftovers_tot * 0.05 )
+							{
+								//console.log('Dropped packet entity was readded: ' + socket.left_overs[ prop ]._class + '['+socket.left_overs[ prop ]._net_id+']' );
+								snapshot.push( socket.left_overs[ prop ] );
+								delete socket.left_overs[ prop ];
+
+								v++;
+							}
+							//if ( v > leftovers_tot * 0.05 )
+							//break;
+						}
+						
+						//delete socket.left_overs[ prop ];
+					}
+					
+					for ( let s = 0; s < Math.min( 3, socket.lost_messages.length ); s++ )
+					{
+						sd_events.push( socket.lost_messages.shift() );
+					}
+					
+					let full_msg = [ 
 						snapshot, // 0
 						socket.score, // 1
 						leaders, // 2
@@ -1995,8 +2257,23 @@ setInterval( ()=>
 						socket.character._force_add_sy, // 5
 						Math.max( -1, socket.character._position_velocity_forced_until - sdWorld.time ), // 6
 						sdWorld.last_frame_time, // 7
-						sdWorld.last_slowest_class // 8
-					] );
+						sdWorld.last_slowest_class, // 8
+						socket.sent_messages_last // 9
+					];
+					
+					//socket.sent_messages = new Map();
+					//socket.sent_messages_first = 0;
+					//socket.sent_messages_last = 0;
+					
+					socket.sent_messages.set( socket.sent_messages_last++, { data: full_msg, time: sdWorld.time, arrived: false } );
+					
+					// Forget too old messages
+					while ( socket.sent_messages.get( socket.sent_messages_first ).time < sdWorld.time - 10000 )
+					socket.sent_messages.delete( socket.sent_messages_first++ );
+					
+					//for ( let g = 0; g < 25; g++ )
+					//if ( Math.random() < 0.9 )
+					socket.compress( true ).emit('RESv2', full_msg );
 					
 					socket.character._force_add_sx = 0;
 					socket.character._force_add_sy = 0;

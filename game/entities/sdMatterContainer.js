@@ -115,7 +115,7 @@ class sdMatterContainer extends sdEntity
 		sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
 				
 		sdWorld.DropShards( this.x, this.y, 0, 0, 
-			Math.ceil( Math.max( 5, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
+			Math.floor( Math.max( 0, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
 			this.matter_max / 40
 		);
 

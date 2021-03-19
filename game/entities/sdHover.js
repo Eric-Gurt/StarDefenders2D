@@ -45,6 +45,11 @@ class sdHover extends sdEntity
 		return [ 'sdCharacter' ];
 	}*/
 	
+	IsVehicle()
+	{
+		return true;
+	}
+	
 	Impact( vel ) // fall damage basically
 	{
 		if ( vel > 5 )
@@ -304,6 +309,9 @@ class sdHover extends sdEntity
 
 					bullet_obj.sx *= 15;
 					bullet_obj.sy *= 15;
+					
+					bullet_obj.sx += this.sx;
+					bullet_obj.sy += this.sy;
 
 					bullet_obj._damage = 10;
 					bullet_obj.color = '#ffaa00';
@@ -350,6 +358,14 @@ class sdHover extends sdEntity
 					bullet_obj._damage = 19 * 2;
 					bullet_obj._explosion_radius = 19 * 1.5;
 					bullet_obj.color = '#7acaff';
+					
+					bullet_obj.ac = 1;
+					
+					if ( bullet_obj.ac > 0 )
+					{
+						bullet_obj.acx = Math.cos( Math.PI / 2 - an );
+						bullet_obj.acy = Math.sin( Math.PI / 2 - an );
+					}
 
 					sdEntity.entities.push( bullet_obj );
 

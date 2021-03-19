@@ -267,9 +267,9 @@ class sdWeather extends sdEntity
 					{
 						let asp = new sdAsp({ 
 							x:sdWorld.world_bounds.x1 + 32 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 - 64 ), 
-							y:sdWorld.world_bounds.y1 + 32,
+							y:sdWorld.world_bounds.y1 + 32
 						});
-						asp.sy += 10;
+						//asp.sy += 10;
 						sdEntity.entities.push( asp );
 
 						if ( !asp.CanMoveWithoutOverlap( asp.x, asp.y, 0 ) )

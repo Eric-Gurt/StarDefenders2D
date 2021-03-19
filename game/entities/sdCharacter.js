@@ -189,6 +189,8 @@ class sdCharacter extends sdEntity
 		
 		this.lag = false;
 		
+		this._god = false;
+		
 		this.helmet = 1;
 		
 		this._in_water = false;
@@ -320,6 +322,8 @@ class sdCharacter extends sdEntity
 		
 		this._last_damage_upg_complain = 0;
 		
+		this._recoil = 0;
+		
 		sdCharacter.characters.push( this );
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
@@ -379,10 +383,10 @@ class sdCharacter extends sdEntity
 		if ( this._socket )
 		this._socket.emit( 'UPGRADE_SET', [ upgrade_name, this._upgrade_counters[ upgrade_name ] ] );
 	}
-	get hitbox_x1() { return this.death_anim < 20 ? -5 : -12; } // 7
-	get hitbox_x2() { return this.death_anim < 20 ? 5 : 12; }
-	get hitbox_y1() { return this.death_anim < 20 ? -12 : 12; }
-	get hitbox_y2() { return this.death_anim < 20 ? ( ( 16 - this._crouch_intens * 6 ) * ( 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7 ) ) : 16; }
+	get hitbox_x1() { return this.death_anim < 10 ? -5 : -12; } // 7
+	get hitbox_x2() { return this.death_anim < 10 ? 5 : 12; }
+	get hitbox_y1() { return this.death_anim < 10 ? -12 : 12; }
+	get hitbox_y2() { return this.death_anim < 10 ? ( ( 16 - this._crouch_intens * 6 ) * ( 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7 ) ) : 16; }
 
 //0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7
 
@@ -726,14 +730,18 @@ class sdCharacter extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		/*
-		this.matter_max = 1000; // Hack
-		this.matter = this.matter_max; // Hack
-		this.hea = this.hmax; // Hack
-		this._dying = false; // Hack
-		this._air = sdCharacter.air_max;
-		*/
-	   
+		if ( this._god )
+		if ( this._socket )
+		{
+			this.matter_max = 10000; // Hack
+			this.matter = this.matter_max; // Hack
+			this.hea = this.hmax; // Hack
+			this._dying = false; // Hack
+			this._air = sdCharacter.air_max; // Hack
+			this._nature_damage = 0; // Hack
+			this._player_damage = 0; // Hack
+		}
+		
 		if ( this.hea <= 0 )
 		{
 			this.MatterGlow( 0.01, 30, GSPEED );
@@ -776,6 +784,11 @@ class sdCharacter extends sdEntity
 				this._ai = {};
 
 				this.AILogic( GSPEED );
+			}
+			
+			if ( this._recoil > 0 )
+			{
+				this._recoil = Math.max( 0, sdWorld.MorphWithTimeScale( this._recoil, -0.01, 0.9, GSPEED ) );
 			}
 
 			if ( this._dying )
@@ -826,24 +839,90 @@ class sdCharacter extends sdEntity
 			}
 			else
 			{
-				if ( this._inventory[ this.gun_slot ] )
+				if ( !this.driver_of )
 				{
-					if ( this._key_states.GetKey( 'KeyR' ) &&
-						 this._inventory[ this.gun_slot ]._ammo_left >= 0 && 
-						 this._inventory[ this.gun_slot ]._ammo_left < sdGun.classes[ this._inventory[ this.gun_slot ].class ].ammo_capacity )
+					if ( this._inventory[ this.gun_slot ] )
 					{
-						this._inventory[ this.gun_slot ].ReloadStart();
+						if ( this._key_states.GetKey( 'KeyR' ) &&
+							 this._inventory[ this.gun_slot ]._ammo_left >= 0 && 
+							 this._inventory[ this.gun_slot ]._ammo_left < sdGun.classes[ this._inventory[ this.gun_slot ].class ].ammo_capacity )
+						{
+							this._inventory[ this.gun_slot ].ReloadStart();
+						}
+						else
+						{
+
+							if ( this._key_states.GetKey( 'Mouse1' ) )
+							{
+								if ( this._inventory[ this.gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ) ) )
+								{
+									this.fire_anim = 5;
+								}
+							}
+						}
 					}
 					else
 					{
-						if ( !this.driver_of )
 						if ( this._key_states.GetKey( 'Mouse1' ) )
 						{
-
-
-							if ( this._inventory[ this.gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ) ) )
+							if ( this.fire_anim <= 0 )
 							{
-								this.fire_anim = 5;
+								this.fire_anim = 7.5;
+								
+								if ( sdWorld.is_server )
+								{
+									let _class = sdGun.CLASS_FISTS;
+
+									let bullet_obj = new sdBullet({ x: this.x, y: this.y + sdCharacter.bullet_y_spawn_offset });
+									bullet_obj._owner = this;
+
+									let an = bullet_obj._owner._an;// + ( Math.random() * 2 - 1 ) * spread;
+
+									let vel = 16;
+
+									if ( sdGun.classes[ _class ].projectile_velocity )
+									vel = sdGun.classes[ _class ].projectile_velocity;
+
+									/*if ( spread > 0 && count > 0 )
+									{
+										vel *= ( 1 - Math.random() * 0.15 );
+									}*/
+
+									bullet_obj.sx = Math.sin( an ) * vel;
+									bullet_obj.sy = Math.cos( an ) * vel;
+
+									for ( var p in sdGun.classes[ _class ].projectile_properties )
+									bullet_obj[ p ] = sdGun.classes[ _class ].projectile_properties[ p ];
+
+									//if ( bullet_obj.color !== 'transparent' )
+									//debugger;
+
+									//if ( bullet_obj.is_grenade )
+									/*if ( !bullet_obj._rail )
+									{
+										bullet_obj.sx += bullet_obj._owner.sx;
+										bullet_obj.sy += bullet_obj._owner.sy;
+									}
+
+									if ( bullet_obj.ac > 0 )
+									{
+										bullet_obj.acx = Math.sin( an );
+										bullet_obj.acy = Math.cos( an );
+									}*/
+
+									//bullet_obj._damage *= bullet_obj._owner._damage_mult;
+
+									//if ( bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ] )
+									//bullet_obj._armor_penetration_level = bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ];
+									//else
+									bullet_obj._armor_penetration_level = 0;
+
+									//bullet_obj._owner.Impulse( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale, -bullet_obj.sy * 0.3 * bullet_obj._knock_scale );
+
+									//bullet_obj._bg_shooter = background_shoot ? true : false;
+
+									sdEntity.entities.push( bullet_obj );
+								}
 							}
 						}
 					}
@@ -856,6 +935,12 @@ class sdCharacter extends sdEntity
 				
 				if ( this._inventory[ this.gun_slot ] )
 				{
+					if ( this.gun_slot === 0 )
+					{
+						this._inventory[ this.gun_slot ].dangerous = true;
+						this._inventory[ this.gun_slot ]._dangerous_from = this;
+					}
+					
 					this.DropWeapon( this.gun_slot );
 					
 					this.gun_slot = 0;
@@ -1023,10 +1108,10 @@ class sdCharacter extends sdEntity
 
 					if ( this._hook_len === -1 )
 					this._hook_len = cur_di;
-					else
+					/*else
 					{
 						this._hook_len = sdWorld.MorphWithTimeScale( this._hook_len, cur_di - GSPEED * 10, 0.9, GSPEED );
-					}
+					}*/
 
 					let pull_force = -( this._hook_len - cur_di ) / 15;
 					let vx = ( this.hook_x - this.x ) / cur_di;
@@ -1056,7 +1141,7 @@ class sdCharacter extends sdEntity
 						}
 
 
-						if ( this._hook_relative_to._is_being_removed )
+						if ( this._hook_relative_to._is_being_removed || this._hook_relative_to === this.driver_of )
 						{
 							this.hook_x = 0;
 							this.hook_y = 0;
@@ -1134,7 +1219,10 @@ class sdCharacter extends sdEntity
 		
 		if ( this._key_states.GetKey( 'KeyX' ) )
 		{
-			this.tilt_speed += this.act_x * 1 * GSPEED;
+			//this.tilt_speed += this.act_x * 1 * GSPEED;
+			
+			this.tilt_speed = sdWorld.MorphWithTimeScale( this.tilt_speed, this.act_x * 30, 0.9, GSPEED );
+			
 			speed_scale = 0.1;
 		}
 	
@@ -1266,8 +1354,9 @@ class sdCharacter extends sdEntity
 				this.tilt_speed += Math.sin( this.tilt / 100 * 2 ) * GSPEED;
 				else
 				{
+					this.tilt -= Math.sin( this.tilt / 100 ) * 4 * GSPEED;
 					this.tilt_speed -= Math.sin( this.tilt / 100 ) * 4 * GSPEED;
-					this.tilt_speed = sdWorld.MorphWithTimeScale( this.tilt_speed, 0, 0.9, GSPEED );
+					this.tilt_speed = sdWorld.MorphWithTimeScale( this.tilt_speed, 0, 0.7, GSPEED );
 				}
 
 				//new_y -= new_leg_height - leg_height;
@@ -1499,6 +1588,7 @@ class sdCharacter extends sdEntity
 			else
 			if ( from_entity.is( sdGun ) )
 			{
+				
 				for ( var i = 0; i < this._ignored_guns_until.length; i++ )
 				{
 					if ( sdWorld.time > this._ignored_guns_until[ i ] )
@@ -1511,24 +1601,33 @@ class sdCharacter extends sdEntity
 				}
 				
 				if ( from_entity._held_by === null )
-				if ( this._ignored_guns.indexOf( from_entity ) === -1 )
-				//if ( Math.abs( from_entity.x - this.x ) < 8 )
-				//if ( Math.abs( from_entity.y - this.y ) < 16 )
 				{
-					//if ( this._inventory[ sdGun.classes[ from_entity.class ].slot ] === null )
-					if ( sdGun.classes[ from_entity.class ].ignore_slot || this._inventory[ sdGun.classes[ from_entity.class ].slot ] === null )
+
+					if ( this._ignored_guns.indexOf( from_entity ) === -1 )
+					//if ( Math.abs( from_entity.x - this.x ) < 8 )
+					//if ( Math.abs( from_entity.y - this.y ) < 16 )
 					{
-						if ( !sdGun.classes[ from_entity.class ].onPickupAttempt || 
-							  sdGun.classes[ from_entity.class ].onPickupAttempt( this, from_entity ) )
-						{	
-							//console.warn( this.title + '['+this._net_id+'] picks up gun ' + from_entity._net_id + ' // this._is_being_removed = ' + this._is_being_removed );
-							
-							this._inventory[ sdGun.classes[ from_entity.class ].slot ] = from_entity;
-							from_entity._held_by = this;
-							from_entity.ttl = -1;
-							
-							if ( this._socket )
-							sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:1.5 }, [ this._socket ] );
+						/*if ( from_entity.dangerous )
+						{
+							this.Damage( 30 );
+							from_entity.dangerous = false;
+						}*/
+										
+						//if ( this._inventory[ sdGun.classes[ from_entity.class ].slot ] === null )
+						if ( sdGun.classes[ from_entity.class ].ignore_slot || this._inventory[ sdGun.classes[ from_entity.class ].slot ] === null )
+						{
+							if ( !sdGun.classes[ from_entity.class ].onPickupAttempt || 
+								  sdGun.classes[ from_entity.class ].onPickupAttempt( this, from_entity ) )
+							{	
+								//console.warn( this.title + '['+this._net_id+'] picks up gun ' + from_entity._net_id + ' // this._is_being_removed = ' + this._is_being_removed );
+
+								this._inventory[ sdGun.classes[ from_entity.class ].slot ] = from_entity;
+								from_entity._held_by = this;
+								from_entity.ttl = -1;
+
+								if ( this._socket )
+								sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:1.5 }, [ this._socket ] );
+							}
 						}
 					}
 				}
@@ -1633,11 +1732,17 @@ class sdCharacter extends sdEntity
 	{
 		//if ( !fake_ent.IsBGEntity )
 		fake_ent.GetIgnoredEntityClasses = sdEntity.prototype.GetIgnoredEntityClasses; // Discard effect of this method because doors will have problems in else case
+		
+		if ( fake_ent.GetClass() === 'sdGun' )
+		{
+			fake_ent.GetIgnoredEntityClasses = ()=>[ 'sdCharacter', 'sdGun' ];
+		}
+		
 		if ( fake_ent.CanMoveWithoutOverlap( fake_ent.x, fake_ent.y, 0.00001 ) ) // Very small so entity's velocity can be enough to escape this overlap
 		{
 			if ( sdWorld.Dist2D( this.x, this.y, this._build_params.x, this._build_params.y ) < 64 )
 			{
-				if ( this.stands || this._in_water || this.flying )
+				if ( this.stands || this._in_water || this.flying || ( this._hook_relative_to && sdWorld.Dist2D_Vector( this.sx, this.sy ) < 2 ) )
 				return true;
 				else
 				sdCharacter.last_build_deny_reason = 'I\'d need to stand on something or at least use jetpack';
@@ -1861,6 +1966,19 @@ class sdCharacter extends sdEntity
 				//if ( this.gun_slot === 0 )
 				if ( !this._inventory[ this.gun_slot ] )
 				{
+					if ( this.fire_anim > 5 )
+					{
+						image = sdCharacter.img_body_melee2;
+						frame = 'img_body_melee2';
+						gun_offset_x += 1;
+					}
+					else
+					if ( this.fire_anim > 2.5 )
+					{
+						image = sdCharacter.img_body_melee1;
+						frame = 'img_body_melee1';
+						gun_offset_x += 3;
+					}
 				}
 				else
 				{

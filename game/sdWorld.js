@@ -569,7 +569,7 @@ class sdWorld
 				let ent = new sdGun({ class:sdGun.CLASS_CRYSTAL_SHARD, x: x, y:y });
 				ent.sx = sx + Math.random() * 8 - 4;
 				ent.sy = sy + Math.random() * 8 - 4;
-				ent.ttl = 30 * 7 * ( 0.7 + Math.random() * 0.3 );
+				ent.ttl = 30 * 9 * ( 0.7 + Math.random() * 0.3 ); // was 7 seconds, now 9
 				ent.extra = value_mult * sdWorld.crystal_shard_value;
 				sdEntity.entities.push( ent );
 			}

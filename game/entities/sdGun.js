@@ -8,6 +8,9 @@ import sdBullet from './sdBullet.js';
 import sdEffect from './sdEffect.js';
 import sdCharacter from './sdCharacter.js';
 import sdStorage from './sdStorage.js';
+import sdBlock from './sdBlock.js';
+import sdCom from './sdCom.js';
+import sdBG from './sdBG.js';
 
 import sdShop from '../client/sdShop.js';
 
@@ -20,6 +23,8 @@ class sdGun extends sdEntity
 		sdGun.img_muzzle2 = sdWorld.CreateImageFromFile( 'muzzle2' );
 		
 		sdGun.disowned_guns_ttl = 30 * 60;
+		
+		sdGun.tilt_scale = 200;
 		
 		/*let images_loaded = 0;
 		let guess_muzzle = ()=>
@@ -49,6 +54,7 @@ class sdGun extends sdEntity
 		sdGun.CLASS_STIMPACK = 12;
 		sdGun.CLASS_FALKOK_RIFLE = 13;
 		sdGun.CLASS_TRIPLE_RAIL = 14;
+		sdGun.CLASS_FISTS = 15;
 		
 		sdGun.classes = 
 		[
@@ -72,7 +78,7 @@ class sdGun extends sdEntity
 				reload_time: 3,
 				muzzle_x: 7,
 				ammo_capacity: 30,
-				spread: 0.03,
+				spread: 0.01, // 0.03
 				count: 1,
 				projectile_properties: { _damage: 25 }
 			},
@@ -113,7 +119,7 @@ class sdGun extends sdEntity
 				projectile_velocity: 14,
 				count: 1,
 				matter_cost: 60,
-				projectile_properties: { _explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color }
+				projectile_properties: { _explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:1 }
 			},
 			{
 				image: sdWorld.CreateImageFromFile( 'medikit' ),
@@ -201,7 +207,7 @@ class sdGun extends sdEntity
 				count: 1,
 				projectile_velocity: 16 * 2,
 				matter_cost: 60,
-				projectile_properties: { _damage: 105, _knock_scale:0.01 * 8 }
+				projectile_properties: { _damage: 105, _knock_scale:0.01 * 8, penetrating:true }
 			},
 			{
 				image: sdWorld.CreateImageFromFile( 'sword' ),
@@ -246,7 +252,7 @@ class sdGun extends sdEntity
 				ammo_capacity: 35,
 				spread: 0.02,
 				count: 1,
-				projectile_properties: { _damage: 25, color:'#7acaff' },
+				projectile_properties: { _damage: 25, color:'#afdfff' },
 				spawnable: false
 			},
 			{
@@ -256,10 +262,40 @@ class sdGun extends sdEntity
 				slot: 4,
 				reload_time: 3,
 				muzzle_x: 7,
-				ammo_capacity: 10, // 3
+				ammo_capacity: -1,// 10, // 3
 				count: 1,
 				projectile_properties: { _rail: true, _damage: 15, color: '#62c8f2', _knock_scale:0.01 * 8 }, // 70
 				spawnable: false
+			},
+			{
+				image: sdWorld.CreateImageFromFile( 'sword' ),
+				//sound: 'gun_medikit',
+				title: 'Fists',
+				image_no_matter: sdWorld.CreateImageFromFile( 'sword_disabled' ),
+				slot: 0,
+				reload_time: 8,
+				muzzle_x: null,
+				ammo_capacity: -1,
+				count: 1,
+				projectile_velocity: 16 * 1.2,
+				spawnable: false,
+				projectile_properties: { time_left: 1, _damage: 15, color: 'transparent', _soft:true, _knock_scale:0.4, _custom_target_reaction:( bullet, target_entity )=>
+					{
+						//debugger;
+						//if ( sdCom.com_creature_attack_unignored_classes.indexOf( target_entity.GetClass() ) !== -1 )
+						if ( target_entity.GetClass() !== 'sdCharacter' )
+						if ( target_entity.is_static || target_entity.GetBleedEffect() === sdEffect.TYPE_WALL_HIT )
+						if ( target_entity.GetClass() !== 'sdBlock' || target_entity.material !== sdBlock.MATERIAL_GROUND )
+						//if ( target_entity.material !== ''
+						{
+							bullet._owner.Damage( 5 );
+						}
+					},
+					_custom_target_reaction_protected:( bullet, target_entity )=>
+					{
+						bullet._owner.Damage( 5 );
+					}
+				}
 			}
 		];
 		
@@ -283,6 +319,50 @@ class sdGun extends sdEntity
 			this.remove();
 		}
 	}
+	
+	onMovementInRange( from_entity )
+	{
+		if ( this.dangerous )
+		if ( sdWorld.is_server )
+		{
+			if ( from_entity.is( sdGun ) )
+			return;
+		
+			if ( from_entity.is( sdBG ) )
+			return;
+			
+			if ( from_entity.is( sdCharacter ) )
+			{
+				if ( from_entity._ignored_guns.indexOf( this ) !== -1 )
+				return;
+			}
+			
+			if ( typeof from_entity._armor_protection_level === 'undefined' || this._dangerous_from === null || ( this._dangerous_from._upgrade_counters[ 'upgrade_damage' ] || 0 ) >= from_entity._armor_protection_level )
+			{
+				if ( from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
+				{
+					sdSound.PlaySound({ name:'player_hit', x:this.x, y:this.y, volume:0.5 });
+				}
+
+				sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect() });
+
+				if ( this._dangerous_from && this._dangerous_from.is( sdCharacter ) )
+				from_entity.Damage( sdGun.classes[ sdGun.CLASS_SWORD ].projectile_properties._damage * this._dangerous_from._damage_mult, this._dangerous_from );
+				else
+				from_entity.Damage( sdGun.classes[ sdGun.CLASS_SWORD ].projectile_properties._damage, this._dangerous_from );
+			
+				this.Damage( 1 );
+			}
+			else
+			{
+				sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
+			}
+			
+			this.dangerous = false;
+			this._dangerous_from = null;
+		}
+	}
+	
 	IsTargetable() // Guns are not targetable when held, same for sdCharacters that are driving something
 	{
 		return ( this._held_by === null );
@@ -295,6 +375,11 @@ class sdGun extends sdEntity
 		
 		this.sx = 0;
 		this.sy = 0;
+		
+		this.tilt = 0;
+		
+		this.dangerous = false; // When thrown can deal damage
+		this._dangerous_from = null;
 		
 		this.reload_time_left = 0;
 		this.muzzle = 0;
@@ -440,6 +525,10 @@ class sdGun extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
+		// Upgrade for guns that used to work on magazine basis but no longer do:
+		if ( sdGun.classes[ this.class ].ammo_capacity === -1 )
+		this._ammo_left = -1;
+	
 		let ammo_to_spawn = sdGun.classes[ this.class ].ammo_capacity - this._ammo_left;
 		let ammo_cost = this.GetBulletCost();
 		
@@ -547,6 +636,8 @@ class sdGun extends sdEntity
 						}
 					}
 					
+					let initial_an = this._held_by._an + this._held_by._side * ( Math.pow( this._held_by._recoil * 5, 2 ) / 5 );
+					
 					let count = sdGun.classes[ this.class ].count === undefined ? 1 : sdGun.classes[ this.class ].count;
 					let spread = sdGun.classes[ this.class ].spread || 0;
 					for ( let i = 0; i < count; i++ )
@@ -554,7 +645,7 @@ class sdGun extends sdEntity
 						let bullet_obj = new sdBullet({ x: this._held_by.x, y: this._held_by.y + sdCharacter.bullet_y_spawn_offset });
 						bullet_obj._owner = this._held_by;
 
-						let an = bullet_obj._owner._an + ( Math.random() * 2 - 1 ) * spread;
+						let an = initial_an + ( Math.random() * 2 - 1 ) * spread;
 						
 						let vel = 16;
 						
@@ -566,16 +657,25 @@ class sdGun extends sdEntity
 							vel *= ( 1 - Math.random() * 0.15 );
 						}
 						
+						//an += bullet_obj._owner._side * bullet_obj._owner._recoil;
+						
 						bullet_obj.sx = Math.sin( an ) * vel;
 						bullet_obj.sy = Math.cos( an ) * vel;
 						
 						for ( var p in sdGun.classes[ this.class ].projectile_properties )
 						bullet_obj[ p ] = sdGun.classes[ this.class ].projectile_properties[ p ];
 						
-						if ( bullet_obj.is_grenade )
+						//if ( bullet_obj.is_grenade )
+						if ( !bullet_obj._rail )
 						{
 							bullet_obj.sx += bullet_obj._owner.sx;
 							bullet_obj.sy += bullet_obj._owner.sy;
+						}
+						
+						if ( bullet_obj.ac > 0 )
+						{
+							bullet_obj.acx = Math.sin( an );
+							bullet_obj.acy = Math.cos( an );
 						}
 						
 						bullet_obj._damage *= bullet_obj._owner._damage_mult;
@@ -586,6 +686,8 @@ class sdGun extends sdEntity
 						bullet_obj._armor_penetration_level = 0;
 						
 						bullet_obj._owner.Impulse( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale, -bullet_obj.sy * 0.3 * bullet_obj._knock_scale );
+						
+						bullet_obj._owner._recoil += bullet_obj._knock_scale * vel * 0.01;
 
 						bullet_obj._bg_shooter = background_shoot ? true : false;
 
@@ -601,6 +703,11 @@ class sdGun extends sdEntity
 			}
 		}
 		return false;
+	}
+	
+	GetIgnoredEntityClasses()
+	{
+		return [ 'sdCharacter', 'sdGun' ];
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -675,6 +782,23 @@ class sdGun extends sdEntity
 				this.held_by_class = '';
 			}
 			
+			this.sy += sdWorld.gravity * GSPEED;
+			
+			sdWorld.last_hit_entity = null;
+			
+			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 0 );
+			
+			if ( sdWorld.last_hit_entity )
+			{
+				this.tilt += -Math.sin( this.tilt / sdGun.tilt_scale * 2 ) * 0.4 * sdGun.tilt_scale;
+			}
+			else
+			{
+				this.tilt += this.sx * 10;
+			}
+			
+			/*
+			
 			let new_x = this.x + this.sx * GSPEED;
 			let new_y = this.y + this.sy * GSPEED;
 
@@ -682,6 +806,9 @@ class sdGun extends sdEntity
 			{
 				this.sx = 0;
 				this.sy = 0;
+				
+				this.tilt += -Math.sin( this.tilt / sdGun.tilt_scale * 2 ) * 0.4 * sdGun.tilt_scale;
+				//this.dangerous = false;
 			}
 			else
 			{
@@ -689,7 +816,9 @@ class sdGun extends sdEntity
 
 				this.x = new_x;
 				this.y = new_y;
-			}
+				
+				this.tilt += this.sx * 10;
+			}*/
 		}
 		else
 		{
@@ -715,6 +844,9 @@ class sdGun extends sdEntity
 		{
 			var image = sdGun.classes[ this.class ].image;
 			
+			if ( this._held_by === null )
+			ctx.rotate( this.tilt / sdGun.tilt_scale );
+			
 			if ( this.class === sdGun.CLASS_SNIPER )
 			{
 				let odd = ( this.reload_time_left % 10 ) < 5 ? 0 : 1;
@@ -730,7 +862,8 @@ class sdGun extends sdEntity
 			}
 			if ( this.class === sdGun.CLASS_SWORD )
 			{
-				if ( this._held_by === null || this._held_by.matter < this.GetBulletCost() )
+				//if ( this._held_by === null || this._held_by.matter < this.GetBulletCost() )
+				if ( this._held_by === null && !this.dangerous )
 				image = sdGun.classes[ this.class ].image_no_matter;
 			}
 			

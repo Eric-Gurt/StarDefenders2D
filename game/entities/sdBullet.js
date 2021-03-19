@@ -6,6 +6,11 @@ import sdEffect from './sdEffect.js';
 import sdCube from './sdCube.js';
 import sdCharacter from './sdCharacter.js';
 import sdSound from '../sdSound.js';
+import sdBlock from './sdBlock.js';
+import sdAntigravity from './sdAntigravity.js';
+import sdDoor from './sdDoor.js';
+import sdGun from './sdGun.js';
+
 
 
 class sdBullet extends sdEntity
@@ -40,6 +45,16 @@ class sdBullet extends sdEntity
 		return false;
 	
 		return true;
+	}
+	
+	Impact( vel ) // fall damage basically
+	{
+		if ( this.is_grenade )
+		if ( vel > 3 )
+		{
+			if ( !sdWorld.is_server )
+			sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:5, volume: Math.min( 0.25, 0.1 * vel ), _server_allowed:true });
+		}
 	}
 	
 	constructor( params )
@@ -77,8 +92,18 @@ class sdBullet extends sdEntity
 		
 		this._bg_shooter = false;
 		
+		this.penetrating = false;
+		this._penetrated_list = [];
+		
 		this._owner = null;
 		this._can_hit_owner = false;
+		
+		this._soft = false; // Punches
+		
+		// Rockets
+		this.ac = 0; // Intensity
+		this.acx = 0;
+		this.acy = 0;
 	}
 	onRemove()
 	{
@@ -138,11 +163,14 @@ class sdBullet extends sdEntity
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return [ 'sdCharacter', 'sdVirus' ];
+		return this.is_grenade ? [ 'sdCharacter' ] : [ 'sdCharacter', 'sdTurret', 'sdHover', 'sdCube', 'sdAsp' ];
 	}
 	
 	get bounce_intensity()
-	{ return 0.55; } // 0.3 not felt right
+	{ return this.is_grenade ? 0.55 : 0.3; } // 0.3 not felt right for grenades
+	
+	get friction_remain()
+	{ return this.is_grenade ? 0.8 : 0.3; }
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -154,6 +182,15 @@ class sdBullet extends sdEntity
 			return;
 		}
 		
+		if ( this.ac > 0 )
+		{
+			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.93, GSPEED );
+			this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.93, GSPEED );
+			
+			this.sx += this.acx * GSPEED * this.ac * 1;
+			this.sy += this.acy * GSPEED * this.ac * 1;
+		}
+		
 		if ( this.is_grenade )
 		{
 			this.sy += sdWorld.gravity * GSPEED;
@@ -162,8 +199,43 @@ class sdBullet extends sdEntity
 		}
 		else
 		{
-			this.x += this.sx * GSPEED;
-			this.y += this.sy * GSPEED;
+			if ( this.penetrating )
+			{
+				this.x += this.sx * GSPEED;
+				this.y += this.sy * GSPEED;
+			}
+			else
+			{
+				let vel = this.sx * this.sx + this.sy * this.sy;
+
+				sdWorld.last_hit_entity = null;
+
+				this.ApplyVelocityAndCollisions( GSPEED, 0, true, 0 );
+
+				let vel2 = this.sx * this.sx + this.sy * this.sy;
+
+				if ( vel2 < vel )
+				{
+					vel = Math.sqrt( vel );
+					vel2 = Math.sqrt( vel2 );
+					
+					if ( vel2 < vel * 0.5 )
+					{
+						this.remove();
+						return true;
+					}
+
+					if ( vel > 0.001 )
+					this._damage = this._damage / vel * vel2;
+
+					if ( !sdWorld.is_server )
+					if ( !this.CanBounceOff( sdWorld.last_hit_entity ) )
+					{
+						this.remove();
+						return true;
+					}
+				}
+			}
 
 			if ( this.y > sdWorld.world_bounds.y2 )
 			{
@@ -174,11 +246,35 @@ class sdBullet extends sdEntity
 			}
 		}
 	}
+
+	CanBounceOff( from_entity )
+	{
+		if ( this._explosion_radius > 0 )
+		return false;
+	
+		if ( !this._wave )
+		if ( !this._rail )
+		if ( !this._hook )
+		if ( this._damage > 0 )
+		{
+			if ( this.penetrating )
+			return from_entity.is( sdBlock ) || from_entity.is( sdAntigravity ) || from_entity.is( sdDoor );
+			else
+			return ( from_entity.is( sdBlock ) && from_entity.material === sdBlock.MATERIAL_WALL ) || from_entity.is( sdAntigravity ) || from_entity.is( sdDoor );
+		}
+		
+		return false;
+	}
+
 	onMovementInRange( from_entity )
 	{
+		if ( !this._hook )
+		if ( from_entity.is( sdGun ) )
+		return;
+	
 		if ( ( this._owner !== from_entity && ( !this._owner || !this._owner._owner || this._owner._owner !== from_entity ) ) || this._can_hit_owner ) // 2nd rule is for turret bullet to not hit turret owner
 		{
-			if ( from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
+			if ( from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN || from_entity.is( sdCharacter ) )
 			//if ( from_entity.GetClass() === 'sdCharacter' || 
 			//	 from_entity.GetClass() === 'sdVirus' )
 			{
@@ -194,6 +290,7 @@ class sdBullet extends sdEntity
 							sdSound.PlaySound({ name:'player_hit', x:this.x, y:this.y, volume:0.5 });
 						}
 
+						if ( !this._soft )
 						sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 						
 						let dmg = from_entity.GetHitDamageMultiplier( this.x, this.y ) * this._damage;
@@ -234,15 +331,48 @@ class sdBullet extends sdEntity
 			//if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null ) // guns can be hit only when are not held by anyone
 			if ( from_entity.IsTargetable() )
 			{
+				let will_bounce = false;
+				//let dmg_mult = 1;
+				
+				if ( this.CanBounceOff( from_entity ) )
+				{
+					if ( this.penetrating )
+					{
+						if ( this._penetrated_list.indexOf( from_entity ) === -1 )
+						this._penetrated_list.unshift( from_entity );
+						else
+						{
+							return; // Ignore collision
+						}
+					}
+					
+					//dmg_mult = 0.65;
+					will_bounce = true;
+				}
+
 				if ( sdWorld.is_server ) // Or else fake self-knock
 				if ( this._damage !== 0 )
 				{
+					if ( this._soft )
+					{
+						sdSound.PlaySound({ name:'player_step', x:this.x, y:this.y, volume:0.5, pitch:1.8 });
+					}
+
 					if ( typeof from_entity._armor_protection_level === 'undefined' || this._armor_penetration_level >= from_entity._armor_protection_level )
 					{
 						if ( !this._wave )
-						sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect() });
+						{
+							if ( !this._soft )
+							sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect() });
+						}
 
-						let dmg = this._damage;
+						let dmg = this._damage;// * dmg_mult;
+						
+						if ( this.ac > 0 )
+						if ( from_entity.IsVehicle() )
+						{
+							dmg *= 3;
+						}
 
 						let old_hea = ( from_entity.hea || from_entity._hea || 0 );
 
@@ -264,9 +394,17 @@ class sdBullet extends sdEntity
 					}
 					else
 					{
+						//if ( this.penetrating )
+						//will_bounce = false;
+
+						if ( this._custom_target_reaction_protected )
+						this._custom_target_reaction_protected( this, from_entity );
+						
 						if ( !this._wave )
 						{
+							if ( !this._soft )
 							sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_WALL_HIT });
+						
 							sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
 							
 							if ( this._owner )
@@ -290,12 +428,37 @@ class sdBullet extends sdEntity
 						}
 					}
 
-					this._damage = 0; // for healguns
+					//this._damage *= ( 1 - dmg_mult ); // for healguns it is important to be at 0
+					
+					if ( !will_bounce )
+					this._damage = 0; // for healguns it is important to be at 0
+					else
+					if ( this.penetrating )
+					{
+						this._damage *= 0.5;
+						this.sx *= 0.5;
+						this.sy *= 0.5;
+						
+						//console.log( 'vel = '+sdWorld.Dist2D_Vector( this.sx, this.sy ) );
+						
+						if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) < 10 )
+						this._damage = 0;
+					}
 				}
+					
+				//if ( will_bounce ) Bounce is done at bullet logic now, naturally
+				/*if ( dmg_mult !== 1 )
+				{
+					this.sx *= ( 1 - dmg_mult );
+					this.sy *= ( 1 - dmg_mult );
+				}*/
 
-				this._last_target = from_entity;
+				if ( this._damage === 0 )
+				{
+					this._last_target = from_entity;
 
-				this.remove();
+					this.remove();
+				}
 				return;
 			}
 		}
@@ -311,12 +474,18 @@ class sdBullet extends sdEntity
 		}
 		else
 		{
+			//ctx.globalAlpha = 0.7;
+			
 			ctx.rotate( Math.atan2( this.sy, this.sx ) + Math.PI / 2 );
 		
 			let vel = Math.sqrt( this.sx * this.sx + this.sy * this.sy ) * 0.7;
 
 			ctx.fillStyle = this.color;
 			ctx.fillRect( -0.5, -vel/2, 1, vel );
+			
+			ctx.globalAlpha = 0.03;
+			
+			ctx.fillRect( -0.5 - 5, -vel/2 - 5, 1 + 10, vel + 10 );
 		}
 	}
 }

@@ -36,8 +36,8 @@ class sdShop
 		sdShop.options.push({ _class: null, image: 'vehicle', _category:'root', _opens_category:'Vehicles' });
 		sdShop.options.push({ _class: null, image: 'upgrade', _category:'root', _opens_category:'upgrades' });
 		
-		if ( globalThis.isWin )
-		sdShop.options.push({ _class: 'sdVirus', _category:'root', _opens_category:'Development tests' });
+		//if ( globalThis.isWin )
+		//sdShop.options.push({ _class: 'sdVirus', _category:'root', _opens_category:'Development tests' });
 	
 		sdShop.options.push({ _class: 'sdHover', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles' });
@@ -213,7 +213,7 @@ class sdShop
 				_category:'upgrades' });
 		}
 		
-		if ( globalThis.isWin )
+		/*if ( globalThis.isWin )
 		{
 			sdShop.options.push({ _class: 'sdOctopus', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdQuickie', _category:'Development tests' });
@@ -224,7 +224,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCube', is_huge:true, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAsp', _category:'Development tests' });
-		}
+		}*/
 		
 		sdShop.potential_selection = -1;
 	}

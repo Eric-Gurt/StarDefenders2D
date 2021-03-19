@@ -66,6 +66,11 @@ class sdEntity
 		return true;
 	}
 	
+	IsVehicle() // Mostly defines damage from rockets multiplier so far
+	{
+		return false;
+	}
+	
 	Impact( vel ) // fall damage basically
 	{
 		//if ( vel > 7 )
@@ -374,6 +379,49 @@ class sdEntity
 		if ( this.IsGlobalEntity() )
 		sdEntity.global_entities.push( this );
 	}
+	
+	GetComsNearCache( x, y, append_to=null, require_auth_for_net_id=null, return_arr_of_one_with_lowest_net_id=true )
+	{
+		if ( append_to !== null || require_auth_for_net_id !== null || return_arr_of_one_with_lowest_net_id !== true )
+		throw new Error('Bad usage of GetComsNearCache, use sdWorld.GetComsNear instead for this kind of use');
+		
+		let coms_near = this._coms_near_cache || [];
+		let next_com_rethink = this._next_com_rethink || 0;
+
+		if ( sdWorld.time > next_com_rethink )
+		{
+			this._next_com_rethink = next_com_rethink = sdWorld.time + 100 + Math.random() * 32;
+			if ( coms_near.length === 0 || coms_near[ 0 ]._is_being_removed || !sdWorld.CheckLineOfSight( x, y, coms_near[ 0 ].x, coms_near[ 0 ].y, null, null, sdWorld.entity_classes.sdCom.com_visibility_unignored_classes ) )
+			{
+				this._coms_near_cache = coms_near = sdWorld.GetComsNear( x, y, append_to, require_auth_for_net_id, return_arr_of_one_with_lowest_net_id );
+			}
+		}
+		
+		return coms_near;
+	}
+	GetAnythingNearCache( _x, _y, range, append_to=null, specific_classes=null )
+	{
+		if ( append_to !== null || specific_classes !== null )
+		throw new Error('Bad usage of GetAnythingNearCache, use sdWorld.GetAnythingNear instead for this kind of use');
+	
+		let anything_near = this._anything_near || [];
+		let anything_near_range = this._anything_near_range || 0;
+		let next_anything_near_rethink = this._next_anything_near_rethink || 0;
+		
+		if ( sdWorld.time > next_anything_near_rethink || anything_near_range !== range )
+		{
+			if ( anything_near_range !== range && anything_near_range !== 0 )
+			{
+				debugger; // Inefficient range cache, separate cache needs to be kept for each range?
+			}
+			this._next_anything_near_rethink = next_anything_near_rethink = sdWorld.time + 200 + Math.random() * 32;
+			
+			anything_near = this._anything_near = sdWorld.GetAnythingNear( _x, _y, range, append_to, specific_classes );
+			anything_near_range = this._anything_near_range = range;
+		}
+		
+		return anything_near;
+	}
 	SetHiberState( v, allow_calling_movement_in_range=true )
 	{
 		if ( v !== this._hiberstate )
@@ -407,6 +455,12 @@ class sdEntity
 					if ( this._affected_hash_arrays.length === 0 ) // Usually it is a sign that entity (ex. sdBlock) just spawned and wasn't added to any hash arrays for collision and visibility checks (alternatively _last_x/y === undefined check could be here, but probably not needed or not efficient). Hibernation would prevent that event further so we do it now
 					{
 						sdWorld.UpdateHashPosition( this, false, allow_calling_movement_in_range );
+					}
+					
+					if ( v === sdEntity.HIBERSTATE_REMOVED )
+					{
+						if ( this.IsGlobalEntity() )
+						debugger;
 					}
 					
 					if ( this._hiberstate === sdEntity.HIBERSTATE_ACTIVE )
@@ -600,16 +654,18 @@ class sdEntity
 		
 			// Guns still use old pointer method
 			if ( this.GetClass() === 'sdGun' )
+			if ( this.held_by_class !== 'sdCharacter' ) // Old gun code handles it
 			{
 				let potential_held_by = sdEntity.GetObjectByClassAndNetId( this.held_by_class, this.held_by_net_id );
 				
-				if ( potential_held_by.GetClass() === 'sdCharacter' )
+				if ( potential_held_by )
 				{
-					// Will automatically pick-up
+					this._held_by = potential_held_by;
 				}
 				else
 				{
-					this._held_by = potential_held_by;
+					if ( this.held_by_class !== '' )
+					sdWorld.unresolved_entity_pointers.push([ this, '_held_by', this.held_by_class, this.held_by_net_id ]);
 				}
 			}
 		}
@@ -785,7 +841,10 @@ class sdEntity
 	{
 		//sdEntity.matter_discretion_frames
 		
-		if ( sdWorld.is_server )
+		if ( !sdWorld.is_server )
+		return;
+		
+		/*if ( sdWorld.is_server )
 		{
 			if ( typeof this._matter_discretion_frame === 'undefined' )
 			this._matter_discretion_frame = ~~( Math.random() * sdEntity.matter_discretion_frames );
@@ -797,8 +856,18 @@ class sdEntity
 
 			this._matter_discretion_frame += sdEntity.matter_discretion_frames;
 			GSPEED *= sdEntity.matter_discretion_frames;
-		}
+		}*/
 		
+		var arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null );
+		
+		for ( var i = 0; i < arr.length; i++ )
+		if ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' )
+		//if ( sdWorld.inDist2D_Boolean( arr[ i ].x, arr[ i ].y, x, y, radius ) >= 0 ) Already done by GetAnythingNear
+		if ( arr[ i ] !== this )
+		{
+			this.TransferMatter( arr[ i ], how_much, GSPEED * 4 ); // Mult by X because targets no longer take 4 cells
+		}
+		/*
 		if ( radius > 64 )
 		{
 			debugger; // Not needed yet?
@@ -841,7 +910,7 @@ class sdEntity
 					this.TransferMatter( arr[ i ], 0.01, GSPEED );
 				}
 			}
-		}
+		}*/
 	}
 	addEventListener( str, method ) // Not all entities will support these
 	{

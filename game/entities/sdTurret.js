@@ -79,7 +79,7 @@ class sdTurret extends sdEntity
 		this.fire_timer = 0;
 		this._target = null;
 		
-		this._coms_near_cache = [];
+		//this._coms_near_cache = [];
 	}
 	
 	onThink( GSPEED ) // Class-specific, if needed
@@ -100,12 +100,13 @@ class sdTurret extends sdEntity
 				
 				const that = this;
 				
-				let coms_near = this._coms_near_cache;
+				/*let coms_near = this._coms_near_cache;
 				
 				if ( coms_near.length === 0 || coms_near[ 0 ]._is_being_removed || !sdWorld.CheckLineOfSight( this.x, this.y, coms_near[ 0 ].x, coms_near[ 0 ].y, null, null, sdCom.com_visibility_unignored_classes ) )
 				{
 					this._coms_near_cache = coms_near = sdWorld.GetComsNear( this.x, this.y, null, null, true );
-				}
+				}*/
+				let coms_near = this.GetComsNearCache( this.x, this.y, null, null, true );
 				
 				//let class_cache = {};
 				function RuleAllowedByNodes( c )
@@ -210,6 +211,14 @@ class sdTurret extends sdEntity
 						bullet_obj.model = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.model;
 						
 						bullet_obj.color = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.color;
+						
+						bullet_obj.ac = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.ac;
+						
+						if ( bullet_obj.ac > 0 )
+						{
+							bullet_obj.acx = Math.cos( this.an / 100 );
+							bullet_obj.acy = Math.sin( this.an / 100 );
+						}
 					}	
 					
 					sdEntity.entities.push( bullet_obj );

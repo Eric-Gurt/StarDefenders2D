@@ -40,6 +40,11 @@ class sdAsteroid extends sdEntity
 		this.x += this.sx * GSPEED;
 		this.y += this.sy * GSPEED;
 		
+		if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) < 10 )
+		{
+			this.sy += sdWorld.gravity * GSPEED;
+		}
+		
 		if ( !sdWorld.is_server )
 		this._an = Math.atan2( this.sy, this.sx ) - Math.PI / 2;
 	

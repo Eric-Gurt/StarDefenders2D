@@ -28,7 +28,7 @@ class sdModeration
 		};
 		sdModeration.ever_loaded = false;
 		
-		sdModeration.non_admin_commands = [ 'myid', 'id', 'help', '?', 'commands', 'listadmins', 'selfpromote' ];
+		sdModeration.non_admin_commands = [ 'myid', 'id', 'help', '?', 'commands', 'listadmins', 'selfpromote', 'connection', 'kill' ];
 		
 		sdModeration.Load();
 	}
@@ -170,6 +170,7 @@ class sdModeration
 			}
 			let target = null;
 			
+			if ( typeof parts[ 1 ] === 'string' )
 			if ( parts[ 1 ].length > 0 )
 			{
 				if ( parts[ 1 ].charAt( 0 ) === '#' ) // # means search in admin list
@@ -257,9 +258,9 @@ class sdModeration
 		if ( parts[ 0 ] === 'commands' || parts[ 0 ] === 'help' || parts[ 0 ] === '?' )
 		{
 			if ( is_non_admin )
-			socket.emit('SERVICE_MESSAGE', 'Supported commands: ' + [ '/commands', '/myid', '/listadmins' ].join(', ') );
+			socket.emit('SERVICE_MESSAGE', 'Supported commands: ' + [ '/commands', '/myid', '/listadmins', '/connection', '/kill' ].join(', ') );
 			else
-			socket.emit('SERVICE_MESSAGE', 'Supported commands: ' + [ '/commands', '/myid', '/listadmins', '/announce', '/quit', '/restart', '/save', '/restore', '/reset', '/promote', '/demote' ].join(', ') );
+			socket.emit('SERVICE_MESSAGE', 'Supported commands: ' + [ '/commands', '/myid', '/listadmins', '/announce', '/quit', '/restart', '/save', '/restore', '/fullreset', '/god', '/promote', '/demote' ].join(', ') );
 		}
 		else
 		if ( parts[ 0 ] === 'announce' )
@@ -267,7 +268,12 @@ class sdModeration
 			let rest_text = parts.slice( 1 ).join(' ');
 			
 			for ( let i = 0; i < sdWorld.sockets.length; i++ )
-			sdWorld.sockets[ i ].emit('SERVICE_MESSAGE', 'Announcement: ' + rest_text );
+			{
+				if ( socket.character )
+				sdWorld.sockets[ i ].emit('SERVICE_MESSAGE', 'Announcement from '+socket.character.title+': ' + rest_text );
+				else
+				sdWorld.sockets[ i ].emit('SERVICE_MESSAGE', 'Announcement from '+my_admin_row.pseudonym+': ' + rest_text );
+			}
 		}
 		else
 		if ( parts[ 0 ] === 'listadmins' )
@@ -289,13 +295,24 @@ class sdModeration
 		else
 		if ( parts[ 0 ] === 'restart' || parts[ 0 ] === 'reboot' )
 		{
-			console.log( "This is pid " + process.pid );
+			if ( parts[ 1 ] === 'nosave' )
+			socket.emit('SERVICE_MESSAGE', 'Server: Restarting... Without saving snapshot' );
+			else
+			socket.emit('SERVICE_MESSAGE', 'Server: Restarting... Saving snapshot' );
+		
+			console.log( "This is pid " + process.pid + ' :: parts: ' + JSON.stringify( parts ) );
 			
-			sdWorld.SaveSnapshot( sdWorld.snapshot_path_const, ( err )=>
+			const proceed = ( err )=>
 			{		
-
+				if ( parts[ 1 ] === 'nosave' )
+				socket.emit('SERVICE_MESSAGE', 'Server: Restarting... Snapshot saving ignored, goodbye!' );
+				else
+				socket.emit('SERVICE_MESSAGE', 'Server: Restarting... Snapshot saved, goodbye!' );
+				
 				setTimeout( function () 
 				{
+					socket.emit('SERVICE_MESSAGE', 'Server: Restarting... Terminating' );
+				
 					process.on( "exit", function () 
 					{
 						let args = process.argv;
@@ -317,7 +334,12 @@ class sdModeration
 					process.exit();
 				}, 1000 );
 
-			});
+			};
+			
+			if ( parts[ 1 ] === 'nosave' )
+			proceed();
+			else
+			sdWorld.SaveSnapshot( sdWorld.snapshot_path_const, proceed );
 		}
 		else
 		if ( parts[ 0 ] === 'save' )
@@ -345,10 +367,12 @@ class sdModeration
 				if ( !err )
 				ok++;
 			
+				socket.emit('SERVICE_MESSAGE', 'Server: Copying files... tot: ' + tot + ', ok: ' + ok  );
+			
 				if ( tot === 2 )
 				{
 					if ( ok === 2 )
-					sdModeration.CommandReceived( socket, '/restart' );
+					sdModeration.CommandReceived( socket, '/restart nosave' );
 					else
 					{
 						socket.emit('SERVICE_MESSAGE', 'Server: Unable to manage backup files. /load command execution canceled.' );
@@ -360,7 +384,7 @@ class sdModeration
 			fs.copyFile( sdWorld.timewarp_path_const+'.raw.v', sdWorld.snapshot_path_const+'.raw.v', fs.constants.COPYFILE_FICLONE, fin );
 		}
 		else
-		if ( parts[ 0 ] === 'reset' || parts[ 0 ] === 'wipe' || parts[ 0 ] === 'fullreset' )
+		if ( parts[ 0 ] === 'fullreset' || parts[ 0 ] === 'wipe' )
 		{
 			for ( let i = 0; i < sdWorld.sockets.length; i++ )
 			sdWorld.sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server: World reset has been initated.' );
@@ -371,7 +395,60 @@ class sdModeration
 				fs.unlinkSync( sdWorld.snapshot_path_const );
 			}catch(e){}
 			
-			sdModeration.CommandReceived( socket, '/restart' );
+			sdModeration.CommandReceived( socket, '/restart nosave' );
+		}
+		else
+		if ( parts[ 0 ] === 'connection' || parts[ 0 ] === 'socket' )
+		{
+			if ( !is_non_admin )
+			console.log(
+				'Socket command execution status: ',
+				socket.max_update_rate,
+				socket.left_overs
+					
+			);
+	
+			//socket.sent_result_ok *= 0.8;
+			//socket.sent_result_dropped = 0.8;
+	
+			socket.emit('SERVICE_MESSAGE', 'Server: Server sends updates to you each ' + socket.max_update_rate + 'ms ('+socket.sent_result_dropped+' dropped out of '+socket.sent_result_ok+')' );
+		}
+		else
+		if ( parts[ 0 ] === 'god' )
+		{
+			if ( socket.character )
+			{
+				if ( parts[ 1 ] === '1' )
+				{
+					for ( let i = 0; i < sdWorld.sockets.length; i++ )
+					sdWorld.sockets[ i ].emit('SERVICE_MESSAGE', socket.character.title + ' has entered "godmode".' );
+		
+					socket.character._god = true;
+				}
+				else
+				if ( parts[ 1 ] === '0' )
+				{
+					for ( let i = 0; i < sdWorld.sockets.length; i++ )
+					sdWorld.sockets[ i ].emit('SERVICE_MESSAGE', socket.character.title + ' is no longer in "godmode".' );
+				
+					socket.character._god = false;
+				}
+				else
+				socket.emit('SERVICE_MESSAGE', 'Type /god 1 or /god 0' );
+			}
+			else
+			socket.emit('SERVICE_MESSAGE', 'Server: No active character.' );
+		}
+		else
+		if ( parts[ 0 ] === 'kill' )
+		{
+			if ( socket.character )
+			{
+				socket.character._god = false;
+				
+				if ( socket.character.hea > 0 )
+				socket.character.Damage( socket.character.hea );
+			}
 		}
 		else
 		socket.emit('SERVICE_MESSAGE', 'Server: Unknown command "' + parts[ 0 ] + '"' );
