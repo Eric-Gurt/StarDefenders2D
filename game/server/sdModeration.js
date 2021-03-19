@@ -260,7 +260,7 @@ class sdModeration
 			if ( is_non_admin )
 			socket.emit('SERVICE_MESSAGE', 'Supported commands: ' + [ '/commands', '/myid', '/listadmins', '/connection', '/kill' ].join(', ') );
 			else
-			socket.emit('SERVICE_MESSAGE', 'Supported commands: ' + [ '/commands', '/myid', '/listadmins', '/announce', '/quit', '/restart', '/save', '/restore', '/fullreset', '/god', '/promote', '/demote' ].join(', ') );
+			socket.emit('SERVICE_MESSAGE', 'Supported commands: ' + [ '/commands', '/myid', '/listadmins', '/announce', '/quit', '/restart', '/save', '/restore', '/fullreset', '/god', '/promote', '/demote', '/boundsmove' ].join(', ') );
 		}
 		else
 		if ( parts[ 0 ] === 'announce' )
@@ -448,6 +448,40 @@ class sdModeration
 				
 				if ( socket.character.hea > 0 )
 				socket.character.Damage( socket.character.hea );
+			}
+		}
+		else
+		if ( parts[ 0 ] === 'boundsmove' )
+		{
+			let xx = parts[ 1 ];
+			let yy = parts[ 2 ];
+			
+			if ( isNaN( xx ) || isNaN( yy ) )
+			{
+				socket.emit('SERVICE_MESSAGE', 'Can\'t move bounds like that. Type something like /boundsmove 32 -32 . Both X and Y coordinates will be rounded to 32. Positive Y is downwards.' );
+			}
+			else
+			{
+				xx = Math.round( xx / 32 ) * 32;
+				yy = Math.round( yy / 32 ) * 32;
+				
+				if ( parts[ 3 ] === 'fast' || parts[ 3 ] === 'wipe' )
+				{
+					let w = sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1;
+					let h = sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1;
+					
+					sdWorld.world_bounds.x1 += xx;
+					sdWorld.world_bounds.y1 += yy;
+					
+					sdWorld.world_bounds.x2 = sdWorld.world_bounds.x1;
+					sdWorld.world_bounds.y2 = sdWorld.world_bounds.y1;
+					
+					sdWorld.ChangeWorldBounds( sdWorld.world_bounds.x1, sdWorld.world_bounds.y1, sdWorld.world_bounds.x1 + w, sdWorld.world_bounds.y1 + h );
+				}
+				else
+				sdWorld.ChangeWorldBounds( sdWorld.world_bounds.x1 + xx, sdWorld.world_bounds.y1 + yy, sdWorld.world_bounds.x2 + xx, sdWorld.world_bounds.y2 + yy );
+			
+				socket.emit('SERVICE_MESSAGE', 'Server: Bounds changed. Current bounds: '+JSON.stringify( sdWorld.world_bounds ) );
 			}
 		}
 		else
