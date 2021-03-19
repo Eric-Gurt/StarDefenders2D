@@ -400,18 +400,18 @@ class sdModeration
 		else
 		if ( parts[ 0 ] === 'connection' || parts[ 0 ] === 'socket' )
 		{
-			if ( !is_non_admin )
+			/*if ( !is_non_admin )
 			console.log(
 				'Socket command execution status: ',
 				socket.max_update_rate,
 				socket.left_overs
 					
-			);
+			);*/
 	
 			//socket.sent_result_ok *= 0.8;
 			//socket.sent_result_dropped = 0.8;
 	
-			socket.emit('SERVICE_MESSAGE', 'Server: Server sends updates to you each ' + socket.max_update_rate + 'ms ('+socket.sent_result_dropped+' dropped out of '+socket.sent_result_ok+')' );
+			socket.emit('SERVICE_MESSAGE', 'Server: Server sends updates to you each ' + socket.max_update_rate + 'ms ('+ (~~socket.sent_result_dropped)+' dropped out of '+(~~socket.sent_result_ok)+')' );
 		}
 		else
 		if ( parts[ 0 ] === 'god' )

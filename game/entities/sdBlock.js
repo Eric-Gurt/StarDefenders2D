@@ -238,6 +238,12 @@ class sdBlock extends sdEntity
 	{
 		super( params );
 		
+		if ( !sdWorld.is_server )
+		{
+			// Debugging NaN x/y of broken particles
+			this._stack_trace = globalThis.getStackTrace();
+		}
+		
 		this.width = params.width || 32;
 		this.height = params.height || 32;
 		
@@ -433,27 +439,35 @@ class sdBlock extends sdEntity
 				}
 			}
 		}
-		
-		if ( !sdWorld.is_server )
-		if ( this._net_id !== undefined ) // Was ever synced rather than just temporarily object for shop
-		if ( this._broken )
+		else
 		{
-			sdSound.PlaySound({ name:'block4', 
-				x:this.x + this.width / 2, 
-				y:this.y + this.height / 2, 
-				volume:( this.width / 32 ) * ( this.height / 32 ), 
-				pitch: ( this.material === sdBlock.MATERIAL_WALL || this.material === sdBlock.MATERIAL_SHARP ) ? 1 : 1.5,
-				_server_allowed:true });
+			if ( isNaN( this.x ) || isNaN( this.y ) )
+            {
+            	console.log( 'sdBlock with broken x/y coordinates was spawned here: ' + this._stack_trace );
+            	debugger;
+				return;
+            }
 			
-			let x,y,a,s;
-			let step_size = 4;
-			for ( x = step_size / 2; x < this.width; x += step_size )
-			for ( y = step_size / 2; y < this.height; y += step_size )
+			if ( this._net_id !== undefined ) // Was ever synced rather than just temporarily object for shop
+			if ( this._broken )
 			{
-				a = Math.random() * 2 * Math.PI;
-				s = Math.random() * 4;
-				let ent = new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_ROCK, sx: Math.sin(a)*s, sy: Math.cos(a)*s });
-				sdEntity.entities.push( ent );
+				sdSound.PlaySound({ name:'block4', 
+					x:this.x + this.width / 2, 
+					y:this.y + this.height / 2, 
+					volume:( this.width / 32 ) * ( this.height / 32 ), 
+					pitch: ( this.material === sdBlock.MATERIAL_WALL || this.material === sdBlock.MATERIAL_SHARP ) ? 1 : 1.5,
+					_server_allowed:true });
+
+				let x,y,a,s;
+				let step_size = 4;
+				for ( x = step_size / 2; x < this.width; x += step_size )
+				for ( y = step_size / 2; y < this.height; y += step_size )
+				{
+					a = Math.random() * 2 * Math.PI;
+					s = Math.random() * 4;
+					let ent = new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_ROCK, sx: Math.sin(a)*s, sy: Math.cos(a)*s });
+					sdEntity.entities.push( ent );
+				}
 			}
 		}
 	}

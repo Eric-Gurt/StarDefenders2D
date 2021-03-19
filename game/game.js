@@ -4,21 +4,22 @@
 meSpeak.loadVoice("voices/en/en.json");
 	
 	// socket.io-specific
-	//var socket = io( '/' );
+	var socket = io( '/' );
 
 	// geckos-specific
 	
-	const geckos_start_options = {
+	/*const geckos_start_options = {
 		port: 3000,
 		authorization: 'Hi, Star Defenders 2D server!'
 	};
 	
-	let socket = geckos( geckos_start_options );
+	let socket = geckos( geckos_start_options );*/
 
 	import sdRenderer from './client/sdRenderer.js';
 	import sdShop from './client/sdShop.js';
 	import sdChat from './client/sdChat.js';
 	import sdContextMenu from './client/sdContextMenu.js';
+	import LZW from './server/LZW.js';
 
 	import sdWorld from './sdWorld.js';
 	import sdSound from './sdSound.js';
@@ -54,6 +55,7 @@ meSpeak.loadVoice("voices/en/en.json");
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
+	LZW.init_class();
 	
 	sdSound.init_class();
 	sdContextMenu.init_class();
@@ -166,18 +168,21 @@ let enf_once = true;
 	globalThis.connection_established = false;
 	globalThis.connection_started = false;
 
-	// Reconnect?
-	setInterval( ()=>
+	if ( !SOCKET_IO_MODE )
 	{
-		if ( !globalThis.connection_established )
-		if ( !globalThis.connection_started )
+		// Reconnect?
+		setInterval( ()=>
 		{
-			socket.close();
-			
-			socket = geckos( geckos_start_options );
-			SpawnConnection();
-		}
-	}, 2000 );
+			if ( !globalThis.connection_established )
+			if ( !globalThis.connection_started )
+			{
+				socket.close();
+
+				socket = geckos( geckos_start_options );
+				SpawnConnection();
+			}
+		}, 2000 );
+	}
 	SpawnConnection();
 
 	let messages_to_report_arrival = [];
@@ -257,6 +262,9 @@ let enf_once = true;
 
 		socket.on( 'RESv2', ( stuff_arr )=>
 		{
+			if ( !SOCKET_IO_MODE )
+			stuff_arr = JSON.parse( LZW.lzw_decode( stuff_arr ) );
+			
 			let snapshot = stuff_arr[ 0 ];
 			let score = stuff_arr[ 1 ];
 			let leaders = stuff_arr[ 2 ];

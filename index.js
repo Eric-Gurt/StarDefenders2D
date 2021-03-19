@@ -28,10 +28,9 @@ import fs from 'fs';
 import http from "http";
 import https from "https";
 
-import pkg from '@geckos.io/server'; // 
-const geckos = pkg.default;
-
-//import { Server } from "socket.io";
+//import pkg from '@geckos.io/server'; // 
+//const geckos = pkg.default;
+import { Server } from "socket.io";
 
 const SOCKET_IO_MODE = ( typeof Server !== 'undefined' ); // In else case geckos.io
 
@@ -135,6 +134,7 @@ import sdHover from './game/entities/sdHover.js';
 import sdStorage from './game/entities/sdStorage.js';
 import sdAsp from './game/entities/sdAsp.js';
 import sdModeration from './game/server/sdModeration.js';
+import LZW from './game/server/LZW.js';
 
 
 import sdShop from './game/client/sdShop.js';
@@ -230,6 +230,7 @@ sdStorage.init_class();
 sdAsp.init_class();
 
 sdShop.init_class(); // requires plenty of classes due to consts usage
+LZW.init_class();
 
 globalThis.sdWorld = sdWorld;
 globalThis.sdShop = sdShop;
@@ -914,66 +915,41 @@ io.on("connection", (socket) =>
 		
 		socket.volatile = socket;
 		
-		socket.sent_result_ok = 0;
-		socket.sent_result_dropped = 0;
-		
-		socket.left_overs = {};
-		socket.lost_messages = [];
-		
-		socket.sent_messages = new Map(); // { data: full_msg, time: sdWorld.time, arrived: false }
-		socket.sent_messages_first = 0;
-		socket.sent_messages_last = 0;
-		
-		socket.myDrop = ( drop ) => // { event, data }
-		{
-			
-			/*if ( drop.reason !== 'DROPPED_FROM_BUFFERING' )
-			{
-				if ( sdWorld.time > next_drop_log )
-				{	
-					next_drop_log = sdWorld.time + 1000 * 60;
-					console.log('Dropped packet: ', drop );
-					debugger;
-				}
-			}
-			else
-			{
-			}*/
-			
-			if ( drop.event === 'RESv2' )
-			{
-				socket.sent_result_dropped++;
-				
-				let ent, ind, i2;
-				
-				for ( let i = 0; i < drop.data[ 0 ].length; i++ )
-				{
-					//console.log('Found dropped entity: ' + drop.data[ 0 ][ i ]._class + '['+drop.data[ 0 ][ i ]._net_id+']' );
-							
-					socket.left_overs[ drop.data[ 0 ][ i ]._net_id ] = drop.data[ 0 ][ i ];
-					
-				}
-				for ( let i = 0; i < drop.data[ 3 ].length; i++ )
-				{
-					if ( drop.data[ 3 ][ i ][ 0 ] === 'EFF' && ( drop.data[ 3 ][ i ][ 1 ].type === sdEffect.TYPE_CHAT || drop.data[ 3 ][ i ][ 1 ].type === sdEffect.TYPE_BEAM || drop.data[ 3 ][ i ][ 1 ].type === sdEffect.TYPE_EXPLOSION || drop.data[ 3 ][ i ][ 1 ].type === sdEffect.TYPE_BLOOD ) )
-					socket.lost_messages.push( drop.data[ 3 ][ i ] );
-				}
-			}
-		};
-		
-		const old_emit = socket.emit;
-		socket.emit = ( event, action )=>
-		{
-			if ( event === 'RESv2' )
-			{
-				socket.sent_result_ok++;
-			}
-			
-			old_emit.call( socket, event, action );
-		};
-		
 		socket.client = { conn: { transport: { writable: true } } }; // Fake object just to keep main logic working
 	}
+	
+	socket.sent_result_ok = 0;
+	socket.sent_result_dropped = 0;
+
+	socket.left_overs = {};
+	socket.lost_messages = [];
+
+	socket.sent_messages = new Map(); // { data: full_msg, time: sdWorld.time, arrived: false }
+	socket.sent_messages_first = 0;
+	socket.sent_messages_last = 0;
+
+	socket.myDrop = ( drop ) => // { event, data }
+	{
+		if ( drop.event === 'RESv2' )
+		{
+			socket.sent_result_dropped++;
+
+			let ent, ind, i2;
+
+			for ( let i = 0; i < drop.data[ 0 ].length; i++ )
+			{
+				//console.log('Found dropped entity: ' + drop.data[ 0 ][ i ]._class + '['+drop.data[ 0 ][ i ]._net_id+']' );
+
+				socket.left_overs[ drop.data[ 0 ][ i ]._net_id ] = drop.data[ 0 ][ i ];
+
+			}
+			for ( let i = 0; i < drop.data[ 3 ].length; i++ )
+			{
+				if ( drop.data[ 3 ][ i ][ 0 ] === 'EFF' && ( drop.data[ 3 ][ i ][ 1 ].type === sdEffect.TYPE_CHAT || drop.data[ 3 ][ i ][ 1 ].type === sdEffect.TYPE_BEAM || drop.data[ 3 ][ i ][ 1 ].type === sdEffect.TYPE_EXPLOSION || drop.data[ 3 ][ i ][ 1 ].type === sdEffect.TYPE_BLOOD ) )
+				socket.lost_messages.push( drop.data[ 3 ][ i ] );
+			}
+		}
+	};
 	
 	let ip = null;
 	let details = null;
@@ -1557,7 +1533,7 @@ io.on("connection", (socket) =>
 			
 			for ( let i = 0; i < Math.min( 100, messages_to_report_arrival.length ); i++ )
 			{
-				let id = messages_to_report_arrival[ i ];
+				let id = ~~( messages_to_report_arrival[ i ] );
 				if ( id >= socket.sent_messages_first && id < socket.sent_messages_last )
 				{
 					let msg = socket.sent_messages.get( id );
@@ -1957,11 +1933,26 @@ setInterval( ()=>
 				
 				if ( socket.sent_result_ok > 10 )
 				{
+					//let prev = socket.max_update_rate;
+					
 					if ( socket.sent_result_dropped / socket.sent_result_ok > 0.2 )
-					socket.max_update_rate = Math.min( 200, socket.max_update_rate + 16 );
+					{
+						socket.max_update_rate = Math.min( 200, socket.max_update_rate + 16 );
+						
+						//if ( prev < 200 )
+						//socket.emit('SERVICE_MESSAGE', 'Server: Server sends updates to you each ' + socket.max_update_rate + 'ms ('+ (~~socket.sent_result_dropped)+' dropped out of '+(~~socket.sent_result_ok)+')' );
+					}
 				
-					if ( socket.sent_result_dropped / socket.sent_result_ok <= 0.005 )
-					socket.max_update_rate = Math.max( 16, socket.max_update_rate - 1 );
+					if ( socket.sent_result_dropped / socket.sent_result_ok <= 0.01 )
+					{
+						socket.max_update_rate = Math.max( 16, socket.max_update_rate - 1 );
+						
+						//if ( prev > 16 )
+						//socket.emit('SERVICE_MESSAGE', 'Server: Server sends updates to you each ' + socket.max_update_rate + 'ms ('+ (~~socket.sent_result_dropped)+' dropped out of '+(~~socket.sent_result_ok)+')' );
+					
+					}
+					
+					socket.emit('SERVICE_MESSAGE', 'Server: Server sends updates to you each ' + socket.max_update_rate + 'ms ('+ (~~socket.sent_result_dropped)+' dropped out of '+(~~socket.sent_result_ok)+')' );
 						
 					//socket.max_update_rate = socket.max_update_rate * 0.9 + 0.1 * Math.min( 200, Math.max( 16, sdWorld.max_update_rate / ( socket.sent_result_ok ) * ( socket.sent_result_dropped ) ) );
 				}
@@ -1999,6 +1990,7 @@ setInterval( ()=>
 					socket.last_sync = sdWorld.time;
 
 					var snapshot = [];
+					var snapshot_only_statics = [];
 
 					var observed_entities = [];
 					//var observed_statics = [];
@@ -2042,7 +2034,7 @@ setInterval( ()=>
 					max_x += 32 * 3;
 					max_y += 32 * 3;
 					
-					const MaxCompleteEntitiesCount = 50;
+					const MaxCompleteEntitiesCount = 40; // 50 sort of fine for PC, but now for mobile
 					
 					//let random_upgrade_for = [];
 
@@ -2076,7 +2068,13 @@ setInterval( ()=>
 								if ( socket.known_statics_versions_map.has( arr[ i2 ] ) )
 								{
 									if ( socket.known_statics_versions_map.get( arr[ i2 ] ) !== arr[ i2 ]._update_version && snapshot.length < MaxCompleteEntitiesCount )
-									snapshot.push( arr[ i2 ].GetSnapshot( frame ) ); // Update actually needed
+									{
+										socket.known_statics_versions_map.set( arr[ i2 ], arr[ i2 ]._update_version ); // Why it was missing?
+										
+										var snap = arr[ i2 ].GetSnapshot( frame );
+										snapshot.push( snap ); // Update actually needed
+										snapshot_only_statics.push( snap );
+									}
 									//else
 									//random_upgrade_for.push( arr[ i2 ] );
 								}
@@ -2086,7 +2084,9 @@ setInterval( ()=>
 									//socket.known_statics_map.set( arr[ i2 ], arr[ i2 ] );
 									socket.known_statics_versions_map.set( arr[ i2 ], arr[ i2 ]._update_version );
 
-									snapshot.push( arr[ i2 ].GetSnapshot( frame ) );
+									var snap = arr[ i2 ].GetSnapshot( frame );
+									snapshot.push( snap );
+									snapshot_only_statics.push( snap );
 								}
 								//else
 								//random_upgrade_for.push( arr[ i2 ] );
@@ -2129,6 +2129,7 @@ setInterval( ()=>
 								_broken: key._is_being_removed
 							};
 							snapshot.push( snapshot_of_deletion );
+							snapshot_only_statics.push( snapshot_of_deletion );
 
 							socket.known_statics_versions_map.delete( key );
 						}
@@ -2185,62 +2186,134 @@ setInterval( ()=>
 					sd_events.push( socket.sd_events.shift() );
 				
 					let leftovers_tot = Object.keys( socket.left_overs ).length;
-					if ( leftovers_tot > 10000 )
+					if ( leftovers_tot > 5000 )
 					{
 						console.log('socket.left_overs.length = ' + leftovers_tot + '... giving up with resends' );
 						socket.left_overs = {};
 					}
 				
-					for ( let m = socket.sent_messages_first; m < socket.sent_messages_last; m++ )
-					{
-						let msg = socket.sent_messages.get( m );
-						if ( !msg.arrived )
-						if ( msg.time < sdWorld.time - 350 )
-						{
-							socket.myDrop({ event:'RESv2', data:msg.data }); // { event, data }
-							
-							msg.arrived = true; // Prevent resend
-						}
-					}
-				
 					let v = 0;
 					for ( let prop in socket.left_overs )
 					{
-						let possibly_ent = sdEntity.entities_by_net_id_cache[ socket.left_overs[ prop ]._net_id ];
+						//Not needed too?
+						/*let possibly_ent = sdEntity.entities_by_net_id_cache[ socket.left_overs[ prop ]._net_id ];
 						
 						if ( possibly_ent && !possibly_ent.is_static )
 						{
+							debugger // Should not happen because these are removed later? Or they are not due to last snapshot inserted into sent ones without clearing these?
+							
 							//console.log('Dropped packet entity is not static, skip: ' + possibly_ent.GetClass() + '['+possibly_ent._net_id+']' );
+							delete socket.left_overs[ prop ];
 							continue;
-						}
+						}*/
 					
 						let found = false;
 					
-						for ( let s = 0; s < snapshot.length; s++ )
-						if ( snapshot[ s ]._net_id === socket.left_overs[ prop ]._net_id )
+						// Not needed anymore due to it being done later near AAA
+						
+						for ( let s = 0; s < snapshot_only_statics.length; s++ )
+						if ( snapshot_only_statics[ s ]._net_id === socket.left_overs[ prop ]._net_id )
 						{
+							//debugger; // Does this even happen? Should not but what if it helps catching some bug. And we do not want to send 2 states of same object
+							
+							// It still does happen... Which is maybe fine.
+							
 							delete socket.left_overs[ prop ];
 							
 							//console.log('Dropped packet entity was already in snapshot: ' + snapshot[ s ]._class + '['+snapshot[ s ]._net_id+']' );
 							found = true;
 							break;
 						}
+						
 
 						if ( !found )
 						{
-							if ( v <= leftovers_tot * 0.05 )
+							if ( v <= leftovers_tot * 0.05 || v <= 10 )
 							{
+								// Serious bug here: It resends outdated states AND one of these states might tell client that entity is being removed (for example due to looking away from it) BUT this info might arrive after entity already reappeared
+								
 								//console.log('Dropped packet entity was readded: ' + socket.left_overs[ prop ]._class + '['+socket.left_overs[ prop ]._net_id+']' );
 								snapshot.push( socket.left_overs[ prop ] );
+								snapshot_only_statics.push( socket.left_overs[ prop ] );
 								delete socket.left_overs[ prop ];
 
 								v++;
 							}
+							else
+							break
 							//if ( v > leftovers_tot * 0.05 )
 							//break;
 						}
 						
 						//delete socket.left_overs[ prop ];
+					}
+					
+					// Walk through socket.sent_messages and get rid of mentions of current snapshot's static entities (because we are about to send fresher versions of their state or even deletion)
+					for ( let m = socket.sent_messages_first; m < socket.sent_messages_last; m++ )
+					{
+						let msg = socket.sent_messages.get( m );
+						if ( !msg.arrived )
+						{
+							for ( let d = 0; d < msg.data[ 0 ].length; d++ )
+							{
+								let del = false;
+								
+								/*let possibly_ent = sdEntity.entities_by_net_id_cache[ msg.data[ 0 ][ d ]._net_id ];
+						
+								if ( possibly_ent && !possibly_ent.is_static )
+								{
+									del = true;
+									//delete msg.data[ 0 ][ d ];
+									//continue;
+								}
+								*/
+
+								// AAA
+								if ( !del )
+								for ( let s = 0; s < snapshot_only_statics.length; s++ )
+								if ( msg.data[ 0 ][ d ]._net_id === snapshot_only_statics[ s ]._net_id )
+								{
+									//console.log('Preventing outdated state resend for ' + snapshot_only_statics[ s ]._class );
+									del = true;
+									//delete msg.data[ 0 ][ d ];
+									break;
+								}
+								
+								if ( del )
+								{
+									msg.data[ 0 ].splice( d, 1 );
+									d--;
+									continue;
+								}
+							}
+						}
+					}
+					
+					const resend_in = 1000;
+					const old_shapshots_expire_in_in = 3000; // 3000 kind of fine, but holes still might happen in stress-cases of spark firing at ground, but that is probably unrelated
+					
+					if ( resend_in >= old_shapshots_expire_in_in )
+					throw new Error('Keep resend_in value less than old_shapshots_expire_in_in');
+				
+					for ( let m = socket.sent_messages_first; m < socket.sent_messages_last; m++ )
+					{
+						let msg = socket.sent_messages.get( m );
+						if ( !msg.arrived )
+						//if ( msg.time < sdWorld.time - 350 )
+						if ( msg.time < sdWorld.time - resend_in )
+						{
+							socket.myDrop({ event:'RESv2', data:msg.data }); // { event, data }
+							
+							msg.arrived = true; // Prevent resend
+						}
+					}
+					
+					
+					if ( socket.lost_messages.length > 5000 )
+					{
+						
+						console.log('socket.lost_messages.length = ' + socket.lost_messages.length + '... giving up with resends' );
+						socket.lost_messages = [];
 					}
 					
 					for ( let s = 0; s < Math.min( 3, socket.lost_messages.length ); s++ )
@@ -2261,19 +2334,40 @@ setInterval( ()=>
 						socket.sent_messages_last // 9
 					];
 					
+					let full_msg_story = [ 
+						snapshot_only_statics, // 0
+						null, // 1
+						null, // 2
+						sd_events, // 3
+						null, // 4
+						null, // 5
+						null, // 6
+						null, // 7
+						null, // 8
+						socket.sent_messages_last // 8
+					];
+					
+					
 					//socket.sent_messages = new Map();
 					//socket.sent_messages_first = 0;
 					//socket.sent_messages_last = 0;
 					
-					socket.sent_messages.set( socket.sent_messages_last++, { data: full_msg, time: sdWorld.time, arrived: false } );
+					socket.sent_messages.set( socket.sent_messages_last++, { data: full_msg_story, time: sdWorld.time, arrived: false } );
 					
 					// Forget too old messages
-					while ( socket.sent_messages.get( socket.sent_messages_first ).time < sdWorld.time - 10000 )
+					while ( socket.sent_messages.get( socket.sent_messages_first ).time < sdWorld.time - old_shapshots_expire_in_in ) // Used to be 10000 but lower value is better because static entities will be removed in each sync from all these snapshots
 					socket.sent_messages.delete( socket.sent_messages_first++ );
 					
 					//for ( let g = 0; g < 25; g++ )
-					//if ( Math.random() < 0.9 )
-					socket.compress( true ).emit('RESv2', full_msg );
+					//if ( Math.random() < 0.5 )
+					{
+						if ( !SOCKET_IO_MODE )
+						socket.compress( true ).emit('RESv2', LZW.lzw_encode( JSON.stringify( full_msg ) ) );
+						else
+						socket.compress( true ).emit('RESv2', full_msg );
+					}
+				
+					socket.sent_result_ok++;
 					
 					socket.character._force_add_sx = 0;
 					socket.character._force_add_sy = 0;

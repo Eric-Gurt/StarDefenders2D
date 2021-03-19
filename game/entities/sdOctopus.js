@@ -236,7 +236,8 @@ class sdOctopus extends sdEntity
 			{
 				this._last_bite = sdWorld.time; // So it is not so much calc intensive
 						
-				let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 170 );
+				//let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 170 );
+				let nears_raw = this.GetAnythingNearCache( this.x, this.y, 170 );
 				let from_entity;
 				
 				let nears = [];

@@ -339,8 +339,8 @@ class sdEntity
 		
 		this._last_hit_time = 0; // Prevent flood from splash damage bullets
 		
-		this.x = params.x;
-		this.y = params.y;
+		this.x = params.x || 0;
+		this.y = params.y || 0;
 		
 		if ( this.is_static )
 		this._update_version = 0;
