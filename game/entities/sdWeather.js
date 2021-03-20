@@ -150,7 +150,8 @@ class sdWeather extends sdEntity
 				
 				let r = ~~( Math.random() * 5 );
 				
-				//r = 3; // Hack
+				//this._time_until_event = 0; // Hack
+				//r = 4; // Hack
 				
 				if ( r === 0 )
 				this._rain_ammount = 30 * 15 * ( 1 + Math.random() * 2 ); // start rain for ~15 seconds

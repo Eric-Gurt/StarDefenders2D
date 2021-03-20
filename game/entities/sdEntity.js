@@ -111,7 +111,7 @@ class sdEntity
 	{
 	}
 	
-	ApplyVelocityAndCollisions( GSPEED, step_size=0, apply_friction=false, impact_scale=1 ) // step_size can be used by entities that can use stairs
+	ApplyVelocityAndCollisions( GSPEED, step_size=0, apply_friction=false, impact_scale=1, custom_filtering_method=null ) // step_size can be used by entities that can use stairs
 	{
 		let new_x = this.x + this.sx * GSPEED;
 		let new_y = this.y + this.sy * GSPEED;
@@ -123,7 +123,7 @@ class sdEntity
 		//if ( !sdWorld.is_server )
 		//safe_overlap += 1;
 
-		if ( this.CanMoveWithoutOverlap( new_x, new_y, safe_overlap ) )
+		if ( this.CanMoveWithoutOverlap( new_x, new_y, safe_overlap, custom_filtering_method ) )
 		{
 			this.x = new_x;
 			this.y = new_y;
@@ -144,7 +144,7 @@ class sdEntity
 			{
 				for ( let i = 1; i <= step_size; i++ )
 				{
-					if ( this.CanMoveWithoutOverlap( new_x, new_y - i ) )
+					if ( this.CanMoveWithoutOverlap( new_x, new_y - i, 0, custom_filtering_method ) )
 					{
 						if ( i > step_size / 2 )
 					    {
@@ -161,7 +161,7 @@ class sdEntity
 			}
 			
 
-			if ( this.CanMoveWithoutOverlap( new_x, this.y, safe_overlap ) )
+			if ( this.CanMoveWithoutOverlap( new_x, this.y, safe_overlap, custom_filtering_method ) )
 			{
 				let self_effect_scale = 1;
 				
@@ -185,7 +185,7 @@ class sdEntity
 				this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, friction_remain, GSPEED );
 			}
 			else
-			if ( this.CanMoveWithoutOverlap( this.x, new_y, safe_overlap ) )
+			if ( this.CanMoveWithoutOverlap( this.x, new_y, safe_overlap, custom_filtering_method ) )
 			{
 				let self_effect_scale = 1;
 				
@@ -255,7 +255,7 @@ class sdEntity
 	}
 	IsBGEntity() // True for BG entities, should handle collisions separately
 	{ return false; }
-	CanMoveWithoutOverlap( new_x, new_y, safe_bound=0 ) // Safe bound used to check if sdCharacter can stand and not just collides with walls nearby. Also due to number rounding clients should better have it (or else they will teleport while sliding on vertical wall)
+	CanMoveWithoutOverlap( new_x, new_y, safe_bound=0, custom_filtering_method=null ) // Safe bound used to check if sdCharacter can stand and not just collides with walls nearby. Also due to number rounding clients should better have it (or else they will teleport while sliding on vertical wall)
 	{
 		var ignored_classes = this.GetIgnoredEntityClasses();
 		
@@ -263,7 +263,7 @@ class sdEntity
 				new_x + this.hitbox_x1 + safe_bound, 
 				new_y + this.hitbox_y1 + safe_bound, 
 				new_x + this.hitbox_x2 - safe_bound, 
-				new_y + this.hitbox_y2 - safe_bound, this, ignored_classes, this.GetNonIgnoredEntityClasses() ) )
+				new_y + this.hitbox_y2 - safe_bound, this, ignored_classes, this.GetNonIgnoredEntityClasses(), custom_filtering_method ) )
 		return false;
 		
 		/*if ( sdWorld.CheckWallExists( new_x + this.hitbox_x1 + safe_bound, new_y + this.hitbox_y2 - safe_bound, this, ignored_classes ) )
@@ -561,7 +561,7 @@ class sdEntity
 					
 					if ( !save_as_much_as_possible && typeof v === 'number' ) // Do not do number rounding if world is being saved
 					{
-						if ( prop === 'sx' || prop === 'sy' )
+						if ( prop === 'sx' || prop === 'sy' || prop === 'scale' )
 						this._snapshot_cache[ prop ] = Math.round( v * 100 ) / 100;
 						else
 						this._snapshot_cache[ prop ] = Math.round( v );
@@ -990,6 +990,8 @@ class sdEntity
 	}
 	_remove()
 	{
+		// Method should be called only ever once per entity, but there was case where it didn't. Since it has not side effects I haven't debugged callstack of first removal, but it surely can be done (performance damage)
+		
 		this._is_being_removed = true; // Just in case? Never needed but OnThink might return true for removal without .remove() call
 		
 		this.onRemove();

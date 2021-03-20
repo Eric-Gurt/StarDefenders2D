@@ -173,8 +173,8 @@ class sdAsp extends sdEntity
 				{
 					this._last_jump = sdWorld.time;
 					
-					let dx = ( this._current_target.x + this._current_target.sx * 20 - this.x - this.sx * 20 );
-					let dy = ( this._current_target.y + this._current_target.sy * 20 - this.y - this.sy * 20 );
+					let dx = ( this._current_target.x + ( this._current_target.sx || 0 ) * 20 - this.x - this.sx * 20 );
+					let dy = ( this._current_target.y + ( this._current_target.sy || 0 ) * 20 - this.y - this.sy * 20 );
 					
 					// Bad formula but whatever
 					dx += Math.random() * 40 - 20;

@@ -223,6 +223,7 @@ class sdQuickie extends sdEntity
 					 from_entity.GetClass() === 'sdMatterContainer' ||
 					 from_entity.GetClass() === 'sdDoor' ||
 					 from_entity.GetClass() === 'sdTurret' )
+				if ( from_entity.IsTargetable() )
 				{
 					this._last_bite = sdWorld.time;
 					from_entity.Damage( 15, this );

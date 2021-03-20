@@ -623,12 +623,16 @@ class sdGun extends sdEntity
 						{
 
 							let ent = this._held_by.CreateBuildObject( false );
+							
+							if ( this._held_by._build_params._category !== 'Development tests' )
+							{
 
-							if ( typeof ent.hmax !== 'undefined' )
-							ent.Damage( ent.hmax * 0.9 ); // Start with low hp
+								if ( typeof ent.hmax !== 'undefined' )
+								ent.Damage( ent.hmax * 0.9 ); // Start with low hp
 
-							if ( typeof ent._hmax !== 'undefined' )
-							ent.Damage( ent._hmax * 0.9 ); // Start with low hp
+								if ( typeof ent._hmax !== 'undefined' )
+								ent.Damage( ent._hmax * 0.9 ); // Start with low hp
+							}
 						
 							ent.onBuilt();
 

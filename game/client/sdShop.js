@@ -213,7 +213,7 @@ class sdShop
 				_category:'upgrades' });
 		}
 		
-		/*if ( globalThis.isWin )
+		if ( globalThis.isWin )
 		{
 			sdShop.options.push({ _class: 'sdOctopus', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdQuickie', _category:'Development tests' });
@@ -224,7 +224,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCube', is_huge:true, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAsp', _category:'Development tests' });
-		}*/
+			sdShop.options.push({ _class: 'sdSandWorm', _category:'Development tests' });
+		}
 		
 		sdShop.potential_selection = -1;
 	}

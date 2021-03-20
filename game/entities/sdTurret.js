@@ -14,6 +14,7 @@ import sdBomb from './sdBomb.js';
 import sdGun from './sdGun.js';
 import sdEffect from './sdEffect.js';
 import sdAsp from './sdAsp.js';
+import sdSandWorm from './sdSandWorm.js';
 
 
 class sdTurret extends sdEntity
@@ -26,7 +27,7 @@ class sdTurret extends sdEntity
 		sdTurret.img_turret2 = sdWorld.CreateImageFromFile( 'turret2' );
 		sdTurret.img_turret2_fire = sdWorld.CreateImageFromFile( 'turret2_fire' );
 		
-		sdTurret.targetable_classes = new WeakSet( [ sdCharacter, sdVirus, sdQuickie, sdOctopus, sdCube, sdBomb, sdAsp ] );
+		sdTurret.targetable_classes = new WeakSet( [ sdCharacter, sdVirus, sdQuickie, sdOctopus, sdCube, sdBomb, sdAsp, sdSandWorm ] );
 		
 		sdTurret.KIND_LASER = 0;
 		sdTurret.KIND_ROCKET = 1;
@@ -143,7 +144,7 @@ class sdTurret extends sdEntity
 						
 						if ( targetable_classes.has( e.constructor ) )
 						//if ( e.is( sdCharacter ) || e.is( sdVirus ) || e.is( sdQuickie ) || e.is( sdOctopus ) || e.is( sdCube ) || e.is( sdBomb ) )
-						if ( ( e.hea || e._hea ) > 0 )
+						if ( ( e.hea || e._hea ) > 0 && ( !e.is( sdSandWorm ) || e.death_anim === 0 ) )
 						if ( e.IsVisible( this._owner ) || ( e.driver_of && e.driver_of.IsVisible( this._owner ) ) )
 						{
 							if ( e !== this._owner || coms_near_len > 0 )

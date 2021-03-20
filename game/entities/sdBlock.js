@@ -412,9 +412,48 @@ class sdBlock extends sdEntity
 		{
 			if ( this._contains_class )
 			{
-				let ent = new sdWorld.entity_classes[ this._contains_class ]({ x: this.x + this.width / 2, y: this.y + this.height / 2 });
-				sdEntity.entities.push( ent );
-				sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
+				if ( this._contains_class === 'sdSandWorm' )
+				{
+					let map = {};
+					let blocks_near = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, 16, null, [ 'sdBlock' ] );
+					
+					for ( let i = 0; i < blocks_near.length; i++ )
+					map[ ( blocks_near[ i ].x - this.x ) / 16 + ':' + ( blocks_near[ i ].y - this.y ) / 16 ] = blocks_near[ i ];
+				
+					done:
+					for ( let xx = -1; xx <= 0; xx++ )
+					for ( let yy = -1; yy <= 0; yy++ )
+					{
+						if ( map[ ( xx + 0 ) + ':' + ( yy + 0 ) ] )
+						if ( map[ ( xx + 1 ) + ':' + ( yy + 0 ) ] )
+						if ( map[ ( xx + 0 ) + ':' + ( yy + 1 ) ] )
+						if ( map[ ( xx + 1 ) + ':' + ( yy + 1 ) ] )
+						{
+							let ent = new sdWorld.entity_classes[ this._contains_class ]({ x: this.x + xx * 16, y: this.y + yy * 16 });
+							sdEntity.entities.push( ent );
+							sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
+							
+							
+							map[ ( xx + 0 ) + ':' + ( yy + 0 ) ]._contains_class = null;
+							map[ ( xx + 1 ) + ':' + ( yy + 0 ) ]._contains_class = null;
+							map[ ( xx + 0 ) + ':' + ( yy + 1 ) ]._contains_class = null;
+							map[ ( xx + 1 ) + ':' + ( yy + 1 ) ]._contains_class = null;
+							
+							map[ ( xx + 0 ) + ':' + ( yy + 0 ) ].Damage( Infinity );
+							map[ ( xx + 1 ) + ':' + ( yy + 0 ) ].Damage( Infinity );
+							map[ ( xx + 0 ) + ':' + ( yy + 1 ) ].Damage( Infinity );
+							map[ ( xx + 1 ) + ':' + ( yy + 1 ) ].Damage( Infinity );
+
+							break done;
+						}
+					}
+				}
+				else
+				{
+					let ent = new sdWorld.entity_classes[ this._contains_class ]({ x: this.x + this.width / 2, y: this.y + this.height / 2 });
+					sdEntity.entities.push( ent );
+					sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
+				}
 			}
 
 			let nears = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, Math.max( this.width, this.height ) / 2 + 16 );

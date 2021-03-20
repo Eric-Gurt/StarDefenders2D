@@ -244,7 +244,10 @@ class sdVirus extends sdEntity
 			}
 		}
 		
-		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
+		sdWorld.last_hit_entity = null;
+		
+		let in_water = sdWorld.CheckWallExistsBox( this.x + this.hitbox_x1, this.y + this.hitbox_y1, this.x + this.hitbox_x2, this.y + this.hitbox_y2, null, null, sdWater.water_class_array );
+		//let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
 		
 		if ( in_water )
 		{
@@ -290,6 +293,7 @@ class sdVirus extends sdEntity
 				let yy = from_entity.y + ( from_entity.hitbox_y1 + from_entity.hitbox_y2 ) / 2;
 				
 				if ( from_entity.is( sdCharacter ) )
+				if ( from_entity.IsTargetable() )
 				if ( sdWorld.CheckLineOfSight( this.x, this.y, from_entity.x, from_entity.y, null, null, sdCom.com_creature_attack_unignored_classes ) )
 				{
 					from_entity.Damage( 30 * this.hmax / sdVirus.normal_max_health, this );

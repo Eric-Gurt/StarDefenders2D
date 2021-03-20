@@ -424,6 +424,12 @@ class sdWorld
 				let enemy_rand_num = Math.random();
 				let random_enemy;
 				
+				if ( Math.pow( enemy_rand_num, 10 ) > 1 / hp_mult )
+				{
+					random_enemy = 'sdSandWorm';
+					//console.log('sdSandWorm spawned somewhere');
+				}
+				else
 				if ( Math.pow( enemy_rand_num, 5 ) > 1 / hp_mult )
 				random_enemy = 'sdOctopus';
 				else
@@ -534,6 +540,10 @@ class sdWorld
 			//if ( e.x + e.hitbox_x2 < x1 || e.x + e.hitbox_x1 > x2 || e.y + e.hitbox_y2 < y1 || e.y + e.hitbox_y1 > y2 ) Ground overlap problem
 			if ( e.x < x1 || e.x >= x2 || e.y < y1 || e.y >= y2 )
 			{
+				if ( e.is( sdBlock ) )
+				if ( e._contains_class !== null )
+				e._contains_class = null;
+				
 				e.remove();
 				e._remove();
 				sdEntity.entities.splice( i, 1 );
@@ -1326,7 +1336,8 @@ class sdWorld
 		return ((a%n)+n)%n;
 	}
 	
-	static CheckWallExistsBox( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null ) // under 32x32 boxes unless line with arr = sdWorld.RequireHashPosition( x1 + xx * 32, y1 + yy * 32 ); changed
+	// custom_filtering_method( another_entity ) should return true in case if surface can not be passed through
+	static CheckWallExistsBox( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null ) // under 32x32 boxes unless line with arr = sdWorld.RequireHashPosition( x1 + xx * 32, y1 + yy * 32 ); changed
 	{
 		if ( y1 < sdWorld.world_bounds.y1 || 
 			 y2 > sdWorld.world_bounds.y2 || 
@@ -1390,6 +1401,7 @@ class sdWorld
 					{
 					}
 					else
+					if ( custom_filtering_method === null || custom_filtering_method( arr[ i ] ) )
 					{
 						sdWorld.last_hit_entity = arr[ i ];
 						return true;

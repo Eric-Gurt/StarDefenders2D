@@ -326,7 +326,7 @@ class sdDoor extends sdEntity
 		if ( this.openness > 0 || typeof ctx.FakeStart !== 'undefined' )
 		{
 			if ( this.x0 === undefined )
-			ctx.drawImage( sdDoor.img_door_path, -16 - this.x, -16 - this.y, 32,32 );
+			ctx.drawImage( sdDoor.img_door_path, -16, -16, 32,32 );
 			else
 			ctx.drawImage( sdDoor.img_door_path, -16 - this.x + this.x0, -16 - this.y + this.y0, 32,32 );
 		}

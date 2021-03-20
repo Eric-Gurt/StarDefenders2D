@@ -135,6 +135,7 @@ import sdStorage from './game/entities/sdStorage.js';
 import sdAsp from './game/entities/sdAsp.js';
 import sdModeration from './game/server/sdModeration.js';
 import LZW from './game/server/LZW.js';
+import sdSandWorm from './game/entities/sdSandWorm.js';
 
 
 import sdShop from './game/client/sdShop.js';
@@ -228,6 +229,7 @@ sdBomb.init_class();
 sdHover.init_class();
 sdStorage.init_class();
 sdAsp.init_class();
+sdSandWorm.init_class();
 
 sdShop.init_class(); // requires plenty of classes due to consts usage
 LZW.init_class();
@@ -307,6 +309,8 @@ sdWorld.timewarp_path_const = timewarp_path_const;
 sdWorld.moderation_data_path_const = moderation_data_path_const;
 sdWorld.superuser_pass_path = superuser_pass_path;
 
+let strange_position_classes = {};
+
 //let snapshot_path = __dirname + '/star_defenders_snapshot.v';
 let is_terminating = false;
 {
@@ -334,7 +338,16 @@ let is_terminating = false;
 		};
 
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
-		entities.push( sdEntity.entities[ i ].GetSnapshot( frame, true ) );
+		{
+			if ( isNaN( sdEntity.entities[ i ].x ) || isNaN( sdEntity.entities[ i ].y ) || sdEntity.entities[ i ].x === null || sdEntity.entities[ i ].y === null )
+			if ( typeof strange_position_classes[ sdEntity.entities[ i ].GetClass() ] === 'undefined' )
+			{
+				console.log( sdEntity.entities[ i ].GetClass() + ' has strange position during saving: ' + sdEntity.entities[ i ].x + ', ' + sdEntity.entities[ i ].y + ' (nulls could mean NaNs) - not reporting this class with same kind of error anymore...' );
+				strange_position_classes[ sdEntity.entities[ i ].GetClass() ] = 1;
+			}
+		
+			entities.push( sdEntity.entities[ i ].GetSnapshot( frame, true ) );
+		}
 
 
 		let snapshot_made_time = Date.now();
@@ -482,11 +495,23 @@ try
 	
 	sdWorld.unresolved_entity_pointers = [];
 	
+	let ent = null;
+	
 	for ( i = 0; i < save_obj.entities.length; i++ )
 	{
 		try
 		{
-			sdEntity.GetObjectFromSnapshot( save_obj.entities[ i ] );
+			ent = sdEntity.GetObjectFromSnapshot( save_obj.entities[ i ] );
+			
+			if ( isNaN( ent.x ) || isNaN( ent.y ) || ent.x === null || ent.y === null )
+			{
+				if ( typeof strange_position_classes[ ent.GetClass() ] === 'undefined' )
+				{
+					console.log( ent.GetClass() + ' has strange position during loading: ' + ent.x + ', ' + ent.y + ' (nulls could mean NaNs) - not reporting this class with same kind of error anymore...' );
+					strange_position_classes[ ent.GetClass() ] = 1;
+				}
+				ent.remove();
+			}
 		}
 		catch( e )
 		{

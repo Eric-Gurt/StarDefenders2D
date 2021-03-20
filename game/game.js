@@ -51,6 +51,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdHover from './entities/sdHover.js';
 	import sdStorage from './entities/sdStorage.js';
 	import sdAsp from './entities/sdAsp.js';
+	import sdSandWorm from './entities/sdSandWorm.js';
 
 
 	sdWorld.init_class();
@@ -88,6 +89,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdHover.init_class();
 	sdStorage.init_class();
 	sdAsp.init_class();
+	sdSandWorm.init_class();
 	
 	
 	globalThis.sdCharacter = sdCharacter; // for console access

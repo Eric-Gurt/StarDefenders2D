@@ -626,7 +626,7 @@ class sdCharacter extends sdEntity
 			//let closest_di_real = Infinity;
 			
 			// Occasionally change direction?
-			if ( Math.random() < 0.01 )
+			if ( Math.random() < 0.001 )
 			this._ai.direction = ( Math.random() < 0.5 ) ? 1 : -1;
 			
 			
