@@ -44,3 +44,7 @@ You'll need to update SSL (https thing) info in index.js or just get rid of SSL 
 Then do:
 
 node index.js > stdout.txt 2> stderr.txt &
+
+# Admin commands
+
+These might change so type /selfhost - it will hint you what to do next. Once you've got admin rights you can type /help for full list of commands you can execute.
