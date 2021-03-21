@@ -463,6 +463,8 @@ class sdCube extends sdEntity
 		
 			if ( this.attack_anim > 0 )
 			this.attack_anim = Math.max( 0, this.attack_anim - GSPEED );
+		
+			this.PhysWakeUp();
 		}
 		
 		if ( this._alert_intensity > 0 )

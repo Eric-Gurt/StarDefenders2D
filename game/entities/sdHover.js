@@ -271,6 +271,9 @@ class sdHover extends sdEntity
 			if ( this.driver0.act_x === 0 )
 			if ( Math.abs( this.tilt ) < 1 )
 			this.tilt = ( this.tilt > 0 ? 1 : -1 );
+	
+			if ( x_force !== 0 || y_force !== 0 )
+			this.PhysWakeUp();
 		}
 		else
 		{

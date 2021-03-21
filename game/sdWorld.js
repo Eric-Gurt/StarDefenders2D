@@ -1161,6 +1161,8 @@ class sdWorld
 					{
 						entity.onMovementInRange( another_entity );
 						another_entity.onMovementInRange( entity );
+						
+						//entity.SharePhysAwake( another_entity );
 					}
 				}
 			});

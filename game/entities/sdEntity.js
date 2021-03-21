@@ -88,6 +88,8 @@ class sdEntity
 			this.onMovementInRange( hit_what );
 			hit_what.onMovementInRange( this );
 			
+			//this.SharePhysAwake( hit_what );
+			
 			if ( this._hiberstate !== sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP )
 			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		
@@ -111,8 +113,152 @@ class sdEntity
 	{
 	}
 	
+	PhysInitIfNeeded( w, h )
+	{
+		if ( typeof this._phys_sleep === 'undefined' )
+		{
+			this._phys_sleep = 10; // Time until full sleep
+			this._phys_last_touch = null;
+			this._phys_last_w = 0;
+			this._phys_last_h = 0;
+			
+			// Opposite velocity can cause reactivation of physics (jetpack into ceiling case which normally would cause player being stuck)
+			this._phys_last_sx = false;
+			this._phys_last_sy = false;
+			
+			this._phys_last_touch_targetable = false;
+			this._phys_last_touch_x = 0;
+			this._phys_last_touch_y = 0;
+		}
+	}
+	PhysWakeUp()
+	{
+		this.PhysInitIfNeeded();
+
+		//if ( this.GetClass() === 'sdHover' )
+		//console.log( this.GetClass() + ' becomes physically active (wake up method)' );
+
+		this._phys_sleep = 10;
+	}
+	/*SharePhysAwake( hit_what )
+	{
+		if ( ( typeof this.sx !== 'undefined' && typeof this.sy !== 'undefined' ) || this._is_being_removed )
+		if ( ( typeof hit_what.sx !== 'undefined' && typeof hit_what.sy !== 'undefined' ) || hit_what._is_being_removed )
+		if ( this.IsTargetable() )
+		if ( hit_what.IsTargetable() )
+		if ( this.hard_collision )
+		if ( hit_what.hard_collision )
+		{
+			this.PhysInitIfNeeded();
+			hit_what.PhysInitIfNeeded();
+			
+			//if ( this === hit_what )
+			//debugger;
+
+			if ( this._phys_sleep < hit_what._phys_sleep )
+			if ( hit_what.GetClass() === 'sdHover' || this.GetClass() === 'sdHover' )
+			console.log( hit_what.GetClass() + ' wakes up ' + this.GetClass() );
+
+			this._phys_sleep = hit_what._phys_sleep = Math.max( this._phys_sleep, hit_what._phys_sleep );
+		}
+	}*/
 	ApplyVelocityAndCollisions( GSPEED, step_size=0, apply_friction=false, impact_scale=1, custom_filtering_method=null ) // step_size can be used by entities that can use stairs
 	{
+		this.PhysInitIfNeeded();
+		
+		let sx_sign = ( this.sx > 0 );
+		let sy_sign = ( this.sy > 0 );
+		
+		let moves = 
+				sx_sign !== this._phys_last_sx || 
+				sy_sign !== this._phys_last_sy || 
+				!sdWorld.inDist2D_Boolean( this.sx, this.sy, 0, 0, sdWorld.gravity + 0.1 );
+		
+		if ( !moves )
+		if ( this._phys_last_touch )
+		{
+			if ( this._phys_last_touch._is_being_removed )
+			{
+				this._phys_last_touch = null;
+				moves = true;
+
+				//if ( this.GetClass() === 'sdHover' )
+				//console.log( this.GetClass() + ' moves due to this._phys_last_touch being removed' );
+			}
+			else
+			{
+				if ( this._phys_last_touch_targetable !== this._phys_last_touch.IsTargetable() )
+				{
+					
+					//if ( this.GetClass() === 'sdHover' )
+					//console.log( this.GetClass() + ' moves due to IsTargetable change of this._phys_last_touch' );
+				
+					this._phys_last_touch_targetable = this._phys_last_touch.IsTargetable();
+					moves = true;
+				}
+				else
+				if ( !sdWorld.inDist2D_Boolean( this._phys_last_touch_x, this._phys_last_touch_y, this._phys_last_touch.x, this._phys_last_touch.y, sdWorld.gravity + 0.1 ) )
+				{
+					this._phys_last_touch_x = this._phys_last_touch.x;
+					this._phys_last_touch_y = this._phys_last_touch.y;
+							
+					//if ( this.GetClass() === 'sdHover' )
+					//console.log( this.GetClass() + ' moves due to slight move of this._phys_last_touch' );
+		
+					moves = true;
+				}
+			}
+		}
+	
+		if ( !moves )
+		{
+			let w = this.hitbox_x2 - this.hitbox_x1;
+			let h = this.hitbox_y2 - this.hitbox_y1;
+			
+			if ( this._phys_last_w !== w || this._phys_last_h !== h )
+			{
+				this._phys_last_w = w;
+				this._phys_last_h = h;
+				moves = true;
+			}
+		}
+		
+		if ( moves )
+		{
+			//if ( this._phys_sleep <= 0 )
+			//if ( this.GetClass() === 'sdHover' )
+			//console.log( this.GetClass() + ' becomes physically active' );
+
+			this._phys_sleep = 10;
+
+			this._phys_last_sx = sx_sign;
+			this._phys_last_sy = sy_sign;
+		}
+		else
+		{
+			if ( this._phys_sleep > 0 )
+			{
+				if ( this._phys_last_touch ) // Do not sleep mid-air
+				{
+					this._phys_sleep -= Math.min( 1, GSPEED );
+
+					/*if ( this._phys_sleep <= 0 )
+					{
+						if ( this.GetClass() === 'sdHover' )
+						console.log( this.GetClass() + ' becomes physically inactive' );
+					}*/
+				}
+			}
+			else
+			{
+				this.sx = 0;
+				this.sy = 0;
+
+				sdWorld.last_hit_entity = this._phys_last_touch;
+				return;
+			}
+		}
+		
 		let new_x = this.x + this.sx * GSPEED;
 		let new_y = this.y + this.sy * GSPEED;
 		
@@ -155,6 +301,8 @@ class sdEntity
 				
 						this.x = new_x;
 						this.y = new_y - i;
+						
+						this._phys_last_touch = sdWorld.last_hit_entity;
 						return;
 					}
 				}
@@ -232,6 +380,8 @@ class sdEntity
 			}
 
 		}
+		
+		this._phys_last_touch = sdWorld.last_hit_entity;
 	}
 	MeasureMatterCost()
 	{

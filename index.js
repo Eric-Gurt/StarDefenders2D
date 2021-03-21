@@ -522,6 +522,7 @@ try
 		{
 			ent = sdEntity.GetObjectFromSnapshot( save_obj.entities[ i ] );
 			
+			if ( ent )
 			if ( isNaN( ent.x ) || isNaN( ent.y ) || ent.x === null || ent.y === null )
 			{
 				if ( typeof strange_position_classes[ ent.GetClass() ] === 'undefined' )
