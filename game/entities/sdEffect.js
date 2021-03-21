@@ -10,7 +10,7 @@ class sdEffect extends sdEntity
 {
 	static init_class()
 	{
-		console.warn('sdEffect class initiated');
+		console.log('sdEffect class initiated');
 		
 		sdEffect.TYPE_BLOOD = 0;
 		sdEffect.TYPE_WALL_HIT = 1;
@@ -163,6 +163,8 @@ class sdEffect extends sdEntity
 		this._x2 = params.x2;
 		this._y2 = params.y2;
 		this._color = params.color;
+		
+		this._scale = params.scale || 1;
 		
 		this._sd_tint_filter = null;//sdWorld.hexToRgb( params.color );
 		
@@ -323,9 +325,9 @@ class sdEffect extends sdEntity
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this._type === sdEffect.TYPE_EXPLOSION )
-		this._ani += GSPEED * this._decay_speed * ( 20 / this._radius );
+		this._ani += GSPEED * this._decay_speed * ( 20 / this._radius ) / this._scale;
 		else
-		this._ani += GSPEED * this._decay_speed;
+		this._ani += GSPEED * this._decay_speed / this._scale;
 
 		if ( this._attachment )
 		{
@@ -371,9 +373,13 @@ class sdEffect extends sdEntity
 	
 		ctx.filter = this._filter;
 		
+		if ( this._scale !== 1 )
+		ctx.scale( this._scale, this._scale );
+		
 		//if ( this._type === sdEffect.TYPE_BLOOD )
 		if ( sdEffect.types[ this._type ].blood_cloud )
 		{
+			
 			y -= Math.sin( this._ani * 1.3 ) * 4;
 			
 			ctx.save();

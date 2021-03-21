@@ -4,7 +4,11 @@
 meSpeak.loadVoice("voices/en/en.json");
 	
 	// socket.io-specific
-	var socket = io( '/' );
+	var socket = io( '/', {
+		
+		transports: [ 'websocket' ]
+		
+	} );
 
 	// geckos-specific
 	
@@ -52,6 +56,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdStorage from './entities/sdStorage.js';
 	import sdAsp from './entities/sdAsp.js';
 	import sdSandWorm from './entities/sdSandWorm.js';
+	import sdGrass from './entities/sdGrass.js';
 
 
 	sdWorld.init_class();
@@ -90,7 +95,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdStorage.init_class();
 	sdAsp.init_class();
 	sdSandWorm.init_class();
-	
+	sdGrass.init_class();
 	
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;
@@ -261,6 +266,9 @@ let enf_once = true;
 		});
 
 		let old_snapshot_entities = [];
+		
+		let played_events = [];
+		let assumptions_event_types = {};
 
 		socket.on( 'RESv2', ( stuff_arr )=>
 		{
@@ -292,7 +300,10 @@ let enf_once = true;
 				let new_snapshot_entities = [];
 				for ( var i = 0; i < snapshot.length; i++ )
 				{
-					new_snapshot_entities.push( sdEntity.GetObjectFromSnapshot( snapshot[ i ] ) );
+					let ent = sdEntity.GetObjectFromSnapshot( snapshot[ i ] );
+					
+					if ( ent )
+					new_snapshot_entities.push( ent );
 				}
 
 				for ( var i = 0; i < old_snapshot_entities.length; i++ )
@@ -324,6 +335,26 @@ let enf_once = true;
 			{
 				var type = sd_events[ i ][ 0 ];
 				var params = sd_events[ i ][ 1 ];
+				
+				if ( params.UC === undefined )
+				{
+					if ( typeof assumptions_event_types[ type ] === 'undefined' )
+					{
+						assumptions_event_types[ type ] = true;
+						console.log('Client is assuming that sd_event of type "' + type + '" is not important and does not requires data to be resent on loss. Example: ', params );
+					}
+				}
+				else
+				{
+
+					if ( played_events.indexOf( params.UC ) !== -1 )
+					continue;
+
+					if ( played_events.length > 100 ) // Not best solution, better solution would be to keep time of each event and remove it after 5000 - 10000 ms
+					played_events.pop();
+
+					played_events.unshift( params.UC );
+				}
 
 				if ( type === 'EFF' ) // particles
 				{
@@ -424,6 +455,7 @@ let enf_once = true;
 				if ( sdWorld.my_entity )
 				if ( !sdWorld.my_entity._is_being_removed )
 				{
+					//if ( Math.random() < 0.1 )
 					socket.volatile.emit( 'M', 
 						[ 
 							sdWorld.my_entity.look_x, // 0

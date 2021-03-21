@@ -500,6 +500,13 @@ class sdSandWorm extends sdEntity
 
 							}
 						}
+						
+						// Reset target from time to time if in seek mode
+						if ( Math.random() < 0.0001 )
+						if ( !this._current_target.is( sdCharacter ) )
+						{
+							this._current_target = null;
+						}
 					}
 				}
 				else
@@ -565,7 +572,7 @@ class sdSandWorm extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		if ( this.death_anim === 0 )
+		if ( this.death_anim === 0 && ( !this._in_surface || this._in_water ) )
 		sdEntity.Tooltip( ctx, "Worm" );
 	}
 	Draw( ctx, attached )

@@ -42,6 +42,9 @@ class sdTurret extends sdEntity
 	get hard_collision()
 	{ return true; }
 	
+	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
+	{ return true; }
+	
 	get title()
 	{
 		return 'Automatic turret';
@@ -226,10 +229,16 @@ class sdTurret extends sdEntity
 				}
 				else
 				this.fire_timer = Math.max( 0, this.fire_timer - GSPEED );
+			
+				this._update_version++;
 			}
 			else
 			{
-				this.fire_timer = Math.max( 0, this.fire_timer - GSPEED );
+				if ( this.fire_timer > 0 )
+				{
+					this.fire_timer = Math.max( 0, this.fire_timer - GSPEED );
+					this._update_version++;
+				}
 			}
 		}
 	}

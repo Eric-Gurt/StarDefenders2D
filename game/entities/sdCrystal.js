@@ -21,6 +21,9 @@ class sdCrystal extends sdEntity
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
 	
+	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
+	{ return true; }
+	
 	constructor( params )
 	{
 		super( params );
@@ -29,17 +32,20 @@ class sdCrystal extends sdEntity
 		this.sy = 0;
 		this.matter_max = 40;
 		
-		let r = Math.random();
+		let bad_luck = 1.5; // High value crystals are more rare if this value is high
+		
+		let r = 1 - Math.pow( Math.random(), bad_luck );
+		//let r = Math.random();
 		
 		//r = 0; // Hack
 		
-		if ( r < 0.0078125 ) // glowing, new
+		if ( r < 0.0078125 && params.tag === 'deep' ) // glowing, new
 		this.matter_max *= 128;
 		else
-		if ( r < 0.015625 ) // Red, new
+		if ( r < 0.015625 && params.tag === 'deep' ) // Red, new
 		this.matter_max *= 64;
 		else
-		if ( r < 0.03125 ) // Pink variation, new (old red)
+		if ( r < 0.03125 && params.tag === 'deep' ) // Pink variation, new (old red)
 		this.matter_max *= 32;
 		else
 		if ( r < 0.0625 )
@@ -56,6 +62,10 @@ class sdCrystal extends sdEntity
 		
 		
 		this.matter = this.matter_max;
+		
+		this._last_sync_matter = this.matter;
+		this._last_sync_x = this.x;
+		this._last_sync_y = this.y;
 		
 		this._hea = 60;
 		
@@ -105,6 +115,16 @@ class sdCrystal extends sdEntity
 		this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
 
 		this.MatterGlow( 0.01, 30, GSPEED );
+		
+		
+		// Similar to sdMatterContainers but not really, since it can have consistent slight movement unlike containers
+		if ( Math.abs( this._last_sync_matter - this.matter ) > this.matter_max * 0.1 || Math.abs( this._last_sync_x - this.x ) >= 1 || Math.abs( this._last_sync_y - this.y ) >= 1 )
+		{
+			this._last_sync_matter = this.matter;
+			this._last_sync_x = this.x;
+			this._last_sync_y = this.y;
+			this._update_version++;
+		}
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{

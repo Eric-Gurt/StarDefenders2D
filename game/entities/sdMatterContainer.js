@@ -25,6 +25,9 @@ class sdMatterContainer extends sdEntity
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
 	
+	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
+	{ return true; }
+	
 	RequireSpawnAlign()
 	{ return true; }
 	
@@ -35,6 +38,8 @@ class sdMatterContainer extends sdEntity
 		this.matter_max = params.matter_max || 640;
 		
 		this.matter = this.matter_max;
+		
+		this._last_sync_matter = this.matter;
 		
 		this._hmax = 320;
 		this._hea = this._hmax;
@@ -54,7 +59,8 @@ class sdMatterContainer extends sdEntity
 		this.remove();
 	
 		this._regen_timeout = 60;
-
+		
+		this._update_version++; // Just in case
 	}
 	
 	onThink( GSPEED ) // Class-specific, if needed
@@ -89,6 +95,12 @@ class sdMatterContainer extends sdEntity
 				this.TransferMatter( arr[ i ], 0.01, GSPEED );
 			}
 		}*/
+		
+		if ( Math.abs( this._last_sync_matter - this.matter ) > this.matter_max * 0.1 || this._last_x !== this.x || this._last_y !== this.y )
+		{
+			this._last_sync_matter = this.matter;
+			this._update_version++;
+		}
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{

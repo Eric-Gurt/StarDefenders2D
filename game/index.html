@@ -67,7 +67,6 @@
 	    
 	    
 	    
-	    
 	    input:hover, input:focus
 	    {
 		background-color: #425380 !important;
@@ -78,7 +77,7 @@
 		vertical-align: top;
 		width: 230px;
 		padding-bottom: 10px;
-		transition: all 0.2s ease;
+		/*transition: all 0.2s ease;*/
 		color: transparent;
 		height: 15px;
 		padding: 10px;
@@ -86,10 +85,27 @@
 		position: relative;
 		user-select: none;
 	    }
+	    .set_block *
+	    {
+		pointer-events: none;
+		opacity: 0;
+		display: none;
+	    }
+	    .set_block:focus-within *
+	    {
+		pointer-events: unset;
+		opacity: 1;
+		display: unset;
+	    }
+	    .set_block .sdtitle
+	    {
+		opacity: 1 !important;
+		display: block;
+	    }
 	    .set_block input
 	    {
 		height: 0;
-		transition: all 0.2s ease;
+		/*transition: all 0.2s ease;*/
 		opacity: 0;
 	    }
 	    .set_block:hover
@@ -104,11 +120,17 @@
 		height: unset;
 		background-color: #1e3424;
 		outline: none;
+		overflow-x: hidden;
+		overflow-y: auto;
+		
+		margin-bottom: -100%;
+		z-index:1000;
 	    }
 	    .set_block:focus-within input
 	    {
 		height: 15px;
 		opacity: 1;
+		pointer-events: unset;
 	    }
 	    .sdtitle
 	    {
@@ -135,6 +157,21 @@
 		color:black;
 	    }
 	    
+	    
+	    .set_block a, .set_block a:link, .set_block a:visited
+	    {
+		color: white;
+		display:block;
+		padding:5px;
+	    }
+	    .set_block a:hover
+	    {
+		color: #ff7aef;
+	    }
+	    .set_block a:active
+	    {
+		color: #000000;
+	    }
 	    
 	    .r_conteiner
 	    {
@@ -405,6 +442,7 @@
 		padding: 20px; overflow-y: scroll;">
 		<span class="sdtitle">What's new?:</span><br>
 		<div class="sdgroup">
+		    21 March 2021: Will try to co-host another server for FFA play. Also slightly new terrain generation, grass and plenty of performance fixes.<br><br>
 		    20 March 2021: Who reads these? New rare enemy.<br><br>
 		    11 March 2021: Something that won't work with ground that was created from previous version of game; bugfixes; weapon storages should work now; more information for connection/performance issues in debug mode - feel free to report when these heavy lags happen.<br><br>
 		    2 March 2021: Downed players & cubes will emit matter now; Item pickup sound added; sdCommandCentres will now expire if no player has more than 300 matter within time span of 24 hours; World maximum size increased by 2 times in both directions; Water was significantly simplified.<br><br>
@@ -577,6 +615,13 @@
 		<br>
 		<input type="checkbox" id="voice7" value="high" onclick="globalThis.TestVoice(this)">
 		<label for="voice7">Robotic</label>
+	    </div>
+	    
+	    <div class="set_block" tabindex="1" style="width: 485px">
+		<span class="sdtitle">Other Star Defenders servers</span><br>
+		<a href="http://localhost:3000">localhost:3000 - your server will be here</a> 
+		<a href="https://www.gevanni.com:3000">gevanni.com:3000 - Main server, initial world, more peaceful</a>
+		<a href="https://www.gevanni.com:3001">gevanni.com:3001 - Main server, alternative world, FFA, no big bases</a>
 	    </div>
 	    
 	    <div style="position:absolute;left:20px;bottom:20px">

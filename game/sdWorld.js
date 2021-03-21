@@ -9,6 +9,7 @@ import sdBlock from './entities/sdBlock.js';
 import sdBG from './entities/sdBG.js';
 import sdWater from './entities/sdWater.js';
 import sdCharacter from './entities/sdCharacter.js';
+import sdGrass from './entities/sdGrass.js';
 
 
 
@@ -19,12 +20,14 @@ class sdWorld
 {
 	static init_class()
 	{
-		console.warn('sdWorld class initiated');
+		console.log('sdWorld class initiated');
 		sdWorld.logic_rate = 16; // for server
 		sdWorld.max_update_rate = 64;
 		
 		sdWorld.time = Date.now(); // Can be important because some entities (sdCommandCentre) use sdWorld.time as default destruction time, which will be instantly without setting this value
 		sdWorld.frame = 0;
+		
+		sdWorld.event_uid_counter = 0; // Will be used by clients to not re-apply same events
 		
 		sdWorld.gravity = 0.3;
 		
@@ -404,19 +407,36 @@ class sdWorld
 		
 		function GetGroundElevation( xx )
 		{
-			return sdWorld.base_ground_level - Math.round( ( Math.sin( sdWorld.base_ground_level1[ xx ] ) * 64 + Math.sin( sdWorld.base_ground_level2[ xx ] ) * 64 ) / 16 ) * 16;
+			//return sdWorld.base_ground_level - Math.round( ( Math.sin( sdWorld.base_ground_level1[ xx ] ) * 64 + Math.sin( sdWorld.base_ground_level2[ xx ] ) * 64 ) / 16 ) * 16;
+			//return sdWorld.base_ground_level - Math.round( ( Math.sin( sdWorld.base_ground_level1[ xx ] ) * 64 + Math.sin( sdWorld.base_ground_level2[ xx ] ) * 64 ) / 8 ) * 8;
+			
+			//console.log( Math.abs( Math.sin( sdWorld.base_ground_level2[ xx ] * 0.9 ) ) / ( 0.1 + 0.9 * Math.abs( Math.cos( sdWorld.base_ground_level1[ xx ] * 0.5 ) ) ) * 64 );
+			
+			return sdWorld.base_ground_level - Math.round( ( 
+					
+					Math.sin( sdWorld.base_ground_level1[ xx ] ) * 64 + 
+					Math.sin( sdWorld.base_ground_level2[ xx ] ) * 64
+					
+					- Math.abs( Math.sin( sdWorld.base_ground_level1[ xx ] * 0.9 ) ) / ( 0.1 + 0.9 * Math.abs( Math.cos( sdWorld.base_ground_level2[ xx ] * 0.5 ) ) ) * 16
+					
+					+ Math.abs( Math.sin( sdWorld.base_ground_level2[ xx ] * 0.9 ) ) / ( 0.1 + 0.9 * Math.abs( Math.cos( sdWorld.base_ground_level1[ xx ] * 0.8 ) ) ) * 128
+					+ Math.abs( Math.sin( sdWorld.base_ground_level2[ xx ] * 0.9 ) ) / ( 0.1 + 0.9 * Math.abs( Math.cos( sdWorld.base_ground_level1[ xx ] * 0.55 ) ) ) * 128
+					
+			) / 8 ) * 8;
 		}
 		
-		function FillGroundQuad( x, y, from_y )
+		function FillGroundQuad( x, y, from_y, half=false )
 		{
 			let f = 'hue-rotate('+( ~~sdWorld.mod( x / 16, 360 ) )+'deg)';
 			
 			let hp_mult = 1;
 			
-			if ( y > sdWorld.base_ground_level + 256 )
+			//if ( y > sdWorld.base_ground_level + 256 )
+			if ( y > from_y + 256 )
 			{
-				hp_mult = 1 + ( y - sdWorld.base_ground_level - 256 ) / 200;
-				f += 'brightness(' + ( 1 / hp_mult ) + ') saturate(' + ( 1 / hp_mult ) + ')';
+				//hp_mult = 1 + ( y - sdWorld.base_ground_level - 256 ) / 200;
+				hp_mult = 1 + Math.ceil( ( y - from_y - 256 ) / 200 * 3 ) / 3;
+				f += 'brightness(' + Math.max( 0.2, 1 / hp_mult ) + ') saturate(' + Math.max( 0.2, 1 / hp_mult ) + ')';
 			}
 			
 			if ( y >= from_y )
@@ -443,19 +463,38 @@ class sdWorld
 					random_enemy = 'sdVirus';
 				}
 				
+				let plants = null;
 				
+				if ( y === from_y )
+				if ( y <= sdWorld.base_ground_level )
+				{
+					let grass = new sdGrass({ x:x, y:y - 16, filter:f });
+					sdEntity.entities.push( grass );
+					
+					if ( plants === null )
+					plants = [];
+					
+					plants.push( grass._net_id );
+				}
 				
 				ent = new sdBlock({ 
 					x:x, 
 					y:y, 
 					width:16, 
-					height:16,
+					height: half ? 8 : 16,
 					material: sdBlock.MATERIAL_GROUND,
-					contains_class: ( Math.random() > 0.75 / hp_mult ) ? ( Math.random() < 0.3 ? random_enemy : 'sdCrystal' ) : null,
+					contains_class: ( !half && Math.random() > 0.75 / hp_mult ) ? ( Math.random() < 0.3 ? random_enemy : ( ( y > from_y + 256 ) ? 'sdCrystal.deep' : 'sdCrystal' ) ) : null,
 					filter: f,
-					natural: true
+					natural: true,
+					plants: plants
 					//filter: 'hue-rotate('+(~~(Math.sin( ( Math.min( from_y, sdWorld.world_bounds.y2 - 256 ) - y ) * 0.005 )*360))+'deg)' 
 				});
+				
+				/*if ( plants )
+				for ( let i = 0; i < plants.length; i++ )
+				{
+					plants[ i ].SetRoot( ent );
+				}*/
 				
 				if ( hp_mult > 0 )
 				{
@@ -467,8 +506,12 @@ class sdWorld
 			{
 				ent = new sdBG({ x:x, y:y, width:16, height:16, material:sdBG.MATERIAL_GROUND, filter:'brightness(0.5) ' + f });
 				
-				let ent2 = new sdWater({ x:x, y:y, volume:(y===sdWorld.base_ground_level)?0.5:1 });
-				sdEntity.entities.push( ent2 );
+				if ( y > sdWorld.base_ground_level )
+				{
+					let ent2 = new sdWater({ x:x, y:y, volume:1 });
+					//let ent2 = new sdWater({ x:x, y:y, volume:(y===sdWorld.base_ground_level)?0.5:1 });
+					sdEntity.entities.push( ent2 );
+				}
 				
 				//sdWater.SpawnWaterHere( x, y, (y===sdWorld.base_ground_level)?0.5:1 );
 			}
@@ -484,9 +527,22 @@ class sdWorld
 			
 			//for ( var y = Math.max( from_y, sdWorld.world_bounds.y2 ); y < y2; y += 16 ) // Only append
 			for ( var y = Math.max( Math.min( from_y, sdWorld.base_ground_level ), Math.min( y1, sdWorld.world_bounds.y1 ) ); y < y2; y += 16 ) // Only append
-			if ( y < sdWorld.world_bounds.y1 || y >= sdWorld.world_bounds.y2 )
 			{
-				FillGroundQuad( x, y, from_y );
+				if ( y < sdWorld.world_bounds.y1 || y >= sdWorld.world_bounds.y2 )
+				{
+					if ( Math.abs( y ) % 16 === 8 )
+					{
+						FillGroundQuad( x, y, from_y, true );
+						y -= 8;
+					}
+					else
+					FillGroundQuad( x, y, from_y );
+				}
+				else
+				{
+					if ( Math.abs( y ) % 16 === 8 )
+					y -= 8;
+				}
 			}
 		}
 		
@@ -504,6 +560,12 @@ class sdWorld
 			
 			for ( var y = Math.max( Math.min( from_y, sdWorld.base_ground_level ), y1 ); y < y2; y += 16 ) // Whole relevant height
 			{
+				if ( Math.abs( y ) % 16 === 8 )
+				{
+					FillGroundQuad( x, y, from_y, true );
+					y -= 8;
+				}
+				else
 				FillGroundQuad( x, y, from_y );
 			}
 		}
@@ -522,6 +584,12 @@ class sdWorld
 			
 			for ( var y = Math.max( Math.min( from_y, sdWorld.base_ground_level ), y1 ); y < y2; y += 16 ) // Whole relevant height
 			{
+				if ( Math.abs( y ) % 16 === 8 )
+				{
+					FillGroundQuad( x, y, from_y, true );
+					y -= 8;
+				}
+				else
 				FillGroundQuad( x, y, from_y );
 			}
 		}
@@ -689,6 +757,13 @@ class sdWorld
 		
 		let socket_arr = exclusive_to_sockets_arr ? exclusive_to_sockets_arr : sdWorld.sockets;
 		
+		
+		params.UC = sdWorld.event_uid_counter++;
+				
+		let arr = [ command, params ];
+
+		//arr._give_up_on = sdWorld + 5000;
+
 		for ( var i = 0; i < socket_arr.length; i++ )
 		{
 			var socket = socket_arr[ i ];
@@ -704,7 +779,8 @@ class sdWorld
 				   sdWorld.CanSocketSee( socket, params.x2, params.y2 ) ) ) // rails
 			{
 				//socket.emit( command, params );
-				socket.sd_events.push( [ command, params ] );
+				
+				socket.sd_events.push( arr );
 			}
 		}
 	}

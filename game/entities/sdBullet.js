@@ -289,11 +289,13 @@ class sdBullet extends sdEntity
 							from_entity._last_hit_time = sdWorld.time;
 							sdSound.PlaySound({ name:'player_hit', x:this.x, y:this.y, volume:0.5 });
 						}
+						
+						let limb_mult = from_entity.GetHitDamageMultiplier( this.x, this.y );
 
 						if ( !this._soft )
-						sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
+						sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter(), scale:( limb_mult === 1 ? 1 : 1.65 ) });
 						
-						let dmg = from_entity.GetHitDamageMultiplier( this.x, this.y ) * this._damage;
+						let dmg = limb_mult * this._damage;
 						
 						let old_hea = ( from_entity.hea || from_entity._hea || 0 );
 

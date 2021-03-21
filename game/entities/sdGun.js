@@ -391,7 +391,7 @@ class sdGun extends sdEntity
 		
 		this._held_by_removed_panic = 0;
 		
-		this._ammo_left = -123;
+		this.ammo_left = -123;
 		
 		this.ttl = params.ttl || sdGun.disowned_guns_ttl;
 		this.extra = 0; // shard value will be here
@@ -412,7 +412,7 @@ class sdGun extends sdEntity
 			if ( this._held_by.is( sdStorage ) )
 			{
 				if ( observer_character )
-				if ( sdWorld.inDist2D_Boolean( observer_character.x, observer_character.y, this.x, this.y ) < sdStorage.access_range )
+				if ( sdWorld.inDist2D_Boolean( observer_character.x, observer_character.y, this.x, this.y, sdStorage.access_range ) )
 				return true;
 			}
 			else
@@ -442,7 +442,7 @@ class sdGun extends sdEntity
 	}
 	ReloadStart() // Can happen multiple times
 	{
-		//this._ammo_left = 0; // Bad because energy wastes this way
+		//this.ammo_left = 0; // Bad because energy wastes this way
 		
 		
 		sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.5 });
@@ -527,18 +527,18 @@ class sdGun extends sdEntity
 	
 		// Upgrade for guns that used to work on magazine basis but no longer do:
 		if ( sdGun.classes[ this.class ].ammo_capacity === -1 )
-		this._ammo_left = -1;
+		this.ammo_left = -1;
 	
-		let ammo_to_spawn = sdGun.classes[ this.class ].ammo_capacity - this._ammo_left;
+		let ammo_to_spawn = sdGun.classes[ this.class ].ammo_capacity - this.ammo_left;
 		let ammo_cost = this.GetBulletCost();
 		
 		while ( ammo_to_spawn > 0 && this._held_by.matter >= ammo_cost )
 		{
-			this._ammo_left++;
+			this.ammo_left++;
 			ammo_to_spawn--;
 			this._held_by.matter -= ammo_cost;
 			
-			//this._ammo_left = sdGun.classes[ this.class ].ammo_capacity;
+			//this.ammo_left = sdGun.classes[ this.class ].ammo_capacity;
 		}
 		
 		if ( ammo_to_spawn > 0 )
@@ -568,16 +568,16 @@ class sdGun extends sdEntity
 			
 		if ( this.reload_time_left <= 0 )
 		{
-			if ( this._ammo_left === -123 )
+			if ( this.ammo_left === -123 )
 			{
 				//this.ReloadComplete();
-				this._ammo_left = sdGun.classes[ this.class ].ammo_capacity;
+				this.ammo_left = sdGun.classes[ this.class ].ammo_capacity;
 			}
 			
-			if ( this._ammo_left !== 0 )
+			if ( this.ammo_left !== 0 )
 			{
-				if ( this._ammo_left > 0 ) // can be -1
-				this._ammo_left--;
+				if ( this.ammo_left > 0 ) // can be -1
+				this.ammo_left--;
 				else
 				{
 					let ammo_cost = this.GetBulletCost();

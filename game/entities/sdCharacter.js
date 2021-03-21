@@ -844,8 +844,8 @@ class sdCharacter extends sdEntity
 					if ( this._inventory[ this.gun_slot ] )
 					{
 						if ( this._key_states.GetKey( 'KeyR' ) &&
-							 this._inventory[ this.gun_slot ]._ammo_left >= 0 && 
-							 this._inventory[ this.gun_slot ]._ammo_left < sdGun.classes[ this._inventory[ this.gun_slot ].class ].ammo_capacity )
+							 this._inventory[ this.gun_slot ].ammo_left >= 0 && 
+							 this._inventory[ this.gun_slot ].ammo_left < sdGun.classes[ this._inventory[ this.gun_slot ].class ].ammo_capacity )
 						{
 							this._inventory[ this.gun_slot ].ReloadStart();
 						}
@@ -2125,6 +2125,9 @@ class sdCharacter extends sdEntity
 					if ( this._socket )
 					{
 						params.attachment = [ params.attachment.GetClass(), params.attachment._net_id ];
+						
+						params.UC = sdWorld.event_uid_counter++;
+						
 						//this._socket.emit( 'EFF', params );
 						this._socket.sd_events.push( [ 'EFF', params ] );
 					}

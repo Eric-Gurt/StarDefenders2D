@@ -1,13 +1,15 @@
 
 /* global globalThis, process */
 
-// http://localhost:3000
+// http://localhost:3000 + world_slot
+
+// CentOS crontab can be here: /etc/crontab
 
 /*
 
 	TODO:
 
-	- This could help for high latency cases: https://github.com/geckosio/geckos.io
+	- This could help for high latency cases: https://github.com/geckosio/geckos.io // Actually not that much, main server's low bandwidth is low bandwidth
 
 
  
@@ -82,7 +84,8 @@ if ( SOCKET_IO_MODE ) // Socket.io
 	  }, // Promised to be laggy but with traffic bottlenecking it might be the only way (and nature of barely optimized network snapshots)
 	  httpCompression: {
 		threshold: 1024
-	  }
+	  },
+	  transports: [ 'websocket' ] // Trying to disable polling one, maybe this will work better?
 	});
 }
 else // Geckos
@@ -136,7 +139,7 @@ import sdAsp from './game/entities/sdAsp.js';
 import sdModeration from './game/server/sdModeration.js';
 import LZW from './game/server/LZW.js';
 import sdSandWorm from './game/entities/sdSandWorm.js';
-
+import sdGrass from './game/entities/sdGrass.js';
 
 import sdShop from './game/client/sdShop.js';
 
@@ -230,6 +233,7 @@ sdHover.init_class();
 sdStorage.init_class();
 sdAsp.init_class();
 sdSandWorm.init_class();
+sdGrass.init_class();
 
 sdShop.init_class(); // requires plenty of classes due to consts usage
 LZW.init_class();
@@ -237,6 +241,21 @@ LZW.init_class();
 globalThis.sdWorld = sdWorld;
 globalThis.sdShop = sdShop;
 globalThis.sdModeration = sdModeration;
+
+let world_slot = 0; // Default slot adds no prefixes to file names
+
+for ( let i = 0; i < process.argv.length; i++ )
+{
+	let parts = process.argv[ i ].split('=');
+	
+	if ( parts.length > 1 )
+	{
+		if ( parts[ 0 ] === 'world_slot' )
+		world_slot = ~~( parts[ 1 ] );
+		
+	}
+}
+console.log('world_slot = ' + world_slot + ' (defines server instance file prefixes, can be added to run command arguments in form of world_slot=1)' );
 
 let frame = 0;
 
@@ -299,10 +318,10 @@ sdWorld.sockets = sockets;
 
 
 
-const snapshot_path_const = __dirname + '/star_defenders_snapshot.v';
-const timewarp_path_const = __dirname + '/star_defenders_timewarp.v';
-const moderation_data_path_const = __dirname + '/moderation_data.v';
-const superuser_pass_path = __dirname + '/superuser_pass.v';
+const snapshot_path_const = __dirname + '/star_defenders_snapshot' + ( world_slot || '' ) + '.v';
+const timewarp_path_const = __dirname + '/star_defenders_timewarp' + ( world_slot || '' ) + '.v';
+const moderation_data_path_const = __dirname + '/moderation_data' + ( world_slot || '' ) + '.v';
+const superuser_pass_path = __dirname + '/superuser_pass' + ( world_slot || '' ) + '.v';
 
 sdWorld.snapshot_path_const = snapshot_path_const;
 sdWorld.timewarp_path_const = timewarp_path_const;
@@ -970,8 +989,24 @@ io.on("connection", (socket) =>
 			}
 			for ( let i = 0; i < drop.data[ 3 ].length; i++ )
 			{
-				if ( drop.data[ 3 ][ i ][ 0 ] === 'EFF' && ( drop.data[ 3 ][ i ][ 1 ].type === sdEffect.TYPE_CHAT || drop.data[ 3 ][ i ][ 1 ].type === sdEffect.TYPE_BEAM || drop.data[ 3 ][ i ][ 1 ].type === sdEffect.TYPE_EXPLOSION || drop.data[ 3 ][ i ][ 1 ].type === sdEffect.TYPE_BLOOD ) )
-				socket.lost_messages.push( drop.data[ 3 ][ i ] );
+				if ( drop.data[ 3 ][ i ][ 0 ] === 'EFF' && ( drop.data[ 3 ][ i ][ 1 ].type === sdEffect.TYPE_CHAT /*|| drop.data[ 3 ][ i ][ 1 ].type === sdEffect.TYPE_BEAM || drop.data[ 3 ][ i ][ 1 ].type === sdEffect.TYPE_EXPLOSION || drop.data[ 3 ][ i ][ 1 ].type === sdEffect.TYPE_BLOOD*/ ) )
+				{
+					if ( typeof drop.data[ 3 ][ i ][ 1 ].UC === 'undefined' ) // These can not be resent because they lack .UC set, which is unique ID for them so player knows he already applied these events.
+					continue;
+					
+					// Since it is an Array - new property won't be sent in strigified version (I guess).
+					if ( typeof drop.data[ 3 ][ i ]._give_up_on === 'undefined' )
+					drop.data[ 3 ][ i ]._give_up_on = sdWorld.time + 5000;
+					else
+					if ( sdWorld.time > drop.data[ 3 ][ i ]._give_up_on )
+					{
+						//console.log('Dropping message after 5 seconds of resending: ', drop.data[ 3 ][ i ] );
+						continue;
+					}
+					
+					
+					socket.lost_messages.push( drop.data[ 3 ][ i ] );
+				}
 			}
 		}
 	};
@@ -1901,10 +1936,10 @@ io.on("connection", (socket) =>
 });
 
 
-//http.listen(3000, () =>
-( httpsServer ? httpsServer : httpServer ).listen(3000, () =>
+//http.listen(3000 + world_slot, () =>
+( httpsServer ? httpsServer : httpServer ).listen( 3000 + world_slot, () =>
 {
-	console.log('listening on *:3000');
+	console.log('listening on *:' + ( 3000 + world_slot ) );
 });
 
 let only_do_nth_connection_per_frame = 1;
@@ -2384,7 +2419,7 @@ setInterval( ()=>
 					socket.sent_messages.delete( socket.sent_messages_first++ );
 					
 					//for ( let g = 0; g < 25; g++ )
-					//if ( Math.random() < 0.5 )
+					//if ( Math.random() < 0.2 )
 					{
 						if ( !SOCKET_IO_MODE )
 						socket.compress( true ).emit('RESv2', LZW.lzw_encode( JSON.stringify( full_msg ) ) );

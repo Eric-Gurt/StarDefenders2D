@@ -15,7 +15,7 @@ class sdShop
 {
 	static init_class()
 	{
-		console.warn('sdShop class initiated');
+		console.log('sdShop class initiated');
 		
 		sdShop.open = false;
 		sdShop.options = [];
@@ -36,8 +36,8 @@ class sdShop
 		sdShop.options.push({ _class: null, image: 'vehicle', _category:'root', _opens_category:'Vehicles' });
 		sdShop.options.push({ _class: null, image: 'upgrade', _category:'root', _opens_category:'upgrades' });
 		
-		//if ( globalThis.isWin )
-		//sdShop.options.push({ _class: 'sdVirus', _category:'root', _opens_category:'Development tests' });
+		if ( globalThis.isWin )
+		sdShop.options.push({ _class: 'sdVirus', _category:'root', _opens_category:'Development tests' });
 	
 		sdShop.options.push({ _class: 'sdHover', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles' });
@@ -213,7 +213,7 @@ class sdShop
 				_category:'upgrades' });
 		}
 		
-		if ( globalThis.isWin )
+		if ( globalThis.isWin ) // Lack of this check will probably allow creation of these entities even if category can not be opened in normal way
 		{
 			sdShop.options.push({ _class: 'sdOctopus', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdQuickie', _category:'Development tests' });
@@ -225,6 +225,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdWater', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAsp', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdSandWorm', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdGrass', _category:'Development tests' });
 		}
 		
 		sdShop.potential_selection = -1;

@@ -10,8 +10,10 @@ class FakeCanvasContext
 		FakeCanvasContext.DRAW_IN_3D_FLAT = 0;
 		FakeCanvasContext.DRAW_IN_3D_BOX = 1;
 		FakeCanvasContext.DRAW_IN_3D_LIQUID = 2;
+		FakeCanvasContext.DRAW_IN_3D_GRASS = 3;
 		
 		FakeCanvasContext.LIQUID_OPACITY_STEPS = 5;
+		FakeCanvasContext.GRASS_OPACITY_STEPS = 4;
 	}
 	constructor( old_canvas )
 	{
@@ -46,18 +48,55 @@ class FakeCanvasContext
 		}
 			
 		let arr = [];
-		
 		for ( let i = 0; i < FakeCanvasContext.LIQUID_OPACITY_STEPS; i++ )
 		{
 			let geometry_liquid1 = new THREE.PlaneGeometry( 1, 1 );
 				geometry_liquid1.scale( 1, 1, 1 );
-				geometry_liquid1.translate( 0.5, 0.5, ( -0.5 + i / ( FakeCanvasContext.LIQUID_OPACITY_STEPS - 1 ) ) * 0.99 );
+				//geometry_liquid1.translate( 0.5, 0.5, ( -0.5 + i / ( FakeCanvasContext.LIQUID_OPACITY_STEPS - 1 ) ) * 0.99 );
+				geometry_liquid1.translate( 0.5, 0.5, -( -0.5 + i / ( FakeCanvasContext.LIQUID_OPACITY_STEPS - 1 ) ) * 0.99 );
 
 			arr.push( geometry_liquid1 );
 		}
 		let geometry_liquid = THREE.BufferGeometryUtils.mergeBufferGeometries( arr, false );
 		
-		this.geometries_by_draw_in = [ geometry_plane, geometry_box, geometry_liquid ];
+		arr = [];
+		for ( let i = 0; i < FakeCanvasContext.GRASS_OPACITY_STEPS; i++ )
+		{
+			let geometry_grass1 = new THREE.PlaneGeometry( 1, 1 );
+				geometry_grass1.scale( 1, 1, 1 );
+				geometry_grass1.translate( 0.5 + ( i % 2 === 0 ? -0.1 : 0.1 ), 0.5, -( -0.5 + i / ( FakeCanvasContext.GRASS_OPACITY_STEPS - 1 ) ) * 0.99 );
+
+			arr.push( geometry_grass1 );
+		}
+		let geometry_grass = THREE.BufferGeometryUtils.mergeBufferGeometries( arr, false );
+		
+		let indices_to_animate = [];
+		let value0 = [];
+		for ( let i = 0; i < geometry_grass.attributes.position.array.length; i += 3 )
+		{
+			if ( geometry_grass.attributes.position.array[ i + 1 ] < 0.5 )
+			{
+				indices_to_animate.push( i );
+				value0.push( geometry_grass.attributes.position.array[ i ] );
+			}
+		}
+		
+		let t = 0;
+		// Grass animation
+		setInterval( ()=>
+		{
+			t += Math.PI / 4;
+			let dx = Math.sin( t ) * 0.1;
+			for ( let i = 0; i < indices_to_animate.length; i++ )
+			geometry_grass.attributes.position.array[ indices_to_animate[ i ] ] = value0[ i ] + dx;
+			
+			//geometry_grass.attributes.position.updateRange.offset = 0;
+	        //geometry_grass.attributes.position.updateRange.count = geometry_grass.attributes.position.array.length;
+			geometry_grass.attributes.position.needsUpdate = true;
+			
+		}, 300 );
+		
+		this.geometries_by_draw_in = [ geometry_plane, geometry_box, geometry_liquid, geometry_grass ];
 		
 		
 		let geometry, material, mesh;
@@ -397,6 +436,10 @@ class FakeCanvasContext
 				r.depthWrite = false;
 				r.opacity /= 5;
 			}
+			else
+			if ( volumetric_mode === FakeCanvasContext.DRAW_IN_3D_GRASS )
+			{
+			}
 			
 			
 			image_specific_hash_keeper[ crop_hash ] = r;
@@ -653,7 +696,7 @@ class FakeCanvasContext
 		
 		if ( this.draw_offset === 0 && this.camera_relative_world_scale === 1 )
 		{
-			if ( this.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_LIQUID )
+			if ( this.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_LIQUID || this.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_GRASS )
 			m.castShadow = false;
 			else
 			m.castShadow = true;

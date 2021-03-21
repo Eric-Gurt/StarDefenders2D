@@ -12,7 +12,7 @@ class sdEntity
 {
 	static init_class()
 	{
-		console.warn('sdEntity class initiated');
+		console.log('sdEntity class initiated');
 		sdEntity.entities = [];
 		sdEntity.global_entities = []; // sdWeather. This array contains extra copies of entities that exist in primary array, which is sdEntity.entities. Entities add themselves here and remove themselves whenever proper disposer like _remove is called.
 		
@@ -371,7 +371,7 @@ class sdEntity
 		this._hiberstate = -1; // Defines whether think logic to be called in each frame. Might become active automatically if something touches entity
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		
-		this._snapshot_cache_frame = 0;
+		this._snapshot_cache_frame = -1;
 		this._snapshot_cache = null;
 		
 		//this._is_real = ( typeof params.is_real !== 'undefined' ) ? params.is_real : true; // Build tools spawns entities with ._is_real === false (this is not handled on client-side since damage generally can't be dealt on client-side anyway), it will prevent them from reacting to impact (sdBlock for example would be able to kill spawner sdCharacter and cause gun to throw an error without this)
@@ -418,6 +418,20 @@ class sdEntity
 			
 			anything_near = this._anything_near = sdWorld.GetAnythingNear( _x, _y, range, append_to, specific_classes );
 			anything_near_range = this._anything_near_range = range;
+			
+
+			// Randomize array in-place using Durstenfeld shuffle algorithm. This should be more fair and also more relaxed for sdMatterContainers that exchange matter
+			function shuffleArray(array) 
+			{
+				for (var i = array.length - 1; i > 0; i--) {
+					var j = Math.floor(Math.random() * (i + 1));
+					var temp = array[i];
+					array[i] = array[j];
+					array[j] = temp;
+				}
+			}
+
+			shuffleArray( anything_near );
 		}
 		
 		return anything_near;
@@ -543,7 +557,7 @@ class sdEntity
 			for ( var prop in this )
 			{
 				if ( prop.charAt( 0 ) !== '_' || 
-					 ( save_as_much_as_possible && prop !== '_hiberstate' && prop !== '_last_x' && prop !== '_last_y' && ( typeof this[ prop ] === 'number' || typeof this[ prop ] === 'string' || typeof this[ prop ] === 'boolean' /*|| ( typeof this[ prop ] === 'object' && typeof this[ prop ]._net_id !== 'undefined' && typeof this[ prop ]._class !== 'undefined' )*/ || this.ExtraSerialzableFieldTest( prop ) ) ) )
+					 ( save_as_much_as_possible && prop !== '_snapshot_cache_frame' && prop !== '_hiberstate' && prop !== '_last_x' && prop !== '_last_y' && ( typeof this[ prop ] === 'number' || typeof this[ prop ] === 'string' || typeof this[ prop ] === 'boolean' /*|| ( typeof this[ prop ] === 'object' && typeof this[ prop ]._net_id !== 'undefined' && typeof this[ prop ]._class !== 'undefined' )*/ || this.ExtraSerialzableFieldTest( prop ) ) ) )
 				{
 					var v = this[ prop ];
 					
@@ -769,6 +783,13 @@ class sdEntity
 		{
 			existing.ApplySnapshot( snapshot );
 			return existing;
+		}
+		
+		if ( snapshot._is_being_removed )
+		{
+			//console.warn( 'Got removal for non-made entity. Ignore if nothing crashes if null returned here.' );
+			//debugger; // Pointless? Trying to catch blue walls that appear at ( 0; 0 ) coordinates
+			return null;
 		}
 		
 		//if ( globalThis[ snapshot._class ] === undefined )

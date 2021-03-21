@@ -63,7 +63,7 @@ class sdWeather extends sdEntity
 		this._asteroid_timer = 0; // 60 * 1000 / ( ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) / 800 )
 		this._asteroid_timer_scale_next = 0;
 		
-		this.day_time = 0;
+		this.day_time = 30 * 60 * 24 / 3;
 		
 		// World bounds, but slow
 		this.x1 = 0;
@@ -139,9 +139,7 @@ class sdWeather extends sdEntity
 				}
 			}
 			
-			// Hack
-			//if ( this._time_until_event > 90 )
-			//this._time_until_event = 90;
+			//this._time_until_event = 0; // Hack
 			
 			this._time_until_event -= GSPEED;
 			if ( this._time_until_event < 0 )
@@ -150,8 +148,7 @@ class sdWeather extends sdEntity
 				
 				let r = ~~( Math.random() * 5 );
 				
-				//this._time_until_event = 0; // Hack
-				//r = 4; // Hack
+				//r = 3; // Hack
 				
 				if ( r === 0 )
 				this._rain_ammount = 30 * 15 * ( 1 + Math.random() * 2 ); // start rain for ~15 seconds
@@ -226,7 +223,7 @@ class sdWeather extends sdEntity
 
 									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE }) );
 
-									let falkok_settings = {"hero_name":"Falkok","color_bright":"#6b0000","color_dark":"#420000","color_visor":"#ff0000","color_suit":"#240000","color_suit2":"#2e0000","color_dark2":"#560101","color_shoes":"#000000","color_skin":"#240000","helmet1":false,"helmet2":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
+									let falkok_settings = {"hero_name":"Falkok","color_bright":"#6b0000","color_dark":"#420000","color_visor":"#5577b9","color_suit":"#240000","color_suit2":"#2e0000","color_dark2":"#560101","color_shoes":"#000000","color_skin":"#240000","helmet1":false,"helmet2":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
 
 									character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter( falkok_settings );
 									character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( falkok_settings );
@@ -239,7 +236,7 @@ class sdWeather extends sdEntity
 									character_entity.hea = 115; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
 									character_entity.hmax = 115;
 
-									character_entity._damage_mult = 1 / 4;
+									character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
 
 									character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 									character_entity._ai_enabled = true;

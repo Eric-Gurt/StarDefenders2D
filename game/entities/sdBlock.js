@@ -263,6 +263,8 @@ class sdBlock extends sdEntity
 		
 		this._natural = params.natural === true;
 		
+		this._plants = params.plants || null; // Array of _net_id-s actually
+		
 		if ( this.material === sdBlock.MATERIAL_SHARP )
 		{
 			this._owner = params.owner || null; // Useful in case of sharp trap
@@ -450,8 +452,12 @@ class sdBlock extends sdEntity
 				}
 				else
 				{
-					let ent = new sdWorld.entity_classes[ this._contains_class ]({ x: this.x + this.width / 2, y: this.y + this.height / 2 });
+					let parts = this._contains_class.split( '.' );
+					this._contains_class = parts[ 0 ];
+					
+					let ent = new sdWorld.entity_classes[ this._contains_class ]({ x: this.x + this.width / 2, y: this.y + this.height / 2, tag:( parts.length > 1 )?parts[1]:null });
 					sdEntity.entities.push( ent );
+					
 					sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
 				}
 			}
@@ -476,6 +482,19 @@ class sdBlock extends sdEntity
 					new_bg.remove();
 					new_bg._remove();
 				}
+			}
+			
+			if ( this._plants )
+			{
+				for ( let i = 0; i < this._plants.length; i++ )
+				{
+					let ent = sdEntity.entities_by_net_id_cache[ this._plants[ i ] ];
+					
+					if ( ent )
+					ent.remove();
+				}
+				
+				this._plants = null;
 			}
 		}
 		else
