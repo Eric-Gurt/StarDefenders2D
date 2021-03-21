@@ -8,7 +8,7 @@ class sdStorage extends sdEntity
 {
 	static init_class()
 	{
-		sdStorage.img_storage = sdWorld.CreateImageFromFile( 'storage' );
+		sdStorage.img_storage = sdWorld.CreateImageFromFile( 'storage2' );
 		
 		sdStorage.access_range = 64;
 		sdStorage.slots_tot = 6;
@@ -42,6 +42,8 @@ class sdStorage extends sdEntity
 		this[ 'item' + i ] = null;
 	
 		this._allow_pickup = false;
+		
+		this.filter = params.filter || 'saturate(0)';
 	}
 	onBuilt()
 	{
@@ -97,9 +99,12 @@ class sdStorage extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		ctx.filter = this.filter;
+		
 		ctx.drawImageFilterCache( sdStorage.img_storage, - 16, - 16, 32,32 );
 		
 		ctx.globalAlpha = 1;
+		ctx.filter = 'none';
 	}
 	onRemove() // Class-specific, if needed
 	{
