@@ -287,6 +287,10 @@ class sdBlock extends sdEntity
 			}
 		}*/
 	}
+	ExtraSerialzableFieldTest( prop )
+	{
+		return ( prop === '_plants' );
+	}
 	MeasureMatterCost()
 	{
 		return this._hmax * sdWorld.damage_to_matter + ( this.material === sdBlock.MATERIAL_SHARP ? 30 : 0 );
