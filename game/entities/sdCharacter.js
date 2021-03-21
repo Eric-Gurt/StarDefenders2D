@@ -275,6 +275,7 @@ class sdCharacter extends sdEntity
 		this._coms_allowed = false; // Through upgrade, only non-proximity one
 		this._damage_mult = 1; // Through upgrade
 		this._build_hp_mult = 1; // Through upgrade
+		this._jump_upgrade = 0; //Jump upgrade, can be upgraded three times
 		
 		this.flying = false; // Jetpack flying
 		this._last_act_y = this.act_y; // For mid-air jump jetpack activation
@@ -1329,7 +1330,7 @@ class sdCharacter extends sdEntity
 			if ( !sdWorld.CheckWallExists( this.x, this.y + this.hitbox_y1, null, null, sdWater.water_class_array ) )
 			{
 				if ( this.act_y === -1 )
-				this.sy = -3;
+					this.sy = -3;
 			}
 			else
 			can_breathe = false;
@@ -1380,7 +1381,14 @@ class sdCharacter extends sdEntity
 						//if ( this._crouch_intens > 0.1 )
 						//this.sy = Math.min( this.sy, -6 );
 						//else
+						if (this._jump_upgrade === 0)
 						this.sy = Math.min( this.sy, -4 );
+						if (this._jump_upgrade === 1)
+						this.sy = Math.min( this.sy, -4.8 );
+						if (this._jump_upgrade === 2)
+						this.sy = Math.min( this.sy, -5.6 );
+						if (this._jump_upgrade === 3)
+						this.sy = Math.min( this.sy, -6.4 );
 					}
 					else
 					{
