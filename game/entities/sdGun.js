@@ -57,6 +57,15 @@ class sdGun extends sdEntity
 		sdGun.CLASS_FISTS = 15;
 		sdGun.CLASS_SABER = 16;
 		
+		/*
+		
+			Some basic SD2D weapon ideas:
+		
+				- Weapon cost is only exists to prevent new players from being strong enough to spawn deadly weapons (like grenades, sniper rifle);
+		
+				- Matter consumption is what defines weapons and should always be aligned to damage dealt, unless it exposes some unfair features.
+		
+		*/
 		sdGun.classes = 
 		[
 			{
@@ -214,12 +223,14 @@ class sdGun extends sdEntity
 				image: sdWorld.CreateImageFromFile( 'sword' ),
 				//sound: 'gun_medikit',
 				title: 'Sword',
+				sound: 'sword_attack2',
 				image_no_matter: sdWorld.CreateImageFromFile( 'sword_disabled' ),
 				slot: 0,
 				reload_time: 8,
 				muzzle_x: null,
 				ammo_capacity: -1,
 				count: 1,
+				is_sword: true,
 				projectile_velocity: 16 * 1.5,
 				projectile_properties: { time_left: 1, _damage: 35, color: 'transparent', _knock_scale:0.025 * 8 }
 			},
@@ -298,19 +309,30 @@ class sdGun extends sdEntity
 					}
 				}
 			},
-			{
-				image: sdWorld.CreateImageFromFile( 'sword2' ),
-				//sound: 'gun_medikit',
+			{ // Original weapon idea & pull request by Booraz149 ( https://github.com/Booraz149 ), image editing & sound effects by Eric Gurt
+				image: sdWorld.CreateImageFromFile( 'sword2b' ),
+				sound: 'saber_attack',
+				sound_volume: 1.5,
 				title: 'Saber',
-				image_no_matter: sdWorld.CreateImageFromFile( 'sword2_disabled' ),
+				image_no_matter: sdWorld.CreateImageFromFile( 'sword2b_disabled' ),
 				slot: 0,
 				reload_time: 10,
 				muzzle_x: null,
 				ammo_capacity: -1,
 				count: 1,
-				matter_cost: 200,
+				is_sword: true,
+				matter_cost: 90, // Was 200, but I don't feel like this weapon is overpowered enough to have high cost like stimpack does /EG
 				projectile_velocity: 20 * 1.5,
-				projectile_properties: { time_left: 1, _damage: 60, color: 'transparent', _knock_scale:0.025 * 8 }
+				projectile_properties: { time_left: 1, _damage: 60, color: 'transparent', _knock_scale:0.025 * 8, 
+					_custom_target_reaction:( bullet, target_entity )=>
+					{
+						sdSound.PlaySound({ name:'saber_hit2', x:bullet.x, y:bullet.y, volume:1.5 });
+					},
+					_custom_target_reaction_protected:( bullet, target_entity )=>
+					{
+						sdSound.PlaySound({ name:'saber_hit2', x:bullet.x, y:bullet.y, volume:1.5 });
+					}
+				}
 			}
 		];
 		
@@ -352,8 +374,13 @@ class sdGun extends sdEntity
 				return;
 			}
 			
+			
+			
 			if ( typeof from_entity._armor_protection_level === 'undefined' || this._dangerous_from === null || ( this._dangerous_from._upgrade_counters[ 'upgrade_damage' ] || 0 ) >= from_entity._armor_protection_level )
 			{
+				if ( sdGun.classes[ this.class ].projectile_properties._custom_target_reaction )
+				sdGun.classes[ this.class ].projectile_properties._custom_target_reaction( this, from_entity );
+					
 				if ( from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
 				{
 					sdSound.PlaySound({ name:'player_hit', x:this.x, y:this.y, volume:0.5 });
@@ -362,14 +389,17 @@ class sdGun extends sdEntity
 				sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect() });
 
 				if ( this._dangerous_from && this._dangerous_from.is( sdCharacter ) )
-				from_entity.Damage( sdGun.classes[ sdGun.CLASS_SWORD ].projectile_properties._damage * this._dangerous_from._damage_mult, this._dangerous_from );
+				from_entity.Damage( sdGun.classes[ this.class ].projectile_properties._damage * this._dangerous_from._damage_mult, this._dangerous_from );
 				else
-				from_entity.Damage( sdGun.classes[ sdGun.CLASS_SWORD ].projectile_properties._damage, this._dangerous_from );
+				from_entity.Damage( sdGun.classes[ this.class ].projectile_properties._damage, this._dangerous_from );
 			
 				this.Damage( 1 );
 			}
 			else
 			{
+				if ( sdGun.classes[ this.class ].projectile_properties._custom_target_reaction_protected )
+				sdGun.classes[ this.class ].projectile_properties._custom_target_reaction_protected( this, from_entity );
+			
 				sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
 			}
 			
@@ -620,7 +650,7 @@ class sdGun extends sdEntity
 				}
 				
 				if ( sdGun.classes[ this.class ].sound )
-				sdSound.PlaySound({ name:sdGun.classes[ this.class ].sound, x:this.x, y:this.y, volume:0.5, pitch: sdGun.classes[ this.class ].sound_pitch || 1 });
+				sdSound.PlaySound({ name:sdGun.classes[ this.class ].sound, x:this.x, y:this.y, volume: 0.5 * ( sdGun.classes[ this.class ].sound_volume || 1 ), pitch: sdGun.classes[ this.class ].sound_pitch || 1 });
 			
 				this.reload_time_left = sdGun.classes[ this.class ].reload_time;
 				
@@ -882,6 +912,14 @@ class sdGun extends sdEntity
 				if ( this.reload_time_left > 0 )
 				image = sdGun.classes[ this.class ].image2[ odd ];
 			}
+			
+			if ( sdGun.classes[ this.class ].is_sword )
+			{
+				//if ( this._held_by === null || this._held_by.matter < this.GetBulletCost() )
+				if ( this._held_by === null && !this.dangerous )
+				image = sdGun.classes[ this.class ].image_no_matter;
+			}
+			/*
 			if ( this.class === sdGun.CLASS_SWORD )
 			{
 				//if ( this._held_by === null || this._held_by.matter < this.GetBulletCost() )
@@ -894,7 +932,7 @@ class sdGun extends sdEntity
 				//if ( this._held_by === null || this._held_by.matter < this.GetBulletCost() )
 				if ( this._held_by === null && !this.dangerous )
 				image = sdGun.classes[ this.class ].image_no_matter;
-			}
+			}*/
 
 			if ( this.ttl >= 0 && this.ttl < 30 )
 			ctx.globalAlpha = 0.5;
@@ -908,20 +946,21 @@ class sdGun extends sdEntity
 				ctx.filter = sdWorld.GetCrystalHue( v );
 			}
 			
-			if ( this.class === sdGun.CLASS_SWORD )
+			if ( sdGun.classes[ this.class ].is_sword )
+			//if ( this.class === sdGun.CLASS_SWORD )
 			if ( this._held_by )
 			{
 				if ( this._held_by.fire_anim <= 0 )
 				ctx.rotate( - Math.PI / 2 );
 			}
-			
+			/*
 			if ( this.class === sdGun.CLASS_SABER )
 			if ( this._held_by )
 			{
 				if ( this._held_by.fire_anim <= 0 )
 				ctx.rotate( - Math.PI / 2 );
 			}
-
+			*/
 			
 			ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
 			

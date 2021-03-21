@@ -935,10 +935,14 @@ class sdCharacter extends sdEntity
 				
 				if ( this._inventory[ this.gun_slot ] )
 				{
-					if ( this.gun_slot === 0 )
+					//if ( this.gun_slot === 0 )
+					if ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].is_sword )
 					{
 						this._inventory[ this.gun_slot ].dangerous = true;
 						this._inventory[ this.gun_slot ]._dangerous_from = this;
+						
+						if ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].sound )
+						sdSound.PlaySound({ name:sdGun.classes[ this._inventory[ this.gun_slot ].class ].sound, x:this.x, y:this.y, volume: 0.5 * ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].sound_volume || 1 ), pitch: 0.8 * ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].sound_pitch || 1 ) });
 					}
 					
 					this.DropWeapon( this.gun_slot );

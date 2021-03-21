@@ -152,6 +152,12 @@ class sdStorage extends sdEntity
 					from_entity.ttl = -1;
 					from_entity._held_by = this;
 					
+					if ( from_entity._dangerous )
+					{
+						from_entity._dangerous = false;
+						from_entity._dangerous_from = null;
+					}
+					
 					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
 				}
 			}
