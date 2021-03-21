@@ -208,6 +208,16 @@ class sdShop
 				{
 					character._coms_allowed = true;
 				}
+			},
+			upgrade_matter_regeneration:
+			{
+				max_level: 5,
+				matter_cost: 200,
+				action: ( character, level_purchased )=>
+				{
+					character._matter_regeneration = level_purchased;
+					character.matter_upg_max = level_purchased*20;
+				}
 			}
 		};
 		for ( var i in sdShop.upgrades )
