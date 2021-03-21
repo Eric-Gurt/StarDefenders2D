@@ -551,6 +551,14 @@ let enf_once = true;
 				sdWorld.Start( globalThis.GetPlayerSettings(), true );
 			}
 		}
+
+		else if(code === "KeyB"){
+			//Equip build tool
+			sd_events.push( [ 'K1', 'Digit9' ] );
+			sd_events.push( [ 'K0', 'Digit9' ] );
+
+			sdShop.openShop();
+		}
 	};
 	window.onkeypress = ( e )=>
 	{
