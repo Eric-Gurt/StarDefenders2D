@@ -55,6 +55,7 @@ class sdGun extends sdEntity
 		sdGun.CLASS_FALKOK_RIFLE = 13;
 		sdGun.CLASS_TRIPLE_RAIL = 14;
 		sdGun.CLASS_FISTS = 15;
+		sdGun.CLASS_SABER = 16;
 		
 		sdGun.classes = 
 		[
@@ -296,6 +297,20 @@ class sdGun extends sdEntity
 						bullet._owner.Damage( 5 );
 					}
 				}
+			},
+			{
+				image: sdWorld.CreateImageFromFile( 'sword2' ),
+				//sound: 'gun_medikit',
+				title: 'Saber',
+				image_no_matter: sdWorld.CreateImageFromFile( 'sword2_disabled' ),
+				slot: 0,
+				reload_time: 10,
+				muzzle_x: null,
+				ammo_capacity: -1,
+				count: 1,
+				matter_cost: 200,
+				projectile_velocity: 20 * 1.5,
+				projectile_properties: { time_left: 1, _damage: 60, color: 'transparent', _knock_scale:0.025 * 8 }
 			}
 		];
 		
@@ -508,6 +523,9 @@ class sdGun extends sdEntity
 		
 		if ( this.class === sdGun.CLASS_SWORD )
 		return 0;
+		
+		if ( this.class === sdGun.CLASS_SABER )
+		return 2;
 		
 		if ( this.class === sdGun.CLASS_PISTOL )
 		return 0;
@@ -870,7 +888,14 @@ class sdGun extends sdEntity
 				if ( this._held_by === null && !this.dangerous )
 				image = sdGun.classes[ this.class ].image_no_matter;
 			}
-			
+
+			if ( this.class === sdGun.CLASS_SABER )
+			{
+				//if ( this._held_by === null || this._held_by.matter < this.GetBulletCost() )
+				if ( this._held_by === null && !this.dangerous )
+				image = sdGun.classes[ this.class ].image_no_matter;
+			}
+
 			if ( this.ttl >= 0 && this.ttl < 30 )
 			ctx.globalAlpha = 0.5;
 		
@@ -884,6 +909,13 @@ class sdGun extends sdEntity
 			}
 			
 			if ( this.class === sdGun.CLASS_SWORD )
+			if ( this._held_by )
+			{
+				if ( this._held_by.fire_anim <= 0 )
+				ctx.rotate( - Math.PI / 2 );
+			}
+			
+			if ( this.class === sdGun.CLASS_SABER )
 			if ( this._held_by )
 			{
 				if ( this._held_by.fire_anim <= 0 )
