@@ -208,6 +208,15 @@ class sdShop
 				{
 					character._coms_allowed = true;
 				}
+			},
+			upgrade_jump:
+			{
+				max_level: 3,
+				matter_cost: 120,
+				action: ( character, level_purchased )=>
+				{
+					character._jump_upgrade = level_purchased;
+				}
 			}
 		};
 		for ( var i in sdShop.upgrades )
