@@ -1359,6 +1359,7 @@ io.on("connection", (socket) =>
 				'Each device uses its\' own slot represented with number.',
 				'Slot 9 is a Build tool. Press 9 Key in order to activate build mode.',
 				'Once you have selected slot 9, you can press Right Mouse button in order to enter build selection menu.',
+				'You can press B to open build selection menu directly.',
 				'In that menu you will find placeable entities such as walls and weapons as well as upgrades.',
 				'On respawn you will lose all your upgrades.',
 				'Jetpack ability can be activated by pressing W or Space mid-air.',
