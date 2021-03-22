@@ -14,6 +14,8 @@ class sdSound
 		//sdSound.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 			
 		sdSound.sounds = {};
+		
+		sdSound.sounds_played_at_frame = 0; // Prevent massive flood
 				
 		//		= new Audio( './audio/android_miner_hurt.wav' );
 		
@@ -218,6 +220,13 @@ class sdSound
 			}
 			else
 			{
+				sdSound.sounds_played_at_frame++;
+				if ( sdSound.sounds_played_at_frame > 10 )
+				{
+					console.log('Too many sounds played within short timespan. Is limit correct?');
+					return;
+				}
+				
 				let clone = sdSound.sounds[ name ].cloneNode();
 			
 				clone.volume = v;

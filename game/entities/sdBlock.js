@@ -399,6 +399,8 @@ class sdBlock extends sdEntity
 			else
 			if ( w === 16 && h === 8 )
 			ctx.drawImageFilterCache( sdBlock.img_wall05, 0, 0, w,h, 0,0, w,h );
+			else
+			ctx.drawImageFilterCache( sdBlock.img_wall22, 0, 0, w,h, 0,0, w,h );
 		}
 		else
 		if ( this.material === sdBlock.MATERIAL_SHARP )

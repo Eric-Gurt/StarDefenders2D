@@ -129,7 +129,7 @@ class sdGun extends sdEntity
 				projectile_velocity: 14,
 				count: 1,
 				matter_cost: 60,
-				projectile_properties: { _explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:1 }
+				projectile_properties: { explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:1 }
 			},
 			{
 				image: sdWorld.CreateImageFromFile( 'medikit' ),
@@ -152,7 +152,7 @@ class sdGun extends sdEntity
 				ammo_capacity: 16,
 				count: 1,
 				matter_cost: 60,
-				projectile_properties: { _explosion_radius: 10, model: 'ball', _damage: 5, color:'#00ffff' }
+				projectile_properties: { explosion_radius: 10, model: 'ball', _damage: 5, color:'#00ffff' }
 			},
 			{
 				image: sdWorld.CreateImageFromFile( 'buildtool' ),
@@ -201,7 +201,7 @@ class sdGun extends sdEntity
 				count: 1,
 				projectile_velocity: 7,
 				matter_cost: 60,
-				projectile_properties: { _explosion_radius: 13, time_left: 30 * 3, model: 'grenade', _damage: 13 * 2, color:sdEffect.default_explosion_color, is_grenade: true }
+				projectile_properties: { explosion_radius: 13, time_left: 30 * 3, model: 'grenade', _damage: 13 * 2, color:sdEffect.default_explosion_color, is_grenade: true }
 			},
 			{
 				image: sdWorld.CreateImageFromFile( 'sniper' ),
@@ -367,6 +367,9 @@ class sdGun extends sdEntity
 		
 			if ( from_entity.is( sdBG ) )
 			return;
+		
+			if ( from_entity.is( sdBullet ) )
+			return;
 			
 			if ( from_entity.is( sdCharacter ) )
 			{
@@ -374,33 +377,43 @@ class sdGun extends sdEntity
 				return;
 			}
 			
-			
-			
-			if ( typeof from_entity._armor_protection_level === 'undefined' || this._dangerous_from === null || ( this._dangerous_from._upgrade_counters[ 'upgrade_damage' ] || 0 ) >= from_entity._armor_protection_level )
+			if ( !sdWorld.server_config.GetHitAllowed || sdWorld.server_config.GetHitAllowed( this, from_entity ) )
 			{
-				if ( sdGun.classes[ this.class ].projectile_properties._custom_target_reaction )
-				sdGun.classes[ this.class ].projectile_properties._custom_target_reaction( this, from_entity );
-					
-				if ( from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
+				if ( typeof from_entity._armor_protection_level === 'undefined' || this._dangerous_from === null || ( this._dangerous_from._upgrade_counters[ 'upgrade_damage' ] || 0 ) >= from_entity._armor_protection_level )
 				{
-					sdSound.PlaySound({ name:'player_hit', x:this.x, y:this.y, volume:0.5 });
+					if ( sdGun.classes[ this.class ].projectile_properties._custom_target_reaction )
+					sdGun.classes[ this.class ].projectile_properties._custom_target_reaction( this, from_entity );
+
+					if ( from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
+					{
+						sdSound.PlaySound({ name:'player_hit', x:this.x, y:this.y, volume:0.5 });
+					}
+
+					sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect() });
+					
+					let mult = 1;
+					
+					if ( from_entity.is( sdCharacter ) )
+					{
+						mult = 1.5;
+
+						mult *= from_entity.GetHitDamageMultiplier( this.x, this.y );
+					}
+
+					if ( this._dangerous_from && this._dangerous_from.is( sdCharacter ) )
+					from_entity.Damage( sdGun.classes[ this.class ].projectile_properties._damage * this._dangerous_from._damage_mult, this._dangerous_from );
+					else
+					from_entity.Damage( sdGun.classes[ this.class ].projectile_properties._damage, this._dangerous_from );
+
+					this.Damage( 1 );
 				}
-
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect() });
-
-				if ( this._dangerous_from && this._dangerous_from.is( sdCharacter ) )
-				from_entity.Damage( sdGun.classes[ this.class ].projectile_properties._damage * this._dangerous_from._damage_mult, this._dangerous_from );
 				else
-				from_entity.Damage( sdGun.classes[ this.class ].projectile_properties._damage, this._dangerous_from );
-			
-				this.Damage( 1 );
-			}
-			else
-			{
-				if ( sdGun.classes[ this.class ].projectile_properties._custom_target_reaction_protected )
-				sdGun.classes[ this.class ].projectile_properties._custom_target_reaction_protected( this, from_entity );
-			
-				sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
+				{
+					if ( sdGun.classes[ this.class ].projectile_properties._custom_target_reaction_protected )
+					sdGun.classes[ this.class ].projectile_properties._custom_target_reaction_protected( this, from_entity );
+
+					sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
+				}
 			}
 			
 			this.dangerous = false;
@@ -562,7 +575,7 @@ class sdGun extends sdEntity
 		
 		return ( Math.abs( sdGun.classes[ this.class ].projectile_properties._damage * this._held_by._damage_mult ) * sdGun.classes[ this.class ].count + 
 				( sdGun.classes[ this.class ].projectile_properties._rail ? 30 : 0 ) + 
-				( sdGun.classes[ this.class ].projectile_properties._explosion_radius > 0 ? 20 : 0 ) ) * sdWorld.damage_to_matter;
+				( sdGun.classes[ this.class ].projectile_properties.explosion_radius > 0 ? 20 : 0 ) ) * sdWorld.damage_to_matter;
 	}
 	
 	ReloadComplete()

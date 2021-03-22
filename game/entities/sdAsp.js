@@ -10,6 +10,7 @@ import sdBlock from './sdBlock.js';
 import sdBullet from './sdBullet.js';
 import sdCube from './sdCube.js';
 
+
 class sdAsp extends sdEntity
 {
 	static init_class()
@@ -120,8 +121,8 @@ class sdAsp extends sdEntity
 			//sdSound.PlaySound({ name:'asp_death', x:this.x, y:this.y, volume: 0.5 });
 
 			if ( initiator )
-			if ( initiator._socket )
-			initiator._socket.score += 1;
+			if ( typeof initiator._score !== 'undefined' )
+			initiator._score += 2;
 	
 		}
 		

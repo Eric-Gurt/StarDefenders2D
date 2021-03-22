@@ -12,6 +12,8 @@
 		cursor: default;
 		height: 100%;
 		overflow: hidden;
+		background-blend-mode: overlay;
+		transition: background-color 1s ease;
 	    }
 	    *::-moz-selection { background-color: red; }
 	    *::selection { background-color: red; }
@@ -434,7 +436,7 @@
     font-size: 30px;
     color: #2f2f2f;
     text-align: right;
-    ">Star Defenders<br>
+    "><span style="color:#64646496" id="game_title_text">...</span><br>
 	    <div style="font-size:10px;color:#355a52;font-weight: bold;">v0.9</div></div>
 	    
 	    <div style="position: absolute; left: calc( 100% + 20px ); top:0; width: 300px; height: 100%;
@@ -621,7 +623,8 @@
 		<span class="sdtitle">Other Star Defenders servers</span><br>
 		<a href="http://localhost:3000">localhost:3000 - your server will be here</a> 
 		<a href="https://www.gevanni.com:3000">gevanni.com:3000 - Main server, initial world, more peaceful</a>
-		<a href="https://www.gevanni.com:3001">gevanni.com:3001 - Main server, alternative world, FFA, no big bases</a>
+		<!--<a href="https://www.gevanni.com:3001">gevanni.com:3001 - Main server, alternative world, FFA, no big bases</a>-->
+		<a href="https://www.gevanni.com:3002">gevanni.com:3002 - Main server, PvP arena</a>
 	    </div>
 	    
 	    <div style="position:absolute;left:20px;bottom:20px">

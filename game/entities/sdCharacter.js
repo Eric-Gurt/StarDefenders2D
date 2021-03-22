@@ -181,6 +181,15 @@ class sdCharacter extends sdEntity
 	{
 		return ( this.driver_of === null );
 	}
+	get _old_score() // Obsolete now
+	{
+		debugger;
+		return 0;
+	}
+	set _old_score( v ) // Obsolete now
+	{
+		debugger;
+	}
 	constructor( params )
 	{
 		super( params );
@@ -207,7 +216,8 @@ class sdCharacter extends sdEntity
 		
 		this.title = 'Random Hero #' + this._net_id;
 		this._my_hash = undefined; // Will be used to let players repsawn within same entity if it exists on map
-		this._old_score = 0; // This value is only read/written to when player disconnects and reconnects
+		//this._old_score = 0; // This value is only read/written to when player disconnects and reconnects
+		this._score = 0; // Only place where score will be kept from now
 		
 		// Some stats for Cubes to either attack or ignore players
 		this._nature_damage = 0;
@@ -412,7 +422,7 @@ class sdCharacter extends sdEntity
 			this.Damage( ( vel - 3 ) * 17 );
 		}
 	}
-	Damage( dmg, initiator=null )
+	Damage( dmg, initiator=null, headshot=false )
 	{
 		if ( !sdWorld.is_server )
 		return;
@@ -424,7 +434,7 @@ class sdCharacter extends sdEntity
 		this._listeners.DAMAGE[ i ]( this, dmg, initiator );
 			
 		let was_alive = ( this.hea > 0 );
-			
+	
 		if ( dmg > 0 )
 		{
 			if ( was_alive )
@@ -435,11 +445,22 @@ class sdCharacter extends sdEntity
 					this._ai.target = initiator;
 				}
 				else
-				if ( initiator )
-				if ( initiator.is( sdCharacter ) )
-				if ( initiator._socket )
-				if ( sdWorld.time >= this._non_innocent_until ) // Victim is innocent
-				initiator._non_innocent_until = sdWorld.time + 1000 * 30;
+				{
+					if ( sdWorld.server_config.onDamage )
+					sdWorld.server_config.onDamage( this, initiator, dmg, headshot );
+				
+					//if ( initiator )
+					//if ( initiator.is( sdCharacter ) )
+					//if ( initiator._socket )
+					//{
+						//if ( sdWorld.server_config.onDamage )
+						//sdWorld.server_config.onDamage( this, initiator, dmg, headshot );
+						/*
+						if ( sdWorld.time >= this._non_innocent_until ) // Check if victim is innocent
+						initiator._non_innocent_until = sdWorld.time + 1000 * 30;
+						*/
+					//}
+				}
 			}
 
 			this.hea -= dmg;
@@ -470,25 +491,21 @@ class sdCharacter extends sdEntity
 			
 				this.DropWeapons();
 				
+				if ( sdWorld.server_config.onKill )
+				sdWorld.server_config.onKill( this, initiator );
+
 				if ( initiator )
 				if ( initiator.is( sdCharacter ) )
 				if ( initiator._socket )
 				{
 					if ( this._ai_enabled )
 					{
-						initiator._socket.score += 2;
+						if ( typeof initiator._score !== 'undefined' )
+						initiator._score += 2;
 					}
 					else
 					{
-						if ( this._socket )
-						if ( this._socket.score > 0 )
-						{
-							initiator._socket.score += ~~( ( this._socket.score - 1 ) * 0.5 );
-							this._socket.score = 1; // Or else body will break on respawn
-						}
-
-						//console.log( 'initiator._socket.ffa_warning', initiator._socket.ffa_warning );
-
+						/*
 						if ( sdWorld.time < initiator._non_innocent_until ) // Attacker is not innocent
 						{
 							if ( initiator._socket.ffa_warning === 0 )
@@ -497,7 +514,7 @@ class sdCharacter extends sdEntity
 							initiator._socket.SyncFFAWarning();
 							initiator._socket.ffa_warning += 1;
 							initiator._socket.respawn_block_until = sdWorld.time + initiator._socket.ffa_warning * 5000;
-						}
+						}*/
 					}
 				}
 			}
@@ -556,9 +573,9 @@ class sdCharacter extends sdEntity
 					}
 					else
 					{
-						let share = Math.min( Math.max( 0, initiator._socket.score ), 10 );
-						initiator._socket.score -= share;
-						this._socket.score += share;
+						let share = Math.min( Math.max( 0, initiator._score ), 10 );
+						initiator._score -= share;
+						this._score += share;
 
 						if ( this._non_innocent_until < sdWorld.time ) // Healed player is innocent
 						initiator._socket.ffa_warning = Math.max( initiator._socket.ffa_warning - 1, 0 );
@@ -1023,6 +1040,9 @@ class sdCharacter extends sdEntity
 		//leg_height		*= 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7;
 		//new_leg_height  *= 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7;
 	
+		let ledge_holding = false;
+		this._ledge_holding = false;
+	
 		//if ( sdWorld.is_server )
 		{
 			if ( sdWorld.is_server || sdWorld.my_entity === this )
@@ -1031,6 +1051,9 @@ class sdCharacter extends sdEntity
 				{
 					this.act_x = this._key_states.GetKey( 'KeyD' ) - this._key_states.GetKey( 'KeyA' );
 					this.act_y = this._key_states.GetKey( 'KeyS' ) - ( ( this._key_states.GetKey( 'KeyW' ) || this._key_states.GetKey( 'Space' ) ) ? 1 : 0 );
+					
+					if ( this.act_x !== 0 || this.act_y !== 0 )
+					this.PhysWakeUp();
 				}
 				else
 				{
@@ -1198,6 +1221,16 @@ class sdCharacter extends sdEntity
 				this.stands = true;
 				this._stands_on = sdWorld.last_hit_entity;
 				this.Touches( sdWorld.last_hit_entity );
+			}
+			else
+			{
+				if ( this.hea > 0 )
+				if ( this.act_x !== 0 )
+				if ( sdWorld.CheckWallExistsBox( this.x + this.act_x * 7, this.y, this.x + this.act_x * 7, this.y + 10, null, null, [ 'sdBlock' ] ) )
+				if ( !sdWorld.CheckWallExists( this.x + this.act_x * 7, this.y + this.hitbox_y1, null, null, [ 'sdBlock' ] ) )
+				{
+					ledge_holding = true;
+				}
 			}
 		}
 
@@ -1402,17 +1435,39 @@ class sdCharacter extends sdEntity
 			}
 			else
 			{
-				this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.98, GSPEED );
-				this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.98, GSPEED );
-
-				if ( this.flying )
+				if ( ledge_holding && !this.flying )
 				{
+					if ( Math.sign( this.sx ) !== this.act_x )
+					this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.65, GSPEED );
+				
+					//if ( Math.sign( this.sy ) !== this.act_y )
+					if ( ( this.sy > 0 ) !== ( this.act_y > 0 ) )
+					this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.65, GSPEED );
+					
+					this.sx += this.act_x * 0.15 * GSPEED;
+					this.sy += this.act_y * 0.15 * GSPEED;
+					
+					this._side = this.act_x;
+					//this._ledge_holding = 0;
+					//this.look_x = this.x - 100;
+					//this.look_y = this.y;
+					this._ledge_holding = ledge_holding;
 				}
 				else
-				this.sx += this.act_x * 0.15 * GSPEED;
-				//this.sx += this.act_x * 0.2 * GSPEED;
+				{
+					this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.98, GSPEED );
+					this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.98, GSPEED );
 
-				this.sy += sdWorld.gravity * GSPEED;
+					if ( this.flying )
+					{
+					}
+					else
+					this.sx += this.act_x * 0.15 * GSPEED;
+					//this.sx += this.act_x * 0.2 * GSPEED;
+
+
+					this.sy += sdWorld.gravity * GSPEED;
+				}
 			}
 		}
 		
@@ -1970,7 +2025,7 @@ class sdCharacter extends sdEntity
 				//if ( this.gun_slot === 0 )
 				if ( !this._inventory[ this.gun_slot ] )
 				{
-					if ( this.fire_anim > 5 )
+					if ( this.fire_anim > 5 || this._ledge_holding )
 					{
 						image = sdCharacter.img_body_melee2;
 						frame = 'img_body_melee2';
@@ -2062,6 +2117,8 @@ class sdCharacter extends sdEntity
 						( this.y - this.look_y ) , 
 						( ( this.x - this.look_x ) * this._side - 3 * Math.abs( this.y - this.look_y ) ) ) - Math.PI;
 
+				if ( this._ledge_holding )
+				an = 0;
 
 				ctx.translate( - 2, 5 );
 				ctx.rotate( an );

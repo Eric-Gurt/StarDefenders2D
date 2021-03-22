@@ -101,8 +101,8 @@ class sdQuickie extends sdEntity
 			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
 
 			if ( initiator )
-			if ( initiator._socket )
-			initiator._socket.score += 1;
+			if ( typeof initiator._score !== 'undefined' )
+			initiator._score += 1;
 		}
 		
 		if ( this._hea < -this._hmax / 80 * 100 )

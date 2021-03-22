@@ -142,12 +142,12 @@ class sdCube extends sdEntity
 			});
 
 			if ( initiator )
-			if ( initiator._socket )
+			if ( typeof initiator._score !== 'undefined' )
 			{
 				if ( this.is_huge )
-				initiator._socket.score += 80;
+				initiator._score += 40;
 				else
-				initiator._socket.score += 20;
+				initiator._score += 10;
 			}
 			let r = Math.random();
 			

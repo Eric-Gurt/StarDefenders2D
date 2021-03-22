@@ -425,6 +425,11 @@ let enf_once = true;
 			globalThis.players_online = arr[ 0 ];
 			globalThis.players_playing = arr[ 1 ];
 		});
+		socket.on( 'INIT', ( obj )=>
+		{
+			document.getElementById( 'game_title_text' ).textContent = obj.game_title;
+			document.body.style.backgroundColor = obj.backgroundColor;
+		});
 		socket.on( 'UPGRADE_SET', ( arr )=>
 		{
 			if ( sdWorld.my_entity )
