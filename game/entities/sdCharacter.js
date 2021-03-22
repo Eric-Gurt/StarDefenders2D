@@ -931,14 +931,18 @@ class sdCharacter extends sdEntity
 					}
 				}
 			}
+
 			if (this._second_timer > 0) // new timer variable; used only for matter regeneration for now
 			this._second_timer -= 1;
 			if (this.matter < this.matter_upg_max)
 			{
-				if (this._second_timer < 1 && this.matter < this.matter_max) // Character cannot store or regenerate more matter than what it can contain
+				if (sdWorld.is_server)
 				{
-					this.matter += 1;
-					this._second_timer = 60;
+					if (this._second_timer < 1 && this.matter < this.matter_max) // Character cannot store or regenerate more matter than what it can contain
+					{
+						this.matter += 1;
+						this._second_timer = 60;
+					}
 				}
 			}
 			if ( this._key_states.GetKey( 'KeyV' ) )
