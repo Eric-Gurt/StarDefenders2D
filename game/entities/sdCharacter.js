@@ -38,7 +38,11 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_eyes' ),
 			sdWorld.CreateImageFromFile( 'helmet_dino' ),
 			sdWorld.CreateImageFromFile( 'helmet_v' ),
-			sdWorld.CreateImageFromFile( 'helmet_open' )
+			sdWorld.CreateImageFromFile( 'helmet_open' ),
+			sdWorld.CreateImageFromFile( 'helmet_cs' ),
+			sdWorld.CreateImageFromFile( 'helmet_crow' ),
+			sdWorld.CreateImageFromFile( 'helmet_grub' ),
+			sdWorld.CreateImageFromFile( 'helmet_scope' )
 		];
 		
 		// x y rotation, for images below
@@ -285,6 +289,8 @@ class sdCharacter extends sdEntity
 		this._coms_allowed = false; // Through upgrade, only non-proximity one
 		this._damage_mult = 1; // Through upgrade
 		this._build_hp_mult = 1; // Through upgrade
+		this._matter_regeneration = 0; // Through upgrade
+		this._second_timer = 0; // New variable timer which is used in matter regeneration upgrade
 		
 		this.flying = false; // Jetpack flying
 		this._last_act_y = this.act_y; // For mid-air jump jetpack activation
@@ -946,6 +952,19 @@ class sdCharacter extends sdEntity
 				}
 			}
 
+			if (this._second_timer > 0) // new timer variable; used only for matter regeneration for now
+			this._second_timer -= 1;
+			if (this.matter < this.matter_upg_max)
+			{
+				if (sdWorld.is_server)
+				{
+					if (this._second_timer < 1 && this.matter < this.matter_max) // Character cannot store or regenerate more matter than what it can contain
+					{
+						this.matter += 1;
+						this._second_timer = 60;
+					}
+				}
+			}
 			if ( this._key_states.GetKey( 'KeyV' ) )
 			{
 				this._key_states.SetKey( 'KeyV', 0 ); // So sword is not dropped all the time
