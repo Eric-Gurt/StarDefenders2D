@@ -63,12 +63,60 @@ if ( !isWin )
 	}, 2147483647 );
 }
 
-//debugger
+// process.cwd() - current working directory
+// require.main.paths[0].split('node_modules')[0].slice(0, -1) - ?
 
+
+
+let script_path_id = -1;
+let script_path_id_alter = -1;
+
+for ( let i = 0; i < process.argv.length; i++ )
+{
+	if ( script_path_id === -1 )
+	if ( process.argv[ i ].indexOf( 'index.js' ) !== -1 )
+	script_path_id = i;
+	
+	if ( script_path_id_alter === -1 )
+	if ( process.argv[ i ].indexOf( '.js' ) !== -1 )
+	script_path_id_alter = i;
+	
+	if ( script_path_id !== -1 )
+	if ( script_path_id_alter !== -1 )
+	break;
+}
+if ( script_path_id === -1 )
+script_path_id = script_path_id_alter;
+
+if ( script_path_id === -1 )
+{
+	throw new Error('I have no idea where application folder is... Could not find index.js (or any else .js) in process.argv variable, which is: ', process.argv );
+}
+
+let full_path = process.argv[ script_path_id ];
+
+let __dirname;
+
+if ( isWin )
+{
+	__dirname = full_path.split( '\\' );
+	__dirname[ __dirname.length - 1 ] = '';
+	__dirname = __dirname.join( '\\' );
+}
+else
+{
+	__dirname = full_path.split( '/' );
+	__dirname[ __dirname.length - 1 ] = '';
+	__dirname = __dirname.join( '/' );
+}
+//console.log( '__dirname = ' + __dirname );
+
+//throw new Error('manual stop');
+/*
 const __dirname = ( isWin ) ? 
 	path.resolve()
 	: 
-	'/home/admin/sd2d/';
+	'/home/admin/sd2d/';*/
 
 let io;
 
@@ -137,10 +185,11 @@ import sdHover from './game/entities/sdHover.js';
 import sdStorage from './game/entities/sdStorage.js';
 import sdAsp from './game/entities/sdAsp.js';
 import sdModeration from './game/server/sdModeration.js';
-import LZW from './game/server/LZW.js';
 import sdSandWorm from './game/entities/sdSandWorm.js';
 import sdGrass from './game/entities/sdGrass.js';
 
+import LZW from './game/server/LZW.js';
+import sdSnapPack from './game/server/sdSnapPack.js';
 import sdShop from './game/client/sdShop.js';
 import sdSound from './game/sdSound.js';
 
@@ -495,6 +544,7 @@ sdWorld.server_config = {};
 				'Each device uses its\\' own slot represented with number.',
 				'Slot 9 is a Build tool. Press 9 Key in order to activate build mode.',
 				'Once you have selected slot 9, you can press Right Mouse button in order to enter build selection menu.',
+				'You can also press B key to open build selection menu directly.',
 				'In that menu you will find placeable entities such as walls and weapons as well as upgrades.',
 				'On respawn you will lose all your upgrades.',
 				'Jetpack ability can be activated by pressing W or Space mid-air.',
@@ -2054,6 +2104,7 @@ io.on("connection", (socket) =>
 		//playing_players++;
 		
 		
+		
 
 
 		socket.emit('SET sdWorld.my_entity', character_entity._net_id, { reliable: true, runs: 100 } );
@@ -2713,64 +2764,71 @@ setInterval( ()=>
 					const MaxCompleteEntitiesCount = 40; // 50 sort of fine for PC, but now for mobile
 					
 					//let random_upgrade_for = [];
+					
+					let meet_once = new WeakSet();
 
 					for ( var x = min_x; x < max_x; x += 32 )
 					for ( var y = min_y; y < max_y; y += 32 )
 					{
 						var arr = sdWorld.RequireHashPosition( x, y );
 						for ( var i2 = 0; i2 < arr.length; i2++ )
-						if ( arr[ i2 ].IsVisible( socket.character ) )
+						if ( !meet_once.has( arr[ i2 ] ) )
 						{
-							if ( arr[ i2 ].is_static )
+							meet_once.add( arr[ i2 ] );
+							
+							if ( arr[ i2 ].IsVisible( socket.character ) )
 							{
-								//observed_statics.push( arr[ i2 ] );
-								observed_statics_map.add( arr[ i2 ] );
-
-								/*var pos_in_known = socket.known_statics.indexOf( arr[ i2 ] );
-
-								if ( pos_in_known === -1 )
+								if ( arr[ i2 ].is_static )
 								{
-									socket.known_statics.push( arr[ i2 ] );
-									socket.known_statics_versions.push( arr[ i2 ]._update_version );
+									//observed_statics.push( arr[ i2 ] );
+									observed_statics_map.add( arr[ i2 ] );
 
-									snapshot.push( arr[ i2 ].GetSnapshot( frame ) );
-								}
-								else
-								{
-									if ( socket.known_statics_versions[ pos_in_known ] !== arr[ i2 ]._update_version )
-									snapshot.push( arr[ i2 ].GetSnapshot( frame ) ); // Update actually needed
-								}*/
-								
-								if ( socket.known_statics_versions_map.has( arr[ i2 ] ) )
-								{
-									if ( socket.known_statics_versions_map.get( arr[ i2 ] ) !== arr[ i2 ]._update_version && snapshot.length < MaxCompleteEntitiesCount )
+									/*var pos_in_known = socket.known_statics.indexOf( arr[ i2 ] );
+
+									if ( pos_in_known === -1 )
 									{
-										socket.known_statics_versions_map.set( arr[ i2 ], arr[ i2 ]._update_version ); // Why it was missing?
-										
+										socket.known_statics.push( arr[ i2 ] );
+										socket.known_statics_versions.push( arr[ i2 ]._update_version );
+
+										snapshot.push( arr[ i2 ].GetSnapshot( frame ) );
+									}
+									else
+									{
+										if ( socket.known_statics_versions[ pos_in_known ] !== arr[ i2 ]._update_version )
+										snapshot.push( arr[ i2 ].GetSnapshot( frame ) ); // Update actually needed
+									}*/
+
+									if ( socket.known_statics_versions_map.has( arr[ i2 ] ) )
+									{
+										if ( socket.known_statics_versions_map.get( arr[ i2 ] ) !== arr[ i2 ]._update_version && snapshot.length < MaxCompleteEntitiesCount )
+										{
+											socket.known_statics_versions_map.set( arr[ i2 ], arr[ i2 ]._update_version ); // Why it was missing?
+
+											var snap = arr[ i2 ].GetSnapshot( frame );
+											snapshot.push( snap ); // Update actually needed
+											snapshot_only_statics.push( snap );
+										}
+										//else
+										//random_upgrade_for.push( arr[ i2 ] );
+									}
+									else
+									if ( snapshot.length < MaxCompleteEntitiesCount )
+									{
+										//socket.known_statics_map.set( arr[ i2 ], arr[ i2 ] );
+										socket.known_statics_versions_map.set( arr[ i2 ], arr[ i2 ]._update_version );
+
 										var snap = arr[ i2 ].GetSnapshot( frame );
-										snapshot.push( snap ); // Update actually needed
+										snapshot.push( snap );
 										snapshot_only_statics.push( snap );
 									}
 									//else
 									//random_upgrade_for.push( arr[ i2 ] );
 								}
 								else
-								if ( snapshot.length < MaxCompleteEntitiesCount )
-								{
-									//socket.known_statics_map.set( arr[ i2 ], arr[ i2 ] );
-									socket.known_statics_versions_map.set( arr[ i2 ], arr[ i2 ]._update_version );
+								observed_entities.push( arr[ i2 ] );
 
-									var snap = arr[ i2 ].GetSnapshot( frame );
-									snapshot.push( snap );
-									snapshot_only_statics.push( snap );
-								}
-								//else
-								//random_upgrade_for.push( arr[ i2 ] );
+								arr[ i2 ].SyncedToPlayer( socket.character );
 							}
-							else
-							observed_entities.push( arr[ i2 ] );
-
-							arr[ i2 ].SyncedToPlayer( socket.character );
 						}
 					}
 
@@ -2998,7 +3056,7 @@ setInterval( ()=>
 					}
 					
 					let full_msg = [ 
-						snapshot, // 0
+						sdSnapPack.Compress( snapshot ), // 0
 						socket.GetScore(), // 1
 						leaders, // 2
 						sd_events, // 3

@@ -827,13 +827,21 @@ class sdWorld
 	{
 		let ret = append_to || [];
 		
-		let min_x = ~~((_x - range)/32);
-		let max_x = ~~((_x + range)/32);
-		let min_y = ~~((_y - range)/32);
-		let max_y = ~~((_y + range)/32);
+		let min_x = sdWorld.FastFloor((_x - range)/32);
+		let min_y = sdWorld.FastFloor((_y - range)/32);
+		let max_x = sdWorld.FastFloor((_x + range)/32);
+		let max_y = sdWorld.FastFloor((_y + range)/32);
+		
+		if ( max_x === min_x )
+		max_x++;
+		if ( max_y === min_y )
+		max_y++;
+		
 		let x, y, arr, i;
-		for ( x = min_x; x <= max_x; x++ )
-		for ( y = min_y; y <= max_y; y++ )
+		//for ( x = min_x; x <= max_x; x++ )
+		//for ( y = min_y; y <= max_y; y++ )
+		for ( x = min_x; x < max_x; x++ )
+		for ( y = min_y; y < max_y; y++ )
 		{
 			arr = sdWorld.RequireHashPosition( x * 32, y * 32 );
 			for ( i = 0; i < arr.length; i++ )
@@ -854,14 +862,22 @@ class sdWorld
 		let max_x = _x + range + 32;
 		let min_y = _y - range - 32;
 		let max_y = _y + range + 32;*/
-		let min_x = ~~((_x - range)/32);
-		let max_x = ~~((_x + range)/32);
-		let min_y = ~~((_y - range)/32);
-		let max_y = ~~((_y + range)/32);
+		let min_x = sdWorld.FastFloor((_x - range)/32);
+		let max_x = sdWorld.FastFloor((_x + range)/32);
+		let min_y = sdWorld.FastFloor((_y - range)/32);
+		let max_y = sdWorld.FastFloor((_y + range)/32);
+		
+		if ( max_x === min_x )
+		max_x++;
+		if ( max_y === min_y )
+		max_y++;
+	
 		let x, y, arr, i;
 		let cx,cy;
-		for ( x = min_x; x <= max_x; x++ )
-		for ( y = min_y; y <= max_y; y++ )
+		//for ( x = min_x; x <= max_x; x++ )
+		//for ( y = min_y; y <= max_y; y++ )
+		for ( x = min_x; x < max_x; x++ )
+		for ( y = min_y; y < max_y; y++ )
 		{
 			arr = sdWorld.RequireHashPosition( x * 32, y * 32 );
 			for ( i = 0; i < arr.length; i++ )
@@ -979,8 +995,8 @@ class sdWorld
 	static RequireHashPosition( x, y, spawn_if_empty=false )
 	{
 		/*
-		x = ~~( x / 32 );
-		y = ~~( y / 32 );
+		x = sdWorld.FastFloor( x / 32 );
+		y = sdWorld.FastFloor( y / 32 );
 		
 		//x = Math.floor( x / 32 );
 		//y = Math.floor( y / 32 );
@@ -1006,7 +1022,7 @@ class sdWorld
 		
 		//x = ( ~~( y / 32 ) ) * 4098 + ~~( x / 32 ); // Too many left-over empty arrays when bounds move?
 		
-		x = ( ~~( y / 32 ) ) * 4098 + ~~( x / 32 );
+		x = ( sdWorld.FastFloor( y / 32 ) ) * 4098 + sdWorld.FastFloor( x / 32 );
 		
 		if ( !sdWorld.world_hash_positions.has( x ) )
 		{
@@ -1044,26 +1060,58 @@ class sdWorld
 	
 		return true; // Try false here if method fails for some reason
 	}
+	
+	static FastFloor( v ) // in case you need negative values, has 500000 as low limit.
+	{
+		if ( v < 0 )
+		return ( ~~( 500000 + v ) ) - 500000;
+		else
+		return ~~v;
+	}
+	static FastCeil( v ) // in case you need negative values, has 500000 as high limit.
+	{
+		if ( v > 0 )
+		return -( ( ~~( 500000 - v ) ) - 500000 );
+		else
+		return ~~v;
+	}
 	static UpdateHashPosition( entity, delay_callback_calls, allow_calling_movement_in_range=true ) // allow_calling_movement_in_range better be false when it is not decided whether entity will be physically placed in world or won't be (so sdBlock SHARP won't kill initiator in the middle of Shoot method of a gun, which was causing crash)
 	{
 		//let new_hash_position = entity._is_being_removed ? null : sdWorld.RequireHashPosition( entity.x, entity.y );
 		
 		
-		
 		let new_affected_hash_arrays = [];
 		if ( !entity._is_being_removed && !delay_callback_calls ) // delay_callback_calls is useful here as it will delay .hitbox_x2 access which in case of sdBlock will be undefined at the very beginning, due to .width not specified yet
 		{
-			let from_x = ~~( ( entity.x + entity.hitbox_x1 ) / 32 );
-			let to_x = ~~( ( entity.x + entity.hitbox_x2 ) / 32 );
-			let from_y = ~~( ( entity.y + entity.hitbox_y1 ) / 32 );
-			let to_y = ~~( ( entity.y + entity.hitbox_y2 ) / 32 );
+			/*if ( entity.is( sdBlock ) )
+			if ( entity.width === 16 )
+			if ( entity.height === 16 )
+			debugger;*/
+		
+			let from_x = sdWorld.FastFloor( ( entity.x + entity.hitbox_x1 ) / 32 );
+			let from_y = sdWorld.FastFloor( ( entity.y + entity.hitbox_y1 ) / 32 );
+			let to_x = sdWorld.FastCeil( ( entity.x + entity.hitbox_x2 ) / 32 );
+			let to_y = sdWorld.FastCeil( ( entity.y + entity.hitbox_y2 ) / 32 );
 			
+			if ( to_x === from_x )
+			to_x++;
+			if ( to_y === from_y )
+			to_y++;
+
 			if ( to_x - from_x < 32 && to_y - from_y < 32 )
 			{
 				var xx, yy;
 				
-				for ( xx = from_x; xx <= to_x; xx++ )
-				for ( yy = from_y; yy <= to_y; yy++ )
+				/*if ( entity.is( sdBlock ) )
+				if ( entity.width === 16 )
+				if ( entity.height === 16 )
+				if ( to_x === from_x || to_y === from_y )
+				debugger*/
+
+				//for ( xx = from_x; xx <= to_x; xx++ )
+				//for ( yy = from_y; yy <= to_y; yy++ )
+				for ( xx = from_x; xx < to_x; xx++ )
+				for ( yy = from_y; yy < to_y; yy++ )
 				new_affected_hash_arrays.push( sdWorld.RequireHashPosition( xx * 32, yy * 32, true ) );
 			}
 			else
@@ -1443,10 +1491,16 @@ class sdWorld
 		let arr;
 		let i;
 		
-		var xx_from = ~~( x1 / 32 ); // Overshoot no longer needed, due to big entities now taking all needed hash arrays
-		var yy_from = ~~( y1 / 32 );
-		var xx_to = ~~( x2 / 32 );
-		var yy_to = ~~( y2 / 32 );
+		var xx_from = sdWorld.FastFloor( x1 / 32 ); // Overshoot no longer needed, due to big entities now taking all needed hash arrays
+		var yy_from = sdWorld.FastFloor( y1 / 32 );
+		var xx_to = sdWorld.FastCeil( x2 / 32 );
+		var yy_to = sdWorld.FastCeil( y2 / 32 );
+		
+		if ( xx_to === xx_from )
+		xx_to++;
+		
+		if ( yy_to === yy_from )
+		yy_to++;
 	
 		//for ( var xx = -1; xx <= 2; xx++ )
 		//for ( var yy = -1; yy <= 2; yy++ )
@@ -1454,8 +1508,10 @@ class sdWorld
 		//for ( var yy = -1; yy <= 0; yy++ )
 		//for ( var xx = -1; xx <= 1; xx++ )
 		//for ( var yy = -1; yy <= 1; yy++ )
-		for ( var xx = xx_from; xx <= xx_to; xx++ )
-		for ( var yy = yy_from; yy <= yy_to; yy++ )
+		//for ( var xx = xx_from; xx <= xx_to; xx++ )
+		//for ( var yy = yy_from; yy <= yy_to; yy++ )
+		for ( var xx = xx_from; xx < xx_to; xx++ )
+		for ( var yy = yy_from; yy < yy_to; yy++ )
 		{
 			//arr = sdWorld.RequireHashPosition( x1 + xx * 32, y1 + yy * 32 );
 			//arr = sdWorld.RequireHashPosition( x2 + xx * 32, y2 + yy * 32 ); // Better player-matter container collisions. Worse for player-block cases

@@ -475,10 +475,17 @@ class sdGun extends sdEntity
 			}
 			else
 			if ( this._held_by.is( sdCharacter ) )
-			if ( !this._held_by.ghosting || this._held_by.IsVisible( observer_character ) )
-			if ( !this._held_by.driver_of )
 			{
-				return ( this._held_by.gun_slot === sdGun.classes[ this.class ].slot );
+				// Because in else case B key won't work
+				if ( sdGun.classes[ this.class ].is_build_gun )
+				if ( this._held_by === observer_character )
+				return true;
+		
+				if ( !this._held_by.ghosting || this._held_by.IsVisible( observer_character ) )
+				if ( !this._held_by.driver_of )
+				{
+					return ( this._held_by.gun_slot === sdGun.classes[ this.class ].slot );
+				}
 			}
 		}
 		

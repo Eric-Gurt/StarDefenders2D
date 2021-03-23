@@ -24,6 +24,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdChat from './client/sdChat.js';
 	import sdContextMenu from './client/sdContextMenu.js';
 	import LZW from './server/LZW.js';
+	import sdSnapPack from './server/sdSnapPack.js';
 
 	import sdWorld from './sdWorld.js';
 	import sdSound from './sdSound.js';
@@ -106,6 +107,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	globalThis.sdWorld = sdWorld;
 	globalThis.sdSound = sdSound;
 	globalThis.sdWeather = sdWeather;
+	globalThis.sdShop = sdShop;
 	
 
 let enf_once = true;
@@ -275,7 +277,7 @@ let enf_once = true;
 			if ( !SOCKET_IO_MODE )
 			stuff_arr = JSON.parse( LZW.lzw_decode( stuff_arr ) );
 			
-			let snapshot = stuff_arr[ 0 ];
+			let snapshot = sdSnapPack.Decompress( stuff_arr[ 0 ] );
 			let score = stuff_arr[ 1 ];
 			let leaders = stuff_arr[ 2 ];
 			let sd_events = stuff_arr[ 3 ];
@@ -447,6 +449,8 @@ let enf_once = true;
 		socket.max_update_rate = SOCKET_IO_MODE ? sdWorld.max_update_rate : 16;
 	}
 	
+	let last_sent_snapshot = [];
+	
 	const logic = ()=>
 	{
 		try
@@ -460,21 +464,53 @@ let enf_once = true;
 				if ( sdWorld.my_entity )
 				if ( !sdWorld.my_entity._is_being_removed )
 				{
-					//if ( Math.random() < 0.1 )
-					socket.volatile.emit( 'M', 
-						[ 
-							sdWorld.my_entity.look_x, // 0
-							sdWorld.my_entity.look_y, // 1
-							sdWorld.camera.x, // 2
-							sdWorld.camera.y, // 3
-							sdWorld.camera.scale, // 4
-							sdWorld.my_entity.x, // 5
-							sdWorld.my_entity.y, // 6
-							( sdWorld.my_entity.stands && sdWorld.my_entity._stands_on ) ? sdWorld.my_entity._stands_on._net_id : -1, // 7
-							messages_to_report_arrival // 8
-						] );
-						
-					messages_to_report_arrival = [];
+					let new_snapshot = [ 
+						sdWorld.my_entity.look_x, // 0
+						sdWorld.my_entity.look_y, // 1
+						sdWorld.camera.x, // 2
+						sdWorld.camera.y, // 3
+						sdWorld.camera.scale, // 4
+						sdWorld.my_entity.x, // 5
+						sdWorld.my_entity.y, // 6
+						( sdWorld.my_entity.stands && sdWorld.my_entity._stands_on ) ? sdWorld.my_entity._stands_on._net_id : -1, // 7
+						messages_to_report_arrival // 8
+					];
+					
+					let will_send = ( messages_to_report_arrival.length > 0 ); // Hopefully it will help to prevent high message rate when server can't handle them in time?
+					/*
+					if ( !will_send )
+					{
+						for ( let i = 0; i < new_snapshot.length; i++ )
+						{
+							if ( typeof new_snapshot[ i ] === 'number' )
+							{
+								if ( new_snapshot[ i ] !== last_sent_snapshot[ i ] )
+								{
+									will_send = true;
+									break;
+								}
+							}
+							else
+							{
+								if ( new_snapshot[ i ] === messages_to_report_arrival )
+								{
+								}
+								else
+								{
+									debugger; // How to analyze this client-to-server snapshot element in order to minimize sent data?
+								}
+							}
+						}
+					}*/
+					
+					if ( will_send )
+					{
+						socket.volatile.emit( 'M', new_snapshot );
+
+						last_sent_snapshot = new_snapshot;
+
+						messages_to_report_arrival = [];
+					}
 				}
 			
 				if ( sd_events.length > 0 )
@@ -544,6 +580,23 @@ let enf_once = true;
 			sd_events.push( [ 'K1', code ] );
 		}
 		
+		if ( code === 'KeyB' )
+		{
+			// Equip build tool, suggested by Maxteabag
+			if ( sdWorld.my_entity )
+			if ( sdWorld.my_entity.hea > 0 )
+			if ( !sdWorld.my_entity._is_being_removed )
+			if ( sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_BUILD_TOOL ].slot ] && 
+			     sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_BUILD_TOOL ].slot ].class === sdGun.CLASS_BUILD_TOOL )
+			{
+				sd_events.push( [ 'K1', 'Digit9' ] );
+				sd_events.push( [ 'K0', 'Digit9' ] );
+				
+				sdShop.open = true;
+				//sdRenderer.UpdateCursor();
+			}
+		}
+		else
 		if ( code === 'Escape' || code === 'Space' || ( code === 'KeyR' && sdWorld.mobile ) )
 		{
 			if ( sdWorld.my_entity === null || sdWorld.my_entity.hea <= 0 || sdWorld.my_entity._is_being_removed )
@@ -555,14 +608,6 @@ let enf_once = true;
 				if ( code === 'Space' || code === 'KeyR' )
 				sdWorld.Start( globalThis.GetPlayerSettings(), true );
 			}
-		}
-
-		else if(code === "KeyB"){
-			//Equip build tool
-			sd_events.push( [ 'K1', 'Digit9' ] );
-			sd_events.push( [ 'K0', 'Digit9' ] );
-
-			sdShop.openShop();
 		}
 	};
 	window.onkeypress = ( e )=>
