@@ -3,6 +3,10 @@ import sdRenderer from './sdRenderer.js';
 import sdWorld from '../sdWorld.js';
 import sdShop from './sdShop.js';
 import sdCom from '../entities/sdCom.js';
+import sdEntity from '../entities/sdEntity.js';
+import sdStorage from '../entities/sdStorage.js';
+
+
 
 class sdContextMenu
 {
@@ -26,11 +30,18 @@ class sdContextMenu
 			{
 				sdContextMenu.options = [];
 				
-				sdContextMenu.options.push({ title: 'Extract from location',
+				sdContextMenu.options.push({ title: 'Quit and forget this character',
 					action: ()=>
 					{
 						//globalThis.socket.emit( 'SELF_EXTRACT' );
 						sdWorld.Stop();
+					}
+				});
+				
+				sdContextMenu.options.push({ title: 'Reset respawn point',
+					action: ()=>
+					{
+						globalThis.socket.emit( 'CC_SET_SPAWN', [ -1 ] );
 					}
 				});
 			}
@@ -38,6 +49,25 @@ class sdContextMenu
 			{
 				sdContextMenu.options = [];
 				
+				if ( sdContextMenu.current_target.GetClass() === 'sdStorage' )
+				{
+					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdStorage.access_range ) >= 0 )
+					{
+						let items = sdContextMenu.current_target.GetItems();
+						
+						for ( var i = 0; i < items.length; i++ )
+						{
+							let net_id = items[ i ]._net_id;
+							sdContextMenu.options.push({ title: 'Get ' + sdEntity.GuessEntityName( net_id )/*user ' + net_id*/,
+								action: ()=>
+								{
+									globalThis.socket.emit( 'STORAGE_GET', [ sdContextMenu.current_target._net_id, net_id ] );
+								}
+							});
+						}
+					}
+				}
+				else
 				if ( sdContextMenu.current_target.GetClass() === 'sdCharacter' )
 				{
 					if ( sdContextMenu.current_target.hea > 0 )
@@ -45,22 +75,51 @@ class sdContextMenu
 					}
 				}
 				else
+				if ( sdContextMenu.current_target.GetClass() === 'sdCommandCentre' )
+				{
+					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdCom.action_range_command_centre ) >= 0 )
+					{
+						sdContextMenu.options.push({ title: 'Set as respawn point',
+							action: ()=> { globalThis.socket.emit( 'CC_SET_SPAWN', [ sdContextMenu.current_target._net_id ] ); }
+						});
+					}
+				
+					sdContextMenu.options.push({ title: 'Reset respawn point',
+						action: ()=>
+						{
+							globalThis.socket.emit( 'CC_SET_SPAWN', [ -1 ] );
+						}
+					});
+				}
+				else
 				if ( sdContextMenu.current_target.GetClass() === 'sdCom' )
 				{
 					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdCom.action_range ) >= 0 )
 					{
 						if ( sdContextMenu.current_target.subscribers.indexOf( sdWorld.my_entity._net_id ) === -1 )
-						sdContextMenu.options.push({ title: 'Subscribe to network',
-							action: ()=>
-							{
-								globalThis.socket.emit( 'COM_SUB', sdContextMenu.current_target._net_id );
-							}
+						sdContextMenu.options.push({ title: 'Subscribe myself to network',
+							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, sdWorld.my_entity._net_id ] ); }
+						});
+					
+						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdCharacter' ) === -1 )
+						sdContextMenu.options.push({ title: 'Subscribe all players',
+							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdCharacter' ] ); }
+						});
+					
+						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdCrystal' ) === -1 )
+						sdContextMenu.options.push({ title: 'Subscribe all crystals',
+							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdCrystal' ] ); }
+						});
+					
+						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdCube' ) === -1 )
+						sdContextMenu.options.push({ title: 'Subscribe all Cubes',
+							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdCube' ] ); }
 						});
 						
 						for ( var i = 0; i < sdContextMenu.current_target.subscribers.length; i++ )
 						{
 							let net_id = sdContextMenu.current_target.subscribers[ i ];
-							sdContextMenu.options.push({ title: 'Kick user ' + net_id,
+							sdContextMenu.options.push({ title: 'Kick ' + sdEntity.GuessEntityName( net_id )/*user ' + net_id*/,
 								action: ()=>
 								{
 									globalThis.socket.emit( 'COM_KICK', [ sdContextMenu.current_target._net_id, net_id ] );
@@ -127,10 +186,13 @@ class sdContextMenu
 		{
 			ctx.translate( sdContextMenu.x, sdContextMenu.y );
 
-			let width = 180;
+			//let width = 180;
+			let width = 260;
 
-			ctx.fillStyle = 'rgba(0,0,0,0.7)';
+			ctx.fillStyle = 'rgb(0,0,0)';
+			ctx.globalAlpha = 0.7;
 			ctx.fillRect( 0, 0, width, ( sdContextMenu.options.length + 1 ) * ( 30 ) );
+			ctx.globalAlpha = 1;
 
 			sdContextMenu.potential_option = null;
 			
@@ -156,8 +218,10 @@ class sdContextMenu
 					{
 						sdContextMenu.potential_option = sdContextMenu.options[ i ];
 						
-						ctx.fillStyle = 'rgba(255,255,0,0.3)';
+						ctx.fillStyle = 'rgb(255,255,0)';
+						ctx.globalAlpha = 0.3;
 						ctx.fillRect( 1, ( i + 1 ) * 30 + 1, width-2, 28 );
+						ctx.globalAlpha = 1;
 					}
 				}
 				

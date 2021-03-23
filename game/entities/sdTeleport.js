@@ -3,6 +3,8 @@ import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
+import sdCom from './sdCom.js';
+
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -16,12 +18,21 @@ class sdTeleport extends sdEntity
 		
 		sdTeleport.connection_range = 400;
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -16; }
 	get hitbox_x2() { return 16; }
 	get hitbox_y1() { return -16; }
 	get hitbox_y2() { return 16; }
+	
+	DrawIn3D()
+	{ return FakeCanvasContext.DRAW_IN_3D_BOX; }
+	
+	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+	{ 
+		if ( layer === 0 )
+		return [ 0.01, 0.01, -0.01 ];
+	}
 	
 	get hard_collision()
 	{ return false; }
@@ -37,6 +48,8 @@ class sdTeleport extends sdEntity
 		if ( this._hea > 0 )
 		{
 			this._hea -= dmg;
+			
+			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 			
 			this.SetDelay( 90 );
 			
@@ -77,16 +90,28 @@ class sdTeleport extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		let can_hibernateA = false;
+		let can_hibernateB = false;
+		
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
 		{
 			if ( this._hea < this._hmax )
 			this._hea = Math.min( this._hea + GSPEED, this._hmax );
+			else
+			can_hibernateA = true;
 		}
 		
 		if ( this.delay > 0 )
 		this.SetDelay( this.delay - GSPEED );
+		else
+		can_hibernateB = true;
+	
+		if ( can_hibernateA && can_hibernateB )
+		{
+			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+		}
 	}
 	get title()
 	{
@@ -113,9 +138,10 @@ class sdTeleport extends sdEntity
 		ctx.lineDashOffset = ( sdWorld.time % 1000 ) / 250 * 2;
 
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
-		if ( sdEntity.entities[ i ].GetClass() === 'sdTeleport' )
-		if ( sdWorld.Dist2D( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this.x, this.y ) < sdTeleport.connection_range )
+		if ( ( sdEntity.entities[ i ].GetClass() === 'sdCom' && sdWorld.Dist2D( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this.x, this.y ) < sdCom.retransmit_range ) || 
+			 ( sdEntity.entities[ i ].GetClass() === 'sdTeleport' && sdWorld.Dist2D( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this.x, this.y ) < sdTeleport.connection_range ) )
 		if ( sdWorld.CheckLineOfSight( this.x, this.y, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
+		if ( sdWorld.CheckLineOfSight( this.x, this.y, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, null, sdCom.com_visibility_unignored_classes ) )
 		{
 			ctx.beginPath();
 			ctx.moveTo( sdEntity.entities[ i ].x - this.x, sdEntity.entities[ i ].y - this.y );
@@ -132,17 +158,18 @@ class sdTeleport extends sdEntity
 	}
 	onMovementInRange( from_entity )
 	{
+		if ( sdWorld.is_server )
 		if ( this.delay === 0 )
 		if ( !from_entity.is_static )
 		if ( from_entity.GetClass() !== 'sdEffect' )
 		if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null )
-		{	
-			let coms_near = sdWorld.GetComsNear( this.x, this.y );
+		{
+			let coms_near = sdWorld.GetComsNear( this.x, this.y, null, null, true );
 
 			let allowed = ( coms_near.length === 0 );
 
 			for ( let i = 0; i < coms_near.length; i++ )
-			if ( coms_near[ i ].subscribers.indexOf( from_entity._net_id ) !== -1 )
+			if ( coms_near[ i ].subscribers.indexOf( from_entity._net_id ) !== -1 || coms_near[ i ].subscribers.indexOf( from_entity.GetClass() ) !== -1 )
 			{
 				allowed = true;
 				break;
@@ -178,11 +205,19 @@ class sdTeleport extends sdEntity
 
 				if ( best_tele )
 				{
+					this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					best_tele.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					
 					this.SetDelay( 90 );
 					best_tele.SetDelay( 90 );
 
 					from_entity.x += best_tele.x - this.x;
 					from_entity.y += best_tele.y - this.y;
+					
+					if ( from_entity.GetClass() === 'sdCharacter' )
+					{
+						from_entity.ApplyServerSidePositionAndVelocity( true, 0, 0 );
+					}
 
 					sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 					sdSound.PlaySound({ name:'teleport', x:best_tele.x, y:best_tele.y, volume:0.5 });
@@ -190,6 +225,8 @@ class sdTeleport extends sdEntity
 			}
 			else
 			{
+				this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					
 				// Unauthorized access
 				this.SetDelay( 90 );
 			}

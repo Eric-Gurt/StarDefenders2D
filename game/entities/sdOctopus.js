@@ -5,7 +5,7 @@ import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdGun from './sdGun.js';
 import sdWater from './sdWater.js';
-
+import sdCom from './sdCom.js';
 import sdBlock from './sdBlock.js';
 
 class sdOctopus extends sdEntity
@@ -28,7 +28,7 @@ class sdOctopus extends sdEntity
 		
 		sdOctopus.max_seek_range = 1000;
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	// 8 as max dimension so it can fit into one block
 	get hitbox_x1() { return -8; }
@@ -46,7 +46,7 @@ class sdOctopus extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 3000;
+		this._hmax = 2000;
 		this._hea = this._hmax;
 		
 		this.death_anim = 0;
@@ -63,11 +63,15 @@ class sdOctopus extends sdEntity
 		
 		this.side = 1;
 		
+		//this._consumed_matter = [];
+		this._consumed_guns = [];
+		
 		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
-		if ( !character.ghosting )
+		if ( this._hea > 0 )
+		if ( character.IsTargetable() && character.IsVisible() )
 		if ( character.hea > 0 )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
@@ -108,26 +112,48 @@ class sdOctopus extends sdEntity
 			sdSound.PlaySound({ name:'octopus_death', x:this.x, y:this.y, volume: 0.5 });
 
 			if ( initiator )
-			if ( initiator._socket )
-			initiator._socket.score += 10;
+			if ( typeof initiator._score !== 'undefined' )
+			initiator._score += 20;
+	
+			/*while ( this._consumed_matter.length > 0 )
+			{
+				sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 1, this._consumed_matter[ 0 ].extra / sdWorld.crystal_shard_value ); // Probably error here, shards do not appear to be pickable, possibly due to NaN here
+				
+				this._consumed_matter.shift();
+			}*/
+			
+			while ( this._consumed_guns.length > 0 )
+			{
+				let ent = new sdGun({ class:this._consumed_guns[ 0 ], x: this.x, y:this.y });
+				ent.sx = this.sx + Math.random() * 8 - 4;
+				ent.sy = this.sy + Math.random() * 8 - 4;
+				ent.ttl = sdGun.disowned_guns_ttl;
+				sdEntity.entities.push( ent );
+				
+				this._consumed_guns.shift();
+			}
 		}
 		
 		if ( this._hea < -this._hmax / 80 * 100 )
 		this.remove();
 	}
+	get mass() { return 300; }
 	Impulse( x, y )
 	{
-		this.sx += x * 0.01;
-		this.sy += y * 0.01;
+		this.sx += x / this.mass;
+		this.sy += y / this.mass;
+		
+		//this.sx += x * 0.01;
+		//this.sy += y * 0.01;
 	}
-	Impact( vel ) // fall damage basically
+	/*Impact( vel ) // fall damage basically
 	{
 		// less fall damage
 		if ( vel > 10 )
 		{
 			this.Damage( ( vel - 4 ) * 15 );
 		}
-	}
+	}*/
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
@@ -143,7 +169,7 @@ class sdOctopus extends sdEntity
 		else
 		if ( this._current_target )
 		{
-			if ( this._current_target._is_being_removed || this._current_target.ghosting || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdOctopus.max_seek_range + 32 )
+			if ( this._current_target._is_being_removed || !this._current_target.IsTargetable() || !this._current_target.IsVisible() || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdOctopus.max_seek_range + 32 )
 			this._current_target = null;
 			else
 			{
@@ -210,22 +236,59 @@ class sdOctopus extends sdEntity
 			{
 				this._last_bite = sdWorld.time; // So it is not so much calc intensive
 						
-				let nears = sdWorld.GetAnythingNear( this.x, this.y, 170 );
+				//let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 170 );
+				let nears_raw = this.GetAnythingNearCache( this.x, this.y, 170 );
 				let from_entity;
 				
-				sdWorld.shuffleArray( nears );
-
+				let nears = [];
+				for ( var i = 0; i < nears_raw.length; i++ )
+				{
+					from_entity = nears_raw[ i ];
+					
+					if ( ( from_entity.GetClass() === 'sdCharacter' && from_entity.IsTargetable() && from_entity.IsVisible() ) ||
+						 ( from_entity.GetClass() === 'sdBlock' && !from_entity._natural ) ||
+						 from_entity.GetClass() === 'sdCom' ||
+						 from_entity.GetClass() === 'sdCrystal' ||
+						 from_entity.GetClass() === 'sdTurret' ||
+						 from_entity.GetClass() === 'sdDoor' ||
+						 from_entity.GetClass() === 'sdStorage' ||
+						 from_entity.GetClass() === 'sdHover' ||
+						 from_entity.GetClass() === 'sdAntigravity' ||
+						 from_entity.GetClass() === 'sdMatterContainer' ||
+						 ( from_entity.GetClass() === 'sdGun' && from_entity.class !== sdGun.CLASS_BUILD_TOOL && from_entity.class !== sdGun.CLASS_MEDIKIT && ( from_entity._held_by === null || from_entity._held_by.gun_slot === sdGun.classes[ from_entity.class ].slot ) ) || // Yes, held guns too, but only currently held guns. Except for build tool and medikit
+						 from_entity.GetClass() === 'sdTeleport' ||
+						 from_entity.GetClass() === 'sdVirus' ||
+						 ( typeof from_entity.hea !== 'undefined' && from_entity.hea <= 0 ) ||
+						 ( typeof from_entity._hea !== 'undefined' && from_entity._hea <= 0 ) )
+					{
+						let rank = Math.random() * 0.1;
+						
+						if ( from_entity._held_by )
+						rank += 2;
+						
+						if ( from_entity.GetClass() === 'sdCharacter' && from_entity.hea > 0 )
+						rank += 1;
+						
+						nears.push( { ent: from_entity, rank: rank } );
+					}
+				}
+				
+				nears.sort((a,b)=>{
+					return b.rank - a.rank;
+				});
+				
+				//sdWorld.shuffleArray( nears );
 
 				//let hits_left = 4;
 
 				for ( var i = 0; i < nears.length; i++ )
 				{
-					from_entity = nears[ i ];
+					from_entity = nears[ i ].ent;
 					
 					let xx = from_entity.x + ( from_entity.hitbox_x1 + from_entity.hitbox_x2 ) / 2;
 					let yy = from_entity.y + ( from_entity.hitbox_y1 + from_entity.hitbox_y2 ) / 2;
 
-					if ( from_entity.GetClass() === 'sdCharacter' ||
+					/*if ( from_entity.GetClass() === 'sdCharacter' ||
 						 ( from_entity.GetClass() === 'sdBlock' && !from_entity._natural ) ||
 						 from_entity.GetClass() === 'sdCom' ||
 						 from_entity.GetClass() === 'sdCrystal' ||
@@ -234,11 +297,24 @@ class sdOctopus extends sdEntity
 						 from_entity.GetClass() === 'sdMatterContainer' ||
 						 ( from_entity.GetClass() === 'sdGun' && from_entity.class !== sdGun.CLASS_BUILD_TOOL && from_entity.class !== sdGun.CLASS_MEDIKIT && ( from_entity._held_by === null || from_entity._held_by.gun_slot === sdGun.classes[ from_entity.class ].slot ) ) || // Yes, held guns too, but only currently held guns. Except for build tool and medikit
 						 from_entity.GetClass() === 'sdTeleport' ||
-						 from_entity.GetClass() === 'sdVirus' )
-					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, [ 'sdOctopus' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
+						 from_entity.GetClass() === 'sdVirus' ||
+						 ( typeof from_entity.hea !== 'undefined' && from_entity.hea <= 0 ) ||
+						 ( typeof from_entity._hea !== 'undefined' && from_entity._hea <= 0 ) )*/
+					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
 					{
-						from_entity.Damage( 50 );
-
+						from_entity.Damage( 50, this );
+						
+						if ( from_entity._is_being_removed )
+						if ( from_entity.GetClass() === 'sdGun' )
+						{
+							if ( from_entity.class === sdGun.CLASS_CRYSTAL_SHARD )
+							{
+								//this._consumed_matter.push( from_entity.extra );
+							}
+							else
+							this._consumed_guns.push( from_entity.class );
+						}
+						
 						this._hea = Math.min( this._hmax, this._hea + 25 );
 
 						sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
@@ -307,7 +383,8 @@ class sdOctopus extends sdEntity
 				}
 			}
 			
-			if ( Math.abs( this.sx ) < 2 )
+			//if ( Math.abs( this.sx ) < 2 )
+			if ( Math.abs( this.sx ) < 1 )
 			ctx.drawImageFilterCache( ( sdWorld.time % 5000 < 200 ) ? sdOctopus.img_octopus_idle2 : ( sdWorld.time % 5000 < 400 ) ? sdOctopus.img_octopus_idle3 : sdOctopus.img_octopus_idle1, - 16, - 16, 32,32 );
 			else
 			ctx.drawImageFilterCache( sdOctopus.img_octopus_jump, - 16, - 16, 32,32 );
@@ -350,7 +427,7 @@ class sdOctopus extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		return 500; // Hack
+		return 0; // Hack
 	}
 }
 //sdOctopus.init_class();

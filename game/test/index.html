@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html>
+    <head>
+	<title></title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+	<script>
+	    let snapshot;
+	    {
+		// Fast camera movement case
+		snapshot = `[{"_net_id":7393580,"_class":"sdBlock","x":2160,"y":64,"width":16,"height":16,"material":1,"filter":"hue-rotate(135deg)","destruction_frame":0},{"_net_id":7587576,"_class":"sdBG","x":2144,"y":80,"width":16,"height":16,"material":1,"filter":"hue-rotate(134deg) brightness(0.5)"},{"_net_id":7587582,"_class":"sdBG","x":2160,"y":80,"width":16,"height":16,"material":1,"filter":"hue-rotate(135deg) brightness(0.5)"},{"_net_id":7587585,"_class":"sdBG","x":2144,"y":64,"width":16,"height":16,"material":1,"filter":"hue-rotate(134deg) brightness(0.5)"},{"_net_id":7597210,"_class":"sdBG","x":2144,"y":48,"width":16,"height":16,"material":1,"filter":"hue-rotate(134deg) brightness(0.5)"},{"_net_id":7808443,"_class":"sdBG","x":2160,"y":48,"width":16,"height":16,"material":1,"filter":"hue-rotate(135deg) brightness(0.5)"},{"_net_id":7587568,"_class":"sdBG","x":2144,"y":96,"width":16,"height":16,"material":1,"filter":"hue-rotate(134deg) brightness(0.5)"},{"_net_id":7587573,"_class":"sdBG","x":2144,"y":112,"width":16,"height":16,"material":1,"filter":"hue-rotate(134deg) brightness(0.5)"},{"_net_id":7587577,"_class":"sdBG","x":2160,"y":96,"width":16,"height":16,"material":1,"filter":"hue-rotate(135deg) brightness(0.5)"},{"_net_id":7587701,"_class":"sdBG","x":2160,"y":112,"width":16,"height":16,"material":1,"filter":"hue-rotate(135deg) brightness(0.5)"},{"_net_id":7587589,"_class":"sdBG","x":2144,"y":128,"width":16,"height":16,"material":1,"filter":"hue-rotate(134deg) brightness(0.5)"},{"_net_id":7595597,"_class":"sdBG","x":2160,"y":128,"width":16,"height":16,"material":1,"filter":"hue-rotate(135deg) brightness(0.5)"},{"_net_id":7596754,"_class":"sdBG","x":2144,"y":144,"width":16,"height":16,"material":1,"filter":"hue-rotate(134deg) brightness(0.5)"},{"_net_id":7638900,"_class":"sdBG","x":2160,"y":144,"width":16,"height":16,"material":1,"filter":"hue-rotate(135deg) brightness(0.5)"},{"_net_id":7393586,"_class":"sdBlock","x":2160,"y":160,"width":16,"height":16,"material":1,"filter":"hue-rotate(135deg)","destruction_frame":0},{"_net_id":7595305,"_class":"sdBG","x":2160,"y":176,"width":16,"height":16,"material":1,"filter":"hue-rotate(135deg)brightness(0.75) saturate(0.75) brightness(0.5)"},{"_net_id":7599525,"_class":"sdBG","x":2144,"y":176,"width":16,"height":16,"material":1,"filter":"hue-rotate(134deg)brightness(0.75) saturate(0.75) brightness(0.5)"},{"_net_id":7679656,"_class":"sdBG","x":2144,"y":160,"width":16,"height":16,"material":1,"filter":"hue-rotate(134deg) brightness(0.5)"},{"_net_id":7594599,"_class":"sdBG","x":2160,"y":208,"width":16,"height":16,"material":1,"filter":"hue-rotate(135deg)brightness(0.75) saturate(0.75) brightness(0.5)"},{"_net_id":7595261,"_class":"sdBG","x":2144,"y":208,"width":16,"height":16,"material":1,"filter":"hue-rotate(134deg)brightness(0.75) saturate(0.75) brightness(0.5)"},{"_net_id":7595321,"_class":"sdBG","x":2160,"y":192,"width":16,"height":16,"material":1,"filter":"hue-rotate(135deg)brightness(0.75) saturate(0.75) brightness(0.5)"},{"_net_id":7599389,"_class":"sdBG","x":2144,"y":192,"width":16,"height":16,"material":1,"filter":"hue-rotate(134deg)brightness(0.75) saturate(0.75) brightness(0.5)"},{"_net_id":7594389,"_class":"sdBG","x":2160,"y":224,"width":16,"height":16,"material":1,"filter":"hue-rotate(135deg)brightness(0.75) saturate(0.75) brightness(0.5)"},{"_net_id":7594479,"_class":"sdBG","x":2160,"y":240,"width":16,"height":16,"material":1,"filter":"hue-rotate(135deg)brightness(0.6000000000000001) saturate(0.6000000000000001) brightness(0.5)"},{"_net_id":7594589,"_class":"sdBG","x":2144,"y":224,"width":16,"height":16,"material":1,"filter":"hue-rotate(134deg)brightness(0.75) saturate(0.75) brightness(0.5)"},{"_net_id":7595358,"_class":"sdBG","x":2144,"y":240,"width":16,"height":16,"material":1,"filter":"hue-rotate(134deg)brightness(0.6000000000000001) saturate(0.6000000000000001) brightness(0.5)"},{"_net_id":7594480,"_class":"sdBG","x":2160,"y":256,"width":16,"height":16,"material":1,"filter":"hue-rotate(135deg)brightness(0.6000000000000001) saturate(0.6000000000000001) brightness(0.5)"},{"_net_id":7594553,"_class":"sdBG","x":2144,"y":256,"width":16,"height":16,"material":1,"filter":"hue-rotate(134deg)brightness(0.6000000000000001) saturate(0.6000000000000001) brightness(0.5)"},{"_net_id":7595361,"_class":"sdBG","x":2160,"y":272,"width":16,"height":16,"material":1,"filter":"hue-rotate(135deg)brightness(0.6000000000000001) saturate(0.6000000000000001) brightness(0.5)"},{"_net_id":7721535,"_class":"sdBG","x":2144,"y":272,"width":16,"height":16,"material":1,"filter":"hue-rotate(134deg)brightness(0.6000000000000001) saturate(0.6000000000000001) brightness(0.5)"},{"_net_id":7595662,"_class":"sdBG","x":2160,"y":288,"width":16,"height":16,"material":1,"filter":"hue-rotate(135deg)brightness(0.6000000000000001) saturate(0.6000000000000001) brightness(0.5)"},{"_net_id":7595827,"_class":"sdBG","x":2160,"y":304,"width":16,"height":16,"material":1,"filter":"hue-rotate(135deg)brightness(0.5) saturate(0.5) brightness(0.5)"},{"_net_id":7594090,"_class":"sdCrystal","x":2171,"y":319,"sx":0,"sy":0,"matter_max":160,"matter":160},{"_net_id":7721042,"_class":"sdBG","x":2144,"y":304,"width":16,"height":16,"material":1,"filter":"hue-rotate(134deg)brightness(0.5) saturate(0.5) brightness(0.5)"},{"_net_id":7804029,"_class":"sdCrystal","x":2158,"y":315,"sx":0,"sy":0,"matter_max":40,"matter":40},{"_net_id":7804030,"_class":"sdBG","x":2144,"y":288,"width":16,"height":16,"material":1,"filter":"hue-rotate(134deg)brightness(0.6000000000000001) saturate(0.6000000000000001) brightness(0.5)"},{"_net_id":7700183,"_class":"sdCrystal","x":2158,"y":303,"sx":0,"sy":0,"matter_max":40,"matter":40},{"_net_id":7385681,"_class":"sdBlock","x":2144,"y":320,"width":16,"height":16,"material":1,"filter":"hue-rotate(134deg)brightness(0.5) saturate(0.5)","destruction_frame":0},{"_net_id":7385682,"_class":"sdBlock","x":2144,"y":336,"width":16,"height":16,"material":1,"filter":"hue-rotate(134deg)brightness(0.5) saturate(0.5)","destruction_frame":0},{"_net_id":7393597,"_class":"sdBlock","x":2160,"y":336,"width":16,"height":16,"material":1,"filter":"hue-rotate(135deg)brightness(0.5) saturate(0.5)","destruction_frame":0},{"_class":"sdBG","_net_id":7382045,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7382047,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7382049,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7382094,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7382096,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7382098,"_is_being_removed":true,"_broken":false},{"_class":"sdWater","_net_id":7382097,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382051,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382052,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382101,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7703182,"_is_being_removed":true,"_broken":false},{"_class":"sdWater","_net_id":7381718,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382053,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382054,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382102,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382103,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382055,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382056,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382104,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382105,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382057,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382058,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382106,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382107,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382059,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382108,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382109,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7858663,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7576189,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7576234,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7858628,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7858652,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7576184,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7576217,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7576228,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7576261,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7580832,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7580850,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7687847,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7687866,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382068,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382117,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7687845,"_is_being_removed":true,"_broken":false},{"_class":"sdBG","_net_id":7858662,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382069,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382070,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382118,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382119,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382071,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382072,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382120,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382121,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382073,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382074,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382122,"_is_being_removed":true,"_broken":false},{"_class":"sdBlock","_net_id":7382123,"_is_being_removed":true,"_broken":false},{"_net_id":0,"_class":"sdWeather","x":-3120,"y":-2496,"raining_intensity":100,"day_time":31152,"x1":-3120,"y1":-2496,"x2":3280,"y2":704},{"_net_id":7567410,"_class":"sdStorage","x":1599,"y":394,"sx":0,"sy":0,"item0":{"_net_id":7859034,"_class":"sdGun"},"item1":{"_net_id":7567388,"_class":"sdGun"},"item2":{"_net_id":7584435,"_class":"sdGun"},"item3":{"_net_id":7584436,"_class":"sdGun"},"item4":{"_net_id":7584432,"_class":"sdGun"},"item5":{"_net_id":7593489,"_class":"sdGun"},"filter":"hue-rotate(205deg) saturate(10)"},{"_net_id":7946764,"_class":"sdCube","x":1607,"y":60,"sx":0.72,"sy":-0.09,"regen_timeout":0,"is_huge":false,"hea":200,"attack_anim":0,"matter_max":160,"matter":160},{"_net_id":7567410,"_class":"sdStorage","x":1599,"y":394,"sx":0,"sy":0,"item0":{"_net_id":7859034,"_class":"sdGun"},"item1":{"_net_id":7567388,"_class":"sdGun"},"item2":{"_net_id":7584435,"_class":"sdGun"},"item3":{"_net_id":7584436,"_class":"sdGun"},"item4":{"_net_id":7584432,"_class":"sdGun"},"item5":{"_net_id":7593489,"_class":"sdGun"},"filter":"hue-rotate(205deg) saturate(10)"},{"_net_id":7689538,"_class":"sdCube","x":1659,"y":127,"sx":-0.73,"sy":-0.05,"regen_timeout":0,"is_huge":false,"hea":200,"attack_anim":0,"matter_max":160,"matter":160},{"_net_id":7689538,"_class":"sdCube","x":1659,"y":127,"sx":-0.73,"sy":-0.05,"regen_timeout":0,"is_huge":false,"hea":200,"attack_anim":0,"matter_max":160,"matter":160},{"_net_id":7689538,"_class":"sdCube","x":1659,"y":127,"sx":-0.73,"sy":-0.05,"regen_timeout":0,"is_huge":false,"hea":200,"attack_anim":0,"matter_max":160,"matter":160},{"_net_id":7689538,"_class":"sdCube","x":1659,"y":127,"sx":-0.73,"sy":-0.05,"regen_timeout":0,"is_huge":false,"hea":200,"attack_anim":0,"matter_max":160,"matter":160},{"_net_id":7689536,"_class":"sdCube","x":1696,"y":300,"sx":-0.45,"sy":0.06,"regen_timeout":0,"is_huge":false,"hea":200,"attack_anim":0,"matter_max":160,"matter":160},{"_net_id":7689536,"_class":"sdCube","x":1696,"y":300,"sx":-0.45,"sy":0.06,"regen_timeout":0,"is_huge":false,"hea":200,"attack_anim":0,"matter_max":160,"matter":160},{"_net_id":7679008,"_class":"sdCube","x":1741,"y":187,"sx":-0.61,"sy":-0.1,"regen_timeout":0,"is_huge":false,"hea":200,"attack_anim":0,"matter_max":160,"matter":160},{"_net_id":7679008,"_class":"sdCube","x":1741,"y":187,"sx":-0.61,"sy":-0.1,"regen_timeout":0,"is_huge":false,"hea":200,"attack_anim":0,"matter_max":160,"matter":160},{"_net_id":7943438,"_class":"sdVirus","x":1802,"y":425,"sx":0,"sy":0.86,"hmax":80,"death_anim":0,"side":1,"filter":"hue-rotate(155deg)"},{"_net_id":7950732,"_class":"sdCharacter","x":1846,"y":238,"lag":false,"helmet":1,"driver_of":null,"title":"UnrealCrash","sx":0,"sy":0,"stands":true,"hea":130,"hmax":130,"fire_anim":0,"reload_anim":0,"pain_anim":0,"death_anim":0,"act_x":0,"act_y":0,"look_x":1912,"look_y":348,"tilt":0,"tilt_speed":0,"gun_slot":2,"hook_x":0,"hook_y":0,"flying":false,"ghosting":false,"sd_filter":{"0":{"0":{"0":[0,0,0],"128":[55,1,1]}},"128":{"0":{"0":[0,0,0],"128":[41,0,0]},"128":{"0":[0,0,0],"128":[9,1,1]}},"192":{"192":{"192":[36,0,0]}},"255":{"0":{"0":[111,255,92],"255":[0,0,0]}}},"matter":50,"matter_max":50,"stim_ef":0},{"_net_id":7956179,"_class":"sdGun","x":1846,"y":238,"sx":0,"sy":0,"tilt":0,"dangerous":false,"reload_time_left":0,"muzzle":0,"held_by_net_id":7950732,"held_by_class":"sdCharacter","ammo_left":30,"ttl":-1,"extra":0,"class":1},{"_net_id":7634285,"_class":"sdStorage","x":1838,"y":354,"sx":0,"sy":0,"item0":{"_net_id":7633326,"_class":"sdGun"},"item1":{"_net_id":7857244,"_class":"sdGun"},"item2":{"_net_id":7871058,"_class":"sdGun"},"item3":{"_net_id":7896732,"_class":"sdGun"},"item4":{"_net_id":7896733,"_class":"sdGun"},"item5":{"_net_id":7896736,"_class":"sdGun"},"filter":"hue-rotate(205deg) saturate(10)"},{"_net_id":7634285,"_class":"sdStorage","x":1838,"y":354,"sx":0,"sy":0,"item0":{"_net_id":7633326,"_class":"sdGun"},"item1":{"_net_id":7857244,"_class":"sdGun"},"item2":{"_net_id":7871058,"_class":"sdGun"},"item3":{"_net_id":7896732,"_class":"sdGun"},"item4":{"_net_id":7896733,"_class":"sdGun"},"item5":{"_net_id":7896736,"_class":"sdGun"},"filter":"hue-rotate(205deg) saturate(10)"}]`;
+	
+		// Idle case
+		//snapshot = `[{"_net_id":0,"_class":"sdWeather","x":-3120,"y":-2496,"raining_intensity":0,"day_time":15406,"x1":-3120,"y1":-2496,"x2":3280,"y2":704},{"_net_id":7634285,"_class":"sdStorage","x":1838,"y":354,"sx":0,"sy":0,"item0":{"_net_id":7633326,"_class":"sdGun"},"item1":{"_net_id":7857244,"_class":"sdGun"},"item2":{"_net_id":7871058,"_class":"sdGun"},"item3":{"_net_id":7896732,"_class":"sdGun"},"item4":{"_net_id":7896733,"_class":"sdGun"},"item5":{"_net_id":7896736,"_class":"sdGun"},"filter":"hue-rotate(205deg) saturate(10)"},{"_net_id":7634285,"_class":"sdStorage","x":1838,"y":354,"sx":0,"sy":0,"item0":{"_net_id":7633326,"_class":"sdGun"},"item1":{"_net_id":7857244,"_class":"sdGun"},"item2":{"_net_id":7871058,"_class":"sdGun"},"item3":{"_net_id":7896732,"_class":"sdGun"},"item4":{"_net_id":7896733,"_class":"sdGun"},"item5":{"_net_id":7896736,"_class":"sdGun"},"filter":"hue-rotate(205deg) saturate(10)"},{"_net_id":7950732,"_class":"sdCharacter","x":1876,"y":244,"lag":false,"helmet":1,"driver_of":null,"title":"UnrealCrash","sx":0,"sy":0,"stands":true,"hea":130,"hmax":130,"fire_anim":0,"reload_anim":0,"pain_anim":0,"death_anim":0,"act_x":0,"act_y":0,"look_x":2262,"look_y":419,"tilt":0,"tilt_speed":0,"gun_slot":2,"hook_x":0,"hook_y":0,"flying":false,"ghosting":false,"sd_filter":{"0":{"0":{"0":[0,0,0],"128":[55,1,1]}},"128":{"0":{"0":[0,0,0],"128":[41,0,0]},"128":{"0":[0,0,0],"128":[9,1,1]}},"192":{"192":{"192":[36,0,0]}},"255":{"0":{"0":[111,255,92],"255":[0,0,0]}}},"matter":50,"matter_max":50,"stim_ef":0},{"_net_id":7956179,"_class":"sdGun","x":1876,"y":244,"sx":0,"sy":0,"tilt":0,"dangerous":false,"reload_time_left":0,"muzzle":0,"held_by_net_id":7950732,"held_by_class":"sdCharacter","ammo_left":30,"ttl":-1,"extra":0,"class":1},{"_net_id":7950732,"_class":"sdCharacter","x":1876,"y":244,"lag":false,"helmet":1,"driver_of":null,"title":"UnrealCrash","sx":0,"sy":0,"stands":true,"hea":130,"hmax":130,"fire_anim":0,"reload_anim":0,"pain_anim":0,"death_anim":0,"act_x":0,"act_y":0,"look_x":2262,"look_y":419,"tilt":0,"tilt_speed":0,"gun_slot":2,"hook_x":0,"hook_y":0,"flying":false,"ghosting":false,"sd_filter":{"0":{"0":{"0":[0,0,0],"128":[55,1,1]}},"128":{"0":{"0":[0,0,0],"128":[41,0,0]},"128":{"0":[0,0,0],"128":[9,1,1]}},"192":{"192":{"192":[36,0,0]}},"255":{"0":{"0":[111,255,92],"255":[0,0,0]}}},"matter":50,"matter_max":50,"stim_ef":0},{"_net_id":7629783,"_class":"sdStorage","x":2232,"y":298,"sx":0,"sy":0,"item0":null,"item1":{"_net_id":7628459,"_class":"sdGun"},"item2":{"_net_id":7784806,"_class":"sdGun"},"item3":null,"item4":null,"item5":null,"filter":"hue-rotate(205deg) saturate(10)"},{"_net_id":7549687,"_class":"sdStorage","x":2319,"y":330,"sx":0,"sy":0,"item0":{"_net_id":7720806,"_class":"sdGun"},"item1":{"_net_id":7722956,"_class":"sdGun"},"item2":{"_net_id":7897948,"_class":"sdGun"},"item3":{"_net_id":7897943,"_class":"sdGun"},"item4":{"_net_id":7897942,"_class":"sdGun"},"item5":{"_net_id":7897946,"_class":"sdGun"},"filter":"hue-rotate(205deg) saturate(10)"},{"_net_id":7629971,"_class":"sdStorage","x":2376,"y":234,"sx":0,"sy":0,"item0":{"_net_id":7924789,"_class":"sdGun"},"item1":{"_net_id":7932054,"_class":"sdGun"},"item2":null,"item3":null,"item4":null,"item5":null,"filter":"hue-rotate(205deg) saturate(10)"}]`;
+	    }
+	    
+	    //let chet = true;
+	    function Compact( data_str )
+	    {
+		let unique_objects = new WeakSet();
+	    
+		function numDigits( x ) 
+		{
+		    //if ( chet = !chet )
+		    return (Math.log10((x ^ (x >> 31)) - (x >> 31)) | 0) + 1;
+		    //else
+		    //return Math.max(Math.floor(Math.log10(Math.abs(x))), 0) + 1;
+		}
+
+		// 2.17 - 2.4 ms
+		function Iteration( object_array, inception=0 )
+		{
+		    if ( object_array.length <= 1 )
+		    {
+			return object_array;
+		    }
+		    
+		    let max_props = 0;
+		    
+		    // Try to cancel Iteration (at least complex compression part, will still do property packing)
+		    prop_counter:
+		    for ( let i = 0; i < object_array.length; i++ )
+		    {
+			let props = 0;
+			for ( let p in object_array[ i ] )
+			{
+			    props++;
+			    if ( props > 1 )
+			    {
+				max_props = props;
+				break prop_counter;
+			    }
+			}
+		    }
+		    
+		    let best_key_value_hits = 0;
+		    
+		    let key_value_compression_candidates;
+
+		    let best_key = null;
+		    let best_value = null;
+
+		    if ( max_props > 1 )
+		    {
+			key_value_compression_candidates = new Map(); // Object of keys where values are Maps of values as keys and values are number of same values for same keys
+
+			for ( let i = 0; i < object_array.length; i++ )
+			{
+			    let ent = object_array[ i ];
+
+			    //Object.keys( ent );
+			    //Object.values( ent );
+
+			    if ( ent instanceof Array )
+			    {
+			    }
+			    else
+			    {
+				for ( let p in ent )
+				if ( p !== '_net_id' )
+				if ( typeof ent[ p ] !== 'object' || ent[ p ] === null )
+				{
+				    let value = ent[ p ];
+
+				    let map_of_value_candidates;
+
+				    map_of_value_candidates = key_value_compression_candidates.get( p );
+				    if ( !map_of_value_candidates )
+				    {
+					map_of_value_candidates = new Map();
+					key_value_compression_candidates.set( p, map_of_value_candidates );
+				    }
+
+				    /*if ( typeof key_value_compression_candidates[ p ] === 'undefined' )
+				    map_of_value_candidates = key_value_compression_candidates[ p ] = new Map();
+				    else
+				    map_of_value_candidates = key_value_compression_candidates[ p ]*/
+
+				    let hits;
+
+				    // TODO: JSON.stringify( value ).length can be reused
+
+				    let hit_cost;
+
+				    if ( typeof value === 'number' )
+				    hit_cost = 3 + p.length + numDigits( value );
+				    else
+				    if ( typeof value === 'string' )
+				    hit_cost = 3 + p.length + value.length + 2;
+				    else
+				    if ( value === true )
+				    hit_cost = 3 + p.length + 4;
+				    else
+				    if ( value === false )
+				    hit_cost = 3 + p.length + 5;
+				    else
+				    if ( value === null )
+				    hit_cost = 3 + p.length + 4;
+				    else
+				    {
+					debugger; // Avoid usage of JSON.stringify for simple objects?
+					hit_cost = 3 + p.length + JSON.stringify( value ).length;
+				    }
+
+				    hits = map_of_value_candidates.get( value );
+				    //hits = map_of_value_candidates[ value ];
+
+				    //if ( map_of_value_candidates.has( value ) )
+				    //hits = map_of_value_candidates.get( value ) + hit_cost;
+				    if ( hits !== undefined )
+				    hits += hit_cost;
+				    else
+				    hits = hit_cost - ( 2/*outer array brackets*/ + 1/*comma*/ + hit_cost+2/*JSON.stringify( [ p, value ] ).length*/ ); // Subtract own cost on init
+
+				    map_of_value_candidates.set( value, hits );
+				    //map_of_value_candidates[ value ] = hits;
+
+				    if ( hits > best_key_value_hits )
+				    {
+					best_key_value_hits = hits;
+					best_key = p;
+					best_value = value;
+				    }
+
+				}
+			    }
+			}
+
+			// Subtract own cost
+		       // if ( best_key_value_hits > 0 )
+		       // best_key_value_hits -= 2/*outer array brackets*/ + 1/*comma*/ + JSON.stringify( [ best_key, best_value ] ).length;
+
+		       //if ( best_key !== null )
+		       //if ( best_key_value_hits <= 0 )
+		       //{
+		       //    console.log( 'Pointless compression by pair: '+best_key+':'+best_value + ' -- could make things worse by '+ (-best_key_value_hits) + ' bytes' );
+		       //}
+		    }
+		    
+		    //if ( best_key_value_hits > 0 )
+		    if ( best_key_value_hits > 15 ) // 45
+		    {
+		   
+			//console.log( '['+inception+'] Win by ' + best_key_value_hits );
+			
+			//console.log( 'Compression by pair: '+best_key+':'+best_value + ' -- should save '+ best_key_value_hits + ' bytes' );
+			
+			let packed_array = [];
+			
+			let max_property_use_count = 0; // Will be used to count only the most frequent properties that appear in 100% of cases
+			let other_properties_to_check = {}; // Will be used to count only the most frequent properties that appear in 100% of cases
+			let other_properties_to_check_values = {}; // Will be used to count only the most frequent properties that appear in 100% of cases
+			
+			let mass_replacement_definitor_array = [ best_key, best_value ];
+
+			for ( let i = 0; i < object_array.length; i++ )
+			{
+			    let ent = object_array[ i ];
+			    if ( ent[ best_key ] === best_value )
+			    {
+				//ent = Object.assign( {}, ent ); // Copy only when needed, using WeakMap to store originality of each object?
+				//delete ent[ best_key ];
+				
+				if ( unique_objects.has( ent ) )
+				{
+				    delete ent[ best_key ];
+				}
+				else
+				{
+				    let ent2 = {};
+				    for ( let p in ent )
+				    if ( p !== best_key )
+				    ent2[ p ] = ent[ p ];
+
+				    ent = ent2;
+				    
+				    unique_objects.add( ent );
+				}
+
+				packed_array.push( ent );
+
+				for ( let p in ent )
+				if ( p !== '_net_id' )
+				if ( typeof ent[ p ] !== 'object' || ent[ p ] === null )
+				{
+				    if ( typeof other_properties_to_check_values[ p ] === 'undefined' )
+				    {
+					other_properties_to_check_values[ p ] = ent[ p ];
+				    }
+				    else
+				    {
+					if ( other_properties_to_check_values[ p ] !== ent[ p ] )
+					other_properties_to_check[ p ] = -Infinity;
+				    }
+				    
+				    //max_property_use_count = Math.max( max_property_use_count, other_properties_to_check[ p ] = ( other_properties_to_check[ p ] || 0 ) + 1 );
+				    other_properties_to_check[ p ] = ( other_properties_to_check[ p ] || 0 ) + 1;
+				    
+				}
+
+				object_array.splice( i, 1 );
+				i--;
+				continue;
+			    }
+			}
+			   
+			if ( packed_array.length >= 2 ) // Opposite does not usually happen but just in case
+			{
+			    for ( let p in other_properties_to_check )
+			    //if ( other_properties_to_check[ p ] === max_property_use_count )
+			    if ( other_properties_to_check[ p ] === packed_array.length )
+			    {
+
+
+
+				let best_key = p;
+				let best_value = other_properties_to_check_values[ p ];
+
+				mass_replacement_definitor_array.push( best_key, best_value );
+
+				for ( let i = 0; i < packed_array.length; i++ )
+				{
+				    let ent = packed_array[ i ];
+				    if ( ent[ best_key ] === best_value )
+				    {
+					delete ent[ best_key ];
+				    }
+				}
+
+			    }
+			}
+			//else
+			//debugger
+			
+			packed_array = Iteration( packed_array, inception + 100 ); // Pack more what's already packed
+			
+			packed_array.unshift( mass_replacement_definitor_array ); // Add replacement instructions at the beginning
+			object_array.unshift( packed_array );
+			
+			object_array = Iteration( object_array, inception + 1 ); // Pack same array again while possible
+		    }
+		    else
+		    {
+			/*
+			
+			TODO: Attempt compression of this 
+		
+			{_net_id: 7594479, y: 240}
+			{_net_id: 7594480, y: 256}
+			{_net_id: 7595361, y: 272}
+			{_net_id: 7595662, y: 288}
+		
+			into something like this
+		
+			[ '_net_id|y', 7594479, 240, 7594480, 256, 7595361, 272, 7595662, 288 ]
+		
+			*/
+			let first_object = null;
+			let first_object_index = -1;
+			for ( let i = 0; i < object_array.length; i++ )
+			if ( !( object_array[ i ] instanceof Array ) )
+			{
+			    first_object = object_array[ i ];
+			    first_object_index = i;
+			    break;
+			}
+			if ( first_object )
+			{
+			    let prop_count = 0;
+			    let met_props = {};
+			    let met_props_arr = [];
+			    
+			    let met_objects = 1;
+			    
+			    let met_values = [];
+			    
+			    for ( let p in first_object )
+			    {
+				met_props[ p ] = true;
+				met_props_arr.push( p );
+				prop_count++;
+				
+				met_values.push( first_object[ p ] );
+			    }
+			    
+			    let ok = true;
+			    
+			    optimized_possible_loop:
+			    for ( let i = first_object_index + 1; i < object_array.length; i++ )
+			    if ( !( object_array[ i ] instanceof Array ) )
+			    {
+				met_objects++
+				
+				let props = 0;
+				for ( let p in object_array[ i ] )
+				{
+				    if ( typeof met_props[ p ] !== 'undefined' )
+				    {
+					met_values.push( object_array[ i ][ p ] );
+					props++;
+				    }
+				    else
+				    {
+					ok = false;
+					break optimized_possible_loop;
+				    }
+				}
+				if ( props !== prop_count )
+				{
+				    ok = false;
+				    break optimized_possible_loop;
+				}
+			    }
+			    if ( ok )
+			    if ( met_objects > 1 )
+			    {
+				//if ( met_values.length === met_props_arr.length )
+				//debugger
+				    
+				
+				for ( let i = first_object_index; i < object_array.length; i++ )
+				if ( !( object_array[ i ] instanceof Array ) )
+				{
+				    object_array.splice( i, 1 );
+				    i--;
+				    continue;
+				}
+			
+				met_values.unshift( '*'+met_props_arr.join('|') );
+				
+				//debugger;
+				
+				//object_array = [ met_values ];
+				object_array.push( met_values );
+				
+				//debugger;
+			    }
+			}
+			
+			//debugger
+		    }
+		    
+		    return object_array;
+		}
+		
+		function Deiteration( object_array, level=0 )
+		{
+		    let definitor = null;
+		    
+		    for ( let i = 0; i < object_array.length; i++ )
+		    {
+			if ( object_array[ i ] instanceof Array ) // definitor
+			{
+			    if ( typeof object_array[ i ][ 0 ] === 'string' )
+			    {
+				if ( object_array[ i ][ 0 ].charAt( 0 ) === '*' )
+				{
+				    // Got compact similar object value lister
+				    //debugger;
+				    
+				    let keys = object_array[ i ][ 0 ].slice( 1 ).split( '|' );
+				    
+				    //if ( object_array.length > 1 )
+				    //debugger;
+				    
+				    let made_objects = [];
+				    
+				    let current_obj = null;
+				    let offset = 1;
+				    
+				    while ( offset < object_array[ i ].length )
+				    {
+					current_obj = {};
+					made_objects.push( current_obj );
+					
+					for ( let p = 0; p < keys.length; p++ )
+					current_obj[ keys[ p ] ] = object_array[ i ][ offset++ ];
+				    }
+				    
+				    //if ( object_array.length > 1 ) // Hack
+				    //debugger;
+				    
+				    object_array.splice( i, 1, ...made_objects );
+				    i--;
+				    continue; // They can be extended by current definitor still
+				}
+				else
+				{
+				    if ( object_array[ i ].length % 2 !== 0 )
+				    throw new Error('Expected definitor but element count is not even');
+				
+				    definitor = object_array[ i ];
+				    object_array.splice( i, 1 );
+				    i--;
+				    continue;
+				    //debugger; // Remember properties to apply to other elements, then remove element
+				}
+			    }
+			    else
+			    {
+				//debugger;
+				
+				object_array.splice( i, 1, ...Deiteration( object_array[ i ], level+1 ) );
+				//object_array[ i ] = Deiteration( object_array[ i ] );
+				
+				i--;
+				continue; // They can be extended by current definitor still
+			    }
+			}
+			else
+			{
+			    if ( definitor )
+			    {
+				//debugger
+				for ( let p = 0; p < definitor.length; p += 2 )
+				{
+				    object_array[ i ][ definitor[ p ] ] = definitor[ p + 1 ];
+				}
+			    }
+			}
+			
+			//if ( level === 0 )
+			//debugger;
+		    }
+		    
+		    //debugger;
+		    
+		    return object_array;
+		    
+		    /*for ( let i = 0; i < object_array.length; i++ )
+		    {
+			if ( object_array[ i ] instanceof Array )
+			{
+			    if ( object_array[ i ][ 0 ] instanceof Array ) // definitor
+			    {
+				if ( object_array[ i ][ 0 ].length % 2 !== 0 )
+				throw new Error('Expected definitor but element count is not even');
+			    
+				
+			    }
+			}
+			debugger;
+		    }*/
+		}
+		
+		let print_once = 10;
+		
+		let t_av = 0;
+		let t_av2 = 0;
+		let t_tot = 0;
+		
+		setInterval( ()=>
+		{
+		    let object_array = JSON.parse( data_str );
+
+		    let bkp = JSON.parse( JSON.stringify( object_array ) );
+		    
+		    let t = performance.now();
+
+		    object_array = Iteration( object_array );
+
+		    let t2 = performance.now();
+		    
+		    let t3 = performance.now();
+		    
+		    // 7689538 - lost _class
+		    
+		    object_array = Deiteration( object_array );
+
+		    let t4 = performance.now();
+		    let bkp2 = JSON.parse( JSON.stringify( object_array ) );
+		    
+		    let snapshots = [];
+		    for ( let i = 0; i < bkp.length; i++ )
+		    {
+			let keys = Object.keys( bkp[ i ] );
+			let values = Object.values( bkp[ i ] );
+			
+			keys.sort();
+			values.sort();
+			
+			let key = keys.join('/')+':'+values.join('/');
+			
+			snapshots.push( key );
+		    }
+		    for ( let i = 0; i < bkp2.length; i++ )
+		    {
+			let keys = Object.keys( bkp2[ i ] );
+			let values = Object.values( bkp2[ i ] );
+			
+			keys.sort();
+			values.sort();
+			
+			let key = keys.join('/')+':'+values.join('/');
+			
+			if ( snapshots.indexOf( key ) === -1 )
+			throw new Error('new key missmatch');
+			else
+			snapshots.splice( snapshots.indexOf( key ), 1 );
+		    }
+		    if ( snapshots.length > 0 )
+		    throw new Error('missing key missmatch');
+		   
+		    t_av += t2 - t;
+		    t_av2 += t4 - t3;
+		    t_tot++;
+		   
+		    print_once--;
+		    
+		    if ( print_once === 0 )
+		    {
+			console.log( object_array, data_str.length + ' -> ' + JSON.stringify( object_array ).length, 'packing time: '+(t_av/t_tot)+'ms','unpacking time: '+(t_av2/t_tot)+'ms' );
+			
+			//console.log( stringify );
+		    }
+		}, 100 );
+		
+
+
+	    }
+	    
+	    Compact( snapshot );
+	    
+	</script>
+    </body>
+</html>

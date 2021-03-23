@@ -10,7 +10,7 @@ class sdEffect extends sdEntity
 {
 	static init_class()
 	{
-		console.warn('sdEffect class initiated');
+		console.log('sdEffect class initiated');
 		
 		sdEffect.TYPE_BLOOD = 0;
 		sdEffect.TYPE_WALL_HIT = 1;
@@ -135,12 +135,15 @@ class sdEffect extends sdEntity
 			speed: 1 / ( 15 * 30 )
 		};
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -1; }
 	get hitbox_x2() { return 1; }
 	get hitbox_y1() { return -1; }
 	get hitbox_y2() { return 1; }
+	
+	CameraDistanceScale3D( layer ) // so far layer is only FG (1), usually only used by chat messages
+	{ return ( this._type === sdEffect.TYPE_CHAT ) ? 0.8 : 1; }
 	
 	constructor( params )
 	{
@@ -160,6 +163,11 @@ class sdEffect extends sdEntity
 		this._x2 = params.x2;
 		this._y2 = params.y2;
 		this._color = params.color;
+		
+		this._scale = params.scale || 1;
+		
+		this._sd_tint_filter = null;//sdWorld.hexToRgb( params.color );
+		
 		/*
 		if ( this._type === sdEffect.TYPE_EXPLOSION )
 		if ( this._color === undefined )
@@ -172,7 +180,15 @@ class sdEffect extends sdEntity
 		
 		this._text = ( params.text !== undefined ) ? params.text : null;
 		//this._attachment = params.attachment || null;
+		
+		if ( params.attachment instanceof Array )
 		this._attachment = params.attachment ? sdEntity.GetObjectByClassAndNetId( params.attachment[ 0 ], params.attachment[ 1 ] ) : null;
+		else
+		if ( params.attachment instanceof sdEntity )
+		this._attachment = params.attachment;
+		else
+		this._attachment = null;
+
 		this._attachment_x = params.attachment_x;
 		this._attachment_y = params.attachment_y;
 		
@@ -198,6 +214,15 @@ class sdEffect extends sdEntity
 			if ( spoken === 'smh' )
 			spoken = 'shaking my head';
 			
+			if ( spoken === 'ngl' )
+			spoken = 'not gonna lie';
+			
+			if ( spoken === 'afk' )
+			spoken = 'away from keyboard';
+			
+			if ( spoken === 'ig' )
+			spoken = 'I guess';
+			
 			if ( spoken === 'brb' )
 			spoken = 'be right back';
 			
@@ -206,6 +231,30 @@ class sdEffect extends sdEntity
 			
 			if ( spoken === 'jk' )
 			spoken = 'joking';
+			
+			if ( spoken === 'wdym' || spoken === 'wdym?' )
+			spoken = 'what do you mean?';
+			
+			if ( spoken === 'kys' )
+			spoken = 'please commit no live';
+			
+			if ( spoken === 'btw' )
+			spoken = 'by the way';
+			
+			if ( spoken === 'tf' )
+			spoken = 'the fuck';
+			
+			if ( spoken === 'gj' )
+			spoken = 'good job';
+			
+			if ( spoken === 'ffs' )
+			spoken = 'for the fuck\'s sake';
+			
+			if ( spoken === 'fk' )
+			spoken = 'fuck';
+			
+			if ( spoken === 'nvm' )
+			spoken = 'nevermind';
 			
 			spoken = spoken.split('-').join('');
 			
@@ -226,7 +275,11 @@ class sdEffect extends sdEntity
 			
 			spoken = spoken.split(':D').join('happy face');
 			
+			spoken = spoken.split('Z').join('z'); // pronounce bug
+			
 			let that = this;
+			
+			let since = sdWorld.time;
 			
 			let t = meSpeak.speak( spoken, {
 					amplitude: 100 * sdSound.volume_speech * sdSound.GetDistanceMultForPosition( this.x, this.y ),
@@ -237,6 +290,9 @@ class sdEffect extends sdEntity
 				}, 
 				(e)=>
 				{ 
+					if ( sdWorld.time - since < 3000 )
+					setTimeout(()=>{ that.remove();},3000);
+					else
 					setTimeout(()=>{ that.remove();},100);
 				} 
 			);
@@ -250,17 +306,28 @@ class sdEffect extends sdEntity
 			}
 			  //debugger;
 		}
+		
+		
+		if ( this.x < sdWorld.world_bounds.x1 )
+		this.remove();
+		if ( this.x >= sdWorld.world_bounds.x2 )
+		this.remove();
+		
+		if ( this.y < sdWorld.world_bounds.y1 )
+		this.remove();
+		if ( this.y >= sdWorld.world_bounds.y2 )
+		this.remove();
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return [ 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdCrystal' ];
+		return [ 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdCrystal', 'sdAsp', 'sdSandWorm' ];
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this._type === sdEffect.TYPE_EXPLOSION )
-		this._ani += GSPEED * this._decay_speed * ( 20 / this._radius );
+		this._ani += GSPEED * this._decay_speed * ( 20 / this._radius ) / this._scale;
 		else
-		this._ani += GSPEED * this._decay_speed;
+		this._ani += GSPEED * this._decay_speed / this._scale;
 
 		if ( this._attachment )
 		{
@@ -306,9 +373,13 @@ class sdEffect extends sdEntity
 	
 		ctx.filter = this._filter;
 		
+		if ( this._scale !== 1 )
+		ctx.scale( this._scale, this._scale );
+		
 		//if ( this._type === sdEffect.TYPE_BLOOD )
 		if ( sdEffect.types[ this._type ].blood_cloud )
 		{
+			
 			y -= Math.sin( this._ani * 1.3 ) * 4;
 			
 			ctx.save();
@@ -397,8 +468,10 @@ class sdEffect extends sdEntity
                 ctx.translate( 0, sdWorld.camera.y - sdRenderer.screen_height / 2 / sdWorld.camera.scale + 15 - this.y );
             }
 			
-			ctx.fillStyle = 'rgba(0,0,0,0.7)';
+			ctx.fillStyle = 'rgb(0,0,0)';
+			ctx.globalAlpha = 0.7;
 			ctx.fillRect( -details.width / 2 - 2, -7, details.width + 4, 10 );
+			ctx.globalAlpha = 1;
 
 			
 			if ( this._attachment )
@@ -444,7 +517,7 @@ class sdEffect extends sdEntity
 			let h = 37;
 			
 			ctx.translate( -w/2, -h/2 );
-			
+			/*
 			var canvas2 = sdEffect.explosion_canvas;
 			var ctx2 = sdEffect.explosion_ctx;
 			{
@@ -458,7 +531,23 @@ class sdEffect extends sdEntity
 			}
 			ctx.globalCompositeOperation = "lighter";
 			ctx.drawImage( canvas2,0,0 );
-			ctx.globalCompositeOperation = "source-over";
+			ctx.globalCompositeOperation = "source-over";*/
+			
+			if ( this._sd_tint_filter === null )
+			{
+				this._sd_tint_filter = sdWorld.hexToRgb( this._color );
+				this._sd_tint_filter[ 0 ] /= 255;
+				this._sd_tint_filter[ 1 ] /= 255;
+				this._sd_tint_filter[ 2 ] /= 255;
+			}
+			
+			ctx.blend_mode = THREE.AdditiveBlending;
+			{
+				ctx.sd_tint_filter = this._sd_tint_filter;
+				ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], xx*w, yy*h+1, w,h-2, 0,0,w,h );
+				ctx.sd_tint_filter = null;
+			}
+			ctx.blend_mode = THREE.NormalBlending;
 		}
 	}
 }

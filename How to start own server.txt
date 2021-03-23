@@ -1,0 +1,23 @@
+== How to start Windows server ==
+
+Just run file "Start Star Defenders 2D server.bat"
+
+Then you'll be able to locally connect to this server by visiting:
+http://localhost:3000
+
+:3000 here is a port name. You'll also have to "forward this port" to outer Internet if you want to make it available to other people on Internet (usually you also need to have static IP address).
+
+To "forward port" you need to access your home router/modem control panel and associate your local IP address (one which is inside of your home network, can be 192.168.0.1 or anything else, especially if your PC is not bound to specific local IP) and 3000 port (Star Defenders 2D uses it, can be changed at index.js), usually it is done at "Port Forwarding" page.
+
+Once you done everything - you can terminate server by pressing Ctrl+C. It will cause server to save snapshot of current world state. It will create 2 files that describe world snapshot.
+
+Server won't update itself, maybe eventually it will be added.
+
+- - -
+
+Thanks for playing and for supporting project!
+https://www.patreon.com/Eric_Gurt
+
+More of my links:
+https://twitter.com/Eric_Gurt
+https://www.gevanni.com

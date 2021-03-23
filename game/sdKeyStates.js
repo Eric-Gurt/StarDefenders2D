@@ -33,10 +33,17 @@ class sdKeyStates
 			Backquote: 0,
 			Mouse1: 0, // Left
 			Mouse2: 0, // Middle
-			Mouse3: 0 // Right
+			Mouse3: 0, // Right
+			KeyI: 0,
+			KeyK: 0
 		};
 		
 		this.one_taps = Object.assign( {}, this.key_states ); // One-taps are for keys that are released faster than game loop tick could happen. This will prevent jumping from being ignored on high ping connections or when server just gets a lag spike.
+		
+		for ( var i in this.one_taps )
+		{
+			this.one_taps[ i ] = sdWorld.frame - 1;
+		}
 	}
 	
 	GetKey( key )
@@ -50,7 +57,7 @@ class sdKeyStates
 		return this.key_states[ key ];
 	}
 	SetKey( key, value )
-	{
+	{	
 		if ( typeof this.key_states[ key ] === 'undefined' )
 		return;
 	

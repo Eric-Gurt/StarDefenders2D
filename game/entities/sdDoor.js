@@ -19,12 +19,23 @@ class sdDoor extends sdEntity
 		sdDoor.img_door_closed = sdWorld.CreateImageFromFile( 'door2' );
 		sdDoor.img_door_path = sdWorld.CreateImageFromFile( 'door_open' );
 		
-		let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Register for object spawn
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -16; }
 	get hitbox_x2() { return 16; }
 	get hitbox_y1() { return -16; }
 	get hitbox_y2() { return 16; }
+	
+	DrawIn3D()
+	{ return FakeCanvasContext.DRAW_IN_3D_BOX; }
+	
+	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+	{ 
+		if ( layer === -1 )
+		return [ 0, 0, -0.01 ];
+	
+		return [ 0, 0.01, 0.3 ]; // 0, 0.01, 0.01 was good until I added sdBlock offset that hides seam on high visual settings
+	}
 	
 	get hard_collision()
 	{ return true; }
@@ -58,6 +69,8 @@ class sdDoor extends sdEntity
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 		
+		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
+		
 		this.x0 = undefined;
 		this.y0 = undefined;
 		
@@ -70,7 +83,7 @@ class sdDoor extends sdEntity
 		
 		this.destruction_frame = 0;
 		
-		this._malfunction = false; // True if origin sdBlocks were removed, will cause door to close
+		this.malfunction = false; // True if origin sdBlocks were removed, will cause door to close
 		
 		this.filter = params.filter;
 	}
@@ -126,7 +139,8 @@ class sdDoor extends sdEntity
 		else
 		{
 			
-			let ents_near = sdWorld.GetAnythingNear( this.x0, this.y0, 32 );
+			//let ents_near = sdWorld.GetAnythingNear( this.x0, this.y0, 32 );
+			let ents_near = this.GetAnythingNearCache( this.x0, this.y0, 32 );
 			for ( let i = 0; i < ents_near.length; i++ )
 			{
 				if ( ents_near[ i ].is_static || ents_near[ i ]._net_id === undefined ) // skip statics and ones that dont exist on server
@@ -136,15 +150,17 @@ class sdDoor extends sdEntity
 					continue;
 				}
 			}
+			
 			if ( ents_near.length > 0 )
 			{
-				let coms_near = sdWorld.GetComsNear( this.x0, this.y0 );
+				//let coms_near = sdWorld.GetComsNear( this.x0, this.y0, null, null, true );
+				let coms_near = this.GetComsNearCache( this.x0, this.y0, null, null, true );
 				
 				outer:
 				for ( let i = 0; i < coms_near.length; i++ )
 				{
 					for ( let i2 = 0; i2 < ents_near.length; i2++ )
-					if ( coms_near[ i ].subscribers.indexOf( ents_near[ i2 ]._net_id ) !== -1 )
+					if ( coms_near[ i ].subscribers.indexOf( ents_near[ i2 ]._net_id ) !== -1 || coms_near[ i ].subscribers.indexOf( ents_near[ i2 ].GetClass() ) !== -1 )
 					{
 						if ( this.opening_tim === 0 )
 						sdSound.PlaySound({ name:'door_start', x:this.x, y:this.y, volume:0.5 });
@@ -168,7 +184,7 @@ class sdDoor extends sdEntity
 			
 			
 			
-			if ( this.opening_tim > 0 && !this._malfunction )
+			if ( this.opening_tim > 0 && !this.malfunction )
 			{
 				if ( this.openness < 32 )
 				{
@@ -239,13 +255,13 @@ class sdDoor extends sdEntity
 				}
 			}
 			
-			if ( this._malfunction )
+			if ( this.malfunction )
 			{
 				if ( this.openness === 0 )
 				{
 					this._update_version++;	
 					this.x0 = undefined; // Reinit
-					this._malfunction = false;
+					this.malfunction = false;
 				}
 			}
 			else
@@ -274,7 +290,7 @@ class sdDoor extends sdEntity
 
 				if ( !ok )
 				{
-					this._malfunction = true;
+					this.malfunction = true;
 					/*
 					this.openness = 0;
 					this.x = this.x0;
@@ -307,8 +323,11 @@ class sdDoor extends sdEntity
 	}
 	DrawBG( ctx, attached )
 	{
-		if ( this.openness > 0 )
+		if ( this.openness > 0 || typeof ctx.FakeStart !== 'undefined' )
 		{
+			if ( this.x0 === undefined )
+			ctx.drawImage( sdDoor.img_door_path, -16, -16, 32,32 );
+			else
 			ctx.drawImage( sdDoor.img_door_path, -16 - this.x + this.x0, -16 - this.y + this.y0, 32,32 );
 		}
 	}
@@ -317,7 +336,8 @@ class sdDoor extends sdEntity
 		if ( this.x0 === undefined && this._net_id !== undefined ) // Client-side doors won't not have any _net_id
 		{
 			ctx.filter = this.filter;
-			ctx.drawImage( sdDoor.img_door_closed, -16, -16, 32,32 );
+			ctx.drawImageFilterCache( sdDoor.img_door_closed, -16, -16, 32,32 );
+			ctx.filter = 'none';
 		
 			if ( sdBlock.cracks[ this.destruction_frame ] !== null )
 			ctx.drawImage( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
@@ -336,7 +356,8 @@ class sdDoor extends sdEntity
 					ctx.clip();
 
 					ctx.filter = this.filter;
-					ctx.drawImage( sdDoor.img_door, -16, -16, 32,32 );
+					ctx.drawImageFilterCache( sdDoor.img_door, -16, -16, 32,32 );
+					ctx.filter = 'none';
 		
 					if ( sdBlock.cracks[ this.destruction_frame ] !== null )
 					ctx.drawImage( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
@@ -346,14 +367,14 @@ class sdDoor extends sdEntity
 			else
 			{
 				ctx.filter = this.filter;
-				ctx.drawImage( sdDoor.img_door, -16, -16, 32,32 );
+				ctx.drawImageFilterCache( sdDoor.img_door, -16, -16, 32,32 );
+				ctx.filter = 'none';
 		
 				if ( sdBlock.cracks[ this.destruction_frame ] !== null )
 				ctx.drawImage( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
 			}
 		}
 	
-		ctx.filter = 'none';
 	}
 	
 	HandleDestructionUpdate()
@@ -382,6 +403,9 @@ class sdDoor extends sdEntity
 	}
 	DrawConnections( ctx )
 	{
+		var x0 = this.x0 || this.x;
+		var y0 = this.y0 || this.y;
+		
 		ctx.lineWidth = 1;
 		ctx.strokeStyle = '#ffffff';
 		ctx.setLineDash([2, 2]);
@@ -389,17 +413,18 @@ class sdDoor extends sdEntity
 
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
 		if ( sdEntity.entities[ i ].GetClass() === 'sdCom' )
-		if ( sdWorld.Dist2D( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this.x0, this.y0 ) < sdCom.retransmit_range )
-		if ( sdWorld.CheckLineOfSight( this.x0, this.y0, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
+		if ( sdWorld.Dist2D( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, x0, y0 ) < sdCom.retransmit_range )
+		//if ( sdWorld.CheckLineOfSight( x0, y0, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
+		if ( sdWorld.CheckLineOfSight( x0, y0, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, null, sdCom.com_visibility_unignored_classes ) )
 		{
 			ctx.beginPath();
 			ctx.moveTo( sdEntity.entities[ i ].x - this.x, sdEntity.entities[ i ].y - this.y );
-			ctx.lineTo( this.x0 - this.x, this.y0 - this.y );
+			ctx.lineTo( x0 - this.x, y0 - this.y );
 			ctx.stroke();
 		}
 
 		ctx.beginPath();
-		ctx.arc( this.x0 - this.x, this.y0 - this.y, sdDoor.connection_range, 0, Math.PI*2 );
+		ctx.arc( x0 - this.x, y0 - this.y, sdCom.retransmit_range, 0, Math.PI*2 );
 		ctx.stroke();
 		
 		ctx.lineDashOffset = 0;
@@ -414,7 +439,7 @@ class sdDoor extends sdEntity
 		if ( from_entity.GetClass() !== 'sdEffect' )
 		if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null )
 		{	
-			let nearbies = sdWorld.GetAnythingNear( this.x, this.y, sdDoor.connection_range );
+			let nearbies = sdWorld.GetAnythingNear( this.x, this.y, sdCom.retransmit_range );
 			
 			let best_tele = null;
 			let best_di = -1;

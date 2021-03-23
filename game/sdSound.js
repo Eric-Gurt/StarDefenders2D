@@ -14,6 +14,8 @@ class sdSound
 		//sdSound.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 			
 		sdSound.sounds = {};
+		
+		sdSound.sounds_played_at_frame = 0; // Prevent massive flood
 				
 		//		= new Audio( './audio/android_miner_hurt.wav' );
 		
@@ -45,6 +47,11 @@ class sdSound
 		sdSound.jetpack.volume = 0;
 		sdSound.jetpack.loop = true;
 		
+		sdSound.hover_loop_volume_last = 0;
+		sdSound.hover_loop = new Audio( './audio/hover_loop.wav' );
+		sdSound.hover_loop.volume = 0;
+		sdSound.hover_loop.loop = true;
+		
 		
 		
 		sdSound.ambient_seeker = { x:Math.random()*2-1, y:Math.random()*2-1, tx:Math.random()*2-1, ty:Math.random()*2-1 };
@@ -73,6 +80,7 @@ class sdSound
 			sdSound.rain_low_res.play();
 			
 			sdSound.jetpack.play();
+			sdSound.hover_loop.play();
 		}
 	}
 	static HandleMatterChargeLoop( GSPEED )
@@ -128,13 +136,28 @@ class sdSound
 		sdSound.rain_low_res.volume = rain_intens * sdSound.volume_ambient;
 		
 		let count_flying = 0;
+		let count_hover_loop = 0;
+		
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
-		if ( sdEntity.entities[ i ].GetClass() === 'sdCharacter' )
-		if ( sdEntity.entities[ i ].flying )
-		count_flying += 1 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x,sdEntity.entities[ i ].y );
+		{
+			if ( sdEntity.entities[ i ].GetClass() === 'sdCharacter' )
+			{
+				if ( sdEntity.entities[ i ].flying )
+				count_flying += 1 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+			}
+			else
+			if ( sdEntity.entities[ i ].GetClass() === 'sdHover' )
+			{
+				if ( sdEntity.entities[ i ].driver0 /*&& ( sdEntity.entities[ i ].driver0.act_x !== 0 || sdEntity.entities[ i ].driver0.act_y !== 0 )*/ )
+				count_hover_loop += 2 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+			}
+		}
 		
 		sdSound.jetpack_volume_last = sdWorld.MorphWithTimeScale( sdSound.jetpack_volume_last, count_flying, 0.8, GSPEED );
 		sdSound.jetpack.volume = sdSound.jetpack_volume_last * sdSound.volume_ambient;
+		
+		sdSound.hover_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.hover_loop_volume_last, count_hover_loop, 0.8, GSPEED );
+		sdSound.hover_loop.volume = sdSound.hover_loop_volume_last * sdSound.volume_ambient;
 	}
 	static GetDistanceMultForPosition( x,y )
 	{
@@ -142,13 +165,13 @@ class sdSound
 		
 		return Math.max( 0.2, Math.pow( Math.max( 0, 400 - di ) / 400, 0.5 ) );
 	}
-	static PlaySound( params )// name, x,y, volume=1, server_allowed=true )
+	static PlaySound( params, exclusive_to_sockets_arr=null )// name, x,y, volume=1, server_allowed=true )
 	{
 		if ( sdWorld.is_server )
 		{
 			if ( !sdSound.server_mute )
 			if ( !params._server_allowed )
-			sdWorld.SendSound( params );
+			sdWorld.SendSound( params, exclusive_to_sockets_arr );
 		
 			return;
 		}
@@ -161,6 +184,16 @@ class sdSound
 		let y = params.y;
 		let volume = params.volume || 1;
 		let rate = params.pitch || 1;
+		
+		if ( x < sdWorld.world_bounds.x1 )
+		return;
+		if ( x >= sdWorld.world_bounds.x2 )
+		return;
+		
+		if ( y < sdWorld.world_bounds.y1 )
+		return;
+		if ( y >= sdWorld.world_bounds.y2 )
+		return;
 	
 		if ( typeof sdSound.sounds[ name ] === 'undefined' )
 		{
@@ -187,6 +220,13 @@ class sdSound
 			}
 			else
 			{
+				sdSound.sounds_played_at_frame++;
+				if ( sdSound.sounds_played_at_frame > 10 )
+				{
+					console.log('Too many sounds played within short timespan. Is limit correct?');
+					return;
+				}
+				
 				let clone = sdSound.sounds[ name ].cloneNode();
 			
 				clone.volume = v;

@@ -12,6 +12,8 @@
 		cursor: default;
 		height: 100%;
 		overflow: hidden;
+		background-blend-mode: overlay;
+		transition: background-color 1s ease;
 	    }
 	    *::-moz-selection { background-color: red; }
 	    *::selection { background-color: red; }
@@ -34,7 +36,8 @@
 	    input[type=color]
 	    {
 		background-color: #111111;
-		padding: 4px;
+		padding: 1px;
+		height: 20px;
 	    }
 	    input::-webkit-color-swatch
 	    {
@@ -48,12 +51,20 @@
 		height: 20px;
 		vertical-align: middle;
 	    }
+	    input[type=checkbox]::after
+	    {
+		display: block;
+		content: " ";
+		position: absolute;
+		width: 220px;
+		height: 20px;
+		box-sizing: border-box;
+	    }
 	    input[type=button]
 	    {
 		padding-left: 12px;
 		padding-right: 12px;
 	    }
-	    
 	    
 	    
 	    
@@ -68,10 +79,65 @@
 		vertical-align: top;
 		width: 230px;
 		padding-bottom: 10px;
+		/*transition: all 0.2s ease;*/
+		color: transparent;
+		height: 15px;
+		padding: 10px;
+		background-color: transparent;
+		position: relative;
+		user-select: none;
+	    }
+	    .set_block *
+	    {
+		pointer-events: none;
+		opacity: 0;
+		display: none;
+	    }
+	    .set_block:focus-within *
+	    {
+		pointer-events: unset;
+		opacity: 1;
+		display: unset;
+	    }
+	    .set_block .sdtitle
+	    {
+		opacity: 1 !important;
+		display: block;
+	    }
+	    .set_block input
+	    {
+		height: 0;
+		/*transition: all 0.2s ease;*/
+		opacity: 0;
+	    }
+	    .set_block:hover
+	    {
+		background-color: #0d1710;
+		cursor: pointer;
+	    }
+	    .set_block:focus-within
+	    {
+		font-size: unset;
+		color: unset;
+		height: unset;
+		background-color: #1e3424;
+		outline: none;
+		overflow-x: hidden;
+		overflow-y: auto;
+		
+		margin-bottom: -100%;
+		z-index:1000;
+	    }
+	    .set_block:focus-within input
+	    {
+		height: 15px;
+		opacity: 1;
+		pointer-events: unset;
 	    }
 	    .sdtitle
 	    {
 		color: #5ce98a;
+		font-size: 12px;
 	    }
 	    .sdgroup
 	    {
@@ -94,6 +160,21 @@
 	    }
 	    
 	    
+	    .set_block a, .set_block a:link, .set_block a:visited
+	    {
+		color: white;
+		display:block;
+		padding:5px;
+	    }
+	    .set_block a:hover
+	    {
+		color: #ff7aef;
+	    }
+	    .set_block a:active
+	    {
+		color: #000000;
+	    }
+	    
 	    .r_conteiner
 	    {
 		display:block;
@@ -115,6 +196,13 @@
     </head>
     <body>
 	<script src="socket.io/socket.io.js"></script>
+	<!--<script src="geckos.io/geckos.io-client.1.7.2.min.js"></script>-->
+	<script src="libs/three.js"></script>
+	<script src="libs/three-examples/BufferGeometryUtils.js"></script>
+	<script src="libs/three-examples/MeshLine.js"></script>
+	<script src="libs/FakeCanvasContext.js"></script>
+	<!--<script src="libs/canvas-webgl.js"></script>
+	<script src="libs/earcut.js"></script>-->
 	<script type="text/javascript" src="mespeak/mespeak.js"></script>
 	<script src="game.js" type="module"></script>
 	
@@ -348,14 +436,22 @@
     font-size: 30px;
     color: #2f2f2f;
     text-align: right;
-    ">Star Defenders<br>
+    "><span style="color:#64646496" id="game_title_text">...</span><br>
 	    <div style="font-size:10px;color:#355a52;font-weight: bold;">v0.9</div></div>
 	    
 	    <div style="position: absolute; left: calc( 100% + 20px ); top:0; width: 300px; height: 100%;
 		box-sizing: border-box; background-color: black;
-		padding: 20px;">
+		padding: 20px; overflow-y: scroll;">
 		<span class="sdtitle">What's new?:</span><br>
 		<div class="sdgroup">
+		    21 March 2021: Will try to co-host another server for FFA play. Also slightly new terrain generation, grass and plenty of performance fixes.<br><br>
+		    20 March 2021: Who reads these? New rare enemy.<br><br>
+		    11 March 2021: Something that won't work with ground that was created from previous version of game; bugfixes; weapon storages should work now; more information for connection/performance issues in debug mode - feel free to report when these heavy lags happen.<br><br>
+		    2 March 2021: Downed players & cubes will emit matter now; Item pickup sound added; sdCommandCentres will now expire if no player has more than 300 matter within time span of 24 hours; World maximum size increased by 2 times in both directions; Water was significantly simplified.<br><br>
+		    26 February 2021: sdMatterContainer range increased from 30 to 50; upgrade_energy max level increased from 20 to 40 (maximum 1850 energy); New players should spawn on ground with much higher probability rather than in bases; Grenade bounce multiplier changed from 0.3 to 0.55; Pistol attack matter cost changed to 0; Damaged spawn-protected crystals should be no longer seen by sdCube-s as negative activity; Stim-packs; FFA players should receive slightly longer respawn time, if they die; Jetpack no longer canceled when player accidentally stands on something; In addition to damage/protection upgrades, some entities are now capable of completely canceling lower level damage; sdOctopus max health decreased from 3000 to 2000.<br><br>
+		    9 February 2021: Some server-side optimizations (for sdCrystal, sdAntigravity, sdMatterContainer, sdTurret, sdCom) for cases when too many entities are made as well as when entities have too many of other entities in close range (hopefully nothing stops working as intended).<br><br>
+		     5 February 2021: New enemy (somewhat smarter one); Players that have positive score will stay on map (players should be able to reconnect at any time without losing their character, they still can be consumed by map bounds though); Larger entities have proper collision now; Some optimizations.<br><br>
+		     4 February 2021: Asteroid shower event (alters rain randomly); 3D render with minimal changes to source code (works mostly on top of used Canvas API); World saving and backuping (I'd expect restored entities to act sometimes strange); Some other small changes.<br><br>
 		    1 February 2021: Few new entities ("Octopus", "Quickie" and "Antigravity") added; Communication nodes will require direct visibility in order to interact with each other and controllable entities (haven't tested that well).<br><br>
 		    28 January 2021: High latency players should have less problems with server teleporting them back to where it thinks they should be (short key presses used to be ignored before, which was more noticeable for players with high latency).<br><br>
 		    25 January 2021: Fixed memory leak, some other bug fixes, ground is now stronger if players dig too deep, day/night-ish cycle.<br><br>
@@ -378,6 +474,9 @@
 		    This game was meant to test out some stuff including meaningful stress testing - so feel free to tell your friends about it :P<br>
 		    <br>
 		    Also, you can <a href="https://github.com/Eric-Gurt/StarDefenders2D">join development</a>
+		    <br>
+		    <br>
+		    Or even <a href="https://github.com/Eric-Gurt/StarDefenders2D/archive/main.zip">host your own Star Defenders 2D server</a><br>(future versions could be cross-connected with main server and redirect players from one server to another eventually, maybe server browser will be a thing soon too. <a href="https://raw.githubusercontent.com/Eric-Gurt/StarDefenders2D/main/How%20to%20start%20own%20server.txt">Check this file if you'll need more help</a>).
 		</div>
 	    </div>
 		
@@ -425,8 +524,8 @@
 	    <br>
 	    
 	    
-	    <div class="set_block">
-		<span class="sdtitle">Start with:</span><br>
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Start with</span><br>
 		<input type="checkbox" id="start_with1" value="pistol_and_buildtool">
 		<label for="start_with1">Pistol and build tool</label>
 		<br>
@@ -434,8 +533,70 @@
 		<label for="start_with2">Sword and build tool</label>
 	    </div>
 	    
-	    <div class="set_block">
-		<span class="sdtitle">Character's voice (eSpeak):</span><br>
+	    <!--
+	    <div class="set_block" tabindex="1">
+		Send microphone input as chat messages:<br>
+		<input type="checkbox" id="voice_chat1" value="no" checked>
+		<label for="voice_chat1">No</label>
+		<br>
+		<input type="checkbox" id="voice_chat2" value="yes" onclick="globalThis.StartVoiceRecognition()">
+		<label for="voice_chat2">Yes (Chrome-only, delayed)</label>
+	    </div>
+	    -->
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Assign instructor on start</span><br>
+		<input type="checkbox" id="hints1" value="no">
+		<label for="hints1">No</label>
+		<br>
+		<input type="checkbox" id="hints2" value="yes" checked>
+		<label for="hints2">Yes</label>
+	    </div>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Visual settings</span><br>
+		<input type="checkbox" id="visuals1" value="no">
+		<label for="visuals1">2D (old, unoptimized)</label>
+		<br>
+		<input type="checkbox" id="visuals2" value="yes">
+		<label for="visuals2">3D (GPU accelerated)</label>
+		<br>
+		<input type="checkbox" id="visuals3" value="yes" checked>
+		<label for="visuals3">3D+ (GPU accelerated)</label>
+	    </div>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Helmet</span><br>
+		<input type="checkbox" id="helmet1" value="1">
+		<label for="helmet1">Star Defender</label>
+		<br>
+		<input type="checkbox" id="helmet2" value="2">
+		<label for="helmet2">Falkok</label>
+		<br>
+		<input type="checkbox" id="helmet3" value="3">
+		<label for="helmet3">Eyes</label>
+		<br>
+		<input type="checkbox" id="helmet4" value="4">
+		<label for="helmet4">Dino</label>
+		<br>
+		<input type="checkbox" id="helmet5" value="5">
+		<label for="helmet5">V</label>
+		<br>
+		<input type="checkbox" id="helmet6" value="6">
+		<label for="helmet6">Open</label>
+	    </div>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Show debug info</span><br>
+		<input type="checkbox" id="bugs1" value="no" checked>
+		<label for="bugs1">No</label>
+		<br>
+		<input type="checkbox" id="bugs2" value="yes">
+		<label for="bugs2">Yes</label>
+	    </div>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Character's voice (eSpeak)</span><br>
 		<input type="checkbox" id="voice1" value="low" onclick="globalThis.TestVoice(this)">
 		<label for="voice1">Lowest pitch</label>
 		<br>
@@ -450,41 +611,27 @@
 		<br>
 		<input type="checkbox" id="voice5" value="high" onclick="globalThis.TestVoice(this)">
 		<label for="voice5">Highest pitch</label>
-	    </div>
-	    <!--
-	    <div class="set_block">
-		Send microphone input as chat messages:<br>
-		<input type="checkbox" id="voice_chat1" value="no" checked>
-		<label for="voice_chat1">No</label>
 		<br>
-		<input type="checkbox" id="voice_chat2" value="yes" onclick="globalThis.StartVoiceRecognition()">
-		<label for="voice_chat2">Yes (Chrome-only, delayed)</label>
-	    </div>
-	    -->
-	    
-	    <div class="set_block">
-		<span class="sdtitle">Assign instructor on start:</span><br>
-		<input type="checkbox" id="hints1" value="no">
-		<label for="hints1">No</label>
+		<input type="checkbox" id="voice6" value="high" onclick="globalThis.TestVoice(this)">
+		<label for="voice6">Falkok</label>
 		<br>
-		<input type="checkbox" id="hints2" value="yes" checked>
-		<label for="hints2">Yes</label>
+		<input type="checkbox" id="voice7" value="high" onclick="globalThis.TestVoice(this)">
+		<label for="voice7">Robotic</label>
 	    </div>
 	    
-	    <div class="set_block">
-		<span class="sdtitle">Show debug info:</span><br>
-		<input type="checkbox" id="bugs1" value="no" checked>
-		<label for="bugs1">No</label>
-		<br>
-		<input type="checkbox" id="bugs2" value="yes">
-		<label for="bugs2">Yes</label>
+	    <div class="set_block" tabindex="1" style="width: 485px">
+		<span class="sdtitle">Other Star Defenders servers</span><br>
+		<a href="http://localhost:3000">localhost:3000 - your server will be here</a> 
+		<a href="https://www.gevanni.com:3000">gevanni.com:3000 - Main server, initial world, more peaceful</a>
+		<!--<a href="https://www.gevanni.com:3001">gevanni.com:3001 - Main server, alternative world, FFA, no big bases</a>-->
+		<a href="https://www.gevanni.com:3002">gevanni.com:3002 - Main server, PvP arena</a>
 	    </div>
 	    
-	    
-	    <br>
-	    <br>
+	    <div style="position:absolute;left:20px;bottom:20px">
 	    
 	    <input type="button" style="background-color:#2b7939; width: 300px;" id="start_btn" onclick="sdWorld.Start( globalThis.GetPlayerSettings() );" value="Play with other players"> <input type="button" onclick="globalThis.ResetSkin();" value="Reset skin to default">
+	    
+	    </div>
 	    
 	    <canvas style="position: absolute;right: 40px;top: 40px;border-radius: 20px;box-shadow: 0 0 0px 5px #7b321963;" id="skin_preview" width="128" height="128"></canvas>
 	</div>
@@ -504,8 +651,8 @@
 	    ctx.imageSmoothingEnabled = false;
 	    
 	    globalThis.settings_container = settings_container;
-	    globalThis.players_online = '?';
-	    globalThis.players_playing = '?';
+	    globalThis.players_online = '...';
+	    globalThis.players_playing = '...';
 	    
 	    let format = ( v )=>
 	    {
@@ -572,6 +719,7 @@
 		ent._anim_walk = ( sdWorld.time / 100 ) % 10;
 		
 		ent.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter( globalThis.GetPlayerSettings() );
+		ent.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( globalThis.GetPlayerSettings() );
 		
 		if ( sdWorld.time % 5000 < 500 )
 		ent.pain_anim = 10 / ( sdWorld.time % 5000 ) / 500;
@@ -611,7 +759,9 @@
 		    
 		    if ( settings_container.childNodes[ i ].nodeName === 'INPUT' )
 		    if ( settings_container.childNodes[ i ].id )
+		    if ( settings_container.childNodes[ i ].type !== 'button' )
 		    {
+			
 			let obj = { 
 			    el: settings_container.childNodes[ i ],
 			    default_value: null
@@ -690,6 +840,9 @@
 		//JustOne( 'voice_chat', last_changed_el );
 		JustOne( 'hints', last_changed_el );
 		JustOne( 'bugs', last_changed_el );
+		JustOne( 'visuals', last_changed_el );
+		JustOne( 'helmet', last_changed_el );
+		
 		
 		for ( let i = 0; i < inputs.length; i++ )
 		{
