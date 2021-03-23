@@ -17,12 +17,13 @@ class sdCrystal extends sdEntity
 	get hitbox_x2() { return 5; }
 	get hitbox_y1() { return -7; }
 	get hitbox_y2() { return 5; }
-
+	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
 	
+	/* Causes client-side falling through unsynced ground, probably bad thing to do and it won't be complex entity after sdSnapPack is added
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
-	{ return true; }
+	{ return true; }*/
 	
 	constructor( params )
 	{
@@ -56,18 +57,11 @@ class sdCrystal extends sdEntity
 		else
 		if ( r < 0.25 )
 		this.matter_max *= 4;
-
 		else
-			if (r < 0.125)
-				this.matter_max *= 8;
-			else
-				if (r < 0.25)
-					this.matter_max *= 4;
-				else
-					if (r < 0.5)
-						this.matter_max *= 2;
-
-
+		if ( r < 0.5 )
+		this.matter_max *= 2;
+		
+		
 		this.matter = this.matter_max;
 		
 		this._last_sync_matter = this.matter;
@@ -76,7 +70,7 @@ class sdCrystal extends sdEntity
 		
 		this._hea = 60;
 		
-		this._damagable_in = sdWorld.time + 1000; // Suggested by zimmermannliam, will only work for sdCharacter damage
+		this._damagable_in = sdWorld.time + 1000; // Suggested by zimmermannliam, will only work for sdCharacter damage		
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -98,11 +92,10 @@ class sdCrystal extends sdEntity
 		if ( this._hea <= 0 )
 		{
 			sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:1 });
-
 			this.remove();
 		}
 		else
-			sdSound.PlaySound({ name: 'crystal2_short', x: this.x, y: this.y, volume: 1 });
+		sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, volume:1 });
 	}
 	
 	get mass() { return 30; }
@@ -113,14 +106,14 @@ class sdCrystal extends sdEntity
 		//this.sx += x * 0.1;
 		//this.sy += y * 0.1;
 	}
-
-	onThink(GSPEED) // Class-specific, if needed
+	
+	onThink( GSPEED ) // Class-specific, if needed
 	{
 		this.sy += sdWorld.gravity * GSPEED;
-
-		this.ApplyVelocityAndCollisions(GSPEED, 0, true);
-
-		this.matter = Math.min(this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80);
+		
+		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+		
+		this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
 
 		this.MatterGlow( 0.01, 30, GSPEED );
 		
@@ -134,11 +127,10 @@ class sdCrystal extends sdEntity
 			this._update_version++;
 		}
 	}
-	DrawHUD(ctx, attached) // foreground layer
+	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip(ctx, "Crystal ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )");
+		sdEntity.Tooltip( ctx, "Crystal ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
 	}
-
 	Draw( ctx, attached )
 	{
 		ctx.drawImageFilterCache( sdCrystal.img_crystal_empty, - 16, - 16, 32,32 );
@@ -156,9 +148,9 @@ class sdCrystal extends sdEntity
 		}*/
 	
 		ctx.globalAlpha = this.matter / this.matter_max;
-
-		ctx.drawImageFilterCache(sdCrystal.img_crystal, - 16, - 16, 32, 32);
-
+		
+		ctx.drawImageFilterCache( sdCrystal.img_crystal, - 16, - 16, 32,32 );
+		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
