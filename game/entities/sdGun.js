@@ -653,7 +653,11 @@ class sdGun extends sdEntity
 					if ( this._held_by.matter >= ammo_cost )
 					{
 						if ( sdWorld.is_server )
-						this._held_by.matter -= ammo_cost;
+						{
+							this._held_by.matter -= ammo_cost;
+							
+							this._held_by.TriggerMovementInRange();
+						}
 					}
 					else
 					{

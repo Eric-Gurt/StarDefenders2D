@@ -42,8 +42,14 @@ class sdDoor extends sdEntity
 	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return true; }
-	//RequireSpawnAlign()
-	//{ return true; }
+	/*{ return false; } // testing
+	
+	
+	RequireSpawnAlign() 
+	{ return true; }
+	
+	get spawn_align_x(){ return 16; };
+	get spawn_align_y(){ return 16; };*/
 	
 	Damage( dmg, initiator=null )
 	{
@@ -71,11 +77,11 @@ class sdDoor extends sdEntity
 		
 		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
 		
-		this.x0 = undefined;
-		this.y0 = undefined;
+		this.x0 = null; // undefined
+		this.y0 = null; // undefined
 		
-		this.dir_x = undefined;
-		this.dir_y = undefined;
+		this.dir_x = null; // undefined
+		this.dir_y = null; // undefined
 		
 		this.openness = 0;
 		
@@ -104,7 +110,7 @@ class sdDoor extends sdEntity
 			}
 		}
 		
-		if ( this.x0 === undefined )
+		if ( this.x0 === null ) // undefined
 		{
 			outer2:
 			for ( var yy = 1; yy >= -1; yy-- )
@@ -143,7 +149,13 @@ class sdDoor extends sdEntity
 			let ents_near = this.GetAnythingNearCache( this.x0, this.y0, 32 );
 			for ( let i = 0; i < ents_near.length; i++ )
 			{
-				if ( ents_near[ i ].is_static || ents_near[ i ]._net_id === undefined ) // skip statics and ones that dont exist on server
+				if ( ents_near[ i ].title === 'Star Defener1' )
+				{
+					let test = 1;
+					test *= 0;
+				}
+				
+				if ( ents_near[ i ].is_static || ents_near[ i ].is( sdDoor ) || ents_near[ i ]._net_id === undefined ) // skip statics and ones that dont exist on server
 				{
 					ents_near.splice( i, 1 );
 					i--;
@@ -260,7 +272,7 @@ class sdDoor extends sdEntity
 				if ( this.openness === 0 )
 				{
 					this._update_version++;	
-					this.x0 = undefined; // Reinit
+					this.x0 = null; // undefined // Reinit
 					this.malfunction = false;
 				}
 			}
@@ -297,7 +309,7 @@ class sdDoor extends sdEntity
 					this.y = this.y0;
 					this._update_version++;
 					
-					this.x0 = undefined; // Reinit
+					this.x0 = null; // undefined; // Reinit
 					*/
 					//this.Damage( 5 * GSPEED );
 				}
@@ -325,7 +337,7 @@ class sdDoor extends sdEntity
 	{
 		if ( this.openness > 0 || typeof ctx.FakeStart !== 'undefined' )
 		{
-			if ( this.x0 === undefined )
+			if ( this.x0 === null ) // undefined
 			ctx.drawImage( sdDoor.img_door_path, -16, -16, 32,32 );
 			else
 			ctx.drawImage( sdDoor.img_door_path, -16 - this.x + this.x0, -16 - this.y + this.y0, 32,32 );
@@ -333,7 +345,7 @@ class sdDoor extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		if ( this.x0 === undefined && this._net_id !== undefined ) // Client-side doors won't not have any _net_id
+		if ( this.x0 === null && this._net_id !== undefined ) // undefined // Client-side doors won't not have any _net_id
 		{
 			ctx.filter = this.filter;
 			ctx.drawImageFilterCache( sdDoor.img_door_closed, -16, -16, 32,32 );

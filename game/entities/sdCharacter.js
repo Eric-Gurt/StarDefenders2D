@@ -1625,6 +1625,8 @@ class sdCharacter extends sdEntity
 			this._inventory[ i ].ttl = sdGun.disowned_guns_ttl;
 			this._inventory[ i ]._held_by = null;
 			this._inventory[ i ] = null;
+			
+			this.TriggerMovementInRange();
 		}
 		//else
 		//console.log( this.title + ' is unable to drop drop gun with slot ' + i );

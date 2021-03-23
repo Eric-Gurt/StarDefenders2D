@@ -80,7 +80,12 @@ class sdEntity
 			this.Damage( ( vel - 3 ) * 15 );
 		}
 	}
-	
+	TriggerMovementInRange() // Should cause onMovementInRange to be called even if no movement happens for entity. Can be used in cases when sdCharacter drops guns (so other guns can be picked up) or upgrades matter capacity (so shards can be picken up)
+	{
+		// Also causes some static entities to resync (sdMatterCase)
+		this._last_x = undefined;
+		this._last_y = undefined;
+	}
 	Touches( hit_what ) // For cases that are handled by ApplyVelocityAndCollisions and also player walking
 	{
 		if ( hit_what )
@@ -131,7 +136,7 @@ class sdEntity
 			this._phys_last_touch_y = 0;
 		}
 	}
-	PhysWakeUp()
+	PhysWakeUp() // Call this method if entity stuck mid-air
 	{
 		this.PhysInitIfNeeded();
 

@@ -100,8 +100,23 @@ class sdSnapPack
 							if ( value === null )
 							hit_cost = 3 + p.length + 4;
 							else
+							if ( value === undefined )
+							{
+								hit_cost = 3 + p.length + 4; // Becomes null in the end
+								
+								throw new Error( 'Get rid of undefined values... They are becoming nulls in JSON. Property name is '+ent.GetClass()+'['+ent._net_id+'].'+p+' = undefined;' );
+							}
+							else
 							{
 								debugger; // Avoid usage of JSON.stringify for simple objects?
+								
+								if ( p === undefined ) // Reason of recent crash...
+								{
+									console.log( 'ent, object_array:', ent, object_array );
+									
+									throw new Error('How is it undefined?');
+								}
+								
 								hit_cost = 3 + p.length + JSON.stringify( value ).length;
 							}
 
@@ -336,7 +351,17 @@ class sdSnapPack
 		    return object_array;
 		}
 		
-		return Iteration( object_array, 0 );
+		let original_array = object_array.slice();
+		
+		try
+		{
+			return Iteration( object_array, 0 );
+		}
+		catch( e )
+		{
+			console.log( 'Problem during compression of entity list: ', original_array );
+			throw new Error( 'Problem was not resolved' );
+		}
 	}
 	
 	static Decompress( object_array, level=0 )

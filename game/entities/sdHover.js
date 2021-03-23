@@ -145,6 +145,8 @@ class sdHover extends sdEntity
 				else
 				if ( c.CanMoveWithoutOverlap( this.x + this.hitbox_x2 - c.hitbox_x1, c.y, 1 ) )
 				c.x = this.x + this.hitbox_x2 - c.hitbox_x1;
+		
+				c.PhysWakeUp();
 				
 				if ( c._socket )
 				c._socket.emit('SERVICE_MESSAGE', 'Leaving vehicle' );

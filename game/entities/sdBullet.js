@@ -353,78 +353,80 @@ class sdBullet extends sdEntity
 					will_bounce = true;
 				}
 
-				if ( sdWorld.is_server ) // Or else fake self-knock
 				if ( this._damage !== 0 )
 				{
-					if ( this._soft )
+					if ( sdWorld.is_server ) // Or else fake self-knock
 					{
-						sdSound.PlaySound({ name:'player_step', x:this.x, y:this.y, volume:0.5, pitch:1.8 });
-					}
-
-					if ( typeof from_entity._armor_protection_level === 'undefined' || this._armor_penetration_level >= from_entity._armor_protection_level )
-					{
-						if ( !this._wave )
+						if ( this._soft )
 						{
-							if ( !this._soft )
-							sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect() });
+							sdSound.PlaySound({ name:'player_step', x:this.x, y:this.y, volume:0.5, pitch:1.8 });
 						}
 
-						let dmg = this._damage;// * dmg_mult;
-						
-						if ( this.ac > 0 )
-						if ( from_entity.IsVehicle() )
+						if ( typeof from_entity._armor_protection_level === 'undefined' || this._armor_penetration_level >= from_entity._armor_protection_level )
 						{
-							dmg *= 3;
-						}
-
-						let old_hea = ( from_entity.hea || from_entity._hea || 0 );
-
-						from_entity.Damage( dmg, this._owner );
-
-						if ( this._custom_target_reaction )
-						this._custom_target_reaction( this, from_entity );
-
-						from_entity.Impulse( this.sx * Math.abs( dmg ) * this._knock_scale, 
-											 this.sy * Math.abs( dmg ) * this._knock_scale );
-
-						if ( this._owner )
-						if ( old_hea > 0 )
-						if ( old_hea !== ( from_entity.hea || from_entity._hea || 0 ) ) // Any damage actually dealt
-						{
-							if ( from_entity.GetClass() === 'sdCube' || from_entity.GetClass() === 'sdCrystal' )
-							this._owner._nature_damage += dmg;
-						}
-					}
-					else
-					{
-						//if ( this.penetrating )
-						//will_bounce = false;
-
-						if ( this._custom_target_reaction_protected )
-						this._custom_target_reaction_protected( this, from_entity );
-						
-						if ( !this._wave )
-						{
-							if ( !this._soft )
-							sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_WALL_HIT });
-						
-							sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
-							
-							if ( this._owner )
-							if ( this._owner.is( sdCharacter ) )
+							if ( !this._wave )
 							{
-								if ( from_entity._armor_protection_level > 3 )
-								this._owner.Say( 'Regular weapons won\'t work here. What about big explosions?' );
-								else
+								if ( !this._soft )
+								sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect() });
+							}
+
+							let dmg = this._damage;// * dmg_mult;
+
+							if ( this.ac > 0 )
+							if ( from_entity.IsVehicle() )
+							{
+								dmg *= 3;
+							}
+
+							let old_hea = ( from_entity.hea || from_entity._hea || 0 );
+
+							from_entity.Damage( dmg, this._owner );
+
+							if ( this._custom_target_reaction )
+							this._custom_target_reaction( this, from_entity );
+
+							from_entity.Impulse( this.sx * Math.abs( dmg ) * this._knock_scale, 
+												 this.sy * Math.abs( dmg ) * this._knock_scale );
+
+							if ( this._owner )
+							if ( old_hea > 0 )
+							if ( old_hea !== ( from_entity.hea || from_entity._hea || 0 ) ) // Any damage actually dealt
+							{
+								if ( from_entity.GetClass() === 'sdCube' || from_entity.GetClass() === 'sdCrystal' )
+								this._owner._nature_damage += dmg;
+							}
+						}
+						else
+						{
+							//if ( this.penetrating )
+							//will_bounce = false;
+
+							if ( this._custom_target_reaction_protected )
+							this._custom_target_reaction_protected( this, from_entity );
+
+							if ( !this._wave )
+							{
+								if ( !this._soft )
+								sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_WALL_HIT });
+
+								sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
+
+								if ( this._owner )
+								if ( this._owner.is( sdCharacter ) )
 								{
-									if ( this._owner._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
+									if ( from_entity._armor_protection_level > 3 )
+									this._owner.Say( 'Regular weapons won\'t work here. What about big explosions?' );
+									else
 									{
-										this._owner._last_damage_upg_complain = sdWorld.time;
-										
-										if ( Math.random() < 0.5 )
-										this._owner.Say( 'Can\'t damage that' );
-										else
-										this._owner.Say( 'I need damage upgrade' );
+										if ( this._owner._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
+										{
+											this._owner._last_damage_upg_complain = sdWorld.time;
+
+											if ( Math.random() < 0.5 )
+											this._owner.Say( 'Can\'t damage that' );
+											else
+											this._owner.Say( 'I need damage upgrade' );
+										}
 									}
 								}
 							}
@@ -432,7 +434,7 @@ class sdBullet extends sdEntity
 					}
 
 					//this._damage *= ( 1 - dmg_mult ); // for healguns it is important to be at 0
-					
+
 					if ( !will_bounce )
 					this._damage = 0; // for healguns it is important to be at 0
 					else
@@ -441,14 +443,15 @@ class sdBullet extends sdEntity
 						this._damage *= 0.5;
 						this.sx *= 0.5;
 						this.sy *= 0.5;
-						
+
 						//console.log( 'vel = '+sdWorld.Dist2D_Vector( this.sx, this.sy ) );
-						
+
 						if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) < 10 )
 						this._damage = 0;
 					}
+
 				}
-					
+
 				//if ( will_bounce ) Bounce is done at bullet logic now, naturally
 				/*if ( dmg_mult !== 1 )
 				{

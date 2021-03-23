@@ -226,6 +226,8 @@ class sdStorage extends sdEntity
 
 			item.ttl = sdGun.disowned_guns_ttl;
 			item._held_by = null;
+			
+			item.PhysWakeUp();
 		}
 	}
 }

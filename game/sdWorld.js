@@ -829,8 +829,8 @@ class sdWorld
 		
 		let min_x = sdWorld.FastFloor((_x - range)/32);
 		let min_y = sdWorld.FastFloor((_y - range)/32);
-		let max_x = sdWorld.FastFloor((_x + range)/32);
-		let max_y = sdWorld.FastFloor((_y + range)/32);
+		let max_x = sdWorld.FastCeil((_x + range)/32);
+		let max_y = sdWorld.FastCeil((_y + range)/32);
 		
 		if ( max_x === min_x )
 		max_x++;
@@ -863,9 +863,9 @@ class sdWorld
 		let min_y = _y - range - 32;
 		let max_y = _y + range + 32;*/
 		let min_x = sdWorld.FastFloor((_x - range)/32);
-		let max_x = sdWorld.FastFloor((_x + range)/32);
 		let min_y = sdWorld.FastFloor((_y - range)/32);
-		let max_y = sdWorld.FastFloor((_y + range)/32);
+		let max_x = sdWorld.FastCeil((_x + range)/32);
+		let max_y = sdWorld.FastCeil((_y + range)/32);
 		
 		if ( max_x === min_x )
 		max_x++;

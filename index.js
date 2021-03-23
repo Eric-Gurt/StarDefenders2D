@@ -1793,6 +1793,8 @@ io.on("connection", (socket) =>
 	}
 	sockets.push( socket );
 	
+	let shop_pending = true; // Assuming shop is not dynamic
+	
 	socket.character = null;
 	
 	socket.sd_events = []; // Mobile devices should work better if they won't be flooded with separate TCP event messages.
@@ -2109,7 +2111,11 @@ io.on("connection", (socket) =>
 
 		socket.emit('SET sdWorld.my_entity', character_entity._net_id, { reliable: true, runs: 100 } );
 
-		socket.emit('SET sdShop.options', sdShop.options, { reliable: true, runs: 100 } );
+		if ( shop_pending )
+		{
+			shop_pending = false;
+			socket.emit('SET sdShop.options', sdShop.options, { reliable: true, runs: 100 } );
+		}
 
 		sdEntity.entities.push( character_entity );
 		
