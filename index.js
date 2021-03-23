@@ -2054,7 +2054,6 @@ io.on("connection", (socket) =>
 		//playing_players++;
 		
 		
-		
 
 
 		socket.emit('SET sdWorld.my_entity', character_entity._net_id, { reliable: true, runs: 100 } );
