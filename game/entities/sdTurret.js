@@ -211,7 +211,7 @@ class sdTurret extends sdEntity
 					{
 						bullet_obj._damage = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties._damage;
 						
-						bullet_obj._explosion_radius = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties._explosion_radius;
+						bullet_obj.explosion_radius = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.explosion_radius;
 						bullet_obj.model = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.model;
 						
 						bullet_obj.color = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.color;

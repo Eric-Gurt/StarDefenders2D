@@ -80,7 +80,7 @@ class sdBullet extends sdEntity
 		this._armor_penetration_level = 10; // Defines damage that is compared to target's ._armor_level in order to potentially be able or unable to deal any damage
 		
 		this._rail = false;
-		this._explosion_radius = 0;
+		this.explosion_radius = 0;
 		this.model = null; // Custom image model
 		this._knock_scale = 0.05 * 8; // Without * 8 in old mass model
 		this._hook = false;
@@ -110,11 +110,11 @@ class sdBullet extends sdEntity
 		if ( this._rail )
 		sdWorld.SendEffect({ x:this._start_x, y:this._start_y, x2:this.x, y2:this.y, type:sdEffect.TYPE_BEAM, color:this.color });
 	
-		if ( this._explosion_radius > 0 )
+		if ( this.explosion_radius > 0 )
 		sdWorld.SendEffect({ 
 			x:this.x, 
 			y:this.y, 
-			radius:this._explosion_radius, 
+			radius:this.explosion_radius, 
 			damage_scale: ( this._owner && this._owner.GetClass() === 'sdCharacter' ? this._owner._damage_mult : 1 ), 
 			type:sdEffect.TYPE_EXPLOSION,
 			armor_penetration_level: this._armor_penetration_level,
@@ -229,7 +229,7 @@ class sdBullet extends sdEntity
 					this._damage = this._damage / vel * vel2;
 
 					if ( !sdWorld.is_server )
-					if ( !this.CanBounceOff( sdWorld.last_hit_entity ) )
+					if ( sdWorld.last_hit_entity === null || !this.CanBounceOff( sdWorld.last_hit_entity ) )
 					{
 						this.remove();
 						return true;
@@ -249,7 +249,7 @@ class sdBullet extends sdEntity
 
 	CanBounceOff( from_entity )
 	{
-		if ( this._explosion_radius > 0 )
+		if ( this.explosion_radius > 0 )
 		return false;
 	
 		if ( !this._wave )
@@ -279,6 +279,7 @@ class sdBullet extends sdEntity
 			//	 from_entity.GetClass() === 'sdVirus' )
 			{
 				if ( from_entity.IsTargetable() )
+				if ( !sdWorld.server_config.GetHitAllowed || sdWorld.server_config.GetHitAllowed( this, from_entity ) )
 				{
 					if ( sdWorld.is_server ) // Or else fake self-knock
 					if ( this._damage !== 0 )
@@ -299,7 +300,7 @@ class sdBullet extends sdEntity
 						
 						let old_hea = ( from_entity.hea || from_entity._hea || 0 );
 
-						from_entity.Damage( dmg, this._owner );
+						from_entity.Damage( dmg, this._owner, limb_mult !== 1 );
 						
 						if ( this._custom_target_reaction )
 						this._custom_target_reaction( this, from_entity );

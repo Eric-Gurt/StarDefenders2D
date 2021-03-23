@@ -292,12 +292,12 @@ class sdEntity
 				{
 					if ( this.CanMoveWithoutOverlap( new_x, new_y - i, 0, custom_filtering_method ) )
 					{
-						if ( i > step_size / 2 )
+						/*if ( i > step_size / 2 )
 					    {
 							this.Impact( sdWorld.Dist2D_Vector( this.sx, this.sy ) );
 							this.sx = 0;
 							this.sy = 0;
-						}
+						}*/
 				
 						this.x = new_x;
 						this.y = new_y - i;

@@ -112,8 +112,8 @@ class sdOctopus extends sdEntity
 			sdSound.PlaySound({ name:'octopus_death', x:this.x, y:this.y, volume: 0.5 });
 
 			if ( initiator )
-			if ( initiator._socket )
-			initiator._socket.score += 10;
+			if ( typeof initiator._score !== 'undefined' )
+			initiator._score += 20;
 	
 			/*while ( this._consumed_matter.length > 0 )
 			{

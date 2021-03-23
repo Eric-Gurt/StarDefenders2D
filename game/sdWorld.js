@@ -24,6 +24,8 @@ class sdWorld
 		sdWorld.logic_rate = 16; // for server
 		sdWorld.max_update_rate = 64;
 		
+		sdWorld.server_config = {};
+		
 		sdWorld.time = Date.now(); // Can be important because some entities (sdCommandCentre) use sdWorld.time as default destruction time, which will be instantly without setting this value
 		sdWorld.frame = 0;
 		
@@ -386,14 +388,14 @@ class sdWorld
 	
 	
 
-	static GetPlayingPlayersCount()
+	static GetPlayingPlayersCount( count_dead=false )
 	{
 		let c = 0;
 
 		for ( let i = 0; i < sdWorld.sockets.length; i++ )
 		if ( sdWorld.sockets[ i ].character !== null )
-		if ( sdWorld.sockets[ i ].character.hea > 0 )
-		if ( !sdWorld.sockets[ i ].character._is_being_removed )
+		if ( count_dead || sdWorld.sockets[ i ].character.hea > 0 )
+		if ( count_dead || !sdWorld.sockets[ i ].character._is_being_removed )
 		{
 			c++;
 		}
@@ -1178,6 +1180,7 @@ class sdWorld
 		let old_time = sdWorld.time;
 		
 		sdWorld.time = Date.now();
+		sdSound.sounds_played_at_frame = 0;
 		
 		let t2 = sdWorld.time;
 		
@@ -1357,7 +1360,7 @@ class sdWorld
 			for ( let i2 = 0; i2 < sockets.length; i2++ )
 			{
 				if ( sockets[ i2 ].character && !sockets[ i2 ].character._is_being_removed )
-				sdWorld.leaders.push({ name:sockets[ i2 ].character.title, score:sockets[ i2 ].score });
+				sdWorld.leaders.push({ name:sockets[ i2 ].character.title, score:sockets[ i2 ].GetScore() });
 			
 				if ( sockets[ i2 ].ffa_warning > 0 )
 				{
@@ -1397,6 +1400,13 @@ class sdWorld
 		
 		let t5 = Date.now();
 		IncludeTimeCost( 'world_hash_positions_recheck_keys', t5 - t4 );
+		
+		
+		if ( sdWorld.server_config.onExtraWorldLogic )
+		sdWorld.server_config.onExtraWorldLogic( GSPEED );
+	
+		let t6 = Date.now();
+		IncludeTimeCost( 'onExtraWorldLogic', t6 - t5 );
 		
 		if ( sdWorld.is_server )
 		{

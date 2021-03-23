@@ -138,14 +138,14 @@ class sdSandWorm extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
-		if ( initiator )
-		//if ( !initiator.is( sdSandWorm ) )
-		if ( !initiator.is( sdCube ) )
-		this._current_target = initiator;
-	
 		dmg = Math.abs( dmg );
 		
 		let head_entity = this.GetHeadEntity();
+		
+		if ( initiator )
+		//if ( !initiator.is( sdSandWorm ) )
+		if ( !initiator.is( sdCube ) )
+		head_entity._current_target = initiator;
 		
 		let this_was_alive = this._hea > 0;
 		let was_alive = head_entity._hp_main > 0;
@@ -188,8 +188,8 @@ class sdSandWorm extends sdEntity
 		if ( head_entity._hp_main <= 0 && was_alive )
 		{
 			if ( initiator )
-			if ( initiator._socket )
-			initiator._socket.score += 50;
+			if ( typeof initiator._score !== 'undefined' )
+			initiator._score += 60;
 	
 			sdSound.PlaySound({ name:'octopus_alert', x:head_entity.x, y:head_entity.y, pitch:0.25, volume:4 });
 	

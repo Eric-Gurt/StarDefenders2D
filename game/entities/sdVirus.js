@@ -165,8 +165,8 @@ class sdVirus extends sdEntity
 			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:4 * sdVirus.normal_max_health / this.hmax });
 
 			if ( initiator )
-			if ( initiator._socket )
-			initiator._socket.score += ~~( 1 * this.hmax / sdVirus.normal_max_health );
+			if ( typeof initiator._score !== 'undefined' )
+			initiator._score += ~~( 1 * this.hmax / sdVirus.normal_max_health );
 		}
 		
 		if ( this._hea < -this.hmax / 80 * 100 )

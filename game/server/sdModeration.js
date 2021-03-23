@@ -125,7 +125,7 @@ class sdModeration
 				{
 					if ( !globalThis.file_exists( sdWorld.superuser_pass_path ) )
 					{
-						fs.writeFileSync( sdWorld.superuser_pass_path, 'pass'+ ~~( 100 + Math.random() * 899 ) );
+						fs.writeFileSync( sdWorld.superuser_pass_path, 'pass'+ ~~( 10000 + Math.random() * 89999 ) );
 					}
 					
 					let pass = fs.readFileSync( sdWorld.superuser_pass_path ).toString();
