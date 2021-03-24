@@ -56,6 +56,7 @@ class sdGun extends sdEntity
 		sdGun.CLASS_TRIPLE_RAIL = 14;
 		sdGun.CLASS_FISTS = 15;
 		sdGun.CLASS_SABER = 16;
+		sdGun.CLASS_RAIL_PISTOL = 17;
 		
 		/*
 		
@@ -333,6 +334,18 @@ class sdGun extends sdEntity
 						sdSound.PlaySound({ name:'saber_hit2', x:bullet.x, y:bullet.y, volume:1.5 });
 					}
 				}
+			},
+			{
+				image: sdWorld.CreateImageFromFile( 'rail_pistol' ),
+				sound: 'cube_attack',
+				title: 'Cube-pistol',
+				slot: 1,
+				reload_time: 9,
+				muzzle_x: 8,
+				ammo_capacity: -1,
+				count: 1,
+				projectile_properties: { _rail: true, _damage: 25, color: '#62c8f2', _knock_scale:0.01 * 8 },
+				spawnable: false
 			}
 		];
 		

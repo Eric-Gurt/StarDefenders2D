@@ -455,10 +455,16 @@ class sdWorld
 				if ( Math.pow( enemy_rand_num, 5 ) > 1 / hp_mult )
 				random_enemy = 'sdOctopus';
 				else
+				if ( Math.pow( enemy_rand_num, 3 ) > 0.8 / hp_mult )
+				random_enemy = 'sdSlug';
+				else
 				if ( Math.pow( enemy_rand_num, 2 ) > 0.8 / hp_mult )
 				random_enemy = 'sdQuickie';
 				else
 				{
+					if ( Math.random() < 0.05 ) // Small chance to spawn on ground levels since they are passive if unprovoked
+					random_enemy = 'sdSlug';
+					else
 					if ( Math.random() < 0.2 )
 					random_enemy = 'sdAsp';
 					else
