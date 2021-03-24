@@ -692,21 +692,27 @@ class sdEntity
 			
 		if ( current_frame !== this._snapshot_cache_frame || save_as_much_as_possible )
 		{
+			returned_object = {
+				_net_id: this._net_id,
+				_class: this.GetClass()
+			};
+
 			// Some extra logic so backup saving does not corrupt _snapshot_cache for 1 frame
 			if ( save_as_much_as_possible )
 			{
-				returned_object = {};
 			}
 			else
 			{
 				this._snapshot_cache_frame = current_frame;
 
-				this._snapshot_cache = {
+				/*this._snapshot_cache = {
 					_net_id: this._net_id,
 					_class: this.GetClass()
 				};
 				
-				returned_object = this._snapshot_cache;
+				returned_object = this._snapshot_cache;*/
+				
+				this._snapshot_cache = returned_object;
 			}
 			
 			//throw new Error( this.__proto__ );
@@ -966,8 +972,8 @@ class sdEntity
 		//if ( globalThis[ snapshot._class ] === undefined )
 		if ( typeof sdWorld.entity_classes[ snapshot._class ] === 'undefined' )
 		{
-			console.log( 'Known entity classes: ', sdWorld.entity_classes );
-			throw new Error( 'Unknown entity class "'+snapshot._class+'". Download?' );
+			//console.log( 'Known entity classes: ', sdWorld.entity_classes );
+			throw new Error( 'Unknown entity class "'+snapshot._class+'". Download or it is missing?' );
 		}
 	
 		var ret = new sdWorld.entity_classes[ snapshot._class ]({ x:snapshot.x, y:snapshot.y });//globalThis[ snapshot._class ];

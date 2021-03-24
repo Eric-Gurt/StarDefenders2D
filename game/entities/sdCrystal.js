@@ -63,11 +63,11 @@ class sdCrystal extends sdEntity
 		
 		
 		this.matter = this.matter_max;
-		
+		/*
 		this._last_sync_matter = this.matter;
 		this._last_sync_x = this.x;
 		this._last_sync_y = this.y;
-		
+		*/
 		this._hea = 60;
 		
 		this._damagable_in = sdWorld.time + 1000; // Suggested by zimmermannliam, will only work for sdCharacter damage		
