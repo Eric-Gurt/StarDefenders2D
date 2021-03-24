@@ -100,11 +100,11 @@ class sdSnapPack
 							if ( value === null )
 							hit_cost = 3 + p.length + 4;
 							else
-							if ( value === undefined )
+							if ( value === undefined || isNaN( value ) )
 							{
 								hit_cost = 3 + p.length + 4; // Becomes null in the end
 								
-								throw new Error( 'Get rid of undefined values... They are becoming nulls in JSON. Property name is '+ent.GetClass()+'['+ent._net_id+'].'+p+' = undefined;' );
+								throw new Error( 'Get rid of undefined & NaN values... undefined values are becoming nulls in JSON and NaN values just cause endless recursion. Property name is '+ent.GetClass()+'['+ent._net_id+'].'+p+' = '+value+';' );
 							}
 							else
 							{

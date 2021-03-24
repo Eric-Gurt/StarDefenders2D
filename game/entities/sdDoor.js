@@ -149,12 +149,6 @@ class sdDoor extends sdEntity
 			let ents_near = this.GetAnythingNearCache( this.x0, this.y0, 32 );
 			for ( let i = 0; i < ents_near.length; i++ )
 			{
-				if ( ents_near[ i ].title === 'Star Defener1' )
-				{
-					let test = 1;
-					test *= 0;
-				}
-				
 				if ( ents_near[ i ].is_static || ents_near[ i ].is( sdDoor ) || ents_near[ i ]._net_id === undefined ) // skip statics and ones that dont exist on server
 				{
 					ents_near.splice( i, 1 );

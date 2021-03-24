@@ -688,14 +688,26 @@ class sdEntity
 	}
 	GetSnapshot( current_frame, save_as_much_as_possible=false )
 	{
-		if ( current_frame !== this._snapshot_cache_frame )
-		{
-			this._snapshot_cache_frame = current_frame;
+		let returned_object;
 			
-			this._snapshot_cache = {
-				_net_id: this._net_id,
-				_class: this.GetClass()
-			};
+		if ( current_frame !== this._snapshot_cache_frame || save_as_much_as_possible )
+		{
+			// Some extra logic so backup saving does not corrupt _snapshot_cache for 1 frame
+			if ( save_as_much_as_possible )
+			{
+				returned_object = {};
+			}
+			else
+			{
+				this._snapshot_cache_frame = current_frame;
+
+				this._snapshot_cache = {
+					_net_id: this._net_id,
+					_class: this.GetClass()
+				};
+				
+				returned_object = this._snapshot_cache;
+			}
 			
 			//throw new Error( this.__proto__ );
 			
@@ -712,7 +724,7 @@ class sdEntity
 			for ( var prop in this )
 			{
 				if ( prop.charAt( 0 ) !== '_' || 
-					 ( save_as_much_as_possible && prop !== '_snapshot_cache_frame' && prop !== '_hiberstate' && prop !== '_last_x' && prop !== '_last_y' && ( typeof this[ prop ] === 'number' || typeof this[ prop ] === 'string' || typeof this[ prop ] === 'boolean' /*|| ( typeof this[ prop ] === 'object' && typeof this[ prop ]._net_id !== 'undefined' && typeof this[ prop ]._class !== 'undefined' )*/ || this.ExtraSerialzableFieldTest( prop ) ) ) )
+					 ( save_as_much_as_possible && prop !== '_snapshot_cache_frame' && prop !== '_snapshot_cache' && prop !== '_hiberstate' && prop !== '_last_x' && prop !== '_last_y' && ( typeof this[ prop ] === 'number' || typeof this[ prop ] === 'string' || typeof this[ prop ] === 'boolean' /*|| ( typeof this[ prop ] === 'object' && typeof this[ prop ]._net_id !== 'undefined' && typeof this[ prop ]._class !== 'undefined' )*/ || this.ExtraSerialzableFieldTest( prop ) ) ) )
 				{
 					var v = this[ prop ];
 					
@@ -731,20 +743,24 @@ class sdEntity
 					if ( !save_as_much_as_possible && typeof v === 'number' ) // Do not do number rounding if world is being saved
 					{
 						if ( prop === 'sx' || prop === 'sy' || prop === 'scale' )
-						this._snapshot_cache[ prop ] = Math.round( v * 100 ) / 100;
+						returned_object[ prop ] = Math.round( v * 100 ) / 100;
 						else
-						this._snapshot_cache[ prop ] = Math.round( v );
+						returned_object[ prop ] = Math.round( v );
 					}
 					else
-					this._snapshot_cache[ prop ] = v;
+					returned_object[ prop ] = v;
 				}
 			}
 		}
+		else
+		{
+			returned_object = this._snapshot_cache;
+		}
 		
 		//if ( this.GetClass() === 'sdBullet' )
-		//console.log( JSON.stringify( this._snapshot_cache ) );
+		//console.log( JSON.stringify( returned_object ) );
 		
-		return this._snapshot_cache;
+		return returned_object;
 	}
 	ExtraSerialzableFieldTest( prop ) // Some object properties testing might go here, for snapshots only
 	{

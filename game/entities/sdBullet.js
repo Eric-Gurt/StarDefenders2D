@@ -313,9 +313,15 @@ class sdBullet extends sdEntity
 						if ( old_hea !== ( from_entity.hea || from_entity._hea || 0 ) ) // Any damage actually dealt
 						{
 							if ( from_entity.GetClass() === 'sdCharacter' && !sdCube.IsTargetFriendly( from_entity ) )
-							this._owner._player_damage += dmg;
+							{
+								if ( typeof this._owner._player_damage !== 'undefined' )
+								this._owner._player_damage += dmg;
+							}
 							else
-							this._owner._nature_damage += dmg;
+							{
+								if ( typeof this._owner._nature_damage !== 'undefined' )
+								this._owner._nature_damage += dmg;
+							}
 						}
 
 						this._damage = 0; // for healguns
@@ -393,6 +399,7 @@ class sdBullet extends sdEntity
 							if ( old_hea !== ( from_entity.hea || from_entity._hea || 0 ) ) // Any damage actually dealt
 							{
 								if ( from_entity.GetClass() === 'sdCube' || from_entity.GetClass() === 'sdCrystal' )
+								if ( typeof this._owner._nature_damage !== 'undefined' )
 								this._owner._nature_damage += dmg;
 							}
 						}

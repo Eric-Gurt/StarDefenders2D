@@ -475,6 +475,8 @@ class sdServerConfig
 				sdWorld.world_bounds.x2 = 10000;
 				sdWorld.world_bounds.y1 = -10000;
 				sdWorld.world_bounds.y2 = 10000;
+				
+				sdWorld.push_fields = [];
 
 				let world_bounds = {x1:0,y1:0,x2:0,y2:0};
 
