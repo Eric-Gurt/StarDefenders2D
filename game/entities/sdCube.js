@@ -174,6 +174,31 @@ class sdCube extends sdEntity
 				}, 500 );
 			}
 
+			else
+
+			{
+			if ( r < ( this.is_huge ? 0.4 : 0.1 ) * 1 ) // 2x chance of triple rail to drop, only when triple rail does not drop
+			{
+				let x = this.x;
+				let y = this.y;
+				let sx = this.sx;
+				let sy = this.sy;
+				
+				//console.log( 'CLASS_RAIL_PISTOL should drop in 500 ms: ' + [ x, y, sx, sy ].join(',') );
+				
+				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+					let gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_PISTOL });
+					gun.sx = sx;
+					gun.sy = sy;
+					sdEntity.entities.push( gun );
+					
+					//console.log( gun );
+					//debugger;
+					
+				}, 500 );
+			}
+			}
+
 			this.remove();
 		}
 		

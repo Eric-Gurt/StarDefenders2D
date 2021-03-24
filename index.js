@@ -187,6 +187,7 @@ import sdAsp from './game/entities/sdAsp.js';
 import sdModeration from './game/server/sdModeration.js';
 import sdSandWorm from './game/entities/sdSandWorm.js';
 import sdGrass from './game/entities/sdGrass.js';
+import sdSlug from './game/entities/sdSlug.js';
 
 import LZW from './game/server/LZW.js';
 import sdSnapPack from './game/server/sdSnapPack.js';
@@ -286,6 +287,7 @@ sdStorage.init_class();
 sdAsp.init_class();
 sdSandWorm.init_class();
 sdGrass.init_class();
+sdSlug.init_class();
 
 sdShop.init_class(); // requires plenty of classes due to consts usage
 LZW.init_class();
