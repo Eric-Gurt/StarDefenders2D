@@ -1878,22 +1878,23 @@ io.on("connection", (socket) =>
 		socket.last_player_settings = player_settings;
 		
 		socket.SyncFFAWarning();
-		
+		/* Moved down so it only prevents full respawn
 		if ( !force_allow && sdWorld.time < socket.respawn_block_until )
 		{
 			//socket.emit('SERVICE_MESSAGE', 'Respawn rejected - too quickly (wait ' + ( socket.respawn_block_until - sdWorld.time ) + 'ms)' );
 			socket.emit('SERVICE_MESSAGE', 'Respawn rejected - too quickly (wait ' + Math.ceil( ( socket.respawn_block_until - sdWorld.time ) / 100 ) / 10 + ' seconds)' );
 			return;
 		}
+		socket.respawn_block_until = sdWorld.time + 2000; // Will be overriden if player respawned near his command centre
 		
+		socket.post_death_spectate_ttl = 30;
+		
+		*/
 		socket.my_hash = player_settings.my_hash;
 		
 		socket.sd_events = []; // Just in case? There was some source of 600+ events stacked, possibly during start screen waiting or maybe even during player being removed. Lots of 'C' events too
 		
 		//socket.respawn_block_until = sdWorld.time + 400;
-		socket.respawn_block_until = sdWorld.time + 2000; // Will be overriden if player respawned near his command centre
-		
-		socket.post_death_spectate_ttl = 30;
 		
 		//let old_score = socket.score;
 		
@@ -2051,6 +2052,7 @@ io.on("connection", (socket) =>
 				}
 			}
 			
+			// Probably not a good thing to do since non-full reset will not can bypass respawn timeout
 			if ( character_entity === null )
 			player_settings.full_reset = true; // Full reset if no player can be found
 		}
@@ -2081,6 +2083,18 @@ io.on("connection", (socket) =>
 		
 		if ( player_settings.full_reset )
 		{
+			if ( !force_allow && sdWorld.time < socket.respawn_block_until )
+			{
+				//socket.emit('SERVICE_MESSAGE', 'Respawn rejected - too quickly (wait ' + ( socket.respawn_block_until - sdWorld.time ) + 'ms)' );
+				socket.emit('SERVICE_MESSAGE', 'Respawn rejected - too quickly (wait ' + Math.ceil( ( socket.respawn_block_until - sdWorld.time ) / 100 ) / 10 + ' seconds)' );
+				return;
+			}
+			socket.respawn_block_until = sdWorld.time + 2000; // Will be overriden if player respawned near his command centre
+			socket.post_death_spectate_ttl = 30;
+
+
+
+
 			RemoveOldPlayerOnSocket();
 			SpawnNewPlayer();
 			

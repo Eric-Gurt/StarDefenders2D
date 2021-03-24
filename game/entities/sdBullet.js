@@ -32,6 +32,16 @@ class sdBullet extends sdEntity
 	
 	get substeps() // Bullets will need more
 	{ return 6; } // 3 was generally fine expect for sniper
+
+	get hard_collision() // For world geometry where players can walk
+	{ return this.is_grenade; }
+	
+	get mass() { return 5; }
+	Impulse( x, y )
+	{
+		this.sx += x / this.mass;
+		this.sy += y / this.mass;
+	}
 	
 	get progress_until_removed()
 	{ return this._rail || this._hook || this._wave; }
@@ -99,6 +109,8 @@ class sdBullet extends sdEntity
 		this._can_hit_owner = false;
 		
 		this._soft = false; // Punches
+		
+		this._hea = 80; // For grenades to be hittable
 		
 		// Rockets
 		this.ac = 0; // Intensity
@@ -172,6 +184,23 @@ class sdBullet extends sdEntity
 	get friction_remain()
 	{ return this.is_grenade ? 0.8 : 0.3; }
 	
+	Damage( dmg, initiator=null )
+	{
+		if ( !sdWorld.is_server )
+		return;
+	
+		dmg = Math.abs( dmg );
+		
+		let was_alive = this._hea > 0;
+		
+		this._hea -= dmg;
+		
+		if ( this._hea <= 0 && was_alive )
+		{
+			this.remove();
+		}
+	}
+	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		this.time_left -= GSPEED;
@@ -199,7 +228,7 @@ class sdBullet extends sdEntity
 		}
 		else
 		{
-			if ( this.penetrating )
+			if ( this.penetrating || this._rail )
 			{
 				this.x += this.sx * GSPEED;
 				this.y += this.sy * GSPEED;
@@ -271,6 +300,10 @@ class sdBullet extends sdEntity
 		if ( !this._hook )
 		if ( from_entity.is( sdGun ) )
 		return;
+
+		/*if ( this._rail )
+		if ( from_entity.is_grenade )
+		debugger;*/
 	
 		if ( ( this._owner !== from_entity && ( !this._owner || !this._owner._owner || this._owner._owner !== from_entity ) ) || this._can_hit_owner ) // 2nd rule is for turret bullet to not hit turret owner
 		{

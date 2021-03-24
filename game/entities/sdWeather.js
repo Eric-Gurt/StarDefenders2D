@@ -9,6 +9,8 @@ import sdBlock from './sdBlock.js';
 import sdCharacter from './sdCharacter.js';
 import sdGun from './sdGun.js';
 import sdAsp from './sdAsp.js';
+import sdGrass from './sdGrass.js';
+import sdCom from './sdCom.js';
 
 
 
@@ -46,6 +48,8 @@ class sdWeather extends sdEntity
 		
 		this.x = 0;
 		this.y = 0;
+		
+		this._next_grass_seed = 0;
 		
 		if ( sdWeather.only_instance )
 		sdWeather.only_instance.remove();
@@ -125,17 +129,47 @@ class sdWeather extends sdEntity
 			}
 			
 			if ( this.raining_intensity > 50 )
-			for ( var i = 0; i < sdWorld.sockets.length; i++ )
-			if ( sdWorld.sockets[ i ].character )
-			if ( !sdWorld.sockets[ i ].character._is_being_removed )
+			if ( sdWorld.is_server )
 			{
-				if ( sdWorld.sockets[ i ].character.driver_of === null )
-				if ( this.TraceDamagePossibleHere( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y ) )
+				sdWorld.last_hit_entity = null;
+				
+				//for ( var i = 0; i < 40; i++ )
+				//if ( Math.random() < 100 / ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) )
+				if ( sdWorld.time > this._next_grass_seed )
 				{
-					if ( sdWorld.sockets[ i ].character.pain_anim <= 0 && sdWorld.sockets[ i ].character.hea > 0 )
-					sdWorld.SendEffect({ x:sdWorld.sockets[ i ].character.x, y:sdWorld.sockets[ i ].character.y + sdWorld.sockets[ i ].character.hitbox_y1, type:sdWorld.sockets[ i ].character.GetBleedEffect(), filter:sdWorld.sockets[ i ].character.GetBleedEffectFilter() });
+					this._next_grass_seed = sdWorld.time + 100;
 					
-					sdWorld.sockets[ i ].character.Damage( GSPEED * this.raining_intensity / 240 );
+					let xx = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+
+					if ( !sdWorld.CheckLineOfSight( xx, sdWorld.world_bounds.y1 + 4, xx, sdWorld.world_bounds.y2, null, null, sdCom.com_creature_attack_unignored_classes ) )
+					{
+						if ( sdWorld.last_hit_entity )
+						if ( sdWorld.last_hit_entity.is( sdBlock ) )
+						if ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND )
+						{
+							if ( sdWorld.last_hit_entity._plants === null )
+							{
+								let grass = new sdGrass({ x:sdWorld.last_hit_entity.x, y:sdWorld.last_hit_entity.y - 16, filter: sdWorld.last_hit_entity.filter });
+								sdEntity.entities.push( grass );
+
+								sdWorld.last_hit_entity._plants = [ grass._net_id ];
+							}
+						}
+					}
+				}
+				
+				for ( var i = 0; i < sdWorld.sockets.length; i++ )
+				if ( sdWorld.sockets[ i ].character )
+				if ( !sdWorld.sockets[ i ].character._is_being_removed )
+				{
+					if ( sdWorld.sockets[ i ].character.driver_of === null )
+					if ( this.TraceDamagePossibleHere( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y ) )
+					{
+						if ( sdWorld.sockets[ i ].character.pain_anim <= 0 && sdWorld.sockets[ i ].character.hea > 0 )
+						sdWorld.SendEffect({ x:sdWorld.sockets[ i ].character.x, y:sdWorld.sockets[ i ].character.y + sdWorld.sockets[ i ].character.hitbox_y1, type:sdWorld.sockets[ i ].character.GetBleedEffect(), filter:sdWorld.sockets[ i ].character.GetBleedEffectFilter() });
+
+						sdWorld.sockets[ i ].character.Damage( GSPEED * this.raining_intensity / 240 );
+					}
 				}
 			}
 			

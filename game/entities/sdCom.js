@@ -20,7 +20,7 @@ class sdCom extends sdEntity
 		//sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdMatterContainer', 'sdTeleport', 'sdCrystal', 'sdLamp', 'sdCube' ];
 		sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdTeleport', 'sdCube' ]; // Used for sdCube pathfinding now...
 		sdCom.com_visibility_unignored_classes = [ 'sdBlock' ];
-		sdCom.com_creature_attack_unignored_classes = [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ]; // Used by sdVirus so far
+		sdCom.com_creature_attack_unignored_classes = [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ]; // Used by sdVirus so far. Also for rain that spawns grass
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}

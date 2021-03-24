@@ -338,7 +338,7 @@ class sdCharacter extends sdEntity
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return this._key_states.GetKey('KeyX') ? [ 'sdCharacter' ] : null;
+		return this._key_states.GetKey('KeyX') ? [ 'sdCharacter', 'sdBullet' ] : [ 'sdBullet' ];
 	}
 	
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way

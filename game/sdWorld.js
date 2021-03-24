@@ -1617,7 +1617,8 @@ class sdWorld
 	static CheckLineOfSight( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null )
 	{
 		var di = sdWorld.Dist2D( x1,y1,x2,y2 );
-		var step = 16;
+		//var step = 16;
+		var step = 8;
 		
 		for ( var s = step / 2; s < di - step / 2; s += step )
 		{

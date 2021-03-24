@@ -160,19 +160,23 @@
 	    }
 	    
 	    
-	    .set_block a, .set_block a:link, .set_block a:visited
+	    .server, .server:link, .server:visited
 	    {
 		color: white;
 		display:block;
 		padding:5px;
 	    }
-	    .set_block a:hover
+	    .server:hover
 	    {
 		color: #ff7aef;
 	    }
-	    .set_block a:active
+	    .server:active
 	    {
 		color: #000000;
+	    }
+	    .server div
+	    {
+		opacity: 0.3;
 	    }
 	    
 	    .r_conteiner
@@ -441,9 +445,10 @@
 	    
 	    <div style="position: absolute; left: calc( 100% + 20px ); top:0; width: 300px; height: 100%;
 		box-sizing: border-box; background-color: black;
-		padding: 20px; overflow-y: scroll;">
+		padding: 20px; overflow-y: auto;">
 		<span class="sdtitle">What's new?:</span><br>
 		<div class="sdgroup">
+		    <a href="https://github.com/Eric-Gurt/StarDefenders2D/compare/8cf68ea5d2b18cd11f2f3855fb5e54353d5639fa...main">Open update & patch log on github</a><br><br><!--
 		    21 March 2021: Will try to co-host another server for FFA play. Also slightly new terrain generation, grass and plenty of performance fixes.<br><br>
 		    20 March 2021: Who reads these? New rare enemy.<br><br>
 		    11 March 2021: Something that won't work with ground that was created from previous version of game; bugfixes; weapon storages should work now; more information for connection/performance issues in debug mode - feel free to report when these heavy lags happen.<br><br>
@@ -456,8 +461,16 @@
 		    28 January 2021: High latency players should have less problems with server teleporting them back to where it thinks they should be (short key presses used to be ignored before, which was more noticeable for players with high latency).<br><br>
 		    25 January 2021: Fixed memory leak, some other bug fixes, ground is now stronger if players dig too deep, day/night-ish cycle.<br><br>
 		    24 January 2021: More bug fixes and optimizations! Added turrets, matter containers and reworked spike traps. Also world is now endless and bounds can shift as long as there is no alive players on another side of a map.<br><br>
-		    22 January 2021: First bug fixes and disabled water due to heavy lag. Chat should work now too!<br><br>
+		    22 January 2021: First bug fixes and disabled water due to heavy lag. Chat should work now too!<br><br>-->
 		    21 January 2021: First public release!
+		</div>
+		<br><br>
+		<span class="sdtitle">Other servers:</span>
+		<div class="sdgroup">
+		    <a class="server" href="http://localhost:3000">localhost:3000<div>your server will be here</div></a> 
+		    <a class="server" href="https://www.gevanni.com:3000">gevanni.com:3000<div>Main server, initial world, more peaceful</div></a>
+		    <a class="server" href="https://www.gevanni.com:3001">gevanni.com:3001<div>Main server, FFA allowed, no Cubes, no invisibility, no Command Centres</div></a>
+		    <a class="server" href="https://www.gevanni.com:3002">gevanni.com:3002<div>Main server, PvP arena (or more like PB2 arena)</div></a>
 		</div>
 	    </div>
 	    
@@ -618,15 +631,11 @@
 		<input type="checkbox" id="voice7" value="high" onclick="globalThis.TestVoice(this)">
 		<label for="voice7">Robotic</label>
 	    </div>
-	    
+	    <!--
 	    <div class="set_block" tabindex="1" style="width: 485px">
 		<span class="sdtitle">Other Star Defenders servers</span><br>
-		<a href="http://localhost:3000">localhost:3000 - your server will be here</a> 
-		<a href="https://www.gevanni.com:3000">gevanni.com:3000 - Main server, initial world, more peaceful</a>
-		<!--<a href="https://www.gevanni.com:3001">gevanni.com:3001 - Main server, alternative world, FFA, no big bases</a>-->
-		<a href="https://www.gevanni.com:3002">gevanni.com:3002 - Main server, PvP arena</a>
 	    </div>
-	    
+	    -->
 	    <div style="position:absolute;left:20px;bottom:20px">
 	    
 	    <input type="button" style="background-color:#2b7939; width: 300px;" id="start_btn" onclick="sdWorld.Start( globalThis.GetPlayerSettings() );" value="Play with other players"> <input type="button" onclick="globalThis.ResetSkin();" value="Reset skin to default">
