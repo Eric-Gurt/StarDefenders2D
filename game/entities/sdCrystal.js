@@ -119,13 +119,13 @@ class sdCrystal extends sdEntity
 		
 		
 		// Similar to sdMatterContainers but not really, since it can have consistent slight movement unlike containers
-		if ( Math.abs( this._last_sync_matter - this.matter ) > this.matter_max * 0.1 || Math.abs( this._last_sync_x - this.x ) >= 1 || Math.abs( this._last_sync_y - this.y ) >= 1 )
+		/*if ( Math.abs( this._last_sync_matter - this.matter ) > this.matter_max * 0.1 || Math.abs( this._last_sync_x - this.x ) >= 1 || Math.abs( this._last_sync_y - this.y ) >= 1 )
 		{
 			this._last_sync_matter = this.matter;
 			this._last_sync_x = this.x;
 			this._last_sync_y = this.y;
 			this._update_version++;
-		}
+		}*/
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
