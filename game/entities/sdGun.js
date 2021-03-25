@@ -357,7 +357,9 @@ class sdGun extends sdEntity
 		{
 			if ( this.ammo_left === -123 )
 			{
-				//this.ReloadComplete();
+				if ( sdGun.classes[ this.class ].ammo_capacity === undefined )
+				sdGun.classes[ this.class ].ammo_capacity = -1;
+			
 				this.ammo_left = sdGun.classes[ this.class ].ammo_capacity;
 			}
 			
@@ -510,6 +512,7 @@ class sdGun extends sdEntity
 	UpdateHolderClientSide()
 	{
 		if ( !sdWorld.is_server )
+		if ( this._net_id !== undefined ) // Only for real entities
 		{
 			let old_held_by = this._held_by;
 

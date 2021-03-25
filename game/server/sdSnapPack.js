@@ -360,7 +360,7 @@ class sdSnapPack
 		catch( e )
 		{
 			console.log( 'Problem during compression of entity list: ', original_array );
-			throw new Error( 'Problem was not resolved' );
+			throw new Error( 'Problem was not resolved. Original error: ', e );
 		}
 	}
 	
