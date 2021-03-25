@@ -146,7 +146,8 @@ class sdOctopus extends sdEntity
 		//this.sx += x * 0.01;
 		//this.sy += y * 0.01;
 	}
-	/*Impact( vel ) // fall damage basically
+	/* Default fall damage
+	Impact( vel ) // fall damage basically
 	{
 		// less fall damage
 		if ( vel > 10 )

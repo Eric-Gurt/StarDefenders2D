@@ -1,4 +1,6 @@
 
+// Idea & implementation by Booraz149 ( https://github.com/Booraz149 )
+
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
@@ -13,9 +15,10 @@ class sdSlug extends sdEntity
 	static init_class()
 	{
 		sdSlug.img_slug_idle1 = sdWorld.CreateImageFromFile( 'slug_idle' );
-		sdSlug.img_slug_idle2 = sdWorld.CreateImageFromFile( 'slug_idle' );
 		sdSlug.img_slug_walk1 = sdWorld.CreateImageFromFile( 'slug_walk1' );
 		sdSlug.img_slug_walk2 = sdWorld.CreateImageFromFile( 'slug_walk2' );
+		
+		sdSlug.img_slug_blinks = [ sdWorld.CreateImageFromFile( 'slug_blink1' ), sdWorld.CreateImageFromFile( 'slug_blink2' ), sdWorld.CreateImageFromFile( 'slug_blink3' ) ];
 		
 		sdSlug.death_imgs = [
 			sdWorld.CreateImageFromFile( 'slug_death1' ),
@@ -30,10 +33,10 @@ class sdSlug extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -6; }
-	get hitbox_x2() { return 6; }
-	get hitbox_y1() { return -5; }
-	get hitbox_y2() { return 5; }
+	get hitbox_x1() { return -7; }
+	get hitbox_x2() { return 7; }
+	get hitbox_y1() { return -6; }
+	get hitbox_y2() { return 3; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return this.death_anim === 0; }
@@ -45,25 +48,28 @@ class sdSlug extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 500;
+		this._hmax = 300; // 500
 		this._hea = this._hmax;
 		this._move_timer = 30; // Timer used for moving when unprovoked
-		this.idle=0;
+		this.idle = 0;
 		this.death_anim = 0;
 		
 		this._current_target = null;
 		
 		//this._last_stand_on = null;
-		this._last_jump = sdWorld.time;
+		this.last_jump = sdWorld.time;
 		this._last_bite = sdWorld.time;
+		this._last_stand_when = 0;
 		
 		this.side = 1;
+		
+		this.blinks = [ 0, 0, 0 ];
 		
 		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
-		if ( this._hea != this._hmax )
+		if ( this._hea !== this._hmax )
 		if ( character.IsTargetable() && character.IsVisible() )
 		if ( character.hea > 0 )
 		{
@@ -74,8 +80,6 @@ class sdSlug extends sdEntity
 				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
 			{
 				this._current_target = character;
-
-				sdSound.PlaySound({ name:'quickie_alert', x:this.x, y:this.y, volume: 0.5 });
 			}
 		}
 	}
@@ -101,7 +105,7 @@ class sdSlug extends sdEntity
 		if ( this._hea <= 0 && was_alive )
 		{
 			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
-			this.idle=1;
+			this.idle = 1;
 			if ( initiator )
 			if ( typeof initiator._score !== 'undefined' )
 			initiator._score += 1;
@@ -111,20 +115,19 @@ class sdSlug extends sdEntity
 		this.remove();
 	}
 	
-	get mass() { return 75; }
+	get mass() { return 30; } // 75
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
-		this.sy += y / (this.mass/2);
-		//this.sx += x * 0.2;
-		//this.sy += y * 0.2;
+		this.sy += y / this.mass;
+		//this.sy += y / ( this.mass / 2 ); // Impulse is something that defines how entity bounces off damage. Scaling Y impulse can cause it to be knocked into wrong direction?
 	}
-	/*Impact( vel ) // fall damage basically
+	/* Default fall damage
+	Impact( vel ) // fall damage basically
 	{
-		// less fall damage
-		if ( vel > 10 )
+		if ( vel > 10 ) // less fall damage
 		{
-			this.Damage( ( vel - 4 ) * 15 );
+			this.Damage( ( vel - 3 ) * 15 );
 		}
 	}*/
 	onThink( GSPEED ) // Class-specific, if needed
@@ -140,108 +143,122 @@ class sdSlug extends sdEntity
 			this.remove();
 		}
 		else
-{
-		if (this._hea < this._hmax && this._hea > 0) // If provoked then move
 		{
-		if ( this._current_target )
-		{
-			if ( this._current_target._is_being_removed || !this._current_target.IsTargetable() || !this._current_target.IsVisible() || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdSlug.max_seek_range + 32 )
-			this._current_target = null;
-			else
+			if ( this._hea < this._hmax && this._hea > 0 ) // If provoked then move
 			{
-				this.side = ( this._current_target.x > this.x ) ? 1 : -1;
-			
-				if ( this._last_jump < sdWorld.time - 100 )
-				//if ( this._last_stand_on )
-				if ( in_water || !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) )
+				if ( this._current_target )
 				{
-					this._last_jump = sdWorld.time;
+					if ( this._current_target._is_being_removed || !this._current_target.IsTargetable() || !this._current_target.IsVisible() || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdSlug.max_seek_range + 32 )
+					this._current_target = null;
+					else
+					{
+						this.side = ( this._current_target.x > this.x ) ? 1 : -1;
+
+						if ( this.last_jump < sdWorld.time - 100 )
+						if ( in_water || !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) )
+						{
+							this.last_jump = sdWorld.time;
+							sdSound.PlaySound({ name:'slug_jump', x:this.x, y:this.y, volume: 0.25 });
+
+							let dx = ( this._current_target.x - this.x );
+							let dy = ( this._current_target.y - this.y );
+
+							//dy -= Math.abs( dx ) * 0.5;
+
+							if ( dx > 0 )
+							dx = 2;
+							else
+							dx = -2;
+
+							if ( dy > 0 )
+							dy = 1;
+							else
+							dy = -2;
+
+							let di = sdWorld.Dist2D_Vector( dx, dy );
+							if ( di > 5 )
+							{
+								dx /= di;
+								dy /= di;
+
+								dx *= 5;
+								dy *= 5;
+							}
+
+							this.sx = dx;
+							this.sy = dy;
+
+
+							//this._last_stand_on = null; // wait for next collision
+						}
+					}
+				}
+			}
+			else // If not provoked then move around
+			if ( sdWorld.is_server ) // Do not let client assume random stuff
+			if ( this._hea === this._hmax )
+			{
+				for ( let i = 0; i < 3; i++ )
+				{
+					if ( this.blinks[ i ] )
+					{
+						if ( Math.random() < 0.01 )
+						this.blinks[ i ] = 0;
+					}
+					else
+					{
+						if ( Math.random() < 0.005 )
+						this.blinks[ i ] = 1;
+					}
+				}
+				
+				if ( this._move_timer > 0 )
+				this._move_timer -= 1 * GSPEED;
+				else
+				{
+					this.side = ( Math.random() > 0.5 ) ? 1 : -1;
 					
-					let dx = ( this._current_target.x - this.x );
-					let dy = ( this._current_target.y - this.y );
-					
-					//dy -= Math.abs( dx ) * 0.5;
-					
+					if ( Math.random() > 0.7 )
+					this.idle = ( Math.random() > 0.7 ) ? 0 : 1;
+				
+					this._move_timer = 120;
+				}
+
+				if ( this.idle === 0 )
+				if ( this.last_jump < sdWorld.time - 100 )
+				//if ( this._last_stand_on )
+				//if ( in_water || !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) )
+				//if ( in_water || ( sdWorld.time < this._last_stand_when + 50 || ( this._phys_sleep <= 0 && !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) ) ) ) // CanMoveWithoutOverlap can be heavy operation
+				if ( in_water || ( ( sdWorld.time < this._last_stand_when + 50 || this._phys_sleep <= 0 ) && ( !this.CanMoveWithoutOverlap( this.x, this.y + 3, 1 ) && this.CanMoveWithoutOverlap( this.x + this.side * 9, this.y - 9, 2 ) ) ) ) // CanMoveWithoutOverlap can be heavy operation
+				{
+					this.last_jump = sdWorld.time;
+					sdSound.PlaySound({ name:'slug_jump', x:this.x, y:this.y, volume: 0.25 });
+
+					let dx = this.side;
+					let dy = 0;
+
 					if ( dx > 0 )
 					dx = 2;
 					else
 					dx = -2;
-					
-					if ( dy > 0 )
-					dy = 1;
-					else
+
 					dy = -2;
-					
+
 					let di = sdWorld.Dist2D_Vector( dx, dy );
 					if ( di > 5 )
 					{
 						dx /= di;
 						dy /= di;
-						
+
 						dx *= 5;
 						dy *= 5;
 					}
-					
+
 					this.sx = dx;
 					this.sy = dy;
-
-					
-					//this._last_stand_on = null; // wait for next collision
 				}
 			}
 		}
-		}
-
-		else // If not provoked then move around
-		if ( this._hea === this._hmax )
-		{
-		if (this._move_timer > 0)
-		this._move_timer -= 1;
-		if (this._move_timer < 1)
-		{
-			this.side = ( Math.random() > 0.5 ) ? 1 : -1;
-			if ( Math.random() > 0.7)
-			this.idle = ( Math.random() > 0.7 ) ? 0 : 1;
-			this._move_timer = 120;
-		}
-			if ( this.idle === 0)
-			if ( this._last_jump < sdWorld.time - 100 )
-				//if ( this._last_stand_on )
-				if ( in_water || !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) )
-				{
-					this._last_jump = sdWorld.time;
-					
-					let dx = this.side;
-					let dy = 0;
-					
-					//dy -= Math.abs( dx ) * 0.5;
-					
-					if ( dx > 0 )
-					dx = 2;
-					else
-					dx = -2;
-					
-					//if (Math.random() > 0.91)
-					dy = -2;
-					
-					let di = sdWorld.Dist2D_Vector( dx, dy );
-					if ( di > 5 )
-					{
-						dx /= di;
-						dy /= di;
-						
-						dx *= 5;
-						dy *= 5;
-					}
-					
-					this.sx = dx;
-					this.sy = dy;
-
-					
-					//this._last_stand_on = null; // wait for next collision
-				}
-		}
-}
 		if ( in_water )
 		{
 			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.87, GSPEED );
@@ -253,10 +270,15 @@ class sdSlug extends sdEntity
 		
 		this.sy += sdWorld.gravity * GSPEED;
 		
+		sdWorld.last_hit_entity = null;
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
-		if (this._hea < this._hmax && this._hea > 0) // If provoked then become hostile
-		if ( this.death_anim === 0 )
+		
+		if ( sdWorld.last_hit_entity ) // ApplyVelocityAndCollisions sets value to sdWorld.last_hit_entity which can be reused to figure out if Slug collides with something. It can also set nothing if it entity physically sleeps, which is another sign of collision 
+		this._last_stand_when = sdWorld.time;
+		
+		if ( this._hea < this._hmax && this._hea > 0 ) // If provoked then become hostile
+		//if ( this.death_anim === 0 )
 		if ( this._current_target )
 		if ( this._last_bite < sdWorld.time - 500 )
 		{
@@ -318,19 +340,23 @@ class sdSlug extends sdEntity
 		}
 		else
 		{
-			if ( Math.abs( this.sx ) < 2 )
-			ctx.drawImageFilterCache( ( sdWorld.time % 400 < 200 ) ? sdSlug.img_slug_idle1 : sdSlug.img_slug_idle2, - 16, - 16, 32,32 );
+			//if ( Math.abs( this.sx ) < 2 )
+			if ( sdWorld.time < this.last_jump + 400 ) // This approach would work better for in-place jumps
+			ctx.drawImageFilterCache( ( sdWorld.time < this.last_jump + 200 ) ? sdSlug.img_slug_walk1 : sdSlug.img_slug_walk2, - 16, - 16, 32,32 );
 			else
-			ctx.drawImageFilterCache( ( sdWorld.time % 400 < 200 ) ? sdSlug.img_slug_walk1 : sdSlug.img_slug_walk2, - 16, - 16, 32,32 );
+			{
+				ctx.drawImageFilterCache( sdSlug.img_slug_idle1, - 16, - 16, 32,32 );
+				
+				for ( let i = 0; i < 3; i++ )
+				if ( this.blinks[ i ] )
+				ctx.drawImageFilterCache( sdSlug.img_slug_blinks[ i ], - 16, - 16, 32,32 );
+			}
 		}
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
-	/*onMovementInRange( from_entity )
-	{
-		//this._last_stand_on = from_entity;
-	}*/
+
 	onRemove() // Class-specific, if needed
 	{
 		//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });

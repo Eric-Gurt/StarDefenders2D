@@ -209,7 +209,7 @@ class sdShop
 					character._coms_allowed = true;
 				}
 			},
-			upgrade_matter_regeneration:
+			upgrade_matter_regeneration: // Upgrade idea & pull request by Booraz149 ( https://github.com/Booraz149 )
 			{
 				max_level: 5,
 				matter_cost: 200,

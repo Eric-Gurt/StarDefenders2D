@@ -117,10 +117,11 @@ class sdQuickie extends sdEntity
 		//this.sx += x * 0.2;
 		//this.sy += y * 0.2;
 	}
-	/*Impact( vel ) // fall damage basically
+	/* Default fall damage
+	Impact( vel ) // fall damage basically
 	{
 		// less fall damage
-		if ( vel > 10 )
+		if ( vel > 15 )
 		{
 			this.Damage( ( vel - 4 ) * 15 );
 		}

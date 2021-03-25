@@ -191,7 +191,7 @@ class sdVirus extends sdEntity
 	}*/
 	Impact( vel ) // fall damage basically
 	{
-		if ( vel > 7 ) // less fall damage
+		if ( vel > 8 ) // less fall damage
 		{
 			this.Damage( ( vel - 3 ) * 15 );
 		}

@@ -33,17 +33,17 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.img_helmets = [
 			null,
-			sdWorld.CreateImageFromFile( 'helmet_star_defender' ),
-			sdWorld.CreateImageFromFile( 'helmet_falkok' ),
-			sdWorld.CreateImageFromFile( 'helmet_eyes' ),
-			sdWorld.CreateImageFromFile( 'helmet_dino' ),
-			sdWorld.CreateImageFromFile( 'helmet_v' ),
-			sdWorld.CreateImageFromFile( 'helmet_open' ),
-			sdWorld.CreateImageFromFile( 'helmet_cs' ),
-			sdWorld.CreateImageFromFile( 'helmet_crow' ),
-			sdWorld.CreateImageFromFile( 'helmet_grub' ),
-			sdWorld.CreateImageFromFile( 'helmet_scope' ),
-			sdWorld.CreateImageFromFile( 'helmet_crusader' )
+			sdWorld.CreateImageFromFile( 'helmet_star_defender' ), // EG
+			sdWorld.CreateImageFromFile( 'helmet_falkok' ), // EG
+			sdWorld.CreateImageFromFile( 'helmet_eyes' ), // EG
+			sdWorld.CreateImageFromFile( 'helmet_dino' ), // EG
+			sdWorld.CreateImageFromFile( 'helmet_v' ), // EG
+			sdWorld.CreateImageFromFile( 'helmet_open' ), // EG
+			sdWorld.CreateImageFromFile( 'helmet_cs' ), // idea by butorinoks77, rework by Eric Gurt
+			sdWorld.CreateImageFromFile( 'helmet_grub' ), // idea by butorinoks77, rework by Eric Gurt
+			sdWorld.CreateImageFromFile( 'helmet_crow' ), // by butorinoks77
+			sdWorld.CreateImageFromFile( 'helmet_scope' ), // by butorinoks77
+			sdWorld.CreateImageFromFile( 'helmet_crusader' ) // by xXRedXAssassinXx
 		];
 		
 		// x y rotation, for images below
@@ -953,12 +953,13 @@ class sdCharacter extends sdEntity
 			}
 
 			
-			if ( this.matter < ( this._matter_regeneration*20 ) )
+			if ( this.matter < this._matter_regeneration * 20 )
 			{
 				if ( sdWorld.is_server )
-					if ( this.matter < this.matter_max ) // Character cannot store or regenerate more matter than what it can contain
+				if ( this.matter < this.matter_max ) // Character cannot store or regenerate more matter than what it can contain
 				{
-						this.matter += 1 / 30 * GSPEED;
+					//this.matter += 1 / 30 * GSPEED;
+					this.matter = Math.min( this.matter_max, this._matter_regeneration * 20, this.matter + 1 / 30 * GSPEED );
 				}
 			}			
 

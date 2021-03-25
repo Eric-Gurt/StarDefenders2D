@@ -153,50 +153,34 @@ class sdCube extends sdEntity
 			
 			//console.log( 'CLASS_TRIPLE_RAIL drop chances: ' + r + ' < ' + ( this.is_huge ? 0.4 : 0.1 ) * 0.25 );
 			
-			if ( r < ( this.is_huge ? 0.4 : 0.1 ) * 0.5 ) // 0.25 was not enough for some rather strange reason (something like 1 drop out of 55 cube kills that wasn't even noticed by anyone)
+			//if ( r < ( this.is_huge ? 0.4 : 0.1 ) * 0.5 ) // 0.25 was not enough for some rather strange reason (something like 1 drop out of 55 cube kills that wasn't even noticed by anyone)
+			if ( r < ( this.is_huge ? 0.4 : 0.1 ) * 0.6 ) // Higher chance just for some time at least?
 			{
-				let x = this.x;
-				let y = this.y;
-				let sx = this.sx;
-				let sy = this.sy;
-				
-				//console.log( 'CLASS_TRIPLE_RAIL should drop in 500 ms: ' + [ x, y, sx, sy ].join(',') );
-				
-				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
-					let gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_TRIPLE_RAIL });
-					gun.sx = sx;
-					gun.sy = sy;
-					sdEntity.entities.push( gun );
-					
-					//console.log( gun );
-					//debugger;
-					
-				}, 500 );
-			}
+				//if ( r < ( this.is_huge ? 0.4 : 0.1 ) * 1 ) // 2x chance of triple rail to drop, only when triple rail does not drop
+				// We actually can get a case when sum of both chances becomes something like 0.4 + ( 1 - 0.4 ) * 0.4 = 0.64 chance of dropping anything from big cubes, maybe it could be too high and thus value of guns could become not so valuable
+				//{
+					let x = this.x;
+					let y = this.y;
+					let sx = this.sx;
+					let sy = this.sy;
 
-			else
+					setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
-			{
-			if ( r < ( this.is_huge ? 0.4 : 0.1 ) * 1 ) // 2x chance of triple rail to drop, only when triple rail does not drop
-			{
-				let x = this.x;
-				let y = this.y;
-				let sx = this.sx;
-				let sy = this.sy;
-				
-				//console.log( 'CLASS_RAIL_PISTOL should drop in 500 ms: ' + [ x, y, sx, sy ].join(',') );
-				
-				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
-					let gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_PISTOL });
-					gun.sx = sx;
-					gun.sy = sy;
-					sdEntity.entities.push( gun );
-					
-					//console.log( gun );
-					//debugger;
-					
-				}, 500 );
-			}
+						let random_value = Math.random();
+
+						let gun;
+
+						if ( random_value < 0.333 )
+						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_TRIPLE_RAIL });
+						else
+						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_PISTOL });
+
+						gun.sx = sx;
+						gun.sy = sy;
+						sdEntity.entities.push( gun );
+
+					}, 500 );
+				//}
 			}
 
 			this.remove();

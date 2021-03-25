@@ -335,9 +335,10 @@ class sdGun extends sdEntity
 					}
 				}
 			},
-			{
+			{ // Original weapon idea, image & pull request by Booraz149 ( https://github.com/Booraz149 )
 				image: sdWorld.CreateImageFromFile( 'rail_pistol' ),
 				sound: 'cube_attack',
+				sound_pitch: 0.9,
 				title: 'Cube-pistol',
 				slot: 1,
 				reload_time: 9,
