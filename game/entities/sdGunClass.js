@@ -1,5 +1,6 @@
 
 import sdWorld from '../sdWorld.js';
+import sdSound from '../sdSound.js';
 import sdEffect from './sdEffect.js';
 import sdCharacter from './sdCharacter.js';
 import sdBlock from './sdBlock.js';

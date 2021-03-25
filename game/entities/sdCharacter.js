@@ -945,8 +945,11 @@ class sdCharacter extends sdEntity
 
 			if ( this.pain_anim > 0 )
 			this.pain_anim -= GSPEED;
+		
+			let offset = this.GetBulletSpawnOffset();
 
-			this._an = -Math.PI / 2 - Math.atan2( this.y + sdCharacter.bullet_y_spawn_offset - this.look_y, this.x - this.look_x );
+			this._an = -Math.PI / 2 - Math.atan2( this.y + offset.y - this.look_y, this.x + offset.x - this.look_x );
+			//this._an = -Math.PI / 2 - Math.atan2( this.y + sdCharacter.bullet_y_spawn_offset - this.look_y, this.x - this.look_x );
 
 			if ( this.reload_anim > 0 )
 			{
@@ -975,7 +978,7 @@ class sdCharacter extends sdEntity
 
 							if ( this._key_states.GetKey( 'Mouse1' ) )
 							{
-								if ( this._inventory[ this.gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ) ) )
+								if ( this._inventory[ this.gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ), offset ) )
 								{
 									this.fire_anim = 5;
 								}
@@ -994,7 +997,7 @@ class sdCharacter extends sdEntity
 								{
 									let _class = sdGun.CLASS_FISTS;
 									
-									let offset = this._held_by.GetBulletSpawnOffset();
+									//let offset = this._held_by.GetBulletSpawnOffset();
 
 									let bullet_obj = new sdBullet({ x: this.x + offset.x, y: this.y + offset.y });
 									bullet_obj._owner = this;

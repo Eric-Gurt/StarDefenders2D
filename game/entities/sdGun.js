@@ -339,7 +339,7 @@ class sdGun extends sdEntity
 			]));
 		}
 	}
-	Shoot( background_shoot=0 ) // It becomes 1 when player holds shift
+	Shoot( background_shoot=0, offset=null ) // It becomes 1 when player holds shift
 	{
 		if ( this._held_by === null )
 		{
@@ -437,7 +437,7 @@ class sdGun extends sdEntity
 					let spread = sdGun.classes[ this.class ].spread || 0;
 					for ( let i = 0; i < count; i++ )
 					{
-						let offset = this._held_by.GetBulletSpawnOffset();
+						//let offset = this._held_by.GetBulletSpawnOffset();
 						
 						let bullet_obj = new sdBullet({ x: this._held_by.x + offset.x, y: this._held_by.y + offset.y });
 						bullet_obj._owner = this._held_by;
