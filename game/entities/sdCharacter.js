@@ -750,7 +750,107 @@ class sdCharacter extends sdEntity
 			this.look_y = sdWorld.MorphWithTimeScale( this.look_y, this.y + Math.sin( sdWorld.time / 2000 * Math.PI ) * 50, 0.9, GSPEED );
 		}
 	}
+	GetBulletSpawnOffset()
+	{
+		/*let xx = 0;
+		let yy = 0;
+		
+		let x_on_x = 1;
+		let x_on_y = 0;
+		
+		let y_on_x = 0;
+		let y_on_y = 1;*/
+			
+		let m1 = [ 1, 0, 0, 1, 0, 0 ];
+		
+		// Assume these as 0
+		let gun_offset_x = 0;
+		let gun_offset_y = 0;
+		
+		function ctx_translate( x, y )
+		{
+			/*xx += x * x_on_x + y * y_on_x;
+			yy += y * y_on_y + x * x_on_y;*/
+			
+			m1[ 4 ] += m1[ 0 ] * x + m1[ 2 ] * y;
+			m1[ 5 ] += m1[ 1 ] * x + m1[ 3 ] * y;
+		}
+		function ctx_scale( sx, sy )
+		{
+			/*x_on_x *= x;
+			x_on_y *= x;
+			
+			y_on_x *= y;
+			y_on_y *= y;*/
+			
+			m1[ 0 ] *= sx;
+			m1[ 1 ] *= sx;
+			m1[ 2 ] *= sy;
+			m1[ 3 ] *= sy;
+		}
+		function ctx_rotate( angle )
+		{
+			/*var cos = Math.cos( a );
+			var sin = Math.sin( a );
+			
+			var nx = cos * x_on_x - sin * x_on_y;
+			x_on_y = sin * x_on_x + cos * x_on_y;
+			x_on_x = nx;
+			
+				nx = cos * y_on_x - sin * y_on_y;
+			y_on_y = sin * y_on_x + cos * y_on_y;
+			y_on_x = nx;*/
+			
+			var c = Math.cos( angle );
+			var s = Math.sin( angle );
+			var m11 = m1[ 0 ] * c + m1[ 2 ] * s;
+			var m12 = m1[ 1 ] * c + m1[ 3 ] * s;
+			var m21 = m1[ 0 ] * -s + m1[ 2 ] * c;
+			var m22 = m1[ 1 ] * -s + m1[ 3 ] * c;
+			m1[ 0 ] = m11;
+			m1[ 1 ] = m12;
+			m1[ 2 ] = m21;
+			m1[ 3 ] = m22;
+		}
+		
+		//ctx_translate( this.x, this.y );
+		
+		
+		ctx_rotate( this.tilt / 100 );
+		ctx_scale( this._side, 1 );
+		
+		let an = Math.atan2( 
+						( this.y - this.look_y ) , 
+						( ( this.x - this.look_x ) * this._side - 3 * Math.abs( this.y - this.look_y ) ) ) - Math.PI;
+
+		if ( this._ledge_holding )
+		an = 0;
 	
+		if ( this.gun_slot === 0 )
+		{
+		}
+		else
+		{
+			if ( this.fire_anim > 2.5 )
+			{
+				gun_offset_x -= 3;
+			}
+			else
+			if ( this.fire_anim > 0 )
+			{
+				gun_offset_x -= 2;
+			}
+		}
+
+		ctx_translate( - 2, 5 );
+		ctx_rotate( an );
+		ctx_translate( 2,  - 5 );
+
+		ctx_translate( 5 + gun_offset_x, -2 + gun_offset_y );
+		
+		//return { x:xx, y:yy };
+		return { x: m1[ 4 ], y: m1[ 5 ] };
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this._god )
@@ -810,9 +910,7 @@ class sdCharacter extends sdEntity
 			}
 			
 			if ( this._recoil > 0 )
-			{
-				this._recoil = Math.max( 0, sdWorld.MorphWithTimeScale( this._recoil, -0.01, 0.9, GSPEED ) );
-			}
+			this._recoil = Math.max( 0, sdWorld.MorphWithTimeScale( this._recoil, -0.01, 0.9, GSPEED ) );
 
 			if ( this._dying )
 			{
@@ -895,8 +993,10 @@ class sdCharacter extends sdEntity
 								if ( sdWorld.is_server )
 								{
 									let _class = sdGun.CLASS_FISTS;
+									
+									let offset = this._held_by.GetBulletSpawnOffset();
 
-									let bullet_obj = new sdBullet({ x: this.x, y: this.y + sdCharacter.bullet_y_spawn_offset });
+									let bullet_obj = new sdBullet({ x: this.x + offset.x, y: this.y + offset.y });
 									bullet_obj._owner = this;
 
 									let an = bullet_obj._owner._an;// + ( Math.random() * 2 - 1 ) * spread;
@@ -2143,6 +2243,29 @@ class sdCharacter extends sdEntity
 				ctx.rotate( an );
 				ctx.translate( 2,  - 5 );
 
+				if ( this._inventory[ this.gun_slot ] && !attached ) // Hide guns in vehicle too
+				{
+					ctx.sd_filter = null;
+					ctx.save();
+					{
+						ctx.translate( 5 + gun_offset_x, -2 + gun_offset_y );
+
+						ctx.rotate( -an );
+						ctx.rotate( -this.tilt / 100 * this._side );
+
+						ctx.rotate( ( -this._an ) * this._side + Math.PI / 2 );
+						/*
+						ctx.rotate( Math.atan2( 
+							( this.y - this.look_y ) , 
+							( ( this.x - this.look_x ) * this._side ) ) - Math.PI );*/
+
+						this._inventory[ this.gun_slot ].Draw( ctx, true );
+					}
+					ctx.restore();
+					ctx.sd_filter = this.sd_filter;
+				}
+
+
 				ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
 
 				this.DrawHelmet( ctx, frame );
@@ -2153,22 +2276,6 @@ class sdCharacter extends sdEntity
 				if ( this.flying )
 				{
 					ctx.drawImageFilterCache( sdCharacter.img_jetpack, - 16, - 16, 32,32 );
-				}
-
-				if ( this._inventory[ this.gun_slot ] && !attached ) // Hide guns in vehicle too
-				{
-					ctx.translate( 5 + gun_offset_x, -2 + gun_offset_y );
-
-					ctx.rotate( -an );
-					ctx.rotate( -this.tilt / 100 * this._side );
-
-					ctx.rotate( ( -this._an ) * this._side + Math.PI / 2 );
-					/*
-					ctx.rotate( Math.atan2( 
-						( this.y - this.look_y ) , 
-						( ( this.x - this.look_x ) * this._side ) ) - Math.PI );*/
-
-					this._inventory[ this.gun_slot ].Draw( ctx, true );
 				}
 			}
 

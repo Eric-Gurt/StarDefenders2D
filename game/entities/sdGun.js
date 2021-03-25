@@ -12,6 +12,8 @@ import sdBlock from './sdBlock.js';
 import sdCom from './sdCom.js';
 import sdBG from './sdBG.js';
 
+import sdGunClass from './sdGunClass.js';
+
 import sdShop from '../client/sdShop.js';
 
 // More like anything pickup-able
@@ -39,25 +41,6 @@ class sdGun extends sdEntity
 			}
 		};*/
 		
-		sdGun.CLASS_PISTOL = 0;
-		sdGun.CLASS_RIFLE = 1;
-		sdGun.CLASS_SHOTGUN = 2;
-		sdGun.CLASS_RAILGUN = 3;
-		sdGun.CLASS_ROCKET = 4;
-		sdGun.CLASS_MEDIKIT = 5;
-		sdGun.CLASS_SPARK = 6;
-		sdGun.CLASS_BUILD_TOOL = 7;
-		sdGun.CLASS_CRYSTAL_SHARD = 8;
-		sdGun.CLASS_GRENADE_LAUNCHER = 9;
-		sdGun.CLASS_SNIPER = 10;
-		sdGun.CLASS_SWORD = 11;
-		sdGun.CLASS_STIMPACK = 12;
-		sdGun.CLASS_FALKOK_RIFLE = 13;
-		sdGun.CLASS_TRIPLE_RAIL = 14;
-		sdGun.CLASS_FISTS = 15;
-		sdGun.CLASS_SABER = 16;
-		sdGun.CLASS_RAIL_PISTOL = 17;
-		
 		/*
 		
 			Some basic SD2D weapon ideas:
@@ -67,288 +50,10 @@ class sdGun extends sdEntity
 				- Matter consumption is what defines weapons and should always be aligned to damage dealt, unless it exposes some unfair features.
 		
 		*/
-		sdGun.classes = 
-		[
-			{
-				image: sdWorld.CreateImageFromFile( 'pistol' ),
-				sound: 'gun_pistol',
-				title: 'Pistol',
-				slot: 1,
-				reload_time: 10,
-				muzzle_x: 5,
-				ammo_capacity: 12,
-				spread: 0.01,
-				count: 1,
-				projectile_properties: { _damage: 20 }
-			},
-			{
-				image: sdWorld.CreateImageFromFile( 'rifle' ),
-				sound: 'gun_rifle',
-				title: 'Assault rifle',
-				slot: 2,
-				reload_time: 3,
-				muzzle_x: 7,
-				ammo_capacity: 30,
-				spread: 0.01, // 0.03
-				count: 1,
-				projectile_properties: { _damage: 25 }
-			},
-			{
-				image: sdWorld.CreateImageFromFile( 'shotgun' ),
-				sound: 'gun_shotgun',
-				title: 'Shotgun',
-				slot: 3,
-				reload_time: 20,
-				muzzle_x: 9,
-				ammo_capacity: 8,
-				count: 5,
-				spread: 0.1,
-				matter_cost: 40,
-				projectile_properties: { _damage: 20 }
-			},
-			{
-				image: sdWorld.CreateImageFromFile( 'railgun' ),
-				sound: 'gun_railgun',
-				title: 'Railgun',
-				slot: 4,
-				reload_time: 30,
-				muzzle_x: 7,
-				ammo_capacity: -1,
-				count: 1,
-				matter_cost: 50,
-				projectile_properties: { _rail: true, _damage: 70, color: '#62c8f2', _knock_scale:0.01 * 8 }
-			},
-			{
-				image: sdWorld.CreateImageFromFile( 'rocket' ),
-				sound: 'gun_rocket',
-				title: 'Rocket launcher',
-				slot: 5,
-				reload_time: 30,
-				muzzle_x: 7,
-				ammo_capacity: -1,
-				spread: 0.05,
-				projectile_velocity: 14,
-				count: 1,
-				matter_cost: 60,
-				projectile_properties: { explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:1 }
-			},
-			{
-				image: sdWorld.CreateImageFromFile( 'medikit' ),
-				sound: 'gun_defibrillator',
-				title: 'Defibrillator',
-				slot: 6,
-				reload_time: 25,
-				muzzle_x: null,
-				ammo_capacity: -1,
-				count: 1,
-				projectile_properties: { time_left: 2, _damage: -20, color: 'transparent', _return_damage_to_owner:true }
-			},
-			{
-				image: sdWorld.CreateImageFromFile( 'spark' ),
-				sound: 'gun_spark',
-				title: 'Spark',
-				slot: 8,
-				reload_time: 7,
-				muzzle_x: 7,
-				ammo_capacity: 16,
-				count: 1,
-				matter_cost: 60,
-				projectile_properties: { explosion_radius: 10, model: 'ball', _damage: 5, color:'#00ffff' }
-			},
-			{
-				image: sdWorld.CreateImageFromFile( 'buildtool' ),
-				sound: 'gun_buildtool',
-				title: 'Build tool',
-				slot: 9,
-				reload_time: 15,
-				muzzle_x: null,
-				ammo_capacity: -1,
-				count: 0,
-				is_build_gun: true,
-				projectile_properties: { _damage: 0 }
-			},
-			{
-				image: sdWorld.CreateImageFromFile( 'crystal_shard' ),
-				title: 'Crystal shard',
-				slot: 0,
-				reload_time: 25,
-				muzzle_x: null,
-				ammo_capacity: -1,
-				count: 0,
-				projectile_properties: { _damage: 0 },
-				spawnable: false,
-				ignore_slot: true,
-				onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
-				{ 
-					// 2 was too bad for case of randomly breaking crystals when digging
-					if ( character.matter + gun.extra <= character.matter_max )
-					{
-						character.matter += gun.extra;
-						gun.remove(); 
-					}
-				
-					return false; 
-				} 
-			},
-			{
-				image: sdWorld.CreateImageFromFile( 'grenade_launcher' ),
-				sound: 'gun_grenade_launcher',
-				title: 'Grenade launcher',
-				slot: 5,
-				reload_time: 20,
-				muzzle_x: 7,
-				ammo_capacity: -1,
-				spread: 0.05,
-				count: 1,
-				projectile_velocity: 7,
-				matter_cost: 60,
-				projectile_properties: { explosion_radius: 13, time_left: 30 * 3, model: 'grenade', _damage: 13 * 2, color:sdEffect.default_explosion_color, is_grenade: true }
-			},
-			{
-				image: sdWorld.CreateImageFromFile( 'sniper' ),
-				image0: [ sdWorld.CreateImageFromFile( 'sniper0' ), sdWorld.CreateImageFromFile( 'sniper0b' ) ],
-				image1: [ sdWorld.CreateImageFromFile( 'sniper1' ), sdWorld.CreateImageFromFile( 'sniper1b' ) ],
-				image2: [ sdWorld.CreateImageFromFile( 'sniper2' ), sdWorld.CreateImageFromFile( 'sniper2b' ) ],
-				sound: 'gun_sniper',
-				title: 'Sniper rifle',
-				slot: 4,
-				reload_time: 90,
-				muzzle_x: 11,
-				ammo_capacity: -1,
-				count: 1,
-				projectile_velocity: 16 * 2,
-				matter_cost: 60,
-				projectile_properties: { _damage: 105, _knock_scale:0.01 * 8, penetrating:true }
-			},
-			{
-				image: sdWorld.CreateImageFromFile( 'sword' ),
-				//sound: 'gun_medikit',
-				title: 'Sword',
-				sound: 'sword_attack2',
-				image_no_matter: sdWorld.CreateImageFromFile( 'sword_disabled' ),
-				slot: 0,
-				reload_time: 8,
-				muzzle_x: null,
-				ammo_capacity: -1,
-				count: 1,
-				is_sword: true,
-				projectile_velocity: 16 * 1.5,
-				projectile_properties: { time_left: 1, _damage: 35, color: 'transparent', _knock_scale:0.025 * 8 }
-			},
-			{
-				image: sdWorld.CreateImageFromFile( 'stimpack' ),
-				sound: 'gun_defibrillator',
-				title: 'Stimpack',
-				sound_pitch: 0.5,
-				slot: 7,
-				reload_time: 30 * 3,
-				muzzle_x: null,
-				ammo_capacity: -1,
-				count: 1,
-				matter_cost: 300,
-				projectile_properties: { time_left: 2, _damage: 50, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
-					{
-						if ( target_entity.is( sdCharacter ) )
-						{
-							target_entity.stim_ef = 30 * 10;
-						}
-					}
-				}
-			},
-			{
-				image: sdWorld.CreateImageFromFile( 'f_rifle' ),
-				sound: 'gun_f_rifle',
-				title: 'Assault Rifle C-01r',
-				slot: 2,
-				reload_time: 3,
-				muzzle_x: 7,
-				ammo_capacity: 35,
-				spread: 0.02,
-				count: 1,
-				projectile_properties: { _damage: 25, color:'#afdfff' },
-				spawnable: false
-			},
-			{
-				image: sdWorld.CreateImageFromFile( 'triple_rail' ),
-				sound: 'cube_attack',
-				title: 'Cube-gun',
-				slot: 4,
-				reload_time: 3,
-				muzzle_x: 7,
-				ammo_capacity: -1,// 10, // 3
-				count: 1,
-				projectile_properties: { _rail: true, _damage: 15, color: '#62c8f2', _knock_scale:0.01 * 8 }, // 70
-				spawnable: false
-			},
-			{
-				image: sdWorld.CreateImageFromFile( 'sword' ),
-				//sound: 'gun_medikit',
-				title: 'Fists',
-				image_no_matter: sdWorld.CreateImageFromFile( 'sword_disabled' ),
-				slot: 0,
-				reload_time: 8,
-				muzzle_x: null,
-				ammo_capacity: -1,
-				count: 1,
-				projectile_velocity: 16 * 1.2,
-				spawnable: false,
-				projectile_properties: { time_left: 1, _damage: 15, color: 'transparent', _soft:true, _knock_scale:0.4, _custom_target_reaction:( bullet, target_entity )=>
-					{
-						//debugger;
-						//if ( sdCom.com_creature_attack_unignored_classes.indexOf( target_entity.GetClass() ) !== -1 )
-						if ( target_entity.GetClass() !== 'sdCharacter' )
-						if ( target_entity.is_static || target_entity.GetBleedEffect() === sdEffect.TYPE_WALL_HIT )
-						if ( target_entity.GetClass() !== 'sdBlock' || target_entity.material !== sdBlock.MATERIAL_GROUND )
-						//if ( target_entity.material !== ''
-						{
-							bullet._owner.Damage( 5 );
-						}
-					},
-					_custom_target_reaction_protected:( bullet, target_entity )=>
-					{
-						bullet._owner.Damage( 5 );
-					}
-				}
-			},
-			{ // Original weapon idea & pull request by Booraz149 ( https://github.com/Booraz149 ), image editing & sound effects by Eric Gurt
-				image: sdWorld.CreateImageFromFile( 'sword2b' ),
-				sound: 'saber_attack',
-				sound_volume: 1.5,
-				title: 'Saber',
-				image_no_matter: sdWorld.CreateImageFromFile( 'sword2b_disabled' ),
-				slot: 0,
-				reload_time: 10,
-				muzzle_x: null,
-				ammo_capacity: -1,
-				count: 1,
-				is_sword: true,
-				matter_cost: 90, // Was 200, but I don't feel like this weapon is overpowered enough to have high cost like stimpack does /EG
-				projectile_velocity: 20 * 1.5,
-				projectile_properties: { time_left: 1, _damage: 60, color: 'transparent', _knock_scale:0.025 * 8, 
-					_custom_target_reaction:( bullet, target_entity )=>
-					{
-						sdSound.PlaySound({ name:'saber_hit2', x:bullet.x, y:bullet.y, volume:1.5 });
-					},
-					_custom_target_reaction_protected:( bullet, target_entity )=>
-					{
-						sdSound.PlaySound({ name:'saber_hit2', x:bullet.x, y:bullet.y, volume:1.5 });
-					}
-				}
-			},
-			{ // Original weapon idea, image & pull request by Booraz149 ( https://github.com/Booraz149 )
-				image: sdWorld.CreateImageFromFile( 'rail_pistol' ),
-				sound: 'cube_attack',
-				sound_pitch: 0.9,
-				title: 'Cube-pistol',
-				slot: 1,
-				reload_time: 9,
-				muzzle_x: 8,
-				ammo_capacity: -1,
-				count: 1,
-				projectile_properties: { _rail: true, _damage: 25, color: '#62c8f2', _knock_scale:0.01 * 8 },
-				spawnable: false
-			}
-		];
+		sdGun.classes = [];
+		
+		sdGunClass.init_class(); // Will populate sdGun.classes array
+
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -491,7 +196,7 @@ class sdGun extends sdEntity
 			if ( this._held_by.is( sdCharacter ) )
 			{
 				// Because in else case B key won't work
-				if ( sdGun.classes[ this.class ].is_build_gun )
+				//if ( sdGun.classes[ this.class ].is_build_gun ) Maybe it should always work better if player will know info about all of his guns. Probably that will be later used in interface anyway
 				if ( this._held_by === observer_character )
 				return true;
 		
@@ -732,7 +437,9 @@ class sdGun extends sdEntity
 					let spread = sdGun.classes[ this.class ].spread || 0;
 					for ( let i = 0; i < count; i++ )
 					{
-						let bullet_obj = new sdBullet({ x: this._held_by.x, y: this._held_by.y + sdCharacter.bullet_y_spawn_offset });
+						let offset = this._held_by.GetBulletSpawnOffset();
+						
+						let bullet_obj = new sdBullet({ x: this._held_by.x + offset.x, y: this._held_by.y + offset.y });
 						bullet_obj._owner = this._held_by;
 
 						let an = initial_an + ( Math.random() * 2 - 1 ) * spread;
@@ -799,15 +506,15 @@ class sdGun extends sdEntity
 	{
 		return [ 'sdCharacter', 'sdGun' ];
 	}
-	onThink( GSPEED ) // Class-specific, if needed
+	
+	UpdateHolderClientSide()
 	{
-		
 		if ( !sdWorld.is_server )
 		{
 			let old_held_by = this._held_by;
-			
+
 			this._held_by = sdEntity.GetObjectByClassAndNetId( this.held_by_class, this.held_by_net_id );
-			
+
 			if ( old_held_by !== this._held_by )
 			{
 				if ( old_held_by )
@@ -815,13 +522,23 @@ class sdGun extends sdEntity
 				if ( old_held_by._inventory[ sdGun.classes[ this.class ].slot ] === this )
 				old_held_by._inventory[ sdGun.classes[ this.class ].slot ] = null;
 			}
-			
+
 			if ( this._held_by )
 			if ( this._held_by.is( sdCharacter ) )
 			{
 				this._held_by._inventory[ sdGun.classes[ this.class ].slot ] = this;
 			}
-			
+
+			// Other kinds of entities like sdStorage will handle pointers properly without extra logic here (since they are public and entity pointers will naturally work)
+		}
+	}
+	
+	onThink( GSPEED ) // Class-specific, if needed
+	{
+		
+		if ( !sdWorld.is_server )
+		{
+			this.UpdateHolderClientSide();
 			// Other kinds of entities like sdStorage will handle pointers properly without extra logic here (since they are public and entity pointers will naturally work)
 		}
 		else
@@ -930,6 +647,8 @@ class sdGun extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		this.UpdateHolderClientSide();
+		
 		if ( this._held_by === null || ( this._held_by !== null && attached ) )
 		{
 			var image = sdGun.classes[ this.class ].image;
