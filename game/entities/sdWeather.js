@@ -59,6 +59,10 @@ class sdWeather extends sdEntity
 		this._rain_ammount = 0;
 		this._asteroid_spam_ammount = 0;
 		
+		this.invasion = false;
+		this._invasion_timer = 0; // invasion length timer
+		this._invasion_spawn_timer = 0; // invasion spawn timer
+		
 		this.raining_intensity = 0;
 		
 		//this._rain_offset = 0;
@@ -98,6 +102,129 @@ class sdWeather extends sdEntity
 			if ( this.day_time > 30 * 60 * 24 )
 			this.day_time = 0;
 			
+			if (this.invasion === true ) // Invasion event
+			{
+			this._invasion_timer -= 1 / 30  * GSPEED;
+			this._invasion_spawn_timer -= 1 / 30 * GSPEED;
+			if (this._invasion_timer <= 0 )
+			{
+			this.invasion = false;
+			//console.log('Invasion clearing up!');
+			}
+					if (this._invasion_spawn_timer <= 0)
+					{
+						this._invasion_spawn_timer = 6 + ( Math.random() * 4) ;// Every 6+ to 10 seconds it will respawn enemies
+						let ais = 0;
+
+						for ( var i = 0; i < sdCharacter.characters.length; i++ )
+						if ( sdCharacter.characters[ i ].hea > 0 )
+						if ( !sdCharacter.characters[ i ]._is_being_removed )
+						if ( sdCharacter.characters[ i ]._ai )
+						{
+							ais++;
+						}
+
+						let instances = 0;
+						let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
+
+						let left_side = ( Math.random() < 0.5 );
+
+						while ( instances < instances_tot && ais < 16 ) // max AI value up to 16 during invasion, but should be reduced if laggy for server
+						{
+
+							let character_entity = new sdCharacter({ x:0, y:0 });
+
+							sdEntity.entities.push( character_entity );
+
+							{
+								let x,y;
+								let tr = 1000;
+								do
+								{
+									if ( left_side )
+									x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
+									else
+									x = sdWorld.world_bounds.x2 - 16 - 16 * instances;
+
+									y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+									if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+									if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+									if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+									{
+										character_entity.x = x;
+										character_entity.y = y;
+
+										//sdWorld.UpdateHashPosition( ent, false );
+										if ( Math.random() < 0.07)
+										{
+											if ( Math.random() < 0.2)
+											{
+											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_PSI_CUTTER }) );
+											character_entity._ai_gun_slot = 4;
+											}
+											else
+											{
+											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAYGUN }) );
+											character_entity._ai_gun_slot = 3;
+											}
+										}
+										else
+										{
+											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE }) );
+											character_entity._ai_gun_slot = 2;
+										}
+										let falkok_settings;
+										if ( character_entity._ai_gun_slot === 2 )
+										falkok_settings = {"hero_name":"Falkok","color_bright":"#6b0000","color_dark":"#420000","color_visor":"#5577b9","color_suit":"#240000","color_suit2":"#2e0000","color_dark2":"#560101","color_shoes":"#000000","color_skin":"#240000","helmet1":false,"helmet2":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
+										if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If Falkok spawns with Raygun or PSI-Cutter, change their looks Phoenix Falkok
+										falkok_settings = {"hero_name":"Phoenix Falkok","color_bright":"#ffc800","color_dark":"#a37000","color_visor":"#000000","color_suit":"#ffc800","color_suit2":"#ffc800","color_dark2":"#000000","color_shoes":"#a37000","color_skin":"#a37000","helmet1":false,"helmet12":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
+
+										character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter( falkok_settings );
+										character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( falkok_settings );
+										character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( falkok_settings );
+										character_entity.title = falkok_settings.hero_name;
+										if ( character_entity._ai_gun_slot === 2 ) // If a regular falkok spawns
+										{
+										character_entity.matter = 75;
+										character_entity.matter_max = 75;
+
+										character_entity.hea = 115; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
+										character_entity.hmax = 115;
+
+										character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
+										}
+
+										if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If a Phoenix Falkok spawns
+										{
+										character_entity.matter = 100;
+										character_entity.matter_max = 100;
+
+										character_entity.hea = 250; // It is a stronger falkok after all, although revert changes if you want
+										character_entity.hmax = 250;
+
+										character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
+										}	
+										character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+										character_entity._ai_enabled = true;
+
+										break;
+									}
+
+									tr--;
+									if ( tr < 0 )
+									{
+										character_entity.remove();
+										break;
+									}
+								} while( true );
+							}
+
+							instances++;
+							ais++;
+						}
+					}
+			}
 			this._asteroid_timer += GSPEED;
 			if ( this._asteroid_timer > 60 * 30 / ( ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) / 800 ) )
 			{
@@ -179,8 +306,7 @@ class sdWeather extends sdEntity
 			if ( this._time_until_event < 0 )
 			{
 				this._time_until_event = Math.random() * 30 * 60 * 8; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
-				
-				let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4 ];
+				let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5 ];
 				
 				let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -268,16 +394,36 @@ class sdWeather extends sdEntity
 										character_entity.y = y;
 
 										//sdWorld.UpdateHashPosition( ent, false );
-
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE }) );
-
-										let falkok_settings = {"hero_name":"Falkok","color_bright":"#6b0000","color_dark":"#420000","color_visor":"#5577b9","color_suit":"#240000","color_suit2":"#2e0000","color_dark2":"#560101","color_shoes":"#000000","color_skin":"#240000","helmet1":false,"helmet2":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
+										if ( Math.random() < 0.07)
+										{
+											if ( Math.random() < 0.2)
+											{
+											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_PSI_CUTTER }) );
+											character_entity._ai_gun_slot = 4;
+											}
+											else
+											{
+											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAYGUN }) );
+											character_entity._ai_gun_slot = 3;
+											}
+										}
+										else
+										{
+											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE }) );
+											character_entity._ai_gun_slot = 2;
+										}
+										let falkok_settings;
+										if ( character_entity._ai_gun_slot === 2 )
+										falkok_settings = {"hero_name":"Falkok","color_bright":"#6b0000","color_dark":"#420000","color_visor":"#5577b9","color_suit":"#240000","color_suit2":"#2e0000","color_dark2":"#560101","color_shoes":"#000000","color_skin":"#240000","helmet1":false,"helmet2":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
+										if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If Falkok spawns with Raygun or PSI-Cutter, change their looks Phoenix Falkok
+										falkok_settings = {"hero_name":"Phoenix Falkok","color_bright":"#ffc800","color_dark":"#a37000","color_visor":"#000000","color_suit":"#ffc800","color_suit2":"#ffc800","color_dark2":"#000000","color_shoes":"#a37000","color_skin":"#a37000","helmet1":false,"helmet12":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
 
 										character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter( falkok_settings );
 										character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( falkok_settings );
 										character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( falkok_settings );
 										character_entity.title = falkok_settings.hero_name;
-
+										if ( character_entity._ai_gun_slot === 2 ) // If a regular falkok spawns
+										{
 										character_entity.matter = 75;
 										character_entity.matter_max = 75;
 
@@ -285,12 +431,24 @@ class sdWeather extends sdEntity
 										character_entity.hmax = 115;
 
 										character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
+										}
 
+										if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If a Phoenix Falkok spawns
+										{
+										character_entity.matter = 100;
+										character_entity.matter_max = 100;
+
+										character_entity.hea = 250; // It is a stronger falkok after all, although revert changes if you want
+										character_entity.hmax = 250;
+
+										character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
+										}	
 										character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 										character_entity._ai_enabled = true;
 
 										break;
 									}
+
 
 									tr--;
 									if ( tr < 0 )
@@ -322,6 +480,17 @@ class sdWeather extends sdEntity
 							asp.remove();
 							else
 							sdWorld.UpdateHashPosition( asp, false ); // Prevent inersection with other ones
+						}
+					}
+					
+					if ( r === 5) // Falkok invasion event
+					{
+						if ( this.invasion === false ) // Prevent invasion resetting
+						{
+						this.invasion = true;
+						this._invasion_timer = 120 ; // 2 minutes; using GSPEED for measurement (feel free to change that, I'm not sure how it should work)
+						this._invasion_spawn_timer = 0;
+						//console.log('Invasion incoming!');
 						}
 					}
 				}

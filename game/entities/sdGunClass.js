@@ -345,8 +345,54 @@ class sdGunClass
 			spawnable: false
 		};
 		
+		sdGun.classes[ sdGun.CLASS_RAYGUN = 18 ] = { // Original sprite and weapon balancing by The_Commander 
+				image: sdWorld.CreateImageFromFile( 'raygun_c01y' ),
+				image0: [ sdWorld.CreateImageFromFile( 'raygun_c01y0' ), sdWorld.CreateImageFromFile( 'raygun_c01y0b' ) ],
+				image1: [ sdWorld.CreateImageFromFile( 'raygun_c01y1' ), sdWorld.CreateImageFromFile( 'raygun_c01y1b' ) ],
+				image2: [ sdWorld.CreateImageFromFile( 'raygun_c01y2' ), sdWorld.CreateImageFromFile( 'raygun_c01y2b' ) ],
+				sound: 'gun_shotgun', // Placeholder sound, would probably need ray gun bitcrushed sfx
+               			title: 'Raygun C01y',
+                		slot: 3,
+                		reload_time: 60,
+                		muzzle_x: 9,
+                		ammo_capacity: -1,
+                		count: 3,
+                		projectile_velocity: 14 * 2,
+                		spread: 0.15,
+                		projectile_properties: { _damage: 40, color: '#DDDDDD', penetrating: true }, // I nerfed it's damage from 45 to 40 but that's up to balancing decisions - Booraz149
+				spawnable:false
+		};
+
+		sdGun.classes[ sdGun.CLASS_FALKOK_PSI_CUTTER = 19 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'f_psicutter' ),
+			sound: 'gun_sniper', // Placeholder sound, would probably need psi cutter bitcrushed sfx
+			title: 'Falkonian PSI-cutter',
+			slot: 4,
+			reload_time: 60,
+			muzzle_x: 11,
+			ammo_capacity: -1,
+			spread: 0.01,
+			count: 1,
+			projectile_velocity: 13 * 2,  //slower bullet velocity than sniper but more damage
+			projectile_properties: { _damage: 111, color:'#afdfff', _knock_scale:0.01 * 8, penetrating: false}, // would be nice if it could bounce off walls
+			spawnable:false
+		};
 		
-		
+		sdGun.classes[ sdGun.CLASS_RAIL_SHOTGUN = 20 ] = { // Image by LazyRain
+			image: sdWorld.CreateImageFromFile( 'rail_shotgun' ),
+			sound: 'cube_attack',
+			sound_pitch: 0.9,
+			title: 'Cube-shotgun',
+			slot: 3,
+			reload_time: 20,
+			muzzle_x: 6,
+			ammo_capacity: -1,
+			spread: 0.09,
+			count: 5,
+			projectile_properties: { _rail: true, _damage: 23, color: '#62c8f2', _knock_scale:0.01 * 8 },
+			spawnable: false
+		};		
 		
 		
 		
