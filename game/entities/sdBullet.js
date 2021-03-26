@@ -19,8 +19,10 @@ class sdBullet extends sdEntity
 	{
 		sdBullet.images = {
 			'ball': sdWorld.CreateImageFromFile( 'ball' ),
+			'ball_g': sdWorld.CreateImageFromFile( 'ball_g' ),
 			'rocket_proj': sdWorld.CreateImageFromFile( 'rocket_proj' ),
-			'grenade': sdWorld.CreateImageFromFile( 'grenade' )
+			'grenade': sdWorld.CreateImageFromFile( 'grenade' ),
+			'f_psicutter_proj': sdWorld.CreateImageFromFile( 'f_psicutter_proj' )
 		};
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -105,6 +107,8 @@ class sdBullet extends sdEntity
 		this.penetrating = false;
 		this._penetrated_list = [];
 		
+		this._bouncy = false;
+		
 		this._owner = null;
 		this._can_hit_owner = false;
 		
@@ -116,6 +120,14 @@ class sdBullet extends sdEntity
 		this.ac = 0; // Intensity
 		this.acx = 0;
 		this.acy = 0;
+		
+		// Defining this in method that is not called on this object and passed as collision filtering thing
+		//this.BouncyCollisionFiltering = this.BouncyCollisionFiltering.bind( this ); Bad, snapshot will enumerate it
+		Object.defineProperty( this, 'BouncyCollisionFiltering',
+		{
+			value: this.BouncyCollisionFiltering.bind( this ),
+			enumerable: false
+		});
 	}
 	onRemove()
 	{
@@ -175,14 +187,13 @@ class sdBullet extends sdEntity
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return this.is_grenade ? [ 'sdCharacter' ] : [ 'sdCharacter', 'sdTurret', 'sdHover', 'sdCube', 'sdAsp' ];
+		return this._bouncy ? null : ( this.is_grenade ? [ 'sdCharacter' ] : [ 'sdCharacter', 'sdTurret', 'sdHover', 'sdCube', 'sdAsp' ] );
 	}
-	
 	get bounce_intensity()
-	{ return this.is_grenade ? 0.55 : 0.3; } // 0.3 not felt right for grenades
+	{ return this._bouncy ? 0.8 : ( this.is_grenade ? 0.55 : 0.3 ); } // 0.3 not felt right for grenades
 	
 	get friction_remain()
-	{ return this.is_grenade ? 0.8 : 0.3; }
+	{ return this._bouncy ? 0.8 : ( this.is_grenade ? 0.8 : 0.3 ); }
 	
 	Damage( dmg, initiator=null )
 	{
@@ -199,6 +210,14 @@ class sdBullet extends sdEntity
 		{
 			this.remove();
 		}
+	}
+	
+	BouncyCollisionFiltering( from_entity ) // Without this logic bullets will stuck in initiator on spawn. Though GetIgnoredEntityClasses will implement simpler logic which could work more efficient for normal cases
+	{
+		if ( this._owner === from_entity )
+		return false;
+	
+		return true;
 	}
 	
 	onThink( GSPEED ) // Class-specific, if needed
@@ -239,10 +258,11 @@ class sdBullet extends sdEntity
 
 				sdWorld.last_hit_entity = null;
 
-				this.ApplyVelocityAndCollisions( GSPEED, 0, true, 0 );
+				this.ApplyVelocityAndCollisions( GSPEED, 0, true, 0, this._bouncy ? this.BouncyCollisionFiltering : null );
 
 				let vel2 = this.sx * this.sx + this.sy * this.sy;
 
+				if ( !this._bouncy )
 				if ( vel2 < vel )
 				{
 					vel = Math.sqrt( vel );
@@ -278,6 +298,9 @@ class sdBullet extends sdEntity
 
 	CanBounceOff( from_entity )
 	{
+		if ( this._bouncy )
+		return true;
+	
 		if ( this.explosion_radius > 0 )
 		return false;
 	
@@ -317,6 +340,11 @@ class sdBullet extends sdEntity
 					if ( sdWorld.is_server ) // Or else fake self-knock
 					if ( this._damage !== 0 )
 					{
+						if ( this.explosion_radius <= 0 )
+						if ( !this._wave )
+						if ( this.color !== 'transparent' )
+						sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_GLOW_HIT, color:this.color });
+
 						if ( this._damage > 1 )
 						if ( from_entity._last_hit_time !== sdWorld.time ) // Prevent flood from splash damage bullets
 						{
@@ -357,13 +385,19 @@ class sdBullet extends sdEntity
 							}
 						}
 
+						if ( this._bouncy )
+						this._damage *= 0.8;
+						else
 						this._damage = 0; // for healguns
 					}
 
 					this._last_target = from_entity;
 
-					this.remove();
-					return;
+					if ( this._damage === 0 || !sdWorld.is_server )
+					{
+						this.remove();
+						return;
+					}
 				}
 			}
 			else
@@ -375,6 +409,7 @@ class sdBullet extends sdEntity
 			{
 				let will_bounce = false;
 				//let dmg_mult = 1;
+	
 				
 				if ( this.CanBounceOff( from_entity ) )
 				{
@@ -396,6 +431,11 @@ class sdBullet extends sdEntity
 				{
 					if ( sdWorld.is_server ) // Or else fake self-knock
 					{
+						if ( this.explosion_radius <= 0 )
+						if ( !this._wave )
+						if ( this.color !== 'transparent' )
+						sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_GLOW_HIT, color:this.color });
+
 						if ( this._soft )
 						{
 							sdSound.PlaySound({ name:'player_step', x:this.x, y:this.y, volume:0.5, pitch:1.8 });

@@ -350,10 +350,10 @@ class sdGunClass
 				image0: [ sdWorld.CreateImageFromFile( 'raygun_c01y0' ), sdWorld.CreateImageFromFile( 'raygun_c01y0b' ) ],
 				image1: [ sdWorld.CreateImageFromFile( 'raygun_c01y1' ), sdWorld.CreateImageFromFile( 'raygun_c01y1b' ) ],
 				image2: [ sdWorld.CreateImageFromFile( 'raygun_c01y2' ), sdWorld.CreateImageFromFile( 'raygun_c01y2b' ) ],
-				sound: 'gun_shotgun', // Placeholder sound, would probably need ray gun bitcrushed sfx
+				sound: 'gun_raygun',
                			title: 'Raygun C01y',
                 		slot: 3,
-                		reload_time: 60,
+                		reload_time: 60, // Might be inaccurate - not checked
                 		muzzle_x: 9,
                 		ammo_capacity: -1,
                 		count: 3,
@@ -366,7 +366,8 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_FALKOK_PSI_CUTTER = 19 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'f_psicutter' ),
-			sound: 'gun_sniper', // Placeholder sound, would probably need psi cutter bitcrushed sfx
+			sound: 'gun_psicutter',
+			sound_volume: 1.5,
 			title: 'Falkonian PSI-cutter',
 			slot: 4,
 			reload_time: 60,
@@ -374,15 +375,16 @@ class sdGunClass
 			ammo_capacity: -1,
 			spread: 0.01,
 			count: 1,
-			projectile_velocity: 13 * 2,  //slower bullet velocity than sniper but more damage
-			projectile_properties: { _damage: 111, color:'#afdfff', _knock_scale:0.01 * 8, penetrating: false}, // would be nice if it could bounce off walls
+			projectile_velocity: 10 * 2,  // Slower bullet velocity than sniper but more damage
+			projectile_properties: { _damage: 55/*111*/, color:'#00ffff', model: 'f_psicutter_proj', _knock_scale:0.01 * 8, penetrating: false, _bouncy: true },
 			spawnable:false
 		};
 		
 		sdGun.classes[ sdGun.CLASS_RAIL_SHOTGUN = 20 ] = { // Image by LazyRain
 			image: sdWorld.CreateImageFromFile( 'rail_shotgun' ),
 			sound: 'cube_attack',
-			sound_pitch: 0.9,
+			sound_pitch: 0.4,
+			sound_volume: 2,
 			title: 'Cube-shotgun',
 			slot: 3,
 			reload_time: 20,

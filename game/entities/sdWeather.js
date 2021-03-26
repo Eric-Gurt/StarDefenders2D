@@ -156,17 +156,17 @@ class sdWeather extends sdEntity
 										character_entity.y = y;
 
 										//sdWorld.UpdateHashPosition( ent, false );
-										if ( Math.random() < 0.07)
+										if ( Math.random() < 0.07 )
 										{
-											if ( Math.random() < 0.2)
+											if ( Math.random() < 0.2 )
 											{
-											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_PSI_CUTTER }) );
-											character_entity._ai_gun_slot = 4;
+												sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_PSI_CUTTER }) );
+												character_entity._ai_gun_slot = 4;
 											}
 											else
 											{
-											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAYGUN }) );
-											character_entity._ai_gun_slot = 3;
+												sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAYGUN }) );
+												character_entity._ai_gun_slot = 3;
 											}
 										}
 										else
@@ -186,27 +186,29 @@ class sdWeather extends sdEntity
 										character_entity.title = falkok_settings.hero_name;
 										if ( character_entity._ai_gun_slot === 2 ) // If a regular falkok spawns
 										{
-										character_entity.matter = 75;
-										character_entity.matter_max = 75;
+											character_entity.matter = 75;
+											character_entity.matter_max = 75;
 
-										character_entity.hea = 115; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
-										character_entity.hmax = 115;
+											character_entity.hea = 115; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
+											character_entity.hmax = 115;
 
-										character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
+											character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
 										}
 
 										if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If a Phoenix Falkok spawns
 										{
-										character_entity.matter = 100;
-										character_entity.matter_max = 100;
+											character_entity.matter = 100;
+											character_entity.matter_max = 100;
 
-										character_entity.hea = 250; // It is a stronger falkok after all, although revert changes if you want
-										character_entity.hmax = 250;
+											character_entity.hea = 250; // It is a stronger falkok after all, although revert changes if you want
+											character_entity.hmax = 250;
 
-										character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
+											character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
 										}	
 										character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 										character_entity._ai_enabled = true;
+										
+										character_entity._matter_regeneration = 1; // At least some ammo regen
 
 										break;
 									}
@@ -445,6 +447,8 @@ class sdWeather extends sdEntity
 										}	
 										character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 										character_entity._ai_enabled = true;
+										
+										character_entity._matter_regeneration = 1; // At least some ammo regen
 
 										break;
 									}

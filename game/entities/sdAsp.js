@@ -326,7 +326,7 @@ class sdAsp extends sdEntity
 						bullet_obj._damage = 15;
 						bullet_obj.color = '#00ff00';
 						
-						bullet_obj.model = 'ball';
+						bullet_obj.model = 'ball_g';
 
 						sdEntity.entities.push( bullet_obj );
 						

@@ -14,6 +14,9 @@ import sdWater from './sdWater.js';
 import sdCube from './sdCube.js';
 import sdCom from './sdCom.js';
 import sdHover from './sdHover.js';
+import sdDoor from './sdDoor.js';
+import sdMatterContainer from './sdMatterContainer.js';
+
 
 
 import sdShop from '../client/sdShop.js';
@@ -450,6 +453,7 @@ class sdCharacter extends sdEntity
 				if ( this._ai )
 				{
 					if ( initiator )
+					if ( !initiator._ai || Math.random() < 0.333 ) // 3 times less friendly fire for Falkoks
 					this._ai.target = initiator;
 				}
 				else
@@ -621,7 +625,7 @@ class sdCharacter extends sdEntity
 		return false;
 	}
 	
-	AILogic( GSPEED )
+	AILogic( GSPEED ) // aithink
 	{
 		if ( !sdWorld.is_server )
 		return;
@@ -734,10 +738,22 @@ class sdCharacter extends sdEntity
 				else
 				this._key_states.SetKey( 'KeyA', ( Math.random() < 0.5 ) ? 1 : 0 );
 			
+				sdWorld.last_hit_entity = null;
 				
-				//if ( Math.random() < 0.2 )
 				if ( sdWorld.CheckWallExistsBox( this.x + this._ai.direction * 16 - 16, this.y + this.hitbox_y2 - 32 + 1, this.x + this._ai.direction * 16 + 16, this.y + this.hitbox_y2 - 1, this, null, null ) )
 				this._key_states.SetKey( 'KeyW', 1 );
+				else
+				{
+					// Try to go through walls of any kinds
+					if ( sdWorld.last_hit_entity )
+					if ( sdWorld.last_hit_entity._natural === false || sdWorld.last_hit_entity.is( sdDoor ) || sdWorld.last_hit_entity.is( sdMatterContainer ) || ( !sdWorld.last_hit_entity.is( sdCharacter ) && Math.random() < 0.01 ) )
+					{
+						closest = sdWorld.last_hit_entity;
+
+						this._ai.target = closest;
+						this._ai.target_local_y = closest.hitbox_y1 + ( closest.hitbox_y2 - closest.hitbox_y1 ) * Math.random();
+					}
+				}
 			}
 		}
 		
@@ -1218,6 +1234,8 @@ class sdCharacter extends sdEntity
 							let vel = 16;
 							bullet_obj.sx = Math.sin( an ) * vel;
 							bullet_obj.sy = Math.cos( an ) * vel;
+							
+							bullet_obj.color = '#333333';
 
 							//for ( var p in sdGun.classes[ sdGun.CLASS_HOOK ].projectile_properties )
 							//bullet_obj[ p ] = sdGun.classes[ sdGun.CLASS_HOOK ].projectile_properties[ p ];

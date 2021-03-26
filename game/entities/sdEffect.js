@@ -22,6 +22,7 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_BLOOD_GREEN = 7;
 		sdEffect.TYPE_GIB_GREEN = 8;
 		sdEffect.TYPE_LAG = 9;
+		sdEffect.TYPE_GLOW_HIT = 10;
 		
 		sdEffect.default_explosion_color = '#ffca9e';
 		
@@ -133,6 +134,12 @@ class sdEffect extends sdEntity
 				sdWorld.CreateImageFromFile( 'lag' )
 			],
 			speed: 1 / ( 15 * 30 )
+		};
+		sdEffect.types[ sdEffect.TYPE_GLOW_HIT ] = {
+			images: [ 
+				sdWorld.CreateImageFromFile( 'hit_glow' )
+			],
+			speed: 1 / 10
 		};
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -412,6 +419,10 @@ class sdEffect extends sdEntity
 		{
 		}
 		else
+		if ( this._type === sdEffect.TYPE_GLOW_HIT )
+		{
+		}
+		else
 		if ( typeof sdEffect.types[ this._type ].images[ ~~this._ani ] === 'number' )
 		{
 			let width = sdEffect.types[ this._type ].images[ ~~this._ani ];
@@ -517,22 +528,7 @@ class sdEffect extends sdEntity
 			let h = 37;
 			
 			ctx.translate( -w/2, -h/2 );
-			/*
-			var canvas2 = sdEffect.explosion_canvas;
-			var ctx2 = sdEffect.explosion_ctx;
-			{
-				ctx2.fillStyle = this._color;
-				ctx2.fillRect( 0, 0, w, h );
-			  
-				ctx2.globalCompositeOperation = "destination-in";
-				ctx2.drawImage( sdEffect.types[ this._type ].images[ 0 ], xx*w, yy*h+1, w,h-2, 0,0,w,h );
 
-				ctx2.globalCompositeOperation = "source-over";
-			}
-			ctx.globalCompositeOperation = "lighter";
-			ctx.drawImage( canvas2,0,0 );
-			ctx.globalCompositeOperation = "source-over";*/
-			
 			if ( this._sd_tint_filter === null )
 			{
 				this._sd_tint_filter = sdWorld.hexToRgb( this._color );
@@ -545,6 +541,27 @@ class sdEffect extends sdEntity
 			{
 				ctx.sd_tint_filter = this._sd_tint_filter;
 				ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], xx*w, yy*h+1, w,h-2, 0,0,w,h );
+				ctx.sd_tint_filter = null;
+			}
+			ctx.blend_mode = THREE.NormalBlending;
+		}
+		else
+		if ( this._type === sdEffect.TYPE_GLOW_HIT )
+		{
+			if ( this._sd_tint_filter === null )
+			{
+				this._sd_tint_filter = sdWorld.hexToRgb( this._color );
+				this._sd_tint_filter[ 0 ] /= 255;
+				this._sd_tint_filter[ 1 ] /= 255;
+				this._sd_tint_filter[ 2 ] /= 255;
+			}
+			
+			ctx.globalAlpha = Math.pow( 1 - this._ani, 2 );
+			
+			ctx.blend_mode = THREE.AdditiveBlending;
+			{
+				ctx.sd_tint_filter = this._sd_tint_filter;
+				ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], -8, -8, 16, 16 );
 				ctx.sd_tint_filter = null;
 			}
 			ctx.blend_mode = THREE.NormalBlending;
