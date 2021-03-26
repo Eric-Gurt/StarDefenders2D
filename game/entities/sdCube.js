@@ -170,6 +170,9 @@ class sdCube extends sdEntity
 
 						let gun;
 
+						if ( random_value < 0.25 )
+						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_SHOTGUN });
+						else
 						if ( random_value < 0.333 )
 						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_TRIPLE_RAIL });
 						else

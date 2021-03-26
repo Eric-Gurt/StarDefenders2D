@@ -43,7 +43,8 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_grub' ), // idea by butorinoks77, rework by Eric Gurt
 			sdWorld.CreateImageFromFile( 'helmet_crow' ), // by butorinoks77
 			sdWorld.CreateImageFromFile( 'helmet_scope' ), // by butorinoks77
-			sdWorld.CreateImageFromFile( 'helmet_crusader' ) // by xXRedXAssassinXx
+			sdWorld.CreateImageFromFile( 'helmet_crusader' ), // by xXRedXAssassinXx
+			sdWorld.CreateImageFromFile( 'helmet_phfalkok' ), // by Booraz149
 		];
 		
 		// x y rotation, for images below
@@ -218,6 +219,7 @@ class sdCharacter extends sdEntity
 		
 		this._ai = null; // Object, won't be saved to snapshot
 		this._ai_enabled = false;
+		this._ai_gun_slot = 0; // When AI spawns with a weapon, this variable needs to be defined to the same slot as the spawned gun so AI can use it
 		
 		this.title = 'Random Hero #' + this._net_id;
 		this._my_hash = undefined; // Will be used to let players repsawn within same entity if it exists on map
@@ -642,7 +644,7 @@ class sdCharacter extends sdEntity
 		{
 			this._ai.next_action = 5 + Math.random() * 10;
 			
-			this.gun_slot = 2;
+			this.gun_slot = this._ai_gun_slot;
 			
 			let closest = null;
 			let closest_di = Infinity;
