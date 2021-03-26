@@ -85,7 +85,7 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.air_max = 30 * 30; // 30 sec
 		
-		sdCharacter.bullet_y_spawn_offset = -2;
+		sdCharacter.bullet_y_spawn_offset = -2; // Not only used for sword attacks
 		
 		sdCharacter.last_build_deny_reason = null;
 		
@@ -752,6 +752,12 @@ class sdCharacter extends sdEntity
 	}
 	GetBulletSpawnOffset()
 	{
+		// Much better for digging down
+		if ( !this._inventory[ this.gun_slot ] || sdGun.classes[ this._inventory[ this.gun_slot ].class ].is_sword )
+		{
+			return { x:0, y:sdCharacter.bullet_y_spawn_offset };
+		}
+		
 		/*let xx = 0;
 		let yy = 0;
 		

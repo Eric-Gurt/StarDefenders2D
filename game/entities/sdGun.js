@@ -598,12 +598,13 @@ class sdGun extends sdEntity
 			
 			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 0 );
 			
-			if ( sdWorld.last_hit_entity )
-			{
-				this.tilt += -Math.sin( this.tilt / sdGun.tilt_scale * 2 ) * 0.4 * sdGun.tilt_scale;
-			}
+			if ( this.class === sdGun.CLASS_CRYSTAL_SHARD )
+			this.tilt = 0; // These have offset which better to not rotate for better visuals
 			else
 			{
+				if ( sdWorld.last_hit_entity )
+				this.tilt += -Math.sin( this.tilt / sdGun.tilt_scale * 2 ) * 0.4 * sdGun.tilt_scale;
+				else
 				this.tilt += this.sx * 10;
 			}
 			

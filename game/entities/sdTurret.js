@@ -15,6 +15,7 @@ import sdGun from './sdGun.js';
 import sdEffect from './sdEffect.js';
 import sdAsp from './sdAsp.js';
 import sdSandWorm from './sdSandWorm.js';
+import sdSlug from './sdSlug.js';
 
 
 class sdTurret extends sdEntity
@@ -27,7 +28,7 @@ class sdTurret extends sdEntity
 		sdTurret.img_turret2 = sdWorld.CreateImageFromFile( 'turret2' );
 		sdTurret.img_turret2_fire = sdWorld.CreateImageFromFile( 'turret2_fire' );
 		
-		sdTurret.targetable_classes = new WeakSet( [ sdCharacter, sdVirus, sdQuickie, sdOctopus, sdCube, sdBomb, sdAsp, sdSandWorm ] );
+		sdTurret.targetable_classes = new WeakSet( [ sdCharacter, sdVirus, sdQuickie, sdOctopus, sdCube, sdBomb, sdAsp, sdSandWorm, sdSlug ] );
 		
 		sdTurret.KIND_LASER = 0;
 		sdTurret.KIND_ROCKET = 1;

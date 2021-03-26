@@ -57,7 +57,8 @@ class sdSlug extends sdEntity
 		this._current_target = null;
 		
 		//this._last_stand_on = null;
-		this.last_jump = sdWorld.time;
+		this.time_since_jump = 0;
+		//this.last_jump = sdWorld.time;
 		this._last_bite = sdWorld.time;
 		this._last_stand_when = 0;
 		
@@ -144,6 +145,8 @@ class sdSlug extends sdEntity
 		}
 		else
 		{
+			this.time_since_jump = Math.min( 1000 / 1000 * 30, this.time_since_jump + GSPEED );
+			
 			if ( this._hea < this._hmax && this._hea > 0 ) // If provoked then move
 			{
 				if ( this._current_target )
@@ -154,10 +157,11 @@ class sdSlug extends sdEntity
 					{
 						this.side = ( this._current_target.x > this.x ) ? 1 : -1;
 
-						if ( this.last_jump < sdWorld.time - 100 )
+						if ( this.time_since_jump > 100 / 1000 * 30 )
 						if ( in_water || !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) )
 						{
-							this.last_jump = sdWorld.time;
+							//this.last_jump = sdWorld.time;
+							this.time_since_jump = 0;
 							sdSound.PlaySound({ name:'slug_jump', x:this.x, y:this.y, volume: 0.25 });
 
 							let dx = ( this._current_target.x - this.x );
@@ -225,13 +229,16 @@ class sdSlug extends sdEntity
 				}
 
 				if ( this.idle === 0 )
-				if ( this.last_jump < sdWorld.time - 100 )
+				//if ( this.last_jump < sdWorld.time - 100 )
+				if ( this.time_since_jump > 100 / 1000 * 30 )
 				//if ( this._last_stand_on )
 				//if ( in_water || !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) )
 				//if ( in_water || ( sdWorld.time < this._last_stand_when + 50 || ( this._phys_sleep <= 0 && !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) ) ) ) // CanMoveWithoutOverlap can be heavy operation
 				if ( in_water || ( ( sdWorld.time < this._last_stand_when + 50 || this._phys_sleep <= 0 ) && ( !this.CanMoveWithoutOverlap( this.x, this.y + 3, 1 ) && this.CanMoveWithoutOverlap( this.x + this.side * 9, this.y - 9, 2 ) ) ) ) // CanMoveWithoutOverlap can be heavy operation
 				{
-					this.last_jump = sdWorld.time;
+					//this.last_jump = sdWorld.time;
+					this.time_since_jump = 0;
+							
 					sdSound.PlaySound({ name:'slug_jump', x:this.x, y:this.y, volume: 0.25 });
 
 					let dx = this.side;
@@ -341,8 +348,12 @@ class sdSlug extends sdEntity
 		else
 		{
 			//if ( Math.abs( this.sx ) < 2 )
-			if ( sdWorld.time < this.last_jump + 400 ) // This approach would work better for in-place jumps
-			ctx.drawImageFilterCache( ( sdWorld.time < this.last_jump + 200 ) ? sdSlug.img_slug_walk1 : sdSlug.img_slug_walk2, - 16, - 16, 32,32 );
+			//if ( sdWorld.time < this.last_jump + 400 ) // This approach would work better for in-place jumps
+			if ( this.time_since_jump < 400 / 1000 * 30 )
+			{
+				ctx.drawImageFilterCache( ( this.time_since_jump < 200 / 1000 * 30 ) ? sdSlug.img_slug_walk1 : sdSlug.img_slug_walk2, - 16, - 16, 32,32 );
+				//ctx.drawImageFilterCache( ( sdWorld.time < this.last_jump + 200 ) ? sdSlug.img_slug_walk1 : sdSlug.img_slug_walk2, - 16, - 16, 32,32 );
+			}
 			else
 			{
 				ctx.drawImageFilterCache( sdSlug.img_slug_idle1, - 16, - 16, 32,32 );
