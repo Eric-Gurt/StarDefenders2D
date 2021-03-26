@@ -43,7 +43,7 @@ let   httpsServer = null;
 var isWin = process.platform === "win32";
 globalThis.isWin = isWin;
 
-if ( !isWin )
+if ( !isWin ) 
 {
 	const ssl_key_path = '/usr/local/directadmin/data/users/admin/domains/gevanni.com.key';
 	const ssl_cert_path = '/usr/local/directadmin/data/users/admin/domains/gevanni.com.cert';
