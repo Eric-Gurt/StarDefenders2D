@@ -62,6 +62,7 @@ class sdWeather extends sdEntity
 		this.invasion = false;
 		this._invasion_timer = 0; // invasion length timer
 		this._invasion_spawn_timer = 0; // invasion spawn timer
+		this._invasion_spawns_con = 0; // invasion spawn conditions, needs to be 0 or invasion can't end
 		
 		this.raining_intensity = 0;
 		
@@ -106,7 +107,7 @@ class sdWeather extends sdEntity
 			{
 			this._invasion_timer -= 1 / 30  * GSPEED;
 			this._invasion_spawn_timer -= 1 / 30 * GSPEED;
-			if (this._invasion_timer <= 0 )
+			if (this._invasion_timer <= 0 && this._invasion_spawns_con <= 0 )
 			{
 			this.invasion = false;
 			//console.log('Invasion clearing up!');
@@ -207,7 +208,7 @@ class sdWeather extends sdEntity
 										}	
 										character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 										character_entity._ai_enabled = true;
-										
+										character_entity._ai_level = Math.floor( 1.5 + Math.random()*2 ); // AI Levels from 1 to 3
 										character_entity._matter_regeneration = 1; // At least some ammo regen
 
 										break;
@@ -447,7 +448,7 @@ class sdWeather extends sdEntity
 										}	
 										character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 										character_entity._ai_enabled = true;
-										
+										character_entity._ai_level = Math.floor( 0.5 + Math.random() * 2 ); // AI Levels from 0 to 2
 										character_entity._matter_regeneration = 1; // At least some ammo regen
 
 										break;
