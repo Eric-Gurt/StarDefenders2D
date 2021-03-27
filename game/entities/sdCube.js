@@ -413,8 +413,18 @@ class sdCube extends sdEntity
 					for ( let i = 0; i < targets_raw.length; i++ )
 					if ( ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ].hea > 0 && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdTurret' && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) )
-					if ( sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdCube' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
-					targets.push( targets_raw[ i ] );
+					{
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdCube' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
+						targets.push( targets_raw[ i ] );
+						else
+						{
+							if ( targets_raw[ i ].GetClass() === 'sdCharacter' )
+							if ( targets_raw[ i ]._nature_damage >= targets_raw[ i ]._player_damage + ( this.is_huge ? 120 : 200 ) ) // Highly wanted by sdCubes in this case
+							{
+								targets.push( targets_raw[ i ] );
+							}
+						}
+					}
 
 					sdWorld.shuffleArray( targets );
 

@@ -893,6 +893,9 @@ class sdCharacter extends sdEntity
 			this._player_damage = 0; // Hack
 		}
 		
+		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED );
+		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED );
+		
 		if ( this.hea <= 0 )
 		{
 			this.MatterGlow( 0.01, 30, GSPEED );
