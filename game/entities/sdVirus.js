@@ -59,8 +59,9 @@ class sdVirus extends sdEntity
 		this._last_jump = sdWorld.time;
 		this._last_bite = sdWorld.time;
 		this._last_grow = sdWorld.time;
-		this._last_target_change = 0;
 		this._split = 0;
+		this._last_target_change = 0;
+		
 		this.side = 1;
 		
 		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
@@ -73,7 +74,8 @@ class sdVirus extends sdEntity
 		if ( this.hmax > sdVirus.normal_max_health_max )
 		this.hmax = sdVirus.normal_max_health_max;
 		if ( this.hmax >= 160 ) // If it grows 2x it's size, it will split on death
-		this._split = 1;
+		this._split = 1;	
+
 		for ( var r = 0; r < 2; r++ )
 		{
 			var dist = 0;
@@ -96,6 +98,7 @@ class sdVirus extends sdEntity
 					this.y += yy * dist;
 					
 					this._hea = this._hea / old * this.hmax;
+
 					return true;
 				}
 				
