@@ -503,9 +503,9 @@ class sdWeather extends sdEntity
 					
 					if ( r === 5 ) // Falkok invasion event
 					{
-						if ( this.invasion === false ) // Prevent invasion resetting
+						if ( this._invasion === false ) // Prevent invasion resetting
 						{
-							this.invasion = true;
+							this._invasion = true;
 							this._invasion_timer = 120 ; // 2 minutes; using GSPEED for measurement (feel free to change that, I'm not sure how it should work)
 							this._invasion_spawn_timer = 0;
 							this._invasion_spawns_con = 30; // At least 30 Falkoks must spawn otherwise invasion will not end
