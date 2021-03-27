@@ -770,8 +770,8 @@ class sdCharacter extends sdEntity
 	}
 	GetBulletSpawnOffset()
 	{
-		// Much better for digging down
-		if ( !this._inventory[ this.gun_slot ] || sdGun.classes[ this._inventory[ this.gun_slot ].class ].is_sword )
+		// Much better for digging down. Also will work with all short-range weapons like defibrillators
+		if ( !this._inventory[ this.gun_slot ] || sdGun.classes[ this._inventory[ this.gun_slot ].class ].is_sword || ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].projectile_properties.time_left !== undefined && sdGun.classes[ this._inventory[ this.gun_slot ].class ].projectile_properties.time_left < 5 ) )
 		{
 			return { x:0, y:sdCharacter.bullet_y_spawn_offset };
 		}
