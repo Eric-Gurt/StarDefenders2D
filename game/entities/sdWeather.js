@@ -211,7 +211,6 @@ class sdWeather extends sdEntity
 										
 										character_entity._matter_regeneration = 1; // At least some ammo regen
 
-										this._invasion_spawns_con -= 1;
 
 										break;
 									}
@@ -227,6 +226,7 @@ class sdWeather extends sdEntity
 
 							instances++;
 							ais++;
+							this._invasion_spawns_con -= 1;
 						}
 					}
 			}
