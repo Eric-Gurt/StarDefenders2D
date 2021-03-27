@@ -256,6 +256,7 @@ class sdOctopus extends sdEntity
 						 from_entity.GetClass() === 'sdHover' ||
 						 from_entity.GetClass() === 'sdAntigravity' ||
 						 from_entity.GetClass() === 'sdMatterContainer' ||
+						 from_entity.GetClass() === 'sdCommandCentre' ||
 						 ( from_entity.GetClass() === 'sdGun' && from_entity.class !== sdGun.CLASS_BUILD_TOOL && from_entity.class !== sdGun.CLASS_MEDIKIT && ( from_entity._held_by === null || from_entity._held_by.gun_slot === sdGun.classes[ from_entity.class ].slot ) ) || // Yes, held guns too, but only currently held guns. Except for build tool and medikit
 						 from_entity.GetClass() === 'sdTeleport' ||
 						 from_entity.GetClass() === 'sdVirus' ||

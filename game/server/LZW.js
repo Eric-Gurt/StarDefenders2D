@@ -6,6 +6,7 @@
 
 */
 
+
 	class LZW
 	{
 		static init_class()

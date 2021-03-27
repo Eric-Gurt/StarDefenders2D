@@ -59,7 +59,7 @@ class sdWeather extends sdEntity
 		this._rain_ammount = 0;
 		this._asteroid_spam_ammount = 0;
 		
-		this.invasion = false;
+		this._invasion = false;
 		this._invasion_timer = 0; // invasion length timer
 		this._invasion_spawn_timer = 0; // invasion spawn timer
 		this._invasion_spawns_con = 0; // invasion spawn conditions, needs to be 0 or invasion can't end. Counter for falkoks left to spawn
@@ -103,13 +103,13 @@ class sdWeather extends sdEntity
 			if ( this.day_time > 30 * 60 * 24 )
 			this.day_time = 0;
 			
-			if ( this.invasion ) // Invasion event
+			if ( this._invasion ) // Invasion event
 			{
 				this._invasion_timer -= 1 / 30  * GSPEED;
 				this._invasion_spawn_timer -= 1 / 30 * GSPEED;
 				if ( this._invasion_timer <= 0 && this._invasion_spawns_con <= 0 )
 				{
-					this.invasion = false;
+					this._invasion = false;
 					//console.log('Invasion clearing up!');
 				}
 				if ( this._invasion_spawn_timer <= 0 )
@@ -503,9 +503,9 @@ class sdWeather extends sdEntity
 					
 					if ( r === 5 ) // Falkok invasion event
 					{
-						if ( this.invasion === false ) // Prevent invasion resetting
+						if ( this._invasion === false ) // Prevent invasion resetting
 						{
-							this.invasion = true;
+							this._invasion = true;
 							this._invasion_timer = 120 ; // 2 minutes; using GSPEED for measurement (feel free to change that, I'm not sure how it should work)
 							this._invasion_spawn_timer = 0;
 							this._invasion_spawns_con = 30; // At least 30 Falkoks must spawn otherwise invasion will not end

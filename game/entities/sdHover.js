@@ -68,13 +68,13 @@ class sdHover extends sdEntity
 		this.hmax = 600;
 		this.hea = this.hmax;
 		
-		this.tilt = 0;
+		this._tilt = 0;
 		
-		this.bullets = 300;
-		this.bullets_reload = 0;
+		this._bullets = 300;
+		this._bullets_reload = 0;
 		
-		this.rockets = 2;
-		this.rockets_reload = 0;
+		this._rockets = 2;
+		this._rockets_reload = 0;
 		
 		this._regen_timeout = 0;
 		
@@ -268,11 +268,11 @@ class sdHover extends sdEntity
 			this.sx += x_force * GSPEED;
 			this.sy += y_force * GSPEED;
 			
-			this.tilt = sdWorld.MorphWithTimeScale( this.tilt, ( this.driver0.act_x ) * Math.PI / 4 * 100, 0.93, GSPEED );
+			this._tilt = sdWorld.MorphWithTimeScale( this._tilt, ( this.driver0.act_x ) * Math.PI / 4 * 100, 0.93, GSPEED );
 			
 			if ( this.driver0.act_x === 0 )
-			if ( Math.abs( this.tilt ) < 1 )
-			this.tilt = ( this.tilt > 0 ? 1 : -1 );
+			if ( Math.abs( this._tilt ) < 1 )
+			this._tilt = ( this._tilt > 0 ? 1 : -1 );
 	
 			if ( x_force !== 0 || y_force !== 0 )
 			this.PhysWakeUp();
@@ -280,22 +280,22 @@ class sdHover extends sdEntity
 		else
 		{
 			this.sy += sdWorld.gravity * GSPEED;
-			this.tilt = sdWorld.MorphWithTimeScale( this.tilt, 0, 0.93, GSPEED );
+			this._tilt = sdWorld.MorphWithTimeScale( this._tilt, 0, 0.93, GSPEED );
 			
-			if ( Math.abs( this.tilt ) < 1 )
-			this.tilt = ( this.tilt > 0 ? 1 : -1 );
+			if ( Math.abs( this._tilt ) < 1 )
+			this._tilt = ( this._tilt > 0 ? 1 : -1 );
 		}
 		
 		if ( sdWorld.is_server && this.hea > 0 )
 		{
-			if ( this.bullets_reload > 0 )
-			this.bullets_reload -= GSPEED;
+			if ( this._bullets_reload > 0 )
+			this._bullets_reload -= GSPEED;
 		
-			if ( this.rockets_reload > 0 )
-			this.rockets_reload -= GSPEED;
+			if ( this._rockets_reload > 0 )
+			this._rockets_reload -= GSPEED;
 		
 			if ( this.driver1 )
-			if ( this.bullets_reload <= 0 )
+			if ( this._bullets_reload <= 0 )
 			{
 				if ( this.driver1._key_states.GetKey( 'Mouse1' ) )
 				{
@@ -323,22 +323,22 @@ class sdHover extends sdEntity
 
 					sdEntity.entities.push( bullet_obj );
 
-					this.bullets_reload = 1.5;
+					this._bullets_reload = 1.5;
 
-					this.bullets--;
+					this._bullets--;
 				}
 
-				if ( this.bullets <= 0 || ( this.bullets < 300 && this.driver1._key_states.GetKey( 'KeyR' ) ) )
+				if ( this._bullets <= 0 || ( this._bullets < 300 && this.driver1._key_states.GetKey( 'KeyR' ) ) )
 				{
 					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:1, pitch:0.6 });
-					this.bullets = 300;
-					this.bullets_reload = 60;
+					this._bullets = 300;
+					this._bullets_reload = 60;
 				}
 			}
 			
 		
 			if ( this.driver2 )
-			if ( this.rockets_reload <= 0 )
+			if ( this._rockets_reload <= 0 )
 			{
 				if ( this.driver2._key_states.GetKey( 'Mouse1' ) )
 				{
@@ -374,16 +374,16 @@ class sdHover extends sdEntity
 
 					sdEntity.entities.push( bullet_obj );
 
-					this.rockets_reload = 5;
+					this._rockets_reload = 5;
 
-					this.rockets--;
+					this._rockets--;
 				}
 
-				if ( this.rockets <= 0 || ( this.rockets < 2 && this.driver2._key_states.GetKey( 'KeyR' ) ) )
+				if ( this._rockets <= 0 || ( this._rockets < 2 && this.driver2._key_states.GetKey( 'KeyR' ) ) )
 				{
 					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:1, pitch:0.3 });
-					this.rockets = 2;
-					this.rockets_reload = 60;
+					this._rockets = 2;
+					this._rockets_reload = 60;
 				}
 			}
 		}
@@ -413,9 +413,9 @@ class sdHover extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.rotate( this.tilt / 100 );
+		ctx.rotate( this._tilt / 100 );
 		
-		if ( this.tilt > 0 )
+		if ( this._tilt > 0 )
 		{
 			ctx.scale( -1, 1 );
 		}
