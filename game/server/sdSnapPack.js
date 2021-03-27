@@ -1,7 +1,38 @@
 
+import LZW from './LZW.js';
+
 class sdSnapPack
 {
-	static Compress( object_array )
+	static init_class()
+	{
+		sdSnapPack.all_time_worst_case = '';
+		sdSnapPack.recent_worst_case = '';
+		
+		sdSnapPack.recent_worst_case_changed = false;
+		sdSnapPack.all_time_worst_case_changed = false;
+		
+		sdSnapPack.apply_lzw_for_snapshots = true; // Apparently some servers would prefer CPU-intensive copression over more data...
+	}
+	/*
+	static f( a )
+	{
+		if ( typeof a === 'object' && !Array.isArray( a ) && a !== null )
+		{
+			let s = '';
+			for ( let p in a )
+			{
+				if ( s.length > 0 )
+				s += ',';
+
+				s += p + ':' + sdSnapPack.f( a[ p ] );
+			}
+			return '{' + s + '}';
+		}
+		else
+		return JSON.stringify( a );
+	}
+	*/
+	static Compress( object_array, track_worst_case )
 	{
 		let unique_objects = new WeakSet();
 	    
@@ -100,7 +131,7 @@ class sdSnapPack
 							if ( value === null )
 							hit_cost = 3 + p.length + 4;
 							else
-							if ( value === undefined || isNaN( value ) )
+							if ( value === undefined || isNaN( value ) || value === Infinity || value === -Infinity ) // Infinity becomes null in JSON spec...
 							{
 								hit_cost = 3 + p.length + 4; // Becomes null in the end
 								
@@ -355,17 +386,43 @@ class sdSnapPack
 		
 		try
 		{
-			return Iteration( object_array, 0 );
+			Iteration( object_array, 0 );
+			
+			if ( sdSnapPack.apply_lzw_for_snapshots )
+			object_array = LZW.lzw_encode( JSON.stringify( object_array ) );
 		}
 		catch( e )
 		{
 			console.log( 'Problem during compression of entity list: ', original_array );
 			throw new Error( 'Problem was not resolved. Original error: ', e );
 		}
+		
+		if ( track_worst_case )
+		{
+			let s = JSON.stringify( object_array );
+			
+			if ( s.length > sdSnapPack.recent_worst_case.length )
+			{
+				sdSnapPack.recent_worst_case_changed = true;
+				sdSnapPack.recent_worst_case = s;
+			}
+			
+			if ( s.length > sdSnapPack.all_time_worst_case.length )
+			{
+				sdSnapPack.all_time_worst_case_changed = true;
+				sdSnapPack.all_time_worst_case = s;
+			}
+		}
+		
+		return object_array;
 	}
 	
 	static Decompress( object_array, level=0 )
 	{
+		if ( sdSnapPack.apply_lzw_for_snapshots )
+		if ( level === 0 )
+		object_array = JSON.parse( LZW.lzw_decode( object_array ) );
+		
 		let definitor = null;
 
 		for ( let i = 0; i < object_array.length; i++ )
@@ -464,5 +521,6 @@ class sdSnapPack
 		}*/
 	}
 }
+sdSnapPack.init_class();
 
 export default sdSnapPack;

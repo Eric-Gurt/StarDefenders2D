@@ -383,6 +383,7 @@ const snapshot_path_const = __dirname + '/star_defenders_snapshot' + ( world_slo
 const timewarp_path_const = __dirname + '/star_defenders_timewarp' + ( world_slot || '' ) + '.v';
 const moderation_data_path_const = __dirname + '/moderation_data' + ( world_slot || '' ) + '.v';
 const superuser_pass_path = __dirname + '/superuser_pass' + ( world_slot || '' ) + '.v';
+const sync_debug_path = __dirname + '/sync_debug' + ( world_slot || '' ) + '.v';
 
 sdWorld.server_config = {};
 
@@ -1177,6 +1178,28 @@ let is_terminating = false;
 			sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server: Backup is compelte ('+(err?'Error!':'successfully')+')!' );
 		});
 	}, 1000 * 60 * 15 ); // Once per 15 minutes
+	
+	
+	
+	setInterval( ()=>{
+		
+		if ( sdSnapPack.recent_worst_case_changed )
+		{
+			fs.writeFile( sync_debug_path + '.recent_worst.v', sdSnapPack.recent_worst_case, ( err )=>
+			{
+			});
+			
+			sdSnapPack.recent_worst_case = '';
+		}
+		
+		if ( sdSnapPack.all_time_worst_case_changed )
+		{
+			fs.writeFile( sync_debug_path + '.all_time_worst.v', sdSnapPack.all_time_worst_case, ( err )=>
+			{
+			});
+		}
+	
+	}, 1000 * 60 * 5 ); // Once per 5 minutes
 
 	let termination_initiated = false;
 	function onBeforeTurnOff()
@@ -1919,6 +1942,7 @@ io.on("connection", (socket) =>
 				if ( sdWorld.server_config.onDisconnect )
 				sdWorld.server_config.onDisconnect( socket.character, 'manual' );
 
+				if ( socket.character.title.indexOf( 'Disconnected ' ) !== 0 )
 				socket.character.title = 'Disconnected ' + socket.character.title;
 
 				if ( !socket.character._is_being_removed )
@@ -2593,6 +2617,7 @@ io.on("connection", (socket) =>
 			if ( sdWorld.server_config.onDisconnect )
 			sdWorld.server_config.onDisconnect( socket.character, 'disconnected' );
 			
+			if ( socket.character.title.indexOf( 'Disconnected ' ) !== 0 )
 			socket.character.title = 'Disconnected ' + socket.character.title;
 
 			//socket.character._old_score = socket.score;
@@ -3085,7 +3110,7 @@ setInterval( ()=>
 					}
 					
 					let full_msg = [ 
-						sdSnapPack.Compress( snapshot ), // 0
+						sdSnapPack.Compress( snapshot, false ), // 0
 						socket.GetScore(), // 1
 						leaders, // 2
 						sd_events, // 3

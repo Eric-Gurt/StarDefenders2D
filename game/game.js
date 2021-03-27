@@ -466,7 +466,12 @@ let enf_once = true;
 		{
 			sdWorld.HandleWorldLogic();
 
+			const isTransportWritable = socket.io.engine &&
+										socket.io.engine.transport &&
+										socket.io.engine.transport.writable;
+
 			if ( sdWorld.time > socket.last_sync + socket.max_update_rate )
+			if ( isTransportWritable )
 			{
 				socket.last_sync = sdWorld.time;
 

@@ -161,9 +161,21 @@
 	    }
 	    
 	    
-	    .server, .server:link, .server:visited
+	    .serverA, .serverA:link, .serverA:visited
+	    {
+		color: #82b4ff;
+	    }
+	    .serverB, .serverB:link, .serverB:visited
 	    {
 		color: white;
+	    }
+	    .serverC, .serverC:link, .serverC:visited
+	    {
+		color: #58ea99;
+	    }
+		
+	    .server, .server:link, .server:visited
+	    {
 		display:block;
 		padding:5px;
 	    }
@@ -468,10 +480,13 @@
 		<br><br>
 		<span class="sdtitle">Other servers:</span>
 		<div class="sdgroup">
-		    <a class="server" href="http://localhost:3000">localhost:3000<div>your server will be here</div></a> 
-		    <a class="server" href="https://www.gevanni.com:3000">gevanni.com:3000<div>Main server, initial world, more peaceful</div></a>
-		    <a class="server" href="https://www.gevanni.com:3001">gevanni.com:3001<div>Main server, FFA allowed, no Cubes, no invisibility, no Command Centres</div></a>
-		    <a class="server" href="https://www.gevanni.com:3002">gevanni.com:3002<div>Main server, PvP arena (or more like PB2 arena)</div></a>
+		    <a class="server serverA" href="http://localhost:3000">localhost:3000<div>your local server will be here<br>(contact us to appear in list)</div></a>
+		    
+		    <a class="server serverB" href="https://www.gevanni.com:3000">gevanni.com:3000<div>Europe, Ukraine<br>Main server, initial world, more peaceful</div></a>
+		    <a class="server serverB" href="https://www.gevanni.com:3001">gevanni.com:3001<div>Europe, Ukraine<br>Main server, FFA allowed, no Cubes, no invisibility, no Command Centres</div></a>
+		    <a class="server serverB" href="https://www.gevanni.com:3002">gevanni.com:3002<div>Europe, Ukraine<br>Main server, PvP arena (or more like PB2 arena)</div></a>
+		    
+		    <a class="server serverC" href="#" onclick="confirm('This server is hosted by one of Star Defenders 2D players and thus we can not be fully responsible for any custom content you might find there.\n\nAdditonally your current IP address and thus approximate location might be known to server owner unless you have VPN enabled before proceeding.\n\nFeel free to report any abuse to https://twitter.com/Eric_Gurt \n\nPress OK to proceed')?window.location='https://darkclan.xyz:3000':null;">darkclan.xyz:3000<div>Canada, Quebec<br>Hosted by mrmcshroom<br>since March 27, 2021</div></a>
 		</div>
 	    </div>
 	    
@@ -612,10 +627,10 @@
 		<label for="helmet7">CS</label>
 		<br>
 		<input type="checkbox" id="helmet8" value="8">
-		<label for="helmet8">Crow</label>
+		<label for="helmet8">Grub</label>
 		<br>
 		<input type="checkbox" id="helmet9" value="9">
-		<label for="helmet9">Grub</label>
+		<label for="helmet9">Crow</label>
 		<br>
 		<input type="checkbox" id="helmet10" value="10">
 		<label for="helmet10">Scope</label>
@@ -683,6 +698,7 @@
 	</div>
 
 	<script>
+
 	{
 	    globalThis.connection_established = false;
 	    
