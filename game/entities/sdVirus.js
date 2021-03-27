@@ -60,7 +60,7 @@ class sdVirus extends sdEntity
 		this._last_bite = sdWorld.time;
 		this._last_grow = sdWorld.time;
 		this._last_target_change = 0;
-		
+		this._split = 0;
 		this.side = 1;
 		
 		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
@@ -72,7 +72,8 @@ class sdVirus extends sdEntity
 		this.hmax += delta;
 		if ( this.hmax > sdVirus.normal_max_health_max )
 		this.hmax = sdVirus.normal_max_health_max;
-	
+		if ( this.hmax >= 160 ) // If it grows 2x it's size, it will split on death
+		this._split = 1;
 		for ( var r = 0; r < 2; r++ )
 		{
 			var dist = 0;
@@ -95,7 +96,6 @@ class sdVirus extends sdEntity
 					this.y += yy * dist;
 					
 					this._hea = this._hea / old * this.hmax;
-
 					return true;
 				}
 				
@@ -167,6 +167,28 @@ class sdVirus extends sdEntity
 			if ( initiator )
 			if ( typeof initiator._score !== 'undefined' )
 			initiator._score += ~~( 1 * this.hmax / sdVirus.normal_max_health );
+			
+			if ( this._split === 1)
+			{
+					let xx = this.x + this.hitbox_x1 + 16;
+					let yy = this.y + this.hitbox_y1 + 16;
+					let i = 0;
+					do
+					{
+						let virus = new sdVirus({ 
+							x: xx,
+							y: yy,
+						});
+						xx += 1 + ( virus.hitbox_x2 - virus.hitbox_x1);
+						if (xx > this.x + this.hitbox_x2 - 16)
+						{
+							xx = this.x + this.hitbox_x1 + 16;
+							yy += 1 + ( virus.hitbox_y2 - virus.hitbox_y1);
+						}
+						sdEntity.entities.push( virus );
+						i++;
+					} while ( ( yy < this.y + this.hitbox_y2 - 8 ) && (i < 12) ); // 12 is the max cap a virus can split into
+			}
 		}
 		
 		if ( this._hea < -this.hmax / 80 * 100 )
