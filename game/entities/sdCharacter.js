@@ -223,8 +223,8 @@ class sdCharacter extends sdEntity
 		this._ai = null; // Object, won't be saved to snapshot
 		this._ai_enabled = false;
 		this._ai_gun_slot = 0; // When AI spawns with a weapon, this variable needs to be defined to the same slot as the spawned gun so AI can use it
-		this._ai_level = 0; // Self explanatory;
-
+		this._ai_level = 0; // Self explanatory
+		
 		this.title = 'Random Hero #' + this._net_id;
 		this._my_hash = undefined; // Will be used to let players repsawn within same entity if it exists on map
 		//this._old_score = 0; // This value is only read/written to when player disconnects and reconnects
@@ -454,7 +454,7 @@ class sdCharacter extends sdEntity
 				if ( this._ai )
 				{
 					if ( initiator )
-					if ( !initiator._ai || Math.random() < (0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for Falkoks, also reduced by their AI level
+					if ( !initiator._ai || Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for Falkoks, also reduced by their AI level
 					this._ai.target = initiator;
 				}
 				else
@@ -727,7 +727,7 @@ class sdCharacter extends sdEntity
 				if ( Math.random() < 0.4 )
 				this._key_states.SetKey( 'KeyS', 1 );
 			
-				if ( Math.random() <  0.2 + Math.min( 0.8, (0.25*this._ai_level ) ) ) // Shoot on detection, depends on AI level
+				if ( Math.random() < 0.2 + Math.min( 0.8, ( 0.25 * this._ai_level ) ) ) // Shoot on detection, depends on AI level
 				{
 					this._key_states.SetKey( 'Mouse1', 1 );
 				}
@@ -747,7 +747,8 @@ class sdCharacter extends sdEntity
 				{
 					// Try to go through walls of any kinds
 					if ( sdWorld.last_hit_entity )
-					if ( sdWorld.last_hit_entity._natural === false || sdWorld.last_hit_entity.is( sdDoor ) || sdWorld.last_hit_entity.is( sdMatterContainer ) || ( !sdWorld.last_hit_entity.is( sdCharacter ) && Math.random() < ( 0.01 * _ai_level ) ) ) // Also affected by AI level
+					//if ( sdWorld.last_hit_entity._natural === false || sdWorld.last_hit_entity.is( sdDoor ) || sdWorld.last_hit_entity.is( sdMatterContainer ) || ( !sdWorld.last_hit_entity.is( sdCharacter ) && Math.random() < 0.01 ) )
+					if ( sdWorld.last_hit_entity._natural === false || sdWorld.last_hit_entity.is( sdDoor ) || sdWorld.last_hit_entity.is( sdMatterContainer ) || ( !sdWorld.last_hit_entity.is( sdCharacter ) && Math.random() < ( 0.01 * _ai_level ) ) )
 					{
 						closest = sdWorld.last_hit_entity;
 
@@ -760,13 +761,15 @@ class sdCharacter extends sdEntity
 		
 		if ( this._ai.target && this._ai.target.IsVisible( this ) )
 		{
-			this.look_x = sdWorld.MorphWithTimeScale( this.look_x, this._ai.target.x, Math.min(0.5, ( 0.8 - 0.15*this._ai_level) ), GSPEED ); // Aim accuracy depending on AI level
-			this.look_y = sdWorld.MorphWithTimeScale( this.look_y, this._ai.target.y + ( this._ai.target_local_y || 0 ), Math.min(0.5, ( 0.8 - 0.15*this._ai_level) ), GSPEED );
+			this.look_x = sdWorld.MorphWithTimeScale( this.look_x, this._ai.target.x, Math.max( 0.5, ( 0.8 - 0.15 * this._ai_level ) ), GSPEED );
+			this.look_y = sdWorld.MorphWithTimeScale( this.look_y, this._ai.target.y + ( this._ai.target_local_y || 0 ), Math.max( 0.5, ( 0.8 - 0.15 * this._ai_level ) ), GSPEED );
 		}
 		else
 		{
 			this.look_x = sdWorld.MorphWithTimeScale( this.look_x, this.x + this._ai.direction * 400, 0.9, GSPEED );
 			this.look_y = sdWorld.MorphWithTimeScale( this.look_y, this.y + Math.sin( sdWorld.time / 2000 * Math.PI ) * 50, 0.9, GSPEED );
+			
+			this._key_states.SetKey( 'Mouse1', 0 );
 		}
 	}
 	GetBulletSpawnOffset()

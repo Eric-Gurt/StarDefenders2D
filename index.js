@@ -253,8 +253,15 @@ globalThis.EnforceChangeLog = function EnforceChangeLog( mat, property_to_enforc
 globalThis.getStackTrace = ()=>
 {
 	var obj = {};
-	Error.captureStackTrace( obj, globalThis.getStackTrace );
-	return obj.stack;
+	try
+	{
+		Error.captureStackTrace( obj, globalThis.getStackTrace ); // Webkit
+		return obj.stack;
+	}
+	catch ( e )
+	{
+		return ( new Error ).stack; // Firefox
+	}
 };
 
 sdWorld.init_class();

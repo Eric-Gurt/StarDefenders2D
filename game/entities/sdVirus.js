@@ -59,7 +59,6 @@ class sdVirus extends sdEntity
 		this._last_jump = sdWorld.time;
 		this._last_bite = sdWorld.time;
 		this._last_grow = sdWorld.time;
-		this._split = 0;
 		this._last_target_change = 0;
 		
 		this.side = 1;
@@ -73,9 +72,7 @@ class sdVirus extends sdEntity
 		this.hmax += delta;
 		if ( this.hmax > sdVirus.normal_max_health_max )
 		this.hmax = sdVirus.normal_max_health_max;
-		if ( this.hmax >= 160 ) // If it grows 2x it's size, it will split on death
-		this._split = 1;	
-
+	
 		for ( var r = 0; r < 2; r++ )
 		{
 			var dist = 0;
@@ -170,27 +167,64 @@ class sdVirus extends sdEntity
 			if ( initiator )
 			if ( typeof initiator._score !== 'undefined' )
 			initiator._score += ~~( 1 * this.hmax / sdVirus.normal_max_health );
-			
-			if ( this._split === 1)
+	
+
+			//if ( this._split === 1 )
+			if ( this.hmax > 160 )
 			{
-					let xx = this.x + this.hitbox_x1 + 16;
-					let yy = this.y + this.hitbox_y1 + 16;
-					let i = 0;
-					do
+				const filtering = ( from_entity )=>
+				{
+					if ( from_entity === this )
+					return false;
+				
+					return true;
+					//return ( from_entity !== this );
+				};
+				
+				for ( let i = 0; i < 12; i++ ) // 12 is the max cap a virus can split into
+				{
+					let virus = new sdVirus({ 
+						x: this.x,
+						y: this.y
+					});
+					
+					sdEntity.entities.push( virus );
+
+					let placed = false;
+					
+					for ( let tr = 0; tr < 100; tr++ )
 					{
-						let virus = new sdVirus({ 
-							x: xx,
-							y: yy,
-						});
-						xx += 1 + ( virus.hitbox_x2 - virus.hitbox_x1);
-						if (xx > this.x + this.hitbox_x2 - 16)
-						{
-							xx = this.x + this.hitbox_x1 + 16;
-							yy += 1 + ( virus.hitbox_y2 - virus.hitbox_y1);
+						let xx = this.x + this.hitbox_x1 + ( this.hitbox_x2 - this.hitbox_x1 ) * Math.random();
+						let yy = this.y + this.hitbox_y1 + ( this.hitbox_y2 - this.hitbox_y1 ) * Math.random();
+
+						if ( sdWorld.inDist2D_Boolean( xx, yy, this.x, this.y, 4 * this.hmax / sdVirus.normal_max_health ) )
+						{	
+							if ( virus.CanMoveWithoutOverlap( xx, yy, 0, filtering ) )
+							{
+								virus.x = xx;
+								virus.y = yy;
+								sdWorld.UpdateHashPosition( virus, false ); // Prevent intersection with other ones
+								virus.filter = this.filter;
+								
+								placed = true;
+								
+								break;
+							}
+							//else
+							//console.log( 'sdWorld.last_hit_entity',sdWorld.last_hit_entity.GetClass(), sdWorld.last_hit_entity._hea, sdWorld.last_hit_entity._is_being_removed );
 						}
-						sdEntity.entities.push( virus );
-						i++;
-					} while ( ( yy < this.y + this.hitbox_y2 - 8 ) && (i < 12) ); // 12 is the max cap a virus can split into
+						else
+						{
+							//console.log( 'too far',sdWorld.Dist2D( xx, yy, this.x, this.y ), 4 * this.hmax / sdVirus.normal_max_health );
+						}
+					}
+					if ( !placed )
+					{
+						//console.log('wont spawn '+i)
+						virus.remove();
+						virus.death_anim = sdVirus.death_duration + sdVirus.post_death_ttl; // Avoid paricles & sound
+					}
+				}
 			}
 		}
 		

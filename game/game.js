@@ -167,8 +167,15 @@ let enf_once = true;
 	globalThis.getStackTrace = ()=>
 	{
 		var obj = {};
-		Error.captureStackTrace( obj, globalThis.getStackTrace );
-		return obj.stack;
+		try
+		{
+			Error.captureStackTrace( obj, globalThis.getStackTrace ); // Webkit
+			return obj.stack;
+		}
+		catch ( e )
+		{
+			return ( new Error ).stack; // Firefox
+		}
 	};
 	
 	let sd_events = [];
@@ -644,8 +651,8 @@ let enf_once = true;
 	
 		//if ( sdWorld.my_entity )
 		//{
-			sdWorld.mouse_screen_x = e.clientX;
-			sdWorld.mouse_screen_y = e.clientY;
+			sdWorld.mouse_screen_x = e.clientX * sdRenderer.resolution_quality;
+			sdWorld.mouse_screen_y = e.clientY * sdRenderer.resolution_quality;
 		//}
 	};
 	window.onmousedown = ( e )=>

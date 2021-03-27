@@ -23,18 +23,25 @@ class sdRenderer
 		if ( typeof window === 'undefined' )
 		return;
 	
+		sdRenderer.resolution_quality = 1;
+	
 		var canvas = document.createElement('canvas');
 		canvas.id     = "SD2D";
-		//canvas.width  = 800;
-		//canvas.height = 400;
+		
 		canvas.width  = 800;
 		canvas.height = 400;
+				
+		//canvas.style.transform = 'scale(' + ( 1 / sdRenderer.resolution_quality ) + ')';
+		//canvas.style.transformOrigin = '0 0';
+
 		canvas.style.position = "fixed";
 		canvas.style.left = '0px';
 		canvas.style.top = '0px';
 		canvas.style.cursor = 'none';
 		
 		canvas.style.display = 'none';
+		
+		canvas.style.imageRendering = 'pixelated';
 		
 		sdRenderer.canvas = canvas;
 		sdRenderer.screen_width = canvas.width;
@@ -64,8 +71,17 @@ class sdRenderer
 		{
 			window.onresize = function( event )
 			{
-				canvas.width = document.body.clientWidth;
-				canvas.height = document.body.clientHeight;
+				let clientWidth = document.body.clientWidth * sdRenderer.resolution_quality;
+				let clientHeight = document.body.clientHeight * sdRenderer.resolution_quality;
+				
+				let innerWidth = window.innerWidth * sdRenderer.resolution_quality;
+				let innerHeight = window.innerHeight * sdRenderer.resolution_quality;
+
+				canvas.width = clientWidth;
+				canvas.height = clientHeight;
+				
+				canvas.style.transform = 'scale(' + ( 1 / sdRenderer.resolution_quality ) + ')';
+				canvas.style.transformOrigin = '0 0';
 				
 				// Rounding errors may cause gaps in blocks
 				sdRenderer.screen_width = Math.round( canvas.width / 2 ) * 2;
@@ -78,15 +94,15 @@ class sdRenderer
 				{
 					if ( sdRenderer.ctx.renderer )
 					{
-						sdRenderer.ctx.camera.aspect = window.innerWidth / window.innerHeight;
-						sdRenderer.ctx.renderer.setSize( window.innerWidth, window.innerHeight );
+						sdRenderer.ctx.camera.aspect = innerWidth / innerHeight;
+						sdRenderer.ctx.renderer.setSize( innerWidth, innerHeight );
 
-						sdRenderer.ctx.camera.position.x = window.innerWidth / 2;
-						sdRenderer.ctx.camera.position.y = window.innerHeight / 2;
-						sdRenderer.ctx.camera.position.z = -811 * ( 1 * window.innerHeight / 937 );
+						sdRenderer.ctx.camera.position.x = innerWidth / 2;
+						sdRenderer.ctx.camera.position.y = innerHeight / 2;
+						sdRenderer.ctx.camera.position.z = -811 * ( 1 * innerHeight / 937 );
 						
-						sdRenderer.ctx.camera.near = 400 * ( 1 * window.innerHeight / 937 );
-						sdRenderer.ctx.camera.far = 1000 * ( 1 * window.innerHeight / 937 );
+						sdRenderer.ctx.camera.near = 400 * ( 1 * innerHeight / 937 );
+						sdRenderer.ctx.camera.far = 1000 * ( 1 * innerHeight / 937 );
 
 						sdRenderer.ctx.camera.updateProjectionMatrix();
 					}

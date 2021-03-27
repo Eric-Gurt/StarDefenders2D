@@ -577,6 +577,15 @@
 		<br>
 		<input type="checkbox" id="visuals3" value="yes" checked>
 		<label for="visuals3">3D+ (GPU accelerated)</label>
+		<br>
+		<br>
+		<input type="checkbox" id="density1" value="no">
+		<label for="density1">100%</label>
+		<input type="checkbox" id="density2" value="no">
+		<label for="density2">50%</label>
+		<input type="checkbox" id="density3" value="no">
+		<label for="density3">25%</label>
+		
 	    </div>
 	    
 	    <div class="set_block" tabindex="1">
@@ -649,6 +658,15 @@
 		<br>
 		<input type="checkbox" id="voice7" value="high" onclick="globalThis.TestVoice(this)">
 		<label for="voice7">Robotic</label>
+	    </div>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Camera</span><br>
+		<input type="checkbox" id="camera1" value="low">
+		<label for="camera1">Soft</label>
+		<br>
+		<input type="checkbox" id="camera2" value="high">
+		<label for="camera2">Fast</label>
 	    </div>
 	    <!--
 	    <div class="set_block" tabindex="1" style="width: 485px">
@@ -869,7 +887,10 @@
 		JustOne( 'hints', last_changed_el );
 		JustOne( 'bugs', last_changed_el );
 		JustOne( 'visuals', last_changed_el );
+		JustOne( 'density', last_changed_el );
 		JustOne( 'helmet', last_changed_el );
+		JustOne( 'camera', last_changed_el );
+		
 		
 		
 		for ( let i = 0; i < inputs.length; i++ )

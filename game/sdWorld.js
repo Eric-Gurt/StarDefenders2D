@@ -38,6 +38,8 @@ class sdWorld
 		sdWorld.is_server = ( typeof window === 'undefined' );
 		sdWorld.mobile = false;
 		
+		sdWorld.soft_camera = true;
+		
 		sdWorld.sockets = null; // Becomes array
 		
 		sdWorld.camera = {
@@ -616,15 +618,21 @@ class sdWorld
 			//if ( e.x + e.hitbox_x2 < x1 || e.x + e.hitbox_x1 > x2 || e.y + e.hitbox_y2 < y1 || e.y + e.hitbox_y1 > y2 ) Ground overlap problem
 			if ( e.x < x1 || e.x >= x2 || e.y < y1 || e.y >= y2 )
 			{
-				if ( e.is( sdBlock ) )
-				if ( e._contains_class !== null )
-				e._contains_class = null;
-				
-				e.remove();
-				e._remove();
-				sdEntity.entities.splice( i, 1 );
-				i--;
-				continue;
+				if ( e._is_being_removed )
+				{
+				}
+				else
+				{
+					if ( e.is( sdBlock ) )
+					if ( e._contains_class !== null )
+					e._contains_class = null;
+
+					e.remove();
+					e._remove();
+					sdEntity.entities.splice( i, 1 );
+					i--;
+					continue;
+				}
 			}
 		}
 		sdSound.server_mute = false;
@@ -1371,8 +1379,16 @@ class sdWorld
 					}
 					else
 					{
-						sdWorld.camera.x = sdWorld.MorphWithTimeScale( sdWorld.camera.x, ( sdWorld.my_entity.x + sdWorld.my_entity.look_x ) / 2, 1 - 10/11, GSPEED/30 );
-						sdWorld.camera.y = sdWorld.MorphWithTimeScale( sdWorld.camera.y, ( sdWorld.my_entity.y + sdWorld.my_entity.look_y ) / 2, 1 - 10/11, GSPEED/30 );
+						if ( sdWorld.soft_camera )
+						{
+							sdWorld.camera.x = sdWorld.MorphWithTimeScale( sdWorld.camera.x, ( sdWorld.my_entity.x + sdWorld.my_entity.look_x ) / 2, 1 - 10/11, GSPEED/30 );
+							sdWorld.camera.y = sdWorld.MorphWithTimeScale( sdWorld.camera.y, ( sdWorld.my_entity.y + sdWorld.my_entity.look_y ) / 2, 1 - 10/11, GSPEED/30 );
+						}
+						else
+						{
+							sdWorld.camera.x = ( sdWorld.my_entity.x + sdWorld.my_entity.look_x ) / 2;
+							sdWorld.camera.y = ( sdWorld.my_entity.y + sdWorld.my_entity.look_y ) / 2;
+						}
 					}
 
 					sdWorld.camera.x = Math.round( sdWorld.camera.x * sdWorld.camera.scale ) / sdWorld.camera.scale;
@@ -1883,6 +1899,11 @@ class sdWorld
 			globalThis.enable_debug_info = player_settings['bugs2'];
 			
 			sdRenderer.visual_settings = player_settings['visuals1'] * 1 + player_settings['visuals2'] * 2 + player_settings['visuals3'] * 3;
+			
+			sdRenderer.resolution_quality = player_settings['density1'] * 1 + player_settings['density2'] * 0.5 + player_settings['density3'] * 0.25;
+			window.onresize();
+			
+			sdWorld.soft_camera = player_settings['camera1'] ? true : false;
 			
 			player_settings.full_reset = full_reset;
 			player_settings.my_hash = [ Math.random(), Math.random(), Math.random(), Math.random(), Math.random() ].join(''); // Sort of password
