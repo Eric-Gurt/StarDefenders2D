@@ -539,7 +539,7 @@ class sdWeather extends sdEntity
 							else
 							{
 								sdWorld.UpdateHashPosition( virus, false ); // Prevent inersection with other ones
-								console.log('Big virus spawned!');
+								//console.log('Big virus spawned!');
 							}
 						}
 					}
