@@ -31,8 +31,8 @@ class sdVirus extends sdEntity
 		sdVirus.normal_max_health = 80;
 		sdVirus.normal_max_health_max = 800 * 3; 
 
-		sdVirus.viruses_tot = 0;
-		sdVirus.big_viruses = 0;
+		sdVirus.viruses_tot = 0; // Will bug out in case of manual creation with build tool - because onRemoveAsFakeEntity will be called instead of onRemove
+		sdVirus.big_viruses = 0; // Will bug out in case of manual creation with build tool - because onRemoveAsFakeEntity will be called instead of onRemove
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -6 * this.hmax / sdVirus.normal_max_health; }
@@ -102,8 +102,8 @@ class sdVirus extends sdEntity
 					
 					this._hea = this._hea / old * this.hmax;
 
-					if (this._is_big)
-					if (this._grow_size > 0)
+					if ( this._is_big )
+					if ( this._grow_size > 0 )
 					this._grow_size -= delta;
 
 					return true;
