@@ -297,6 +297,7 @@ class sdCharacter extends sdEntity
 		this._damage_mult = 1; // Through upgrade
 		this._build_hp_mult = 1; // Through upgrade
 		this._matter_regeneration = 0; // Through upgrade
+		this._recoil_mult = 1; // Through upgrade
 		
 		this.flying = false; // Jetpack flying
 		this._last_act_y = this.act_y; // For mid-air jump jetpack activation
@@ -941,7 +942,7 @@ class sdCharacter extends sdEntity
 			}
 			
 			if ( this._recoil > 0 )
-			this._recoil = Math.max( 0, sdWorld.MorphWithTimeScale( this._recoil, -0.01, 0.9, GSPEED ) );
+			this._recoil = Math.max( 0, sdWorld.MorphWithTimeScale( this._recoil , -0.01, 0.9 * this._recoil_mult , GSPEED ) );
 
 			if ( this._dying )
 			{

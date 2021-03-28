@@ -11,9 +11,11 @@ class sdGrass extends sdEntity
 	static init_class()
 	{
 		sdGrass.img_grass = sdWorld.CreateImageFromFile( 'grass' );
-		
+		sdGrass.img_grass2 = sdWorld.CreateImageFromFile( 'grass2' ); // sprite by LazyRain
+		sdGrass.img_grass3 = sdWorld.CreateImageFromFile( 'grass3' ); // sprite by LazyRain
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
+
 	get hitbox_x1() { return 0; }
 	get hitbox_x2() { return 16; }
 	get hitbox_y1() { return 8; }
@@ -35,6 +37,8 @@ class sdGrass extends sdEntity
 	{
 		super( params );
 		
+		this.variation = 0; // grass variation
+
 		/*this.width = params.width || 32;
 		this.height = params.height || 32;
 		
@@ -73,8 +77,15 @@ class sdGrass extends sdEntity
 		
 		ctx.filter = this.filter;//'hue-rotate(90deg)';
 		
-		ctx.drawImageFilterCache( sdGrass.img_grass, 0, 0, w,h, 0,0, w,h );
-
+		if ( this.variation === 0 )
+		ctx.drawImageFilterCache( sdGrass.img_grass, 0, 0, w,h, 0, 0, w, h );
+		if ( this.variation === 1 )
+		ctx.drawImageFilterCache( sdGrass.img_grass2, 0, 0, w,h, 0, 0, w, h );
+		if ( this.variation === 2 )
+		{
+			h = 32;
+		ctx.drawImageFilterCache( sdGrass.img_grass3, 0, 0, w,h, 0, -16, w, h );
+		}
 		ctx.filter = 'none';
 	}
 }
