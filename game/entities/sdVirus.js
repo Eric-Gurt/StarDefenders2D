@@ -30,7 +30,9 @@ class sdVirus extends sdEntity
 		
 		sdVirus.normal_max_health = 80;
 		sdVirus.normal_max_health_max = 800 * 3; 
-		
+
+		sdVirus.viruses_tot = 0;
+		sdVirus.big_viruses = 0;
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -6 * this.hmax / sdVirus.normal_max_health; }
@@ -52,6 +54,8 @@ class sdVirus extends sdEntity
 		this._hea = this.hmax;
 		
 		this.death_anim = 0;
+		this._is_big = false; // Used for distinction between regular and event virus
+		this._grow_size = 320; // Grow in case if _is_big is true
 		
 		this._current_target = null;
 		
@@ -62,6 +66,8 @@ class sdVirus extends sdEntity
 		this._last_target_change = 0;
 		
 		this.side = 1;
+
+		sdVirus.viruses_tot++;
 		
 		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
@@ -95,6 +101,10 @@ class sdVirus extends sdEntity
 					this.y += yy * dist;
 					
 					this._hea = this._hea / old * this.hmax;
+
+					if (this._is_big)
+					if (this._grow_size > 0)
+					this._grow_size -= delta;
 
 					return true;
 				}
@@ -265,40 +275,48 @@ class sdVirus extends sdEntity
 			this.remove();
 		}
 		else
-		if ( this._current_target )
 		{
-			if ( this._current_target._is_being_removed || !this._current_target.IsTargetable() || !this._current_target.IsVisible() || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdVirus.max_seek_range + 32 )
-			this._current_target = null;
-			else
+			if ( this._is_big )
+			if ( this._grow_size > 0 )
 			{
-				this.side = ( this._current_target.x > this.x ) ? 1 : -1;
-			
-				if ( this._last_jump < sdWorld.time - 100 * this.hmax / sdVirus.normal_max_health )
-				//if ( this._last_stand_on )
-				if ( !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) )
+				this.Grow( 15 );
+			}
+
+			if ( this._current_target )
+			{
+				if ( this._current_target._is_being_removed || !this._current_target.IsTargetable() || !this._current_target.IsVisible() || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdVirus.max_seek_range + 32 )
+				this._current_target = null;
+				else
 				{
-					this._last_jump = sdWorld.time;
-					
-					let dx = ( this._current_target.x - this.x ) * 0.1;
-					let dy = ( this._current_target.y - this.y ) * 0.1;
-					
-					dy -= Math.abs( dx ) * 0.5;
-					
-					let di = sdWorld.Dist2D_Vector( dx, dy );
-					if ( di > 7 )
+					this.side = ( this._current_target.x > this.x ) ? 1 : -1;
+			
+					if ( this._last_jump < sdWorld.time - 100 * this.hmax / sdVirus.normal_max_health )
+					//if ( this._last_stand_on )
+					if ( !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) )
 					{
-						dx /= di;
-						dy /= di;
-						
-						dx *= 7;
-						dy *= 7;
-					}
+						this._last_jump = sdWorld.time;
 					
-					this.sx = dx;
-					this.sy = dy;
+						let dx = ( this._current_target.x - this.x ) * 0.1;
+						let dy = ( this._current_target.y - this.y ) * 0.1;
+					
+						dy -= Math.abs( dx ) * 0.5;
+					
+						let di = sdWorld.Dist2D_Vector( dx, dy );
+						if ( di > 7 )
+						{
+							dx /= di;
+							dy /= di;
+							
+							dx *= 7;
+							dy *= 7;
+						}
+						
+						this.sx = dx;
+						this.sy = dy;
 
 					
-					//this._last_stand_on = null; // wait for next collision
+						//this._last_stand_on = null; // wait for next collision
+					}
 				}
 			}
 		}
@@ -399,6 +417,11 @@ class sdVirus extends sdEntity
 	}*/
 	onRemove() // Class-specific, if needed
 	{
+		sdVirus.viruses_tot++;
+
+		if (this._is_big)
+		sdVirus.big_viruses--;
+
 		//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
 		
 		if ( sdWorld.is_server )

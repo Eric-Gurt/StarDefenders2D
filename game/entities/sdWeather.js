@@ -11,7 +11,7 @@ import sdGun from './sdGun.js';
 import sdAsp from './sdAsp.js';
 import sdGrass from './sdGrass.js';
 import sdCom from './sdCom.js';
-
+import sdVirus from './sdVirus.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -314,7 +314,7 @@ class sdWeather extends sdEntity
 			if ( this._time_until_event < 0 )
 			{
 				this._time_until_event = Math.random() * 30 * 60 * 8; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
-				let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5 ];
+				let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6 ];
 				
 				let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -510,6 +510,37 @@ class sdWeather extends sdEntity
 							this._invasion_spawn_timer = 0;
 							this._invasion_spawns_con = 30; // At least 30 Falkoks must spawn otherwise invasion will not end
 							//console.log('Invasion incoming!');
+						}
+						else
+						this._time_until_event = Math.random() * 30 * 60 * 1; // if the event is already active, quickly initiate something else
+						
+					}
+
+					if ( r === 6 ) // Big virus event
+					{
+						for ( let t = Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) + 1; t > 0; t-- )
+						if ( sdVirus.viruses_tot < 40 && sdVirus.big_viruses < 4 )
+						{
+							let virus = new sdVirus({ 
+								x:sdWorld.world_bounds.x1 + 32 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 - 64 ), 
+								y:sdWorld.world_bounds.y1 + 32
+							});
+
+							virus._is_big = true;
+							sdEntity.entities.push( virus );
+							sdVirus.big_viruses++;
+
+							if ( !virus.CanMoveWithoutOverlap( virus.x, virus.y, 0 ) )
+							{
+								virus.death_anim = sdVirus.death_duration + sdVirus.post_death_ttl;
+								virus.remove();
+								sdVirus.big_viruses--;
+							}
+							else
+							{
+								sdWorld.UpdateHashPosition( virus, false ); // Prevent inersection with other ones
+								//console.log('Big virus spawned!');
+							}
 						}
 					}
 				}
