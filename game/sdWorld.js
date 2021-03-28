@@ -479,6 +479,15 @@ class sdWorld
 				if ( y <= sdWorld.base_ground_level )
 				{
 					let grass = new sdGrass({ x:x, y:y - 16, filter:f });
+					if ( Math.random() < 0.2 )
+					grass.variation = 2;
+					else
+					if ( Math.random() < 0.4 )
+					grass.variation = 1;
+					/*
+					else
+					grass.variation = 0; // maybe unneeded since it's defined under constructor?
+					*/
 					sdEntity.entities.push( grass );
 					
 					if ( plants === null )
