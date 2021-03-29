@@ -227,6 +227,15 @@ class sdShop
 				{
 					character._recoil_mult = 1 - ( 0.0055 * level_purchased ) ; // Small recoil reduction, don't want rifles turn to laser beams
 				}
+			},
+			upgrade_underwater_breath_capacity: // Upgrade idea & pull request by Booraz149 ( https://github.com/Booraz149 )
+			{
+				max_level: 3,
+				matter_cost: 100,
+				action: ( character, level_purchased )=>
+				{
+					character._air_upgrade = 1 + level_purchased ; // 
+				}
 			}
 		};
 		for ( var i in sdShop.upgrades )
