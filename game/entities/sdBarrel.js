@@ -15,7 +15,7 @@ class sdBarrel extends sdEntity
 	}
 	get hitbox_x1() { return -4; }
 	get hitbox_x2() { return 8; }
-	get hitbox_y1() { return -8; }
+	get hitbox_y1() { return -6; }
 	get hitbox_y2() { return 4; }
 	
 	get hard_collision() // For world geometry where players can walk
