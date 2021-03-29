@@ -417,7 +417,7 @@ class sdVirus extends sdEntity
 	}*/
 	onRemove() // Class-specific, if needed
 	{
-		sdVirus.viruses_tot++;
+		sdVirus.viruses_tot--;
 
 		if (this._is_big)
 		sdVirus.big_viruses--;
