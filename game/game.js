@@ -60,6 +60,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdGrass from './entities/sdGrass.js';
 	import sdSlug from './entities/sdSlug.js';
 	import sdBarrel from './entities/sdBarrel.js';
+	import sdEnemyMech from './entities/sdEnemyMech.js';
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -100,6 +101,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdGrass.init_class();
 	sdSlug.init_class();
 	sdBarrel.init_class();
+	sdEnemyMech.init_class();
 	
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;
