@@ -83,7 +83,7 @@ class sdBarrel extends sdEntity
 			x:this.x, 
 			y:this.y, 
 			radius:30, // 70 was too much?
-			damage_scale: 10 * ( this._owner ? this._owner._damage_mult : 1 ), // 5 was too deadly on relatively far range
+			damage_scale: 9 * ( this._owner ? this._owner._damage_mult : 1 ), // 5 was too deadly on relatively far range
 			type:sdEffect.TYPE_EXPLOSION, 
 			owner:this._owner,
 			armor_penetration_level: this._owner ? this._owner._upgrade_counters[ 'upgrade_damage' ] : undefined,
@@ -94,7 +94,7 @@ class sdBarrel extends sdEntity
 	{
 		//return 0; // Hack
 		
-		return 40; // Smaller bombs basically
+		return 125; // Smaller bombs basically
 		//return this.hmax * sdWorld.damage_to_matter + 50;
 	}
 }
