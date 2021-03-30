@@ -189,6 +189,8 @@ import sdSandWorm from './game/entities/sdSandWorm.js';
 import sdGrass from './game/entities/sdGrass.js';
 import sdSlug from './game/entities/sdSlug.js';
 import sdBarrel from './game/entities/sdBarrel.js';
+import sdEnemyMech from './game/entities/sdEnemyMech.js';
+
 
 import LZW from './game/server/LZW.js';
 import sdSnapPack from './game/server/sdSnapPack.js';
@@ -297,6 +299,7 @@ sdSandWorm.init_class();
 sdGrass.init_class();
 sdSlug.init_class();
 sdBarrel.init_class();
+sdEnemyMech.init_class();
 
 sdShop.init_class(); // requires plenty of classes due to consts usage
 LZW.init_class();
