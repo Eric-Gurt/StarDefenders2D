@@ -396,7 +396,27 @@ class sdGunClass
 			spawnable: false
 		};		
 		
-		
+		sdGun.classes[ sdGun.CLASS_DRILL = 21 ] = // Image by LazyRain
+		{
+			image: sdWorld.CreateImageFromFile( 'drill' ),
+			image0: [ sdWorld.CreateImageFromFile( 'drill2' ), sdWorld.CreateImageFromFile( 'drill3' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'drill3' ), sdWorld.CreateImageFromFile( 'drill3' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'drill2' ), sdWorld.CreateImageFromFile( 'drill3' ) ],
+			title: 'Mining Drill',
+			sound: 'gun_drill',
+			sound_volume: 2,
+			matter_cost: 300,
+			image_no_matter: sdWorld.CreateImageFromFile( 'drill' ),
+			slot: 0,
+			reload_time: 4,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			is_drill: true,
+			cooldowntime: 10,
+			projectile_velocity: 16 * 1.5,
+			projectile_properties: { time_left: 1, _damage: 45, color: 'transparent', _knock_scale:0.025 * 8 }
+		};
 		
 		
 		// Add new gun classes above this line //
