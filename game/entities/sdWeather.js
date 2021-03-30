@@ -289,6 +289,23 @@ class sdWeather extends sdEntity
 
 								sdWorld.last_hit_entity._plants = [ grass._net_id ];
 							}
+							else
+							{
+								for ( let i = 0; i < sdWorld.last_hit_entity._plants.length; i++ )
+								{
+									let ent = sdEntity.entities_by_net_id_cache[ sdWorld.last_hit_entity._plants[ i ] ];
+									
+									if ( ent )
+									if ( ent.is( sdGrass ) )
+									{
+										if ( ent.variation < sdWorld.GetFinalGrassHeight( ent.x ) )
+										{
+											ent.Grow();
+											break; // Skip rest plants on this block
+										}
+									}
+								}
+							}
 						}
 					}
 				}
@@ -404,17 +421,17 @@ class sdWeather extends sdEntity
 										character_entity.y = y;
 
 										//sdWorld.UpdateHashPosition( ent, false );
-										if ( Math.random() < 0.07)
+										if ( Math.random() < 0.07 )
 										{
-											if ( Math.random() < 0.2)
+											if ( Math.random() < 0.2 )
 											{
-											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_PSI_CUTTER }) );
-											character_entity._ai_gun_slot = 4;
+												sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_PSI_CUTTER }) );
+												character_entity._ai_gun_slot = 4;
 											}
 											else
 											{
-											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAYGUN }) );
-											character_entity._ai_gun_slot = 3;
+												sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAYGUN }) );
+												character_entity._ai_gun_slot = 3;
 											}
 										}
 										else

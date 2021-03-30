@@ -9,14 +9,14 @@ class sdBarrel extends sdEntity
 {
 	static init_class()
 	{
-		sdBarrel.img_beacon = sdWorld.CreateImageFromFile( 'barrel_y' ); // Sprite image by PeacyQuack, slightly edited by Booraz149
+		sdBarrel.img_barrel = sdWorld.CreateImageFromFile( 'barrel_y' ); // Sprite image by PeacyQuack, slightly edited by Booraz149
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -4; }
-	get hitbox_x2() { return 8; }
-	get hitbox_y1() { return -6; }
-	get hitbox_y2() { return 4; }
+	get hitbox_x1() { return -6; }
+	get hitbox_x2() { return 5; }
+	get hitbox_y1() { return -8; }
+	get hitbox_y2() { return 8; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -51,8 +51,7 @@ class sdBarrel extends sdEntity
 		if ( this.hea <= 0 )
 		if ( old_hp > 0 )
 		{
-
-				this.remove();
+			this.remove();
 		}
 	}
 	Impulse( x, y )
@@ -75,20 +74,21 @@ class sdBarrel extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-			ctx.drawImageFilterCache( sdBarrel.img_beacon, - 2.75, - 4, 5.5,8 );
+		ctx.drawImageFilterCache( sdBarrel.img_barrel, -16, -16 );
 	}
 	onRemove() // Class-specific, if needed
 	{
-				// Explosion
-			sdWorld.SendEffect({ 
+		// Explosion
+		sdWorld.SendEffect({ 
 			x:this.x, 
 			y:this.y, 
 			radius:30, // 70 was too much?
 			damage_scale: 10 * ( this._owner ? this._owner._damage_mult : 1 ), // 5 was too deadly on relatively far range
 			type:sdEffect.TYPE_EXPLOSION, 
 			owner:this._owner,
+			armor_penetration_level: this._owner ? this._owner._upgrade_counters[ 'upgrade_damage' ] : undefined,
 			color:sdEffect.default_explosion_color 
-				});
+		});
 	}
 	MeasureMatterCost()
 	{

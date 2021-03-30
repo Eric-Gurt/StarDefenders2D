@@ -313,7 +313,7 @@ class sdCharacter extends sdEntity
 		this._key_states = new sdKeyStates();
 		this._q_held = false;
 		
-		this._air = sdCharacter.air_max;
+		this.air = sdCharacter.air_max;
 		
 		this._build_params = null; // What player is about to build
 		
@@ -890,7 +890,7 @@ class sdCharacter extends sdEntity
 			this.matter = this.matter_max; // Hack
 			this.hea = this.hmax; // Hack
 			this._dying = false; // Hack
-			this._air = sdCharacter.air_max; // Hack
+			this.air = sdCharacter.air_max; // Hack
 			this._nature_damage = 0; // Hack
 			this._player_damage = 0; // Hack
 		}
@@ -1629,13 +1629,13 @@ class sdCharacter extends sdEntity
 		
 		if ( can_breathe )
 		{
-			if ( this._air < sdCharacter.air_max )
-			this._air = Math.min( sdCharacter.air_max, this._air + GSPEED * 3 );
+			if ( this.air < sdCharacter.air_max )
+			this.air = Math.min( sdCharacter.air_max, this.air + GSPEED * 3 );
 		}
 		else
 		{
-			if ( this._air > 0 )
-			this._air = Math.max( 0, this._air - ( GSPEED / this._air_upgrade ) );
+			if ( this.air > 0 )
+			this.air = Math.max( 0, this.air - ( GSPEED / this._air_upgrade ) );
 			else
 			{
 				if ( this.hea > 0 )
@@ -1865,7 +1865,7 @@ class sdCharacter extends sdEntity
 			let show_air = false;
 			
 			if ( sdWorld.my_entity === this )
-			if ( this._air < sdCharacter.air_max )
+			if ( this.air < sdCharacter.air_max )
 			{
 				show_air = true;
 			}
@@ -1891,7 +1891,7 @@ class sdCharacter extends sdEntity
 			if ( show_air )
 			{
 				ctx.fillStyle = '#aaaaff';
-				ctx.fillRect( 1 - w / 2, 5 - 20, ( w - 2 ) * Math.max( 0, this._air / sdCharacter.air_max ), 1 );
+				ctx.fillRect( 1 - w / 2, 5 - 20, ( w - 2 ) * Math.max( 0, this.air / sdCharacter.air_max ), 1 );
 			}
 			
 			//
@@ -2008,6 +2008,9 @@ class sdCharacter extends sdEntity
 		
 		if ( fake_ent.hea !== undefined )
 		fake_ent.hea *= this._build_hp_mult; // Or else initial damage might instantly destroy it
+	
+		if ( fake_ent._owner !== undefined )
+		fake_ent._owner = this;
 	
 		if ( fake_ent._armor_protection_level !== undefined )
 		if ( this._upgrade_counters[ 'upgrade_build_hp' ] )

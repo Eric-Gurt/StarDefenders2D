@@ -69,6 +69,7 @@ class sdWorld
 		};
 		sdWorld.base_ground_level1 = {};
 		sdWorld.base_ground_level2 = {};
+		sdWorld.base_grass_level = {};
 		/*sdWorld.world_bounds = { 
 			x1: 0, 
 			y1: -2000, 
@@ -404,7 +405,15 @@ class sdWorld
 
 		return c;
 	}
-	
+	static GetFinalGrassHeight( x )
+	{
+		let xx = Math.floor( x / 16 );
+					
+		const pow = 2; // Higher value causes higher variations to be more rare
+
+		return Math.round( Math.pow( Math.sin( sdWorld.base_grass_level[ xx ] * 15 ) * 0.5 + 0.5, pow ) * 2 );
+
+	}
 	static ChangeWorldBounds( x1, y1, x2, y2 )
 	{
 		var ent;
@@ -478,16 +487,19 @@ class sdWorld
 				if ( y === from_y )
 				if ( y <= sdWorld.base_ground_level )
 				{
+					
 					let grass = new sdGrass({ x:x, y:y - 16, filter:f });
+					/*
 					if ( Math.random() < 0.2 )
 					grass.variation = 2;
 					else
 					if ( Math.random() < 0.4 )
 					grass.variation = 1;
-					/*
 					else
 					grass.variation = 0; // maybe unneeded since it's defined under constructor?
 					*/
+					grass.variation = sdWorld.GetFinalGrassHeight( x );
+				   
 					sdEntity.entities.push( grass );
 					
 					if ( plants === null )
@@ -571,9 +583,11 @@ class sdWorld
 			var xx = Math.floor( x / 16 );
 			sdWorld.base_ground_level1[ xx ] = sdWorld.base_ground_level1[ xx - 1 ] || 0;
 			sdWorld.base_ground_level2[ xx ] = sdWorld.base_ground_level2[ xx - 1 ] || 0;
+			sdWorld.base_grass_level[ xx ] = sdWorld.base_grass_level[ xx - 1 ] || 0;
 			
 			sdWorld.base_ground_level1[ xx ] += ( Math.random() - 0.5 ) * 0.2;
 			sdWorld.base_ground_level2[ xx ] += ( Math.random() - 0.25 ) * 0.1;
+			sdWorld.base_grass_level[ xx ] += ( Math.random() - 0.5 ) * 0.1;
 
 			var from_y = GetGroundElevation( xx );
 			
@@ -595,9 +609,11 @@ class sdWorld
 			var xx = Math.floor( x / 16 );
 			sdWorld.base_ground_level1[ xx ] = sdWorld.base_ground_level1[ xx + 1 ] || 0;
 			sdWorld.base_ground_level2[ xx ] = sdWorld.base_ground_level2[ xx + 1 ] || 0;
+			sdWorld.base_grass_level[ xx ] = sdWorld.base_grass_level[ xx + 1 ] || 0;
 			
 			sdWorld.base_ground_level1[ xx ] -= ( Math.random() - 0.5 ) * 0.2;
 			sdWorld.base_ground_level2[ xx ] -= ( Math.random() - 0.25 ) * 0.1;
+			sdWorld.base_grass_level[ xx ] -= ( Math.random() - 0.5 ) * 0.1;
 
 			var from_y = GetGroundElevation( xx );
 			
