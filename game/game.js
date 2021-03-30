@@ -59,7 +59,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdSandWorm from './entities/sdSandWorm.js';
 	import sdGrass from './entities/sdGrass.js';
 	import sdSlug from './entities/sdSlug.js';
-
+	import sdBarrel from './entities/sdBarrel.js';
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -99,6 +99,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdSandWorm.init_class();
 	sdGrass.init_class();
 	sdSlug.init_class();
+	sdBarrel.init_class();
 	
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;

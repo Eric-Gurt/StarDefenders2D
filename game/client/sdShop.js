@@ -135,7 +135,8 @@ class sdShop
 			});
 		}
 		sdShop.options.push({ _class: 'sdBomb', _category:'Equipment' });
-		
+		sdShop.options.push({ _class: 'sdBarrel', _category:'Equipment' });
+
 		sdShop.upgrades = {
 			upgrade_suit:
 			{
@@ -216,6 +217,24 @@ class sdShop
 				action: ( character, level_purchased )=>
 				{
 					character._matter_regeneration = level_purchased;
+				}
+			},
+			upgrade_recoil_reduction: // Upgrade idea & pull request by Booraz149 ( https://github.com/Booraz149 )
+			{
+				max_level: 5,
+				matter_cost: 150,
+				action: ( character, level_purchased )=>
+				{
+					character._recoil_mult = 1 - ( 0.0055 * level_purchased ) ; // Small recoil reduction, don't want rifles turn to laser beams
+				}
+			},
+			upgrade_underwater_breath_capacity: // Upgrade idea & pull request by Booraz149 ( https://github.com/Booraz149 )
+			{
+				max_level: 3,
+				matter_cost: 100,
+				action: ( character, level_purchased )=>
+				{
+					character._air_upgrade = 1 + level_purchased ; // 
 				}
 			}
 		};
