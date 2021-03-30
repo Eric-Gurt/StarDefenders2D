@@ -159,6 +159,7 @@ class sdGun extends sdEntity
 		this._dangerous_from = null;
 		
 		this.reload_time_left = 0;
+		this.cooldown = 10;
 		this.muzzle = 0;
 		
 		// Old way of entity pointers I guess. ApplySnapshot handles this case but only for sdGun case
@@ -296,6 +297,9 @@ class sdGun extends sdEntity
 		if ( this.class === sdGun.CLASS_SABER )
 		return 2;
 		
+		if ( this.class === sdGun.CLASS_DRILL )
+		return 3;
+
 		if ( this.class === sdGun.CLASS_PISTOL )
 		return 0;
 		
@@ -353,6 +357,19 @@ class sdGun extends sdEntity
 			return false;
 		}
 			
+		if ( sdGun.classes[ this.class ].is_drill )
+		//if ( this.class === sdGun.CLASS_SWORD )
+		if ( this._held_by )
+		{
+			if(this.cooldown <= 0){
+				this.cooldown = sdGun.classes[ this.class ].cooldowntime;
+				this.reload_time_left = 50;
+			}
+				if(this.reload_time_left < 10){
+				this.cooldown = this.cooldown - 0.015;
+			}
+		}
+
 		if ( this.reload_time_left <= 0 )
 		{
 			if ( this.ammo_left === -123 )
@@ -660,7 +677,7 @@ class sdGun extends sdEntity
 			if ( this._held_by === null )
 			ctx.rotate( this.tilt / sdGun.tilt_scale );
 			
-			if ( this.class === sdGun.CLASS_SNIPER || this.class === sdGun.CLASS_RAYGUN ) // It could probably be separated as a variable declared in sdGunClass to determine if it has reloading animation or not
+			if ( this.class === sdGun.CLASS_SNIPER || this.class === sdGun.CLASS_RAYGUN || this.class === sdGun.CLASS_DRILL ) // It could probably be separated as a variable declared in sdGunClass to determine if it has reloading animation or not
 			{
 				let odd = ( this.reload_time_left % 10 ) < 5 ? 0 : 1;
 				
@@ -680,6 +697,16 @@ class sdGun extends sdEntity
 				if ( this._held_by === null && !this.dangerous )
 				image = sdGun.classes[ this.class ].image_no_matter;
 			}
+
+			if ( sdGun.classes[ this.class ].is_drill )
+			//if ( this.class === sdGun.CLASS_SWORD )
+			if ( this._held_by )
+			{
+				if(this.cooldown < 2){
+					ctx.filter = 'hue-rotate(174deg) brightness(224%) drop-shadow(0px 0px 7px #FF0000)';
+				}
+			}
+
 			/*
 			if ( this.class === sdGun.CLASS_SWORD )
 			{
