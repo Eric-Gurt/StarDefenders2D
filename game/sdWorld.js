@@ -411,7 +411,7 @@ class sdWorld
 					
 		const pow = 2; // Higher value causes higher variations to be more rare
 
-		return Math.round( Math.pow( Math.sin( sdWorld.base_grass_level[ xx ] * 15 ) * 0.5 + 0.5, pow ) * 2 );
+		return Math.round( Math.pow( Math.sin( ( sdWorld.base_grass_level[ xx ] || 0 ) * 15 ) * 0.5 + 0.5, pow ) * 2 );
 
 	}
 	static ChangeWorldBounds( x1, y1, x2, y2 )
