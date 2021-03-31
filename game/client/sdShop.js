@@ -259,6 +259,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdSandWorm', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGrass', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdSlug', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdEnemyMech', _category:'Development tests' });
 		}
 		
 		sdShop.potential_selection = -1;
