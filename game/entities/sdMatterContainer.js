@@ -14,8 +14,8 @@ class sdMatterContainer extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -10; }
-	get hitbox_x2() { return 10; }
+	get hitbox_x1() { return  ( -10 - ( 12 * this.variation ) ); }
+	get hitbox_x2() { return ( 10 + ( 12 * this.variation ) ); }
 	get hitbox_y1() { return -14; }
 	get hitbox_y2() { return 14; }
 	
@@ -35,13 +35,14 @@ class sdMatterContainer extends sdEntity
 	{
 		super( params );
 		
-		this.matter_max = params.matter_max || 640;
+		this.variation = params.variation || 0; // how much other containers are "attached" to it
+		this.matter_max = params.matter_max * ( 1 + this.variation )  ||  640 * ( 1 + this.variation );
 		
 		this.matter = this.matter_max;
-		
+
 		this._last_sync_matter = this.matter;
 		
-		this._hmax = 320;
+		this._hmax = 320 * ( 1 + this.variation );
 		this._hea = this._hmax;
 		
 		this._regen_timeout = 0;
@@ -59,8 +60,38 @@ class sdMatterContainer extends sdEntity
 		this.remove();
 	
 		this._regen_timeout = 60;
-		
 		this._update_version++; // Just in case
+		if ( this.variation < 4 )
+		if ( sdWorld.is_server ) // Not sure if it's necessary but just in case
+		{
+			let target_raw = sdWorld.GetAnythingNear( this.x - ( 24 + ( 20 * this.variation )), this.y, 1, null, [ 'sdMatterContainer' ] );
+
+			//let target = [];
+
+			for ( let i = 0; i < target_raw.length; i++ )
+			{
+				if ( target_raw[i].GetClass() === 'sdMatterContainer' )
+				{
+					if ( target_raw[i].variation + ( 1 + this.variation ) <= 4 )
+					{
+						//if ( this.variation === 0 ) // Hasn't combined with any other containers
+						if ( ( target_raw[i].matter_max / ( 1 + target_raw[i].variation ) ) === ( this.matter_max / ( 1 + this.variation ) ) ) // Is it the same colour?
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, target_raw[ i ].x, target_raw[ i ].y, target_raw[ i ], [ 'sdMatterContainer' ], [ 'sdBlock', 'sdDoor' ] ) )
+						{
+							target_raw[i].variation += 1 + this.variation;
+							target_raw[i].matter_max += this.matter_max;
+							target_raw[i].matter += this.matter;
+							target_raw[i]._hmax += this._hmax;
+							target_raw[i]._hea += this._hea;
+							target_raw[i].x = target_raw[i].x + ( 12 * ( 1 + this.variation ) );
+							this.matter = 0;
+							this.remove();
+							break;
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	onThink( GSPEED ) // Class-specific, if needed
@@ -77,7 +108,7 @@ class sdMatterContainer extends sdEntity
 			}
 		}
 		
-		this.MatterGlow( 0.01, 50, GSPEED );
+		this.MatterGlow( 0.01, 50 + ( 12 * this.variation ), GSPEED );
 		/*
 		var x = this.x;
 		var y = this.y;
@@ -95,43 +126,149 @@ class sdMatterContainer extends sdEntity
 				this.TransferMatter( arr[ i ], 0.01, GSPEED );
 			}
 		}*/
-		
+
 		if ( Math.abs( this._last_sync_matter - this.matter ) > this.matter_max * 0.1 || this._last_x !== this.x || this._last_y !== this.y )
 		{
 			this._last_sync_matter = this.matter;
 			this._update_version++;
+
+			if ( this.variation < 4 )
+			if ( sdWorld.is_server ) // Not sure if it's necessary but just in case
+			{
+				let target_raw = sdWorld.GetAnythingNear( this.x - ( 24 + ( 20 * this.variation )), this.y, 1, null, [ 'sdMatterContainer' ] );
+
+				//let target = [];
+
+				for ( let i = 0; i < target_raw.length; i++ )
+				{
+					if ( target_raw[i].GetClass() === 'sdMatterContainer' )
+					{
+						if ( target_raw[i].variation + ( 1 + this.variation ) <= 4 )
+						{
+							//if ( this.variation === 0 ) // Hasn't combined with any other containers
+							if ( ( target_raw[i].matter_max / ( 1 + target_raw[i].variation ) ) === ( this.matter_max / ( 1 + this.variation ) ) ) // Is it the same colour/initial max value?
+							if ( sdWorld.CheckLineOfSight( this.x, this.y, target_raw[ i ].x, target_raw[ i ].y, target_raw[ i ], [ 'sdMatterContainer' ], [ 'sdBlock', 'sdDoor' ] ) )
+							{
+								target_raw[i].variation += 1 + this.variation;
+								target_raw[i].matter_max += this.matter_max;
+								target_raw[i].matter += this.matter;
+								target_raw[i]._hmax += this._hmax;
+								target_raw[i]._hea += this._hea;
+								target_raw[i].x = target_raw[i].x + ( 12 * ( 1 + this.variation ) );
+								this.matter = 0;
+								this.remove();
+								break;
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
+		if ( this.variation === 0 )
 		sdEntity.Tooltip( ctx, "Matter container ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
+		else
+		sdEntity.Tooltip( ctx, "Matter containers ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
 	}
 	Draw( ctx, attached )
 	{
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16, - 16, 32,32 );
+		if ( this.variation === 0 )
+		{
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16, - 16, 32, 32 );
 		
 		//if ( this.matter_max > 40 )
 		//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
 	
-		ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
+		ctx.filter = sdWorld.GetCrystalHue( this.matter_max / (1 + this.variation ) );
 	
 		ctx.globalAlpha = this.matter / this.matter_max;
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16, - 16, 32, 32 );
+		}
+		if ( this.variation === 1 )
+		{
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 12 * this.variation ), - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 12 * this.variation ), - 16, 32, 32 );
 		
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16, - 16, 32,32 );
+		//if ( this.matter_max > 40 )
+		//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
+	
+		ctx.filter = sdWorld.GetCrystalHue( this.matter_max / (1 + this.variation ) );
+	
+		ctx.globalAlpha = this.matter / this.matter_max;
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 12 * this.variation ), - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 12 * this.variation ), - 16, 32, 32 );
+		}
+		if ( this.variation === 2 )
+		{
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 12 * this.variation ), - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16, - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 12 * this.variation ), - 16, 32, 32 );
 		
+		//if ( this.matter_max > 40 )
+		//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
+	
+		ctx.filter = sdWorld.GetCrystalHue( this.matter_max / (1 + this.variation ) );
+	
+		ctx.globalAlpha = this.matter / this.matter_max;
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 12 * this.variation ), - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16, - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 12 * this.variation ), - 16, 32, 32 );
+		}
+		if ( this.variation === 3 )
+		{
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 12 * this.variation ), - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 4 * this.variation ), - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 4 * this.variation ), - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 12 * this.variation ), - 16, 32, 32 );
+		
+		//if ( this.matter_max > 40 )
+		//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
+	
+		ctx.filter = sdWorld.GetCrystalHue( this.matter_max / (1 + this.variation ) );
+	
+		ctx.globalAlpha = this.matter / this.matter_max;
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 12 * this.variation ), - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 4 * this.variation ), - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 4 * this.variation ), - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 12 * this.variation ), - 16, 32, 32 );
+		}
+		if ( this.variation === 4 )
+		{
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 12 * this.variation ), - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 6 * this.variation ), - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16, - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 6 * this.variation ), - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 12 * this.variation ), - 16, 32, 32 );
+		
+		//if ( this.matter_max > 40 )
+		//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
+	
+		ctx.filter = sdWorld.GetCrystalHue( this.matter_max / (1 + this.variation ) );
+	
+		ctx.globalAlpha = this.matter / this.matter_max;
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 12 * this.variation ), - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 6 * this.variation ), - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16, - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 6 * this.variation ), - 16, 32, 32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 12 * this.variation ), - 16, 32, 32 );
+		}
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
 	onRemove() // Class-specific, if needed
 	{
-		sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
-				
-		sdWorld.DropShards( this.x, this.y, 0, 0, 
-			Math.floor( Math.max( 0, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
-			this.matter_max / 40
-		);
-
-		sdWorld.BasicEntityBreakEffect( this, 10 );
+		if ( this._hea <= 0 ) // Is it destroyed by HP or when merging with other container?
+		{
+			sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
+			
+			sdWorld.DropShards( this.x, this.y, 0, 0, 
+				Math.floor( Math.max( 0, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
+				this.matter_max / 40
+			);
+			sdWorld.BasicEntityBreakEffect( this, 10 );
+		}
 	}
 	
 	MeasureMatterCost()
