@@ -16,8 +16,8 @@ class sdMatterContainer extends sdEntity
 	}
 	get hitbox_x1() { return  ( -10 - ( 12 * this.variation ) ); }
 	get hitbox_x2() { return ( 10 + ( 12 * this.variation ) ); }
-	get hitbox_y1() { return -14; }
-	get hitbox_y2() { return 14; }
+	get hitbox_y1() { return ( -14 - ( 16 * this.yvariation ) ); }
+	get hitbox_y2() { return ( 14 + ( 16 * this.yvariation ) ); }
 	
 	get spawn_align_x(){ return 8; };
 	get spawn_align_y(){ return 8; };
@@ -35,7 +35,8 @@ class sdMatterContainer extends sdEntity
 	{
 		super( params );
 		
-		this.variation = params.variation || 0; // how much other containers are "attached" to it
+		this.variation = params.variation || 0; // How much other containers are "attached" to it horizontally
+		this.yvariation = params.yvariation || 0; // How much other containers are "attached" to it vertically
 		this.matter_max = params.matter_max * ( 1 + this.variation )  ||  640 * ( 1 + this.variation );
 		
 		this.matter = this.matter_max;
@@ -61,32 +62,59 @@ class sdMatterContainer extends sdEntity
 	
 		this._regen_timeout = 60;
 		this._update_version++; // Just in case
-		if ( this.variation < 4 )
-		if ( sdWorld.is_server ) // Not sure if it's necessary but just in case
 		{
-			let target_raw = sdWorld.GetAnythingNear( this.x - ( 24 + ( 20 * this.variation )), this.y, 1, null, [ 'sdMatterContainer' ] );
-
-			//let target = [];
-
-			for ( let i = 0; i < target_raw.length; i++ )
+			if ( this.variation < 4 )
 			{
-				if ( target_raw[i].GetClass() === 'sdMatterContainer' )
+				let target_raw = sdWorld.GetAnythingNear( this.x - ( 24 + ( 12 * this.variation )), this.y, 1, null, [ 'sdMatterContainer' ] );
+				//let target = [];
+				for ( let i = 0; i < target_raw.length; i++ )
 				{
-					if ( target_raw[i].variation + ( 1 + this.variation ) <= 4 )
+					if ( target_raw[i].GetClass() === 'sdMatterContainer' )
 					{
-						//if ( this.variation === 0 ) // Hasn't combined with any other containers
-						if ( ( target_raw[i].matter_max / ( 1 + target_raw[i].variation ) ) === ( this.matter_max / ( 1 + this.variation ) ) ) // Is it the same colour?
-						if ( sdWorld.CheckLineOfSight( this.x, this.y, target_raw[ i ].x, target_raw[ i ].y, target_raw[ i ], [ 'sdMatterContainer' ], [ 'sdBlock', 'sdDoor' ] ) )
+						if ( target_raw[i].variation + ( 1 + this.variation ) <= 4 )
 						{
-							target_raw[i].variation += 1 + this.variation;
-							target_raw[i].matter_max += this.matter_max;
-							target_raw[i].matter += this.matter;
-							target_raw[i]._hmax += this._hmax;
-							target_raw[i]._hea += this._hea;
-							target_raw[i].x = target_raw[i].x + ( 12 * ( 1 + this.variation ) );
-							this.matter = 0;
-							this.remove();
-							break;
+							if ( target_raw[i].yvariation === this.yvariation ) // Are the column stacks equal?
+							if ( ( target_raw[i].matter_max / ( 1 + target_raw[i].variation ) / ( 1 + target_raw[i].yvariation ) ) === ( this.matter_max / ( 1 + this.variation ) / ( 1 + this.yvariation ) ) ) // Is it the same colour?
+							if ( sdWorld.CheckLineOfSight( this.x, this.y, target_raw[ i ].x, target_raw[ i ].y, target_raw[ i ], [ 'sdMatterContainer' ], [ 'sdBlock', 'sdDoor' ] ) )
+							{
+								target_raw[i].variation += 1 + this.variation;
+								target_raw[i].matter_max += this.matter_max;
+								target_raw[i].matter += this.matter;
+								target_raw[i]._hmax += this._hmax;
+								target_raw[i]._hea += this._hea;
+								target_raw[i].x = target_raw[i].x + ( 12 * ( 1 + this.variation ) );
+								this.matter = 0;
+								this.remove();
+								break;
+							}
+						}
+					}
+				}
+			}
+			if ( this.yvariation < 4 )
+			{
+				let target_raw = sdWorld.GetAnythingNear( this.x, this.y - ( 32 + ( 16 * this.yvariation ) ), 1, null, [ 'sdMatterContainer' ] );
+				//let target = [];
+				for ( let i = 0; i < target_raw.length; i++ )
+				{
+					if ( target_raw[i].GetClass() === 'sdMatterContainer' )
+					{
+						if ( target_raw[i].yvariation + ( 1 + this.yvariation ) <= 4 )
+						{
+							if ( this.variation === target_raw[i].variation ) // Vertical combining is only for equal rows
+							if ( ( target_raw[i].matter_max / ( 1 + target_raw[i].variation ) / ( 1 + target_raw[i].yvariation ) ) === ( this.matter_max / ( 1 + this.variation ) / ( 1 + this.yvariation ) ) ) // Is it the same colour?
+							if ( sdWorld.CheckLineOfSight( this.x, this.y, target_raw[ i ].x, target_raw[ i ].y, target_raw[ i ], [ 'sdMatterContainer' ], [ 'sdBlock', 'sdDoor' ] ) )
+							{
+								target_raw[i].yvariation += 1 + this.yvariation;
+								target_raw[i].matter_max += this.matter_max;
+								target_raw[i].matter += this.matter;
+								target_raw[i]._hmax += this._hmax;
+								target_raw[i]._hea += this._hea;
+								target_raw[i].y = target_raw[i].y + ( 16 * ( 1 + this.yvariation ) );
+								this.matter = 0;
+								this.remove();
+								break;
+							}
 						}
 					}
 				}
@@ -132,32 +160,60 @@ class sdMatterContainer extends sdEntity
 			this._last_sync_matter = this.matter;
 			this._update_version++;
 
-			if ( this.variation < 4 )
-			if ( sdWorld.is_server ) // Not sure if it's necessary but just in case
+			if ( sdWorld.is_server )
 			{
-				let target_raw = sdWorld.GetAnythingNear( this.x - ( 24 + ( 20 * this.variation )), this.y, 1, null, [ 'sdMatterContainer' ] );
-
-				//let target = [];
-
-				for ( let i = 0; i < target_raw.length; i++ )
+				if ( this.variation < 4 )
 				{
-					if ( target_raw[i].GetClass() === 'sdMatterContainer' )
+					let target_raw = sdWorld.GetAnythingNear( this.x - ( 24 + ( 12 * this.variation )), this.y, 1, null, [ 'sdMatterContainer' ] );
+					//let target = [];
+					for ( let i = 0; i < target_raw.length; i++ )
 					{
-						if ( target_raw[i].variation + ( 1 + this.variation ) <= 4 )
+						if ( target_raw[i].GetClass() === 'sdMatterContainer' )
 						{
-							//if ( this.variation === 0 ) // Hasn't combined with any other containers
-							if ( ( target_raw[i].matter_max / ( 1 + target_raw[i].variation ) ) === ( this.matter_max / ( 1 + this.variation ) ) ) // Is it the same colour/initial max value?
-							if ( sdWorld.CheckLineOfSight( this.x, this.y, target_raw[ i ].x, target_raw[ i ].y, target_raw[ i ], [ 'sdMatterContainer' ], [ 'sdBlock', 'sdDoor' ] ) )
+							if ( target_raw[i].variation + ( 1 + this.variation ) <= 4 )
 							{
-								target_raw[i].variation += 1 + this.variation;
-								target_raw[i].matter_max += this.matter_max;
-								target_raw[i].matter += this.matter;
-								target_raw[i]._hmax += this._hmax;
-								target_raw[i]._hea += this._hea;
-								target_raw[i].x = target_raw[i].x + ( 12 * ( 1 + this.variation ) );
-								this.matter = 0;
-								this.remove();
-								break;
+								if ( target_raw[i].yvariation === this.yvariation ) // Are the column stacks equal?
+								if ( ( target_raw[i].matter_max / ( 1 + target_raw[i].variation ) / ( 1 + target_raw[i].yvariation ) ) === ( this.matter_max / ( 1 + this.variation ) / ( 1 + this.yvariation ) ) ) // Is it the same colour?
+								if ( sdWorld.CheckLineOfSight( this.x, this.y, target_raw[ i ].x, target_raw[ i ].y, target_raw[ i ], [ 'sdMatterContainer' ], [ 'sdBlock', 'sdDoor' ] ) )
+								{
+									target_raw[i].variation += 1 + this.variation;
+									target_raw[i].matter_max += this.matter_max;
+									target_raw[i].matter += this.matter;
+									target_raw[i]._hmax += this._hmax;
+									target_raw[i]._hea += this._hea;
+									target_raw[i].x = target_raw[i].x + ( 12 * ( 1 + this.variation ) );
+									this.matter = 0;
+									this.remove();
+									break;
+								}
+							}
+						}
+					}
+				}
+				if ( this.yvariation < 4 )
+				{
+					let target_raw = sdWorld.GetAnythingNear( this.x, this.y - ( 32 + ( 16 * this.yvariation ) ), 1, null, [ 'sdMatterContainer' ] );
+					//let target = [];
+					for ( let i = 0; i < target_raw.length; i++ )
+					{
+						if ( target_raw[i].GetClass() === 'sdMatterContainer' )
+						{
+							if ( target_raw[i].yvariation + ( 1 + this.yvariation ) <= 4 )
+							{
+								if ( this.variation === target_raw[i].variation ) // Vertical combining is only for equal rows
+								if ( ( target_raw[i].matter_max / ( 1 + target_raw[i].variation ) / ( 1 + target_raw[i].yvariation ) ) === ( this.matter_max / ( 1 + this.variation ) / ( 1 + this.yvariation ) ) ) // Is it the same colour?
+								if ( sdWorld.CheckLineOfSight( this.x, this.y, target_raw[ i ].x, target_raw[ i ].y, target_raw[ i ], [ 'sdMatterContainer' ], [ 'sdBlock', 'sdDoor' ] ) )
+								{
+									target_raw[i].yvariation += 1 + this.yvariation;
+									target_raw[i].matter_max += this.matter_max;
+									target_raw[i].matter += this.matter;
+									target_raw[i]._hmax += this._hmax;
+									target_raw[i]._hea += this._hea;
+									target_raw[i].y = target_raw[i].y + ( 16 * ( 1 + this.yvariation ) );
+									this.matter = 0;
+									this.remove();
+									break;
+								}
 							}
 						}
 					}
@@ -167,92 +223,256 @@ class sdMatterContainer extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		if ( this.variation === 0 )
+		if ( this.variation === 0 && this.yvariation === 0 )
 		sdEntity.Tooltip( ctx, "Matter container ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
 		else
 		sdEntity.Tooltip( ctx, "Matter containers ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
 	}
 	Draw( ctx, attached )
 	{
-		if ( this.variation === 0 )
+		if (this.yvariation === 0 || this.yvariation === 2 || this.yvariation === 4 )
 		{
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16, - 16, 32, 32 );
+
+			if ( this.variation > 0 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 12 * this.variation ), - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 12 * this.variation ), - 16, 32, 32 );
+			}
+			if ( this.variation === 0 || this.variation === 2 || this.variation === 4 )
+			ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16, - 16, 32, 32 );
+			if ( this.variation === 3 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 4 * this.variation ), - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 4 * this.variation ), - 16, 32, 32 );
+			}
+			if ( this.variation === 4 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 6 * this.variation ), - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 6 * this.variation ), - 16, 32, 32 );
+			}
 		
 		//if ( this.matter_max > 40 )
 		//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
 	
-		ctx.filter = sdWorld.GetCrystalHue( this.matter_max / (1 + this.variation ) );
+		ctx.filter = sdWorld.GetCrystalHue( this.matter_max / ( (1 + this.variation ) * ( 1 + this.yvariation ) ) );
 	
 		ctx.globalAlpha = this.matter / this.matter_max;
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16, - 16, 32, 32 );
+
+			if ( this.variation > 0 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 12 * this.variation ), - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 12 * this.variation ), - 16, 32, 32 );
+			}
+			if ( this.variation === 0 || this.variation === 2 || this.variation === 4 )
+			ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16, - 16, 32, 32 );
+			if ( this.variation === 3 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 4 * this.variation ), - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 4 * this.variation ), - 16, 32, 32 );
+			}
+			if ( this.variation === 4 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 6 * this.variation ), - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 6 * this.variation ), - 16, 32, 32 );
+			}
+		ctx.globalAlpha = 1;
+		ctx.filter = 'none';
 		}
-		if ( this.variation === 1 )
+		if (this.yvariation > 0 )
 		{
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 12 * this.variation ), - 16, 32, 32 );
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 12 * this.variation ), - 16, 32, 32 );
+
+			if ( this.variation > 0 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 12 * this.variation ), - 16 - ( 16 * this.yvariation ), 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 12 * this.variation ), - 16 - ( 16 * this.yvariation ), 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 12 * this.variation ), - 16 + ( 16 * this.yvariation ), 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 12 * this.variation ), - 16 + ( 16 * this.yvariation ), 32, 32 );
+			}
+			if ( this.variation === 0 || this.variation === 2 || this.variation === 4 )
+			{
+			ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16, - 16 - ( 16 * this.yvariation ), 32, 32 );
+			ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16, - 16 + ( 16 * this.yvariation ), 32, 32 );
+			}
+			if ( this.variation === 3 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 4 * this.variation ), - 16 - ( 16 * this.yvariation ), 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 4 * this.variation ), - 16 - ( 16 * this.yvariation ), 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 4 * this.variation ), - 16 + ( 16 * this.yvariation ), 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 4 * this.variation ), - 16 + ( 16 * this.yvariation ), 32, 32 );
+			}
+			if ( this.variation === 4 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 6 * this.variation ), - 16 - ( 16 * this.yvariation ), 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 6 * this.variation ), - 16 - ( 16 * this.yvariation ), 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 6 * this.variation ), - 16 + ( 16 * this.yvariation ), 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 6 * this.variation ), - 16 + ( 16 * this.yvariation ), 32, 32 );
+			}
 		
 		//if ( this.matter_max > 40 )
 		//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
 	
-		ctx.filter = sdWorld.GetCrystalHue( this.matter_max / (1 + this.variation ) );
+		ctx.filter = sdWorld.GetCrystalHue( this.matter_max / ( (1 + this.variation ) * ( 1 + this.yvariation ) ) );
 	
 		ctx.globalAlpha = this.matter / this.matter_max;
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 12 * this.variation ), - 16, 32, 32 );
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 12 * this.variation ), - 16, 32, 32 );
+
+			if ( this.variation > 0 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 12 * this.variation ), - 16 - ( 16 * this.yvariation ), 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 12 * this.variation ), - 16 - ( 16 * this.yvariation ), 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 12 * this.variation ), - 16 + ( 16 * this.yvariation ), 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 12 * this.variation ), - 16 + ( 16 * this.yvariation ), 32, 32 );
+			}
+			if ( this.variation === 0 || this.variation === 2 || this.variation === 4 )
+			{
+			ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16, - 16 - ( 16 * this.yvariation ), 32, 32 );
+			ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16, - 16 + ( 16 * this.yvariation ), 32, 32 );
+			}
+			if ( this.variation === 3 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 4 * this.variation ), - 16 - ( 16 * this.yvariation ), 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 4 * this.variation ), - 16 - ( 16 * this.yvariation ), 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 4 * this.variation ), - 16 + ( 16 * this.yvariation ), 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 4 * this.variation ), - 16 + ( 16 * this.yvariation ), 32, 32 );
+			}
+			if ( this.variation === 4 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 6 * this.variation ), - 16 - ( 16 * this.yvariation ), 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 6 * this.variation ), - 16 - ( 16 * this.yvariation ), 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 6 * this.variation ), - 16 + ( 16 * this.yvariation ), 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 6 * this.variation ), - 16 + ( 16 * this.yvariation ), 32, 32 );
+			}
+		ctx.globalAlpha = 1;
+		ctx.filter = 'none';
 		}
-		if ( this.variation === 2 )
+		if (this.yvariation === 3 )
 		{
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 12 * this.variation ), - 16, 32, 32 );
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16, - 16, 32, 32 );
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 12 * this.variation ), - 16, 32, 32 );
+
+			if ( this.variation > 0 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 12 * this.variation ), - 16 - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 12 * this.variation ), - 16 - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 12 * this.variation ), - 16 + 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 12 * this.variation ), - 16 + 16, 32, 32 );
+			}
+			if ( this.variation === 0 || this.variation === 2 || this.variation === 4 )
+			{
+			ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16, - 16 - 16, 32, 32 );
+			ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16, - 16 + 16, 32, 32 );
+			}
+			if ( this.variation === 3 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 4 * this.variation ), - 16 - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 4 * this.variation ), - 16 - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 4 * this.variation ), - 16 + 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 4 * this.variation ), - 16 + 16, 32, 32 );
+			}
+			if ( this.variation === 4 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 6 * this.variation ), - 16 - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 6 * this.variation ), - 16 - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 6 * this.variation ), - 16 + 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 6 * this.variation ), - 16 + 16, 32, 32 );
+			}
 		
 		//if ( this.matter_max > 40 )
 		//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
 	
-		ctx.filter = sdWorld.GetCrystalHue( this.matter_max / (1 + this.variation ) );
+		ctx.filter = sdWorld.GetCrystalHue( this.matter_max / ( (1 + this.variation ) * ( 1 + this.yvariation ) ) );
 	
 		ctx.globalAlpha = this.matter / this.matter_max;
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 12 * this.variation ), - 16, 32, 32 );
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16, - 16, 32, 32 );
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 12 * this.variation ), - 16, 32, 32 );
+
+			if ( this.variation > 0 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 12 * this.variation ), - 16 - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 12 * this.variation ), - 16 - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 12 * this.variation ), - 16 + 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 12 * this.variation ), - 16 + 16, 32, 32 );
+			}
+			if ( this.variation === 0 || this.variation === 2 || this.variation === 4 )
+			{
+			ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16, - 16 - 16, 32, 32 );
+			ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16, - 16 + 16, 32, 32 );
+			}
+			if ( this.variation === 3 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 4 * this.variation ), - 16 - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 4 * this.variation ), - 16 - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 4 * this.variation ), - 16 + 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 4 * this.variation ), - 16 + 16, 32, 32 );
+			}
+			if ( this.variation === 4 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 6 * this.variation ), - 16 - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 6 * this.variation ), - 16 - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 6 * this.variation ), - 16 + 16, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 6 * this.variation ), - 16 + 16, 32, 32 );
+			}
+		ctx.globalAlpha = 1;
+		ctx.filter = 'none';
 		}
-		if ( this.variation === 3 )
+		if (this.yvariation === 4 )
 		{
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 12 * this.variation ), - 16, 32, 32 );
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 4 * this.variation ), - 16, 32, 32 );
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 4 * this.variation ), - 16, 32, 32 );
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 12 * this.variation ), - 16, 32, 32 );
+
+			if ( this.variation > 0 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 12 * this.variation ), - 16 - 32, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 12 * this.variation ), - 16 - 32, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 12 * this.variation ), - 16 + 32, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 12 * this.variation ), - 16 + 32, 32, 32 );
+			}
+			if ( this.variation === 0 || this.variation === 2 || this.variation === 4 )
+			{
+			ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16, - 16 - 32, 32, 32 );
+			ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16, - 16 + 32, 32, 32 );
+			}
+			if ( this.variation === 3 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 4 * this.variation ), - 16 - 32, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 4 * this.variation ), - 16 - 32, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 4 * this.variation ), - 16 + 32, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 4 * this.variation ), - 16 + 32, 32, 32 );
+			}
+			if ( this.variation === 4 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 6 * this.variation ), - 16 - 32, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 6 * this.variation ), - 16 - 32, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 6 * this.variation ), - 16 + 32, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 6 * this.variation ), - 16 + 32, 32, 32 );
+			}
 		
 		//if ( this.matter_max > 40 )
 		//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
 	
-		ctx.filter = sdWorld.GetCrystalHue( this.matter_max / (1 + this.variation ) );
+		ctx.filter = sdWorld.GetCrystalHue( this.matter_max / ( (1 + this.variation ) * ( 1 + this.yvariation ) ) );
 	
 		ctx.globalAlpha = this.matter / this.matter_max;
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 12 * this.variation ), - 16, 32, 32 );
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 4 * this.variation ), - 16, 32, 32 );
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 4 * this.variation ), - 16, 32, 32 );
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 12 * this.variation ), - 16, 32, 32 );
-		}
-		if ( this.variation === 4 )
-		{
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 12 * this.variation ), - 16, 32, 32 );
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 - ( 6 * this.variation ), - 16, 32, 32 );
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16, - 16, 32, 32 );
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 6 * this.variation ), - 16, 32, 32 );
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16 + ( 12 * this.variation ), - 16, 32, 32 );
-		
-		//if ( this.matter_max > 40 )
-		//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
-	
-		ctx.filter = sdWorld.GetCrystalHue( this.matter_max / (1 + this.variation ) );
-	
-		ctx.globalAlpha = this.matter / this.matter_max;
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 12 * this.variation ), - 16, 32, 32 );
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 6 * this.variation ), - 16, 32, 32 );
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16, - 16, 32, 32 );
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 6 * this.variation ), - 16, 32, 32 );
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 12 * this.variation ), - 16, 32, 32 );
+
+			if ( this.variation > 0 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 12 * this.variation ), - 16 - 32, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 12 * this.variation ), - 16 - 32, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 12 * this.variation ), - 16 + 32, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 12 * this.variation ), - 16 + 32, 32, 32 );
+			}
+			if ( this.variation === 0 || this.variation === 2 || this.variation === 4 )
+			{
+			ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16, - 16 - 32, 32, 32 );
+			ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16, - 16 + 32, 32, 32 );
+			}
+			if ( this.variation === 3 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 4 * this.variation ), - 16 - 32, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 4 * this.variation ), - 16 - 32, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 4 * this.variation ), - 16 + 32, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 4 * this.variation ), - 16 + 32, 32, 32 );
+			}
+			if ( this.variation === 4 )
+			{
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 6 * this.variation ), - 16 - 32, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 6 * this.variation ), - 16 - 32, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 - ( 6 * this.variation ), - 16 + 32, 32, 32 );
+				ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16 + ( 6 * this.variation ), - 16 + 32, 32, 32 );
+			}
 		}
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
