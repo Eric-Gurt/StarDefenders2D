@@ -93,7 +93,7 @@ class sdMatterContainer extends sdEntity
 			}
 			if ( this.yvariation < 4 )
 			{
-				let target_raw = sdWorld.GetAnythingNear( this.x, this.y - ( 32 + ( 16 * this.yvariation ) ), 1, null, [ 'sdMatterContainer' ] );
+				let target_raw = sdWorld.GetAnythingNear( this.x, this.y + ( 32 + ( 16 * this.yvariation ) ), 1, null, [ 'sdMatterContainer' ] );
 				//let target = [];
 				for ( let i = 0; i < target_raw.length; i++ )
 				{
@@ -192,7 +192,7 @@ class sdMatterContainer extends sdEntity
 				}
 				if ( this.yvariation < 4 )
 				{
-					let target_raw = sdWorld.GetAnythingNear( this.x, this.y - ( 32 + ( 16 * this.yvariation ) ), 1, null, [ 'sdMatterContainer' ] );
+					let target_raw = sdWorld.GetAnythingNear( this.x, this.y + ( 32 + ( 16 * this.yvariation ) ), 1, null, [ 'sdMatterContainer' ] );
 					//let target = [];
 					for ( let i = 0; i < target_raw.length; i++ )
 					{
