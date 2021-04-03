@@ -110,7 +110,7 @@ class sdMatterContainer extends sdEntity
 								target_raw[i].matter += this.matter;
 								target_raw[i]._hmax += this._hmax;
 								target_raw[i]._hea += this._hea;
-								target_raw[i].y = target_raw[i].y + ( 16 * ( 1 + this.yvariation ) );
+								target_raw[i].y = target_raw[i].y - ( 16 * ( 1 + this.yvariation ) );
 								this.matter = 0;
 								this.remove();
 								break;
@@ -209,7 +209,7 @@ class sdMatterContainer extends sdEntity
 									target_raw[i].matter += this.matter;
 									target_raw[i]._hmax += this._hmax;
 									target_raw[i]._hea += this._hea;
-									target_raw[i].y = target_raw[i].y + ( 16 * ( 1 + this.yvariation ) );
+									target_raw[i].y = target_raw[i].y - ( 16 * ( 1 + this.yvariation ) );
 									this.matter = 0;
 									this.remove();
 									break;
