@@ -537,7 +537,6 @@ class sdWeather extends sdEntity
 					if ( r === 6 ) // Big virus event
 					{
 
-						let left_side = ( Math.random() < 0.5 );
 						for ( let t = Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) + 1; t > 0; t-- )
 						if ( sdVirus.viruses_tot < 40 && sdVirus.big_viruses < 4 )
 						{
