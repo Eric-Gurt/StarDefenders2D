@@ -165,7 +165,7 @@ class sdEnemyMech extends sdEntity
 		{
 			let r = Math.random();
 			
-			if ( r < 0.1 )
+			if ( r < 0.25 )
 			{
 				let x = this.x;
 				let y = this.y;
@@ -177,6 +177,7 @@ class sdEnemyMech extends sdEntity
 					let random_value = Math.random();
 
 					let gun;
+
 					if ( random_value < 0.333 )
 					{
 						if ( random_value < 0.25 )
@@ -466,7 +467,7 @@ class sdEnemyMech extends sdEntity
 						if ( this._rail_attack_timer <= 0 )
 						{
 						an = Math.atan2( targets[ i ].y - this.y, targets[ i ].x - this.x ); // Pinpoint accurate against turrets
-							let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+							let bullet_obj = new sdBullet({ x: this.x, y: this.y - 16 });
 							bullet_obj._owner = this;
 							bullet_obj.sx = Math.cos( an );
 							bullet_obj.sy = Math.sin( an );
@@ -501,7 +502,7 @@ class sdEnemyMech extends sdEntity
 
 						let an = Math.atan2( targets[ i ].y - this.y, targets[ i ].x - this.x ) + ( Math.random() * 2 - 1 ) * 0.1;
 
-						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+						let bullet_obj = new sdBullet({ x: this.x, y: this.y + 16 });
 						bullet_obj._owner = this;
 						bullet_obj.sx = Math.cos( an );
 						bullet_obj.sy = Math.sin( an );
@@ -595,7 +596,7 @@ class sdEnemyMech extends sdEntity
 		ctx.drawImageFilterCache( sdEnemyMech.img_mech_broken, - 32, - 32, 64, 64 );
 		
 		ctx.globalAlpha = 1;
-		//ctx.filter = 'none';
+		ctx.filter = 'none';
 		ctx.sd_filter = null;
 	}
 	/*onMovementInRange( from_entity )
