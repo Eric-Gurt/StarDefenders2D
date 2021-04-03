@@ -36,6 +36,8 @@ import { Server } from "socket.io";
 
 const SOCKET_IO_MODE = ( typeof Server !== 'undefined' ); // In else case geckos.io
 
+require('dotenv').config();
+
 
 const httpServer = http.createServer( app );
 let   httpsServer = null;
@@ -44,9 +46,9 @@ var isWin = process.platform === "win32";
 globalThis.isWin = isWin;
 
 if ( !isWin ) 
-{
-	const ssl_key_path = '/usr/local/directadmin/data/users/admin/domains/gevanni.com.key';
-	const ssl_cert_path = '/usr/local/directadmin/data/users/admin/domains/gevanni.com.cert';
+{//
+	const ssl_key_path = '/etc/letsencrypt/live/darkclan.xyz/privkey.pem';
+	const ssl_cert_path = '/etc/letsencrypt/live/darkclan.xyz/fullchain.pem';
 	const credentials = {
 		key: fs.readFileSync( ssl_key_path ),
 		cert: fs.readFileSync( ssl_cert_path )
@@ -68,23 +70,10 @@ if ( !isWin )
 
 
 
-let script_path_id = -1;
+let script_path_id = 1;
 let script_path_id_alter = -1;
 
-for ( let i = 0; i < process.argv.length; i++ )
-{
-	if ( script_path_id === -1 )
-	if ( process.argv[ i ].indexOf( 'index.js' ) !== -1 )
-	script_path_id = i;
-	
-	if ( script_path_id_alter === -1 )
-	if ( process.argv[ i ].indexOf( '.js' ) !== -1 )
-	script_path_id_alter = i;
-	
-	if ( script_path_id !== -1 )
-	if ( script_path_id_alter !== -1 )
-	break;
-}
+
 if ( script_path_id === -1 )
 script_path_id = script_path_id_alter;
 
@@ -138,7 +127,6 @@ if ( SOCKET_IO_MODE ) // Socket.io
 }
 else // Geckos
 {
-	console.log( 'geckos is ', geckos );
 	io = geckos({
 		authorization: async function( auth, request, response )
 		{
@@ -369,14 +357,17 @@ sdWorld.sockets = sockets;
 
 
 
+const server_config_path_const = '/home/discordbots/html/server_config.js';
 
-const server_config_path_const = __dirname + '/server_config' + ( world_slot || '' ) + '.js';
-
-const snapshot_path_const = __dirname + '/star_defenders_snapshot' + ( world_slot || '' ) + '.v';
-const timewarp_path_const = __dirname + '/star_defenders_timewarp' + ( world_slot || '' ) + '.v';
-const moderation_data_path_const = __dirname + '/moderation_data' + ( world_slot || '' ) + '.v';
-const superuser_pass_path = __dirname + '/superuser_pass' + ( world_slot || '' ) + '.v';
-
+const snapshot_path_const = '/home/discordbots/html/star_defenders_snapshot.v';
+const timewarp_path_const = '/home/discordbots/html/star_defenders_timewarp.v';
+const moderation_data_path_const = '/home/discordbots/html/moderation_data.v';
+const superuser_pass_path = '/home/discordbots/html/superuser_pass.v';
+console.log("server_config_path_const: " + server_config_path_const)
+console.log("snapshot_path_const: " + snapshot_path_const)
+console.log("timewarp_path_const: " + timewarp_path_const)
+console.log("moderation_data_path_const: " + moderation_data_path_const)
+console.log("superuser_pass_path: " + superuser_pass_path)
 sdWorld.server_config = {};
 
 {
