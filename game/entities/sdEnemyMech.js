@@ -163,6 +163,37 @@ class sdEnemyMech extends sdEntity
 		
 		if ( this.hea < -1500 )
 		{
+			let r = Math.random();
+			
+			if ( r < 0.1 )
+			{
+				let x = this.x;
+				let y = this.y;
+				let sx = this.sx;
+				let sy = this.sy;
+
+				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+					let random_value = Math.random();
+
+					let gun;
+
+					if ( random_value < 0.333 )
+					{
+						if ( random_value < 0.25 )
+						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_CANNON });
+						else
+						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_CANNON });
+					}
+					else
+					gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_CANNON });
+
+					gun.sx = sx;
+					gun.sy = sy;
+					sdEntity.entities.push( gun );
+				
+					}, 500 );
+			}
 			this.remove();
 		}
 		

@@ -396,7 +396,20 @@ class sdGunClass
 			spawnable: false
 		};		
 		
-		
+		sdGun.classes[ sdGun.CLASS_RAIL_CANNON = 21 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'rail_cannon' ),
+			sound: 'gun_railgun',
+			sound_pitch: 0.5,
+			title: 'Rail Cannon',
+			slot: 4,
+			reload_time: 20,
+			muzzle_x: 7,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_properties: { _rail: true, _damage: 62, color: '#FF0000', _knock_scale:0.01 * 8 },
+			spawnable: false
+		};
 		
 		
 		// Add new gun classes above this line //
