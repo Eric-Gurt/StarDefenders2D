@@ -427,7 +427,7 @@ class sdEnemyMech extends sdEntity
 
 					for ( let i = 0; i < targets.length; i++ )
 					{
-						if ( this._alert_intensity < 30 )// Delay attack
+						if ( this._alert_intensity < 45 )// Delay attack
 						break;
 
 						this.attack_anim = 15;
