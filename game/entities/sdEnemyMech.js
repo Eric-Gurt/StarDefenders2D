@@ -21,7 +21,7 @@ class sdEnemyMech extends sdEntity
 		sdEnemyMech.death_duration = 30;
 		sdEnemyMech.post_death_ttl = 120;
 		
-		sdEnemyMech.attack_range = 325;
+		sdEnemyMech.attack_range = 375;
 		
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -427,7 +427,7 @@ class sdEnemyMech extends sdEntity
 
 					for ( let i = 0; i < targets.length; i++ )
 					{
-						if ( this._alert_intensity < 45 )// Delay attack
+						if ( this._alert_intensity < 30 )// Delay attack
 						break;
 
 						this.attack_anim = 15;
