@@ -466,7 +466,7 @@ class sdEnemyMech extends sdEntity
 						if ( targets[ i ].GetClass() === 'sdTurret' ) // Turrets get the special treatment
 						if ( this._rail_attack_timer <= 0 )
 						{
-						an = Math.atan2( targets[ i ].y - this.y, targets[ i ].x - this.x ); // Pinpoint accurate against turrets
+						an = Math.atan2( targets[ i ].y - this.y - 16, targets[ i ].x - this.x ); // Pinpoint accurate against turrets
 							let bullet_obj = new sdBullet({ x: this.x, y: this.y - 16 });
 							bullet_obj._owner = this;
 							bullet_obj.sx = Math.cos( an );
@@ -500,7 +500,7 @@ class sdEnemyMech extends sdEntity
 
 						this._rocket_attack_timer = 6;
 
-						let an = Math.atan2( targets[ i ].y - this.y, targets[ i ].x - this.x ) + ( Math.random() * 2 - 1 ) * 0.1;
+						let an = Math.atan2( targets[ i ].y - this.y + 16, targets[ i ].x - this.x ) + ( Math.random() * 2 - 1 ) * 0.1;
 
 						let bullet_obj = new sdBullet({ x: this.x, y: this.y + 16 });
 						bullet_obj._owner = this;
