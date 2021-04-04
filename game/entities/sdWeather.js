@@ -536,30 +536,54 @@ class sdWeather extends sdEntity
 
 					if ( r === 6 ) // Big virus event
 					{
+						let instances = 0;
+						let instances_tot = 1 + Math.ceil( Math.random() * 3 );
 
-						for ( let t = Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) + 1; t > 0; t-- )
-						if ( sdVirus.viruses_tot < 40 && sdVirus.big_viruses < 4 )
+						let left_side = ( Math.random() < 0.5 );
+
+						while ( instances < instances_tot && sdVirus.viruses_tot < 40  && sdVirus.big_viruses < 4 )
 						{
-							let virus = new sdVirus({ 
-								x:sdWorld.world_bounds.x1 + 32 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 - 64 ), 
-								y:sdWorld.world_bounds.y1 + 32
-							});
 
-							virus._is_big = true;
-							sdEntity.entities.push( virus );
+							let virus_entity = new sdVirus({ x:0, y:0 });
+							virus_entity._is_big = true;
+							sdEntity.entities.push( virus_entity );
 							sdVirus.big_viruses++;
+							{
+								let x,y;
+								let tr = 1000;
+								do
+								{
+									if ( left_side )
+									x = sdWorld.world_bounds.x1 + 32 + 64 * instances;
+									else
+									x = sdWorld.world_bounds.x2 - 32 - 64 * instances;
 
-							if ( !virus.CanMoveWithoutOverlap( virus.x, virus.y, 0 ) )
-							{
-								virus.death_anim = sdVirus.death_duration + sdVirus.post_death_ttl;
-								virus.remove();
-								sdVirus.big_viruses--;
+									y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+									if ( virus_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+									if ( !virus_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+									if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+									{
+										virus_entity.x = x;
+										virus_entity.y = y;
+
+										//sdWorld.UpdateHashPosition( ent, false );
+										//console.log('Big virus spawned!');
+										//console.log(sdVirus.big_viruses);
+										break;
+									}
+
+
+									tr--;
+									if ( tr < 0 )
+									{
+										virus_entity.remove();
+										break;
+									}
+								} while( true );
 							}
-							else
-							{
-								sdWorld.UpdateHashPosition( virus, false ); // Prevent inersection with other ones
-								//console.log('Big virus spawned!');
-							}
+
+							instances++;
 						}
 					}
 					if ( r === 7 ) // Flying Mech event
