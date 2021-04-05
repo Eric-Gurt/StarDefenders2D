@@ -118,7 +118,6 @@ class sdEnemyMech extends sdEntity
 		
 		if ( this.hea <= 0 && was_alive )
 		{	sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:2 });
-			sdEnemyMech.mechs_counter--; // So others can spawn despite a destroyed one being on map
 			if ( initiator )
 			if ( typeof initiator._score !== 'undefined' )
 			{
@@ -154,7 +153,7 @@ class sdEnemyMech extends sdEntity
 								damage_scale: 1, 
 								type: sdEffect.TYPE_EXPLOSION,
 								owner: that,
-								can_hit_owner: false,
+								can_hit_owner: true,
 								color: sdEffect.default_explosion_color 
 							});
 						}
@@ -162,7 +161,7 @@ class sdEnemyMech extends sdEntity
 				}
 		}
 		
-		if ( this.hea < -1500 )
+		if ( this.hea < -2500 ) // It gets destroyed halfway through explosion
 		{
 			let r = Math.random();
 			
@@ -606,6 +605,7 @@ class sdEnemyMech extends sdEntity
 	}*/
 	onRemove() // Class-specific, if needed
 	{
+		sdEnemyMech.mechs_counter--;
 		sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
 		//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
 	}
