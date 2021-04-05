@@ -172,7 +172,7 @@ class sdCube extends sdEntity
 
 						if ( random_value < 0.333 )
 						{
-							if ( random_value < 0.25 )
+							if ( random_value < 0.09 ) // When it was 0.25 it actually had a bigger chance than triple rail since it doesn't re-roll random value
 							gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_SHOTGUN });
 							else
 							gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_TRIPLE_RAIL });
@@ -186,6 +186,26 @@ class sdCube extends sdEntity
 
 					}, 500 );
 				//}
+			}
+
+			r = Math.random(); // Cube shard dropping roll
+	
+			if ( r < ( this.is_huge ? 0.7 : 0.25 ) * 0.6 ) // Higher chance just for some time at least?
+			{
+				let x = this.x;
+				let y = this.y;
+				let sx = this.sx;
+				let sy = this.sy;
+
+				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+					let gun;
+					gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_CUBE_SHARD });
+					gun.sx = sx;
+					gun.sy = sy;
+					sdEntity.entities.push( gun );
+
+					}, 500 );
 			}
 
 			this.remove();

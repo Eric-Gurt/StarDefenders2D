@@ -411,7 +411,31 @@ class sdGunClass
 			spawnable: false
 		};
 		
-		
+		sdGun.classes[ sdGun.CLASS_CUBE_SHARD = 22 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'cube_shard' ),
+			title: 'Cube shard',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			spawnable: false,
+			ignore_slot: true,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
+			{ 
+				if ( character._upgrade_counters[ 'upgrade_energy' ] )
+				if ( character._upgrade_counters[ 'upgrade_energy' ] < 60 )
+				{
+					character._upgrade_counters[ 'upgrade_energy' ] = Math.min( 60, character._upgrade_counters[ 'upgrade_energy' ] + 4 );
+					character.matter_max = Math.round( 50 + character._upgrade_counters[ 'upgrade_energy' ] * 45 );
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
