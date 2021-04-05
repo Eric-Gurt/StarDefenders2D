@@ -118,6 +118,7 @@ class sdEnemyMech extends sdEntity
 		
 		if ( this.hea <= 0 && was_alive )
 		{	sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:2 });
+			sdEnemyMech.mechs_counter--; // So others can spawn despite a destroyed one being on map
 			if ( initiator )
 			if ( typeof initiator._score !== 'undefined' )
 			{
@@ -605,8 +606,7 @@ class sdEnemyMech extends sdEntity
 	}*/
 	onRemove() // Class-specific, if needed
 	{
-		sdEnemyMech.mechs_counter--;
-		
+		sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
 		//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
 	}
 	MeasureMatterCost()
