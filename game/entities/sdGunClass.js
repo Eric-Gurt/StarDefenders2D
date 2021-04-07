@@ -469,15 +469,14 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_BUILDTOOL_UPG = 25 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'buildtool_upgrade' ),
-			title: 'Build tool upgrade',
+			title: 'Build tool upgrade (flying mech)',
 			slot: 0,
 			reload_time: 25,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
 			projectile_properties: { _damage: 0 },
-			//spawnable: false,
-			matter_cost: 90,
+			spawnable: false,
 			ignore_slot: true,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
