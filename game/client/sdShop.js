@@ -19,7 +19,7 @@ class sdShop
 		
 		sdShop.open = false;
 		sdShop.options = [];
-		
+		sdShop.level = 0;
 		sdShop.scroll_y = 0;
 		sdShop.scroll_y_target = 0;
 		
@@ -137,6 +137,7 @@ class sdShop
 		}
 		sdShop.options.push({ _class: 'sdBomb', _category:'Equipment' });
 		sdShop.options.push({ _class: 'sdBarrel', _category:'Equipment' });
+		sdShop.options.push({ _class: 'sdBarrel', filter: 'hue-rotate(130deg) saturate(10)', variation: 1, _category:'Equipment' });
 
 		sdShop.upgrades = {
 			upgrade_suit:
@@ -303,15 +304,24 @@ class sdShop
 			let yy = 40 + sdShop.scroll_y;
 
 			sdShop.potential_selection = -1;
-			
+			let skip = 0; // Skip current_shop_options.push if an item is not unlocked yet
 			let current_shop_options = [];
 			for ( var i = 0; i < sdShop.options.length; i++ )
 			{
 				if ( sdShop.options[ i ]._category === sdShop.current_category || 
 					 ( sdShop.options[ i ]._category.charAt( 0 ) === '!' && sdShop.options[ i ]._category.substring( 1 ) !== sdShop.current_category ) ) // !root case
 				{
+					if ( sdShop.options[ i ]._category === 'Equipment' )
+					{
+					if ( ( sdShop.options[ i ].class === sdGun.CLASS_PISTOL_MK2 || sdShop.options[ i ].class === sdGun.CLASS_LMG_P04 ) && sdWorld.my_entity.build_tool_level === 0)
+					skip = 1;
+					if ( ( sdShop.options[ i ]._class === 'sdBarrel' && sdShop.options[ i ].variation === 1 ) && sdWorld.my_entity.build_tool_level === 0)
+					skip = 1;
+					}
+					if ( skip === 0 )
 					current_shop_options.push( sdShop.options[ i ] );
 					sdShop.options[ i ]._main_array_index = i;
+					skip = 0; // reset
 				}
 			}
 			
