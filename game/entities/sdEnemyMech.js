@@ -43,7 +43,7 @@ class sdEnemyMech extends sdEntity
 		
 		this.regen_timeout = 0;
 		
-		this._hmax = 4000;
+		this._hmax = 6000;
 		this.hea = this._hmax;
 
 		this.tilt = 0;
@@ -415,7 +415,7 @@ class sdEnemyMech extends sdEntity
 							targets.push( targets_raw[ i ] );
 						else
 						{
-							if ( this.hea < 1500 )
+							if ( this.hea < 2000 )
 							if ( targets_raw[ i ].GetClass() === 'sdCharacter' ) // Highly wanted by sdEnemyMechs in this case
 							{
 								targets.push( targets_raw[ i ] );
@@ -492,7 +492,7 @@ class sdEnemyMech extends sdEntity
 					}
 
 					if ( this._rocket_attack_timer <= 0 )
-					if ( this.hea < 2500 ) // Second phase of the mech, rocket launcher can fire now
+					if ( this.hea < 3500 ) // Second phase of the mech, rocket launcher can fire now
 					for ( let i = 0; i < targets.length; i++ )
 					{
 						if ( this._alert_intensity < 45 )// Delay attack
