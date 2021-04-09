@@ -19,7 +19,7 @@ class sdShop
 		
 		sdShop.open = false;
 		sdShop.options = [];
-		sdShop.level = 0;
+		
 		sdShop.scroll_y = 0;
 		sdShop.scroll_y_target = 0;
 		
