@@ -9,6 +9,7 @@ class sdCom extends sdEntity
 	static init_class()
 	{
 		sdCom.img_com = sdWorld.CreateImageFromFile( 'com' );
+		sdCom.img_com_red = sdWorld.CreateImageFromFile( 'com_red' );
 		
 		sdCom.action_range = 32; // How far character needs to stand in order to manipualte it
 		sdCom.action_range_command_centre = 64; // How far character needs to stand in order to manipualte it
@@ -63,10 +64,11 @@ class sdCom extends sdEntity
 	{
 		super( params );
 		
-		this._hmax = 100;
+		this.variation = params.variation || 0;
+		this._hmax = 100 + ( 200* this.variation ); // Stronger variations have more health
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
-		
+
 		this.subscribers = []; // _net_ids
 		
 		this._owner = null; // Only used to add creator to subscribers list on spawn
@@ -122,14 +124,17 @@ class sdCom extends sdEntity
 		let nearby_coms = sdWorld.GetComsNear( this.x, this.y, null, null );
 		for ( var i = 0; i < nearby_coms.length; i++ )
 		//if ( sdWorld.CheckLineOfSight( this.x, this.y, nearby_coms[ i ].x, nearby_coms[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
-		if ( sdWorld.CheckLineOfSight( this.x, this.y, nearby_coms[ i ].x, nearby_coms[ i ].y, this, null, sdCom.com_visibility_unignored_classes ) )
+		if ( this.variation === nearby_coms[ i ].variation )
 		{
-			if ( append1_or_remove0_or_inherit_back2 === 2 )
+			if ( sdWorld.CheckLineOfSight( this.x, this.y, nearby_coms[ i ].x, nearby_coms[ i ].y, this, null, sdCom.com_visibility_unignored_classes ) )
 			{
-				this.NotifyAboutNewSubscribers( 1, nearby_coms[ i ].subscribers, [] );
+				if ( append1_or_remove0_or_inherit_back2 === 2 )
+				{
+					this.NotifyAboutNewSubscribers( 1, nearby_coms[ i ].subscribers, [] );
+				}
+				else
+			 	nearby_coms[ i ].NotifyAboutNewSubscribers( append1_or_remove0_or_inherit_back2, subs, counter_recursive_array );
 			}
-			else
-			nearby_coms[ i ].NotifyAboutNewSubscribers( append1_or_remove0_or_inherit_back2, subs, counter_recursive_array );
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
@@ -157,7 +162,7 @@ class sdCom extends sdEntity
 
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
 		if ( sdEntity.entities[ i ] !== this )
-		if ( sdEntity.entities[ i ].GetClass() === 'sdCom' || 
+		if ( ( sdEntity.entities[ i ].GetClass() === 'sdCom' && sdEntity.entities[ i ].variation === this.variation ) || 
 			 sdEntity.entities[ i ].GetClass() === 'sdDoor' || 
 			 sdEntity.entities[ i ].GetClass() === 'sdTeleport' || 
 			 sdEntity.entities[ i ].GetClass() === 'sdTurret' || 
@@ -192,7 +197,10 @@ class sdCom extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		if ( this.variation === 0 )
 		ctx.drawImage( sdCom.img_com, -16, -16, 32,32 );
+		if ( this.variation === 1 )
+		ctx.drawImage( sdCom.img_com_red, -16, -16, 32,32 );
 	}
 	MeasureMatterCost()
 	{
