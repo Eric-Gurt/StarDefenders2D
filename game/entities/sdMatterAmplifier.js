@@ -50,7 +50,7 @@ class sdMatterAmplifier extends sdEntity
 		this._hmax = 320;
 		this._hea = this._hmax;
 		
-		this.shielded = true;
+		this.shielded = false;
 		
 		this._ignore_pickup_tim = 0;
 		
@@ -303,7 +303,7 @@ class sdMatterAmplifier extends sdEntity
 	{
 	//	return 0; // Hack
 		
-		return this._hmax * sdWorld.damage_to_matter + this.matter;
+		return 300 + this._hmax * sdWorld.damage_to_matter + this.matter;
 	}
 }
 //sdMatterAmplifier.init_class();

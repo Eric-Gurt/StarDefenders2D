@@ -323,7 +323,7 @@ class sdBlock extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		return this._hmax * sdWorld.damage_to_matter + ( this.material === sdBlock.MATERIAL_SHARP ? 30 : 0 );
+		return this._hmax * sdWorld.damage_to_matter * ( this.material === sdBlock.MATERIAL_TRAPSHIELD ? 4.5 : 1 ) + ( this.material === sdBlock.MATERIAL_SHARP ? 30 : 0 );
 	}
 	//RequireSpawnAlign() 
 	//{ return true; }
