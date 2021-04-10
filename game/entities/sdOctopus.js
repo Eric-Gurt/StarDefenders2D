@@ -57,6 +57,8 @@ class sdOctopus extends sdEntity
 		this._last_jump = sdWorld.time;
 		this._last_bite = sdWorld.time;
 		
+		this.hurt_timer = 0;
+		
 		this.tenta_x = 0;
 		this.tenta_y = 0;
 		this.tenta_tim = 0;
@@ -131,6 +133,16 @@ class sdOctopus extends sdEntity
 				sdEntity.entities.push( ent );
 				
 				this._consumed_guns.shift();
+			}
+		}
+		else
+		{
+			if ( this._hea > 0 )
+			if ( this.hurt_timer === 0 )
+			if ( Math.floor( ( this._hea ) / this._hmax * 5 ) !== Math.floor( ( this._hea + dmg ) / this._hmax * 5 ) )
+			{
+				sdSound.PlaySound({ name:'octopus_hurt2', x:this.x, y:this.y, volume: 0.5 });
+				this.hurt_timer = 1;
 			}
 		}
 		
@@ -231,6 +243,9 @@ class sdOctopus extends sdEntity
 		{
 			if ( this.tenta_tim > 0 )
 			this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 15 );
+		
+			if ( this.hurt_timer > 0 )
+			this.hurt_timer = Math.max( 0, this.hurt_timer - GSPEED * 0.075 );
 		
 			if ( this._current_target )
 			if ( this._last_bite < sdWorld.time - 1000 )
@@ -385,7 +400,11 @@ class sdOctopus extends sdEntity
 				}
 			}
 			
-			//if ( Math.abs( this.sx ) < 2 )
+			if ( this.hurt_timer > 0 )
+			{
+				ctx.drawImageFilterCache( sdOctopus.death_imgs[ 0 ], - 16, - 16, 32,32 );
+			}
+			else
 			if ( Math.abs( this.sx ) < 1 )
 			ctx.drawImageFilterCache( ( sdWorld.time % 5000 < 200 ) ? sdOctopus.img_octopus_idle2 : ( sdWorld.time % 5000 < 400 ) ? sdOctopus.img_octopus_idle3 : sdOctopus.img_octopus_idle1, - 16, - 16, 32,32 );
 			else

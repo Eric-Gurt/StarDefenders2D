@@ -11,6 +11,7 @@ class FakeCanvasContext
 		FakeCanvasContext.DRAW_IN_3D_BOX = 1;
 		FakeCanvasContext.DRAW_IN_3D_LIQUID = 2;
 		FakeCanvasContext.DRAW_IN_3D_GRASS = 3;
+		FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT = 4;
 		
 		FakeCanvasContext.LIQUID_OPACITY_STEPS = 5;
 		FakeCanvasContext.GRASS_OPACITY_STEPS = 4;
@@ -96,7 +97,7 @@ class FakeCanvasContext
 			
 		}, 300 );
 		
-		this.geometries_by_draw_in = [ geometry_plane, geometry_box, geometry_liquid, geometry_grass ];
+		this.geometries_by_draw_in = [ geometry_plane, geometry_box, geometry_liquid, geometry_grass, geometry_box ];
 		
 		
 		let geometry, material, mesh;

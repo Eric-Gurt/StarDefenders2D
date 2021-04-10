@@ -194,7 +194,7 @@ class sdEnemyMech extends sdEntity
 					gun.sy = sy;
 					sdEntity.entities.push( gun );
 				
-					}, 500 );
+				}, 500 );
 			}
 			this.remove();
 		}

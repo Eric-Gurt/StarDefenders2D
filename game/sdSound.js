@@ -52,6 +52,11 @@ class sdSound
 		sdSound.hover_loop.volume = 0;
 		sdSound.hover_loop.loop = true;
 		
+		sdSound.amplifier_loop_volume_last = 0;
+		sdSound.amplifier_loop = new Audio( './audio/amplifier_loop2.wav' );
+		sdSound.amplifier_loop.volume = 0;
+		sdSound.amplifier_loop.loop = true;
+		
 		
 		
 		sdSound.ambient_seeker = { x:Math.random()*2-1, y:Math.random()*2-1, tx:Math.random()*2-1, ty:Math.random()*2-1 };
@@ -81,6 +86,7 @@ class sdSound
 			
 			sdSound.jetpack.play();
 			sdSound.hover_loop.play();
+			sdSound.amplifier_loop.play();
 		}
 	}
 	static HandleMatterChargeLoop( GSPEED )
@@ -137,6 +143,7 @@ class sdSound
 		
 		let count_flying = 0;
 		let count_hover_loop = 0;
+		let count_amplifier_loop = 0;
 		
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
 		{
@@ -151,6 +158,12 @@ class sdSound
 				if ( sdEntity.entities[ i ].driver0 /*&& ( sdEntity.entities[ i ].driver0.act_x !== 0 || sdEntity.entities[ i ].driver0.act_y !== 0 )*/ )
 				count_hover_loop += 2 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
 			}
+			else
+			if ( sdEntity.entities[ i ].GetClass() === 'sdMatterAmplifier' )
+			{
+				if ( sdEntity.entities[ i ].matter_max > 0 )
+				count_amplifier_loop += 0.5 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+			}
 		}
 		
 		sdSound.jetpack_volume_last = sdWorld.MorphWithTimeScale( sdSound.jetpack_volume_last, count_flying, 0.8, GSPEED );
@@ -158,6 +171,9 @@ class sdSound
 		
 		sdSound.hover_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.hover_loop_volume_last, count_hover_loop, 0.8, GSPEED );
 		sdSound.hover_loop.volume = sdSound.hover_loop_volume_last * sdSound.volume_ambient;
+		
+		sdSound.amplifier_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.amplifier_loop_volume_last, count_amplifier_loop, 0.8, GSPEED );
+		sdSound.amplifier_loop.volume = sdSound.amplifier_loop_volume_last * sdSound.volume_ambient;
 	}
 	static GetDistanceMultForPosition( x,y )
 	{

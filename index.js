@@ -174,6 +174,7 @@ import sdBG from './game/entities/sdBG.js';
 import sdWeather from './game/entities/sdWeather.js';
 import sdTurret from './game/entities/sdTurret.js';
 import sdMatterContainer from './game/entities/sdMatterContainer.js';
+import sdMatterAmplifier from './game/entities/sdMatterAmplifier.js';
 import sdQuickie from './game/entities/sdQuickie.js';
 import sdOctopus from './game/entities/sdOctopus.js';
 import sdAntigravity from './game/entities/sdAntigravity.js';
@@ -285,6 +286,7 @@ sdWater.init_class();
 sdWeather.init_class();
 sdTurret.init_class();
 sdMatterContainer.init_class();
+sdMatterAmplifier.init_class();
 sdQuickie.init_class();
 sdOctopus.init_class();
 sdAntigravity.init_class();
@@ -2168,6 +2170,15 @@ io.on("connection", (socket) =>
 			shop_pending = false;
 			socket.emit('SET sdShop.options', sdShop.options, { reliable: true, runs: 100 } );
 		}
+		
+		
+		if ( character_entity._socket )
+		{
+			for ( var upgrade_name in character_entity._upgrade_counters )
+			{
+				character_entity._socket.emit( 'UPGRADE_SET', [ upgrade_name, character_entity._upgrade_counters[ upgrade_name ] ] );
+			}
+		}
 
 		sdEntity.entities.push( character_entity );
 		
@@ -2612,6 +2623,29 @@ io.on("connection", (socket) =>
 			}
 			else
 			socket.emit('SERVICE_MESSAGE', 'Storage no longer exists' );
+		}
+	});
+	socket.on('AMPLIFIER_SHIELD_TOGGLE', ( arr ) => { 
+		
+		if ( !( arr instanceof Array ) )
+		return;
+	
+		if ( socket.character ) 
+		if ( socket.character.hea > 0 ) 
+		{
+			let net_id = arr[ 0 ];
+			let ent = sdEntity.GetObjectByClassAndNetId( 'sdMatterAmplifier', net_id );
+			if ( ent !== null )
+			{
+				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdStorage.access_range ) >= 0 )
+				{
+					ent.ToggleShields();
+				}
+				else
+				socket.emit('SERVICE_MESSAGE', 'Matter amplifier is too far' );
+			}
+			else
+			socket.emit('SERVICE_MESSAGE', 'Matter amplifier no longer exists' );
 		}
 	});
 	

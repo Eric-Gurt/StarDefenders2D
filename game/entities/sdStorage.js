@@ -10,7 +10,7 @@ class sdStorage extends sdEntity
 	{
 		sdStorage.img_storage = sdWorld.CreateImageFromFile( 'storage2' );
 		
-		sdStorage.access_range = 64;
+		sdStorage.access_range = 64; // Used by sdMatterAmplifier as well
 		sdStorage.slots_tot = 6;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn

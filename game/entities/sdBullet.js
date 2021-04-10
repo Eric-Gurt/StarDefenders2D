@@ -128,6 +128,11 @@ class sdBullet extends sdEntity
 			value: this.BouncyCollisionFiltering.bind( this ),
 			enumerable: false
 		});
+		Object.defineProperty( this, 'RegularCollisionFiltering',
+		{
+			value: this.RegularCollisionFiltering.bind( this ),
+			enumerable: false
+		});
 	}
 	onRemove()
 	{
@@ -212,8 +217,21 @@ class sdBullet extends sdEntity
 		}
 	}
 	
+	RegularCollisionFiltering( from_entity )
+	{
+		if ( from_entity.is( sdBlock ) && from_entity.material === sdBlock.MATERIAL_TRAPSHIELD )
+		if ( this._owner === null || ( !this._owner._key_states.GetKey( 'ShiftLeft' ) && sdWorld.inDist2D( this._owner.x, this._owner.y, from_entity.x + from_entity.width/2, from_entity.y + from_entity.height/2 ) < 32 ) )
+		{
+			return false;
+		}
+		return true;
+	}
+	
 	BouncyCollisionFiltering( from_entity ) // Without this logic bullets will stuck in initiator on spawn. Though GetIgnoredEntityClasses will implement simpler logic which could work more efficient for normal cases
 	{
+		if ( !this.RegularCollisionFiltering( from_entity ) )
+		return false;
+	
 		if ( this._owner === from_entity )
 		return false;
 	
@@ -243,7 +261,7 @@ class sdBullet extends sdEntity
 		{
 			this.sy += sdWorld.gravity * GSPEED;
 
-			this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 0, this.RegularCollisionFiltering );
 		}
 		else
 		{
@@ -258,7 +276,7 @@ class sdBullet extends sdEntity
 
 				sdWorld.last_hit_entity = null;
 
-				this.ApplyVelocityAndCollisions( GSPEED, 0, true, 0, this._bouncy ? this.BouncyCollisionFiltering : null );
+				this.ApplyVelocityAndCollisions( GSPEED, 0, true, 0, this._bouncy ? this.BouncyCollisionFiltering : this.RegularCollisionFiltering );
 
 				let vel2 = this.sx * this.sx + this.sy * this.sy;
 
@@ -324,9 +342,8 @@ class sdBullet extends sdEntity
 		if ( from_entity.is( sdGun ) )
 		return;
 
-		/*if ( this._rail )
-		if ( from_entity.is_grenade )
-		debugger;*/
+		if ( !this.RegularCollisionFiltering( from_entity ) )
+		return;
 	
 		if ( ( this._owner !== from_entity && ( !this._owner || !this._owner._owner || this._owner._owner !== from_entity ) ) || this._can_hit_owner ) // 2nd rule is for turret bullet to not hit turret owner
 		{

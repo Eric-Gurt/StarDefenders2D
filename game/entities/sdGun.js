@@ -598,7 +598,7 @@ class sdGun extends sdEntity
 			
 			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 0 );
 			
-			if ( this.class === sdGun.CLASS_CRYSTAL_SHARD )
+			if ( this.class === sdGun.CLASS_CRYSTAL_SHARD || this.class === sdGun.CLASS_CUBE_SHARD )
 			this.tilt = 0; // These have offset which better to not rotate for better visuals
 			else
 			{

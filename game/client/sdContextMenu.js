@@ -49,6 +49,19 @@ class sdContextMenu
 			{
 				sdContextMenu.options = [];
 				
+				if ( sdContextMenu.current_target.GetClass() === 'sdMatterAmplifier' )
+				{
+					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdStorage.access_range ) >= 0 )
+					{
+						sdContextMenu.options.push({ title: 'Toggle shields',
+							action: ()=>
+							{
+								globalThis.socket.emit( 'AMPLIFIER_SHIELD_TOGGLE', [ sdContextMenu.current_target._net_id ] );
+							}
+						});
+					}
+				}
+				else
 				if ( sdContextMenu.current_target.GetClass() === 'sdStorage' )
 				{
 					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdStorage.access_range ) >= 0 )

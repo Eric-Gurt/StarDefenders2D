@@ -45,7 +45,7 @@ class sdHover extends sdEntity
 		return [ 'sdCharacter' ];
 	}*/
 	
-	IsVehicle()
+	IsVehicle() // Mostly defines damage from rockets multiplier so far
 	{
 		return true;
 	}

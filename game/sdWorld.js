@@ -1,4 +1,8 @@
 
+/* global sdShop */
+
+// sdShop is global on client-side
+
 import sdEntity from './entities/sdEntity.js';
 import sdGun from './entities/sdGun.js';
 import sdEffect from './entities/sdEffect.js';
@@ -59,6 +63,7 @@ class sdWorld
 		sdWorld.my_entity_net_id = undefined; // Temporary place
 		sdWorld.my_entity_protected_vars = { look_x:1, look_y:1, x:1, y:1, sx:1, sy:1, act_x:1, act_y:1 }; // Client-side variables such as look_x will appear here
 		sdWorld.my_score = 0;
+		sdWorld.my_entity_upgrades_later_set_obj = null;
 		
 		//sdWorld.world_bounds = { x1: 0, y1: -400, x2: 800, y2: 0 };
 		sdWorld.world_bounds = { 
@@ -946,12 +951,24 @@ class sdWorld
 					sdWorld.my_entity = sdEntity.entities[ i ];
 					sdWorld.my_entity._key_states = sdWorld.my_key_states;
 					
-					
 					sdWorld.camera.x = sdWorld.my_entity.x;
 					sdWorld.camera.y = sdWorld.my_entity.y;
 					
 					sdWorld.my_entity.look_x = sdWorld.camera.x;
 					sdWorld.my_entity.look_y = sdWorld.camera.y;
+					
+					if ( sdWorld.my_entity_upgrades_later_set_obj )
+					{
+						for ( var arr0 in sdWorld.my_entity_upgrades_later_set_obj )
+						{
+							var arr1 = sdWorld.my_entity_upgrades_later_set_obj[ arr0 ];
+							
+							sdWorld.my_entity._upgrade_counters[ arr0 ] = arr1;
+							sdShop.upgrades[ arr0 ].action( sdWorld.my_entity, arr1 );
+						}
+						
+						sdWorld.my_entity_upgrades_later_set_obj = null;
+					}
 					
 					return;
 				}
@@ -1253,6 +1270,14 @@ class sdWorld
 						
 						//entity.SharePhysAwake( another_entity );
 					}
+					/*else
+					{
+						if ( entity.GetClass() === 'sdMatterAmplifier' || another_entity.GetClass() === 'sdMatterAmplifier' )
+						if ( entity.GetClass() === 'sdCrystal' || another_entity.GetClass() === 'sdCrystal' )
+						{
+							console.log('Not colliding with sdMatterAmplifier due to bounds check', [entity.x + entity.hitbox_x1, another_entity.x + another_entity.hitbox_x2] );
+						}
+					}*/
 				}
 			});
 		}

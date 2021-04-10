@@ -21,6 +21,9 @@ class sdBlock extends sdEntity
 		sdBlock.img_wall11 = sdWorld.CreateImageFromFile( 'wall_1x1' );
 		sdBlock.img_wall05 = sdWorld.CreateImageFromFile( 'wall_half' );
 		
+		sdBlock.trapshield_block_health_ratio = 1 / 2;
+		sdBlock.trapshield_block_regen_ratio = 3;
+		
 		sdBlock.img_sharp = sdWorld.CreateImageFromFile( 'sharp2' );
 		sdBlock.img_sharp_inactive = sdWorld.CreateImageFromFile( 'sharp2_inactive' );
 		
@@ -28,9 +31,14 @@ class sdBlock extends sdEntity
 		sdBlock.MATERIAL_WALL = 0;
 		sdBlock.MATERIAL_GROUND = 1;
 		sdBlock.MATERIAL_SHARP = 2;
-		// 3
+		// 3 platforms bg colored
+		sdBlock.MATERIAL_TRAPSHIELD = 4;
 		
 		sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
+		
+		sdBlock.img_trapshield11 = sdWorld.CreateImageFromFile( 'trapshield_1x1' );
+		sdBlock.img_trapshield05 = sdWorld.CreateImageFromFile( 'trapshield_half' );
+		sdBlock.img_trapshield50 = sdWorld.CreateImageFromFile( 'trapshield_half2' );
 		
 		sdBlock.cracks = [ 
 			null,
@@ -187,7 +195,10 @@ class sdBlock extends sdEntity
 	get hitbox_y2() { return this.height; }
 	
 	DrawIn3D()
-	{ 
+	{
+		if ( this.material === sdBlock.MATERIAL_TRAPSHIELD )
+		return FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT; 
+		else
 		return FakeCanvasContext.DRAW_IN_3D_BOX; 
 	}
 	
@@ -220,13 +231,25 @@ class sdBlock extends sdEntity
 		
 		if ( this._hea > 0 )
 		{
+			if ( this.material === sdBlock.MATERIAL_TRAPSHIELD )
+			{
+				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
+			}
+			
 			this._hea -= dmg;
 			this.HandleDestructionUpdate();
 			
-			if ( this.material === sdBlock.MATERIAL_GROUND )
-			this._regen_timeout = 120; // Longer so digging can be less accurate towards specific block
+			if ( this.material === sdBlock.MATERIAL_TRAPSHIELD ) // Instant regeneration
+			{
+				this._regen_timeout = 0;
+			}
 			else
-			this._regen_timeout = 60;
+			{
+				if ( this.material === sdBlock.MATERIAL_GROUND )
+				this._regen_timeout = 120; // Longer so digging can be less accurate towards specific block
+				else
+				this._regen_timeout = 60;
+			}
 
 			if ( this._hea <= 0 )
 			this.remove();
@@ -250,8 +273,15 @@ class sdBlock extends sdEntity
 		this.material = params.material || sdBlock.MATERIAL_WALL;
 		
 		this._hmax = 550 * ( this.width / 32 * this.height / 32 ) * ( this.material === sdBlock.MATERIAL_GROUND ? 0.8 : 1 );
+		
+		if ( this.material === sdBlock.MATERIAL_TRAPSHIELD ) // Less health, but regeneration will have no delay
+		{
+			this._hmax *= sdBlock.trapshield_block_health_ratio;
+		}
+		
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
+		
 		
 		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
 		
@@ -327,7 +357,11 @@ class sdBlock extends sdEntity
 		{
 			if ( this._hea < this._hmax )
 			{
+				if ( this.material === sdBlock.MATERIAL_TRAPSHIELD )
+				this._hea = Math.min( this._hea + GSPEED * sdBlock.trapshield_block_regen_ratio, this._hmax );
+				else
 				this._hea = Math.min( this._hea + GSPEED, this._hmax );
+				
 				this.HandleDestructionUpdate();
 			}
 		}
@@ -406,6 +440,19 @@ class sdBlock extends sdEntity
 		if ( this.material === sdBlock.MATERIAL_SHARP )
 		{
 			ctx.drawImage( ( this.spikes_ani < 15 ) ? sdBlock.img_sharp_inactive : sdBlock.img_sharp, 0, 0, w,h, 0,0, w,h );
+		}
+		else
+		{
+			if ( w === 16 && h === 16 )
+			ctx.drawImageFilterCache( sdBlock.img_trapshield11, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 16 && h === 8 )
+			ctx.drawImageFilterCache( sdBlock.img_trapshield05, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 8 && h === 16 )
+			ctx.drawImageFilterCache( sdBlock.img_trapshield50, 0, 0, w,h, 0,0, w,h );
+			else
+			ctx.drawImageFilterCache( sdBlock.img_trapshield11, 0, 0, w,h, 0,0, w,h );
 		}
 
 		ctx.filter = 'none';
@@ -510,8 +557,9 @@ class sdBlock extends sdEntity
             	console.log( 'sdBlock with broken x/y coordinates was spawned here: ' + this._stack_trace );
             	debugger;
 				return;
-            }
-			
+            
+			}
+			if ( this.material !== sdBlock.MATERIAL_TRAPSHIELD )
 			if ( this._net_id !== undefined ) // Was ever synced rather than just temporarily object for shop
 			if ( this._broken )
 			{

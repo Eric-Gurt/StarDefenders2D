@@ -136,17 +136,7 @@ class sdCrystal extends sdEntity
 		ctx.drawImageFilterCache( sdCrystal.img_crystal_empty, - 16, - 16, 32,32 );
 		
 		ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
-		/*if ( this.matter_max > 40 )
-		{
-			if ( this.matter_max === 5120 )
-		    ctx.filter = 'hue-rotate(200deg) brightness(1.3) drop-shadow(0px 0px 7px #FFFFAA)';
-			else
-			if ( this.matter_max === 2560 )
-			ctx.filter = 'hue-rotate(170deg) brightness(0.8) contrast(2)';
-			else
-			ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
-		}*/
-	
+
 		ctx.globalAlpha = this.matter / this.matter_max;
 		
 		ctx.drawImageFilterCache( sdCrystal.img_crystal, - 16, - 16, 32,32 );

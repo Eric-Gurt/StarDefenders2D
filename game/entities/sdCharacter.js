@@ -1982,11 +1982,23 @@ class sdCharacter extends sdEntity
 	CreateBuildObject( check_placement_and_range=true ) // Can be removed later on and used as fake signle-frame object in general
 	{
 		if ( this._build_params === null )
-		return null;
+		{
+			sdCharacter.last_build_deny_reason = 'Nothing selected for build? Does this error even happen?';
+			return null;
+		}
 	
 		if ( this._build_params._class === null ) // Upgrades
-		return null;
+		{
+			//sdCharacter.last_build_deny_reason
+			return null;
+		}
 	
+		if ( ( this._build_params._min_build_tool_level || 0 ) > this.build_tool_level )
+		{
+			sdCharacter.last_build_deny_reason = 'Nice hacks bro';
+			return null;
+		}
+			
 		//this._build_params._spawner = this;
 		
 		let fake_ent = new sdWorld.entity_classes[ this._build_params._class ]( this._build_params );

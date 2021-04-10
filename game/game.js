@@ -46,6 +46,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdWeather from './entities/sdWeather.js';
 	import sdTurret from './entities/sdTurret.js';
 	import sdMatterContainer from './entities/sdMatterContainer.js';
+	import sdMatterAmplifier from './entities/sdMatterAmplifier.js';
 	import sdQuickie from './entities/sdQuickie.js';
 	import sdOctopus from './entities/sdOctopus.js';
 	import sdAntigravity from './entities/sdAntigravity.js';
@@ -87,6 +88,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdWeather.init_class();
 	sdTurret.init_class();
 	sdMatterContainer.init_class();
+	sdMatterAmplifier.init_class();
 	sdQuickie.init_class();
 	sdOctopus.init_class();
 	sdAntigravity.init_class();
@@ -448,9 +450,17 @@ let enf_once = true;
 		{
 			if ( sdWorld.my_entity )
 			{
+				// Same at sdWorld.ResolveMyEntityByNetId()
 				sdWorld.my_entity._upgrade_counters[ arr[ 0 ] ] = arr[ 1 ];
-
 				sdShop.upgrades[ arr[ 0 ] ].action( sdWorld.my_entity, arr[ 1 ] );
+			}
+			else
+			{
+				// Delay
+				if ( !sdWorld.my_entity_upgrades_later_set_obj )
+				sdWorld.my_entity_upgrades_later_set_obj = {};
+			
+				sdWorld.my_entity_upgrades_later_set_obj[ arr[ 0 ] ] = arr[ 1 ];
 			}
 		});	
 

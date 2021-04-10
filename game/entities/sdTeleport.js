@@ -192,8 +192,10 @@ class sdTeleport extends sdEntity
 							let di = sdWorld.Dist2D( this.x, this.y, tele.x, tele.y );
 							if ( di < best_di || best_tele === null )
 							{
+								//if ( from_entity.CanMoveWithoutOverlap( from_entity.x + tele.x - this.x, 
+								//										from_entity.y + tele.y - this.y, 1 ) )
 								if ( from_entity.CanMoveWithoutOverlap( from_entity.x + tele.x - this.x, 
-																		from_entity.y + tele.y - this.y, 1 ) )
+																		from_entity.y + tele.y - this.y, 0 ) )
 								{
 									best_tele = tele;
 									best_di = di;

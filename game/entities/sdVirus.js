@@ -15,6 +15,7 @@ class sdVirus extends sdEntity
 	{
 		sdVirus.img_virus = sdWorld.CreateImageFromFile( 'virus' );
 		sdVirus.img_virus_walk = sdWorld.CreateImageFromFile( 'virus_walk' );
+		sdVirus.img_virus_hurt = sdWorld.CreateImageFromFile( 'virus_hurt' );
 		
 		sdVirus.death_imgs = [
 			sdWorld.CreateImageFromFile( 'virus_death1' ),
@@ -66,6 +67,8 @@ class sdVirus extends sdEntity
 		this._last_target_change = 0;
 		
 		this.side = 1;
+		
+		this.hurt_timer = 0;
 
 		sdVirus.viruses_tot++;
 		
@@ -172,6 +175,10 @@ class sdVirus extends sdEntity
 		
 		if ( this._hea <= 0 && was_alive )
 		{
+			// If not broken into pieces
+			if ( this._hea >= -this.hmax / 80 * 100 )
+			sdSound.PlaySound({ name:'virus_damage2', x:this.x, y:this.y, volume: 1.25, pitch: 1 * sdVirus.normal_max_health / this.hmax });
+				
 			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:4 * sdVirus.normal_max_health / this.hmax });
 
 			if ( initiator )
@@ -237,6 +244,16 @@ class sdVirus extends sdEntity
 				}
 			}
 		}
+		else
+		{
+			if ( this._hea > 0 )
+			if ( this.hurt_timer === 0 )
+			if ( Math.floor( ( this._hea ) / this._hmax * 5 ) !== Math.floor( ( this._hea + dmg ) / this._hmax * 5 ) )
+			{
+				sdSound.PlaySound({ name:'virus_damage2', x:this.x, y:this.y, volume: 1, pitch: 1.5 * sdVirus.normal_max_health / this.hmax });
+				this.hurt_timer = 1;
+			}
+		}
 		
 		if ( this._hea < -this.hmax / 80 * 100 )
 		this.remove();
@@ -281,6 +298,9 @@ class sdVirus extends sdEntity
 			{
 				this.Grow( 15 );
 			}
+		
+			if ( this.hurt_timer > 0 )
+			this.hurt_timer = Math.max( 0, this.hurt_timer - GSPEED * 0.045 );
 
 			if ( this._current_target )
 			{
@@ -405,6 +425,9 @@ class sdVirus extends sdEntity
 			let frame = Math.min( sdVirus.death_imgs.length - 1, ~~( ( this.death_anim / sdVirus.death_duration ) * sdVirus.death_imgs.length ) );
 			ctx.drawImageFilterCache( sdVirus.death_imgs[ frame ], - 16, - 16, 32,32 );
 		}
+		else
+		if ( this.hurt_timer > 0 )
+		ctx.drawImageFilterCache( sdVirus.img_virus_hurt, - 16, - 16, 32,32 );
 		else
 		ctx.drawImageFilterCache( ( sdWorld.time % 400 < 200 ) ? sdVirus.img_virus : sdVirus.img_virus_walk, - 16, - 16, 32,32 );
 		

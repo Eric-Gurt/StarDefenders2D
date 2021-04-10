@@ -90,6 +90,13 @@ class sdEntity
 	{
 		if ( hit_what )
 		{
+			/*if ( this.GetClass() === 'sdMatterAmplifier' || hit_what.GetClass() === 'sdMatterAmplifier' )
+			if ( this.GetClass() === 'sdCrystal' || hit_what.GetClass() === 'sdCrystal' )
+			{
+				console.log( 'sdCrystal touches sdMatterAmplifier' );
+			}
+			*/
+
 			this.onMovementInRange( hit_what );
 			hit_what.onMovementInRange( this );
 			
@@ -316,6 +323,8 @@ class sdEntity
 
 			if ( this.CanMoveWithoutOverlap( new_x, this.y, safe_overlap, custom_filtering_method ) )
 			{
+				this.Touches( sdWorld.last_hit_entity );
+			
 				let self_effect_scale = 1;
 				
 				if ( sdWorld.last_hit_entity )
@@ -340,6 +349,8 @@ class sdEntity
 			else
 			if ( this.CanMoveWithoutOverlap( this.x, new_y, safe_overlap, custom_filtering_method ) )
 			{
+				this.Touches( sdWorld.last_hit_entity );
+				
 				let self_effect_scale = 1;
 				
 				if ( sdWorld.last_hit_entity )
@@ -363,6 +374,8 @@ class sdEntity
 			}
 			else
 			{
+				this.Touches( sdWorld.last_hit_entity );
+				
 				let self_effect_scale = 1;
 				
 				if ( sdWorld.last_hit_entity )
@@ -1056,59 +1069,64 @@ class sdEntity
 			GSPEED *= sdEntity.matter_discretion_frames;
 		}*/
 		
-		var arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null );
+		let this_matter = ( this.matter || this._matter || 0 );
 		
-		for ( var i = 0; i < arr.length; i++ )
-		if ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' )
-		//if ( sdWorld.inDist2D_Boolean( arr[ i ].x, arr[ i ].y, x, y, radius ) >= 0 ) Already done by GetAnythingNear
-		if ( arr[ i ] !== this )
+		if ( this_matter > 0.05 )
 		{
-			this.TransferMatter( arr[ i ], how_much, GSPEED * 4 ); // Mult by X because targets no longer take 4 cells
-		}
-		/*
-		if ( radius > 64 )
-		{
-			debugger; // Not needed yet?
-		}
-		else
-		if ( radius > 32 )
-		{
-			var x = this.x;
-			var y = this.y;
-			for ( var xx = -2; xx <= 2; xx++ )
-			for ( var yy = -2; yy <= 2; yy++ )
-			//for ( var xx = -1; xx <= 1; xx++ )
-			//for ( var yy = -1; yy <= 1; yy++ )
+			var arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null );
+
+			for ( var i = 0; i < arr.length; i++ )
+			if ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' )
+			//if ( sdWorld.inDist2D_Boolean( arr[ i ].x, arr[ i ].y, x, y, radius ) >= 0 ) Already done by GetAnythingNear
+			if ( arr[ i ] !== this )
 			{
-				var arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
-				for ( var i = 0; i < arr.length; i++ )
-				if ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' )
-				if ( sdWorld.inDist2D_Boolean( arr[ i ].x, arr[ i ].y, x, y, radius ) >= 0 )
-				if ( arr[ i ] !== this )
+				this.TransferMatter( arr[ i ], how_much, GSPEED * 4 ); // Mult by X because targets no longer take 4 cells
+			}
+			/*
+			if ( radius > 64 )
+			{
+				debugger; // Not needed yet?
+			}
+			else
+			if ( radius > 32 )
+			{
+				var x = this.x;
+				var y = this.y;
+				for ( var xx = -2; xx <= 2; xx++ )
+				for ( var yy = -2; yy <= 2; yy++ )
+				//for ( var xx = -1; xx <= 1; xx++ )
+				//for ( var yy = -1; yy <= 1; yy++ )
 				{
-					this.TransferMatter( arr[ i ], how_much, GSPEED );
+					var arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
+					for ( var i = 0; i < arr.length; i++ )
+					if ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' )
+					if ( sdWorld.inDist2D_Boolean( arr[ i ].x, arr[ i ].y, x, y, radius ) >= 0 )
+					if ( arr[ i ] !== this )
+					{
+						this.TransferMatter( arr[ i ], how_much, GSPEED );
+					}
 				}
 			}
-		}
-		else
-		{
-			var x = this.x;
-			var y = this.y;
-			//for ( var xx = -2; xx <= 2; xx++ )
-			//for ( var yy = -2; yy <= 2; yy++ )
-			for ( var xx = -1; xx <= 1; xx++ )
-			for ( var yy = -1; yy <= 1; yy++ )
+			else
 			{
-				var arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
-				for ( var i = 0; i < arr.length; i++ )
-				if ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' )
-				if ( sdWorld.inDist2D_Boolean( arr[ i ].x, arr[ i ].y, x, y, radius ) >= 0 )
-				if ( arr[ i ] !== this )
+				var x = this.x;
+				var y = this.y;
+				//for ( var xx = -2; xx <= 2; xx++ )
+				//for ( var yy = -2; yy <= 2; yy++ )
+				for ( var xx = -1; xx <= 1; xx++ )
+				for ( var yy = -1; yy <= 1; yy++ )
 				{
-					this.TransferMatter( arr[ i ], 0.01, GSPEED );
+					var arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
+					for ( var i = 0; i < arr.length; i++ )
+					if ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' )
+					if ( sdWorld.inDist2D_Boolean( arr[ i ].x, arr[ i ].y, x, y, radius ) >= 0 )
+					if ( arr[ i ] !== this )
+					{
+						this.TransferMatter( arr[ i ], 0.01, GSPEED );
+					}
 				}
-			}
-		}*/
+			}*/
+		}
 	}
 	addEventListener( str, method ) // Not all entities will support these
 	{

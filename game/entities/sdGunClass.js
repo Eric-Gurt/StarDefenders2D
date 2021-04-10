@@ -412,7 +412,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_CUBE_SHARD = 22 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'cube_shard' ),
+			image: sdWorld.CreateImageFromFile( 'cube_shard2' ),
 			title: 'Cube shard',
 			slot: 0,
 			reload_time: 25,
@@ -448,6 +448,7 @@ class sdGunClass
 			spread: 0.01,
 			count: 1,
 			matter_cost: 90,
+			min_build_tool_level: 1,
 			projectile_properties: { _damage: 35 }
 		};
 
@@ -455,6 +456,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'lmg_p04' ),
 			sound: 'turret',
 			sound_pitch: 0.6,
+			sound_volume: 2,
 			title: 'LMG-P04',
 			slot: 2,
 			reload_time: 4,
@@ -463,12 +465,13 @@ class sdGunClass
 			spread: 0.02,
 			count: 1,
 			matter_cost: 90,
+			min_build_tool_level: 1,
 			projectile_properties: { _damage: 45, color: '#AA0000' }
 		};
 
 		sdGun.classes[ sdGun.CLASS_BUILDTOOL_UPG = 25 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'buildtool_upgrade' ),
+			image: sdWorld.CreateImageFromFile( 'buildtool_upgrade2' ),
 			title: 'Build tool upgrade (flying mech)',
 			slot: 0,
 			reload_time: 25,
@@ -481,10 +484,14 @@ class sdGunClass
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
 				if ( character._acquired_bt_mech === false ) // Has the player found this upgrade before?
+				if ( !character._ai )
 				{
 					character.build_tool_level++;
 					character._acquired_bt_mech = true;
 					gun.remove(); 
+					
+					if ( character._socket )
+					sdSound.PlaySound({ name:'reload', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
 				}
 
 				return false; 

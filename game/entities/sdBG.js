@@ -18,6 +18,7 @@ class sdBG extends sdEntity
 		sdBG.MATERIAL_GROUND = 1;
 		// 2
 		sdBG.MATERIAL_PLATFORMS_COLORED = 3;
+		// 4 trapshield
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
