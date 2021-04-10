@@ -21,7 +21,7 @@ class sdEnemyMech extends sdEntity
 		sdEnemyMech.death_duration = 30;
 		sdEnemyMech.post_death_ttl = 120;
 		
-		sdEnemyMech.attack_range = 325;
+		sdEnemyMech.attack_range = 375;
 		
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -43,7 +43,7 @@ class sdEnemyMech extends sdEntity
 		
 		this.regen_timeout = 0;
 		
-		this._hmax = 4000;
+		this._hmax = 6000;
 		this.hea = this._hmax;
 
 		this.tilt = 0;
@@ -153,7 +153,7 @@ class sdEnemyMech extends sdEntity
 								damage_scale: 1, 
 								type: sdEffect.TYPE_EXPLOSION,
 								owner: that,
-								can_hit_owner: false,
+								can_hit_owner: true,
 								color: sdEffect.default_explosion_color 
 							});
 						}
@@ -161,8 +161,41 @@ class sdEnemyMech extends sdEntity
 				}
 		}
 		
-		if ( this.hea < -1500 )
+		if ( this.hea < -2500 ) // It gets destroyed halfway through explosion
 		{
+			let r = Math.random();
+			
+			if ( r < 0.25 )
+			{
+				let x = this.x;
+				let y = this.y;
+				let sx = this.sx;
+				let sy = this.sy;
+
+				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+					let random_value = Math.random();
+
+					let gun;
+
+					if ( random_value < 0.35 )
+					{
+						/*
+						if ( random_value < 0.25 )
+						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_CANNON });
+						else
+						*/
+						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
+					}
+					else
+					gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_CANNON });
+
+					gun.sx = sx;
+					gun.sy = sy;
+					sdEntity.entities.push( gun );
+				
+					}, 500 );
+			}
 			this.remove();
 		}
 		
@@ -384,7 +417,7 @@ class sdEnemyMech extends sdEntity
 							targets.push( targets_raw[ i ] );
 						else
 						{
-							if ( this.hea < 1500 )
+							if ( this.hea < 2000 )
 							if ( targets_raw[ i ].GetClass() === 'sdCharacter' ) // Highly wanted by sdEnemyMechs in this case
 							{
 								targets.push( targets_raw[ i ] );
@@ -435,8 +468,8 @@ class sdEnemyMech extends sdEntity
 						if ( targets[ i ].GetClass() === 'sdTurret' ) // Turrets get the special treatment
 						if ( this._rail_attack_timer <= 0 )
 						{
-						an = Math.atan2( targets[ i ].y - this.y, targets[ i ].x - this.x ); // Pinpoint accurate against turrets
-							let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+						an = Math.atan2( targets[ i ].y - ( this.y - 16 ), targets[ i ].x - this.x ); // Pinpoint accurate against turrets
+							let bullet_obj = new sdBullet({ x: this.x, y: this.y - 16 });
 							bullet_obj._owner = this;
 							bullet_obj.sx = Math.cos( an );
 							bullet_obj.sy = Math.sin( an );
@@ -450,7 +483,7 @@ class sdEnemyMech extends sdEntity
 
 							bullet_obj._rail = true;
 
-							bullet_obj._damage = 400;
+							bullet_obj._damage = 600;
 							bullet_obj.color = '#ff0000';
 
 							sdEntity.entities.push( bullet_obj );
@@ -461,7 +494,7 @@ class sdEnemyMech extends sdEntity
 					}
 
 					if ( this._rocket_attack_timer <= 0 )
-					if ( this.hea < 2500 ) // Second phase of the mech, rocket launcher can fire now
+					if ( this.hea < 3500 ) // Second phase of the mech, rocket launcher can fire now
 					for ( let i = 0; i < targets.length; i++ )
 					{
 						if ( this._alert_intensity < 45 )// Delay attack
@@ -469,9 +502,9 @@ class sdEnemyMech extends sdEntity
 
 						this._rocket_attack_timer = 6;
 
-						let an = Math.atan2( targets[ i ].y - this.y, targets[ i ].x - this.x ) + ( Math.random() * 2 - 1 ) * 0.1;
+						let an = Math.atan2( targets[ i ].y - ( this.y + 16 ), targets[ i ].x - this.x ) + ( Math.random() * 2 - 1 ) * 0.1;
 
-						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+						let bullet_obj = new sdBullet({ x: this.x, y: this.y + 16 });
 						bullet_obj._owner = this;
 						bullet_obj.sx = Math.cos( an );
 						bullet_obj.sy = Math.sin( an );
@@ -565,7 +598,7 @@ class sdEnemyMech extends sdEntity
 		ctx.drawImageFilterCache( sdEnemyMech.img_mech_broken, - 32, - 32, 64, 64 );
 		
 		ctx.globalAlpha = 1;
-		//ctx.filter = 'none';
+		ctx.filter = 'none';
 		ctx.sd_filter = null;
 	}
 	/*onMovementInRange( from_entity )
@@ -575,7 +608,7 @@ class sdEnemyMech extends sdEntity
 	onRemove() // Class-specific, if needed
 	{
 		sdEnemyMech.mechs_counter--;
-		
+		sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
 		//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
 	}
 	MeasureMatterCost()

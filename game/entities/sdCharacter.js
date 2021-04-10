@@ -299,6 +299,9 @@ class sdCharacter extends sdEntity
 		this._matter_regeneration = 0; // Through upgrade
 		this._recoil_mult = 1; // Through upgrade
 		this._air_upgrade = 1; // Underwater breath capacity upgrade
+		this.build_tool_level = 0; // Used for some unlockable upgrades in build tool
+
+		this._acquired_bt_mech = false; // Has the character picked up build tool upgrade that the flying mech drops?
 
 		this.flying = false; // Jetpack flying
 		this._last_act_y = this.act_y; // For mid-air jump jetpack activation

@@ -396,9 +396,101 @@ class sdGunClass
 			spawnable: false
 		};		
 		
+		sdGun.classes[ sdGun.CLASS_RAIL_CANNON = 21 ] = { // sprite by Booraz149
+			image: sdWorld.CreateImageFromFile( 'rail_cannon' ),
+			sound: 'gun_railgun',
+			sound_pitch: 0.5,
+			title: 'Rail Cannon',
+			slot: 4,
+			reload_time: 20,
+			muzzle_x: 7,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_properties: { _rail: true, _damage: 62, color: '#FF0000', _knock_scale:0.01 * 8 },
+			spawnable: false
+		};
 		
-		
-		
+		sdGun.classes[ sdGun.CLASS_CUBE_SHARD = 22 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'cube_shard' ),
+			title: 'Cube shard',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			spawnable: false,
+			ignore_slot: true,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
+			{ 
+				if ( character._upgrade_counters[ 'upgrade_energy' ] )
+				if ( character._upgrade_counters[ 'upgrade_energy' ] < 60 )
+				{
+					character._upgrade_counters[ 'upgrade_energy' ] = Math.min( 60, character._upgrade_counters[ 'upgrade_energy' ] + 4 );
+					character.matter_max = Math.round( 50 + character._upgrade_counters[ 'upgrade_energy' ] * 45 );
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
+
+		sdGun.classes[ sdGun.CLASS_PISTOL_MK2 = 23 ] = { // sprite by Booraz149
+			image: sdWorld.CreateImageFromFile( 'pistol_mk2' ),
+			sound: 'gun_pistol',
+			sound_pitch: 0.7,
+			title: 'Pistol MK2',
+			slot: 1,
+			reload_time: 15,
+			muzzle_x: 7,
+			ammo_capacity: 8,
+			spread: 0.01,
+			count: 1,
+			matter_cost: 90,
+			projectile_properties: { _damage: 35 }
+		};
+
+		sdGun.classes[ sdGun.CLASS_LMG_P04 = 24 ] = { // sprite by Ghost581
+			image: sdWorld.CreateImageFromFile( 'lmg_p04' ),
+			sound: 'turret',
+			sound_pitch: 0.6,
+			title: 'LMG-P04',
+			slot: 2,
+			reload_time: 4,
+			muzzle_x: 10,
+			ammo_capacity: 50,
+			spread: 0.02,
+			count: 1,
+			matter_cost: 90,
+			projectile_properties: { _damage: 45, color: '#AA0000' }
+		};
+
+		sdGun.classes[ sdGun.CLASS_BUILDTOOL_UPG = 25 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'buildtool_upgrade' ),
+			title: 'Build tool upgrade (flying mech)',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			spawnable: false,
+			ignore_slot: true,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
+			{ 
+				if ( character._acquired_bt_mech === false ) // Has the player found this upgrade before?
+				{
+					character.build_tool_level++;
+					character._acquired_bt_mech = true;
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
+
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];

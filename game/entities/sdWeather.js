@@ -12,6 +12,7 @@ import sdAsp from './sdAsp.js';
 import sdGrass from './sdGrass.js';
 import sdCom from './sdCom.js';
 import sdVirus from './sdVirus.js';
+import sdEnemyMech from './sdEnemyMech.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -331,7 +332,7 @@ class sdWeather extends sdEntity
 			if ( this._time_until_event < 0 )
 			{
 				this._time_until_event = Math.random() * 30 * 60 * 8; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
-				let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6 ];
+				let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7 ];
 				
 				let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -535,29 +536,105 @@ class sdWeather extends sdEntity
 
 					if ( r === 6 ) // Big virus event
 					{
-						for ( let t = Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) + 1; t > 0; t-- )
-						if ( sdVirus.viruses_tot < 40 && sdVirus.big_viruses < 4 )
+						let instances = 0;
+						let instances_tot = 1 + Math.ceil( Math.random() * 3 );
+
+						let left_side = ( Math.random() < 0.5 );
+
+						while ( instances < instances_tot && sdVirus.viruses_tot < 40  && sdVirus.big_viruses < 4 )
 						{
-							let virus = new sdVirus({ 
-								x:sdWorld.world_bounds.x1 + 32 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 - 64 ), 
-								y:sdWorld.world_bounds.y1 + 32
-							});
 
-							virus._is_big = true;
-							sdEntity.entities.push( virus );
+							let virus_entity = new sdVirus({ x:0, y:0 });
+							virus_entity._is_big = true;
+							sdEntity.entities.push( virus_entity );
 							sdVirus.big_viruses++;
+							{
+								let x,y;
+								let tr = 1000;
+								do
+								{
+									if ( left_side )
+									x = sdWorld.world_bounds.x1 + 32 + 64 * instances;
+									else
+									x = sdWorld.world_bounds.x2 - 32 - 64 * instances;
 
-							if ( !virus.CanMoveWithoutOverlap( virus.x, virus.y, 0 ) )
-							{
-								virus.death_anim = sdVirus.death_duration + sdVirus.post_death_ttl;
-								virus.remove();
-								sdVirus.big_viruses--;
+									y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+									if ( virus_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+									if ( !virus_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+									if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+									{
+										virus_entity.x = x;
+										virus_entity.y = y;
+
+										//sdWorld.UpdateHashPosition( ent, false );
+										//console.log('Big virus spawned!');
+										//console.log(sdVirus.big_viruses);
+										break;
+									}
+
+
+									tr--;
+									if ( tr < 0 )
+									{
+										virus_entity.remove();
+										break;
+									}
+								} while( true );
 							}
-							else
+
+							instances++;
+						}
+					}
+					if ( r === 7 ) // Flying Mech event
+					{
+						let instances = 0;
+						let instances_tot = 1;
+
+						let left_side = ( Math.random() < 0.5 );
+
+						while ( instances < instances_tot && sdEnemyMech.mechs_counter < 2 )
+						{
+
+							let mech_entity = new sdEnemyMech({ x:0, y:0 });
+
+							sdEntity.entities.push( mech_entity );
+
 							{
-								sdWorld.UpdateHashPosition( virus, false ); // Prevent inersection with other ones
-								//console.log('Big virus spawned!');
+								let x,y;
+								let tr = 1000;
+								do
+								{
+									if ( left_side )
+									x = sdWorld.world_bounds.x1 + 64 + 64 * instances;
+									else
+									x = sdWorld.world_bounds.x2 - 64 - 64 * instances;
+
+									y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+									if ( mech_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+									//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+									//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+									{
+										mech_entity.x = x;
+										mech_entity.y = y;
+
+										//sdWorld.UpdateHashPosition( ent, false );
+										//console.log('Flying mech spawned!');
+										break;
+									}
+
+
+									tr--;
+									if ( tr < 0 )
+									{
+										mech_entity.remove();
+										break;
+									}
+								} while( true );
 							}
+
+							instances++;
 						}
 					}
 				}

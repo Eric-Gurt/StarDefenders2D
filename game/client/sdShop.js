@@ -88,6 +88,7 @@ class sdShop
 
 		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_GROUND, _category:'Walls' });
 		sdShop.options.push({ _class: 'sdCom', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdCom', variation: 1, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdTeleport', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdLamp', _category:'Base equipment' });
@@ -108,6 +109,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 / 2, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdCommandCentre', _category:'Base equipment' });
 		
 		for ( var i = 0; i < 3; i++ )
@@ -136,6 +138,7 @@ class sdShop
 		}
 		sdShop.options.push({ _class: 'sdBomb', _category:'Equipment' });
 		sdShop.options.push({ _class: 'sdBarrel', _category:'Equipment' });
+		sdShop.options.push({ _class: 'sdBarrel', filter: 'hue-rotate(130deg) saturate(10)', variation: 1, _category:'Equipment' });
 
 		sdShop.upgrades = {
 			upgrade_suit:
@@ -302,15 +305,29 @@ class sdShop
 			let yy = 40 + sdShop.scroll_y;
 
 			sdShop.potential_selection = -1;
-			
+			let skip = 0; // Skip current_shop_options.push if an item is not unlocked yet
 			let current_shop_options = [];
 			for ( var i = 0; i < sdShop.options.length; i++ )
 			{
 				if ( sdShop.options[ i ]._category === sdShop.current_category || 
 					 ( sdShop.options[ i ]._category.charAt( 0 ) === '!' && sdShop.options[ i ]._category.substring( 1 ) !== sdShop.current_category ) ) // !root case
 				{
+					if ( sdShop.options[ i ]._category === 'Equipment' ) // Equipment category unlockables go here
+					{
+						if ( ( sdShop.options[ i ].class === sdGun.CLASS_PISTOL_MK2 || sdShop.options[ i ].class === sdGun.CLASS_LMG_P04 ) && sdWorld.my_entity.build_tool_level <= 0)
+						skip = 1;
+						if ( ( sdShop.options[ i ]._class === 'sdBarrel' && sdShop.options[ i ].variation === 1 ) && sdWorld.my_entity.build_tool_level <= 0)
+						skip = 1;
+					}
+					if ( sdShop.options[ i ]._category === 'Base equipment' ) // Base equipment category unlockables go here
+					{
+						if ( ( sdShop.options[ i ]._class === 'sdCom' && sdShop.options[ i ].variation === 1 ) && sdWorld.my_entity.build_tool_level <= 0)
+						skip = 1;
+					}
+					if ( skip === 0 )
 					current_shop_options.push( sdShop.options[ i ] );
 					sdShop.options[ i ]._main_array_index = i;
+					skip = 0; // reset
 				}
 			}
 			

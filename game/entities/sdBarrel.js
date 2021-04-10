@@ -29,7 +29,8 @@ class sdBarrel extends sdEntity
 		this.sy = 0;
 		
 		this.hea = 70;
-		
+		this.filter = params.filter || 'none';
+		this.variation = params._variation || 0;
 		this._owner = null;
 	}
 	Impact( vel ) // fall damage basically
@@ -74,7 +75,9 @@ class sdBarrel extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		ctx.filter = this.filter;
 		ctx.drawImageFilterCache( sdBarrel.img_barrel, -16, -16 );
+		ctx.filter = 'none';
 	}
 	onRemove() // Class-specific, if needed
 	{
@@ -82,8 +85,8 @@ class sdBarrel extends sdEntity
 		sdWorld.SendEffect({ 
 			x:this.x, 
 			y:this.y, 
-			radius:30, // 70 was too much?
-			damage_scale: 9 * ( this._owner ? this._owner._damage_mult : 1 ), // 5 was too deadly on relatively far range
+			radius:30 + 5 * ( this.variation ) , // 70 was too much?
+			damage_scale: 9 * (1 + this.variation ) * ( this._owner ? this._owner._damage_mult : 1 ), // 5 was too deadly on relatively far range
 			type:sdEffect.TYPE_EXPLOSION, 
 			owner:this._owner,
 			armor_penetration_level: this._owner ? this._owner._upgrade_counters[ 'upgrade_damage' ] : undefined,
@@ -93,8 +96,7 @@ class sdBarrel extends sdEntity
 	MeasureMatterCost()
 	{
 		//return 0; // Hack
-		
-		return 125; // Smaller bombs basically
+		return 125;
 		//return this.hmax * sdWorld.damage_to_matter + 50;
 	}
 }
