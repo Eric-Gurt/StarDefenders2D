@@ -321,8 +321,8 @@ class sdEnemyMech extends sdEntity
 										{
 											// Can attack from position 1
 
-											this._move_dir_x = Math.cos( a1 );
-											this._move_dir_y = Math.sin( a1 );
+											this._move_dir_x = Math.cos( a1 ) * 8;
+											this._move_dir_y = Math.sin( a1 ) * 8;
 
 											this._move_dir_timer = r1 * 5;
 
@@ -342,8 +342,8 @@ class sdEnemyMech extends sdEntity
 												{
 													// Can attack from position 2, but will move to position 1 still
 
-													this._move_dir_x = Math.cos( a1 );
-													this._move_dir_y = Math.sin( a1 );
+													this._move_dir_x = Math.cos( a1 ) * 8;
+													this._move_dir_y = Math.sin( a1 ) * 8;
 
 													this._move_dir_timer = r1 * 5;
 													
