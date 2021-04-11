@@ -115,6 +115,9 @@ class sdShop
 		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Base equipment' });*/
 		sdShop.options.push({ _class: 'sdMatterAmplifier', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 1, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 3, _category:'Base equipment', _min_build_tool_level: 1 });
+		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 7, _category:'Base equipment', _min_build_tool_level: 1 });
 		sdShop.options.push({ _class: 'sdCommandCentre', _category:'Base equipment' });
 		
 		for ( var i = 0; i < 3; i++ )
