@@ -212,7 +212,8 @@ class sdWeather extends sdEntity
 									character_entity._ai_level = Math.floor( 1 + Math.random() * 3 ); // AI Levels from 1 to 3
 
 									character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
-									character_entity._jetpack_allowed = true; // Jetpack to reduce falling damage
+									character_entity._jetpack_allowed = true; // Jetpack
+									character_entity._recoil_mult = 1 - ( 0.0055 * character_entity.ai_level ) ; // Small recoil reduction based on AI level
 									
 									//this._invasion_spawns_con -= 1;
 
@@ -478,7 +479,8 @@ class sdWeather extends sdEntity
 										character_entity._ai_level = Math.floor( Math.random() * 2 ); // Either 0 or 1
 										
 										character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
-										character_entity._jetpack_allowed = true; // Jetpack to reduce falling damage
+										character_entity._jetpack_allowed = true; // Jetpack
+										character_entity._recoil_mult = 1 - ( 0.0055 * character_entity.ai_level ) ; // Small recoil reduction based on AI level
 
 										break;
 									}
