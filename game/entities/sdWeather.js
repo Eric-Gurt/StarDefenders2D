@@ -213,7 +213,7 @@ class sdWeather extends sdEntity
 
 									character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
 									character_entity._jetpack_allowed = true; // Jetpack
-									character_entity._recoil_mult = 1 - ( 0.0055 * character_entity.ai_level ) ; // Small recoil reduction based on AI level
+									character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
 									
 									//this._invasion_spawns_con -= 1;
 
@@ -480,7 +480,7 @@ class sdWeather extends sdEntity
 										
 										character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
 										character_entity._jetpack_allowed = true; // Jetpack
-										character_entity._recoil_mult = 1 - ( 0.0055 * character_entity.ai_level ) ; // Small recoil reduction based on AI level
+										character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
 
 										break;
 									}
