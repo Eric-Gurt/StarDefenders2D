@@ -143,16 +143,16 @@ class sdWeather extends sdEntity
 							let tr = 1000;
 							do
 							{
-								if ( left_side )
-								x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
-								else
+								//if ( left_side )
+								//x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
+								//else
 								x = sdWorld.world_bounds.x2 - 16 - 16 * instances;
 
 								y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
 
 								if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-								if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-								if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+								//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
 								{
 									character_entity.x = x;
 									character_entity.y = y;
@@ -213,8 +213,9 @@ class sdWeather extends sdEntity
 
 									character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
 									character_entity._jetpack_allowed = true; // Jetpack
-									character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
-									
+									character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
+									character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+
 									//this._invasion_spawns_con -= 1;
 
 									break;
@@ -481,6 +482,7 @@ class sdWeather extends sdEntity
 										character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
 										character_entity._jetpack_allowed = true; // Jetpack
 										character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
+										character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 
 										break;
 									}
@@ -624,7 +626,7 @@ class sdWeather extends sdEntity
 										mech_entity.y = y;
 
 										//sdWorld.UpdateHashPosition( ent, false );
-										//console.log('Flying mech spawned!');
+										console.log('Flying mech spawned!');
 										break;
 									}
 

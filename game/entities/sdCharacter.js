@@ -300,6 +300,7 @@ class sdCharacter extends sdEntity
 		this._recoil_mult = 1; // Through upgrade
 		this._air_upgrade = 1; // Underwater breath capacity upgrade
 		this.build_tool_level = 0; // Used for some unlockable upgrades in build tool
+		this._jetpack_fuel_multiplier = 1; // Fuel cost reduction upgrade
 
 		this._acquired_bt_mech = false; // Has the character picked up build tool upgrade that the flying mech drops?
 
@@ -726,7 +727,7 @@ class sdCharacter extends sdEntity
 				if ( Math.random() < 0.3 )
 				this._key_states.SetKey( 'KeyD', 1 );
 				
-				if ( Math.random() < 0.2 )
+				if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30  ) )
 				this._key_states.SetKey( 'KeyW', 1 );
 				
 				if ( Math.random() < 0.4 )
@@ -746,7 +747,7 @@ class sdCharacter extends sdEntity
 			
 				sdWorld.last_hit_entity = null;
 				
-				if ( sdWorld.CheckWallExistsBox( this.x + this._ai.direction * 16 - 16, this.y + this.hitbox_y2 - 32 + 1, this.x + this._ai.direction * 16 + 16, this.y + this.hitbox_y2 - 1, this, null, null ) )
+				if ( sdWorld.CheckWallExistsBox( this.x + this._ai.direction * 16 - 16, this.y + this.hitbox_y2 - 32 + 1, this.x + this._ai.direction * 16 + 16, this.y + this.hitbox_y2 - 1, this, null, null ) ||  ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 )  )
 				this._key_states.SetKey( 'KeyW', 1 );
 				else
 				{
@@ -1469,7 +1470,7 @@ class sdCharacter extends sdEntity
 			let x_force = this.act_x / di * 0.1;
 			let y_force = this.act_y / di * 0.1 - sdWorld.gravity;
 			
-			let fuel_cost = GSPEED * sdWorld.Dist2D_Vector( x_force, y_force );
+			let fuel_cost =  GSPEED * sdWorld.Dist2D_Vector( x_force, y_force ) * this._jetpack_fuel_multiplier;
 
 			if ( ( this.stands && this.act_y !== -1 ) || this.driver_of || this._in_water || this.act_y !== -1 || this._key_states.GetKey( 'KeyX' ) || this.matter < fuel_cost || this.hea <= 0 )
 			this.flying = false;
