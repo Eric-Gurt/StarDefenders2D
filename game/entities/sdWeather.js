@@ -595,7 +595,7 @@ class sdWeather extends sdEntity
 					if ( r === 7 ) // Flying Mech event
 					{
 						let instances = 0;
-						let instances_tot = Math.ceil( ( Math.random() * sdWorld.GetPlayingPlayersCount() ) / 3 );
+						let instances_tot = Math.ceil( ( Math.random() * sdWorld.GetPlayingPlayersCount() ) / 4 );
 
 						let left_side = ( Math.random() < 0.5 );
 
