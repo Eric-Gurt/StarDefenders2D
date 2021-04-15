@@ -56,8 +56,8 @@ class sdMatterAmplifier extends sdEntity
 		
 		this._last_sync_matter = this.matter;
 		
-		this.multiplier = params.multiplier || 0; // Crystal regeneration multiplier, used for higher tier matter amplifiers
-		this._hmax = 320 * ( 1 + ( 0.5 * this.multiplier ) );
+		this.multiplier = params.multiplier || 1; // Crystal regeneration multiplier, used for higher tier matter amplifiers
+		this._hmax = 160 * ( 160 * this.multiplier ) );
 		this._hea = this._hmax;
 		
 		this.shielded = false;
@@ -97,7 +97,7 @@ class sdMatterAmplifier extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( sdMatterAmplifier.relative_regen_amplification_to_crystals * ( 1 + this.multiplier ) ) );
+		this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( sdMatterAmplifier.relative_regen_amplification_to_crystals * this.multiplier ) );
 		
 		if ( this._last_matter_max !== this.matter_max )
 		{
@@ -184,38 +184,38 @@ class sdMatterAmplifier extends sdEntity
 			ctx.filter = 'none';
 			
 			ctx.globalAlpha = 0.75 + Math.sin( sdWorld.time / 300 ) * 0.25;
-			if ( this.multiplier === 0 )
-			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam, - 16, - 16, 32,32 )
 			if ( this.multiplier === 1 )
+			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam, - 16, - 16, 32,32 )
+			if ( this.multiplier === 2 )
 			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam2, - 16, - 16, 32,32 );
-			if ( this.multiplier === 3 )
+			if ( this.multiplier === 4 )
 			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam3, - 16, - 16, 32,32 );
-			if ( this.multiplier === 7 )
+			if ( this.multiplier === 8 )
 			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam4, - 16, - 16, 32,32 );
 			
 			if ( this.shielded )
 			{
 				ctx.globalAlpha = 1;
-				if ( this.multiplier === 0 )
-				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield, - 16, - 16, 32,32 );
 				if ( this.multiplier === 1 )
+				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield, - 16, - 16, 32,32 );
+				if ( this.multiplier === 2 )
 				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield2, - 16, - 16, 32,32 );
-				if ( this.multiplier === 3 )
+				if ( this.multiplier === 4 )
 				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield3, - 16, - 16, 32,32 );
-				if ( this.multiplier === 7 )
+				if ( this.multiplier === 8 )
 				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield4, - 16, - 16, 32,32 );
 			}
 			
 		}
 		
 		ctx.globalAlpha = 1;
-		if ( this.multiplier === 0 )
-		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier, - 16, - 16, 32, 32 );
 		if ( this.multiplier === 1 )
+		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier, - 16, - 16, 32, 32 );
+		if ( this.multiplier === 2 )
 		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier2, - 16, - 16, 32, 32 );
-		if ( this.multiplier === 3 )
+		if ( this.multiplier === 4 )
 		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier3, - 16, - 16, 32, 32 );
-		if ( this.multiplier === 7 )
+		if ( this.multiplier === 8 )
 		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier4, - 16, - 16, 32, 32 );
 	}
 	onRemove() // Class-specific, if needed
@@ -332,13 +332,13 @@ class sdMatterAmplifier extends sdEntity
 	MeasureMatterCost()
 	{
 	//	return 0; // Hack
-		if ( this.multiplier === 0 )
-		return 300 + this._hmax * sdWorld.damage_to_matter + this.matter;
 		if ( this.multiplier === 1 )
+		return 300 + this._hmax * sdWorld.damage_to_matter + this.matter;
+		if ( this.multiplier === 2 )
 		return 600 + this._hmax * sdWorld.damage_to_matter + this.matter;
-		if ( this.multiplier === 3 )
+		if ( this.multiplier === 4 )
 		return 1200 + this._hmax * sdWorld.damage_to_matter + this.matter;
-		if ( this.multiplier === 7 ) // Needs cube shards matter upgrades to be placable
+		if ( this.multiplier === 8 ) // Needs cube shards matter upgrades to be placable
 		return 2400 + this._hmax * sdWorld.damage_to_matter + this.matter;
 	}
 }
