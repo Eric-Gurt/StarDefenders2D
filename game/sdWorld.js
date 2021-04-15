@@ -26,7 +26,9 @@ class sdWorld
 	{
 		console.log('sdWorld class initiated');
 		sdWorld.logic_rate = 16; // for server
-		sdWorld.max_update_rate = 64;
+		
+		//sdWorld.max_update_rate = 64;
+		sdWorld.max_update_rate = 75; // For weaker servers (more like bandwidth-limited)
 		
 		sdWorld.server_config = {};
 		
@@ -809,6 +811,18 @@ class sdWorld
 		let arr = [ command, params ];
 
 		//arr._give_up_on = sdWorld + 5000;
+		
+		if ( typeof params.x !== 'undefined' )
+		params.x = Math.round( params.x );
+		
+		if ( typeof params.y !== 'undefined' )
+		params.y = Math.round( params.y );
+		
+		if ( typeof params.x2 !== 'undefined' )
+		params.x2 = Math.round( params.x2 );
+		
+		if ( typeof params.y2 !== 'undefined' )
+		params.y2 = Math.round( params.y2 );
 
 		for ( var i = 0; i < socket_arr.length; i++ )
 		{

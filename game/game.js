@@ -293,8 +293,8 @@ let enf_once = true;
 			
 			let snapshot = sdSnapPack.Decompress( stuff_arr[ 0 ] );
 			let score = stuff_arr[ 1 ];
-			let leaders = stuff_arr[ 2 ];
-			let sd_events = stuff_arr[ 3 ];
+			let leaders = JSON.parse( LZW.lzw_decode( stuff_arr[ 2 ] ) );
+			let sd_events = JSON.parse( LZW.lzw_decode( stuff_arr[ 3 ] ) );
 
 			let _force_add_sx = stuff_arr[ 4 ];
 			let _force_add_sy = stuff_arr[ 5 ];
@@ -492,10 +492,10 @@ let enf_once = true;
 				if ( !sdWorld.my_entity._is_being_removed )
 				{
 					let new_snapshot = [ 
-						sdWorld.my_entity.look_x, // 0
-						sdWorld.my_entity.look_y, // 1
-						sdWorld.camera.x, // 2
-						sdWorld.camera.y, // 3
+						Math.round( sdWorld.my_entity.look_x ), // 0
+						Math.round( sdWorld.my_entity.look_y ), // 1
+						Math.round( sdWorld.camera.x ), // 2
+						Math.round( sdWorld.camera.y ), // 3
 						sdWorld.camera.scale, // 4
 						sdWorld.my_entity.x, // 5
 						sdWorld.my_entity.y, // 6
