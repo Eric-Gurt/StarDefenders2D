@@ -3151,10 +3151,10 @@ setInterval( ()=>
 					let full_msg = [ 
 						sdSnapPack.Compress( snapshot, false ), // 0
 						socket.GetScore(), // 1
-						leaders, // 2
-						sd_events, // 3
-						socket.character._force_add_sx, // 4
-						socket.character._force_add_sy, // 5
+						LZW.lzw_encode( JSON.stringify( leaders ) ), // 2
+						LZW.lzw_encode( JSON.stringify( sd_events ) ), // 3
+						Math.round( socket.character._force_add_sx * 1000 ) / 1000, // 4
+						Math.round( socket.character._force_add_sy * 1000 ) / 1000, // 5
 						Math.max( -1, socket.character._position_velocity_forced_until - sdWorld.time ), // 6
 						sdWorld.last_frame_time, // 7
 						sdWorld.last_slowest_class, // 8
