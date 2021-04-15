@@ -167,13 +167,13 @@ class sdSound
 		}
 		
 		sdSound.jetpack_volume_last = sdWorld.MorphWithTimeScale( sdSound.jetpack_volume_last, count_flying, 0.8, GSPEED );
-		sdSound.jetpack.volume = sdSound.jetpack_volume_last * sdSound.volume_ambient;
+		sdSound.jetpack.volume = Math.min( 1, sdSound.jetpack_volume_last * sdSound.volume_ambient );
 		
 		sdSound.hover_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.hover_loop_volume_last, count_hover_loop, 0.8, GSPEED );
-		sdSound.hover_loop.volume = sdSound.hover_loop_volume_last * sdSound.volume_ambient;
+		sdSound.hover_loop.volume = Math.min( 1, sdSound.hover_loop_volume_last * sdSound.volume_ambient );
 		
 		sdSound.amplifier_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.amplifier_loop_volume_last, count_amplifier_loop, 0.8, GSPEED );
-		sdSound.amplifier_loop.volume = sdSound.amplifier_loop_volume_last * sdSound.volume_ambient;
+		sdSound.amplifier_loop.volume = Math.min( 1, Math.min( 2, sdSound.amplifier_loop_volume_last ) * sdSound.volume_ambient );
 	}
 	static GetDistanceMultForPosition( x,y )
 	{
