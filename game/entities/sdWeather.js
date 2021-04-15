@@ -143,9 +143,9 @@ class sdWeather extends sdEntity
 							let tr = 1000;
 							do
 							{
-								//if ( left_side )
-								//x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
-								//else
+								if ( left_side )
+								x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
+								else
 								x = sdWorld.world_bounds.x2 - 16 - 16 * instances;
 
 								y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
