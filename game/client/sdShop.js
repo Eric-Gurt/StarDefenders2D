@@ -136,14 +136,25 @@ class sdShop
 		//sdShop.options.push({ _class: 'sdWater' });
 		
 		for ( var i = 0; i < sdGun.classes.length; i++ )
-		if ( sdGun.classes[ i ].spawnable !== false )
 		{
-			sdShop.options.push({
-				_class: 'sdGun',
-				class: i, 
-				_category:'Equipment',
-				_min_build_tool_level: sdGun.classes[ i ].min_build_tool_level || 0
-			});
+			if ( sdGun.classes[ i ].spawnable !== false )
+			{
+				sdShop.options.push({
+					_class: 'sdGun',
+					class: i, 
+					_category:'Equipment',
+					_min_build_tool_level: sdGun.classes[ i ].min_build_tool_level || 0
+				});
+			}
+			else
+			if ( globalThis.isWin )
+			{
+				sdShop.options.push({
+					_class: 'sdGun',
+					class: i, 
+					_category:'Development tests'
+				});
+			}
 		}
 		sdShop.options.push({ _class: 'sdBomb', _category:'Equipment' });
 		sdShop.options.push({ _class: 'sdBarrel', _category:'Equipment' });
