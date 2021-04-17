@@ -231,7 +231,7 @@ class sdEnemyMech extends sdEntity
 			this.remove();
 			
 */
-			this.MatterGlow( 0.01, 30, GSPEED );
+			//this.MatterGlow( 0.01, 30, GSPEED );
 			/*var x = this.x;
 			var y = this.y;
 			for ( var xx = -1; xx <= 1; xx++ )
@@ -321,8 +321,8 @@ class sdEnemyMech extends sdEntity
 										{
 											// Can attack from position 1
 
-											this._move_dir_x = Math.cos( a1 );
-											this._move_dir_y = Math.sin( a1 );
+											this._move_dir_x = Math.cos( a1 ) * 8;
+											this._move_dir_y = Math.sin( a1 ) * 8;
 
 											this._move_dir_timer = r1 * 5;
 
@@ -342,8 +342,8 @@ class sdEnemyMech extends sdEntity
 												{
 													// Can attack from position 2, but will move to position 1 still
 
-													this._move_dir_x = Math.cos( a1 );
-													this._move_dir_y = Math.sin( a1 );
+													this._move_dir_x = Math.cos( a1 ) * 8;
+													this._move_dir_y = Math.sin( a1 ) * 8;
 
 													this._move_dir_timer = r1 * 5;
 													
@@ -610,6 +610,11 @@ class sdEnemyMech extends sdEntity
 		sdEnemyMech.mechs_counter--;
 		sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
 		//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
+		sdWorld.DropShards( this.x, this.y, 0, 0, 
+			Math.floor( Math.max( 0, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
+			this.matter_max / 40
+		);
+
 	}
 	MeasureMatterCost()
 	{

@@ -143,16 +143,16 @@ class sdWeather extends sdEntity
 							let tr = 1000;
 							do
 							{
-								if ( left_side )
-								x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
-								else
+								//if ( left_side )
+								//x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
+								//else
 								x = sdWorld.world_bounds.x2 - 16 - 16 * instances;
 
 								y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
 
 								if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-								if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-								if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+								//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
 								{
 									character_entity.x = x;
 									character_entity.y = y;
@@ -211,8 +211,11 @@ class sdWeather extends sdEntity
 									character_entity._ai_enabled = true;
 									character_entity._ai_level = Math.floor( 1 + Math.random() * 3 ); // AI Levels from 1 to 3
 
-									character_entity._matter_regeneration = 1; // At least some ammo regen
-									
+									character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
+									character_entity._jetpack_allowed = true; // Jetpack
+									character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
+									character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+
 									//this._invasion_spawns_con -= 1;
 
 									break;
@@ -476,7 +479,10 @@ class sdWeather extends sdEntity
 										
 										character_entity._ai_level = Math.floor( Math.random() * 2 ); // Either 0 or 1
 										
-										character_entity._matter_regeneration = 1; // At least some ammo regen
+										character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
+										character_entity._jetpack_allowed = true; // Jetpack
+										character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
+										character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 
 										break;
 									}
@@ -589,11 +595,11 @@ class sdWeather extends sdEntity
 					if ( r === 7 ) // Flying Mech event
 					{
 						let instances = 0;
-						let instances_tot = 1;
+						let instances_tot = Math.ceil( ( Math.random() * sdWorld.GetPlayingPlayersCount() ) / 3 );
 
 						let left_side = ( Math.random() < 0.5 );
 
-						while ( instances < instances_tot && sdEnemyMech.mechs_counter < 2 )
+						while ( instances < instances_tot && sdEnemyMech.mechs_counter < 3 )
 						{
 
 							let mech_entity = new sdEnemyMech({ x:0, y:0 });
@@ -620,7 +626,7 @@ class sdWeather extends sdEntity
 										mech_entity.y = y;
 
 										//sdWorld.UpdateHashPosition( ent, false );
-										//console.log('Flying mech spawned!');
+										console.log('Flying mech spawned!');
 										break;
 									}
 

@@ -115,7 +115,11 @@ class sdShop
 		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Base equipment' });*/
 		sdShop.options.push({ _class: 'sdMatterAmplifier', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 2, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 4, _category:'Base equipment', _min_build_tool_level: 1 });
+		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 8, _category:'Base equipment', _min_build_tool_level: 1 });
 		sdShop.options.push({ _class: 'sdCommandCentre', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdCrystalCombiner', _category:'Base equipment' });
 		
 		for ( var i = 0; i < 3; i++ )
 		{
@@ -256,13 +260,23 @@ class sdShop
 				{
 					character._air_upgrade = 1 + level_purchased ; // 
 				}
+			},
+			upgrade_jetpack_fuel_cost_reduction: // Upgrade idea & pull request by Booraz149 ( https://github.com/Booraz149 )
+			{
+				max_level: 5,
+				matter_cost: 150,
+				min_build_tool_level: 1,
+				action: ( character, level_purchased )=>
+				{
+					character._jetpack_fuel_multiplier = 1 - ( 0.15 * level_purchased ); // Max 75% fuel cost reduction
+				}
 			}
 		};
 		for ( var i in sdShop.upgrades )
 		{
 			sdShop.upgrades[ i ].image = sdWorld.CreateImageFromFile( i );
 			sdShop.options.push({ _class: null, matter_cost: sdShop.upgrades[ i ].matter_cost, upgrade_name: i, 
-				_category:'upgrades' });
+				_category:'upgrades', _min_build_tool_level: sdShop.upgrades[ i ].min_build_tool_level || 0 });
 		}
 		
 		if ( globalThis.isWin ) // Lack of this check will probably allow creation of these entities even if category can not be opened in normal way
