@@ -1277,6 +1277,15 @@ class sdEntity
 	onRemoveAsFakeEntity() // Will be called instead of onRemove() if entity was never added to world
 	{
 	}
+	SetMethod( method_name, method ) // Because doing it normally will make method enumerable and thus it will appear in snapshots. And will cause crash. Also this one binds "this"
+	{
+		Object.defineProperty( this, method_name,
+		{
+			value: method.bind( this ),
+			enumerable: false
+		});
+	}
+	
 	onMovementInRange( from_entity )
 	{
 	}

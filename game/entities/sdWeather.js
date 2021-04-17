@@ -345,7 +345,7 @@ class sdWeather extends sdEntity
 			{
 				let ent = new sdBlock({ x:0, y:0, width:16, height:16 });
 				
-				sdEntity.entities.push( ent );
+				//sdEntity.entities.push( ent );
 				
 				{
 					let x,y;
@@ -355,12 +355,12 @@ class sdWeather extends sdEntity
 					{
 						x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
 						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-						
+						/*
 						if ( sdWorld.sockets[ 0 ] && sdWorld.sockets[ 0 ].character )
 						{
 							x = sdWorld.sockets[ 0 ].character.look_x;
 							y = sdWorld.sockets[ 0 ].character.look_y;
-						}
+						}*/
 						
 						x = Math.floor( x / 16 ) * 16;
 						y = Math.floor( y / 16 ) * 16;
@@ -479,8 +479,10 @@ class sdWeather extends sdEntity
 					} while( true );
 				}
 				
-				ent.onRemove = ent.onRemoveAsFakeEntity; // Disable any removal logic
+				//ent.onRemove = ent.onRemoveAsFakeEntity; // Disable any removal logic
+				ent.SetMethod( 'onRemove', ent.onRemoveAsFakeEntity ); // Disable any removal logic BUT without making .onRemove method appearing in network snapshot
 				ent.remove();
+				ent._remove();
 			}
 			
 			//this._time_until_event = 0; // Hack
@@ -489,9 +491,11 @@ class sdWeather extends sdEntity
 			if ( this._time_until_event < 0 )
 			{
 				this._time_until_event = Math.random() * 30 * 60 * 8; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
-				let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7 ];
+				let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ];
 				
 				let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
+				
+				allowed_event_ids = [ 8 ]; // Hack
 				
 				for ( let d = 0; d < allowed_event_ids.length; d++ )
 				if ( disallowed_ones.indexOf( allowed_event_ids[ d ] ) !== -1 )

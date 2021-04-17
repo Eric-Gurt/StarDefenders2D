@@ -124,7 +124,7 @@ class sdBullet extends sdEntity
 		
 		// Defining this in method that is not called on this object and passed as collision filtering thing
 		//this.BouncyCollisionFiltering = this.BouncyCollisionFiltering.bind( this ); Bad, snapshot will enumerate it
-		Object.defineProperty( this, 'BouncyCollisionFiltering',
+		/*Object.defineProperty( this, 'BouncyCollisionFiltering',
 		{
 			value: this.BouncyCollisionFiltering.bind( this ),
 			enumerable: false
@@ -133,7 +133,9 @@ class sdBullet extends sdEntity
 		{
 			value: this.RegularCollisionFiltering.bind( this ),
 			enumerable: false
-		});
+		});*/
+		this.SetMethod( 'BouncyCollisionFiltering', this.BouncyCollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
+		this.SetMethod( 'RegularCollisionFiltering', this.RegularCollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
 	}
 	onRemove()
 	{
