@@ -19,6 +19,9 @@ class sdHover extends sdEntity
 		sdHover.img_hover_boost = sdWorld.CreateImageFromFile( 'hover_boost' );
 		sdHover.img_hover_broken = sdWorld.CreateImageFromFile( 'hover_broken' );
 		
+		sdHover.img_hover_mg = sdWorld.CreateImageFromFile( 'hover_mg' );
+		sdHover.img_hover_rl = sdWorld.CreateImageFromFile( 'hover_rl' );
+		
 		sdHover.driver_slots = 6;
 		
 		sdHover.slot_hints = [
@@ -449,7 +452,40 @@ class sdHover extends sdEntity
 		ctx.filter = this.filter;
 		
 		if ( this.hea > 0 )
-		ctx.drawImageFilterCache( ( this.driver0 /*&& ( this.driver0.act_x !== 0 || this.driver0.act_y !== 0 )*/ ) ? sdHover.img_hover_boost : sdHover.img_hover, - 32, - 16, 64,32 );
+		{
+			ctx.drawImageFilterCache( this.driver0 ? sdHover.img_hover_boost : sdHover.img_hover, - 32, - 16, 64,32 );
+	
+	        var i = 0;
+
+            i = 1;
+			if ( this[ 'driver' + i ] )
+			{
+				ctx.save();
+
+				ctx.translate( -1, 10 );
+				ctx.scale( 1, -1 );
+
+                ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
+
+				ctx.drawImageFilterCache( sdHover.img_hover_mg, - 16, - 16, 32,32 );
+
+				ctx.restore();
+			}
+			i = 2;
+			if ( this[ 'driver' + i ] )
+			{
+				ctx.save();
+
+				ctx.translate( 9, -11 );
+				ctx.scale( 1, -1 );
+
+                ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
+
+				ctx.drawImageFilterCache( sdHover.img_hover_rl, - 16, - 16, 32,32 );
+
+				ctx.restore();
+			}
+		}
 		else
 		ctx.drawImageFilterCache( sdHover.img_hover_broken, - 32, - 16, 64,32 );
 		

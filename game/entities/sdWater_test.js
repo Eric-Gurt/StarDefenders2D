@@ -153,10 +153,10 @@ class sdWater extends sdEntity
 		}
 	}
 				
-	FlowTowards( nx, ny, my_share_ammount )
+	FlowTowards( nx, ny, my_share_amount )
 	{
-		/*if ( my_share_ammount > this._volume ) // Happens rarely
-		my_share_ammount = this._volume;
+		/*if ( my_share_amount > this._volume ) // Happens rarely
+		my_share_amount = this._volume;
 	
 		if ( nx >= sdWorld.world_bounds.x2 || nx <= sdWorld.world_bounds.x1 || 
 			 ny >= sdWorld.world_bounds.y2 || ny <= sdWorld.world_bounds.y1 )
@@ -171,7 +171,7 @@ class sdWater extends sdEntity
 			if ( arr_under[ i ] instanceof sdWater )
 			if ( arr_under[ i ].x === nx && arr_under[ i ].y === ny )
 			{
-				let can_share = Math.min( 1 - arr_under[ i ]._volume, my_share_ammount );
+				let can_share = Math.min( 1 - arr_under[ i ]._volume, my_share_amount );
 				
 				if ( this.y === arr_under[ i ].y )
 				{
@@ -220,7 +220,7 @@ class sdWater extends sdEntity
 		}
 		if ( !water_under )
 		{
-			if ( ny > this.y || my_share_ammount === this._volume )
+			if ( ny > this.y || my_share_amount === this._volume )
 			{
 				if ( this._volume > sdWater.considerable_delata_volume_for_awakeness )
 				{
@@ -242,15 +242,15 @@ class sdWater extends sdEntity
 			else
 			{
 				let ent = new sdWater({ x:nx, y:ny, type:this.type });
-				ent._volume = my_share_ammount;
-				this._volume -= my_share_ammount;
+				ent._volume = my_share_amount;
+				this._volume -= my_share_amount;
 				sdEntity.entities.push( ent );
 				
 				sdWorld.UpdateHashPosition( ent, false ); // Might be useful against memory leaks?
 				
 				
 
-				if ( my_share_ammount > sdWater.considerable_delata_volume_for_awakeness )
+				if ( my_share_amount > sdWater.considerable_delata_volume_for_awakeness )
 				{
 					//this._sleep_tim = ent._sleep_tim = sdWater.sleep_tim_max;
 					this.AwakeSelfAndNear();

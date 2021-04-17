@@ -69,6 +69,9 @@ class sdBomb extends sdEntity
 		this.sy += y * 0.03;
 	}
 	
+	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
+	{ return true; }
+	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		this.sy += sdWorld.gravity * GSPEED;

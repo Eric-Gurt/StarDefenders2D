@@ -370,22 +370,24 @@ class sdSandWorm extends sdEntity
 				{
 					dx = dx / di * ( di - target_di ) / target_di * force;
 					dy = dy / di * ( di - target_di ) / target_di * force;
+					
+					let G = Math.min( 1, GSPEED );
 
-					this.sx -= dx * GSPEED;
-					this.sy -= dy * GSPEED;
+					this.sx -= dx * G;
+					this.sy -= dy * G;
 
-					another_ent.sx += dx * GSPEED;
-					another_ent.sy += dy * GSPEED;
+					another_ent.sx += dx * G;
+					another_ent.sy += dy * G;
 
 					if ( this.CanMoveWithoutOverlap( this.x - dx * GSPEED, this.y - dy * GSPEED, 0, ( this.death_anim === 0 ) ? this.CustomGroundFiltering : null ) )
 					{
-						this.x -= dx * GSPEED;
-						this.y -= dy * GSPEED;
+						this.x -= dx * G;
+						this.y -= dy * G;
 					}
 					if ( another_ent.CanMoveWithoutOverlap( another_ent.x + dx * GSPEED, another_ent.y + dy * GSPEED, 0, ( this.death_anim === 0 ) ? this.CustomGroundFiltering : null ) )
 					{
-						another_ent.x += dx * GSPEED;
-						another_ent.y += dy * GSPEED;
+						another_ent.x += dx * G;
+						another_ent.y += dy * G;
 					}
 				}
 			}
@@ -602,7 +604,7 @@ class sdSandWorm extends sdEntity
 		if ( from_entity.is( sdSandWorm ) )
 		return;
 	
-		if ( from_entity.IsBGEntity() )
+		if ( from_entity.IsBGEntity() > 0 )
 		return;
 		
 		if ( !from_entity.hard_collision )

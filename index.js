@@ -191,6 +191,7 @@ import sdGrass from './game/entities/sdGrass.js';
 import sdSlug from './game/entities/sdSlug.js';
 import sdBarrel from './game/entities/sdBarrel.js';
 import sdEnemyMech from './game/entities/sdEnemyMech.js';
+import sdArea from './game/entities/sdArea.js';
 import sdCrystalCombiner from './game/entities/sdCrystalCombiner.js';
 
 
@@ -303,6 +304,7 @@ sdGrass.init_class();
 sdSlug.init_class();
 sdBarrel.init_class();
 sdEnemyMech.init_class();
+sdArea.init_class();
 sdCrystalCombiner.init_class();
 
 sdShop.init_class(); // requires plenty of classes due to consts usage
@@ -633,7 +635,7 @@ sdWorld.server_config = {};
 					if ( my_character_entity.hea > 0 && !my_character_entity._dying )
 					if ( sdWeather.only_instance )
 					if ( sdWeather.only_instance.raining_intensity > 0 )
-					if ( sdWeather.only_instance._rain_ammount > 0 )
+					if ( sdWeather.only_instance._rain_amount > 0 )
 					if ( sdWeather.only_instance.TraceDamagePossibleHere( my_character_entity.x, my_character_entity.y ) )
 					{
 						if ( my_character_entity.matter > 5 )
@@ -1297,6 +1299,13 @@ try
 					strange_position_classes[ ent.GetClass() ] = 1;
 				}
 				ent.remove();
+			}
+			
+			// This is done because some variable-size entities might end up having wrong hash areas occupied after reboot, for example sdArea. Possibly due to _hiberstate being not really set since it already had final target value
+			if ( !ent._is_being_removed )
+			{
+				if ( ent._affected_hash_arrays.length > 0 ) // Easier than checking for hiberstates
+				sdWorld.UpdateHashPosition( ent, false, false );
 			}
 		}
 		catch( e )

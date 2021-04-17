@@ -290,6 +290,10 @@ class sdMatterAmplifier extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
+		// Uncomment this if but still happens. Normally .onMovementInRange should never be called if one of entities is already being removed. Previously this was a problem at sdEntity physic simulation logic
+		//if ( from_entity._is_being_removed )
+		//return;
+	
 		if ( this.matter_max === 0 )
 		{
 			if ( this._ignore_pickup_tim === 0 )

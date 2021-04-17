@@ -33,8 +33,8 @@ class sdBG extends sdEntity
 	get hard_collision()
 	{ return true; }
 	
-	IsBGEntity() // True for BG entities, should handle collisions separately
-	{ return true; }
+	IsBGEntity() // 1 for BG entities, should handle collisions separately
+	{ return 1; }
 	
 	/*GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{

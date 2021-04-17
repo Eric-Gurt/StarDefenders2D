@@ -12,6 +12,7 @@ import sdAsp from './sdAsp.js';
 import sdGrass from './sdGrass.js';
 import sdCom from './sdCom.js';
 import sdVirus from './sdVirus.js';
+import sdBG from './sdBG.js';
 import sdEnemyMech from './sdEnemyMech.js';
 
 
@@ -57,15 +58,18 @@ class sdWeather extends sdEntity
 	
 		sdWeather.only_instance = this;
 		
-		this._rain_ammount = 0;
-		this._asteroid_spam_ammount = 0;
+		this._rain_amount = 0;
+		this.raining_intensity = 0;
+		
+		this._asteroid_spam_amount = 0;
 		
 		this._invasion = false;
 		this._invasion_timer = 0; // invasion length timer
 		this._invasion_spawn_timer = 0; // invasion spawn timer
 		this._invasion_spawns_con = 0; // invasion spawn conditions, needs to be 0 or invasion can't end. Counter for falkoks left to spawn
 		
-		this.raining_intensity = 0;
+		this._quake_scheduled_amount = 0;
+		this.quake_intensity = 0;
 		
 		//this._rain_offset = 0;
 		this._time_until_event = 0;
@@ -250,25 +254,36 @@ class sdWeather extends sdEntity
 				this._asteroid_timer_scale_next = Math.random();
 			}
 			
-			if ( this._asteroid_spam_ammount > 0 )
+			if ( this._asteroid_spam_amount > 0 )
 			{
-				this._asteroid_spam_ammount -= GSPEED * 1;
+				this._asteroid_spam_amount -= GSPEED * 1;
 				this._asteroid_timer += GSPEED * 40;
 			}
 			
-			if ( this._rain_ammount > 0 )
+			if ( this._rain_amount > 0 )
 			{
 				this.raining_intensity = Math.min( 100, this.raining_intensity + GSPEED * 0.1 );
 				
-				this._rain_ammount -= this.raining_intensity / 100;
+				this._rain_amount -= this.raining_intensity / 100;
 			}
 			else
 			{
 				this.raining_intensity = Math.max( 0, this.raining_intensity - GSPEED * 0.1 );
 			}
 			
+			if ( this._quake_scheduled_amount > 0 )
+			{
+				this._quake_scheduled_amount -= GSPEED;
+				
+				this.quake_intensity = Math.min( 100, this.quake_intensity + GSPEED * 0.3 );
+			}
+			else
+			{
+				this.quake_intensity = Math.max( 0, this.quake_intensity - GSPEED * 0.3 );
+			}
+			
 			if ( this.raining_intensity > 50 )
-			if ( sdWorld.is_server )
+			//if ( sdWorld.is_server ) Done before
 			{
 				sdWorld.last_hit_entity = null;
 				
@@ -329,6 +344,148 @@ class sdWeather extends sdEntity
 				}
 			}
 			
+			if ( this.quake_intensity >= 100 )
+			{
+				let ent = new sdBlock({ x:0, y:0, width:16, height:16 });
+				
+				sdEntity.entities.push( ent );
+				
+				{
+					let x,y;
+					//let tr = 1000;
+					let tr = 35;
+					do
+					{
+						x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+						
+						if ( sdWorld.sockets[ 0 ] && sdWorld.sockets[ 0 ].character )
+						{
+							x = sdWorld.sockets[ 0 ].character.look_x;
+							y = sdWorld.sockets[ 0 ].character.look_y;
+						}
+						
+						x = Math.floor( x / 16 ) * 16;
+						y = Math.floor( y / 16 ) * 16;
+						
+						if ( ent.CanMoveWithoutOverlap( x, y, 0.0001 ) )
+						//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+						{
+							let ent_above = null;
+							let ent_above_exists = false;
+							
+							let ent_below = null;
+							let ent_below_exists = false;
+							
+							sdWorld.last_hit_entity = null;
+							if ( !ent.CanMoveWithoutOverlap( x, y + 16, 0.0001 ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) ) )
+							{
+								ent_below = sdWorld.last_hit_entity;
+								ent_below_exists = true;
+							}
+							
+							sdWorld.last_hit_entity = null;
+							if ( !ent.CanMoveWithoutOverlap( x, y - 16, 0.0001 ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) ) )
+							{
+								ent_above = sdWorld.last_hit_entity;
+								ent_above_exists = true;
+							}
+							/*
+							ent.x = x;
+							ent.y = y;
+							break;
+							*/
+							if ( ent_above_exists || ent_below_exists )
+							{
+								let bg_nature = true; // Or nothing or world border
+								let bg_nature_ent = null;
+								
+								sdWorld.last_hit_entity = null;
+								if ( sdWorld.CheckWallExistsBox( x+1, y+1, x + 16-1, y + 16-1, null, null, [ 'sdBG' ], null ) )
+								if ( sdWorld.last_hit_entity )
+								{
+									if ( sdWorld.last_hit_entity.material !== sdBG.MATERIAL_GROUND )
+									{
+										bg_nature = false;
+									}
+									else
+									{
+										bg_nature_ent = sdWorld.last_hit_entity;
+									}
+								}
+								
+								if ( bg_nature )
+								{
+									function ClearPlants()
+									{
+										if ( bg_nature_ent )
+										bg_nature_ent.remove();
+									
+										if ( ent_below_exists )
+										if ( ent_below )
+										if ( ent_below._plants )
+										{
+											for ( let i = 0; i < ent_below._plants.length; i++ )
+											{
+												let plant = sdEntity.entities_by_net_id_cache[ ent_below._plants[ i ] ];
+												if ( plant )
+												plant.remove();
+											}
+											ent_below._plants = null;
+										}
+									}
+									
+									let xx = Math.floor( x / 16 );
+									let from_y = sdWorld.GetGroundElevation( xx );
+			
+									if ( y >= from_y )
+									{
+										ClearPlants();
+										
+										sdWorld.FillGroundQuad( x, y, from_y, false, true );
+										
+										// Delete temp block on success
+										//ent.remove();
+										break;
+									}
+									else
+									if ( y === from_y - 8 )
+									{
+										ClearPlants();
+										
+										y += 8;
+										sdWorld.FillGroundQuad( x, y, from_y, true, true );
+										
+										// Delete temp block on success
+										//ent.remove();
+										break;
+									}
+									else
+									{
+										//debugger;
+									}
+									
+									
+								}
+							}
+							
+							
+						}
+
+
+						tr--;
+						if ( tr < 0 )
+						{
+							//ent.remove();
+							break;
+						}
+					} while( true );
+				}
+				
+				ent.onRemove = ent.onRemoveAsFakeEntity; // Disable any removal logic
+				ent.remove();
+			}
+			
 			//this._time_until_event = 0; // Hack
 			
 			this._time_until_event -= GSPEED;
@@ -354,10 +511,10 @@ class sdWeather extends sdEntity
 					//r = 3; // Hack
 
 					if ( r === 0 )
-					this._rain_ammount = 30 * 15 * ( 1 + Math.random() * 2 ); // start rain for ~15 seconds
+					this._rain_amount = 30 * 15 * ( 1 + Math.random() * 2 ); // start rain for ~15 seconds
 
 					if ( r === 1 )
-					this._asteroid_spam_ammount = 30 * 15 * ( 1 + Math.random() * 2 );
+					this._asteroid_spam_amount = 30 * 15 * ( 1 + Math.random() * 2 );
 
 					if ( r === 2 )
 					{
@@ -592,6 +749,7 @@ class sdWeather extends sdEntity
 							instances++;
 						}
 					}
+					
 					if ( r === 7 ) // Flying Mech event
 					{
 						let instances = 0;
@@ -642,6 +800,11 @@ class sdWeather extends sdEntity
 
 							instances++;
 						}
+					}
+					
+					if ( r === 8 ) //Earth quake, idea by LazyRain, implementation by Eric Gurt
+					{
+						this._quake_scheduled_amount = 30 * ( 10 + Math.random() * 30 );
 					}
 				}
 			}

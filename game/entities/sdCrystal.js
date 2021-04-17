@@ -91,7 +91,8 @@ class sdCrystal extends sdEntity
 		
 		if ( this._hea <= 0 )
 		{
-			sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:1 });
+			//sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:1 });
+			sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.5 });
 			this.remove();
 		}
 		else
