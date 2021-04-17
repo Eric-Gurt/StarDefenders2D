@@ -421,141 +421,151 @@ class sdWorld
 		return Math.round( Math.pow( Math.sin( ( sdWorld.base_grass_level[ xx ] || 0 ) * 15 ) * 0.5 + 0.5, pow ) * 2 );
 
 	}
-	static ChangeWorldBounds( x1, y1, x2, y2 )
+	static GetGroundElevation( xx )
 	{
-		var ent;
+		//return sdWorld.base_ground_level - Math.round( ( Math.sin( sdWorld.base_ground_level1[ xx ] ) * 64 + Math.sin( sdWorld.base_ground_level2[ xx ] ) * 64 ) / 16 ) * 16;
+		//return sdWorld.base_ground_level - Math.round( ( Math.sin( sdWorld.base_ground_level1[ xx ] ) * 64 + Math.sin( sdWorld.base_ground_level2[ xx ] ) * 64 ) / 8 ) * 8;
+
+		//console.log( Math.abs( Math.sin( sdWorld.base_ground_level2[ xx ] * 0.9 ) ) / ( 0.1 + 0.9 * Math.abs( Math.cos( sdWorld.base_ground_level1[ xx ] * 0.5 ) ) ) * 64 );
+
+		return sdWorld.base_ground_level - Math.round( ( 
+
+				Math.sin( sdWorld.base_ground_level1[ xx ] ) * 64 + 
+				Math.sin( sdWorld.base_ground_level2[ xx ] ) * 64
+
+				- Math.abs( Math.sin( sdWorld.base_ground_level1[ xx ] * 0.9 ) ) / ( 0.1 + 0.9 * Math.abs( Math.cos( sdWorld.base_ground_level2[ xx ] * 0.5 ) ) ) * 16
+
+				+ Math.abs( Math.sin( sdWorld.base_ground_level2[ xx ] * 0.9 ) ) / ( 0.1 + 0.9 * Math.abs( Math.cos( sdWorld.base_ground_level1[ xx ] * 0.8 ) ) ) * 128
+				+ Math.abs( Math.sin( sdWorld.base_ground_level2[ xx ] * 0.9 ) ) / ( 0.1 + 0.9 * Math.abs( Math.cos( sdWorld.base_ground_level1[ xx ] * 0.55 ) ) ) * 128
+
+		) / 8 ) * 8;
+	}
+	static FillGroundQuad( x, y, from_y, half=false, only_plantless_block=false )
+	{
+		var ent = null;
 		
-		function GetGroundElevation( xx )
+		let f = 'hue-rotate('+( ~~sdWorld.mod( x / 16, 360 ) )+'deg)';
+
+		let hp_mult = 1;
+
+		//if ( y > sdWorld.base_ground_level + 256 )
+		if ( y > from_y + 256 )
 		{
-			//return sdWorld.base_ground_level - Math.round( ( Math.sin( sdWorld.base_ground_level1[ xx ] ) * 64 + Math.sin( sdWorld.base_ground_level2[ xx ] ) * 64 ) / 16 ) * 16;
-			//return sdWorld.base_ground_level - Math.round( ( Math.sin( sdWorld.base_ground_level1[ xx ] ) * 64 + Math.sin( sdWorld.base_ground_level2[ xx ] ) * 64 ) / 8 ) * 8;
-			
-			//console.log( Math.abs( Math.sin( sdWorld.base_ground_level2[ xx ] * 0.9 ) ) / ( 0.1 + 0.9 * Math.abs( Math.cos( sdWorld.base_ground_level1[ xx ] * 0.5 ) ) ) * 64 );
-			
-			return sdWorld.base_ground_level - Math.round( ( 
-					
-					Math.sin( sdWorld.base_ground_level1[ xx ] ) * 64 + 
-					Math.sin( sdWorld.base_ground_level2[ xx ] ) * 64
-					
-					- Math.abs( Math.sin( sdWorld.base_ground_level1[ xx ] * 0.9 ) ) / ( 0.1 + 0.9 * Math.abs( Math.cos( sdWorld.base_ground_level2[ xx ] * 0.5 ) ) ) * 16
-					
-					+ Math.abs( Math.sin( sdWorld.base_ground_level2[ xx ] * 0.9 ) ) / ( 0.1 + 0.9 * Math.abs( Math.cos( sdWorld.base_ground_level1[ xx ] * 0.8 ) ) ) * 128
-					+ Math.abs( Math.sin( sdWorld.base_ground_level2[ xx ] * 0.9 ) ) / ( 0.1 + 0.9 * Math.abs( Math.cos( sdWorld.base_ground_level1[ xx ] * 0.55 ) ) ) * 128
-					
-			) / 8 ) * 8;
+			//hp_mult = 1 + ( y - sdWorld.base_ground_level - 256 ) / 200;
+			hp_mult = 1 + Math.ceil( ( y - from_y - 256 ) / 200 * 3 ) / 3;
+			f += 'brightness(' + Math.max( 0.2, 1 / hp_mult ) + ') saturate(' + Math.max( 0.2, 1 / hp_mult ) + ')';
 		}
-		
-		function FillGroundQuad( x, y, from_y, half=false )
+
+		if ( y >= from_y )
 		{
-			let f = 'hue-rotate('+( ~~sdWorld.mod( x / 16, 360 ) )+'deg)';
-			
-			let hp_mult = 1;
-			
-			//if ( y > sdWorld.base_ground_level + 256 )
-			if ( y > from_y + 256 )
+			let enemy_rand_num = Math.random();
+			let random_enemy;
+
+			if ( Math.pow( enemy_rand_num, 10 ) > 1 / hp_mult )
 			{
-				//hp_mult = 1 + ( y - sdWorld.base_ground_level - 256 ) / 200;
-				hp_mult = 1 + Math.ceil( ( y - from_y - 256 ) / 200 * 3 ) / 3;
-				f += 'brightness(' + Math.max( 0.2, 1 / hp_mult ) + ') saturate(' + Math.max( 0.2, 1 / hp_mult ) + ')';
-			}
-			
-			if ( y >= from_y )
-			{
-				let enemy_rand_num = Math.random();
-				let random_enemy;
-				
-				if ( Math.pow( enemy_rand_num, 10 ) > 1 / hp_mult )
-				{
-					random_enemy = 'sdSandWorm';
-					//console.log('sdSandWorm spawned somewhere');
-				}
-				else
-				if ( Math.pow( enemy_rand_num, 5 ) > 1 / hp_mult )
-				random_enemy = 'sdOctopus';
-				else
-				if ( Math.pow( enemy_rand_num, 3 ) > 0.8 / hp_mult )
-				random_enemy = 'sdSlug';
-				else
-				if ( Math.pow( enemy_rand_num, 2 ) > 0.8 / hp_mult )
-				random_enemy = 'sdQuickie';
-				else
-				{
-					if ( Math.random() < 0.05 ) // Small chance to spawn on ground levels since they are passive if unprovoked
-					random_enemy = 'sdSlug';
-					else
-					if ( Math.random() < 0.2 )
-					random_enemy = 'sdAsp';
-					else
-					random_enemy = 'sdVirus';
-				}
-				
-				let plants = null;
-				
-				if ( y === from_y )
-				if ( y <= sdWorld.base_ground_level )
-				{
-					
-					let grass = new sdGrass({ x:x, y:y - 16, filter:f });
-					/*
-					if ( Math.random() < 0.2 )
-					grass.variation = 2;
-					else
-					if ( Math.random() < 0.4 )
-					grass.variation = 1;
-					else
-					grass.variation = 0; // maybe unneeded since it's defined under constructor?
-					*/
-					grass.variation = sdWorld.GetFinalGrassHeight( x );
-				   
-					sdEntity.entities.push( grass );
-					
-					if ( plants === null )
-					plants = [];
-					
-					plants.push( grass._net_id );
-				}
-				
-				ent = new sdBlock({ 
-					x:x, 
-					y:y, 
-					width:16, 
-					height: half ? 8 : 16,
-					material: sdBlock.MATERIAL_GROUND,
-					contains_class: ( !half && Math.random() > 0.75 / hp_mult ) ? ( Math.random() < 0.3 ? random_enemy : ( ( y > from_y + 256 ) ? 'sdCrystal.deep' : 'sdCrystal' ) ) : null,
-					filter: f,
-					natural: true,
-					plants: plants
-					//filter: 'hue-rotate('+(~~(Math.sin( ( Math.min( from_y, sdWorld.world_bounds.y2 - 256 ) - y ) * 0.005 )*360))+'deg)' 
-				});
-				
-				/*if ( plants )
-				for ( let i = 0; i < plants.length; i++ )
-				{
-					plants[ i ].SetRoot( ent );
-				}*/
-				
-				if ( hp_mult > 0 )
-				{
-					ent._hea *= hp_mult;
-					ent._hmax *= hp_mult;
-				}
+				random_enemy = 'sdSandWorm';
+				//console.log('sdSandWorm spawned somewhere');
 			}
 			else
+			if ( Math.pow( enemy_rand_num, 5 ) > 1 / hp_mult )
+			random_enemy = 'sdOctopus';
+			else
+			if ( Math.pow( enemy_rand_num, 3 ) > 0.8 / hp_mult )
+			random_enemy = 'sdSlug';
+			else
+			if ( Math.pow( enemy_rand_num, 2 ) > 0.8 / hp_mult )
+			random_enemy = 'sdQuickie';
+			else
 			{
-				ent = new sdBG({ x:x, y:y, width:16, height:16, material:sdBG.MATERIAL_GROUND, filter:'brightness(0.5) ' + f });
-				
-				if ( y > sdWorld.base_ground_level )
-				{
-					let ent2 = new sdWater({ x:x, y:y, volume:1 });
-					//let ent2 = new sdWater({ x:x, y:y, volume:(y===sdWorld.base_ground_level)?0.5:1 });
-					sdEntity.entities.push( ent2 );
-				}
-				
-				//sdWater.SpawnWaterHere( x, y, (y===sdWorld.base_ground_level)?0.5:1 );
+				if ( Math.random() < 0.05 ) // Small chance to spawn on ground levels since they are passive if unprovoked
+				random_enemy = 'sdSlug';
+				else
+				if ( Math.random() < 0.2 )
+				random_enemy = 'sdAsp';
+				else
+				random_enemy = 'sdVirus';
 			}
 
-			sdEntity.entities.push( ent );
+			let plants = null;
+
+			if ( !only_plantless_block )
+			if ( y === from_y )
+			if ( y <= sdWorld.base_ground_level )
+			{
+
+				let grass = new sdGrass({ x:x, y:y - 16, filter:f });
+				/*
+				if ( Math.random() < 0.2 )
+				grass.variation = 2;
+				else
+				if ( Math.random() < 0.4 )
+				grass.variation = 1;
+				else
+				grass.variation = 0; // maybe unneeded since it's defined under constructor?
+				*/
+				grass.variation = sdWorld.GetFinalGrassHeight( x );
+
+				sdEntity.entities.push( grass );
+
+				if ( plants === null )
+				plants = [];
+
+				plants.push( grass._net_id );
+			}
+
+			ent = new sdBlock({ 
+				x:x, 
+				y:y, 
+				width:16, 
+				height: half ? 8 : 16,
+				material: sdBlock.MATERIAL_GROUND,
+				contains_class: ( !half && Math.random() > 0.75 / hp_mult ) ? ( Math.random() < 0.3 ? random_enemy : ( ( y > from_y + 256 ) ? 'sdCrystal.deep' : 'sdCrystal' ) ) : null,
+				filter: f,
+				natural: true,
+				plants: plants
+				//filter: 'hue-rotate('+(~~(Math.sin( ( Math.min( from_y, sdWorld.world_bounds.y2 - 256 ) - y ) * 0.005 )*360))+'deg)' 
+			});
+
+			/*if ( plants )
+			for ( let i = 0; i < plants.length; i++ )
+			{
+				plants[ i ].SetRoot( ent );
+			}*/
+
+			if ( hp_mult > 0 )
+			{
+				ent._hea *= hp_mult;
+				ent._hmax *= hp_mult;
+			}
 		}
+		else
+		if ( !only_plantless_block )
+		{
+			ent = new sdBG({ x:x, y:y, width:16, height:16, material:sdBG.MATERIAL_GROUND, filter:'brightness(0.5) ' + f });
+
+			if ( y > sdWorld.base_ground_level )
+			{
+				let ent2 = new sdWater({ x:x, y:y, volume:1 });
+				//let ent2 = new sdWater({ x:x, y:y, volume:(y===sdWorld.base_ground_level)?0.5:1 });
+				sdEntity.entities.push( ent2 );
+			}
+
+			//sdWater.SpawnWaterHere( x, y, (y===sdWorld.base_ground_level)?0.5:1 );
+		}
+
+		if ( ent )
+		sdEntity.entities.push( ent );
+		
+		return ent;
+	}
+	
+	static ChangeWorldBounds( x1, y1, x2, y2 )
+	{
+		//var ent;
+		
+		const GetGroundElevation = sdWorld.GetGroundElevation;
+		
+		const FillGroundQuad = sdWorld.FillGroundQuad;
 
 		// Extension down, using same base ground levels
 		for ( var x = sdWorld.world_bounds.x1; x < sdWorld.world_bounds.x2; x += 16 )
@@ -1149,6 +1159,9 @@ class sdWorld
 	{
 		//let new_hash_position = entity._is_being_removed ? null : sdWorld.RequireHashPosition( entity.x, entity.y );
 		
+		//if ( entity.GetClass() === 'sdArea' )
+		//debugger;
+	
 		
 		let new_affected_hash_arrays = [];
 		if ( !entity._is_being_removed && !delay_callback_calls ) // delay_callback_calls is useful here as it will delay .hitbox_x2 access which in case of sdBlock will be undefined at the very beginning, due to .width not specified yet
@@ -1183,6 +1196,13 @@ class sdWorld
 				for ( xx = from_x; xx < to_x; xx++ )
 				for ( yy = from_y; yy < to_y; yy++ )
 				new_affected_hash_arrays.push( sdWorld.RequireHashPosition( xx * 32, yy * 32, true ) );
+		
+				/*
+				if ( entity.GetClass() === 'sdArea' )
+				//if ( new_affected_hash_arrays.length < 72 )
+				{
+					console.warn(['CaseA sdArea new_affected_hash_arrays =',new_affected_hash_arrays.length,'::',from_x,from_y,to_x,to_y,'size:'+entity.size,'x:'+entity.x,'y:'+entity.y]);
+				}*/
 			}
 			else
 			debugger; // ~~ operation overflow is taking place? Or object is just too huge?
@@ -1229,6 +1249,13 @@ class sdWorld
 				if ( new_affected_hash_arrays[ i ].length > 1000 ) // Dealing with NaN bounds?
 				debugger;
 			}
+			
+/*
+			if ( entity.GetClass() === 'sdArea' )
+			//if ( new_affected_hash_arrays.length < 72 )
+			{
+				console.warn(['CaseB sdArea new_affected_hash_arrays =',new_affected_hash_arrays.length,'size:'+entity.size]);
+			}*/
 		
 			entity._affected_hash_arrays = new_affected_hash_arrays;
 			/*
@@ -1966,6 +1993,8 @@ class sdWorld
 			
 			sdRenderer.resolution_quality = player_settings['density1'] * 1 + player_settings['density2'] * 0.5 + player_settings['density3'] * 0.25;
 			window.onresize();
+			
+			sdSound.SetVolumeScale( player_settings['volume1'] * 0.4 + player_settings['volume2'] * 0.25 + player_settings['volume3'] * 0.1 ) ;
 			
 			sdWorld.soft_camera = player_settings['camera1'] ? true : false;
 			

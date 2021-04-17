@@ -677,11 +677,23 @@
 	    
 	    <div class="set_block" tabindex="1">
 		<span class="sdtitle">Camera</span><br>
-		<input type="checkbox" id="camera1" value="low">
+		<input type="checkbox" id="camera1" value="low" checked>
 		<label for="camera1">Soft</label>
 		<br>
 		<input type="checkbox" id="camera2" value="high">
 		<label for="camera2">Fast</label>
+	    </div>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Volume</span><br>
+		<input type="checkbox" id="volume1" value="1">
+		<label for="volume1">40%</label>
+		<br>
+		<input type="checkbox" id="volume2" value="1">
+		<label for="volume2">25%</label>
+		<br>
+		<input type="checkbox" id="volume3" value="1" checked>
+		<label for="volume3">10%</label>
 	    </div>
 	    <!--
 	    <div class="set_block" tabindex="1" style="width: 485px">
@@ -906,6 +918,7 @@
 		JustOne( 'density', last_changed_el );
 		JustOne( 'helmet', last_changed_el );
 		JustOne( 'camera', last_changed_el );
+		JustOne( 'volume', last_changed_el );
 		
 		
 		

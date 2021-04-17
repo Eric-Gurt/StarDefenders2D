@@ -10,6 +10,7 @@ import sdBlock from './sdBlock.js';
 import sdAntigravity from './sdAntigravity.js';
 import sdDoor from './sdDoor.js';
 import sdGun from './sdGun.js';
+import sdArea from './sdArea.js';
 
 
 
@@ -339,8 +340,17 @@ class sdBullet extends sdEntity
 	onMovementInRange( from_entity )
 	{
 		if ( !this._hook )
-		if ( from_entity.is( sdGun ) )
-		return;
+		{
+			if ( from_entity.is( sdGun ) )
+			return;
+		
+			if ( from_entity.is( sdArea ) )
+			if ( from_entity.type === sdArea.TYPE_PREVENT_DAMAGE )
+			{
+				this.remove();
+				return;
+			}
+		}
 
 		if ( !this.RegularCollisionFiltering( from_entity ) )
 		return;

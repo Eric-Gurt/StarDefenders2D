@@ -8,6 +8,7 @@ import sdGun from '../entities/sdGun.js';
 import sdBlock from '../entities/sdBlock.js';
 import sdBG from '../entities/sdBG.js';
 import sdTurret from '../entities/sdTurret.js';
+import sdArea from '../entities/sdArea.js';
 import sdRenderer from './sdRenderer.js';
 import sdContextMenu from './sdContextMenu.js';
 
@@ -35,6 +36,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_RIFLE, _category:'root', _opens_category:'Equipment' });
 		sdShop.options.push({ _class: null, image: 'vehicle', _category:'root', _opens_category:'Vehicles' });
 		sdShop.options.push({ _class: null, image: 'upgrade', _category:'root', _opens_category:'upgrades' });
+		sdShop.options.push({ _class: null, image: 'com_red', _category:'root', _godmode_only: true, _opens_category:'Admin tools' });
 		
 		if ( globalThis.isWin )
 		sdShop.options.push({ _class: 'sdVirus', _category:'root', _opens_category:'Development tests' });
@@ -283,6 +285,12 @@ class sdShop
 			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Development tests' });
 		}
 		
+		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });
+		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:128, _category:'Admin tools' });
+		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:64, _category:'Admin tools' });
+		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:32, _category:'Admin tools' });
+		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_ERASER_AREA, size:16, _category:'Admin tools' });
+		
 		sdShop.potential_selection = -1;
 	}
 	static Draw( ctx )
@@ -327,6 +335,7 @@ class sdShop
 			let current_shop_options = [];
 			for ( var i = 0; i < sdShop.options.length; i++ )
 			{
+				if ( sdShop.options[ i ]._godmode_only !== true || ( sdWorld.my_entity && sdWorld.my_entity._god ) )
 				if ( sdShop.options[ i ]._category === sdShop.current_category || 
 					 ( sdShop.options[ i ]._category.charAt( 0 ) === '!' && sdShop.options[ i ]._category.substring( 1 ) !== sdShop.current_category ) ) // !root case
 				{
@@ -562,6 +571,14 @@ class sdShop
 						c = 'Ground';
 						if ( sdShop.options[ sdShop.potential_selection ].material === sdBlock.MATERIAL_SHARP )
 						c = 'Trap';
+					}
+				
+					if ( c === 'Area' )
+					{
+						if ( sdShop.options[ sdShop.potential_selection ].type === sdArea.TYPE_PREVENT_DAMAGE )
+						c = 'Combat & build (unless in godmode) preventing area';
+						if ( sdShop.options[ sdShop.potential_selection ].type === sdArea.TYPE_ERASER_AREA )
+						c = 'Area eraser';
 					}
 				
 					if ( c === 'Gun' )

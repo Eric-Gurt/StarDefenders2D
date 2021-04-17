@@ -11,6 +11,14 @@ class sdSound
 		sdSound.volume_speech = 0.1; // non-relative // amplitude below 1 (out of 100) is silence in mespeak
 		sdSound.volume_ambient = 0.075; // non-relative
 		
+		sdSound.SetVolumeScale = ( v )=>{
+			
+			sdSound.volume = v * 1; // non-relative
+			sdSound.volume_speech = v * 1; // non-relative // amplitude below 1 (out of 100) is silence in mespeak
+			sdSound.volume_ambient = v * 0.75; // non-relative
+			
+		};
+		
 		//sdSound.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 			
 		sdSound.sounds = {};
@@ -34,6 +42,18 @@ class sdSound
 		sdSound.ambient3.volume = 0;
 		sdSound.ambient3.loop = true;
 		
+		sdSound.ambient4_short = new Audio( './audio/ambient4_short.wav' );
+		sdSound.ambient4_short.volume = 0;
+		sdSound.ambient4_short.loop = true;
+		
+		sdSound.scary_monster_spawned3 = new Audio( './audio/scary_monster_spawned3.wav' );
+		sdSound.scary_monster_spawned3.volume = 0;
+		sdSound.scary_monster_spawned3.loop = true;
+		
+		sdSound.scary_monster_spawned2 = new Audio( './audio/scary_monster_spawned2.wav' );
+		sdSound.scary_monster_spawned2.volume = 0;
+		sdSound.scary_monster_spawned2.loop = true;
+		
 		sdSound.scary_monsters_in_the_dark = new Audio( './audio/scary_monsters_in_the_dark.wav' );
 		sdSound.scary_monsters_in_the_dark.volume = 0;
 		sdSound.scary_monsters_in_the_dark.loop = true;
@@ -41,6 +61,10 @@ class sdSound
 		sdSound.rain_low_res = new Audio( './audio/rain_low_res.wav' );
 		sdSound.rain_low_res.volume = 0;
 		sdSound.rain_low_res.loop = true;
+		
+		sdSound.earthquake = new Audio( './audio/earthquake.wav' );
+		sdSound.earthquake.volume = 0;
+		sdSound.earthquake.loop = true;
 		
 		sdSound.jetpack_volume_last = 0;
 		sdSound.jetpack = new Audio( './audio/jetpack.wav' );
@@ -60,10 +84,20 @@ class sdSound
 		
 		
 		sdSound.ambient_seeker = { x:Math.random()*2-1, y:Math.random()*2-1, tx:Math.random()*2-1, ty:Math.random()*2-1 };
+		/*
+			Ambient 2D map:
+		
+			3 2 6
+			1 - 4
+			- - 5
+		*/
 		sdSound.ambients = [
 			{ x: -1, y: 0, audio: sdSound.ambient1 },
 			{ x: 0, y: -1, audio: sdSound.ambient3 },
-			{ x: 1, y: 0, audio: sdSound.scary_monsters_in_the_dark }
+			{ x: -1, y: -1, audio: sdSound.ambient4_short }, // Short ones in corners so they are more rare
+			{ x: 1, y: 0, audio: sdSound.scary_monsters_in_the_dark },
+			{ x: 1, y: 1, audio: sdSound.scary_monster_spawned3 }, // Short ones in corners so they are more rare,
+			{ x: 1, y: -1, audio: sdSound.scary_monster_spawned2 } // Short ones in corners so they are more rare
 		];
 		
 		sdSound.allowed = false; // Gesture await
@@ -83,6 +117,7 @@ class sdSound
 			sdSound.ambients[ i ].audio.play();
 		
 			sdSound.rain_low_res.play();
+			sdSound.earthquake.play();
 			
 			sdSound.jetpack.play();
 			sdSound.hover_loop.play();
@@ -120,9 +155,13 @@ class sdSound
 		}
 		
 		var rain_intens = 0;
+		var earthquake_intens = 0;
 		
 		if ( sdWeather.only_instance )
-		rain_intens = sdWeather.only_instance.raining_intensity / 100;
+		{
+			rain_intens = sdWeather.only_instance.raining_intensity / 100;
+			earthquake_intens = sdWeather.only_instance.quake_intensity * 1.3 / 100;
+		}
 		
 		var di_sum = 0;
 		for ( var i = 0; i < sdSound.ambients.length; i++ )
@@ -140,6 +179,7 @@ class sdSound
 		//sdSound.ambient3.volume = sdSound.volume_ambient;
 		
 		sdSound.rain_low_res.volume = rain_intens * sdSound.volume_ambient;
+		sdSound.earthquake.volume = earthquake_intens * sdSound.volume_ambient;
 		
 		let count_flying = 0;
 		let count_hover_loop = 0;

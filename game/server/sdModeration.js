@@ -424,6 +424,7 @@ class sdModeration
 					sdWorld.sockets[ i ].emit('SERVICE_MESSAGE', socket.character.title + ' has entered "godmode".' );
 		
 					socket.character._god = true;
+					socket.emit('SET sdWorld.my_entity._god', true );
 				}
 				else
 				if ( parts[ 1 ] === '0' )
@@ -432,6 +433,7 @@ class sdModeration
 					sdWorld.sockets[ i ].emit('SERVICE_MESSAGE', socket.character.title + ' is no longer in "godmode".' );
 				
 					socket.character._god = false;
+					socket.emit('SET sdWorld.my_entity._god', false );
 				}
 				else
 				socket.emit('SERVICE_MESSAGE', 'Type /god 1 or /god 0' );

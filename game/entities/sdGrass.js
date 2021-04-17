@@ -30,9 +30,6 @@ class sdGrass extends sdEntity
 	get hard_collision()
 	{ return false; }
 	
-	/*IsBGEntity() // True for BG entities, should handle collisions separately
-	{ return true; }*/
-	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return true; }
 	

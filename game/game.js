@@ -62,6 +62,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdSlug from './entities/sdSlug.js';
 	import sdBarrel from './entities/sdBarrel.js';
 	import sdEnemyMech from './entities/sdEnemyMech.js';
+	import sdArea from './entities/sdArea.js';
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -104,6 +105,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdSlug.init_class();
 	sdBarrel.init_class();
 	sdEnemyMech.init_class();
+	sdArea.init_class();
 	
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;
@@ -420,7 +422,11 @@ let enf_once = true;
 			sdRenderer.service_mesage = v;
 		});
 
-
+		socket.on( 'SET sdWorld.my_entity._god', ( v )=>
+		{
+			if ( sdWorld.my_entity )
+			sdWorld.my_entity._god = v;
+		});
 		socket.on( 'SET sdWorld.my_entity', ( _net_id )=>
 		{
 			sdWorld.my_entity_net_id = _net_id;

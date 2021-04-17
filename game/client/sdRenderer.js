@@ -399,6 +399,11 @@ class sdRenderer
 		
 		ctx.translate( -sdWorld.camera.x, -sdWorld.camera.y );
 		
+		if ( sdWorld.entity_classes.sdWeather.only_instance )
+		{
+			ctx.translate( 0, Math.sin( sdWorld.time / 30 ) * sdWorld.entity_classes.sdWeather.only_instance.quake_intensity / 100 );
+		}
+		
 		ctx.translate( sdRenderer.screen_width / 2, sdRenderer.screen_height / 2 );
 		
 		// In-world

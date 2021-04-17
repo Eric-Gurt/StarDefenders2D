@@ -15,8 +15,12 @@ import sdCube from './sdCube.js';
 import sdCom from './sdCom.js';
 import sdHover from './sdHover.js';
 import sdDoor from './sdDoor.js';
+import sdBG from './sdBG.js';
+import sdBarrel from './sdBarrel.js';
+import sdBomb from './sdBomb.js';
+import sdTurret from './sdTurret.js';
+import sdArea from './sdArea.js';
 import sdMatterContainer from './sdMatterContainer.js';
-
 
 
 import sdShop from '../client/sdShop.js';
@@ -68,6 +72,8 @@ class sdCharacter extends sdEntity
 			img_death3: [ 6, 28, -90 ],
 			img_death4: [ 6, 29, -90 ]
 		};
+		
+		sdCharacter.ghost_breath_delay = 10 * 30;
 		
 		sdCharacter.img_body_idle = sdWorld.CreateImageFromFile( 'body_idle' );
 		sdCharacter.img_body_armed = sdWorld.CreateImageFromFile( 'body_armed' );
@@ -188,6 +194,9 @@ class sdCharacter extends sdEntity
 	}
 	IsTargetable() // Guns are not targetable when held, same for sdCharacters that are driving something
 	{
+		if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
+		return false;
+	
 		return ( this.driver_of === null );
 	}
 	get _old_score() // Obsolete now
@@ -307,6 +316,7 @@ class sdCharacter extends sdEntity
 		this._last_act_y = this.act_y; // For mid-air jump jetpack activation
 		
 		this.ghosting = false;
+		this._ghost_breath = 0; // Time until next breath as ghost
 		this._last_e_state = 0; // For E key taps to activate ghosting
 		
 		this._upgrade_counters = {}; // key = upgrade
@@ -362,6 +372,10 @@ class sdCharacter extends sdEntity
 	{
 		if ( this.driver_of )
 		if ( !this.driver_of.IsVisible( observer_character ) )
+		return false;
+		
+		if ( !observer_character || !observer_character.is( sdCharacter ) )
+		if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
 		return false;
 		
 		if ( !this.ghosting )
@@ -1001,6 +1015,26 @@ class sdCharacter extends sdEntity
 			{
 				if ( !this.driver_of )
 				{
+					let will_fire = this._key_states.GetKey( 'Mouse1' );
+					
+					if ( will_fire )
+					{
+						if ( !this._inventory[ this.gun_slot ] || !sdGun.classes[ this._inventory[ this.gun_slot ].class ].is_build_gun )
+						if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
+						{
+							will_fire = false;
+							
+							switch ( ~~( Math.random() * 5 ) )
+							{
+								case 0: this.Say( 'This is a no-combat zone' ); break;
+								case 1: this.Say( 'Combat is not allowed here' ); break;
+								case 2: this.Say( 'This place is meant to be peaceful' ); break;
+								case 3: this.Say( 'Combat is restricted in this area' ); break;
+								case 4: this.Say( 'Admins have restricted combat in this area' ); break;
+							}
+						}
+					}
+					
 					if ( this._inventory[ this.gun_slot ] )
 					{
 						if ( this._key_states.GetKey( 'KeyR' ) &&
@@ -1012,7 +1046,7 @@ class sdCharacter extends sdEntity
 						else
 						{
 
-							if ( this._key_states.GetKey( 'Mouse1' ) )
+							if ( will_fire )
 							{
 								if ( this._inventory[ this.gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ), offset ) )
 								{
@@ -1023,7 +1057,7 @@ class sdCharacter extends sdEntity
 					}
 					else
 					{
-						if ( this._key_states.GetKey( 'Mouse1' ) )
+						if ( will_fire )
 						{
 							if ( this.fire_anim <= 0 )
 							{
@@ -1196,6 +1230,8 @@ class sdCharacter extends sdEntity
 		//leg_height		*= 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7;
 		//new_leg_height  *= 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7;
 	
+		let last_ledge_holding = this._ledge_holding;
+	 
 		let ledge_holding = false;
 		this._ledge_holding = false;
 	
@@ -1442,7 +1478,15 @@ class sdCharacter extends sdEntity
 				}
 				else
 				if ( this._ghost_allowed )
-				this.ghosting = !this.ghosting;
+				{
+					this.ghosting = !this.ghosting;
+					this._ghost_breath = sdCharacter.ghost_breath_delay;
+					
+					if ( this.ghosting )
+					sdSound.PlaySound({ name:'ghost_start', x:this.x, y:this.y, volume:1 });
+					else
+					sdSound.PlaySound({ name:'ghost_stop', x:this.x, y:this.y, volume:1 });
+				}
 			}
 		}
 	
@@ -1460,6 +1504,13 @@ class sdCharacter extends sdEntity
 			this.ghosting = false;
 			else
 			this.matter -= fuel_cost;
+		
+			this._ghost_breath -= GSPEED;
+			if ( this._ghost_breath < 0 )
+			{
+				this._ghost_breath = sdCharacter.ghost_breath_delay;
+				sdSound.PlaySound({ name:'ghost_breath', x:this.x, y:this.y, volume:1 });
+			}
 		}
 		
 		if ( this.flying )
@@ -1492,6 +1543,7 @@ class sdCharacter extends sdEntity
 			if ( this._jetpack_allowed &&
 				 this.act_y === -1 &&
 				 this._last_act_y !== -1 &&
+				 !last_ledge_holding &&
 				 !this.stands )
 			this.flying = true;
 		
@@ -1949,7 +2001,6 @@ class sdCharacter extends sdEntity
 	}
 	CheckBuildObjectPossibilityNow( fake_ent )
 	{
-		//if ( !fake_ent.IsBGEntity )
 		fake_ent.GetIgnoredEntityClasses = sdEntity.prototype.GetIgnoredEntityClasses; // Discard effect of this method because doors will have problems in else case
 		
 		if ( fake_ent.GetClass() === 'sdGun' )
@@ -1957,25 +2008,83 @@ class sdCharacter extends sdEntity
 			fake_ent.GetIgnoredEntityClasses = ()=>[ 'sdCharacter', 'sdGun' ];
 		}
 		
-		if ( fake_ent.CanMoveWithoutOverlap( fake_ent.x, fake_ent.y, 0.00001 ) ) // Very small so entity's velocity can be enough to escape this overlap
+		if ( sdWorld.Dist2D( this.x, this.y, this._build_params.x, this._build_params.y ) < 64 || this._god )
 		{
-			if ( sdWorld.Dist2D( this.x, this.y, this._build_params.x, this._build_params.y ) < 64 )
+			if ( this.stands || this._in_water || this.flying || ( this._hook_relative_to && sdWorld.Dist2D_Vector( this.sx, this.sy ) < 2 ) || this._god )
 			{
-				if ( this.stands || this._in_water || this.flying || ( this._hook_relative_to && sdWorld.Dist2D_Vector( this.sx, this.sy ) < 2 ) )
-				return true;
+				if ( fake_ent.CanMoveWithoutOverlap( fake_ent.x, fake_ent.y, 0.00001 ) ) // Very small so entity's velocity can be enough to escape this overlap
+				{
+					if ( fake_ent.IsEarlyThreat() )
+					//if ( fake_ent.is( sdTurret ) || fake_ent.is( sdCom ) || fake_ent.is( sdBarrel ) || fake_ent.is( sdBomb ) || ( fake_ent.is( sdBlock ) && fake_ent.material === sdBlock.MATERIAL_SHARP ) )
+					{
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, this._build_params.x, this._build_params.y, null, null, sdCom.com_visibility_unignored_classes ) || this._god )
+						{
+						}
+						else
+						{
+							sdCharacter.last_build_deny_reason = 'Can\'t build this type of entity through wall';
+							return false;
+						}
+					}
+					
+					if ( !this._god )
+					if ( !sdArea.CheckPointDamageAllowed( this._build_params.x, this._build_params.y ) )
+					{
+						sdCharacter.last_build_deny_reason = 'This area is currently restricted from combat and building';
+						return false;
+					}
+					
+					//if ( sdWorld.Dist2D( this.x, this.y, this._build_params.x, this._build_params.y ) < 64 )
+					//{
+						//if ( this.stands || this._in_water || this.flying || ( this._hook_relative_to && sdWorld.Dist2D_Vector( this.sx, this.sy ) < 2 ) )
+						return true;
+						//else
+						//sdCharacter.last_build_deny_reason = 'I\'d need to stand on something or at least use jetpack';
+					//}
+					//else
+					//sdCharacter.last_build_deny_reason = 'Can\'t build that far';
+				}
 				else
-				sdCharacter.last_build_deny_reason = 'I\'d need to stand on something or at least use jetpack';
+				{
+					if ( sdWorld.is_server )
+					{
+						if ( sdWorld.last_hit_entity )
+						{
+							if ( fake_ent.is( sdBG ) && sdWorld.last_hit_entity.is( sdBG ) )
+							{
+								if ( sdWorld.last_hit_entity.material === sdBG.MATERIAL_GROUND )
+								{
+									sdCharacter.last_build_deny_reason = null;
+									sdWorld.last_hit_entity.remove();
+									return false;
+								}
+								else
+								{
+									sdCharacter.last_build_deny_reason = 'Holding Left Shift key while shooting could help getting rid of those';
+								}
+							}
+							else
+							if ( fake_ent.is( sdArea ) && fake_ent.type === sdArea.TYPE_ERASER_AREA && sdWorld.last_hit_entity.is( sdArea ) )
+							{
+								sdCharacter.last_build_deny_reason = 'Erasing...';
+								sdWorld.last_hit_entity.remove();
+								return false;
+							}
+							else
+							{
+								//sdCharacter.last_build_deny_reason = 'It overlaps with something';
+								sdCharacter.last_build_deny_reason = 'It overlaps with ' + sdWorld.last_hit_entity.GetClass();
+							}
+						}
+					}
+					
+				}
 			}
 			else
-			sdCharacter.last_build_deny_reason = 'Can\'t build that far';
+			sdCharacter.last_build_deny_reason = 'I\'d need to stand on something or at least use jetpack or grappling hook';
 		}
 		else
-		{
-			if ( fake_ent.IsBGEntity() )
-			sdCharacter.last_build_deny_reason = 'Holding Left Shift key while shooting could help getting rid of those';
-			else
-			sdCharacter.last_build_deny_reason = 'It overlaps with something';
-		}
+		sdCharacter.last_build_deny_reason = 'Can\'t build that far';
 		
 		return false;
 	}
@@ -2001,6 +2110,8 @@ class sdCharacter extends sdEntity
 			
 		//this._build_params._spawner = this;
 		
+		
+		// Note: X and Y are weird here. This can cause hash array being incorrect - hash update is important to do after entity was placed properly! It can not be done earlier due to entity sizes being unknown too
 		let fake_ent = new sdWorld.entity_classes[ this._build_params._class ]( this._build_params );
 		
 		this._build_params.x = this.look_x;

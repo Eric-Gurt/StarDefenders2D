@@ -11,6 +11,7 @@ import sdStorage from './sdStorage.js';
 import sdBlock from './sdBlock.js';
 import sdCom from './sdCom.js';
 import sdBG from './sdBG.js';
+import sdArea from './sdArea.js';
 
 import sdGunClass from './sdGunClass.js';
 
@@ -88,6 +89,23 @@ class sdGun extends sdEntity
 			return;
 		
 			if ( from_entity.is( sdBullet ) )
+			return;
+		
+			if ( from_entity.is( sdArea ) )
+			if ( from_entity.type === sdArea.TYPE_PREVENT_DAMAGE )
+			{
+				this.dangerous = false;
+				return;
+			}
+			
+			let from_entity_ignored_classes = from_entity.GetIgnoredEntityClasses();
+			if ( from_entity_ignored_classes )
+			if ( from_entity_ignored_classes.indexOf( 'sdGun' ) !== -1 ) // Mostly it is here to prevent sword-sdArea reaction
+			return;
+	
+			let from_entity_nonignored_classes = from_entity.GetNonIgnoredEntityClasses();
+			if ( from_entity_nonignored_classes )
+			if ( from_entity_nonignored_classes.indexOf( 'sdGun' ) === -1 ) // Mostly it is here to prevent sword-sdArea reaction
 			return;
 			
 			if ( from_entity.is( sdCharacter ) )
@@ -267,6 +285,7 @@ class sdGun extends sdEntity
 				//console.log('Unplaceable' , sdCharacter.last_build_deny_reason );
 				
 				if ( this._held_by ) // Apparently can be not held at this moment
+				if ( sdCharacter.last_build_deny_reason )
 				this._held_by.Say( sdCharacter.last_build_deny_reason );
 				
 				//console.log( 'say complete' );
@@ -278,6 +297,11 @@ class sdGun extends sdEntity
 		
 			let cost = ent.MeasureMatterCost();
 			
+			if ( cost === Infinity )
+			if ( this._held_by )
+			if ( this._held_by._god )
+			cost = 0;
+
 			
 			ent.onRemove = ent.onRemoveAsFakeEntity; // Disable any removal logic
 			ent.remove();
@@ -383,7 +407,7 @@ class sdGun extends sdEntity
 					else
 					{
 						if ( ammo_cost === Infinity )
-						this._held_by.Say( 'Nothing to build or upgrade' );
+						this._held_by.Say( 'Nothing to build or upgrade' ); // Also will happen to regular users trying to build admin entities like sdArea
 						else
 						if ( ammo_cost > this._held_by.matter_max )
 						this._held_by.Say( 'Need matter capacity upgrade and more matter' );
@@ -430,6 +454,10 @@ class sdGun extends sdEntity
 							ent.onBuilt();
 
 							sdEntity.entities.push( ent );
+							
+							// Initially object is not spawned at cursor but near it. It means that huge static objects (sdBG, sdArea) will have incorrect hash array which will cause them to not have collisions when needed)
+							if ( ent._affected_hash_arrays.length > 0 ) // Easier than checking for hiberstates
+							sdWorld.UpdateHashPosition( ent, false, false );
 						}
 					}
 					

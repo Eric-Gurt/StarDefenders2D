@@ -71,6 +71,9 @@ class sdEntity
 		return false;
 	}
 	
+	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
+	{ return false; }
+	
 	Impact( vel ) // fall damage basically
 	{
 		//if ( vel > 7 )
@@ -97,8 +100,14 @@ class sdEntity
 			}
 			*/
 
-			this.onMovementInRange( hit_what );
-			hit_what.onMovementInRange( this );
+
+			// Few more tests for crystals that hit 2 amplifiers at the same time
+			if ( !this._is_being_removed )
+			if ( !hit_what._is_being_removed )
+			{
+				this.onMovementInRange( hit_what );
+				hit_what.onMovementInRange( this );
+			}
 			
 			//this.SharePhysAwake( hit_what );
 			
@@ -271,6 +280,16 @@ class sdEntity
 			}
 		}
 		
+		let CheckPointDamageAllowed_result = undefined;
+		
+		const CheckPointDamageAllowed = ()=>
+		{
+			if ( CheckPointDamageAllowed_result === undefined )
+			CheckPointDamageAllowed_result = sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x, this.y );
+			else
+			return CheckPointDamageAllowed_result;
+		};
+		
 		let new_x = this.x + this.sx * GSPEED;
 		let new_y = this.y + this.sy * GSPEED;
 		
@@ -337,9 +356,12 @@ class sdEntity
 						sdWorld.last_hit_entity.sy += this.sy * ( 1 - self_effect_scale );
 						//sdWorld.last_hit_entity.Impulse( 0, this.sy ); Impulse is reworked and needs some kind of hint that Impulse is not server-side only, so velocity change isn't doubled on client-side
 					}
+					if ( CheckPointDamageAllowed() )
 					sdWorld.last_hit_entity.Impact( Math.abs( this.sy ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
 				}
+				if ( CheckPointDamageAllowed() )
 				this.Impact( Math.abs( this.sy ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
+			
 				this.sy = - this.sy * bounce_intensity;
 				this.x = new_x;
 				
@@ -363,9 +385,13 @@ class sdEntity
 						sdWorld.last_hit_entity.sx += this.sx * ( 1 - self_effect_scale );
 						//sdWorld.last_hit_entity.Impulse( this.sx, 0 ); Impulse is reworked and needs some kind of hint that Impulse is not server-side only, so velocity change isn't doubled on client-side
 					}
+					
+					if ( CheckPointDamageAllowed() )
 					sdWorld.last_hit_entity.Impact( Math.abs( this.sx ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
 				}
+				if ( CheckPointDamageAllowed() )
 				this.Impact( Math.abs( this.sx ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
+			
 				this.sx = - this.sx * bounce_intensity;
 				this.y = new_y;
 				
@@ -389,10 +415,13 @@ class sdEntity
 					if ( typeof sdWorld.last_hit_entity.sy !== 'undefined' )
 					sdWorld.last_hit_entity.sy += this.sy * ( 1 - self_effect_scale );
 				
+					if ( CheckPointDamageAllowed() )
 					sdWorld.last_hit_entity.Impact( sdWorld.Dist2D_Vector( this.sx, this.sy ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
 				}
 			
+				if ( CheckPointDamageAllowed() )
 				this.Impact( sdWorld.Dist2D_Vector( this.sx, this.sy ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
+			
 				this.sx = - this.sx * bounce_intensity;
 				this.sy = - this.sy * bounce_intensity;
 			}
@@ -403,7 +432,7 @@ class sdEntity
 	}
 	MeasureMatterCost()
 	{
-		return Infinity;
+		return Infinity; // Infinity means godmode players only
 	}
 	RequireSpawnAlign()
 	{ return this.is_static; }
@@ -421,8 +450,8 @@ class sdEntity
 	{
 		return null;
 	}
-	IsBGEntity() // True for BG entities, should handle collisions separately
-	{ return false; }
+	IsBGEntity() // 1 for BG entities, should handle collisions separately
+	{ return 0; }
 	CanMoveWithoutOverlap( new_x, new_y, safe_bound=0, custom_filtering_method=null ) // Safe bound used to check if sdCharacter can stand and not just collides with walls nearby. Also due to number rounding clients should better have it (or else they will teleport while sliding on vertical wall)
 	{
 		var ignored_classes = this.GetIgnoredEntityClasses();
@@ -687,7 +716,7 @@ class sdEntity
 	}
 	
 	
-	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
+	IsVisible( observer_entity ) // Can be used to hide guns that are held, they will not be synced this way
 	{
 		return true;
 	}
