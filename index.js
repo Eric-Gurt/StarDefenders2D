@@ -191,7 +191,7 @@ import sdGrass from './game/entities/sdGrass.js';
 import sdSlug from './game/entities/sdSlug.js';
 import sdBarrel from './game/entities/sdBarrel.js';
 import sdEnemyMech from './game/entities/sdEnemyMech.js';
-
+import sdCrystalCombiner from './game/entities/sdCrystalCombiner.js';
 
 import LZW from './game/server/LZW.js';
 import sdSnapPack from './game/server/sdSnapPack.js';
@@ -302,6 +302,7 @@ sdGrass.init_class();
 sdSlug.init_class();
 sdBarrel.init_class();
 sdEnemyMech.init_class();
+sdCrystalCombiner.init_class();
 
 sdShop.init_class(); // requires plenty of classes due to consts usage
 LZW.init_class();
@@ -2646,6 +2647,33 @@ io.on("connection", (socket) =>
 			}
 			else
 			socket.emit('SERVICE_MESSAGE', 'Matter amplifier no longer exists' );
+		}
+	});
+
+	socket.on('CRYSTAL_COMBINE', ( arr ) => { 
+		
+		if ( !( arr instanceof Array ) )
+		return;
+	
+		if ( socket.character ) 
+		if ( socket.character.hea > 0 ) 
+		{
+			let net_id = arr[ 0 ];
+			let ent = sdEntity.GetObjectByClassAndNetId( 'sdCrystalCombiner', net_id );
+			if ( ent !== null )
+			{
+				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdStorage.access_range ) >= 0 )
+				{
+					if ( ent.crystals === 2 )
+					ent.CombineCrystals();
+					else
+					socket.emit('SERVICE_MESSAGE', 'Crystal combiner needs 2 crystals to combine them' );
+				}
+				else
+				socket.emit('SERVICE_MESSAGE', 'Crystal combiner is too far' );
+			}
+			else
+			socket.emit('SERVICE_MESSAGE', 'Crystal combiner no longer exists' );
 		}
 	});
 	
