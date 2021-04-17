@@ -495,7 +495,7 @@ class sdWeather extends sdEntity
 				
 				let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
-				allowed_event_ids = [ 8 ]; // Hack
+				//allowed_event_ids = [ 8 ]; // Hack
 				
 				for ( let d = 0; d < allowed_event_ids.length; d++ )
 				if ( disallowed_ones.indexOf( allowed_event_ids[ d ] ) !== -1 )
