@@ -319,7 +319,7 @@ class sdCrystalCombiner extends sdEntity
 	MeasureMatterCost()
 	{
 	//	return 0; // Hack
-		return 50 + this._hmax * sdWorld.damage_to_matter + this.matter;
+		return 1500 + this._hmax * sdWorld.damage_to_matter + this.matter;
 	}
 }
 //sdCrystalCombiner.init_class();
