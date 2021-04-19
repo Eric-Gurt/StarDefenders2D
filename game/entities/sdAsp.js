@@ -200,6 +200,8 @@ class sdAsp extends sdEntity
 					this.sx += dx;
 					this.sy += dy;
 
+					//if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) > 6 )
+					//console.log( sdWorld.Dist2D_Vector( this.sx, this.sy ) );
 					
 					//this._last_stand_on = null; // wait for next collision
 				}
@@ -220,13 +222,16 @@ class sdAsp extends sdEntity
 					let dx = ( sdWorld.sockets[ i ].character.x + Math.random() * 1000 - 500 - this.x );
 					let dy = ( sdWorld.sockets[ i ].character.y + Math.random() * 1000 - 500 - this.y );
 					
-					
-					let di = sdWorld.Dist2D( dx,dy,0,0 );
+					let di = sdWorld.Dist2D_Vector( dx, dy );
 
+					if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) < 4 )
 					if ( di > 1 )
 					{
 						this.sx += dx / di * 0.2;
 						this.sy += dy / di * 0.2;
+
+						//if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) > 6 )
+						//console.log( sdWorld.Dist2D_Vector( this.sx, this.sy ) );
 						
 						break;
 					}

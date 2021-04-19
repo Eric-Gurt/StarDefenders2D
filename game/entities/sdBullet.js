@@ -122,6 +122,8 @@ class sdBullet extends sdEntity
 		this.acx = 0;
 		this.acy = 0;
 		
+		this._first_frame = true; // Bad approach but early removal isn't good either. Also impossible to know if projectile is hook this early so far
+		
 		// Defining this in method that is not called on this object and passed as collision filtering thing
 		//this.BouncyCollisionFiltering = this.BouncyCollisionFiltering.bind( this ); Bad, snapshot will enumerate it
 		/*Object.defineProperty( this, 'BouncyCollisionFiltering',
@@ -243,6 +245,17 @@ class sdBullet extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		if ( this._first_frame )
+		{
+			this._first_frame = false;
+			if ( !this._hook )
+			if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
+			{
+				this.remove();
+				return;
+			}
+		}
+		
 		this.time_left -= GSPEED;
 		if ( this.time_left <= 0 )
 		{
