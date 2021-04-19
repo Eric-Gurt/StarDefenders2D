@@ -11,8 +11,21 @@ class sdSnapPack
 		sdSnapPack.recent_worst_case_changed = false;
 		sdSnapPack.all_time_worst_case_changed = false;
 		
-		sdSnapPack.apply_lzw_for_snapshots = true; // Apparently some servers would prefer CPU-intensive copression over more data...
+		//sdSnapPack.apply_lzw_for_snapshots = true; // Apparently some servers would prefer CPU-intensive comression over more data...
+		sdSnapPack.apply_lzw_for_snapshots = false; // LZW isn't fast, 10% of total performance for just 1 user in some cases. Will use it for events only for now
+		
+		//sdSnapPack.textEncoder = new TextEncoder(); Not available natively at Node
+		//sdSnapPack.textDecoder = new TextDecoder();
+		
+		// sdSnapPack.textEncoder.encode( str )
+		// sdSnapPack.textDecoder.decode( arr )
 	}
+	/*static compressArrayBuffer( input )
+	{
+		const stream = new Response( input ).body.pipeThrough( new CompressionStream( 'deflate' ) );
+		return new Response( stream ).arrayBuffer();
+	}*/
+	
 	/*
 	static f( a )
 	{

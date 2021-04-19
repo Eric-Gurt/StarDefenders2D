@@ -295,6 +295,7 @@ let enf_once = true;
 			if ( !SOCKET_IO_MODE )
 			stuff_arr = JSON.parse( LZW.lzw_decode( stuff_arr ) );
 			
+			
 			let snapshot = sdSnapPack.Decompress( stuff_arr[ 0 ] );
 			let score = stuff_arr[ 1 ];
 			let leaders = JSON.parse( LZW.lzw_decode( stuff_arr[ 2 ] ) );

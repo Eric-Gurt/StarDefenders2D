@@ -270,6 +270,13 @@ globalThis.getStackTrace = ()=>
 	}
 };
 
+// Early error catching
+/*if ( false )
+{
+	console.log('Early error catching enabled, waiting 10 seconds before doing anything...');
+	await new Promise(resolve => setTimeout(resolve, 10000));
+}*/
+
 sdWorld.init_class();
 sdEntity.init_class();
 sdCharacter.init_class();
@@ -1061,7 +1068,8 @@ sdWorld.server_config = {};
 
 	eval( 'sdWorld.server_config = ' + file_raw );
 }
-	
+
+
 
 sdWorld.snapshot_path_const = snapshot_path_const;
 sdWorld.timewarp_path_const = timewarp_path_const;
@@ -1289,7 +1297,13 @@ try
 		try
 		{
 			ent = sdEntity.GetObjectFromSnapshot( save_obj.entities[ i ] );
-			
+			/*
+			if ( !ent ) // This can happen if saved entity is being removed
+			{
+				debugger
+				ent = sdEntity.GetObjectFromSnapshot( save_obj.entities[ i ] );
+			}
+			*/
 			if ( ent )
 			if ( isNaN( ent.x ) || isNaN( ent.y ) || ent.x === null || ent.y === null )
 			{
@@ -1302,6 +1316,7 @@ try
 			}
 			
 			// This is done because some variable-size entities might end up having wrong hash areas occupied after reboot, for example sdArea. Possibly due to _hiberstate being not really set since it already had final target value
+			if ( ent )
 			if ( !ent._is_being_removed )
 			{
 				if ( ent._affected_hash_arrays.length > 0 ) // Easier than checking for hiberstates
@@ -1633,10 +1648,6 @@ setInterval( ()=>
 }, 500 );*/
 
 
-/*if ( sdWorld.is_server )
-{
-	await new Promise(resolve => setTimeout(resolve, 10000));
-}*/
 sdModeration.init_class();
 
 if ( !SOCKET_IO_MODE )
@@ -3190,6 +3201,8 @@ setInterval( ()=>
 						socket.GetScore(), // 1
 						LZW.lzw_encode( JSON.stringify( leaders ) ), // 2
 						LZW.lzw_encode( JSON.stringify( sd_events ) ), // 3
+						//leaders, // 2
+						//sd_events, // 3
 						Math.round( socket.character._force_add_sx * 1000 ) / 1000, // 4
 						Math.round( socket.character._force_add_sy * 1000 ) / 1000, // 5
 						Math.max( -1, socket.character._position_velocity_forced_until - sdWorld.time ), // 6
