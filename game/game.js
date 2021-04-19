@@ -63,6 +63,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdBarrel from './entities/sdBarrel.js';
 	import sdEnemyMech from './entities/sdEnemyMech.js';
 	import sdArea from './entities/sdArea.js';
+	import sdCrystalCombiner from './entities/sdCrystalCombiner.js';
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -106,6 +107,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdBarrel.init_class();
 	sdEnemyMech.init_class();
 	sdArea.init_class();
+	sdCrystalCombiner.init_class();
 	
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;

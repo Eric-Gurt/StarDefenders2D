@@ -49,6 +49,19 @@ class sdContextMenu
 			{
 				sdContextMenu.options = [];
 				
+				if ( sdContextMenu.current_target.GetClass() === 'sdCrystalCombiner' )
+				{
+					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdStorage.access_range ) >= 0 )
+					{
+						sdContextMenu.options.push({ title: 'Combine crystals',
+							action: ()=>
+							{
+								globalThis.socket.emit( 'CRYSTAL_COMBINE', [ sdContextMenu.current_target._net_id ] );
+							}
+						});
+					}
+				}
+				else
 				if ( sdContextMenu.current_target.GetClass() === 'sdMatterAmplifier' )
 				{
 					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdStorage.access_range ) >= 0 )
