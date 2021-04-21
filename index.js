@@ -193,6 +193,7 @@ import sdBarrel from './game/entities/sdBarrel.js';
 import sdEnemyMech from './game/entities/sdEnemyMech.js';
 import sdArea from './game/entities/sdArea.js';
 import sdCrystalCombiner from './game/entities/sdCrystalCombiner.js';
+import sdUpgradeStation from './game/entities/sdUpgradeStation.js';
 
 
 import LZW from './game/server/LZW.js';
@@ -313,6 +314,7 @@ sdBarrel.init_class();
 sdEnemyMech.init_class();
 sdArea.init_class();
 sdCrystalCombiner.init_class();
+sdUpgradeStation.init_class();
 
 sdShop.init_class(); // requires plenty of classes due to consts usage
 LZW.init_class();
@@ -2645,6 +2647,63 @@ io.on("connection", (socket) =>
 			}
 			else
 			socket.emit('SERVICE_MESSAGE', 'Storage no longer exists' );
+		}
+	});
+	socket.on('UPGRADE_GET_EQUIP', ( arr ) => { 
+		
+		if ( !( arr instanceof Array ) )
+		return;
+	
+		if ( socket.character ) 
+		if ( socket.character.hea > 0 ) 
+		{
+			let net_id = arr[ 0 ];
+			let ent = sdEntity.GetObjectByClassAndNetId( 'sdUpgradeStation', net_id );
+			if ( ent !== null )
+			{
+				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdStorage.access_range ) >= 0 )
+				{
+					if ( ent._cooldown <= 0 )
+					{
+						if ( ent.matter >= 500 )
+						ent.DropBasicEquipment( socket.character );
+						else
+						socket.emit('SERVICE_MESSAGE', 'Upgrade station needs at least 500 matter!' );
+					}
+					else
+					socket.emit('SERVICE_MESSAGE', 'Upgrade station is generating new weapons, please wait ' + ent._cooldown / 30 + ' seconds.' ); // seems like GSPEED creates an error so this replacement should be semi-accurate
+				}
+				else
+				socket.emit('SERVICE_MESSAGE', 'Upgrade station is too far' );
+			}
+			else
+			socket.emit('SERVICE_MESSAGE', 'Upgrade station no longer exists' );
+		}
+	});
+	socket.on('UPGRADE_CHAR', ( arr ) => { 
+		
+		if ( !( arr instanceof Array ) )
+		return;
+	
+		if ( socket.character ) 
+		if ( socket.character.hea > 0 ) 
+		{
+			let net_id = arr[ 0 ];
+			let ent = sdEntity.GetObjectByClassAndNetId( 'sdUpgradeStation', net_id );
+			if ( ent !== null )
+			{
+				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdStorage.access_range ) >= 0 )
+				{
+					if ( ent.matter >= 5000 )
+					ent.UpgradeCharacter( socket.character );
+					else
+					socket.emit('SERVICE_MESSAGE', 'Upgrade station needs at least 5000 matter!' );
+				}
+				else
+				socket.emit('SERVICE_MESSAGE', 'Upgrade station is too far' );
+			}
+			else
+			socket.emit('SERVICE_MESSAGE', 'Upgrade station no longer exists' );
 		}
 	});
 	socket.on('CRYSTAL_COMBINE', ( arr ) => { 
