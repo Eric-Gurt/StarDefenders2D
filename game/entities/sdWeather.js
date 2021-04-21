@@ -788,7 +788,7 @@ class sdWeather extends sdEntity
 										mech_entity.y = y;
 
 										//sdWorld.UpdateHashPosition( ent, false );
-										console.log('Flying mech spawned!');
+										//console.log('Flying mech spawned!');
 										break;
 									}
 
