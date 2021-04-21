@@ -122,6 +122,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 8, _category:'Base equipment', _min_build_tool_level: 1 });
 		sdShop.options.push({ _class: 'sdCommandCentre', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdCrystalCombiner', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdUpgradeStation', _category:'Base equipment', _min_build_tool_level: 1  });
 		
 		for ( var i = 0; i < 3; i++ )
 		{
