@@ -735,6 +735,14 @@ class sdGun extends sdEntity
 				ctx.filter = sdWorld.GetCrystalHue( v );
 			}
 			
+			if ( this.class === sdGun.CLASS_TRIPLE_RAIL || this.class === sdGun.CLASS_RAIL_PISTOL || this.class === sdGun.CLASS_RAIL_SHOTGUN || this.class === sdGun.CLASS_CUBE_SHARD ) // Cube weaponry, looked up color wheel since sdFilter is not worth it
+			{
+				if ( this.extra === 1 )
+				{
+				ctx.filter = 'hue-rotate(-120deg) saturate(100)';
+				}
+			}
+
 			if ( sdGun.classes[ this.class ].is_sword )
 			//if ( this.class === sdGun.CLASS_SWORD )
 			if ( this._held_by )
