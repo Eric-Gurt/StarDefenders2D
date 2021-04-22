@@ -182,6 +182,7 @@ class sdCube extends sdEntity
 
 						gun.sx = sx;
 						gun.sy = sy;
+						gun.extra = ( this.is_huge ? 1 : 0 ); // color it like big or small cube?
 						sdEntity.entities.push( gun );
 
 					}, 500 );
