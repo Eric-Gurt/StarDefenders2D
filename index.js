@@ -1919,6 +1919,7 @@ io.on("connection", (socket) =>
 	socket.SyncFFAWarning = ()=>
 	{
 		// Sync respawn blocks
+		if ( sockets_by_ip[ ip ] ) // It is possible to get a case where user would fully disconnect. This check prevents crash.
 		for ( var i = 0; i < sockets_by_ip[ ip ].length; i++ )
 		{
 			socket.respawn_block_until = Math.max( socket.respawn_block_until, sockets_by_ip[ ip ][ i ].respawn_block_until );
