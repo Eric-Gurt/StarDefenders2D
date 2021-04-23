@@ -2925,28 +2925,13 @@ setInterval( ()=>
 									//observed_statics.push( arr[ i2 ] );
 									observed_statics_map.add( arr[ i2 ] );
 
-									/*var pos_in_known = socket.known_statics.indexOf( arr[ i2 ] );
-
-									if ( pos_in_known === -1 )
-									{
-										socket.known_statics.push( arr[ i2 ] );
-										socket.known_statics_versions.push( arr[ i2 ]._update_version );
-
-										snapshot.push( arr[ i2 ].GetSnapshot( frame ) );
-									}
-									else
-									{
-										if ( socket.known_statics_versions[ pos_in_known ] !== arr[ i2 ]._update_version )
-										snapshot.push( arr[ i2 ].GetSnapshot( frame ) ); // Update actually needed
-									}*/
-
 									if ( socket.known_statics_versions_map.has( arr[ i2 ] ) )
 									{
 										if ( socket.known_statics_versions_map.get( arr[ i2 ] ) !== arr[ i2 ]._update_version && snapshot.length < MaxCompleteEntitiesCount )
 										{
 											socket.known_statics_versions_map.set( arr[ i2 ], arr[ i2 ]._update_version ); // Why it was missing?
 
-											var snap = arr[ i2 ].GetSnapshot( frame );
+											var snap = arr[ i2 ].GetSnapshot( frame, false, socket.character );
 											snapshot.push( snap ); // Update actually needed
 											snapshot_only_statics.push( snap );
 										}
@@ -2959,7 +2944,7 @@ setInterval( ()=>
 										//socket.known_statics_map.set( arr[ i2 ], arr[ i2 ] );
 										socket.known_statics_versions_map.set( arr[ i2 ], arr[ i2 ]._update_version );
 
-										var snap = arr[ i2 ].GetSnapshot( frame );
+										var snap = arr[ i2 ].GetSnapshot( frame, false, socket.character );
 										snapshot.push( snap );
 										snapshot_only_statics.push( snap );
 									}
@@ -3022,11 +3007,11 @@ setInterval( ()=>
 					}
 
 					for ( var i2 = 0; i2 < sdEntity.global_entities.length; i2++ ) // So it is drawn on back
-					snapshot.push( sdEntity.global_entities[ i2 ].GetSnapshot( frame ) );
+					snapshot.push( sdEntity.global_entities[ i2 ].GetSnapshot( frame, false, socket.character ) );
 
 					for ( var i2 = 0; i2 < observed_entities.length; i2++ )
 					if ( !observed_entities[ i2 ].IsGlobalEntity() ) // Global entities are already sent few lines above
-					snapshot.push( observed_entities[ i2 ].GetSnapshot( frame ) );
+					snapshot.push( observed_entities[ i2 ].GetSnapshot( frame, false, socket.character ) );
 				
 					//var isTransportWritable = socket.io.engine && socket.io.engine.transport && socket.io.engine.transport.writable;
 					//console.log( isTransportWritable );

@@ -74,8 +74,9 @@ class sdSandWorm extends sdEntity
 		this._hp_main_max = this._hmax * 7;
 		this._hp_main = this._hp_main_max; // Actual hitpoints
 		
-		this._in_surface = false;
-		this._in_water = false;
+		this._in_surface_time = sdWorld.time;
+		this._in_surface = null;
+		this._in_water = null;
 		
 		this._last_attack = sdWorld.time;
 		
@@ -254,12 +255,25 @@ class sdSandWorm extends sdEntity
 	{
 		sdWorld.last_hit_entity = null;
 		
+		// Backwards compatibility - remove this block later
+		//
+		if ( typeof this._in_surface === 'boolean' )
+		this._in_surface = null;
+		//
+		
+		
+		if ( this._in_surface )
+		if ( Math.abs( this._in_surface_time - sdWorld.time ) > 100 )
+		this._in_surface = null;
+		
 		//let in_surface = sdWorld.CheckWallExists( this.x, this.y, null, null, sdSandWorm.travel_in );
-		let in_surface = sdWorld.CheckWallExistsBox( this.x + this.hitbox_x1, this.y + this.hitbox_y1, this.x + this.hitbox_x2, this.y + this.hitbox_y2, null, null, sdSandWorm.travel_in );
+		//let in_surface = ( this.death_anim === 0 ) ? sdWorld.CheckWallExistsBox( this.x + this.hitbox_x1, this.y + this.hitbox_y1, this.x + this.hitbox_x2, this.y + this.hitbox_y2, null, null, sdSandWorm.travel_in ) : this._in_surface;
+		let in_surface = this._in_surface;
 		
 		//if ( sdWorld.last_hit_entity.is( sdBlock )
 		
-		let in_water = sdWorld.last_hit_entity && sdWorld.last_hit_entity.is( sdWater );
+		//let in_water = sdWorld.last_hit_entity && sdWorld.last_hit_entity.is( sdWater );
+		let in_water = this._in_surface && this._in_surface.is( sdWater );
 		
 		if ( in_surface )
 		if ( this.death_anim === 0 )
@@ -275,8 +289,8 @@ class sdSandWorm extends sdEntity
 			{
 				//if ( this._in_surface !== in_surface )
 				//if ( Math.random() < 0.1 )
-				if ( sdWorld.last_hit_entity )
-				if ( sdWorld.last_hit_entity.is( sdBlock ) )
+				if ( in_surface )
+				if ( in_surface.is( sdBlock ) )
 				if ( !sdWorld.CheckWallExists( this.x, this.y, null, null, sdSandWorm.travel_in ) )
 				{
 					let x = this.hitbox_x1 + ( this.hitbox_x2 - this.hitbox_x1 ) * Math.random();
@@ -289,7 +303,7 @@ class sdSandWorm extends sdEntity
 			}
 		}
 		
-		this._in_surface = in_surface;
+		//this._in_surface = in_surface;
 		this._in_water = in_water;
 		
 		if ( !this.towards_tail )
@@ -606,6 +620,12 @@ class sdSandWorm extends sdEntity
 	
 		if ( from_entity.IsBGEntity() > 0 )
 		return;
+	
+		if ( sdSandWorm.travel_in.indexOf( from_entity.GetClass() ) !== -1 )
+		{
+			this._in_surface = from_entity;
+			this._in_surface_time = sdWorld.time;
+		}
 		
 		if ( !from_entity.hard_collision )
 		return;
@@ -613,7 +633,7 @@ class sdSandWorm extends sdEntity
 		if ( !from_entity.IsTargetable() )
 		return;
 	
-		this._in_surface = true;
+		//this._in_surface = true;
 		
 		if ( sdWorld.is_server )
 		if ( this.death_anim === 0 )

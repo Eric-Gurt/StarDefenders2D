@@ -1633,15 +1633,6 @@ class sdWorld
 			//ent_skip: 
 			for ( i = 0; i < arr.length; i++ )
 			{
-				/*for ( var i2 = 0; i2 < el_hit_cache_len; i2++ )
-				{
-					if ( el_hit_cache[ i2 ] === arr[ i ] )
-					continue ent_skip;
-				}
-				
-				el_hit_cache[ el_hit_cache_len++ ] = arr[ i ];*/
-				
-				
 				if ( x2 >= arr[ i ].x + arr[ i ].hitbox_x1 )
 				if ( x1 <= arr[ i ].x + arr[ i ].hitbox_x2 )
 				if ( y2 >= arr[ i ].y + arr[ i ].hitbox_y1 )
