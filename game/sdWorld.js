@@ -1797,7 +1797,7 @@ class sdWorld
 		if ( v > 40 )
 		{
 			if ( v === 5120 )
-		    return 'hue-rotate(200deg) brightness(1.3) drop-shadow(0px 0px 7px #FFFFAA)';
+		    return 'hue-rotate(40deg) brightness(1) contrast (2)';
 			else
 			if ( v === 2560 )
 			return 'hue-rotate(170deg) brightness(0.8) contrast(2)';
