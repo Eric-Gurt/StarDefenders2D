@@ -65,6 +65,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdArea from './entities/sdArea.js';
 	import sdCrystalCombiner from './entities/sdCrystalCombiner.js';
 	import sdUpgradeStation from './entities/sdUpgradeStation.js';
+	import sdJunk from './entities/sdJunk.js';
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -110,6 +111,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdArea.init_class();
 	sdCrystalCombiner.init_class();
 	sdUpgradeStation.init_class();
+	sdJunk.init_class();
 	
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;
