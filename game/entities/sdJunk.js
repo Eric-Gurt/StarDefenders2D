@@ -77,7 +77,7 @@ class sdJunk extends sdEntity
 			if ( this.type === 0 ) // Actual cube corpses explode into rails.
 			{
 
-				if (Math.random() < 0.1 ) // 10% chance to stabilize/revive the cube instead
+				if (Math.random() < 0.1 ) // 10% chance to stabilize/revive the cube instead, idea by Bandit
 				{
 					let cube = new sdCube({ x: this.x, y: this.y });
 					sdEntity.entities.push( cube );
