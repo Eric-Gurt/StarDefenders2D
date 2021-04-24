@@ -7,6 +7,7 @@ import sdGun from './sdGun.js';
 import sdWater from './sdWater.js';
 import sdCom from './sdCom.js';
 import sdBullet from './sdBullet.js';
+import sdCube from './sdCube.js';
 
 class sdJunk extends sdEntity
 {
@@ -75,79 +76,88 @@ class sdJunk extends sdEntity
 		{
 			if ( this.type === 0 ) // Actual cube corpses explode into rails.
 			{
-				let bullet_obj1 = new sdBullet({ x: this.x, y: this.y });
-							bullet_obj1._owner = this;
-							bullet_obj1.sx = -1;
-							bullet_obj1.sy = 0
-							//bullet_obj1.x += bullet_obj1.sx * 5;
-							//bullet_obj1.y += bullet_obj1.sy * 5;
 
-							bullet_obj1.sx *= 16;
-							bullet_obj1.sy *= 16;
+				if (Math.random() < 0.1 ) // 10% chance to stabilize/revive the cube instead
+				{
+					let cube = new sdCube({ x: this.x, y: this.y });
+					sdEntity.entities.push( cube );
+				}
+				else
+				{
+					let bullet_obj1 = new sdBullet({ x: this.x, y: this.y });
+								bullet_obj1._owner = this;
+								bullet_obj1.sx = -1;
+								bullet_obj1.sy = 0
+								//bullet_obj1.x += bullet_obj1.sx * 5;
+								//bullet_obj1.y += bullet_obj1.sy * 5;
+
+								bullet_obj1.sx *= 16;
+								bullet_obj1.sy *= 16;
 						
-							bullet_obj1.time_left = 30;
+								bullet_obj1.time_left = 30;
 
-							bullet_obj1._rail = true;
-							bullet_obj1.color = '#62c8f2';
+								bullet_obj1._rail = true;
+								bullet_obj1.color = '#62c8f2';
 
-							bullet_obj1._damage = 150;
+								bullet_obj1._damage = 150;
 
-							sdEntity.entities.push( bullet_obj1 );
+								sdEntity.entities.push( bullet_obj1 );
 
-				let bullet_obj2 = new sdBullet({ x: this.x, y: this.y });
-							bullet_obj2._owner = this;
-							bullet_obj2.sx = 0;
-							bullet_obj2.sy = 1;
-							//bullet_obj2.x += bullet_obj2.sx * 5;
-							//bullet_obj2.y += bullet_obj2.sy * 5;
+					let bullet_obj2 = new sdBullet({ x: this.x, y: this.y });
+								bullet_obj2._owner = this;
+								bullet_obj2.sx = 0;
+								bullet_obj2.sy = 1;
+								//bullet_obj2.x += bullet_obj2.sx * 5;
+								//bullet_obj2.y += bullet_obj2.sy * 5;
 
-							bullet_obj2.sx *= 16;
-							bullet_obj2.sy *= 16;
+								bullet_obj2.sx *= 16;
+								bullet_obj2.sy *= 16;
 						
-							bullet_obj2.time_left = 30;
+								bullet_obj2.time_left = 30;
 
-							bullet_obj2._rail = true;
-							bullet_obj2.color = '#62c8f2';
+								bullet_obj2._rail = true;
+								bullet_obj2.color = '#62c8f2';
 
-							bullet_obj2._damage = 150;
-							sdEntity.entities.push( bullet_obj2 );
+								bullet_obj2._damage = 150;
+								sdEntity.entities.push( bullet_obj2 );
 
-				let bullet_obj3 = new sdBullet({ x: this.x, y: this.y });
-							bullet_obj3._owner = this;
-							bullet_obj3.sx = 1;
-							bullet_obj3.sy = 0
-							//bullet_obj3.x += bullet_obj3.sx * 5;
-							//bullet_obj3.y += bullet_obj3.sy * 5;
+					let bullet_obj3 = new sdBullet({ x: this.x, y: this.y });
+								bullet_obj3._owner = this;
+								bullet_obj3.sx = 1;
+								bullet_obj3.sy = 0
+								//bullet_obj3.x += bullet_obj3.sx * 5;
+								//bullet_obj3.y += bullet_obj3.sy * 5;
 
-							bullet_obj3.sx *= 16;
-							bullet_obj3.sy *= 16;
+								bullet_obj3.sx *= 16;
+								bullet_obj3.sy *= 16;
 						
-							bullet_obj3.time_left = 30;
+								bullet_obj3.time_left = 30;
 
-							bullet_obj3._rail = true;
-							bullet_obj3.color = '#62c8f2';
+								bullet_obj3._rail = true;
+								bullet_obj3.color = '#62c8f2';
 
-							bullet_obj3._damage = 150;
+								bullet_obj3._damage = 150;
 
-							sdEntity.entities.push( bullet_obj3 );
+								sdEntity.entities.push( bullet_obj3 );
 
-				let bullet_obj4 = new sdBullet({ x: this.x, y: this.y });
-							bullet_obj4._owner = this;
-							bullet_obj4.sx = 0;
-							bullet_obj4.sy = -1;
-							//bullet_obj4.x += bullet_obj4.sx * 5;
-							//bullet_obj4.y += bullet_obj4.sy * 5;
+					let bullet_obj4 = new sdBullet({ x: this.x, y: this.y });
+								bullet_obj4._owner = this;
+								bullet_obj4.sx = 0;
+								bullet_obj4.sy = -1;
+								//bullet_obj4.x += bullet_obj4.sx * 5;
+								//bullet_obj4.y += bullet_obj4.sy * 5;
 
-							bullet_obj4.sx *= 16;
-							bullet_obj4.sy *= 16;
+								bullet_obj4.sx *= 16;
+								bullet_obj4.sy *= 16;
 						
-							bullet_obj4.time_left = 30;
+								bullet_obj4.time_left = 30;
 
-							bullet_obj4._rail = true;
-							bullet_obj4.color = '#62c8f2';
+								bullet_obj4._rail = true;
+								bullet_obj4.color = '#62c8f2';	
 
-							bullet_obj4._damage = 150;
-							sdEntity.entities.push( bullet_obj4 );
+								bullet_obj4._damage = 150;
+								sdEntity.entities.push( bullet_obj4 );
+				}
 			}
 			if ( this.type === 1 ) // Cube "barrels" explode
 			{
