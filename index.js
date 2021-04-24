@@ -194,6 +194,7 @@ import sdEnemyMech from './game/entities/sdEnemyMech.js';
 import sdArea from './game/entities/sdArea.js';
 import sdCrystalCombiner from './game/entities/sdCrystalCombiner.js';
 import sdUpgradeStation from './game/entities/sdUpgradeStation.js';
+import sdJunk from './game/entities/sdJunk.js';
 
 
 import LZW from './game/server/LZW.js';
@@ -315,6 +316,7 @@ sdEnemyMech.init_class();
 sdArea.init_class();
 sdCrystalCombiner.init_class();
 sdUpgradeStation.init_class();
+sdJunk.init_class();
 
 sdShop.init_class(); // requires plenty of classes due to consts usage
 LZW.init_class();
