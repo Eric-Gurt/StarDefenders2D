@@ -298,6 +298,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdSlug', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdEnemyMech', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdJunk', _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });
