@@ -144,7 +144,7 @@ class sdUpgradeStation extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		this._armor_protection_level = 0; // Never has protection unless full health reached
+		//this._armor_protection_level = 0; // Never has protection unless full health reached
 			
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
@@ -161,8 +161,8 @@ class sdUpgradeStation extends sdEntity
 				
 				this._update_version++;
 			}
-			else
-			this._armor_protection_level = 4; // Once reached max HP - it can be only destroyed with big explosions
+			//else
+			//this._armor_protection_level = 4; // Once reached max HP - it can be only destroyed with big explosions
 		}
 		
 	}
