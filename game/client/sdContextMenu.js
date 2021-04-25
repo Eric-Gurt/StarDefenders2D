@@ -49,6 +49,25 @@ class sdContextMenu
 			{
 				sdContextMenu.options = [];
 				
+				if ( sdContextMenu.current_target.GetClass() === 'sdUpgradeStation' )
+				{
+					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdCom.action_range_command_centre ) >= 0 )
+					{
+						sdContextMenu.options.push({ title: 'Upgrade character (5000 matter cost)',
+							action: ()=>
+							{
+								globalThis.socket.emit( 'UPGRADE_CHAR', [ sdContextMenu.current_target._net_id ] );
+							}
+						});
+						sdContextMenu.options.push({ title: 'Get basic equipment (500 matter cost)',
+							action: ()=>
+							{
+								globalThis.socket.emit( 'UPGRADE_GET_EQUIP', [ sdContextMenu.current_target._net_id ] );
+							}
+						});
+					}
+				}
+				else
 				if ( sdContextMenu.current_target.GetClass() === 'sdCrystalCombiner' )
 				{
 					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdStorage.access_range ) >= 0 )

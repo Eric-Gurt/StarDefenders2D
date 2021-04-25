@@ -122,6 +122,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 8, _category:'Base equipment', _min_build_tool_level: 1 });
 		sdShop.options.push({ _class: 'sdCommandCentre', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdCrystalCombiner', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdUpgradeStation', _category:'Base equipment', _min_build_tool_level: 1  });
 		
 		for ( var i = 0; i < 3; i++ )
 		{
@@ -297,6 +298,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdSlug', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdEnemyMech', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdJunk', _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });
