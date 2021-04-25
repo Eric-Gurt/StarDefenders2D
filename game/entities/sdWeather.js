@@ -1,4 +1,15 @@
-
+/*
+ 
+ 
+ 
+ 
+	Test specific event on server (will break any other event)
+ 
+	sdWorld.entity_classes.sdWeather.only_instance._time_until_event = 0
+	sdWorld.server_config.GetAllowedWorldEvents = ()=>[ 8 ];
+	sdWorld.server_config.GetDisallowedWorldEvents = ()=>[];
+ 
+*/
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
@@ -390,11 +401,24 @@ class sdWeather extends sdEntity
 								ent_above = sdWorld.last_hit_entity;
 								ent_above_exists = true;
 							}
-							/*
-							ent.x = x;
-							ent.y = y;
-							break;
-							*/
+							
+							// Left and right entity will be threaten as above becase they do not require ant extra logic like plant clearence
+							if ( !ent_above_exists )
+							{
+								sdWorld.last_hit_entity = null;
+								if ( !ent.CanMoveWithoutOverlap( x - 16, y, 0.0001 ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) ) )
+								{
+									ent_above = sdWorld.last_hit_entity;
+									ent_above_exists = true;
+								}
+								sdWorld.last_hit_entity = null;
+								if ( !ent.CanMoveWithoutOverlap( x + 16, y, 0.0001 ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) ) )
+								{
+									ent_above = sdWorld.last_hit_entity;
+									ent_above_exists = true;
+								}
+							}
+							
 							if ( ent_above_exists || ent_below_exists )
 							{
 								let bg_nature = true; // Or nothing or world border

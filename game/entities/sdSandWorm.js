@@ -58,6 +58,8 @@ class sdSandWorm extends sdEntity
 		this._hmax = 700;
 		this._hea = this._hmax;
 		
+		this._time_until_full_remove = 30 * 10 + Math.random() * 30 * 10; // 10-20 seconds to get removed
+		
 		this._current_target = null;
 		
 		this.death_anim = 0;
@@ -253,6 +255,20 @@ class sdSandWorm extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		if ( this.death_anim > 0 )
+		{
+			this._time_until_full_remove -= GSPEED;
+			if ( this._time_until_full_remove <= 0 )
+			{
+				//this.sx = 0;
+				//this.sy = 0;
+				//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+				this.remove();
+				return;
+			}
+		}
+		
+		
 		sdWorld.last_hit_entity = null;
 		
 		// Backwards compatibility - remove this block later
