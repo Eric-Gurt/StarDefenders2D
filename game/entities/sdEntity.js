@@ -284,9 +284,13 @@ class sdEntity
 		
 		const CheckPointDamageAllowed = ()=>
 		{
+			//if ( this.GetClass() === 'sdHover' )
+			//if ( Math.abs( this.sx ) > 5 || Math.abs( this.sy ) > 5 )
+			//debugger;
+			
 			if ( CheckPointDamageAllowed_result === undefined )
 			CheckPointDamageAllowed_result = sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x, this.y );
-			else
+			
 			return CheckPointDamageAllowed_result;
 		};
 		
@@ -728,7 +732,7 @@ class sdEntity
 	{
 		return this.constructor === c.prototype.constructor;
 	}
-	GetSnapshot( current_frame, save_as_much_as_possible=false )
+	GetSnapshot( current_frame, save_as_much_as_possible=false, observer_entity=null )
 	{
 		let returned_object;
 			
@@ -784,7 +788,26 @@ class sdEntity
 						
 						if ( typeof this[ prop ] === 'object' && typeof this[ prop ]._net_id !== 'undefined' && typeof this[ prop ].constructor !== 'undefined' )
 						{
-							v = { _net_id: this[ prop ]._net_id, _class: this[ prop ].constructor.name };
+							
+							//this._snapshot_cache_frame = -1;
+							
+							if ( save_as_much_as_possible )
+							{
+								v = { _net_id: this[ prop ]._net_id, _class: this[ prop ].constructor.name };
+							}
+							else
+							if ( this[ prop ].IsVisible( observer_entity ) )
+							{
+								v = { _net_id: this[ prop ]._net_id, _class: this[ prop ].constructor.name };
+							}
+							else
+							{
+								this._snapshot_cache_frame = -1; // Invalidate cache if at least one entity pointer can not be seen... Could help with sdStorages in huge amounts? Better approach would be to cache by property visibility mask
+								v = null;
+							}
+							
+							//if ( save_as_much_as_possible )
+							//v = { _net_id: this[ prop ]._net_id, _class: this[ prop ].constructor.name };
 						}
 					}
 					

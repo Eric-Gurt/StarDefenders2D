@@ -1396,39 +1396,42 @@ class sdCharacter extends sdEntity
 				}
 			}*/
 			
-			// 14 is a full width, so revived players don't stuch in each other
-			//if ( !this.CanMoveWithoutOverlap( this.x, this.y, sdWorld.is_server ? 0 : 1 ) )
-			if ( !this.CanMoveWithoutOverlap( this.x, this.y, this.UseServerCollisions() ? 0 : 0.01 ) )
+			if ( this.hea > 0 ) // Disable extra logic for stuck cases, standing and ledge holding if dead
 			{
-				if ( this.CanMoveWithoutOverlap( this.x, this.y - 14 ) )
-				this.y -= 0.5;
-				
-				if ( this.CanMoveWithoutOverlap( this.x, this.y + 14 ) )
-				this.y += 0.5;
-			
-				if ( this.CanMoveWithoutOverlap( this.x - 14, this.y ) )
-				this.x -= 0.5;
-				
-				if ( this.CanMoveWithoutOverlap( this.x + 14, this.y ) )
-				this.x += 0.5;
-			}
-			
-			//if ( !this.CanMoveWithoutOverlap( this.x, this.y + ( this.UseServerCollisions() ? 2 : 3 ), 1 ) ) Has egde-stand-constant-fall bug, not sure why it was done like that exactly
-			if ( !this.CanMoveWithoutOverlap( this.x, this.y + ( this.UseServerCollisions() ? 2 : 3 ), 0 ) )
-			//if ( !this.CanMoveWithoutOverlap( this.x, this.y + 2, 1 ) )
-			{
-				this.stands = true;
-				this._stands_on = sdWorld.last_hit_entity;
-				this.Touches( sdWorld.last_hit_entity );
-			}
-			else
-			{
-				if ( this.hea > 0 )
-				if ( this.act_x !== 0 )
-				if ( sdWorld.CheckWallExistsBox( this.x + this.act_x * 7, this.y, this.x + this.act_x * 7, this.y + 10, null, null, [ 'sdBlock' ] ) )
-				if ( !sdWorld.CheckWallExists( this.x + this.act_x * 7, this.y + this.hitbox_y1, null, null, [ 'sdBlock' ] ) )
+				// 14 is a full width, so revived players don't stuch in each other
+				//if ( !this.CanMoveWithoutOverlap( this.x, this.y, sdWorld.is_server ? 0 : 1 ) )
+				if ( !this.CanMoveWithoutOverlap( this.x, this.y, this.UseServerCollisions() ? 0 : 0.01 ) )
 				{
-					ledge_holding = true;
+					if ( this.CanMoveWithoutOverlap( this.x, this.y - 14 ) )
+					this.y -= 0.5;
+
+					if ( this.CanMoveWithoutOverlap( this.x, this.y + 14 ) )
+					this.y += 0.5;
+
+					if ( this.CanMoveWithoutOverlap( this.x - 14, this.y ) )
+					this.x -= 0.5;
+
+					if ( this.CanMoveWithoutOverlap( this.x + 14, this.y ) )
+					this.x += 0.5;
+				}
+
+				//if ( !this.CanMoveWithoutOverlap( this.x, this.y + ( this.UseServerCollisions() ? 2 : 3 ), 1 ) ) Has egde-stand-constant-fall bug, not sure why it was done like that exactly
+				if ( !this.CanMoveWithoutOverlap( this.x, this.y + ( this.UseServerCollisions() ? 2 : 3 ), 0 ) )
+				//if ( !this.CanMoveWithoutOverlap( this.x, this.y + 2, 1 ) )
+				{
+					this.stands = true;
+					this._stands_on = sdWorld.last_hit_entity;
+					this.Touches( sdWorld.last_hit_entity );
+				}
+				else
+				{
+					if ( this.hea > 0 )
+					if ( this.act_x !== 0 )
+					if ( sdWorld.CheckWallExistsBox( this.x + this.act_x * 7, this.y, this.x + this.act_x * 7, this.y + 10, null, null, [ 'sdBlock' ] ) )
+					if ( !sdWorld.CheckWallExists( this.x + this.act_x * 7, this.y + this.hitbox_y1, null, null, [ 'sdBlock' ] ) )
+					{
+						ledge_holding = true;
+					}
 				}
 			}
 		}
@@ -1497,7 +1500,15 @@ class sdCharacter extends sdEntity
 	
 		this._last_e_state = e_state;
 		
-		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
+		//let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
+		let local_arr = sdWorld.RequireHashPosition( this.x, this.y );
+		let in_water = false;
+		for ( let i = 0; i < local_arr.length; i++ )
+		if ( local_arr[ i ].is( sdWater ) )
+		{
+			in_water = true;
+			break;
+		}
 		
 		this._in_water = in_water;
 		
