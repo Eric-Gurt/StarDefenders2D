@@ -83,12 +83,17 @@ class sdUpgradeStation extends sdEntity
 		setTimeout(()=>{ // Just in case, unsure if needed
 
 			let gun, gun2, gun3, gun4, gun5, gun6;
+			if ( this.level === 1 )
 			gun = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_PISTOL });
+			if ( this.level === 2 )
+			gun = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_PISTOL_MK2 });
 			gun.sx = character.sx;
 			gun.sy = character.sy;
 			sdEntity.entities.push( gun );
-
+			if ( this.level === 1 )
 			gun2 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_RIFLE });
+			if ( this.level === 2 )
+			gun2 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_LMG_P04 });
 			gun2.sx = character.sx;
 			gun2.sy = character.sy;
 			sdEntity.entities.push( gun2 );
@@ -131,6 +136,7 @@ class sdUpgradeStation extends sdEntity
 		this.matter_max = 5500;
 		this.matter = 100;
 		this.delay = 0;
+		this.level = 2;
 	}
 	onBuilt()
 	{
