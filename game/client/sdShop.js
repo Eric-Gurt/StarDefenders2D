@@ -91,6 +91,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_GROUND, _category:'Walls' });
 		sdShop.options.push({ _class: 'sdCom', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdCom', variation: 1, _category:'Base equipment', _min_build_tool_level:1 });
+		sdShop.options.push({ _class: 'sdCom', variation: 2, _category:'Base equipment', _min_build_tool_level:2 });
 		sdShop.options.push({ _class: 'sdTeleport', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdLamp', _category:'Base equipment' });
@@ -163,6 +164,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdBomb', _category:'Equipment' });
 		sdShop.options.push({ _class: 'sdBarrel', _category:'Equipment' });
 		sdShop.options.push({ _class: 'sdBarrel', filter: 'hue-rotate(130deg) saturate(10)', variation: 1, _category:'Equipment', _min_build_tool_level:1 });
+		sdShop.options.push({ _class: 'sdBarrel', filter: 'hue-rotate(300deg) saturate(20)', variation: 2, _category:'Equipment', _min_build_tool_level:2 });
 
 		sdShop.upgrades = {
 			upgrade_suit:
