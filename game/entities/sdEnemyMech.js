@@ -48,7 +48,9 @@ class sdEnemyMech extends sdEntity
 
 		this.tilt = 0;
 		
-		//this.death_anim = 0;
+		this._time_until_full_remove = 30 * 5 + Math.random() * 30 * 5; // 5-10 seconds to get removed
+
+		this.death_anim = 0;
 		
 		//this._current_target = null;
 		
@@ -118,6 +120,7 @@ class sdEnemyMech extends sdEntity
 		
 		if ( this.hea <= 0 && was_alive )
 		{	sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:2 });
+			this.death_anim = 1;
 			if ( initiator )
 			if ( typeof initiator._score !== 'undefined' )
 			{
@@ -160,45 +163,7 @@ class sdEnemyMech extends sdEntity
 					}, i * 150 );
 				}
 		}
-		
-		if ( this.hea < -2500 ) // It gets destroyed halfway through explosion
-		{
-			let r = Math.random();
 			
-			if ( r < 0.25 )
-			{
-				let x = this.x;
-				let y = this.y;
-				let sx = this.sx;
-				let sy = this.sy;
-
-				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
-
-					let random_value = Math.random();
-
-					let gun;
-
-					if ( random_value < 0.35 )
-					{
-						/*
-						if ( random_value < 0.25 )
-						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_CANNON });
-						else
-						*/
-						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
-					}
-					else
-					gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_CANNON });
-
-					gun.sx = sx;
-					gun.sy = sy;
-					sdEntity.entities.push( gun );
-				
-				}, 500 );
-			}
-			this.remove();
-		}
-		
 		//if ( this.hea < -this._hmax / 80 * 100 )
 		//this.remove();
 	}
@@ -223,29 +188,43 @@ class sdEnemyMech extends sdEntity
 		{
 			this.sy += sdWorld.gravity * GSPEED;
 			this.tilt = sdWorld.MorphWithTimeScale( this.tilt, 0, 0.93, GSPEED );
-		
-/*
-			if ( this.death_anim < sdEnemyMech.death_duration + sdEnemyMech.post_death_ttl )
-			this.death_anim += GSPEED;
-			else
-			this.remove();
-			
-*/
-			//this.MatterGlow( 0.01, 30, GSPEED );
-			/*var x = this.x;
-			var y = this.y;
-			for ( var xx = -1; xx <= 1; xx++ )
-			for ( var yy = -1; yy <= 1; yy++ )
+			if ( sdWorld.is_server )
 			{
-				var arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
-				for ( var i = 0; i < arr.length; i++ )
-				if ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' )
-				if ( sdWorld.inDist2D( arr[ i ].x, arr[ i ].y, x, y, 30 ) >= 0 )
-				if ( arr[ i ] !== this )
+				if ( this.death_anim > 0 )
+				this._time_until_full_remove -= GSPEED;
+
+				if ( this._time_until_full_remove <= 0 )
 				{
-					this.TransferMatter( arr[ i ], 0.01, GSPEED );
+					let r = Math.random();
+			
+					if ( r < 0.25 )
+					{
+						let x = this.x;
+						let y = this.y;
+						let sx = this.sx;
+						let sy = this.sy;
+
+						setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+						let random_value = Math.random();
+
+						let gun;
+
+						if ( random_value < 0.35 )
+						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
+						else
+						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_CANNON });
+
+						gun.sx = sx;
+						gun.sy = sy;
+						sdEntity.entities.push( gun );
+				
+						}, 500 );
+					}
+					this.remove();
+					return;
 				}
-			}*/
+			}
 		}
 		else
 		{
@@ -405,20 +384,22 @@ class sdEnemyMech extends sdEntity
 
 					//let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 800 );
 					//let targets_raw = sdWorld.GetCharactersNear( this.x, this.y, null, null, 800 );
-					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdEnemyMech.attack_range, null, [ 'sdCharacter', 'sdTurret' ] );
+					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdEnemyMech.attack_range, null, [ 'sdCharacter', 'sdTurret' , 'sdCube' ] );
 
 					let targets = [];
 
 					for ( let i = 0; i < targets_raw.length; i++ )
 					if ( ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ].hea > 0 ) ||
-						 ( targets_raw[ i ].GetClass() === 'sdTurret' ) )
+						 ( targets_raw[ i ].GetClass() === 'sdTurret' ) ||
+						 ( targets_raw[ i ].GetClass() === 'sdCube' && targets_raw[ i ].hea > 0 ) ||
+						 ( targets_raw[ i ].GetClass() === 'sdCube' && this.hea < 2000 ) )
 					{
 						if ( sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdEnemyMech' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
 							targets.push( targets_raw[ i ] );
 						else
 						{
 							if ( this.hea < 2000 )
-							if ( targets_raw[ i ].GetClass() === 'sdCharacter' ) // Highly wanted by sdEnemyMechs in this case
+							if ( targets_raw[ i ].GetClass() === 'sdCharacter') // Highly wanted by sdEnemyMechs in this case
 							{
 								targets.push( targets_raw[ i ] );
 							}
@@ -465,7 +446,7 @@ class sdEnemyMech extends sdEntity
 
 						sdSound.PlaySound({ name:'gun_pistol', pitch: 1, x:this.x, y:this.y, volume:0.5 });
 
-						if ( targets[ i ].GetClass() === 'sdTurret' ) // Turrets get the special treatment
+						if ( targets[ i ].GetClass() === 'sdTurret' || targets[ i ].GetClass() === 'sdCube' ) // Turrets and cubes get the special treatment
 						if ( this._rail_attack_timer <= 0 )
 						{
 						an = Math.atan2( targets[ i ].y - ( this.y - 16 ), targets[ i ].x - this.x ); // Pinpoint accurate against turrets

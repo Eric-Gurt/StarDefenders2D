@@ -52,6 +52,8 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_scope' ), // by butorinoks77
 			sdWorld.CreateImageFromFile( 'helmet_crusader' ), // by xXRedXAssassinXx
 			sdWorld.CreateImageFromFile( 'helmet_phfalkok' ), // by Booraz149
+			sdWorld.CreateImageFromFile( 'helmet_aero' ), // // original by LordBored, remake by LazyRain
+			sdWorld.CreateImageFromFile( 'helmet_scout' ) // by Ghost581, original name was "Observer"
 		];
 		
 		// x y rotation, for images below

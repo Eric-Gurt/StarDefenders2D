@@ -188,7 +188,7 @@ class sdGun extends sdEntity
 		
 		this.ammo_left = -123;
 		
-		this.ttl = params.ttl || sdGun.disowned_guns_ttl;
+		//this.ttl = params.ttl || sdGun.disowned_guns_ttl;
 		this.extra = 0; // shard value will be here
 		
 		this.class = params.class || 0;
@@ -197,6 +197,11 @@ class sdGun extends sdEntity
 		this._hea = 5;
 		else
 		this._hea = 50;
+
+		if ( this.class != sdGun.CLASS_CRYSTAL_SHARD && sdGun.classes[ this.class ].spawnable === false ) // Unbuildable guns have 3 minutes to despawn, enough for players to find them if they lost them
+		this.ttl = params.ttl || sdGun.disowned_guns_ttl * 3;
+		else
+		this.ttl = params.ttl || sdGun.disowned_guns_ttl;
 	}
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
 	{
