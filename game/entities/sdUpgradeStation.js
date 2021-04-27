@@ -83,6 +83,7 @@ class sdUpgradeStation extends sdEntity
 		{
 			this.level++;
 			this.hmax = 5000 + ( 2000 * this.level );
+			this.matter_max = 5500 * ( 1+ this.level );
 			this.matter -= 5000;
 			this._update_version++;
 			sdWorld.UpdateHashPosition( this, false );
