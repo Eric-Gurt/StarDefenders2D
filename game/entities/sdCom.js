@@ -10,6 +10,7 @@ class sdCom extends sdEntity
 	{
 		sdCom.img_com = sdWorld.CreateImageFromFile( 'com' );
 		sdCom.img_com_red = sdWorld.CreateImageFromFile( 'com_red' );
+		sdCom.img_com_orange = sdWorld.CreateImageFromFile( 'com_orange' );
 		
 		sdCom.action_range = 32; // How far character needs to stand in order to manipualte it
 		sdCom.action_range_command_centre = 64; // How far character needs to stand in order to manipualte it
@@ -204,6 +205,8 @@ class sdCom extends sdEntity
 		ctx.drawImage( sdCom.img_com, -16, -16, 32,32 );
 		if ( this.variation === 1 )
 		ctx.drawImage( sdCom.img_com_red, -16, -16, 32,32 );
+		if ( this.variation === 2 )
+		ctx.drawImage( sdCom.img_com_orange, -16, -16, 32,32 );
 	}
 	MeasureMatterCost()
 	{
