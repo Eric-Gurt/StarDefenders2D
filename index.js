@@ -195,6 +195,7 @@ import sdArea from './game/entities/sdArea.js';
 import sdCrystalCombiner from './game/entities/sdCrystalCombiner.js';
 import sdUpgradeStation from './game/entities/sdUpgradeStation.js';
 import sdJunk from './game/entities/sdJunk.js';
+import sdBadDog from './game/entities/sdBadDog.js';
 
 
 import LZW from './game/server/LZW.js';
@@ -317,6 +318,7 @@ sdArea.init_class();
 sdCrystalCombiner.init_class();
 sdUpgradeStation.init_class();
 sdJunk.init_class();
+sdBadDog.init_class();
 
 sdShop.init_class(); // requires plenty of classes due to consts usage
 LZW.init_class();
@@ -360,34 +362,138 @@ let frame = 0;
 const file_exists = fs.existsSync;
 globalThis.file_exists = file_exists;
 
+let request_durations_worst = 0; // Normally would be 1-2ms
+
+let request_durations_per_second_sum_worst = 0;
+
+let request_durations = [];
+let request_durations_time = 0;
+let second_end_callback = null;
 // Wider url catcher breaks socket?
+/*
 app.get('/*', (req, res) => 
 {
-	//console.log( req.url );
+	let t_sum = 0;
+	
+	function Finalize()
+	{
+		request_durations.push({ time:t_sum, url:req.url });
+		
+		if ( t_sum >= 10 )
+		if ( t_sum > request_durations_worst )
+		{
+			request_durations_worst = t_sum;
+			console.log('New slowest request ['+req.url+']: '+t_sum+'ms');
+		}
+		
+		let s = 0;
+		for ( let i = 0; i < request_durations.length; i++ )
+		{
+			s += request_durations[ i ].time;
+		}
+		
+		if ( s > 100 )
+		if ( s > request_durations_per_second_sum_worst )
+		{
+			request_durations_per_second_sum_worst = s;
+			
+			second_end_callback = ()=>
+			{
+				console.log('Requests called within 1 second took longest time: '+s+'ms :: Requests: ' + JSON.stringify( request_durations.slice(0,5) )+'... ('+request_durations.length+' requests)');
+			};
+		}
+	}
+	
+	let t = Date.now();
+	
+	if ( request_durations_time !== Math.floor( t / 1000 ) )
+	{
+		if ( second_end_callback )
+		{
+			second_end_callback();
+			second_end_callback = null;
+		}
+		request_durations_time = Math.floor( t / 1000 );
+		request_durations.length = 0;
+	}
 	
 	if ( req.url.indexOf('./') !== -1 || req.url.indexOf('/.') !== -1 )
-	return;
-	
-	//if ( file_exists( __dirname + '/game' + req.url ) )
-	//res.sendFile( __dirname + '/game' + req.url );
-	//else
-	//res.send( '404' );
-	//
+	{
+		
+		t_sum += Date.now() - t;
+		Finalize();
+		return;
+	}
 	
 	var path = __dirname + '/game' + req.url;
 	//var path = './game' + req.url;
 	fs.access(path.split('?')[0], fs.F_OK, (err) => 
 	{
-		if (err) {
-		  res.send( '404' );//console.error(err)
-		  return;
+		let t3 = Date.now();
+		
+		if (err)
+		{
+			res.send( '404' );//console.error(err)
+			
+			t_sum += Date.now() - t3;
+			Finalize();
+			return;
 		}
 		res.sendFile( path );
 		//file exists
+		
+		t_sum += Date.now() - t3;
+		Finalize();
 	});
 
-});
+	t_sum += Date.now() - t;
+});*/
 
+// Slower but less file stacking that could slow down game
+let get_busy = false;
+let busy_tot = 0;
+app.get('/*', function cb( req, res, repeated=false )
+{
+	function Finalize()
+	{
+		get_busy = false;
+	}
+	
+	if ( repeated !== true )
+	busy_tot++;
+
+	if ( get_busy )
+	{
+	
+		setTimeout( ()=>{ cb( req, res, true ); }, 4 + Math.random() * 20 );
+		return;
+	}
+	
+	get_busy = true;
+	busy_tot--;
+	
+	if ( busy_tot > 20 )
+	console.log( 'Slowing down file download due to '+busy_tot+' files requested at the same time' );
+	
+	var path = __dirname + '/game' + req.url;
+	//var path = './game' + req.url;
+	fs.access(path.split('?')[0], fs.F_OK, (err) => 
+	{
+		let t3 = Date.now();
+		
+		if (err)
+		{
+			res.send( '404' );//console.error(err)
+			
+			Finalize();
+			return;
+		}
+		res.sendFile( path );
+		//file exists
+		
+		Finalize();
+	});
+});
 
 var sockets = [];
 var sockets_by_ip = {}; // values are arrays (for easier user counting per ip)
@@ -1028,7 +1134,11 @@ sdWorld.server_config = {};
 			}
 
 			if ( tr > max_tr * 0.6 || bad_areas_near === 0 )
-			if ( tr > max_tr * 0.8 || ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) && !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) ) )
+			if ( tr > max_tr * 0.8 || ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) && !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) && !sdWorld.CheckWallExistsBox( 
+					x + character_entity.hitbox_x1 - 16, 
+					y + character_entity.hitbox_y1 - 16, 
+					x + character_entity.hitbox_x2 + 16, 
+					y + character_entity.hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) ) )
 			if ( tr > max_tr * 0.4 || socket.command_centre || sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
 			{
 				character_entity.x = x;
@@ -1103,6 +1213,7 @@ let is_terminating = false;
 		{
 			bounds: sdWorld.world_bounds,
 			entity_net_ids: sdEntity.entity_net_ids,
+			seed: sdWorld.SeededRandomNumberGenerator.seed,
 			base_ground_level1: sdWorld.base_ground_level1,
 			base_ground_level2: sdWorld.base_ground_level2,
 			entities: entities
@@ -1287,6 +1398,10 @@ try
 	*/
 	sdWorld.world_bounds = save_obj.bounds;
 	sdEntity.entity_net_ids = save_obj.entity_net_ids;
+	
+	if ( save_obj.seed !== undefined )
+	sdWorld.SeededRandomNumberGenerator.seed = save_obj.seed;
+
 	sdWorld.base_ground_level1 = save_obj.base_ground_level1;
 	sdWorld.base_ground_level2 = save_obj.base_ground_level2;
 	

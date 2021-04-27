@@ -65,6 +65,8 @@ class sdOctopus extends sdEntity
 		
 		this.side = 1;
 		
+		this._anim_shift = ~~( Math.random() * 10000 );
+		
 		//this._consumed_matter = [];
 		this._consumed_guns = [];
 		
@@ -406,7 +408,7 @@ class sdOctopus extends sdEntity
 			}
 			else
 			if ( Math.abs( this.sx ) < 1 )
-			ctx.drawImageFilterCache( ( sdWorld.time % 5000 < 200 ) ? sdOctopus.img_octopus_idle2 : ( sdWorld.time % 5000 < 400 ) ? sdOctopus.img_octopus_idle3 : sdOctopus.img_octopus_idle1, - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( ( (sdWorld.time+this._anim_shift) % 5000 < 200 ) ? sdOctopus.img_octopus_idle2 : ( (sdWorld.time+this._anim_shift) % 5000 < 400 ) ? sdOctopus.img_octopus_idle3 : sdOctopus.img_octopus_idle1, - 16, - 16, 32,32 );
 			else
 			ctx.drawImageFilterCache( sdOctopus.img_octopus_jump, - 16, - 16, 32,32 );
 		}

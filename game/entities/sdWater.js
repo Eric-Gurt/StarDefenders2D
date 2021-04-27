@@ -3,7 +3,9 @@ import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdBlock from './sdBlock.js';
+import sdBG from './sdBG.js';
 import sdDoor from './sdDoor.js';
+import sdGun from './sdGun.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -14,6 +16,9 @@ class sdWater extends sdEntity
 	{
 		sdWater.TYPE_WATER = 0;
 		sdWater.TYPE_ACID = 1;
+		sdWater.TYPE_LAVA = 2;
+		
+		sdWater.damage_by_type = [ 0, 1, 5 ];
 		
 		sdWater.DEBUG = false;
 		
@@ -22,6 +27,7 @@ class sdWater extends sdEntity
 		
 		sdWater.img_water_flow = sdWorld.CreateImageFromFile( 'water_flow' );
 		
+		sdWater.all_swimmers = new Set(); // Prevent multiple damage water objects from applying damage onto same entity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -48,6 +54,8 @@ class sdWater extends sdEntity
 		this.a = false; // awakeness for client, for debugging
 		
 		this.v = 100; // rounded volume for clients
+		
+		this._swimmers = new Set();
 		
 		this._think_offset = ~~( Math.random() * 15 );
 		
@@ -152,6 +160,27 @@ class sdWater extends sdEntity
 
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		if ( this._swimmers.size > 0 ) // Will be empty for water
+		{
+			//if ( this.type === sdWater.TYPE_LAVA || this.type === sdWater.TYPE_ACID )
+			{
+				this._swimmers.forEach( ( e )=>
+				{
+					if ( e.x + e.hitbox_x2 >= this.x + this.hitbox_x1 &&
+ 						 e.x + e.hitbox_x1 <= this.x + this.hitbox_x2 &&
+ 						 e.y + e.hitbox_y2 >= this.y + this.hitbox_y1 &&
+ 						 e.y + e.hitbox_y1 <= this.y + this.hitbox_y2 &&
+						 !e._is_being_removed )
+					e.Damage( sdWater.damage_by_type[ this.type ] * GSPEED ); 
+					else
+					{
+						this._swimmers.delete( e );
+						sdWater.all_swimmers.delete( e );
+					}
+				});
+			}
+		}
+		
 		if ( !sdWorld.is_server )
 		return;
 	
@@ -160,6 +189,7 @@ class sdWater extends sdEntity
 		if ( this._think_offset < 0 )
 		{
 			this._think_offset += 15;
+			GSPEED *= 15;
 		}
 		else
 		return;
@@ -263,7 +293,9 @@ class sdWater extends sdEntity
 				}
 				else
 				{
+					if ( this._swimmers.size === 0 )
 					this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+				
 					return;
 				}
 			}
@@ -271,7 +303,9 @@ class sdWater extends sdEntity
 		
 		if ( this.y + 16 >= sdWorld.world_bounds.y2 )
 		{
+			if ( this._swimmers.size === 0 )
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+		
 			return;
 		}
 		else
@@ -377,19 +411,43 @@ class sdWater extends sdEntity
 		}
 		*/
 	}
+	onMovementInRange( from_entity )
+	{
+		if ( !from_entity.is( sdWater ) )
+		if ( !from_entity.is( sdBG ) )
+		if ( !from_entity.is( sdBlock ) || !from_entity._natural )
+		if ( !from_entity.is( sdDoor ) )
+		if ( !from_entity.is( sdEffect ) )
+		if ( !from_entity.is( sdGun ) || from_entity._held_by === null )
+		{
+			if ( this.type === sdWater.TYPE_LAVA || this.type === sdWater.TYPE_ACID )
+			{
+				this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+				
+				//from_entity.Damage( GSPEED * 5 );
+				if ( !sdWater.all_swimmers.has( from_entity ) )
+				if ( !this._swimmers.has( from_entity ) )
+				{
+					this._swimmers.add( from_entity );
+					sdWater.all_swimmers.add( from_entity );
+				}
+			}
+		}
+	}
+			
 	DrawFG( ctx, attached )
 	{
 		ctx.globalAlpha = 0.8;
 		
-		let wall_below = sdWorld.CheckWallExists( this.x + 8, this.y + 16 + 8, null, null, sdWater.classes_to_interact_with );
+		//let wall_below = sdWorld.CheckWallExists( this.x + 8, this.y + 16 + 8, null, null, sdWater.classes_to_interact_with );
 		
-		let below = this.GetWaterObjectAt( this.x, this.y + 16 );
-		let left = this.GetWaterObjectAt( this.x - 16, this.y );
-		let right = this.GetWaterObjectAt( this.x + 16, this.y );
+		//let below = this.GetWaterObjectAt( this.x, this.y + 16 );
+		//let left = this.GetWaterObjectAt( this.x - 16, this.y );
+		//let right = this.GetWaterObjectAt( this.x + 16, this.y );
 		
-		let drawn = false;
+		//let drawn = false;
 		
-		if ( ( !below || below.v < 100 ) && !wall_below )
+		/*if ( ( !below || below.v < 100 ) && !wall_below )
 		{
 			let morph;
 			
@@ -410,28 +468,34 @@ class sdWater extends sdEntity
 			}
 			
 			ctx.globalAlpha = 1;
-		}
+		}*/
 		
-		if ( !drawn )
+		//if ( !drawn )
 		{
-			let wall_left = sdWorld.CheckWallExists( this.x + 8 - 16, this.y + 8, null, null, sdWater.classes_to_interact_with );
-			let wall_right = sdWorld.CheckWallExists( this.x + 8 + 16, this.y + 8, null, null, sdWater.classes_to_interact_with );
+			//let wall_left = sdWorld.CheckWallExists( this.x + 8 - 16, this.y + 8, null, null, sdWater.classes_to_interact_with );
+			//let wall_right = sdWorld.CheckWallExists( this.x + 8 + 16, this.y + 8, null, null, sdWater.classes_to_interact_with );
 
 			
-			let left_v = ( left ? ( this.v + left.v ) / 2 : ( wall_left ? this.v : 0 ) );
-			let right_v = ( right ? ( this.v + right.v ) / 2 : ( wall_right ? this.v : 0 ) );
+			//let left_v = ( left ? ( this.v + left.v ) / 2 : ( wall_left ? this.v : 0 ) );
+			//let right_v = ( right ? ( this.v + right.v ) / 2 : ( wall_right ? this.v : 0 ) );
 
 
 			//ctx.globalAlpha = 0.2;
 
+			if ( this.type === sdWater.TYPE_WATER )
 			ctx.fillStyle = '#008000';
+			else
+			if ( this.type === sdWater.TYPE_LAVA )
+			ctx.fillStyle = '#FFAA00';
+			else
+			ctx.fillStyle = '#000080';
 				
-			if ( this.v === left_v && this.v === right_v )
-			{
+			//if ( this.v === left_v && this.v === right_v )
+			//{
 				//ctx.globalAlpha = this._volume * 0.9 + 0.1;
 				ctx.fillRect( 0, 16 - this.v / 100 * 16, 16,16 * this.v / 100 );
 				//ctx.globalAlpha = 1;
-			}
+			/*}
 			else
 			{
 				ctx.beginPath();
@@ -441,7 +505,7 @@ class sdWater extends sdEntity
 				ctx.lineTo( 16, 16 );
 				ctx.lineTo( 0, 16 );
 				ctx.fill();
-			}
+			}*/
 
 			//ctx.globalAlpha = 1;
 		}
@@ -475,7 +539,12 @@ class sdWater extends sdEntity
 	
 	onRemove() // Class-specific, if needed
 	{
-		
+		this._swimmers.forEach( ( e )=>
+		{
+			this._swimmers.delete( e );
+			sdWater.all_swimmers.delete( e );
+		});
+		this._swimmers = null;
 	}
 }
 //sdWater.init_class();

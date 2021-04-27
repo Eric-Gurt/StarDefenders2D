@@ -2,6 +2,7 @@
 import sdWorld from './sdWorld.js';
 import sdEntity from './entities/sdEntity.js';
 import sdWeather from './entities/sdWeather.js';
+import sdWater from './entities/sdWater.js';
 
 class sdSound
 {
@@ -81,6 +82,16 @@ class sdSound
 		sdSound.amplifier_loop.volume = 0;
 		sdSound.amplifier_loop.loop = true;
 		
+		sdSound.lava_loop_volume_last = 0;
+		sdSound.lava_loop = new Audio( './audio/lava_loop4.wav' );
+		sdSound.lava_loop.volume = 0;
+		sdSound.lava_loop.loop = true;
+		
+		sdSound.lava_burn_volume_last = 0;
+		sdSound.lava_burn = new Audio( './audio/lava_burn2.wav' );
+		sdSound.lava_burn.volume = 0;
+		sdSound.lava_burn.loop = true;
+		
 		
 		
 		sdSound.ambient_seeker = { x:Math.random()*2-1, y:Math.random()*2-1, tx:Math.random()*2-1, ty:Math.random()*2-1 };
@@ -122,6 +133,8 @@ class sdSound
 			sdSound.jetpack.play();
 			sdSound.hover_loop.play();
 			sdSound.amplifier_loop.play();
+			sdSound.lava_loop.play();
+			sdSound.lava_burn.play();
 		}
 	}
 	static HandleMatterChargeLoop( GSPEED )
@@ -184,7 +197,9 @@ class sdSound
 		let count_flying = 0;
 		let count_hover_loop = 0;
 		let count_amplifier_loop = 0;
-		
+		let count_lava_loop = 0
+		let count_lava_burn = 0;
+			
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
 		{
 			if ( sdEntity.entities[ i ].GetClass() === 'sdCharacter' )
@@ -204,6 +219,14 @@ class sdSound
 				if ( sdEntity.entities[ i ].matter_max > 0 )
 				count_amplifier_loop += 0.5 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
 			}
+			else
+			if ( sdEntity.entities[ i ].GetClass() === 'sdWater' && sdEntity.entities[ i ].type === sdWater.TYPE_LAVA )
+			{
+				count_lava_loop += 0.02 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+				
+				if ( sdEntity.entities[ i ]._swimmers.size > 0 )
+				count_lava_burn += 0.15 * sdEntity.entities[ i ]._swimmers.size * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+			}
 		}
 		
 		sdSound.jetpack_volume_last = sdWorld.MorphWithTimeScale( sdSound.jetpack_volume_last, count_flying, 0.8, GSPEED );
@@ -214,6 +237,12 @@ class sdSound
 		
 		sdSound.amplifier_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.amplifier_loop_volume_last, count_amplifier_loop, 0.8, GSPEED );
 		sdSound.amplifier_loop.volume = Math.min( 1, Math.min( 2, sdSound.amplifier_loop_volume_last ) * sdSound.volume_ambient );
+		
+		sdSound.lava_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.lava_loop_volume_last, count_lava_loop, 0.8, GSPEED );
+		sdSound.lava_loop.volume = Math.min( 1, Math.min( 1.5, sdSound.lava_loop_volume_last ) * sdSound.volume_ambient );
+		
+		sdSound.lava_burn_volume_last = sdWorld.MorphWithTimeScale( sdSound.lava_burn_volume_last, count_lava_burn, 0.8, GSPEED );
+		sdSound.lava_burn.volume = Math.min( 1, Math.min( 2, sdSound.lava_burn_volume_last ) * sdSound.volume_ambient );
 	}
 	static GetDistanceMultForPosition( x,y )
 	{

@@ -425,8 +425,8 @@ class sdCharacter extends sdEntity
 		if ( this._socket )
 		this._socket.emit( 'UPGRADE_SET', [ upgrade_name, this._upgrade_counters[ upgrade_name ] ] );
 	}
-	get hitbox_x1() { return this.death_anim < 10 ? -5 : -12; } // 7
-	get hitbox_x2() { return this.death_anim < 10 ? 5 : 12; }
+	get hitbox_x1() { return this.death_anim < 10 ? -5 : -5; } // 7
+	get hitbox_x2() { return this.death_anim < 10 ? 5 : 5; }
 	get hitbox_y1() { return this.death_anim < 10 ? -12 : 12; }
 	get hitbox_y2() { return this.death_anim < 10 ? ( ( 16 - this._crouch_intens * 6 ) * ( 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7 ) ) : 16; }
 
@@ -1503,6 +1503,7 @@ class sdCharacter extends sdEntity
 		if ( local_arr[ i ].is( sdWater ) )
 		{
 			in_water = true;
+			
 			break;
 		}
 		
@@ -2100,7 +2101,7 @@ class sdCharacter extends sdEntity
 		
 		return false;
 	}
-	CreateBuildObject( check_placement_and_range=true ) // Can be removed later on and used as fake signle-frame object in general
+	CreateBuildObject( check_placement_and_range=true, demo_mode=false ) // Can be removed later on and used as fake signle-frame object in general
 	{
 		if ( this._build_params === null )
 		{
@@ -2132,32 +2133,35 @@ class sdCharacter extends sdEntity
 		fake_ent.x = ( this.look_x - ( fake_ent.hitbox_x2 + fake_ent.hitbox_x1 ) / 2 );
 		fake_ent.y = ( this.look_y - ( fake_ent.hitbox_y2 + fake_ent.hitbox_y1 ) / 2 );
 		
-		if ( fake_ent._owner !== undefined )
-		fake_ent._owner = this; // Source of price to go up
-		
-		if ( fake_ent._hmax !== undefined )
-		fake_ent._hmax *= this._build_hp_mult; // Source of price to go up
-		
-		if ( fake_ent.hmax !== undefined )
-		fake_ent.hmax *= this._build_hp_mult; // Source of price to go up
-		
-		if ( fake_ent._hea !== undefined )
-		fake_ent._hea *= this._build_hp_mult; // Or else initial damage might instantly destroy it
-		
-		if ( fake_ent.hea !== undefined )
-		fake_ent.hea *= this._build_hp_mult; // Or else initial damage might instantly destroy it
-	
-		if ( fake_ent._owner !== undefined )
-		fake_ent._owner = this;
-	
-		if ( fake_ent._armor_protection_level !== undefined )
-		if ( this._upgrade_counters[ 'upgrade_build_hp' ] )
+		if ( !demo_mode )
 		{
-			fake_ent._armor_protection_level = this._upgrade_counters[ 'upgrade_build_hp' ]; // Because starts at 1
-			
-			if ( fake_ent.is( sdBlock ) )
-			if ( fake_ent.material !== sdBlock.MATERIAL_WALL )
-			fake_ent._armor_protection_level = 0;
+			if ( fake_ent._owner !== undefined )
+			fake_ent._owner = this; // Source of price to go up
+
+			if ( fake_ent._hmax !== undefined )
+			fake_ent._hmax *= this._build_hp_mult; // Source of price to go up
+
+			if ( fake_ent.hmax !== undefined )
+			fake_ent.hmax *= this._build_hp_mult; // Source of price to go up
+
+			if ( fake_ent._hea !== undefined )
+			fake_ent._hea *= this._build_hp_mult; // Or else initial damage might instantly destroy it
+
+			if ( fake_ent.hea !== undefined )
+			fake_ent.hea *= this._build_hp_mult; // Or else initial damage might instantly destroy it
+
+			if ( fake_ent._owner !== undefined )
+			fake_ent._owner = this;
+	
+			if ( fake_ent._armor_protection_level !== undefined )
+			if ( this._upgrade_counters[ 'upgrade_build_hp' ] )
+			{
+				fake_ent._armor_protection_level = this._upgrade_counters[ 'upgrade_build_hp' ]; // Because starts at 1
+
+				if ( fake_ent.is( sdBlock ) )
+				if ( fake_ent.material !== sdBlock.MATERIAL_WALL )
+				fake_ent._armor_protection_level = 0;
+			}
 		}
 		
 		if ( fake_ent.RequireSpawnAlign() )

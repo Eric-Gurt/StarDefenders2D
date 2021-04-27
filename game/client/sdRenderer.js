@@ -350,7 +350,6 @@ class sdRenderer
 			
 			//ctx.drawImage( sdRenderer.img_dark_lands, 0,0, sdRenderer.screen_width, sdRenderer.screen_height );
 			
-			
 			if ( sdWeather.only_instance )
 			{
 				ctx.fillStyle = '#000000';
@@ -657,6 +656,40 @@ class sdRenderer
 				}
 				
 				sdWorld.hovered_entity = best_ent;
+				
+
+				if ( sdWeather.only_instance )
+				if ( false )
+				{
+					if ( sdWorld.my_entity )
+					{
+						ctx.drawImage( sdWeather.img_scary_mode, sdWorld.my_entity.x - 250, sdWorld.my_entity.y - 250, 500, 500 );
+						
+						//sdWorld.target_scale = 0.5;
+						
+						ctx.fillStyle = '#000000';
+						
+						ctx.fillRect(	sdWorld.my_entity.x + 250, 
+										sdWorld.my_entity.y - sdRenderer.screen_height, 
+										sdRenderer.screen_width, 
+										sdRenderer.screen_height * 2 );
+										
+						ctx.fillRect(	sdWorld.my_entity.x - 250 - sdRenderer.screen_width, 
+										sdWorld.my_entity.y - sdRenderer.screen_height, 
+										sdRenderer.screen_width, 
+										sdRenderer.screen_height * 2 );
+										
+						ctx.fillRect(	sdWorld.my_entity.x - sdRenderer.screen_width, 
+										sdWorld.my_entity.y - 250 - sdRenderer.screen_height, 
+										sdRenderer.screen_width * 2, 
+										sdRenderer.screen_height );
+										
+						ctx.fillRect(	sdWorld.my_entity.x - sdRenderer.screen_width, 
+										sdWorld.my_entity.y + 250, 
+										sdRenderer.screen_width * 2, 
+										sdRenderer.screen_height );
+					}
+				}
 			}
 			
 			
@@ -702,6 +735,7 @@ class sdRenderer
 		// On-screen foregroud
 		if ( sdWorld.my_entity )
 		{
+			
 			ctx.globalAlpha = 0.5;
 			ctx.fillStyle = '#000000';
 			ctx.fillRect( 5, 5, 300, 17 );

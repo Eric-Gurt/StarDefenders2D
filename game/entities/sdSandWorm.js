@@ -256,6 +256,7 @@ class sdSandWorm extends sdEntity
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this.death_anim > 0 )
+		if ( sdWorld.is_server )
 		{
 			this._time_until_full_remove -= GSPEED;
 			if ( this._time_until_full_remove <= 0 )

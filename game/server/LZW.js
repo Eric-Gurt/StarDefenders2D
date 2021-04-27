@@ -14,8 +14,8 @@
 		}
 	}
 	
-	LZW.safe_pack_code = 256; // Fine for TCP, bad for WebRTC // High strings apparently can still cause some problems with data missmatch... I wonder if it will be happening on release.
-	//LZW.safe_pack_code = 127; // Better for WebRTC // This value will also influence number compression intensity // Safer version? High strings apparently can still cause some problems with data missmatch... I wonder if it will be happening on release (big maps case).
+	//LZW.safe_pack_code = 256; // Fine for TCP, bad for WebRTC // High strings apparently can still cause some problems with data missmatch... I wonder if it will be happening on release. Fail on russian characters
+	LZW.safe_pack_code = 127; // Better for WebRTC // This value will also influence number compression intensity // Safer version? High strings apparently can still cause some problems with data missmatch... I wonder if it will be happening on release (big maps case).
 
 
 	//Yes, it fails at true UTF-8. Thus correcting value of "code"...

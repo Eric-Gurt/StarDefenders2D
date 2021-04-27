@@ -66,6 +66,8 @@ class sdAsp extends sdEntity
 		
 		this.attack_frame = 0;
 		
+		this._anim_shift = ~~( Math.random() * 10000 );
+		
 		sdAsp.asps_tot++;
 		
 		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
@@ -73,7 +75,7 @@ class sdAsp extends sdEntity
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( this._hea > 0 )
-		if ( character.IsVisible() )
+		if ( character.IsVisible( this ) )
 		if ( character.hea > 0 )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
@@ -161,7 +163,7 @@ class sdAsp extends sdEntity
 		else
 		if ( this._current_target )
 		{
-			if ( this._current_target._is_being_removed || !this._current_target.IsVisible() || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdAsp.max_seek_range + 32 )
+			if ( this._current_target._is_being_removed || !this._current_target.IsVisible( this ) || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdAsp.max_seek_range + 32 )
 			this._current_target = null;
 			else
 			{
@@ -216,7 +218,7 @@ class sdAsp extends sdEntity
 				if ( sdWorld.sockets[ i ].character )
 				if ( sdWorld.sockets[ i ].character.hea > 0 )
 				if ( !sdWorld.sockets[ i ].character._is_being_removed )
-				if ( sdWorld.sockets[ i ].character.IsVisible() )
+				if ( sdWorld.sockets[ i ].character.IsVisible( this ) )
 				{
 					
 					let dx = ( sdWorld.sockets[ i ].character.x + Math.random() * 1000 - 500 - this.x );
@@ -268,7 +270,7 @@ class sdAsp extends sdEntity
 				{
 					from_entity = nears_raw[ i ];
 					
-					if ( ( from_entity.GetClass() === 'sdCharacter' && from_entity.IsVisible() && from_entity.hea > 0 ) )
+					if ( ( from_entity.GetClass() === 'sdCharacter' && from_entity.IsVisible( this ) && from_entity.hea > 0 ) )
 					{
 						let rank = Math.random() * 0.1;
 						
@@ -364,7 +366,7 @@ class sdAsp extends sdEntity
 		
 		if ( this.death_anim === 0 )
 		{
-			ctx.translate( 0, Math.sin( sdWorld.time / 1000 * Math.PI ) * 2 );
+			ctx.translate( 0, Math.sin( (sdWorld.time+this._anim_shift) / 1000 * Math.PI ) * 2 );
 			
 			if ( this.attack_frame >= 1 )
 			{

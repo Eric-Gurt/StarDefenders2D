@@ -25,6 +25,7 @@ import sdCom from './sdCom.js';
 import sdVirus from './sdVirus.js';
 import sdBG from './sdBG.js';
 import sdEnemyMech from './sdEnemyMech.js';
+import sdBadDog from './sdBadDog.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -34,6 +35,7 @@ class sdWeather extends sdEntity
 	static init_class()
 	{
 		sdWeather.img_rain = sdWorld.CreateImageFromFile( 'rain' );
+		sdWeather.img_scary_mode = sdWorld.CreateImageFromFile( 'scary_mode' );
 		
 		sdWeather.only_instance = null;
 		
@@ -83,7 +85,7 @@ class sdWeather extends sdEntity
 		this.quake_intensity = 0;
 		
 		//this._rain_offset = 0;
-		this._time_until_event = 0;
+		this._time_until_event = 30 * 30; // 30 seconds since world reset
 		
 		this._asteroid_timer = 0; // 60 * 1000 / ( ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) / 800 )
 		this._asteroid_timer_scale_next = 0;
@@ -464,10 +466,11 @@ class sdWeather extends sdEntity
 			
 									if ( y >= from_y )
 									{
+										let r = sdWorld.FillGroundQuad( x, y, from_y, false, true );
+										
+										if ( r )
 										ClearPlants();
-										
-										sdWorld.FillGroundQuad( x, y, from_y, false, true );
-										
+									
 										// Delete temp block on success
 										//ent.remove();
 										break;
@@ -475,11 +478,12 @@ class sdWeather extends sdEntity
 									else
 									if ( y === from_y - 8 )
 									{
-										ClearPlants();
-										
 										y += 8;
-										sdWorld.FillGroundQuad( x, y, from_y, true, true );
+										let r = sdWorld.FillGroundQuad( x, y, from_y, true, true );
 										
+										if ( r )
+										ClearPlants();
+									
 										// Delete temp block on success
 										//ent.remove();
 										break;
@@ -517,8 +521,9 @@ class sdWeather extends sdEntity
 			this._time_until_event -= GSPEED;
 			if ( this._time_until_event < 0 )
 			{
-				this._time_until_event = Math.random() * 30 * 60 * 8; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
-				let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ];
+				//this._time_until_event = Math.random() * 30 * 60 * 8; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
+				this._time_until_event = Math.random() * 30 * 60 * 7; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
+				let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
 				
 				let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -830,9 +835,70 @@ class sdWeather extends sdEntity
 						}
 					}
 					
-					if ( r === 8 ) //Earth quake, idea by LazyRain, implementation by Eric Gurt
+					if ( r === 8 ) // Earth quake, idea by LazyRain, implementation by Eric Gurt
 					{
 						this._quake_scheduled_amount = 30 * ( 10 + Math.random() * 30 );
+					}
+					
+					if ( r === 9 ) // Spawn few sdBadDog-s somewhere on ground where players don't see them
+					{
+						let instances = Math.floor( 1 + Math.random() * 2 );
+						while ( instances > 0 && sdBadDog.dogs_counter < 12 )
+						{
+
+							let dog = new sdBadDog({ x:0, y:0 });
+
+							sdEntity.entities.push( dog );
+
+							{
+								let x,y,i;
+								let tr = 1000;
+								do
+								{
+									x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+									y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+									if ( dog.CanMoveWithoutOverlap( x, y, 0 ) )
+									if ( !dog.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+									if ( sdWorld.last_hit_entity )
+									if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+									{
+										let di_allowed = true;
+										
+										for ( i = 0; i < sdWorld.sockets.length; i++ )
+										if ( sdWorld.sockets[ i ].character )
+										{
+											let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
+											
+											if ( di < 500 )
+											{
+												di_allowed = false;
+												break;
+											}
+										}
+										
+										if ( di_allowed )
+										{
+											dog.x = x;
+											dog.y = y;
+
+											break;
+										}
+									}
+									
+
+
+									tr--;
+									if ( tr < 0 )
+									{
+										dog.remove();
+										break;
+									}
+								} while( true );
+							}
+
+							instances--;
+						}
 					}
 				}
 			}
@@ -849,7 +915,7 @@ class sdWeather extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.translate( -this.x, -this.y ); // sdWeather does move now just so it is kepth inisde of world bounds and not gets removed with old areas
+		ctx.translate( -this.x, -this.y ); // sdWeather does move now just so it is kept inisde of world bounds and not gets removed with old areas
 		//
 		//ctx.translate( Math.floor(( sdWorld.camera.x - sdRenderer.screen_width / sdWorld.camera.scale )/32)*32, 
 		//               Math.floor(( sdWorld.camera.y - sdRenderer.screen_height / sdWorld.camera.scale )/32)*32 );

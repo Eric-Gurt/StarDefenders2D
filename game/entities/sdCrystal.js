@@ -61,6 +61,7 @@ class sdCrystal extends sdEntity
 		if ( r < 0.5 )
 		this.matter_max *= 2;
 		
+		this._last_damage = 0; // Sound flood prevention
 		
 		this.matter = this.matter_max;
 		/*
@@ -96,7 +97,13 @@ class sdCrystal extends sdEntity
 			this.remove();
 		}
 		else
-		sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, volume:1 });
+		{
+			if ( sdWorld.time > this._last_damage + 50 )
+			{
+				this._last_damage = sdWorld.time;
+				sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, volume:1 });
+			}
+		}
 	}
 	
 	get mass() { return 30; }

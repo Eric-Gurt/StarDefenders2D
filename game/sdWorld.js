@@ -115,6 +115,10 @@ class sdWorld
 		
 		sdWorld.GSPEED = 0;
 		
+		//sdWorld.PerlinNoiseGenerator = new PerlinNoiseGenerator( 1337 );
+		sdWorld.SeededRandomNumberGenerator = new SeededRandomNumberGenerator( ~~( Math.random() * 500000 ) );
+		//sdWorld.SeededRandomNumberGenerator2 = new SeededRandomNumberGenerator( 612 );
+		
 		sdWorld.el_hit_cache = [];
 		
 		sdWorld.unresolved_entity_pointers = null; // Temporarily becomes array during backup loading just so cross pointer properties can be set (for example driver and vehicle)
@@ -444,6 +448,47 @@ class sdWorld
 	{
 		var ent = null;
 		
+		var allow_block = true;
+		var allow_water = true;
+		var allow_lava = false;
+		
+		var s = 0;
+		var s_tot = 0;
+		
+		var r = 10;
+		var r_plus = r + 1;
+		
+		for ( var xx = -r; xx <= r; xx++ )
+		for ( var yy = -r; yy <= r; yy++ )
+		{
+			if ( sdWorld.inDist2D_Boolean( xx, yy, 0, 0, r_plus ) )
+			{
+				s += sdWorld.SeededRandomNumberGenerator.random( x + xx * 8, y + yy * 8 );
+				s_tot += 1;
+			}
+		}
+		
+		s /= s_tot;
+		
+		if ( s < 0.49 - ( 1 + Math.sin( y / 100 ) ) * 0.001 )
+		{
+			allow_block = false;
+			allow_water = false;
+			
+			if ( y > 500 )
+			{
+				if ( s < 0.485 - ( 1 + Math.sin( y / 100 ) ) * 0.001 )
+				{
+					allow_water = true;
+					allow_lava = true;
+				}
+			}
+		}
+		//debugger;
+	
+	
+	
+		
 		let f = 'hue-rotate('+( ~~sdWorld.mod( x / 16, 360 ) )+'deg)';
 
 		let hp_mult = 1;
@@ -455,8 +500,11 @@ class sdWorld
 			hp_mult = 1 + Math.ceil( ( y - from_y - 256 ) / 200 * 3 ) / 3;
 			f += 'brightness(' + Math.max( 0.2, 1 / hp_mult ) + ') saturate(' + Math.max( 0.2, 1 / hp_mult ) + ')';
 		}
+		
+		
+		
 
-		if ( y >= from_y )
+		if ( y >= from_y && allow_block )
 		{
 			let enemy_rand_num = Math.random();
 			let random_enemy;
@@ -546,9 +594,10 @@ class sdWorld
 		{
 			ent = new sdBG({ x:x, y:y, width:16, height:16, material:sdBG.MATERIAL_GROUND, filter:'brightness(0.5) ' + f });
 
+			if ( allow_water )
 			if ( y > sdWorld.base_ground_level )
 			{
-				let ent2 = new sdWater({ x:x, y:y, volume:1 });
+				let ent2 = new sdWater({ x:x, y:y, volume:1, type:allow_lava?sdWater.TYPE_LAVA:sdWater.TYPE_WATER });
 				//let ent2 = new sdWater({ x:x, y:y, volume:(y===sdWorld.base_ground_level)?0.5:1 });
 				sdEntity.entities.push( ent2 );
 			}
@@ -2066,4 +2115,31 @@ class sdWorld
 }
 //sdWorld.init_class();
 
+
+
+
+class SeededRandomNumberGenerator
+{
+	constructor( s=0 )
+	{
+		this.seed = s;
+	}
+	random( v1, v2 )
+	{		
+		v1 = Math.floor( v1 );
+		v2 = Math.floor( v2 );
+		
+		var seed = this.seed + v1 * 56221 + v2;
+		
+		seed = ((seed + 0x7ED55D16) + (seed << 12))  & 0xFFFFFFFF;
+		seed = ((seed ^ 0xC761C23C) ^ (seed >>> 19)) & 0xFFFFFFFF;
+		seed = ((seed + 0x165667B1) + (seed << 5))   & 0xFFFFFFFF;
+		seed = ((seed + 0xD3A2646C) ^ (seed << 9))   & 0xFFFFFFFF;
+		seed = ((seed + 0xFD7046C5) + (seed << 3))   & 0xFFFFFFFF;
+		seed = ((seed ^ 0xB55A4F09) ^ (seed >>> 16)) & 0xFFFFFFFF;
+
+		return (seed & 0xFFFFFFF) / 0x10000000;
+	}
+
+}
 export default sdWorld;

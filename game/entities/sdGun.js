@@ -439,7 +439,7 @@ class sdGun extends sdEntity
 						else
 						{
 
-							let ent = this._held_by.CreateBuildObject( false );
+							let ent = this._held_by.CreateBuildObject( false, ( this._held_by._build_params._category === 'Development tests' ) );
 							
 							if ( this._held_by._build_params._category !== 'Development tests' )
 							{
