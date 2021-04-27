@@ -136,7 +136,7 @@ class sdUpgradeStation extends sdEntity
 		this.matter_max = 5500;
 		this.matter = 100;
 		this.delay = 0;
-		this.level = 2;
+		this.level = 1;
 	}
 	onBuilt()
 	{
