@@ -2767,6 +2767,37 @@ io.on("connection", (socket) =>
 			socket.emit('SERVICE_MESSAGE', 'Storage no longer exists' );
 		}
 	});
+	socket.on('UPGRADE_STAT', ( arr ) => { 
+		
+		if ( !( arr instanceof Array ) )
+		return;
+	
+		if ( socket.character ) 
+		if ( socket.character.hea > 0 ) 
+		{
+			let net_id = arr[ 0 ];
+			let ent = sdEntity.GetObjectByClassAndNetId( 'sdUpgradeStation', net_id );
+			if ( ent !== null )
+			{
+				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdStorage.access_range ) >= 0 )
+				{
+					if ( socket.character.build_tool_level <= ( ent.level + 1 ) )
+					{
+						if ( ent.matter >= 5000 )
+						ent.UpgradeStation( socket.character );
+						else
+						socket.emit('SERVICE_MESSAGE', 'Upgrade station needs at least 5000 matter!' );
+					}
+					else
+					socket.emit('SERVICE_MESSAGE', 'You need a bigger build tool level!' );
+				}
+				else
+				socket.emit('SERVICE_MESSAGE', 'Upgrade station is too far' );
+			}
+			else
+			socket.emit('SERVICE_MESSAGE', 'Upgrade station no longer exists' );
+		}
+	});
 	socket.on('UPGRADE_GET_EQUIP', ( arr ) => { 
 		
 		if ( !( arr instanceof Array ) )
