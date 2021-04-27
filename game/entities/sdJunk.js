@@ -47,7 +47,7 @@ class sdJunk extends sdEntity
 		this.hea = this.hmax;
 		this.matter_max = 320;
 		this.matter = this.matter_max;
-		
+		this._damagable_in = sdWorld.time + 1500; // Copied from sdCrystal to prevent high ping players injure themselves, will only work for sdCharacter damage		
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
 	/*GetBleedEffect()
@@ -63,6 +63,10 @@ class sdJunk extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
+		if ( initiator !== null )
+		if ( initiator.GetClass() === 'sdCharacter' )
+		if ( sdWorld.time < this._damagable_in )
+		return;
 	
 		dmg = Math.abs( dmg );
 		
