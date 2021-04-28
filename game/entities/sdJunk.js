@@ -233,22 +233,24 @@ class sdJunk extends sdEntity
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		if (this.type === 0 || this.type === 1 )
+		if (this.type === 0 )
 		sdEntity.Tooltip( ctx, "Unstable cube corpse" );
+		if ( this.type === 1 )
+		sdEntity.Tooltip( ctx, "Alien battery" );
 	}
 	Draw( ctx, attached )
 	{
 		//ctx.filter = this.filter;
 		
 		{
-			if ( this.type === 0 ) // First unstable cube corpse )
+			if ( this.type === 0 ) // First unstable cube corpse
 			{
 				if ( this.hea % 15 < ( this.hea / this.hmax ) * 9 )
 				ctx.drawImageFilterCache( sdJunk.img_cube_unstable, - 16, - 16, 32,32 );
 				else
 				ctx.drawImageFilterCache( sdJunk.img_cube_unstable_detonate, - 16, - 16, 32,32 );
 			}
-			if ( this.type === 1 ) // Second unstable cube corpse )
+			if ( this.type === 1 ) // Alien battery
 			{
 				if ( this.hea % 15 < ( this.hea / this.hmax ) * 9 )
 				ctx.drawImageFilterCache( sdJunk.img_cube_unstable2, - 16, - 16, 32,32 );

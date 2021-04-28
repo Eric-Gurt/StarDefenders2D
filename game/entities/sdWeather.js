@@ -232,7 +232,7 @@ class sdWeather extends sdEntity
 									character_entity._jetpack_allowed = true; // Jetpack
 									character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
 									character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-
+									character_entity._ai_team = 1; // AI team 1 is for Falkoks, preparation for future AI factions
 									//this._invasion_spawns_con -= 1;
 
 									break;
@@ -673,6 +673,7 @@ class sdWeather extends sdEntity
 										character_entity._jetpack_allowed = true; // Jetpack
 										character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
 										character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+										character_entity._ai_team = 1; // AI team 1 is for Falkoks, preparation for future AI factions
 
 										break;
 									}

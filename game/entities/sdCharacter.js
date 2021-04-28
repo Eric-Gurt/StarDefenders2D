@@ -52,8 +52,6 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_scope' ), // by butorinoks77
 			sdWorld.CreateImageFromFile( 'helmet_crusader' ), // by xXRedXAssassinXx
 			sdWorld.CreateImageFromFile( 'helmet_phfalkok' ), // by Booraz149
-			sdWorld.CreateImageFromFile( 'helmet_aero' ), // // original by LordBored, remake by LazyRain
-			sdWorld.CreateImageFromFile( 'helmet_scout' ) // by Ghost581, original name was "Observer"
 		];
 		
 		// x y rotation, for images below
@@ -235,6 +233,7 @@ class sdCharacter extends sdEntity
 		this._ai_enabled = false;
 		this._ai_gun_slot = 0; // When AI spawns with a weapon, this variable needs to be defined to the same slot as the spawned gun so AI can use it
 		this._ai_level = 0; // Self explanatory
+		this._ai_team = 0; // AI "Teammates" do not damage each other
 		
 		this.title = 'Random Hero #' + this._net_id;
 		this._my_hash = undefined; // Will be used to let players repsawn within same entity if it exists on map
@@ -412,6 +411,25 @@ class sdCharacter extends sdEntity
 		best_team_id++;
 	}*/
 	
+	AIWarnTeammates()
+	{
+		if ( !sdWorld.is_server )
+		return;
+
+		let teammates = sdWorld.GetAnythingNear( this.x, this.y, 200, null, [ 'sdCharacter' ] );
+		for ( let i = 0; i < teammates.length; i++ )
+		{
+		if ( teammates[ i ].GetClass() === 'sdCharacter' && teammates[ i ]._ai && teammates[ i ].hea > 0 )
+		teammates[ i ].AIProtectTeammate( this._ai.target ); // teammates[ i]._ai.target = this._ai_target; didn't work
+		//teammates[ i ]._ai.target = this._ai_target;
+		}
+	
+	}
+	
+	AIProtectTeammate ( target )
+	{
+	this._ai.target = target;
+	}
 	
 	InstallUpgrade( upgrade_name ) // Ignores upper limit condition. Upgrades better be revertable and resistent to multiple calls within same level as new level
 	{
@@ -476,8 +494,17 @@ class sdCharacter extends sdEntity
 				if ( this._ai )
 				{
 					if ( initiator )
-					if ( !initiator._ai || Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for Falkoks, also reduced by their AI level
-					this._ai.target = initiator;
+					{
+						if ( !initiator._ai || ( initiator._ai && initiator._ai_team !== this._ai_team ) ) //Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for Falkoks, also reduced by their AI level
+						{
+							this._ai.target = initiator;
+							if ( Math.random() < 0.9 ) // 90% chance
+							this.AIWarnTeammates();
+						}
+						else
+						return;
+
+					}
 				}
 				else
 				{
@@ -749,8 +776,14 @@ class sdCharacter extends sdEntity
 				if ( Math.random() < 0.4 )
 				this._key_states.SetKey( 'KeyS', 1 );
 			
+				if ( Math.random() < 0.05 ) // Shoot the walls occasionally, when target is not in sight but was detected previously
+				{
+					this._key_states.SetKey( 'Mouse1', 1 );
+				}
+				else
 				if ( Math.random() < 0.2 + Math.min( 0.8, ( 0.25 * this._ai_level ) ) ) // Shoot on detection, depends on AI level
 				{
+					if ( sdWorld.CheckLineOfSight( this.x, this.y, closest.x, closest.y, this, sdCom.com_visibility_ignored_classes, null ) )
 					this._key_states.SetKey( 'Mouse1', 1 );
 				}
 			}
