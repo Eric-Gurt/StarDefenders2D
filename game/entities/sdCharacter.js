@@ -498,7 +498,7 @@ class sdCharacter extends sdEntity
 						if ( !initiator._ai || ( initiator._ai && initiator._ai_team !== this._ai_team ) ) //Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for Falkoks, also reduced by their AI level
 						{
 							this._ai.target = initiator;
-							if ( Math.random() < 0.9 ) // 90% chance
+							if ( Math.random() < 0.3 ) // 30% chance
 							this.AIWarnTeammates();
 						}
 						else
