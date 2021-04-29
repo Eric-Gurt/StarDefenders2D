@@ -504,7 +504,8 @@ class sdCharacter extends sdEntity
 							this.AIWarnTeammates();
 						}
 						else
-						return;
+						if ( initiator._ai_team === this._ai_team && Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for Falkoks, also reduced by their AI level
+						this._ai.target = initiator;
 
 					}
 				}
@@ -765,7 +766,11 @@ class sdCharacter extends sdEntity
 				this._ai.target = closest;
 				this._ai.target_local_y = closest.hitbox_y1 + ( closest.hitbox_y2 - closest.hitbox_y1 ) * Math.random();
 
-				
+				let should_fire = true; // Sometimes prevents friendly fire, not ideal since it updates only when ai performs "next action"
+				if ( !sdWorld.CheckLineOfSight( this.x, this.y, closest.x, closest.y, this, null, ['sdCharacter'] ) )
+				if ( sdWorld.last_hit_entity && sdWorld.last_hit_entity._ai_team === this._ai_team )
+				should_fire = false;
+
 				if ( Math.random() < 0.3 )
 				this._key_states.SetKey( 'KeyA', 1 );
 				
@@ -778,12 +783,12 @@ class sdCharacter extends sdEntity
 				if ( Math.random() < 0.4 )
 				this._key_states.SetKey( 'KeyS', 1 );
 			
-				if ( Math.random() < 0.05 ) // Shoot the walls occasionally, when target is not in sight but was detected previously
+				if ( Math.random() < 0.05 && should_fire === true  ) // Shoot the walls occasionally, when target is not in sight but was detected previously
 				{
 					this._key_states.SetKey( 'Mouse1', 1 );
 				}
 				else
-				if ( Math.random() < 0.2 + Math.min( 0.8, ( 0.25 * this._ai_level ) ) ) // Shoot on detection, depends on AI level
+				if ( Math.random() < 0.25 + Math.min( 0.7, ( 0.25 * this._ai_level ) ) && should_fire === true ) // Shoot on detection, depends on AI level
 				{
 					if ( sdWorld.CheckLineOfSight( this.x, this.y, closest.x, closest.y, this, sdCom.com_visibility_ignored_classes, null ) )
 					this._key_states.SetKey( 'Mouse1', 1 );
