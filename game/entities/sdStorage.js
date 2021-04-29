@@ -197,7 +197,7 @@ class sdStorage extends sdEntity
 		{
 			if ( initiator_character )
 			if ( initiator_character._socket )
-			initiator_character._socket.emit('SERVICE_MESSAGE', 'Item is already taken' );
+			initiator_character._socket.SDServiceMessage( 'Item is already taken' );
 	
 			if ( throw_on_not_found )
 			throw new Error('Should not happen');

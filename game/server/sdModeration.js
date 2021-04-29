@@ -63,7 +63,7 @@ class sdModeration
 			setTimeout( ()=>
 			{
 				for ( let i = 0; i < sdWorld.sockets.length; i++ )
-				sdWorld.sockets[ i ].emit('SERVICE_MESSAGE', 'Server: Moderation has been disabled due to access file read error. Type /retry to try again.' );
+				sdWorld.sockets[ i ].SDServiceMessage( 'Server: Moderation has been disabled due to access file read error. Type /retry to try again.' );
 			
 			}, timeout );
 		}
@@ -78,13 +78,13 @@ class sdModeration
 		if ( !sdModeration.ever_loaded )
 		if ( parts[ 0 ] !== 'retry' )
 		{
-			socket.emit('SERVICE_MESSAGE', 'Server: Moderation has been disabled due to access file read error. Type /retry to try again.' );
+			socket.SDServiceMessage( 'Server: Moderation has been disabled due to access file read error. Type /retry to try again.' );
 			return;
 		}
 	
 		if ( socket.my_hash === null )
 		{
-			socket.emit('SERVICE_MESSAGE', 'Server: No permissions for unknown user.' );
+			socket.SDServiceMessage( 'Server: No permissions for unknown user.' );
 			return;
 		}
 	
@@ -108,7 +108,7 @@ class sdModeration
 			if ( sdModeration.ever_loaded )
 			if ( !is_non_admin )
 			{
-				socket.emit('SERVICE_MESSAGE', 'Server: No permissions.' );
+				socket.SDServiceMessage( 'Server: No permissions.' );
 				return;
 			}
 		}
@@ -134,16 +134,16 @@ class sdModeration
 					{
 						sdModeration.data.admins.push( { my_hash: socket.my_hash, access_level: 0, pseudonym: socket.character.title, promoter_hash: null } );
 						sdModeration.Save();
-						socket.emit('SERVICE_MESSAGE', 'Server: You are a first admin now! That password won\'t work while at least one admin exists.' );
+						socket.SDServiceMessage( 'Server: You are a first admin now! That password won\'t work while at least one admin exists.' );
 					}
 					else
-					socket.emit('SERVICE_MESSAGE', 'Server: Wrong password. Check superuser_pass.v for correct one.' );
+					socket.SDServiceMessage( 'Server: Wrong password. Check superuser_pass.v for correct one.' );
 				}
 				else
-				socket.emit('SERVICE_MESSAGE', 'Server: No hash or no character found.' );
+				socket.SDServiceMessage( 'Server: No hash or no character found.' );
 			}
 			else
-			socket.emit('SERVICE_MESSAGE', 'Server: First admin already exists.' );
+			socket.SDServiceMessage( 'Server: First admin already exists.' );
 		}
 		else
 		if ( parts[ 0 ] === 'retry' )
@@ -162,9 +162,9 @@ class sdModeration
 			if ( parts[ 1 ] === 'undefined' )
 			{
 				if ( parts[ 0 ] === 'promote' )
-				socket.emit('SERVICE_MESSAGE', 'Usage example (replace 123 with number player says when types /myid ): /promote 123' );
+				socket.SDServiceMessage( 'Usage example (replace 123 with number player says when types /myid ): /promote 123' );
 				else
-				socket.emit('SERVICE_MESSAGE', 'Usage example (replace #5 with # and number that starts with # after executing /listadmins , _net_id will work too): /demote #5' );
+				socket.SDServiceMessage( 'Usage example (replace #5 with # and number that starts with # after executing /listadmins , _net_id will work too): /demote #5' );
 			
 				return;
 			}
@@ -213,18 +213,18 @@ class sdModeration
 							sdModeration.data.admins[ a ].access_level = my_admin_row.access_level + 1;
 							sdModeration.data.admins[ a ].promoter_hash = my_admin_row.my_hash;
 							sdModeration.Save();
-							socket.emit('SERVICE_MESSAGE', 'Server: Already admin, access_level has been increased and promoter updated.' );
+							socket.SDServiceMessage( 'Server: Already admin, access_level has been increased and promoter updated.' );
 						}
 						else
-						socket.emit('SERVICE_MESSAGE', 'Server: Already admin, can not increase access_level.' );
+						socket.SDServiceMessage( 'Server: Already admin, can not increase access_level.' );
 
 						return;
 					}
 
 					sdModeration.data.admins.push( { my_hash: target.my_hash, access_level: my_admin_row.access_level + 1, pseudonym: target.character.title, promoter_hash: my_admin_row.my_hash } );
 					sdModeration.Save();
-					socket.emit('SERVICE_MESSAGE', 'Server: ' + target.character.title + ' has been promoted to admin with access level ' + ( my_admin_row.access_level + 1 ) + ' (higher = less permissions).' );
-					target.emit('SERVICE_MESSAGE', 'Server: ' + target.character.title + ' has been promoted to admin with access level ' + ( my_admin_row.access_level + 1 ) + ' (higher = less permissions).' );
+					socket.SDServiceMessage( 'Server: ' + target.character.title + ' has been promoted to admin with access level ' + ( my_admin_row.access_level + 1 ) + ' (higher = less permissions).' );
+					target.SDServiceMessage( 'Server: ' + target.character.title + ' has been promoted to admin with access level ' + ( my_admin_row.access_level + 1 ) + ' (higher = less permissions).' );
 				}
 				else
 				if ( parts[ 0 ] === 'demote' )
@@ -237,30 +237,30 @@ class sdModeration
 							sdModeration.data.admins.splice( a, 1 );
 							a--;
 							sdModeration.Save();
-							socket.emit('SERVICE_MESSAGE', 'Server: ' + target.character.title + ' has been demoted.' );
+							socket.SDServiceMessage( 'Server: ' + target.character.title + ' has been demoted.' );
 							return;
 						}
 						else
 						{
-							socket.emit('SERVICE_MESSAGE', 'Server: ' + target.character.title + ' has higher or equal access level ' + ( sdModeration.data.admins[ a ].access_level ) + '. Your is ' + my_admin_row.access_level + ' (higher = less permissions).' );
+							socket.SDServiceMessage( 'Server: ' + target.character.title + ' has higher or equal access level ' + ( sdModeration.data.admins[ a ].access_level ) + '. Your is ' + my_admin_row.access_level + ' (higher = less permissions).' );
 							return;
 						}
 					}
-					socket.emit('SERVICE_MESSAGE', 'Server: ' + target.character.title + ' had no admin permissions.' );
+					socket.SDServiceMessage( 'Server: ' + target.character.title + ' had no admin permissions.' );
 				}
 			}
 			else
 			{
-				socket.emit('SERVICE_MESSAGE', 'Server: Unable to find target' );
+				socket.SDServiceMessage( 'Server: Unable to find target' );
 			}
 		}
 		else
 		if ( parts[ 0 ] === 'commands' || parts[ 0 ] === 'help' || parts[ 0 ] === '?' )
 		{
 			if ( is_non_admin )
-			socket.emit('SERVICE_MESSAGE', 'Supported commands: ' + [ '/commands', '/myid', '/listadmins', '/connection', '/kill' ].join(', ') );
+			socket.SDServiceMessage( 'Supported commands: ' + [ '/commands', '/myid', '/listadmins', '/connection', '/kill' ].join(', ') );
 			else
-			socket.emit('SERVICE_MESSAGE', 'Supported commands: ' + [ '/commands', '/myid', '/listadmins', '/announce', '/quit', '/restart', '/save', '/restore', '/fullreset', '/god', '/promote', '/demote', '/boundsmove' ].join(', ') );
+			socket.SDServiceMessage( 'Supported commands: ' + [ '/commands', '/myid', '/listadmins', '/announce', '/quit', '/restart', '/save', '/restore', '/fullreset', '/god', '/promote', '/demote', '/boundsmove' ].join(', ') );
 		}
 		else
 		if ( parts[ 0 ] === 'announce' )
@@ -270,9 +270,9 @@ class sdModeration
 			for ( let i = 0; i < sdWorld.sockets.length; i++ )
 			{
 				if ( socket.character )
-				sdWorld.sockets[ i ].emit('SERVICE_MESSAGE', 'Announcement from '+socket.character.title+': ' + rest_text );
+				sdWorld.sockets[ i ].SDServiceMessage( 'Announcement from '+socket.character.title+': ' + rest_text );
 				else
-				sdWorld.sockets[ i ].emit('SERVICE_MESSAGE', 'Announcement from '+my_admin_row.pseudonym+': ' + rest_text );
+				sdWorld.sockets[ i ].SDServiceMessage( 'Announcement from '+my_admin_row.pseudonym+': ' + rest_text );
 			}
 		}
 		else
@@ -283,9 +283,9 @@ class sdModeration
 			out.push( '[ #'+a+' ]: ' + sdModeration.data.admins[ a ].pseudonym + '^' + sdModeration.data.admins[ a ].access_level );
 			
 			if ( out.length === 0 )
-			socket.emit('SERVICE_MESSAGE', 'No admins. Use /selfpromote to generate one-time-use password and then enter it like this: /selfpromote pass000' );
+			socket.SDServiceMessage( 'No admins. Use /selfpromote to generate one-time-use password and then enter it like this: /selfpromote pass000' );
 			else
-			socket.emit('SERVICE_MESSAGE', 'Admins: ' + out.join(',   ') );
+			socket.SDServiceMessage( 'Admins: ' + out.join(',   ') );
 		}
 		else
 		if ( parts[ 0 ] === 'quit' || parts[ 0 ] === 'shutdown' || parts[ 0 ] === 'exit' )
@@ -296,22 +296,22 @@ class sdModeration
 		if ( parts[ 0 ] === 'restart' || parts[ 0 ] === 'reboot' )
 		{
 			if ( parts[ 1 ] === 'nosave' )
-			socket.emit('SERVICE_MESSAGE', 'Server: Restarting... Without saving snapshot' );
+			socket.SDServiceMessage( 'Server: Restarting... Without saving snapshot' );
 			else
-			socket.emit('SERVICE_MESSAGE', 'Server: Restarting... Saving snapshot' );
+			socket.SDServiceMessage( 'Server: Restarting... Saving snapshot' );
 		
 			console.log( "This is pid " + process.pid + ' :: parts: ' + JSON.stringify( parts ) );
 			
 			const proceed = ( err )=>
 			{		
 				if ( parts[ 1 ] === 'nosave' )
-				socket.emit('SERVICE_MESSAGE', 'Server: Restarting... Snapshot saving ignored, goodbye!' );
+				socket.SDServiceMessage( 'Server: Restarting... Snapshot saving ignored, goodbye!' );
 				else
-				socket.emit('SERVICE_MESSAGE', 'Server: Restarting... Snapshot saved, goodbye!' );
+				socket.SDServiceMessage( 'Server: Restarting... Snapshot saved, goodbye!' );
 				
 				setTimeout( function () 
 				{
-					socket.emit('SERVICE_MESSAGE', 'Server: Restarting... Terminating' );
+					socket.SDServiceMessage( 'Server: Restarting... Terminating' );
 				
 					process.on( "exit", function () 
 					{
@@ -347,14 +347,14 @@ class sdModeration
 			sdWorld.SaveSnapshot( sdWorld.timewarp_path_const, ( err )=>
 			{		
 				for ( let i = 0; i < sdWorld.sockets.length; i++ )
-				sdWorld.sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server: World timewarp restore point has been set ('+(err?'Error!':'successfully')+')!' );
+				sdWorld.sockets[ i ].SDServiceMessage( 'Server: World timewarp restore point has been set ('+(err?'Error!':'successfully')+')!' );
 			});
 		}
 		else
 		if ( parts[ 0 ] === 'restore' || parts[ 0 ] === 'load' )
 		{
 			for ( let i = 0; i < sdWorld.sockets.length; i++ )
-			sdWorld.sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server: Timewarp initiated.' );
+			sdWorld.sockets[ i ].SDServiceMessage( 'Server: Timewarp initiated.' );
 
 			sdWorld.PreventSnapshotSaving();
 			
@@ -367,7 +367,7 @@ class sdModeration
 				if ( !err )
 				ok++;
 			
-				socket.emit('SERVICE_MESSAGE', 'Server: Copying files... tot: ' + tot + ', ok: ' + ok  );
+				socket.SDServiceMessage( 'Server: Copying files... tot: ' + tot + ', ok: ' + ok  );
 			
 				if ( tot === 2 )
 				{
@@ -375,7 +375,7 @@ class sdModeration
 					sdModeration.CommandReceived( socket, '/restart nosave' );
 					else
 					{
-						socket.emit('SERVICE_MESSAGE', 'Server: Unable to manage backup files. /load command execution canceled.' );
+						socket.SDServiceMessage( 'Server: Unable to manage backup files. /load command execution canceled.' );
 					}
 				}
 			};
@@ -387,7 +387,7 @@ class sdModeration
 		if ( parts[ 0 ] === 'fullreset' || parts[ 0 ] === 'wipe' )
 		{
 			for ( let i = 0; i < sdWorld.sockets.length; i++ )
-			sdWorld.sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server: World reset has been initated.' );
+			sdWorld.sockets[ i ].SDServiceMessage( 'Server: World reset has been initated.' );
 
 			sdWorld.PreventSnapshotSaving();
 			try
@@ -411,7 +411,7 @@ class sdModeration
 			//socket.sent_result_ok *= 0.8;
 			//socket.sent_result_dropped = 0.8;
 	
-			socket.emit('SERVICE_MESSAGE', 'Server: Server sends updates to you each ' + socket.max_update_rate + 'ms ('+ (~~socket.sent_result_dropped)+' dropped out of '+(~~socket.sent_result_ok)+')' );
+			socket.SDServiceMessage( 'Server: Server sends updates to you each ' + socket.max_update_rate + 'ms ('+ (~~socket.sent_result_dropped)+' dropped out of '+(~~socket.sent_result_ok)+')' );
 		}
 		else
 		if ( parts[ 0 ] === 'god' )
@@ -421,7 +421,7 @@ class sdModeration
 				if ( parts[ 1 ] === '1' )
 				{
 					for ( let i = 0; i < sdWorld.sockets.length; i++ )
-					sdWorld.sockets[ i ].emit('SERVICE_MESSAGE', socket.character.title + ' has entered "godmode".' );
+					sdWorld.sockets[ i ].SDServiceMessage( socket.character.title + ' has entered "godmode".' );
 		
 					socket.character._god = true;
 					socket.emit('SET sdWorld.my_entity._god', true );
@@ -430,16 +430,16 @@ class sdModeration
 				if ( parts[ 1 ] === '0' )
 				{
 					for ( let i = 0; i < sdWorld.sockets.length; i++ )
-					sdWorld.sockets[ i ].emit('SERVICE_MESSAGE', socket.character.title + ' is no longer in "godmode".' );
+					sdWorld.sockets[ i ].SDServiceMessage( socket.character.title + ' is no longer in "godmode".' );
 				
 					socket.character._god = false;
 					socket.emit('SET sdWorld.my_entity._god', false );
 				}
 				else
-				socket.emit('SERVICE_MESSAGE', 'Type /god 1 or /god 0' );
+				socket.SDServiceMessage( 'Type /god 1 or /god 0' );
 			}
 			else
-			socket.emit('SERVICE_MESSAGE', 'Server: No active character.' );
+			socket.SDServiceMessage( 'Server: No active character.' );
 		}
 		else
 		if ( parts[ 0 ] === 'kill' )
@@ -460,7 +460,7 @@ class sdModeration
 			
 			if ( isNaN( xx ) || isNaN( yy ) )
 			{
-				socket.emit('SERVICE_MESSAGE', 'Can\'t move bounds like that. Type something like /boundsmove 32 -32 . Both X and Y coordinates will be rounded to 32. Positive Y is downwards.' );
+				socket.SDServiceMessage( 'Can\'t move bounds like that. Type something like /boundsmove 32 -32 . Both X and Y coordinates will be rounded to 32. Positive Y is downwards.' );
 			}
 			else
 			{
@@ -483,11 +483,11 @@ class sdModeration
 				else
 				sdWorld.ChangeWorldBounds( sdWorld.world_bounds.x1 + xx, sdWorld.world_bounds.y1 + yy, sdWorld.world_bounds.x2 + xx, sdWorld.world_bounds.y2 + yy );
 			
-				socket.emit('SERVICE_MESSAGE', 'Server: Bounds changed. Current bounds: '+JSON.stringify( sdWorld.world_bounds ) );
+				socket.SDServiceMessage( 'Server: Bounds changed. Current bounds: '+JSON.stringify( sdWorld.world_bounds ) );
 			}
 		}
 		else
-		socket.emit('SERVICE_MESSAGE', 'Server: Unknown command "' + parts[ 0 ] + '"' );
+		socket.SDServiceMessage( 'Server: Unknown command "' + parts[ 0 ] + '"' );
 	}
 }
 //sdModeration.init_class();

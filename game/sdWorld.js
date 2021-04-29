@@ -1582,7 +1582,7 @@ class sdWorld
 					if ( sockets[ i2 ].ffa_warning <= 0 )
 					{
 						sockets[ i2 ].ffa_warning = 0;
-						sockets[ i2 ].emit('SERVICE_MESSAGE', 'Your respawn rate has been restored' );
+						sockets[ i2 ].SDServiceMessage( 'Your respawn rate has been restored' );
 					}
 				}
 			}

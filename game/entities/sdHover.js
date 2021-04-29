@@ -115,7 +115,7 @@ class sdHover extends sdEntity
 			c.driver_of = this;
 			
 			if ( c._socket )
-			c._socket.emit('SERVICE_MESSAGE', sdHover.slot_hints[ best_slot ] );
+			c._socket.SDServiceMessage( sdHover.slot_hints[ best_slot ] );
 		
 			if ( best_slot === 0 )
 			sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1 });
@@ -123,7 +123,7 @@ class sdHover extends sdEntity
 		else
 		{
 			if ( c._socket )
-			c._socket.emit('SERVICE_MESSAGE', 'All slots are occupied' );
+			c._socket.SDServiceMessage( 'All slots are occupied' );
 		}
 	}
 	ExcludeDriver( c )
@@ -152,14 +152,14 @@ class sdHover extends sdEntity
 				c.PhysWakeUp();
 				
 				if ( c._socket )
-				c._socket.emit('SERVICE_MESSAGE', 'Leaving vehicle' );
+				c._socket.SDServiceMessage( 'Leaving vehicle' );
 		
 				return;
 			}
 		}
 		
 		if ( c._socket )
-		c._socket.emit('SERVICE_MESSAGE', 'Error: Attempted leaving vehicle in which character is not located.' );
+		c._socket.SDServiceMessage( 'Error: Attempted leaving vehicle in which character is not located.' );
 	}
 	Damage( dmg, initiator=null )
 	{

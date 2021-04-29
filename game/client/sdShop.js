@@ -20,6 +20,7 @@ class sdShop
 		
 		sdShop.open = false;
 		sdShop.options = [];
+		sdShop.options_snappack = null; // Generated on very first connection. It means shop items can not be changed after world initialization, but not only because of that (shop data is sent only once per connection)
 		
 		sdShop.scroll_y = 0;
 		sdShop.scroll_y_target = 0;

@@ -570,7 +570,7 @@ sdWorld.server_config = {};
 		if ( sdWorld.time < initiator._non_innocent_until ) // Attacker is not innocent
 		{
 			if ( initiator._socket.ffa_warning === 0 )
-			initiator._socket.emit('SERVICE_MESSAGE', 'Your respawn rate was temporarily decreased' );
+			initiator._socket.SDServiceMessage( 'Your respawn rate was temporarily decreased' );
 
 			initiator._socket.SyncFFAWarning();
 			initiator._socket.ffa_warning += 1;
@@ -873,9 +873,9 @@ sdWorld.server_config = {};
 						}
 
 						if ( blocking_by.length === 1 )
-						edge_cursious_ent[ i ]._socket.emit('SERVICE_MESSAGE', 'World can not be extended past this point - ' + blocking_by.join(', ') + ' is at the opposite edge of playable area' );
+						edge_cursious_ent[ i ]._socket.SDServiceMessage( 'World can not be extended past this point - ' + blocking_by.join(', ') + ' is at the opposite edge of playable area' );
 						else
-						edge_cursious_ent[ i ]._socket.emit('SERVICE_MESSAGE', 'World can not be extended past this point - ' + blocking_by.join(', ') + ' are at the opposite edge of playable area' );
+						edge_cursious_ent[ i ]._socket.SDServiceMessage( 'World can not be extended past this point - ' + blocking_by.join(', ') + ' are at the opposite edge of playable area' );
 					}
 				}
 			}
@@ -1100,7 +1100,7 @@ sdWorld.server_config = {};
 				if ( socket.command_centre._is_being_removed )
 				{
 					socket.command_centre = null;
-					socket.emit('SERVICE_MESSAGE', 'Command Centre no longer exists' );
+					socket.SDServiceMessage( 'Command Centre no longer exists' );
 				}
 				else
 				{
@@ -1157,10 +1157,10 @@ sdWorld.server_config = {};
 					{
 						socket.respawn_block_until = sdWorld.time + 1000 * 10; // Not too frequently
 
-						socket.emit('SERVICE_MESSAGE', 'Unable to respawn too close to Command Centre (possibly due to recent spawnkills near Command Center)' );
+						socket.SDServiceMessage( 'Unable to respawn too close to Command Centre (possibly due to recent spawnkills near Command Center)' );
 					}
 					else
-					socket.emit('SERVICE_MESSAGE', 'Unable to respawn near Command Centre (possibly due to recent spawnkills near Command Center)' );
+					socket.SDServiceMessage( 'Unable to respawn near Command Centre (possibly due to recent spawnkills near Command Center)' );
 
 				}
 
@@ -1304,12 +1304,12 @@ let is_terminating = false;
 	setInterval( ()=>{
 		
 		for ( var i = 0; i < sockets.length; i++ )
-		sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server: Backup is being done!' );
+		sockets[ i ].SDServiceMessage( 'Server: Backup is being done!' );
 
 		SaveSnapshot( snapshot_path_const, ( err )=>
 		{
 			for ( var i = 0; i < sockets.length; i++ )
-			sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server: Backup is compelte ('+(err?'Error!':'successfully')+')!' );
+			sockets[ i ].SDServiceMessage( 'Server: Backup is compelte ('+(err?'Error!':'successfully')+')!' );
 		});
 	}, 1000 * 60 * 15 ); // Once per 15 minutes
 	
@@ -1345,7 +1345,7 @@ let is_terminating = false;
 		console.warn('SIGTERM signal received. Backup time?');
 		
 		for ( var i = 0; i < sockets.length; i++ )
-		sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server reboot: Game server got SIGTERM signal from operating system. Attempting to save world state...' );
+		sockets[ i ].SDServiceMessage( 'Server reboot: Game server got SIGTERM signal from operating system. Attempting to save world state...' );
 	
 		const proceed = ( err )=>{
 			
@@ -1354,7 +1354,7 @@ let is_terminating = false;
 			is_terminating = true;
 			
 			for ( var i = 0; i < sockets.length; i++ )
-			sockets[ i ].emit( 'SERVICE_MESSAGE', err ? 'Server reboot: Unable to save world snapshot...' : 'Server reboot: World snapshot has been saved! See you soon!' );
+			sockets[ i ].SDServiceMessage( err ? 'Server reboot: Unable to save world snapshot...' : 'Server reboot: World snapshot has been saved! See you soon!' );
 		
 			setTimeout( ()=>
 			{
@@ -1555,9 +1555,9 @@ setInterval( ()=>
 				}
 				
 				if ( blocking_by.length === 1 )
-				edge_cursious_ent[ i ]._socket.emit('SERVICE_MESSAGE', 'World can not be extended past this point - ' + blocking_by.join(', ') + ' is at the opposite edge of playable area' );
+				edge_cursious_ent[ i ]._socket.SDServiceMessage( 'World can not be extended past this point - ' + blocking_by.join(', ') + ' is at the opposite edge of playable area' );
 				else
-				edge_cursious_ent[ i ]._socket.emit('SERVICE_MESSAGE', 'World can not be extended past this point - ' + blocking_by.join(', ') + ' are at the opposite edge of playable area' );
+				edge_cursious_ent[ i ]._socket.SDServiceMessage( 'World can not be extended past this point - ' + blocking_by.join(', ') + ' are at the opposite edge of playable area' );
 			}
 		}
 	}
@@ -2046,6 +2046,41 @@ io.on("connection", (socket) =>
 		}
 	};
 	
+	const stacked_service_messages = [];
+	let service_message_interval_exists = null;
+	let service_message_allow_next_in = sdWorld.time + 500;
+	socket.SDServiceMessage = ( m=null )=>
+	{
+		if ( typeof m === 'string' )
+		stacked_service_messages.push( m );
+	
+		if ( stacked_service_messages.length > 0 )
+		{
+			// Skip anything but first and last
+			if ( stacked_service_messages.length > 2 )
+			stacked_service_messages.splice( 1, stacked_service_messages.length - 2 );
+
+			if ( sdWorld.time > service_message_allow_next_in )
+			{
+				socket.emit( 'SERVICE_MESSAGE', stacked_service_messages[ 0 ] );
+				stacked_service_messages.shift();
+				service_message_allow_next_in = sdWorld.time + 500;
+			}
+		}
+
+		if ( stacked_service_messages.length > 0 )
+		{
+			if ( !service_message_interval_exists )
+			service_message_interval_exists = setInterval( socket.SDServiceMessage, 500 );
+		}
+		else
+		if ( service_message_interval_exists )
+		{
+			clearInterval( service_message_interval_exists );
+			service_message_interval_exists = null;
+		}
+	};
+	
 	/* 
 	// Should work as independent set of commands:
 	socket.respawn_block_until = sdWorld.time - 1;
@@ -2062,8 +2097,8 @@ io.on("connection", (socket) =>
 		/* Moved down so it only prevents full respawn
 		if ( !force_allow && sdWorld.time < socket.respawn_block_until )
 		{
-			//socket.emit('SERVICE_MESSAGE', 'Respawn rejected - too quickly (wait ' + ( socket.respawn_block_until - sdWorld.time ) + 'ms)' );
-			socket.emit('SERVICE_MESSAGE', 'Respawn rejected - too quickly (wait ' + Math.ceil( ( socket.respawn_block_until - sdWorld.time ) / 100 ) / 10 + ' seconds)' );
+			//socket.SDServiceMessage( 'Respawn rejected - too quickly (wait ' + ( socket.respawn_block_until - sdWorld.time ) + 'ms)' );
+			socket.SDServiceMessage( 'Respawn rejected - too quickly (wait ' + Math.ceil( ( socket.respawn_block_until - sdWorld.time ) / 100 ) / 10 + ' seconds)' );
 			return;
 		}
 		socket.respawn_block_until = sdWorld.time + 2000; // Will be overriden if player respawned near his command centre
@@ -2128,7 +2163,7 @@ io.on("connection", (socket) =>
 						if ( socket.command_centre._is_being_removed )
 						{
 							socket.command_centre = null;
-							socket.emit('SERVICE_MESSAGE', 'Command Centre no longer exists' );
+							socket.SDServiceMessage( 'Command Centre no longer exists' );
 						}
 						else
 						{
@@ -2181,10 +2216,10 @@ io.on("connection", (socket) =>
 							{
 								socket.respawn_block_until = sdWorld.time + 1000 * 10; // Not too frequently
 								
-								socket.emit('SERVICE_MESSAGE', 'Unable to respawn too close to Command Centre (possibly due to recent spawnkills near Command Center)' );
+								socket.SDServiceMessage( 'Unable to respawn too close to Command Centre (possibly due to recent spawnkills near Command Center)' );
 							}
 							else
-							socket.emit('SERVICE_MESSAGE', 'Unable to respawn near Command Centre (possibly due to recent spawnkills near Command Center)' );
+							socket.SDServiceMessage( 'Unable to respawn near Command Centre (possibly due to recent spawnkills near Command Center)' );
 								
 						}
 
@@ -2248,7 +2283,7 @@ io.on("connection", (socket) =>
 			else
 			{
 				player_settings.hero_name = player_settings.hero_name.substring( 0, 30 );
-				socket.emit('SERVICE_MESSAGE', 'That is a long name, my friend' );
+				socket.SDServiceMessage( 'That is a long name, my friend' );
 			}
 		}
 		else
@@ -2267,8 +2302,8 @@ io.on("connection", (socket) =>
 		{
 			if ( !force_allow && sdWorld.time < socket.respawn_block_until )
 			{
-				//socket.emit('SERVICE_MESSAGE', 'Respawn rejected - too quickly (wait ' + ( socket.respawn_block_until - sdWorld.time ) + 'ms)' );
-				socket.emit('SERVICE_MESSAGE', 'Respawn rejected - too quickly (wait ' + Math.ceil( ( socket.respawn_block_until - sdWorld.time ) / 100 ) / 10 + ' seconds)' );
+				//socket.SDServiceMessage( 'Respawn rejected - too quickly (wait ' + ( socket.respawn_block_until - sdWorld.time ) + 'ms)' );
+				socket.SDServiceMessage( 'Respawn rejected - too quickly (wait ' + Math.ceil( ( socket.respawn_block_until - sdWorld.time ) / 100 ) / 10 + ' seconds)' );
 				return;
 			}
 			socket.respawn_block_until = sdWorld.time + 2000; // Will be overriden if player respawned near his command centre
@@ -2310,7 +2345,13 @@ io.on("connection", (socket) =>
 		if ( shop_pending )
 		{
 			shop_pending = false;
-			socket.emit('SET sdShop.options', sdShop.options, { reliable: true, runs: 100 } );
+			
+			if ( !sdShop.options_snappack )
+			{
+				sdShop.options_snappack = LZW.lzw_encode( JSON.stringify( sdShop.options ) );
+			}
+			
+			socket.emit('SET sdShop.options', sdShop.options_snappack, { reliable: true, runs: 100 } );
 		}
 		
 		
@@ -2436,9 +2477,11 @@ io.on("connection", (socket) =>
 		}
 	});
 	
+	socket.waiting_on_M_event_until = 0; // Will cause server to wait for 1 second before trying to send data again. During this 1 second server will wait for any kind of response from client. If response arrives within 1 second then server is allowed to send snapshot to client and will wait for another 1 second for any reply to arrive to server
+	socket.last_ping = sdWorld.time; // Used to disconnect dead connections
 	socket.next_position_correction_allowed = 0;
 	socket.on('M', ( arr ) => { // Position corrections. Cheating can happen here. Better solution could be UDP instead of TCP connections.
-		if ( socket.character ) 
+		
 		if ( typeof arr[ 0 ] === 'number' )
 		if ( typeof arr[ 1 ] === 'number' )
 		if ( typeof arr[ 2 ] === 'number' )
@@ -2448,160 +2491,166 @@ io.on("connection", (socket) =>
 		if ( typeof arr[ 6 ] === 'number' )
 		if ( typeof arr[ 7 ] === 'number' )
 		if ( typeof arr[ 8 ] === 'object' )
-		{ 
-			//messages_to_report_arrival
-			socket.character.look_x = arr[ 0 ]; 
-			socket.character.look_y = arr[ 1 ];
+		{
+			socket.last_ping = sdWorld.time;
+			socket.waiting_on_M_event_until = 0;
 			
-			socket.camera.x = arr[ 2 ];
-			socket.camera.y = arr[ 3 ];
-			socket.camera.scale = arr[ 4 ];
-			
-			let messages_to_report_arrival = arr[ 8 ];
-			
-			for ( let i = 0; i < Math.min( 100, messages_to_report_arrival.length ); i++ )
-			{
-				let id = ~~( messages_to_report_arrival[ i ] );
-				if ( id >= socket.sent_messages_first && id < socket.sent_messages_last )
+			if ( socket.character ) 
+			{ 
+				//messages_to_report_arrival
+				socket.character.look_x = arr[ 0 ]; 
+				socket.character.look_y = arr[ 1 ];
+
+				socket.camera.x = arr[ 2 ];
+				socket.camera.y = arr[ 3 ];
+				socket.camera.scale = arr[ 4 ];
+
+				let messages_to_report_arrival = arr[ 8 ];
+
+				for ( let i = 0; i < Math.min( 100, messages_to_report_arrival.length ); i++ )
 				{
-					let msg = socket.sent_messages.get( id );
-					msg.arrived = true;
+					let id = ~~( messages_to_report_arrival[ i ] );
+					if ( id >= socket.sent_messages_first && id < socket.sent_messages_last )
+					{
+						let msg = socket.sent_messages.get( id );
+						msg.arrived = true;
+					}
 				}
-			}
-		
-			if ( sdWorld.time > socket.next_position_correction_allowed )
-			{
-				let corrected = false;
-					
-				//if ( socket.character.hea > 0 )
-				if ( socket.character.AllowClientSideState() ) // Health and hook change
+
+				if ( sdWorld.time > socket.next_position_correction_allowed )
 				{
-			
-					var dx = arr[ 5 ] - socket.character.x;
-					var dy = arr[ 6 ] - socket.character.y;
+					let corrected = false;
 
-					let di = sdWorld.Dist2D_Vector( dx, dy );
+					//if ( socket.character.hea > 0 )
+					if ( socket.character.AllowClientSideState() ) // Health and hook change
+					{
 
-					if ( Math.abs( dx ) < 200 && Math.abs( dy ) < 200 )
-					{
-						if ( di > 128 )
+						var dx = arr[ 5 ] - socket.character.x;
+						var dy = arr[ 6 ] - socket.character.y;
+
+						let di = sdWorld.Dist2D_Vector( dx, dy );
+
+						if ( Math.abs( dx ) < 200 && Math.abs( dy ) < 200 )
 						{
-							dx = dx / di * 16;
-							dy = dy / di * 16;
+							if ( di > 128 )
+							{
+								dx = dx / di * 16;
+								dy = dy / di * 16;
+							}
 						}
-					}
-					else
-					{
-						dx = 0;
-						dy = 0;
-					}
-					if ( sdWorld.Dist2D( socket.character.x, socket.character.y, arr[ 5 ], arr[ 6 ] ) < 128 )
-					{
-						let jump_di = sdWorld.Dist2D_Vector( dx, dy );
-						
-						let steps = Math.ceil( jump_di / 16 );
-						
-						corrected = true;
-						
-						for ( let i = 1; i > 0; i -= 1 / steps )
-						if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx * i, socket.character.y + dy * i, 1 ) )
+						else
 						{
-							corrected = false;
-							break;
+							dx = 0;
+							dy = 0;
 						}
-						
-						if ( !corrected )
+						if ( sdWorld.Dist2D( socket.character.x, socket.character.y, arr[ 5 ], arr[ 6 ] ) < 128 )
 						{
+							let jump_di = sdWorld.Dist2D_Vector( dx, dy );
+
+							let steps = Math.ceil( jump_di / 16 );
+
 							corrected = true;
-							
-							// Up
-							for ( let i = 1; i > 0; i -= 1 / steps )
-							if ( !socket.character.CanMoveWithoutOverlap( socket.character.x, socket.character.y + dy * i, 1 ) )
-							{
-								corrected = false;
-								break;
-							}
-							
-							// Then to right
-							if ( corrected )
-							for ( let i = 1; i > 0; i -= 1 / steps )
-							if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx * i, socket.character.y + dy, 1 ) )
-							{
-								corrected = false;
-								break;
-							}
-						}
-						
-						
-						if ( !corrected )
-						{
-							corrected = true;
-							
-							// Right
-							for ( let i = 1; i > 0; i -= 1 / steps )
-							if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx * i, socket.character.y, 1 ) )
-							{
-								corrected = false;
-								break;
-							}
-							
-							// Then to up
-							if ( corrected )
-							for ( let i = 1; i > 0; i -= 1 / steps )
-							if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx, socket.character.y + dy * i, 1 ) )
-							{
-								corrected = false;
-								break;
-							}
-						}
 
-						//if ( socket.character.CanMoveWithoutOverlap( socket.character.x + dx, socket.character.y + dy, 1 ) )
-						if ( corrected )
-						{
-							socket.next_position_correction_allowed = sdWorld.time + 100;
-							socket.character.x += dx;
-							socket.character.y += dy;
-							/*
-							let stand_on_net_id = arr[ 7 ]; // _net_id of stand_on target
-							if ( typeof sdEntity.entities_by_net_id_cache[ stand_on_net_id ] !== 'undefined' )
+							for ( let i = 1; i > 0; i -= 1 / steps )
+							if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx * i, socket.character.y + dy * i, 1 ) )
 							{
-								let ent = sdEntity.entities_by_net_id_cache[ stand_on_net_id ];
-								if ( !ent._is_being_removed )
+								corrected = false;
+								break;
+							}
+
+							if ( !corrected )
+							{
+								corrected = true;
+
+								// Up
+								for ( let i = 1; i > 0; i -= 1 / steps )
+								if ( !socket.character.CanMoveWithoutOverlap( socket.character.x, socket.character.y + dy * i, 1 ) )
 								{
-									if ( Math.abs( socket.character.x + socket.character.hitbox_x2 - ( ent.x + socket.character.hitbox_x1 ) ) < 2 )
-									{
-										socket.character.x = ent.x + socket.character.hitbox_x1 - socket.character.hitbox_x2 + 2;
-									}
-									else
-									if ( Math.abs( socket.character.x + socket.character.hitbox_x1 - ( ent.x + socket.character.hitbox_x2 ) ) < 2 )
-									{
-										socket.character.x = ent.x + socket.character.hitbox_x2 - socket.character.hitbox_x1 - 2;
-									}
+									corrected = false;
+									break;
 								}
-							}*/
 
-							corrected = true;
+								// Then to right
+								if ( corrected )
+								for ( let i = 1; i > 0; i -= 1 / steps )
+								if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx * i, socket.character.y + dy, 1 ) )
+								{
+									corrected = false;
+									break;
+								}
+							}
+
+
+							if ( !corrected )
+							{
+								corrected = true;
+
+								// Right
+								for ( let i = 1; i > 0; i -= 1 / steps )
+								if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx * i, socket.character.y, 1 ) )
+								{
+									corrected = false;
+									break;
+								}
+
+								// Then to up
+								if ( corrected )
+								for ( let i = 1; i > 0; i -= 1 / steps )
+								if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx, socket.character.y + dy * i, 1 ) )
+								{
+									corrected = false;
+									break;
+								}
+							}
+
+							//if ( socket.character.CanMoveWithoutOverlap( socket.character.x + dx, socket.character.y + dy, 1 ) )
+							if ( corrected )
+							{
+								socket.next_position_correction_allowed = sdWorld.time + 100;
+								socket.character.x += dx;
+								socket.character.y += dy;
+								/*
+								let stand_on_net_id = arr[ 7 ]; // _net_id of stand_on target
+								if ( typeof sdEntity.entities_by_net_id_cache[ stand_on_net_id ] !== 'undefined' )
+								{
+									let ent = sdEntity.entities_by_net_id_cache[ stand_on_net_id ];
+									if ( !ent._is_being_removed )
+									{
+										if ( Math.abs( socket.character.x + socket.character.hitbox_x2 - ( ent.x + socket.character.hitbox_x1 ) ) < 2 )
+										{
+											socket.character.x = ent.x + socket.character.hitbox_x1 - socket.character.hitbox_x2 + 2;
+										}
+										else
+										if ( Math.abs( socket.character.x + socket.character.hitbox_x1 - ( ent.x + socket.character.hitbox_x2 ) ) < 2 )
+										{
+											socket.character.x = ent.x + socket.character.hitbox_x2 - socket.character.hitbox_x1 - 2;
+										}
+									}
+								}*/
+
+								corrected = true;
+							}
+						}
+
+						if ( !corrected )
+						{
+							socket.next_position_correction_allowed = sdWorld.time + 50;
+							//socket.emit( 'C', [ socket.character.x, socket.character.y, socket.character.sx, socket.character.sy ] );
+							socket.sd_events.push( [ 'C', [ socket.character.x, socket.character.y, socket.character.sx, socket.character.sy ] ] );
 						}
 					}
-
-					if ( !corrected )
-					{
-						socket.next_position_correction_allowed = sdWorld.time + 50;
-						//socket.emit( 'C', [ socket.character.x, socket.character.y, socket.character.sx, socket.character.sy ] );
-						socket.sd_events.push( [ 'C', [ socket.character.x, socket.character.y, socket.character.sx, socket.character.sy ] ] );
-					}
 				}
+
+				if ( socket.camera.x < socket.character.x - 400 )
+				socket.camera.x = socket.character.x - 400;
+				if ( socket.camera.x > socket.character.x + 400 )
+				socket.camera.x = socket.character.x + 400;
+
+				if ( socket.camera.y < socket.character.y - 200 )
+				socket.camera.y = socket.character.y - 200;
+				if ( socket.camera.y > socket.character.y + 200 )
+				socket.camera.y = socket.character.y + 200;
 			}
-			
-			if ( socket.camera.x < socket.character.x - 400 )
-			socket.camera.x = socket.character.x - 400;
-			if ( socket.camera.x > socket.character.x + 400 )
-			socket.camera.x = socket.character.x + 400;
-			
-			if ( socket.camera.y < socket.character.y - 200 )
-			socket.camera.y = socket.character.y - 200;
-			if ( socket.camera.y > socket.character.y + 200 )
-			socket.camera.y = socket.character.y + 200;
 		}
 	});
 	
@@ -2656,10 +2705,10 @@ io.on("connection", (socket) =>
 				if ( socket.command_centre )
 				{
 					socket.command_centre = null;
-					socket.emit('SERVICE_MESSAGE', 'Respawn point unset' );
+					socket.SDServiceMessage( 'Respawn point unset' );
 				}
 				else
-				socket.emit('SERVICE_MESSAGE', 'Respawn point was\'t set yet (can be set at any nearby Command Centre)' );
+				socket.SDServiceMessage( 'Respawn point was\'t set yet (can be set at any nearby Command Centre)' );
 			}
 			else
 			{
@@ -2669,14 +2718,14 @@ io.on("connection", (socket) =>
 					if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdCom.action_range_command_centre ) >= 0 )
 					{
 						socket.command_centre = ent;
-						socket.emit('SERVICE_MESSAGE', 'Respawn point set' );
+						socket.SDServiceMessage( 'Respawn point set' );
 					}
 					else
-					socket.emit('SERVICE_MESSAGE', 'Command Centre is too far' );
+					socket.SDServiceMessage( 'Command Centre is too far' );
 				}
 				else
 				{
-					socket.emit('SERVICE_MESSAGE', 'Command Centre no longer exists' );
+					socket.SDServiceMessage( 'Command Centre no longer exists' );
 				}
 			}
 		}
@@ -2700,10 +2749,10 @@ io.on("connection", (socket) =>
 				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdCom.action_range ) >= 0 )
 				ent.NotifyAboutNewSubscribers( 1, [ new_sub ] );
 				else
-				socket.emit('SERVICE_MESSAGE', 'Communication node is too far' );
+				socket.SDServiceMessage( 'Communication node is too far' );
 			}
 			else
-			socket.emit('SERVICE_MESSAGE', 'Communication node no longer exists' );
+			socket.SDServiceMessage( 'Communication node no longer exists' );
 		}
 	});
 	socket.on('COM_UNSUB', ( net_id ) => { 
@@ -2718,7 +2767,7 @@ io.on("connection", (socket) =>
 			if ( ent !== null )
 			ent.NotifyAboutNewSubscribers( 0, [ socket.character._net_id ] );
 			else
-			socket.emit('SERVICE_MESSAGE', 'Communication node no longer exists' );
+			socket.SDServiceMessage( 'Communication node no longer exists' );
 		}
 	});
 	socket.on('COM_KICK', ( arr ) => { 
@@ -2737,10 +2786,10 @@ io.on("connection", (socket) =>
 				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdCom.action_range ) >= 0 )
 				ent.NotifyAboutNewSubscribers( 0, [ net_id_to_kick ] );
 				else
-				socket.emit('SERVICE_MESSAGE', 'Communication node is too far' );
+				socket.SDServiceMessage( 'Communication node is too far' );
 			}
 			else
-			socket.emit('SERVICE_MESSAGE', 'Communication node no longer exists' );
+			socket.SDServiceMessage( 'Communication node no longer exists' );
 		}
 	});
 	socket.on('STORAGE_GET', ( arr ) => { 
@@ -2761,10 +2810,10 @@ io.on("connection", (socket) =>
 					ent.ExtractItem( net_id_to_get, socket.character );
 				}
 				else
-				socket.emit('SERVICE_MESSAGE', 'Storage is too far' );
+				socket.SDServiceMessage( 'Storage is too far' );
 			}
 			else
-			socket.emit('SERVICE_MESSAGE', 'Storage no longer exists' );
+			socket.SDServiceMessage( 'Storage no longer exists' );
 		}
 	});
 	socket.on('UPGRADE_GET_EQUIP', ( arr ) => { 
@@ -2786,16 +2835,16 @@ io.on("connection", (socket) =>
 						if ( ent.matter >= 500 )
 						ent.DropBasicEquipment( socket.character );
 						else
-						socket.emit('SERVICE_MESSAGE', 'Upgrade station needs at least 500 matter!' );
+						socket.SDServiceMessage( 'Upgrade station needs at least 500 matter!' );
 					}
 					else
-					socket.emit('SERVICE_MESSAGE', 'Upgrade station is generating new weapons, please wait ' + ent._cooldown / 30 + ' seconds.' ); // seems like GSPEED creates an error so this replacement should be semi-accurate
+					socket.SDServiceMessage( 'Upgrade station is generating new weapons, please wait ' + ent._cooldown / 30 + ' seconds.' ); // seems like GSPEED creates an error so this replacement should be semi-accurate
 				}
 				else
-				socket.emit('SERVICE_MESSAGE', 'Upgrade station is too far' );
+				socket.SDServiceMessage( 'Upgrade station is too far' );
 			}
 			else
-			socket.emit('SERVICE_MESSAGE', 'Upgrade station no longer exists' );
+			socket.SDServiceMessage( 'Upgrade station no longer exists' );
 		}
 	});
 	socket.on('UPGRADE_CHAR', ( arr ) => { 
@@ -2815,13 +2864,13 @@ io.on("connection", (socket) =>
 					if ( ent.matter >= 5000 )
 					ent.UpgradeCharacter( socket.character );
 					else
-					socket.emit('SERVICE_MESSAGE', 'Upgrade station needs at least 5000 matter!' );
+					socket.SDServiceMessage( 'Upgrade station needs at least 5000 matter!' );
 				}
 				else
-				socket.emit('SERVICE_MESSAGE', 'Upgrade station is too far' );
+				socket.SDServiceMessage( 'Upgrade station is too far' );
 			}
 			else
-			socket.emit('SERVICE_MESSAGE', 'Upgrade station no longer exists' );
+			socket.SDServiceMessage( 'Upgrade station no longer exists' );
 		}
 	});
 	socket.on('CRYSTAL_COMBINE', ( arr ) => { 
@@ -2841,13 +2890,13 @@ io.on("connection", (socket) =>
 					if ( ent.crystals === 2 )
 					ent.CombineCrystals();
 					else
-					socket.emit('SERVICE_MESSAGE', 'Crystal combiner needs 2 crystals to combine them' );
+					socket.SDServiceMessage( 'Crystal combiner needs 2 crystals to combine them' );
 				}
 				else
-				socket.emit('SERVICE_MESSAGE', 'Crystal combiner is too far' );
+				socket.SDServiceMessage( 'Crystal combiner is too far' );
 			}
 			else
-			socket.emit('SERVICE_MESSAGE', 'Crystal combiner no longer exists' );
+			socket.SDServiceMessage( 'Crystal combiner no longer exists' );
 		}
 	});
 	socket.on('AMPLIFIER_SHIELD_TOGGLE', ( arr ) => { 
@@ -2867,10 +2916,10 @@ io.on("connection", (socket) =>
 					ent.ToggleShields();
 				}
 				else
-				socket.emit('SERVICE_MESSAGE', 'Matter amplifier is too far' );
+				socket.SDServiceMessage( 'Matter amplifier is too far' );
 			}
 			else
-			socket.emit('SERVICE_MESSAGE', 'Matter amplifier no longer exists' );
+			socket.SDServiceMessage( 'Matter amplifier no longer exists' );
 		}
 	});
 	
@@ -2985,7 +3034,7 @@ setInterval( ()=>
 						socket.max_update_rate = Math.min( 200, socket.max_update_rate + 16 );
 						
 						//if ( prev < 200 )
-						//socket.emit('SERVICE_MESSAGE', 'Server: Server sends updates to you each ' + socket.max_update_rate + 'ms ('+ (~~socket.sent_result_dropped)+' dropped out of '+(~~socket.sent_result_ok)+')' );
+						//socket.SDServiceMessage( 'Server: Server sends updates to you each ' + socket.max_update_rate + 'ms ('+ (~~socket.sent_result_dropped)+' dropped out of '+(~~socket.sent_result_ok)+')' );
 					}
 				
 					if ( socket.sent_result_dropped / socket.sent_result_ok <= 0.01 )
@@ -2993,11 +3042,11 @@ setInterval( ()=>
 						socket.max_update_rate = Math.max( 16, socket.max_update_rate - 1 );
 						
 						//if ( prev > 16 )
-						//socket.emit('SERVICE_MESSAGE', 'Server: Server sends updates to you each ' + socket.max_update_rate + 'ms ('+ (~~socket.sent_result_dropped)+' dropped out of '+(~~socket.sent_result_ok)+')' );
+						//socket.SDServiceMessage( 'Server: Server sends updates to you each ' + socket.max_update_rate + 'ms ('+ (~~socket.sent_result_dropped)+' dropped out of '+(~~socket.sent_result_ok)+')' );
 					
 					}
 					
-					socket.emit('SERVICE_MESSAGE', 'Server: Server sends updates to you each ' + socket.max_update_rate + 'ms ('+ (~~socket.sent_result_dropped)+' dropped out of '+(~~socket.sent_result_ok)+')' );
+					socket.SDServiceMessage( 'Server: Server sends updates to you each ' + socket.max_update_rate + 'ms ('+ (~~socket.sent_result_dropped)+' dropped out of '+(~~socket.sent_result_ok)+')' );
 						
 					//socket.max_update_rate = socket.max_update_rate * 0.9 + 0.1 * Math.min( 200, Math.max( 16, sdWorld.max_update_rate / ( socket.sent_result_ok ) * ( socket.sent_result_dropped ) ) );
 				}
@@ -3028,11 +3077,12 @@ setInterval( ()=>
 				}
 				
 				if ( i % only_do_nth_connection_per_frame === nth_connection_shift )
-				if ( sdWorld.time > socket.last_sync + socket.max_update_rate && socket.client.conn.transport.writable ) // Buffering prevention?
+				if ( sdWorld.time > socket.last_sync + socket.max_update_rate && socket.client.conn.transport.writable && sdWorld.time > socket.waiting_on_M_event_until ) // Buffering prevention?
 				{
 					let previous_sync_time = socket.last_sync;
 					
 					socket.last_sync = sdWorld.time;
+					socket.waiting_on_M_event_until = sdWorld.time + 1000;
 
 					var snapshot = [];
 					var snapshot_only_statics = [];
@@ -3214,7 +3264,7 @@ setInterval( ()=>
 					{
 						//console.log('socket.sd_events overflow (last sync was ' + ( sdWorld.time - previous_sync_time ) + 'ms ago): ', socket.sd_events );
 						
-						sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server: .sd_events overflow (' + socket.sd_events.length + ' events were skipped). Some sounds and effects might not spawn as result of that.' );
+						sockets[ i ].SDServiceMessage( 'Server: .sd_events overflow (' + socket.sd_events.length + ' events were skipped). Some sounds and effects might not spawn as result of that.' );
 						
 						socket.sd_events.length = 0;
 					}
@@ -3359,7 +3409,7 @@ setInterval( ()=>
 					}
 					
 					let full_msg = [ 
-						sdSnapPack.Compress( snapshot, false ), // 0
+						sdSnapPack.Compress( snapshot ), // 0
 						socket.GetScore(), // 1
 						LZW.lzw_encode( JSON.stringify( leaders ) ), // 2
 						LZW.lzw_encode( JSON.stringify( sd_events ) ), // 3
@@ -3414,7 +3464,10 @@ setInterval( ()=>
 					socket.observed_entities = observed_entities;
 				}
 
-				
+				if ( sdWorld.time > socket.last_ping + 60000 )
+				{
+					socket.disconnect();
+				}
 			}
 		}
 		//sockets_array_locked = false;

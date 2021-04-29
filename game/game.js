@@ -449,7 +449,7 @@ let enf_once = true;
 		});
 		socket.on( 'SET sdShop.options', ( arr )=>
 		{
-			sdShop.options = arr;
+			sdShop.options = JSON.parse( LZW.lzw_decode( arr ) );
 		});	
 		socket.on( 'ONLINE', ( arr )=> // Character customization screen -only
 		{
@@ -512,8 +512,8 @@ let enf_once = true;
 						Math.round( sdWorld.camera.x ), // 2
 						Math.round( sdWorld.camera.y ), // 3
 						sdWorld.camera.scale, // 4
-						sdWorld.my_entity.x, // 5
-						sdWorld.my_entity.y, // 6
+						Math.round( sdWorld.my_entity.x * 100 ) / 100, // 5
+						Math.round( sdWorld.my_entity.y * 100 ) / 100, // 6
 						( sdWorld.my_entity.stands && sdWorld.my_entity._stands_on ) ? sdWorld.my_entity._stands_on._net_id : -1, // 7
 						messages_to_report_arrival // 8
 					];

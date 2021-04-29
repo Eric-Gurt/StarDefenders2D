@@ -542,7 +542,7 @@ class sdCharacter extends sdEntity
 						if ( sdWorld.time < initiator._non_innocent_until ) // Attacker is not innocent
 						{
 							if ( initiator._socket.ffa_warning === 0 )
-							initiator._socket.emit('SERVICE_MESSAGE', 'Your respawn rate was temporarily decreased' );
+							initiator._socket.SDServiceMessage( 'Your respawn rate was temporarily decreased' );
 
 							initiator._socket.SyncFFAWarning();
 							initiator._socket.ffa_warning += 1;

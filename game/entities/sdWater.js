@@ -415,7 +415,7 @@ class sdWater extends sdEntity
 	{
 		if ( !from_entity.is( sdWater ) )
 		if ( !from_entity.is( sdBG ) )
-		if ( !from_entity.is( sdBlock ) || !from_entity._natural )
+		if ( !from_entity.is( sdBlock ) || ( ( sdWorld.is_server && !from_entity._natural ) || ( !sdWorld.is_server && from_entity.material !== sdBlock.MATERIAL_GROUND ) ) )
 		if ( !from_entity.is( sdDoor ) )
 		if ( !from_entity.is( sdEffect ) )
 		if ( !from_entity.is( sdGun ) || from_entity._held_by === null )
