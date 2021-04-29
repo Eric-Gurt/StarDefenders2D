@@ -516,6 +516,7 @@ class sdGunClass
 				//if ( character.arm === 0 || character.arm_absorb <= character.arm_absorb )
 				{
 					character.arm = 130;
+					character.amax = 130;
 					character.arm_absorb = 0.3; // 30% damage reduction
 					gun.remove(); 
 				}
@@ -542,6 +543,7 @@ class sdGunClass
 				//if ( character.arm === 0 || character.arm_absorb <= character.arm_absorb )
 				{
 					character.arm = 190;
+					character.amax = 190;
 					character.arm_absorb = 0.4; // 40% damage reduction
 					gun.remove(); 
 				}
@@ -568,6 +570,7 @@ class sdGunClass
 				//if ( character.arm === 0 || character.arm_absorb <= character.arm_absorb )
 				{
 					character.arm = 250;
+					character.amax = 250;
 					character.arm_absorb = 0.5; // 50% damage reduction
 					gun.remove(); 
 				}
