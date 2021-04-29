@@ -216,6 +216,7 @@ let enf_once = true;
 			}
 		}, 2000 );
 	}
+	globalThis.SpawnConnection = SpawnConnection;
 	SpawnConnection();
 
 	let messages_to_report_arrival = [];
@@ -277,18 +278,32 @@ let enf_once = true;
 					'No connection to server',
 					'Connection to server has gone'
 				]), true, true );
-
+				/*
 				setTimeout( ()=>{
 					
 					//if ( !globalThis.connection_established )
 					sdWorld.Stop();
 				
-				}, 4000 );
+				}, 4000 );*/
 			}
 
 			//alert('Connection was lost');
 
+			if ( !globalThis.reconnecter )
+			{
+				globalThis.reconnecter = setInterval( ()=>
+				{
+					if ( socket.connected )
+					{
+						clearInterval( globalThis.reconnecter );
+						globalThis.reconnecter = null;
+					}
+					else
+					socket.connect();
 
+				}, 1000 );
+			}
+			
 		});
 
 		let old_snapshot_entities = [];

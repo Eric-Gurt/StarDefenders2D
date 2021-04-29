@@ -359,12 +359,14 @@ class sdRenderer
 					let br = false;
 					
 					if ( sdWorld.my_entity )
-					for ( var i = 0; i < sdLamp.lamps.length; i++ )
-					if ( sdWorld.inDist2D( sdLamp.lamps[ i ].x, sdLamp.lamps[ i ].y, sdWorld.my_entity.x, sdWorld.my_entity.y, 800 ) > 0 )
-					if ( sdWorld.CheckLineOfSight( sdLamp.lamps[ i ].x, sdLamp.lamps[ i ].y, sdWorld.my_entity.x, sdWorld.my_entity.y, sdLamp.lamps[ i ], null, [ 'sdBlock', 'sdDoor' ] ) )
 					{
-						br = true;
-						break;
+						for ( var i = 0; i < sdLamp.lamps.length; i++ )
+						if ( sdWorld.inDist2D( sdLamp.lamps[ i ].x, sdLamp.lamps[ i ].y, sdWorld.my_entity.x, sdWorld.my_entity.y, 800 ) > 0 )
+						if ( sdWorld.CheckLineOfSight( sdLamp.lamps[ i ].x, sdLamp.lamps[ i ].y, sdWorld.my_entity.x, sdWorld.my_entity.y, sdLamp.lamps[ i ], null, [ 'sdBlock', 'sdDoor' ] ) )
+						{
+							br = true;
+							break;
+						}
 					}
 					
 					let GSPEED = sdWorld.GSPEED;

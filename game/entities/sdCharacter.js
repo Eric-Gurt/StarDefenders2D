@@ -38,20 +38,26 @@ class sdCharacter extends sdEntity
 		sdCharacter.img_legs_crouch = sdWorld.CreateImageFromFile( 'legs_crouch' );
 		sdCharacter.img_legs_crouch_walk1 = sdWorld.CreateImageFromFile( 'legs_crouch_walk1' );
 		
+		// Add new values at the end
 		sdCharacter.img_helmets = [
-			null,
-			sdWorld.CreateImageFromFile( 'helmet_star_defender' ), // EG
-			sdWorld.CreateImageFromFile( 'helmet_falkok' ), // EG
-			sdWorld.CreateImageFromFile( 'helmet_eyes' ), // EG
-			sdWorld.CreateImageFromFile( 'helmet_dino' ), // EG
-			sdWorld.CreateImageFromFile( 'helmet_v' ), // EG
-			sdWorld.CreateImageFromFile( 'helmet_open' ), // EG
-			sdWorld.CreateImageFromFile( 'helmet_cs' ), // idea by butorinoks77, rework by Eric Gurt
-			sdWorld.CreateImageFromFile( 'helmet_grub' ), // idea by butorinoks77, rework by Eric Gurt
-			sdWorld.CreateImageFromFile( 'helmet_crow' ), // by butorinoks77
-			sdWorld.CreateImageFromFile( 'helmet_scope' ), // by butorinoks77
-			sdWorld.CreateImageFromFile( 'helmet_crusader' ), // by xXRedXAssassinXx
-			sdWorld.CreateImageFromFile( 'helmet_phfalkok' ), // by Booraz149
+			null, // 0
+			sdWorld.CreateImageFromFile( 'helmet_star_defender' ), // 1 // EG
+			sdWorld.CreateImageFromFile( 'helmet_falkok' ), // 2 // EG
+			sdWorld.CreateImageFromFile( 'helmet_eyes' ), // 3 // EG
+			sdWorld.CreateImageFromFile( 'helmet_dino' ), // 4 // EG
+			sdWorld.CreateImageFromFile( 'helmet_v' ), // 5 // EG
+			sdWorld.CreateImageFromFile( 'helmet_open' ), // 6 // EG
+			sdWorld.CreateImageFromFile( 'helmet_cs' ), // 7 // idea by butorinoks77, rework by Eric Gurt
+			sdWorld.CreateImageFromFile( 'helmet_grub' ), // 8 // idea by butorinoks77, rework by Eric Gurt
+			sdWorld.CreateImageFromFile( 'helmet_crow' ), // 9 // by butorinoks77
+			sdWorld.CreateImageFromFile( 'helmet_scope' ), // 10 // by butorinoks77
+			sdWorld.CreateImageFromFile( 'helmet_crusader' ), // 11 // by xXRedXAssassinXx
+			sdWorld.CreateImageFromFile( 'helmet_phfalkok' ), // 12 // by Booraz149
+			//sdWorld.CreateImageFromFile( 'helmet_tacticalSD' ), // 13 // by Commander Taori
+			//sdWorld.CreateImageFromFile( 'helmet_medic' ), // 14 // by Commander Taori
+			//sdWorld.CreateImageFromFile( 'helmet_interceptor' ), // 15 // by LordBored
+			//sdWorld.CreateImageFromFile( 'helmet_guardian' ), // 16 // by LordBored
+			//sdWorld.CreateImageFromFile( 'helmet_warlord' ), // 17 // by LordBored
 		];
 		
 		// x y rotation, for images below
@@ -1268,7 +1274,7 @@ class sdCharacter extends sdEntity
 					this.act_y = 0;
 				}*/
 				
-				if ( this.hea > 0 && this._key_states.GetKey( 'Mouse2' ) && this._hook_allowed )
+				if ( this.hea > 0 && ( this._key_states.GetKey( 'Mouse2' ) || this._key_states.GetKey( 'KeyC' ) ) && this._hook_allowed )
 				{
 					if ( this._hook_once )
 					{

@@ -686,7 +686,7 @@ sdWorld.server_config = {};
 				'In that menu you will find placeable entities such as walls and weapons as well as upgrades.',
 				'On respawn you will lose all your upgrades.',
 				'Jetpack ability can be activated by pressing W or Space mid-air.',
-				'Grappling hook ability can be activated with Mouse Wheel click.',
+				'Grappling hook ability can be activated with Mouse Wheel click or C key.',
 				'Ghosting ability can be activated by pressing E key.',
 				'Defibrillator can revive passed out players.',
 				'You can throw held items by pressing V key.',
@@ -2091,6 +2091,8 @@ io.on("connection", (socket) =>
 	socket.last_player_settings = null;
 	socket.Respawn = ( player_settings, force_allow=false ) => { 
 		
+		socket.last_ping = sdWorld.time;
+		
 		socket.last_player_settings = player_settings;
 		
 		socket.SyncFFAWarning();
@@ -2969,6 +2971,10 @@ io.on("connection", (socket) =>
 	//socket.emit( 'hi' );
 });
 
+io.on("reconnect", (socket) => {
+  // ...
+  debugger;
+});
 
 //http.listen(3000 + world_slot, () =>
 ( httpsServer ? httpsServer : httpServer ).listen( 3000 + world_slot, () =>
@@ -3465,6 +3471,7 @@ setInterval( ()=>
 				}
 
 				if ( sdWorld.time > socket.last_ping + 60000 )
+				//if ( sdWorld.time > socket.last_ping + 3000 ) // Hack
 				{
 					socket.disconnect();
 				}

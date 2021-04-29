@@ -9,6 +9,7 @@ import sdBlock from '../entities/sdBlock.js';
 import sdBG from '../entities/sdBG.js';
 import sdTurret from '../entities/sdTurret.js';
 import sdArea from '../entities/sdArea.js';
+import sdWater from '../entities/sdWater.js';
 import sdRenderer from './sdRenderer.js';
 import sdContextMenu from './sdContextMenu.js';
 
@@ -293,6 +294,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCube', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', is_huge:true, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_LAVA, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAsp', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdSandWorm', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGrass', _category:'Development tests' });

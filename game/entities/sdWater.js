@@ -25,7 +25,8 @@ class sdWater extends sdEntity
 		sdWater.classes_to_interact_with = [ 'sdBlock', 'sdDoor' ];
 		sdWater.water_class_array = [ 'sdWater' ];
 		
-		sdWater.img_water_flow = sdWorld.CreateImageFromFile( 'water_flow' );
+		//sdWater.img_water_flow = sdWorld.CreateImageFromFile( 'water_flow' );
+		sdWater.img_lava = sdWorld.CreateImageFromFile( 'lava2' );
 		
 		sdWater.all_swimmers = new Set(); // Prevent multiple damage water objects from applying damage onto same entity
 		
@@ -37,7 +38,7 @@ class sdWater extends sdEntity
 	get hitbox_y2() { return 16; }
 	
 	DrawIn3D()
-	{ return FakeCanvasContext.DRAW_IN_3D_LIQUID; }
+	{ return ( this.type === sdWater.TYPE_LAVA ) ? FakeCanvasContext.DRAW_IN_3D_BOX : FakeCanvasContext.DRAW_IN_3D_LIQUID; }
 	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return true; }
@@ -437,7 +438,6 @@ class sdWater extends sdEntity
 			
 	DrawFG( ctx, attached )
 	{
-		ctx.globalAlpha = 0.8;
 		
 		//let wall_below = sdWorld.CheckWallExists( this.x + 8, this.y + 16 + 8, null, null, sdWater.classes_to_interact_with );
 		
@@ -482,30 +482,42 @@ class sdWater extends sdEntity
 
 			//ctx.globalAlpha = 0.2;
 
-			if ( this.type === sdWater.TYPE_WATER )
-			ctx.fillStyle = '#008000';
-			else
 			if ( this.type === sdWater.TYPE_LAVA )
-			ctx.fillStyle = '#FFAA00';
-			else
-			ctx.fillStyle = '#000080';
+			{
+				ctx.fillStyle = '#FFAA00';
 				
-			//if ( this.v === left_v && this.v === right_v )
-			//{
-				//ctx.globalAlpha = this._volume * 0.9 + 0.1;
-				ctx.fillRect( 0, 16 - this.v / 100 * 16, 16,16 * this.v / 100 );
-				//ctx.globalAlpha = 1;
-			/*}
+				let xx = this.x + ( Math.floor( sdWorld.time / 1000 ) % 32 );
+				
+				ctx.drawImageFilterCache( sdWater.img_lava, xx - Math.floor( xx / 32 ) * 32, this.y - Math.floor( this.y / 32 ) * 32, 16,16, 0,0, 16,16 );
+			}
 			else
 			{
-				ctx.beginPath();
-				ctx.moveTo( 0, 16 - ( left_v ) / 100 * 16 );
-				ctx.lineTo( 8, 16 - ( this.v ) / 100 * 16 );
-				ctx.lineTo( 16, 16 - ( right_v ) / 100 * 16 );
-				ctx.lineTo( 16, 16 );
-				ctx.lineTo( 0, 16 );
-				ctx.fill();
-			}*/
+				if ( this.type === sdWater.TYPE_WATER )
+				ctx.fillStyle = '#008000';
+				else
+				ctx.fillStyle = '#000080';
+
+				ctx.globalAlpha = 0.8;
+		
+				//if ( this.v === left_v && this.v === right_v )
+				//{
+					//ctx.globalAlpha = this._volume * 0.9 + 0.1;
+					ctx.fillRect( 0, 16 - this.v / 100 * 16, 16,16 * this.v / 100 );
+					//ctx.globalAlpha = 1;
+				/*}
+				else
+				{
+					ctx.beginPath();
+					ctx.moveTo( 0, 16 - ( left_v ) / 100 * 16 );
+					ctx.lineTo( 8, 16 - ( this.v ) / 100 * 16 );
+					ctx.lineTo( 16, 16 - ( right_v ) / 100 * 16 );
+					ctx.lineTo( 16, 16 );
+					ctx.lineTo( 0, 16 );
+					ctx.fill();
+				}*/
+									
+				ctx.globalAlpha = 1;
+			}
 
 			//ctx.globalAlpha = 1;
 		}
@@ -517,8 +529,11 @@ class sdWater extends sdEntity
 		}
 		*/
 	   
+	   
 		if ( sdWater.DEBUG )
 		{
+			ctx.globalAlpha = 1;
+		
 			if ( this.a )
 			{
 				ctx.fillStyle = '#00ff00';
@@ -529,12 +544,13 @@ class sdWater extends sdEntity
 			ctx.font = "4.5px Verdana";
 			ctx.textAlign = 'right';
 			ctx.fillText( this.v, 0, -50 );
+			
+			ctx.globalAlpha = 1;
 		}
 
 		//ctx.fillStyle = '#ff0000';
 		//ctx.fillRect( 0, 0, 1 + 15 * this._volume, 4 );
 		
-		ctx.globalAlpha = 1;
 	}
 	
 	onRemove() // Class-specific, if needed
