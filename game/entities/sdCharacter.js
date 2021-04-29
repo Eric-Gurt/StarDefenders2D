@@ -267,6 +267,9 @@ class sdCharacter extends sdEntity
 		this._dying = false;
 		this._dying_bleed_tim = 0;
 
+		this.arm = 0; // Armor
+		this.arm_absorb = 0; // Armor absorption percentage
+
 		//this.anim_death = 0;
 		this._anim_walk = 0;
 		this.fire_anim = 0;
@@ -528,8 +531,19 @@ class sdCharacter extends sdEntity
 				}
 			}
 
+			if ( this.arm <= 0 ) // No armor
 			this.hea -= dmg;
-
+			else
+			{
+				this.hea -= ( dmg * (1 - this.arm_absorb ) );
+				//if (dmg > 0 )
+				this.arm -= ( dmg * this.arm_absorb );
+				if ( this.arm < 0 )
+				{
+					this.arm = 0;
+					this.arm_absorb = 0;
+				}
+			}
 			if ( this.hea <= 0 && was_alive )
 			{
 				if ( this._voice.variant === 'klatt3' )

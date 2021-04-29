@@ -498,6 +498,84 @@ class sdGunClass
 			} 
 		};
 
+		sdGun.classes[ sdGun.CLASS_LVL1_LIGHT_ARMOR = 26 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_light' ),
+			title: 'SD-01 Light Armor',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			spawnable: false,
+			ignore_slot: true,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
+			{ 
+				// 2 was too bad for case of randomly breaking crystals when digging
+				//if ( character.arm === 0 || character.arm_absorb <= character.arm_absorb )
+				{
+					character.arm = 130;
+					character.arm_absorb = 0.3; // 30% damage reduction
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
+
+		sdGun.classes[ sdGun.CLASS_LVL1_MEDIUM_ARMOR = 27 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_medium' ),
+			title: 'SD-01 Duty Armor',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			spawnable: false,
+			ignore_slot: true,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
+			{ 
+				// 2 was too bad for case of randomly breaking crystals when digging
+				//if ( character.arm === 0 || character.arm_absorb <= character.arm_absorb )
+				{
+					character.arm = 190;
+					character.arm_absorb = 0.4; // 40% damage reduction
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
+
+		sdGun.classes[ sdGun.CLASS_LVL1_HEAVY_ARMOR = 28 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_heavy' ),
+			title: 'SD-01 Combat Armor',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			spawnable: false,
+			ignore_slot: true,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
+			{ 
+				// 2 was too bad for case of randomly breaking crystals when digging
+				//if ( character.arm === 0 || character.arm_absorb <= character.arm_absorb )
+				{
+					character.arm = 250;
+					character.arm_absorb = 0.5; // 50% damage reduction
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
+
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
