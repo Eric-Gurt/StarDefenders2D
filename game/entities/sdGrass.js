@@ -41,6 +41,13 @@ class sdGrass extends sdEntity
 			this._update_version++;
 		}
 	}
+	Damage( dmg, initiator=null ) // Case of lava damage?
+	{
+		if ( !sdWorld.is_server )
+		return;
+		
+		this.remove();
+	}
 	
 	constructor( params )
 	{

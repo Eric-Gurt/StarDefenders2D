@@ -40,6 +40,11 @@ class sdWater extends sdEntity
 	DrawIn3D()
 	{ return ( this.type === sdWater.TYPE_LAVA ) ? FakeCanvasContext.DRAW_IN_3D_BOX : FakeCanvasContext.DRAW_IN_3D_LIQUID; }
 	
+	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+	{ 
+		return [ 0, 0, 0.01 ]; // 0, 0.01, 0.01 was good until I added sdBlock offset that hides seam on high visual settings
+	}
+	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return true; }
 	
@@ -56,9 +61,11 @@ class sdWater extends sdEntity
 		
 		this.v = 100; // rounded volume for clients
 		
+		this._sy = 0; // How fast it flows down
+		
 		this._swimmers = new Set();
 		
-		this._think_offset = ~~( Math.random() * 15 );
+		this._think_offset = ~~( Math.random() * 16 );
 		
 		if ( sdWorld.is_server )
 		{
@@ -172,7 +179,20 @@ class sdWater extends sdEntity
  						 e.y + e.hitbox_y2 >= this.y + this.hitbox_y1 &&
  						 e.y + e.hitbox_y1 <= this.y + this.hitbox_y2 &&
 						 !e._is_being_removed )
-					e.Damage( sdWater.damage_by_type[ this.type ] * GSPEED ); 
+					{
+						if ( !sdWorld.is_server )
+						{
+							if ( Math.random() < 0.3 )
+							{
+								let ent = new sdEffect({ x: e.x, y: this.y, type:sdEffect.TYPE_GLOW_HIT, color:'#FFAA33' });
+								sdEntity.entities.push( ent );
+							}
+						}
+						else
+						{
+							e.Damage( sdWater.damage_by_type[ this.type ] * GSPEED ); 
+						}
+					}
 					else
 					{
 						this._swimmers.delete( e );
@@ -183,14 +203,37 @@ class sdWater extends sdEntity
 		}
 		
 		if ( !sdWorld.is_server )
-		return;
+		{
+			if ( this.type === sdWater.TYPE_LAVA )
+			if ( Math.random() < 0.05 )
+			{
+				let x = this.hitbox_x1 + ( this.hitbox_x2 - this.hitbox_x1 ) * Math.random();
+				let y = this.hitbox_y1 + ( this.hitbox_y2 - this.hitbox_y1 ) * Math.random();
+				let a = Math.random() * 2 * Math.PI;
+				let s = Math.random() * 1;
+				let ent;
+				
+				if ( Math.random() < 0.1 )
+				{
+					ent = new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_GIB_GREEN, sx: Math.sin(a)*s, sy: Math.cos(a)*s, filter:'hue-rotate(-90deg) saturate(1.5)' });
+					sdEntity.entities.push( ent );
+				}
+				
+				ent = new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_BLOOD_GREEN, sx: Math.sin(a)*s, sy: Math.cos(a)*s, filter:'hue-rotate(-90deg) saturate(1.5)' });
+				sdEntity.entities.push( ent );
+			}
+
+			return;
+		}
 	
-		this._think_offset--;
+		this._sy += sdWorld.gravity * GSPEED * 0.5;
+	
+		this._think_offset -= Math.min( 16, Math.max( this._sy, 1 ) );
 		
 		if ( this._think_offset < 0 )
 		{
-			this._think_offset += 15;
-			GSPEED *= 15;
+			this._think_offset += 16;
+			GSPEED *= 16;
 		}
 		else
 		return;
@@ -217,6 +260,31 @@ class sdWater extends sdEntity
 			if ( arr[ i ].y + arr[ i ].hitbox_y2 > this.y + 16 )
 			if ( this !== arr[ i ] )
 			{
+				if ( arr[ i ].is( sdWater ) )
+				if ( ( arr[ i ].type === sdWater.TYPE_LAVA ) !== ( this.type === sdWater.TYPE_LAVA ) )
+				{
+					let ent = new sdBlock({ 
+						x: arr[ i ].x, 
+						y: arr[ i ].y, 
+						width: 16, 
+						height: 16,
+						material: sdBlock.MATERIAL_GROUND,
+						contains_class: null,
+						filter: 'saturate(0) brightness(0.3)',
+						natural: true,
+						plants: null
+						//filter: 'hue-rotate('+(~~(Math.sin( ( Math.min( from_y, sdWorld.world_bounds.y2 - 256 ) - y ) * 0.005 )*360))+'deg)' 
+					});
+					let hp_mult = 6;
+					ent._hea *= hp_mult;
+					ent._hmax *= hp_mult;
+					sdEntity.entities.push( ent );
+					
+					this.remove();
+					arr[ i ].remove();
+					return;
+				}
+				
 				var can_flow_left = true;
 				var can_flow_right = true;
 				
@@ -272,6 +340,7 @@ class sdWater extends sdEntity
 					
 					this.x -= 16;
 					this.y += 16;
+					this._sy *= 0.2;
 					this._update_version++;
 					sdWorld.UpdateHashPosition( this, false );
 					
@@ -286,6 +355,7 @@ class sdWater extends sdEntity
 					
 					this.x += 16;
 					this.y += 16;
+					this._sy *= 0.2;
 					this._update_version++;
 					sdWorld.UpdateHashPosition( this, false );
 					
@@ -297,6 +367,7 @@ class sdWater extends sdEntity
 					if ( this._swimmers.size === 0 )
 					this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 				
+					this._sy = 0;
 					return;
 				}
 			}
@@ -307,6 +378,7 @@ class sdWater extends sdEntity
 			if ( this._swimmers.size === 0 )
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		
+			this._sy = 0;
 			return;
 		}
 		else
@@ -486,7 +558,7 @@ class sdWater extends sdEntity
 			{
 				ctx.fillStyle = '#FFAA00';
 				
-				let xx = this.x + ( Math.floor( sdWorld.time / 1000 ) % 32 );
+				let xx = this.x + ( Math.floor( sdWorld.time / 500 ) % 32 );
 				
 				ctx.drawImageFilterCache( sdWater.img_lava, xx - Math.floor( xx / 32 ) * 32, this.y - Math.floor( this.y / 32 ) * 32, 16,16, 0,0, 16,16 );
 			}
@@ -553,7 +625,7 @@ class sdWater extends sdEntity
 		
 	}
 	
-	onRemove() // Class-specific, if needed
+	FullRemove()
 	{
 		this._swimmers.forEach( ( e )=>
 		{
@@ -561,6 +633,14 @@ class sdWater extends sdEntity
 			sdWater.all_swimmers.delete( e );
 		});
 		this._swimmers = null;
+	}
+	onRemove() // Class-specific, if needed
+	{
+		this.FullRemove();
+	}
+	onRemoveAsFakeEntity() // Will be called instead of onRemove() if entity was never added to world
+	{
+		this.FullRemove();
 	}
 }
 //sdWater.init_class();

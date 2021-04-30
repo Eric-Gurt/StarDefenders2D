@@ -278,13 +278,13 @@ let enf_once = true;
 					'No connection to server',
 					'Connection to server has gone'
 				]), true, true );
-				/*
+				
 				setTimeout( ()=>{
 					
 					//if ( !globalThis.connection_established )
 					sdWorld.Stop();
 				
-				}, 4000 );*/
+				}, 4000 );
 			}
 
 			//alert('Connection was lost');

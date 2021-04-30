@@ -75,7 +75,7 @@ class sdAsp extends sdEntity
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( this._hea > 0 )
-		if ( character.IsVisible( this ) )
+		if ( character.IsTargetable() && character.IsVisible() )
 		if ( character.hea > 0 )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 

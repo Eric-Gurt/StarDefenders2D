@@ -2092,6 +2092,7 @@ io.on("connection", (socket) =>
 	socket.Respawn = ( player_settings, force_allow=false ) => { 
 		
 		socket.last_ping = sdWorld.time;
+		socket.waiting_on_M_event_until = 0;
 		
 		socket.last_player_settings = player_settings;
 		

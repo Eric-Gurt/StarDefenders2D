@@ -61,8 +61,11 @@ class sdEntity
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these.
 	{ return false; }
 	
-	IsTargetable() // Guns are not targetable when held, same for sdCharacters that are driving something
+	IsTargetable( by_entity ) // Guns are not targetable when held, same for sdCharacters that are driving something
 	{
+		if ( !sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x + ( this.hitbox_x1 + this.hitbox_x2 ) / 2, this.y + ( this.hitbox_y1 + this.hitbox_y2 ) / 2 ) )
+		return false;
+		
 		return true;
 	}
 	

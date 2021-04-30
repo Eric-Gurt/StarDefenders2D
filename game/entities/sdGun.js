@@ -12,6 +12,7 @@ import sdBlock from './sdBlock.js';
 import sdCom from './sdCom.js';
 import sdBG from './sdBG.js';
 import sdArea from './sdArea.js';
+import sdOctopus from './sdOctopus.js';
 
 import sdGunClass from './sdGunClass.js';
 
@@ -158,9 +159,15 @@ class sdGun extends sdEntity
 		}
 	}
 	
-	IsTargetable() // Guns are not targetable when held, same for sdCharacters that are driving something
+	IsTargetable( by_entity ) // Guns are not targetable when held, same for sdCharacters that are driving something
 	{
-		return ( this._held_by === null );
+		if ( !sdArea.CheckPointDamageAllowed( this.x + ( this.hitbox_x1 + this.hitbox_x2 ) / 2, this.y + ( this.hitbox_y1 + this.hitbox_y2 ) / 2 ) )
+		return false;
+		
+		return	( 
+					( by_entity && by_entity.is( sdOctopus ) && this._held_by && this._held_by.gun_slot === sdGun.classes[ this.class ].slot && this.class !== sdGun.CLASS_BUILD_TOOL && this.class !== sdGun.CLASS_MEDIKIT ) || // sdOctopus rule
+					this._held_by === null 
+				);
 	}
 	
 	

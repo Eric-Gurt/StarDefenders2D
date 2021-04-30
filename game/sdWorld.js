@@ -1637,6 +1637,136 @@ class sdWorld
 		return ((a%n)+n)%n;
 	}
 	
+	static GetClientSideGlowReceived( x, y, lume_receiver )
+	{
+		let lumes = 0;
+		
+		
+		let cache = sdRenderer.lumes_weak_cache.get( lume_receiver );
+		
+		if ( !cache )
+		{
+			cache = { expiration: 0, lumes: 0 };
+			sdRenderer.lumes_weak_cache.set( lume_receiver, cache );
+		}
+		
+		if ( sdWorld.time > cache.expiration )
+		{
+			let nears = [];
+			sdWorld.GetAnythingNear( x, y, 64, nears, [ 'sdWater', 'sdLamp' ] );
+			
+			let ent;
+			
+			//sdWorld.CheckWallExistsBox( x - 64, y - 64, x + 64, y + 64, null, null, [ 'sdWater', 'sdLamp' ], ( ent )=>
+			for ( let i = 0; i < nears.length; i++ )
+			{
+				ent = nears[ i ];
+				
+				if ( ent.is( sdWorld.entity_classes.sdWater ) )
+				{
+					if ( ent.type === sdWorld.entity_classes.sdWater.TYPE_LAVA )
+					{
+						lumes += 10 / Math.max( 16, sdWorld.Dist2D( x, y, ent.x + ( ent.hitbox_x1 + ent.hitbox_x2 ) / 2, ent.y + ( ent.hitbox_y1 + ent.hitbox_y2 ) / 2 ) );
+					}
+				}
+				else
+				{
+					lumes += 10 / Math.max( 16, sdWorld.Dist2D( x, y, ent.x + ( ent.hitbox_x1 + ent.hitbox_x2 ) / 2, ent.y + ( ent.hitbox_y1 + ent.hitbox_y2 ) / 2 ) );
+				}
+				//return false;
+			}//);
+			
+			lumes = Math.min( 5, Math.floor( lumes * 2 ) / 2 );
+			
+			if ( cache.lumes !== lumes )
+			{
+				cache.lumes = lumes;
+				
+				nears = [];
+				sdWorld.GetAnythingNear( x, y, 16, nears, [ 'sdBlock', 'sdBG' ] );
+				
+				let ent2;
+				let cache2;
+				for ( let i = 0; i < nears.length; i++ )
+				{
+					ent2 = nears[ i ];
+					cache2 = sdRenderer.lumes_weak_cache.get( ent2 );
+					if ( cache2 )
+					cache2.expiration = 0;
+				}
+			}
+			cache.expiration = 1000 + sdWorld.time + Math.random() * 15000;
+		}
+		else
+		lumes = cache.lumes;
+		
+		/*
+		let xx = Math.floor( x / 16 );
+		let yy = Math.floor( y / 16 );
+		
+		let hash = xx+','+yy;
+		
+		if ( typeof sdRenderer.lumes_cache[ hash ] === 'undefined' )
+		{
+			sdRenderer.lumes_cache[ hash ] = { expiration: 0, lumes: 0 };
+			sdRenderer.lumes_cache_hashes.push( hash );
+		}
+		
+		if ( sdWorld.time > sdRenderer.lumes_cache[ hash ].expiration )
+		{
+			let nears = [];
+			sdWorld.GetAnythingNear( x, y, 64, nears, [ 'sdWater', 'sdLamp' ] );
+			
+			let ent;
+			
+			//sdWorld.CheckWallExistsBox( x - 64, y - 64, x + 64, y + 64, null, null, [ 'sdWater', 'sdLamp' ], ( ent )=>
+			for ( let i = 0; i < nears.length; i++ )
+			{
+				ent = nears[ i ];
+				
+				if ( ent.is( sdWorld.entity_classes.sdWater ) )
+				{
+					if ( ent.type === sdWorld.entity_classes.sdWater.TYPE_LAVA )
+					{
+						lumes += 10 / Math.max( 1, sdWorld.Dist2D( x, y, ent.x + ( ent.hitbox_x1 + ent.hitbox_x2 ) / 2, ent.y + ( ent.hitbox_y1 + ent.hitbox_y2 ) / 2 ) );
+					}
+				}
+				else
+				{
+					lumes += 10 / Math.max( 1, sdWorld.Dist2D( x, y, ent.x + ( ent.hitbox_x1 + ent.hitbox_x2 ) / 2, ent.y + ( ent.hitbox_y1 + ent.hitbox_y2 ) / 2 ) );
+				}
+				//return false;
+			}//);
+			
+			lumes = Math.min( 5, Math.floor( lumes * 2 ) / 2 );
+			
+			if ( sdRenderer.lumes_cache[ hash ].lumes !== lumes )
+			{
+				sdRenderer.lumes_cache[ hash ].lumes = lumes;
+			
+				if ( typeof sdRenderer.lumes_cache[ (xx-1)+','+(yy) ] !== 'undefined' )
+				sdRenderer.lumes_cache[ (xx-1)+','+(yy) ].expiration = 0;
+			
+				if ( typeof sdRenderer.lumes_cache[ (xx+1)+','+(yy) ] !== 'undefined' )
+				sdRenderer.lumes_cache[ (xx+1)+','+(yy) ].expiration = 0;
+			
+				if ( typeof sdRenderer.lumes_cache[ (xx)+','+(yy-1) ] !== 'undefined' )
+				sdRenderer.lumes_cache[ (xx)+','+(yy-1) ].expiration = 0;
+			
+				if ( typeof sdRenderer.lumes_cache[ (xx)+','+(yy+1) ] !== 'undefined' )
+				sdRenderer.lumes_cache[ (xx)+','+(yy+1) ].expiration = 0;
+			}
+			
+			sdRenderer.lumes_cache[ hash ].expiration = 1000 + sdWorld.time + Math.random() * 15000;
+		}
+		else
+		{
+			lumes = sdRenderer.lumes_cache[ hash ].lumes;
+		}
+		*/
+		return lumes;
+	}
+	
 	// custom_filtering_method( another_entity ) should return true in case if surface can not be passed through
 	static CheckWallExistsBox( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null ) // under 32x32 boxes unless line with arr = sdWorld.RequireHashPosition( x1 + xx * 32, y1 + yy * 32 ); changed
 	{

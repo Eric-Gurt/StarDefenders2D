@@ -66,6 +66,10 @@ class sdRenderer
 		//sdRenderer.ctx = new FakeCanvasContext( canvas );
 		sdRenderer.ctx = null;
 		
+		//sdRenderer.lumes_cache = {};
+		//sdRenderer.lumes_cache_hashes = [];
+		//sdRenderer.lumes_cache_hash_i = 0;
+		sdRenderer.lumes_weak_cache = new WeakMap();
 		
 		if ( typeof window !== 'undefined' )
 		{
@@ -329,6 +333,19 @@ class sdRenderer
 		{
 			return; // Context settings are not decided yet
 		}
+		
+		/*if ( sdRenderer.lumes_cache_hashes.length > 0 )
+		{
+			sdRenderer.lumes_cache_hash_i = ( sdRenderer.lumes_cache_hash_i + 1 ) % sdRenderer.lumes_cache_hashes.length;
+			if ( sdRenderer.lumes_cache_hash_i < sdRenderer.lumes_cache_hashes.length )
+			{
+				if ( sdRenderer.lumes_cache[ sdRenderer.lumes_cache_hashes[ sdRenderer.lumes_cache_hash_i ] ].expiration < sdWorld.time - 20000 )
+				{
+					delete sdRenderer.lumes_cache[ sdRenderer.lumes_cache_hashes[ sdRenderer.lumes_cache_hash_i ] ];
+					sdRenderer.lumes_cache_hashes.splice( sdRenderer.lumes_cache_hash_i, 1 );
+				}
+			}
+		}*/
 		
 		if ( typeof ctx.FakeStart !== 'undefined' )
 		ctx.FakeStart();

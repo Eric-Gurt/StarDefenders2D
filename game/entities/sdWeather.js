@@ -383,6 +383,7 @@ class sdWeather extends sdEntity
 						
 						if ( ent.CanMoveWithoutOverlap( x, y, 0.0001 ) )
 						//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+						if ( !sdWorld.CheckWallExistsBox( x, y, x+16, y+16, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava
 						{
 							let ent_above = null;
 							let ent_above_exists = false;

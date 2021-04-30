@@ -1503,7 +1503,7 @@ class sdCharacter extends sdEntity
 		this._last_e_state = e_state;
 		
 		//let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
-		let local_arr = sdWorld.RequireHashPosition( this.x, this.y );
+		/*let local_arr = sdWorld.RequireHashPosition( this.x, this.y );
 		let in_water = false;
 		for ( let i = 0; i < local_arr.length; i++ )
 		if ( local_arr[ i ].is( sdWater ) )
@@ -1511,7 +1511,8 @@ class sdCharacter extends sdEntity
 			in_water = true;
 			
 			break;
-		}
+		}*/
+		let in_water = sdWater.all_swimmers.has( this );
 		
 		this._in_water = in_water;
 		
@@ -1587,13 +1588,15 @@ class sdCharacter extends sdEntity
 			
 			this.sx += x_force * 0.2 * GSPEED;
 			this.sy += y_force * 0.2 * GSPEED;
-			
+			/*
 			if ( !sdWorld.CheckWallExists( this.x, this.y + this.hitbox_y1, null, null, sdWater.water_class_array ) )
 			{
 				if ( this.act_y === -1 )
 				this.sy = -3;
 			}
-			else
+			else*/
+								
+			if ( sdWorld.CheckWallExists( this.x, this.y + this.hitbox_y1, null, null, sdWater.water_class_array ) )
 			can_breathe = false;
 		}
 		else
@@ -1725,7 +1728,7 @@ class sdCharacter extends sdEntity
 			this.sy = this.driver_of.sy;
 		}
 		else
-		this.ApplyVelocityAndCollisions( GSPEED, ( this.hea > 0 ) ? ( this.act_y !== 1 ? 10 : 3 ) : 0 );
+		this.ApplyVelocityAndCollisions( GSPEED, ( this.hea > 0 ) ? ( this.act_y !== 1 ? 10 : 3 ) : 0, ( this.hea <= 0 ) );
 		/*
 		if ( sdWorld.last_hit_entity )
 		{
