@@ -269,9 +269,9 @@ class sdCharacter extends sdEntity
 		this._dying = false;
 		this._dying_bleed_tim = 0;
 
-		this.arm = 0; // Armor
-		this.amax = 0; // Max armor; used for drawing armor bar
-		this.arm_absorb = 0; // Armor absorption percentage
+		this.armor = 0; // Armor
+		this.armor_max = 0; // Max armor; used for drawing armor bar
+		this._armor_absorb_perc = 0; // Armor absorption percentage
 
 		//this.anim_death = 0;
 		this._anim_walk = 0;
@@ -534,17 +534,17 @@ class sdCharacter extends sdEntity
 				}
 			}
 
-			if ( this.arm <= 0 ) // No armor
+			if ( this.armor <= 0 ) // No armor
 			this.hea -= dmg;
 			else
 			{
-				this.hea -= ( dmg * (1 - this.arm_absorb ) );
+				this.hea -= ( dmg * (1 - this._armor_absorb_perc ) );
 				//if (dmg > 0 )
-				this.arm -= ( dmg * this.arm_absorb );
-				if ( this.arm < 0 )
+				this.armor -= ( dmg * this._armor_absorb_perc );
+				if ( this.armor < 0 )
 				{
-					this.arm = 0;
-					this.arm_absorb = 0;
+					this.armor = 0;
+					this._armor_absorb_perc = 0;
 				}
 			}
 			if ( this.hea <= 0 && was_alive )
@@ -2008,17 +2008,17 @@ class sdCharacter extends sdEntity
 			ctx.globalAlpha = ( 1 - snap_frame ) * 0.5;
 			
 			ctx.fillStyle = '#000000';
-			ctx.fillRect( 0 - w / 2, 0 - 20 - ( this.arm > 0 ? 2 : 0 ), w, 5 + ( this.arm > 0 ? 2 : 0 )  + ( show_air ? 2 : 0 ) );
+			ctx.fillRect( 0 - w / 2, 0 - 20 - ( this.armor > 0 ? 2 : 0 ), w, 5 + ( this.armor > 0 ? 2 : 0 )  + ( show_air ? 2 : 0 ) );
 			
 			ctx.globalAlpha = 1 - snap_frame;
 			
 			ctx.fillStyle = '#FF0000';
 			ctx.fillRect( 1 - w / 2, 1 - 20, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
 
-			if ( this.arm > 0 )
+			if ( this.armor > 0 )
 			{
 				ctx.fillStyle = '#5555ff';
-				ctx.fillRect( 1 - w / 2, -1 - 20, ( w - 2 ) * Math.max( 0, this.arm / this.amax ), 1 );
+				ctx.fillRect( 1 - w / 2, -1 - 20, ( w - 2 ) * Math.max( 0, this.armor / this.armor_max ), 1 );
 			}
 
 			//ctx.fillStyle = '#000000';

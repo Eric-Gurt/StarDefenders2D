@@ -39,7 +39,7 @@ class sdJunk extends sdEntity
 		
 		this.type = Math.floor (0.5 + Math.random () );
 		
-		if ( this.type != 1 )
+		if ( this.type !== 1 )
 		this.hmax = 500;
 		else
 		this.hmax = 150;
@@ -63,8 +63,8 @@ class sdJunk extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
-		if ( initiator !== null )
-		if ( initiator.GetClass() === 'sdCharacter' )
+		//if ( initiator !== null )
+		if ( initiator === null || initiator.GetClass() === 'sdCharacter' )
 		if ( sdWorld.time < this._damagable_in )
 		return;
 	

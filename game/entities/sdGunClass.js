@@ -513,11 +513,11 @@ class sdGunClass
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				// 2 was too bad for case of randomly breaking crystals when digging
-				//if ( character.arm === 0 || character.arm_absorb <= character.arm_absorb )
+				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
 				{
-					character.arm = 130;
-					character.amax = 130;
-					character.arm_absorb = 0.3; // 30% damage reduction
+					character.armor = 130;
+					character.armor_max = 130;
+					character._armor_absorb_perc = 0.3; // 30% damage reduction
 					gun.remove(); 
 				}
 
@@ -540,11 +540,11 @@ class sdGunClass
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				// 2 was too bad for case of randomly breaking crystals when digging
-				//if ( character.arm === 0 || character.arm_absorb <= character.arm_absorb )
+				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
 				{
-					character.arm = 190;
-					character.amax = 190;
-					character.arm_absorb = 0.4; // 40% damage reduction
+					character.armor = 190;
+					character.armor_max = 190;
+					character._armor_absorb_perc = 0.4; // 40% damage reduction
 					gun.remove(); 
 				}
 
@@ -567,11 +567,11 @@ class sdGunClass
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				// 2 was too bad for case of randomly breaking crystals when digging
-				//if ( character.arm === 0 || character.arm_absorb <= character.arm_absorb )
+				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
 				{
-					character.arm = 250;
-					character.amax = 250;
-					character.arm_absorb = 0.5; // 50% damage reduction
+					character.armor = 250;
+					character.armor_max = 250;
+					character._armor_absorb_perc = 0.5; // 50% damage reduction
 					gun.remove(); 
 				}
 
