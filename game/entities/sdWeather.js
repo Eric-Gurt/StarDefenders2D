@@ -316,7 +316,7 @@ class sdWeather extends sdEntity
 						{
 							if ( sdWorld.last_hit_entity._plants === null )
 							{
-								let grass = new sdGrass({ x:sdWorld.last_hit_entity.x, y:sdWorld.last_hit_entity.y - 16, filter: sdWorld.last_hit_entity.filter });
+								let grass = new sdGrass({ x:sdWorld.last_hit_entity.x, y:sdWorld.last_hit_entity.y - 16, filter: sdWorld.last_hit_entity.filter, block:sdWorld.last_hit_entity  });
 								sdEntity.entities.push( grass );
 
 								sdWorld.last_hit_entity._plants = [ grass._net_id ];
@@ -328,13 +328,26 @@ class sdWeather extends sdEntity
 									let ent = sdEntity.entities_by_net_id_cache[ sdWorld.last_hit_entity._plants[ i ] ];
 									
 									if ( ent )
-									if ( ent.is( sdGrass ) )
 									{
-										if ( ent.variation < sdWorld.GetFinalGrassHeight( ent.x ) )
+										if ( ent.is( sdGrass ) )
 										{
-											ent.Grow();
-											break; // Skip rest plants on this block
+											// Old version problem fix:
+											if ( ent._block !== sdWorld.last_hit_entity )
+											ent._block = sdWorld.last_hit_entity;
+											
+											if ( ent.variation < sdWorld.GetFinalGrassHeight( ent.x ) )
+											{
+												ent.Grow();
+												break; // Skip rest plants on this block
+											}
 										}
+									}
+									else
+									{
+										// Old version problem fix:
+										sdWorld.last_hit_entity._plants.splice( i, 1 );
+										i--;
+										continue;
 									}
 								}
 							}
@@ -843,8 +856,8 @@ class sdWeather extends sdEntity
 					
 					if ( r === 9 ) // Spawn few sdBadDog-s somewhere on ground where players don't see them
 					{
-						let instances = Math.floor( 1 + Math.random() * 2 );
-						while ( instances > 0 && sdBadDog.dogs_counter < 12 )
+						let instances = Math.floor( 3 + Math.random() * 6 );
+						while ( instances > 0 && sdBadDog.dogs_counter < 16 )
 						{
 
 							let dog = new sdBadDog({ x:0, y:0 });
@@ -863,6 +876,11 @@ class sdWeather extends sdEntity
 									if ( !dog.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 									if ( sdWorld.last_hit_entity )
 									if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+									if ( !sdWorld.CheckWallExistsBox( 
+											x + dog.hitbox_x1 - 16, 
+											y + dog.hitbox_y1 - 16, 
+											x + dog.hitbox_x2 + 16, 
+											y + dog.hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
 									{
 										let di_allowed = true;
 										

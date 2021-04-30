@@ -28,7 +28,7 @@ class sdWater extends sdEntity
 		//sdWater.img_water_flow = sdWorld.CreateImageFromFile( 'water_flow' );
 		sdWater.img_lava = sdWorld.CreateImageFromFile( 'lava2' );
 		
-		sdWater.all_swimmers = new Set(); // Prevent multiple damage water objects from applying damage onto same entity
+		sdWater.all_swimmers = new Set(); // Prevent multiple damage water objects from applying damage onto same entity. Also handles more efficient is_in_water checks for entities
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -165,6 +165,38 @@ class sdWater extends sdEntity
 		//e._sleep_tim = sdWater.sleep_tim_max;
 		*/
 	}
+	
+	BlendWith( another )
+	{
+		if ( another.is( sdWater ) )
+		{
+			if ( ( another.type === sdWater.TYPE_LAVA ) !== ( this.type === sdWater.TYPE_LAVA ) )
+			{
+				let ent = new sdBlock({ 
+					x: another.x, 
+					y: another.y, 
+					width: 16, 
+					height: 16,
+					material: sdBlock.MATERIAL_GROUND,
+					contains_class: null,
+					filter: 'saturate(0) brightness(0.3)',
+					natural: true,
+					plants: null
+					//filter: 'hue-rotate('+(~~(Math.sin( ( Math.min( from_y, sdWorld.world_bounds.y2 - 256 ) - y ) * 0.005 )*360))+'deg)' 
+				});
+				let hp_mult = 6;
+				ent._hea *= hp_mult;
+				ent._hmax *= hp_mult;
+				sdEntity.entities.push( ent );
+
+				this.remove();
+				another.remove();
+
+				return true; // Delete both
+			}
+		}
+		return false;
+	}
 
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -182,6 +214,7 @@ class sdWater extends sdEntity
 					{
 						if ( !sdWorld.is_server )
 						{
+							if ( this.type === sdWater.TYPE_LAVA )
 							if ( Math.random() < 0.3 )
 							{
 								let ent = new sdEffect({ x: e.x, y: this.y, type:sdEffect.TYPE_GLOW_HIT, color:'#FFAA33' });
@@ -190,6 +223,7 @@ class sdWater extends sdEntity
 						}
 						else
 						{
+							if ( this.type === sdWater.TYPE_LAVA )
 							e.Damage( sdWater.damage_by_type[ this.type ] * GSPEED ); 
 						}
 					}
@@ -260,30 +294,8 @@ class sdWater extends sdEntity
 			if ( arr[ i ].y + arr[ i ].hitbox_y2 > this.y + 16 )
 			if ( this !== arr[ i ] )
 			{
-				if ( arr[ i ].is( sdWater ) )
-				if ( ( arr[ i ].type === sdWater.TYPE_LAVA ) !== ( this.type === sdWater.TYPE_LAVA ) )
-				{
-					let ent = new sdBlock({ 
-						x: arr[ i ].x, 
-						y: arr[ i ].y, 
-						width: 16, 
-						height: 16,
-						material: sdBlock.MATERIAL_GROUND,
-						contains_class: null,
-						filter: 'saturate(0) brightness(0.3)',
-						natural: true,
-						plants: null
-						//filter: 'hue-rotate('+(~~(Math.sin( ( Math.min( from_y, sdWorld.world_bounds.y2 - 256 ) - y ) * 0.005 )*360))+'deg)' 
-					});
-					let hp_mult = 6;
-					ent._hea *= hp_mult;
-					ent._hmax *= hp_mult;
-					sdEntity.entities.push( ent );
-					
-					this.remove();
-					arr[ i ].remove();
-					return;
-				}
+				if ( this.BlendWith( arr[ i ] ) )
+				return;
 				
 				var can_flow_left = true;
 				var can_flow_right = true;
@@ -306,6 +318,9 @@ class sdWater extends sdEntity
 						if ( down_left[ i2 ].y + down_left[ i2 ].hitbox_y1 < this.y + 16 + 16 )
 						if ( down_left[ i2 ].y + down_left[ i2 ].hitbox_y2 > this.y + 16 )
 						{
+							if ( this.BlendWith( down_left[ i2 ] ) )
+							return;
+
 							can_flow_left = false;
 							break;
 						}
@@ -319,6 +334,9 @@ class sdWater extends sdEntity
 						if ( down_right[ i2 ].y + down_right[ i2 ].hitbox_y1 < this.y + 16 + 16 )
 						if ( down_right[ i2 ].y + down_right[ i2 ].hitbox_y2 > this.y + 16 )
 						{
+							if ( this.BlendWith( down_right[ i2 ] ) )
+							return;
+					
 							can_flow_right = false;
 							break;
 						}
@@ -493,7 +511,7 @@ class sdWater extends sdEntity
 		if ( !from_entity.is( sdEffect ) )
 		if ( !from_entity.is( sdGun ) || from_entity._held_by === null )
 		{
-			if ( this.type === sdWater.TYPE_LAVA || this.type === sdWater.TYPE_ACID )
+			//if ( this.type === sdWater.TYPE_LAVA || this.type === sdWater.TYPE_ACID )
 			{
 				this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 				

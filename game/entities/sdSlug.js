@@ -400,6 +400,60 @@ class sdSlug extends sdEntity
 	{
 		return 0; // Hack
 	}
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( !this._is_being_removed )
+		if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		{
+			if ( command_name === 'PAT' )
+			{
+				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+				{
+					if ( this._hea >= this._hmax )
+					if ( sdWorld.time > ( this._last_speak || 0 ) + 1000 )
+					{
+						this._last_speak = sdWorld.time;
+
+						let params = { 
+							x:this.x, 
+							y:this.y - 36, 
+							type:sdEffect.TYPE_CHAT, 
+							attachment:this, 
+							attachment_x: 0,
+							attachment_y: -36,
+							text: '?',
+							voice: {
+								wordgap: 0,
+								pitch: 100,
+								speed: 150,
+								variant: 'f1'
+							} 
+						};
+
+						params.text = Math.random() < 0.5 ? 'uwu' : 'owo';
+
+						sdWorld.SendEffect( params );
+					}
+				}
+				else
+				executer_socket.SDServiceMessage( 'Slug is too far' );
+			}
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( !this._is_being_removed )
+		if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+		{
+			if ( this._hea >= this._hmax )
+			this.AddContextOption( 'Give pats', 'PAT', [] );
+		}
+	}
 }
 //sdSlug.init_class();
 

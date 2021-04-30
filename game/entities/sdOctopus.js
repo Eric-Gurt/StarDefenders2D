@@ -279,7 +279,7 @@ class sdOctopus extends sdEntity
 						 from_entity.GetClass() === 'sdVirus' ||
 						 ( typeof from_entity.hea !== 'undefined' && from_entity.hea <= 0 ) ||
 						 ( typeof from_entity._hea !== 'undefined' && from_entity._hea <= 0 ) )
-					if ( from_entity.IsTargetable() )
+					if ( from_entity.IsTargetable( this ) )
 					{
 						let rank = Math.random() * 0.1;
 						

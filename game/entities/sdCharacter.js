@@ -232,7 +232,8 @@ class sdCharacter extends sdEntity
 		this._potential_vehicle = null; // Points at vehicle which player recently did hit
 		
 		this._listeners = {
-			DAMAGE: []
+			DAMAGE: [],
+			REMOVAL: []
 		};
 		
 		this._ai = null; // Object, won't be saved to snapshot
@@ -1745,6 +1746,9 @@ class sdCharacter extends sdEntity
 	
 	onRemove() // Class-specific, if needed
 	{
+		for ( var i = 0; i < this._listeners.REMOVAL.length; i++ )
+		this._listeners.REMOVAL[ i ]( this );
+	
 		//console.log( this.title + '['+this._net_id+'] is being removed' );
 		sdCharacter.characters.splice( sdCharacter.characters.indexOf( this ), 1 );
 		

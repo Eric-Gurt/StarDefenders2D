@@ -196,6 +196,7 @@ import sdCrystalCombiner from './game/entities/sdCrystalCombiner.js';
 import sdUpgradeStation from './game/entities/sdUpgradeStation.js';
 import sdJunk from './game/entities/sdJunk.js';
 import sdBadDog from './game/entities/sdBadDog.js';
+import sdShark from './game/entities/sdShark.js';
 
 
 import LZW from './game/server/LZW.js';
@@ -319,6 +320,7 @@ sdCrystalCombiner.init_class();
 sdUpgradeStation.init_class();
 sdJunk.init_class();
 sdBadDog.init_class();
+sdShark.init_class();
 
 sdShop.init_class(); // requires plenty of classes due to consts usage
 LZW.init_class();
@@ -1133,13 +1135,17 @@ sdWorld.server_config = {};
 				break;
 			}
 
+			let can_stand_here = character_entity.CanMoveWithoutOverlap( x, y, 0 ) && !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 );
+			
+			let ground_ent = sdWorld.last_hit_entity;
+
 			if ( tr > max_tr * 0.6 || bad_areas_near === 0 )
-			if ( tr > max_tr * 0.8 || ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) && !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) && !sdWorld.CheckWallExistsBox( 
+			if ( tr > max_tr * 0.8 || ( can_stand_here && !sdWorld.CheckWallExistsBox( 
 					x + character_entity.hitbox_x1 - 16, 
 					y + character_entity.hitbox_y1 - 16, 
 					x + character_entity.hitbox_x2 + 16, 
 					y + character_entity.hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) ) )
-			if ( tr > max_tr * 0.4 || socket.command_centre || sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+			if ( tr > max_tr * 0.4 || socket.command_centre || ground_ent === null || ( ground_ent.GetClass() === 'sdBlock' && ground_ent.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
 			{
 				character_entity.x = x;
 				character_entity.y = y;
@@ -1481,290 +1487,8 @@ if ( sdEntity.global_entities.length === 0 )
 	sdEntity.entities.push( new sdWeather({}) );
 }
 
-/*if ( sdWorld.world_bounds.x1 === 0 )
-if ( sdWorld.world_bounds.x2 === 0 )
-if ( sdWorld.world_bounds.y1 === 0 )
-if ( sdWorld.world_bounds.y2 === 0 )
-{
-	console.log( 'Reinitializing world bounds' );
-	sdWorld.ChangeWorldBounds( -16 * 10, -16 * 10, 16 * 10, 16 * 10 );
-}*/
-
 if ( sdWorld.server_config.onAfterSnapshotLoad )
 sdWorld.server_config.onAfterSnapshotLoad();
-
-/*
-// World bounds shifter
-setInterval( ()=>
-{
-	let x1 = sdWorld.world_bounds.x1;
-	let y1 = sdWorld.world_bounds.y1;
-	let x2 = sdWorld.world_bounds.x2;
-	let y2 = sdWorld.world_bounds.y2;
-	
-	// Locked decrease for removal of old parts
-	let x1_locked = false;
-	let y1_locked = false;
-	let x2_locked = false;
-	let y2_locked = false;
-	
-	let x1_locked_by = [];
-	let y1_locked_by = [];
-	let x2_locked_by = [];
-	let y2_locked_by = [];
-	
-	let edge_cursious = []; // -1
-	let edge_cursious_ent = [];
-	
-	let sockets = sdWorld.sockets;
-	let no_respawn_areas = sdWorld.no_respawn_areas;
-	
-	function TellReason()
-	{
-		for ( var i = 0; i < edge_cursious_ent.length; i++ )
-		{
-			if ( edge_cursious_ent[ i ]._socket )
-			{
-				let blocking_by = [];
-				
-				switch ( edge_cursious[ i ] )
-				{
-					case 0: for ( var i2 = 0; i2 < x1_locked_by.length; i2++ ) blocking_by.push( sdEntity.GuessEntityName( x1_locked_by[ i2 ]._net_id ) ); break;
-					case 1: for ( var i2 = 0; i2 < x2_locked_by.length; i2++ ) blocking_by.push( sdEntity.GuessEntityName( x2_locked_by[ i2 ]._net_id ) ); break;
-					case 2: for ( var i2 = 0; i2 < y1_locked_by.length; i2++ ) blocking_by.push( sdEntity.GuessEntityName( y1_locked_by[ i2 ]._net_id ) ); break;
-					case 3: for ( var i2 = 0; i2 < y2_locked_by.length; i2++ ) blocking_by.push( sdEntity.GuessEntityName( y2_locked_by[ i2 ]._net_id ) ); break;
-				}
-				
-				for ( var i2 = 0; i2 < blocking_by.length; i2++ )
-				{
-					let count = 1;
-					for ( var i3 = i2 + 1; i3 < blocking_by.length; i3++ )
-					{
-						if ( blocking_by[ i2 ] === blocking_by[ i3 ] )
-						{
-							count++;
-							blocking_by.splice( i3, 1 );
-							i3--;
-							continue;
-						}
-					}
-					if ( count > 1 )
-					{
-						blocking_by[ i2 ] = blocking_by[ i2 ] + ' x' + count;
-					}
-				}
-				
-				if ( blocking_by.length === 1 )
-				edge_cursious_ent[ i ]._socket.SDServiceMessage( 'World can not be extended past this point - ' + blocking_by.join(', ') + ' is at the opposite edge of playable area' );
-				else
-				edge_cursious_ent[ i ]._socket.SDServiceMessage( 'World can not be extended past this point - ' + blocking_by.join(', ') + ' are at the opposite edge of playable area' );
-			}
-		}
-	}
-	
-	let top_matter = 0;
-	
-
-	for ( let i = 0; i < no_respawn_areas.length; i++ )
-	{
-		if ( sdWorld.time > no_respawn_areas[ i ].until )
-		{
-			no_respawn_areas.splice( i, 1 );
-			i--;
-			continue;
-		}
-		
-		if ( no_respawn_areas[ i ].entity )
-		{
-			if ( no_respawn_areas[ i ].entity._is_being_removed )
-			{
-				no_respawn_areas.splice( i, 1 );
-				i--;
-				continue;
-			}
-			
-			no_respawn_areas[ i ].x = no_respawn_areas[ i ].entity.x;
-			no_respawn_areas[ i ].y = no_respawn_areas[ i ].entity.y;
-		}
-	}
-	
-	for ( let i = 0; i < sockets.length; i++ )
-	{
-		var ent = sockets[ i ].character;
-		if ( ent !== null )
-		if ( ent.hea > 0 )
-		if ( !ent._is_being_removed )
-		{
-			if ( ent.matter > top_matter )
-			top_matter = ent.matter;
-			
-			if ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 > 4000 )
-			{
-				if ( ent.x < sdWorld.world_bounds.x1 + 2000 )
-				{
-					x1_locked = true;
-					x1_locked_by.push( ent );
-				}
-
-				if ( ent.x > sdWorld.world_bounds.x2 - 2000 )
-				{
-					x2_locked = true;
-					x2_locked_by.push( ent );
-				}
-			}
-
-
-			if ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 > 2000 )
-			{
-				if ( ent.y < sdWorld.world_bounds.y1 + 1000 )
-				{
-					y1_locked = true;
-					y1_locked_by.push( ent );
-				}
-
-				if ( ent.y > sdWorld.world_bounds.y2 - 1000 )
-				{
-					y2_locked = true;
-					y2_locked_by.push( ent );
-				}
-			}
-			//if ( ent.y < ( sdWorld.world_bounds.y1 + sdWorld.world_bounds.y2 ) / 2 )
-			//y1_locked = true;
-			//else
-			//y2_locked = true;
-
-			if ( ent.x > sdWorld.world_bounds.x2 - 16 * 40 )
-			{
-				x2 += 16 * 5;
-				
-				if ( ent.x > sdWorld.world_bounds.x2 - 32 )
-				{
-					edge_cursious.push( 0 );
-					edge_cursious_ent.push( ent );
-				}
-			}
-
-			if ( ent.x < sdWorld.world_bounds.x1 + 16 * 40 )
-			{
-				x1 -= 16 * 5;
-				if ( ent.x < sdWorld.world_bounds.x1 + 32 )
-				{
-					edge_cursious.push( 1 );
-					edge_cursious_ent.push( ent );
-				}
-			}
-
-			if ( ent.y > sdWorld.world_bounds.y2 - 16 * 40 )
-			{
-				y2 += 16 * 5;
-				if ( ent.y > sdWorld.world_bounds.y2 - 32 )
-				{
-					edge_cursious.push( 2 );
-					edge_cursious_ent.push( ent );
-				}
-			}
-
-			if ( ent.y < sdWorld.world_bounds.y1 + 16 * 40 )
-			{
-				y1 -= 16 * 5;
-				if ( ent.y < sdWorld.world_bounds.y1 + 32 )
-				{
-					edge_cursious.push( 3 );
-					edge_cursious_ent.push( ent );
-				}
-			}
-		}
-	}
-	
-	for ( let i = 0; i < sdCommandCentre.centres.length; i++ )
-	{
-		var ent = sdCommandCentre.centres[ i ];
-		
-		if ( top_matter >= sdCharacter.matter_required_to_destroy_command_center )
-		if ( ent.self_destruct_on < sdWorld.time + sdCommandCentre.time_to_live_without_matter_keepers_near - 1000 * 5 )
-		{
-			ent.self_destruct_on = Math.min( ent.self_destruct_on + world_edge_think_rate * 2, sdWorld.time + sdCommandCentre.time_to_live_without_matter_keepers_near );
-		}
-		
-		if ( ent.x < sdWorld.world_bounds.x1 + 1000 )
-		{
-			x1_locked = true;
-			x1_locked_by.push( ent );
-		}
-		if ( ent.x > sdWorld.world_bounds.x2 - 1000 )
-		{
-			x2_locked = true;
-			x2_locked_by.push( ent );
-		}
-
-		if ( ent.y < sdWorld.world_bounds.y1 + 1000 )
-		{
-			y1_locked = true;
-			y1_locked_by.push( ent );
-		}
-		if ( ent.y > sdWorld.world_bounds.y2 - 1000 )
-		{
-			y2_locked = true;
-			y2_locked_by.push( ent );
-		}
-	}
-	
-	if ( sdWorld.world_bounds.x1 !== x1 ||
-		 sdWorld.world_bounds.y1 !== y1 ||
-		 sdWorld.world_bounds.x2 !== x2 ||
-		 sdWorld.world_bounds.y2 !== y2 )
-	{
-		let min_width = 3200 * 2; // % 16
-		let min_height = 1600 * 2; // % 16
-		
-		if ( x2 - x1 > min_width )
-		{
-			if ( x1_locked && x2_locked )
-			{
-				x1 = sdWorld.world_bounds.x1;
-				x2 = sdWorld.world_bounds.x2;
-				//return; 
-			}
-			else
-			{
-				if ( x1_locked )
-				x2 = x1 + min_width;
-				else
-				x1 = x2 - min_width;
-			}
-		}
-		
-		if ( y2 - y1 > min_height )
-		{
-			if ( y1_locked && y2_locked )
-			{
-				y1 = sdWorld.world_bounds.y1;
-				y2 = sdWorld.world_bounds.y2;
-				//return;
-			}
-			else
-			{
-				if ( y1_locked )
-				y2 = y1 + min_height;
-				else
-				y1 = y2 - min_height;
-			}
-		}
-		
-		if ( sdWorld.world_bounds.x1 !== x1 ||
-			 sdWorld.world_bounds.y1 !== y1 ||
-			 sdWorld.world_bounds.x2 !== x2 ||
-			 sdWorld.world_bounds.y2 !== y2 )
-		sdWorld.ChangeWorldBounds( x1, y1, x2, y2 );
-		else
-		TellReason();
-	}
-	else
-	{
-		TellReason();
-	}
-	
-}, 500 );*/
 
 
 sdModeration.init_class();
@@ -1825,24 +1549,7 @@ function IsGameActive()
 
 var no_respawn_areas = []; // arr of { x, y, radius, until }
 
-/*function BadSpawn( x, y, entity=null )
-{
-	no_respawn_areas.push({
-		x:x,
-		y:y,
-		radius:150,
-		until: sdWorld.time + 1000 * 60 // 1 minute at area
-	});
-	
-	if ( entity )
-	no_respawn_areas.push({
-		x:x,
-		y:y,
-		entity: entity,
-		radius:250,
-		until: sdWorld.time + 1000 * 60 * 5 // 5 minutes around entity that damaged
-	});
-}*/
+
 let next_drop_log = 0;
 io.on("connection", (socket) => 
 //io.onConnection( socket =>
@@ -2151,93 +1858,6 @@ io.on("connection", (socket) =>
 			
 			if ( sdWorld.server_config.PlayerSpawnPointSeeker )
 			sdWorld.server_config.PlayerSpawnPointSeeker( character_entity, socket );
-			/*else
-			{
-				let x,y,bad_areas_near,i;
-				let tr = 0;
-				let max_tr = 10000;
-				do
-				{
-					x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
-					y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-					
-					if ( socket.command_centre )
-					{
-						if ( socket.command_centre._is_being_removed )
-						{
-							socket.command_centre = null;
-							socket.SDServiceMessage( 'Command Centre no longer exists' );
-						}
-						else
-						{
-							if ( tr < max_tr * 0.05 )
-							{
-								x = socket.command_centre.x - 100 + Math.random() * 200;
-								y = socket.command_centre.y - 100 + Math.random() * 200;
-							}
-							else
-							if ( tr < max_tr * 0.1 )
-							{
-								x = socket.command_centre.x - 500 + Math.random() * 1000;
-								y = socket.command_centre.y - 500 + Math.random() * 1000;
-							}
-							else
-							if ( tr < max_tr * 0.15 )
-							{
-								x = socket.command_centre.x - 500 + Math.random() * 1000;
-								y = socket.command_centre.y - 500 + Math.random() * 1000;
-							}
-						}
-					}
-					
-					bad_areas_near = 0;
-					
-					for ( i = 0; i < sdWorld.no_respawn_areas.length; i++ )
-					if ( sdWorld.inDist2D_Boolean( x, y, sdWorld.no_respawn_areas[ i ].x, sdWorld.no_respawn_areas[ i ].y, sdWorld.no_respawn_areas[ i ].radius ) )
-					{
-						bad_areas_near++;
-						break;
-					}
-
-					if ( tr > max_tr * 0.6 || bad_areas_near === 0 )
-					if ( tr > max_tr * 0.8 || ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) && !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) ) )
-					if ( tr > max_tr * 0.4 || socket.command_centre || sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
-					{
-						character_entity.x = x;
-						character_entity.y = y;
-
-						//sdWorld.UpdateHashPosition( ent, false );
-						
-						if ( socket.command_centre )
-						{
-							if ( Math.abs( socket.command_centre.x - x ) <= 200 && Math.abs( socket.command_centre.y - y ) <= 200 )
-							{
-								socket.respawn_block_until = sdWorld.time + 1000 * 10; // Not too frequently
-							}
-							else
-							if ( Math.abs( socket.command_centre.x - x ) <= 500 && Math.abs( socket.command_centre.y - y ) <= 500 )
-							{
-								socket.respawn_block_until = sdWorld.time + 1000 * 10; // Not too frequently
-								
-								socket.SDServiceMessage( 'Unable to respawn too close to Command Centre (possibly due to recent spawnkills near Command Center)' );
-							}
-							else
-							socket.SDServiceMessage( 'Unable to respawn near Command Centre (possibly due to recent spawnkills near Command Center)' );
-								
-						}
-
-						break;
-					}
-
-					tr++;
-					if ( tr > max_tr )
-					{
-						character_entity.x = x;
-						character_entity.y = y;
-						break;
-					}
-				} while( true );
-			}*/
 		}
 		function TryToAssignDisconnectedPlayerEntity()
 		{
@@ -2756,6 +2376,36 @@ io.on("connection", (socket) =>
 			}
 			else
 			socket.SDServiceMessage( 'Communication node no longer exists' );
+		}
+	});
+	socket.on('ENTITY_CONTEXT_ACTION', ( params )=>
+	{
+		if ( typeof params !== 'object' )
+		return;
+	
+		if ( typeof params[ 0 ] !== 'string' )
+		return;
+	
+		if ( typeof params[ 1 ] !== 'number' )
+		return;
+	
+		if ( typeof params[ 2 ] !== 'string' )
+		return;
+	
+		let _class = params[ 0 ];
+		let net_id = params[ 1 ];
+		
+		if ( net_id !== undefined )
+		{
+			let ent = sdEntity.GetObjectByClassAndNetId( _class, net_id );
+			if ( ent !== null )
+			{
+				ent.ExecuteContextCommand( params[ 2 ], params[ 3 ], socket.character, socket );
+			}
+			else
+			{
+				socket.SDServiceMessage( 'Entity no longer exists' );
+			}
 		}
 	});
 	socket.on('COM_UNSUB', ( net_id ) => { 
