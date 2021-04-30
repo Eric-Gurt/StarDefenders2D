@@ -40,24 +40,21 @@ class sdCharacter extends sdEntity
 		
 		// Add new values at the end
 		sdCharacter.img_helmets = [
-			null, // 0
-			sdWorld.CreateImageFromFile( 'helmet_star_defender' ), // 1 // EG
-			sdWorld.CreateImageFromFile( 'helmet_falkok' ), // 2 // EG
-			sdWorld.CreateImageFromFile( 'helmet_eyes' ), // 3 // EG
-			sdWorld.CreateImageFromFile( 'helmet_dino' ), // 4 // EG
-			sdWorld.CreateImageFromFile( 'helmet_v' ), // 5 // EG
-			sdWorld.CreateImageFromFile( 'helmet_open' ), // 6 // EG
-			sdWorld.CreateImageFromFile( 'helmet_cs' ), // 7 // idea by butorinoks77, rework by Eric Gurt
-			sdWorld.CreateImageFromFile( 'helmet_grub' ), // 8 // idea by butorinoks77, rework by Eric Gurt
-			sdWorld.CreateImageFromFile( 'helmet_crow' ), // 9 // by butorinoks77
-			sdWorld.CreateImageFromFile( 'helmet_scope' ), // 10 // by butorinoks77
-			sdWorld.CreateImageFromFile( 'helmet_crusader' ), // 11 // by xXRedXAssassinXx
-			sdWorld.CreateImageFromFile( 'helmet_phfalkok' ), // 12 // by Booraz149
-			//sdWorld.CreateImageFromFile( 'helmet_tacticalSD' ), // 13 // by Commander Taori
-			//sdWorld.CreateImageFromFile( 'helmet_medic' ), // 14 // by Commander Taori
-			//sdWorld.CreateImageFromFile( 'helmet_interceptor' ), // 15 // by LordBored
-			//sdWorld.CreateImageFromFile( 'helmet_guardian' ), // 16 // by LordBored
-			//sdWorld.CreateImageFromFile( 'helmet_warlord' ), // 17 // by LordBored
+			null,
+			sdWorld.CreateImageFromFile( 'helmet_star_defender' ), // EG
+			sdWorld.CreateImageFromFile( 'helmet_falkok' ), // EG
+			sdWorld.CreateImageFromFile( 'helmet_eyes' ), // EG
+			sdWorld.CreateImageFromFile( 'helmet_dino' ), // EG
+			sdWorld.CreateImageFromFile( 'helmet_v' ), // EG
+			sdWorld.CreateImageFromFile( 'helmet_open' ), // EG
+			sdWorld.CreateImageFromFile( 'helmet_cs' ), // idea by butorinoks77, rework by Eric Gurt
+			sdWorld.CreateImageFromFile( 'helmet_grub' ), // idea by butorinoks77, rework by Eric Gurt
+			sdWorld.CreateImageFromFile( 'helmet_crow' ), // by butorinoks77
+			sdWorld.CreateImageFromFile( 'helmet_scope' ), // by butorinoks77
+			sdWorld.CreateImageFromFile( 'helmet_crusader' ), // by xXRedXAssassinXx
+			sdWorld.CreateImageFromFile( 'helmet_phfalkok' ), // by Booraz149
+			sdWorld.CreateImageFromFile( 'helmet_aero' ), // // original by LordBored, remake by LazyRain
+			sdWorld.CreateImageFromFile( 'helmet_scout' ) // by Ghost581, original name was "Observer"
 		];
 		
 		// x y rotation, for images below
@@ -240,6 +237,7 @@ class sdCharacter extends sdEntity
 		this._ai_enabled = false;
 		this._ai_gun_slot = 0; // When AI spawns with a weapon, this variable needs to be defined to the same slot as the spawned gun so AI can use it
 		this._ai_level = 0; // Self explanatory
+		this._ai_team = 0; // AI "Teammates" do not damage each other
 		
 		this.title = 'Random Hero #' + this._net_id;
 		this._my_hash = undefined; // Will be used to let players repsawn within same entity if it exists on map
@@ -270,6 +268,10 @@ class sdCharacter extends sdEntity
 		this.hmax = 130;
 		this._dying = false;
 		this._dying_bleed_tim = 0;
+
+		this.arm = 0; // Armor
+		this.amax = 0; // Max armor; used for drawing armor bar
+		this.arm_absorb = 0; // Armor absorption percentage
 
 		//this.anim_death = 0;
 		this._anim_walk = 0;
@@ -417,6 +419,25 @@ class sdCharacter extends sdEntity
 		best_team_id++;
 	}*/
 	
+	AIWarnTeammates()
+	{
+		if ( !sdWorld.is_server )
+		return;
+
+		let teammates = sdWorld.GetAnythingNear( this.x, this.y, 200, null, [ 'sdCharacter' ] );
+		for ( let i = 0; i < teammates.length; i++ )
+		{
+		if ( teammates[ i ].GetClass() === 'sdCharacter' && teammates[ i ]._ai && teammates[ i ].hea > 0 )
+		teammates[ i ].AIProtectTeammate( this._ai.target ); // teammates[ i]._ai.target = this._ai_target; didn't work
+		//teammates[ i ]._ai.target = this._ai_target;
+		}
+	
+	}
+	
+	AIProtectTeammate ( target )
+	{
+	this._ai.target = target;
+	}
 	
 	InstallUpgrade( upgrade_name ) // Ignores upper limit condition. Upgrades better be revertable and resistent to multiple calls within same level as new level
 	{
@@ -481,8 +502,18 @@ class sdCharacter extends sdEntity
 				if ( this._ai )
 				{
 					if ( initiator )
-					if ( !initiator._ai || Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for Falkoks, also reduced by their AI level
-					this._ai.target = initiator;
+					{
+						if ( !initiator._ai || ( initiator._ai && initiator._ai_team !== this._ai_team ) ) //Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for Falkoks, also reduced by their AI level
+						{
+							this._ai.target = initiator;
+							if ( Math.random() < 0.3 ) // 30% chance
+							this.AIWarnTeammates();
+						}
+						else
+						if ( initiator._ai_team === this._ai_team && Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for Falkoks, also reduced by their AI level
+						this._ai.target = initiator;
+
+					}
 				}
 				else
 				{
@@ -503,8 +534,19 @@ class sdCharacter extends sdEntity
 				}
 			}
 
+			if ( this.arm <= 0 ) // No armor
 			this.hea -= dmg;
-
+			else
+			{
+				this.hea -= ( dmg * (1 - this.arm_absorb ) );
+				//if (dmg > 0 )
+				this.arm -= ( dmg * this.arm_absorb );
+				if ( this.arm < 0 )
+				{
+					this.arm = 0;
+					this.arm_absorb = 0;
+				}
+			}
 			if ( this.hea <= 0 && was_alive )
 			{
 				if ( this._voice.variant === 'klatt3' )
@@ -741,7 +783,11 @@ class sdCharacter extends sdEntity
 				this._ai.target = closest;
 				this._ai.target_local_y = closest.hitbox_y1 + ( closest.hitbox_y2 - closest.hitbox_y1 ) * Math.random();
 
-				
+				let should_fire = true; // Sometimes prevents friendly fire, not ideal since it updates only when ai performs "next action"
+				if ( !sdWorld.CheckLineOfSight( this.x, this.y, closest.x, closest.y, this, null, ['sdCharacter'] ) )
+				if ( sdWorld.last_hit_entity && sdWorld.last_hit_entity._ai_team === this._ai_team )
+				should_fire = false;
+
 				if ( Math.random() < 0.3 )
 				this._key_states.SetKey( 'KeyA', 1 );
 				
@@ -754,8 +800,14 @@ class sdCharacter extends sdEntity
 				if ( Math.random() < 0.4 )
 				this._key_states.SetKey( 'KeyS', 1 );
 			
-				if ( Math.random() < 0.2 + Math.min( 0.8, ( 0.25 * this._ai_level ) ) ) // Shoot on detection, depends on AI level
+				if ( Math.random() < 0.05 && should_fire === true  ) // Shoot the walls occasionally, when target is not in sight but was detected previously
 				{
+					this._key_states.SetKey( 'Mouse1', 1 );
+				}
+				else
+				if ( Math.random() < 0.25 + Math.min( 0.7, ( 0.25 * this._ai_level ) ) && should_fire === true ) // Shoot on detection, depends on AI level
+				{
+					if ( sdWorld.CheckLineOfSight( this.x, this.y, closest.x, closest.y, this, sdCom.com_visibility_ignored_classes, null ) )
 					this._key_states.SetKey( 'Mouse1', 1 );
 				}
 			}
@@ -1956,13 +2008,19 @@ class sdCharacter extends sdEntity
 			ctx.globalAlpha = ( 1 - snap_frame ) * 0.5;
 			
 			ctx.fillStyle = '#000000';
-			ctx.fillRect( 0 - w / 2, 0 - 20, w, 5 + ( show_air ? 2 : 0 ) );
+			ctx.fillRect( 0 - w / 2, 0 - 20 - ( this.arm > 0 ? 2 : 0 ), w, 5 + ( this.arm > 0 ? 2 : 0 )  + ( show_air ? 2 : 0 ) );
 			
 			ctx.globalAlpha = 1 - snap_frame;
 			
 			ctx.fillStyle = '#FF0000';
 			ctx.fillRect( 1 - w / 2, 1 - 20, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
-			
+
+			if ( this.arm > 0 )
+			{
+				ctx.fillStyle = '#5555ff';
+				ctx.fillRect( 1 - w / 2, -1 - 20, ( w - 2 ) * Math.max( 0, this.arm / this.amax ), 1 );
+			}
+
 			//ctx.fillStyle = '#000000';
 			//ctx.fillRect( 0 - w / 2, 0 - 20, w, 3 );
 			

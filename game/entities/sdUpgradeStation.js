@@ -77,18 +77,35 @@ class sdUpgradeStation extends sdEntity
 		this._update_version++;
 		sdWorld.UpdateHashPosition( this, false );
 	}
-
+	UpgradeStation( character )
+	{
+		if ( character.build_tool_level > this.level )
+		{
+			this.level++;
+			this.hmax = 5000 + ( 2000 * this.level );
+			this.matter_max = 5500 + this.level;
+			this.matter -= 5000;
+			this._update_version++;
+			sdWorld.UpdateHashPosition( this, false );
+		}
+	}
 	DropBasicEquipment( character )
 	{
 		setTimeout(()=>{ // Just in case, unsure if needed
 
 			let gun, gun2, gun3, gun4, gun5, gun6;
+			if ( this.level === 1 )
 			gun = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_PISTOL });
+			if ( this.level === 2 )
+			gun = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_PISTOL_MK2 });
 			gun.sx = character.sx;
 			gun.sy = character.sy;
 			sdEntity.entities.push( gun );
-
+			
+			if ( this.level === 1 )
 			gun2 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_RIFLE });
+			if ( this.level === 2 )
+			gun2 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_LMG_P04 });
 			gun2.sx = character.sx;
 			gun2.sy = character.sy;
 			sdEntity.entities.push( gun2 );
@@ -98,8 +115,10 @@ class sdUpgradeStation extends sdEntity
 			gun3.sy = character.sy;
 			sdEntity.entities.push( gun3 );
 
-
+			if ( this.level === 1 )
 			gun4 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SWORD });
+			if ( this.level === 2 )
+			gun4 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SABER });
 			gun4.sx = character.sx;
 			gun4.sy = character.sy;
 			sdEntity.entities.push( gun4 );
@@ -131,6 +150,7 @@ class sdUpgradeStation extends sdEntity
 		this.matter_max = 5500;
 		this.matter = 100;
 		this.delay = 0;
+		this.level = 1;
 	}
 	onBuilt()
 	{
@@ -161,8 +181,8 @@ class sdUpgradeStation extends sdEntity
 				
 				this._update_version++;
 			}
-			//else
-			//this._armor_protection_level = 4; // Once reached max HP - it can be only destroyed with big explosions
+			if ( this.level > 1 )
+			this._armor_protection_level = 4; // If upgraded at least once - it can be only destroyed with big explosions
 		}
 		
 	}
@@ -176,9 +196,9 @@ class sdUpgradeStation extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, "Upgrade station ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
-		
-		
+		sdEntity.Tooltip( ctx, "Upgrade station ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )", 0, -10 );
+
+		sdEntity.Tooltip( ctx, "Level " + this.level, 0, -3, '#66ff66' );
 		let w = 40;
 	
 		ctx.fillStyle = '#000000';

@@ -47,7 +47,7 @@ class sdJunk extends sdEntity
 		this.hea = this.hmax;
 		this.matter_max = 320;
 		this.matter = this.matter_max;
-		
+		this._damagable_in = sdWorld.time + 1500; // Copied from sdCrystal to prevent high ping players injure themselves, will only work for sdCharacter damage		
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
 	/*GetBleedEffect()
@@ -63,6 +63,10 @@ class sdJunk extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
+		if ( initiator !== null )
+		if ( initiator.GetClass() === 'sdCharacter' )
+		if ( sdWorld.time < this._damagable_in )
+		return;
 	
 		dmg = Math.abs( dmg );
 		
@@ -229,22 +233,24 @@ class sdJunk extends sdEntity
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		if (this.type === 0 || this.type === 1 )
+		if (this.type === 0 )
 		sdEntity.Tooltip( ctx, "Unstable cube corpse" );
+		if ( this.type === 1 )
+		sdEntity.Tooltip( ctx, "Alien battery" );
 	}
 	Draw( ctx, attached )
 	{
 		//ctx.filter = this.filter;
 		
 		{
-			if ( this.type === 0 ) // First unstable cube corpse )
+			if ( this.type === 0 ) // First unstable cube corpse
 			{
 				if ( this.hea % 15 < ( this.hea / this.hmax ) * 9 )
 				ctx.drawImageFilterCache( sdJunk.img_cube_unstable, - 16, - 16, 32,32 );
 				else
 				ctx.drawImageFilterCache( sdJunk.img_cube_unstable_detonate, - 16, - 16, 32,32 );
 			}
-			if ( this.type === 1 ) // Second unstable cube corpse )
+			if ( this.type === 1 ) // Alien battery
 			{
 				if ( this.hea % 15 < ( this.hea / this.hmax ) * 9 )
 				ctx.drawImageFilterCache( sdJunk.img_cube_unstable2, - 16, - 16, 32,32 );

@@ -757,7 +757,7 @@ class sdRenderer
 			
 			ctx.globalAlpha = 0.5;
 			ctx.fillStyle = '#000000';
-			ctx.fillRect( 5, 5, 300, 17 );
+			ctx.fillRect( 5, 5, 400, 17 );
 			
 			ctx.fillRect( sdRenderer.screen_width - 200 - 5, 5, 200, 20 + 20 * sdWorld.leaders.length + 5 );
 			
@@ -769,17 +769,20 @@ class sdRenderer
 			ctx.textAlign = 'left';
 			ctx.fillStyle = '#ff0000';
 			ctx.fillText("Health: " + Math.ceil( sdWorld.my_entity.hea ), 10, 17 );
-			
+
+			ctx.fillStyle = '#5555ff';
+			ctx.fillText("Armor: " + Math.ceil( sdWorld.my_entity.arm ), 100, 17 );			
+
 			ctx.fillStyle = '#00ffff';
-			ctx.fillText("Matter: " + Math.floor( sdWorld.my_entity.matter ), 100, 17 );
+			ctx.fillText("Matter: " + Math.floor( sdWorld.my_entity.matter ), 190, 17 );
 			
 			ctx.fillStyle = '#ffff00';
-			ctx.fillText("Score: " + Math.floor( sdWorld.my_score ), 190, 17 );
+			ctx.fillText("Score: " + Math.floor( sdWorld.my_score ), 280, 17 );
 			
 			if ( globalThis.enable_debug_info )
 			{
 				ctx.fillStyle = '#AAAAff';
-				ctx.fillText("Last long server frame time took: " + Math.floor( sdWorld.last_frame_time ) + "ms (slowest case entity was "+sdWorld.last_slowest_class+")", 280, 17 );
+				ctx.fillText("Last long server frame time took: " + Math.floor( sdWorld.last_frame_time ) + "ms (slowest case entity was "+sdWorld.last_slowest_class+")", 420, 17 );
 			}
 			
 			ctx.fillStyle = '#AAAAAA';
