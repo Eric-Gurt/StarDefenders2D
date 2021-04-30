@@ -41,6 +41,13 @@ class sdGrass extends sdEntity
 			this._update_version++;
 		}
 	}
+	Damage( dmg, initiator=null ) // Case of lava damage?
+	{
+		if ( !sdWorld.is_server )
+		return;
+		
+		this.remove();
+	}
 	
 	constructor( params )
 	{
@@ -54,6 +61,8 @@ class sdGrass extends sdEntity
 		this.material = params.material || sdGrass.MATERIAL_PLATFORMS;
 		*/
 		this.filter = params.filter || '';
+		
+		this._block = params.block || null;
 		
 		//this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
 		
@@ -103,6 +112,18 @@ class sdGrass extends sdEntity
 		}
 		
 		ctx.filter = 'none';
+	}
+	onRemove() // Class-specific, if needed
+	{
+		if ( this._block )
+		if ( this._block._plants )
+		{
+			let id = this._block._plants.indexOf( this._net_id );
+			if ( id >= 0 )
+			{
+				this._block._plants.splice( id, 1 );
+			}
+		}
 	}
 }
 //sdGrass.init_class();

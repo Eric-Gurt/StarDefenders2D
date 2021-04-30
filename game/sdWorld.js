@@ -14,6 +14,7 @@ import sdBG from './entities/sdBG.js';
 import sdWater from './entities/sdWater.js';
 import sdCharacter from './entities/sdCharacter.js';
 import sdGrass from './entities/sdGrass.js';
+import sdShark from './entities/sdShark.js';
 
 
 
@@ -455,6 +456,9 @@ class sdWorld
 		var s = 0;
 		var s_tot = 0;
 		
+		var s2 = 0;
+		var s2_tot = 0;
+		
 		var r = 10;
 		var r_plus = r + 1;
 		
@@ -465,10 +469,14 @@ class sdWorld
 			{
 				s += sdWorld.SeededRandomNumberGenerator.random( x + xx * 8, y + yy * 8 );
 				s_tot += 1;
+				
+				s2 += sdWorld.SeededRandomNumberGenerator.random( x + xx * 8 + 1024, y + yy * 8 - 1024 );
+				s2_tot += 1;
 			}
 		}
 		
 		s /= s_tot;
+		s2 /= s2_tot;
 		
 		if ( s < 0.49 - ( 1 + Math.sin( y / 100 ) ) * 0.001 )
 		{
@@ -480,7 +488,8 @@ class sdWorld
 				if ( s < 0.485 - ( 1 + Math.sin( y / 100 ) ) * 0.001 )
 				{
 					allow_water = true;
-					allow_lava = true;
+					
+					allow_lava = ( s2 < 0.5 );
 				}
 			}
 		}
@@ -538,6 +547,7 @@ class sdWorld
 			}
 
 			let plants = null;
+			let plants_objs = null;
 
 			if ( !only_plantless_block )
 			if ( y === from_y )
@@ -559,9 +569,13 @@ class sdWorld
 				sdEntity.entities.push( grass );
 
 				if ( plants === null )
-				plants = [];
+				{
+					plants = [];
+					plants_objs = [];
+				}
 
 				plants.push( grass._net_id );
+				plants_objs.push( grass );
 			}
 
 			ent = new sdBlock({ 
@@ -576,6 +590,12 @@ class sdWorld
 				plants: plants
 				//filter: 'hue-rotate('+(~~(Math.sin( ( Math.min( from_y, sdWorld.world_bounds.y2 - 256 ) - y ) * 0.005 )*360))+'deg)' 
 			});
+			
+			if ( plants_objs )
+			for ( let i = 0; i < plants_objs.length; i++ )
+			{
+				plants_objs[ i ]._block = ent;
+			}
 
 			/*if ( plants )
 			for ( let i = 0; i < plants.length; i++ )
@@ -597,9 +617,15 @@ class sdWorld
 			if ( allow_water )
 			if ( y > sdWorld.base_ground_level )
 			{
-				let ent2 = new sdWater({ x:x, y:y, volume:1, type:allow_lava?sdWater.TYPE_LAVA:sdWater.TYPE_WATER });
-				//let ent2 = new sdWater({ x:x, y:y, volume:(y===sdWorld.base_ground_level)?0.5:1 });
+				let ent2 = new sdWater({ x:x, y:y, volume:1, type:allow_lava ? sdWater.TYPE_LAVA : sdWater.TYPE_WATER });
 				sdEntity.entities.push( ent2 );
+				
+				if ( !allow_lava )
+				if ( Math.random() < 0.01 )
+				{
+					let ent3 = new sdShark({ x:x + 8, y:y + 8 });
+					sdEntity.entities.push( ent3 );
+				}
 			}
 
 			//sdWater.SpawnWaterHere( x, y, (y===sdWorld.base_ground_level)?0.5:1 );
@@ -1582,7 +1608,7 @@ class sdWorld
 					if ( sockets[ i2 ].ffa_warning <= 0 )
 					{
 						sockets[ i2 ].ffa_warning = 0;
-						sockets[ i2 ].emit('SERVICE_MESSAGE', 'Your respawn rate has been restored' );
+						sockets[ i2 ].SDServiceMessage( 'Your respawn rate has been restored' );
 					}
 				}
 			}
@@ -1635,6 +1661,136 @@ class sdWorld
 	static mod( a, n )
 	{
 		return ((a%n)+n)%n;
+	}
+	
+	static GetClientSideGlowReceived( x, y, lume_receiver )
+	{
+		let lumes = 0;
+		
+		
+		let cache = sdRenderer.lumes_weak_cache.get( lume_receiver );
+		
+		if ( !cache )
+		{
+			cache = { expiration: 0, lumes: 0 };
+			sdRenderer.lumes_weak_cache.set( lume_receiver, cache );
+		}
+		
+		if ( sdWorld.time > cache.expiration )
+		{
+			let nears = [];
+			sdWorld.GetAnythingNear( x, y, 64, nears, [ 'sdWater', 'sdLamp' ] );
+			
+			let ent;
+			
+			//sdWorld.CheckWallExistsBox( x - 64, y - 64, x + 64, y + 64, null, null, [ 'sdWater', 'sdLamp' ], ( ent )=>
+			for ( let i = 0; i < nears.length; i++ )
+			{
+				ent = nears[ i ];
+				
+				if ( ent.is( sdWorld.entity_classes.sdWater ) )
+				{
+					if ( ent.type === sdWorld.entity_classes.sdWater.TYPE_LAVA )
+					{
+						lumes += 10 / Math.max( 16, sdWorld.Dist2D( x, y, ent.x + ( ent.hitbox_x1 + ent.hitbox_x2 ) / 2, ent.y + ( ent.hitbox_y1 + ent.hitbox_y2 ) / 2 ) );
+					}
+				}
+				else
+				{
+					lumes += 10 / Math.max( 16, sdWorld.Dist2D( x, y, ent.x + ( ent.hitbox_x1 + ent.hitbox_x2 ) / 2, ent.y + ( ent.hitbox_y1 + ent.hitbox_y2 ) / 2 ) );
+				}
+				//return false;
+			}//);
+			
+			lumes = Math.min( 5, Math.floor( lumes * 2 ) / 2 );
+			
+			if ( cache.lumes !== lumes )
+			{
+				cache.lumes = lumes;
+				
+				nears = [];
+				sdWorld.GetAnythingNear( x, y, 16, nears, [ 'sdBlock', 'sdBG' ] );
+				
+				let ent2;
+				let cache2;
+				for ( let i = 0; i < nears.length; i++ )
+				{
+					ent2 = nears[ i ];
+					cache2 = sdRenderer.lumes_weak_cache.get( ent2 );
+					if ( cache2 )
+					cache2.expiration = 0;
+				}
+			}
+			cache.expiration = 1000 + sdWorld.time + Math.random() * 15000;
+		}
+		else
+		lumes = cache.lumes;
+		
+		/*
+		let xx = Math.floor( x / 16 );
+		let yy = Math.floor( y / 16 );
+		
+		let hash = xx+','+yy;
+		
+		if ( typeof sdRenderer.lumes_cache[ hash ] === 'undefined' )
+		{
+			sdRenderer.lumes_cache[ hash ] = { expiration: 0, lumes: 0 };
+			sdRenderer.lumes_cache_hashes.push( hash );
+		}
+		
+		if ( sdWorld.time > sdRenderer.lumes_cache[ hash ].expiration )
+		{
+			let nears = [];
+			sdWorld.GetAnythingNear( x, y, 64, nears, [ 'sdWater', 'sdLamp' ] );
+			
+			let ent;
+			
+			//sdWorld.CheckWallExistsBox( x - 64, y - 64, x + 64, y + 64, null, null, [ 'sdWater', 'sdLamp' ], ( ent )=>
+			for ( let i = 0; i < nears.length; i++ )
+			{
+				ent = nears[ i ];
+				
+				if ( ent.is( sdWorld.entity_classes.sdWater ) )
+				{
+					if ( ent.type === sdWorld.entity_classes.sdWater.TYPE_LAVA )
+					{
+						lumes += 10 / Math.max( 1, sdWorld.Dist2D( x, y, ent.x + ( ent.hitbox_x1 + ent.hitbox_x2 ) / 2, ent.y + ( ent.hitbox_y1 + ent.hitbox_y2 ) / 2 ) );
+					}
+				}
+				else
+				{
+					lumes += 10 / Math.max( 1, sdWorld.Dist2D( x, y, ent.x + ( ent.hitbox_x1 + ent.hitbox_x2 ) / 2, ent.y + ( ent.hitbox_y1 + ent.hitbox_y2 ) / 2 ) );
+				}
+				//return false;
+			}//);
+			
+			lumes = Math.min( 5, Math.floor( lumes * 2 ) / 2 );
+			
+			if ( sdRenderer.lumes_cache[ hash ].lumes !== lumes )
+			{
+				sdRenderer.lumes_cache[ hash ].lumes = lumes;
+			
+				if ( typeof sdRenderer.lumes_cache[ (xx-1)+','+(yy) ] !== 'undefined' )
+				sdRenderer.lumes_cache[ (xx-1)+','+(yy) ].expiration = 0;
+			
+				if ( typeof sdRenderer.lumes_cache[ (xx+1)+','+(yy) ] !== 'undefined' )
+				sdRenderer.lumes_cache[ (xx+1)+','+(yy) ].expiration = 0;
+			
+				if ( typeof sdRenderer.lumes_cache[ (xx)+','+(yy-1) ] !== 'undefined' )
+				sdRenderer.lumes_cache[ (xx)+','+(yy-1) ].expiration = 0;
+			
+				if ( typeof sdRenderer.lumes_cache[ (xx)+','+(yy+1) ] !== 'undefined' )
+				sdRenderer.lumes_cache[ (xx)+','+(yy+1) ].expiration = 0;
+			}
+			
+			sdRenderer.lumes_cache[ hash ].expiration = 1000 + sdWorld.time + Math.random() * 15000;
+		}
+		else
+		{
+			lumes = sdRenderer.lumes_cache[ hash ].lumes;
+		}
+		*/
+		return lumes;
 	}
 	
 	// custom_filtering_method( another_entity ) should return true in case if surface can not be passed through
@@ -2021,11 +2177,26 @@ class sdWorld
 		
 		return img;
 	}
-	static Start( player_settings, full_reset=false )
+	static Start( player_settings, full_reset=false, retry=0 )
 	{
 		if ( !globalThis.connection_established )
 		{
-			alert('Connection is not open yet, for some reason...');
+			//alert('Connection is not open yet, for some reason...');
+			//console.log('Connection is not open yet, for some reason...');
+			
+			if ( retry < 3 )
+			setTimeout( ()=>{
+				
+				sdWorld.Start( player_settings, full_reset, retry+1 );
+				
+			}, 1000 );
+			else
+			{
+				alert('Connection is not open yet, for some reason...');
+				console.log('Connection is not open yet, for some reason...');
+			}
+			
+			return;
 		}
 		else
 		{
@@ -2086,12 +2257,12 @@ class sdWorld
 			}
 
 			globalThis.meSpeak.stop();
-		}
-		
-		if ( sdWorld.mobile )
-		{
-			sdSound.AllowSound();
-			sdWorld.GoFullscreen();
+
+			if ( sdWorld.mobile )
+			{
+				sdSound.AllowSound();
+				sdWorld.GoFullscreen();
+			}
 		}
 	}
 	static Stop()

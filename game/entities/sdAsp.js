@@ -75,13 +75,13 @@ class sdAsp extends sdEntity
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( this._hea > 0 )
-		if ( character.IsVisible( this ) )
+		if ( character.IsTargetable() && character.IsVisible() )
 		if ( character.hea > 0 )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
 			if ( di < sdAsp.max_seek_range )
 			if ( this._current_target === null || 
-				 this._current_target.hea <= 0 || 
+				 ( this._current_target.hea || this._current_target._hea ) <= 0 || 
 				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
 			{
 				this._current_target = character;
@@ -270,7 +270,7 @@ class sdAsp extends sdEntity
 				{
 					from_entity = nears_raw[ i ];
 					
-					if ( ( from_entity.GetClass() === 'sdCharacter' && from_entity.IsVisible( this ) && from_entity.hea > 0 ) )
+					if ( ( ( from_entity.GetClass() === 'sdCharacter' || this._current_target === from_entity ) && from_entity.IsVisible( this ) && ( from_entity.hea || from_entity._hea ) > 0 ) )
 					{
 						let rank = Math.random() * 0.1;
 						

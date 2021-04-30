@@ -38,6 +38,7 @@ class sdCharacter extends sdEntity
 		sdCharacter.img_legs_crouch = sdWorld.CreateImageFromFile( 'legs_crouch' );
 		sdCharacter.img_legs_crouch_walk1 = sdWorld.CreateImageFromFile( 'legs_crouch_walk1' );
 		
+		// Add new values at the end
 		sdCharacter.img_helmets = [
 			null,
 			sdWorld.CreateImageFromFile( 'helmet_star_defender' ), // EG
@@ -228,7 +229,8 @@ class sdCharacter extends sdEntity
 		this._potential_vehicle = null; // Points at vehicle which player recently did hit
 		
 		this._listeners = {
-			DAMAGE: []
+			DAMAGE: [],
+			REMOVAL: []
 		};
 		
 		this._ai = null; // Object, won't be saved to snapshot
@@ -589,7 +591,7 @@ class sdCharacter extends sdEntity
 						if ( sdWorld.time < initiator._non_innocent_until ) // Attacker is not innocent
 						{
 							if ( initiator._socket.ffa_warning === 0 )
-							initiator._socket.emit('SERVICE_MESSAGE', 'Your respawn rate was temporarily decreased' );
+							initiator._socket.SDServiceMessage( 'Your respawn rate was temporarily decreased' );
 
 							initiator._socket.SyncFFAWarning();
 							initiator._socket.ffa_warning += 1;
@@ -1325,7 +1327,7 @@ class sdCharacter extends sdEntity
 					this.act_y = 0;
 				}*/
 				
-				if ( this.hea > 0 && this._key_states.GetKey( 'Mouse2' ) && this._hook_allowed )
+				if ( this.hea > 0 && ( this._key_states.GetKey( 'Mouse2' ) || this._key_states.GetKey( 'KeyC' ) ) && this._hook_allowed )
 				{
 					if ( this._hook_once )
 					{
@@ -1554,7 +1556,7 @@ class sdCharacter extends sdEntity
 		this._last_e_state = e_state;
 		
 		//let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
-		let local_arr = sdWorld.RequireHashPosition( this.x, this.y );
+		/*let local_arr = sdWorld.RequireHashPosition( this.x, this.y );
 		let in_water = false;
 		for ( let i = 0; i < local_arr.length; i++ )
 		if ( local_arr[ i ].is( sdWater ) )
@@ -1562,7 +1564,8 @@ class sdCharacter extends sdEntity
 			in_water = true;
 			
 			break;
-		}
+		}*/
+		let in_water = sdWater.all_swimmers.has( this );
 		
 		this._in_water = in_water;
 		
@@ -1638,13 +1641,15 @@ class sdCharacter extends sdEntity
 			
 			this.sx += x_force * 0.2 * GSPEED;
 			this.sy += y_force * 0.2 * GSPEED;
-			
+			/*
 			if ( !sdWorld.CheckWallExists( this.x, this.y + this.hitbox_y1, null, null, sdWater.water_class_array ) )
 			{
 				if ( this.act_y === -1 )
 				this.sy = -3;
 			}
-			else
+			else*/
+								
+			if ( sdWorld.CheckWallExists( this.x, this.y + this.hitbox_y1, null, null, sdWater.water_class_array ) )
 			can_breathe = false;
 		}
 		else
@@ -1776,7 +1781,7 @@ class sdCharacter extends sdEntity
 			this.sy = this.driver_of.sy;
 		}
 		else
-		this.ApplyVelocityAndCollisions( GSPEED, ( this.hea > 0 ) ? ( this.act_y !== 1 ? 10 : 3 ) : 0 );
+		this.ApplyVelocityAndCollisions( GSPEED, ( this.hea > 0 ) ? ( this.act_y !== 1 ? 10 : 3 ) : 0, ( this.hea <= 0 ) );
 		/*
 		if ( sdWorld.last_hit_entity )
 		{
@@ -1793,6 +1798,9 @@ class sdCharacter extends sdEntity
 	
 	onRemove() // Class-specific, if needed
 	{
+		for ( var i = 0; i < this._listeners.REMOVAL.length; i++ )
+		this._listeners.REMOVAL[ i ]( this );
+	
 		//console.log( this.title + '['+this._net_id+'] is being removed' );
 		sdCharacter.characters.splice( sdCharacter.characters.indexOf( this ), 1 );
 		

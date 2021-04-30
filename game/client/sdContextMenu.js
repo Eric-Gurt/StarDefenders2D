@@ -187,6 +187,8 @@ class sdContextMenu
 						}
 					});
 				}
+				else
+				sdContextMenu.current_target.PopulateContextOptions( sdWorld.my_entity );
 			}
 			
 			if ( sdContextMenu.options.length > 0 )

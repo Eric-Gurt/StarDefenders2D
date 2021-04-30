@@ -49,7 +49,7 @@ class sdCommandCentre extends sdEntity
 			{
 				for ( var i = 0; i < sdWorld.sockets.length; i++ )
 				if ( sdWorld.sockets[ i ].command_centre === this )
-				sdWorld.sockets[ i ].emit( 'SERVICE_MESSAGE', 'Your respawn point Command Centre has been destroyed!' );
+				sdWorld.sockets[ i ].SDServiceMessage( 'Your respawn point Command Centre has been destroyed!' );
 
 				this.remove();
 			}
@@ -59,7 +59,7 @@ class sdCommandCentre extends sdEntity
 				{
 					for ( var i = 0; i < sdWorld.sockets.length; i++ )
 					if ( sdWorld.sockets[ i ].command_centre === this )
-					sdWorld.sockets[ i ].emit( 'SERVICE_MESSAGE', 'Your respawn point Command Centre is under attack!' );
+					sdWorld.sockets[ i ].SDServiceMessage( 'Your respawn point Command Centre is under attack!' );
 				}
 				this._regen_timeout = 30 * 10;
 			}
@@ -124,7 +124,7 @@ class sdCommandCentre extends sdEntity
 		if ( sdWorld.time > this.self_destruct_on )
 		{
 			for ( var i = 0; i < sdWorld.sockets.length; i++ )
-			sdWorld.sockets[ i ].emit( 'SERVICE_MESSAGE', 'Some Command Centre has expired' );
+			sdWorld.sockets[ i ].SDServiceMessage( 'Some Command Centre has expired' );
 		
 			//throw new Error('this.self_destruct_on = '+sdWorld.time+'::'+this.self_destruct_on+'::'+sdCommandCentre.time_to_live_without_matter_keepers_near);
 			this.remove();

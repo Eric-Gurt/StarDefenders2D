@@ -414,6 +414,12 @@ class sdBlock extends sdEntity
 		
 		ctx.filter = this.filter;//'hue-rotate(90deg)';
 		
+		let lumes = sdWorld.GetClientSideGlowReceived( this.x + w / 2, this.y + h / 2, this );
+		if ( lumes > 0 )
+		ctx.filter = ctx.filter + 'brightness('+(1+lumes)+')';
+
+		
+		
 		//ctx.filter = 'hsl(120,100%,25%)';
 		
 		if ( this.material === sdBlock.MATERIAL_GROUND )

@@ -9,6 +9,7 @@ import sdBlock from '../entities/sdBlock.js';
 import sdBG from '../entities/sdBG.js';
 import sdTurret from '../entities/sdTurret.js';
 import sdArea from '../entities/sdArea.js';
+import sdWater from '../entities/sdWater.js';
 import sdRenderer from './sdRenderer.js';
 import sdContextMenu from './sdContextMenu.js';
 
@@ -20,6 +21,7 @@ class sdShop
 		
 		sdShop.open = false;
 		sdShop.options = [];
+		sdShop.options_snappack = null; // Generated on very first connection. It means shop items can not be changed after world initialization, but not only because of that (shop data is sent only once per connection)
 		
 		sdShop.scroll_y = 0;
 		sdShop.scroll_y_target = 0;
@@ -294,6 +296,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCube', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', is_huge:true, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_LAVA, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAsp', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdSandWorm', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGrass', _category:'Development tests' });
@@ -302,6 +305,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdJunk', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBadDog', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdShark', _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });

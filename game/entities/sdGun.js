@@ -12,6 +12,7 @@ import sdBlock from './sdBlock.js';
 import sdCom from './sdCom.js';
 import sdBG from './sdBG.js';
 import sdArea from './sdArea.js';
+import sdOctopus from './sdOctopus.js';
 
 import sdGunClass from './sdGunClass.js';
 
@@ -158,9 +159,15 @@ class sdGun extends sdEntity
 		}
 	}
 	
-	IsTargetable() // Guns are not targetable when held, same for sdCharacters that are driving something
+	IsTargetable( by_entity ) // Guns are not targetable when held, same for sdCharacters that are driving something
 	{
-		return ( this._held_by === null );
+		if ( !sdArea.CheckPointDamageAllowed( this.x + ( this.hitbox_x1 + this.hitbox_x2 ) / 2, this.y + ( this.hitbox_y1 + this.hitbox_y2 ) / 2 ) )
+		return false;
+		
+		return	( 
+					( by_entity && by_entity.is( sdOctopus ) && this._held_by && this._held_by.gun_slot === sdGun.classes[ this.class ].slot && this.class !== sdGun.CLASS_BUILD_TOOL && this.class !== sdGun.CLASS_MEDIKIT ) || // sdOctopus rule
+					this._held_by === null 
+				);
 	}
 	
 	
@@ -377,7 +384,7 @@ class sdGun extends sdEntity
 			debugger;
 			
 			for ( var i = 0; i < sdWorld.sockets.length; i++ )
-			sdWorld.sockets[ i ].emit( 'SERVICE_MESSAGE', 'Server logic error: Something calls .Shoot method of sdGun but sdGun has no owner - report this error if you understand how, when or why it happens.' );
+			sdWorld.sockets[ i ].SDServiceMessage( 'Server logic error: Something calls .Shoot method of sdGun but sdGun has no owner - report this error if you understand how, when or why it happens.' );
 		
 			return false;
 		}
@@ -596,7 +603,7 @@ class sdGun extends sdEntity
 					
 
 					for ( var i = 0; i < sdWorld.sockets.length; i++ )
-					sdWorld.sockets[ i ].emit( 'SERVICE_MESSAGE', 'Floating gun bug happened, please report what caused it. Gun is held by removed '+this._held_by.GetClass()+' ('+this._held_by.title+')' );
+					sdWorld.sockets[ i ].SDServiceMessage( 'Floating gun bug happened, please report what caused it. Gun is held by removed '+this._held_by.GetClass()+' ('+this._held_by.title+')' );
 				}
 			}
 

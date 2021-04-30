@@ -263,7 +263,7 @@ class sdOctopus extends sdEntity
 				{
 					from_entity = nears_raw[ i ];
 					
-					if ( ( from_entity.GetClass() === 'sdCharacter' && from_entity.IsTargetable() && from_entity.IsVisible() ) ||
+					if ( ( from_entity.GetClass() === 'sdCharacter' && from_entity.IsVisible() ) ||
 						 ( from_entity.GetClass() === 'sdBlock' && !from_entity._natural ) ||
 						 from_entity.GetClass() === 'sdCom' ||
 						 from_entity.GetClass() === 'sdCrystal' ||
@@ -274,11 +274,12 @@ class sdOctopus extends sdEntity
 						 from_entity.GetClass() === 'sdAntigravity' ||
 						 from_entity.GetClass() === 'sdMatterContainer' ||
 						 from_entity.GetClass() === 'sdCommandCentre' ||
-						 ( from_entity.GetClass() === 'sdGun' && from_entity.class !== sdGun.CLASS_BUILD_TOOL && from_entity.class !== sdGun.CLASS_MEDIKIT && ( from_entity._held_by === null || from_entity._held_by.gun_slot === sdGun.classes[ from_entity.class ].slot ) ) || // Yes, held guns too, but only currently held guns. Except for build tool and medikit
+						 ( from_entity.GetClass() === 'sdGun' /*&& from_entity.class !== sdGun.CLASS_BUILD_TOOL && from_entity.class !== sdGun.CLASS_MEDIKIT && ( from_entity._held_by === null || from_entity._held_by.gun_slot === sdGun.classes[ from_entity.class ].slot )*/ ) || // Yes, held guns too, but only currently held guns. Except for build tool and medikit
 						 from_entity.GetClass() === 'sdTeleport' ||
 						 from_entity.GetClass() === 'sdVirus' ||
 						 ( typeof from_entity.hea !== 'undefined' && from_entity.hea <= 0 ) ||
 						 ( typeof from_entity._hea !== 'undefined' && from_entity._hea <= 0 ) )
+					if ( from_entity.IsTargetable( this ) )
 					{
 						let rank = Math.random() * 0.1;
 						

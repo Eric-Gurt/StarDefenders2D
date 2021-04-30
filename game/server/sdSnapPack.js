@@ -45,7 +45,7 @@ class sdSnapPack
 		return JSON.stringify( a );
 	}
 	*/
-	static Compress( object_array, track_worst_case )
+	static Compress( object_array, track_worst_case=false )
 	{
 		let unique_objects = new WeakSet();
 	    

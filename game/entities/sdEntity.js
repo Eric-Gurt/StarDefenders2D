@@ -61,8 +61,11 @@ class sdEntity
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these.
 	{ return false; }
 	
-	IsTargetable() // Guns are not targetable when held, same for sdCharacters that are driving something
+	IsTargetable( by_entity ) // Guns are not targetable when held, same for sdCharacters that are driving something
 	{
+		if ( !sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x + ( this.hitbox_x1 + this.hitbox_x2 ) / 2, this.y + ( this.hitbox_y1 + this.hitbox_y2 ) / 2 ) )
+		return false;
+		
 		return true;
 	}
 	
@@ -1180,6 +1183,11 @@ class sdEntity
 			}*/
 		}
 	}
+	hasEventListener( str, method )
+	{
+		let i = this._listeners[ str ].indexOf( method );
+		return ( i !== -1 );
+	}
 	addEventListener( str, method ) // Not all entities will support these
 	{
 		this._listeners[ str ].push( method );
@@ -1340,6 +1348,42 @@ class sdEntity
 	}
 	DrawFG( ctx, attached ) // foreground layer, but not HUD
 	{
+	}
+	
+	
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		/*
+		if ( !this._is_being_removed )
+		if ( ( this._hea || this.hea ) > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+		{
+		}
+		*/
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{	
+		/*
+		if ( !this._is_being_removed )
+		if ( ( this._hea || this.hea ) > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+		{
+			this.AddContextOption( 'Unsubscribe from network', 'COM_UNSUB', exectuter_character._net_id );
+		}
+		*/
+	}
+	AddContextOption( title, command_name, parameters_array ) // Do not override
+	{
+		sdContextMenu.options.push({ title: title,
+			action: ()=>
+			{
+				globalThis.socket.emit( 'ENTITY_CONTEXT_ACTION', [ this.GetClass(), this._net_id, command_name, parameters_array ] );
+			}
+		});
 	}
 }
 //sdEntity.init_class();

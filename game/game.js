@@ -67,6 +67,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdUpgradeStation from './entities/sdUpgradeStation.js';
 	import sdJunk from './entities/sdJunk.js';
 	import sdBadDog from './entities/sdBadDog.js';
+	import sdShark from './entities/sdShark.js';
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -114,6 +115,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdUpgradeStation.init_class();
 	sdJunk.init_class();
 	sdBadDog.init_class();
+	sdShark.init_class();
 	
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;
@@ -125,6 +127,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	globalThis.sdSound = sdSound;
 	globalThis.sdWeather = sdWeather;
 	globalThis.sdShop = sdShop;
+	globalThis.sdContextMenu = sdContextMenu;
 	
 
 let enf_once = true;
@@ -216,6 +219,7 @@ let enf_once = true;
 			}
 		}, 2000 );
 	}
+	globalThis.SpawnConnection = SpawnConnection;
 	SpawnConnection();
 
 	let messages_to_report_arrival = [];
@@ -277,7 +281,7 @@ let enf_once = true;
 					'No connection to server',
 					'Connection to server has gone'
 				]), true, true );
-
+				
 				setTimeout( ()=>{
 					
 					//if ( !globalThis.connection_established )
@@ -288,7 +292,21 @@ let enf_once = true;
 
 			//alert('Connection was lost');
 
+			if ( !globalThis.reconnecter )
+			{
+				globalThis.reconnecter = setInterval( ()=>
+				{
+					if ( socket.connected )
+					{
+						clearInterval( globalThis.reconnecter );
+						globalThis.reconnecter = null;
+					}
+					else
+					socket.connect();
 
+				}, 1000 );
+			}
+			
 		});
 
 		let old_snapshot_entities = [];
@@ -449,7 +467,7 @@ let enf_once = true;
 		});
 		socket.on( 'SET sdShop.options', ( arr )=>
 		{
-			sdShop.options = arr;
+			sdShop.options = JSON.parse( LZW.lzw_decode( arr ) );
 		});	
 		socket.on( 'ONLINE', ( arr )=> // Character customization screen -only
 		{
@@ -512,8 +530,8 @@ let enf_once = true;
 						Math.round( sdWorld.camera.x ), // 2
 						Math.round( sdWorld.camera.y ), // 3
 						sdWorld.camera.scale, // 4
-						sdWorld.my_entity.x, // 5
-						sdWorld.my_entity.y, // 6
+						Math.round( sdWorld.my_entity.x * 100 ) / 100, // 5
+						Math.round( sdWorld.my_entity.y * 100 ) / 100, // 6
 						( sdWorld.my_entity.stands && sdWorld.my_entity._stands_on ) ? sdWorld.my_entity._stands_on._net_id : -1, // 7
 						messages_to_report_arrival // 8
 					];

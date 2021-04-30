@@ -84,6 +84,10 @@ class sdBG extends sdEntity
 		
 		ctx.filter = this.filter;//'hue-rotate(90deg)';
 		
+		let lumes = sdWorld.GetClientSideGlowReceived( this.x + w / 2, this.y + h / 2, this );
+		if ( lumes > 0 )
+		ctx.filter = ctx.filter + 'brightness('+(1+lumes)+')';
+
 		if ( this.material === sdBG.MATERIAL_PLATFORMS )
 		ctx.drawImageFilterCache( sdBG.img_bg22, 0, 0, w,h, 0,0, w,h );
 		else
