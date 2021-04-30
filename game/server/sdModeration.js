@@ -345,7 +345,7 @@ class sdModeration
 		if ( parts[ 0 ] === 'save' )
 		{
 			sdWorld.SaveSnapshot( sdWorld.timewarp_path_const, ( err )=>
-			{		
+			{
 				for ( let i = 0; i < sdWorld.sockets.length; i++ )
 				sdWorld.sockets[ i ].SDServiceMessage( 'Server: World timewarp restore point has been set ('+(err?'Error!':'successfully')+')!' );
 			});

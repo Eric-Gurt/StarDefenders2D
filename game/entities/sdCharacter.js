@@ -2017,7 +2017,8 @@ class sdCharacter extends sdEntity
 
 			if ( this.armor > 0 )
 			{
-				ctx.fillStyle = '#5555ff';
+				//ctx.fillStyle = '#5555ff';
+				ctx.fillStyle = '#77aaff';
 				ctx.fillRect( 1 - w / 2, -1 - 20, ( w - 2 ) * Math.max( 0, this.armor / this.armor_max ), 1 );
 			}
 

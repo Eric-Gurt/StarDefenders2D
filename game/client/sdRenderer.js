@@ -770,7 +770,7 @@ class sdRenderer
 			ctx.fillStyle = '#ff0000';
 			ctx.fillText("Health: " + Math.ceil( sdWorld.my_entity.hea ), 10, 17 );
 
-			ctx.fillStyle = '#5555ff';
+			ctx.fillStyle = '#77aaff';
 			ctx.fillText("Armor: " + Math.ceil( sdWorld.my_entity.armor ), 100, 17 );			
 
 			ctx.fillStyle = '#00ffff';
