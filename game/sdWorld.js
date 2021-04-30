@@ -749,6 +749,15 @@ class sdWorld
 
 					e.remove();
 					e._remove();
+					
+					
+					let id_in_active = sdEntity.active_entities.indexOf( e );
+					if ( id_in_active !== -1 )
+					sdEntity.active_entities.splice( id_in_active, 1 );
+					
+					
+					
+					
 					sdEntity.entities.splice( i, 1 );
 					i--;
 					continue;
@@ -915,6 +924,12 @@ class sdWorld
 		for ( var i = 0; i < socket_arr.length; i++ )
 		{
 			var socket = socket_arr[ i ];
+			
+			if ( params.type === sdEffect.TYPE_LAG )
+			{
+				if ( socket.character && !socket.character._god )
+				continue;
+			}
 
 			if ( 
 				 ( socket.character && socket.character.hea > 0 && 

@@ -186,6 +186,9 @@ class sdEntity
 			this._phys_sleep = hit_what._phys_sleep = Math.max( this._phys_sleep, hit_what._phys_sleep );
 		}
 	}*/
+	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call
+	{
+	}
 	ApplyVelocityAndCollisions( GSPEED, step_size=0, apply_friction=false, impact_scale=1, custom_filtering_method=null ) // step_size can be used by entities that can use stairs
 	{
 		this.PhysInitIfNeeded();
@@ -431,6 +434,8 @@ class sdEntity
 			
 				this.sx = - this.sx * bounce_intensity;
 				this.sy = - this.sy * bounce_intensity;
+				
+				this.onPhysicallyStuck();
 			}
 
 		}

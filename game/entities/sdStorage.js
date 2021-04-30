@@ -88,6 +88,9 @@ class sdStorage extends sdEntity
 			}
 		}
 		
+		for ( var i = 0; i < sdStorage.slots_tot; i++ )
+		if ( this[ 'item' + i ] )
+		this[ 'item' + i ].UpdateHeldPosition();
 		
 		this.sy += sdWorld.gravity * GSPEED;
 		
@@ -226,6 +229,7 @@ class sdStorage extends sdEntity
 
 			item.ttl = sdGun.disowned_guns_ttl;
 			item._held_by = null;
+			item.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 			
 			item.PhysWakeUp();
 		}

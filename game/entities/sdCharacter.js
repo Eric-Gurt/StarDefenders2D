@@ -286,7 +286,7 @@ class sdCharacter extends sdEntity
 
 		this.look_x = 0;
 		this.look_y = 0;
-		this._an = 0;
+		//this._an = 0; Became a getter because gun offsets calculation isn't easy task and is not needed unless player shoots
 		
 		this.tilt = 0; // X button
 		this.tilt_speed = 0;
@@ -373,6 +373,21 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.characters.push( this );
 	}
+	
+	get _an()
+	{
+		if ( this.driver_of )
+		return 0;
+		
+		let offset = this.GetBulletSpawnOffset();
+
+		return -Math.PI / 2 - Math.atan2( this.y + offset.y - this.look_y, this.x + offset.x - this.look_x );
+	}
+	set _an( v )
+	{
+		console.log( 'sdCharacter\'s property _an is obsolete now' );
+	}
+	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
 		return this._key_states.GetKey('KeyX') ? [ 'sdCharacter', 'sdBullet' ] : [ 'sdBullet' ];
@@ -618,6 +633,8 @@ class sdCharacter extends sdEntity
 						sdSound.PlaySound({ name:'sd_hurt' + ~~(1+Math.random() * 2), x:this.x, y:this.y, pitch:this.GetVoicePitch(), volume:( dmg > 1 )? 1 : 0.5 }); // less volume for bleeding
 					
 						this.pain_anim = 10;
+						
+						this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // Can wake up hibernated players
 					}
 				}
 			}
@@ -958,6 +975,26 @@ class sdCharacter extends sdEntity
 		//return { x:xx, y:yy };
 		return { x: m1[ 4 ], y: m1[ 5 ] };
 	}
+	
+	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call
+	{
+		// 14 is a full width, so revived players don't stuck in each other
+		if ( !this.CanMoveWithoutOverlap( this.x, this.y, this.UseServerCollisions() ? 0 : 0.01 ) )
+		{
+			if ( this.CanMoveWithoutOverlap( this.x, this.y - 14 ) )
+			this.y -= 0.5;
+
+			if ( this.CanMoveWithoutOverlap( this.x, this.y + 14 ) )
+			this.y += 0.5;
+
+			if ( this.CanMoveWithoutOverlap( this.x - 14, this.y ) )
+			this.x -= 0.5;
+
+			if ( this.CanMoveWithoutOverlap( this.x + 14, this.y ) )
+			this.x += 0.5;
+		}
+	}
+
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this._god )
@@ -1056,10 +1093,15 @@ class sdCharacter extends sdEntity
 			if ( this.pain_anim > 0 )
 			this.pain_anim -= GSPEED;
 		
-			let offset = this.GetBulletSpawnOffset();
+			//let offset = this.GetBulletSpawnOffset();
 
-			this._an = -Math.PI / 2 - Math.atan2( this.y + offset.y - this.look_y, this.x + offset.x - this.look_x );
-			//this._an = -Math.PI / 2 - Math.atan2( this.y + sdCharacter.bullet_y_spawn_offset - this.look_y, this.x - this.look_x );
+			//this._an = -Math.PI / 2 - Math.atan2( this.y + offset.y - this.look_y, this.x + offset.x - this.look_x );
+			
+			let offset = null;
+			
+			for ( let i = 0; i < this._inventory.length; i++ )
+			if ( this._inventory[ i ] )
+			this._inventory[ i ].UpdateHeldPosition();
 
 			if ( this.reload_anim > 0 )
 			{
@@ -1108,6 +1150,9 @@ class sdCharacter extends sdEntity
 
 							if ( will_fire )
 							{
+								if ( !offset )
+								offset = this.GetBulletSpawnOffset();
+							
 								if ( this._inventory[ this.gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ), offset ) )
 								{
 									this.fire_anim = 5;
@@ -1127,7 +1172,8 @@ class sdCharacter extends sdEntity
 								{
 									let _class = sdGun.CLASS_FISTS;
 									
-									//let offset = this._held_by.GetBulletSpawnOffset();
+									if ( !offset )
+									offset = this.GetBulletSpawnOffset();
 
 									let bullet_obj = new sdBullet({ x: this.x + offset.x, y: this.y + offset.y });
 									bullet_obj._owner = this;
@@ -1281,8 +1327,16 @@ class sdCharacter extends sdEntity
 		}
 		else
 		{
-			if ( this.CanMoveWithoutOverlap( this.x, this.y - 4, 1 ) )
-			this._crouch_intens = sdWorld.MorphWithTimeScale( this._crouch_intens, 0, 0.7, GSPEED );
+			if ( this._crouch_intens > 0 )
+			{
+				if ( this.CanMoveWithoutOverlap( this.x, this.y - 4, 1 ) )
+				{
+					if ( this._crouch_intens > 0.01 )
+					this._crouch_intens = sdWorld.MorphWithTimeScale( this._crouch_intens, 0, 0.7, GSPEED );
+					else
+					this._crouch_intens = 0;
+				}
+			}
 		}
 		//let new_leg_height = 16 - this._crouch_intens * 6;
 		let new_leg_height = this.hitbox_y2;
@@ -1304,6 +1358,7 @@ class sdCharacter extends sdEntity
 					this.act_x = this._key_states.GetKey( 'KeyD' ) - this._key_states.GetKey( 'KeyA' );
 					this.act_y = this._key_states.GetKey( 'KeyS' ) - ( ( this._key_states.GetKey( 'KeyW' ) || this._key_states.GetKey( 'Space' ) ) ? 1 : 0 );
 					
+					if ( this._socket || this._ai )
 					if ( this.act_x !== 0 || this.act_y !== 0 )
 					this.PhysWakeUp();
 				}
@@ -1435,6 +1490,7 @@ class sdCharacter extends sdEntity
 
 			}
 			
+			let old_stands = this._stands_on;
 			this.stands = false;
 		
 			/*
@@ -1453,29 +1509,26 @@ class sdCharacter extends sdEntity
 			
 			if ( this.hea > 0 ) // Disable extra logic for stuck cases, standing and ledge holding if dead
 			{
-				// 14 is a full width, so revived players don't stuch in each other
-				//if ( !this.CanMoveWithoutOverlap( this.x, this.y, sdWorld.is_server ? 0 : 1 ) )
-				if ( !this.CanMoveWithoutOverlap( this.x, this.y, this.UseServerCollisions() ? 0 : 0.01 ) )
+				let still_stands = false;
+				
+				if ( old_stands )
+				if ( !this._stands_on._is_being_removed )
+				if ( this.x + this.hitbox_x2 <= this._stands_on.x + this._stands_on.hitbox_x1 )
+				if ( this.x + this.hitbox_x1 >= this._stands_on.x + this._stands_on.hitbox_x2 )
+				if ( this.y + this.hitbox_y2 + ( this.UseServerCollisions() ? 2 : 3 ) <= this._stands_on.y + this._stands_on.hitbox_y1 )
+				if ( this.y + this.hitbox_y1 + ( this.UseServerCollisions() ? 2 : 3 ) >= this._stands_on.y + this._stands_on.hitbox_y2 )
 				{
-					if ( this.CanMoveWithoutOverlap( this.x, this.y - 14 ) )
-					this.y -= 0.5;
-
-					if ( this.CanMoveWithoutOverlap( this.x, this.y + 14 ) )
-					this.y += 0.5;
-
-					if ( this.CanMoveWithoutOverlap( this.x - 14, this.y ) )
-					this.x -= 0.5;
-
-					if ( this.CanMoveWithoutOverlap( this.x + 14, this.y ) )
-					this.x += 0.5;
+					sdWorld.last_hit_entity = this._stands_on;
 				}
 
 				//if ( !this.CanMoveWithoutOverlap( this.x, this.y + ( this.UseServerCollisions() ? 2 : 3 ), 1 ) ) Has egde-stand-constant-fall bug, not sure why it was done like that exactly
-				if ( !this.CanMoveWithoutOverlap( this.x, this.y + ( this.UseServerCollisions() ? 2 : 3 ), 0 ) )
+				if ( still_stands || !this.CanMoveWithoutOverlap( this.x, this.y + ( this.UseServerCollisions() ? 2 : 3 ), 0 ) )
 				//if ( !this.CanMoveWithoutOverlap( this.x, this.y + 2, 1 ) )
 				{
 					this.stands = true;
 					this._stands_on = sdWorld.last_hit_entity;
+					
+					if ( !old_stands ) // Less calls of cases of moving on top of same surface?
 					this.Touches( sdWorld.last_hit_entity );
 				}
 				else
@@ -1491,6 +1544,7 @@ class sdCharacter extends sdEntity
 			}
 		}
 
+		// Walljumps
 		if ( this.act_y === -1 )
 		if ( !this.stands )
 		if ( Math.abs( this.sy ) < 3 )
@@ -1789,6 +1843,11 @@ class sdCharacter extends sdEntity
 			if ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_SHARP )
 			this.Damage( Infinity );
 		}*/
+									
+		if ( !this._socket && !this._ai && this._phys_sleep <= 0 && !in_water && !this.driver_of && this.hea > 0 && !this._dying && this.pain_anim <= 0 && this.death_anim <= 0 )
+		{
+			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+		}
 	}
 
 	onRemoveAsFakeEntity()
@@ -1912,6 +1971,7 @@ class sdCharacter extends sdEntity
 
 			this._inventory[ i ].ttl = sdGun.disowned_guns_ttl;
 			this._inventory[ i ]._held_by = null;
+			this._inventory[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 			this._inventory[ i ] = null;
 			
 			this.TriggerMovementInRange();

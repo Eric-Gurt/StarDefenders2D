@@ -432,7 +432,7 @@ class sdHover extends sdEntity
 					let old_x = this[ 'driver' + i ].look_x;
 					let old_y = this[ 'driver' + i ].look_y;
 					//this[ 'driver' + i ].tilt = 0;
-					this[ 'driver' + i ]._an = 0; // Hack
+					//this[ 'driver' + i ]._an = 0; // Hack
 					this[ 'driver' + i ]._side = 1;
 					this[ 'driver' + i ].look_x = this[ 'driver' + i ].x + 100;
 					this[ 'driver' + i ].look_y = this[ 'driver' + i ].y;

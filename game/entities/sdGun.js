@@ -1,4 +1,8 @@
+/*
 
+	Warning: Carrier needs to call .UpdateHeldPosition() on carried sdGuns or else they can appear at old positions logically, which will mean removal when world bounds move. Carried guns won't update their positions because they will hibernate once hidden
+
+*/
 /* global Infinity */
 
 import sdWorld from '../sdWorld.js';
@@ -377,6 +381,8 @@ class sdGun extends sdEntity
 	}
 	Shoot( background_shoot=0, offset=null ) // It becomes 1 when player holds shift
 	{
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+			
 		if ( this._held_by === null )
 		{
 			console.warn( 'Server logic error: Something calls .Shoot method of sdGun but sdGun has no owner - report this error if you understand how, when or why it happens.' );
@@ -678,15 +684,35 @@ class sdGun extends sdEntity
 				this.held_by_net_id = this._held_by._net_id;
 				this.held_by_class = this._held_by.GetClass();
 			}
+		}
 		
+		if ( sdWorld.is_server )
+		if ( this._held_by && ( this.held_by_net_id === this._held_by._net_id && this.held_by_class === this._held_by.GetClass() ) )
+		//if ( !this.IsVisible() ) // Usually means in storage or held by player
+		if ( this.reload_time_left <= 0 )
+		if ( this.muzzle <= 0 )
+		{
+			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED ); // Note: Such hibernation will casue weapon to logically appear behind carrier. It means that carrier now should handle position logic
+		}
+	}
+	UpdateHeldPosition()
+	{
+		if ( this._held_by ) // Should not happen but just in case
+		{
+			let old_x = this.x;
+			let old_y = this.y;
+			
 			this.x = this._held_by.x;
 			this.y = this._held_by.y;
-			
+
 			if ( typeof this._held_by.sx !== 'undefined' )
 			{
 				this.sx = this._held_by.sx;
 				this.sy = this._held_by.sy;
 			}
+
+			if ( this.x !== old_x || this.y !== old_y )
+			sdWorld.UpdateHashPosition( this, false, false );
 		}
 	}
 	Draw( ctx, attached )

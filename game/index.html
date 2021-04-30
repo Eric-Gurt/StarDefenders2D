@@ -43,6 +43,10 @@
 	    {
 		border: 1px solid black;
 	    }
+	    input[type=button]:active
+	    {
+		background-color: black !important;
+	    }
 	    
 	    
 	    input[type=checkbox]
@@ -791,7 +795,9 @@
 		if ( !inputs_hash[ 'start_with2' ].el.checked )
 		ent.gun_slot = ( sdWorld.time % 4000 ) < 2000 ? 0 : 1;
 		
-		ent._an = Math.PI / 2;
+		//ent._an = Math.PI / 2;
+		ent.look_x = 1000;
+		ent.look_y = 0;
 		ent.act_x = 1;
 		ent.stands = true;
 		ent._anim_walk = ( sdWorld.time / 100 ) % 10;
