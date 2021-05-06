@@ -186,7 +186,7 @@ class sdBullet extends sdEntity
 		{
 			if ( this._owner )
 			{
-				this._owner.Damage( this._damage );
+				this._owner.Damage( this._damage, null, false, false );
 				
 				if ( this._custom_target_reaction )
 				this._custom_target_reaction( this, this._owner );

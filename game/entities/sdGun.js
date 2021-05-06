@@ -198,7 +198,7 @@ class sdGun extends sdEntity
 		this._held_by_removed_panic = 0;
 		
 		this.ammo_left = -123;
-		
+		this.burst_ammo = -123;
 		//this.ttl = params.ttl || sdGun.disowned_guns_ttl;
 		this.extra = 0; // shard value will be here
 		
@@ -403,12 +403,18 @@ class sdGun extends sdEntity
 				sdGun.classes[ this.class ].ammo_capacity = -1;
 			
 				this.ammo_left = sdGun.classes[ this.class ].ammo_capacity;
+				if ( sdGun.classes[ this.class ].burst )
+				this.burst_ammo = Math.min( this.ammo_left, sdGun.classes[ this.class ].burst );
 			}
 			
 			if ( this.ammo_left !== 0 )
 			{
 				if ( this.ammo_left > 0 ) // can be -1
+				{
 				this.ammo_left--;
+				if ( sdGun.classes[ this.class ].burst )
+				this.burst_ammo--; 
+				}
 				else
 				{
 					let ammo_cost = this.GetBulletCost();
@@ -440,7 +446,12 @@ class sdGun extends sdEntity
 				sdSound.PlaySound({ name:sdGun.classes[ this.class ].sound, x:this.x, y:this.y, volume: 0.5 * ( sdGun.classes[ this.class ].sound_volume || 1 ), pitch: sdGun.classes[ this.class ].sound_pitch || 1 });
 			
 				this.reload_time_left = sdGun.classes[ this.class ].reload_time;
-				
+				if ( sdGun.classes[ this.class ].burst )
+				if ( this.burst_ammo <= 0 )
+				{
+				this.reload_time_left = sdGun.classes[ this.class ].burst_reload;
+				this.burst_ammo = sdGun.classes[ this.class ].burst;
+				}
 				if ( sdGun.classes[ this.class ].muzzle_x !== null )
 				this.muzzle = 5;
 			
