@@ -411,9 +411,9 @@ class sdGun extends sdEntity
 			{
 				if ( this.ammo_left > 0 ) // can be -1
 				{
-				this.ammo_left--;
-				if ( sdGun.classes[ this.class ].burst )
-				this.burst_ammo--; 
+					this.ammo_left--;
+					if ( sdGun.classes[ this.class ].burst )
+					this.burst_ammo--; 
 				}
 				else
 				{
@@ -449,8 +449,8 @@ class sdGun extends sdEntity
 				if ( sdGun.classes[ this.class ].burst )
 				if ( this.burst_ammo <= 0 )
 				{
-				this.reload_time_left = sdGun.classes[ this.class ].burst_reload;
-				this.burst_ammo = sdGun.classes[ this.class ].burst;
+					this.reload_time_left = sdGun.classes[ this.class ].burst_reload;
+					this.burst_ammo = sdGun.classes[ this.class ].burst;
 				}
 				if ( sdGun.classes[ this.class ].muzzle_x !== null )
 				this.muzzle = 5;
