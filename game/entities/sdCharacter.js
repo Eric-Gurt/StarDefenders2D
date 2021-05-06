@@ -474,9 +474,12 @@ class sdCharacter extends sdEntity
 		let targets = sdWorld.GetAnythingNear( this.x, this.y + 12, 32, null, [ 'sdBlock' ] );
 		for ( let i = 0; i < targets.length; i++ )
 		{
-		if ( targets[ i ]._armor_protection_level <= this._damage_mult ) // Target only damagable blocks
-		this._ai.target = targets[ i ];
-		return;
+			if ( targets[ i ].GetClass() === 'sdBlock' )
+			if ( targets[ i ]._armor_protection_level <= this._damage_mult ) // Target only damagable blocks
+			{
+				this._ai.target = targets[ i ];
+				return;
+			}
 		}
 	}
 
@@ -780,7 +783,7 @@ class sdCharacter extends sdEntity
 			this._ai.direction = ( Math.random() < 0.5 ) ? 1 : -1;
 			
 			this._ai_action_counter++;
-			if ( ( this.x - this._ai_last_x ) < -70 || ( this.x - this._ai_last_x ) > 70 ) // Has the AI moved a bit or is it stuck?
+			if ( ( this.x - this._ai_last_x ) < -50 || ( this.x - this._ai_last_x ) > 50 ) // Has the AI moved a bit or is it stuck?
 			{
 				this._ai_last_x = this.x;
 				this._ai_action_counter = 0;
@@ -792,7 +795,7 @@ class sdCharacter extends sdEntity
 					this._ai.target = null;
 				}
 			}
-			if ( ( this.y - this._ai_last_y ) < -70 || ( this.y - this._ai_last_y ) > 70 ) // Same but Y coordinate
+			if ( ( this.y - this._ai_last_y ) < -50 || ( this.y - this._ai_last_y ) > 50 ) // Same but Y coordinate
 			{
 				this._ai_last_y = this.y;
 				this._ai_action_counter = 0;
@@ -805,10 +808,10 @@ class sdCharacter extends sdEntity
 				}
 			}
 
-			if ( this._ai_action_counter >= 40 || ( this._ai_dig > 0 && !this._ai.target ) ) // In case if AI is stuck in blocks (earthquakes, player buildings etc) will target nearby blocks
+			if ( this._ai_action_counter >= 50 || ( this._ai_dig > 0 && !this._ai.target ) ) // In case if AI is stuck in blocks (earthquakes, player buildings etc) will target nearby blocks
 			{
 				this.AITargetBlocks();
-				if ( this._ai_action_counter >= 40 )
+				if ( this._ai_action_counter >= 50 )
 				{
 					this._ai_action_counter = 0;
 					this._ai_dig = 2 + Math.floor( Math.random() * 3 ); // Shoot down at least 2 nearby blocks
