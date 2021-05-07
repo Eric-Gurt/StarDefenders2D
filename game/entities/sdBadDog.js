@@ -230,8 +230,11 @@ class sdBadDog extends sdEntity
 
 	MasterRemoved( removed_ent )
 	{
-		this.master.removeEventListener( 'DAMAGE', this.MasterDamaged );
-		this.master.removeEventListener( 'REMOVAL', this.MasterRemoved );
+		if ( sdWorld.is_server )
+		{
+			this.master.removeEventListener( 'DAMAGE', this.MasterDamaged );
+			this.master.removeEventListener( 'REMOVAL', this.MasterRemoved );
+		}
 
 		if ( this.master === removed_ent )
 		this.master = null;
@@ -274,10 +277,13 @@ class sdBadDog extends sdEntity
 		
 			if ( this.master )
 			{
-				if ( !this.master.hasEventListener( 'DAMAGE', this.MasterDamaged ) ) // Will happen on world load since events are not saved
+				if ( sdWorld.is_server )
 				{
-					this.master.addEventListener( 'DAMAGE', this.MasterDamaged );
-					this.master.addEventListener( 'REMOVAL', this.MasterRemoved );
+					if ( !this.master.hasEventListener( 'DAMAGE', this.MasterDamaged ) ) // Will happen on world load since events are not saved
+					{
+						this.master.addEventListener( 'DAMAGE', this.MasterDamaged );
+						this.master.addEventListener( 'REMOVAL', this.MasterRemoved );
+					}
 				}
 
 						
