@@ -97,9 +97,9 @@ class sdBadDog extends sdEntity
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( this.hea > 0 )
+		if ( !this.master )
 		if ( character.IsTargetable() && character.IsVisible( this ) )
 		if ( character.hea > 0 )
-		if ( character !== this.master )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
 			if ( di < sdBadDog.max_seek_range )
