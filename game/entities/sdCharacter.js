@@ -619,11 +619,12 @@ class sdCharacter extends sdEntity
 				
 				if ( this._acquired_bt_mech )
 				{
-				this._acquired_bt_mech = false;
-				let upg = new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_BUILDTOOL_UPG });
-				upg.sx = this.sx;
-				upg.sy = this.sy;
-				sdEntity.entities.push( upg );
+				    this._acquired_bt_mech = false;
+                                    this.build_tool_level--;
+			   	    let upg = new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_BUILDTOOL_UPG });
+				    upg.sx = this.sx;
+				    upg.sy = this.sy;
+				    sdEntity.entities.push( upg );
 				}
 				if ( sdWorld.server_config.onKill )
 				sdWorld.server_config.onKill( this, initiator );
