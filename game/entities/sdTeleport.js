@@ -44,6 +44,8 @@ class sdTeleport extends sdEntity
 	{
 		if ( !sdWorld.is_server )
 		return;
+	
+		dmg = Math.abs( dmg );
 		
 		if ( this._hea > 0 )
 		{

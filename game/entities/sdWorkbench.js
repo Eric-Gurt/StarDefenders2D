@@ -15,13 +15,13 @@ class sdWorkbench extends sdEntity
 {
 	static init_class()
 	{
-		sdWorkbench.img_wb = sdWorld.CreateImageFromFile( 'workbench' );
+		sdWorkbench.img_wb = sdWorld.CreateImageFromFile( 'workbench2' );
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -16; }
 	get hitbox_x2() { return 16; }
-	get hitbox_y1() { return -0; }
+	get hitbox_y1() { return 3; }
 	get hitbox_y2() { return 16; }
 	
 	get hard_collision()

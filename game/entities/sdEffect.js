@@ -26,6 +26,8 @@ class sdEffect extends sdEntity
 		
 		sdEffect.default_explosion_color = '#ffca9e';
 		
+		sdEffect.effect_counters = [];
+		
 		if ( typeof document !== 'undefined' ) // Server won't have it
 		{
 			if ( typeof OffscreenCanvas !== 'undefined' ) // Server won't have it
@@ -163,6 +165,16 @@ class sdEffect extends sdEntity
 		
 		this._ani = 0;
 		this._type = params.type || 0;
+		
+		if ( typeof sdEffect.effect_counters[ this._type ] === 'undefined' )
+		sdEffect.effect_counters[ this._type ] = 1;
+		else
+		{
+			sdEffect.effect_counters[ this._type ]++;
+			
+			if ( sdEffect.effect_counters[ this._type ] > 64 )
+			this.remove();
+		}
 		
 		this._decay_speed = sdEffect.types[ this._type ].speed * ( 1 - ( sdEffect.types[ this._type ].random_speed_percentage || 0 ) * Math.random() );
 		
@@ -566,6 +578,10 @@ class sdEffect extends sdEntity
 			}
 			ctx.blend_mode = THREE.NormalBlending;
 		}
+	}
+	onRemove() // Class-specific, if needed
+	{
+		sdEffect.effect_counters[ this._type ]--;
 	}
 }
 //sdEffect.init_class();

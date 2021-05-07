@@ -109,11 +109,18 @@ class sdSandWorm extends sdEntity
 			_is_being_removed: true
 		};
 	}
+	
+	HasEnoughMatter( ent ) // sdSandWorms will actually hunt entities that have some amount of matter, for example one that is enough to buy damage upgrades. Thus won't target new players
+	{
+		return ( ent.matter >= 100 );
+	}
+	
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( this._hea > 0 )
 		if ( character.IsVisible() )
 		if ( character.hea > 0 )
+		if ( this.HasEnoughMatter( character ) )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
 			if ( di < sdSandWorm.max_seek_range )
@@ -567,7 +574,12 @@ class sdSandWorm extends sdEntity
 						this._current_target = closest;*/
 						
 						if ( sdEntity.active_entities.length > 0 ) // Opposite probably can't happen
-						this._current_target = sdEntity.active_entities[ Math.floor( Math.random() * sdEntity.active_entities.length ) ];
+						{
+							this._current_target = sdEntity.active_entities[ Math.floor( Math.random() * sdEntity.active_entities.length ) ];
+							
+							if ( this._current_target.is( sdSandWorm ) || ( this._current_target.is( sdCharacter ) && !this.HasEnoughMatter( this._current_target ) ) )
+							this._current_target = null;
+						}
 					}
 				}
 			}

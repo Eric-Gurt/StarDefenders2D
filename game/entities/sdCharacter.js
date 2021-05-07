@@ -22,6 +22,7 @@ import sdTurret from './sdTurret.js';
 import sdArea from './sdArea.js';
 import sdMatterContainer from './sdMatterContainer.js';
 import sdWorkbench from './sdWorkbench.js';
+import sdRescueTeleport from './sdRescueTeleport.js';
 
 
 import sdShop from '../client/sdShop.js';
@@ -526,18 +527,94 @@ class sdCharacter extends sdEntity
 			this.Damage( ( vel - 3 ) * 17, null, false, false );
 		}
 	}
-	Damage( dmg, initiator=null, headshot=false, affects_armor = true )
+	AttemptTeleportOut( from_ent=null )
+	{
+		let best_di = Infinity;
+		let best_t = null;
+
+		for ( var i = 0; i < sdRescueTeleport.rescue_teleports.length; i++ )
+		{
+			let t = sdRescueTeleport.rescue_teleports[ i ];
+			if ( t._owner === this )
+			if ( t.delay <= 0 )
+			if ( !t._is_being_removed )
+			{
+				let di = sdWorld.Dist2D( this.x, this.y, t.x, t.y );
+				if ( di < best_di )
+				{
+					best_t = t;
+					best_di = di;
+				}
+			}
+		}
+
+		if ( best_t )
+		{
+			if ( this.driver_of )
+			{
+				this.driver_of.ExcludeDriver( this );
+			}
+			
+			this.hook_x = 0;
+			this.hook_y = 0;
+			this._hook_len = -1;
+
+			this.x = best_t.x;
+			this.y = best_t.y;
+
+			this.sx = 0;
+			this.sy = 0;
+
+			this._dying = false;
+			
+			this.death_anim = 0;
+
+			this.hea = Math.max( this.hea, 30 );
+
+			best_t.SetDelay( 30 * 60 * 5 ); // 5 minutes
+			
+			this.ApplyServerSidePositionAndVelocity( true, 0, 0 );
+
+			sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
+			sdSound.PlaySound({ name:'teleport', x:best_t.x, y:best_t.y, volume:0.5 });
+			
+			setTimeout( ()=>
+			{
+				this.Say( [ 
+					'Ok then', 
+					'That was close', 
+					'I live... Again!', 
+					from_ent ? 'Almost died from '+from_ent.GetClass() : 'Almost died', 
+					'I guess I live for now', 
+					'I\'d need more of these', 
+					'I wasn\'t welcomed there very well', 
+					'I\'m not saying farewell',
+					from_ent ? 'Not today, '+from_ent.GetClass()+'!' : 'Not today, Death!' ][ ~~( Math.random() * 9 ) ] );
+			}, 2000 );
+
+			return true;
+		}
+		return false;
+	}
+	Damage( dmg, initiator=null, headshot=false, affects_armor=true )
 	{
 		if ( !sdWorld.is_server )
 		return;
 	
 		if ( initiator === this )
 		initiator = null;
+			
+		let was_alive = ( this.hea > 0 );
+	
+		if ( was_alive )
+		if ( this.hea - dmg <= 0 )
+		{
+			if ( this.AttemptTeleportOut() )
+			return;
+		}
 	
 		for ( var i = 0; i < this._listeners.DAMAGE.length; i++ )
 		this._listeners.DAMAGE[ i ]( this, dmg, initiator );
-			
-		let was_alive = ( this.hea > 0 );
 	
 		if ( dmg > 0 )
 		{
@@ -1095,6 +1172,9 @@ class sdCharacter extends sdEntity
 		if ( this.hea <= 0 )
 		{
 			this.MatterGlow( 0.01, 30, GSPEED );
+
+			if ( this.AttemptTeleportOut() )
+			return;
 
 			if ( this.death_anim < 90 )
 			this.death_anim += GSPEED;
@@ -1946,6 +2026,11 @@ class sdCharacter extends sdEntity
 	
 	onRemove() // Class-specific, if needed
 	{
+		if ( this._socket )
+		{
+			this._socket.emit('REMOVE sdWorld.my_entity', this._net_id );
+		}
+		
 		for ( var i = 0; i < this._listeners.REMOVAL.length; i++ )
 		this._listeners.REMOVAL[ i ]( this );
 	

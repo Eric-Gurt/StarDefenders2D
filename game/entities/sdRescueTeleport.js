@@ -1,0 +1,248 @@
+
+import sdWorld from '../sdWorld.js';
+import sdSound from '../sdSound.js';
+import sdEntity from './sdEntity.js';
+import sdEffect from './sdEffect.js';
+import sdCom from './sdCom.js';
+
+
+import sdRenderer from '../client/sdRenderer.js';
+
+
+class sdRescueTeleport extends sdEntity
+{
+	static init_class()
+	{
+		sdRescueTeleport.img_teleport = sdWorld.CreateImageFromFile( 'rescue_portal' );
+		sdRescueTeleport.img_teleport_offline = sdWorld.CreateImageFromFile( 'rescue_portal_offline' );
+		
+		sdRescueTeleport.rescue_teleports = [];
+		
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
+	}
+	get hitbox_x1() { return -11; }
+	get hitbox_x2() { return 11; }
+	get hitbox_y1() { return 10; }
+	get hitbox_y2() { return 16; }
+	
+	get spawn_align_x(){ return 8; };
+	get spawn_align_y(){ return 8; };
+	
+	get hard_collision()
+	{ return true; }
+	
+	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
+	{ return true; }
+	
+	Damage( dmg, initiator=null )
+	{
+		if ( !sdWorld.is_server )
+		return;
+	
+		dmg = Math.abs( dmg );
+		
+		if ( this._hea > 0 )
+		{
+			this._hea -= dmg;
+			
+			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+			
+			if ( this.delay < 90 )
+			this.SetDelay( 90 );
+			
+			this._regen_timeout = 60;
+
+			if ( this._hea <= 0 )
+			this.remove();
+		}
+	}
+	SetDelay( v )
+	{
+		if ( v < 0 )
+		v = 0;
+
+		if ( ( v > 0 ) !== ( this.delay > 0 ) )
+		{
+			if ( v === 0 )
+			sdSound.PlaySound({ name:'teleport_ready', x:this.x, y:this.y, volume:1 });
+		}
+		
+		if ( Math.ceil( v / 30 ) !== Math.ceil( this.delay / 30 ) )
+		{
+			this._update_version++;
+		}
+		
+		this.delay = v;
+
+		if ( v > 0 )
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+	}
+	constructor( params )
+	{
+		super( params );
+		
+		this._hmax = 500;
+		this._hea = this._hmax;
+		this._regen_timeout = 0;
+		
+		this.delay = 0;
+		//this._update_version++
+		
+		this._owner = params.owner || null;
+		this.owner_net_id = this._owner ? this._owner._net_id : null;
+		
+		sdRescueTeleport.rescue_teleports.push( this );
+	}
+	ExtraSerialzableFieldTest( prop )
+	{
+		if ( prop === '_owner' ) return true;
+		
+		return false;
+	}
+	
+	MeasureMatterCost()
+	{
+		return this._hmax * sdWorld.damage_to_matter + 1700;
+	}
+	onThink( GSPEED ) // Class-specific, if needed
+	{
+		if ( !sdWorld.is_server )
+		return;
+			
+		let can_hibernateA = false;
+		let can_hibernateB = false;
+		
+		if ( this._regen_timeout > 0 )
+		this._regen_timeout -= GSPEED;
+		else
+		{
+			if ( this._hea < this._hmax )
+			this._hea = Math.min( this._hea + GSPEED, this._hmax );
+			else
+			can_hibernateA = true;
+		}
+		
+		if ( this.delay > 0 )
+		this.SetDelay( this.delay - GSPEED );
+		else
+		can_hibernateB = true;
+	
+		if ( can_hibernateA && can_hibernateB )
+		{
+			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+		}
+	}
+	get title()
+	{
+		let postfix = '';
+		
+		if ( this.delay > 0 )
+		{
+			let num = Math.ceil( this.delay / 30 );
+			let num_seconds = num;
+			
+			if ( num >= 60 )
+			{
+				if ( Math.floor( num / 60 ) === 1 )
+				num = Math.floor( num / 60 ) + ' minute ' + ( num % 60 );
+				else
+				num = Math.floor( num / 60 ) + ' minutes ' + ( num % 60 );
+			
+				num_seconds = ( num % 60 );
+			}
+			
+			if ( num_seconds === 1 )
+			postfix = ' ('+num+' second cooldown)';
+			else
+			postfix = ' ('+num+' seconds cooldown)';
+		}
+		
+		if ( this.owner_net_id === null )
+		return 'Rescue teleport' + postfix;
+		else
+		{
+			if ( sdEntity.entities_by_net_id_cache[ this.owner_net_id ] )
+			return sdEntity.entities_by_net_id_cache[ this.owner_net_id ].title + '\'s rescue teleport' + postfix;
+			else
+			return 'Someone\'s rescue teleport' + postfix;
+		}
+	}
+	Draw( ctx, attached )
+	{
+		if ( this.delay === 0 )
+		ctx.drawImage( sdRescueTeleport.img_teleport, -16, -16, 32,32 );
+		else
+		ctx.drawImage( sdRescueTeleport.img_teleport_offline, -16, -16, 32,32 );
+	}
+	DrawHUD( ctx, attached ) // foreground layer
+	{
+		sdEntity.Tooltip( ctx, this.title );
+	}
+	
+	onRemove() // Class-specific, if needed
+	{
+		this.onRemoveAsFakeEntity();
+	}
+	onRemoveAsFakeEntity()
+	{
+		let i = sdRescueTeleport.rescue_teleports.indexOf( this );
+		if ( i !== -1 )
+		sdRescueTeleport.rescue_teleports.splice( i, 1 );
+	
+		if ( !sdWorld.is_server )
+		if ( this._net_id !== undefined ) // Was ever synced rather than just temporarily object for shop
+		if ( this._broken )
+		{
+			sdSound.PlaySound({ name:'block4', 
+				x:this.x + 32 / 2, 
+				y:this.y + 32 / 2, 
+				volume:( 32 / 32 ) * ( 16 / 32 ), 
+				pitch: ( this.material === sdRescueTeleport.MATERIAL_WALL ) ? 1 : 1.5,
+				_server_allowed:true });
+			
+			let x,y,a,s;
+			let step_size = 4;
+			for ( x = step_size / 2; x < 32; x += step_size )
+			for ( y = step_size / 2; y < 32; y += step_size )
+			if ( Math.abs( 16 - x ) > 7 && Math.abs( 16 - y ) > 7 )
+			{
+				a = Math.random() * 2 * Math.PI;
+				s = Math.random() * 4;
+				let ent = new sdEffect({ x: this.x + x - 16, y: this.y + y - 16, type:sdEffect.TYPE_ROCK, sx: Math.sin(a)*s, sy: Math.cos(a)*s });
+				sdEntity.entities.push( ent );
+			}
+		}
+	}
+	
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( !this._is_being_removed )
+		if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+		{
+			if ( command_name === 'RESCUE_HERE' )
+			{
+				this._owner = executer_socket || null;
+				this.owner_net_id = this._owner ? this._owner._net_id : null;
+				
+				this._update_version++;
+			}
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( !this._is_being_removed )
+		if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+		{
+			this.AddContextOption( 'Teleport me here in case of danger', 'RESCUE_HERE', [] );
+		}
+	}
+}
+//sdRescueTeleport.init_class();
+
+export default sdRescueTeleport;

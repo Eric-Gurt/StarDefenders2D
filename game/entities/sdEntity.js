@@ -1325,7 +1325,7 @@ class sdEntity
 	onMovementInRange( from_entity )
 	{
 	}
-	Damage( dmg, initiator=null )
+	Damage( dmg, initiator=null, headshot=false, affects_armor=true )
 	{
 	}
 	

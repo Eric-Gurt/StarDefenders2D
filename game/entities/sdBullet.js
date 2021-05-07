@@ -95,7 +95,10 @@ class sdBullet extends sdEntity
 		this._rail = false;
 		this.explosion_radius = 0;
 		this.model = null; // Custom image model
-		this._knock_scale = 0.05 * 8; // Without * 8 in old mass model
+		
+		//this._knock_scale = 0.05 * 8; // Without * 8 in old mass model
+		this._knock_scale = 0.01 * 8; // Less and standartized now, except for swords
+		
 		this._hook = false;
 		this._wave = false; // hidden & instant
 		
@@ -609,7 +612,8 @@ class sdBullet extends sdEntity
 			let vel = Math.sqrt( this.sx * this.sx + this.sy * this.sy ) * 0.7;
 
 			ctx.fillStyle = this.color;
-			ctx.fillRect( -0.5, -vel/2, 1, vel );
+			//ctx.fillRect( -0.5, -vel/2, 1, vel );
+			ctx.fillRect( -0.5 * 0.666, -vel/2, 1 * 0.666, vel );
 			
 			ctx.globalAlpha = 0.03;
 			

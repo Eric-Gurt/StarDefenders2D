@@ -69,6 +69,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdBadDog from './entities/sdBadDog.js';
 	import sdShark from './entities/sdShark.js';
 	import sdWorkbench from './entities/sdWorkbench.js';
+	import sdRescueTeleport from './entities/sdRescueTeleport.js';
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -118,6 +119,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdBadDog.init_class();
 	sdShark.init_class();
 	sdWorkbench.init_class();
+	sdRescueTeleport.init_class();
 	
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;
@@ -466,6 +468,13 @@ let enf_once = true;
 			} catch(e){}
 
 			sdWorld.ResolveMyEntityByNetId();
+		});
+		
+		socket.on( 'REMOVE sdWorld.my_entity', ( _net_id )=>
+		{
+			if ( sdWorld.my_entity )
+			if ( sdWorld.my_entity._net_id === _net_id )
+			sdWorld.my_entity.remove();
 		});
 		socket.on( 'SET sdShop.options', ( arr )=>
 		{

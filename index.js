@@ -198,6 +198,8 @@ import sdJunk from './game/entities/sdJunk.js';
 import sdBadDog from './game/entities/sdBadDog.js';
 import sdShark from './game/entities/sdShark.js';
 import sdWorkbench from './game/entities/sdWorkbench.js';
+import sdRescueTeleport from './game/entities/sdRescueTeleport.js';
+
 
 
 import LZW from './game/server/LZW.js';
@@ -323,6 +325,7 @@ sdJunk.init_class();
 sdBadDog.init_class();
 sdShark.init_class();
 sdWorkbench.init_class();
+sdRescueTeleport.init_class();
 
 sdShop.init_class(); // requires plenty of classes due to consts usage
 LZW.init_class();

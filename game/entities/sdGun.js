@@ -32,6 +32,8 @@ class sdGun extends sdEntity
 		
 		sdGun.disowned_guns_ttl = 30 * 60;
 		
+		sdGun.default_projectile_velocity = 20; // 16
+		
 		sdGun.tilt_scale = 200;
 		
 		/*let images_loaded = 0;
@@ -503,7 +505,7 @@ class sdGun extends sdEntity
 
 						let an = initial_an + ( Math.random() * 2 - 1 ) * spread;
 						
-						let vel = 16;
+						let vel = sdGun.default_projectile_velocity;
 						
 						if ( sdGun.classes[ this.class ].projectile_velocity )
 						vel = sdGun.classes[ this.class ].projectile_velocity;

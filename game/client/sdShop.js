@@ -127,6 +127,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdCrystalCombiner', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdUpgradeStation', _category:'Base equipment', _min_build_tool_level: 1  });
 		sdShop.options.push({ _class: 'sdWorkbench', _category:'Base equipment', _min_build_tool_level: 2  });
+		sdShop.options.push({ _class: 'sdRescueTeleport', _category:'Base equipment' });
 		
 		for ( var i = 0; i < 3; i++ )
 		{
@@ -318,6 +319,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdJunk', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBadDog', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdShark', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdWorkbench', _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });

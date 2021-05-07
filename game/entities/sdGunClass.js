@@ -86,7 +86,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			matter_cost: 50,
-			projectile_properties: { _rail: true, _damage: 70, color: '#62c8f2', _knock_scale:0.01 * 8 }
+			projectile_properties: { _rail: true, _damage: 70, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ }
 		};
 		
 		sdGun.classes[ sdGun.CLASS_ROCKET = 4 ] = 
@@ -129,6 +129,7 @@ class sdGunClass
 			ammo_capacity: 16,
 			count: 1,
 			matter_cost: 60,
+			projectile_velocity: 16,
 			projectile_properties: { explosion_radius: 10, model: 'ball', _damage: 5, color:'#00ffff' }
 		};
 		
@@ -200,9 +201,9 @@ class sdGunClass
 			muzzle_x: 11,
 			ammo_capacity: -1,
 			count: 1,
-			projectile_velocity: 16 * 2,
+			projectile_velocity: sdGun.default_projectile_velocity * 2,
 			matter_cost: 60,
-			projectile_properties: { _damage: 105, _knock_scale:0.01 * 8, penetrating:true }
+			projectile_properties: { _damage: 105, /*_knock_scale:0.01 * 8, */penetrating:true }
 		};
 		
 		sdGun.classes[ sdGun.CLASS_SWORD = 11 ] = 
@@ -234,6 +235,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			matter_cost: 300,
+			projectile_velocity: 16,
 			projectile_properties: { time_left: 2, _damage: 50, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
 				{
 					if ( target_entity.is( sdCharacter ) )
@@ -269,7 +271,7 @@ class sdGunClass
 			muzzle_x: 7,
 			ammo_capacity: -1,// 10, // 3
 			count: 1,
-			projectile_properties: { _rail: true, _damage: 15, color: '#62c8f2', _knock_scale:0.01 * 8 }, // 70
+			projectile_properties: { _rail: true, _damage: 15, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ }, // 70
 			spawnable: false
 		};
 		
@@ -341,7 +343,7 @@ class sdGunClass
 			muzzle_x: 6,
 			ammo_capacity: -1,
 			count: 1,
-			projectile_properties: { _rail: true, _damage: 25, color: '#62c8f2', _knock_scale:0.01 * 8 },
+			projectile_properties: { _rail: true, _damage: 25, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false
 		};
 		
@@ -351,15 +353,15 @@ class sdGunClass
 				image1: [ sdWorld.CreateImageFromFile( 'raygun_c01y1' ), sdWorld.CreateImageFromFile( 'raygun_c01y1b' ) ],
 				image2: [ sdWorld.CreateImageFromFile( 'raygun_c01y2' ), sdWorld.CreateImageFromFile( 'raygun_c01y2b' ) ],
 				sound: 'gun_raygun',
-               			title: 'Raygun C01y',
-                		slot: 3,
-                		reload_time: 60, // Might be inaccurate - not checked
-                		muzzle_x: 9,
-                		ammo_capacity: -1,
-                		count: 3,
-                		projectile_velocity: 14 * 2,
-                		spread: 0.15,
-                		projectile_properties: { _damage: 40, color: '#DDDDDD', penetrating: true }, // I nerfed it's damage from 45 to 40 but that's up to balancing decisions - Booraz149
+				title: 'Raygun C01y',
+				slot: 3,
+				reload_time: 60, // Might be inaccurate - not checked
+				muzzle_x: 9,
+				ammo_capacity: -1,
+				count: 3,
+				projectile_velocity: 14 * 2,
+				spread: 0.15,
+				projectile_properties: { _damage: 40, color: '#DDDDDD', penetrating: true }, // I nerfed it's damage from 45 to 40 but that's up to balancing decisions - Booraz149
 				spawnable:false
 		};
 
@@ -376,7 +378,7 @@ class sdGunClass
 			spread: 0.01,
 			count: 1,
 			projectile_velocity: 10 * 2,  // Slower bullet velocity than sniper but more damage
-			projectile_properties: { _damage: 55/*111*/, color:'#00ffff', model: 'f_psicutter_proj', _knock_scale:0.01 * 8, penetrating: false, _bouncy: true },
+			projectile_properties: { _damage: 55/*111*/, color:'#00ffff', model: 'f_psicutter_proj'/*, _knock_scale:0.01 * 8*/, penetrating: false, _bouncy: true },
 			spawnable:false
 		};
 		
@@ -392,7 +394,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			spread: 0.09,
 			count: 5,
-			projectile_properties: { _rail: true, _damage: 23, color: '#62c8f2', _knock_scale:0.01 * 8 },
+			projectile_properties: { _rail: true, _damage: 23, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false
 		};		
 		
@@ -406,7 +408,7 @@ class sdGunClass
 			muzzle_x: 7,
 			ammo_capacity: -1,
 			count: 1,
-			projectile_properties: { _rail: true, _damage: 62, color: '#FF0000', _knock_scale:0.01 * 8 },
+			projectile_properties: { _rail: true, _damage: 62, color: '#FF0000'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false
 		};
 		
