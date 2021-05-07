@@ -224,7 +224,7 @@ class sdRescueTeleport extends sdEntity
 		{
 			if ( command_name === 'RESCUE_HERE' )
 			{
-				this._owner = executer_socket || null;
+				this._owner = exectuter_character || null;
 				this.owner_net_id = this._owner ? this._owner._net_id : null;
 				
 				this._update_version++;
@@ -239,7 +239,10 @@ class sdRescueTeleport extends sdEntity
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 		{
-			this.AddContextOption( 'Teleport me here in case of danger', 'RESCUE_HERE', [] );
+			if ( sdWorld.my_entity && this.owner_net_id === sdWorld.my_entity._net_id )
+			this.AddContextOption( 'This is your personal rescue teleport', 'RESCUE_HERE', [] );
+			else
+			this.AddContextOption( 'Set as personal rescue teleport', 'RESCUE_HERE', [] );
 		}
 	}
 }
