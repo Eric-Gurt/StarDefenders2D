@@ -429,6 +429,10 @@ class sdGunClass
 				{
 					character._upgrade_counters[ 'upgrade_energy' ] = Math.min( 60, character._upgrade_counters[ 'upgrade_energy' ] + 4 );
 					character.matter_max = Math.round( 50 + character._upgrade_counters[ 'upgrade_energy' ] * 45 );
+					if ( Math.random() > 0.5 )
+					character.Say( "I can use this Cube shard to store matter inside it" );
+					else
+					character.Say( "Cube shard! These store matter pretty well");
 					gun.remove(); 
 				}
 
@@ -488,6 +492,10 @@ class sdGunClass
 				{
 					character.build_tool_level++;
 					character._acquired_bt_mech = true;
+					if ( Math.random() > 0.5 )
+					character.Say( "I can use this to expand my building arsenal" );
+					else
+					character.Say( "This is definitely gonna help me build new stuff");
 					gun.remove(); 
 					
 					if ( character._socket )
@@ -508,8 +516,9 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 0,
 			projectile_properties: { _damage: 0 },
-			spawnable: false,
 			ignore_slot: true,
+			matter_cost: 150,
+			min_workbench_level: 1,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				// 2 was too bad for case of randomly breaking crystals when digging
@@ -535,8 +544,9 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 0,
 			projectile_properties: { _damage: 0 },
-			spawnable: false,
 			ignore_slot: true,
+			matter_cost: 250,
+			min_workbench_level: 1,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				// 2 was too bad for case of randomly breaking crystals when digging
@@ -562,8 +572,9 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 0,
 			projectile_properties: { _damage: 0 },
-			spawnable: false,
 			ignore_slot: true,
+			matter_cost: 350,
+			min_workbench_level: 1,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				// 2 was too bad for case of randomly breaking crystals when digging
@@ -577,6 +588,24 @@ class sdGunClass
 
 				return false; 
 			} 
+		};
+
+		sdGun.classes[ sdGun.CLASS_SHOTGUN_MK2 = 29 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'shotgun_mk2' ),
+			sound: 'gun_shotgun',
+			title: 'Shotgun MK2',
+			slot: 3,
+			reload_time: 6,
+			muzzle_x: 9,
+			ammo_capacity: 15,
+			count: 3,
+			spread: 0.1,
+			matter_cost: 90,
+			burst: 3, // Burst fire count
+			burst_reload: 30, // Burst fire reload, needed when giving burst fire
+			min_build_tool_level: 2,
+			projectile_properties: { _damage: 20 }
 		};
 
 		// Add new gun classes above this line //

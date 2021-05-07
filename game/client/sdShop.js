@@ -126,6 +126,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdCommandCentre', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdCrystalCombiner', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdUpgradeStation', _category:'Base equipment', _min_build_tool_level: 1  });
+		sdShop.options.push({ _class: 'sdWorkbench', _category:'Base equipment', _min_build_tool_level: 2  });
 		
 		for ( var i = 0; i < 3; i++ )
 		{
@@ -150,7 +151,8 @@ class sdShop
 					_class: 'sdGun',
 					class: i, 
 					_category:'Equipment',
-					_min_build_tool_level: sdGun.classes[ i ].min_build_tool_level || 0
+					_min_build_tool_level: sdGun.classes[ i ].min_build_tool_level || 0,
+					_min_workbench_level: sdGun.classes[ i ].min_workbench_level || 0 // For workbench items
 				});
 			}
 			else
@@ -277,7 +279,17 @@ class sdShop
 				{
 					character._jetpack_fuel_multiplier = 1 - ( 0.15 * level_purchased ); // Max 75% fuel cost reduction
 				}
-			}
+			},
+			upgrade_matter_regeneration_speed: // Upgrade idea & pull request by Booraz149 ( https://github.com/Booraz149 )
+			{
+				max_level: 3,
+				matter_cost: 200,
+				min_build_tool_level: 2,
+				action: ( character, level_purchased )=>
+				{
+					character._matter_regeneration_multiplier = 1 + level_purchased;
+				}
+			},
 		};
 		for ( var i in sdShop.upgrades )
 		{
@@ -387,6 +399,9 @@ class sdShop
 					*/
 					
 					if ( ( sdShop.options[ i ]._min_build_tool_level || 0 ) > sdWorld.my_entity.build_tool_level )
+					continue;
+
+					if ( ( sdShop.options[ i ]._min_workbench_level || 0 ) > sdWorld.my_entity.workbench_level )
 					continue;
 				
 					current_shop_options.push( sdShop.options[ i ] );

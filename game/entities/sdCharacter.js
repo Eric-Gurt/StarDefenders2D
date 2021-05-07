@@ -21,6 +21,7 @@ import sdBomb from './sdBomb.js';
 import sdTurret from './sdTurret.js';
 import sdArea from './sdArea.js';
 import sdMatterContainer from './sdMatterContainer.js';
+import sdWorkbench from './sdWorkbench.js';
 
 
 import sdShop from '../client/sdShop.js';
@@ -237,7 +238,11 @@ class sdCharacter extends sdEntity
 		this._ai_enabled = false;
 		this._ai_gun_slot = 0; // When AI spawns with a weapon, this variable needs to be defined to the same slot as the spawned gun so AI can use it
 		this._ai_level = 0; // Self explanatory
-		this._ai_team = 0; // AI "Teammates" do not damage each other
+		this._ai_team = 0; // AI "Teammates" do not target each other
+		this._ai_last_x = 0;
+		this._ai_last_y = 0;
+		this._ai_action_counter = 0; // Counter for AI "actions"
+		this._ai_dig = 0; // Amount of blocks for AI to shoot when stuck; given randomly in AILogic when AITargetBlocks is called
 		
 		this.title = 'Random Hero #' + this._net_id;
 		this._my_hash = undefined; // Will be used to let players repsawn within same entity if it exists on map
@@ -268,6 +273,7 @@ class sdCharacter extends sdEntity
 		this.hmax = 130;
 		this._dying = false;
 		this._dying_bleed_tim = 0;
+		this._wb_timer = 0; // Workbench timer, used to reset player's workbench level to 0 if he's not near it.
 
 		this.armor = 0; // Armor
 		this.armor_max = 0; // Max armor; used for drawing armor bar
@@ -319,6 +325,8 @@ class sdCharacter extends sdEntity
 		this._air_upgrade = 1; // Underwater breath capacity upgrade
 		this.build_tool_level = 0; // Used for some unlockable upgrades in build tool
 		this._jetpack_fuel_multiplier = 1; // Fuel cost reduction upgrade
+		this._matter_regeneration_multiplier = 1; // Matter regen multiplier upgrade
+		this.workbench_level = 0; // Stand near workbench to unlock some workbench build stuff
 
 		this._acquired_bt_mech = false; // Has the character picked up build tool upgrade that the flying mech drops?
 
@@ -442,18 +450,39 @@ class sdCharacter extends sdEntity
 		let teammates = sdWorld.GetAnythingNear( this.x, this.y, 200, null, [ 'sdCharacter' ] );
 		for ( let i = 0; i < teammates.length; i++ )
 		{
-		if ( teammates[ i ].GetClass() === 'sdCharacter' && teammates[ i ]._ai && teammates[ i ].hea > 0 )
-		teammates[ i ].AIProtectTeammate( this._ai.target ); // teammates[ i]._ai.target = this._ai_target; didn't work
-		//teammates[ i ]._ai.target = this._ai_target;
+			if ( teammates[ i ].GetClass() === 'sdCharacter' && teammates[ i ]._ai && teammates[ i ]._ai_team === this._ai_team  && teammates[ i ].hea > 0 )
+			teammates[ i ]._ai.target = this._ai.target; // This works now since I forgot to change this._ai_target last time to this._ai.target
 		}
 	
 	}
 	
-	AIProtectTeammate ( target )
+	/*AIProtectTeammate ( target )
 	{
 	this._ai.target = target;
+	}*/
+
+	AITargetBlocks() // Targets first "GetAnythingNear" sdBlock.
+	{
+		if ( !sdWorld.is_server )
+		return;
+
+		if ( this._ai.target )
+		if ( this._ai.target.GetClass() !== 'sdBlock' ) // Check if the target is a threat
+		if ( sdWorld.CheckLineOfSight( this.x, this.y, this._ai.target.x, this._ai.target.y, this, sdCom.com_visibility_ignored_classes, null ) )
+		return; // Does not target blocks if a threat is in line of sight.
+
+		let targets = sdWorld.GetAnythingNear( this.x, this.y + 12, 32, null, [ 'sdBlock' ] );
+		for ( let i = 0; i < targets.length; i++ )
+		{
+			if ( targets[ i ].GetClass() === 'sdBlock' )
+			if ( targets[ i ]._armor_protection_level <= this._damage_mult ) // Target only damagable blocks
+			{
+				this._ai.target = targets[ i ];
+				return;
+			}
+		}
 	}
-	
+
 	InstallUpgrade( upgrade_name ) // Ignores upper limit condition. Upgrades better be revertable and resistent to multiple calls within same level as new level
 	{
 		var upgrade_obj = sdShop.upgrades[ upgrade_name ];
@@ -494,10 +523,10 @@ class sdCharacter extends sdEntity
 		if ( vel > 6.5 ) // For new mass-based model
 		{
 			//this.Damage( ( vel - 4 ) * 15 );
-			this.Damage( ( vel - 3 ) * 17 );
+			this.Damage( ( vel - 3 ) * 17, null, false, false );
 		}
 	}
-	Damage( dmg, initiator=null, headshot=false )
+	Damage( dmg, initiator=null, headshot=false, affects_armor = true )
 	{
 		if ( !sdWorld.is_server )
 		return;
@@ -549,7 +578,7 @@ class sdCharacter extends sdEntity
 				}
 			}
 
-			if ( this.armor <= 0 ) // No armor
+			if ( this.armor <= 0 || affects_armor === false ) // No armor
 			this.hea -= dmg;
 			else
 			{
@@ -588,6 +617,15 @@ class sdCharacter extends sdEntity
 			
 				this.DropWeapons();
 				
+				if ( this._acquired_bt_mech )
+				{
+				    this._acquired_bt_mech = false;
+                                    this.build_tool_level--;
+			   	    let upg = new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_BUILDTOOL_UPG });
+				    upg.sx = this.sx;
+				    upg.sy = this.sy;
+				    sdEntity.entities.push( upg );
+				}
 				if ( sdWorld.server_config.onKill )
 				sdWorld.server_config.onKill( this, initiator );
 
@@ -745,7 +783,42 @@ class sdCharacter extends sdEntity
 			if ( Math.random() < 0.001 )
 			this._ai.direction = ( Math.random() < 0.5 ) ? 1 : -1;
 			
-			
+			this._ai_action_counter++;
+			if ( ( this.x - this._ai_last_x ) < -50 || ( this.x - this._ai_last_x ) > 50 ) // Has the AI moved a bit or is it stuck?
+			{
+				this._ai_last_x = this.x;
+				this._ai_action_counter = 0;
+				if ( this._ai_dig > 0 )
+				{
+					this._ai_dig = 0; // Stop digging and reset target if AI is targeting sdBlock
+					if ( this._ai.target )
+					if ( this._ai.target.GetClass() === 'sdBlock' )
+					this._ai.target = null;
+				}
+			}
+			if ( ( this.y - this._ai_last_y ) < -50 || ( this.y - this._ai_last_y ) > 50 ) // Same but Y coordinate
+			{
+				this._ai_last_y = this.y;
+				this._ai_action_counter = 0;
+				if ( this._ai_dig > 0 )
+				{
+					this._ai_dig = 0; // Stop digging and reset target if AI is targeting sdBlock
+					if ( this._ai.target )
+					if ( this._ai.target.GetClass() === 'sdBlock' )
+					this._ai.target = null;
+				}
+			}
+
+			if ( this._ai_action_counter >= 50 || ( this._ai_dig > 0 && !this._ai.target ) ) // In case if AI is stuck in blocks (earthquakes, player buildings etc) will target nearby blocks
+			{
+				this.AITargetBlocks();
+				if ( this._ai_action_counter >= 50 )
+				{
+					this._ai_action_counter = 0;
+					this._ai_dig = 2 + Math.floor( Math.random() * 3 ); // Shoot down at least 2 nearby blocks
+				}
+			}			
+
 			if ( this._ai.target )
 			{
 				if ( ( this._ai.target.hea || this._ai.target._hea || 0 ) > 0 && this._ai.target.IsVisible( this ) && sdWorld.Dist2D( this.x, this.y, this._ai.target.x, this._ai.target.y ) < 800 )
@@ -822,9 +895,16 @@ class sdCharacter extends sdEntity
 					this._key_states.SetKey( 'Mouse1', 1 );
 				}
 				else
-				if ( Math.random() < 0.25 + Math.min( 0.7, ( 0.25 * this._ai_level ) ) && should_fire === true ) // Shoot on detection, depends on AI level
+				if ( Math.random() < 0.25 + Math.min( 0.75, ( 0.25 * this._ai_level ) ) && should_fire === true ) // Shoot on detection, depends on AI level
 				{
-					if ( sdWorld.CheckLineOfSight( this.x, this.y, closest.x, closest.y, this, sdCom.com_visibility_ignored_classes, null ) )
+
+					if ( this._ai.target.GetClass() !== 'sdBlock' ) // Check line of sight if not targeting blocks
+					{
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, this._ai.target.x, this._ai.target.y, this, sdCom.com_visibility_ignored_classes, null ) )
+						this._key_states.SetKey( 'Mouse1', 1 );
+					}
+					else
+					if ( this._ai_dig > 0 ) // If AI should dig blocks, shoot
 					this._key_states.SetKey( 'Mouse1', 1 );
 				}
 			}
@@ -1015,7 +1095,7 @@ class sdCharacter extends sdEntity
 		if ( this.hea <= 0 )
 		{
 			this.MatterGlow( 0.01, 30, GSPEED );
-				
+
 			if ( this.death_anim < 90 )
 			this.death_anim += GSPEED;
 			else
@@ -1092,7 +1172,16 @@ class sdCharacter extends sdEntity
 
 			if ( this.pain_anim > 0 )
 			this.pain_anim -= GSPEED;
-		
+
+			if ( sdWorld.is_server )
+			{
+				if ( this._wb_timer > 0 && this.workbench_level > 0 )
+				if ( this.sx !== 0 || this.sy !== 0 ) // Do not affect timer unless player is moving, a circumvent solution for static players at workbench
+				this._wb_timer -= GSPEED;;
+				if ( this._wb_timer <= 0 && this.workbench_level > 0 )
+				this.workbench_level = 0;
+			}
+
 			//let offset = this.GetBulletSpawnOffset();
 
 			//this._an = -Math.PI / 2 - Math.atan2( this.y + offset.y - this.look_y, this.x + offset.x - this.look_x );
@@ -1238,7 +1327,7 @@ class sdCharacter extends sdEntity
 				if ( this.matter < this.matter_max ) // Character cannot store or regenerate more matter than what it can contain
 				{
 					//this.matter += 1 / 30 * GSPEED;
-					this.matter = Math.min( this.matter_max, this._matter_regeneration * 20, this.matter + 1 / 30 * GSPEED );
+					this.matter = Math.min( this.matter_max, this._matter_regeneration * 20, this.matter + ( 1 * this._matter_regeneration_multiplier ) / 30 * GSPEED );
 				}
 			}			
 
@@ -2046,6 +2135,13 @@ class sdCharacter extends sdEntity
 			{
 				this._potential_vehicle = from_entity;
 			}
+			else
+			if ( from_entity.is( sdWorkbench ) )
+			{
+				this.workbench_level = from_entity.level;
+				this._wb_timer = 15;
+				//console.log( from_entity.GetClass(), this.workbench_level, this._wb_timer, sdWorld.is_server );
+			}
 		}
 	}
 	
@@ -2250,6 +2346,12 @@ class sdCharacter extends sdEntity
 		if ( ( this._build_params._min_build_tool_level || 0 ) > this.build_tool_level )
 		{
 			sdCharacter.last_build_deny_reason = 'Nice hacks bro';
+			return null;
+		}
+
+		if ( ( this._build_params._min_workbench_level || 0 ) > this.workbench_level )
+		{
+			sdCharacter.last_build_deny_reason = 'I need a workbench to build this';
 			return null;
 		}
 			

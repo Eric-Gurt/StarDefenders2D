@@ -12,9 +12,9 @@ class sdEnemyMech extends sdEntity
 {
 	static init_class()
 	{
-		sdEnemyMech.img_mech_idle = sdWorld.CreateImageFromFile( 'fmech' );
-		sdEnemyMech.img_mech_boost = sdWorld.CreateImageFromFile( 'fmech_boost' );
-		sdEnemyMech.img_mech_broken = sdWorld.CreateImageFromFile( 'fmech_broken' );
+		sdEnemyMech.img_mech_idle = sdWorld.CreateImageFromFile( 'fmech2' );
+		sdEnemyMech.img_mech_boost = sdWorld.CreateImageFromFile( 'fmech2_boost' );
+		sdEnemyMech.img_mech_broken = sdWorld.CreateImageFromFile( 'fmech2_broken' );
 		
 		sdEnemyMech.mechs_counter = 0;
 		
