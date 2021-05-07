@@ -1883,6 +1883,8 @@ io.on("connection", (socket) =>
 					{
 						sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._socket = socket;
 						socket.character = sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ];
+						
+						socket.character.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 
 						character_entity = sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ];
 

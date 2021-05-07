@@ -46,7 +46,7 @@ class sdOctopus extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 2000;
+		this._hmax = 1000; // Was 2000, but too boring to kill them
 		this._hea = this._hmax;
 		
 		this.death_anim = 0;
@@ -270,6 +270,7 @@ class sdOctopus extends sdEntity
 						 from_entity.GetClass() === 'sdTurret' ||
 						 from_entity.GetClass() === 'sdDoor' ||
 						 from_entity.GetClass() === 'sdStorage' ||
+						 ( from_entity.GetClass() === 'sdBadDog' && from_entity.master ) ||
 						 from_entity.GetClass() === 'sdHover' ||
 						 from_entity.GetClass() === 'sdAntigravity' ||
 						 from_entity.GetClass() === 'sdMatterContainer' ||
@@ -282,6 +283,9 @@ class sdOctopus extends sdEntity
 					if ( from_entity.IsTargetable( this ) )
 					{
 						let rank = Math.random() * 0.1;
+						
+						if ( ( from_entity.hea || from_entity._hea ) > 0 )
+						rank += 100 / ( 100 + ( from_entity.hea || from_entity._hea ) );
 						
 						if ( from_entity._held_by )
 						rank += 2;

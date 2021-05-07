@@ -60,8 +60,8 @@ class sdBadDog extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 200;
-		this._hea = this._hmax;
+		this.hmax = 200;
+		this.hea = this.hmax;
 		
 		this._retreat_hp_mult = 0.5; // Goes closer to 1 each time and at some point makes creature friendly?
 		
@@ -85,6 +85,8 @@ class sdBadDog extends sdEntity
 		this.bites = false;
 		this.jumps = false;
 		
+		this._regen_timeout = 0;
+		
 		this.side = 1;
 
 		this.SetMethod( 'MasterDamaged', this.MasterDamaged );
@@ -94,7 +96,7 @@ class sdBadDog extends sdEntity
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
-		if ( this._hea > 0 )
+		if ( this.hea > 0 )
 		if ( character.IsTargetable() && character.IsVisible( this ) )
 		if ( character.hea > 0 )
 		if ( character !== this.master )
@@ -126,12 +128,14 @@ class sdBadDog extends sdEntity
 	
 		//dmg = Math.abs( dmg );
 		
-		//let was_alive = this._hea > 0;
-		let old_hp = this._hea;
+		//let was_alive = this.hea > 0;
+		let old_hp = this.hea;
 		
 		if ( dmg > 0 || !this.master || initiator !== this.master )
 		{
-			this._hea -= Math.abs( dmg );
+			this.hea -= Math.abs( dmg );
+			
+			this._regen_timeout = 30;
 
 			if ( initiator )
 			if ( initiator !== this.master )
@@ -141,16 +145,16 @@ class sdBadDog extends sdEntity
 		{
 			// Only if this.master is set and healed by master
 			
-			if ( this._hea <= 0 )
+			if ( this.hea <= 0 )
 			{
-				this._hea = 0;
+				this.hea = 0;
 				this.death_anim = 0;
 			}
-			this._hea = Math.min( this._hea + dmg, this._hmax );
+			this.hea = Math.min( this.hea + Math.abs( dmg ), this.hmax );
 			return;
 		}
 		
-		if ( this._hea <= 0 && old_hp > 0 )
+		if ( this.hea <= 0 && old_hp > 0 )
 		{
 			sdSound.PlaySound({ name:'bad_dog_death', x:this.x, y:this.y, volume: 0.5 });
 
@@ -159,9 +163,9 @@ class sdBadDog extends sdEntity
 			initiator._score += 1;
 		}
 		else
-		if ( this._hea > 0 )
+		if ( this.hea > 0 )
 		{
-			if ( this._hea < this._hmax * this._retreat_hp_mult && old_hp >= this._hmax * this._retreat_hp_mult && ( !this.master || this.master._is_being_removed ) )
+			if ( this.hea < this.hmax * this._retreat_hp_mult && old_hp >= this.hmax * this._retreat_hp_mult && ( !this.master || this.master._is_being_removed ) )
 			{
 				sdSound.PlaySound({ name:'bad_dog_retreat', x:this.x, y:this.y, volume: 0.2 });
 				
@@ -187,11 +191,11 @@ class sdBadDog extends sdEntity
 			this.hurt_anim = 5;
 		}
 		
-		if ( this._hea < -this._hmax / 80 * 100 )
+		if ( this.hea < -this.hmax / 80 * 100 )
 		this.remove();
 	}
 	
-	get mass() { return 50; }
+	get mass() { return 40; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -208,10 +212,10 @@ class sdBadDog extends sdEntity
 			this.Damage( ( vel - 4 ) * 15 );
 		}
 	}*/
-	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
+	/*GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
 		return this.master ? [ 'sdCharacter' ] : null;
-	}
+	}*/
 	
 
 	MasterDamaged( damaged_ent, dmg2, initiator2 )
@@ -245,7 +249,7 @@ class sdBadDog extends sdEntity
 			this.owned = this.master ? 1 : 0;
 		}
 		
-		if ( this._hea <= 0 )
+		if ( this.hea <= 0 )
 		{
 			if ( this.death_anim < sdBadDog.death_duration + sdBadDog.post_death_ttl )
 			{
@@ -256,8 +260,14 @@ class sdBadDog extends sdEntity
 		}
 		else
 		{
-			if ( this._hea < this._hmax )
-			this._hea = Math.min( this._hmax, this._hea + GSPEED * 5 / 30 );
+			if ( this.hea < this.hmax )
+			{
+				this._regen_timeout -= GSPEED;
+				if ( this._regen_timeout < 0 )
+				{
+					this.hea = Math.min( this.hmax, this.hea + GSPEED * ( this.master ? 30 : 5 ) / 30 );
+				}
+			}
 		
 			if ( this.hurt_anim > 0 )
 			this.hurt_anim -= GSPEED;
@@ -284,17 +294,18 @@ class sdBadDog extends sdEntity
 					}
 				}
 			}
-				
+			
+			if ( sdWorld.is_server )
 			if ( this._current_target )
 			{
-				if ( this._current_target._is_being_removed || ( this._current_target.hea || this._current_target._hea ) <= 0 || !this._current_target.IsTargetable() || !this._current_target.IsVisible( this ) || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdBadDog.max_seek_range + 32 )
+				if ( this._current_target._is_being_removed || ( this._current_target.master && this._current_target.master === this.master ) || ( this._current_target.hea || this._current_target._hea ) <= 0 || !this._current_target.IsTargetable() || !this._current_target.IsVisible( this ) || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdBadDog.max_seek_range + 32 )
 				this._current_target = null;
 				else
 				{
 					this.side = ( this._current_target.x > this.x ) ? 1 : -1;
 
 					if ( !this.master )
-					if ( this._hea < this._hmax * this._retreat_hp_mult )
+					if ( this.hea < this.hmax * this._retreat_hp_mult )
 					this.side *= -1;
 
 					if ( sdWorld.is_server )
@@ -309,7 +320,7 @@ class sdBadDog extends sdEntity
 							//let dy = ( this._current_target.y - this.y );
 
 							if ( !this.master )
-							if ( this._hea < this._hmax * this._retreat_hp_mult )
+							if ( this.hea < this.hmax * this._retreat_hp_mult )
 							{
 								dx *= -1;
 								//dy *= -1;
@@ -353,7 +364,7 @@ class sdBadDog extends sdEntity
 							let dx = ( this._current_target.x > this.x ) ? 1 : -1;
 
 							if ( !this.master )
-							if ( this._hea < this._hmax * this._retreat_hp_mult )
+							if ( this.hea < this.hmax * this._retreat_hp_mult )
 							{
 								dx *= -1;
 							}
@@ -370,7 +381,7 @@ class sdBadDog extends sdEntity
 			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.87, GSPEED );
 			this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.87, GSPEED );
 			
-			if ( this._hea > 0 )
+			if ( this.hea > 0 )
 			this.sy -= sdWorld.gravity * GSPEED * 2;
 		}
 		
@@ -414,7 +425,6 @@ class sdBadDog extends sdEntity
 				if ( from_entity.IsTargetable() )
 				{
 					this._last_bite = sdWorld.time;
-					from_entity.Damage( 5, this );
 					
 					if ( typeof from_entity.sx === 'number' && typeof from_entity.sy === 'number' )
 					{
@@ -424,13 +434,14 @@ class sdBadDog extends sdEntity
 					
 					if ( this._last_bite_sound < sdWorld.time - 500 )
 					{
+						from_entity.Damage( 25, this );
+						sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
+						this.hea = Math.min( this.hmax, this.hea + 25 );
+					
 						this._last_bite_sound = sdWorld.time;
 						sdSound.PlaySound({ name:'bad_dog_attack', x:this.x, y:this.y, volume: 0.5 });
 					}
 					
-					this._hea = Math.min( this._hmax, this._hea + 5 );
-
-					sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 					
 					if ( from_entity.is( sdCharacter ) )
 					{
@@ -451,6 +462,24 @@ class sdBadDog extends sdEntity
 	{
 		if ( this.death_anim === 0 )
 		sdEntity.Tooltip( ctx, this.owned ? ( this.master ? sdEntity.GuessEntityName( this.master._net_id ) : 'Someone') + "'s Bad Dog" : "Bad Dog" );
+	
+		if ( this.death_anim < 20 )
+		if ( this.owned )
+		{
+			let w = 20;
+			
+			let snap_frame = ( ~~( this.death_anim / 10 ) ) * 10 / 20;
+			
+			ctx.globalAlpha = ( 1 - snap_frame ) * 0.5;
+			
+			ctx.fillStyle = '#000000';
+			ctx.fillRect( 0 - w / 2, 0 - 20, w, 3 );
+			
+			ctx.globalAlpha = 1 - snap_frame;
+			
+			ctx.fillStyle = '#FF0000';
+			ctx.fillRect( 1 - w / 2, 1 - 20, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
+		}
 	}
 	Draw( ctx, attached )
 	{
@@ -531,7 +560,7 @@ class sdBadDog extends sdEntity
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
-		if ( this._hea > 0 )
+		if ( this.hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		{
@@ -584,7 +613,7 @@ class sdBadDog extends sdEntity
 	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
-		if ( this._hea > 0 )
+		if ( this.hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
