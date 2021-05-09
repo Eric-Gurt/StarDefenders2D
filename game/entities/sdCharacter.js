@@ -601,6 +601,10 @@ class sdCharacter extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
+		if ( this._god )
+		if ( dmg > 0 )
+		return;
+	
 		if ( initiator === this )
 		initiator = null;
 			

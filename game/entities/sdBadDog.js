@@ -612,7 +612,10 @@ class sdBadDog extends sdEntity
 			if ( command_name === 'DISOWN' )
 			{
 				if ( this.master === exectuter_character )
-				this.master = null;
+				{
+					//this.master = null;
+					this.MasterRemoved( this.master );
+				}
 			}
 		}
 	}

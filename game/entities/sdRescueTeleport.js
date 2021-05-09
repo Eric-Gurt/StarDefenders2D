@@ -4,6 +4,7 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdCom from './sdCom.js';
+import sdArea from './sdArea.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -89,7 +90,8 @@ class sdRescueTeleport extends sdEntity
 		//this._update_version++
 		
 		this._owner = params.owner || null;
-		this.owner_net_id = this._owner ? this._owner._net_id : null;
+		this.owner_net_id = null;
+		//this.owner_net_id = this._owner ? this._owner._net_id : null;
 		
 		sdRescueTeleport.rescue_teleports.push( this );
 	}
@@ -108,6 +110,8 @@ class sdRescueTeleport extends sdEntity
 	{
 		if ( !sdWorld.is_server )
 		return;
+	
+		this.owner_net_id = this._owner ? this._owner._net_id : null;
 			
 		let can_hibernateA = false;
 		let can_hibernateB = false;
@@ -220,15 +224,43 @@ class sdRescueTeleport extends sdEntity
 		if ( this._hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 		{
-			if ( command_name === 'RESCUE_HERE' )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 			{
-				this._owner = exectuter_character || null;
-				this.owner_net_id = this._owner ? this._owner._net_id : null;
-				
-				this._update_version++;
+				if ( command_name === 'RESCUE_HERE' )
+				{
+					if ( this._owner === null || ( this._owner.hea || this._owner._hea ) <= 0 || this._owner._is_being_removed )
+					{
+						this._owner = exectuter_character;
+						
+						this._update_version++;
+
+						this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // .owner_net_id won't update without this
+						
+						executer_socket.SDServiceMessage( 'Rescue teleport is now owned by you' );
+					}
+					else
+					executer_socket.SDServiceMessage( 'Rescue teleport is owned by someone else' );
+				}
+				else
+				if ( command_name === 'UNRESCUE_HERE' )
+				{
+					if ( exectuter_character === this._owner )
+					{
+						this._owner = null;
+
+						this._update_version++;
+
+						this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // .owner_net_id won't update without this
+						
+						executer_socket.SDServiceMessage( 'Rescue teleport is no longer owned by you' );
+					}
+					else
+					executer_socket.SDServiceMessage( 'Rescue teleport is owned by someone else' );
+				}
 			}
+			else
+			executer_socket.SDServiceMessage( 'Rescue teleport is too far' );
 		}
 	}
 	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
@@ -240,7 +272,7 @@ class sdRescueTeleport extends sdEntity
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 		{
 			if ( sdWorld.my_entity && this.owner_net_id === sdWorld.my_entity._net_id )
-			this.AddContextOption( 'This is your personal rescue teleport', 'RESCUE_HERE', [] );
+			this.AddContextOption( 'Lose ownership', 'UNRESCUE_HERE', [] );
 			else
 			this.AddContextOption( 'Set as personal rescue teleport', 'RESCUE_HERE', [] );
 		}
