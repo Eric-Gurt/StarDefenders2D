@@ -114,6 +114,7 @@ class sdBullet extends sdEntity
 		this._bouncy = false;
 		
 		this._owner = null;
+		this._owner2 = null; // Usually vehicle which _owner uses to shoot (or sdTurret?). Participates in collision ignoring as well
 		this._can_hit_owner = false;
 		
 		this._soft = false; // Punches
@@ -241,6 +242,9 @@ class sdBullet extends sdEntity
 		return false;
 	
 		if ( this._owner === from_entity )
+		return false;
+	
+		if ( this._owner2 === from_entity )
 		return false;
 	
 		return true;
@@ -373,7 +377,11 @@ class sdBullet extends sdEntity
 		if ( !this.RegularCollisionFiltering( from_entity ) )
 		return;
 	
-		if ( ( this._owner !== from_entity && ( !this._owner || !this._owner._owner || this._owner._owner !== from_entity ) ) || this._can_hit_owner ) // 2nd rule is for turret bullet to not hit turret owner
+		if ( ( 
+				this._owner !== from_entity && ( !this._owner || !this._owner._owner || this._owner._owner !== from_entity ) &&
+				this._owner2 !== from_entity 
+				
+			 ) || this._can_hit_owner ) // 2nd rule is for turret bullet to not hit turret owner
 		{
 			if ( from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN || from_entity.is( sdCharacter ) )
 			//if ( from_entity.GetClass() === 'sdCharacter' || 

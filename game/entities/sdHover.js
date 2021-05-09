@@ -306,9 +306,10 @@ class sdHover extends sdEntity
 
 					let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 
-					bullet_obj._owner = this;
+					bullet_obj._owner = this.driver1;
+					bullet_obj._owner2 = this;
 
-					let an = this.driver1._an + ( Math.random() * 2 - 1 ) * 0.05;
+					let an = this.driver1.GetLookAngle() + ( Math.random() * 2 - 1 ) * 0.05;
 
 					bullet_obj.sx = Math.cos( Math.PI / 2 - an );
 					bullet_obj.sy = Math.sin( Math.PI / 2 - an );
@@ -321,8 +322,16 @@ class sdHover extends sdEntity
 					bullet_obj.sx += this.sx;
 					bullet_obj.sy += this.sy;
 
-					bullet_obj._damage = 10;
+					bullet_obj._damage = 13.5; // 10 was previous weak value, though it had no upgrade multiplier
 					bullet_obj.color = '#ffaa00';
+					
+
+					bullet_obj._damage *= bullet_obj._owner._damage_mult;
+
+					if ( bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ] )
+					bullet_obj._armor_penetration_level = bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ];
+					else
+					bullet_obj._armor_penetration_level = 0;
 
 					sdEntity.entities.push( bullet_obj );
 
@@ -349,9 +358,10 @@ class sdHover extends sdEntity
 
 					let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 
-					bullet_obj._owner = this;
+					bullet_obj._owner = this.driver2;
+					bullet_obj._owner2 = this;
 
-					let an = this.driver2._an + ( Math.random() * 2 - 1 ) * 0.05;
+					let an = this.driver2.GetLookAngle() + ( Math.random() * 2 - 1 ) * 0.05;
 
 					bullet_obj.sx = Math.cos( Math.PI / 2 - an );
 					bullet_obj.sy = Math.sin( Math.PI / 2 - an );
@@ -374,6 +384,14 @@ class sdHover extends sdEntity
 						bullet_obj.acx = Math.cos( Math.PI / 2 - an );
 						bullet_obj.acy = Math.sin( Math.PI / 2 - an );
 					}
+					
+
+					bullet_obj._damage *= bullet_obj._owner._damage_mult;
+
+					if ( bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ] )
+					bullet_obj._armor_penetration_level = bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ];
+					else
+					bullet_obj._armor_penetration_level = 0;
 
 					sdEntity.entities.push( bullet_obj );
 

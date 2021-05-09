@@ -959,6 +959,7 @@ class sdWorld
 		let max_x = _x + sdCom.retransmit_range + 32;
 		let min_y = _y - sdCom.retransmit_range - 32;
 		let max_y = _y + sdCom.retransmit_range + 32;
+		
 		let x, y, arr, i;
 		for ( x = min_x; x <= max_x; x += 32 )
 		for ( y = min_y; y <= max_y; y += 32 )
@@ -970,6 +971,7 @@ class sdWorld
 			if ( arr[ i ].is( sdCom ) )
 			if ( require_auth_for_net_id === null || arr[ i ].subscribers.indexOf( require_auth_for_net_id ) !== -1 /*|| arr[ i ].subscribers.indexOf( 'sdCharacter' ) !== -1*/ )
 			if ( ret.indexOf( arr[ i ] ) === -1 )
+			if ( sdWorld.inDist2D_Boolean( _x, _y, arr[ i ].x, arr[ i ].y, sdCom.retransmit_range ) ) // Strict or else visuals won't match
 			//if ( sdWorld.CheckLineOfSight( _x, _y, arr[ i ].x, arr[ i ].y, null, sdCom.com_visibility_ignored_classes, null ) )
 			if ( sdWorld.CheckLineOfSight( _x, _y, arr[ i ].x, arr[ i ].y, null, null, sdCom.com_visibility_unignored_classes ) )
 			{

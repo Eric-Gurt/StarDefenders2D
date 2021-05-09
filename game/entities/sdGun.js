@@ -492,7 +492,7 @@ class sdGun extends sdEntity
 						}
 					}
 					
-					let initial_an = this._held_by._an + this._held_by._side * ( Math.pow( this._held_by._recoil * 5, 2 ) / 5 );
+					let initial_an = this._held_by.GetLookAngle() + this._held_by._side * ( Math.pow( this._held_by._recoil * 5, 2 ) / 5 );
 					
 					let count = sdGun.classes[ this.class ].count === undefined ? 1 : sdGun.classes[ this.class ].count;
 					let spread = sdGun.classes[ this.class ].spread || 0;

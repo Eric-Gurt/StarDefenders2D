@@ -24,6 +24,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdChat from './client/sdChat.js';
 	import sdContextMenu from './client/sdContextMenu.js';
 	import LZW from './server/LZW.js';
+	import LZUTF8 from './server/LZUTF8.js';
 	import sdSnapPack from './server/sdSnapPack.js';
 
 	import sdWorld from './sdWorld.js';

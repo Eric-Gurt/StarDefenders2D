@@ -385,16 +385,23 @@ class sdCharacter extends sdEntity
 	
 	get _an()
 	{
+		debugger; // sdCharacter\'s property _an is obsolete now
+		return 0;
+	}
+	set _an( v )
+	{
+		debugger; // sdCharacter\'s property _an is obsolete now
+		//console.log( 'sdCharacter\'s property _an is obsolete now' );
+	}
+	GetLookAngle( for_visuals=false )
+	{
+		if ( for_visuals )
 		if ( this.driver_of )
 		return 0;
 		
 		let offset = this.GetBulletSpawnOffset();
 
 		return -Math.PI / 2 - Math.atan2( this.y + offset.y - this.look_y, this.x + offset.x - this.look_x );
-	}
-	set _an( v )
-	{
-		console.log( 'sdCharacter\'s property _an is obsolete now' );
 	}
 	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
@@ -602,6 +609,7 @@ class sdCharacter extends sdEntity
 		return;
 	
 		if ( this._god )
+		if ( this._socket ) // No disconnected gods
 		if ( dmg > 0 )
 		return;
 	
@@ -1351,7 +1359,7 @@ class sdCharacter extends sdEntity
 									let bullet_obj = new sdBullet({ x: this.x + offset.x, y: this.y + offset.y });
 									bullet_obj._owner = this;
 
-									let an = bullet_obj._owner._an;// + ( Math.random() * 2 - 1 ) * spread;
+									let an = bullet_obj._owner.GetLookAngle();// + ( Math.random() * 2 - 1 ) * spread;
 
 									let vel = 16;
 
@@ -1566,7 +1574,7 @@ class sdCharacter extends sdEntity
 							this._hook_once = false;
 							let bullet_obj = new sdBullet({ x: this.x, y: this.y + sdCharacter.bullet_y_spawn_offset });
 							bullet_obj._owner = this;
-							let an = this._an;
+							let an = this.GetLookAngle();
 							let vel = 16;
 							bullet_obj.sx = Math.sin( an ) * vel;
 							bullet_obj.sy = Math.cos( an ) * vel;
@@ -2140,8 +2148,10 @@ class sdCharacter extends sdEntity
 			}
 			else
 			{
-				this._inventory[ i ].sx += Math.sin( this._an ) * 5;
-				this._inventory[ i ].sy += Math.cos( this._an ) * 5;
+				let an = this.GetLookAngle();
+				
+				this._inventory[ i ].sx += Math.sin( an ) * 5;
+				this._inventory[ i ].sy += Math.cos( an ) * 5;
 				
 				this._ignored_guns.push( this._inventory[ i ] );
 				this._ignored_guns_until.push( sdWorld.time + 300 );
@@ -2759,7 +2769,7 @@ class sdCharacter extends sdEntity
 						ctx.rotate( -an );
 						ctx.rotate( -this.tilt / 100 * this._side );
 
-						ctx.rotate( ( -this._an ) * this._side + Math.PI / 2 );
+						ctx.rotate( ( -this.GetLookAngle( true ) ) * this._side + Math.PI / 2 );
 						/*
 						ctx.rotate( Math.atan2( 
 							( this.y - this.look_y ) , 

@@ -203,6 +203,7 @@ import sdRescueTeleport from './game/entities/sdRescueTeleport.js';
 
 
 import LZW from './game/server/LZW.js';
+import LZUTF8 from './game/server/LZUTF8.js';
 import sdSnapPack from './game/server/sdSnapPack.js';
 import sdShop from './game/client/sdShop.js';
 import sdSound from './game/sdSound.js';
