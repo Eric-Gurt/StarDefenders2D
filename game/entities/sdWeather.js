@@ -372,6 +372,7 @@ class sdWeather extends sdEntity
 			}
 			
 			if ( this.quake_intensity >= 100 )
+			//for ( let i = 0; i < 100; i++ ) // Hack
 			{
 				let ent = new sdBlock({ x:0, y:0, width:16, height:16 });
 				
@@ -379,8 +380,11 @@ class sdWeather extends sdEntity
 				
 				{
 					let x,y;
+					
 					//let tr = 1000;
+					
 					let tr = 35;
+					
 					do
 					{
 						x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
@@ -397,7 +401,8 @@ class sdWeather extends sdEntity
 						
 						if ( ent.CanMoveWithoutOverlap( x, y, 0.0001 ) )
 						//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
-						if ( !sdWorld.CheckWallExistsBox( x, y, x+16, y+16, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava
+						//if ( !sdWorld.CheckWallExistsBox( x, y, x+16, y+16, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava
+						if ( !sdWorld.CheckWallExistsBox( x + 0.0001, y + 0.0001, x+16 - 0.0001, y+16 - 0.0001, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava
 						{
 							let ent_above = null;
 							let ent_above_exists = false;

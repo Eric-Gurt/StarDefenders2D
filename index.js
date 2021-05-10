@@ -518,7 +518,7 @@ const server_config_path_const = __dirname + '/server_config' + ( world_slot || 
 const snapshot_path_const = __dirname + '/star_defenders_snapshot' + ( world_slot || '' ) + '.v';
 const timewarp_path_const = __dirname + '/star_defenders_timewarp' + ( world_slot || '' ) + '.v';
 const moderation_data_path_const = __dirname + '/moderation_data' + ( world_slot || '' ) + '.v';
-const superuser_pass_path = __dirname + '/superuser_pass' + ( world_slot || '' ) + '.v';
+const superuser_pass_path = __dirname + '/superuser_pass' + ( world_slot || '' ) + '.txt'; // Used to be .v
 const sync_debug_path = __dirname + '/sync_debug' + ( world_slot || '' ) + '.v';
 
 sdWorld.server_config = {};
