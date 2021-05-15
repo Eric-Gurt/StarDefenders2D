@@ -478,7 +478,7 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_BUILDTOOL_UPG = 25 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'buildtool_upgrade2' ),
-			title: 'Build tool upgrade (flying mech)',
+			title: 'Build tool upgrade',
 			slot: 0,
 			reload_time: 25,
 			muzzle_x: null,
@@ -489,11 +489,26 @@ class sdGunClass
 			ignore_slot: true,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
-				if ( character._acquired_bt_mech === false ) // Has the player found this upgrade before?
+				if ( character._acquired_bt_mech === false && gun.extra === 0 ) // Has the player found this upgrade before?
 				if ( !character._ai )
 				{
 					character.build_tool_level++;
 					character._acquired_bt_mech = true;
+					if ( Math.random() > 0.5 )
+					character.Say( "I can use this to expand my building arsenal" );
+					else
+					character.Say( "This is definitely gonna help me build new stuff");
+					gun.remove(); 
+					
+					if ( character._socket )
+					sdSound.PlaySound({ name:'reload', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
+				}
+
+				if ( character._acquired_bt_rift === false && gun.extra === 1 ) // Has the player found this upgrade before?
+				if ( !character._ai )
+				{
+					character.build_tool_level++;
+					character._acquired_bt_rift = true;
 					if ( Math.random() > 0.5 )
 					character.Say( "I can use this to expand my building arsenal" );
 					else

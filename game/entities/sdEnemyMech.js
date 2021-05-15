@@ -7,6 +7,7 @@ import sdGun from './sdGun.js';
 import sdWater from './sdWater.js';
 import sdCom from './sdCom.js';
 import sdBullet from './sdBullet.js';
+import sdBlock from './sdBlock.js';
 
 class sdEnemyMech extends sdEntity
 {
@@ -26,8 +27,8 @@ class sdEnemyMech extends sdEntity
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -18; }
-	get hitbox_x2() { return 18; }
+	get hitbox_x1() { return -14; }
+	get hitbox_x2() { return 14; }
 	get hitbox_y1() { return -24; }
 	get hitbox_y2() { return 28; }
 	
@@ -390,12 +391,17 @@ class sdEnemyMech extends sdEntity
 
 					for ( let i = 0; i < targets_raw.length; i++ )
 					if ( ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ].hea > 0 ) ||
-						 ( targets_raw[ i ].GetClass() === 'sdTurret' ) ||
+						 ( targets_raw[ i ].GetClass() === 'sdTurret' && targets_raw[ i ]._disabled_timeout < 240 ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdCube' && targets_raw[ i ].hea > 0 ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdCube' && this.hea < 2000 ) )
 					{
 						if ( sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdEnemyMech' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
 							targets.push( targets_raw[ i ] );
+						else
+						if ( !sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdEnemyMech' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
+						if ( sdWorld.last_hit_entity )
+						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_TRAPSHIELD || sdWorld.last_hit_entity.material === sdBlock.MATERIAL_SHARP ) ) // Target shield blocks and trap blocks aswell
+						targets.push( sdWorld.last_hit_entity );
 						else
 						{
 							if ( this.hea < 2000 )
@@ -446,7 +452,7 @@ class sdEnemyMech extends sdEntity
 
 						sdSound.PlaySound({ name:'gun_pistol', pitch: 1, x:this.x, y:this.y, volume:0.5 });
 
-						if ( targets[ i ].GetClass() === 'sdTurret' || targets[ i ].GetClass() === 'sdCube' ) // Turrets and cubes get the special treatment
+						if ( targets[ i ].GetClass() === 'sdTurret' || targets[ i ].GetClass() === 'sdCube' || targets[ i ].GetClass() === 'sdBlock' ) // Turrets, trap/shield blocks and cubes get the special treatment
 						if ( this._rail_attack_timer <= 0 )
 						{
 						an = Math.atan2( targets[ i ].y - ( this.y - 16 ), targets[ i ].x - this.x ); // Pinpoint accurate against turrets
@@ -463,12 +469,14 @@ class sdEnemyMech extends sdEntity
 							bullet_obj.time_left = 60;
 
 							bullet_obj._rail = true;
+							bullet_obj._emp = true; // Disable turrets
+							bullet_obj._emp_mult = 6; // 5 * 6 = 30 seconds of disabling a turret
 
-							bullet_obj._damage = 600;
+							bullet_obj._damage = 50;
 							bullet_obj.color = '#ff0000';
 
 							sdEntity.entities.push( bullet_obj );
-							this._rail_attack_timer = 20;
+							this._rail_attack_timer = 10;
 							sdSound.PlaySound({ name:'gun_railgun', pitch: 0.5, x:this.x, y:this.y, volume:0.5 });
 						}
 						break;
