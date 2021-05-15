@@ -53,94 +53,6 @@ class sdWorkbench extends sdEntity
 			}
 		}
 	}
-/*
-	UpgradeCharacter( character )
-	{
-		for ( var i = 0; i < sdShop.options.length; i++ )
-		{
-			if ( sdShop.options[ i ]._category === 'upgrades' )
-			{
-			//	console.log("Detected upgrades");
-				let max_level = sdShop.upgrades[ sdShop.options[ i ].upgrade_name ].max_level;
-				let cur_level = ( character._upgrade_counters[ sdShop.options[ i ].upgrade_name ] || 0 );
-			//	console.log("UPGRADE:" + sdShop.options[ i ].upgrade_name + "Max level:" + max_level);
-			//	console.log("PLAYER UPGRADE:" + sdShop.options[ i ].upgrade_name + " level:" + cur_level);
-				if ( sdShop.options[ i ]._min_build_tool_level <= character.build_tool_level )
-				{
-					for ( var j = cur_level; j < max_level; j++ )
-					{
-						character.InstallUpgrade( sdShop.options[ i ].upgrade_name );
-					}
-				}
-			}
-		}
-		this.matter -= 5000;
-		this._update_version++;
-		sdWorld.UpdateHashPosition( this, false );
-	}
-	UpgradeStation( character )
-	{
-		if ( character.build_tool_level > this.level )
-		{
-			this.level++;
-			this.hmax = 5000 + ( 2000 * this.level );
-			this.matter_max = 5500 + this.level;
-			this.matter -= 5000;
-			this._update_version++;
-			sdWorld.UpdateHashPosition( this, false );
-		}
-	}
-	DropBasicEquipment( character )
-	{
-		setTimeout(()=>{ // Just in case, unsure if needed
-
-			let gun, gun2, gun3, gun4, gun5, gun6;
-			if ( this.level === 1 )
-			gun = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_PISTOL });
-			if ( this.level === 2 )
-			gun = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_PISTOL_MK2 });
-			gun.sx = character.sx;
-			gun.sy = character.sy;
-			sdEntity.entities.push( gun );
-			
-			if ( this.level === 1 )
-			gun2 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_RIFLE });
-			if ( this.level === 2 )
-			gun2 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_LMG_P04 });
-			gun2.sx = character.sx;
-			gun2.sy = character.sy;
-			sdEntity.entities.push( gun2 );
-
-			gun3 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SHOTGUN });
-			gun3.sx = character.sx;
-			gun3.sy = character.sy;
-			sdEntity.entities.push( gun3 );
-
-			if ( this.level === 1 )
-			gun4 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SWORD });
-			if ( this.level === 2 )
-			gun4 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SABER });
-			gun4.sx = character.sx;
-			gun4.sy = character.sy;
-			sdEntity.entities.push( gun4 );
-
-			gun5 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_MEDIKIT });
-			gun5.sx = character.sx;
-			gun5.sy = character.sy;
-			sdEntity.entities.push( gun5 );
-
-			gun6 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_BUILD_TOOL });
-			gun6.sx = character.sx;
-			gun6.sy = character.sy;
-			sdEntity.entities.push( gun6 );
-
-			}, 500 );
-		this._cooldown = 900; // 30 second cooldown so it does not get spammed.
-		this.matter -= 500;
-		this._update_version++;
-		sdWorld.UpdateHashPosition( this, false );
-	}
-*/
 	constructor( params )
 	{
 		super( params );
@@ -210,7 +122,7 @@ class sdWorkbench extends sdEntity
 	
 	onRemove() // Class-specific, if needed
 	{
-		this.onRemoveAsFakeEntity();
+		sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
 	}
 	onRemoveAsFakeEntity()
 	{

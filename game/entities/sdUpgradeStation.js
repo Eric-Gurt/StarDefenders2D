@@ -83,7 +83,7 @@ class sdUpgradeStation extends sdEntity
 		{
 			this.level++;
 			this.hmax = 5000 + ( 2000 * this.level );
-			this.matter_max = 5500 + this.level;
+			this.matter_max = 5500 * this.level;
 			this.matter -= 5000;
 			this._update_version++;
 			sdWorld.UpdateHashPosition( this, false );
@@ -109,8 +109,10 @@ class sdUpgradeStation extends sdEntity
 			gun2.sx = character.sx;
 			gun2.sy = character.sy;
 			sdEntity.entities.push( gun2 );
-
+			if ( this.level < 3 )
 			gun3 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SHOTGUN });
+			if ( this.level === 3 )
+			gun3 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SHOTGUN_MK2 });
 			gun3.sx = character.sx;
 			gun3.sy = character.sy;
 			sdEntity.entities.push( gun3 );
@@ -210,7 +212,8 @@ class sdUpgradeStation extends sdEntity
 	
 	onRemove() // Class-specific, if needed
 	{
-		this.onRemoveAsFakeEntity();
+		sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
+		//this.onRemoveAsFakeEntity();
 	}
 	onRemoveAsFakeEntity()
 	{
