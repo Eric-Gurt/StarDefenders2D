@@ -1539,7 +1539,7 @@ class sdCharacter extends sdEntity
 					this.act_x = this._key_states.GetKey( 'KeyD' ) - this._key_states.GetKey( 'KeyA' );
 					this.act_y = this._key_states.GetKey( 'KeyS' ) - ( ( this._key_states.GetKey( 'KeyW' ) || this._key_states.GetKey( 'Space' ) ) ? 1 : 0 );
 					
-					if ( this._socket || this._ai )
+					if ( this._socket || this._ai || sdWorld.my_entity === this )
 					if ( this.act_x !== 0 || this.act_y !== 0 )
 					this.PhysWakeUp();
 				}
