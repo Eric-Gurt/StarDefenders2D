@@ -10,6 +10,7 @@ import sdQuickie from './sdQuickie.js';
 import sdAsp from './sdAsp.js';
 import sdCrystal from './sdCrystal.js';
 import sdBlock from './sdBlock.js';
+import sdCube from './sdCube.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -55,6 +56,12 @@ class sdRift extends sdEntity
 		this._time_until_teleport = 30 * 60 * 10; // Time for the portal to switch location
 		this._teleport_timer = 30 * 60 * 10;
 		this.type = params.type || 1; // Default is the weakest variation of the rift
+		this.alpha = 1; // Portal transparency, used when portal is switching location
+
+		if ( this.type === 1 )
+		this.filter = 'none';
+		if ( this.type === 2 )
+		this.filter = 'hue-rotate(' + 300 + 'deg) saturate( 1 )';
 	}
 	MeasureMatterCost()
 	{
@@ -81,11 +88,11 @@ class sdRift extends sdEntity
 				}
 			}
 			if ( this._spawn_timer_cd <= 0 ) // Spawn an entity
+			if ( this.CanMoveWithoutOverlap( this.x, this.y, 0 ) )
 			{
 				if ( this.type === 1 ) // Quickies and Asps
-				if ( this.CanMoveWithoutOverlap( this.x, this.y, 0 ) )
 				{
-				let spawn_type = Math.random();
+					let spawn_type = Math.random();
 					if ( spawn_type < 0.333 )
 					{
 						if ( sdAsp.asps_tot < 25 ) // Same amount as in sdWeather
@@ -112,8 +119,30 @@ class sdRift extends sdEntity
 						sdEntity.entities.push( quickie );
 						sdWorld.UpdateHashPosition( quickie, false ); // Prevent intersection with other ones
 					}
-				this._spawn_timer_cd = this._spawn_timer;
 				}
+				if ( this.type === 2 ) // Cube portal
+				{
+					if ( sdCube.alive_cube_counter < 20 )
+					{
+						let cube = new sdCube({ 
+							x:this.x,
+							y:this.y,
+							is_huge: ( sdCube.alive_huge_cube_counter >= sdWorld.GetPlayingPlayersCount() ) ? false : ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.1 )
+						});
+						cube.sy += ( 10 - ( Math.random() * 20 ) );
+						cube.sx += ( 10 - ( Math.random() * 20 ) );
+						sdEntity.entities.push( cube );
+
+						if ( !cube.CanMoveWithoutOverlap( cube.x, cube.y, 0 ) )
+						{
+							cube.remove();
+						}
+						else
+						sdWorld.UpdateHashPosition( cube, false ); // Prevent inersection with other ones
+					}
+				}
+
+				this._spawn_timer_cd = this._spawn_timer; // Reset spawn timer countdown
 			}
 				if ( this.matter_crystal > 0 ) // Has the rift drained any matter?
 				{
@@ -213,8 +242,12 @@ class sdRift extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.scale( 0.75 + ( 0.75 * this.hea / this.hmax ), 0.75 + ( 0.75 * this.hea / this.hmax ) );
-		ctx.drawImage( sdRift.img_rift, -16, -16, 32, 32);
+		ctx.globalAlpha = this.alpha;
+		ctx.filter = this.filter;
+		ctx.scale( 0.75 + ( 0.25 * this.hea / this.hmax ), 0.75 + ( 0.25 * this.hea / this.hmax ) );
+		ctx.drawImageFilterCache( sdRift.img_rift, -16, -16, 32, 32);
+		ctx.globalAlpha = 1;
+		ctx.filter = 'none';
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{

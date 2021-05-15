@@ -794,6 +794,12 @@ class sdGun extends sdEntity
 				}
 			}
 
+			if ( this.class === sdGun.CLASS_BUILDTOOL_UPG )
+			{
+				if ( this.extra === 1 )
+				image = sdGun.classes[ this.class ].image0;
+			}
+
 			if ( sdGun.classes[ this.class ].is_sword )
 			//if ( this.class === sdGun.CLASS_SWORD )
 			if ( this._held_by )

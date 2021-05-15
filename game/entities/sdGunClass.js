@@ -478,6 +478,7 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_BUILDTOOL_UPG = 25 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'buildtool_upgrade2' ),
+			image0: sdWorld.CreateImageFromFile( 'buildtool_upgrade' ),
 			title: 'Build tool upgrade',
 			slot: 0,
 			reload_time: 25,
