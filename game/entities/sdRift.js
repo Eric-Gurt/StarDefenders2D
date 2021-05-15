@@ -53,8 +53,8 @@ class sdRift extends sdEntity
 		this.matter_crystal = 0; // Named differently to prevent matter absorption from entities that emit matter
 		this._spawn_timer = params._spawn_timer || 30 * 60; // Either defined by spawn or 60 seconds
 		this._spawn_timer_cd = this._spawn_timer; // Countdown/cooldown for spawn timer
-		this._time_until_teleport = 30 * 1; // Time for the portal to switch location
-		this._teleport_timer = 30 * 1;
+		this._time_until_teleport = 30 * 60 * 10; // Time for the portal to switch location
+		this._teleport_timer = 30 * 60 * 10;
 		this.type = params.type || 1; // Default is the weakest variation of the rift
 
 		if ( this.type === 1 )
