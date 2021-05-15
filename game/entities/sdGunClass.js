@@ -62,7 +62,7 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_SHOTGUN = 2 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'shotgun' ),
+			image: sdWorld.CreateImageFromFile( 'Shotgun-1' ),//Other assets exist for a pump-action animation but I was getting lazy - Com
 			sound: 'gun_shotgun',
 			title: 'Shotgun',
 			slot: 3,
@@ -507,6 +507,84 @@ class sdGunClass
 				return false; 
 			} 
 		};
+		sdGun.classes[ sdGun.CLASS_DMR_L2 = 26 ] = //Created to keep the spirit of the original shotgun - Com
+		{
+				image: sdWorld.CreateImageFromFile( 'dmr' ),
+				sound: 'gun_pistol',
+				sound_pitch: 0.8,
+				sound_volume: 2,
+				title: 'DMR L-2',
+				slot: 4,
+				reload_time: 20,
+				muzzle_x: 8,
+				ammo_capacity: 6,
+				count: 1,
+				projectile_velocity: 14 * 2,
+				spread: 0.001,
+				matter_cost: 60,
+				projectile_properties: { _damage: 85, color: '#deFFFF', _knock_scale:0.01 * 6 }
+		};
+		sdGun.classes[ sdGun.CLASS_LMG_S2 = 27 ] = //Created before P01 as somethign intended to be plantable, hoever, likely will end up used on other entities - Com
+		{
+			image: sdWorld.CreateImageFromFile( 'LMG-1' ),
+			sound: 'turret',
+			sound_pitch: 0.55,
+			sound_volume: 1,
+			title: 'MMG S2',
+			slot: 2,
+			reload_time: 1.5,
+			muzzle_x: 10,
+			ammo_capacity: 120,
+			spread: 0.2, // 0.03
+			projectile_velocity: 9.5 * 2,
+			count: 1,
+			projectile_properties: { _damage: 10 },
+			spawnable: false ,
+		};
+		sdGun.classes[ sdGun.CLASS_C01P = 28] = //Concept art by Lazyrain, implemanted by Commander
+		{
+			image: sdWorld.CreateImageFromFile( 'C01P' ),
+			sound: 'gun_pistol',
+			title: 'Pistol C01P',
+			slot: 1,
+			reload_time: 8,
+			muzzle_x: 5,
+			ammo_capacity: 14,
+			spread: 0.02,
+			count: 1,
+			projectile_properties: { _damage: 30 , color: '#afdfff'},
+			spawnable: false
+		};
+		sdGun.classes[ sdGun.CLASS_RAIL_MEDGUN = 29 ] = 
+        {
+            image: sdWorld.CreateImageFromFile( 'rail_medgun' ),
+            sound: 'gun_defibrillator',
+            sound_pitch: 1.5,
+            sound_volume: 2,
+            title: 'Cube-medgun',
+            slot: 6,
+            reload_time: 45,
+            muzzle_x: 6,
+            ammo_capacity: -1,
+            count: 1,
+            projectile_properties: { _rail: true, time_left: 10, _damage: -30, color: '#ffffff', _return_damage_to_owner:true },
+            spawnable: false 
+        };
+		sdGun.classes[ sdGun.CLASS_RAIL_SNIPER = 30 ] = 
+        {
+            image: sdWorld.CreateImageFromFile( 'rail_sniper' ),
+            sound: 'cube_attack',
+            sound_pitch: 0.4,
+            sound_volume: 2,
+            title: 'Cube-sniper',
+            slot: 4,
+            reload_time: 5,
+            muzzle_x: 8,
+            ammo_capacity: 3,
+            count: 1,
+            projectile_properties: { _rail: true, _damage: 37, color: '#62c8f2' },
+            spawnable: false
+        };
 
 		sdGun.classes[ sdGun.CLASS_LVL1_LIGHT_ARMOR = 26 ] = 
 		{

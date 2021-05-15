@@ -47,7 +47,6 @@ class sdShop
 		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles' });
-		
 		function AddBuildPack( filter, i )
 		{
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, filter: filter, _category:'Walls' });

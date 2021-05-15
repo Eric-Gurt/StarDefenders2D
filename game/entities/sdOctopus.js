@@ -272,6 +272,7 @@ class sdOctopus extends sdEntity
 						 from_entity.GetClass() === 'sdStorage' ||
 						 ( from_entity.GetClass() === 'sdBadDog' && from_entity.master ) ||
 						 from_entity.GetClass() === 'sdHover' ||
+						 from_entity.GetClass() === 'sdHoverCombat' ||
 						 from_entity.GetClass() === 'sdAntigravity' ||
 						 from_entity.GetClass() === 'sdMatterContainer' ||
 						 from_entity.GetClass() === 'sdCommandCentre' ||

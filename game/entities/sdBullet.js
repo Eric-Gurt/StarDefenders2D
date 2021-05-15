@@ -11,6 +11,7 @@ import sdAntigravity from './sdAntigravity.js';
 import sdDoor from './sdDoor.js';
 import sdGun from './sdGun.js';
 import sdArea from './sdArea.js';
+import sdHoverCombat from './sdHoverCombat.js';
 
 
 
@@ -201,7 +202,7 @@ class sdBullet extends sdEntity
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return this._bouncy ? null : ( this.is_grenade ? [ 'sdCharacter' ] : [ 'sdCharacter', 'sdTurret', 'sdHover', 'sdEnemyMech' , 'sdCube', 'sdAsp', 'sdJunk' ] );
+		return this._bouncy ? null : ( this.is_grenade ? [ 'sdCharacter' ] : [ 'sdCharacter', 'sdTurret', 'sdHover', 'sdEnemyMech' , 'sdCube', 'sdAsp', 'sdJunk', ' sdHoverCombat'  ] );
 	}
 	get bounce_intensity()
 	{ return this._bouncy ? 0.8 : ( this.is_grenade ? 0.55 : 0.3 ); } // 0.3 not felt right for grenades

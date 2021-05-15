@@ -14,9 +14,11 @@ import sdWater from './sdWater.js';
 import sdCube from './sdCube.js';
 import sdCom from './sdCom.js';
 import sdHover from './sdHover.js';
+import sdHoverCombat from './sdHoverCombat.js';
 import sdDoor from './sdDoor.js';
 import sdBG from './sdBG.js';
 import sdBarrel from './sdBarrel.js';
+import sdCubeBomb from './sdCubeBomb.js';
 import sdBomb from './sdBomb.js';
 import sdTurret from './sdTurret.js';
 import sdArea from './sdArea.js';
@@ -56,7 +58,9 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_crusader' ), // by xXRedXAssassinXx
 			sdWorld.CreateImageFromFile( 'helmet_phfalkok' ), // by Booraz149
 			sdWorld.CreateImageFromFile( 'helmet_aero' ), // // original by LordBored, remake by LazyRain
-			sdWorld.CreateImageFromFile( 'helmet_scout' ) // by Ghost581, original name was "Observer"
+			sdWorld.CreateImageFromFile( 'helmet_scout' ), // by Ghost581, original name was "Observer"
+			sdWorld.CreateImageFromFile( 'helmet_tacticalSD'), // by The Commander
+			sdWorld.CreateImageFromFile( 'helmet_medic' ), // by The Commander
 		];
 		
 		// x y rotation, for images below
