@@ -330,6 +330,7 @@ class sdCharacter extends sdEntity
 		this.workbench_level = 0; // Stand near workbench to unlock some workbench build stuff
 
 		this._acquired_bt_mech = false; // Has the character picked up build tool upgrade that the flying mech drops?
+		this._acquired_bt_rift = false; // Has the character picked up build tool upgrade that the portals drop?
 
 		this.flying = false; // Jetpack flying
 		this._last_act_y = this.act_y; // For mid-air jump jetpack activation

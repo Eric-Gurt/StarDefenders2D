@@ -71,6 +71,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdShark from './entities/sdShark.js';
 	import sdWorkbench from './entities/sdWorkbench.js';
 	import sdRescueTeleport from './entities/sdRescueTeleport.js';
+	import sdRift from './entities/sdRift.js';
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -121,6 +122,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdShark.init_class();
 	sdWorkbench.init_class();
 	sdRescueTeleport.init_class();
+	sdRift.init_class();
 	
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;

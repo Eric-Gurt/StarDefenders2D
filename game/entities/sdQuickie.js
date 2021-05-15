@@ -26,6 +26,8 @@ class sdQuickie extends sdEntity
 		sdQuickie.post_death_ttl = 90;
 		
 		sdQuickie.max_seek_range = 1000;
+
+		sdQuickie.quickies_tot = 0;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -44,7 +46,9 @@ class sdQuickie extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 50;
+		this._tier = params._tier || 1; // Used determine it's HP and damage
+
+		this._hmax = 50 * this._tier;
 		this._hea = this._hmax;
 		
 		this.death_anim = 0;
@@ -56,7 +60,9 @@ class sdQuickie extends sdEntity
 		this._last_bite = sdWorld.time;
 		
 		this.side = 1;
-		
+
+		sdQuickie.quickies_tot++;
+		this.sd_filter = params.sd_filter || null; // Custom per-pixel filter
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
@@ -227,9 +233,9 @@ class sdQuickie extends sdEntity
 				if ( from_entity.IsTargetable() )
 				{
 					this._last_bite = sdWorld.time;
-					from_entity.Damage( 15, this );
+					from_entity.Damage( 15 * this._tier, this );
 					
-					this._hea = Math.min( this._hmax, this._hea + 7 );
+					this._hea = Math.min( this._hmax, this._hea + ( 7 * this._tier ) );
 
 					sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 					
@@ -248,7 +254,7 @@ class sdQuickie extends sdEntity
 	Draw( ctx, attached )
 	{
 		//ctx.filter = this.filter;
-		
+		ctx.sd_filter = this.sd_filter;
 		ctx.scale( this.side, 1 );
 		
 		if ( this.death_anim > 0 )
@@ -270,6 +276,7 @@ class sdQuickie extends sdEntity
 		}
 		
 		ctx.globalAlpha = 1;
+		ctx.sd_filter = null;
 		//ctx.filter = 'none';
 	}
 	/*onMovementInRange( from_entity )
@@ -278,6 +285,7 @@ class sdQuickie extends sdEntity
 	}*/
 	onRemove() // Class-specific, if needed
 	{
+		sdQuickie.quickies_tot--;
 		//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
 		
 		if ( sdWorld.is_server )

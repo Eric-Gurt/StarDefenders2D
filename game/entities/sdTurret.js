@@ -87,12 +87,20 @@ class sdTurret extends sdEntity
 		this._seek_timer = Math.random() * 15;
 		this.fire_timer = 0;
 		this._target = null;
+
+		this.disabled = false; // If hit by EMP, set the turret in sleep mode but allow hp regen
+		this._disabled_timeout = 0; // Countdown timer when disabled
 		
 		//this._coms_near_cache = [];
 	}
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		if ( this._disabled_timeout > 0 )
+		this._disabled_timeout -= GSPEED;
+		else
+		if ( this.disabled )
+		this.disabled = false;
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
@@ -101,7 +109,7 @@ class sdTurret extends sdEntity
 		
 		if ( sdWorld.is_server )
 		{
-			if ( this._seek_timer <= 0 )
+			if ( this._seek_timer <= 0 && this.disabled === false )
 			{
 				this._seek_timer = 10 + Math.random() * 10;
 
@@ -264,7 +272,7 @@ class sdTurret extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		sdEntity.Tooltip( ctx, this.title );
-		
+
 		this.DrawConnections( ctx );
 	}
 	DrawConnections( ctx )
