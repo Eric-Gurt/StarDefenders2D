@@ -199,7 +199,7 @@ class sdRift extends sdEntity
 				{
 					let r = Math.random();
 			
-					//if ( r < 0.25 )
+					if ( r < 0.125 )
 					{
 						let x = this.x;
 						let y = this.y;
