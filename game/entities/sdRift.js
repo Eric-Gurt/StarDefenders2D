@@ -53,10 +53,9 @@ class sdRift extends sdEntity
 		this.matter_crystal = 0; // Named differently to prevent matter absorption from entities that emit matter
 		this._spawn_timer = params._spawn_timer || 30 * 60; // Either defined by spawn or 60 seconds
 		this._spawn_timer_cd = this._spawn_timer; // Countdown/cooldown for spawn timer
-		this._time_until_teleport = 30 * 60 * 10; // Time for the portal to switch location
-		this._teleport_timer = 30 * 60 * 10;
+		this._time_until_teleport = 30 * 1; // Time for the portal to switch location
+		this._teleport_timer = 30 * 1;
 		this.type = params.type || 1; // Default is the weakest variation of the rift
-		this.alpha = 1; // Portal transparency, used when portal is switching location
 
 		if ( this.type === 1 )
 		this.filter = 'none';
@@ -151,7 +150,9 @@ class sdRift extends sdEntity
 					this._update_version++;
 				}
 				if ( this._time_until_teleport > 0 )
-				this._time_until_teleport -= GSPEED;
+				{
+					this._time_until_teleport -= GSPEED;
+				}
 				else // Relocate the portal
 				{
 					let x,y,i;
@@ -242,11 +243,9 @@ class sdRift extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.globalAlpha = this.alpha;
 		ctx.filter = this.filter;
 		ctx.scale( 0.75 + ( 0.25 * this.hea / this.hmax ), 0.75 + ( 0.25 * this.hea / this.hmax ) );
 		ctx.drawImageFilterCache( sdRift.img_rift, -16, -16, 32, 32);
-		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
 	DrawHUD( ctx, attached ) // foreground layer
