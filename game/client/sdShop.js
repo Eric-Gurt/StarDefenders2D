@@ -320,6 +320,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdBadDog', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdShark', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWorkbench', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdRift', _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });
