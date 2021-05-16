@@ -641,7 +641,7 @@ class sdGunClass
 			matter_cost: 300,
 			projectile_velocity: 1 * 1.5,
 			min_build_tool_level: 2,
-			projectile_properties: { _rail: true, _damage: 70, color: '#ffb300', _knock_scale:0.1 }
+			projectile_properties: { _rail: true, _damage: 25, color: '#ffb300', _knock_scale:0.1, _dirt_mult: 2 } // 3X ( 1 + 2 ) damage against dirt blocks
 		};
 
 		// Add new gun classes above this line //

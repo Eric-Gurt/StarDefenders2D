@@ -340,6 +340,9 @@ class sdGun extends sdEntity
 		
 		if ( this.class === sdGun.CLASS_PISTOL )
 		return 0;
+
+		if ( this.class === sdGun.CLASS_LASER_DRILL )
+		return 6;
 		
 		return ( Math.abs( sdGun.classes[ this.class ].projectile_properties._damage * this._held_by._damage_mult ) * sdGun.classes[ this.class ].count + 
 				( sdGun.classes[ this.class ].projectile_properties._rail ? 30 : 0 ) + 

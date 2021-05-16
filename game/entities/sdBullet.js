@@ -112,8 +112,10 @@ class sdBullet extends sdEntity
 		this.penetrating = false;
 		this._penetrated_list = [];
 
-		this._emp = false;
-		this._emp_mult = 1;
+		this._emp = false; // EMP effect, used for turrets to set them to "sleep mode"
+		this._emp_mult = 1; // How long will the turret sleep ( 1 = 5 seconds )
+
+		this._dirt_mult = 0; // Damage multiplier against dirt blocks, used in Laser Drill weapon
 		
 		this._bouncy = false;
 		
@@ -534,6 +536,10 @@ class sdBullet extends sdEntity
 								from_entity.disabled = true;
 								from_entity._disabled_timeout = 150 * this._emp_mult;
 							}
+
+
+							if ( from_entity.GetClass() === 'sdBlock' && from_entity.material === sdBlock.MATERIAL_GROUND ) // Dirt damage multiplier
+							from_entity.Damage( dmg * this._dirt_mult, this._owner );
 
 							if ( this._owner )
 							if ( old_hea > 0 )
