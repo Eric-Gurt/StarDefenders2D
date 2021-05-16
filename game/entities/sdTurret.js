@@ -182,7 +182,7 @@ class sdTurret extends sdEntity
 			else
 			this._seek_timer -= GSPEED;
 	
-			if ( this._target !== null )
+			if ( this._target !== null  && this.disabled === false )
 			{
 				let di = sdWorld.Dist2D( this.x, this.y, this._target.x, this._target.y );
 				

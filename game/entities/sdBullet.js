@@ -111,6 +111,9 @@ class sdBullet extends sdEntity
 		
 		this.penetrating = false;
 		this._penetrated_list = [];
+
+		this._emp = false;
+		this._emp_mult = 1;
 		
 		this._bouncy = false;
 		
@@ -525,6 +528,12 @@ class sdBullet extends sdEntity
 
 							from_entity.Impulse( this.sx * Math.abs( dmg ) * this._knock_scale, 
 												 this.sy * Math.abs( dmg ) * this._knock_scale );
+
+							if ( from_entity.GetClass() === 'sdTurret' && this._emp === true ) // Disable turrets if they're hit by an EMP bullet
+							{
+								from_entity.disabled = true;
+								from_entity._disabled_timeout = 150 * this._emp_mult;
+							}
 
 							if ( this._owner )
 							if ( old_hea > 0 )
