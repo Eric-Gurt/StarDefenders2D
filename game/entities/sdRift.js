@@ -320,6 +320,16 @@ class sdRift extends sdEntity
 	{
 		sdRift.portals--;
 		this.onRemoveAsFakeEntity();
+
+		sdWorld.SendEffect({ 
+			x:this.x, 
+			y:this.y, 
+			radius:30,
+			damage_scale: 0.01, // Just a decoration effect
+			type:sdEffect.TYPE_EXPLOSION, 
+			owner:this,
+			color:'#FFFFFF' 
+		});
 	}
 	onRemoveAsFakeEntity()
 	{
