@@ -633,7 +633,7 @@ class sdGunClass
 			sound_volume: 1,
 			title: 'Laser Drill',
 			slot: 0,
-			reload_time: 4,
+			reload_time: 5,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 1,
