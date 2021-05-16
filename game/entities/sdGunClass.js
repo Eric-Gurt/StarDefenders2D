@@ -626,6 +626,24 @@ class sdGunClass
 			projectile_properties: { _damage: 20 }
 		};
 
+		sdGun.classes[ sdGun.CLASS_LASER_DRILL = 30 ] = { // Sprite made by Silk1 / AdibAdrian
+			image: sdWorld.CreateImageFromFile( 'laser_drill' ),
+			sound: 'saber_attack',
+			sound_pitch: 0.6,
+			sound_volume: 1,
+			title: 'Laser Drill',
+			slot: 0,
+			reload_time: 4,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			is_sword: false,
+			matter_cost: 300,
+			projectile_velocity: 1 * 1.5,
+			min_build_tool_level: 2,
+			projectile_properties: { _rail: true, _damage: 70, color: '#ffb300', _knock_scale:0.1 }
+		};
+
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
