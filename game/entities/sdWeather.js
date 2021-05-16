@@ -26,6 +26,7 @@ import sdVirus from './sdVirus.js';
 import sdBG from './sdBG.js';
 import sdEnemyMech from './sdEnemyMech.js';
 import sdBadDog from './sdBadDog.js';
+import sdRift from './sdRift.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -543,7 +544,7 @@ class sdWeather extends sdEntity
 			{
 				//this._time_until_event = Math.random() * 30 * 60 * 8; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
 				this._time_until_event = Math.random() * 30 * 60 * 7; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
-				let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ];
+				let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ];
 				
 				let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -926,6 +927,62 @@ class sdWeather extends sdEntity
 
 							instances--;
 						}
+					}
+
+					if ( r === 10 ) // Portal event
+					{
+						if ( Math.random() < 0.7 ) // 70% chance for rift portal to spawn
+						{
+							let instances = 1;
+							while ( instances > 0 && sdRift.portals < 2 )
+							{
+
+								let portal = new sdRift({ x:0, y:0 });
+
+								sdEntity.entities.push( portal );
+
+								{
+									let x,y,i;
+									let tr = 1000;
+									do
+									{
+										x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+										y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+										if ( Math.random() < 0.2 ) // 20% chance it's a "Cube" spawning portal
+										portal.tier = 2;
+
+										if ( portal.CanMoveWithoutOverlap( x, y, 0 ) )
+										if ( !portal.CanMoveWithoutOverlap( x, y + 24, 0 ) )
+										if ( sdWorld.last_hit_entity )
+										if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+										if ( !sdWorld.CheckWallExistsBox( 
+												x + portal.hitbox_x1 - 8, 
+												y + portal.hitbox_y1 - 8, 
+												x + portal.hitbox_x2 + 8, 
+												y + portal.hitbox_y2 + 8, null, null, [ 'sdWater' ], null ) )
+										{
+											portal.x = x;
+											portal.y = y;
+
+											break;
+										}
+									
+
+
+										tr--;
+										if ( tr < 0 )
+										{
+											portal.remove();
+											break;
+										}
+									} while( true );
+								}
+
+							instances--;
+							}
+						}
+						else
+						this._time_until_event = Math.random() * 30 * 60 * 1; // Quickly switch to another event
 					}
 				}
 			}

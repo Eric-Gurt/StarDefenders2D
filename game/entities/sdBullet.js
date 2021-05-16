@@ -11,6 +11,7 @@ import sdAntigravity from './sdAntigravity.js';
 import sdDoor from './sdDoor.js';
 import sdGun from './sdGun.js';
 import sdArea from './sdArea.js';
+import sdRift from './sdRift.js';
 
 
 
@@ -230,6 +231,11 @@ class sdBullet extends sdEntity
 	{
 		if ( from_entity.is( sdBlock ) && from_entity.material === sdBlock.MATERIAL_TRAPSHIELD )
 		if ( this._owner === null || ( ( !this._owner._key_states || !this._owner._key_states.GetKey( 'ShiftLeft' ) ) && sdWorld.inDist2D( this._owner.x, this._owner.y, from_entity.x + from_entity.width/2, from_entity.y + from_entity.height/2 ) < 32 ) )
+		{
+			return false;
+		}
+
+		if ( from_entity.is ( sdRift ) ) // Ignore portals
 		{
 			return false;
 		}
