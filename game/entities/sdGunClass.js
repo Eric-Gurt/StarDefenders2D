@@ -644,6 +644,36 @@ class sdGunClass
 			projectile_properties: { _rail: true, _damage: 25, color: '#ffb300', _knock_scale:0.1, _dirt_mult: 2 } // 3X ( 1 + 2 ) damage against dirt blocks
 		};
 
+		sdGun.classes[ sdGun.CLASS_SMG = 31 ] = { // Sprite made by LazyRain
+			image: sdWorld.CreateImageFromFile( 'smg' ),
+			sound: 'gun_pistol',
+			title: 'SMG',
+			slot: 1,
+			reload_time: 3,
+			muzzle_x: 5,
+			ammo_capacity: 24,
+			spread: 0.1,
+			count: 1,
+			burst: 3, // Burst fire count
+			burst_reload: 10, // Burst fire reload, needed when giving burst fire
+			min_build_tool_level: 2,
+			projectile_properties: { _damage: 18 }
+		};
+
+		sdGun.classes[ sdGun.CLASS_SMG_MK2 = 32 ] = { // Sprite made by LazyRain
+			image: sdWorld.CreateImageFromFile( 'smg_mk2' ),
+			sound: 'gun_pistol',
+			title: 'SMG MK2',
+			slot: 1,
+			reload_time: 3,
+			muzzle_x: 6,
+			ammo_capacity: 30,
+			spread: 0.1,
+			count: 1,
+			min_build_tool_level: 3,
+			projectile_properties: { _damage: 20 }
+		};
+
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
