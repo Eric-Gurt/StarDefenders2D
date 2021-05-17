@@ -657,6 +657,7 @@ class sdGunClass
 			burst: 3, // Burst fire count
 			burst_reload: 10, // Burst fire reload, needed when giving burst fire
 			min_build_tool_level: 2,
+			matter_cost: 45,
 			projectile_properties: { _damage: 18 }
 		};
 
@@ -671,6 +672,7 @@ class sdGunClass
 			spread: 0.1,
 			count: 1,
 			min_build_tool_level: 3,
+			matter_cost: 90,
 			projectile_properties: { _damage: 20 }
 		};
 
