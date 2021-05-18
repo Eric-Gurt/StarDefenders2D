@@ -721,11 +721,11 @@ class sdCharacter extends sdEntity
 				{
 					this._acquired_bt_rift = false;
 					this.build_tool_level--;
-			   		let upg = new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_BUILDTOOL_UPG });
-					upg.extra = 1;
-					upg.sx = this.sx;
-					upg.sy = this.sy;
-					sdEntity.entities.push( upg );
+			   		let upg2 = new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_BUILDTOOL_UPG });
+					upg2.extra = 1;
+					upg2.sx = this.sx;
+					upg2.sy = this.sy;
+					sdEntity.entities.push( upg2 );
 				}
 				if ( sdWorld.server_config.onKill )
 				sdWorld.server_config.onKill( this, initiator );
