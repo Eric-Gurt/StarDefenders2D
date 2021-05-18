@@ -578,7 +578,8 @@ class sdWeather extends sdEntity
 							let cube = new sdCube({ 
 								x:sdWorld.world_bounds.x1 + 32 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 - 64 ), 
 								y:sdWorld.world_bounds.y1 + 32,
-								is_huge: ( sdCube.alive_huge_cube_counter >= sdWorld.GetPlayingPlayersCount() ) ? false : ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.1 )
+								_kind: ( ( sdCube.alive_huge_cube_counter >= sdWorld.GetPlayingPlayersCount() ) && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.1 ) ) ?
+										 1 : ( sdCube.alive_white_cube_counter < 1 && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.04 ) ) ? 2 : 0 // _kind = 1 -> is_huge = true , _kind = 2 -> is_white = true
 							});
 							cube.sy += 10;
 							sdEntity.entities.push( cube );

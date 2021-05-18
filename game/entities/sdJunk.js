@@ -85,6 +85,8 @@ class sdJunk extends sdEntity
 				{
 					let cube = new sdCube({ x: this.x, y: this.y });
 					sdEntity.entities.push( cube );
+					this.remove();
+					return; // Prevents spawning cube shard when a cube stabilizes
 				}
 				else
 				{

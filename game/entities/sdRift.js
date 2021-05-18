@@ -149,10 +149,12 @@ class sdRift extends sdEntity
 						let cube = new sdCube({ 
 							x:this.x,
 							y:this.y,
-							is_huge: ( sdCube.alive_huge_cube_counter >= sdWorld.GetPlayingPlayersCount() ) ? false : ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.1 )
+							_kind: ( ( sdCube.alive_huge_cube_counter >= sdWorld.GetPlayingPlayersCount() ) && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.1 ) ) ?
+							 1 : ( sdCube.alive_white_cube_counter < 1 && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.04 ) ) ? 2 : 0
 						});
 						cube.sy += ( 10 - ( Math.random() * 20 ) );
 						cube.sx += ( 10 - ( Math.random() * 20 ) );
+
 						sdEntity.entities.push( cube );
 
 						if ( !cube.CanMoveWithoutOverlap( cube.x, cube.y, 0 ) )
@@ -200,24 +202,8 @@ class sdRift extends sdEntity
 							x + this.hitbox_x2 + 16, 
 							y + this.hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
 						{
-							/*let di_allowed = true;
-										
-										for ( i = 0; i < sdWorld.sockets.length; i++ )
-										if ( sdWorld.sockets[ i ].character )
-										{
-											let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
-											
-											if ( di < 500 )
-											{
-												di_allowed = false;
-												break;
-											}
-										}
-							if ( di_allowed === true )*/
-							{
-								this.x = x;
-								this.y = y;
-							}
+							this.x = x;
+							this.y = y;
 						}
 					}  while( tr > 0 );
 					this._time_until_teleport = this._teleport_timer;
@@ -231,7 +217,7 @@ class sdRift extends sdEntity
 				{
 					let r = Math.random();
 			
-					if ( r < 0.13 + ( 0.05 * this.type ) )
+					if ( r < ( 0.13 + ( 0.05 * this.type ) ) )
 					{
 						let x = this.x;
 						let y = this.y;

@@ -793,7 +793,11 @@ class sdGun extends sdEntity
 			{
 				if ( this.extra === 1 )
 				{
-				ctx.filter = 'hue-rotate(-120deg) saturate(100)';
+					ctx.filter = 'hue-rotate(-120deg) saturate(100) brightness(1.5)'; // yellow
+				}
+				if ( this.extra === 2 )
+				{
+					ctx.filter = 'saturate(0) brightness(1.5)'; // white color
 				}
 			}
 

@@ -472,7 +472,7 @@ class sdGunClass
 			count: 1,
 			matter_cost: 90,
 			min_build_tool_level: 1,
-			projectile_properties: { _damage: 45, color: '#AA0000' }
+			projectile_properties: { _damage: 40, color: '#AA0000' }
 		};
 
 		sdGun.classes[ sdGun.CLASS_BUILDTOOL_UPG = 25 ] = 
