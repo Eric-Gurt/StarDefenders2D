@@ -93,7 +93,6 @@ class sdCube extends sdEntity
 		sdCube.alive_white_cube_counter++;
 		
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
-		console.log(this._kind );
 	}
 	/*SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
@@ -547,16 +546,11 @@ class sdCube extends sdEntity
 					for ( let i = 0; i < targets_raw.length; i++ )
 					if ( ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ].hea > 0 && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdTurret' && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) || 
-						 ( targets_raw[ i ].GetClass() === 'sdEnemyMech' && targets_raw[ i ].hea > 0  && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) )
+						 ( targets_raw[ i ].GetClass() === 'sdEnemyMech' && targets_raw[ i ].hea > 0  && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) ||
+						 ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ].hea > 0 && this.is_white && this.hea < this._hmax - 160 ) )
 					{
 						if ( sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdCube' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
 						targets.push( targets_raw[ i ] );
-						else
-						if ( this.is_white && this.hea < this._hmax - 200 ) // Is it a white cube and damaged?
-						if ( targets_raw[ i ].GetClass() === 'sdCharacter' ) // In that case hunt characters
-						{
-							targets.push( targets_raw[ i ] );
-						}
 						else
 						{
 							if ( targets_raw[ i ].GetClass() === 'sdCharacter' )
@@ -572,7 +566,7 @@ class sdCube extends sdEntity
 					for ( let i = 0; i < targets.length; i++ )
 					{
 						if ( this._alert_intensity < 45 || // Delay attack
-							 ( this.regen_timeout > 45 && !this.is_huge ) ) // Hurt stun
+							 ( this.regen_timeout > 45 && !this.is_huge && !this.is_white ) ) // Hurt stun
 						break;
 
 						this.attack_anim = 15;
