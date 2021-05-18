@@ -149,7 +149,7 @@ class sdRift extends sdEntity
 						let cube = new sdCube({ 
 							x:this.x,
 							y:this.y,
-							_kind: ( ( sdCube.alive_huge_cube_counter >= sdWorld.GetPlayingPlayersCount() ) && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.1 ) ) ?
+							_kind: ( ( sdCube.alive_huge_cube_counter < sdWorld.GetPlayingPlayersCount() ) && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.1 ) ) ?
 							 1 : ( sdCube.alive_white_cube_counter < 1 && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.04 ) ) ? 2 : 0
 						});
 						cube.sy += ( 10 - ( Math.random() * 20 ) );
