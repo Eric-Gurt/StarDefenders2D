@@ -131,6 +131,9 @@ class sdBullet extends sdEntity
 		this.ac = 0; // Intensity
 		this.acx = 0;
 		this.acy = 0;
+
+		this._homing = false; // is the bullet homing towards mouse?
+		this._homing_mult = 0; // How fast/strong does it home towards target?
 		
 		this._first_frame = true; // Bad approach but early removal isn't good either. Also impossible to know if projectile is hook this early so far
 		
@@ -286,10 +289,20 @@ class sdBullet extends sdEntity
 		{
 			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.93, GSPEED );
 			this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.93, GSPEED );
+
+		if ( this._homing && this._owner )
+		{
+			//let hom_an = ( Math.atan2( ( this.y - this._owner.look_y ), (this.x - this._owner.look_x) ) + Math.PI / 2 );
+			if (this._owner.look_x - this.x > 20 || this._owner.look_x - this.x < -20 )
+			this.acx = this._homing_mult * (this._owner.look_x - this.x );
+			if (this._owner.look_y - this.y > 20 || this._owner.look_y - this.y < -20 )
+			this.acy = this._homing_mult * ( this._owner.look_y - this.y );
+		}
 			
 			this.sx += this.acx * GSPEED * this.ac * 1;
 			this.sy += this.acy * GSPEED * this.ac * 1;
 		}
+
 		
 		if ( this.is_grenade )
 		{

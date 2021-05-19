@@ -676,6 +676,23 @@ class sdGunClass
 			projectile_properties: { _damage: 20 }
 		};
 
+		sdGun.classes[ sdGun.CLASS_ROCKET_MK2 = 33 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'rocket_mk2' ),
+			sound: 'gun_rocket',
+			title: 'Rocket launcher MK2',
+			slot: 5,
+			reload_time: 30,
+			muzzle_x: 7,
+			ammo_capacity: -1,
+			spread: 0.05,
+			projectile_velocity: 14,
+			count: 1,
+			min_build_tool_level: 3,
+			matter_cost: 180,
+			projectile_properties: { time_left: 60, explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.03 }
+		};
+
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
