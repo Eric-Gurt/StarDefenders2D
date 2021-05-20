@@ -689,7 +689,7 @@ class sdGunClass
 			projectile_velocity: 14,
 			count: 1,
 			min_build_tool_level: 3,
-			matter_cost: 180,
+			matter_cost: 90,
 			projectile_properties: { time_left: 60, explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.02 }
 		};
 
@@ -721,6 +721,35 @@ class sdGunClass
 			is_sword: false,
 			projectile_velocity: 16 * 1.5,
 			projectile_properties: { time_left: 1, _damage: 19, color: 'transparent', _knock_scale:0.025 * 8, _dirt_mult: 2 } // 3X ( 1 + 2 ) damage against dirt blocks
+		};
+
+
+		sdGun.classes[ sdGun.CLASS_SHOVEL_MK2 = 36 ] = { // Sprite made by LazyRain
+			image: sdWorld.CreateImageFromFile( 'shovel_mk2' ),
+			//sound: 'gun_medikit',
+			title: 'Shovel MK2',
+			sound: 'sword_attack2',
+			sound_pitch: 1.5,
+			image_no_matter: sdWorld.CreateImageFromFile( 'shovel_mk2' ),
+			slot: 0,
+			reload_time: 11,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			is_sword: false,
+			min_build_tool_level: 1,
+			matter_cost: 90,
+			projectile_velocity: 20 * 1.5,
+			projectile_properties: { time_left: 1, _damage: 30, color: 'transparent', _dirt_mult: 2 , _knock_scale:0.025 * 8, 
+				_custom_target_reaction:( bullet, target_entity )=>
+				{
+					sdSound.PlaySound({ name:'saber_hit2', x:bullet.x, y:bullet.y, volume:1.5, pitch: 1.5 });
+				},
+				_custom_target_reaction_protected:( bullet, target_entity )=>
+				{
+					sdSound.PlaySound({ name:'saber_hit2', x:bullet.x, y:bullet.y, volume:1.5, pitch: 1.5 });
+				}
+			}
 		};
 
 		// Add new gun classes above this line //

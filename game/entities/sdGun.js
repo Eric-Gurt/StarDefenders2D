@@ -346,6 +346,9 @@ class sdGun extends sdEntity
 
 		if ( this.class === sdGun.CLASS_SHOVEL )
 		return 0;
+
+		if ( this.class === sdGun.CLASS_SHOVEL_MK2 )
+		return 2;
 		
 		return ( Math.abs( sdGun.classes[ this.class ].projectile_properties._damage * this._held_by._damage_mult ) * sdGun.classes[ this.class ].count + 
 				( sdGun.classes[ this.class ].projectile_properties._rail ? 30 : 0 ) + 
@@ -822,7 +825,7 @@ class sdGun extends sdEntity
 				ctx.rotate( - Math.PI / 2 );
 			}
 
-			if ( this.class === sdGun.CLASS_SHOVEL )
+			if ( this.class === sdGun.CLASS_SHOVEL || this.class === sdGun.CLASS_SHOVEL_MK2 ) // Will add "is_shovel" property if needed
 			if ( this._held_by )
 			{
 				if ( this._held_by.fire_anim <= 0 )
