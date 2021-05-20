@@ -690,7 +690,37 @@ class sdGunClass
 			count: 1,
 			min_build_tool_level: 3,
 			matter_cost: 180,
-			projectile_properties: { time_left: 60, explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.03 }
+			projectile_properties: { time_left: 60, explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.02 }
+		};
+
+		sdGun.classes[ sdGun.CLASS_HEALING_RAY = 34 ] = { // Sprite made by LazyRain
+			image: sdWorld.CreateImageFromFile( 'cube_healing_ray' ),
+			sound: 'cube_attack',
+			title: 'Cube-Medgun',
+			slot: 6,
+			reload_time: 15,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_velocity: 1 * 3.5,
+			spawnable: false,
+			projectile_properties: { _rail: true, _damage: -15, color: '#ff00ff',  _return_damage_to_owner:true }
+		};
+
+		sdGun.classes[ sdGun.CLASS_SHOVEL = 35 ] = { // Sprite made by Silk
+			image: sdWorld.CreateImageFromFile( 'shovel' ),
+			//sound: 'gun_medikit',
+			title: 'Shovel',
+			sound: 'sword_attack2',
+			image_no_matter: sdWorld.CreateImageFromFile( 'shovel' ),
+			slot: 0,
+			reload_time: 9,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			is_sword: false,
+			projectile_velocity: 16 * 1.5,
+			projectile_properties: { time_left: 1, _damage: 19, color: 'transparent', _knock_scale:0.025 * 8, _dirt_mult: 2 } // 3X ( 1 + 2 ) damage against dirt blocks
 		};
 
 		// Add new gun classes above this line //
