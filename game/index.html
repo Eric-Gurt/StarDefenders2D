@@ -564,6 +564,9 @@
 		<br>
 		<input type="checkbox" id="start_with2" value="sword_and_buildtool" checked>
 		<label for="start_with2">Sword and build tool</label>
+		<br>
+		<input type="checkbox" id="start_with3" value="shovel_and_buildtool" checked>
+		<label for="start_with3">Shovel and build tool</label>
 	    </div>
 	    
 	    <!--
@@ -787,14 +790,22 @@
 		    ent2._held_by = ent;
 		}
 		else
+		if ( inputs_hash[ 'start_with1' ].el.checked )
 		{
 		    ent2 = new sdGun({ x:0, y:0, class: sdGun.CLASS_PISTOL });
 		    ent._inventory[ 1 ] = ent2;
 		    ent2._held_by = ent;
+	        }
+		else
+		if ( inputs_hash[ 'start_with3' ].el.checked )
+		{
+		    ent2 = new sdGun({ x:0, y:0, class: sdGun.CLASS_SHOVEL });
+		    ent._inventory[ 0 ] = ent2;
+		    ent2._held_by = ent;
 	        }	
 		
 		
-		if ( !inputs_hash[ 'start_with2' ].el.checked )
+		if ( !inputs_hash[ 'start_with2' ].el.checked && !inputs_hash[ 'start_with3' ].el.checked )
 		ent.gun_slot = ( sdWorld.time % 4000 ) < 2000 ? 0 : 1;
 		
 		//ent._an = Math.PI / 2;
@@ -814,7 +825,7 @@
 		{
 		    ent.fire_anim = 5 / ( ( sdWorld.time + 500 ) % 2000 ) / 250;
 		    
-		    if ( !inputs_hash[ 'start_with2' ].el.checked )
+		    if ( !inputs_hash[ 'start_with2' ].el.checked && !inputs_hash[ 'start_with3' ].el.checked )
 		    ent2.muzzle = 5 / ( ( sdWorld.time + 500 ) % 2000 ) / 250;
 		}
 
