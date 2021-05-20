@@ -150,7 +150,8 @@ class sdRift extends sdEntity
 							x:this.x,
 							y:this.y,
 							_kind: ( ( sdCube.alive_huge_cube_counter < sdWorld.GetPlayingPlayersCount() ) && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.1 ) ) ?
-							 1 : ( sdCube.alive_white_cube_counter < 1 && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.04 ) ) ? 2 : 0
+									 1 : ( sdCube.alive_white_cube_counter < 1 && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.04 ) ) ? 
+									 2 : ( sdCube.alive_pink_cube_counter < 2 && ( sdCube.alive_cube_counter >= 1 && Math.random() < 0.08 ) ) ? 3 : 0 // _kind = 1 -> is_huge = true , _kind = 2 -> is_white = true , _kind = 3 -> is_pink = true
 						});
 						cube.sy += ( 10 - ( Math.random() * 20 ) );
 						cube.sx += ( 10 - ( Math.random() * 20 ) );
