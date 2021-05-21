@@ -88,7 +88,11 @@ class sdShop
 			if ( i !== 6 )
 			if ( i !== 7 )
 			if ( i !== 8 )
-			sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, _category:'Doors' });
+			{
+				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, _category:'Doors' });
+				var filter = ( i === 0 ) ? '' : 'hue-rotate('+(~~(i/12*360))+'deg) contrast(0.75)';
+				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, _reinforced_level: 1, _category:'Doors', _min_build_tool_level: 2 });
+			}
 		}
 		AddBuildPack( 'hue-rotate(-90deg) contrast(0.5) brightness(1.5) saturate(0)' );
 			
