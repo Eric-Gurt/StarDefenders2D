@@ -2026,7 +2026,7 @@ class sdCharacter extends sdEntity
 			this.Damage( Infinity );
 		}*/
 									
-		if ( !this._socket && !this._ai && this._phys_sleep <= 0 && !in_water && !this.driver_of && this.hea > 0 && !this._dying && this.pain_anim <= 0 && this.death_anim <= 0 )
+		if ( sdWorld.is_server && !this._socket && !this._ai && this._phys_sleep <= 0 && !in_water && !this.driver_of && this.hea > 0 && !this._dying && this.pain_anim <= 0 && this.death_anim <= 0 )
 		{
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 		}
