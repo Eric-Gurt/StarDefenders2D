@@ -76,6 +76,7 @@ class sdDoor extends sdEntity
 		this._regen_timeout = 0;
 		
 		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
+		this._reinforced_level = params._reinforced_level || 0;
 		
 		this.x0 = null; // undefined
 		this.y0 = null; // undefined
@@ -95,7 +96,7 @@ class sdDoor extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		return this._hmax * sdWorld.damage_to_matter + 20;
+		return this._hmax + ( 200 * this._reinforced_level ) *  sdWorld.damage_to_matter + 20;
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{

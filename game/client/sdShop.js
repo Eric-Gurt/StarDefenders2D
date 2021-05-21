@@ -55,6 +55,11 @@ class sdShop
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, filter: filter, _category:'Walls' });
 			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, filter: filter, _category:'Walls' });
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, filter: filter, _category:'Walls' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 2 });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 2 });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 2 });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 2 });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 2 });
 			
 			//if ( i !== 0 )
 			//{
@@ -83,7 +88,11 @@ class sdShop
 			if ( i !== 6 )
 			if ( i !== 7 )
 			if ( i !== 8 )
-			sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, _category:'Doors' });
+			{
+				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, _category:'Doors' });
+				var filter = ( i === 0 ) ? '' : 'hue-rotate('+(~~(i/12*360))+'deg) contrast(0.75)';
+				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, _reinforced_level: 1, _category:'Doors', _min_build_tool_level: 2 });
+			}
 		}
 		AddBuildPack( 'hue-rotate(-90deg) contrast(0.5) brightness(1.5) saturate(0)' );
 			
@@ -307,7 +316,9 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCharacter', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAsteroid', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdCube', is_huge:true, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCube', _kind:1, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCube', _kind:2, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCube', _kind:3, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_LAVA, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAsp', _category:'Development tests' });
@@ -321,6 +332,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdShark', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWorkbench', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdRift', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdRift', type: 2, _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });

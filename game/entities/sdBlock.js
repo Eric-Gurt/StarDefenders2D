@@ -20,6 +20,11 @@ class sdBlock extends sdEntity
 		sdBlock.img_wall12 = sdWorld.CreateImageFromFile( 'wall_1x2' );
 		sdBlock.img_wall11 = sdWorld.CreateImageFromFile( 'wall_1x1' );
 		sdBlock.img_wall05 = sdWorld.CreateImageFromFile( 'wall_half' );
+		sdBlock.img_lvl1_wall22 = sdWorld.CreateImageFromFile( 'wall_lvl1_2x2' );//Reinforced walls, level 1
+		sdBlock.img_lvl1_wall21 = sdWorld.CreateImageFromFile( 'wall_lvl1_2x1' );
+		sdBlock.img_lvl1_wall12 = sdWorld.CreateImageFromFile( 'wall_lvl1_1x2' );
+		sdBlock.img_lvl1_wall11 = sdWorld.CreateImageFromFile( 'wall_lvl1_1x1' );
+		sdBlock.img_lvl1_wall05 = sdWorld.CreateImageFromFile( 'wall_lvl1_half' );
 		
 		sdBlock.trapshield_block_health_ratio = 1 / 2;
 		sdBlock.trapshield_block_regen_ratio = 3;
@@ -33,6 +38,7 @@ class sdBlock extends sdEntity
 		sdBlock.MATERIAL_SHARP = 2;
 		// 3 platforms bg colored
 		sdBlock.MATERIAL_TRAPSHIELD = 4;
+		sdBlock.MATERIAL_REINFORCED_WALL_LVL1 = 5;
 		
 		sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
 		
@@ -227,7 +233,7 @@ class sdBlock extends sdEntity
 	{
 		if ( !sdWorld.is_server )
 		return;
-	
+
 		dmg = Math.abs( dmg );
 		
 		if ( this._contains_class === 'sdVirus' || this._contains_class === 'sdQuickie' || this._contains_class === 'sdAsp' )
@@ -288,6 +294,7 @@ class sdBlock extends sdEntity
 		
 		
 		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
+		this._reinforced_level = params._reinforced_level || 0;
 		
 		this._contains_class = params.contains_class || null;
 		//this._hidden_crystal = params.hidden_crystal || false;
@@ -327,7 +334,7 @@ class sdBlock extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		return this._hmax * sdWorld.damage_to_matter * ( this.material === sdBlock.MATERIAL_TRAPSHIELD ? 4.5 : 1 ) + ( this.material === sdBlock.MATERIAL_SHARP ? 30 : 0 );
+		return this._hmax * sdWorld.damage_to_matter * (1 + ( 2 * this._reinforced_level ) ) * ( this.material === sdBlock.MATERIAL_TRAPSHIELD ? 4.5 : 1 ) + ( this.material === sdBlock.MATERIAL_SHARP ? 30 : 0 );
 	}
 	//RequireSpawnAlign() 
 	//{ return true; }
@@ -445,6 +452,26 @@ class sdBlock extends sdEntity
 			ctx.drawImageFilterCache( sdBlock.img_wall05, 0, 0, w,h, 0,0, w,h );
 			else
 			ctx.drawImageFilterCache( sdBlock.img_wall22, 0, 0, w,h, 0,0, w,h );
+		}
+		else
+		if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 )
+		{
+			if ( w === 32 && h === 32 )
+			ctx.drawImageFilterCache( sdBlock.img_lvl1_wall22, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 32 && h === 16 )
+			ctx.drawImageFilterCache( sdBlock.img_lvl1_wall21, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 16 && h === 32 )
+			ctx.drawImageFilterCache( sdBlock.img_lvl1_wall12, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 16 && h === 16 )
+			ctx.drawImageFilterCache( sdBlock.img_lvl1_wall11, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 16 && h === 8 )
+			ctx.drawImageFilterCache( sdBlock.img_lvl1_wall05, 0, 0, w,h, 0,0, w,h );
+			else
+			ctx.drawImageFilterCache( sdBlock.img_lvl1_wall22, 0, 0, w,h, 0,0, w,h );
 		}
 		else
 		if ( this.material === sdBlock.MATERIAL_SHARP )

@@ -626,7 +626,11 @@ sdWorld.server_config = {};
 		if ( player_settings.start_with1 )
 		guns.push( sdGun.CLASS_PISTOL );
 		else
+		if ( player_settings.start_with2 )
 		guns.push( sdGun.CLASS_SWORD );
+		else
+		if ( player_settings.start_with3 )
+		guns.push( sdGun.CLASS_SHOVEL );
 
 		for ( var i = 0; i < sdGun.classes.length; i++ )
 		if ( guns.indexOf( i ) !== -1 )
@@ -2025,7 +2029,11 @@ io.on("connection", (socket) =>
 			if ( player_settings.start_with1 )
 			guns.push( sdGun.CLASS_PISTOL );
 			else
+			if ( player_settings.start_with2 )
 			guns.push( sdGun.CLASS_SWORD );
+			else
+			if ( player_settings.start_with3 )
+			guns.push( sdGun.CLASS_SHOVEL );
 
 			for ( var i = 0; i < sdGun.classes.length; i++ )
 			if ( guns.indexOf( i ) !== -1 )

@@ -340,6 +340,15 @@ class sdGun extends sdEntity
 		
 		if ( this.class === sdGun.CLASS_PISTOL )
 		return 0;
+
+		if ( this.class === sdGun.CLASS_LASER_DRILL )
+		return 6;
+
+		if ( this.class === sdGun.CLASS_SHOVEL )
+		return 0;
+
+		if ( this.class === sdGun.CLASS_SHOVEL_MK2 )
+		return 2;
 		
 		return ( Math.abs( sdGun.classes[ this.class ].projectile_properties._damage * this._held_by._damage_mult ) * sdGun.classes[ this.class ].count + 
 				( sdGun.classes[ this.class ].projectile_properties._rail ? 30 : 0 ) + 
@@ -786,11 +795,19 @@ class sdGun extends sdEntity
 				ctx.filter = sdWorld.GetCrystalHue( v );
 			}
 			
-			if ( this.class === sdGun.CLASS_TRIPLE_RAIL || this.class === sdGun.CLASS_RAIL_PISTOL || this.class === sdGun.CLASS_RAIL_SHOTGUN || this.class === sdGun.CLASS_CUBE_SHARD ) // Cube weaponry, looked up color wheel since sdFilter is not worth it
+			if ( this.class === sdGun.CLASS_TRIPLE_RAIL || this.class === sdGun.CLASS_RAIL_PISTOL || this.class === sdGun.CLASS_RAIL_SHOTGUN || this.class === sdGun.CLASS_CUBE_SHARD ||  this.class === sdGun.CLASS_HEALING_RAY ) // Cube weaponry, looked up color wheel since sdFilter is not worth it
 			{
 				if ( this.extra === 1 )
 				{
-				ctx.filter = 'hue-rotate(-120deg) saturate(100)';
+					ctx.filter = 'hue-rotate(-120deg) saturate(100) brightness(1.5)'; // yellow
+				}
+				if ( this.extra === 2 )
+				{
+					ctx.filter = 'saturate(0) brightness(1.5)'; // white color
+				}
+				if ( this.extra === 3 )
+				{
+					ctx.filter = 'hue-rotate(120deg)  saturate(100)'; // pink
 				}
 			}
 
@@ -806,6 +823,15 @@ class sdGun extends sdEntity
 			{
 				if ( this._held_by.fire_anim <= 0 )
 				ctx.rotate( - Math.PI / 2 );
+			}
+
+			if ( this.class === sdGun.CLASS_SHOVEL || this.class === sdGun.CLASS_SHOVEL_MK2 ) // Will add "is_shovel" property if needed
+			if ( this._held_by )
+			{
+				if ( this._held_by.fire_anim <= 0 )
+				ctx.rotate( + Math.PI / 8 );
+				else
+				ctx.rotate( - Math.PI / 8 );
 			}
 			/*
 			if ( this.class === sdGun.CLASS_SABER )

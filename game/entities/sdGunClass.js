@@ -472,7 +472,7 @@ class sdGunClass
 			count: 1,
 			matter_cost: 90,
 			min_build_tool_level: 1,
-			projectile_properties: { _damage: 45, color: '#AA0000' }
+			projectile_properties: { _damage: 40, color: '#AA0000' }
 		};
 
 		sdGun.classes[ sdGun.CLASS_BUILDTOOL_UPG = 25 ] = 
@@ -624,6 +624,150 @@ class sdGunClass
 			burst_reload: 30, // Burst fire reload, needed when giving burst fire
 			min_build_tool_level: 2,
 			projectile_properties: { _damage: 20 }
+		};
+
+		sdGun.classes[ sdGun.CLASS_LASER_DRILL = 30 ] = { // Sprite made by Silk1 / AdibAdrian
+			image: sdWorld.CreateImageFromFile( 'laser_drill' ),
+			sound: 'saber_attack',
+			sound_pitch: 0.6,
+			sound_volume: 1,
+			title: 'Laser Drill',
+			slot: 0,
+			reload_time: 5,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			is_sword: false,
+			matter_cost: 300,
+			projectile_velocity: 1 * 1.5,
+			min_build_tool_level: 2,
+			projectile_properties: { _rail: true, _damage: 25, color: '#ffb300', _knock_scale:0.1, _dirt_mult: 2 } // 3X ( 1 + 2 ) damage against dirt blocks
+		};
+
+		sdGun.classes[ sdGun.CLASS_SMG = 31 ] = { // Sprite made by LazyRain
+			image: sdWorld.CreateImageFromFile( 'smg' ),
+			sound: 'gun_pistol',
+			title: 'SMG',
+			slot: 1,
+			reload_time: 3,
+			muzzle_x: 5,
+			ammo_capacity: 24,
+			spread: 0.1,
+			count: 1,
+			burst: 3, // Burst fire count
+			burst_reload: 10, // Burst fire reload, needed when giving burst fire
+			min_build_tool_level: 2,
+			matter_cost: 45,
+			projectile_properties: { _damage: 18 }
+		};
+
+		sdGun.classes[ sdGun.CLASS_SMG_MK2 = 32 ] = { // Sprite made by LazyRain
+			image: sdWorld.CreateImageFromFile( 'smg_mk2' ),
+			sound: 'gun_pistol',
+			title: 'SMG MK2',
+			slot: 1,
+			reload_time: 3,
+			muzzle_x: 6,
+			ammo_capacity: 30,
+			spread: 0.1,
+			count: 1,
+			min_build_tool_level: 3,
+			matter_cost: 90,
+			projectile_properties: { _damage: 20 }
+		};
+
+		sdGun.classes[ sdGun.CLASS_ROCKET_MK2 = 33 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'rocket_mk2' ),
+			sound: 'gun_rocket',
+			title: 'Rocket launcher MK2',
+			slot: 5,
+			reload_time: 30,
+			muzzle_x: 7,
+			ammo_capacity: -1,
+			spread: 0.05,
+			projectile_velocity: 14,
+			count: 1,
+			min_build_tool_level: 3,
+			matter_cost: 90,
+			projectile_properties: { time_left: 60, explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.02 }
+		};
+
+		sdGun.classes[ sdGun.CLASS_HEALING_RAY = 34 ] = { // Sprite made by LazyRain
+			image: sdWorld.CreateImageFromFile( 'cube_healing_ray' ),
+			sound: 'cube_attack',
+			title: 'Cube-Medgun',
+			slot: 6,
+			reload_time: 15,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_velocity: 1 * 3.5,
+			spawnable: false,
+			projectile_properties: { _rail: true, _damage: -15, color: '#ff00ff',  _return_damage_to_owner:true }
+		};
+
+		sdGun.classes[ sdGun.CLASS_SHOVEL = 35 ] = { // Sprite made by Silk
+			image: sdWorld.CreateImageFromFile( 'shovel' ),
+			//sound: 'gun_medikit',
+			title: 'Shovel',
+			sound: 'sword_attack2',
+			image_no_matter: sdWorld.CreateImageFromFile( 'shovel' ),
+			slot: 0,
+			reload_time: 9,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			is_sword: false,
+			projectile_velocity: 16 * 1.5,
+			projectile_properties: { time_left: 1, _damage: 19, color: 'transparent', _knock_scale:0.025 * 8, _dirt_mult: 2 } // 3X ( 1 + 2 ) damage against dirt blocks
+		};
+
+
+		sdGun.classes[ sdGun.CLASS_SHOVEL_MK2 = 36 ] = { // Sprite made by LazyRain
+			image: sdWorld.CreateImageFromFile( 'shovel_mk2' ),
+			//sound: 'gun_medikit',
+			title: 'Shovel MK2',
+			sound: 'sword_attack2',
+			sound_pitch: 1.5,
+			image_no_matter: sdWorld.CreateImageFromFile( 'shovel_mk2' ),
+			slot: 0,
+			reload_time: 11,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			is_sword: false,
+			min_build_tool_level: 1,
+			matter_cost: 90,
+			projectile_velocity: 20 * 1.5,
+			projectile_properties: { time_left: 1, _damage: 30, color: 'transparent', _dirt_mult: 2 , _knock_scale:0.025 * 8, 
+				_custom_target_reaction:( bullet, target_entity )=>
+				{
+					sdSound.PlaySound({ name:'saber_hit2', x:bullet.x, y:bullet.y, volume:1.5, pitch: 1.5 });
+				},
+				_custom_target_reaction_protected:( bullet, target_entity )=>
+				{
+					sdSound.PlaySound({ name:'saber_hit2', x:bullet.x, y:bullet.y, volume:1.5, pitch: 1.5 });
+				}
+			}
+		};
+
+		sdGun.classes[ sdGun.CLASS_DECONSTRUCTOR_HAMMER = 37 ] = { // Sprite by LazyRain
+			image: sdWorld.CreateImageFromFile( 'deconstructor_hammer' ),
+			//sound: 'gun_medikit',
+			title: 'Deconstructor Hammer',
+			sound: 'sword_attack2',
+			image_no_matter: sdWorld.CreateImageFromFile( 'deconstructor_hammer' ),
+			slot: 0,
+			reload_time: 8,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			is_sword: true,
+			min_workbench_level: 1,
+			matter_cost: 900,
+			projectile_velocity: 16 * 1.5,
+			projectile_properties: { time_left: 1, _damage: 35, color: 'transparent', _knock_scale:0.025 * 8, _reinforced_level: 1 }
 		};
 
 		// Add new gun classes above this line //

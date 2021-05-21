@@ -11,6 +11,7 @@ import sdAntigravity from './sdAntigravity.js';
 import sdDoor from './sdDoor.js';
 import sdGun from './sdGun.js';
 import sdArea from './sdArea.js';
+import sdRift from './sdRift.js';
 
 
 
@@ -91,6 +92,7 @@ class sdBullet extends sdEntity
 		this._custom_target_reaction = null;
 		
 		this._armor_penetration_level = 10; // Defines damage that is compared to target's ._armor_level in order to potentially be able or unable to deal any damage
+		this._reinforced_level = 0; // For "reinforced" blocks which are unlocked from shop / build tool upgrades
 		
 		this._rail = false;
 		this.explosion_radius = 0;
@@ -110,6 +112,11 @@ class sdBullet extends sdEntity
 		
 		this.penetrating = false;
 		this._penetrated_list = [];
+
+		this._emp = false; // EMP effect, used for turrets to set them to "sleep mode"
+		this._emp_mult = 1; // How long will the turret sleep ( 1 = 5 seconds )
+
+		this._dirt_mult = 0; // Damage multiplier against dirt blocks, used in Laser Drill weapon
 		
 		this._bouncy = false;
 		
@@ -125,6 +132,9 @@ class sdBullet extends sdEntity
 		this.ac = 0; // Intensity
 		this.acx = 0;
 		this.acy = 0;
+
+		this._homing = false; // is the bullet homing towards mouse?
+		this._homing_mult = 0; // How fast/strong does it home towards target?
 		
 		this._first_frame = true; // Bad approach but early removal isn't good either. Also impossible to know if projectile is hook this early so far
 		
@@ -233,6 +243,11 @@ class sdBullet extends sdEntity
 		{
 			return false;
 		}
+
+		if ( from_entity.is ( sdRift ) ) // Ignore portals
+		{
+			return false;
+		}
 		return true;
 	}
 	
@@ -275,10 +290,20 @@ class sdBullet extends sdEntity
 		{
 			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.93, GSPEED );
 			this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.93, GSPEED );
+
+		if ( this._homing && this._owner )
+		{
+			//let hom_an = ( Math.atan2( ( this.y - this._owner.look_y ), (this.x - this._owner.look_x) ) + Math.PI / 2 );
+			if (this._owner.look_x - this.x > 20 || this._owner.look_x - this.x < -20 )
+			this.acx = this._homing_mult * (this._owner.look_x - this.x );
+			if (this._owner.look_y - this.y > 20 || this._owner.look_y - this.y < -20 )
+			this.acy = this._homing_mult * ( this._owner.look_y - this.y );
+		}
 			
 			this.sx += this.acx * GSPEED * this.ac * 1;
 			this.sy += this.acy * GSPEED * this.ac * 1;
 		}
+
 		
 		if ( this.is_grenade )
 		{
@@ -511,14 +536,39 @@ class sdBullet extends sdEntity
 							}
 
 							let old_hea = ( from_entity.hea || from_entity._hea || 0 );
-
+							if ( from_entity.GetClass() !== 'sdBlock' && from_entity.GetClass() !== 'sdDoor'  )
 							from_entity.Damage( dmg, this._owner );
+							else
+							if ( from_entity._reinforced_level <=  this._reinforced_level )
+							from_entity.Damage( dmg, this._owner );
+							else
+							if ( this._owner )
+							if ( this._owner.is( sdCharacter ) )
+							if ( this._owner._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
+							{
+								this._owner._last_damage_upg_complain = sdWorld.time;
+
+								if ( Math.random() < 0.5 )
+								this._owner.Say( 'I could do with a Deconstructor Hammer' );
+								else
+								this._owner.Say( 'I need a Deconstructor Hammer to damage this' );
+							}
 
 							if ( this._custom_target_reaction )
 							this._custom_target_reaction( this, from_entity );
 
 							from_entity.Impulse( this.sx * Math.abs( dmg ) * this._knock_scale, 
 												 this.sy * Math.abs( dmg ) * this._knock_scale );
+
+							if ( from_entity.GetClass() === 'sdTurret' && this._emp === true ) // Disable turrets if they're hit by an EMP bullet
+							{
+								from_entity.disabled = true;
+								from_entity._disabled_timeout = 150 * this._emp_mult;
+							}
+
+
+							if ( from_entity.GetClass() === 'sdBlock' && from_entity.material === sdBlock.MATERIAL_GROUND ) // Dirt damage multiplier
+							from_entity.Damage( dmg * this._dirt_mult, this._owner );
 
 							if ( this._owner )
 							if ( old_hea > 0 )
