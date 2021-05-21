@@ -536,12 +536,14 @@ class sdBullet extends sdEntity
 							}
 
 							let old_hea = ( from_entity.hea || from_entity._hea || 0 );
-							if ( from_entity.GetClass() !== 'sdBlock' )
+							if ( from_entity.GetClass() !== 'sdBlock' && from_entity.GetClass() !== 'sdDoor'  )
 							from_entity.Damage( dmg, this._owner );
 							else
 							if ( from_entity._reinforced_level <=  this._reinforced_level )
 							from_entity.Damage( dmg, this._owner );
 							else
+							if ( this._owner )
+							if ( this._owner.is( sdCharacter ) )
 							if ( this._owner._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
 							{
 								this._owner._last_damage_upg_complain = sdWorld.time;
