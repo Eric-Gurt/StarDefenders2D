@@ -92,6 +92,7 @@ class sdBullet extends sdEntity
 		this._custom_target_reaction = null;
 		
 		this._armor_penetration_level = 10; // Defines damage that is compared to target's ._armor_level in order to potentially be able or unable to deal any damage
+		this._reinforced_level = 0; // For "reinforced" blocks which are unlocked from shop / build tool upgrades
 		
 		this._rail = false;
 		this.explosion_radius = 0;
@@ -535,8 +536,21 @@ class sdBullet extends sdEntity
 							}
 
 							let old_hea = ( from_entity.hea || from_entity._hea || 0 );
-
+							if ( from_entity.GetClass() !== 'sdBlock' )
 							from_entity.Damage( dmg, this._owner );
+							else
+							if ( from_entity._reinforced_level <=  this._reinforced_level )
+							from_entity.Damage( dmg, this._owner );
+							else
+							if ( this._owner._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
+							{
+								this._owner._last_damage_upg_complain = sdWorld.time;
+
+								if ( Math.random() < 0.5 )
+								this._owner.Say( 'I could do with a Deconstructor Hammer' );
+								else
+								this._owner.Say( 'I need a Deconstructor Hammer to damage this' );
+							}
 
 							if ( this._custom_target_reaction )
 							this._custom_target_reaction( this, from_entity );

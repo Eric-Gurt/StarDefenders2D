@@ -752,6 +752,24 @@ class sdGunClass
 			}
 		};
 
+		sdGun.classes[ sdGun.CLASS_DECONSTRUCTOR_HAMMER = 37 ] = { // Sprite by LazyRain
+			image: sdWorld.CreateImageFromFile( 'deconstructor_hammer' ),
+			//sound: 'gun_medikit',
+			title: 'Deconstructor Hammer',
+			sound: 'sword_attack2',
+			image_no_matter: sdWorld.CreateImageFromFile( 'deconstructor_hammer' ),
+			slot: 0,
+			reload_time: 8,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			is_sword: true,
+			min_workbench_level: 1,
+			matter_cost: 900,
+			projectile_velocity: 16 * 1.5,
+			projectile_properties: { time_left: 1, _damage: 35, color: 'transparent', _knock_scale:0.025 * 8, _reinforced_level: 1 }
+		};
+
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
