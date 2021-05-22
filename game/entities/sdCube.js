@@ -341,6 +341,8 @@ class sdCube extends sdEntity
 		{
 			this.x = this.x + ( this.sx * dist ) + add_x;
 			this.y = this.y + ( this.sy * dist ) + add_y;
+			
+			sdSound.PlaySound({ name:'cube_teleport', pitch: ( this.is_white || this.is_huge ) ? 0.5 : 1, x:this.x, y:this.y, volume:1 });
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

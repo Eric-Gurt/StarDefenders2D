@@ -303,6 +303,9 @@ class sdTurret extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		if ( this.disabled )
+		ctx.filter = 'brightness(0.25)';
+		
 		ctx.rotate( this.an / 100 );
 		
 		if ( this.kind === sdTurret.KIND_LASER )

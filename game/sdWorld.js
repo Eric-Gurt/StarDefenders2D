@@ -783,13 +783,15 @@ class sdWorld
 		}
 		return false;
 	}
-	static DropShards( x,y,sx,sy, tot, value_mult )
+	static DropShards( x,y,sx,sy, tot, value_mult, radius=0 )
 	{
 		if ( sdWorld.is_server )
 		{
 			for ( var i = 0; i < tot; i++ )
 			{
-				let ent = new sdGun({ class:sdGun.CLASS_CRYSTAL_SHARD, x: x, y:y });
+				let xx = x - radius + Math.random() * radius * 2;
+				let yy = y - radius + Math.random() * radius * 2;
+				let ent = new sdGun({ class:sdGun.CLASS_CRYSTAL_SHARD, x: xx, y: yy });
 				ent.sx = sx + Math.random() * 8 - 4;
 				ent.sy = sy + Math.random() * 8 - 4;
 				ent.ttl = 30 * 9 * ( 0.7 + Math.random() * 0.3 ); // was 7 seconds, now 9

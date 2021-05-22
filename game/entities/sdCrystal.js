@@ -88,13 +88,25 @@ class sdCrystal extends sdEntity
 		
 		dmg = Math.abs( dmg );
 		
+		let was_alive = ( this._hea > 0 );
+		
 		this._hea -= dmg;
 		
 		if ( this._hea <= 0 )
 		{
-			//sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:1 });
-			sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.5 });
-			this.remove();
+			if ( was_alive )
+			{
+				//sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:1 });
+				sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.5 });
+
+				sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
+					Math.ceil( Math.max( 5, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
+					this.matter_max / 40,
+					5
+				);
+
+				this.remove();
+			}
 		}
 		else
 		{
@@ -154,10 +166,19 @@ class sdCrystal extends sdEntity
 	}
 	onRemove() // Class-specific, if needed
 	{
-		sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
-			Math.ceil( Math.max( 5, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
-			this.matter_max / 40
-		);
+		/*if ( this._hea <= 0 ) // In else case it was just removed (not best way to check)
+		{
+			sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
+				Math.ceil( Math.max( 5, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
+				this.matter_max / 40
+			);
+		}*/
+	}
+	MeasureMatterCost()
+	{
+		return 0; // Hack
+		
+		//return this._hmax * sdWorld.damage_to_matter + this.matter;
 	}
 }
 //sdCrystal.init_class();

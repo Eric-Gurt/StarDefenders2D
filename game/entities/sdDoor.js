@@ -96,7 +96,9 @@ class sdDoor extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		return this._hmax + ( 200 * this._reinforced_level ) *  sdWorld.damage_to_matter + 20;
+		//return this._hmax + ( 200 * this._reinforced_level ) * sdWorld.damage_to_matter + 20;
+		
+		return this._hmax * sdWorld.damage_to_matter * ( 1 + this._reinforced_level * 200 ) + 20;
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{

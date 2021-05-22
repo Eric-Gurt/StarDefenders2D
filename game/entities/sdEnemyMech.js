@@ -450,7 +450,7 @@ class sdEnemyMech extends sdEntity
 							this._attack_timer = 60;
 						}
 
-						sdSound.PlaySound({ name:'gun_pistol', pitch: 1, x:this.x, y:this.y, volume:0.5 });
+						sdSound.PlaySound({ name:'gun_pistol', pitch: 1, x:this.x, y:this.y, volume:0.3 });
 
 						if ( targets[ i ].GetClass() === 'sdTurret' || targets[ i ].GetClass() === 'sdCube' || targets[ i ].GetClass() === 'sdBlock' ) // Turrets, trap/shield blocks and cubes get the special treatment
 						if ( this._rail_attack_timer <= 0 )

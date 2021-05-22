@@ -116,7 +116,7 @@ class sdBullet extends sdEntity
 		this._emp = false; // EMP effect, used for turrets to set them to "sleep mode"
 		this._emp_mult = 1; // How long will the turret sleep ( 1 = 5 seconds )
 
-		this._dirt_mult = 0; // Damage multiplier against dirt blocks, used in Laser Drill weapon
+		this._dirt_mult = 0; // Damage bonus multiplier (relative to initial damage) against dirt blocks, used in Laser Drill weapon
 		
 		this._bouncy = false;
 		
@@ -438,14 +438,15 @@ class sdBullet extends sdEntity
 						let dmg = limb_mult * this._damage;
 						
 						let old_hea = ( from_entity.hea || from_entity._hea || 0 );
+						
+						// Some entities need to inherit impact velocity on damage so it is higher now
+						from_entity.Impulse( this.sx * Math.abs( this._damage ) * this._knock_scale, 
+											 this.sy * Math.abs( this._damage ) * this._knock_scale );
 
 						from_entity.Damage( dmg, this._owner, limb_mult !== 1 );
 						
 						if ( this._custom_target_reaction )
 						this._custom_target_reaction( this, from_entity );
-						
-						from_entity.Impulse( this.sx * Math.abs( this._damage ) * this._knock_scale, 
-											 this.sy * Math.abs( this._damage ) * this._knock_scale );
 						
 						if ( this._owner )
 						if ( old_hea > 0 )
@@ -535,6 +536,10 @@ class sdBullet extends sdEntity
 								dmg *= 3;
 							}
 
+							// Some entities need to inherit impact velocity on damage so it is higher now
+							from_entity.Impulse( this.sx * Math.abs( dmg ) * this._knock_scale, 
+												 this.sy * Math.abs( dmg ) * this._knock_scale );
+
 							let old_hea = ( from_entity.hea || from_entity._hea || 0 );
 							if ( from_entity.GetClass() !== 'sdBlock' && from_entity.GetClass() !== 'sdDoor'  )
 							from_entity.Damage( dmg, this._owner );
@@ -557,9 +562,6 @@ class sdBullet extends sdEntity
 							if ( this._custom_target_reaction )
 							this._custom_target_reaction( this, from_entity );
 
-							from_entity.Impulse( this.sx * Math.abs( dmg ) * this._knock_scale, 
-												 this.sy * Math.abs( dmg ) * this._knock_scale );
-
 							if ( from_entity.GetClass() === 'sdTurret' && this._emp === true ) // Disable turrets if they're hit by an EMP bullet
 							{
 								from_entity.disabled = true;
@@ -567,7 +569,7 @@ class sdBullet extends sdEntity
 							}
 
 
-							if ( from_entity.GetClass() === 'sdBlock' && from_entity.material === sdBlock.MATERIAL_GROUND ) // Dirt damage multiplier
+							if ( from_entity.GetClass() === 'sdBlock' && from_entity.material === sdBlock.MATERIAL_GROUND ) // Dirt damage bonus multiplier (relative to initial damage)
 							from_entity.Damage( dmg * this._dirt_mult, this._owner );
 
 							if ( this._owner )

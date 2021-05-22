@@ -17,6 +17,7 @@ import sdCom from './sdCom.js';
 import sdBG from './sdBG.js';
 import sdArea from './sdArea.js';
 import sdOctopus from './sdOctopus.js';
+import sdRift from './sdRift.js';
 
 import sdGunClass from './sdGunClass.js';
 
@@ -96,6 +97,9 @@ class sdGun extends sdEntity
 			return;
 		
 			if ( from_entity.is( sdBullet ) )
+			return;
+		
+			if ( from_entity.is( sdRift ) ) // Ignore portals
 			return;
 		
 			if ( from_entity.is( sdArea ) )

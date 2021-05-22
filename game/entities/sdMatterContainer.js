@@ -35,9 +35,11 @@ class sdMatterContainer extends sdEntity
 	{
 		super( params );
 		
-		this.matter_max = params.matter_max || 640;
+		//this.matter_max = params.matter_max || 640;
+		this.matter_max = params.matter_max || 2048;
 		
-		this.matter = this.matter_max;
+		//this.matter = this.matter_max;
+		this.matter = 0;
 		
 		this._last_sync_matter = this.matter;
 		
@@ -65,7 +67,8 @@ class sdMatterContainer extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
+		// No regen, just give away matter
+		//this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
 		
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
@@ -96,7 +99,7 @@ class sdMatterContainer extends sdEntity
 			}
 		}*/
 		
-		if ( Math.abs( this._last_sync_matter - this.matter ) > this.matter_max * 0.1 || this._last_x !== this.x || this._last_y !== this.y )
+		if ( Math.abs( this._last_sync_matter - this.matter ) > this.matter_max * 0.05 || this._last_x !== this.x || this._last_y !== this.y )
 		{
 			this._last_sync_matter = this.matter;
 			this._update_version++;
@@ -128,7 +131,8 @@ class sdMatterContainer extends sdEntity
 				
 		sdWorld.DropShards( this.x, this.y, 0, 0, 
 			Math.floor( Math.max( 0, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
-			this.matter_max / 40
+			this.matter_max / 40,
+			10
 		);
 
 		sdWorld.BasicEntityBreakEffect( this, 10 );
@@ -138,7 +142,8 @@ class sdMatterContainer extends sdEntity
 	{
 	//	return 0; // Hack
 		
-		return this._hmax * sdWorld.damage_to_matter + this.matter;
+		//return this._hmax * sdWorld.damage_to_matter + this.matter;
+		return this._hmax * sdWorld.damage_to_matter + this.matter_max * 0.75;
 	}
 }
 //sdMatterContainer.init_class();

@@ -19,6 +19,9 @@ class sdRescueTeleport extends sdEntity
 		
 		sdRescueTeleport.rescue_teleports = [];
 		
+		sdRescueTeleport.delay_1st = 30 * 60 * 3; // 3 minutes
+		sdRescueTeleport.delay_2nd = 30 * 60 * 5; // 5 minutes
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -11; }
@@ -86,7 +89,7 @@ class sdRescueTeleport extends sdEntity
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 		
-		this.delay = 0;
+		this.delay = sdRescueTeleport.delay_1st;
 		//this._update_version++
 		
 		this._owner = params.owner || null;

@@ -579,7 +579,7 @@ class sdCharacter extends sdEntity
 
 			this.hea = Math.max( this.hea, 30 );
 
-			best_t.SetDelay( 30 * 60 * 5 ); // 5 minutes
+			best_t.SetDelay( sdRescueTeleport.delay_2nd ); // 5 minutes
 			
 			this.ApplyServerSidePositionAndVelocity( true, 0, 0 );
 
@@ -1281,7 +1281,7 @@ class sdCharacter extends sdEntity
 			{
 				if ( this._wb_timer > 0 && this.workbench_level > 0 )
 				if ( this.sx !== 0 || this.sy !== 0 ) // Do not affect timer unless player is moving, a circumvent solution for static players at workbench
-				this._wb_timer -= GSPEED;;
+				this._wb_timer -= GSPEED;
 				if ( this._wb_timer <= 0 && this.workbench_level > 0 )
 				this.workbench_level = 0;
 			}

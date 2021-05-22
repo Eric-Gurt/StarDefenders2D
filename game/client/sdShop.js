@@ -126,8 +126,8 @@ class sdShop
 		sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_ROCKET, _category:'Base equipment' });
 		/*sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 / 2, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640, _category:'Base equipment' });
-		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2, _category:'Base equipment' });
-		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Base equipment' });*/
+		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2, _category:'Base equipment' });*/
+		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdMatterAmplifier', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 2, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 4, _category:'Base equipment', _min_build_tool_level: 1 });
@@ -326,13 +326,14 @@ class sdShop
 			sdShop.options.push({ _class: 'sdGrass', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdSlug', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdEnemyMech', _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Development tests' });
+			//sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdJunk', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBadDog', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdShark', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWorkbench', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdRift', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdRift', type: 2, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });

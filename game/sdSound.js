@@ -92,6 +92,11 @@ class sdSound
 		sdSound.lava_burn.volume = 0;
 		sdSound.lava_burn.loop = true;
 		
+		sdSound.rift_loop_volume_last = 0;
+		sdSound.rift_loop = new Audio( './audio/rift_loop.wav' );
+		sdSound.rift_loop.volume = 0;
+		sdSound.rift_loop.loop = true;
+		
 		
 		
 		sdSound.ambient_seeker = { x:Math.random()*2-1, y:Math.random()*2-1, tx:Math.random()*2-1, ty:Math.random()*2-1 };
@@ -135,6 +140,7 @@ class sdSound
 			sdSound.amplifier_loop.play();
 			sdSound.lava_loop.play();
 			sdSound.lava_burn.play();
+			sdSound.rift_loop.play();
 		}
 	}
 	static HandleMatterChargeLoop( GSPEED )
@@ -197,8 +203,9 @@ class sdSound
 		let count_flying = 0;
 		let count_hover_loop = 0;
 		let count_amplifier_loop = 0;
-		let count_lava_loop = 0
+		let count_lava_loop = 0;
 		let count_lava_burn = 0;
+		let count_rift_loop = 0;
 			
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
 		{
@@ -227,6 +234,11 @@ class sdSound
 				if ( sdEntity.entities[ i ]._swimmers.size > 0 )
 				count_lava_burn += 0.15 * sdEntity.entities[ i ]._swimmers.size * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
 			}
+			else
+			if ( sdEntity.entities[ i ].GetClass() === 'sdRift' )
+			{
+				count_rift_loop += 2.5 * sdEntity.entities[ i ].scale * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+			}
 		}
 		
 		sdSound.jetpack_volume_last = sdWorld.MorphWithTimeScale( sdSound.jetpack_volume_last, count_flying, 0.8, GSPEED );
@@ -243,6 +255,9 @@ class sdSound
 		
 		sdSound.lava_burn_volume_last = sdWorld.MorphWithTimeScale( sdSound.lava_burn_volume_last, count_lava_burn, 0.8, GSPEED );
 		sdSound.lava_burn.volume = Math.min( 1, Math.min( 2, sdSound.lava_burn_volume_last ) * sdSound.volume_ambient );
+		
+		sdSound.rift_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.rift_loop_volume_last, count_rift_loop, 0.8, GSPEED );
+		sdSound.rift_loop.volume = Math.min( 5, Math.min( 10, sdSound.rift_loop_volume_last ) * sdSound.volume_ambient );
 	}
 	static GetDistanceMultForPosition( x,y )
 	{
