@@ -300,8 +300,8 @@ class sdAsp extends sdEntity
 						
 						let di = sdWorld.Dist2D_Vector( dx, dy );
 						
-						dx += from_entity.sx * di / 12;
-						dy += from_entity.sy * di / 12;
+						dx += ( from_entity.sx || 0 ) * di / 12;
+						dy += ( from_entity.sy || 0 ) * di / 12;
 						
 						di = sdWorld.Dist2D_Vector( dx, dy );
 						

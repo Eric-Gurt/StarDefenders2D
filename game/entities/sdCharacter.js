@@ -569,6 +569,8 @@ class sdCharacter extends sdEntity
 
 			this.x = best_t.x;
 			this.y = best_t.y;
+			
+			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 
 			this.sx = 0;
 			this.sy = 0;
