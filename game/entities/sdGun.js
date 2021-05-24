@@ -577,6 +577,9 @@ class sdGun extends sdEntity
 						bullet_obj._armor_penetration_level = bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ];
 						else
 						bullet_obj._armor_penetration_level = 0;
+					
+						if ( typeof sdGun.classes[ this.class ].projectile_properties._armor_penetration_level !== 'undefined' )
+						bullet_obj._armor_penetration_level = sdGun.classes[ this.class ].projectile_properties._armor_penetration_level;
 						
 						bullet_obj._owner.Impulse( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale, -bullet_obj.sy * 0.3 * bullet_obj._knock_scale );
 						

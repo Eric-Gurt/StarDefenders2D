@@ -634,7 +634,7 @@ class sdWorld
 		if ( ent )
 		{
 			sdEntity.entities.push( ent );
-			sdWorld.UpdateHashPosition( ent, false ); // Prevent inersection with other ones
+			sdWorld.UpdateHashPosition( ent, false ); // Prevent intersection with other ones
 		}
 		
 		return ent;

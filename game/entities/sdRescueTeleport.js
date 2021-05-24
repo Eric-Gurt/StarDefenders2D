@@ -200,6 +200,9 @@ class sdRescueTeleport extends sdEntity
 		if ( this._net_id !== undefined ) // Was ever synced rather than just temporarily object for shop
 		if ( this._broken )
 		{
+			sdWorld.BasicEntityBreakEffect( this, 3 );
+				
+			/*
 			sdSound.PlaySound({ name:'block4', 
 				x:this.x + 32 / 2, 
 				y:this.y + 32 / 2, 
@@ -217,7 +220,7 @@ class sdRescueTeleport extends sdEntity
 				s = Math.random() * 4;
 				let ent = new sdEffect({ x: this.x + x - 16, y: this.y + y - 16, type:sdEffect.TYPE_ROCK, sx: Math.sin(a)*s, sy: Math.cos(a)*s });
 				sdEntity.entities.push( ent );
-			}
+			}*/
 		}
 	}
 	

@@ -197,8 +197,10 @@ class sdCharacter extends sdEntity
 		
 		return false;
 	}
-	IsTargetable() // Guns are not targetable when held, same for sdCharacters that are driving something
+	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Guns are not targetable when held, same for sdCharacters that are driving something
 	{
+		if ( !ignore_safe_areas )
+		if ( !by_entity || !by_entity._admin_picker )
 		if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
 		return false;
 	

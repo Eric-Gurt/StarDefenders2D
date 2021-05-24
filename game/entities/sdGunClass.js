@@ -783,7 +783,8 @@ class sdGunClass
 			count: 1,
 			matter_cost: Infinity,
 			projectile_velocity: 16,
-			projectile_properties: { _rail: true, time_left: 30, _damage: 1, color: '#ffffff', _reinforced_level:Infinity, _armor_protection_level:Infinity, _admin_picker:true, _custom_target_reaction:( bullet, target_entity )=>
+			spawnable: false,
+			projectile_properties: { _rail: true, time_left: 30, _damage: 1, color: '#ffffff', _reinforced_level:Infinity, _armor_penetration_level:Infinity, _admin_picker:true, _custom_target_reaction:( bullet, target_entity )=>
 				{
 					if ( bullet._owner )
 					{
