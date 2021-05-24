@@ -552,6 +552,14 @@ class sdEntity
 	
 	UpdateHitbox()
 	{
+		/*if ( !sdWorld.is_server )
+		if ( this.GetClass() === 'sdBlock' )
+		if ( this.material === 0 )
+		{
+			console.warn( 'Hash update allowed: ',this._hitbox_last_update !== sdWorld.time );
+			debugger;
+		}	*/
+		
 		if ( this._hitbox_last_update !== sdWorld.time )
 		{
 			this._hitbox_last_update = sdWorld.time;
@@ -968,7 +976,12 @@ class sdEntity
 			}
 		}
 		else
-		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		{
+			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		}
+		
+		this._hitbox_last_update = 0;
+		this.UpdateHitbox();
 	}
 	static GetObjectByClassAndNetId( _class, _net_id ) // GetEntityByNetID // FindEntityByNetID
 	{

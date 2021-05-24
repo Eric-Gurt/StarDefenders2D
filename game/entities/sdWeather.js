@@ -3,11 +3,16 @@
  
  
  
-	Test specific event on server (will break any other event)
- 
-	sdWorld.entity_classes.sdWeather.only_instance._time_until_event = 0
-	sdWorld.server_config.GetAllowedWorldEvents = ()=>[ 8 ];
-	sdWorld.server_config.GetDisallowedWorldEvents = ()=>[];
+	Test specific event on server (will break any other event):
+
+		sdWorld.entity_classes.sdWeather.only_instance._time_until_event = 0
+		sdWorld.server_config.GetAllowedWorldEvents = ()=>[ 8 ];
+		sdWorld.server_config.GetDisallowedWorldEvents = ()=>[];
+
+
+	Stop all events:
+
+		sdWorld.server_config.GetAllowedWorldEvents = ()=>[];
  
 */
 import sdWorld from '../sdWorld.js';

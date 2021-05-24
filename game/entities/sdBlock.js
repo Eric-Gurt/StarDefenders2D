@@ -140,6 +140,12 @@ class sdBlock extends sdEntity
 								sdWorld.CheckWallExists( this.x + 16 + 8, this.y + this.height + 8, null, null, filter );
 							}
 							this._vis_block_bottom = sdWorld.last_hit_entity;
+							/*
+							if ( this.material === sdBlock.MATERIAL_WALL )
+							{
+								if ( this._vis_block_bottom )
+								debugger;
+							}*/
 						}
 						
 						if ( !this._vis_block_bottom )
