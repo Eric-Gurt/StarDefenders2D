@@ -344,10 +344,10 @@ class sdWater extends sdEntity
 		
 		const safe_bound = 0;
 		
-		var xx_from = ~~( ( this.x + this.hitbox_x1 ) / 32 ); // Overshoot no longer needed, due to big entities now taking all needed hash arrays
-		var yy_from = ~~( ( this.y + this.hitbox_y1 ) / 32 );
-		var xx_to = ~~( ( this.x + this.hitbox_x2 ) / 32 );
-		var yy_to = ~~( ( this.y + this.hitbox_y2 ) / 32 );
+		var xx_from = ~~( ( this.x + this._hitbox_x1 ) / 32 ); // Overshoot no longer needed, due to big entities now taking all needed hash arrays
+		var yy_from = ~~( ( this.y + this._hitbox_y1 ) / 32 );
+		var xx_to = ~~( ( this.x + this._hitbox_x2 ) / 32 );
+		var yy_to = ~~( ( this.y + this._hitbox_y2 ) / 32 );
 	
 		for ( var xx = xx_from; xx <= xx_to; xx++ )
 		for ( var yy = yy_from; yy <= yy_to; yy++ )

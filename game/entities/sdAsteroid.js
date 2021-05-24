@@ -48,7 +48,7 @@ class sdAsteroid extends sdEntity
 		if ( !sdWorld.is_server )
 		this._an = Math.atan2( this.sy, this.sx ) - Math.PI / 2;
 	
-		if ( sdWorld.CheckWallExists( this.x, this.y + this.hitbox_y2, this ) )
+		if ( sdWorld.CheckWallExists( this.x, this.y + this._hitbox_y2, this ) )
 		{
 			this.remove();
 		}

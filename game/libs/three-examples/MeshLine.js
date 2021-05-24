@@ -77,6 +77,7 @@
   // as you're creating a unecessary geometry just to throw away
   // but exists to support previous api
   MeshLine.prototype.setGeometry = function(g, c) {
+	  
 		// as the input geometry are mutated we store them
 		// for later retreival when necessary (declaritive architectures)
 		this._geometry = g;

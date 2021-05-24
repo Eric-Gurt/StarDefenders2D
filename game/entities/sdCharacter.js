@@ -974,7 +974,7 @@ class sdCharacter extends sdEntity
 				}
 				
 				this._ai.target = closest;
-				this._ai.target_local_y = closest.hitbox_y1 + ( closest.hitbox_y2 - closest.hitbox_y1 ) * Math.random();
+				this._ai.target_local_y = closest._hitbox_y1 + ( closest._hitbox_y2 - closest._hitbox_y1 ) * Math.random();
 
 				let should_fire = true; // Sometimes prevents friendly fire, not ideal since it updates only when ai performs "next action"
 				if ( !sdWorld.CheckLineOfSight( this.x, this.y, closest.x, closest.y, this, null, ['sdCharacter'] ) )
@@ -1020,7 +1020,7 @@ class sdCharacter extends sdEntity
 			
 				sdWorld.last_hit_entity = null;
 				
-				if ( sdWorld.CheckWallExistsBox( this.x + this._ai.direction * 16 - 16, this.y + this.hitbox_y2 - 32 + 1, this.x + this._ai.direction * 16 + 16, this.y + this.hitbox_y2 - 1, this, null, null ) ||  ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 )  )
+				if ( sdWorld.CheckWallExistsBox( this.x + this._ai.direction * 16 - 16, this.y + this._hitbox_y2 - 32 + 1, this.x + this._ai.direction * 16 + 16, this.y + this._hitbox_y2 - 1, this, null, null ) ||  ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 )  )
 				this._key_states.SetKey( 'KeyW', 1 );
 				else
 				{
@@ -1032,7 +1032,7 @@ class sdCharacter extends sdEntity
 						closest = sdWorld.last_hit_entity;
 
 						this._ai.target = closest;
-						this._ai.target_local_y = closest.hitbox_y1 + ( closest.hitbox_y2 - closest.hitbox_y1 ) * Math.random();
+						this._ai.target_local_y = closest._hitbox_y1 + ( closest._hitbox_y2 - closest._hitbox_y1 ) * Math.random();
 					}
 				}
 			}
@@ -1318,6 +1318,7 @@ class sdCharacter extends sdEntity
 					{
 						if ( !this._inventory[ this.gun_slot ] || !sdGun.classes[ this._inventory[ this.gun_slot ].class ].is_build_gun )
 						if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
+						if ( !this._god )
 						{
 							will_fire = false;
 							
@@ -1510,7 +1511,7 @@ class sdCharacter extends sdEntity
 		//let new_y = this.y + this.sy * GSPEED;
 		
 		//let leg_height = 16 - this._crouch_intens * 6;
-		let leg_height = this.hitbox_y2;
+		let leg_height = this._hitbox_y2;
 		
 		let speed_scale = 1;
 		
@@ -1534,7 +1535,7 @@ class sdCharacter extends sdEntity
 			}
 		}
 		//let new_leg_height = 16 - this._crouch_intens * 6;
-		let new_leg_height = this.hitbox_y2;
+		let new_leg_height = this._hitbox_y2;
 		
 		//leg_height		*= 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7;
 		//new_leg_height  *= 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7;
@@ -1633,7 +1634,7 @@ class sdCharacter extends sdEntity
 						this.hook_y = this._hook_relative_to.y + this._hook_relative_y;
 					}
 					
-					let from_y = this.y + ( this.hitbox_y1 + this.hitbox_y2 ) / 2;
+					let from_y = this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2;
 					
 					let cur_di = sdWorld.Dist2D( this.x, from_y, this.hook_x, this.hook_y );
 
@@ -1689,13 +1690,13 @@ class sdCharacter extends sdEntity
 			this.stands = false;
 		
 			/*
-			if ( sdWorld.CheckWallExists( this.x + this.hitbox_x1 + 2, new_y + leg_height ) ||
-				 sdWorld.CheckWallExists( this.x + this.hitbox_x2 - 2, new_y + leg_height ) )
+			if ( sdWorld.CheckWallExists( this.x + this._hitbox_x1 + 2, new_y + leg_height ) ||
+				 sdWorld.CheckWallExists( this.x + this._hitbox_x2 - 2, new_y + leg_height ) )
 			{
 				this.stands = true;
 				
-				if ( sdWorld.CheckWallExists( this.x + this.hitbox_x1 + 2, new_y + leg_height - 1 ) ||
-					 sdWorld.CheckWallExists( this.x + this.hitbox_x2 - 2, new_y + leg_height - 1 ) ) // Intersection overlap prevention
+				if ( sdWorld.CheckWallExists( this.x + this._hitbox_x1 + 2, new_y + leg_height - 1 ) ||
+					 sdWorld.CheckWallExists( this.x + this._hitbox_x2 - 2, new_y + leg_height - 1 ) ) // Intersection overlap prevention
 				{
 					this.y -= 0.5;
 					new_y -= 0.5;
@@ -1708,10 +1709,10 @@ class sdCharacter extends sdEntity
 				
 				if ( old_stands )
 				if ( !this._stands_on._is_being_removed )
-				if ( this.x + this.hitbox_x2 <= this._stands_on.x + this._stands_on.hitbox_x1 )
-				if ( this.x + this.hitbox_x1 >= this._stands_on.x + this._stands_on.hitbox_x2 )
-				if ( this.y + this.hitbox_y2 + ( this.UseServerCollisions() ? 2 : 3 ) <= this._stands_on.y + this._stands_on.hitbox_y1 )
-				if ( this.y + this.hitbox_y1 + ( this.UseServerCollisions() ? 2 : 3 ) >= this._stands_on.y + this._stands_on.hitbox_y2 )
+				if ( this.x + this._hitbox_x2 <= this._stands_on.x + this._stands_on._hitbox_x1 )
+				if ( this.x + this._hitbox_x1 >= this._stands_on.x + this._stands_on._hitbox_x2 )
+				if ( this.y + this._hitbox_y2 + ( this.UseServerCollisions() ? 2 : 3 ) <= this._stands_on.y + this._stands_on._hitbox_y1 )
+				if ( this.y + this._hitbox_y1 + ( this.UseServerCollisions() ? 2 : 3 ) >= this._stands_on.y + this._stands_on._hitbox_y2 )
 				{
 					sdWorld.last_hit_entity = this._stands_on;
 				}
@@ -1731,7 +1732,7 @@ class sdCharacter extends sdEntity
 					if ( this.hea > 0 )
 					if ( this.act_x !== 0 )
 					if ( sdWorld.CheckWallExistsBox( this.x + this.act_x * 7, this.y, this.x + this.act_x * 7, this.y + 10, null, null, [ 'sdBlock' ] ) )
-					if ( !sdWorld.CheckWallExists( this.x + this.act_x * 7, this.y + this.hitbox_y1, null, null, [ 'sdBlock' ] ) )
+					if ( !sdWorld.CheckWallExists( this.x + this.act_x * 7, this.y + this._hitbox_y1, null, null, [ 'sdBlock' ] ) )
 					{
 						ledge_holding = true;
 					}
@@ -1746,13 +1747,13 @@ class sdCharacter extends sdEntity
 		if ( Math.abs( this.sx ) < 3 )
 		{
 			if ( this.act_x !== -1 )
-			if ( sdWorld.CheckWallExists( this.x + this.hitbox_x1 - 5, this.y, this ) )
+			if ( sdWorld.CheckWallExists( this.x + this._hitbox_x1 - 5, this.y, this ) )
 			{
 				this.sy = -3;
 				this.sx = 2.5;
 			}
 			if ( this.act_x !== 1 )
-			if ( sdWorld.CheckWallExists( this.x + this.hitbox_x2 + 5, this.y, this ) )
+			if ( sdWorld.CheckWallExists( this.x + this._hitbox_x2 + 5, this.y, this ) )
 			{
 				this.sy = -3;
 				this.sx = -2.5;
@@ -1891,14 +1892,14 @@ class sdCharacter extends sdEntity
 			this.sx += x_force * 0.2 * GSPEED;
 			this.sy += y_force * 0.2 * GSPEED;
 			/*
-			if ( !sdWorld.CheckWallExists( this.x, this.y + this.hitbox_y1, null, null, sdWater.water_class_array ) )
+			if ( !sdWorld.CheckWallExists( this.x, this.y + this._hitbox_y1, null, null, sdWater.water_class_array ) )
 			{
 				if ( this.act_y === -1 )
 				this.sy = -3;
 			}
 			else*/
 								
-			if ( sdWorld.CheckWallExists( this.x, this.y + this.hitbox_y1, null, null, sdWater.water_class_array ) )
+			if ( sdWorld.CheckWallExists( this.x, this.y + this._hitbox_y1, null, null, sdWater.water_class_array ) )
 			can_breathe = false;
 		}
 		else
@@ -2090,8 +2091,8 @@ class sdCharacter extends sdEntity
 
 					k = Math.random();
 
-					x = this.x + this.hitbox_x1 + Math.random() * ( this.hitbox_x2 - this.hitbox_x1 );
-					y = this.y + this.hitbox_y1 + Math.random() * ( this.hitbox_y2 - this.hitbox_y1 );
+					x = this.x + this._hitbox_x1 + Math.random() * ( this._hitbox_x2 - this._hitbox_x1 );
+					y = this.y + this._hitbox_y1 + Math.random() * ( this._hitbox_y2 - this._hitbox_y1 );
 
 					//console.warn( { x: this.x, y: this.y, type:sdEffect.TYPE_GIB, sx: this.sx + Math.sin(a)*s, sy: this.sy + Math.cos(a)*s } )
 
@@ -2474,11 +2475,13 @@ class sdCharacter extends sdEntity
 		// Note: X and Y are weird here. This can cause hash array being incorrect - hash update is important to do after entity was placed properly! It can not be done earlier due to entity sizes being unknown too
 		let fake_ent = new sdWorld.entity_classes[ this._build_params._class ]( this._build_params );
 		
+		fake_ent.UpdateHitbox();
+		
 		this._build_params.x = this.look_x;
 		this._build_params.y = this.look_y;
 		
-		fake_ent.x = ( this.look_x - ( fake_ent.hitbox_x2 + fake_ent.hitbox_x1 ) / 2 );
-		fake_ent.y = ( this.look_y - ( fake_ent.hitbox_y2 + fake_ent.hitbox_y1 ) / 2 );
+		fake_ent.x = ( this.look_x - ( fake_ent._hitbox_x2 + fake_ent._hitbox_x1 ) / 2 );
+		fake_ent.y = ( this.look_y - ( fake_ent._hitbox_y2 + fake_ent._hitbox_y1 ) / 2 );
 		
 		if ( !demo_mode )
 		{
@@ -2550,7 +2553,7 @@ class sdCharacter extends sdEntity
 		if ( !attached )
 		if ( this.hook_x !== 0 || this.hook_y !== 0 )
 		{
-			let from_y = this.y + ( this.hitbox_y1 + this.hitbox_y2 ) / 2;
+			let from_y = this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2;
 			
 			ctx.lineWidth = 1;
 			ctx.strokeStyle = '#c0c0c0';

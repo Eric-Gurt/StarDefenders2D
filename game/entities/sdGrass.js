@@ -88,7 +88,7 @@ class sdGrass extends sdEntity
 		{
 			if ( sdWorld.my_entity.look_x >= this.x )
 			if ( sdWorld.my_entity.look_x < this.x + 16 )
-			if ( sdWorld.my_entity.look_y >= this.y + this.hitbox_y1 )
+			if ( sdWorld.my_entity.look_y >= this.y + this._hitbox_y1 )
 			if ( sdWorld.my_entity.look_y < this.y + 16 )
 			ctx.globalAlpha = 0.15;
 		}

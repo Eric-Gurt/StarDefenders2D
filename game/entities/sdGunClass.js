@@ -770,6 +770,40 @@ class sdGunClass
 			projectile_properties: { time_left: 1, _damage: 35, color: 'transparent', _knock_scale:0.025 * 8, _reinforced_level: 1 }
 		};
 
+		sdGun.classes[ sdGun.CLASS_ADMIN_REMOVER = 38 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'shark' ),
+			sound: 'gun_defibrillator',
+			title: 'Admin tool for removing',
+			sound_pitch: 2,
+			slot: 4,
+			reload_time: 5,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			matter_cost: Infinity,
+			projectile_velocity: 16,
+			projectile_properties: { _rail: true, time_left: 30, _damage: 1, color: '#ffffff', _reinforced_level:Infinity, _armor_protection_level:Infinity, _admin_picker:true, _custom_target_reaction:( bullet, target_entity )=>
+				{
+					if ( bullet._owner )
+					{
+						if ( bullet._owner._god )
+						{
+							target_entity.Damage( Infinity, bullet._owner, false, false );
+							target_entity.remove();
+						}
+						else
+						if ( bullet._owner.is( sdCharacter ) )
+						{
+							// Remove if used by non-admin
+							if ( bullet._owner._inventory[ bullet._owner.gun_slot ] )
+							if ( sdGun.classes[ bullet._owner._inventory[ bullet._owner.gun_slot ].class ].projectile_properties._admin_picker )
+							bullet._owner._inventory[ bullet._owner.gun_slot ].remove();
+						}
+					}
+				}
+			}
+		};
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];

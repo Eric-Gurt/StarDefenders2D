@@ -91,10 +91,10 @@ class sdBlock extends sdEntity
 							var e = this._affected_hash_arrays[ a ][ i ];
 							if ( e instanceof sdBG )
 							{
-								if ( this.x + this.hitbox_x1 >= e.x + e.hitbox_x1 )
-								if ( this.x + this.hitbox_x2 <= e.x + e.hitbox_x2 )
-								if ( this.y + this.hitbox_y1 >= e.y + e.hitbox_y1 )
-								if ( this.y + this.hitbox_y2 <= e.y + e.hitbox_y2 )
+								if ( this.x + this._hitbox_x1 >= e.x + e._hitbox_x1 )
+								if ( this.x + this._hitbox_x2 <= e.x + e._hitbox_x2 )
+								if ( this.y + this._hitbox_y1 >= e.y + e._hitbox_y1 )
+								if ( this.y + this._hitbox_y2 <= e.y + e._hitbox_y2 )
     							return;
 	    					}
 						}
@@ -297,6 +297,7 @@ class sdBlock extends sdEntity
 		this._reinforced_level = params._reinforced_level || 0;
 		
 		this._contains_class = params.contains_class || null;
+		this._contains_class_params = null; // Parameters that are passed to this._contains_class entity
 		//this._hidden_crystal = params.hidden_crystal || false;
 		//this._hidden_virus = params.hidden_virus || false;
 		
@@ -330,7 +331,7 @@ class sdBlock extends sdEntity
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
-		return ( prop === '_plants' );
+		return ( prop === '_plants' || prop === '_contains_class_params' );
 	}
 	MeasureMatterCost()
 	{
@@ -545,7 +546,15 @@ class sdBlock extends sdEntity
 					let parts = this._contains_class.split( '.' );
 					this._contains_class = parts[ 0 ];
 					
-					let ent = new sdWorld.entity_classes[ this._contains_class ]({ x: this.x + this.width / 2, y: this.y + this.height / 2, tag:( parts.length > 1 )?parts[1]:null });
+					let params = { x: this.x + this.width / 2, y: this.y + this.height / 2, tag:( parts.length > 1 )?parts[1]:null };
+					
+					if ( this._contains_class_params )
+					{
+						for ( let i in this._contains_class_params )
+						params[ i ] = this._contains_class_params[ i ];
+					}
+					
+					let ent = new sdWorld.entity_classes[ this._contains_class ]( params );
 					sdEntity.entities.push( ent );
 					
 					sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible

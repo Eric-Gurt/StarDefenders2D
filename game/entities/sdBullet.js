@@ -124,6 +124,8 @@ class sdBullet extends sdEntity
 		this._owner2 = null; // Usually vehicle which _owner uses to shoot (or sdTurret?). Participates in collision ignoring as well
 		this._can_hit_owner = false;
 		
+		this._admin_picker = false; // Whether it can hit anything including rift portals
+		
 		this._soft = false; // Punches
 		
 		this._hea = 80; // For grenades to be hittable
@@ -211,7 +213,7 @@ class sdBullet extends sdEntity
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return this._bouncy ? null : ( this.is_grenade ? [ 'sdCharacter' ] : [ 'sdCharacter', 'sdTurret', 'sdHover', 'sdEnemyMech' , 'sdCube', 'sdAsp', 'sdJunk' ] );
+		return this._bouncy ? null : ( this.is_grenade ? [ 'sdCharacter' ] : [ 'sdCharacter', 'sdTurret', 'sdHover', 'sdEnemyMech' , 'sdCube', 'sdAsp', 'sdJunk', 'sdRift' ] );
 	}
 	get bounce_intensity()
 	{ return this._bouncy ? 0.8 : ( this.is_grenade ? 0.55 : 0.3 ); } // 0.3 not felt right for grenades
@@ -238,13 +240,18 @@ class sdBullet extends sdEntity
 	
 	RegularCollisionFiltering( from_entity )
 	{
+		// Generally not having hitpoints and being included in GetIgnoredEntityClasses is enough for bullets to ignore something. But watch out for throwable swords at sdGun at movement in range method
+		
 		if ( from_entity.is( sdBlock ) && from_entity.material === sdBlock.MATERIAL_TRAPSHIELD )
 		if ( this._owner === null || ( ( !this._owner._key_states || !this._owner._key_states.GetKey( 'ShiftLeft' ) ) && sdWorld.inDist2D( this._owner.x, this._owner.y, from_entity.x + from_entity.width/2, from_entity.y + from_entity.height/2 ) < 32 ) )
 		{
 			return false;
 		}
+		
+		if ( this._admin_picker )
+		return true;
 
-		if ( from_entity.is ( sdRift ) ) // Ignore portals
+		if ( from_entity.is( sdRift ) ) // Ignore portals
 		{
 			return false;
 		}
@@ -270,7 +277,7 @@ class sdBullet extends sdEntity
 		if ( this._first_frame )
 		{
 			this._first_frame = false;
-			if ( !this._hook )
+			if ( !this._hook && !this._admin_picker )
 			if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
 			{
 				this.remove();
@@ -386,7 +393,7 @@ class sdBullet extends sdEntity
 
 	onMovementInRange( from_entity )
 	{
-		if ( !this._hook )
+		if ( !this._hook && !this._admin_picker )
 		{
 			if ( from_entity.is( sdGun ) )
 			return;
@@ -412,7 +419,7 @@ class sdBullet extends sdEntity
 			//if ( from_entity.GetClass() === 'sdCharacter' || 
 			//	 from_entity.GetClass() === 'sdVirus' )
 			{
-				if ( from_entity.IsTargetable() )
+				if ( from_entity.IsTargetable( this ) )
 				if ( !sdWorld.server_config.GetHitAllowed || sdWorld.server_config.GetHitAllowed( this, from_entity ) )
 				{
 					if ( sdWorld.is_server ) // Or else fake self-knock
@@ -482,9 +489,9 @@ class sdBullet extends sdEntity
 			else
 			if ( !this.is_grenade )
 			//if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdCrystal' ) // Including any else rigid bodies
-			if ( typeof from_entity.hea !== 'undefined' || typeof from_entity._hea !== 'undefined' || ( this._bg_shooter && !this._bouncy && from_entity.GetClass() === 'sdBG' ) )
+			if ( typeof from_entity.hea !== 'undefined' || typeof from_entity._hea !== 'undefined' || ( this._bg_shooter && !this._bouncy && from_entity.GetClass() === 'sdBG' ) || ( this._admin_picker && ( this._bg_shooter || from_entity.GetClass() !== 'sdBG' ) ) )
 			//if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null ) // guns can be hit only when are not held by anyone
-			if ( from_entity.IsTargetable() )
+			if ( from_entity.IsTargetable( this ) )
 			{
 				let will_bounce = false;
 				//let dmg_mult = 1;
@@ -520,7 +527,8 @@ class sdBullet extends sdEntity
 							sdSound.PlaySound({ name:'player_step', x:this.x, y:this.y, volume:0.5, pitch:1.8 });
 						}
 
-						if ( typeof from_entity._armor_protection_level === 'undefined' || this._armor_penetration_level >= from_entity._armor_protection_level )
+						if ( ( typeof from_entity._armor_protection_level === 'undefined' || this._armor_penetration_level >= from_entity._armor_protection_level ) &&
+							 ( typeof from_entity._reinforced_level === 'undefined' || this._reinforced_level >= from_entity._reinforced_level ) )
 						{
 							if ( !this._wave )
 							{
@@ -541,10 +549,10 @@ class sdBullet extends sdEntity
 												 this.sy * Math.abs( dmg ) * this._knock_scale );
 
 							let old_hea = ( from_entity.hea || from_entity._hea || 0 );
-							if ( from_entity.GetClass() !== 'sdBlock' && from_entity.GetClass() !== 'sdDoor'  )
+							//if ( from_entity.GetClass() !== 'sdBlock' && from_entity.GetClass() !== 'sdDoor'  )
 							from_entity.Damage( dmg, this._owner );
-							else
-							if ( from_entity._reinforced_level <=  this._reinforced_level )
+							/*else
+							if ( from_entity._reinforced_level <= this._reinforced_level )
 							from_entity.Damage( dmg, this._owner );
 							else
 							if ( this._owner )
@@ -557,7 +565,7 @@ class sdBullet extends sdEntity
 								this._owner.Say( 'I could do with a Deconstructor Hammer' );
 								else
 								this._owner.Say( 'I need a Deconstructor Hammer to damage this' );
-							}
+							}*/
 
 							if ( this._custom_target_reaction )
 							this._custom_target_reaction( this, from_entity );
@@ -599,18 +607,28 @@ class sdBullet extends sdEntity
 								if ( this._owner )
 								if ( this._owner.is( sdCharacter ) )
 								{
-									if ( from_entity._armor_protection_level > 3 )
-									this._owner.Say( 'Regular weapons won\'t work here. What about big explosions?' );
-									else
+									if ( this._owner._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
 									{
-										if ( this._owner._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
-										{
-											this._owner._last_damage_upg_complain = sdWorld.time;
+										this._owner._last_damage_upg_complain = sdWorld.time;
 
+										if ( from_entity._reinforced_level > 0 )
+										{
 											if ( Math.random() < 0.5 )
-											this._owner.Say( 'Can\'t damage that' );
+											this._owner.Say( 'I could do with a Deconstructor Hammer' );
 											else
-											this._owner.Say( 'I need damage upgrade' );
+											this._owner.Say( 'I need a Deconstructor Hammer to damage this' );
+										}
+										else
+										{
+											if ( from_entity._armor_protection_level > 3 )
+											this._owner.Say( 'Regular weapons won\'t work here. What about big explosions?' );
+											else
+											{
+												if ( Math.random() < 0.5 )
+												this._owner.Say( 'Can\'t damage that' );
+												else
+												this._owner.Say( 'I need damage upgrade' );
+											}
 										}
 									}
 								}

@@ -461,10 +461,10 @@ class sdRenderer
 			{
 				const e = sdEntity.entities[ i ];
 				if ( e.DrawBG !== void_draw )
-				if ( e.x + e.hitbox_x2 > min_x )
-				if ( e.x + e.hitbox_x1 < max_x )
-				if ( e.y + e.hitbox_y2 > min_y )
-				if ( e.y + e.hitbox_y1 < max_y )
+				if ( e.x + e._hitbox_x2 > min_x )
+				if ( e.x + e._hitbox_x1 < max_x )
+				if ( e.y + e._hitbox_y2 > min_y )
+				if ( e.y + e._hitbox_y1 < max_y )
 				{
 					ctx.volumetric_mode = e.DrawIn3D( -1 );
 					ctx.object_offset = e.ObjectOffset3D( -1 );
@@ -492,10 +492,10 @@ class sdRenderer
 			{
 				const e = sdEntity.entities[ i ];
 				
-				if ( ( e.x + e.hitbox_x2 > min_x &&
-					   e.x + e.hitbox_x1 < max_x &&
-					   e.y + e.hitbox_y2 > min_y &&
-					   e.y + e.hitbox_y1 < max_y ) ||
+				if ( ( e.x + e._hitbox_x2 > min_x &&
+					   e.x + e._hitbox_x1 < max_x &&
+					   e.y + e._hitbox_y2 > min_y &&
+					   e.y + e._hitbox_y1 < max_y ) ||
 					   e === sdWeather.only_instance ||
 					   ( e.__proto__.constructor === sdEffect.prototype.constructor && e._type === sdEffect.TYPE_BEAM ) ) // sdWorld.my_entity.__proto__.constructor
 				{
@@ -535,10 +535,10 @@ class sdRenderer
 					ctx.camera_relative_world_scale = e.CameraDistanceScale3D( 1 );
 
 					if ( ctx.camera_relative_world_scale < 1 ||
-						 ( e.x + e.hitbox_x2 > min_x &&
-						   e.x + e.hitbox_x1 < max_x &&
-						   e.y + e.hitbox_y2 > min_y &&
-						   e.y + e.hitbox_y1 < max_y ) )
+						 ( e.x + e._hitbox_x2 > min_x &&
+						   e.x + e._hitbox_x1 < max_x &&
+						   e.y + e._hitbox_y2 > min_y &&
+						   e.y + e._hitbox_y1 < max_y ) )
 					{
 						ctx.save();
 						try

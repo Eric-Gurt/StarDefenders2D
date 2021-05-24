@@ -206,10 +206,10 @@ class sdWater extends sdEntity
 			{
 				this._swimmers.forEach( ( e )=>
 				{
-					if ( e.x + e.hitbox_x2 >= this.x + this.hitbox_x1 &&
- 						 e.x + e.hitbox_x1 <= this.x + this.hitbox_x2 &&
- 						 e.y + e.hitbox_y2 >= this.y + this.hitbox_y1 &&
- 						 e.y + e.hitbox_y1 <= this.y + this.hitbox_y2 &&
+					if ( e.x + e._hitbox_x2 >= this.x + this._hitbox_x1 &&
+ 						 e.x + e._hitbox_x1 <= this.x + this._hitbox_x2 &&
+ 						 e.y + e._hitbox_y2 >= this.y + this._hitbox_y1 &&
+ 						 e.y + e._hitbox_y1 <= this.y + this._hitbox_y2 &&
 						 !e._is_being_removed )
 					{
 						if ( !sdWorld.is_server )
@@ -241,8 +241,8 @@ class sdWater extends sdEntity
 			if ( this.type === sdWater.TYPE_LAVA )
 			if ( Math.random() < 0.05 )
 			{
-				let x = this.hitbox_x1 + ( this.hitbox_x2 - this.hitbox_x1 ) * Math.random();
-				let y = this.hitbox_y1 + ( this.hitbox_y2 - this.hitbox_y1 ) * Math.random();
+				let x = this._hitbox_x1 + ( this._hitbox_x2 - this._hitbox_x1 ) * Math.random();
+				let y = this._hitbox_y1 + ( this._hitbox_y2 - this._hitbox_y1 ) * Math.random();
 				let a = Math.random() * 2 * Math.PI;
 				let s = Math.random() * 1;
 				let ent;
@@ -276,10 +276,10 @@ class sdWater extends sdEntity
 		/*for ( var i = 0; i < arr.length; i++ )
 		{
 			if ( arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) )
-			if ( arr[ i ].x + arr[ i ].hitbox_x1 < this.x + 16 )
-			if ( arr[ i ].x + arr[ i ].hitbox_x2 > this.x )
-			if ( arr[ i ].y + arr[ i ].hitbox_y1 < this.y + 16 + 16 )
-			if ( arr[ i ].y + arr[ i ].hitbox_y2 > this.y + 16 )
+			if ( arr[ i ].x + arr[ i ]._hitbox_x1 < this.x + 16 )
+			if ( arr[ i ].x + arr[ i ]._hitbox_x2 > this.x )
+			if ( arr[ i ].y + arr[ i ]._hitbox_y1 < this.y + 16 + 16 )
+			if ( arr[ i ].y + arr[ i ]._hitbox_y2 > this.y + 16 )
 			{
 				this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 				return;
@@ -288,10 +288,10 @@ class sdWater extends sdEntity
 		for ( var i = 0; i < arr.length; i++ )
 		{
 			if ( arr[ i ].is( sdWater ) || arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) )
-			if ( arr[ i ].x + arr[ i ].hitbox_x1 < this.x + 16 )
-			if ( arr[ i ].x + arr[ i ].hitbox_x2 > this.x )
-			if ( arr[ i ].y + arr[ i ].hitbox_y1 < this.y + 16 + 16 )
-			if ( arr[ i ].y + arr[ i ].hitbox_y2 > this.y + 16 )
+			if ( arr[ i ].x + arr[ i ]._hitbox_x1 < this.x + 16 )
+			if ( arr[ i ].x + arr[ i ]._hitbox_x2 > this.x )
+			if ( arr[ i ].y + arr[ i ]._hitbox_y1 < this.y + 16 + 16 )
+			if ( arr[ i ].y + arr[ i ]._hitbox_y2 > this.y + 16 )
 			if ( this !== arr[ i ] )
 			{
 				if ( this.BlendWith( arr[ i ] ) )
@@ -313,10 +313,10 @@ class sdWater extends sdEntity
 					for ( var i2 = 0; i2 < down_left.length; i2++ )
 					{
 						if ( down_left[ i2 ].is( sdWater ) || down_left[ i2 ].is( sdBlock ) || down_left[ i2 ].is( sdDoor ) )
-						if ( down_left[ i2 ].x + down_left[ i2 ].hitbox_x1 < this.x + 16 - 16 )
-						if ( down_left[ i2 ].x + down_left[ i2 ].hitbox_x2 > this.x - 16 )
-						if ( down_left[ i2 ].y + down_left[ i2 ].hitbox_y1 < this.y + 16 + 16 )
-						if ( down_left[ i2 ].y + down_left[ i2 ].hitbox_y2 > this.y + 16 )
+						if ( down_left[ i2 ].x + down_left[ i2 ]._hitbox_x1 < this.x + 16 - 16 )
+						if ( down_left[ i2 ].x + down_left[ i2 ]._hitbox_x2 > this.x - 16 )
+						if ( down_left[ i2 ].y + down_left[ i2 ]._hitbox_y1 < this.y + 16 + 16 )
+						if ( down_left[ i2 ].y + down_left[ i2 ]._hitbox_y2 > this.y + 16 )
 						{
 							if ( this.BlendWith( down_left[ i2 ] ) )
 							return;
@@ -329,10 +329,10 @@ class sdWater extends sdEntity
 					for ( var i2 = 0; i2 < down_right.length; i2++ )
 					{
 						if ( down_right[ i2 ].is( sdWater ) || down_right[ i2 ].is( sdBlock ) || down_right[ i2 ].is( sdDoor ) )
-						if ( down_right[ i2 ].x + down_right[ i2 ].hitbox_x1 < this.x + 16 + 16 )
-						if ( down_right[ i2 ].x + down_right[ i2 ].hitbox_x2 > this.x + 16 )
-						if ( down_right[ i2 ].y + down_right[ i2 ].hitbox_y1 < this.y + 16 + 16 )
-						if ( down_right[ i2 ].y + down_right[ i2 ].hitbox_y2 > this.y + 16 )
+						if ( down_right[ i2 ].x + down_right[ i2 ]._hitbox_x1 < this.x + 16 + 16 )
+						if ( down_right[ i2 ].x + down_right[ i2 ]._hitbox_x2 > this.x + 16 )
+						if ( down_right[ i2 ].y + down_right[ i2 ]._hitbox_y1 < this.y + 16 + 16 )
+						if ( down_right[ i2 ].y + down_right[ i2 ]._hitbox_y2 > this.y + 16 )
 						{
 							if ( this.BlendWith( down_right[ i2 ] ) )
 							return;

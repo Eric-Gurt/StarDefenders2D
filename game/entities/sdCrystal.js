@@ -11,6 +11,8 @@ class sdCrystal extends sdEntity
 		sdCrystal.img_crystal = sdWorld.CreateImageFromFile( 'crystal' );
 		sdCrystal.img_crystal_empty = sdWorld.CreateImageFromFile( 'crystal_empty' );
 		
+		sdCrystal.anticrystal_value = 10240;
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -4; }
@@ -33,13 +35,16 @@ class sdCrystal extends sdEntity
 		this.sy = 0;
 		this.matter_max = 40;
 		
-		let bad_luck = 1.5; // High value crystals are more rare if this value is high
+		let bad_luck = 1.45; // High value crystals are more rare if this value is high
 		
 		let r = 1 - Math.pow( Math.random(), bad_luck );
 		//let r = Math.random();
 		
 		//r = 0; // Hack
 		
+		if ( r < 0.00390625 && params.tag === 'deep' ) // matter consuming crystal
+		this.matter_max *= 256;
+		else
 		if ( r < 0.0078125 && params.tag === 'deep' ) // glowing, new
 		this.matter_max *= 128;
 		else
@@ -63,15 +68,22 @@ class sdCrystal extends sdEntity
 		
 		this._last_damage = 0; // Sound flood prevention
 		
-		this.matter = this.matter_max;
-		/*
-		this._last_sync_matter = this.matter;
-		this._last_sync_x = this.x;
-		this._last_sync_y = this.y;
-		*/
-		this._hea = 60;
+		if ( typeof params.matter_max !== 'undefined' )
+		this.matter_max = params.matter_max;
+	
+		if ( this.matter_max === sdCrystal.anticrystal_value )
+		{
+			this.matter = 0;
+			this._hea = 600;
+			this._damagable_in = 0;
+		}
+		else
+		{
+			this.matter = this.matter_max;
+			this._hea = 60;
+			this._damagable_in = sdWorld.time + 1000; // Suggested by zimmermannliam, will only work for sdCharacter damage		
+		}
 		
-		this._damagable_in = sdWorld.time + 1000; // Suggested by zimmermannliam, will only work for sdCharacter damage		
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -129,13 +141,23 @@ class sdCrystal extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		if ( this.matter_max === sdCrystal.anticrystal_value )
+		GSPEED *= 0.25;
+			
 		this.sy += sdWorld.gravity * GSPEED;
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
-		
-		this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
 
-		this.MatterGlow( 0.01, 30, GSPEED );
+		if ( this.matter_max === sdCrystal.anticrystal_value )
+		{
+			this.HungryMatterGlow( 0.01, 100, GSPEED );
+			this.matter = Math.max( 0, this.matter - GSPEED * 0.01 * this.matter );
+		}
+		else
+		{
+			this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
+			this.MatterGlow( 0.01, 30, GSPEED );
+		}
 		
 		
 		// Similar to sdMatterContainers but not really, since it can have consistent slight movement unlike containers
@@ -149,6 +171,9 @@ class sdCrystal extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
+		if ( this.matter_max === sdCrystal.anticrystal_value )
+		sdEntity.Tooltip( ctx, "Anti-crystal ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
+		else
 		sdEntity.Tooltip( ctx, "Crystal ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
 	}
 	Draw( ctx, attached )
@@ -157,6 +182,9 @@ class sdCrystal extends sdEntity
 		
 		ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
 
+		if ( this.matter_max === sdCrystal.anticrystal_value )
+		ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
+		else
 		ctx.globalAlpha = this.matter / this.matter_max;
 		
 		ctx.drawImageFilterCache( sdCrystal.img_crystal, - 16, - 16, 32,32 );

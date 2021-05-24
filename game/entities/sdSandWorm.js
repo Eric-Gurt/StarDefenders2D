@@ -291,7 +291,7 @@ class sdSandWorm extends sdEntity
 		this._in_surface = null;
 		
 		//let in_surface = sdWorld.CheckWallExists( this.x, this.y, null, null, sdSandWorm.travel_in );
-		//let in_surface = ( this.death_anim === 0 ) ? sdWorld.CheckWallExistsBox( this.x + this.hitbox_x1, this.y + this.hitbox_y1, this.x + this.hitbox_x2, this.y + this.hitbox_y2, null, null, sdSandWorm.travel_in ) : this._in_surface;
+		//let in_surface = ( this.death_anim === 0 ) ? sdWorld.CheckWallExistsBox( this.x + this._hitbox_x1, this.y + this._hitbox_y1, this.x + this._hitbox_x2, this.y + this._hitbox_y2, null, null, sdSandWorm.travel_in ) : this._in_surface;
 		let in_surface = this._in_surface;
 		
 		//if ( sdWorld.last_hit_entity.is( sdBlock )
@@ -317,8 +317,8 @@ class sdSandWorm extends sdEntity
 				if ( in_surface.is( sdBlock ) )
 				if ( !sdWorld.CheckWallExists( this.x, this.y, null, null, sdSandWorm.travel_in ) )
 				{
-					let x = this.hitbox_x1 + ( this.hitbox_x2 - this.hitbox_x1 ) * Math.random();
-					let y = this.hitbox_y1 + ( this.hitbox_y2 - this.hitbox_y1 ) * Math.random();
+					let x = this._hitbox_x1 + ( this._hitbox_x2 - this._hitbox_x1 ) * Math.random();
+					let y = this._hitbox_y1 + ( this._hitbox_y2 - this._hitbox_y1 ) * Math.random();
 					let a = Math.random() * 2 * Math.PI;
 					let s = Math.random() * 4;
 					let ent = new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_ROCK, sx: this.sx + Math.sin(a)*s, sy: this.sy + Math.cos(a)*s });
@@ -683,11 +683,11 @@ class sdSandWorm extends sdEntity
 				
 				this.model = 0;
 				
-				this.forced_x = ( from_entity.x + ( from_entity.hitbox_x1 + from_entity.hitbox_x2 ) / 2 - this.x ) * 10;
-				this.forced_y = ( from_entity.y + ( from_entity.hitbox_y1 + from_entity.hitbox_y2 ) / 2 - this.y ) * 10;
+				this.forced_x = ( from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2 - this.x ) * 10;
+				this.forced_y = ( from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2 - this.y ) * 10;
 				
 				//this._hea = Math.min( this._hmax, this._hea + 25 );
-				sdWorld.SendEffect({ x:from_entity.x + ( from_entity.hitbox_x1 + from_entity.hitbox_x2 ) / 2, y:from_entity.y + ( from_entity.hitbox_y1 + from_entity.hitbox_y2 ) / 2, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
+				sdWorld.SendEffect({ x:from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2, y:from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 				
 				let ptr = this;
 				while ( ptr && ptr._hea > 0 && !ptr._is_being_removed )
@@ -724,8 +724,8 @@ class sdSandWorm extends sdEntity
 				
 				k = Math.random();
 				
-				x = this.x + this.hitbox_x1 + Math.random() * ( this.hitbox_x2 - this.hitbox_x1 );
-				y = this.y + this.hitbox_y1 + Math.random() * ( this.hitbox_y2 - this.hitbox_y1 );
+				x = this.x + this._hitbox_x1 + Math.random() * ( this._hitbox_x2 - this._hitbox_x1 );
+				y = this.y + this._hitbox_y1 + Math.random() * ( this._hitbox_y2 - this._hitbox_y1 );
 				
 				//console.warn( { x: this.x, y: this.y, type:sdEffect.TYPE_GIB, sx: this.sx + Math.sin(a)*s, sy: this.sy + Math.cos(a)*s } )
 				

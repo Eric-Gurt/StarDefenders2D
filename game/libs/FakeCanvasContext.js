@@ -809,7 +809,12 @@ class FakeCanvasContext
 	{
 		//line.material.dispose();
 		
-		//debugger;
+		/*if ( line instanceof MeshLine )
+		{
+			debugger;
+		}*/
+		
+		line.material.dispose();
 		line.geometry.dispose();
 	}
 	clip( path, method )
@@ -857,12 +862,21 @@ class FakeCanvasContext
 		
 		let time_end = Date.now();
 		
-		//this.last_lamps = this.lamps;
-		//this.lamps = [];
-		
 		// Remove unneded sold meshes
-		//for ( var i = 0; i < this.sold_meshes.length; i++ )
-		for ( const map_of_geom_arrs of this.sold_meshes )
+		this.sold_meshes.forEach( ( value )=>
+		{
+			value.forEach( ( arr_of_geoms )=>
+			{
+				for ( var i = 0; i < arr_of_geoms.length; i++ )
+				{
+					var d = arr_of_geoms[ i ];
+
+					if ( typeof d.userData.disposer !== 'undefined' )
+					d.userData.disposer( d );
+				}
+			} );
+		} );
+		/*for ( const map_of_geom_arrs of this.sold_meshes )
 		for ( const arr_of_geoms of map_of_geom_arrs )
 		{
 			for ( var i = 0; i < arr_of_geoms.length; i++ )
@@ -872,8 +886,7 @@ class FakeCanvasContext
 				if ( typeof d.userData.disposer !== 'undefined' )
 				d.userData.disposer( d );
 			}
-		};
-		//this.sold_meshes.length = 0;
+		}*/
 		this.sold_meshes.clear();
 		
 		for ( var i = this.draws.length - 1; i >= 0; i-- )

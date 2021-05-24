@@ -97,8 +97,6 @@ class sdMatterAmplifier extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( sdMatterAmplifier.relative_regen_amplification_to_crystals * ( this.multiplier ) ) );
-		
 		if ( this._last_matter_max !== this.matter_max )
 		{
 			 // Change will cause hash update as matter_max value specifies hitbox size
@@ -119,7 +117,19 @@ class sdMatterAmplifier extends sdEntity
 			}
 		}
 		
-		this.MatterGlow( 0.01, 50, GSPEED );
+		if ( this.matter_max === sdCrystal.anticrystal_value )
+		{
+			if ( !this.shielded )
+			{
+				this.HungryMatterGlow( 0.01, 100, GSPEED );
+			}
+		}
+		else
+		{
+			this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( sdMatterAmplifier.relative_regen_amplification_to_crystals * ( this.multiplier ) ) );
+			this.MatterGlow( 0.01, 50, GSPEED );
+		}
+	
 		/*
 		var x = this.x;
 		var y = this.y;
@@ -175,7 +185,10 @@ class sdMatterAmplifier extends sdEntity
 			ctx.drawImageFilterCache( sdCrystal.img_crystal_empty, - 16, - 16 + offset_y, 32,32 );
 		
 			ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
-
+			
+			if ( this.matter_max === sdCrystal.anticrystal_value )
+			ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
+			else
 			ctx.globalAlpha = this.matter / this.matter_max;
 
 			ctx.drawImageFilterCache( sdCrystal.img_crystal, - 16, - 16 + offset_y, 32,32 );
@@ -245,7 +258,7 @@ class sdMatterAmplifier extends sdEntity
 			let ent = new sdCrystal({  });
 
 			ent.x = this.x;
-			ent.y = this.y + 7 - ent.hitbox_y2 - 0.1; // 7 instead of this.hitbox_y1 because we need final y1
+			ent.y = this.y + 7 - ent._hitbox_y2 - 0.1; // 7 instead of this._hitbox_y1 because we need final y1
 
 			ent.matter_max = this.matter_max;
 			ent.matter = this.matter;

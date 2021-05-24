@@ -143,8 +143,8 @@ class sdEnemyMech extends sdEntity
 
 							var k = 1;
 
-							var x = that.x + that.hitbox_x1 + Math.random() * ( that.hitbox_x2 - that.hitbox_x1 );
-							var y = that.y + that.hitbox_y1 + Math.random() * ( that.hitbox_y2 - that.hitbox_y1 );
+							var x = that.x + that._hitbox_x1 + Math.random() * ( that._hitbox_x2 - that._hitbox_x1 );
+							var y = that.y + that._hitbox_y1 + Math.random() * ( that._hitbox_y2 - that._hitbox_y1 );
 							
 							that.sx -= Math.sin( an ) * d * r * 0.005;
 							that.sy -= Math.cos( an ) * d * r * 0.005;

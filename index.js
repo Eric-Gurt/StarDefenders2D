@@ -1153,10 +1153,10 @@ sdWorld.server_config = {};
 
 			if ( tr > max_tr * 0.6 || bad_areas_near === 0 )
 			if ( tr > max_tr * 0.8 || ( can_stand_here && !sdWorld.CheckWallExistsBox( 
-					x + character_entity.hitbox_x1 - 16, 
-					y + character_entity.hitbox_y1 - 16, 
-					x + character_entity.hitbox_x2 + 16, 
-					y + character_entity.hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) ) )
+					x + character_entity._hitbox_x1 - 16, 
+					y + character_entity._hitbox_y1 - 16, 
+					x + character_entity._hitbox_x2 + 16, 
+					y + character_entity._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) ) )
 			if ( tr > max_tr * 0.4 || socket.command_centre || ground_ent === null || ( ground_ent.GetClass() === 'sdBlock' && ground_ent.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
 			{
 				character_entity.x = x;
@@ -2257,14 +2257,14 @@ io.on("connection", (socket) =>
 									let ent = sdEntity.entities_by_net_id_cache[ stand_on_net_id ];
 									if ( !ent._is_being_removed )
 									{
-										if ( Math.abs( socket.character.x + socket.character.hitbox_x2 - ( ent.x + socket.character.hitbox_x1 ) ) < 2 )
+										if ( Math.abs( socket.character.x + socket.character._hitbox_x2 - ( ent.x + socket.character._hitbox_x1 ) ) < 2 )
 										{
-											socket.character.x = ent.x + socket.character.hitbox_x1 - socket.character.hitbox_x2 + 2;
+											socket.character.x = ent.x + socket.character._hitbox_x1 - socket.character._hitbox_x2 + 2;
 										}
 										else
-										if ( Math.abs( socket.character.x + socket.character.hitbox_x1 - ( ent.x + socket.character.hitbox_x2 ) ) < 2 )
+										if ( Math.abs( socket.character.x + socket.character._hitbox_x1 - ( ent.x + socket.character._hitbox_x2 ) ) < 2 )
 										{
-											socket.character.x = ent.x + socket.character.hitbox_x2 - socket.character.hitbox_x1 - 2;
+											socket.character.x = ent.x + socket.character._hitbox_x2 - socket.character._hitbox_x1 - 2;
 										}
 									}
 								}*/

@@ -596,7 +596,7 @@ class sdWorld
 			{
 				plants_objs[ i ]._block = ent;
 			}
-
+			
 			/*if ( plants )
 			for ( let i = 0; i < plants.length; i++ )
 			{
@@ -632,7 +632,10 @@ class sdWorld
 		}
 
 		if ( ent )
-		sdEntity.entities.push( ent );
+		{
+			sdEntity.entities.push( ent );
+			sdWorld.UpdateHashPosition( ent, false ); // Prevent inersection with other ones
+		}
 		
 		return ent;
 	}
@@ -735,7 +738,7 @@ class sdWorld
 		for ( let i = 0; i < sdEntity.entities.length; i++ )
 		{
 			var e = sdEntity.entities[ i ];
-			//if ( e.x + e.hitbox_x2 < x1 || e.x + e.hitbox_x1 > x2 || e.y + e.hitbox_y2 < y1 || e.y + e.hitbox_y1 > y2 ) Ground overlap problem
+			//if ( e.x + e._hitbox_x2 < x1 || e.x + e._hitbox_x1 > x2 || e.y + e._hitbox_y2 < y1 || e.y + e._hitbox_y1 > y2 ) Ground overlap problem
 			if ( e.x < x1 || e.x >= x2 || e.y < y1 || e.y >= y2 )
 			{
 				if ( e._is_being_removed )
@@ -884,6 +887,9 @@ class sdWorld
 				
 				if ( params.armor_penetration_level !== undefined )
 				bullet_obj._armor_penetration_level = params.armor_penetration_level;
+				
+				if ( params.reinforced_level !== undefined )
+				bullet_obj._reinforced_level = params.reinforced_level;
 				
 				//bullet_obj._damage = 80 * ( params.damage_scale || 1 ) * ( params.radius / 19 ) / steps;
 				bullet_obj._damage = 140 * ( params.damage_scale || 1 ) * ( params.radius / 19 ) / steps;
@@ -1037,8 +1043,9 @@ class sdWorld
 		if ( max_y === min_y )
 		max_y++;
 	
-		let x, y, arr, i;
+		let x, y, arr, i, e;
 		let cx,cy;
+		let x1,y1,x2,y2;
 		//for ( x = min_x; x <= max_x; x++ )
 		//for ( y = min_y; y <= max_y; y++ )
 		for ( x = min_x; x < max_x; x++ )
@@ -1046,15 +1053,27 @@ class sdWorld
 		{
 			arr = sdWorld.RequireHashPosition( x * 32, y * 32 );
 			for ( i = 0; i < arr.length; i++ )
-			if ( specific_classes === null || specific_classes.indexOf( arr[ i ].GetClass() ) !== -1 )
-			if ( ret.indexOf( arr[ i ] ) === -1 )
 			{
-				cx = Math.max( arr[ i ].x + arr[ i ].hitbox_x1, Math.min( _x, arr[ i ].x + arr[ i ].hitbox_x2 ) );
-				cy = Math.max( arr[ i ].y + arr[ i ].hitbox_y1, Math.min( _y, arr[ i ].y + arr[ i ].hitbox_y2 ) );
-				if ( sdWorld.inDist2D( _x, _y, cx, cy, range ) >= 0 )
-				ret.push( arr[ i ] );
+				e = arr[ i ];
+				if ( specific_classes === null || specific_classes.indexOf( e.GetClass() ) !== -1 )
+				{
+					x1 = e._hitbox_x1;
+					x2 = e._hitbox_x2;
+					y1 = e._hitbox_y1;
+					y2 = e._hitbox_y2;
+					
+					cx = Math.max( e.x + x1, Math.min( _x, e.x + x2 ) );
+					cy = Math.max( e.y + y1, Math.min( _y, e.y + y2 ) );
+
+					if ( sdWorld.inDist2D( _x, _y, cx, cy, range ) >= 0 )
+					if ( ret.indexOf( e ) === -1 )
+					ret.push( e );
+				}
 			}
 		}
+		
+		
+		
 		return ret;
 	}
 	static ResolveMyEntityByNetId()
@@ -1254,6 +1273,9 @@ class sdWorld
 	}
 	static UpdateHashPosition( entity, delay_callback_calls, allow_calling_movement_in_range=true ) // allow_calling_movement_in_range better be false when it is not decided whether entity will be physically placed in world or won't be (so sdBlock SHARP won't kill initiator in the middle of Shoot method of a gun, which was causing crash)
 	{
+		if ( !delay_callback_calls )
+		entity.UpdateHitbox();
+	
 		//let new_hash_position = entity._is_being_removed ? null : sdWorld.RequireHashPosition( entity.x, entity.y );
 		
 		//if ( entity.GetClass() === 'sdArea' )
@@ -1261,17 +1283,17 @@ class sdWorld
 	
 		
 		let new_affected_hash_arrays = [];
-		if ( !entity._is_being_removed && !delay_callback_calls ) // delay_callback_calls is useful here as it will delay .hitbox_x2 access which in case of sdBlock will be undefined at the very beginning, due to .width not specified yet
+		if ( !entity._is_being_removed && !delay_callback_calls ) // delay_callback_calls is useful here as it will delay ._hitbox_x2 access which in case of sdBlock will be undefined at the very beginning, due to .width not specified yet
 		{
 			/*if ( entity.is( sdBlock ) )
 			if ( entity.width === 16 )
 			if ( entity.height === 16 )
 			debugger;*/
 		
-			let from_x = sdWorld.FastFloor( ( entity.x + entity.hitbox_x1 ) / 32 );
-			let from_y = sdWorld.FastFloor( ( entity.y + entity.hitbox_y1 ) / 32 );
-			let to_x = sdWorld.FastCeil( ( entity.x + entity.hitbox_x2 ) / 32 );
-			let to_y = sdWorld.FastCeil( ( entity.y + entity.hitbox_y2 ) / 32 );
+			let from_x = sdWorld.FastFloor( ( entity.x + entity._hitbox_x1 ) / 32 );
+			let from_y = sdWorld.FastFloor( ( entity.y + entity._hitbox_y1 ) / 32 );
+			let to_x = sdWorld.FastCeil( ( entity.x + entity._hitbox_x2 ) / 32 );
+			let to_y = sdWorld.FastCeil( ( entity.y + entity._hitbox_y2 ) / 32 );
 			
 			if ( to_x === from_x )
 			to_x++;
@@ -1375,7 +1397,9 @@ class sdWorld
 			entity._last_x = entity.x;
 			entity._last_y = entity.y;
 
-			var map = new Map();
+			//var map = new Map();
+			var map = new Set();
+			
 			/*var map = new Map();
 			for ( var x = -1; x <= 1; x++ ) // TODO: Use box query method?
 			for ( var y = -1; y <= 1; y++ )
@@ -1386,10 +1410,13 @@ class sdWorld
 					map.set( local_hash_array[ i ], local_hash_array[ i ] );
 				}
 			}*/
+								
+			let i2, i;
 			
-			for ( var i2 = 0; i2 < new_affected_hash_arrays.length; i2++ )
-			for ( var i = 0; i < new_affected_hash_arrays[ i2 ].length; i++ )
-			map.set( new_affected_hash_arrays[ i2 ][ i ], new_affected_hash_arrays[ i2 ][ i ] );
+			for ( i2 = 0; i2 < new_affected_hash_arrays.length; i2++ )
+			for ( i = 0; i < new_affected_hash_arrays[ i2 ].length; i++ )
+			map.add( new_affected_hash_arrays[ i2 ][ i ] );
+			//map.set( new_affected_hash_arrays[ i2 ][ i ], new_affected_hash_arrays[ i2 ][ i ] );
 
 			// Make entities reach to each other in both directions
 			map.forEach( ( another_entity )=>
@@ -1398,10 +1425,10 @@ class sdWorld
 				if ( !another_entity._is_being_removed )
 				if ( !entity._is_being_removed ) // Just so bullets won't hit multiple targets
 				{
-					if ( entity.x + entity.hitbox_x2 > another_entity.x + another_entity.hitbox_x1 &&
-						 entity.x + entity.hitbox_x1 < another_entity.x + another_entity.hitbox_x2 &&
-						 entity.y + entity.hitbox_y2 > another_entity.y + another_entity.hitbox_y1 &&
-						 entity.y + entity.hitbox_y1 < another_entity.y + another_entity.hitbox_y2 )
+					if ( entity.x + entity._hitbox_x2 > another_entity.x + another_entity._hitbox_x1 &&
+						 entity.x + entity._hitbox_x1 < another_entity.x + another_entity._hitbox_x2 &&
+						 entity.y + entity._hitbox_y2 > another_entity.y + another_entity._hitbox_y1 &&
+						 entity.y + entity._hitbox_y1 < another_entity.y + another_entity._hitbox_y2 )
 					{
 						entity.onMovementInRange( another_entity );
 						another_entity.onMovementInRange( entity );
@@ -1413,7 +1440,7 @@ class sdWorld
 						if ( entity.GetClass() === 'sdMatterAmplifier' || another_entity.GetClass() === 'sdMatterAmplifier' )
 						if ( entity.GetClass() === 'sdCrystal' || another_entity.GetClass() === 'sdCrystal' )
 						{
-							console.log('Not colliding with sdMatterAmplifier due to bounds check', [entity.x + entity.hitbox_x1, another_entity.x + another_entity.hitbox_x2] );
+							console.log('Not colliding with sdMatterAmplifier due to bounds check', [entity.x + entity._hitbox_x1, another_entity.x + another_entity._hitbox_x2] );
 						}
 					}*/
 				}
@@ -1427,6 +1454,9 @@ class sdWorld
 	}
 	static HandleWorldLogic()
 	{
+		const DEBUG_TIME_MODE = false;
+		
+		
 		let old_time = sdWorld.time;
 		
 		sdWorld.time = Date.now();
@@ -1478,55 +1508,61 @@ class sdWorld
 
 			sdWorld.GSPEED = GSPEED;
 			//console.log( GSPEED );
+			
+			let arr_i;
+			let arr;
+			let i;
+			let e;
+			let time_from;
+			let time_to;
+			let step;
+			let hiber_state;
+			let substeps;
+			let progress_until_removed;
 
-			for ( var arr_i = 0; arr_i < 2; arr_i++ )
+			for ( arr_i = 0; arr_i < 2; arr_i++ )
 			{
-				//var arr = ( arr_i === 0 ) ? sdEntity.entities : sdEntity.global_entities;
-				var arr = ( arr_i === 0 ) ? sdEntity.active_entities : sdEntity.global_entities;
+				arr = ( arr_i === 0 ) ? sdEntity.active_entities : sdEntity.global_entities;
 				
-				loop1: for ( var i = 0; i < arr.length; i++ )
+				loop1: for ( i = 0; i < arr.length; i++ )
 				{
-					var e = arr[ i ];
+					e = arr[ i ];
 					
-					let time_from = Date.now();
+					if ( DEBUG_TIME_MODE )
+					{
+						time_from = Date.now();
+					}
+					
+					substeps = e.substeps;
+					progress_until_removed = e.progress_until_removed;
 
-					for ( var step = 0; step < e.substeps || e.progress_until_removed; step++ )
+					for ( step = 0; step < substeps || progress_until_removed; step++ )
 					{
 						
 						if ( e._is_being_removed || 
-							 e.Think( GSPEED / e.substeps ) )
+							 e.Think( GSPEED / substeps ) )
 						{
-							let hiber_state = e._hiberstate;
+							hiber_state = e._hiberstate;
 							
 							e._remove();
-							let time_to = Date.now();
-							if ( time_to - time_from > 5 )
-							sdWorld.SendEffect({ x:e.x, y:e.y, type:sdEffect.TYPE_LAG, text:e.GetClass()+': '+(time_to - time_from)+'ms' });
+							
+							if ( DEBUG_TIME_MODE )
+							{
+								time_to = Date.now();
+								if ( time_to - time_from > 5 )
+								sdWorld.SendEffect({ x:e.x, y:e.y, type:sdEffect.TYPE_LAG, text:e.GetClass()+': '+(time_to - time_from)+'ms' });
+							}
 							
 							if ( arr_i === 0 )
 							{
-								/*if ( e.IsGlobalEntity() )
+								let id = sdEntity.entities.indexOf( e );
+								if ( id === -1 )
 								{
-									let id = sdEntity.global_entities.indexOf( e );
-									if ( id === -1 )
-									{
-										console.log('Removing unlisted global_entity, hiberstate was ' + hiber_state );
-										debugger;
-									}
-									else
-									sdEntity.global_entities.splice( id, 1 );
+									console.log('Removing unlisted entity ' + e.GetClass() + ', hiberstate was ' + hiber_state );
+									debugger;
 								}
 								else
-								{*/
-									let id = sdEntity.entities.indexOf( e );
-									if ( id === -1 )
-									{
-										console.log('Removing unlisted entity ' + e.GetClass() + ', hiberstate was ' + hiber_state );
-										debugger;
-									}
-									else
-									sdEntity.entities.splice( id, 1 );
-								//}
+								sdEntity.entities.splice( id, 1 );
 							}
 							
 							if ( arr[ i ] === e ) // Removal did not happen?
@@ -1540,19 +1576,21 @@ class sdWorld
 						if ( e._last_x !== e.x ||
 							 e._last_y !== e.y )
 						{
-							//e._last_x = e.x;
-							//e._last_y = e.y;
-
 							if ( !e._is_being_removed )
 							sdWorld.UpdateHashPosition( e, false );
 						}
+						
+						e.UpdateHitbox();
 					}
 					
-					let time_to = Date.now();
-					if ( time_to - time_from > 5 )
-					sdWorld.SendEffect({ x:e.x, y:e.y, type:sdEffect.TYPE_LAG, text:e.GetClass()+': '+(time_to - time_from)+'ms' });
-				
-					IncludeTimeCost( e.GetClass(), time_to - time_from );
+					if ( DEBUG_TIME_MODE )
+					{
+						time_to = Date.now();
+						if ( time_to - time_from > 5 )
+						sdWorld.SendEffect({ x:e.x, y:e.y, type:sdEffect.TYPE_LAG, text:e.GetClass()+': '+(time_to - time_from)+'ms' });
+
+						IncludeTimeCost( e.GetClass(), time_to - time_from );
+					}
 				}
 			}
 
@@ -1711,12 +1749,12 @@ class sdWorld
 				{
 					if ( ent.type === sdWorld.entity_classes.sdWater.TYPE_LAVA )
 					{
-						lumes += 10 / Math.max( 16, sdWorld.Dist2D( x, y, ent.x + ( ent.hitbox_x1 + ent.hitbox_x2 ) / 2, ent.y + ( ent.hitbox_y1 + ent.hitbox_y2 ) / 2 ) );
+						lumes += 10 / Math.max( 16, sdWorld.Dist2D( x, y, ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2, ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2 ) );
 					}
 				}
 				else
 				{
-					lumes += 10 / Math.max( 16, sdWorld.Dist2D( x, y, ent.x + ( ent.hitbox_x1 + ent.hitbox_x2 ) / 2, ent.y + ( ent.hitbox_y1 + ent.hitbox_y2 ) / 2 ) );
+					lumes += 10 / Math.max( 16, sdWorld.Dist2D( x, y, ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2, ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2 ) );
 				}
 				//return false;
 			}//);
@@ -1773,12 +1811,12 @@ class sdWorld
 				{
 					if ( ent.type === sdWorld.entity_classes.sdWater.TYPE_LAVA )
 					{
-						lumes += 10 / Math.max( 1, sdWorld.Dist2D( x, y, ent.x + ( ent.hitbox_x1 + ent.hitbox_x2 ) / 2, ent.y + ( ent.hitbox_y1 + ent.hitbox_y2 ) / 2 ) );
+						lumes += 10 / Math.max( 1, sdWorld.Dist2D( x, y, ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2, ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2 ) );
 					}
 				}
 				else
 				{
-					lumes += 10 / Math.max( 1, sdWorld.Dist2D( x, y, ent.x + ( ent.hitbox_x1 + ent.hitbox_x2 ) / 2, ent.y + ( ent.hitbox_y1 + ent.hitbox_y2 ) / 2 ) );
+					lumes += 10 / Math.max( 1, sdWorld.Dist2D( x, y, ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2, ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2 ) );
 				}
 				//return false;
 			}//);
@@ -1860,10 +1898,10 @@ class sdWorld
 			//ent_skip: 
 			for ( i = 0; i < arr.length; i++ )
 			{
-				if ( x2 >= arr[ i ].x + arr[ i ].hitbox_x1 )
-				if ( x1 <= arr[ i ].x + arr[ i ].hitbox_x2 )
-				if ( y2 >= arr[ i ].y + arr[ i ].hitbox_y1 )
-				if ( y1 <= arr[ i ].y + arr[ i ].hitbox_y2 )
+				if ( x2 >= arr[ i ].x + arr[ i ]._hitbox_x1 )
+				if ( x1 <= arr[ i ].x + arr[ i ]._hitbox_x2 )
+				if ( y2 >= arr[ i ].y + arr[ i ]._hitbox_y1 )
+				if ( y1 <= arr[ i ].y + arr[ i ]._hitbox_y2 )
 				if ( arr[ i ].hard_collision || include_only_specific_classes )
 				if ( ignore_entity === null || arr[ i ].IsBGEntity() === ignore_entity.IsBGEntity() )
 				if ( arr[ i ] !== ignore_entity )
@@ -1924,10 +1962,10 @@ class sdWorld
 			if ( arr[ i ] !== ignore_entity )
 			if ( ignore_entity === null || arr[ i ].IsBGEntity() === ignore_entity.IsBGEntity() )
 			{
-				if ( x2 >= arr[ i ].x + arr[ i ].hitbox_x1 )
-				if ( x1 <= arr[ i ].x + arr[ i ].hitbox_x2 )
-				if ( y2 >= arr[ i ].y + arr[ i ].hitbox_y1 )
-				if ( y1 <= arr[ i ].y + arr[ i ].hitbox_y2 )
+				if ( x2 >= arr[ i ].x + arr[ i ]._hitbox_x1 )
+				if ( x1 <= arr[ i ].x + arr[ i ]._hitbox_x2 )
+				if ( y2 >= arr[ i ].y + arr[ i ]._hitbox_y1 )
+				if ( y1 <= arr[ i ].y + arr[ i ]._hitbox_y2 )
 				{
 					if ( include_only_specific_classes )
 					if ( include_only_specific_classes.indexOf( arr[ i ].GetClass() ) === -1 )
@@ -1988,10 +2026,10 @@ class sdWorld
 			if ( arr[ i ] !== ignore_entity )
 			if ( ignore_entity === null || arr[ i ].IsBGEntity() === ignore_entity.IsBGEntity() )
 			{
-				if ( x >= arr[ i ].x + arr[ i ].hitbox_x1 )
-				if ( x <= arr[ i ].x + arr[ i ].hitbox_x2 )
-				if ( y >= arr[ i ].y + arr[ i ].hitbox_y1 )
-				if ( y <= arr[ i ].y + arr[ i ].hitbox_y2 )
+				if ( x >= arr[ i ].x + arr[ i ]._hitbox_x1 )
+				if ( x <= arr[ i ].x + arr[ i ]._hitbox_x2 )
+				if ( y >= arr[ i ].y + arr[ i ]._hitbox_y1 )
+				if ( y <= arr[ i ].y + arr[ i ]._hitbox_y2 )
 				{
 					if ( include_only_specific_classes )
 					if ( include_only_specific_classes.indexOf( arr[ i ].GetClass() ) === -1 )
@@ -2014,6 +2052,9 @@ class sdWorld
 	{
 		if ( v > 40 )
 		{
+			if ( v === 10240 ) // === sdCrystal.anticrystal_value
+		    return 'brightness(0) drop-shadow(0px 0px 7px #000000)';
+			else
 			if ( v === 5120 )
 		    return 'hue-rotate(200deg) brightness(1.3) drop-shadow(0px 0px 7px #FFFFAA)';
 			else
@@ -2049,8 +2090,8 @@ class sdWorld
 
 				let k = Math.random();
 
-				let x = that.x + that.hitbox_x1 + Math.random() * ( that.hitbox_x2 - that.hitbox_x1 );
-				let y = that.y + that.hitbox_y1 + Math.random() * ( that.hitbox_y2 - that.hitbox_y1 );
+				let x = that.x + that._hitbox_x1 + Math.random() * ( that._hitbox_x2 - that._hitbox_x1 );
+				let y = that.y + that._hitbox_y1 + Math.random() * ( that._hitbox_y2 - that._hitbox_y1 );
 				
 				//console.log( 'BasicEntityBreakEffect', that.sx, k, a, s );
 

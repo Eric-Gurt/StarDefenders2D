@@ -211,8 +211,8 @@ class sdVirus extends sdEntity
 					
 					for ( let tr = 0; tr < 100; tr++ )
 					{
-						let xx = this.x + this.hitbox_x1 + ( this.hitbox_x2 - this.hitbox_x1 ) * Math.random();
-						let yy = this.y + this.hitbox_y1 + ( this.hitbox_y2 - this.hitbox_y1 ) * Math.random();
+						let xx = this.x + this._hitbox_x1 + ( this._hitbox_x2 - this._hitbox_x1 ) * Math.random();
+						let yy = this.y + this._hitbox_y1 + ( this._hitbox_y2 - this._hitbox_y1 ) * Math.random();
 
 						if ( sdWorld.inDist2D_Boolean( xx, yy, this.x, this.y, 4 * this.hmax / sdVirus.normal_max_health ) )
 						{	
@@ -343,7 +343,7 @@ class sdVirus extends sdEntity
 		
 		sdWorld.last_hit_entity = null;
 		
-		let in_water = sdWorld.CheckWallExistsBox( this.x + this.hitbox_x1, this.y + this.hitbox_y1, this.x + this.hitbox_x2, this.y + this.hitbox_y2, null, null, sdWater.water_class_array );
+		let in_water = sdWorld.CheckWallExistsBox( this.x + this._hitbox_x1, this.y + this._hitbox_y1, this.x + this._hitbox_x2, this.y + this._hitbox_y2, null, null, sdWater.water_class_array );
 		//let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
 		
 		if ( in_water )
@@ -386,8 +386,8 @@ class sdVirus extends sdEntity
 			{
 				from_entity = nears[ i ];
 					
-				let xx = from_entity.x + ( from_entity.hitbox_x1 + from_entity.hitbox_x2 ) / 2;
-				let yy = from_entity.y + ( from_entity.hitbox_y1 + from_entity.hitbox_y2 ) / 2;
+				let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
+				let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 				
 				if ( from_entity.is( sdCharacter ) )
 				if ( from_entity.IsTargetable() )
@@ -461,8 +461,8 @@ class sdVirus extends sdEntity
 				
 				k = Math.random();
 				
-				x = this.x + this.hitbox_x1 + Math.random() * ( this.hitbox_x2 - this.hitbox_x1 );
-				y = this.y + this.hitbox_y1 + Math.random() * ( this.hitbox_y2 - this.hitbox_y1 );
+				x = this.x + this._hitbox_x1 + Math.random() * ( this._hitbox_x2 - this._hitbox_x1 );
+				y = this.y + this._hitbox_y1 + Math.random() * ( this._hitbox_y2 - this._hitbox_y1 );
 				
 				//console.warn( { x: this.x, y: this.y, type:sdEffect.TYPE_GIB, sx: this.sx + Math.sin(a)*s, sy: this.sy + Math.cos(a)*s } )
 				

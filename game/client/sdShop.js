@@ -6,6 +6,7 @@ import sdWorld from '../sdWorld.js';
 import sdEntity from '../entities/sdEntity.js';
 import sdGun from '../entities/sdGun.js';
 import sdBlock from '../entities/sdBlock.js';
+import sdCrystal from '../entities/sdCrystal.js';
 import sdBG from '../entities/sdBG.js';
 import sdTurret from '../entities/sdTurret.js';
 import sdArea from '../entities/sdArea.js';
@@ -173,6 +174,16 @@ class sdShop
 					class: i, 
 					_category:'Development tests'
 				});
+				
+				if ( i === sdGun.CLASS_BUILDTOOL_UPG )
+				{
+					sdShop.options.push({
+						_class: 'sdGun',
+						class: i,
+						extra: 1,
+						_category:'Development tests'
+					});
+				}
 			}
 		}
 		sdShop.options.push({ _class: 'sdBomb', _category:'Equipment' });
@@ -334,6 +345,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdRift', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdRift', type: 2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120, _category:'Development tests' }); // Glowing one
+			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: sdCrystal.anticrystal_value, _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });
@@ -341,6 +354,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:64, _category:'Admin tools' });
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:32, _category:'Admin tools' });
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_ERASER_AREA, size:16, _category:'Admin tools' });
+		sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_ADMIN_REMOVER, _category:'Admin tools' });
 		
 		sdShop.potential_selection = -1;
 	}
@@ -520,8 +534,8 @@ class sdShop
 					
 					if ( ent )
 					{
-						ctx2.translate( ~~( 16 - ( ent.hitbox_x2 + ent.hitbox_x1 ) / 2 ), 
-										~~( 16 - ( ent.hitbox_y2 + ent.hitbox_y1 ) / 2 ) );
+						ctx2.translate( ~~( 16 - ( ent._hitbox_x2 + ent._hitbox_x1 ) / 2 ), 
+										~~( 16 - ( ent._hitbox_y2 + ent._hitbox_y1 ) / 2 ) );
 
 						ctx2.save();
 						ent.DrawBG( ctx2, false );
@@ -559,7 +573,7 @@ class sdShop
 				
 				if ( ent )
 				{
-					ctx.translate( 16 - ( ent.hitbox_x2 + ent.hitbox_x1 ) / 2, 16 - ( ent.hitbox_y2 + ent.hitbox_y1 ) / 2 );
+					ctx.translate( 16 - ( ent._hitbox_x2 + ent._hitbox_x1 ) / 2, 16 - ( ent._hitbox_y2 + ent._hitbox_y1 ) / 2 );
 					
 					ent.remove();
 					ent._remove();

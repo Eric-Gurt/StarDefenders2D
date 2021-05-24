@@ -138,16 +138,16 @@ class sdHover extends sdEntity
 				this[ 'driver' + i ] = null;
 				c.driver_of = null;
 				
-				c.x = this.x + ( i / ( sdHover.driver_slots - 1 ) ) * ( this.hitbox_x2 - this.hitbox_x1 );
+				c.x = this.x + ( i / ( sdHover.driver_slots - 1 ) ) * ( this._hitbox_x2 - this._hitbox_x1 );
 				
-				if ( c.CanMoveWithoutOverlap( c.x, this.y + this.hitbox_y1 - c.hitbox_y2, 1 ) )
-				c.y = this.y + this.hitbox_y1 - c.hitbox_y2;
+				if ( c.CanMoveWithoutOverlap( c.x, this.y + this._hitbox_y1 - c._hitbox_y2, 1 ) )
+				c.y = this.y + this._hitbox_y1 - c._hitbox_y2;
 				else
-				if ( c.CanMoveWithoutOverlap( this.x + this.hitbox_x1 - c.hitbox_x2, c.y, 1 ) )
-				c.x = this.x + this.hitbox_x1 - c.hitbox_x2;
+				if ( c.CanMoveWithoutOverlap( this.x + this._hitbox_x1 - c._hitbox_x2, c.y, 1 ) )
+				c.x = this.x + this._hitbox_x1 - c._hitbox_x2;
 				else
-				if ( c.CanMoveWithoutOverlap( this.x + this.hitbox_x2 - c.hitbox_x1, c.y, 1 ) )
-				c.x = this.x + this.hitbox_x2 - c.hitbox_x1;
+				if ( c.CanMoveWithoutOverlap( this.x + this._hitbox_x2 - c._hitbox_x1, c.y, 1 ) )
+				c.x = this.x + this._hitbox_x2 - c._hitbox_x1;
 		
 				c.PhysWakeUp();
 				
@@ -198,8 +198,8 @@ class sdHover extends sdEntity
 
 							var k = 1;
 
-							var x = that.x + that.hitbox_x1 + Math.random() * ( that.hitbox_x2 - that.hitbox_x1 );
-							var y = that.y + that.hitbox_y1 + Math.random() * ( that.hitbox_y2 - that.hitbox_y1 );
+							var x = that.x + that._hitbox_x1 + Math.random() * ( that._hitbox_x2 - that._hitbox_x1 );
+							var y = that.y + that._hitbox_y1 + Math.random() * ( that._hitbox_y2 - that._hitbox_y1 );
 							
 							that.sx -= Math.sin( an ) * d * r * 0.005;
 							that.sy -= Math.cos( an ) * d * r * 0.005;

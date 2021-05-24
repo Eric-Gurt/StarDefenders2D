@@ -34,6 +34,7 @@ class sdSound
 		sdSound.matter_charge_loop = new Audio( './audio/matter_charge_loop2.wav' );
 		sdSound.matter_charge_loop.volume = 0;
 		sdSound.matter_charge_loop.loop = true;
+		sdSound.matter_charge_loop.preservesPitch = false;
 		
 		sdSound.ambient1 = new Audio( './audio/ambient1_looped3.wav' );
 		sdSound.ambient1.volume = 0;
@@ -153,9 +154,24 @@ class sdSound
 			let old_old = sdWorld.my_entity._matter_old;
 			sdWorld.my_entity._matter_old = sdWorld.MorphWithTimeScale( sdWorld.my_entity._matter_old, sdWorld.my_entity.matter, 0.9, GSPEED );
 			
-			target_volume = ( Math.max( 0, sdWorld.my_entity._matter_old - old_old ) * 1 );
+			//if ( sdSound.allow_matter_drain_loop )
+			target_volume = ( ( sdWorld.my_entity._matter_old - old_old ) );
+			//else
+			//target_volume = ( Math.max( 0, sdWorld.my_entity._matter_old - old_old ) * 1 );
 		}
-		sdSound.matter_charge_loop.volume = sdSound.volume * Math.min( 1, target_volume );
+		
+		// Do not play negative matter sound during regular building
+		if ( target_volume < 0 )
+		target_volume = Math.min( 0, target_volume + 0.5 );
+	
+		sdSound.matter_charge_loop.volume = sdSound.volume * Math.min( 1, Math.abs( target_volume ) );
+		
+		if ( target_volume >= 0 )
+		sdSound.matter_charge_loop.playbackRate = 1;
+		else
+		sdSound.matter_charge_loop.playbackRate = 0.6;
+	
+		sdSound.allow_matter_drain_loop = false;
 		
 		let vx = sdSound.ambient_seeker.tx - sdSound.ambient_seeker.x;
 		let vy = sdSound.ambient_seeker.ty - sdSound.ambient_seeker.y;
@@ -257,7 +273,9 @@ class sdSound
 		sdSound.lava_burn.volume = Math.min( 1, Math.min( 2, sdSound.lava_burn_volume_last ) * sdSound.volume_ambient );
 		
 		sdSound.rift_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.rift_loop_volume_last, count_rift_loop, 0.8, GSPEED );
-		sdSound.rift_loop.volume = Math.min( 5, Math.min( 10, sdSound.rift_loop_volume_last ) * sdSound.volume_ambient );
+		sdSound.rift_loop.volume = Math.min( 1, Math.min( 10, sdSound.rift_loop_volume_last ) * sdSound.volume_ambient );
+		
+		// Note: Never go over 1 on .volume - browsers will throw an error and freeze screen
 	}
 	static GetDistanceMultForPosition( x,y )
 	{

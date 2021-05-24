@@ -127,7 +127,12 @@ class sdGun extends sdEntity
 			
 			if ( !sdWorld.server_config.GetHitAllowed || sdWorld.server_config.GetHitAllowed( this, from_entity ) )
 			{
-				if ( typeof from_entity._armor_protection_level === 'undefined' || this._dangerous_from === null || ( this._dangerous_from._upgrade_counters[ 'upgrade_damage' ] || 0 ) >= from_entity._armor_protection_level )
+				if ( ( typeof from_entity._armor_protection_level === 'undefined' || 
+					   this._dangerous_from === null || 
+					   ( this._dangerous_from._upgrade_counters[ 'upgrade_damage' ] || 0 ) >= from_entity._armor_protection_level )
+					   &&
+					   ( typeof from_entity._reinforced_level === 'undefined' || from_entity._reinforced_level <= 0 ) // Throwable swords can never damage entities with _reinforced_level
+					)
 				{
 					if ( sdGun.classes[ this.class ].projectile_properties._custom_target_reaction )
 					sdGun.classes[ this.class ].projectile_properties._custom_target_reaction( this, from_entity );
@@ -171,11 +176,18 @@ class sdGun extends sdEntity
 	
 	IsTargetable( by_entity ) // Guns are not targetable when held, same for sdCharacters that are driving something
 	{
-		if ( !sdArea.CheckPointDamageAllowed( this.x + ( this.hitbox_x1 + this.hitbox_x2 ) / 2, this.y + ( this.hitbox_y1 + this.hitbox_y2 ) / 2 ) )
+		if ( !sdArea.CheckPointDamageAllowed( this.x + ( this._hitbox_x1 + this._hitbox_x2 ) / 2, this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2 ) )
 		return false;
 		
 		return	( 
-					( by_entity && by_entity.is( sdOctopus ) && this._held_by && this._held_by.gun_slot === sdGun.classes[ this.class ].slot && this.class !== sdGun.CLASS_BUILD_TOOL && this.class !== sdGun.CLASS_MEDIKIT ) || // sdOctopus rule
+					( by_entity && 
+					  by_entity.is( sdOctopus ) && 
+					  this._held_by && 
+					  this._held_by.gun_slot === sdGun.classes[ this.class ].slot && 
+					  this.class !== sdGun.CLASS_BUILD_TOOL && 
+					  sdGun.classes[ this.class ].projectile_properties._damage >= 0 && // no healing guns
+					  sdGun.classes[ this.class ].projectile_properties._admin_picker !== true // no admin tools
+					  ) || // sdOctopus rule
 					this._held_by === null 
 				);
 	}
@@ -353,6 +365,11 @@ class sdGun extends sdEntity
 
 		if ( this.class === sdGun.CLASS_SHOVEL_MK2 )
 		return 2;
+	
+		if ( sdGun.classes[ this.class ].projectile_properties._admin_picker && !this._held_by._god )
+		{
+			return Infinity;
+		}
 		
 		return ( Math.abs( sdGun.classes[ this.class ].projectile_properties._damage * this._held_by._damage_mult ) * sdGun.classes[ this.class ].count + 
 				( sdGun.classes[ this.class ].projectile_properties._rail ? 30 : 0 ) + 
@@ -446,7 +463,12 @@ class sdGun extends sdEntity
 					else
 					{
 						if ( ammo_cost === Infinity )
-						this._held_by.Say( 'Nothing to build or upgrade' ); // Also will happen to regular users trying to build admin entities like sdArea
+						{
+							if ( sdGun.classes[ this.class ].projectile_properties._admin_picker )
+							this._held_by.Say( 'This weapon can be only used by admins' );
+							else
+							this._held_by.Say( 'Nothing to build or upgrade' ); // Also will happen to regular users trying to build admin entities like sdArea
+						}
 						else
 						if ( ammo_cost > this._held_by.matter_max )
 						this._held_by.Say( 'Need matter capacity upgrade and more matter' );
@@ -685,7 +707,7 @@ class sdGun extends sdEntity
 			let new_x = this.x + this.sx * GSPEED;
 			let new_y = this.y + this.sy * GSPEED;
 
-			if ( sdWorld.CheckWallExists( new_x, new_y + this.hitbox_y2, this, [ 'sdCharacter', 'sdGun' ] ) )
+			if ( sdWorld.CheckWallExists( new_x, new_y + this._hitbox_y2, this, [ 'sdCharacter', 'sdGun' ] ) )
 			{
 				this.sx = 0;
 				this.sy = 0;

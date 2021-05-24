@@ -212,10 +212,10 @@ class sdRift extends sdEntity
 					if ( sdWorld.last_hit_entity )
 					if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
 					if ( !sdWorld.CheckWallExistsBox( 
-						x + this.hitbox_x1 - 16, 
-						y + this.hitbox_y1 - 16, 
-						x + this.hitbox_x2 + 16, 
-						y + this.hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+						x + this._hitbox_x1 - 16, 
+						y + this._hitbox_y1 - 16, 
+						x + this._hitbox_x2 + 16, 
+						y + this._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
 					{
 						this.x = x;
 						this.y = y;

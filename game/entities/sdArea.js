@@ -54,6 +54,9 @@ class sdArea extends sdEntity
 		return true;
 	}
 	
+	IsAdminEntity() // Influences remover gun hit test
+	{ return true; }
+	
 	constructor( params )
 	{
 		super( params );
@@ -81,7 +84,6 @@ class sdArea extends sdEntity
 	MeasureMatterCost()
 	{
 		return Infinity;
-		//return this.width / 16 * this.height / 16;
 	}
 	GetNonIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions. Most probably will have conflicts with .GetIgnoredEntityClasses()
 	{
@@ -126,7 +128,7 @@ class sdArea extends sdEntity
 		else
 		ctx.fillStyle = '#ffffff';
 		
-		ctx.fillRect( 0, 0, this.hitbox_x2, this.hitbox_y2 );
+		ctx.fillRect( 0, 0, this._hitbox_x2, this._hitbox_y2 );
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';

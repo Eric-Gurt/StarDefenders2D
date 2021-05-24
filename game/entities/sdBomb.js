@@ -115,7 +115,7 @@ class sdBomb extends sdEntity
 					damage_scale: 25 * ( this._owner ? this._owner._damage_mult : 1 ), // 5 was too deadly on relatively far range
 					type:sdEffect.TYPE_EXPLOSION, 
 					owner:this._owner,
-					color:sdEffect.default_explosion_color 
+					color:sdEffect.default_explosion_color
 				});
 
 				this.remove();

@@ -27,6 +27,7 @@ import sdBG from './sdBG.js';
 import sdEnemyMech from './sdEnemyMech.js';
 import sdBadDog from './sdBadDog.js';
 import sdRift from './sdRift.js';
+import sdCrystal from './sdCrystal.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -39,6 +40,8 @@ class sdWeather extends sdEntity
 		sdWeather.img_scary_mode = sdWorld.CreateImageFromFile( 'scary_mode' );
 		
 		sdWeather.only_instance = null;
+		
+		sdWeather.last_crystal_near_quake = null; // Used to damage left over crystals. Could be used to damage anything really
 		
 		sdWeather.pattern = [];
 		for ( var i = 0; i < 300; i++ )
@@ -365,7 +368,7 @@ class sdWeather extends sdEntity
 					if ( this.TraceDamagePossibleHere( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y ) )
 					{
 						if ( sdWorld.sockets[ i ].character.pain_anim <= 0 && sdWorld.sockets[ i ].character.hea > 0 )
-						sdWorld.SendEffect({ x:sdWorld.sockets[ i ].character.x, y:sdWorld.sockets[ i ].character.y + sdWorld.sockets[ i ].character.hitbox_y1, type:sdWorld.sockets[ i ].character.GetBleedEffect(), filter:sdWorld.sockets[ i ].character.GetBleedEffectFilter() });
+						sdWorld.SendEffect({ x:sdWorld.sockets[ i ].character.x, y:sdWorld.sockets[ i ].character.y + sdWorld.sockets[ i ].character._hitbox_y1, type:sdWorld.sockets[ i ].character.GetBleedEffect(), filter:sdWorld.sockets[ i ].character.GetBleedEffectFilter() });
 
 						sdWorld.sockets[ i ].character.Damage( GSPEED * this.raining_intensity / 240 );
 					}
@@ -400,127 +403,139 @@ class sdWeather extends sdEntity
 						x = Math.floor( x / 16 ) * 16;
 						y = Math.floor( y / 16 ) * 16;
 						
-						if ( ent.CanMoveWithoutOverlap( x, y, 0.0001 ) )
-						//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
-						//if ( !sdWorld.CheckWallExistsBox( x, y, x+16, y+16, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava
-						if ( !sdWorld.CheckWallExistsBox( x + 0.0001, y + 0.0001, x+16 - 0.0001, y+16 - 0.0001, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava
+						sdWeather.last_crystal_near_quake = null;
+						
+						if ( ent.CanMoveWithoutOverlap( x, y, 0.0001, sdWeather.CrystalRemovalByEearthquakeFilter ) )
 						{
-							let ent_above = null;
-							let ent_above_exists = false;
-							
-							let ent_below = null;
-							let ent_below_exists = false;
-							
-							sdWorld.last_hit_entity = null;
-							if ( !ent.CanMoveWithoutOverlap( x, y + 16, 0.0001 ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) ) )
+							//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+							//if ( !sdWorld.CheckWallExistsBox( x, y, x+16, y+16, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava
+							if ( !sdWorld.CheckWallExistsBox( x + 0.0001, y + 0.0001, x+16 - 0.0001, y+16 - 0.0001, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava
 							{
-								ent_below = sdWorld.last_hit_entity;
-								ent_below_exists = true;
-							}
-							
-							sdWorld.last_hit_entity = null;
-							if ( !ent.CanMoveWithoutOverlap( x, y - 16, 0.0001 ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) ) )
-							{
-								ent_above = sdWorld.last_hit_entity;
-								ent_above_exists = true;
-							}
-							
-							// Left and right entity will be threaten as above becase they do not require ant extra logic like plant clearence
-							if ( !ent_above_exists )
-							{
+								let ent_above = null;
+								let ent_above_exists = false;
+
+								let ent_below = null;
+								let ent_below_exists = false;
+
 								sdWorld.last_hit_entity = null;
-								if ( !ent.CanMoveWithoutOverlap( x - 16, y, 0.0001 ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) ) )
+								if ( !ent.CanMoveWithoutOverlap( x, y + 16, 0.0001 ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) ) )
+								{
+									ent_below = sdWorld.last_hit_entity;
+									ent_below_exists = true;
+								}
+
+								sdWorld.last_hit_entity = null;
+								if ( !ent.CanMoveWithoutOverlap( x, y - 16, 0.0001 ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) ) )
 								{
 									ent_above = sdWorld.last_hit_entity;
 									ent_above_exists = true;
 								}
-								sdWorld.last_hit_entity = null;
-								if ( !ent.CanMoveWithoutOverlap( x + 16, y, 0.0001 ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) ) )
+
+								// Left and right entity will be threaten as above becase they do not require ant extra logic like plant clearence
+								if ( !ent_above_exists )
 								{
-									ent_above = sdWorld.last_hit_entity;
-									ent_above_exists = true;
-								}
-							}
-							
-							if ( ent_above_exists || ent_below_exists )
-							{
-								let bg_nature = true; // Or nothing or world border
-								let bg_nature_ent = null;
-								
-								sdWorld.last_hit_entity = null;
-								if ( sdWorld.CheckWallExistsBox( x+1, y+1, x + 16-1, y + 16-1, null, null, [ 'sdBG' ], null ) )
-								if ( sdWorld.last_hit_entity )
-								{
-									if ( sdWorld.last_hit_entity.material !== sdBG.MATERIAL_GROUND )
+									sdWorld.last_hit_entity = null;
+									if ( !ent.CanMoveWithoutOverlap( x - 16, y, 0.0001 ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) ) )
 									{
-										bg_nature = false;
+										ent_above = sdWorld.last_hit_entity;
+										ent_above_exists = true;
 									}
-									else
+									sdWorld.last_hit_entity = null;
+									if ( !ent.CanMoveWithoutOverlap( x + 16, y, 0.0001 ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) ) )
 									{
-										bg_nature_ent = sdWorld.last_hit_entity;
+										ent_above = sdWorld.last_hit_entity;
+										ent_above_exists = true;
 									}
 								}
-								
-								if ( bg_nature )
+
+								if ( ent_above_exists || ent_below_exists )
 								{
-									function ClearPlants()
+									let bg_nature = true; // Or nothing or world border
+									let bg_nature_ent = null;
+
+									sdWorld.last_hit_entity = null;
+									if ( sdWorld.CheckWallExistsBox( x+1, y+1, x + 16-1, y + 16-1, null, null, [ 'sdBG' ], null ) )
+									if ( sdWorld.last_hit_entity )
 									{
-										if ( bg_nature_ent )
-										bg_nature_ent.remove();
-									
-										if ( ent_below_exists )
-										if ( ent_below )
-										if ( ent_below._plants )
+										if ( sdWorld.last_hit_entity.material !== sdBG.MATERIAL_GROUND )
 										{
-											for ( let i = 0; i < ent_below._plants.length; i++ )
-											{
-												let plant = sdEntity.entities_by_net_id_cache[ ent_below._plants[ i ] ];
-												if ( plant )
-												plant.remove();
-											}
-											ent_below._plants = null;
+											bg_nature = false;
+										}
+										else
+										{
+											bg_nature_ent = sdWorld.last_hit_entity;
 										}
 									}
-									
-									let xx = Math.floor( x / 16 );
-									let from_y = sdWorld.GetGroundElevation( xx );
-			
-									if ( y >= from_y )
-									{
-										let r = sdWorld.FillGroundQuad( x, y, from_y, false, true );
-										
-										if ( r )
-										ClearPlants();
-									
-										// Delete temp block on success
-										//ent.remove();
-										break;
-									}
-									else
-									if ( y === from_y - 8 )
-									{
-										y += 8;
-										let r = sdWorld.FillGroundQuad( x, y, from_y, true, true );
-										
-										if ( r )
-										ClearPlants();
-									
-										// Delete temp block on success
-										//ent.remove();
-										break;
-									}
-									else
-									{
-										//debugger;
-									}
-									
-									
-								}
-							}
-							
-							
-						}
 
+									if ( bg_nature )
+									{
+										function ClearPlants()
+										{
+											if ( bg_nature_ent )
+											bg_nature_ent.remove();
+
+											if ( ent_below_exists )
+											if ( ent_below )
+											if ( ent_below._plants )
+											{
+												for ( let i = 0; i < ent_below._plants.length; i++ )
+												{
+													let plant = sdEntity.entities_by_net_id_cache[ ent_below._plants[ i ] ];
+													if ( plant )
+													plant.remove();
+												}
+												ent_below._plants = null;
+											}
+										}
+
+										let xx = Math.floor( x / 16 );
+										let from_y = sdWorld.GetGroundElevation( xx );
+
+										if ( y >= from_y )
+										{
+											let r = sdWorld.FillGroundQuad( x, y, from_y, false, true );
+
+											if ( r )
+											ClearPlants();
+
+											// Delete temp block on success
+											//ent.remove();
+											break;
+										}
+										else
+										if ( y === from_y - 8 )
+										{
+											y += 8;
+											let r = sdWorld.FillGroundQuad( x, y, from_y, true, true );
+
+											if ( r )
+											ClearPlants();
+
+											// Delete temp block on success
+											//ent.remove();
+											break;
+										}
+										else
+										{
+											//debugger;
+										}
+
+
+									}
+								}
+
+
+							}
+						}
+						else
+						if ( sdWeather.last_crystal_near_quake )
+						{
+							sdWorld.last_hit_entity = null;
+							if ( sdWorld.CheckWallExistsBox( x - 4, y + 4, x+16 + 4, y+16 + 4, null, null, [ 'sdBlock' ] ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) )  )
+							{
+								sdWeather.last_crystal_near_quake.Damage( 15 );
+							}
+						}
 
 						tr--;
 						if ( tr < 0 )
@@ -888,10 +903,10 @@ class sdWeather extends sdEntity
 									if ( sdWorld.last_hit_entity )
 									if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
 									if ( !sdWorld.CheckWallExistsBox( 
-											x + dog.hitbox_x1 - 16, 
-											y + dog.hitbox_y1 - 16, 
-											x + dog.hitbox_x2 + 16, 
-											y + dog.hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+											x + dog._hitbox_x1 - 16, 
+											y + dog._hitbox_y1 - 16, 
+											x + dog._hitbox_x2 + 16, 
+											y + dog._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
 									{
 										let di_allowed = true;
 										
@@ -958,10 +973,10 @@ class sdWeather extends sdEntity
 										if ( sdWorld.last_hit_entity )
 										if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
 										if ( !sdWorld.CheckWallExistsBox( 
-												x + portal.hitbox_x1 - 8, 
-												y + portal.hitbox_y1 - 8, 
-												x + portal.hitbox_x2 + 8, 
-												y + portal.hitbox_y2 + 8, null, null, [ 'sdWater' ], null ) )
+												x + portal._hitbox_x1 - 8, 
+												y + portal._hitbox_y1 - 8, 
+												x + portal._hitbox_x2 + 8, 
+												y + portal._hitbox_y2 + 8, null, null, [ 'sdWater' ], null ) )
 										{
 											portal.x = x;
 											portal.y = y;
@@ -998,6 +1013,19 @@ class sdWeather extends sdEntity
 			sdWorld.world_bounds.x2 = this.x2;
 			sdWorld.world_bounds.y2 = this.y2;
 		}
+	}
+	static CrystalRemovalByEearthquakeFilter( ent )
+	{
+		if ( ent )
+		//if ( ent.is( sdCrystal ) )
+		if ( !ent._natural )
+		if ( ent.IsTargetable() )
+		{
+			sdWeather.last_crystal_near_quake = ent;
+			//return false;
+		}
+		
+		return true;
 	}
 	Draw( ctx, attached )
 	{

@@ -155,7 +155,7 @@ class sdCrystalCombiner extends sdEntity
 			let ent = new sdCrystal({  });
 
 			ent.x = this.x;
-			ent.y = this.y + 7 - ent.hitbox_y2 - 0.1; // 7 instead of this.hitbox_y1 because we need final y1
+			ent.y = this.y + 7 - ent._hitbox_y2 - 0.1; // 7 instead of this._hitbox_y1 because we need final y1
 
 			ent.matter_max = this.matter_max;
 			ent.matter = this.matter;
@@ -210,7 +210,7 @@ class sdCrystalCombiner extends sdEntity
 				ent.x = this.x + 8;
 				else
 				ent.x = this.x - 8;
-				ent.y = this.y + 7 - ent.hitbox_y2 - 0.1; // 7 instead of this.hitbox_y1 because we need final y1
+				ent.y = this.y + 7 - ent._hitbox_y2 - 0.1; // 7 instead of this._hitbox_y1 because we need final y1
 
 				ent.matter_max = this.matter_max / this.crystals;
 				ent.matter = this.matter / this.crystals;
@@ -264,48 +264,49 @@ class sdCrystalCombiner extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 		if ( this._ignore_pickup_tim === 0 )
-		if ( from_entity.is( sdCrystal ) )
+		if ( from_entity.is( sdCrystal ) && from_entity.matter_max !== sdCrystal.anticrystal_value )
 		{
-		if ( sdWorld.Dist2D_Vector( from_entity.sx, from_entity.sy ) < 1.5 )
-		{
-			//console.log( 'vel ',sdWorld.Dist2D_Vector( from_entity.sx, from_entity.sy ));
-			
-			// Prevent catching pulled crystals
-			for ( var i = 0; i < sdWorld.sockets.length; i++ )
-			if ( sdWorld.sockets[ i ].character )
-			if ( sdWorld.sockets[ i ].character.hook_x !== 0 || sdWorld.sockets[ i ].character.hook_y !== 0 )
-			if ( sdWorld.sockets[ i ].character._hook_relative_to === from_entity )
-			return;
-
-			if ( this.crystals < 2 )
+			if ( sdWorld.Dist2D_Vector( from_entity.sx, from_entity.sy ) < 1.5 )
 			{
-				let crystal_add = 0;
-				if ( this.crystals === 1 )
-				if ( this.matter_max === from_entity.matter_max )
-				{
-					this.matter_max += from_entity.matter_max;
-					this.matter += from_entity.matter;
-					crystal_add = 1;
-				}
-				if ( this.crystals === 0 && from_entity.matter_max < 5120 ) // Can't put orange crystals into the combiner
-				{
-					this.matter_max = from_entity.matter_max;
-					this.matter = from_entity.matter;
-					crystal_add = 1;
-				}
-				// Update hitbox size (won't happen for static entities because their _last_x/y never change)
-				//sdWorld.UpdateHashPosition( this, false ); // Optional, but will make it visible as early as possible
-				if ( crystal_add === 1 ) // Prevent destroying crystals that don't match the first one in the crystal combiner
-				{
-				from_entity.onRemove = from_entity.onRemoveAsFakeEntity; // Disable any removal logic
-				from_entity.remove();
+				//console.log( 'vel ',sdWorld.Dist2D_Vector( from_entity.sx, from_entity.sy ));
 
-				this._update_version++;
-				this._ignore_pickup_tim = 30;
-				this.crystals++;
+				// Prevent catching pulled crystals
+				for ( var i = 0; i < sdWorld.sockets.length; i++ )
+				if ( sdWorld.sockets[ i ].character )
+				if ( sdWorld.sockets[ i ].character.hook_x !== 0 || sdWorld.sockets[ i ].character.hook_y !== 0 )
+				if ( sdWorld.sockets[ i ].character._hook_relative_to === from_entity )
+				return;
+
+				if ( this.crystals < 2 )
+				{
+					let crystal_add = 0;
+					if ( this.crystals === 1 )
+					if ( this.matter_max === from_entity.matter_max )
+					{
+						this.matter_max += from_entity.matter_max;
+						this.matter += from_entity.matter;
+						crystal_add = 1;
+					}
+					//if ( this.crystals === 0 && from_entity.matter_max < 5120 ) // Can't put orange crystals into the combiner
+					if ( this.crystals === 0 && from_entity.matter_max < 10240 ) // Orange crystals can be put but they will cause anti crysytal
+					{
+						this.matter_max = from_entity.matter_max;
+						this.matter = from_entity.matter;
+						crystal_add = 1;
+					}
+					// Update hitbox size (won't happen for static entities because their _last_x/y never change)
+					//sdWorld.UpdateHashPosition( this, false ); // Optional, but will make it visible as early as possible
+					if ( crystal_add === 1 ) // Prevent destroying crystals that don't match the first one in the crystal combiner
+					{
+						from_entity.onRemove = from_entity.onRemoveAsFakeEntity; // Disable any removal logic
+						from_entity.remove();
+
+						this._update_version++;
+						this._ignore_pickup_tim = 30;
+						this.crystals++;
+					}
 				}
 			}
-		}
 		}
 		else
 		{

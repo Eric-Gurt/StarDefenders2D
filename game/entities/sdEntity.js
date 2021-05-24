@@ -61,13 +61,21 @@ class sdEntity
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these.
 	{ return false; }
 	
-	IsTargetable( by_entity ) // Guns are not targetable when held, same for sdCharacters that are driving something
+	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Guns are not targetable when held, same for sdCharacters that are driving something
 	{
-		if ( !sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x + ( this.hitbox_x1 + this.hitbox_x2 ) / 2, this.y + ( this.hitbox_y1 + this.hitbox_y2 ) / 2 ) )
+		if ( !ignore_safe_areas )
+		if ( !by_entity || !by_entity._admin_picker )
+		if ( !sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x + ( this._hitbox_x1 + this._hitbox_x2 ) / 2, this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2 ) )
 		return false;
 		
+		if ( this.IsAdminEntity() )
+		return false;
+	
 		return true;
 	}
+	
+	IsAdminEntity() // Influences remover gun hit test
+	{ return false; }
 	
 	IsVehicle() // Mostly defines damage from rockets multiplier so far
 	{
@@ -139,7 +147,8 @@ class sdEntity
 	
 	PhysInitIfNeeded( w, h )
 	{
-		if ( typeof this._phys_sleep === 'undefined' )
+		//if ( typeof this._phys_sleep === 'undefined' )
+		if ( typeof this._phys_last_touch === 'undefined' ) // Pointer is more probable to remain undefined after snapshot load
 		{
 			this._phys_sleep = 10; // Time until full sleep
 			this._phys_last_touch = null;
@@ -214,13 +223,13 @@ class sdEntity
 			}
 			else
 			{
-				if ( this._phys_last_touch_targetable !== this._phys_last_touch.IsTargetable() )
+				if ( this._phys_last_touch_targetable !== this._phys_last_touch.IsTargetable( null, true ) )
 				{
 					
 					//if ( this.GetClass() === 'sdHover' )
 					//console.log( this.GetClass() + ' moves due to IsTargetable change of this._phys_last_touch' );
 				
-					this._phys_last_touch_targetable = this._phys_last_touch.IsTargetable();
+					this._phys_last_touch_targetable = this._phys_last_touch.IsTargetable( null, true );
 					moves = true;
 				}
 				else
@@ -239,8 +248,8 @@ class sdEntity
 	
 		if ( !moves )
 		{
-			let w = this.hitbox_x2 - this.hitbox_x1;
-			let h = this.hitbox_y2 - this.hitbox_y1;
+			let w = this._hitbox_x2 - this._hitbox_x1;
+			let h = this._hitbox_y2 - this._hitbox_y1;
 			
 			if ( this._phys_last_w !== w || this._phys_last_h !== h )
 			{
@@ -466,49 +475,51 @@ class sdEntity
 	{ return 0; }
 	CanMoveWithoutOverlap( new_x, new_y, safe_bound=0, custom_filtering_method=null ) // Safe bound used to check if sdCharacter can stand and not just collides with walls nearby. Also due to number rounding clients should better have it (or else they will teleport while sliding on vertical wall)
 	{
+		this.UpdateHitbox();
+		
 		var ignored_classes = this.GetIgnoredEntityClasses();
 		
 		if ( sdWorld.CheckWallExistsBox( 
-				new_x + this.hitbox_x1 + safe_bound, 
-				new_y + this.hitbox_y1 + safe_bound, 
-				new_x + this.hitbox_x2 - safe_bound, 
-				new_y + this.hitbox_y2 - safe_bound, this, ignored_classes, this.GetNonIgnoredEntityClasses(), custom_filtering_method ) )
+				new_x + this._hitbox_x1 + safe_bound, 
+				new_y + this._hitbox_y1 + safe_bound, 
+				new_x + this._hitbox_x2 - safe_bound, 
+				new_y + this._hitbox_y2 - safe_bound, this, ignored_classes, this.GetNonIgnoredEntityClasses(), custom_filtering_method ) )
 		return false;
 		
-		/*if ( sdWorld.CheckWallExists( new_x + this.hitbox_x1 + safe_bound, new_y + this.hitbox_y2 - safe_bound, this, ignored_classes ) )
+		/*if ( sdWorld.CheckWallExists( new_x + this._hitbox_x1 + safe_bound, new_y + this._hitbox_y2 - safe_bound, this, ignored_classes ) )
 		return false;
 	
-		if ( sdWorld.CheckWallExists( new_x + this.hitbox_x2 - safe_bound, new_y + this.hitbox_y2 - safe_bound, this, ignored_classes ) )
+		if ( sdWorld.CheckWallExists( new_x + this._hitbox_x2 - safe_bound, new_y + this._hitbox_y2 - safe_bound, this, ignored_classes ) )
 		return false;
 	
-		if ( sdWorld.CheckWallExists( new_x + this.hitbox_x1 + safe_bound, new_y + this.hitbox_y1 + safe_bound, this, ignored_classes ) )
+		if ( sdWorld.CheckWallExists( new_x + this._hitbox_x1 + safe_bound, new_y + this._hitbox_y1 + safe_bound, this, ignored_classes ) )
 		return false;
 	
-		if ( sdWorld.CheckWallExists( new_x + this.hitbox_x2 - safe_bound, new_y + this.hitbox_y1 + safe_bound, this, ignored_classes ) )
+		if ( sdWorld.CheckWallExists( new_x + this._hitbox_x2 - safe_bound, new_y + this._hitbox_y1 + safe_bound, this, ignored_classes ) )
 		return false;
 	
-		var extra_steps_x = Math.ceil( ( this.hitbox_x2 - this.hitbox_x1 ) / 8 );
-		var extra_steps_y = Math.ceil( ( this.hitbox_y2 - this.hitbox_y1 ) / 8 );
+		var extra_steps_x = Math.ceil( ( this._hitbox_x2 - this._hitbox_x1 ) / 8 );
+		var extra_steps_y = Math.ceil( ( this._hitbox_y2 - this._hitbox_y1 ) / 8 );
 		for ( var x = 1; x < extra_steps_x; x++ )
 		{
 			var morph = x / extra_steps_x;
-			var xx = ( new_x + this.hitbox_x1 + safe_bound ) * morph + ( new_x + this.hitbox_x2 - safe_bound ) * ( 1 - morph );
+			var xx = ( new_x + this._hitbox_x1 + safe_bound ) * morph + ( new_x + this._hitbox_x2 - safe_bound ) * ( 1 - morph );
 			
-			if ( sdWorld.CheckWallExists( xx, new_y + this.hitbox_y2 - safe_bound, this, ignored_classes ) )
+			if ( sdWorld.CheckWallExists( xx, new_y + this._hitbox_y2 - safe_bound, this, ignored_classes ) )
 			return false;
 		
-			if ( sdWorld.CheckWallExists( xx, new_y + this.hitbox_y1 + safe_bound, this, ignored_classes ) )
+			if ( sdWorld.CheckWallExists( xx, new_y + this._hitbox_y1 + safe_bound, this, ignored_classes ) )
 			return false;
 		}
 		for ( var y = 1; y < extra_steps_y; y++ )
 		{
 			var morph = y / extra_steps_y;
-			var yy = ( new_y + this.hitbox_y1 + safe_bound ) * morph + ( new_y + this.hitbox_y2 - safe_bound ) * ( 1 - morph );
+			var yy = ( new_y + this._hitbox_y1 + safe_bound ) * morph + ( new_y + this._hitbox_y2 - safe_bound ) * ( 1 - morph );
 			
-			if ( sdWorld.CheckWallExists( new_x + this.hitbox_x1 + safe_bound, yy, this, ignored_classes ) )
+			if ( sdWorld.CheckWallExists( new_x + this._hitbox_x1 + safe_bound, yy, this, ignored_classes ) )
 			return false;
 		
-			if ( sdWorld.CheckWallExists( new_x + this.hitbox_x2 - safe_bound, yy, this, ignored_classes ) )
+			if ( sdWorld.CheckWallExists( new_x + this._hitbox_x2 - safe_bound, yy, this, ignored_classes ) )
 			return false;
 		}
 		*/
@@ -539,9 +550,32 @@ class sdEntity
 		throw new Error('Get rid of this property');
 	}
 	
+	UpdateHitbox()
+	{
+		if ( this._hitbox_last_update !== sdWorld.time )
+		{
+			this._hitbox_last_update = sdWorld.time;
+			
+			this._hitbox_x1 = this.hitbox_x1;
+			this._hitbox_y1 = this.hitbox_y1;
+			this._hitbox_x2 = this.hitbox_x2;
+			this._hitbox_y2 = this.hitbox_y2;
+
+			if ( isNaN( this._hitbox_x2 ) || isNaN( this._hitbox_y2 ) )
+			throw new Error('UpdateHitbox caused NaN error');
+		}
+	}
 	constructor( params )
 	{
 		//this._stack_trace = globalThis.getStackTrace();
+		
+		// Because getters are slow in JS, especially when they are virtual methods. Trying this method?
+		this._hitbox_x1 = 0;
+		this._hitbox_y1 = 0;
+		this._hitbox_x2 = 0;
+		this._hitbox_y2 = 0;
+		this._hitbox_last_update = 0;
+		//this.UpdateHitbox();
 		
 		this._last_x = params.x;
 		this._last_y = params.y;
@@ -1055,6 +1089,8 @@ class sdEntity
 		
 		ret.ApplySnapshot( snapshot );
 		
+		ret.UpdateHitbox();
+		
 		sdEntity.entities.push( ret );
 		//sdWorld.UpdateHashPosition( ret, false ); // Will prevent sdBlock from occasionally not having collisions on client-side (it will rest in hibernated state, probably because of that. It is kind of a bug though)
 	
@@ -1108,84 +1144,69 @@ class sdEntity
 			return e.GetClass() + '#' + net_id;
 		}
 	}
+	
 	MatterGlow( how_much=0.01, radius=30, GSPEED )
 	{
-		//sdEntity.matter_discretion_frames
-		
 		if ( !sdWorld.is_server )
 		return;
-		
-		/*if ( sdWorld.is_server )
-		{
-			if ( typeof this._matter_discretion_frame === 'undefined' )
-			this._matter_discretion_frame = ~~( Math.random() * sdEntity.matter_discretion_frames );
-
-			this._matter_discretion_frame--;
-
-			if ( this._matter_discretion_frame > 0 )
-			return;
-
-			this._matter_discretion_frame += sdEntity.matter_discretion_frames;
-			GSPEED *= sdEntity.matter_discretion_frames;
-		}*/
 		
 		let this_matter = ( this.matter || this._matter || 0 );
 		
 		if ( this_matter > 0.05 )
 		{
+			//var arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null, ( e )=>!e.is( sdWorld.entity_classes.sdBG ) );
+			var arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null );
+
+			for ( var i = 0; i < arr.length; i++ )
+			{
+				if ( typeof arr[ i ].matter !== 'undefined' || 
+					 typeof arr[ i ]._matter !== 'undefined' )
+				{
+					if ( arr[ i ] !== this )
+					{
+						this.TransferMatter( arr[ i ], how_much, GSPEED * 4 ); // Mult by X because targets no longer take 4 cells
+					}
+				}
+				else
+				{
+					// Remove these that do not match anyway, at least for brief period of time until GetAnythingNearCache overrides this list - less time to spend on property existence checks
+					arr.splice( i, 1 );
+					i--;
+				}
+			}
+		}
+	}
+	HungryMatterGlow( how_much=0.01, radius=30, GSPEED )
+	{
+		// In case of client it only allows matter drain sound
+		if ( !sdWorld.is_server )
+		if ( sdSound.allow_matter_drain_loop )
+		return;
+			
+		let this_matter = ( this.matter || this._matter || 0 );
+		let this_matter_max = ( this.matter_max || this._matter_max || 0 );
+		
+		if ( this_matter < this_matter_max - 0.05 )
+		{
 			var arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null );
 
 			for ( var i = 0; i < arr.length; i++ )
 			if ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' )
-			//if ( sdWorld.inDist2D_Boolean( arr[ i ].x, arr[ i ].y, x, y, radius ) >= 0 ) Already done by GetAnythingNear
 			if ( arr[ i ] !== this )
 			{
-				this.TransferMatter( arr[ i ], how_much, GSPEED * 4 ); // Mult by X because targets no longer take 4 cells
-			}
-			/*
-			if ( radius > 64 )
-			{
-				debugger; // Not needed yet?
-			}
-			else
-			if ( radius > 32 )
-			{
-				var x = this.x;
-				var y = this.y;
-				for ( var xx = -2; xx <= 2; xx++ )
-				for ( var yy = -2; yy <= 2; yy++ )
-				//for ( var xx = -1; xx <= 1; xx++ )
-				//for ( var yy = -1; yy <= 1; yy++ )
+				if ( sdWorld.is_server )
 				{
-					var arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
-					for ( var i = 0; i < arr.length; i++ )
-					if ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' )
-					if ( sdWorld.inDist2D_Boolean( arr[ i ].x, arr[ i ].y, x, y, radius ) >= 0 )
-					if ( arr[ i ] !== this )
+					arr[ i ].TransferMatter( this, how_much, GSPEED * 4 ); // Mult by X because targets no longer take 4 cells
+				}
+				else
+				{
+					if ( arr[ i ] === sdWorld.my_entity )
 					{
-						this.TransferMatter( arr[ i ], how_much, GSPEED );
+						sdSound.allow_matter_drain_loop = true;
+						break;
 					}
 				}
 			}
-			else
-			{
-				var x = this.x;
-				var y = this.y;
-				//for ( var xx = -2; xx <= 2; xx++ )
-				//for ( var yy = -2; yy <= 2; yy++ )
-				for ( var xx = -1; xx <= 1; xx++ )
-				for ( var yy = -1; yy <= 1; yy++ )
-				{
-					var arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
-					for ( var i = 0; i < arr.length; i++ )
-					if ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' )
-					if ( sdWorld.inDist2D_Boolean( arr[ i ].x, arr[ i ].y, x, y, radius ) >= 0 )
-					if ( arr[ i ] !== this )
-					{
-						this.TransferMatter( arr[ i ], 0.01, GSPEED );
-					}
-				}
-			}*/
 		}
 	}
 	hasEventListener( str, method )

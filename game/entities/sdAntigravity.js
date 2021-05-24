@@ -74,10 +74,10 @@ class sdAntigravity extends sdEntity
 		
 		for ( var t = 0; t < 2; t++ )
 		{
-			var x1 = this.x + this.hitbox_x1 + ( this.hitbox_x2 - this.hitbox_x1 ) / 2 * t;
+			var x1 = this.x + this._hitbox_x1 + ( this._hitbox_x2 - this._hitbox_x1 ) / 2 * t;
 			var y1 = this.y - 16;
 			
-			var x2 = x1 + ( this.hitbox_x2 - this.hitbox_x1 ) / 2;
+			var x2 = x1 + ( this._hitbox_x2 - this._hitbox_x1 ) / 2;
 			var y2 = y1 + 16;
 			
 			var max_h = 16;
@@ -115,10 +115,10 @@ class sdAntigravity extends sdEntity
 						//if ( !non_recursive.has( arr[ i ]._net_id ) )
 						if ( !non_recursive.has( arr[ i ] ) )
 						{
-							if ( x2 > arr[ i ].x + arr[ i ].hitbox_x1 )
-							if ( x1 < arr[ i ].x + arr[ i ].hitbox_x2 )
-							if ( y2 > arr[ i ].y + arr[ i ].hitbox_y1 )
-							if ( y1 < arr[ i ].y + arr[ i ].hitbox_y2 )
+							if ( x2 > arr[ i ].x + arr[ i ]._hitbox_x1 )
+							if ( x1 < arr[ i ].x + arr[ i ]._hitbox_x2 )
+							if ( y2 > arr[ i ].y + arr[ i ]._hitbox_y1 )
+							if ( y1 < arr[ i ].y + arr[ i ]._hitbox_y2 )
 							{
 								//if ( arr[ i ] instanceof sdBlock || arr[ i ] instanceof sdDoor )
 								if ( arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) )
