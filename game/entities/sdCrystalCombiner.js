@@ -298,8 +298,10 @@ class sdCrystalCombiner extends sdEntity
 					//sdWorld.UpdateHashPosition( this, false ); // Optional, but will make it visible as early as possible
 					if ( crystal_add === 1 ) // Prevent destroying crystals that don't match the first one in the crystal combiner
 					{
-						from_entity.onRemove = from_entity.onRemoveAsFakeEntity; // Disable any removal logic
+						//from_entity.onRemove = from_entity.onRemoveAsFakeEntity; // Disable any removal logic
+						from_entity.SetMethod( 'onRemove', from_entity.onRemoveAsFakeEntity ); // Disable any removal logic
 						from_entity.remove();
+						from_entity._remove();
 
 						this._update_version++;
 						this._ignore_pickup_tim = 30;

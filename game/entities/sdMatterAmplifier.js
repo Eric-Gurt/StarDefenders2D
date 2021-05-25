@@ -330,8 +330,10 @@ class sdMatterAmplifier extends sdEntity
 				// Update hitbox size (won't happen for static entities because their _last_x/y never change)
 				//sdWorld.UpdateHashPosition( this, false ); // Optional, but will make it visible as early as possible
 			
-				from_entity.onRemove = from_entity.onRemoveAsFakeEntity; // Disable any removal logic
+				//from_entity.onRemove = from_entity.onRemoveAsFakeEntity; // Disable any removal logic
+				from_entity.SetMethod( 'onRemove', from_entity.onRemoveAsFakeEntity ); // Disable any removal logic
 				from_entity.remove();
+				from_entity._remove();
 
 				this._update_version++;
 			}

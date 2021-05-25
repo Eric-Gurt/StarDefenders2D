@@ -2526,7 +2526,8 @@ class sdCharacter extends sdEntity
 		{
 			if ( !this.CheckBuildObjectPossibilityNow( fake_ent ) )
 			{
-				fake_ent.onRemove = fake_ent.onRemoveAsFakeEntity; // Disable any removal logic
+				//fake_ent.onRemove = fake_ent.onRemoveAsFakeEntity; // Disable any removal logic
+				fake_ent.SetMethod( 'onRemove', fake_ent.onRemoveAsFakeEntity ); // Disable any removal logic
 				fake_ent.remove();
 				fake_ent._remove();
 				return null;

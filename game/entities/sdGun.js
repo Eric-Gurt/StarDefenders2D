@@ -337,7 +337,8 @@ class sdGun extends sdEntity
 			cost = 0;
 
 			
-			ent.onRemove = ent.onRemoveAsFakeEntity; // Disable any removal logic
+			//ent.onRemove = ent.onRemoveAsFakeEntity; // Disable any removal logic
+			ent.SetMethod( 'onRemove', ent.onRemoveAsFakeEntity ); // Disable any removal logic
 			ent.remove();
 			ent._remove();
 			

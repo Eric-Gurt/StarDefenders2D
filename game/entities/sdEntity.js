@@ -117,15 +117,19 @@ class sdEntity
 			if ( !hit_what._is_being_removed )
 			{
 				this.onMovementInRange( hit_what );
+				
+				if ( !hit_what._is_being_removed )
 				hit_what.onMovementInRange( this );
 			}
 			
 			//this.SharePhysAwake( hit_what );
 			
 			if ( this._hiberstate !== sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP )
+			if ( this._hiberstate !== sdEntity.HIBERSTATE_REMOVED )
 			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		
 			if ( hit_what._hiberstate !== sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP )
+			if ( hit_what._hiberstate !== sdEntity.HIBERSTATE_REMOVED )
 			hit_what.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		}
 	}
@@ -569,8 +573,8 @@ class sdEntity
 			this._hitbox_x2 = this.hitbox_x2;
 			this._hitbox_y2 = this.hitbox_y2;
 
-			if ( isNaN( this._hitbox_x2 ) || isNaN( this._hitbox_y2 ) )
-			throw new Error('UpdateHitbox caused NaN error');
+			//if ( isNaN( this._hitbox_x2 ) || isNaN( this._hitbox_y2 ) )
+			//throw new Error('UpdateHitbox caused NaN error');
 		}
 	}
 	constructor( params )
@@ -582,7 +586,8 @@ class sdEntity
 		this._hitbox_y1 = 0;
 		this._hitbox_x2 = 0;
 		this._hitbox_y2 = 0;
-		this._hitbox_last_update = 0;
+		this.UpdateHitbox(); // Update hitbox
+		this._hitbox_last_update = 0; // But be ready for it to be updated again (sdCrystal that is being ejected from sdMatterAmplifier would need it to be not stuck in it)
 		//this.UpdateHitbox();
 		
 		this._last_x = params.x;
@@ -1341,7 +1346,7 @@ class sdEntity
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 	}
-	onRemove() // Class-specific, if needed
+	onRemove() // Class-specific, if needed. Can be overriden with onRemoveAsFakeEntity but only like this: ent.SetMethod( 'onRemove', ent.onRemoveAsFakeEntity ); ent.remove(); ent._remove();
 	{
 	}
 	onRemoveAsFakeEntity() // Will be called instead of onRemove() if entity was never added to world
