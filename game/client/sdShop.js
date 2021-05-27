@@ -327,9 +327,9 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCharacter', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAsteroid', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdCube', _kind:1, _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdCube', _kind:2, _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdCube', _kind:3, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCube', kind:1, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCube', kind:2, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCube', kind:3, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_LAVA, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAsp', _category:'Development tests' });
@@ -347,6 +347,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120, _category:'Development tests' }); // Glowing one
 			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: sdCrystal.anticrystal_value, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdDrone', _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });
