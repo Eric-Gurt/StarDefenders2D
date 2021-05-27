@@ -14,7 +14,7 @@ class sdBadDog extends sdEntity
 	static init_class()
 	{
 		sdBadDog.img_bad_dog_anim = sdWorld.CreateImageFromFile( 'sdBadDog' );
-		sdBadDog.img_bad_dog_armored_anim = sdWorld.CreateImageFromFile( 'sdBadDog2' );
+		sdBadDog.img_bad_dog_armored_anim = sdWorld.CreateImageFromFile( 'sdBadDog_armored' );
 		
 		sdBadDog.frame_idle = 0;
 		sdBadDog.frame_jump = 1;
