@@ -14,6 +14,7 @@ class sdBadDog extends sdEntity
 	static init_class()
 	{
 		sdBadDog.img_bad_dog_anim = sdWorld.CreateImageFromFile( 'sdBadDog' );
+		sdBadDog.img_bad_dog_armored_anim = sdWorld.CreateImageFromFile( 'sdBadDog2' );
 		
 		sdBadDog.frame_idle = 0;
 		sdBadDog.frame_jump = 1;
@@ -62,6 +63,8 @@ class sdBadDog extends sdEntity
 		
 		this.hmax = 200;
 		this.hea = this.hmax;
+
+		this.type = 0;
 		
 		this._retreat_hp_mult = 0.5; // Goes closer to 1 each time and at some point makes creature friendly?
 		
@@ -519,8 +522,10 @@ class sdBadDog extends sdEntity
 			else
 			frame = sdBadDog.frame_jump;
 		}
-		
+		if ( this.type === 0 )
 		ctx.drawImageFilterCache( sdBadDog.img_bad_dog_anim, frame*32,0,32,32, - 16, - 16, 32,32 );
+		if ( this.type === 1 )
+		ctx.drawImageFilterCache( sdBadDog.img_bad_dog_armored_anim, frame*32,0,32,32, - 16, - 16, 32,32 );
 		
 		ctx.globalAlpha = 1;
 		//ctx.filter = 'none';
@@ -617,6 +622,30 @@ class sdBadDog extends sdEntity
 					this.MasterRemoved( this.master );
 				}
 			}
+
+			if ( command_name === 'ARMOR' )
+			{
+					if ( this.master === exectuter_character )
+					{
+						if ( this.master.matter >= 500 )
+						{
+							if ( this.type !== 1 )
+							{
+								if ( this.type === 0 )
+								{
+									this.type = 1; // Small armored baddog
+									this.master.matter -= 500;
+									this.hmax += 200;
+									this.hea += 200;
+								}
+							}
+							else
+							executer_socket.SDServiceMessage( 'The dog is already armored' );
+						}
+						else
+						executer_socket.SDServiceMessage( 'Not enough matter' );
+					}
+			}
 		}
 	}
 	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
@@ -633,6 +662,10 @@ class sdBadDog extends sdEntity
 		
 				if ( this.master === exectuter_character )
 				this.AddContextOption( 'Stop following me', 'DISOWN', [] );
+
+				if ( this.master === exectuter_character )
+				if ( this.type === 0 )
+				this.AddContextOption( 'Build armor for the dog (500 matter)', 'ARMOR', [] );
 			}
 		}
 	}
