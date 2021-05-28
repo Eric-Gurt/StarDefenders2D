@@ -153,7 +153,7 @@ class sdDrone extends sdEntity
 		
 		if ( this._hea <= 0 )
 		{
-			this.attack_an += this.sx / 10;
+			this.attack_an += this.sx / 6;
 
 			if ( this.death_anim < sdDrone.death_duration + sdDrone.post_death_ttl )
 			this.death_anim += GSPEED;
@@ -307,8 +307,8 @@ class sdDrone extends sdEntity
 						
 						let di = sdWorld.Dist2D_Vector( dx, dy );
 						
-						dx += ( from_entity.sx || 0 ) * di / 12;
-						dy += ( from_entity.sy || 0 ) * di / 12;
+						//dx += ( from_entity.sx || 0 ) * di / 12;
+						//dy += ( from_entity.sy || 0 ) * di / 12;
 						
 						di = sdWorld.Dist2D_Vector( dx, dy );
 						
