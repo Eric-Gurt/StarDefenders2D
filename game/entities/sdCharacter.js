@@ -1639,6 +1639,9 @@ class sdCharacter extends sdEntity
 					let from_y = this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2;
 					
 					let cur_di = sdWorld.Dist2D( this.x, from_y, this.hook_x, this.hook_y );
+					
+					if ( cur_di < 1 )
+					cur_di = 1;
 
 					if ( this._hook_len === -1 )
 					this._hook_len = cur_di;
@@ -1670,6 +1673,26 @@ class sdCharacter extends sdEntity
 							
 							if ( this._hook_relative_to.is( sdCharacter ) )
 							this._hook_relative_to.ApplyServerSidePositionAndVelocity( true, this._hook_relative_to.sx - lx, this._hook_relative_to.sy - ly );
+						
+
+							if ( isNaN( this._hook_relative_to.sx ) )
+							{
+								throw new Error('sdCharacter\'s hook causes attached item to have NaN velocity '+[
+									this._hook_relative_to.mass,
+									this.mass,
+									self_effect_scale,
+									cur_di,
+									vx,
+									vy,
+									pull_force,
+									GSPEED,
+									lx,
+									ly,
+									this.sx,
+									this.sy
+									
+								].join(',') );
+							}
 
 							pull_force /= 2;
 						}

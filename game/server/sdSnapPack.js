@@ -407,7 +407,12 @@ class sdSnapPack
 		catch( e )
 		{
 			console.log( 'Problem during compression of entity list: ', original_array );
-			throw new Error( 'Problem was not resolved. Original error: ', e );
+			
+			//socket.SDServiceMessage( 'Server: Something has caused corrupted values in world entities. Reverting back to backup...' );
+			
+			sdModeration.CommandReceived( sdModeration.superuser_socket, '/reboot nosave' );
+			
+			//throw new Error( 'Problem was not resolved. Original error: ', e );
 		}
 		
 		if ( track_worst_case )

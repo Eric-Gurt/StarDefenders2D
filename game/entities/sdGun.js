@@ -761,6 +761,11 @@ class sdGun extends sdEntity
 			{
 				this.sx = this._held_by.sx;
 				this.sy = this._held_by.sy;
+				
+				if ( isNaN( this.sx ) )
+				{
+					throw new Error('sdGun is held by entity with .sx as NaN');
+				}
 			}
 
 			if ( this.x !== old_x || this.y !== old_y )

@@ -74,6 +74,9 @@ class sdStorage extends sdEntity
 		this.sy += y / this.mass;
 		//this.sx += x * 0.1;
 		//this.sy += y * 0.1;
+		
+		if ( isNaN( this.sx ) )
+		throw new Error('sdStorage got x impulse '+x+' which caused NaN at stStorage.prototype.sx' );
 	}
 	
 	onThink( GSPEED ) // Class-specific, if needed

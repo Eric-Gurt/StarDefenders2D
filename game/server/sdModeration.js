@@ -30,6 +30,12 @@ class sdModeration
 		
 		sdModeration.non_admin_commands = [ 'myid', 'id', 'help', '?', 'commands', 'listadmins', 'selfpromote', 'connection', 'kill' ];
 		
+		// Fake socket that can be passed instead of socket to force some commands from world logic
+		sdModeration.superuser_socket = {
+			SDServiceMessage: ( t )=>{ console.log( 'superuser_socket.SDServiceMessage(...): ' + t ) },
+			my_hash: null
+		};
+		
 		sdModeration.Load();
 	}
 	
@@ -81,40 +87,43 @@ class sdModeration
 			socket.SDServiceMessage( 'Server: Moderation has been disabled due to access file read error. Type /retry to try again.' );
 			return;
 		}
-	
-		if ( socket.my_hash === null )
-		{
-			socket.SDServiceMessage( 'Server: No permissions for unknown user.' );
-			return;
-		}
-	
+
 		let my_admin_row = null;
-		
+
 		let is_non_admin = false;
 		
-		for ( var a = 0; a < sdModeration.data.admins.length; a++ )
+		if ( socket !== sdModeration.superuser_socket )
 		{
-			if ( sdModeration.data.admins[ a ].my_hash === socket.my_hash )
+			if ( socket.my_hash === null )
 			{
-				my_admin_row = sdModeration.data.admins[ a ];
-				break;
-			}
-		}
-		
-		if ( !my_admin_row )
-		{
-			is_non_admin = ( sdModeration.non_admin_commands.indexOf( parts[ 0 ] ) !== -1 );
-			
-			if ( sdModeration.ever_loaded )
-			if ( !is_non_admin )
-			{
-				socket.SDServiceMessage( 'Server: No permissions.' );
+				socket.SDServiceMessage( 'Server: No permissions for unknown user.' );
 				return;
 			}
-		}
-		else
-		{
-			is_non_admin = false;
+
+			for ( var a = 0; a < sdModeration.data.admins.length; a++ )
+			{
+				if ( sdModeration.data.admins[ a ].my_hash === socket.my_hash )
+				{
+					my_admin_row = sdModeration.data.admins[ a ];
+					break;
+				}
+			}
+
+			if ( !my_admin_row )
+			{
+				is_non_admin = ( sdModeration.non_admin_commands.indexOf( parts[ 0 ] ) !== -1 );
+
+				if ( sdModeration.ever_loaded )
+				if ( !is_non_admin )
+				{
+					socket.SDServiceMessage( 'Server: No permissions.' );
+					return;
+				}
+			}
+			else
+			{
+				is_non_admin = false;
+			}
 		}
 		
 		if ( parts[ 0 ] === 'selfpromote' )
@@ -332,7 +341,7 @@ class sdModeration
 						});
 					});
 					process.exit();
-				}, 1000 );
+				}, 100 );
 
 			};
 			
