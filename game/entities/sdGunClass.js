@@ -768,7 +768,8 @@ class sdGunClass
 			count: 1,
 			is_sword: true,
 			min_workbench_level: 1,
-			matter_cost: 900,
+			min_build_tool_level: 2,
+			matter_cost: 1000,
 			projectile_velocity: 16 * 1.5,
 			projectile_properties: { time_left: 1, _damage: 35, color: 'transparent', _knock_scale:0.025 * 8, _reinforced_level: 1 }
 		};
