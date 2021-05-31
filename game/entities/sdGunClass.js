@@ -545,6 +545,7 @@ class sdGunClass
 					character.armor = 130;
 					character.armor_max = 130;
 					character._armor_absorb_perc = 0.3; // 30% damage reduction
+					character.armor_speed_reduction = 0; // Armor speed reduction, 0% for light armor
 					gun.remove(); 
 				}
 
@@ -573,6 +574,7 @@ class sdGunClass
 					character.armor = 190;
 					character.armor_max = 190;
 					character._armor_absorb_perc = 0.4; // 40% damage reduction
+					character.armor_speed_reduction = 10; // Armor speed reduction, 10% for medium armor
 					gun.remove(); 
 				}
 
@@ -601,6 +603,7 @@ class sdGunClass
 					character.armor = 250;
 					character.armor_max = 250;
 					character._armor_absorb_perc = 0.5; // 50% damage reduction
+					character.armor_speed_reduction = 20; // Armor speed reduction, 20% for heavy armor
 					gun.remove(); 
 				}
 
