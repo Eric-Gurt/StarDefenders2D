@@ -472,7 +472,7 @@ class sdGunClass
 			count: 1,
 			matter_cost: 90,
 			min_build_tool_level: 1,
-			projectile_properties: { _damage: 40, color: '#AA0000' }
+			projectile_properties: { _damage: 36, color: '#AA0000' }
 		};
 
 		sdGun.classes[ sdGun.CLASS_BUILDTOOL_UPG = 25 ] = 
@@ -545,6 +545,7 @@ class sdGunClass
 					character.armor = 130;
 					character.armor_max = 130;
 					character._armor_absorb_perc = 0.3; // 30% damage reduction
+					character.armor_speed_reduction = 0; // Armor speed reduction, 0% for light armor
 					gun.remove(); 
 				}
 
@@ -573,6 +574,7 @@ class sdGunClass
 					character.armor = 190;
 					character.armor_max = 190;
 					character._armor_absorb_perc = 0.4; // 40% damage reduction
+					character.armor_speed_reduction = 10; // Armor speed reduction, 10% for medium armor
 					gun.remove(); 
 				}
 
@@ -601,6 +603,7 @@ class sdGunClass
 					character.armor = 250;
 					character.armor_max = 250;
 					character._armor_absorb_perc = 0.5; // 50% damage reduction
+					character.armor_speed_reduction = 20; // Armor speed reduction, 20% for heavy armor
 					gun.remove(); 
 				}
 
@@ -765,7 +768,8 @@ class sdGunClass
 			count: 1,
 			is_sword: true,
 			min_workbench_level: 1,
-			matter_cost: 900,
+			min_build_tool_level: 2,
+			matter_cost: 1000,
 			projectile_velocity: 16 * 1.5,
 			projectile_properties: { time_left: 1, _damage: 35, color: 'transparent', _knock_scale:0.025 * 8, _reinforced_level: 1 }
 		};

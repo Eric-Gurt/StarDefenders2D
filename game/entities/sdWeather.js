@@ -33,6 +33,7 @@ import sdEnemyMech from './sdEnemyMech.js';
 import sdBadDog from './sdBadDog.js';
 import sdRift from './sdRift.js';
 import sdCrystal from './sdCrystal.js';
+import sdDrone from './sdDrone.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -598,7 +599,7 @@ class sdWeather extends sdEntity
 							let cube = new sdCube({ 
 								x:sdWorld.world_bounds.x1 + 32 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 - 64 ), 
 								y:sdWorld.world_bounds.y1 + 32,
-								_kind: ( ( sdCube.alive_huge_cube_counter < sdWorld.GetPlayingPlayersCount() ) && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.1 ) ) ?
+								kind: ( ( sdCube.alive_huge_cube_counter < sdWorld.GetPlayingPlayersCount() ) && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.1 ) ) ?
 										 1 : ( sdCube.alive_white_cube_counter < 1 && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.04 ) ) ? 
 										 2 : ( sdCube.alive_pink_cube_counter < 2 && ( sdCube.alive_cube_counter >= 1 && Math.random() < 0.14 ) ) ? 3 : 0 // _kind = 1 -> is_huge = true , _kind = 2 -> is_white = true , _kind = 3 -> is_pink = true
 							});
@@ -769,6 +770,55 @@ class sdWeather extends sdEntity
 							this._invasion_spawn_timer = 0;
 							this._invasion_spawns_con = 30; // At least 30 Falkoks must spawn otherwise invasion will not end
 							//console.log('Invasion incoming!');
+							{ // Spawn some drones as invasion starts
+								let instances = 0;
+								let instances_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
+
+								let left_side = ( Math.random() < 0.5 );
+
+								while ( instances < instances_tot && sdDrone.drones_tot < 20 )
+								{
+
+									let drone = new sdDrone({ x:0, y:0 , _ai_team: 1});
+
+									sdEntity.entities.push( drone );
+
+									{
+										let x,y;
+										let tr = 1000;
+										do
+										{
+											if ( left_side )
+											x = sdWorld.world_bounds.x1 + 64 + 64 * instances;
+											else
+											x = sdWorld.world_bounds.x2 - 64 - 64 * instances;
+
+											y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+											if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
+											//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+											//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+											{
+												drone.x = x;
+												drone.y = y;
+
+												//sdWorld.UpdateHashPosition( ent, false );
+												//console.log('Drone spawned!');
+												break;
+											}
+
+
+											tr--;
+											if ( tr < 0 )
+											{
+												drone.remove();
+												break;
+											}
+										} while( true );
+									}
+									instances++;
+								}
+							}
 						}
 						else
 						this._time_until_event = Math.random() * 30 * 60 * 1; // if the event is already active, quickly initiate something else
@@ -802,6 +852,11 @@ class sdWeather extends sdEntity
 									y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
 
 									if ( virus_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+									if ( virus_entity.CanMoveWithoutOverlap( x + 32, y, 0 ) )
+									if ( virus_entity.CanMoveWithoutOverlap( x - 32, y, 0 ) )
+									if ( virus_entity.CanMoveWithoutOverlap( x, y - 32, 0 ) )
+									if ( virus_entity.CanMoveWithoutOverlap( x + 32, y - 32, 0 ) )
+									if ( virus_entity.CanMoveWithoutOverlap( x - 32, y - 32, 0 ) )
 									if ( !virus_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 									if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
 									{

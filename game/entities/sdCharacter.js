@@ -281,6 +281,7 @@ class sdCharacter extends sdEntity
 		this.armor = 0; // Armor
 		this.armor_max = 0; // Max armor; used for drawing armor bar
 		this._armor_absorb_perc = 0; // Armor absorption percentage
+		this.armor_speed_reduction = 0; // Armor speed reduction, depends on armor type
 
 		//this.anim_death = 0;
 		this._anim_walk = 0;
@@ -679,10 +680,11 @@ class sdCharacter extends sdEntity
 				this.hea -= ( dmg * (1 - this._armor_absorb_perc ) );
 				//if (dmg > 0 )
 				this.armor -= ( dmg * this._armor_absorb_perc );
-				if ( this.armor < 0 )
+				if ( this.armor <= 0 )
 				{
 					this.armor = 0;
 					this._armor_absorb_perc = 0;
+					this.armor_speed_reduction = 0; 
 				}
 			}
 			if ( this.hea <= 0 && was_alive )
@@ -1515,7 +1517,7 @@ class sdCharacter extends sdEntity
 		//let leg_height = 16 - this._crouch_intens * 6;
 		let leg_height = this._hitbox_y2;
 		
-		let speed_scale = 1;
+		let speed_scale = 1 * ( 1 - ( this.armor_speed_reduction / 100 ) );
 		
 		if ( this.act_y === 1 )
 		{
@@ -1792,7 +1794,7 @@ class sdCharacter extends sdEntity
 			
 			this.tilt_speed = sdWorld.MorphWithTimeScale( this.tilt_speed, this.act_x * 30, 0.9, GSPEED );
 			
-			speed_scale = 0.1;
+			speed_scale = 0.1 * ( 1 - ( this.armor_speed_reduction / 100 ) );
 		}
 	
 		this.tilt += this.tilt_speed * GSPEED;
@@ -1973,7 +1975,7 @@ class sdCharacter extends sdEntity
 						//if ( this._crouch_intens > 0.1 )
 						//this.sy = Math.min( this.sy, -6 );
 						//else
-						this.sy = Math.min( this.sy, -4 );
+						this.sy = Math.min( this.sy, -4 * ( 1 - ( this.armor_speed_reduction / 100 ) ) );
 					}
 					else
 					{

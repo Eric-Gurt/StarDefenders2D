@@ -607,7 +607,7 @@ class sdSandWorm extends sdEntity
 	{
 		if ( hit_entity.is( sdBlock ) )
 		{
-			if ( hit_entity.material === sdBlock.MATERIAL_WALL )
+			if ( hit_entity.material === sdBlock.MATERIAL_WALL || hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1  )
 			return true;
 
 			return false;
