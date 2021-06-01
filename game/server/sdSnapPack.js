@@ -11,7 +11,7 @@ class sdSnapPack
 		sdSnapPack.recent_worst_case_changed = false;
 		sdSnapPack.all_time_worst_case_changed = false;
 		
-		sdSnapPack.apply_compression = false;
+		sdSnapPack.apply_compression = true;
 		
 		//sdSnapPack.apply_lzw_for_snapshots = true; // Apparently some servers would prefer CPU-intensive comression over more data...
 		sdSnapPack.apply_lzw_for_snapshots = true; // LZW isn't fast, 2.74% of total performance for just 1 user in some cases. Will use it for events only for now. Regular sdSnapPack Iteration does take 18.57% of total time though
