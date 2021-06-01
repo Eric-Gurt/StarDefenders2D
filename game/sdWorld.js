@@ -1557,6 +1557,7 @@ class sdWorld
 					substeps_mult = 1;
 					
 					if ( sdWorld.is_server )
+					if ( e._last_x !== undefined ) // sdEntity was never placed properly yet, can cause items to fall into each other after snapshot load
 					if ( !sdWorld.CanAnySocketSee( e ) )
 					{
 						// Make sure low tickrate entities are still catch up on time, this still improved performance because of calling same method multiple times is always faster than calling multiple methods once (apparently virtual method call issue)
