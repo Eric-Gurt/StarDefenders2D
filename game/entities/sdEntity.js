@@ -1214,7 +1214,7 @@ class sdEntity
 			{
 				if ( sdWorld.is_server )
 				{
-					arr[ i ].TransferMatter( this, how_much, GSPEED * 4 ); // Mult by X because targets no longer take 4 cells
+					arr[ i ].TransferMatter( this, how_much, GSPEED * 4, true ); // Mult by X because targets no longer take 4 cells
 				}
 				else
 				{
@@ -1244,9 +1244,16 @@ class sdEntity
 		//else
 		//debugger;
 	}
-	TransferMatter( to, how_much, GSPEED )
+	TransferMatter( to, how_much, GSPEED, optimize=false )
 	{
 		let this_matter = ( this.matter || this._matter || 0 );
+		
+		if ( optimize )
+		{
+			if ( this_matter < 0.05 )
+			return;
+		}
+		
 		let to_matter = ( to.matter || to._matter || 0 );
 		let to_matter_max = ( to.matter_max || to._matter_max || 0 );
 		
@@ -1294,12 +1301,12 @@ class sdEntity
 			to._matter += how_much;
 		}
 	}
-	Think( GSPEED )
+	/*Think( GSPEED )
 	{
 		this.onThink( GSPEED );
 
 		return this._is_being_removed;
-	}
+	}*/
 	remove()
 	{
 		// Or else some entities won't be removed

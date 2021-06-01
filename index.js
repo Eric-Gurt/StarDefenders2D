@@ -338,6 +338,7 @@ LZW.init_class();
 globalThis.sdWorld = sdWorld;
 globalThis.sdShop = sdShop;
 globalThis.sdModeration = sdModeration;
+globalThis.sdSnapPack = sdSnapPack;
 
 let world_slot = 0; // Default slot adds no prefixes to file names
 
@@ -2331,6 +2332,15 @@ io.on("connection", (socket) =>
 			socket.score = 0;
 		}*/
 	});
+	socket.on('REMOVE_ARMOR', ( arr ) => { 
+		
+		if ( socket.character ) 
+		if ( socket.character.hea > 0 ) 
+		if ( socket.character.armor > 0 ) 
+		{
+			socket.character.RemoveArmor();
+		}
+	});
 	
 	socket.on('CC_SET_SPAWN', ( arr ) => { 
 		
@@ -2687,6 +2697,8 @@ io.on("reconnect", (socket) => {
 let only_do_nth_connection_per_frame = 1;
 let nth_connection_shift = 0;
 
+let vision_cells_cache = {};
+
 setInterval( ()=>
 {
 	//console.log( 'game_ttl', game_ttl );
@@ -2695,7 +2707,7 @@ setInterval( ()=>
 	{
 		game_ttl--;
 		
-		sdWorld.HandleWorldLogic();
+		sdWorld.HandleWorldLogic( frame );
 		
 		let unwritable = 0;
 		for ( var i = 0; i < sockets.length; i++ )
@@ -2820,18 +2832,8 @@ setInterval( ()=>
 
 					let min_y = socket.camera.y - 400/2 / socket.camera.scale;
 					let max_y = socket.camera.y + 400/2 / socket.camera.scale;
+					
 
-					/*
-					if ( min_x < socket.character.x - 800/2 )
-					min_x = socket.character.x - 800/2;
-					if ( max_x > socket.character.x + 800/2 )
-					max_x = socket.character.x + 800/2;
-
-					if ( min_y < socket.character.y - 400/2 )
-					min_y = socket.character.y - 400/2;
-					if ( max_y > socket.character.y + 400/2 )
-					max_y = socket.character.y + 400/2;
-					*/
 					min_x -= 32 * 3;
 					min_y -= 32 * 3;
 					max_x += 32 * 3;
@@ -2839,82 +2841,107 @@ setInterval( ()=>
 					
 					const MaxCompleteEntitiesCount = 40; // 50 sort of fine for PC, but now for mobile
 					
-					//let random_upgrade_for = [];
-					
 					let meet_once = new WeakSet();
-
-					for ( var x = min_x; x < max_x; x += 32 )
-					for ( var y = min_y; y < max_y; y += 32 )
+					
+					const VisitCell = ( x, y )=>
 					{
-						var arr = sdWorld.RequireHashPosition( x, y );
-						for ( var i2 = 0; i2 < arr.length; i2++ )
-						if ( !meet_once.has( arr[ i2 ] ) )
+						let arr = sdWorld.RequireHashPosition( x, y );
+						
+						for ( let i2 = 0; i2 < arr.length; i2++ )
 						{
-							meet_once.add( arr[ i2 ] );
+							let ent = arr[ i2 ];
 							
-							if ( arr[ i2 ].IsVisible( socket.character ) )
+							if ( !meet_once.has( ent ) )
+							//if ( IfNotMetRecently( ent ) )
 							{
-								if ( arr[ i2 ].is_static )
+								meet_once.add( ent );
+
+								if ( ent.IsVisible === sdEntity.prototype.IsVisible || 
+									 ent.IsVisible( socket.character ) )
 								{
-									//observed_statics.push( arr[ i2 ] );
-									observed_statics_map.add( arr[ i2 ] );
-
-									if ( socket.known_statics_versions_map.has( arr[ i2 ] ) )
+									if ( ent.is_static )
 									{
-										if ( socket.known_statics_versions_map.get( arr[ i2 ] ) !== arr[ i2 ]._update_version && snapshot.length < MaxCompleteEntitiesCount )
+										observed_statics_map.add( ent );
+										
+										if ( snapshot.length < MaxCompleteEntitiesCount )
 										{
-											socket.known_statics_versions_map.set( arr[ i2 ], arr[ i2 ]._update_version ); // Why it was missing?
+											/*if ( socket.known_statics_versions_map.has( ent ) )
+											{
+												//if ( socket.known_statics_versions_map.get( ent ) !== ent._update_version && snapshot.length < MaxCompleteEntitiesCount )
+												if ( socket.known_statics_versions_map.get( ent ) !== ent._update_version )
+												{
+													socket.known_statics_versions_map.set( ent, ent._update_version ); // Why it was missing?
 
-											var snap = arr[ i2 ].GetSnapshot( frame, false, socket.character );
-											snapshot.push( snap ); // Update actually needed
-											snapshot_only_statics.push( snap );
+													let snap = ent.GetSnapshot( frame, false, socket.character );
+													snapshot.push( snap ); // Update actually needed
+													snapshot_only_statics.push( snap );
+												}
+											}
+											else
+											//if ( snapshot.length < MaxCompleteEntitiesCount )
+											{
+												socket.known_statics_versions_map.set( ent, ent._update_version );
+
+												let snap = ent.GetSnapshot( frame, false, socket.character );
+												snapshot.push( snap );
+												snapshot_only_statics.push( snap );
+											}*/
+											
+											if ( socket.known_statics_versions_map.get( ent ) !== ent._update_version ) // known_statics_versions_map.get can be undefined which does not equals to _update_version ever. Faster than doing .has
+											{
+												socket.known_statics_versions_map.set( ent, ent._update_version );
+												
+												let snap = ent.GetSnapshot( frame, false, socket.character );
+												snapshot.push( snap );
+												snapshot_only_statics.push( snap );
+											}
 										}
-										//else
-										//random_upgrade_for.push( arr[ i2 ] );
 									}
 									else
-									if ( snapshot.length < MaxCompleteEntitiesCount )
-									{
-										//socket.known_statics_map.set( arr[ i2 ], arr[ i2 ] );
-										socket.known_statics_versions_map.set( arr[ i2 ], arr[ i2 ]._update_version );
+									observed_entities.push( ent );
 
-										var snap = arr[ i2 ].GetSnapshot( frame, false, socket.character );
-										snapshot.push( snap );
-										snapshot_only_statics.push( snap );
-									}
-									//else
-									//random_upgrade_for.push( arr[ i2 ] );
+									if ( ent.SyncedToPlayer !== sdEntity.prototype.SyncedToPlayer )
+									ent.SyncedToPlayer( socket.character );
 								}
-								else
-								observed_entities.push( arr[ i2 ] );
-
-								arr[ i2 ].SyncedToPlayer( socket.character );
 							}
 						}
 					}
 
-					// Forget offscreen statics (and removed ones)
-					/*for ( var i2 = 0; i2 < socket.known_statics.length; i2++ )
+					/*for ( let x = min_x; x < max_x; x += 32 )
+					for ( let y = min_y; y < max_y; y += 32 )
+					VisitCell( x, y );*/
+					
+					let cells = vision_cells_cache[ socket.camera.scale ];
+					
+					if ( !cells )
 					{
-						if ( observed_statics.indexOf( socket.known_statics[ i2 ] ) === -1 )
+						if ( socket.camera.scale !== 2 )
+						debugger; // Watch out for too many versions of ordered cells here... Round scale that is used there?
+						
+						vision_cells_cache[ socket.camera.scale ] = 
+							cells = 
+								[];
+					
+						for ( let x = min_x; x < max_x; x += 32 )
+						for ( let y = min_y; y < max_y; y += 32 )
 						{
-							let snapshot_of_deletion = { 
-								_class: socket.known_statics[ i2 ].GetClass(), 
-								_net_id: socket.known_statics[ i2 ]._net_id,
-								_is_being_removed: true,
-								_broken: socket.known_statics[ i2 ]._is_being_removed
-							};
-							snapshot.push( snapshot_of_deletion );
-
-							socket.known_statics.splice( i2, 1 );
-							socket.known_statics_versions.splice( i2, 1 );
-							i2--;
-							continue;
+							cells.push({ x: x - min_x, y: y - min_y, dist: sdWorld.Dist2D( (min_x+max_x)/2, (min_y+max_y)/2, x, y ) });
 						}
-					}*/
+						cells.sort((a,b)=>{
+							return a.dist-b.dist;
+						});
+						
+						for ( let c = 0; c < cells.length; c++ )
+						delete cells[ c ].dist;
+					}
+					
+					for ( let c = 0; c < cells.length; c++ )
+					VisitCell( cells[ c ].x + min_x, cells[ c ].y + min_y );
+					
+			
+					// Forget offscreen statics (and removed ones)
 					socket.known_statics_versions_map.forEach( ( value, key, map )=>
 					{
-						//if ( observed_statics.indexOf( key ) === -1 )
 						if ( !observed_statics_map.has( key ) )
 						{
 							let snapshot_of_deletion = { 
@@ -2971,6 +2998,8 @@ setInterval( ()=>
 					if ( socket.sd_events.length > 100 )
 					{
 						//console.log('socket.sd_events overflow (last sync was ' + ( sdWorld.time - previous_sync_time ) + 'ms ago): ', socket.sd_events );
+						
+						//debugger;
 						
 						sockets[ i ].SDServiceMessage( 'Server: .sd_events overflow (' + socket.sd_events.length + ' events were skipped). Some sounds and effects might not spawn as result of that.' );
 						

@@ -15,7 +15,7 @@ import sdWater from './entities/sdWater.js';
 import sdCharacter from './entities/sdCharacter.js';
 import sdGrass from './entities/sdGrass.js';
 import sdShark from './entities/sdShark.js';
-
+import sdSandWorm from './entities/sdSandWorm.js';
 
 
 import sdRenderer from './client/sdRenderer.js';
@@ -786,6 +786,27 @@ class sdWorld
 		}
 		return false;
 	}
+	static CanAnySocketSee( ent ) // Actually used to lower think rate of some entities
+	{
+		//return false; // Hack, forces everything move like it would off-screen
+		
+		if ( ent.IsGlobalEntity() )
+		return true;
+	
+		if ( typeof ent._socket === 'object' ) // Is a connected player
+		return true;
+
+		let x = ent.x;
+		let y = ent.y;
+
+		for ( var i = 0; i < sdWorld.sockets.length; i++ )
+		{
+			var socket = sdWorld.sockets[ i ];
+
+			if ( sdWorld.CanSocketSee( socket, x, y ) )
+			return true;
+		}
+	}
 	static DropShards( x,y,sx,sy, tot, value_mult, radius=0 )
 	{
 		if ( sdWorld.is_server )
@@ -1452,7 +1473,7 @@ class sdWorld
 		sdWorld.time = Date.now();
 		//sdWorld.frame++; Not needed if nothing happens
 	}
-	static HandleWorldLogic()
+	static HandleWorldLogic( frame )
 	{
 		const DEBUG_TIME_MODE = false;
 		
@@ -1519,6 +1540,10 @@ class sdWorld
 			let hiber_state;
 			let substeps;
 			let progress_until_removed;
+			
+			let gspeed_mult;
+			let substeps_mult;
+			let skip_frames;
 
 			for ( arr_i = 0; arr_i < 2; arr_i++ )
 			{
@@ -1528,19 +1553,45 @@ class sdWorld
 				{
 					e = arr[ i ];
 					
+					gspeed_mult = 1;
+					substeps_mult = 1;
+					
+					if ( sdWorld.is_server )
+					if ( !sdWorld.CanAnySocketSee( e ) )
+					{
+						// Make sure low tickrate entities are still catch up on time, this still improved performance because of calling same method multiple times is always faster than calling multiple methods once (apparently virtual method call issue)
+						skip_frames = 30;
+						
+						if ( e.is( sdCharacter ) || e.is( sdGun ) )
+						skip_frames = 5; // High values cause idling players to lose their guns
+						else
+						if ( e.is( sdSandWorm ) )
+						skip_frames = 5; // These are just unstable on high GSPEED
+				
+						if ( e._net_id % skip_frames === frame % skip_frames )
+						{
+							gspeed_mult = skip_frames;
+							substeps_mult = skip_frames;
+						}
+						else
+						continue;
+					}
+					
 					if ( DEBUG_TIME_MODE )
 					{
 						time_from = Date.now();
 					}
 					
-					substeps = e.substeps;
+					substeps = e.substeps * substeps_mult;
 					progress_until_removed = e.progress_until_removed;
 
 					for ( step = 0; step < substeps || progress_until_removed; step++ )
 					{
+						if ( !e._is_being_removed )
+						e.onThink( GSPEED / substeps * gspeed_mult );
 						
-						if ( e._is_being_removed || 
-							 e.Think( GSPEED / substeps ) )
+						if ( e._is_being_removed /*|| 
+							 e.Think( GSPEED / substeps * gspeed_mult )*/ )
 						{
 							hiber_state = e._hiberstate;
 							

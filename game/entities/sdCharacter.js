@@ -271,6 +271,7 @@ class sdCharacter extends sdEntity
 		this._side = 1;
 		this.stands = false;
 		this._stands_on = null;
+		this._in_air_timer = 0; // Grows and is used to activate jetpack without extra jump tap mid-air
 		
 		this.hea = 130;
 		this.hmax = 130;
@@ -336,7 +337,7 @@ class sdCharacter extends sdEntity
 		this._acquired_bt_rift = false; // Has the character picked up build tool upgrade that the portals drop?
 
 		this.flying = false; // Jetpack flying
-		this._last_act_y = this.act_y; // For mid-air jump jetpack activation
+		//this._last_act_y = this.act_y; // For mid-air jump jetpack activation
 		
 		this.ghosting = false;
 		this._ghost_breath = 0; // Time until next breath as ghost
@@ -570,6 +571,9 @@ class sdCharacter extends sdEntity
 			this.hook_y = 0;
 			this._hook_len = -1;
 
+			sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
+			sdSound.PlaySound({ name:'teleport', x:best_t.x, y:best_t.y, volume:0.5 });
+
 			this.x = best_t.x;
 			this.y = best_t.y;
 			
@@ -587,9 +591,6 @@ class sdCharacter extends sdEntity
 			best_t.SetDelay( sdRescueTeleport.delay_2nd ); // 5 minutes
 			
 			this.ApplyServerSidePositionAndVelocity( true, 0, 0 );
-
-			sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
-			sdSound.PlaySound({ name:'teleport', x:best_t.x, y:best_t.y, volume:0.5 });
 			
 			setTimeout( ()=>
 			{
@@ -609,6 +610,14 @@ class sdCharacter extends sdEntity
 		}
 		return false;
 	}
+	
+	RemoveArmor()
+	{
+		this.armor = 0;
+		this._armor_absorb_perc = 0;
+		this.armor_speed_reduction = 0; 
+	}
+	
 	Damage( dmg, initiator=null, headshot=false, affects_armor=true )
 	{
 		if ( !sdWorld.is_server )
@@ -682,9 +691,7 @@ class sdCharacter extends sdEntity
 				this.armor -= ( dmg * this._armor_absorb_perc );
 				if ( this.armor <= 0 )
 				{
-					this.armor = 0;
-					this._armor_absorb_perc = 0;
-					this.armor_speed_reduction = 0; 
+					this.RemoveArmor();
 				}
 			}
 			if ( this.hea <= 0 && was_alive )
@@ -795,7 +802,7 @@ class sdCharacter extends sdEntity
 			this._dying = true;
 		}
 		else
-		if ( this._socket !== null )
+		if ( this._socket !== null || this._my_hash !== undefined ) // Allow healing disconnected players
 		{
 			if ( this.hea < 0 )
 			this.hea = 0;
@@ -1549,223 +1556,227 @@ class sdCharacter extends sdEntity
 		let ledge_holding = false;
 		this._ledge_holding = false;
 	
-		//if ( sdWorld.is_server )
+		if ( sdWorld.is_server || sdWorld.my_entity === this )
 		{
-			if ( sdWorld.is_server || sdWorld.my_entity === this )
+			if ( this.hea > 0 )
 			{
-				if ( this.hea > 0 )
-				{
-					this.act_x = this._key_states.GetKey( 'KeyD' ) - this._key_states.GetKey( 'KeyA' );
-					this.act_y = this._key_states.GetKey( 'KeyS' ) - ( ( this._key_states.GetKey( 'KeyW' ) || this._key_states.GetKey( 'Space' ) ) ? 1 : 0 );
-					
-					if ( this._socket || this._ai || sdWorld.my_entity === this )
-					if ( this.act_x !== 0 || this.act_y !== 0 )
-					this.PhysWakeUp();
-				}
-				else
-				{
-					this.act_x = 0;
-					this.act_y = 0;
-				}
-			}
+				this.act_x = this._key_states.GetKey( 'KeyD' ) - this._key_states.GetKey( 'KeyA' );
+				this.act_y = this._key_states.GetKey( 'KeyS' ) - ( ( this._key_states.GetKey( 'KeyW' ) || this._key_states.GetKey( 'Space' ) ) ? 1 : 0 );
 
-			if ( sdWorld.is_server )
+				if ( this._socket || this._ai || sdWorld.my_entity === this )
+				if ( this.act_x !== 0 || this.act_y !== 0 )
+				this.PhysWakeUp();
+			}
+			else
 			{
-				/*if ( this.hea > 0 )
+				this.act_x = 0;
+				this.act_y = 0;
+			}
+		}
+
+		if ( sdWorld.is_server )
+		{
+			/*if ( this.hea > 0 )
+			{
+				this.act_x = this._key_states.GetKey( 'KeyD' ) - this._key_states.GetKey( 'KeyA' );
+				this.act_y = this._key_states.GetKey( 'KeyS' ) - ( ( this._key_states.GetKey( 'KeyW' ) || this._key_states.GetKey( 'Space' ) ) ? 1 : 0 );
+			}
+			else
+			{
+				this.act_x = 0;
+				this.act_y = 0;
+			}*/
+
+			if ( this.hea > 0 && ( this._key_states.GetKey( 'Mouse2' ) || this._key_states.GetKey( 'KeyC' ) ) && this._hook_allowed )
+			{
+				if ( this._hook_once )
 				{
-					this.act_x = this._key_states.GetKey( 'KeyD' ) - this._key_states.GetKey( 'KeyA' );
-					this.act_y = this._key_states.GetKey( 'KeyS' ) - ( ( this._key_states.GetKey( 'KeyW' ) || this._key_states.GetKey( 'Space' ) ) ? 1 : 0 );
-				}
-				else
-				{
-					this.act_x = 0;
-					this.act_y = 0;
-				}*/
-				
-				if ( this.hea > 0 && ( this._key_states.GetKey( 'Mouse2' ) || this._key_states.GetKey( 'KeyC' ) ) && this._hook_allowed )
-				{
-					if ( this._hook_once )
+					this._hook_once = false;
+
+					if ( this.hook_x === 0 && this.hook_y === 0 )
 					{
 						this._hook_once = false;
-					
-						if ( this.hook_x === 0 && this.hook_y === 0 )
-						{
-							this._hook_once = false;
-							let bullet_obj = new sdBullet({ x: this.x, y: this.y + sdCharacter.bullet_y_spawn_offset });
-							bullet_obj._owner = this;
-							let an = this.GetLookAngle();
-							let vel = 16;
-							bullet_obj.sx = Math.sin( an ) * vel;
-							bullet_obj.sy = Math.cos( an ) * vel;
-							
-							bullet_obj.color = '#333333';
+						let bullet_obj = new sdBullet({ x: this.x, y: this.y + sdCharacter.bullet_y_spawn_offset });
+						bullet_obj._owner = this;
+						let an = this.GetLookAngle();
+						let vel = 16;
+						bullet_obj.sx = Math.sin( an ) * vel;
+						bullet_obj.sy = Math.cos( an ) * vel;
 
-							//for ( var p in sdGun.classes[ sdGun.CLASS_HOOK ].projectile_properties )
-							//bullet_obj[ p ] = sdGun.classes[ sdGun.CLASS_HOOK ].projectile_properties[ p ];
+						bullet_obj.color = '#333333';
 
-							bullet_obj._hook = true;
-							bullet_obj._damage = 0;
-							bullet_obj.time_left = 8.5;
+						//for ( var p in sdGun.classes[ sdGun.CLASS_HOOK ].projectile_properties )
+						//bullet_obj[ p ] = sdGun.classes[ sdGun.CLASS_HOOK ].projectile_properties[ p ];
 
-							sdEntity.entities.push( bullet_obj );
-						}
-						else
-						{
-							this.hook_x = 0;
-							this.hook_y = 0;
-							this._hook_len = -1;
-						}
+						bullet_obj._hook = true;
+						bullet_obj._damage = 0;
+						bullet_obj.time_left = 8.5;
+
+						sdEntity.entities.push( bullet_obj );
+					}
+					else
+					{
+						this.hook_x = 0;
+						this.hook_y = 0;
+						this._hook_len = -1;
 					}
 				}
-				else
-				{
-					//if ( this.hook_x !== 0 )
-					//console.warn('hook reset');
-
-					this._hook_once = true;
-				}
-				
-				if ( this.hook_x !== 0 || this.hook_y !== 0 )
-				{
-					/*let my_ent = this;
-					
-					if ( this.driver_of )
-					my_ent = this.driver_of;*/
-					
-					if ( this._hook_relative_to )
-					{
-						this.hook_x = this._hook_relative_to.x + this._hook_relative_x;
-						this.hook_y = this._hook_relative_to.y + this._hook_relative_y;
-					}
-					
-					let from_y = this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2;
-					
-					let cur_di = sdWorld.Dist2D( this.x, from_y, this.hook_x, this.hook_y );
-					
-					if ( cur_di < 1 )
-					cur_di = 1;
-
-					if ( this._hook_len === -1 )
-					this._hook_len = cur_di;
-					/*else
-					{
-						this._hook_len = sdWorld.MorphWithTimeScale( this._hook_len, cur_di - GSPEED * 10, 0.9, GSPEED );
-					}*/
-
-					let pull_force = -( this._hook_len - cur_di ) / 15;
-					let vx = ( this.hook_x - this.x ) / cur_di;
-					let vy = ( this.hook_y - from_y ) / cur_di;
-					
-					let self_effect_scale = 1;
-					
-					if ( this._hook_relative_to )
-					{
-						if ( typeof this._hook_relative_to.sx !== 'undefined' )
-						{
-							let lx = this._hook_relative_to.sx;
-							let ly = this._hook_relative_to.sy;
-							
-							self_effect_scale = this._hook_relative_to.mass / ( this._hook_relative_to.mass + this.mass );
-					
-							this._hook_relative_to.sx -= vx * pull_force * GSPEED * ( 1 - self_effect_scale );
-							this._hook_relative_to.sy -= vy * pull_force * GSPEED * ( 1 - self_effect_scale );
-							
-                            this._hook_relative_to.sx = sdWorld.MorphWithTimeScale( this._hook_relative_to.sx, this.sx, 0.8, GSPEED * ( 1 - self_effect_scale ) );
-                            this._hook_relative_to.sy = sdWorld.MorphWithTimeScale( this._hook_relative_to.sy, this.sy, 0.8, GSPEED * ( 1 - self_effect_scale ) );
-							
-							if ( this._hook_relative_to.is( sdCharacter ) )
-							this._hook_relative_to.ApplyServerSidePositionAndVelocity( true, this._hook_relative_to.sx - lx, this._hook_relative_to.sy - ly );
-						
-
-							if ( isNaN( this._hook_relative_to.sx ) )
-							{
-								throw new Error('sdCharacter\'s hook causes attached item to have NaN velocity '+[
-									this._hook_relative_to.mass,
-									this.mass,
-									self_effect_scale,
-									cur_di,
-									vx,
-									vy,
-									pull_force,
-									GSPEED,
-									lx,
-									ly,
-									this.sx,
-									this.sy
-									
-								].join(',') );
-							}
-
-							pull_force /= 2;
-						}
-
-
-						if ( this._hook_relative_to._is_being_removed || this._hook_relative_to === this.driver_of )
-						{
-							this.hook_x = 0;
-							this.hook_y = 0;
-						}
-					}
-
-					this.sx += vx * pull_force * GSPEED * self_effect_scale;
-					this.sy += vy * pull_force * GSPEED * self_effect_scale;
-				}
-
 			}
-			
-			let old_stands = this._stands_on;
-			this.stands = false;
-		
-			/*
-			if ( sdWorld.CheckWallExists( this.x + this._hitbox_x1 + 2, new_y + leg_height ) ||
-				 sdWorld.CheckWallExists( this.x + this._hitbox_x2 - 2, new_y + leg_height ) )
+			else
+			{
+				//if ( this.hook_x !== 0 )
+				//console.warn('hook reset');
+
+				this._hook_once = true;
+			}
+
+			if ( this.hook_x !== 0 || this.hook_y !== 0 )
+			{
+				/*let my_ent = this;
+
+				if ( this.driver_of )
+				my_ent = this.driver_of;*/
+
+				if ( this._hook_relative_to )
+				{
+					this.hook_x = this._hook_relative_to.x + this._hook_relative_x;
+					this.hook_y = this._hook_relative_to.y + this._hook_relative_y;
+				}
+
+				let from_y = this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2;
+
+				let cur_di = sdWorld.Dist2D( this.x, from_y, this.hook_x, this.hook_y );
+
+				if ( cur_di < 1 )
+				cur_di = 1;
+
+				if ( this._hook_len === -1 )
+				this._hook_len = cur_di;
+				/*else
+				{
+					this._hook_len = sdWorld.MorphWithTimeScale( this._hook_len, cur_di - GSPEED * 10, 0.9, GSPEED );
+				}*/
+
+				let pull_force = -( this._hook_len - cur_di ) / 15;
+				let vx = ( this.hook_x - this.x ) / cur_di;
+				let vy = ( this.hook_y - from_y ) / cur_di;
+
+				let self_effect_scale = 1;
+
+				if ( this._hook_relative_to )
+				{
+					if ( typeof this._hook_relative_to.sx !== 'undefined' )
+					{
+						let lx = this._hook_relative_to.sx;
+						let ly = this._hook_relative_to.sy;
+
+						self_effect_scale = this._hook_relative_to.mass / ( this._hook_relative_to.mass + this.mass );
+
+						this._hook_relative_to.sx -= vx * pull_force * GSPEED * ( 1 - self_effect_scale );
+						this._hook_relative_to.sy -= vy * pull_force * GSPEED * ( 1 - self_effect_scale );
+
+						this._hook_relative_to.sx = sdWorld.MorphWithTimeScale( this._hook_relative_to.sx, this.sx, 0.8, GSPEED * ( 1 - self_effect_scale ) );
+						this._hook_relative_to.sy = sdWorld.MorphWithTimeScale( this._hook_relative_to.sy, this.sy, 0.8, GSPEED * ( 1 - self_effect_scale ) );
+
+						if ( this._hook_relative_to.is( sdCharacter ) )
+						this._hook_relative_to.ApplyServerSidePositionAndVelocity( true, this._hook_relative_to.sx - lx, this._hook_relative_to.sy - ly );
+
+						if ( this._hook_relative_to._hiberstate === sdEntity.HIBERSTATE_HIBERNATED )
+						this._hook_relative_to.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+						if ( isNaN( this._hook_relative_to.sx ) )
+						{
+							throw new Error('sdCharacter\'s hook causes attached item to have NaN velocity '+[
+								this._hook_relative_to.mass,
+								this.mass,
+								self_effect_scale,
+								cur_di,
+								vx,
+								vy,
+								pull_force,
+								GSPEED,
+								lx,
+								ly,
+								this.sx,
+								this.sy
+
+							].join(',') );
+						}
+
+						pull_force /= 2;
+					}
+
+
+					if ( this._hook_relative_to._is_being_removed || this._hook_relative_to === this.driver_of )
+					{
+						this.hook_x = 0;
+						this.hook_y = 0;
+					}
+				}
+
+				this.sx += vx * pull_force * GSPEED * self_effect_scale;
+				this.sy += vy * pull_force * GSPEED * self_effect_scale;
+			}
+
+		}
+
+		let old_stands = this.stands ? this._stands_on : null;
+		this.stands = false;
+
+		/*
+		if ( sdWorld.CheckWallExists( this.x + this._hitbox_x1 + 2, new_y + leg_height ) ||
+			 sdWorld.CheckWallExists( this.x + this._hitbox_x2 - 2, new_y + leg_height ) )
+		{
+			this.stands = true;
+
+			if ( sdWorld.CheckWallExists( this.x + this._hitbox_x1 + 2, new_y + leg_height - 1 ) ||
+				 sdWorld.CheckWallExists( this.x + this._hitbox_x2 - 2, new_y + leg_height - 1 ) ) // Intersection overlap prevention
+			{
+				this.y -= 0.5;
+				new_y -= 0.5;
+			}
+		}*/
+
+		this._in_air_timer += GSPEED;
+
+		if ( this.hea > 0 ) // Disable extra logic for stuck cases, standing and ledge holding if dead
+		{
+			let still_stands = false;
+
+			if ( old_stands )
+			if ( !this._stands_on._is_being_removed )
+			if ( this.x + this._hitbox_x2 <= this._stands_on.x + this._stands_on._hitbox_x1 )
+			if ( this.x + this._hitbox_x1 >= this._stands_on.x + this._stands_on._hitbox_x2 )
+			if ( this.y + this._hitbox_y2 + ( this.UseServerCollisions() ? 2 : 3 ) <= this._stands_on.y + this._stands_on._hitbox_y1 )
+			if ( this.y + this._hitbox_y1 + ( this.UseServerCollisions() ? 2 : 3 ) >= this._stands_on.y + this._stands_on._hitbox_y2 )
+			{
+				sdWorld.last_hit_entity = this._stands_on;
+			}
+
+			//if ( !this.CanMoveWithoutOverlap( this.x, this.y + ( this.UseServerCollisions() ? 2 : 3 ), 1 ) ) Has egde-stand-constant-fall bug, not sure why it was done like that exactly
+			if ( still_stands || !this.CanMoveWithoutOverlap( this.x, this.y + ( this.UseServerCollisions() ? 2 : 3 ), 0 ) )
+			//if ( !this.CanMoveWithoutOverlap( this.x, this.y + 2, 1 ) )
 			{
 				this.stands = true;
-				
-				if ( sdWorld.CheckWallExists( this.x + this._hitbox_x1 + 2, new_y + leg_height - 1 ) ||
-					 sdWorld.CheckWallExists( this.x + this._hitbox_x2 - 2, new_y + leg_height - 1 ) ) // Intersection overlap prevention
-				{
-					this.y -= 0.5;
-					new_y -= 0.5;
-				}
-			}*/
-			
-			if ( this.hea > 0 ) // Disable extra logic for stuck cases, standing and ledge holding if dead
-			{
-				let still_stands = false;
-				
-				if ( old_stands )
-				if ( !this._stands_on._is_being_removed )
-				if ( this.x + this._hitbox_x2 <= this._stands_on.x + this._stands_on._hitbox_x1 )
-				if ( this.x + this._hitbox_x1 >= this._stands_on.x + this._stands_on._hitbox_x2 )
-				if ( this.y + this._hitbox_y2 + ( this.UseServerCollisions() ? 2 : 3 ) <= this._stands_on.y + this._stands_on._hitbox_y1 )
-				if ( this.y + this._hitbox_y1 + ( this.UseServerCollisions() ? 2 : 3 ) >= this._stands_on.y + this._stands_on._hitbox_y2 )
-				{
-					sdWorld.last_hit_entity = this._stands_on;
-				}
+				this._stands_on = sdWorld.last_hit_entity;
 
-				//if ( !this.CanMoveWithoutOverlap( this.x, this.y + ( this.UseServerCollisions() ? 2 : 3 ), 1 ) ) Has egde-stand-constant-fall bug, not sure why it was done like that exactly
-				if ( still_stands || !this.CanMoveWithoutOverlap( this.x, this.y + ( this.UseServerCollisions() ? 2 : 3 ), 0 ) )
-				//if ( !this.CanMoveWithoutOverlap( this.x, this.y + 2, 1 ) )
+				this._in_air_timer = 0;
+
+				if ( !old_stands ) // Less calls of cases of moving on top of same surface?
+				this.Touches( sdWorld.last_hit_entity );
+			}
+			else
+			{
+				if ( this.hea > 0 )
+				if ( this.act_x !== 0 )
+				if ( sdWorld.CheckWallExistsBox( this.x + this.act_x * 7, this.y, this.x + this.act_x * 7, this.y + 10, null, null, [ 'sdBlock' ] ) )
+				if ( !sdWorld.CheckWallExists( this.x + this.act_x * 7, this.y + this._hitbox_y1, null, null, [ 'sdBlock' ] ) )
 				{
-					this.stands = true;
-					this._stands_on = sdWorld.last_hit_entity;
-					
-					if ( !old_stands ) // Less calls of cases of moving on top of same surface?
-					this.Touches( sdWorld.last_hit_entity );
-				}
-				else
-				{
-					if ( this.hea > 0 )
-					if ( this.act_x !== 0 )
-					if ( sdWorld.CheckWallExistsBox( this.x + this.act_x * 7, this.y, this.x + this.act_x * 7, this.y + 10, null, null, [ 'sdBlock' ] ) )
-					if ( !sdWorld.CheckWallExists( this.x + this.act_x * 7, this.y + this._hitbox_y1, null, null, [ 'sdBlock' ] ) )
-					{
-						ledge_holding = true;
-					}
+					ledge_holding = true;
 				}
 			}
 		}
+
 
 		// Walljumps
 		if ( this.act_y === -1 )
@@ -1892,12 +1903,13 @@ class sdCharacter extends sdEntity
 			if ( !this.driver_of )
 			if ( this._jetpack_allowed &&
 				 this.act_y === -1 &&
-				 this._last_act_y !== -1 &&
+				 this._in_air_timer > 200 / 1000 * 30 && // after 200 ms
+				 //this._last_act_y !== -1 &&
 				 !last_ledge_holding &&
 				 !this.stands )
 			this.flying = true;
 		
-			this._last_act_y = this.act_y;
+			//this._last_act_y = this.act_y;
 		}
 		
 		let can_breathe = true;

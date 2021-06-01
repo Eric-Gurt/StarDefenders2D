@@ -417,12 +417,12 @@ class sdSandWorm extends sdEntity
 					another_ent.sx += dx * G;
 					another_ent.sy += dy * G;
 
-					if ( this.CanMoveWithoutOverlap( this.x - dx * GSPEED, this.y - dy * GSPEED, 0, ( this.death_anim === 0 ) ? this.CustomGroundFiltering : null ) )
+					if ( this.CanMoveWithoutOverlap( this.x - dx * G, this.y - dy * G, 0, ( this.death_anim === 0 ) ? this.CustomGroundFiltering : null ) )
 					{
 						this.x -= dx * G;
 						this.y -= dy * G;
 					}
-					if ( another_ent.CanMoveWithoutOverlap( another_ent.x + dx * GSPEED, another_ent.y + dy * GSPEED, 0, ( this.death_anim === 0 ) ? this.CustomGroundFiltering : null ) )
+					if ( another_ent.CanMoveWithoutOverlap( another_ent.x + dx * G, another_ent.y + dy * G, 0, ( this.death_anim === 0 ) ? this.CustomGroundFiltering : null ) )
 					{
 						another_ent.x += dx * G;
 						another_ent.y += dy * G;

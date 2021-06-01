@@ -172,7 +172,7 @@ class sdEffect extends sdEntity
 		{
 			sdEffect.effect_counters[ this._type ]++;
 			
-			if ( sdEffect.effect_counters[ this._type ] > 64 )
+			if ( sdEffect.effect_counters[ this._type ] > 128 )
 			this.remove();
 		}
 		

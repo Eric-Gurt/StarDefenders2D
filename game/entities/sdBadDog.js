@@ -161,9 +161,10 @@ class sdBadDog extends sdEntity
 		{
 			sdSound.PlaySound({ name:'bad_dog_death', x:this.x, y:this.y, volume: 0.5 });
 
+			if ( this.master )
 			if ( initiator )
 			if ( typeof initiator._score !== 'undefined' )
-			initiator._score += 1;
+			initiator._score += 5;
 		}
 		else
 		if ( this.hea > 0 )
@@ -575,43 +576,50 @@ class sdBadDog extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		{
-			if ( command_name === 'PAT' )
+			if ( command_name === 'PAT' || command_name === 'ARMOR' )
 			{
 				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 				{
-					if ( this.master )
-					{
-						if ( sdWorld.time > ( this._last_speak || 0 ) + 1000 )
-						{
-							this._last_speak = sdWorld.time;
-
-							let params = { 
-								x:this.x, 
-								y:this.y - 36, 
-								type:sdEffect.TYPE_CHAT, 
-								attachment:this, 
-								attachment_x: 0,
-								attachment_y: -36,
-								text: '?',
-								voice: {
-									wordgap: 0,
-									pitch: 0,
-									speed: 150,
-									variant: 'klatt'
-								} 
-							};
-
-							if ( this.master === exectuter_character )
-							params.text = 'Aw, thanks man';
-							else
-							params.text = 'Thanks, but I only accept pats from ' + this.master.title;
-
-							sdWorld.SendEffect( params );
-						}
-					}
 				}
 				else
-				executer_socket.SDServiceMessage( 'Bad Dog is too far' );
+				{
+					executer_socket.SDServiceMessage( 'Bad Dog is too far' );
+					return;
+				}
+			}
+			
+			if ( command_name === 'PAT' )
+			{
+				if ( this.master )
+				{
+					if ( sdWorld.time > ( this._last_speak || 0 ) + 1000 )
+					{
+						this._last_speak = sdWorld.time;
+
+						let params = { 
+							x:this.x, 
+							y:this.y - 36, 
+							type:sdEffect.TYPE_CHAT, 
+							attachment:this, 
+							attachment_x: 0,
+							attachment_y: -36,
+							text: '?',
+							voice: {
+								wordgap: 0,
+								pitch: 0,
+								speed: 150,
+								variant: 'klatt'
+							} 
+						};
+
+						if ( this.master === exectuter_character )
+						params.text = 'Aw, thanks man';
+						else
+						params.text = 'Thanks, but I only accept pats from ' + this.master.title;
+
+						sdWorld.SendEffect( params );
+					}
+				}
 			}
 			
 			if ( command_name === 'DISOWN' )
@@ -625,26 +633,26 @@ class sdBadDog extends sdEntity
 
 			if ( command_name === 'ARMOR' )
 			{
-					if ( this.master === exectuter_character )
+				if ( this.master === exectuter_character )
+				{
+					if ( this.master.matter >= 500 )
 					{
-						if ( this.master.matter >= 500 )
+						if ( this.type !== 1 )
 						{
-							if ( this.type !== 1 )
+							if ( this.type === 0 )
 							{
-								if ( this.type === 0 )
-								{
-									this.type = 1; // Small armored baddog
-									this.master.matter -= 500;
-									this.hmax += 200;
-									this.hea += 200;
-								}
+								this.type = 1; // Small armored baddog
+								this.master.matter -= 500;
+								this.hmax += 200;
+								this.hea += 200;
 							}
-							else
-							executer_socket.SDServiceMessage( 'The dog is already armored' );
 						}
 						else
-						executer_socket.SDServiceMessage( 'Not enough matter' );
+						executer_socket.SDServiceMessage( 'The dog is already armored' );
 					}
+					else
+					executer_socket.SDServiceMessage( 'Not enough matter' );
+				}
 			}
 		}
 	}

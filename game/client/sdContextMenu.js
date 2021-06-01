@@ -44,6 +44,14 @@ class sdContextMenu
 						globalThis.socket.emit( 'CC_SET_SPAWN', [ -1 ] );
 					}
 				});
+				
+				if ( sdContextMenu.current_target.armor > 0 )
+				sdContextMenu.options.push({ title: 'Remove armor',
+					action: ()=>
+					{
+						globalThis.socket.emit( 'REMOVE_ARMOR', [ -1 ] );
+					}
+				});
 			}
 			else
 			{

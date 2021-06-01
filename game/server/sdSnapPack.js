@@ -11,14 +11,18 @@ class sdSnapPack
 		sdSnapPack.recent_worst_case_changed = false;
 		sdSnapPack.all_time_worst_case_changed = false;
 		
+		sdSnapPack.apply_compression = false;
+		
 		//sdSnapPack.apply_lzw_for_snapshots = true; // Apparently some servers would prefer CPU-intensive comression over more data...
-		sdSnapPack.apply_lzw_for_snapshots = false; // LZW isn't fast, 10% of total performance for just 1 user in some cases. Will use it for events only for now
+		sdSnapPack.apply_lzw_for_snapshots = true; // LZW isn't fast, 2.74% of total performance for just 1 user in some cases. Will use it for events only for now. Regular sdSnapPack Iteration does take 18.57% of total time though
 		
 		//sdSnapPack.textEncoder = new TextEncoder(); Not available natively at Node
 		//sdSnapPack.textDecoder = new TextDecoder();
 		
 		// sdSnapPack.textEncoder.encode( str )
 		// sdSnapPack.textDecoder.decode( arr )
+		
+		sdSnapPack.best_key_value_hits_limit = 15;
 	}
 	/*static compressArrayBuffer( input )
 	{
@@ -190,7 +194,7 @@ class sdSnapPack
 		    }
 		    
 		    //if ( best_key_value_hits > 0 )
-		    if ( best_key_value_hits > 15 ) // 45
+		    if ( best_key_value_hits > sdSnapPack.best_key_value_hits_limit ) // 15 // 45
 		    {
 
 				//console.log( '['+inception+'] Win by ' + best_key_value_hits );
@@ -392,17 +396,23 @@ class sdSnapPack
 				//debugger
 		    }
 		    
+			
 		    return object_array;
 		}
 		
 		let original_array = object_array.slice();
 		
+		//let t0 = Date.now();
+			
 		try
 		{
-			Iteration( object_array, 0 );
-			
-			if ( sdSnapPack.apply_lzw_for_snapshots )
-			object_array = LZW.lzw_encode( JSON.stringify( object_array ) );
+			if ( sdSnapPack.apply_compression )
+			{
+				if ( sdSnapPack.apply_lzw_for_snapshots )
+				object_array = LZW.lzw_encode( JSON.stringify( object_array ) );
+				else
+				Iteration( object_array, 0 );
+			}
 		}
 		catch( e )
 		{
@@ -414,6 +424,11 @@ class sdSnapPack
 			
 			//throw new Error( 'Problem was not resolved. Original error: ', e );
 		}
+		
+		//let t1 = Date.now();
+
+		//if ( Math.random() < 0.1 )
+		//console.log( { time: t1 - t0 } );
 		
 		if ( track_worst_case )
 		{
@@ -437,9 +452,19 @@ class sdSnapPack
 	
 	static Decompress( object_array, level=0 )
 	{
-		if ( sdSnapPack.apply_lzw_for_snapshots )
 		if ( level === 0 )
-		object_array = JSON.parse( LZW.lzw_decode( object_array ) );
+		{
+			if ( sdSnapPack.apply_compression )
+			{
+				if ( sdSnapPack.apply_lzw_for_snapshots )
+				{
+					object_array = JSON.parse( LZW.lzw_decode( object_array ) );
+					return object_array;
+				}
+			}
+			else
+			return object_array;
+		}
 		
 		let definitor = null;
 

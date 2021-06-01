@@ -174,13 +174,24 @@ class sdHover extends sdEntity
 
 		if ( this.hea <= 0 )
 		{
+			const break_at_hp = -400;
+			
 			if ( old_hea > 0 )
 			{
 				sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:2 });
 				
 				for ( var i = 0; i < sdHover.driver_slots; i++ )
 				if ( this[ 'driver' + i ] )
-				this.ExcludeDriver( this[ 'driver' + i ] );
+				{
+					let driver = this[ 'driver' + i ];
+					
+					this.ExcludeDriver( this[ 'driver' + i ] );
+					
+					if ( this.hea <= break_at_hp )
+					{
+						driver.Damage( 400 );
+					}
+				}
 				
 				let that = this;
 				for ( var i = 0; i < 20; i++ )
@@ -220,7 +231,7 @@ class sdHover extends sdEntity
 				}
 			}
 			
-			if ( this.hea <= -400 )
+			if ( this.hea <= break_at_hp )
 			this.remove();
 		}
 		else

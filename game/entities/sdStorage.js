@@ -98,6 +98,11 @@ class sdStorage extends sdEntity
 		this.sy += sdWorld.gravity * GSPEED;
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+		
+		if ( this._phys_sleep <= 0 && this._hea >= this._hmax )
+		{
+			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+		}
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
