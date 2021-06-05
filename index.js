@@ -201,6 +201,7 @@ import sdWorkbench from './game/entities/sdWorkbench.js';
 import sdRescueTeleport from './game/entities/sdRescueTeleport.js';
 import sdRift from './game/entities/sdRift.js';
 import sdDrone from './game/entities/sdDrone.js';
+import sdLifeBox from './game/entities/sdLifeBox.js';
 
 
 
@@ -331,6 +332,7 @@ sdWorkbench.init_class();
 sdRescueTeleport.init_class();
 sdRift.init_class();
 sdDrone.init_class();
+sdLifeBox.init_class();
 
 sdShop.init_class(); // requires plenty of classes due to consts usage
 LZW.init_class();
