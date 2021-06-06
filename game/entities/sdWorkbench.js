@@ -122,6 +122,7 @@ class sdWorkbench extends sdEntity
 	
 	onRemove() // Class-specific, if needed
 	{
+		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
 	}
 	onRemoveAsFakeEntity()

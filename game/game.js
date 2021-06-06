@@ -19,6 +19,9 @@ meSpeak.loadVoice("voices/en/en.json");
 	
 	let socket = geckos( geckos_start_options );*/
 
+	import FakeCanvasContext from './libs/FakeCanvasContext.js';
+	globalThis.FakeCanvasContext = FakeCanvasContext;
+
 	import sdRenderer from './client/sdRenderer.js';
 	import sdShop from './client/sdShop.js';
 	import sdChat from './client/sdChat.js';
@@ -73,6 +76,8 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdRescueTeleport from './entities/sdRescueTeleport.js';
 	import sdRift from './entities/sdRift.js';
 	import sdDrone from './entities/sdDrone.js';
+	import sdLost from './entities/sdLost.js';
+
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -125,6 +130,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdRescueTeleport.init_class();
 	sdRift.init_class();
 	sdDrone.init_class();
+	sdLost.init_class();
 	
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;

@@ -38,6 +38,8 @@ class sdWorld
 		
 		sdWorld.event_uid_counter = 0; // Will be used by clients to not re-apply same events
 		
+		sdWorld.static_think_methods = [];
+		
 		sdWorld.gravity = 0.3;
 		
 		sdWorld.entity_classes = {}; // Will be filled up later
@@ -123,6 +125,29 @@ class sdWorld
 		sdWorld.el_hit_cache = [];
 		
 		sdWorld.unresolved_entity_pointers = null; // Temporarily becomes array during backup loading just so cross pointer properties can be set (for example driver and vehicle)
+		
+		
+		
+		
+		
+		sdWorld.lost_images_cache = null; // Object // For sdLost entities
+		// Could be expanded further to include flip_x etc, maybe also non-JSON format could be used to optimize even further
+		sdWorld.draw_operation_command_match_table = [
+			'sd_filter', 0,
+			'drawImageFilterCache', 1,
+			'save', 2,
+			'restore', 3,
+			'rotate', 4,
+			'scale', 5,
+			'translate', 6
+		];
+		sdWorld.draw_methods_per_command_id = {};
+		sdWorld.draw_methods_output_ptr = null;
+		sdWorld.draw_operation_no_parameters = {};
+		sdWorld.draw_operation_no_parameters[ 2 ] = true;
+		sdWorld.draw_operation_no_parameters[ 3 ] = true;
+		
+		
 
 		sdWorld.fake_empty_array = { length:0 };
 		Object.freeze( sdWorld.fake_empty_array );
@@ -753,6 +778,8 @@ class sdWorld
 					e.remove();
 					e._remove();
 					
+					e._broken = false;
+					
 					
 					let id_in_active = sdEntity.active_entities.indexOf( e );
 					if ( id_in_active !== -1 )
@@ -888,6 +915,10 @@ class sdWorld
 			let steps = Math.min( 50, Math.max( 16, params.radius / 70 * 50 ) );
 			let an;
 			let bullet_obj;
+			
+			if ( params.damage_scale === 0 )
+			steps = 0;
+			
 			for ( let s = 0; s < steps; s++ )
 			{
 				an = s / steps * Math.PI * 2;
@@ -1545,6 +1576,9 @@ class sdWorld
 			let substeps_mult;
 			let skip_frames;
 
+			for ( i = 0; i < sdWorld.static_think_methods.length; i++ )
+			sdWorld.static_think_methods[ i ]( GSPEED );
+		
 			for ( arr_i = 0; arr_i < 2; arr_i++ )
 			{
 				arr = ( arr_i === 0 ) ? sdEntity.active_entities : sdEntity.global_entities;
@@ -1776,6 +1810,8 @@ class sdWorld
 	{
 		let lumes = 0;
 		
+		if ( sdWorld.is_server ) // Disabled, could be called by draw command collector
+		return 0;
 		
 		let cache = sdRenderer.lumes_weak_cache.get( lume_receiver );
 		
@@ -2275,17 +2311,47 @@ class sdWorld
 	static CreateImageFromFile( filename, cb=null )
 	{
 		if ( sdWorld.is_server )
-		return null;
+		return filename; // Actually return image name now just so sdLost could be drawn using these
+		//return null;
+		
+		if ( sdWorld.lost_images_cache && sdWorld.lost_images_cache[ filename ] )
+		{
+			let img = sdWorld.lost_images_cache[ filename ];
+			
+			if ( cb )
+			{
+				if ( img.loaded )
+				cb();
+				else
+				img.callbacks.push( cb );
+			}
+			
+			return img;
+		}
 	
 		let img = new Image();
 		img.src = './assets/' + filename + '.png';
 		
 		img.loaded = false;
+		
+		img.callbacks = [];
+		
+		if ( cb )
+		img.callbacks.push( cb );
+	
 		img.onload = ()=>{ 
 			img.loaded = true; 
-			if ( cb )
-			cb();
+			
+			for ( let i = 0; i < img.callbacks.length; i++ )
+			img.callbacks[ i ]();
+		
+			img.callbacks = null;
 		};
+		
+		if ( !sdWorld.lost_images_cache )
+		sdWorld.lost_images_cache = {};
+	
+		sdWorld.lost_images_cache[ filename ] = img;
 		
 		return img;
 	}
@@ -2394,6 +2460,191 @@ class sdWorld
 	{
 		let r = Math.random() * arr.length;
 		return arr[ ~~r ];
+	}
+	
+	
+	static GetDrawOperations( ent ) // Method that is used to collect draw logic for later to be used in sdLost
+	{
+		//var output = [];
+		
+		const command_match_table = sdWorld.draw_operation_command_match_table;
+		const methods_per_command_id = sdWorld.draw_methods_per_command_id;
+
+		const output = [];
+		
+		sdWorld.draw_methods_output_ptr = output;
+		
+		var fake_ctx = new Proxy( 
+			{}, 
+			{
+				get: function( target, name )
+				{
+					if ( name === 'drawImage' )
+					name = 'drawImageFilterCache';
+					
+					let command_offset = command_match_table.indexOf( name );
+					
+					if ( command_offset !== -1 )
+					{
+						let command_id = command_match_table[ command_offset + 1 ];
+						
+						if ( typeof methods_per_command_id[ command_id ] === 'undefined' )
+						{
+							methods_per_command_id[ command_id ] = ( ...args )=>
+							{ 
+								for ( let i = 0; i < args.length; i++ )
+								if ( typeof args[ i ] === 'number' )
+								args[ i ] = Math.round( args[ i ] * 10 ) / 10; // Some rounding
+						
+								if ( command_id === 5 ) // Pointless scaling
+								{
+									if ( args[ 0 ] === 1 )
+									if ( args[ 1 ] === 1 )
+									return;
+								}
+								else
+								if ( command_id === 4 ) // Pointless rotation
+								{
+									if ( args[ 0 ] === 0 )
+									return;
+								}
+								else
+								if ( command_id === 1 ) // common drawImageFilterCache with -16,-16,32,32
+								{
+									if ( args.length === 5 )
+									if ( args[ 1 ] === -16 )
+									if ( args[ 2 ] === -16 )
+									if ( args[ 3 ] === 32 )
+									if ( args[ 4 ] === 32 )
+									{
+										sdWorld.draw_methods_output_ptr.push( command_id, args[ 0 ] );
+										return;
+									}
+								}
+								
+								if ( args.length === 0 ) // ctx.save/restore don't need args
+								{
+									sdWorld.draw_methods_output_ptr.push( command_id );
+									return;
+								}
+								
+								sdWorld.draw_methods_output_ptr.push( command_id, args ); // args is already an array
+							};
+						}
+						
+						return methods_per_command_id[ command_id ];
+					}
+					else
+					return ()=>{}; // Always return dummy methods unless it is related to drawImage
+				},
+				set: function( target, prop, value ) 
+				{
+					if ( prop === 'sd_filter' )
+					sdWorld.draw_methods_output_ptr.push( 0, value );
+					//sdWorld.draw_methods_output_ptr.push( 0, [ value ] );
+					
+					return true;
+				}
+			}
+		);
+
+		ent.Draw( fake_ctx, false );
+		ent.DrawFG( fake_ctx, false );
+		
+		if ( output.length === 0 )
+		{
+			debugger;
+			ent.Draw( fake_ctx, false );
+			ent.DrawFG( fake_ctx, false );
+		}
+		
+		sdWorld.draw_methods_output_ptr = null;
+		
+		// Remove final sd_filter sets (these are to null probably)
+		while ( output.length >= 2 && output[ output.length - 2 ] === 0 )
+		{
+			output.pop();
+			output.pop();
+		}
+		
+		//console.log( JSON.stringify( output ) );
+	
+		//debugger;
+	
+		return output;
+	}
+	static ApplyDrawOperations( ctx, output )
+	{
+		const command_match_table = sdWorld.draw_operation_command_match_table;
+		
+		/*
+		
+		sdWorld.draw_operation_command_match_table = [
+			'sd_filter', 0,
+			'drawImageFilterCache', 1,
+			'save', 2,
+			'restore', 3,
+			'rotate', 4,
+			'scale', 5,
+			'restore', 6,
+			'translate', 7
+		];
+							
+		*/
+	   
+		let opcode = -1;
+		
+		for ( let i = 0; i < output.length; i++ )
+		{
+			if ( typeof output[ i ] === 'number' )
+			{
+				opcode = output[ i ];
+			}
+			
+			
+			if ( typeof output[ i ] !== 'number' || sdWorld.draw_operation_no_parameters[ opcode ] )
+			{
+				if ( opcode === 0 ) // sd_filter set
+				{
+					ctx.sd_filter = output[ i ];
+				}
+				else
+				{
+					let method_name = sdWorld.draw_operation_command_match_table[ sdWorld.draw_operation_command_match_table.indexOf( opcode ) - 1 ];
+					
+					let args = output[ i ];
+					
+					// Decompress simple draw
+					if ( opcode === 1 )
+					{
+						if ( typeof args === 'string' )
+						{
+							args = [ args, -16, -16, 32, 32 ];
+						}
+						else
+						{
+							args = args.slice(); // Do not overwrite old array
+						}
+						
+						/*let img_object = sdWorld.lost_images_cache[ args[ 0 ] ];
+						
+						if ( !sdWorld.lost_images_cache || sdWorld.lost_images_cache[ args[ 0 ] ] )
+						{
+							sdWorld.CreateImageFromFile( args[ 0 ] );
+							
+							args[ 0 ] = img_object;
+						}*/
+						args[ 0 ] = sdWorld.CreateImageFromFile( args[ 0 ] );
+					}
+					
+					if ( sdWorld.draw_operation_no_parameters[ opcode ] )
+					ctx[ method_name ]();
+					else
+					ctx[ method_name ]( ...args );
+				}
+			}
+		}
+		ctx.sd_filter = null;
 	}
 }
 //sdWorld.init_class();

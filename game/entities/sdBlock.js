@@ -268,7 +268,70 @@ class sdBlock extends sdEntity
 			}
 
 			if ( this._hea <= 0 )
-			this.remove();
+			{
+				{
+
+					if ( this._contains_class )
+					{
+						if ( this._contains_class === 'sdSandWorm' )
+						{
+							let map = {};
+							let blocks_near = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, 16, null, [ 'sdBlock' ] );
+
+							for ( let i = 0; i < blocks_near.length; i++ )
+							map[ ( blocks_near[ i ].x - this.x ) / 16 + ':' + ( blocks_near[ i ].y - this.y ) / 16 ] = blocks_near[ i ];
+
+							done:
+							for ( let xx = -1; xx <= 0; xx++ )
+							for ( let yy = -1; yy <= 0; yy++ )
+							{
+								if ( map[ ( xx + 0 ) + ':' + ( yy + 0 ) ] )
+								if ( map[ ( xx + 1 ) + ':' + ( yy + 0 ) ] )
+								if ( map[ ( xx + 0 ) + ':' + ( yy + 1 ) ] )
+								if ( map[ ( xx + 1 ) + ':' + ( yy + 1 ) ] )
+								{
+									let ent = new sdWorld.entity_classes[ this._contains_class ]({ x: this.x + xx * 16, y: this.y + yy * 16 });
+									sdEntity.entities.push( ent );
+									sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
+
+
+									map[ ( xx + 0 ) + ':' + ( yy + 0 ) ]._contains_class = null;
+									map[ ( xx + 1 ) + ':' + ( yy + 0 ) ]._contains_class = null;
+									map[ ( xx + 0 ) + ':' + ( yy + 1 ) ]._contains_class = null;
+									map[ ( xx + 1 ) + ':' + ( yy + 1 ) ]._contains_class = null;
+
+									map[ ( xx + 0 ) + ':' + ( yy + 0 ) ].Damage( Infinity );
+									map[ ( xx + 1 ) + ':' + ( yy + 0 ) ].Damage( Infinity );
+									map[ ( xx + 0 ) + ':' + ( yy + 1 ) ].Damage( Infinity );
+									map[ ( xx + 1 ) + ':' + ( yy + 1 ) ].Damage( Infinity );
+
+									break done;
+								}
+							}
+						}
+						else
+						{
+							let parts = this._contains_class.split( '.' );
+							this._contains_class = parts[ 0 ];
+
+							let params = { x: this.x + this.width / 2, y: this.y + this.height / 2, tag:( parts.length > 1 )?parts[1]:null };
+
+							if ( this._contains_class_params )
+							{
+								for ( let i in this._contains_class_params )
+								params[ i ] = this._contains_class_params[ i ];
+							}
+
+							let ent = new sdWorld.entity_classes[ this._contains_class ]( params );
+							sdEntity.entities.push( ent );
+
+							sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
+						}
+					}
+					
+				}
+				this.remove();
+			}
 		}
 		
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
@@ -509,63 +572,6 @@ class sdBlock extends sdEntity
 	{
 		if ( sdWorld.is_server )
 		{
-			if ( this._contains_class )
-			{
-				if ( this._contains_class === 'sdSandWorm' )
-				{
-					let map = {};
-					let blocks_near = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, 16, null, [ 'sdBlock' ] );
-					
-					for ( let i = 0; i < blocks_near.length; i++ )
-					map[ ( blocks_near[ i ].x - this.x ) / 16 + ':' + ( blocks_near[ i ].y - this.y ) / 16 ] = blocks_near[ i ];
-				
-					done:
-					for ( let xx = -1; xx <= 0; xx++ )
-					for ( let yy = -1; yy <= 0; yy++ )
-					{
-						if ( map[ ( xx + 0 ) + ':' + ( yy + 0 ) ] )
-						if ( map[ ( xx + 1 ) + ':' + ( yy + 0 ) ] )
-						if ( map[ ( xx + 0 ) + ':' + ( yy + 1 ) ] )
-						if ( map[ ( xx + 1 ) + ':' + ( yy + 1 ) ] )
-						{
-							let ent = new sdWorld.entity_classes[ this._contains_class ]({ x: this.x + xx * 16, y: this.y + yy * 16 });
-							sdEntity.entities.push( ent );
-							sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
-							
-							
-							map[ ( xx + 0 ) + ':' + ( yy + 0 ) ]._contains_class = null;
-							map[ ( xx + 1 ) + ':' + ( yy + 0 ) ]._contains_class = null;
-							map[ ( xx + 0 ) + ':' + ( yy + 1 ) ]._contains_class = null;
-							map[ ( xx + 1 ) + ':' + ( yy + 1 ) ]._contains_class = null;
-							
-							map[ ( xx + 0 ) + ':' + ( yy + 0 ) ].Damage( Infinity );
-							map[ ( xx + 1 ) + ':' + ( yy + 0 ) ].Damage( Infinity );
-							map[ ( xx + 0 ) + ':' + ( yy + 1 ) ].Damage( Infinity );
-							map[ ( xx + 1 ) + ':' + ( yy + 1 ) ].Damage( Infinity );
-
-							break done;
-						}
-					}
-				}
-				else
-				{
-					let parts = this._contains_class.split( '.' );
-					this._contains_class = parts[ 0 ];
-					
-					let params = { x: this.x + this.width / 2, y: this.y + this.height / 2, tag:( parts.length > 1 )?parts[1]:null };
-					
-					if ( this._contains_class_params )
-					{
-						for ( let i in this._contains_class_params )
-						params[ i ] = this._contains_class_params[ i ];
-					}
-					
-					let ent = new sdWorld.entity_classes[ this._contains_class ]( params );
-					sdEntity.entities.push( ent );
-					
-					sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
-				}
-			}
 
 			let nears = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, Math.max( this.width, this.height ) / 2 + 16 );
 			for ( let i = 0; i < nears.length; i++ )
@@ -574,7 +580,7 @@ class sdBlock extends sdEntity
 				nears[ i ].AwakeSelfAndNear();
 				//nears[ i ]._sleep_tim = sdWater.sleep_tim_max;
 			}
-	
+
 			if ( this.material === sdBlock.MATERIAL_GROUND )
 			{
 				let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, filter:this.filter + ' brightness(0.5)' });

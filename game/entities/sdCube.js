@@ -583,7 +583,7 @@ class sdCube extends sdEntity
 					
 
 					sdWorld.shuffleArray( targets );
-
+					
 					for ( let i = 0; i < targets.length; i++ )
 					{
 						if ( this._alert_intensity < 45 || // Delay attack
@@ -591,40 +591,74 @@ class sdCube extends sdEntity
 						break;
 
 						this.attack_anim = 15;
-
-						let an = Math.atan2( targets[ i ].y - this.y, targets[ i ].x - this.x );
-
-						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
-						bullet_obj._owner = this;
-						bullet_obj.sx = Math.cos( an );
-						bullet_obj.sy = Math.sin( an );
-						//bullet_obj.x += bullet_obj.sx * 5;
-						//bullet_obj.y += bullet_obj.sy * 5;
-
-						bullet_obj.sx *= 16;
-						bullet_obj.sy *= 16;
 						
-						bullet_obj.time_left = 60;
-
-						bullet_obj._rail = true;
-
-						bullet_obj._damage = this.kind === 3 ? -15 : 15;
-						bullet_obj.color = this.kind === 3 ? '#ff00ff' : '#ffffff'; // Cube healing rays are pink to distinguish them from damaging rails
-
-						sdEntity.entities.push( bullet_obj );
-
-						this._charged_shots--;
-
-						if ( this.kind === 2 )
-						this.FireDirectionalBeams();
-						if ( this._charged_shots <= 0 )
+						if ( this.kind === 1 && Math.random() > 0.9 )
 						{
-							this._charged_shots = this.kind === 2 ? 5 : 3;
-							this._attack_timer = 45;
+							let targ = targets[ i ];
+							
+							setTimeout(()=>
+							{
+								if ( !this._is_being_removed )
+								{
+									let an = Math.atan2( targ.y - this.y, targ.x - this.x );
+
+									let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+									bullet_obj._owner = this;
+									bullet_obj.sx = Math.cos( an );
+									bullet_obj.sy = Math.sin( an );
+
+									bullet_obj.sx *= 16;
+									bullet_obj.sy *= 16;
+
+									bullet_obj.time_left = 60;
+
+									for ( var p in sdGun.classes[ sdGun.CLASS_LOST_CONVERTER ].projectile_properties )
+									bullet_obj[ p ] = sdGun.classes[ sdGun.CLASS_LOST_CONVERTER ].projectile_properties[ p ];
+								
+									sdEntity.entities.push( bullet_obj );
+								}
+							}, 2200 );
+							
+							this._attack_timer = 30 * 6;
+							
+							sdSound.PlaySound({ name:'supercharge_combined2', pitch: 1, x:this.x, y:this.y, volume:1.5 });
 						}
+						else
+						{
 
-						sdSound.PlaySound({ name:'cube_attack', pitch: ( this.kind === 2 || this.kind === 1 ) ? 0.5 : 1, x:this.x, y:this.y, volume:0.5 });
+							let an = Math.atan2( targets[ i ].y - this.y, targets[ i ].x - this.x );
 
+							let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+							bullet_obj._owner = this;
+							bullet_obj.sx = Math.cos( an );
+							bullet_obj.sy = Math.sin( an );
+
+							bullet_obj.sx *= 16;
+							bullet_obj.sy *= 16;
+
+							bullet_obj.time_left = 60;
+
+							bullet_obj._rail = true;
+
+							bullet_obj._damage = this.kind === 3 ? -15 : 15;
+							bullet_obj.color = this.kind === 3 ? '#ff00ff' : '#ffffff'; // Cube healing rays are pink to distinguish them from damaging rails
+
+							sdEntity.entities.push( bullet_obj );
+
+							this._charged_shots--;
+
+							if ( this.kind === 2 )
+							this.FireDirectionalBeams();
+
+							if ( this._charged_shots <= 0 )
+							{
+								this._charged_shots = this.kind === 2 ? 5 : 3;
+								this._attack_timer = 45;
+							}
+							sdSound.PlaySound({ name:'cube_attack', pitch: ( this.kind === 2 || this.kind === 1 ) ? 0.5 : 1, x:this.x, y:this.y, volume:0.5 });
+
+						}
+						
 						break;
 					}
 

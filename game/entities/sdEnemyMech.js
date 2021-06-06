@@ -597,13 +597,16 @@ class sdEnemyMech extends sdEntity
 	onRemove() // Class-specific, if needed
 	{
 		sdEnemyMech.mechs_counter--;
-		sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
-		//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
-		sdWorld.DropShards( this.x, this.y, 0, 0, 
-			Math.floor( Math.max( 0, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
-			this.matter_max / 40
-		);
-
+		
+		if ( this._broken )
+		{
+			sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
+			//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
+			sdWorld.DropShards( this.x, this.y, 0, 0, 
+				Math.floor( Math.max( 0, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
+				this.matter_max / 40
+			);
+		}
 	}
 	MeasureMatterCost()
 	{

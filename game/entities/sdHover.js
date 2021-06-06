@@ -524,11 +524,22 @@ class sdHover extends sdEntity
 	}
 	onRemove() // Class-specific, if needed
 	{
-		sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
+		if ( this._broken )
+		{
+			sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
 			
-		for ( var i = 0; i < sdHover.driver_slots; i++ )
-		if ( this[ 'driver' + i ] )
-		this.ExcludeDriver( this[ 'driver' + i ] );
+			for ( var i = 0; i < sdHover.driver_slots; i++ )
+			if ( this[ 'driver' + i ] )
+			this.ExcludeDriver( this[ 'driver' + i ] );
+		}
+		else
+		{
+			for ( var i = 0; i < sdHover.driver_slots; i++ )
+			if ( this[ 'driver' + i ] )
+			{
+				this[ 'driver' + i ].remove();
+			}
+		}
 	}
 	MeasureMatterCost()
 	{

@@ -82,6 +82,10 @@ class sdVirus extends sdEntity
 		if ( this.hmax > sdVirus.normal_max_health_max )
 		this.hmax = sdVirus.normal_max_health_max;
 	
+		// Forced hitbox update, needed because they can grow offscreen, which means they will fire many updates at once while hitbox updates rely on actual frames count increase
+		this._hitbox_last_update = 0;
+		this.UpdateHitbox();
+		
 		for ( var r = 0; r < 2; r++ )
 		{
 			var dist = 0;
@@ -449,6 +453,7 @@ class sdVirus extends sdEntity
 		
 		if ( sdWorld.is_server )
 		if ( this.death_anim < sdVirus.death_duration + sdVirus.post_death_ttl ) // not gone by time
+		if ( this._broken )
 		{
 			let a,s,x,y,k;
 			
