@@ -157,6 +157,9 @@ else // Geckos
 // let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Old register for object spawn code
 import sdWorld from './game/sdWorld.js';
 
+import FakeCanvasContext from './game/libs/FakeCanvasContext.js'; // consts
+globalThis.FakeCanvasContext = FakeCanvasContext;
+
 import sdEntity from './game/entities/sdEntity.js';
 import sdCharacter from './game/entities/sdCharacter.js';
 import sdGun from './game/entities/sdGun.js';
@@ -202,6 +205,7 @@ import sdRescueTeleport from './game/entities/sdRescueTeleport.js';
 import sdRift from './game/entities/sdRift.js';
 import sdDrone from './game/entities/sdDrone.js';
 import sdLifeBox from './game/entities/sdLifeBox.js';
+import sdLost from './game/entities/sdLost.js';
 
 
 
@@ -333,7 +337,28 @@ sdRescueTeleport.init_class();
 sdRift.init_class();
 sdDrone.init_class();
 sdLifeBox.init_class();
+sdLost.init_class();
 
+/* Do like that later, not sure if I want to deal with path problems yet again... Add awaits where needed too
+
+let ent_modules = [];
+
+fs.readdir('./someDir', (err, files) => {
+	files.forEach(file => {
+	 
+		const module = await import('file')
+
+		globalThis[ MODULE NAME ? ] = await import('file');
+
+		ent_modules.push( globalThis[ MODULE NAME ? ] );
+
+	 });
+});
+
+for ( let i = 0; i < ent_modules.length; i++ )
+ent_modules[ i ].init_class();
+
+*/
 sdShop.init_class(); // requires plenty of classes due to consts usage
 LZW.init_class();
 
@@ -1738,6 +1763,8 @@ io.on("connection", (socket) =>
 	//socket.known_statics_map = new WeakMap();
 	socket.known_statics_versions_map = new Map();
 	
+	socket.known_non_removed_dynamics = new Set();
+	
 	socket.my_hash = null;
 
 
@@ -2812,20 +2839,10 @@ setInterval( ()=>
 					var observed_entities = [];
 					//var observed_statics = [];
 					
+					var observed_entities_map = new Set();
+					
 					var observed_statics_map = new WeakSet();
 					
-					/*for ( var i2 = 0; i2 < sdEntity.entities.length; i2++ )
-					{
-						if ( sdEntity.entities[ i2 ].x > socket.character.x - 800 )
-						if ( sdEntity.entities[ i2 ].x < socket.character.x + 800 )
-						if ( sdEntity.entities[ i2 ].y > socket.character.y - 400 )
-						if ( sdEntity.entities[ i2 ].y < socket.character.y + 400 )
-						if ( sdEntity.entities[ i2 ].IsVisible() )
-						{
-							observed_entities.push( sdEntity.entities[ i2 ] );
-						}
-					}*/
-
 
 					socket.camera.scale = 2;
 
@@ -2900,14 +2917,17 @@ setInterval( ()=>
 										}
 									}
 									else
-									observed_entities.push( ent );
+									{
+										observed_entities.push( ent );
+										observed_entities_map.add( ent );
+									}
 
 									if ( ent.SyncedToPlayer !== sdEntity.prototype.SyncedToPlayer )
 									ent.SyncedToPlayer( socket.character );
 								}
 							}
 						}
-					}
+					};
 
 					/*for ( let x = min_x; x < max_x; x += 32 )
 					for ( let y = min_y; y < max_y; y += 32 )
@@ -2950,7 +2970,7 @@ setInterval( ()=>
 								_class: key.GetClass(), 
 								_net_id: key._net_id,
 								_is_being_removed: true,
-								_broken: key._is_being_removed
+								_broken: key._broken, // key._is_being_removed
 							};
 							snapshot.push( snapshot_of_deletion );
 							snapshot_only_statics.push( snapshot_of_deletion );
@@ -2958,6 +2978,22 @@ setInterval( ()=>
 							socket.known_statics_versions_map.delete( key );
 						}
 					} );
+					
+					// Better handling of ._broken for dynamics
+					socket.known_non_removed_dynamics.forEach( ( value, key, map )=>
+					{
+						if ( !observed_entities_map.has( key ) )
+						{
+							let snapshot_of_deletion = { 
+								_class: key.GetClass(), 
+								_net_id: key._net_id,
+								_is_being_removed: true,
+								_broken: key._broken,
+							};
+							snapshot.push( snapshot_of_deletion );
+						}
+					} );
+					socket.known_non_removed_dynamics = observed_entities_map;
 
 					if ( !socket.character._is_being_removed )
 					if ( observed_entities.indexOf( socket.character ) === -1 )

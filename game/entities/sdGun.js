@@ -226,7 +226,7 @@ class sdGun extends sdEntity
 		this._hea = 5;
 		else
 		this._hea = 50;
-
+	
 		if ( this.class != sdGun.CLASS_CRYSTAL_SHARD && sdGun.classes[ this.class ].spawnable === false ) // Unbuildable guns have 3 minutes to despawn, enough for players to find them if they lost them
 		this.ttl = params.ttl || sdGun.disowned_guns_ttl * 3;
 		else
@@ -286,7 +286,7 @@ class sdGun extends sdEntity
 		this._held_by.reload_anim = 30;
 	}
 	
-	GetBulletCost( return_infinity_on_build_tool_fail_placement=true )
+	GetBulletCost( return_infinity_on_build_tool_fail_placement=true, shoot_from_scenario=false )
 	{
 		if ( sdGun.classes[ this.class ].is_build_gun )
 		{
@@ -372,6 +372,9 @@ class sdGun extends sdEntity
 			return Infinity;
 		}
 		
+		if ( sdGun.classes[ this.class ].GetAmmoCost )
+		return sdGun.classes[ this.class ].GetAmmoCost( this, shoot_from_scenario );
+		
 		return ( Math.abs( sdGun.classes[ this.class ].projectile_properties._damage * this._held_by._damage_mult ) * sdGun.classes[ this.class ].count + 
 				( sdGun.classes[ this.class ].projectile_properties._rail ? 30 : 0 ) + 
 				( sdGun.classes[ this.class ].projectile_properties.explosion_radius > 0 ? 20 : 0 ) ) * sdWorld.damage_to_matter;
@@ -390,7 +393,7 @@ class sdGun extends sdEntity
 		this.ammo_left = -1;
 	
 		let ammo_to_spawn = sdGun.classes[ this.class ].ammo_capacity - this.ammo_left;
-		let ammo_cost = this.GetBulletCost();
+		let ammo_cost = this.GetBulletCost( true );
 		
 		while ( ammo_to_spawn > 0 && this._held_by.matter >= ammo_cost )
 		{
@@ -412,7 +415,7 @@ class sdGun extends sdEntity
 			]));
 		}
 	}
-	Shoot( background_shoot=0, offset=null ) // It becomes 1 when player holds shift
+	Shoot( background_shoot=0, offset=null, shoot_from_scenario=false ) // It becomes 1 when player holds shift
 	{
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 			
@@ -450,7 +453,7 @@ class sdGun extends sdEntity
 				}
 				else
 				{
-					let ammo_cost = this.GetBulletCost();
+					let ammo_cost = this.GetBulletCost( true, shoot_from_scenario );
 					
 					if ( this._held_by.matter >= ammo_cost )
 					{
@@ -478,6 +481,12 @@ class sdGun extends sdEntity
 					
 						return false;
 					}
+				}
+				
+				if ( sdGun.classes[ this.class ].onShootAttempt )
+				if ( sdGun.classes[ this.class ].onShootAttempt( this, shoot_from_scenario ) === false )
+				{
+					return false;
 				}
 				
 				if ( sdGun.classes[ this.class ].sound )
@@ -787,7 +796,7 @@ class sdGun extends sdEntity
 			{
 				let odd = ( this.reload_time_left % 10 ) < 5 ? 0 : 1;
 				
-				if ( this.reload_time_left > sdGun.classes[ this.class ].reload_time / 3 * 2 || ( this._held_by && this._held_by.matter - 1 < this.GetBulletCost() ) )
+				if ( this.reload_time_left > sdGun.classes[ this.class ].reload_time / 3 * 2 || ( this._held_by && this._held_by.matter - 1 < this.GetBulletCost( true ) ) )
 				image = sdGun.classes[ this.class ].image0[ odd ];
 				else
 				if ( this.reload_time_left > sdGun.classes[ this.class ].reload_time / 3 * 1 )
@@ -799,21 +808,21 @@ class sdGun extends sdEntity
 			
 			if ( sdGun.classes[ this.class ].is_sword )
 			{
-				//if ( this._held_by === null || this._held_by.matter < this.GetBulletCost() )
+				//if ( this._held_by === null || this._held_by.matter < this.GetBulletCost( true ) )
 				if ( this._held_by === null && !this.dangerous )
 				image = sdGun.classes[ this.class ].image_no_matter;
 			}
 			/*
 			if ( this.class === sdGun.CLASS_SWORD )
 			{
-				//if ( this._held_by === null || this._held_by.matter < this.GetBulletCost() )
+				//if ( this._held_by === null || this._held_by.matter < this.GetBulletCost( true ) )
 				if ( this._held_by === null && !this.dangerous )
 				image = sdGun.classes[ this.class ].image_no_matter;
 			}
 
 			if ( this.class === sdGun.CLASS_SABER )
 			{
-				//if ( this._held_by === null || this._held_by.matter < this.GetBulletCost() )
+				//if ( this._held_by === null || this._held_by.matter < this.GetBulletCost( true ) )
 				if ( this._held_by === null && !this.dangerous )
 				image = sdGun.classes[ this.class ].image_no_matter;
 			}*/

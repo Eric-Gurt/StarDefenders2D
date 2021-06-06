@@ -85,6 +85,7 @@ class sdBarrel extends sdEntity
 	onRemove() // Class-specific, if needed
 	{
 		// Explosion
+		if ( this._broken )
 		sdWorld.SendEffect({ 
 			x:this.x, 
 			y:this.y, 

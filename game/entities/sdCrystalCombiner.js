@@ -140,9 +140,12 @@ class sdCrystalCombiner extends sdEntity
 	}
 	onRemove() // Class-specific, if needed
 	{
-		this.DropCrystals();
+		if ( this._broken )
+		{
+			this.DropCrystals();
 
-		sdWorld.BasicEntityBreakEffect( this, 10 );
+			sdWorld.BasicEntityBreakEffect( this, 10 );
+		}
 	}
 	
 	CombineCrystals()

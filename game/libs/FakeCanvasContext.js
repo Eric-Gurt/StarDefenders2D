@@ -990,3 +990,5 @@ class FakeCanvasContext
 	}
 }
 FakeCanvasContext.init_class();
+
+export default FakeCanvasContext;

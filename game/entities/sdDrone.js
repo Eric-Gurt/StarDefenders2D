@@ -404,6 +404,8 @@ class sdDrone extends sdEntity
 	onRemove() // Class-specific, if needed
 	{
 		sdDrone.drones_tot--;
+		
+		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
 		//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
 

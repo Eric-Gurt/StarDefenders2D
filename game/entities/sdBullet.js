@@ -24,7 +24,8 @@ class sdBullet extends sdEntity
 			'ball_g': sdWorld.CreateImageFromFile( 'ball_g' ),
 			'rocket_proj': sdWorld.CreateImageFromFile( 'rocket_proj' ),
 			'grenade': sdWorld.CreateImageFromFile( 'grenade' ),
-			'f_psicutter_proj': sdWorld.CreateImageFromFile( 'f_psicutter_proj' )
+			'f_psicutter_proj': sdWorld.CreateImageFromFile( 'f_psicutter_proj' ),
+			'ball_charged':  sdWorld.CreateImageFromFile( 'ball_charged' )
 		};
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -90,6 +91,7 @@ class sdBullet extends sdEntity
 		
 		this._return_damage_to_owner = false; // Stimpack and medikit
 		this._custom_target_reaction = null;
+		this._custom_detonation_logic = null;
 		
 		this._armor_penetration_level = 10; // Defines damage that is compared to target's ._armor_level in order to potentially be able or unable to deal any damage
 		this._reinforced_level = 0; // For "reinforced" blocks which are unlocked from shop / build tool upgrades
@@ -159,6 +161,9 @@ class sdBullet extends sdEntity
 	{
 		if ( this._rail )
 		sdWorld.SendEffect({ x:this._start_x, y:this._start_y, x2:this.x, y2:this.y, type:sdEffect.TYPE_BEAM, color:this.color });
+	
+		if ( this._custom_detonation_logic )
+		this._custom_detonation_logic( this );
 	
 		if ( this.explosion_radius > 0 )
 		sdWorld.SendEffect({ 

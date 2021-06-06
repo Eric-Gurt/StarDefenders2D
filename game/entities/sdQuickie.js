@@ -290,6 +290,7 @@ class sdQuickie extends sdEntity
 		
 		if ( sdWorld.is_server )
 		if ( this.death_anim < sdQuickie.death_duration + sdQuickie.post_death_ttl ) // not gone by time
+		if ( this._broken )
 		{
 			let a,s,x,y,k;
 			

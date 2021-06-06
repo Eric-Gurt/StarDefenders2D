@@ -431,6 +431,7 @@ class sdOctopus extends sdEntity
 		
 		if ( sdWorld.is_server )
 		if ( this.death_anim < sdOctopus.death_duration + sdOctopus.post_death_ttl ) // not gone by time
+		if ( this._broken )
 		{
 			let a,s,x,y,k;
 			

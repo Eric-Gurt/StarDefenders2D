@@ -327,8 +327,9 @@ class sdRift extends sdEntity
 	onRemove() // Class-specific, if needed
 	{
 		sdRift.portals--;
-		this.onRemoveAsFakeEntity();
+		//this.onRemoveAsFakeEntity();
 
+		if ( this._broken )
 		sdWorld.SendEffect({ 
 			x:this.x, 
 			y:this.y, 

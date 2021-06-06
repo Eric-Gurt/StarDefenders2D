@@ -233,19 +233,22 @@ class sdMatterAmplifier extends sdEntity
 	}
 	onRemove() // Class-specific, if needed
 	{
-		this.DropCrystal();
-		/*
-		if ( this.matter_max > 0 )
+		if ( this._broken )
 		{
-			sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
+			this.DropCrystal();
+			/*
+			if ( this.matter_max > 0 )
+			{
+				sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
 
-			sdWorld.DropShards( this.x, this.y, 0, 0, 
-				Math.floor( Math.max( 0, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
-				this.matter_max / 40
-			);
+				sdWorld.DropShards( this.x, this.y, 0, 0, 
+					Math.floor( Math.max( 0, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
+					this.matter_max / 40
+				);
+			}
+			*/
+			sdWorld.BasicEntityBreakEffect( this, 10 );
 		}
-		*/
-		sdWorld.BasicEntityBreakEffect( this, 10 );
 	}
 	
 	DropCrystal()

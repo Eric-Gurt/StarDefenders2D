@@ -606,7 +606,7 @@ class sdEntity
 		sdWorld.UpdateHashPosition( this, true );
 		
 		this._is_being_removed = false;
-		this._broken = false; // Becomes true for statics whenever they are really broken rather than just cut out by visibility
+		this._broken = false; // Becomes true for statics (anything now) whenever they are really broken rather than just cut out by visibility. After removal you can set it to false to prevent particles spawned on client
 		
 		if ( sdWorld.is_server )
 		{
@@ -910,6 +910,14 @@ class sdEntity
 			
 		for ( var prop in snapshot )
 		{
+			/*
+			if ( !sdWorld.is_server )
+			if ( prop === 'd' )
+			if ( snapshot[ prop ].length === 0 )
+			{
+				debugger;
+			}*/
+
 			if ( prop !== '_net_id' )
 			if ( prop !== '_class' )
 			{
@@ -1311,9 +1319,13 @@ class sdEntity
 	{
 		// Or else some entities won't be removed
 		if ( !this._is_being_removed )
-		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-	
-		this._is_being_removed = true;
+		{
+			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+			this._is_being_removed = true;
+
+			this._broken = true; // By default, you can override it after remova was called for entity
+		}
 	}
 	_remove()
 	{
@@ -1400,7 +1412,6 @@ class sdEntity
 	DrawFG( ctx, attached ) // foreground layer, but not HUD
 	{
 	}
-	
 	
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
 	{

@@ -261,6 +261,8 @@ class sdCharacter extends sdEntity
 		
 		this._fall_sound_time = 0;
 		
+		this._auto_shoot_in = 0; // Timer, when above 0 player can not switch weapon or drop weapon nor shoot. Once it reaches 0 - player will automatically shoot, probably
+		
 		this.sx = 0;
 		this.sy = 0;
 		
@@ -428,7 +430,7 @@ class sdCharacter extends sdEntity
 		if ( !this.ghosting )
 		return true;
 	
-		if ( this.flying || this.hea <= 0 || ( this.fire_anim > 0 && this.gun_slot !== 0 ) || this.pain_anim > 0 )
+		if ( this.flying || this.hea <= 0 || ( this.fire_anim > 0 && this.gun_slot !== 0 ) || this.pain_anim > 0 || this._auto_shoot_in > 0 )
 		return true;
 	
 		if ( observer_character )
@@ -795,6 +797,48 @@ class sdCharacter extends sdEntity
 			
 			if ( this.hea < -200 )
 			{
+				//if ( this.death_anim <= sdCharacter.disowned_body_ttl )
+				{
+					let a,s,x,y,k;
+
+					if ( this.GetBleedEffect() === sdEffect.TYPE_BLOOD || this.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
+					sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:2 }); // 3 was fine
+					else
+					sdSound.PlaySound({ name:'block4', 
+						x:this.x, y:this.y, 
+						volume: 0.25, 
+						pitch: 1 });
+
+
+					for ( let i = 0; i < 6; i++ )
+					{
+						a = Math.random() * 2 * Math.PI;
+						s = Math.random() * 4;
+
+						k = Math.random();
+
+						x = this.x + this._hitbox_x1 + Math.random() * ( this._hitbox_x2 - this._hitbox_x1 );
+						y = this.y + this._hitbox_y1 + Math.random() * ( this._hitbox_y2 - this._hitbox_y1 );
+
+						//console.warn( { x: this.x, y: this.y, type:sdEffect.TYPE_GIB, sx: this.sx + Math.sin(a)*s, sy: this.sy + Math.cos(a)*s } )
+
+						if ( this.GetBleedEffect() === sdEffect.TYPE_BLOOD )
+						{
+							sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD });
+							sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s });
+						}
+						else
+						if ( this.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
+						{
+							sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter() });
+							sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, filter:this.GetBleedEffectFilter(), sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s });
+						}
+						else
+						{
+							sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s });
+						}
+					}
+				}
 				this.remove();
 			}
 			
@@ -1325,6 +1369,17 @@ class sdCharacter extends sdEntity
 				if ( !this.driver_of )
 				{
 					let will_fire = this._key_states.GetKey( 'Mouse1' );
+					let shoot_from_scenario = false;
+					
+					if ( this._auto_shoot_in > 0 )
+					{
+						this._auto_shoot_in -= GSPEED;
+						if ( this._auto_shoot_in <= 0 )
+						{
+							will_fire = true;
+							shoot_from_scenario = true;
+						}
+					}
 					
 					if ( will_fire )
 					{
@@ -1361,7 +1416,7 @@ class sdCharacter extends sdEntity
 								if ( !offset )
 								offset = this.GetBulletSpawnOffset();
 							
-								if ( this._inventory[ this.gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ), offset ) )
+								if ( this._inventory[ this.gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ), offset, shoot_from_scenario ) )
 								{
 									this.fire_anim = 5;
 								}
@@ -1450,63 +1505,66 @@ class sdCharacter extends sdEntity
 				}
 			}			
 
-			if ( this._key_states.GetKey( 'KeyV' ) )
+			if ( this._auto_shoot_in <= 0 )
 			{
-				this._key_states.SetKey( 'KeyV', 0 ); // So sword is not dropped all the time
-				
-				if ( this._inventory[ this.gun_slot ] )
+				if ( this._key_states.GetKey( 'KeyV' ) )
 				{
-					//if ( this.gun_slot === 0 )
-					if ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].is_sword )
+					this._key_states.SetKey( 'KeyV', 0 ); // So sword is not dropped all the time
+
+					if ( this._inventory[ this.gun_slot ] )
 					{
-						this._inventory[ this.gun_slot ].dangerous = true;
-						this._inventory[ this.gun_slot ]._dangerous_from = this;
-						
-						if ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].sound )
-						sdSound.PlaySound({ name:sdGun.classes[ this._inventory[ this.gun_slot ].class ].sound, x:this.x, y:this.y, volume: 0.5 * ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].sound_volume || 1 ), pitch: 0.8 * ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].sound_pitch || 1 ) });
+						//if ( this.gun_slot === 0 )
+						if ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].is_sword )
+						{
+							this._inventory[ this.gun_slot ].dangerous = true;
+							this._inventory[ this.gun_slot ]._dangerous_from = this;
+
+							if ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].sound )
+							sdSound.PlaySound({ name:sdGun.classes[ this._inventory[ this.gun_slot ].class ].sound, x:this.x, y:this.y, volume: 0.5 * ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].sound_volume || 1 ), pitch: 0.8 * ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].sound_pitch || 1 ) });
+						}
+
+						this.DropWeapon( this.gun_slot );
+
+						this.gun_slot = 0;
+						if ( this.reload_anim > 0 )
+						this.reload_anim = 0;
 					}
-					
-					this.DropWeapon( this.gun_slot );
-					
-					this.gun_slot = 0;
-					if ( this.reload_anim > 0 )
-					this.reload_anim = 0;
 				}
-			}
 
-			if ( this._key_states.GetKey( 'KeyQ' ) )
-			{
-				if ( !this._q_held )
+				if ( this._key_states.GetKey( 'KeyQ' ) )
 				{
-					this._q_held = true;
-
-					let b = this._backup_slot;
-					if ( !this._inventory[ b ] )
-					b = 0;
-
-					this._backup_slot = this.gun_slot;
-					this.gun_slot = b;
-
-					if ( this.reload_anim > 0 )
-					this.reload_anim = 0;
-				}
-			}
-			else
-			{
-				this._q_held = false;
-				for ( var i = 0; i < 10; i++ )
-				if ( this._inventory[ i ] || i === 0 )
-				if ( this._key_states.GetKey( 'Digit' + i ) || ( i === 0 && this._key_states.GetKey( 'Backquote' ) ) )
-				{
-					if ( this.gun_slot !== i )
+					if ( !this._q_held )
 					{
+						this._q_held = true;
+
+						let b = this._backup_slot;
+						if ( !this._inventory[ b ] )
+						b = 0;
+
 						this._backup_slot = this.gun_slot;
-						this.gun_slot = i;
+						this.gun_slot = b;
 
 						if ( this.reload_anim > 0 )
 						this.reload_anim = 0;
 					}
-					break;
+				}
+				else
+				{
+					this._q_held = false;
+					for ( var i = 0; i < 10; i++ )
+					if ( this._inventory[ i ] || i === 0 )
+					if ( this._key_states.GetKey( 'Digit' + i ) || ( i === 0 && this._key_states.GetKey( 'Backquote' ) ) )
+					{
+						if ( this.gun_slot !== i )
+						{
+							this._backup_slot = this.gun_slot;
+							this.gun_slot = i;
+
+							if ( this.reload_anim > 0 )
+							this.reload_anim = 0;
+						}
+						break;
+					}
 				}
 			}
 			
@@ -2107,52 +2165,22 @@ class sdCharacter extends sdEntity
 		if ( this.driver_of )
 		this.driver_of.ExcludeDriver( this );
 		
+		//
+		// Actually remove instead if player was deleted
+		if ( this._broken )
 		this.DropWeapons();
+		else
+		{
+			for ( var i = 0; i < this._inventory.length; i++ )
+			if ( this._inventory[ i ] )
+			{
+				this._inventory[ i ].remove();
+			}
+		}
 		
 		if ( sdWorld.is_server )
 		{
-			if ( this.death_anim <= sdCharacter.disowned_body_ttl )
-			{
-				let a,s,x,y,k;
-
-				if ( this.GetBleedEffect() === sdEffect.TYPE_BLOOD || this.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
-				sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:2 }); // 3 was fine
-				else
-				sdSound.PlaySound({ name:'block4', 
-					x:this.x, y:this.y, 
-					volume: 0.25, 
-					pitch: 1 });
 			
-
-				for ( let i = 0; i < 6; i++ )
-				{
-					a = Math.random() * 2 * Math.PI;
-					s = Math.random() * 4;
-
-					k = Math.random();
-
-					x = this.x + this._hitbox_x1 + Math.random() * ( this._hitbox_x2 - this._hitbox_x1 );
-					y = this.y + this._hitbox_y1 + Math.random() * ( this._hitbox_y2 - this._hitbox_y1 );
-
-					//console.warn( { x: this.x, y: this.y, type:sdEffect.TYPE_GIB, sx: this.sx + Math.sin(a)*s, sy: this.sy + Math.cos(a)*s } )
-
-					if ( this.GetBleedEffect() === sdEffect.TYPE_BLOOD )
-					{
-						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD });
-						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s });
-					}
-					else
-					if ( this.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
-					{
-						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter() });
-						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, filter:this.GetBleedEffectFilter(), sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s });
-					}
-					else
-					{
-						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s });
-					}
-				}
-			}
 		}
 		else
 		{

@@ -5,6 +5,8 @@ import sdEffect from './sdEffect.js';
 import sdCharacter from './sdCharacter.js';
 import sdBlock from './sdBlock.js';
 import sdGun from './sdGun.js';
+import sdLost from './sdLost.js';
+import sdEntity from './sdEntity.js';
 
 class sdGunClass
 {
@@ -804,6 +806,71 @@ class sdGunClass
 							if ( bullet._owner._inventory[ bullet._owner.gun_slot ] )
 							if ( sdGun.classes[ bullet._owner._inventory[ bullet._owner.gun_slot ].class ].projectile_properties._admin_picker )
 							bullet._owner._inventory[ bullet._owner.gun_slot ].remove();
+						}
+					}
+				}
+			}
+		};
+
+		sdGun.classes[ sdGun.CLASS_LOST_CONVERTER = 39 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'shark' ),
+			//sound: 'supercharge_combined2',
+			title: 'Admin tool for sdLost test',
+			//sound_pitch: 0.5,
+			slot: 4,
+			reload_time: 5,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			matter_cost: Infinity,
+			projectile_velocity: 16,
+			spawnable: false,
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				return 100;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( !shoot_from_scenario )
+				{
+					if ( gun._held_by )
+					if ( gun._held_by._auto_shoot_in <= 0 )
+					{
+						//gun._held_by._auto_shoot_in = 15;
+						//return; // hack
+						
+						gun._held_by._auto_shoot_in = 2200 / 1000 * 30;
+
+						sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
+					}
+					return false;
+				}
+			},
+			projectile_properties: { 
+				//explosion_radius: 10, 
+				model: 'ball_charged', _damage: 0, /*color:'#ffff66',*/ time_left: 15, _custom_detonation_logic:( bullet )=>
+				{
+					if ( bullet._owner )
+					{
+						sdWorld.SendEffect({ 
+							x:bullet.x, 
+							y:bullet.y, 
+							radius:30,
+							damage_scale: 0, // Just a decoration effect
+							type:sdEffect.TYPE_EXPLOSION, 
+							owner:this,
+							color:'#ffff66' 
+						});
+
+						let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 32 );
+
+						for ( let i = 0; i < nears.length; i++ )
+						{
+							sdLost.ApplyAffection( nears[ i ], 300, bullet );
 						}
 					}
 				}

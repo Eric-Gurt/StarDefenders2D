@@ -325,6 +325,7 @@ class sdTurret extends sdEntity
 	}
 	onRemove()
 	{
+		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 3 );
 	}
 	RequireSpawnAlign()

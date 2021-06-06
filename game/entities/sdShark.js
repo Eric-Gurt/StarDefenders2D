@@ -305,6 +305,7 @@ class sdShark extends sdEntity
 		
 		if ( sdWorld.is_server )
 		if ( this.death_anim < sdShark.death_duration + sdShark.post_death_ttl ) // not gone by time
+		if ( this._broken )
 		{
 			let a,s,x,y,k;
 			

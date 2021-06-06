@@ -119,10 +119,19 @@ class sdStorage extends sdEntity
 	}
 	onRemove() // Class-specific, if needed
 	{
-		for ( var i = 0; i < sdStorage.slots_tot; i++ )
-		this.DropSlot( i );
-		
-		sdWorld.BasicEntityBreakEffect( this, 5 );
+		if ( this._broken )
+		{
+			for ( var i = 0; i < sdStorage.slots_tot; i++ )
+			this.DropSlot( i );
+
+			sdWorld.BasicEntityBreakEffect( this, 5 );
+		}
+		else
+		{
+			for ( var i = 0; i < sdStorage.slots_tot; i++ )
+			if ( this[ 'item' + slot ] )
+			this[ 'item' + slot ].remove();
+		}
 	}
 	MeasureMatterCost()
 	{
