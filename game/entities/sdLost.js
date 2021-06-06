@@ -25,10 +25,13 @@ class sdLost extends sdEntity
 	
 	static ApplyAffection( ent, amonut, bullet )
 	{
-		if ( ( ent.hard_collision && !ent.is( sdCrystal ) && !ent.is( sdLost ) ) || 
-			 ( ent.is( sdGun ) && ent.class !== sdGun.CLASS_CRYSTAL_SHARD ) ) // Not for BG entities
+		let is_dead = ( ( ent.hea || ent._hea || 1 ) <= 0 );
+		
+		if ( ( ent.hard_collision && !ent.is( sdCrystal ) && !ent.is( sdLost ) ) ||
+			 ( !ent.hard_collision && ( ( ent.is( sdGun ) && ent.class !== sdGun.CLASS_CRYSTAL_SHARD ) || is_dead ) ) ) // Not for BG entities
 		if ( ent.IsBGEntity() === 0 ) // Not for BG entities
 		if ( ent.IsTargetable() )
+		//if ( ent.IsTargetable() || is_dead )
 		{
 			if ( ( typeof ent._armor_protection_level === 'undefined' || bullet._armor_penetration_level >= ent._armor_protection_level ) &&
 				 ( typeof ent._reinforced_level === 'undefined' || bullet._reinforced_level >= ent._reinforced_level ) )
@@ -38,7 +41,6 @@ class sdLost extends sdEntity
 			else
 			return;
 		
-			
 			let hea = ( ent._hea || ent.hea || 0 );
 			
 			ent.Damage( 1 );
@@ -161,9 +163,16 @@ class sdLost extends sdEntity
 		this.d = params.d || [ 1, 'death1' ];
 		
 		if ( this.s )
-		this._update_version++;
+		{
+			this._update_version = 0; // sdEntity constructor won't make this property during snapshot load since it is dynamic
+			//this._update_version++;
+		}
 		
 		//console.log( 'this._matter_max = ',this._matter_max );
+	}
+	ExtraSerialzableFieldTest( prop )
+	{		
+		if ( prop === 'd' ) return true;
 	}
 	Damage( dmg, initiator=null )
 	{

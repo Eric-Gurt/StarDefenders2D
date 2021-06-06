@@ -814,11 +814,12 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_LOST_CONVERTER = 39 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'shark' ),
+			image: sdWorld.CreateImageFromFile( 'cube_bng' ),
+			image_charging: sdWorld.CreateImageFromFile( 'cube_bng_charging' ),
 			//sound: 'supercharge_combined2',
-			title: 'Admin tool for sdLost test',
+			title: 'Cube overcharge cannon',
 			//sound_pitch: 0.5,
-			slot: 4,
+			slot: 5,
 			reload_time: 5,
 			muzzle_x: null,
 			ammo_capacity: -1,

@@ -190,9 +190,12 @@ class sdCube extends sdEntity
 
 						let gun;
 
-						if ( random_value < 0.333 && !this.kind === 3 )
+						if ( random_value < 0.333 && this.kind !== 3 )
 						{
-							if ( random_value < 0.09 ) // When it was 0.25 it actually had a bigger chance than triple rail since it doesn't re-roll random value
+							if ( this.kind === 1 && random_value < 0.05 )
+							gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_LOST_CONVERTER });
+							else
+							if ( random_value < 0.15 ) // When it was 0.25 it actually had a bigger chance than triple rail since it doesn't re-roll random value
 							gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_SHOTGUN });
 							else
 							gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_TRIPLE_RAIL });
@@ -202,7 +205,7 @@ class sdCube extends sdEntity
 
 						gun.sx = sx;
 						gun.sy = sy;
-						gun.extra = (this.kind === 3 ? 3 : this.kind === 2 ? 2 : this.kind === 1 ? 1 : 0 ); // Color it
+						gun.extra = ( this.kind === 3 ? 3 : this.kind === 2 ? 2 : this.kind === 1 ? 1 : 0 ); // Color it
 						sdEntity.entities.push( gun );
 
 					}, 500 );

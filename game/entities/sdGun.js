@@ -789,6 +789,15 @@ class sdGun extends sdEntity
 		{
 			var image = sdGun.classes[ this.class ].image;
 			
+			if ( this._held_by )
+			{
+				if ( this._held_by._auto_shoot_in > 0 )
+				if ( sdGun.classes[ this.class ].image_charging )
+				{
+					image = sdGun.classes[ this.class ].image_charging;
+				}
+			}
+			
 			if ( this._held_by === null )
 			ctx.rotate( this.tilt / sdGun.tilt_scale );
 			
@@ -839,7 +848,12 @@ class sdGun extends sdEntity
 				ctx.filter = sdWorld.GetCrystalHue( v );
 			}
 			
-			if ( this.class === sdGun.CLASS_TRIPLE_RAIL || this.class === sdGun.CLASS_RAIL_PISTOL || this.class === sdGun.CLASS_RAIL_SHOTGUN || this.class === sdGun.CLASS_CUBE_SHARD ||  this.class === sdGun.CLASS_HEALING_RAY ) // Cube weaponry, looked up color wheel since sdFilter is not worth it
+			if ( this.class === sdGun.CLASS_TRIPLE_RAIL || 
+				 this.class === sdGun.CLASS_RAIL_PISTOL || 
+				 this.class === sdGun.CLASS_RAIL_SHOTGUN || 
+				 this.class === sdGun.CLASS_CUBE_SHARD || 
+				 this.class === sdGun.CLASS_HEALING_RAY || 
+				 this.class === sdGun.CLASS_LOST_CONVERTER ) // Cube weaponry, looked up color wheel since sdFilter is not worth it
 			{
 				if ( this.extra === 1 )
 				{
