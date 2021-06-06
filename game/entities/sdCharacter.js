@@ -2125,8 +2125,8 @@ class sdCharacter extends sdEntity
 		{
 			this.x = this.driver_of.x;
 			this.y = this.driver_of.y;
-			this.sx = this.driver_of.sx;
-			this.sy = this.driver_of.sy;
+			this.sx = this.driver_of.sx || 0;
+			this.sy = this.driver_of.sy || 0;
 		}
 		else
 		this.ApplyVelocityAndCollisions( GSPEED, ( this.hea > 0 ) ? ( this.act_y !== 1 ? 10 : 3 ) : 0, ( this.hea <= 0 ) );

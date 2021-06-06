@@ -170,18 +170,27 @@ class sdShop
 			else
 			if ( globalThis.isWin )
 			{
-				sdShop.options.push({
-					_class: 'sdGun',
-					class: i, 
-					_category:'Development tests'
-				});
 				
 				if ( i === sdGun.CLASS_BUILDTOOL_UPG )
 				{
 					sdShop.options.push({
 						_class: 'sdGun',
 						class: i,
+						extra: 0,
+						_category:'Development tests'
+					});
+					sdShop.options.push({
+						_class: 'sdGun',
+						class: i,
 						extra: 1,
+						_category:'Development tests'
+					});
+				}
+				else
+				{
+					sdShop.options.push({
+						_class: 'sdGun',
+						class: i, 
 						_category:'Development tests'
 					});
 				}

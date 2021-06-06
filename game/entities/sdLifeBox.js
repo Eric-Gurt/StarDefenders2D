@@ -62,8 +62,8 @@ class sdLifeBox extends sdEntity
 	{
 		super( params );
 		
-		this.sx = 0;
-		this.sy = 0;
+		//this.sx = 0;
+		//this.sy = 0;
 		
 		this.hmax = 4000;
 		this.hea = this.hmax;
@@ -126,7 +126,7 @@ class sdLifeBox extends sdEntity
 				this[ 'driver' + i ] = null;
 				c.driver_of = null;
 				
-				c.x = this.x //+ ( i / ( sdLifeBox.driver_slots - 1 ) ) * ( this.hitbox_x2 - this.hitbox_x1 ); -> commented out since 0/0 occurs in "i / ( sdLifeBox.driver_slots - 1 )"
+				c.x = this.x; //+ ( i / ( sdLifeBox.driver_slots - 1 ) ) * ( this.hitbox_x2 - this.hitbox_x1 ); -> commented out since 0/0 occurs in "i / ( sdLifeBox.driver_slots - 1 )"
 				
 				if ( c.CanMoveWithoutOverlap( c.x, this.y + this.hitbox_y1 - c.hitbox_y2, 1 ) )
 				c.y = this.y + this.hitbox_y1 - c.hitbox_y2;
@@ -263,7 +263,7 @@ class sdLifeBox extends sdEntity
 		
 		//sdWorld.last_hit_entity = null;
 		
-		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+		//this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
 	
 	//get friction_remain()
@@ -296,11 +296,22 @@ class sdLifeBox extends sdEntity
 	}
 	onRemove() // Class-specific, if needed
 	{
-		sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
-			
-		for ( var i = 0; i < sdLifeBox.driver_slots; i++ )
-		if ( this[ 'driver' + i ] )
-		this.ExcludeDriver( this[ 'driver' + i ] );
+		if ( this._broken )
+		{
+			sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
+
+			for ( var i = 0; i < sdLifeBox.driver_slots; i++ )
+			if ( this[ 'driver' + i ] )
+			this.ExcludeDriver( this[ 'driver' + i ] );
+		}
+		else
+		{
+			for ( var i = 0; i < sdLifeBox.driver_slots; i++ )
+			if ( this[ 'driver' + i ] )
+			{
+				this[ 'driver' + i ].remove();
+			}
+		}
 	}
 	MeasureMatterCost()
 	{
