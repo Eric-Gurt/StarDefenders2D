@@ -204,6 +204,7 @@ import sdWorkbench from './game/entities/sdWorkbench.js';
 import sdRescueTeleport from './game/entities/sdRescueTeleport.js';
 import sdRift from './game/entities/sdRift.js';
 import sdDrone from './game/entities/sdDrone.js';
+import sdLifeBox from './game/entities/sdLifeBox.js';
 import sdLost from './game/entities/sdLost.js';
 
 
@@ -335,6 +336,7 @@ sdWorkbench.init_class();
 sdRescueTeleport.init_class();
 sdRift.init_class();
 sdDrone.init_class();
+sdLifeBox.init_class();
 sdLost.init_class();
 
 /* Do like that later, not sure if I want to deal with path problems yet again... Add awaits where needed too

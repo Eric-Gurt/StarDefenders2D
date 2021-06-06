@@ -25,7 +25,7 @@ class sdWorkbench extends sdEntity
 	get hitbox_y2() { return 16; }
 	
 	get hard_collision()
-	{ return false; }
+	{ return true; }
 	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return true; }
@@ -66,6 +66,12 @@ class sdWorkbench extends sdEntity
 		this.delay = 0;
 		this.level = 1;
 	}
+
+	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
+	{
+		return [ 'sdGun', 'sdBullet', 'sdCharacter' ];
+	}
+
 	onBuilt()
 	{
 		sdSound.PlaySound({ name:'command_centre', x:this.x, y:this.y, volume:1 });

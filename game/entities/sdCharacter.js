@@ -23,6 +23,7 @@ import sdArea from './sdArea.js';
 import sdMatterContainer from './sdMatterContainer.js';
 import sdWorkbench from './sdWorkbench.js';
 import sdRescueTeleport from './sdRescueTeleport.js';
+import sdLifeBox from './sdLifeBox.js';
 
 
 import sdShop from '../client/sdShop.js';
@@ -413,7 +414,7 @@ class sdCharacter extends sdEntity
 	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return this._key_states.GetKey('KeyX') ? [ 'sdCharacter', 'sdBullet' ] : [ 'sdBullet' ];
+		return this._key_states.GetKey('KeyX') ? [ 'sdCharacter', 'sdBullet', 'sdWorkbench', 'sdLifeBox' ] : [ 'sdBullet', 'sdWorkbench', 'sdLifeBox' ];
 	}
 	
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
@@ -2312,7 +2313,7 @@ class sdCharacter extends sdEntity
 				}
 			}
 			else
-			if ( from_entity.is( sdHover ) )
+			if ( from_entity.is( sdHover ) || from_entity.is( sdLifeBox ) )
 			{
 				this._potential_vehicle = from_entity;
 			}

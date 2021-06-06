@@ -85,14 +85,13 @@ class sdCube extends sdEntity
 		
 		this._alert_intensity = 0; // Grows until some value and only then it will shoot
 		
-		this.matter_max = (this.kind === 2 ? 6 : this.is_huge ? 4 : 1 ) * 160;
+		this.matter_max = (this.kind === 2 ? 6 : this.kind=== 1 ? 4 : 1 ) * 160;
 		this.matter = this.matter_max;
 		
 		sdCube.alive_cube_counter++;
 		
 		if ( this.kind === 1 )
 		sdCube.alive_huge_cube_counter++;
-
 
 		if ( this.kind === 2 )
 		sdCube.alive_white_cube_counter++;
@@ -558,7 +557,7 @@ class sdCube extends sdEntity
 					let targets = [];
 
 					for ( let i = 0; i < targets_raw.length; i++ )
-					if ( !this.kind === 3 ) // Pink cubes heal friendly entities
+					if ( this.kind !== 3 ) // Pink cubes heal friendly entities
 					{
 						if ( ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ].hea > 0 && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) ||
 							 ( targets_raw[ i ].GetClass() === 'sdTurret' && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) || 

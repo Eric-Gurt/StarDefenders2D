@@ -218,7 +218,7 @@ class sdBullet extends sdEntity
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return this._bouncy ? null : ( this.is_grenade ? [ 'sdCharacter' ] : [ 'sdCharacter', 'sdTurret', 'sdHover', 'sdEnemyMech' , 'sdCube', 'sdAsp', 'sdJunk', 'sdRift', 'sdDrone' ] );
+		return this._bouncy ? null : ( this.is_grenade ? [ 'sdCharacter' ] : [ 'sdCharacter', 'sdTurret', 'sdHover', 'sdEnemyMech' , 'sdCube', 'sdAsp', 'sdJunk', 'sdRift', 'sdDrone', 'sdLifeBox' ] );
 	}
 	get bounce_intensity()
 	{ return this._bouncy ? 0.8 : ( this.is_grenade ? 0.55 : 0.3 ); } // 0.3 not felt right for grenades
@@ -574,6 +574,10 @@ class sdBullet extends sdEntity
 
 							if ( this._custom_target_reaction )
 							this._custom_target_reaction( this, from_entity );
+							if ( from_entity.GetClass() === 'sdLifeBox' )
+							if ( from_entity.driver0 )
+							if ( this.y <= from_entity.y )
+							from_entity.Damage( dmg, this._owner, true );
 
 							if ( from_entity.GetClass() === 'sdTurret' && this._emp === true ) // Disable turrets if they're hit by an EMP bullet
 							{
