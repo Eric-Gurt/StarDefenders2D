@@ -129,8 +129,8 @@ class sdStorage extends sdEntity
 		else
 		{
 			for ( var i = 0; i < sdStorage.slots_tot; i++ )
-			if ( this[ 'item' + slot ] )
-			this[ 'item' + slot ].remove();
+			if ( this[ 'item' + i ] )
+			this[ 'item' + i ].remove();
 		}
 	}
 	MeasureMatterCost()

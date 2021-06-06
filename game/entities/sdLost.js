@@ -11,6 +11,7 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdGun from './sdGun.js';
 import sdCrystal from './sdCrystal.js';
+import sdCharacter from './sdCharacter.js';
 
 class sdLost extends sdEntity
 {
@@ -89,6 +90,13 @@ class sdLost extends sdEntity
 				});
 				sdEntity.entities.push( ent2 );
 				sdWorld.UpdateHashPosition( ent2, false ); // Optional, but will make it visible as early as possible
+				
+				if ( ent.is( sdCharacter ) )
+				if ( ent.hea > 0 )
+				{
+					if ( sdWorld.server_config.onKill )
+					sdWorld.server_config.onKill( ent, bullet._owner );
+				}
 
 				ent.remove();
 				ent._broken = false; // No debris

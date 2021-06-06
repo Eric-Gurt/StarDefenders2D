@@ -2970,7 +2970,7 @@ setInterval( ()=>
 								_class: key.GetClass(), 
 								_net_id: key._net_id,
 								_is_being_removed: true,
-								_broken: key._broken, // key._is_being_removed
+								_broken: key._broken // key._is_being_removed
 							};
 							snapshot.push( snapshot_of_deletion );
 							snapshot_only_statics.push( snapshot_of_deletion );
@@ -2984,11 +2984,15 @@ setInterval( ()=>
 					{
 						if ( !observed_entities_map.has( key ) )
 						{
+							if ( key === socket.character || key === socket.character.driver_of )
+							if ( !key._is_being_removed )
+							return;
+								
 							let snapshot_of_deletion = { 
 								_class: key.GetClass(), 
 								_net_id: key._net_id,
 								_is_being_removed: true,
-								_broken: key._broken,
+								_broken: key._broken
 							};
 							snapshot.push( snapshot_of_deletion );
 						}
