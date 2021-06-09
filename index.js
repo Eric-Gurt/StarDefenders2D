@@ -206,6 +206,7 @@ import sdRift from './game/entities/sdRift.js';
 import sdDrone from './game/entities/sdDrone.js';
 import sdLifeBox from './game/entities/sdLifeBox.js';
 import sdLost from './game/entities/sdLost.js';
+import sdCable from './game/entities/sdCable.js';
 
 
 
@@ -338,6 +339,7 @@ sdRift.init_class();
 sdDrone.init_class();
 sdLifeBox.init_class();
 sdLost.init_class();
+sdCable.init_class();
 
 /* Do like that later, not sure if I want to deal with path problems yet again... Add awaits where needed too
 
@@ -1495,7 +1497,7 @@ try
 			console.warn('entity snapshot wasn\'t decoded because it contains errors: ', e, save_obj.entities[ i ] );
 		}
 	}
-	let arr;
+	/*let arr;
 	for ( i = 0; i < sdWorld.unresolved_entity_pointers.length; i++ )
 	{
 		arr = sdWorld.unresolved_entity_pointers[ i ];
@@ -1509,7 +1511,8 @@ try
 		}
 		
 		//sdWorld.unresolved_entity_pointers.push([ snapshot, prop, snapshot[ prop ]._class, snapshot[ prop ]._net_id ]);
-	}
+	}*/
+	sdWorld.SolveUnresolvedEntityPointers();
 	sdWorld.unresolved_entity_pointers = null;
 
 	console.log('Continuing from where we\'ve stopped (snapshot decoded)!');
@@ -2370,6 +2373,16 @@ io.on("connection", (socket) =>
 			socket.character.RemoveArmor();
 		}
 	});
+	socket.on('REMOVE_EFFECTS', ( arr ) => { 
+		
+		if ( socket.character ) 
+		if ( socket.character.hea > 0 ) 
+		{
+			socket.character.stim_ef = 0;
+			socket.character.power_ef = 0;
+			socket.character.time_ef = 0;
+		}
+	});
 	
 	socket.on('CC_SET_SPAWN', ( arr ) => { 
 		
@@ -2862,70 +2875,60 @@ setInterval( ()=>
 					
 					let meet_once = new WeakSet();
 					
+					const AddEntity = ( ent, forced )=>
+					{
+						if ( !meet_once.has( ent ) )
+						{
+							meet_once.add( ent );
+
+							if ( ent.IsVisible === sdEntity.prototype.IsVisible || 
+								 ent.IsVisible( socket.character ) )
+							{
+								
+								if ( ent.is_static )
+								{
+									observed_statics_map.add( ent );
+
+									if ( snapshot.length < MaxCompleteEntitiesCount || forced )
+									{
+										if ( socket.known_statics_versions_map.get( ent ) !== ent._update_version ) // known_statics_versions_map.get can be undefined which does not equals to _update_version ever. Faster than doing .has
+										{
+											socket.known_statics_versions_map.set( ent, ent._update_version );
+
+											let snap = ent.GetSnapshot( frame, false, socket.character );
+											snapshot.push( snap );
+											snapshot_only_statics.push( snap );
+										}
+									}
+								}
+								else
+								{
+									observed_entities.push( ent );
+									observed_entities_map.add( ent );
+								}
+
+								if ( ent.SyncedToPlayer !== sdEntity.prototype.SyncedToPlayer )
+								ent.SyncedToPlayer( socket.character );
+							
+								if ( ent.getRequiredEntities !== sdEntity.prototype.getRequiredEntities )
+								{
+									let ents = ent.getRequiredEntities();
+									for ( let i = 0; i < ents.length; i++ )
+									AddEntity( ents[ i ], true );
+								}
+							}
+						}
+					};
+					
 					const VisitCell = ( x, y )=>
 					{
 						let arr = sdWorld.RequireHashPosition( x, y );
 						
 						for ( let i2 = 0; i2 < arr.length; i2++ )
 						{
-							let ent = arr[ i2 ];
+							//let ent = arr[ i2 ];
 							
-							if ( !meet_once.has( ent ) )
-							//if ( IfNotMetRecently( ent ) )
-							{
-								meet_once.add( ent );
-
-								if ( ent.IsVisible === sdEntity.prototype.IsVisible || 
-									 ent.IsVisible( socket.character ) )
-								{
-									if ( ent.is_static )
-									{
-										observed_statics_map.add( ent );
-										
-										if ( snapshot.length < MaxCompleteEntitiesCount )
-										{
-											/*if ( socket.known_statics_versions_map.has( ent ) )
-											{
-												//if ( socket.known_statics_versions_map.get( ent ) !== ent._update_version && snapshot.length < MaxCompleteEntitiesCount )
-												if ( socket.known_statics_versions_map.get( ent ) !== ent._update_version )
-												{
-													socket.known_statics_versions_map.set( ent, ent._update_version ); // Why it was missing?
-
-													let snap = ent.GetSnapshot( frame, false, socket.character );
-													snapshot.push( snap ); // Update actually needed
-													snapshot_only_statics.push( snap );
-												}
-											}
-											else
-											//if ( snapshot.length < MaxCompleteEntitiesCount )
-											{
-												socket.known_statics_versions_map.set( ent, ent._update_version );
-
-												let snap = ent.GetSnapshot( frame, false, socket.character );
-												snapshot.push( snap );
-												snapshot_only_statics.push( snap );
-											}*/
-											
-											if ( socket.known_statics_versions_map.get( ent ) !== ent._update_version ) // known_statics_versions_map.get can be undefined which does not equals to _update_version ever. Faster than doing .has
-											{
-												socket.known_statics_versions_map.set( ent, ent._update_version );
-												
-												let snap = ent.GetSnapshot( frame, false, socket.character );
-												snapshot.push( snap );
-												snapshot_only_statics.push( snap );
-											}
-										}
-									}
-									else
-									{
-										observed_entities.push( ent );
-										observed_entities_map.add( ent );
-									}
-
-									if ( ent.SyncedToPlayer !== sdEntity.prototype.SyncedToPlayer )
-									ent.SyncedToPlayer( socket.character );
-								}
-							}
+							AddEntity( arr[ i2 ], false );
 						}
 					};
 

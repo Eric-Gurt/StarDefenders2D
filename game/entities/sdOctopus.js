@@ -249,6 +249,7 @@ class sdOctopus extends sdEntity
 			if ( this.hurt_timer > 0 )
 			this.hurt_timer = Math.max( 0, this.hurt_timer - GSPEED * 0.075 );
 		
+			if ( this.hurt_timer <= 0 ) // Allow being stunned from damage since they deal higher damage now
 			if ( this._current_target )
 			if ( this._last_bite < sdWorld.time - 1000 )
 			{
@@ -326,7 +327,7 @@ class sdOctopus extends sdEntity
 						 ( typeof from_entity._hea !== 'undefined' && from_entity._hea <= 0 ) )*/
 					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
 					{
-						from_entity.Damage( 50, this );
+						from_entity.Damage( 75, this );
 						
 						if ( from_entity._is_being_removed )
 						if ( from_entity.GetClass() === 'sdGun' )

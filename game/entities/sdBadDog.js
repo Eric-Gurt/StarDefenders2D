@@ -69,7 +69,7 @@ class sdBadDog extends sdEntity
 		this._retreat_hp_mult = 0.5; // Goes closer to 1 each time and at some point makes creature friendly?
 		
 		this.master = null;
-		this.owned = 0; // Server sets this to true because this.master will be null in most cases for lost dogs
+		this.owned = 0; // Server sets this to true because this.master will be null on client-side in most cases for lost dogs
 		
 		this.death_anim = 0;
 		

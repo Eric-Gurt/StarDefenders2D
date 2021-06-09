@@ -41,7 +41,7 @@ class sdGrass extends sdEntity
 			this._update_version++;
 		}
 	}
-	Damage( dmg, initiator=null ) // Case of lava damage?
+	Damage( dmg, initiator=null ) // Case of lava damage? Also throwable swords.
 	{
 		if ( !sdWorld.is_server )
 		return;

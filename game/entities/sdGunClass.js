@@ -6,6 +6,7 @@ import sdCharacter from './sdCharacter.js';
 import sdBlock from './sdBlock.js';
 import sdGun from './sdGun.js';
 import sdLost from './sdLost.js';
+import sdCable from './sdCable.js';
 import sdEntity from './sdEntity.js';
 
 class sdGunClass
@@ -238,11 +239,13 @@ class sdGunClass
 			count: 1,
 			matter_cost: 300,
 			projectile_velocity: 16,
-			projectile_properties: { time_left: 2, _damage: 50, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
+			projectile_properties: { time_left: 2, _damage: 40, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
 				{
 					if ( target_entity.is( sdCharacter ) )
 					{
-						target_entity.stim_ef = 30 * 10;
+						target_entity.stim_ef = 30 * 30;
+						
+						bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_STIMPACK ].slot ].remove();
 					}
 				}
 			}
@@ -877,6 +880,132 @@ class sdGunClass
 				}
 			}
 		};
+		
+		sdGun.classes[ sdGun.CLASS_CABLE_TOOL = 40 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'cable_tool' ),
+			sound: 'gun_defibrillator',
+			title: 'Cable tool',
+			sound_pitch: 0.25,
+			slot: 7,
+			reload_time: 15,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			matter_cost: 300,
+			projectile_velocity: 16,
+			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', _custom_target_reaction:( bullet, target_entity )=>
+				{
+					/*if ( target_entity.is( sdCharacter ) )
+					{
+						target_entity.stim_ef = 30 * 10;
+					}*/
+					
+					if ( sdCable.attacheable_entities.indexOf( target_entity.GetClass() ) !== -1 )
+					{
+						if ( bullet._owner._current_built_entity && !bullet._owner._current_built_entity._is_being_removed )
+						{
+							if ( sdCable.GetConnectedEntities( target_entity ).indexOf( bullet._owner._current_built_entity.p ) !== -1 )
+							{
+								bullet._owner.Say( ( bullet._owner._current_built_entity.p.title || bullet._owner._current_built_entity.p.GetClass() ) + ' and ' + 
+										( target_entity.title || target_entity.GetClass() ) + ' are already connected' );
+							}
+							else
+							if ( target_entity === bullet._owner._current_built_entity.p )
+							{
+								bullet._owner.Say( 'Connecting cable end to same ' + ( target_entity.title || target_entity.GetClass() ) + ' does not make sense' );
+							}
+							else
+							{
+								//bullet._owner._current_built_entity.SetChild( target_entity );
+								bullet._owner._current_built_entity.c = target_entity;
+								bullet._owner._current_built_entity.d[ 2 ] = bullet.x - target_entity.x;
+								bullet._owner._current_built_entity.d[ 3 ] = bullet.y - target_entity.y;
+
+								bullet._owner.Say( 'End connected to ' + ( target_entity.title || target_entity.GetClass() ) );
+
+								bullet._owner._current_built_entity._update_version++;
+
+								bullet._owner._current_built_entity = null;
+							}
+						}
+						else
+						{
+							let ent = new sdCable({ 
+								x: bullet.x, 
+								y: bullet.y, 
+								parent: target_entity,
+								child: bullet._owner,
+								offsets: [ bullet.x - target_entity.x, bullet.y - target_entity.y, 0,0 ],
+								type: sdCable.TYPE_MATTER
+							});
+
+							bullet._owner._current_built_entity = ent;
+							bullet._owner.Say( 'Start connected to ' + ( target_entity.title || target_entity.GetClass() ) );
+							
+							sdEntity.entities.push( ent );
+						}
+					}
+					else
+					{
+						bullet._owner.Say( 'Cable can not be attached to ' + ( target_entity.title || target_entity.GetClass() ) );
+					}
+				}
+			}
+		};
+		
+		
+		sdGun.classes[ sdGun.CLASS_POWER_PACK = 41 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'powerpack' ),
+			sound: 'gun_defibrillator',
+			title: 'Power pack',
+			sound_pitch: 0.5,
+			slot: 7,
+			reload_time: 30 * 3,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			matter_cost: 300 / 2 * 2.5, // More DPS relative to stimpack
+			projectile_velocity: 16,
+			projectile_properties: { time_left: 2, _damage: 40, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
+				{
+					if ( target_entity.is( sdCharacter ) )
+					{
+						target_entity.power_ef = 30 * 30;
+						
+						bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_STIMPACK ].slot ].remove();
+					}
+				}
+			}
+		};
+		
+		sdGun.classes[ sdGun.CLASS_TIME_PACK = 42 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'timepack' ),
+			sound: 'gun_defibrillator',
+			title: 'Time pack',
+			sound_pitch: 0.5,
+			slot: 7,
+			reload_time: 30 * 3,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			matter_cost: 1000, // More DPS relative to stimpack
+			projectile_velocity: 16,
+			projectile_properties: { time_left: 2, _damage: 40, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
+				{
+					if ( target_entity.is( sdCharacter ) )
+					{
+						target_entity.time_ef = 30 * 30 * 0.3;
+						
+						bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_STIMPACK ].slot ].remove();
+					}
+				}
+			}
+		};
+		
+		
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];

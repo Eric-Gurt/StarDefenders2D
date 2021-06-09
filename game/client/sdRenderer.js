@@ -639,42 +639,63 @@ class sdRenderer
 				}
 				ctx.restore();
 				
-				var best_ent = null;
-				var best_di = -1;
-				
-				for ( var i = 0; i < sdEntity.entities.length; i++ )
-				if ( sdEntity.entities[ i ].DrawHUD !== sdEntity.prototype.DrawHUD )
+				if ( !sdContextMenu.open )
 				{
-					var di = sdWorld.inDist2D( sdWorld.my_entity.look_x, sdWorld.my_entity.look_y, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, 32 );
-					if ( di >= 0 )
+					var best_ent = null;
+					var best_di = -1;
+
+					for ( var i = 0; i < sdEntity.entities.length; i++ )
+					if ( sdEntity.entities[ i ].DrawHUD !== sdEntity.prototype.DrawHUD )
 					{
-						if ( di < best_di || best_ent === null )
+						// If cursor overlaps
+						var di = sdEntity.entities[ i ].GetAccurateDistance( sdWorld.my_entity.look_x, sdWorld.my_entity.look_y );
+						
+						/*
+						
+						var di = sdWorld.inDist2D(	sdWorld.my_entity.look_x, 
+													sdWorld.my_entity.look_y, 
+													Math.min( Math.max( sdEntity.entities[ i ].x + sdEntity.entities[ i ]._hitbox_x1, sdWorld.my_entity.look_x ), sdEntity.entities[ i ].x + sdEntity.entities[ i ]._hitbox_x2 ), 
+													Math.min( Math.max( sdEntity.entities[ i ].y + sdEntity.entities[ i ]._hitbox_y1, sdWorld.my_entity.look_y ), sdEntity.entities[ i ].y + sdEntity.entities[ i ]._hitbox_y2 ), 8 );
+													
+						if ( di >= 0 ) */
+						if ( di < 12 )
 						{
-							best_ent = sdEntity.entities[ i ];
-							best_di = di;
+							if ( di <= 0 )
+							di -= 1;
+						
+							// Prioritize physical center
+							di += sdWorld.Dist2D( sdWorld.my_entity.look_x, 
+												  sdWorld.my_entity.look_y,
+												  sdEntity.entities[ i ].x + ( sdEntity.entities[ i ]._hitbox_x1 + sdEntity.entities[ i ]._hitbox_x2 ) / 2,
+												  sdEntity.entities[ i ].y + ( sdEntity.entities[ i ]._hitbox_y1 + sdEntity.entities[ i ]._hitbox_y2 ) / 2 ) * 0.001;
+
+							if ( di < best_di || best_ent === null )
+							{
+								best_ent = sdEntity.entities[ i ];
+								best_di = di;
+							}
 						}
 					}
-				}
-				if ( best_ent )
-				if ( best_ent !== sdWorld.my_entity )
-				if ( best_ent !== sdWorld.my_entity.driver_of )
-				{
-					ctx.save();
-					try
+					if ( best_ent )
+					if ( best_ent !== sdWorld.my_entity )
+					if ( best_ent !== sdWorld.my_entity.driver_of )
 					{
-						ctx.translate( best_ent.x, best_ent.y );
+						ctx.save();
+						try
+						{
+							ctx.translate( best_ent.x, best_ent.y );
 
-						// TODO: Add bounds check, thought that is maybe pointless if server won't tell offscreen info
-						best_ent.DrawHUD( ctx, false );
+							// TODO: Add bounds check, thought that is maybe pointless if server won't tell offscreen info
+							best_ent.DrawHUD( ctx, false );
+						}
+						catch( e )
+						{
+							console.log( 'Image could not be drawn for ',best_ent,e );
+						}
+						ctx.restore();
 					}
-					catch( e )
-					{
-						console.log( 'Image could not be drawn for ',best_ent,e );
-					}
-					ctx.restore();
+					sdWorld.hovered_entity = best_ent;
 				}
-				
-				sdWorld.hovered_entity = best_ent;
 				
 
 				if ( sdWeather.only_instance )

@@ -148,6 +148,19 @@ class sdWorld
 		sdWorld.draw_operation_no_parameters[ 3 ] = true;
 		
 		
+	
+		sdWorld.reusable_closest_point = {
+			x: 0,
+			y: 0,
+			SetV: ( v )=>{
+				sdWorld.reusable_closest_point.x = v.x;
+				sdWorld.reusable_closest_point.y = v.y;
+			},
+			Set: ( a, b )=>{
+				sdWorld.reusable_closest_point.x = a;
+				sdWorld.reusable_closest_point.y = b;
+			}
+		};
 
 		sdWorld.fake_empty_array = { length:0 };
 		Object.freeze( sdWorld.fake_empty_array );
@@ -771,6 +784,7 @@ class sdWorld
 				}
 				else
 				{
+					// Should be pointless now
 					if ( e.is( sdBlock ) )
 					if ( e._contains_class !== null )
 					e._contains_class = null;
@@ -781,9 +795,14 @@ class sdWorld
 					e._broken = false;
 					
 					
+					
 					let id_in_active = sdEntity.active_entities.indexOf( e );
 					if ( id_in_active !== -1 )
-					sdEntity.active_entities.splice( id_in_active, 1 );
+					{
+						debugger; // Doesn't _remove handles it by changing hiberstate?
+						
+						sdEntity.active_entities.splice( id_in_active, 1 );
+					}
 					
 					
 					
@@ -1168,6 +1187,29 @@ class sdWorld
 		}
 	}
 	
+	static SolveUnresolvedEntityPointers()
+	{
+		if ( sdWorld.unresolved_entity_pointers )
+		{
+			let arr;
+			for ( let i = 0; i < sdWorld.unresolved_entity_pointers.length; i++ )
+			{
+				arr = sdWorld.unresolved_entity_pointers[ i ];
+
+				arr[ 0 ][ arr[ 1 ] ] = sdEntity.GetObjectByClassAndNetId( arr[ 2 ], arr[ 3 ] );
+
+				if ( arr[ 0 ][ arr[ 1 ] ] === null )
+				{
+					console.warn('Entity pointer could not be resolved even at later stage for ' + arr[ 0 ].GetClass() + '.' + arr[ 1 ] + ' :: ' + arr[ 2 ] + ' :: ' + arr[ 3 ] );
+					debugger;
+				}
+			}
+			sdWorld.unresolved_entity_pointers = null;
+		}
+		else
+		debugger; // Do sdWorld.unresolved_entity_pointers = []; before applying snapshots
+	}
+	
 
 	static shuffleArray(array) {
 		for (let i = array.length - 1; i > 0; i--) {
@@ -1229,6 +1271,34 @@ class sdWorld
 
 		return true;
 	}
+	
+	static sqr( x )
+	{ return x * x; }
+	static dist2( v, w )
+	{ return sdWorld.sqr( v.x - w.x ) + sdWorld.sqr( v.y - w.y ); }
+	static distToSegmentSquared( p, v, w ) // p is tested point, v and w is a segment
+	{
+		var l2 = sdWorld.dist2( v, w );
+		if ( l2 === 0 )
+		{
+			sdWorld.reusable_closest_point.SetV( v );
+			return sdWorld.dist2( p, v );
+		}
+		var t = ( ( p.x - v.x ) * ( w.x - v.x ) + ( p.y - v.y ) * ( w.y - v.y ) ) / l2;
+
+		if ( t < 0 )
+		sdWorld.reusable_closest_point.SetV( v );
+		else
+		if ( t > 1 )
+		sdWorld.reusable_closest_point.SetV( w );
+		else
+		sdWorld.reusable_closest_point.Set( v.x + t * ( w.x - v.x ), v.y + t * ( w.y - v.y ) );
+
+		return sdWorld.dist2( p, sdWorld.reusable_closest_point );
+	}
+	static distToSegment( p, v, w ) // Can be updated into inDistToSegment() to avoid unneded calculations // p is tested point, v and w is a segment
+	{ return Math.sqrt( sdWorld.distToSegmentSquared( p, v, w ) ); }
+	
 	static MorphWithTimeScale( current, to, remain, _GSPEED, snap_range=0 )
 	{
 		remain = Math.pow( remain, _GSPEED );
@@ -1564,6 +1634,8 @@ class sdWorld
 			let arr_i;
 			let arr;
 			let i;
+			let i2;
+			let best_warp;
 			let e;
 			let time_from;
 			let time_to;
@@ -1575,6 +1647,39 @@ class sdWorld
 			let gspeed_mult;
 			let substeps_mult;
 			let skip_frames;
+			
+			let timewarps = null;
+			
+			if ( sdWorld.is_server )
+			{
+				for ( i = 0; i < sdWorld.sockets.length; i++ )
+				if ( sdWorld.sockets[ i ].character )
+				if ( sdWorld.sockets[ i ].character.hea > 0 )
+				if ( !sdWorld.sockets[ i ].character._is_being_removed )
+				if ( sdWorld.sockets[ i ].character.time_ef > 0 )
+				{
+					if ( timewarps === null )
+					timewarps = [];
+
+					timewarps.push( { x: sdWorld.sockets[ i ].character.x, y: sdWorld.sockets[ i ].character.y, e: sdWorld.sockets[ i ].character, r: 64 } );
+				}
+			}
+			else
+			{
+				for ( i = 0; i < sdEntity.active_entities.length; i++ )
+				{
+					if ( sdEntity.active_entities[ i ].is( sdCharacter ) )
+					if ( sdEntity.active_entities[ i ].hea > 0 )
+					if ( !sdEntity.active_entities[ i ]._is_being_removed )
+					if ( sdEntity.active_entities[ i ].time_ef > 0 )
+					{
+						if ( timewarps === null )
+						timewarps = [];
+
+						timewarps.push( { x: sdEntity.active_entities[ i ].x, y: sdEntity.active_entities[ i ].y, e: sdEntity.active_entities[ i ], r: 64 } );
+					}
+				}
+			}
 
 			for ( i = 0; i < sdWorld.static_think_methods.length; i++ )
 			sdWorld.static_think_methods[ i ]( GSPEED );
@@ -1610,6 +1715,29 @@ class sdWorld
 						}
 						else
 						continue;
+					}
+					
+					if ( timewarps )
+					{
+						best_warp = 1;
+						for ( i2 = 0; i2 < timewarps.length; i2++ )
+						{
+							if ( sdWorld.inDist2D_Boolean( timewarps[ i2 ].x, timewarps[ i2 ].y, e.x, e.y, timewarps[ i2 ].r ) )
+							{
+								if ( e === timewarps[ i2 ].e || e === timewarps[ i2 ].e.driver_of || ( e.is( sdGun ) && e._held_by === timewarps[ i2 ].e ) )
+								{
+									best_warp = 0.3;
+									break;
+								}
+								else
+								{
+									if ( best_warp === 1 )
+									best_warp = 0.15;
+								}
+							}
+						}
+						
+						gspeed_mult = best_warp;
 					}
 					
 					if ( DEBUG_TIME_MODE )
@@ -1659,14 +1787,19 @@ class sdWorld
 							continue loop1; // Or else it will try to get removed in each substep of a bullet
 						}
 						
+						e.UpdateHitbox();
+						
 						if ( e._last_x !== e.x ||
 							 e._last_y !== e.y )
 						{
 							if ( !e._is_being_removed )
-							sdWorld.UpdateHashPosition( e, false );
+							{
+								sdWorld.UpdateHashPosition( e, false );
+								
+								if ( e._listeners ) // Should be faster than passing string
+								e.callEventListener( 'MOVES' );
+							}
 						}
-						
-						e.UpdateHitbox();
 					}
 					
 					if ( DEBUG_TIME_MODE )
@@ -2071,7 +2204,7 @@ class sdWorld
 	
 		return false;
 	}*/
-	static CheckLineOfSight( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null )
+	static CheckLineOfSight( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
 	{
 		var di = sdWorld.Dist2D( x1,y1,x2,y2 );
 		//var step = 16;
@@ -2081,12 +2214,12 @@ class sdWorld
 		{
 			var x = x1 + ( x2 - x1 ) / di * s;
 			var y = y1 + ( y2 - y1 ) / di * s;
-			if ( sdWorld.CheckWallExists( x, y, ignore_entity, ignore_entity_classes, include_only_specific_classes ) )
+			if ( sdWorld.CheckWallExists( x, y, ignore_entity, ignore_entity_classes, include_only_specific_classes, custom_filtering_method ) )
 			return false;
 		}
 		return true;
 	}
-	static CheckWallExists( x, y, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null )
+	static CheckWallExists( x, y, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
 	{
 		if ( y < sdWorld.world_bounds.y1 || 
 			 y > sdWorld.world_bounds.y2 || 
@@ -2127,8 +2260,14 @@ class sdWorld
 					if ( ignore_entity_classes.indexOf( arr[ i ].GetClass() ) !== -1 )
 					continue;
 					
-					sdWorld.last_hit_entity = arr[ i ];
-					return true;
+					//sdWorld.last_hit_entity = arr[ i ];
+					//return true;
+					
+					if ( custom_filtering_method === null || custom_filtering_method( arr[ i ] ) )
+					{
+						sdWorld.last_hit_entity = arr[ i ];
+						return true;
+					}
 				}
 			}
 		}
@@ -2649,8 +2788,24 @@ class sdWorld
 }
 //sdWorld.init_class();
 
-
-
+/*
+// When probability matters on a scale of N cases
+class ConsistentRandom
+{
+	static init_class()
+	{
+		ConsistentRandom.keys = {};
+	}
+	static GetRandomFrom( key, options ) // sdWorld.GetRandomFrom( 'cube_drop', [ 0.5, 0.1, 0.2 ] )
+	{
+		if ( typeof ConsistentRandom.keys[ key ] === 'undefined' )
+		{
+			ConsistentRandom.keys
+		}
+	}
+}
+ConsistentRandom.init_class();
+*/
 
 class SeededRandomNumberGenerator
 {
@@ -2677,3 +2832,5 @@ class SeededRandomNumberGenerator
 
 }
 export default sdWorld;
+	
+	

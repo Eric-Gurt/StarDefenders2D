@@ -3,7 +3,10 @@
 	Crystalized non-sdCrystal entities, as a result of being damaged by powerful weaponry, possibly ones that belong to bosses. 
 	Most probably rescue teleports should not work in case of these unless updated to level 3 or something like that.
 
-	Should be gold-colored
+	Should be gold-colored, but quite possibly freezing effect can be achieved with these - for that case some private property can keep 
+	JSON.stringify representation of original entity (with "save_as_much_as_possible"). I expect it to be working really bad with sockets & score reassigning though, 
+	especially when socket disconnects in the middle of frozen state. Maybe such frozen state can be better if it will be achieved with actual sdCharacter's public 
+	property like "frozen" which only applies filter and disables any animations (or maybe simply implements sdLost's onThink logic instead of current one)
 
 */
 import sdWorld from '../sdWorld.js';
@@ -32,6 +35,7 @@ class sdLost extends sdEntity
 			 ( !ent.hard_collision && ( ( ent.is( sdGun ) && ent.class !== sdGun.CLASS_CRYSTAL_SHARD ) || is_dead ) ) ) // Not for BG entities
 		if ( ent.IsBGEntity() === 0 ) // Not for BG entities
 		if ( ent.IsTargetable() )
+		//if ( !ent.is( sdCharacter ) || !ent._god ) Should be handled by impossibility of damage
 		//if ( ent.IsTargetable() || is_dead )
 		{
 			if ( ( typeof ent._armor_protection_level === 'undefined' || bullet._armor_penetration_level >= ent._armor_protection_level ) &&
@@ -53,7 +57,7 @@ class sdLost extends sdEntity
 		
 			let mult = hea - hea2;
 			
-			if ( mult < 0 )
+			if ( mult <= 0 )
 			return;
 			
 			if ( mult > 1 )
@@ -162,7 +166,7 @@ class sdLost extends sdEntity
 		this._matter_max = params.matter_max;
 
 		this._matter = this._matter_max;
-		this._hea = Math.max( ( params.hea || 1 ) * 0.2, 30 );
+		this._hea = Math.max( ( params.hea || 1 ) * 0.2, 60 );
 		
 		this.d3d = params.d3d || 0;
 		

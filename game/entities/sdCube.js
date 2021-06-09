@@ -18,9 +18,9 @@ class sdCube extends sdEntity
 		sdCube.img_cube_sleep = sdWorld.CreateImageFromFile( 'cube_sleep' );
 		
 		sdCube.alive_cube_counter = 0;
-		sdCube.alive_huge_cube_counter = 0;
-		sdCube.alive_white_cube_counter = 0;
-		sdCube.alive_pink_cube_counter = 0;
+		sdCube.alive_huge_cube_counter = 0; // 1
+		sdCube.alive_white_cube_counter = 0; // 2
+		sdCube.alive_pink_cube_counter = 0; // 3
 		
 		sdCube.death_duration = 10;
 		sdCube.post_death_ttl = 90;
@@ -38,6 +38,25 @@ class sdCube extends sdEntity
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
+	
+	static GetMaxAllowedCubesOfKind( kind ) // kind of 0 will return total maximum number
+	{
+		if ( kind === 0 )
+		return Math.max( 20, Math.min( sdWorld.GetPlayingPlayersCount() * 5, 40 ) );
+	
+		if ( kind === 1 ) // yellow
+		return sdWorld.GetPlayingPlayersCount() * 1.5;
+	
+		if ( kind === 2 ) // white
+		return 1;
+	
+		if ( kind === 3 ) // pink
+		return 2;
+	
+		debugger; // Limit is not set for this kind
+		return 1; 
+	}
+	
 	get hitbox_x1() { return -5 * ( this.kind === 2 ? 3 : this.kind === 1 ? 2 : this.kind === 3 ? 0.6 : 1 ); }
 	get hitbox_x2() { return 5 * ( this.kind === 2 ? 3 : this.kind === 1 ? 2 : this.kind === 3 ? 0.6 : 1 ); }
 	get hitbox_y1() { return -5 * ( this.kind === 2 ? 3 : this.kind === 1 ? 2 : this.kind === 3 ? 0.6 : 1 ); }
@@ -129,7 +148,7 @@ class sdCube extends sdEntity
 		let was_alive = this.hea > 0;
 		
 		this.hea -= dmg;
-		this.hea = Math.min( this.hea, this._hmax ) // Prevent overhealing
+		this.hea = Math.min( this.hea, this._hmax ); // Prevent overhealing
 		
 		if ( this.hea > 0 )
 		{
@@ -173,7 +192,7 @@ class sdCube extends sdEntity
 			//console.log( 'CLASS_TRIPLE_RAIL drop chances: ' + r + ' < ' + ( this.kind === 1 ? 0.4 : 0.1 ) * 0.25 );
 			
 			//if ( r < ( this.kind === 1 ? 0.4 : 0.1 ) * 0.5 ) // 0.25 was not enough for some rather strange reason (something like 1 drop out of 55 cube kills that wasn't even noticed by anyone)
-			if ( r < (this.kind === 2 ? 0.55 : this.kind === 1 ? 0.4 : 0.1 ) * 0.6 ) // Higher chance just for some time at least?
+			if ( r < ( this.kind === 2 ? 0.55 : this.kind === 1 ? 0.4 : 0.1 ) * 0.6 ) // Higher chance just for some time at least?
 			{
 				//if ( r < ( this.kind === 2 ? 0.55 : this.kind === 1 ? 0.4 : 0.1 ) * 1 ) // 2x chance of triple rail to drop, only when triple rail does not drop
 				// We actually can get a case when sum of both chances becomes something like 0.4 + ( 1 - 0.4 ) * 0.4 = 0.64 chance of dropping anything from big cubes, maybe it could be too high and thus value of guns could become not so valuable
@@ -189,15 +208,36 @@ class sdCube extends sdEntity
 
 						let gun;
 
-						if ( random_value < 0.333 && this.kind !== 3 )
+						const probability_lost_converter = 0.075;
+						const probability_shotgun = 0.1;
+						const probability_triple_rail = 0.233;
+						
+						let total_drop_probability = 0; // In else case it is always pistol or healing ray gun
+						
+						if ( this.kind === 1 )
+						total_drop_probability += probability_lost_converter + probability_shotgun + probability_triple_rail;
+						else
+						total_drop_probability += probability_shotgun + probability_triple_rail;
+
+						if ( random_value < total_drop_probability && this.kind !== 3 )
 						{
-							if ( this.kind === 1 && random_value < 0.05 )
-							gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_LOST_CONVERTER });
+							if ( this.kind === 1 )
+							{
+								if ( random_value < probability_lost_converter )
+								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_LOST_CONVERTER });
+								else
+								if ( random_value < random_value < probability_lost_converter + probability_shotgun )
+								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_SHOTGUN });
+								else
+								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_TRIPLE_RAIL });
+							}
 							else
-							if ( random_value < 0.15 ) // When it was 0.25 it actually had a bigger chance than triple rail since it doesn't re-roll random value
-							gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_SHOTGUN });
-							else
-							gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_TRIPLE_RAIL });
+							{
+								if ( random_value < probability_shotgun )
+								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_SHOTGUN });
+								else
+								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_TRIPLE_RAIL });
+							}
 						}
 						else
 						gun = new sdGun({ x:x, y:y, class:this.kind === 3 ? sdGun.CLASS_HEALING_RAY : sdGun.CLASS_RAIL_PISTOL });
@@ -601,6 +641,7 @@ class sdCube extends sdEntity
 							setTimeout(()=>
 							{
 								if ( !this._is_being_removed )
+								if ( this.hea > 0 ) // Not disabled in time
 								{
 									let an = Math.atan2( targ.y - this.y, targ.x - this.x );
 
@@ -612,7 +653,8 @@ class sdCube extends sdEntity
 									bullet_obj.sx *= 16;
 									bullet_obj.sy *= 16;
 
-									bullet_obj.time_left = 60;
+									//bullet_obj.time_left = 60;
+									bullet_obj.time_left = 80;
 
 									for ( var p in sdGun.classes[ sdGun.CLASS_LOST_CONVERTER ].projectile_properties )
 									bullet_obj[ p ] = sdGun.classes[ sdGun.CLASS_LOST_CONVERTER ].projectile_properties[ p ];
@@ -642,7 +684,18 @@ class sdCube extends sdEntity
 
 							bullet_obj._rail = true;
 
-							bullet_obj._damage = this.kind === 3 ? -15 : 15;
+							bullet_obj._damage = 15;
+							
+							if ( this.kind === 1 || this.kind === 2 )
+							{
+								bullet_obj._damage = 18;
+							}
+							
+							if ( this.kind === 3 )
+							{
+								bullet_obj._damage = -15;
+							}
+							
 							bullet_obj.color = this.kind === 3 ? '#ff00ff' : '#ffffff'; // Cube healing rays are pink to distinguish them from damaging rails
 
 							sdEntity.entities.push( bullet_obj );

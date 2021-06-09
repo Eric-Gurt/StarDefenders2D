@@ -207,7 +207,7 @@ class sdCharacter extends sdEntity
 	
 		return ( this.driver_of === null );
 	}
-	get _old_score() // Obsolete now
+	/*get _old_score() // Obsolete now
 	{
 		debugger;
 		return 0;
@@ -215,7 +215,7 @@ class sdCharacter extends sdEntity
 	set _old_score( v ) // Obsolete now
 	{
 		debugger;
-	}
+	}*/
 	constructor( params )
 	{
 		super( params );
@@ -233,10 +233,10 @@ class sdCharacter extends sdEntity
 		this.driver_of = null;
 		this._potential_vehicle = null; // Points at vehicle which player recently did hit
 		
-		this._listeners = {
+		/*this._listeners = {
 			DAMAGE: [],
 			REMOVAL: []
-		};
+		};*/
 		
 		this._ai = null; // Object, won't be saved to snapshot
 		this._ai_enabled = false;
@@ -262,6 +262,8 @@ class sdCharacter extends sdEntity
 		this._fall_sound_time = 0;
 		
 		this._auto_shoot_in = 0; // Timer, when above 0 player can not switch weapon or drop weapon nor shoot. Once it reaches 0 - player will automatically shoot, probably
+		
+		this._current_built_entity = null; // For entities that are built in 2 or more stages, usually with help of separate weapon. These include sdCable-s
 		
 		this.sx = 0;
 		this.sy = 0;
@@ -381,6 +383,8 @@ class sdCharacter extends sdEntity
 		this.matter_max = sdCharacter.starter_matter;
 		
 		this.stim_ef = 0; // Stimpack effect
+		this.power_ef = 0; // Damage multiplication effect
+		this.time_ef = 0; // GSPEED manipulations
 		
 		this._matter_old = this.matter;
 		
@@ -597,6 +601,7 @@ class sdCharacter extends sdEntity
 			
 			setTimeout( ()=>
 			{
+				if ( this.hea > 0 )
 				this.Say( [ 
 					'Ok then', 
 					'That was close', 
@@ -643,8 +648,9 @@ class sdCharacter extends sdEntity
 			return;
 		}
 	
-		for ( var i = 0; i < this._listeners.DAMAGE.length; i++ )
-		this._listeners.DAMAGE[ i ]( this, dmg, initiator );
+		//for ( var i = 0; i < this._listeners.DAMAGE.length; i++ )
+		//this._listeners.DAMAGE[ i ]( this, dmg, initiator );
+		this.callEventListener( 'DAMAGE', this, dmg, initiator );
 	
 		if ( dmg > 0 )
 		{
@@ -1573,9 +1579,12 @@ class sdCharacter extends sdEntity
 		}
 		
 		if ( this.stim_ef > 0 )
-		{
-			this.stim_ef = Math.max( 0, this.stim_ef - GSPEED );
-		}
+		this.stim_ef = Math.max( 0, this.stim_ef - GSPEED );
+		if ( this.power_ef > 0 )
+		this.power_ef = Math.max( 0, this.power_ef - GSPEED );
+		if ( this.time_ef > 0 )
+		this.time_ef = Math.max( 0, this.time_ef - GSPEED );
+	
 		
 		//let new_x = this.x + this.sx * GSPEED;
 		//let new_y = this.y + this.sy * GSPEED;
@@ -2156,8 +2165,9 @@ class sdCharacter extends sdEntity
 			this._socket.emit('REMOVE sdWorld.my_entity', this._net_id );
 		}
 		
-		for ( var i = 0; i < this._listeners.REMOVAL.length; i++ )
-		this._listeners.REMOVAL[ i ]( this );
+		// Done by sdEntity now
+		//for ( var i = 0; i < this._listeners.REMOVAL.length; i++ )
+		//this._listeners.REMOVAL[ i ]( this );
 	
 		//console.log( this.title + '['+this._net_id+'] is being removed' );
 		sdCharacter.characters.splice( sdCharacter.characters.indexOf( this ), 1 );
@@ -2619,6 +2629,17 @@ class sdCharacter extends sdEntity
 		//ctx.filter = this.filter;
 		ctx.sd_filter = this.sd_filter;
 		
+		if ( this.stim_ef > 0 )
+		ctx.filter = 'sepia(1) hue-rotate(-50deg) contrast(0.8) saturate(7) drop-shadow(0px 0px 1px #ff0000)';
+	
+		if ( this.power_ef > 0 )
+		ctx.filter = 'sepia(1) hue-rotate(140deg) contrast(0.8) saturate(7) drop-shadow(0px 0px 1px #33ffff)';
+	
+		if ( this.time_ef > 0 )
+		ctx.filter = 'grayscale(1) brightness(0.5) contrast(1.5) drop-shadow(0px 0px 1px #000000)';
+		
+		const char_filter = ctx.filter;
+		
 		if ( !attached )
 		if ( this.hook_x !== 0 || this.hook_y !== 0 )
 		{
@@ -2860,8 +2881,10 @@ class sdCharacter extends sdEntity
 						ctx.rotate( Math.atan2( 
 							( this.y - this.look_y ) , 
 							( ( this.x - this.look_x ) * this._side ) ) - Math.PI );*/
-
+						
+						ctx.filter = 'none';
 						this._inventory[ this.gun_slot ].Draw( ctx, true );
+						ctx.filter = char_filter;
 					}
 					ctx.restore();
 					ctx.sd_filter = this.sd_filter;
@@ -2872,18 +2895,18 @@ class sdCharacter extends sdEntity
 
 				this.DrawHelmet( ctx, frame );
 
-				//ctx.filter = 'none';
+				ctx.filter = 'none';
 				ctx.sd_filter = null;
-
 				if ( this.flying )
 				{
 					ctx.drawImageFilterCache( sdCharacter.img_jetpack, - 16, - 16, 32,32 );
 				}
+				//ctx.filter = char_filter;
 			}
 
 		}
 		
-		//ctx.filter = 'none';
+		ctx.filter = 'none';
 		ctx.sd_filter = null;
 	}
 	MeasureMatterCost()

@@ -102,12 +102,24 @@ class sdGun extends sdEntity
 			if ( from_entity.is( sdRift ) ) // Ignore portals
 			return;
 		
-			if ( from_entity.is( sdArea ) )
-			if ( from_entity.type === sdArea.TYPE_PREVENT_DAMAGE )
+			if ( from_entity.IsBGEntity() === 0 || from_entity.IsBGEntity() === 1 )
 			{
-				this.dangerous = false;
+			}
+			else
+			if ( from_entity.IsBGEntity() === 2 )
+			{
+				if ( from_entity.is( sdArea ) )
+				if ( from_entity.type === sdArea.TYPE_PREVENT_DAMAGE )
+				{
+					this.dangerous = false;
+					return;
+				}
+			}
+			else
+			{
 				return;
 			}
+		
 			
 			let from_entity_ignored_classes = from_entity.GetIgnoredEntityClasses();
 			if ( from_entity_ignored_classes )
@@ -183,6 +195,7 @@ class sdGun extends sdEntity
 					( by_entity && 
 					  by_entity.is( sdOctopus ) && 
 					  this._held_by && 
+					  this._held_by.IsVisible( by_entity ) && 
 					  this._held_by.gun_slot === sdGun.classes[ this.class ].slot && 
 					  this.class !== sdGun.CLASS_BUILD_TOOL && 
 					  sdGun.classes[ this.class ].projectile_properties._damage >= 0 && // no healing guns
@@ -352,8 +365,8 @@ class sdGun extends sdEntity
 		if ( this.class === sdGun.CLASS_SWORD )
 		return 0;
 		
-		if ( this.class === sdGun.CLASS_SABER )
-		return 2;
+		//if ( this.class === sdGun.CLASS_SABER )
+		//return 2;
 		
 		if ( this.class === sdGun.CLASS_PISTOL )
 		return 0;
@@ -375,7 +388,7 @@ class sdGun extends sdEntity
 		if ( sdGun.classes[ this.class ].GetAmmoCost )
 		return sdGun.classes[ this.class ].GetAmmoCost( this, shoot_from_scenario );
 		
-		return ( Math.abs( sdGun.classes[ this.class ].projectile_properties._damage * this._held_by._damage_mult ) * sdGun.classes[ this.class ].count + 
+		return ( Math.abs( sdGun.classes[ this.class ].projectile_properties._damage * this._held_by._damage_mult * ( this._held_by.power_ef > 0 ? 2.5 : 1 ) ) * sdGun.classes[ this.class ].count + 
 				( sdGun.classes[ this.class ].projectile_properties._rail ? 30 : 0 ) + 
 				( sdGun.classes[ this.class ].projectile_properties.explosion_radius > 0 ? 20 : 0 ) ) * sdWorld.damage_to_matter;
 	}
@@ -490,7 +503,14 @@ class sdGun extends sdEntity
 				}
 				
 				if ( sdGun.classes[ this.class ].sound )
-				sdSound.PlaySound({ name:sdGun.classes[ this.class ].sound, x:this.x, y:this.y, volume: 0.5 * ( sdGun.classes[ this.class ].sound_volume || 1 ), pitch: sdGun.classes[ this.class ].sound_pitch || 1 });
+				{
+					let pitch = sdGun.classes[ this.class ].sound_pitch || 1;
+					
+					if ( this._held_by.power_ef > 0 )
+					pitch *= 0.75;
+					
+					sdSound.PlaySound({ name:sdGun.classes[ this.class ].sound, x:this.x, y:this.y, volume: 0.5 * ( sdGun.classes[ this.class ].sound_volume || 1 ), pitch: pitch });
+				}
 			
 				this.reload_time_left = sdGun.classes[ this.class ].reload_time;
 				if ( sdGun.classes[ this.class ].burst )
@@ -582,6 +602,9 @@ class sdGun extends sdEntity
 						}
 						
 						bullet_obj._damage *= bullet_obj._owner._damage_mult;
+						
+						if ( bullet_obj._owner.power_ef > 0 )
+						bullet_obj._damage *= 2.5;
 						
 						if ( bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ] )
 						bullet_obj._armor_penetration_level = bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ];
@@ -712,7 +735,7 @@ class sdGun extends sdEntity
 				if ( sdWorld.last_hit_entity )
 				this.tilt += -Math.sin( this.tilt / sdGun.tilt_scale * 2 ) * 0.4 * sdGun.tilt_scale;
 				else
-				this.tilt += this.sx * 10;
+				this.tilt += this.sx * 20 * GSPEED;
 			}
 			
 			/*

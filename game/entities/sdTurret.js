@@ -18,6 +18,8 @@ import sdSandWorm from './sdSandWorm.js';
 import sdSlug from './sdSlug.js';
 import sdEnemyMech from './sdEnemyMech.js';
 import sdDrone from './sdDrone.js';
+import sdBlock from './sdBlock.js';
+import sdBadDog from './sdBadDog.js';
 
 
 class sdTurret extends sdEntity
@@ -30,7 +32,7 @@ class sdTurret extends sdEntity
 		sdTurret.img_turret2 = sdWorld.CreateImageFromFile( 'turret2' );
 		sdTurret.img_turret2_fire = sdWorld.CreateImageFromFile( 'turret2_fire' );
 		
-		sdTurret.targetable_classes = new WeakSet( [ sdCharacter, sdVirus, sdQuickie, sdOctopus, sdCube, sdBomb, sdAsp, sdSandWorm, sdSlug, sdEnemyMech, sdDrone ] );
+		sdTurret.targetable_classes = new WeakSet( [ sdCharacter, sdVirus, sdQuickie, sdOctopus, sdCube, sdBomb, sdAsp, sdSandWorm, sdSlug, sdEnemyMech, sdDrone, sdBadDog ] );
 		
 		sdTurret.KIND_LASER = 0;
 		sdTurret.KIND_ROCKET = 1;
@@ -93,6 +95,8 @@ class sdTurret extends sdEntity
 		this._disabled_timeout = 0; // Countdown timer when disabled
 		
 		//this._coms_near_cache = [];
+		
+		this.SetMethod( 'ShootPossibilityFilter', this.ShootPossibilityFilter ); // Here it used for "this" binding so method can be passed to collision logic
 	}
 	
 	onThink( GSPEED ) // Class-specific, if needed
@@ -162,6 +166,7 @@ class sdTurret extends sdEntity
 						if ( targetable_classes.has( e.constructor ) )
 						//if ( e.is( sdCharacter ) || e.is( sdVirus ) || e.is( sdQuickie ) || e.is( sdOctopus ) || e.is( sdCube ) || e.is( sdBomb ) )
 						if ( ( e.hea || e._hea ) > 0 && ( !e.is( sdSandWorm ) || e.death_anim === 0 ) )
+						if ( !e.is( sdBadDog ) || !e.owned )
 						if ( e.IsVisible( this._owner ) || ( e.driver_of && e.driver_of.IsVisible( this._owner ) ) )
 						{
 							if ( e !== this._owner || coms_near_len > 0 )
@@ -170,7 +175,7 @@ class sdTurret extends sdEntity
 							//if ( NetIDSearch( e._net_id ) === 0 && ClassSearch( e.GetClass() ) === 0 )
 							if ( RuleAllowedByNodes( e._net_id ) && RuleAllowedByNodes( e.GetClass() ) )
 							{
-								if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdCommandCentre' ] ) )
+								if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdCommandCentre' ], this.ShootPossibilityFilter ) )
 								{
 									this._target = e;
 									break;
@@ -255,6 +260,15 @@ class sdTurret extends sdEntity
 				}
 			}
 		}
+	}
+	ShootPossibilityFilter( ent )
+	{
+		if ( ent.is( sdBlock ) )
+		if ( ent.material === sdBlock.MATERIAL_TRAPSHIELD )
+		if ( sdBullet.IsTrapShieldIgonred( this, ent ) )
+		return false;
+		
+		return true;
 	}
 	GetReloadTime()
 	{

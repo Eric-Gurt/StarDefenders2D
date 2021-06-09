@@ -243,12 +243,17 @@ class sdBullet extends sdEntity
 		}
 	}
 	
+	static IsTrapShieldIgonred( owner_ent, trap_shield_block )
+	{
+		return sdWorld.inDist2D_Boolean( owner_ent.x, owner_ent.y, trap_shield_block.x + trap_shield_block.width/2, trap_shield_block.y + trap_shield_block.height/2, 32 );
+	}
+	
 	RegularCollisionFiltering( from_entity )
 	{
 		// Generally not having hitpoints and being included in GetIgnoredEntityClasses is enough for bullets to ignore something. But watch out for throwable swords at sdGun at movement in range method
 		
 		if ( from_entity.is( sdBlock ) && from_entity.material === sdBlock.MATERIAL_TRAPSHIELD )
-		if ( this._owner === null || ( ( !this._owner._key_states || !this._owner._key_states.GetKey( 'ShiftLeft' ) ) && sdWorld.inDist2D( this._owner.x, this._owner.y, from_entity.x + from_entity.width/2, from_entity.y + from_entity.height/2 ) < 32 ) )
+		if ( this._owner === null || ( ( !this._owner._key_states || !this._owner._key_states.GetKey( 'ShiftLeft' ) ) && sdBullet.IsTrapShieldIgonred( this._owner, from_entity ) ) )
 		{
 			return false;
 		}

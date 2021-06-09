@@ -27,6 +27,11 @@ class sdCrystal extends sdEntity
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return true; }*/
 	
+	get title()
+	{
+		return 'Crystal';
+	}
+	
 	constructor( params )
 	{
 		super( params );

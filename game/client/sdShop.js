@@ -360,6 +360,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdDrone', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdLost', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_LOST_CONVERTER, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_CABLE_TOOL, _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });
@@ -677,14 +678,19 @@ class sdShop
 			
 			let d = ctx.measureText( t );
 			
+			let xx = sdWorld.mouse_screen_x + 16;
+			
+			if ( sdWorld.mouse_screen_x + 16 + d.width > sdRenderer.screen_width )
+			xx = sdRenderer.screen_width - d.width - 16;
+			
 			ctx.fillStyle = '#000000';
 			ctx.globalAlpha = 0.8;
-			ctx.fillRect( sdWorld.mouse_screen_x + 16, sdWorld.mouse_screen_y + 32, d.width + 10, 12 + 10 );
+			ctx.fillRect( xx, sdWorld.mouse_screen_y + 32, d.width + 10, 12 + 10 );
 			ctx.globalAlpha = 1;
 			
 			ctx.fillStyle = '#ffffff';
 			ctx.textAlign = 'left';
-			ctx.fillText( t, sdWorld.mouse_screen_x + 16 + 5, sdWorld.mouse_screen_y + 32 + 12 + 5 );
+			ctx.fillText( t, xx + 5, sdWorld.mouse_screen_y + 32 + 12 + 5 );
 		}
 
 		

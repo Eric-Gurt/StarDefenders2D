@@ -34,7 +34,11 @@ class sdContextMenu
 					action: ()=>
 					{
 						//globalThis.socket.emit( 'SELF_EXTRACT' );
-						sdWorld.Stop();
+						
+						if ( sdWorld.my_score < 50 || confirm( 'Are you sure you want to forget this character?' ) )
+						{
+							sdWorld.Stop();
+						}
 					}
 				});
 				
@@ -50,6 +54,14 @@ class sdContextMenu
 					action: ()=>
 					{
 						globalThis.socket.emit( 'REMOVE_ARMOR', [ -1 ] );
+					}
+				});
+				
+				if ( sdContextMenu.current_target.stim_ef > 0 || sdContextMenu.current_target.power_ef > 0 || sdContextMenu.current_target.time_ef > 0 )
+				sdContextMenu.options.push({ title: 'Remove effects',
+					action: ()=>
+					{
+						globalThis.socket.emit( 'REMOVE_EFFECTS', [ -1 ] );
 					}
 				});
 			}

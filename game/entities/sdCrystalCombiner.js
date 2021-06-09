@@ -51,6 +51,8 @@ class sdCrystalCombiner extends sdEntity
 		this._ignore_pickup_tim = 0;
 		
 		this._regen_timeout = 0;
+		
+		this.prog = 0; // progress
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -68,6 +70,11 @@ class sdCrystalCombiner extends sdEntity
 		this._regen_timeout = 60;
 		
 		this._update_version++; // Just in case
+	}
+	
+	GetBaseAnimDuration()
+	{
+		return Math.max( 30 * 5, this.matter_max / 80 * 30 ) + 30;
 	}
 
 	onThink( GSPEED ) // Class-specific, if needed
@@ -96,7 +103,40 @@ class sdCrystalCombiner extends sdEntity
 		
 		this.MatterGlow( 0.01, 50, GSPEED );
 		
-		if ( Math.abs( this._last_sync_matter - this.matter ) > this.matter_max * 0.05 || this._last_x !== this.x || this._last_y !== this.y )
+		if ( this.prog > 0 )
+		{
+			let prog0 = this.prog;
+			
+			let duration = this.GetBaseAnimDuration() + 30;
+			
+			let X = duration - 30;
+			
+			//if ( this.prog > X )
+			//GSPEED *= 0.2;
+			
+			this.prog += GSPEED;
+			
+			if ( prog0 < X && this.prog >= X )
+			{
+				sdSound.PlaySound({ name:'crystal_combiner_end', x:this.x, y:this.y, volume:1 });
+			}
+			
+			if ( this.prog >= duration )
+			{
+				if ( sdWorld.is_server )
+				{
+					this.prog = 0;
+
+					this.CombineCrystalsEnd();
+				}
+				else
+				{
+					this.prog = duration;
+				}
+			}
+		}
+		
+		if ( Math.abs( this._last_sync_matter - this.matter ) > this.matter_max * 0.05 || this.prog > 0 || this._last_x !== this.x || this._last_y !== this.y )
 		{
 			this._last_sync_matter = this.matter;
 			this._update_version++;
@@ -107,36 +147,71 @@ class sdCrystalCombiner extends sdEntity
 		if ( this.crystals === 0 )
 		sdEntity.Tooltip( ctx, "Crystal combiner (no crystals)" );
 		else
-		sdEntity.Tooltip( ctx, "Crystal combiner ( " + ~~(this.crystals) + " crystals , " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
+		{
+			if ( this.prog === 0 )
+			sdEntity.Tooltip( ctx, "Crystal combiner ( " + ~~(this.crystals) + " crystals, " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
+			else
+			sdEntity.Tooltip( ctx, "Crystal combiner ( combining "+(~~Math.min( 100, this.prog / this.GetBaseAnimDuration() * 100 ))+"%, " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
+		}
 	}
 	Draw( ctx, attached )
 	{
-			const offset_y = 2;
+		const offset_y = 2;
 
-	//		ctx.globalAlpha = 1;
-	//			ctx.filter = 'none';
-			
-			//ctx.globalAlpha = 0.75 + Math.sin( sdWorld.time / 300 ) * 0.25;
-			ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal_combiner, - 32, - 16, 64,32 );
+//		ctx.globalAlpha = 1;
+//			ctx.filter = 'none';
 
-			if ( this.crystals > 0 )
+		//ctx.globalAlpha = 0.75 + Math.sin( sdWorld.time / 300 ) * 0.25;
+		ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal_combiner, - 32, - 16, 64,32 );
+
+		if ( this.crystals > 0 )
+		{
+			let merge_prog = this.prog / this.GetBaseAnimDuration();
+			let merge_intens = Math.min( 1, Math.pow( merge_prog, 8 ) ) * 8;
+
+			let show_new_crystal = false;
+
+			if ( merge_prog > 1 )
 			{
-				ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal_empty, - 24, - 16 + offset_y, 32,32 );
-				if ( this.crystals === 2 )
-				ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal_empty, - 8, - 16 + offset_y, 32,32 );
-
-				ctx.filter = sdWorld.GetCrystalHue( this.matter_max / this.crystals );
-
-				ctx.globalAlpha = ( this.matter / this.matter_max );
-
-				ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal, - 24, - 16 + offset_y, 32,32 );
-				if ( this.crystals === 2 )
-				ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal, - 8, - 16 + offset_y, 32,32 );
+				merge_prog = 1 - ( this.prog - this.GetBaseAnimDuration() ) / 30;
+				show_new_crystal = true;
 			}
-			
-			ctx.globalAlpha = 1;
-			ctx.filter = 'none';
-			ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal_combiner, - 32, - 16, 64,32 );
+
+			ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal_empty, - 24 + merge_intens, - 16 + offset_y, 32,32 );
+			if ( this.crystals === 2 && !show_new_crystal )
+			ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal_empty, - 8 - merge_intens, - 16 + offset_y, 32,32 );
+
+			ctx.filter = sdWorld.GetCrystalHue( this.matter_max / this.crystals );
+
+			ctx.globalAlpha = ( this.matter / this.matter_max );
+
+			if ( merge_prog > 0 || show_new_crystal )
+			{
+				// Most probably alpha is wrong for final crystal during last 1 second, but maybe it is fine with how fast it happens
+
+				if ( show_new_crystal )
+				{
+					ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
+				}
+
+				ctx.filter += ' saturate(' + (Math.round(( 1 - merge_prog )*10)/10) + ') brightness(' + (Math.round(( 1.5 + merge_prog * 10 )*10)/10) + ')';
+
+				if ( ctx.filter.indexOf( 'drop-shadow' ) === -1 )
+				{
+					ctx.filter += ' drop-shadow(0px 0px 7px rgba(255,255,255,'+(Math.round(( merge_prog * 5 )*10)/10)+'))';
+				}
+
+				ctx.globalAlpha = Math.min( 1, ctx.globalAlpha * merge_prog + 10 * ( 1 - merge_prog ) );
+			}
+
+			ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal, - 24 + merge_intens, - 16 + offset_y, 32,32 );
+			if ( this.crystals === 2 && !show_new_crystal )
+			ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal, - 8 - merge_intens, - 16 + offset_y, 32,32 );
+		}
+
+		ctx.globalAlpha = 1;
+		ctx.filter = 'none';
+		ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal_combiner, - 32, - 16, 64,32 );
 	}
 	onRemove() // Class-specific, if needed
 	{
@@ -151,6 +226,31 @@ class sdCrystalCombiner extends sdEntity
 	CombineCrystals()
 	{
 		if ( !sdWorld.is_server )
+		return;
+	
+		if ( this.crystals !== 2 )
+		return;
+	
+		if ( this.prog === 0 )
+		{
+			sdSound.PlaySound({ name:'crystal_combiner_start', x:this.x, y:this.y, volume:1 });
+			
+			this.prog = 1;
+
+			/*setTimeout(()=>
+			{
+				this.CombineCrystalsEnd();
+
+			}, 5000 );*/
+		}
+	}
+	
+	CombineCrystalsEnd()
+	{
+		if ( !sdWorld.is_server )
+		return;
+	
+		if ( this.crystals !== 2 )
 		return;
 	
 		if ( this.matter_max > 0 )
@@ -307,7 +407,7 @@ class sdCrystalCombiner extends sdEntity
 						from_entity._remove();
 
 						this._update_version++;
-						this._ignore_pickup_tim = 30;
+						this._ignore_pickup_tim = 1; // Why 30? Makes it slower to put 2 crystals at once
 						this.crystals++;
 					}
 				}
@@ -315,6 +415,7 @@ class sdCrystalCombiner extends sdEntity
 		}
 		else
 		{
+			if ( this.prog === 0 )
 			if ( from_entity.is( sdBullet ) )
 			{
 				this.DropCrystals();

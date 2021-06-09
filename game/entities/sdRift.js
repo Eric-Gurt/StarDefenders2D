@@ -156,7 +156,7 @@ class sdRift extends sdEntity
 					}
 					if ( this.type === 2 ) // Cube portal
 					{
-						if ( sdCube.alive_cube_counter < 20 )
+						if ( sdCube.alive_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 0 ) ) // 20
 						{
 							let cube = new sdCube({ 
 								x:this.x,

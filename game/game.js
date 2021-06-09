@@ -78,6 +78,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdDrone from './entities/sdDrone.js';
 	import sdLifeBox from './entities/sdLifeBox.js';
 	import sdLost from './entities/sdLost.js';
+	import sdCable from './entities/sdCable.js';
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -132,6 +133,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdDrone.init_class();
 	sdLifeBox.init_class();
 	sdLost.init_class();
+	sdCable.init_class();
 	
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;
@@ -357,6 +359,7 @@ let enf_once = true;
 			messages_to_report_arrival.push( message_id_to_report );
 
 			// snapshot
+			sdWorld.unresolved_entity_pointers = [];
 			{
 				let new_snapshot_entities = [];
 				for ( var i = 0; i < snapshot.length; i++ )
@@ -380,6 +383,8 @@ let enf_once = true;
 				if ( sdWorld.my_entity === null || sdWorld.my_entity_net_id !== sdWorld.my_entity._net_id )
 				sdWorld.ResolveMyEntityByNetId();
 			}
+			sdWorld.SolveUnresolvedEntityPointers();
+			sdWorld.unresolved_entity_pointers = null;
 
 			// score
 			sdWorld.my_score = score;

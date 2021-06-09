@@ -74,6 +74,14 @@ class sdEntity
 		return true;
 	}
 	
+	GetAccurateDistance( xx, yy ) // Used on client-side when right clicking on cables (also during cursor hovering for context menu and hint), also on server when distance between cable and player is measured
+	{
+		return sdWorld.Dist2D(	xx, 
+								yy, 
+								Math.min( Math.max( this.x + this._hitbox_x1, xx ), this.x + this._hitbox_x2 ), 
+								Math.min( Math.max( this.y + this._hitbox_y1, yy ), this.y + this._hitbox_y2 ) );
+	}
+	
 	IsAdminEntity() // Influences remover gun hit test
 	{ return false; }
 	
@@ -147,6 +155,11 @@ class sdEntity
 	
 	onBuilt() // Entity was successfully built and added to world, server-side
 	{
+	}
+	
+	getRequiredEntities() // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
+	{
+		return []; 
 	}
 	
 	PhysInitIfNeeded( w, h )
@@ -475,7 +488,7 @@ class sdEntity
 	{
 		return null;
 	}
-	IsBGEntity() // 1 for BG entities, should handle collisions separately
+	IsBGEntity() // 0 for in-game entities, 1 for background entities, 2 is for moderator areas, 3 is for cables. Should handle collisions separately
 	{ return 0; }
 	CanMoveWithoutOverlap( new_x, new_y, safe_bound=0, custom_filtering_method=null ) // Safe bound used to check if sdCharacter can stand and not just collides with walls nearby. Also due to number rounding clients should better have it (or else they will teleport while sliding on vertical wall)
 	{
@@ -594,6 +607,15 @@ class sdEntity
 		this._last_y = params.y;
 		
 		this._last_hit_time = 0; // Prevent flood from splash damage bullets
+		
+		this._listeners = null; // Only REMOVAL listener is handled by sdEntity. Anything else is not handled globally. Listeners are never saved into world snapshot so make sure to recreate them
+		/*
+			this._listeners = {
+				DAMAGE: [],
+				REMOVAL: [],
+				MOVES: []
+			};
+		*/
 		
 		this.x = params.x || 0;
 		this.y = params.y || 0;
@@ -937,13 +959,14 @@ class sdEntity
 							
 							if ( new_val === null )
 							{
-								if ( sdWorld.is_server )
-								{
+								//if ( sdWorld.is_server )
+								//{
+									if ( sdWorld.unresolved_entity_pointers ) // Used by client-side cables now
 									sdWorld.unresolved_entity_pointers.push([ this, prop, snapshot[ prop ]._class, snapshot[ prop ]._net_id ]);
 									
 									//throw new Error('Unresolvable sdEntity pointer at ApplySnapshot. This isn\'t good especially if world snapshot is loaded...');
 									//debugger; // Unresolvable sdEntity pointer at ApplySnapshot. This isn't good especially if world snapshot is loaded...
-								}
+								//}
 							}
 							
 							snapshot[ prop ] = new_val;
@@ -996,6 +1019,7 @@ class sdEntity
 		this._hitbox_last_update = 0;
 		this.UpdateHitbox();
 	}
+	
 	static GetObjectByClassAndNetId( _class, _net_id ) // GetEntityByNetID // FindEntityByNetID
 	{
 		if ( _class === '' )
@@ -1237,20 +1261,49 @@ class sdEntity
 	}
 	hasEventListener( str, method )
 	{
+		if ( !this._listeners )
+		return false;
+		
+		if ( typeof this._listeners[ str ] === 'undefined' )
+		return false;
+			
 		let i = this._listeners[ str ].indexOf( method );
 		return ( i !== -1 );
 	}
 	addEventListener( str, method ) // Not all entities will support these
 	{
+		if ( !this._listeners )
+		this._listeners = {};
+	
+		if ( typeof this._listeners[ str ] === 'undefined' )
+		this._listeners[ str ] = [];
+		
 		this._listeners[ str ].push( method );
 	}
 	removeEventListener( str, method ) // Not all entities will support these
 	{
-		let i = this._listeners[ str ].indexOf( method );
-		if ( i !== -1 )
-		this._listeners[ str ].splice( i, 1 );
-		//else
-		//debugger;
+		if ( this._listeners )
+		{
+			let i = this._listeners[ str ].indexOf( method );
+			if ( i !== -1 )
+			{
+				this._listeners[ str ].splice( i, 1 );
+				//else
+				//debugger;
+
+				if ( this._listeners.length === 0 )
+				this._listeners = null;
+			}
+		}
+	}
+	callEventListener( str, ...args )
+	{
+		if ( this._listeners )
+		if ( typeof this._listeners[ str ] !== 'undefined' )
+		{
+			for ( let i = 0; i < this._listeners[ str ].length; i++ )
+			this._listeners[ str ][ i ]( ...args );
+		}
 	}
 	TransferMatter( to, how_much, GSPEED, optimize=false )
 	{
@@ -1324,14 +1377,25 @@ class sdEntity
 
 			this._is_being_removed = true;
 
-			this._broken = true; // By default, you can override it after remova was called for entity
+			this._broken = true; // By default, you can override it after removal was called for entity // Copy [ 1 / 2 ]
 		}
 	}
 	_remove()
 	{
-		// Method should be called only ever once per entity, but there was case where it didn't. Since it has not side effects I haven't debugged callstack of first removal, but it surely can be done (performance damage)
+		// Method should be called only ever once per entity, but there was case where it didn't. Since it has no side effects I haven't debugged callstack of first removal, but it surely can be done (performance damage)
 		
-		this._is_being_removed = true; // Just in case? Never needed but OnThink might return true for removal without .remove() call
+		// Just in case? Never needed but OnThink might return true for removal without .remove() call
+		if ( !this._is_being_removed )
+		{
+			this._is_being_removed = true;
+
+			this._broken = true; // By default, you can override it after removal was called for entity // Copy [ 2 / 2 ]
+		}
+		
+		//if ( this._listeners )
+		//for ( var i = 0; i < this._listeners.REMOVAL.length; i++ )
+		//this._listeners.REMOVAL[ i ]( this );
+		this.callEventListener( 'REMOVAL', this );
 		
 		this.onRemove();
 		
@@ -1367,9 +1431,11 @@ class sdEntity
 	}
 	onRemove() // Class-specific, if needed. Can be overriden with onRemoveAsFakeEntity but only like this: ent.SetMethod( 'onRemove', ent.onRemoveAsFakeEntity ); ent.remove(); ent._remove();
 	{
+		// Make sure to not spawn any new potentially permanent entities there because that won't work well with world bounds move
 	}
 	onRemoveAsFakeEntity() // Will be called instead of onRemove() if entity was never added to world
 	{
+		// Make sure to not spawn any new potentially permanent entities there because that won't work well with world bounds move
 	}
 	SetMethod( method_name, method ) // Because doing it normally will make method enumerable and thus it will appear in snapshots. And will cause crash. Also this one binds "this"
 	{
