@@ -2092,6 +2092,10 @@ class sdWorld
 	
 		let arr;
 		let i;
+		let arr_i;
+		let class_str;
+		let arr_i_x;
+		let arr_i_y;
 		
 		var xx_from = sdWorld.FastFloor( x1 / 32 ); // Overshoot no longer needed, due to big entities now taking all needed hash arrays
 		var yy_from = sdWorld.FastFloor( y1 / 32 );
@@ -2112,8 +2116,9 @@ class sdWorld
 		//for ( var yy = -1; yy <= 1; yy++ )
 		//for ( var xx = xx_from; xx <= xx_to; xx++ )
 		//for ( var yy = yy_from; yy <= yy_to; yy++ )
-		for ( var xx = xx_from; xx < xx_to; xx++ )
-		for ( var yy = yy_from; yy < yy_to; yy++ )
+		let xx,yy;
+		for ( xx = xx_from; xx < xx_to; xx++ )
+		for ( yy = yy_from; yy < yy_to; yy++ )
 		{
 			//arr = sdWorld.RequireHashPosition( x1 + xx * 32, y1 + yy * 32 );
 			//arr = sdWorld.RequireHashPosition( x2 + xx * 32, y2 + yy * 32 ); // Better player-matter container collisions. Worse for player-block cases
@@ -2122,26 +2127,40 @@ class sdWorld
 			//ent_skip: 
 			for ( i = 0; i < arr.length; i++ )
 			{
-				if ( x2 >= arr[ i ].x + arr[ i ]._hitbox_x1 )
-				if ( x1 <= arr[ i ].x + arr[ i ]._hitbox_x2 )
-				if ( y2 >= arr[ i ].y + arr[ i ]._hitbox_y1 )
-				if ( y1 <= arr[ i ].y + arr[ i ]._hitbox_y2 )
-				if ( arr[ i ].hard_collision || include_only_specific_classes )
-				if ( ignore_entity === null || arr[ i ].IsBGEntity() === ignore_entity.IsBGEntity() )
-				if ( arr[ i ] !== ignore_entity )
+				arr_i = arr[ i ];
+						
+				if ( arr_i !== ignore_entity )
 				{
-					if ( include_only_specific_classes && include_only_specific_classes.indexOf( arr[ i ].GetClass() ) === -1 )
+					arr_i_x = arr_i.x;
+					
+					if ( x2 >= arr_i_x + arr_i._hitbox_x1 )
+					if ( x1 <= arr_i_x + arr_i._hitbox_x2 )
 					{
-					}
-					else
-					if ( ignore_entity_classes !== null && ignore_entity_classes.indexOf( arr[ i ].GetClass() ) !== -1 )
-					{
-					}
-					else
-					if ( custom_filtering_method === null || custom_filtering_method( arr[ i ] ) )
-					{
-						sdWorld.last_hit_entity = arr[ i ];
-						return true;
+						arr_i_y = arr_i.y;
+						
+						if ( y2 >= arr_i_y + arr_i._hitbox_y1 )
+						if ( y1 <= arr_i_y + arr_i._hitbox_y2 )
+						if ( ignore_entity === null || arr_i.IsBGEntity() === ignore_entity.IsBGEntity() )
+						//if ( arr_i.hard_collision || include_only_specific_classes )
+						if ( include_only_specific_classes || arr_i.hard_collision )
+						{
+							if ( include_only_specific_classes || ignore_entity_classes )
+							class_str = arr_i.GetClass();
+
+							if ( include_only_specific_classes && include_only_specific_classes.indexOf( class_str ) === -1 )
+							{
+							}
+							else
+							if ( ignore_entity_classes && ignore_entity_classes.indexOf( class_str ) !== -1 )
+							{
+							}
+							else
+							if ( custom_filtering_method === null || custom_filtering_method( arr_i ) )
+							{
+								sdWorld.last_hit_entity = arr_i;
+								return true;
+							}
+						}
 					}
 				}
 			}
@@ -2235,6 +2254,10 @@ class sdWorld
 	
 		let arr;
 		let i;
+		let arr_i;
+		let class_str;
+		let arr_i_x;
+		let arr_i_y;
 	
 		//for ( var xx = -1; xx <= 2; xx++ )
 		//for ( var yy = -1; yy <= 2; yy++ )
@@ -2246,30 +2269,40 @@ class sdWorld
 			//arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
 			arr = sdWorld.RequireHashPosition( x, y );
 			for ( i = 0; i < arr.length; i++ )
-			if ( arr[ i ].hard_collision || include_only_specific_classes )
-			if ( arr[ i ] !== ignore_entity )
-			if ( ignore_entity === null || arr[ i ].IsBGEntity() === ignore_entity.IsBGEntity() )
 			{
-				if ( x >= arr[ i ].x + arr[ i ]._hitbox_x1 )
-				if ( x <= arr[ i ].x + arr[ i ]._hitbox_x2 )
-				if ( y >= arr[ i ].y + arr[ i ]._hitbox_y1 )
-				if ( y <= arr[ i ].y + arr[ i ]._hitbox_y2 )
+				arr_i = arr[ i ];
+				
+				if ( arr_i !== ignore_entity )
 				{
-					if ( include_only_specific_classes )
-					if ( include_only_specific_classes.indexOf( arr[ i ].GetClass() ) === -1 )
-					continue;
+					arr_i_x = arr_i.x;
 					
-					if ( ignore_entity_classes !== null )
-					if ( ignore_entity_classes.indexOf( arr[ i ].GetClass() ) !== -1 )
-					continue;
-					
-					//sdWorld.last_hit_entity = arr[ i ];
-					//return true;
-					
-					if ( custom_filtering_method === null || custom_filtering_method( arr[ i ] ) )
+					if ( x >= arr_i_x + arr_i._hitbox_x1 )
+					if ( x <= arr_i_x + arr_i._hitbox_x2 )
 					{
-						sdWorld.last_hit_entity = arr[ i ];
-						return true;
+						arr_i_y = arr_i.y;
+						
+						if ( y >= arr_i_y + arr_i._hitbox_y1 )
+						if ( y <= arr_i_y + arr_i._hitbox_y2 )
+						if ( ignore_entity === null || arr_i.IsBGEntity() === ignore_entity.IsBGEntity() )
+						if ( include_only_specific_classes || arr_i.hard_collision )
+						{
+							if ( include_only_specific_classes || ignore_entity_classes )
+							class_str = arr_i.GetClass();
+
+							if ( include_only_specific_classes && include_only_specific_classes.indexOf( class_str ) === -1 )
+							{
+							}
+							else
+							if ( ignore_entity_classes && ignore_entity_classes.indexOf( class_str ) !== -1 )
+							{
+							}
+							else
+							if ( custom_filtering_method === null || custom_filtering_method( arr_i ) )
+							{
+								sdWorld.last_hit_entity = arr_i;
+								return true;
+							}
+						}
 					}
 				}
 			}

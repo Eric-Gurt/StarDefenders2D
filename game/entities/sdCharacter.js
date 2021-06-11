@@ -1819,6 +1819,8 @@ class sdCharacter extends sdEntity
 			if ( this.y + this._hitbox_y1 + ( this.UseServerCollisions() ? 2 : 3 ) >= this._stands_on.y + this._stands_on._hitbox_y2 )
 			{
 				sdWorld.last_hit_entity = this._stands_on;
+				
+				still_stands = true;
 			}
 
 			//if ( !this.CanMoveWithoutOverlap( this.x, this.y + ( this.UseServerCollisions() ? 2 : 3 ), 1 ) ) Has egde-stand-constant-fall bug, not sure why it was done like that exactly

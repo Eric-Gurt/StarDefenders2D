@@ -1209,13 +1209,9 @@ class sdEntity
 
 			for ( var i = 0; i < arr.length; i++ )
 			{
-				if ( typeof arr[ i ].matter !== 'undefined' || 
-					 typeof arr[ i ]._matter !== 'undefined' )
+				if ( ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' ) && arr[ i ] !== this )
 				{
-					if ( arr[ i ] !== this )
-					{
-						this.TransferMatter( arr[ i ], how_much, GSPEED * 4 ); // Mult by X because targets no longer take 4 cells
-					}
+					this.TransferMatter( arr[ i ], how_much, GSPEED * 4 ); // Mult by X because targets no longer take 4 cells
 				}
 				else
 				{
@@ -1241,20 +1237,27 @@ class sdEntity
 			var arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null );
 
 			for ( var i = 0; i < arr.length; i++ )
-			if ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' )
-			if ( arr[ i ] !== this )
 			{
-				if ( sdWorld.is_server )
+				if ( ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' ) && arr[ i ] !== this )
 				{
-					arr[ i ].TransferMatter( this, how_much, GSPEED * 4, true ); // Mult by X because targets no longer take 4 cells
+					if ( sdWorld.is_server )
+					{
+						arr[ i ].TransferMatter( this, how_much, GSPEED * 4, true ); // Mult by X because targets no longer take 4 cells
+					}
+					else
+					{
+						if ( arr[ i ] === sdWorld.my_entity )
+						{
+							sdSound.allow_matter_drain_loop = true;
+							break;
+						}
+					}
 				}
 				else
 				{
-					if ( arr[ i ] === sdWorld.my_entity )
-					{
-						sdSound.allow_matter_drain_loop = true;
-						break;
-					}
+					// Remove these that do not match anyway, at least for brief period of time until GetAnythingNearCache overrides this list - less time to spend on property existence checks
+					arr.splice( i, 1 );
+					i--;
 				}
 			}
 		}

@@ -90,10 +90,24 @@ class sdStorage extends sdEntity
 				this._hea = Math.min( this._hea + GSPEED, this._hmax );
 			}
 		}
-		
+		/*
 		for ( var i = 0; i < sdStorage.slots_tot; i++ )
 		if ( this[ 'item' + i ] )
 		this[ 'item' + i ].UpdateHeldPosition();
+		*/
+		// Same but without string operations, it is faster but stould be reverted in case of more/less max items
+		if ( this.item0 )
+		this.item0.UpdateHeldPosition();
+		if ( this.item1 )
+		this.item1.UpdateHeldPosition();
+		if ( this.item2 )
+		this.item2.UpdateHeldPosition();
+		if ( this.item3 )
+		this.item3.UpdateHeldPosition();
+		if ( this.item4 )
+		this.item4.UpdateHeldPosition();
+		if ( this.item5 )
+		this.item5.UpdateHeldPosition();
 		
 		this.sy += sdWorld.gravity * GSPEED;
 		
