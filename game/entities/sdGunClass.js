@@ -841,6 +841,9 @@ class sdGunClass
 				if ( shoot_from_scenario )
 				return 0;
 			
+				if ( gun._held_by._auto_shoot_in > 0 )
+				return 0;
+				
 				return 100;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>

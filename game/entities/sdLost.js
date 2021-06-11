@@ -17,6 +17,7 @@ import sdCrystal from './sdCrystal.js';
 import sdCharacter from './sdCharacter.js';
 import sdCrystalCombiner from './sdCrystalCombiner.js';
 import sdMatterAmplifier from './sdMatterAmplifier.js';
+import sdSandWorm from './sdSandWorm.js';
 
 class sdLost extends sdEntity
 {
@@ -112,6 +113,23 @@ class sdLost extends sdEntity
 
 				ent.remove();
 				ent._broken = false; // No debris
+				
+				
+
+				if ( ent.is( sdSandWorm ) )
+				{
+					if ( ent.towards_head )
+					{
+						if ( !ent.towards_head._is_being_removed )
+						sdLost.ApplyAffection( ent.towards_head, Infinity, bullet );
+					}
+					
+					if ( ent.towards_tail )
+					{
+						if ( !ent.towards_tail._is_being_removed )
+						sdLost.ApplyAffection( ent.towards_tail, Infinity, bullet );
+					}
+				}
 			}
 			else
 			{
