@@ -654,7 +654,7 @@ class sdCube extends sdEntity
 									bullet_obj.sy *= 16;
 
 									//bullet_obj.time_left = 60;
-									bullet_obj.time_left = 80;
+									bullet_obj.time_left = 90;
 
 									for ( var p in sdGun.classes[ sdGun.CLASS_LOST_CONVERTER ].projectile_properties )
 									bullet_obj[ p ] = sdGun.classes[ sdGun.CLASS_LOST_CONVERTER ].projectile_properties[ p ];

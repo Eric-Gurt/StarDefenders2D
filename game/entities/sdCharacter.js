@@ -434,7 +434,7 @@ class sdCharacter extends sdEntity
 		if ( !this.ghosting )
 		return true;
 	
-		if ( this.flying || this.hea <= 0 || ( this.fire_anim > 0 && this.gun_slot !== 0 ) || this.pain_anim > 0 || this._auto_shoot_in > 0 )
+		if ( this.flying || this.hea <= 0 || ( this.fire_anim > 0 && this.gun_slot !== 0 ) || this.pain_anim > 0 || this._auto_shoot_in > 0 || this.time_ef > 0 )
 		return true;
 	
 		if ( observer_character )
@@ -2612,6 +2612,13 @@ class sdCharacter extends sdEntity
 		
 		return fake_ent;
 	}
+	AnnounceTooManyEffectsIfNeeded()
+	{
+		if ( this.stim_ef > 30 * 3 || this.power_ef > 30 * 3 || this.time_ef > 30 * 3 )
+		{
+			this.Say( [ 'I\'m in', 'That is a power', 'Make your bets', 'Check out this combo', 'Good luck' ][ ~~( Math.random() * 3 ) ], false, false, true );
+		}
+	}
 	Draw( ctx, attached )
 	{
 		if ( this.ghosting )
@@ -2629,13 +2636,13 @@ class sdCharacter extends sdEntity
 		//ctx.filter = this.filter;
 		ctx.sd_filter = this.sd_filter;
 		
-		if ( this.stim_ef > 0 )
+		if ( this.stim_ef > 0 && ( ( sdWorld.time ) % 1000 < 500 || this.stim_ef > 30 * 3 ) )
 		ctx.filter = 'sepia(1) hue-rotate(-50deg) contrast(0.8) saturate(7) drop-shadow(0px 0px 1px #ff0000)';
 	
-		if ( this.power_ef > 0 )
+		if ( this.power_ef > 0 && ( ( sdWorld.time + 100 ) % 1000 < 500 || this.power_ef > 30 * 3 ) )
 		ctx.filter = 'sepia(1) hue-rotate(140deg) contrast(0.8) saturate(7) drop-shadow(0px 0px 1px #33ffff)';
 	
-		if ( this.time_ef > 0 )
+		if ( this.time_ef > 0 && ( ( sdWorld.time + 200 ) % 1000 < 500 || this.time_ef > 30 * 3 ) )
 		ctx.filter = 'grayscale(1) brightness(0.5) contrast(1.5) drop-shadow(0px 0px 1px #000000)';
 		
 		const char_filter = ctx.filter;

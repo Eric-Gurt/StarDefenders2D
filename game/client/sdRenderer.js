@@ -166,14 +166,6 @@ class sdRenderer
 							image_obj_cache[ complex_filter_name ].height = image_obj.height;
 						}
 						let ctx = image_obj_cache[ complex_filter_name ].getContext("2d");
-
-						ctx.filter = filter;
-
-						let args2 = args.slice( 0 ); // Copy
-						args2[ 1 ] = 0; // Reset position
-						args2[ 2 ] = 0;
-						//ctx.drawImage( ...args2 );
-						ctx.drawImage( args[ 0 ], 0, 0 );
 						
 						let apply_sd_filter = false;
 						
@@ -183,6 +175,19 @@ class sdRenderer
 							apply_sd_filter = true;
 							break;
 						}
+
+						if ( apply_sd_filter || sd_tint_filter )
+						{
+
+						}
+						else
+						ctx.filter = filter;
+
+						let args2 = args.slice( 0 ); // Copy
+						args2[ 1 ] = 0; // Reset position
+						args2[ 2 ] = 0;
+						//ctx.drawImage( ...args2 );
+						ctx.drawImage( args[ 0 ], 0, 0 );
 						
 						if ( apply_sd_filter || sd_tint_filter )
 						{
@@ -234,6 +239,14 @@ class sdRenderer
 							}
 
 							ctx.putImageData( image_data, 0, 0 );
+
+							if ( filter !== 'none' )
+							{
+					        	ctx.filter = filter;
+                                ctx.globalCompositeOperation='copy';
+					        	ctx.drawImage( image_obj_cache[ complex_filter_name ], 0, 0 );
+                                ctx.globalCompositeOperation='source-over';
+							}
 						}
 					}
 					

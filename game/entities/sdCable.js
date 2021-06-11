@@ -12,6 +12,7 @@ import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdCharacter from './sdCharacter.js';
 import sdGun from './sdGun.js';
+import sdArea from './sdArea.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -703,35 +704,43 @@ class sdCable extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		{
-			if ( this.GetAccurateDistance( exectuter_character.x, exectuter_character.y ) < 32 )
+			if ( sdArea.CheckPointDamageAllowed( exectuter_character.x, exectuter_character.y ) || this.p === exectuter_character || this.c === exectuter_character )
 			{
-				
-				//{
-					if ( exectuter_character._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ] && 
-						 exectuter_character._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ].class === sdGun.CLASS_CABLE_TOOL )
-					{
-						if ( command_name === 'CUT_CABLE' )
-						this.remove();
-						else
-						if ( command_name === 'SET_TYPE' )
+				if ( this.GetAccurateDistance( exectuter_character.x, exectuter_character.y ) < 32 )
+				{
+
+					//{
+						if ( exectuter_character._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ] && 
+							 exectuter_character._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ].class === sdGun.CLASS_CABLE_TOOL )
 						{
-							if ( typeof parameters_array[ 0 ] === 'number' )
-							if ( !isNaN( parameters_array[ 0 ] ) )
-							if ( parameters_array[ 0 ] > sdCable.TYPE_ANY )
-							if ( parameters_array[ 0 ] < sdCable.TYPE_LAST )
+							if ( command_name === 'CUT_CABLE' )
+							this.remove();
+							else
+							if ( command_name === 'SET_TYPE' )
 							{
-								this.SetType( parameters_array[ 0 ] );
-								executer_socket.SDServiceMessage( 'Cable transfer resource set' );
+								if ( typeof parameters_array[ 0 ] === 'number' )
+								if ( !isNaN( parameters_array[ 0 ] ) )
+								if ( parameters_array[ 0 ] > sdCable.TYPE_ANY )
+								if ( parameters_array[ 0 ] < sdCable.TYPE_LAST )
+								{
+									this.SetType( parameters_array[ 0 ] );
+									executer_socket.SDServiceMessage( 'Cable transfer resource set' );
+								}
 							}
 						}
-					}
-					else
-					exectuter_character.Say( 'I\'d need cable management tool' );
-				//}
+						else
+						exectuter_character.Say( 'I\'d need cable management tool' );
+					//}
+				}
+				else
+				{
+					executer_socket.SDServiceMessage( 'Cable is too far. Try staying near one of cable\'s end points' );
+					return;
+				}
 			}
 			else
 			{
-				executer_socket.SDServiceMessage( 'Cable is too far. Try staying near one of cable\'s end points' );
+				executer_socket.SDServiceMessage( 'Cable is in damage & build restricted area' );
 				return;
 			}
 		}
@@ -741,6 +750,7 @@ class sdCable extends sdEntity
 		if ( !this._is_being_removed )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
+		//if ( sdArea.CheckPointDamageAllowed( exectuter_character.x, exectuter_character.y ) || this.p === exectuter_character || this.c === exectuter_character )
 		if ( this.GetAccurateDistance( exectuter_character.x, exectuter_character.y ) < 32 )
 		{
 			this.AddContextOption( 'Cut cable', 'CUT_CABLE', [] );

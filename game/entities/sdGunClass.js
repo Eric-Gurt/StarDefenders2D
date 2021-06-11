@@ -239,13 +239,19 @@ class sdGunClass
 			count: 1,
 			matter_cost: 300,
 			projectile_velocity: 16,
+			GetAmmoCost: ()=>
+			{
+				return 50;
+			},
 			projectile_properties: { time_left: 2, _damage: 40, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
 				{
 					if ( target_entity.is( sdCharacter ) )
 					{
+						target_entity.AnnounceTooManyEffectsIfNeeded();
 						target_entity.stim_ef = 30 * 30;
 						
-						bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_STIMPACK ].slot ].remove();
+						//if ( bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_STIMPACK ].slot ] )
+						//bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_STIMPACK ].slot ].remove();
 					}
 				}
 			}
@@ -965,19 +971,39 @@ class sdGunClass
 			reload_time: 30 * 3,
 			muzzle_x: null,
 			ammo_capacity: -1,
-			count: 1,
+			count: 0,
 			matter_cost: 300 / 2 * 2.5, // More DPS relative to stimpack
 			projectile_velocity: 16,
-			projectile_properties: { time_left: 2, _damage: 40, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
+			GetAmmoCost: ()=>
+			{
+				return 0;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( gun._held_by )
+				if ( gun._held_by.is( sdCharacter ) )
+				{
+					gun._held_by.AnnounceTooManyEffectsIfNeeded();
+					gun._held_by.power_ef = 30 * 30;
+					//gun._held_by.Damage( 40 );
+					
+					if ( gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ] )
+					gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ].remove();
+				}
+				return true;
+			},
+			projectile_properties: {}
+			/*projectile_properties: { time_left: 2, _damage: 40, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
 				{
 					if ( target_entity.is( sdCharacter ) )
 					{
 						target_entity.power_ef = 30 * 30;
 						
-						bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_STIMPACK ].slot ].remove();
+						//if ( bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ] )
+						//bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ].remove();
 					}
 				}
-			}
+			}*/
 		};
 		
 		sdGun.classes[ sdGun.CLASS_TIME_PACK = 42 ] = 
@@ -990,19 +1016,39 @@ class sdGunClass
 			reload_time: 30 * 3,
 			muzzle_x: null,
 			ammo_capacity: -1,
-			count: 1,
+			count: 0,
 			matter_cost: 1000, // More DPS relative to stimpack
 			projectile_velocity: 16,
-			projectile_properties: { time_left: 2, _damage: 40, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
+			GetAmmoCost: ()=>
+			{
+				return 0;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( gun._held_by )
+				if ( gun._held_by.is( sdCharacter ) )
+				{
+					gun._held_by.AnnounceTooManyEffectsIfNeeded();
+					gun._held_by.time_ef = 30 * 30 * 0.5;
+					//gun._held_by.Damage( 40 );
+					
+					if ( gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_TIME_PACK ].slot ] )
+					gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_TIME_PACK ].slot ].remove();
+				}
+				return true;
+			},
+			projectile_properties: {}
+			/*projectile_properties: { time_left: 2, _damage: 40, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
 				{
 					if ( target_entity.is( sdCharacter ) )
 					{
 						target_entity.time_ef = 30 * 30 * 0.3;
 						
-						bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_STIMPACK ].slot ].remove();
+						if ( bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_TIME_PACK ].slot ] )
+						bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_TIME_PACK ].slot ].remove();
 					}
 				}
-			}
+			}*/
 		};
 		
 		

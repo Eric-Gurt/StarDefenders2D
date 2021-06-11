@@ -1200,8 +1200,11 @@ class sdWorld
 
 				if ( arr[ 0 ][ arr[ 1 ] ] === null )
 				{
-					console.warn('Entity pointer could not be resolved even at later stage for ' + arr[ 0 ].GetClass() + '.' + arr[ 1 ] + ' :: ' + arr[ 2 ] + ' :: ' + arr[ 3 ] );
-					debugger;
+					if ( sdWorld.is_server )
+					{
+						console.warn('Entity pointer could not be resolved even at later stage for ' + arr[ 0 ].GetClass() + '.' + arr[ 1 ] + ' :: ' + arr[ 2 ] + ' :: ' + arr[ 3 ] );
+						debugger;
+					}
 				}
 			}
 			sdWorld.unresolved_entity_pointers = null;
@@ -1661,7 +1664,7 @@ class sdWorld
 					if ( timewarps === null )
 					timewarps = [];
 
-					timewarps.push( { x: sdWorld.sockets[ i ].character.x, y: sdWorld.sockets[ i ].character.y, e: sdWorld.sockets[ i ].character, r: 64 } );
+					timewarps.push( { x: sdWorld.sockets[ i ].character.x, y: sdWorld.sockets[ i ].character.y, e: sdWorld.sockets[ i ].character, r: 128 } );
 				}
 			}
 			else
@@ -1676,7 +1679,7 @@ class sdWorld
 						if ( timewarps === null )
 						timewarps = [];
 
-						timewarps.push( { x: sdEntity.active_entities[ i ].x, y: sdEntity.active_entities[ i ].y, e: sdEntity.active_entities[ i ], r: 64 } );
+						timewarps.push( { x: sdEntity.active_entities[ i ].x, y: sdEntity.active_entities[ i ].y, e: sdEntity.active_entities[ i ], r: 128 } );
 					}
 				}
 			}
@@ -1726,7 +1729,7 @@ class sdWorld
 							{
 								if ( e === timewarps[ i2 ].e || e === timewarps[ i2 ].e.driver_of || ( e.is( sdGun ) && e._held_by === timewarps[ i2 ].e ) )
 								{
-									best_warp = 0.3;
+									best_warp = 0.5;
 									break;
 								}
 								else

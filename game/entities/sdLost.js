@@ -15,6 +15,8 @@ import sdEntity from './sdEntity.js';
 import sdGun from './sdGun.js';
 import sdCrystal from './sdCrystal.js';
 import sdCharacter from './sdCharacter.js';
+import sdCrystalCombiner from './sdCrystalCombiner.js';
+import sdMatterAmplifier from './sdMatterAmplifier.js';
 
 class sdLost extends sdEntity
 {
@@ -74,6 +76,12 @@ class sdLost extends sdEntity
 
 			if ( cur_amount > Math.max( ent._hea || ent.hea || 0, 50 ) )
 			{
+				if ( ent.is( sdCrystalCombiner ) )
+				ent.DropCrystals();
+
+				if ( ent.is( sdMatterAmplifier ) )
+				ent.DropCrystal();
+
 				sdLost.entities_and_affection.delete( ent );
 
 				let ent2 = new sdLost({
