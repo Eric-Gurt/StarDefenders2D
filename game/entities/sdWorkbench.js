@@ -65,6 +65,8 @@ class sdWorkbench extends sdEntity
 		this.matter = 100;
 		this.delay = 0;
 		this.level = 1;
+		this.cube_shards = 0;
+		this.cube_shards_max = 10;
 	}
 
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
@@ -81,6 +83,16 @@ class sdWorkbench extends sdEntity
 		//return 0; // Hack
 		
 		return 2000;
+	}
+	UpgradeWorkbench()
+	{
+		if ( this.cube_shards === this.cube_shards_max )
+		{
+		this.cube_shards = 0;
+		this.cube_shards_max += 5;
+		this.level++;
+		}
+		this._update_version++;
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -104,6 +116,16 @@ class sdWorkbench extends sdEntity
 		}
 		
 	}
+	onMovementInRange( from_entity )
+	{
+		if ( from_entity.is( sdGun ) )
+		if ( from_entity.class === sdGun.CLASS_CUBE_SHARD )
+		if ( this.cube_shards < this.cube_shards_max )
+		{
+			this.cube_shards++;
+			from_entity.remove();
+		}
+	}
 	get title()
 	{
 		return 'Workbench';
@@ -114,7 +136,7 @@ class sdWorkbench extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, "Workbench", 0, -10 );
+		sdEntity.Tooltip( ctx, "Workbench ( " + ~~(this.cube_shards) + " / " + ~~(this.cube_shards_max) + " )", 0, -10 );
 
 		sdEntity.Tooltip( ctx, "Level " + this.level, 0, -3, '#66ff66' );
 		let w = 40;
@@ -133,6 +155,48 @@ class sdWorkbench extends sdEntity
 	}
 	onRemoveAsFakeEntity()
 	{
+	}
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( !this._is_being_removed )
+		if ( this.hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		{
+			if ( command_name === 'UPG_WB' )
+			{
+				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+				{
+				}
+				else
+				{
+					executer_socket.SDServiceMessage( 'Workbench is too far' );
+					return;
+				}
+			}
+			
+			if ( command_name === 'UPG_WB' )
+			{
+				if ( this.cube_shards === this.cube_shards_max )
+				{
+					this.UpgradeWorkbench();
+				}
+				else
+				executer_socket.SDServiceMessage( 'Not enough cube shards are stored inside' );
+			}
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( !this._is_being_removed )
+		if ( this.hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+		{
+			if ( this.level < 2 )
+			this.AddContextOption( 'Upgrade workbench (Max Cube shards)', 'UPG_WB', [] );
+		}
 	}
 }
 //sdWorkbench.init_class();
