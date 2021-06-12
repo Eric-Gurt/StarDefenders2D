@@ -591,6 +591,10 @@ class sdBullet extends sdEntity
 								from_entity._disabled_timeout = 150 * this._emp_mult;
 							}
 
+							if ( from_entity.GetClass() === 'sdLifeBox' )
+							//if ( from_entity.driver0 )
+							if ( this._bouncy && !this.is_grenade )
+							this.remove(); // Prevent falkonian PSI cutter oneshotting lifebox
 
 							if ( from_entity.GetClass() === 'sdBlock' && from_entity.material === sdBlock.MATERIAL_GROUND ) // Dirt damage bonus multiplier (relative to initial damage)
 							from_entity.Damage( dmg * this._dirt_mult, this._owner );
