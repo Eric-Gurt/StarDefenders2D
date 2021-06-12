@@ -40,7 +40,7 @@ class sdLifeBox extends sdEntity
 	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return [ 'sdCharacter', 'sdCrystal' ];
+		return [ 'sdCharacter', 'sdCrystal', 'sdGun' ];
 	}
 	
 	IsVehicle()
@@ -65,7 +65,12 @@ class sdLifeBox extends sdEntity
 		//this.sx = 0;
 		//this.sy = 0;
 		
-		this.hmax = 4000;
+
+		this._hp_mult = 1;
+		this._damage_mult = 1;
+		this._rate_of_fire_mult = 1;
+		this._hp_regen_mult = 1;
+		this.hmax = 6000;
 		this.hea = this.hmax;
 		
 		this._regen_timeout = 0;
@@ -76,6 +81,8 @@ class sdLifeBox extends sdEntity
 
 		this._target = null;
 		
+		this.cube_shards = 0;
+		this.cube_shards_max = 10;
 		// 1 slot
 		this.driver0 = null; // movement
 	}
@@ -106,7 +113,7 @@ class sdLifeBox extends sdEntity
 			c._socket.emit('SERVICE_MESSAGE', sdLifeBox.slot_hints[ best_slot ] );
 		
 			if ( best_slot === 0 )
-			sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1 });
+			sdSound.PlaySound({ name:'hover_start', pitch: 0.6, x:this.x, y:this.y, volume:1 });
 		}
 		else
 		{
@@ -175,7 +182,7 @@ class sdLifeBox extends sdEntity
 			sdSound.PlaySound({ name:'hover_lowhp', x:this.x, y:this.y, volume:1 });
 		}
 	
-		this._regen_timeout = 30;
+		this._regen_timeout = 10;
 		
 		sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
 	}
@@ -188,7 +195,30 @@ class sdLifeBox extends sdEntity
 		//this.sx += x * 0.01;
 		//this.sy += y * 0.01;
 	}
-
+	UpgradeSomething( upgrade_type = 0 )
+	{
+		if ( upgrade_type === 0 && this._damage_mult < 3 )
+		{
+			this._damage_mult += 0.4;
+			this.cube_shards -= 2;
+		}
+		if ( upgrade_type === 1 && this._hp_mult < 3 )
+		{
+			this._hp_mult += 0.4;
+			this.hmax = this.hmax * this._hp_mult;
+			this.cube_shards -= 2;
+		}
+		if ( upgrade_type === 2 && this._rate_of_fire_mult < 3 )
+		{
+			this._rate_of_fire_mult += 0.4;
+			this.cube_shards -= 2;
+		}
+		if ( upgrade_type === 3 && this._hp_regen_mult < 3 )
+		{
+			this._hp_regen_mult += 0.4;
+			this.cube_shards -= 2;
+		}
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( !sdWorld.is_server)
@@ -200,20 +230,17 @@ class sdLifeBox extends sdEntity
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
+		if ( this.hea > 0 )
+		if ( this.hea < this.hmax )
 		{
-
-			if ( this.hea > 0 )
-			if ( this.hea < this.hmax )
-			{
-				if ( this.driver0 )
-				this.hea = Math.min( this.hea + GSPEED * 2, this.hmax );
-				else
-				this.hea = Math.min( this.hea + GSPEED / 6, this.hmax );
-			}
+			if ( this.driver0 )
+			this.hea = Math.min( this.hea + ( GSPEED * 3 * this._hp_regen_mult ), this.hmax );
 			else
-			if ( this.hea >= this.hmax )
-			this._target = null; // Reset target when HP is full
+			this.hea = Math.min( this.hea + ( GSPEED / 8 * this._hp_regen_mult ), this.hmax );
 		}
+		else
+		if ( this.hea >= this.hmax )
+		this._target = null; // Reset target when HP is full
 
 		if ( this.attack_timer <= 0 && this.hea < this.hmax )
 		if ( this.driver0 )
@@ -248,12 +275,13 @@ class sdLifeBox extends sdEntity
 
 					bullet_obj._rail = true;
 
-					bullet_obj._damage = 15; // Needs to be strong enough to destroy shields in several seconds, although I'll implement relative damage mult against shield blocks later
+					bullet_obj._damage = 30 * this._damage_mult;
 					bullet_obj.color = '#ffffff';
+					bullet_obj._shield_block_mult = 10;
 
 					sdEntity.entities.push( bullet_obj );
 
-					this.attack_timer = 3;
+					this.attack_timer = 20 / this._rate_of_fire_mult;
 
 					//sdSound.PlaySound({ name:'gun_railgun', x:this.x, y:this.y - 16, volume:0.5 }); // I'm not sure what sound effect would fit here to be honest - Booraz149
 				}
@@ -266,6 +294,16 @@ class sdLifeBox extends sdEntity
 		//this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
 	
+	onMovementInRange( from_entity )
+	{
+		if ( from_entity.is( sdGun ) )
+		if ( from_entity.class === sdGun.CLASS_CUBE_SHARD )
+		if ( this.cube_shards < this.cube_shards_max )
+		{
+			this.cube_shards++;
+			from_entity.remove();
+		}
+	}
 	//get friction_remain()
 	//{ return 0; }
 	
@@ -274,7 +312,7 @@ class sdLifeBox extends sdEntity
 		if ( this.hea <= 0 )
 		return;
 	
-		sdEntity.Tooltip( ctx, "Life box", 0, -10 );
+		sdEntity.Tooltip( ctx,  "Life Box ( " + ~~(this.cube_shards) + " / " + ~~(this.cube_shards_max) + " )", 0, -10 );
 		
 		let w = 40;
 	
@@ -318,6 +356,78 @@ class sdLifeBox extends sdEntity
 		//return 0; // Hack
 		
 		return this.hmax * sdWorld.damage_to_matter + 1900;
+	}
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( !this._is_being_removed )
+		if ( this.hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		{
+			if ( command_name === 'UPG_DMG' || command_name === 'ARMOR' )
+			{
+				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+				{
+				}
+				else
+				{
+					executer_socket.SDServiceMessage( 'Life Box is too far' );
+					return;
+				}
+			}
+			
+			if ( command_name === 'UPG_DMG' )
+			{
+				if ( this.cube_shards >= 2 )
+				{
+					this.UpgradeSomething( 0 );
+				}
+				else
+				executer_socket.SDServiceMessage( 'Not enough cube shards are stored inside' );
+			}
+
+			if ( command_name === 'UPG_HP' )
+			{
+				if ( this.cube_shards >= 2 )
+				{
+					this.UpgradeSomething( 1 );
+				}
+				else
+				executer_socket.SDServiceMessage( 'Not enough cube shards are stored inside' );
+			}
+			if ( command_name === 'UPG_ROF' )
+			{
+				if ( this.cube_shards >= 2 )
+				{
+					this.UpgradeSomething( 2 );
+				}
+				else
+				executer_socket.SDServiceMessage( 'Not enough cube shards are stored inside' );
+			}
+			if ( command_name === 'UPG_REG' )
+			{
+				if ( this.cube_shards >= 2 )
+				{
+					this.UpgradeSomething( 3 );
+				}
+				else
+				executer_socket.SDServiceMessage( 'Not enough cube shards are stored inside' );
+			}
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( !this._is_being_removed )
+		if ( this.hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+		{
+			this.AddContextOption( 'Upgrade box damage (2 Cube shards)', 'UPG_DMG', [] );
+			this.AddContextOption( 'Upgrade box health (2 Cube shards)', 'UPG_HP', [] );
+			this.AddContextOption( 'Upgrade box rate of fire (2 Cube shards)', 'UPG_ROF', [] );
+			this.AddContextOption( 'Upgrade box health regeneration (2 Cube shards)', 'UPG_REG', [] );
+		}
 	}
 }
 //sdLifeBox.init_class();
