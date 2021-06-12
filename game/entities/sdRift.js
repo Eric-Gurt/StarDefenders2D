@@ -145,7 +145,7 @@ class sdRift extends sdEntity
 							let quickie = new sdQuickie({ 
 								x:this.x,
 								y:this.y,
-								type:2
+								_tier:2
 							});
 							let quickie_filter = {};
 								sdWorld.ReplaceColorInSDFilter( quickie_filter, '#000000', '#FF00FF' ) // Pink, stronger quickies
