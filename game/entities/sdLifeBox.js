@@ -230,17 +230,19 @@ class sdLifeBox extends sdEntity
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
-		if ( this.hea > 0 )
-		if ( this.hea < this.hmax )
 		{
-			if ( this.driver0 )
-			this.hea = Math.min( this.hea + ( GSPEED * 3 * this._hp_regen_mult ), this.hmax );
+			if ( this.hea > 0 )
+			if ( this.hea < this.hmax )
+			{
+				if ( this.driver0 )
+				this.hea = Math.min( this.hea + ( GSPEED * 3 * this._hp_regen_mult ), this.hmax );
+				else
+				this.hea = Math.min( this.hea + ( GSPEED / 8 * this._hp_regen_mult ), this.hmax );
+			}
 			else
-			this.hea = Math.min( this.hea + ( GSPEED / 8 * this._hp_regen_mult ), this.hmax );
+			if ( this.hea >= this.hmax )
+			this._target = null; // Reset target when HP is full
 		}
-		else
-		if ( this.hea >= this.hmax )
-		this._target = null; // Reset target when HP is full
 
 		if ( this.attack_timer <= 0 && this.hea < this.hmax )
 		if ( this.driver0 )
