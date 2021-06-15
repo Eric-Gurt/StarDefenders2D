@@ -121,6 +121,7 @@ class sdWorld
 		//sdWorld.PerlinNoiseGenerator = new PerlinNoiseGenerator( 1337 );
 		sdWorld.SeededRandomNumberGenerator = new SeededRandomNumberGenerator( ~~( Math.random() * 500000 ) );
 		//sdWorld.SeededRandomNumberGenerator2 = new SeededRandomNumberGenerator( 612 );
+		sdWorld.SeededRandomNumberGenerator_constructor = SeededRandomNumberGenerator;
 		
 		sdWorld.el_hit_cache = [];
 		
@@ -1398,6 +1399,12 @@ class sdWorld
 	}
 	static UpdateHashPosition( entity, delay_callback_calls, allow_calling_movement_in_range=true ) // allow_calling_movement_in_range better be false when it is not decided whether entity will be physically placed in world or won't be (so sdBlock SHARP won't kill initiator in the middle of Shoot method of a gun, which was causing crash)
 	{
+		//if ( entity === sdWeather.only_instance )
+		if ( entity.IsGlobalEntity() )
+		{
+			debugger;
+		}
+		
 		if ( !delay_callback_calls )
 		entity.UpdateHitbox();
 	
@@ -1698,49 +1705,54 @@ class sdWorld
 					gspeed_mult = 1;
 					substeps_mult = 1;
 					
-					if ( sdWorld.is_server )
-					if ( e._last_x !== undefined ) // sdEntity was never placed properly yet, can cause items to fall into each other after snapshot load
-					if ( !sdWorld.CanAnySocketSee( e ) )
+					if ( arr_i === 0 ) // Only for real in-world objects that have position
 					{
-						// Make sure low tickrate entities are still catch up on time, this still improved performance because of calling same method multiple times is always faster than calling multiple methods once (apparently virtual method call issue)
-						skip_frames = 30;
-						
-						if ( e.is( sdCharacter ) || e.is( sdGun ) )
-						skip_frames = 5; // High values cause idling players to lose their guns
-						else
-						if ( e.is( sdSandWorm ) )
-						skip_frames = 5; // These are just unstable on high GSPEED
-				
-						if ( e._net_id % skip_frames === frame % skip_frames )
+
+						if ( sdWorld.is_server )
+						if ( e._last_x !== undefined ) // sdEntity was never placed properly yet, can cause items to fall into each other after snapshot load
+						if ( !sdWorld.CanAnySocketSee( e ) )
 						{
-							gspeed_mult = skip_frames;
-							substeps_mult = skip_frames;
-						}
-						else
-						continue;
-					}
-					
-					if ( timewarps )
-					{
-						best_warp = 1;
-						for ( i2 = 0; i2 < timewarps.length; i2++ )
-						{
-							if ( sdWorld.inDist2D_Boolean( timewarps[ i2 ].x, timewarps[ i2 ].y, e.x, e.y, timewarps[ i2 ].r ) )
+							// Make sure low tickrate entities are still catch up on time, this still improved performance because of calling same method multiple times is always faster than calling multiple methods once (apparently virtual method call issue)
+							skip_frames = 30;
+
+							if ( e.is( sdCharacter ) || e.is( sdGun ) )
+							skip_frames = 5; // High values cause idling players to lose their guns
+							else
+							if ( e.is( sdSandWorm ) )
+							skip_frames = 5; // These are just unstable on high GSPEED
+
+							if ( e._net_id % skip_frames === frame % skip_frames )
 							{
-								if ( e === timewarps[ i2 ].e || e === timewarps[ i2 ].e.driver_of || ( e.is( sdGun ) && e._held_by === timewarps[ i2 ].e ) )
+								gspeed_mult = skip_frames;
+								substeps_mult = skip_frames;
+							}
+							else
+							continue;
+						}
+
+						if ( timewarps )
+						{
+							best_warp = 1;
+							for ( i2 = 0; i2 < timewarps.length; i2++ )
+							{
+								if ( sdWorld.inDist2D_Boolean( timewarps[ i2 ].x, timewarps[ i2 ].y, e.x, e.y, timewarps[ i2 ].r ) )
 								{
-									best_warp = 0.5;
-									break;
-								}
-								else
-								{
-									if ( best_warp === 1 )
-									best_warp = 0.15;
+									if ( e === timewarps[ i2 ].e || e === timewarps[ i2 ].e.driver_of || ( e.is( sdGun ) && e._held_by === timewarps[ i2 ].e ) )
+									{
+										best_warp = 0.5;
+										break;
+									}
+									else
+									{
+										if ( best_warp === 1 )
+										best_warp = 0.15;
+									}
 								}
 							}
+
+							gspeed_mult = best_warp;
 						}
-						
-						gspeed_mult = best_warp;
+
 					}
 					
 					if ( DEBUG_TIME_MODE )
@@ -1790,17 +1802,20 @@ class sdWorld
 							continue loop1; // Or else it will try to get removed in each substep of a bullet
 						}
 						
-						e.UpdateHitbox();
-						
-						if ( e._last_x !== e.x ||
-							 e._last_y !== e.y )
+						if ( arr_i === 0 ) // Only for real in-world objects that have position
 						{
-							if ( !e._is_being_removed )
+							e.UpdateHitbox();
+
+							if ( e._last_x !== e.x ||
+								 e._last_y !== e.y )
 							{
-								sdWorld.UpdateHashPosition( e, false );
-								
-								if ( e._listeners ) // Should be faster than passing string
-								e.callEventListener( 'MOVES' );
+								if ( !e._is_being_removed )
+								{
+									sdWorld.UpdateHashPosition( e, false );
+
+									if ( e._listeners ) // Should be faster than passing string
+									e.callEventListener( 'MOVES' );
+								}
 							}
 						}
 					}
@@ -2382,7 +2397,8 @@ class sdWorld
 			return;
 		}
 		else
-		if ( typeof from !== 'array' )
+		//if ( typeof from !== 'array' )
+		if ( !( from instanceof Array ) )
 		return;
 
 		if ( typeof to === 'string' )
@@ -2392,7 +2408,8 @@ class sdWorld
 			return;
 		}
 		else
-		if ( typeof to !== 'array' )
+		//if ( typeof to !== 'array' )
+		if ( !( to instanceof Array ) )
 		return;
 		
 		if ( typeof sd_filter[ from[ 0 ] ] === 'undefined' )
@@ -2410,6 +2427,8 @@ class sdWorld
 		
 		sdWorld.ReplaceColorInSDFilter( ret, '#c0c0c0', player_description['color_bright'] );
 		sdWorld.ReplaceColorInSDFilter( ret, '#808080', player_description['color_dark'] );
+		sdWorld.ReplaceColorInSDFilter( ret, '#00ff00', player_description['color_bright3'] );
+		sdWorld.ReplaceColorInSDFilter( ret, '#007f00', player_description['color_dark3'] );
 		sdWorld.ReplaceColorInSDFilter( ret, '#ff0000', player_description['color_visor'] );
 		//sdWorld.ReplaceColorInSDFilter( ret, '#800000', player_description['color_splashy'] );
 		sdWorld.ReplaceColorInSDFilter( ret, '#000080', player_description['color_suit'] );
@@ -2430,6 +2449,22 @@ class sdWorld
 	{
 		for ( var i = 1; i < sdCharacter.img_helmets.length; i++ )
 		if ( player_description[ 'helmet' + i ] )
+		return i;
+
+		return 1;
+	}
+	static ConvertPlayerDescriptionToBody( player_description )
+	{
+		for ( var i = 1; i < sdCharacter.skins.length; i++ )
+		if ( player_description[ 'body' + i ] )
+		return i;
+
+		return 1;
+	}
+	static ConvertPlayerDescriptionToLegs( player_description )
+	{
+		for ( var i = 1; i < sdCharacter.skins.length; i++ )
+		if ( player_description[ 'legs' + i ] )
 		return i;
 
 		return 1;

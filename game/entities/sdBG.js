@@ -96,6 +96,8 @@ class sdBG extends sdEntity
 		else
 		if ( this.material === sdBG.MATERIAL_GROUND )
 		ctx.drawImageFilterCache( sdBlock.img_ground11, 0, 0, w,h, 0,0, w,h );
+		else
+		ctx.drawImageFilterCache( sdBG.img_bg22, 0, 0, w,h, 0,0, w,h ); // Reinforced walls etc
 
 		ctx.filter = 'none';
 	}

@@ -79,6 +79,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdLifeBox from './entities/sdLifeBox.js';
 	import sdLost from './entities/sdLost.js';
 	import sdCable from './entities/sdCable.js';
+	import sdCharacterRagdoll from './entities/sdCharacterRagdoll.js';
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -134,7 +135,8 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdLifeBox.init_class();
 	sdLost.init_class();
 	sdCable.init_class();
-	
+	sdCharacterRagdoll.init_class();
+
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;
 	globalThis.sdGun = sdGun;
@@ -146,7 +148,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	globalThis.sdWeather = sdWeather;
 	globalThis.sdShop = sdShop;
 	globalThis.sdContextMenu = sdContextMenu;
-	
+	globalThis.LZW = LZW;
 
 let enf_once = true;
 	globalThis.EnforceChangeLog = function EnforceChangeLog( mat, property_to_enforce, value_as_string=true )
@@ -460,6 +462,12 @@ let enf_once = true;
 				sdWorld.my_entity.sx += _force_add_sx;
 				sdWorld.my_entity.sy += _force_add_sy;
 				sdWorld.my_entity._position_velocity_forced_until = _position_velocity_forced_until;
+			}
+			
+			if ( sdWorld.time < Date.now() - 5000 ) // Socket data received but world logic timer is not working (happens and can cause active entity flood). Problem is entity removal won't happen without world timer
+			{
+				//debugger;
+				sdWorld.HandleWorldLogic();
 			}
 		});
 

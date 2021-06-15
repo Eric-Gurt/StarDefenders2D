@@ -25,6 +25,7 @@ import sdWorkbench from './sdWorkbench.js';
 import sdRescueTeleport from './sdRescueTeleport.js';
 import sdLifeBox from './sdLifeBox.js';
 
+import sdCharacterRagdoll from './sdCharacterRagdoll.js';
 
 import sdShop from '../client/sdShop.js';
 
@@ -58,6 +59,22 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_phfalkok' ), // by Booraz149
 			sdWorld.CreateImageFromFile( 'helmet_aero' ), // // original by LordBored, remake by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_scout' ) // by Ghost581, original name was "Observer"
+		];
+		
+		sdCharacter.skin_part_indices = {
+			body_lower: 0,
+			body_upper: 1,
+			arm_upper: 2,
+			arm_lower: 3,
+			leg_upper: 4,
+			leg_lower: 5,
+			feet: 6,
+			head: 7
+		};
+		sdCharacter.skins = [
+			null,
+			sdWorld.CreateImageFromFile( 'skins/star_defender' ),
+			sdWorld.CreateImageFromFile( 'skins/heavy' )
 		];
 		
 		// x y rotation, for images below
@@ -133,22 +150,27 @@ class sdCharacter extends sdEntity
 		return '';
 	}
 	
-	DrawHelmet( ctx, frame )
+	DrawHelmet( ctx, frame=undefined )
 	{
-		ctx.save();
-		
-		var x, y, an;
-		
-		x = sdCharacter.head_pos[ frame ][ 0 ] - 16;
-		y = sdCharacter.head_pos[ frame ][ 1 ] - 16;
-		an = sdCharacter.head_pos[ frame ][ 2 ];
+		if ( frame !== undefined )
+		{
+			ctx.save();
 
-		ctx.translate( x, y );
-		ctx.rotate( an / 180 * Math.PI );
+			var x, y, an;
 
+			x = sdCharacter.head_pos[ frame ][ 0 ] - 16;
+			y = sdCharacter.head_pos[ frame ][ 1 ] - 16;
+			an = sdCharacter.head_pos[ frame ][ 2 ];
+
+			ctx.translate( x, y );
+			ctx.rotate( an / 180 * Math.PI );
+
+			ctx.drawImageFilterCache( sdCharacter.img_helmets[ this.helmet ], - 16, - 16, 32,32 );
+
+			ctx.restore();
+		}
+		else
 		ctx.drawImageFilterCache( sdCharacter.img_helmets[ this.helmet ], - 16, - 16, 32,32 );
-		
-		ctx.restore();
 	}
 	
 	get substeps() // sdCharacter that is being controlled by player will need more
@@ -227,6 +249,8 @@ class sdCharacter extends sdEntity
 		this._god = false;
 		
 		this.helmet = 1;
+		this.body = 1;
+		this.legs = 1;
 		
 		this._in_water = false;
 		
@@ -392,6 +416,15 @@ class sdCharacter extends sdEntity
 		
 		this._recoil = 0;
 		
+		this._ragdoll = null; // Client-side ragdolls could be here? Not ready.
+		
+		//this.lost = 0; // Set to lost type if sdCharacter is lost
+		
+		if ( !sdWorld.is_server )
+		{
+			this._ragdoll = new sdCharacterRagdoll( this );
+		}
+		
 		sdCharacter.characters.push( this );
 	}
 	
@@ -525,7 +558,8 @@ class sdCharacter extends sdEntity
 //0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7
 
 	get hard_collision() // For world geometry where players can walk
-	{ return ( this.death_anim < 20 && !this.driver_of ); }
+	{ return ( !this.driver_of ); }
+	//{ return ( this.death_anim < 20 && !this.driver_of ); }
 	
 	GetVoicePitch()
 	{
@@ -651,6 +685,8 @@ class sdCharacter extends sdEntity
 		//for ( var i = 0; i < this._listeners.DAMAGE.length; i++ )
 		//this._listeners.DAMAGE[ i ]( this, dmg, initiator );
 		this.callEventListener( 'DAMAGE', this, dmg, initiator );
+		
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 	
 		if ( dmg > 0 )
 		{
@@ -2148,20 +2184,31 @@ class sdCharacter extends sdEntity
 			if ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_SHARP )
 			this.Damage( Infinity );
 		}*/
+										
+		if ( this._ragdoll )
+		this._ragdoll.Think( GSPEED );
 									
 		if ( sdWorld.is_server && !this._socket && !this._ai && this._phys_sleep <= 0 && !in_water && !this.driver_of && this.hea > 0 && !this._dying && this.pain_anim <= 0 && this.death_anim <= 0 )
 		{
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 		}
 	}
+	get friction_remain()
+	{ return ( this.hea <= 0 ) ? 0.7 : 0.8; } // Same 0.7 for ragdoll bones
 
 	onRemoveAsFakeEntity()
 	{
+		if ( this._ragdoll )
+		this._ragdoll.Delete();
+	
 		sdCharacter.characters.splice( sdCharacter.characters.indexOf( this ), 1 );
 	}
 	
 	onRemove() // Class-specific, if needed
 	{
+		if ( this._ragdoll )
+		this._ragdoll.Delete();
+	
 		if ( this._socket )
 		{
 			this._socket.emit('REMOVE sdWorld.my_entity', this._net_id );
@@ -2662,6 +2709,15 @@ class sdCharacter extends sdEntity
 			ctx.stroke();
 		}
 		
+		if ( this._ragdoll )
+		{
+			if ( this.death_anim > sdCharacter.disowned_body_ttl - 30 )
+			ctx.globalAlpha = 0.5;
+
+			this._ragdoll.DrawRagdoll( ctx, attached );
+			//ctx.globalAlpha = 0.2;
+		}
+		/*
 		if ( !this.driver_of || attached )
 		{
 		
@@ -2886,10 +2942,6 @@ class sdCharacter extends sdEntity
 						ctx.rotate( -this.tilt / 100 * this._side );
 
 						ctx.rotate( ( -this.GetLookAngle( true ) ) * this._side + Math.PI / 2 );
-						/*
-						ctx.rotate( Math.atan2( 
-							( this.y - this.look_y ) , 
-							( ( this.x - this.look_x ) * this._side ) ) - Math.PI );*/
 						
 						ctx.filter = 'none';
 						this._inventory[ this.gun_slot ].Draw( ctx, true );
@@ -2914,7 +2966,7 @@ class sdCharacter extends sdEntity
 			}
 
 		}
-		
+		*/
 		ctx.filter = 'none';
 		ctx.sd_filter = null;
 	}

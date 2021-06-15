@@ -232,13 +232,39 @@ class FakeCanvasContext
 	
 	RequireMaterial( image, source_x, source_y, source_w, source_h, volumetric_mode, opacity, quality_scale=1 )
 	{
+		/*
+			Debugging in console:
+		
+			this.texture_cache.forEach((a,b)=>{
+			if ( Object.keys( a ).length > 50 )
+			console.log( a );
+			});
+		
+		*/
 		let r = null;
 		
 		const opacity_steps = 50;
 		
 		opacity = Math.max( 0, Math.min( opacity_steps, Math.round( opacity * opacity_steps ) ) );
 		
-		let crop_hash = source_x+'/'+source_y+'/'+source_w+'/'+source_h+'/'+volumetric_mode+'/'+opacity+'/'+quality_scale;
+		if ( image === this._stroke_ptr )
+		{
+			if ( this.line_dash_arr.length === 0 )
+			{
+				quality_scale = 1;
+			}
+			else
+			{
+				quality_scale = Math.round( quality_scale * 1000 ) / 1000;
+			}
+			source_y = Math.round( source_y * 1000 ) / 1000;
+		}
+		else
+		{
+			quality_scale = Math.round( quality_scale * 100 ) / 100;
+		}
+		
+		let crop_hash = source_x+'/'+source_y+'/'+source_w+'/'+(source_h||'')+'/'+volumetric_mode+'/'+opacity+'/'+quality_scale;
 		
 		let image_specific_hash_keeper = null;
 		

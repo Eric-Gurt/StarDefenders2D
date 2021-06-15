@@ -557,7 +557,7 @@ class sdGun extends sdEntity
 						}
 					}
 					
-					let initial_an = this._held_by.GetLookAngle() + this._held_by._side * ( Math.pow( this._held_by._recoil * 5, 2 ) / 5 );
+					let initial_an = this._held_by.GetLookAngle() + this._held_by._side * ( ( Math.pow( this._held_by._recoil * 5, 2 ) / 5 ) * ( 0.5 + 0.5 * Math.random() ) );
 					
 					let count = sdGun.classes[ this.class ].count === undefined ? 1 : sdGun.classes[ this.class ].count;
 					let spread = sdGun.classes[ this.class ].spread || 0;
@@ -616,7 +616,7 @@ class sdGun extends sdEntity
 						
 						bullet_obj._owner.Impulse( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale, -bullet_obj.sy * 0.3 * bullet_obj._knock_scale );
 						
-						bullet_obj._owner._recoil += bullet_obj._knock_scale * vel * 0.01;
+						bullet_obj._owner._recoil += bullet_obj._knock_scale * vel * 0.02; // 0.01
 
 						bullet_obj._bg_shooter = background_shoot ? true : false;
 

@@ -18,6 +18,7 @@ import sdCharacter from './sdCharacter.js';
 import sdCrystalCombiner from './sdCrystalCombiner.js';
 import sdMatterAmplifier from './sdMatterAmplifier.js';
 import sdSandWorm from './sdSandWorm.js';
+import sdCharacterRagdoll from './sdCharacterRagdoll.js';
 
 class sdLost extends sdEntity
 {
@@ -83,8 +84,38 @@ class sdLost extends sdEntity
 				if ( ent.is( sdMatterAmplifier ) )
 				ent.DropCrystal();
 
+				if ( ent.is( sdCharacter ) )
+				{
+					if ( !ent._ragdoll )
+					{
+						ent._ragdoll = new sdCharacterRagdoll( ent );
+
+						if ( ent.hea > 0 )
+						{
+							ent._ragdoll.AliveUpdate();
+						}
+						else
+						{
+							ent._ragdoll.AliveUpdate();
+							for ( let i = 0; i < 90; i++ )
+							ent._ragdoll.Think( 1 );
+						}
+					}
+				}
+				
+				
 				sdLost.entities_and_affection.delete( ent );
 
+				let title = ent.title || null;
+				
+				if ( title )
+				{
+					if ( ent.is( sdCharacter ) )
+					{
+						title += ' ( score: '+ ent._score +' )';
+					}
+				}
+				
 				let ent2 = new sdLost({
 					x: ent.x,
 					y: ent.y,
@@ -99,16 +130,19 @@ class sdLost extends sdEntity
 					mass: ent.mass,
 					d: sdWorld.GetDrawOperations( ent ),
 					matter_max: ent.matter || ent._matter || 1,
-					s: ent.is_static
+					s: ent.is_static,
+					t: title
 				});
 				sdEntity.entities.push( ent2 );
 				sdWorld.UpdateHashPosition( ent2, false ); // Optional, but will make it visible as early as possible
 				
 				if ( ent.is( sdCharacter ) )
-				if ( ent.hea > 0 )
 				{
-					if ( sdWorld.server_config.onKill )
-					sdWorld.server_config.onKill( ent, bullet._owner );
+					if ( ent.hea > 0 )
+					{
+						if ( sdWorld.server_config.onKill )
+						sdWorld.server_config.onKill( ent, bullet._owner );
+					}
 				}
 
 				ent.remove();
@@ -161,7 +195,10 @@ class sdLost extends sdEntity
 	{ return true; }
 	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
-	{ return this.s; }
+	{ 
+		//return this.s; 
+		return true;
+	}
 	
 	DrawIn3D()
 	{
@@ -200,7 +237,9 @@ class sdLost extends sdEntity
 		
 		this.d = params.d || [ 1, 'death1' ];
 		
-		if ( this.s )
+		this.t = params.t || null;
+		
+		//if ( this.s )
 		{
 			this._update_version = 0; // sdEntity constructor won't make this property during snapshot load since it is dynamic
 			//this._update_version++;
@@ -261,6 +300,8 @@ class sdLost extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		this._update_version++;
+		
 		if ( !this.s )
 		{
 			this.sy += sdWorld.gravity * GSPEED;
@@ -281,6 +322,11 @@ class sdLost extends sdEntity
 	{
 		sdEntity.Tooltip( ctx, "Lost" );
 	}*/
+	DrawHUD( ctx, attached ) // foreground layer
+	{
+		if ( this.t )
+		sdEntity.Tooltip( ctx, 'Lost ' + this.t );
+	}
 	Draw( ctx, attached )
 	{
 		/*ctx.drawImageFilterCache( sdLost.img_crystal_empty, - 16, - 16, 32,32 );

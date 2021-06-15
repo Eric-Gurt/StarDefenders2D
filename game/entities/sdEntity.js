@@ -623,8 +623,12 @@ class sdEntity
 		if ( this.is_static )
 		this._update_version = 0;
 		
+		let is_global_entity = this.IsGlobalEntity();
+		
 		//this._hash_position = null;
 		this._affected_hash_arrays = []; // Every time entity moves - these are ones where entity will be excluded, and then new hash array group will be set. Will be tiny for small objects and can get quite large for larger entities.
+		
+		if ( !is_global_entity )
 		sdWorld.UpdateHashPosition( this, true );
 		
 		this._is_being_removed = false;
@@ -647,6 +651,13 @@ class sdEntity
 		}
 		
 		this._hiberstate = -1; // Defines whether think logic to be called in each frame. Might become active automatically if something touches entity
+		
+		if ( is_global_entity ) // These are always active and should never appear in list of active entities
+		{
+			// Do not update hiberstate at all as it will add entity to physical grid
+			//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false );
+		}
+		else
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		
 		this._snapshot_cache_frame = -1;
@@ -773,6 +784,11 @@ class sdEntity
 				else
 				if ( v === sdEntity.HIBERSTATE_ACTIVE )
 				{
+					if ( this.IsGlobalEntity() )
+					{
+						debugger;
+					}
+					
 					this._hiberstate = v;
 					sdEntity.active_entities.push( this );
 				}
@@ -1013,6 +1029,7 @@ class sdEntity
 		}
 		else
 		{
+			if ( !this.IsGlobalEntity() )
 			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		}
 		

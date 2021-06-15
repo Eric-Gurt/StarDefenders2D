@@ -418,6 +418,8 @@ class sdSnapPack
 		{
 			console.log( 'Problem during compression of entity list: ', original_array );
 			
+			debugger;
+			
 			//socket.SDServiceMessage( 'Server: Something has caused corrupted values in world entities. Reverting back to backup...' );
 			
 			sdModeration.CommandReceived( sdModeration.superuser_socket, '/reboot nosave' );

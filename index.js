@@ -126,7 +126,7 @@ if ( SOCKET_IO_MODE ) // Socket.io
 	  // ...
 	  pingInterval: 30000,
 	  pingTimeout: 15000,
-	  maxHttpBufferSize: 1024, // 512 is minimum that works (but lacks long-name support on join)
+	  maxHttpBufferSize: 2048, // 1024 // 512 is minimum that works (but lacks long-name support on join)
 	  perMessageDeflate: {
 		threshold: 1024
 	  }, // Promised to be laggy but with traffic bottlenecking it might be the only way (and nature of barely optimized network snapshots)
@@ -207,6 +207,7 @@ import sdDrone from './game/entities/sdDrone.js';
 import sdLifeBox from './game/entities/sdLifeBox.js';
 import sdLost from './game/entities/sdLost.js';
 import sdCable from './game/entities/sdCable.js';
+import sdCharacterRagdoll from './game/entities/sdCharacterRagdoll.js';
 
 
 
@@ -290,7 +291,7 @@ globalThis.getStackTrace = ()=>
 /*if ( false )
 {
 	console.log('Early error catching enabled, waiting 10 seconds before doing anything...');
-	await new Promise(resolve => setTimeout(resolve, 10000));
+	await new Promise(resolve => setTimeout(resolve, 10000)); // Unexpected reserver word
 }*/
 
 sdWorld.init_class();
@@ -340,6 +341,7 @@ sdDrone.init_class();
 sdLifeBox.init_class();
 sdLost.init_class();
 sdCable.init_class();
+sdCharacterRagdoll.init_class();
 
 /* Do like that later, not sure if I want to deal with path problems yet again... Add awaits where needed too
 
@@ -748,7 +750,7 @@ sdWorld.server_config = {};
 			let instructor_entity = new sdCharacter({ x:my_character_entity.x + 32, y:my_character_entity.y - 32 });
 			let instructor_gun = new sdGun({ x:instructor_entity.x, y:instructor_entity.y, class:sdGun.CLASS_RAILGUN });
 			
-			let instructor_settings = {"hero_name":"Instructor","color_bright":"#7aadff","color_dark":"#25668e","color_visor":"#ffffff","color_suit":"#000000","color_shoes":"#303954","color_skin":"#51709a","voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"color_suit2":"#000000","color_dark2":"#25668e"};
+			let instructor_settings = {"hero_name":"Instructor","color_bright":"#7aadff","color_dark":"#25668e","color_bright3":"#7aadff","color_dark3":"#25668e","color_visor":"#ffffff","color_suit":"#000000","color_shoes":"#303954","color_skin":"#51709a","voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"color_suit2":"#000000","color_dark2":"#25668e"};
 
 			instructor_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter( instructor_settings );
 			instructor_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( instructor_settings );
@@ -1998,6 +2000,8 @@ io.on("connection", (socket) =>
 		character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( player_settings );
 		
 		character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( player_settings );
+		character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( player_settings );
+		character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( player_settings );
 		
 		character_entity.title = player_settings.hero_name;
 		
@@ -2877,6 +2881,12 @@ setInterval( ()=>
 					
 					const AddEntity = ( ent, forced )=>
 					{
+						//if ( ent.IsGlobalEntity() )
+						if ( ent === sdWeather.only_instance )
+						{
+							debugger;
+						}
+						
 						if ( !meet_once.has( ent ) )
 						{
 							meet_once.add( ent );

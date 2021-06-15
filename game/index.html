@@ -520,11 +520,11 @@
 	     
 	    <span class="sdtitle">Appearence:</span><br>
 	    <input type="color" id="color_bright" value="#c0c0c0">
-	    <label for="color_bright">Helmet and jetpack (bright shade)</label>
+	    <label for="color_bright">Helmet (bright shade)</label>
 	    <br>
 	    
 	    <input type="color" id="color_dark" value="#808080">
-	    <label for="color_dark">Helmet, jetpack and armor plates (dark shade)</label>
+	    <label for="color_dark">Helmet (dark shade)</label>
 	    <br>
 	    
 	    <input type="color" id="color_visor" value="#ff0000">
@@ -534,6 +534,14 @@
 	    <!--<input type="color" id="color_splashy" value="#800000">
 	    <label for="color_splashy">Splashy stuff</label>
 	    <br>-->
+	    
+	    <input type="color" id="color_bright3" value="#c0c0c0">
+	    <label for="color_bright3">Jetpack (bright shade)</label>
+	    <br>
+	    
+	    <input type="color" id="color_dark3" value="#808080">
+	    <label for="color_dark3">Jetpack and armor plates (dark shade)</label>
+	    <br>
 	    
 	    <input type="color" id="color_suit" value="#000080">
 	    <label for="color_suit">Upper suit color</label>
@@ -653,6 +661,22 @@
 		<br>
 		<input type="checkbox" id="helmet14" value="14">
 		<label for="helmet14">Scout</label>
+	    </div>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Body model</span><br>
+		<input type="checkbox" id="body1" value="1">
+		<label for="body1">Star Defender</label>
+		<input type="checkbox" id="body2" value="1">
+		<label for="body2">Heavy</label>
+	    </div>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Legs model</span><br>
+		<input type="checkbox" id="legs1" value="1">
+		<label for="legs1">Star Defender</label>
+		<input type="checkbox" id="legs2" value="1">
+		<label for="legs2">Heavy</label>
 	    </div>
 	    
 	    <div class="set_block" tabindex="1">
@@ -811,12 +835,14 @@
 		//ent._an = Math.PI / 2;
 		ent.look_x = 1000;
 		ent.look_y = 0;
-		ent.act_x = 1;
 		ent.stands = true;
-		ent._anim_walk = ( sdWorld.time / 100 ) % 10;
+		ent.act_x = ( ( sdWorld.time ) % 4000 > 3000 ) ? 1 : 0;
+		ent._anim_walk = ( sdWorld.time / 50 ) % 10;
 		
 		ent.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter( globalThis.GetPlayerSettings() );
 		ent.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( globalThis.GetPlayerSettings() );
+		ent.body = sdWorld.ConvertPlayerDescriptionToBody( globalThis.GetPlayerSettings() );
+		ent.legs = sdWorld.ConvertPlayerDescriptionToLegs( globalThis.GetPlayerSettings() );
 		
 		if ( sdWorld.time % 5000 < 500 )
 		ent.pain_anim = 10 / ( sdWorld.time % 5000 ) / 500;
@@ -942,6 +968,8 @@
 		JustOne( 'helmet', last_changed_el );
 		JustOne( 'camera', last_changed_el );
 		JustOne( 'volume', last_changed_el );
+		JustOne( 'body', last_changed_el );
+		JustOne( 'legs', last_changed_el );
 		
 		
 		
