@@ -16,6 +16,9 @@ class sdEnemyMech extends sdEntity
 		sdEnemyMech.img_mech_idle = sdWorld.CreateImageFromFile( 'fmech2' );
 		sdEnemyMech.img_mech_boost = sdWorld.CreateImageFromFile( 'fmech2_boost' );
 		sdEnemyMech.img_mech_broken = sdWorld.CreateImageFromFile( 'fmech2_broken' );
+
+		sdEnemyMech.img_mech_mg = sdWorld.CreateImageFromFile( 'fmech_lmg' );
+		sdEnemyMech.img_mech_rc = sdWorld.CreateImageFromFile( 'rail_cannon' );
 		
 		sdEnemyMech.mechs_counter = 0;
 		
@@ -46,6 +49,8 @@ class sdEnemyMech extends sdEntity
 		
 		this._hmax = 6000;
 		this.hea = this._hmax;
+
+		this._ai_team = 2;
 
 		this.tilt = 0;
 		
@@ -80,6 +85,8 @@ class sdEnemyMech extends sdEntity
 		
 		sdEnemyMech.mechs_counter++;
 		
+		this.lmg_an = 0; // Rotate angle for LMG firing
+
 		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
 	/*SyncedToPlayer( character ) // Shortcut for enemies to react to players
@@ -423,12 +430,15 @@ class sdEnemyMech extends sdEntity
 
 						let an = Math.atan2( targets[ i ].y - this.y, targets[ i ].x - this.x ) + ( Math.random() * 2 - 1 ) * 0.05;
 
+						this.lmg_an = an * 100;
+
+
 						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 						bullet_obj._owner = this;
 						bullet_obj.sx = Math.cos( an );
 						bullet_obj.sy = Math.sin( an );
-						//bullet_obj.x += bullet_obj.sx * 5;
-						//bullet_obj.y += bullet_obj.sy * 5;
+						bullet_obj.x += bullet_obj.sx * 5;
+						bullet_obj.y += bullet_obj.sy * 5;
 
 						bullet_obj.sx *= 15;
 						bullet_obj.sy *= 15;
@@ -585,7 +595,19 @@ class sdEnemyMech extends sdEntity
 		ctx.drawImageFilterCache( sdEnemyMech.img_mech_boost, - 32, - 32, 64, 64 );
 		else
 		ctx.drawImageFilterCache( sdEnemyMech.img_mech_broken, - 32, - 32, 64, 64 );
-		
+
+		ctx.filter = 'none';
+		if ( this.side === 1 )
+		{
+			ctx.rotate( this.lmg_an / 100 );
+			ctx.scale( 1, -1 );
+		}
+		else
+		{
+			ctx.rotate( -this.lmg_an / 100 );
+			ctx.scale( -1, 1 );
+		}
+		ctx.drawImageFilterCache( sdEnemyMech.img_mech_mg, - 16, - 16, 32, 32 );
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 		ctx.sd_filter = null;

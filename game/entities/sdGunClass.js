@@ -1054,7 +1054,89 @@ class sdGunClass
 			}*/
 		};
 		
-		
+		sdGun.classes[ sdGun.CLASS_LVL2_LIGHT_ARMOR = 43 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_light_lvl2' ),
+			title: 'SD-02 Light Armor',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			matter_cost: 275,
+			min_workbench_level: 1,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
+			{ 
+				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
+				{
+					character.armor = 190;
+					character.armor_max = 190;
+					character._armor_absorb_perc = 0.3; // 30% damage reduction
+					character.armor_speed_reduction = 0; // Armor speed reduction, 0% for light armor
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
+
+		sdGun.classes[ sdGun.CLASS_LVL2_MEDIUM_ARMOR = 44 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_medium_lvl2' ),
+			title: 'SD-02 Duty Armor',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			matter_cost: 375,
+			min_workbench_level: 1,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
+			{ 
+				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
+				{
+					character.armor = 280;
+					character.armor_max = 280;
+					character._armor_absorb_perc = 0.4; // 40% damage reduction
+					character.armor_speed_reduction = 10; // Armor speed reduction, 10% for medium armor
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
+
+		sdGun.classes[ sdGun.CLASS_LVL2_HEAVY_ARMOR = 45 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_heavy_lvl2' ),
+			title: 'SD-02 Combat Armor',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			matter_cost: 475,
+			min_workbench_level: 1,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
+			{ 
+				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
+				{
+					character.armor = 370;
+					character.armor_max = 370;
+					character._armor_absorb_perc = 0.5; // 50% damage reduction
+					character.armor_speed_reduction = 20; // Armor speed reduction, 20% for heavy armor
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];

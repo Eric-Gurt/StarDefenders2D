@@ -119,6 +119,7 @@ class sdBullet extends sdEntity
 		this._emp_mult = 1; // How long will the turret sleep ( 1 = 5 seconds )
 
 		this._dirt_mult = 0; // Damage bonus multiplier (relative to initial damage) against dirt blocks, used in Laser Drill weapon
+		this._shield_block_mult = 0; // Damage bonus multiplier (relative to initial damage) against shield blocks, used in Life Box
 		
 		this._bouncy = false;
 		
@@ -590,9 +591,16 @@ class sdBullet extends sdEntity
 								from_entity._disabled_timeout = 150 * this._emp_mult;
 							}
 
+							if ( from_entity.GetClass() === 'sdLifeBox' )
+							//if ( from_entity.driver0 )
+							if ( this._bouncy && !this.is_grenade )
+							this.remove(); // Prevent falkonian PSI cutter oneshotting lifebox
 
 							if ( from_entity.GetClass() === 'sdBlock' && from_entity.material === sdBlock.MATERIAL_GROUND ) // Dirt damage bonus multiplier (relative to initial damage)
 							from_entity.Damage( dmg * this._dirt_mult, this._owner );
+
+							if ( from_entity.GetClass() === 'sdBlock' && from_entity.material === sdBlock.MATERIAL_TRAPSHIELD ) // Shield block damage bonus multiplier (relative to initial damage)
+							from_entity.Damage( dmg * this._shield_block_mult, this._owner );
 
 							if ( this._owner )
 							if ( old_hea > 0 )
