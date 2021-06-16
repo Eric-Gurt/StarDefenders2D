@@ -201,9 +201,17 @@ class sdWeather extends sdEntity
 										}
 									}
 									else
-									{
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE }) );
-										character_entity._ai_gun_slot = 2;
+									{ 
+										if ( Math.random() < 0.2 )
+										{
+											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_MARKSMAN }) );
+											character_entity._ai_gun_slot = 2;
+										}
+										else
+										{
+											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE }) );
+											character_entity._ai_gun_slot = 2;
+										}
 									}
 									let falkok_settings;
 									if ( character_entity._ai_gun_slot === 2 )
@@ -677,9 +685,17 @@ class sdWeather extends sdEntity
 											}
 										}
 										else
-										{
-											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE }) );
-											character_entity._ai_gun_slot = 2;
+										{ 
+											if ( Math.random() < 0.2 )
+											{
+												sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_MARKSMAN }) );
+												character_entity._ai_gun_slot = 2;
+											}
+											else
+											{
+												sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE }) );
+												character_entity._ai_gun_slot = 2;
+											}
 										}
 										let falkok_settings;
 										if ( character_entity._ai_gun_slot === 2 )
