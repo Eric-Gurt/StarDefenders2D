@@ -133,7 +133,7 @@ class sdGun extends sdEntity
 			
 			if ( from_entity.is( sdCharacter ) )
 			{
-				if ( from_entity._ignored_guns.indexOf( this ) !== -1 )
+				if ( from_entity._ignored_guns.indexOf( this ) !== -1 || from_entity.driver_of !== null )
 				return;
 			}
 			

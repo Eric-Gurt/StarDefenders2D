@@ -311,6 +311,10 @@ class sdSlug extends sdEntity
 				if ( from_entity.IsTargetable() )
 				{
 					this._last_bite = sdWorld.time;
+					if ( from_entity.GetClass() === 'sdBlock' )
+					if ( from_entity._reinforced_level > 0 ) // Slugs should not damage reinforced blocks to prevent raiders using them
+					from_entity.Damage( 0, this );
+					else
 					from_entity.Damage( 30, this );
 					
 					this._hea = Math.min( this._hmax, this._hea + 3 );

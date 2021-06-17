@@ -50,6 +50,8 @@ class sdDoor extends sdEntity
 	
 	get spawn_align_x(){ return 16; };
 	get spawn_align_y(){ return 16; };*/
+
+	get mass() { return this._reinforced_level > 0 ? 4000 : 100; }
 	
 	Damage( dmg, initiator=null )
 	{
