@@ -103,6 +103,9 @@ class sdMatterAmplifier extends sdEntity
 			this._last_matter_max = this.matter_max;
 			sdWorld.UpdateHashPosition( this, false );
 		}
+
+		if ( this.multiplier > 4 ) // Revert old max amplifiers to current max, this can be commented out/deleted once it is applied to server and overrides old max amplifiers
+		this.multiplier = 4;
 		
 		if ( this._ignore_pickup_tim > 0 )
 		this._ignore_pickup_tim = Math.max( 0, this._ignore_pickup_tim - GSPEED );
@@ -201,9 +204,9 @@ class sdMatterAmplifier extends sdEntity
 			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam, - 16, - 16, 32,32 )
 			if ( this.multiplier === 2 )
 			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam2, - 16, - 16, 32,32 );
-			if ( this.multiplier === 4 )
+			if ( this.multiplier === 3 )
 			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam3, - 16, - 16, 32,32 );
-			if ( this.multiplier === 8 )
+			if ( this.multiplier === 4 )
 			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam4, - 16, - 16, 32,32 );
 			
 			if ( this.shielded )
@@ -213,9 +216,9 @@ class sdMatterAmplifier extends sdEntity
 				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield, - 16, - 16, 32,32 );
 				if ( this.multiplier === 2 )
 				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield2, - 16, - 16, 32,32 );
-				if ( this.multiplier === 4 )
+				if ( this.multiplier === 3 )
 				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield3, - 16, - 16, 32,32 );
-				if ( this.multiplier === 8 )
+				if ( this.multiplier === 4 )
 				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield4, - 16, - 16, 32,32 );
 			}
 			
@@ -226,9 +229,9 @@ class sdMatterAmplifier extends sdEntity
 		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier, - 16, - 16, 32, 32 );
 		if ( this.multiplier === 2 )
 		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier2, - 16, - 16, 32, 32 );
-		if ( this.multiplier === 4 )
+		if ( this.multiplier === 3 )
 		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier3, - 16, - 16, 32, 32 );
-		if ( this.multiplier === 8 )
+		if ( this.multiplier === 4 )
 		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier4, - 16, - 16, 32, 32 );
 	}
 	onRemove() // Class-specific, if needed
@@ -358,9 +361,9 @@ class sdMatterAmplifier extends sdEntity
 		return 300 + this._hmax * sdWorld.damage_to_matter + this.matter;
 		if ( this.multiplier === 2 )
 		return 600 + this._hmax * sdWorld.damage_to_matter + this.matter;
-		if ( this.multiplier === 4 )
+		if ( this.multiplier === 3 )
 		return 1200 + this._hmax * sdWorld.damage_to_matter + this.matter;
-		if ( this.multiplier === 8 ) // Needs cube shards matter upgrades to be placable
+		if ( this.multiplier === 4 ) // Needs cube shards matter upgrades to be placable
 		return 2400 + this._hmax * sdWorld.damage_to_matter + this.matter;
 	}
 }
