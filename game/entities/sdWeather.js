@@ -202,7 +202,7 @@ class sdWeather extends sdEntity
 									}
 									else
 									{ 
-										if ( Math.random() < 0.2 )
+										if ( Math.random() < 0.1 )
 										{
 											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_MARKSMAN }) );
 											character_entity._ai_gun_slot = 2;
@@ -686,7 +686,7 @@ class sdWeather extends sdEntity
 										}
 										else
 										{ 
-											if ( Math.random() < 0.2 )
+											if ( Math.random() < 0.1 )
 											{
 												sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_MARKSMAN }) );
 												character_entity._ai_gun_slot = 2;
