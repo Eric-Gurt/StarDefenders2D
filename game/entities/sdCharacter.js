@@ -364,6 +364,7 @@ class sdCharacter extends sdEntity
 
 		this._acquired_bt_mech = false; // Has the character picked up build tool upgrade that the flying mech drops?
 		this._acquired_bt_rift = false; // Has the character picked up build tool upgrade that the portals drop?
+		this._acquired_bt_score = false; // Has the character reached over 5000 score?
 
 		this.flying = false; // Jetpack flying
 		//this._last_act_y = this.act_y; // For mid-air jump jetpack activation
@@ -1297,6 +1298,19 @@ class sdCharacter extends sdEntity
 		
 		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED );
 		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED );
+
+		if ( this._score >= 5000 && this._acquired_bt_score === false )
+		{
+		this.Say( 'My experience on this planet expanded my knowledge' );
+		this.build_tool_level++;
+		this._acquired_bt_score = true;
+		}
+
+		if ( this._score < 5000 && this._acquired_bt_score === true )
+		{
+		this.build_tool_level--;
+		this._acquired_bt_score = false;
+		}
 		
 		if ( this.hea <= 0 )
 		{
