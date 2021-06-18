@@ -59,7 +59,6 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_phfalkok' ), // by Booraz149
 			sdWorld.CreateImageFromFile( 'helmet_aero' ), // // original by LordBored, remake by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_scout' ), // by Ghost581, original name was "Observer"
-			sdWorld.CreateImageFromFile( 'helmet_faction_reaver' ) // by Ghost581
 		];
 		
 		sdCharacter.skin_part_indices = {
