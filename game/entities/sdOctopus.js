@@ -328,8 +328,12 @@ class sdOctopus extends sdEntity
 					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
 					{
 						if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )
-						if ( from_entity._reinforced_level > 0 ) // Octopus should not damage reinforced blocks to prevent raiders using them
-						from_entity.Damage( 0, this );
+						{
+							if ( from_entity._reinforced_level > 0 ) // Worms should not damage reinforced blocks to prevent raiders using them
+							from_entity.Damage( 0, this );
+							else
+							from_entity.Damage( 75, this );
+						}
 						else
 						from_entity.Damage( 75, this );
 						
