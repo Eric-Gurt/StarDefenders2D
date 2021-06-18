@@ -1075,7 +1075,11 @@ class sdCharacter extends sdEntity
 				this._ai.target_local_y = closest._hitbox_y1 + ( closest._hitbox_y2 - closest._hitbox_y1 ) * Math.random();
 
 				let should_fire = true; // Sometimes prevents friendly fire, not ideal since it updates only when ai performs "next action"
-				if ( !sdWorld.CheckLineOfSight( this.x, this.y, closest.x, closest.y, this, null, ['sdCharacter'] ) )
+				if ( this.look_x - this._ai.target.x > 60 || this.look_x - this._ai.target.x < -60 ) // Don't shoot if you're not looking near or at the target
+				should_fire = false;
+				if ( this.look_y - this._ai.target.y > 60 || this.look_y - this._ai.target.y < -60 ) // Same goes here but Y coordinate
+				should_fire = false;
+				if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, null, ['sdCharacter'] ) )
 				if ( sdWorld.last_hit_entity && sdWorld.last_hit_entity._ai_team === this._ai_team )
 				should_fire = false;
 
@@ -1102,6 +1106,7 @@ class sdCharacter extends sdEntity
 					if ( this._ai.target.GetClass() !== 'sdBlock' ) // Check line of sight if not targeting blocks
 					{
 						if ( sdWorld.CheckLineOfSight( this.x, this.y, this._ai.target.x, this._ai.target.y, this, sdCom.com_visibility_ignored_classes, null ) )
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, sdCom.com_visibility_ignored_classes, null ) )
 						this._key_states.SetKey( 'Mouse1', 1 );
 					}
 					else
