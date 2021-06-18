@@ -1066,7 +1066,7 @@ class sdGunClass
 			projectile_properties: { _damage: 0 },
 			ignore_slot: true,
 			matter_cost: 275,
-			min_workbench_level: 1,
+			min_workbench_level: 2,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
@@ -1094,7 +1094,7 @@ class sdGunClass
 			projectile_properties: { _damage: 0 },
 			ignore_slot: true,
 			matter_cost: 375,
-			min_workbench_level: 1,
+			min_workbench_level: 2,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
@@ -1122,7 +1122,7 @@ class sdGunClass
 			projectile_properties: { _damage: 0 },
 			ignore_slot: true,
 			matter_cost: 475,
-			min_workbench_level: 1,
+			min_workbench_level: 2,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
