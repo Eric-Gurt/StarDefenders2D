@@ -329,7 +329,7 @@ class sdOctopus extends sdEntity
 					{
 						if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )
 						{
-							if ( from_entity._reinforced_level > 0 ) // Worms should not damage reinforced blocks to prevent raiders using them
+							if ( from_entity._reinforced_level > 0 ) // Octopus should not damage reinforced blocks to prevent raiders using them
 							from_entity.Damage( 0, this );
 							else
 							from_entity.Damage( 75, this );
