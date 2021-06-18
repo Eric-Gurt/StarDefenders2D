@@ -75,8 +75,8 @@ class sdCharacter extends sdEntity
 			null,
 			sdWorld.CreateImageFromFile( 'skins/star_defender' ),
 			sdWorld.CreateImageFromFile( 'skins/heavy' ),
-			sdWorld.CreateImageFromFile( 'skins/tech' ),
-			sdWorld.CreateImageFromFile( 'skins/templar' )
+			sdWorld.CreateImageFromFile( 'skins/tech' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/templar' ) // by LordBored
 		];
 		
 		// x y rotation, for images below
