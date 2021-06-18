@@ -331,6 +331,7 @@ class sdGunClass
 			count: 1,
 			is_sword: true,
 			matter_cost: 90, // Was 200, but I don't feel like this weapon is overpowered enough to have high cost like stimpack does /EG
+			min_build_tool_level: 1, // Was available from start before, however MK2 shovel needs this aswell
 			projectile_velocity: 20 * 1.5,
 			projectile_properties: { time_left: 1, _damage: 60, color: 'transparent', _knock_scale:0.025 * 8, 
 				_custom_target_reaction:( bullet, target_entity )=>
