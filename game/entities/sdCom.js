@@ -9,8 +9,13 @@ class sdCom extends sdEntity
 	static init_class()
 	{
 		sdCom.img_com = sdWorld.CreateImageFromFile( 'com' );
-		sdCom.img_com_red = sdWorld.CreateImageFromFile( 'com_red' );
-		sdCom.img_com_orange = sdWorld.CreateImageFromFile( 'com_orange' );
+		sdCom.img_com_darkblue = sdWorld.CreateImageFromFile( 'com_darkblue' ); // Level 2
+		sdCom.img_com_purple = sdWorld.CreateImageFromFile( 'com_purple' ); // Level 3
+		sdCom.img_com_green = sdWorld.CreateImageFromFile( 'com_green' ); // Level 4
+		sdCom.img_com_yellow = sdWorld.CreateImageFromFile( 'com_yellow' ); // Level 5
+		sdCom.img_com_pink = sdWorld.CreateImageFromFile( 'com_pink' ); // Level 6
+		sdCom.img_com_red = sdWorld.CreateImageFromFile( 'com_red' ); // Level 7
+		sdCom.img_com_orange = sdWorld.CreateImageFromFile( 'com_orange' ); // Level 8
 		
 		sdCom.action_range = 32; // How far character needs to stand in order to manipualte it
 		sdCom.action_range_command_centre = 64; // How far character needs to stand in order to manipualte it
@@ -20,7 +25,7 @@ class sdCom extends sdEntity
 		sdCom.max_subscribers = 32;
 		
 		//sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdMatterContainer', 'sdTeleport', 'sdCrystal', 'sdLamp', 'sdCube' ];
-		sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdTeleport', 'sdCube', 'sdEnemyMech', 'sdBadDog', 'sdShark' ]; // Used for sdCube pathfinding now...
+		sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdTeleport', 'sdCube', 'sdEnemyMech', 'sdBadDog', 'sdShark', 'sdDrone' ]; // Used for sdCube pathfinding now...
 		sdCom.com_visibility_unignored_classes = [ 'sdBlock' ];
 		sdCom.com_creature_attack_unignored_classes = [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ]; // Used by sdVirus so far. Also for rain that spawns grass
 		
@@ -69,7 +74,7 @@ class sdCom extends sdEntity
 		super( params );
 		
 		this.variation = params.variation || 0;
-		this._hmax = 100 + ( 200* this.variation ); // Stronger variations have more health
+		this._hmax = 100 + ( 150* this.variation ); // Stronger variations have more health
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 
@@ -205,8 +210,18 @@ class sdCom extends sdEntity
 		if ( this.variation === 0 )
 		ctx.drawImage( sdCom.img_com, -16, -16, 32,32 );
 		if ( this.variation === 1 )
-		ctx.drawImage( sdCom.img_com_red, -16, -16, 32,32 );
+		ctx.drawImage( sdCom.img_com_darkblue, -16, -16, 32,32 );
 		if ( this.variation === 2 )
+		ctx.drawImage( sdCom.img_com_purple, -16, -16, 32,32 );
+		if ( this.variation === 3 )
+		ctx.drawImage( sdCom.img_com_green, -16, -16, 32,32 );
+		if ( this.variation === 4 )
+		ctx.drawImage( sdCom.img_com_yellow, -16, -16, 32,32 );
+		if ( this.variation === 5 )
+		ctx.drawImage( sdCom.img_com_pink, -16, -16, 32,32 );
+		if ( this.variation === 6 )
+		ctx.drawImage( sdCom.img_com_red, -16, -16, 32,32 );
+		if ( this.variation === 7 )
 		ctx.drawImage( sdCom.img_com_orange, -16, -16, 32,32 );
 	}
 	MeasureMatterCost()

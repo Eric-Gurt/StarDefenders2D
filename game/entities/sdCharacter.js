@@ -367,6 +367,7 @@ class sdCharacter extends sdEntity
 
 		this._acquired_bt_mech = false; // Has the character picked up build tool upgrade that the flying mech drops?
 		this._acquired_bt_rift = false; // Has the character picked up build tool upgrade that the portals drop?
+		this._acquired_bt_score = false; // Has the character reached over 5000 score?
 
 		this.flying = false; // Jetpack flying
 		//this._last_act_y = this.act_y; // For mid-air jump jetpack activation
@@ -1078,7 +1079,11 @@ class sdCharacter extends sdEntity
 				this._ai.target_local_y = closest._hitbox_y1 + ( closest._hitbox_y2 - closest._hitbox_y1 ) * Math.random();
 
 				let should_fire = true; // Sometimes prevents friendly fire, not ideal since it updates only when ai performs "next action"
-				if ( !sdWorld.CheckLineOfSight( this.x, this.y, closest.x, closest.y, this, null, ['sdCharacter'] ) )
+				if ( this.look_x - this._ai.target.x > 60 || this.look_x - this._ai.target.x < -60 ) // Don't shoot if you're not looking near or at the target
+				should_fire = false;
+				if ( this.look_y - this._ai.target.y > 60 || this.look_y - this._ai.target.y < -60 ) // Same goes here but Y coordinate
+				should_fire = false;
+				if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, null, ['sdCharacter'] ) )
 				if ( sdWorld.last_hit_entity && sdWorld.last_hit_entity._ai_team === this._ai_team )
 				should_fire = false;
 
@@ -1105,6 +1110,7 @@ class sdCharacter extends sdEntity
 					if ( this._ai.target.GetClass() !== 'sdBlock' ) // Check line of sight if not targeting blocks
 					{
 						if ( sdWorld.CheckLineOfSight( this.x, this.y, this._ai.target.x, this._ai.target.y, this, sdCom.com_visibility_ignored_classes, null ) )
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, sdCom.com_visibility_ignored_classes, null ) )
 						this._key_states.SetKey( 'Mouse1', 1 );
 					}
 					else
@@ -1295,6 +1301,19 @@ class sdCharacter extends sdEntity
 		
 		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED );
 		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED );
+
+		if ( this._score >= 5000 && this._acquired_bt_score === false )
+		{
+		this.Say( 'My experience on this planet expanded my knowledge' );
+		this.build_tool_level++;
+		this._acquired_bt_score = true;
+		}
+
+		if ( this._score < 5000 && this._acquired_bt_score === true )
+		{
+		this.build_tool_level--;
+		this._acquired_bt_score = false;
+		}
 		
 		if ( this.hea <= 0 )
 		{

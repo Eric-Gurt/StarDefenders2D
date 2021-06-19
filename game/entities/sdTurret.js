@@ -31,11 +31,19 @@ class sdTurret extends sdEntity
 		
 		sdTurret.img_turret2 = sdWorld.CreateImageFromFile( 'turret2' );
 		sdTurret.img_turret2_fire = sdWorld.CreateImageFromFile( 'turret2_fire' );
+
+		sdTurret.img_turret3 = sdWorld.CreateImageFromFile( 'turret3' );
+		sdTurret.img_turret3_fire = sdWorld.CreateImageFromFile( 'turret3_fire' );
+
+		sdTurret.img_turret4 = sdWorld.CreateImageFromFile( 'turret4' );
+		sdTurret.img_turret4_fire = sdWorld.CreateImageFromFile( 'turret4_fire' );
 		
 		sdTurret.targetable_classes = new WeakSet( [ sdCharacter, sdVirus, sdQuickie, sdOctopus, sdCube, sdBomb, sdAsp, sdSandWorm, sdSlug, sdEnemyMech, sdDrone, sdBadDog ] );
 		
 		sdTurret.KIND_LASER = 0;
 		sdTurret.KIND_ROCKET = 1;
+		sdTurret.KIND_RAPID_LASER = 2;
+		sdTurret.KIND_SNIPER = 3;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -79,7 +87,7 @@ class sdTurret extends sdEntity
 		
 		this.kind = params.kind || 0;
 		
-		this._hmax = 100;
+		this._hmax = ( this.kind === sdTurret.KIND_RAPID_LASER || this.kind === sdTurret.KIND_SNIPER ) ? 200 : 100;
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 		
@@ -155,8 +163,8 @@ class sdTurret extends sdEntity
 				
 				const targetable_classes = sdTurret.targetable_classes;
 
-				for ( var x = this.x - 300; x < this.x + 300; x += 32 )
-				for ( var y = this.y - 300; y < this.y + 300; y += 32 )
+				for ( var x = this.x - this.GetTurretRange(); x < this.x + this.GetTurretRange(); x += 32 )
+				for ( var y = this.y - this.GetTurretRange(); y < this.y + this.GetTurretRange(); y += 32 )
 				{
 					var arr = sdWorld.RequireHashPosition( x, y );
 					for ( var i2 = 0; i2 < arr.length; i2++ )
@@ -192,7 +200,7 @@ class sdTurret extends sdEntity
 			{
 				let di = sdWorld.Dist2D( this.x, this.y, this._target.x, this._target.y );
 				
-				let vel = 15;
+				let vel = ( this.kind === sdTurret.KIND_SNIPER ) ? 30 : 15;
 				
 				if ( this.kind === sdTurret.KIND_ROCKET )
 				vel = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_velocity;
@@ -201,8 +209,10 @@ class sdTurret extends sdEntity
 				
 				if ( this.fire_timer <= 0 )
 				{
-					if ( this.kind === sdTurret.KIND_LASER )
+					if ( this.kind === sdTurret.KIND_LASER || this.kind === sdTurret.KIND_RAPID_LASER )
 					sdSound.PlaySound({ name:'turret', x:this.x, y:this.y, volume:1 });
+					if ( this.kind === sdTurret.KIND_SNIPER )
+					sdSound.PlaySound({ name:'gun_sniper', x:this.x, y:this.y, volume:1 });
 					if ( this.kind === sdTurret.KIND_ROCKET )
 					sdSound.PlaySound({ name:sdGun.classes[ sdGun.CLASS_ROCKET ].sound, x:this.x, y:this.y, volume:1 });
 					
@@ -221,10 +231,17 @@ class sdTurret extends sdEntity
 					
 					this.fire_timer = this.GetReloadTime();
 						
-					if ( this.kind === sdTurret.KIND_LASER )
+					if ( this.kind === sdTurret.KIND_LASER || this.kind === sdTurret.KIND_RAPID_LASER )
 					{
 						bullet_obj._damage = 15;
 						bullet_obj.color = '#ff0000';
+					}
+
+					if ( this.kind === sdTurret.KIND_SNIPER )
+					{
+						bullet_obj._damage = 85;
+						bullet_obj.color = '#ff00ff';
+						bullet_obj.penetrating = true;
 					}
 					if ( this.kind === sdTurret.KIND_ROCKET )
 					{
@@ -276,6 +293,10 @@ class sdTurret extends sdEntity
 		return 10;
 		if ( this.kind === sdTurret.KIND_ROCKET )
 		return sdGun.classes[ sdGun.CLASS_ROCKET ].reload_time;
+		if ( this.kind === sdTurret.KIND_RAPID_LASER )
+		return 5; // Twice as fast than regular laser
+		if ( this.kind === sdTurret.KIND_SNIPER )
+		return sdGun.classes[ sdGun.CLASS_SNIPER ].reload_time;
 	}
 	GetSize()
 	{
@@ -283,6 +304,15 @@ class sdTurret extends sdEntity
 		return 3;
 		if ( this.kind === sdTurret.KIND_ROCKET )
 		return 6;
+		if ( this.kind === sdTurret.KIND_RAPID_LASER || this.kind === sdTurret.KIND_SNIPER )
+		return 4;
+	}
+	GetTurretRange()
+	{
+		if ( this.kind === sdTurret.KIND_RAPID_LASER || this.kind === sdTurret.KIND_SNIPER )
+		return 450;
+		else
+		return 300;
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
@@ -328,6 +358,12 @@ class sdTurret extends sdEntity
 	
 		if ( this.kind === sdTurret.KIND_ROCKET )
 		ctx.drawImage( ( this.fire_timer < this.GetReloadTime() - 2.5 ) ? sdTurret.img_turret2 : sdTurret.img_turret2_fire, -16, -16, 32,32 );
+
+		if ( this.kind === sdTurret.KIND_RAPID_LASER )
+		ctx.drawImage( ( this.fire_timer < this.GetReloadTime() - 2.5 ) ? sdTurret.img_turret3 : sdTurret.img_turret3_fire, -16, -16, 32,32 );
+
+		if ( this.kind === sdTurret.KIND_SNIPER )
+		ctx.drawImage( ( this.fire_timer < this.GetReloadTime() - 2.5 ) ? sdTurret.img_turret4 : sdTurret.img_turret4_fire, -16, -16, 32,32 );
 	}
 	MeasureMatterCost()
 	{
@@ -336,6 +372,12 @@ class sdTurret extends sdEntity
 		
 		if ( this.kind === sdTurret.KIND_ROCKET )
 		return ~~( 100 * sdWorld.damage_to_matter + 300 );
+
+		if ( this.kind === sdTurret.KIND_RAPID_LASER )
+		return ~~( 100 * sdWorld.damage_to_matter + 450 );
+
+		if ( this.kind === sdTurret.KIND_SNIPER )
+		return ~~( 100 * sdWorld.damage_to_matter + 600 );
 	}
 	onRemove()
 	{

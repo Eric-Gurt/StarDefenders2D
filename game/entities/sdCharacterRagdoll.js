@@ -337,7 +337,7 @@ class sdCharacterRagdoll
 		}
 		if ( this.character.pain_anim > 0 )
 		{
-			dx -= 1;
+			dx -= 1 * this.character._side;
 			dy += 1;
 			di = sdWorld.Dist2D_Vector( dx, dy );
 			if ( di > 0.01 )
