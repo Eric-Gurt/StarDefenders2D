@@ -331,6 +331,7 @@ class sdGunClass
 			count: 1,
 			is_sword: true,
 			matter_cost: 90, // Was 200, but I don't feel like this weapon is overpowered enough to have high cost like stimpack does /EG
+			min_build_tool_level: 1, // Was available from start before, however MK2 shovel needs this aswell
 			projectile_velocity: 20 * 1.5,
 			projectile_properties: { time_left: 1, _damage: 60, color: 'transparent', _knock_scale:0.025 * 8, 
 				_custom_target_reaction:( bullet, target_entity )=>
@@ -1066,7 +1067,7 @@ class sdGunClass
 			projectile_properties: { _damage: 0 },
 			ignore_slot: true,
 			matter_cost: 275,
-			min_workbench_level: 1,
+			min_workbench_level: 2,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
@@ -1094,7 +1095,7 @@ class sdGunClass
 			projectile_properties: { _damage: 0 },
 			ignore_slot: true,
 			matter_cost: 375,
-			min_workbench_level: 1,
+			min_workbench_level: 2,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
@@ -1122,7 +1123,7 @@ class sdGunClass
 			projectile_properties: { _damage: 0 },
 			ignore_slot: true,
 			matter_cost: 475,
-			min_workbench_level: 1,
+			min_workbench_level: 2,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )

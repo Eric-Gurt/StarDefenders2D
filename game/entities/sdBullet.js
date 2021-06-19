@@ -394,7 +394,7 @@ class sdBullet extends sdEntity
 		if ( this._damage > 0 )
 		{
 			if ( this.penetrating )
-			return from_entity.is( sdBlock ) || from_entity.is( sdAntigravity ) || from_entity.is( sdDoor );
+			return ( from_entity.is( sdBlock ) && this._reinforced_level >= from_entity._reinforced_level) || from_entity.is( sdAntigravity ) || ( from_entity.is( sdDoor ) && this._reinforced_level >= from_entity._reinforced_level );
 			else
 			return ( from_entity.is( sdBlock ) && from_entity.material === sdBlock.MATERIAL_WALL ) || from_entity.is( sdAntigravity ) || from_entity.is( sdDoor );
 		}

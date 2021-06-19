@@ -233,7 +233,7 @@ class sdBlock extends sdEntity
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return true; }
 	
-	get mass() { return this.material === sdBlock.MATERIAL_GROUND ? 200 : 400; }
+	get mass() { return this.material === sdBlock.MATERIAL_GROUND ? 200 : this._reinforced_level > 0 ? 4000 : 400; }
 	
 	Damage( dmg, initiator=null )
 	{
