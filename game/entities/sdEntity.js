@@ -1374,7 +1374,7 @@ class sdEntity
 			var connected_ents = sdCable.GetConnectedEntities( this, sdCable.TYPE_MATTER );
 			for ( var i = 0; i < connected_ents.length; i++ )
 			{
-				if ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' )
+				if ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' /*&& !arr[ i ]._is_being_removed*/ )
 				this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
 			}
 			
@@ -1386,7 +1386,7 @@ class sdEntity
 
 				for ( var i = 0; i < arr.length; i++ )
 				{
-					if ( ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' ) && arr[ i ] !== this )
+					if ( ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' ) && arr[ i ] !== this && !arr[ i ]._is_being_removed )
 					{
 						this.TransferMatter( arr[ i ], how_much, GSPEED * 4 ); // Mult by X because targets no longer take 4 cells
 					}
@@ -1416,7 +1416,7 @@ class sdEntity
 
 			for ( var i = 0; i < arr.length; i++ )
 			{
-				if ( ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' ) && arr[ i ] !== this )
+				if ( ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' ) && arr[ i ] !== this && !arr[ i ]._is_being_removed )
 				{
 					if ( sdWorld.is_server )
 					{

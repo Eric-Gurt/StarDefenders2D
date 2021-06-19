@@ -452,7 +452,7 @@ class sdBullet extends sdEntity
 			{
 				if ( from_entity.IsTargetable( this, true ) )
 				if ( !sdWorld.server_config.GetHitAllowed || sdWorld.server_config.GetHitAllowed( this, from_entity ) )
-				if ( !this._owner || !from_entity.is( sdCharacter ) || !this._owner.is( sdCharacter ) || from_entity.cc_id === 0 || from_entity.cc_id !== this._owner.cc_id )
+				if ( this._damage < 0 || !this._owner || !from_entity.is( sdCharacter ) || !this._owner.is( sdCharacter ) || from_entity.cc_id === 0 || from_entity.cc_id !== this._owner.cc_id )
 				{
 					if ( sdWorld.is_server ) // Or else fake self-knock
 					if ( this._damage !== 0 )
