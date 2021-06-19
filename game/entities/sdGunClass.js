@@ -1137,6 +1137,80 @@ class sdGunClass
 				return false; 
 			} 
 		};
+
+		sdGun.classes[ sdGun.CLASS_F_MARKSMAN = 46 ] =  // sprite made by Ghost581
+		{
+			image: sdWorld.CreateImageFromFile( 'f_marksman' ),
+			sound: 'gun_f_rifle',
+			sound_pitch: 2.4,
+			title: 'Falkok Marksman Rifle',
+			slot: 2,
+			reload_time: 22,
+			muzzle_x: 10,
+			ammo_capacity: 12,
+			count: 1,
+			spawnable: false,
+			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
+			projectile_properties: { _damage: 42, color: '#92D0EC'}
+		};
+		
+		sdGun.classes[ sdGun.CLASS_MMG_THE_RIPPER_T2 = 47 ] = // sprite by Ghost581
+		{
+			image: sdWorld.CreateImageFromFile( 'mmg_the_ripper_t2' ),
+			sound: 'gun_the_ripper',
+			sound_pitch: 0.7,
+			sound_volume: 1.75,
+			title: 'The Ripper MK1',
+			slot: 2,
+			reload_time: 5.5,
+			muzzle_x: 10,
+			ammo_capacity: 50,
+			spread: 0.03,
+			count: 1,
+			matter_cost: 140,
+			min_build_tool_level: 3,
+			projectile_properties: { _damage: 42, color: '#FFEB00' },
+		};
+
+		sdGun.classes[ sdGun.CLASS_MMG_THE_RIPPER_T3 = 48 ] = // sprite by Ghost581
+		{
+			image: sdWorld.CreateImageFromFile( 'mmg_the_ripper_t3' ),
+			sound: 'gun_the_ripper',
+			sound_pitch: 1.6,
+			sound_volume: 1.65,
+			title: 'The Ripper MK2',
+			slot: 2,
+			reload_time: 6,
+			muzzle_x: 10,
+			ammo_capacity: 55,
+			spread: 0.02,
+			count: 1,
+			matter_cost: 190,
+			min_build_tool_level: 5,
+			projectile_properties: { _damage: 48, color: '#FFEB00' },
+		};
+
+		sdGun.classes[ sdGun.CLASS_RAILGUN_P03 = 49 ] = // sprite by Ghost581
+        {
+            image: sdWorld.CreateImageFromFile( 'railgun_p03' ),
+            image0: [ sdWorld.CreateImageFromFile( 'railgun_p03_c' ), sdWorld.CreateImageFromFile( 'railgun_p03_c' ) ],
+            image1: [ sdWorld.CreateImageFromFile( 'railgun_p03_r1' ), sdWorld.CreateImageFromFile( 'railgun_p03_r1b' ) ],
+            image2: [ sdWorld.CreateImageFromFile( 'railgun_p03_r2' ), sdWorld.CreateImageFromFile( 'railgun_p03_r2b' ) ],
+            sound: 'gun_railgun_malicestorm_terrorphaser',
+            title: 'Railgun P03',
+			sound_pitch: 1.6,
+			sound_volume: 1.65,
+            slot: 8,
+            reload_time: 370,
+            muzzle_x: null,
+            ammo_capacity: -1,
+            count: 1,
+            matter_cost: 280,
+            projectile_properties: { _rail: true, _damage: 80, color: '#62c8f2', explosion_radius: 20},
+            min_build_tool_level: 4,
+		};
+
+
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
