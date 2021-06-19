@@ -885,7 +885,7 @@ class sdWorld
 			//console.log('.attachment found');
 			
 			if ( params.type === sdEffect.TYPE_CHAT )
-			if ( params.attachment._coms_allowed )
+			//if ( params.attachment._coms_allowed )
 			{
 				let coms_near = [];
 				
@@ -1091,7 +1091,7 @@ class sdWorld
 			//if ( arr[ i ].GetClass() === 'sdCharacter' )
 			//if ( arr[ i ] instanceof sdCharacter )
 			if ( arr[ i ].is( sdCharacter ) )
-			if ( require_auth_for_net_id_by_list === null || ( arr[ i ]._coms_allowed && require_auth_for_net_id_by_list.indexOf( arr[ i ]._net_id ) !== -1 ) )
+			if ( require_auth_for_net_id_by_list === null /*|| ( arr[ i ]._coms_allowed && require_auth_for_net_id_by_list.indexOf( arr[ i ]._net_id ) !== -1 )*/ )
 			if ( ret.indexOf( arr[ i ] ) === -1 )
 			ret.push( arr[ i ] );
 		}
@@ -2436,6 +2436,7 @@ class sdWorld
 		sdWorld.ReplaceColorInSDFilter( ret, '#ff00ff', player_description['color_dark2'] );
 		sdWorld.ReplaceColorInSDFilter( ret, '#000000', player_description['color_shoes'] );
 		sdWorld.ReplaceColorInSDFilter( ret, '#808000', player_description['color_skin'] );
+		sdWorld.ReplaceColorInSDFilter( ret, '#0000ff', player_description['color_extra1'] );
 		
 		if ( player_description['voice6'] ) // Falkok voice
 		sdWorld.ReplaceColorInSDFilter( ret, '#800000', '#006480' ); // hue +73 deg

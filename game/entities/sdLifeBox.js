@@ -50,6 +50,7 @@ class sdLifeBox extends sdEntity
 	
 	Impact( vel ) // fall damage basically
 	{
+		// No impact damage if has driver (because no headshot damage)
 		if ( vel > 5 )
 		{
 			this.Damage( ( vel - 3 ) * 45 );

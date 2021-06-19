@@ -291,8 +291,18 @@ class sdBullet extends sdEntity
 			if ( !this._hook && !this._admin_picker )
 			if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
 			{
-				this.remove();
-				return;
+				if ( this._owner && this._owner._god )
+				{
+				}
+				else
+				if ( this._owner2 && this._owner2._god )
+				{
+				}
+				else
+				{
+					this.remove();
+					return;
+				}
 			}
 		}
 		
@@ -412,8 +422,18 @@ class sdBullet extends sdEntity
 			if ( from_entity.is( sdArea ) )
 			if ( from_entity.type === sdArea.TYPE_PREVENT_DAMAGE )
 			{
-				this.remove();
-				return;
+				if ( this._owner && this._owner._god )
+				{
+				}
+				else
+				if ( this._owner2 && this._owner2._god )
+				{
+				}
+				else
+				{
+					this.remove();
+					return;
+				}
 			}
 		}
 
@@ -430,8 +450,9 @@ class sdBullet extends sdEntity
 			//if ( from_entity.GetClass() === 'sdCharacter' || 
 			//	 from_entity.GetClass() === 'sdVirus' )
 			{
-				if ( from_entity.IsTargetable( this ) )
+				if ( from_entity.IsTargetable( this, true ) )
 				if ( !sdWorld.server_config.GetHitAllowed || sdWorld.server_config.GetHitAllowed( this, from_entity ) )
+				if ( !this._owner || !from_entity.is( sdCharacter ) || !this._owner.is( sdCharacter ) || from_entity.cc_id === 0 || from_entity.cc_id !== this._owner.cc_id )
 				{
 					if ( sdWorld.is_server ) // Or else fake self-knock
 					if ( this._damage !== 0 )
@@ -502,7 +523,7 @@ class sdBullet extends sdEntity
 			//if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdCrystal' ) // Including any else rigid bodies
 			if ( typeof from_entity.hea !== 'undefined' || typeof from_entity._hea !== 'undefined' || ( this._bg_shooter && !this._bouncy && from_entity.GetClass() === 'sdBG' ) || ( this._admin_picker && ( this._bg_shooter || from_entity.GetClass() !== 'sdBG' ) ) )
 			//if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null ) // guns can be hit only when are not held by anyone
-			if ( from_entity.IsTargetable( this ) )
+			if ( from_entity.IsTargetable( this, true ) )
 			{
 				let will_bounce = false;
 				//let dmg_mult = 1;

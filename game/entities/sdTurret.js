@@ -20,12 +20,15 @@ import sdEnemyMech from './sdEnemyMech.js';
 import sdDrone from './sdDrone.js';
 import sdBlock from './sdBlock.js';
 import sdBadDog from './sdBadDog.js';
+import sdShark from './sdShark.js';
 
 
 class sdTurret extends sdEntity
 {
 	static init_class()
 	{
+		sdTurret.img_no_matter = sdWorld.CreateImageFromFile( 'turret_no_matter' );
+		
 		sdTurret.img_turret = sdWorld.CreateImageFromFile( 'turret' );
 		sdTurret.img_turret_fire = sdWorld.CreateImageFromFile( 'turret_fire' );
 		
@@ -38,7 +41,7 @@ class sdTurret extends sdEntity
 		sdTurret.img_turret4 = sdWorld.CreateImageFromFile( 'turret4' );
 		sdTurret.img_turret4_fire = sdWorld.CreateImageFromFile( 'turret4_fire' );
 		
-		sdTurret.targetable_classes = new WeakSet( [ sdCharacter, sdVirus, sdQuickie, sdOctopus, sdCube, sdBomb, sdAsp, sdSandWorm, sdSlug, sdEnemyMech, sdDrone, sdBadDog ] );
+		sdTurret.targetable_classes = new WeakSet( [ sdCharacter, sdVirus, sdQuickie, sdOctopus, sdCube, sdBomb, sdAsp, sdSandWorm, sdSlug, sdEnemyMech, sdDrone, sdBadDog, sdShark ] );
 		
 		sdTurret.KIND_LASER = 0;
 		sdTurret.KIND_ROCKET = 1;
@@ -60,7 +63,18 @@ class sdTurret extends sdEntity
 	
 	get title()
 	{
-		return 'Automatic turret';
+		var prefix = ' ( level ' + this.lvl + ', '+ ~~(this.matter)+' / '+this._matter_max+' )';
+		
+		if ( this.kind === sdTurret.KIND_LASER )
+		return 'Automatic laser turret' + prefix;
+		if ( this.kind === sdTurret.KIND_ROCKET )
+		return 'Automatic missile turret' + prefix;
+		if ( this.kind === sdTurret.KIND_RAPID_LASER )
+		return 'Automatic rapid laser turret' + prefix;
+		if ( this.kind === sdTurret.KIND_SNIPER )
+		return 'Automatic sniper turret' + prefix;
+	
+		return 'Automatic turret' + prefix;
 	}
 	
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
@@ -104,9 +118,43 @@ class sdTurret extends sdEntity
 		
 		//this._coms_near_cache = [];
 		
+		this.matter = 0;
+		this._matter_max = 20;
+		
+		this.lvl = 0;
+		
 		this.SetMethod( 'ShootPossibilityFilter', this.ShootPossibilityFilter ); // Here it used for "this" binding so method can be passed to collision logic
 	}
+	GetShootCost()
+	{
+		var dmg = 1;
+		
+		var dmg_mult = 1 + this.lvl / 3;
+		
+		var count = 1;
+		
+		var is_rail = false;
+		
+		var explosion_radius = 0;
+		
+		if ( this.kind === sdTurret.KIND_LASER || this.kind === sdTurret.KIND_RAPID_LASER )
+		dmg = 15;
 	
+		if ( this.kind === sdTurret.KIND_SNIPER )
+		dmg = 85;
+	
+		if ( this.kind === sdTurret.KIND_ROCKET )
+		{
+			dmg = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties._damage;
+			explosion_radius = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.explosion_radius;
+		}
+			
+		//return m * 0.1;
+		
+		return ( Math.abs( dmg * dmg_mult ) * count + 
+				( is_rail ? 30 : 0 ) + 
+				( explosion_radius > 0 ? 20 : 0 ) ) * sdWorld.damage_to_matter;
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this._disabled_timeout > 0 )
@@ -122,158 +170,174 @@ class sdTurret extends sdEntity
 		
 		if ( sdWorld.is_server )
 		{
-			if ( this._seek_timer <= 0 && this.disabled === false )
+			if ( this.matter > this.GetShootCost() )
 			{
-				this._seek_timer = 10 + Math.random() * 10;
+				if ( this._seek_timer <= 0 && this.disabled === false )
+				{
+					this._seek_timer = 10 + Math.random() * 10;
 
-				this._target = null;
-				
-				const that = this;
-				
-				/*let coms_near = this._coms_near_cache;
-				
-				if ( coms_near.length === 0 || coms_near[ 0 ]._is_being_removed || !sdWorld.CheckLineOfSight( this.x, this.y, coms_near[ 0 ].x, coms_near[ 0 ].y, null, null, sdCom.com_visibility_unignored_classes ) )
-				{
-					this._coms_near_cache = coms_near = sdWorld.GetComsNear( this.x, this.y, null, null, true );
-				}*/
-				let coms_near = this.GetComsNearCache( this.x, this.y, null, null, true );
-				
-				//let class_cache = {};
-				function RuleAllowedByNodes( c )
-				{
-					for ( var i = 0; i < coms_near.length; i++ )
-					{
-						if ( coms_near[ i ].subscribers.indexOf( c ) !== -1 )
-						return false;
-					}
-					return true;
-				}
-				
-				//let net_id_cache = {};
-				/*function NetIDSearch( _net_id )
-				{
-					//if ( !net_id_cache[ _net_id ] )
-					//net_id_cache[ _net_id ] = sdWorld.GetComsNear( that.x, that.y, null, _net_id, true ).length;
-				
-					return net_id_cache[ _net_id ];
-				}*/
-				
-				//let coms_near_len = sdWorld.GetComsNear( this.x, this.y, null, null, true ).length;
-				let coms_near_len = coms_near.length;
-				
-				const targetable_classes = sdTurret.targetable_classes;
+					this._target = null;
 
-				for ( var x = this.x - this.GetTurretRange(); x < this.x + this.GetTurretRange(); x += 32 )
-				for ( var y = this.y - this.GetTurretRange(); y < this.y + this.GetTurretRange(); y += 32 )
-				{
-					var arr = sdWorld.RequireHashPosition( x, y );
-					for ( var i2 = 0; i2 < arr.length; i2++ )
+					//const that = this;
+
+					/*let coms_near = this._coms_near_cache;
+
+					if ( coms_near.length === 0 || coms_near[ 0 ]._is_being_removed || !sdWorld.CheckLineOfSight( this.x, this.y, coms_near[ 0 ].x, coms_near[ 0 ].y, null, null, sdCom.com_visibility_unignored_classes ) )
 					{
-						var e = arr[ i2 ];
-						
-						if ( targetable_classes.has( e.constructor ) )
-						//if ( e.is( sdCharacter ) || e.is( sdVirus ) || e.is( sdQuickie ) || e.is( sdOctopus ) || e.is( sdCube ) || e.is( sdBomb ) )
-						if ( ( e.hea || e._hea ) > 0 && ( !e.is( sdSandWorm ) || e.death_anim === 0 ) )
-						if ( !e.is( sdBadDog ) || !e.owned )
-						if ( e.IsVisible( this._owner ) || ( e.driver_of && e.driver_of.IsVisible( this._owner ) ) )
+						this._coms_near_cache = coms_near = sdWorld.GetComsNear( this.x, this.y, null, null, true );
+					}*/
+					//let coms_near = this.GetComsNearCache( this.x, this.y, null, null, true );
+					let com_near = this.GetComWiredCache();
+
+					if ( com_near )
+					{
+
+						//let class_cache = {};
+						function RuleAllowedByNodes( c )
 						{
-							if ( e !== this._owner || coms_near_len > 0 )
-							//if ( e.GetClass() === 'sdCharacter' || e.GetClass() === 'sdVirus' || e.GetClass() === 'sdQuickie' || e.GetClass() === 'sdOctopus' || e.GetClass() === 'sdCube' )
-							//if ( e instanceof sdCharacter || e instanceof sdVirus || e instanceof sdQuickie || e instanceof sdOctopus || e instanceof sdCube )
-							//if ( NetIDSearch( e._net_id ) === 0 && ClassSearch( e.GetClass() ) === 0 )
-							if ( RuleAllowedByNodes( e._net_id ) && RuleAllowedByNodes( e.GetClass() ) )
+							//for ( var i = 0; i < com_near.length; i++ )
+							//{
+								//if ( com_near[ i ].subscribers.indexOf( c ) !== -1 )
+								if ( com_near.subscribers.indexOf( c ) !== -1 )
+								return false;
+							//}
+							return true;
+						}
+
+						//let net_id_cache = {};
+						/*function NetIDSearch( _net_id )
+						{
+							//if ( !net_id_cache[ _net_id ] )
+							//net_id_cache[ _net_id ] = sdWorld.GetComsNear( that.x, that.y, null, _net_id, true ).length;
+
+							return net_id_cache[ _net_id ];
+						}*/
+
+						//let coms_near_len = sdWorld.GetComsNear( this.x, this.y, null, null, true ).length;
+						//let coms_near_len = com_near.length;
+
+						const targetable_classes = sdTurret.targetable_classes;
+
+						for ( var x = this.x - this.GetTurretRange(); x < this.x + this.GetTurretRange(); x += 32 )
+						for ( var y = this.y - this.GetTurretRange(); y < this.y + this.GetTurretRange(); y += 32 )
+						{
+							var arr = sdWorld.RequireHashPosition( x, y );
+							for ( var i2 = 0; i2 < arr.length; i2++ )
 							{
-								if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdCommandCentre' ], this.ShootPossibilityFilter ) )
+								var e = arr[ i2 ];
+
+								if ( targetable_classes.has( e.constructor ) )
+								//if ( e.is( sdCharacter ) || e.is( sdVirus ) || e.is( sdQuickie ) || e.is( sdOctopus ) || e.is( sdCube ) || e.is( sdBomb ) )
+								if ( ( e.hea || e._hea ) > 0 && ( !e.is( sdSandWorm ) || e.death_anim === 0 ) )
+								if ( !e.is( sdBadDog ) || !e.owned )
+								if ( e.IsVisible( this._owner ) || ( e.driver_of && e.driver_of.IsVisible( this._owner ) ) )
 								{
-									this._target = e;
-									break;
+									var is_char = e.is( sdCharacter );
+									
+									//if ( e !== this._owner || coms_near_len > 0 )
+									//if ( e.GetClass() === 'sdCharacter' || e.GetClass() === 'sdVirus' || e.GetClass() === 'sdQuickie' || e.GetClass() === 'sdOctopus' || e.GetClass() === 'sdCube' )
+									//if ( e instanceof sdCharacter || e instanceof sdVirus || e instanceof sdQuickie || e instanceof sdOctopus || e instanceof sdCube )
+									//if ( NetIDSearch( e._net_id ) === 0 && ClassSearch( e.GetClass() ) === 0 )
+									if ( ( is_char && e.IsHostileAI() ) || ( ( !is_char || RuleAllowedByNodes( e._net_id ) ) && RuleAllowedByNodes( e.GetClass() ) ) )
+									{
+										if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdCommandCentre' ], this.ShootPossibilityFilter ) )
+										{
+											this._target = e;
+											break;
+										}
+									}
 								}
 							}
 						}
 					}
-				}
-			}
-			else
-			this._seek_timer -= GSPEED;
-	
-			if ( this._target !== null  && this.disabled === false )
-			{
-				let di = sdWorld.Dist2D( this.x, this.y, this._target.x, this._target.y );
-				
-				let vel = ( this.kind === sdTurret.KIND_SNIPER ) ? 30 : 15;
-				
-				if ( this.kind === sdTurret.KIND_ROCKET )
-				vel = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_velocity;
-				
-				this.an = Math.atan2( this._target.y + this._target.sy * di / vel - this.y, this._target.x + this._target.sx * di / vel - this.x ) * 100;
-				
-				if ( this.fire_timer <= 0 )
-				{
-					if ( this.kind === sdTurret.KIND_LASER || this.kind === sdTurret.KIND_RAPID_LASER )
-					sdSound.PlaySound({ name:'turret', x:this.x, y:this.y, volume:1 });
-					if ( this.kind === sdTurret.KIND_SNIPER )
-					sdSound.PlaySound({ name:'gun_sniper', x:this.x, y:this.y, volume:1 });
-					if ( this.kind === sdTurret.KIND_ROCKET )
-					sdSound.PlaySound({ name:sdGun.classes[ sdGun.CLASS_ROCKET ].sound, x:this.x, y:this.y, volume:1 });
 					
-					let bullet_obj = new sdBullet({ x: this.x, y: this.y });
-					
-					bullet_obj._owner = this;
-					
-					bullet_obj.sx = Math.cos( this.an / 100 );
-					bullet_obj.sy = Math.sin( this.an / 100 );
-					
-					//bullet_obj.x += bullet_obj.sx * 5;
-					//bullet_obj.y += bullet_obj.sy * 5;
-					
-					bullet_obj.sx *= vel;
-					bullet_obj.sy *= vel;
-					
-					this.fire_timer = this.GetReloadTime();
-						
-					if ( this.kind === sdTurret.KIND_LASER || this.kind === sdTurret.KIND_RAPID_LASER )
-					{
-						bullet_obj._damage = 15;
-						bullet_obj.color = '#ff0000';
-					}
-
-					if ( this.kind === sdTurret.KIND_SNIPER )
-					{
-						bullet_obj._damage = 85;
-						bullet_obj.color = '#ff00ff';
-						bullet_obj.penetrating = true;
-					}
-					if ( this.kind === sdTurret.KIND_ROCKET )
-					{
-						bullet_obj._damage = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties._damage;
-						
-						bullet_obj.explosion_radius = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.explosion_radius;
-						bullet_obj.model = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.model;
-						
-						bullet_obj.color = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.color;
-						
-						bullet_obj.ac = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.ac;
-						
-						if ( bullet_obj.ac > 0 )
-						{
-							bullet_obj.acx = Math.cos( this.an / 100 );
-							bullet_obj.acy = Math.sin( this.an / 100 );
-						}
-					}	
-					
-					sdEntity.entities.push( bullet_obj );
 				}
 				else
-				this.fire_timer = Math.max( 0, this.fire_timer - GSPEED );
-			
-				this._update_version++;
-			}
-			else
-			{
-				if ( this.fire_timer > 0 )
+				this._seek_timer -= GSPEED;
+
+				if ( this._target !== null && this.disabled === false )
 				{
+					let di = sdWorld.Dist2D( this.x, this.y, this._target.x, this._target.y );
+
+					let vel = ( this.kind === sdTurret.KIND_SNIPER ) ? 30 : 15;
+
+					if ( this.kind === sdTurret.KIND_ROCKET )
+					vel = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_velocity;
+
+					this.an = Math.atan2( this._target.y + this._target.sy * di / vel - this.y, this._target.x + this._target.sx * di / vel - this.x ) * 100;
+
+					if ( this.fire_timer <= 0 )
+					{
+						this.matter -= this.GetShootCost();
+						
+						if ( this.kind === sdTurret.KIND_LASER || this.kind === sdTurret.KIND_RAPID_LASER )
+						sdSound.PlaySound({ name:'turret', x:this.x, y:this.y, volume:0.5, pitch: 1 / ( 1 + this.lvl / 3 ) });
+						if ( this.kind === sdTurret.KIND_SNIPER )
+						sdSound.PlaySound({ name:'gun_sniper', x:this.x, y:this.y, volume:0.5, pitch: 1 / ( 1 + this.lvl / 3 ) });
+						if ( this.kind === sdTurret.KIND_ROCKET )
+						sdSound.PlaySound({ name:sdGun.classes[ sdGun.CLASS_ROCKET ].sound, x:this.x, y:this.y, volume:0.5, pitch: 1 / ( 1 + this.lvl / 3 ) });
+
+						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+
+						bullet_obj._owner = this;
+
+						bullet_obj.sx = Math.cos( this.an / 100 );
+						bullet_obj.sy = Math.sin( this.an / 100 );
+
+						//bullet_obj.x += bullet_obj.sx * 5;
+						//bullet_obj.y += bullet_obj.sy * 5;
+
+						bullet_obj.sx *= vel;
+						bullet_obj.sy *= vel;
+
+						this.fire_timer = this.GetReloadTime();
+
+						if ( this.kind === sdTurret.KIND_LASER || this.kind === sdTurret.KIND_RAPID_LASER )
+						{
+							bullet_obj._damage = 15;
+							bullet_obj.color = '#ff0000';
+						}
+
+						if ( this.kind === sdTurret.KIND_SNIPER )
+						{
+							bullet_obj._damage = 85;
+							bullet_obj.color = '#ff00ff';
+							bullet_obj.penetrating = true;
+						}
+						if ( this.kind === sdTurret.KIND_ROCKET )
+						{
+							bullet_obj._damage = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties._damage;
+
+							bullet_obj.explosion_radius = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.explosion_radius;
+							bullet_obj.model = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.model;
+
+							bullet_obj.color = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.color;
+
+							bullet_obj.ac = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.ac;
+
+							if ( bullet_obj.ac > 0 )
+							{
+								bullet_obj.acx = Math.cos( this.an / 100 );
+								bullet_obj.acy = Math.sin( this.an / 100 );
+							}
+						}	
+						
+						bullet_obj._damage *= 1 + this.lvl / 3;
+
+						sdEntity.entities.push( bullet_obj );
+					}
+					else
 					this.fire_timer = Math.max( 0, this.fire_timer - GSPEED );
+
 					this._update_version++;
+				}
+				else
+				{
+					if ( this.fire_timer > 0 )
+					{
+						this.fire_timer = Math.max( 0, this.fire_timer - GSPEED );
+						this._update_version++;
+					}
 				}
 			}
 		}
@@ -309,10 +373,11 @@ class sdTurret extends sdEntity
 	}
 	GetTurretRange()
 	{
-		if ( this.kind === sdTurret.KIND_RAPID_LASER || this.kind === sdTurret.KIND_SNIPER )
+		//if ( this.kind === sdTurret.KIND_RAPID_LASER || this.kind === sdTurret.KIND_SNIPER )
+		if ( this.kind === sdTurret.KIND_SNIPER )
 		return 450;
 		else
-		return 300;
+		return 300 + this.lvl * 50; // 450 when upgraded
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
@@ -348,22 +413,37 @@ class sdTurret extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		if ( this.disabled )
-		ctx.filter = 'brightness(0.25)';
+		var not_firing_now = ( this.fire_timer < this.GetReloadTime() - 2.5 );
+		
+		let com_near = this.GetComWiredCache();
+		
+		if ( !sdShop.isDrawing )
+		if ( this.disabled || this.matter < this.GetShootCost() || !com_near )
+		{
+			ctx.filter = 'brightness(0.1)';
+			not_firing_now = true;
+		}
 		
 		ctx.rotate( this.an / 100 );
 		
 		if ( this.kind === sdTurret.KIND_LASER )
-		ctx.drawImage( ( this.fire_timer < this.GetReloadTime() - 2.5 ) ? sdTurret.img_turret : sdTurret.img_turret_fire, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( not_firing_now ? sdTurret.img_turret : sdTurret.img_turret_fire, -16, -16, 32,32 );
 	
 		if ( this.kind === sdTurret.KIND_ROCKET )
-		ctx.drawImage( ( this.fire_timer < this.GetReloadTime() - 2.5 ) ? sdTurret.img_turret2 : sdTurret.img_turret2_fire, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( not_firing_now ? sdTurret.img_turret2 : sdTurret.img_turret2_fire, -16, -16, 32,32 );
 
 		if ( this.kind === sdTurret.KIND_RAPID_LASER )
-		ctx.drawImage( ( this.fire_timer < this.GetReloadTime() - 2.5 ) ? sdTurret.img_turret3 : sdTurret.img_turret3_fire, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( not_firing_now ? sdTurret.img_turret3 : sdTurret.img_turret3_fire, -16, -16, 32,32 );
 
 		if ( this.kind === sdTurret.KIND_SNIPER )
-		ctx.drawImage( ( this.fire_timer < this.GetReloadTime() - 2.5 ) ? sdTurret.img_turret4 : sdTurret.img_turret4_fire, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( not_firing_now ? sdTurret.img_turret4 : sdTurret.img_turret4_fire, -16, -16, 32,32 );
+	
+		ctx.filter = 'none';
+		
+		if ( !sdShop.isDrawing )
+		if ( sdWorld.time % 4000 < 2000 )
+		if ( this.matter < this.GetShootCost() || !com_near )
+		ctx.drawImageFilterCache( sdTurret.img_no_matter, -16, -16, 32,32 );
 	}
 	MeasureMatterCost()
 	{
@@ -386,6 +466,63 @@ class sdTurret extends sdEntity
 	}
 	RequireSpawnAlign()
 	{ return false; }
+	
+	
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( !this._is_being_removed )
+		//if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		{
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 128 ) )
+			{
+				if ( command_name === 'UPGRADE' )
+				{
+					if ( this.lvl < 3 )
+					{
+						/*if ( this.matter >= 100 )
+						{
+							sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:1 });
+							
+							this.lvl += 1;
+							this.matter -= 100;
+						}
+						else*/
+						if ( exectuter_character.matter >= 100 )
+						{
+							sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+							
+							this.lvl += 1;
+							exectuter_character.matter -= 100;
+							
+							this._update_version++;
+						}
+						else
+						executer_socket.SDServiceMessage( 'Not enough matter' );
+					}
+					else
+					executer_socket.SDServiceMessage( 'Turret is at maximum level' );
+				}
+			}
+			else
+			executer_socket.SDServiceMessage( 'Turret is too far' );
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( !this._is_being_removed )
+		//if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 128 ) )
+		{
+			if ( this.lvl < 3 )
+			this.AddContextOption( 'Upgrade damage (100 matter)', 'UPGRADE', [] );
+			else
+			this.AddContextOption( '- no upgrades available -', 'UPGRADE', [] );
+		}
+	}
 }
 //sdTurret.init_class();
 

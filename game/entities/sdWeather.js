@@ -245,7 +245,7 @@ class sdWeather extends sdEntity
 										character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
 									}	
 									character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-									character_entity._ai_enabled = true;
+									character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
 									character_entity._ai_level = Math.floor( 1 + Math.random() * 3 ); // AI Levels from 1 to 3
 
 									character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
@@ -729,7 +729,7 @@ class sdWeather extends sdEntity
 											character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
 										}	
 										character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-										character_entity._ai_enabled = true;
+										character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
 										
 										character_entity._ai_level = Math.floor( Math.random() * 2 ); // Either 0 or 1
 										

@@ -43,6 +43,8 @@ class sdStorage extends sdEntity
 	
 		this._allow_pickup = false;
 		
+		this.awake = 1;
+		
 		this.filter = params.filter || 'saturate(0)';
 	}
 	onBuilt()
@@ -70,6 +72,8 @@ class sdStorage extends sdEntity
 	get mass() { return 30; }
 	Impulse( x, y )
 	{
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		
 		this.sx += x / this.mass;
 		this.sy += y / this.mass;
 		//this.sx += x * 0.1;
@@ -109,13 +113,24 @@ class sdStorage extends sdEntity
 		if ( this.item5 )
 		this.item5.UpdateHeldPosition();
 		
-		this.sy += sdWorld.gravity * GSPEED;
-		
-		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+		if ( sdWorld.is_server || this.awake )
+		{
+			this.sy += sdWorld.gravity * GSPEED;
+
+			this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+		}
 		
 		if ( this._phys_sleep <= 0 && this._hea >= this._hmax )
 		{
+			if ( sdWorld.is_server )
+			this.awake = 0;
+		
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+		}
+		else
+		{
+			if ( sdWorld.is_server )
+			this.awake = 1;
 		}
 	}
 	DrawHUD( ctx, attached ) // foreground layer

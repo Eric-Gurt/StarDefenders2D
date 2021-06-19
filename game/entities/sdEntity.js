@@ -8,6 +8,9 @@ import sdWorld from '../sdWorld.js';
 
 //var entity_net_ids = 0;
 
+let sdCable = null;
+let sdCom = null;
+			
 class sdEntity
 {
 	static init_class()
@@ -30,8 +33,57 @@ class sdEntity
 		
 		sdEntity.matter_discretion_frames = 5; // Matter transfer happens once per this many frames, this value also scales GSPEED applied for matter transfer
 		
+		sdEntity.phys_stand_on_map = new WeakMap(); // Key is an object on which something lies on, value is an array of objects that are currently hibernated (such as sdStorage)
+		//this._phys_last_touch
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
+	
+	static TrackPhysWakeup( sleeping_ent, hibernated_ent )
+	{
+		var arr = sdEntity.phys_stand_on_map.get( sleeping_ent );
+		if ( !arr )
+		{
+			arr = [ hibernated_ent ];
+			
+			sdEntity.phys_stand_on_map.set( sleeping_ent, arr );
+		}
+		else
+		{
+			// Slow partial cleanup
+			if ( arr.length > 5 )
+			for ( let i2 = 0; i2 < 2; i2++ )
+			{
+				let i = ~~( arr.length * Math.random() );
+				if ( arr[ i ]._is_being_removed || arr[ i ]._hiberstate !== sdEntity.HIBERSTATE_HIBERNATED )
+				{
+					arr.splice( i, 1 );
+				}
+			}
+			
+			arr.push( hibernated_ent );
+		}
+	}
+	ManageTrackedPhysWakeup()
+	{
+		var arr = sdEntity.phys_stand_on_map.get( this );
+		if ( arr )
+		{
+			for ( let i = 0; i < arr.length; i++ )
+			{
+				if ( arr[ i ]._is_being_removed || arr[ i ]._hiberstate !== sdEntity.HIBERSTATE_HIBERNATED )
+				{
+					continue;
+				}
+				else
+				{
+					arr[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+				}
+			}
+			sdEntity.phys_stand_on_map.delete( this );
+		}
+	}
+	
 	IsGlobalEntity() // Should never change
 	{ return false; }
 	
@@ -282,6 +334,10 @@ class sdEntity
 			//if ( this.GetClass() === 'sdHover' )
 			//console.log( this.GetClass() + ' becomes physically active' );
 
+			//if ( this._phys_sleep <= 0 ) Because top entity might enter hibernation while this one moves just slightly to the left/right
+			//{
+				this.ManageTrackedPhysWakeup();
+			//}
 			this._phys_sleep = 10;
 
 			this._phys_last_sx = sx_sign;
@@ -669,6 +725,86 @@ class sdEntity
 		sdEntity.global_entities.push( this );
 	}
 	
+	GetComWiredCache( accept_test_method=null ) // Cretes .cio property for clients to know if com exists
+	{
+		if ( !sdWorld.is_server )
+		{
+			if ( accept_test_method )
+			return null;
+		
+			if ( this.cio !== 0 )
+			return { _net_id: this.cio, subscribers:[] };
+		
+			return null;
+		}
+		if ( accept_test_method || sdWorld.time > ( this._next_com_rethink || 0 ) )
+		{
+			const sdCable = sdWorld.entity_classes.sdCable;
+			const sdCom = sdWorld.entity_classes.sdCom;
+
+			var worked_out_ents = [];
+			var active_ents = [ this ];
+			while ( active_ents.length > 0 )
+			{
+				var connected_ents = sdCable.GetConnectedEntities( active_ents[ 0 ], sdCable.TYPE_ANY );
+
+				worked_out_ents.push( active_ents[ 0 ] );
+				active_ents.shift();
+
+				for ( var i = 0; i < connected_ents.length; i++ )
+				{
+					if ( worked_out_ents.indexOf( connected_ents[ i ] ) === -1 )
+					{
+						if ( accept_test_method )
+						{
+							if ( accept_test_method( connected_ents[ i ] ) )
+							return connected_ents[ i ];
+						}
+						else
+						if ( connected_ents[ i ].is( sdCom ) )
+						{
+							this._com_near_cache = connected_ents[ i ];
+							this._next_com_rethink = sdWorld.time + 1000 + Math.random() * 100;
+							//if ( this.cio !== this._com_near_cache )
+							if ( this.cio !== this._com_near_cache._net_id )
+							{
+								this.cio = this._com_near_cache._net_id;
+								if ( typeof this._update_version !== 'undefined' )
+								this._update_version++;
+							}
+							return this._com_near_cache;
+						}
+
+						active_ents.push( connected_ents[ i ] );
+					}
+				}
+			}
+			
+			if ( accept_test_method )
+			{
+				return null;
+			}
+			else
+			{
+				this._com_near_cache = null;
+				this._next_com_rethink = sdWorld.time + 1000 + Math.random() * 100;
+				//if ( this.cio !== this._com_near_cache )
+				if ( this.cio !== 0 )
+				{
+					this.cio = 0;
+					if ( typeof this._update_version !== 'undefined' )
+					this._update_version++;
+				}
+				return this._com_near_cache;
+			}
+		}
+		else
+		{
+			return this._com_near_cache;
+		}
+	}
+	
+	
 	GetComsNearCache( x, y, append_to=null, require_auth_for_net_id=null, return_arr_of_one_with_lowest_net_id=true )
 	{
 		if ( append_to !== null || require_auth_for_net_id !== null || return_arr_of_one_with_lowest_net_id !== true )
@@ -779,6 +915,12 @@ class sdEntity
 						sdEntity.active_entities.splice( id, 1 );
 					}
 					
+					if ( v === sdEntity.HIBERSTATE_HIBERNATED )
+					{
+						if ( this._phys_last_touch )
+						sdEntity.TrackPhysWakeup( this._phys_last_touch, this );
+					}
+					
 					this._hiberstate = v;
 				}
 				else
@@ -879,7 +1021,8 @@ class sdEntity
 						if ( prop !== 'sd_filter' )
 							debugger;*/
 						
-						if ( typeof this[ prop ] === 'object' && typeof this[ prop ]._net_id !== 'undefined' && typeof this[ prop ].constructor !== 'undefined' )
+						//if ( typeof this[ prop ] === 'object' && typeof this[ prop ]._net_id !== 'undefined' && typeof this[ prop ].constructor !== 'undefined' ) Last condition never happens
+						if ( typeof this[ prop ] === 'object' && typeof this[ prop ]._net_id !== 'undefined' /*&& typeof this[ prop ]._class !== 'undefined'*/ )
 						{
 							
 							//this._snapshot_cache_frame = -1;
@@ -902,6 +1045,10 @@ class sdEntity
 							//if ( save_as_much_as_possible )
 							//v = { _net_id: this[ prop ]._net_id, _class: this[ prop ].constructor.name };
 						}
+					/*	else
+						{
+							// As is?
+						}*/
 					}
 					
 					if ( !save_as_much_as_possible && typeof v === 'number' ) // Do not do number rounding if world is being saved
@@ -939,8 +1086,8 @@ class sdEntity
 	{
 		const my_entity = sdWorld.my_entity;
 		
-		if ( snapshot._net_id !== this._net_id )
-		debugger;
+		//if ( snapshot._net_id !== this._net_id ) Will happen in case of copying
+		//debugger;
 		if ( snapshot._class !== this.GetClass() )
 		debugger;
 	
@@ -1212,7 +1359,7 @@ class sdEntity
 		}
 	}
 	
-	MatterGlow( how_much=0.01, radius=30, GSPEED )
+	MatterGlow( how_much=0.01, radius=30, GSPEED ) // Set radius to 0 to only glow into cables
 	{
 		if ( !sdWorld.is_server )
 		return;
@@ -1221,20 +1368,34 @@ class sdEntity
 		
 		if ( this_matter > 0.05 )
 		{
-			//var arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null, ( e )=>!e.is( sdWorld.entity_classes.sdBG ) );
-			var arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null );
-
-			for ( var i = 0; i < arr.length; i++ )
+			if ( !sdCable )
+			sdCable = sdWorld.entity_classes.sdCable;
+			
+			var connected_ents = sdCable.GetConnectedEntities( this, sdCable.TYPE_MATTER );
+			for ( var i = 0; i < connected_ents.length; i++ )
 			{
-				if ( ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' ) && arr[ i ] !== this )
+				if ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' )
+				this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+			}
+			
+			if ( radius > 0 )
+			if ( this_matter > 0.05 )
+			{
+				//var arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null, ( e )=>!e.is( sdWorld.entity_classes.sdBG ) );
+				var arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null );
+
+				for ( var i = 0; i < arr.length; i++ )
 				{
-					this.TransferMatter( arr[ i ], how_much, GSPEED * 4 ); // Mult by X because targets no longer take 4 cells
-				}
-				else
-				{
-					// Remove these that do not match anyway, at least for brief period of time until GetAnythingNearCache overrides this list - less time to spend on property existence checks
-					arr.splice( i, 1 );
-					i--;
+					if ( ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' ) && arr[ i ] !== this )
+					{
+						this.TransferMatter( arr[ i ], how_much, GSPEED * 4 ); // Mult by X because targets no longer take 4 cells
+					}
+					else
+					{
+						// Remove these that do not match anyway, at least for brief period of time until GetAnythingNearCache overrides this list - less time to spend on property existence checks
+						arr.splice( i, 1 );
+						i--;
+					}
 				}
 			}
 		}
@@ -1351,6 +1512,9 @@ class sdEntity
 			debugger;
 			how_much = 0;
 		}
+		
+		if ( how_much <= 0 )
+		return;
 	
 		if ( typeof this.matter !== 'undefined' )
 		{
@@ -1381,6 +1545,22 @@ class sdEntity
 		
 			to._matter += how_much;
 		}
+		
+		// Update update versions for static entities if matter property is public
+		
+		if ( typeof this.matter !== 'undefined' )
+		if ( typeof this._update_version !== 'undefined' )
+		this._update_version++;
+	
+		if ( typeof to.matter !== 'undefined' )
+		if ( typeof to._update_version !== 'undefined' )
+		to._update_version++;
+
+		if ( to.onMatterChanged !== sdEntity.prototype.onMatterChanged )
+		to.onMatterChanged( this );
+	}
+	onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
+	{
 	}
 	/*Think( GSPEED )
 	{

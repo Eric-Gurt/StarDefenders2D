@@ -131,6 +131,9 @@ class sdCharacterRagdoll
 		this.springs.sort( (a,b)=>a.z_offset-b.z_offset );
 		
 		this._stress = 0;
+		
+		this.ever_updated = false;
+		//this.AliveUpdate();
 	}
 	MoveBone( bone, x, y )
 	{
@@ -206,6 +209,11 @@ class sdCharacterRagdoll
 	}
 	AliveUpdate()
 	{
+		this.ever_updated = true;
+		
+		// Side update might not happen in else case if entity appears as dead
+		this.character._side = ( this.character.x < this.character.look_x ) ? 1 : -1;
+		
 		/*for ( let i = 0; i < this.bones.length; i++ )
 		if ( this.bones[ i ] !== this.knee1 )
 		if ( this.bones[ i ] !== this.knee2 )
@@ -856,7 +864,7 @@ class sdCharacterRagdoll
 	
 	DrawRagdoll( ctx, attached )
 	{
-		if ( this.character.hea > 0 )
+		if ( this.character.hea > 0 || !this.ever_updated )
 		{
 			this.AliveUpdate();
 			//this.Think( 0.001, true );
@@ -1043,6 +1051,11 @@ class sdBone extends sdEntity
 		if ( sdWorld.is_server )
 		{
 			this.remove(); // Remove or at least schedule removal - these should not exist on server for more than one frame
+		}
+		else
+		{
+			if ( sdEntity.active_entities.length > 50000 ) // Somehow it gets flooded with bones when tab is inactive, catching
+			debugger;
 		}
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions. Most probably will have conflicts with .GetNonIgnoredEntityClasses()

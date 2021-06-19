@@ -164,7 +164,7 @@ class sdBadDog extends sdEntity
 			if ( this.master )
 			if ( initiator )
 			if ( typeof initiator._score !== 'undefined' )
-			if ( initiator !== this.master ) // Prevent players killing then reviving dogs for free score
+			//if ( initiator !== this.master ) // Prevent players killing then reviving dogs for free score // Already done 4 lines above (also prevents case of heal/kill farming by two players)
 			initiator._score += 5;
 		}
 		else
@@ -647,6 +647,8 @@ class sdBadDog extends sdEntity
 								this.master.matter -= 500;
 								this.hmax += 200;
 								this.hea += 200;
+								
+								sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 							}
 						}
 						else

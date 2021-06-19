@@ -11,6 +11,7 @@ import sdBG from '../entities/sdBG.js';
 import sdTurret from '../entities/sdTurret.js';
 import sdArea from '../entities/sdArea.js';
 import sdWater from '../entities/sdWater.js';
+import sdDoor from '../entities/sdDoor.js';
 import sdRenderer from './sdRenderer.js';
 import sdContextMenu from './sdContextMenu.js';
 
@@ -30,6 +31,8 @@ class sdShop
 		sdShop.current_category = 'root'; // root category
 		
 		sdShop.max_y = 0;
+		
+		sdShop.isDrawing = false;
 		
 		sdShop.options.push({ _class: null, image: 'return', _category:'!root',  _opens_category:'root' });
 		sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, _category:'root', _opens_category:'Walls' });
@@ -92,8 +95,8 @@ class sdShop
 			if ( i !== 8 )
 			{
 				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, _category:'Doors' });
-				var filter = ( i === 0 ) ? '' : 'hue-rotate('+(~~(i/12*360))+'deg) contrast(0.75)';
-				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, _reinforced_level: 1, _category:'Doors', _min_build_tool_level: 2 });
+				//var filter = ( i === 0 ) ? '' : 'hue-rotate('+(~~(i/12*360))+'deg) contrast(0.75)';
+				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED, _reinforced_level: 1, _category:'Doors', _min_build_tool_level: 2 });
 			}
 		}
 		AddBuildPack( 'hue-rotate(-90deg) contrast(0.5) brightness(1.5) saturate(0)' );
@@ -118,6 +121,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdStorage', filter: 'hue-rotate(205deg) saturate(10)', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdStorage', filter: 'hue-rotate(220deg)', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdStorage', filter: 'hue-rotate(135deg)', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdNode', _category:'Base equipment' });
 		
 
 		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, _category:'Base equipment' });
@@ -174,10 +178,9 @@ class sdShop
 					_min_workbench_level: sdGun.classes[ i ].min_workbench_level || 0 // For workbench items
 				});
 			}
-			else
+			//else
 			if ( globalThis.isWin )
 			{
-				
 				if ( i === sdGun.CLASS_BUILDTOOL_UPG )
 				{
 					sdShop.options.push({
@@ -190,6 +193,12 @@ class sdShop
 						_class: 'sdGun',
 						class: i,
 						extra: 1,
+						_category:'Development tests'
+					});
+					sdShop.options.push({
+						_class: 'sdGun',
+						class: i,
+						extra: -123,
 						_category:'Development tests'
 					});
 				}
@@ -273,7 +282,7 @@ class sdShop
 					character._ghost_allowed = true;
 				}
 			},
-			upgrade_coms:
+			/*upgrade_coms:
 			{
 				max_level: 1,
 				matter_cost: 75,
@@ -281,7 +290,7 @@ class sdShop
 				{
 					character._coms_allowed = true;
 				}
-			},
+			},*/
 			upgrade_matter_regeneration: // Upgrade idea & pull request by Booraz149 ( https://github.com/Booraz149 )
 			{
 				max_level: 5,
@@ -377,12 +386,15 @@ class sdShop
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:32, _category:'Admin tools' });
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_ERASER_AREA, size:16, _category:'Admin tools' });
 		sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_ADMIN_REMOVER, _category:'Admin tools' });
+		sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_ADMIN_TELEPORTER, _category:'Admin tools' });
 		
 		
 		sdShop.potential_selection = -1;
 	}
 	static Draw( ctx )
 	{
+		sdShop.isDrawing = true;
+		
 		if ( !sdWorld.my_entity )
 		{
 			sdShop.open = false;
@@ -703,6 +715,7 @@ class sdShop
 
 		
 		sdWorld.my_entity._build_params = old_active_build_settings;
+		sdShop.isDrawing = false;
 	}
 	static MouseDown( e )
 	{

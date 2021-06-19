@@ -80,6 +80,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdLost from './entities/sdLost.js';
 	import sdCable from './entities/sdCable.js';
 	import sdCharacterRagdoll from './entities/sdCharacterRagdoll.js';
+	import sdNode from './entities/sdNode.js';
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -136,6 +137,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdLost.init_class();
 	sdCable.init_class();
 	sdCharacterRagdoll.init_class();
+	sdNode.init_class();
 
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;
@@ -271,10 +273,15 @@ let enf_once = true;
 		//socket.onConnect( error =>
 		{
 			for ( var i = 0; i < sdEntity.entities.length; i++ )
-			sdEntity.entities[ i ].remove();
+			{
+				sdEntity.entities[ i ].remove();
+				sdEntity.entities[ i ]._broken = false;
+			}
 
 			for ( var i = 0; i < sdEntity.global_entities.length; i++ )
-			sdEntity.global_entities[ i ].remove();
+			{
+				sdEntity.global_entities[ i ].remove();
+			}
 
 			sdWorld.my_entity = null;
 			sdWorld.my_entity_net_id = undefined;

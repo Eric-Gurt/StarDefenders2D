@@ -16,11 +16,14 @@ class sdRescueTeleport extends sdEntity
 	{
 		sdRescueTeleport.img_teleport = sdWorld.CreateImageFromFile( 'rescue_portal' );
 		sdRescueTeleport.img_teleport_offline = sdWorld.CreateImageFromFile( 'rescue_portal_offline' );
+		sdRescueTeleport.img_teleport_no_matter = sdWorld.CreateImageFromFile( 'rescue_portal_no_matter' ); // 2 imgs
 		
 		sdRescueTeleport.rescue_teleports = [];
 		
 		sdRescueTeleport.delay_1st = 30 * 60 * 3; // 3 minutes
 		sdRescueTeleport.delay_2nd = 30 * 60 * 5; // 5 minutes
+		
+		sdRescueTeleport.delay_simple = 3 * 10; // 3 seconds
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -81,6 +84,10 @@ class sdRescueTeleport extends sdEntity
 		if ( v > 0 )
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 	}
+	onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
+	{
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+	}
 	constructor( params )
 	{
 		super( params );
@@ -89,11 +96,17 @@ class sdRescueTeleport extends sdEntity
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 		
-		this.delay = sdRescueTeleport.delay_1st;
+		//this.delay = sdRescueTeleport.delay_1st;
+		this.delay = sdRescueTeleport.delay_simple;
 		//this._update_version++
 		
 		this._owner = params.owner || null;
-		this.owner_net_id = null;
+		//this.owner_net_id = null;
+		this.owner_title = '';
+		
+		this._matter_max = 1700;
+		this.matter = 0;
+		
 		//this.owner_net_id = this._owner ? this._owner._net_id : null;
 		
 		sdRescueTeleport.rescue_teleports.push( this );
@@ -107,14 +120,15 @@ class sdRescueTeleport extends sdEntity
 	
 	MeasureMatterCost()
 	{
-		return this._hmax * sdWorld.damage_to_matter + 1700;
+		return this._hmax * sdWorld.damage_to_matter + 500; // 1700
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( !sdWorld.is_server )
 		return;
 	
-		this.owner_net_id = this._owner ? this._owner._net_id : null;
+		//this.owner_net_id = this._owner ? this._owner._net_id : null;
+		this.owner_title = ( this._owner && !this._owner._is_being_removed ) ? this._owner.title : '';
 			
 		let can_hibernateA = false;
 		let can_hibernateB = false;
@@ -129,8 +143,13 @@ class sdRescueTeleport extends sdEntity
 			can_hibernateA = true;
 		}
 		
-		if ( this.delay > 0 )
-		this.SetDelay( this.delay - GSPEED );
+		if ( this.matter >= this._matter_max )
+		{
+			if ( this.delay > 0 )
+			this.SetDelay( this.delay - GSPEED );
+			else
+			can_hibernateB = true;
+		}
 		else
 		can_hibernateB = true;
 	
@@ -141,8 +160,8 @@ class sdRescueTeleport extends sdEntity
 	}
 	get title()
 	{
-		let postfix = '';
-		
+		let postfix = "  ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + " )";
+		/*
 		if ( this.delay > 0 )
 		{
 			let num = Math.ceil( this.delay / 30 );
@@ -162,7 +181,13 @@ class sdRescueTeleport extends sdEntity
 			postfix = ' ('+num+' second cooldown)';
 			else
 			postfix = ' ('+num+' seconds cooldown)';
-		}
+		}*/
+		
+		if ( this.owner_title === '' )
+		return 'Rescue teleport' + postfix;
+		else
+		return this.owner_title + '\'s rescue teleport' + postfix;
+		/*
 		
 		if ( this.owner_net_id === null )
 		return 'Rescue teleport' + postfix;
@@ -172,14 +197,22 @@ class sdRescueTeleport extends sdEntity
 			return sdEntity.entities_by_net_id_cache[ this.owner_net_id ].title + '\'s rescue teleport' + postfix;
 			else
 			return 'Someone\'s rescue teleport' + postfix;
-		}
+		}*/
 	}
 	Draw( ctx, attached )
 	{
-		if ( this.delay === 0 )
-		ctx.drawImage( sdRescueTeleport.img_teleport, -16, -16, 32,32 );
+		if ( this.matter >= this._matter_max || sdShop.isDrawing )
+		{
+			if ( this.delay === 0 || sdShop.isDrawing )
+			ctx.drawImageFilterCache( sdRescueTeleport.img_teleport, -16, -16, 32,32 );
+			else
+			ctx.drawImageFilterCache( sdRescueTeleport.img_teleport_offline, -16, -16, 32,32 );
+		}
 		else
-		ctx.drawImage( sdRescueTeleport.img_teleport_offline, -16, -16, 32,32 );
+		{
+			//ctx.drawImageFilterCache( sdRescueTeleport.img_teleport_no_matter, -16, -16, 32,32 );
+			ctx.drawImageFilterCache( sdRescueTeleport.img_teleport_no_matter, ( sdWorld.time % 4000 < 2000 ? 1 : 0 )*32,0,32,32, - 16, - 16, 32,32 );
+		}
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{

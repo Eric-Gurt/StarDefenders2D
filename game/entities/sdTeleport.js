@@ -4,6 +4,7 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdCom from './sdCom.js';
+import sdCable from './sdCable.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -15,6 +16,7 @@ class sdTeleport extends sdEntity
 	{
 		sdTeleport.img_teleport = sdWorld.CreateImageFromFile( 'teleport' );
 		sdTeleport.img_teleport_offline = sdWorld.CreateImageFromFile( 'teleport_offline' );
+		sdTeleport.img_teleport_no_matter = sdWorld.CreateImageFromFile( 'teleport_no_matter' );
 		
 		sdTeleport.connection_range = 400;
 		
@@ -105,10 +107,15 @@ class sdTeleport extends sdEntity
 			can_hibernateA = true;
 		}
 		
-		if ( this.delay > 0 )
-		this.SetDelay( this.delay - GSPEED );
-		else
-		can_hibernateB = true;
+		let com_near = this.GetComWiredCache();
+		
+		//if ( com_near )
+		//{
+			if ( this.delay > 0 && com_near )
+			this.SetDelay( this.delay - GSPEED );
+			else
+			can_hibernateB = true;
+		//}
 	
 		if ( can_hibernateA && can_hibernateB )
 		{
@@ -121,18 +128,23 @@ class sdTeleport extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		if ( this.delay === 0 )
-		ctx.drawImage( sdTeleport.img_teleport, -16, -16, 32,32 );
+		if ( this.GetComWiredCache() || sdShop.isDrawing )
+		{
+			if ( this.delay === 0 || sdShop.isDrawing )
+			ctx.drawImage( sdTeleport.img_teleport, -16, -16, 32,32 );
+			else
+			ctx.drawImage( sdTeleport.img_teleport_offline, -16, -16, 32,32 );
+		}
 		else
-		ctx.drawImage( sdTeleport.img_teleport_offline, -16, -16, 32,32 );
+		ctx.drawImage( sdTeleport.img_teleport_no_matter, -16, -16, 32,32 );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		sdEntity.Tooltip( ctx, this.title );
 		
-		this.DrawConnections( ctx );
+		//this.DrawConnections( ctx );
 	}
-	DrawConnections( ctx )
+	/*DrawConnections( ctx )
 	{
 		ctx.lineWidth = 1;
 		ctx.strokeStyle = '#ffffff';
@@ -157,7 +169,7 @@ class sdTeleport extends sdEntity
 		
 		ctx.lineDashOffset = 0;
 		ctx.setLineDash([]);
-	}
+	}*/
 	onMovementInRange( from_entity )
 	{
 		if ( sdWorld.is_server )
@@ -166,20 +178,23 @@ class sdTeleport extends sdEntity
 		if ( from_entity.GetClass() !== 'sdEffect' )
 		if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null )
 		{
-			let coms_near = sdWorld.GetComsNear( this.x, this.y, null, null, true );
+			//let coms_near = sdWorld.GetComsNear( this.x, this.y, null, null, true );
+			let com_near = this.GetComWiredCache();
 
-			let allowed = ( coms_near.length === 0 );
+			/*let allowed = ( coms_near.length === 0 );
 
 			for ( let i = 0; i < coms_near.length; i++ )
 			if ( coms_near[ i ].subscribers.indexOf( from_entity._net_id ) !== -1 || coms_near[ i ].subscribers.indexOf( from_entity.GetClass() ) !== -1 )
 			{
 				allowed = true;
 				break;
-			}
+			}*/
 
-			if ( allowed )
+			//if ( allowed )
+			if ( com_near )
 			{
-				let nearbies = sdWorld.GetAnythingNear( this.x, this.y, sdTeleport.connection_range );
+				//let nearbies = sdWorld.GetAnythingNear( this.x, this.y, sdTeleport.connection_range );
+				/*let nearbies = sdCable.GetConnectedEntities( this, sdCable.TYPE_ANY );
 
 				let best_tele = null;
 				let best_di = -1;
@@ -194,8 +209,6 @@ class sdTeleport extends sdEntity
 							let di = sdWorld.Dist2D( this.x, this.y, tele.x, tele.y );
 							if ( di < best_di || best_tele === null )
 							{
-								//if ( from_entity.CanMoveWithoutOverlap( from_entity.x + tele.x - this.x, 
-								//										from_entity.y + tele.y - this.y, 1 ) )
 								if ( from_entity.CanMoveWithoutOverlap( from_entity.x + tele.x - this.x, 
 																		from_entity.y + tele.y - this.y, 0 ) )
 								{
@@ -205,7 +218,17 @@ class sdTeleport extends sdEntity
 							}
 						}
 					}
-				}
+				}*/
+				
+				let best_tele = this.GetComWiredCache( ( tele )=>
+				{
+					if ( tele.is( sdTeleport ) )
+					if ( tele.delay === 0 ) // is active
+					if ( from_entity.CanMoveWithoutOverlap( from_entity.x + tele.x - this.x, 
+															from_entity.y + tele.y - this.y, 0 ) )
+					return true;
+					return false;
+				});
 
 				if ( best_tele )
 				{
