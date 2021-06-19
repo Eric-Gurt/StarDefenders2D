@@ -1190,6 +1190,27 @@ class sdGunClass
 			projectile_properties: { _damage: 48, color: '#FFEB00' },
 		};
 
+		sdGun.classes[ sdGun.CLASS_RAILGUN_P03 = 49 ] = // sprite by Ghost581
+        {
+            image: sdWorld.CreateImageFromFile( 'railgun_p03' ),
+            image0: [ sdWorld.CreateImageFromFile( 'railgun_p03_c' ), sdWorld.CreateImageFromFile( 'railgun_p03_c' ) ],
+            image1: [ sdWorld.CreateImageFromFile( 'railgun_p03_r1' ), sdWorld.CreateImageFromFile( 'railgun_p03_r1b' ) ],
+            image2: [ sdWorld.CreateImageFromFile( 'railgun_p03_r2' ), sdWorld.CreateImageFromFile( 'railgun_p03_r2b' ) ],
+            sound: 'gun_railgun_malicestorm_terrorphaser',
+            title: 'Railgun P03',
+			sound_pitch: 1.6,
+			sound_volume: 1.65,
+            slot: 8,
+            reload_time: 370,
+            muzzle_x: null,
+            ammo_capacity: -1,
+            count: 1,
+            matter_cost: 280,
+            projectile_properties: { _rail: true, _damage: 80, color: '#62c8f2', explosion_radius: 20},
+            min_build_tool_level: 4,
+		};
+
+
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
