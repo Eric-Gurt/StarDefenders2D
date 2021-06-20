@@ -101,7 +101,7 @@ class sdRescueTeleport extends sdEntity
 		//this._update_version++
 		
 		this._owner = params.owner || null;
-		//this.owner_net_id = null;
+		this.owner_net_id = null;
 		this.owner_title = '';
 		
 		this._matter_max = 1700;
@@ -131,7 +131,7 @@ class sdRescueTeleport extends sdEntity
 		if ( this._owner._is_being_removed )
 		this._owner = null;
 	
-		//this.owner_net_id = this._owner ? this._owner._net_id : null;
+		this.owner_net_id = ( this._owner ) ? this._owner._net_id : null;
 		//this.owner_title = ( this._owner && !this._owner._is_being_removed ) ? this._owner.title : '';
 		this.owner_title = ( this._owner ) ? this._owner.title : '';
 			
