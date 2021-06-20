@@ -217,15 +217,61 @@ class sdTurret extends sdEntity
 						//let coms_near_len = com_near.length;
 
 						const targetable_classes = sdTurret.targetable_classes;
+						
+						const range = this.GetTurretRange();
+						
+						const from_x = this.x - range;
+						const to_x = this.x + range;
+						const from_y = this.y - range;
+						const to_y = this.y + range;
+						
+						//let ents_looked_through = 0;
+						
+						/*
+						
+							Console code to measure stuff
 
-						for ( var x = this.x - this.GetTurretRange(); x < this.x + this.GetTurretRange(); x += 32 )
-						for ( var y = this.y - this.GetTurretRange(); y < this.y + this.GetTurretRange(); y += 32 )
+							var counters = [];
+							for ( var i = 0; i < sdWorld.entity_classes.sdEntity.active_entities.length; i++ )
+							if ( sdWorld.entity_classes.sdEntity.active_entities[ i ].GetClass() === 'sdTurret' )
+							{
+								var e = sdWorld.entity_classes.sdEntity.active_entities[ i ];
+								counters.push( [ e.kind, e.lvl, e._debug1 ] );
+							}
+							counters;
+
+						*/
+					   
+						//let counterA = 0;
+						//let counterB = 0;
+						//let counterC = 0;
+
+						//for ( var x = from_x; x < to_x; x += 32 )
+						//for ( var y = from_y; y < to_y; y += 32 )
 						{
-							var arr = sdWorld.RequireHashPosition( x, y );
+							//var arr = sdWorld.RequireHashPosition( x, y );
+							var arr = sdEntity.active_entities; // In many cases it is faster than running through 3D array, especially if we don't need hibernated targets
+
+							//ents_looked_through += arr.length;
+								
 							for ( var i2 = 0; i2 < arr.length; i2++ )
 							{
 								var e = arr[ i2 ];
-
+								
+								/*if ( targetable_classes.has( e.constructor ) )
+								counterA++;
+							
+								if ( e._hiberstate === sdEntity.HIBERSTATE_ACTIVE )
+								counterB++;*/
+								
+								/*if ( targetable_classes.has( e.constructor ) )
+								counterA++;
+							
+								if ( sdWorld.inDist2D_Boolean( e.x, e.y, this.x, this.y, range ) )
+								counterB++;*/
+								
+								if ( sdWorld.inDist2D_Boolean( e.x, e.y, this.x, this.y, range ) ) // Faster than class check
+								//if ( e._hiberstate === sdEntity.HIBERSTATE_ACTIVE ) // Don't target dead bodies or anything else that is hibernated, actually a big optimization and is faster than class constructor checking for some reason by a lot
 								if ( targetable_classes.has( e.constructor ) )
 								//if ( e.is( sdCharacter ) || e.is( sdVirus ) || e.is( sdQuickie ) || e.is( sdOctopus ) || e.is( sdCube ) || e.is( sdBomb ) )
 								if ( ( e.hea || e._hea ) > 0 && ( !e.is( sdSandWorm ) || e.death_anim === 0 ) )
@@ -249,6 +295,8 @@ class sdTurret extends sdEntity
 								}
 							}
 						}
+						
+						//this._debug1 = ents_looked_through;
 					}
 					
 				}

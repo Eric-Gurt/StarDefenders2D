@@ -127,8 +127,12 @@ class sdRescueTeleport extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
+		if ( this._owner._is_being_removed )
+		this._owner = null;
+	
 		//this.owner_net_id = this._owner ? this._owner._net_id : null;
-		this.owner_title = ( this._owner && !this._owner._is_being_removed ) ? this._owner.title : '';
+		//this.owner_title = ( this._owner && !this._owner._is_being_removed ) ? this._owner.title : '';
+		this.owner_title = ( this._owner ) ? this._owner.title : '';
 			
 		let can_hibernateA = false;
 		let can_hibernateB = false;

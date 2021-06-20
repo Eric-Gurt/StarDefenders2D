@@ -64,7 +64,7 @@ class sdEntity
 			arr.push( hibernated_ent );
 		}
 	}
-	ManageTrackedPhysWakeup()
+	ManageTrackedPhysWakeup() // Can make sense to call this on entity deletion too
 	{
 		var arr = sdEntity.phys_stand_on_map.get( this );
 		if ( arr )
@@ -176,9 +176,11 @@ class sdEntity
 			if ( !this._is_being_removed )
 			if ( !hit_what._is_being_removed )
 			{
+				if ( this.onMovementInRange !== sdEntity.prototype.onMovementInRange )
 				this.onMovementInRange( hit_what );
 				
 				if ( !hit_what._is_being_removed )
+				if ( hit_what.onMovementInRange !== sdEntity.prototype.onMovementInRange )
 				hit_what.onMovementInRange( this );
 			}
 			
@@ -1374,7 +1376,7 @@ class sdEntity
 			var connected_ents = sdCable.GetConnectedEntities( this, sdCable.TYPE_MATTER );
 			for ( var i = 0; i < connected_ents.length; i++ )
 			{
-				if ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' /*&& !arr[ i ]._is_being_removed*/ )
+				if ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
 				this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
 			}
 			

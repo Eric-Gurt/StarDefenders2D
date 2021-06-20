@@ -1528,55 +1528,68 @@ class sdWorld
 		{
 			entity._last_x = entity.x;
 			entity._last_y = entity.y;
-
-			//var map = new Map();
-			var map = new Set();
 			
-			/*var map = new Map();
-			for ( var x = -1; x <= 1; x++ ) // TODO: Use box query method?
-			for ( var y = -1; y <= 1; y++ )
+			//if ( false ) // Is it still needed? Yes, for cases of overlap that does not involve pushing (players picking up guns, bullets hitting anything)
 			{
-				var local_hash_array = sdWorld.RequireHashPosition( entity.x + x * 32, entity.y + y * 32 );
-				for ( var i = 0; i < local_hash_array.length; i++ )
-				{
-					map.set( local_hash_array[ i ], local_hash_array[ i ] );
-				}
-			}*/
-								
-			let i2, i;
-			
-			for ( i2 = 0; i2 < new_affected_hash_arrays.length; i2++ )
-			for ( i = 0; i < new_affected_hash_arrays[ i2 ].length; i++ )
-			map.add( new_affected_hash_arrays[ i2 ][ i ] );
-			//map.set( new_affected_hash_arrays[ i2 ][ i ], new_affected_hash_arrays[ i2 ][ i ] );
+				var map = new Set();
 
-			// Make entities reach to each other in both directions
-			map.forEach( ( another_entity )=>
-			{
-				if ( another_entity !== entity )
-				if ( !another_entity._is_being_removed )
-				if ( !entity._is_being_removed ) // Just so bullets won't hit multiple targets
+				let i2, i;
+
+				/*for ( i2 = 0; i2 < new_affected_hash_arrays.length; i2++ )
+				for ( i = 0; i < new_affected_hash_arrays[ i2 ].length; i++ )
+				map.add( new_affected_hash_arrays[ i2 ][ i ] );*/
+
+				let another_entity;
+
+				const default_movement_in_range_method = sdEntity.prototype.onMovementInRange;
+
+				for ( i2 = 0; i2 < new_affected_hash_arrays.length; i2++ )
+				for ( i = 0; i < new_affected_hash_arrays[ i2 ].length; i++ )
 				{
-					if ( entity.x + entity._hitbox_x2 > another_entity.x + another_entity._hitbox_x1 &&
-						 entity.x + entity._hitbox_x1 < another_entity.x + another_entity._hitbox_x2 &&
-						 entity.y + entity._hitbox_y2 > another_entity.y + another_entity._hitbox_y1 &&
-						 entity.y + entity._hitbox_y1 < another_entity.y + another_entity._hitbox_y2 )
+					another_entity = new_affected_hash_arrays[ i2 ][ i ];
+
+					if ( another_entity !== entity )
 					{
-						entity.onMovementInRange( another_entity );
-						another_entity.onMovementInRange( entity );
-						
-						//entity.SharePhysAwake( another_entity );
+						let m1 = ( entity.onMovementInRange !== default_movement_in_range_method );
+						let m2 = ( another_entity.onMovementInRange !== default_movement_in_range_method );
+
+						if ( m1 || m2 )
+						if ( entity.x + entity._hitbox_x2 > another_entity.x + another_entity._hitbox_x1 &&
+							 entity.x + entity._hitbox_x1 < another_entity.x + another_entity._hitbox_x2 &&
+							 entity.y + entity._hitbox_y2 > another_entity.y + another_entity._hitbox_y1 &&
+							 entity.y + entity._hitbox_y1 < another_entity.y + another_entity._hitbox_y2 )
+						map.add( another_entity );
 					}
-					/*else
-					{
-						if ( entity.GetClass() === 'sdMatterAmplifier' || another_entity.GetClass() === 'sdMatterAmplifier' )
-						if ( entity.GetClass() === 'sdCrystal' || another_entity.GetClass() === 'sdCrystal' )
-						{
-							console.log('Not colliding with sdMatterAmplifier due to bounds check', [entity.x + entity._hitbox_x1, another_entity.x + another_entity._hitbox_x2] );
-						}
-					}*/
 				}
-			});
+
+				// Make entities reach to each other in both directions
+				map.forEach( ( another_entity )=>
+				{
+					//if ( another_entity !== entity )
+					//{
+						//if ( m1 || m2 )
+						if ( !another_entity._is_being_removed )
+						if ( !entity._is_being_removed ) // Just so bullets won't hit multiple targets
+						{
+							/*if ( entity.x + entity._hitbox_x2 > another_entity.x + another_entity._hitbox_x1 &&
+								 entity.x + entity._hitbox_x1 < another_entity.x + another_entity._hitbox_x2 &&
+								 entity.y + entity._hitbox_y2 > another_entity.y + another_entity._hitbox_y1 &&
+								 entity.y + entity._hitbox_y1 < another_entity.y + another_entity._hitbox_y2 )*/
+							//{
+							
+								let m1 = ( entity.onMovementInRange !== default_movement_in_range_method );
+								let m2 = ( another_entity.onMovementInRange !== default_movement_in_range_method );
+
+								if ( m1 )
+								entity.onMovementInRange( another_entity );
+
+								if ( m2 )
+								another_entity.onMovementInRange( entity );
+							//}
+						}
+					//}
+				});
+			}
 		}
 	}
 	static HandleWorldLogicNoPlayers()
