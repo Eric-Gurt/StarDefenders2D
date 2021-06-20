@@ -884,6 +884,11 @@
 		ctx.translate( 16, 14 );
 
 		ent.Draw( ctx );
+		
+		if ( ent._ragdoll )
+		{
+		    ent._ragdoll.Delete( true );
+		}
 
 		ent.remove();
 		ent._remove();

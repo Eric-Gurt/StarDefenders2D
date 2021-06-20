@@ -450,7 +450,7 @@ class sdBullet extends sdEntity
 			//if ( from_entity.GetClass() === 'sdCharacter' || 
 			//	 from_entity.GetClass() === 'sdVirus' )
 			{
-				if ( from_entity.IsTargetable( this, true ) )
+				if ( from_entity.IsTargetable( this, !this._hook ) ) // Ignore safe areas only if not a hook
 				if ( !sdWorld.server_config.GetHitAllowed || sdWorld.server_config.GetHitAllowed( this, from_entity ) )
 				if ( this._damage < 0 || !this._owner || !from_entity.is( sdCharacter ) || !this._owner.is( sdCharacter ) || from_entity.cc_id === 0 || from_entity.cc_id !== this._owner.cc_id )
 				{
@@ -523,7 +523,8 @@ class sdBullet extends sdEntity
 			//if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdCrystal' ) // Including any else rigid bodies
 			if ( typeof from_entity.hea !== 'undefined' || typeof from_entity._hea !== 'undefined' || ( this._bg_shooter && !this._bouncy && from_entity.GetClass() === 'sdBG' ) || ( this._admin_picker && ( this._bg_shooter || from_entity.GetClass() !== 'sdBG' ) ) )
 			//if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null ) // guns can be hit only when are not held by anyone
-			if ( from_entity.IsTargetable( this, true ) )
+			//if ( from_entity.IsTargetable( this, true ) )
+			if ( from_entity.IsTargetable( this, !this._hook ) ) // Ignore safe areas only if not a hook
 			{
 				let will_bounce = false;
 				//let dmg_mult = 1;

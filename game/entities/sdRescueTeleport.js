@@ -127,6 +127,7 @@ class sdRescueTeleport extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
+		if ( this._owner )
 		if ( this._owner._is_being_removed )
 		this._owner = null;
 	

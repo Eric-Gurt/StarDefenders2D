@@ -569,7 +569,7 @@ class sdCharacterRagdoll
 		}
 	}
 	
-	Delete()
+	Delete( preview_screeen_mode=false )
 	{
 		if ( this.character )
 		{
@@ -578,7 +578,17 @@ class sdCharacterRagdoll
 			this.character = null;
 
 			for ( let i = 0; i < this.bones.length; i++ )
-			this.bones[ i ].remove();
+			{
+				this.bones[ i ].remove();
+				if ( preview_screeen_mode )
+				{
+					this.bones[ i ]._remove();
+					
+					let id = sdEntity.entities.indexOf( this.bones[ i ] );
+					if ( id !== -1 )
+					sdEntity.entities.splice( id, 1 );
+				}
+			}
 		}
 	}
 	
