@@ -833,12 +833,20 @@ class sdWorld
 		}
 		return false;
 	}
-	static CanAnySocketSee( ent ) // Actually used to lower think rate of some entities
+	static CanAnySocketSee( ent, is_global_entity=undefined ) // Actually used to lower think rate of some entities
 	{
 		//return false; // Hack, forces everything move like it would off-screen
 		
-		if ( ent.IsGlobalEntity() )
-		return true;
+		if ( is_global_entity === undefined )
+		{
+			if ( ent.IsGlobalEntity() )
+			return true;
+		}
+		else
+		{
+			if ( is_global_entity )
+			return true;
+		}
 	
 		if ( typeof ent._socket === 'object' ) // Is a connected player
 		return true;
@@ -1314,6 +1322,82 @@ class sdWorld
 
 		return current;
 	}
+	
+	static FastestMethod( THAT, prototype, CURRENT_METHOD, ALTERNATIVE_METHODS, args ) // Because JS performance is quite unreliable across different hardware and versions of Node.JS
+	{
+		if ( !sdWorld.fastest_method_improver_info )
+		{
+			sdWorld.fastest_method_improver_info = new Map();
+		}
+		
+		let arr = sdWorld.fastest_method_improver_info.get( CURRENT_METHOD );
+		
+		if ( !arr )
+		{
+			arr = {
+				times: [],
+				current_test_id: 0,
+				test_iters_left: 1000, // Let JS engine optimize something
+				iterations: 0,
+				until: sdWorld.is_server ? ( Date.now() + 1000 * 60 * 5 ) : ( Date.now() + 3000 ) // Overhead can be too much for client devices, also some simple server might never get optimizations if no limit set
+			};
+			sdWorld.fastest_method_improver_info.set( CURRENT_METHOD, arr );
+		}
+		if ( arr.test_iters_left <= 0 )
+		{
+			arr.current_test_id = ( arr.current_test_id + 1 ) % ALTERNATIVE_METHODS.length;
+			arr.test_iters_left = 1000;
+		}
+		
+		let t0;
+		let t2;
+
+		let r;
+		{
+			const args2 = args;
+			const THAT2 = THAT;
+			const m = ALTERNATIVE_METHODS[ arr.current_test_id ].name;
+			
+			let r2;
+			
+			t0 = Date.now();
+
+			r2 = THAT2[ m ]( ...args2 );
+
+			t2 = Date.now();
+			
+			r = r2;
+		}
+		
+		arr.times[ arr.current_test_id ] = ( arr.times[ arr.current_test_id ] || 0 ) + t2 - t0;
+		
+		arr.iterations++;
+		
+		arr.test_iters_left--;
+		
+		if ( arr.test_iters_left <= 0 && arr.current_test_id === ALTERNATIVE_METHODS.length - 1 ) // Only when even iternatinos are done
+		if ( ( arr.iterations > 20000 && arr.times[ arr.current_test_id ] > 100 ) || arr.iterations > 500000 || t0 > arr.until )
+		{
+			var smallest_i = 0;
+			
+			for ( let i = 1; i < ALTERNATIVE_METHODS.length; i++ )
+			if ( arr.times[ i ] < arr.times[ smallest_i ] )
+			smallest_i = i;
+	
+			prototype[ CURRENT_METHOD.name ] = ALTERNATIVE_METHODS[ smallest_i ];
+			
+			for ( let i = 0; i < ALTERNATIVE_METHODS.length; i++ )
+			{
+				delete prototype[ ALTERNATIVE_METHODS[ i ].name ];
+			}
+			
+			console.log( 'prototype.' + CURRENT_METHOD.name + ' method replaced with version[' + smallest_i + ']', arr );
+			
+			sdWorld.fastest_method_improver_info.delete( CURRENT_METHOD );
+		}
+		
+		return r;
+	}
 	static RequireHashPosition( x, y, spawn_if_empty=false )
 	{
 		/*
@@ -1723,7 +1807,7 @@ class sdWorld
 
 						if ( sdWorld.is_server )
 						if ( e._last_x !== undefined ) // sdEntity was never placed properly yet, can cause items to fall into each other after snapshot load
-						if ( !sdWorld.CanAnySocketSee( e ) )
+						if ( !sdWorld.CanAnySocketSee( e, arr_i === 1 ) )
 						{
 							// Make sure low tickrate entities are still catch up on time, this still improved performance because of calling same method multiple times is always faster than calling multiple methods once (apparently virtual method call issue)
 							skip_frames = 30;

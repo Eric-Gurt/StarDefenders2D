@@ -613,7 +613,7 @@ class sdEntity
 	{
 		return '';
 	}
-	
+	/*
 	get _hash_position()
 	{
 		debugger; // Get rid of it, use this._affected_hash_arrays instead
@@ -623,7 +623,7 @@ class sdEntity
 	{
 		debugger; // Get rid of it, use this._affected_hash_arrays instead
 		throw new Error('Get rid of this property');
-	}
+	}*/
 	
 	UpdateHitbox()
 	{
@@ -648,9 +648,35 @@ class sdEntity
 			//throw new Error('UpdateHitbox caused NaN error');
 		}
 	}
+	GetClass()
+	{
+		return sdWorld.FastestMethod( this, sdEntity.prototype, sdEntity.prototype.GetClass, [ sdEntity.prototype.GetClassA, sdEntity.prototype.GetClassB ], [] );
+	}
+	GetClassA()
+	{ return this.constructor.name; }
+	GetClassB()
+	{ return this._class; }
+	is( c )
+	{
+		// sdEntity.prototype.isB is faster than sdEntity.prototype.isA without sdWorld.FastestMethod call, at least on some specs
+		return sdWorld.FastestMethod( this, sdEntity.prototype, sdEntity.prototype.is, [ sdEntity.prototype.isA, sdEntity.prototype.isB, sdEntity.prototype.isC, sdEntity.prototype.isD, sdEntity.prototype.isE ], [ c ] );
+	}
+	isA( c )
+	{ return this.constructor === c.prototype.constructor; }
+	isB( c )
+	{ return this.constructor.name === c.prototype.constructor.name; }
+	isC( c )
+	{ if ( typeof c._class === 'undefined' ) c._class = c.prototype.constructor.name; return this._class === c._class; }
+	isD( c )
+	{ return this instanceof c; }
+	isE( c )
+	{ return this._class === c.prototype.constructor.name; }
 	constructor( params )
 	{
 		//this._stack_trace = globalThis.getStackTrace();
+		
+		this._class = this.constructor.name;
+		//debugger;
 		
 		// Because getters are slow in JS, especially when they are virtual methods. Trying this method?
 		this._hitbox_x1 = 0;
@@ -960,14 +986,6 @@ class sdEntity
 	IsVisible( observer_entity ) // Can be used to hide guns that are held, they will not be synced this way
 	{
 		return true;
-	}
-	GetClass()
-	{
-		return this.constructor.name;
-	}
-	is( c )
-	{
-		return this.constructor === c.prototype.constructor;
 	}
 	GetSnapshot( current_frame, save_as_much_as_possible=false, observer_entity=null )
 	{
