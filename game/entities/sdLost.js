@@ -239,6 +239,8 @@ class sdLost extends sdEntity
 		
 		this.t = params.t || null;
 		
+		this.awake = 1; // For client sync
+		
 		//if ( this.s )
 		{
 			this._update_version = 0; // sdEntity constructor won't make this property during snapshot load since it is dynamic
@@ -304,19 +306,29 @@ class sdLost extends sdEntity
 		
 		if ( !this.s )
 		{
-			this.sy += sdWorld.gravity * GSPEED;
+			if ( sdWorld.is_server || this.awake )
+			{
+				this.sy += sdWorld.gravity * GSPEED;
 
-			this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+				this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+			}
 
 			//this._matter = Math.min( this._matter_max, this._matter + GSPEED * 0.001 * this._matter_max / 80 );
 			//this.MatterGlow( 0.01, 30, GSPEED );
 			if ( this._phys_sleep <= 0 )
 			{
+				if ( sdWorld.is_server )
+				{
+					this.awake = 0;
+				}
 				this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 			}
 		}
 		else
-		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+		{
+			//this.awake = 0;
+			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+		}
 	}
 	/*DrawHUD( ctx, attached ) // foreground layer
 	{

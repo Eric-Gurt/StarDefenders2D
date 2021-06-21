@@ -1,4 +1,11 @@
+/*
 
+	No longer recursive. sdTurrets will now scan network to find first sdCom
+
+
+
+
+*/
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
@@ -26,8 +33,8 @@ class sdCom extends sdEntity
 		
 		//sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdMatterContainer', 'sdTeleport', 'sdCrystal', 'sdLamp', 'sdCube' ];
 		sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdTeleport', 'sdCube', 'sdEnemyMech', 'sdBadDog', 'sdShark', 'sdDrone' ]; // Used for sdCube pathfinding now...
-		sdCom.com_visibility_unignored_classes = [ 'sdBlock' ];
-		sdCom.com_creature_attack_unignored_classes = [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ]; // Used by sdVirus so far. Also for rain that spawns grass
+		sdCom.com_visibility_unignored_classes = [ 'sdBlock', 'sdMatterContainer', 'sdMatterAmplifier' ];
+		sdCom.com_creature_attack_unignored_classes = [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ]; // Used by sdVirus so far. Also for rain that spawns grass
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -82,10 +89,12 @@ class sdCom extends sdEntity
 		
 		this._owner = null; // Only used to add creator to subscribers list on spawn
 		
-		if ( sdWorld.is_server )
+		/*if ( sdWorld.is_server )
 		{
 			this.NotifyAboutNewSubscribers( 2 );
-		}
+		}*/
+		this._matter = 0; // Just so it can transfer matter in cable network
+		this._matter_max = 20;
 	}
 	onBuilt()
 	{
@@ -129,7 +138,7 @@ class sdCom extends sdEntity
 				}
 			}
 		}
-		
+		/*
 		let nearby_coms = sdWorld.GetComsNear( this.x, this.y, null, null );
 		for ( var i = 0; i < nearby_coms.length; i++ )
 		//if ( sdWorld.CheckLineOfSight( this.x, this.y, nearby_coms[ i ].x, nearby_coms[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
@@ -144,31 +153,41 @@ class sdCom extends sdEntity
 				else
 			 	nearby_coms[ i ].NotifyAboutNewSubscribers( append1_or_remove0_or_inherit_back2, subs, counter_recursive_array );
 			}
-		}
+		}*/
 	}
+	
+	onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
+	{
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+	}
+	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		this.MatterGlow( 0.1, 0, GSPEED ); // 0 radius means only towards cables
+		
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
 		if ( this._hea < this._hmax )
 		this._hea = Math.min( this._hea + GSPEED, this._hmax );
 		else
+		if ( this._matter < 0.05 || this._matter >= this._matter_max )
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		sdEntity.Tooltip( ctx, this.title );
 		
-		this.DrawConnections( ctx );
+		//this.DrawConnections( ctx );
 	}
-	DrawConnections( ctx )
+	/*DrawConnections( ctx )
 	{
 		ctx.lineWidth = 1;
 		ctx.strokeStyle = '#ffffff';
 		ctx.setLineDash([2, 2]);
 		ctx.lineDashOffset = ( sdWorld.time % 1000 ) / 250 * 2;
 
+		
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
 		if ( sdEntity.entities[ i ] !== this )
 		if ( ( sdEntity.entities[ i ].GetClass() === 'sdCom' && sdEntity.entities[ i ].variation === this.variation ) || 
@@ -199,9 +218,21 @@ class sdCom extends sdEntity
 		
 		ctx.lineDashOffset = 0;
 		ctx.setLineDash([]);
-	}
+	}*/
 	onRemove()
 	{
+		// Just notify everything for sprite updates // Bad approach, something like teleports will still won't update
+		/*this.GetComWiredCache( ( ent )=>{
+			
+			if ( ent._hiberstate === sdEntity.HIBERSTATE_HIBERNATED )
+			ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		
+			if ( typeof ent._update_version !== 'undefined' )
+			ent._update_version++;
+			
+			return false;
+		});*/
+		
 		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 3 );
 	}

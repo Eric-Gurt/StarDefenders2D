@@ -17,6 +17,11 @@ class sdCube extends sdEntity
 		sdCube.img_cube_attack = sdWorld.CreateImageFromFile( 'cube_attack' );
 		sdCube.img_cube_sleep = sdWorld.CreateImageFromFile( 'cube_sleep' );
 		
+		sdCube.img_cube_idle3 = sdWorld.CreateImageFromFile( 'cube_idle3' );
+		sdCube.img_cube_hurt3 = sdWorld.CreateImageFromFile( 'cube_hurt3' );
+		sdCube.img_cube_attack3 = sdWorld.CreateImageFromFile( 'cube_attack3' );
+		sdCube.img_cube_sleep3 = sdWorld.CreateImageFromFile( 'cube_sleep3' );
+		
 		sdCube.alive_cube_counter = 0;
 		sdCube.alive_huge_cube_counter = 0; // 1
 		sdCube.alive_white_cube_counter = 0; // 2
@@ -592,7 +597,7 @@ class sdCube extends sdEntity
 
 					//let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 800 );
 					//let targets_raw = sdWorld.GetCharactersNear( this.x, this.y, null, null, 800 );
-					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdCube.attack_range, null, [ 'sdCharacter', 'sdTurret', 'sdEnemyMech', 'sdCube' ] );
+					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdCube.attack_range, null, [ 'sdCharacter', 'sdTurret', 'sdEnemyMech', 'sdCube', 'sdDrone' ] );
 
 					let targets = [];
 
@@ -634,16 +639,16 @@ class sdCube extends sdEntity
 
 						this.attack_anim = 15;
 						
+						let targ = targets[ i ];
+							
 						if ( this.kind === 1 && Math.random() > 0.9 )
 						{
-							let targ = targets[ i ];
-							
 							setTimeout(()=>
 							{
 								if ( !this._is_being_removed )
 								if ( this.hea > 0 ) // Not disabled in time
 								{
-									let an = Math.atan2( targ.y - this.y, targ.x - this.x );
+									let an = Math.atan2( targ.y + ( targ._hitbox_y1 + targ._hitbox_y2 ) / 2 - this.y, targ.x + ( targ._hitbox_x1 + targ._hitbox_x2 ) / 2 - this.x );
 
 									let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 									bullet_obj._owner = this;
@@ -654,7 +659,7 @@ class sdCube extends sdEntity
 									bullet_obj.sy *= 16;
 
 									//bullet_obj.time_left = 60;
-									bullet_obj.time_left = 90;
+									bullet_obj.time_left = 90; // overriden later
 
 									for ( var p in sdGun.classes[ sdGun.CLASS_LOST_CONVERTER ].projectile_properties )
 									bullet_obj[ p ] = sdGun.classes[ sdGun.CLASS_LOST_CONVERTER ].projectile_properties[ p ];
@@ -670,7 +675,8 @@ class sdCube extends sdEntity
 						else
 						{
 
-							let an = Math.atan2( targets[ i ].y - this.y, targets[ i ].x - this.x );
+							let an = Math.atan2( targ.y + ( targ._hitbox_y1 + targ._hitbox_y2 ) / 2 - this.y, targ.x + ( targ._hitbox_x1 + targ._hitbox_x2 ) / 2 - this.x );
+
 
 							let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 							bullet_obj._owner = this;
@@ -724,6 +730,7 @@ class sdCube extends sdEntity
 						if ( this._alert_intensity === 0 )
 						{
 							this._alert_intensity = 0.0001;
+							if ( this.kind !== 3 )
 							sdSound.PlaySound({ name:'cube_alert2', pitch: this.kind === 1 ? 0.5 : 1, x:this.x, y:this.y, volume:1 });
 						}
 					}
@@ -771,51 +778,67 @@ class sdCube extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		//ctx.filter = this.filter;
-		
 		if ( this.kind === 1 )
 		{
 			ctx.scale( 2, 2 );
-			//ctx.filter = 'hue-rotate(90deg)';
 			ctx.sd_filter = sdCube.huge_fitler;
 		}
 
 		if ( this.kind === 2 )
 		{
 			ctx.scale( 3, 3 );
-			//ctx.filter = 'hue-rotate(90deg)';
 			ctx.sd_filter = sdCube.white_filter;
 		}
 
 		if ( this.kind === 3 )
 		{
-			ctx.scale( 0.6, 0.6 );
-			//ctx.filter = 'hue-rotate(90deg)';
+			//ctx.scale( 0.6, 0.6 );
 			ctx.sd_filter = sdCube.pink_filter;
-		}
-		
-		if ( this.hea > 0 )
-		{
-			if ( this.attack_anim > 0 )
+			
+			if ( this.hea > 0 )
 			{
-				ctx.drawImageFilterCache( sdCube.img_cube_attack, - 16, - 16, 32,32 );
-			}
-			else
-			if ( this.regen_timeout > 45 )
-			ctx.drawImageFilterCache( sdCube.img_cube_hurt, - 16, - 16, 32,32 );
-			else
-			{
-				ctx.drawImageFilterCache( sdCube.img_cube_idle, - 16, - 16, 32,32 );
-				
-				if ( this.matter < this.matter_max )
+				if ( this.attack_anim > 0 )
+				ctx.drawImageFilterCache( sdCube.img_cube_attack3, - 16, - 16, 32,32 );
+				else
+				if ( this.regen_timeout > 45 )
+				ctx.drawImageFilterCache( sdCube.img_cube_hurt3, - 16, - 16, 32,32 );
+				else
 				{
-					ctx.globalAlpha = ( 1 - this.matter / this.matter_max ) * ( Math.sin( sdWorld.time / 2000 * Math.PI ) * 0.5 + 0.5 );
-					ctx.drawImageFilterCache( sdCube.img_cube_sleep, - 16, - 16, 32,32 );
+					ctx.drawImageFilterCache( sdCube.img_cube_idle3, - 16, - 16, 32,32 );
+
+					if ( this.matter < this.matter_max )
+					{
+						ctx.globalAlpha = ( 1 - this.matter / this.matter_max ) * ( Math.sin( sdWorld.time / 2000 * Math.PI ) * 0.5 + 0.5 );
+						ctx.drawImageFilterCache( sdCube.img_cube_sleep3, - 16, - 16, 32,32 );
+					}
 				}
 			}
+			else
+			ctx.drawImageFilterCache( sdCube.img_cube_sleep3, - 16, - 16, 32,32 );
 		}
 		else
-		ctx.drawImageFilterCache( sdCube.img_cube_sleep, - 16, - 16, 32,32 );
+		{
+			if ( this.hea > 0 )
+			{
+				if ( this.attack_anim > 0 )
+				ctx.drawImageFilterCache( sdCube.img_cube_attack, - 16, - 16, 32,32 );
+				else
+				if ( this.regen_timeout > 45 )
+				ctx.drawImageFilterCache( sdCube.img_cube_hurt, - 16, - 16, 32,32 );
+				else
+				{
+					ctx.drawImageFilterCache( sdCube.img_cube_idle, - 16, - 16, 32,32 );
+
+					if ( this.matter < this.matter_max )
+					{
+						ctx.globalAlpha = ( 1 - this.matter / this.matter_max ) * ( Math.sin( sdWorld.time / 2000 * Math.PI ) * 0.5 + 0.5 );
+						ctx.drawImageFilterCache( sdCube.img_cube_sleep, - 16, - 16, 32,32 );
+					}
+				}
+			}
+			else
+			ctx.drawImageFilterCache( sdCube.img_cube_sleep, - 16, - 16, 32,32 );
+		}
 		
 		ctx.globalAlpha = 1;
 		//ctx.filter = 'none';

@@ -562,6 +562,11 @@
 	    <input type="color" id="color_skin" value="#808000">
 	    <label for="color_skin">Gloves &amp; neck color</label>
 	    <br>
+	    
+	    <input type="color" id="color_extra1" value="#0000ff">
+	    <label for="color_extra1">Extra 1</label>
+	    <br>
+	    
 	    <br>
 	    
 	    
@@ -667,12 +672,16 @@
 		<span class="sdtitle">Body model</span><br>
 		<input type="checkbox" id="body1" value="1">
 		<label for="body1">Star Defender</label>
+		<br>
 		<input type="checkbox" id="body2" value="1">
 		<label for="body2">Heavy</label>
+		<br>
 		<input type="checkbox" id="body3" value="1">
 		<label for="body3">Tech</label>
+		<br>
 		<input type="checkbox" id="body4" value="1">
 		<label for="body4">Templar</label>
+		<br>
 		<input type="checkbox" id="body5" value="1">
 		<label for="body5">Inferno</label>
 	    </div>
@@ -681,12 +690,16 @@
 		<span class="sdtitle">Legs model</span><br>
 		<input type="checkbox" id="legs1" value="1">
 		<label for="legs1">Star Defender</label>
+		<br>
 		<input type="checkbox" id="legs2" value="1">
 		<label for="legs2">Heavy</label>
+		<br>
 		<input type="checkbox" id="legs3" value="1">
 		<label for="legs3">Tech</label>
+		<br>
 		<input type="checkbox" id="legs4" value="1">
 		<label for="legs4">Templar</label>
+		<br>
 		<input type="checkbox" id="legs5" value="1">
 		<label for="legs5">Inferno</label>
 	    </div>
@@ -871,6 +884,11 @@
 		ctx.translate( 16, 14 );
 
 		ent.Draw( ctx );
+		
+		if ( ent._ragdoll )
+		{
+		    ent._ragdoll.Delete( true );
+		}
 
 		ent.remove();
 		ent._remove();

@@ -52,7 +52,14 @@ class sdCable extends sdEntity
 			'sdHover',
 			'sdTeleport',
 			'sdUpgradeStation',
-			'sdCrystalCombiner'
+			'sdCrystalCombiner',
+			'sdNode'
+		];
+		
+		// Override protection
+		sdCable.one_cable_entities = [
+			'sdDoor',
+			'sdTurret'
 		];
 		
 		sdCable.cables_per_entity = new WeakMap();
@@ -174,7 +181,12 @@ class sdCable extends sdEntity
 		}
 		
 		if ( !set.has( cable ) )
-		set.add( cable );
+		{
+			set.add( cable );
+			
+			if ( !e._is_being_removed )
+			e.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		}
 	}
 	static RemoveCableFromEntity( e, cable )
 	{
@@ -183,6 +195,9 @@ class sdCable extends sdEntity
 		if ( set )
 		{
 			set.delete( cable );
+			
+			if ( !e._is_being_removed )
+			e.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 			
 			if ( set.size === 0 )
 			{
@@ -218,6 +233,11 @@ class sdCable extends sdEntity
 
 				set.forEach( ( cable )=>
 				{
+					if ( !cable.c || !cable.p ) // Happens rarely, on loading from snapshot, and also during creation of cable
+					{
+						//cable.remove();
+					}
+					else
 					if ( cable.p === e )
 					{
 						if ( cable.t !== 0 )
@@ -275,6 +295,7 @@ class sdCable extends sdEntity
 		sdCable.UpdateConnectedEntities( old );
 		sdCable.UpdateConnectedEntities( this.p );
 		sdCable.UpdateConnectedEntities( this.c );
+		this.ScheduleNetworkEntitiesUpdate();
 		this._update_version++;
 	}
 	set c( e )
@@ -302,6 +323,7 @@ class sdCable extends sdEntity
 		sdCable.UpdateConnectedEntities( old );
 		sdCable.UpdateConnectedEntities( this.p );
 		sdCable.UpdateConnectedEntities( this.c );
+		this.ScheduleNetworkEntitiesUpdate();
 		this._update_version++;
 	}
 	SetType( type )
@@ -585,6 +607,18 @@ class sdCable extends sdEntity
 			}
 			else
 			{
+				/*console.log ( 'dist1', sdWorld.distToSegment( 
+						cursor, 
+						{
+							x: this.p.x + this.d[ 0 ],
+							y: this.p.y + this.d[ 1 ]
+						}, 
+						{
+							x: this.c.x + this.d[ 2 ],
+							y: this.c.y + this.d[ 3 ]
+						}) );
+								*/
+								
 				return sdWorld.distToSegment( 
 						cursor, 
 						{
@@ -597,6 +631,11 @@ class sdCable extends sdEntity
 						}); // p is tested point, v and w is a segment;
 			}
 		}
+		/*console.log ( 'dist2', sdWorld.Dist2D(	xx, 
+								yy, 
+								Math.min( Math.max( this.x + this._hitbox_x1, xx ), this.x + this._hitbox_x2 ), 
+								Math.min( Math.max( this.y + this._hitbox_y1, yy ), this.y + this._hitbox_y2 ) ) );*/
+								
 		return sdWorld.Dist2D(	xx, 
 								yy, 
 								Math.min( Math.max( this.x + this._hitbox_x1, xx ), this.x + this._hitbox_x2 ), 
@@ -660,10 +699,36 @@ class sdCable extends sdEntity
 		sdEntity.Tooltip( ctx, 'Cable' );
 	}
 	
+	ScheduleNetworkEntitiesUpdate()
+	{
+		if ( this.p && this.c )
+		{
+			const method = ( ent )=>
+			{
+				if ( ent._hiberstate === sdEntity.HIBERSTATE_HIBERNATED )
+				ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+				if ( typeof ent._update_version !== 'undefined' )
+				ent._update_version++;
+
+				return false;
+			};
+
+			this.p.GetComWiredCache( method );
+			//this.c.GetComWiredCache( method );
+		}
+		else
+		{
+		}
+	}
+	
 	_Deletion()
 	{
 		if ( sdWorld.is_server )
 		{
+			// Trigger updates for everything within network
+			this.ScheduleNetworkEntitiesUpdate();
+
 			this.p = null;
 			this.c = null;
 			
@@ -683,6 +748,10 @@ class sdCable extends sdEntity
 		}
 		else
 		{
+			// Why not do these here too? Will be used for visuals on client-side
+			this.p = null;
+			this.c = null;
+			
 			sdCable.counter--;
 		}
 	}
@@ -751,7 +820,7 @@ class sdCable extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		//if ( sdArea.CheckPointDamageAllowed( exectuter_character.x, exectuter_character.y ) || this.p === exectuter_character || this.c === exectuter_character )
-		if ( this.GetAccurateDistance( exectuter_character.x, exectuter_character.y ) < 32 )
+		if ( this.GetAccurateDistance( exectuter_character.x, exectuter_character.y ) < 20 ) // 32 can cause door to be "hackable" if first socket was on top
 		{
 			this.AddContextOption( 'Cut cable', 'CUT_CABLE', [] );
 			this.AddContextOption( 'Transfer matter', 'SET_TYPE', [ sdCable.TYPE_MATTER ] );

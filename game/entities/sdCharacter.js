@@ -35,13 +35,14 @@ class sdCharacter extends sdEntity
 {
 	static init_class()
 	{
-		
+		sdCharacter.img_teammate = sdWorld.CreateImageFromFile( 'teammate' );
+		/*
 		sdCharacter.img_legs_idle = sdWorld.CreateImageFromFile( 'legs_idle' );
 		sdCharacter.img_legs_walk1 = sdWorld.CreateImageFromFile( 'legs_walk1' );
 		sdCharacter.img_legs_walk2 = sdWorld.CreateImageFromFile( 'legs_walk2' );
 		sdCharacter.img_legs_crouch = sdWorld.CreateImageFromFile( 'legs_crouch' );
 		sdCharacter.img_legs_crouch_walk1 = sdWorld.CreateImageFromFile( 'legs_crouch_walk1' );
-		
+		*/
 		// Add new values at the end
 		sdCharacter.img_helmets = [
 			null,
@@ -99,8 +100,13 @@ class sdCharacter extends sdEntity
 			img_death4: [ 6, 29, -90 ]
 		};
 		
-		sdCharacter.ghost_breath_delay = 10 * 30;
+		sdCharacter.AI_MODEL_NONE = 0;
+		sdCharacter.AI_MODEL_FALKOK = 1;
+		sdCharacter.AI_MODEL_INSTRUCTOR = 2;
+		sdCharacter.AI_MODEL_DUMMY_UNREVIVABLE_ENEMY = 3;
 		
+		sdCharacter.ghost_breath_delay = 10 * 30;
+		/*
 		sdCharacter.img_body_idle = sdWorld.CreateImageFromFile( 'body_idle' );
 		sdCharacter.img_body_armed = sdWorld.CreateImageFromFile( 'body_armed' );
 		sdCharacter.img_body_fire1 = sdWorld.CreateImageFromFile( 'body_fire1' );
@@ -116,7 +122,7 @@ class sdCharacter extends sdEntity
 		sdCharacter.img_death3 = sdWorld.CreateImageFromFile( 'death3' );
 		sdCharacter.img_death4 = sdWorld.CreateImageFromFile( 'death4' );
 		//sdCharacter.img_death4_visor_tint = sdWorld.CreateImageFromFile( 'death4_visor_tint' );
-		
+		*/
 		sdCharacter.img_jetpack = sdWorld.CreateImageFromFile( 'jetpack' );
 		
 		sdCharacter.air_max = 30 * 30; // 30 sec
@@ -130,7 +136,7 @@ class sdCharacter extends sdEntity
 		sdCharacter.starter_matter = 50;
 		sdCharacter.matter_required_to_destroy_command_center = 300; // Will be used to measure command centres' self-destruct if no characters with enough matter will showup near them
 		
-		sdCharacter.characters = []; // Used for AI counting
+		sdCharacter.characters = []; // Used for AI counting, also for team management
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -266,7 +272,7 @@ class sdCharacter extends sdEntity
 		};*/
 		
 		this._ai = null; // Object, won't be saved to snapshot
-		this._ai_enabled = false;
+		this._ai_enabled = 0; // Now means id of AI model // false;
 		this._ai_gun_slot = 0; // When AI spawns with a weapon, this variable needs to be defined to the same slot as the spawned gun so AI can use it
 		this._ai_level = 0; // Self explanatory
 		this._ai_team = 0; // AI "Teammates" do not target each other
@@ -354,7 +360,7 @@ class sdCharacter extends sdEntity
 		this._hook_allowed = false; // Through upgrade
 		this._jetpack_allowed = false; // Through upgrade
 		this._ghost_allowed = false; // Through upgrade
-		this._coms_allowed = false; // Through upgrade, only non-proximity one
+		//this._coms_allowed = false; // Through upgrade, only non-proximity one
 		this._damage_mult = 1; // Through upgrade
 		this._build_hp_mult = 1; // Through upgrade
 		this._matter_regeneration = 0; // Through upgrade
@@ -379,6 +385,10 @@ class sdCharacter extends sdEntity
 		this._upgrade_counters = {}; // key = upgrade
 		
 		this._regen_timeout = 0;
+		
+		this.cc_id = 0; // ned_id of Command centre, which defines player's team
+		this._cc_rank = 0; // 0 for owner, anything else for non-owner
+		//this.cc_r = 0; // Rank within command centre. 
 		
 		this._key_states = new sdKeyStates();
 		this._q_held = false;
@@ -594,6 +604,7 @@ class sdCharacter extends sdEntity
 			let t = sdRescueTeleport.rescue_teleports[ i ];
 			if ( t._owner === this )
 			if ( t.delay <= 0 )
+			if ( t.matter >= t._matter_max )
 			if ( !t._is_being_removed )
 			{
 				let di = sdWorld.Dist2D( this.x, this.y, t.x, t.y );
@@ -612,11 +623,56 @@ class sdCharacter extends sdEntity
 				this.driver_of.ExcludeDriver( this );
 			}
 			
+			// Create temporary copy just for visuals
+			let copy_ent = new sdCharacter({ x:this.x, y:this.y });
+			sdEntity.entities.push( copy_ent );
+			copy_ent.ApplySnapshot( this.GetSnapshot( 0, true, null ) );
+			copy_ent.hea = Math.min( copy_ent.hea, -1 );
+			copy_ent._ai_enabled = sdCharacter.AI_MODEL_DUMMY_UNREVIVABLE_ENEMY;
+			copy_ent._god = false;
+			copy_ent._socket = null;
+			copy_ent._my_hash = undefined;
+			copy_ent.matter = 0;
+			
+			copy_ent.death_anim = sdCharacter.disowned_body_ttl - 2480 / 1000 * 30; // Vanishing opacity
+			
+			//if ( this.death_anim > sdCharacter.disowned_body_ttl - 30 )
+			//ctx.globalAlpha = 0.5;
+			
+			sdSound.PlaySound({ name:'rescue_teleport_fake_death2', x:copy_ent.x, y:copy_ent.y, volume:2 });
+			//setTimeout(()=>
+			//{
+			
+				// Turn white
+				copy_ent.sd_filter = Object.assign( {}, copy_ent.sd_filter );
+				for ( let r in copy_ent.sd_filter )
+				{
+					copy_ent.sd_filter[ r ] = Object.assign( {}, copy_ent.sd_filter[ r ] );
+					for ( let g in copy_ent.sd_filter[ r ] )
+					{
+						copy_ent.sd_filter[ r ][ g ] = Object.assign( {}, copy_ent.sd_filter[ r ][ g ] );
+						for ( let b in copy_ent.sd_filter[ r ][ g ] )
+						{
+							copy_ent.sd_filter[ r ][ g ][ b ] = [ 255, 255, 255 ];
+						}
+					}
+				}
+				//copy_ent.remove();
+			//}, 3000 );
+			//console.log( 'side', copy_ent._side );
+			//EnforceChangeLog( copy_ent, '_side' );
+			setTimeout(()=>
+			{
+				//console.log( 'side', copy_ent._side );
+				//sdSound.PlaySound({ name:'teleport', x:copy_ent.x, y:copy_ent.y, volume:0.5 });
+				copy_ent.remove();
+			}, 2480 );
+			
 			this.hook_x = 0;
 			this.hook_y = 0;
 			this._hook_len = -1;
 
-			sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
+			//sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 			sdSound.PlaySound({ name:'teleport', x:best_t.x, y:best_t.y, volume:0.5 });
 
 			this.x = best_t.x;
@@ -633,7 +689,10 @@ class sdCharacter extends sdEntity
 
 			this.hea = Math.max( this.hea, 30 );
 
-			best_t.SetDelay( sdRescueTeleport.delay_2nd ); // 5 minutes
+			//best_t.SetDelay( sdRescueTeleport.delay_2nd ); // 5 minutes
+			best_t.SetDelay( sdRescueTeleport.delay_simple );
+			best_t.matter = 0;
+			
 			
 			this.ApplyServerSidePositionAndVelocity( true, 0, 0 );
 			
@@ -796,7 +855,7 @@ class sdCharacter extends sdEntity
 				if ( initiator.is( sdCharacter ) )
 				if ( initiator._socket )
 				{
-					if ( this._ai_enabled )
+					if ( this.IsHostileAI() )
 					{
 						if ( typeof initiator._score !== 'undefined' )
 						initiator._score += 2;
@@ -893,7 +952,7 @@ class sdCharacter extends sdEntity
 			this._dying = true;
 		}
 		else
-		if ( this._socket !== null || this._my_hash !== undefined ) // Allow healing disconnected players
+		if ( this._socket !== null || this._my_hash !== undefined || !this.IsHostileAI() ) // Allow healing disconnected players
 		{
 			if ( this.hea < 0 )
 			this.hea = 0;
@@ -910,7 +969,7 @@ class sdCharacter extends sdEntity
 				if ( initiator._socket )
 				if ( this._socket )
 				{
-					if ( this._ai_enabled )
+					if ( this._ai_enabled > 0 )
 					{
 					}
 					else
@@ -954,208 +1013,224 @@ class sdCharacter extends sdEntity
 		
 		return false;
 	}
-	
+	IsHostileAI() // Used to check if standartized score will be given for killing them and also for turrets to attack them
+	{
+		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_DUMMY_UNREVIVABLE_ENEMY )
+		{
+			return true;
+		}
+		
+		return false;
+	}
 	AILogic( GSPEED ) // aithink
 	{
 		if ( !sdWorld.is_server )
 		return;
-		
-		if ( typeof this._ai.next_action === 'undefined' )
-		this._ai.next_action = 30;
 	
-		if ( typeof this._ai.direction === 'undefined' )
-		this._ai.direction = ( Math.random() < 0.5 ) ? 1 : -1;
-	
-		if ( ( this._ai.direction > 0 && this.x > sdWorld.world_bounds.x2 - 32 ) || ( this._ai.direction > 0 && this.x < sdWorld.world_bounds.x1 + 32 ) )
+		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK )
 		{
-			this.remove();
-			return;
-		}
-	
-		this._ai.next_action -= GSPEED;
-		
-		if ( this._ai.next_action <= 0 )
-		{
-			this._ai.next_action = 5 + Math.random() * 10;
-			
-			this.gun_slot = this._ai_gun_slot;
-			
-			let closest = null;
-			let closest_di = Infinity;
-			//let closest_di_real = Infinity;
-			
-			// Occasionally change direction?
-			if ( Math.random() < 0.001 )
+			if ( typeof this._ai.next_action === 'undefined' )
+			this._ai.next_action = 30;
+
+			if ( typeof this._ai.direction === 'undefined' )
 			this._ai.direction = ( Math.random() < 0.5 ) ? 1 : -1;
-			
-			this._ai_action_counter++;
-			if ( ( this.x - this._ai_last_x ) < -50 || ( this.x - this._ai_last_x ) > 50 ) // Has the AI moved a bit or is it stuck?
+
+			if ( ( this._ai.direction > 0 && this.x > sdWorld.world_bounds.x2 - 32 ) || ( this._ai.direction > 0 && this.x < sdWorld.world_bounds.x1 + 32 ) )
 			{
-				this._ai_last_x = this.x;
-				this._ai_action_counter = 0;
-				if ( this._ai_dig > 0 )
-				{
-					this._ai_dig = 0; // Stop digging and reset target if AI is targeting sdBlock
-					if ( this._ai.target )
-					if ( this._ai.target.GetClass() === 'sdBlock' )
-					this._ai.target = null;
-				}
-			}
-			if ( ( this.y - this._ai_last_y ) < -50 || ( this.y - this._ai_last_y ) > 50 ) // Same but Y coordinate
-			{
-				this._ai_last_y = this.y;
-				this._ai_action_counter = 0;
-				if ( this._ai_dig > 0 )
-				{
-					this._ai_dig = 0; // Stop digging and reset target if AI is targeting sdBlock
-					if ( this._ai.target )
-					if ( this._ai.target.GetClass() === 'sdBlock' )
-					this._ai.target = null;
-				}
+				this.remove();
+				return;
 			}
 
-			if ( this._ai_action_counter >= 50 || ( this._ai_dig > 0 && !this._ai.target ) ) // In case if AI is stuck in blocks (earthquakes, player buildings etc) will target nearby blocks
+			this._ai.next_action -= GSPEED;
+
+			if ( this._ai.next_action <= 0 )
 			{
-				this.AITargetBlocks();
-				if ( this._ai_action_counter >= 50 )
+				this._ai.next_action = 5 + Math.random() * 10;
+
+				this.gun_slot = this._ai_gun_slot;
+
+				let closest = null;
+				let closest_di = Infinity;
+				//let closest_di_real = Infinity;
+
+				// Occasionally change direction?
+				if ( Math.random() < 0.001 )
+				this._ai.direction = ( Math.random() < 0.5 ) ? 1 : -1;
+
+				this._ai_action_counter++;
+				if ( ( this.x - this._ai_last_x ) < -50 || ( this.x - this._ai_last_x ) > 50 ) // Has the AI moved a bit or is it stuck?
 				{
+					this._ai_last_x = this.x;
 					this._ai_action_counter = 0;
-					this._ai_dig = 2 + Math.floor( Math.random() * 3 ); // Shoot down at least 2 nearby blocks
+					if ( this._ai_dig > 0 )
+					{
+						this._ai_dig = 0; // Stop digging and reset target if AI is targeting sdBlock
+						if ( this._ai.target )
+						if ( this._ai.target.GetClass() === 'sdBlock' )
+						this._ai.target = null;
+					}
 				}
-			}			
-
-			if ( this._ai.target )
-			{
-				if ( ( this._ai.target.hea || this._ai.target._hea || 0 ) > 0 && this._ai.target.IsVisible( this ) && sdWorld.Dist2D( this.x, this.y, this._ai.target.x, this._ai.target.y ) < 800 )
+				if ( ( this.y - this._ai_last_y ) < -50 || ( this.y - this._ai_last_y ) > 50 ) // Same but Y coordinate
 				{
-					closest = this._ai.target;
+					this._ai_last_y = this.y;
+					this._ai_action_counter = 0;
+					if ( this._ai_dig > 0 )
+					{
+						this._ai_dig = 0; // Stop digging and reset target if AI is targeting sdBlock
+						if ( this._ai.target )
+						if ( this._ai.target.GetClass() === 'sdBlock' )
+						this._ai.target = null;
+					}
+				}
+
+				if ( this._ai_action_counter >= 50 || ( this._ai_dig > 0 && !this._ai.target ) ) // In case if AI is stuck in blocks (earthquakes, player buildings etc) will target nearby blocks
+				{
+					this.AITargetBlocks();
+					if ( this._ai_action_counter >= 50 )
+					{
+						this._ai_action_counter = 0;
+						this._ai_dig = 2 + Math.floor( Math.random() * 3 ); // Shoot down at least 2 nearby blocks
+					}
+				}			
+
+				if ( this._ai.target )
+				{
+					if ( ( this._ai.target.hea || this._ai.target._hea || 0 ) > 0 && this._ai.target.IsVisible( this ) && sdWorld.Dist2D( this.x, this.y, this._ai.target.x, this._ai.target.y ) < 800 )
+					{
+						closest = this._ai.target;
+					}
+					else
+					this._ai.target = null;
+				}
+
+				if ( !closest )
+				for ( let i = 0; i < sdWorld.sockets.length; i++ )
+				{
+					var ent = sdWorld.sockets[ i ].character;
+
+					if ( ent )
+					if ( ent.hea > 0 )
+					if ( !ent._is_being_removed )
+					{
+						let di = sdWorld.Dist2D( this.x, this.y, ent.x, ent.y );
+						//let di_real = di;
+
+						if ( di < 400 )
+						//if ( !sdCube.IsTargetFriendly( ent ) )
+						if ( ent.IsVisible( this ) )
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, ent.x, ent.y, this, sdCom.com_visibility_ignored_classes, null ) )
+						{
+							if ( di < closest_di )
+							{
+								closest_di = di;
+								//closest_di_real = di_real;
+								closest = ent;
+							}
+						}
+					}
+				}
+
+				this._key_states.SetKey( 'KeyA', 0 );
+				this._key_states.SetKey( 'KeyD', 0 );
+				this._key_states.SetKey( 'KeyW', 0 );
+				this._key_states.SetKey( 'KeyS', 0 );
+
+				this._key_states.SetKey( 'Mouse1', 0 );
+
+				if ( closest )
+				{
+					if ( !this._ai.target )
+					{
+						sdSound.PlaySound({ name:'f_welcome1', x:this.x, y:this.y, volume:0.4 });
+					}
+
+					this._ai.target = closest;
+					this._ai.target_local_y = closest._hitbox_y1 + ( closest._hitbox_y2 - closest._hitbox_y1 ) * Math.random();
+
+					let should_fire = true; // Sometimes prevents friendly fire, not ideal since it updates only when ai performs "next action"
+					if ( this.look_x - this._ai.target.x > 60 || this.look_x - this._ai.target.x < -60 ) // Don't shoot if you're not looking near or at the target
+					should_fire = false;
+					if ( this.look_y - this._ai.target.y > 60 || this.look_y - this._ai.target.y < -60 ) // Same goes here but Y coordinate
+					should_fire = false;
+					if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, null, ['sdCharacter'] ) )
+					if ( sdWorld.last_hit_entity && sdWorld.last_hit_entity._ai_team === this._ai_team )
+					should_fire = false;
+
+					if ( Math.random() < 0.3 )
+					this._key_states.SetKey( 'KeyA', 1 );
+
+					if ( Math.random() < 0.3 )
+					this._key_states.SetKey( 'KeyD', 1 );
+
+					if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30  ) )
+					this._key_states.SetKey( 'KeyW', 1 );
+
+					if ( Math.random() < 0.4 )
+					this._key_states.SetKey( 'KeyS', 1 );
+
+					if ( Math.random() < 0.05 && should_fire === true  ) // Shoot the walls occasionally, when target is not in sight but was detected previously
+					{
+						this._key_states.SetKey( 'Mouse1', 1 );
+					}
+					else
+					if ( Math.random() < 0.25 + Math.min( 0.75, ( 0.25 * this._ai_level ) ) && should_fire === true ) // Shoot on detection, depends on AI level
+					{
+
+						if ( this._ai.target.GetClass() !== 'sdBlock' ) // Check line of sight if not targeting blocks
+						{
+							if ( sdWorld.CheckLineOfSight( this.x, this.y, this._ai.target.x, this._ai.target.y, this, sdCom.com_visibility_ignored_classes, null ) )
+							if ( sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, sdCom.com_visibility_ignored_classes, null ) )
+							this._key_states.SetKey( 'Mouse1', 1 );
+						}
+						else
+						if ( this._ai_dig > 0 ) // If AI should dig blocks, shoot
+						this._key_states.SetKey( 'Mouse1', 1 );
+					}
 				}
 				else
-				this._ai.target = null;
-			}
-			
-			if ( !closest )
-			for ( let i = 0; i < sdWorld.sockets.length; i++ )
-			{
-				var ent = sdWorld.sockets[ i ].character;
-					
-				if ( ent )
-				if ( ent.hea > 0 )
-				if ( !ent._is_being_removed )
 				{
-					let di = sdWorld.Dist2D( this.x, this.y, ent.x, ent.y );
-					//let di_real = di;
+					if ( this._ai.direction > 0 )
+					this._key_states.SetKey( 'KeyD', ( Math.random() < 0.5 ) ? 1 : 0 );
+					else
+					this._key_states.SetKey( 'KeyA', ( Math.random() < 0.5 ) ? 1 : 0 );
 
-					if ( di < 400 )
-					//if ( !sdCube.IsTargetFriendly( ent ) )
-					if ( ent.IsVisible( this ) )
-					if ( sdWorld.CheckLineOfSight( this.x, this.y, ent.x, ent.y, this, sdCom.com_visibility_ignored_classes, null ) )
+					sdWorld.last_hit_entity = null;
+
+					if ( sdWorld.CheckWallExistsBox( this.x + this._ai.direction * 16 - 16, this.y + this._hitbox_y2 - 32 + 1, this.x + this._ai.direction * 16 + 16, this.y + this._hitbox_y2 - 1, this, null, null ) ||  ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 )  )
+					this._key_states.SetKey( 'KeyW', 1 );
+					else
 					{
-						if ( di < closest_di )
+						// Try to go through walls of any kinds
+						if ( sdWorld.last_hit_entity )
+						//if ( sdWorld.last_hit_entity._natural === false || sdWorld.last_hit_entity.is( sdDoor ) || sdWorld.last_hit_entity.is( sdMatterContainer ) || ( !sdWorld.last_hit_entity.is( sdCharacter ) && Math.random() < 0.01 ) )
+						if ( sdWorld.last_hit_entity._natural === false || sdWorld.last_hit_entity.is( sdDoor ) || sdWorld.last_hit_entity.is( sdMatterContainer ) || ( !sdWorld.last_hit_entity.is( sdCharacter ) && Math.random() < ( 0.01 * this._ai_level ) ) )
 						{
-							closest_di = di;
-							//closest_di_real = di_real;
-							closest = ent;
+							closest = sdWorld.last_hit_entity;
+
+							this._ai.target = closest;
+							this._ai.target_local_y = closest._hitbox_y1 + ( closest._hitbox_y2 - closest._hitbox_y1 ) * Math.random();
 						}
 					}
 				}
 			}
-				
-			this._key_states.SetKey( 'KeyA', 0 );
-			this._key_states.SetKey( 'KeyD', 0 );
-			this._key_states.SetKey( 'KeyW', 0 );
-			this._key_states.SetKey( 'KeyS', 0 );
-			
-			this._key_states.SetKey( 'Mouse1', 0 );
-			
-			if ( closest )
+
+			if ( this._ai.target && this._ai.target.IsVisible( this ) )
 			{
-				if ( !this._ai.target )
-				{
-					sdSound.PlaySound({ name:'f_welcome1', x:this.x, y:this.y, volume:0.4 });
-				}
-				
-				this._ai.target = closest;
-				this._ai.target_local_y = closest._hitbox_y1 + ( closest._hitbox_y2 - closest._hitbox_y1 ) * Math.random();
-
-				let should_fire = true; // Sometimes prevents friendly fire, not ideal since it updates only when ai performs "next action"
-				if ( this.look_x - this._ai.target.x > 60 || this.look_x - this._ai.target.x < -60 ) // Don't shoot if you're not looking near or at the target
-				should_fire = false;
-				if ( this.look_y - this._ai.target.y > 60 || this.look_y - this._ai.target.y < -60 ) // Same goes here but Y coordinate
-				should_fire = false;
-				if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, null, ['sdCharacter'] ) )
-				if ( sdWorld.last_hit_entity && sdWorld.last_hit_entity._ai_team === this._ai_team )
-				should_fire = false;
-
-				if ( Math.random() < 0.3 )
-				this._key_states.SetKey( 'KeyA', 1 );
-				
-				if ( Math.random() < 0.3 )
-				this._key_states.SetKey( 'KeyD', 1 );
-				
-				if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30  ) )
-				this._key_states.SetKey( 'KeyW', 1 );
-				
-				if ( Math.random() < 0.4 )
-				this._key_states.SetKey( 'KeyS', 1 );
-			
-				if ( Math.random() < 0.05 && should_fire === true  ) // Shoot the walls occasionally, when target is not in sight but was detected previously
-				{
-					this._key_states.SetKey( 'Mouse1', 1 );
-				}
-				else
-				if ( Math.random() < 0.25 + Math.min( 0.75, ( 0.25 * this._ai_level ) ) && should_fire === true ) // Shoot on detection, depends on AI level
-				{
-
-					if ( this._ai.target.GetClass() !== 'sdBlock' ) // Check line of sight if not targeting blocks
-					{
-						if ( sdWorld.CheckLineOfSight( this.x, this.y, this._ai.target.x, this._ai.target.y, this, sdCom.com_visibility_ignored_classes, null ) )
-						if ( sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, sdCom.com_visibility_ignored_classes, null ) )
-						this._key_states.SetKey( 'Mouse1', 1 );
-					}
-					else
-					if ( this._ai_dig > 0 ) // If AI should dig blocks, shoot
-					this._key_states.SetKey( 'Mouse1', 1 );
-				}
+				this.look_x = sdWorld.MorphWithTimeScale( this.look_x, this._ai.target.x, Math.max( 0.5, ( 0.8 - 0.15 * this._ai_level ) ), GSPEED );
+				this.look_y = sdWorld.MorphWithTimeScale( this.look_y, this._ai.target.y + ( this._ai.target_local_y || 0 ), Math.max( 0.5, ( 0.8 - 0.15 * this._ai_level ) ), GSPEED );
 			}
 			else
 			{
-				if ( this._ai.direction > 0 )
-				this._key_states.SetKey( 'KeyD', ( Math.random() < 0.5 ) ? 1 : 0 );
-				else
-				this._key_states.SetKey( 'KeyA', ( Math.random() < 0.5 ) ? 1 : 0 );
-			
-				sdWorld.last_hit_entity = null;
-				
-				if ( sdWorld.CheckWallExistsBox( this.x + this._ai.direction * 16 - 16, this.y + this._hitbox_y2 - 32 + 1, this.x + this._ai.direction * 16 + 16, this.y + this._hitbox_y2 - 1, this, null, null ) ||  ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 )  )
-				this._key_states.SetKey( 'KeyW', 1 );
-				else
-				{
-					// Try to go through walls of any kinds
-					if ( sdWorld.last_hit_entity )
-					//if ( sdWorld.last_hit_entity._natural === false || sdWorld.last_hit_entity.is( sdDoor ) || sdWorld.last_hit_entity.is( sdMatterContainer ) || ( !sdWorld.last_hit_entity.is( sdCharacter ) && Math.random() < 0.01 ) )
-					if ( sdWorld.last_hit_entity._natural === false || sdWorld.last_hit_entity.is( sdDoor ) || sdWorld.last_hit_entity.is( sdMatterContainer ) || ( !sdWorld.last_hit_entity.is( sdCharacter ) && Math.random() < ( 0.01 * this._ai_level ) ) )
-					{
-						closest = sdWorld.last_hit_entity;
+				this.look_x = sdWorld.MorphWithTimeScale( this.look_x, this.x + this._ai.direction * 400, 0.9, GSPEED );
+				this.look_y = sdWorld.MorphWithTimeScale( this.look_y, this.y + Math.sin( sdWorld.time / 2000 * Math.PI ) * 50, 0.9, GSPEED );
 
-						this._ai.target = closest;
-						this._ai.target_local_y = closest._hitbox_y1 + ( closest._hitbox_y2 - closest._hitbox_y1 ) * Math.random();
-					}
-				}
+				this._key_states.SetKey( 'Mouse1', 0 );
 			}
 		}
-		
-		if ( this._ai.target && this._ai.target.IsVisible( this ) )
-		{
-			this.look_x = sdWorld.MorphWithTimeScale( this.look_x, this._ai.target.x, Math.max( 0.5, ( 0.8 - 0.15 * this._ai_level ) ), GSPEED );
-			this.look_y = sdWorld.MorphWithTimeScale( this.look_y, this._ai.target.y + ( this._ai.target_local_y || 0 ), Math.max( 0.5, ( 0.8 - 0.15 * this._ai_level ) ), GSPEED );
-		}
 		else
+		if ( this._ai_enabled === sdCharacter.AI_MODEL_INSTRUCTOR )
 		{
-			this.look_x = sdWorld.MorphWithTimeScale( this.look_x, this.x + this._ai.direction * 400, 0.9, GSPEED );
-			this.look_y = sdWorld.MorphWithTimeScale( this.look_y, this.y + Math.sin( sdWorld.time / 2000 * Math.PI ) * 50, 0.9, GSPEED );
-			
-			this._key_states.SetKey( 'Mouse1', 0 );
+			// Logic is done elsewhere (in config file), he is so far just idle and friendly
 		}
 	}
 	GetBulletSpawnOffset()
@@ -1354,7 +1429,7 @@ class sdCharacter extends sdEntity
 		}
 		else
 		{
-			if ( this._ai_enabled )
+			if ( this._ai_enabled > 0 )
 			{
 				if ( !this._ai )
 				this._ai = {};
@@ -2637,6 +2712,9 @@ class sdCharacter extends sdEntity
 			if ( fake_ent._owner !== undefined )
 			fake_ent._owner = this; // Source of price to go up
 
+			if ( fake_ent.owner !== undefined )
+			fake_ent.owner = this;
+
 			if ( fake_ent._hmax !== undefined )
 			fake_ent._hmax *= this._build_hp_mult; // Source of price to go up
 
@@ -2648,9 +2726,6 @@ class sdCharacter extends sdEntity
 
 			if ( fake_ent.hea !== undefined )
 			fake_ent.hea *= this._build_hp_mult; // Or else initial damage might instantly destroy it
-
-			if ( fake_ent._owner !== undefined )
-			fake_ent._owner = this;
 	
 			if ( fake_ent._armor_protection_level !== undefined )
 			if ( this._upgrade_counters[ 'upgrade_build_hp' ] )
@@ -2739,6 +2814,7 @@ class sdCharacter extends sdEntity
 			this._ragdoll.DrawRagdoll( ctx, attached );
 			//ctx.globalAlpha = 0.2;
 		}
+		
 		/*
 		if ( !this.driver_of || attached )
 		{
@@ -2991,6 +3067,16 @@ class sdCharacter extends sdEntity
 		*/
 		ctx.filter = 'none';
 		ctx.sd_filter = null;
+	}
+	
+	DrawFG( ctx, attached ) // foreground layer, but not HUD
+	{
+		if ( this.cc_id )
+		if ( sdWorld.my_entity )
+		if ( this.cc_id === sdWorld.my_entity.cc_id )
+		{
+			ctx.drawImageFilterCache( sdCharacter.img_teammate, - 16, - 16 - 32, 32,32 );
+		}
 	}
 	MeasureMatterCost()
 	{

@@ -48,8 +48,10 @@ class sdCommandCentre extends sdEntity
 			if ( this.hea <= 0 )
 			{
 				for ( var i = 0; i < sdWorld.sockets.length; i++ )
-				if ( sdWorld.sockets[ i ].command_centre === this )
-				sdWorld.sockets[ i ].SDServiceMessage( 'Your respawn point Command Centre has been destroyed!' );
+				//if ( sdWorld.sockets[ i ].command_centre === this )
+				if ( sdWorld.sockets[ i ].character === this )
+				if ( sdWorld.sockets[ i ].character.cc_id === this._net_id )
+				sdWorld.sockets[ i ].SDServiceMessage( 'Your Command Centre has been destroyed!' );
 
 				this.remove();
 			}
@@ -58,8 +60,10 @@ class sdCommandCentre extends sdEntity
 				if ( this._regen_timeout <= 0 )
 				{
 					for ( var i = 0; i < sdWorld.sockets.length; i++ )
-					if ( sdWorld.sockets[ i ].command_centre === this )
-					sdWorld.sockets[ i ].SDServiceMessage( 'Your respawn point Command Centre is under attack!' );
+					//if ( sdWorld.sockets[ i ].command_centre === this )
+					if ( sdWorld.sockets[ i ].character === this )
+					if ( sdWorld.sockets[ i ].character.cc_id === this._net_id )
+					sdWorld.sockets[ i ].SDServiceMessage( 'Your Command Centre is under attack!' );
 				}
 				this._regen_timeout = 30 * 10;
 			}
@@ -85,13 +89,24 @@ class sdCommandCentre extends sdEntity
 		this.delay = 0;
 		//this._update_version++
 		
+		this.owner = params.owner || null;
+		
 		this.self_destruct_on = sdWorld.time + sdCommandCentre.time_to_live_without_matter_keepers_near; // Exists for 24 hours by default
+		
+		this.pending_team_joins = []; // array of net_ids, similar to how coms work. Owner is able to reject and accept these
 		
 		sdCommandCentre.centres.push( this );
 	}
 	onBuilt()
 	{
 		sdSound.PlaySound({ name:'command_centre', x:this.x, y:this.y, volume:1 });
+		
+		if ( sdWorld.is_server )
+		if ( this.owner )
+		{
+			this.owner.cc_id = this._net_id;
+			this.owner._cc_rank = 0;
+		}
 	}
 	MeasureMatterCost()
 	{
@@ -162,9 +177,13 @@ class sdCommandCentre extends sdEntity
 	}
 	onRemoveAsFakeEntity()
 	{
-		let i = sdCommandCentre.centres.indexOf( this );
+		var i = sdCommandCentre.centres.indexOf( this );
 		if ( i !== -1 )
 		sdCommandCentre.centres.splice( i, 1 );
+	
+		for ( var i = 0; i < sdCharacter.characters.length; i++ )
+		if ( sdCharacter.characters[ i ].cc_id === this._net_id )
+		this.KickNetID( sdCharacter.characters[ i ]._net_id, true );
 		
 		if ( !sdWorld.is_server )
 		if ( this._net_id !== undefined ) // Was ever synced rather than just temporarily object for shop
@@ -186,6 +205,193 @@ class sdCommandCentre extends sdEntity
 				s = Math.random() * 4;
 				let ent = new sdEffect({ x: this.x + x - 16, y: this.y + y - 16, type:sdEffect.TYPE_ROCK, sx: Math.sin(a)*s, sy: Math.cos(a)*s });
 				sdEntity.entities.push( ent );
+			}
+		}
+	}
+	
+	
+	KickNetID( net_id, allow_owner_kick=false )
+	{
+		//if ( this.owner || allow_owner_kick )
+		{
+			if ( allow_owner_kick || !this.owner || net_id !== this.owner._net_id )
+			{
+				if ( sdEntity.entities_by_net_id_cache[ net_id ] )
+				if ( sdEntity.entities_by_net_id_cache[ net_id ].cc_id === this._net_id )
+				{
+					sdEntity.entities_by_net_id_cache[ net_id ].cc_id = 0;
+					
+					if ( this.owner === sdEntity.entities_by_net_id_cache[ net_id ] )
+					{
+						this.owner = null;
+						this._update_version++;
+					}
+
+					if ( sdEntity.entities_by_net_id_cache[ net_id ]._socket )
+					{
+						if ( this.owner )
+						{
+							if ( this._is_being_removed )
+							sdEntity.entities_by_net_id_cache[ net_id ]._socket.SDServiceMessage( 'You have been excluded from ' + this.owner.title + '\'s team (Command Centre has been destroyed)' );
+							else
+							sdEntity.entities_by_net_id_cache[ net_id ]._socket.SDServiceMessage( 'You have been excluded from ' + this.owner.title + '\'s team' );
+						}
+						else
+						sdEntity.entities_by_net_id_cache[ net_id ]._socket.SDServiceMessage( 'You have been excluded from team (team has no owner)' );
+					}
+				}
+			}
+			//else
+			//debugger;
+		}
+	}
+	
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( !this._is_being_removed )
+		if ( this.hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		{
+			if ( this.owner === exectuter_character )
+			{
+				const AcceptNetID = ( net_id )=>
+				{
+					if ( sdEntity.entities_by_net_id_cache[ net_id ] )
+					{
+						sdEntity.entities_by_net_id_cache[ net_id ].cc_id = this._net_id;
+						sdEntity.entities_by_net_id_cache[ net_id ]._cc_rank = 1;
+
+						if ( sdEntity.entities_by_net_id_cache[ net_id ]._socket )
+						sdEntity.entities_by_net_id_cache[ net_id ]._socket.SDServiceMessage( 'You have been accepted to ' + exectuter_character.title + '\'s team!' );
+					}
+				};
+				const RejectNetID = ( net_id )=>
+				{
+					if ( sdEntity.entities_by_net_id_cache[ net_id ] )
+					{
+						//sdEntity.entities_by_net_id_cache[ net_id ].cc_id = this._net_id;
+
+						if ( sdEntity.entities_by_net_id_cache[ net_id ]._socket )
+						sdEntity.entities_by_net_id_cache[ net_id ]._socket.SDServiceMessage( 'You have been rejected from joining ' + exectuter_character.title + '\'s team' );
+					}
+				};
+				
+				if ( command_name === 'ACCEPT_ALL' )
+				{
+					for ( var i = 0; i < this.pending_team_joins.length; i++ )
+					AcceptNetID( this.pending_team_joins[ i ] );
+					this.pending_team_joins.length = 0;
+					
+					this._update_version++;
+				}
+				else
+				if ( command_name === 'REJECT_ALL' )
+				{
+					for ( var i = 0; i < this.pending_team_joins.length; i++ )
+					RejectNetID( this.pending_team_joins[ i ] );
+					this.pending_team_joins.length = 0;
+					
+					this._update_version++;
+				}
+				else
+				if ( command_name === 'KICK_ALL' )
+				{
+					for ( var i = 0; i < sdCharacter.characters.length; i++ )
+					if ( sdCharacter.characters[ i ].cc_id === this._net_id )
+					this.KickNetID( sdCharacter.characters[ i ]._net_id, false );
+					
+					this._update_version++;
+				}
+				else
+				if ( command_name === 'ACCEPT' )
+				{
+					var id = this.pending_team_joins.indexOf( parameters_array[ 0 ] );
+					if ( id !== -1 )
+					{
+						AcceptNetID( parameters_array[ 0 ] );
+						this.pending_team_joins.splice( id, 1 );
+						executer_socket.SDServiceMessage( sdEntity.entities_by_net_id_cache[ parameters_array[ 0 ] ].title + ' has been accepted' );
+					
+						this._update_version++;
+					}
+					else
+					executer_socket.SDServiceMessage( 'Could not find user in list' );
+				}
+				else
+				if ( command_name === 'REJECT' )
+				{
+					var id = this.pending_team_joins.indexOf( parameters_array[ 0 ] );
+					if ( id !== -1 )
+					{
+						RejectNetID( parameters_array[ 0 ] );
+						this.pending_team_joins.splice( id, 1 );
+						executer_socket.SDServiceMessage( sdEntity.entities_by_net_id_cache[ parameters_array[ 0 ] ].title + ' has been rejected' );
+					
+						this._update_version++;
+					}
+					else
+					executer_socket.SDServiceMessage( 'Could not find user in list' );
+				}
+				else
+				executer_socket.SDServiceMessage( 'Command is not allowed' );
+			}
+			else
+			{
+				if ( command_name === 'REQUEST' )
+				{
+					if ( !this.owner || this.owner._is_being_removed )
+					{
+						executer_socket.SDServiceMessage( 'This Command Centre no longer has owner - there is nobody to review team join requests' );
+					}
+					else
+					{
+						if ( this.pending_team_joins.length > 8 )
+						{
+							executer_socket.SDServiceMessage( 'Too many team join requests - wait until Command Centre owner reviews them' );
+						}
+						else
+						if ( this.pending_team_joins.indexOf( exectuter_character._net_id ) !== -1 )
+						{
+							executer_socket.SDServiceMessage( 'Team join request already sent' );
+						}
+						else
+						{
+							this.pending_team_joins.push( exectuter_character._net_id );
+							executer_socket.SDServiceMessage( 'Team join request sent' );
+					
+							this._update_version++;
+						}
+					}
+				}
+				else
+				executer_socket.SDServiceMessage( 'Command is not allowed' );
+			}
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( !this._is_being_removed )
+		if ( this.hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+		{
+			if ( this.owner === exectuter_character )
+			{
+				this.AddContextOption( 'Accept everyone', 'ACCEPT_ALL', [ ] );
+				this.AddContextOption( 'Reject everyone', 'REJECT_ALL', [ ] );
+				this.AddContextOption( 'Kick everyone from team', 'KICK_ALL', [ ] );
+					
+				for ( var i = 0; i < this.pending_team_joins.length; i++ )
+				{
+					this.AddContextOption( 'Accept ' + sdEntity.GuessEntityName( this.pending_team_joins[ i ] ), 'ACCEPT', [ this.pending_team_joins[ i ] ] );
+					this.AddContextOption( 'Reject ' + sdEntity.GuessEntityName( this.pending_team_joins[ i ] ), 'REJECT', [ this.pending_team_joins[ i ] ] );
+				}
+			}
+			else
+			{
+				this.AddContextOption( 'Request team join', 'REQUEST', [] );
 			}
 		}
 	}

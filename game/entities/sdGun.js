@@ -138,6 +138,7 @@ class sdGun extends sdEntity
 			}
 			
 			if ( !sdWorld.server_config.GetHitAllowed || sdWorld.server_config.GetHitAllowed( this, from_entity ) )
+			if ( !this._dangerous_from || !from_entity.is( sdCharacter ) || !this._dangerous_from.is( sdCharacter ) || from_entity.cc_id === 0 || from_entity.cc_id !== this._dangerous_from.cc_id )
 			{
 				if ( ( typeof from_entity._armor_protection_level === 'undefined' || 
 					   this._dangerous_from === null || 
@@ -231,7 +232,7 @@ class sdGun extends sdEntity
 		this.ammo_left = -123;
 		this.burst_ammo = -123;
 		//this.ttl = params.ttl || sdGun.disowned_guns_ttl;
-		this.extra = 0; // shard value will be here
+		this.extra = ( params.extra === undefined ) ? 0 : params.extra; // shard value will be here
 		
 		this.class = params.class || 0;
 		
@@ -896,6 +897,9 @@ class sdGun extends sdEntity
 			{
 				if ( this.extra === 1 )
 				image = sdGun.classes[ this.class ].image0;
+			
+				if ( this.extra === -123 )
+				ctx.filter = 'invert(1)';
 			}
 
 			if ( sdGun.classes[ this.class ].is_sword )

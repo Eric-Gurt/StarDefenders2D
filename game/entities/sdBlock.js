@@ -233,7 +233,20 @@ class sdBlock extends sdEntity
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return true; }
 	
-	get mass() { return this.material === sdBlock.MATERIAL_GROUND ? 200 : this._reinforced_level > 0 ? 4000 : 400; }
+	//get mass() { return this.material === sdBlock.MATERIAL_GROUND ? 200 : this._reinforced_level > 0 ? 4000 : 400; }
+	get mass() { return this.material === sdBlock.MATERIAL_GROUND ? 200 : 400; } // Better to override Impact method for sdBlock to not take damage in case of being reinforced. Or in else case too high mass occasional hits would just damage vehicles too heavily (in case of unintended impacts, like spawning sdHover on top of reinforced walls). Also there might end up being other entities that could damage walls with impact eventually
+	
+	Impact( vel ) // fall damage basically
+	{
+		if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 )
+		{
+		}
+		else
+		if ( vel > 6 ) // For new mass-based model
+		{
+			this.Damage( ( vel - 3 ) * 15 );
+		}
+	}
 	
 	Damage( dmg, initiator=null )
 	{
@@ -470,8 +483,7 @@ class sdBlock extends sdEntity
 		if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null ) // Do not react to held guns
 		{
 			if ( this.spikes_ani === 0 )
-			//if ( sdWorld.GetComsNear( this.x + this.width / 2, this.y + this.height / 2, null, from_entity._net_id ).length === 0 ) // Do not damage teammates
-			if ( sdWorld.GetComsNear( this.x + this.width / 2, this.y + this.height / 2, null, from_entity._net_id, true ).length === 0 && sdWorld.GetComsNear( this.x + this.width / 2, this.y + this.height / 2, null, from_entity.GetClass(), true ).length === 0 )
+			//if ( sdWorld.GetComsNear( this.x + this.width / 2, this.y + this.height / 2, null, from_entity._net_id, true ).length === 0 && sdWorld.GetComsNear( this.x + this.width / 2, this.y + this.height / 2, null, from_entity.GetClass(), true ).length === 0 )
 			{
 				this.spikes_ani = 30;
 				this._update_version++;

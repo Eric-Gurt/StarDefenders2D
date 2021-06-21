@@ -94,24 +94,26 @@ class sdUpgradeStation extends sdEntity
 		setTimeout(()=>{ // Just in case, unsure if needed
 
 			let gun, gun2, gun3, gun4, gun5, gun6;
+			
 			if ( this.level === 1 )
 			gun = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_PISTOL });
-			if ( this.level === 2 )
+			if ( this.level >= 2 )
 			gun = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_PISTOL_MK2 });
 			gun.sx = character.sx;
 			gun.sy = character.sy;
 			sdEntity.entities.push( gun );
-			
+
 			if ( this.level === 1 )
 			gun2 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_RIFLE });
-			if ( this.level === 2 )
+			if ( this.level >= 2 )
 			gun2 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_LMG_P04 });
 			gun2.sx = character.sx;
 			gun2.sy = character.sy;
 			sdEntity.entities.push( gun2 );
+			
 			if ( this.level < 3 )
 			gun3 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SHOTGUN });
-			if ( this.level === 3 )
+			if ( this.level >= 3 )
 			gun3 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SHOTGUN_MK2 });
 			gun3.sx = character.sx;
 			gun3.sy = character.sy;
@@ -119,7 +121,7 @@ class sdUpgradeStation extends sdEntity
 
 			if ( this.level === 1 )
 			gun4 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SWORD });
-			if ( this.level === 2 )
+			if ( this.level >= 2 )
 			gun4 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SABER });
 			gun4.sx = character.sx;
 			gun4.sy = character.sy;

@@ -208,6 +208,7 @@ import sdLifeBox from './game/entities/sdLifeBox.js';
 import sdLost from './game/entities/sdLost.js';
 import sdCable from './game/entities/sdCable.js';
 import sdCharacterRagdoll from './game/entities/sdCharacterRagdoll.js';
+import sdNode from './game/entities/sdNode.js';
 
 
 
@@ -342,6 +343,7 @@ sdLifeBox.init_class();
 sdLost.init_class();
 sdCable.init_class();
 sdCharacterRagdoll.init_class();
+sdNode.init_class();
 
 /* Do like that later, not sure if I want to deal with path problems yet again... Add awaits where needed too
 
@@ -748,6 +750,7 @@ sdWorld.server_config = {};
 			
 			
 			let instructor_entity = new sdCharacter({ x:my_character_entity.x + 32, y:my_character_entity.y - 32 });
+			instructor_entity._ai_enabled = sdCharacter.AI_MODEL_INSTRUCTOR;
 			let instructor_gun = new sdGun({ x:instructor_entity.x, y:instructor_entity.y, class:sdGun.CLASS_RAILGUN });
 			
 			let instructor_settings = {"hero_name":"Instructor","color_bright":"#7aadff","color_dark":"#25668e","color_bright3":"#7aadff","color_dark3":"#25668e","color_visor":"#ffffff","color_suit":"#000000","color_shoes":"#303954","color_skin":"#51709a","voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"color_suit2":"#000000","color_dark2":"#25668e"};
@@ -1686,7 +1689,7 @@ io.on("connection", (socket) =>
 	}
 	
 	//let my_command_centre = null;
-	socket.command_centre = null;
+	socket.command_centre = null; // Obsolete
 	
 	socket.max_update_rate = sdWorld.max_update_rate;
 	
@@ -2393,7 +2396,33 @@ io.on("connection", (socket) =>
 		if ( !( arr instanceof Array ) )
 		return;
 	
-		let net_id = arr[ 0 ];
+		var kick_who = arr[ 0 ];
+		
+		if ( typeof kick_who !== 'number' )
+		return;
+	
+		var character = sdEntity.GetObjectByClassAndNetId( 'sdCharacter', kick_who );
+		
+		if ( socket.character )
+		if ( socket.character.cc )
+		if ( character.cc === socket.character.cc )
+		{
+			if ( socket.character._cc_rank < character._cc_rank || socket.character === character )
+			{
+				/*if ( socket.character._cc_rank === 0 )
+				{
+					socket.character.cc.owner = null;
+				}
+
+				socket.character.cc = null;
+				socket.SDServiceMessage( 'Your team has been reset' );*/
+				socket.character.cc.KickNetID( kick_who, true );
+			}
+			else
+			socket.SDServiceMessage( 'Not enough rights to kick user' );
+		}
+	
+		/*let net_id = arr[ 0 ];
 		
 		if ( typeof net_id === 'number' )
 		if ( socket.character ) 
@@ -2427,7 +2456,7 @@ io.on("connection", (socket) =>
 					socket.SDServiceMessage( 'Command Centre no longer exists' );
 				}
 			}
-		}
+		}*/
 	});
 	
 	socket.on('COM_SUB', ( arr ) => { 
@@ -3020,6 +3049,10 @@ setInterval( ()=>
 						if ( socket.character.driver_of )
 						if ( observed_entities.indexOf( socket.character.driver_of ) === -1 )
 						observed_entities.push( socket.character.driver_of );
+						
+						if ( socket.character.cc )
+						if ( observed_entities.indexOf( socket.character.cc ) === -1 )
+						observed_entities.push( socket.character.cc );
 					}
 
 					for ( var i2 = 0; i2 < sdEntity.global_entities.length; i2++ ) // So it is drawn on back

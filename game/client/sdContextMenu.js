@@ -26,10 +26,10 @@ class sdContextMenu
 		{
 			sdContextMenu.current_target = sdWorld.hovered_entity;
 			
+			sdContextMenu.options = [];
+				
 			if ( sdContextMenu.current_target === sdWorld.my_entity )
 			{
-				sdContextMenu.options = [];
-				
 				sdContextMenu.options.push({ title: 'Quit and forget this character',
 					action: ()=>
 					{
@@ -42,12 +42,15 @@ class sdContextMenu
 					}
 				});
 				
-				sdContextMenu.options.push({ title: 'Reset respawn point',
-					action: ()=>
-					{
-						globalThis.socket.emit( 'CC_SET_SPAWN', [ -1 ] );
-					}
-				});
+				if ( sdContextMenu.current_target.cc_id )
+				{
+					sdContextMenu.options.push({ title: 'Leave team',
+						action: ()=>
+						{
+							globalThis.socket.emit( 'CC_SET_SPAWN', [ sdContextMenu.current_target._net_id ] );
+						}
+					});
+				}
 				
 				if ( sdContextMenu.current_target.armor > 0 )
 				sdContextMenu.options.push({ title: 'Remove armor',
@@ -67,8 +70,19 @@ class sdContextMenu
 			}
 			else
 			{
-				sdContextMenu.options = [];
-				
+				if ( sdContextMenu.current_target.GetClass() === 'sdCharacter' )
+				{
+					if ( sdContextMenu.current_target.cc_id )
+					{
+						sdContextMenu.options.push({ title: 'Kick from team',
+							action: ()=>
+							{
+								globalThis.socket.emit( 'CC_SET_SPAWN', [ sdContextMenu.current_target._net_id ] );
+							}
+						});
+					}
+				}
+				else
 				if ( sdContextMenu.current_target.GetClass() === 'sdUpgradeStation' )
 				{
 					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdCom.action_range_command_centre ) >= 0 )
@@ -139,7 +153,7 @@ class sdContextMenu
 						}
 					}
 				}
-				else
+				/*else
 				if ( sdContextMenu.current_target.GetClass() === 'sdCharacter' )
 				{
 					if ( sdContextMenu.current_target.hea > 0 )
@@ -162,7 +176,7 @@ class sdContextMenu
 							globalThis.socket.emit( 'CC_SET_SPAWN', [ -1 ] );
 						}
 					});
-				}
+				}*/
 				else
 				if ( sdContextMenu.current_target.GetClass() === 'sdCom' )
 				{

@@ -502,34 +502,45 @@ class sdGunClass
 			ignore_slot: true,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
-				if ( character._acquired_bt_mech === false && gun.extra === 0 ) // Has the player found this upgrade before?
 				if ( !character._ai )
 				{
-					character.build_tool_level++;
-					character._acquired_bt_mech = true;
-					if ( Math.random() > 0.5 )
-					character.Say( "I can use this to expand my building arsenal" );
-					else
-					character.Say( "This is definitely gonna help me build new stuff");
-					gun.remove(); 
-					
-					if ( character._socket )
-					sdSound.PlaySound({ name:'reload', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
-				}
+					if ( gun.extra === -123 )
+					{
+						character.Say( "Score" );
+						character._score += 100000;
+						gun.remove(); 
 
-				if ( character._acquired_bt_rift === false && gun.extra === 1 ) // Has the player found this upgrade before?
-				if ( !character._ai )
-				{
-					character.build_tool_level++;
-					character._acquired_bt_rift = true;
-					if ( Math.random() > 0.5 )
-					character.Say( "I can use this to expand my building arsenal" );
-					else
-					character.Say( "This is definitely gonna help me build new stuff");
-					gun.remove(); 
+						if ( character._socket )
+						sdSound.PlaySound({ name:'reload', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
+					}
 					
-					if ( character._socket )
-					sdSound.PlaySound({ name:'reload', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
+					if ( character._acquired_bt_mech === false && gun.extra === 0 ) // Has the player found this upgrade before?
+					{
+						character.build_tool_level++;
+						character._acquired_bt_mech = true;
+						if ( Math.random() > 0.5 )
+						character.Say( "I can use this to expand my building arsenal" );
+						else
+						character.Say( "This is definitely gonna help me build new stuff");
+						gun.remove(); 
+
+						if ( character._socket )
+						sdSound.PlaySound({ name:'reload', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
+					}
+
+					if ( character._acquired_bt_rift === false && gun.extra === 1 ) // Has the player found this upgrade before?
+					{
+						character.build_tool_level++;
+						character._acquired_bt_rift = true;
+						if ( Math.random() > 0.5 )
+						character.Say( "I can use this to expand my building arsenal" );
+						else
+						character.Say( "This is definitely gonna help me build new stuff");
+						gun.remove(); 
+
+						if ( character._socket )
+						sdSound.PlaySound({ name:'reload', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
+					}
 				}
 
 				return false; 
@@ -866,7 +877,7 @@ class sdGunClass
 			},
 			projectile_properties: { 
 				//explosion_radius: 10, 
-				model: 'ball_charged', _damage: 0, /*color:'#ffff66',*/ time_left: 15, _custom_detonation_logic:( bullet )=>
+				model: 'ball_charged', _damage: 0, /*color:'#ffff66',*/ time_left: 30, _custom_detonation_logic:( bullet )=>
 				{
 					if ( bullet._owner )
 					{
@@ -891,6 +902,73 @@ class sdGunClass
 			}
 		};
 		
+		const cable_reaction_method = ( bullet, target_entity )=>
+		{
+			if ( sdCable.attacheable_entities.indexOf( target_entity.GetClass() ) !== -1 )
+			{
+				if ( sdCable.one_cable_entities.indexOf( target_entity.GetClass() ) !== -1 && sdCable.GetConnectedEntities( target_entity, sdCable.TYPE_ANY ).length > 0 )
+				{
+					//bullet._owner.Say( ( target_entity.title || target_entity.GetClass() ) + ' has only one socket' );
+					bullet._owner.Say( 'There is only one socket' );
+				}
+				else
+				{
+					if ( bullet._owner._current_built_entity && !bullet._owner._current_built_entity._is_being_removed )
+					{
+						if ( sdCable.one_cable_entities.indexOf( bullet._owner._current_built_entity.p.GetClass() ) !== -1 && sdCable.one_cable_entities.indexOf( target_entity.GetClass() ) !== -1 )
+						{
+							bullet._owner.Say( 'It seems pointless to connect devices when both have just one socket' );
+						}
+						else
+						if ( sdCable.GetConnectedEntities( target_entity ).indexOf( bullet._owner._current_built_entity.p ) !== -1 )
+						{
+							bullet._owner.Say( ( bullet._owner._current_built_entity.p.title || bullet._owner._current_built_entity.p.GetClass() ) + ' and ' + 
+									( target_entity.title || target_entity.GetClass() ) + ' are already connected' );
+						}
+						else
+						if ( target_entity === bullet._owner._current_built_entity.p )
+						{
+							//bullet._owner.Say( 'Connecting cable end to same ' + ( target_entity.title || target_entity.GetClass() ) + ' does not make sense' );
+							bullet._owner.Say( 'Connecting cable to same thing does not make sense' );
+						}
+						else
+						{
+							//bullet._owner._current_built_entity.SetChild( target_entity );
+							bullet._owner._current_built_entity.c = target_entity;
+							bullet._owner._current_built_entity.d[ 2 ] = bullet.x - target_entity.x;
+							bullet._owner._current_built_entity.d[ 3 ] = bullet.y - target_entity.y;
+
+							//bullet._owner.Say( 'End connected to ' + ( target_entity.title || target_entity.GetClass() ) );
+
+							bullet._owner._current_built_entity._update_version++;
+
+							bullet._owner._current_built_entity = null;
+						}
+					}
+					else
+					{
+						let ent = new sdCable({ 
+							x: bullet.x, 
+							y: bullet.y, 
+							parent: target_entity,
+							child: bullet._owner,
+							offsets: [ bullet.x - target_entity.x, bullet.y - target_entity.y, 0,0 ],
+							type: sdCable.TYPE_MATTER
+						});
+
+						bullet._owner._current_built_entity = ent;
+						//bullet._owner.Say( 'Start connected to ' + ( target_entity.title || target_entity.GetClass() ) );
+
+						sdEntity.entities.push( ent );
+					}
+				}
+			}
+			else
+			{
+				bullet._owner.Say( 'Cable can not be attached there' );
+				//bullet._owner.Say( 'Cable can not be attached to ' + ( target_entity.title || target_entity.GetClass() ) );
+			}
+		};
 		sdGun.classes[ sdGun.CLASS_CABLE_TOOL = 40 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'cable_tool' ),
@@ -904,63 +982,9 @@ class sdGunClass
 			count: 1,
 			matter_cost: 300,
 			projectile_velocity: 16,
-			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', _custom_target_reaction:( bullet, target_entity )=>
-				{
-					/*if ( target_entity.is( sdCharacter ) )
-					{
-						target_entity.stim_ef = 30 * 10;
-					}*/
-					
-					if ( sdCable.attacheable_entities.indexOf( target_entity.GetClass() ) !== -1 )
-					{
-						if ( bullet._owner._current_built_entity && !bullet._owner._current_built_entity._is_being_removed )
-						{
-							if ( sdCable.GetConnectedEntities( target_entity ).indexOf( bullet._owner._current_built_entity.p ) !== -1 )
-							{
-								bullet._owner.Say( ( bullet._owner._current_built_entity.p.title || bullet._owner._current_built_entity.p.GetClass() ) + ' and ' + 
-										( target_entity.title || target_entity.GetClass() ) + ' are already connected' );
-							}
-							else
-							if ( target_entity === bullet._owner._current_built_entity.p )
-							{
-								bullet._owner.Say( 'Connecting cable end to same ' + ( target_entity.title || target_entity.GetClass() ) + ' does not make sense' );
-							}
-							else
-							{
-								//bullet._owner._current_built_entity.SetChild( target_entity );
-								bullet._owner._current_built_entity.c = target_entity;
-								bullet._owner._current_built_entity.d[ 2 ] = bullet.x - target_entity.x;
-								bullet._owner._current_built_entity.d[ 3 ] = bullet.y - target_entity.y;
-
-								bullet._owner.Say( 'End connected to ' + ( target_entity.title || target_entity.GetClass() ) );
-
-								bullet._owner._current_built_entity._update_version++;
-
-								bullet._owner._current_built_entity = null;
-							}
-						}
-						else
-						{
-							let ent = new sdCable({ 
-								x: bullet.x, 
-								y: bullet.y, 
-								parent: target_entity,
-								child: bullet._owner,
-								offsets: [ bullet.x - target_entity.x, bullet.y - target_entity.y, 0,0 ],
-								type: sdCable.TYPE_MATTER
-							});
-
-							bullet._owner._current_built_entity = ent;
-							bullet._owner.Say( 'Start connected to ' + ( target_entity.title || target_entity.GetClass() ) );
-							
-							sdEntity.entities.push( ent );
-						}
-					}
-					else
-					{
-						bullet._owner.Say( 'Cable can not be attached to ' + ( target_entity.title || target_entity.GetClass() ) );
-					}
-				}
+			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', 
+				_custom_target_reaction_protected: cable_reaction_method,
+				_custom_target_reaction: cable_reaction_method
 			}
 		};
 		
@@ -1158,9 +1182,10 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_MMG_THE_RIPPER_T2 = 47 ] = // sprite by Ghost581
 		{
 			image: sdWorld.CreateImageFromFile( 'mmg_the_ripper_t2' ),
-			sound: 'gun_the_ripper',
-			sound_pitch: 0.7,
-			sound_volume: 1.75,
+			sound: 'gun_the_ripper2',
+			//sound_pitch: 0.7,
+			sound_pitch: 1.6,
+			//sound_volume: 1.75,
 			title: 'The Ripper MK1',
 			slot: 2,
 			reload_time: 5.5,
@@ -1170,15 +1195,16 @@ class sdGunClass
 			count: 1,
 			matter_cost: 140,
 			min_build_tool_level: 3,
-			projectile_properties: { _damage: 42, color: '#FFEB00' },
+			projectile_properties: { _damage: 42, color: '#FFEB00' }
 		};
 
 		sdGun.classes[ sdGun.CLASS_MMG_THE_RIPPER_T3 = 48 ] = // sprite by Ghost581
 		{
 			image: sdWorld.CreateImageFromFile( 'mmg_the_ripper_t3' ),
-			sound: 'gun_the_ripper',
-			sound_pitch: 1.6,
-			sound_volume: 1.65,
+			sound: 'gun_the_ripper2',
+			//sound_pitch: 1.6,
+			sound_pitch: 0.7,
+			//sound_volume: 1.65,
 			title: 'The Ripper MK2',
 			slot: 2,
 			reload_time: 6,
@@ -1188,27 +1214,62 @@ class sdGunClass
 			count: 1,
 			matter_cost: 190,
 			min_build_tool_level: 5,
-			projectile_properties: { _damage: 48, color: '#FFEB00' },
+			projectile_properties: { _damage: 48, color: '#FFEB00' }
 		};
 
 		sdGun.classes[ sdGun.CLASS_RAILGUN_P03 = 49 ] = // sprite by Ghost581
         {
             image: sdWorld.CreateImageFromFile( 'railgun_p03' ),
-            image0: [ sdWorld.CreateImageFromFile( 'railgun_p03_c' ), sdWorld.CreateImageFromFile( 'railgun_p03_c' ) ],
-            image1: [ sdWorld.CreateImageFromFile( 'railgun_p03_r1' ), sdWorld.CreateImageFromFile( 'railgun_p03_r1b' ) ],
-            image2: [ sdWorld.CreateImageFromFile( 'railgun_p03_r2' ), sdWorld.CreateImageFromFile( 'railgun_p03_r2b' ) ],
-            sound: 'gun_railgun_malicestorm_terrorphaser',
+           // image0: [ sdWorld.CreateImageFromFile( 'railgun_p03_c' ), sdWorld.CreateImageFromFile( 'railgun_p03_c' ) ],
+            //image1: [ sdWorld.CreateImageFromFile( 'railgun_p03_r1' ), sdWorld.CreateImageFromFile( 'railgun_p03_r1b' ) ],
+            //image2: [ sdWorld.CreateImageFromFile( 'railgun_p03_r2' ), sdWorld.CreateImageFromFile( 'railgun_p03_r2b' ) ],
+            image0: [ sdWorld.CreateImageFromFile( 'railgun_p03_reload1' ), sdWorld.CreateImageFromFile( 'railgun_p03_reload2' ) ],
+            image1: [ sdWorld.CreateImageFromFile( 'railgun_p03_reload1' ), sdWorld.CreateImageFromFile( 'railgun_p03_reload2' ) ],
+            image2: [ sdWorld.CreateImageFromFile( 'railgun_p03_reload1' ), sdWorld.CreateImageFromFile( 'railgun_p03_reload2' ) ],
+            sound: 'gun_railgun_malicestorm_terrorphaser4',
             title: 'Railgun P03',
-			sound_pitch: 1.6,
-			sound_volume: 1.65,
-            slot: 8,
-            reload_time: 370,
+			//sound_pitch: 1.6,
+			sound_volume: 1.5, // 1.65
+            slot: 4,
+            reload_time: 90,
             muzzle_x: null,
             ammo_capacity: -1,
             count: 1,
             matter_cost: 280,
             projectile_properties: { _rail: true, _damage: 80, color: '#62c8f2', explosion_radius: 20},
-            min_build_tool_level: 4,
+            min_build_tool_level: 4
+		};
+
+		sdGun.classes[ sdGun.CLASS_ADMIN_TELEPORTER = 50 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'shark' ),
+			sound: 'gun_defibrillator',
+			title: 'Admin tool for teleporting',
+			sound_pitch: 2,
+			slot: 8,
+			reload_time: 20,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			matter_cost: Infinity,
+			projectile_velocity: 16,
+			spawnable: false,
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( sdWorld.is_server )
+				if ( gun._held_by )
+				if ( gun._held_by.is( sdCharacter ) )
+				if ( gun._held_by._god )
+				{
+					gun._held_by.x = gun._held_by.look_x;
+					gun._held_by.y = gun._held_by.look_y;
+					gun._held_by.sx = 0;
+					gun._held_by.sy = 0;
+					gun._held_by.ApplyServerSidePositionAndVelocity( true, 0, 0 );
+				}
+				return true;
+			},
+			projectile_properties: { _rail: true, time_left: 0, _damage: 1, color: '#ffffff', _admin_picker:true }
 		};
 
 
