@@ -1298,7 +1298,7 @@ class sdGunClass
 					gun._held_by.AnnounceTooManyEffectsIfNeeded();
 					gun._held_by.stim_ef = 30 * 30;
 					gun._held_by.power_ef = 30 * 30;
-					gun._held_by.Damage( 40 );
+					gun._held_by.Damage( 40, null, false, false ); // Don't damage armor
 					
 					/*if ( gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ] )
 					gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ].remove();*/
