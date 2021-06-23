@@ -323,6 +323,7 @@ class sdCharacter extends sdEntity
 		this.armor_max = 0; // Max armor; used for drawing armor bar
 		this._armor_absorb_perc = 0; // Armor absorption percentage
 		this.armor_speed_reduction = 0; // Armor speed reduction, depends on armor type
+		this._armor_repair_amount = 0; // How much armor value can be repaired, used for armor repair modules
 
 		//this.anim_death = 0;
 		this._anim_walk = 0;
@@ -723,6 +724,7 @@ class sdCharacter extends sdEntity
 		this.armor = 0;
 		this._armor_absorb_perc = 0;
 		this.armor_speed_reduction = 0; 
+		this._armor_repair_amount = 0; // Completely broken armor cannot be repaired
 	}
 	
 	Damage( dmg, initiator=null, headshot=false, affects_armor=true )
@@ -1492,6 +1494,19 @@ class sdCharacter extends sdEntity
 						{
 							this.matter -= GSPEED * 0.15; // 0.3
 							this.Damage( -GSPEED );
+						}
+					}
+				}
+				if ( this.armor < this.armor_max && this._armor_repair_amount > 0 )
+				{
+					this._regen_timeout -= GSPEED;
+					if ( this._regen_timeout < 0 )
+					{
+						if ( this.matter > GSPEED )
+						{
+							this.matter -= GSPEED * 0.025; // 0.15
+							this.armor += GSPEED * 1 / 6;
+							this._armor_repair_amount -= GSPEED * 1 / 6;
 						}
 					}
 				}

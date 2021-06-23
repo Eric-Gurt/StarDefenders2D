@@ -1272,6 +1272,200 @@ class sdGunClass
 			projectile_properties: { _rail: true, time_left: 0, _damage: 1, color: '#ffffff', _admin_picker:true }
 		};
 
+		sdGun.classes[ sdGun.CLASS_POWER_STIMPACK = 51 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'power_stimpack' ),
+			sound: 'gun_defibrillator',
+			title: 'Power-Stimpack',
+			sound_pitch: 0.5,
+			slot: 7,
+			reload_time: 30 * 10,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			matter_cost: 900,
+			min_workbench_level: 5,
+			projectile_velocity: 16,
+			GetAmmoCost: ()=>
+			{
+				return 200;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( gun._held_by )
+				if ( gun._held_by.is( sdCharacter ) )
+				{
+					gun._held_by.AnnounceTooManyEffectsIfNeeded();
+					gun._held_by.stim_ef = 30 * 30;
+					gun._held_by.power_ef = 30 * 30;
+					gun._held_by.Damage( 40, null, false, false ); // Don't damage armor
+					
+					/*if ( gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ] )
+					gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ].remove();*/
+				}
+				return true;
+			},
+			projectile_properties: {}
+		};
+
+		sdGun.classes[ sdGun.CLASS_LVL1_ARMOR_REGEN = 52 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_repair_module_lvl1' ),
+			title: 'SD-11 Armor Repair Module',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			matter_cost: 250,
+			min_workbench_level: 3,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
+			{ 
+				if ( character.armor > 0 )
+				{
+					character._armor_repair_amount = 250;
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
+
+		sdGun.classes[ sdGun.CLASS_LVL2_ARMOR_REGEN = 53 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_repair_module_lvl2' ),
+			title: 'SD-12 Armor Repair Module',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			matter_cost: 500,
+			min_workbench_level: 4,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
+			{ 
+				if ( character.armor > 0 )
+				{
+					character._armor_repair_amount = 500;
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
+
+		sdGun.classes[ sdGun.CLASS_LVL3_ARMOR_REGEN = 54 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_repair_module_lvl3' ),
+			title: 'SD-13 Armor Repair Module',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			matter_cost: 750,
+			min_workbench_level: 7,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
+			{ 
+				if ( character.armor > 0 )
+				{
+					character._armor_repair_amount = 750;
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
+
+		sdGun.classes[ sdGun.CLASS_LVL3_LIGHT_ARMOR = 55 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_light_lvl3' ),
+			title: 'SD-03 Light Armor',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			matter_cost: 400,
+			min_workbench_level: 6,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
+			{ 
+				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
+				{
+					character.armor = 300;
+					character.armor_max = 300;
+					character._armor_absorb_perc = 0.3; // 30% damage reduction
+					character.armor_speed_reduction = 0; // Armor speed reduction, 0% for light armor
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
+
+		sdGun.classes[ sdGun.CLASS_LVL3_MEDIUM_ARMOR = 56 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_medium_lvl3' ),
+			title: 'SD-03 Duty Armor',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			matter_cost: 500,
+			min_workbench_level: 6,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
+			{ 
+				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
+				{
+					character.armor = 400;
+					character.armor_max = 400;
+					character._armor_absorb_perc = 0.4; // 40% damage reduction
+					character.armor_speed_reduction = 10; // Armor speed reduction, 10% for medium armor
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
+
+		sdGun.classes[ sdGun.CLASS_LVL3_HEAVY_ARMOR = 57 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_heavy_lvl3' ),
+			title: 'SD-03 Combat Armor',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			matter_cost: 600,
+			min_workbench_level: 6,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
+			{ 
+				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
+				{
+					character.armor = 500;
+					character.armor_max = 500;
+					character._armor_absorb_perc = 0.5; // 50% damage reduction
+					character.armor_speed_reduction = 20; // Armor speed reduction, 20% for heavy armor
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
 
 		// Add new gun classes above this line //
 		
