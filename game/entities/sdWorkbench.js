@@ -123,6 +123,7 @@ class sdWorkbench extends sdEntity
 		if ( this.cube_shards < this.cube_shards_max )
 		{
 			this.cube_shards++;
+			this._update_version++;
 			from_entity.remove();
 		}
 	}
@@ -194,7 +195,7 @@ class sdWorkbench extends sdEntity
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 		{
-			if ( this.level < 2 )
+			if ( this.level < 7 )
 			this.AddContextOption( 'Upgrade workbench (Max Cube shards)', 'UPG_WB', [] );
 		}
 	}
