@@ -1222,6 +1222,47 @@ class sdWorld
 		debugger; // Do sdWorld.unresolved_entity_pointers = []; before applying snapshots
 	}
 	
+	
+	static ClassNameToProperName( _class, ent=null )
+	{
+		let c = _class.slice( 2 );
+
+		if ( c === 'BG' )
+		c = 'Background wall';
+		else
+		c = c.replace(/([A-Z])/g, ' $1').trim();
+
+		if ( ent )
+		{
+			if ( c === 'Block' )
+			{
+				if ( ent.material === sdBlock.MATERIAL_WALL )
+				c = 'Wall';
+				if ( ent.material === sdBlock.MATERIAL_GROUND )
+				c = 'Ground';
+				if ( ent.material === sdBlock.MATERIAL_SHARP )
+				c = 'Trap';
+			}
+
+			if ( c === 'Area' )
+			{
+				if ( ent.type === sdArea.TYPE_PREVENT_DAMAGE )
+				c = 'Combat & build (unless in godmode) preventing area';
+				if ( ent.type === sdArea.TYPE_ERASER_AREA )
+				c = 'Area eraser';
+			}
+
+			if ( c === 'Gun' )
+			if ( sdGun.classes[ ent.class ].title )
+			c = sdGun.classes[ ent.class ].title;
+
+			if ( c === 'Character' )
+			c = ent.title;
+		}
+
+		return c;
+	}
+	
 
 	static shuffleArray(array) {
 		for (let i = array.length - 1; i > 0; i--) {
@@ -2954,6 +2995,7 @@ class sdWorld
 		}
 		ctx.sd_filter = null;
 	}
+	
 }
 //sdWorld.init_class();
 

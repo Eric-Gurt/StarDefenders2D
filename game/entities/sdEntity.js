@@ -1329,8 +1329,8 @@ class sdEntity
 		//sdWorld.UpdateHashPosition( ret, false ); // Will prevent sdBlock from occasionally not having collisions on client-side (it will rest in hibernated state, probably because of that. It is kind of a bug though)
 	
 		return ret;
-	}
-	static GuessEntityName( net_id ) // For client-side coms, also for server bound extend report
+	}	
+	static GuessEntityName( net_id ) // For client-side coms, also for server bound extend report. Use sdWorld.ClassNameToProperName in other cases
 	{
 		if ( typeof net_id === 'string' )
 		{
