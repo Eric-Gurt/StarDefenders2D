@@ -1198,7 +1198,7 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_RAILGUN_P03 = 49 ] = // sprite by Ghost581
         {
             image: sdWorld.CreateImageFromFile( 'railgun_p03' ),
-           // image0: [ sdWorld.CreateImageFromFile( 'railgun_p03_c' ), sdWorld.CreateImageFromFile( 'railgun_p03_c' ) ],
+           	// image0: [ sdWorld.CreateImageFromFile( 'railgun_p03_c' ), sdWorld.CreateImageFromFile( 'railgun_p03_c' ) ],
             //image1: [ sdWorld.CreateImageFromFile( 'railgun_p03_r1' ), sdWorld.CreateImageFromFile( 'railgun_p03_r1b' ) ],
             //image2: [ sdWorld.CreateImageFromFile( 'railgun_p03_r2' ), sdWorld.CreateImageFromFile( 'railgun_p03_r2b' ) ],
             image0: [ sdWorld.CreateImageFromFile( 'railgun_p03_reload1' ), sdWorld.CreateImageFromFile( 'railgun_p03_reload2' ) ],
@@ -1206,16 +1206,16 @@ class sdGunClass
             image2: [ sdWorld.CreateImageFromFile( 'railgun_p03_reload1' ), sdWorld.CreateImageFromFile( 'railgun_p03_reload2' ) ],
             sound: 'gun_railgun_malicestorm_terrorphaser4',
             title: 'Railgun P03',
-			//sound_pitch: 1.6,
-			sound_volume: 1.5, // 1.65
+			sound_pitch: 1.6, // re-added cause weapon sounds better with the sound pitch.
+			sound_volume: 1.5,
             slot: 4,
-            reload_time: 90,
+            reload_time: 360, // can one-shot 250 HP players so it has been bumped up to its original reload time.
             muzzle_x: null,
             ammo_capacity: -1,
             count: 1,
             matter_cost: 280,
-            projectile_properties: { _rail: true, _damage: 80, color: '#62c8f2', explosion_radius: 20},
-            min_build_tool_level: 4
+            projectile_properties: { _rail: true, _damage: 80, color: '#62c8f2', explosion_radius: 20}, // initial tier of the weapon so it has "low" stats, damage sums up to be enough to oneshot unarmored 250 HP players.
+            min_build_tool_level: 3
 		};
 
 		sdGun.classes[ sdGun.CLASS_ADMIN_TELEPORTER = 50 ] = 
