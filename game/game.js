@@ -682,6 +682,14 @@ let enf_once = true;
 			//socket.emit( 'K1', code );
 			sd_events.push( [ 'K1', code ] );
 		}
+	
+		if ( code === 'Tab' )
+		if ( sdWorld.my_entity )
+		{
+			sdRenderer.show_leader_board = !sdRenderer.show_leader_board;
+			e.preventDefault();
+			return;
+		}
 		
 		if ( code === 'KeyB' )
 		{
