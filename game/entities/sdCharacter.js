@@ -104,6 +104,7 @@ class sdCharacter extends sdEntity
 		sdCharacter.AI_MODEL_FALKOK = 1;
 		sdCharacter.AI_MODEL_INSTRUCTOR = 2;
 		sdCharacter.AI_MODEL_DUMMY_UNREVIVABLE_ENEMY = 3;
+		sdCharacter.AI_MODEL_TEAMMATE = 4;
 		
 		sdCharacter.ghost_breath_delay = 10 * 30;
 		/*
@@ -251,6 +252,8 @@ class sdCharacter extends sdEntity
 	{
 		super( params );
 		
+		//this._is_cable_priority = true;
+		
 		this._socket = null; // undefined causes troubles
 		
 		this.lag = false;
@@ -271,7 +274,7 @@ class sdCharacter extends sdEntity
 			REMOVAL: []
 		};*/
 		
-		this._owner = null; // Just for manually made AI sdCharacters
+		this._owner = params._owner || null; // Just for manually made AI sdCharacters
 		
 		this._ai = null; // Object, won't be saved to snapshot
 		this._ai_enabled = ( params._ai_enabled ) || 0; // Now means id of AI model // false;
@@ -695,6 +698,7 @@ class sdCharacter extends sdEntity
 			//best_t.SetDelay( sdRescueTeleport.delay_2nd ); // 5 minutes
 			best_t.SetDelay( sdRescueTeleport.delay_simple );
 			best_t.matter = 0;
+			best_t.WakeUpMatterSources();
 			
 			
 			this.ApplyServerSidePositionAndVelocity( true, 0, 0 );
@@ -1057,7 +1061,7 @@ class sdCharacter extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
-		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK )
+		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_TEAMMATE )
 		{
 			if ( typeof this._ai.next_action === 'undefined' )
 			this._ai.next_action = 30;
@@ -1141,7 +1145,7 @@ class sdCharacter extends sdEntity
 					if ( ent )
 					if ( ent.hea > 0 )
 					if ( !ent._is_being_removed )
-					if ( this._owner !== ent && ( this._owner === null || this._owner.cc_id === 0 || this._owner.cc_id !== ent.cc_id ) )
+					if ( this._owner !== ent && ( this._owner === null || ( this._owner.cc_id !== 0 || this._owner.cc_id !== ent.cc_id ) ) )
 					{
 						let di = sdWorld.Dist2D( this.x, this.y, ent.x, ent.y );
 						//let di_real = di;
@@ -1897,70 +1901,75 @@ class sdCharacter extends sdEntity
 
 				if ( this._hook_len === -1 )
 				this._hook_len = cur_di;
-				/*else
+			
+				if ( cur_di > this._hook_len + 128 )
 				{
-					this._hook_len = sdWorld.MorphWithTimeScale( this._hook_len, cur_di - GSPEED * 10, 0.9, GSPEED );
-				}*/
-
-				let pull_force = -( this._hook_len - cur_di ) / 15;
-				let vx = ( this.hook_x - this.x ) / cur_di;
-				let vy = ( this.hook_y - from_y ) / cur_di;
-
-				let self_effect_scale = 1;
-
-				if ( this._hook_relative_to )
+					this.hook_x = 0;
+					this.hook_y = 0;
+				}
+				else
 				{
-					if ( typeof this._hook_relative_to.sx !== 'undefined' )
+
+					let pull_force = -( this._hook_len - cur_di ) / 15;
+					let vx = ( this.hook_x - this.x ) / cur_di;
+					let vy = ( this.hook_y - from_y ) / cur_di;
+
+					let self_effect_scale = 1;
+
+					if ( this._hook_relative_to )
 					{
-						let lx = this._hook_relative_to.sx;
-						let ly = this._hook_relative_to.sy;
-
-						self_effect_scale = this._hook_relative_to.mass / ( this._hook_relative_to.mass + this.mass );
-
-						this._hook_relative_to.sx -= vx * pull_force * GSPEED * ( 1 - self_effect_scale );
-						this._hook_relative_to.sy -= vy * pull_force * GSPEED * ( 1 - self_effect_scale );
-
-						this._hook_relative_to.sx = sdWorld.MorphWithTimeScale( this._hook_relative_to.sx, this.sx, 0.8, GSPEED * ( 1 - self_effect_scale ) );
-						this._hook_relative_to.sy = sdWorld.MorphWithTimeScale( this._hook_relative_to.sy, this.sy, 0.8, GSPEED * ( 1 - self_effect_scale ) );
-
-						if ( this._hook_relative_to.is( sdCharacter ) )
-						this._hook_relative_to.ApplyServerSidePositionAndVelocity( true, this._hook_relative_to.sx - lx, this._hook_relative_to.sy - ly );
-
-						if ( this._hook_relative_to._hiberstate === sdEntity.HIBERSTATE_HIBERNATED )
-						this._hook_relative_to.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-
-						if ( isNaN( this._hook_relative_to.sx ) )
+						if ( typeof this._hook_relative_to.sx !== 'undefined' )
 						{
-							throw new Error('sdCharacter\'s hook causes attached item to have NaN velocity '+[
-								this._hook_relative_to.mass,
-								this.mass,
-								self_effect_scale,
-								cur_di,
-								vx,
-								vy,
-								pull_force,
-								GSPEED,
-								lx,
-								ly,
-								this.sx,
-								this.sy
+							let lx = this._hook_relative_to.sx;
+							let ly = this._hook_relative_to.sy;
 
-							].join(',') );
+							self_effect_scale = this._hook_relative_to.mass / ( this._hook_relative_to.mass + this.mass );
+
+							this._hook_relative_to.sx -= vx * pull_force * GSPEED * ( 1 - self_effect_scale );
+							this._hook_relative_to.sy -= vy * pull_force * GSPEED * ( 1 - self_effect_scale );
+
+							this._hook_relative_to.sx = sdWorld.MorphWithTimeScale( this._hook_relative_to.sx, this.sx, 0.8, GSPEED * ( 1 - self_effect_scale ) );
+							this._hook_relative_to.sy = sdWorld.MorphWithTimeScale( this._hook_relative_to.sy, this.sy, 0.8, GSPEED * ( 1 - self_effect_scale ) );
+
+							if ( this._hook_relative_to.is( sdCharacter ) )
+							this._hook_relative_to.ApplyServerSidePositionAndVelocity( true, this._hook_relative_to.sx - lx, this._hook_relative_to.sy - ly );
+
+							if ( this._hook_relative_to._hiberstate === sdEntity.HIBERSTATE_HIBERNATED )
+							this._hook_relative_to.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+							if ( isNaN( this._hook_relative_to.sx ) )
+							{
+								throw new Error('sdCharacter\'s hook causes attached item to have NaN velocity '+[
+									this._hook_relative_to.mass,
+									this.mass,
+									self_effect_scale,
+									cur_di,
+									vx,
+									vy,
+									pull_force,
+									GSPEED,
+									lx,
+									ly,
+									this.sx,
+									this.sy
+
+								].join(',') );
+							}
+
+							pull_force /= 2;
 						}
 
-						pull_force /= 2;
+
+						if ( this._hook_relative_to._is_being_removed || this._hook_relative_to === this.driver_of )
+						{
+							this.hook_x = 0;
+							this.hook_y = 0;
+						}
 					}
 
-
-					if ( this._hook_relative_to._is_being_removed || this._hook_relative_to === this.driver_of )
-					{
-						this.hook_x = 0;
-						this.hook_y = 0;
-					}
+					this.sx += vx * pull_force * GSPEED * self_effect_scale;
+					this.sy += vy * pull_force * GSPEED * self_effect_scale;
 				}
-
-				this.sx += vx * pull_force * GSPEED * self_effect_scale;
-				this.sy += vy * pull_force * GSPEED * self_effect_scale;
 			}
 
 		}

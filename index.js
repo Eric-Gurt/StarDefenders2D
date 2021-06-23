@@ -833,6 +833,11 @@ sdWorld.server_config = {};
 			sdEntity.entities.push( instructor_entity );
 			sdEntity.entities.push( instructor_gun );
 			
+			if ( Math.random() < 0.25 )
+			{
+				let instructor_gun2 = new sdGun({ x:instructor_entity.x, y:instructor_entity.y, class:sdGun.CLASS_EMERGENCY_INSTRUCTOR });
+				sdEntity.entities.push( instructor_gun2 );
+			}
 		}
 	}
 	static EntitySaveAllowedTest( entity )
@@ -2467,7 +2472,7 @@ io.on("connection", (socket) =>
 		let net_id = arr[ 0 ];
 		let new_sub = arr[ 1 ];
 		
-		if ( typeof new_sub === 'number' || typeof new_sub === 'string' )
+		if ( typeof new_sub === 'number' || ( typeof new_sub === 'string' && ( new_sub === '*' || typeof sdWorld.entity_classes[ new_sub ] !== 'undefined' ) ) )
 		if ( socket.character ) 
 		if ( socket.character.hea > 0 ) 
 		{

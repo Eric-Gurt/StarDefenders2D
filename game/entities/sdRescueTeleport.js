@@ -96,6 +96,8 @@ class sdRescueTeleport extends sdEntity
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 		
+		//this._is_cable_priority = true;
+		
 		//this.delay = sdRescueTeleport.delay_1st;
 		this.delay = sdRescueTeleport.delay_simple;
 		//this._update_version++

@@ -85,6 +85,7 @@ class sdUpgradeStation extends sdEntity
 			this.hmax = 5000 + ( 2000 * this.level );
 			this.matter_max = 5500 * this.level;
 			this.matter -= 5000;
+			this.WakeUpMatterSources();
 			this._update_version++;
 			sdWorld.UpdateHashPosition( this, false );
 		}
@@ -140,12 +141,15 @@ class sdUpgradeStation extends sdEntity
 			}, 500 );
 		this._cooldown = 900; // 30 second cooldown so it does not get spammed.
 		this.matter -= 500;
+		this.WakeUpMatterSources();
 		this._update_version++;
 		sdWorld.UpdateHashPosition( this, false );
 	}
 	constructor( params )
 	{
 		super( params );
+		
+		//this._is_cable_priority = true;
 		
 		this.hmax = 5000;
 		this.hea = this.hmax;

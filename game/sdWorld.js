@@ -16,6 +16,8 @@ import sdCharacter from './entities/sdCharacter.js';
 import sdGrass from './entities/sdGrass.js';
 import sdShark from './entities/sdShark.js';
 import sdSandWorm from './entities/sdSandWorm.js';
+import sdCable from './entities/sdCable.js';
+import sdArea from './entities/sdArea.js';
 
 
 import sdRenderer from './client/sdRenderer.js';
@@ -1828,6 +1830,8 @@ class sdWorld
 					}
 				}
 			}
+			
+			//sdCable.GlobalCableThink( GSPEED );
 
 			for ( i = 0; i < sdWorld.static_think_methods.length; i++ )
 			sdWorld.static_think_methods[ i ]( GSPEED );

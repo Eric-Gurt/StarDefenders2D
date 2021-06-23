@@ -310,8 +310,8 @@ class sdMatterAmplifier extends sdEntity
 		return;
 	
 		// Uncomment this if but still happens. Normally .onMovementInRange should never be called if one of entities is already being removed. Previously this was a problem at sdEntity physic simulation logic
-		//if ( from_entity._is_being_removed )
-		//return;
+		if ( from_entity._is_being_removed )
+		return;
 	
 		if ( this.matter_max === 0 )
 		{
@@ -339,7 +339,7 @@ class sdMatterAmplifier extends sdEntity
 				//from_entity.onRemove = from_entity.onRemoveAsFakeEntity; // Disable any removal logic
 				from_entity.SetMethod( 'onRemove', from_entity.onRemoveAsFakeEntity ); // Disable any removal logic
 				from_entity.remove();
-				from_entity._remove();
+				//from_entity._remove();
 
 				this._update_version++;
 			}

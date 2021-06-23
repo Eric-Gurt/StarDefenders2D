@@ -34,7 +34,7 @@ class sdBadDog extends sdEntity
 		];
 		*/
 		sdBadDog.death_duration = 21;
-		sdBadDog.post_death_ttl = 150;
+		sdBadDog.post_death_ttl = 300;
 		
 		//sdBadDog.retreat_hp_mult = 0.5;
 		
