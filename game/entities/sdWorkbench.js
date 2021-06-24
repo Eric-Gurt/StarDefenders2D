@@ -67,6 +67,8 @@ class sdWorkbench extends sdEntity
 		this.level = 1;
 		this.cube_shards = 0;
 		this.cube_shards_max = 10;
+		
+		this._armor_protection_level = 0;
 	}
 
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions

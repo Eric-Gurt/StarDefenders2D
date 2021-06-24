@@ -1253,6 +1253,30 @@ class sdEntity
 					sdWorld.unresolved_entity_pointers.push([ this, '_held_by', this.held_by_class, this.held_by_net_id ]);
 				}
 			}
+			
+			if ( this.sd_filter )
+			if ( !this.sd_filter.s )
+			{
+				let s = '';
+				for ( let r in this.sd_filter )
+				{
+					//this.sd_filter[ r ] = Object.assign( {}, this.sd_filter[ r ] );
+					for ( let g in this.sd_filter[ r ] )
+					{
+						//this.sd_filter[ r ][ g ] = Object.assign( {}, this.sd_filter[ r ][ g ] );
+						for ( let b in this.sd_filter[ r ][ g ] )
+						{
+							//this.sd_filter[ r ][ g ][ b ] = [ 255, 255, 255 ];
+							s += sdWorld.ColorArrayToHex( [ r,g,b ] ) + sdWorld.ColorArrayToHex( this.sd_filter[ r ][ g ][ b ] );
+						}
+					}
+				}
+				this.sd_filter = { s: s };
+				//console.log( this.sd_filter );
+				
+				//if ( this.sd_filter.s % 12 !== 0 )
+				//throw new Error( 'Wrong sd_filter length: ' + this.sd_filter.s );
+			}
 		}
 		else
 		{
@@ -1291,9 +1315,9 @@ class sdEntity
 		
 		let possible_ent = undefined;
 		
-		if ( sdWorld.is_server )
+		//if ( sdWorld.is_server )
 		possible_ent = sdEntity.entities_by_net_id_cache[ _net_id ]; // Fast way
-		else
+		/*else
 		{
 			let searched_class = sdWorld.entity_classes[ _class ];
 			for ( var i = 0; i < sdEntity.entities.length; i++ )
@@ -1306,7 +1330,7 @@ class sdEntity
 					break;
 				}
 			}
-		}
+		}*/
 	
 		if ( possible_ent === undefined )
 		{
@@ -1523,6 +1547,7 @@ class sdEntity
 					if ( sdWorld.is_server )
 					{
 						arr[ i ].TransferMatter( this, how_much, GSPEED * 4, true ); // Mult by X because targets no longer take 4 cells
+						arr[ i ].WakeUpMatterSources();
 					}
 					else
 					{

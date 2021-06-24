@@ -1480,7 +1480,7 @@ class sdGunClass
 							_ai_gun_slot: 4,
 							_ai_level: 10,
 							_ai_team: owner.cc_id + 4141,
-							sd_filter: sdWorld.ConvertPlayerDescriptionToSDFilter( instructor_settings ), 
+							sd_filter: sdWorld.ConvertPlayerDescriptionToSDFilter_v2( instructor_settings ), 
 							_voice: sdWorld.ConvertPlayerDescriptionToVoice( instructor_settings ), 
 							title: instructor_settings.hero_name,
 							cc_id: owner.cc_id,

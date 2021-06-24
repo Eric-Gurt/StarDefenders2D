@@ -757,7 +757,7 @@ sdWorld.server_config = {};
 			
 			let instructor_settings = {"hero_name":"Instructor","color_bright":"#7aadff","color_dark":"#25668e","color_bright3":"#7aadff","color_dark3":"#25668e","color_visor":"#ffffff","color_suit":"#000000","color_shoes":"#303954","color_skin":"#51709a","voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"color_suit2":"#000000","color_dark2":"#25668e"};
 
-			instructor_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter( instructor_settings );
+			instructor_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( instructor_settings );
 			instructor_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( instructor_settings );
 			instructor_entity.title = instructor_settings.hero_name;
 			//instructor_entity.matter = 1;
@@ -2008,7 +2008,7 @@ io.on("connection", (socket) =>
 		{
 			
 		}
-		character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter( player_settings );
+		character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( player_settings );
 		character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( player_settings );
 		
 		character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( player_settings );

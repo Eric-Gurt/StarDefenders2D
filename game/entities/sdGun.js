@@ -646,15 +646,21 @@ class sdGun extends sdEntity
 		if ( this._net_id !== undefined ) // Only for real entities
 		{
 			let old_held_by = this._held_by;
-
-			this._held_by = sdEntity.GetObjectByClassAndNetId( this.held_by_class, this.held_by_net_id );
-
-			if ( old_held_by !== this._held_by )
+			
+			if ( this._held_by && this._held_by._net_id === this.held_by_net_id )
 			{
-				if ( old_held_by )
-				if ( old_held_by.is( sdCharacter ) )
-				if ( old_held_by._inventory[ sdGun.classes[ this.class ].slot ] === this )
-				old_held_by._inventory[ sdGun.classes[ this.class ].slot ] = null;
+			}
+			else
+			{
+				this._held_by = sdEntity.GetObjectByClassAndNetId( this.held_by_class, this.held_by_net_id );
+
+				if ( old_held_by !== this._held_by )
+				{
+					if ( old_held_by )
+					if ( old_held_by.is( sdCharacter ) )
+					if ( old_held_by._inventory[ sdGun.classes[ this.class ].slot ] === this )
+					old_held_by._inventory[ sdGun.classes[ this.class ].slot ] = null;
+				}
 			}
 
 			if ( this._held_by )

@@ -32,14 +32,14 @@ class sdCube extends sdEntity
 		
 		sdCube.attack_range = 450;
 		
-		sdCube.huge_fitler = {};
-		sdWorld.ReplaceColorInSDFilter( sdCube.huge_fitler, '#00fff6', '#ffff00' );
+		sdCube.huge_filter = sdWorld.CreateSDFilter();
+		sdWorld.ReplaceColorInSDFilter_v2( sdCube.huge_filter, '#00fff6', '#ffff00' );
 
-		sdCube.white_filter = {}; // For white cubes
-		sdWorld.ReplaceColorInSDFilter( sdCube.white_filter, '#00fff6', '#DDDDDD' );
+		sdCube.white_filter = sdWorld.CreateSDFilter(); // For white cubes
+		sdWorld.ReplaceColorInSDFilter_v2( sdCube.white_filter, '#00fff6', '#dddddd' );
 
-		sdCube.pink_filter = {}; // For white cubes
-		sdWorld.ReplaceColorInSDFilter( sdCube.pink_filter, '#00fff6', '#FF00FF' );
+		sdCube.pink_filter = sdWorld.CreateSDFilter(); // For white cubes
+		sdWorld.ReplaceColorInSDFilter_v2( sdCube.pink_filter, '#00fff6', '#ff00ff' );
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -781,7 +781,7 @@ class sdCube extends sdEntity
 		if ( this.kind === 1 )
 		{
 			ctx.scale( 2, 2 );
-			ctx.sd_filter = sdCube.huge_fitler;
+			ctx.sd_filter = sdCube.huge_filter;
 		}
 
 		if ( this.kind === 2 )

@@ -652,7 +652,13 @@ class sdCharacter extends sdEntity
 			//{
 			
 				// Turn white
-				copy_ent.sd_filter = Object.assign( {}, copy_ent.sd_filter );
+				let new_sd_filter_s = '';
+				while ( new_sd_filter_s.length < copy_ent.sd_filter.s )
+				new_sd_filter_s += 'f';
+				
+				copy_ent.sd_filter = { s: new_sd_filter_s };
+				
+				/*copy_ent.sd_filter = Object.assign( {}, copy_ent.sd_filter );
 				for ( let r in copy_ent.sd_filter )
 				{
 					copy_ent.sd_filter[ r ] = Object.assign( {}, copy_ent.sd_filter[ r ] );
@@ -664,7 +670,7 @@ class sdCharacter extends sdEntity
 							copy_ent.sd_filter[ r ][ g ][ b ] = [ 255, 255, 255 ];
 						}
 					}
-				}
+				}*/
 				//copy_ent.remove();
 			//}, 3000 );
 			//console.log( 'side', copy_ent._side );

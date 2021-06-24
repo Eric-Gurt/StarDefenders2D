@@ -51,7 +51,7 @@ class sdServerConfig
 			_ai_enabled: sdCharacter.AI_MODEL_FALKOK, 
 			_ai_gun_slot: 1,
 			_ai_level: 10,
-			sd_filter:sdWorld.ConvertPlayerDescriptionToSDFilter( instructor_settings ), 
+			sd_filter:sdWorld.ConvertPlayerDescriptionToSDFilter_v2( instructor_settings ), 
 			_voice:sdWorld.ConvertPlayerDescriptionToVoice( instructor_settings ), 
 			title:instructor_settings.hero_name, 
 			_spawn_with_full_hp: true,

@@ -147,8 +147,9 @@ class sdRift extends sdEntity
 								y:this.y,
 								_tier:2
 							});
-							let quickie_filter = {};
-								sdWorld.ReplaceColorInSDFilter( quickie_filter, '#000000', '#FF00FF' ) // Pink, stronger quickies
+							//let quickie_filter = {};
+							let quickie_filter = sdWorld.CreateSDFilter();
+								sdWorld.ReplaceColorInSDFilter_v2( quickie_filter, '#000000', '#ff00ff' ) // Pink, stronger quickies
 							quickie.sd_filter = quickie_filter;
 							sdEntity.entities.push( quickie );
 							sdWorld.UpdateHashPosition( quickie, false ); // Prevent intersection with other ones

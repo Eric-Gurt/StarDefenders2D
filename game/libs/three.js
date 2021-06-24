@@ -13597,8 +13597,8 @@
 		}
 	} // Root Container
 
-
 	function WebGLUniforms(gl, program) {
+		
 		this.seq = [];
 		this.map = {};
 		var n = gl.getProgramParameter(program, 35718);
