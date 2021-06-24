@@ -196,7 +196,7 @@ class sdBlock extends sdEntity
 						visible = true;
 					}
 					
-					this._vis_back = visible;
+					//this._vis_back = visible;
 					
 					if ( visible )
 					sdBG.prototype.DrawBG.call( this, ctx, attached );

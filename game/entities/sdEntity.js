@@ -21,6 +21,8 @@ class sdEntity
 		
 		sdEntity.active_entities = [];
 		
+		sdEntity.to_seal_list = [];
+		
 		sdEntity.HIBERSTATE_ACTIVE = 0;
 		sdEntity.HIBERSTATE_HIBERNATED = 1;
 		sdEntity.HIBERSTATE_REMOVED = 2;
@@ -216,7 +218,7 @@ class sdEntity
 		return []; 
 	}
 	
-	PhysInitIfNeeded( w, h )
+	PhysInitIfNeeded()
 	{
 		//if ( typeof this._phys_sleep === 'undefined' )
 		if ( typeof this._phys_last_touch === 'undefined' ) // Pointer is more probable to remain undefined after snapshot load
@@ -666,7 +668,8 @@ class sdEntity
 	isB( c )
 	{ return this.constructor.name === c.prototype.constructor.name; }
 	isC( c )
-	{ if ( typeof c._class === 'undefined' ) c._class = c.prototype.constructor.name; return this._class === c._class; }
+	{ return this._class === c._class; }
+	//{ if ( typeof c._class === 'undefined' ) c._class = c.prototype.constructor.name; return this._class === c._class; }
 	isD( c )
 	{ return this instanceof c; }
 	isE( c )
@@ -751,6 +754,63 @@ class sdEntity
 		
 		if ( this.IsGlobalEntity() )
 		sdEntity.global_entities.push( this );
+	
+		//if ( sdWorld.is_server )
+		
+		// Premade all needed variables so sealing would work best
+		{
+			if ( this.onThink.has_ApplyVelocityAndCollisions === undefined )
+			{
+				let onThinkString = this.onThink.toString();
+				
+				this.onThink.has_ApplyVelocityAndCollisions = ( onThinkString.indexOf( 'ApplyVelocityAndCollisions' ) !== -1 );
+				
+				this.onThink.has_GetAnythingNearCache = ( onThinkString.indexOf( 'MatterGlow' ) !== -1 || onThinkString.indexOf( 'GetAnythingNearCache' ) !== -1 );
+				
+				this.onThink.has_GetComWiredCache = ( onThinkString.indexOf( 'GetComWiredCache' ) !== -1 );
+				
+				this.onThink.has_sdBlock_extras = false;
+				
+				// Hacks
+				const c = this.GetClass();
+				if ( c === 'sdBone' )
+				{
+					this.onThink.has_ApplyVelocityAndCollisions = true;
+				}
+				else
+				if ( c === 'sdBlock' )
+				{
+					this.onThink.has_sdBlock_extras = true;
+				}
+			}
+			
+			if ( this.onThink.has_ApplyVelocityAndCollisions )
+			this.PhysInitIfNeeded();
+		
+			if ( this.onThink.has_GetAnythingNearCache )
+			{
+				this._anything_near = [];
+				this._anything_near_range = 0;
+				this._next_anything_near_rethink = 0;
+			}
+			
+			if ( this.onThink.has_GetComWiredCache )
+			{
+				this._com_near_cache = null;
+				this._next_com_rethink = 0;
+			}
+			
+			if ( this.onThink.has_sdBlock_extras )
+			{
+				this._vis_block_left = null;
+				this._vis_block_right = null;
+				this._vis_block_top = null;
+				this._vis_block_bottom = null;
+				//this._vis_back = ;
+			}
+		
+			sdEntity.to_seal_list.push( this );
+		}
 	}
 	
 	GetComWiredCache( accept_test_method=null ) // Cretes .cio property for clients to know if com exists

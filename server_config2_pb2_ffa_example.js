@@ -259,6 +259,13 @@ class sdServerConfig
 			sdCharacter.characters[ i ]._broken = false;
 		}
 		
+		for ( let i = 0; i < sdWorld.tracked_creatures.length; i++ )
+		{
+			sdWorld.tracked_creatures[ i ].remove();
+			sdWorld.tracked_creatures[ i ]._broken = false;
+		}
+		sdWorld.tracked_creatures.length = 0;
+		
 		if ( switch_map )
 		{
 			for ( let i = 0; i < sdEntity.entities.length; i++ )
@@ -533,7 +540,7 @@ class sdServerConfig
 				
 				if ( Math.random() < 0.2 )
 				{
-					rank = 50;
+					rank = 20;
 					ent.filter = 'invert(1) sepia(1) saturate(100) hue-rotate(270deg) opacity(0.45)';
 				}
 				else

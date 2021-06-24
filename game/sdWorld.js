@@ -387,6 +387,41 @@ class sdWorld
 				}
 			}
 		};
+		
+		let say_delay = true;
+		let sealing_classes = ()=>
+		{
+			if ( !sdWorld.fastest_method_improver_info || sdWorld.fastest_method_improver_info.size === 0 )
+			{
+				for ( let i in sdWorld.entity_classes )
+				{
+					Object.seal( sdWorld.entity_classes[ i ] );
+					Object.seal( sdWorld.entity_classes[ i ].prototype );
+				}
+				
+				if ( !say_delay )
+				console.log( 'Classes & prototypes sealing done!' );
+			}
+			else
+			{
+				if ( say_delay )
+				{
+					say_delay = false;
+					console.log( 'Delaying classes & prototypes sealing, pending ' + sdWorld.fastest_method_improver_info.size + ' fastest_method_improver_info items...' );
+				}
+				setTimeout( sealing_classes, 1000 );
+			}
+		};
+		
+		setTimeout( sealing_classes, 1000 );
+	}
+	static FinalizeClasses() // isC optimization, also needed for sealing
+	{
+		for ( let i in sdWorld.entity_classes )
+		{
+			let c = sdWorld.entity_classes[ i ];
+			c._class = c.prototype.constructor.name;
+		}
 	}
 	static GoFullscreen()
 	{
@@ -1799,6 +1834,17 @@ class sdWorld
 			let skip_frames;
 			
 			let timewarps = null;
+			
+			if ( sdEntity.to_seal_list.length > 0 )
+			{
+				//if ( false )
+				for ( i = 0; i < sdEntity.to_seal_list.length; i++ )
+				{
+					if ( !sdEntity.to_seal_list[ i ]._is_being_removed )
+					Object.seal( sdEntity.to_seal_list[ i ] );
+				}
+				sdEntity.to_seal_list.length = 0;
+			}
 			
 			if ( sdWorld.is_server )
 			{

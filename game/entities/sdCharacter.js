@@ -266,6 +266,8 @@ class sdCharacter extends sdEntity
 		
 		this._in_water = false;
 		
+		this._ledge_holding = false;
+		
 		this.driver_of = null;
 		this._potential_vehicle = null; // Points at vehicle which player recently did hit
 		

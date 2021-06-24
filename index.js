@@ -373,6 +373,8 @@ globalThis.sdShop = sdShop;
 globalThis.sdModeration = sdModeration;
 globalThis.sdSnapPack = sdSnapPack;
 
+sdWorld.FinalizeClasses();
+
 let world_slot = 0; // Default slot adds no prefixes to file names
 
 for ( let i = 0; i < process.argv.length; i++ )
