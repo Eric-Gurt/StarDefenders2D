@@ -1206,15 +1206,15 @@ class sdGunClass
             image2: [ sdWorld.CreateImageFromFile( 'railgun_p03_reload1' ), sdWorld.CreateImageFromFile( 'railgun_p03_reload2' ) ],
             sound: 'gun_railgun_malicestorm_terrorphaser4',
             title: 'Railgun P03',
-			sound_pitch: 1.6, // re-added cause weapon sounds better with the sound pitch.
+			sound_pitch: 1.6, // re-added cause weapon sounds better with the sound pitch. - Ghost581
 			sound_volume: 1.5,
-            slot: 4,
-            reload_time: 360, // can one-shot 250 HP players so it has been bumped up to its original reload time.
+            slot: 8, // moved it to slot 8 cause of it being supposed to be a power weapon and slot 9 still is bound to the BT - Ghost581
+            reload_time: 360, // can one-shot 250 HP players so it has been bumped up to its original reload time. - Ghost581
             muzzle_x: null,
             ammo_capacity: -1,
             count: 1,
             matter_cost: 280,
-            projectile_properties: { _rail: true, _damage: 80, color: '#62c8f2', explosion_radius: 20}, // initial tier of the weapon so it has "low" stats, damage sums up to be enough to oneshot unarmored 250 HP players.
+            projectile_properties: { _rail: true, _damage: 80, color: '#62c8f2', explosion_radius: 20}, // initial tier of the weapon so it has "low" stats, damage sums up to be enough to oneshot unarmored 250 HP players. - Ghost581
             min_build_tool_level: 3
 		};
 
