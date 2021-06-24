@@ -25,6 +25,9 @@ class sdAsteroid extends sdEntity
 		
 		this.sx = Math.random() * 12 - 6;
 		this.sy = 10;
+		
+		//this._an = 0;
+		this._an = Math.atan2( this.sy, this.sx ) - Math.PI / 2;
 	}
 	Damage( dmg, initiator=null )
 	{

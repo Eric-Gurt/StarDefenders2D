@@ -2543,12 +2543,6 @@ class sdWorld
 				volume: volume, 
 				pitch: pitch });
 			
-			if ( that.sx === undefined )
-			that.sx = 0;
-			
-			if ( that.sy === undefined )
-			that.sy = 0;
-
 			for ( let i = 0; i < debris_count; i++ )
 			{
 				let a = Math.random() * 2 * Math.PI;
@@ -2561,7 +2555,7 @@ class sdWorld
 				
 				//console.log( 'BasicEntityBreakEffect', that.sx, k, a, s );
 
-				sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: that.sx*k + Math.sin(a)*s, sy: that.sy*k + Math.cos(a)*s, filter:that.GetBleedEffectFilter() });
+				sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: ( that.sx || 0 )*k + Math.sin(a)*s, sy: ( that.sy || 0 )*k + Math.cos(a)*s, filter:that.GetBleedEffectFilter() });
 			}
 		}
 	}
