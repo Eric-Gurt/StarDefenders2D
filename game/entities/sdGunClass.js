@@ -1004,7 +1004,7 @@ class sdGunClass
 			projectile_velocity: 16,
 			GetAmmoCost: ()=>
 			{
-				return 0;
+				return 50 / 2 * 2.5;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
@@ -1015,23 +1015,12 @@ class sdGunClass
 					gun._held_by.power_ef = 30 * 30;
 					//gun._held_by.Damage( 40 );
 					
-					if ( gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ] )
-					gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ].remove();
+					//if ( gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ] )
+					//gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ].remove();
 				}
 				return true;
 			},
 			projectile_properties: {}
-			/*projectile_properties: { time_left: 2, _damage: 40, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
-				{
-					if ( target_entity.is( sdCharacter ) )
-					{
-						target_entity.power_ef = 30 * 30;
-						
-						//if ( bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ] )
-						//bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ].remove();
-					}
-				}
-			}*/
 		};
 		
 		sdGun.classes[ sdGun.CLASS_TIME_PACK = 42 ] = 
@@ -1045,11 +1034,11 @@ class sdGunClass
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
-			matter_cost: 1000, // More DPS relative to stimpack
+			matter_cost: 500, // More DPS relative to stimpack
 			projectile_velocity: 16,
 			GetAmmoCost: ()=>
 			{
-				return 0;
+				return 750;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
@@ -1060,23 +1049,12 @@ class sdGunClass
 					gun._held_by.time_ef = 30 * 30 * 0.5;
 					//gun._held_by.Damage( 40 );
 					
-					if ( gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_TIME_PACK ].slot ] )
-					gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_TIME_PACK ].slot ].remove();
+					//if ( gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_TIME_PACK ].slot ] )
+					//gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_TIME_PACK ].slot ].remove();
 				}
 				return true;
 			},
 			projectile_properties: {}
-			/*projectile_properties: { time_left: 2, _damage: 40, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
-				{
-					if ( target_entity.is( sdCharacter ) )
-					{
-						target_entity.time_ef = 30 * 30 * 0.3;
-						
-						if ( bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_TIME_PACK ].slot ] )
-						bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_TIME_PACK ].slot ].remove();
-					}
-				}
-			}*/
 		};
 		
 		sdGun.classes[ sdGun.CLASS_LVL2_LIGHT_ARMOR = 43 ] = 
@@ -1272,7 +1250,330 @@ class sdGunClass
 			projectile_properties: { _rail: true, time_left: 0, _damage: 1, color: '#ffffff', _admin_picker:true }
 		};
 
+		sdGun.classes[ sdGun.CLASS_POWER_STIMPACK = 51 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'power_stimpack' ),
+			sound: 'gun_defibrillator',
+			title: 'Power-Stimpack',
+			sound_pitch: 0.5,
+			slot: 7,
+			reload_time: 30 * 10,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			matter_cost: 900,
+			min_workbench_level: 5,
+			projectile_velocity: 16,
+			GetAmmoCost: ()=>
+			{
+				return ( 50 / 2 * 2.5 + 50 ) * 2;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( gun._held_by )
+				if ( gun._held_by.is( sdCharacter ) )
+				{
+					gun._held_by.AnnounceTooManyEffectsIfNeeded();
+					gun._held_by.stim_ef = 30 * 30;
+					gun._held_by.power_ef = 30 * 30;
+					gun._held_by.Damage( 40, null, false, false ); // Don't damage armor
+					
+					/*if ( gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ] )
+					gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ].remove();*/
+				}
+				return true;
+			},
+			projectile_properties: {}
+		};
 
+		sdGun.classes[ sdGun.CLASS_LVL1_ARMOR_REGEN = 52 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_repair_module_lvl1' ),
+			title: 'SD-11 Armor Repair Module',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			matter_cost: 250,
+			min_workbench_level: 3,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
+			{ 
+				if ( character.armor > 0 )
+				{
+					character._armor_repair_amount = 250;
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
+
+		sdGun.classes[ sdGun.CLASS_LVL2_ARMOR_REGEN = 53 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_repair_module_lvl2' ),
+			title: 'SD-12 Armor Repair Module',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			matter_cost: 500,
+			min_workbench_level: 4,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
+			{ 
+				if ( character.armor > 0 )
+				{
+					character._armor_repair_amount = 500;
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
+
+		sdGun.classes[ sdGun.CLASS_LVL3_ARMOR_REGEN = 54 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_repair_module_lvl3' ),
+			title: 'SD-13 Armor Repair Module',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			matter_cost: 750,
+			min_workbench_level: 7,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
+			{ 
+				if ( character.armor > 0 )
+				{
+					character._armor_repair_amount = 750;
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
+
+		sdGun.classes[ sdGun.CLASS_LVL3_LIGHT_ARMOR = 55 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_light_lvl3' ),
+			title: 'SD-03 Light Armor',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			matter_cost: 400,
+			min_workbench_level: 6,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
+			{ 
+				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
+				{
+					character.armor = 300;
+					character.armor_max = 300;
+					character._armor_absorb_perc = 0.3; // 30% damage reduction
+					character.armor_speed_reduction = 0; // Armor speed reduction, 0% for light armor
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
+
+		sdGun.classes[ sdGun.CLASS_LVL3_MEDIUM_ARMOR = 56 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_medium_lvl3' ),
+			title: 'SD-03 Duty Armor',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			matter_cost: 500,
+			min_workbench_level: 6,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
+			{ 
+				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
+				{
+					character.armor = 400;
+					character.armor_max = 400;
+					character._armor_absorb_perc = 0.4; // 40% damage reduction
+					character.armor_speed_reduction = 10; // Armor speed reduction, 10% for medium armor
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
+
+		sdGun.classes[ sdGun.CLASS_LVL3_HEAVY_ARMOR = 57 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_heavy_lvl3' ),
+			title: 'SD-03 Combat Armor',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			matter_cost: 600,
+			min_workbench_level: 6,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
+			{ 
+				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
+				{
+					character.armor = 500;
+					character.armor_max = 500;
+					character._armor_absorb_perc = 0.5; // 50% damage reduction
+					character.armor_speed_reduction = 20; // Armor speed reduction, 20% for heavy armor
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
+		
+		sdGun.classes[ sdGun.CLASS_EMERGENCY_INSTRUCTOR = 58 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'emergency_instructor' ),
+			sound: 'gun_defibrillator',
+			title: 'Emergency instructor',
+			sound_pitch: 0.5,
+			slot: 7,
+			reload_time: 30 * 3,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			matter_cost: 300, // More DPS relative to stimpack
+			projectile_velocity: 16,
+			spawnable: false,
+			GetAmmoCost: ()=>
+			{
+				return 300;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				let owner = gun._held_by;
+				
+				setTimeout(()=> // Out of loop spawn
+				{
+					if ( sdWorld.is_server )
+					if ( owner )
+					//if ( owner.is( sdCharacter ) )
+					{
+						let instructor_settings = {"hero_name":"Instructor","color_bright":"#7aadff","color_dark":"#25668e","color_bright3":"#7aadff","color_dark3":"#25668e","color_visor":"#ffffff","color_suit":"#000000","color_shoes":"#303954","color_skin":"#51709a","voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"color_suit2":"#000000","color_dark2":"#25668e"};
+
+						let ent = new sdCharacter({ x: owner.x + 16 * owner._side, y: owner.y,
+							_ai_enabled: sdCharacter.AI_MODEL_TEAMMATE, 
+							_ai_gun_slot: 4,
+							_ai_level: 10,
+							_ai_team: owner.cc_id + 4141,
+							sd_filter: sdWorld.ConvertPlayerDescriptionToSDFilter( instructor_settings ), 
+							_voice: sdWorld.ConvertPlayerDescriptionToVoice( instructor_settings ), 
+							title: instructor_settings.hero_name,
+							cc_id: owner.cc_id,
+							_owner: owner
+						});
+						ent.gun_slot = 4;
+						ent._matter_regeneration = 5;
+						ent._damage_mult = 1 + 3 / 3 * 1;
+						sdEntity.entities.push( ent );
+
+						let ent2 = new sdGun({ x: ent.x, y: ent.y,
+							class: sdGun.CLASS_RAILGUN
+						});
+						sdEntity.entities.push( ent2 );
+
+						sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
+						
+						let side_set = false;
+						const logic = ()=>
+						{
+							if ( ent._ai )
+							{
+								if ( !side_set )
+								{
+									ent._ai.direction = owner._side;
+									side_set = false;
+								}
+								if ( ent.x > owner.x + 200 )
+								ent._ai.direction = -1;
+							
+								if ( ent.x < owner.x - 200 )
+								ent._ai.direction = 1;
+							}
+						};
+						
+						const MasterDamaged = ( victim, dmg, enemy )=>
+						{
+							if ( enemy && enemy.IsTargetable( ent ) )
+							if ( dmg > 0 )
+							if ( ent._ai )
+							{
+								if ( !ent._ai.target || Math.random() > 0.5 )
+								ent._ai.target = enemy;
+							}
+						};
+						
+						owner.addEventListener( 'DAMAGE', MasterDamaged );
+						
+						setInterval( logic, 1000 );
+						
+						setTimeout(()=>
+						{
+							if ( ent.hea > 0 )
+							if ( !ent._is_being_removed )
+							{
+								ent.Say( [ 
+									'Was nice seeing you', 
+									'I can\'t stay any longer', 
+									'Thanks for the invite, ' + owner.title, 
+									'Glad I didn\'t die here lol',
+									'Until next time',
+									'You can call be later',
+									'My time is almost out',
+									( ent._inventory[ 4 ] === ent2 ) ? 'You can take my railgun' : 'I\'ll miss my railgun',
+									'Time for me to go'
+								][ ~~( Math.random() * 9 ) ], false, false, false );
+							}
+						}, 60000 - 4000 );
+						setTimeout(()=>
+						{
+							clearInterval( logic );
+							
+							owner.removeEventListener( 'DAMAGE', MasterDamaged );
+							
+							if ( !ent._is_being_removed )
+							sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
+
+							ent.DropWeapons();
+							ent.remove();
+							//ent2.remove();
+
+							ent._broken = false;
+							//ent2._broken = false;
+
+						}, 60000 );
+					}
+				}, 1 );
+				
+				return true;
+			},
+			projectile_properties: {}
+		};
+		
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];

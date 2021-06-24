@@ -1329,8 +1329,8 @@ class sdEntity
 		//sdWorld.UpdateHashPosition( ret, false ); // Will prevent sdBlock from occasionally not having collisions on client-side (it will rest in hibernated state, probably because of that. It is kind of a bug though)
 	
 		return ret;
-	}
-	static GuessEntityName( net_id ) // For client-side coms, also for server bound extend report
+	}	
+	static GuessEntityName( net_id ) // For client-side coms, also for server bound extend report. Use sdWorld.ClassNameToProperName in other cases
 	{
 		if ( typeof net_id === 'string' )
 		{
@@ -1340,6 +1340,14 @@ class sdEntity
 			return 'all crystals';
 			if ( net_id === 'sdCube' )
 			return 'all Cubes';
+			if ( net_id === 'sdStorage' )
+			return 'all storage crates';
+			if ( net_id === 'sdHover' )
+			return 'all Hovers';
+			if ( net_id === 'sdGun' )
+			return 'all items';
+			if ( net_id === '*' )
+			return 'all everything';
 		
 			return net_id;
 		}
@@ -1378,8 +1386,19 @@ class sdEntity
 			return e.GetClass() + '#' + net_id;
 		}
 	}
+	WakeUpMatterSources( connected_ents=null ) // Call this when entity loses some of its matter and needs hibernated nearby entities to wake up
+	{
+		if ( !connected_ents )
+		connected_ents = sdCable.GetConnectedEntities( this, sdCable.TYPE_MATTER );
 	
-	MatterGlow( how_much=0.01, radius=30, GSPEED ) // Set radius to 0 to only glow into cables
+		for ( var i = 0; i < connected_ents.length; i++ )
+		{
+			if ( connected_ents[ i ]._hiberstate !== sdEntity.HIBERSTATE_ACTIVE )
+			if ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
+			connected_ents[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		}
+	}
+	MatterGlow( how_much=0.01, radius=30, GSPEED ) // Set radius to 0 to only glow into cables. Make sure to call WakeUpMatterSources when matter drops or else some mid-way nodes might end up not being awaken
 	{
 		if ( !sdWorld.is_server )
 		return;
@@ -1390,9 +1409,10 @@ class sdEntity
 		{
 			if ( !sdCable )
 			sdCable = sdWorld.entity_classes.sdCable;
-			
-			var connected_ents = sdCable.GetConnectedEntities( this, sdCable.TYPE_MATTER );
-			for ( var i = 0; i < connected_ents.length; i++ )
+		
+			let i;
+			let connected_ents = sdCable.GetConnectedEntities( this, sdCable.TYPE_MATTER );
+			for ( i = 0; i < connected_ents.length; i++ )
 			{
 				if ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
 				this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
@@ -1402,9 +1422,9 @@ class sdEntity
 			if ( this_matter > 0.05 )
 			{
 				//var arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null, ( e )=>!e.is( sdWorld.entity_classes.sdBG ) );
-				var arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null );
+				let arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null );
 
-				for ( var i = 0; i < arr.length; i++ )
+				for ( i = 0; i < arr.length; i++ )
 				{
 					if ( ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' ) && arr[ i ] !== this && !arr[ i ]._is_being_removed )
 					{
@@ -1418,6 +1438,8 @@ class sdEntity
 					}
 				}
 			}
+			
+			this.WakeUpMatterSources( connected_ents );
 		}
 	}
 	HungryMatterGlow( how_much=0.01, radius=30, GSPEED )

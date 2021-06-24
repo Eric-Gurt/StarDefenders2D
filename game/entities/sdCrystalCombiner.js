@@ -366,6 +366,11 @@ class sdCrystalCombiner extends sdEntity
 	{
 		if ( !sdWorld.is_server )
 		return;
+	
+		// Uncomment this if but still happens. Normally .onMovementInRange should never be called if one of entities is already being removed. Previously this was a problem at sdEntity physic simulation logic
+		if ( from_entity._is_being_removed )
+		return;
+	
 		if ( this._ignore_pickup_tim === 0 )
 		if ( from_entity.is( sdCrystal ) && from_entity.matter_max !== sdCrystal.anticrystal_value )
 		{
@@ -404,7 +409,7 @@ class sdCrystalCombiner extends sdEntity
 						//from_entity.onRemove = from_entity.onRemoveAsFakeEntity; // Disable any removal logic
 						from_entity.SetMethod( 'onRemove', from_entity.onRemoveAsFakeEntity ); // Disable any removal logic
 						from_entity.remove();
-						from_entity._remove();
+						//from_entity._remove();
 
 						this._update_version++;
 						this._ignore_pickup_tim = 1; // Why 30? Makes it slower to put 2 crystals at once

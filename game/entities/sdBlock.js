@@ -489,7 +489,8 @@ class sdBlock extends sdEntity
 				this._update_version++;
 				
 				sdWorld.SendEffect({ x:from_entity.x, y:from_entity.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
-					
+				
+				if ( ( from_entity._reinforced_level || 0 ) === 0 )
 				from_entity.Damage( 100, this._owner );
 				
 				this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );

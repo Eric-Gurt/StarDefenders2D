@@ -201,6 +201,26 @@ class sdContextMenu
 						sdContextMenu.options.push({ title: 'Subscribe all Cubes',
 							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdCube' ] ); }
 						});
+					
+						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdStorage' ) === -1 )
+						sdContextMenu.options.push({ title: 'Subscribe all Storage crates',
+							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdStorage' ] ); }
+						});
+					
+						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdHover' ) === -1 )
+						sdContextMenu.options.push({ title: 'Subscribe all Hovers',
+							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdHover' ] ); }
+						});
+					
+						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdGun' ) === -1 )
+						sdContextMenu.options.push({ title: 'Subscribe all items',
+							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdGun' ] ); }
+						});
+					
+						if ( sdContextMenu.current_target.subscribers.indexOf( '*' ) === -1 )
+						sdContextMenu.options.push({ title: 'Subscribe everything (for doors & teleports only)',
+							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, '*' ] ); }
+						});
 						
 						for ( var i = 0; i < sdContextMenu.current_target.subscribers.length; i++ )
 						{

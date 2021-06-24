@@ -81,6 +81,8 @@ class sdTeleport extends sdEntity
 	{
 		super( params );
 		
+		//this._is_cable_priority = true;
+		
 		this._hmax = 500;
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
@@ -193,69 +195,84 @@ class sdTeleport extends sdEntity
 			//if ( allowed )
 			if ( com_near )
 			{
-				//let nearbies = sdWorld.GetAnythingNear( this.x, this.y, sdTeleport.connection_range );
-				/*let nearbies = sdCable.GetConnectedEntities( this, sdCable.TYPE_ANY );
+				
+			
+				let allowed = true;
 
-				let best_tele = null;
-				let best_di = -1;
-				for ( var i = 0; i < nearbies.length; i++ )
+				//for ( let i = 0; i < coms_near.length; i++ )
+				if ( com_near.subscribers.indexOf( from_entity._net_id ) !== -1 || com_near.subscribers.indexOf( from_entity.GetClass() ) !== -1 || com_near.subscribers.indexOf( '*' ) !== -1 )
 				{
-					if ( nearbies[ i ].GetClass() === 'sdTeleport' )
+					allowed = true;
+					//break;
+				}
+
+
+				if ( allowed )
+				{
+					//let nearbies = sdWorld.GetAnythingNear( this.x, this.y, sdTeleport.connection_range );
+					/*let nearbies = sdCable.GetConnectedEntities( this, sdCable.TYPE_ANY );
+
+					let best_tele = null;
+					let best_di = -1;
+					for ( var i = 0; i < nearbies.length; i++ )
 					{
-						let tele = nearbies[ i ];
-						if ( tele.delay === 0 ) // is active
-						if ( tele !== this )
+						if ( nearbies[ i ].GetClass() === 'sdTeleport' )
 						{
-							let di = sdWorld.Dist2D( this.x, this.y, tele.x, tele.y );
-							if ( di < best_di || best_tele === null )
+							let tele = nearbies[ i ];
+							if ( tele.delay === 0 ) // is active
+							if ( tele !== this )
 							{
-								if ( from_entity.CanMoveWithoutOverlap( from_entity.x + tele.x - this.x, 
-																		from_entity.y + tele.y - this.y, 0 ) )
+								let di = sdWorld.Dist2D( this.x, this.y, tele.x, tele.y );
+								if ( di < best_di || best_tele === null )
 								{
-									best_tele = tele;
-									best_di = di;
+									if ( from_entity.CanMoveWithoutOverlap( from_entity.x + tele.x - this.x, 
+																			from_entity.y + tele.y - this.y, 0 ) )
+									{
+										best_tele = tele;
+										best_di = di;
+									}
 								}
 							}
 						}
-					}
-				}*/
-				
-				let best_tele = this.GetComWiredCache( ( tele )=>
-				{
-					if ( tele.is( sdTeleport ) )
-					if ( tele.delay === 0 ) // is active
-					if ( from_entity.CanMoveWithoutOverlap( from_entity.x + tele.x - this.x, 
-															from_entity.y + tele.y - this.y, 0 ) )
-					return true;
-					return false;
-				});
+					}*/
 
-				if ( best_tele )
+					let best_tele = this.GetComWiredCache( ( tele )=>
+					{
+						if ( tele.is( sdTeleport ) )
+						if ( tele.delay === 0 ) // is active
+						if ( from_entity.CanMoveWithoutOverlap( from_entity.x + tele.x - this.x, 
+																from_entity.y + tele.y - this.y, 0 ) )
+						return true;
+						return false;
+					});
+
+					if ( best_tele )
+					{
+						this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+						best_tele.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+						this.SetDelay( 90 );
+						best_tele.SetDelay( 90 );
+
+						from_entity.x += best_tele.x - this.x;
+						from_entity.y += best_tele.y - this.y;
+
+						if ( from_entity.GetClass() === 'sdCharacter' )
+						{
+							from_entity.ApplyServerSidePositionAndVelocity( true, 0, 0 );
+						}
+
+						sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
+						sdSound.PlaySound({ name:'teleport', x:best_tele.x, y:best_tele.y, volume:0.5 });
+					}
+				}
+				else
 				{
 					this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-					best_tele.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-					
+
+					// Unauthorized access
 					this.SetDelay( 90 );
-					best_tele.SetDelay( 90 );
-
-					from_entity.x += best_tele.x - this.x;
-					from_entity.y += best_tele.y - this.y;
-					
-					if ( from_entity.GetClass() === 'sdCharacter' )
-					{
-						from_entity.ApplyServerSidePositionAndVelocity( true, 0, 0 );
-					}
-
-					sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
-					sdSound.PlaySound({ name:'teleport', x:best_tele.x, y:best_tele.y, volume:0.5 });
 				}
-			}
-			else
-			{
-				this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-					
-				// Unauthorized access
-				this.SetDelay( 90 );
 			}
 		}
 	}

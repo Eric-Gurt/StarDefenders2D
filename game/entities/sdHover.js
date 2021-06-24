@@ -65,6 +65,8 @@ class sdHover extends sdEntity
 	{
 		super( params );
 		
+		//this._is_cable_priority = true;
+		
 		this.sx = 0;
 		this.sy = 0;
 		

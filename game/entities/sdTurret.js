@@ -101,6 +101,8 @@ class sdTurret extends sdEntity
 		
 		this.kind = params.kind || 0;
 		
+		//this._is_cable_priority = true;
+		
 		this._hmax = ( this.kind === sdTurret.KIND_RAPID_LASER || this.kind === sdTurret.KIND_SNIPER ) ? 200 : 100;
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
@@ -317,6 +319,7 @@ class sdTurret extends sdEntity
 					if ( this.fire_timer <= 0 )
 					{
 						this.matter -= this.GetShootCost();
+						this.WakeUpMatterSources();
 						
 						if ( this.kind === sdTurret.KIND_LASER || this.kind === sdTurret.KIND_RAPID_LASER )
 						sdSound.PlaySound({ name:'turret', x:this.x, y:this.y, volume:0.5, pitch: 1 / ( 1 + this.lvl / 3 ) });
@@ -431,9 +434,9 @@ class sdTurret extends sdEntity
 	{
 		sdEntity.Tooltip( ctx, this.title );
 
-		this.DrawConnections( ctx );
+		//this.DrawConnections( ctx );
 	}
-	DrawConnections( ctx )
+	/*DrawConnections( ctx )
 	{
 		ctx.lineWidth = 1;
 		ctx.strokeStyle = '#ffffff';
@@ -458,7 +461,7 @@ class sdTurret extends sdEntity
 		
 		ctx.lineDashOffset = 0;
 		ctx.setLineDash([]);
-	}
+	}*/
 	Draw( ctx, attached )
 	{
 		var not_firing_now = ( this.fire_timer < this.GetReloadTime() - 2.5 );

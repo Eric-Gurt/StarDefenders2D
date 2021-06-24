@@ -61,6 +61,15 @@ class sdCable extends sdEntity
 			'sdDoor',
 			'sdTurret'
 		];
+		// Flow ranks
+		/*sdCable.hungry_entities = new Set([
+			sdTurret,
+			sdRescueTeleport,
+			sdCharacter,
+			sdHover,
+			sdTeleport,
+			sdUpgradeStation
+		]);*/
 		
 		sdCable.cables_per_entity = new WeakMap();
 		sdCable.connected_entities_per_entity = new WeakMap();
@@ -68,6 +77,10 @@ class sdCable extends sdEntity
 		sdCable.max_distance = 200; // Same as for sdCom, at least for now
 		
 		sdCable.counter = 0; // For client to minimize point count in case of spam
+		
+		//sdCable.cables = new Set(); // Just all existing cables
+		sdCable.cables = [];
+		sdCable.cable_think_offset = 0;
 		
 		// Turning these getters/setters into enumerable ones
 		Object.defineProperty( sdCable.prototype, 'p', { enumerable: true });
@@ -138,6 +151,9 @@ class sdCable extends sdEntity
 		
 		this.p = params.parent || null; // parent entity
 		this.c = params.child || null; // child entity
+		
+		//sdCable.cables.add( this );
+		sdCable.cables.push( this );
 	}
 	
 	getRequiredEntities() // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
@@ -581,6 +597,44 @@ class sdCable extends sdEntity
 		}
 	}
 	
+	/*static GlobalCableThink( GSPEED ) 2% of total performance was going there. Replaced with chain reaction-based waking up, which could have similar performance but with possiblity for different parts of cable networks to hibernate
+	{
+		for ( let i = 0; i < sdCable.cables.length; i++ )
+		{
+			let cable = sdCable.cables[ i ];
+			//sdCable.cables.forEach( ( cable )=>
+			//{
+				if ( cable.t === sdCable.TYPE_MATTER )
+				{
+					if ( cable._p )
+					if ( cable._c )
+					if ( cable._p._hiberstate === sdEntity.HIBERSTATE_ACTIVE || cable._c._hiberstate === sdEntity.HIBERSTATE_ACTIVE )
+					{
+						cable._p.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+						cable._c.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+						
+						let hungry_p = cable._p._is_cable_priority;
+						let hungry_c = cable._c._is_cable_priority;
+						if ( ( hungry_p && hungry_c ) || ( !hungry_p && !hungry_c ) )
+						{
+							cable._p.TransferMatter( cable._c, 0.1, GSPEED * 4, true ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+							cable._c.TransferMatter( cable._p, 0.1, GSPEED * 4, true ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+						}
+						else
+						if ( hungry_p )
+						{
+							cable._c.TransferMatter( cable._p, 0.1, GSPEED * 4, true );
+						}
+						else
+						{
+							cable._p.TransferMatter( cable._c, 0.1, GSPEED * 4, true );
+						}
+					}
+				}
+			//});
+		}
+	}
+	*/
 	GetAccurateDistance( xx, yy ) // Used on client-side when right clicking on cables (also during cursor hovering for context menu and hint), also on server when distance between cable and player is measured
 	{
 		if ( this.p && this.c )
@@ -754,6 +808,13 @@ class sdCable extends sdEntity
 			
 			sdCable.counter--;
 		}
+		
+		//sdCable.cables.delete( this );
+		let id = sdCable.cables.indexOf( this );
+		if ( id !== -1 )
+		sdCable.cables.splice( id, 1 );
+		else
+		debugger;
 	}
 	
 	onRemove() // Class-specific, if needed

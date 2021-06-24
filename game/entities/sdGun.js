@@ -538,7 +538,7 @@ class sdGun extends sdEntity
 
 							let ent = this._held_by.CreateBuildObject( false, ( this._held_by._build_params._category === 'Development tests' ) );
 							
-							if ( this._held_by._build_params._category !== 'Development tests' )
+							if ( this._held_by._build_params._category !== 'Development tests' && !this._held_by._build_params._spawn_with_full_hp )
 							{
 
 								if ( typeof ent.hmax !== 'undefined' )

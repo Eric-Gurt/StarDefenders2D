@@ -659,34 +659,7 @@ class sdShop
 			{
 				if ( sdShop.options[ sdShop.potential_selection ]._class !== null )
 				{
-					let c = sdShop.options[ sdShop.potential_selection ]._class.slice( 2 );
-					
-					if ( c === 'BG' )
-					c = 'Background wall';
-					else
-					c = c.replace(/([A-Z])/g, ' $1').trim();
-				
-					if ( c === 'Block' )
-					{
-						if ( sdShop.options[ sdShop.potential_selection ].material === sdBlock.MATERIAL_WALL )
-						c = 'Wall';
-						if ( sdShop.options[ sdShop.potential_selection ].material === sdBlock.MATERIAL_GROUND )
-						c = 'Ground';
-						if ( sdShop.options[ sdShop.potential_selection ].material === sdBlock.MATERIAL_SHARP )
-						c = 'Trap';
-					}
-				
-					if ( c === 'Area' )
-					{
-						if ( sdShop.options[ sdShop.potential_selection ].type === sdArea.TYPE_PREVENT_DAMAGE )
-						c = 'Combat & build (unless in godmode) preventing area';
-						if ( sdShop.options[ sdShop.potential_selection ].type === sdArea.TYPE_ERASER_AREA )
-						c = 'Area eraser';
-					}
-				
-					if ( c === 'Gun' )
-					if ( sdGun.classes[ sdShop.options[ sdShop.potential_selection ].class ].title )
-					c = sdGun.classes[ sdShop.options[ sdShop.potential_selection ].class ].title;
+					let c = sdWorld.ClassNameToProperName( sdShop.options[ sdShop.potential_selection ]._class, sdShop.options[ sdShop.potential_selection ] );
 					
 					t = 'Click to select "' + c + '" as a build object. Then click to place this object in world.';
 				}

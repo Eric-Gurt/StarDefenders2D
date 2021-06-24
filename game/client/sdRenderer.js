@@ -61,6 +61,8 @@ class sdRenderer
 		
 		sdRenderer._visual_settings = 0;
 		
+		sdRenderer.show_leader_board = true;
+		
 		//sdRenderer.ctx = canvas.getContext("2d");
 		//sdRenderer.ctx = canvas.getContext('webgl-2d');
 		//sdRenderer.ctx = new FakeCanvasContext( canvas );
@@ -793,6 +795,7 @@ class sdRenderer
 			ctx.fillStyle = '#000000';
 			ctx.fillRect( 5, 5, 400, 17 );
 			
+			if ( sdRenderer.show_leader_board )
 			ctx.fillRect( sdRenderer.screen_width - 200 - 5, 5, 200, 20 + 20 * sdWorld.leaders.length + 5 );
 			
 			ctx.globalAlpha = 1;
@@ -819,24 +822,26 @@ class sdRenderer
 				ctx.fillText("Last long server frame time took: " + Math.floor( sdWorld.last_frame_time ) + "ms (slowest case entity was "+sdWorld.last_slowest_class+")", 420, 17 );
 			}
 			
-			ctx.fillStyle = '#AAAAAA';
-			ctx.fillText("Leaderboard:", sdRenderer.screen_width - 200 - 5 + 5, 20 );
-			
-			ctx.textAlign = 'right';
-			ctx.fillStyle = '#AAAAAA';
-			ctx.fillText( globalThis.players_playing+ " alive", sdRenderer.screen_width - 5 - 5, 20 );
-			
-			//for ( var i = 0; i < sdWorld.leaders.length; i++ )
-			for ( var i = 0; i < sdWorld.leaders.length; i++ )
+			if ( sdRenderer.show_leader_board )
 			{
-				ctx.textAlign = 'left';
-				ctx.fillStyle = '#FFFFFF';
-				ctx.fillText( (i+1)+". " + ( ( i < sdWorld.leaders.length ) ? sdWorld.leaders[ i ].name : '' ), sdRenderer.screen_width - 200 - 5 + 5, 20 + ( i + 1 ) * 20 );
-				
+				ctx.fillStyle = '#AAAAAA';
+				ctx.fillText("Leaderboard:", sdRenderer.screen_width - 200 - 5 + 5, 20 );
+
 				ctx.textAlign = 'right';
-				ctx.fillText( ( ( i < sdWorld.leaders.length ) ? sdWorld.leaders[ i ].score : '' ), sdRenderer.screen_width - 15, 20 + ( i + 1 ) * 20 );
+				ctx.fillStyle = '#AAAAAA';
+				ctx.fillText( globalThis.players_playing+ " alive", sdRenderer.screen_width - 5 - 5, 20 );
+
+				//for ( var i = 0; i < sdWorld.leaders.length; i++ )
+				for ( var i = 0; i < sdWorld.leaders.length; i++ )
+				{
+					ctx.textAlign = 'left';
+					ctx.fillStyle = '#FFFFFF';
+					ctx.fillText( (i+1)+". " + ( ( i < sdWorld.leaders.length ) ? sdWorld.leaders[ i ].name : '' ), sdRenderer.screen_width - 200 - 5 + 5, 20 + ( i + 1 ) * 20 );
+
+					ctx.textAlign = 'right';
+					ctx.fillText( ( ( i < sdWorld.leaders.length ) ? sdWorld.leaders[ i ].score : '' ), sdRenderer.screen_width - 15, 20 + ( i + 1 ) * 20 );
+				}
 			}
-			
 			ctx.globalAlpha = 1;
 			
 			

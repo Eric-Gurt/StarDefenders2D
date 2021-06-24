@@ -104,6 +104,7 @@ class sdCharacter extends sdEntity
 		sdCharacter.AI_MODEL_FALKOK = 1;
 		sdCharacter.AI_MODEL_INSTRUCTOR = 2;
 		sdCharacter.AI_MODEL_DUMMY_UNREVIVABLE_ENEMY = 3;
+		sdCharacter.AI_MODEL_TEAMMATE = 4;
 		
 		sdCharacter.ghost_breath_delay = 10 * 30;
 		/*
@@ -251,6 +252,8 @@ class sdCharacter extends sdEntity
 	{
 		super( params );
 		
+		//this._is_cable_priority = true;
+		
 		this._socket = null; // undefined causes troubles
 		
 		this.lag = false;
@@ -271,17 +274,19 @@ class sdCharacter extends sdEntity
 			REMOVAL: []
 		};*/
 		
+		this._owner = params._owner || null; // Just for manually made AI sdCharacters
+		
 		this._ai = null; // Object, won't be saved to snapshot
-		this._ai_enabled = 0; // Now means id of AI model // false;
-		this._ai_gun_slot = 0; // When AI spawns with a weapon, this variable needs to be defined to the same slot as the spawned gun so AI can use it
-		this._ai_level = 0; // Self explanatory
+		this._ai_enabled = ( params._ai_enabled ) || 0; // Now means id of AI model // false;
+		this._ai_gun_slot = ( params._ai_gun_slot ) || 0; // When AI spawns with a weapon, this variable needs to be defined to the same slot as the spawned gun so AI can use it
+		this._ai_level = ( params._ai_level ) || 0; // Self explanatory
 		this._ai_team = 0; // AI "Teammates" do not target each other
 		this._ai_last_x = 0;
 		this._ai_last_y = 0;
 		this._ai_action_counter = 0; // Counter for AI "actions"
 		this._ai_dig = 0; // Amount of blocks for AI to shoot when stuck; given randomly in AILogic when AITargetBlocks is called
 		
-		this.title = 'Random Hero #' + this._net_id;
+		this.title = params.title || ( 'Random Hero #' + this._net_id );
 		this._my_hash = undefined; // Will be used to let players repsawn within same entity if it exists on map
 		//this._old_score = 0; // This value is only read/written to when player disconnects and reconnects
 		this._score = 0; // Only place where score will be kept from now
@@ -321,6 +326,7 @@ class sdCharacter extends sdEntity
 		this.armor_max = 0; // Max armor; used for drawing armor bar
 		this._armor_absorb_perc = 0; // Armor absorption percentage
 		this.armor_speed_reduction = 0; // Armor speed reduction, depends on armor type
+		this._armor_repair_amount = 0; // How much armor value can be repaired, used for armor repair modules
 
 		//this.anim_death = 0;
 		this._anim_walk = 0;
@@ -386,7 +392,7 @@ class sdCharacter extends sdEntity
 		
 		this._regen_timeout = 0;
 		
-		this.cc_id = 0; // ned_id of Command centre, which defines player's team
+		this.cc_id = 0; // net_id of Command centre, which defines player's team
 		this._cc_rank = 0; // 0 for owner, anything else for non-owner
 		//this.cc_r = 0; // Rank within command centre. 
 		
@@ -406,7 +412,7 @@ class sdCharacter extends sdEntity
 		this._sd_filter_old = null;
 		this._sd_filter_darkened = null;
 		
-		this._voice = {
+		this._voice = params._voice || {
 			wordgap: 0,
 			pitch: 50,
 			speed: 175,
@@ -692,6 +698,7 @@ class sdCharacter extends sdEntity
 			//best_t.SetDelay( sdRescueTeleport.delay_2nd ); // 5 minutes
 			best_t.SetDelay( sdRescueTeleport.delay_simple );
 			best_t.matter = 0;
+			best_t.WakeUpMatterSources();
 			
 			
 			this.ApplyServerSidePositionAndVelocity( true, 0, 0 );
@@ -721,6 +728,7 @@ class sdCharacter extends sdEntity
 		this.armor = 0;
 		this._armor_absorb_perc = 0;
 		this.armor_speed_reduction = 0; 
+		this._armor_repair_amount = 0; // Completely broken armor cannot be repaired
 	}
 	
 	Damage( dmg, initiator=null, headshot=false, affects_armor=true )
@@ -761,7 +769,12 @@ class sdCharacter extends sdEntity
 					{
 						if ( !initiator._ai || ( initiator._ai && initiator._ai_team !== this._ai_team ) ) //Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for Falkoks, also reduced by their AI level
 						{
+							if ( !this._ai.target )
+							this.PlayAIAlertedSound( initiator );
+							
 							this._ai.target = initiator;
+							
+							
 							if ( Math.random() < 0.3 ) // 30% chance
 							this.AIWarnTeammates();
 						}
@@ -1022,12 +1035,33 @@ class sdCharacter extends sdEntity
 		
 		return false;
 	}
+						
+	PlayAIAlertedSound( closest )
+	{
+		if ( this._voice.variant === 'whisperf' )
+		sdSound.PlaySound({ name:'f_welcome1', x:this.x, y:this.y, volume:0.4 });
+		else
+		{
+			// Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false )
+			this.Say( [ 
+				'Your presence makes me mad, but in a good way!', 
+				'I have no other choice but to attack!', 
+				this.title + ' attacks!', 
+				this._inventory[ this.gun_slot ] ? 'I will attack you with by gun because I actually have one!' : 'I will attack with my bare hands if I\'d have to!',
+				this._inventory[ this.gun_slot ] ? 'Peow-peow!' : 'Punchy-punchy!',
+				'*wild ' + this.title + ' noises*',
+				sdWorld.ClassNameToProperName( closest.GetClass(), closest ) + ', identify yourself',
+				sdWorld.ClassNameToProperName( closest.GetClass(), closest ) + ' is KOS',
+				'Say hello to my little ' + ( this._inventory[ this.gun_slot ] ? sdWorld.ClassNameToProperName( this._inventory[ this.gun_slot ].GetClass(), this._inventory[ this.gun_slot ] ) : 'fists' )
+			][ ~~( Math.random() * 9 ) ], false, false, false );
+		}
+	}
 	AILogic( GSPEED ) // aithink
 	{
 		if ( !sdWorld.is_server )
 		return;
 	
-		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK )
+		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_TEAMMATE )
 		{
 			if ( typeof this._ai.next_action === 'undefined' )
 			this._ai.next_action = 30;
@@ -1111,6 +1145,7 @@ class sdCharacter extends sdEntity
 					if ( ent )
 					if ( ent.hea > 0 )
 					if ( !ent._is_being_removed )
+					if ( this._owner !== ent && ( this._owner === null || ( this._owner.cc_id !== 0 || this._owner.cc_id !== ent.cc_id ) ) )
 					{
 						let di = sdWorld.Dist2D( this.x, this.y, ent.x, ent.y );
 						//let di_real = di;
@@ -1141,7 +1176,7 @@ class sdCharacter extends sdEntity
 				{
 					if ( !this._ai.target )
 					{
-						sdSound.PlaySound({ name:'f_welcome1', x:this.x, y:this.y, volume:0.4 });
+						this.PlayAIAlertedSound( closest );
 					}
 
 					this._ai.target = closest;
@@ -1463,6 +1498,19 @@ class sdCharacter extends sdEntity
 						{
 							this.matter -= GSPEED * 0.15; // 0.3
 							this.Damage( -GSPEED );
+						}
+					}
+				}
+				if ( this.armor < this.armor_max && this._armor_repair_amount > 0 )
+				{
+					this._regen_timeout -= GSPEED;
+					if ( this._regen_timeout < 0 )
+					{
+						if ( this.matter > GSPEED )
+						{
+							this.matter -= GSPEED * 0.025; // 0.15
+							this.armor += GSPEED * 1 / 6;
+							this._armor_repair_amount -= GSPEED * 1 / 6;
 						}
 					}
 				}
@@ -1853,70 +1901,75 @@ class sdCharacter extends sdEntity
 
 				if ( this._hook_len === -1 )
 				this._hook_len = cur_di;
-				/*else
+			
+				if ( cur_di > this._hook_len + 128 )
 				{
-					this._hook_len = sdWorld.MorphWithTimeScale( this._hook_len, cur_di - GSPEED * 10, 0.9, GSPEED );
-				}*/
-
-				let pull_force = -( this._hook_len - cur_di ) / 15;
-				let vx = ( this.hook_x - this.x ) / cur_di;
-				let vy = ( this.hook_y - from_y ) / cur_di;
-
-				let self_effect_scale = 1;
-
-				if ( this._hook_relative_to )
+					this.hook_x = 0;
+					this.hook_y = 0;
+				}
+				else
 				{
-					if ( typeof this._hook_relative_to.sx !== 'undefined' )
+
+					let pull_force = -( this._hook_len - cur_di ) / 15;
+					let vx = ( this.hook_x - this.x ) / cur_di;
+					let vy = ( this.hook_y - from_y ) / cur_di;
+
+					let self_effect_scale = 1;
+
+					if ( this._hook_relative_to )
 					{
-						let lx = this._hook_relative_to.sx;
-						let ly = this._hook_relative_to.sy;
-
-						self_effect_scale = this._hook_relative_to.mass / ( this._hook_relative_to.mass + this.mass );
-
-						this._hook_relative_to.sx -= vx * pull_force * GSPEED * ( 1 - self_effect_scale );
-						this._hook_relative_to.sy -= vy * pull_force * GSPEED * ( 1 - self_effect_scale );
-
-						this._hook_relative_to.sx = sdWorld.MorphWithTimeScale( this._hook_relative_to.sx, this.sx, 0.8, GSPEED * ( 1 - self_effect_scale ) );
-						this._hook_relative_to.sy = sdWorld.MorphWithTimeScale( this._hook_relative_to.sy, this.sy, 0.8, GSPEED * ( 1 - self_effect_scale ) );
-
-						if ( this._hook_relative_to.is( sdCharacter ) )
-						this._hook_relative_to.ApplyServerSidePositionAndVelocity( true, this._hook_relative_to.sx - lx, this._hook_relative_to.sy - ly );
-
-						if ( this._hook_relative_to._hiberstate === sdEntity.HIBERSTATE_HIBERNATED )
-						this._hook_relative_to.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-
-						if ( isNaN( this._hook_relative_to.sx ) )
+						if ( typeof this._hook_relative_to.sx !== 'undefined' )
 						{
-							throw new Error('sdCharacter\'s hook causes attached item to have NaN velocity '+[
-								this._hook_relative_to.mass,
-								this.mass,
-								self_effect_scale,
-								cur_di,
-								vx,
-								vy,
-								pull_force,
-								GSPEED,
-								lx,
-								ly,
-								this.sx,
-								this.sy
+							let lx = this._hook_relative_to.sx;
+							let ly = this._hook_relative_to.sy;
 
-							].join(',') );
+							self_effect_scale = this._hook_relative_to.mass / ( this._hook_relative_to.mass + this.mass );
+
+							this._hook_relative_to.sx -= vx * pull_force * GSPEED * ( 1 - self_effect_scale );
+							this._hook_relative_to.sy -= vy * pull_force * GSPEED * ( 1 - self_effect_scale );
+
+							this._hook_relative_to.sx = sdWorld.MorphWithTimeScale( this._hook_relative_to.sx, this.sx, 0.8, GSPEED * ( 1 - self_effect_scale ) );
+							this._hook_relative_to.sy = sdWorld.MorphWithTimeScale( this._hook_relative_to.sy, this.sy, 0.8, GSPEED * ( 1 - self_effect_scale ) );
+
+							if ( this._hook_relative_to.is( sdCharacter ) )
+							this._hook_relative_to.ApplyServerSidePositionAndVelocity( true, this._hook_relative_to.sx - lx, this._hook_relative_to.sy - ly );
+
+							if ( this._hook_relative_to._hiberstate === sdEntity.HIBERSTATE_HIBERNATED )
+							this._hook_relative_to.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+							if ( isNaN( this._hook_relative_to.sx ) )
+							{
+								throw new Error('sdCharacter\'s hook causes attached item to have NaN velocity '+[
+									this._hook_relative_to.mass,
+									this.mass,
+									self_effect_scale,
+									cur_di,
+									vx,
+									vy,
+									pull_force,
+									GSPEED,
+									lx,
+									ly,
+									this.sx,
+									this.sy
+
+								].join(',') );
+							}
+
+							pull_force /= 2;
 						}
 
-						pull_force /= 2;
+
+						if ( this._hook_relative_to._is_being_removed || this._hook_relative_to === this.driver_of )
+						{
+							this.hook_x = 0;
+							this.hook_y = 0;
+						}
 					}
 
-
-					if ( this._hook_relative_to._is_being_removed || this._hook_relative_to === this.driver_of )
-					{
-						this.hook_x = 0;
-						this.hook_y = 0;
-					}
+					this.sx += vx * pull_force * GSPEED * self_effect_scale;
+					this.sy += vy * pull_force * GSPEED * self_effect_scale;
 				}
-
-				this.sx += vx * pull_force * GSPEED * self_effect_scale;
-				this.sy += vy * pull_force * GSPEED * self_effect_scale;
 			}
 
 		}
@@ -2652,7 +2705,7 @@ class sdCharacter extends sdEntity
 							else
 							{
 								//sdCharacter.last_build_deny_reason = 'It overlaps with something';
-								sdCharacter.last_build_deny_reason = 'It overlaps with ' + sdWorld.last_hit_entity.GetClass();
+								sdCharacter.last_build_deny_reason = 'It overlaps with ' + sdWorld.ClassNameToProperName( sdWorld.last_hit_entity.GetClass(), sdWorld.last_hit_entity ); // sdWorld.last_hit_entity.GetClass();
 							}
 						}
 					}
