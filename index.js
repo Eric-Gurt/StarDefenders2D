@@ -794,6 +794,8 @@ sdWorld.server_config = {};
 			
 				instructor_entity.look_x = my_character_entity.x;
 				instructor_entity.look_y = my_character_entity.y;
+		
+				instructor_entity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 				
 			}, 100 );
 			let instructor_interval = setInterval( ()=>

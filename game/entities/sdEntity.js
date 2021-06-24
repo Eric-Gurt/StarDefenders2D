@@ -1394,7 +1394,7 @@ class sdEntity
 		for ( var i = 0; i < connected_ents.length; i++ )
 		{
 			if ( connected_ents[ i ]._hiberstate !== sdEntity.HIBERSTATE_ACTIVE )
-			if ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
+			if ( ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' ) && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
 			connected_ents[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		}
 	}
@@ -1414,7 +1414,7 @@ class sdEntity
 			let connected_ents = sdCable.GetConnectedEntities( this, sdCable.TYPE_MATTER );
 			for ( i = 0; i < connected_ents.length; i++ )
 			{
-				if ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
+				if ( ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' ) && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
 				this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
 			}
 			

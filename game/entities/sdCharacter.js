@@ -2201,19 +2201,22 @@ class sdCharacter extends sdEntity
 		{
 			if ( this.stands && !this.driver_of && ( this._stands_on !== this._hook_relative_to || ( this.hook_x === 0 && this.hook_y === 0 ) ) )
 			{
-				if ( this.sy > 1 )
+				if ( this.sy > -0.1 )
 				{
-					if ( !this.ghosting )
+					if ( this.sy > 1 )
 					{
-						if ( sdWorld.time > this._fall_sound_time + 100 ) // Flood will cause world snapshots to be delayed
+						if ( !this.ghosting )
 						{
-							this._fall_sound_time = sdWorld.time;
-							sdSound.PlaySound({ name:'player_step', x:this.x, y:this.y, volume:0.5 });
+							if ( sdWorld.time > this._fall_sound_time + 100 ) // Flood will cause world snapshots to be delayed
+							{
+								this._fall_sound_time = sdWorld.time;
+								sdSound.PlaySound({ name:'player_step', x:this.x, y:this.y, volume:0.5 });
+							}
 						}
 					}
-				}
 
-				this.sy = 0;
+					this.sy = 0;
+				}
 
 				this.tilt_speed = sdWorld.MorphWithTimeScale( this.tilt_speed, 0, 0.9, GSPEED );
 
