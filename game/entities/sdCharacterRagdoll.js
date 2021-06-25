@@ -19,6 +19,8 @@ class sdCharacterRagdoll
 		sdCharacterRagdoll.spring_max = 2;
 		
 		sdCharacterRagdoll.SeededRandomNumberGenerator = new sdWorld.SeededRandomNumberGenerator_constructor( 64372 );
+		
+		sdCharacterRagdoll.sdBone = sdBone;
 	}
 	
 	constructor( character )

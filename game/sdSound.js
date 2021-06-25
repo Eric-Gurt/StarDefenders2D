@@ -3,6 +3,8 @@ import sdWorld from './sdWorld.js';
 import sdEntity from './entities/sdEntity.js';
 import sdWeather from './entities/sdWeather.js';
 import sdWater from './entities/sdWater.js';
+import sdCharacterRagdoll from './entities/sdCharacterRagdoll.js';
+import sdEffect from './entities/sdEffect.js';
 
 class sdSound
 {
@@ -225,35 +227,39 @@ class sdSound
 			
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
 		{
-			if ( sdEntity.entities[ i ].GetClass() === 'sdCharacter' )
+			if ( !sdEntity.entities[ i ].is( sdCharacterRagdoll.sdBone ) )
+			if ( !sdEntity.entities[ i ].is( sdEffect ) )
 			{
-				if ( sdEntity.entities[ i ].flying )
-				count_flying += 1 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
-			}
-			else
-			if ( sdEntity.entities[ i ].GetClass() === 'sdHover' )
-			{
-				if ( sdEntity.entities[ i ].driver0 /*&& ( sdEntity.entities[ i ].driver0.act_x !== 0 || sdEntity.entities[ i ].driver0.act_y !== 0 )*/ )
-				count_hover_loop += 2 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
-			}
-			else
-			if ( sdEntity.entities[ i ].GetClass() === 'sdMatterAmplifier' )
-			{
-				if ( sdEntity.entities[ i ].matter_max > 0 )
-				count_amplifier_loop += 0.5 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
-			}
-			else
-			if ( sdEntity.entities[ i ].GetClass() === 'sdWater' && sdEntity.entities[ i ].type === sdWater.TYPE_LAVA )
-			{
-				count_lava_loop += 0.02 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
-				
-				if ( sdEntity.entities[ i ]._swimmers.size > 0 )
-				count_lava_burn += 0.15 * sdEntity.entities[ i ]._swimmers.size * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
-			}
-			else
-			if ( sdEntity.entities[ i ].GetClass() === 'sdRift' )
-			{
-				count_rift_loop += 2.5 * sdEntity.entities[ i ].scale * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+				if ( sdEntity.entities[ i ].GetClass() === 'sdCharacter' )
+				{
+					if ( sdEntity.entities[ i ].flying )
+					count_flying += 1 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+				}
+				else
+				if ( sdEntity.entities[ i ].GetClass() === 'sdHover' )
+				{
+					if ( sdEntity.entities[ i ].driver0 /*&& ( sdEntity.entities[ i ].driver0.act_x !== 0 || sdEntity.entities[ i ].driver0.act_y !== 0 )*/ )
+					count_hover_loop += 2 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+				}
+				else
+				if ( sdEntity.entities[ i ].GetClass() === 'sdMatterAmplifier' )
+				{
+					if ( sdEntity.entities[ i ].matter_max > 0 )
+					count_amplifier_loop += 0.5 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+				}
+				else
+				if ( sdEntity.entities[ i ].GetClass() === 'sdWater' && sdEntity.entities[ i ].type === sdWater.TYPE_LAVA )
+				{
+					count_lava_loop += 0.02 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+
+					if ( sdEntity.entities[ i ]._swimmers.size > 0 )
+					count_lava_burn += 0.15 * sdEntity.entities[ i ]._swimmers.size * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+				}
+				else
+				if ( sdEntity.entities[ i ].GetClass() === 'sdRift' )
+				{
+					count_rift_loop += 2.5 * sdEntity.entities[ i ].scale * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+				}
 			}
 		}
 		

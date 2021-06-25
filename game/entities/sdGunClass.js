@@ -8,6 +8,7 @@ import sdGun from './sdGun.js';
 import sdLost from './sdLost.js';
 import sdCable from './sdCable.js';
 import sdEntity from './sdEntity.js';
+import sdNode from './sdNode.js';
 
 class sdGunClass
 {
@@ -935,8 +936,16 @@ class sdGunClass
 						{
 							//bullet._owner._current_built_entity.SetChild( target_entity );
 							bullet._owner._current_built_entity.c = target_entity;
-							bullet._owner._current_built_entity.d[ 2 ] = bullet.x - target_entity.x;
-							bullet._owner._current_built_entity.d[ 3 ] = bullet.y - target_entity.y;
+							if ( target_entity.is( sdNode ) )
+							{
+								bullet._owner._current_built_entity.d[ 2 ] = 0;
+								bullet._owner._current_built_entity.d[ 3 ] = 0;
+							}
+							else
+							{
+								bullet._owner._current_built_entity.d[ 2 ] = bullet.x - target_entity.x;
+								bullet._owner._current_built_entity.d[ 3 ] = bullet.y - target_entity.y;
+							}
 
 							//bullet._owner.Say( 'End connected to ' + ( target_entity.title || target_entity.GetClass() ) );
 
@@ -952,7 +961,7 @@ class sdGunClass
 							y: bullet.y, 
 							parent: target_entity,
 							child: bullet._owner,
-							offsets: [ bullet.x - target_entity.x, bullet.y - target_entity.y, 0,0 ],
+							offsets: target_entity.is( sdNode ) ? [ 0,0, 0,0 ] : [ bullet.x - target_entity.x, bullet.y - target_entity.y, 0,0 ],
 							type: sdCable.TYPE_MATTER
 						});
 

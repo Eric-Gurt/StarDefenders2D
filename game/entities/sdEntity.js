@@ -762,12 +762,13 @@ class sdEntity
 			if ( this.onThink.has_ApplyVelocityAndCollisions === undefined )
 			{
 				let onThinkString = this.onThink.toString();
+				let DrawString = this.Draw.toString();
 				
 				this.onThink.has_ApplyVelocityAndCollisions = ( onThinkString.indexOf( 'ApplyVelocityAndCollisions' ) !== -1 );
 				
 				this.onThink.has_GetAnythingNearCache = ( onThinkString.indexOf( 'MatterGlow' ) !== -1 || onThinkString.indexOf( 'GetAnythingNearCache' ) !== -1 );
 				
-				this.onThink.has_GetComWiredCache = ( onThinkString.indexOf( 'GetComWiredCache' ) !== -1 );
+				this.onThink.has_GetComWiredCache = ( onThinkString.indexOf( 'GetComWiredCache' ) !== -1 || DrawString.indexOf( 'GetComWiredCache' ) !== -1 );
 				
 				this.onThink.has_sdBlock_extras = false;
 				
@@ -798,6 +799,7 @@ class sdEntity
 			{
 				this._com_near_cache = null;
 				this._next_com_rethink = 0;
+				this.cio = 0;
 			}
 			
 			if ( this.onThink.has_sdBlock_extras )
