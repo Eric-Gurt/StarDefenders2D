@@ -67,6 +67,9 @@ class sdSlug extends sdEntity
 		this.blinks = [ 0, 0, 0 ];
 		
 		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
+		
+		this._last_speak = 0;
+		this._speak_id = -1; // Required by speak effects // last voice message
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{

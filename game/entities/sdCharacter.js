@@ -420,7 +420,7 @@ class sdCharacter extends sdEntity
 			speed: 175,
 			variant: 'klatt'
 		};
-		this._speak_id = -1; // last voice message
+		this._speak_id = -1; // Required by speak effects // last voice message
 		this._say_allowed_in = 0;
 		
 		//this.team_id = 0; // 0 is FFA team
