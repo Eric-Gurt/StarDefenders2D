@@ -2660,6 +2660,27 @@ class sdWorld
 		
 		return sdWorld.ColorArrayToHex( color );
 	}
+	static GetVersion2SDFilterFromVersion1SDFilter( sd_filter )
+	{
+		if ( sd_filter )
+		if ( !sd_filter.s )
+		{
+			let s = '';
+			for ( let r in sd_filter )
+			{
+				for ( let g in sd_filter[ r ] )
+				{
+					for ( let b in sd_filter[ r ][ g ] )
+					{
+						s += sdWorld.ColorArrayToHex( [ r,g,b ] ) + sdWorld.ColorArrayToHex( sd_filter[ r ][ g ][ b ] );
+					}
+				}
+			}
+			sd_filter = { s: s };
+		}
+		
+		return sd_filter;
+	}
 	static ReplaceColorInSDFilter_v2( sd_filter, from, to, replace_existing_color_if_there_is_one=true )
 	{
 		if ( to === undefined ) // Usually means there is no replacement
@@ -3101,7 +3122,7 @@ class sdWorld
 	
 		return output;
 	}
-	static ApplyDrawOperations( ctx, output )
+	static ApplyDrawOperations( ctx, output ) // Call with ctx as null on server to update sd_filter version
 	{
 		const command_match_table = sdWorld.draw_operation_command_match_table;
 		
@@ -3125,53 +3146,56 @@ class sdWorld
 		for ( let i = 0; i < output.length; i++ )
 		{
 			if ( typeof output[ i ] === 'number' )
-			{
-				opcode = output[ i ];
-			}
-			
+			opcode = output[ i ];
 			
 			if ( typeof output[ i ] !== 'number' || sdWorld.draw_operation_no_parameters[ opcode ] )
 			{
-				if ( opcode === 0 ) // sd_filter set
+				if ( !ctx )
 				{
-					ctx.sd_filter = output[ i ];
+					if ( opcode === 0 ) // sd_filter set
+					{
+						if ( output[ i ] )
+						if ( !output[ i ].s )
+						output[ i ] = sdWorld.GetVersion2SDFilterFromVersion1SDFilter( output[ i ] );
+					}
 				}
 				else
 				{
-					let method_name = sdWorld.draw_operation_command_match_table[ sdWorld.draw_operation_command_match_table.indexOf( opcode ) - 1 ];
-					
-					let args = output[ i ];
-					
-					// Decompress simple draw
-					if ( opcode === 1 )
+					if ( opcode === 0 ) // sd_filter set
 					{
-						if ( typeof args === 'string' )
-						{
-							args = [ args, -16, -16, 32, 32 ];
-						}
-						else
-						{
-							args = args.slice(); // Do not overwrite old array
-						}
-						
-						/*let img_object = sdWorld.lost_images_cache[ args[ 0 ] ];
-						
-						if ( !sdWorld.lost_images_cache || sdWorld.lost_images_cache[ args[ 0 ] ] )
-						{
-							sdWorld.CreateImageFromFile( args[ 0 ] );
-							
-							args[ 0 ] = img_object;
-						}*/
-						args[ 0 ] = sdWorld.CreateImageFromFile( args[ 0 ] );
+						ctx.sd_filter = output[ i ];
 					}
-					
-					if ( sdWorld.draw_operation_no_parameters[ opcode ] )
-					ctx[ method_name ]();
 					else
-					ctx[ method_name ]( ...args );
+					{
+						let method_name = sdWorld.draw_operation_command_match_table[ sdWorld.draw_operation_command_match_table.indexOf( opcode ) - 1 ];
+
+						let args = output[ i ];
+
+						// Decompress simple draw
+						if ( opcode === 1 )
+						{
+							if ( typeof args === 'string' )
+							{
+								args = [ args, -16, -16, 32, 32 ];
+							}
+							else
+							{
+								args = args.slice(); // Do not overwrite old array
+							}
+
+							args[ 0 ] = sdWorld.CreateImageFromFile( args[ 0 ] );
+						}
+
+						if ( sdWorld.draw_operation_no_parameters[ opcode ] )
+						ctx[ method_name ]();
+						else
+						ctx[ method_name ]( ...args );
+					}
 				}
 			}
 		}
+		
+		if ( ctx )
 		ctx.sd_filter = null;
 	}
 	

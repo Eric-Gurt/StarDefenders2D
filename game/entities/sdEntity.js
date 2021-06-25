@@ -1259,6 +1259,8 @@ class sdEntity
 			if ( this.sd_filter )
 			if ( !this.sd_filter.s )
 			{
+				this.sd_filter = sdWorld.GetVersion2SDFilterFromVersion1SDFilter( this.sd_filter );
+				/*
 				let s = '';
 				for ( let r in this.sd_filter )
 				{
@@ -1278,6 +1280,11 @@ class sdEntity
 				
 				//if ( this.sd_filter.s % 12 !== 0 )
 				//throw new Error( 'Wrong sd_filter length: ' + this.sd_filter.s );
+				*/
+			}
+			if ( this.is( sdWorld.entity_classes.sdLost ) )
+			{
+				sdWorld.ApplyDrawOperations( null, this.d );
 			}
 		}
 		else

@@ -146,7 +146,14 @@ class sdRenderer
 					{
 						if ( !sd_filter.s )
 						{
-							throw new Error( 'Old sd_filter used. New one should have structure as follows: { s: "AAAAAABBBBBBCCCCCCDDDDDD" }' );
+							// Just draw old sd_filter properly while updating cache. Server in many cases won't be able to realize it sends this old sd_filter anyway
+							
+							//throw new Error( 'Old sd_filter used. New one should have structure as follows: { s: "AAAAAABBBBBBCCCCCCDDDDDD" }' );
+							
+							debugger;
+							console.warn( 'Old sd_filter is being drawn. Issues can be ignored but will cause slight performance issues' );
+							
+							sd_filter.s = sdWorld.GetVersion2SDFilterFromVersion1SDFilter( sd_filter ).s; // Do not replace object just so it can be reused on client-side
 						}
 					}
 					
