@@ -142,7 +142,23 @@ class sdRenderer
 
 				if ( sd_filter || sd_tint_filter || filter !== 'none' )
 				{
-					const complex_filter_name = filter + '/' + ( sd_filter ? JSON.stringify( sd_filter ) : '' ) + '/' + ( sd_tint_filter ? JSON.stringify( sd_tint_filter ) : '' );
+					if ( sd_filter )
+					{
+						if ( !sd_filter.s )
+						{
+							// Just draw old sd_filter properly while updating cache. Server in many cases won't be able to realize it sends this old sd_filter anyway
+							
+							//throw new Error( 'Old sd_filter used. New one should have structure as follows: { s: "AAAAAABBBBBBCCCCCCDDDDDD" }' );
+							
+							debugger;
+							console.warn( 'Old sd_filter is being drawn. Issues can be ignored but will cause slight performance issues' );
+							
+							sd_filter.s = sdWorld.GetVersion2SDFilterFromVersion1SDFilter( sd_filter ).s; // Do not replace object just so it can be reused on client-side
+						}
+					}
+					
+					//const complex_filter_name = filter + '/' + ( sd_filter ? JSON.stringify( sd_filter ) : '' ) + '/' + ( sd_tint_filter ? JSON.stringify( sd_tint_filter ) : '' );
+					const complex_filter_name = filter + '/' + ( sd_filter ? sd_filter.s : '' ) + '/' + ( sd_tint_filter ? JSON.stringify( sd_tint_filter ) : '' );
 
 					let image_obj = args[ 0 ];
 
@@ -153,29 +169,44 @@ class sdRenderer
 					else
 					{
 						// Make
-						image_obj_cache = {};
+						//image_obj_cache = {};
+						image_obj_cache = new Map();
 						sdRenderer.image_filter_cache.set( image_obj, image_obj_cache );
 					}
 					
-					if ( typeof image_obj_cache[ complex_filter_name ] === 'undefined' )
+					let image_obj_cache_named_item = image_obj_cache.get( complex_filter_name );
+					
+					//if ( typeof image_obj_cache[ complex_filter_name ] === 'undefined' )
+					if ( !image_obj_cache_named_item )
 					{
 						if ( typeof OffscreenCanvas !== 'undefined' )
-						image_obj_cache[ complex_filter_name ] = new OffscreenCanvas( image_obj.width, image_obj.height );
+						{
+							//image_obj_cache[ complex_filter_name ] = new OffscreenCanvas( image_obj.width, image_obj.height );
+							image_obj_cache_named_item = new OffscreenCanvas( image_obj.width, image_obj.height );
+						}
 						else
 						{
-							image_obj_cache[ complex_filter_name ] = document.createElement('canvas');
-							image_obj_cache[ complex_filter_name ].width = image_obj.width;
-							image_obj_cache[ complex_filter_name ].height = image_obj.height;
+							//image_obj_cache[ complex_filter_name ] = document.createElement('canvas');
+							//image_obj_cache[ complex_filter_name ].width = image_obj.width;
+							//image_obj_cache[ complex_filter_name ].height = image_obj.height;
+							
+							image_obj_cache_named_item = document.createElement('canvas');
+							image_obj_cache_named_item.width = image_obj.width;
+							image_obj_cache_named_item.height = image_obj.height;
 						}
-						let ctx = image_obj_cache[ complex_filter_name ].getContext("2d");
+						image_obj_cache.set( complex_filter_name, image_obj_cache_named_item );
+							
+						//let ctx = image_obj_cache[ complex_filter_name ].getContext("2d");
+						let ctx = image_obj_cache_named_item.getContext("2d");
 						
 						let apply_sd_filter = false;
 						
 						if ( sd_filter )
-						for ( let color in sd_filter )
+						if ( sd_filter.s.length > 0 )
+						//for ( let color in sd_filter )
 						{
 							apply_sd_filter = true;
-							break;
+							//break;
 						}
 
 						if ( apply_sd_filter || sd_tint_filter )
@@ -207,10 +238,45 @@ class sdRenderer
 								data_view.setUint8( i+3, 255 );
 							}
 							debugger;*/
-							let r,g,b;
+							let r,g,b,arr;
 							
 							if ( sd_filter )
-							for ( let i = 0; i < data.length; i += 4 )
+							{
+								//debugger
+								let structured_sd_filter = {};
+								for ( let i = 0; i < sd_filter.s.length; i += 12 )
+								{
+									r = parseInt( sd_filter.s.substring( i, i + 2 ), 16 );
+									g = parseInt( sd_filter.s.substring( i + 2, i + 4 ), 16 );
+									b = parseInt( sd_filter.s.substring( i + 4, i + 6 ), 16 );
+									
+									let r2 = parseInt( sd_filter.s.substring( 6+ i, 6+ i + 2 ), 16 );
+									let g2 = parseInt( sd_filter.s.substring( 6+ i + 2, 6+ i + 4 ), 16 );
+									let b2 = parseInt( sd_filter.s.substring( 6+ i + 4, 6+ i + 6 ), 16 );
+									
+									//console.log( r,g,b, '::', r2,g2,b2 );
+									
+									//if ( isNaN( r2 ) )
+									//debugger;
+									
+									structured_sd_filter[ r * 256 * 256 + g * 256 + b ] = [ r2, g2, b2 ];
+								}
+								for ( let i = 0; i < data.length; i += 4 )
+								{
+									r = data[ i ];
+									g = data[ i + 1 ];
+									b = data[ i + 2 ];
+									
+									arr = structured_sd_filter[ r * 256 * 256 + g * 256 + b ];
+									if ( arr )
+									{
+										data[ i ] = arr[ 0 ];
+										data[ i + 1 ] = arr[ 1 ];
+										data[ i + 2 ] = arr[ 2 ];
+									}
+								}
+							}
+							/*for ( let i = 0; i < data.length; i += 4 )
 							{
 								//data[ i ] = 255;
 								r = data[ i ];
@@ -229,7 +295,7 @@ class sdRenderer
 										}
 									}
 								}
-							}
+							}*/
 							
 							if ( sd_tint_filter )
 							for ( let i = 0; i < data.length; i += 4 )
@@ -246,7 +312,8 @@ class sdRenderer
 							{
 					        	ctx.filter = filter;
                                 ctx.globalCompositeOperation='copy';
-					        	ctx.drawImage( image_obj_cache[ complex_filter_name ], 0, 0 );
+					        	//ctx.drawImage( image_obj_cache[ complex_filter_name ], 0, 0 );
+					        	ctx.drawImage( image_obj_cache_named_item, 0, 0 );
                                 ctx.globalCompositeOperation='source-over';
 							}
 						}
@@ -255,7 +322,9 @@ class sdRenderer
 					ctx0.filter = 'none';
 
 					//ctx0.drawImage( image_obj_cache[ complex_filter_name ], ...args.slice( 1 ) );
-					ctx0.drawImage( image_obj_cache[ complex_filter_name ], ...args.slice( 1 ) );
+					//ctx0.drawImage( image_obj_cache[ complex_filter_name ], ...args.slice( 1 ) );
+					ctx0.drawImage( image_obj_cache_named_item, ...args.slice( 1 ) );
+					
 					
 					ctx0.filter = filter;
 

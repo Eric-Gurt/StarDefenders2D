@@ -112,7 +112,7 @@ class sdRift extends sdEntity
 					//if ( sdWorld.is_server )
 					//this.hea = this.hmax; // Hack
 				
-					this._update_version++;
+					//this._update_version++;
 				}
 			}
 			if ( this._spawn_timer_cd <= 0 ) // Spawn an entity
@@ -147,8 +147,9 @@ class sdRift extends sdEntity
 								y:this.y,
 								_tier:2
 							});
-							let quickie_filter = {};
-								sdWorld.ReplaceColorInSDFilter( quickie_filter, '#000000', '#FF00FF' ) // Pink, stronger quickies
+							//let quickie_filter = {};
+							let quickie_filter = sdWorld.CreateSDFilter();
+								sdWorld.ReplaceColorInSDFilter_v2( quickie_filter, '#000000', '#ff00ff' ) // Pink, stronger quickies
 							quickie.sd_filter = quickie_filter;
 							sdEntity.entities.push( quickie );
 							sdWorld.UpdateHashPosition( quickie, false ); // Prevent intersection with other ones
@@ -187,7 +188,7 @@ class sdRift extends sdEntity
 			{
 				this.hea = Math.max( this.hea - 1, 0 );
 				this.matter_crystal--;
-				this._update_version++;
+				//this._update_version++;
 			}
 			if ( this._time_until_teleport > 0 )
 			{
@@ -272,7 +273,7 @@ class sdRift extends sdEntity
 
 				this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + from_entity.matter_max); // Drain the crystal for it's max value and destroy it
 				this._regen_timeout = 30 * 60 * 20; // 20 minutes until it starts regenerating if it didn't drain matter
-				this._update_version++;
+				//this._update_version++;
 				from_entity.remove();
 			}
 		}
@@ -284,7 +285,7 @@ class sdRift extends sdEntity
 			this.type = 2;
 			//this.GetFilterColor();
 			this._regen_timeout = 30 * 60 * 20; // 20 minutes until it starts regenerating
-			this._update_version++;
+			//this._update_version++;
 
 			sdWorld.SendEffect({ 
 				x:this.x, 

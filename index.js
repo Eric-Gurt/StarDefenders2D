@@ -373,6 +373,8 @@ globalThis.sdShop = sdShop;
 globalThis.sdModeration = sdModeration;
 globalThis.sdSnapPack = sdSnapPack;
 
+sdWorld.FinalizeClasses();
+
 let world_slot = 0; // Default slot adds no prefixes to file names
 
 for ( let i = 0; i < process.argv.length; i++ )
@@ -755,7 +757,7 @@ sdWorld.server_config = {};
 			
 			let instructor_settings = {"hero_name":"Instructor","color_bright":"#7aadff","color_dark":"#25668e","color_bright3":"#7aadff","color_dark3":"#25668e","color_visor":"#ffffff","color_suit":"#000000","color_shoes":"#303954","color_skin":"#51709a","voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"color_suit2":"#000000","color_dark2":"#25668e"};
 
-			instructor_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter( instructor_settings );
+			instructor_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( instructor_settings );
 			instructor_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( instructor_settings );
 			instructor_entity.title = instructor_settings.hero_name;
 			//instructor_entity.matter = 1;
@@ -794,6 +796,8 @@ sdWorld.server_config = {};
 			
 				instructor_entity.look_x = my_character_entity.x;
 				instructor_entity.look_y = my_character_entity.y;
+		
+				instructor_entity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 				
 			}, 100 );
 			let instructor_interval = setInterval( ()=>
@@ -2004,7 +2008,7 @@ io.on("connection", (socket) =>
 		{
 			
 		}
-		character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter( player_settings );
+		character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( player_settings );
 		character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( player_settings );
 		
 		character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( player_settings );

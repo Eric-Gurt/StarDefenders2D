@@ -387,6 +387,41 @@ class sdWorld
 				}
 			}
 		};
+		
+		let say_delay = true;
+		let sealing_classes = ()=>
+		{
+			if ( !sdWorld.fastest_method_improver_info || sdWorld.fastest_method_improver_info.size === 0 )
+			{
+				for ( let i in sdWorld.entity_classes )
+				{
+					Object.seal( sdWorld.entity_classes[ i ] );
+					Object.seal( sdWorld.entity_classes[ i ].prototype );
+				}
+				
+				if ( !say_delay )
+				console.log( 'Classes & prototypes sealing done!' );
+			}
+			else
+			{
+				if ( say_delay )
+				{
+					say_delay = false;
+					console.log( 'Delaying classes & prototypes sealing, pending ' + sdWorld.fastest_method_improver_info.size + ' fastest_method_improver_info items...' );
+				}
+				setTimeout( sealing_classes, 1000 );
+			}
+		};
+		
+		setTimeout( sealing_classes, 1000 );
+	}
+	static FinalizeClasses() // isC optimization, also needed for sealing
+	{
+		for ( let i in sdWorld.entity_classes )
+		{
+			let c = sdWorld.entity_classes[ i ];
+			c._class = c.prototype.constructor.name;
+		}
 	}
 	static GoFullscreen()
 	{
@@ -1548,42 +1583,48 @@ class sdWorld
 			if ( entity.width === 16 )
 			if ( entity.height === 16 )
 			debugger;*/
-		
-			let from_x = sdWorld.FastFloor( ( entity.x + entity._hitbox_x1 ) / 32 );
-			let from_y = sdWorld.FastFloor( ( entity.y + entity._hitbox_y1 ) / 32 );
-			let to_x = sdWorld.FastCeil( ( entity.x + entity._hitbox_x2 ) / 32 );
-			let to_y = sdWorld.FastCeil( ( entity.y + entity._hitbox_y2 ) / 32 );
-			
-			if ( to_x === from_x )
-			to_x++;
-			if ( to_y === from_y )
-			to_y++;
-
-			if ( to_x - from_x < 32 && to_y - from_y < 32 )
+								
+			if ( entity._net_id === undefined ) // Client-side entities can't interact with anything. Such as sdEffect and sdBone. In case if they would - they will also appear in huge arrays of hash cells, which would slow down client-side game
 			{
-				var xx, yy;
-				
-				/*if ( entity.is( sdBlock ) )
-				if ( entity.width === 16 )
-				if ( entity.height === 16 )
-				if ( to_x === from_x || to_y === from_y )
-				debugger*/
-
-				//for ( xx = from_x; xx <= to_x; xx++ )
-				//for ( yy = from_y; yy <= to_y; yy++ )
-				for ( xx = from_x; xx < to_x; xx++ )
-				for ( yy = from_y; yy < to_y; yy++ )
-				new_affected_hash_arrays.push( sdWorld.RequireHashPosition( xx * 32, yy * 32, true ) );
-		
-				/*
-				if ( entity.GetClass() === 'sdArea' )
-				//if ( new_affected_hash_arrays.length < 72 )
-				{
-					console.warn(['CaseA sdArea new_affected_hash_arrays =',new_affected_hash_arrays.length,'::',from_x,from_y,to_x,to_y,'size:'+entity.size,'x:'+entity.x,'y:'+entity.y]);
-				}*/
 			}
 			else
-			debugger; // ~~ operation overflow is taking place? Or object is just too huge?
+			{
+				let from_x = sdWorld.FastFloor( ( entity.x + entity._hitbox_x1 ) / 32 );
+				let from_y = sdWorld.FastFloor( ( entity.y + entity._hitbox_y1 ) / 32 );
+				let to_x = sdWorld.FastCeil( ( entity.x + entity._hitbox_x2 ) / 32 );
+				let to_y = sdWorld.FastCeil( ( entity.y + entity._hitbox_y2 ) / 32 );
+
+				if ( to_x === from_x )
+				to_x++;
+				if ( to_y === from_y )
+				to_y++;
+
+				if ( to_x - from_x < 32 && to_y - from_y < 32 )
+				{
+					var xx, yy;
+
+					/*if ( entity.is( sdBlock ) )
+					if ( entity.width === 16 )
+					if ( entity.height === 16 )
+					if ( to_x === from_x || to_y === from_y )
+					debugger*/
+
+					//for ( xx = from_x; xx <= to_x; xx++ )
+					//for ( yy = from_y; yy <= to_y; yy++ )
+					for ( xx = from_x; xx < to_x; xx++ )
+					for ( yy = from_y; yy < to_y; yy++ )
+					new_affected_hash_arrays.push( sdWorld.RequireHashPosition( xx * 32, yy * 32, true ) );
+
+					/*
+					if ( entity.GetClass() === 'sdArea' )
+					//if ( new_affected_hash_arrays.length < 72 )
+					{
+						console.warn(['CaseA sdArea new_affected_hash_arrays =',new_affected_hash_arrays.length,'::',from_x,from_y,to_x,to_y,'size:'+entity.size,'x:'+entity.x,'y:'+entity.y]);
+					}*/
+				}
+				else
+				debugger; // ~~ operation overflow is taking place? Or object is just too huge?
+			}
 		}
 		
 		//if ( entity._hash_position !== new_hash_position )
@@ -1657,6 +1698,7 @@ class sdWorld
 			entity._last_y = entity.y;
 			
 			//if ( false ) // Is it still needed? Yes, for cases of overlap that does not involve pushing (players picking up guns, bullets hitting anything)
+			//if ( sdWorld.is_server || entity._net_id !== undefined ) // Not a client-side entity, these (like sdBone) should not react with anything and can simply take up execution time
 			{
 				var map = new Set();
 
@@ -1799,6 +1841,17 @@ class sdWorld
 			let skip_frames;
 			
 			let timewarps = null;
+			
+			if ( sdEntity.to_seal_list.length > 0 )
+			{
+				//if ( false )
+				for ( i = 0; i < sdEntity.to_seal_list.length; i++ )
+				{
+					if ( !sdEntity.to_seal_list[ i ]._is_being_removed )
+					Object.seal( sdEntity.to_seal_list[ i ] );
+				}
+				sdEntity.to_seal_list.length = 0;
+			}
 			
 			if ( sdWorld.is_server )
 			{
@@ -2497,12 +2550,6 @@ class sdWorld
 				volume: volume, 
 				pitch: pitch });
 			
-			if ( that.sx === undefined )
-			that.sx = 0;
-			
-			if ( that.sy === undefined )
-			that.sy = 0;
-
 			for ( let i = 0; i < debris_count; i++ )
 			{
 				let a = Math.random() * 2 * Math.PI;
@@ -2515,7 +2562,7 @@ class sdWorld
 				
 				//console.log( 'BasicEntityBreakEffect', that.sx, k, a, s );
 
-				sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: that.sx*k + Math.sin(a)*s, sy: that.sy*k + Math.cos(a)*s, filter:that.GetBleedEffectFilter() });
+				sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: ( that.sx || 0 )*k + Math.sin(a)*s, sy: ( that.sy || 0 )*k + Math.cos(a)*s, filter:that.GetBleedEffectFilter() });
 			}
 		}
 	}
@@ -2532,6 +2579,8 @@ class sdWorld
 	}
 	static ReplaceColorInSDFilter( sd_filter, from, to )
 	{
+		debugger; // Outdated, use _v2 instead
+		
 		if ( typeof from === 'string' )
 		{
 			from = sdWorld.hexToRgb( from );
@@ -2563,8 +2612,124 @@ class sdWorld
 		//if ( typeof sd_filter[ from[ 0 ] ][ from[ 1 ] ][ from[ 2 ] ] === 'undefined' )
 		sd_filter[ from[ 0 ] ][ from[ 1 ] ][ from[ 2 ] ] = to;
 	}
+	static GetColorOfSDFilter( sd_filter, from )
+	{
+		for ( let i = 0; i < sd_filter.s.length; i += 12 )
+		{
+			let color_hex = sd_filter.s.substring( i, i + 6 );
+
+			if ( color_hex === from )
+			{
+				return sd_filter.s.substring( i + 6, i + 12 );
+				//sd_filter.s = sd_filter.s.substring( 0, i + 6 ) + to + sd_filter.s.substring( i + 12 );
+				//return;
+			}
+		}
+		return from;
+	}
+	static ColorArrayToHex( color )
+	{
+		color[ 0 ] = Math.min( Math.max( 0, color[ 0 ] ), 255 );
+		color[ 1 ] = Math.min( Math.max( 0, color[ 1 ] ), 255 );
+		color[ 2 ] = Math.min( Math.max( 0, color[ 2 ] ), 255 );
+		
+		color[ 0 ] = color[ 0 ].toString( 16 );
+		if ( color[ 0 ].length < 2 )
+		color[ 0 ] = '0' + color[ 0 ];
+		
+		color[ 1 ] = color[ 1 ].toString( 16 );
+		if ( color[ 1 ].length < 2 )
+		color[ 1 ] = '0' + color[ 1 ];
+		
+		color[ 2 ] = color[ 2 ].toString( 16 );
+		if ( color[ 2 ].length < 2 )
+		color[ 2 ] = '0' + color[ 2 ];
+	
+		//if ( color.join( '' ).length !== 6 )
+		//throw new Error( 'Wrong ColorArrayToHex length: ' + JSON.stringify( color ) );
+				
+		return color.join( '' );
+	}
+	static MultiplyHexColor( hex, v )
+	{
+		let color = sdWorld.hexToRgb( hex );
+		
+		color[ 0 ] = ~~( color[ 0 ] * v );
+		color[ 1 ] = ~~( color[ 1 ] * v );
+		color[ 2 ] = ~~( color[ 2 ] * v );
+		
+		return sdWorld.ColorArrayToHex( color );
+	}
+	static GetVersion2SDFilterFromVersion1SDFilter( sd_filter )
+	{
+		if ( sd_filter )
+		if ( !sd_filter.s )
+		{
+			let s = '';
+			for ( let r in sd_filter )
+			{
+				for ( let g in sd_filter[ r ] )
+				{
+					for ( let b in sd_filter[ r ][ g ] )
+					{
+						s += sdWorld.ColorArrayToHex( [ r,g,b ] ) + sdWorld.ColorArrayToHex( sd_filter[ r ][ g ][ b ] );
+					}
+				}
+			}
+			sd_filter = { s: s };
+		}
+		
+		return sd_filter;
+	}
+	static ReplaceColorInSDFilter_v2( sd_filter, from, to, replace_existing_color_if_there_is_one=true )
+	{
+		if ( to === undefined ) // Usually means there is no replacement
+		return;
+	
+		if ( typeof to !== 'string' ) // Malfunctioned replacement from client?
+		{
+			debugger;
+			return;
+		}
+		
+		if ( from.length === 7 )
+		from = from.substring( 1 );
+	
+		if ( to.length === 7 )
+		to = to.substring( 1 );
+	
+		if ( from.length !== 6 )
+		throw new Error('Wrong hex color string passed');
+	
+		if ( to.length !== 6 ) // Malfunctioned replacement from client?
+		{
+			debugger;
+			return;
+		}
+	
+		if ( typeof sd_filter.s !== 'string' )
+		throw new Error('SDFilter was not init properly. Use sdWorld.CreateSDFilter() to make new SDFilters');
+	
+		if ( replace_existing_color_if_there_is_one )
+		{
+			for ( let i = 0; i < sd_filter.s.length; i += 12 )
+			{
+				let color_hex = sd_filter.s.substring( i, i + 6 );
+				
+				if ( color_hex === from )
+				{
+					sd_filter.s = sd_filter.s.substring( 0, i + 6 ) + to + sd_filter.s.substring( i + 12 );
+					return;
+				}
+			}
+		}
+		sd_filter.s += from;
+		sd_filter.s += to;
+	}
 	static ConvertPlayerDescriptionToSDFilter( player_description )
 	{
+		debugger; // Outdated, use _v2 instead
+		
 		let ret = {};
 		
 		sdWorld.ReplaceColorInSDFilter( ret, '#c0c0c0', player_description['color_bright'] );
@@ -2586,6 +2751,37 @@ class sdWorld
 		if ( player_description['voice7'] ) // Robot voice
 		sdWorld.ReplaceColorInSDFilter( ret, '#800000', '#000000' ); // hue +73 deg
 		
+		return ret;
+	}
+	
+	static CreateSDFilter()
+	{
+		return { s: '' };
+	}
+	
+	static ConvertPlayerDescriptionToSDFilter_v2( player_description )
+	{
+		let ret = sdWorld.CreateSDFilter();
+		
+		sdWorld.ReplaceColorInSDFilter_v2( ret, '#c0c0c0', player_description['color_bright'], false );
+		sdWorld.ReplaceColorInSDFilter_v2( ret, '#808080', player_description['color_dark'], false );
+		sdWorld.ReplaceColorInSDFilter_v2( ret, '#00ff00', player_description['color_bright3'], false );
+		sdWorld.ReplaceColorInSDFilter_v2( ret, '#007f00', player_description['color_dark3'], false );
+		sdWorld.ReplaceColorInSDFilter_v2( ret, '#ff0000', player_description['color_visor'], false );
+		//sdWorld.ReplaceColorInSDFilter_v2( ret, '#800000', player_description['color_splashy'], false );
+		sdWorld.ReplaceColorInSDFilter_v2( ret, '#000080', player_description['color_suit'], false );
+		sdWorld.ReplaceColorInSDFilter_v2( ret, '#800080', player_description['color_suit2'], false );
+		sdWorld.ReplaceColorInSDFilter_v2( ret, '#ff00ff', player_description['color_dark2'], false );
+		sdWorld.ReplaceColorInSDFilter_v2( ret, '#000000', player_description['color_shoes'], false );
+		sdWorld.ReplaceColorInSDFilter_v2( ret, '#808000', player_description['color_skin'], false );
+		sdWorld.ReplaceColorInSDFilter_v2( ret, '#0000ff', player_description['color_extra1'], false );
+		
+		if ( player_description['voice6'] ) // Falkok voice
+		sdWorld.ReplaceColorInSDFilter_v2( ret, '#800000', '#006480', false ); // hue +73 deg
+		
+		if ( player_description['voice7'] ) // Robot voice
+		sdWorld.ReplaceColorInSDFilter_v2( ret, '#800000', '#000000', false ); // hue +73 deg
+	
 		return ret;
 	}
 	static ConvertPlayerDescriptionToHelmet( player_description )
@@ -2926,7 +3122,7 @@ class sdWorld
 	
 		return output;
 	}
-	static ApplyDrawOperations( ctx, output )
+	static ApplyDrawOperations( ctx, output ) // Call with ctx as null on server to update sd_filter version
 	{
 		const command_match_table = sdWorld.draw_operation_command_match_table;
 		
@@ -2950,53 +3146,56 @@ class sdWorld
 		for ( let i = 0; i < output.length; i++ )
 		{
 			if ( typeof output[ i ] === 'number' )
-			{
-				opcode = output[ i ];
-			}
-			
+			opcode = output[ i ];
 			
 			if ( typeof output[ i ] !== 'number' || sdWorld.draw_operation_no_parameters[ opcode ] )
 			{
-				if ( opcode === 0 ) // sd_filter set
+				if ( !ctx )
 				{
-					ctx.sd_filter = output[ i ];
+					if ( opcode === 0 ) // sd_filter set
+					{
+						if ( output[ i ] )
+						if ( !output[ i ].s )
+						output[ i ] = sdWorld.GetVersion2SDFilterFromVersion1SDFilter( output[ i ] );
+					}
 				}
 				else
 				{
-					let method_name = sdWorld.draw_operation_command_match_table[ sdWorld.draw_operation_command_match_table.indexOf( opcode ) - 1 ];
-					
-					let args = output[ i ];
-					
-					// Decompress simple draw
-					if ( opcode === 1 )
+					if ( opcode === 0 ) // sd_filter set
 					{
-						if ( typeof args === 'string' )
-						{
-							args = [ args, -16, -16, 32, 32 ];
-						}
-						else
-						{
-							args = args.slice(); // Do not overwrite old array
-						}
-						
-						/*let img_object = sdWorld.lost_images_cache[ args[ 0 ] ];
-						
-						if ( !sdWorld.lost_images_cache || sdWorld.lost_images_cache[ args[ 0 ] ] )
-						{
-							sdWorld.CreateImageFromFile( args[ 0 ] );
-							
-							args[ 0 ] = img_object;
-						}*/
-						args[ 0 ] = sdWorld.CreateImageFromFile( args[ 0 ] );
+						ctx.sd_filter = output[ i ];
 					}
-					
-					if ( sdWorld.draw_operation_no_parameters[ opcode ] )
-					ctx[ method_name ]();
 					else
-					ctx[ method_name ]( ...args );
+					{
+						let method_name = sdWorld.draw_operation_command_match_table[ sdWorld.draw_operation_command_match_table.indexOf( opcode ) - 1 ];
+
+						let args = output[ i ];
+
+						// Decompress simple draw
+						if ( opcode === 1 )
+						{
+							if ( typeof args === 'string' )
+							{
+								args = [ args, -16, -16, 32, 32 ];
+							}
+							else
+							{
+								args = args.slice(); // Do not overwrite old array
+							}
+
+							args[ 0 ] = sdWorld.CreateImageFromFile( args[ 0 ] );
+						}
+
+						if ( sdWorld.draw_operation_no_parameters[ opcode ] )
+						ctx[ method_name ]();
+						else
+						ctx[ method_name ]( ...args );
+					}
 				}
 			}
 		}
+		
+		if ( ctx )
 		ctx.sd_filter = null;
 	}
 	

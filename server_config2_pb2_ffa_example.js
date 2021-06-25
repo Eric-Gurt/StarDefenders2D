@@ -51,7 +51,7 @@ class sdServerConfig
 			_ai_enabled: sdCharacter.AI_MODEL_FALKOK, 
 			_ai_gun_slot: 1,
 			_ai_level: 10,
-			sd_filter:sdWorld.ConvertPlayerDescriptionToSDFilter( instructor_settings ), 
+			sd_filter:sdWorld.ConvertPlayerDescriptionToSDFilter_v2( instructor_settings ), 
 			_voice:sdWorld.ConvertPlayerDescriptionToVoice( instructor_settings ), 
 			title:instructor_settings.hero_name, 
 			_spawn_with_full_hp: true,
@@ -258,6 +258,13 @@ class sdServerConfig
 			sdCharacter.characters[ i ].remove();
 			sdCharacter.characters[ i ]._broken = false;
 		}
+		
+		for ( let i = 0; i < sdWorld.tracked_creatures.length; i++ )
+		{
+			sdWorld.tracked_creatures[ i ].remove();
+			sdWorld.tracked_creatures[ i ]._broken = false;
+		}
+		sdWorld.tracked_creatures.length = 0;
 		
 		if ( switch_map )
 		{
@@ -533,7 +540,7 @@ class sdServerConfig
 				
 				if ( Math.random() < 0.2 )
 				{
-					rank = 50;
+					rank = 20;
 					ent.filter = 'invert(1) sepia(1) saturate(100) hue-rotate(270deg) opacity(0.45)';
 				}
 				else

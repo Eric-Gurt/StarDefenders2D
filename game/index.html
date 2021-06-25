@@ -864,7 +864,7 @@
 		ent.act_x = ( ( sdWorld.time ) % 4000 > 3000 ) ? 1 : 0;
 		ent._anim_walk = ( sdWorld.time / 50 ) % 10;
 		
-		ent.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter( globalThis.GetPlayerSettings() );
+		ent.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( globalThis.GetPlayerSettings() );
 		ent.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( globalThis.GetPlayerSettings() );
 		ent.body = sdWorld.ConvertPlayerDescriptionToBody( globalThis.GetPlayerSettings() );
 		ent.legs = sdWorld.ConvertPlayerDescriptionToLegs( globalThis.GetPlayerSettings() );

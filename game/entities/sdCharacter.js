@@ -266,6 +266,8 @@ class sdCharacter extends sdEntity
 		
 		this._in_water = false;
 		
+		this._ledge_holding = false;
+		
 		this.driver_of = null;
 		this._potential_vehicle = null; // Points at vehicle which player recently did hit
 		
@@ -418,7 +420,7 @@ class sdCharacter extends sdEntity
 			speed: 175,
 			variant: 'klatt'
 		};
-		this._speak_id = -1; // last voice message
+		this._speak_id = -1; // Required by speak effects // last voice message
 		this._say_allowed_in = 0;
 		
 		//this.team_id = 0; // 0 is FFA team
@@ -650,7 +652,13 @@ class sdCharacter extends sdEntity
 			//{
 			
 				// Turn white
-				copy_ent.sd_filter = Object.assign( {}, copy_ent.sd_filter );
+				let new_sd_filter_s = '';
+				while ( new_sd_filter_s.length < copy_ent.sd_filter.s )
+				new_sd_filter_s += 'f';
+				
+				copy_ent.sd_filter = { s: new_sd_filter_s };
+				
+				/*copy_ent.sd_filter = Object.assign( {}, copy_ent.sd_filter );
 				for ( let r in copy_ent.sd_filter )
 				{
 					copy_ent.sd_filter[ r ] = Object.assign( {}, copy_ent.sd_filter[ r ] );
@@ -662,7 +670,7 @@ class sdCharacter extends sdEntity
 							copy_ent.sd_filter[ r ][ g ][ b ] = [ 255, 255, 255 ];
 						}
 					}
-				}
+				}*/
 				//copy_ent.remove();
 			//}, 3000 );
 			//console.log( 'side', copy_ent._side );
@@ -2201,19 +2209,22 @@ class sdCharacter extends sdEntity
 		{
 			if ( this.stands && !this.driver_of && ( this._stands_on !== this._hook_relative_to || ( this.hook_x === 0 && this.hook_y === 0 ) ) )
 			{
-				if ( this.sy > 1 )
+				if ( this.sy > -0.1 )
 				{
-					if ( !this.ghosting )
+					if ( this.sy > 1 )
 					{
-						if ( sdWorld.time > this._fall_sound_time + 100 ) // Flood will cause world snapshots to be delayed
+						if ( !this.ghosting )
 						{
-							this._fall_sound_time = sdWorld.time;
-							sdSound.PlaySound({ name:'player_step', x:this.x, y:this.y, volume:0.5 });
+							if ( sdWorld.time > this._fall_sound_time + 100 ) // Flood will cause world snapshots to be delayed
+							{
+								this._fall_sound_time = sdWorld.time;
+								sdSound.PlaySound({ name:'player_step', x:this.x, y:this.y, volume:0.5 });
+							}
 						}
 					}
-				}
 
-				this.sy = 0;
+					this.sy = 0;
+				}
 
 				this.tilt_speed = sdWorld.MorphWithTimeScale( this.tilt_speed, 0, 0.9, GSPEED );
 

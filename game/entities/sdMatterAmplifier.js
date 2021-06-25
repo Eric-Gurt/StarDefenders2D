@@ -303,17 +303,28 @@ class sdMatterAmplifier extends sdEntity
 			}, 50 );
 		}
 	}
+	/*HookAttempt( from_entity ) // true for allow. from_entity is sdBullet that is hook tracer
+	{
+		if ( !sdWorld.is_server )
+		return;
 	
+		if ( !this.shielded )
+		{
+			this.DropCrystal();
+		}
+		
+		return true;
+	}*/
 	onMovementInRange( from_entity )
 	{
 		if ( !sdWorld.is_server )
 		return;
 	
 		// Uncomment this if but still happens. Normally .onMovementInRange should never be called if one of entities is already being removed. Previously this was a problem at sdEntity physic simulation logic
-		if ( from_entity._is_being_removed )
-		return;
+		//if ( from_entity._is_being_removed )
+		//return;
 	
-		if ( this.matter_max === 0 )
+		if ( this.matter_max === 0 && !from_entity._is_being_removed )
 		{
 			if ( this._ignore_pickup_tim === 0 )
 			if ( from_entity.is( sdCrystal ) )
@@ -337,7 +348,7 @@ class sdMatterAmplifier extends sdEntity
 				//sdWorld.UpdateHashPosition( this, false ); // Optional, but will make it visible as early as possible
 			
 				//from_entity.onRemove = from_entity.onRemoveAsFakeEntity; // Disable any removal logic
-				from_entity.SetMethod( 'onRemove', from_entity.onRemoveAsFakeEntity ); // Disable any removal logic
+				//from_entity.SetMethod( 'onRemove', from_entity.onRemoveAsFakeEntity ); // Disable any removal logic
 				from_entity.remove();
 				//from_entity._remove();
 

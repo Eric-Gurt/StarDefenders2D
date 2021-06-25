@@ -186,7 +186,7 @@ class sdBullet extends sdEntity
 				this._owner.hook_x = this.x;
 				this._owner.hook_y = this.y;
 				
-				if ( this._last_target )
+				if ( this._last_target && this._last_target.HookAttempt( this ) )
 				{
 					this._owner._hook_relative_to = this._last_target;
 					this._owner._hook_relative_x = this.x - this._last_target.x;

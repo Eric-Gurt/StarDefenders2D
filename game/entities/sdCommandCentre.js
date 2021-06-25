@@ -95,6 +95,8 @@ class sdCommandCentre extends sdEntity
 		
 		this.pending_team_joins = []; // array of net_ids, similar to how coms work. Owner is able to reject and accept these
 		
+		this._armor_protection_level = 0;
+		
 		sdCommandCentre.centres.push( this );
 	}
 	onBuilt()

@@ -19,6 +19,8 @@ class sdCharacterRagdoll
 		sdCharacterRagdoll.spring_max = 2;
 		
 		sdCharacterRagdoll.SeededRandomNumberGenerator = new sdWorld.SeededRandomNumberGenerator_constructor( 64372 );
+		
+		sdCharacterRagdoll.sdBone = sdBone;
 	}
 	
 	constructor( character )
@@ -939,7 +941,8 @@ class sdCharacterRagdoll
 						if ( !this.character.sd_filter )
 						{
 							this.character.sd_filter = {};
-							sdWorld.ReplaceColorInSDFilter( this.character.sd_filter, [ 255, 0, 0 ], [ 254, 0, 0 ] );
+							///sdWorld.ReplaceColorInSDFilter( this.character.sd_filter, [ 255, 0, 0 ], [ 254, 0, 0 ] );
+							sdWorld.ReplaceColorInSDFilter_v2( this.character.sd_filter, 'ff0000', 'fe0000' /*[ 255, 0, 0 ], [ 254, 0, 0 ]*/ );
 						}
 						
 						if ( this.character.sd_filter !== this.character._sd_filter_old )
@@ -948,9 +951,11 @@ class sdCharacterRagdoll
 
 							this.character._sd_filter_darkened = Object.assign( {}, this.character.sd_filter );
 
-							this.character._sd_filter_darkened[ 255 ][ 0 ][ 0 ][ 0 ] = ~~( this.character._sd_filter_darkened[ 255 ][ 0 ][ 0 ][ 0 ] * 0.5 );
+							sdWorld.ReplaceColorInSDFilter_v2( this.character._sd_filter_darkened, 'ff0000', sdWorld.MultiplyHexColor( sdWorld.GetColorOfSDFilter( this.character._sd_filter_darkened, 'ff0000' ), 0.5 ) );
+
+							/*this.character._sd_filter_darkened[ 255 ][ 0 ][ 0 ][ 0 ] = ~~( this.character._sd_filter_darkened[ 255 ][ 0 ][ 0 ][ 0 ] * 0.5 );
 							this.character._sd_filter_darkened[ 255 ][ 0 ][ 0 ][ 1 ] = ~~( this.character._sd_filter_darkened[ 255 ][ 0 ][ 0 ][ 1 ] * 0.5 );
-							this.character._sd_filter_darkened[ 255 ][ 0 ][ 0 ][ 2 ] = ~~( this.character._sd_filter_darkened[ 255 ][ 0 ][ 0 ][ 2 ] * 0.5 );
+							this.character._sd_filter_darkened[ 255 ][ 0 ][ 0 ][ 2 ] = ~~( this.character._sd_filter_darkened[ 255 ][ 0 ][ 0 ][ 2 ] * 0.5 );*/
 						}
 
 						ctx.sd_filter = this.character._sd_filter_darkened;

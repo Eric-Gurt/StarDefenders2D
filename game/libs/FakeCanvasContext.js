@@ -114,6 +114,7 @@ class FakeCanvasContext
 		this.renderer = new THREE.WebGLRenderer( { antialias: false, canvas: old_canvas } );
 		this.renderer.setSize( window.innerWidth, window.innerHeight );
 		
+		this.renderer.debug.checkShaderErrors = false; // Costs performance
 		
 		this.renderer.setClearColor( new THREE.Color( 0x330000 ), 1 );
 		

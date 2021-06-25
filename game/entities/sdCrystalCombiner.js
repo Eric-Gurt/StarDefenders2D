@@ -361,18 +361,25 @@ class sdCrystalCombiner extends sdEntity
 			}
 		}
 	}
+	/*HookAttempt( from_entity ) // true for allow. from_entity is sdBullet that is hook tracer
+	{
+		if ( !sdWorld.is_server )
+		return;
 	
+		this.DropCrystals();
+		
+		return true;
+	}*/
 	onMovementInRange( from_entity )
 	{
 		if ( !sdWorld.is_server )
 		return;
 	
 		// Uncomment this if but still happens. Normally .onMovementInRange should never be called if one of entities is already being removed. Previously this was a problem at sdEntity physic simulation logic
-		if ( from_entity._is_being_removed )
-		return;
+		//if ( from_entity._is_being_removed )
+		//return;
 	
-		if ( this._ignore_pickup_tim === 0 )
-		if ( from_entity.is( sdCrystal ) && from_entity.matter_max !== sdCrystal.anticrystal_value )
+		if ( this._ignore_pickup_tim === 0 && !from_entity._is_being_removed && from_entity.is( sdCrystal ) && from_entity.matter_max !== sdCrystal.anticrystal_value )
 		{
 			if ( sdWorld.Dist2D_Vector( from_entity.sx, from_entity.sy ) < 1.5 )
 			{
@@ -407,7 +414,7 @@ class sdCrystalCombiner extends sdEntity
 					if ( crystal_add === 1 ) // Prevent destroying crystals that don't match the first one in the crystal combiner
 					{
 						//from_entity.onRemove = from_entity.onRemoveAsFakeEntity; // Disable any removal logic
-						from_entity.SetMethod( 'onRemove', from_entity.onRemoveAsFakeEntity ); // Disable any removal logic
+						//from_entity.SetMethod( 'onRemove', from_entity.onRemoveAsFakeEntity ); // Disable any removal logic
 						from_entity.remove();
 						//from_entity._remove();
 

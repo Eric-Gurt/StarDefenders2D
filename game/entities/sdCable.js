@@ -96,6 +96,11 @@ class sdCable extends sdEntity
 	IsBGEntity() // 3 = cables
 	{ return 3; }
 	
+	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+	{ 
+		return [ 0, 0, -64 ];
+	}
+	
 	DrawIn3D()
 	{ return FakeCanvasContext.DRAW_IN_3D_FLAT; }
 	
@@ -137,7 +142,7 @@ class sdCable extends sdEntity
 		}
 		else
 		{
-			this._points = [ { x:0, y:0, sx:0, sy:0 }, { x:0, y:0, sx:0, sy:0 } ]; // Non-relative positions
+			this._points = [ { x:0, y:0, sx:0, sy:0, cache:{x:0,y:0,exists:false} }, { x:0, y:0, sx:0, sy:0, cache:{x:0,y:0,exists:false} } ]; // Non-relative positions
 			
 			sdCable.counter++;
 		}
@@ -410,9 +415,16 @@ class sdCable extends sdEntity
 			
 			let points_expected = ( di / 8 );
 			
+			if ( points_expected > 4 )
 			if ( sdCable.counter > 8 )
 			{
-				points_expected /= 1 + ( sdCable.counter - 8 ) * 0.3;
+				points_expected = Math.max( 4, points_expected / 1.5 );
+				//points_expected /= 1 + ( sdCable.counter - 8 ) * 0.3;
+				if ( sdCable.counter > 16 )
+				{
+					//points_expected /= 2;
+					points_expected = Math.max( 4, points_expected / 2 );
+				}
 			}
 			
 			if ( isNaN( points_expected ) )
@@ -434,7 +446,8 @@ class sdCable extends sdEntity
 					x: ( this._points[ r ].x + this._points[ r + 1 ].x ) / 2,
 					y: ( this._points[ r ].y + this._points[ r + 1 ].y ) / 2,
 					sx: ( this._points[ r ].sx + this._points[ r + 1 ].sx ) / 2,
-					sy: ( this._points[ r ].sy + this._points[ r + 1 ].sy ) / 2
+					sy: ( this._points[ r ].sy + this._points[ r + 1 ].sy ) / 2,
+					cache:{x:0,y:0,exists:false}
 				});
 			}
 			
@@ -449,7 +462,24 @@ class sdCable extends sdEntity
 			{
 				if ( i > 0 && i < this._points.length - 1 )
 				{
-					if ( !sdWorld.CheckWallExists( this._points[ i ].x + this._points[ i ].sx, this._points[ i ].y + this._points[ i ].sy, null, null, [ 'sdBlock' ] ) )
+					//this._points[ i ].cache:{x:0,y:0,exists:false}
+					
+					let xx = this._points[ i ].x + this._points[ i ].sx;
+					let yy = this._points[ i ].y + this._points[ i ].sy;
+					
+					if ( sdWorld.inDist2D_Boolean( this._points[ i ].cache.x, this._points[ i ].cache.y, xx, yy, 5 ) )
+					{
+					}
+					else
+					{
+						this._points[ i ].cache.x = xx;
+						this._points[ i ].cache.y = yy;
+						
+						this._points[ i ].cache.exists = sdWorld.CheckWallExists( this._points[ i ].x + this._points[ i ].sx, this._points[ i ].y + this._points[ i ].sy, null, null, [ 'sdBlock' ] );
+					}
+					
+					//if ( !sdWorld.CheckWallExists( this._points[ i ].x + this._points[ i ].sx, this._points[ i ].y + this._points[ i ].sy, null, null, [ 'sdBlock' ] ) )
+					if ( !this._points[ i ].cache.exists )
 					{
 						this._points[ i ].x += this._points[ i ].sx;
 						this._points[ i ].y += this._points[ i ].sy;
@@ -696,7 +726,7 @@ class sdCable extends sdEntity
 								Math.min( Math.max( this.y + this._hitbox_y1, yy ), this.y + this._hitbox_y2 ) );
 	}
 	
-	Draw( ctx, attached )
+	DrawBG( ctx, attached )
 	//DrawBG( ctx, attached )
 	{
 		/*ctx.filter = this.filter;//'hue-rotate(90deg)';

@@ -21,6 +21,8 @@ class sdEntity
 		
 		sdEntity.active_entities = [];
 		
+		sdEntity.to_seal_list = [];
+		
 		sdEntity.HIBERSTATE_ACTIVE = 0;
 		sdEntity.HIBERSTATE_HIBERNATED = 1;
 		sdEntity.HIBERSTATE_REMOVED = 2;
@@ -216,7 +218,7 @@ class sdEntity
 		return []; 
 	}
 	
-	PhysInitIfNeeded( w, h )
+	PhysInitIfNeeded()
 	{
 		//if ( typeof this._phys_sleep === 'undefined' )
 		if ( typeof this._phys_last_touch === 'undefined' ) // Pointer is more probable to remain undefined after snapshot load
@@ -666,7 +668,8 @@ class sdEntity
 	isB( c )
 	{ return this.constructor.name === c.prototype.constructor.name; }
 	isC( c )
-	{ if ( typeof c._class === 'undefined' ) c._class = c.prototype.constructor.name; return this._class === c._class; }
+	{ return this._class === c._class; }
+	//{ if ( typeof c._class === 'undefined' ) c._class = c.prototype.constructor.name; return this._class === c._class; }
 	isD( c )
 	{ return this instanceof c; }
 	isE( c )
@@ -751,6 +754,65 @@ class sdEntity
 		
 		if ( this.IsGlobalEntity() )
 		sdEntity.global_entities.push( this );
+	
+		//if ( sdWorld.is_server )
+		
+		// Premade all needed variables so sealing would work best
+		{
+			if ( this.onThink.has_ApplyVelocityAndCollisions === undefined )
+			{
+				let onThinkString = this.onThink.toString();
+				let DrawString = this.Draw.toString();
+				
+				this.onThink.has_ApplyVelocityAndCollisions = ( onThinkString.indexOf( 'ApplyVelocityAndCollisions' ) !== -1 );
+				
+				this.onThink.has_GetAnythingNearCache = ( onThinkString.indexOf( 'MatterGlow' ) !== -1 || onThinkString.indexOf( 'GetAnythingNearCache' ) !== -1 );
+				
+				this.onThink.has_GetComWiredCache = ( onThinkString.indexOf( 'GetComWiredCache' ) !== -1 || DrawString.indexOf( 'GetComWiredCache' ) !== -1 );
+				
+				this.onThink.has_sdBlock_extras = false;
+				
+				// Hacks
+				const c = this.GetClass();
+				if ( c === 'sdBone' )
+				{
+					this.onThink.has_ApplyVelocityAndCollisions = true;
+				}
+				else
+				if ( c === 'sdBlock' )
+				{
+					this.onThink.has_sdBlock_extras = true;
+				}
+			}
+			
+			if ( this.onThink.has_ApplyVelocityAndCollisions )
+			this.PhysInitIfNeeded();
+		
+			if ( this.onThink.has_GetAnythingNearCache )
+			{
+				this._anything_near = [];
+				this._anything_near_range = 0;
+				this._next_anything_near_rethink = 0;
+			}
+			
+			if ( this.onThink.has_GetComWiredCache )
+			{
+				this._com_near_cache = null;
+				this._next_com_rethink = 0;
+				this.cio = 0;
+			}
+			
+			if ( this.onThink.has_sdBlock_extras )
+			{
+				this._vis_block_left = null;
+				this._vis_block_right = null;
+				this._vis_block_top = null;
+				this._vis_block_bottom = null;
+				//this._vis_back = ;
+			}
+		
+			sdEntity.to_seal_list.push( this );
+		}
 	}
 	
 	GetComWiredCache( accept_test_method=null ) // Cretes .cio property for clients to know if com exists
@@ -1193,6 +1255,37 @@ class sdEntity
 					sdWorld.unresolved_entity_pointers.push([ this, '_held_by', this.held_by_class, this.held_by_net_id ]);
 				}
 			}
+			
+			if ( this.sd_filter )
+			if ( !this.sd_filter.s )
+			{
+				this.sd_filter = sdWorld.GetVersion2SDFilterFromVersion1SDFilter( this.sd_filter );
+				/*
+				let s = '';
+				for ( let r in this.sd_filter )
+				{
+					//this.sd_filter[ r ] = Object.assign( {}, this.sd_filter[ r ] );
+					for ( let g in this.sd_filter[ r ] )
+					{
+						//this.sd_filter[ r ][ g ] = Object.assign( {}, this.sd_filter[ r ][ g ] );
+						for ( let b in this.sd_filter[ r ][ g ] )
+						{
+							//this.sd_filter[ r ][ g ][ b ] = [ 255, 255, 255 ];
+							s += sdWorld.ColorArrayToHex( [ r,g,b ] ) + sdWorld.ColorArrayToHex( this.sd_filter[ r ][ g ][ b ] );
+						}
+					}
+				}
+				this.sd_filter = { s: s };
+				//console.log( this.sd_filter );
+				
+				//if ( this.sd_filter.s % 12 !== 0 )
+				//throw new Error( 'Wrong sd_filter length: ' + this.sd_filter.s );
+				*/
+			}
+			if ( this.is( sdWorld.entity_classes.sdLost ) )
+			{
+				sdWorld.ApplyDrawOperations( null, this.d );
+			}
 		}
 		else
 		{
@@ -1231,9 +1324,9 @@ class sdEntity
 		
 		let possible_ent = undefined;
 		
-		if ( sdWorld.is_server )
+		//if ( sdWorld.is_server )
 		possible_ent = sdEntity.entities_by_net_id_cache[ _net_id ]; // Fast way
-		else
+		/*else
 		{
 			let searched_class = sdWorld.entity_classes[ _class ];
 			for ( var i = 0; i < sdEntity.entities.length; i++ )
@@ -1246,7 +1339,7 @@ class sdEntity
 					break;
 				}
 			}
-		}
+		}*/
 	
 		if ( possible_ent === undefined )
 		{
@@ -1394,7 +1487,7 @@ class sdEntity
 		for ( var i = 0; i < connected_ents.length; i++ )
 		{
 			if ( connected_ents[ i ]._hiberstate !== sdEntity.HIBERSTATE_ACTIVE )
-			if ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
+			if ( ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' ) && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
 			connected_ents[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		}
 	}
@@ -1414,7 +1507,7 @@ class sdEntity
 			let connected_ents = sdCable.GetConnectedEntities( this, sdCable.TYPE_MATTER );
 			for ( i = 0; i < connected_ents.length; i++ )
 			{
-				if ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
+				if ( ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' ) && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
 				this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
 			}
 			
@@ -1463,6 +1556,7 @@ class sdEntity
 					if ( sdWorld.is_server )
 					{
 						arr[ i ].TransferMatter( this, how_much, GSPEED * 4, true ); // Mult by X because targets no longer take 4 cells
+						arr[ i ].WakeUpMatterSources();
 					}
 					else
 					{
@@ -1687,7 +1781,10 @@ class sdEntity
 			enumerable: false
 		});
 	}
-	
+	HookAttempt( from_entity ) // true for allow. from_entity is sdBullet that is hook tracer
+	{
+		return true;
+	}
 	onMovementInRange( from_entity )
 	{
 	}

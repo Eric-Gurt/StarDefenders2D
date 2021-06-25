@@ -151,6 +151,8 @@ meSpeak.loadVoice("voices/en/en.json");
 	globalThis.sdShop = sdShop;
 	globalThis.sdContextMenu = sdContextMenu;
 	globalThis.LZW = LZW;
+	
+	sdWorld.FinalizeClasses();
 
 let enf_once = true;
 	globalThis.EnforceChangeLog = function EnforceChangeLog( mat, property_to_enforce, value_as_string=true )

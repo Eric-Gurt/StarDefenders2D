@@ -68,6 +68,8 @@ class sdAsp extends sdEntity
 		
 		this._anim_shift = ~~( Math.random() * 10000 );
 		
+		this.attack_an = 0;
+		
 		sdAsp.asps_tot++;
 		
 		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
