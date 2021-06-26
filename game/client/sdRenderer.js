@@ -144,7 +144,7 @@ class sdRenderer
 				{
 					if ( sd_filter )
 					{
-						if ( !sd_filter.s )
+						if ( sd_filter.s === undefined )
 						{
 							// Just draw old sd_filter properly while updating cache. Server in many cases won't be able to realize it sends this old sd_filter anyway
 							

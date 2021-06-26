@@ -68,6 +68,21 @@ class sdServerConfig
 		sdCharacter.prototype.MeasureMatterCost = ()=>{ return 30; };
 		sdGun.prototype.MeasureMatterCost = ()=>{ return 10; };
 		
+		for ( let i = 0; i < sdGun.classes.length; i++ )
+		{
+			try
+			{
+				if ( sdGun.classes[ i ].GetAmmoCost )
+				if ( sdGun.classes[ i ].GetAmmoCost() > 50 )
+				{
+					sdGun.classes[ i ].GetAmmoCost = ()=>{ return 50; };
+				}
+			}
+			catch(e)
+			{
+			}
+		}
+		
 		sdBomb.prototype.Damage = function Damage( dmg, initiator=null )
 		{
 			if ( !sdWorld.is_server )

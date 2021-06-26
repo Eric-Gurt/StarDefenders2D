@@ -34,6 +34,7 @@ import sdBadDog from './sdBadDog.js';
 import sdRift from './sdRift.js';
 import sdCrystal from './sdCrystal.js';
 import sdDrone from './sdDrone.js';
+import sdSpider from './sdSpider.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -576,7 +577,7 @@ class sdWeather extends sdEntity
 				//this._time_until_event = Math.random() * 30 * 60 * 8; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
 				//this._time_until_event = Math.random() * 30 * 60 * 7; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
 				this._time_until_event = Math.random() * 30 * 60 * 3; // Changed after sdWeather logic was being called twice, which caused events to happen twice as frequently
-				let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ];
+				let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ];
 				
 				let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -1080,6 +1081,72 @@ class sdWeather extends sdEntity
 						}
 						else
 						this._time_until_event = Math.random() * 30 * 60 * 1; // Quickly switch to another event
+					}
+					
+					if ( r === 11 ) // Spawn 1-2 sdSpiders somewhere on ground where players don't see them
+					{
+						let instances = Math.floor( 1 + Math.random() * 2 );
+						while ( instances > 0 && sdSpider.spider_counter < Math.min( 32, sdWorld.GetPlayingPlayersCount() * 10 ) )
+						{
+
+							let ent = new sdSpider({ x:0, y:0 });
+
+							sdEntity.entities.push( ent );
+
+							{
+								let x,y,i;
+								let tr = 1000;
+								do
+								{
+									x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+									y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+									if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
+									if ( !ent.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+									if ( sdWorld.last_hit_entity )
+									if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+									if ( !sdWorld.CheckWallExistsBox( 
+											x + ent._hitbox_x1 - 16, 
+											y + ent._hitbox_y1 - 16, 
+											x + ent._hitbox_x2 + 16, 
+											y + ent._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+									{
+										let di_allowed = true;
+										
+										for ( i = 0; i < sdWorld.sockets.length; i++ )
+										if ( sdWorld.sockets[ i ].character )
+										{
+											let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
+											
+											if ( di < 700 )
+											{
+												di_allowed = false;
+												break;
+											}
+										}
+										
+										if ( di_allowed )
+										{
+											ent.x = x;
+											ent.y = y;
+
+											break;
+										}
+									}
+									
+
+
+									tr--;
+									if ( tr < 0 )
+									{
+										ent.remove();
+										break;
+									}
+								} while( true );
+							}
+
+							instances--;
+						}
 					}
 				}
 			}

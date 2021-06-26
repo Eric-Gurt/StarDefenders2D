@@ -209,6 +209,9 @@ class sdCharacter extends sdEntity
 	}
 	AllowClientSideState() // Conditions to ignore sdWorld.my_entity_protected_vars
 	{
+		if ( Math.abs( this._position_velocity_forced_until - sdWorld.time ) > 1000 * 60 * 30 ) // 30 minutes difference usually means timezone changes... Better to correct this when possible than having delayed input
+		this._position_velocity_forced_until = 0;
+			
 		return ( this.hea > 0 && sdWorld.time > this._position_velocity_forced_until && ( this.hook_x === 0 && this.hook_y === 0 ) ); // Hook does not work well with position corrections for laggy players
 	}
 	ApplyServerSidePositionAndVelocity( restrict_correction, sx, sy ) // restrict_correction is usually ever only true when player should get position correction restriction, assuming some server-side events exist that control player (grappling hook case)
@@ -309,7 +312,7 @@ class sdCharacter extends sdEntity
 		this.sy = 0;
 		
 		// Disables position correction during short period of time (whenever player is pushed, teleported, attacked by sdOctopus etc). Basically stuff that client can't calculate (since projectiles deal no damage nor knock effect)
-		this._position_velocity_forced_until = 0;
+		this._position_velocity_forced_until = sdWorld.time + 200; // Should allow better respawning in arena-like mode (without player instantly moving back to where he just died if close enough for position correction)
 		this._force_add_sx = 0;
 		this._force_add_sy = 0;
 
@@ -478,6 +481,11 @@ class sdCharacter extends sdEntity
 	
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
 	{
+		if ( observer_character )
+		if ( observer_character.is( sdCharacter ) )
+		if ( observer_character._god )
+		return true;
+		
 		if ( this.driver_of )
 		if ( !this.driver_of.IsVisible( observer_character ) )
 		return false;
@@ -653,8 +661,11 @@ class sdCharacter extends sdEntity
 			
 				// Turn white
 				let new_sd_filter_s = '';
-				while ( new_sd_filter_s.length < copy_ent.sd_filter.s )
-				new_sd_filter_s += 'f';
+				while ( new_sd_filter_s.length < copy_ent.sd_filter.s.length )
+				{
+					new_sd_filter_s += copy_ent.sd_filter.s.substring( new_sd_filter_s.length, new_sd_filter_s.length + 6 );
+					new_sd_filter_s += 'ffffff';
+				}
 				
 				copy_ent.sd_filter = { s: new_sd_filter_s };
 				
@@ -754,13 +765,6 @@ class sdCharacter extends sdEntity
 			
 		let was_alive = ( this.hea > 0 );
 	
-		if ( was_alive )
-		if ( this.hea - dmg <= 0 )
-		{
-			if ( this.AttemptTeleportOut() )
-			return;
-		}
-	
 		//for ( var i = 0; i < this._listeners.DAMAGE.length; i++ )
 		//this._listeners.DAMAGE[ i ]( this, dmg, initiator );
 		this.callEventListener( 'DAMAGE', this, dmg, initiator );
@@ -811,18 +815,69 @@ class sdCharacter extends sdEntity
 				}
 			}
 
-			if ( this.armor <= 0 || affects_armor === false ) // No armor
-			this.hea -= dmg;
+
+			let damage_to_deal = dmg;
+			
+			/*if ( this.armor <= 0 || affects_armor === false ) // No armor
+			{
+				this.hea -= dmg;
+			}
 			else
 			{
-				this.hea -= ( dmg * (1 - this._armor_absorb_perc ) );
-				//if (dmg > 0 )
+				this.hea -= ( dmg * ( 1 - this._armor_absorb_perc ) );
+				
 				this.armor -= ( dmg * this._armor_absorb_perc );
+				
 				if ( this.armor <= 0 )
 				{
 					this.RemoveArmor();
 				}
+			}*/
+			
+			if ( this.armor <= 0 || affects_armor === false )
+			{
 			}
+			else
+			{
+				if ( this.armor > ( damage_to_deal * this._armor_absorb_perc ) )
+				{
+					// Enough armor
+					this.armor -= ( damage_to_deal * this._armor_absorb_perc );
+					damage_to_deal = ( damage_to_deal * ( 1 - this._armor_absorb_perc ) );
+				}
+				else
+				{
+					// Not enough armor, will be broken and remaining damage calculcated as usually
+					let armored_percentage = this.armor / ( damage_to_deal * this._armor_absorb_perc );
+					
+					if ( armored_percentage < 0 || armored_percentage > 1 )
+					throw new Error( 'Armor logic error, armored_percentage must be within 0..1, but instead got ' + armored_percentage );
+					
+					this.armor -= ( damage_to_deal * this._armor_absorb_perc ) * armored_percentage;
+					damage_to_deal = ( damage_to_deal * ( 1 - this._armor_absorb_perc ) ) * armored_percentage + damage_to_deal * ( 1 - armored_percentage );
+					
+					if ( Math.abs( this.armor ) > 0.001 )
+					throw new Error( 'Armor logic error, remaining armor must be 0 after damage dealt that is above armor capacity, but instead got ' + this.armor );
+				
+					if ( damage_to_deal > dmg )
+					throw new Error( 'Armor logic error, hitpoints damage increased after armor was applied damage_to_deal > dmg === ' + damage_to_deal + ' > ' + dmg );
+				
+					if ( damage_to_deal < 0 )
+					throw new Error( 'Armor logic error, hitpoints damage is negative damage_to_deal === ' + damage_to_deal );
+					
+					this.RemoveArmor();
+				}
+			}
+			
+			if ( was_alive )
+			if ( this.hea - damage_to_deal <= 0 )
+			{
+				if ( this.AttemptTeleportOut() )
+				return;
+			}
+			
+			this.hea -= damage_to_deal;
+			
 			if ( this.hea <= 0 && was_alive )
 			{
 				if ( this._voice.variant === 'klatt3' )

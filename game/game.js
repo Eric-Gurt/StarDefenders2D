@@ -81,6 +81,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdCable from './entities/sdCable.js';
 	import sdCharacterRagdoll from './entities/sdCharacterRagdoll.js';
 	import sdNode from './entities/sdNode.js';
+	import sdSpider from './entities/sdSpider.js';
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -138,6 +139,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdCable.init_class();
 	sdCharacterRagdoll.init_class();
 	sdNode.init_class();
+	sdSpider.init_class();
 
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;
