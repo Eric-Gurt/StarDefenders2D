@@ -317,7 +317,7 @@ class sdCommandCentre extends sdEntity
 					var id = this.pending_team_joins.indexOf( parameters_array[ 0 ] );
 					if ( id !== -1 )
 					{
-						if ( sdEntity.entities_by_net_id_cache[ parameters_array[ 0 ] ] )
+						if ( !sdEntity.entities_by_net_id_cache[ parameters_array[ 0 ] ] )
 						{
 							executer_socket.SDServiceMessage( 'Looks like player no longer exists' );
 						}
@@ -340,7 +340,7 @@ class sdCommandCentre extends sdEntity
 					var id = this.pending_team_joins.indexOf( parameters_array[ 0 ] );
 					if ( id !== -1 )
 					{
-						if ( sdEntity.entities_by_net_id_cache[ parameters_array[ 0 ] ] )
+						if ( !sdEntity.entities_by_net_id_cache[ parameters_array[ 0 ] ] )
 						{
 							executer_socket.SDServiceMessage( 'Looks like player no longer exists' );
 						}
