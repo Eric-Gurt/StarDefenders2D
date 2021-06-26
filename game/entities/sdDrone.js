@@ -19,6 +19,10 @@ class sdDrone extends sdEntity
 		sdDrone.img_drone_falkok = sdWorld.CreateImageFromFile( 'drone_falkok' );
 		sdDrone.img_drone_falkok_attack = sdWorld.CreateImageFromFile( 'drone_falkok_attack' );
 		sdDrone.img_drone_falkok_destroyed = sdWorld.CreateImageFromFile( 'drone_falkok_destroyed' );
+
+		sdDrone.img_drone_robot = sdWorld.CreateImageFromFile( 'drone_robot' );
+		sdDrone.img_drone_robot_attack = sdWorld.CreateImageFromFile( 'drone_robot_attack' );
+		sdDrone.img_drone_robot_destroyed = sdWorld.CreateImageFromFile( 'drone_robot_destroyed' );
 		
 		sdDrone.death_duration = 15;
 		sdDrone.post_death_ttl = 30 * 10;
@@ -50,9 +54,15 @@ class sdDrone extends sdEntity
 
 		this.attack_an = 0;
 		this.death_anim = 0;
+		this.type = params.type || 1;
 		
 		this._current_target = null;
-		
+
+		this._attack_timer = 0;
+		this._burst_ammo_start = this.type === 2 ? 6 : 0;
+		this._burst_ammo = this._burst_ammo_start;
+		this._burst_reload = this.type === 2 ? 2 : 0; // Reload time when it's burst firing
+
 		//this._last_stand_on = null;
 		this._last_jump = sdWorld.time;
 		this._last_attack = sdWorld.time;
@@ -83,14 +93,22 @@ class sdDrone extends sdEntity
 			}
 		}
 	}
-	/*GetBleedEffect()
+
+	GetBleedEffect()
 	{
+		if ( this.type === 2 )
 		return sdEffect.TYPE_BLOOD_GREEN;
+		else
+		return sdEffect.TYPE_WALL_HIT;
+	
 	}
 	GetBleedEffectFilter()
 	{
-		return this.filter;
-	}*/
+		if ( this.type === 2 )
+		return 'hue-rotate(100deg)'; // Blue
+	
+		return '';
+	}
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )
@@ -150,7 +168,9 @@ class sdDrone extends sdEntity
 	{
 		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
 		
-		
+		if ( this._attack_timer > 0 )
+		this._attack_timer -= GSPEED;
+
 		if ( this._hea <= 0 )
 		{
 			this.attack_an += this.sx / 6;
@@ -259,11 +279,11 @@ class sdDrone extends sdEntity
 			if ( !this.CanMoveWithoutOverlap( this.x, this.y + 48, 0 ) )
 			this.sy = Math.min( this.sy, 0 )
 			if ( this._current_target )
-			if ( this._last_attack < sdWorld.time - 250 )
+			if ( this._attack_timer <= 0 )
 			{
 				this._last_attack = sdWorld.time; // So it is not so much calc intensive
 						
-				let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 240, null, [ 'sdCharacter', 'sdDrone' ] );
+				let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 240, null, [ 'sdCharacter', 'sdDrone', 'sdEnemyMech' ] );
 				let from_entity;
 				
 				let nears = [];
@@ -278,6 +298,12 @@ class sdDrone extends sdEntity
 						nears.push( { ent: from_entity, rank: rank } );
 					}
 					if ( from_entity.GetClass() === 'sdDrone' && from_entity._ai_team !== this._ai_team )
+					{
+						let rank = Math.random() * 0.1;
+						
+						nears.push( { ent: from_entity, rank: rank } );
+					}
+					if ( from_entity.GetClass() === 'sdEnemyMech' && from_entity._ai_team !== this._ai_team )
 					{
 						let rank = Math.random() * 0.1;
 						
@@ -322,30 +348,66 @@ class sdDrone extends sdEntity
 						
 						//this.an = Math.atan2( this._target.y + this._target.sy * di / vel - this.y, this._target.x + this._target.sx * di / vel - this.x ) * 100;
 						
-						sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.33, pitch:5 });
 						//sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:0.33, pitch:2.8 });
+						if ( this.type === 1  ) // Falkok drones
+						{
+							let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 
-						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+							bullet_obj._owner = this;
 
-						bullet_obj._owner = this;
+							bullet_obj.sx = dx;
+							bullet_obj.sy = dy;
+							bullet_obj.x += bullet_obj.sx * 3;
+							bullet_obj.y += bullet_obj.sy * 3;
 
-						bullet_obj.sx = dx;
-						bullet_obj.sy = dy;
-						bullet_obj.x += bullet_obj.sx * 3;
-						bullet_obj.y += bullet_obj.sy * 3;
+							bullet_obj.sx *= 12;
+							bullet_obj.sy *= 12;
 
-						bullet_obj.sx *= 12;
-						bullet_obj.sy *= 12;
-
-						bullet_obj._damage = 15;
-						bullet_obj.color = '#ff0000';
+							bullet_obj._damage = 15;
+							bullet_obj.color = '#ff0000';
 						
 
-						sdEntity.entities.push( bullet_obj );
+							sdEntity.entities.push( bullet_obj );
 						
-						this.attack_frame = 2;
-						this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
+							this.attack_frame = 2;
+							this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
+							this._attack_timer = 7;
+
+							sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.33, pitch:5 });
+						}
+						if ( this.type === 2  ) // Robot drones ( I have no name for this faction lol )
+						{
+							let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+
+							bullet_obj._owner = this;
+
+							bullet_obj.sx = dx;
+							bullet_obj.sy = dy;
+							bullet_obj.x += bullet_obj.sx * 3;
+							bullet_obj.y += bullet_obj.sy * 3;
+
+							bullet_obj.sx *= 12;
+							bullet_obj.sy *= 12;
+
+							bullet_obj._damage = 15;
+							bullet_obj.color = '#00aaff';
 						
+
+							sdEntity.entities.push( bullet_obj );
+						
+							this.attack_frame = 2;
+							this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
+							this._burst_ammo--;
+							if ( this._burst_ammo > 0 )
+							this._attack_timer = this._burst_reload;
+							else
+							{
+								this._attack_timer = 35;
+								this._burst_ammo = this._burst_ammo_start;
+							}
+
+							sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.33, pitch:10 }); // Could maybe do with other sound effect?
+						}
 						break;
 					}
 				}
@@ -383,15 +445,27 @@ class sdDrone extends sdEntity
 			{
 				ctx.globalAlpha = 0.5;
 			}
-
+			if ( this.type === 1  )
 			ctx.drawImageFilterCache( sdDrone.img_drone_falkok_destroyed, - 16, - 16, 32, 32 );
+			if ( this.type === 2  )
+			ctx.drawImageFilterCache( sdDrone.img_drone_robot_destroyed, - 16, - 16, 32, 32 );
 		}
 		else
 		{
 			if ( this.attack_frame >= 1 )
-			ctx.drawImageFilterCache( sdDrone.img_drone_falkok_attack, - 16, - 16, 32, 32 );
+			{
+				if ( this.type === 1  )
+				ctx.drawImageFilterCache( sdDrone.img_drone_falkok_attack, - 16, - 16, 32, 32 );
+				if ( this.type === 2  )
+				ctx.drawImageFilterCache( sdDrone.img_drone_robot_attack, - 16, - 16, 32, 32 );
+			}
 			else
-			ctx.drawImageFilterCache( sdDrone.img_drone_falkok, - 16, - 16, 32, 32 );
+			{
+				if ( this.type === 1  )
+				ctx.drawImageFilterCache( sdDrone.img_drone_falkok, - 16, - 16, 32, 32 );
+				if ( this.type === 2  )
+				ctx.drawImageFilterCache( sdDrone.img_drone_robot, - 16, - 16, 32, 32 );
+			}
 		}
 		
 		ctx.globalAlpha = 1;

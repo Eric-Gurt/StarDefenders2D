@@ -1097,6 +1097,9 @@ class sdWeather extends sdEntity
 
 							let ent = new sdSpider({ x:0, y:0 });
 
+							//if ( sdDrone.drones_tot < 20 ) // Not sure if this is needed to be honest, it also causes error because "let" can't be behind an "if" directly - Booraz149
+							let ent_drone = new sdDrone({ x:0, y:0, _ai_team: 2, type: 2 }); 
+
 							sdEntity.entities.push( ent );
 
 							{
@@ -1113,7 +1116,7 @@ class sdWeather extends sdEntity
 									if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
 									if ( !sdWorld.CheckWallExistsBox( 
 											x + ent._hitbox_x1 - 16, 
-											y + ent._hitbox_y1 - 16, 
+											y + ent._hitbox_y1 - 116, 
 											x + ent._hitbox_x2 + 16, 
 											y + ent._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
 									{
@@ -1136,6 +1139,9 @@ class sdWeather extends sdEntity
 											ent.x = x;
 											ent.y = y;
 
+											ent_drone.x = x;
+											ent_drone.y = y - 48;
+
 											break;
 										}
 									}
@@ -1147,6 +1153,9 @@ class sdWeather extends sdEntity
 									{
 										ent.remove();
 										ent._broken = false;
+
+										ent_drone.remove();
+										ent_drone._broken = false;
 										break;
 									}
 								} while( true );
