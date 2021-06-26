@@ -23,6 +23,8 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_GIB_GREEN = 8;
 		sdEffect.TYPE_LAG = 9;
 		sdEffect.TYPE_GLOW_HIT = 10;
+		sdEffect.TYPE_POPCORN = 11;
+		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
 		
@@ -142,6 +144,16 @@ class sdEffect extends sdEntity
 				sdWorld.CreateImageFromFile( 'hit_glow' )
 			],
 			speed: 1 / 10
+		};
+		sdEffect.types[ sdEffect.TYPE_POPCORN ] = {
+			images: [ 
+				sdWorld.CreateImageFromFile( 'popcorn_particle' )
+			],
+			speed: 1 / 90,
+			random_speed_percentage: 0.2,
+			random_flip: false,
+			gravity: true,
+			collisions: true
 		};
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn

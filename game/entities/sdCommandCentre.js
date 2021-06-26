@@ -285,6 +285,8 @@ class sdCommandCentre extends sdEntity
 					AcceptNetID( this.pending_team_joins[ i ] );
 					this.pending_team_joins.length = 0;
 					
+					executer_socket.SDServiceMessage( 'All requests were accepted' );
+					
 					this._update_version++;
 				}
 				else
@@ -294,6 +296,8 @@ class sdCommandCentre extends sdEntity
 					RejectNetID( this.pending_team_joins[ i ] );
 					this.pending_team_joins.length = 0;
 					
+					executer_socket.SDServiceMessage( 'All requests were rejected' );
+					
 					this._update_version++;
 				}
 				else
@@ -302,6 +306,8 @@ class sdCommandCentre extends sdEntity
 					for ( var i = 0; i < sdCharacter.characters.length; i++ )
 					if ( sdCharacter.characters[ i ].cc_id === this._net_id )
 					this.KickNetID( sdCharacter.characters[ i ]._net_id, false );
+			
+					executer_socket.SDServiceMessage( 'Everyone was kicked' );
 					
 					this._update_version++;
 				}
@@ -311,10 +317,18 @@ class sdCommandCentre extends sdEntity
 					var id = this.pending_team_joins.indexOf( parameters_array[ 0 ] );
 					if ( id !== -1 )
 					{
-						AcceptNetID( parameters_array[ 0 ] );
+						if ( sdEntity.entities_by_net_id_cache[ parameters_array[ 0 ] ] )
+						{
+							executer_socket.SDServiceMessage( 'Looks like player no longer exists' );
+						}
+						else
+						{
+							AcceptNetID( parameters_array[ 0 ] );
+							executer_socket.SDServiceMessage( sdEntity.entities_by_net_id_cache[ parameters_array[ 0 ] ].title + ' has been accepted' );
+						}
+						
 						this.pending_team_joins.splice( id, 1 );
-						executer_socket.SDServiceMessage( sdEntity.entities_by_net_id_cache[ parameters_array[ 0 ] ].title + ' has been accepted' );
-					
+							
 						this._update_version++;
 					}
 					else
@@ -326,9 +340,16 @@ class sdCommandCentre extends sdEntity
 					var id = this.pending_team_joins.indexOf( parameters_array[ 0 ] );
 					if ( id !== -1 )
 					{
-						RejectNetID( parameters_array[ 0 ] );
+						if ( sdEntity.entities_by_net_id_cache[ parameters_array[ 0 ] ] )
+						{
+							executer_socket.SDServiceMessage( 'Looks like player no longer exists' );
+						}
+						else
+						{
+							RejectNetID( parameters_array[ 0 ] );
+							executer_socket.SDServiceMessage( sdEntity.entities_by_net_id_cache[ parameters_array[ 0 ] ].title + ' has been rejected' );
+						}
 						this.pending_team_joins.splice( id, 1 );
-						executer_socket.SDServiceMessage( sdEntity.entities_by_net_id_cache[ parameters_array[ 0 ] ].title + ' has been rejected' );
 					
 						this._update_version++;
 					}

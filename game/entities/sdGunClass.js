@@ -242,7 +242,7 @@ class sdGunClass
 			projectile_velocity: 16,
 			GetAmmoCost: ()=>
 			{
-				return 50;
+				return 100;
 			},
 			projectile_properties: { time_left: 2, _damage: 40, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
 				{
@@ -871,10 +871,23 @@ class sdGunClass
 						
 						gun._held_by._auto_shoot_in = 2200 / 1000 * 30;
 
-						sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
+						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
+						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5 });
 					}
 					return false;
 				}
+				else
+				{
+					sdSound.PlaySound({ name: 'supercharge_combined2_part2', x:gun.x, y:gun.y, volume: 1.5 });
+					
+					if ( gun._held_by.matter >= 100 )
+					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					{
+						gun._held_by._auto_shoot_in = 15;
+						gun._held_by.matter -= 100;
+					}
+				}
+				return true;
 			},
 			projectile_properties: { 
 				//explosion_radius: 10, 
@@ -1013,7 +1026,7 @@ class sdGunClass
 			projectile_velocity: 16,
 			GetAmmoCost: ()=>
 			{
-				return 50 / 2 * 2.5;
+				return 100 / 2 * 2.5;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
@@ -1234,7 +1247,7 @@ class sdGunClass
 			title: 'Admin tool for teleporting',
 			sound_pitch: 2,
 			slot: 8,
-			reload_time: 20,
+			reload_time: 10,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 1,
@@ -1275,7 +1288,7 @@ class sdGunClass
 			projectile_velocity: 16,
 			GetAmmoCost: ()=>
 			{
-				return ( 50 / 2 * 2.5 + 50 ) * 2;
+				return ( 100 / 2 * 2.5 + 100 ) * 2;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
@@ -1581,6 +1594,51 @@ class sdGunClass
 				return true;
 			},
 			projectile_properties: {}
+		};
+		
+		sdGun.classes[ sdGun.CLASS_POPCORN = 59 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'popcorn' ),
+			image_no_matter: sdWorld.CreateImageFromFile( 'popcorn_disabled' ),
+			title: 'Popcorn',
+			slot: 7,
+			reload_time: 30,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			matter_cost: 10,
+			projectile_velocity: 16,
+			spawnable: true,
+			category: 'Other',
+			is_sword: true,
+			GetAmmoCost: ()=>
+			{
+				return 0;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				sdSound.PlaySound({ name:'popcorn', x:gun.x, y:gun.y, volume:0.3 + Math.random() * 0.2, pitch:1 + Math.sin( gun._net_id ) * 0.2 });
+				
+				return true;
+			},
+			onThrownSwordReaction: ( gun, hit_entity, hit_entity_is_protected )=>
+			{
+				sdSound.PlaySound({ name:'block4', x:gun.x, y:gun.y, volume: 0.05, pitch:1 });
+			
+				for ( let i = 0; i < 6; i++ )
+				{
+					let a = Math.random() * 2 * Math.PI;
+					let s = Math.random() * 4;
+
+					let k = Math.random();
+
+					let x = gun.x;
+					let y = gun.y;
+
+					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_POPCORN, sx: gun.sx*k + Math.sin(a)*s, sy: gun.sy*k + Math.cos(a)*s });
+				}
+			},
+			projectile_properties: { _damage: 0 }
 		};
 		
 		// Add new gun classes above this line //

@@ -940,7 +940,9 @@ class sdCharacterRagdoll
 					{
 						if ( !this.character.sd_filter )
 						{
-							this.character.sd_filter = {};
+							//this.character.sd_filter = {};
+							this.character.sd_filter = sdWorld.CreateSDFilter();
+
 							///sdWorld.ReplaceColorInSDFilter( this.character.sd_filter, [ 255, 0, 0 ], [ 254, 0, 0 ] );
 							sdWorld.ReplaceColorInSDFilter_v2( this.character.sd_filter, 'ff0000', 'fe0000' /*[ 255, 0, 0 ], [ 254, 0, 0 ]*/ );
 						}

@@ -209,6 +209,7 @@ import sdLost from './game/entities/sdLost.js';
 import sdCable from './game/entities/sdCable.js';
 import sdCharacterRagdoll from './game/entities/sdCharacterRagdoll.js';
 import sdNode from './game/entities/sdNode.js';
+import sdSpider from './game/entities/sdSpider.js';
 
 
 
@@ -344,6 +345,7 @@ sdLost.init_class();
 sdCable.init_class();
 sdCharacterRagdoll.init_class();
 sdNode.init_class();
+sdSpider.init_class();
 
 /* Do like that later, not sure if I want to deal with path problems yet again... Add awaits where needed too
 

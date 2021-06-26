@@ -42,6 +42,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_RIFLE, _category:'root', _opens_category:'Equipment' });
 		sdShop.options.push({ _class: null, image: 'vehicle', _category:'root', _opens_category:'Vehicles' });
 		sdShop.options.push({ _class: null, image: 'upgrade', _category:'root', _opens_category:'upgrades' });
+		sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_POPCORN, _category:'root', _opens_category:'Other' });
 		sdShop.options.push({ _class: null, image: 'com_red', _category:'root', _godmode_only: true, _opens_category:'Admin tools' }); // Cost of Infinity is what actually prevents items here from being accessible to non-in-godmode-admins
 		
 		if ( globalThis.isWin )
@@ -173,7 +174,7 @@ class sdShop
 				sdShop.options.push({
 					_class: 'sdGun',
 					class: i, 
-					_category:'Equipment',
+					_category: ( sdGun.classes[ i ].category || 'Equipment' ),
 					_min_build_tool_level: sdGun.classes[ i ].min_build_tool_level || 0,
 					_min_workbench_level: sdGun.classes[ i ].min_workbench_level || 0 // For workbench items
 				});
@@ -378,6 +379,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdLost', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_LOST_CONVERTER, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_CABLE_TOOL, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdSpider', _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });

@@ -25,15 +25,17 @@ class sdBullet extends sdEntity
 			'rocket_proj': sdWorld.CreateImageFromFile( 'rocket_proj' ),
 			'grenade': sdWorld.CreateImageFromFile( 'grenade' ),
 			'f_psicutter_proj': sdWorld.CreateImageFromFile( 'f_psicutter_proj' ),
-			'ball_charged':  sdWorld.CreateImageFromFile( 'ball_charged' )
+			'ball_charged':  sdWorld.CreateImageFromFile( 'ball_charged' ),
+			'mini_rocket':  sdWorld.CreateImageFromFile( 'mini_rocket' ),
+			'mini_rocket_green':  sdWorld.CreateImageFromFile( 'mini_rocket_green' )
 		};
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.is_grenade ? -2 : 0; }
-	get hitbox_x2() { return this.is_grenade ? 2 : 0; }
-	get hitbox_y1() { return this.is_grenade ? -2 : 0; }
-	get hitbox_y2() { return this.is_grenade ? 2 : 0; }
+	get hitbox_x1() { return this.is_grenade || this.ac > 0 ? -2 : 0; }
+	get hitbox_x2() { return this.is_grenade || this.ac > 0 ? 2 : 0; }
+	get hitbox_y1() { return this.is_grenade || this.ac > 0 ? -2 : 0; }
+	get hitbox_y2() { return this.is_grenade || this.ac > 0 ? 2 : 0; }
 	
 	get substeps() // Bullets will need more
 	{ return 6; } // 3 was generally fine expect for sniper
@@ -137,7 +139,7 @@ class sdBullet extends sdEntity
 		this.ac = 0; // Intensity
 		this.acx = 0;
 		this.acy = 0;
-
+		
 		this._homing = false; // is the bullet homing towards mouse?
 		this._homing_mult = 0; // How fast/strong does it home towards target?
 		
@@ -251,6 +253,21 @@ class sdBullet extends sdEntity
 	
 	RegularCollisionFiltering( from_entity )
 	{
+		if ( from_entity === this._owner || from_entity === this._owner2 )
+		return false;
+	
+		if ( from_entity.is( sdBullet ) )
+		{
+			if ( this._owner )
+			if ( this._owner === from_entity._owner )
+			return false;
+		
+			if ( this._owner2 )
+			if ( this._owner2 === from_entity._owner2 )
+			return false;
+		}
+				
+	
 		// Generally not having hitpoints and being included in GetIgnoredEntityClasses is enough for bullets to ignore something. But watch out for throwable swords at sdGun at movement in range method
 		
 		if ( from_entity.is( sdBlock ) && from_entity.material === sdBlock.MATERIAL_TRAPSHIELD )
@@ -265,12 +282,16 @@ class sdBullet extends sdEntity
 		if ( from_entity.is( sdRift ) ) // Ignore portals
 		{
 			return false;
-		}
+		};
+		
 		return true;
 	}
 	
 	BouncyCollisionFiltering( from_entity ) // Without this logic bullets will stuck in initiator on spawn. Though GetIgnoredEntityClasses will implement simpler logic which could work more efficient for normal cases
 	{
+		if ( from_entity === this._owner || from_entity === this._owner2 )
+		return false;
+	
 		if ( !this.RegularCollisionFiltering( from_entity ) )
 		return false;
 	
@@ -319,14 +340,19 @@ class sdBullet extends sdEntity
 			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.93, GSPEED );
 			this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.93, GSPEED );
 
-		if ( this._homing && this._owner )
-		{
-			//let hom_an = ( Math.atan2( ( this.y - this._owner.look_y ), (this.x - this._owner.look_x) ) + Math.PI / 2 );
-			if (this._owner.look_x - this.x > 20 || this._owner.look_x - this.x < -20 )
-			this.acx = this._homing_mult * (this._owner.look_x - this.x );
-			if (this._owner.look_y - this.y > 20 || this._owner.look_y - this.y < -20 )
-			this.acy = this._homing_mult * ( this._owner.look_y - this.y );
-		}
+			if ( this._homing && this._owner )
+			{
+				let di_targ = sdWorld.Dist2D_Vector( this._owner.look_x - this.x, this._owner.look_y - this.y );
+				let xx = 1 * ( this._owner.look_x - this.x ) - this.sx * di_targ / 15;
+				let yy = 1 * ( this._owner.look_y - this.y ) - this.sy * di_targ / 15;
+
+				let di = sdWorld.Dist2D_Vector( xx, yy );
+				if ( di > 0.01 )
+				{
+					this.acx = sdWorld.MorphWithTimeScale( this.acx, xx / di * 50, 1 - this._homing_mult, GSPEED );
+					this.acy = sdWorld.MorphWithTimeScale( this.acy, yy / di * 50, 1 - this._homing_mult, GSPEED );
+				}
+			}
 			
 			this.sx += this.acx * GSPEED * this.ac * 1;
 			this.sy += this.acy * GSPEED * this.ac * 1;

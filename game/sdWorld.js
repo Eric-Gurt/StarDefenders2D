@@ -478,7 +478,20 @@ class sdWorld
 	}
 	
 	
+	/*static GetHighestScoreOfPlayingPlayers()
+	{
+		let c = 0;
 
+		for ( let i = 0; i < sdWorld.sockets.length; i++ )
+		if ( sdWorld.sockets[ i ].character !== null )
+		if ( sdWorld.sockets[ i ].character.hea > 0 )
+		if ( !sdWorld.sockets[ i ].character._is_being_removed )
+		{
+			c = Math.max( sdWorld.sockets[ i ].character._score );
+		}
+
+		return c;
+	}*/
 	static GetPlayingPlayersCount( count_dead=false )
 	{
 		let c = 0;
@@ -2450,6 +2463,25 @@ class sdWorld
 			return false;
 		}
 		return true;
+	}
+	static TraceRayPoint( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
+	{
+		var di = sdWorld.Dist2D( x1,y1,x2,y2 );
+		//var step = 16;
+		var step = 8;
+		
+		for ( var s = step / 2; s < di - step / 2; s += step )
+		{
+			var x = x1 + ( x2 - x1 ) / di * s;
+			var y = y1 + ( y2 - y1 ) / di * s;
+			if ( sdWorld.CheckWallExists( x, y, ignore_entity, ignore_entity_classes, include_only_specific_classes, custom_filtering_method ) )
+			{
+				sdWorld.reusable_closest_point.x = x;
+				sdWorld.reusable_closest_point.y = y;
+				return sdWorld.reusable_closest_point;
+			}
+		}
+		return null;
 	}
 	static CheckWallExists( x, y, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
 	{

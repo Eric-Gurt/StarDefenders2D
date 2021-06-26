@@ -81,7 +81,7 @@ class sdBlock extends sdEntity
 				
 				sdBlock.prototype.DrawBG = function( ctx, attached )
 				{
-					if ( this.material === sdBlock.MATERIAL_SHARP )
+					if ( this.material === sdBlock.MATERIAL_SHARP || this.material === sdBlock.MATERIAL_TRAPSHIELD )
 					return;
 
 					for ( var a = 0; a < this._affected_hash_arrays.length; a++ )

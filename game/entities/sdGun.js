@@ -150,12 +150,15 @@ class sdGun extends sdEntity
 					if ( sdGun.classes[ this.class ].projectile_properties._custom_target_reaction )
 					sdGun.classes[ this.class ].projectile_properties._custom_target_reaction( this, from_entity );
 
-					if ( from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
+					if ( sdGun.classes[ this.class ].projectile_properties._damage !== 0 )
 					{
-						sdSound.PlaySound({ name:'player_hit', x:this.x, y:this.y, volume:0.5 });
-					}
+						if ( from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
+						{
+							sdSound.PlaySound({ name:'player_hit', x:this.x, y:this.y, volume:0.5 });
+						}
 
-					sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect() });
+						sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect() });
+					}
 					
 					let mult = 1;
 					
@@ -172,6 +175,9 @@ class sdGun extends sdEntity
 					from_entity.Damage( sdGun.classes[ this.class ].projectile_properties._damage, this._dangerous_from );
 
 					this.Damage( 1 );
+					
+					if ( sdGun.classes[ this.class ].onThrownSwordReaction )
+					sdGun.classes[ this.class ].onThrownSwordReaction( this, from_entity, false );
 				}
 				else
 				{
@@ -179,6 +185,9 @@ class sdGun extends sdEntity
 					sdGun.classes[ this.class ].projectile_properties._custom_target_reaction_protected( this, from_entity );
 
 					sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
+					
+					if ( sdGun.classes[ this.class ].onThrownSwordReaction )
+					sdGun.classes[ this.class ].onThrownSwordReaction( this, from_entity, true );
 				}
 			}
 			
@@ -912,6 +921,7 @@ class sdGun extends sdEntity
 			//if ( this.class === sdGun.CLASS_SWORD )
 			if ( this._held_by )
 			{
+				if ( this.class !== sdGun.CLASS_POPCORN )
 				if ( this._held_by.fire_anim <= 0 )
 				ctx.rotate( - Math.PI / 2 );
 			}

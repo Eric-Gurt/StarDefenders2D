@@ -665,12 +665,15 @@ class sdCube extends sdEntity
 									bullet_obj[ p ] = sdGun.classes[ sdGun.CLASS_LOST_CONVERTER ].projectile_properties[ p ];
 								
 									sdEntity.entities.push( bullet_obj );
+									
+									sdSound.PlaySound({ name:'supercharge_combined2_part2', pitch: 1, x:this.x, y:this.y, volume:1.5 });
 								}
 							}, 2200 );
 							
 							this._attack_timer = 30 * 6;
 							
-							sdSound.PlaySound({ name:'supercharge_combined2', pitch: 1, x:this.x, y:this.y, volume:1.5 });
+							//sdSound.PlaySound({ name:'supercharge_combined2', pitch: 1, x:this.x, y:this.y, volume:1.5 });
+							sdSound.PlaySound({ name:'supercharge_combined2_part1', pitch: 1, x:this.x, y:this.y, volume:1.5 });
 						}
 						else
 						{
