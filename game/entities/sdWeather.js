@@ -622,6 +622,7 @@ class sdWeather extends sdEntity
 							if ( !cube.CanMoveWithoutOverlap( cube.x, cube.y, 0 ) )
 							{
 								cube.remove();
+								cube._broken = false;
 							}
 							else
 							sdWorld.UpdateHashPosition( cube, false ); // Prevent inersection with other ones
@@ -748,8 +749,8 @@ class sdWeather extends sdEntity
 									tr--;
 									if ( tr < 0 )
 									{
-										character_entity.death_anim = sdCharacter.disowned_body_ttl + 1;
 										character_entity.remove();
+										character_entity._broken = false;
 										break;
 									}
 								} while( true );
@@ -774,8 +775,8 @@ class sdWeather extends sdEntity
 
 							if ( !asp.CanMoveWithoutOverlap( asp.x, asp.y, 0 ) )
 							{
-								asp.death_anim = sdAsp.death_duration + sdAsp.post_death_ttl;
 								asp.remove();
+								asp._broken = false;
 							}
 							else
 							sdWorld.UpdateHashPosition( asp, false ); // Prevent inersection with other ones
@@ -833,6 +834,7 @@ class sdWeather extends sdEntity
 											if ( tr < 0 )
 											{
 												drone.remove();
+												drone._broken = false;
 												break;
 											}
 										} while( true );
@@ -895,6 +897,7 @@ class sdWeather extends sdEntity
 									if ( tr < 0 )
 									{
 										virus_entity.remove();
+										virus_entity._broken = false;
 										break;
 									}
 								} while( true );
@@ -947,6 +950,7 @@ class sdWeather extends sdEntity
 									if ( tr < 0 )
 									{
 										mech_entity.remove();
+										mech_entity._broken = false;
 										break;
 									}
 								} while( true );
@@ -1018,6 +1022,7 @@ class sdWeather extends sdEntity
 									if ( tr < 0 )
 									{
 										dog.remove();
+										dog._broken = false;
 										break;
 									}
 								} while( true );
@@ -1071,6 +1076,7 @@ class sdWeather extends sdEntity
 										if ( tr < 0 )
 										{
 											portal.remove();
+											portal._broken = false;
 											break;
 										}
 									} while( true );
@@ -1083,9 +1089,9 @@ class sdWeather extends sdEntity
 						this._time_until_event = Math.random() * 30 * 60 * 1; // Quickly switch to another event
 					}
 					
-					if ( r === 11 ) // Spawn 1-2 sdSpiders somewhere on ground where players don't see them
+					if ( r === 11 ) // Spawn 3-6 sdSpiders somewhere on ground where players don't see them
 					{
-						let instances = Math.floor( 1 + Math.random() * 2 );
+						let instances = Math.floor( 3 + Math.random() * 4 );
 						while ( instances > 0 && sdSpider.spider_counter < Math.min( 32, sdWorld.GetPlayingPlayersCount() * 10 ) )
 						{
 
@@ -1140,6 +1146,7 @@ class sdWeather extends sdEntity
 									if ( tr < 0 )
 									{
 										ent.remove();
+										ent._broken = false;
 										break;
 									}
 								} while( true );

@@ -512,6 +512,9 @@ class sdGun extends sdEntity
 					return false;
 				}
 				
+				if ( !this._held_by ) // Just in case if onShootAttempt removes/disowns gun? It happened once on line if ( this._held_by.power_ef > 0 )
+				return false;
+				
 				if ( sdGun.classes[ this.class ].sound )
 				{
 					let pitch = sdGun.classes[ this.class ].sound_pitch || 1;
