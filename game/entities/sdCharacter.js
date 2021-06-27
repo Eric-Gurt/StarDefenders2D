@@ -1205,27 +1205,29 @@ class sdCharacter extends sdEntity
 				for ( let i = 0; i < sdCharacter.characters.length; i++ )
 				{
 					var ent = sdCharacter.characters[ i ];
-					if ( !sdCharacter.characters[ i ]._ai )
 					if ( this._ai_team === 0 ) // Keep emergency instructor's behaviour as it is right now
 					{
-						if ( ent )
-						if ( ent.hea > 0 )
-						if ( !ent._is_being_removed )
-						if ( this._owner !== ent && ( this._owner === null || ( this._owner.cc_id !== 0 || this._owner.cc_id !== ent.cc_id ) ) )
+						if ( !sdCharacter.characters[ i ]._ai )
 						{
-							let di = sdWorld.Dist2D( this.x, this.y, ent.x, ent.y );
-							//let di_real = di;
-
-							if ( di < 400 )
-							//if ( !sdCube.IsTargetFriendly( ent ) )
-							if ( ent.IsVisible( this ) )
-							if ( sdWorld.CheckLineOfSight( this.x, this.y, ent.x, ent.y, this, sdCom.com_visibility_ignored_classes, null ) )
+							if ( ent )
+							if ( ent.hea > 0 )
+							if ( !ent._is_being_removed )
+							if ( this._owner !== ent && ( this._owner === null || ( this._owner.cc_id !== 0 || this._owner.cc_id !== ent.cc_id ) ) )
 							{
-								if ( di < closest_di )
+								let di = sdWorld.Dist2D( this.x, this.y, ent.x, ent.y );
+								//let di_real = di;
+
+								if ( di < 400 )
+								//if ( !sdCube.IsTargetFriendly( ent ) )
+								if ( ent.IsVisible( this ) )
+								if ( sdWorld.CheckLineOfSight( this.x, this.y, ent.x, ent.y, this, sdCom.com_visibility_ignored_classes, null ) )
 								{
-									closest_di = di;
-									//closest_di_real = di_real;
-									closest = ent;
+									if ( di < closest_di )
+									{
+										closest_di = di;
+										//closest_di_real = di_real;
+										closest = ent;
+									}
 								}
 							}
 						}
