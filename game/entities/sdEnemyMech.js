@@ -397,7 +397,7 @@ class sdEnemyMech extends sdEntity
 					let targets = [];
 
 					for ( let i = 0; i < targets_raw.length; i++ )
-					if ( ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ].hea > 0 ) ||
+					if ( ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ]._ai_team !== 2 && targets_raw[ i ].hea > 0 ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdTurret' && targets_raw[ i ]._disabled_timeout < 240 ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdCube' && targets_raw[ i ].hea > 0 ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdCube' && this.hea < 2000 ) ||
@@ -413,7 +413,7 @@ class sdEnemyMech extends sdEntity
 						else
 						{
 							if ( this.hea < 2000 )
-							if ( targets_raw[ i ].GetClass() === 'sdCharacter') // Highly wanted by sdEnemyMechs in this case
+							if ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ]._ai_team !== 2 ) // Highly wanted by sdEnemyMechs in this case
 							{
 								targets.push( targets_raw[ i ] );
 							}
