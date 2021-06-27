@@ -424,7 +424,12 @@ class sdDrone extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, "Drone" );
+		{
+			if ( this.type === 1 )
+			sdEntity.Tooltip( ctx, "Falkok Drone" );
+			if ( this.type === 2 )
+			sdEntity.Tooltip( ctx, "Erthal Drone" );
+		}
 	}
 	Draw( ctx, attached )
 	{
