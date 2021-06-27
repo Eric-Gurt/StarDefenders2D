@@ -57,6 +57,7 @@ class sdSpider extends sdEntity
 		
 		this._hmax = 300;
 		this._hea = this._hmax;
+		this._ai_team = 2;
 
 		//this.type = 0;
 		
@@ -100,6 +101,7 @@ class sdSpider extends sdEntity
 		if ( this._hea > 0 )
 		//if ( character.IsTargetable() && character.IsVisible() )
 		if ( character.hea > 0 )
+		if ( character._ai_team !== this._ai_team )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
 			if ( di < sdSpider.max_seek_range )

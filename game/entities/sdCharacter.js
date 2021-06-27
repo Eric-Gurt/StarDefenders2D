@@ -1104,6 +1104,7 @@ class sdCharacter extends sdEntity
 		if ( this._voice.variant === 'whisperf' )
 		sdSound.PlaySound({ name:'f_welcome1', x:this.x, y:this.y, volume:0.4 });
 		else
+		if ( this._ai_team !== 2 )
 		{
 			// Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false )
 			this.Say( [ 

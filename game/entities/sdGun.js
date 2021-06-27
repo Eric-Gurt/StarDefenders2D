@@ -483,6 +483,9 @@ class sdGun extends sdEntity
 						if ( sdWorld.is_server )
 						{
 							this._held_by.matter -= ammo_cost;
+
+							if ( sdGun.classes[ this.class ].burst )
+							this.burst_ammo--; 
 							
 							this._held_by.TriggerMovementInRange();
 						}
@@ -843,7 +846,7 @@ class sdGun extends sdEntity
 			if ( this._held_by === null )
 			ctx.rotate( this.tilt / sdGun.tilt_scale );
 			
-			if ( this.class === sdGun.CLASS_SNIPER || this.class === sdGun.CLASS_RAYGUN || this.class === sdGun.CLASS_RAILGUN_P03 ) // It could probably be separated as a variable declared in sdGunClass to determine if it has reloading animation or not
+			if ( this.class === sdGun.CLASS_SNIPER || this.class === sdGun.CLASS_RAYGUN || this.class === sdGun.CLASS_RAILGUN_P03 || this.class === sdGun.CLASS_ROBOT_BURST_RIFLE ) // It could probably be separated as a variable declared in sdGunClass to determine if it has reloading animation or not
 			{
 				let odd = ( this.reload_time_left % 10 ) < 5 ? 0 : 1;
 				

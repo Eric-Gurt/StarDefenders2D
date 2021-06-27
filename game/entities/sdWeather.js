@@ -1089,7 +1089,7 @@ class sdWeather extends sdEntity
 						this._time_until_event = Math.random() * 30 * 60 * 1; // Quickly switch to another event
 					}
 					
-					if ( r === 11 ) // Spawn 3-6 sdSpiders somewhere on ground where players don't see them
+					if ( r === 11 ) // Spawn 3-6 sdSpiders, drones somewhere on ground where players don't see them and Erthal humanoids
 					{
 						let instances = Math.floor( 3 + Math.random() * 4 );
 						while ( instances > 0 && sdSpider.spider_counter < Math.min( 32, sdWorld.GetPlayingPlayersCount() * 10 ) )
@@ -1162,6 +1162,129 @@ class sdWeather extends sdEntity
 							}
 
 							instances--;
+						}
+						let ais = 0;
+						let percent = 0;
+						for ( var i = 0; i < sdCharacter.characters.length; i++ )
+						{
+							if ( sdCharacter.characters[ i ].hea > 0 )
+							if ( !sdCharacter.characters[ i ]._is_being_removed )
+							if ( sdCharacter.characters[ i ]._ai_team === 2 )
+							{
+								ais++;
+							}
+
+							if ( sdCharacter.characters[ i ].hea > 0 )
+							if ( !sdCharacter.characters[ i ]._is_being_removed )
+							//if ( !sdCharacter.characters[ i ]._ai )
+							if ( sdCharacter.characters[ i ].build_tool_level > 0 )
+							{
+								percent++;
+							}
+						}
+						if ( Math.random() < ( percent / sdWorld.GetPlayingPlayersCount() ) ) // Spawn chance depends on RNG, chances increase if more players ( or all ) have at least one built tool / shop upgrade
+						{
+							let robots = 0;
+							let robots_tot = 1 + ( ~~( Math.random() * 2 ) );
+
+							let left_side = ( Math.random() < 0.5 );
+
+							while ( robots < robots_tot && ais < 8 )
+							{
+
+								let character_entity = new sdCharacter({ x:0, y:0 });
+
+								sdEntity.entities.push( character_entity );
+
+								{
+									let x,y;
+									let tr = 1000;
+									do
+									{
+										if ( left_side )
+										x = sdWorld.world_bounds.x1 + 16 + 16 * robots;
+										else
+										x = sdWorld.world_bounds.x2 - 16 - 16 * robots;
+
+										y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+										if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+										if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+										if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+										{
+											character_entity.x = x;
+											character_entity.y = y;
+
+											//sdWorld.UpdateHashPosition( ent, false );
+											{
+												sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_BURST_RIFLE }) );
+												character_entity._ai_gun_slot = 2;
+											}
+											let robot_settings;
+											//if ( character_entity._ai_gun_slot === 2 )
+											robot_settings = {"hero_name":"Erthal","color_bright":"#37a2ff","color_dark":"#000000","color_bright3":"#464646","color_dark3":"#000000","color_visor":"#1664a8","color_suit":"#464646","color_suit2":"#000000","color_dark2":"#464646","color_shoes":"#000000","color_skin":"#1665a8","color_extra1":"#464646","helmet1":false,"helmet4":true,"body3":true,"legs3":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":false,"voice7":true};
+
+											character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( robot_settings );
+											character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( robot_settings );
+											character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( robot_settings );
+											character_entity.title = robot_settings.hero_name;
+											character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( robot_settings );
+											character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( robot_settings );
+											if ( character_entity._ai_gun_slot === 2 )
+											{
+												character_entity.matter = 150;
+												character_entity.matter_max = 150;
+
+												character_entity.hea = 250;
+												character_entity.hmax = 250;
+
+												character_entity.armor = 250;
+												character_entity.armor_max = 250;
+												character_entity._armor_absorb_perc = 0.5; // 50% damage absorption, basically they have effectively 500 health
+
+												character_entity._damage_mult = 1; // Supposed to put up a challenge
+											}
+
+											/*if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // Nothing here so far
+											{
+												character_entity.matter = 100;
+												character_entity.matter_max = 100;
+
+												character_entity.hea = 250;
+												character_entity.hmax = 250;
+
+												character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
+											}*/	
+											character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+											character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
+										
+											character_entity._ai_level = 4;
+										
+											character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
+											character_entity._jetpack_allowed = true; // Jetpack
+											character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
+											character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+											character_entity._ai_team = 2; // AI team 2 is for Erthal
+											character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
+
+										break;
+									}
+
+
+									tr--;
+									if ( tr < 0 )
+									{
+										character_entity.remove();
+										character_entity._broken = false;
+										break;
+									}
+								} while( true );
+							}
+
+							robots++;
+							ais++;
+							console.log('Erthal spawned!');
+							}
 						}
 					}
 				}

@@ -1640,6 +1640,27 @@ class sdGunClass
 			},
 			projectile_properties: { _damage: 0 }
 		};
+
+		sdGun.classes[ sdGun.CLASS_ERTHAL_BURST_RIFLE = 60 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'robot_burst_rifle' ),
+			image0: [ sdWorld.CreateImageFromFile( 'robot_burst_rifle0' ), sdWorld.CreateImageFromFile( 'robot_burst_rifle0b' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'robot_burst_rifle1' ), sdWorld.CreateImageFromFile( 'robot_burst_rifle1b' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'robot_burst_rifle2' ), sdWorld.CreateImageFromFile( 'robot_burst_rifle2b' ) ],
+			sound: 'gun_pistol',
+			sound_pitch: 10,
+			title: 'Erthal Burst Rifle',
+			slot: 2,
+			reload_time: 2,
+			muzzle_x: 5,
+			ammo_capacity: 36,
+			count: 1,
+			spread: 0.01,
+			spawnable: false,
+			burst: 6, // Burst fire count
+			burst_reload: 24, // Burst fire reload, needed when giving burst fire
+			projectile_properties: { _damage: 35,  color: '#00aaff' }
+		};
 		
 		// Add new gun classes above this line //
 		
