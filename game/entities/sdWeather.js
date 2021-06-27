@@ -576,7 +576,7 @@ class sdWeather extends sdEntity
 			{
 				//this._time_until_event = Math.random() * 30 * 60 * 8; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
 				//this._time_until_event = Math.random() * 30 * 60 * 7; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
-				this._time_until_event = Math.random() * 30 * 60 * 3; // Changed after sdWeather logic was being called twice, which caused events to happen twice as frequently
+				this._time_until_event = Math.random() * 30 * 60 * 0.5; // Changed after sdWeather logic was being called twice, which caused events to happen twice as frequently
 				let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ];
 				
 				let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
@@ -1216,9 +1216,15 @@ class sdWeather extends sdEntity
 											character_entity.y = y;
 
 											//sdWorld.UpdateHashPosition( ent, false );
+											if ( Math.random() < 0.3 )
 											{
 												sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_BURST_RIFLE }) );
 												character_entity._ai_gun_slot = 2;
+											}
+											else
+											{
+												sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_PLASMA_PISTOl }) );
+												character_entity._ai_gun_slot = 1;
 											}
 											let robot_settings;
 											//if ( character_entity._ai_gun_slot === 2 )
@@ -1230,7 +1236,7 @@ class sdWeather extends sdEntity
 											character_entity.title = robot_settings.hero_name;
 											character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( robot_settings );
 											character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( robot_settings );
-											if ( character_entity._ai_gun_slot === 2 )
+											if ( character_entity._ai_gun_slot === 2 || character_entity._ai_gun_slot === 1 )
 											{
 												character_entity.matter = 150;
 												character_entity.matter_max = 150;
@@ -1239,8 +1245,8 @@ class sdWeather extends sdEntity
 												character_entity.hmax = 250;
 
 												character_entity.armor = 250;
-												character_entity.armor_max = 250;
-												character_entity._armor_absorb_perc = 0.5; // 50% damage absorption, basically they have effectively 500 health
+												character_entity.armor_max = 500;
+												character_entity._armor_absorb_perc = 0.75; // 75% damage absorption, since armor will run out before health, they effectively have 750 health
 
 												character_entity._damage_mult = 1; // Supposed to put up a challenge
 											}
