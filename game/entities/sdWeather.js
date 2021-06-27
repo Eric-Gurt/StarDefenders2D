@@ -1223,7 +1223,7 @@ class sdWeather extends sdEntity
 											}
 											else
 											{
-												sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_PLASMA_PISTOl }) );
+												sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_PLASMA_PISTOL }) );
 												character_entity._ai_gun_slot = 1;
 											}
 											let robot_settings;
