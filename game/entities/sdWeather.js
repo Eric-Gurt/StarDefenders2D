@@ -576,7 +576,7 @@ class sdWeather extends sdEntity
 			{
 				//this._time_until_event = Math.random() * 30 * 60 * 8; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
 				//this._time_until_event = Math.random() * 30 * 60 * 7; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
-				this._time_until_event = Math.random() * 30 * 60 * 0.5; // Changed after sdWeather logic was being called twice, which caused events to happen twice as frequently
+				this._time_until_event = Math.random() * 30 * 60 * 3; // Changed after sdWeather logic was being called twice, which caused events to happen twice as frequently
 				let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ];
 				
 				let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
@@ -1289,7 +1289,7 @@ class sdWeather extends sdEntity
 
 							robots++;
 							ais++;
-							console.log('Erthal spawned!');
+							//console.log('Erthal spawned!');
 							}
 						}
 					}
