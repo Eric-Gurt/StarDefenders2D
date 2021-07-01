@@ -552,13 +552,13 @@ class sdDoor extends sdEntity
 	}
 	onRemove() // Class-specific, if needed
 	{
-		if ( sdWorld.is_server )
+		/*if ( sdWorld.is_server )
 		{
 			let nears = sdWorld.GetAnythingNear( this.x + 32 / 2, this.y + 32 / 2, Math.max( 32, 32 ) / 2 + 16 );
 			for ( let i = 0; i < nears.length; i++ )
 			if ( nears[ i ] instanceof sdWater )
 			nears[ i ]._sleep_tim = sdWater.sleep_tim_max;
-		}
+		}*/
 
 		if ( !sdWorld.is_server )
 		if ( this._net_id !== undefined ) // Was ever synced rather than just temporarily object for shop

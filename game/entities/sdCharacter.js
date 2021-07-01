@@ -834,6 +834,8 @@ class sdCharacter extends sdEntity
 				}
 			}*/
 			
+			//console.log( 'Initial damage to receive: ' + damage_to_deal );
+			
 			if ( this.armor <= 0 || affects_armor === false )
 			{
 			}
@@ -868,6 +870,8 @@ class sdCharacter extends sdEntity
 					this.RemoveArmor();
 				}
 			}
+			
+			//console.log( 'Final HP damage to receive: ' + damage_to_deal );
 			
 			if ( was_alive )
 			if ( this.hea - damage_to_deal <= 0 )

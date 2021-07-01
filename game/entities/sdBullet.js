@@ -209,6 +209,7 @@ class sdBullet extends sdEntity
 		if ( this._return_damage_to_owner )
 		{
 			if ( this._owner )
+			if ( !this._owner._is_being_removed )
 			{
 				this._owner.Damage( this._damage, null, false, false );
 				
@@ -445,20 +446,30 @@ class sdBullet extends sdEntity
 			if ( from_entity.is( sdGun ) )
 			return;
 		
-			if ( from_entity.is( sdArea ) )
-			if ( from_entity.type === sdArea.TYPE_PREVENT_DAMAGE )
+			if ( this._owner && this._owner._god )
 			{
-				if ( this._owner && this._owner._god )
+			}
+			else
+			if ( this._owner2 && this._owner2._god )
+			{
+			}
+			else
+			{
+				if ( from_entity.is( sdArea ) )
 				{
+					if ( from_entity.type === sdArea.TYPE_PREVENT_DAMAGE )
+					{
+						this.remove();
+						return;
+					}
 				}
 				else
-				if ( this._owner2 && this._owner2._god )
 				{
-				}
-				else
-				{
-					this.remove();
-					return;
+					if ( !sdArea.CheckPointDamageAllowed( from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2, from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2 ) )
+					{
+						this.remove();
+						return;
+					}
 				}
 			}
 		}
