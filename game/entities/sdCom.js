@@ -36,6 +36,9 @@ class sdCom extends sdEntity
 		sdCom.com_visibility_unignored_classes = [ 'sdBlock', 'sdMatterContainer', 'sdMatterAmplifier' ];
 		sdCom.com_creature_attack_unignored_classes = [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ]; // Used by sdVirus so far. Also for rain that spawns grass
 		
+		sdCom.com_visibility_unignored_classes_plus_erthals = sdCom.com_visibility_unignored_classes.slice();
+		sdCom.com_visibility_unignored_classes_plus_erthals.push( 'sdSpider', 'sdDrone' ); // All drones, but this should be enough to check if player aims as current entity
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -4; }

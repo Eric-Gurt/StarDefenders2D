@@ -764,19 +764,28 @@ class sdBullet extends sdEntity
 		}
 		else
 		{
-			//ctx.globalAlpha = 0.7;
-			
 			ctx.rotate( Math.atan2( this.sy, this.sx ) + Math.PI / 2 );
 		
 			let vel = Math.sqrt( this.sx * this.sx + this.sy * this.sy ) * 0.7;
 
-			ctx.fillStyle = this.color;
-			//ctx.fillRect( -0.5, -vel/2, 1, vel );
+			/*ctx.fillStyle = this.color;
 			ctx.fillRect( -0.5 * 0.666, -vel/2, 1 * 0.666, vel );
 			
 			ctx.globalAlpha = 0.03;
-			
 			ctx.fillRect( -0.5 - 5, -vel/2 - 5, 1 + 10, vel + 10 );
+			*/
+
+			ctx.globalAlpha = 0.5;
+			ctx.fillStyle = this.color;
+			ctx.fillRect( -0.5, -vel/2, 1, vel );
+			
+			ctx.globalAlpha = 0.03;
+			ctx.fillRect( -0.5 - 5, -vel/2 - 5, 1 + 10, vel + 10 );
+
+			ctx.fillStyle = '#ffffff';
+			ctx.globalAlpha = 1;
+			const b = 0.3 * 0.666;
+			ctx.fillRect( -0.5 * 0.666 + b, -vel/2 + b, 1 * 0.666 - 2*b, vel - 2*b );
 		}
 	}
 }

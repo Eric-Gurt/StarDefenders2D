@@ -2227,19 +2227,19 @@ io.on("connection", (socket) =>
 						{
 							if ( dy < -27 )
 							{
-								console.log( 'dy', dy );
+								//console.log( 'dy', dy );
 								dy = -27;
 							}
 							
 							if ( dx > 30 )
 							{
-								console.log( 'dx', dx );
+								//console.log( 'dx', dx );
 								dx = 30;
 							}
 							else
 							if ( dx < -30 )
 							{
-								console.log( 'dx', dx );
+								//console.log( 'dx', dx );
 								dx = -30;
 							}
 						}
