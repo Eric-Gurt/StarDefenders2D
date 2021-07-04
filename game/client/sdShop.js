@@ -380,6 +380,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_LOST_CONVERTER, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_CABLE_TOOL, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdSpider', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdDrone', _ai_team: 2, type: 2, _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });

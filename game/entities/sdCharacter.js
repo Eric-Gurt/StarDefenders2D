@@ -1120,6 +1120,7 @@ class sdCharacter extends sdEntity
 		if ( this._voice.variant === 'whisperf' )
 		sdSound.PlaySound({ name:'f_welcome1', x:this.x, y:this.y, volume:0.4 });
 		else
+		if ( this._ai_team !== 2 )
 		{
 			// Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false )
 			this.Say( [ 
@@ -1217,28 +1218,58 @@ class sdCharacter extends sdEntity
 				}
 
 				if ( !closest )
-				for ( let i = 0; i < sdWorld.sockets.length; i++ )
+				for ( let i = 0; i < sdCharacter.characters.length; i++ )
 				{
-					var ent = sdWorld.sockets[ i ].character;
-
-					if ( ent )
-					if ( ent.hea > 0 )
-					if ( !ent._is_being_removed )
-					if ( this._owner !== ent && ( this._owner === null || ( this._owner.cc_id !== 0 || this._owner.cc_id !== ent.cc_id ) ) )
+					var ent = sdCharacter.characters[ i ];
+					if ( this._ai_team === 0 ) // Keep emergency instructor's behaviour as it is right now
 					{
-						let di = sdWorld.Dist2D( this.x, this.y, ent.x, ent.y );
-						//let di_real = di;
-
-						if ( di < 400 )
-						//if ( !sdCube.IsTargetFriendly( ent ) )
-						if ( ent.IsVisible( this ) )
-						if ( sdWorld.CheckLineOfSight( this.x, this.y, ent.x, ent.y, this, sdCom.com_visibility_ignored_classes, null ) )
+						if ( !sdCharacter.characters[ i ]._ai )
 						{
-							if ( di < closest_di )
+							if ( ent )
+							if ( ent.hea > 0 )
+							if ( !ent._is_being_removed )
+							if ( this._owner !== ent && ( this._owner === null || ( this._owner.cc_id !== 0 || this._owner.cc_id !== ent.cc_id ) ) )
 							{
-								closest_di = di;
-								//closest_di_real = di_real;
-								closest = ent;
+								let di = sdWorld.Dist2D( this.x, this.y, ent.x, ent.y );
+								//let di_real = di;
+
+								if ( di < 400 )
+								//if ( !sdCube.IsTargetFriendly( ent ) )
+								if ( ent.IsVisible( this ) )
+								if ( sdWorld.CheckLineOfSight( this.x, this.y, ent.x, ent.y, this, sdCom.com_visibility_ignored_classes, null ) )
+								{
+									if ( di < closest_di )
+									{
+										closest_di = di;
+										//closest_di_real = di_real;
+										closest = ent;
+									}
+								}
+							}
+						}
+					}
+					else // If falkoks or other factions, like Erthals, target anything beside themselves
+					{
+						if ( ent )
+						if ( ent.hea > 0 )
+						if ( ent._ai_team !== this._ai_team )
+						if ( !ent._is_being_removed )
+						if ( this._owner !== ent && ( this._owner === null || ( this._owner.cc_id !== 0 || this._owner.cc_id !== ent.cc_id ) ) )
+						{
+							let di = sdWorld.Dist2D( this.x, this.y, ent.x, ent.y );
+							//let di_real = di;
+
+							if ( di < 400 )
+							//if ( !sdCube.IsTargetFriendly( ent ) )
+							if ( ent.IsVisible( this ) )
+							if ( sdWorld.CheckLineOfSight( this.x, this.y, ent.x, ent.y, this, sdCom.com_visibility_ignored_classes, null ) )
+							{
+								if ( di < closest_di )
+								{
+									closest_di = di;
+									//closest_di_real = di_real;
+									closest = ent;
+								}
 							}
 						}
 					}

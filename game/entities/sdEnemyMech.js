@@ -392,15 +392,16 @@ class sdEnemyMech extends sdEntity
 
 					//let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 800 );
 					//let targets_raw = sdWorld.GetCharactersNear( this.x, this.y, null, null, 800 );
-					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdEnemyMech.attack_range, null, [ 'sdCharacter', 'sdTurret' , 'sdCube' ] );
+					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdEnemyMech.attack_range, null, [ 'sdCharacter', 'sdTurret' , 'sdCube', 'sdDrone' ] );
 
 					let targets = [];
 
 					for ( let i = 0; i < targets_raw.length; i++ )
-					if ( ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ].hea > 0 ) ||
+					if ( ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ]._ai_team !== 2 && targets_raw[ i ].hea > 0 ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdTurret' && targets_raw[ i ]._disabled_timeout < 240 ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdCube' && targets_raw[ i ].hea > 0 ) ||
-						 ( targets_raw[ i ].GetClass() === 'sdCube' && this.hea < 2000 ) )
+						 ( targets_raw[ i ].GetClass() === 'sdCube' && this.hea < 2000 ) ||
+						 ( targets_raw[ i ].GetClass() === 'sdDrone' && targets_raw[ i ]._ai_team !== 2 && targets_raw[ i ].hea > 0 ) )
 					{
 						if ( sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdEnemyMech' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
 							targets.push( targets_raw[ i ] );
@@ -412,7 +413,7 @@ class sdEnemyMech extends sdEntity
 						else
 						{
 							if ( this.hea < 2000 )
-							if ( targets_raw[ i ].GetClass() === 'sdCharacter') // Highly wanted by sdEnemyMechs in this case
+							if ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ]._ai_team !== 2 ) // Highly wanted by sdEnemyMechs in this case
 							{
 								targets.push( targets_raw[ i ] );
 							}
