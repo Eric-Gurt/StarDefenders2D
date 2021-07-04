@@ -180,10 +180,10 @@ class sdSpider extends sdEntity
 	
 	static StartErthalDrop( dying_entity, luck_scale=1 )
 	{
-		let x = this.x;
-		let y = this.y;
-		let sx = this.sx;
-		let sy = this.sy;
+		let x = dying_entity.x;
+		let y = dying_entity.y;
+		let sx = dying_entity.sx;
+		let sy = dying_entity.sy;
 
 		setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
