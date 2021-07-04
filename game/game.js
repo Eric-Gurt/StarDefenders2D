@@ -613,6 +613,9 @@ let enf_once = true;
 					if ( will_send )
 					{
 						socket.volatile.emit( 'M', new_snapshot );
+						//ssetTimeout(()=>{ // Hack
+						//	socket.volatile.emit( 'M', new_snapshot );
+						//},100);
 
 						last_sent_snapshot = new_snapshot;
 

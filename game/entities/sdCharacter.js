@@ -258,6 +258,9 @@ class sdCharacter extends sdEntity
 		//this._is_cable_priority = true;
 		
 		this._socket = null; // undefined causes troubles
+		/*this._pos_corr_x = this.x;
+		this._pos_corr_y = this.y;
+		this._pos_corr_until = 0;*/
 		
 		this.lag = false;
 		
@@ -1878,6 +1881,15 @@ class sdCharacter extends sdEntity
 			{
 				this.act_x = this._key_states.GetKey( 'KeyD' ) - this._key_states.GetKey( 'KeyA' );
 				this.act_y = this._key_states.GetKey( 'KeyS' ) - ( ( this._key_states.GetKey( 'KeyW' ) || this._key_states.GetKey( 'Space' ) ) ? 1 : 0 );
+				
+				/*if ( sdWorld.time < this._pos_corr_until )
+				{
+					//this._pos_corr_x = this.x;
+					//this._pos_corr_y = this.y;
+					//this._pos_corr_until = 0;
+					this.act_x = Math.sign( this._pos_corr_x - this.x );
+					this.act_y = Math.sign( this._pos_corr_y - this.y );
+				}*/
 
 				if ( this._socket || this._ai || sdWorld.my_entity === this )
 				if ( this.act_x !== 0 || this.act_y !== 0 )
@@ -2197,6 +2209,8 @@ class sdCharacter extends sdEntity
 			}
 		}
 		
+		//this.flying = true; // Hack
+		
 		if ( this.flying )
 		{
 			let di = Math.max( 1, sdWorld.Dist2D_Vector( this.act_x, this.act_y ) );
@@ -2204,7 +2218,7 @@ class sdCharacter extends sdEntity
 			let x_force = this.act_x / di * 0.1;
 			let y_force = this.act_y / di * 0.1 - sdWorld.gravity;
 			
-			let fuel_cost =  GSPEED * sdWorld.Dist2D_Vector( x_force, y_force ) * this._jetpack_fuel_multiplier;
+			let fuel_cost = GSPEED * sdWorld.Dist2D_Vector( x_force, y_force ) * this._jetpack_fuel_multiplier;
 
 			if ( ( this.stands && this.act_y !== -1 ) || this.driver_of || this._in_water || this.act_y !== -1 || this._key_states.GetKey( 'KeyX' ) || this.matter < fuel_cost || this.hea <= 0 )
 			this.flying = false;
