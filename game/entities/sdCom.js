@@ -36,6 +36,9 @@ class sdCom extends sdEntity
 		sdCom.com_visibility_unignored_classes = [ 'sdBlock', 'sdMatterContainer', 'sdMatterAmplifier' ];
 		sdCom.com_creature_attack_unignored_classes = [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ]; // Used by sdVirus so far. Also for rain that spawns grass
 		
+		sdCom.com_visibility_unignored_classes_plus_erthals = sdCom.com_visibility_unignored_classes.slice();
+		sdCom.com_visibility_unignored_classes_plus_erthals.push( 'sdSpider', 'sdDrone' ); // All drones, but this should be enough to check if player aims as current entity
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -4; }
@@ -54,8 +57,8 @@ class sdCom extends sdEntity
 		return 'Communication node';
 	}
 	
-	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
-	{ return true; }
+	//IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
+	//{ return true; }
 	
 	Damage( dmg, initiator=null )
 	{

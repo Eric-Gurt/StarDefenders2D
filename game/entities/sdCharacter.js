@@ -267,6 +267,9 @@ class sdCharacter extends sdEntity
 		//this._is_cable_priority = true;
 		
 		this._socket = null; // undefined causes troubles
+		/*this._pos_corr_x = this.x;
+		this._pos_corr_y = this.y;
+		this._pos_corr_until = 0;*/
 		
 		this.lag = false;
 		
@@ -843,6 +846,8 @@ class sdCharacter extends sdEntity
 				}
 			}*/
 			
+			//console.log( 'Initial damage to receive: ' + damage_to_deal );
+			
 			if ( this.armor <= 0 || affects_armor === false )
 			{
 			}
@@ -877,6 +882,8 @@ class sdCharacter extends sdEntity
 					this.RemoveArmor();
 				}
 			}
+			
+			//console.log( 'Final HP damage to receive: ' + damage_to_deal );
 			
 			if ( was_alive )
 			if ( this.hea - damage_to_deal <= 0 )
@@ -1113,6 +1120,7 @@ class sdCharacter extends sdEntity
 		if ( this._voice.variant === 'whisperf' )
 		sdSound.PlaySound({ name:'f_welcome1', x:this.x, y:this.y, volume:0.4 });
 		else
+		if ( this._ai_team !== 2 )
 		{
 			// Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false )
 			this.Say( [ 
@@ -1210,28 +1218,58 @@ class sdCharacter extends sdEntity
 				}
 
 				if ( !closest )
-				for ( let i = 0; i < sdWorld.sockets.length; i++ )
+				for ( let i = 0; i < sdCharacter.characters.length; i++ )
 				{
-					var ent = sdWorld.sockets[ i ].character;
-
-					if ( ent )
-					if ( ent.hea > 0 )
-					if ( !ent._is_being_removed )
-					if ( this._owner !== ent && ( this._owner === null || ( this._owner.cc_id !== 0 || this._owner.cc_id !== ent.cc_id ) ) )
+					var ent = sdCharacter.characters[ i ];
+					if ( this._ai_team === 0 ) // Keep emergency instructor's behaviour as it is right now
 					{
-						let di = sdWorld.Dist2D( this.x, this.y, ent.x, ent.y );
-						//let di_real = di;
-
-						if ( di < 400 )
-						//if ( !sdCube.IsTargetFriendly( ent ) )
-						if ( ent.IsVisible( this ) )
-						if ( sdWorld.CheckLineOfSight( this.x, this.y, ent.x, ent.y, this, sdCom.com_visibility_ignored_classes, null ) )
+						if ( !sdCharacter.characters[ i ]._ai )
 						{
-							if ( di < closest_di )
+							if ( ent )
+							if ( ent.hea > 0 )
+							if ( !ent._is_being_removed )
+							if ( this._owner !== ent && ( this._owner === null || ( this._owner.cc_id !== 0 || this._owner.cc_id !== ent.cc_id ) ) )
 							{
-								closest_di = di;
-								//closest_di_real = di_real;
-								closest = ent;
+								let di = sdWorld.Dist2D( this.x, this.y, ent.x, ent.y );
+								//let di_real = di;
+
+								if ( di < 400 )
+								//if ( !sdCube.IsTargetFriendly( ent ) )
+								if ( ent.IsVisible( this ) )
+								if ( sdWorld.CheckLineOfSight( this.x, this.y, ent.x, ent.y, this, sdCom.com_visibility_ignored_classes, null ) )
+								{
+									if ( di < closest_di )
+									{
+										closest_di = di;
+										//closest_di_real = di_real;
+										closest = ent;
+									}
+								}
+							}
+						}
+					}
+					else // If falkoks or other factions, like Erthals, target anything beside themselves
+					{
+						if ( ent )
+						if ( ent.hea > 0 )
+						if ( ent._ai_team !== this._ai_team )
+						if ( !ent._is_being_removed )
+						if ( this._owner !== ent && ( this._owner === null || ( this._owner.cc_id !== 0 || this._owner.cc_id !== ent.cc_id ) ) )
+						{
+							let di = sdWorld.Dist2D( this.x, this.y, ent.x, ent.y );
+							//let di_real = di;
+
+							if ( di < 400 )
+							//if ( !sdCube.IsTargetFriendly( ent ) )
+							if ( ent.IsVisible( this ) )
+							if ( sdWorld.CheckLineOfSight( this.x, this.y, ent.x, ent.y, this, sdCom.com_visibility_ignored_classes, null ) )
+							{
+								if ( di < closest_di )
+								{
+									closest_di = di;
+									//closest_di_real = di_real;
+									closest = ent;
+								}
 							}
 						}
 					}
@@ -1883,6 +1921,15 @@ class sdCharacter extends sdEntity
 			{
 				this.act_x = this._key_states.GetKey( 'KeyD' ) - this._key_states.GetKey( 'KeyA' );
 				this.act_y = this._key_states.GetKey( 'KeyS' ) - ( ( this._key_states.GetKey( 'KeyW' ) || this._key_states.GetKey( 'Space' ) ) ? 1 : 0 );
+				
+				/*if ( sdWorld.time < this._pos_corr_until )
+				{
+					//this._pos_corr_x = this.x;
+					//this._pos_corr_y = this.y;
+					//this._pos_corr_until = 0;
+					this.act_x = Math.sign( this._pos_corr_x - this.x );
+					this.act_y = Math.sign( this._pos_corr_y - this.y );
+				}*/
 
 				if ( this._socket || this._ai || sdWorld.my_entity === this )
 				if ( this.act_x !== 0 || this.act_y !== 0 )
@@ -2202,6 +2249,8 @@ class sdCharacter extends sdEntity
 			}
 		}
 		
+		//this.flying = true; // Hack
+		
 		if ( this.flying )
 		{
 			let di = Math.max( 1, sdWorld.Dist2D_Vector( this.act_x, this.act_y ) );
@@ -2209,7 +2258,7 @@ class sdCharacter extends sdEntity
 			let x_force = this.act_x / di * 0.1;
 			let y_force = this.act_y / di * 0.1 - sdWorld.gravity;
 			
-			let fuel_cost =  GSPEED * sdWorld.Dist2D_Vector( x_force, y_force ) * this._jetpack_fuel_multiplier;
+			let fuel_cost = GSPEED * sdWorld.Dist2D_Vector( x_force, y_force ) * this._jetpack_fuel_multiplier;
 
 			if ( ( this.stands && this.act_y !== -1 ) || this.driver_of || this._in_water || this.act_y !== -1 || this._key_states.GetKey( 'KeyX' ) || this.matter < fuel_cost || this.hea <= 0 )
 			this.flying = false;

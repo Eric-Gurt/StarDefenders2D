@@ -112,6 +112,7 @@ class sdGun extends sdEntity
 				if ( from_entity.type === sdArea.TYPE_PREVENT_DAMAGE )
 				{
 					this.dangerous = false;
+					this._dangerous_from = null;
 					return;
 				}
 			}
@@ -134,6 +135,13 @@ class sdGun extends sdEntity
 			if ( from_entity.is( sdCharacter ) )
 			{
 				if ( from_entity._ignored_guns.indexOf( this ) !== -1 || from_entity.driver_of !== null )
+				return;
+			}
+			
+			if ( !sdArea.CheckPointDamageAllowed( from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2, from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2 ) )
+			{
+				this.dangerous = false;
+				this._dangerous_from = null;
 				return;
 			}
 			
@@ -483,6 +491,9 @@ class sdGun extends sdEntity
 						if ( sdWorld.is_server )
 						{
 							this._held_by.matter -= ammo_cost;
+
+							if ( sdGun.classes[ this.class ].burst )
+							this.burst_ammo--; 
 							
 							this._held_by.TriggerMovementInRange();
 						}
@@ -843,7 +854,7 @@ class sdGun extends sdEntity
 			if ( this._held_by === null )
 			ctx.rotate( this.tilt / sdGun.tilt_scale );
 			
-			if ( this.class === sdGun.CLASS_SNIPER || this.class === sdGun.CLASS_RAYGUN || this.class === sdGun.CLASS_RAILGUN_P03 ) // It could probably be separated as a variable declared in sdGunClass to determine if it has reloading animation or not
+			if ( this.class === sdGun.CLASS_SNIPER || this.class === sdGun.CLASS_RAYGUN || this.class === sdGun.CLASS_RAILGUN_P03 || this.class === sdGun.CLASS_ERTHAL_BURST_RIFLE ) // It could probably be separated as a variable declared in sdGunClass to determine if it has reloading animation or not
 			{
 				let odd = ( this.reload_time_left % 10 ) < 5 ? 0 : 1;
 				

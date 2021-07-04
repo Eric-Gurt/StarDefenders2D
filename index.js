@@ -2218,30 +2218,83 @@ io.on("connection", (socket) =>
 					//if ( socket.character.hea > 0 )
 					if ( socket.character.AllowClientSideState() ) // Health and hook change
 					{
-
 						var dx = arr[ 5 ] - socket.character.x;
 						var dy = arr[ 6 ] - socket.character.y;
-
-						let di = sdWorld.Dist2D_Vector( dx, dy );
-
-						if ( Math.abs( dx ) < 200 && Math.abs( dy ) < 200 )
+						
+						var allowed = true;
+						
+						if ( socket.character.stands || socket.character._in_air_timer < 500 / 1000 * 30 ) // Allow late jump
 						{
-							if ( di > 128 )
+							if ( dy < -27 )
 							{
-								dx = dx / di * 16;
-								dy = dy / di * 16;
+								//console.log( 'dy', dy );
+								dy = -27;
+							}
+							
+							if ( dx > 30 )
+							{
+								//console.log( 'dx', dx );
+								dx = 30;
+							}
+							else
+							if ( dx < -30 )
+							{
+								//console.log( 'dx', dx );
+								dx = -30;
 							}
 						}
 						else
 						{
+							if ( socket.character.flying )
+							{
+								if ( dx > 20 )
+								dx = 20;
+								else
+								if ( dx < -20 )
+								dx = -20;
+						
+								if ( dy > 20 )
+								dy = 20;
+								else
+								if ( dy < -20 )
+								dy = -20;
+						
+								//console.log( 'flying', dx, dy );
+							}
+							else
+							{
+								if ( dy < 0 )
+								{
+									allowed = false;
+								}
+							}
+						}
+
+						if ( !allowed || Math.abs( dx ) > 128 || Math.abs( dy ) > 128 )
+						{
 							dx = 0;
 							dy = 0;
 						}
-						if ( sdWorld.Dist2D( socket.character.x, socket.character.y, arr[ 5 ], arr[ 6 ] ) < 128 )
+						else
 						{
+							let di = sdWorld.Dist2D_Vector( dx, dy );
+							
+							//let di = sdWorld.Dist2D_Vector( arr[ 5 ] - ( socket.character.x + socket.character.sx / 30 * 100 ), 
+							//								arr[ 6 ] - ( socket.character.y + socket.character.sy / 30 * 100 ) );
+							
+							//if ( di > 128 )
+							if ( di > 64 )
+							{
+								dx = dx / di * 64;
+								dy = dy / di * 64;
+							}
+						//}
+						//else
+						//if ( sdWorld.Dist2D( socket.character.x, socket.character.y, arr[ 5 ], arr[ 6 ] ) < 128 )
+						//{
 							let jump_di = sdWorld.Dist2D_Vector( dx, dy );
 
-							let steps = Math.ceil( jump_di / 16 );
+							let steps = Math.ceil( jump_di / 8 );
 
 							corrected = true;
 
@@ -2303,24 +2356,19 @@ io.on("connection", (socket) =>
 								socket.next_position_correction_allowed = sdWorld.time + 100;
 								socket.character.x += dx;
 								socket.character.y += dy;
-								/*
-								let stand_on_net_id = arr[ 7 ]; // _net_id of stand_on target
-								if ( typeof sdEntity.entities_by_net_id_cache[ stand_on_net_id ] !== 'undefined' )
-								{
-									let ent = sdEntity.entities_by_net_id_cache[ stand_on_net_id ];
-									if ( !ent._is_being_removed )
-									{
-										if ( Math.abs( socket.character.x + socket.character._hitbox_x2 - ( ent.x + socket.character._hitbox_x1 ) ) < 2 )
-										{
-											socket.character.x = ent.x + socket.character._hitbox_x1 - socket.character._hitbox_x2 + 2;
-										}
-										else
-										if ( Math.abs( socket.character.x + socket.character._hitbox_x1 - ( ent.x + socket.character._hitbox_x2 ) ) < 2 )
-										{
-											socket.character.x = ent.x + socket.character._hitbox_x2 - socket.character._hitbox_x1 - 2;
-										}
-									}
-								}*/
+								
+                                /*dx -= socket.character.sx * 2;
+                                dy -= socket.character.sy * 2;
+
+								socket.character._key_states.SetKey( 'KeyD', ( dx > 13 ) ? 1 : 0 );
+								socket.character._key_states.SetKey( 'KeyA', ( dx < -13 ) ? 1 : 0 );
+
+								socket.character._key_states.SetKey( 'KeyS', ( dy > 13 ) ? 1 : 0 );
+								socket.character._key_states.SetKey( 'KeyW', ( dy < -13 ) ? 1 : 0 );*/
+								
+								/*socket.character._pos_corr_x = socket.character.x + dx;
+								socket.character._pos_corr_y = socket.character.y + dy;
+								socket.character._pos_corr_until = sdWorld.time + 50;*/
 
 								corrected = true;
 							}

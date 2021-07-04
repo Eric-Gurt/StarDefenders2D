@@ -9,6 +9,7 @@ import sdCharacter from './sdCharacter.js';
 import sdCube from './sdCube.js';
 import sdBullet from './sdBullet.js';
 import sdCom from './sdCom.js';
+import sdDrone from './sdDrone.js';
 
 import sdBlock from './sdBlock.js';
 
@@ -55,8 +56,9 @@ class sdSpider extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 300;
+		this._hmax = 500;
 		this._hea = this._hmax;
+		this._ai_team = 2;
 
 		//this.type = 0;
 		
@@ -100,6 +102,7 @@ class sdSpider extends sdEntity
 		if ( this._hea > 0 )
 		//if ( character.IsTargetable() && character.IsVisible() )
 		if ( character.hea > 0 )
+		if ( character._ai_team !== this._ai_team )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
 			if ( di < sdSpider.max_seek_range )
@@ -130,7 +133,7 @@ class sdSpider extends sdEntity
 		return;
 
 		if ( initiator )
-		if ( initiator === this || initiator.is( sdSpider ) )
+		if ( initiator === this || initiator.is( sdSpider ) || ( initiator.is( sdDrone ) && initiator.type === 2 ) )
 		return;
 	
 		//dmg = Math.abs( dmg );
@@ -152,7 +155,9 @@ class sdSpider extends sdEntity
 		if ( this._hea <= 0 && old_hp > 0 )
 		{
 			sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume: 1 });
-
+			
+			sdSpider.StartErthalDrop( this, 1 );
+			
 			if ( initiator )
 			if ( typeof initiator._score !== 'undefined' )
 			//if ( initiator !== this.master ) // Prevent players killing then reviving dogs for free score // Already done 4 lines above (also prevents case of heal/kill farming by two players)
@@ -171,6 +176,31 @@ class sdSpider extends sdEntity
 		
 		if ( this._hea < -this._hmax / 80 * 100 )
 		this.remove();
+	}
+	
+	static StartErthalDrop( dying_entity, luck_scale=1 )
+	{
+		let x = dying_entity.x;
+		let y = dying_entity.y;
+		let sx = dying_entity.sx;
+		let sy = dying_entity.sy;
+
+		setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+			let random_value = Math.random();
+
+			if ( random_value < 0.1 * luck_scale )
+			{
+				let gun;
+
+				gun = new sdGun({ x:x, y:y, class: ( random_value < 0.1 * luck_scale * 0.25 ) ? sdGun.CLASS_ERTHAL_BURST_RIFLE : sdGun.CLASS_ERTHAL_PLASMA_PISTOL });
+
+				gun.sx = sx;
+				gun.sy = sy;
+				sdEntity.entities.push( gun );
+			}
+
+		}, 500 );
 	}
 	
 	get mass() { return 80; }
@@ -271,7 +301,7 @@ class sdSpider extends sdEntity
                             		ray_x /= ray_di;
                             		ray_y /= ray_di;
 									
-									let point = sdWorld.TraceRayPoint( this._current_target.x, this._current_target.y, this._current_target.x + ray_x * 1000, this._current_target.y + ray_y * 1000, this._current_target, null, sdCom.com_visibility_unignored_classes, null );
+									let point = sdWorld.TraceRayPoint( this._current_target.x, this._current_target.y, this._current_target.x + ray_x * 1000, this._current_target.y + ray_y * 1000, this._current_target, null, sdCom.com_visibility_unignored_classes_plus_erthals, null );
 									
 									if ( point )
 									{
@@ -440,7 +470,7 @@ class sdSpider extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, 'Spider bot' );
+		sdEntity.Tooltip( ctx, 'Erthal Spider Bot' );
 	}
 	Draw( ctx, attached )
 	{
