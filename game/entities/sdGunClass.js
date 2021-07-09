@@ -667,7 +667,7 @@ class sdGunClass
 			is_sword: false,
 			matter_cost: 300,
 			projectile_velocity: 1 * 1.5,
-			min_build_tool_level: 2,
+			min_workbench_level: 2,
 			projectile_properties: { _rail: true, _damage: 25, color: '#ffb300', _knock_scale:0.1, _dirt_mult: 2 } // 3X ( 1 + 2 ) damage against dirt blocks
 		};
 
