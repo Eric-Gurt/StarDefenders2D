@@ -8,6 +8,7 @@ import sdWater from './sdWater.js';
 import sdCom from './sdCom.js';
 import sdBullet from './sdBullet.js';
 import sdCube from './sdCube.js';
+import sdLost from './sdLost.js';
 
 class sdJunk extends sdEntity
 {
@@ -17,6 +18,8 @@ class sdJunk extends sdEntity
 		sdJunk.img_cube_unstable_detonate = sdWorld.CreateImageFromFile( 'cube_unstable_corpse_on' );
 		sdJunk.img_cube_unstable2 = sdWorld.CreateImageFromFile( 'cube_unstable_corpse2' );
 		sdJunk.img_cube_unstable2_detonate = sdWorld.CreateImageFromFile( 'cube_unstable_corpse2_on' );
+		sdJunk.img_cube_unstable3 = sdWorld.CreateImageFromFile( 'cube_unstable_corpse3' );
+		sdJunk.img_cube_unstable3_detonate = sdWorld.CreateImageFromFile( 'cube_unstable_corpse3_on' );
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -37,12 +40,12 @@ class sdJunk extends sdEntity
 		
 		this.regen_timeout = 0;
 		
-		this.type = Math.floor (0.5 + Math.random () );
+		this.type = Math.round( Math.random () * 2 );
 		
-		if ( this.type !== 1 )
-		this.hmax = 500;
-		else
+		if ( this.type === 1 || this.type === 2 ) // Current barrels
 		this.hmax = 150;
+		else
+		this.hmax = 500;
 
 		this.hea = this.hmax;
 		this.matter_max = 320;
@@ -165,7 +168,7 @@ class sdJunk extends sdEntity
 								sdEntity.entities.push( bullet_obj4 );
 				}
 			}
-			if ( this.type === 1 ) // Cube "barrels" explode
+			if ( this.type === 1  ) // Cube "barrels" explode
 			{
 				sdWorld.SendEffect({ 
 					x:this.x, 
@@ -176,6 +179,36 @@ class sdJunk extends sdEntity
 					owner:this,
 					color:'#33FFFF' 
 				});
+			}
+			if ( this.type === 2  ) // Cube yellow "barrels" use Lost affection, check code in case if I made a mistake somehow
+			{
+				let bullet = new sdBullet({ x: this.x, y: this.y });
+				bullet.model = 'ball_charged';
+				bullet._damage = 0;
+				bullet.owner = this;
+				bullet.time_left = 0; 
+				bullet._custom_detonation_logic = ( bullet )=>
+				{
+					{
+						sdWorld.SendEffect({ 
+							x:bullet.x, 
+							y:bullet.y, 
+							radius:30,
+							damage_scale: 0, // Just a decoration effect
+							type:sdEffect.TYPE_EXPLOSION, 
+							owner:this,
+							color:'#ffff66' 
+						});
+
+						let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 32 );
+
+						for ( let i = 0; i < nears.length; i++ )
+						{
+							sdLost.ApplyAffection( nears[ i ], 300, bullet );
+						}
+					}
+				}
+				sdEntity.entities.push( bullet );
 			}
 			let r = Math.random();
 
@@ -220,25 +253,29 @@ class sdJunk extends sdEntity
 	}*/
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-
-		this.sy += sdWorld.gravity * GSPEED;
-		
-		if ( this.type === 0 || this.type === 1 )
-		{
-		this.MatterGlow( 0.01, 30, GSPEED );
 		if ( sdWorld.is_server )
-		if ( this.type === 0 || ( this.type === 1 && this.hea != this.hmax ) )
-		this.Damage( GSPEED );
+		{
+			this.sy += sdWorld.gravity * GSPEED;
+		
+			if ( this.type === 0 || this.type === 1 )
+			{
+			this.MatterGlow( 0.01, 30, GSPEED );
+			}
+			if ( this.type === 0 || ( this.type === 1 && this.hea != this.hmax ) || ( this.type === 2 && this.hea != this.hmax ) )
+			this.Damage( GSPEED );
 		}
+
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		if (this.type === 0 )
+		if ( this.type === 0 )
 		sdEntity.Tooltip( ctx, "Unstable cube corpse" );
 		if ( this.type === 1 )
 		sdEntity.Tooltip( ctx, "Alien battery" );
+		if ( this.type === 2 )
+		sdEntity.Tooltip( ctx, "Lost particle container" )
 	}
 	Draw( ctx, attached )
 	{
@@ -258,6 +295,13 @@ class sdJunk extends sdEntity
 				ctx.drawImageFilterCache( sdJunk.img_cube_unstable2, - 16, - 16, 32,32 );
 				else
 				ctx.drawImageFilterCache( sdJunk.img_cube_unstable2_detonate, - 16, - 16, 32,32 );
+			}
+			if ( this.type === 2 ) // Lost converter cube barrel
+			{
+				if ( this.hea % 15 < ( this.hea / this.hmax ) * 9 )
+				ctx.drawImageFilterCache( sdJunk.img_cube_unstable3, - 16, - 18, 32,32 );
+				else
+				ctx.drawImageFilterCache( sdJunk.img_cube_unstable3_detonate, - 16, - 18, 32,32 );
 			}
 		}
 
