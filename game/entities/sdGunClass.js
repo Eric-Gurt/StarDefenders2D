@@ -192,22 +192,19 @@ class sdGunClass
 			projectile_properties: { explosion_radius: 13, time_left: 30 * 3, model: 'grenade', _damage: 13 * 2, color:sdEffect.default_explosion_color, is_grenade: true }
 		};
 		
-		sdGun.classes[ sdGun.CLASS_SNIPER = 10 ] = 
+		sdGun.classes[ sdGun.CLASS_NEEDLE = 10 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'sniper' ),
-			image0: [ sdWorld.CreateImageFromFile( 'sniper0' ), sdWorld.CreateImageFromFile( 'sniper0b' ) ],
-			image1: [ sdWorld.CreateImageFromFile( 'sniper1' ), sdWorld.CreateImageFromFile( 'sniper1b' ) ],
-			image2: [ sdWorld.CreateImageFromFile( 'sniper2' ), sdWorld.CreateImageFromFile( 'sniper2b' ) ],
+			image: sdWorld.CreateImageFromFile( 'needle' ),
 			sound: 'gun_sniper',
-			title: 'Sniper rifle',
+			title: 'Needle',
 			slot: 4,
-			reload_time: 90,
+			reload_time: 12,
 			muzzle_x: 11,
-			ammo_capacity: -1,
+			ammo_capacity: 10,
 			count: 1,
-			projectile_velocity: sdGun.default_projectile_velocity * 2,
+			projectile_velocity: sdGun.default_projectile_velocity * 1,
 			matter_cost: 60,
-			projectile_properties: { _damage: 105, /*_knock_scale:0.01 * 8, */penetrating:true }
+			projectile_properties: { _damage: 40, /*_knock_scale:0.01 * 8, */penetrating:true }
 		};
 		
 		sdGun.classes[ sdGun.CLASS_SWORD = 11 ] = 
@@ -1746,6 +1743,24 @@ class sdGunClass
 			projectile_properties: { _damage: 30 } // Combined with fire rate
 		};
 
+		sdGun.classes[ sdGun.CLASS_SNIPER = 63 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'sniper' ),
+			image0: [ sdWorld.CreateImageFromFile( 'sniper0' ), sdWorld.CreateImageFromFile( 'sniper0b' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'sniper1' ), sdWorld.CreateImageFromFile( 'sniper1b' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'sniper2' ), sdWorld.CreateImageFromFile( 'sniper2b' ) ],
+			sound: 'gun_sniper',
+			title: 'Sniper rifle',
+			slot: 4,
+			reload_time: 90,
+			muzzle_x: 11,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_velocity: sdGun.default_projectile_velocity * 2,
+			matter_cost: 120,
+			min_build_tool_level: 2,
+			projectile_properties: { _damage: 105, /*_knock_scale:0.01 * 8, */penetrating:true }
+		};
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
