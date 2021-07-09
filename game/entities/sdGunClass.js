@@ -728,14 +728,14 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: 1 * 3.5,
 			spawnable: false,
-			projectile_properties: { _rail: true, _damage: -15, color: '#ff00ff',  _return_damage_to_owner:false },
+			projectile_properties: { _rail: true, _damage: -15, color: '#ff00ff',  _return_damage_to_owner:true },
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
 				if ( gun._held_by )
 				if ( gun._held_by.is( sdCharacter ) )
 				if ( gun._held_by.hea < gun._held_by.hmax )
 				{
-					gun._held_by.Damage( -15 * gun._held_by._damage_mult * ( gun._held_by.power_ef > 0 ) ? 2.5 : 1, null);
+					gun._held_by.Damage( -15, null); // Heal self if HP isn't max. However this healing is unaffected by damage mult and power pack
 				}
 				return true;
 			}
