@@ -199,7 +199,7 @@ class sdGunClass
 			title: 'Needle',
 			slot: 4,
 			reload_time: 12,
-			muzzle_x: 11,
+			muzzle_x: null, // It is supposed to be supressed
 			ammo_capacity: 10,
 			count: 1,
 			projectile_velocity: sdGun.default_projectile_velocity * 1,
