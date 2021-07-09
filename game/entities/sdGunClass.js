@@ -204,7 +204,7 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: sdGun.default_projectile_velocity * 1,
 			matter_cost: 60,
-			projectile_properties: { _damage: 40, /*_knock_scale:0.01 * 8, */penetrating:true }
+			projectile_properties: { _damage: 44, /*_knock_scale:0.01 * 8, */penetrating:true }
 		};
 		
 		sdGun.classes[ sdGun.CLASS_SWORD = 11 ] = 
