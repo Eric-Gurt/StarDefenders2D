@@ -735,7 +735,7 @@ class sdGunClass
 				if ( gun._held_by.is( sdCharacter ) )
 				if ( gun._held_by.hea < gun._held_by.hmax )
 				{
-					gun._held_by.Damage( -15 * gun._held_by._damage_mult * ( gun._held_by.power_ef > 0 ) 2.5 : 1, null);
+					gun._held_by.Damage( -15 * gun._held_by._damage_mult * ( gun._held_by.power_ef > 0 ) ? 2.5 : 1, null);
 				}
 				return true;
 			}
