@@ -735,7 +735,7 @@ class sdGunClass
 				if ( gun._held_by.is( sdCharacter ) )
 				if ( gun._held_by.hea < gun._held_by.hmax )
 				{
-					gun._held_by.hea = Math.min( gun._held_by.hmax, gun._held_by.hea + 15 ); // Heal player if it's missing HP, this is implemented because if wielder shoots a wall, the wielder does not gain any HP.
+					gun._held_by.Damage( -15 * gun._held_by._damage_mult * ( gun._held_by.power_ef > 0 ) 2.5 : 1, null);
 				}
 				return true;
 			}
