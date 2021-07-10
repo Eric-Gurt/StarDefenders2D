@@ -1170,13 +1170,13 @@ class sdGunClass
 			sound_pitch: 2.4,
 			title: 'Falkok Marksman Rifle',
 			slot: 2,
-			reload_time: 22,
+			reload_time: 25,
 			muzzle_x: 10,
 			ammo_capacity: 12,
 			count: 1,
 			spawnable: false,
-			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
-			projectile_properties: { _damage: 42, color: '#92D0EC'}
+			projectile_velocity: sdGun.default_projectile_velocity * 1.6,
+			projectile_properties: { _damage: 68, color: '#92D0EC'}
 		};
 		
 		sdGun.classes[ sdGun.CLASS_MMG_THE_RIPPER_T2 = 47 ] = // sprite by Ghost581
@@ -1677,6 +1677,23 @@ class sdGunClass
 			spawnable:false,
 			projectile_velocity: 16,
 			projectile_properties: { explosion_radius: 7, model: 'ball', _damage: 12, color:'#00aaff' }
+		};
+		
+		sdGun.classes[ sdGun.CLASS_DMR = 62 ] =  // sprite made by The Commander
+		{
+			image: sdWorld.CreateImageFromFile( 'dmr' ),
+			sound: 'gun_dmr',
+			sound_volume: 2.4,
+			sound_pitch: 1.3,
+			title: 'DMR',
+			slot: 4,
+			reload_time: 28,
+			muzzle_x: 10,
+			ammo_capacity: 8,
+			count: 1,
+			matter_cost: 160,
+			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
+			projectile_properties: { _damage: 64, color: '33ffff'}
 		};
 		
 		// Add new gun classes above this line //
