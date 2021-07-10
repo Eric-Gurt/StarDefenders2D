@@ -2245,7 +2245,7 @@ io.on("connection", (socket) =>
 						}
 						else
 						{
-							if ( socket.character.flying )
+							if ( socket.character.flying || socket.character._jetpack_allowed )
 							{
 								if ( dx > 20 )
 								dx = 20;

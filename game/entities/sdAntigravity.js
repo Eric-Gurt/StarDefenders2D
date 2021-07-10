@@ -111,7 +111,7 @@ class sdAntigravity extends sdEntity
 						for ( var i = 0; i < arr.length; i++ )
 						//if ( !arr[ i ].is_static || arr[ i ] instanceof sdBlock || arr[ i ] instanceof sdDoor )
 						//if ( !arr[ i ].is_static || arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) )
-						if ( arr[ i ].IsBGEntity() === 0 && ( !arr[ i ].is_static || arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) ) ) // Faster?
+						if ( arr[ i ].IsBGEntity() === 0 && ( typeof arr[ i ].sy !== 'undefined' || arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) ) ) // Faster?
 						//if ( !non_recursive.has( arr[ i ]._net_id ) )
 						if ( !non_recursive.has( arr[ i ] ) )
 						{
