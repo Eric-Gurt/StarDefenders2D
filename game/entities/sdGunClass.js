@@ -1679,6 +1679,25 @@ class sdGunClass
 			projectile_properties: { explosion_radius: 7, model: 'ball', _damage: 12, color:'#00aaff' }
 		};
 		
+		sdGun.classes[ sdGun.CLASS_BURST_PISTOL = 62 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'burst_pistol' ),
+			sound: 'gun_f_rifle',
+			sound_pitch: 1.5,
+			title: 'Burst Pistol',
+			slot: 1,
+			reload_time: 2,
+			muzzle_x: 5,
+			ammo_capacity: 9,
+			count: 1,
+			spread: 0.01,
+			matter_cost: 120,
+			burst: 3,
+			burst_reload: 35,
+			projectile_velocity: 30,
+			min_build_tool_level: 2,
+			projectile_properties: { _damage: 25, color:'#0000ff' }
+		};
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
