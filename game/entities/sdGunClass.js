@@ -1682,6 +1682,9 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_BURST_PISTOL = 62 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'burst_pistol' ),
+			image0: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload' ), sdWorld.CreateImageFromFile( 'burst_pistol' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload' ), sdWorld.CreateImageFromFile( 'burst_pistol' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload' ), sdWorld.CreateImageFromFile( 'burst_pistol' ) ],
 			sound: 'gun_f_rifle',
 			sound_pitch: 1.5,
 			title: 'Burst Pistol',
@@ -1696,7 +1699,7 @@ class sdGunClass
 			burst_reload: 35,
 			projectile_velocity: 30,
 			min_build_tool_level: 2,
-			projectile_properties: { _damage: 25, color:'#0000ff' }
+			projectile_properties: { _damage: 25, color:'#4c4cb9' }
 		};
 		// Add new gun classes above this line //
 		
