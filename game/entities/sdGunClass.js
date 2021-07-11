@@ -202,9 +202,9 @@ class sdGunClass
 			muzzle_x: null, // It is supposed to be supressed
 			ammo_capacity: 10,
 			count: 1,
-			projectile_velocity: sdGun.default_projectile_velocity * 1,
+			projectile_velocity: sdGun.default_projectile_velocity * 2,
 			matter_cost: 60,
-			projectile_properties: { _damage: 44, /*_knock_scale:0.01 * 8, */penetrating:true }
+			projectile_properties: { _damage: 48, /*_knock_scale:0.01 * 8, */penetrating:true }
 		};
 		
 		sdGun.classes[ sdGun.CLASS_SWORD = 11 ] = 
@@ -1758,7 +1758,7 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: sdGun.default_projectile_velocity * 2,
 			matter_cost: 120,
-			min_build_tool_level: 2,
+			min_build_tool_level: 1,
 			projectile_properties: { _damage: 105, /*_knock_scale:0.01 * 8, */penetrating:true }
 		};
 		// Add new gun classes above this line //
