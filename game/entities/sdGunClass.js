@@ -1699,7 +1699,7 @@ class sdGunClass
 			burst_reload: 35,
 			projectile_velocity: 30,
 			min_build_tool_level: 3,
-			projectile_properties: { _damage: 25, color:'#4c4cb9' }
+			projectile_properties: { _damage: 25, color:'#00aaff' }
 		};
 		// Add new gun classes above this line //
 		
