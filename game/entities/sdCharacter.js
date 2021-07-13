@@ -546,7 +546,14 @@ class sdCharacter extends sdEntity
 		for ( let i = 0; i < teammates.length; i++ )
 		{
 			if ( teammates[ i ].GetClass() === 'sdCharacter' && teammates[ i ]._ai && teammates[ i ]._ai_team === this._ai_team  && teammates[ i ].hea > 0 )
-			teammates[ i ]._ai.target = this._ai.target; // This works now since I forgot to change this._ai_target last time to this._ai.target
+			{
+				if ( teammates[ i ].target ) // Check if teammate has a target already
+				if ( teammates[ i ].target.GetClass() !== 'sdBlock' ) // Check if the target is a threat
+				if ( sdWorld.CheckLineOfSight( teammates[ i ].x, teammates[ i ].y, teammates[ i ]._ai.target.x, teammates[ i ]._ai.target.y, teammates[ i ], sdCom.com_visibility_ignored_classes, null ) )
+				return; // Does not switch target if a threat is in line of sight.
+				else
+				teammates[ i ]._ai.target = this._ai.target; // This works now since I forgot to change this._ai_target last time to this._ai.target
+			}
 		}
 	
 	}
@@ -992,7 +999,7 @@ class sdCharacter extends sdEntity
 			}
 			
 			
-			if ( this.hea < -200 )
+			if ( this.hea < -800 )
 			{
 				//if ( this.death_anim <= sdCharacter.disowned_body_ttl )
 				{
@@ -2234,7 +2241,7 @@ class sdCharacter extends sdEntity
 		
 		if ( this.ghosting )
 		{
-			let fuel_cost = 0.4 * GSPEED;
+			let fuel_cost = GSPEED; // 0.4 Previously
 			
 			if ( this.matter < fuel_cost || this.hea <= 0 || this.driver_of )
 			this.ghosting = false;
