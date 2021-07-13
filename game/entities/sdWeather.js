@@ -1112,6 +1112,7 @@ class sdWeather extends sdEntity
 
 									if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
 									if ( !ent.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+									if ( ent_drone.CanMoveWithoutOverlap( x, y - 48, 0 ) ) // Check if drones have enough space to be placed above Erthal spider bots.
 									if ( sdWorld.last_hit_entity )
 									if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
 									if ( !sdWorld.CheckWallExistsBox( 

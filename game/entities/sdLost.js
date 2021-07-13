@@ -143,6 +143,11 @@ class sdLost extends sdEntity
 						if ( sdWorld.server_config.onKill )
 						sdWorld.server_config.onKill( ent, bullet._owner );
 					}
+					
+					if ( ent._ragdoll )
+					{
+						ent._ragdoll.Delete(); // Or lese crash if this happens at the same time when snapshot is saved
+					}
 				}
 
 				ent.remove();
