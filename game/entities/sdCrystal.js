@@ -97,7 +97,7 @@ class sdCrystal extends sdEntity
 	
 		//if ( initiator !== null )
 		if ( initiator === null || initiator.GetClass() === 'sdCharacter' )
-		if ( sdWorld.time < this._damagable_in )
+		if ( sdWorld.time < this._damagable_in || ( initiator.GetClass() === 'sdCharacter' && initiator.power_ef > 0 ) )
 		{
 			sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
 			return;

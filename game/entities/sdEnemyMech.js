@@ -214,24 +214,24 @@ class sdEnemyMech extends sdEntity
 
 						setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
-						let random_value = Math.random();
+							let random_value = Math.random();
 
-						let gun;
+							let gun;
 
-						if ( random_value < 0.35 )
-						gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
-						else
-						{
-							if ( random_value < 0.01 )
-							gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_FMECH_MINIGUN });
+							if ( random_value < 0.35 )
+							gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
 							else
-							gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_CANNON });
-						}
+							{
+								if ( random_value < 0.01 )
+								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_FMECH_MINIGUN });
+								else
+								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_CANNON });
+							}
 
-						gun.sx = sx;
-						gun.sy = sy;
-						sdEntity.entities.push( gun );
-				
+							gun.sx = sx;
+							gun.sy = sy;
+							sdEntity.entities.push( gun );
+
 						}, 500 );
 					}
 					this.remove();
@@ -471,7 +471,7 @@ class sdEnemyMech extends sdEntity
 						if ( targets[ i ].GetClass() === 'sdTurret' || targets[ i ].GetClass() === 'sdCube' || targets[ i ].GetClass() === 'sdBlock' ) // Turrets, trap/shield blocks and cubes get the special treatment
 						if ( this._rail_attack_timer <= 0 )
 						{
-						an = Math.atan2( targets[ i ].y - ( this.y - 16 ), targets[ i ].x - this.x ); // Pinpoint accurate against turrets
+							an = Math.atan2( targets[ i ].y - ( this.y - 16 ), targets[ i ].x - this.x ); // Pinpoint accurate against turrets
 							let bullet_obj = new sdBullet({ x: this.x, y: this.y - 16 });
 							bullet_obj._owner = this;
 							bullet_obj.sx = Math.cos( an );
@@ -553,11 +553,11 @@ class sdEnemyMech extends sdEntity
 				}
 				else
 				{
-				this._attack_timer -= GSPEED;
-				if ( this._rocket_attack_timer > 0)
-				this._rocket_attack_timer -= GSPEED;
-				if ( this._rail_attack_timer > 0)
-				this._rail_attack_timer -= GSPEED;
+					this._attack_timer -= GSPEED;
+					if ( this._rocket_attack_timer > 0)
+					this._rocket_attack_timer -= GSPEED;
+					if ( this._rail_attack_timer > 0)
+					this._rail_attack_timer -= GSPEED;
 				}
 			}
 		

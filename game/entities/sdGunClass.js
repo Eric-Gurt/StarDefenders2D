@@ -196,6 +196,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'needle' ),
 			sound: 'gun_sniper',
+			sound_pitch: 3,
 			title: 'Needle',
 			slot: 4,
 			reload_time: 12,
@@ -735,7 +736,7 @@ class sdGunClass
 				if ( gun._held_by.is( sdCharacter ) )
 				if ( gun._held_by.hea < gun._held_by.hmax )
 				{
-					gun._held_by.Damage( -15, null); // Heal self if HP isn't max. However this healing is unaffected by damage mult and power pack
+					gun._held_by.Damage( -15, null ); // Heal self if HP isn't max. However this healing is unaffected by damage mult and power pack
 				}
 				return true;
 			}
