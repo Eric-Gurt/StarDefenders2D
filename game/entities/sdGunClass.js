@@ -86,7 +86,7 @@ class sdGunClass
 			title: 'Railgun',
 			slot: 4,
 			reload_time: 30,
-			muzzle_x: 7,
+			muzzle_x: 9,
 			ammo_capacity: -1,
 			count: 1,
 			matter_cost: 50,
@@ -195,15 +195,15 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_NEEDLE = 10 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'needle' ),
-			sound: 'gun_sniper',
-			sound_pitch: 3,
+			sound: 'gun_needle',
+			sound_volume: 0.4,
 			title: 'Needle',
 			slot: 4,
 			reload_time: 12,
 			muzzle_x: null, // It is supposed to be supressed
 			ammo_capacity: 10,
 			count: 1,
-			projectile_velocity: sdGun.default_projectile_velocity * 2,
+			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
 			matter_cost: 60,
 			projectile_properties: { _damage: 48, /*_knock_scale:0.01 * 8, */penetrating:true }
 		};
@@ -1777,7 +1777,7 @@ class sdGunClass
 			count: 1,
 			matter_cost: 160,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
-			projectile_properties: { _damage: 64, color: '33ffff'}
+			projectile_properties: { _damage: 64, color: '#33ffff', penetrating: true }
 		};
     
 		// Add new gun classes above this line //

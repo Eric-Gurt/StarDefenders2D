@@ -68,7 +68,8 @@ class sdJunk extends sdEntity
 	
 		//if ( initiator !== null )
 		if ( initiator === null || initiator.GetClass() === 'sdCharacter' )
-		if ( sdWorld.time < this._damagable_in || ( initiator.GetClass() === 'sdCharacter' && initiator.power_ef > 0 ) )
+		if ( sdWorld.time < this._damagable_in )
+		if ( !( initiator && initiator.GetClass() === 'sdCharacter' && initiator.power_ef > 0 ) )
 		return;
 	
 		dmg = Math.abs( dmg );
