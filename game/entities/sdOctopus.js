@@ -282,6 +282,7 @@ class sdOctopus extends sdEntity
 						 ( typeof from_entity.hea !== 'undefined' && from_entity.hea <= 0 ) ||
 						 ( typeof from_entity._hea !== 'undefined' && from_entity._hea <= 0 ) )
 					if ( from_entity.IsTargetable( this ) )
+					if ( !from_entity._is_being_removed )
 					{
 						let rank = Math.random() * 0.1;
 						
