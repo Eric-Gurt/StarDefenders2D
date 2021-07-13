@@ -86,7 +86,7 @@ class sdGunClass
 			title: 'Railgun',
 			slot: 4,
 			reload_time: 30,
-			muzzle_x: 7,
+			muzzle_x: 9,
 			ammo_capacity: -1,
 			count: 1,
 			matter_cost: 50,
@@ -192,22 +192,20 @@ class sdGunClass
 			projectile_properties: { explosion_radius: 13, time_left: 30 * 3, model: 'grenade', _damage: 13 * 2, color:sdEffect.default_explosion_color, is_grenade: true }
 		};
 		
-		sdGun.classes[ sdGun.CLASS_SNIPER = 10 ] = 
+		sdGun.classes[ sdGun.CLASS_NEEDLE = 10 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'sniper' ),
-			image0: [ sdWorld.CreateImageFromFile( 'sniper0' ), sdWorld.CreateImageFromFile( 'sniper0b' ) ],
-			image1: [ sdWorld.CreateImageFromFile( 'sniper1' ), sdWorld.CreateImageFromFile( 'sniper1b' ) ],
-			image2: [ sdWorld.CreateImageFromFile( 'sniper2' ), sdWorld.CreateImageFromFile( 'sniper2b' ) ],
-			sound: 'gun_sniper',
-			title: 'Sniper rifle',
+			image: sdWorld.CreateImageFromFile( 'needle' ),
+			sound: 'gun_needle',
+			sound_volume: 0.4,
+			title: 'Needle',
 			slot: 4,
-			reload_time: 90,
-			muzzle_x: 11,
-			ammo_capacity: -1,
+			reload_time: 12,
+			muzzle_x: null, // It is supposed to be supressed
+			ammo_capacity: 10,
 			count: 1,
-			projectile_velocity: sdGun.default_projectile_velocity * 2,
+			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
 			matter_cost: 60,
-			projectile_properties: { _damage: 105, /*_knock_scale:0.01 * 8, */penetrating:true }
+			projectile_properties: { _damage: 48, /*_knock_scale:0.01 * 8, */penetrating:true }
 		};
 		
 		sdGun.classes[ sdGun.CLASS_SWORD = 11 ] = 
@@ -667,7 +665,7 @@ class sdGunClass
 			is_sword: false,
 			matter_cost: 300,
 			projectile_velocity: 1 * 1.5,
-			min_build_tool_level: 2,
+			min_workbench_level: 2,
 			projectile_properties: { _rail: true, _damage: 25, color: '#ffb300', _knock_scale:0.1, _dirt_mult: 2 } // 3X ( 1 + 2 ) damage against dirt blocks
 		};
 
@@ -731,7 +729,17 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: 1 * 3.5,
 			spawnable: false,
-			projectile_properties: { _rail: true, _damage: -15, color: '#ff00ff',  _return_damage_to_owner:true }
+			projectile_properties: { _rail: true, _damage: -15, color: '#ff00ff',  _return_damage_to_owner:true },
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( gun._held_by )
+				if ( gun._held_by.is( sdCharacter ) )
+				if ( gun._held_by.hea < gun._held_by.hmax )
+				{
+					gun._held_by.Damage( -15, null ); // Heal self if HP isn't max. However this healing is unaffected by damage mult and power pack
+				}
+				return true;
+			}
 		};
 
 		sdGun.classes[ sdGun.CLASS_SHOVEL = 35 ] = { // Sprite made by Silk
@@ -1068,7 +1076,7 @@ class sdGunClass
 				if ( gun._held_by.is( sdCharacter ) )
 				{
 					gun._held_by.AnnounceTooManyEffectsIfNeeded();
-					gun._held_by.time_ef = 30 * 30 * 0.5;
+					gun._held_by.time_ef = 30 * 30;
 					//gun._held_by.Damage( 40 );
 					
 					//if ( gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_TIME_PACK ].slot ] )
@@ -1170,13 +1178,13 @@ class sdGunClass
 			sound_pitch: 2.4,
 			title: 'Falkok Marksman Rifle',
 			slot: 2,
-			reload_time: 22,
+			reload_time: 25,
 			muzzle_x: 10,
 			ammo_capacity: 12,
 			count: 1,
 			spawnable: false,
-			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
-			projectile_properties: { _damage: 42, color: '#92D0EC'}
+			projectile_velocity: sdGun.default_projectile_velocity * 1.6,
+			projectile_properties: { _damage: 68, color: '#92D0EC'}
 		};
 		
 		sdGun.classes[ sdGun.CLASS_MMG_THE_RIPPER_T2 = 47 ] = // sprite by Ghost581
@@ -1186,7 +1194,7 @@ class sdGunClass
 			//sound_pitch: 0.7,
 			sound_pitch: 1.6,
 			//sound_volume: 1.75,
-			title: 'The Ripper MK1',
+			title: 'The Ripper',
 			slot: 2,
 			reload_time: 4.4,
 			muzzle_x: 10,
@@ -1660,7 +1668,7 @@ class sdGunClass
 			burst: 6, // Burst fire count
 			burst_reload: 24, // Burst fire reload, needed when giving burst fire
 			projectile_velocity: 18,
-			projectile_properties: { _damage: 35,  color: '#00aaff' }
+			projectile_properties: { _damage: 38,  color: '#00aaff' }
 		};
 
 		sdGun.classes[ sdGun.CLASS_ERTHAL_PLASMA_PISTOL = 61 ] = 
@@ -1679,7 +1687,100 @@ class sdGunClass
 			projectile_properties: { explosion_radius: 7, model: 'ball', _damage: 12, color:'#00aaff' }
 		};
 		
-		sdGun.classes[ sdGun.CLASS_BURST_PISTOL = 62 ] = 
+		sdGun.classes[ sdGun.CLASS_FMECH_MINIGUN = 62 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'fmech_lmg' ),
+			image_charging: sdWorld.CreateImageFromFile( 'fmech_lmg' ),
+			//sound: 'supercharge_combined2',
+			title: 'Flying Mech Minigun',
+			//sound_pitch: 0.5,
+			slot: 2,
+			reload_time: 0,
+			muzzle_x: 10,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_velocity: 16,
+			spawnable: false,
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				if ( gun._held_by._auto_shoot_in > 0 )
+				return 0;
+				
+				return 4;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( !shoot_from_scenario )
+				{
+					if ( gun._held_by )
+					if ( gun._held_by._auto_shoot_in <= 0 )
+					{
+						//gun._held_by._auto_shoot_in = 15;
+						//return; // hack
+						
+						gun._held_by._auto_shoot_in = 800 / 1000 * 30;
+
+						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
+						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 2 });
+					}
+					return false;
+				}
+				else
+				{
+					sdSound.PlaySound({ name: 'gun_pistol', x:gun.x, y:gun.y });
+					
+					if ( gun._held_by.matter >= 4 )
+					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					{
+						gun._held_by._auto_shoot_in = ( gun._held_by.stim_ef > 0 ) ? 1 : 2;
+						gun._held_by.matter -= 4;
+					}
+				}
+				return true;
+			},
+			projectile_properties: { _damage: 30 } // Combined with fire rate
+		};
+
+		sdGun.classes[ sdGun.CLASS_SNIPER = 63 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'sniper' ),
+			image0: [ sdWorld.CreateImageFromFile( 'sniper0' ), sdWorld.CreateImageFromFile( 'sniper0b' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'sniper1' ), sdWorld.CreateImageFromFile( 'sniper1b' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'sniper2' ), sdWorld.CreateImageFromFile( 'sniper2b' ) ],
+			sound: 'gun_sniper',
+			title: 'Sniper rifle',
+			slot: 4,
+			reload_time: 90,
+			muzzle_x: 11,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_velocity: sdGun.default_projectile_velocity * 2,
+			matter_cost: 120,
+			min_build_tool_level: 1,
+			projectile_properties: { _damage: 105, /*_knock_scale:0.01 * 8, */penetrating:true }
+		};
+    
+		sdGun.classes[ sdGun.CLASS_DMR = 64 ] =  // sprite made by The Commander
+		{
+			image: sdWorld.CreateImageFromFile( 'dmr' ),
+			sound: 'gun_dmr',
+			sound_volume: 2.4,
+			sound_pitch: 1.3,
+			title: 'DMR',
+			slot: 4,
+			reload_time: 28,
+			muzzle_x: 10,
+			ammo_capacity: 8,
+			count: 1,
+			matter_cost: 160,
+			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
+			projectile_properties: { _damage: 64, color: '#33ffff', penetrating: true }
+		};
+    
+		sdGun.classes[ sdGun.CLASS_BURST_PISTOL = 65 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'burst_pistol' ),
 			image0: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload' ), sdWorld.CreateImageFromFile( 'burst_pistol' ) ],
@@ -1701,6 +1802,7 @@ class sdGunClass
 			min_build_tool_level: 3,
 			projectile_properties: { _damage: 25, color:'#00aaff' }
 		};
+    
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];

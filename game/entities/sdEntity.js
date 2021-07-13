@@ -412,25 +412,30 @@ class sdEntity
 			let bounce_intensity = this.bounce_intensity;
 			let friction_remain = this.friction_remain;
 			
-			if ( step_size > 0 )
+			/*if ( step_size > 0 )
 			if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) < 7 )
 			{
 				for ( let i = 1; i <= step_size; i++ )
 				{
 					if ( this.CanMoveWithoutOverlap( new_x, new_y - i, 0, custom_filtering_method ) )
 					{
-						/*if ( i > step_size / 2 )
-					    {
-							this.Impact( sdWorld.Dist2D_Vector( this.sx, this.sy ) );
-							this.sx = 0;
-							this.sy = 0;
-						}*/
-				
 						this.x = new_x;
 						this.y = new_y - i;
 						
 						this._phys_last_touch = sdWorld.last_hit_entity;
 						return;
+					}
+				}
+			}*/
+			if ( step_size > 0 )
+			{
+				for ( let i = 1; i <= step_size; i++ )
+				{
+					if ( this.CanMoveWithoutOverlap( new_x, new_y - i, 0, custom_filtering_method ) )
+					{
+						this.y = new_y - i;
+						
+						break;
 					}
 				}
 			}

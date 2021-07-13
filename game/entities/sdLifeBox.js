@@ -271,6 +271,7 @@ class sdLifeBox extends sdEntity
 				//if ( !sdWorld.CheckLineOfSight( this.x + this.offx2, this.y + this.offy2 - 16, this._target.x + this.offx1, this._target.y + this.offy1, this, sdCom.com_visibility_ignored_classes, this._target.GetClass() ) )
 				//if ( sdWorld.last_hit_entity === this._target )
 				{
+					/*
 					let an = Math.atan2( ( this._target.y + this.offy1 ) - ( this.y - 16 + this.offy2 ), ( this._target.x + this.offx1 ) - ( this.x + this.offx2 ) );
 
 					let bullet_obj = new sdBullet({ x: this.x + this.offx2, y: ( this.y - 16 + this.offy2 ) });
@@ -290,7 +291,10 @@ class sdLifeBox extends sdEntity
 					bullet_obj._shield_block_mult = 10;
 
 					sdEntity.entities.push( bullet_obj );
+					*/
 
+					this._target.Damage( 30 * this.damage_mult, this );
+					sdWorld.SendEffect({ x: this.x + this.offx2, y:this.y + this.offy2 - 16, x2:this._target.x + this.offx1, y2:this._target.y + this.offy1, type:sdEffect.TYPE_BEAM, color:'#ffffff' });
 					this.attack_timer = 20 / this.rate_of_fire_mult;
 
 					//sdSound.PlaySound({ name:'gun_railgun', x:this.x, y:this.y - 16, volume:0.5 }); // I'm not sure what sound effect would fit here to be honest - Booraz149
