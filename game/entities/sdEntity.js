@@ -438,22 +438,24 @@ class sdEntity
 
 			if ( this.CanMoveWithoutOverlap( new_x, this.y, safe_overlap, custom_filtering_method ) )
 			{
+				const last_hit_entity = sdWorld.last_hit_entity;
+				
 				this.Touches( sdWorld.last_hit_entity );
 			
 				let self_effect_scale = 1;
 				
-				if ( sdWorld.last_hit_entity )
+				if ( last_hit_entity )
 				if ( this.hard_collision )
 				{
-					self_effect_scale = sdWorld.last_hit_entity.mass / ( sdWorld.last_hit_entity.mass + this.mass );
+					self_effect_scale = last_hit_entity.mass / ( last_hit_entity.mass + this.mass );
 					
-					if ( typeof sdWorld.last_hit_entity.sy !== 'undefined' )
+					if ( typeof last_hit_entity.sy !== 'undefined' )
 					{
-						sdWorld.last_hit_entity.sy += this.sy * ( 1 - self_effect_scale );
-						//sdWorld.last_hit_entity.Impulse( 0, this.sy ); Impulse is reworked and needs some kind of hint that Impulse is not server-side only, so velocity change isn't doubled on client-side
+						last_hit_entity.sy += this.sy * ( 1 - self_effect_scale );
+						//last_hit_entity.Impulse( 0, this.sy ); Impulse is reworked and needs some kind of hint that Impulse is not server-side only, so velocity change isn't doubled on client-side
 					}
 					if ( CheckPointDamageAllowed() )
-					sdWorld.last_hit_entity.Impact( Math.abs( this.sy ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
+					last_hit_entity.Impact( Math.abs( this.sy ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
 				}
 				if ( CheckPointDamageAllowed() )
 				this.Impact( Math.abs( this.sy ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
@@ -467,23 +469,25 @@ class sdEntity
 			else
 			if ( this.CanMoveWithoutOverlap( this.x, new_y, safe_overlap, custom_filtering_method ) )
 			{
+				const last_hit_entity = sdWorld.last_hit_entity;
+				
 				this.Touches( sdWorld.last_hit_entity );
 				
 				let self_effect_scale = 1;
 				
-				if ( sdWorld.last_hit_entity )
+				if ( last_hit_entity )
 				if ( this.hard_collision )
 				{
-					self_effect_scale = sdWorld.last_hit_entity.mass / ( sdWorld.last_hit_entity.mass + this.mass );
+					self_effect_scale = last_hit_entity.mass / ( last_hit_entity.mass + this.mass );
 					
-					if ( typeof sdWorld.last_hit_entity.sx !== 'undefined' )
+					if ( typeof last_hit_entity.sx !== 'undefined' )
 					{
-						sdWorld.last_hit_entity.sx += this.sx * ( 1 - self_effect_scale );
-						//sdWorld.last_hit_entity.Impulse( this.sx, 0 ); Impulse is reworked and needs some kind of hint that Impulse is not server-side only, so velocity change isn't doubled on client-side
+						last_hit_entity.sx += this.sx * ( 1 - self_effect_scale );
+						//last_hit_entity.Impulse( this.sx, 0 ); Impulse is reworked and needs some kind of hint that Impulse is not server-side only, so velocity change isn't doubled on client-side
 					}
 					
 					if ( CheckPointDamageAllowed() )
-					sdWorld.last_hit_entity.Impact( Math.abs( this.sx ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
+					last_hit_entity.Impact( Math.abs( this.sx ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
 				}
 				if ( CheckPointDamageAllowed() )
 				this.Impact( Math.abs( this.sx ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
@@ -496,23 +500,25 @@ class sdEntity
 			}
 			else
 			{
+				const last_hit_entity = sdWorld.last_hit_entity;
+				
 				this.Touches( sdWorld.last_hit_entity );
 				
 				let self_effect_scale = 1;
 				
-				if ( sdWorld.last_hit_entity )
+				if ( last_hit_entity )
 				if ( this.hard_collision )
 				{
-					self_effect_scale = sdWorld.last_hit_entity.mass / ( sdWorld.last_hit_entity.mass + this.mass );
+					self_effect_scale = last_hit_entity.mass / ( last_hit_entity.mass + this.mass );
 					
-					if ( typeof sdWorld.last_hit_entity.sx !== 'undefined' )
-					sdWorld.last_hit_entity.sx += this.sx * ( 1 - self_effect_scale );
+					if ( typeof last_hit_entity.sx !== 'undefined' )
+					last_hit_entity.sx += this.sx * ( 1 - self_effect_scale );
 				
-					if ( typeof sdWorld.last_hit_entity.sy !== 'undefined' )
-					sdWorld.last_hit_entity.sy += this.sy * ( 1 - self_effect_scale );
+					if ( typeof last_hit_entity.sy !== 'undefined' )
+					last_hit_entity.sy += this.sy * ( 1 - self_effect_scale );
 				
 					if ( CheckPointDamageAllowed() )
-					sdWorld.last_hit_entity.Impact( sdWorld.Dist2D_Vector( this.sx, this.sy ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
+					last_hit_entity.Impact( sdWorld.Dist2D_Vector( this.sx, this.sy ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
 				}
 			
 				if ( CheckPointDamageAllowed() )
