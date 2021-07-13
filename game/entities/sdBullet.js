@@ -254,27 +254,33 @@ class sdBullet extends sdEntity
 	
 	RegularCollisionFiltering( from_entity )
 	{
-		if ( from_entity === this._owner || from_entity === this._owner2 )
-		return false;
-	
-		if ( from_entity.is( sdBullet ) )
+		if ( this._can_hit_owner )
 		{
-			if ( this._owner )
-			if ( this._owner === from_entity._owner )
-			return false;
-		
-			if ( this._owner2 )
-			if ( this._owner2 === from_entity._owner2 )
-			return false;
 		}
-				
-	
-		// Generally not having hitpoints and being included in GetIgnoredEntityClasses is enough for bullets to ignore something. But watch out for throwable swords at sdGun at movement in range method
-		
-		if ( from_entity.is( sdBlock ) && from_entity.material === sdBlock.MATERIAL_TRAPSHIELD )
-		if ( this._owner === null || ( ( !this._owner._key_states || !this._owner._key_states.GetKey( 'ShiftLeft' ) ) && sdBullet.IsTrapShieldIgonred( this._owner, from_entity ) ) )
+		else
 		{
+			if ( from_entity === this._owner || from_entity === this._owner2 )
 			return false;
+
+			if ( from_entity.is( sdBullet ) )
+			{
+				if ( this._owner )
+				if ( this._owner === from_entity._owner )
+				return false;
+
+				if ( this._owner2 )
+				if ( this._owner2 === from_entity._owner2 )
+				return false;
+			}
+
+
+			// Generally not having hitpoints and being included in GetIgnoredEntityClasses is enough for bullets to ignore something. But watch out for throwable swords at sdGun at movement in range method
+
+			if ( from_entity.is( sdBlock ) && from_entity.material === sdBlock.MATERIAL_TRAPSHIELD )
+			if ( this._owner === null || ( ( !this._owner._key_states || !this._owner._key_states.GetKey( 'ShiftLeft' ) ) && sdBullet.IsTrapShieldIgonred( this._owner, from_entity ) ) )
+			{
+				return false;
+			}
 		}
 		
 		if ( this._admin_picker )

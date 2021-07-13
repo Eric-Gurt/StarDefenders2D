@@ -1798,7 +1798,7 @@ class sdGunClass
 			matter_cost: 120,
 			burst: 3,
 			burst_reload: 35,
-			projectile_velocity: 30,
+			//projectile_velocity: 30,
 			min_build_tool_level: 3,
 			projectile_properties: { _damage: 25, color:'#00aaff' }
 		};
