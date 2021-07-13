@@ -601,7 +601,7 @@ class sdCharacter extends sdEntity
 	}
 	get hitbox_x1() { return this.death_anim < 10 ? -5 : -5; } // 7
 	get hitbox_x2() { return this.death_anim < 10 ? 5 : 5; }
-	get hitbox_y1() { return this.death_anim < 10 ? -12 : 12; }
+	get hitbox_y1() { return this.death_anim < 10 ? -12 : 10; }
 	get hitbox_y2() { return this.death_anim < 10 ? ( ( 16 - this._crouch_intens * 6 ) * ( 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7 ) ) : 16; }
 
 //0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7

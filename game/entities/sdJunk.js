@@ -40,7 +40,7 @@ class sdJunk extends sdEntity
 		
 		this.regen_timeout = 0;
 		
-		this.type = Math.round( Math.random () * 2 );
+		this.type = Math.floor( Math.random() * 3 );
 		
 		if ( this.type === 1 || this.type === 2 ) // Current barrels
 		this.hmax = 150;
@@ -69,6 +69,7 @@ class sdJunk extends sdEntity
 		//if ( initiator !== null )
 		if ( initiator === null || initiator.GetClass() === 'sdCharacter' )
 		if ( sdWorld.time < this._damagable_in )
+		if ( !( initiator && initiator.GetClass() === 'sdCharacter' && initiator.power_ef > 0 ) )
 		return;
 	
 		dmg = Math.abs( dmg );

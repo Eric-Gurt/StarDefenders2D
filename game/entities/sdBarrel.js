@@ -93,6 +93,7 @@ class sdBarrel extends sdEntity
 			damage_scale: 9 * (1 + this.variation ) * ( this._owner ? this._owner._damage_mult : 1 ), // 5 was too deadly on relatively far range
 			type:sdEffect.TYPE_EXPLOSION, 
 			owner:this._owner,
+			can_hit_owner: true,
 			armor_penetration_level: this._owner ? this._owner._upgrade_counters[ 'upgrade_damage' ] : undefined,
 			color:sdEffect.default_explosion_color 
 		});

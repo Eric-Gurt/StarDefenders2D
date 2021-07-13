@@ -86,7 +86,7 @@ class sdGunClass
 			title: 'Railgun',
 			slot: 4,
 			reload_time: 30,
-			muzzle_x: 7,
+			muzzle_x: 9,
 			ammo_capacity: -1,
 			count: 1,
 			matter_cost: 50,
@@ -195,14 +195,15 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_NEEDLE = 10 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'needle' ),
-			sound: 'gun_sniper',
+			sound: 'gun_needle',
+			sound_volume: 0.4,
 			title: 'Needle',
 			slot: 4,
 			reload_time: 12,
 			muzzle_x: null, // It is supposed to be supressed
 			ammo_capacity: 10,
 			count: 1,
-			projectile_velocity: sdGun.default_projectile_velocity * 2,
+			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
 			matter_cost: 60,
 			projectile_properties: { _damage: 48, /*_knock_scale:0.01 * 8, */penetrating:true }
 		};
@@ -735,7 +736,7 @@ class sdGunClass
 				if ( gun._held_by.is( sdCharacter ) )
 				if ( gun._held_by.hea < gun._held_by.hmax )
 				{
-					gun._held_by.Damage( -15, null); // Heal self if HP isn't max. However this healing is unaffected by damage mult and power pack
+					gun._held_by.Damage( -15, null ); // Heal self if HP isn't max. However this healing is unaffected by damage mult and power pack
 				}
 				return true;
 			}
@@ -1776,7 +1777,30 @@ class sdGunClass
 			count: 1,
 			matter_cost: 160,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
-			projectile_properties: { _damage: 64, color: '33ffff'}
+			projectile_properties: { _damage: 64, color: '#33ffff', penetrating: true }
+		};
+    
+		sdGun.classes[ sdGun.CLASS_BURST_PISTOL = 65 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'burst_pistol' ),
+			image0: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload' ), sdWorld.CreateImageFromFile( 'burst_pistol' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload' ), sdWorld.CreateImageFromFile( 'burst_pistol' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload' ), sdWorld.CreateImageFromFile( 'burst_pistol' ) ],
+			sound: 'gun_f_rifle',
+			sound_pitch: 1.5,
+			title: 'Burst Pistol',
+			slot: 1,
+			reload_time: 2,
+			muzzle_x: 5,
+			ammo_capacity: 9,
+			count: 1,
+			spread: 0.01,
+			matter_cost: 120,
+			burst: 3,
+			burst_reload: 35,
+			//projectile_velocity: 30,
+			min_build_tool_level: 3,
+			projectile_properties: { _damage: 25, color:'#00aaff' }
 		};
     
 		// Add new gun classes above this line //
