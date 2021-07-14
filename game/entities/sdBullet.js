@@ -27,7 +27,8 @@ class sdBullet extends sdEntity
 			'f_psicutter_proj': sdWorld.CreateImageFromFile( 'f_psicutter_proj' ),
 			'ball_charged':  sdWorld.CreateImageFromFile( 'ball_charged' ),
 			'mini_rocket':  sdWorld.CreateImageFromFile( 'mini_rocket' ),
-			'mini_rocket_green':  sdWorld.CreateImageFromFile( 'mini_rocket_green' )
+			'mini_rocket_green':  sdWorld.CreateImageFromFile( 'mini_rocket_green' ),
+			'mini_missile_p241':  sdWorld.CreateImageFromFile( 'mini_missile_p241' )
 		};
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
