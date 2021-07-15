@@ -1830,6 +1830,16 @@ class sdGunClass
 				
 				return 50;
 			},
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				if ( gun._held_by._auto_shoot_in > 0 )
+				return 0;
+				
+				return 50;
+			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
 				if ( !shoot_from_scenario )
@@ -1848,14 +1858,7 @@ class sdGunClass
 				{
 					sdSound.PlaySound({ name: 'gun_railgun_malicestorm_terrorphaser4', x:gun.x, y:gun.y, volume: 1.5, pitch: 2 });
 					
-					if ( gun._held_by.matter >= 50 )
-					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
-					{
-						gun._held_by._auto_shoot_in = ( gun._held_by.stim_ef > 0 ) ? 1 : 2;
-						gun._held_by.matter -= 50;
-					}
 				}
-				return true;
 			},
 			projectile_properties: { explosion_radius: 25, model: 'gauss_rifle_proj', _damage: 110, color:sdEffect.default_explosion_color }
 		};
