@@ -1851,7 +1851,7 @@ class sdGunClass
 					if ( gun._held_by.matter >= 50 )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						gun._held_by._auto_shoot_in = 15;
+						gun._held_by._auto_shoot_in = ( gun._held_by.stim_ef > 0 ) ? 1 : 2;
 						gun._held_by.matter -= 50;
 					}
 				}
