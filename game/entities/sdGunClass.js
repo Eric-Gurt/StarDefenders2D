@@ -1848,11 +1848,11 @@ class sdGunClass
 				{
 					sdSound.PlaySound({ name: 'gun_railgun_malicestorm_terrorphaser4', x:gun.x, y:gun.y, volume: 1.5, pitch: 2 });
 					
-					if ( gun._held_by.matter >= 100 )
+					if ( gun._held_by.matter >= 50 )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
 						gun._held_by._auto_shoot_in = 15;
-						gun._held_by.matter -= 100;
+						gun._held_by.matter -= 50;
 					}
 				}
 				return true;
