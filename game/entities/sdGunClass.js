@@ -1803,6 +1803,62 @@ class sdGunClass
 			projectile_properties: { _damage: 25, color:'#00aaff' }
 		};
     
+		sdGun.classes[ sdGun.CLASS_GAUSS_RIFLE = 66 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'gauss_rifle' ),
+			image_charging: sdWorld.CreateImageFromFile( 'gauss_rifle_charging' ),
+			image0: [ sdWorld.CreateImageFromFile( 'gauss_rifle_reload' ), sdWorld.CreateImageFromFile( 'gauss_rifle_reload2' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'gauss_rifle_reload' ), sdWorld.CreateImageFromFile( 'gauss_rifle_reload2' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'gauss_rifle_reload' ), sdWorld.CreateImageFromFile( 'gauss_rifle_reload2' ) ],
+			title: 'Gauss Rifle',
+			slot: 8,
+			reload_time: 300,
+			muzzle_x: 9,
+			ammo_capacity: -1,
+			count: 1,
+			matter_cost: 1000,
+			projectile_velocity: sdGun.default_projectile_velocity * 2,
+			min_workbench_level: 5,
+			min_build_tool_level: 3,
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				if ( gun._held_by._auto_shoot_in > 0 )
+				return 0;
+				
+				return 50;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( !shoot_from_scenario )
+				{
+					if ( gun._held_by )
+					if ( gun._held_by._auto_shoot_in <= 0 )
+					{
+						
+						gun._held_by._auto_shoot_in = 1750 / 1000 * 30;
+
+						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 0.5 });
+					}
+					return false;
+				}
+				else
+				{
+					sdSound.PlaySound({ name: 'gun_railgun_malicestorm_terrorphaser4', x:gun.x, y:gun.y, volume: 1.5, pitch: 2 });
+					
+					if ( gun._held_by.matter >= 100 )
+					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					{
+						gun._held_by._auto_shoot_in = 15;
+						gun._held_by.matter -= 100;
+					}
+				}
+				return true;
+			},
+			projectile_properties: { explosion_radius: 25, model: 'gauss_rifle_proj', _damage: 10, color:sdEffect.default_explosion_color }
+		};
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
