@@ -1798,7 +1798,6 @@ class sdGunClass
 			matter_cost: 120,
 			burst: 3,
 			burst_reload: 35,
-			//projectile_velocity: 30,
 			min_build_tool_level: 3,
 			projectile_properties: { _damage: 25, color:'#00aaff' }
 		};
@@ -1808,7 +1807,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'gauss_rifle' ),
 			image_charging: sdWorld.CreateImageFromFile( 'gauss_rifle_charging' ),
 			image0: [ sdWorld.CreateImageFromFile( 'gauss_rifle_reload' ), sdWorld.CreateImageFromFile( 'gauss_rifle_reload2' ) ],
-			image1: [ sdWorld.CreateImageFromFile( 'gauss_rifle_reload' ), sdWorld.CreateImageFromFile( 'gauss_rifle_reload2' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'gauss_rifle_reload2' ), sdWorld.CreateImageFromFile( 'gauss_rifle_reload' ) ],
 			image2: [ sdWorld.CreateImageFromFile( 'gauss_rifle_reload' ), sdWorld.CreateImageFromFile( 'gauss_rifle_reload2' ) ],
 			title: 'Gauss Rifle',
 			slot: 8,
