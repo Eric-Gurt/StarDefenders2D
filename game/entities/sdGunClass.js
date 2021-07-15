@@ -1857,7 +1857,7 @@ class sdGunClass
 				}
 				return true;
 			},
-			projectile_properties: { explosion_radius: 25, model: 'gauss_rifle_proj', _damage: 10, color:sdEffect.default_explosion_color }
+			projectile_properties: { explosion_radius: 25, model: 'gauss_rifle_proj', _damage: 110, color:sdEffect.default_explosion_color }
 		};
 		// Add new gun classes above this line //
 		
