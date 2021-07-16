@@ -1806,9 +1806,9 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'gauss_rifle' ),
 			image_charging: sdWorld.CreateImageFromFile( 'gauss_rifle_charging' ),
-			image0: [ sdWorld.CreateImageFromFile( 'gauss_rifle_reload' ), sdWorld.CreateImageFromFile( 'gauss_rifle_reload2' ) ],
-			image1: [ sdWorld.CreateImageFromFile( 'gauss_rifle_reload2' ), sdWorld.CreateImageFromFile( 'gauss_rifle_reload' ) ],
-			image2: [ sdWorld.CreateImageFromFile( 'gauss_rifle_reload' ), sdWorld.CreateImageFromFile( 'gauss_rifle_reload2' ) ],
+			image0: [ sdWorld.CreateImageFromFile( 'gauss_rifle0' ), sdWorld.CreateImageFromFile( 'gauss_rifle1' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'gauss_rifle2' ), sdWorld.CreateImageFromFile( 'gauss_rifle3' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'gauss_rifle4' ), sdWorld.CreateImageFromFile( 'gauss_rifle5' ) ],
 			title: 'Gauss Rifle',
 			slot: 8,
 			reload_time: 300,
