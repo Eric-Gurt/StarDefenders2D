@@ -876,6 +876,7 @@ class sdEntity
 							return this._com_near_cache;
 						}
 
+						if ( active_ents.indexOf( connected_ents[ i ] ) === -1 )
 						active_ents.push( connected_ents[ i ] );
 					}
 				}
