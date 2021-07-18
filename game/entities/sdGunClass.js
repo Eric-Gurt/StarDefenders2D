@@ -1817,7 +1817,7 @@ class sdGunClass
 			count: 1,
 			matter_cost: 1000,
 			projectile_velocity: sdGun.default_projectile_velocity * 2,
-			min_workbench_level: 5,
+			min_workbench_level: 6,
 			min_build_tool_level: 3,
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
