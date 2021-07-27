@@ -1865,6 +1865,7 @@ class sdGunClass
 			burst: 3,
 			burst_reload: 12,
 			count: 1,
+			min_build_tool_level: 3,
 			projectile_properties: { _damage: 30, _knock_scale: 0.01* 8 }
 		};
 		// Add new gun classes above this line //
