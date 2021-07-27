@@ -1851,6 +1851,22 @@ class sdGunClass
 			},
 			projectile_properties: { explosion_radius: 25, model: 'gauss_rifle_proj', _damage: 110, color:sdEffect.default_explosion_color }
 		};
+		
+		sdGun.classes[ sdGun.CLASS_COMBAT_RIFLE = 67 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'combat_rifle' ),
+			sound: 'gun_the_ripper2',
+			sound_pitch: 2,
+			title: 'Combat Rifle',
+			slot: 2,
+			reload_time: 1.5,
+			muzzle_x: 10,
+			ammo_capacity: 30,
+			burst: 3,
+			burst_reload: 12,
+			count: 1,
+			projectile_properties: { _damage: 30, _knock_scale: 0.01* 8 }
+		};
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
