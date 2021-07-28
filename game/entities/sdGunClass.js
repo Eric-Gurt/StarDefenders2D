@@ -1863,12 +1863,12 @@ class sdGunClass
 			muzzle_x: 10,
 			ammo_capacity: 30,
 			burst: 3,
-			burst_reload: 12,
+			burst_reload: 16,
 			count: 1,
 			matter_cost: 120,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.3,
 			min_build_tool_level: 3,
-			projectile_properties: { _damage: 30, _knock_scale: 0.01* 8 }
+			projectile_properties: { _damage: 40 }
 		};
 		// Add new gun classes above this line //
 		
