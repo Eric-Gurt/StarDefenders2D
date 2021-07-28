@@ -28,6 +28,10 @@ class sdTheatre extends sdEntity
 	IsBGEntity() // 1 for BG entities, should handle collisions separately
 	{ return 1; }
 	
+	/*ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
+	{ 
+		return [ 0, 0, 0 ]; // 0, 0.01, 0.01 was good until I added sdBlock offset that hides seam on high visual settings
+	}*/
 	//get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	//{ return true; }
 	
@@ -144,6 +148,9 @@ class sdTheatre extends sdEntity
 		if ( sdRenderer.last_source_entity === this )
 		{
 			let scale = sdWorld.camera.scale * 0.84;
+			
+			if ( sdRenderer._visual_settings === 1 )
+			scale = sdWorld.camera.scale;
 
 			let width = ( ( ( this.x + this.hitbox_x2 - ( sdWorld.camera.x ) ) ) - ( ( this.x + this.hitbox_x1 - ( sdWorld.camera.x ) ) ) ) * scale;
 
