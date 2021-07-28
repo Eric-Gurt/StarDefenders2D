@@ -213,7 +213,7 @@ class sdAntigravity extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.drawImage( sdAntigravity.img_antigravity, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdAntigravity.img_antigravity, -16, -16, 32,32 );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{

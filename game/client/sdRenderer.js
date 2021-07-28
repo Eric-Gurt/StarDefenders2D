@@ -543,7 +543,7 @@ class sdRenderer
 						{
 							globalThis.RequireTwitchPlayerAndDo( ( twitch_player )=>
 							{
-								if ( !sdRenderer.last_source_entity || sdRenderer.last_source_entity.service !== 'twitch' )
+								if ( !sdRenderer.last_source_entity || sdRenderer.last_source_entity._is_being_removed || sdRenderer.last_source_entity.service !== 'twitch' )
 								return;
 							
 								if ( sdRenderer.last_source_entity.video )
@@ -568,13 +568,16 @@ class sdRenderer
 						{
 							globalThis.RequireYoutubePlayerAndDo( ( youtube_player )=>
 							{
-								if ( !sdRenderer.last_source_entity || sdRenderer.last_source_entity.service !== 'youtube' )
+								if ( !sdRenderer.last_source_entity || sdRenderer.last_source_entity._is_being_removed || sdRenderer.last_source_entity.service !== 'youtube' )
 								return;
 							
 								if ( sdRenderer.last_source_entity.video )
 								{
-									youtube_player.loadVideoById( sdRenderer.last_source_entity.video );
-									youtube_player.seekTo( 0 );
+									if ( youtube_player.getVideoData().video_id !== sdRenderer.last_source_entity.video )
+									{
+										youtube_player.loadVideoById( sdRenderer.last_source_entity.video );
+									}
+									youtube_player.seekTo( sdRenderer.last_source_entity.playing_offset / 1000 );
 									youtube_player.unMute();
 								}
 							});

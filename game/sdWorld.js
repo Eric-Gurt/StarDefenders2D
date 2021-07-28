@@ -1209,6 +1209,7 @@ class sdWorld
 	static ResolveMyEntityByNetId()
 	{
 		//console.warn('ResolveMyEntityByNetId()');
+		if ( sdWorld.my_entity_net_id !== undefined )
 		if ( sdWorld.my_entity === null || sdWorld.my_entity_net_id !== sdWorld.my_entity._net_id )
 		{
 			sdWorld.my_entity = null;
