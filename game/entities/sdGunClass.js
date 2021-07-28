@@ -1799,7 +1799,7 @@ class sdGunClass
 			burst: 3,
 			burst_reload: 35,
 			min_build_tool_level: 3,
-			projectile_properties: { _damage: 25, color:'#00aaff' }
+			projectile_properties: { _damage: 33, color:'#00aaff' }
 		};
     
 		sdGun.classes[ sdGun.CLASS_GAUSS_RIFLE = 66 ] = 
