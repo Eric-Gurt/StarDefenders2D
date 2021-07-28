@@ -563,10 +563,9 @@ class sdBullet extends sdEntity
 			}
 			else
 			if ( !this.is_grenade )
-			//if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdCrystal' ) // Including any else rigid bodies
-			if ( typeof from_entity.hea !== 'undefined' || typeof from_entity._hea !== 'undefined' || ( this._bg_shooter && !this._bouncy && from_entity.GetClass() === 'sdBG' ) || ( this._admin_picker && ( this._bg_shooter || from_entity.GetClass() !== 'sdBG' ) ) )
-			//if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null ) // guns can be hit only when are not held by anyone
-			//if ( from_entity.IsTargetable( this, true ) )
+			//if ( typeof from_entity.hea !== 'undefined' || typeof from_entity._hea !== 'undefined' || ( this._bg_shooter && !this._bouncy && from_entity.GetClass() === 'sdBG' ) || ( this._admin_picker && ( this._bg_shooter || from_entity.GetClass() !== 'sdBG' ) ) )
+			//if ( typeof from_entity.hea !== 'undefined' || typeof from_entity._hea !== 'undefined' || ( this._bg_shooter && !this._bouncy && from_entity.IsBGEntity() === 1 ) || ( this._admin_picker && ( this._bg_shooter || from_entity.IsBGEntity() !== 1 ) ) )
+			if ( ( from_entity.IsBGEntity() === 0 && ( typeof from_entity.hea !== 'undefined' || typeof from_entity._hea !== 'undefined' ) ) || ( this._bg_shooter && !this._bouncy && from_entity.IsBGEntity() === 1 ) || ( this._admin_picker && ( this._bg_shooter || from_entity.IsBGEntity() !== 1 ) ) )
 			if ( from_entity.IsTargetable( this, !this._hook ) ) // Ignore safe areas only if not a hook
 			{
 				let will_bounce = false;
@@ -766,7 +765,9 @@ class sdBullet extends sdEntity
 		{
 			ctx.rotate( Math.atan2( this.sy, this.sx ) );
 		
-			ctx.drawImage( sdBullet.images[ this.model ], - 16, - 16, 32,32 );
+			//ctx.drawImage( sdBullet.images[ this.model ], - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( sdBullet.images[ this.model ], - 16, - 16, 32,32 );
+			
 		}
 		else
 		{

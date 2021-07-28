@@ -135,7 +135,7 @@ class sdWorkbench extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.drawImage( sdWorkbench.img_wb, -16, -16, 32, 32 );
+		ctx.drawImageFilterCache( sdWorkbench.img_wb, -16, -16, 32, 32 );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{

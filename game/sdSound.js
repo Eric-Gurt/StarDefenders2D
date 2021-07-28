@@ -28,17 +28,51 @@ class sdSound
 		
 		sdSound.sounds_played_at_frame = 0; // Prevent massive flood
 				
-		//		= new Audio( './audio/android_miner_hurt.wav' );
-		
-		//sdSound.s_test.play();
-		//sdSound.s_test.cloneNode().play();
-		
-		sdSound.matter_charge_loop = new Audio( './audio/matter_charge_loop2.wav' );
+		/*sdSound.matter_charge_loop = new Audio( './audio/matter_charge_loop2.wav' );
 		sdSound.matter_charge_loop.volume = 0;
 		sdSound.matter_charge_loop.loop = true;
-		sdSound.matter_charge_loop.preservesPitch = false;
+		sdSound.matter_charge_loop.preservesPitch = false;*/
 		
-		sdSound.ambient1 = new Audio( './audio/ambient1_looped3.wav' );
+		const MakeLoopAmbient = ( var_name, source )=>
+		{
+			sdSound[ var_name + '_volume_last' ] = 0;
+			sdSound[ var_name + '_howl' ] = new Howl({ src: [ source ], loop: true, autoplay: true, volume: 0 });
+			sdSound[ var_name + '_sound_id' ] = sdSound[ var_name + '_howl' ].play();
+			
+			sdSound[ var_name ] = {};
+			
+			
+			Object.defineProperty( sdSound[ var_name ], 'volume', 
+			{ 
+				set: function ( x ) 
+				{ 
+					sdSound[ var_name + '_howl' ].volume( x, sdSound[ var_name + '_sound_id' ] );
+				},
+				get: function()
+				{
+					debugger; // Won't work
+					return 0;
+				}
+			});
+		};
+		
+		MakeLoopAmbient( 'matter_charge_loop', './audio/matter_charge_loop2.wav' );
+		MakeLoopAmbient( 'ambient1', './audio/ambient1_looped3.wav' );
+		MakeLoopAmbient( 'ambient3', './audio/ambient3.wav' );
+		MakeLoopAmbient( 'ambient4_short', './audio/ambient4_short.wav' );
+		MakeLoopAmbient( 'scary_monster_spawned3', './audio/scary_monster_spawned3.wav' );
+		MakeLoopAmbient( 'scary_monster_spawned2', './audio/scary_monster_spawned2.wav' );
+		MakeLoopAmbient( 'scary_monsters_in_the_dark', './audio/scary_monsters_in_the_dark.wav' );
+		MakeLoopAmbient( 'rain_low_res', './audio/rain_low_res.wav' );
+		MakeLoopAmbient( 'earthquake', './audio/earthquake.wav' );
+		MakeLoopAmbient( 'jetpack', './audio/jetpack.wav' );
+		MakeLoopAmbient( 'hover_loop', './audio/hover_loop.wav' );
+		MakeLoopAmbient( 'amplifier_loop', './audio/amplifier_loop2.wav' );
+		MakeLoopAmbient( 'lava_loop', './audio/lava_loop4.wav' );
+		MakeLoopAmbient( 'lava_burn', './audio/lava_burn2.wav' );
+		MakeLoopAmbient( 'rift_loop', './audio/rift_loop.wav' );
+		
+		/*sdSound.ambient1 = new Audio( './audio/ambient1_looped3.wav' );
 		sdSound.ambient1.volume = 0;
 		sdSound.ambient1.loop = true;
 		
@@ -98,7 +132,7 @@ class sdSound
 		sdSound.rift_loop_volume_last = 0;
 		sdSound.rift_loop = new Audio( './audio/rift_loop.wav' );
 		sdSound.rift_loop.volume = 0;
-		sdSound.rift_loop.loop = true;
+		sdSound.rift_loop.loop = true;*/
 		
 		
 		
@@ -128,9 +162,7 @@ class sdSound
 		if ( !sdSound.allowed )
 		{
 			sdSound.allowed = true;
-			sdSound.matter_charge_loop.play();
-			//sdSound.ambient1.play();
-			//sdSound.ambient3.play();
+			/*sdSound.matter_charge_loop.play();
 			
 			for ( var i = 0; i < sdSound.ambients.length; i++ )
 			sdSound.ambients[ i ].audio.play();
@@ -143,7 +175,7 @@ class sdSound
 			sdSound.amplifier_loop.play();
 			sdSound.lava_loop.play();
 			sdSound.lava_burn.play();
-			sdSound.rift_loop.play();
+			sdSound.rift_loop.play();*/
 		}
 	}
 	static HandleMatterChargeLoop( GSPEED )
@@ -156,10 +188,7 @@ class sdSound
 			let old_old = sdWorld.my_entity._matter_old;
 			sdWorld.my_entity._matter_old = sdWorld.MorphWithTimeScale( sdWorld.my_entity._matter_old, sdWorld.my_entity.matter, 0.9, GSPEED );
 			
-			//if ( sdSound.allow_matter_drain_loop )
 			target_volume = ( ( sdWorld.my_entity._matter_old - old_old ) );
-			//else
-			//target_volume = ( Math.max( 0, sdWorld.my_entity._matter_old - old_old ) * 1 );
 		}
 		
 		// Do not play negative matter sound during regular building
@@ -167,11 +196,18 @@ class sdSound
 		target_volume = Math.min( 0, target_volume + 0.5 );
 	
 		sdSound.matter_charge_loop.volume = sdSound.volume * Math.min( 1, Math.abs( target_volume ) );
+		//sdSound.matter_charge_loop.volume = sdSound.volume * Math.min( 1, Math.abs( target_volume ) );
 		
 		if ( target_volume >= 0 )
-		sdSound.matter_charge_loop.playbackRate = 1;
+		{
+			sdSound.matter_charge_loop.playbackRate = 1;
+			//sdSound.matter_charge_loop.playbackRate = 1;
+		}
 		else
-		sdSound.matter_charge_loop.playbackRate = 0.6;
+		{
+			sdSound.matter_charge_loop.playbackRate = 0.6;
+			//sdSound.matter_charge_loop.playbackRate = 0.6;
+		}
 	
 		sdSound.allow_matter_drain_loop = false;
 		
@@ -212,11 +248,12 @@ class sdSound
 			var a = sdSound.ambients[ i ];
 			a.audio.volume = a.di / di_sum * sdSound.volume_ambient * ( 1 - rain_intens );
 		}
-		//sdSound.ambient1.volume = sdSound.volume_ambient;
-		//sdSound.ambient3.volume = sdSound.volume_ambient;
 		
 		sdSound.rain_low_res.volume = rain_intens * sdSound.volume_ambient;
+		//sdSound.rain_low_res.volume = rain_intens * sdSound.volume_ambient;
+		
 		sdSound.earthquake.volume = earthquake_intens * sdSound.volume_ambient;
+		//sdSound.earthquake.volume = earthquake_intens * sdSound.volume_ambient;
 		
 		let count_flying = 0;
 		let count_hover_loop = 0;
@@ -265,21 +302,27 @@ class sdSound
 		
 		sdSound.jetpack_volume_last = sdWorld.MorphWithTimeScale( sdSound.jetpack_volume_last, count_flying, 0.8, GSPEED );
 		sdSound.jetpack.volume = Math.min( 1, sdSound.jetpack_volume_last * sdSound.volume_ambient );
+		//sdSound.jetpack.volume = Math.min( 1, sdSound.jetpack_volume_last * sdSound.volume_ambient );
 		
 		sdSound.hover_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.hover_loop_volume_last, count_hover_loop, 0.8, GSPEED );
 		sdSound.hover_loop.volume = Math.min( 1, sdSound.hover_loop_volume_last * sdSound.volume_ambient );
+		//sdSound.hover_loop.volume = Math.min( 1, sdSound.hover_loop_volume_last * sdSound.volume_ambient );
 		
 		sdSound.amplifier_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.amplifier_loop_volume_last, count_amplifier_loop, 0.8, GSPEED );
 		sdSound.amplifier_loop.volume = Math.min( 1, Math.min( 2, sdSound.amplifier_loop_volume_last ) * sdSound.volume_ambient );
+		//sdSound.amplifier_loop.volume = Math.min( 1, Math.min( 2, sdSound.amplifier_loop_volume_last ) * sdSound.volume_ambient );
 		
 		sdSound.lava_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.lava_loop_volume_last, count_lava_loop, 0.8, GSPEED );
 		sdSound.lava_loop.volume = Math.min( 1, Math.min( 1.5, sdSound.lava_loop_volume_last ) * sdSound.volume_ambient );
+		//sdSound.lava_loop.volume = Math.min( 1, Math.min( 1.5, sdSound.lava_loop_volume_last ) * sdSound.volume_ambient );
 		
 		sdSound.lava_burn_volume_last = sdWorld.MorphWithTimeScale( sdSound.lava_burn_volume_last, count_lava_burn, 0.8, GSPEED );
 		sdSound.lava_burn.volume = Math.min( 1, Math.min( 2, sdSound.lava_burn_volume_last ) * sdSound.volume_ambient );
+		//sdSound.lava_burn.volume = Math.min( 1, Math.min( 2, sdSound.lava_burn_volume_last ) * sdSound.volume_ambient );
 		
 		sdSound.rift_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.rift_loop_volume_last, count_rift_loop, 0.8, GSPEED );
 		sdSound.rift_loop.volume = Math.min( 1, Math.min( 10, sdSound.rift_loop_volume_last ) * sdSound.volume_ambient );
+		//sdSound.rift_loop.volume = Math.min( 1, Math.min( 10, sdSound.rift_loop_volume_last ) * sdSound.volume_ambient );
 		
 		// Note: Never go over 1 on .volume - browsers will throw an error and freeze screen
 	}
@@ -321,21 +364,12 @@ class sdSound
 	
 		if ( typeof sdSound.sounds[ name ] === 'undefined' )
 		{
-			//let time_of_first_play = sdWorld.time;
-			
-			sdSound.sounds[ name ] = new Audio( './audio/' + name + '.wav' );
-			/*sdSound.sounds[ name ].addEventListener("canplaythrough", event => 
-			{
-				sdSound.sounds[ name ].can_play = true;
-				
-				if ( sdWorld.time < time_of_first_play + 1000 )
-				sdSound.PlaySound( params );
-			});*/
+			//sdSound.sounds[ name ] = new Audio( './audio/' + name + '.wav' );
+			sdSound.sounds[ name ] = new Howl({ src: [ './audio/' + name + '.wav' ] });
 		}
 		
 		if ( sdSound.allowed )
 		{
-			
 			let v = sdSound.GetDistanceMultForPosition( x,y ) * sdSound.volume * volume;
 			
 			if ( isNaN( v ) || v === Infinity || v === -Infinity )
@@ -351,13 +385,16 @@ class sdSound
 					return;
 				}
 				
-				let clone = sdSound.sounds[ name ].cloneNode();
+				/*let clone = sdSound.sounds[ name ].cloneNode();
 			
 				clone.volume = v;
 
 				clone.playbackRate = rate;
 				clone.preservesPitch = false;
-				clone.play();
+				clone.play();*/
+				sdSound.sounds[ name ].volume( v );
+				sdSound.sounds[ name ].rate( rate );
+				sdSound.sounds[ name ].play();
 			}
 		}
 	}

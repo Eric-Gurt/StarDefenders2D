@@ -210,7 +210,11 @@ import sdCable from './game/entities/sdCable.js';
 import sdCharacterRagdoll from './game/entities/sdCharacterRagdoll.js';
 import sdNode from './game/entities/sdNode.js';
 import sdSpider from './game/entities/sdSpider.js';
+import sdBall from './game/entities/sdBall.js';
+import sdTheatre from './game/entities/sdTheatre.js';
+import sdCaption from './game/entities/sdCaption.js';
 
+	
 
 
 import LZW from './game/server/LZW.js';
@@ -346,6 +350,9 @@ sdCable.init_class();
 sdCharacterRagdoll.init_class();
 sdNode.init_class();
 sdSpider.init_class();
+sdBall.init_class();
+sdTheatre.init_class();
+sdCaption.init_class();
 
 /* Do like that later, not sure if I want to deal with path problems yet again... Add awaits where needed too
 
@@ -1928,28 +1935,30 @@ io.on("connection", (socket) =>
 			//player_settings.my_hash = Math.random() + '';
 			//player_settings.my_net_id = undefined;
 			
-			if ( typeof sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ] === 'object' )
-			if ( !sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._is_being_removed )
+			let ent = sdEntity.entities_by_net_id_cache_map.get( parseInt( player_settings.my_net_id ) );
+			
+			if ( ent )
+			if ( !ent._is_being_removed )
 			{
-				if ( sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._my_hash === player_settings.my_hash )
+				if ( ent._my_hash === player_settings.my_hash )
 				{
-					if ( sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._socket )
+					if ( ent._socket )
 					{
-						if ( sockets_by_ip[ ip ].indexOf( sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._socket ) !== -1 )
+						if ( sockets_by_ip[ ip ].indexOf( ent._socket ) !== -1 )
 						{
-							//await sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._socket.close(); // Try to disconnect old connection, can happen in geckos case if player reconnects too quickly
-							sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._socket.CharacterDisconnectLogic();
+							//await ent._socket.close(); // Try to disconnect old connection, can happen in geckos case if player reconnects too quickly
+							ent._socket.CharacterDisconnectLogic();
 						}
 					}
 					
-					if ( !sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._socket )
+					if ( !ent._socket )
 					{
-						sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ]._socket = socket;
-						socket.character = sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ];
+						ent._socket = socket;
+						socket.character = ent;
 						
 						socket.character.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 
-						character_entity = sdEntity.entities_by_net_id_cache[ player_settings.my_net_id ];
+						character_entity = ent;
 
 						//socket.score = character_entity._old_score;
 						//character_entity._old_score = 0;
@@ -3166,17 +3175,6 @@ setInterval( ()=>
 					let v = 0;
 					for ( let prop in socket.left_overs )
 					{
-						//Not needed too?
-						/*let possibly_ent = sdEntity.entities_by_net_id_cache[ socket.left_overs[ prop ]._net_id ];
-						
-						if ( possibly_ent && !possibly_ent.is_static )
-						{
-							debugger // Should not happen because these are removed later? Or they are not due to last snapshot inserted into sent ones without clearing these?
-							
-							//console.log('Dropped packet entity is not static, skip: ' + possibly_ent.GetClass() + '['+possibly_ent._net_id+']' );
-							delete socket.left_overs[ prop ];
-							continue;
-						}*/
 					
 						let found = false;
 					
@@ -3229,16 +3227,6 @@ setInterval( ()=>
 							{
 								let del = false;
 								
-								/*let possibly_ent = sdEntity.entities_by_net_id_cache[ msg.data[ 0 ][ d ]._net_id ];
-						
-								if ( possibly_ent && !possibly_ent.is_static )
-								{
-									del = true;
-									//delete msg.data[ 0 ][ d ];
-									//continue;
-								}
-								*/
-
 								// AAA
 								if ( !del )
 								for ( let s = 0; s < snapshot_only_statics.length; s++ )

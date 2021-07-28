@@ -133,12 +133,12 @@ class sdTeleport extends sdEntity
 		if ( this.GetComWiredCache() || sdShop.isDrawing )
 		{
 			if ( this.delay === 0 || sdShop.isDrawing )
-			ctx.drawImage( sdTeleport.img_teleport, -16, -16, 32,32 );
+			ctx.drawImageFilterCache( sdTeleport.img_teleport, -16, -16, 32,32 );
 			else
-			ctx.drawImage( sdTeleport.img_teleport_offline, -16, -16, 32,32 );
+			ctx.drawImageFilterCache( sdTeleport.img_teleport_offline, -16, -16, 32,32 );
 		}
 		else
-		ctx.drawImage( sdTeleport.img_teleport_no_matter, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdTeleport.img_teleport_no_matter, -16, -16, 32,32 );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{

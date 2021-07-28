@@ -36,6 +36,9 @@ class sdCharacter extends sdEntity
 	static init_class()
 	{
 		sdCharacter.img_teammate = sdWorld.CreateImageFromFile( 'teammate' );
+		
+		sdCharacter.climb_filter = [ 'sdBlock', 'sdLost', 'sdBarrel', 'sdCrystal', 'sdCharacter', 'sdDoor', 'sdMatterContainer', 'sdCube' ];
+		
 		/*
 		sdCharacter.img_legs_idle = sdWorld.CreateImageFromFile( 'legs_idle' );
 		sdCharacter.img_legs_walk1 = sdWorld.CreateImageFromFile( 'legs_walk1' );
@@ -1531,15 +1534,15 @@ class sdCharacter extends sdEntity
 
 		if ( this._score >= 5000 && this._acquired_bt_score === false )
 		{
-		this.Say( 'My experience on this planet expanded my knowledge' );
-		this.build_tool_level++;
-		this._acquired_bt_score = true;
+			this.Say( 'My experience on this planet expanded my knowledge' );
+			this.build_tool_level++;
+			this._acquired_bt_score = true;
 		}
-
+		else
 		if ( this._score < 5000 && this._acquired_bt_score === true )
 		{
-		this.build_tool_level--;
-		this._acquired_bt_score = false;
+			this.build_tool_level--;
+			this._acquired_bt_score = false;
 		}
 		
 		if ( this.hea <= 0 )
@@ -2151,8 +2154,8 @@ class sdCharacter extends sdEntity
 			{
 				if ( this.hea > 0 )
 				if ( this.act_x !== 0 )
-				if ( sdWorld.CheckWallExistsBox( this.x + this.act_x * 7, this.y, this.x + this.act_x * 7, this.y + 10, null, null, [ 'sdBlock' ] ) )
-				if ( !sdWorld.CheckWallExists( this.x + this.act_x * 7, this.y + this._hitbox_y1, null, null, [ 'sdBlock' ] ) )
+				if ( sdWorld.CheckWallExistsBox( this.x + this.act_x * 7, this.y, this.x + this.act_x * 7, this.y + 10, null, null, sdCharacter.climb_filter ) )
+				if ( !sdWorld.CheckWallExists( this.x + this.act_x * 7, this.y + this._hitbox_y1, null, null, sdCharacter.climb_filter ) )
 				{
 					ledge_holding = true;
 				}
@@ -2813,7 +2816,8 @@ class sdCharacter extends sdEntity
 					{
 						if ( sdWorld.last_hit_entity )
 						{
-							if ( fake_ent.is( sdBG ) && sdWorld.last_hit_entity.is( sdBG ) )
+							//if ( fake_ent.is( sdBG ) && sdWorld.last_hit_entity.is( sdBG ) )
+							if ( fake_ent.IsBGEntity() === 1 && sdWorld.last_hit_entity.is( sdBG ) )
 							{
 								if ( sdWorld.last_hit_entity.material === sdBG.MATERIAL_GROUND )
 								{

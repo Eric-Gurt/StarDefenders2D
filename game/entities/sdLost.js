@@ -328,6 +328,13 @@ class sdLost extends sdEntity
 				}
 				this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 			}
+			else
+			{
+				if ( sdWorld.is_server )
+				{
+					this.awake = 1;
+				}
+			}
 		}
 		else
 		{

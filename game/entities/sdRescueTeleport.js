@@ -168,43 +168,12 @@ class sdRescueTeleport extends sdEntity
 	get title()
 	{
 		let postfix = "  ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + " )";
-		/*
-		if ( this.delay > 0 )
-		{
-			let num = Math.ceil( this.delay / 30 );
-			let num_seconds = num;
-			
-			if ( num >= 60 )
-			{
-				if ( Math.floor( num / 60 ) === 1 )
-				num = Math.floor( num / 60 ) + ' minute ' + ( num % 60 );
-				else
-				num = Math.floor( num / 60 ) + ' minutes ' + ( num % 60 );
-			
-				num_seconds = ( num % 60 );
-			}
-			
-			if ( num_seconds === 1 )
-			postfix = ' ('+num+' second cooldown)';
-			else
-			postfix = ' ('+num+' seconds cooldown)';
-		}*/
 		
 		if ( this.owner_title === '' )
 		return 'Rescue teleport' + postfix;
 		else
 		return this.owner_title + '\'s rescue teleport' + postfix;
-		/*
-		
-		if ( this.owner_net_id === null )
-		return 'Rescue teleport' + postfix;
-		else
-		{
-			if ( sdEntity.entities_by_net_id_cache[ this.owner_net_id ] )
-			return sdEntity.entities_by_net_id_cache[ this.owner_net_id ].title + '\'s rescue teleport' + postfix;
-			else
-			return 'Someone\'s rescue teleport' + postfix;
-		}*/
+
 	}
 	
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players

@@ -82,6 +82,10 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdCharacterRagdoll from './entities/sdCharacterRagdoll.js';
 	import sdNode from './entities/sdNode.js';
 	import sdSpider from './entities/sdSpider.js';
+	import sdBall from './entities/sdBall.js';
+	import sdTheatre from './entities/sdTheatre.js';
+	import sdCaption from './entities/sdCaption.js';
+	
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -96,6 +100,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdBlock.init_class();
 	sdCrystal.init_class();
 	sdBG.init_class();
+	sdCaption.init_class();
 	sdShop.init_class();
 	sdChat.init_class();
 	sdBullet.init_class();
@@ -140,6 +145,8 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdCharacterRagdoll.init_class();
 	sdNode.init_class();
 	sdSpider.init_class();
+	sdBall.init_class();
+	sdTheatre.init_class();
 
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;
@@ -151,6 +158,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	globalThis.sdSound = sdSound;
 	globalThis.sdWeather = sdWeather;
 	globalThis.sdShop = sdShop;
+	globalThis.sdChat = sdChat;
 	globalThis.sdContextMenu = sdContextMenu;
 	globalThis.LZW = LZW;
 	
@@ -249,6 +257,24 @@ let enf_once = true;
 	SpawnConnection();
 
 	let messages_to_report_arrival = [];
+	
+	function ClearWorld()
+	{
+		for ( var i = 0; i < sdEntity.entities.length; i++ )
+		{
+			sdEntity.entities[ i ].remove();
+			sdEntity.entities[ i ]._broken = false;
+		}
+
+		for ( var i = 0; i < sdEntity.global_entities.length; i++ )
+		{
+			sdEntity.global_entities[ i ].remove();
+		}
+
+		sdWorld.my_entity = null;
+		sdWorld.my_entity_net_id = undefined;
+	}
+	globalThis.ClearWorld = ClearWorld;
 
 	function SpawnConnection()
 	{
@@ -276,19 +302,7 @@ let enf_once = true;
 		socket.on('connect', () =>
 		//socket.onConnect( error =>
 		{
-			for ( var i = 0; i < sdEntity.entities.length; i++ )
-			{
-				sdEntity.entities[ i ].remove();
-				sdEntity.entities[ i ]._broken = false;
-			}
-
-			for ( var i = 0; i < sdEntity.global_entities.length; i++ )
-			{
-				sdEntity.global_entities[ i ].remove();
-			}
-
-			sdWorld.my_entity = null;
-			sdWorld.my_entity_net_id = undefined;
+			ClearWorld();
 
 			globalThis.connection_established = true;
 
@@ -662,7 +676,7 @@ let enf_once = true;
 		ArrowRight: 'KeyD'
 	};
 	
-	window.onkeydown = ( e )=>
+	window.onkeydown = async ( e )=>
 	{
 		if ( sdShop.open )
 		{
@@ -674,7 +688,7 @@ let enf_once = true;
 			}
 		}
 		
-		if ( sdChat.KeyDown( e ) )
+		if ( await sdChat.KeyDown( e ) )
 		return;
 	
 		let code = e.code;

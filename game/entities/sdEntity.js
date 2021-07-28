@@ -13,11 +13,17 @@ let sdCom = null;
 			
 class sdEntity
 {
+	static get entities_by_net_id_cache()
+	{
+		throw new Error( 'Outdated property. Property is no longer an array but is a Map instead' );
+	}
 	static init_class()
 	{
 		console.log('sdEntity class initiated');
 		sdEntity.entities = [];
 		sdEntity.global_entities = []; // sdWeather. This array contains extra copies of entities that exist in primary array, which is sdEntity.entities. Entities add themselves here and remove themselves whenever proper disposer like _remove is called.
+		
+		sdEntity.snapshot_clear_crawler_i = 0; // Slowly cleans up any snapshot data which could help saving some memory, sometimes by a half
 		
 		sdEntity.active_entities = [];
 		
@@ -28,8 +34,8 @@ class sdEntity
 		sdEntity.HIBERSTATE_REMOVED = 2;
 		sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP = 3; 
 		
-		//if ( !sdWorld.is_server )
-		sdEntity.entities_by_net_id_cache = {};
+		//sdEntity.entities_by_net_id_cache = {};
+		sdEntity.entities_by_net_id_cache_map = new Map();
 		
 		sdEntity.entity_net_ids = 0;
 		
@@ -734,14 +740,28 @@ class sdEntity
 		
 		if ( sdWorld.is_server )
 		{
+			//if ( typeof params._net_id !== undefined )
+			if ( params._net_id !== undefined )
+			this._net_id = params._net_id;
+			else
 			this._net_id = sdEntity.entity_net_ids++;
 			
-			//if ( !sdWorld.is_server )
-			sdEntity.entities_by_net_id_cache[ this._net_id ] = this;
+			//sdEntity.entities_by_net_id_cache[ this._net_id ] = this;
+			sdEntity.entities_by_net_id_cache_map.set( this._net_id, this );
 		}
 		else
 		{
+			
+			if ( typeof params._net_id !== undefined )
+			{
+				this._net_id = params._net_id;
+				
+				//sdEntity.entities_by_net_id_cache[ this._net_id ] = this;
+				sdEntity.entities_by_net_id_cache_map.set( this._net_id, this );
+			}
+			else
 			this._net_id = undefined;
+		
 			/*setTimeout(()=>
 			{
 				console.warn('Entity with this._net_id = '+this._net_id+' created here');
@@ -1337,7 +1357,8 @@ class sdEntity
 		let possible_ent = undefined;
 		
 		//if ( sdWorld.is_server )
-		possible_ent = sdEntity.entities_by_net_id_cache[ _net_id ]; // Fast way
+		//possible_ent = sdEntity.entities_by_net_id_cache[ _net_id ]; // Fast way
+		possible_ent = sdEntity.entities_by_net_id_cache_map.get( _net_id ); // Fast way
 		/*else
 		{
 			let searched_class = sdWorld.entity_classes[ _class ];
@@ -1422,9 +1443,10 @@ class sdEntity
 			throw new Error( 'Unknown entity class "'+snapshot._class+'". Download or it is missing?' );
 		}
 	
-		var ret = new sdWorld.entity_classes[ snapshot._class ]({ x:snapshot.x, y:snapshot.y });//globalThis[ snapshot._class ];
-		ret._net_id = snapshot._net_id;
-		sdEntity.entities_by_net_id_cache[ ret._net_id ] = ret; // Same for client, done here rather than during object creation
+		//var ret = new sdWorld.entity_classes[ snapshot._class ]({ x:snapshot.x, y:snapshot.y });
+		var ret = new sdWorld.entity_classes[ snapshot._class ]({ x:snapshot.x, y:snapshot.y, _net_id:snapshot._net_id });
+		//ret._net_id = snapshot._net_id;
+		//sdEntity.entities_by_net_id_cache[ ret._net_id ] = ret; // Same for client, done here rather than during object creation
 		
 		ret.ApplySnapshot( snapshot );
 		
@@ -1456,14 +1478,18 @@ class sdEntity
 		
 			return net_id;
 		}
+		
+		//let e = sdEntity.entities_by_net_id_cache[ net_id ];
+		let e = sdEntity.entities_by_net_id_cache_map.get( net_id );
 	
-		if ( typeof sdEntity.entities_by_net_id_cache[ net_id ] === 'undefined' )
+		//if ( typeof sdEntity.entities_by_net_id_cache[ net_id ] === 'undefined' )
+		if ( !e )
 		{
 			return 'user #' + net_id;
 		}
 		else
 		{
-			let e = sdEntity.entities_by_net_id_cache[ net_id ];
+			//let e = sdEntity.entities_by_net_id_cache[ net_id ];
 			
 			if ( e.GetClass() === 'sdCommandCentre' )
 			{
@@ -1767,10 +1793,12 @@ class sdEntity
 			//console.warn('deleted cache with this._net_id = '+this._net_id);
 			//if ( !sdWorld.is_server ) server tracks these now too
 			{
-				if ( sdEntity.entities_by_net_id_cache[ this._net_id ] !== this )
+				//if ( sdEntity.entities_by_net_id_cache[ this._net_id ] !== this )
+				if ( sdEntity.entities_by_net_id_cache_map.get( this._net_id ) !== this )
 				debugger; // Should never happen
 			
-				delete sdEntity.entities_by_net_id_cache[ this._net_id ];
+				//delete sdEntity.entities_by_net_id_cache[ this._net_id ];
+				sdEntity.entities_by_net_id_cache_map.delete( this._net_id );
 			}
 		}
 	}
@@ -1861,6 +1889,19 @@ class sdEntity
 			action: ()=>
 			{
 				globalThis.socket.emit( 'ENTITY_CONTEXT_ACTION', [ this.GetClass(), this._net_id, command_name, parameters_array ] );
+			}
+		});
+	}
+	AddPromptContextOption( title, command_name, parameters_array, hint, default_text, max_characters=100 ) // Do not override. Sets entered text to parameters_array[ 0 ]
+	{
+		sdContextMenu.options.push({ title: title,
+			action: ()=>
+			{
+				sdChat.StartPrompt( hint, default_text, ( v )=>
+				{
+					parameters_array[ 0 ] = v;
+					globalThis.socket.emit( 'ENTITY_CONTEXT_ACTION', [ this.GetClass(), this._net_id, command_name, parameters_array ] );
+				});
 			}
 		});
 	}

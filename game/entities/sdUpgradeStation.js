@@ -202,7 +202,7 @@ class sdUpgradeStation extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.drawImage( sdUpgradeStation.img_us, -16, -16 - 32, 32,64 );
+		ctx.drawImageFilterCache( sdUpgradeStation.img_us, -16, -16 - 32, 32,64 );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{

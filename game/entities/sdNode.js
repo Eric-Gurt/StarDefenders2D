@@ -94,7 +94,7 @@ class sdNode extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.drawImage( sdNode.img_node, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdNode.img_node, -16, -16, 32,32 );
 	}
 	MeasureMatterCost()
 	{
