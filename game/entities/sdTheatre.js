@@ -28,8 +28,8 @@ class sdTheatre extends sdEntity
 	IsBGEntity() // 1 for BG entities, should handle collisions separately
 	{ return 1; }
 	
-	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
-	{ return true; }
+	//get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
+	//{ return true; }
 	
 	Damage( dmg, initiator=null )
 	{
@@ -38,7 +38,7 @@ class sdTheatre extends sdEntity
 	
 		this.hea -= dmg;
 		this._regen_timeout = 60;
-		this._update_version++;
+		//this._update_version++;
 		
 		if ( this.hea <= 0 )
 		{
@@ -68,15 +68,29 @@ class sdTheatre extends sdEntity
 		
 		this.volume = 50;
 		
+		this._playing_since = 0;
+		this.playing_offset = 0;
+		
+		this._next_seek_allowed_in = 0;
+		
 		sdTheatre.theatres.push( this );
 		//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false ); // 2nd parameter is important as it will prevent temporary entities from reacting to world entities around it (which can happen for example during item price measure - something like sdBlock can kill player-initiator and cause server crash)
 	}
 	
+	SyncedToPlayer( character ) // Shortcut for enemies to react to players
+	{
+		this;
+	}
 
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( !sdWorld.is_server )
-		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+		{
+			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+			return;
+		}
+		
+		this.playing_offset = sdWorld.time - this._playing_since;
 	
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
@@ -84,10 +98,10 @@ class sdTheatre extends sdEntity
 		if ( this.hea < this.hmax )
 		{
 			this.hea = Math.min( this.hea + GSPEED, this.hmax );
-			this._update_version++;
+			//this._update_version++;
 		}
-		else
-		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+		//else
+		//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 	}
 
 	MeasureMatterCost()
@@ -95,6 +109,8 @@ class sdTheatre extends sdEntity
 		return 800;
 	}
 	
+	RequireSpawnAlign()
+	{ return true; }
 	get spawn_align_x(){ return 16; };
 	get spawn_align_y(){ return 16; };
 	
@@ -159,6 +175,19 @@ class sdTheatre extends sdEntity
 					else
 					div.style.opacity = '0.7';
 				}
+			}
+			
+			if ( this.service === 'youtube' )
+			{
+				globalThis.RequireYoutubePlayerAndDo( ( player )=>
+				{
+					if ( Math.abs( player.getCurrentTime() - this.playing_offset / 1000 ) > 1 )
+					if ( sdWorld.time > this._next_seek_allowed_in )
+					{
+						this._next_seek_allowed_in = sdWorld.time + 2000;
+						player.seekTo( this.playing_offset / 1000 );
+					}
+				});
 			}
 			
 			// TODO: Volume control
@@ -236,8 +265,10 @@ class sdTheatre extends sdEntity
 						return;
 					}
 
-					this._update_version++;
+					//this._update_version++;
 					executer_socket.SDServiceMessage( 'Source updated' );
+					
+					this._playing_since = sdWorld.time;
 				}
 				else
 				executer_socket.SDServiceMessage( 'Source appears to be too long' );
@@ -248,8 +279,36 @@ class sdTheatre extends sdEntity
 			if ( parameters_array[ 0 ] === 100 || parameters_array[ 0 ] === 50 || parameters_array[ 0 ] === 25 || parameters_array[ 0 ] === 12 )
 			{
 				this.volume = parameters_array[ 0 ];
-				this._update_version++;
+				//this._update_version++;
 				executer_socket.SDServiceMessage( 'Volume updated' );
+			}
+			
+			if ( command_name === 'REPLAY' )
+			{
+				this._playing_since = sdWorld.time;
+			}
+			
+			if ( command_name === 'SHIFT' )
+			if ( parameters_array.length === 1 )
+			{
+				this._playing_since += parseInt( parameters_array[ 0 ] );
+				if ( this._playing_since > sdWorld.time )
+				this._playing_since = sdWorld.time;
+				
+				if ( isNaN( this._playing_since ) )
+				this._playing_since = sdWorld.time;
+			}
+			
+			if ( command_name === 'GO_TO_TIME' )
+			if ( parameters_array.length === 1 )
+			if ( typeof parameters_array[ 0 ] === 'string' )
+			{
+				let time = parseFloat( parameters_array[ 0 ] );
+				
+				this._playing_since = sdWorld.time - time * 60 * 1000;
+				
+				if ( isNaN( this._playing_since ) )
+				this._playing_since = sdWorld.time;
 			}
 		}
 	}
@@ -267,6 +326,10 @@ class sdTheatre extends sdEntity
 			this.AddContextOption( 'Set volume to 50%', 'SET_VOLUME', [ 50 ] );
 			this.AddContextOption( 'Set volume to 25%', 'SET_VOLUME', [ 25 ] );
 			this.AddContextOption( 'Set volume to 12%', 'SET_VOLUME', [ 12 ] );
+			this.AddContextOption( 'Replay video', 'REPLAY', [] );
+			this.AddContextOption( 'Go to 30 seconds in past', 'SHIFT', [ 1000 * 30 ] );
+			this.AddContextOption( 'Go to 30 seconds in future', 'SHIFT', [ -1000 * 10 ] );
+			this.AddPromptContextOption( 'Go to time', 'GO_TO_TIME', [ undefined ], 'Enter time, in number of minutes', '', 32 );
 		}
 	}
 }
