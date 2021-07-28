@@ -36,11 +36,6 @@ class sdBG extends sdEntity
 	IsBGEntity() // 1 for BG entities, should handle collisions separately
 	{ return 1; }
 	
-	/*GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
-	{
-		return [ 'sdBlock', 'sdDoor', 'sdWater', 'sdGun', 'sdCrystal', 'sdCharacter', 'sdTeleport', 'sdCom' ];
-	}*/
-	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return true; }
 	
@@ -70,13 +65,10 @@ class sdBG extends sdEntity
 	{
 		return this.width / 16 * this.height / 16;
 	}
-	//RequireSpawnAlign() 
-	//{ return true; }
 	
 	get spawn_align_x(){ return Math.min( this.width, 16 ); };
 	get spawn_align_y(){ return Math.min( this.height, 16 ); };
 	
-	//Draw( ctx, attached )
 	DrawBG( ctx, attached )
 	{
 		var w = this.width;
@@ -102,6 +94,5 @@ class sdBG extends sdEntity
 		ctx.filter = 'none';
 	}
 }
-//sdBG.init_class();
 
 export default sdBG;

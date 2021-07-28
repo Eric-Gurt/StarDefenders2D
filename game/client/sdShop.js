@@ -12,8 +12,11 @@ import sdTurret from '../entities/sdTurret.js';
 import sdArea from '../entities/sdArea.js';
 import sdWater from '../entities/sdWater.js';
 import sdDoor from '../entities/sdDoor.js';
+import sdCaption from '../entities/sdCaption.js';
+
 import sdRenderer from './sdRenderer.js';
 import sdContextMenu from './sdContextMenu.js';
+
 
 class sdShop
 {
@@ -48,6 +51,9 @@ class sdShop
 		if ( globalThis.isWin )
 		sdShop.options.push({ _class: 'sdVirus', _category:'root', _opens_category:'Development tests' });
 	
+		sdShop.options.push({ _class: 'sdBall', _category:'Other' });
+		sdShop.options.push({ _class: 'sdTheatre', _category:'Other' });
+		
 		sdShop.options.push({ _class: 'sdHover', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles' });
@@ -148,9 +154,13 @@ class sdShop
 		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 4, _category:'Base equipment', _min_build_tool_level: 3 });
 		sdShop.options.push({ _class: 'sdCommandCentre', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdCrystalCombiner', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdRescueTeleport', _category:'Base equipment' });
+		
+		for ( let i = 0; i < sdCaption.colors.length / 3; i++ )
+		sdShop.options.push({ _class: 'sdCaption', type: i, _category:'Base equipment' });
+	
 		sdShop.options.push({ _class: 'sdUpgradeStation', _category:'Base equipment', _min_build_tool_level: 1  });
 		sdShop.options.push({ _class: 'sdWorkbench', _category:'Base equipment', _min_build_tool_level: 2  });
-		sdShop.options.push({ _class: 'sdRescueTeleport', _category:'Base equipment' });
 		
 		for ( var i = 0; i < 3; i++ )
 		{
@@ -572,6 +582,8 @@ class sdShop
 					
 					if ( ent )
 					{
+						sdRenderer.unavailable_image_collector = [];
+						
 						ctx2.translate( ~~( 16 - ( ent._hitbox_x2 + ent._hitbox_x1 ) / 2 ), 
 										~~( 16 - ( ent._hitbox_y2 + ent._hitbox_y1 ) / 2 ) );
 
@@ -586,23 +598,46 @@ class sdShop
 						ctx2.save();
 						ent.DrawFG( ctx2, false );
 						ctx2.restore();
+						
+						let unavaulable_images = sdRenderer.unavailable_image_collector;
+						sdRenderer.unavailable_image_collector = null;
+						
+						let obj = sdWorld.my_entity._build_params;
+						for ( let i = 0; i < unavaulable_images.length; i++ )
+						{
+							unavaulable_images[ i ].callbacks.push( ()=>
+							{
+								obj._cache = null;
+							});
+						}
 					}
 					else
 					if ( sdWorld.my_entity._build_params.image )
 					{
-						if ( !sdWorld.my_entity._build_params.image_obj )
+						if ( !sdWorld.my_entity._build_params.image_obj /*|| !sdWorld.my_entity._build_params.image_obj.loaded*/ )
 						{
 							let obj = sdWorld.my_entity._build_params;
 							sdWorld.my_entity._build_params.image_obj = sdWorld.CreateImageFromFile( sdWorld.my_entity._build_params.image, ()=>
 							{
 								obj._cache = null;
 							});
+							sdWorld.my_entity._build_params.image_obj.RequiredNow();
 						}
-					
+						
 						ctx2.drawImage( sdWorld.my_entity._build_params.image_obj, 0,0, 32,32 );
 					}
 					else
 					{
+						if ( !sdShop.upgrades[ sdWorld.my_entity._build_params.upgrade_name ].image.loaded )
+						{
+							let obj = sdWorld.my_entity._build_params;
+							sdShop.upgrades[ obj.upgrade_name ].image.callbacks.push( ()=>
+							{
+								obj._cache = null;
+							});
+							sdShop.upgrades[ obj.upgrade_name ].image.RequiredNow();
+						}
+						
 						ctx2.drawImage( sdShop.upgrades[ sdWorld.my_entity._build_params.upgrade_name ].image, 0,0, 32,32 );
 					}
 					

@@ -35,7 +35,34 @@ class sdAsteroid extends sdEntity
 		{
 			this._hea -= dmg;
 			if ( this._hea <= 0 )
-			this.remove();
+			{
+				if ( Math.random() < 0.25 )
+				{
+					let matter_max = 40;
+
+					let r = 1 - Math.pow( Math.random(), 1.45 );
+
+					if ( r < 0.0625 )
+					matter_max *= 16;
+					else
+					if ( r < 0.125 )
+					matter_max *= 8;
+					else
+					if ( r < 0.25 )
+					matter_max *= 4;
+					else
+					if ( r < 0.5 )
+					matter_max *= 2;
+
+					sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
+						Math.ceil( Math.max( 5, 1 * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
+							matter_max / 40,
+							5
+					);
+				}
+		
+				this.remove();
+			}
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
@@ -53,7 +80,8 @@ class sdAsteroid extends sdEntity
 	
 		if ( sdWorld.CheckWallExists( this.x, this.y + this._hitbox_y2, this ) )
 		{
-			this.remove();
+			this.Damage( 1000 );
+			//this.remove();
 		}
 	}
 	onRemove() // Class-specific, if needed
@@ -66,7 +94,7 @@ class sdAsteroid extends sdEntity
 		
 		ctx.rotate( this._an );
 
-		ctx.drawImage( image, - 16, - 16, 32,32 );
+		ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
 	}
 	MeasureMatterCost()
 	{

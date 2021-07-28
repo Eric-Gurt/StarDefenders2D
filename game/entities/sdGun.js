@@ -963,12 +963,12 @@ class sdGun extends sdEntity
 			
 			if ( this.muzzle > 2.5 )
 			{
-				ctx.drawImage( sdGun.img_muzzle2, sdGun.classes[ this.class ].muzzle_x - 16, - 16, 32,32 );
+				ctx.drawImageFilterCache( sdGun.img_muzzle2, sdGun.classes[ this.class ].muzzle_x - 16, - 16, 32,32 );
 			}
 			else
 			if ( this.muzzle > 0 )
 			{
-				ctx.drawImage( sdGun.img_muzzle1, sdGun.classes[ this.class ].muzzle_x - 16, - 16, 32,32 );
+				ctx.drawImageFilterCache( sdGun.img_muzzle1, sdGun.classes[ this.class ].muzzle_x - 16, - 16, 32,32 );
 			}
 			
 			ctx.globalAlpha = 1;

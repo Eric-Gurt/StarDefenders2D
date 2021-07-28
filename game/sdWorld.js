@@ -2153,6 +2153,18 @@ class sdWorld
 		{
 			sdWorld.last_frame_time = t5 - t2;
 			//sdWorld.last_slowest_class = 'nothing';
+			
+			if ( sdEntity.snapshot_clear_crawler_i < sdEntity.entities.length )
+			{
+				if ( sdEntity.entities[ sdEntity.snapshot_clear_crawler_i ]._snapshot_cache_frame < sdWorld.frame - 10 )
+				{
+					sdEntity.entities[ sdEntity.snapshot_clear_crawler_i ]._snapshot_cache_frame = -1;
+					sdEntity.entities[ sdEntity.snapshot_clear_crawler_i ]._snapshot_cache = null;
+				}
+				sdEntity.snapshot_clear_crawler_i++;
+			}
+			else
+			sdEntity.snapshot_clear_crawler_i = 0;
 		}
 		
 		// Keep it last:
@@ -2911,7 +2923,12 @@ class sdWorld
 		}
 	
 		let img = new Image();
-		img.src = './assets/' + filename + '.png';
+		
+		img.ever_requested = false;
+		img.pending_src = './assets/' + filename + '.png';
+		
+		//img.src = '';
+		//img.src = './assets/' + filename + '.png';
 		
 		img.loaded = false;
 		
@@ -2919,6 +2936,15 @@ class sdWorld
 		
 		if ( cb )
 		img.callbacks.push( cb );
+	
+		img.RequiredNow = ()=>
+		{
+			if ( !img.ever_requested )
+			{
+				img.ever_requested = true;
+				img.src = img.pending_src;
+			}
+		};
 	
 		img.onload = ()=>{ 
 			img.loaded = true; 
@@ -3026,6 +3052,8 @@ class sdWorld
 	}
 	static Stop()
 	{
+		globalThis.ClearWorld();
+		
 		sdRenderer.canvas.style.display = 'none';
 		globalThis.settings_container.style.display = 'block';
 		

@@ -153,7 +153,7 @@ class sdCommandCentre extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.drawImage( sdCommandCentre.img_cc, -16, -16 - 32, 32,64 );
+		ctx.drawImageFilterCache( sdCommandCentre.img_cc, -16, -16 - 32, 32,64 );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
@@ -218,28 +218,30 @@ class sdCommandCentre extends sdEntity
 		{
 			if ( allow_owner_kick || !this.owner || net_id !== this.owner._net_id )
 			{
-				if ( sdEntity.entities_by_net_id_cache[ net_id ] )
-				if ( sdEntity.entities_by_net_id_cache[ net_id ].cc_id === this._net_id )
+				let ent = sdEntity.entities_by_net_id_cache_map.get( net_id );
+				
+				if ( ent )
+				if ( ent.cc_id === this._net_id )
 				{
-					sdEntity.entities_by_net_id_cache[ net_id ].cc_id = 0;
+					ent.cc_id = 0;
 					
-					if ( this.owner === sdEntity.entities_by_net_id_cache[ net_id ] )
+					if ( this.owner === ent )
 					{
 						this.owner = null;
 						this._update_version++;
 					}
 
-					if ( sdEntity.entities_by_net_id_cache[ net_id ]._socket )
+					if ( ent._socket )
 					{
 						if ( this.owner )
 						{
 							if ( this._is_being_removed )
-							sdEntity.entities_by_net_id_cache[ net_id ]._socket.SDServiceMessage( 'You have been excluded from ' + this.owner.title + '\'s team (Command Centre has been destroyed)' );
+							ent._socket.SDServiceMessage( 'You have been excluded from ' + this.owner.title + '\'s team (Command Centre has been destroyed)' );
 							else
-							sdEntity.entities_by_net_id_cache[ net_id ]._socket.SDServiceMessage( 'You have been excluded from ' + this.owner.title + '\'s team' );
+							ent._socket.SDServiceMessage( 'You have been excluded from ' + this.owner.title + '\'s team' );
 						}
 						else
-						sdEntity.entities_by_net_id_cache[ net_id ]._socket.SDServiceMessage( 'You have been excluded from team (team has no owner)' );
+						ent._socket.SDServiceMessage( 'You have been excluded from team (team has no owner)' );
 					}
 				}
 			}
@@ -259,23 +261,27 @@ class sdCommandCentre extends sdEntity
 			{
 				const AcceptNetID = ( net_id )=>
 				{
-					if ( sdEntity.entities_by_net_id_cache[ net_id ] )
+					let ent = sdEntity.entities_by_net_id_cache_map.get( net_id );
+					
+					if ( ent )
 					{
-						sdEntity.entities_by_net_id_cache[ net_id ].cc_id = this._net_id;
-						sdEntity.entities_by_net_id_cache[ net_id ]._cc_rank = 1;
+						ent.cc_id = this._net_id;
+						ent._cc_rank = 1;
 
-						if ( sdEntity.entities_by_net_id_cache[ net_id ]._socket )
-						sdEntity.entities_by_net_id_cache[ net_id ]._socket.SDServiceMessage( 'You have been accepted to ' + exectuter_character.title + '\'s team!' );
+						if ( ent._socket )
+						ent._socket.SDServiceMessage( 'You have been accepted to ' + exectuter_character.title + '\'s team!' );
 					}
 				};
 				const RejectNetID = ( net_id )=>
 				{
-					if ( sdEntity.entities_by_net_id_cache[ net_id ] )
+					let ent = sdEntity.entities_by_net_id_cache_map.get( net_id );
+					
+					if ( ent )
 					{
-						//sdEntity.entities_by_net_id_cache[ net_id ].cc_id = this._net_id;
+						//ent.cc_id = this._net_id;
 
-						if ( sdEntity.entities_by_net_id_cache[ net_id ]._socket )
-						sdEntity.entities_by_net_id_cache[ net_id ]._socket.SDServiceMessage( 'You have been rejected from joining ' + exectuter_character.title + '\'s team' );
+						if ( ent._socket )
+						ent._socket.SDServiceMessage( 'You have been rejected from joining ' + exectuter_character.title + '\'s team' );
 					}
 				};
 				
@@ -317,14 +323,14 @@ class sdCommandCentre extends sdEntity
 					var id = this.pending_team_joins.indexOf( parameters_array[ 0 ] );
 					if ( id !== -1 )
 					{
-						if ( !sdEntity.entities_by_net_id_cache[ parameters_array[ 0 ] ] )
+						if ( !sdEntity.entities_by_net_id_cache_map.has( parameters_array[ 0 ] ) )
 						{
 							executer_socket.SDServiceMessage( 'Looks like player no longer exists' );
 						}
 						else
 						{
 							AcceptNetID( parameters_array[ 0 ] );
-							executer_socket.SDServiceMessage( sdEntity.entities_by_net_id_cache[ parameters_array[ 0 ] ].title + ' has been accepted' );
+							executer_socket.SDServiceMessage( sdEntity.entities_by_net_id_cache_map.get( parameters_array[ 0 ] ).title + ' has been accepted' );
 						}
 						
 						this.pending_team_joins.splice( id, 1 );
@@ -340,14 +346,14 @@ class sdCommandCentre extends sdEntity
 					var id = this.pending_team_joins.indexOf( parameters_array[ 0 ] );
 					if ( id !== -1 )
 					{
-						if ( !sdEntity.entities_by_net_id_cache[ parameters_array[ 0 ] ] )
+						if ( !sdEntity.entities_by_net_id_cache_map.has( parameters_array[ 0 ] ) )
 						{
 							executer_socket.SDServiceMessage( 'Looks like player no longer exists' );
 						}
 						else
 						{
 							RejectNetID( parameters_array[ 0 ] );
-							executer_socket.SDServiceMessage( sdEntity.entities_by_net_id_cache[ parameters_array[ 0 ] ].title + ' has been rejected' );
+							executer_socket.SDServiceMessage( sdEntity.entities_by_net_id_cache_map.get( parameters_array[ 0 ] ).title + ' has been rejected' );
 						}
 						this.pending_team_joins.splice( id, 1 );
 					

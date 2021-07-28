@@ -559,7 +559,7 @@ class sdBlock extends sdEntity
 		else
 		if ( this.material === sdBlock.MATERIAL_SHARP )
 		{
-			ctx.drawImage( ( this.spikes_ani < 15 ) ? sdBlock.img_sharp_inactive : sdBlock.img_sharp, 0, 0, w,h, 0,0, w,h );
+			ctx.drawImageFilterCache( ( this.spikes_ani < 15 ) ? sdBlock.img_sharp_inactive : sdBlock.img_sharp, 0, 0, w,h, 0,0, w,h );
 		}
 		else
 		{
@@ -578,7 +578,7 @@ class sdBlock extends sdEntity
 		ctx.filter = 'none';
 		
 		if ( sdBlock.cracks[ this.destruction_frame ] !== null )
-		ctx.drawImage( sdBlock.cracks[ this.destruction_frame ], 0, 0, w,h, 0,0, w,h );
+		ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], 0, 0, w,h, 0,0, w,h );
 	}
 	
 	onRemove() // Class-specific, if needed
@@ -612,7 +612,8 @@ class sdBlock extends sdEntity
 			{
 				for ( let i = 0; i < this._plants.length; i++ )
 				{
-					let ent = sdEntity.entities_by_net_id_cache[ this._plants[ i ] ];
+					//let ent = sdEntity.entities_by_net_id_cache[ this._plants[ i ] ];
+					let ent = sdEntity.entities_by_net_id_cache_map.get( this._plants[ i ] );
 					
 					if ( ent )
 					ent.remove();

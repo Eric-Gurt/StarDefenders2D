@@ -11,6 +11,7 @@ import sdWeather from '../entities/sdWeather.js';
 import sdBlock from '../entities/sdBlock.js';
 import sdEffect from '../entities/sdEffect.js';
 import sdGun from '../entities/sdGun.js';
+import sdTheatre from '../entities/sdTheatre.js';
 
 import sdLamp from '../entities/sdLamp.js';
 
@@ -49,6 +50,10 @@ class sdRenderer
 		
 		sdRenderer.service_mesage_until = 0;
 		sdRenderer.service_mesage = '';
+		
+		sdRenderer.last_source_change = sdWorld.time;
+		sdRenderer.last_source_entity = null;
+		sdRenderer.last_source_cmd = '';
 		
 		//canvas.style.width = '100%';
 		
@@ -124,6 +129,8 @@ class sdRenderer
 		}
 		
 		sdRenderer.image_filter_cache = new Map();
+		
+		sdRenderer.unavailable_image_collector = null; // Fills up indefinitely if array
 	
 		sdRenderer.AddCacheDrawMethod = function( ctx0 )
 		{
@@ -133,7 +140,21 @@ class sdRenderer
 			ctx0.drawImageFilterCache = function( ...args )
 			{
 				if ( args[ 0 ].loaded === false )
-				return;
+				{
+					if ( sdRenderer.unavailable_image_collector !== null )
+					{
+						if ( sdRenderer.unavailable_image_collector.indexOf( args[ 0 ] ) === -1 )
+						{
+							sdRenderer.unavailable_image_collector.push( args[ 0 ] );
+							
+							if ( sdRenderer.unavailable_image_collector.length > 100 )
+							debugger;
+						}
+					}
+					
+					args[ 0 ].RequiredNow();
+					return;
+				}
 				
 				const filter = ctx0.filter; // native
 				const sd_filter = ctx0.sd_filter; // custom filter, { colorA:replacementA, colorB:replacementB }
@@ -486,11 +507,84 @@ class sdRenderer
 			
 				
 			
-				//ctx.fillRect( 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
-				ctx.drawImage( sdRenderer.img_dark_lands, 0,0, sdRenderer.screen_width, sdRenderer.screen_height );
+				//ctx.drawImage( sdRenderer.img_dark_lands, 0,0, sdRenderer.screen_width, sdRenderer.screen_height );
+				ctx.drawImageFilterCache( sdRenderer.img_dark_lands, 0,0, sdRenderer.screen_width, sdRenderer.screen_height );
 				
 				ctx.globalAlpha = 1;
 				
+			}
+			
+			if ( sdWorld.time > sdRenderer.last_source_change + 5000 )
+			{
+				let best_source = null;
+				let best_di = Infinity;
+				for ( let i = 0; i < sdTheatre.theatres.length; i++ )
+				{
+					let e = sdTheatre.theatres[ i ];
+					let di = sdWorld.Dist2D_Vector( sdWorld.my_entity.x - e.x, sdWorld.my_entity.y - e.y );
+					if ( di < best_di )
+					{
+						best_di = di;
+						best_source = e;
+					}
+				}
+				
+				let best_source_cmd = sdRenderer.last_source_entity ? ( sdRenderer.last_source_entity.service + '.' + sdRenderer.last_source_entity.video + '.' + sdRenderer.last_source_entity.channel ) : '';
+				
+				if ( best_source !== sdRenderer.last_source_entity || sdRenderer.last_source_cmd !== best_source_cmd )
+				{
+					sdRenderer.last_source_change = sdWorld.time;
+					sdRenderer.last_source_entity = best_source;
+					sdRenderer.last_source_cmd = best_source_cmd;
+					
+					if ( sdRenderer.last_source_entity )
+					{
+						if ( sdRenderer.last_source_entity.service === 'twitch' )
+						{
+							globalThis.RequireTwitchPlayerAndDo( ( twitch_player )=>
+							{
+								if ( !sdRenderer.last_source_entity || sdRenderer.last_source_entity.service !== 'twitch' )
+								return;
+							
+								if ( sdRenderer.last_source_entity.video )
+								{
+									twitch_player.setVideo( sdRenderer.last_source_entity.video );
+									twitch_player.setMuted( false );
+								}
+								else
+								if ( sdRenderer.last_source_entity.channel )
+								{
+									twitch_player.setChannel( sdRenderer.last_source_entity.channel );
+									twitch_player.setMuted( false );
+								}
+							});
+							globalThis.RequireYoutubePlayerAndDo( ( youtube_player )=>
+							{
+								youtube_player.stopVideo();
+							});
+						}
+						else
+						if ( sdRenderer.last_source_entity.service === 'youtube' )
+						{
+							globalThis.RequireYoutubePlayerAndDo( ( youtube_player )=>
+							{
+								if ( !sdRenderer.last_source_entity || sdRenderer.last_source_entity.service !== 'youtube' )
+								return;
+							
+								if ( sdRenderer.last_source_entity.video )
+								{
+									youtube_player.loadVideoById( sdRenderer.last_source_entity.video );
+									youtube_player.seekTo( 0 );
+									youtube_player.unMute();
+								}
+							});
+							globalThis.RequireTwitchPlayerAndDo( ( twitch_player )=>
+							{
+								twitch_player.pause();
+							});
+						}
+					}
+				}
 			}
 		}
 		
@@ -787,7 +881,8 @@ class sdRenderer
 				{
 					if ( sdWorld.my_entity )
 					{
-						ctx.drawImage( sdWeather.img_scary_mode, sdWorld.my_entity.x - 250, sdWorld.my_entity.y - 250, 500, 500 );
+						//ctx.drawImage( sdWeather.img_scary_mode, sdWorld.my_entity.x - 250, sdWorld.my_entity.y - 250, 500, 500 );
+						ctx.drawImageFilterCache( sdWeather.img_scary_mode, sdWorld.my_entity.x - 250, sdWorld.my_entity.y - 250, 500, 500 );
 						
 						//sdWorld.target_scale = 0.5;
 						
@@ -830,7 +925,11 @@ class sdRenderer
 				if ( sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ] &&
 					 sdGun.classes[ sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ].class ].is_build_gun )
 				{
-					ctx.drawImage( sdWorld.img_crosshair_build, 
+					/*ctx.drawImage( sdWorld.img_crosshair_build, 
+						sdWorld.my_entity.look_x - 16, 
+						sdWorld.my_entity.look_y - 16, 32,32 );*/
+						
+					ctx.drawImageFilterCache( sdWorld.img_crosshair_build, 
 						sdWorld.my_entity.look_x - 16, 
 						sdWorld.my_entity.look_y - 16, 32,32 );
 						
@@ -843,9 +942,15 @@ class sdRenderer
 					ctx.fillText("Matter carried: " + Math.floor( sdWorld.my_entity.matter ), sdWorld.my_entity.look_x + 20, sdWorld.my_entity.look_y + 5 );
 				}
 				else
-				ctx.drawImage( sdWorld.img_crosshair, 
-					sdWorld.my_entity.look_x - 16, 
-					sdWorld.my_entity.look_y - 16, 32,32 );
+				{
+					/*ctx.drawImage( sdWorld.img_crosshair, 
+						sdWorld.my_entity.look_x - 16, 
+						sdWorld.my_entity.look_y - 16, 32,32 );*/
+						
+					ctx.drawImageFilterCache( sdWorld.img_crosshair, 
+						sdWorld.my_entity.look_x - 16, 
+						sdWorld.my_entity.look_y - 16, 32,32 );
+				}
 			}
 		}
 		
@@ -926,9 +1031,15 @@ class sdRenderer
 		
 			if ( !sdRenderer.UseCrosshair() )
 			{
-				ctx.drawImage( sdWorld.img_cursor, 
+				/*ctx.drawImage( sdWorld.img_cursor, 
+					sdWorld.mouse_screen_x, 
+					sdWorld.mouse_screen_y, 64,64 );*/
+					
+				ctx.drawImageFilterCache( sdWorld.img_cursor, 
 					sdWorld.mouse_screen_x, 
 					sdWorld.mouse_screen_y, 64,64 );
+					
+					
 			}
 				/*if ( sdWorld.my_entity )
 			ctx.drawImage( sdWorld.img_crosshair, 

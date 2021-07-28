@@ -242,21 +242,21 @@ class sdCom extends sdEntity
 	Draw( ctx, attached )
 	{
 		if ( this.variation === 0 )
-		ctx.drawImage( sdCom.img_com, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdCom.img_com, -16, -16, 32,32 );
 		if ( this.variation === 1 )
-		ctx.drawImage( sdCom.img_com_darkblue, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdCom.img_com_darkblue, -16, -16, 32,32 );
 		if ( this.variation === 2 )
-		ctx.drawImage( sdCom.img_com_purple, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdCom.img_com_purple, -16, -16, 32,32 );
 		if ( this.variation === 3 )
-		ctx.drawImage( sdCom.img_com_green, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdCom.img_com_green, -16, -16, 32,32 );
 		if ( this.variation === 4 )
-		ctx.drawImage( sdCom.img_com_yellow, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdCom.img_com_yellow, -16, -16, 32,32 );
 		if ( this.variation === 5 )
-		ctx.drawImage( sdCom.img_com_pink, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdCom.img_com_pink, -16, -16, 32,32 );
 		if ( this.variation === 6 )
-		ctx.drawImage( sdCom.img_com_red, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdCom.img_com_red, -16, -16, 32,32 );
 		if ( this.variation === 7 )
-		ctx.drawImage( sdCom.img_com_orange, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdCom.img_com_orange, -16, -16, 32,32 );
 	}
 	MeasureMatterCost()
 	{

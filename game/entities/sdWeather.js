@@ -347,7 +347,8 @@ class sdWeather extends sdEntity
 							{
 								for ( let i = 0; i < sdWorld.last_hit_entity._plants.length; i++ )
 								{
-									let ent = sdEntity.entities_by_net_id_cache[ sdWorld.last_hit_entity._plants[ i ] ];
+									//let ent = sdEntity.entities_by_net_id_cache[ sdWorld.last_hit_entity._plants[ i ] ];
+									let ent = sdEntity.entities_by_net_id_cache_map.get( sdWorld.last_hit_entity._plants[ i ] );
 									
 									if ( ent )
 									{
@@ -497,7 +498,8 @@ class sdWeather extends sdEntity
 											{
 												for ( let i = 0; i < ent_below._plants.length; i++ )
 												{
-													let plant = sdEntity.entities_by_net_id_cache[ ent_below._plants[ i ] ];
+													//let plant = sdEntity.entities_by_net_id_cache[ ent_below._plants[ i ] ];
+													let plant = sdEntity.entities_by_net_id_cache_map.get( ent_below._plants[ i ] );
 													if ( plant )
 													plant.remove();
 												}
@@ -550,7 +552,8 @@ class sdWeather extends sdEntity
 							sdWorld.last_hit_entity = null;
 							if ( sdWorld.CheckWallExistsBox( x - 4, y + 4, x+16 + 4, y+16 + 4, null, null, [ 'sdBlock' ] ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) )  )
 							{
-								sdWeather.last_crystal_near_quake.Damage( 15 );
+								//sdWeather.last_crystal_near_quake.Damage( 15 );
+								sdWeather.last_crystal_near_quake.Damage( 20 );
 							}
 						}
 
@@ -1371,7 +1374,7 @@ class sdWeather extends sdEntity
 				var vis = p.last_vis;
 
 				if ( vis )
-				ctx.drawImage( sdWeather.img_rain, 
+				ctx.drawImageFilterCache( sdWeather.img_rain, 
 					xx - 16, 
 					yy - 16, 
 					32,32 );
