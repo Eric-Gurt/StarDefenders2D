@@ -2223,6 +2223,8 @@ io.on("connection", (socket) =>
 				if ( sdWorld.time > socket.next_position_correction_allowed )
 				{
 					let corrected = false;
+					
+					const correction_scale = 3; // 1 should be most cheat-proof, but can be not enough for laggy servers
 
 					//if ( socket.character.hea > 0 )
 					if ( socket.character.AllowClientSideState() ) // Health and hook change
@@ -2234,39 +2236,39 @@ io.on("connection", (socket) =>
 						
 						if ( socket.character.stands || socket.character._in_air_timer < 500 / 1000 * 30 ) // Allow late jump
 						{
-							if ( dy < -27 )
+							if ( dy < -27 * correction_scale )
 							{
 								//console.log( 'dy', dy );
-								dy = -27;
+								dy = -27 * correction_scale;
 							}
 							
-							if ( dx > 30 )
+							if ( dx > 30 * correction_scale )
 							{
 								//console.log( 'dx', dx );
-								dx = 30;
+								dx = 30 * correction_scale;
 							}
 							else
-							if ( dx < -30 )
+							if ( dx < -30 * correction_scale )
 							{
 								//console.log( 'dx', dx );
-								dx = -30;
+								dx = -30 * correction_scale;
 							}
 						}
 						else
 						{
 							if ( socket.character.flying || socket.character._jetpack_allowed )
 							{
-								if ( dx > 20 )
-								dx = 20;
+								if ( dx > 20 * correction_scale )
+								dx = 20 * correction_scale;
 								else
-								if ( dx < -20 )
-								dx = -20;
+								if ( dx < -20 * correction_scale )
+								dx = -20 * correction_scale;
 						
-								if ( dy > 20 )
-								dy = 20;
+								if ( dy > 20 * correction_scale )
+								dy = 20 * correction_scale;
 								else
-								if ( dy < -20 )
-								dy = -20;
+								if ( dy < -20 * correction_scale )
+								dy = -20 * correction_scale;
 						
 								//console.log( 'flying', dx, dy );
 							}
@@ -2279,7 +2281,7 @@ io.on("connection", (socket) =>
 							}
 						}
 
-						if ( !allowed || Math.abs( dx ) > 128 || Math.abs( dy ) > 128 )
+						if ( !allowed || Math.abs( dx ) > 128 * correction_scale || Math.abs( dy ) > 128 * correction_scale )
 						{
 							dx = 0;
 							dy = 0;
@@ -2292,10 +2294,10 @@ io.on("connection", (socket) =>
 							//								arr[ 6 ] - ( socket.character.y + socket.character.sy / 30 * 100 ) );
 							
 							//if ( di > 128 )
-							if ( di > 64 )
+							if ( di > 64 * correction_scale )
 							{
-								dx = dx / di * 64;
-								dy = dy / di * 64;
+								dx = dx / di * 64 * correction_scale;
+								dy = dy / di * 64 * correction_scale;
 							}
 						//}
 						//else
