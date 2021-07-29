@@ -137,7 +137,10 @@ class sdBaseShieldingUnit extends sdEntity
 		this._regen_timeout -= GSPEED;
 
 		if ( this.matter_crystal < 800 )
-		this.enabled = false; // Shut down if no matter
+		{
+			this.enabled = false; // Shut down if no matter
+			this._repair_timer = 0;
+		}
 
 		else
 		{
