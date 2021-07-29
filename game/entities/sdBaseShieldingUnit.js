@@ -157,7 +157,7 @@ class sdBaseShieldingUnit extends sdEntity
 				if ( units[ i ] !== this )
 				if ( units[ i ].enabled )
 				{
-					if ( units[ i ].matter_crystal > 500 )
+					if ( units[ i ].matter_crystal >= 350 && this.matter_crystal >= 350 )
 					{
 						units[ i ].matter_crystal -= 350;
 						this.matter_crystal -= 350;
