@@ -356,15 +356,15 @@ class sdBaseShieldingUnit extends sdEntity
 			{
 				if ( command_name === 'SHIELD_ON' )
 				{
-					if ( this.enabled === false )
+					//if ( this.enabled === false )
 					{
 						if ( this.matter_crystal >= 800 )
 						this.SetShieldState( true );
 						else
 						executer_socket.SDServiceMessage( 'Base shield unit needs at least 800 matter' );
 					}
-					else
-					this.SetShieldState();
+					//else
+					//this.SetShieldState();
 				}
 				if ( command_name === 'SHIELD_OFF' )
 				{
