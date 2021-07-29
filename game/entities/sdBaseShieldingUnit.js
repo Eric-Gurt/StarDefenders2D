@@ -152,12 +152,12 @@ class sdBaseShieldingUnit extends sdEntity
 		if ( this._attack_timer <= 0 )
 		{
 			let units = sdWorld.GetAnythingNear( this.x, this.y, sdBaseShieldingUnit.protect_distance + 50, null, [ 'sdBaseShieldingUnit' ] );
-			for ( let i = 0; i < units.length; i++ ) // Protect nearby entities inside base unit's radius
+			for ( let i = 0; i < units.length; i++ ) // Attack nearby base units inside this base unit's radius
 			{
 				if ( units[ i ] !== this )
 				if ( units[ i ].enabled )
 				{
-					if ( units[ i ].matter_crystal >= 350 && this.matter_crystal >= 350 )
+					if ( units[ i ].matter_crystal >= 350 && this.matter_crystal >= 350 ) // this.matter_crystal probably unneded since it shuts down below 800 matter
 					{
 						units[ i ].matter_crystal -= 350;
 						this.matter_crystal -= 350;
