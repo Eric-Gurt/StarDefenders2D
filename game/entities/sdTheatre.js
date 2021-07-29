@@ -197,9 +197,12 @@ class sdTheatre extends sdEntity
 				});
 			}
 			
-			// TODO: Volume control
-			globalThis.SetPlayerVolume( this.volume / 100 * sdSound.GetDistanceMultForPosition( this.x, this.y ) * sdSound.volume );
+			this.UpdateVolume();
 		}
+	}
+	UpdateVolume() // Called by theatre's render and on unmute by sdRenderer.js
+	{
+		globalThis.SetPlayerVolume( this.volume / 100 * sdSound.GetDistanceMultForPosition( this.x, this.y ) * sdSound.volume );
 	}
 	onRemove() // Class-specific, if needed
 	{
