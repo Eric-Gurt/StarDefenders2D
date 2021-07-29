@@ -49,7 +49,7 @@ class sdBaseShieldingUnit extends sdEntity
 		}
 	}
 	RequireSpawnAlign() 
-	{ return true; }
+	{ return false; }
 
 	constructor( params )
 	{
@@ -96,17 +96,57 @@ class sdBaseShieldingUnit extends sdEntity
 
 		this._update_version++; // Just in case
 	}
-	SetShieldState()
+	SetShieldState( enable=false )
 	{
-		this.enabled = !this.enabled;
-		this._repair_timer = 0;
+		this.enabled = enable;
+		if ( !this.enabled ) // Disabled protected blocks and doors
+		for ( let j = 0; j < this._protected_entities.length; j++ )
+		{
+			if ( ( sdWorld.Dist2D( this.x, this.y, this._protected_entities[ j ].x, this._protected_entities[ j ].y ) > sdBaseShieldingUnit.protect_distance ) || ( !this.enabled ) ) // If an entity is too far away, let players know it's not protected anymore
+			if ( this._protected_entities[ j ]._shielded === this )
+			{
+				this._protected_entities[ j ]._shielded = null;
+				sdWorld.SendEffect({ x:this.x, y:this.y, x2:this._protected_entities[ j ].x + ( this._protected_entities[ j ].hitbox_x2 / 2 ), y2:this._protected_entities[ j ].y + ( this._protected_entities[ j ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#855805' });
+			}
+		}
+
+		if ( this.enabled ) // Scan unprotected blocks and fortify them
+		{
+			this.sx = 0; // Without this, players can "launch/catapult" shield units by running into them and disabling them
+			this.sy = 0;
+
+			let blocks = sdWorld.GetAnythingNear( this.x, this.y, sdBaseShieldingUnit.protect_distance, null, [ 'sdBlock', 'sdDoor' ] );
+			for ( let i = 0; i < blocks.length; i++ ) // Protect nearby entities inside base unit's radius
+			{
+				if ( blocks[ i ].GetClass() === 'sdBlock' )
+				{
+					if ( blocks[ i ].material === sdBlock.MATERIAL_WALL || blocks[ i ].material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 ) // Only walls, no trap or shield blocks
+					if ( blocks[ i ]._shielded === null )
+					{
+						blocks[ i ]._shielded = this;
+						sdWorld.SendEffect({ x:this.x, y:this.y, x2:blocks[ i ].x + ( blocks[ i ].hitbox_x2 / 2 ), y2:blocks[ i ].y + ( blocks[ i ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#0ACC0A' });
+						this._protected_entities.push( blocks[ i ] );
+					}
+				}
+			
+				if ( blocks[ i ].GetClass() === 'sdDoor' )
+				{
+					if ( blocks[ i ]._shielded === null )
+					{
+						blocks[ i ]._shielded = this;
+						sdWorld.SendEffect({ x:this.x, y:this.y, x2:blocks[ i ].x + ( blocks[ i ].hitbox_x2 / 2 ), y2:blocks[ i ].y + ( blocks[ i ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#0ACC0A' });
+						this._protected_entities.push( blocks[ i ] );
+					}
+				}
+			}
+		}
 	}
 	SetAttackState()
 	{
 		if ( this.enabled )
 		this._attack_other_units = !this._attack_other_units;
 	}
-	get mass() { return ( this.enabled ) ? 250 : 50; }
+	get mass() { return ( this.enabled ) ? 500 : 35; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -116,9 +156,11 @@ class sdBaseShieldingUnit extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		this.sy += sdWorld.gravity * GSPEED;
-		
-		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+		if ( !this.enabled )
+		{
+			this.sy += sdWorld.gravity * GSPEED;
+			this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+		}
 
 		if ( !sdWorld.is_server)
 		return;
@@ -137,10 +179,7 @@ class sdBaseShieldingUnit extends sdEntity
 		this._regen_timeout -= GSPEED;
 
 		if ( this.matter_crystal < 800 )
-		{
-			this.enabled = false; // Shut down if no matter
-			this._repair_timer = 0;
-		}
+		this.enabled = false; // Shut down if no matter
 
 		else
 		{
@@ -154,13 +193,13 @@ class sdBaseShieldingUnit extends sdEntity
 		if ( this._attack_other_units )
 		if ( this._attack_timer <= 0 )
 		{
-			let units = sdWorld.GetAnythingNear( this.x, this.y, sdBaseShieldingUnit.protect_distance + 50, null, [ 'sdBaseShieldingUnit' ] );
-			for ( let i = 0; i < units.length; i++ ) // Attack nearby base units inside this base unit's radius
+			let units = sdWorld.GetAnythingNear( this.x, this.y, sdBaseShieldingUnit.protect_distance + 64, null, [ 'sdBaseShieldingUnit' ] );
+			for ( let i = 0; i < units.length; i++ ) // Protect nearby entities inside base unit's radius
 			{
 				if ( units[ i ] !== this )
 				if ( units[ i ].enabled )
 				{
-					if ( units[ i ].matter_crystal >= 350 && this.matter_crystal >= 350 ) // this.matter_crystal probably unneded since it shuts down below 800 matter
+					if ( units[ i ].matter_crystal > 500 )
 					{
 						units[ i ].matter_crystal -= 350;
 						this.matter_crystal -= 350;
@@ -171,7 +210,7 @@ class sdBaseShieldingUnit extends sdEntity
 				}
 			}
 		}
-		if ( this._repair_timer <= 0 )
+		/*if ( this._repair_timer <= 0 ) // Realtime fortifying replaced with turning unit on/off since now it is static when it is turned on
 		{
 			{
 				for ( let j = 0; j < this._protected_entities.length; j++ )
@@ -212,7 +251,7 @@ class sdBaseShieldingUnit extends sdEntity
 					}
 				}
 			}
-		}
+		}*/
 		
 		if ( Math.abs( this._last_sync_matter - this.matter ) > this.matter_max * 0.01 || this._last_x !== this.x || this._last_y !== this.y )
 		{
@@ -315,16 +354,21 @@ class sdBaseShieldingUnit extends sdEntity
 		{
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
 			{
-				if ( command_name === 'SHIELD' )
+				if ( command_name === 'SHIELD_ON' )
 				{
 					if ( this.enabled === false )
 					{
 						if ( this.matter_crystal >= 800 )
-						this.SetShieldState();
+						this.SetShieldState( true );
 						else
 						executer_socket.SDServiceMessage( 'Base shield unit needs at least 800 matter' );
 					}
 					else
+					this.SetShieldState();
+				}
+				if ( command_name === 'SHIELD_OFF' )
+				{
+					if ( this.enabled === true )
 					this.SetShieldState();
 				}
 				if ( command_name === 'ATTACK' )
@@ -347,15 +391,15 @@ class sdBaseShieldingUnit extends sdEntity
 		if ( this._hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
 		{
 			if ( sdWorld.my_entity )
 			{
 				if ( this.enabled === false )
-				this.AddContextOption( 'Turn the shields on ( 800 matter )', 'SHIELD', [] );
+				this.AddContextOption( 'Scan nearby unprotected entities ( 800 matter )', 'SHIELD_ON', [] );
 				else
 				{
-					this.AddContextOption( 'Turn the shields off', 'SHIELD', [] );
+					this.AddContextOption( 'Turn the shields off', 'SHIELD_OFF', [] );
 					this.AddContextOption( 'Attack nearby shield units', 'ATTACK', [] );
 				}
 			}

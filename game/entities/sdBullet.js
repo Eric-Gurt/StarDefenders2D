@@ -27,8 +27,7 @@ class sdBullet extends sdEntity
 			'f_psicutter_proj': sdWorld.CreateImageFromFile( 'f_psicutter_proj' ),
 			'ball_charged':  sdWorld.CreateImageFromFile( 'ball_charged' ),
 			'mini_rocket':  sdWorld.CreateImageFromFile( 'mini_rocket' ),
-			'mini_rocket_green':  sdWorld.CreateImageFromFile( 'mini_rocket_green' ),
-			'gauss_rifle_proj':  sdWorld.CreateImageFromFile( 'gauss_rifle_proj' )
+			'mini_rocket_green':  sdWorld.CreateImageFromFile( 'mini_rocket_green' )
 		};
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -438,7 +437,7 @@ class sdBullet extends sdEntity
 		if ( this._damage > 0 )
 		{
 			if ( this.penetrating )
-			return ( from_entity.is( sdBlock ) && this._reinforced_level >= from_entity._reinforced_level) || from_entity.is( sdAntigravity ) || ( from_entity.is( sdDoor ) && this._reinforced_level >= from_entity._reinforced_level );
+			return ( from_entity.is( sdBlock ) && from_entity._shielded === null && this._reinforced_level >= from_entity._reinforced_level) || from_entity.is( sdAntigravity ) || ( from_entity.is( sdDoor ) && from_entity._shielded === null && this._reinforced_level >= from_entity._reinforced_level );
 			else
 			return ( from_entity.is( sdBlock ) && from_entity.material === sdBlock.MATERIAL_WALL ) || from_entity.is( sdAntigravity ) || from_entity.is( sdDoor );
 		}
@@ -604,7 +603,8 @@ class sdBullet extends sdEntity
 						}
 
 						if ( ( typeof from_entity._armor_protection_level === 'undefined' || this._armor_penetration_level >= from_entity._armor_protection_level ) &&
-							 ( typeof from_entity._reinforced_level === 'undefined' || this._reinforced_level >= from_entity._reinforced_level ) )
+							 ( typeof from_entity._reinforced_level === 'undefined' || this._reinforced_level >= from_entity._reinforced_level ) &&
+								 ( typeof from_entity._shielded === 'undefined' || from_entity._shielded === null ) )
 						{
 							if ( !this._wave )
 							{
@@ -698,6 +698,14 @@ class sdBullet extends sdEntity
 									{
 										this._owner._last_damage_upg_complain = sdWorld.time;
 
+										if ( from_entity._shielded !== null )
+										{
+											if ( Math.random() < 0.5 )
+											this._owner.Say( 'This entity is protected by a base shielding unit' );
+											else
+											this._owner.Say( 'A base shielding unit is protecting this' );
+										}
+										else
 										if ( from_entity._reinforced_level > 0 )
 										{
 											if ( Math.random() < 0.5 )
