@@ -399,6 +399,7 @@ class sdBaseShieldingUnit extends sdEntity
 				this.AddContextOption( 'Scan nearby unprotected entities ( 800 matter )', 'SHIELD_ON', [] );
 				else
 				{
+					this.AddContextOption( 'Refresh scanning entities', 'SHIELD_ON', [] );
 					this.AddContextOption( 'Turn the shields off', 'SHIELD_OFF', [] );
 					this.AddContextOption( 'Attack nearby shield units', 'ATTACK', [] );
 				}
