@@ -6,6 +6,7 @@ import sdVirus from './sdVirus.js';
 import sdEffect from './sdEffect.js';
 import sdWater from './sdWater.js';
 import sdBG from './sdBG.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -264,8 +265,22 @@ class sdBlock extends sdEntity
 			{
 				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
 			}
-			
+			//console.log( this._shielded );
+			if ( this._shielded === null )
 			this._hea -= dmg;
+			else
+			{
+				if ( this._shielded && !this._shielded._is_being_removed )
+				if ( sdWorld.Dist2D( this.x, this.y, this._shielded.x, this._shielded.y ) < sdBaseShieldingUnit.protect_distance )
+				{
+				}
+				else
+				{
+					this._hea -= dmg;
+					this._shielded = null;
+				}
+			}
+
 			this.HandleDestructionUpdate();
 			
 			if ( this.material === sdBlock.MATERIAL_TRAPSHIELD ) // Instant regeneration
@@ -377,6 +392,7 @@ class sdBlock extends sdEntity
 		
 		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
 		this._reinforced_level = params._reinforced_level || 0;
+		this._shielded = null; // Is this entity protected by a base defense unit?
 		
 		this._contains_class = params.contains_class || null;
 		this._contains_class_params = null; // Parameters that are passed to this._contains_class entity
@@ -445,6 +461,10 @@ class sdBlock extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		if ( this._reinforced_level > 0 )
+		this._reinforced_level = 0;
+		if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 )
+		this.material = sdBlock.MATERIAL_WALL;
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
