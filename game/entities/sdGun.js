@@ -854,7 +854,7 @@ class sdGun extends sdEntity
 			if ( this._held_by === null )
 			ctx.rotate( this.tilt / sdGun.tilt_scale );
 			
-			if ( this.class === sdGun.CLASS_SNIPER || this.class === sdGun.CLASS_RAYGUN || this.class === sdGun.CLASS_PHASERCANNON_P03 || this.class === sdGun.CLASS_ERTHAL_BURST_RIFLE || this.class === sdGun.CLASS_BURST_PISTOL ) // It could probably be separated as a variable declared in sdGunClass to determine if it has reloading animation or not
+			if ( this.class === sdGun.CLASS_SNIPER || this.class === sdGun.CLASS_RAYGUN || this.class === sdGun.CLASS_PHASERCANNON_P03 || this.class === sdGun.CLASS_ERTHAL_BURST_RIFLE || this.class === sdGun.CLASS_BURST_PISTOL || this.class === sdGun.CLASS_GAUSS_RIFLE ) // It could probably be separated as a variable declared in sdGunClass to determine if it has reloading animation or not
 			{
 				let odd = ( this.reload_time_left % 10 ) < 5 ? 0 : 1;
 				
@@ -963,12 +963,12 @@ class sdGun extends sdEntity
 			
 			if ( this.muzzle > 2.5 )
 			{
-				ctx.drawImage( sdGun.img_muzzle2, sdGun.classes[ this.class ].muzzle_x - 16, - 16, 32,32 );
+				ctx.drawImageFilterCache( sdGun.img_muzzle2, sdGun.classes[ this.class ].muzzle_x - 16, - 16, 32,32 );
 			}
 			else
 			if ( this.muzzle > 0 )
 			{
-				ctx.drawImage( sdGun.img_muzzle1, sdGun.classes[ this.class ].muzzle_x - 16, - 16, 32,32 );
+				ctx.drawImageFilterCache( sdGun.img_muzzle1, sdGun.classes[ this.class ].muzzle_x - 16, - 16, 32,32 );
 			}
 			
 			ctx.globalAlpha = 1;

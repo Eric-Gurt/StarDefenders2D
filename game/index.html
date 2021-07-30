@@ -213,9 +213,149 @@
 		user-select: none; /* Non-prefixed version, currently
 				supported by Chrome, Edge, Opera and Firefox */
 	    }
+	    #twitch_player_div, #youtube_player_div
+	    {
+		pointer-events: none;
+		position: fixed;
+		left: 0px;
+		top: 0px;
+		z-index: 100;
+		display: none;
+	    }
 	</style>
     </head>
     <body>
+	<!-- window.location.hostname -->
+	<script src="https://player.twitch.tv/js/embed/v1.js"></script>
+	<div id="twitch_player_div"></div>
+	<div id="youtube_player_div"></div>
+	<script>
+	    
+	    globalThis.twitch_player_div = document.getElementById( 'twitch_player_div' );
+	    globalThis.youtube_player_div = document.getElementById( 'youtube_player_div' );
+	    {
+		let twitch_player = null;
+		let youtube_player = null;
+		
+		let twitch_player_load_callback = null;
+		let youtube_player_load_callback = null;
+		
+		let twitch_loaded = false;
+		let youtube_loaded = false;
+		
+		let player_volume = 0.01;
+		
+		globalThis.SetPlayerVolume = ( v )=>
+		{
+		    if ( v !== player_volume )
+		    {
+			player_volume = v;
+
+			if ( twitch_loaded )
+			twitch_player.setVolume( v );
+		    
+			if ( youtube_loaded )
+			youtube_player.setVolume( v * 100 );
+		    }
+		};
+		globalThis.RequireTwitchPlayerAndDo = ( cb )=>
+		{
+		    if ( twitch_loaded )
+		    {
+			cb( twitch_player );
+		    }
+		    else
+		    {
+			twitch_player_load_callback = cb;
+
+			if ( !twitch_player )
+			{
+			    twitch_player = new Twitch.Player( "twitch_player_div", {
+				width: 600, // 128 / 64 * 300, // 400,
+				height: 300, // 64 / 64 * 300,
+
+				video: '1031472157', // Plazma Burst 2 in 46:08 by xCape
+
+				//parent: [ window.location.href.split('/').slice( 2, 3 ).join('/') ], ports don't work
+				parent: [ window.location.hostname ],
+				muted: true
+			    });
+
+			    twitch_player.addEventListener( Twitch.Player.READY, ()=>
+			    {
+				twitch_player.disableCaptions();
+				twitch_player.setVolume( player_volume );
+				twitch_player.setMuted( false );
+
+				twitch_loaded = true;
+
+				//twitch_player.setChannel( 'monstercat' );
+				if ( twitch_player_load_callback )
+				{
+				    twitch_player_load_callback( twitch_player );
+				    twitch_player_load_callback = null;
+				}
+			    });
+			}
+		    }
+		};
+		globalThis.RequireYoutubePlayerAndDo = ( cb )=>
+		{
+		    if ( youtube_loaded )
+		    {
+			cb( youtube_player );
+		    }
+		    else
+		    {
+			// Load the IFrame Player API code asynchronously.
+			var tag = document.createElement('script');
+			tag.src = "https://www.youtube.com/player_api";
+			var firstScriptTag = document.getElementsByTagName('script')[0];
+			firstScriptTag.parentNode.insertBefore( tag, firstScriptTag );
+
+			// Replace the 'ytplayer' element with an <iframe> and
+			// YouTube player after the API code downloads.
+			globalThis.onYouTubePlayerAPIReady = ()=>
+			{
+			    youtube_player = new YT.Player( 'youtube_player_div', 
+			    {
+				width: '600',
+				height: '300',
+				videoId: 'null', // 'M7lc1UVf-VE',
+				autoplay: '0',
+				controls: '0',
+				disablekb: '1',
+				enablejsapi: '1',
+				modestbranding: '1',
+				origin: window.location.hostname,
+				events: {
+				    'onReady': onPlayerReady
+				    //'onStateChange': onPlayerStateChange
+				  }
+
+			    });
+			    
+			    function onPlayerReady()
+			    {
+				globalThis.youtube_player_div = document.getElementById( 'youtube_player_div' );
+				
+				youtube_player.mute();
+				youtube_player.setVolume( player_volume );
+
+				youtube_loaded = true;
+
+				if ( youtube_player_load_callback )
+				{
+				    youtube_player_load_callback( youtube_player );
+				    youtube_player_load_callback = null;
+				}
+			    }
+			};
+		    }
+		};
+	    }
+	</script>
+
 	<script src="socket.io/socket.io.js"></script>
 	<!--<script src="geckos.io/geckos.io-client.1.7.2.min.js"></script>-->
 	<script src="libs/three.js"></script>
@@ -225,6 +365,7 @@
 	<!--<script src="libs/canvas-webgl.js"></script>
 	<script src="libs/earcut.js"></script>-->
 	<script type="text/javascript" src="mespeak/mespeak.js"></script>
+	<script src="libs/howler.js.min.js"></script>
 	<script src="game.js" type="module"></script>
 	
 	<div id="mobile_ui" style="display:none;z-index:100;position:fixed;left:0;top:0">
@@ -690,6 +831,9 @@
 		<br>
 		<input type="checkbox" id="helmet22" value="22">
 		<label for="helmet22">Glory</label>
+		<br>
+		<input type="checkbox" id="helmet23" value="23">
+		<label for="helmet23">Scion</label>
 	    </div>
 	    
 	    <div class="set_block" tabindex="1">
@@ -723,6 +867,9 @@
 		<br>
 		<input type="checkbox" id="body10" value="1">
 		<label for="body10">Glory</label>
+		<br>
+		<input type="checkbox" id="body11" value="1">
+		<label for="body11">Scion</label>
 	    </div>
 	    
 	    <div class="set_block" tabindex="1">
@@ -756,6 +903,9 @@
 		<br>
 		<input type="checkbox" id="legs10" value="1">
 		<label for="legs10">Glory</label>
+		<br>
+		<input type="checkbox" id="legs11" value="1">
+		<label for="legs11">Scion</label>
 	    </div>
 	    
 	    <div class="set_block" tabindex="1">
