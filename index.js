@@ -1,6 +1,9 @@
 
 /* global globalThis, process */
 
+let port0 = 3000;
+let CloudFlareSupport = false;
+
 // http://localhost:3000 + world_slot
 
 // CentOS crontab can be here: /etc/crontab
@@ -45,8 +48,29 @@ globalThis.isWin = isWin;
 
 if ( !isWin )
 {
-	const ssl_key_path = '/usr/local/directadmin/data/users/admin/domains/gevanni.com.key';
-	const ssl_cert_path = '/usr/local/directadmin/data/users/admin/domains/gevanni.com.cert';
+	let ssl_key_path;
+	let ssl_cert_path;
+	
+	if ( fs.existsSync('/usr/') &&
+		 fs.existsSync('/usr/local/') &&
+		 fs.existsSync('/usr/local/directadmin/') &&
+		 fs.existsSync('/usr/local/directadmin/data/') &&
+		 fs.existsSync('/usr/local/directadmin/data/users/') &&
+		 fs.existsSync('/usr/local/directadmin/data/users/admin/') &&
+		 fs.existsSync('/usr/local/directadmin/data/users/admin/domains/') ) 
+	{
+		ssl_key_path = '/usr/local/directadmin/data/users/admin/domains/gevanni.com.key';
+		ssl_cert_path = '/usr/local/directadmin/data/users/admin/domains/gevanni.com.cert';
+	}
+	else
+	{
+		ssl_key_path = '/var/cpanel/ssl/apache_tls/plazmaburst2.com/combined';
+		ssl_cert_path = '/var/cpanel/ssl/apache_tls/plazmaburst2.com/combined'; // '/var/cpanel/ssl/apache_tls/plazmaburst2.com/certificates';
+		
+		port0 = 8443;
+		CloudFlareSupport = true;
+	}
+	
 	const credentials = {
 		key: fs.readFileSync( ssl_key_path ),
 		cert: fs.readFileSync( ssl_cert_path )
@@ -1697,7 +1721,12 @@ io.on("connection", (socket) =>
 	let details = null;
 		
 	if ( SOCKET_IO_MODE )
-	ip = socket.client.conn.remoteAddress;
+	{
+		ip = socket.client.conn.remoteAddress;
+		
+		if ( CloudFlareSupport )
+		ip = socket.client.request.headers['cf-connecting-ip'];
+	}
 	else
 	{
 		ip = '?:?:?:?';
@@ -1724,7 +1753,7 @@ io.on("connection", (socket) =>
 	
 	if ( DEBUG_CONNECTIONS )
 	{
-		console.log( 'a user connected: ' + ip + ' aka ' + JSON.stringify( details ) );
+		console.log( 'a user connected: ' + ip + ' aka ' + JSON.stringify( details ), '; CloudFlareSupport = ' + CloudFlareSupport + ' ('+socket.client.request.headers['cf-connecting-ip']+')' );
 	}
 	
 	if ( typeof sockets_by_ip[ ip ] === 'undefined' )
@@ -2225,6 +2254,7 @@ io.on("connection", (socket) =>
 					let corrected = false;
 					
 					const correction_scale = 3; // 1 should be most cheat-proof, but can be not enough for laggy servers
+					const debug_correction = false;
 
 					//if ( socket.character.hea > 0 )
 					if ( socket.character.AllowClientSideState() ) // Health and hook change
@@ -2234,29 +2264,32 @@ io.on("connection", (socket) =>
 						
 						var allowed = true;
 						
-						if ( socket.character.stands || socket.character._in_air_timer < 500 / 1000 * 30 ) // Allow late jump
+						if ( socket.character.stands || socket.character._in_air_timer < 500 / 1000 * 30 * correction_scale ) // Allow late jump
 						{
 							if ( dy < -27 * correction_scale )
 							{
-								//console.log( 'dy', dy );
+								if ( debug_correction )
+								console.log( 'dy', dy );
 								dy = -27 * correction_scale;
 							}
 							
 							if ( dx > 30 * correction_scale )
 							{
-								//console.log( 'dx', dx );
+								if ( debug_correction )
+								console.log( 'dx', dx );
 								dx = 30 * correction_scale;
 							}
 							else
 							if ( dx < -30 * correction_scale )
 							{
-								//console.log( 'dx', dx );
+								if ( debug_correction )
+								console.log( 'dx', dx );
 								dx = -30 * correction_scale;
 							}
 						}
 						else
 						{
-							if ( socket.character.flying || socket.character._jetpack_allowed )
+							if ( socket.character.flying || socket.character._jetpack_allowed || socket.character._in_water )
 							{
 								if ( dx > 20 * correction_scale )
 								dx = 20 * correction_scale;
@@ -2270,12 +2303,16 @@ io.on("connection", (socket) =>
 								if ( dy < -20 * correction_scale )
 								dy = -20 * correction_scale;
 						
-								//console.log( 'flying', dx, dy );
+								if ( debug_correction )
+								console.log( 'flying', dx, dy );
 							}
 							else
 							{
 								if ( dy < 0 )
 								{
+									if ( debug_correction )
+									console.log( 'dy < 0 without flying or water', dx, dy );
+
 									allowed = false;
 								}
 							}
@@ -2283,6 +2320,10 @@ io.on("connection", (socket) =>
 
 						if ( !allowed || Math.abs( dx ) > 128 * correction_scale || Math.abs( dy ) > 128 * correction_scale )
 						{
+							if ( allowed )
+							if ( debug_correction )
+							console.log( 'too far', dx, dy );
+						
 							dx = 0;
 							dy = 0;
 						}
@@ -2833,10 +2874,10 @@ io.on("reconnect", (socket) => {
   debugger;
 });
 
-//http.listen(3000 + world_slot, () =>
-( httpsServer ? httpsServer : httpServer ).listen( 3000 + world_slot, () =>
+//http.listen(port0 + world_slot, () =>
+( httpsServer ? httpsServer : httpServer ).listen( port0 + world_slot, () =>
 {
-	console.log('listening on *:' + ( 3000 + world_slot ) );
+	console.log('listening on *:' + ( port0 + world_slot ) );
 });
 
 let only_do_nth_connection_per_frame = 1;
