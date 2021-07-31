@@ -266,12 +266,20 @@ class sdBlock extends sdEntity
 				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
 			}
 			//console.log( this._shielded );
-			if ( this._shielded === null )
+			if ( this._shielded === null || dmg === Infinity )
 			this._hea -= dmg;
 			else
 			{
-				if ( this._shielded && !this._shielded._is_being_removed )
-				if ( sdWorld.Dist2D( this.x, this.y, this._shielded.x, this._shielded.y ) < sdBaseShieldingUnit.protect_distance )
+				let shield = sdEntity.entities_by_net_id_cache_map.get( this._shielded );
+				//console.log( shield );
+				if ( shield === undefined ) // For some reason shield !== undefined with if statements below doesn't work :/
+				{
+					this._hea -= dmg;
+					this._shielded = null;
+				}
+				else
+				if ( shield.enabled && !shield._is_being_removed )
+				if ( sdWorld.Dist2D( this.x, this.y, shield.x, shield.y ) < sdBaseShieldingUnit.protect_distance )
 				{
 				}
 				else

@@ -74,12 +74,20 @@ class sdDoor extends sdEntity
 		
 		if ( this._hea > 0 )
 		{
-			if ( this._shielded === null )
+			if ( this._shielded === null || dmg === Infinity )
 			this._hea -= dmg;
 			else
 			{
-				if ( this._shielded._hea > 0 )
-				if ( sdWorld.Dist2D( this.x, this.y, this._shielded.x, this._shielded.y ) < sdBaseShieldingUnit.protect_distance )
+				let shield = sdEntity.entities_by_net_id_cache_map.get( this._shielded );
+				//console.log( shield );
+				if ( shield === undefined ) // If the shielding unit doesn't exist, act as a default entity
+				{
+					this._hea -= dmg;
+					this._shielded = null;
+				}
+				else
+				if ( shield.enabled && !shield._is_being_removed )
+				if ( sdWorld.Dist2D( this.x, this.y, shield.x, shield.y ) < sdBaseShieldingUnit.protect_distance )
 				{
 				}
 				else

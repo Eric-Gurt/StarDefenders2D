@@ -67,7 +67,7 @@ class sdBaseShieldingUnit extends sdEntity
 		this.matter_crystal = 0; // Named differently to prevent matter absorption from entities that emit matter
 		this._protected_entities = [];
 		this.enabled = false;
-		this._attack_other_units = false;
+		this.attack_other_units = false;
 		
 		this.filter = params.filter || 'none';
 
@@ -94,26 +94,57 @@ class sdBaseShieldingUnit extends sdEntity
 	
 		this._regen_timeout = 30;
 
+		//console.log( this._protected_entities );
+
 		this._update_version++; // Just in case
 	}
 	SetShieldState( enable=false )
 	{
 		this.enabled = enable;
 		if ( !this.enabled ) // Disabled protected blocks and doors
-		for ( let j = 0; j < this._protected_entities.length; j++ )
 		{
-			if ( ( sdWorld.Dist2D( this.x, this.y, this._protected_entities[ j ].x, this._protected_entities[ j ].y ) > sdBaseShieldingUnit.protect_distance ) || ( !this.enabled ) ) // If an entity is too far away, let players know it's not protected anymore
-			if ( this._protected_entities[ j ]._shielded === this )
+			let blocks = sdWorld.GetAnythingNear( this.x, this.y, sdBaseShieldingUnit.protect_distance, null, [ 'sdBlock', 'sdDoor' ] );
+			for ( let i = 0; i < blocks.length; i++ ) // Protect nearby entities inside base unit's radius
 			{
-				this._protected_entities[ j ]._shielded = null;
-				sdWorld.SendEffect({ x:this.x, y:this.y, x2:this._protected_entities[ j ].x + ( this._protected_entities[ j ].hitbox_x2 / 2 ), y2:this._protected_entities[ j ].y + ( this._protected_entities[ j ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#855805' });
+				if ( blocks[ i ].GetClass() === 'sdBlock' )
+				{
+					if ( blocks[ i ].material === sdBlock.MATERIAL_WALL || blocks[ i ].material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 ) // Only walls, no trap or shield blocks
+					if ( blocks[ i ]._shielded === this._net_id )
+					{
+						blocks[ i ]._shielded = null;
+						sdWorld.SendEffect({ x:this.x, y:this.y, x2:blocks[ i ].x + ( blocks[ i ].hitbox_x2 / 2 ), y2:blocks[ i ].y + ( blocks[ i ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#855805' });
+						//this._protected_entities.push( blocks[ i ]._net_id );
+					}
+				}
+			
+				if ( blocks[ i ].GetClass() === 'sdDoor' )
+				{
+					if ( blocks[ i ]._shielded === this._net_id )
+					{
+						blocks[ i ]._shielded = null;
+						sdWorld.SendEffect({ x:this.x, y:this.y, x2:blocks[ i ].x + ( blocks[ i ].hitbox_x2 / 2 ), y2:blocks[ i ].y + ( blocks[ i ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#855805' });
+						//this._protected_entities.push( blocks[ i ]._net_id );
+					}
+				}
 			}
+			/*let obj;
+			for ( let j = 0; j < this._protected_entities.length; j++ )
+			{
+				obj = sdEntity.entities_by_net_id_cache_map.get( this._protected_entities[ j ] );
+				//if ( ( sdWorld.Dist2D( this.x, this.y, this._protected_entities[ j ].x, this._protected_entities[ j ].y ) > sdBaseShieldingUnit.protect_distance ) || ( !this.enabled ) ) // If an entity is too far away, let players know it's not protected anymore
+				if ( obj._shielded === this._net_id )
+				{
+					obj._shielded = null;
+					sdWorld.SendEffect({ x:this.x, y:this.y, x2:obj.x + ( obj.hitbox_x2 / 2 ), y2:obj.y + ( obj.hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#855805' });
+				}
+			}*/
+			this._protected_entities = [];
 		}
 
 		if ( this.enabled ) // Scan unprotected blocks and fortify them
 		{
-			this.sx = 0; // Without this, players can "launch/catapult" shield units by running into them and disabling them
-			this.sy = 0;
+			//this.sx = 0; // Without this, players can "launch/catapult" shield units by running into them and disabling them
+			//this.sy = 0;
 
 			let blocks = sdWorld.GetAnythingNear( this.x, this.y, sdBaseShieldingUnit.protect_distance, null, [ 'sdBlock', 'sdDoor' ] );
 			for ( let i = 0; i < blocks.length; i++ ) // Protect nearby entities inside base unit's radius
@@ -123,9 +154,9 @@ class sdBaseShieldingUnit extends sdEntity
 					if ( blocks[ i ].material === sdBlock.MATERIAL_WALL || blocks[ i ].material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 ) // Only walls, no trap or shield blocks
 					if ( blocks[ i ]._shielded === null )
 					{
-						blocks[ i ]._shielded = this;
+						blocks[ i ]._shielded = this._net_id;
 						sdWorld.SendEffect({ x:this.x, y:this.y, x2:blocks[ i ].x + ( blocks[ i ].hitbox_x2 / 2 ), y2:blocks[ i ].y + ( blocks[ i ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#0ACC0A' });
-						this._protected_entities.push( blocks[ i ] );
+						//this._protected_entities.push( blocks[ i ]._net_id ); // Since for some reason arrays don't save _net_id's in this entity, this is obsolete
 					}
 				}
 			
@@ -133,9 +164,9 @@ class sdBaseShieldingUnit extends sdEntity
 				{
 					if ( blocks[ i ]._shielded === null )
 					{
-						blocks[ i ]._shielded = this;
+						blocks[ i ]._shielded = this._net_id;
 						sdWorld.SendEffect({ x:this.x, y:this.y, x2:blocks[ i ].x + ( blocks[ i ].hitbox_x2 / 2 ), y2:blocks[ i ].y + ( blocks[ i ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#0ACC0A' });
-						this._protected_entities.push( blocks[ i ] );
+						//this._protected_entities.push( blocks[ i ]._net_id );
 					}
 				}
 			}
@@ -144,7 +175,7 @@ class sdBaseShieldingUnit extends sdEntity
 	SetAttackState()
 	{
 		if ( this.enabled )
-		this._attack_other_units = !this._attack_other_units;
+		this.attack_other_units = !this.attack_other_units;
 	}
 	get mass() { return ( this.enabled ) ? 500 : 35; }
 	Impulse( x, y )
@@ -157,9 +188,14 @@ class sdBaseShieldingUnit extends sdEntity
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( !this.enabled )
+		this.sy += sdWorld.gravity * GSPEED;
+		
+		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+
+		if ( this.enabled )
 		{
-			this.sy += sdWorld.gravity * GSPEED;
-			this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+			this.sx = 0;
+			this.sy = 0;
 		}
 
 		if ( !sdWorld.is_server)
@@ -190,16 +226,16 @@ class sdBaseShieldingUnit extends sdEntity
 			}
 		}
 
-		if ( this._attack_other_units )
+		if ( this.attack_other_units )
 		if ( this._attack_timer <= 0 )
 		{
 			let units = sdWorld.GetAnythingNear( this.x, this.y, sdBaseShieldingUnit.protect_distance + 64, null, [ 'sdBaseShieldingUnit' ] );
 			for ( let i = 0; i < units.length; i++ ) // Protect nearby entities inside base unit's radius
 			{
 				if ( units[ i ] !== this )
-				if ( units[ i ].enabled )
+				if ( units[ i ].enabled === true )
 				{
-					if ( units[ i ].matter_crystal > 500 )
+					if ( units[ i ].matter_crystal > 350 ) // Not really needed since the units turn off below 800 matter
 					{
 						units[ i ].matter_crystal -= 350;
 						this.matter_crystal -= 350;
@@ -329,11 +365,7 @@ class sdBaseShieldingUnit extends sdEntity
 	onRemove() // Class-specific, if needed
 	{
 
-		for ( let ents = 0; ents < this._protected_entities.length; ents++ )
-		{
-			this._protected_entities[ ents ]._shielded = null;
-			sdWorld.SendEffect({ x:this.x, y:this.y, x2:this._protected_entities[ ents ].x + ( this._protected_entities[ ents ].hitbox_x2 / 2 ), y2:this._protected_entities[ ents ].y + ( this._protected_entities[ ents ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#855805' });
-		}
+		this.SetShieldState( false );
 		if ( this._broken )
 		{
 			sdWorld.BasicEntityBreakEffect( this, 10 );
@@ -399,9 +431,12 @@ class sdBaseShieldingUnit extends sdEntity
 				this.AddContextOption( 'Scan nearby unprotected entities ( 800 matter )', 'SHIELD_ON', [] );
 				else
 				{
-					this.AddContextOption( 'Refresh scanning entities', 'SHIELD_ON', [] );
+					//this.AddContextOption( 'Refresh scanning entities', 'SHIELD_ON', [] ); // Best to just turn it off then on
 					this.AddContextOption( 'Turn the shields off', 'SHIELD_OFF', [] );
+					if ( !this.attack_other_units )
 					this.AddContextOption( 'Attack nearby shield units', 'ATTACK', [] );
+					else
+					this.AddContextOption( 'Stop attacking nearby shield units', 'ATTACK', [] );
 				}
 			}
 		}
