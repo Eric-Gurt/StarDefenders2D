@@ -1028,6 +1028,7 @@ class sdGunClass
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
+			min_build_tool_level: 1,
 			matter_cost: 300 / 2 * 2.5, // More DPS relative to stimpack
 			projectile_velocity: 16,
 			GetAmmoCost: ()=>

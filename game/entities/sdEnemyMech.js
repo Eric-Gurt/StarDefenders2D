@@ -238,7 +238,7 @@ class sdEnemyMech extends sdEntity
 							gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
 							else
 							{
-								if ( random_value < 0.03 )
+								if ( random_value < 0.08 )
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_FMECH_MINIGUN });
 								else
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_CANNON });
