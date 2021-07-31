@@ -423,7 +423,7 @@ class sdEnemyMech extends sdEntity
 						( targets_raw[ i ].GetClass() === 'sdCommandCentre' ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdCube' && targets_raw[ i ].hea > 0 ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdCube' && this.hea < ( this._hmax / 3 ) ) ||
-						 ( targets_raw[ i ].GetClass() === 'sdDrone' && targets_raw[ i ]._ai_team !== 2 && targets_raw[ i ].hea > 0 ) )
+						 ( targets_raw[ i ].GetClass() === 'sdDrone' && targets_raw[ i ]._ai_team !== 2 && targets_raw[ i ]._hea > 0 ) )
 					{
 						if ( sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdEnemyMech' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
 							targets.push( targets_raw[ i ] );
