@@ -49,13 +49,14 @@ class sdDrone extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 400;
+		this.type = params.type || 1;
+		
+		this._hmax = ( this.type === 1 ) ? 130 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
 		this._hea = this._hmax;
 		this._ai_team = params._ai_team || 1;
 
 		this.attack_an = 0;
 		this.death_anim = 0;
-		this.type = params.type || 1;
 		
 		this._current_target = null;
 		
@@ -80,6 +81,29 @@ class sdDrone extends sdEntity
 		
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
 	}
+	CanAttackEnt( ent )
+	{
+		if ( this._current_target === ent )
+		return true;
+
+		if ( this._ai_team === 1 ) // Falkok drones
+		return true;
+		if ( this._ai_team === 2 ) // Erthal drones
+		{
+			if ( ent._ai_team === 2 )
+			return false;
+			else
+			{
+				if ( ent._ai_team === 0 && ent.matter < 200 && this._current_target !== ent )
+				return false;
+				else
+				{
+				this._current_target === ent;
+				return true;
+				}
+			}
+		}
+	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( this._hea > 0 )
@@ -92,10 +116,13 @@ class sdDrone extends sdEntity
 				 ( this._current_target.hea || this._current_target._hea ) <= 0 || 
 				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
 			{
-				this._current_target = character;
+				if ( this.CanAttackEnt( character ) )
+				{
+					this._current_target = character;
 				
-				if ( this.type === 2 )
-				sdSound.PlaySound({ name:'spider_welcomeC', x:this.x, y:this.y, volume: 1, pitch:2 });
+					if ( this.type === 2 )
+					sdSound.PlaySound({ name:'spider_welcomeC', x:this.x, y:this.y, volume: 1, pitch:2 });
+				}
 			}
 		}
 	}
@@ -125,10 +152,15 @@ class sdDrone extends sdEntity
 		return;
 
 		if ( initiator )
-		if ( !initiator.is( sdDrone ) && initiator._ai_team !== this._ai_team )
-		if ( !initiator.is( sdCharacter ) && initiator._ai_team !== this._ai_team )
-		this._current_target = initiator;
-	
+		{
+			if ( !initiator.is( sdDrone ) && initiator._ai_team !== this._ai_team )
+			if ( !initiator.is( sdCharacter ) && initiator._ai_team !== this._ai_team )
+			this._current_target = initiator;
+			else
+			if ( ( initiator.is( sdDrone ) || initiator.is( sdCharacter ) ) && initiator._ai_team !== this._ai_team )
+			this._current_target = initiator;
+		}
+
 		dmg = Math.abs( dmg );
 		
 		let was_alive = this._hea > 0;
@@ -368,8 +400,8 @@ class sdDrone extends sdEntity
 										dx /= di;
 										dy /= di;
 									}
-									this.sx += dx;
-									this.sy += dy;
+									this.sx += dx * 0.1 * GSPEED;
+									this.sy += dy * 0.1 * GSPEED;
 								}
 							}
 						}
@@ -474,7 +506,7 @@ class sdDrone extends sdEntity
 
 								sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.33, pitch:5 });
 							}
-							if ( this.type === 2  ) // Robot drones ( I have no name for this faction lol )
+							if ( this.type === 2  ) // Erthal drones
 							{
 								let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 

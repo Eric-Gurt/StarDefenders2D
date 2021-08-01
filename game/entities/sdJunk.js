@@ -205,10 +205,10 @@ class sdJunk extends sdEntity
 
 						for ( let i = 0; i < nears.length; i++ )
 						{
-							sdLost.ApplyAffection( nears[ i ], 300, bullet );
+							sdLost.ApplyAffection( nears[ i ], 90, bullet );
 						}
 					}
-				}
+				};
 				sdEntity.entities.push( bullet );
 			}
 			let r = Math.random();

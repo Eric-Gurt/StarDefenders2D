@@ -70,7 +70,15 @@ class sdGun extends sdEntity
 	get hitbox_x2() { return 4; }
 	get hitbox_y1() { return -3; }
 	get hitbox_y2() { return 3; }
-	
+	get mass()
+	{
+		return 30;
+	}
+	Impulse( x, y )
+	{
+		this.sx += x / this.mass;
+		this.sy += y / this.mass;
+	}
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )

@@ -799,10 +799,8 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			is_sword: true,
-			min_workbench_level: 1,
-			min_build_tool_level: 2,
-			matter_cost: 1000,
 			projectile_velocity: 16 * 1.5,
+			spawnable: false,
 			projectile_properties: { time_left: 1, _damage: 35, color: 'transparent', _knock_scale:0.025 * 8, _reinforced_level: 1 }
 		};
 
@@ -1030,6 +1028,7 @@ class sdGunClass
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
+			min_build_tool_level: 1,
 			matter_cost: 300 / 2 * 2.5, // More DPS relative to stimpack
 			projectile_velocity: 16,
 			GetAmmoCost: ()=>

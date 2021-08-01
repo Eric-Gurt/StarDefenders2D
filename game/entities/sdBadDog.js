@@ -435,7 +435,7 @@ class sdBadDog extends sdEntity
 				let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
 				let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 
-				if ( from_entity.GetClass() === 'sdCharacter' || this.master )
+				if ( from_entity.GetClass() === 'sdCharacter' || this.master || this._current_target === from_entity )
 				if ( from_entity.IsTargetable() )
 				{
 					this._last_bite = sdWorld.time;

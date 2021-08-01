@@ -24,6 +24,7 @@ import sdMatterContainer from './sdMatterContainer.js';
 import sdWorkbench from './sdWorkbench.js';
 import sdRescueTeleport from './sdRescueTeleport.js';
 import sdLifeBox from './sdLifeBox.js';
+import sdLost from './sdLost.js';
 
 import sdCharacterRagdoll from './sdCharacterRagdoll.js';
 
@@ -344,6 +345,7 @@ class sdCharacter extends sdEntity
 		
 		this.hea = 130;
 		this.hmax = 130;
+		this.lst = 0; // How "lost" is this player?
 		this._dying = false;
 		this._dying_bleed_tim = 0;
 		this._wb_timer = 0; // Workbench timer, used to reset player's workbench level to 0 if he's not near it.
@@ -1008,7 +1010,8 @@ class sdCharacter extends sdEntity
 			}
 			
 			
-			if ( this.hea < -800 )
+			//if ( this.hea < -800 ) // Not so fun when body is on the way
+			if ( this.hea < -400 )
 			{
 				//if ( this.death_anim <= sdCharacter.disowned_body_ttl )
 				{
@@ -1523,6 +1526,9 @@ class sdCharacter extends sdEntity
 
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		if ( sdWorld.is_server )
+		this.lst = sdLost.entities_and_affection.get( this ) || 0;
+		
 		if ( this._god )
 		if ( this._socket )
 		{
@@ -2701,6 +2707,12 @@ class sdCharacter extends sdEntity
 			
 			ctx.fillStyle = '#FF0000';
 			ctx.fillRect( 1 - w / 2, 1 - 20, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
+			
+			if ( this.lst > 0 )
+			{
+				ctx.fillStyle = '#FFFF00';
+				ctx.fillRect( 1 - w / 2, 1 - 20, ( w - 2 ) * Math.max( 0, this.lst / this.hmax ), 1 );
+			}
 
 			if ( this.armor > 0 )
 			{

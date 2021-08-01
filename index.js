@@ -3,6 +3,7 @@
 
 let port0 = 3000;
 let CloudFlareSupport = false;
+let directory_to_save_player_count = null;
 
 // http://localhost:3000 + world_slot
 
@@ -69,6 +70,8 @@ if ( !isWin )
 		
 		port0 = 8443;
 		CloudFlareSupport = true;
+		
+		directory_to_save_player_count = '/home/plazmaburst2/public_html/pb2/sd2d_online.v';
 	}
 	
 	const credentials = {
@@ -186,6 +189,7 @@ globalThis.FakeCanvasContext = FakeCanvasContext;
 
 import sdEntity from './game/entities/sdEntity.js';
 import sdCharacter from './game/entities/sdCharacter.js';
+import sdPlayerDrone from './game/entities/sdPlayerDrone.js';
 import sdGun from './game/entities/sdGun.js';
 import sdBlock from './game/entities/sdBlock.js';
 import sdEffect from './game/entities/sdEffect.js';
@@ -237,7 +241,7 @@ import sdSpider from './game/entities/sdSpider.js';
 import sdBall from './game/entities/sdBall.js';
 import sdTheatre from './game/entities/sdTheatre.js';
 import sdCaption from './game/entities/sdCaption.js';
-
+import sdBaseShieldingUnit from './game/entities/sdBaseShieldingUnit.js';
 	
 
 
@@ -340,7 +344,6 @@ sdTeleport.init_class();
 sdDoor.init_class();
 sdWater.init_class();
 sdWeather.init_class();
-sdTurret.init_class();
 sdMatterContainer.init_class();
 sdMatterAmplifier.init_class();
 sdQuickie.init_class();
@@ -377,6 +380,9 @@ sdSpider.init_class();
 sdBall.init_class();
 sdTheatre.init_class();
 sdCaption.init_class();
+sdPlayerDrone.init_class();
+sdTurret.init_class();
+sdBaseShieldingUnit.init_class();
 
 /* Do like that later, not sure if I want to deal with path problems yet again... Add awaits where needed too
 
@@ -558,17 +564,29 @@ app.get('/*', function cb( req, res, repeated=false )
 	
 	var path = __dirname + '/game' + req.url;
 	//var path = './game' + req.url;
+	
+	
 	fs.access(path.split('?')[0], fs.F_OK, (err) => 
 	{
-		let t3 = Date.now();
+		//let t3 = Date.now();
 		
-		if (err)
+		if ( !file_exists( path ) ) // Silent
 		{
-			res.send( '404' );//console.error(err)
+			res.end();
 			
 			Finalize();
 			return;
 		}
+		
+		if ( err ) // Access errors usually
+		{
+			//res.send( '404' );//console.error(err)
+			res.status( 404 ).end();
+			
+			Finalize();
+			return;
+		}
+		
 		res.sendFile( path );
 		//file exists
 		
@@ -1626,6 +1644,18 @@ function GetPlayingPlayersCount()
 */
 const GetPlayingPlayersCount = sdWorld.GetPlayingPlayersCount;
 
+if ( directory_to_save_player_count !== null )
+{
+	setInterval( ()=>{
+		
+		fs.writeFile( directory_to_save_player_count, sdWorld.sockets.length+'', ( err )=>
+		{
+			
+		});
+		
+	}, 1000 * 60 );
+};
+
 let game_ttl = 0; // Prevent frozen state
 function IsGameActive()
 {
@@ -1953,7 +1983,14 @@ io.on("connection", (socket) =>
 		}
 		function SpawnNewPlayer()
 		{
+			const allowed_classes = sdWorld.allowed_player_classes;
+			
+			let preferred_entity = sdWorld.ConvertPlayerDescriptionToEntity( player_settings );
+		
+			if ( allowed_classes.indexOf( preferred_entity ) === -1 )
 			character_entity = new sdCharacter({ x:0, y:0 });
+			else
+			character_entity = new sdWorld.entity_classes[ preferred_entity ]({ x:0, y:0 });
 			
 			if ( sdWorld.server_config.PlayerSpawnPointSeeker )
 			sdWorld.server_config.PlayerSpawnPointSeeker( character_entity, socket );
@@ -2252,9 +2289,10 @@ io.on("connection", (socket) =>
 				if ( sdWorld.time > socket.next_position_correction_allowed )
 				{
 					let corrected = false;
-					
+
 					const correction_scale = 3; // 1 should be most cheat-proof, but can be not enough for laggy servers
 					const debug_correction = false;
+
 
 					//if ( socket.character.hea > 0 )
 					if ( socket.character.AllowClientSideState() ) // Health and hook change
@@ -2266,21 +2304,23 @@ io.on("connection", (socket) =>
 						
 						if ( socket.character.stands || socket.character._in_air_timer < 500 / 1000 * 30 * correction_scale ) // Allow late jump
 						{
-							if ( dy < -27 * correction_scale )
+							if ( dy < -27 )
 							{
+
 								if ( debug_correction )
 								console.log( 'dy', dy );
 								dy = -27 * correction_scale;
 							}
 							
-							if ( dx > 30 * correction_scale )
+							if ( dx > 30 )
 							{
 								if ( debug_correction )
 								console.log( 'dx', dx );
 								dx = 30 * correction_scale;
+
 							}
 							else
-							if ( dx < -30 * correction_scale )
+							if ( dx < -30 )
 							{
 								if ( debug_correction )
 								console.log( 'dx', dx );
@@ -2291,17 +2331,17 @@ io.on("connection", (socket) =>
 						{
 							if ( socket.character.flying || socket.character._jetpack_allowed || socket.character._in_water )
 							{
-								if ( dx > 20 * correction_scale )
-								dx = 20 * correction_scale;
+								if ( dx > 20 )
+								dx = 20;
 								else
-								if ( dx < -20 * correction_scale )
-								dx = -20 * correction_scale;
+								if ( dx < -20 )
+								dx = -20;
 						
-								if ( dy > 20 * correction_scale )
-								dy = 20 * correction_scale;
+								if ( dy > 20 )
+								dy = 20;
 								else
-								if ( dy < -20 * correction_scale )
-								dy = -20 * correction_scale;
+								if ( dy < -20 )
+								dy = -20;
 						
 								if ( debug_correction )
 								console.log( 'flying', dx, dy );
@@ -2318,7 +2358,7 @@ io.on("connection", (socket) =>
 							}
 						}
 
-						if ( !allowed || Math.abs( dx ) > 128 * correction_scale || Math.abs( dy ) > 128 * correction_scale )
+						if ( !allowed || Math.abs( dx ) > 128 || Math.abs( dy ) > 128 )
 						{
 							if ( allowed )
 							if ( debug_correction )
@@ -2335,10 +2375,10 @@ io.on("connection", (socket) =>
 							//								arr[ 6 ] - ( socket.character.y + socket.character.sy / 30 * 100 ) );
 							
 							//if ( di > 128 )
-							if ( di > 64 * correction_scale )
+							if ( di > 64 )
 							{
-								dx = dx / di * 64 * correction_scale;
-								dy = dy / di * 64 * correction_scale;
+								dx = dx / di * 64;
+								dy = dy / di * 64;
 							}
 						//}
 						//else

@@ -56,7 +56,7 @@ class sdSpider extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 500;
+		this._hmax = 400;
 		this._hea = this._hmax;
 		this._ai_team = 2;
 
@@ -413,7 +413,7 @@ class sdSpider extends sdEntity
 					}
 					else
 					{
-						bullet_obj.explosion_radius = 20; // 16 is hard for new players, but too low damage is not challenging
+						bullet_obj.explosion_radius = 18; // 16 is hard for new players, but too low damage is not challenging
 
 						bullet_obj.model = 'mini_rocket';
 						bullet_obj.color = '#00aaff';

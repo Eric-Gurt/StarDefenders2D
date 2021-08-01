@@ -6,6 +6,7 @@ import sdVirus from './sdVirus.js';
 import sdEffect from './sdEffect.js';
 import sdWater from './sdWater.js';
 import sdBG from './sdBG.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -265,7 +266,25 @@ class sdBlock extends sdEntity
 				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
 			}
 			
+			if ( this._shielded === null || dmg === Infinity || this._shielded._is_being_removed || !this._shielded.enabled || !sdWorld.inDist2D_Boolean( this.x, this.y, this._shielded.x, this._shielded.y, sdBaseShieldingUnit.protect_distance ) )
 			this._hea -= dmg;
+			else
+			{
+				if ( initiator )
+				if ( initiator._socket )
+				if ( initiator._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
+				{
+					initiator._last_damage_upg_complain = sdWorld.time;
+					if ( Math.random() < 0.5 )
+					initiator.Say( 'This entity is protected by a base shielding unit' );
+					else
+					initiator.Say( 'A base shielding unit is protecting this' );
+				}
+
+				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
+				this._shielded.matter_crystal = Math.max( 0, this._shielded.matter_crystal - dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp );
+			}
+
 			this.HandleDestructionUpdate();
 			
 			if ( this.material === sdBlock.MATERIAL_TRAPSHIELD ) // Instant regeneration
@@ -377,6 +396,7 @@ class sdBlock extends sdEntity
 		
 		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
 		this._reinforced_level = params._reinforced_level || 0;
+		this._shielded = null; // Is this entity protected by a base defense unit?
 		
 		this._contains_class = params.contains_class || null;
 		this._contains_class_params = null; // Parameters that are passed to this._contains_class entity
@@ -413,7 +433,7 @@ class sdBlock extends sdEntity
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
-		return ( prop === '_plants' || prop === '_contains_class_params' );
+		return ( prop === '_plants' || prop === '_contains_class_params' || prop === '_shielded' );
 	}
 	MeasureMatterCost()
 	{
@@ -445,6 +465,10 @@ class sdBlock extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		if ( this._reinforced_level > 0 )
+		this._reinforced_level = 0;
+		if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 )
+		this.material = sdBlock.MATERIAL_WALL;
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
