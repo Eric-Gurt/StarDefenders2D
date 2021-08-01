@@ -246,6 +246,8 @@ class sdModeration
 							sdModeration.data.admins.splice( a, 1 );
 							a--;
 							sdModeration.Save();
+							
+							target.character._god = false;
 							socket.SDServiceMessage( 'Server: ' + target.character.title + ' has been demoted.' );
 							return;
 						}
@@ -255,6 +257,7 @@ class sdModeration
 							return;
 						}
 					}
+					target.character._god = false;
 					socket.SDServiceMessage( 'Server: ' + target.character.title + ' had no admin permissions.' );
 				}
 			}
