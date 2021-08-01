@@ -6,6 +6,14 @@ import sdWater from './entities/sdWater.js';
 import sdCharacterRagdoll from './entities/sdCharacterRagdoll.js';
 import sdEffect from './entities/sdEffect.js';
 
+/*
+
+	Test sound console command:
+
+		sdSound.PlaySound({ name:'player_step', x:sdWorld.my_entity.x, y:sdWorld.my_entity.y, volume:1, _server_allowed:true });
+
+*/
+
 class sdSound
 {
 	static init_class()

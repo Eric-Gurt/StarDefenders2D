@@ -1673,8 +1673,8 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_ERTHAL_PLASMA_PISTOL = 61 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'erthal_plasma_pistol' ),
-			sound: 'gun_spark',
-			sound_pitch: 2,
+			sound: 'spider_attackC',
+			sound_pitch: 3,
 			title: 'Erthal Plasma Pistol',
 			slot: 1,
 			reload_time: 9,
