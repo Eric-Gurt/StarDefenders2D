@@ -1177,13 +1177,13 @@ class sdGunClass
 			sound_pitch: 2.4,
 			title: 'Falkok Marksman Rifle',
 			slot: 2,
-			reload_time: 25,
+			reload_time: 26,
 			muzzle_x: 10,
 			ammo_capacity: 12,
 			count: 1,
 			spawnable: false,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.6,
-			projectile_properties: { _damage: 68, color: '#92D0EC'}
+			projectile_properties: { _damage: 66, color: '#92D0EC'}
 		};
 		
 		sdGun.classes[ sdGun.CLASS_MMG_THE_RIPPER_T2 = 47 ] = // sprite by Ghost581
@@ -1224,17 +1224,17 @@ class sdGunClass
 			projectile_properties: { _damage: 48, color: '#FFEB00' }
 		};
 
-		sdGun.classes[ sdGun.CLASS_RAILGUN_P03 = 49 ] = // sprite by Ghost581
+		sdGun.classes[ sdGun.CLASS_PHASERCANNON_P03 = 49 ] = // sprite by Ghost581
         {
-            image: sdWorld.CreateImageFromFile( 'railgun_p03' ),
+            image: sdWorld.CreateImageFromFile( 'phasercannon_p03' ),
            	// image0: [ sdWorld.CreateImageFromFile( 'railgun_p03_c' ), sdWorld.CreateImageFromFile( 'railgun_p03_c' ) ],
             //image1: [ sdWorld.CreateImageFromFile( 'railgun_p03_r1' ), sdWorld.CreateImageFromFile( 'railgun_p03_r1b' ) ],
             //image2: [ sdWorld.CreateImageFromFile( 'railgun_p03_r2' ), sdWorld.CreateImageFromFile( 'railgun_p03_r2b' ) ],
-            image0: [ sdWorld.CreateImageFromFile( 'railgun_p03_reload1' ), sdWorld.CreateImageFromFile( 'railgun_p03_reload2' ) ],
-            image1: [ sdWorld.CreateImageFromFile( 'railgun_p03_reload1' ), sdWorld.CreateImageFromFile( 'railgun_p03_reload2' ) ],
-            image2: [ sdWorld.CreateImageFromFile( 'railgun_p03_reload1' ), sdWorld.CreateImageFromFile( 'railgun_p03_reload2' ) ],
+            image0: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
+            image1: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
+            image2: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
             sound: 'gun_railgun_malicestorm_terrorphaser4',
-            title: 'Railgun P03',
+            title: 'Phasercannon P03',
 			sound_pitch: 1.6, // re-added cause weapon sounds better with the sound pitch. - Ghost581
 			sound_volume: 1.5,
             slot: 8, // moved it to slot 8 cause of it being supposed to be a power weapon and slot 9 still is bound to the BT - Ghost581
@@ -1770,13 +1770,14 @@ class sdGunClass
 			sound_pitch: 1.3,
 			title: 'DMR',
 			slot: 4,
-			reload_time: 28,
+			reload_time: 26,
 			muzzle_x: 10,
 			ammo_capacity: 8,
 			count: 1,
 			matter_cost: 160,
-			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
-			projectile_properties: { _damage: 64, color: '#33ffff', penetrating: true }
+			min_build_tool_level: 1,
+			projectile_velocity: sdGun.default_projectile_velocity * 1.7,
+			projectile_properties: { _damage: 72, color: '#33ffff', penetrating: true }
 		};
     
 		sdGun.classes[ sdGun.CLASS_BURST_PISTOL = 65 ] = 
@@ -1802,6 +1803,96 @@ class sdGunClass
 			projectile_properties: { _damage: 25, color:'#00aaff' }
 		};
     
+		sdGun.classes[ sdGun.CLASS_GAUSS_RIFLE = 66 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'gauss_rifle' ),
+			image_charging: sdWorld.CreateImageFromFile( 'gauss_rifle_charging' ),
+			image0: [ sdWorld.CreateImageFromFile( 'gauss_rifle0' ), sdWorld.CreateImageFromFile( 'gauss_rifle1' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'gauss_rifle2' ), sdWorld.CreateImageFromFile( 'gauss_rifle3' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'gauss_rifle4' ), sdWorld.CreateImageFromFile( 'gauss_rifle5' ) ],
+			title: 'Gauss Rifle',
+			slot: 8,
+			reload_time: 300,
+			muzzle_x: 9,
+			ammo_capacity: -1,
+			count: 1,
+			matter_cost: 1000,
+			projectile_velocity: sdGun.default_projectile_velocity * 2,
+			min_workbench_level: 6,
+			min_build_tool_level: 3,
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				if ( gun._held_by._auto_shoot_in > 0 )
+				return 0;
+				
+				return 50;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( !shoot_from_scenario )
+				{
+					if ( gun._held_by )
+					if ( gun._held_by._auto_shoot_in <= 0 )
+					{
+						
+						gun._held_by._auto_shoot_in = 1750 / 1000 * 30;
+
+						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 0.5 });
+					}
+					return false;
+				}
+				else
+				{
+					sdSound.PlaySound({ name: 'gun_railgun_malicestorm_terrorphaser4', x:gun.x, y:gun.y, volume: 1.5, pitch: 2 });
+					
+				}
+			},
+			projectile_properties: { explosion_radius: 25, model: 'gauss_rifle_proj', _damage: 110, color:sdEffect.default_explosion_color }
+		};
+		
+		sdGun.classes[ sdGun.CLASS_COMBAT_RIFLE = 67 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'combat_rifle' ),
+			sound: 'gun_the_ripper2',
+			sound_pitch: 2,
+			title: 'Combat Rifle',
+			slot: 2,
+			reload_time: 1.5,
+			muzzle_x: 10,
+			ammo_capacity: 30,
+			burst: 3,
+			burst_reload: 16,
+			count: 1,
+			matter_cost: 120,
+			projectile_velocity: sdGun.default_projectile_velocity * 1.3,
+			min_build_tool_level: 3,
+			projectile_properties: { _damage: 40 }
+		};
+
+		sdGun.classes[ sdGun.CLASS_MISSLE_LAUNCHER_P07 = 68 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'missile_launcher_p07' ),
+			sound: 'gun_missile_launcher_p07',
+			title: 'Missile Launcher P07',
+			sound_volume: 2.4,
+			slot: 5,
+			reload_time: 12,
+			muzzle_x: null,
+			ammo_capacity: 6,
+			spread: 0.06,
+			projectile_velocity: 20,
+			count: 1,
+			burst: 2,
+			burst_reload: 32, 
+			min_build_tool_level: 3,
+			min_workbench_level: 2,
+			matter_cost: 240,
+			projectile_properties: { time_left: 90, explosion_radius: 20, model: 'mini_missile_p241', _damage: 28, color:sdEffect.default_explosion_color, ac:0.01, _homing: true, _homing_mult: 0.3 }
+		};
+
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
