@@ -280,7 +280,8 @@ class sdOctopus extends sdEntity
 						 from_entity.GetClass() === 'sdTeleport' ||
 						 from_entity.GetClass() === 'sdVirus' ||
 						 ( typeof from_entity.hea !== 'undefined' && from_entity.hea <= 0 ) ||
-						 ( typeof from_entity._hea !== 'undefined' && from_entity._hea <= 0 ) )
+						 ( typeof from_entity._hea !== 'undefined' && from_entity._hea <= 0 ) ||
+						 from_entity === this._current_target )
 					if ( from_entity.IsTargetable( this ) )
 					if ( !from_entity._is_being_removed )
 					{

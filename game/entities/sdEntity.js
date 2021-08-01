@@ -1520,7 +1520,12 @@ class sdEntity
 	WakeUpMatterSources( connected_ents=null ) // Call this when entity loses some of its matter and needs hibernated nearby entities to wake up
 	{
 		if ( !connected_ents )
-		connected_ents = sdCable.GetConnectedEntities( this, sdCable.TYPE_MATTER );
+		{
+			if ( !sdCable )
+			sdCable = sdWorld.entity_classes.sdCable;
+		
+			connected_ents = sdCable.GetConnectedEntities( this, sdCable.TYPE_MATTER );
+		}
 	
 		for ( var i = 0; i < connected_ents.length; i++ )
 		{

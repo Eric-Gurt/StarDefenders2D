@@ -6,6 +6,7 @@ import sdBullet from './sdBullet.js';
 import sdSound from '../sdSound.js';
 
 import sdCharacter from './sdCharacter.js';
+//import sdPlayerDrone from './sdPlayerDrone.js';
 import sdVirus from './sdVirus.js';
 import sdQuickie from './sdQuickie.js';
 import sdOctopus from './sdOctopus.js';
@@ -21,6 +22,7 @@ import sdDrone from './sdDrone.js';
 import sdBlock from './sdBlock.js';
 import sdBadDog from './sdBadDog.js';
 import sdShark from './sdShark.js';
+import sdSpider from './sdSpider.js';
 
 
 class sdTurret extends sdEntity
@@ -41,7 +43,7 @@ class sdTurret extends sdEntity
 		sdTurret.img_turret4 = sdWorld.CreateImageFromFile( 'turret4' );
 		sdTurret.img_turret4_fire = sdWorld.CreateImageFromFile( 'turret4_fire' );
 		
-		sdTurret.targetable_classes = new WeakSet( [ sdCharacter, sdVirus, sdQuickie, sdOctopus, sdCube, sdBomb, sdAsp, sdSandWorm, sdSlug, sdEnemyMech, sdDrone, sdBadDog, sdShark ] );
+		sdTurret.targetable_classes = new WeakSet( [ sdCharacter, sdVirus, sdQuickie, sdOctopus, sdCube, sdBomb, sdAsp, sdSandWorm, sdSlug, sdEnemyMech, sdDrone, sdBadDog, sdShark, sdSpider, sdWorld.entity_classes.sdPlayerDrone ] ); // Module random load order that causes error prevention
 		
 		sdTurret.KIND_LASER = 0;
 		sdTurret.KIND_ROCKET = 1;

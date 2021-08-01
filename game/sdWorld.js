@@ -33,6 +33,8 @@ class sdWorld
 		//sdWorld.max_update_rate = 64;
 		sdWorld.max_update_rate = 75; // For weaker servers (more like bandwidth-limited)
 		
+		sdWorld.allowed_player_classes = [ 'sdCharacter', 'sdPlayerDrone' ]; // Options to spawn as
+		
 		sdWorld.server_config = {};
 		
 		sdWorld.time = Date.now(); // Can be important because some entities (sdCommandCentre) use sdWorld.time as default destruction time, which will be instantly without setting this value
@@ -2850,6 +2852,14 @@ class sdWorld
 		for ( var i = 1; i < sdCharacter.skins.length; i++ )
 		if ( player_description[ 'legs' + i ] )
 		return i;
+
+		return 1;
+	}
+	static ConvertPlayerDescriptionToEntity( player_description )
+	{
+		for ( var i = 0; i < sdWorld.allowed_player_classes.length; i++ )
+		if ( player_description[ 'entity' + ( i + 1 ) ] )
+		return sdWorld.allowed_player_classes[ i ];
 
 		return 1;
 	}

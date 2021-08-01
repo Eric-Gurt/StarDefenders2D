@@ -550,12 +550,16 @@ class sdRenderer
 								{
 									twitch_player.setVideo( sdRenderer.last_source_entity.video );
 									twitch_player.setMuted( false );
+									
+									sdRenderer.last_source_entity.UpdateVolume();
 								}
 								else
 								if ( sdRenderer.last_source_entity.channel )
 								{
 									twitch_player.setChannel( sdRenderer.last_source_entity.channel );
 									twitch_player.setMuted( false );
+									
+									sdRenderer.last_source_entity.UpdateVolume();
 								}
 							});
 							globalThis.RequireYoutubePlayerAndDo( ( youtube_player )=>
@@ -573,12 +577,14 @@ class sdRenderer
 							
 								if ( sdRenderer.last_source_entity.video )
 								{
-									if ( youtube_player.getVideoData().video_id !== sdRenderer.last_source_entity.video )
+									if ( youtube_player.getVideoData() === undefined || youtube_player.getVideoData().video_id !== sdRenderer.last_source_entity.video )
 									{
 										youtube_player.loadVideoById( sdRenderer.last_source_entity.video );
 									}
 									youtube_player.seekTo( sdRenderer.last_source_entity.playing_offset / 1000 );
 									youtube_player.unMute();
+									
+									sdRenderer.last_source_entity.UpdateVolume();
 								}
 							});
 							globalThis.RequireTwitchPlayerAndDo( ( twitch_player )=>

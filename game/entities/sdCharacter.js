@@ -1002,7 +1002,8 @@ class sdCharacter extends sdEntity
 			}
 			
 			
-			if ( this.hea < -800 )
+			//if ( this.hea < -800 ) // Not so fun when body is on the way
+			if ( this.hea < -400 )
 			{
 				//if ( this.death_anim <= sdCharacter.disowned_body_ttl )
 				{

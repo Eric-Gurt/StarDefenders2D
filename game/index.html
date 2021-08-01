@@ -583,11 +583,11 @@
 		top: 50%;
 		left: 50%;
 		margin-left: -300px;
-		margin-top: -310px;
+		margin-top: -325px;
 		display: block;
 		background-color: black;
 		width: 600px;
-		height: 620px;
+		height: 680px;
 		color: white;
 		padding: 20px;
 		box-sizing: border-box;">
@@ -630,8 +630,9 @@
 		    <a class="server serverB" href="https://www.gevanni.com:3000">gevanni.com:3000<div>Europe, Ukraine<br>Main server, attacking other players is not allowed</div></a>
 		    <a class="server serverB" href="https://www.gevanni.com:3001">gevanni.com:3001<div>Europe, Ukraine<br>Main server, combat allowed, no rules</div></a>
 		    <a class="server serverB" href="https://www.gevanni.com:3002">gevanni.com:3002<div>Europe, Ukraine<br>Main server, combat arena (or more like PB2 arena)</div></a>
+		    <a class="server serverB" href="https://www.plazmaburst2.com:8443">plazmaburst2.com:8443<div>USA, California<br>Secondary server, no rules, rare updates<br>Hosted by Coolbuddy.com<br>since July 31, 2021</div></a>
 		    
-		    <a class="server serverC" href="#" onclick="confirm('This server is hosted by one of Star Defenders 2D players and thus we can not be fully responsible for any custom content you might find there.\n\nAdditonally your current IP address and thus approximate location might be known to server owner unless you have VPN enabled before proceeding.\n\nFeel free to report any abuse to https://twitter.com/Eric_Gurt \n\nPress OK to proceed')?window.location='https://darkclan.xyz:3000':null;">darkclan.xyz:3000<div>Canada, Quebec<br>Hosted by mrmcshroom<br>since March 27, 2021</div></a>
+		    <a class="server serverC" href="#" onclick="confirm('This server is hosted by one of Star Defenders 2D players and thus we can not be fully responsible for any custom content you might find there.\n\nAdditonally your current IP address and thus approximate location might be known to server owner unless you have VPN enabled before proceeding.\n\nFeel free to report any abuse to https://twitter.com/Eric_Gurt \n\nPress OK to proceed')?window.location='https://darkclan.xyz:3000':null;">darkclan.xyz:3000<div>Canada, Quebec<br>Rare updates<br>Hosted by mrmcshroom<br>since March 27, 2021</div></a>
 		</div>
 	    </div>
 	    
@@ -934,6 +935,16 @@
 		<input type="checkbox" id="volume3" value="1" checked>
 		<label for="volume3">10%</label>
 	    </div>
+	    
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Play as</span><br>
+		<input type="checkbox" id="entity1" value="1">
+		<label for="entity1">Humanoid</label>
+		<br>
+		<input type="checkbox" id="entity2" value="1">
+		<label for="entity2">Drone</label>
+	    </div>
 	    <!--
 	    <div class="set_block" tabindex="1" style="width: 485px">
 		<span class="sdtitle">Other Star Defenders servers</span><br>
@@ -1006,7 +1017,16 @@
 	    
 		ctx.save();
 
-		let ent = new sdCharacter({ x:-1, y:0,  });
+		let ent;
+		
+		let preferred_entity = sdWorld.ConvertPlayerDescriptionToEntity( globalThis.GetPlayerSettings() );
+		
+		if ( sdWorld.allowed_player_classes.indexOf( preferred_entity ) === -1 )
+		ent = new sdCharacter({ x:1, y:0 });
+		else
+		ent = new sdWorld.entity_classes[ preferred_entity ]({ x:1, y:0 });
+		
+		
 		let ent2;
 			
 		if ( inputs_hash[ 'start_with2' ].el.checked )
@@ -1035,10 +1055,10 @@
 		ent.gun_slot = ( sdWorld.time % 4000 ) < 2000 ? 0 : 1;
 		
 		//ent._an = Math.PI / 2;
-		ent.look_x = 1000;
+		ent.look_x = -1000;
 		ent.look_y = 0;
 		ent.stands = true;
-		ent.act_x = ( ( sdWorld.time ) % 4000 > 3000 ) ? 1 : 0;
+		ent.act_x = ( ( sdWorld.time ) % 4000 > 3000 ) ? -1 : 0;
 		ent._anim_walk = ( sdWorld.time / 50 ) % 10;
 		
 		ent.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( globalThis.GetPlayerSettings() );
@@ -1177,6 +1197,7 @@
 		JustOne( 'volume', last_changed_el );
 		JustOne( 'body', last_changed_el );
 		JustOne( 'legs', last_changed_el );
+		JustOne( 'entity', last_changed_el );
 		
 		
 		
