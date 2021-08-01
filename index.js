@@ -241,7 +241,7 @@ import sdSpider from './game/entities/sdSpider.js';
 import sdBall from './game/entities/sdBall.js';
 import sdTheatre from './game/entities/sdTheatre.js';
 import sdCaption from './game/entities/sdCaption.js';
-
+import sdBaseShieldingUnit from './game/entities/sdBaseShieldingUnit.js';
 	
 
 
@@ -382,6 +382,7 @@ sdTheatre.init_class();
 sdCaption.init_class();
 sdPlayerDrone.init_class();
 sdTurret.init_class();
+sdBaseShieldingUnit.init_class();
 
 /* Do like that later, not sure if I want to deal with path problems yet again... Add awaits where needed too
 
@@ -2288,9 +2289,10 @@ io.on("connection", (socket) =>
 				if ( sdWorld.time > socket.next_position_correction_allowed )
 				{
 					let corrected = false;
-					
+
 					const correction_scale = 3; // 1 should be most cheat-proof, but can be not enough for laggy servers
 					const debug_correction = false;
+
 
 					//if ( socket.character.hea > 0 )
 					if ( socket.character.AllowClientSideState() ) // Health and hook change
@@ -2302,21 +2304,23 @@ io.on("connection", (socket) =>
 						
 						if ( socket.character.stands || socket.character._in_air_timer < 500 / 1000 * 30 * correction_scale ) // Allow late jump
 						{
-							if ( dy < -27 * correction_scale )
+							if ( dy < -27 )
 							{
+
 								if ( debug_correction )
 								console.log( 'dy', dy );
 								dy = -27 * correction_scale;
 							}
 							
-							if ( dx > 30 * correction_scale )
+							if ( dx > 30 )
 							{
 								if ( debug_correction )
 								console.log( 'dx', dx );
 								dx = 30 * correction_scale;
+
 							}
 							else
-							if ( dx < -30 * correction_scale )
+							if ( dx < -30 )
 							{
 								if ( debug_correction )
 								console.log( 'dx', dx );
@@ -2327,17 +2331,17 @@ io.on("connection", (socket) =>
 						{
 							if ( socket.character.flying || socket.character._jetpack_allowed || socket.character._in_water )
 							{
-								if ( dx > 20 * correction_scale )
-								dx = 20 * correction_scale;
+								if ( dx > 20 )
+								dx = 20;
 								else
-								if ( dx < -20 * correction_scale )
-								dx = -20 * correction_scale;
+								if ( dx < -20 )
+								dx = -20;
 						
-								if ( dy > 20 * correction_scale )
-								dy = 20 * correction_scale;
+								if ( dy > 20 )
+								dy = 20;
 								else
-								if ( dy < -20 * correction_scale )
-								dy = -20 * correction_scale;
+								if ( dy < -20 )
+								dy = -20;
 						
 								if ( debug_correction )
 								console.log( 'flying', dx, dy );
@@ -2354,7 +2358,7 @@ io.on("connection", (socket) =>
 							}
 						}
 
-						if ( !allowed || Math.abs( dx ) > 128 * correction_scale || Math.abs( dy ) > 128 * correction_scale )
+						if ( !allowed || Math.abs( dx ) > 128 || Math.abs( dy ) > 128 )
 						{
 							if ( allowed )
 							if ( debug_correction )
@@ -2371,10 +2375,10 @@ io.on("connection", (socket) =>
 							//								arr[ 6 ] - ( socket.character.y + socket.character.sy / 30 * 100 ) );
 							
 							//if ( di > 128 )
-							if ( di > 64 * correction_scale )
+							if ( di > 64 )
 							{
-								dx = dx / di * 64 * correction_scale;
-								dy = dy / di * 64 * correction_scale;
+								dx = dx / di * 64;
+								dy = dy / di * 64;
 							}
 						//}
 						//else

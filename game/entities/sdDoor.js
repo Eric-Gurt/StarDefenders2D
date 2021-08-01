@@ -6,6 +6,7 @@ import sdEffect from './sdEffect.js';
 import sdBlock from './sdBlock.js';
 import sdCom from './sdCom.js';
 import sdWater from './sdWater.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -73,7 +74,28 @@ class sdDoor extends sdEntity
 		
 		if ( this._hea > 0 )
 		{
+			if ( this._shielded === null || dmg === Infinity )
 			this._hea -= dmg;
+			else
+			{
+				let shield = sdEntity.entities_by_net_id_cache_map.get( this._shielded );
+				//console.log( shield );
+				if ( shield === undefined ) // If the shielding unit doesn't exist, act as a default entity
+				{
+					this._hea -= dmg;
+					this._shielded = null;
+				}
+				else
+				if ( shield.enabled && !shield._is_being_removed )
+				if ( sdWorld.Dist2D( this.x, this.y, shield.x, shield.y ) < sdBaseShieldingUnit.protect_distance )
+				{
+				}
+				else
+				{
+					this._hea -= dmg;
+					this._shielded = null;
+				}
+			}
 			this.HandleDestructionUpdate();
 			
 			this._regen_timeout = 60;
@@ -92,6 +114,7 @@ class sdDoor extends sdEntity
 		
 		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
 		this._reinforced_level = params._reinforced_level || 0;
+		this._shielded = null; // Is this entity protected by a base defense unit?
 		
 		this.x0 = null; // undefined
 		this.y0 = null; // undefined
@@ -123,6 +146,10 @@ class sdDoor extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		if ( this._reinforced_level > 0 )
+		this._reinforced_level = 0;
+		if ( this.model === sdDoor.MODEL_ARMORED )
+		this.model = sdDoor.MODEL_BASIC;
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
@@ -368,9 +395,9 @@ class sdDoor extends sdEntity
 		if ( this.openness > 0 || typeof ctx.FakeStart !== 'undefined' )
 		{
 			if ( this.x0 === null ) // undefined
-			ctx.drawImageFilterCache( sdDoor.img_door_path, -16, -16, 32,32 );
+			ctx.drawImage( sdDoor.img_door_path, -16, -16, 32,32 );
 			else
-			ctx.drawImageFilterCache( sdDoor.img_door_path, -16 - this.x + this.x0, -16 - this.y + this.y0, 32,32 );
+			ctx.drawImage( sdDoor.img_door_path, -16 - this.x + this.x0, -16 - this.y + this.y0, 32,32 );
 		}
 	}
 	Draw( ctx, attached )
@@ -402,13 +429,13 @@ class sdDoor extends sdEntity
 			}
 		
 			if ( sdBlock.cracks[ this.destruction_frame ] !== null )
-			ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
+			ctx.drawImage( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
 		}
 		else
 		{
 			if ( this.openness > 0 )
 			{
-				//ctx.drawImageFilterCache( sdDoor.img_door_path, -16 - this.x + this.x0, -16 - this.y + this.y0, 32,32 );
+				//ctx.drawImage( sdDoor.img_door_path, -16 - this.x + this.x0, -16 - this.y + this.y0, 32,32 );
 
 				ctx.save();
 				
@@ -429,7 +456,7 @@ class sdDoor extends sdEntity
 					}
 		
 					if ( sdBlock.cracks[ this.destruction_frame ] !== null )
-					ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
+					ctx.drawImage( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
 				}
 				ctx.restore();
 			}
@@ -447,7 +474,7 @@ class sdDoor extends sdEntity
 				}
 		
 				if ( sdBlock.cracks[ this.destruction_frame ] !== null )
-				ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
+				ctx.drawImage( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
 			}
 		}
 	
