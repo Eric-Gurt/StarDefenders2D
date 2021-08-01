@@ -316,6 +316,7 @@ class sdPlayerDrone extends sdCharacter
 			}
 			else*/
 			{
+				if ( this.sd_filter )
 				if ( this._sd_filter_for_drone === null )
 				{
 					this._sd_filter_for_drone = sdWorld.CreateSDFilter();

@@ -265,28 +265,24 @@ class sdBlock extends sdEntity
 			{
 				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
 			}
-			//console.log( this._shielded );
-			if ( this._shielded === null || dmg === Infinity )
+			
+			if ( this._shielded === null || dmg === Infinity || this._shielded._is_being_removed || !this._shielded.enabled || !sdWorld.inDist2D_Boolean( this.x, this.y, this._shielded.x, this._shielded.y, sdBaseShieldingUnit.protect_distance ) )
 			this._hea -= dmg;
 			else
 			{
-				let shield = sdEntity.entities_by_net_id_cache_map.get( this._shielded );
-				//console.log( shield );
-				if ( shield === undefined ) // For some reason shield !== undefined with if statements below doesn't work :/
+				if ( initiator )
+				if ( initiator._socket )
+				if ( initiator._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
 				{
-					this._hea -= dmg;
-					this._shielded = null;
+					initiator._last_damage_upg_complain = sdWorld.time;
+					if ( Math.random() < 0.5 )
+					initiator.Say( 'This entity is protected by a base shielding unit' );
+					else
+					initiator.Say( 'A base shielding unit is protecting this' );
 				}
-				else
-				if ( shield.enabled && !shield._is_being_removed )
-				if ( sdWorld.Dist2D( this.x, this.y, shield.x, shield.y ) < sdBaseShieldingUnit.protect_distance )
-				{
-				}
-				else
-				{
-					this._hea -= dmg;
-					this._shielded = null;
-				}
+
+				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
+				this._shielded.matter_crystal = Math.max( 0, this._shielded.matter_crystal - dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp );
 			}
 
 			this.HandleDestructionUpdate();
@@ -437,7 +433,7 @@ class sdBlock extends sdEntity
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
-		return ( prop === '_plants' || prop === '_contains_class_params' );
+		return ( prop === '_plants' || prop === '_contains_class_params' || prop === '_shielded' );
 	}
 	MeasureMatterCost()
 	{

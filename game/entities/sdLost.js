@@ -14,6 +14,7 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdGun from './sdGun.js';
 import sdCrystal from './sdCrystal.js';
+import sdJunk from './sdJunk.js';
 import sdCharacter from './sdCharacter.js';
 import sdCrystalCombiner from './sdCrystalCombiner.js';
 import sdMatterAmplifier from './sdMatterAmplifier.js';
@@ -35,7 +36,7 @@ class sdLost extends sdEntity
 	{
 		let is_dead = ( ( ent.hea || ent._hea || 1 ) <= 0 );
 		
-		if ( ( ent.hard_collision && !ent.is( sdCrystal ) && !ent.is( sdLost ) ) ||
+		if ( ( ent.hard_collision && !ent.is( sdCrystal ) && !ent.is( sdLost ) && ( !ent.is( sdJunk ) || ent.type !== 2 ) ) ||
 			 ( !ent.hard_collision && ( ( ent.is( sdGun ) && ent.class !== sdGun.CLASS_CRYSTAL_SHARD ) || is_dead ) ) ) // Not for BG entities
 		if ( ent.IsBGEntity() === 0 ) // Not for BG entities
 		if ( ent.IsTargetable() )

@@ -603,8 +603,8 @@ class sdBullet extends sdEntity
 						}
 
 						if ( ( typeof from_entity._armor_protection_level === 'undefined' || this._armor_penetration_level >= from_entity._armor_protection_level ) &&
-							 ( typeof from_entity._reinforced_level === 'undefined' || this._reinforced_level >= from_entity._reinforced_level ) &&
-								 ( typeof from_entity._shielded === 'undefined' || from_entity._shielded === null ) )
+							 ( typeof from_entity._reinforced_level === 'undefined' || this._reinforced_level >= from_entity._reinforced_level ) /*&&
+								 ( typeof from_entity._shielded === 'undefined' || from_entity._shielded === null )*/ )
 						{
 							if ( !this._wave )
 							{
@@ -698,14 +698,14 @@ class sdBullet extends sdEntity
 									{
 										this._owner._last_damage_upg_complain = sdWorld.time;
 
-										if ( from_entity._shielded !== null )
+										/*if ( from_entity._shielded !== null )
 										{
 											if ( Math.random() < 0.5 )
 											this._owner.Say( 'This entity is protected by a base shielding unit' );
 											else
 											this._owner.Say( 'A base shielding unit is protecting this' );
 										}
-										else
+										else*/
 										if ( from_entity._reinforced_level > 0 )
 										{
 											if ( Math.random() < 0.5 )

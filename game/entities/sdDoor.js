@@ -74,7 +74,26 @@ class sdDoor extends sdEntity
 		
 		if ( this._hea > 0 )
 		{
-			if ( this._shielded === null || dmg === Infinity )
+			if ( this._shielded === null || dmg === Infinity || this._shielded._is_being_removed || !this._shielded.enabled || !sdWorld.inDist2D_Boolean( this.x, this.y, this._shielded.x, this._shielded.y, sdBaseShieldingUnit.protect_distance ) )
+			this._hea -= dmg;
+			else
+			{
+				if ( initiator )
+				if ( initiator._socket )
+				if ( initiator._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
+				{
+					initiator._last_damage_upg_complain = sdWorld.time;
+					if ( Math.random() < 0.5 )
+					initiator.Say( 'This entity is protected by a base shielding unit' );
+					else
+					initiator.Say( 'A base shielding unit is protecting this' );
+				}
+
+				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
+				this._shielded.matter_crystal = Math.max( 0, this._shielded.matter_crystal - dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp );
+			}
+
+			/*if ( this._shielded === null || dmg === Infinity )
 			this._hea -= dmg;
 			else
 			{
@@ -95,7 +114,7 @@ class sdDoor extends sdEntity
 					this._hea -= dmg;
 					this._shielded = null;
 				}
-			}
+			}*/
 			this.HandleDestructionUpdate();
 			
 			this._regen_timeout = 60;
@@ -133,6 +152,10 @@ class sdDoor extends sdEntity
 		this.model = params.model || 1;
 		
 		this.filter = params.filter;
+	}
+	ExtraSerialzableFieldTest( prop )
+	{
+		return ( prop === '_shielded' );
 	}
 	MeasureMatterCost()
 	{
