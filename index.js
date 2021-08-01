@@ -3,6 +3,7 @@
 
 let port0 = 3000;
 let CloudFlareSupport = false;
+let directory_to_save_player_count = null;
 
 // http://localhost:3000 + world_slot
 
@@ -69,6 +70,8 @@ if ( !isWin )
 		
 		port0 = 8443;
 		CloudFlareSupport = true;
+		
+		directory_to_save_player_count = '/home/plazmaburst2/public_html/pb2/sd2d_online.v';
 	}
 	
 	const credentials = {
@@ -186,6 +189,7 @@ globalThis.FakeCanvasContext = FakeCanvasContext;
 
 import sdEntity from './game/entities/sdEntity.js';
 import sdCharacter from './game/entities/sdCharacter.js';
+import sdPlayerDrone from './game/entities/sdPlayerDrone.js';
 import sdGun from './game/entities/sdGun.js';
 import sdBlock from './game/entities/sdBlock.js';
 import sdEffect from './game/entities/sdEffect.js';
@@ -340,7 +344,6 @@ sdTeleport.init_class();
 sdDoor.init_class();
 sdWater.init_class();
 sdWeather.init_class();
-sdTurret.init_class();
 sdMatterContainer.init_class();
 sdMatterAmplifier.init_class();
 sdQuickie.init_class();
@@ -377,6 +380,8 @@ sdSpider.init_class();
 sdBall.init_class();
 sdTheatre.init_class();
 sdCaption.init_class();
+sdPlayerDrone.init_class();
+sdTurret.init_class();
 
 /* Do like that later, not sure if I want to deal with path problems yet again... Add awaits where needed too
 
@@ -558,17 +563,29 @@ app.get('/*', function cb( req, res, repeated=false )
 	
 	var path = __dirname + '/game' + req.url;
 	//var path = './game' + req.url;
+	
+	
 	fs.access(path.split('?')[0], fs.F_OK, (err) => 
 	{
-		let t3 = Date.now();
+		//let t3 = Date.now();
 		
-		if (err)
+		if ( !file_exists( path ) ) // Silent
 		{
-			res.send( '404' );//console.error(err)
+			res.end();
 			
 			Finalize();
 			return;
 		}
+		
+		if ( err ) // Access errors usually
+		{
+			//res.send( '404' );//console.error(err)
+			res.status( 404 ).end();
+			
+			Finalize();
+			return;
+		}
+		
 		res.sendFile( path );
 		//file exists
 		
@@ -1626,6 +1643,18 @@ function GetPlayingPlayersCount()
 */
 const GetPlayingPlayersCount = sdWorld.GetPlayingPlayersCount;
 
+if ( directory_to_save_player_count !== null )
+{
+	setInterval( ()=>{
+		
+		fs.writeFile( directory_to_save_player_count, sdWorld.sockets.length+'', ( err )=>
+		{
+			
+		});
+		
+	}, 1000 * 60 );
+};
+
 let game_ttl = 0; // Prevent frozen state
 function IsGameActive()
 {
@@ -1953,7 +1982,14 @@ io.on("connection", (socket) =>
 		}
 		function SpawnNewPlayer()
 		{
+			const allowed_classes = sdWorld.allowed_player_classes;
+			
+			let preferred_entity = sdWorld.ConvertPlayerDescriptionToEntity( player_settings );
+		
+			if ( allowed_classes.indexOf( preferred_entity ) === -1 )
 			character_entity = new sdCharacter({ x:0, y:0 });
+			else
+			character_entity = new sdWorld.entity_classes[ preferred_entity ]({ x:0, y:0 });
 			
 			if ( sdWorld.server_config.PlayerSpawnPointSeeker )
 			sdWorld.server_config.PlayerSpawnPointSeeker( character_entity, socket );

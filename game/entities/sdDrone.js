@@ -49,13 +49,14 @@ class sdDrone extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 400;
+		this.type = params.type || 1;
+		
+		this._hmax = ( this.type === 1 ) ? 130 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
 		this._hea = this._hmax;
 		this._ai_team = params._ai_team || 1;
 
 		this.attack_an = 0;
 		this.death_anim = 0;
-		this.type = params.type || 1;
 		
 		this._current_target = null;
 		
@@ -368,8 +369,8 @@ class sdDrone extends sdEntity
 										dx /= di;
 										dy /= di;
 									}
-									this.sx += dx;
-									this.sy += dy;
+									this.sx += dx * 0.1 * GSPEED;
+									this.sy += dy * 0.1 * GSPEED;
 								}
 							}
 						}

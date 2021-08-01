@@ -935,6 +935,16 @@
 		<input type="checkbox" id="volume3" value="1" checked>
 		<label for="volume3">10%</label>
 	    </div>
+	    
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Play as</span><br>
+		<input type="checkbox" id="entity1" value="1">
+		<label for="entity1">Humanoid</label>
+		<br>
+		<input type="checkbox" id="entity2" value="1">
+		<label for="entity2">Drone</label>
+	    </div>
 	    <!--
 	    <div class="set_block" tabindex="1" style="width: 485px">
 		<span class="sdtitle">Other Star Defenders servers</span><br>
@@ -1007,7 +1017,16 @@
 	    
 		ctx.save();
 
-		let ent = new sdCharacter({ x:-1, y:0,  });
+		let ent;
+		
+		let preferred_entity = sdWorld.ConvertPlayerDescriptionToEntity( globalThis.GetPlayerSettings() );
+		
+		if ( sdWorld.allowed_player_classes.indexOf( preferred_entity ) === -1 )
+		ent = new sdCharacter({ x:1, y:0 });
+		else
+		ent = new sdWorld.entity_classes[ preferred_entity ]({ x:1, y:0 });
+		
+		
 		let ent2;
 			
 		if ( inputs_hash[ 'start_with2' ].el.checked )
@@ -1036,10 +1055,10 @@
 		ent.gun_slot = ( sdWorld.time % 4000 ) < 2000 ? 0 : 1;
 		
 		//ent._an = Math.PI / 2;
-		ent.look_x = 1000;
+		ent.look_x = -1000;
 		ent.look_y = 0;
 		ent.stands = true;
-		ent.act_x = ( ( sdWorld.time ) % 4000 > 3000 ) ? 1 : 0;
+		ent.act_x = ( ( sdWorld.time ) % 4000 > 3000 ) ? -1 : 0;
 		ent._anim_walk = ( sdWorld.time / 50 ) % 10;
 		
 		ent.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( globalThis.GetPlayerSettings() );
@@ -1178,6 +1197,7 @@
 		JustOne( 'volume', last_changed_el );
 		JustOne( 'body', last_changed_el );
 		JustOne( 'legs', last_changed_el );
+		JustOne( 'entity', last_changed_el );
 		
 		
 		

@@ -85,6 +85,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdBall from './entities/sdBall.js';
 	import sdTheatre from './entities/sdTheatre.js';
 	import sdCaption from './entities/sdCaption.js';
+	import sdPlayerDrone from './entities/sdPlayerDrone.js';
 	
 
 	sdWorld.init_class();
@@ -95,6 +96,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdContextMenu.init_class();
 	sdEntity.init_class();
 	sdCharacter.init_class();
+	sdPlayerDrone.init_class();
 	sdEffect.init_class(); 
 	sdGun.init_class(); // must be after sdEffect
 	sdBlock.init_class();
@@ -111,7 +113,6 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdDoor.init_class();
 	sdWater.init_class();
 	sdWeather.init_class();
-	sdTurret.init_class();
 	sdMatterContainer.init_class();
 	sdMatterAmplifier.init_class();
 	sdQuickie.init_class();
@@ -147,6 +148,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdSpider.init_class();
 	sdBall.init_class();
 	sdTheatre.init_class();
+	sdTurret.init_class();
 
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;
