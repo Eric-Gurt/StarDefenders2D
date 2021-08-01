@@ -418,9 +418,9 @@ class sdDoor extends sdEntity
 		if ( this.openness > 0 || typeof ctx.FakeStart !== 'undefined' )
 		{
 			if ( this.x0 === null ) // undefined
-			ctx.drawImage( sdDoor.img_door_path, -16, -16, 32,32 );
+			ctx.drawImageFilterCache( sdDoor.img_door_path, -16, -16, 32,32 );
 			else
-			ctx.drawImage( sdDoor.img_door_path, -16 - this.x + this.x0, -16 - this.y + this.y0, 32,32 );
+			ctx.drawImageFilterCache( sdDoor.img_door_path, -16 - this.x + this.x0, -16 - this.y + this.y0, 32,32 );
 		}
 	}
 	Draw( ctx, attached )
@@ -452,13 +452,13 @@ class sdDoor extends sdEntity
 			}
 		
 			if ( sdBlock.cracks[ this.destruction_frame ] !== null )
-			ctx.drawImage( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
+			ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
 		}
 		else
 		{
 			if ( this.openness > 0 )
 			{
-				//ctx.drawImage( sdDoor.img_door_path, -16 - this.x + this.x0, -16 - this.y + this.y0, 32,32 );
+				//ctx.drawImageFilterCache( sdDoor.img_door_path, -16 - this.x + this.x0, -16 - this.y + this.y0, 32,32 );
 
 				ctx.save();
 				
@@ -479,7 +479,7 @@ class sdDoor extends sdEntity
 					}
 		
 					if ( sdBlock.cracks[ this.destruction_frame ] !== null )
-					ctx.drawImage( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
+					ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
 				}
 				ctx.restore();
 			}
@@ -497,7 +497,7 @@ class sdDoor extends sdEntity
 				}
 		
 				if ( sdBlock.cracks[ this.destruction_frame ] !== null )
-				ctx.drawImage( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
+				ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
 			}
 		}
 	

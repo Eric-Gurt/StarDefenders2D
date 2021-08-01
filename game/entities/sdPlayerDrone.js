@@ -105,6 +105,14 @@ class sdPlayerDrone extends sdCharacter
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		if ( this._god )
+		if ( this._socket )
+		{
+			this.hea = this.hmax; // Hack
+			this._nature_damage = 0; // Hack
+			this._player_damage = 0; // Hack
+		}
+		
 		if ( this.hea <= 0 )
 		{
 			this.sy += sdWorld.gravity * GSPEED;
@@ -170,89 +178,94 @@ class sdPlayerDrone extends sdCharacter
 
 					sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.33, pitch:3 });
 
-
-					let dx = -Math.cos( this.an / 100 );
-					let dy = -Math.sin( this.an / 100 );
-					
-					let bullet_obj = new sdBullet({ x: this.x + dx * 5, y: this.y + dy * 5 });
-
-					bullet_obj._owner = this;
-
-					bullet_obj.sx = dx * 12;
-					bullet_obj.sy = dy * 12;
-
-					bullet_obj._damage = 10;
-					bullet_obj.color = '#223355';
-
-					bullet_obj._rail = true;
-					bullet_obj.time_left = 8;
-
-					sdEntity.entities.push( bullet_obj );
-				}
-				if ( this._key_states.GetKey( 'Mouse3' ) && ( !this.grabbed || ( this.grabbed && sdWorld.inDist2D_Boolean( this.x, this.y, this.grabbed.x, this.grabbed.y, 400 ) ) ) )
-				{
-					if ( this.grabbed === null )
+					if ( sdWorld.is_server )
 					{
-						if ( sdWorld.inDist2D_Boolean( this.look_x, this.look_y, this.x, this.y, 400 ) )
+						let dx = -Math.cos( this.an / 100 );
+						let dy = -Math.sin( this.an / 100 );
+
+						let bullet_obj = new sdBullet({ x: this.x + dx * 5, y: this.y + dy * 5 });
+
+						bullet_obj._owner = this;
+
+						bullet_obj.sx = dx * 12;
+						bullet_obj.sy = dy * 12;
+
+						bullet_obj._damage = 10;
+						bullet_obj.color = '#223355';
+
+						bullet_obj._rail = true;
+						bullet_obj.time_left = 8;
+
+						sdEntity.entities.push( bullet_obj );
+					}
+				}
+				if ( sdWorld.is_server || this === sdWorld.my_entity )
+				{
+					if ( this._key_states.GetKey( 'Mouse3' ) && ( !this.grabbed || ( this.grabbed && sdWorld.inDist2D_Boolean( this.x, this.y, this.grabbed.x, this.grabbed.y, 400 ) ) ) )
+					{
+						if ( this.grabbed === null )
 						{
-							let nears = sdWorld.GetAnythingNear( this.look_x, this.look_y, 16, null, null );
-							for ( let i = 0; i < nears.length; i++ )
+							if ( sdWorld.inDist2D_Boolean( this.look_x, this.look_y, this.x, this.y, 400 ) )
 							{
-								if ( typeof nears[ i ].sx !== 'undefined' )
-								if ( typeof nears[ i ].sy !== 'undefined' )
-								if ( nears[ i ] !== this )
-								if ( nears[ i ]._hiberstate === sdEntity.HIBERSTATE_HIBERNATED || nears[ i ]._hiberstate === sdEntity.HIBERSTATE_ACTIVE )
-								if ( sdWorld.CheckLineOfSight( this.x, this.y, nears[ i ].x + ( nears[ i ]._hitbox_x1 + nears[ i ]._hitbox_x2 ) / 2, nears[ i ].y + ( nears[ i ]._hitbox_y1 + nears[ i ]._hitbox_y2 ) / 2, this, null, [ 'sdBlock' ] ) )
+								let nears = sdWorld.GetAnythingNear( this.look_x, this.look_y, 16, null, null );
+								for ( let i = 0; i < nears.length; i++ )
 								{
-									sdSound.PlaySound({ name:'teleport_ready', x:this.x, y:this.y, volume:0.5, pitch:2 });
+									if ( typeof nears[ i ].sx !== 'undefined' )
+									if ( typeof nears[ i ].sy !== 'undefined' )
+									if ( nears[ i ] !== this )
+									if ( nears[ i ]._hiberstate === sdEntity.HIBERSTATE_HIBERNATED || nears[ i ]._hiberstate === sdEntity.HIBERSTATE_ACTIVE )
+									if ( sdWorld.CheckLineOfSight( this.x, this.y, nears[ i ].x + ( nears[ i ]._hitbox_x1 + nears[ i ]._hitbox_x2 ) / 2, nears[ i ].y + ( nears[ i ]._hitbox_y1 + nears[ i ]._hitbox_y2 ) / 2, this, null, [ 'sdBlock' ] ) )
+									{
+										sdSound.PlaySound({ name:'teleport_ready', x:this.x, y:this.y, volume:0.5, pitch:2 });
 
-									this.grabbed = nears[ i ];
-									this.grabbed.PhysWakeUp();
-									this.grabbed.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+										this.grabbed = nears[ i ];
+										this.grabbed.PhysWakeUp();
+										this.grabbed.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 
-									break;
+										break;
+									}
 								}
 							}
+						}
+						else
+						{
+							let xx = this.look_x - this.x;
+							let yy = this.look_y - this.y;
+							let di_look = sdWorld.Dist2D_Vector( xx, yy );
+							if ( di_look > 200 )
+							{
+								xx = xx / di_look * 200;
+								yy = yy / di_look * 200;
+								this.look_x = this.x + xx;
+								this.look_y = this.y + yy;
+							}
+
+
+
+							let p = 1.5;
+
+							let dx = ( this.look_x - this.grabbed.x ) + ( this.sx - this.grabbed.sx ) * 10;
+							let dy = ( this.look_y - this.grabbed.y ) + ( this.sy - this.grabbed.sy ) * 10;
+
+							let di = sdWorld.Dist2D_Vector( dx, dy );
+
+							if ( di > 10 )
+							{
+								dx /= di / 10;
+								dy /= di / 10;
+							}
+
+							this.grabbed.Impulse( dx * p, 
+												  dy * p );
 						}
 					}
 					else
 					{
-						let xx = this.look_x - this.x;
-						let yy = this.look_y - this.y;
-						let di_look = sdWorld.Dist2D_Vector( xx, yy );
-						if ( di_look > 200 )
+						if ( this.grabbed )
 						{
-							xx = xx / di_look * 200;
-							yy = yy / di_look * 200;
-							this.look_x = this.x + xx;
-							this.look_y = this.y + yy;
+							sdSound.PlaySound({ name:'teleport_ready', x:this.x, y:this.y, volume:2, pitch:0.5 });
+							this.grabbed = null;
 						}
-						
-						
-						
-						let p = 1.5;
-						
-						let dx = ( this.look_x - this.grabbed.x ) + ( this.sx - this.grabbed.sx ) * 10;
-						let dy = ( this.look_y - this.grabbed.y ) + ( this.sy - this.grabbed.sy ) * 10;
-						
-						let di = sdWorld.Dist2D_Vector( dx, dy );
-						
-						if ( di > 10 )
-						{
-							dx /= di / 10;
-							dy /= di / 10;
-						}
-						
-						this.grabbed.Impulse( dx * p, 
-											  dy * p );
-					}
-				}
-				else
-				{
-					if ( this.grabbed )
-					{
-						sdSound.PlaySound({ name:'teleport_ready', x:this.x, y:this.y, volume:2, pitch:0.5 });
-						this.grabbed = null;
 					}
 				}
 			}
