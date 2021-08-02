@@ -52,6 +52,8 @@ class sdPlayerDrone extends sdCharacter
 		this.grabbed = null;
 		
 		this._sd_filter_for_drone = null;
+		
+		this.gun_slot = 1;
 	}
 	
 	Damage( dmg, initiator=null )
@@ -170,18 +172,46 @@ class sdPlayerDrone extends sdCharacter
 			
 			this.an = ( -Math.PI/2 - Math.atan2( this.look_x - this.x, this.look_y - this.y ) ) * 100;
 			
+			if ( this._key_states.GetKey( 'Digit1' ) )
+			this.gun_slot = 1;
+			else
+			if ( this._key_states.GetKey( 'Digit4' ) )
+			this.gun_slot = 4;
+			
 			if ( this.fire_anim <= 0 )
 			{
 				if ( this._key_states.GetKey( 'Mouse1' ) )
 				{
-					this.fire_anim = 5;
+					//let power = ( this.grabbed && this._key_states.GetKey( 'Mouse3' ) && this.matter >= this.matter_max ) ? 10 : 1;
+					let power = ( ( this.gun_slot === 4 ) && this.matter >= this.matter_max ) ? 10 : 1;
+					
+					if ( power > 1 )
+					this.matter = 0;
 
+					if ( power > 1 )
+					sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.66, pitch:2 });
+					else
 					sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.33, pitch:3 });
+					
+					this.fire_anim = 5 * power;
 
 					if ( sdWorld.is_server )
 					{
 						let dx = -Math.cos( this.an / 100 );
 						let dy = -Math.sin( this.an / 100 );
+						
+						/*if ( power > 1 )
+						{
+							dx = this.grabbed.x + ( this.grabbed._hitbox_x1 + this.grabbed._hitbox_x2 ) / 2 - this.x;
+							dy = this.grabbed.y + ( this.grabbed._hitbox_y1 + this.grabbed._hitbox_y2 ) / 2 - this.y;
+							
+							let di = sdWorld.Dist2D_Vector( dx, dy );
+							if ( di > 1 )
+							{
+								dx /= di;
+								dy /= di;
+							}
+						}*/
 
 						let bullet_obj = new sdBullet({ x: this.x + dx * 5, y: this.y + dy * 5 });
 
@@ -190,11 +220,20 @@ class sdPlayerDrone extends sdCharacter
 						bullet_obj.sx = dx * 12;
 						bullet_obj.sy = dy * 12;
 
-						bullet_obj._damage = 10;
-						bullet_obj.color = '#223355';
+						bullet_obj._damage = 10 * power;
+						
+						if ( power > 1 )
+						{
+							bullet_obj.color = '#aaaa55';
+							bullet_obj.time_left = 12;
+						}
+						else
+						{
+							bullet_obj.color = '#223355';
+							bullet_obj.time_left = 8;
+						}
 
 						bullet_obj._rail = true;
-						bullet_obj.time_left = 8;
 
 						sdEntity.entities.push( bullet_obj );
 					}
@@ -203,6 +242,10 @@ class sdPlayerDrone extends sdCharacter
 				{
 					if ( this._key_states.GetKey( 'Mouse3' ) && ( !this.grabbed || ( this.grabbed && sdWorld.inDist2D_Boolean( this.x, this.y, this.grabbed.x, this.grabbed.y, 400 ) ) ) )
 					{
+						if ( this.grabbed )
+						if ( this.grabbed._is_being_removed )
+						this.grabbed = null;
+				
 						if ( this.grabbed === null )
 						{
 							if ( sdWorld.inDist2D_Boolean( this.look_x, this.look_y, this.x, this.y, 400 ) )

@@ -513,7 +513,8 @@ class sdCharacter extends sdEntity
 		if ( !this.driver_of.IsVisible( observer_character ) )
 		return false;
 		
-		if ( !observer_character || !observer_character.is( sdCharacter ) )
+		//if ( !observer_character || !observer_character.is( sdCharacter ) )
+		if ( !observer_character || typeof observer_character._socket === 'undefined' ) // Let player-controlled drones see players in NCZ
 		if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
 		return false;
 		

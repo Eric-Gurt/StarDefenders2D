@@ -224,7 +224,7 @@ class sdEntity
 		return []; 
 	}
 	
-	PhysInitIfNeeded()
+	PhysInitIfNeeded() // Method can have problems with entities that are not initially physical, it can make sense to call this method somewhere on spawn to init physical cache properties
 	{
 		//if ( typeof this._phys_sleep === 'undefined' )
 		if ( typeof this._phys_last_touch === 'undefined' ) // Pointer is more probable to remain undefined after snapshot load
@@ -245,6 +245,9 @@ class sdEntity
 	}
 	PhysWakeUp() // Call this method if entity stuck mid-air
 	{
+		if ( typeof this._phys_last_touch === 'undefined' ) // Do not wake up non-physical bodies, such as sdAsteroid
+		return;
+	
 		this.PhysInitIfNeeded();
 
 		//if ( this.GetClass() === 'sdHover' )
