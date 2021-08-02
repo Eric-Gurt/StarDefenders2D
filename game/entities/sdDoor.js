@@ -93,6 +93,19 @@ class sdDoor extends sdEntity
 
 				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
 				this._shielded.matter_crystal = Math.max( 0, this._shielded.matter_crystal - dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp );
+
+				if ( this._shielded.matter_crystal >= 50000 )
+				{
+					if ( initiator )
+					{
+						if ( !sdWorld.inDist2D_Boolean( initiator.x, initiator.y, this._shielded.x, this._shielded.y, sdBaseShieldingUnit.protect_distance - 64 ) ) // Check if it is far enough from the shield to prevent players in base take damage
+						{
+							initiator.Damage( 5 );
+							sdWorld.SendEffect({ x:this._shielded.x, y:this._shielded.y, x2:this.x + ( this.hitbox_x2 / 2 ), y2:this.y + ( this.hitbox_y2 / 2 ), type:sdEffect.TYPE_BEAM, color:'#f9e853' });
+							sdWorld.SendEffect({ x:this.x + ( this.hitbox_x2 / 2 ), y:this.y + ( this.hitbox_y2 / 2 ), x2:initiator.x, y2:initiator.y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
+						}
+					}
+				}
 			}
 
 			/*if ( this._shielded === null || dmg === Infinity )
