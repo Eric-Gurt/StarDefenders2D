@@ -23,7 +23,7 @@ class sdBaseShieldingUnit extends sdEntity
 
 		sdBaseShieldingUnit.protect_distance = 275;
 				
-		sdBaseShieldingUnit.regen_matter_cost_per_1_hp = 0.01; // Much less than player's automatic regeneration
+		sdBaseShieldingUnit.regen_matter_cost_per_1_hp = 0.002; // Much less than player's automatic regeneration
 		
 		sdBaseShieldingUnit.all_shield_units = [];
 		

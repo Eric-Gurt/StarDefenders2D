@@ -1105,7 +1105,7 @@ class sdGunClass
 				{
 					character.armor = 190;
 					character.armor_max = 190;
-					character._armor_absorb_perc = 0.3; // 30% damage reduction
+					character._armor_absorb_perc = 0.35; // 35% damage reduction
 					character.armor_speed_reduction = 0; // Armor speed reduction, 0% for light armor
 					gun.remove(); 
 				}
@@ -1133,7 +1133,7 @@ class sdGunClass
 				{
 					character.armor = 280;
 					character.armor_max = 280;
-					character._armor_absorb_perc = 0.4; // 40% damage reduction
+					character._armor_absorb_perc = 0.45; // 45% damage reduction
 					character.armor_speed_reduction = 10; // Armor speed reduction, 10% for medium armor
 					gun.remove(); 
 				}
@@ -1161,7 +1161,7 @@ class sdGunClass
 				{
 					character.armor = 370;
 					character.armor_max = 370;
-					character._armor_absorb_perc = 0.5; // 50% damage reduction
+					character._armor_absorb_perc = 0.55; // 55% damage reduction
 					character.armor_speed_reduction = 20; // Armor speed reduction, 20% for heavy armor
 					gun.remove(); 
 				}
@@ -1409,7 +1409,7 @@ class sdGunClass
 				{
 					character.armor = 300;
 					character.armor_max = 300;
-					character._armor_absorb_perc = 0.3; // 30% damage reduction
+					character._armor_absorb_perc = 0.4; // 40% damage reduction
 					character.armor_speed_reduction = 0; // Armor speed reduction, 0% for light armor
 					gun.remove(); 
 				}
@@ -1437,7 +1437,7 @@ class sdGunClass
 				{
 					character.armor = 400;
 					character.armor_max = 400;
-					character._armor_absorb_perc = 0.4; // 40% damage reduction
+					character._armor_absorb_perc = 0.5; // 50% damage reduction
 					character.armor_speed_reduction = 10; // Armor speed reduction, 10% for medium armor
 					gun.remove(); 
 				}
@@ -1465,7 +1465,7 @@ class sdGunClass
 				{
 					character.armor = 500;
 					character.armor_max = 500;
-					character._armor_absorb_perc = 0.5; // 50% damage reduction
+					character._armor_absorb_perc = 0.6; // 60% damage reduction
 					character.armor_speed_reduction = 20; // Armor speed reduction, 20% for heavy armor
 					gun.remove(); 
 				}

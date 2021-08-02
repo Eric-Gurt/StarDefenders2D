@@ -254,7 +254,7 @@ class sdBlock extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 
-		dmg = Math.abs( dmg );
+		dmg = Math.abs( dmg / ( 1 + this._reinforced_level ) ); // Reinforced blocks have damage reduction
 		
 		if ( this._contains_class === 'sdVirus' || this._contains_class === 'sdQuickie' || this._contains_class === 'sdAsp' )
 		dmg = this._hea + 1;
@@ -465,10 +465,10 @@ class sdBlock extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		if ( this._reinforced_level > 0 )
-		this._reinforced_level = 0;
-		if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 )
-		this.material = sdBlock.MATERIAL_WALL;
+		//if ( this._reinforced_level > 0 )
+		//this._reinforced_level = 0;
+		//if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 )
+		//this.material = sdBlock.MATERIAL_WALL;
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else

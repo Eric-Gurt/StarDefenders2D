@@ -71,6 +71,8 @@ class sdDoor extends sdEntity
 	{
 		if ( !sdWorld.is_server )
 		return;
+
+		dmg = dmg / ( 1 + this._reinforced_level); // Reinforced doors have damage reduction, depending on reinforced level
 		
 		if ( this._hea > 0 )
 		{
@@ -169,10 +171,10 @@ class sdDoor extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		if ( this._reinforced_level > 0 )
-		this._reinforced_level = 0;
-		if ( this.model === sdDoor.MODEL_ARMORED )
-		this.model = sdDoor.MODEL_BASIC;
+		//if ( this._reinforced_level > 0 )
+		//this._reinforced_level = 0;
+		//if ( this.model === sdDoor.MODEL_ARMORED )
+		//this.model = sdDoor.MODEL_BASIC;
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else

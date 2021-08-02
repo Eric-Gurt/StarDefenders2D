@@ -104,8 +104,8 @@ class sdMatterAmplifier extends sdEntity
 			sdWorld.UpdateHashPosition( this, false );
 		}
 
-		if ( this.multiplier > 4 ) // Revert old max amplifiers to current max, this can be commented out/deleted once it is applied to server and overrides old max amplifiers
-		this.multiplier = 4;
+		//if ( this.multiplier > 4 ) // Revert old max amplifiers to current max, this can be commented out/deleted once it is applied to server and overrides old max amplifiers
+		//this.multiplier = 4;
 		
 		if ( this._ignore_pickup_tim > 0 )
 		this._ignore_pickup_tim = Math.max( 0, this._ignore_pickup_tim - GSPEED );
