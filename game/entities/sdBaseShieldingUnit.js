@@ -23,7 +23,7 @@ class sdBaseShieldingUnit extends sdEntity
 
 		sdBaseShieldingUnit.protect_distance = 275;
 				
-		sdBaseShieldingUnit.regen_matter_cost_per_1_hp = 0.002; // Much less than player's automatic regeneration
+		sdBaseShieldingUnit.regen_matter_cost_per_1_hp = 0.001; // Much less than player's automatic regeneration
 		
 		sdBaseShieldingUnit.all_shield_units = [];
 		
@@ -268,8 +268,8 @@ class sdBaseShieldingUnit extends sdEntity
 				{
 					if ( units[ i ].matter_crystal > 350 ) // Not really needed since the units turn off below 800 matter
 					{
-						units[ i ].matter_crystal -= 350;
-						this.matter_crystal -= 350;
+						units[ i ].matter_crystal -= 80;
+						this.matter_crystal -= 80;
 						sdWorld.SendEffect({ x:this.x, y:this.y, x2:units[ i ].x, y2:units[ i ].y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
 						this._attack_timer = 30;
 						this.attack_anim = 20;
