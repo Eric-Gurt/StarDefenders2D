@@ -1475,6 +1475,8 @@ class sdEntity
 		{
 			if ( net_id === 'sdCharacter' )
 			return 'all players';
+			if ( net_id === 'sdPlayerDrone' )
+			return 'all player drones';
 			if ( net_id === 'sdCrystal' )
 			return 'all crystals';
 			if ( net_id === 'sdCube' )
