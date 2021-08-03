@@ -180,6 +180,7 @@ else // Geckos
 	
 	io.addServer( httpsServer ? httpsServer : httpServer );
 }
+import THREE from "./game/libs/three-for-server.js";
 	
 // let that = this; setTimeout( ()=>{ sdWorld.entity_classes[ that.name ] = that; }, 1 ); // Old register for object spawn code
 import sdWorld from './game/sdWorld.js';
@@ -721,6 +722,7 @@ sdWorld.server_config = {};
 		if ( player_settings.start_with3 )
 		guns.push( sdGun.CLASS_SHOVEL );
 
+		if ( character_entity.is( sdCharacter ) )
 		for ( var i = 0; i < sdGun.classes.length; i++ )
 		if ( guns.indexOf( i ) !== -1 )
 		{
@@ -1755,7 +1757,16 @@ io.on("connection", (socket) =>
 		ip = socket.client.conn.remoteAddress;
 		
 		if ( CloudFlareSupport )
-		ip = socket.client.request.headers['cf-connecting-ip'];
+		{
+			if ( typeof socket.client.request.headers['cf-connecting-ip'] !== 'string' )
+			{
+				console.log( 'User connection rejected with cf-connecting-ip: ', socket.client.request.headers['cf-connecting-ip'], ' data got from IP: ' + ip );
+				socket.disconnect();
+				return;
+			}
+			
+			ip = socket.client.request.headers['cf-connecting-ip'];
+		}
 	}
 	else
 	{
@@ -2070,7 +2081,7 @@ io.on("connection", (socket) =>
 				return;
 			}
 			socket.respawn_block_until = sdWorld.time + 2000; // Will be overriden if player respawned near his command centre
-			socket.post_death_spectate_ttl = 30;
+			socket.post_death_spectate_ttl = 60;
 
 
 
@@ -3011,7 +3022,7 @@ setInterval( ()=>
 				socket.post_death_spectate_ttl--;
 			}
 			else
-			socket.post_death_spectate_ttl = 30;
+			socket.post_death_spectate_ttl = 60;
 		
 			//console.log( 'socket.post_death_spectate_ttl', socket.post_death_spectate_ttl );
 					

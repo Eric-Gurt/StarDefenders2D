@@ -281,7 +281,7 @@ class sdBlock extends sdEntity
 					initiator.Say( 'A base shielding unit is protecting this' );
 				}
 
-				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
+				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:0.2 });
 				this._shielded.matter_crystal = Math.max( 0, this._shielded.matter_crystal - dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp );
 			}
 
@@ -505,6 +505,7 @@ class sdBlock extends sdEntity
 		if ( this.material === sdBlock.MATERIAL_SHARP )
 		if ( from_entity.IsBGEntity() === this.IsBGEntity() )
 		if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null ) // Do not react to held guns
+		if ( !from_entity.driver_of )
 		{
 			if ( this.spikes_ani === 0 )
 			//if ( sdWorld.GetComsNear( this.x + this.width / 2, this.y + this.height / 2, null, from_entity._net_id, true ).length === 0 && sdWorld.GetComsNear( this.x + this.width / 2, this.y + this.height / 2, null, from_entity.GetClass(), true ).length === 0 )

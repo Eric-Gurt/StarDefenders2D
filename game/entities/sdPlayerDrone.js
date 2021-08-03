@@ -17,6 +17,18 @@ class sdPlayerDrone extends sdCharacter
 		//sdPlayerDrone.img_player_drone = sdWorld.CreateImageFromFile( 'drone_robot2' );
 		sdPlayerDrone.img_glow = sdWorld.CreateImageFromFile( 'hit_glow' );
 		
+		sdPlayerDrone.drone_helmets = [
+			null, // 0
+			null, // 1
+			sdWorld.CreateImageFromFile( 'drone_robot' ), // 2
+			sdWorld.CreateImageFromFile( 'drone_robot3' ), // 3
+			sdWorld.CreateImageFromFile( 'drone_robot4' ), // 4
+			sdWorld.CreateImageFromFile( 'drone_robot5' ), // 5
+			sdWorld.CreateImageFromFile( 'drone_robot6' ), // 6
+			sdWorld.CreateImageFromFile( 'drone_robot7' ), // 7
+			sdWorld.CreateImageFromFile( 'drone_robot8' ), // 8
+		];
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	
@@ -25,8 +37,11 @@ class sdPlayerDrone extends sdCharacter
 	get hitbox_y1() { return -6; }
 	get hitbox_y2() { return 6; }
 	
+	/*get hard_collision() // For world geometry where players can walk
+	{ return true; }*/
+	
 	get hard_collision() // For world geometry where players can walk
-	{ return true; }
+	{ return ( !this.driver_of ); }
 	
 	constructor( params )
 	{
@@ -40,7 +55,7 @@ class sdPlayerDrone extends sdCharacter
 		this.hmax = 100;
 		this.hea = this.hmax;
 		
-		this.matter_max = 20;
+		this.matter_max = 100;
 		this.matter = 0;
 		
 		this._jetpack_allowed = true; // For position correction tests
@@ -54,6 +69,13 @@ class sdPlayerDrone extends sdCharacter
 		this._sd_filter_for_drone = null;
 		
 		this.gun_slot = 1;
+		
+		this._beep_delay = 0;
+		this._beep_charge = 0;
+	}
+	
+	CanSelfDestruct()
+	{
 	}
 	
 	Damage( dmg, initiator=null )
@@ -66,13 +88,30 @@ class sdPlayerDrone extends sdCharacter
 		
 		let was_alive = this.hea > 0;
 		
+		if ( was_alive )
+		if ( this.hea - dmg <= 0 )
+		{
+			if ( this.AttemptTeleportOut() )
+			return;
+		}
+		
+		if ( !was_alive )
+		if ( dmg < 0 )
+		this.hea = 0;
+		
 		this.hea -= dmg;
+		
 		this.hea = Math.min( this.hea, this.hmax ); // Prevent overhealing
 		
 		if ( this.hea > 0 )
 		{
 			if ( this.pain_anim <= 0 )
-			sdSound.PlaySound({ name:'spider_hurtC', x:this.x, y:this.y, volume: 1, pitch:1 });
+			{
+				if ( this.helmet === 8 )
+				sdSound.PlaySound({ name:'cube_hurt', pitch: 1, x:this.x, y:this.y, volume:0.66 });
+				else
+				sdSound.PlaySound({ name:'spider_hurtC', x:this.x, y:this.y, volume: 1, pitch:1 });
+			}
 		
 			this.pain_anim = 5;
 			
@@ -83,7 +122,16 @@ class sdPlayerDrone extends sdCharacter
 		
 		if ( this.hea <= 0 && was_alive )
 		{
+			if ( this.helmet === 8 )
+			sdSound.PlaySound({ name:'cube_offline', pitch:1, x:this.x, y:this.y, volume:1.5 });
+			else
 			sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:1, pitch:2 });
+				
+			if ( this.driver_of )
+			this.driver_of.ExcludeDriver( this );
+
+			if ( sdWorld.server_config.onKill )
+			sdWorld.server_config.onKill( this, initiator );
 		}
 		
 		if ( this.hea < -200 )
@@ -115,6 +163,44 @@ class sdPlayerDrone extends sdCharacter
 			this._player_damage = 0; // Hack
 		}
 		
+		const matter_cost_4 = ( Math.abs( 100 * this._damage_mult * ( this.power_ef > 0 ? 2.5 : 1 ) ) * 1 + 30 ) * sdWorld.damage_to_matter;
+		const matter_cost_5 = 100;
+		const matter_cost_7 = 1;
+		
+		
+		if ( this.matter >= matter_cost_5 && this.gun_slot === 5 )
+		{
+			if ( this._beep_charge < 90 )
+			this._beep_charge += GSPEED;
+
+			this._beep_delay -= GSPEED;
+			if ( this._beep_delay <= 0 )
+			{
+				sdSound.PlaySound({ name:'sd_beacon', x:this.x, y:this.y, volume:0.25, pitch: 1.1 });
+				this._beep_delay = 60 - 40 * ( this._beep_charge / 90 );
+			}
+
+			if ( this._beep_charge >= 90 )
+			if ( this.hea <= 0 )
+			{
+				sdWorld.SendEffect({ 
+					x:this.x, 
+					y:this.y, 
+					radius:40, // 80 was too much?
+					damage_scale: 10 * ( this._damage_mult ), // 5 was too deadly on relatively far range
+					type:sdEffect.TYPE_EXPLOSION, 
+					owner:this,
+					color:'#FF6633' 
+				});
+				this.remove();
+				return;
+			}
+		}
+		else
+		this._beep_charge = 0;
+
+		
+		
 		if ( this.hea <= 0 )
 		{
 			this.sy += sdWorld.gravity * GSPEED;
@@ -131,7 +217,11 @@ class sdPlayerDrone extends sdCharacter
 		}
 		else
 		{
-
+			this.ManagePlayerVehicleEntrance();
+			
+			if ( this._key_states.GetKey( 'KeyV' ) )
+			this.MatterGlow( 0.1, 30, GSPEED );
+		
 			if ( this.regen_timeout <= 0 )
 			{
 				if ( this.hea < this.hmax )
@@ -172,27 +262,77 @@ class sdPlayerDrone extends sdCharacter
 			
 			this.an = ( -Math.PI/2 - Math.atan2( this.look_x - this.x, this.look_y - this.y ) ) * 100;
 			
+			let old_gun_slot = this.gun_slot;
+			
 			if ( this._key_states.GetKey( 'Digit1' ) )
 			this.gun_slot = 1;
 			else
 			if ( this._key_states.GetKey( 'Digit4' ) )
 			this.gun_slot = 4;
+			else
+			if ( this._key_states.GetKey( 'Digit5' ) )
+			this.gun_slot = 5;
+			else
+			if ( this._key_states.GetKey( 'Digit7' ) )
+			this.gun_slot = 7;
+	
+			if ( old_gun_slot !== this.gun_slot )
+			{
+				if ( this._socket )
+				sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:0.7 }, [ this._socket ] );
+			}
 			
 			if ( this.fire_anim <= 0 )
 			{
+				if ( !this.driver_of )
 				if ( this._key_states.GetKey( 'Mouse1' ) )
-				{
-					//let power = ( this.grabbed && this._key_states.GetKey( 'Mouse3' ) && this.matter >= this.matter_max ) ? 10 : 1;
-					let power = ( ( this.gun_slot === 4 ) && this.matter >= this.matter_max ) ? 10 : 1;
+				{	
+					let mode = 1;
 					
-					if ( power > 1 )
-					this.matter = 0;
-
-					if ( power > 1 )
-					sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.66, pitch:2 });
+					if ( ( this.gun_slot === 4 ) && this.matter >= matter_cost_4 )
+					mode = 4;
 					else
-					sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.33, pitch:3 });
+					if ( ( this.gun_slot === 5 ) && this.matter >= matter_cost_5 )
+					mode = 5;
+					else
+					if ( ( this.gun_slot === 7 ) && this.matter >= matter_cost_7 )
+					mode = 7;
+			
+					if ( mode === 5 )
+					{
+						if ( !this._is_being_removed )
+						{
+							this.Damage( this.hea + 1 );
+							return;
+						}
+					}
 					
+					let power = ( mode === 4 ) ? 10 : 1;
+					
+					if ( mode !== 1 )
+					this.matter -= matter_cost_4;
+
+					if ( mode === 4 )
+					{
+						if ( this.helmet === 8 )
+						sdSound.PlaySound({ name:'cube_attack', pitch: 0.5, x:this.x, y:this.y, volume:0.5 });
+						else
+						sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.66, pitch:2 });
+					}
+					else
+					if ( mode === 7 )
+					sdSound.PlaySound({ name: sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].sound, x:this.x, y:this.y, volume:0.66, pitch:sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].sound_pitch });
+					else
+					{
+						if ( this.helmet === 8 )
+						sdSound.PlaySound({ name:'cube_attack', pitch: 1, x:this.x, y:this.y, volume:0.5 });
+						else
+						sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.33, pitch:3 });
+					}
+					
+					if ( mode === 7 )
+					this.fire_anim = 15;
+					else
 					this.fire_anim = 5 * power;
 
 					if ( sdWorld.is_server )
@@ -200,19 +340,6 @@ class sdPlayerDrone extends sdCharacter
 						let dx = -Math.cos( this.an / 100 );
 						let dy = -Math.sin( this.an / 100 );
 						
-						/*if ( power > 1 )
-						{
-							dx = this.grabbed.x + ( this.grabbed._hitbox_x1 + this.grabbed._hitbox_x2 ) / 2 - this.x;
-							dy = this.grabbed.y + ( this.grabbed._hitbox_y1 + this.grabbed._hitbox_y2 ) / 2 - this.y;
-							
-							let di = sdWorld.Dist2D_Vector( dx, dy );
-							if ( di > 1 )
-							{
-								dx /= di;
-								dy /= di;
-							}
-						}*/
-
 						let bullet_obj = new sdBullet({ x: this.x + dx * 5, y: this.y + dy * 5 });
 
 						bullet_obj._owner = this;
@@ -220,24 +347,34 @@ class sdPlayerDrone extends sdCharacter
 						bullet_obj.sx = dx * 12;
 						bullet_obj.sy = dy * 12;
 
-						bullet_obj._damage = 10 * power;
+						bullet_obj._damage = 10 * power * ( ( this.power_ef > 0 ) ? 2.5 : 1 ) * this._damage_mult;
+
 						
-						if ( power > 1 )
+						if ( mode === 7 )
+						{
+							//bullet_obj.time_left = 2;
+							//bullet_obj._damage = 1;
+							
+							Object.assign( bullet_obj, sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].projectile_properties );
+						}
+						else
+						if ( mode === 4 )
 						{
 							bullet_obj.color = '#aaaa55';
 							bullet_obj.time_left = 12;
+							bullet_obj._rail = true;
 						}
 						else
 						{
 							bullet_obj.color = '#223355';
 							bullet_obj.time_left = 8;
+							bullet_obj._rail = true;
 						}
-
-						bullet_obj._rail = true;
 
 						sdEntity.entities.push( bullet_obj );
 					}
 				}
+				
 				if ( sdWorld.is_server || this === sdWorld.my_entity )
 				{
 					if ( this._key_states.GetKey( 'Mouse3' ) && ( !this.grabbed || ( this.grabbed && sdWorld.inDist2D_Boolean( this.x, this.y, this.grabbed.x, this.grabbed.y, 400 ) ) ) )
@@ -314,16 +451,25 @@ class sdPlayerDrone extends sdCharacter
 			}
 			else
 			{
-				this.fire_anim = Math.max( this.fire_anim - GSPEED, 0 );
+				this.fire_anim = Math.max( this.fire_anim - GSPEED * ( ( this.stim_ef > 0 ) ? 2 : 1 ), 0 );
 			}
 			
 			this.PhysWakeUp();
 		}
 		
+		this.HandlePlayerPowerups( GSPEED );
+		
+		if ( this.driver_of )
+		this.PositionUpdateAsDriver();
+		else
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
 	onMovementInRange( from_entity )
 	{
+		if ( from_entity.IsVehicle() )
+		{
+			this._potential_vehicle = from_entity;
+		}
 	}
 	GetBleedEffect()
 	{
@@ -336,6 +482,7 @@ class sdPlayerDrone extends sdCharacter
 	
 	Draw( ctx, attached )
 	{
+		if ( !attached )
 		if ( this.hea > 0 )	
 		if ( this.grabbed )
 		{
@@ -355,11 +502,24 @@ class sdPlayerDrone extends sdCharacter
 			ctx.blend_mode = THREE.NormalBlending;
 			ctx.restore();
 		}
+		
+		if ( this.driver_of && !attached )
+		return;
 
-		ctx.rotate( this.an / 100 );
+		if ( this.helmet !== 8 )
+		{
+			if ( this.driver_of )
+			{
+				ctx.scale( -1, 1 );
+			}
+			else
+			{
+				ctx.rotate( this.an / 100 );
 
-		if ( this.look_x - this.x > 0 )
-		ctx.scale( 1, -1 );
+				if ( this.look_x - this.x > 0 )
+				ctx.scale( 1, -1 );
+			}
+		}
 		
 		//ctx.rotate( Math.atan2( this.look_x - this.x, this.look_y - this.y ) );
 		
@@ -391,16 +551,27 @@ class sdPlayerDrone extends sdCharacter
 				if ( this.fire_anim > 2 )
 				ctx.filter = 'brightness(1.5)';
 				else
+				if ( this.gun_slot === 5 )
+				{
+					ctx.filter = 'sepia(1) hue-rotate(-40deg) saturate(5) brightness(' + ((sdWorld.time%1000<500)?1.5:0.5) + ')';
+				}
+				else
 				if ( this.grabbed )
 				ctx.filter = 'brightness(3)';
 				else
 				ctx.filter = 'none';
 			
-				ctx.drawImageFilterCache( sdDrone.img_drone_robot, - 16, - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdPlayerDrone.drone_helmets[ this.helmet ] || sdDrone.img_drone_robot, - 16, - 16, 32, 32 );
 			}
 		}
 		else
 		{
+			if ( this.helmet === 8 )
+			{
+				ctx.filter = 'saturate(0) brightness(0.5)';
+				ctx.drawImageFilterCache( sdPlayerDrone.drone_helmets[ this.helmet ] || sdDrone.img_drone_robot, - 16, - 16, 32, 32 );
+			}
+			else
 			ctx.drawImageFilterCache( sdDrone.img_drone_robot_destroyed, - 16, - 16, 32, 32 );
 		}
 		

@@ -175,7 +175,7 @@ class sdBullet extends sdEntity
 			x:this.x, 
 			y:this.y, 
 			radius:this.explosion_radius, 
-			damage_scale: ( this._owner && this._owner.GetClass() === 'sdCharacter' ? this._owner._damage_mult : 1 ), 
+			damage_scale: ( this._owner && this._owner.IsPlayerClass() ? this._owner._damage_mult : 1 ), 
 			type:sdEffect.TYPE_EXPLOSION,
 			armor_penetration_level: this._armor_penetration_level,
 			owner:this._owner,
@@ -185,7 +185,7 @@ class sdBullet extends sdEntity
 		if ( this._hook )
 		{
 			if ( this._owner )
-			if ( this._owner.GetClass() === 'sdCharacter' )
+			if ( this._owner.IsPlayerClass() )
 			{
 				this._owner.hook_x = this.x;
 				this._owner.hook_y = this.y;
@@ -491,13 +491,13 @@ class sdBullet extends sdEntity
 				
 			 ) || this._can_hit_owner ) // 2nd rule is for turret bullet to not hit turret owner
 		{
-			if ( from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN || from_entity.is( sdCharacter ) )
+			if ( from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN || from_entity.IsPlayerClass() )
 			//if ( from_entity.GetClass() === 'sdCharacter' || 
 			//	 from_entity.GetClass() === 'sdVirus' )
 			{
 				if ( from_entity.IsTargetable( this, !this._hook ) ) // Ignore safe areas only if not a hook
 				if ( !sdWorld.server_config.GetHitAllowed || sdWorld.server_config.GetHitAllowed( this, from_entity ) )
-				if ( this._damage < 0 || !this._owner || !from_entity.is( sdCharacter ) || !this._owner.is( sdCharacter ) || from_entity.cc_id === 0 || from_entity.cc_id !== this._owner.cc_id )
+				if ( this._damage < 0 || !this._owner || !from_entity.IsPlayerClass() || !this._owner.IsPlayerClass() || from_entity.cc_id === 0 || from_entity.cc_id !== this._owner.cc_id )
 				{
 					if ( sdWorld.is_server ) // Or else fake self-knock
 					if ( this._damage !== 0 )
@@ -536,7 +536,7 @@ class sdBullet extends sdEntity
 						if ( old_hea > 0 )
 						if ( old_hea !== ( from_entity.hea || from_entity._hea || 0 ) ) // Any damage actually dealt
 						{
-							if ( from_entity.GetClass() === 'sdCharacter' && !sdCube.IsTargetFriendly( from_entity ) )
+							if ( from_entity.IsPlayerClass() && !sdCube.IsTargetFriendly( from_entity ) )
 							{
 								if ( typeof this._owner._player_damage !== 'undefined' )
 								this._owner._player_damage += dmg;
@@ -617,9 +617,8 @@ class sdBullet extends sdEntity
 							let dmg = this._damage;// * dmg_mult;
 
 							if ( this.ac > 0 )
-							if ( from_entity.IsVehicle() )
 							{
-								dmg *= 3;
+								dmg *= from_entity.GetRocketDamageScale();
 							}
 
 							// Some entities need to inherit impact velocity on damage so it is higher now
@@ -694,7 +693,7 @@ class sdBullet extends sdEntity
 								sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
 
 								if ( this._owner )
-								if ( this._owner.is( sdCharacter ) )
+								if ( this._owner.IsPlayerClass() )
 								{
 									if ( this._owner._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
 									{

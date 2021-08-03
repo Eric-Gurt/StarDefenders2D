@@ -13,6 +13,7 @@ import sdEntity from './sdEntity.js';
 import sdCharacter from './sdCharacter.js';
 import sdGun from './sdGun.js';
 import sdArea from './sdArea.js';
+import sdPlayerDrone from './sdPlayerDrone.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -53,7 +54,8 @@ class sdCable extends sdEntity
 			'sdTeleport',
 			'sdUpgradeStation',
 			'sdCrystalCombiner',
-			'sdNode'
+			'sdNode',
+			'sdPlayerDrone'
 		];
 		
 		// Override protection
@@ -870,8 +872,9 @@ class sdCable extends sdEntity
 				{
 
 					//{
-						if ( exectuter_character._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ] && 
-							 exectuter_character._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ].class === sdGun.CLASS_CABLE_TOOL )
+						if ( exectuter_character.is( sdPlayerDrone ) ||
+						     ( exectuter_character._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ] && 
+							   exectuter_character._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ].class === sdGun.CLASS_CABLE_TOOL ) )
 						{
 							if ( command_name === 'CUT_CABLE' )
 							this.remove();

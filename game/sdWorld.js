@@ -18,6 +18,7 @@ import sdShark from './entities/sdShark.js';
 import sdSandWorm from './entities/sdSandWorm.js';
 import sdCable from './entities/sdCable.js';
 import sdArea from './entities/sdArea.js';
+import sdPlayerDrone from './entities/sdPlayerDrone.js';
 
 
 import sdRenderer from './client/sdRenderer.js';
@@ -2833,10 +2834,18 @@ class sdWorld
 	}
 	static ConvertPlayerDescriptionToHelmet( player_description )
 	{
-		for ( var i = 1; i < sdCharacter.img_helmets.length; i++ )
-		if ( player_description[ 'helmet' + i ] )
-		return i;
-
+		if ( player_description['entity2'] )
+		{
+			for ( var i = 1; i < sdPlayerDrone.drone_helmets.length; i++ )
+			if ( player_description[ 'drone_helmet' + i ] )
+			return i;
+		}
+		else // Default is humanoid because of old styles
+		{
+			for ( var i = 1; i < sdCharacter.img_helmets.length; i++ )
+			if ( player_description[ 'helmet' + i ] )
+			return i;
+		}
 		return 1;
 	}
 	static ConvertPlayerDescriptionToBody( player_description )
@@ -3094,6 +3103,8 @@ class sdWorld
 		
 		sdWorld.draw_methods_output_ptr = output;
 		
+		var blend_mode = THREE.NormalBlending;
+		
 		var fake_ctx = new Proxy( 
 			{}, 
 			{
@@ -3148,6 +3159,12 @@ class sdWorld
 									return;
 								}
 								
+								if ( command_id === 1 ) // drawImageFilterCache but with non-normal blending is to ignore, for example sdPlayerDrone has glowing grab effect which should be ignored
+								if ( blend_mode !== THREE.NormalBlending )
+								{
+									return;
+								}
+								
 								sdWorld.draw_methods_output_ptr.push( command_id, args ); // args is already an array
 							};
 						}
@@ -3162,6 +3179,11 @@ class sdWorld
 					if ( prop === 'sd_filter' )
 					sdWorld.draw_methods_output_ptr.push( 0, value );
 					//sdWorld.draw_methods_output_ptr.push( 0, [ value ] );
+					
+					if ( prop === '' )
+					{
+						blend_mode = value;
+					}
 					
 					return true;
 				}
