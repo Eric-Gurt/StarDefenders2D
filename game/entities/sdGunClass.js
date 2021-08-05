@@ -1899,7 +1899,7 @@ class sdGunClass
 			image_charging: sdWorld.CreateImageFromFile( 'f_minigun' ),
 			title: 'Falkonian Minigun',
 			slot: 2,
-			reload_time: 1,
+			reload_time: 0,
 			muzzle_x: 10,
 			ammo_capacity: -1,
 			count: 1,
