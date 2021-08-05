@@ -1812,7 +1812,7 @@ class sdGunClass
 			image2: [ sdWorld.CreateImageFromFile( 'gauss_rifle4' ), sdWorld.CreateImageFromFile( 'gauss_rifle5' ) ],
 			title: 'Gauss Rifle',
 			slot: 8,
-			reload_time: 300,
+			reload_time: 225,
 			muzzle_x: 9,
 			ammo_capacity: -1,
 			count: 1,
@@ -1838,7 +1838,7 @@ class sdGunClass
 					if ( gun._held_by._auto_shoot_in <= 0 )
 					{
 						
-						gun._held_by._auto_shoot_in = 1750 / 1000 * 30;
+						gun._held_by._auto_shoot_in = 1500 / 1000 * 30;
 
 						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 0.5 });
 					}
@@ -1850,7 +1850,7 @@ class sdGunClass
 					
 				}
 			},
-			projectile_properties: { explosion_radius: 25, model: 'gauss_rifle_proj', _damage: 110, color:sdEffect.default_explosion_color }
+			projectile_properties: { explosion_radius: 25, model: 'gauss_rifle_proj', _damage: 140, color:sdEffect.default_explosion_color }
 		};
 		
 		sdGun.classes[ sdGun.CLASS_COMBAT_RIFLE = 67 ] = 
