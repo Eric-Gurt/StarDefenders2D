@@ -1892,7 +1892,58 @@ class sdGunClass
 			matter_cost: 240,
 			projectile_properties: { time_left: 90, explosion_radius: 20, model: 'mini_missile_p241', _damage: 28, color:sdEffect.default_explosion_color, ac:0.01, _homing: true, _homing_mult: 0.3 }
 		};
+		
+		sdGun.classes[ sdGun.CLASS_FALKOK_MINIGUN = 69 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'f_minigun' ),
+			image_charging: sdWorld.CreateImageFromFile( 'f_minigun' ),
+			title: 'Falkonian Minigun',
+			slot: 2,
+			reload_time: 1,
+			muzzle_x: 10,
+			ammo_capacity: -1,
+			count: 1,
+			spread: 0.07,
+			spawnable: false,
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				if ( gun._held_by._auto_shoot_in > 0 )
+				return 0;
+				
+				return 3;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( !shoot_from_scenario )
+				{
+					if ( gun._held_by )
+					if ( gun._held_by._auto_shoot_in <= 0 )
+					{
+						
+						gun._held_by._auto_shoot_in = 1000 / 1000 * 30;
 
+						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 3 });
+					}
+					return false;
+				}
+				else
+				{
+					sdSound.PlaySound({ name: 'saber_hit2', x:gun.x, y:gun.y, volume: 2, pitch: 3 });
+					
+					if ( gun._held_by.matter >= 3 )
+					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					{
+						gun._held_by._auto_shoot_in = ( gun._held_by.stim_ef > 0 ) ? 1 : 2;
+						gun._held_by.matter -= 3;
+					}
+				}
+				return true;
+			},
+			projectile_properties: { _damage: 27, color:'#afdfff' }
+		};
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
