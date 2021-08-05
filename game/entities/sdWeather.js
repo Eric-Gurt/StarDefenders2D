@@ -211,7 +211,7 @@ class sdWeather extends sdEntity
 										else
 										if ( Math.random() < 0.01 )
 										{
-											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_MINIGUN }) );
+											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_HEAVY_RIFLE }) );
 											character_entity._ai_gun_slot = 2;
 										}
 										else
