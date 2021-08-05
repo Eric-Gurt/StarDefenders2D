@@ -1903,7 +1903,7 @@ class sdGunClass
 			muzzle_x: 10,
 			ammo_capacity: -1,
 			count: 1,
-			spread: 0.07,
+			spread: 0.05,
 			spawnable: false,
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
