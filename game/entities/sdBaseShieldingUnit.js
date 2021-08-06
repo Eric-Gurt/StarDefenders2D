@@ -240,7 +240,11 @@ class sdBaseShieldingUnit extends sdEntity
 		this.regen_timeout -= GSPEED;
 
 		if ( this.matter_crystal < 800 )
-		this.SetShieldState( false ); // Shut down if no matter
+		{
+			this.SetShieldState( false ); // Shut down if no matter
+			if ( this.attack_other_units )
+			this.SetAttackState();
+		}
 		else
 		{
 			if ( this.hea > 0 )
@@ -266,7 +270,7 @@ class sdBaseShieldingUnit extends sdEntity
 				if ( units[ i ] !== this )
 				if ( units[ i ].enabled === true )
 				{
-					if ( units[ i ].matter_crystal > 350 ) // Not really needed since the units turn off below 800 matter
+					if ( units[ i ].matter_crystal > 80 ) // Not really needed since the units turn off below 800 matter
 					{
 						units[ i ].matter_crystal -= 80;
 						this.matter_crystal -= 80;
