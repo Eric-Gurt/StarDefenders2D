@@ -91,7 +91,7 @@ class sdDoor extends sdEntity
 					initiator.Say( 'A base shielding unit is protecting this' );
 				}
 
-				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
+				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:0.2 });
 				this._shielded.matter_crystal = Math.max( 0, this._shielded.matter_crystal - dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp );
 
 				if ( this._shielded.matter_crystal >= 50000 )

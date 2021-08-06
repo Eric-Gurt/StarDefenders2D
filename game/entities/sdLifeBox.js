@@ -43,6 +43,10 @@ class sdLifeBox extends sdEntity
 		return [ 'sdCharacter', 'sdCrystal', 'sdGun' ];
 	}
 	
+	GetRocketDamageScale()
+	{
+		return 3;
+	}
 	IsVehicle()
 	{
 		return true;

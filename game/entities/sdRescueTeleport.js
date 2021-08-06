@@ -18,6 +18,8 @@ class sdRescueTeleport extends sdEntity
 		sdRescueTeleport.img_teleport_offline = sdWorld.CreateImageFromFile( 'rescue_portal_offline' );
 		sdRescueTeleport.img_teleport_no_matter = sdWorld.CreateImageFromFile( 'rescue_portal_no_matter' ); // 2 imgs
 		
+		sdRescueTeleport.max_matter = 1700;
+		
 		sdRescueTeleport.rescue_teleports = [];
 		
 		sdRescueTeleport.delay_1st = 30 * 60 * 3; // 3 minutes
@@ -106,7 +108,7 @@ class sdRescueTeleport extends sdEntity
 		this.owner_net_id = null;
 		this.owner_title = '';
 		
-		this._matter_max = 1700;
+		this._matter_max = sdRescueTeleport.max_matter;
 		this.matter = 0;
 		
 		//this.owner_net_id = this._owner ? this._owner._net_id : null;

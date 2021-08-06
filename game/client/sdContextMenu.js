@@ -192,6 +192,11 @@ class sdContextMenu
 							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdCharacter' ] ); }
 						});
 					
+						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdPlayerDrone' ) === -1 )
+						sdContextMenu.options.push({ title: 'Subscribe all player drones',
+							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdPlayerDrone' ] ); }
+						});
+					
 						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdCrystal' ) === -1 )
 						sdContextMenu.options.push({ title: 'Subscribe all crystals',
 							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdCrystal' ] ); }

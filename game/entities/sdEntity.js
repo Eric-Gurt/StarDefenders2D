@@ -134,6 +134,11 @@ class sdEntity
 		return true;
 	}
 	
+	IsPlayerClass() // sdCharacter has it as well as everything that extends him
+	{
+		return false;
+	}
+	
 	GetAccurateDistance( xx, yy ) // Used on client-side when right clicking on cables (also during cursor hovering for context menu and hint), also on server when distance between cable and player is measured
 	{
 		return sdWorld.Dist2D(	xx, 
@@ -145,7 +150,11 @@ class sdEntity
 	IsAdminEntity() // Influences remover gun hit test
 	{ return false; }
 	
-	IsVehicle() // Mostly defines damage from rockets multiplier so far
+	GetRocketDamageScale() // Mostly defines damage from rockets multiplier so far
+	{
+		return 1;
+	}
+	IsVehicle()
 	{
 		return false;
 	}
@@ -1466,6 +1475,8 @@ class sdEntity
 		{
 			if ( net_id === 'sdCharacter' )
 			return 'all players';
+			if ( net_id === 'sdPlayerDrone' )
+			return 'all player drones';
 			if ( net_id === 'sdCrystal' )
 			return 'all crystals';
 			if ( net_id === 'sdCube' )

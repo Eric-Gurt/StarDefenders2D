@@ -182,7 +182,7 @@ class sdBadDog extends sdEntity
 					this._retreat_hp_mult = Math.min( 1, this._retreat_hp_mult + 0.2 );
 
 					if ( this._retreat_hp_mult >= 1 )
-					if ( initiator && initiator.is( sdCharacter ) )
+					if ( initiator && initiator.IsPlayerClass() )
 					{
 						this.master = initiator;
 						
@@ -435,7 +435,7 @@ class sdBadDog extends sdEntity
 				let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
 				let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 
-				if ( from_entity.GetClass() === 'sdCharacter' || this.master || this._current_target === from_entity )
+				if ( from_entity.IsPlayerClass() || this.master || this._current_target === from_entity )
 				if ( from_entity.IsTargetable() )
 				{
 					this._last_bite = sdWorld.time;
@@ -457,7 +457,7 @@ class sdBadDog extends sdEntity
 					}
 					
 					
-					if ( from_entity.is( sdCharacter ) )
+					if ( from_entity.IsPlayerClass() )
 					{
 						from_entity.tilt = Math.PI / 2 * this.side * 100;
 						from_entity.tilt_speed = 0;

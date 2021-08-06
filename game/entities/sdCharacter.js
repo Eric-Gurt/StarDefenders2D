@@ -261,6 +261,10 @@ class sdCharacter extends sdEntity
 	
 		return ( this.driver_of === null );
 	}
+	IsPlayerClass() // sdCharacter has it as well as everything that extends him
+	{
+		return true;
+	}
 	/*get _old_score() // Obsolete now
 	{
 		debugger;
@@ -643,6 +647,11 @@ class sdCharacter extends sdEntity
 	}
 	AttemptTeleportOut( from_ent=null )
 	{
+		let tele_cost = sdRescueTeleport.max_matter;
+		
+		if ( !this.is( sdCharacter ) )
+		tele_cost = 100;
+
 		let best_di = Infinity;
 		let best_t = null;
 
@@ -651,7 +660,8 @@ class sdCharacter extends sdEntity
 			let t = sdRescueTeleport.rescue_teleports[ i ];
 			if ( t._owner === this )
 			if ( t.delay <= 0 )
-			if ( t.matter >= t._matter_max )
+			if ( t.matter >= t._matter_max ) // Fully charged
+			if ( t.matter >= tele_cost ) // Has enough matter for this kind of teleport out
 			if ( !t._is_being_removed )
 			{
 				let di = sdWorld.Dist2D( this.x, this.y, t.x, t.y );
@@ -671,7 +681,8 @@ class sdCharacter extends sdEntity
 			}
 			
 			// Create temporary copy just for visuals
-			let copy_ent = new sdCharacter({ x:this.x, y:this.y });
+			//let copy_ent = new sdCharacter({ x:this.x, y:this.y });
+			let copy_ent = new sdWorld.entity_classes[ this.GetClass() ]({ x:this.x, y:this.y });
 			sdEntity.entities.push( copy_ent );
 			copy_ent.ApplySnapshot( this.GetSnapshot( 0, true, null ) );
 			copy_ent.hea = Math.min( copy_ent.hea, -1 );
@@ -747,7 +758,9 @@ class sdCharacter extends sdEntity
 
 			//best_t.SetDelay( sdRescueTeleport.delay_2nd ); // 5 minutes
 			best_t.SetDelay( sdRescueTeleport.delay_simple );
-			best_t.matter = 0;
+		
+			best_t.matter -= tele_cost;
+			
 			best_t.WakeUpMatterSources();
 			
 			
@@ -933,9 +946,7 @@ class sdCharacter extends sdEntity
 				}
 				
 				if ( this.driver_of )
-				{
-					this.driver_of.ExcludeDriver( this );
-				}
+				this.driver_of.ExcludeDriver( this );
 			
 				this.DropWeapons();
 				
@@ -1525,6 +1536,44 @@ class sdCharacter extends sdEntity
 		}
 	}
 
+
+
+	ManagePlayerVehicleEntrance()
+	{
+		let e_state = this._key_states.GetKey( 'KeyE' );
+
+		if ( this.hea > 0 )
+		if ( e_state )
+		if ( e_state !== this._last_e_state )
+		{
+			if ( this.driver_of )
+			{
+				this.driver_of.ExcludeDriver( this );
+				//this.driver_of = null;
+			}
+			else
+			{
+				if ( this._potential_vehicle && this._potential_vehicle.hea > 0 && !this._potential_vehicle._is_being_removed && sdWorld.inDist2D_Boolean( this.x, this.y, this._potential_vehicle.x, this._potential_vehicle.y, sdCom.vehicle_entrance_radius ) )
+				{
+					this._potential_vehicle.AddDriver( this );
+				}
+				else
+				if ( this._ghost_allowed )
+				{
+					this.ghosting = !this.ghosting;
+					this._ghost_breath = sdCharacter.ghost_breath_delay;
+
+					if ( this.ghosting )
+					sdSound.PlaySound({ name:'ghost_start', x:this.x, y:this.y, volume:1 });
+					else
+					sdSound.PlaySound({ name:'ghost_stop', x:this.x, y:this.y, volume:1 });
+				}
+			}
+		}
+
+		this._last_e_state = e_state;
+	}
+
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( sdWorld.is_server )
@@ -1891,14 +1940,8 @@ class sdCharacter extends sdEntity
 		
 			this._side = ( this.x < this.look_x ) ? 1 : -1;
 		}
-		
-		if ( this.stim_ef > 0 )
-		this.stim_ef = Math.max( 0, this.stim_ef - GSPEED );
-		if ( this.power_ef > 0 )
-		this.power_ef = Math.max( 0, this.power_ef - GSPEED );
-		if ( this.time_ef > 0 )
-		this.time_ef = Math.max( 0, this.time_ef - GSPEED );
 	
+		this.HandlePlayerPowerups( GSPEED );
 		
 		//let new_x = this.x + this.sx * GSPEED;
 		//let new_y = this.y + this.sy * GSPEED;
@@ -2208,38 +2251,8 @@ class sdCharacter extends sdEntity
 	
 		this.tilt += this.tilt_speed * GSPEED;
 		
-		let e_state = this._key_states.GetKey( 'KeyE' );
 		
-		if ( this.hea > 0 )
-		if ( e_state )
-		if ( e_state !== this._last_e_state )
-		{
-			if ( this.driver_of )
-			{
-				this.driver_of.ExcludeDriver( this );
-				//this.driver_of = null;
-			}
-			else
-			{
-				if ( this._potential_vehicle && this._potential_vehicle.hea > 0 && !this._potential_vehicle._is_being_removed && sdWorld.inDist2D_Boolean( this.x, this.y, this._potential_vehicle.x, this._potential_vehicle.y, sdCom.vehicle_entrance_radius ) )
-				{
-					this._potential_vehicle.AddDriver( this );
-				}
-				else
-				if ( this._ghost_allowed )
-				{
-					this.ghosting = !this.ghosting;
-					this._ghost_breath = sdCharacter.ghost_breath_delay;
-					
-					if ( this.ghosting )
-					sdSound.PlaySound({ name:'ghost_start', x:this.x, y:this.y, volume:1 });
-					else
-					sdSound.PlaySound({ name:'ghost_stop', x:this.x, y:this.y, volume:1 });
-				}
-			}
-		}
-	
-		this._last_e_state = e_state;
+		this.ManagePlayerVehicleEntrance();
 		
 		//let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
 		/*let local_arr = sdWorld.RequireHashPosition( this.x, this.y );
@@ -2466,12 +2479,7 @@ class sdCharacter extends sdEntity
 		}
 		
 		if ( this.driver_of )
-		{
-			this.x = this.driver_of.x;
-			this.y = this.driver_of.y;
-			this.sx = this.driver_of.sx || 0;
-			this.sy = this.driver_of.sy || 0;
-		}
+		this.PositionUpdateAsDriver();
 		else
 		this.ApplyVelocityAndCollisions( GSPEED, ( this.hea > 0 ) ? ( this.act_y !== 1 ? 10 : 3 ) : 0, ( this.hea <= 0 ) );
 		/*
@@ -2489,6 +2497,24 @@ class sdCharacter extends sdEntity
 		{
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 		}
+	}
+			
+	PositionUpdateAsDriver()
+	{
+		this.x = this.driver_of.x;
+		this.y = this.driver_of.y;
+		this.sx = this.driver_of.sx || 0;
+		this.sy = this.driver_of.sy || 0;
+	}
+
+	HandlePlayerPowerups( GSPEED )
+	{
+		if ( this.stim_ef > 0 )
+		this.stim_ef = Math.max( 0, this.stim_ef - GSPEED );
+		if ( this.power_ef > 0 )
+		this.power_ef = Math.max( 0, this.power_ef - GSPEED );
+		if ( this.time_ef > 0 )
+		this.time_ef = Math.max( 0, this.time_ef - GSPEED );
 	}
 	get friction_remain()
 	{ return ( this.hea <= 0 ) ? 0.7 : 0.8; } // Same 0.7 for ragdoll bones
@@ -2669,7 +2695,7 @@ class sdCharacter extends sdEntity
 				}
 			}
 			else
-			if ( from_entity.is( sdHover ) || from_entity.is( sdLifeBox ) )
+			if ( from_entity.IsVehicle() )
 			{
 				this._potential_vehicle = from_entity;
 			}
