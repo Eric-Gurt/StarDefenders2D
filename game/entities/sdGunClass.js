@@ -1893,11 +1893,11 @@ class sdGunClass
 			projectile_properties: { time_left: 90, explosion_radius: 20, model: 'mini_missile_p241', _damage: 28, color:sdEffect.default_explosion_color, ac:0.01, _homing: true, _homing_mult: 0.3 }
 		};
 		
-		sdGun.classes[ sdGun.CLASS_FALKOK_MINIGUN = 69 ] = 
+		sdGun.classes[ sdGun.CLASS_F_HEAVY_RIFLE = 69 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'f_minigun' ),
-			image_charging: sdWorld.CreateImageFromFile( 'f_minigun' ),
-			title: 'Falkonian Minigun',
+			image: sdWorld.CreateImageFromFile( 'f_heavy_rifle' ),
+			image_charging: sdWorld.CreateImageFromFile( 'f_heavy_rifle' ),
+			title: 'Falkonian Heavy Rifle',
 			slot: 2,
 			reload_time: 0,
 			muzzle_x: 10,
