@@ -1900,7 +1900,7 @@ class sdGunClass
 			title: 'Falkonian Heavy Rifle',
 			slot: 2,
 			reload_time: 0,
-			muzzle_x: 10,
+			muzzle_x: 12,
 			ammo_capacity: -1,
 			count: 1,
 			spread: 0.05,
