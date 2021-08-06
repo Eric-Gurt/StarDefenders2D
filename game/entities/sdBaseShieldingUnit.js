@@ -259,6 +259,7 @@ class sdBaseShieldingUnit extends sdEntity
 		}
 
 		if ( this.attack_other_units )
+		if ( this.enabled )
 		if ( this._attack_timer <= 0 )
 		{
 			//let units = sdWorld.GetAnythingNear( this.x, this.y, sdBaseShieldingUnit.protect_distance + 64, null, [ 'sdBaseShieldingUnit' ] );
