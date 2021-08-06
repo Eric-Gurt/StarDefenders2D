@@ -242,7 +242,7 @@ class sdBaseShieldingUnit extends sdEntity
 		if ( this.matter_crystal < 800 )
 		{
 			this.SetShieldState( false ); // Shut down if no matter
-			if ( this.attack_other_units )
+			if ( this.attack_other_units === true )
 			this.SetAttackState();
 		}
 		else
@@ -258,7 +258,7 @@ class sdBaseShieldingUnit extends sdEntity
 			}
 		}
 
-		if ( this.attack_other_units )
+		if ( this.attack_other_units === true )
 		if ( this.enabled )
 		if ( this._attack_timer <= 0 )
 		{
