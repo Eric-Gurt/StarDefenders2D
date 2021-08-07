@@ -23,7 +23,7 @@ class sdBaseShieldingUnit extends sdEntity
 
 		sdBaseShieldingUnit.protect_distance = 275;
 				
-		sdBaseShieldingUnit.regen_matter_cost_per_1_hp = 0.005; // Much less than player's automatic regeneration
+		sdBaseShieldingUnit.regen_matter_cost_per_1_hp = 0.001; // Much less than player's automatic regeneration
 		
 		sdBaseShieldingUnit.all_shield_units = [];
 		
@@ -240,7 +240,11 @@ class sdBaseShieldingUnit extends sdEntity
 		this.regen_timeout -= GSPEED;
 
 		if ( this.matter_crystal < 800 )
-		this.SetShieldState( false ); // Shut down if no matter
+		{
+			this.SetShieldState( false ); // Shut down if no matter
+			if ( this.attack_other_units )
+			this.attack_other_units = false;
+		}
 		else
 		{
 			if ( this.hea > 0 )
@@ -255,6 +259,7 @@ class sdBaseShieldingUnit extends sdEntity
 		}
 
 		if ( this.attack_other_units )
+		if ( this.enabled )
 		if ( this._attack_timer <= 0 )
 		{
 			//let units = sdWorld.GetAnythingNear( this.x, this.y, sdBaseShieldingUnit.protect_distance + 64, null, [ 'sdBaseShieldingUnit' ] );
@@ -266,10 +271,10 @@ class sdBaseShieldingUnit extends sdEntity
 				if ( units[ i ] !== this )
 				if ( units[ i ].enabled === true )
 				{
-					if ( units[ i ].matter_crystal > 350 ) // Not really needed since the units turn off below 800 matter
+					if ( units[ i ].matter_crystal > 80 ) // Not really needed since the units turn off below 800 matter
 					{
-						units[ i ].matter_crystal -= 350;
-						this.matter_crystal -= 350;
+						units[ i ].matter_crystal -= 80;
+						this.matter_crystal -= 80;
 						sdWorld.SendEffect({ x:this.x, y:this.y, x2:units[ i ].x, y2:units[ i ].y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
 						this._attack_timer = 30;
 						this.attack_anim = 20;

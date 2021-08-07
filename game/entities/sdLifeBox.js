@@ -296,7 +296,9 @@ class sdLifeBox extends sdEntity
 
 					sdEntity.entities.push( bullet_obj );
 					*/
-
+					if ( this._target.GetClass() === 'sdBlock' && this._target.material === sdBlock.MATERIAL_TRAPSHIELD )
+					this._target.Damage( 300 * this.damage_mult, this ); // Bullets had a multiplier of 10 against shield blocks so it can destroy those quickly
+					else
 					this._target.Damage( 30 * this.damage_mult, this );
 					sdWorld.SendEffect({ x: this.x + this.offx2, y:this.y + this.offy2 - 16, x2:this._target.x + this.offx1, y2:this._target.y + this.offy1, type:sdEffect.TYPE_BEAM, color:'#ffffff' });
 					this.attack_timer = 20 / this.rate_of_fire_mult;

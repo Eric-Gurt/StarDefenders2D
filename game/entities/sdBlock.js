@@ -254,7 +254,7 @@ class sdBlock extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 
-		dmg = Math.abs( dmg );
+		dmg = Math.abs( dmg / ( 1 + this._reinforced_level ) ); // Reinforced blocks have damage reduction
 		
 		if ( this._contains_class === 'sdVirus' || this._contains_class === 'sdQuickie' || this._contains_class === 'sdAsp' )
 		dmg = this._hea + 1;
@@ -283,6 +283,19 @@ class sdBlock extends sdEntity
 
 				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:0.2 });
 				this._shielded.matter_crystal = Math.max( 0, this._shielded.matter_crystal - dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp );
+
+				if ( this._shielded.matter_crystal >= 50000 )
+				{
+					if ( initiator )
+					{
+						if ( !sdWorld.inDist2D_Boolean( initiator.x, initiator.y, this._shielded.x, this._shielded.y, sdBaseShieldingUnit.protect_distance - 64 ) ) // Check if it is far enough from the shield to prevent players in base take damage
+						{
+							initiator.Damage( 5 );
+							sdWorld.SendEffect({ x:this._shielded.x, y:this._shielded.y, x2:this.x + ( this.hitbox_x2 / 2 ), y2:this.y + ( this.hitbox_y2 / 2 ), type:sdEffect.TYPE_BEAM, color:'#f9e853' });
+							sdWorld.SendEffect({ x:this.x + ( this.hitbox_x2 / 2 ), y:this.y + ( this.hitbox_y2 / 2 ), x2:initiator.x, y2:initiator.y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
+						}
+					}
+				}
 			}
 
 			this.HandleDestructionUpdate();
@@ -465,10 +478,10 @@ class sdBlock extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		if ( this._reinforced_level > 0 )
-		this._reinforced_level = 0;
-		if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 )
-		this.material = sdBlock.MATERIAL_WALL;
+		//if ( this._reinforced_level > 0 )
+		//this._reinforced_level = 0;
+		//if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 )
+		//this.material = sdBlock.MATERIAL_WALL;
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
