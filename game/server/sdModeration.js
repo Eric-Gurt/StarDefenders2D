@@ -460,6 +460,7 @@ class sdModeration
 			{
 				socket.character._god = false;
 				
+				if ( !socket.character._is_being_removed )
 				if ( socket.character.hea > 0 )
 				socket.character.Damage( socket.character.hea );
 			}

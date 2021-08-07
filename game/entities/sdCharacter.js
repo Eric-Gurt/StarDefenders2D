@@ -1537,7 +1537,19 @@ class sdCharacter extends sdEntity
 	}
 
 
+	TogglePlayerGhosting() // part of ManagePlayerVehicleEntrance()
+	{
+		if ( this._ghost_allowed )
+		{
+			this.ghosting = !this.ghosting;
+			this._ghost_breath = sdCharacter.ghost_breath_delay;
 
+			if ( this.ghosting )
+			sdSound.PlaySound({ name:'ghost_start', x:this.x, y:this.y, volume:1 });
+			else
+			sdSound.PlaySound({ name:'ghost_stop', x:this.x, y:this.y, volume:1 });
+		}
+	}
 	ManagePlayerVehicleEntrance()
 	{
 		let e_state = this._key_states.GetKey( 'KeyE' );
@@ -1558,7 +1570,8 @@ class sdCharacter extends sdEntity
 					this._potential_vehicle.AddDriver( this );
 				}
 				else
-				if ( this._ghost_allowed )
+				this.TogglePlayerGhosting();
+				/*if ( this._ghost_allowed )
 				{
 					this.ghosting = !this.ghosting;
 					this._ghost_breath = sdCharacter.ghost_breath_delay;
@@ -1567,7 +1580,7 @@ class sdCharacter extends sdEntity
 					sdSound.PlaySound({ name:'ghost_start', x:this.x, y:this.y, volume:1 });
 					else
 					sdSound.PlaySound({ name:'ghost_stop', x:this.x, y:this.y, volume:1 });
-				}
+				}*/
 			}
 		}
 

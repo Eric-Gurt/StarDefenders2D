@@ -244,7 +244,7 @@ class sdGunClass
 			},
 			projectile_properties: { time_left: 2, _damage: 40, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
 				{
-					if ( target_entity.is( sdCharacter ) )
+					if ( target_entity.IsPlayerClass() )
 					{
 						target_entity.AnnounceTooManyEffectsIfNeeded();
 						target_entity.stim_ef = 30 * 30;
@@ -733,7 +733,7 @@ class sdGunClass
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
 				if ( gun._held_by )
-				if ( gun._held_by.is( sdCharacter ) )
+				if ( gun._held_by.IsPlayerClass() )
 				if ( gun._held_by.hea < gun._held_by.hmax )
 				{
 					gun._held_by.Damage( -15, null ); // Heal self if HP isn't max. However this healing is unaffected by damage mult and power pack
@@ -828,7 +828,7 @@ class sdGunClass
 							target_entity.remove();
 						}
 						else
-						if ( bullet._owner.is( sdCharacter ) )
+						if ( bullet._owner.IsPlayerClass() )
 						{
 							// Remove if used by non-admin
 							if ( bullet._owner._inventory[ bullet._owner.gun_slot ] )
@@ -1038,7 +1038,7 @@ class sdGunClass
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
 				if ( gun._held_by )
-				if ( gun._held_by.is( sdCharacter ) )
+				if ( gun._held_by.IsPlayerClass() )
 				{
 					gun._held_by.AnnounceTooManyEffectsIfNeeded();
 					gun._held_by.power_ef = 30 * 30;
@@ -1072,7 +1072,7 @@ class sdGunClass
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
 				if ( gun._held_by )
-				if ( gun._held_by.is( sdCharacter ) )
+				if ( gun._held_by.IsPlayerClass() )
 				{
 					gun._held_by.AnnounceTooManyEffectsIfNeeded();
 					gun._held_by.time_ef = 30 * 30;
@@ -1265,7 +1265,7 @@ class sdGunClass
 			{
 				if ( sdWorld.is_server )
 				if ( gun._held_by )
-				if ( gun._held_by.is( sdCharacter ) )
+				if ( gun._held_by.IsPlayerClass() )
 				if ( gun._held_by._god )
 				{
 					gun._held_by.x = gun._held_by.look_x;
@@ -1300,7 +1300,7 @@ class sdGunClass
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
 				if ( gun._held_by )
-				if ( gun._held_by.is( sdCharacter ) )
+				if ( gun._held_by.IsPlayerClass() )
 				{
 					gun._held_by.AnnounceTooManyEffectsIfNeeded();
 					gun._held_by.stim_ef = 30 * 30;
