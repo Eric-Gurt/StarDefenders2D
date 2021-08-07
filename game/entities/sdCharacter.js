@@ -2851,7 +2851,8 @@ class sdCharacter extends sdEntity
 					if ( fake_ent.IsEarlyThreat() )
 					//if ( fake_ent.is( sdTurret ) || fake_ent.is( sdCom ) || fake_ent.is( sdBarrel ) || fake_ent.is( sdBomb ) || ( fake_ent.is( sdBlock ) && fake_ent.material === sdBlock.MATERIAL_SHARP ) )
 					{
-						if ( sdWorld.CheckLineOfSight( this.x, this.y, this._build_params.x, this._build_params.y, null, null, sdCom.com_visibility_unignored_classes ) || this._god )
+						//if ( sdWorld.CheckLineOfSight( this.x, this.y, this._build_params.x, this._build_params.y, null, null, sdCom.com_visibility_unignored_classes ) || this._god )
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, this._build_params.x, this._build_params.y, fake_ent, null, sdCom.com_visibility_unignored_classes ) || this._god )
 						{
 						}
 						else

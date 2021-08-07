@@ -54,12 +54,18 @@ class sdAntigravity extends sdEntity
 		
 		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
 		
+		this.power = 1;
+		
 		//this._update_version++
 	}
 	MeasureMatterCost()
 	{
 		return this._hmax * sdWorld.damage_to_matter + 50;
 	}
+	
+	get spawn_align_x(){ return 8; };
+	get spawn_align_y(){ return 8; };
+	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this._regen_timeout > 0 )
@@ -80,7 +86,7 @@ class sdAntigravity extends sdEntity
 			var x2 = x1 + ( this._hitbox_x2 - this._hitbox_x1 ) / 2;
 			var y2 = y1 + 16;
 			
-			var max_h = 16;
+			var max_h = this.power === -1 ? 3 : 16;
 		
 			//var non_recursive = new Map();
 			
@@ -94,13 +100,26 @@ class sdAntigravity extends sdEntity
 								
 				//var arr = sdWorld.RequireHashPosition( x, y );
 				
-				var xx_from = ~~( x1 / 32 ); // Overshoot no longer needed, due to big entities now taking all needed hash arrays
+				/*var xx_from = ~~( x1 / 32 ); // Overshoot no longer needed, due to big entities now taking all needed hash arrays
 				var yy_from = ~~( y1 / 32 );
 				var xx_to = ~~( x2 / 32 );
-				var yy_to = ~~( y2 / 32 );
+				var yy_to = ~~( y2 / 32 );*/
 				
-				for ( var xx = xx_from; xx <= xx_to; xx++ )
-				for ( var yy = yy_from; yy <= yy_to; yy++ )
+				/*var xx_from = Math.floor( x1 / 32 ); // Overshoot no longer needed, due to big entities now taking all needed hash arrays
+				var yy_from = Math.floor( y1 / 32 );
+				var xx_to = Math.floor( x2 / 32 );
+				var yy_to = Math.floor( y2 / 32 );*/
+				
+
+				let xx_from = sdWorld.FastFloor( x1 / 32 );
+				let yy_from = sdWorld.FastFloor( y1 / 32 );
+				let xx_to = sdWorld.FastCeil( x2 / 32 );
+				let yy_to = sdWorld.FastCeil( y2 / 32 );
+				
+				//for ( var xx = xx_from; xx <= xx_to; xx++ )
+				//for ( var yy = yy_from; yy <= yy_to; yy++ )
+				for ( var xx = xx_from; xx < xx_to; xx++ )
+				for ( var yy = yy_from; yy < yy_to; yy++ )
 				{
 					var arr = sdWorld.RequireHashPosition( xx * 32, yy * 32 );
 					
@@ -145,10 +164,14 @@ class sdAntigravity extends sdEntity
 											{
 												let old_sy = arr[ i ].sy;
 												
-												arr[ i ].sy -= GSPEED * sdWorld.gravity * 0.9;
+												if ( this.power === -1 )
+												arr[ i ].sy = sdWorld.MorphWithTimeScale( arr[ i ].sy, 0, 0.75, GSPEED );
+												else
+												arr[ i ].sy -= GSPEED * sdWorld.gravity * 0.9 * this.power;
 
 												if ( arr[ i ].hea > 0 )
 												{
+													if ( this.power !== -1 )
 													arr[ i ].sy += GSPEED * arr[ i ].act_y * 0.1;
 
 													arr[ i ].ApplyServerSidePositionAndVelocity( false, 0, arr[ i ].sy - old_sy );
@@ -157,7 +180,10 @@ class sdAntigravity extends sdEntity
 										}
 										else
 										{
-											arr[ i ].sy -= GSPEED * sdWorld.gravity * 0.9;
+											if ( this.power === -1 )
+											arr[ i ].sy = sdWorld.MorphWithTimeScale( arr[ i ].sy, 0, 0.75, GSPEED );
+											else
+											arr[ i ].sy -= GSPEED * sdWorld.gravity * 0.9 * this.power;
 										}
 									}
 								}
@@ -214,6 +240,28 @@ class sdAntigravity extends sdEntity
 	Draw( ctx, attached )
 	{
 		ctx.drawImageFilterCache( sdAntigravity.img_antigravity, -16, -16, 32,32 );
+
+        let repeat = 400;
+		
+		for ( let i = 0; i < 3; i++ )
+		{
+			let prog;
+			
+			if ( this.power >= 0 )
+			prog = ( ( sdWorld.time * this.power + i * repeat / 3 ) % repeat ) / repeat;
+			else
+			prog = 1 - ( ( sdWorld.time * 0.1 + i * repeat / 3 ) % repeat ) / repeat;
+
+			prog *= prog;
+
+			prog = Math.round( prog * 40 ) / 40;
+
+			ctx.globalAlpha = ( 1 - prog ) * 0.4 * Math.abs( this.power );
+			ctx.fillStyle = '#ffffff';
+			ctx.fillRect( -10 + prog * 2, -5 - prog * 20, 20 - prog * 4, 1 );
+		}
+
+        ctx.globalAlpha = 1;
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
@@ -244,6 +292,51 @@ class sdAntigravity extends sdEntity
 				s = Math.random() * 4;
 				let ent = new sdEffect({ x: this.x + x - 16, y: this.y + y - 16, type:sdEffect.TYPE_ROCK, sx: Math.sin(a)*s, sy: Math.cos(a)*s });
 				sdEntity.entities.push( ent );
+			}
+		}
+	}
+	
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( !this._is_being_removed )
+		if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		{
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+			{
+				if ( command_name === 'SETPOWER' )
+				{
+					let velocities = [ -1, 0, 1, 2, 5, 10, 20 ];
+				
+					let i = velocities.indexOf( parameters_array[ 0 ] );
+					
+					if ( i !== -1 )
+					{
+						i = velocities[ i ];
+						this.power = i;
+						this._update_version++;
+					}
+				}
+			}
+			else
+			executer_socket.SDServiceMessage( 'Antigravity is too far' );
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( !this._is_being_removed )
+		if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+		{
+			if ( sdWorld.my_entity )
+			{
+				let velocities = [ -1, 0, 1, 2, 5, 10, 20 ];
+				
+				for ( let i = 0; i < velocities.length; i++ )
+				this.AddContextOption( 'Set intensity to ' + ( i === 0 ? 'impact prevention' : velocities[ i ] ), 'SETPOWER', [ velocities[ i ] ] );
 			}
 		}
 	}

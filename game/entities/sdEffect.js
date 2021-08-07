@@ -1,4 +1,9 @@
+/*
 
+	Server-side effect test:
+	sdWorld.SendEffect({ x: , y: , type:sdEffect.TYPE_WALL_HIT });
+
+*/
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';

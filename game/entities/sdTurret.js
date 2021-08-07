@@ -282,7 +282,8 @@ class sdTurret extends sdEntity
 								if ( !e.is( sdBadDog ) || !e.owned )
 								if ( e.IsVisible( this._owner ) || ( e.driver_of && e.driver_of.IsVisible( this._owner ) ) )
 								{
-									var is_char = e.is( sdCharacter );
+									//var is_char = e.is( sdCharacter );
+									var is_char = e.IsPlayerClass();
 									
 									//if ( e !== this._owner || coms_near_len > 0 )
 									//if ( e.GetClass() === 'sdCharacter' || e.GetClass() === 'sdVirus' || e.GetClass() === 'sdQuickie' || e.GetClass() === 'sdOctopus' || e.GetClass() === 'sdCube' )
