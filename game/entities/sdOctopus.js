@@ -267,10 +267,12 @@ class sdOctopus extends sdEntity
 					if ( ( from_entity.GetClass() === 'sdCharacter' && from_entity.IsVisible() ) ||
 						 ( from_entity.GetClass() === 'sdBlock' && !from_entity._natural ) ||
 						 from_entity.GetClass() === 'sdCom' ||
+						 from_entity.GetClass() === 'sdNode' ||
 						 from_entity.GetClass() === 'sdCrystal' ||
 						 from_entity.GetClass() === 'sdTurret' ||
 						 from_entity.GetClass() === 'sdDoor' ||
 						 from_entity.GetClass() === 'sdStorage' ||
+						 from_entity.GetClass() === 'sdConveyor' ||
 						 ( from_entity.GetClass() === 'sdBadDog' && from_entity.master ) ||
 						 from_entity.GetClass() === 'sdHover' ||
 						 from_entity.GetClass() === 'sdAntigravity' ||

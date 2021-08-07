@@ -228,7 +228,14 @@ class sdQuickie extends sdEntity
 				if ( from_entity.GetClass() === 'sdCharacter' ||
 					 from_entity.GetClass() === 'sdBlock' ||
 					 from_entity.GetClass() === 'sdMatterContainer' ||
+					 from_entity.GetClass() === 'sdMatterAmplifier' ||
+					 from_entity.GetClass() === 'sdCrystalCombiner' ||
+					 from_entity.GetClass() === 'sdConveyor' ||
+					 from_entity.GetClass() === 'sdStorage' ||
+					 from_entity.GetClass() === 'sdTeleport' ||
 					 from_entity.GetClass() === 'sdDoor' ||
+					 from_entity.GetClass() === 'sdCom' ||
+					 from_entity.GetClass() === 'sdNode' ||
 					 from_entity.GetClass() === 'sdTurret' ||
 					 from_entity === this._current_target )
 				if ( from_entity.IsTargetable() )
