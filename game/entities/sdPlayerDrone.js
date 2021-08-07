@@ -45,10 +45,10 @@ class sdPlayerDrone extends sdCharacter
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	
-	get hitbox_x1() { return -6; }
-	get hitbox_x2() { return 6; }
-	get hitbox_y1() { return -6; }
-	get hitbox_y2() { return 6; }
+	get hitbox_x1() { return -6 * this.s / 100; }
+	get hitbox_x2() { return 6 * this.s / 100; }
+	get hitbox_y1() { return -6 * this.s / 100; }
+	get hitbox_y2() { return 6 * this.s / 100; }
 	
 	/*get hard_collision() // For world geometry where players can walk
 	{ return true; }*/
@@ -96,6 +96,7 @@ class sdPlayerDrone extends sdCharacter
 		if ( !sdWorld.is_server )
 		return;
 	
+		dmg /= this.s / 100;
 	
 		//dmg = Math.abs( dmg );
 		
@@ -184,6 +185,7 @@ class sdPlayerDrone extends sdCharacter
 		const matter_cost_5 = 100;
 		const matter_cost_7 = 1;
 		
+		let scale = this.s / 100;
 		
 		if ( this.matter >= matter_cost_5 && this.gun_slot === 5 )
 		{
@@ -203,7 +205,7 @@ class sdPlayerDrone extends sdCharacter
 				sdWorld.SendEffect({ 
 					x:this.x, 
 					y:this.y, 
-					radius:40, // 80 was too much?
+					radius:40 * scale, // 80 was too much?
 					damage_scale: 10 * ( this._damage_mult ), // 5 was too deadly on relatively far range
 					type:sdEffect.TYPE_EXPLOSION, 
 					owner:this,
@@ -318,8 +320,9 @@ class sdPlayerDrone extends sdCharacter
 					if ( mode === 5 )
 					{
 						if ( !this._is_being_removed )
+						if ( this._beep_charge >= 90 )
 						{
-							this.Damage( this.hea + 1 );
+							this.Damage( this.hea * scale + 1 );
 							return;
 						}
 					}
@@ -332,9 +335,9 @@ class sdPlayerDrone extends sdCharacter
 					if ( mode === 4 )
 					{
 						if ( this.helmet === 8 )
-						sdSound.PlaySound({ name:'cube_attack', pitch: 0.5, x:this.x, y:this.y, volume:0.5 });
+						sdSound.PlaySound({ name:'cube_attack', pitch: 0.5 / scale, x:this.x, y:this.y, volume:0.5 });
 						else
-						sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.66, pitch:2 });
+						sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.66, pitch: 2 / scale });
 					}
 					else
 					if ( mode === 7 )
@@ -342,9 +345,9 @@ class sdPlayerDrone extends sdCharacter
 					else
 					{
 						if ( this.helmet === 8 )
-						sdSound.PlaySound({ name:'cube_attack', pitch: 1, x:this.x, y:this.y, volume:0.5 });
+						sdSound.PlaySound({ name:'cube_attack', pitch: 1 / scale, x:this.x, y:this.y, volume:0.5 });
 						else
-						sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.33, pitch:3 });
+						sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.33, pitch:3 / scale });
 					}
 					
 					if ( mode === 7 )
@@ -364,7 +367,7 @@ class sdPlayerDrone extends sdCharacter
 						bullet_obj.sx = dx * 12;
 						bullet_obj.sy = dy * 12;
 
-						bullet_obj._damage = 10 * power * ( ( this.power_ef > 0 ) ? 2.5 : 1 ) * this._damage_mult;
+						bullet_obj._damage = 10 * power * ( ( this.power_ef > 0 ) ? 2.5 : 1 ) * this._damage_mult * scale;
 
 						
 						if ( mode === 7 )
@@ -387,6 +390,8 @@ class sdPlayerDrone extends sdCharacter
 							bullet_obj.time_left = 8;
 							bullet_obj._rail = true;
 						}
+						
+						bullet_obj.time_left *= scale;
 
 						sdEntity.entities.push( bullet_obj );
 					}
@@ -553,6 +558,10 @@ class sdPlayerDrone extends sdCharacter
 				ctx.scale( 1, -1 );
 			}
 		}
+		
+		let scale = this.s / 100;
+		
+		ctx.scale( scale, scale );
 		
 		//ctx.rotate( Math.atan2( this.look_x - this.x, this.look_y - this.y ) );
 		

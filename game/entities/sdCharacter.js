@@ -805,6 +805,8 @@ class sdCharacter extends sdEntity
 		if ( this._socket ) // No disconnected gods
 		if ( dmg > 0 )
 		return;
+		
+		dmg /= this.s / 100;
 	
 		if ( initiator === this )
 		initiator = null;

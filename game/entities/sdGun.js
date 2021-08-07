@@ -534,14 +534,19 @@ class sdGun extends sdEntity
 				if ( !this._held_by ) // Just in case if onShootAttempt removes/disowns gun? It happened once on line if ( this._held_by.power_ef > 0 )
 				return false;
 				
+				let scale = this._held_by.s / 100;
+						
 				if ( sdGun.classes[ this.class ].sound )
 				{
 					let pitch = sdGun.classes[ this.class ].sound_pitch || 1;
 					
 					if ( this._held_by.power_ef > 0 )
 					pitch *= 0.75;
+				
+					//pitch /= scale;
+					pitch /= ( 0.75 + scale * 0.25 );
 					
-					sdSound.PlaySound({ name:sdGun.classes[ this.class ].sound, x:this.x, y:this.y, volume: 0.5 * ( sdGun.classes[ this.class ].sound_volume || 1 ), pitch: pitch });
+					sdSound.PlaySound({ name:sdGun.classes[ this.class ].sound, x:this.x, y:this.y, volume: ( 0.75 + scale * 0.25 ) * 0.5 * ( sdGun.classes[ this.class ].sound_volume || 1 ), pitch: pitch });
 				}
 			
 				this.reload_time_left = sdGun.classes[ this.class ].reload_time;
@@ -637,6 +642,8 @@ class sdGun extends sdEntity
 						
 						if ( bullet_obj._owner.power_ef > 0 )
 						bullet_obj._damage *= 2.5;
+					
+						bullet_obj._damage *= scale;
 						
 						if ( bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ] )
 						bullet_obj._armor_penetration_level = bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ];
