@@ -343,11 +343,11 @@ class sdDoor extends sdEntity
 								this.openness = old_openness;
 
 								if ( interrupter1 !== null )
-								if ( ( interrupter1._reinforced_level || 0 ) === 0 )
+								//if ( ( interrupter1._reinforced_level || 0 ) === 0 )
 								interrupter1.Damage( 5 * GSPEED );
 
 								if ( interrupter2 !== null )
-								if ( ( interrupter2._reinforced_level || 0 ) === 0 )
+								//if ( ( interrupter2._reinforced_level || 0 ) === 0 )
 								interrupter2.Damage( 5 * GSPEED );
 							}
 						}

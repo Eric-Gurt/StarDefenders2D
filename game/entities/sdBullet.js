@@ -439,7 +439,7 @@ class sdBullet extends sdEntity
 		if ( this._damage > 0 )
 		{
 			if ( this.penetrating )
-			return ( from_entity.is( sdBlock ) && from_entity._shielded === null && this._reinforced_level >= from_entity._reinforced_level) || from_entity.is( sdAntigravity ) || ( from_entity.is( sdDoor ) && from_entity._shielded === null && this._reinforced_level >= from_entity._reinforced_level );
+			return ( from_entity.is( sdBlock ) && from_entity._shielded === null /*&& this._reinforced_level >= from_entity._reinforced_level*/) || from_entity.is( sdAntigravity ) || ( from_entity.is( sdDoor ) && from_entity._shielded === null /*&& this._reinforced_level >= from_entity._reinforced_level*/ );
 			else
 			return ( from_entity.is( sdBlock ) && from_entity.material === sdBlock.MATERIAL_WALL ) || from_entity.is( sdAntigravity ) || from_entity.is( sdDoor );
 		}
@@ -604,9 +604,13 @@ class sdBullet extends sdEntity
 							sdSound.PlaySound({ name:'player_step', x:this.x, y:this.y, volume:0.5, pitch:1.8 });
 						}
 
-						if ( ( typeof from_entity._armor_protection_level === 'undefined' || this._armor_penetration_level >= from_entity._armor_protection_level ) &&
-							 ( typeof from_entity._reinforced_level === 'undefined' || this._reinforced_level >= from_entity._reinforced_level ) /*&&
-								 ( typeof from_entity._shielded === 'undefined' || from_entity._shielded === null )*/ )
+						//if ( ( typeof from_entity._armor_protection_level === 'undefined' || this._armor_penetration_level >= from_entity._armor_protection_level ) &&
+						//	 ( typeof from_entity._reinforced_level === 'undefined' || this._reinforced_level >= from_entity._reinforced_level ) /*&&
+						//		 ( typeof from_entity._shielded === 'undefined' || from_entity._shielded === null )*/ )
+								
+						if ( ( typeof from_entity._armor_protection_level === 'undefined' || this._armor_penetration_level >= from_entity._armor_protection_level ) /*&&
+                             ( typeof from_entity._reinforced_level === 'undefined' || this._reinforced_level >= from_entity._reinforced_level ) &&
+                                 ( typeof from_entity._shielded === 'undefined' || from_entity._shielded === null )*/ )
 						{
 							if ( !this._wave )
 							{
@@ -706,7 +710,7 @@ class sdBullet extends sdEntity
 											else
 											this._owner.Say( 'A base shielding unit is protecting this' );
 										}
-										else*/
+										else
 										if ( from_entity._reinforced_level > 0 )
 										{
 											if ( Math.random() < 0.5 )
@@ -714,7 +718,7 @@ class sdBullet extends sdEntity
 											else
 											this._owner.Say( 'I need a Deconstructor Hammer to damage this' );
 										}
-										else
+										else*/
 										{
 											if ( from_entity._armor_protection_level > 3 )
 											this._owner.Say( 'Regular weapons won\'t work here. What about big explosions?' );

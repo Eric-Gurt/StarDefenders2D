@@ -159,8 +159,8 @@ class sdGun extends sdEntity
 				if ( ( typeof from_entity._armor_protection_level === 'undefined' || 
 					   this._dangerous_from === null || 
 					   ( this._dangerous_from._upgrade_counters[ 'upgrade_damage' ] || 0 ) >= from_entity._armor_protection_level )
-					   &&
-					   ( typeof from_entity._reinforced_level === 'undefined' || from_entity._reinforced_level <= 0 ) // Throwable swords can never damage entities with _reinforced_level
+					   /*&&
+					   ( typeof from_entity._reinforced_level === 'undefined' || from_entity._reinforced_level <= 0 )*/ // Throwable swords can never damage entities with _reinforced_level
 					)
 				{
 					if ( sdGun.classes[ this.class ].projectile_properties._custom_target_reaction )
