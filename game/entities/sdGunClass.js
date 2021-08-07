@@ -1812,7 +1812,7 @@ class sdGunClass
 			image2: [ sdWorld.CreateImageFromFile( 'gauss_rifle4' ), sdWorld.CreateImageFromFile( 'gauss_rifle5' ) ],
 			title: 'Gauss Rifle',
 			slot: 8,
-			reload_time: 300,
+			reload_time: 225,
 			muzzle_x: 9,
 			ammo_capacity: -1,
 			count: 1,
@@ -1838,7 +1838,7 @@ class sdGunClass
 					if ( gun._held_by._auto_shoot_in <= 0 )
 					{
 						
-						gun._held_by._auto_shoot_in = 1750 / 1000 * 30;
+						gun._held_by._auto_shoot_in = 1500 / 1000 * 30;
 
 						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 0.5 });
 					}
@@ -1850,7 +1850,7 @@ class sdGunClass
 					
 				}
 			},
-			projectile_properties: { explosion_radius: 25, model: 'gauss_rifle_proj', _damage: 110, color:sdEffect.default_explosion_color }
+			projectile_properties: { explosion_radius: 25, model: 'gauss_rifle_proj', _damage: 140, color:sdEffect.default_explosion_color }
 		};
 		
 		sdGun.classes[ sdGun.CLASS_COMBAT_RIFLE = 67 ] = 
@@ -1892,7 +1892,58 @@ class sdGunClass
 			matter_cost: 240,
 			projectile_properties: { time_left: 90, explosion_radius: 20, model: 'mini_missile_p241', _damage: 28, color:sdEffect.default_explosion_color, ac:0.01, _homing: true, _homing_mult: 0.3 }
 		};
+		
+		sdGun.classes[ sdGun.CLASS_F_HEAVY_RIFLE = 69 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'f_heavy_rifle' ),
+			image_charging: sdWorld.CreateImageFromFile( 'f_heavy_rifle' ),
+			title: 'Falkonian Heavy Rifle',
+			slot: 2,
+			reload_time: 0,
+			muzzle_x: 12,
+			ammo_capacity: -1,
+			count: 1,
+			spread: 0.05,
+			spawnable: false,
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				if ( gun._held_by._auto_shoot_in > 0 )
+				return 0;
+				
+				return 3;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( !shoot_from_scenario )
+				{
+					if ( gun._held_by )
+					if ( gun._held_by._auto_shoot_in <= 0 )
+					{
+						
+						gun._held_by._auto_shoot_in = 1000 / 1000 * 30;
 
+						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 3 });
+					}
+					return false;
+				}
+				else
+				{
+					sdSound.PlaySound({ name: 'saber_hit2', x:gun.x, y:gun.y, volume: 2, pitch: 3 });
+					
+					if ( gun._held_by.matter >= 3 )
+					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					{
+						gun._held_by._auto_shoot_in = ( gun._held_by.stim_ef > 0 ) ? 1 : 2;
+						gun._held_by.matter -= 3;
+					}
+				}
+				return true;
+			},
+			projectile_properties: { _damage: 27, color:'#afdfff' }
+		};
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
