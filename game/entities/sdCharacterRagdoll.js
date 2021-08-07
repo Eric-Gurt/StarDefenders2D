@@ -141,7 +141,10 @@ class sdCharacterRagdoll
 	{
 		x -= 16;
 		y -= 16;
-		x *= this.character._side;
+
+		x *= this.character._side * this.character.s / 100;
+		y *= this.character.s / 100;
+
 		x += this.character.x;
 		y += this.character.y;
 		
@@ -187,6 +190,9 @@ class sdCharacterRagdoll
 	RespectLength( boneA, boneB, min_len, max_len )
 	{
 		let dx,dy,di;
+
+		min_len *= this.character.s / 100;
+		max_len *= this.character.s / 100;
 		
 		dx = boneB.x - boneA.x;
 		dy = boneB.y - boneA.y;
@@ -212,6 +218,8 @@ class sdCharacterRagdoll
 	AliveUpdate()
 	{
 		this.ever_updated = true;
+
+		let scale = this.character.s / 100;
 		
 		// Side update might not happen in else case if entity appears as dead
 		this.character._side = ( this.character.x < this.character.look_x ) ? 1 : -1;
@@ -296,9 +304,9 @@ class sdCharacterRagdoll
 			dx /= di;
 			dy /= di;
 		}
-		this.MoveBoneRelative( this.spine, this.torso.x + dx * 6, this.torso.y + dy * 6 );
-		this.MoveBoneRelative( this.chest, this.torso.x + dx * 8, this.torso.y + dy * 8 );
-		this.MoveBoneRelative( this.neck, this.torso.x + dx * 11, this.torso.y + dy * 11 );
+		this.MoveBoneRelative( this.spine, this.torso.x + dx * 6 * scale, this.torso.y + dy * 6 * scale );
+		this.MoveBoneRelative( this.chest, this.torso.x + dx * 8 * scale, this.torso.y + dy * 8 * scale );
+		this.MoveBoneRelative( this.neck, this.torso.x + dx * 11 * scale, this.torso.y + dy * 11 * scale );
 		
 		if ( reload <= 0 )
 		{
@@ -356,7 +364,9 @@ class sdCharacterRagdoll
 				dy /= di;
 			}
 		}
-		this.MoveBoneRelative( this.head, this.neck.x - dy * 4 * this.character._side, this.neck.y + dx * 4 * this.character._side );
+		this.MoveBoneRelative( this.head, 
+			this.neck.x - dy * 4 * this.character._side * scale, 
+			this.neck.y + dx * 4 * this.character._side * scale );
 		
 		
 		
@@ -459,13 +469,23 @@ class sdCharacterRagdoll
 		}
 		if ( this.character._inventory[ this.character.gun_slot ] || ( this.character.fire_anim > 0 && this.character.fire_anim < 5 ) )
 		{
-			this.MoveBoneRelative( this.hand1, this.chest.x + dx * ( 9 + gun_offset_x - reload ), this.chest.y + 0 + dy * ( 9 + gun_offset_x - reload ) );
-			this.MoveBoneRelative( this.hand2, this.chest.x + dx * ( 9 + gun_offset_x - 3 + reload ), this.chest.y + 0 + dy * ( 9 + gun_offset_x - 3 + reload ) + 2 );
+			this.MoveBoneRelative( this.hand1, 
+			this.chest.x + dx * ( 9 + gun_offset_x - reload ) * scale, 
+			this.chest.y + dy * ( 9 + gun_offset_x - reload ) * scale );
+
+			this.MoveBoneRelative( this.hand2, 
+			this.chest.x + dx * ( 9 + gun_offset_x - 3 + reload ) * scale, 
+			this.chest.y + dy * ( 9 + gun_offset_x - 3 + reload ) * scale + 2 * scale );
 		}
 		else
 		{
-			this.MoveBoneRelative( this.hand1, this.chest.x - _anim_walk_arms, this.chest.y + 6 );
-			this.MoveBoneRelative( this.hand2, this.chest.x + _anim_walk_arms, this.chest.y + 6 );
+			this.MoveBoneRelative( this.hand1, 
+			this.chest.x - _anim_walk_arms * scale, 
+			this.chest.y + 6 * scale );
+
+			this.MoveBoneRelative( this.hand2, 
+			this.chest.x + _anim_walk_arms * scale, 
+			this.chest.y + 6 * scale );
 		}
 		
 		
@@ -478,8 +498,8 @@ class sdCharacterRagdoll
 		// Fix knees and elbows
 		//this.MoveBoneRelative( this.knee1, this.torso.x + 32 * this.character._side, this.torso.y );
 		//this.MoveBoneRelative( this.knee2, this.torso.x + 32 * this.character._side, this.torso.y );
-		this.MoveBoneRelative( this.elbow1, this.torso.x - 32 * this.character._side, this.torso.y + 32 );
-		this.MoveBoneRelative( this.elbow2, this.torso.x - 32 * this.character._side, this.torso.y + 32 );
+		this.MoveBoneRelative( this.elbow1, this.torso.x - 32 * this.character._side * scale, this.torso.y + 32 * scale );
+		this.MoveBoneRelative( this.elbow2, this.torso.x - 32 * this.character._side * scale, this.torso.y + 32 * scale );
 		/*
 		
 			Find elevation:
@@ -515,7 +535,7 @@ class sdCharacterRagdoll
 			let c0y = ( torso.y + ankle.y ) / 2;
 
 			let ab = sdWorld.Dist2D( torso.x, torso.y, ankle.x, ankle.y );
-			let cc0 = 16 - Math.pow( ab / 2, 2 );
+			let cc0 = Math.pow( 4 * scale, 2 ) - Math.pow( ab / 2, 2 );
 			if ( cc0 > 0 )
 			cc0 = Math.sqrt( cc0 ) * side;
 			else
@@ -598,6 +618,8 @@ class sdCharacterRagdoll
 	{
 		if ( typeof this[ part_name ] !== 'undefined' )
 		throw new Error( 'Bone "'+part_name+'" already exists' );
+	
+		//radius *= this.character.s / 100;
 	
 		let bone = new sdBone({ x:this.character.x + x - 16, y:this.character.y + y - 16, radius:radius * 0.5, ragdoll:this, sx:this.character.sx, sy:this.character.sy, bone_name:part_name, initial_x:x, initial_y:y, bounciness:bounciness, friction_remain:friction_remain, soft_bone_of:null });
 		sdEntity.entities.push( bone );
@@ -800,7 +822,7 @@ class sdCharacterRagdoll
 				
 				if ( a._phys_sleep > 0 || b._phys_sleep > 0 )
 				{
-					target_di = this.springs[ i ].radius;
+					target_di = this.springs[ i ].radius * this.character.s / 100;
 					limit_mode = this.springs[ i ].limit_mode;
 
 					dx = b.x - a.x;
@@ -909,7 +931,7 @@ class sdCharacterRagdoll
 				
 				ctx.rotate( Math.atan2( spring.parent.y - spring.child.y, spring.parent.x - spring.child.x ) );
 				
-				ctx.scale( 1, side );
+				ctx.scale( this.character.s / 100, side * this.character.s / 100 );
 
 				if ( spring.image === 96 ) // lower arm
 				if ( gun_counter++ === 1 )
@@ -1020,10 +1042,10 @@ class sdSpring
 
 class sdBone extends sdEntity
 {
-	get hitbox_x1() { return -this.radius; }
-	get hitbox_x2() { return this.radius; }
-	get hitbox_y1() { return -this.radius; }
-	get hitbox_y2() { return this.radius; }
+	get hitbox_x1() { return -this.radius * ( this.ragdoll && this.ragdoll.character ? this.ragdoll.character.s / 100 : 1 ); }
+	get hitbox_x2() { return this.radius * ( this.ragdoll && this.ragdoll.character ? this.ragdoll.character.s / 100 : 1 ); }
+	get hitbox_y1() { return -this.radius * ( this.ragdoll && this.ragdoll.character ? this.ragdoll.character.s / 100 : 1 ); }
+	get hitbox_y2() { return this.radius * ( this.ragdoll && this.ragdoll.character ? this.ragdoll.character.s / 100 : 1 ); }
 	
 	get hard_collision()
 	{ return false; }

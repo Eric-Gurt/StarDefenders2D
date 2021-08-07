@@ -243,6 +243,7 @@ import sdBall from './game/entities/sdBall.js';
 import sdTheatre from './game/entities/sdTheatre.js';
 import sdCaption from './game/entities/sdCaption.js';
 import sdBaseShieldingUnit from './game/entities/sdBaseShieldingUnit.js';
+import sdConveyor from './game/entities/sdConveyor.js';
 	
 
 
@@ -384,6 +385,13 @@ sdCaption.init_class();
 sdPlayerDrone.init_class();
 sdTurret.init_class();
 sdBaseShieldingUnit.init_class();
+sdConveyor.init_class();
+
+
+
+
+
+
 
 /* Do like that later, not sure if I want to deal with path problems yet again... Add awaits where needed too
 

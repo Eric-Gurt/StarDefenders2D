@@ -9,6 +9,8 @@ import sdCom from './sdCom.js';
 import sdBullet from './sdBullet.js';
 import sdCharacter from './sdCharacter.js';
 import sdDrone from './sdDrone.js';
+//import sdMatterAmplifier from './sdMatterAmplifier.js';
+//import sdCrystalCombiner from './sdCrystalCombiner.js';
 
 class sdPlayerDrone extends sdCharacter
 {
@@ -27,7 +29,17 @@ class sdPlayerDrone extends sdCharacter
 			sdWorld.CreateImageFromFile( 'drone_robot6' ), // 6
 			sdWorld.CreateImageFromFile( 'drone_robot7' ), // 7
 			sdWorld.CreateImageFromFile( 'drone_robot8' ), // 8
+			sdWorld.CreateImageFromFile( 'drone_robot9' ), // 9
+			sdWorld.CreateImageFromFile( 'drone_robot10' ), // 10
+			sdWorld.CreateImageFromFile( 'drone_robot11' ), // 11
 		];
+		
+		sdPlayerDrone.fake_bullet = {
+			is: ( v )=>
+			{
+				return v === sdBullet;
+			}
+		};
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -394,24 +406,39 @@ class sdPlayerDrone extends sdCharacter
 								let nears = sdWorld.GetAnythingNear( this.look_x, this.look_y, 16, null, null );
 								for ( let i = 0; i < nears.length; i++ )
 								{
-									if ( typeof nears[ i ].sx !== 'undefined' )
-									if ( typeof nears[ i ].sy !== 'undefined' )
 									if ( nears[ i ] !== this )
 									if ( nears[ i ]._hiberstate === sdEntity.HIBERSTATE_HIBERNATED || nears[ i ]._hiberstate === sdEntity.HIBERSTATE_ACTIVE )
-									if ( sdWorld.CheckLineOfSight( this.x, this.y, nears[ i ].x + ( nears[ i ]._hitbox_x1 + nears[ i ]._hitbox_x2 ) / 2, nears[ i ].y + ( nears[ i ]._hitbox_y1 + nears[ i ]._hitbox_y2 ) / 2, this, null, [ 'sdBlock' ] ) )
+									if ( sdWorld.CheckLineOfSight( this.x, this.y, nears[ i ].x + ( nears[ i ]._hitbox_x1 + nears[ i ]._hitbox_x2 ) / 2, nears[ i ].y + ( nears[ i ]._hitbox_y1 + nears[ i ]._hitbox_y2 ) / 2, this, null, [ 'sdBlock', 'sdDoor' ] ) )
 									{
-										sdSound.PlaySound({ name:'teleport_ready', x:this.x, y:this.y, volume:0.5, pitch:2 });
+										if ( typeof nears[ i ].sx !== 'undefined' && typeof nears[ i ].sy !== 'undefined' )
+										{
+											sdSound.PlaySound({ name:'teleport_ready', x:this.x, y:this.y, volume:0.5, pitch:2 });
 
-										this.grabbed = nears[ i ];
-										this.grabbed.PhysWakeUp();
-										this.grabbed.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+											this.grabbed = nears[ i ];
+											this.grabbed.PhysWakeUp();
+											this.grabbed.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 
-										break;
+											break;
+										}
+										else
+										{
+											if ( nears[ i ].is( sdWorld.entity_classes.sdMatterAmplifier ) || nears[ i ].is( sdWorld.entity_classes.sdCrystalCombiner ) )
+											{
+												sdSound.PlaySound({ name:'teleport_ready', x:this.x, y:this.y, volume:0.5, pitch:2 });
+
+												this.grabbed = nears[ i ];
+												
+												nears[ i ].onMovementInRange( sdPlayerDrone.fake_bullet );
+												
+												break;
+											}
+										}
 									}
 								}
 							}
 						}
 						else
+						if ( typeof this.grabbed.sx !== 'undefined' && typeof this.grabbed.sy !== 'undefined' ) // Amplifier and combiner tests
 						{
 							let xx = this.look_x - this.x;
 							let yy = this.look_y - this.y;

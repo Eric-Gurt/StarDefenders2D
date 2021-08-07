@@ -5,6 +5,7 @@ import sdEntity from './sdEntity.js';
 import sdCharacter from './sdCharacter.js';
 import sdCrystal from './sdCrystal.js';
 import sdBullet from './sdBullet.js';
+//import sdWorld.entity_classes.sdPlayerDrone from './sdWorld.entity_classes.sdPlayerDrone.js';
 
 class sdMatterAmplifier extends sdEntity
 {
@@ -289,16 +290,30 @@ class sdMatterAmplifier extends sdEntity
 			setTimeout( ()=>
 			{
 				for ( var i = 0; i < sdWorld.sockets.length; i++ )
-				if ( sdWorld.sockets[ i ].character )
-				if ( sdWorld.sockets[ i ].character.hook_x !== 0 || sdWorld.sockets[ i ].character.hook_y !== 0 )
-				if ( sdWorld.sockets[ i ].character._hook_relative_to === that )
 				{
-					sdWorld.sockets[ i ].character._hook_relative_to = ent;
-					//sdWorld.sockets[ i ].character.hook_x = ent.x;
-					//sdWorld.sockets[ i ].character.hook_y = ent.y;
-					sdWorld.sockets[ i ].character._hook_relative_x = 0;
-					sdWorld.sockets[ i ].character._hook_relative_y = 0;
-					//debugger;
+					let s = sdWorld.sockets[ i ];
+					
+					if ( s.character )
+					{
+						if ( s.character.is( sdWorld.entity_classes.sdPlayerDrone ) )
+						{
+							if ( s.character.grabbed === that )
+							{
+								s.character.grabbed = ent;
+							}
+						}
+						else
+						if ( s.character.hook_x !== 0 || s.character.hook_y !== 0 )
+						if ( s.character._hook_relative_to === that )
+						{
+							s.character._hook_relative_to = ent;
+							//s.character.hook_x = ent.x;
+							//s.character.hook_y = ent.y;
+							s.character._hook_relative_x = 0;
+							s.character._hook_relative_y = 0;
+							//debugger;
+						}
+					}
 				}
 			}, 50 );
 		}
@@ -336,10 +351,24 @@ class sdMatterAmplifier extends sdEntity
 				
 				// Prevent catching pulled crystals
 				for ( var i = 0; i < sdWorld.sockets.length; i++ )
-				if ( sdWorld.sockets[ i ].character )
-				if ( sdWorld.sockets[ i ].character.hook_x !== 0 || sdWorld.sockets[ i ].character.hook_y !== 0 )
-				if ( sdWorld.sockets[ i ].character._hook_relative_to === from_entity )
-				return;
+				{
+					let s = sdWorld.sockets[ i ];
+					
+					if ( s.character )
+					{
+						if ( s.character.is( sdWorld.entity_classes.sdPlayerDrone ) )
+						{
+							if ( s.character.grabbed === from_entity )
+							{
+								return;
+							}
+						}
+						else
+						if ( s.character.hook_x !== 0 || s.character.hook_y !== 0 )
+						if ( s.character._hook_relative_to === from_entity )
+						return;
+					}
+				}
 				
 				this.matter_max = from_entity.matter_max;
 				this.matter = from_entity.matter;

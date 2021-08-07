@@ -447,13 +447,23 @@ class sdEntity
 			}*/
 			if ( step_size > 0 )
 			{
+				let last_touch = null;
+				
 				for ( let i = 1; i <= step_size; i++ )
 				{
+				    sdWorld.last_hit_entity = null;
 					if ( this.CanMoveWithoutOverlap( new_x, new_y - i, 0, custom_filtering_method ) )
 					{
 						this.y = new_y - i;
 						
 						break;
+					}
+					else
+					if ( last_touch !== sdWorld.last_hit_entity )
+					if ( sdWorld.last_hit_entity )
+					{
+						last_touch = sdWorld.last_hit_entity;
+						this.Touches( sdWorld.last_hit_entity );
 					}
 				}
 			}

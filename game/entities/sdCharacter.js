@@ -280,6 +280,8 @@ class sdCharacter extends sdEntity
 		
 		//this._is_cable_priority = true;
 		
+		this.s = 100; // Scale, %
+		
 		this._socket = null; // undefined causes troubles
 		/*this._pos_corr_x = this.x;
 		this._pos_corr_y = this.y;
@@ -615,10 +617,10 @@ class sdCharacter extends sdEntity
 		if ( this._socket )
 		this._socket.emit( 'UPGRADE_SET', [ upgrade_name, this._upgrade_counters[ upgrade_name ] ] );
 	}
-	get hitbox_x1() { return this.death_anim < 10 ? -5 : -5; } // 7
-	get hitbox_x2() { return this.death_anim < 10 ? 5 : 5; }
-	get hitbox_y1() { return this.death_anim < 10 ? -12 : 10; }
-	get hitbox_y2() { return this.death_anim < 10 ? ( ( 16 - this._crouch_intens * 6 ) * ( 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7 ) ) : 16; }
+	get hitbox_x1() { return this.s / 100 * ( this.death_anim < 10 ? -5 : -5 ); } // 7
+	get hitbox_x2() { return this.s / 100 * ( this.death_anim < 10 ? 5 : 5 ); }
+	get hitbox_y1() { return this.s / 100 * ( this.death_anim < 10 ? -12 : 10 ); }
+	get hitbox_y2() { return this.s / 100 * ( this.death_anim < 10 ? ( ( 16 - this._crouch_intens * 6 ) * ( 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7 ) ) : 16 ); }
 
 //0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7
 
@@ -1114,7 +1116,7 @@ class sdCharacter extends sdEntity
 		}
 	}
 	
-	get mass() { return 80; }
+	get mass() { return 80 * this.s / 100; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -2212,6 +2214,10 @@ class sdCharacter extends sdEntity
 			//if ( !this.CanMoveWithoutOverlap( this.x, this.y + 2, 1 ) )
 			{
 				this.stands = true;
+				
+				if ( this._stands_on !== sdWorld.last_hit_entity )
+                this.Touches( sdWorld.last_hit_entity );
+			
 				this._stands_on = sdWorld.last_hit_entity;
 
 				this._in_air_timer = 0;
@@ -2726,7 +2732,9 @@ class sdCharacter extends sdEntity
 	{
 		if ( this.death_anim < 20 && !this.driver_of )
 		{
-			let w = 20;
+			let w = 20 * Math.max( 0.5, this.s / 100 );
+			
+			let raise = 5 + 15 * this.s / 100;
 			
 			let show_air = false;
 			
@@ -2741,36 +2749,36 @@ class sdCharacter extends sdEntity
 			ctx.globalAlpha = ( 1 - snap_frame ) * 0.5;
 			
 			ctx.fillStyle = '#000000';
-			ctx.fillRect( 0 - w / 2, 0 - 20 - ( this.armor > 0 ? 2 : 0 ), w, 5 + ( this.armor > 0 ? 2 : 0 )  + ( show_air ? 2 : 0 ) );
+			ctx.fillRect( 0 - w / 2, 0 - raise - ( this.armor > 0 ? 2 : 0 ), w, 5 + ( this.armor > 0 ? 2 : 0 )  + ( show_air ? 2 : 0 ) );
 			
 			ctx.globalAlpha = 1 - snap_frame;
 			
 			ctx.fillStyle = '#FF0000';
-			ctx.fillRect( 1 - w / 2, 1 - 20, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
+			ctx.fillRect( 1 - w / 2, 1 - raise, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
 			
 			if ( this.lst > 0 )
 			{
 				ctx.fillStyle = '#FFFF00';
-				ctx.fillRect( 1 - w / 2, 1 - 20, ( w - 2 ) * Math.max( 0, this.lst / this.hmax ), 1 );
+				ctx.fillRect( 1 - w / 2, 1 - raise, ( w - 2 ) * Math.max( 0, this.lst / this.hmax ), 1 );
 			}
 
 			if ( this.armor > 0 )
 			{
 				//ctx.fillStyle = '#5555ff';
 				ctx.fillStyle = '#77aaff';
-				ctx.fillRect( 1 - w / 2, -1 - 20, ( w - 2 ) * Math.max( 0, this.armor / this.armor_max ), 1 );
+				ctx.fillRect( 1 - w / 2, -1 - raise, ( w - 2 ) * Math.max( 0, this.armor / this.armor_max ), 1 );
 			}
 
 			//ctx.fillStyle = '#000000';
-			//ctx.fillRect( 0 - w / 2, 0 - 20, w, 3 );
+			//ctx.fillRect( 0 - w / 2, 0 - raise, w, 3 );
 			
 			ctx.fillStyle = '#00ffff';
-			ctx.fillRect( 1 - w / 2, 3 - 20, ( w - 2 ) * Math.max( 0, Math.min( this.matter / this.matter_max, 1 ) ), 1 );
+			ctx.fillRect( 1 - w / 2, 3 - raise, ( w - 2 ) * Math.max( 0, Math.min( this.matter / this.matter_max, 1 ) ), 1 );
 			
 			if ( show_air )
 			{
 				ctx.fillStyle = '#aaaaff';
-				ctx.fillRect( 1 - w / 2, 5 - 20, ( w - 2 ) * Math.max( 0, this.air / sdCharacter.air_max ), 1 );
+				ctx.fillRect( 1 - w / 2, 5 - raise, ( w - 2 ) * Math.max( 0, this.air / sdCharacter.air_max ), 1 );
 			}
 			
 			//
@@ -2790,9 +2798,9 @@ class sdCharacter extends sdEntity
 			} while( text_size.width < 20 && size < 10 );
 			
 			ctx.fillStyle = '#000000';
-			ctx.fillText( this.title, 0, -24.5, 50 ); 
+			ctx.fillText( this.title, 0, -raise - 4.5, 50 ); 
 			ctx.fillStyle = '#ffffff';
-			ctx.fillText( this.title, 0, -25, 50 );
+			ctx.fillText( this.title, 0, -raise - 5, 50 );
 			
 			if ( this._inventory[ this.gun_slot ] )
 			if ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].is_build_gun )

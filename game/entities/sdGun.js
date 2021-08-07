@@ -651,6 +651,9 @@ class sdGun extends sdEntity
 						bullet_obj._owner._recoil += bullet_obj._knock_scale * vel * 0.02; // 0.01
 
 						bullet_obj._bg_shooter = background_shoot ? true : false;
+						
+						if ( bullet_obj._owner.IsPlayerClass() )
+						bullet_obj.time_left *= bullet_obj._owner.s / 100;
 
 						sdEntity.entities.push( bullet_obj );
 					}

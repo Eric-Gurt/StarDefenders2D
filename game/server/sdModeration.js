@@ -272,7 +272,7 @@ class sdModeration
 			if ( is_non_admin )
 			socket.SDServiceMessage( 'Supported commands: ' + [ '/commands', '/myid', '/listadmins', '/connection', '/kill' ].join(', ') );
 			else
-			socket.SDServiceMessage( 'Supported commands: ' + [ '/commands', '/myid', '/listadmins', '/announce', '/quit', '/restart', '/save', '/restore', '/fullreset', '/god', '/promote', '/demote', '/boundsmove' ].join(', ') );
+			socket.SDServiceMessage( 'Supported commands: ' + [ '/commands', '/myid', '/listadmins', '/announce', '/quit', '/restart', '/save', '/restore', '/fullreset', '/god', '/scale', '/promote', '/demote', '/boundsmove' ].join(', ') );
 		}
 		else
 		if ( parts[ 0 ] === 'announce' )
@@ -452,6 +452,24 @@ class sdModeration
 			}
 			else
 			socket.SDServiceMessage( 'Server: No active character.' );
+		}
+		else
+		if ( parts[ 0 ] === 'scale' )
+		{
+			if ( socket.character )
+			{
+				let num = parseFloat( parts[ 1 ] );
+				if ( isNaN( num ) )
+				num = 100;
+				else
+				if ( num < 10 )
+				num = 10;
+				else
+				if ( num > 1000 )
+				num = 1000;
+		
+				socket.character.s = num;
+			}
 		}
 		else
 		if ( parts[ 0 ] === 'kill' )

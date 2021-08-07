@@ -1,4 +1,12 @@
+/*
 
+	
+	"If bases won't be possible to destroy with heavy armory vehicles and nuclear strikes - I'll be sad. 
+	It would be cool if some combat tank could be made with the cost of some anti-crystal and long construction process though."
+																											- Eric Gurt
+
+
+*/
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';

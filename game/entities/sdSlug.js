@@ -48,7 +48,7 @@ class sdSlug extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 300; // 500
+		this._hmax = 150; // Still can kill new players at 300 if player does not run away or does not have medikit // 500
 		this._hea = this._hmax;
 		this._move_timer = 30; // Timer used for moving when unprovoked
 		this.idle = 0;

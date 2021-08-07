@@ -15,8 +15,8 @@ class sdStorage extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -8; }
-	get hitbox_x2() { return 8; }
+	get hitbox_x1() { return -7; }
+	get hitbox_x2() { return 7; }
 	get hitbox_y1() { return -5; }
 	get hitbox_y2() { return 6; }
 	
