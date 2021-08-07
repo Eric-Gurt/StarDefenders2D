@@ -1077,6 +1077,11 @@ class sdEntity
 					
 					this._hiberstate = v;
 					sdEntity.active_entities.push( this );
+					
+					/*if ( sdEntity.active_entities.length > 172000 )
+					{
+						debugger;
+					}*/
 				}
 				else
 				debugger;

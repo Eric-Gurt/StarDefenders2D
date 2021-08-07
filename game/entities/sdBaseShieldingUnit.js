@@ -166,7 +166,7 @@ class sdBaseShieldingUnit extends sdEntity
 				if ( obj._shielded === this )
 				{
 					obj._shielded = null;
-					sdWorld.SendEffect({ x:this.x, y:this.y, x2:obj.x + ( obj.hitbox_x2 / 2 ), y2:obj.y + ( obj.hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#855805' });
+					sdWorld.SendEffect({ x:this.x, y:this.y, x2:obj.x + ( obj._hitbox_x2 / 2 ), y2:obj.y + ( obj._hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#855805' });
 				}
 			}
 			this._protected_entities = [];
