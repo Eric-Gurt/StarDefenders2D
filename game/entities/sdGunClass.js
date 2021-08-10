@@ -1944,6 +1944,39 @@ class sdGunClass
 			},
 			projectile_properties: { _damage: 27, color:'#afdfff' }
 		};
+		
+		sdGun.classes[ sdGun.CLASS_ZAPPER = 70 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'zapper' ),
+			title: 'Zapper',
+			sound: 'cube_attack',
+			sound_volume: 1.3,
+			sound_pitch: 1.5,
+			image_no_matter: sdWorld.CreateImageFromFile( 'zapper_disabled' ),
+			slot: 0,
+			reload_time: 10,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			is_sword: true,
+			min_build_tool_level: 3,
+			matter_cost: 300,
+			projectile_velocity: 37,
+			GetAmmoCost: ()=>
+			{
+				return 4;
+			},
+			projectile_properties: { time_left: 1, _damage: 90, color: 'transparent', _knock_scale:0.025 * 8, 
+				_custom_target_reaction:( bullet, target_entity )=>
+				{
+					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:1.8, pitch: 2 });
+				},
+				_custom_target_reaction_protected:( bullet, target_entity )=>
+				{
+					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:1.8, pitch: 2 });
+				}
+			}
+		};
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
