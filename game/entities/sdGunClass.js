@@ -1792,15 +1792,14 @@ class sdGunClass
 			slot: 1,
 			reload_time: 2,
 			muzzle_x: 5,
-			ammo_capacity: 9,
+			ammo_capacity: 12,
 			count: 1,
 			spread: 0.01,
 			matter_cost: 120,
 			burst: 3,
 			burst_reload: 35,
-			//projectile_velocity: 30,
 			min_build_tool_level: 3,
-			projectile_properties: { _damage: 25, color:'#00aaff' }
+			projectile_properties: { _damage: 33, color:'#00aaff' }
 		};
     
 		sdGun.classes[ sdGun.CLASS_GAUSS_RIFLE = 66 ] = 
@@ -1969,11 +1968,11 @@ class sdGunClass
 			projectile_properties: { time_left: 1, _damage: 90, color: 'transparent', _knock_scale:0.025 * 8, 
 				_custom_target_reaction:( bullet, target_entity )=>
 				{
-					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:1.8, pitch: 2 });
+					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:1.5, pitch: 2 });
 				},
 				_custom_target_reaction_protected:( bullet, target_entity )=>
 				{
-					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:1.8, pitch: 2 });
+					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:1.5, pitch: 2 });
 				}
 			}
 		};
