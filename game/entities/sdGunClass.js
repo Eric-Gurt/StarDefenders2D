@@ -1968,7 +1968,7 @@ class sdGunClass
 			{
 				return 4;
 			},
-			projectile_properties: { time_left: 1, _damage: 90, color: 'transparent', _knock_scale:0.025 * 8, 
+			projectile_properties: { time_left: 1, _damage: 90, color: '#ffffff', _knock_scale:0.025 * 8, 
 				_custom_target_reaction:( bullet, target_entity )=>
 				{
 					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:1.5, pitch: 2 });
