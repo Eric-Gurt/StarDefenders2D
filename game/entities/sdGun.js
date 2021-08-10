@@ -844,6 +844,7 @@ class sdGun extends sdEntity
 				
 				if ( isNaN( this.sx ) )
 				{
+					console.log( 'Entity with corrupted velocity: ', this._held_by );
 					throw new Error('sdGun is held by entity with .sx as NaN');
 				}
 			}
