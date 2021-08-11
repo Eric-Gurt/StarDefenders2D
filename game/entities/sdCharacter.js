@@ -73,6 +73,9 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_vanquisher' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_glory' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_scion' ), // by LordBored
+                        sdWorld.CreateImageFromFile( 'helmet_varia' ), // by Silk1
+                        sdWorld.CreateImageFromFile( 'helmet_avre' ), // by Silk1
+                        sdWorld.CreateImageFromFile( 'helmet_rose' ), // by Silk1
 		];
 		
 		sdCharacter.skin_part_indices = {
