@@ -1947,9 +1947,9 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_ZAPPER = 70 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'zapper' ),
-			image0: [ sdWorld.CreateImageFromFile( 'zapper_attack' ), sdWorld.CreateImageFromFile( 'zapper_attack' ) ],
-			image1: [ sdWorld.CreateImageFromFile( 'zapper_attack' ), sdWorld.CreateImageFromFile( 'zapper_attack' ) ],
-			image2: [ sdWorld.CreateImageFromFile( 'zapper_attack' ), sdWorld.CreateImageFromFile( 'zapper_attack' ) ],
+			image0: [ sdWorld.CreateImageFromFile( 'zapper0' ), sdWorld.CreateImageFromFile( 'zapper1' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'zapper2' ), sdWorld.CreateImageFromFile( 'zapper2' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'zapper0' ), sdWorld.CreateImageFromFile( 'zapper1' ) ],
 			title: 'Zapper',
 			sound: 'cube_attack',
 			sound_volume: 1.3,
