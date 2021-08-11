@@ -97,7 +97,10 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'skins/afterburn' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/vanquisher' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/glory' ), // by LordBored
-			sdWorld.CreateImageFromFile( 'skins/scion' ) // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/scion' ), // by LordBored
+                        sdWorld.CreateImageFromFile( 'skins/varia' ), // by Silk1 
+                        sdWorld.CreateImageFromFile( 'skins/avre' ), // by Silk1
+                        sdWorld.CreateImageFromFile( 'skins/rose' ) // by Silk1
 		];
 		
 		// x y rotation, for images below
