@@ -953,7 +953,7 @@ class sdCharacter extends sdEntity
 			{
 				if ( this._voice.variant === 'klatt3' )
 				{
-					this.Say( [ 'Critical damage!', 'Shutting down' ][ ~~( Math.random() * 2 ) ], false, false, true );
+					this.Say( [ 'Critical damage!', 'Shutting down' ][ ~~( Math.random() * 2 ) ], false, false, true, true );
 				}
 				else
 				if ( this._voice.variant === 'whisperf' )
@@ -1029,7 +1029,7 @@ class sdCharacter extends sdEntity
 					{
 						if ( this._voice.variant === 'klatt3' )
 						{
-							this.Say( [ 'Ouch!', 'Aaa!', 'Uh!' ][ ~~( Math.random() * 3 ) ], false, false );
+							this.Say( [ 'Ouch!', 'Aaa!', 'Uh!' ][ ~~( Math.random() * 3 ) ], false, false, true, true );
 						}
 						else
 						if ( this._voice.variant === 'whisperf' )
@@ -3358,7 +3358,7 @@ class sdCharacter extends sdEntity
 	{
 		return 200; // Hack
 	}
-	Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false )
+	Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false, simulate_sound=false )
 	{
 		let params = { 
 			x:this.x, 
@@ -3368,13 +3368,15 @@ class sdCharacter extends sdEntity
 			attachment_x: 0,
 			attachment_y: -36,
 			text:t,
-			voice:this._voice 
+			voice:this._voice,
+			no_ef:simulate_sound
 		};
 
 		if ( sdWorld.is_server )
 		{
 			if ( sdWorld.time > this._say_allowed_in || ignore_rate_limit )
 			{
+				if ( !ignore_rate_limit )
 				this._say_allowed_in = sdWorld.time + t.length * 50;
 				
 				if ( to_self )

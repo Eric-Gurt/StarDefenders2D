@@ -443,7 +443,7 @@ class sdConveyor extends sdEntity
 		if ( this.hea <= 0 )
 		return;
 	
-		sdEntity.Tooltip( ctx,  "Converyor" );
+		sdEntity.Tooltip( ctx,  "Conveyor" );
 		/*
 		let w = 30;
 	

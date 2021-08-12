@@ -373,7 +373,7 @@ class sdBullet extends sdEntity
 		{
 			this.sy += sdWorld.gravity * GSPEED;
 
-			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 0, this.RegularCollisionFiltering );
+			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, this.RegularCollisionFiltering );
 		}
 		else
 		{

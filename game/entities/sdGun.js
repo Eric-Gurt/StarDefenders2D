@@ -79,6 +79,24 @@ class sdGun extends sdEntity
 		this.sx += x / this.mass;
 		this.sy += y / this.mass;
 	}
+	Impact( vel ) // fall damage basically
+	{
+		if ( vel > 3 )
+		{
+			if ( !sdWorld.is_server )
+			{
+				if ( sdWorld.time > this._last_hit_sound )
+				{
+					if ( this.class === sdGun.CLASS_CRYSTAL_SHARD )
+					sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch:2, volume: 0.15, _server_allowed:true });
+					else
+					sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.3, volume: Math.min( 0.25, 0.1 * vel ), _server_allowed:true });
+				}
+				
+				this._last_hit_sound = sdWorld.time + 100;
+			}
+		}
+	}
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )
@@ -238,6 +256,8 @@ class sdGun extends sdEntity
 		
 		this.sx = 0;
 		this.sy = 0;
+		
+		this._last_hit_sound = 0;
 		
 		this.tilt = 0;
 		
@@ -774,7 +794,7 @@ class sdGun extends sdEntity
 			
 			sdWorld.last_hit_entity = null;
 			
-			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 0 );
+			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1 );
 			
 			if ( this.class === sdGun.CLASS_CRYSTAL_SHARD || this.class === sdGun.CLASS_CUBE_SHARD )
 			this.tilt = 0; // These have offset which better to not rotate for better visuals

@@ -27,6 +27,8 @@ class sdCharacterRagdoll
 	{
 		if ( character._ragdoll )
 		throw new Error( 'Ragdoll already exists for sdCharacter' );
+	
+		this._ignore_sounds_until = 0;
 		
 		this.character = character;
 		character._ragdoll = this;
@@ -1059,6 +1061,20 @@ class sdBone extends sdEntity
 		{
 			return false;
 		}
+	}
+	
+	Impact( vel ) // fall damage basically
+	{
+		if ( vel > 3 )
+		{
+			if ( !sdWorld.is_server )
+			if ( sdWorld.time > this.ragdoll._ignore_sounds_until )
+			sdSound.PlaySound({ name:'player_step', x:this.x, y:this.y, pitch:1.5, volume: Math.min( 0.5, 0.2 * vel ), _server_allowed:true });
+		}
+	}
+	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call
+	{
+		this.ragdoll._ignore_sounds_until = sdWorld.time + 100
 	}
 	
 	constructor( params )

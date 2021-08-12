@@ -1952,7 +1952,7 @@ class sdGunClass
 			image2: [ sdWorld.CreateImageFromFile( 'zapper0' ), sdWorld.CreateImageFromFile( 'zapper1' ) ],
 			title: 'Zapper',
 			sound: 'cube_attack',
-			sound_volume: 1.3,
+			sound_volume: 0.5,
 			sound_pitch: 1.5,
 			image_no_matter: sdWorld.CreateImageFromFile( 'zapper_disabled' ),
 			slot: 0,
@@ -1971,11 +1971,11 @@ class sdGunClass
 			projectile_properties: { model:'transparent_proj', time_left: 1, _damage: 90, color: '#ffffff', _knock_scale:0.025 * 8, 
 				_custom_target_reaction:( bullet, target_entity )=>
 				{
-					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:1.5, pitch: 2 });
+					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:0.5, pitch: 2 });
 				},
 				_custom_target_reaction_protected:( bullet, target_entity )=>
 				{
-					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:1.5, pitch: 2 });
+					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:0.5, pitch: 2 });
 				}
 			}
 		};

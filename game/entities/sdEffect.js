@@ -239,6 +239,11 @@ class sdEffect extends sdEntity
 		if ( this._text )
 		if ( params.voice )
 		{
+			if ( params.no_ef )
+			{
+				this.remove();
+			}
+			
 			let spoken = this._text;
 			
 			if ( spoken === 'ty' )
@@ -405,6 +410,9 @@ class sdEffect extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		if ( this._is_being_removed )
+		return;
+	
 		var y = 0;
 	
 		ctx.filter = this._filter;
@@ -485,6 +493,9 @@ class sdEffect extends sdEntity
 	}
 	DrawFG( ctx, attached )
 	{
+		if ( this._is_being_removed )
+		return;
+		
 		if ( this._type === sdEffect.TYPE_CHAT )
 		{
 			ctx.font = "6px Verdana";
