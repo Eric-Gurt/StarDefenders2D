@@ -73,6 +73,11 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_vanquisher' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_glory' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_scion' ), // by LordBored
+                        sdWorld.CreateImageFromFile( 'helmet_varia' ), // by Silk1
+                        sdWorld.CreateImageFromFile( 'helmet_avre' ), // by Silk1
+                        sdWorld.CreateImageFromFile( 'helmet_rose' ), // by Silk1
+                        sdWorld.CreateImageFromFile( 'helmet_array' ), // by Silk1
+                        sdWorld.CreateImageFromFile( 'helmet_nova' ), // by LazyRain
 		];
 		
 		sdCharacter.skin_part_indices = {
@@ -97,7 +102,13 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'skins/afterburn' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/vanquisher' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/glory' ), // by LordBored
-			sdWorld.CreateImageFromFile( 'skins/scion' ) // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/scion' ), // by LordBored
+                        sdWorld.CreateImageFromFile( 'skins/varia' ), // by Silk1 
+                        sdWorld.CreateImageFromFile( 'skins/avre' ), // by Silk1
+                        sdWorld.CreateImageFromFile( 'skins/rose' ), // by Silk1 
+                        sdWorld.CreateImageFromFile( 'skins/array' ), // by Silk1
+                        sdWorld.CreateImageFromFile( 'skins/nova' ) // by LazyRain
+
 		];
 		
 		// x y rotation, for images below
