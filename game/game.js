@@ -170,7 +170,9 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdWorld.FinalizeClasses();
 
 let enf_once = true;
-	globalThis.EnforceChangeLog = function EnforceChangeLog( mat, property_to_enforce, value_as_string=true )
+
+	globalThis.CATCH_ERRORS = false;
+	globalThis.EnforceChangeLog = function EnforceChangeLog( mat, property_to_enforce, value_as_string=true, only_catch_nans=false )
 	{
 		if ( enf_once )
 		{
@@ -190,16 +192,27 @@ let enf_once = true;
 
 				if ( mat[ enforced_prop ] !== v )
 				{
-					if ( v === undefined )
+					if ( only_catch_nans )
 					{
-						throw new Error('undef set');
+						if ( isNaN( v ) )
+						{
+							console.warn( 'NaN (',v,') assign attempt. Old value was ', mat[ enforced_prop ] );
+							throw new Error('NaN ('+v+') assign attempt. Old value was ' + mat[ enforced_prop ] );
+						}
 					}
-
-					if ( value_as_string )
-					console.warn( mat,'.'+property_to_enforce+' = '+v );
 					else
-					console.warn( mat,'.'+property_to_enforce+' = ',v );
+					{
+						if ( v === undefined )
+						{
+							throw new Error('undef set');
+						}
 
+						if ( value_as_string )
+						console.warn( mat.constructor.name,'.'+property_to_enforce+' = '+v );
+						else
+						console.warn( mat.constructor.name,'.'+property_to_enforce+' = ',v );
+
+					}
 					mat[ enforced_prop ] = v;
 				}
 

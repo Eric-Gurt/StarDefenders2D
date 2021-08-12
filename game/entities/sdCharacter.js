@@ -339,6 +339,14 @@ class sdCharacter extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
+		if ( globalThis.CATCH_ERRORS )
+		{
+			//globalThis.EnforceChangeLog( this, 'x', true, 'abs>100' );
+			//globalThis.EnforceChangeLog( this, 'y', true, 'abs>100' );
+			
+			globalThis.EnforceChangeLog( this, 'sx', true, 'nan_catch' );
+		}
+		
 		// Disables position correction during short period of time (whenever player is pushed, teleported, attacked by sdOctopus etc). Basically stuff that client can't calculate (since projectiles deal no damage nor knock effect)
 		this._position_velocity_forced_until = sdWorld.time + 200; // Should allow better respawning in arena-like mode (without player instantly moving back to where he just died if close enough for position correction)
 		this._force_add_sx = 0;

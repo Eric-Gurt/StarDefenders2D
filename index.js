@@ -257,7 +257,9 @@ import sdSound from './game/sdSound.js';
 console.warn = console.trace; // Adding stack trace support for console.warn, which it doesn't have by default for some reason in Node.JS
 
 let enf_once = true;
-globalThis.EnforceChangeLog = function EnforceChangeLog( mat, property_to_enforce, value_as_string=true )
+
+	globalThis.CATCH_ERRORS = true;
+	globalThis.EnforceChangeLog = function EnforceChangeLog( mat, property_to_enforce, value_as_string=true, mode='warn' )
 	{
 		if ( enf_once )
 		{
@@ -277,17 +279,39 @@ globalThis.EnforceChangeLog = function EnforceChangeLog( mat, property_to_enforc
 
 				if ( mat[ enforced_prop ] !== v )
 				{
-					if ( v === undefined )
+					if ( mode === 'abs>100' )
 					{
-						throw new Error('undef set');
+						if ( Math.abs( mat[ enforced_prop ] - v ) > 100 )
+						console.warn( 'Big .'+enforced_prop+' change (abs>100) from', mat[ enforced_prop ],' to ', v );
+						
+						if ( isNaN( v ) )
+						{
+							console.warn( 'NaN (',v,') assign attempt. Old value was ', mat[ enforced_prop ] );
+							throw new Error('NaN ('+v+') assign attempt. Old value was ' + mat[ enforced_prop ] );
+						}
 					}
-					
-					if ( value_as_string )
-					console.warn( mat.constructor.name,'.'+property_to_enforce+' = '+v );
 					else
-					console.warn( mat.constructor.name,'.'+property_to_enforce+' = ',v );
-					
+					if ( mode === 'nan_catch' )
+					{
+						if ( isNaN( v ) )
+						{
+							console.warn( 'NaN (',v,') assign attempt. Old value was ', mat[ enforced_prop ] );
+							throw new Error('NaN ('+v+') assign attempt. Old value was ' + mat[ enforced_prop ] );
+						}
+					}
+					else
+					{
+						if ( v === undefined )
+						{
+							throw new Error('undef set');
+						}
 
+						if ( value_as_string )
+						console.warn( mat.constructor.name,'.'+property_to_enforce+' = '+v );
+						else
+						console.warn( mat.constructor.name,'.'+property_to_enforce+' = ',v );
+
+					}
 					mat[ enforced_prop ] = v;
 				}
 

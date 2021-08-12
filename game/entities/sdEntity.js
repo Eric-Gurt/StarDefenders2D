@@ -477,6 +477,14 @@ class sdEntity
 			
 				let self_effect_scale = 1;
 				
+				let old_sy = Math.abs( this.sy );
+			
+				this.sy = - this.sy * bounce_intensity;
+				this.x = new_x;
+				
+				if ( apply_friction )
+				this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, friction_remain, GSPEED );
+				
 				if ( last_hit_entity )
 				if ( this.hard_collision )
 				{
@@ -484,20 +492,14 @@ class sdEntity
 					
 					if ( typeof last_hit_entity.sy !== 'undefined' )
 					{
-						last_hit_entity.sy += this.sy * ( 1 - self_effect_scale );
+						last_hit_entity.sy += old_sy * ( 1 - self_effect_scale );
 						//last_hit_entity.Impulse( 0, this.sy ); Impulse is reworked and needs some kind of hint that Impulse is not server-side only, so velocity change isn't doubled on client-side
 					}
 					if ( CheckPointDamageAllowed() )
-					last_hit_entity.Impact( Math.abs( this.sy ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
+					last_hit_entity.Impact( Math.abs( old_sy ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
 				}
 				if ( CheckPointDamageAllowed() )
-				this.Impact( Math.abs( this.sy ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
-			
-				this.sy = - this.sy * bounce_intensity;
-				this.x = new_x;
-				
-				if ( apply_friction )
-				this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, friction_remain, GSPEED );
+				this.Impact( Math.abs( old_sy ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
 			}
 			else
 			if ( this.CanMoveWithoutOverlap( this.x, new_y, safe_overlap, custom_filtering_method ) )
@@ -508,6 +510,14 @@ class sdEntity
 				
 				let self_effect_scale = 1;
 				
+				let old_sx = this.sx;
+			
+				this.sx = - this.sx * bounce_intensity;
+				this.y = new_y;
+				
+				if ( apply_friction )
+				this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, friction_remain, GSPEED );
+				
 				if ( last_hit_entity )
 				if ( this.hard_collision )
 				{
@@ -515,21 +525,15 @@ class sdEntity
 					
 					if ( typeof last_hit_entity.sx !== 'undefined' )
 					{
-						last_hit_entity.sx += this.sx * ( 1 - self_effect_scale );
+						last_hit_entity.sx += old_sx * ( 1 - self_effect_scale );
 						//last_hit_entity.Impulse( this.sx, 0 ); Impulse is reworked and needs some kind of hint that Impulse is not server-side only, so velocity change isn't doubled on client-side
 					}
 					
 					if ( CheckPointDamageAllowed() )
-					last_hit_entity.Impact( Math.abs( this.sx ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
+					last_hit_entity.Impact( Math.abs( old_sx ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
 				}
 				if ( CheckPointDamageAllowed() )
-				this.Impact( Math.abs( this.sx ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
-			
-				this.sx = - this.sx * bounce_intensity;
-				this.y = new_y;
-				
-				if ( apply_friction )
-				this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, friction_remain, GSPEED );
+				this.Impact( Math.abs( old_sx ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
 			}
 			else
 			{
@@ -539,28 +543,31 @@ class sdEntity
 				
 				let self_effect_scale = 1;
 				
+				let old_sx = this.sx;
+				let old_sy = this.sy;
+			
+				this.sx = - this.sx * bounce_intensity;
+				this.sy = - this.sy * bounce_intensity;
+				
+				this.onPhysicallyStuck();
+				
 				if ( last_hit_entity )
 				if ( this.hard_collision )
 				{
 					self_effect_scale = last_hit_entity.mass / ( last_hit_entity.mass + this.mass );
 					
 					if ( typeof last_hit_entity.sx !== 'undefined' )
-					last_hit_entity.sx += this.sx * ( 1 - self_effect_scale );
+					last_hit_entity.sx += old_sx * ( 1 - self_effect_scale );
 				
 					if ( typeof last_hit_entity.sy !== 'undefined' )
-					last_hit_entity.sy += this.sy * ( 1 - self_effect_scale );
+					last_hit_entity.sy += old_sy * ( 1 - self_effect_scale );
 				
 					if ( CheckPointDamageAllowed() )
-					last_hit_entity.Impact( sdWorld.Dist2D_Vector( this.sx, this.sy ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
+					last_hit_entity.Impact( sdWorld.Dist2D_Vector( old_sx, old_sy ) * ( 1 + bounce_intensity ) * ( 1 - self_effect_scale ) * impact_scale );
 				}
 			
 				if ( CheckPointDamageAllowed() )
-				this.Impact( sdWorld.Dist2D_Vector( this.sx, this.sy ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
-			
-				this.sx = - this.sx * bounce_intensity;
-				this.sy = - this.sy * bounce_intensity;
-				
-				this.onPhysicallyStuck();
+				this.Impact( sdWorld.Dist2D_Vector( old_sx, old_sy ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
 			}
 
 		}
