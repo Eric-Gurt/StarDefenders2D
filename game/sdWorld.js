@@ -3009,12 +3009,17 @@ class sdWorld
 			
 			globalThis.enable_debug_info = player_settings['bugs2'];
 			
-			sdRenderer.visual_settings = player_settings['visuals1'] * 1 + player_settings['visuals2'] * 2 + player_settings['visuals3'] * 3;
+			const BoolToInt = ( v )=>
+			{
+				return v?1:0;
+			};
 			
-			sdRenderer.resolution_quality = player_settings['density1'] * 1 + player_settings['density2'] * 0.5 + player_settings['density3'] * 0.25;
+			sdRenderer.visual_settings = BoolToInt( player_settings['visuals1'] ) * 1 + BoolToInt( player_settings['visuals2'] ) * 2 + BoolToInt( player_settings['visuals3'] ) * 3;
+			
+			sdRenderer.resolution_quality = BoolToInt( player_settings['density1'] ) * 1 + BoolToInt( player_settings['density2'] ) * 0.5 + BoolToInt( player_settings['density3'] ) * 0.25;
 			window.onresize();
 			
-			sdSound.SetVolumeScale( player_settings['volume1'] * 0.4 + player_settings['volume2'] * 0.25 + player_settings['volume3'] * 0.1 ) ;
+			sdSound.SetVolumeScale( BoolToInt( player_settings['volume1'] ) * 0.4 + BoolToInt( player_settings['volume2'] ) * 0.25 + BoolToInt( player_settings['volume3'] ) * 0.1 ) ;
 			
 			sdWorld.soft_camera = player_settings['camera1'] ? true : false;
 			

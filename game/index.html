@@ -1329,8 +1329,11 @@
 		{
 		    let obj = inputs[ i ];
 		    
+		    if ( obj.el.value !== false )
 		    ret[ obj.el.id ] = obj.el.value;
 		}
+		
+		//debugger;
 		
 		return ret;
 	    };
