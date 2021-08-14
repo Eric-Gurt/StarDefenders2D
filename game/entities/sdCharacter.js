@@ -78,6 +78,13 @@ class sdCharacter extends sdEntity
                         sdWorld.CreateImageFromFile( 'helmet_rose' ), // by Silk1
                         sdWorld.CreateImageFromFile( 'helmet_array' ), // by Silk1
                         sdWorld.CreateImageFromFile( 'helmet_nova' ), // by LazyRain
+                        sdWorld.CreateImageFromFile( 'helmet_spaghetti' ), // by LazyRain
+                        sdWorld.CreateImageFromFile( 'helmet_cleaner' ), // by LazyRain
+                        sdWorld.CreateImageFromFile( 'helmet_igris' ), // by Silk1
+                        sdWorld.CreateImageFromFile( 'helmet_ace' ), // by Silk1
+			sdWorld.CreateImageFromFile( 'helmet_alpha' ), // by Silk1
+			sdWorld.CreateImageFromFile( 'helmet_glass' ), // by LazyRain
+			sdWorld.CreateImageFromFile( 'helmet_skeleton' ), // by Silk1
 		];
 		
 		sdCharacter.skin_part_indices = {
@@ -107,7 +114,12 @@ class sdCharacter extends sdEntity
                         sdWorld.CreateImageFromFile( 'skins/avre' ), // by Silk1
                         sdWorld.CreateImageFromFile( 'skins/rose' ), // by Silk1 
                         sdWorld.CreateImageFromFile( 'skins/array' ), // by Silk1
-                        sdWorld.CreateImageFromFile( 'skins/nova' ) // by LazyRain
+                        sdWorld.CreateImageFromFile( 'skins/nova' ), // by LazyRain
+                        sdWorld.CreateImageFromFile( 'skins/spaghetti' ), // by LazyRain
+			sdWorld.CreateImageFromFile( 'skins/igris' ), // by Silk1
+                        sdWorld.CreateImageFromFile( 'skins/alpha' ), // by Silk1
+			sdWorld.CreateImageFromFile( 'skins/glass' ), // by Lazyrain
+			sdWorld.CreateImageFromFile( 'skins/skeleton' ) // by Silk1
 
 		];
 		
