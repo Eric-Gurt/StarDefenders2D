@@ -55,7 +55,9 @@ class sdSandWorm extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 700;
+		this.scale = Math.max( 0.6, Math.random() * 2 );
+
+		this._hmax = 700 * Math.max( 0.6, Math.pow( this.scale, 2 ) );// Bigger worms = more health
 		this._hea = this._hmax;
 		
 		this._time_until_full_remove = 30 * 10 + Math.random() * 30 * 10; // 10-20 seconds to get removed
@@ -81,8 +83,6 @@ class sdSandWorm extends sdEntity
 		this._in_water = null;
 		
 		this._last_attack = sdWorld.time;
-		
-		this.scale = 1;
 		
 		sdSandWorm.worms_tot++;
 		
@@ -112,7 +112,7 @@ class sdSandWorm extends sdEntity
 	
 	HasEnoughMatter( ent ) // sdSandWorms will actually hunt entities that have some amount of matter, for example one that is enough to buy damage upgrades. Thus won't target new players
 	{
-		return ( ent.matter >= 200 ); // I think getting to 100 matter sets worms to hunt players while they're upgrading damage and health, this is more fair IMO - Booraz
+		return ( ent.matter >= 200 * this.scale ); // I think getting to 100 matter sets worms to hunt players while they're upgrading damage and health, this is more fair IMO - Booraz
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
@@ -198,7 +198,7 @@ class sdSandWorm extends sdEntity
 		{
 			if ( initiator )
 			if ( typeof initiator._score !== 'undefined' )
-			initiator._score += 60;
+			initiator._score += Math.round( 60 * this.scale );
 	
 			sdSound.PlaySound({ name:'octopus_alert', x:head_entity.x, y:head_entity.y, pitch:0.25, volume:4 });
 	
@@ -237,7 +237,7 @@ class sdSandWorm extends sdEntity
 			this.remove();
 		}
 	}
-	get mass() { return 300; }
+	get mass() { return 300 * this.scale; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -341,7 +341,7 @@ class sdSandWorm extends sdEntity
 			
 			for ( let i = 1; i < 7; i++ )
 			{
-				let ent_scale = 1 - Math.pow( i / 7, 2 ) * 0.5;
+				let ent_scale = ( 1 - Math.pow( i / 7, 2 ) * 0.5 ) * this.scale;
 				
 				offset += ( this.scale + ent_scale ) * sdSandWorm.segment_dist / 2;
 				
@@ -606,7 +606,7 @@ class sdSandWorm extends sdEntity
 	{
 		if ( hit_entity.is( sdBlock ) )
 		{
-			if ( hit_entity.material === sdBlock.MATERIAL_WALL || hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1  )
+			if ( hit_entity.material === sdBlock.MATERIAL_WALL || hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 || hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
 			return true;
 
 			return false;
@@ -683,10 +683,10 @@ class sdSandWorm extends sdEntity
 					if ( from_entity._reinforced_level > 0 ) // Worms should not damage reinforced blocks to prevent raiders using them
 					from_entity.Damage( 0, this );
 					else
-					from_entity.Damage( 300, this );
+					from_entity.Damage( 300 * this.scale, this );
 				}
 				else
-				from_entity.Damage( 300, this );
+				from_entity.Damage( 300 * this.scale, this );
 				
 				this.model = 0;
 				
@@ -712,10 +712,10 @@ class sdSandWorm extends sdEntity
 					if ( from_entity._reinforced_level > 0 ) // Worms should not damage reinforced blocks to prevent raiders using them
 					from_entity.Damage( 0, this );
 					else
-					from_entity.Damage( 20, this );
+					from_entity.Damage( 20 * this.scale, this );
 				}
 				else
-				from_entity.Damage( 20, this );
+				from_entity.Damage( 20 * this.scale, this );
 			}
 		}
 	}
@@ -750,6 +750,7 @@ class sdSandWorm extends sdEntity
 			}
 			
 			// High price shards
+			if ( this.scale > 0.8 )
 			sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
 				1 + ~~( Math.random() * 4 ),
 				( 40 * 128 ) / 40
