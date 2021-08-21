@@ -2010,7 +2010,7 @@ class sdGunClass
 			burst: 3,
 			burst_reload: 45,
 			count: 1,
-			projectile_properties: { _rail: true, _damage: 29, color: '#ffff00'/*, _knock_scale:0.01 * 8*/ }, // 70
+			projectile_properties: { _rail: true, _damage: 25, color: '#ffff00'/*, _knock_scale:0.01 * 8*/ }, // 70
 			spawnable: false
 		};
 
