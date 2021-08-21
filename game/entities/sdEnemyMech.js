@@ -8,6 +8,7 @@ import sdWater from './sdWater.js';
 import sdCom from './sdCom.js';
 import sdBullet from './sdBullet.js';
 import sdBlock from './sdBlock.js';
+import sdCharacter from './sdCharacter.js';
 
 class sdEnemyMech extends sdEntity
 {
@@ -220,6 +221,7 @@ class sdEnemyMech extends sdEntity
 				if ( this._time_until_full_remove <= 0 )
 				{
 					let r = Math.random();
+					let shards = 2 + Math.round( Math.random() * 3);
 			
 					if ( r < 0.25 )
 					{
@@ -249,6 +251,28 @@ class sdEnemyMech extends sdEntity
 							sdEntity.entities.push( gun );
 
 						}, 500 );
+					}
+					while ( shards > 0 )
+					{
+						let x = this.x;
+						let y = this.y;
+						let sx = this.sx;
+						let sy = this.sy;
+
+						setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+							let random_value = Math.random();
+
+							let gun;
+
+							gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_METAL_SHARD });
+
+							gun.sx = sx + Math.random() - Math.random();
+							gun.sy = sy + Math.random() - Math.random();
+							sdEntity.entities.push( gun );
+
+						}, 500 );
+						shards--;
 					}
 					this.remove();
 					return;
