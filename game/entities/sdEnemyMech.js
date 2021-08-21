@@ -654,7 +654,7 @@ class sdEnemyMech extends sdEntity
 			ctx.rotate( -this.lmg_an / 100 );
 			ctx.scale( -1, 1 );
 		}
-		ctx.drawImageFilterCache( sdEnemyMech.img_mech_mg, - 16, - 24, 32, 32 );
+		ctx.drawImageFilterCache( sdEnemyMech.img_mech_mg, - 16, - 16, 32, 32 );
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 		ctx.sd_filter = null;
