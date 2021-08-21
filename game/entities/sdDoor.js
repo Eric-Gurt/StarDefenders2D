@@ -21,17 +21,32 @@ class sdDoor extends sdEntity
 		
 		sdDoor.img_adoor = sdWorld.CreateImageFromFile( 'adoor' );
 		sdDoor.img_adoor_closed = sdWorld.CreateImageFromFile( 'adoor2' );
+
+		sdDoor.img_a2door = sdWorld.CreateImageFromFile( 'a2door' );
+		sdDoor.img_a2door_closed = sdWorld.CreateImageFromFile( 'a2door2' );
 		
 		sdDoor.img_door_path = sdWorld.CreateImageFromFile( 'door_open' );
 		
 		sdDoor.img_door_no_matter = sdWorld.CreateImageFromFile( 'door_no_matter' );
 		sdDoor.img_door_no_matter2 = sdWorld.CreateImageFromFile( 'door_no_matter2' );
 		
-		sdDoor.img_adoor_no_matter = sdWorld.CreateImageFromFile( 'adoor_no_matter' );
+		sdDoor.img_adoor_no_matter = sdWorld.CreateImageFromFile( 'adoor_no_matter' ); // Reinforced doors, level 1
 		sdDoor.img_adoor_no_matter2 = sdWorld.CreateImageFromFile( 'adoor_no_matter2' );
+
+		sdDoor.img_a2door_no_matter = sdWorld.CreateImageFromFile( 'a2door_no_matter' ); // Reinforced doors, level 2
+		sdDoor.img_a2door_no_matter2 = sdWorld.CreateImageFromFile( 'a2door_no_matter2' );
 		
 		sdDoor.MODEL_BASIC = 1;
 		sdDoor.MODEL_ARMORED = 2;
+		sdDoor.MODEL_ARMORED_LVL2 = 3;
+
+		sdDoor.metal_reinforces = [ 
+			null,
+			sdWorld.CreateImageFromFile( 'metal_d_reinforced1' ),
+			sdWorld.CreateImageFromFile( 'metal_d_reinforced2' ),
+			sdWorld.CreateImageFromFile( 'metal_d_reinforced3' ),
+			sdWorld.CreateImageFromFile( 'metal_d_reinforced4' )
+		];
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -149,6 +164,7 @@ class sdDoor extends sdEntity
 		
 		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
 		this._reinforced_level = params._reinforced_level || 0;
+		this._max_reinforced_level = this._reinforced_level + 2;
 		this._shielded = null; // Is this entity protected by a base defense unit?
 		
 		this.x0 = null; // undefined
@@ -162,6 +178,7 @@ class sdDoor extends sdEntity
 		this.opening_tim = 0; // Whenever door is touched it goes up to max value and while it is > 0 door is trying to be kept open
 		
 		this.destruction_frame = 0;
+		this.reinforced_frame = 0;
 		
 		this.malfunction = false; // True if origin sdBlocks were removed, will cause door to close
 		
@@ -181,7 +198,7 @@ class sdDoor extends sdEntity
 	}
 	Sound( s )
 	{
-		sdSound.PlaySound({ name: ( ( this.model === sdDoor.MODEL_ARMORED ) ? 'a' : '' ) + s, x:this.x, y:this.y, volume: ( this.model === sdDoor.MODEL_ARMORED ) ? 1 : 0.5 });
+		sdSound.PlaySound({ name: ( ( this.model === sdDoor.MODEL_ARMORED || this.model === sdDoor.MODEL_ARMORED_LVL2 ) ? 'a' : '' ) + s, x:this.x, y:this.y, volume: ( this.model === sdDoor.MODEL_ARMORED || this.model === sdDoor.MODEL_ARMORED_LVL2 ) ? 1 : 0.5 });
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -265,7 +282,7 @@ class sdDoor extends sdEntity
 						{
 							if ( this.opening_tim === 0 )
 							this.Sound( 'door_start' );
-							//sdSound.PlaySound({ name: ( ( this.model === sdDoor.MODEL_ARMORED ) ? 'a' : '' ) + 'door_start', x:this.x, y:this.y, volume:0.5 });
+							//sdSound.PlaySound({ name: ( ( this.model === sdDoor.MODEL_ARMORED || this.model === sdDoor.MODEL_ARMORED_LVL2  ) ? 'a' : '' ) + 'door_start', x:this.x, y:this.y, volume:0.5 });
 
 							this.opening_tim = 15;
 							this._update_version++;
@@ -297,14 +314,14 @@ class sdDoor extends sdEntity
 
 						if ( this.openness === 32 )
 						this.Sound( 'door_stop' );
-						//sdSound.PlaySound({ name:( ( this.model === sdDoor.MODEL_ARMORED ) ? 'a' : '' ) + 'door_stop', x:this.x, y:this.y, volume:0.5 });
+						//sdSound.PlaySound({ name:( ( this.model === sdDoor.MODEL_ARMORED || this.model === sdDoor.MODEL_ARMORED_LVL2 ) ? 'a' : '' ) + 'door_stop', x:this.x, y:this.y, volume:0.5 });
 					}
 					this.opening_tim = Math.max( 0, this.opening_tim - GSPEED );
 
 					if ( this.opening_tim === 0 )
 					{
 						this.Sound( 'door_start' );
-						//sdSound.PlaySound({ name:( ( this.model === sdDoor.MODEL_ARMORED ) ? 'a' : '' ) + 'door_start', x:this.x, y:this.y, volume:0.5 });
+						//sdSound.PlaySound({ name:( ( this.model === sdDoor.MODEL_ARMORED || this.model === sdDoor.MODEL_ARMORED_LVL2 ) ? 'a' : '' ) + 'door_start', x:this.x, y:this.y, volume:0.5 });
 						this._update_version++;
 					}
 				}
@@ -356,7 +373,7 @@ class sdDoor extends sdEntity
 						if ( this.openness === 0 )
 						{
 							this.Sound( 'door_stop' );
-							//sdSound.PlaySound({ name:( ( this.model === sdDoor.MODEL_ARMORED ) ? 'a' : '' ) + 'door_stop', x:this.x, y:this.y, volume:0.5 });
+							//sdSound.PlaySound({ name:( ( this.model === sdDoor.MODEL_ARMORED || this.model === sdDoor.MODEL_ARMORED_LVL2 ) ? 'a' : '' ) + 'door_stop', x:this.x, y:this.y, volume:0.5 });
 							this._update_version++;
 						}
 					}
@@ -453,6 +470,12 @@ class sdDoor extends sdEntity
 			img_closed = sdDoor.img_adoor_closed;
 			img_normal = sdDoor.img_adoor;
 		}
+		if ( this.model === sdDoor.MODEL_ARMORED_LVL2 )
+		{
+			img_no_matter = ( sdWorld.time % 4000 < 2000 ) ? sdDoor.img_a2door_no_matter : sdDoor.img_a2door_no_matter2;
+			img_closed = sdDoor.img_a2door_closed;
+			img_normal = sdDoor.img_a2door;
+		}
 		
 		if ( this.x0 === null && this._net_id !== undefined ) // undefined // Client-side doors won't not have any _net_id
 		{
@@ -469,6 +492,8 @@ class sdDoor extends sdEntity
 		
 			if ( sdBlock.cracks[ this.destruction_frame ] !== null )
 			ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
+			if ( sdDoor.metal_reinforces[ this.reinforced_frame ] !== null )
+			ctx.drawImageFilterCache( sdDoor.metal_reinforces[ this.reinforced_frame ], -16, -16, 32,32 );
 		}
 		else
 		{
@@ -496,6 +521,8 @@ class sdDoor extends sdEntity
 		
 					if ( sdBlock.cracks[ this.destruction_frame ] !== null )
 					ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
+					if ( sdDoor.metal_reinforces[ this.reinforced_frame ] !== null )
+					ctx.drawImageFilterCache( sdDoor.metal_reinforces[ this.reinforced_frame ], -16, -16, 32,32 );
 				}
 				ctx.restore();
 			}
@@ -514,6 +541,8 @@ class sdDoor extends sdEntity
 		
 				if ( sdBlock.cracks[ this.destruction_frame ] !== null )
 				ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
+				if ( sdDoor.metal_reinforces[ this.reinforced_frame ] !== null )
+				ctx.drawImageFilterCache( sdDoor.metal_reinforces[ this.reinforced_frame ], -16, -16, 32,32 );
 			}
 		}
 	
@@ -535,6 +564,28 @@ class sdDoor extends sdEntity
 		this.destruction_frame = 3;
 		
 		if ( this.destruction_frame !== old_destruction_frame )
+		this._update_version++;
+	}
+	HandleReinforceUpdate()
+	{
+		let old_reinforced_frame = this.reinforced_frame;
+		
+		if ( this._reinforced_level === this._max_reinforced_level - 2 )
+		this.reinforced_frame = 0;
+		else
+		if ( this._reinforced_level === this._max_reinforced_level - 1.5 )
+		this.reinforced_frame = 1;
+		else
+		if ( this._reinforced_level === this._max_reinforced_level - 1 )
+		this.reinforced_frame = 2;
+		else
+		if ( this._reinforced_level === this._max_reinforced_level - 0.5 )
+		this.reinforced_frame = 3;
+		else
+		if ( this._reinforced_level === this._max_reinforced_level )
+		this.reinforced_frame = 4;
+		
+		if ( this.reinforced_frame !== old_reinforced_frame )
 		this._update_version++;
 	}
 	DrawHUD( ctx, attached ) // foreground layer
