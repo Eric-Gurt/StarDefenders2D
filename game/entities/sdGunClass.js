@@ -2025,7 +2025,7 @@ class sdGunClass
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 1,
-			matter_cost: 0,
+			spawnable: false,
 			projectile_velocity: 16,
 			/*GetAmmoCost: ()=>
 			{
