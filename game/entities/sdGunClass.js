@@ -1792,14 +1792,15 @@ class sdGunClass
 			slot: 1,
 			reload_time: 2,
 			muzzle_x: 5,
-			ammo_capacity: 12,
+			ammo_capacity: 9,
 			count: 1,
 			spread: 0.01,
 			matter_cost: 120,
 			burst: 3,
 			burst_reload: 35,
+			//projectile_velocity: 30,
 			min_build_tool_level: 3,
-			projectile_properties: { _damage: 33, color:'#00aaff' }
+			projectile_properties: { _damage: 25, color:'#00aaff' }
 		};
     
 		sdGun.classes[ sdGun.CLASS_GAUSS_RIFLE = 66 ] = 
@@ -1943,42 +1944,92 @@ class sdGunClass
 			},
 			projectile_properties: { _damage: 27, color:'#afdfff' }
 		};
-		
-		sdGun.classes[ sdGun.CLASS_ZAPPER = 70 ] = 
+
+		sdGun.classes[ sdGun.CLASS_COUNCIL_PISTOL = 70 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'zapper' ),
-			image0: [ sdWorld.CreateImageFromFile( 'zapper0' ), sdWorld.CreateImageFromFile( 'zapper1' ) ],
-			image1: [ sdWorld.CreateImageFromFile( 'zapper2' ), sdWorld.CreateImageFromFile( 'zapper2' ) ],
-			image2: [ sdWorld.CreateImageFromFile( 'zapper0' ), sdWorld.CreateImageFromFile( 'zapper1' ) ],
-			title: 'Zapper',
+			image: sdWorld.CreateImageFromFile( 'council_pistol' ),
 			sound: 'cube_attack',
-			sound_volume: 0.5,
 			sound_pitch: 1.5,
-			image_no_matter: sdWorld.CreateImageFromFile( 'zapper_disabled' ),
-			slot: 0,
-			reload_time: 10,
+			title: 'Council Pistol',
+			slot: 1,
+			reload_time: 11,
+			muzzle_x: 7,
+			ammo_capacity: -1,
+			spread: 0.01,
+			count: 1,
+			spawnable: false,
+			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
+			projectile_properties: { _damage: 30, color:'ffff00' }
+		};
+
+		sdGun.classes[ sdGun.CLASS_COUNCIL_BURST_RAIL = 71 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'council_gun' ),
+			sound: 'cube_attack',
+			sound_pitch: 1.5,
+			title: 'Council Burst Rail',
+			slot: 4,
+			reload_time: 3,
+			muzzle_x: 7,
+			ammo_capacity: -1,// 10, // 3
+			burst: 3,
+			burst_reload: 45,
+			count: 1,
+			projectile_properties: { _rail: true, _damage: 29, color: '#ffff00'/*, _knock_scale:0.01 * 8*/ }, // 70
+			spawnable: false
+		};
+
+		sdGun.classes[ sdGun.CLASS_METAL_SHARD = 72 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'metal_shard' ),
+			sound: 'gun_defibrillator',
+			title: 'Metal shard',
+			sound_pitch: 1,
+			slot: 7,
+			reload_time: 30,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 1,
-			is_sword: true,
-			min_build_tool_level: 3,
-			matter_cost: 300,
-			projectile_velocity: 37,
-			GetAmmoCost: ()=>
+			matter_cost: 0,
+			projectile_velocity: 16,
+			/*GetAmmoCost: ()=>
 			{
-				return 4;
-			},
-			projectile_properties: { model:'transparent_proj', time_left: 1, _damage: 90, color: '#ffffff', _knock_scale:0.025 * 8, 
-				_custom_target_reaction:( bullet, target_entity )=>
+				return 100;
+			},*/
+			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', _return_damage_to_owner:false, _custom_target_reaction:( bullet, target_entity )=>
 				{
-					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:0.5, pitch: 2 });
-				},
-				_custom_target_reaction_protected:( bullet, target_entity )=>
-				{
-					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:0.5, pitch: 2 });
+					if ( target_entity.GetClass() === 'sdBlock' || target_entity.GetClass() === 'sdDoor' )
+					{
+						if ( target_entity.GetClass() === 'sdBlock' )
+						if ( target_entity.material === sdBlock.MATERIAL_WALL || target_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 || target_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
+						{
+							if ( target_entity._reinforced_level < target_entity._max_reinforced_level )
+							{
+							target_entity._reinforced_level += 0.5;
+							target_entity.HandleReinforceUpdate();
+							bullet.remove(); // Need this for some reason, otherwise it doubles the reinforced level for some reason ( +1 instead of +0.5 )
+						
+							if ( bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_METAL_SHARD ].slot ] )
+							bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_METAL_SHARD ].slot ].remove();
+							}
+						}
+						if ( target_entity.GetClass() === 'sdDoor' )
+						{
+							if ( target_entity._reinforced_level < target_entity._max_reinforced_level )
+							{
+							target_entity._reinforced_level += 0.5;
+							target_entity.HandleReinforceUpdate();
+							bullet.remove(); // Need this for some reason, otherwise it doubles the reinforced level for some reason ( +1 instead of +0.5 )
+						
+							if ( bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_METAL_SHARD ].slot ] )
+							bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_METAL_SHARD ].slot ].remove();
+							}
+						}
+					}
 				}
 			}
 		};
+
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
