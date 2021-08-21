@@ -2031,7 +2031,7 @@ class sdGunClass
 			{
 				return 100;
 			},*/
-			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', _return_damage_to_owner:false, _custom_target_reaction:( bullet, target_entity )=>
+			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', _return_damage_to_owner: false, _custom_target_reaction:( bullet, target_entity )=>
 				{
 					if ( target_entity.GetClass() === 'sdBlock' || target_entity.GetClass() === 'sdDoor' )
 					{
@@ -2047,6 +2047,8 @@ class sdGunClass
 							if ( bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_METAL_SHARD ].slot ] )
 							bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_METAL_SHARD ].slot ].remove();
 							}
+							else
+							bullet._owner.Say( 'This wall cannot be reinforced further' );
 						}
 						if ( target_entity.GetClass() === 'sdDoor' )
 						{
@@ -2059,8 +2061,12 @@ class sdGunClass
 							if ( bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_METAL_SHARD ].slot ] )
 							bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_METAL_SHARD ].slot ].remove();
 							}
+							else
+							bullet._owner.Say( 'This door cannot be reinforced further' );
 						}
 					}
+					else
+					bullet._owner.Say( 'I can use this to fortify walls and doors' );
 				}
 			}
 		};
