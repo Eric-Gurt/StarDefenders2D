@@ -1174,7 +1174,7 @@ class sdCharacter extends sdEntity
 		if ( this._voice.variant === 'whisperf' )
 		sdSound.PlaySound({ name:'f_welcome1', x:this.x, y:this.y, volume:0.4 });
 		else
-		if ( this._ai_team !== 2 )
+		if ( this._ai_team === 0 )
 		{
 			// Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false )
 			this.Say( [ 
@@ -1188,6 +1188,18 @@ class sdCharacter extends sdEntity
 				sdWorld.ClassNameToProperName( closest.GetClass(), closest ) + ' is KOS',
 				'Say hello to my little ' + ( this._inventory[ this.gun_slot ] ? sdWorld.ClassNameToProperName( this._inventory[ this.gun_slot ].GetClass(), this._inventory[ this.gun_slot ] ) : 'fists' )
 			][ ~~( Math.random() * 9 ) ], false, false, false );
+		}
+		if ( this._ai_team === 3 )
+		{
+			this.Say( [ 
+				'This universe is doomed. You cannot stop it.', 
+				'Give in. You are not to survive.', 
+				'You are a mere human. You cannot contest this. ', 
+				'You will bring down the wrath by doing this.',
+				'I will stop this',
+				'You can only delay your inevitable death.',
+				'You cannot harm me, you can only send me back.'
+				][ ~~( Math.random() * 7 ) ], false, false, false );
 		}
 	}
 	AILogic( GSPEED ) // aithink
