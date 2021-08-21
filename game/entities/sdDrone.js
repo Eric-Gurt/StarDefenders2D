@@ -196,6 +196,20 @@ class sdDrone extends sdEntity
 			
 				sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:1, pitch:2 });
 			}
+			if ( Math.random() < 0.2 ) // 20% chance to drop a metal shard on destruction
+			{
+				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+					let gun;
+
+					gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_METAL_SHARD });
+
+					gun.sx = this.sx + Math.random() - Math.random();
+					gun.sy = this.sy + Math.random() - Math.random();
+					sdEntity.entities.push( gun );
+
+				}, 500 );
+			}
 		}
 		else
 		{
