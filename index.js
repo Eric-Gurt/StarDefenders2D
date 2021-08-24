@@ -2335,6 +2335,7 @@ io.on("connection", (socket) =>
 				let look_at_relative_to_direct_angle = arr[ 10 ];
 				
 				if ( look_at_net_id !== -1 )
+				if ( socket.character._inventory[ socket.character.gun_slot ] && !sdGun.classes[ socket.character._inventory[ socket.character.gun_slot ].class ].is_build_gun ) // No aim assist for build gun
 				{
 					let look_at_entity = sdEntity.entities_by_net_id_cache_map.get( look_at_net_id );
 					if ( look_at_entity )
