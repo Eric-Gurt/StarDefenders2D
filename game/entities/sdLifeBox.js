@@ -40,7 +40,7 @@ class sdLifeBox extends sdEntity
 	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return [ 'sdCharacter', 'sdCrystal', 'sdGun' ];
+		return [ 'sdCharacter', 'sdCrystal', 'sdGun', 'sdStorage' ];
 	}
 	
 	GetRocketDamageScale()

@@ -276,6 +276,7 @@ class sdBaseShieldingUnit extends sdEntity
 			
 			for ( let i = 0; i < units.length; i++ ) // Protect nearby entities inside base unit's radius
 			{
+			if ( ( sdWorld.Dist2D( this.x, this.y, units[ i ].x, units[ i ].y ) < sdBaseShieldingUnit.protect_distance + 64 ) ) // Only attack close range shields can be attacked
 				if ( units[ i ] !== this )
 				if ( units[ i ].enabled === true )
 				{

@@ -1106,6 +1106,7 @@ class sdWeather extends sdEntity
 
 							let ent = new sdSpider({ x:0, y:0 });
 							sdEntity.entities.push( ent );
+							ent.type = ( Math.random() < 0.05 ) ? 1 : 0;
 
 							//if ( sdDrone.drones_tot < 20 ) // Not sure if this is needed to be honest, it also causes error because "let" can't be behind an "if" directly - Booraz149
 							let ent_drone = new sdDrone({ x:0, y:0, _ai_team: 2, type: 2 }); 

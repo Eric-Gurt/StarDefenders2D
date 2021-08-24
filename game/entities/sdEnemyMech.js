@@ -8,6 +8,7 @@ import sdWater from './sdWater.js';
 import sdCom from './sdCom.js';
 import sdBullet from './sdBullet.js';
 import sdBlock from './sdBlock.js';
+import sdCharacter from './sdCharacter.js';
 
 class sdEnemyMech extends sdEntity
 {
@@ -32,8 +33,8 @@ class sdEnemyMech extends sdEntity
 	}
 	get hitbox_x1() { return -14; }
 	get hitbox_x2() { return 14; }
-	get hitbox_y1() { return -24; }
-	get hitbox_y2() { return 28; }
+	get hitbox_y1() { return -38; }
+	get hitbox_y2() { return 18; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -47,7 +48,7 @@ class sdEnemyMech extends sdEntity
 		
 		this.regen_timeout = 0;
 		
-		this._hmax = 12000; // Was 6000 but even 12000 is too easy if you have anything in slot 7
+		this._hmax = 15000; // Was 6000 but even 12000 is too easy if you have anything in slot 7
 		this.hea = this._hmax;
 
 		this._ai_team = 2;
@@ -79,7 +80,7 @@ class sdEnemyMech extends sdEntity
 		
 		this._alert_intensity = 0; // Grows until some value and only then it will shoot
 		
-		this.matter_max = 1280;
+		this.matter_max = 5120; // It is much stronger than a basic worm yet it only dropped 1280 matter crystal shards
 		this.matter = this.matter_max;
 		
 		sdEnemyMech.mechs_counter++;
@@ -110,7 +111,7 @@ class sdEnemyMech extends sdEntity
 		return true;
 		else
 		{
-			if ( ( ent.matter >= 800 && ent._ai_team === 0 ) && ent._ai_team !== 2 )
+			if ( ( ( ent.matter >= 800 && ent._ai_team === 0 ) && ent._ai_team !== 2 ) || ( ent._ai_enabled !== sdCharacter.AI_MODEL_NONE && ent._ai_team !== 2 ) )
 			{
 				this._current_target = ent; // Don't stop targetting if the player has below 800 matter mid fight
 				return true; // Only players have mercy from mechs
@@ -220,6 +221,7 @@ class sdEnemyMech extends sdEntity
 				if ( this._time_until_full_remove <= 0 )
 				{
 					let r = Math.random();
+					let shards = 2 + Math.round( Math.random() * 3);
 			
 					if ( r < 0.25 )
 					{
@@ -249,6 +251,28 @@ class sdEnemyMech extends sdEntity
 							sdEntity.entities.push( gun );
 
 						}, 500 );
+					}
+					while ( shards > 0 )
+					{
+						let x = this.x;
+						let y = this.y;
+						let sx = this.sx;
+						let sy = this.sy;
+
+						setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+							let random_value = Math.random();
+
+							let gun;
+
+							gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_METAL_SHARD });
+
+							gun.sx = sx + Math.random() - Math.random();
+							gun.sy = sy + Math.random() - Math.random();
+							sdEntity.entities.push( gun );
+
+						}, 500 );
+						shards--;
 					}
 					this.remove();
 					return;
@@ -615,9 +639,9 @@ class sdEnemyMech extends sdEntity
 		ctx.scale( -1, 1 );
 		
 		if ( this.hea > 0 )
-		ctx.drawImageFilterCache( sdEnemyMech.img_mech_boost, - 32, - 32, 64, 64 );
+		ctx.drawImageFilterCache( sdEnemyMech.img_mech_boost, - 32, - 48, 64, 96 );
 		else
-		ctx.drawImageFilterCache( sdEnemyMech.img_mech_broken, - 32, - 32, 64, 64 );
+		ctx.drawImageFilterCache( sdEnemyMech.img_mech_broken, - 32, - 48, 64, 96 );
 
 		ctx.filter = 'none';
 		if ( this.side === 1 )

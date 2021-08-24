@@ -52,6 +52,11 @@ class sdStorage extends sdEntity
 		this._allow_pickup = true;
 	}
 	
+	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
+	{
+		return [ 'sdLifeBox' ];
+	}
+
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )

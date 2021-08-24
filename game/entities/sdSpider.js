@@ -18,6 +18,7 @@ class sdSpider extends sdEntity
 	static init_class()
 	{
 		sdSpider.img_spider_anim = sdWorld.CreateImageFromFile( 'sdSpider' );
+		sdSpider.img_minitank_anim = sdWorld.CreateImageFromFile( 'sdSpider2' );
 		
 		sdSpider.frame_idle1 = 0;
 		sdSpider.frame_idle2 = 1;
@@ -39,9 +40,9 @@ class sdSpider extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -13; }
-	get hitbox_x2() { return 13; }
-	get hitbox_y1() { return this.death_anim === 0 ? -6 : -2; }
+	get hitbox_x1() { return this.type === 1 ? -8 : -13; }
+	get hitbox_x2() { return this.type === 1 ? 8 : 13; }
+	get hitbox_y1() { return this.type === 1 ? ( this.death_anim === 0 ? -10 : -6 ) : ( this.death_anim === 0 ? -6 : -2 ); }
 	get hitbox_y2() { return 4; }
 	
 	get hard_collision() // For world geometry where players can walk
@@ -55,12 +56,13 @@ class sdSpider extends sdEntity
 		
 		this.sx = 0;
 		this.sy = 0;
+
+		this.type = params.type || 0;
 		
-		this._hmax = 400;
+		this._hmax = this.type === 1 ? 800 : 400;
 		this._hea = this._hmax;
 		this._ai_team = 2;
 
-		//this.type = 0;
 		
 		//this._retreat_hp_mult = 0.5; // Goes closer to 1 each time and at some point makes creature friendly?
 		
@@ -203,7 +205,7 @@ class sdSpider extends sdEntity
 		}, 500 );
 	}
 	
-	get mass() { return 80; }
+	get mass() { return this.type === 1 ? 200 : 80; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -270,9 +272,9 @@ class sdSpider extends sdEntity
 							let di = sdWorld.Dist2D_Vector( dx, dy );
 							
 							if ( dx > 0 )
-							dx = 1;
+							dx = this.type === 1 ? 0.5 : 1;
 							else
-							dx = -1;
+							dx = this.type === 1 ? -0.5 : -1;
 							
 							if ( di > 300 )
 							{
@@ -470,7 +472,12 @@ class sdSpider extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, 'Erthal Spider Bot' );
+		{
+			if ( this.type === 0 )
+			sdEntity.Tooltip( ctx, 'Erthal Spider Bot' );
+			if ( this.type === 1 )
+			sdEntity.Tooltip( ctx, 'Erthal Mini-tank Bot' );
+		}
 	}
 	Draw( ctx, attached )
 	{
@@ -523,7 +530,10 @@ class sdSpider extends sdEntity
 				frame = sdSpider.frame_idle2;
 			}
 		}
+		if ( this.type === 0 )
 		ctx.drawImageFilterCache( sdSpider.img_spider_anim, frame*32,0,32,32, - 16, - 16, 32,32 );
+		if ( this.type === 1 )
+		ctx.drawImageFilterCache( sdSpider.img_minitank_anim, frame*32,0,32,32, - 16, - 16, 32,32 );
 		
 		ctx.globalAlpha = 1;
 		//ctx.filter = 'none';
