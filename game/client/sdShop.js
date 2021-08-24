@@ -58,6 +58,10 @@ class sdShop
 		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles' });
+		sdShop.options.push({ _class: 'sdFighterHover', _category:'Vehicles' });
+		sdShop.options.push({ _class: 'sdFighterHover', filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles' });
+		sdShop.options.push({ _class: 'sdFighterHover', filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles' });
+		sdShop.options.push({ _class: 'sdFighterHover', filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdLifeBox', _category:'Vehicles', _min_build_tool_level:1 });
 		
 		function AddBuildPack( filter, i )
