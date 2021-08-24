@@ -672,6 +672,39 @@ class sdGun extends sdEntity
 					
 						if ( typeof sdGun.classes[ this.class ].projectile_properties._armor_penetration_level !== 'undefined' )
 						bullet_obj._armor_penetration_level = sdGun.classes[ this.class ].projectile_properties._armor_penetration_level;
+					
+						if ( globalThis.CATCH_ERRORS )
+						if ( isNaN( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale ) || 
+							 isNaN( -bullet_obj.sy * 0.3 * bullet_obj._knock_scale ) || 
+							 isNaN( bullet_obj._owner.mass ) || 
+							 bullet_obj._owner.mass === 0 )
+						{
+							let report = [ 'Something is not right about either spawned bullet or character! .Impulse will crash server' ];
+							
+							report.push( 
+								`this._held_by.GetLookAngle() = ${this._held_by.GetLookAngle()}`,
+
+								`an = ${ an }`,
+
+								`spread = ${ spread }`,
+
+								`bullet_obj._owner.mass = ${ bullet_obj._owner.mass }`,
+
+								`bullet_obj._owner.s = ${ bullet_obj._owner.s }`,
+
+								`bullet_obj._owner.sx = ${ bullet_obj._owner.sx }`,
+
+								`bullet_obj._owner.sy = ${ bullet_obj._owner.sy }`,
+
+								`this.class = ${ this.class }` 
+							);
+							
+							for ( var p in bullet_obj )
+							report.push( `bullet_obj.${ p } = ${ bullet_obj[ p ] }` );
+						
+							console.warn( report.join(', \n') );
+							throw new Error( report.join(', \n') );
+						}
 						
 						bullet_obj._owner.Impulse( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale, -bullet_obj.sy * 0.3 * bullet_obj._knock_scale );
 						

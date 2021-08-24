@@ -351,7 +351,7 @@ class sdGunClass
 			title: 'Cube-pistol',
 			slot: 1,
 			reload_time: 9,
-			muzzle_x: 6,
+			muzzle_x: 4,
 			ammo_capacity: -1,
 			count: 1,
 			projectile_properties: { _rail: true, _damage: 25, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },

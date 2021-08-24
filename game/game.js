@@ -583,7 +583,7 @@ let enf_once = true;
 		socket.max_update_rate = SOCKET_IO_MODE ? sdWorld.max_update_rate : 16;
 	}
 	
-	let last_sent_snapshot = [];
+	//let last_sent_snapshot = [];
 	
 	const logic = ()=>
 	{
@@ -603,6 +603,54 @@ let enf_once = true;
 				if ( sdWorld.my_entity )
 				if ( !sdWorld.my_entity._is_being_removed )
 				{
+					// Aim assist for case of laggy connections. It copies most probably accuracy offset from client side so server can repeat it (and still be able to do prediction shots to a moving targets)
+					let look_at_net_id = -1;
+					let look_at_relative_to_direct_angle = 0;
+					
+					const custom_filtering_method = ( ent )=>
+					{
+						if ( ent._net_id !== undefined )
+						return true;
+					
+						return false;
+					};
+					
+					let steps = 10;
+					let angle_half = Math.PI / 4;
+
+					let current_angle = Math.atan2( sdWorld.my_entity.look_x - sdWorld.my_entity.x, sdWorld.my_entity.look_y - sdWorld.my_entity.y );
+
+					for ( let a = 0; a < steps; a++ )
+					for ( let s = -1; s <= 1; s += 2 )
+					{
+						if ( a === 0 )
+						if ( s === 1 )
+						continue;
+						
+						let an = a / steps * angle_half;
+						
+						let x2 = sdWorld.my_entity.x + Math.sin( current_angle + an ) * 800 * ( 1 - a / steps );
+						let y2 = sdWorld.my_entity.y + Math.cos( current_angle + an ) * 800 * ( 1 - a / steps );
+						
+						sdWorld.last_hit_entity = null;
+						sdWorld.TraceRayPoint( sdWorld.my_entity.x, sdWorld.my_entity.y, x2, y2, sdWorld.my_entity, null, null, custom_filtering_method );
+						if ( sdWorld.last_hit_entity )
+						{
+							look_at_net_id = sdWorld.last_hit_entity._net_id;
+							
+							look_at_relative_to_direct_angle = Math.atan2( sdWorld.last_hit_entity.x + ( sdWorld.last_hit_entity._hitbox_x1 + sdWorld.last_hit_entity._hitbox_x2 ) / 2 - sdWorld.my_entity.x, 
+																		   sdWorld.last_hit_entity.y + ( sdWorld.last_hit_entity._hitbox_y1 + sdWorld.last_hit_entity._hitbox_y2 ) / 2 - sdWorld.my_entity.y ) - 
+															   current_angle;
+							
+							//let ent = new sdEffect({ x: sdWorld.last_hit_entity.x, y: sdWorld.last_hit_entity.y, x2:sdWorld.my_entity.x, y2:sdWorld.my_entity.y, type:sdEffect.TYPE_BEAM, color:'#00FF00' });
+							//sdEntity.entities.push( ent );
+							
+							a = steps;
+							s = 1;
+							break;
+						}
+					}
+					
 					let new_snapshot = [ 
 						Math.round( sdWorld.my_entity.look_x ), // 0
 						Math.round( sdWorld.my_entity.look_y ), // 1
@@ -612,47 +660,26 @@ let enf_once = true;
 						Math.round( sdWorld.my_entity.x * 100 ) / 100, // 5
 						Math.round( sdWorld.my_entity.y * 100 ) / 100, // 6
 						( sdWorld.my_entity.stands && sdWorld.my_entity._stands_on ) ? sdWorld.my_entity._stands_on._net_id : -1, // 7
-						messages_to_report_arrival // 8
+						messages_to_report_arrival, // 8
+						look_at_net_id, // 9
+						look_at_relative_to_direct_angle // 10
 					];
 					
-					let will_send = ( messages_to_report_arrival.length > 0 ); // Hopefully it will help to prevent high message rate when server can't handle them in time?
-					/*
-					if ( !will_send )
-					{
-						for ( let i = 0; i < new_snapshot.length; i++ )
-						{
-							if ( typeof new_snapshot[ i ] === 'number' )
-							{
-								if ( new_snapshot[ i ] !== last_sent_snapshot[ i ] )
-								{
-									will_send = true;
-									break;
-								}
-							}
-							else
-							{
-								if ( new_snapshot[ i ] === messages_to_report_arrival )
-								{
-								}
-								else
-								{
-									debugger; // How to analyze this client-to-server snapshot element in order to minimize sent data?
-								}
-							}
-						}
-					}*/
+					//let will_send = ( messages_to_report_arrival.length > 0 ); // Hopefully it will help to prevent high message rate when server can't handle them in time?
 					
-					if ( will_send )
-					{
+					//if ( will_send ) Rare look_at data send can cause player to shoot at previous look_at targets
+					//{
 						socket.volatile.emit( 'M', new_snapshot );
-						//ssetTimeout(()=>{ // Hack
-						//	socket.volatile.emit( 'M', new_snapshot );
-						//},100);
+						
+						/*setTimeout(()=>{ // Hack
+							socket.volatile.emit( 'M', new_snapshot );
+						},200);*/
 
-						last_sent_snapshot = new_snapshot;
+						//last_sent_snapshot = new_snapshot;
 
+						if ( messages_to_report_arrival.length > 0 )
 						messages_to_report_arrival = [];
-					}
+					//}
 				}
 			
 				if ( sd_events.length > 0 )

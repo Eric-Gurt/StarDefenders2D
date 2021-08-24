@@ -2302,7 +2302,9 @@ io.on("connection", (socket) =>
 		if ( typeof arr[ 5 ] === 'number' )
 		if ( typeof arr[ 6 ] === 'number' )
 		if ( typeof arr[ 7 ] === 'number' )
-		if ( typeof arr[ 8 ] === 'object' )
+		if ( typeof arr[ 8 ] === 'object' ) //
+		if ( typeof arr[ 9 ] === 'number' )
+		if ( typeof arr[ 10 ] === 'number' )
 		{
 			socket.last_ping = sdWorld.time;
 			socket.waiting_on_M_event_until = 0;
@@ -2326,6 +2328,33 @@ io.on("connection", (socket) =>
 					{
 						let msg = socket.sent_messages.get( id );
 						msg.arrived = true;
+					}
+				}
+				
+				let look_at_net_id = arr[ 9 ];
+				let look_at_relative_to_direct_angle = arr[ 10 ];
+				
+				if ( look_at_net_id !== -1 )
+				{
+					let look_at_entity = sdEntity.entities_by_net_id_cache_map.get( look_at_net_id );
+					if ( look_at_entity )
+					if ( !look_at_entity._is_being_removed )
+					{
+						if ( ( look_at_entity.is_static && socket.known_statics_versions_map.has( look_at_entity ) ) ||
+							 ( !look_at_entity.is_static && socket.observed_entities.indexOf( look_at_entity ) !== -1 ) ) // Is entity actually visible (anti-cheat measure)
+						{
+							// Bad! Apply offset
+							//socket.character.look_x = look_at_entity.x;
+							//socket.character.look_y = look_at_entity.y;
+							
+							let di = sdWorld.Dist2D( socket.character.look_x, socket.character.look_y, socket.character.x, socket.character.y );
+							
+							// TODO: Make it aim at physical center
+							let direct_angle = Math.atan2( look_at_entity.x + ( look_at_entity._hitbox_x1 + look_at_entity._hitbox_x2 ) / 2 - socket.character.x, look_at_entity.y + ( look_at_entity._hitbox_y1 + look_at_entity._hitbox_y2 ) / 2 - socket.character.y );
+							
+							socket.character.look_x = socket.character.x + Math.sin( direct_angle - look_at_relative_to_direct_angle ) * di;
+							socket.character.look_y = socket.character.y + Math.cos( direct_angle - look_at_relative_to_direct_angle ) * di;
+						}
 					}
 				}
 
