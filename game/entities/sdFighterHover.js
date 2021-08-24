@@ -22,7 +22,7 @@ class sdFighterHover extends sdEntity
 		sdFighterHover.img_hover_mg = sdWorld.CreateImageFromFile( 'f_hover_railgun' );
 		sdFighterHover.img_hover_rl = sdWorld.CreateImageFromFile( 'f_hover_rl' );
 		
-		sdFighterHover.driver_slots = 6;
+		sdFighterHover.driver_slots = 4;
 		
 		sdFighterHover.slot_hints = [
 			'Entered slot 1: Driver',
