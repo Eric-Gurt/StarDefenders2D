@@ -26,7 +26,12 @@ class sdBlock extends sdEntity
 		sdBlock.img_lvl1_wall12 = sdWorld.CreateImageFromFile( 'wall_lvl1_1x2' );
 		sdBlock.img_lvl1_wall11 = sdWorld.CreateImageFromFile( 'wall_lvl1_1x1' );
 		sdBlock.img_lvl1_wall05 = sdWorld.CreateImageFromFile( 'wall_lvl1_half' );
-		
+		sdBlock.img_lvl2_wall22 = sdWorld.CreateImageFromFile( 'wall_lvl2_2x2' );//Reinforced walls, level 2
+		sdBlock.img_lvl2_wall21 = sdWorld.CreateImageFromFile( 'wall_lvl2_2x1' );
+		sdBlock.img_lvl2_wall12 = sdWorld.CreateImageFromFile( 'wall_lvl2_1x2' );
+		sdBlock.img_lvl2_wall11 = sdWorld.CreateImageFromFile( 'wall_lvl2_1x1' );
+		sdBlock.img_lvl2_wall05 = sdWorld.CreateImageFromFile( 'wall_lvl2_half' );		
+
 		sdBlock.trapshield_block_health_ratio = 1 / 2;
 		sdBlock.trapshield_block_regen_ratio = 3;
 		
@@ -40,6 +45,7 @@ class sdBlock extends sdEntity
 		// 3 platforms bg colored
 		sdBlock.MATERIAL_TRAPSHIELD = 4;
 		sdBlock.MATERIAL_REINFORCED_WALL_LVL1 = 5;
+		sdBlock.MATERIAL_REINFORCED_WALL_LVL2 = 6;
 		
 		sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
 		
@@ -52,6 +58,14 @@ class sdBlock extends sdEntity
 			sdWorld.CreateImageFromFile( 'cracks1' ),
 			sdWorld.CreateImageFromFile( 'cracks2' ),
 			sdWorld.CreateImageFromFile( 'cracks3' )
+		];
+
+		sdBlock.metal_reinforces = [ 
+			null,
+			sdWorld.CreateImageFromFile( 'metal_reinforced1' ),
+			sdWorld.CreateImageFromFile( 'metal_reinforced2' ),
+			sdWorld.CreateImageFromFile( 'metal_reinforced3' ),
+			sdWorld.CreateImageFromFile( 'metal_reinforced4' )
 		];
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -239,7 +253,7 @@ class sdBlock extends sdEntity
 	
 	Impact( vel ) // fall damage basically
 	{
-		if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 )
+		if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 || this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
 		{
 		}
 		else
@@ -410,6 +424,7 @@ class sdBlock extends sdEntity
 		
 		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
 		this._reinforced_level = params._reinforced_level || 0;
+		this._max_reinforced_level = this._reinforced_level + 2 ;
 		this._shielded = null; // Is this entity protected by a base defense unit?
 		
 		this._contains_class = params.contains_class || null;
@@ -431,6 +446,8 @@ class sdBlock extends sdEntity
 		
 		this.destruction_frame = 0;
 		this.HandleDestructionUpdate();
+		this.reinforced_frame = 0;
+		this.HandleReinforceUpdate();
 		
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED, false ); // 2nd parameter is important as it will prevent temporary entities from reacting to world entities around it (which can happen for example during item price measure - something like sdBlock can kill player-initiator and cause server crash)
 		
@@ -475,6 +492,28 @@ class sdBlock extends sdEntity
 		this.destruction_frame = 3;
 		
 		if ( this.destruction_frame !== old_destruction_frame )
+		this._update_version++;
+	}
+	HandleReinforceUpdate()
+	{
+		let old_reinforced_frame = this.reinforced_frame;
+		
+		if ( this._reinforced_level === this._max_reinforced_level - 2 )
+		this.reinforced_frame = 0;
+		else
+		if ( this._reinforced_level === this._max_reinforced_level - 1.5 )
+		this.reinforced_frame = 1;
+		else
+		if ( this._reinforced_level === this._max_reinforced_level - 1 )
+		this.reinforced_frame = 2;
+		else
+		if ( this._reinforced_level === this._max_reinforced_level - 0.5 )
+		this.reinforced_frame = 3;
+		else
+		if ( this._reinforced_level === this._max_reinforced_level )
+		this.reinforced_frame = 4;
+		
+		if ( this.reinforced_frame !== old_reinforced_frame )
 		this._update_version++;
 	}
 	onThink( GSPEED ) // Class-specific, if needed
@@ -596,6 +635,26 @@ class sdBlock extends sdEntity
 			ctx.drawImageFilterCache( sdBlock.img_lvl1_wall22, 0, 0, w,h, 0,0, w,h );
 		}
 		else
+		if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
+		{
+			if ( w === 32 && h === 32 )
+			ctx.drawImageFilterCache( sdBlock.img_lvl2_wall22, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 32 && h === 16 )
+			ctx.drawImageFilterCache( sdBlock.img_lvl2_wall21, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 16 && h === 32 )
+			ctx.drawImageFilterCache( sdBlock.img_lvl2_wall12, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 16 && h === 16 )
+			ctx.drawImageFilterCache( sdBlock.img_lvl2_wall11, 0, 0, w,h, 0,0, w,h );
+			else
+			if ( w === 16 && h === 8 )
+			ctx.drawImageFilterCache( sdBlock.img_lvl2_wall05, 0, 0, w,h, 0,0, w,h );
+			else
+			ctx.drawImageFilterCache( sdBlock.img_lvl2_wall22, 0, 0, w,h, 0,0, w,h );
+		}
+		else
 		if ( this.material === sdBlock.MATERIAL_SHARP )
 		{
 			ctx.drawImageFilterCache( ( this.spikes_ani < 15 ) ? sdBlock.img_sharp_inactive : sdBlock.img_sharp, 0, 0, w,h, 0,0, w,h );
@@ -613,6 +672,8 @@ class sdBlock extends sdEntity
 			else
 			ctx.drawImageFilterCache( sdBlock.img_trapshield11, 0, 0, w,h, 0,0, w,h );
 		}
+		if ( sdBlock.metal_reinforces[ this.reinforced_frame ] !== null )
+		ctx.drawImageFilterCache( sdBlock.metal_reinforces[ this.reinforced_frame ], 0, 0, w,h, 0,0, w,h );
 
 		ctx.filter = 'none';
 		

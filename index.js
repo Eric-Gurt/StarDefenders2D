@@ -244,7 +244,7 @@ import sdTheatre from './game/entities/sdTheatre.js';
 import sdCaption from './game/entities/sdCaption.js';
 import sdBaseShieldingUnit from './game/entities/sdBaseShieldingUnit.js';
 import sdConveyor from './game/entities/sdConveyor.js';
-	
+import sdBeamProjector from './game/entities/sdBeamProjector.js';
 
 
 import LZW from './game/server/LZW.js';
@@ -410,6 +410,7 @@ sdPlayerDrone.init_class();
 sdTurret.init_class();
 sdBaseShieldingUnit.init_class();
 sdConveyor.init_class();
+sdBeamProjector.init_class();
 
 
 

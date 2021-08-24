@@ -88,6 +88,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdPlayerDrone from './entities/sdPlayerDrone.js';
 	import sdBaseShieldingUnit from './entities/sdBaseShieldingUnit.js';	
 	import sdConveyor from './entities/sdConveyor.js';	
+	import sdBeamProjector from './entities/sdBeamProjector.js';	
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -152,6 +153,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdTurret.init_class();
 	sdBaseShieldingUnit.init_class();
 	sdConveyor.init_class();
+	sdBeamProjector.init_class();
 
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;
