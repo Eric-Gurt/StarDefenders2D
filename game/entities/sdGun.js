@@ -682,10 +682,16 @@ class sdGun extends sdEntity
 							let report = [ 'Something is not right about either spawned bullet or character! .Impulse will crash server' ];
 							
 							report.push( 
-								`this._held_by.GetLookAngle() = ${this._held_by.GetLookAngle()}`,
 
 								`an = ${ an }`,
-
+								`this._held_by.GetLookAngle() = ${this._held_by.GetLookAngle()}`,
+								`this._held_by._side = ${ this._held_by._side }`,
+								`this._held_by._recoil = ${ this._held_by._recoil }`,
+								`this._held_by.look_x = ${ this._held_by.look_x }`,
+								`this._held_by.look_y = ${ this._held_by.look_y }`,
+								`this._held_by.x = ${ this._held_by.x }`,
+								`this._held_by.y = ${ this._held_by.y }`,
+								
 								`spread = ${ spread }`,
 
 								`bullet_obj._owner.mass = ${ bullet_obj._owner.mass }`,
