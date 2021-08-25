@@ -1004,6 +1004,9 @@ class sdGun extends sdEntity
 			{
 				if ( this.extra === 1 )
 				image = sdGun.classes[ this.class ].image0;
+
+				if ( this.extra === 2 )
+				image = sdGun.classes[ this.class ].image1;
 			
 				if ( this.extra === -123 )
 				ctx.filter = 'invert(1)';

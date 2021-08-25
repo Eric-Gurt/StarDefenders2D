@@ -403,9 +403,9 @@ class sdGunClass
 			reload_time: 20,
 			muzzle_x: 6,
 			ammo_capacity: -1,
-			spread: 0.09,
+			spread: 0.11,
 			count: 5,
-			projectile_properties: { _rail: true, _damage: 23, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
+			projectile_properties: { _rail: true, _damage: 20, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false
 		};		
 		
@@ -490,6 +490,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'buildtool_upgrade2' ),
 			image0: sdWorld.CreateImageFromFile( 'buildtool_upgrade' ),
+			image1: sdWorld.CreateImageFromFile( 'buildtool_upgrade3' ),
 			title: 'Build tool upgrade',
 			slot: 0,
 			reload_time: 25,
@@ -531,6 +532,20 @@ class sdGunClass
 					{
 						character.build_tool_level++;
 						character._acquired_bt_rift = true;
+						if ( Math.random() > 0.5 )
+						character.Say( "I can use this to expand my building arsenal" );
+						else
+						character.Say( "This is definitely gonna help me build new stuff");
+						gun.remove(); 
+
+						if ( character._socket )
+						sdSound.PlaySound({ name:'reload', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
+					}
+
+					if ( character._acquired_bt_projector === false && gun.extra === 2 ) // Has the player found this upgrade before?
+					{
+						character.build_tool_level++;
+						character._acquired_bt_projector = true;
 						if ( Math.random() > 0.5 )
 						character.Say( "I can use this to expand my building arsenal" );
 						else
@@ -648,7 +663,7 @@ class sdGunClass
 			burst: 3, // Burst fire count
 			burst_reload: 30, // Burst fire reload, needed when giving burst fire
 			min_build_tool_level: 2,
-			projectile_properties: { _damage: 20 }
+			projectile_properties: { _damage: 25 }
 		};
 
 		sdGun.classes[ sdGun.CLASS_LASER_DRILL = 30 ] = { // Sprite made by Silk1 / AdibAdrian

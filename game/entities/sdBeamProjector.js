@@ -41,7 +41,8 @@ class sdBeamProjector extends sdEntity
 		return;
 	
 		dmg = Math.abs( dmg );
-		
+		dmg = dmg / 2; // Damage shouldn't be too impactful so it doesn't deny progress that much during gunfire
+
 		if ( this.hea > 0 )
 		{
 			this.hea -= dmg;
@@ -78,6 +79,7 @@ class sdBeamProjector extends sdEntity
 		//this.matter = 100;
 		
 		this._armor_protection_level = 0;
+		this._regen_mult = this._armor_protection_level + 1; // To prevent build HP upgrade actually increase the length of charging up the beam, this is needed.
 	}
 
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
@@ -109,6 +111,37 @@ class sdBeamProjector extends sdEntity
 		if (!sdWorld.is_server)
 		return;
 
+		if ( this.hea === this.hmax )
+		{
+			sdWorld.SendEffect({ 
+				x:this.x, 
+				y:this.y, 
+				radius:70, // 80 was too much?
+				damage_scale: 0.01, // 5 was too deadly on relatively far range
+				type:sdEffect.TYPE_EXPLOSION, 
+				owner:this,
+				color:'#000000' 
+			});
+
+			let x = this.x;
+			let y = this.y;
+			//let sx = this.sx;
+			//let sy = this.sy;
+
+			setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+			let gun;
+			gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
+			gun.extra = 2;
+
+			//gun.sx = sx;
+			//gun.sy = sy;
+			sdEntity.entities.push( gun );
+
+			}, 500 );
+			this.remove();
+		}
+
 		this._armor_protection_level = 0; // Never has protection
 		if ( !this.has_anticrystal ) // Can't "charge" up if there's no anticrystal
 		this._regen_timeout = 150;
@@ -129,10 +162,11 @@ class sdBeamProjector extends sdEntity
 					if ( sdCharacter.characters[ i ]._ai_team === 3 )
 					{
 						ais++;
+						//console.log(ais);
 					}
 
 					let robots = 0;
-					let robots_tot = 1;
+					let robots_tot = 2;
 
 					let left_side = ( Math.random() < 0.5 );
 
@@ -150,11 +184,32 @@ class sdBeamProjector extends sdEntity
 							do
 							{
 								if ( left_side )
-								x = this.x + 16 + 16 * robots + ( Math.random() * 384 );
-								else
-								x = this.x - 16 - 16 * robots - ( Math.random() * 384 );
+								{
+									x = this.x + 16 + 16 * robots + ( Math.random() * 192 );
 
-								y = this.y + 384 - ( Math.random() * ( 384 ) ); //
+									if (x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 * robots + ( Math.random() * 192 );
+
+									if (x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 * robots - ( Math.random() * 192 );
+								}
+								else
+								{
+									x = this.x - 16 - 16 * robots - ( Math.random() * 192 );
+
+									if (x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 * robots + ( Math.random() * 192 );
+
+									if (x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 * robots - ( Math.random() * 192 );
+								}
+
+								y = this.y + 192 - ( Math.random() * ( 384 ) );
+								if ( y < sdWorld.world_bounds.y1 + 32 )
+								y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+								if ( y > sdWorld.world_bounds.y2 - 32 )
+								y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 
 								if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
 								//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
@@ -199,7 +254,7 @@ class sdBeamProjector extends sdEntity
 										character_entity._damage_mult = 1; // Supposed to put up a challenge
 									}
 									character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-									character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
+									character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
 										
 									character_entity._ai_level = 10;
 										
@@ -211,19 +266,42 @@ class sdBeamProjector extends sdEntity
 									character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
 									sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, pitch: 1, volume:1 });
 									character_entity._ai.next_action = 5;
-
-									/*setTimeout(()=>
+									const logic = ()=>
 									{
-										character_entity.Say( [ 
-											'This universe is doomed. You cannot stop it.', 
-											'Give in. You are not to survive.', 
-											'You are a mere human. You cannot contest this. ', 
-											'Destroy the device.',
-											'I will stop this.',
-											'You can only delay your inevitable death.',
-											'You cannot harm me, you can only send me back.'
-											][ ~~( Math.random() * 7 ) ], false, false, false );
-									}, 1000 + ( Math.random() * 1000 ) );*/
+										if ( character_entity._ai ) // AI moving so it stays close to the Beam projector
+										{
+
+											if ( character_entity.x > this.x + 32 )
+											character_entity._ai.direction = -1;
+							
+											if ( character_entity.x < this.x - 32 )
+											character_entity._ai.direction = 1;
+
+											if ( character_entity.y < this.y - 32 )
+											character_entity._key_states.SetKey( 'KeyW', 1 );
+										}
+										if ( character_entity.hea <= 0 )
+										if ( !character_entity._is_being_removed )
+										{
+											sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
+											character_entity.remove();
+										}
+							
+									};
+						
+							
+									setInterval( logic, 1000 );
+									setTimeout(()=>
+									{
+										clearInterval( logic );
+							
+							
+										if ( !character_entity._is_being_removed )
+										sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
+										character_entity.remove();
+
+										character_entity._broken = false;
+									}, 60000 ); // Despawn the Council Vanquishers if they are in world longer than intended
 
 									break;
 							}
@@ -238,10 +316,8 @@ class sdBeamProjector extends sdEntity
 							}
 						} while( true );
 					}
-
 					robots++;
 					ais++;
-					//console.log('Erthal spawned!');
 					}
 				}
 			}
@@ -285,7 +361,7 @@ class sdBeamProjector extends sdEntity
 					if ( this.hea < this.hmax )
 					if ( this.no_obstacles ) // No progression if the beam can't go into the sky
 					{
-						this.hea = Math.min( this.hea + GSPEED * 75, this.hmax );
+						this.hea = Math.min( this.hea + GSPEED * 90 * this._regen_mult, this.hmax );
 						//if ( sdWorld.is_server )
 						//this.hea = this.hmax; // Hack
 						this._regen_timeout = 30;
