@@ -48,6 +48,20 @@ class sdSandWorm extends sdEntity
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
 	
+	
+	/*
+	PreInit() // Best place for NaN tracking methods initialization
+	{
+		if ( globalThis.CATCH_ERRORS )
+		{
+			globalThis.EnforceChangeLog( this, 'sx', true, 'nan_catch' );
+			globalThis.EnforceChangeLog( this, 'sy', true, 'nan_catch' );
+			
+			globalThis.EnforceChangeLog( this, 'x', true, 'nan_catch' );
+			globalThis.EnforceChangeLog( this, 'y', true, 'nan_catch' );
+		}
+	}*/
+	
 	constructor( params )
 	{
 		super( params );
@@ -159,7 +173,7 @@ class sdSandWorm extends sdEntity
 		let this_was_alive = this._hea > 0;
 		let was_alive = head_entity._hp_main > 0;
 		
-		let old_hp_main = head_entity._hp_main;
+		let old_hp_main = Math.max( head_entity._hp_main, 0 );
 		
 		this._hea -= dmg;
 		head_entity._hp_main -= dmg;
@@ -211,7 +225,7 @@ class sdSandWorm extends sdEntity
 			}
 		}
 		
-		let shake_am = Math.max( 0, Math.min( 200, old_hp_main - head_entity._hp_main ) );
+		let shake_am = Math.max( 0, Math.min( 200, old_hp_main - Math.max( head_entity._hp_main, 0 ) ) ); // Can cause NaN on Infinity - Infinity
 		
 		let ptr = head_entity;
 		while ( ptr && ptr._hea > 0 && !ptr._is_being_removed )

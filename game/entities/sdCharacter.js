@@ -185,7 +185,7 @@ class sdCharacter extends sdEntity
 	
 	GetBleedEffect()
 	{
-		if ( this._voice.variant === 'whisperf' )
+		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' )
 		return sdEffect.TYPE_BLOOD_GREEN;
 		
 		if ( this._voice.variant === 'klatt3' )
@@ -195,6 +195,9 @@ class sdCharacter extends sdEntity
 	}
 	GetBleedEffectFilter()
 	{
+		if ( this._voice.variant === 'croak' )
+		return 'hue-rotate(-73deg)';
+	
 		if ( this._voice.variant === 'whisperf' )
 		return 'hue-rotate(73deg)';
 	
@@ -296,6 +299,31 @@ class sdCharacter extends sdEntity
 	{
 		debugger;
 	}*/
+	
+	PreInit() // Best place for NaN tracking methods initialization
+	{
+		if ( globalThis.CATCH_ERRORS )
+		{
+			//globalThis.EnforceChangeLog( this, 'x', true, 'abs>100' );
+			//globalThis.EnforceChangeLog( this, 'y', true, 'abs>100' );
+			
+			/*globalThis.EnforceChangeLog( this, 'sx', true, 'nan_catch' );
+			globalThis.EnforceChangeLog( this, 'sy', true, 'nan_catch' );
+			
+			globalThis.EnforceChangeLog( this, 'x', true, 'nan_catch' );
+			globalThis.EnforceChangeLog( this, 'y', true, 'nan_catch' );
+			
+			globalThis.EnforceChangeLog( this, 'look_x', true, 'nan_catch' );
+			globalThis.EnforceChangeLog( this, 'look_y', true, 'nan_catch' );
+			
+			globalThis.EnforceChangeLog( this, '_hitbox_y2', true, 'nan_catch' );
+			globalThis.EnforceChangeLog( this, 's', true, 'nan_catch' );
+			globalThis.EnforceChangeLog( this, 'death_anim', true, 'nan_catch' );
+			globalThis.EnforceChangeLog( this, '_crouch_intens', true, 'nan_catch' );
+			globalThis.EnforceChangeLog( this, 'tilt', true, 'nan_catch' );*/
+		}
+	}
+	
 	constructor( params )
 	{
 		super( params );
@@ -360,20 +388,6 @@ class sdCharacter extends sdEntity
 		
 		this.sx = 0;
 		this.sy = 0;
-		
-		if ( globalThis.CATCH_ERRORS )
-		{
-			//globalThis.EnforceChangeLog( this, 'x', true, 'abs>100' );
-			//globalThis.EnforceChangeLog( this, 'y', true, 'abs>100' );
-			
-			//globalThis.EnforceChangeLog( this, 'sx', true, 'nan_catch' );
-			
-			globalThis.EnforceChangeLog( this, 'look_x', true, 'nan_catch' );
-			globalThis.EnforceChangeLog( this, 'look_y', true, 'nan_catch' );
-			
-			//globalThis.EnforceChangeLog( this, 'x', true, 'nan_catch' );
-			//globalThis.EnforceChangeLog( this, 'y', true, 'nan_catch' );
-		}
 		
 		// Disables position correction during short period of time (whenever player is pushed, teleported, attacked by sdOctopus etc). Basically stuff that client can't calculate (since projectiles deal no damage nor knock effect)
 		this._position_velocity_forced_until = sdWorld.time + 200; // Should allow better respawning in arena-like mode (without player instantly moving back to where he just died if close enough for position correction)
@@ -656,7 +670,7 @@ class sdCharacter extends sdEntity
 	get hitbox_x1() { return this.s / 100 * ( this.death_anim < 10 ? -5 : -5 ); } // 7
 	get hitbox_x2() { return this.s / 100 * ( this.death_anim < 10 ? 5 : 5 ); }
 	get hitbox_y1() { return this.s / 100 * ( this.death_anim < 10 ? -12 : 10 ); }
-	get hitbox_y2() { return this.s / 100 * ( this.death_anim < 10 ? ( ( 16 - this._crouch_intens * 6 ) * ( 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7 ) ) : 16 ); }
+	get hitbox_y2() { return this.s / 100 * ( this	.death_anim < 10 ? ( ( 16 - this._crouch_intens * 6 ) * ( 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7 ) ) : 16 ); }
 
 //0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7
 
@@ -2007,7 +2021,7 @@ class sdCharacter extends sdEntity
 			}
 		}
 		//let new_leg_height = 16 - this._crouch_intens * 6;
-		let new_leg_height = this._hitbox_y2;
+		let new_leg_height = this.hitbox_y2; // Through getter
 		
 		//leg_height		*= 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7;
 		//new_leg_height  *= 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7;
@@ -2352,7 +2366,7 @@ class sdCharacter extends sdEntity
 		}
 		else
 		{
-			if ( sdWorld.is_server )
+			//if ( sdWorld.is_server )
 			if ( !this.driver_of )
 			if ( this._jetpack_allowed &&
 				 this.act_y === -1 &&
@@ -2424,6 +2438,29 @@ class sdCharacter extends sdEntity
 					this.tilt -= Math.sin( this.tilt / 100 ) * 4 * GSPEED;
 					this.tilt_speed -= Math.sin( this.tilt / 100 ) * 4 * GSPEED;
 					this.tilt_speed = sdWorld.MorphWithTimeScale( this.tilt_speed, 0, 0.7, GSPEED );
+				}
+				
+				if ( globalThis.CATCH_ERRORS )
+				{
+					if ( isNaN( new_leg_height ) || new_leg_height === undefined )
+					throw new Error( 'new_leg_height is '+new_leg_height );
+				
+					if ( isNaN( leg_height ) || leg_height === undefined )
+					{
+						console.warn([
+							this._hitbox_y2,
+							this.s,
+							this.death_anim,
+							this._crouch_intens,
+							this.tilt,
+							this.hitbox_y2
+						]);
+						
+						throw new Error( 'leg_height is '+leg_height );
+					}
+				
+					if ( isNaN( this.y ) || this.y === undefined )
+					throw new Error( 'this.y is '+this.y );
 				}
 
 				//new_y -= new_leg_height - leg_height;

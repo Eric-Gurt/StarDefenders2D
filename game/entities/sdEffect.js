@@ -327,7 +327,8 @@ class sdEffect extends sdEntity
 					wordgap: params.voice.wordgap,
 					pitch: params.voice.pitch,
 					speed: params.voice.speed,
-					variant: params.voice.variant
+					variant: params.voice.variant,
+					voice: params.voice.voice
 				}, 
 				(e)=>
 				{ 

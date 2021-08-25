@@ -274,6 +274,7 @@ let enf_once = true;
 
 		Object.defineProperty( mat, property_to_enforce, 
 		{
+			enumerable: mat.propertyIsEnumerable( property_to_enforce ),
 			get: function () { return mat[ enforced_prop ]; },
 			set: function ( v ) { 
 
@@ -293,10 +294,10 @@ let enf_once = true;
 					else
 					if ( mode === 'nan_catch' )
 					{
-						if ( isNaN( v ) )
+						if ( isNaN( v ) || v === undefined )
 						{
-							console.warn( 'NaN (',v,') assign attempt. Old value was ', mat[ enforced_prop ] );
-							throw new Error('NaN ('+v+') assign attempt. Old value was ' + mat[ enforced_prop ] );
+							console.warn( 'NaN or undefined (',v,') assign attempt. Old value was ', mat[ enforced_prop ] );
+							throw new Error('NaN or undefined ('+v+') assign attempt. Old value was ' + mat[ enforced_prop ] );
 						}
 					}
 					else
@@ -348,11 +349,8 @@ globalThis.getStackTrace = ()=>
 };
 
 // Early error catching
-/*if ( false )
-{
-	console.log('Early error catching enabled, waiting 10 seconds before doing anything...');
-	await new Promise(resolve => setTimeout(resolve, 10000)); // Unexpected reserver word
-}*/
+//console.log('Early error catching enabled, waiting 10 seconds before doing anything...');
+//await new Promise(resolve => setTimeout(resolve, 10000)); // Unexpected reserver word
 
 sdWorld.init_class();
 sdEntity.init_class();
@@ -1890,7 +1888,9 @@ io.on("connection", (socket) =>
 	//socket.known_statics_versions = [];
 	
 	//socket.known_statics_map = new WeakMap();
-	socket.known_statics_versions_map = new Map();
+	
+	//socket.known_statics_versions_map = new Map();
+	socket.known_statics_versions_map2 = new Map();
 	
 	socket.known_non_removed_dynamics = new Set();
 	
@@ -2342,7 +2342,8 @@ io.on("connection", (socket) =>
 					if ( look_at_entity )
 					if ( !look_at_entity._is_being_removed )
 					{
-						if ( ( look_at_entity.is_static && socket.known_statics_versions_map.has( look_at_entity ) ) ||
+						//if ( ( look_at_entity.is_static && socket.known_statics_versions_map.has( look_at_entity ) ) ||
+						if ( ( look_at_entity.is_static && socket.known_statics_versions_map2.has( look_at_entity._net_id ) ) ||
 							 ( !look_at_entity.is_static && socket.observed_entities.indexOf( look_at_entity ) !== -1 ) ) // Is entity actually visible (anti-cheat measure)
 						{
 							// Bad! Apply offset
@@ -2353,6 +2354,33 @@ io.on("connection", (socket) =>
 							
 							// TODO: Make it aim at physical center
 							let direct_angle = Math.atan2( look_at_entity.x + ( look_at_entity._hitbox_x1 + look_at_entity._hitbox_x2 ) / 2 - socket.character.x, look_at_entity.y + ( look_at_entity._hitbox_y1 + look_at_entity._hitbox_y2 ) / 2 - socket.character.y );
+							
+							if ( globalThis.CATCH_ERRORS )
+							{
+								if ( isNaN( look_at_entity._hitbox_x1 ) || look_at_entity._hitbox_x1 === undefined )
+								throw new Error('look_at_entity._hitbox_x1 is ' + look_at_entity._hitbox_x1 + ' ('+look_at_entity.GetClass()+')' );
+
+								if ( isNaN( look_at_entity._hitbox_x2 ) || look_at_entity._hitbox_x2 === undefined )
+								throw new Error('look_at_entity._hitbox_x2 is ' + look_at_entity._hitbox_x2 + ' ('+look_at_entity.GetClass()+')' );
+
+								if ( isNaN( look_at_entity._hitbox_y1 ) || look_at_entity._hitbox_y1 === undefined )
+								throw new Error('look_at_entity._hitbox_y1 is ' + look_at_entity._hitbox_y1 + ' ('+look_at_entity.GetClass()+')' );
+
+								if ( isNaN( look_at_entity._hitbox_y2 ) || look_at_entity._hitbox_y2 === undefined )
+								throw new Error('look_at_entity._hitbox_y2 is ' + look_at_entity._hitbox_y2 + ' ('+look_at_entity.GetClass()+')' );
+
+								if ( isNaN( look_at_entity.x ) || look_at_entity.x === undefined )
+								throw new Error('look_at_entity.x is ' + look_at_entity.x + ' ('+look_at_entity.GetClass()+')' );
+
+								if ( isNaN( look_at_entity.y ) || look_at_entity.y === undefined )
+								throw new Error('look_at_entity.y is ' + look_at_entity.y + ' ('+look_at_entity.GetClass()+')' );
+
+								if ( isNaN( direct_angle ) )
+								throw new Error('direct_angle ' + direct_angle );
+
+								if ( isNaN( look_at_relative_to_direct_angle ) )
+								throw new Error('look_at_relative_to_direct_angle ' + look_at_relative_to_direct_angle );
+							}
 							
 							socket.character.look_x = socket.character.x + Math.sin( direct_angle - look_at_relative_to_direct_angle ) * di;
 							socket.character.look_y = socket.character.y + Math.cos( direct_angle - look_at_relative_to_direct_angle ) * di;
@@ -3037,6 +3065,14 @@ setInterval( ()=>
 		
 		nth_connection_shift = ( nth_connection_shift + 1 ) % only_do_nth_connection_per_frame;
 
+		sdSnapPack.ClearCache();
+		
+		sdEntity.removed_entities_info.forEach( ( info, net_id )=>
+		{
+			if ( sdWorld.time > info.ttl )
+			sdEntity.removed_entities_info.delete( net_id );
+		});
+
 		//sockets_array_locked = true;
 		for ( var i = 0; i < sockets.length; i++ )
 		{
@@ -3112,7 +3148,8 @@ setInterval( ()=>
 					
 					var observed_entities_map = new Set();
 					
-					var observed_statics_map = new WeakSet();
+					//var observed_statics_map = new WeakSet();
+					var observed_statics_map2 = new Set();
 					
 
 					socket.camera.scale = 2;
@@ -3131,33 +3168,40 @@ setInterval( ()=>
 					
 					const MaxCompleteEntitiesCount = 40; // 50 sort of fine for PC, but now for mobile
 					
-					let meet_once = new WeakSet();
+					//let meet_once = new WeakSet();
+					let meet_once2 = new Set();
 					
 					const AddEntity = ( ent, forced )=>
 					{
-						//if ( ent.IsGlobalEntity() )
+						/*
 						if ( ent === sdWeather.only_instance )
 						{
 							debugger;
 						}
-						
-						if ( !meet_once.has( ent ) )
+						*/
+					   
+						if ( //!meet_once.has( ent ) && 
+							 !meet_once2.has( ent._net_id ) )
 						{
-							meet_once.add( ent );
+							//meet_once.add( ent );
+							meet_once2.add( ent._net_id );
 
 							if ( ent.IsVisible === sdEntity.prototype.IsVisible || 
 								 ent.IsVisible( socket.character ) )
 							{
 								
-								if ( ent.is_static )
+								if ( ent.is_static ) // 5.8
 								{
-									observed_statics_map.add( ent );
+									//observed_statics_map.add( ent ); // 16.6
+									observed_statics_map2.add( ent._net_id ); // ?
 
 									if ( snapshot.length < MaxCompleteEntitiesCount || forced )
 									{
-										if ( socket.known_statics_versions_map.get( ent ) !== ent._update_version ) // known_statics_versions_map.get can be undefined which does not equals to _update_version ever. Faster than doing .has
+										//if ( socket.known_statics_versions_map.get( ent ) !== ent._update_version ) // known_statics_versions_map.get can be undefined which does not equals to _update_version ever. Faster than doing .has
+										if ( socket.known_statics_versions_map2.get( ent._net_id ) !== ent._update_version ) // known_statics_versions_map.get can be undefined which does not equals to _update_version ever. Faster than doing .has
 										{
-											socket.known_statics_versions_map.set( ent, ent._update_version );
+											//socket.known_statics_versions_map.set( ent, ent._update_version );
+											socket.known_statics_versions_map2.set( ent._net_id, ent._update_version );
 
 											let snap = ent.GetSnapshot( frame, false, socket.character );
 											snapshot.push( snap );
@@ -3229,20 +3273,42 @@ setInterval( ()=>
 					
 			
 					// Forget offscreen statics (and removed ones)
-					socket.known_statics_versions_map.forEach( ( value, key, map )=>
+					//socket.known_statics_versions_map.forEach( ( value, key, map )=>
+					socket.known_statics_versions_map2.forEach( ( value, net_id, map )=>
 					{
-						if ( !observed_statics_map.has( key ) )
+						//if ( !observed_statics_map.has( key ) )
+						//if ( !observed_statics_map2.has( key._net_id ) )
+						if ( !observed_statics_map2.has( net_id ) )
 						{
-							let snapshot_of_deletion = { 
+							let key = sdEntity.entities_by_net_id_cache_map.get( net_id );
+							
+							let snapshot_of_deletion;
+							
+							if ( key )
+							{
+							}
+							else
+							{
+								let info = sdEntity.removed_entities_info.get( net_id );
+								
+								if ( info )
+								key = info.entity;
+								else
+								console.log('Entity no longer exists in any array - no idea what break info to send...');
+							}
+							
+							snapshot_of_deletion = { 
 								_class: key.GetClass(), 
-								_net_id: key._net_id,
+								_net_id: net_id,
 								_is_being_removed: true,
-								_broken: key._broken // key._is_being_removed
+								_broken: key._broken
 							};
+
 							snapshot.push( snapshot_of_deletion );
 							snapshot_only_statics.push( snapshot_of_deletion );
 
-							socket.known_statics_versions_map.delete( key );
+							//socket.known_statics_versions_map.delete( key );
+							socket.known_statics_versions_map2.delete( net_id );
 						}
 					} );
 					

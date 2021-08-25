@@ -71,7 +71,7 @@ class sdWorld
 		
 		sdWorld.my_entity = null;
 		sdWorld.my_entity_net_id = undefined; // Temporary place
-		sdWorld.my_entity_protected_vars = { look_x:1, look_y:1, x:1, y:1, sx:1, sy:1, act_x:1, act_y:1 }; // Client-side variables such as look_x will appear here
+		sdWorld.my_entity_protected_vars = { look_x:1, look_y:1, x:1, y:1, sx:1, sy:1, act_x:1, act_y:1, flying:1 }; // Client-side variables such as look_x will appear here
 		sdWorld.my_score = 0;
 		sdWorld.my_entity_upgrades_later_set_obj = null;
 		
@@ -2829,6 +2829,9 @@ class sdWorld
 		
 		if ( player_description['voice7'] ) // Robot voice
 		sdWorld.ReplaceColorInSDFilter_v2( ret, '#800000', '#000000', false ); // hue +73 deg
+		
+		if ( player_description['voice8'] ) // Council voice
+		sdWorld.ReplaceColorInSDFilter_v2( ret, '#800000', '#ffaa00', false ); 
 	
 		return ret;
 	}
@@ -2878,7 +2881,8 @@ class sdWorld
 			wordgap: 0,
 			pitch: 50,
 			speed: 175,
-			variant: 'klatt'
+			variant: 'klatt',
+			voice: 'en'
 		};
 		
 		if ( player_description['voice1'] )
@@ -2917,6 +2921,13 @@ class sdWorld
 			_voice.variant = 'klatt3';
 			_voice.pitch = 0;
 			_voice.speed = 175;
+		}
+		if ( player_description['voice8'] )
+		{
+			_voice.variant = 'croak';
+			_voice.pitch = 1;
+			_voice.speed = 140;
+			_voice.voice = 'es-la';
 		}
 		
 		return _voice;

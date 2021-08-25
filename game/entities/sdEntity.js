@@ -36,6 +36,7 @@ class sdEntity
 		
 		//sdEntity.entities_by_net_id_cache = {};
 		sdEntity.entities_by_net_id_cache_map = new Map();
+		sdEntity.removed_entities_info = new Map(); // Map[by _net_id] of { entity, ttl } // Is used to keep track for last state sync, usually just for _broken property of sdBlock objects
 		
 		sdEntity.entity_net_ids = 0;
 		
@@ -672,17 +673,26 @@ class sdEntity
 		debugger; // Get rid of it, use this._affected_hash_arrays instead
 		throw new Error('Get rid of this property');
 	}*/
+					
+	static NotNaN( a, b )
+	{
+		if ( isNaN( a ) )
+		return b;
 	
+		return a;
+	}
+	
+	UpdateHitboxInitial() // Because there is no post-structors in JS, and implementing them normally would not be easy at this point...
+	{
+		this._hitbox_last_update = sdWorld.time;
+
+		this._hitbox_x1 = sdEntity.NotNaN( this.hitbox_x1, this._hitbox_x1 );
+		this._hitbox_y1 = sdEntity.NotNaN( this.hitbox_y1, this._hitbox_y1 );
+		this._hitbox_x2 = sdEntity.NotNaN( this.hitbox_x2, this._hitbox_x2 );
+		this._hitbox_y2 = sdEntity.NotNaN( this.hitbox_y2, this._hitbox_y2 );
+	}
 	UpdateHitbox()
 	{
-		/*if ( !sdWorld.is_server )
-		if ( this.GetClass() === 'sdBlock' )
-		if ( this.material === 0 )
-		{
-			console.warn( 'Hash update allowed: ',this._hitbox_last_update !== sdWorld.time );
-			debugger;
-		}	*/
-		
 		if ( this._hitbox_last_update !== sdWorld.time )
 		{
 			this._hitbox_last_update = sdWorld.time;
@@ -691,9 +701,6 @@ class sdEntity
 			this._hitbox_y1 = this.hitbox_y1;
 			this._hitbox_x2 = this.hitbox_x2;
 			this._hitbox_y2 = this.hitbox_y2;
-
-			//if ( isNaN( this._hitbox_x2 ) || isNaN( this._hitbox_y2 ) )
-			//throw new Error('UpdateHitbox caused NaN error');
 		}
 	}
 	GetClass()
@@ -720,9 +727,17 @@ class sdEntity
 	{ return this instanceof c; }
 	isE( c )
 	{ return this._class === c.prototype.constructor.name; }
+	
+	PreInit() // Best place for NaN tracking methods initialization
+	{
+	}
+	
 	constructor( params )
 	{
 		//this._stack_trace = globalThis.getStackTrace();
+		
+		if ( this.PreInit !== sdEntity.prototype.PreInit )
+		this.PreInit();
 		
 		this._class = this.constructor.name;
 		//debugger;
@@ -732,9 +747,8 @@ class sdEntity
 		this._hitbox_y1 = 0;
 		this._hitbox_x2 = 0;
 		this._hitbox_y2 = 0;
-		this.UpdateHitbox(); // Update hitbox
+		this.UpdateHitboxInitial(); // Update hitbox
 		this._hitbox_last_update = 0; // But be ready for it to be updated again (sdCrystal that is being ejected from sdMatterAmplifier would need it to be not stuck in it)
-		//this.UpdateHitbox();
 		
 		this._last_x = params.x;
 		this._last_y = params.y;
@@ -1237,6 +1251,7 @@ class sdEntity
 		//if ( snapshot._net_id !== this._net_id ) Will happen in case of copying
 		//debugger;
 		if ( snapshot._class !== this.GetClass() )
+		//if ( snapshot._class !== 'auto' )
 		debugger;
 	
 		let my_entity_protected_vars = null;
@@ -1417,7 +1432,7 @@ class sdEntity
 			return null;
 		}
 	
-		if ( possible_ent.GetClass() !== _class )
+		if ( possible_ent.GetClass() !== _class /*&& _class !== 'auto' */)
 		{
 			debugger; // Should not happen
 			return null;
@@ -1840,6 +1855,9 @@ class sdEntity
 			
 				//delete sdEntity.entities_by_net_id_cache[ this._net_id ];
 				sdEntity.entities_by_net_id_cache_map.delete( this._net_id );
+				
+				if ( sdWorld.is_server )
+				sdEntity.removed_entities_info.set( this._net_id, { entity: this, ttl: sdWorld.time + 10000 } );
 			}
 		}
 	}

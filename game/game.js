@@ -189,6 +189,7 @@ let enf_once = true;
 
 		Object.defineProperty( mat, property_to_enforce, 
 		{
+			enumerable: mat.propertyIsEnumerable( property_to_enforce ),
 			get: function () { return mat[ enforced_prop ]; },
 			set: function ( v ) { 
 
@@ -196,10 +197,10 @@ let enf_once = true;
 				{
 					if ( only_catch_nans )
 					{
-						if ( isNaN( v ) )
+						if ( isNaN( v ) || v === undefined )
 						{
-							console.warn( 'NaN (',v,') assign attempt. Old value was ', mat[ enforced_prop ] );
-							throw new Error('NaN ('+v+') assign attempt. Old value was ' + mat[ enforced_prop ] );
+							console.warn( 'NaN or undefined (',v,') assign attempt. Old value was ', mat[ enforced_prop ] );
+							throw new Error('NaN or undefined ('+v+') assign attempt. Old value was ' + mat[ enforced_prop ] );
 						}
 					}
 					else

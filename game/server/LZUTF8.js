@@ -819,17 +819,26 @@ var LZUTF8;
 var LZUTF8;
 (function (LZUTF8) {
     var Compressor = (function () {
+		
+		const PrefixHashTableSize = 65537;
+		
         function Compressor(useCustomHashTable) {
             if (useCustomHashTable === void 0) { useCustomHashTable = true; }
             this.MinimumSequenceLength = 4;
             this.MaximumSequenceLength = 31;
             this.MaximumMatchDistance = 32767;
-            this.PrefixHashTableSize = 65537;
+            //this.PrefixHashTableSize = 65537;
             this.inputBufferStreamOffset = 1;
-            if (useCustomHashTable && typeof Uint32Array == "function")
-                this.prefixHashTable = new LZUTF8.CompressorCustomHashTable(this.PrefixHashTableSize);
+			
+            /*if (useCustomHashTable && typeof Uint32Array == "function")
+			this.prefixHashTable = new LZUTF8.CompressorCustomHashTable(this.PrefixHashTableSize);
             else
-                this.prefixHashTable = new LZUTF8.CompressorSimpleHashTable(this.PrefixHashTableSize);
+			this.prefixHashTable = new LZUTF8.CompressorSimpleHashTable(this.PrefixHashTableSize);*/
+			
+            if (useCustomHashTable && typeof Uint32Array == "function")
+			this.prefixHashTable = new LZUTF8.CompressorCustomHashTable( PrefixHashTableSize );
+            else
+			this.prefixHashTable = new LZUTF8.CompressorSimpleHashTable( PrefixHashTableSize );
         }
         Compressor.prototype.compressBlock = function (input) {
             if (input === undefined || input === null)
@@ -843,13 +852,21 @@ var LZUTF8;
             if (!utf8Bytes || utf8Bytes.length == 0)
                 return new Uint8Array(0);
             var bufferStartingReadOffset = this.cropAndAddNewBytesToInputBuffer(utf8Bytes);
-            var inputBuffer = this.inputBuffer;
-            var inputBufferLength = this.inputBuffer.length;
+            
+			const inputBuffer = this.inputBuffer;
+			const inputBuffer_dataView = this.inputBuffer_dataView;
+			
+            const inputBufferLength = this.inputBuffer.length;
+			
             this.outputBuffer = new Uint8Array(utf8Bytes.length);
+			this.outputBuffer_dataView = new DataView( this.outputBuffer.buffer, this.outputBuffer.byteOffset, this.outputBuffer.byteLength );
             this.outputBufferPosition = 0;
             var latestMatchEndPosition = 0;
             for (var readPosition = bufferStartingReadOffset; readPosition < inputBufferLength; readPosition++) {
-                var inputValue = inputBuffer[readPosition];
+				
+                //var inputValue = inputBuffer[readPosition];
+				var inputValue = inputBuffer_dataView.getUint8( readPosition );
+				
                 var withinAMatchedRange = readPosition < latestMatchEndPosition;
                 if (readPosition > inputBufferLength - this.MinimumSequenceLength) {
                     if (!withinAMatchedRange)
@@ -876,7 +893,10 @@ var LZUTF8;
             var bucket = this.prefixHashTable.getArraySegmentForBucketIndex(bucketIndex, this.reusableArraySegmentObject);
             if (bucket == null)
                 return null;
-            var input = this.inputBuffer;
+			
+            const inputBuffer = this.inputBuffer;
+			const inputBuffer_dataView = this.inputBuffer_dataView;
+			
             var longestMatchDistance;
             var longestMatchLength = 0;
             for (var i = 0; i < bucket.length; i++) {
@@ -891,13 +911,15 @@ var LZUTF8;
                     lengthToSurpass = longestMatchLength;
                 if (testedSequenceDistance > this.MaximumMatchDistance ||
                     lengthToSurpass >= this.MaximumSequenceLength ||
-                    matchedSequencePosition + lengthToSurpass >= input.length)
+                    matchedSequencePosition + lengthToSurpass >= inputBuffer.length)
                     break;
-                if (input[testedSequencePosition + lengthToSurpass] !== input[matchedSequencePosition + lengthToSurpass])
+                //if (inputBuffer[testedSequencePosition + lengthToSurpass] !== inputBuffer[matchedSequencePosition + lengthToSurpass])
+				if (inputBuffer_dataView.getUint8( testedSequencePosition + lengthToSurpass ) !== inputBuffer_dataView.getUint8( matchedSequencePosition + lengthToSurpass ) )
                     continue;
                 for (var offset = 0;; offset++) {
-                    if (matchedSequencePosition + offset === input.length ||
-                        input[testedSequencePosition + offset] !== input[matchedSequencePosition + offset]) {
+                    if (matchedSequencePosition + offset === inputBuffer.length ||
+                        //inputBuffer[ testedSequencePosition + offset ] !== inputBuffer[ matchedSequencePosition + offset ] ) {
+                        inputBuffer_dataView.getUint8( testedSequencePosition + offset ) !== inputBuffer_dataView.getUint8( matchedSequencePosition + offset ) ) {
                         if (offset > lengthToSurpass) {
                             longestMatchDistance = testedSequenceDistance;
                             longestMatchLength = offset;
@@ -914,10 +936,16 @@ var LZUTF8;
                 return null;
         };
         Compressor.prototype.getBucketIndexForPrefix = function (startPosition) {
-            return (this.inputBuffer[startPosition] * 7880599 +
+            /*return (this.inputBuffer[startPosition] * 7880599 +
                 this.inputBuffer[startPosition + 1] * 39601 +
                 this.inputBuffer[startPosition + 2] * 199 +
-                this.inputBuffer[startPosition + 3]) % this.PrefixHashTableSize;
+                this.inputBuffer[startPosition + 3]) % this.PrefixHashTableSize;*/
+            return (
+				this.inputBuffer_dataView.getUint8( startPosition ) * 7880599 +
+                this.inputBuffer_dataView.getUint8( startPosition + 1 ) * 39601 +
+                this.inputBuffer_dataView.getUint8( startPosition + 2 ) * 199 +
+                this.inputBuffer_dataView.getUint8( startPosition + 3 ) 
+				) % PrefixHashTableSize;
         };
         Compressor.prototype.outputPointerBytes = function (length, distance) {
             if (distance < 128) {
@@ -935,13 +963,19 @@ var LZUTF8;
         };
         Compressor.prototype.cropAndAddNewBytesToInputBuffer = function (newInput) {
             if (this.inputBuffer === undefined) {
+				
                 this.inputBuffer = newInput;
+				this.inputBuffer_dataView = new DataView( this.inputBuffer.buffer, this.inputBuffer.byteOffset, this.inputBuffer.byteLength ); // Custom
+				
                 return 0;
             }
             else {
                 var cropLength = Math.min(this.inputBuffer.length, this.MaximumMatchDistance);
                 var cropStartOffset = this.inputBuffer.length - cropLength;
+				
                 this.inputBuffer = LZUTF8.CompressionCommon.getCroppedAndAppendedByteArray(this.inputBuffer, cropStartOffset, cropLength, newInput);
+				this.inputBuffer_dataView = new DataView( this.inputBuffer.buffer, this.inputBuffer.byteOffset, this.inputBuffer.byteLength ); // Custom
+				
                 this.inputBufferStreamOffset += cropStartOffset;
                 return cropLength;
             }
@@ -952,19 +986,89 @@ var LZUTF8;
 })(LZUTF8 || (LZUTF8 = {}));
 var LZUTF8;
 (function (LZUTF8) {
+	
+	// Custom
+	const uint_buffers_cache = new Map(); // { bucketCount:{ bucketLocators, storage } ... }
+	//let chet = true;
+	
     var CompressorCustomHashTable = (function () {
         function CompressorCustomHashTable(bucketCount) {
             this.minimumBucketCapacity = 4;
             this.maximumBucketCapacity = 64;
-            this.bucketLocators = new Uint32Array(bucketCount * 2);
-            this.storage = new Uint32Array(bucketCount * 2);
+			
+			const cache_line = uint_buffers_cache.get( bucketCount );
+			if ( cache_line === undefined )
+			{
+				this.bucketLocators = new Uint32Array(bucketCount * 2);
+				this.storage = new Uint32Array(bucketCount * 2);
+				
+				uint_buffers_cache.set( bucketCount, {
+					bucketLocators: this.bucketLocators, 
+					storage: this.storage
+				} );
+			}
+			else
+			{
+				this.bucketLocators = cache_line.bucketLocators;
+				this.storage = cache_line.storage;
+				
+				//if ( chet = !chet )
+				//{
+					this.bucketLocators.fill( 0 );
+					this.storage.fill( 0 );
+				//}
+				//else
+				//{
+					//this.bucketLocators = new Uint32Array(bucketCount * 2);
+					//this.storage = new Uint32Array(bucketCount * 2);
+				//}
+				
+				//const BigZero = BigInt( 0 );
+				/*
+				const d = new DataView( this.bucketLocators.buffer, this.bucketLocators.byteOffset, this.bucketLocators.byteLength );
+				const d_len8 = Math.floor( this.bucketLocators.length*4 / 8 ) * 8;
+				const d_len = d.length;
+				for ( let i = 0; i < d_len8; i += 8 )
+				d.setFloat64( i, 0 );
+				for ( let i2 = d_len8; i2 < d_len; i2++ )
+				d.setUint8( i2, 0 );
+				
+				const d2 = new DataView( this.storage.buffer, this.storage.byteOffset, this.storage.byteLength );
+				const d2_len8 = Math.floor( this.storage.length*4 / 8 ) * 8;
+				const d2_len = d2.length;
+				for ( let i3 = 0; i3 < d2_len8; i3 += 8 )
+				d2.setFloat64( i3, 0 );
+				for ( let i4 = d2_len8; i4 < d2_len; i4++ )
+				d.setUint8( i4, 0 );*/
+				/*
+				for ( let x = 0; x < this.bucketLocators.length; x++ )
+				if ( this.bucketLocators[ x ] !== 0 )
+				throw new Error( 'A Non-zero at '+x );
+		
+				for ( let y = 0; y < this.storage.length; y++ )
+				if ( this.storage[ y ] !== 0 )
+				throw new Error( 'B Non-zero at '+y );*/
+				//debugger
+			}
+			
+			this.bucketLocators_dataView = new DataView( this.bucketLocators.buffer, this.bucketLocators.byteOffset, this.bucketLocators.byteLength );
+			this.storage_dataView = new DataView( this.storage.buffer, this.storage.byteOffset, this.storage.byteLength );
+			
+            //this.bucketLocators = new Uint32Array(bucketCount * 2);
+            //this.storage = new Uint32Array(bucketCount * 2);
             this.storageIndex = 1;
         }
         CompressorCustomHashTable.prototype.addValueToBucket = function (bucketIndex, valueToAdd) {
             bucketIndex <<= 1;
             if (this.storageIndex >= (this.storage.length >>> 1))
                 this.compact();
-            var startPosition = this.bucketLocators[bucketIndex];
+			
+            //var startPosition = this.bucketLocators[bucketIndex];
+            var startPosition = this.bucketLocators_dataView.getUint32( bucketIndex * 4, true );
+			
+			//if ( this.bucketLocators[bucketIndex] !== startPosition )
+			//throw new Error( 'Wrong' );
+			
             var length;
             if (startPosition === 0) {
                 startPosition = this.storageIndex;
@@ -977,8 +1081,20 @@ var LZUTF8;
                 if (length === this.maximumBucketCapacity - 1)
                     length = this.truncateBucketToNewerElements(startPosition, length, this.maximumBucketCapacity / 2);
                 var endPosition = startPosition + length;
-                if (this.storage[endPosition] === 0) {
-                    this.storage[endPosition] = valueToAdd;
+				
+			
+					//if ( (this.storage[endPosition] === 0) !== (this.storage_dataView.getUint32( endPosition * 4, true ) === 0) )
+					//throw new Error( 'Wrong' );
+				
+                //if (this.storage[endPosition] === 0) 
+				if ( this.storage_dataView.getUint32( endPosition * 4, true ) === 0 ) 
+				{
+                    //this.storage[endPosition] = valueToAdd;
+					this.storage_dataView.setUint32( endPosition * 4, valueToAdd, true );
+			
+					//if ( this.storage_dataView.getUint32( endPosition * 4, true ) !== this.storage[endPosition] )
+					//throw new Error( 'Wrong' );
+					
                     if (endPosition === this.storageIndex)
                         this.storageIndex += length;
                 }
@@ -986,13 +1102,22 @@ var LZUTF8;
                     LZUTF8.ArrayTools.copyElements(this.storage, startPosition, this.storage, this.storageIndex, length);
                     startPosition = this.storageIndex;
                     this.storageIndex += length;
-                    this.storage[this.storageIndex++] = valueToAdd;
+					
+                    //this.storage[this.storageIndex++] = valueToAdd;
+					this.storage_dataView.setUint32( ( this.storageIndex++ ) * 4, valueToAdd, true );
+					//if ( this.storage[this.storageIndex-1] !== this.storage_dataView.getUint32( ( this.storageIndex - 1 ) * 4, true ) )
+					//throw new Error( 'Wrong' );
+					
                     this.storageIndex += length;
                 }
                 length++;
-            }
-            this.bucketLocators[bucketIndex] = startPosition;
-            this.bucketLocators[bucketIndex + 1] = length;
+			}
+			
+            //this.bucketLocators[bucketIndex] = startPosition;
+			this.bucketLocators_dataView.setUint32( bucketIndex * 4, startPosition, true );
+			
+            //this.bucketLocators[bucketIndex + 1] = length;
+			this.bucketLocators_dataView.setUint32( ( bucketIndex + 1 ) * 4, length, true );
         };
         CompressorCustomHashTable.prototype.truncateBucketToNewerElements = function (startPosition, bucketLength, truncatedBucketLength) {
             var sourcePosition = startPosition + bucketLength - truncatedBucketLength;
@@ -1025,7 +1150,10 @@ var LZUTF8;
         };
         CompressorCustomHashTable.prototype.getArraySegmentForBucketIndex = function (bucketIndex, outputObject) {
             bucketIndex <<= 1;
-            var startPosition = this.bucketLocators[bucketIndex];
+			
+            //var startPosition = this.bucketLocators[bucketIndex];
+			var startPosition = this.bucketLocators_dataView.getUint32( bucketIndex * 4, true );
+			
             if (startPosition === 0)
                 return null;
             if (outputObject === undefined)

@@ -23,6 +23,121 @@ class sdSnapPack
 		// sdSnapPack.textDecoder.decode( arr )
 		
 		sdSnapPack.best_key_value_hits_limit = 15;
+		
+		sdSnapPack.stringify_method = JSON.stringify;
+		sdSnapPack.parse_method = JSON.parse;
+		
+		sdSnapPack.comparison_sums = [ 0, 0 ];
+		
+		const property_name_and_values_separator = '\r'; // In objects, between keys and values
+		const property_separator = '\t'; // In objects, between each key pair and between each value pair
+		const string_definitor = '\f'; // Followed by size of object, then \f again
+		const array_definitor = '\b'; // Followed by size of object, then \b again
+		const object_definitor = '\v'; // Followed by size of object, then \v again
+		
+		const reserved = [ object_definitor, array_definitor, property_name_and_values_separator, property_separator, string_definitor ];
+		
+		sdSnapPack.cache = new Map();
+		
+		sdSnapPack.keys_cache = {}; // Permanent
+		
+		//sdSnapPack.numer_cache = new Map();
+		
+		sdSnapPack.ClearCache = function()
+		{
+			sdSnapPack.cache.clear();
+			//sdSnapPack.numer_cache.clear();
+		};
+		
+		//let chet2 = true;
+		//let chet3 = true;
+		/*sdSnapPack.stringify_method = function( obj ) Maybe it could make sense to have if it could be properly compiled rather than executed as JS
+		{
+			if ( typeof obj === 'number' )
+			{
+				return obj + '';
+			}
+			
+			
+			if ( typeof obj === 'object' )
+			{
+				let cached = sdSnapPack.cache.get( obj );
+				if ( cached === undefined )
+				{
+					let r;
+					
+					if ( obj instanceof Array )
+					{
+						let values;
+
+						values = [];
+
+						for ( let i = 0; i < obj.length; i++ )
+						values[ i ] = sdSnapPack.stringify_method( obj[ i ] );
+
+						let array_string_data = values.join( property_separator );
+
+						r = array_definitor + array_string_data.length + array_definitor + array_string_data;
+					}
+					else
+					if ( obj instanceof Object ) // Array is instanceof Object
+					{
+						let keys_str;
+						let values;
+
+						values = [];
+
+						for ( let i in obj )
+						values.push( sdSnapPack.stringify_method( obj[ i ] ) );
+					
+						const hash = ( typeof obj._class !== 'undefined' ) ? 
+							obj._class + ( ( typeof obj._broken !== 'undefined' ? 1 : 0 ) + ( typeof obj._is_being_removed !== 'undefined' ? 4 : 2 ) )
+							: null;
+
+						keys_str = ( hash !== null ) ? sdSnapPack.keys_cache[ hash ] : undefined;
+
+						if ( keys_str !== undefined )
+						{
+						}
+						else
+						{
+							let keys = [];
+
+							for ( let i in obj )
+							keys.push( i );
+
+							keys_str = keys.join( property_separator ) + property_name_and_values_separator;
+
+							if ( hash !== null )
+							sdSnapPack.keys_cache[ hash ] = keys_str;
+						}
+
+						let object_string_data = keys_str + values.join( property_separator );
+
+						r = object_definitor + object_string_data.length + object_definitor + object_string_data;
+					}
+					else
+					{
+						r = '.'; // null
+					}
+
+					sdSnapPack.cache.set( obj, r );
+
+					return r;
+				}
+				else
+				{
+					return cached;
+				}
+			}
+			
+			if ( typeof obj === 'string' )
+			{
+				return string_definitor + obj.length + string_definitor + obj;
+			}
+			
+			return '.'; // something else but let it be null
+		};*/
 	}
 	/*static compressArrayBuffer( input )
 	{
@@ -409,7 +524,37 @@ class sdSnapPack
 			if ( sdSnapPack.apply_compression )
 			{
 				if ( sdSnapPack.apply_lzw_for_snapshots )
-				object_array = LZW.lzw_encode( JSON.stringify( object_array ) );
+				{
+					/* Exactly same, sometimes better on higher player count but same on average
+					let test0, test;
+					
+					let t1 = Date.now();
+
+						//for ( let i = 0; i < 1000; i++ )
+						test0 = JSON.stringify( object_array );
+				
+					let t2 = Date.now();
+					
+						//for ( let i = 0; i < 1000; i++ )
+						test = sdSnapPack.stringify_method( object_array );
+				
+					let t3 = Date.now();
+					sdSnapPack.comparison_sums[ 0 ] += (t2-t1);
+					sdSnapPack.comparison_sums[ 1 ] += (t3-t2);
+					console.log( 'New size is ' + ( test.length / test0.length * 100 ) + '% from JSON.stringify, new time is ' + ( sdSnapPack.comparison_sums[ 1 ] / sdSnapPack.comparison_sums[ 0 ] * 100 ) + '% '+sdSnapPack.comparison_sums+' from JSON.stringify');
+					
+					sdSnapPack.comparison_sums[ 0 ] *= 0.99;
+					sdSnapPack.comparison_sums[ 1 ] *= 0.99;
+					*/
+					/*object_array = LZW.lzw_encode( 
+						sdSnapPack.stringify_method( object_array ) 
+					);*/
+					
+					
+					object_array = LZW.lzw_encode( 
+						JSON.stringify( object_array ) 
+					);
+				}
 				else
 				Iteration( object_array, 0 );
 			}
@@ -460,7 +605,9 @@ class sdSnapPack
 			{
 				if ( sdSnapPack.apply_lzw_for_snapshots )
 				{
-					object_array = JSON.parse( LZW.lzw_decode( object_array ) );
+					object_array = sdSnapPack.parse_method( 
+							LZW.lzw_decode( object_array ) 
+					);
 					return object_array;
 				}
 			}

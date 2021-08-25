@@ -330,9 +330,10 @@ class sdBlock extends sdEntity
 			if ( this._hea <= 0 )
 			{
 				{
-
 					if ( this._contains_class )
 					{
+						//this._contains_class = 'sdSandWorm'; // Hack
+					
 						if ( this._contains_class === 'sdSandWorm' )
 						{
 							let map = {};
@@ -350,7 +351,7 @@ class sdBlock extends sdEntity
 								if ( map[ ( xx + 0 ) + ':' + ( yy + 1 ) ] )
 								if ( map[ ( xx + 1 ) + ':' + ( yy + 1 ) ] )
 								{
-									let ent = new sdWorld.entity_classes[ this._contains_class ]({ x: this.x + xx * 16, y: this.y + yy * 16 });
+									let ent = new sdWorld.entity_classes[ this._contains_class ]({ x: this.x + xx * 16 + 16, y: this.y + yy * 16 + 16 });
 									sdEntity.entities.push( ent );
 									sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
 
@@ -364,6 +365,8 @@ class sdBlock extends sdEntity
 									map[ ( xx + 1 ) + ':' + ( yy + 0 ) ].Damage( Infinity );
 									map[ ( xx + 0 ) + ':' + ( yy + 1 ) ].Damage( Infinity );
 									map[ ( xx + 1 ) + ':' + ( yy + 1 ) ].Damage( Infinity );
+									
+									//setTimeout(()=>{ent.Damage( Infinity )}, 2000 ); // Hack
 
 									break done;
 								}
