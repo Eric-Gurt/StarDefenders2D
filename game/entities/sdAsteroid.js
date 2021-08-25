@@ -8,6 +8,7 @@ class sdAsteroid extends sdEntity
 	static init_class()
 	{
 		sdAsteroid.img_asteroid = sdWorld.CreateImageFromFile( 'asteroid' );
+		sdAsteroid.img_asteroid_landed = sdWorld.CreateImageFromFile( 'asteroid_landed' );
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -19,12 +20,17 @@ class sdAsteroid extends sdEntity
 	constructor( params )
 	{
 		super( params );
+
+		this._type = Math.random() < 0.2 ? 1 : 0;
+		this.landed = false;
 		
-		this._hmax = 200;
+		this._hmax = this.type === 1 ? 250 : 200; // Asteroids that land need more HP to survive the "explosion" when they land
 		this._hea = this._hmax;
 		
 		this.sx = Math.random() * 12 - 6;
 		this.sy = 10;
+
+		this._time_to_despawn = 30 * 60 * 5; // 5 minutes to despawn landed asteroids
 		
 		//this._an = 0;
 		this._an = Math.atan2( this.sy, this.sx ) - Math.PI / 2;
@@ -36,7 +42,7 @@ class sdAsteroid extends sdEntity
 			this._hea -= dmg;
 			if ( this._hea <= 0 )
 			{
-				if ( Math.random() < 0.25 )
+				if ( Math.random() < 0.25 || this._type === 1 )
 				{
 					let matter_max = 40;
 
@@ -67,8 +73,19 @@ class sdAsteroid extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		this.x += this.sx * GSPEED;
-		this.y += this.sy * GSPEED;
+		if ( this.landed )
+		{
+			this.sy += sdWorld.gravity * GSPEED;
+			this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+			this._time_to_despawn -= GSPEED;
+			if ( this._time_to_despawn < 0 )
+			this.remove();
+		}
+		else
+		{
+			this.x += this.sx * GSPEED;
+			this.y += this.sy * GSPEED;
+		}
 		
 		if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) < 10 )
 		{
@@ -80,17 +97,29 @@ class sdAsteroid extends sdEntity
 	
 		if ( sdWorld.CheckWallExists( this.x, this.y + this._hitbox_y2, this ) )
 		{
+			if ( this._type === 0 )
 			this.Damage( 1000 );
+			if ( this._type === 1 && this.landed === false )
+			{
+				sdWorld.SendEffect({ x:this.x, y:this.y, radius:12, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color });
+				this.landed = true;
+			}
 			//this.remove();
 		}
 	}
 	onRemove() // Class-specific, if needed
 	{
+		if ( this._type === 0 )
 		sdWorld.SendEffect({ x:this.x, y:this.y, radius:19, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color });
+	}
+	DrawHUD( ctx, attached ) // foreground layer
+	{
+		if ( this.landed )
+		sdEntity.Tooltip( ctx, "Asteroid" );
 	}
 	Draw( ctx, attached )
 	{
-		var image = sdAsteroid.img_asteroid;
+		var image = this.landed ? sdAsteroid.img_asteroid_landed : sdAsteroid.img_asteroid;
 		
 		ctx.rotate( this._an );
 
