@@ -226,6 +226,12 @@ class sdShop
 						extra: -123,
 						_category:'Development tests'
 					});
+					sdShop.options.push({
+						_class: 'sdGun',
+						class: i,
+						extra: 2,
+						_category:'Development tests'
+					});
 				}
 				else
 				{
