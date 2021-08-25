@@ -1688,8 +1688,8 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_FMECH_MINIGUN = 62 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'fmech_lmg' ),
-			image_charging: sdWorld.CreateImageFromFile( 'fmech_lmg' ),
+			image: sdWorld.CreateImageFromFile( 'fmech_lmg2' ),
+			image_charging: sdWorld.CreateImageFromFile( 'fmech_lmg2' ),
 			//sound: 'supercharge_combined2',
 			title: 'Flying Mech Minigun',
 			//sound_pitch: 0.5,
@@ -1723,13 +1723,14 @@ class sdGunClass
 						gun._held_by._auto_shoot_in = 800 / 1000 * 30;
 
 						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
-						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 2 });
+						sdSound.PlaySound({ name: 'enemy_mech_charge', x:gun.x, y:gun.y, volume: 1.5 });
 					}
 					return false;
 				}
 				else
 				{
-					sdSound.PlaySound({ name: 'gun_pistol', x:gun.x, y:gun.y });
+					//sdSound.PlaySound({ name: 'gun_pistol', x:gun.x, y:gun.y });
+					sdSound.PlaySound({ name:'enemy_mech_attack4', x:gun.x, y:gun.y, volume:1.5, pitch: 1 });
 					
 					if ( gun._held_by.matter >= 4 )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )

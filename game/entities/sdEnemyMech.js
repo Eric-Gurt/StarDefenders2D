@@ -18,7 +18,7 @@ class sdEnemyMech extends sdEntity
 		sdEnemyMech.img_mech_boost = sdWorld.CreateImageFromFile( 'fmech2_boost' );
 		sdEnemyMech.img_mech_broken = sdWorld.CreateImageFromFile( 'fmech2_broken' );
 
-		sdEnemyMech.img_mech_mg = sdWorld.CreateImageFromFile( 'fmech_lmg' );
+		sdEnemyMech.img_mech_mg = sdWorld.CreateImageFromFile( 'fmech_lmg2' );
 		sdEnemyMech.img_mech_rc = sdWorld.CreateImageFromFile( 'rail_cannon' );
 		
 		sdEnemyMech.mechs_counter = 0;
@@ -86,17 +86,22 @@ class sdEnemyMech extends sdEntity
 		sdEnemyMech.mechs_counter++;
 		
 		this.lmg_an = 0; // Rotate angle for LMG firing
+		
+		this._last_seen_player = 0;
 
 		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
-	/*SyncedToPlayer( character ) // Shortcut for enemies to react to players
+	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( this.hea > 0 )
 		if ( character.hea > 0 )
 		{
-			
+			if ( this._last_seen_player < sdWorld.time - 1000 * 60 * 5 ) // Once per 5 minutes
+			sdSound.PlaySound({ name:'enemy_mech_alert', x:this.x, y:this.y, volume:2 });
+		
+			this._last_seen_player = sdWorld.time;
 		}
-	}*/
+	}
 	/*GetBleedEffect()
 	{
 		return sdEffect.TYPE_BLOOD_GREEN;
@@ -130,21 +135,32 @@ class sdEnemyMech extends sdEntity
 
 		dmg = Math.abs( dmg );
 		
+		let old_hp = this.hea;
+		
 		let was_alive = this.hea > 0;
 		
 		this.hea -= dmg;
 		
 		if ( this.hea > 0 )
 		{
+			if ( Math.ceil( this.hea / this._hmax * 10 ) !== Math.ceil( old_hp / this._hmax * 10 ) )
+			{
+				sdSound.PlaySound({ name:'enemy_mech_hurt', x:this.x, y:this.y, volume:3, pitch: 0.7 });
+			}
+			
 			sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
-			if ( this.hea <= 400 )
-			sdSound.PlaySound({ name:'hover_lowhp', x:this.x, y:this.y, volume:1 });
+			
+			//if ( this.hea <= 400 )
+			//sdSound.PlaySound({ name:'hover_lowhp', x:this.x, y:this.y, volume:1 });
 		}
 		
 		//this.regen_timeout = Math.max( this.regen_timeout, 60 );
 		
 		if ( this.hea <= 0 && was_alive )
-		{	sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:2 });
+		{	
+			sdSound.PlaySound({ name:'enemy_mech_death3', x:this.x, y:this.y, volume:2 });
+			
+			sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:2 });
 			this.death_anim = 1;
 			if ( initiator )
 			if ( typeof initiator._score !== 'undefined' )
@@ -507,13 +523,14 @@ class sdEnemyMech extends sdEntity
 							this._attack_timer = 60;
 						}
 
-						sdSound.PlaySound({ name:'gun_pistol', pitch: 1, x:this.x, y:this.y, volume:0.3 });
+						//sdSound.PlaySound({ name:'gun_pistol', pitch: 1, x:this.x, y:this.y, volume:0.3 });
+						sdSound.PlaySound({ name:'enemy_mech_attack4', x:this.x, y:this.y, volume:1, pitch: 1 });
 
 						if ( targets[ i ].GetClass() === 'sdTurret' || targets[ i ].GetClass() === 'sdCube' || targets[ i ].GetClass() === 'sdBlock' ) // Turrets, trap/shield blocks and cubes get the special treatment
 						if ( this._rail_attack_timer <= 0 )
 						{
-							an = Math.atan2( targets[ i ].y - ( this.y - 16 ), targets[ i ].x - this.x ); // Pinpoint accurate against turrets
-							let bullet_obj = new sdBullet({ x: this.x, y: this.y - 16 });
+							an = Math.atan2( targets[ i ].y - ( this.y ), targets[ i ].x - this.x ); // Pinpoint accurate against turrets
+							let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 							bullet_obj._owner = this;
 							bullet_obj.sx = Math.cos( an );
 							bullet_obj.sy = Math.sin( an );
@@ -550,7 +567,7 @@ class sdEnemyMech extends sdEntity
 
 						let an = Math.atan2( targets[ i ].y - ( this.y + 16 ), targets[ i ].x - this.x ) + ( Math.random() * 2 - 1 ) * 0.1;
 
-						let bullet_obj = new sdBullet({ x: this.x, y: this.y + 16 });
+						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 						bullet_obj._owner = this;
 						bullet_obj.sx = Math.cos( an );
 						bullet_obj.sy = Math.sin( an );
@@ -576,7 +593,8 @@ class sdEnemyMech extends sdEntity
 							this._rocket_attack_timer = 60;
 						}
 
-						sdSound.PlaySound({ name:'gun_rocket', x:this.x, y:this.y, volume:1, pitch:0.5 });
+						//sdSound.PlaySound({ name:'gun_rocket', x:this.x, y:this.y, volume:1, pitch:0.5 });
+						sdSound.PlaySound({ name:'enemy_mech_attack4', x:this.x, y:this.y, volume:2, pitch: 0.2 });
 
 						break;
 					}
@@ -626,7 +644,7 @@ class sdEnemyMech extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		//if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, "Flying Mech" );
+		sdEntity.Tooltip( ctx, "Flying Mech", 0, -30 );
 	}
 	Draw( ctx, attached )
 	{

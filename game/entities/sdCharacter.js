@@ -1446,21 +1446,16 @@ class sdCharacter extends sdEntity
 	}
 	GetBulletSpawnOffset()
 	{
+		// Anything else is no longer good with new ragdoll structure
+		return { x:0, y:sdCharacter.bullet_y_spawn_offset };
+		/*
+			
 		// Much better for digging down. Also will work with all short-range weapons like defibrillators
 		if ( !this._inventory[ this.gun_slot ] || sdGun.classes[ this._inventory[ this.gun_slot ].class ].is_sword || ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].projectile_properties.time_left !== undefined && sdGun.classes[ this._inventory[ this.gun_slot ].class ].projectile_properties.time_left < 5 ) )
 		{
 			return { x:0, y:sdCharacter.bullet_y_spawn_offset };
 		}
 		
-		/*let xx = 0;
-		let yy = 0;
-		
-		let x_on_x = 1;
-		let x_on_y = 0;
-		
-		let y_on_x = 0;
-		let y_on_y = 1;*/
-			
 		let m1 = [ 1, 0, 0, 1, 0, 0 ];
 		
 		// Assume these as 0
@@ -1469,20 +1464,11 @@ class sdCharacter extends sdEntity
 		
 		function ctx_translate( x, y )
 		{
-			/*xx += x * x_on_x + y * y_on_x;
-			yy += y * y_on_y + x * x_on_y;*/
-			
 			m1[ 4 ] += m1[ 0 ] * x + m1[ 2 ] * y;
 			m1[ 5 ] += m1[ 1 ] * x + m1[ 3 ] * y;
 		}
 		function ctx_scale( sx, sy )
 		{
-			/*x_on_x *= x;
-			x_on_y *= x;
-			
-			y_on_x *= y;
-			y_on_y *= y;*/
-			
 			m1[ 0 ] *= sx;
 			m1[ 1 ] *= sx;
 			m1[ 2 ] *= sy;
@@ -1490,17 +1476,6 @@ class sdCharacter extends sdEntity
 		}
 		function ctx_rotate( angle )
 		{
-			/*var cos = Math.cos( a );
-			var sin = Math.sin( a );
-			
-			var nx = cos * x_on_x - sin * x_on_y;
-			x_on_y = sin * x_on_x + cos * x_on_y;
-			x_on_x = nx;
-			
-				nx = cos * y_on_x - sin * y_on_y;
-			y_on_y = sin * y_on_x + cos * y_on_y;
-			y_on_x = nx;*/
-			
 			var c = Math.cos( angle );
 			var s = Math.sin( angle );
 			var m11 = m1[ 0 ] * c + m1[ 2 ] * s;
@@ -1512,9 +1487,6 @@ class sdCharacter extends sdEntity
 			m1[ 2 ] = m21;
 			m1[ 3 ] = m22;
 		}
-		
-		//ctx_translate( this.x, this.y );
-		
 		
 		ctx_rotate( this.tilt / 100 );
 		ctx_scale( this._side, 1 );
@@ -1548,8 +1520,7 @@ class sdCharacter extends sdEntity
 
 		ctx_translate( 5 + gun_offset_x, -2 + gun_offset_y );
 		
-		//return { x:xx, y:yy };
-		return { x: m1[ 4 ], y: m1[ 5 ] };
+		return { x: m1[ 4 ], y: m1[ 5 ] };*/
 	}
 	
 	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call
