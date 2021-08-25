@@ -52,27 +52,41 @@ if ( !isWin )
 	let ssl_key_path;
 	let ssl_cert_path;
 	
-	if ( fs.existsSync('/usr/') &&
-		 fs.existsSync('/usr/local/') &&
-		 fs.existsSync('/usr/local/directadmin/') &&
-		 fs.existsSync('/usr/local/directadmin/data/') &&
-		 fs.existsSync('/usr/local/directadmin/data/users/') &&
-		 fs.existsSync('/usr/local/directadmin/data/users/admin/') &&
-		 fs.existsSync('/usr/local/directadmin/data/users/admin/domains/') ) 
-	{
-		ssl_key_path = '/usr/local/directadmin/data/users/admin/domains/gevanni.com.key';
-		ssl_cert_path = '/usr/local/directadmin/data/users/admin/domains/gevanni.com.cert';
-	}
-	else
-	{
-		ssl_key_path = '/var/cpanel/ssl/apache_tls/plazmaburst2.com/combined';
-		ssl_cert_path = '/var/cpanel/ssl/apache_tls/plazmaburst2.com/combined'; // '/var/cpanel/ssl/apache_tls/plazmaburst2.com/certificates';
-		
-		port0 = 8443;
-		CloudFlareSupport = true;
-		
-		directory_to_save_player_count = '/home/plazmaburst2/public_html/pb2/sd2d_online.v';
-	}
+	if( fs.existsSync(`sslconfig.json`) ) {
+    	try {
+
+        	const data = fs.readFileSync('./sslconfig.json', 'utf8');
+    
+        	// parse JSON string to JSON object
+        	const sslconfig = JSON.parse(data);
+        	ssl_cert_path = sslconfig.certpath
+        	ssl_key_path = sslconfig.keypath
+    
+	    	} catch (err) {
+	        console.log(`Error reading file from disk: ${err}`);
+	    } } else {
+	        if ( fs.existsSync('/usr/') &&
+	         fs.existsSync('/usr/local/') &&
+	         fs.existsSync('/usr/local/directadmin/') &&
+	         fs.existsSync('/usr/local/directadmin/data/') &&
+	         fs.existsSync('/usr/local/directadmin/data/users/') &&
+	         fs.existsSync('/usr/local/directadmin/data/users/admin/') &&
+	         fs.existsSync('/usr/local/directadmin/data/users/admin/domains/') ) 
+	    {
+	        ssl_key_path = '/usr/local/directadmin/data/users/admin/domains/gevanni.com.key';
+	        ssl_cert_path = '/usr/local/directadmin/data/users/admin/domains/gevanni.com.cert';
+	    }
+	    else
+	    {
+	        ssl_key_path = '/var/cpanel/ssl/apache_tls/plazmaburst2.com/combined';
+	        ssl_cert_path = '/var/cpanel/ssl/apache_tls/plazmaburst2.com/combined'; // '/var/cpanel/ssl/apache_tls/plazmaburst2.com/certificates';
+	        
+	        port0 = 8443;
+	        CloudFlareSupport = true;
+        	
+        	directory_to_save_player_count = '/home/plazmaburst2/public_html/pb2/sd2d_online.v';
+    	}
+}
 	
 	const credentials = {
 		key: fs.readFileSync( ssl_key_path ),
