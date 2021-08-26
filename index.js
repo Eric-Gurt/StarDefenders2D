@@ -3303,12 +3303,24 @@ setInterval( ()=>
 								console.log('Entity no longer exists in any array - no idea what break info to send...');
 							}
 							
-							snapshot_of_deletion = { 
-								_class: key.GetClass(), 
-								_net_id: net_id,
-								_is_being_removed: true,
-								_broken: key._broken
-							};
+							if ( key )
+							{
+								snapshot_of_deletion = { 
+									_class: key.GetClass(), 
+									_net_id: net_id,
+									_is_being_removed: true,
+									_broken: key._broken
+								};
+							}
+							else
+							{
+								snapshot_of_deletion = { 
+									_class: 'auto', 
+									_net_id: net_id,
+									_is_being_removed: true,
+									_broken: false
+								};
+							}
 
 							snapshot.push( snapshot_of_deletion );
 							snapshot_only_statics.push( snapshot_of_deletion );

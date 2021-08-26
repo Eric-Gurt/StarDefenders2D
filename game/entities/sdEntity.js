@@ -1279,7 +1279,7 @@ class sdEntity
 		//if ( snapshot._net_id !== this._net_id ) Will happen in case of copying
 		//debugger;
 		if ( snapshot._class !== this.GetClass() )
-		//if ( snapshot._class !== 'auto' )
+		if ( snapshot._class !== 'auto' )
 		debugger;
 	
 		let my_entity_protected_vars = null;
@@ -1460,7 +1460,7 @@ class sdEntity
 			return null;
 		}
 	
-		if ( possible_ent.GetClass() !== _class /*&& _class !== 'auto' */)
+		if ( possible_ent.GetClass() !== _class && _class !== 'auto' )
 		{
 			debugger; // Should not happen
 			return null;
