@@ -307,7 +307,7 @@ class sdModeration
 		else
 		if ( parts[ 0 ] === 'restart' || parts[ 0 ] === 'reboot' )
 		{
-			if ( parts[ 1 ] === 'nosave' )
+			if ( parts[ 1 ] === 'nosave' || parts[ 1 ] === '0' )
 			socket.SDServiceMessage( 'Server: Restarting... Without saving snapshot' );
 			else
 			socket.SDServiceMessage( 'Server: Restarting... Saving snapshot' );
@@ -316,7 +316,7 @@ class sdModeration
 			
 			const proceed = ( err )=>
 			{		
-				if ( parts[ 1 ] === 'nosave' )
+				if ( parts[ 1 ] === 'nosave' || parts[ 1 ] === '0' )
 				socket.SDServiceMessage( 'Server: Restarting... Snapshot saving ignored, goodbye!' );
 				else
 				socket.SDServiceMessage( 'Server: Restarting... Snapshot saved, goodbye!' );
