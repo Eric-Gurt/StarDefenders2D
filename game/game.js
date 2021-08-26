@@ -89,6 +89,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdBaseShieldingUnit from './entities/sdBaseShieldingUnit.js';	
 	import sdConveyor from './entities/sdConveyor.js';	
 	import sdBeamProjector from './entities/sdBeamProjector.js';	
+	import sdQuadro from './entities/sdQuadro.js';	
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -154,6 +155,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdBaseShieldingUnit.init_class();
 	sdConveyor.init_class();
 	sdBeamProjector.init_class();
+	sdQuadro.init_class();
 
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;
@@ -433,6 +435,8 @@ let enf_once = true;
 			}
 			sdWorld.SolveUnresolvedEntityPointers();
 			sdWorld.unresolved_entity_pointers = null;
+			
+			sdEntity.entities.sort( (a,b)=>{ return a._net_id-b._net_id; } ); // Sort so sdQuadro's body is behind wheels
 
 			// score
 			sdWorld.my_score = score;

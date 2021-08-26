@@ -670,7 +670,7 @@ class sdCharacter extends sdEntity
 	get hitbox_x1() { return this.s / 100 * ( this.death_anim < 10 ? -5 : -5 ); } // 7
 	get hitbox_x2() { return this.s / 100 * ( this.death_anim < 10 ? 5 : 5 ); }
 	get hitbox_y1() { return this.s / 100 * ( this.death_anim < 10 ? -12 : 10 ); }
-	get hitbox_y2() { return this.s / 100 * ( this	.death_anim < 10 ? ( ( 16 - this._crouch_intens * 6 ) * ( 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7 ) ) : 16 ); }
+	get hitbox_y2() { return this.s / 100 * ( this.death_anim < 10 ? ( ( 16 - this._crouch_intens * 6 ) * ( 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7 ) ) : 16 ); }
 
 //0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7
 
@@ -2148,6 +2148,14 @@ class sdCharacter extends sdEntity
 					let pull_force = -( this._hook_len - cur_di ) / 15;
 					let vx = ( this.hook_x - this.x ) / cur_di;
 					let vy = ( this.hook_y - from_y ) / cur_di;
+					
+					let my_ent = this;
+					if ( this.driver_of )
+					{
+						if ( typeof this.driver_of.sx !== 'undefined' )
+						if ( typeof this.driver_of.sy !== 'undefined' )
+						my_ent = this.driver_of;
+					}
 
 					let self_effect_scale = 1;
 
@@ -2158,13 +2166,13 @@ class sdCharacter extends sdEntity
 							let lx = this._hook_relative_to.sx;
 							let ly = this._hook_relative_to.sy;
 
-							self_effect_scale = this._hook_relative_to.mass / ( this._hook_relative_to.mass + this.mass );
+							self_effect_scale = this._hook_relative_to.mass / ( this._hook_relative_to.mass + my_ent.mass );
 
 							this._hook_relative_to.sx -= vx * pull_force * GSPEED * ( 1 - self_effect_scale );
 							this._hook_relative_to.sy -= vy * pull_force * GSPEED * ( 1 - self_effect_scale );
 
-							this._hook_relative_to.sx = sdWorld.MorphWithTimeScale( this._hook_relative_to.sx, this.sx, 0.8, GSPEED * ( 1 - self_effect_scale ) );
-							this._hook_relative_to.sy = sdWorld.MorphWithTimeScale( this._hook_relative_to.sy, this.sy, 0.8, GSPEED * ( 1 - self_effect_scale ) );
+							this._hook_relative_to.sx = sdWorld.MorphWithTimeScale( this._hook_relative_to.sx, my_ent.sx, 0.8, GSPEED * ( 1 - self_effect_scale ) );
+							this._hook_relative_to.sy = sdWorld.MorphWithTimeScale( this._hook_relative_to.sy, my_ent.sy, 0.8, GSPEED * ( 1 - self_effect_scale ) );
 
 							if ( this._hook_relative_to.is( sdCharacter ) )
 							this._hook_relative_to.ApplyServerSidePositionAndVelocity( true, this._hook_relative_to.sx - lx, this._hook_relative_to.sy - ly );
@@ -2202,8 +2210,9 @@ class sdCharacter extends sdEntity
 						}
 					}
 
-					this.sx += vx * pull_force * GSPEED * self_effect_scale;
-					this.sy += vy * pull_force * GSPEED * self_effect_scale;
+					my_ent.sx += vx * pull_force * GSPEED * self_effect_scale;
+					my_ent.sy += vy * pull_force * GSPEED * self_effect_scale;
+
 				}
 			}
 
@@ -2465,6 +2474,10 @@ class sdCharacter extends sdEntity
 
 				//new_y -= new_leg_height - leg_height;
 				this.y -= new_leg_height - leg_height;
+				
+				// Prevent leg shaking when stopping crouch, probablyt caused by stand target cache delaying fall, especially after step logic applied (it leaves player slightly floating)
+				if ( new_leg_height - leg_height > 0 )
+				this.sy += new_leg_height - leg_height;
 
 				if ( Math.abs( Math.sin( this.tilt / 100 ) ) > 0.3 )
 				{

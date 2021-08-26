@@ -7,8 +7,6 @@ import sdBullet from './sdBullet.js';
 import sdEffect from './sdEffect.js';
 
 import sdCharacter from './sdCharacter.js';
-import sdVirus from './sdVirus.js';
-import sdQuickie from './sdQuickie.js';
 import sdCrystal from './sdCrystal.js';
 
 class sdHover extends sdEntity
@@ -451,6 +449,11 @@ class sdHover extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		if ( sdShop.isDrawing )
+		{
+			ctx.scale( 0.5, 0.5 );
+		}
+		
 		ctx.rotate( this._tilt / 100 );
 		
 		if ( this._tilt > 0 )

@@ -440,6 +440,11 @@ var LZUTF8;
             while (count--)
                 destination[destinationIndex++] = source[sourceIndex++];
         };
+        ArrayTools.copyElements_dataView32 = function (source_dataView, sourceIndex, destination_dataView, destinationIndex, count) {
+            while (count--)
+			destination_dataView.setUint32( ( destinationIndex++ ) * 4, source_dataView.getUint32( ( sourceIndex++ ) * 4 ) );
+            //destination[destinationIndex++] = source[sourceIndex++];
+        };
         ArrayTools.zeroElements = function (collection, index, count) {
             while (count--)
                 collection[index++] = 0;
@@ -1066,8 +1071,8 @@ var LZUTF8;
             //var startPosition = this.bucketLocators[bucketIndex];
             var startPosition = this.bucketLocators_dataView.getUint32( bucketIndex * 4, true );
 			
-			//if ( this.bucketLocators[bucketIndex] !== startPosition )
-			//throw new Error( 'Wrong' );
+//if ( this.bucketLocators[bucketIndex] !== startPosition )
+//throw new Error( 'Wrong' );
 			
             var length;
             if (startPosition === 0) {
@@ -1083,8 +1088,8 @@ var LZUTF8;
                 var endPosition = startPosition + length;
 				
 			
-					//if ( (this.storage[endPosition] === 0) !== (this.storage_dataView.getUint32( endPosition * 4, true ) === 0) )
-					//throw new Error( 'Wrong' );
+//if ( (this.storage[endPosition] === 0) !== (this.storage_dataView.getUint32( endPosition * 4, true ) === 0) )
+//throw new Error( 'Wrong' );
 				
                 //if (this.storage[endPosition] === 0) 
 				if ( this.storage_dataView.getUint32( endPosition * 4, true ) === 0 ) 
@@ -1092,21 +1097,24 @@ var LZUTF8;
                     //this.storage[endPosition] = valueToAdd;
 					this.storage_dataView.setUint32( endPosition * 4, valueToAdd, true );
 			
-					//if ( this.storage_dataView.getUint32( endPosition * 4, true ) !== this.storage[endPosition] )
-					//throw new Error( 'Wrong' );
+//if ( this.storage_dataView.getUint32( endPosition * 4, true ) !== this.storage[endPosition] )
+//throw new Error( 'Wrong' );
 					
                     if (endPosition === this.storageIndex)
                         this.storageIndex += length;
                 }
                 else {
-                    LZUTF8.ArrayTools.copyElements(this.storage, startPosition, this.storage, this.storageIndex, length);
+                    //LZUTF8.ArrayTools.copyElements(this.storage, startPosition, this.storage, this.storageIndex, length);
+					LZUTF8.ArrayTools.copyElements_dataView32(this.storage_dataView, startPosition, this.storage_dataView, this.storageIndex, length);
+					
                     startPosition = this.storageIndex;
                     this.storageIndex += length;
 					
                     //this.storage[this.storageIndex++] = valueToAdd;
 					this.storage_dataView.setUint32( ( this.storageIndex++ ) * 4, valueToAdd, true );
-					//if ( this.storage[this.storageIndex-1] !== this.storage_dataView.getUint32( ( this.storageIndex - 1 ) * 4, true ) )
-					//throw new Error( 'Wrong' );
+					
+//if ( this.storage[this.storageIndex-1] !== this.storage_dataView.getUint32( ( this.storageIndex - 1 ) * 4, true ) )
+//throw new Error( 'Wrong' );
 					
                     this.storageIndex += length;
                 }
@@ -1126,26 +1134,54 @@ var LZUTF8;
             return truncatedBucketLength;
         };
         CompressorCustomHashTable.prototype.compact = function () {
+			
             var oldBucketLocators = this.bucketLocators;
+            var oldBucketLocators_dataView = this.bucketLocators_dataView;
+			
             var oldStorage = this.storage;
+            var oldStorage_dataView = this.storage_dataView;
+			
             this.bucketLocators = new Uint32Array(this.bucketLocators.length);
+			this.bucketLocators_dataView = new DataView( this.bucketLocators.buffer, this.bucketLocators.byteOffset, this.bucketLocators.byteLength );
+			
             this.storageIndex = 1;
             for (var bucketIndex = 0; bucketIndex < oldBucketLocators.length; bucketIndex += 2) {
-                var length_3 = oldBucketLocators[bucketIndex + 1];
+				
+                //var length_3 = oldBucketLocators[bucketIndex + 1];
+				var length_3 = oldBucketLocators_dataView.getUint32( ( bucketIndex + 1 ) * 4, true );
+				
                 if (length_3 === 0)
                     continue;
-                this.bucketLocators[bucketIndex] = this.storageIndex;
-                this.bucketLocators[bucketIndex + 1] = length_3;
+				
+                //this.bucketLocators[bucketIndex] = this.storageIndex;
+				this.bucketLocators_dataView.setUint32( ( bucketIndex ) * 4, this.storageIndex, true );
+				
+                //this.bucketLocators[bucketIndex + 1] = length_3;
+				this.bucketLocators_dataView.setUint32( ( bucketIndex + 1 ) * 4, length_3, true );
+				
                 this.storageIndex += Math.max(Math.min(length_3 * 2, this.maximumBucketCapacity), this.minimumBucketCapacity);
             }
+			
             this.storage = new Uint32Array(this.storageIndex * 8);
+			this.storage_dataView = new DataView( this.storage.buffer, this.storage.byteOffset, this.storage.byteLength );
+			
             for (var bucketIndex = 0; bucketIndex < oldBucketLocators.length; bucketIndex += 2) {
-                var sourcePosition = oldBucketLocators[bucketIndex];
+				
+                //var sourcePosition = oldBucketLocators[bucketIndex];
+                var sourcePosition = oldBucketLocators_dataView.getUint32( ( bucketIndex ) * 4, true );
+				
                 if (sourcePosition === 0)
                     continue;
-                var destPosition = this.bucketLocators[bucketIndex];
-                var length_4 = this.bucketLocators[bucketIndex + 1];
-                LZUTF8.ArrayTools.copyElements(oldStorage, sourcePosition, this.storage, destPosition, length_4);
+				
+                //var destPosition = this.bucketLocators[bucketIndex];
+                var destPosition = this.bucketLocators_dataView.getUint32( ( bucketIndex ) * 4, true );
+				
+                //var length_4 = this.bucketLocators[bucketIndex + 1];
+                var length_4 = this.bucketLocators_dataView.getUint32( ( bucketIndex + 1 ) * 4, true );
+				
+                //LZUTF8.ArrayTools.copyElements(oldStorage, sourcePosition, this.storage, destPosition, length_4);
+				LZUTF8.ArrayTools.copyElements_dataView32(oldStorage_dataView, sourcePosition, this.storage_dataView, destPosition, length_4);
+				
             }
         };
         CompressorCustomHashTable.prototype.getArraySegmentForBucketIndex = function (bucketIndex, outputObject) {

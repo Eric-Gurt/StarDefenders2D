@@ -245,7 +245,7 @@ import sdCaption from './game/entities/sdCaption.js';
 import sdBaseShieldingUnit from './game/entities/sdBaseShieldingUnit.js';
 import sdConveyor from './game/entities/sdConveyor.js';
 import sdBeamProjector from './game/entities/sdBeamProjector.js';
-
+import sdQuadro from './game/entities/sdQuadro.js';
 
 import LZW from './game/server/LZW.js';
 import LZUTF8 from './game/server/LZUTF8.js';
@@ -409,7 +409,7 @@ sdTurret.init_class();
 sdBaseShieldingUnit.init_class();
 sdConveyor.init_class();
 sdBeamProjector.init_class();
-
+sdQuadro.init_class();
 
 
 
@@ -2312,6 +2312,12 @@ io.on("connection", (socket) =>
 			
 			if ( socket.character ) 
 			{ 
+				/*let test_ent = sdEntity.entities_by_net_id_cache_map.get( 40580166 ); // Hack. Testing what is wrong here - possibly compression fails
+				socket.character.x = test_ent.x;
+				socket.character.y = test_ent.y;
+				socket.character.sx = 0;
+				socket.character.sy = 0;*/
+				
 				//messages_to_report_arrival
 				socket.character.look_x = arr[ 0 ]; 
 				socket.character.look_y = arr[ 1 ];

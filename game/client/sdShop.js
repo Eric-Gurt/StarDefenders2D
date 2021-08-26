@@ -59,6 +59,20 @@ class sdShop
 		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdLifeBox', _category:'Vehicles', _min_build_tool_level:1 });
+		sdShop.options.push({ _class: 'sdQuadro', _category:'Vehicles' });
+		sdShop.options.push({ _class: 'sdQuadro', filter: 'hue-rotate(300deg)', _category:'Vehicles' });
+		sdShop.options.push({ _class: 'sdQuadro', filter: 'hue-rotate(270deg)', _category:'Vehicles' });
+		sdShop.options.push({ _class: 'sdQuadro', filter: 'hue-rotate(210deg)', _category:'Vehicles' });
+		sdShop.options.push({ _class: 'sdQuadro', filter: 'hue-rotate(140deg)', _category:'Vehicles' });
+		sdShop.options.push({ _class: 'sdQuadro', filter: 'saturate(0) brightness(1.5)', _category:'Vehicles' });
+		sdShop.options.push({ _class: 'sdQuadro', filter: 'saturate(0) brightness(0.5)', _category:'Vehicles' });
+
+		//ctx.filter = '' // yellow
+		//ctx.filter = '' // redish
+		//ctx.filter = '' // pink
+		//ctx.filter = '' // blueish
+		//ctx.filter = '' // white
+		//ctx.filter = '' // black
 		
 		function AddBuildPack( filter, i )
 		{
@@ -408,6 +422,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdDrone', _ai_team: 2, type: 2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdPlayerDrone', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBeamProjector', _category:'Development tests' });
+			
+			sdShop.options.push({ _class: 'sdQuadro', _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });

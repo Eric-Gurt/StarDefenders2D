@@ -159,6 +159,10 @@ class sdEntity
 	{
 		return false;
 	}
+	VehicleHidesLegs()
+	{
+		return true;
+	}
 	
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
 	{ return false; }
@@ -290,6 +294,13 @@ class sdEntity
 	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call
 	{
 	}
+	IsMovesLogic( sx_sign, sy_sign )
+	{
+		return sx_sign !== this._phys_last_sx || 
+			   sy_sign !== this._phys_last_sy || 
+			   !sdWorld.inDist2D_Boolean( this.sx, this.sy, 0, 0, sdWorld.gravity + 0.1 );
+	}
+	
 	ApplyVelocityAndCollisions( GSPEED, step_size=0, apply_friction=false, impact_scale=1, custom_filtering_method=null ) // step_size can be used by entities that can use stairs
 	{
 		this.PhysInitIfNeeded();
@@ -297,10 +308,11 @@ class sdEntity
 		let sx_sign = ( this.sx > 0 );
 		let sy_sign = ( this.sy > 0 );
 		
-		let moves = 
+		let moves = this.IsMovesLogic( sx_sign, sy_sign );
+		/*let moves = 
 				sx_sign !== this._phys_last_sx || 
 				sy_sign !== this._phys_last_sy || 
-				!sdWorld.inDist2D_Boolean( this.sx, this.sy, 0, 0, sdWorld.gravity + 0.1 );
+				!sdWorld.inDist2D_Boolean( this.sx, this.sy, 0, 0, sdWorld.gravity + 0.1 );*/
 		
 		if ( !moves )
 		if ( this._phys_last_touch )
@@ -419,6 +431,8 @@ class sdEntity
 		{
 			this.x = new_x;
 			this.y = new_y;
+			
+			this._phys_last_touch = null;
 		}
 		else
 		{
@@ -446,13 +460,27 @@ class sdEntity
 					}
 				}
 			}*/
+			
+			let last_touch = null;
+			
 			if ( step_size > 0 )
 			{
-				let last_touch = null;
+				last_touch = sdWorld.last_hit_entity;
 				
 				for ( let i = 1; i <= step_size; i++ )
 				{
 				    sdWorld.last_hit_entity = null;
+					
+					if ( last_touch && 
+						 Math.abs( last_touch.y + last_touch._hitbox_y1 - this._hitbox_y2 - this.y ) <= step_size && 
+						 this.CanMoveWithoutOverlap( new_x, last_touch.y + last_touch._hitbox_y1 - this._hitbox_y2 - 0.0001, 0, custom_filtering_method ) )
+					{
+						// Shake-less version
+						this.y = last_touch.y + last_touch._hitbox_y1 - this._hitbox_y2 - 0.0001;
+						
+						break;
+					}
+					else
 					if ( this.CanMoveWithoutOverlap( new_x, new_y - i, 0, custom_filtering_method ) )
 					{
 						this.y = new_y - i;
@@ -571,9 +599,9 @@ class sdEntity
 				this.Impact( sdWorld.Dist2D_Vector( old_sx, old_sy ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
 			}
 
+			this._phys_last_touch = sdWorld.last_hit_entity || last_touch;
 		}
 		
-		this._phys_last_touch = sdWorld.last_hit_entity;
 	}
 	MeasureMatterCost()
 	{

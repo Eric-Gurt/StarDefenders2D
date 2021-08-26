@@ -991,7 +991,7 @@ class sdCharacterRagdoll
 				}
 				else
 				{
-					if ( !this.character.driver_of || spring.subgroup !== 1 ) // No legs in vehicles
+					if ( !this.character.driver_of || !this.character.driver_of.VehicleHidesLegs() || spring.subgroup !== 1 ) // No legs in vehicles
 					{
 						ctx.drawImageFilterCache( skin_images_by_subgroup[ spring.subgroup ], spring.image,source_y_offset, 32,32, -16,-16, 32,32 );
 
