@@ -3033,9 +3033,18 @@ let nth_connection_shift = 0;
 
 let vision_cells_cache = {};
 
-setInterval( ()=>
+// This will prevent stacking of interal calls, letting server to actually handle all received data from clients
+const ServerMainMethod = ()=>
 {
 	//console.log( 'game_ttl', game_ttl );
+	
+	let ttt = Date.now();
+	
+	/*let bbb;
+	while ( Date.now() < ttt + 40 )
+	{
+		bbb = Math.random();
+	}*/
 	
 	if ( IsGameActive() )
 	{
@@ -3593,7 +3602,10 @@ setInterval( ()=>
 	
 	frame++;
 	
-}, sdWorld.logic_rate );
+	setTimeout( ServerMainMethod, Math.max( 5, sdWorld.logic_rate - ( Date.now() - ttt ) ) );
+};
+
+setTimeout( ServerMainMethod, sdWorld.logic_rate );
 
 /*
 process.on('exit', (code) => {

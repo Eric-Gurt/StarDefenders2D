@@ -322,6 +322,7 @@ class sdQuadro extends sdEntity
 			{
 				this._spawn_wheels = 0;
 				
+				if ( sdWorld.is_server )
 				for ( let s = -1; s <= 1; s += 2 )
 				{
 					let wheel = new sdQuadro({ x: this.x + s * 7, y: this.y + 6, part: 1 });
