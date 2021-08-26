@@ -513,6 +513,19 @@ class sdQuadro extends sdEntity
 		this.ApplyVelocityAndCollisions( GSPEED, step_size, true, ( this.part === 0 ) ? 1 : 0.25, this.CustomFiltering );
 		
 		//this._last_hit_entity = sdWorld.last_hit_entity;
+		
+		if ( this.part === 0 )
+		{
+			// Dont earlier
+		}
+		else
+		{
+			if ( !this.p || this.p.hea <= 0 || this.p._is_being_removed )
+			{
+				if ( this._phys_sleep <= 0 )
+				this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+			}
+		}
 	}
 	CustomFiltering( ent )
 	{
