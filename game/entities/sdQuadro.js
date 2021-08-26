@@ -531,7 +531,7 @@ class sdQuadro extends sdEntity
 	
 	get bounce_intensity()
 	{ 
-		if ( this.part === 0 || ( this.hea > 0 &&this.p && this.p.hea > 0 && !this.p._is_being_removed ) )
+		if ( this.part === 0 || this.hea <= 0 || ( this.p && this.p.hea > 0 && !this.p._is_being_removed ) )
 		return 0;
 	
 		return 0.7; 
