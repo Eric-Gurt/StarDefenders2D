@@ -149,6 +149,11 @@ class sdShop
 		sdShop.options.push({ _class: 'sdStorage', filter: 'hue-rotate(205deg) saturate(10)', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdStorage', filter: 'hue-rotate(220deg)', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdStorage', filter: 'hue-rotate(135deg)', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'saturate(0)', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'none', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'hue-rotate(205deg) saturate(10)', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'hue-rotate(220deg)', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'hue-rotate(135deg)', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdNode', _category:'Base equipment' });
 		
 
