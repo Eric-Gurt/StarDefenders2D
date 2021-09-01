@@ -9,16 +9,17 @@ class sdStorage extends sdEntity
 	static init_class()
 	{
 		sdStorage.img_storage = sdWorld.CreateImageFromFile( 'storage2' );
+		sdStorage.img_storage2 = sdWorld.CreateImageFromFile( 'portal_storage' );
 		
 		sdStorage.access_range = 64; // Used by sdMatterAmplifier as well
 		sdStorage.slots_tot = 6;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -7; }
-	get hitbox_x2() { return 7; }
-	get hitbox_y1() { return -5; }
-	get hitbox_y2() { return 6; }
+	get hitbox_x1()  { return this.type === 1 ? -4 : -7; }
+	get hitbox_x2()  { return this.type === 1 ? 4 : 7; }
+	get hitbox_y1()  { return this.type === 1 ? -4 : -5; }
+	get hitbox_y2()  { return this.type === 1 ? 4 : 6; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -29,6 +30,8 @@ class sdStorage extends sdEntity
 		
 		this.sx = 0;
 		this.sy = 0;
+
+		this.type = params.type || 0;
 		
 		this._hea = 100;
 		this._hmax = 100;
@@ -74,7 +77,7 @@ class sdStorage extends sdEntity
 		}
 	}
 	
-	get mass() { return 30; }
+	get mass() { return this.type === 1 ? 10 : 30; }
 	Impulse( x, y )
 	{
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
@@ -140,13 +143,18 @@ class sdStorage extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, "Storage crate" );
+		if ( this.type === 0 )
+		sdEntity.Tooltip( ctx, 'Storage crate' );
+		if ( this.type === 1 )
+		sdEntity.Tooltip( ctx, 'crate but smol' );
 	}
 	Draw( ctx, attached )
 	{
 		ctx.filter = this.filter;
-		
+		if ( this.type === 0 )
 		ctx.drawImageFilterCache( sdStorage.img_storage, - 16, - 16, 32,32 );
+		if ( this.type === 1 )
+		ctx.drawImageFilterCache( sdStorage.img_storage2, - 16, - 16, 32,32 );
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
@@ -169,9 +177,10 @@ class sdStorage extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		//return 0;
-		
+		if ( this.type === 0 )
 		return this._hmax * sdWorld.damage_to_matter;
+		if ( this.type === 1 )
+		return 50;
 	}
 	onMovementInRange( from_entity )
 	{
