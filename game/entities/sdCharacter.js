@@ -85,6 +85,30 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_alpha' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'helmet_glass' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_skeleton' ), // by Silk1
+                        sdWorld.CreateImageFromFile( 'helmet_beast' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_starfarer' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_walker' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_warlord' ), // original by LordBored, edit by LazyRain
+			sdWorld.CreateImageFromFile( 'helmet_legate' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_judicator' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_duality' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_bulwark' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_destiny' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_hunter' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_tacticalSD' ), // by The_Commander
+			sdWorld.CreateImageFromFile( 'helmet_omega' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_marauder' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_spire' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_templar' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_stream' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_agilus' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_reaper' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_supreme' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_archangel' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_colonel' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_acolyte' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_hatred' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_dragon' ) // by LordBored
 		];
 		
 		sdCharacter.skin_part_indices = {
@@ -119,7 +143,22 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'skins/igris' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'skins/alpha' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'skins/glass' ), // by Lazyrain
-			sdWorld.CreateImageFromFile( 'skins/skeleton' ) // by Silk1
+			sdWorld.CreateImageFromFile( 'skins/skeleton' ), // by Silk1
+                        sdWorld.CreateImageFromFile( 'skins/agilus' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/castellan' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/empyrean' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/jumper' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/legate' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/matrix' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/omega' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/protector' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/runner' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/spire' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/supreme' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/walker' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/wyvern' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/bulwark' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/reaper' ) // by LordBored
 		];
 		
 		// x y rotation, for images below
