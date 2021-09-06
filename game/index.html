@@ -606,20 +606,7 @@
 		padding: 20px; overflow-y: auto;">
 		<span class="sdtitle">What's new?:</span><br>
 		<div class="sdgroup">
-		    <a href="https://github.com/Eric-Gurt/StarDefenders2D/compare/8cf68ea5d2b18cd11f2f3855fb5e54353d5639fa...main">Open update & patch log on github</a><br><br><!--
-		    21 March 2021: Will try to co-host another server for FFA play. Also slightly new terrain generation, grass and plenty of performance fixes.<br><br>
-		    20 March 2021: Who reads these? New rare enemy.<br><br>
-		    11 March 2021: Something that won't work with ground that was created from previous version of game; bugfixes; weapon storages should work now; more information for connection/performance issues in debug mode - feel free to report when these heavy lags happen.<br><br>
-		    2 March 2021: Downed players & cubes will emit matter now; Item pickup sound added; sdCommandCentres will now expire if no player has more than 300 matter within time span of 24 hours; World maximum size increased by 2 times in both directions; Water was significantly simplified.<br><br>
-		    26 February 2021: sdMatterContainer range increased from 30 to 50; upgrade_energy max level increased from 20 to 40 (maximum 1850 energy); New players should spawn on ground with much higher probability rather than in bases; Grenade bounce multiplier changed from 0.3 to 0.55; Pistol attack matter cost changed to 0; Damaged spawn-protected crystals should be no longer seen by sdCube-s as negative activity; Stim-packs; FFA players should receive slightly longer respawn time, if they die; Jetpack no longer canceled when player accidentally stands on something; In addition to damage/protection upgrades, some entities are now capable of completely canceling lower level damage; sdOctopus max health decreased from 3000 to 2000.<br><br>
-		    9 February 2021: Some server-side optimizations (for sdCrystal, sdAntigravity, sdMatterContainer, sdTurret, sdCom) for cases when too many entities are made as well as when entities have too many of other entities in close range (hopefully nothing stops working as intended).<br><br>
-		     5 February 2021: New enemy (somewhat smarter one); Players that have positive score will stay on map (players should be able to reconnect at any time without losing their character, they still can be consumed by map bounds though); Larger entities have proper collision now; Some optimizations.<br><br>
-		     4 February 2021: Asteroid shower event (alters rain randomly); 3D render with minimal changes to source code (works mostly on top of used Canvas API); World saving and backuping (I'd expect restored entities to act sometimes strange); Some other small changes.<br><br>
-		    1 February 2021: Few new entities ("Octopus", "Quickie" and "Antigravity") added; Communication nodes will require direct visibility in order to interact with each other and controllable entities (haven't tested that well).<br><br>
-		    28 January 2021: High latency players should have less problems with server teleporting them back to where it thinks they should be (short key presses used to be ignored before, which was more noticeable for players with high latency).<br><br>
-		    25 January 2021: Fixed memory leak, some other bug fixes, ground is now stronger if players dig too deep, day/night-ish cycle.<br><br>
-		    24 January 2021: More bug fixes and optimizations! Added turrets, matter containers and reworked spike traps. Also world is now endless and bounds can shift as long as there is no alive players on another side of a map.<br><br>
-		    22 January 2021: First bug fixes and disabled water due to heavy lag. Chat should work now too!<br><br>-->
+		    <a href="https://github.com/Eric-Gurt/StarDefenders2D/compare/8cf68ea5d2b18cd11f2f3855fb5e54353d5639fa...main">Open update & patch log on github</a><br><br>
 		    21 January 2021: First public release!
 		</div>
 		<br><br>
@@ -627,9 +614,9 @@
 		<div class="sdgroup">
 		    <a class="server serverA" href="http://localhost:3000">localhost:3000<div>your local server will be here<br>(contact us to appear in list)</div></a>
 		    
-		    <a class="server serverB" href="https://www.gevanni.com:3000">gevanni.com:3000<div>Europe, Ukraine<br>Main server, attacking other players is not allowed</div></a>
-		    <a class="server serverB" href="https://www.gevanni.com:3001">gevanni.com:3001<div>Europe, Ukraine<br>Main server, combat allowed, no rules</div></a>
-		    <a class="server serverB" href="https://www.gevanni.com:3002">gevanni.com:3002<div>Europe, Ukraine<br>Main server, combat arena (or more like PB2 arena)</div></a>
+		    <a class="server serverB" href="https://www.gevanni.com:3000">gevanni.com:3000<div>Europe, Ukraine<br>Main test server, core game in its' raw unchanged state</div></a>
+		    <!--<a class="server serverB" href="https://www.gevanni.com:3001">gevanni.com:3001<div>Europe, Ukraine<br>Main server, combat allowed, no rules</div></a>
+		    <a class="server serverB" href="https://www.gevanni.com:3002">gevanni.com:3002<div>Europe, Ukraine<br>Main server, combat arena (or more like PB2 arena)</div></a>-->
 		    <a class="server serverB" href="https://www.plazmaburst2.com:8443">plazmaburst2.com:8443<div>USA, California<br>Secondary server, no rules, rare updates<br>Hosted by Coolbuddy.com<br>since July 31, 2021</div></a>
 		    
 		    <a class="server serverC" href="#" onclick="confirm('This server is hosted by one of Star Defenders 2D players and thus we can not be fully responsible for any custom content you might find there.\n\nAdditonally your current IP address and thus approximate location might be known to server owner unless you have VPN enabled before proceeding.\n\nFeel free to report any abuse to https://twitter.com/Eric_Gurt \n\nPress OK to proceed')?window.location='https://darkclan.xyz:3000':null;">darkclan.xyz:3000<div>Canada, Quebec<br>Rare updates<br>Hosted by mrmcshroom<br>since March 27, 2021</div></a>
@@ -649,7 +636,7 @@
 		    <br>
 		    Or even <a href="https://github.com/Eric-Gurt/StarDefenders2D/archive/main.zip">host your own Star Defenders 2D server</a><br>(future versions could be cross-connected with main server and redirect players from one server to another eventually, maybe server browser will be a thing soon too. <a href="https://raw.githubusercontent.com/Eric-Gurt/StarDefenders2D/main/How%20to%20start%20own%20server.txt">Check this file if you'll need more help</a>).<br>
 		    <br>
-		    This game is free to play and open source now. But we would be really happy if you will be able to host your own server and maybe even lead the more active development for the project. Feel free to discuss it at <a href="https://discord.gg/PRUG85PZsR" target="_blank">our Discord server</a> with current contributors.<br>
+		    This game is free to play and open source now. But we would be really happy if you will be able to host your own server and maybe even lead the more active development for the project. Feel free to discuss it at this <a href="https://discord.gg/PRUG85PZsR" target="_blank">Discord server</a> (we have much more now).<br>
 		    <br>
 		    If game freezes when tab is inactive - disable "<span style="color:#c1c1c1">Calculate window occlusion on Windows</span>" and "<span style="color:#c1c1c1">Enable sleeping tabs</span>" (optionally) by visiting "<span style="color:#c1c1c1">chrome://flags</span>".
 		</div>

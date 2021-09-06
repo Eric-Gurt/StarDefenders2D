@@ -257,6 +257,7 @@ class sdLifeBox extends sdEntity
 		if ( this.attack_timer <= 0 && this.hea < this.hmax )
 		if ( this.driver0 )
 		if ( this._target !== null )
+		if ( !this._target._is_being_removed )
 		if ( ( this._target.hea || this._target._hea || 0 ) > 0 )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, this._target.x, this._target.y );
