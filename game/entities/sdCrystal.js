@@ -47,28 +47,28 @@ class sdCrystal extends sdEntity
 		
 		//r = 0; // Hack
 		
-		if ( r < 0.00390625 && params.tag === 'deep' ) // matter consuming crystal
+		if ( r < ( 0.00390625 * 0.75 ) && params.tag === 'deep' ) // matter consuming crystal
 		this.matter_max *= 256;
 		else
-		if ( r < 0.0078125 && params.tag === 'deep' ) // glowing, new
+		if ( r < ( 0.0078125 * 0.75 ) && params.tag === 'deep' ) // glowing, new
 		this.matter_max *= 128;
 		else
-		if ( r < 0.015625 && params.tag === 'deep' ) // Red, new
+		if ( r < ( 0.015625 * 0.75 ) && params.tag === 'deep' ) // Red, new
 		this.matter_max *= 64;
 		else
-		if ( r < 0.03125 && params.tag === 'deep' ) // Pink variation, new (old red)
+		if ( r < ( 0.03125 * 1.25 ) && params.tag === 'deep' ) // Pink variation, new (old red)
 		this.matter_max *= 32;
 		else
-		if ( r < 0.0625 )
+		if ( r < ( 0.0625 * 1.25 ) )
 		this.matter_max *= 16;
 		else
-		if ( r < 0.125 )
+		if ( r < ( 0.125 * 1.25 ) )
 		this.matter_max *= 8;
 		else
-		if ( r < 0.25 )
+		if ( r < ( 0.25 * 1.25 ) )
 		this.matter_max *= 4;
 		else
-		if ( r < 0.5 )
+		if ( r < ( 0.5 * 1.25 ) )
 		this.matter_max *= 2;
 		
 		this._last_damage = 0; // Sound flood prevention
