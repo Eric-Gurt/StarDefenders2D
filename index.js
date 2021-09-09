@@ -2827,7 +2827,7 @@ io.on("connection", (socket) =>
 			{
 				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdStorage.access_range ) >= 0 )
 				{
-					if ( socket.character.build_tool_level <= ( ent.level + 1 ) )
+					if ( socket.character.build_tool_level > ent.level )
 					{
 						if ( ent.matter >= 5000 )
 						ent.UpgradeStation( socket.character );
