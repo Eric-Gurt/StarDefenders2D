@@ -146,6 +146,7 @@ class sdCharacter extends sdEntity
 		sdCharacter.AI_MODEL_INSTRUCTOR = 2;
 		sdCharacter.AI_MODEL_DUMMY_UNREVIVABLE_ENEMY = 3;
 		sdCharacter.AI_MODEL_TEAMMATE = 4;
+		sdCharacter.AI_MODEL_AGGRESSIVE = 5;
 		
 		sdCharacter.ghost_breath_delay = 10 * 30;
 		/*
@@ -464,7 +465,7 @@ class sdCharacter extends sdEntity
 		this._acquired_bt_mech = false; // Has the character picked up build tool upgrade that the flying mech drops?
 		this._acquired_bt_rift = false; // Has the character picked up build tool upgrade that the portals drop?
 		this._acquired_bt_score = false; // Has the character reached over 5000 score?
-
+		this._acquired_bt_projector = false; // Has the character picked up build tool upgrade that the dark matter beam projectors drop?
 		this.flying = false; // Jetpack flying
 		//this._last_act_y = this.act_y; // For mid-air jump jetpack activation
 		
@@ -1024,6 +1025,18 @@ class sdCharacter extends sdEntity
 					upg2.sy = this.sy;
 					sdEntity.entities.push( upg2 );
 				}
+
+				if ( this._acquired_bt_projector )
+				{
+					this._acquired_bt_projector = false;
+					this.build_tool_level--;
+			   		let upg3 = new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_BUILDTOOL_UPG });
+					upg3.extra = 2;
+					upg3.sx = this.sx;
+					upg3.sy = this.sy;
+					sdEntity.entities.push( upg3 );
+				}
+
 				if ( sdWorld.server_config.onKill )
 				sdWorld.server_config.onKill( this, initiator );
 
@@ -1192,7 +1205,7 @@ class sdCharacter extends sdEntity
 	}
 	IsHostileAI() // Used to check if standartized score will be given for killing them and also for turrets to attack them
 	{
-		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_DUMMY_UNREVIVABLE_ENEMY )
+		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_AGGRESSIVE || this._ai_enabled === sdCharacter.AI_MODEL_DUMMY_UNREVIVABLE_ENEMY )
 		{
 			return true;
 		}
@@ -1225,9 +1238,9 @@ class sdCharacter extends sdEntity
 			this.Say( [ 
 				'This universe is doomed. You cannot stop it.', 
 				'Give in. You are not to survive.', 
-				'You are a mere human. You cannot contest this. ', 
+				'You challenge me? You cannot contest this. ', 
 				'You will bring down the wrath by doing this.',
-				'I will stop this',
+				'I will stop this.',
 				'You can only delay your inevitable death.',
 				'You cannot harm me, you can only send me back.'
 				][ ~~( Math.random() * 7 ) ], false, false, false );
@@ -1238,7 +1251,7 @@ class sdCharacter extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
-		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_TEAMMATE )
+		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_AGGRESSIVE || this._ai_enabled === sdCharacter.AI_MODEL_TEAMMATE )
 		{
 			if ( typeof this._ai.next_action === 'undefined' )
 			this._ai.next_action = 30;
@@ -1397,18 +1410,35 @@ class sdCharacter extends sdEntity
 					if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, null, ['sdCharacter'] ) )
 					if ( sdWorld.last_hit_entity && sdWorld.last_hit_entity._ai_team === this._ai_team )
 					should_fire = false;
+					if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK )
+					{
+						if ( Math.random() < 0.3 )
+						this._key_states.SetKey( 'KeyA', 1 );
 
-					if ( Math.random() < 0.3 )
-					this._key_states.SetKey( 'KeyA', 1 );
+						if ( Math.random() < 0.3 )
+						this._key_states.SetKey( 'KeyD', 1 );
 
-					if ( Math.random() < 0.3 )
-					this._key_states.SetKey( 'KeyD', 1 );
+						if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30  ) )
+						this._key_states.SetKey( 'KeyW', 1 );
 
-					if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30  ) )
-					this._key_states.SetKey( 'KeyW', 1 );
+						if ( Math.random() < 0.4 )
+						this._key_states.SetKey( 'KeyS', 1 );
+					}
 
-					if ( Math.random() < 0.4 )
-					this._key_states.SetKey( 'KeyS', 1 );
+					if ( this._ai_enabled === sdCharacter.AI_MODEL_AGGRESSIVE )
+					{
+						if ( this.x > closest.x + 32 )
+						this._key_states.SetKey( 'KeyA', 1 );
+
+						if ( this.x < closest.x - 32 )
+						this._key_states.SetKey( 'KeyD', 1 );
+
+						if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30  ) || ( this.y > closest.y + 64 ) )
+						this._key_states.SetKey( 'KeyW', 1 );
+
+						if ( Math.random() < 0.4 )
+						this._key_states.SetKey( 'KeyS', 1 );
+					}
 
 					if ( Math.random() < 0.05 && should_fire === true  ) // Shoot the walls occasionally, when target is not in sight but was detected previously
 					{
