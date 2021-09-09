@@ -61,8 +61,8 @@ class sdWorkbench extends sdEntity
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
 		this._cooldown = 0;
-		this.matter_max = 5500;
-		this.matter = 100;
+		//this.matter_max = 5500;
+		//this.matter = 100;
 		this.delay = 0;
 		this.level = 1;
 		this.cube_shards = 0;
