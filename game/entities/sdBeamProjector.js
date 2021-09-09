@@ -301,7 +301,7 @@ class sdBeamProjector extends sdEntity
 										character_entity.remove();
 
 										character_entity._broken = false;
-									}, 60000 ); // Despawn the Council Vanquishers if they are in world longer than intended
+									}, 30000 ); // Despawn the Council Vanquishers if they are in world longer than intended
 
 									break;
 							}
