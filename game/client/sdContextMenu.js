@@ -99,7 +99,7 @@ class sdContextMenu
 								globalThis.socket.emit( 'UPGRADE_GET_EQUIP', [ sdContextMenu.current_target._net_id ] );
 							}
 						});
-						if ( sdWorld.my_entity.build_tool_level > 1 )
+						if ( sdWorld.my_entity.build_tool_level > 1 && sdContextMenu.current_target.level < 3 )
 						sdContextMenu.options.push({ title: 'Upgrade the station (5000 matter cost)',
 							action: ()=>
 							{
