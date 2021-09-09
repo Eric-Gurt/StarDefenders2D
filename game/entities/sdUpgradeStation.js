@@ -81,8 +81,9 @@ class sdUpgradeStation extends sdEntity
 	{
 		if ( character.build_tool_level > this.level )
 		{
+			let old_hmax = this.hmax;
 			this.level++;
-			this.hmax = 5000 + ( 2000 * this.level );
+			this.hmax = old_hmax + ( 2000 * this.level );
 			this.matter_max = 5500 * this.level;
 			this.matter -= 5000;
 			this.WakeUpMatterSources();
@@ -98,8 +99,10 @@ class sdUpgradeStation extends sdEntity
 			
 			if ( this.level === 1 )
 			gun = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_PISTOL });
-			if ( this.level >= 2 )
+			if ( this.level === 2 )
 			gun = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_PISTOL_MK2 });
+			if ( this.level === 3 )
+			gun = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SMG });
 			gun.sx = character.sx;
 			gun.sy = character.sy;
 			sdEntity.entities.push( gun );
