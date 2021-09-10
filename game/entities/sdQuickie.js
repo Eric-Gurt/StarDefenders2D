@@ -89,7 +89,10 @@ class sdQuickie extends sdEntity
 	}
 	GetBleedEffectFilter()
 	{
+		if ( this._tier !== 2 )
 		return 'hue-rotate(-56deg)'; // Yellow
+		else
+		return this.filter;
 	}
 	Damage( dmg, initiator=null )
 	{
