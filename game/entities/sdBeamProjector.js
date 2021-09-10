@@ -66,8 +66,8 @@ class sdBeamProjector extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this.hmax = 30000;
-		this.hea = this.hmax / 20;
+		this.hmax = 1000;
+		this.hea = this.hmax;
 		this._regen_timeout = 0;
 		this._cooldown = 0;
 		this.has_anticrystal = false;
@@ -79,7 +79,7 @@ class sdBeamProjector extends sdEntity
 		//this.matter = 100;
 		
 		this._armor_protection_level = 0;
-		this._regen_mult = this._armor_protection_level + 1; // To prevent build HP upgrade actually increase the length of charging up the beam, this is needed.
+		this._regen_mult = 1;
 	}
 
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
@@ -111,7 +111,7 @@ class sdBeamProjector extends sdEntity
 		if (!sdWorld.is_server)
 		return;
 
-		if ( this.hea === this.hmax )
+		if ( this.hea === this.hmax && this.has_anticrystal )
 		{
 			sdWorld.SendEffect({ 
 				x:this.x, 
@@ -382,6 +382,8 @@ class sdBeamProjector extends sdEntity
 		if ( !this.has_anticrystal )
 		{
 			this.has_anticrystal = true;
+			this.hmax = 30000;
+			this.hea = 1000;
 			from_entity.remove();
 			//this._update_version++;
 		}
@@ -431,12 +433,14 @@ class sdBeamProjector extends sdEntity
 		sdEntity.Tooltip( ctx, "Dark matter beam projector ( disabled )", 0, -10 );
 
 		let w = 40;
-	
-		ctx.fillStyle = '#000000';
-		ctx.fillRect( 0 - w / 2, 0 - 23, w, 3 );
+		if ( this.has_anticrystal )
+		{
+			ctx.fillStyle = '#000000';
+			ctx.fillRect( 0 - w / 2, 0 - 23, w, 3 );
 
-		ctx.fillStyle = '#FF0000';
-		ctx.fillRect( 1 - w / 2, 1 - 23, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
+			ctx.fillStyle = '#FF0000';
+			ctx.fillRect( 1 - w / 2, 1 - 23, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
+		}
 	}
 	
 	onRemove() // Class-specific, if needed
