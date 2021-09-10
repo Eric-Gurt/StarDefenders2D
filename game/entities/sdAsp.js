@@ -160,7 +160,7 @@ class sdAsp extends sdEntity
 		if ( this._hea <= 0 )
 		{
 			if ( this._tier !== 2 )
-			if ( this.death_anim < sdQuickie.death_duration + sdQuickie.post_death_ttl )
+			if ( this.death_anim < sdAsp.death_duration + sdAsp.post_death_ttl )
 			this.death_anim += GSPEED;
 			else
 			this.remove();
