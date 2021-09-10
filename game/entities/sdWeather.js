@@ -97,6 +97,7 @@ class sdWeather extends sdEntity
 		
 		//this._rain_offset = 0;
 		this._time_until_event = 30 * 30; // 30 seconds since world reset
+		this._daily_events = [ 8 ];
 		
 		this._asteroid_timer = 0; // 60 * 1000 / ( ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) / 800 )
 		this._asteroid_timer_scale_next = 0;
@@ -110,6 +111,43 @@ class sdWeather extends sdEntity
 		this.y2 = 0;
 		
 		//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false );
+	}
+	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
+	{
+		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
+		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ];
+				
+		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
+				
+		//allowed_event_ids = [ 8 ]; // Hack
+				
+		for ( let d = 0; d < allowed_event_ids.length; d++ )
+		if ( disallowed_ones.indexOf( allowed_event_ids[ d ] ) !== -1 )
+		{
+			allowed_event_ids.splice( d, 1 );
+			d--;
+			continue;
+		}
+				
+		if ( allowed_event_ids.length > 0 )
+		{
+			let n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
+			let old_n = n;
+			let daily_event_count = Math.min( allowed_event_ids.length, 4 );
+			let time = 1000;
+			while ( daily_event_count > 0 && time > 0 )
+			{
+				old_n = n;
+				n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
+				if ( old_n !== n )
+				{
+					this._daily_events.push( n );
+					daily_event_count--;
+				}
+				time--;
+			}
+		}
+		//console.log( this._daily_events );
 	}
 	TraceDamagePossibleHere( x,y, steps_max=Infinity )
 	{
@@ -132,7 +170,10 @@ class sdWeather extends sdEntity
 			
 			this.day_time += GSPEED;
 			if ( this.day_time > 30 * 60 * 24 )
+			{
 			this.day_time = 0;
+			this.GetDailyEvents();
+			}
 			
 			if ( this._invasion ) // Invasion event
 			{
@@ -584,9 +625,9 @@ class sdWeather extends sdEntity
 			if ( this._time_until_event < 0 )
 			{
 				//this._time_until_event = Math.random() * 30 * 60 * 8; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
-				//this._time_until_event = Math.random() * 30 * 60 * 7; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
-				this._time_until_event = Math.random() * 30 * 60 * 3; // Changed after sdWeather logic was being called twice, which caused events to happen twice as frequently
-				let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ];
+				//this._time_until_event = Math.random() * 30 * 60 * 3; // Changed after sdWeather logic was being called twice, which caused events to happen twice as frequently
+				this._time_until_event = Math.random() * 30 * 60 * 3 * ( 12 / 5 ); // Changed after introducing "daily events" since there is only up to 5 events that can happen to prevent their overflow
+				/*let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ];
 				
 				let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -598,11 +639,13 @@ class sdWeather extends sdEntity
 					allowed_event_ids.splice( d, 1 );
 					d--;
 					continue;
-				}
-				
+				}*/
+
+				let allowed_event_ids = this._daily_events;
 				if ( allowed_event_ids.length > 0 )
 				{
 					let r = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
+					//console.log( r );
 
 					//r = 3; // Hack
 

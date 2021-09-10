@@ -134,8 +134,10 @@ class sdRift extends sdEntity
 							{
 								let asp = new sdAsp({ 
 									x:this.x,
-									y:this.y
+									y:this.y,
+									_tier: 2
 								});
+								asp.filter = 'invert(1) sepia(1) saturate(100) hue-rotate(270deg) opacity(0.45)';
 								sdEntity.entities.push( asp );
 								sdWorld.UpdateHashPosition( asp, false ); // Prevent intersection with other ones
 							}
@@ -149,9 +151,10 @@ class sdRift extends sdEntity
 								_tier:2
 							});
 							//let quickie_filter = {};
-							let quickie_filter = sdWorld.CreateSDFilter();
-								sdWorld.ReplaceColorInSDFilter_v2( quickie_filter, '#000000', '#ff00ff' ) // Pink, stronger quickies
-							quickie.sd_filter = quickie_filter;
+							//let quickie_filter = sdWorld.CreateSDFilter();
+								//sdWorld.ReplaceColorInSDFilter_v2( quickie_filter, '#000000', '#ff00ff' ) // Pink, stronger quickies
+							//quickie.sd_filter = quickie_filter;
+							quickie.filter = 'invert(1) sepia(1) saturate(100) hue-rotate(270deg) opacity(0.45)';
 							sdEntity.entities.push( quickie );
 							sdWorld.UpdateHashPosition( quickie, false ); // Prevent intersection with other ones
 						}
@@ -234,7 +237,7 @@ class sdRift extends sdEntity
 			{
 				let r = Math.random();
 
-				if ( r < ( 0.13 + ( 0.05 * this.type ) ) )
+				if ( r < ( 0.23 + ( 0.05 * this.type ) ) )
 				{
 					let x = this.x;
 					let y = this.y;

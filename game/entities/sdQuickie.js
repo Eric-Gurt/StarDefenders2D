@@ -62,8 +62,8 @@ class sdQuickie extends sdEntity
 		this.side = 1;
 
 		sdQuickie.quickies_tot++;
-		this.sd_filter = params.sd_filter || null; // Custom per-pixel filter
-		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
+		//this.sd_filter = params.sd_filter || null; // Custom per-pixel filter
+		this.filter = null;
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
@@ -89,7 +89,10 @@ class sdQuickie extends sdEntity
 	}
 	GetBleedEffectFilter()
 	{
+		if ( this._tier !== 2 )
 		return 'hue-rotate(-56deg)'; // Yellow
+		else
+		return this.filter;
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -139,6 +142,7 @@ class sdQuickie extends sdEntity
 		
 		if ( this._hea <= 0 )
 		{
+			if ( this._tier !== 2 )
 			if ( this.death_anim < sdQuickie.death_duration + sdQuickie.post_death_ttl )
 			this.death_anim += GSPEED;
 			else
@@ -271,8 +275,8 @@ class sdQuickie extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		//ctx.filter = this.filter;
-		ctx.sd_filter = this.sd_filter;
+		ctx.filter = this.filter;
+		//ctx.sd_filter = this.sd_filter;
 		ctx.scale( this.side, 1 );
 		
 		if ( this.death_anim > 0 )
@@ -294,8 +298,8 @@ class sdQuickie extends sdEntity
 		}
 		
 		ctx.globalAlpha = 1;
-		ctx.sd_filter = null;
-		//ctx.filter = 'none';
+		//ctx.sd_filter = null;
+		ctx.filter = 'none';
 	}
 	/*onMovementInRange( from_entity )
 	{
@@ -325,9 +329,17 @@ class sdQuickie extends sdEntity
 				y = this.y + this._hitbox_y1 + Math.random() * ( this._hitbox_y2 - this._hitbox_y1 );
 				
 				//console.warn( { x: this.x, y: this.y, type:sdEffect.TYPE_GIB, sx: this.sx + Math.sin(a)*s, sy: this.sy + Math.cos(a)*s } )
-				
-				sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter() });
-				sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter() });
+				if ( this._tier !== 2 )
+				{
+					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter() });
+					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter() });
+				}
+				else
+				{
+					let value_mult = 4;
+					
+					sdWorld.DropShards( this.x,this.y,this.sx,this.sy, 3, value_mult, 3 );
+				}
 			}
 		}
 	}
