@@ -97,7 +97,7 @@ class sdWeather extends sdEntity
 		
 		//this._rain_offset = 0;
 		this._time_until_event = 30 * 30; // 30 seconds since world reset
-		this._daily_events = this.GetDailyEvents();
+		this._daily_events = [ 8 ];
 		
 		this._asteroid_timer = 0; // 60 * 1000 / ( ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) / 800 )
 		this._asteroid_timer_scale_next = 0;
