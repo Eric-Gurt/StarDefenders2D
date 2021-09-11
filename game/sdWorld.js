@@ -2573,6 +2573,8 @@ class sdWorld
 	{
 		if ( v > 40 )
 		{
+			if ( v === 11000 )
+		    return 'invert(1) saturate(0) brightness(4.3) contrast(1) drop-shadow(0px 0px 7px #FFFFFF)';
 			if ( v === 10240 ) // === sdCrystal.anticrystal_value
 		    return 'brightness(0) drop-shadow(0px 0px 7px #000000)';
 			else
