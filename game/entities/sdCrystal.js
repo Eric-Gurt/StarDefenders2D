@@ -3,6 +3,7 @@ import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdGun from './sdGun.js';
+import sdStorage from './sdStorage.js';
 
 class sdCrystal extends sdEntity
 {
@@ -15,13 +16,13 @@ class sdCrystal extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -4; }
-	get hitbox_x2() { return 5; }
-	get hitbox_y1() { return -7; }
-	get hitbox_y2() { return 5; }
+	get hitbox_x1() { return this._held_by !== null ? -2 : -4; }
+	get hitbox_x2() { return this._held_by !== null ? 2 : 5; }
+	get hitbox_y1() { return this._held_by !== null ? -2 : -7; }
+	get hitbox_y2() { return this._held_by !== null ? 2 : 5; }
 	
 	get hard_collision() // For world geometry where players can walk
-	{ return true; }
+	{ return this._held_by !== null ? false : true; }
 	
 	/* Causes client-side falling through unsynced ground, probably bad thing to do and it won't be complex entity after sdSnapPack is added
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
@@ -39,6 +40,9 @@ class sdCrystal extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		this.matter_max = 40;
+
+		this._held_by = null; // For storage crates
+		this.should_draw = 1; // For storage crates, guns have ttl which can make them dissapear
 		
 		let bad_luck = 1.45; // High value crystals are more rare if this value is high
 		
@@ -100,6 +104,9 @@ class sdCrystal extends sdEntity
 	{
 		if ( !sdWorld.is_server )
 		return;
+
+		if ( this._held_by !== null )
+		return;
 	
 		//if ( initiator !== null )
 		if ( initiator === null || initiator.IsPlayerClass() )
@@ -150,7 +157,62 @@ class sdCrystal extends sdEntity
 		//this.sx += x * 0.1;
 		//this.sy += y * 0.1;
 	}
-	
+	IsVisible( observer_character ) // Can be used to hide crystals that are held by crates
+	{
+		if ( this._held_by === null )
+		return true;
+		else
+		{
+			if ( this._held_by.is( sdStorage ) )
+			{
+				if ( observer_character )
+				if ( sdWorld.inDist2D_Boolean( observer_character.x, observer_character.y, this.x, this.y, sdStorage.access_range ) )
+				return true;
+			}
+			/*else
+			if ( this._held_by.is( sdCharacter ) )
+			{
+				// Because in else case B key won't work
+				//if ( sdGun.classes[ this.class ].is_build_gun ) Maybe it should always work better if player will know info about all of his guns. Probably that will be later used in interface anyway
+				if ( this._held_by === observer_character )
+				return true;
+		
+				if ( !this._held_by.ghosting || this._held_by.IsVisible( observer_character ) )
+				if ( !this._held_by.driver_of )
+				{
+					return ( this._held_by.gun_slot === sdGun.classes[ this.class ].slot );
+				}
+			}*/
+		}
+		
+		return false;
+	}
+	UpdateHeldPosition()
+	{
+		if ( this._held_by ) // Should not happen but just in case
+		{
+			let old_x = this.x;
+			let old_y = this.y;
+			
+			this.x = this._held_by.x;
+			this.y = this._held_by.y;
+
+			if ( typeof this._held_by.sx !== 'undefined' )
+			{
+				this.sx = this._held_by.sx;
+				this.sy = this._held_by.sy;
+				
+				if ( isNaN( this.sx ) )
+				{
+					console.log( 'Entity with corrupted velocity: ', this._held_by );
+					throw new Error('sdCrystal is held by entity with .sx as NaN');
+				}
+			}
+
+			if ( this.x !== old_x || this.y !== old_y )
+			sdWorld.UpdateHashPosition( this, false, false );
+		}
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this.matter_max === sdCrystal.anticrystal_value )
@@ -159,16 +221,18 @@ class sdCrystal extends sdEntity
 		this.sy += sdWorld.gravity * GSPEED;
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
-
-		if ( this.matter_max === sdCrystal.anticrystal_value )
+		if ( this._held_by === null ) // Don't emit matter if inside a crate
 		{
-			this.HungryMatterGlow( 0.01, 100, GSPEED );
-			this.matter = Math.max( 0, this.matter - GSPEED * 0.01 * this.matter );
-		}
-		else
-		{
-			this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
-			this.MatterGlow( 0.01, 30, GSPEED );
+			if ( this.matter_max === sdCrystal.anticrystal_value )
+			{
+				this.HungryMatterGlow( 0.01, 100, GSPEED );
+				this.matter = Math.max( 0, this.matter - GSPEED * 0.01 * this.matter );
+			}
+			else
+			{
+				this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
+				this.MatterGlow( 0.01, 30, GSPEED );
+			}
 		}
 		
 		
@@ -183,26 +247,32 @@ class sdCrystal extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		if ( this.matter_max === sdCrystal.anticrystal_value )
-		sdEntity.Tooltip( ctx, "Anti-crystal ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
-		else
-		sdEntity.Tooltip( ctx, "Crystal ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
+		if ( this.should_draw === 1 )
+		{
+			if ( this.matter_max === sdCrystal.anticrystal_value )
+			sdEntity.Tooltip( ctx, "Anti-crystal ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
+			else
+			sdEntity.Tooltip( ctx, "Crystal ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
+		}
 	}
 	Draw( ctx, attached )
 	{
-		ctx.drawImageFilterCache( sdCrystal.img_crystal_empty, - 16, - 16, 32,32 );
+		if ( this.should_draw === 1 )
+		{
+			ctx.drawImageFilterCache( sdCrystal.img_crystal_empty, - 16, - 16, 32,32 );
 		
-		ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
+			ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
 
-		if ( this.matter_max === sdCrystal.anticrystal_value )
-		ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
-		else
-		ctx.globalAlpha = this.matter / this.matter_max;
+			if ( this.matter_max === sdCrystal.anticrystal_value )
+			ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
+			else
+			ctx.globalAlpha = this.matter / this.matter_max;
 		
-		ctx.drawImageFilterCache( sdCrystal.img_crystal, - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( sdCrystal.img_crystal, - 16, - 16, 32,32 );
 		
-		ctx.globalAlpha = 1;
-		ctx.filter = 'none';
+			ctx.globalAlpha = 1;
+			ctx.filter = 'none';
+		}
 	}
 	onRemove() // Class-specific, if needed
 	{
