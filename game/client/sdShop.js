@@ -54,6 +54,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdBall', _category:'Other' });
 		sdShop.options.push({ _class: 'sdTheatre', _category:'Other' });
 		sdShop.options.push({ _class: 'sdBeamProjector', _category:'Other', _min_build_tool_level: 3 });
+		
 		sdShop.options.push({ _class: 'sdHover', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles' });
