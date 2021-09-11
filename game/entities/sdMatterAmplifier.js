@@ -186,6 +186,9 @@ class sdMatterAmplifier extends sdEntity
 			
 			const offset_y = 2;
 			
+			if ( this.matter_max === 11000 )
+			ctx.drawImageFilterCache( sdCrystal.img_sphere_empty, - 16, - 16 + offset_y, 32,32 );
+			else
 			ctx.drawImageFilterCache( sdCrystal.img_crystal_empty, - 16, - 16 + offset_y, 32,32 );
 		
 			ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
@@ -194,7 +197,9 @@ class sdMatterAmplifier extends sdEntity
 			ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
 			else
 			ctx.globalAlpha = this.matter / this.matter_max;
-
+			if ( this.matter_max === 11000 )
+			ctx.drawImageFilterCache( sdCrystal.img_sphere, - 16, - 16 + offset_y, 32,32 );
+			else
 			ctx.drawImageFilterCache( sdCrystal.img_crystal, - 16, - 16 + offset_y, 32,32 );
 
 			ctx.globalAlpha = 1;
