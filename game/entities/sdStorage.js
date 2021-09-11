@@ -151,7 +151,7 @@ class sdStorage extends sdEntity
 		if ( this.type === 1 )
 		sdEntity.Tooltip( ctx, 'Portal Storage Device' );
 		if ( this.type === 2 )
-		sdEntity.Tooltip( ctx, 'Crystal Storage crate' );
+		sdEntity.Tooltip( ctx, 'Crytal Storage crate' );
 	}
 	Draw( ctx, attached )
 	{
@@ -357,13 +357,13 @@ class sdStorage extends sdEntity
 			
 				item.PhysWakeUp();
 			}
-			if ( this.type === 2 )
+			if ( this.type === 2 ) // Crystals don't have hiberstate
 			{
 				item.should_draw = 1;
 				item._held_by = null;
-				item.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+				//item.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 			
-				item.PhysWakeUp();
+				//item.PhysWakeUp();
 			}
 		}
 	}
