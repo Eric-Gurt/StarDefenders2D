@@ -143,13 +143,26 @@ class sdContextMenu
 						
 						for ( var i = 0; i < items.length; i++ )
 						{
-							let net_id = items[ i ]._net_id;
-							sdContextMenu.options.push({ title: 'Get ' + sdEntity.GuessEntityName( net_id )/*user ' + net_id*/,
-								action: ()=>
-								{
-									globalThis.socket.emit( 'STORAGE_GET', [ sdContextMenu.current_target._net_id, net_id ] );
-								}
-							});
+							if ( sdContextMenu.current_target.type !== 2 )
+							{
+								let net_id = items[ i ]._net_id;
+								sdContextMenu.options.push({ title: 'Get ' + sdEntity.GuessEntityName( net_id )/*user ' + net_id*/,
+									action: ()=>
+									{
+										globalThis.socket.emit( 'STORAGE_GET', [ sdContextMenu.current_target._net_id, net_id ] );
+									}
+								});
+							}
+							else
+							{
+								let net_id = items[ i ]._net_id;
+								sdContextMenu.options.push({ title: 'Get Crystal (' + items[ i ].matter_max + ' max matter )',
+									action: ()=>
+									{
+										globalThis.socket.emit( 'STORAGE_GET', [ sdContextMenu.current_target._net_id, net_id ] );
+									}
+								});
+							}
 						}
 					}
 				}
