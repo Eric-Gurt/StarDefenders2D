@@ -151,7 +151,7 @@ class sdStorage extends sdEntity
 		if ( this.type === 1 )
 		sdEntity.Tooltip( ctx, 'Portal Storage Device' );
 		if ( this.type === 2 )
-		sdEntity.Tooltip( ctx, 'Crytal Storage crate' );
+		sdEntity.Tooltip( ctx, 'Crystal Storage crate' );
 	}
 	Draw( ctx, attached )
 	{
