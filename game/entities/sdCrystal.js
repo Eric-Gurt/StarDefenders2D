@@ -16,10 +16,10 @@ class sdCrystal extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this._held_by !== null ? -2 : -4; }
-	get hitbox_x2() { return this._held_by !== null ? 2 : 5; }
-	get hitbox_y1() { return this._held_by !== null ? -2 : -7; }
-	get hitbox_y2() { return this._held_by !== null ? 2 : 5; }
+	get hitbox_x1() { return this.should_draw === 0 ? -2 : -4; }
+	get hitbox_x2() { return this.should_draw === 0 ? 2 : 5; }
+	get hitbox_y1() { return this.should_draw === 0 ? -2 : -7; }
+	get hitbox_y2() { return this.should_draw === 0 ? 2 : 5; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return this._held_by !== null ? false : true; }
