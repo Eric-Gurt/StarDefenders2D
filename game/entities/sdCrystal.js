@@ -23,7 +23,7 @@ class sdCrystal extends sdEntity
 	get hitbox_x1() { return this.should_draw === 0 ? -2 : this.matter_max === 11000 ? -7: -4; }
 	get hitbox_x2() { return this.should_draw === 0 ? 2 : this.matter_max === 11000 ? 7 : 5; }
 	get hitbox_y1() { return this.should_draw === 0 ? -2 : this.matter_max === 11000 ? -7 : -7; }
-	get hitbox_y2() { return this.should_draw === 0 ? 2 : this.matter_max === 11000 ? 7 : 5; }
+	get hitbox_y2() { return this.should_draw === 0 ? 2 : this.matter_max === 11000 ? 5 : 5; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return this._held_by !== null ? false : true; }
