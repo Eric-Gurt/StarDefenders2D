@@ -19,10 +19,10 @@ class sdCrystal extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this._held_by !== null ? -2 : this.matter_max === 11000 ? -7: -4; }
-	get hitbox_x2() { return this._held_by !== null ? 2 : this.matter_max === 11000 ? 7 : 5; }
-	get hitbox_y1() { return this._held_by !== null ? -2 : this.matter_max === 11000 ? -7 : -7; }
-	get hitbox_y2() { return this._held_by !== null ? 2 : this.matter_max === 11000 ? 7 : 5; }
+	get hitbox_x1() { return this.should_draw === 0 ? -2 : this.matter_max === 11000 ? -7: -4; }
+	get hitbox_x2() { return this.should_draw === 0 ? 2 : this.matter_max === 11000 ? 7 : 5; }
+	get hitbox_y1() { return this.should_draw === 0 ? -2 : this.matter_max === 11000 ? -7 : -7; }
+	get hitbox_y2() { return this.should_draw === 0 ? 2 : this.matter_max === 11000 ? 7 : 5; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return this._held_by !== null ? false : true; }
@@ -297,13 +297,18 @@ class sdCrystal extends sdEntity
 	}
 	onRemove() // Class-specific, if needed
 	{
-		/*if ( this._hea <= 0 ) // In else case it was just removed (not best way to check)
-		{
-			sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
-				Math.ceil( Math.max( 5, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
-				this.matter_max / 40
-			);
-		}*/
+		if ( this.matter_max === 11000 )
+		sdWorld.SendEffect({ 
+			x:this.x, 
+			y:this.y, 
+			radius:80,
+			damage_scale: 9,
+			type:sdEffect.TYPE_EXPLOSION, 
+			owner:this._owner,
+			can_hit_owner: true,
+			armor_penetration_level: 3,
+			color:sdEffect.sphere_explosion_color
+		});
 	}
 	MeasureMatterCost()
 	{
