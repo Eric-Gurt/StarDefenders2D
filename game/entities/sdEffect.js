@@ -32,6 +32,7 @@ class sdEffect extends sdEntity
 		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
+		sdEffect.sphere_explosion_color = '#ffffff';
 		
 		sdEffect.effect_counters = [];
 		
