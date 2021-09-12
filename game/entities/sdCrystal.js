@@ -297,12 +297,13 @@ class sdCrystal extends sdEntity
 	}
 	onRemove() // Class-specific, if needed
 	{
-		if ( this.matter_max === 11000 )
-		sdWorld.SendEffect({ 
+		if ( this._hea <= 0 )
+			if ( this.matter_max === 11000 )
+			sdWorld.SendEffect({ 
 			x:this.x, 
 			y:this.y, 
 			radius:80,
-			damage_scale: 9,
+			damage_scale: 6,
 			type:sdEffect.TYPE_EXPLOSION, 
 			owner:this._owner,
 			can_hit_owner: true,
