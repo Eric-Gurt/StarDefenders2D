@@ -4,6 +4,7 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdGun from './sdGun.js';
 import sdStorage from './sdStorage.js';
+import sdEffect from './sdEffect.js';
 
 class sdCrystal extends sdEntity
 {
