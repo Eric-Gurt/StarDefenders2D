@@ -129,6 +129,12 @@ class sdMatterAmplifier extends sdEntity
 			}
 		}
 		else
+		if ( this.matter_max === sdCrystal.sphere_value )
+		{
+			this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.00025 * this.matter_max / 80 * ( sdMatterAmplifier.relative_regen_amplification_to_crystals * ( this.multiplier ) ) );
+			this.MatterGlow( 0.01, 50, GSPEED );
+		}
+		else
 		{
 			this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( sdMatterAmplifier.relative_regen_amplification_to_crystals * ( this.multiplier ) ) );
 			this.MatterGlow( 0.01, 50, GSPEED );
@@ -186,7 +192,7 @@ class sdMatterAmplifier extends sdEntity
 			
 			const offset_y = 2;
 			
-			if ( this.matter_max === 11000 )
+			if ( this.matter_max === sdCrystal.sphere_value )
 			ctx.drawImageFilterCache( sdCrystal.img_sphere_empty, - 16, - 16 + offset_y, 32,32 );
 			else
 			ctx.drawImageFilterCache( sdCrystal.img_crystal_empty, - 16, - 16 + offset_y, 32,32 );
@@ -197,7 +203,7 @@ class sdMatterAmplifier extends sdEntity
 			ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
 			else
 			ctx.globalAlpha = this.matter / this.matter_max;
-			if ( this.matter_max === 11000 )
+			if ( this.matter_max === sdCrystal.sphere_value )
 			ctx.drawImageFilterCache( sdCrystal.img_sphere, - 16, - 16 + offset_y, 32,32 );
 			else
 			ctx.drawImageFilterCache( sdCrystal.img_crystal, - 16, - 16 + offset_y, 32,32 );
