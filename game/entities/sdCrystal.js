@@ -127,7 +127,11 @@ class sdCrystal extends sdEntity
 		if ( sdWorld.time < this._damagable_in )
 		if ( !( initiator && initiator.IsPlayerClass() && initiator.power_ef > 0 ) )
 		{
+			if ( this.matter_max === 11000 )
+			sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, pitch: 0.75 });
+			else
 			sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
+			
 			return;
 		}
 		
@@ -141,7 +145,9 @@ class sdCrystal extends sdEntity
 		{
 			if ( was_alive )
 			{
-				//sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:1 });
+				if ( this.matter_max === 11000 )
+				sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, pitch: 3, volume: 2 });
+				else
 				sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.5 });
 
 				sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
@@ -158,6 +164,9 @@ class sdCrystal extends sdEntity
 			if ( sdWorld.time > this._last_damage + 50 )
 			{
 				this._last_damage = sdWorld.time;
+				if ( this.matter_max === 11000 )
+				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
+				else
 				sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, volume:1 });
 			}
 		}
