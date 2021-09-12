@@ -17,13 +17,14 @@ class sdCrystal extends sdEntity
 		sdCrystal.img_sphere_empty = sdWorld.CreateImageFromFile( 'matter_sphere_empty' );
 		
 		sdCrystal.anticrystal_value = 10240;
+		sdCrystal.sphere_value = 20480;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.should_draw === 0 ? -2 : this.matter_max === 11000 ? -7: -4; }
-	get hitbox_x2() { return this.should_draw === 0 ? 2 : this.matter_max === 11000 ? 7 : 5; }
-	get hitbox_y1() { return this.should_draw === 0 ? -2 : this.matter_max === 11000 ? -7 : -7; }
-	get hitbox_y2() { return this.should_draw === 0 ? 2 : this.matter_max === 11000 ? 5 : 5; }
+	get hitbox_x1() { return this.should_draw === 0 ? -2 : this.matter_max === sdCrystal.sphere_value ? -7: -4; }
+	get hitbox_x2() { return this.should_draw === 0 ? 2 : this.matter_max === sdCrystal.sphere_value ? 7 : 5; }
+	get hitbox_y1() { return this.should_draw === 0 ? -2 : this.matter_max === sdCrystal.sphere_value ? -7 : -7; }
+	get hitbox_y2() { return this.should_draw === 0 ? 2 : this.matter_max === sdCrystal.sphere_value ? 5 : 5; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return this._held_by !== null ? false : true; }
@@ -56,7 +57,7 @@ class sdCrystal extends sdEntity
 		//r = 0; // Hack
 
 		if ( r < ( 0.001953125 * 0.75 ) && params.tag === 'deep' )
-		this.matter_max = 11000;
+		this.matter_max *= 512;
 		else
 		if ( r < ( 0.00390625 * 0.75 ) && params.tag === 'deep' ) // matter consuming crystal
 		this.matter_max *= 256;
@@ -94,7 +95,7 @@ class sdCrystal extends sdEntity
 			this._damagable_in = 0;
 		}
 		else
-		if ( this.matter_max === 11000 )
+		if ( this.matter_max === sdCrystal.sphere_value )
 		{
 			this.matter = this.matter_max;
 			this._hea = 1200;
@@ -127,7 +128,7 @@ class sdCrystal extends sdEntity
 		if ( sdWorld.time < this._damagable_in )
 		if ( !( initiator && initiator.IsPlayerClass() && initiator.power_ef > 0 ) )
 		{
-			if ( this.matter_max === 11000 )
+			if ( this.matter_max === sdCrystal.sphere_value )
 			sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, pitch: 0.75 });
 			else
 			sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
@@ -145,7 +146,7 @@ class sdCrystal extends sdEntity
 		{
 			if ( was_alive )
 			{
-				if ( this.matter_max === 11000 )
+				if ( this.matter_max === sdCrystal.sphere_value )
 				sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, pitch: 3, volume: 2 });
 				else
 				sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.5 });
@@ -164,7 +165,7 @@ class sdCrystal extends sdEntity
 			if ( sdWorld.time > this._last_damage + 50 )
 			{
 				this._last_damage = sdWorld.time;
-				if ( this.matter_max === 11000 )
+				if ( this.matter_max === sdCrystal.sphere_value )
 				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
 				else
 				sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, volume:1 });
@@ -252,6 +253,12 @@ class sdCrystal extends sdEntity
 				this.matter = Math.max( 0, this.matter - GSPEED * 0.01 * this.matter );
 			}
 			else
+			if ( this.matter_max === sdCrystal.sphere_value )
+			{
+				this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.00025 * this.matter_max / 80 );
+				this.MatterGlow( 0.01, 30, GSPEED );
+			}
+			else
 			{
 				this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
 				this.MatterGlow( 0.01, 30, GSPEED );
@@ -275,7 +282,7 @@ class sdCrystal extends sdEntity
 			if ( this.matter_max === sdCrystal.anticrystal_value )
 			sdEntity.Tooltip( ctx, "Anti-crystal ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
 			else
-			if ( this.matter_max === 11000 )
+			if ( this.matter_max === sdCrystal.sphere_value )
 			sdEntity.Tooltip( ctx, "Matter Sphere ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
 			else
 			sdEntity.Tooltip( ctx, "Crystal ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
@@ -285,7 +292,7 @@ class sdCrystal extends sdEntity
 	{
 		if ( this.should_draw === 1 )
 		{
-			if ( this.matter_max === 11000 )
+			if ( this.matter_max === sdCrystal.sphere_value )
 			ctx.drawImageFilterCache( sdCrystal.img_sphere_empty, - 16, - 16, 32,32 );
 			else
 			ctx.drawImageFilterCache( sdCrystal.img_crystal_empty, - 16, - 16, 32,32 );
@@ -296,7 +303,7 @@ class sdCrystal extends sdEntity
 			ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
 			else
 			ctx.globalAlpha = this.matter / this.matter_max;
-			if ( this.matter_max === 11000 )
+			if ( this.matter_max === sdCrystal.sphere_value )
 			ctx.drawImageFilterCache( sdCrystal.img_sphere, - 16, - 16, 32,32 );
 			else
 			ctx.drawImageFilterCache( sdCrystal.img_crystal, - 16, - 16, 32,32 );
@@ -308,7 +315,7 @@ class sdCrystal extends sdEntity
 	onRemove() // Class-specific, if needed
 	{
 		if ( this._hea <= 0 )
-			if ( this.matter_max === 11000 )
+			if ( this.matter_max === sdCrystal.sphere_value )
 			sdWorld.SendEffect({ 
 			x:this.x, 
 			y:this.y, 
