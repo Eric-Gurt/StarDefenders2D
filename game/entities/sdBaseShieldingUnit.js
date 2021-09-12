@@ -183,7 +183,7 @@ class sdBaseShieldingUnit extends sdEntity
 			{
 				if ( blocks[ i ].GetClass() === 'sdBlock' )
 				{
-					if ( blocks[ i ].material === sdBlock.MATERIAL_WALL || blocks[ i ].material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 ) // Only walls, no trap or shield blocks
+					if ( blocks[ i ].material === sdBlock.MATERIAL_WALL || blocks[ i ].material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 || blocks[ i ].material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 ) // Only walls, no trap or shield blocks
 					if ( blocks[ i ]._shielded === null )
 					{
 						blocks[ i ]._shielded = this;
