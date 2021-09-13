@@ -415,8 +415,18 @@ class sdHover extends sdEntity
 					else
 					bullet_obj.model = 'rocket_proj';
 
+					if ( this.type === 1 )
+					bullet_obj._damage = 30 * 2;
+					else
 					bullet_obj._damage = 19 * 2;
+					if ( this.type === 1 )
+					bullet_obj.explosion_radius = 25 * 1.5;
+					else
 					bullet_obj.explosion_radius = 19 * 1.5;
+
+					if ( this.type === 1 )
+					bullet_obj.color = '#ffca9e';
+					else
 					bullet_obj.color = '#7acaff';
 					
 					bullet_obj.ac = 1;
