@@ -350,7 +350,7 @@ class sdHover extends sdEntity
 					bullet_obj.sy += this.sy;
 
 					if ( this.type === 1 )
-					bullet_obj._damage = 20;
+					bullet_obj._damage = 23;
 					else
 					bullet_obj._damage = 13.5
 
