@@ -250,7 +250,7 @@ class sdWeather extends sdEntity
 											character_entity._ai_gun_slot = 2;
 										}
 										else
-										if ( Math.random() < 0.01 )
+										if ( Math.random() < 0.03 ) // was 1% but events are somewhat rarer now
 										{
 											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_HEAVY_RIFLE }) );
 											character_entity._ai_gun_slot = 2;
