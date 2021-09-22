@@ -270,12 +270,13 @@ class sdRift extends sdEntity
 		return;
 
 		if ( from_entity.is( sdCrystal ) )
+		if ( from_entity._held_by === null ) // Prevent crystals which are stored in a crate
 		{
 			if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
 			{
 				sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
 
-				this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + from_entity.matter_max); // Drain the crystal for it's max value and destroy it
+				this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + from_entity.matter_max ); // Drain the crystal for it's max value and destroy it
 				this._regen_timeout = 30 * 60 * 20; // 20 minutes until it starts regenerating if it didn't drain matter
 				//this._update_version++;
 				from_entity.remove();
@@ -288,7 +289,7 @@ class sdRift extends sdEntity
 			{
 				sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
 
-				this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + 120); // Lost entities act as 120 matter crystals in this scenario.
+				this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + from_entity._matter_max ); // Lost entities are drained from it's matter capacity.
 				this._regen_timeout = 30 * 60 * 20; // 20 minutes until it starts regenerating if it didn't drain matter
 				//this._update_version++;
 				from_entity.remove();
