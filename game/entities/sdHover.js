@@ -16,9 +16,16 @@ class sdHover extends sdEntity
 		sdHover.img_hover = sdWorld.CreateImageFromFile( 'hover' );
 		sdHover.img_hover_boost = sdWorld.CreateImageFromFile( 'hover_boost' );
 		sdHover.img_hover_broken = sdWorld.CreateImageFromFile( 'hover_broken' );
+
+		sdHover.img_f_hover = sdWorld.CreateImageFromFile( 'f_hover' );
+		sdHover.img_f_hover_boost = sdWorld.CreateImageFromFile( 'f_hover_boost' );
+		sdHover.img_f_hover_broken = sdWorld.CreateImageFromFile( 'f_hover_broken' );
 		
 		sdHover.img_hover_mg = sdWorld.CreateImageFromFile( 'hover_mg' );
 		sdHover.img_hover_rl = sdWorld.CreateImageFromFile( 'hover_rl' );
+
+		sdHover.img_f_hover_mg = sdWorld.CreateImageFromFile( 'f_hover_railgun' );
+		sdHover.img_f_hover_rl = sdWorld.CreateImageFromFile( 'f_hover_rl' );
 		
 		sdHover.driver_slots = 6;
 		
@@ -71,8 +78,10 @@ class sdHover extends sdEntity
 		
 		this.sx = 0;
 		this.sy = 0;
+
+		this.type = params.type || 0;
 		
-		this.hmax = 600;
+		this.hmax = this.type === 1 ? 1200 : 600;
 		this.hea = this.hmax;
 		
 		this._tilt = 0;
@@ -249,7 +258,7 @@ class sdHover extends sdEntity
 		sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
 	}
 	
-	get mass() { return 500; }
+	get mass() { return this.type === 1 ? 1200 : 500; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -317,6 +326,9 @@ class sdHover extends sdEntity
 			{
 				if ( this.driver1._key_states.GetKey( 'Mouse1' ) )
 				{
+					if ( this.type === 1 )
+					sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.33, pitch:1.5 });
+					else
 					sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.33, pitch:1.5 });
 
 					let bullet_obj = new sdBullet({ x: this.x, y: this.y });
@@ -337,8 +349,20 @@ class sdHover extends sdEntity
 					bullet_obj.sx += this.sx;
 					bullet_obj.sy += this.sy;
 
-					bullet_obj._damage = 13.5; // 10 was previous weak value, though it had no upgrade multiplier
+					if ( this.type === 1 )
+					bullet_obj._damage = 23;
+					else
+					bullet_obj._damage = 13.5
+
+					if ( this.type === 1 )
+					bullet_obj.color = '#800000';
+					else
 					bullet_obj.color = '#ffaa00';
+
+					if ( this.type === 1 )
+					bullet_obj._rail = true;
+					else
+					bullet_obj._rail = false;
 					
 
 					bullet_obj._damage *= bullet_obj._owner._damage_mult;
@@ -385,11 +409,24 @@ class sdHover extends sdEntity
 
 					bullet_obj.sx *= 15;
 					bullet_obj.sy *= 15;
-					
+
+					if ( this.type === 1 )
+					bullet_obj.model = 'f_hover_rocket';		
+					else
 					bullet_obj.model = 'rocket_proj';
 
+					if ( this.type === 1 )
+					bullet_obj._damage = 30 * 2;
+					else
 					bullet_obj._damage = 19 * 2;
+					if ( this.type === 1 )
+					bullet_obj.explosion_radius = 25 * 1.5;
+					else
 					bullet_obj.explosion_radius = 19 * 1.5;
+
+					if ( this.type === 1 )
+					bullet_obj.color = '#ffca9e';
+					else
 					bullet_obj.color = '#7acaff';
 					
 					bullet_obj.ac = 1;
@@ -437,6 +474,9 @@ class sdHover extends sdEntity
 		if ( this.hea <= 0 )
 		return;
 	
+		if ( this.type === 1 )
+		sdEntity.Tooltip( ctx, "Fighter Hover" );
+		else
 		sdEntity.Tooltip( ctx, "Hover" );
 		
 		let w = 40;
@@ -491,6 +531,9 @@ class sdHover extends sdEntity
 		
 		if ( this.hea > 0 )
 		{
+			if ( this.type === 1 )
+			ctx.drawImageFilterCache( this.driver0 ? sdHover.img_f_hover_boost : sdHover.img_f_hover, - 32, - 16, 64,32 );
+			else
 			ctx.drawImageFilterCache( this.driver0 ? sdHover.img_hover_boost : sdHover.img_hover, - 32, - 16, 64,32 );
 	
 	        var i = 0;
@@ -505,6 +548,9 @@ class sdHover extends sdEntity
 
                 ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
 
+				if ( this.type === 1 )
+				ctx.drawImageFilterCache( sdHover.img_f_hover_mg, - 16, - 16, 32,32 );
+				else
 				ctx.drawImageFilterCache( sdHover.img_hover_mg, - 16, - 16, 32,32 );
 
 				ctx.restore();
@@ -519,11 +565,17 @@ class sdHover extends sdEntity
 
                 ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
 
+				if ( this.type === 1 )
+				ctx.drawImageFilterCache( sdHover.img_f_hover_rl, - 16, - 16, 32,32 );
+				else
 				ctx.drawImageFilterCache( sdHover.img_hover_rl, - 16, - 16, 32,32 );
 
 				ctx.restore();
 			}
 		}
+		else
+		if ( this.type === 1 )
+		ctx.drawImageFilterCache( sdHover.img_f_hover_broken, - 32, - 16, 64,32 );
 		else
 		ctx.drawImageFilterCache( sdHover.img_hover_broken, - 32, - 16, 64,32 );
 		
@@ -552,8 +604,9 @@ class sdHover extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		//return 0; // Hack
-		
+		if ( this.type === 1 )
+		return this.hmax * sdWorld.damage_to_matter + 1300;
+		else
 		return this.hmax * sdWorld.damage_to_matter + 800;
 	}
 }
