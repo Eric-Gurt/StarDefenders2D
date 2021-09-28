@@ -281,7 +281,7 @@ class sdCrystal extends sdEntity
 		{
 			if ( this.type === 1 )
 			{
-				ctx.drawImageFilterCache( sdCrystal.img_crystal_empty, - 16, - 16, 32,32 );
+				ctx.drawImageFilterCache( sdCrystal.img_crystal_empty, - 16, - 16, 32, 32 );
 		
 				ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
 
@@ -290,14 +290,14 @@ class sdCrystal extends sdEntity
 				else
 				ctx.globalAlpha = this.matter / this.matter_max;
 		
-				ctx.drawImageFilterCache( sdCrystal.img_crystal, - 16, - 16, 32,32 );
+				ctx.drawImageFilterCache( sdCrystal.img_crystal, - 16, - 16, 32, 32 );
 		
 				ctx.globalAlpha = 1;
 				ctx.filter = 'none';
 			}
 			if ( this.type === 2 )
 			{
-				ctx.drawImageFilterCache( sdCrystal.img_crystal_cluster_empty, - 16, - 16, 32,32 );
+				ctx.drawImageFilterCache( sdCrystal.img_crystal_cluster_empty, - 24, - 24, 48, 48 );
 		
 				ctx.filter = sdWorld.GetCrystalHue( this.matter_max / 4 );
 
@@ -306,7 +306,7 @@ class sdCrystal extends sdEntity
 				else
 				ctx.globalAlpha = this.matter / this.matter_max;
 		
-				ctx.drawImageFilterCache( sdCrystal.img_crystal_cluster, - 16, - 16, 32,32 );
+				ctx.drawImageFilterCache( sdCrystal.img_crystal_cluster, - 24, - 24, 48, 48 );
 		
 				ctx.globalAlpha = 1;
 				ctx.filter = 'none';
