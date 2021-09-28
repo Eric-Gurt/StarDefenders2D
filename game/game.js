@@ -90,6 +90,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdConveyor from './entities/sdConveyor.js';	
 	import sdBeamProjector from './entities/sdBeamProjector.js';	
 	import sdQuadro from './entities/sdQuadro.js';	
+	import sdHoverBike from './entities/sdHoverBike.js';	
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -156,6 +157,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdConveyor.init_class();
 	sdBeamProjector.init_class();
 	sdQuadro.init_class();
+	sdHoverBike.init_class();
 
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;
