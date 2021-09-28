@@ -260,6 +260,7 @@ import sdBaseShieldingUnit from './game/entities/sdBaseShieldingUnit.js';
 import sdConveyor from './game/entities/sdConveyor.js';
 import sdBeamProjector from './game/entities/sdBeamProjector.js';
 import sdQuadro from './game/entities/sdQuadro.js';
+import sdHoverBike from './game/entities/sdHoverBike.js';
 
 import LZW from './game/server/LZW.js';
 import LZUTF8 from './game/server/LZUTF8.js';
@@ -424,6 +425,7 @@ sdBaseShieldingUnit.init_class();
 sdConveyor.init_class();
 sdBeamProjector.init_class();
 sdQuadro.init_class();
+sdHoverBike.init_class();
 
 
 
