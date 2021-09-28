@@ -178,7 +178,7 @@ class sdHoverBike extends sdEntity
 
 		if ( this.hea <= 0 )
 		{
-			const break_at_hp = -200;
+			const break_at_hp = -400;
 			
 			if ( old_hea > 0 )
 			{
@@ -516,7 +516,7 @@ class sdHoverBike extends sdEntity
 			{
 				ctx.save();
 
-				ctx.translate( -1, 8 );
+				ctx.translate( -1, 7 );
 				ctx.scale( 1, -1 );
 
                 ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
