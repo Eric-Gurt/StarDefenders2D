@@ -93,7 +93,7 @@ class sdCrystal extends sdEntity
 		else
 		{
 			this.matter = this.matter_max;
-			this._hea = this.type === 2 ? 600 : 60;
+			this._hea = this.type === 2 ? 240 : 60;
 			this._damagable_in = sdWorld.time + 1000; // Suggested by zimmermannliam, will only work for sdCharacter damage		
 		}
 		
