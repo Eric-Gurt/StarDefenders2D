@@ -632,6 +632,9 @@ class sdWorld
 				if ( Math.random() < 0.05 ) // Small chance to spawn on ground levels since they are passive if unprovoked
 				random_enemy = 'sdSlug';
 				else
+				if ( Math.random() < 0.1 )
+				random_enemy = 'sdAmphid';
+				else
 				if ( Math.random() < 0.2 )
 				random_enemy = 'sdAsp';
 				else
