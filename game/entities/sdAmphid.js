@@ -19,11 +19,11 @@ class sdAmphid extends sdEntity
 		sdAmphid.img_amphid_jump = sdWorld.CreateImageFromFile( 'amphid_jump' );
 		
 		sdAmphid.death_imgs = [
+			sdWorld.CreateImageFromFile( 'amphid_death1' ),
+			sdWorld.CreateImageFromFile( 'amphid_death2' ),
 			sdWorld.CreateImageFromFile( 'amphid_death3' ),
 			sdWorld.CreateImageFromFile( 'amphid_death4' ),
-			sdWorld.CreateImageFromFile( 'amphid_death2' ),
 			sdWorld.CreateImageFromFile( 'amphid_death5' ),
-			sdWorld.CreateImageFromFile( 'amphid_death1' ),
 		];
 		sdAmphid.death_duration = 15;
 		sdAmphid.post_death_ttl = 90;
