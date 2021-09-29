@@ -115,7 +115,7 @@ class sdWeather extends sdEntity
 	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
 	{
 		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
-		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ];
+		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ];
 				
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -1346,6 +1346,73 @@ class sdWeather extends sdEntity
 							ais++;
 							//console.log('Erthal spawned!');
 							}
+						}
+					}
+					
+					if ( r === 12 ) // Spawn sdAmphids in water where players don't see them
+					{
+						let instances = Math.floor( 3 + Math.random() * 6 );
+						while ( instances > 0 && sdAmphid.amphids_tot < 16 )
+						{
+
+							let amphid = new sdAmphid({ x:0, y:0 });
+
+							sdEntity.entities.push( amphid );
+
+							{
+								let x,y,i;
+								let tr = 1000;
+								do
+								{
+									x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+									y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+									if ( amphid.CanMoveWithoutOverlap( x, y, 0 ) )
+									if ( amphid.CanMoveWithoutOverlap( x, y - 48, 0 ) )
+									if ( sdWorld.last_hit_entity )
+									if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+									if ( sdWorld.CheckWallExistsBox( 
+											x + amphid._hitbox_x1 - 32, 
+											y + amphid._hitbox_y1 - 32, 
+											x + amphid._hitbox_x2 + 32, 
+											y + amphid._hitbox_y2 + 32, null, null, [ 'sdWater' ], null ) )
+									{
+										let di_allowed = true;
+										
+										for ( i = 0; i < sdWorld.sockets.length; i++ )
+										if ( sdWorld.sockets[ i ].character )
+										{
+											let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
+											
+											if ( di < 500 )
+											{
+												di_allowed = false;
+												break;
+											}
+										}
+										
+										if ( di_allowed )
+										{
+											amphid.x = x;
+											amphid.y = y;
+
+											break;
+										}
+									}
+									
+
+
+									tr--;
+									if ( tr < 0 )
+									{
+										amphid.remove();
+										amphid._broken = false;
+										break;
+									}
+								} while( true );
+							}
+
+							instances--;
 						}
 					}
 				}
