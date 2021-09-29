@@ -408,8 +408,7 @@ class sdCrystalCombiner extends sdEntity
 		//if ( from_entity._is_being_removed )
 		//return;
 	
-		if ( this._ignore_pickup_tim === 0 && !from_entity._is_being_removed && from_entity.is( sdCrystal ) && from_entity.matter_max !== sdCrystal.anticrystal_value )
-		if ( from_entity._held_by === null ) // Prevent crystals which are stored in a crate
+		if ( this._ignore_pickup_tim === 0 && !from_entity._is_being_removed && from_entity.is( sdCrystal ) && from_entity.matter_max !== sdCrystal.anticrystal_value && from_entity._held_by === null && from_entity.type === 1 )
 		{
 			if ( sdWorld.Dist2D_Vector( from_entity.sx, from_entity.sy ) < 1.5 )
 			{

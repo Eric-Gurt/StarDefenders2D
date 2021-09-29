@@ -2577,10 +2577,10 @@ class sdWorld
 		if ( v > 40 )
 		{
 			if ( v === 10240 ) // === sdCrystal.anticrystal_value
-		    return 'brightness(0) drop-shadow(0px 0px 7px #000000)';
+		    return 'brightness(0) drop-shadow(0px 0px 6px #000000)';
 			else
 			if ( v === 5120 )
-		    return 'hue-rotate(200deg) brightness(1.3) drop-shadow(0px 0px 7px #FFFFAA)';
+		    return 'hue-rotate(200deg) brightness(1.3) drop-shadow(0px 0px 6px #FFFFAA)';
 			else
 			if ( v === 2560 )
 			return 'hue-rotate(170deg) brightness(0.8) contrast(2)';

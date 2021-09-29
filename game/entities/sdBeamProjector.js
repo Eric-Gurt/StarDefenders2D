@@ -381,7 +381,7 @@ class sdBeamProjector extends sdEntity
 	{
 		if ( from_entity.is( sdCrystal ) )
 		if ( !from_entity._is_being_removed )
-		if ( from_entity.matter_max === sdCrystal.anticrystal_value )
+		if ( from_entity.matter_max === sdCrystal.anticrystal_value && from_entity.type === 1 && from_entity._held_by === null )
 		if ( !this.has_anticrystal )
 		{
 			this.has_anticrystal = true;

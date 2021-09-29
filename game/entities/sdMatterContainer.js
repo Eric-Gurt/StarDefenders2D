@@ -111,7 +111,7 @@ class sdMatterContainer extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 16, - 16, 32,32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 32, - 32, 64, 64 );
 		
 		//if ( this.matter_max > 40 )
 		//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
@@ -120,7 +120,7 @@ class sdMatterContainer extends sdEntity
 	
 		ctx.globalAlpha = this.matter / this.matter_max;
 		
-		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 16, - 16, 32,32 );
+		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container, - 32, - 32, 64, 64 );
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
@@ -146,7 +146,10 @@ class sdMatterContainer extends sdEntity
 	//	return 0; // Hack
 		
 		//return this._hmax * sdWorld.damage_to_matter + this.matter;
+		if ( this.matter_max == 2560 )
 		return this._hmax * sdWorld.damage_to_matter + this.matter_max * 0.75;
+		if ( this.matter_max == 5120 )
+		return this._hmax * sdWorld.damage_to_matter + this.matter_max * 0.5;
 	}
 }
 //sdMatterContainer.init_class();
