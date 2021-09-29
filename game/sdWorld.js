@@ -625,6 +625,9 @@ class sdWorld
 			if ( Math.pow( enemy_rand_num, 2 ) > 0.8 / hp_mult )
 			random_enemy = 'sdQuickie';
 			else
+			if ( Math.pow( enemy_rand_num, 2 ) > 0.8 / hp_mult )
+			random_enemy = 'sdAmphid';
+			else
 			if ( Math.pow( enemy_rand_num, 1.2 ) > 0.8 / hp_mult )
 			random_enemy = 'sdJunk';
 			else
