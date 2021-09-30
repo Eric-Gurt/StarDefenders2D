@@ -35,6 +35,7 @@ import sdRift from './sdRift.js';
 import sdCrystal from './sdCrystal.js';
 import sdDrone from './sdDrone.js';
 import sdSpider from './sdSpider.js';
+import sdAmphid from './sdAmphid.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
