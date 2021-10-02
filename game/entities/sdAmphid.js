@@ -26,7 +26,7 @@ class sdAmphid extends sdEntity
 			sdWorld.CreateImageFromFile( 'amphid_death5' ),
 		];
 		sdAmphid.death_duration = 15;
-		sdAmphid.post_death_ttl = 90;
+		sdAmphid.post_death_ttl = 30* 6;
 		
 		sdAmphid.max_seek_range = 1000;
 
@@ -64,6 +64,7 @@ class sdAmphid extends sdEntity
 
 		sdAmphid.amphids_tot++;
 		
+		this.filter = 'hue-rotate(' + ~~( Math.random() * 120 - 80 ) + 'deg) saturate(0.5)';
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
@@ -92,7 +93,7 @@ class sdAmphid extends sdEntity
 	}
 	GetBleedEffectFilter()
 	{
-		return 'hue-rotate(-40deg)'; // Green
+		return this.filter;
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -187,7 +188,7 @@ class sdAmphid extends sdEntity
 					{
 						this.side = ( this._current_target.x > this.x ) ? 1 : -1;
 					}
-					if ( this._last_jump < sdWorld.time - ( in_water ? 500 : 1000 ) )
+					if ( this._last_jump < sdWorld.time - ( in_water ? 500 : 1500 ) )
 					//if ( this._last_stand_on )
 					{
 						this._last_jump = sdWorld.time;
@@ -244,7 +245,7 @@ class sdAmphid extends sdEntity
 			this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.5, GSPEED );
 		}
 		
-		this.ApplyVelocityAndCollisions( GSPEED, 5, true );
+		this.ApplyVelocityAndCollisions( GSPEED, ( this.death_anim === 0 && this._current_target ) ? 5 : 0, true );
 		
 		if ( this.death_anim === 0 )
 		if ( this._current_target )
