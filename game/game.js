@@ -43,6 +43,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdCom from './entities/sdCom.js';
 	import sdAsteroid from './entities/sdAsteroid.js';
 	import sdVirus from './entities/sdVirus.js';
+	import sdAmphid from './entities/sdAmphid.js';
 	import sdTeleport from './entities/sdTeleport.js';
 	import sdDoor from './entities/sdDoor.js';
 	import sdWater from './entities/sdWater.js';
@@ -90,6 +91,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdConveyor from './entities/sdConveyor.js';	
 	import sdBeamProjector from './entities/sdBeamProjector.js';	
 	import sdQuadro from './entities/sdQuadro.js';	
+	import sdHoverBike from './entities/sdHoverBike.js';	
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -112,6 +114,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdCom.init_class();
 	sdAsteroid.init_class();
 	sdVirus.init_class();
+	sdAmphid.init_class();
 	sdTeleport.init_class();
 	sdDoor.init_class();
 	sdWater.init_class();
@@ -156,6 +159,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdConveyor.init_class();
 	sdBeamProjector.init_class();
 	sdQuadro.init_class();
+	sdHoverBike.init_class();
 
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;

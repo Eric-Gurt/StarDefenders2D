@@ -17,6 +17,7 @@ class sdJunk extends sdEntity
 		sdJunk.img_cube_unstable = sdWorld.CreateImageFromFile( 'cube_unstable_corpse' );
 		sdJunk.img_cube_unstable_detonate = sdWorld.CreateImageFromFile( 'cube_unstable_corpse_on' );
 		sdJunk.img_cube_unstable2 = sdWorld.CreateImageFromFile( 'cube_unstable_corpse2' );
+		sdJunk.img_cube_unstable2_empty = sdWorld.CreateImageFromFile( 'cube_unstable_corpse2_empty' );
 		sdJunk.img_cube_unstable2_detonate = sdWorld.CreateImageFromFile( 'cube_unstable_corpse2_on' );
 		sdJunk.img_cube_unstable3 = sdWorld.CreateImageFromFile( 'cube_unstable_corpse3' );
 		sdJunk.img_cube_unstable3_detonate = sdWorld.CreateImageFromFile( 'cube_unstable_corpse3_on' );
@@ -292,10 +293,18 @@ class sdJunk extends sdEntity
 			}
 			if ( this.type === 1 ) // Alien battery
 			{
+				ctx.drawImageFilterCache( sdJunk.img_cube_unstable2_empty, - 16, - 16, 32,32 );
+
 				if ( this.hea % 15 < ( this.hea / this.hmax ) * 9 )
-				ctx.drawImageFilterCache( sdJunk.img_cube_unstable2, - 16, - 16, 32,32 );
+				{
+					ctx.globalAlpha = ( this.matter/this.matter_max );
+					ctx.drawImageFilterCache( sdJunk.img_cube_unstable2, - 16, - 16, 32,32 );
+				}
 				else
-				ctx.drawImageFilterCache( sdJunk.img_cube_unstable2_detonate, - 16, - 16, 32,32 );
+				{
+					ctx.globalAlpha = 1;
+					ctx.drawImageFilterCache( sdJunk.img_cube_unstable2_detonate, - 16, - 16, 32,32 );
+				}
 			}
 			if ( this.type === 2 ) // Lost converter cube barrel
 			{

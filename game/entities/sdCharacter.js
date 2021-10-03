@@ -1735,7 +1735,7 @@ class sdCharacter extends sdEntity
 			}
 			
 			if ( this._recoil > 0 )
-			this._recoil = Math.max( 0, sdWorld.MorphWithTimeScale( this._recoil , -0.01, 0.9 * this._recoil_mult , GSPEED ) );
+			this._recoil = Math.max( 0, sdWorld.MorphWithTimeScale( this._recoil , -0.01, 0.935 * this._recoil_mult , GSPEED ) ); //0.9 was "laser beams" basically and nullified the point for "Recoil upgrade"
 
 			if ( this._dying )
 			{

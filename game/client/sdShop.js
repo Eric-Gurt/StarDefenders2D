@@ -59,6 +59,10 @@ class sdShop
 		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles' });
+		sdShop.options.push({ _class: 'sdHover', type: 1, _category:'Vehicles', _min_build_tool_level: 3 });
+		sdShop.options.push({ _class: 'sdHover', type: 1, filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 3 });
+		sdShop.options.push({ _class: 'sdHover', type: 1, filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 3 });
+		sdShop.options.push({ _class: 'sdHover', type: 1, filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 3 });
 		sdShop.options.push({ _class: 'sdLifeBox', _category:'Vehicles', _min_build_tool_level:1 });
 		sdShop.options.push({ _class: 'sdQuadro', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdQuadro', filter: 'hue-rotate(300deg)', _category:'Vehicles' });
@@ -67,6 +71,8 @@ class sdShop
 		sdShop.options.push({ _class: 'sdQuadro', filter: 'hue-rotate(140deg)', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdQuadro', filter: 'saturate(0) brightness(1.5)', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdQuadro', filter: 'saturate(0) brightness(0.5)', _category:'Vehicles' });
+		sdShop.options.push({ _class: 'sdHoverBike', filter: 'saturate(0) brightness(1.5)', _category:'Vehicles' });
+		sdShop.options.push({ _class: 'sdHoverBike', filter: 'saturate(0) brightness(0.5)', _category:'Vehicles' });
 
 		//ctx.filter = '' // yellow
 		//ctx.filter = '' // redish
@@ -180,6 +186,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2, _category:'Base equipment' });*/
 		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2 * 2, _category:'Base equipment', _min_build_tool_level: 2 });
 		sdShop.options.push({ _class: 'sdMatterAmplifier', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 2, _category:'Base equipment', _min_build_tool_level: 1 });
 		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 3, _category:'Base equipment', _min_build_tool_level: 2 });
@@ -407,6 +414,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdOctopus', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdQuickie', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdVirus', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdAmphid', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCharacter', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAsteroid', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', _category:'Development tests' });
@@ -430,6 +438,9 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120, _category:'Development tests' }); // Glowing one
 			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: sdCrystal.anticrystal_value, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCrystal', type: 2, tag: 'deep', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCrystal', type: 2, tag: 'deep', matter_max: 5120 * 4, _category:'Development tests' }); // Glowing one
+			sdShop.options.push({ _class: 'sdCrystal', type: 2, tag: 'deep', matter_max: sdCrystal.anticrystal_value * 4, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdDrone', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdLost', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_LOST_CONVERTER, _category:'Development tests' });

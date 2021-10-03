@@ -213,6 +213,7 @@ import sdBullet from './game/entities/sdBullet.js';
 import sdCom from './game/entities/sdCom.js';
 import sdAsteroid from './game/entities/sdAsteroid.js';
 import sdVirus from './game/entities/sdVirus.js';
+import sdAmphid from './game/entities/sdAmphid.js';
 import sdTeleport from './game/entities/sdTeleport.js';
 import sdDoor from './game/entities/sdDoor.js';
 import sdWater from './game/entities/sdWater.js';
@@ -260,6 +261,7 @@ import sdBaseShieldingUnit from './game/entities/sdBaseShieldingUnit.js';
 import sdConveyor from './game/entities/sdConveyor.js';
 import sdBeamProjector from './game/entities/sdBeamProjector.js';
 import sdQuadro from './game/entities/sdQuadro.js';
+import sdHoverBike from './game/entities/sdHoverBike.js';
 
 import LZW from './game/server/LZW.js';
 import LZUTF8 from './game/server/LZUTF8.js';
@@ -378,6 +380,7 @@ sdBullet.init_class();
 sdCom.init_class();
 sdAsteroid.init_class();
 sdVirus.init_class();
+sdAmphid.init_class();
 sdTeleport.init_class();
 sdDoor.init_class();
 sdWater.init_class();
@@ -424,6 +427,7 @@ sdBaseShieldingUnit.init_class();
 sdConveyor.init_class();
 sdBeamProjector.init_class();
 sdQuadro.init_class();
+sdHoverBike.init_class();
 
 
 

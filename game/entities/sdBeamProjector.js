@@ -279,6 +279,9 @@ class sdBeamProjector extends sdEntity
 
 											if ( character_entity.y < this.y - 32 )
 											character_entity._key_states.SetKey( 'KeyW', 1 );
+
+											if ( character_entity._ai.target === null )
+											character_entity._ai.target = this;
 										}
 										if ( character_entity.hea <= 0 )
 										if ( !character_entity._is_being_removed )
@@ -351,12 +354,12 @@ class sdBeamProjector extends sdEntity
 			this.has_players_nearby = false;
 			//this._update_version++;
 
-			let players = sdWorld.GetAnythingNear( this.x, this.y, 196, null, [ 'sdCharacter' ] );
+			let players = sdWorld.GetAnythingNear( this.x, this.y, 256, null, [ 'sdCharacter' ] );
 			for ( let i = 0; i < players.length; i++ )
 			{
 				if ( players[ i ].GetClass() === 'sdCharacter' && !players[ i ]._ai && players[ i ]._ai_team === 0  && players[ i ].hea > 0 )
 				if ( players[ i ]._socket !== null )
-				//if ( sdWorld.CheckLineOfSight( this.x, this.y - 16, players[ i ].x, players[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) ) // Needs line of sight with players, otherwise it doesn't work
+				if ( sdWorld.CheckLineOfSight( this.x, this.y - 16, players[ i ].x, players[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) ) // Needs line of sight with players, otherwise it doesn't work
 				{
 					if ( this.hea < this.hmax )
 					if ( this.no_obstacles ) // No progression if the beam can't go into the sky
@@ -378,7 +381,7 @@ class sdBeamProjector extends sdEntity
 	{
 		if ( from_entity.is( sdCrystal ) )
 		if ( !from_entity._is_being_removed )
-		if ( from_entity.matter_max === sdCrystal.anticrystal_value )
+		if ( from_entity.matter_max === sdCrystal.anticrystal_value && from_entity.type === 1 && from_entity._held_by === null )
 		if ( !this.has_anticrystal )
 		{
 			this.has_anticrystal = true;

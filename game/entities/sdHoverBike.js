@@ -9,41 +9,32 @@ import sdEffect from './sdEffect.js';
 import sdCharacter from './sdCharacter.js';
 import sdCrystal from './sdCrystal.js';
 
-class sdHover extends sdEntity
+class sdHoverBike extends sdEntity
 {
 	static init_class()
 	{
-		sdHover.img_hover = sdWorld.CreateImageFromFile( 'hover' );
-		sdHover.img_hover_boost = sdWorld.CreateImageFromFile( 'hover_boost' );
-		sdHover.img_hover_broken = sdWorld.CreateImageFromFile( 'hover_broken' );
+		sdHoverBike.img_hoverbike = sdWorld.CreateImageFromFile( 'hoverbike' );
+		sdHoverBike.img_hoverbike_boost = sdWorld.CreateImageFromFile( 'hoverbike_boost' );
+		sdHoverBike.img_hoverbike_broken = sdWorld.CreateImageFromFile( 'hoverbike_broken' );
+		
+		sdHoverBike.img_hoverbike_mg = sdWorld.CreateImageFromFile( 'hover_mg' );
+		//sdHoverBike.img_hoverbike_rl = sdWorld.CreateImageFromFile( 'hover_rl' );
 
-		sdHover.img_f_hover = sdWorld.CreateImageFromFile( 'f_hover' );
-		sdHover.img_f_hover_boost = sdWorld.CreateImageFromFile( 'f_hover_boost' );
-		sdHover.img_f_hover_broken = sdWorld.CreateImageFromFile( 'f_hover_broken' );
+		//sdHoverBike.img_f_hoverbike_mg = sdWorld.CreateImageFromFile( 'f_hover_railgun' );
+		//sdHoverBike.img_f_hoverbike_rl = sdWorld.CreateImageFromFile( 'f_hover_rl' );
 		
-		sdHover.img_hover_mg = sdWorld.CreateImageFromFile( 'hover_mg' );
-		sdHover.img_hover_rl = sdWorld.CreateImageFromFile( 'hover_rl' );
-
-		sdHover.img_f_hover_mg = sdWorld.CreateImageFromFile( 'f_hover_railgun' );
-		sdHover.img_f_hover_rl = sdWorld.CreateImageFromFile( 'f_hover_rl' );
+		sdHoverBike.driver_slots = 1;
 		
-		sdHover.driver_slots = 6;
-		
-		sdHover.slot_hints = [
-			'Entered slot 1: Driver',
-			'Entered slot 2: Minigun operator',
-			'Entered slot 3: Rocket launcher operator',
-			'Entered slot 4: Passenger',
-			'Entered slot 5: Passenger',
-			'Entered slot 6: Passenger'
+		sdHoverBike.slot_hints = [
+			'Entered slot 1: Driver, minigun operator'
 		];
-		
+		// I can't really edit the hovers' static init_class parameters so this will have to substitute for now since players want a hoverbike - Booraz149
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -26; }
-	get hitbox_x2() { return 26; }
-	get hitbox_y1() { return -9; }
-	get hitbox_y2() { return 10; }
+	get hitbox_x1() { return -10; }
+	get hitbox_x2() { return 10; }
+	get hitbox_y1() { return -4; }
+	get hitbox_y2() { return 6; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -61,12 +52,17 @@ class sdHover extends sdEntity
 	{
 		return true;
 	}
+
+	VehicleHidesLegs()
+	{
+		return false;
+	}
 	
 	Impact( vel ) // fall damage basically
 	{
-		if ( vel > 5 )
+		if ( vel > 10 )
 		{
-			this.Damage( ( vel - 3 ) * 45 );
+			this.Damage( ( vel - 3 ) * 15 ); // Less impact damage than hover
 		}
 	}
 	
@@ -79,9 +75,9 @@ class sdHover extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 
-		this.type = params.type || 0;
+		//this.type = params.type || 0;
 		
-		this.hmax = this.type === 1 ? 1200 : 600;
+		this.hmax = 300; // Hover has 600+, depending on type
 		this.hea = this.hmax;
 		
 		this._tilt = 0;
@@ -96,13 +92,8 @@ class sdHover extends sdEntity
 		
 		this.filter = params.filter || 'none';
 		
-		// 6 slots
-		this.driver0 = null; // movement
-		this.driver1 = null; // minigun
-		this.driver2 = null; // rockets
-		this.driver3 = null; // passenger
-		this.driver4 = null; // passenger
-		this.driver5 = null; // passenger
+		// 1 slot
+		this.driver0 = null; // movement and minigun
 	}
 	AddDriver( c )
 	{
@@ -111,8 +102,8 @@ class sdHover extends sdEntity
 	
 		var best_slot = -1;
 		
-		for ( var i = 0; i < sdHover.driver_slots; i++ )
-		//for ( var i = 2; i < sdHover.driver_slots; i++ ) // Hack
+		for ( var i = 0; i < sdHoverBike.driver_slots; i++ )
+		//for ( var i = 2; i < sdHoverBike.driver_slots; i++ ) // Hack
 		{
 			if ( this[ 'driver' + i ] === null )
 			{
@@ -128,10 +119,10 @@ class sdHover extends sdEntity
 			c.driver_of = this;
 			
 			if ( c._socket )
-			c._socket.SDServiceMessage( sdHover.slot_hints[ best_slot ] );
+			c._socket.SDServiceMessage( sdHoverBike.slot_hints[ best_slot ] );
 		
 			if ( best_slot === 0 )
-			sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1 });
+			sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1, pitch:2 });
 		}
 		else
 		{
@@ -144,14 +135,14 @@ class sdHover extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 		
-		for ( var i = 0; i < sdHover.driver_slots; i++ )
+		for ( var i = 0; i < sdHoverBike.driver_slots; i++ )
 		{
 			if ( this[ 'driver' + i ] === c )
 			{
 				this[ 'driver' + i ] = null;
 				c.driver_of = null;
 				
-				c.x = this.x + ( i / ( sdHover.driver_slots - 1 ) ) * ( this._hitbox_x2 - this._hitbox_x1 );
+				c.x = this.x; //+ ( i / ( sdHoverBike.driver_slots - 1 ) ) * ( this._hitbox_x2 - this._hitbox_x1 );
 				
 				if ( c.CanMoveWithoutOverlap( c.x, this.y + this._hitbox_y1 - c._hitbox_y2, 1 ) )
 				c.y = this.y + this._hitbox_y1 - c._hitbox_y2;
@@ -191,9 +182,9 @@ class sdHover extends sdEntity
 			
 			if ( old_hea > 0 )
 			{
-				sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:2 });
+				sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:1 });
 				
-				for ( var i = 0; i < sdHover.driver_slots; i++ )
+				for ( var i = 0; i < sdHoverBike.driver_slots; i++ )
 				if ( this[ 'driver' + i ] )
 				{
 					let driver = this[ 'driver' + i ];
@@ -207,7 +198,7 @@ class sdHover extends sdEntity
 				}
 				
 				let that = this;
-				for ( var i = 0; i < 20; i++ )
+				for ( var i = 0; i < 4; i++ )
 				{
 					let an = Math.random() * Math.PI * 2;
 					let d = ( i === 0 ) ? 0 : Math.random() * 20;
@@ -249,7 +240,7 @@ class sdHover extends sdEntity
 		}
 		else
 		{
-			if ( this.hea <= 100 && old_hea > 100 )
+			if ( this.hea <= 80 && old_hea > 80 )
 			sdSound.PlaySound({ name:'hover_lowhp', x:this.x, y:this.y, volume:1 });
 		}
 	
@@ -258,7 +249,7 @@ class sdHover extends sdEntity
 		sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
 	}
 	
-	get mass() { return this.type === 1 ? 1200 : 500; }
+	get mass() { return 150; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -289,8 +280,8 @@ class sdHover extends sdEntity
 			
 			let di = Math.max( 1, sdWorld.Dist2D_Vector( this.driver0.act_x, this.driver0.act_y ) );
 			
-			let x_force = this.driver0.act_x / di * 0.2;
-			let y_force = this.driver0.act_y / di * 0.2; 
+			let x_force = this.driver0.act_x / di * 0.25;
+			let y_force = this.driver0.act_y / di * 0.25; 
 			
 			this.sx += x_force * GSPEED;
 			this.sy += y_force * GSPEED;
@@ -321,27 +312,24 @@ class sdHover extends sdEntity
 			if ( this._rockets_reload > 0 )
 			this._rockets_reload -= GSPEED;
 		
-			if ( this.driver1 )
+			if ( this.driver0 )
 			if ( this._bullets_reload <= 0 )
 			{
-				if ( this.driver1._key_states.GetKey( 'Mouse1' ) )
+				if ( this.driver0._key_states.GetKey( 'Mouse1' ) )
 				{
-					if ( this.type === 1 )
-					sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.33, pitch:1.5 });
-					else
 					sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.33, pitch:1.5 });
 
 					let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 
-					bullet_obj._owner = this.driver1;
+					bullet_obj._owner = this.driver0;
 					bullet_obj._owner2 = this;
 
-					let an = this.driver1.GetLookAngle() + ( Math.random() * 2 - 1 ) * 0.05;
+					let an = this.driver0.GetLookAngle() + ( Math.random() * 2 - 1 ) * 0.05;
 
 					bullet_obj.sx = Math.cos( Math.PI / 2 - an );
 					bullet_obj.sy = Math.sin( Math.PI / 2 - an );
 					bullet_obj.x += bullet_obj.sx * 5;
-					bullet_obj.y += bullet_obj.sy * 5;
+					bullet_obj.y += 5 + bullet_obj.sy * 5;
 
 					bullet_obj.sx *= 15;
 					bullet_obj.sy *= 15;
@@ -349,19 +337,10 @@ class sdHover extends sdEntity
 					bullet_obj.sx += this.sx;
 					bullet_obj.sy += this.sy;
 
-					if ( this.type === 1 )
-					bullet_obj._damage = 23;
-					else
 					bullet_obj._damage = 13.5
 
-					if ( this.type === 1 )
-					bullet_obj.color = '#800000';
-					else
 					bullet_obj.color = '#ffaa00';
 
-					if ( this.type === 1 )
-					bullet_obj._rail = true;
-					else
 					bullet_obj._rail = false;
 					
 
@@ -379,7 +358,7 @@ class sdHover extends sdEntity
 					this._bullets--;
 				}
 
-				if ( this._bullets <= 0 || ( this._bullets < 300 && this.driver1._key_states.GetKey( 'KeyR' ) ) )
+				if ( this._bullets <= 0 || ( this._bullets < 300 && this.driver0._key_states.GetKey( 'KeyR' ) ) )
 				{
 					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:1, pitch:0.6 });
 					this._bullets = 300;
@@ -388,7 +367,7 @@ class sdHover extends sdEntity
 			}
 			
 		
-			if ( this.driver2 )
+			/*if ( this.driver2 )
 			if ( this._rockets_reload <= 0 )
 			{
 				if ( this.driver2._key_states.GetKey( 'Mouse1' ) )
@@ -458,7 +437,7 @@ class sdHover extends sdEntity
 					this._rockets = 2;
 					this._rockets_reload = 60;
 				}
-			}
+			}*/
 		}
 		
 		sdWorld.last_hit_entity = null;
@@ -467,17 +446,14 @@ class sdHover extends sdEntity
 	}
 	
 	get friction_remain()
-	{ return this.driver0 ? 0.95 : 0.8; }
+	{ return this.driver0 ? 0.8 : 0.6; }
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.hea <= 0 )
 		return;
 	
-		if ( this.type === 1 )
-		sdEntity.Tooltip( ctx, "Fighter Hover" );
-		else
-		sdEntity.Tooltip( ctx, "Hover" );
+		sdEntity.Tooltip( ctx, "Hoverbike" );
 		
 		let w = 40;
 	
@@ -489,10 +465,10 @@ class sdHover extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		if ( sdShop.isDrawing )
+		/*if ( sdShop.isDrawing )
 		{
 			ctx.scale( 0.5, 0.5 );
-		}
+		}*/
 		
 		ctx.rotate( this._tilt / 100 );
 		
@@ -501,7 +477,7 @@ class sdHover extends sdEntity
 			ctx.scale( -1, 1 );
 		}
 		
-		for ( var i = 0; i < sdHover.driver_slots; i++ )
+		for ( var i = 0; i < sdHoverBike.driver_slots; i++ )
 		{
 			if ( this[ 'driver' + i ] )
 			{
@@ -516,7 +492,7 @@ class sdHover extends sdEntity
 					this[ 'driver' + i ].look_y = this[ 'driver' + i ].y;
 					
 					ctx.scale( -0.8, 0.8 );
-					ctx.translate( ( -32 + ( 1 - i / ( sdHover.driver_slots - 1 ) ) * 64 ) * 0.5, 3 );
+					ctx.translate( 0, -6 );
 					//this[ 'driver' + i ].Draw( ctx, true );
 					this[ 'driver' + i ].Draw( ctx, true ); // Hack
 
@@ -531,30 +507,25 @@ class sdHover extends sdEntity
 		
 		if ( this.hea > 0 )
 		{
-			if ( this.type === 1 )
-			ctx.drawImageFilterCache( this.driver0 ? sdHover.img_f_hover_boost : sdHover.img_f_hover, - 32, - 16, 64,32 );
-			else
-			ctx.drawImageFilterCache( this.driver0 ? sdHover.img_hover_boost : sdHover.img_hover, - 32, - 16, 64,32 );
+			ctx.drawImageFilterCache( this.driver0 ? sdHoverBike.img_hoverbike_boost : sdHoverBike.img_hoverbike, - 16, - 16, 32, 32 );
 	
 	        var i = 0;
 
-            i = 1;
+            i = 0;
 			if ( this[ 'driver' + i ] )
 			{
 				ctx.save();
 
-				ctx.translate( -1, 10 );
+				ctx.translate( -1, 7 );
 				ctx.scale( 1, -1 );
 
                 ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
 
-				if ( this.type === 1 )
-				ctx.drawImageFilterCache( sdHover.img_f_hover_mg, - 16, - 16, 32,32 );
-				else
-				ctx.drawImageFilterCache( sdHover.img_hover_mg, - 16, - 16, 32,32 );
+				ctx.drawImageFilterCache( sdHoverBike.img_hoverbike_mg, - 16, - 16, 32,32 );
 
 				ctx.restore();
 			}
+		/*
 			i = 2;
 			if ( this[ 'driver' + i ] )
 			{
@@ -566,18 +537,15 @@ class sdHover extends sdEntity
                 ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
 
 				if ( this.type === 1 )
-				ctx.drawImageFilterCache( sdHover.img_f_hover_rl, - 16, - 16, 32,32 );
+				ctx.drawImageFilterCache( sdHoverBike.img_f_hoverbike_rl, - 16, - 16, 32,32 );
 				else
-				ctx.drawImageFilterCache( sdHover.img_hover_rl, - 16, - 16, 32,32 );
+				ctx.drawImageFilterCache( sdHoverBike.img_hoverbike_rl, - 16, - 16, 32,32 );
 
 				ctx.restore();
-			}
+			}*/
 		}
 		else
-		if ( this.type === 1 )
-		ctx.drawImageFilterCache( sdHover.img_f_hover_broken, - 32, - 16, 64,32 );
-		else
-		ctx.drawImageFilterCache( sdHover.img_hover_broken, - 32, - 16, 64,32 );
+		ctx.drawImageFilterCache( sdHoverBike.img_hoverbike_broken, - 15, - 16, 32, 32 );
 		
 		
 		ctx.globalAlpha = 1;
@@ -587,15 +555,15 @@ class sdHover extends sdEntity
 	{
 		if ( this._broken )
 		{
-			sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
+			sdWorld.BasicEntityBreakEffect( this, 10, 3, 0.75, 0.75 );
 			
-			for ( var i = 0; i < sdHover.driver_slots; i++ )
+			for ( var i = 0; i < sdHoverBike.driver_slots; i++ )
 			if ( this[ 'driver' + i ] )
 			this.ExcludeDriver( this[ 'driver' + i ] );
 		}
 		else
 		{
-			for ( var i = 0; i < sdHover.driver_slots; i++ )
+			for ( var i = 0; i < sdHoverBike.driver_slots; i++ )
 			if ( this[ 'driver' + i ] )
 			{
 				this[ 'driver' + i ].remove();
@@ -604,12 +572,9 @@ class sdHover extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		if ( this.type === 1 )
-		return this.hmax * sdWorld.damage_to_matter + 1300;
-		else
-		return this.hmax * sdWorld.damage_to_matter + 800;
+		return this.hmax * sdWorld.damage_to_matter + 850;
 	}
 }
-//sdHover.init_class();
+//sdHoverBike.init_class();
 
-export default sdHover;
+export default sdHoverBike;

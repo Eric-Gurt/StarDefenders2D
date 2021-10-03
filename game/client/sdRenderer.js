@@ -998,7 +998,10 @@ class sdRenderer
 			
 			ctx.fillStyle = '#ffff00';
 			ctx.fillText("Score: " + Math.floor( sdWorld.my_score ), 280, 17 );
-			
+
+            		ctx.fillStyle = '#AAAAff'; // By MrMcShroom / ZapruderFilm
+           		ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 420, 50 );	
+		
 			if ( globalThis.enable_debug_info )
 			{
 				ctx.fillStyle = '#AAAAff';

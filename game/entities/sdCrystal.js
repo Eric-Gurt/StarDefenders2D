@@ -11,15 +11,18 @@ class sdCrystal extends sdEntity
 	{
 		sdCrystal.img_crystal = sdWorld.CreateImageFromFile( 'crystal' );
 		sdCrystal.img_crystal_empty = sdWorld.CreateImageFromFile( 'crystal_empty' );
+
+		sdCrystal.img_crystal_cluster = sdWorld.CreateImageFromFile( 'crystal_cluster' ); // Sprite by HastySnow / LazyRain
+		sdCrystal.img_crystal_cluster_empty = sdWorld.CreateImageFromFile( 'crystal_cluster_empty' ); // Sprite by HastySnow / LazyRain
 		
 		sdCrystal.anticrystal_value = 10240;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.should_draw === 0 ? -2 : -4; }
-	get hitbox_x2() { return this.should_draw === 0 ? 2 : 5; }
-	get hitbox_y1() { return this.should_draw === 0 ? -2 : -7; }
-	get hitbox_y2() { return this.should_draw === 0 ? 2 : 5; }
+	get hitbox_x1() { return this.should_draw === 0 ? -2 : this.type === 2 ? -14 : -4; }
+	get hitbox_x2() { return this.should_draw === 0 ? 2 : this.type === 2 ? 14 : 5; }
+	get hitbox_y1() { return this.should_draw === 0 ? -2 : this.type === 2 ? -14 : -7; }
+	get hitbox_y2() { return this.should_draw === 0 ? 2 : this.type === 2 ? 16 : 5; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return this._held_by !== null ? false : true; }
@@ -39,7 +42,8 @@ class sdCrystal extends sdEntity
 		
 		this.sx = 0;
 		this.sy = 0;
-		this.matter_max = 40;
+		this.type = params.type || 1;
+		this.matter_max = this.type === 2 ? 160 : 40;
 
 		this._held_by = null; // For storage crates
 		this.should_draw = 1; // For storage crates, guns have ttl which can make them dissapear
@@ -80,7 +84,7 @@ class sdCrystal extends sdEntity
 		if ( typeof params.matter_max !== 'undefined' )
 		this.matter_max = params.matter_max;
 	
-		if ( this.matter_max === sdCrystal.anticrystal_value )
+		if ( ( this.matter_max === sdCrystal.anticrystal_value && this.type === 1 ) || ( this.matter_max === sdCrystal.anticrystal_value * 4 && this.type === 2 ) )
 		{
 			this.matter = 0;
 			this._hea = 600;
@@ -89,7 +93,7 @@ class sdCrystal extends sdEntity
 		else
 		{
 			this.matter = this.matter_max;
-			this._hea = 60;
+			this._hea = this.type === 2 ? 240 : 60;
 			this._damagable_in = sdWorld.time + 1000; // Suggested by zimmermannliam, will only work for sdCharacter damage		
 		}
 		
@@ -129,12 +133,28 @@ class sdCrystal extends sdEntity
 			{
 				//sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:1 });
 				sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.5 });
-
+				if ( this.type === 1 ) // Default crystal
 				sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
 					Math.ceil( Math.max( 5, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
 					this.matter_max / 40,
 					5
 				);
+				if ( this.type === 2 ) // Big crystals
+				{
+					sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
+						Math.ceil( Math.max( 5, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
+						this.matter_max / 160,
+						8
+					);
+
+					let ent = new sdCrystal({x: this.x, y: this.y + 4, sx: this.sx, sy: this.sy, type:1 });
+
+					ent.matter_max = this.matter_max / 4;
+					ent.matter = this.matter / 4;
+
+					sdEntity.entities.push( ent );
+					sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
+				}
 
 				this.remove();
 			}
@@ -149,7 +169,7 @@ class sdCrystal extends sdEntity
 		}
 	}
 	
-	get mass() { return 30; }
+	get mass() { return this.type === 2 ? 120 : 30; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -223,7 +243,7 @@ class sdCrystal extends sdEntity
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 		if ( this._held_by === null ) // Don't emit matter if inside a crate
 		{
-			if ( this.matter_max === sdCrystal.anticrystal_value )
+			if ( ( this.matter_max === sdCrystal.anticrystal_value && this.type === 1 ) || ( this.matter_max === sdCrystal.anticrystal_value * 4 && this.type === 2 ) )
 			{
 				this.HungryMatterGlow( 0.01, 100, GSPEED );
 				this.matter = Math.max( 0, this.matter - GSPEED * 0.01 * this.matter );
@@ -249,7 +269,7 @@ class sdCrystal extends sdEntity
 	{
 		if ( this.should_draw === 1 )
 		{
-			if ( this.matter_max === sdCrystal.anticrystal_value )
+			if ( ( this.matter_max === sdCrystal.anticrystal_value && this.type === 1 ) || ( this.matter_max === sdCrystal.anticrystal_value * 4 && this.type === 2 ) )
 			sdEntity.Tooltip( ctx, "Anti-crystal ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
 			else
 			sdEntity.Tooltip( ctx, "Crystal ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
@@ -259,19 +279,38 @@ class sdCrystal extends sdEntity
 	{
 		if ( this.should_draw === 1 )
 		{
-			ctx.drawImageFilterCache( sdCrystal.img_crystal_empty, - 16, - 16, 32,32 );
+			if ( this.type === 1 )
+			{
+				ctx.drawImageFilterCache( sdCrystal.img_crystal_empty, - 16, - 16, 32, 32 );
 		
-			ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
+				ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
 
-			if ( this.matter_max === sdCrystal.anticrystal_value )
-			ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
-			else
-			ctx.globalAlpha = this.matter / this.matter_max;
+				if ( this.matter_max === sdCrystal.anticrystal_value )
+				ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
+				else
+				ctx.globalAlpha = this.matter / this.matter_max;
 		
-			ctx.drawImageFilterCache( sdCrystal.img_crystal, - 16, - 16, 32,32 );
+				ctx.drawImageFilterCache( sdCrystal.img_crystal, - 16, - 16, 32, 32 );
 		
-			ctx.globalAlpha = 1;
-			ctx.filter = 'none';
+				ctx.globalAlpha = 1;
+				ctx.filter = 'none';
+			}
+			if ( this.type === 2 )
+			{
+				ctx.drawImageFilterCache( sdCrystal.img_crystal_cluster_empty, - 24, - 24, 48, 48 );
+		
+				ctx.filter = sdWorld.GetCrystalHue( this.matter_max / 4 );
+
+				if ( this.matter_max === sdCrystal.anticrystal_value )
+				ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
+				else
+				ctx.globalAlpha = this.matter / this.matter_max;
+		
+				ctx.drawImageFilterCache( sdCrystal.img_crystal_cluster, - 24, - 24, 48, 48 );
+		
+				ctx.globalAlpha = 1;
+				ctx.filter = 'none';
+			}
 		}
 	}
 	onRemove() // Class-specific, if needed
