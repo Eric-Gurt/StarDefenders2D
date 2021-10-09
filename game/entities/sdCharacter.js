@@ -120,6 +120,8 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_warlord' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_sentinel' ), // by Ghost581
 			sdWorld.CreateImageFromFile( 'helmet_skeleton' ), // by Silk1
+			sdWorld.CreateImageFromFile( 'helmet_rose' ), // by Silk1
+			sdWorld.CreateImageFromFile( 'helmet_avre' ) // by Silk1
 		];
 		
 		sdCharacter.skin_part_indices = {
@@ -173,6 +175,9 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'skins/sovereign' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/wyvern' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/sentinel' ), // by Ghost581
+			sdWorld.CreateImageFromFile( 'skins/skeleton' ), // by Silk1
+			sdWorld.CreateImageFromFile( 'skins/rose' ), // by Silk1
+			sdWorld.CreateImageFromFile( 'skins/avre' ) // by Silk1
 		];
 		
 		// x y rotation, for images below
