@@ -1258,7 +1258,7 @@ class sdGunClass
             ammo_capacity: -1,
             count: 1,
             matter_cost: 280,
-            projectile_properties: { _rail: true, _damage: 90, color: '#62c8f2', explosion_radius: 20}, // buffed damage by player request - Ghost581
+            projectile_properties: { _rail: true, _damage: 98, color: '#62c8f2', explosion_radius: 20}, // buffed damage by player request - Ghost581
             min_build_tool_level: 3
 		};
 
@@ -1905,7 +1905,7 @@ class sdGunClass
 			min_build_tool_level: 3,
 			min_workbench_level: 2,
 			matter_cost: 240,
-			projectile_properties: { time_left: 90, explosion_radius: 20, model: 'mini_missile_p241', _damage: 28, color:sdEffect.default_explosion_color, ac:0.01, _homing: true, _homing_mult: 0.3 }
+			projectile_properties: { time_left: 90, explosion_radius: 20, model: 'mini_missile_p241', _damage: 32, color:sdEffect.default_explosion_color, ac:0.01, _homing: true, _homing_mult: 0.3 }
 		};
 		
 		sdGun.classes[ sdGun.CLASS_F_HEAVY_RIFLE = 69 ] = 

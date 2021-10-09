@@ -33,6 +33,17 @@ class sdPlayerDrone extends sdCharacter
 			sdWorld.CreateImageFromFile( 'drone_robot9' ), // 9
 			sdWorld.CreateImageFromFile( 'drone_robot10' ), // 10
 			sdWorld.CreateImageFromFile( 'drone_robot11' ), // 11
+			sdWorld.CreateImageFromFile( 'drone_robot12' ),
+			sdWorld.CreateImageFromFile( 'drone_robot13' ),
+			sdWorld.CreateImageFromFile( 'drone_robot14' ),
+			sdWorld.CreateImageFromFile( 'drone_robot15' ),
+			sdWorld.CreateImageFromFile( 'drone_robot16' ),
+			sdWorld.CreateImageFromFile( 'drone_robot17' ),
+			sdWorld.CreateImageFromFile( 'drone_robot18' ),
+			sdWorld.CreateImageFromFile( 'drone_robot19' ),
+			sdWorld.CreateImageFromFile( 'drone_robot20' ),
+			sdWorld.CreateImageFromFile( 'drone_robot21' ),
+			sdWorld.CreateImageFromFile( 'drone_robot22' ),
 		];
 		
 		sdPlayerDrone.fake_bullet = {
