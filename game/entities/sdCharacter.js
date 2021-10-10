@@ -61,7 +61,7 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_crow' ), // by butorinoks77
 			sdWorld.CreateImageFromFile( 'helmet_scope' ), // by butorinoks77, remake by GPU
 			sdWorld.CreateImageFromFile( 'helmet_crusader' ), // by xXRedXAssassinXx
-			sdWorld.CreateImageFromFile( 'helmet_phfalkok' ), // by Booraz149, edited by GPU
+			sdWorld.CreateImageFromFile( 'helmet_phfalkok' ), // by Booraz149
 			sdWorld.CreateImageFromFile( 'helmet_aero' ), // // original by LordBored, remake by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_scout' ), // by Ghost581, original name was "Observer"
 			sdWorld.CreateImageFromFile( 'helmet_heavy' ), // by LordBored
@@ -121,7 +121,8 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_sentinel' ), // by Ghost581
 			sdWorld.CreateImageFromFile( 'helmet_skeleton' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'helmet_rose' ), // by Silk1
-			sdWorld.CreateImageFromFile( 'helmet_avre' ) // by Silk1
+			sdWorld.CreateImageFromFile( 'helmet_avre' ), // by Silk1
+			sdWorld.CreateImageFromFile( 'helmet_spaghetti' ) // by Silk1
 		];
 		
 		sdCharacter.skin_part_indices = {
@@ -177,7 +178,8 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'skins/sentinel' ), // by Ghost581
 			sdWorld.CreateImageFromFile( 'skins/skeleton' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'skins/rose' ), // by Silk1
-			sdWorld.CreateImageFromFile( 'skins/avre' ) // by Silk1
+			sdWorld.CreateImageFromFile( 'skins/avre' ), // by Silk1
+			sdWorld.CreateImageFromFile( 'skins/spaghetti' ) // by Silk1
 		];
 		
 		// x y rotation, for images below
