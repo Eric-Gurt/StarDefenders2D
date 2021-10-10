@@ -110,7 +110,7 @@ class sdUpgradeStation extends sdEntity
 			if ( this.level === 1 )
 			gun2 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_RIFLE });
 			if ( this.level >= 2 )
-			gun2 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_LMG_P04 });
+			gun2 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_LMG });
 			gun2.sx = character.sx;
 			gun2.sy = character.sy;
 			sdEntity.entities.push( gun2 );
