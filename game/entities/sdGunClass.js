@@ -42,11 +42,12 @@ class sdGunClass
 			sound: 'gun_pistol',
 			title: 'Pistol',
 			slot: 1,
-			reload_time: 10,
+			reload_time: 3,
 			muzzle_x: 4,
 			ammo_capacity: 12,
 			spread: 0.01,
 			count: 1,
+			fire_type: 2,
 			projectile_properties: { _damage: 20 }
 		};
 		
@@ -350,10 +351,11 @@ class sdGunClass
 			sound_pitch: 0.9,
 			title: 'Cube-pistol',
 			slot: 1,
-			reload_time: 9,
+			reload_time: 2.7,
 			muzzle_x: 4,
 			ammo_capacity: -1,
 			count: 1,
+			fire_type: 2,
 			projectile_properties: { _rail: true, _damage: 25, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false
 		};
@@ -459,13 +461,14 @@ class sdGunClass
 			sound_pitch: 0.7,
 			title: 'Pistol MK2',
 			slot: 1,
-			reload_time: 15,
+			reload_time: 4.5,
 			muzzle_x: 7,
 			ammo_capacity: 8,
 			spread: 0.01,
 			count: 1,
 			matter_cost: 90,
 			min_build_tool_level: 1,
+			fire_type: 2,
 			projectile_properties: { _damage: 35 }
 		};
 
@@ -1192,7 +1195,7 @@ class sdGunClass
 			sound_pitch: 2.4,
 			title: 'Falkok Marksman Rifle',
 			slot: 2,
-			reload_time: 26,
+			reload_time: 21,
 			muzzle_x: 10,
 			ammo_capacity: 12,
 			count: 1,
@@ -1692,12 +1695,13 @@ class sdGunClass
 			sound_pitch: 3,
 			title: 'Erthal Plasma Pistol',
 			slot: 1,
-			reload_time: 9,
+			reload_time: 2.7,
 			muzzle_x: 9,
 			ammo_capacity: 8,
 			count: 1,
 			spawnable:false,
 			projectile_velocity: 16,
+			fire_type: 2,
 			projectile_properties: { explosion_radius: 7, model: 'ball', _damage: 12, color:'#00aaff' }
 		};
 		
@@ -1786,12 +1790,13 @@ class sdGunClass
 			sound_pitch: 1.3,
 			title: 'DMR',
 			slot: 4,
-			reload_time: 26,
+			reload_time: 10.4,
 			muzzle_x: 10,
 			ammo_capacity: 8,
 			count: 1,
 			matter_cost: 160,
 			min_build_tool_level: 1,
+			fire_type: 2,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.7,
 			projectile_properties: { _damage: 72, color: '#33ffff', penetrating: true }
 		};
@@ -2003,12 +2008,13 @@ class sdGunClass
 			sound_pitch: 1.5,
 			title: 'Council Pistol',
 			slot: 1,
-			reload_time: 11,
+			reload_time: 3.3,
 			muzzle_x: 7,
 			ammo_capacity: -1,
 			spread: 0.01,
 			count: 1,
 			spawnable: false,
+			fire_type: 2,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
 			projectile_properties: { _damage: 30, color:'ffff00' }
 		};

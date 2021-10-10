@@ -278,6 +278,8 @@ class sdGun extends sdEntity
 		this.burst_ammo = -123;
 		//this.ttl = params.ttl || sdGun.disowned_guns_ttl;
 		this.extra = ( params.extra === undefined ) ? 0 : params.extra; // shard value will be here
+
+		this.fire_mode = 1; // 1 = full auto, 2 = semi auto
 		
 		this.class = params.class || 0;
 		
@@ -807,7 +809,9 @@ class sdGun extends sdEntity
 			if ( this.reload_time_left > 0 )
 			this.reload_time_left = Math.max( 0, this.reload_time_left - GSPEED * ( ( this._held_by && this._held_by.stim_ef > 0 ) ? 2 : 1 ) );
 		}
-		
+
+		this.fire_mode = sdGun.classes[ this.class ].fire_type || 1; // Adjust fire mode for the weapon
+
 		if ( this.ttl > 0 )
 		{
 			this.ttl -= GSPEED;

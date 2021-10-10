@@ -530,6 +530,7 @@ class sdCharacter extends sdEntity
 		this.ghosting = false;
 		this._ghost_breath = 0; // Time until next breath as ghost
 		this._last_e_state = 0; // For E key taps to activate ghosting
+		this._last_fire_state = 0; // For semi auto weaponry
 		
 		this._upgrade_counters = {}; // key = upgrade
 		
@@ -1906,6 +1907,8 @@ class sdCharacter extends sdEntity
 							}
 						}
 					}
+					else
+					this._last_fire_state = 0;
 					
 					if ( this._inventory[ this.gun_slot ] )
 					{
@@ -1920,12 +1923,26 @@ class sdCharacter extends sdEntity
 
 							if ( will_fire )
 							{
-								if ( !offset )
-								offset = this.GetBulletSpawnOffset();
-							
-								if ( this._inventory[ this.gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ), offset, shoot_from_scenario ) )
+								if ( this._inventory[ this.gun_slot ].fire_mode === 1 )
 								{
-									this.fire_anim = 5;
+									if ( !offset )
+									offset = this.GetBulletSpawnOffset();
+							
+									if ( this._inventory[ this.gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ), offset, shoot_from_scenario ) )
+									{
+										this.fire_anim = 5;
+									}
+								}
+								if ( this._inventory[ this.gun_slot ].fire_mode === 2 &&  this._last_fire_state !== will_fire )
+								{
+									if ( !offset )
+									offset = this.GetBulletSpawnOffset();
+							
+									if ( this._inventory[ this.gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ), offset, shoot_from_scenario ) )
+									{
+										this.fire_anim = 5;
+										this._last_fire_state = will_fire;
+									}
 								}
 							}
 						}
