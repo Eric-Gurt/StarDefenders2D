@@ -472,12 +472,12 @@ class sdGunClass
 			projectile_properties: { _damage: 35 }
 		};
 
-		sdGun.classes[ sdGun.CLASS_LMG_P04 = 24 ] = { // sprite by Ghost581
-			image: sdWorld.CreateImageFromFile( 'lmg_p04' ),
-			sound: 'turret',
-			sound_pitch: 0.6,
-			sound_volume: 2,
-			title: 'LMG-P04',
+		sdGun.classes[ sdGun.CLASS_LMG = 24 ] = { // sprite by LazyRain
+			image: sdWorld.CreateImageFromFile( 'lmg' ),
+			sound: 'gun_pistol',
+			sound_pitch: 0.85,
+			sound_volume: 1.2,
+			title: 'Light Machine Gun',
 			slot: 2,
 			reload_time: 3.2,
 			muzzle_x: 10,
@@ -486,7 +486,7 @@ class sdGunClass
 			count: 1,
 			matter_cost: 90,
 			min_build_tool_level: 1,
-			projectile_properties: { _damage: 36, color: '#AA0000' }
+			projectile_properties: { _damage: 36 }
 		};
 
 		sdGun.classes[ sdGun.CLASS_BUILDTOOL_UPG = 25 ] = 
@@ -2091,6 +2091,24 @@ class sdGunClass
 					bullet._owner.Say( 'I can use this to fortify walls and doors' );
 				}
 			}
+		};
+
+		sdGun.classes[ sdGun.CLASS_GRENADE_LAUNCHER_MK2 = 74 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'grenade_launcher_mk2' ), // Sprite by LazyRain
+			sound: 'gun_grenade_launcher',
+			title: 'Grenade launcher MK2',
+			slot: 5,
+			reload_time: 9,
+			muzzle_x: 7,
+			ammo_capacity: 6,
+			spread: 0.05,
+			count: 1,
+			projectile_velocity: 9,
+			fire_type: 2, // Semi auto
+			matter_cost: 90,
+			min_build_tool_level: 2,
+			projectile_properties: { explosion_radius: 16, time_left: 30 * 3, model: 'grenade', _damage: 16 * 2, color:sdEffect.default_explosion_color, is_grenade: true }
 		};
 		// Add new gun classes above this line //
 		
