@@ -59,9 +59,9 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_cs' ), // idea by butorinoks77, rework by Eric Gurt
 			sdWorld.CreateImageFromFile( 'helmet_grub' ), // idea by butorinoks77, rework by Eric Gurt
 			sdWorld.CreateImageFromFile( 'helmet_crow' ), // by butorinoks77
-			sdWorld.CreateImageFromFile( 'helmet_scope' ), // by butorinoks77
+			sdWorld.CreateImageFromFile( 'helmet_scope' ), // by butorinoks77, remake by GPU
 			sdWorld.CreateImageFromFile( 'helmet_crusader' ), // by xXRedXAssassinXx
-			sdWorld.CreateImageFromFile( 'helmet_phfalkok' ), // by Booraz149
+			sdWorld.CreateImageFromFile( 'helmet_phfalkok' ), // by Booraz149, edited by GPU
 			sdWorld.CreateImageFromFile( 'helmet_aero' ), // // original by LordBored, remake by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_scout' ), // by Ghost581, original name was "Observer"
 			sdWorld.CreateImageFromFile( 'helmet_heavy' ), // by LordBored
@@ -74,16 +74,51 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_glory' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_scion' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_varia' ), // by Silk1
-			sdWorld.CreateImageFromFile( 'helmet_avre' ), // by Silk1
-			sdWorld.CreateImageFromFile( 'helmet_rose' ), // by Silk1
-			sdWorld.CreateImageFromFile( 'helmet_array' ), // by Silk1
+			sdWorld.CreateImageFromFile( 'helmet_array' ), // original by Silk1
 			sdWorld.CreateImageFromFile( 'helmet_nova' ), // by LazyRain
-			sdWorld.CreateImageFromFile( 'helmet_spaghetti' ), // by LazyRain
-			sdWorld.CreateImageFromFile( 'helmet_cleaner' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_igris' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'helmet_ace' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'helmet_alpha' ), // by Silk1
-			sdWorld.CreateImageFromFile( 'helmet_glass' ), // by LazyRain
+			sdWorld.CreateImageFromFile( 'helmet_templar' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_dragon' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_shade' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_agilus' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_biohazard' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_bulwark' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_engineer' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_forge' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_harbinger' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_legate' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_lifter' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_omega' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_protector' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_reaper' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_researcher' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_supreme' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_spire' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_walker' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_acolyte' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_archangel' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_assault' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_beast' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_colonel' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_cyber' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_destiny' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_duality' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_flame' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_hatred' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_hunter' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_judicator' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_marauder' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_medic2' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_overseer' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_shocktrooper' ), // by GPU
+			sdWorld.CreateImageFromFile( 'helmet_starfarer' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_stream' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_synth' ), // by GPU
+			sdWorld.CreateImageFromFile( 'helmet_warden' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_warlord' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_sentinel' ), // by Ghost581
 			sdWorld.CreateImageFromFile( 'helmet_skeleton' ), // by Silk1
 		];
 		
@@ -111,15 +146,33 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'skins/glory' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/scion' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/varia' ), // by Silk1 
-			sdWorld.CreateImageFromFile( 'skins/avre' ), // by Silk1
-			sdWorld.CreateImageFromFile( 'skins/rose' ), // by Silk1 
-			sdWorld.CreateImageFromFile( 'skins/array' ), // by Silk1
+			sdWorld.CreateImageFromFile( 'skins/array' ), // original by Silk1
 			sdWorld.CreateImageFromFile( 'skins/nova' ), // by LazyRain
-			sdWorld.CreateImageFromFile( 'skins/spaghetti' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'skins/igris' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'skins/alpha' ), // by Silk1
-			sdWorld.CreateImageFromFile( 'skins/glass' ), // by Lazyrain
-			sdWorld.CreateImageFromFile( 'skins/skeleton' ) // by Silk1
+			sdWorld.CreateImageFromFile( 'skins/agilus' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/biohazard' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/bulwark' ), // by LordBor
+			sdWorld.CreateImageFromFile( 'skins/engineer' ), // by LordBoreded
+			sdWorld.CreateImageFromFile( 'skins/forge' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/harbinger' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/legate' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/lifter' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/omega' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/protector' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/reaper' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/researcher' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/spire' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/supreme' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/walker' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/castellan' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/empyrean' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/jumper' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/matrix' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/runner' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/sovereign' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/wyvern' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/sentinel' ), // by Ghost581
 		];
 		
 		// x y rotation, for images below

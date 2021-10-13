@@ -77,6 +77,8 @@ class sdWeather extends sdEntity
 		this.y = 0;
 		
 		this._next_grass_seed = 0;
+
+		this._next_amphid_spawn = 0;
 		
 		if ( sdWeather.only_instance )
 		sdWeather.only_instance.remove();
@@ -116,7 +118,7 @@ class sdWeather extends sdEntity
 	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
 	{
 		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
-		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ];
+		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ];
 				
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -437,6 +439,82 @@ class sdWeather extends sdEntity
 						sdWorld.SendEffect({ x:sdWorld.sockets[ i ].character.x, y:sdWorld.sockets[ i ].character.y + sdWorld.sockets[ i ].character._hitbox_y1, type:sdWorld.sockets[ i ].character.GetBleedEffect(), filter:sdWorld.sockets[ i ].character.GetBleedEffectFilter() });
 
 						sdWorld.sockets[ i ].character.Damage( GSPEED * this.raining_intensity / 240 );
+					}
+				}
+
+				if ( sdWorld.time > this._next_amphid_spawn )
+				{
+					this._next_amphid_spawn = sdWorld.time + 10 * 1000;
+
+					if ( Math.random() < 0.25 )
+					{
+						let instances = Math.floor( 1 + Math.random() * 5 );
+						while ( instances > 0 && sdAmphid.amphids_tot < 16 )
+						{
+
+							let amphid = new sdAmphid({ x:0, y:0 });
+
+							sdEntity.entities.push( amphid );
+
+							{
+								var ax,ay;
+								let x,y,i;
+								let tr = 1000;
+								do
+								{
+									if ( ax )
+									{
+										x = ax + Math.random() * 320 - 160;
+										y = ay + Math.random() * 320 - 160;
+									}
+									else
+									{
+										x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+										y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+									}
+									
+									if ( this.TraceDamagePossibleHere( x, y, 20 ) )
+									if ( !amphid.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+									if ( sdWorld.last_hit_entity )
+									if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+									{
+										let di_allowed = true;
+										
+										for ( i = 0; i < sdWorld.sockets.length; i++ )
+										if ( sdWorld.sockets[ i ].character )
+										{
+											let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
+											
+											if ( di < 500 )
+											{
+												di_allowed = false;
+												break;
+											}
+										}
+										
+										if ( di_allowed )
+										{
+											amphid.x = x;
+											amphid.y = y;
+											ax = x;
+											ay = y;
+											
+											break;
+										}
+									}
+
+									tr--;
+									if ( tr < 0 )
+									{
+										amphid.remove();
+										amphid._broken = false;
+										break;
+									}
+								} while( true );
+							}
+
+							instances--;
+						}
 					}
 				}
 			}
@@ -1347,73 +1425,6 @@ class sdWeather extends sdEntity
 							ais++;
 							//console.log('Erthal spawned!');
 							}
-						}
-					}
-					
-					if ( r === 12 ) // Spawn sdAmphids in water where players don't see them
-					{
-						let instances = Math.floor( 3 + Math.random() * 6 );
-						while ( instances > 0 && sdAmphid.amphids_tot < 16 )
-						{
-
-							let amphid = new sdAmphid({ x:0, y:0 });
-
-							sdEntity.entities.push( amphid );
-
-							{
-								let x,y,i;
-								let tr = 1000;
-								do
-								{
-									x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
-									y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-									if ( amphid.CanMoveWithoutOverlap( x, y, 0 ) )
-									if ( amphid.CanMoveWithoutOverlap( x, y - 48, 0 ) )
-									if ( sdWorld.last_hit_entity )
-									if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
-									if ( sdWorld.CheckWallExistsBox( 
-											x + amphid._hitbox_x1 - 32, 
-											y + amphid._hitbox_y1 - 32, 
-											x + amphid._hitbox_x2 + 32, 
-											y + amphid._hitbox_y2 + 32, null, null, [ 'sdWater' ], null ) )
-									{
-										let di_allowed = true;
-										
-										for ( i = 0; i < sdWorld.sockets.length; i++ )
-										if ( sdWorld.sockets[ i ].character )
-										{
-											let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
-											
-											if ( di < 500 )
-											{
-												di_allowed = false;
-												break;
-											}
-										}
-										
-										if ( di_allowed )
-										{
-											amphid.x = x;
-											amphid.y = y;
-
-											break;
-										}
-									}
-									
-
-
-									tr--;
-									if ( tr < 0 )
-									{
-										amphid.remove();
-										amphid._broken = false;
-										break;
-									}
-								} while( true );
-							}
-
-							instances--;
 						}
 					}
 				}
