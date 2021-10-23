@@ -1431,7 +1431,7 @@ class sdWeather extends sdEntity
 					if ( r === 12 ) // Spawn an obelisk near ground where players don't see them
 					{
 						let instances = 1
-						while ( instances > 0 && sdObelisk.obelisks_counter < 50 )
+						while ( instances > 0 && sdObelisk.obelisks_counter < 5 )
 						{
 
 							let obelisk = new sdObelisk({ x:0, y:0 });
