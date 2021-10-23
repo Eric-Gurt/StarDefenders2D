@@ -48,11 +48,11 @@ class sdObelisk extends sdEntity
 	
 		dmg = Math.abs( dmg );
 		
-		if ( this.hea > 0 )
+		if ( this._hea > 0 )
 		{
-			this.hea -= dmg;
+			this._hea -= dmg;
 
-			if ( this.hea <= 0 )
+			if ( this._hea <= 0 )
 			{
 				this.remove();
 			}
