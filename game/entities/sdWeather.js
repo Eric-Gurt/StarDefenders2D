@@ -36,6 +36,7 @@ import sdCrystal from './sdCrystal.js';
 import sdDrone from './sdDrone.js';
 import sdSpider from './sdSpider.js';
 import sdAmphid from './sdAmphid.js';
+import sdObelisk from './sdObelisk.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -118,7 +119,7 @@ class sdWeather extends sdEntity
 	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
 	{
 		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
-		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ];
+		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ];
 				
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -705,8 +706,8 @@ class sdWeather extends sdEntity
 			{
 				//this._time_until_event = Math.random() * 30 * 60 * 8; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
 				//this._time_until_event = Math.random() * 30 * 60 * 3; // Changed after sdWeather logic was being called twice, which caused events to happen twice as frequently
-				this._time_until_event = Math.random() * 30 * 60 * 3 * ( 12 / 5 ); // Changed after introducing "daily events" since there is only up to 5 events that can happen to prevent their overflow
-				/*let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 ];
+				this._time_until_event = Math.random() * 30 * 60 * 3 * ( 3 / 2 ); // Changed after introducing "daily events" since there is only up to 5 events that can happen to prevent them overflowing the map for new players
+				/*let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ];
 				
 				let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -1425,6 +1426,73 @@ class sdWeather extends sdEntity
 							ais++;
 							//console.log('Erthal spawned!');
 							}
+						}
+					}
+					if ( r === 12 ) // Spawn an obelisk near ground where players don't see them
+					{
+						let instances = 1
+						while ( instances > 0 && sdObelisk.obelisks_counter < 50 )
+						{
+
+							let obelisk = new sdObelisk({ x:0, y:0 });
+							obelisk.type = Math.round( 1 + Math.random() * 3 );
+
+							sdEntity.entities.push( obelisk );
+
+							{
+								let x,y,i;
+								let tr = 1000;
+								do
+								{
+									x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+									y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+									if ( obelisk.CanMoveWithoutOverlap( x, y, 0 ) )
+									if ( !obelisk.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+									if ( sdWorld.last_hit_entity )
+									if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+									if ( !sdWorld.CheckWallExistsBox( 
+											x + obelisk._hitbox_x1 - 16, 
+											y + obelisk._hitbox_y1 - 16, 
+											x + obelisk._hitbox_x2 + 16, 
+											y + obelisk._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+									{
+										let di_allowed = true;
+										
+										for ( i = 0; i < sdWorld.sockets.length; i++ )
+										if ( sdWorld.sockets[ i ].character )
+										{
+											let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
+											
+											if ( di < 500 )
+											{
+												di_allowed = false;
+												break;
+											}
+										}
+										
+										if ( di_allowed )
+										{
+											obelisk.x = x;
+											obelisk.y = y;
+
+											break;
+										}
+									}
+									
+
+
+									tr--;
+									if ( tr < 0 )
+									{
+										obelisk.remove();
+										obelisk._broken = false;
+										break;
+									}
+								} while( true );
+							}
+
+							instances--;
 						}
 					}
 				}
