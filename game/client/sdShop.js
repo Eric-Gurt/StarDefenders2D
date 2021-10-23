@@ -454,7 +454,10 @@ class sdShop
 			sdShop.options.push({ _class: 'sdDrone', _ai_team: 2, type: 2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdPlayerDrone', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBeamProjector', _category:'Development tests' });
-			
+			sdShop.options.push({ _class: 'sdObelisk', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdObelisk', type: 2, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdObelisk', type: 3, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdObelisk', type: 4, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdQuadro', _category:'Development tests' });
 		}
 		
