@@ -20,16 +20,18 @@ class sdObelisk extends sdEntity
 		sdObelisk.img_obelisk2 = sdWorld.CreateImageFromFile( 'obelisk2' );
 		sdObelisk.img_obelisk3 = sdWorld.CreateImageFromFile( 'obelisk3' );
 		sdObelisk.img_obelisk4 = sdWorld.CreateImageFromFile( 'obelisk4' );
+		sdObelisk.img_obelisk5 = sdWorld.CreateImageFromFile( 'obelisk5' ); // Sprite by PeacyQuack
+		sdObelisk.img_obelisk6 = sdWorld.CreateImageFromFile( 'obelisk6' );
 
 
 		sdObelisk.obelisks_counter = 0;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.type === 4 ? -8 : -5; }
-	get hitbox_x2() { return this.type === 4 ? 8 : 5; }
-	get hitbox_y1() { return this.type === 4 ? - 24 : -12; }
-	get hitbox_y2() { return this.type === 4 ? 32 : 16; }
+	get hitbox_x1() { return this.type === 6 ? -9 : this.type === 5 ? -9 : this.type === 4 ? -8 : -5; }
+	get hitbox_x2() { return this.type === 6 ? 9 : this.type === 5 ? 9 : this.type === 4 ? 8 : 5; }
+	get hitbox_y1() { return this.type === 6 ? -19 : this.type === 5 ? -16 : this.type === 4 ? - 24 : -12; }
+	get hitbox_y2() { return this.type === 6 ? 31 : this.type === 5 ? 21 : this.type === 4 ? 32 : 16; }
 	
 	get hard_collision()
 	{ return true; }
@@ -80,6 +82,42 @@ class sdObelisk extends sdEntity
 			sdWeather.only_instance._asteroid_spam_amount = 30 * 60; // Meteors for 60 seconds
 		}
 
+		if ( this.type === 5 ) // A larger obelisk which summons all possible "daily" events on the planet
+		{
+			if ( sdWeather.only_instance._daily_events.length > 0 )
+			{
+				let n = 0;
+				for( let i = 0; i < sdWeather.only_instance._daily_events.length; i++)
+				{
+					n = sdWeather.only_instance._daily_events[ i ];
+					if ( n !== 8 ) // No need for earthquakes when there's a specific obelisk doing that
+					//console.log(n);
+					sdWeather.only_instance.ExecuteEvent( n );
+				}
+			}
+		}
+		if ( this.type === 6 ) // A larger obelisk which summons 8 events which cannot occur via time on the planet. Guarantees chaos.
+		{
+			let n = 0;
+			let j = 0;
+			let summon;
+
+			for( let i = 0; i < 8; i++)
+			{
+				summon = true;
+				j = ~~( Math.random() * 12 );
+				if ( j !== 12 ) // Prevent the game from summoning more obelisks by using obelisks
+				if ( sdWeather.only_instance._daily_events.length > 0 )
+				for( let i = 0; i < sdWeather.only_instance._daily_events.length; i++)
+				{
+					n = sdWeather.only_instance._daily_events[ i ];
+					if ( j === n )
+					summon = false;
+				}
+				if ( summon === true )
+				sdWeather.only_instance.ExecuteEvent( j );
+			}
+		}
 
 		this.remove();
 	}
@@ -103,7 +141,7 @@ class sdObelisk extends sdEntity
 		this.glow_animation = 0; // Glow animation for the obelisk
 		this._glow_fade = 0; // Should the glow fade or not?
 
-		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
+		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
 	}
 	MeasureMatterCost()
 	{
@@ -154,18 +192,34 @@ class sdObelisk extends sdEntity
 
 		if ( this.type === 3 )
 		{
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk3, 0, 0, 32, 64, - 16, - 32, 32, 64 ); // Regular obelisk sprite
+		ctx.drawImageFilterCache( sdObelisk.img_obelisk3, 0, 0, 32, 64, - 16, - 32, 32, 64 );
 		ctx.globalAlpha = this.glow_animation / 60;
 		ctx.filter = ' drop-shadow(0px 0px 6px #FFFFFF)';
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk3, 32, 0, 32, 64, - 16, - 32, 32, 64 ); // Obelisk glow
+		ctx.drawImageFilterCache( sdObelisk.img_obelisk3, 32, 0, 32, 64, - 16, - 32, 32, 64 );
 		}
 
 		if ( this.type === 4 )
 		{
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk4, 0, 0, 64, 128, - 32, - 64, 64, 128 ); // Regular obelisk sprite
+		ctx.drawImageFilterCache( sdObelisk.img_obelisk4, 0, 0, 64, 128, - 32, - 64, 64, 128 );
 		ctx.globalAlpha = this.glow_animation / 60;
 		ctx.filter = ' drop-shadow(0px 0px 12px #FFFFFF)';
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk4, 64, 0, 64, 128, - 32, - 64, 64, 128 ); // Obelisk glow
+		ctx.drawImageFilterCache( sdObelisk.img_obelisk4, 64, 0, 64, 128, - 32, - 64, 64, 128 );
+		}
+
+		if ( this.type === 5 )
+		{
+		ctx.drawImageFilterCache( sdObelisk.img_obelisk5, 0, 0, 64, 128, - 32, - 64, 64, 128 );
+		ctx.globalAlpha = this.glow_animation / 60;
+		ctx.filter = ' drop-shadow(0px 0px 6px #0000C8)';
+		ctx.drawImageFilterCache( sdObelisk.img_obelisk5, 64, 0, 64, 128, - 32, - 64, 64, 128 );
+		}
+
+		if ( this.type === 6 )
+		{
+		ctx.drawImageFilterCache( sdObelisk.img_obelisk6, 0, 0, 64, 128, - 32, - 64, 64, 128 );
+		ctx.globalAlpha = this.glow_animation / 60;
+		ctx.filter = ' drop-shadow(0px 0px 6px #C80000)';
+		ctx.drawImageFilterCache( sdObelisk.img_obelisk6, 64, 0, 64, 128, - 32, - 64, 64, 128 );
 		}
 
 		ctx.filter = 'none';
@@ -200,7 +254,6 @@ class sdObelisk extends sdEntity
 			{
 				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
 				{
-					if ( this._hea >= this._hmax )
 					this.ActivateObelisk();
 				}
 				else
@@ -216,7 +269,6 @@ class sdObelisk extends sdEntity
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
 		{
-			if ( this._hea >= this._hmax )
 			this.AddContextOption( 'Activate obelisk', 'ACT', [] );
 		}
 	}
