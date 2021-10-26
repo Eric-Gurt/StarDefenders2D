@@ -1252,7 +1252,7 @@ class sdGunClass
             image1: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
             image2: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
             sound: 'gun_railgun_malicestorm_terrorphaser4',
-            title: 'Phasercannon KIVORTEC-P03',
+            title: 'KIVORTEC-Phasercannon P03',
 			sound_pitch: 1.6, // re-added cause weapon sounds better with the sound pitch. - Ghost581
 			sound_volume: 1.5,
             slot: 8, // moved it to slot 8 cause of it being supposed to be a power weapon and slot 9 still is bound to the BT - Ghost581
@@ -1896,7 +1896,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'missile_launcher_p07' ),
 			sound: 'gun_missile_launcher_p07',
-			title: 'Missile Launcher KIVORTEC-P07',
+			title: 'KIVORTEC-Missile Launcher P07',
 			sound_volume: 2.4,
 			slot: 5,
 			reload_time: 12,
