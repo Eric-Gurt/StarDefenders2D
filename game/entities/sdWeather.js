@@ -13,6 +13,12 @@
 	Stop all events:
 
 		sdWorld.server_config.GetAllowedWorldEvents = ()=>[];
+*/
+
+/*
+
+	// Not sure if method above works anymore, use this:
+	sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 8 ); // Swap 8 for number you want to test
  
 */
 import sdWorld from '../sdWorld.js';
@@ -160,6 +166,776 @@ class sdWeather extends sdEntity
 		return false;
 
 		return true;
+	}
+	ExecuteEvent( r = -1 ) // Used to be under OnThink ( GSPEED ) but swapped for this so any event can be executed at any time, from any entity
+	{
+		//console.log( r );
+		if ( r === 0 )
+		this._rain_amount = 30 * 15 * ( 1 + Math.random() * 2 ); // start rain for ~15 seconds
+
+		if ( r === 1 )
+		this._asteroid_spam_amount = 30 * 15 * ( 1 + Math.random() * 2 );
+
+		if ( r === 2 )
+		{
+			for ( let t = Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) + 1; t > 0; t-- )
+			if ( sdCube.alive_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 0 ) ) // 20
+			{
+				let cube = new sdCube({ 
+					x:sdWorld.world_bounds.x1 + 32 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 - 64 ), 
+					y:sdWorld.world_bounds.y1 + 32,
+					kind:   ( sdCube.alive_huge_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 1 ) && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.1 ) ) ? 1 : 
+							( sdCube.alive_white_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 2 ) && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.04 ) ) ? 2 : 
+							( sdCube.alive_pink_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 3 ) && ( sdCube.alive_cube_counter >= 1 && Math.random() < 0.14 ) ) ? 3 : 
+							0 // _kind = 1 -> is_huge = true , _kind = 2 -> is_white = true , _kind = 3 -> is_pink = true
+				});
+				cube.sy += 10;
+				sdEntity.entities.push( cube );
+
+				if ( !cube.CanMoveWithoutOverlap( cube.x, cube.y, 0 ) )
+				{
+					cube.remove();
+					cube._broken = false;
+				}
+				else
+				sdWorld.UpdateHashPosition( cube, false ); // Prevent inersection with other ones
+			}
+		}
+
+		if ( r === 3 )
+		{
+			let ais = 0;
+
+			for ( var i = 0; i < sdCharacter.characters.length; i++ )
+			if ( sdCharacter.characters[ i ].hea > 0 )
+			if ( !sdCharacter.characters[ i ]._is_being_removed )
+			if ( sdCharacter.characters[ i ]._ai )
+			{
+				ais++;
+			}
+
+			let instances = 0;
+			let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
+
+			let left_side = ( Math.random() < 0.5 );
+
+			while ( instances < instances_tot && ais < 8 )
+			{
+
+				let character_entity = new sdCharacter({ x:0, y:0 });
+
+				sdEntity.entities.push( character_entity );
+
+				{
+					let x,y;
+					let tr = 1000;
+					do
+					{
+						if ( left_side )
+						x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
+						else
+						x = sdWorld.world_bounds.x2 - 16 - 16 * instances;
+
+						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+						if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+						if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+						if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+						{
+							character_entity.x = x;
+							character_entity.y = y;
+
+							//sdWorld.UpdateHashPosition( ent, false );
+							if ( Math.random() < 0.07 )
+							{
+								if ( Math.random() < 0.2 )
+								{
+									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_PSI_CUTTER }) );
+									character_entity._ai_gun_slot = 4;
+								}
+								else
+								{
+									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAYGUN }) );
+									character_entity._ai_gun_slot = 3;
+								}
+							}
+							else
+							{ 
+								if ( Math.random() < 0.1 )
+								{
+									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_MARKSMAN }) );
+									character_entity._ai_gun_slot = 2;
+								}
+								else
+								{
+									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE }) );
+									character_entity._ai_gun_slot = 2;
+								}
+							}
+							let falkok_settings;
+							if ( character_entity._ai_gun_slot === 2 )
+							falkok_settings = {"hero_name":"Falkok","color_bright":"#6b0000","color_dark":"#420000","color_bright3":"#6b0000","color_dark3":"#420000","color_visor":"#5577b9","color_suit":"#240000","color_suit2":"#2e0000","color_dark2":"#560101","color_shoes":"#000000","color_skin":"#240000","helmet1":false,"helmet2":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
+							if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If Falkok spawns with Raygun or PSI-Cutter, change their looks Phoenix Falkok
+							falkok_settings = {"hero_name":"Phoenix Falkok","color_bright":"#ffc800","color_dark":"#a37000","color_bright3":"#ffc800","color_dark3":"#a37000","color_visor":"#000000","color_suit":"#ffc800","color_suit2":"#ffc800","color_dark2":"#000000","color_shoes":"#a37000","color_skin":"#a37000","helmet1":false,"helmet12":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
+
+							character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( falkok_settings );
+							character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( falkok_settings );
+							character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( falkok_settings );
+							character_entity.title = falkok_settings.hero_name;
+							if ( character_entity._ai_gun_slot === 2 ) // If a regular falkok spawns
+							{
+								character_entity.matter = 75;
+								character_entity.matter_max = 75;
+
+								character_entity.hea = 115; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
+								character_entity.hmax = 115;
+
+								character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
+							}
+
+							if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If a Phoenix Falkok spawns
+							{
+								character_entity.matter = 100;
+								character_entity.matter_max = 100;
+
+								character_entity.hea = 250; // It is a stronger falkok after all, although revert changes if you want
+								character_entity.hmax = 250;
+
+								character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
+							}	
+							character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+							character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
+										
+							character_entity._ai_level = Math.floor( Math.random() * 2 ); // Either 0 or 1
+										
+							character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
+							character_entity._jetpack_allowed = true; // Jetpack
+							character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
+							character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+							character_entity._ai_team = 1; // AI team 1 is for Falkoks, preparation for future AI factions
+							character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
+
+							break;
+						}
+
+
+						tr--;
+						if ( tr < 0 )
+						{
+							character_entity.remove();
+							character_entity._broken = false;
+							break;
+						}
+					} while( true );
+				}
+
+				instances++;
+				ais++;
+			}
+		}
+
+		if ( r === 4 )
+		{
+			for ( let t = Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) + 1; t > 0; t-- )
+			if ( sdAsp.asps_tot < 25 )
+			{
+				let asp = new sdAsp({ 
+					x:sdWorld.world_bounds.x1 + 32 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 - 64 ), 
+					y:sdWorld.world_bounds.y1 + 32
+				});
+				//asp.sy += 10;
+				sdEntity.entities.push( asp );
+
+				if ( !asp.CanMoveWithoutOverlap( asp.x, asp.y, 0 ) )
+				{
+					asp.remove();
+					asp._broken = false;
+				}
+				else
+				sdWorld.UpdateHashPosition( asp, false ); // Prevent inersection with other ones
+			}
+		}
+					
+		if ( r === 5 ) // Falkok invasion event
+		{
+			if ( this._invasion === false ) // Prevent invasion resetting
+			{
+				this._invasion = true;
+				this._invasion_timer = 120 ; // 2 minutes; using GSPEED for measurement (feel free to change that, I'm not sure how it should work)
+				this._invasion_spawn_timer = 0;
+				this._invasion_spawns_con = 30; // At least 30 Falkoks must spawn otherwise invasion will not end
+				//console.log('Invasion incoming!');
+				{ // Spawn some drones as invasion starts
+					let instances = 0;
+					let instances_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
+
+					let left_side = ( Math.random() < 0.5 );
+
+					while ( instances < instances_tot && sdDrone.drones_tot < 20 )
+					{
+
+						let drone = new sdDrone({ x:0, y:0 , _ai_team: 1});
+
+						sdEntity.entities.push( drone );
+
+						{
+							let x,y;
+							let tr = 1000;
+							do
+							{
+								if ( left_side )
+								x = sdWorld.world_bounds.x1 + 64 + 64 * instances;
+								else
+								x = sdWorld.world_bounds.x2 - 64 - 64 * instances;
+
+								y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+								if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
+								//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+								{
+									drone.x = x;
+									drone.y = y;
+
+									//sdWorld.UpdateHashPosition( ent, false );
+									//console.log('Drone spawned!');
+									break;
+								}
+
+
+								tr--;
+								if ( tr < 0 )
+								{
+									drone.remove();
+									drone._broken = false;
+									break;
+								}
+							} while( true );
+						}
+						instances++;
+					}
+				}
+			}
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 1; // if the event is already active, quickly initiate something else
+						
+		}
+
+		if ( r === 6 ) // Big virus event
+		{
+			let instances = 0;
+			let instances_tot = 1 + Math.ceil( Math.random() * 3 );
+
+			let left_side = ( Math.random() < 0.5 );
+
+			while ( instances < instances_tot && sdVirus.viruses_tot < 40  && sdVirus.big_viruses < 4 )
+			{
+
+				let virus_entity = new sdVirus({ x:0, y:0 });
+				virus_entity._is_big = true;
+				sdEntity.entities.push( virus_entity );
+				sdVirus.big_viruses++;
+				{
+					let x,y;
+					let tr = 1000;
+					do
+					{
+						if ( left_side )
+						x = sdWorld.world_bounds.x1 + 32 + 64 * instances;
+						else
+						x = sdWorld.world_bounds.x2 - 32 - 64 * instances;
+
+						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+						if ( virus_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+						if ( virus_entity.CanMoveWithoutOverlap( x + 32, y, 0 ) )
+						if ( virus_entity.CanMoveWithoutOverlap( x - 32, y, 0 ) )
+						if ( virus_entity.CanMoveWithoutOverlap( x, y - 32, 0 ) )
+						if ( virus_entity.CanMoveWithoutOverlap( x + 32, y - 32, 0 ) )
+						if ( virus_entity.CanMoveWithoutOverlap( x - 32, y - 32, 0 ) )
+						if ( !virus_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+						if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+						{
+							virus_entity.x = x;
+							virus_entity.y = y;
+
+							//sdWorld.UpdateHashPosition( ent, false );
+							//console.log('Big virus spawned!');
+							//console.log(sdVirus.big_viruses);
+							break;
+						}
+
+
+						tr--;
+						if ( tr < 0 )
+						{
+							virus_entity.remove();
+							virus_entity._broken = false;
+							break;
+						}
+					} while( true );
+				}
+
+				instances++;
+			}
+		}
+					
+		if ( r === 7 ) // Flying Mech event
+		{
+			let instances = 0;
+			let instances_tot = Math.ceil( ( Math.random() * sdWorld.GetPlayingPlayersCount() ) / 3 );
+
+			let left_side = ( Math.random() < 0.5 );
+
+			while ( instances < instances_tot && sdEnemyMech.mechs_counter < 3 )
+			{
+
+				let mech_entity = new sdEnemyMech({ x:0, y:0 });
+
+				sdEntity.entities.push( mech_entity );
+
+				{
+					let x,y;
+					let tr = 1000;
+					do
+					{
+						if ( left_side )
+						x = sdWorld.world_bounds.x1 + 64 + 64 * instances;
+						else
+						x = sdWorld.world_bounds.x2 - 64 - 64 * instances;
+
+						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+						if ( mech_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+						//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+						//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+						{
+							mech_entity.x = x;
+							mech_entity.y = y;
+
+							//sdWorld.UpdateHashPosition( ent, false );
+							//console.log('Flying mech spawned!');
+							break;
+						}
+
+
+						tr--;
+						if ( tr < 0 )
+						{
+							mech_entity.remove();
+							mech_entity._broken = false;
+							break;
+						}
+					} while( true );
+				}
+
+				instances++;
+			}
+		}
+					
+		if ( r === 8 ) // Earth quake, idea by LazyRain, implementation by Eric Gurt
+		{
+			this._quake_scheduled_amount = 30 * ( 10 + Math.random() * 30 );
+		}
+					
+		if ( r === 9 ) // Spawn few sdBadDog-s somewhere on ground where players don't see them
+		{
+			let instances = Math.floor( 3 + Math.random() * 6 );
+			while ( instances > 0 && sdBadDog.dogs_counter < 16 )
+			{
+
+				let dog = new sdBadDog({ x:0, y:0 });
+
+				sdEntity.entities.push( dog );
+
+				{
+					let x,y,i;
+					let tr = 1000;
+					do
+					{
+						x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+						if ( dog.CanMoveWithoutOverlap( x, y, 0 ) )
+						if ( !dog.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+						if ( sdWorld.last_hit_entity )
+						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+						if ( !sdWorld.CheckWallExistsBox( 
+								x + dog._hitbox_x1 - 16, 
+								y + dog._hitbox_y1 - 16, 
+								x + dog._hitbox_x2 + 16, 
+								y + dog._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+						{
+							let di_allowed = true;
+										
+							for ( i = 0; i < sdWorld.sockets.length; i++ )
+							if ( sdWorld.sockets[ i ].character )
+							{
+								let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
+											
+								if ( di < 500 )
+								{
+									di_allowed = false;
+									break;
+								}
+							}
+										
+							if ( di_allowed )
+							{
+								dog.x = x;
+								dog.y = y;
+
+								break;
+							}
+						}
+									
+
+
+						tr--;
+						if ( tr < 0 )
+						{
+							dog.remove();
+							dog._broken = false;
+							break;
+						}
+					} while( true );
+				}
+
+				instances--;
+			}
+		}
+
+		if ( r === 10 ) // Portal event
+		{
+			if ( Math.random() < 0.7 ) // 70% chance for rift portal to spawn
+			{
+				let instances = 1;
+				while ( instances > 0 && sdRift.portals < 2 )
+				{
+
+					let portal = new sdRift({ x:0, y:0 });
+
+					sdEntity.entities.push( portal );
+
+					{
+						let x,y,i;
+						let tr = 1000;
+						do
+						{
+							x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+							y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+							if ( Math.random() < 0.2 ) // 20% chance it's a "Cube" spawning portal
+							portal.tier = 2;
+
+							if ( portal.CanMoveWithoutOverlap( x, y, 0 ) )
+							if ( !portal.CanMoveWithoutOverlap( x, y + 24, 0 ) )
+							if ( sdWorld.last_hit_entity )
+							if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+							if ( !sdWorld.CheckWallExistsBox( 
+									x + portal._hitbox_x1 - 8, 
+									y + portal._hitbox_y1 - 8, 
+									x + portal._hitbox_x2 + 8, 
+									y + portal._hitbox_y2 + 8, null, null, [ 'sdWater' ], null ) )
+							{
+								portal.x = x;
+								portal.y = y;
+
+								break;
+							}
+									
+
+
+							tr--;
+							if ( tr < 0 )
+							{
+								portal.remove();
+								portal._broken = false;
+								break;
+							}
+						} while( true );
+					}
+
+				instances--;
+				}
+			}
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
+					
+		if ( r === 11 ) // Spawn 3-6 sdSpiders, drones somewhere on ground where players don't see them and Erthal humanoids
+		{
+			let instances = Math.floor( 3 + Math.random() * 4 );
+			while ( instances > 0 && sdSpider.spider_counter < Math.min( 32, sdWorld.GetPlayingPlayersCount() * 10 ) )
+			{
+
+				let ent = new sdSpider({ x:0, y:0 });
+				sdEntity.entities.push( ent );
+				ent.type = ( Math.random() < 0.05 ) ? 1 : 0;
+
+				//if ( sdDrone.drones_tot < 20 ) // Not sure if this is needed to be honest, it also causes error because "let" can't be behind an "if" directly - Booraz149
+				let ent_drone = new sdDrone({ x:0, y:0, _ai_team: 2, type: 2 }); 
+				sdEntity.entities.push( ent_drone );
+
+
+				{
+					let x,y,i;
+					let tr = 1000;
+					do
+					{
+						x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+						if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
+						if ( !ent.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+						if ( ent_drone.CanMoveWithoutOverlap( x, y - 48, 0 ) ) // Check if drones have enough space to be placed above Erthal spider bots.
+						if ( sdWorld.last_hit_entity )
+						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+						if ( !sdWorld.CheckWallExistsBox( 
+								x + ent._hitbox_x1 - 16, 
+								y + ent._hitbox_y1 - 116, 
+								x + ent._hitbox_x2 + 16, 
+								y + ent._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+						{
+							let di_allowed = true;
+										
+							for ( i = 0; i < sdWorld.sockets.length; i++ )
+							if ( sdWorld.sockets[ i ].character )
+							{
+								let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
+											
+								if ( di < 700 )
+								{
+									di_allowed = false;
+									break;
+								}
+							}
+										
+							if ( di_allowed )
+							{
+								ent.x = x;
+								ent.y = y;
+
+								ent_drone.x = x;
+								ent_drone.y = y - 48;
+
+								break;
+							}
+						}
+									
+
+
+						tr--;
+						if ( tr < 0 )
+						{
+							ent.remove();
+							ent._broken = false;
+
+							ent_drone.remove();
+							ent_drone._broken = false;
+							break;
+						}
+					} while( true );
+				}
+
+				instances--;
+			}
+			let ais = 0;
+			let percent = 0;
+			for ( var i = 0; i < sdCharacter.characters.length; i++ )
+			{
+				if ( sdCharacter.characters[ i ].hea > 0 )
+				if ( !sdCharacter.characters[ i ]._is_being_removed )
+				if ( sdCharacter.characters[ i ]._ai_team === 2 )
+				{
+					ais++;
+				}
+
+				if ( sdCharacter.characters[ i ].hea > 0 )
+				if ( !sdCharacter.characters[ i ]._is_being_removed )
+				//if ( !sdCharacter.characters[ i ]._ai )
+				if ( sdCharacter.characters[ i ].build_tool_level > 0 )
+				{
+					percent++;
+				}
+			}
+			if ( Math.random() < ( percent / sdWorld.GetPlayingPlayersCount() ) ) // Spawn chance depends on RNG, chances increase if more players ( or all ) have at least one built tool / shop upgrade
+			{
+				let robots = 0;
+				let robots_tot = 1 + ( ~~( Math.random() * 2 ) );
+
+				let left_side = ( Math.random() < 0.5 );
+
+				while ( robots < robots_tot && ais < 8 )
+				{
+
+					let character_entity = new sdCharacter({ x:0, y:0 });
+
+					sdEntity.entities.push( character_entity );
+
+					{
+						let x,y;
+						let tr = 1000;
+						do
+						{
+							if ( left_side )
+							x = sdWorld.world_bounds.x1 + 16 + 16 * robots;
+							else
+							x = sdWorld.world_bounds.x2 - 16 - 16 * robots;
+
+							y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+							if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+							if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+							if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+							{
+								character_entity.x = x;
+								character_entity.y = y;
+
+								//sdWorld.UpdateHashPosition( ent, false );
+								if ( Math.random() < 0.3 )
+								{
+									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_BURST_RIFLE }) );
+									character_entity._ai_gun_slot = 2;
+								}
+								else
+								{
+									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_PLASMA_PISTOL }) );
+									character_entity._ai_gun_slot = 1;
+								}
+								let robot_settings;
+								//if ( character_entity._ai_gun_slot === 2 )
+								robot_settings = {"hero_name":"Erthal","color_bright":"#37a2ff","color_dark":"#000000","color_bright3":"#464646","color_dark3":"#000000","color_visor":"#1664a8","color_suit":"#464646","color_suit2":"#000000","color_dark2":"#464646","color_shoes":"#000000","color_skin":"#1665a8","color_extra1":"#464646","helmet1":false,"helmet4":true,"body3":true,"legs3":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":false,"voice7":true};
+
+								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( robot_settings );
+								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( robot_settings );
+								character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( robot_settings );
+								character_entity.title = robot_settings.hero_name;
+								character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( robot_settings );
+								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( robot_settings );
+								if ( character_entity._ai_gun_slot === 2 || character_entity._ai_gun_slot === 1 )
+								{
+									character_entity.matter = 150;
+									character_entity.matter_max = 150;
+
+									character_entity.hea = 250;
+									character_entity.hmax = 250;
+
+									character_entity.armor = 250;
+									character_entity.armor_max = 500;
+									character_entity._armor_absorb_perc = 0.75; // 75% damage absorption, since armor will run out before health, they effectively have 750 health
+
+									character_entity._damage_mult = 1; // Supposed to put up a challenge
+								}
+
+								/*if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // Nothing here so far
+								{
+									character_entity.matter = 100;
+									character_entity.matter_max = 100;
+
+									character_entity.hea = 250;
+									character_entity.hmax = 250;
+
+									character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
+								}*/	
+								character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+								character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
+										
+								character_entity._ai_level = 4;
+										
+								character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
+								character_entity._jetpack_allowed = true; // Jetpack
+								character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
+								character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+								character_entity._ai_team = 2; // AI team 2 is for Erthal
+								character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
+
+							break;
+						}
+
+
+						tr--;
+						if ( tr < 0 )
+						{
+							character_entity.remove();
+							character_entity._broken = false;
+							break;
+						}
+					} while( true );
+				}
+
+				robots++;
+				ais++;
+				//console.log('Erthal spawned!');
+				}
+			}
+		}
+		if ( r === 12 ) // Spawn an obelisk near ground where players don't see them
+		{
+			let instances = 1
+			while ( instances > 0 && sdObelisk.obelisks_counter < 5 )
+			{
+
+				let obelisk = new sdObelisk({ x:0, y:0 });
+				obelisk.type = Math.round( 1 + Math.random() * 5 );
+
+				sdEntity.entities.push( obelisk );
+
+				{
+					let x,y,i;
+					let tr = 1000;
+					do
+					{
+						x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+						if ( obelisk.CanMoveWithoutOverlap( x, y, 0 ) )
+						if ( !obelisk.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+						if ( sdWorld.last_hit_entity )
+						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+						if ( !sdWorld.CheckWallExistsBox( 
+								x + obelisk._hitbox_x1 - 16, 
+								y + obelisk._hitbox_y1 - 16, 
+								x + obelisk._hitbox_x2 + 16, 
+								y + obelisk._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+						{
+							let di_allowed = true;
+										
+							for ( i = 0; i < sdWorld.sockets.length; i++ )
+							if ( sdWorld.sockets[ i ].character )
+							{
+								let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
+											
+								if ( di < 500 )
+								{
+									di_allowed = false;
+									break;
+								}
+							}
+										
+							if ( di_allowed )
+							{
+								obelisk.x = x;
+								obelisk.y = y;
+
+								break;
+							}
+						}
+									
+
+
+						tr--;
+						if ( tr < 0 )
+							{
+							obelisk.remove();
+							obelisk._broken = false;
+							break;
+						}
+					} while( true );
+				}
+
+				instances--;
+			}
+		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -725,776 +1501,7 @@ class sdWeather extends sdEntity
 				if ( allowed_event_ids.length > 0 )
 				{
 					let r = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
-					//console.log( r );
-
-					//r = 3; // Hack
-
-					if ( r === 0 )
-					this._rain_amount = 30 * 15 * ( 1 + Math.random() * 2 ); // start rain for ~15 seconds
-
-					if ( r === 1 )
-					this._asteroid_spam_amount = 30 * 15 * ( 1 + Math.random() * 2 );
-
-					if ( r === 2 )
-					{
-						for ( let t = Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) + 1; t > 0; t-- )
-						if ( sdCube.alive_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 0 ) ) // 20
-						{
-							let cube = new sdCube({ 
-								x:sdWorld.world_bounds.x1 + 32 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 - 64 ), 
-								y:sdWorld.world_bounds.y1 + 32,
-								kind:   ( sdCube.alive_huge_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 1 ) && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.1 ) ) ? 1 : 
-										( sdCube.alive_white_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 2 ) && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.04 ) ) ? 2 : 
-										( sdCube.alive_pink_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 3 ) && ( sdCube.alive_cube_counter >= 1 && Math.random() < 0.14 ) ) ? 3 : 
-										0 // _kind = 1 -> is_huge = true , _kind = 2 -> is_white = true , _kind = 3 -> is_pink = true
-							});
-							cube.sy += 10;
-							sdEntity.entities.push( cube );
-
-							if ( !cube.CanMoveWithoutOverlap( cube.x, cube.y, 0 ) )
-							{
-								cube.remove();
-								cube._broken = false;
-							}
-							else
-							sdWorld.UpdateHashPosition( cube, false ); // Prevent inersection with other ones
-						}
-					}
-
-					if ( r === 3 )
-					{
-						let ais = 0;
-
-						for ( var i = 0; i < sdCharacter.characters.length; i++ )
-						if ( sdCharacter.characters[ i ].hea > 0 )
-						if ( !sdCharacter.characters[ i ]._is_being_removed )
-						if ( sdCharacter.characters[ i ]._ai )
-						{
-							ais++;
-						}
-
-						let instances = 0;
-						let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
-
-						let left_side = ( Math.random() < 0.5 );
-
-						while ( instances < instances_tot && ais < 8 )
-						{
-
-							let character_entity = new sdCharacter({ x:0, y:0 });
-
-							sdEntity.entities.push( character_entity );
-
-							{
-								let x,y;
-								let tr = 1000;
-								do
-								{
-									if ( left_side )
-									x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
-									else
-									x = sdWorld.world_bounds.x2 - 16 - 16 * instances;
-
-									y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-									if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-									if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-									if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
-									{
-										character_entity.x = x;
-										character_entity.y = y;
-
-										//sdWorld.UpdateHashPosition( ent, false );
-										if ( Math.random() < 0.07 )
-										{
-											if ( Math.random() < 0.2 )
-											{
-												sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_PSI_CUTTER }) );
-												character_entity._ai_gun_slot = 4;
-											}
-											else
-											{
-												sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAYGUN }) );
-												character_entity._ai_gun_slot = 3;
-											}
-										}
-										else
-										{ 
-											if ( Math.random() < 0.1 )
-											{
-												sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_MARKSMAN }) );
-												character_entity._ai_gun_slot = 2;
-											}
-											else
-											{
-												sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE }) );
-												character_entity._ai_gun_slot = 2;
-											}
-										}
-										let falkok_settings;
-										if ( character_entity._ai_gun_slot === 2 )
-										falkok_settings = {"hero_name":"Falkok","color_bright":"#6b0000","color_dark":"#420000","color_bright3":"#6b0000","color_dark3":"#420000","color_visor":"#5577b9","color_suit":"#240000","color_suit2":"#2e0000","color_dark2":"#560101","color_shoes":"#000000","color_skin":"#240000","helmet1":false,"helmet2":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
-										if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If Falkok spawns with Raygun or PSI-Cutter, change their looks Phoenix Falkok
-										falkok_settings = {"hero_name":"Phoenix Falkok","color_bright":"#ffc800","color_dark":"#a37000","color_bright3":"#ffc800","color_dark3":"#a37000","color_visor":"#000000","color_suit":"#ffc800","color_suit2":"#ffc800","color_dark2":"#000000","color_shoes":"#a37000","color_skin":"#a37000","helmet1":false,"helmet12":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
-
-										character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( falkok_settings );
-										character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( falkok_settings );
-										character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( falkok_settings );
-										character_entity.title = falkok_settings.hero_name;
-										if ( character_entity._ai_gun_slot === 2 ) // If a regular falkok spawns
-										{
-											character_entity.matter = 75;
-											character_entity.matter_max = 75;
-
-											character_entity.hea = 115; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
-											character_entity.hmax = 115;
-
-											character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
-										}
-
-										if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If a Phoenix Falkok spawns
-										{
-											character_entity.matter = 100;
-											character_entity.matter_max = 100;
-
-											character_entity.hea = 250; // It is a stronger falkok after all, although revert changes if you want
-											character_entity.hmax = 250;
-
-											character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
-										}	
-										character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-										character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
-										
-										character_entity._ai_level = Math.floor( Math.random() * 2 ); // Either 0 or 1
-										
-										character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
-										character_entity._jetpack_allowed = true; // Jetpack
-										character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
-										character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-										character_entity._ai_team = 1; // AI team 1 is for Falkoks, preparation for future AI factions
-										character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
-
-										break;
-									}
-
-
-									tr--;
-									if ( tr < 0 )
-									{
-										character_entity.remove();
-										character_entity._broken = false;
-										break;
-									}
-								} while( true );
-							}
-
-							instances++;
-							ais++;
-						}
-					}
-
-					if ( r === 4 )
-					{
-						for ( let t = Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) + 1; t > 0; t-- )
-						if ( sdAsp.asps_tot < 25 )
-						{
-							let asp = new sdAsp({ 
-								x:sdWorld.world_bounds.x1 + 32 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 - 64 ), 
-								y:sdWorld.world_bounds.y1 + 32
-							});
-							//asp.sy += 10;
-							sdEntity.entities.push( asp );
-
-							if ( !asp.CanMoveWithoutOverlap( asp.x, asp.y, 0 ) )
-							{
-								asp.remove();
-								asp._broken = false;
-							}
-							else
-							sdWorld.UpdateHashPosition( asp, false ); // Prevent inersection with other ones
-						}
-					}
-					
-					if ( r === 5 ) // Falkok invasion event
-					{
-						if ( this._invasion === false ) // Prevent invasion resetting
-						{
-							this._invasion = true;
-							this._invasion_timer = 120 ; // 2 minutes; using GSPEED for measurement (feel free to change that, I'm not sure how it should work)
-							this._invasion_spawn_timer = 0;
-							this._invasion_spawns_con = 30; // At least 30 Falkoks must spawn otherwise invasion will not end
-							//console.log('Invasion incoming!');
-							{ // Spawn some drones as invasion starts
-								let instances = 0;
-								let instances_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
-
-								let left_side = ( Math.random() < 0.5 );
-
-								while ( instances < instances_tot && sdDrone.drones_tot < 20 )
-								{
-
-									let drone = new sdDrone({ x:0, y:0 , _ai_team: 1});
-
-									sdEntity.entities.push( drone );
-
-									{
-										let x,y;
-										let tr = 1000;
-										do
-										{
-											if ( left_side )
-											x = sdWorld.world_bounds.x1 + 64 + 64 * instances;
-											else
-											x = sdWorld.world_bounds.x2 - 64 - 64 * instances;
-
-											y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-											if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
-											//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-											//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
-											{
-												drone.x = x;
-												drone.y = y;
-
-												//sdWorld.UpdateHashPosition( ent, false );
-												//console.log('Drone spawned!');
-												break;
-											}
-
-
-											tr--;
-											if ( tr < 0 )
-											{
-												drone.remove();
-												drone._broken = false;
-												break;
-											}
-										} while( true );
-									}
-									instances++;
-								}
-							}
-						}
-						else
-						this._time_until_event = Math.random() * 30 * 60 * 1; // if the event is already active, quickly initiate something else
-						
-					}
-
-					if ( r === 6 ) // Big virus event
-					{
-						let instances = 0;
-						let instances_tot = 1 + Math.ceil( Math.random() * 3 );
-
-						let left_side = ( Math.random() < 0.5 );
-
-						while ( instances < instances_tot && sdVirus.viruses_tot < 40  && sdVirus.big_viruses < 4 )
-						{
-
-							let virus_entity = new sdVirus({ x:0, y:0 });
-							virus_entity._is_big = true;
-							sdEntity.entities.push( virus_entity );
-							sdVirus.big_viruses++;
-							{
-								let x,y;
-								let tr = 1000;
-								do
-								{
-									if ( left_side )
-									x = sdWorld.world_bounds.x1 + 32 + 64 * instances;
-									else
-									x = sdWorld.world_bounds.x2 - 32 - 64 * instances;
-
-									y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-									if ( virus_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-									if ( virus_entity.CanMoveWithoutOverlap( x + 32, y, 0 ) )
-									if ( virus_entity.CanMoveWithoutOverlap( x - 32, y, 0 ) )
-									if ( virus_entity.CanMoveWithoutOverlap( x, y - 32, 0 ) )
-									if ( virus_entity.CanMoveWithoutOverlap( x + 32, y - 32, 0 ) )
-									if ( virus_entity.CanMoveWithoutOverlap( x - 32, y - 32, 0 ) )
-									if ( !virus_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-									if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
-									{
-										virus_entity.x = x;
-										virus_entity.y = y;
-
-										//sdWorld.UpdateHashPosition( ent, false );
-										//console.log('Big virus spawned!');
-										//console.log(sdVirus.big_viruses);
-										break;
-									}
-
-
-									tr--;
-									if ( tr < 0 )
-									{
-										virus_entity.remove();
-										virus_entity._broken = false;
-										break;
-									}
-								} while( true );
-							}
-
-							instances++;
-						}
-					}
-					
-					if ( r === 7 ) // Flying Mech event
-					{
-						let instances = 0;
-						let instances_tot = Math.ceil( ( Math.random() * sdWorld.GetPlayingPlayersCount() ) / 3 );
-
-						let left_side = ( Math.random() < 0.5 );
-
-						while ( instances < instances_tot && sdEnemyMech.mechs_counter < 3 )
-						{
-
-							let mech_entity = new sdEnemyMech({ x:0, y:0 });
-
-							sdEntity.entities.push( mech_entity );
-
-							{
-								let x,y;
-								let tr = 1000;
-								do
-								{
-									if ( left_side )
-									x = sdWorld.world_bounds.x1 + 64 + 64 * instances;
-									else
-									x = sdWorld.world_bounds.x2 - 64 - 64 * instances;
-
-									y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-									if ( mech_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-									//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-									//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
-									{
-										mech_entity.x = x;
-										mech_entity.y = y;
-
-										//sdWorld.UpdateHashPosition( ent, false );
-										//console.log('Flying mech spawned!');
-										break;
-									}
-
-
-									tr--;
-									if ( tr < 0 )
-									{
-										mech_entity.remove();
-										mech_entity._broken = false;
-										break;
-									}
-								} while( true );
-							}
-
-							instances++;
-						}
-					}
-					
-					if ( r === 8 ) // Earth quake, idea by LazyRain, implementation by Eric Gurt
-					{
-						this._quake_scheduled_amount = 30 * ( 10 + Math.random() * 30 );
-					}
-					
-					if ( r === 9 ) // Spawn few sdBadDog-s somewhere on ground where players don't see them
-					{
-						let instances = Math.floor( 3 + Math.random() * 6 );
-						while ( instances > 0 && sdBadDog.dogs_counter < 16 )
-						{
-
-							let dog = new sdBadDog({ x:0, y:0 });
-
-							sdEntity.entities.push( dog );
-
-							{
-								let x,y,i;
-								let tr = 1000;
-								do
-								{
-									x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
-									y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-									if ( dog.CanMoveWithoutOverlap( x, y, 0 ) )
-									if ( !dog.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-									if ( sdWorld.last_hit_entity )
-									if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
-									if ( !sdWorld.CheckWallExistsBox( 
-											x + dog._hitbox_x1 - 16, 
-											y + dog._hitbox_y1 - 16, 
-											x + dog._hitbox_x2 + 16, 
-											y + dog._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
-									{
-										let di_allowed = true;
-										
-										for ( i = 0; i < sdWorld.sockets.length; i++ )
-										if ( sdWorld.sockets[ i ].character )
-										{
-											let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
-											
-											if ( di < 500 )
-											{
-												di_allowed = false;
-												break;
-											}
-										}
-										
-										if ( di_allowed )
-										{
-											dog.x = x;
-											dog.y = y;
-
-											break;
-										}
-									}
-									
-
-
-									tr--;
-									if ( tr < 0 )
-									{
-										dog.remove();
-										dog._broken = false;
-										break;
-									}
-								} while( true );
-							}
-
-							instances--;
-						}
-					}
-
-					if ( r === 10 ) // Portal event
-					{
-						if ( Math.random() < 0.7 ) // 70% chance for rift portal to spawn
-						{
-							let instances = 1;
-							while ( instances > 0 && sdRift.portals < 2 )
-							{
-
-								let portal = new sdRift({ x:0, y:0 });
-
-								sdEntity.entities.push( portal );
-
-								{
-									let x,y,i;
-									let tr = 1000;
-									do
-									{
-										x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
-										y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-										if ( Math.random() < 0.2 ) // 20% chance it's a "Cube" spawning portal
-										portal.tier = 2;
-
-										if ( portal.CanMoveWithoutOverlap( x, y, 0 ) )
-										if ( !portal.CanMoveWithoutOverlap( x, y + 24, 0 ) )
-										if ( sdWorld.last_hit_entity )
-										if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
-										if ( !sdWorld.CheckWallExistsBox( 
-												x + portal._hitbox_x1 - 8, 
-												y + portal._hitbox_y1 - 8, 
-												x + portal._hitbox_x2 + 8, 
-												y + portal._hitbox_y2 + 8, null, null, [ 'sdWater' ], null ) )
-										{
-											portal.x = x;
-											portal.y = y;
-
-											break;
-										}
-									
-
-
-										tr--;
-										if ( tr < 0 )
-										{
-											portal.remove();
-											portal._broken = false;
-											break;
-										}
-									} while( true );
-								}
-
-							instances--;
-							}
-						}
-						else
-						this._time_until_event = Math.random() * 30 * 60 * 1; // Quickly switch to another event
-					}
-					
-					if ( r === 11 ) // Spawn 3-6 sdSpiders, drones somewhere on ground where players don't see them and Erthal humanoids
-					{
-						let instances = Math.floor( 3 + Math.random() * 4 );
-						while ( instances > 0 && sdSpider.spider_counter < Math.min( 32, sdWorld.GetPlayingPlayersCount() * 10 ) )
-						{
-
-							let ent = new sdSpider({ x:0, y:0 });
-							sdEntity.entities.push( ent );
-							ent.type = ( Math.random() < 0.05 ) ? 1 : 0;
-
-							//if ( sdDrone.drones_tot < 20 ) // Not sure if this is needed to be honest, it also causes error because "let" can't be behind an "if" directly - Booraz149
-							let ent_drone = new sdDrone({ x:0, y:0, _ai_team: 2, type: 2 }); 
-							sdEntity.entities.push( ent_drone );
-
-
-							{
-								let x,y,i;
-								let tr = 1000;
-								do
-								{
-									x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
-									y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-									if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
-									if ( !ent.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-									if ( ent_drone.CanMoveWithoutOverlap( x, y - 48, 0 ) ) // Check if drones have enough space to be placed above Erthal spider bots.
-									if ( sdWorld.last_hit_entity )
-									if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
-									if ( !sdWorld.CheckWallExistsBox( 
-											x + ent._hitbox_x1 - 16, 
-											y + ent._hitbox_y1 - 116, 
-											x + ent._hitbox_x2 + 16, 
-											y + ent._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
-									{
-										let di_allowed = true;
-										
-										for ( i = 0; i < sdWorld.sockets.length; i++ )
-										if ( sdWorld.sockets[ i ].character )
-										{
-											let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
-											
-											if ( di < 700 )
-											{
-												di_allowed = false;
-												break;
-											}
-										}
-										
-										if ( di_allowed )
-										{
-											ent.x = x;
-											ent.y = y;
-
-											ent_drone.x = x;
-											ent_drone.y = y - 48;
-
-											break;
-										}
-									}
-									
-
-
-									tr--;
-									if ( tr < 0 )
-									{
-										ent.remove();
-										ent._broken = false;
-
-										ent_drone.remove();
-										ent_drone._broken = false;
-										break;
-									}
-								} while( true );
-							}
-
-							instances--;
-						}
-						let ais = 0;
-						let percent = 0;
-						for ( var i = 0; i < sdCharacter.characters.length; i++ )
-						{
-							if ( sdCharacter.characters[ i ].hea > 0 )
-							if ( !sdCharacter.characters[ i ]._is_being_removed )
-							if ( sdCharacter.characters[ i ]._ai_team === 2 )
-							{
-								ais++;
-							}
-
-							if ( sdCharacter.characters[ i ].hea > 0 )
-							if ( !sdCharacter.characters[ i ]._is_being_removed )
-							//if ( !sdCharacter.characters[ i ]._ai )
-							if ( sdCharacter.characters[ i ].build_tool_level > 0 )
-							{
-								percent++;
-							}
-						}
-						if ( Math.random() < ( percent / sdWorld.GetPlayingPlayersCount() ) ) // Spawn chance depends on RNG, chances increase if more players ( or all ) have at least one built tool / shop upgrade
-						{
-							let robots = 0;
-							let robots_tot = 1 + ( ~~( Math.random() * 2 ) );
-
-							let left_side = ( Math.random() < 0.5 );
-
-							while ( robots < robots_tot && ais < 8 )
-							{
-
-								let character_entity = new sdCharacter({ x:0, y:0 });
-
-								sdEntity.entities.push( character_entity );
-
-								{
-									let x,y;
-									let tr = 1000;
-									do
-									{
-										if ( left_side )
-										x = sdWorld.world_bounds.x1 + 16 + 16 * robots;
-										else
-										x = sdWorld.world_bounds.x2 - 16 - 16 * robots;
-
-										y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-										if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-										if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-										if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
-										{
-											character_entity.x = x;
-											character_entity.y = y;
-
-											//sdWorld.UpdateHashPosition( ent, false );
-											if ( Math.random() < 0.3 )
-											{
-												sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_BURST_RIFLE }) );
-												character_entity._ai_gun_slot = 2;
-											}
-											else
-											{
-												sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_PLASMA_PISTOL }) );
-												character_entity._ai_gun_slot = 1;
-											}
-											let robot_settings;
-											//if ( character_entity._ai_gun_slot === 2 )
-											robot_settings = {"hero_name":"Erthal","color_bright":"#37a2ff","color_dark":"#000000","color_bright3":"#464646","color_dark3":"#000000","color_visor":"#1664a8","color_suit":"#464646","color_suit2":"#000000","color_dark2":"#464646","color_shoes":"#000000","color_skin":"#1665a8","color_extra1":"#464646","helmet1":false,"helmet4":true,"body3":true,"legs3":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":false,"voice7":true};
-
-											character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( robot_settings );
-											character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( robot_settings );
-											character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( robot_settings );
-											character_entity.title = robot_settings.hero_name;
-											character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( robot_settings );
-											character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( robot_settings );
-											if ( character_entity._ai_gun_slot === 2 || character_entity._ai_gun_slot === 1 )
-											{
-												character_entity.matter = 150;
-												character_entity.matter_max = 150;
-
-												character_entity.hea = 250;
-												character_entity.hmax = 250;
-
-												character_entity.armor = 250;
-												character_entity.armor_max = 500;
-												character_entity._armor_absorb_perc = 0.75; // 75% damage absorption, since armor will run out before health, they effectively have 750 health
-
-												character_entity._damage_mult = 1; // Supposed to put up a challenge
-											}
-
-											/*if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // Nothing here so far
-											{
-												character_entity.matter = 100;
-												character_entity.matter_max = 100;
-
-												character_entity.hea = 250;
-												character_entity.hmax = 250;
-
-												character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
-											}*/	
-											character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-											character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
-										
-											character_entity._ai_level = 4;
-										
-											character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
-											character_entity._jetpack_allowed = true; // Jetpack
-											character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
-											character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-											character_entity._ai_team = 2; // AI team 2 is for Erthal
-											character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
-
-										break;
-									}
-
-
-									tr--;
-									if ( tr < 0 )
-									{
-										character_entity.remove();
-										character_entity._broken = false;
-										break;
-									}
-								} while( true );
-							}
-
-							robots++;
-							ais++;
-							//console.log('Erthal spawned!');
-							}
-						}
-					}
-					if ( r === 12 ) // Spawn an obelisk near ground where players don't see them
-					{
-						let instances = 1
-						while ( instances > 0 && sdObelisk.obelisks_counter < 5 )
-						{
-
-							let obelisk = new sdObelisk({ x:0, y:0 });
-							obelisk.type = Math.round( 1 + Math.random() * 3 );
-
-							sdEntity.entities.push( obelisk );
-
-							{
-								let x,y,i;
-								let tr = 1000;
-								do
-								{
-									x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
-									y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-									if ( obelisk.CanMoveWithoutOverlap( x, y, 0 ) )
-									if ( !obelisk.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-									if ( sdWorld.last_hit_entity )
-									if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
-									if ( !sdWorld.CheckWallExistsBox( 
-											x + obelisk._hitbox_x1 - 16, 
-											y + obelisk._hitbox_y1 - 16, 
-											x + obelisk._hitbox_x2 + 16, 
-											y + obelisk._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
-									{
-										let di_allowed = true;
-										
-										for ( i = 0; i < sdWorld.sockets.length; i++ )
-										if ( sdWorld.sockets[ i ].character )
-										{
-											let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
-											
-											if ( di < 500 )
-											{
-												di_allowed = false;
-												break;
-											}
-										}
-										
-										if ( di_allowed )
-										{
-											obelisk.x = x;
-											obelisk.y = y;
-
-											break;
-										}
-									}
-									
-
-
-									tr--;
-									if ( tr < 0 )
-									{
-										obelisk.remove();
-										obelisk._broken = false;
-										break;
-									}
-								} while( true );
-							}
-
-							instances--;
-						}
-					}
+					this.ExecuteEvent( r );
 				}
 			}
 		}
