@@ -1245,9 +1245,6 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_PHASERCANNON_P03 = 49 ] = // sprite by Ghost581
         {
             image: sdWorld.CreateImageFromFile( 'phasercannon_p03' ),
-           	// image0: [ sdWorld.CreateImageFromFile( 'railgun_p03_c' ), sdWorld.CreateImageFromFile( 'railgun_p03_c' ) ],
-            //image1: [ sdWorld.CreateImageFromFile( 'railgun_p03_r1' ), sdWorld.CreateImageFromFile( 'railgun_p03_r1b' ) ],
-            //image2: [ sdWorld.CreateImageFromFile( 'railgun_p03_r2' ), sdWorld.CreateImageFromFile( 'railgun_p03_r2b' ) ],
             image0: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
             image1: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
             image2: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
@@ -1256,12 +1253,12 @@ class sdGunClass
 			sound_pitch: 1.6, // re-added cause weapon sounds better with the sound pitch. - Ghost581
 			sound_volume: 1.5,
             slot: 8, // moved it to slot 8 cause of it being supposed to be a power weapon and slot 9 still is bound to the BT - Ghost581
-            reload_time: 360, // can one-shot 250 HP players so it has been bumped back up to its original reload time. - Ghost581
+            reload_time: 220,
             muzzle_x: null,
             ammo_capacity: -1,
             count: 1,
             matter_cost: 280,
-            projectile_properties: { _rail: true, _damage: 98, color: '#62c8f2', explosion_radius: 20}, // buffed damage by player request - Ghost581
+            projectile_properties: { _rail: true, _damage: 98, color: '#62c8f2', explosion_radius: 20 },
             min_build_tool_level: 3
 		};
 
@@ -2109,6 +2106,25 @@ class sdGunClass
 			matter_cost: 90,
 			min_build_tool_level: 2,
 			projectile_properties: { explosion_radius: 16, time_left: 30 * 3, model: 'grenade', _damage: 16 * 2, color:sdEffect.default_explosion_color, is_grenade: true }
+		};
+
+		sdGun.classes[ sdGun.CLASS_KIVORTEC_AVRS_P09 = 75 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'kivortec_avrs_p09' ),
+			image0: [ sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload1' ), sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload2' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload1' ), sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload2' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload1' ), sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload2' ) ],
+			sound: 'gun_railgun_malicestorm_terrorphaser4',
+			sound_pitch: 0.7,
+			title: 'KIVORTEC-AVRS P09',
+			slot: 4,
+			reload_time: 140,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			matter_cost: 260,
+			min_build_tool_level: 4,
+			projectile_properties: { explosion_radius: 16, _rail: true, _damage: 125, _vehicle_mult: 1.5, color: '#91bfd7' } // 1.5x more damage against vehicles
 		};
 		// Add new gun classes above this line //
 		
