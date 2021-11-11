@@ -6,6 +6,7 @@ import sdBlock from './sdBlock.js';
 import sdBG from './sdBG.js';
 import sdDoor from './sdDoor.js';
 import sdGun from './sdGun.js';
+import sdCharacter from './sdCharacter.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -17,8 +18,10 @@ class sdWater extends sdEntity
 		sdWater.TYPE_WATER = 0;
 		sdWater.TYPE_ACID = 1;
 		sdWater.TYPE_LAVA = 2;
+		sdWater.TYPE_TOXIC_GAS = 3;
 		
-		sdWater.damage_by_type = [ 0, 1, 5 ];
+		sdWater.damage_by_type = [ 0, 1, 5, 0 ];
+		sdWater.never_sleep_by_type = [ 0, 0, 0, 1 ];
 		
 		sdWater.DEBUG = false;
 		
@@ -50,6 +53,21 @@ class sdWater extends sdEntity
 	
 	constructor( params )
 	{
+		if ( params.tag )
+		{
+			if ( params.tag === 'water' )
+			params.type = sdWater.TYPE_WATER;
+		
+			if ( params.tag === 'acid' )
+			params.type = sdWater.TYPE_ACID;
+		
+			if ( params.tag === 'toxic' )
+			params.type = sdWater.TYPE_TOXIC_GAS;
+			
+			params.x = Math.floor( params.x / 16 ) * 16;
+			params.y = Math.floor( params.y / 16 ) * 16;
+		}
+		
 		super( params );
 		
 		this.type = params.type || sdWater.TYPE_WATER;
@@ -170,6 +188,20 @@ class sdWater extends sdEntity
 	{
 		if ( another.is( sdWater ) )
 		{
+			if ( ( another.type === sdWater.TYPE_TOXIC_GAS ) !== ( this.type === sdWater.TYPE_TOXIC_GAS ) )
+			{
+				if ( this.type === sdWater.TYPE_TOXIC_GAS )
+				{
+					this.remove();
+					return true;
+				}
+				if ( another.type === sdWater.TYPE_TOXIC_GAS )
+				{
+					another.remove();
+					return false;
+				}
+			}
+			
 			if ( ( another.type === sdWater.TYPE_LAVA ) !== ( this.type === sdWater.TYPE_LAVA ) )
 			{
 				let ent = new sdBlock({ 
@@ -223,7 +255,22 @@ class sdWater extends sdEntity
 						}
 						else
 						{
-							if ( this.type === sdWater.TYPE_LAVA )
+							let e_is_organic = ( ( e.IsPlayerClass() || e.GetBleedEffect() === sdEffect.TYPE_BLOOD || e.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN ) );
+							
+							if ( this.type === sdWater.TYPE_TOXIC_GAS )
+							{
+								if ( e.is( sdCharacter ) )
+								{
+									e._sickness += 0.5 * GSPEED * this._volume;
+								}
+								else
+								if ( e_is_organic )
+								{
+									e.Damage( 0.5 * GSPEED * this._volume, this );
+								}
+							}
+							if ( sdWater.damage_by_type[ this.type ] !== 0 )
+							if ( this.type === sdWater.TYPE_LAVA || ( this.type === sdWater.TYPE_ACID && e_is_organic ) )
 							e.Damage( sdWater.damage_by_type[ this.type ] * GSPEED ); 
 						}
 					}
@@ -259,10 +306,32 @@ class sdWater extends sdEntity
 
 			return;
 		}
+		else
+		{
+			if ( this.type === sdWater.TYPE_TOXIC_GAS )
+			{
+				this._volume = Math.max( this._volume - GSPEED * 0.001 );
+				if ( this._volume <= 0 )
+				{
+					this.remove();
+					return;
+				}
+				
+				if ( this.v !== Math.ceil( this._volume * 100 ) )
+				{
+					this.v = Math.ceil( this._volume * 100 );
+					this._update_version++;
+				}
+			}
+		}
 	
+		if ( this.type === sdWater.TYPE_TOXIC_GAS )
+		this._sy += sdWorld.gravity * GSPEED * 0.005;
+		else
 		this._sy += sdWorld.gravity * GSPEED * 0.5;
 	
-		this._think_offset -= Math.min( 16, Math.max( this._sy, 1 ) );
+		//this._think_offset -= Math.min( 16, Math.max( this._sy, 1 ) );
+		this._think_offset -= Math.min( 16, Math.max( this._sy, 0.0001 ) );
 		
 		if ( this._think_offset < 0 )
 		{
@@ -382,6 +451,7 @@ class sdWater extends sdEntity
 				}
 				else
 				{
+					if ( sdWater.never_sleep_by_type[ this.type ] )
 					if ( this._swimmers.size === 0 )
 					this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 				
@@ -393,6 +463,7 @@ class sdWater extends sdEntity
 		
 		if ( this.y + 16 >= sdWorld.world_bounds.y2 )
 		{
+			if ( sdWater.never_sleep_by_type[ this.type ] )
 			if ( this._swimmers.size === 0 )
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		
@@ -520,6 +591,8 @@ class sdWater extends sdEntity
 				if ( !this._swimmers.has( from_entity ) )
 				{
 					this._swimmers.add( from_entity );
+					
+					if ( this.type !== sdWater.TYPE_TOXIC_GAS )
 					sdWater.all_swimmers.add( from_entity );
 				}
 			}
@@ -581,18 +654,27 @@ class sdWater extends sdEntity
 				ctx.drawImageFilterCache( sdWater.img_lava, xx - Math.floor( xx / 32 ) * 32, this.y - Math.floor( this.y / 32 ) * 32, 16,16, 0,0, 16,16 );
 			}
 			else
+			if ( this.type === sdWater.TYPE_TOXIC_GAS )
 			{
-				if ( this.type === sdWater.TYPE_WATER )
+				ctx.fillStyle = '#ff77ff';
+				ctx.globalAlpha = 0.3 * this.v / 100;
+				ctx.fillRect( 0, 0, 16, 16 );
+				ctx.globalAlpha = 1;
+			}
+			else
+			{
+				if ( this.type === sdWater.TYPE_ACID )
 				ctx.fillStyle = '#008000';
 				else
-				ctx.fillStyle = '#000080';
+				ctx.fillStyle = '#0030a0';
 
 				ctx.globalAlpha = 0.8;
 		
 				//if ( this.v === left_v && this.v === right_v )
 				//{
 					//ctx.globalAlpha = this._volume * 0.9 + 0.1;
-					ctx.fillRect( 0, 16 - this.v / 100 * 16, 16,16 * this.v / 100 );
+					//ctx.fillRect( 0, 16 - this.v / 100 * 16, 16,16 * this.v / 100 );
+					ctx.fillRect( 0, 0, 16, 16 );
 					//ctx.globalAlpha = 1;
 				/*}
 				else

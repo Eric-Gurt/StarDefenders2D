@@ -171,6 +171,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdStorage', type: 2, filter: 'hue-rotate(220deg)', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdStorage', type: 2, filter: 'hue-rotate(135deg)', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdNode', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdSunPanel', _category:'Base equipment' });
 		
 
 		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, _category:'Base equipment' });
@@ -425,8 +426,10 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCube', kind:1, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', kind:2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', kind:3, _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdWater', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_LAVA, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_WATER, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_ACID, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_TOXIC_GAS, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAsp', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdSandWorm', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGrass', _category:'Development tests' });

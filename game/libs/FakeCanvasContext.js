@@ -467,6 +467,12 @@ class FakeCanvasContext
 			else
 			if ( volumetric_mode === FakeCanvasContext.DRAW_IN_3D_GRASS )
 			{
+				if ( r.opacity >= 1 )
+				{
+					r.depthWrite = true;
+					r.depthTest = true;
+					r.transparency = false;
+				}
 			}
 			
 			

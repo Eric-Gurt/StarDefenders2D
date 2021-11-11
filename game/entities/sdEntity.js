@@ -436,7 +436,14 @@ class sdEntity
 		}
 		else
 		{
+			let old_x = this.x;
+			let old_y = this.y;
+			
 			this.Touches( sdWorld.last_hit_entity );
+			
+			// Moved as result of touch event - abort any further position/velocity changes
+			if ( this.x !== old_x || this.y !== old_y )
+			return;
 			
 			// Better for sync (but causes random friction)
 			//new_x = Math.round( new_x );

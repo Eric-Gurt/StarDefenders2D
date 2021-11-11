@@ -469,8 +469,20 @@ class sdCharacterRagdoll
 			dx /= di;
 			dy /= di;
 		}
+		
+		
+		
 		if ( this.character._inventory[ this.character.gun_slot ] || ( this.character.fire_anim > 0 && this.character.fire_anim < 5 ) )
 		{
+			let activation = Math.pow( this.character._weapon_draw_timer / sdCharacter.default_weapon_draw_time, 2 );
+			let i_activation = 1 - activation;
+			
+			dx *= i_activation;
+			dy *= i_activation;
+			
+			dx += -this.character._side * 0.3 * activation;
+			dy += 0.4 * activation;
+		
 			this.MoveBoneRelative( this.hand1, 
 			this.chest.x + dx * ( 9 + gun_offset_x - reload ) * scale, 
 			this.chest.y + dy * ( 9 + gun_offset_x - reload ) * scale );
@@ -942,8 +954,15 @@ class sdCharacterRagdoll
 					ctx.save();
 					{
 						ctx.translate( -7, 3 );
+						
+						let activation = Math.pow( this.character._weapon_draw_timer / sdCharacter.default_weapon_draw_time, 2 );
+						//let scale = this.character._weapon_draw_timer / sdCharacter.default_weapon_draw_time;
+						
+						//activation = Math.round( activation * 3 ) / 3;
 
-						ctx.rotate( ( Math.PI / 2 - this.character.GetLookAngle( true ) - Math.atan2( spring.parent.y - spring.child.y, spring.parent.x - spring.child.x ) ) * this.character._side );
+						ctx.rotate( ( Math.PI / 2 - this.character.GetLookAngle( true ) - Math.atan2( spring.parent.y - spring.child.y, spring.parent.x - spring.child.x ) ) * this.character._side + activation * Math.PI / 2 );
+						
+						//ctx.scale( 1 - scale, 1 - scale );
 
 						ctx.filter = 'none';
 						ctx.sd_filter = null;

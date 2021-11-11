@@ -93,6 +93,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdQuadro from './entities/sdQuadro.js';	
 	import sdHoverBike from './entities/sdHoverBike.js';	
 	import sdObelisk from './entities/sdObelisk.js';
+	import sdSunPanel from './entities/sdSunPanel.js';
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -162,6 +163,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdQuadro.init_class();
 	sdHoverBike.init_class();
 	sdObelisk.init_class();
+	sdSunPanel.init_class();
 
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;
@@ -622,6 +624,9 @@ let enf_once = true;
 					
 					const custom_filtering_method = ( ent )=>
 					{
+						if ( ent === sdWorld.my_entity.driver_of || !ent.IsTargetable( null, true ) )
+						return false;
+						
 						if ( ent._net_id !== undefined )
 						return true;
 					

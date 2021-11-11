@@ -87,7 +87,11 @@ class sdBG extends sdEntity
 		ctx.drawImageFilterCache( sdBG.img_bg22_blue, 0, 0, w,h, 0,0, w,h );
 		else
 		if ( this.material === sdBG.MATERIAL_GROUND )
-		ctx.drawImageFilterCache( sdBlock.img_ground11, 0, 0, w,h, 0,0, w,h );
+		{
+			//ctx.drawImageFilterCache( sdBlock.img_ground11, 0, 0, w,h, 0,0, w,h );
+			//ctx.drawImageFilterCache( sdBlock.img_ground44, this.x - Math.floor( this.x / 64 ) * 64, this.y - Math.floor( this.y / 64 ) * 64, w,h, 0,0, w,h );
+			ctx.drawImageFilterCache( sdBlock.img_ground88, this.x - Math.floor( this.x / 256 ) * 256, this.y - Math.floor( this.y / 256 ) * 256, w,h, 0,0, w,h );
+		}
 		else
 		ctx.drawImageFilterCache( sdBG.img_bg22, 0, 0, w,h, 0,0, w,h ); // Reinforced walls etc
 

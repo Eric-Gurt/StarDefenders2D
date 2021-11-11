@@ -240,7 +240,11 @@ class sdSound
 		
 		if ( sdWeather.only_instance )
 		{
+			if ( sdWeather.only_instance.snow )
+			rain_intens = 0;
+			else
 			rain_intens = sdWeather.only_instance.raining_intensity / 100;
+		
 			earthquake_intens = sdWeather.only_instance.quake_intensity * 1.3 / 100;
 		}
 		

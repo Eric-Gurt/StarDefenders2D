@@ -7,6 +7,7 @@ import sdEffect from './sdEffect.js';
 import sdWater from './sdWater.js';
 import sdBG from './sdBG.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdCharacter from './sdCharacter.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -46,8 +47,13 @@ class sdBlock extends sdEntity
 		sdBlock.MATERIAL_TRAPSHIELD = 4;
 		sdBlock.MATERIAL_REINFORCED_WALL_LVL1 = 5;
 		sdBlock.MATERIAL_REINFORCED_WALL_LVL2 = 6;
+		sdBlock.MATERIAL_CORRUPTION = 7;
 		
-		sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
+		//sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
+		//sdBlock.img_ground44 = sdWorld.CreateImageFromFile( 'ground_4x4' );
+		sdBlock.img_ground88 = sdWorld.CreateImageFromFile( 'ground_8x8' );
+		
+		sdBlock.img_corruption = sdWorld.CreateImageFromFile( 'corruption' );
 		
 		sdBlock.img_trapshield11 = sdWorld.CreateImageFromFile( 'trapshield_1x1' );
 		sdBlock.img_trapshield05 = sdWorld.CreateImageFromFile( 'trapshield_half' );
@@ -67,6 +73,8 @@ class sdBlock extends sdEntity
 			sdWorld.CreateImageFromFile( 'metal_reinforced3' ),
 			sdWorld.CreateImageFromFile( 'metal_reinforced4' )
 		];
+		
+		 sdBlock.max_corruption_rank = 12; // 12
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -315,7 +323,7 @@ class sdBlock extends sdEntity
 
 			this.HandleDestructionUpdate();
 			
-			if ( this.material === sdBlock.MATERIAL_TRAPSHIELD ) // Instant regeneration
+			if ( this.material === sdBlock.MATERIAL_TRAPSHIELD || this.material === sdBlock.MATERIAL_CORRUPTION ) // Instant regeneration
 			{
 				this._regen_timeout = 0;
 			}
@@ -497,11 +505,20 @@ class sdBlock extends sdEntity
 			this.spikes_ani = 0; // 30 when somebody near, 15...30 - visible spikes, 0...15 - not visible spikes
 		}
 		
+		if ( this.material === sdBlock.MATERIAL_CORRUPTION )
+		{
+			//this.blood = 0;
+			this._next_attack = 0;
+			this._next_spread = sdWorld.time + 5000 + Math.random() * 10000;
+			this.rank = ( params.rank === undefined ) ? sdBlock.max_corruption_rank : params.rank;
+		}
+		
 		this.destruction_frame = 0;
 		this.HandleDestructionUpdate();
 		this.reinforced_frame = 0;
 		this.HandleReinforceUpdate();
 		
+		if ( this.material !== sdBlock.MATERIAL_CORRUPTION && this._hea >= this._hmax )
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED, false ); // 2nd parameter is important as it will prevent temporary entities from reacting to world entities around it (which can happen for example during item price measure - something like sdBlock can kill player-initiator and cause server crash)
 		
 		/*if ( sdWorld.is_server )
@@ -522,6 +539,18 @@ class sdBlock extends sdEntity
 	MeasureMatterCost()
 	{
 		return this._hmax * sdWorld.damage_to_matter * (1 + ( 2 * this._reinforced_level ) ) * ( this.material === sdBlock.MATERIAL_TRAPSHIELD ? 4.5 : 1 ) + ( this.material === sdBlock.MATERIAL_SHARP ? 30 : 0 );
+	}
+	Corrupt( from=null )
+	{
+		let ent2 = new sdBlock({ x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_CORRUPTION, filter:this.filter, rank: from ? from.rank - 1 : undefined });
+
+		this.remove();
+		this._broken = false;
+
+		sdEntity.entities.push( ent2 );
+		
+		ent2._hmax = this._hmax * 2;
+		ent2._hea = this._hea * 2;
 	}
 	//RequireSpawnAlign() 
 	//{ return true; }
@@ -602,29 +631,136 @@ class sdBlock extends sdEntity
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		}
 		else
+		if ( this.material === sdBlock.MATERIAL_CORRUPTION )
+		{
+			if ( !sdWorld.is_server )
+			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+			else
+			if ( sdWorld.time > this._next_spread )
+			{
+				this._next_spread = sdWorld.time + 5000 + Math.random() * 10000;
+				
+				let dir = ~~( Math.random() * 4 );
+				
+				let corrupt_done = false;
+				
+				for ( let d = 0; d < 4; d++, dir = dir % 4 )
+				{
+					let ent = null;
+					
+					if ( dir === 0 )
+					ent = sdBlock.GetGroundObjectAt( this.x + 16, this.y );
+					
+					if ( dir === 1 )
+					ent = sdBlock.GetGroundObjectAt( this.x - 16, this.y );
+					
+					if ( dir === 2 )
+					ent = sdBlock.GetGroundObjectAt( this.x, this.y + 16 );
+					
+					if ( dir === 3 )
+					ent = sdBlock.GetGroundObjectAt( this.x, this.y - 16 );
+				
+					if ( ent )
+					{
+						if ( ent.material === sdBlock.MATERIAL_GROUND && this.rank >= 1 )
+						{
+							ent.Corrupt( this );
+						}
+						else
+						{
+							if ( ent.material === sdBlock.MATERIAL_GROUND )
+							continue;
+								
+							if ( ent.material !== sdBlock.MATERIAL_CORRUPTION )
+							this.CorruptAttack( ent );
+						}
+						corrupt_done = true;
+						break;
+					}
+				}
+				if ( !corrupt_done )
+				{
+					this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+				}
+			}
+		}
+		else
 		if ( this._hea === this._hmax )
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+	}
+	
+	static GetGroundObjectAt( nx, ny ) // for corruption
+	{
+		if ( nx >= sdWorld.world_bounds.x2 || nx <= sdWorld.world_bounds.x1 || 
+			 ny >= sdWorld.world_bounds.y2 || ny <= sdWorld.world_bounds.y1 )
+		return null;
+	
+		let arr_under = sdWorld.RequireHashPosition( nx, ny );
+		
+		for ( var i = 0; i < arr_under.length; i++ )
+		{
+			if ( arr_under[ i ] instanceof sdBlock )
+			if ( arr_under[ i ].x === nx && arr_under[ i ].y === ny )
+			if ( !arr_under[ i ]._is_being_removed )
+			return arr_under[ i ];
+		}
+		
+		return null;
 	}
 	onMovementInRange( from_entity )
 	{
 		if ( sdWorld.is_server )
-		if ( this.material === sdBlock.MATERIAL_SHARP )
-		if ( from_entity.IsBGEntity() === this.IsBGEntity() )
-		if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null ) // Do not react to held guns
-		if ( !from_entity.driver_of )
 		{
-			if ( this.spikes_ani === 0 )
-			//if ( sdWorld.GetComsNear( this.x + this.width / 2, this.y + this.height / 2, null, from_entity._net_id, true ).length === 0 && sdWorld.GetComsNear( this.x + this.width / 2, this.y + this.height / 2, null, from_entity.GetClass(), true ).length === 0 )
+			if ( this.material === sdBlock.MATERIAL_CORRUPTION || this.material === sdBlock.MATERIAL_SHARP )
+			if ( from_entity.IsBGEntity() === this.IsBGEntity() )
+			if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null ) // Do not react to held guns
+			if ( !from_entity.driver_of )
 			{
-				this.spikes_ani = 30;
-				this._update_version++;
-				
-				sdWorld.SendEffect({ x:from_entity.x, y:from_entity.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
-				
-				if ( ( from_entity._reinforced_level || 0 ) === 0 )
-				from_entity.Damage( 100, this._owner );
-				
-				this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+				if ( this.material === sdBlock.MATERIAL_SHARP )
+				{
+					if ( this.spikes_ani === 0 )
+					//if ( sdWorld.GetComsNear( this.x + this.width / 2, this.y + this.height / 2, null, from_entity._net_id, true ).length === 0 && sdWorld.GetComsNear( this.x + this.width / 2, this.y + this.height / 2, null, from_entity.GetClass(), true ).length === 0 )
+					{
+						this.spikes_ani = 30;
+						this._update_version++;
+
+						sdWorld.SendEffect({ x:from_entity.x, y:from_entity.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
+
+						if ( ( from_entity._reinforced_level || 0 ) === 0 )
+						from_entity.Damage( 100, this._owner );
+
+						this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					}
+				}
+				else
+				if ( this.material === sdBlock.MATERIAL_CORRUPTION )
+				{
+					this.CorruptAttack( from_entity );
+				}
+			}
+		}
+	}
+	CorruptAttack( from_entity )
+	{
+		if ( sdWorld.time > this._next_attack )
+		{
+			this._next_attack = sdWorld.time + 100;
+
+			sdWorld.SendEffect({ x:from_entity.x, y:from_entity.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
+
+			//if ( ( from_entity.hea || from_entity._hea ) >= 0 )
+			//this.blood += 10;
+			
+			this._update_version++;
+			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+			
+			if ( from_entity.is( sdCharacter ) )
+			{
+				from_entity._sickness += 30;
+			}
+			else
+			{
+				from_entity.Damage( 10, this );
 			}
 		}
 	}
@@ -643,9 +779,19 @@ class sdBlock extends sdEntity
 		
 		//ctx.filter = 'hsl(120,100%,25%)';
 		
-		if ( this.material === sdBlock.MATERIAL_GROUND )
+		if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_CORRUPTION )
 		{
-			ctx.drawImageFilterCache( sdBlock.img_ground11, 0, 0, w,h, 0,0, w,h );
+			//ctx.drawImageFilterCache( sdBlock.img_ground11, 0, 0, w,h, 0,0, w,h );
+			ctx.drawImageFilterCache( sdBlock.img_ground88, this.x - Math.floor( this.x / 256 ) * 256, this.y - Math.floor( this.y / 256 ) * 256, w,h, 0,0, w,h );
+			
+			if ( this.material === sdBlock.MATERIAL_CORRUPTION )
+			{
+				//ctx.filter = 'none';
+				//ctx.filter = 'hue-rotate('+( this.rank - 12 )*(15)+'deg)';
+				//ctx.filter = 'hue-rotate('+( this.rank - 12 )*(15)+'deg) saturate('+(this.rank/12 * 0.75 + 0.25)+')';
+				ctx.filter = 'hue-rotate('+( this.rank - sdBlock.max_corruption_rank )*(15)+'deg) saturate('+(this.rank/ sdBlock.max_corruption_rank * 0.75 + 0.25)+') brightness('+(this.rank / sdBlock.max_corruption_rank * 0.75 + 0.25)+')';
+				ctx.drawImageFilterCache( sdBlock.img_corruption, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
+			}
 		}
 		else
 		if ( this.material === sdBlock.MATERIAL_WALL )
@@ -747,7 +893,7 @@ class sdBlock extends sdEntity
 				//nears[ i ]._sleep_tim = sdWater.sleep_tim_max;
 			}
 
-			if ( this.material === sdBlock.MATERIAL_GROUND )
+			if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_CORRUPTION )
 			{
 				let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, filter:this.filter + ' brightness(0.5)' });
 				if ( new_bg.CanMoveWithoutOverlap( this.x, this.y, 1 ) )
@@ -792,7 +938,7 @@ class sdBlock extends sdEntity
 					x:this.x + this.width / 2, 
 					y:this.y + this.height / 2, 
 					volume:( this.width / 32 ) * ( this.height / 32 ), 
-					pitch: ( this.material === sdBlock.MATERIAL_WALL || this.material === sdBlock.MATERIAL_SHARP ) ? 1 : 1.5,
+					pitch: ( this.material === sdBlock.MATERIAL_CORRUPTION ) ? 0.4 : ( this.material === sdBlock.MATERIAL_WALL || this.material === sdBlock.MATERIAL_SHARP ) ? 1 : 1.5,
 					_server_allowed:true });
 
 				let x,y,a,s;

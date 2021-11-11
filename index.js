@@ -263,6 +263,7 @@ import sdBeamProjector from './game/entities/sdBeamProjector.js';
 import sdQuadro from './game/entities/sdQuadro.js';
 import sdHoverBike from './game/entities/sdHoverBike.js';
 import sdObelisk from './game/entities/sdObelisk.js';
+import sdSunPanel from './game/entities/sdSunPanel.js';
 
 import LZW from './game/server/LZW.js';
 import LZUTF8 from './game/server/LZUTF8.js';
@@ -430,7 +431,7 @@ sdBeamProjector.init_class();
 sdQuadro.init_class();
 sdHoverBike.init_class();
 sdObelisk.init_class();
-
+sdSunPanel.init_class();
 
 
 

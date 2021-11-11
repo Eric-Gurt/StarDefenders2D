@@ -239,6 +239,8 @@ class sdCharacter extends sdEntity
 		sdCharacter.starter_matter = 50;
 		sdCharacter.matter_required_to_destroy_command_center = 300; // Will be used to measure command centres' self-destruct if no characters with enough matter will showup near them
 		
+		sdCharacter.default_weapon_draw_time = 7;
+		
 		sdCharacter.characters = []; // Used for AI counting, also for team management
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -405,6 +407,8 @@ class sdCharacter extends sdEntity
 		this.helmet = 1;
 		this.body = 1;
 		this.legs = 1;
+		
+		this._weapon_draw_timer = 0;
 		
 		this._in_water = false;
 		
@@ -584,6 +588,8 @@ class sdCharacter extends sdEntity
 		
 		this._ragdoll = null; // Client-side ragdolls could be here? Not ready.
 		
+		this._sickness = 0; // When sick - occasionally gets random damage and when dies turns into zombie?
+		this._sick_damage_timer = 0;
 		//this.lost = 0; // Set to lost type if sdCharacter is lost
 		
 		if ( !sdWorld.is_server )
@@ -869,6 +875,8 @@ class sdCharacter extends sdEntity
 			this.death_anim = 0;
 
 			this.hea = Math.max( this.hea, 30 );
+			
+			this._sickness /= 4;
 
 			//best_t.SetDelay( sdRescueTeleport.delay_2nd ); // 5 minutes
 			best_t.SetDelay( sdRescueTeleport.delay_simple );
@@ -1332,7 +1340,11 @@ class sdCharacter extends sdEntity
 			{
 				this._ai.next_action = 5 + Math.random() * 10;
 
-				this.gun_slot = this._ai_gun_slot;
+				if ( this.gun_slot !== this._ai_gun_slot )
+				{
+					this.gun_slot = this._ai_gun_slot;
+					this._weapon_draw_timer = sdCharacter.default_weapon_draw_time;
+				}
 
 				let closest = null;
 				let closest_di = Infinity;
@@ -1719,6 +1731,11 @@ class sdCharacter extends sdEntity
 	{
 		if ( sdWorld.is_server )
 		this.lst = sdLost.entities_and_affection.get( this ) || 0;
+	
+		if ( this._weapon_draw_timer > 0 )
+		{
+			this._weapon_draw_timer = Math.max( 0, this._weapon_draw_timer - GSPEED );
+		}
 		
 		if ( this._god )
 		if ( this._socket )
@@ -1797,6 +1814,34 @@ class sdCharacter extends sdEntity
 			
 			if ( this._recoil > 0 )
 			this._recoil = Math.max( 0, sdWorld.MorphWithTimeScale( this._recoil , -0.01, 0.935 * this._recoil_mult , GSPEED ) ); //0.9 was "laser beams" basically and nullified the point for "Recoil upgrade"
+
+			if ( this._sickness > 0 )
+			{
+				this._sick_damage_timer += GSPEED;
+				if ( this._sick_damage_timer > 6000 / this._sickness )
+				{
+					this._sick_damage_timer = 0;
+					
+					this._sickness = Math.max( 0, this._sickness - 10 );
+					this.Damage( 10 );
+					sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_BLOOD_GREEN, filter:'none' });
+					
+					// And then it spreads to players near, sounds fun
+					
+					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 50, null, [ 'sdCharacter' ] );
+					
+					let itself = targets_raw.indexOf( this );
+					if ( itself !== -1 )
+					targets_raw.splice( itself, 1 );
+					
+					for ( let i = 0; i < targets_raw.length; i++ )
+					{
+						if ( targets_raw[ i ].IsTargetable( this ) )
+						targets_raw[ i ]._sickness += 5 / targets_raw.length;
+					}
+				}
+			}
+
 
 			if ( this._dying )
 			{
@@ -1880,6 +1925,9 @@ class sdCharacter extends sdEntity
 				{
 					let will_fire = this._key_states.GetKey( 'Mouse1' );
 					let shoot_from_scenario = false;
+					
+					if ( this._weapon_draw_timer > 0 )
+					will_fire = false;
 					
 					if ( this._auto_shoot_in > 0 )
 					{
@@ -2052,8 +2100,11 @@ class sdCharacter extends sdEntity
 						this.DropWeapon( this.gun_slot );
 
 						this.gun_slot = 0;
+						
 						if ( this.reload_anim > 0 )
 						this.reload_anim = 0;
+						
+						this._weapon_draw_timer = sdCharacter.default_weapon_draw_time;
 					}
 				}
 
@@ -2072,6 +2123,8 @@ class sdCharacter extends sdEntity
 
 						if ( this.reload_anim > 0 )
 						this.reload_anim = 0;
+						
+						this._weapon_draw_timer = sdCharacter.default_weapon_draw_time;
 					}
 				}
 				else
@@ -2088,6 +2141,8 @@ class sdCharacter extends sdEntity
 
 							if ( this.reload_anim > 0 )
 							this.reload_anim = 0;
+						
+							this._weapon_draw_timer = sdCharacter.default_weapon_draw_time;
 						}
 						break;
 					}
@@ -2937,7 +2992,7 @@ class sdCharacter extends sdEntity
 			if ( this.lst > 0 )
 			{
 				ctx.fillStyle = '#FFFF00';
-				ctx.fillRect( 1 - w / 2, 1 - raise, ( w - 2 ) * Math.max( 0, this.lst / this.hmax ), 1 );
+				ctx.fillRect( 1 - w / 2, 1 - raise, ( w - 2 ) * Math.max( 0, Math.min( this.lst, this.hea ) / this.hmax ), 1 );
 			}
 
 			if ( this.armor > 0 )

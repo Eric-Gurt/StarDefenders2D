@@ -613,11 +613,13 @@ class sdWorld
 			if ( Math.pow( enemy_rand_num, 10 ) > 1 / hp_mult )
 			{
 				random_enemy = 'sdSandWorm';
-				//console.log('sdSandWorm spawned somewhere');
 			}
 			else
 			if ( Math.pow( enemy_rand_num, 5 ) > 1 / hp_mult )
 			random_enemy = 'sdOctopus';
+			else
+			if ( Math.pow( enemy_rand_num, 4 ) > 1 / hp_mult )
+			random_enemy = 'sdWater.toxic';
 			else
 			if ( Math.pow( enemy_rand_num, 3 ) > 0.8 / hp_mult )
 			random_enemy = 'sdSlug';
@@ -640,7 +642,7 @@ class sdWorld
 				else
 				random_enemy = 'sdVirus';
 			}
-
+			
 			let plants = null;
 			let plants_objs = null;
 

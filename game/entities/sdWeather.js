@@ -8,11 +8,13 @@
 		sdWorld.entity_classes.sdWeather.only_instance._time_until_event = 0
 		sdWorld.server_config.GetAllowedWorldEvents = ()=>[ 8 ];
 		sdWorld.server_config.GetDisallowedWorldEvents = ()=>[];
+		sdWorld.entity_classes.sdWeather.only_instance._daily_events = sdWorld.server_config.GetAllowedWorldEvents();
 
 
 	Stop all events:
 
 		sdWorld.server_config.GetAllowedWorldEvents = ()=>[];
+		sdWorld.entity_classes.sdWeather.only_instance._daily_events = [];
 */
 
 /*
@@ -43,6 +45,7 @@ import sdDrone from './sdDrone.js';
 import sdSpider from './sdSpider.js';
 import sdAmphid from './sdAmphid.js';
 import sdObelisk from './sdObelisk.js';
+import sdWater from './sdWater.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -52,6 +55,8 @@ class sdWeather extends sdEntity
 	static init_class()
 	{
 		sdWeather.img_rain = sdWorld.CreateImageFromFile( 'rain' );
+		sdWeather.img_rain_water = sdWorld.CreateImageFromFile( 'rain_water' );
+		sdWeather.img_snow = sdWorld.CreateImageFromFile( 'snow' );
 		sdWeather.img_scary_mode = sdWorld.CreateImageFromFile( 'scary_mode' );
 		
 		sdWeather.only_instance = null;
@@ -94,6 +99,8 @@ class sdWeather extends sdEntity
 		
 		this._rain_amount = 0;
 		this.raining_intensity = 0;
+		this.acid_rain = 0; // 0 or 1
+		this.snow = 0; // 0 or 1
 		
 		this._asteroid_spam_amount = 0;
 		
@@ -122,10 +129,14 @@ class sdWeather extends sdEntity
 		
 		//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false );
 	}
+	GetSunIntensity()
+	{
+		return -Math.cos( this.day_time / ( 30 * 60 * 24 ) * Math.PI * 2 ) * 0.5 + 0.5;
+	}
 	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
 	{
 		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
-		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ];
+		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 ];
 				
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -171,7 +182,18 @@ class sdWeather extends sdEntity
 	{
 		//console.log( r );
 		if ( r === 0 )
-		this._rain_amount = 30 * 15 * ( 1 + Math.random() * 2 ); // start rain for ~15 seconds
+		{
+			this._rain_amount = 30 * 15 * ( 1 + Math.random() * 2 ); // start rain for ~15 seconds
+			
+			if ( this.raining_intensity <= 0 )
+			{
+				this.acid_rain = Math.random() < 0.5 ? 1 : 0;
+				
+				this.snow = Math.random() < 0.333 ? 1 : 0;
+				if ( this.snow )
+				this.acid_rain = false;
+			}
+		}
 
 		if ( r === 1 )
 		this._asteroid_spam_amount = 30 * 15 * ( 1 + Math.random() * 2 );
@@ -936,6 +958,30 @@ class sdWeather extends sdEntity
 				instances--;
 			}
 		}
+		
+		if ( r === 13 ) // Ground corruption start from random block
+		{
+			for ( let tr = 0; tr < 100; tr++ )
+			{
+				let i = Math.floor( Math.random() * sdEntity.entities.length );
+				
+				if ( i < sdEntity.entities.length )
+				{
+					let ent = sdEntity.entities[ i ];
+					
+					if ( ent.is( sdBlock ) )
+					if ( ent._natural )
+					{
+						ent.Corrupt();
+						break;
+					}
+				}
+				else
+				{
+					break;
+				}
+			}
+		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -1161,50 +1207,66 @@ class sdWeather extends sdEntity
 					{
 						if ( sdWorld.last_hit_entity )
 						if ( sdWorld.last_hit_entity.is( sdBlock ) )
-						if ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND )
 						{
-							if ( sdWorld.last_hit_entity._plants === null )
+							if ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND )
 							{
-								let grass = new sdGrass({ x:sdWorld.last_hit_entity.x, y:sdWorld.last_hit_entity.y - 16, filter: sdWorld.last_hit_entity.filter, block:sdWorld.last_hit_entity  });
-								sdEntity.entities.push( grass );
-
-								sdWorld.last_hit_entity._plants = [ grass._net_id ];
-							}
-							else
-							{
-								for ( let i = 0; i < sdWorld.last_hit_entity._plants.length; i++ )
+								if ( sdWorld.last_hit_entity._plants === null )
 								{
-									//let ent = sdEntity.entities_by_net_id_cache[ sdWorld.last_hit_entity._plants[ i ] ];
-									let ent = sdEntity.entities_by_net_id_cache_map.get( sdWorld.last_hit_entity._plants[ i ] );
+									let grass = new sdGrass({ x:sdWorld.last_hit_entity.x, y:sdWorld.last_hit_entity.y - 16, filter: sdWorld.last_hit_entity.filter, block:sdWorld.last_hit_entity  });
+									sdEntity.entities.push( grass );
 									
-									if ( ent )
+									//grass.snowed = this.snow;
+									grass.SetSnowed( this.snow );
+
+									sdWorld.last_hit_entity._plants = [ grass._net_id ];
+								}
+								else
+								{
+									for ( let i = 0; i < sdWorld.last_hit_entity._plants.length; i++ )
 									{
-										if ( ent.is( sdGrass ) )
+										//let ent = sdEntity.entities_by_net_id_cache[ sdWorld.last_hit_entity._plants[ i ] ];
+										let ent = sdEntity.entities_by_net_id_cache_map.get( sdWorld.last_hit_entity._plants[ i ] );
+
+										if ( ent )
 										{
-											// Old version problem fix:
-											if ( ent._block !== sdWorld.last_hit_entity )
-											ent._block = sdWorld.last_hit_entity;
-											
-											if ( ent.variation < sdWorld.GetFinalGrassHeight( ent.x ) )
+											if ( ent.is( sdGrass ) )
 											{
-												ent.Grow();
-												break; // Skip rest plants on this block
+												// Old version problem fix:
+												if ( ent._block !== sdWorld.last_hit_entity )
+												ent._block = sdWorld.last_hit_entity;
+
+												ent.SetSnowed( this.snow );
+												//ent.snowed = this.snow;
+													
+												if ( ent.variation < sdWorld.GetFinalGrassHeight( ent.x ) )
+												{
+													ent.Grow();
+													break; // Skip rest plants on this block
+												}
 											}
 										}
-									}
-									else
-									{
-										// Old version problem fix:
-										sdWorld.last_hit_entity._plants.splice( i, 1 );
-										i--;
-										continue;
+										else
+										{
+											// Old version problem fix:
+											sdWorld.last_hit_entity._plants.splice( i, 1 );
+											i--;
+											continue;
+										}
 									}
 								}
+							}
+							
+							if ( !this.snow )
+							if ( Math.random() < 0.01 )
+							{
+								let water = new sdWater({ x:Math.floor(sdWorld.last_hit_entity.x/16)*16, y:Math.floor(sdWorld.last_hit_entity.y/16)*16 - 16, type: this.acid_rain ? sdWater.TYPE_ACID : sdWater.TYPE_WATER });
+								sdEntity.entities.push( water );
 							}
 						}
 					}
 				}
 				
+				if ( this.acid_rain )
 				for ( var i = 0; i < sdWorld.sockets.length; i++ )
 				if ( sdWorld.sockets[ i ].character )
 				if ( !sdWorld.sockets[ i ].character._is_being_removed )
@@ -1219,6 +1281,7 @@ class sdWeather extends sdEntity
 					}
 				}
 
+				if ( this.acid_rain )
 				if ( sdWorld.time > this._next_amphid_spawn )
 				{
 					this._next_amphid_spawn = sdWorld.time + 10 * 1000;
@@ -1551,10 +1614,21 @@ class sdWeather extends sdEntity
 			for ( var i = 0; i < sdWeather.pattern.length * this.raining_intensity / 100; i++ )
 			{
 				var p = sdWeather.pattern[ i ];
+				
+				var xx;
+				var yy;
 
-				var xx = sdWorld.mod( p.x * sdRenderer.screen_width - sdWorld.camera.x, sdRenderer.screen_width ) + sdWorld.camera.x - sdRenderer.screen_width / sdWorld.camera.scale;
-				var yy = sdWorld.mod( p.y * sdRenderer.screen_height + ( sdWorld.time * 0.3 ) - sdWorld.camera.y, sdRenderer.screen_height ) + sdWorld.camera.y - sdRenderer.screen_height / sdWorld.camera.scale;
-
+				if ( this.snow )
+				{
+					xx = sdWorld.mod( p.x * sdRenderer.screen_width + Math.sin( ( sdWorld.time * 0.001 + i ) )  * 5 - sdWorld.camera.x, sdRenderer.screen_width ) + sdWorld.camera.x - sdRenderer.screen_width / sdWorld.camera.scale;
+				    yy = sdWorld.mod( p.y * sdRenderer.screen_height + ( sdWorld.time * 0.01 ) - sdWorld.camera.y, sdRenderer.screen_height ) + sdWorld.camera.y - sdRenderer.screen_height / sdWorld.camera.scale;
+			    }
+				else
+				{
+					xx = sdWorld.mod( p.x * sdRenderer.screen_width - sdWorld.camera.x, sdRenderer.screen_width ) + sdWorld.camera.x - sdRenderer.screen_width / sdWorld.camera.scale;
+				    yy = sdWorld.mod( p.y * sdRenderer.screen_height + ( sdWorld.time * 0.3 ) - sdWorld.camera.y, sdRenderer.screen_height ) + sdWorld.camera.y - sdRenderer.screen_height / sdWorld.camera.scale;
+				}
+				
 				var just_one_step_check = ( Math.random() > 0.1 && p.last_y < yy && Math.abs( p.last_x - xx ) < 100 );
 
 				p.last_x = xx;
@@ -1565,10 +1639,17 @@ class sdWeather extends sdEntity
 					if ( p.last_vis )
 					{
 						p.last_vis = this.TraceDamagePossibleHere( xx, yy, 2 );
+						if ( !this.snow )
 						if ( this.raining_intensity >= 30 )
 						if ( !p.last_vis )
 						{
-						    let e = new sdEffect({ x:xx, y:yy, type:sdEffect.TYPE_BLOOD_GREEN, filter:'opacity('+(~~((ctx.globalAlpha * 0.5)*10))/10+')' });
+						    let e;
+							
+					        if ( this.acid_rain )
+						    e = new sdEffect({ x:xx, y:yy, type:sdEffect.TYPE_BLOOD_GREEN, filter:'opacity('+(~~((ctx.globalAlpha * 0.5)*10))/10+')' });
+						    else
+						    e = new sdEffect({ x:xx, y:yy, type:sdEffect.TYPE_BLOOD_GREEN, filter:'hue-rotate(90deg) opacity('+(~~((ctx.globalAlpha * 0.5)*10))/10+')' });
+						
 						    sdEntity.entities.push( e );
 						}
 					}
@@ -1579,10 +1660,26 @@ class sdWeather extends sdEntity
 				var vis = p.last_vis;
 
 				if ( vis )
-				ctx.drawImageFilterCache( sdWeather.img_rain, 
-					xx - 16, 
-					yy - 16, 
-					32,32 );
+				{
+					if ( this.snow )
+					{
+						ctx.drawImageFilterCache( sdWeather.img_snow, 
+						xx - 16, 
+						yy - 16, 
+						32,32 );
+					}
+					else
+					if ( this.acid_rain )
+					ctx.drawImageFilterCache( sdWeather.img_rain, 
+						xx - 16, 
+						yy - 16, 
+						32,32 );
+					else
+					ctx.drawImageFilterCache( sdWeather.img_rain_water, 
+						xx - 16, 
+						yy - 16, 
+						32,32 );
+				}
 			}
 			ctx.globalAlpha = 1;
 		}

@@ -383,7 +383,7 @@ class sdHover extends sdEntity
 					if ( this.type === 2 )
 					bullet_obj._damage = 16;
 					else
-					bullet_obj._damage = 13.5
+					bullet_obj._damage = 13.5;
 
 					if ( this.type === 1 )
 					bullet_obj.color = '#800000';

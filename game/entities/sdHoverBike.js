@@ -82,7 +82,7 @@ class sdHoverBike extends sdEntity
 		
 		this._tilt = 0;
 		
-		this._bullets = 300;
+		this._bullets = 100;
 		this._bullets_reload = 0;
 		
 		this._rockets = 2;
@@ -337,7 +337,7 @@ class sdHoverBike extends sdEntity
 					bullet_obj.sx += this.sx;
 					bullet_obj.sy += this.sy;
 
-					bullet_obj._damage = 13.5
+					bullet_obj._damage = 13.5;
 
 					bullet_obj.color = '#ffaa00';
 
@@ -361,7 +361,7 @@ class sdHoverBike extends sdEntity
 				if ( this._bullets <= 0 || ( this._bullets < 300 && this.driver0._key_states.GetKey( 'KeyR' ) ) )
 				{
 					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:1, pitch:0.6 });
-					this._bullets = 300;
+					this._bullets = 100;
 					this._bullets_reload = 60;
 				}
 			}
@@ -455,7 +455,7 @@ class sdHoverBike extends sdEntity
 	
 		sdEntity.Tooltip( ctx, "Hoverbike" );
 		
-		let w = 40;
+		let w = 20;
 	
 		ctx.fillStyle = '#000000';
 		ctx.fillRect( 0 - w / 2, 0 - 20, w, 3 );
