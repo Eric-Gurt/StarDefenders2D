@@ -122,7 +122,14 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_skeleton' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'helmet_rose' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'helmet_avre' ), // by Silk1
-			sdWorld.CreateImageFromFile( 'helmet_spaghetti' ) // by Silk1
+			sdWorld.CreateImageFromFile( 'helmet_spaghetti' ), // by Silk1
+                        sdWorld.CreateImageFromFile( 'helmet_tacticalSD' ), // by The_Commander
+                        sdWorld.CreateImageFromFile( 'helmet_vengeance' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_phantom' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_sovereign' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_oxide' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_mythic' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_outcast' ) // by LordBored
 		];
 		
 		sdCharacter.skin_part_indices = {
@@ -179,7 +186,15 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'skins/skeleton' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'skins/rose' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'skins/avre' ), // by Silk1
-			sdWorld.CreateImageFromFile( 'skins/spaghetti' ) // by Silk1
+			sdWorld.CreateImageFromFile( 'skins/spaghetti' ), // by Silk1
+                        sdWorld.CreateImageFromFile( 'skins/trooper' ), // by AlbanianTrooper
+                        sdWorld.CreateImageFromFile( 'skins/vengeance' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/arbiter' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/ranger' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/oxide' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/survivor' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/mythic' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/outcast' ), // by LordBored
 		];
 		
 		// x y rotation, for images below
