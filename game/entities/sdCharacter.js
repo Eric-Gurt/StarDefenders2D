@@ -125,7 +125,6 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_spaghetti' ), // by Silk1
                         sdWorld.CreateImageFromFile( 'helmet_tacticalSD' ), // by The_Commander
                         sdWorld.CreateImageFromFile( 'helmet_vengeance' ), // by LordBored
-			sdWorld.CreateImageFromFile( 'helmet_phantom' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_sovereign' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_oxide' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_mythic' ), // by LordBored
