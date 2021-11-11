@@ -16,9 +16,26 @@ class sdHover extends sdEntity
 		sdHover.img_hover = sdWorld.CreateImageFromFile( 'hover' );
 		sdHover.img_hover_boost = sdWorld.CreateImageFromFile( 'hover_boost' );
 		sdHover.img_hover_broken = sdWorld.CreateImageFromFile( 'hover_broken' );
+
+		sdHover.img_f_hover = sdWorld.CreateImageFromFile( 'f_hover' );
+		sdHover.img_f_hover_boost = sdWorld.CreateImageFromFile( 'f_hover_boost' );
+		sdHover.img_f_hover_broken = sdWorld.CreateImageFromFile( 'f_hover_broken' );
 		
+		sdHover.img_tank_hover = sdWorld.CreateImageFromFile( 'tank' ); // image by lazyrain
+		sdHover.img_tank_hover_boost = sdWorld.CreateImageFromFile( 'tank_hover_boost' ); // image by lazyrain
+		sdHover.img_tank_hover_broken = sdWorld.CreateImageFromFile( 'tank_destroyed' );
+		sdHover.img_tank_with_turret = sdWorld.CreateImageFromFile( 'tank_with_turret' ); // image by lazyrain
+		sdHover.img_tank_hover_driver2= sdWorld.CreateImageFromFile( 'tank_hover_driver2' ); // image by lazyrain
+
 		sdHover.img_hover_mg = sdWorld.CreateImageFromFile( 'hover_mg' );
 		sdHover.img_hover_rl = sdWorld.CreateImageFromFile( 'hover_rl' );
+
+		sdHover.img_f_hover_mg = sdWorld.CreateImageFromFile( 'f_hover_railgun' );
+		sdHover.img_f_hover_rl = sdWorld.CreateImageFromFile( 'f_hover_rl' );
+
+
+		sdHover.img_tank_turret = sdWorld.CreateImageFromFile( 'tank_turret' );
+		sdHover.img_tank_rl = sdWorld.CreateImageFromFile( 'tank_railgun' );
 		
 		sdHover.driver_slots = 6;
 		
@@ -33,10 +50,10 @@ class sdHover extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -26; }
-	get hitbox_x2() { return 26; }
-	get hitbox_y1() { return -9; }
-	get hitbox_y2() { return 10; }
+	get hitbox_x1() { return this.type === 2 ? -27 : -26; }
+	get hitbox_x2() { return this.type === 2 ? 27 : 26; }
+	get hitbox_y1() { return this.type === 2 ? -12 : -9; }
+	get hitbox_y2() { return this.type === 2 ? 12 : 10; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -71,16 +88,26 @@ class sdHover extends sdEntity
 		
 		this.sx = 0;
 		this.sy = 0;
+
+		this.type = params.type || 0;
 		
-		this.hmax = 600;
+		this.hmax = this.type === 1 ? 1200 : this.type === 2 ? 5000 : 600;
 		this.hea = this.hmax;
 		
 		this._tilt = 0;
 		
+		if ( this.type === 2 )
+		this._bullets = 200;
+		else
 		this._bullets = 300;
+
 		this._bullets_reload = 0;
 		
+		if ( this.type === 2 )
+		this._rockets = 1;
+		else
 		this._rockets = 2;
+
 		this._rockets_reload = 0;
 		
 		this._regen_timeout = 0;
@@ -249,7 +276,7 @@ class sdHover extends sdEntity
 		sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
 	}
 	
-	get mass() { return 500; }
+	get mass() { return this.type === 2 ? 2500 : this.type === 1 ? 1200 : 500; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -317,6 +344,12 @@ class sdHover extends sdEntity
 			{
 				if ( this.driver1._key_states.GetKey( 'Mouse1' ) )
 				{
+					if ( this.type === 1 )
+					sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.33, pitch:1.5 });
+					else
+					if ( this.type === 2 )
+					sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.33, pitch:0.5 });
+					else
 					sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.33, pitch:1.5 });
 
 					let bullet_obj = new sdBullet({ x: this.x, y: this.y });
@@ -324,7 +357,14 @@ class sdHover extends sdEntity
 					bullet_obj._owner = this.driver1;
 					bullet_obj._owner2 = this;
 
-					let an = this.driver1.GetLookAngle() + ( Math.random() * 2 - 1 ) * 0.05;
+					let an;
+					if ( this.type === 1 )
+					an = this.driver1.GetLookAngle();
+					else
+					if ( this.type === 2 )
+					an = this.driver1.GetLookAngle() + ( Math.random() * 2 - 1 ) * 0.07;
+					else
+					an = this.driver1.GetLookAngle() + ( Math.random() * 2 - 1 ) * 0.05;
 
 					bullet_obj.sx = Math.cos( Math.PI / 2 - an );
 					bullet_obj.sy = Math.sin( Math.PI / 2 - an );
@@ -337,10 +377,35 @@ class sdHover extends sdEntity
 					bullet_obj.sx += this.sx;
 					bullet_obj.sy += this.sy;
 
-					bullet_obj._damage = 13.5; // 10 was previous weak value, though it had no upgrade multiplier
-					bullet_obj.color = '#ffaa00';
-					
+					if ( this.type === 1 )
+					bullet_obj._damage = 23;
+					else
+					if ( this.type === 2 )
+					bullet_obj._damage = 16;
+					else
+					bullet_obj._damage = 13.5
 
+					if ( this.type === 1 )
+					bullet_obj.color = '#800000';
+					else
+					if ( this.type === 2 )
+					bullet_obj.color = '#ff0000';
+					else
+					bullet_obj.color = '#ffaa00';
+
+					if ( this.type === 1 )
+					bullet_obj._rail = true;
+					else
+					if ( this.type === 2 )
+					bullet_obj._rail = true;
+					else
+					bullet_obj._rail = false;
+
+					if ( this.type === 2 )
+					bullet_obj.explosion_radius = 7 * 1.5;
+					else
+					bullet_obj.explosion_radius = null;
+					
 					bullet_obj._damage *= bullet_obj._owner._damage_mult;
 
 					if ( bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ] )
@@ -350,6 +415,9 @@ class sdHover extends sdEntity
 
 					sdEntity.entities.push( bullet_obj );
 
+					if ( this.type === 2 )
+					this._bullets_reload = 2;
+					else
 					this._bullets_reload = 1.5;
 
 					this._bullets--;
@@ -369,6 +437,9 @@ class sdHover extends sdEntity
 			{
 				if ( this.driver2._key_states.GetKey( 'Mouse1' ) )
 				{
+					if ( this.type === 2 )
+					sdSound.PlaySound({ name:'gun_sniper', x:this.x, y:this.y, volume:1, pitch:0.5 });
+					else
 					sdSound.PlaySound({ name:'gun_rocket', x:this.x, y:this.y, volume:1, pitch:0.5 });
 
 					let bullet_obj = new sdBullet({ x: this.x, y: this.y });
@@ -376,7 +447,14 @@ class sdHover extends sdEntity
 					bullet_obj._owner = this.driver2;
 					bullet_obj._owner2 = this;
 
-					let an = this.driver2.GetLookAngle() + ( Math.random() * 2 - 1 ) * 0.05;
+					let an;
+					if ( this.type === 1 )
+					an = this.driver2.GetLookAngle();
+					else
+					if ( this.type === 2 )
+					an = this.driver2.GetLookAngle();
+					else
+					an = this.driver2.GetLookAngle() + ( Math.random() * 2 - 1 ) * 0.05;
 
 					bullet_obj.sx = Math.cos( Math.PI / 2 - an );
 					bullet_obj.sy = Math.sin( Math.PI / 2 - an );
@@ -385,12 +463,40 @@ class sdHover extends sdEntity
 
 					bullet_obj.sx *= 15;
 					bullet_obj.sy *= 15;
-					
+
+					if ( this.type === 1 )
+					bullet_obj.model = 'f_hover_rocket';
+					else
 					bullet_obj.model = 'rocket_proj';
 
+					if ( this.type === 1 )
+					bullet_obj._damage = 35 * 2;
+					else
+					if ( this.type === 2 )
+					bullet_obj._damage = 350;
+					else
 					bullet_obj._damage = 19 * 2;
+
+					if ( this.type === 1 )
+					bullet_obj.explosion_radius = 30 * 1.5;
+					else
+					if ( this.type === 2 )
+					bullet_obj.explosion_radius = 45 * 1.5;
+					else
 					bullet_obj.explosion_radius = 19 * 1.5;
+
+					if ( this.type === 1 )
+					bullet_obj.color = '#ffca9e';
+					else
+					if ( this.type === 2 )
+					bullet_obj.color = '#80ffff';
+					else
 					bullet_obj.color = '#7acaff';
+
+					if ( this.type === 2 )
+					bullet_obj._rail = true;
+					else
+					bullet_obj._rail = false;
 					
 					bullet_obj.ac = 1;
 					
@@ -410,6 +516,12 @@ class sdHover extends sdEntity
 
 					sdEntity.entities.push( bullet_obj );
 
+					if ( this.type === 2 )
+					this._rockets_reload = 50;
+					else
+					if ( this.type === 1 )
+					this._rockets_reload = 3;
+					else
 					this._rockets_reload = 5;
 
 					this._rockets--;
@@ -418,6 +530,9 @@ class sdHover extends sdEntity
 				if ( this._rockets <= 0 || ( this._rockets < 2 && this.driver2._key_states.GetKey( 'KeyR' ) ) )
 				{
 					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:1, pitch:0.3 });
+					if ( this.type === 2 )
+					this._rockets = 1;
+					else
 					this._rockets = 2;
 					this._rockets_reload = 60;
 				}
@@ -437,6 +552,12 @@ class sdHover extends sdEntity
 		if ( this.hea <= 0 )
 		return;
 	
+		if ( this.type === 1 )
+		sdEntity.Tooltip( ctx, "Fighter Hover" );
+		else
+		if ( this.type === 2 )
+		sdEntity.Tooltip( ctx, "Tank SD-7" );
+		else
 		sdEntity.Tooltip( ctx, "Hover" );
 		
 		let w = 40;
@@ -491,6 +612,12 @@ class sdHover extends sdEntity
 		
 		if ( this.hea > 0 )
 		{
+			if ( this.type === 1 )
+			ctx.drawImageFilterCache( this.driver0 ? sdHover.img_f_hover_boost : sdHover.img_f_hover, - 32, - 16, 64,32 );
+			else
+			if ( this.type === 2 )
+			ctx.drawImageFilterCache( this.driver2 ? sdHover.img_tank_hover_driver2 : this.driver0 ? sdHover.img_tank_hover_boost : sdHover.img_tank_hover, - 32, - 16, 64,32 );
+			else
 			ctx.drawImageFilterCache( this.driver0 ? sdHover.img_hover_boost : sdHover.img_hover, - 32, - 16, 64,32 );
 	
 	        var i = 0;
@@ -505,6 +632,12 @@ class sdHover extends sdEntity
 
                 ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
 
+				if ( this.type === 1 )
+				ctx.drawImageFilterCache( sdHover.img_f_hover_mg, - 16, - 16, 32,32 );
+				else
+				if ( this.type === 2 )
+				ctx.drawImageFilterCache( sdHover.img_tank_rl, - 16, - 16, 32,32 );
+				else
 				ctx.drawImageFilterCache( sdHover.img_hover_mg, - 16, - 16, 32,32 );
 
 				ctx.restore();
@@ -519,11 +652,23 @@ class sdHover extends sdEntity
 
                 ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
 
+				if ( this.type === 1 )
+				ctx.drawImageFilterCache( sdHover.img_f_hover_rl, - 16, - 16, 32,32 );
+				else
+				if ( this.type === 2 )
+				ctx.drawImageFilterCache( sdHover.img_tank_turret, - 16, - 16, 64,32 );
+				else
 				ctx.drawImageFilterCache( sdHover.img_hover_rl, - 16, - 16, 32,32 );
 
 				ctx.restore();
 			}
 		}
+		else
+		if ( this.type === 1 )
+		ctx.drawImageFilterCache( sdHover.img_f_hover_broken, - 32, - 16, 64,32 );
+		else
+		if ( this.type === 2 )
+		ctx.drawImageFilterCache( sdHover.img_tank_hover_broken, - 32, - 16, 64,32 );
 		else
 		ctx.drawImageFilterCache( sdHover.img_hover_broken, - 32, - 16, 64,32 );
 		
@@ -552,8 +697,12 @@ class sdHover extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		//return 0; // Hack
-		
+		if ( this.type === 1 )
+		return this.hmax * sdWorld.damage_to_matter + 1300;
+		else
+		if ( this.type === 2 )
+		return this.hmax * sdWorld.damage_to_matter + 2000;
+		else
 		return this.hmax * sdWorld.damage_to_matter + 800;
 	}
 }

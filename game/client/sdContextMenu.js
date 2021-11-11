@@ -41,6 +41,17 @@ class sdContextMenu
 						}
 					}
 				});
+				sdContextMenu.options.push({ title: 'Copy character hash ID',
+				action: ()=>
+				{
+					//globalThis.socket.emit( 'SELF_EXTRACT' );
+					
+				if(confirm( 'Sharing this with others, or not knowing how to use this properly can make you lose your character and progress. Are you sure?' ) )
+				{
+					prompt('This is your hash, keep it private and remember it to recover your character.', localStorage.my_hash + "|" + localStorage.my_net_id);
+				}
+				}
+			});
 				
 				if ( sdContextMenu.current_target.cc_id )
 				{
@@ -99,7 +110,7 @@ class sdContextMenu
 								globalThis.socket.emit( 'UPGRADE_GET_EQUIP', [ sdContextMenu.current_target._net_id ] );
 							}
 						});
-						if ( sdWorld.my_entity.build_tool_level > 1 )
+						if ( sdWorld.my_entity.build_tool_level > 1 && sdContextMenu.current_target.level < 3 )
 						sdContextMenu.options.push({ title: 'Upgrade the station (5000 matter cost)',
 							action: ()=>
 							{
@@ -143,13 +154,26 @@ class sdContextMenu
 						
 						for ( var i = 0; i < items.length; i++ )
 						{
-							let net_id = items[ i ]._net_id;
-							sdContextMenu.options.push({ title: 'Get ' + sdEntity.GuessEntityName( net_id )/*user ' + net_id*/,
-								action: ()=>
-								{
-									globalThis.socket.emit( 'STORAGE_GET', [ sdContextMenu.current_target._net_id, net_id ] );
-								}
-							});
+							if ( sdContextMenu.current_target.type !== 2 )
+							{
+								let net_id = items[ i ]._net_id;
+								sdContextMenu.options.push({ title: 'Get ' + sdEntity.GuessEntityName( net_id )/*user ' + net_id*/,
+									action: ()=>
+									{
+										globalThis.socket.emit( 'STORAGE_GET', [ sdContextMenu.current_target._net_id, net_id ] );
+									}
+								});
+							}
+							else
+							{
+								let net_id = items[ i ]._net_id;
+								sdContextMenu.options.push({ title: 'Get Crystal (' + items[ i ].matter_max + ' max matter )',
+									action: ()=>
+									{
+										globalThis.socket.emit( 'STORAGE_GET', [ sdContextMenu.current_target._net_id, net_id ] );
+									}
+								});
+							}
 						}
 					}
 				}

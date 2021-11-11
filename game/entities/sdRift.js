@@ -134,8 +134,10 @@ class sdRift extends sdEntity
 							{
 								let asp = new sdAsp({ 
 									x:this.x,
-									y:this.y
+									y:this.y,
+									_tier: 2
 								});
+								asp.filter = 'invert(1) sepia(1) saturate(100) hue-rotate(270deg) opacity(0.45)';
 								sdEntity.entities.push( asp );
 								sdWorld.UpdateHashPosition( asp, false ); // Prevent intersection with other ones
 							}
@@ -149,9 +151,10 @@ class sdRift extends sdEntity
 								_tier:2
 							});
 							//let quickie_filter = {};
-							let quickie_filter = sdWorld.CreateSDFilter();
-								sdWorld.ReplaceColorInSDFilter_v2( quickie_filter, '#000000', '#ff00ff' ) // Pink, stronger quickies
-							quickie.sd_filter = quickie_filter;
+							//let quickie_filter = sdWorld.CreateSDFilter();
+								//sdWorld.ReplaceColorInSDFilter_v2( quickie_filter, '#000000', '#ff00ff' ) // Pink, stronger quickies
+							//quickie.sd_filter = quickie_filter;
+							quickie.filter = 'invert(1) sepia(1) saturate(100) hue-rotate(270deg) opacity(0.45)';
 							sdEntity.entities.push( quickie );
 							sdWorld.UpdateHashPosition( quickie, false ); // Prevent intersection with other ones
 						}
@@ -234,7 +237,7 @@ class sdRift extends sdEntity
 			{
 				let r = Math.random();
 
-				if ( r < ( 0.13 + ( 0.05 * this.type ) ) )
+				if ( r < ( 0.23 + ( 0.05 * this.type ) ) )
 				{
 					let x = this.x;
 					let y = this.y;
@@ -267,12 +270,13 @@ class sdRift extends sdEntity
 		return;
 
 		if ( from_entity.is( sdCrystal ) )
+		if ( from_entity._held_by === null ) // Prevent crystals which are stored in a crate
 		{
 			if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
 			{
 				sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
 
-				this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + from_entity.matter_max); // Drain the crystal for it's max value and destroy it
+				this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + from_entity.matter_max ); // Drain the crystal for it's max value and destroy it
 				this._regen_timeout = 30 * 60 * 20; // 20 minutes until it starts regenerating if it didn't drain matter
 				//this._update_version++;
 				from_entity.remove();
@@ -285,7 +289,7 @@ class sdRift extends sdEntity
 			{
 				sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
 
-				this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + 120); // Lost entities act as 120 matter crystals in this scenario.
+				this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + from_entity._matter_max ); // Lost entities are drained from it's matter capacity.
 				this._regen_timeout = 30 * 60 * 20; // 20 minutes until it starts regenerating if it didn't drain matter
 				//this._update_version++;
 				from_entity.remove();

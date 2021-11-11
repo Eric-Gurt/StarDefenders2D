@@ -50,8 +50,10 @@ class sdAsp extends sdEntity
 		
 		this.sx = 0;
 		this.sy = 0;
+
+		this._tier = params._tier || 1; // Used determine it's HP and damage
 		
-		this._hmax = 80;
+		this._hmax = 80 * this._tier;
 		this._hea = this._hmax;
 		
 		this.death_anim = 0;
@@ -157,6 +159,7 @@ class sdAsp extends sdEntity
 		
 		if ( this._hea <= 0 )
 		{
+			if ( this._tier !== 2 )
 			if ( this.death_anim < sdAsp.death_duration + sdAsp.post_death_ttl )
 			this.death_anim += GSPEED;
 			else
@@ -429,9 +432,17 @@ class sdAsp extends sdEntity
 				y = this.y + this._hitbox_y1 + Math.random() * ( this._hitbox_y2 - this._hitbox_y1 );
 				
 				//console.warn( { x: this.x, y: this.y, type:sdEffect.TYPE_GIB, sx: this.sx + Math.sin(a)*s, sy: this.sy + Math.cos(a)*s } )
-				
-				sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter() });
-				sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter() });
+				if ( this._tier !== 2 )
+				{
+					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter() });
+					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter() });
+				}
+				else
+				{
+					let value_mult = 4;
+					
+					sdWorld.DropShards( this.x,this.y,this.sx,this.sy, 3, value_mult, 3 );
+				}
 			}
 		}
 	}

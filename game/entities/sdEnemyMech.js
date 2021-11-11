@@ -239,7 +239,7 @@ class sdEnemyMech extends sdEntity
 					let r = Math.random();
 					let shards = 2 + Math.round( Math.random() * 3);
 			
-					if ( r < 0.25 )
+					if ( r < 0.35 )
 					{
 						let x = this.x;
 						let y = this.y;
@@ -252,11 +252,11 @@ class sdEnemyMech extends sdEntity
 
 							let gun;
 
-							if ( random_value < 0.35 )
+							if ( random_value < 0.45 )
 							gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
 							else
 							{
-								if ( random_value < 0.08 )
+								if ( random_value > 0.92 ) // ( random value < 0.08 ) couldn't occur because if it's below 0.5 it drops BT upgrade instead 
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_FMECH_MINIGUN });
 								else
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_CANNON });

@@ -52,27 +52,41 @@ if ( !isWin )
 	let ssl_key_path;
 	let ssl_cert_path;
 	
-	if ( fs.existsSync('/usr/') &&
-		 fs.existsSync('/usr/local/') &&
-		 fs.existsSync('/usr/local/directadmin/') &&
-		 fs.existsSync('/usr/local/directadmin/data/') &&
-		 fs.existsSync('/usr/local/directadmin/data/users/') &&
-		 fs.existsSync('/usr/local/directadmin/data/users/admin/') &&
-		 fs.existsSync('/usr/local/directadmin/data/users/admin/domains/') ) 
-	{
-		ssl_key_path = '/usr/local/directadmin/data/users/admin/domains/gevanni.com.key';
-		ssl_cert_path = '/usr/local/directadmin/data/users/admin/domains/gevanni.com.cert';
-	}
-	else
-	{
-		ssl_key_path = '/var/cpanel/ssl/apache_tls/plazmaburst2.com/combined';
-		ssl_cert_path = '/var/cpanel/ssl/apache_tls/plazmaburst2.com/combined'; // '/var/cpanel/ssl/apache_tls/plazmaburst2.com/certificates';
-		
-		port0 = 8443;
-		CloudFlareSupport = true;
-		
-		directory_to_save_player_count = '/home/plazmaburst2/public_html/pb2/sd2d_online.v';
-	}
+	if( fs.existsSync(`sslconfig.json`) ) {
+    	try {
+
+        	const data = fs.readFileSync('./sslconfig.json', 'utf8');
+    
+        	// parse JSON string to JSON object
+        	const sslconfig = JSON.parse(data);
+        	ssl_cert_path = sslconfig.certpath
+        	ssl_key_path = sslconfig.keypath
+    
+	    	} catch (err) {
+	        console.log(`Error reading file from disk: ${err}`);
+	    } } else {
+	        if ( fs.existsSync('/usr/') &&
+	         fs.existsSync('/usr/local/') &&
+	         fs.existsSync('/usr/local/directadmin/') &&
+	         fs.existsSync('/usr/local/directadmin/data/') &&
+	         fs.existsSync('/usr/local/directadmin/data/users/') &&
+	         fs.existsSync('/usr/local/directadmin/data/users/admin/') &&
+	         fs.existsSync('/usr/local/directadmin/data/users/admin/domains/') ) 
+	    {
+	        ssl_key_path = '/usr/local/directadmin/data/users/admin/domains/gevanni.com.key';
+	        ssl_cert_path = '/usr/local/directadmin/data/users/admin/domains/gevanni.com.cert';
+	    }
+	    else
+	    {
+	        ssl_key_path = '/var/cpanel/ssl/apache_tls/plazmaburst2.com/combined';
+	        ssl_cert_path = '/var/cpanel/ssl/apache_tls/plazmaburst2.com/combined'; // '/var/cpanel/ssl/apache_tls/plazmaburst2.com/certificates';
+	        
+	        port0 = 8443;
+	        CloudFlareSupport = true;
+        	
+        	directory_to_save_player_count = '/home/plazmaburst2/public_html/pb2/sd2d_online.v';
+    	}
+}
 	
 	const credentials = {
 		key: fs.readFileSync( ssl_key_path ),
@@ -199,6 +213,7 @@ import sdBullet from './game/entities/sdBullet.js';
 import sdCom from './game/entities/sdCom.js';
 import sdAsteroid from './game/entities/sdAsteroid.js';
 import sdVirus from './game/entities/sdVirus.js';
+import sdAmphid from './game/entities/sdAmphid.js';
 import sdTeleport from './game/entities/sdTeleport.js';
 import sdDoor from './game/entities/sdDoor.js';
 import sdWater from './game/entities/sdWater.js';
@@ -246,6 +261,8 @@ import sdBaseShieldingUnit from './game/entities/sdBaseShieldingUnit.js';
 import sdConveyor from './game/entities/sdConveyor.js';
 import sdBeamProjector from './game/entities/sdBeamProjector.js';
 import sdQuadro from './game/entities/sdQuadro.js';
+import sdHoverBike from './game/entities/sdHoverBike.js';
+import sdObelisk from './game/entities/sdObelisk.js';
 
 import LZW from './game/server/LZW.js';
 import LZUTF8 from './game/server/LZUTF8.js';
@@ -364,6 +381,7 @@ sdBullet.init_class();
 sdCom.init_class();
 sdAsteroid.init_class();
 sdVirus.init_class();
+sdAmphid.init_class();
 sdTeleport.init_class();
 sdDoor.init_class();
 sdWater.init_class();
@@ -410,6 +428,8 @@ sdBaseShieldingUnit.init_class();
 sdConveyor.init_class();
 sdBeamProjector.init_class();
 sdQuadro.init_class();
+sdHoverBike.init_class();
+sdObelisk.init_class();
 
 
 
@@ -2847,7 +2867,7 @@ io.on("connection", (socket) =>
 			{
 				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdStorage.access_range ) >= 0 )
 				{
-					if ( socket.character.build_tool_level <= ( ent.level + 1 ) )
+					if ( socket.character.build_tool_level > ent.level )
 					{
 						if ( ent.matter >= 5000 )
 						ent.UpgradeStation( socket.character );

@@ -59,7 +59,7 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_cs' ), // idea by butorinoks77, rework by Eric Gurt
 			sdWorld.CreateImageFromFile( 'helmet_grub' ), // idea by butorinoks77, rework by Eric Gurt
 			sdWorld.CreateImageFromFile( 'helmet_crow' ), // by butorinoks77
-			sdWorld.CreateImageFromFile( 'helmet_scope' ), // by butorinoks77
+			sdWorld.CreateImageFromFile( 'helmet_scope' ), // by butorinoks77, remake by GPU
 			sdWorld.CreateImageFromFile( 'helmet_crusader' ), // by xXRedXAssassinXx
 			sdWorld.CreateImageFromFile( 'helmet_phfalkok' ), // by Booraz149
 			sdWorld.CreateImageFromFile( 'helmet_aero' ), // // original by LordBored, remake by LazyRain
@@ -74,17 +74,55 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_glory' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_scion' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_varia' ), // by Silk1
-			sdWorld.CreateImageFromFile( 'helmet_avre' ), // by Silk1
-			sdWorld.CreateImageFromFile( 'helmet_rose' ), // by Silk1
-			sdWorld.CreateImageFromFile( 'helmet_array' ), // by Silk1
+			sdWorld.CreateImageFromFile( 'helmet_array' ), // original by Silk1
 			sdWorld.CreateImageFromFile( 'helmet_nova' ), // by LazyRain
-			sdWorld.CreateImageFromFile( 'helmet_spaghetti' ), // by LazyRain
-			sdWorld.CreateImageFromFile( 'helmet_cleaner' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_igris' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'helmet_ace' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'helmet_alpha' ), // by Silk1
-			sdWorld.CreateImageFromFile( 'helmet_glass' ), // by LazyRain
+			sdWorld.CreateImageFromFile( 'helmet_templar' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_dragon' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_shade' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_agilus' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_biohazard' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_bulwark' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_engineer' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_forge' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_harbinger' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_legate' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_lifter' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_omega' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_protector' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_reaper' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_researcher' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_supreme' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_spire' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_walker' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_acolyte' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_archangel' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_assault' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_beast' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_colonel' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_cyber' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_destiny' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_duality' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_flame' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_hatred' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_hunter' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_judicator' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_marauder' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_medic2' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_overseer' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_shocktrooper' ), // by GPU
+			sdWorld.CreateImageFromFile( 'helmet_starfarer' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_stream' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_synth' ), // by GPU
+			sdWorld.CreateImageFromFile( 'helmet_warden' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_warlord' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_sentinel' ), // by Ghost581
 			sdWorld.CreateImageFromFile( 'helmet_skeleton' ), // by Silk1
+			sdWorld.CreateImageFromFile( 'helmet_rose' ), // by Silk1
+			sdWorld.CreateImageFromFile( 'helmet_avre' ), // by Silk1
+			sdWorld.CreateImageFromFile( 'helmet_spaghetti' ) // by Silk1
 		];
 		
 		sdCharacter.skin_part_indices = {
@@ -111,15 +149,37 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'skins/glory' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/scion' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/varia' ), // by Silk1 
-			sdWorld.CreateImageFromFile( 'skins/avre' ), // by Silk1
-			sdWorld.CreateImageFromFile( 'skins/rose' ), // by Silk1 
-			sdWorld.CreateImageFromFile( 'skins/array' ), // by Silk1
+			sdWorld.CreateImageFromFile( 'skins/array' ), // original by Silk1
 			sdWorld.CreateImageFromFile( 'skins/nova' ), // by LazyRain
-			sdWorld.CreateImageFromFile( 'skins/spaghetti' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'skins/igris' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'skins/alpha' ), // by Silk1
-			sdWorld.CreateImageFromFile( 'skins/glass' ), // by Lazyrain
-			sdWorld.CreateImageFromFile( 'skins/skeleton' ) // by Silk1
+			sdWorld.CreateImageFromFile( 'skins/agilus' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/biohazard' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/bulwark' ), // by LordBor
+			sdWorld.CreateImageFromFile( 'skins/engineer' ), // by LordBoreded
+			sdWorld.CreateImageFromFile( 'skins/forge' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/harbinger' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/legate' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/lifter' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/omega' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/protector' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/reaper' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/researcher' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/spire' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/supreme' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/walker' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/castellan' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/empyrean' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/jumper' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/matrix' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/runner' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/sovereign' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/wyvern' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/sentinel' ), // by Ghost581
+			sdWorld.CreateImageFromFile( 'skins/skeleton' ), // by Silk1
+			sdWorld.CreateImageFromFile( 'skins/rose' ), // by Silk1
+			sdWorld.CreateImageFromFile( 'skins/avre' ), // by Silk1
+			sdWorld.CreateImageFromFile( 'skins/spaghetti' ) // by Silk1
 		];
 		
 		// x y rotation, for images below
@@ -146,6 +206,7 @@ class sdCharacter extends sdEntity
 		sdCharacter.AI_MODEL_INSTRUCTOR = 2;
 		sdCharacter.AI_MODEL_DUMMY_UNREVIVABLE_ENEMY = 3;
 		sdCharacter.AI_MODEL_TEAMMATE = 4;
+		sdCharacter.AI_MODEL_AGGRESSIVE = 5;
 		
 		sdCharacter.ghost_breath_delay = 10 * 30;
 		/*
@@ -464,13 +525,14 @@ class sdCharacter extends sdEntity
 		this._acquired_bt_mech = false; // Has the character picked up build tool upgrade that the flying mech drops?
 		this._acquired_bt_rift = false; // Has the character picked up build tool upgrade that the portals drop?
 		this._acquired_bt_score = false; // Has the character reached over 5000 score?
-
+		this._acquired_bt_projector = false; // Has the character picked up build tool upgrade that the dark matter beam projectors drop?
 		this.flying = false; // Jetpack flying
 		//this._last_act_y = this.act_y; // For mid-air jump jetpack activation
 		
 		this.ghosting = false;
 		this._ghost_breath = 0; // Time until next breath as ghost
 		this._last_e_state = 0; // For E key taps to activate ghosting
+		this._last_fire_state = 0; // For semi auto weaponry
 		
 		this._upgrade_counters = {}; // key = upgrade
 		
@@ -1024,6 +1086,18 @@ class sdCharacter extends sdEntity
 					upg2.sy = this.sy;
 					sdEntity.entities.push( upg2 );
 				}
+
+				if ( this._acquired_bt_projector )
+				{
+					this._acquired_bt_projector = false;
+					this.build_tool_level--;
+			   		let upg3 = new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_BUILDTOOL_UPG });
+					upg3.extra = 2;
+					upg3.sx = this.sx;
+					upg3.sy = this.sy;
+					sdEntity.entities.push( upg3 );
+				}
+
 				if ( sdWorld.server_config.onKill )
 				sdWorld.server_config.onKill( this, initiator );
 
@@ -1192,7 +1266,7 @@ class sdCharacter extends sdEntity
 	}
 	IsHostileAI() // Used to check if standartized score will be given for killing them and also for turrets to attack them
 	{
-		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_DUMMY_UNREVIVABLE_ENEMY )
+		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_AGGRESSIVE || this._ai_enabled === sdCharacter.AI_MODEL_DUMMY_UNREVIVABLE_ENEMY )
 		{
 			return true;
 		}
@@ -1225,9 +1299,9 @@ class sdCharacter extends sdEntity
 			this.Say( [ 
 				'This universe is doomed. You cannot stop it.', 
 				'Give in. You are not to survive.', 
-				'You are a mere human. You cannot contest this. ', 
+				'You challenge me? You cannot contest this. ', 
 				'You will bring down the wrath by doing this.',
-				'I will stop this',
+				'I will stop this.',
 				'You can only delay your inevitable death.',
 				'You cannot harm me, you can only send me back.'
 				][ ~~( Math.random() * 7 ) ], false, false, false );
@@ -1238,7 +1312,7 @@ class sdCharacter extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
-		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_TEAMMATE )
+		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_AGGRESSIVE || this._ai_enabled === sdCharacter.AI_MODEL_TEAMMATE )
 		{
 			if ( typeof this._ai.next_action === 'undefined' )
 			this._ai.next_action = 30;
@@ -1397,18 +1471,35 @@ class sdCharacter extends sdEntity
 					if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, null, ['sdCharacter'] ) )
 					if ( sdWorld.last_hit_entity && sdWorld.last_hit_entity._ai_team === this._ai_team )
 					should_fire = false;
+					if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK )
+					{
+						if ( Math.random() < 0.3 )
+						this._key_states.SetKey( 'KeyA', 1 );
 
-					if ( Math.random() < 0.3 )
-					this._key_states.SetKey( 'KeyA', 1 );
+						if ( Math.random() < 0.3 )
+						this._key_states.SetKey( 'KeyD', 1 );
 
-					if ( Math.random() < 0.3 )
-					this._key_states.SetKey( 'KeyD', 1 );
+						if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30  ) )
+						this._key_states.SetKey( 'KeyW', 1 );
 
-					if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30  ) )
-					this._key_states.SetKey( 'KeyW', 1 );
+						if ( Math.random() < 0.4 )
+						this._key_states.SetKey( 'KeyS', 1 );
+					}
 
-					if ( Math.random() < 0.4 )
-					this._key_states.SetKey( 'KeyS', 1 );
+					if ( this._ai_enabled === sdCharacter.AI_MODEL_AGGRESSIVE )
+					{
+						if ( this.x > closest.x + 32 )
+						this._key_states.SetKey( 'KeyA', 1 );
+
+						if ( this.x < closest.x - 32 )
+						this._key_states.SetKey( 'KeyD', 1 );
+
+						if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30  ) || ( this.y > closest.y + 64 ) )
+						this._key_states.SetKey( 'KeyW', 1 );
+
+						if ( Math.random() < 0.4 )
+						this._key_states.SetKey( 'KeyS', 1 );
+					}
 
 					if ( Math.random() < 0.05 && should_fire === true  ) // Shoot the walls occasionally, when target is not in sight but was detected previously
 					{
@@ -1705,7 +1796,7 @@ class sdCharacter extends sdEntity
 			}
 			
 			if ( this._recoil > 0 )
-			this._recoil = Math.max( 0, sdWorld.MorphWithTimeScale( this._recoil , -0.01, 0.9 * this._recoil_mult , GSPEED ) );
+			this._recoil = Math.max( 0, sdWorld.MorphWithTimeScale( this._recoil , -0.01, 0.935 * this._recoil_mult , GSPEED ) ); //0.9 was "laser beams" basically and nullified the point for "Recoil upgrade"
 
 			if ( this._dying )
 			{
@@ -1818,6 +1909,8 @@ class sdCharacter extends sdEntity
 							}
 						}
 					}
+					else
+					this._last_fire_state = 0;
 					
 					if ( this._inventory[ this.gun_slot ] )
 					{
@@ -1832,12 +1925,26 @@ class sdCharacter extends sdEntity
 
 							if ( will_fire )
 							{
-								if ( !offset )
-								offset = this.GetBulletSpawnOffset();
-							
-								if ( this._inventory[ this.gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ), offset, shoot_from_scenario ) )
+								if ( this._inventory[ this.gun_slot ].fire_mode === 1 )
 								{
-									this.fire_anim = 5;
+									if ( !offset )
+									offset = this.GetBulletSpawnOffset();
+							
+									if ( this._inventory[ this.gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ), offset, shoot_from_scenario ) )
+									{
+										this.fire_anim = 5;
+									}
+								}
+								if ( this._inventory[ this.gun_slot ].fire_mode === 2 &&  this._last_fire_state !== will_fire )
+								{
+									if ( !offset )
+									offset = this.GetBulletSpawnOffset();
+							
+									if ( this._inventory[ this.gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ), offset, shoot_from_scenario ) )
+									{
+										this.fire_anim = 5;
+										this._last_fire_state = will_fire;
+									}
 								}
 							}
 						}

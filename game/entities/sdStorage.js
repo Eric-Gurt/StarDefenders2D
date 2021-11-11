@@ -3,22 +3,25 @@ import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdGun from './sdGun.js';
+import sdCrystal from './sdCrystal.js';
 
 class sdStorage extends sdEntity
 {
 	static init_class()
 	{
 		sdStorage.img_storage = sdWorld.CreateImageFromFile( 'storage2' );
+		sdStorage.img_storage2 = sdWorld.CreateImageFromFile( 'portal_storage' );
+		sdStorage.img_storage3 = sdWorld.CreateImageFromFile( 'storage3' ); // Sprite by LazyRain
 		
 		sdStorage.access_range = 64; // Used by sdMatterAmplifier as well
 		sdStorage.slots_tot = 6;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -7; }
-	get hitbox_x2() { return 7; }
-	get hitbox_y1() { return -5; }
-	get hitbox_y2() { return 6; }
+	get hitbox_x1()  { return this.type === 2 ? -13 : this.type === 1 ? -4 : -7; }
+	get hitbox_x2()  { return this.type === 2 ? 13 : this.type === 1 ? 4 : 7; }
+	get hitbox_y1()  { return this.type === 2 ? -9 : this.type === 1 ? -4 : -5; }
+	get hitbox_y2()  { return this.type === 2 ? 6 : this.type === 1 ? 4 : 6; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -29,9 +32,11 @@ class sdStorage extends sdEntity
 		
 		this.sx = 0;
 		this.sy = 0;
+
+		this.type = params.type || 0;
 		
-		this._hea = 100;
-		this._hmax = 100;
+		this._hea = this.type === 2 ? 400 : 100;
+		this._hmax = this.type === 2 ? 400 : 100;
 		
 		this._regen_timeout = 0;
 		
@@ -74,7 +79,7 @@ class sdStorage extends sdEntity
 		}
 	}
 	
-	get mass() { return 30; }
+	get mass() { return this.type === 1 ? 10 : 30; }
 	Impulse( x, y )
 	{
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
@@ -105,6 +110,7 @@ class sdStorage extends sdEntity
 		this[ 'item' + i ].UpdateHeldPosition();
 		*/
 		// Same but without string operations, it is faster but stould be reverted in case of more/less max items
+
 		if ( this.item0 )
 		this.item0.UpdateHeldPosition();
 		if ( this.item1 )
@@ -140,13 +146,22 @@ class sdStorage extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, "Storage crate" );
+		if ( this.type === 0 )
+		sdEntity.Tooltip( ctx, 'Storage crate' );
+		if ( this.type === 1 )
+		sdEntity.Tooltip( ctx, 'Portal Storage Device' );
+		if ( this.type === 2 )
+		sdEntity.Tooltip( ctx, 'Crystal Storage crate' );
 	}
 	Draw( ctx, attached )
 	{
 		ctx.filter = this.filter;
-		
+		if ( this.type === 0 )
 		ctx.drawImageFilterCache( sdStorage.img_storage, - 16, - 16, 32,32 );
+		if ( this.type === 1 )
+		ctx.drawImageFilterCache( sdStorage.img_storage2, - 16, - 16, 32,32 );
+		if ( this.type === 2 )
+		ctx.drawImageFilterCache( sdStorage.img_storage3, - 16, - 16, 32,32 );
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
@@ -155,8 +170,18 @@ class sdStorage extends sdEntity
 	{
 		if ( this._broken )
 		{
+			let save_crystal = 1; // Only up one for now to prevent crystals getting stuck in each other
 			for ( var i = 0; i < sdStorage.slots_tot; i++ )
-			this.DropSlot( i );
+			{
+				if ( this.type !== 2 || save_crystal > 0)
+				this.DropSlot( i );
+				else
+				{
+					if ( this[ 'item' + i ] )
+					this[ 'item' + i ].remove();
+				}
+				save_crystal--;
+			}
 
 			sdWorld.BasicEntityBreakEffect( this, 5 );
 		}
@@ -169,9 +194,12 @@ class sdStorage extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		//return 0;
-		
+		if ( this.type === 0 )
 		return this._hmax * sdWorld.damage_to_matter;
+		if ( this.type === 1 )
+		return 50 + this._hmax * sdWorld.damage_to_matter;
+		if ( this.type === 2 )
+		return 80 + this._hmax * sdWorld.damage_to_matter;
 	}
 	onMovementInRange( from_entity )
 	{
@@ -185,7 +213,7 @@ class sdStorage extends sdEntity
 			return;
 			//throw new Error('Should not happen');
 		}
-	
+		if ( this.type === 0 || this.type === 1 )
 		if ( from_entity.is( sdGun ) )
 		{
 			if ( from_entity._held_by === null )
@@ -216,8 +244,43 @@ class sdStorage extends sdEntity
 						from_entity._dangerous = false;
 						from_entity._dangerous_from = null;
 					}
-					
+					if ( this.type === 0 || this.type === 2 )
 					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
+					if ( this.type === 1 )
+					sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume: 1, pitch: 5 });
+				}
+			}
+		}
+		if ( this.type === 2 )
+		if ( from_entity.is( sdCrystal ) && from_entity.type === 1 )
+		{
+			if ( from_entity._held_by === null )
+			{
+				let free_slot = -1;
+				
+				for ( var i = 0; i < sdStorage.slots_tot; i++ )
+				{
+					if ( this[ 'item' + i ] )
+					{
+						if ( this[ 'item' + i ] === from_entity )
+						return;
+					}
+					else
+					if ( free_slot === -1 )
+					free_slot = i;
+				}
+
+				if ( free_slot !== -1 )
+				{
+					this[ 'item' + free_slot ] = from_entity;
+
+					from_entity.should_draw = 0;
+					from_entity._held_by = this;
+					
+					if ( this.type === 0 || this.type === 2 )
+					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
+					if ( this.type === 1 )
+					sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume: 1, pitch: 5 });
 				}
 			}
 		}
@@ -261,13 +324,23 @@ class sdStorage extends sdEntity
 			let item = this[ 'item' + slot ];
 			
 			this.DropSlot( slot );
-			
+			if ( this.type === 0 || this.type === 1 )
 			if ( initiator_character )
 			{
 				item.x = initiator_character.x;
 				item.y = initiator_character.y;
 			}
-			
+			if ( this.type === 2 )
+			if ( initiator_character )
+			{
+				if ( item.CanMoveWithoutOverlap( initiator_character.x + ( initiator_character._side * 18 ), initiator_character.y - 4, 0 ) ) // Not ideal, but shouldn't cause a bug since otherwise it just gets put back in the crate I believe - Booraz149
+				{
+					item.x = initiator_character.x + ( initiator_character._side * 18 );
+					item.y = initiator_character.y - 4;
+				}
+				else
+				initiator_character._socket.SDServiceMessage( 'Not enough space to extract item' );
+			}
 		}
 	}
 	DropSlot( slot )
@@ -277,12 +350,22 @@ class sdStorage extends sdEntity
 		if ( item )
 		{
 			this[ 'item' + slot ] = null;
-
-			item.ttl = sdGun.disowned_guns_ttl;
-			item._held_by = null;
-			item.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+			if ( this.type === 0 || this.type === 1 )
+			{
+				item.ttl = sdGun.disowned_guns_ttl;
+				item._held_by = null;
+				item.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 			
-			item.PhysWakeUp();
+				item.PhysWakeUp();
+			}
+			if ( this.type === 2 ) // Crystals don't have hiberstate
+			{
+				item.should_draw = 1;
+				item._held_by = null;
+				//item.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+			
+				//item.PhysWakeUp();
+			}
 		}
 	}
 }

@@ -343,6 +343,7 @@ class sdMatterAmplifier extends sdEntity
 		{
 			if ( this._ignore_pickup_tim === 0 )
 			if ( from_entity.is( sdCrystal ) )
+			if ( from_entity._held_by === null && from_entity.type === 1 ) // Prevent crystals which are stored in a crate
 			if ( sdWorld.Dist2D_Vector( from_entity.sx, from_entity.sy ) < 1.5 )
 			{
 				//console.log( 'vel ',sdWorld.Dist2D_Vector( from_entity.sx, from_entity.sy ));
