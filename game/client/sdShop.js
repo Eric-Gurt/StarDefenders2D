@@ -291,6 +291,7 @@ class sdShop
 			{
 				max_level: 3,
 				matter_cost: 120,
+				description: 'Increases your max health.',
 				action: ( character, level_purchased )=>
 				{
 					character.hmax = Math.round( 130 + level_purchased / 3 * 120 );
@@ -300,6 +301,7 @@ class sdShop
 			{
 				max_level: 3,
 				matter_cost: 100,
+				description: 'Increases your damage output.',
 				action: ( character, level_purchased )=>
 				{
 					character._damage_mult = 1 + level_purchased / 3 * 1;
@@ -309,6 +311,7 @@ class sdShop
 			{
 				max_level: 3,
 				matter_cost: 120,
+				description: 'Increases health of the objects you build.',
 				action: ( character, level_purchased )=>
 				{
 					character._build_hp_mult = 1 + level_purchased / 3 * 3;
@@ -318,6 +321,7 @@ class sdShop
 			{
 				max_level: 40,
 				matter_cost: 45,
+				description: 'Increases your maximum matter capacity.',
 				action: ( character, level_purchased )=>
 				{
 					character.matter_max = Math.round( 50 + level_purchased * 45 ); // Max is 1850
@@ -327,6 +331,7 @@ class sdShop
 			{
 				max_level: 1,
 				matter_cost: 75,
+				description: 'Allows you to use the hook with C button or middle mouse button.',
 				action: ( character, level_purchased )=>
 				{
 					character._hook_allowed = true;
@@ -336,6 +341,7 @@ class sdShop
 			{
 				max_level: 1,
 				matter_cost: 75,
+				description: 'Allows you to use jetpack by holding jump button.',
 				action: ( character, level_purchased )=>
 				{
 					character._jetpack_allowed = true;
@@ -345,6 +351,7 @@ class sdShop
 			{
 				max_level: 1,
 				matter_cost: 150,
+				description: 'Allows you to activate invisibility by pressing E button.',
 				action: ( character, level_purchased )=>
 				{
 					character._ghost_allowed = true;
@@ -354,6 +361,7 @@ class sdShop
 			{
 				max_level: 1,
 				matter_cost: 75,
+				description: '',
 				action: ( character, level_purchased )=>
 				{
 					character._coms_allowed = true;
@@ -363,6 +371,7 @@ class sdShop
 			{
 				max_level: 5,
 				matter_cost: 200,
+				description: 'Allows you to regenerate matter to a certain amount.',
 				action: ( character, level_purchased )=>
 				{
 					character._matter_regeneration = level_purchased;
@@ -372,6 +381,7 @@ class sdShop
 			{
 				max_level: 5,
 				matter_cost: 150,
+				description: 'Reduces recoil when firing.',
 				action: ( character, level_purchased )=>
 				{
 					character._recoil_mult = 1 - ( 0.0055 * level_purchased ) ; // Small recoil reduction, don't want rifles turn to laser beams
@@ -381,6 +391,7 @@ class sdShop
 			{
 				max_level: 3,
 				matter_cost: 100,
+				description: 'Increases your oxygen capacity.',
 				action: ( character, level_purchased )=>
 				{
 					character._air_upgrade = 1 + level_purchased ; // 
@@ -391,6 +402,7 @@ class sdShop
 				max_level: 5,
 				matter_cost: 150,
 				min_build_tool_level: 1,
+				description: 'Reduces matter cost for using jetpack.',
 				action: ( character, level_purchased )=>
 				{
 					character._jetpack_fuel_multiplier = 1 - ( 0.15 * level_purchased ); // Max 75% fuel cost reduction
@@ -401,6 +413,7 @@ class sdShop
 				max_level: 3,
 				matter_cost: 200,
 				min_build_tool_level: 2,
+				description: 'Increases matter regeneration speed.',
 				action: ( character, level_purchased )=>
 				{
 					character._matter_regeneration_multiplier = 1 + level_purchased;
@@ -410,7 +423,7 @@ class sdShop
 		for ( var i in sdShop.upgrades )
 		{
 			sdShop.upgrades[ i ].image = sdWorld.CreateImageFromFile( i );
-			sdShop.options.push({ _class: null, matter_cost: sdShop.upgrades[ i ].matter_cost, upgrade_name: i, 
+			sdShop.options.push({ _class: null, matter_cost: sdShop.upgrades[ i ].matter_cost, upgrade_name: i, description: sdShop.upgrades[ i ].description, 
 				_category:'upgrades', _min_build_tool_level: sdShop.upgrades[ i ].min_build_tool_level || 0 });
 		}
 		
@@ -758,6 +771,7 @@ class sdShop
 			ctx.font = "12px Verdana";
 			
 			let t = 'No description for ' + JSON.stringify( sdShop.options[ sdShop.potential_selection ] );
+			let desc = null; // Secondary description, used for upgrades
 			
 			if ( sdShop.options[ sdShop.potential_selection ]._opens_category )
 			{
@@ -776,11 +790,15 @@ class sdShop
 				}
 				else
 				if ( sdShop.options[ sdShop.potential_selection ].upgrade_name )
-				t = 'Click to select "' + capitalize( sdShop.options[ sdShop.potential_selection ].upgrade_name.split('_').join(' ') ) + '" as an upgrade. Then click anywhere to upgrade.';
+				{
+					t = 'Click to select "' + capitalize( sdShop.options[ sdShop.potential_selection ].upgrade_name.split('_').join(' ') ) + '" as an upgrade. Then click anywhere to upgrade.';
+					desc = capitalize( sdShop.options[ sdShop.potential_selection ].description );
+				}
 				
 			}
 			
 			let d = ctx.measureText( t );
+			let d2 = ctx.measureText( desc ); // Secondary description, used for upgrades
 			
 			let xx = sdWorld.mouse_screen_x + 16;
 			
@@ -790,11 +808,15 @@ class sdShop
 			ctx.fillStyle = '#000000';
 			ctx.globalAlpha = 0.8;
 			ctx.fillRect( xx, sdWorld.mouse_screen_y + 32, d.width + 10, 12 + 10 );
+			if ( desc !== null )
+			ctx.fillRect( xx, sdWorld.mouse_screen_y + 32, d2.width + 10, 12 + 14 + 10 );
 			ctx.globalAlpha = 1;
 			
 			ctx.fillStyle = '#ffffff';
 			ctx.textAlign = 'left';
 			ctx.fillText( t, xx + 5, sdWorld.mouse_screen_y + 32 + 12 + 5 );
+			if ( desc !== null )
+			ctx.fillText( desc, xx + 5, sdWorld.mouse_screen_y + 32 + 12 + 14 + 5 );
 		}
 
 		
