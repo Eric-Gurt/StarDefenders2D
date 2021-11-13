@@ -54,6 +54,8 @@ class sdMatterAmplifier extends sdEntity
 		this._last_matter_max = this.matter_max; // Change will cause hash update
 		
 		this.matter = this.matter_max;
+
+		this.crystal_matter_regen = 0; // Matter regen rate taken from crystals that are put into amplifiers
 		
 		this._last_sync_matter = this.matter;
 		
@@ -130,7 +132,9 @@ class sdMatterAmplifier extends sdEntity
 		}
 		else
 		{
-			this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( sdMatterAmplifier.relative_regen_amplification_to_crystals * ( this.multiplier ) ) );
+			let matter_to_transfer = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( this.crystal_matter_regen / 100 ) * ( sdMatterAmplifier.relative_regen_amplification_to_crystals * ( this.multiplier ) ) ) - this.matter;
+			this.crystal_matter_regen = Math.max( 20, this.crystal_matter_regen - ( ( matter_to_transfer / this.matter_max ) ) );
+			this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( this.crystal_matter_regen / 100 ) * ( sdMatterAmplifier.relative_regen_amplification_to_crystals * ( this.multiplier ) ) );
 			this.MatterGlow( 0.01, 50, GSPEED );
 		}
 	
@@ -163,7 +167,8 @@ class sdMatterAmplifier extends sdEntity
 		if ( this.matter_max === 0 )
 		sdEntity.Tooltip( ctx, "Matter amplifier (no crystal)" );
 		else
-		sdEntity.Tooltip( ctx, "Matter amplifier ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
+		sdEntity.Tooltip( ctx, "Matter amplifier ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " ) (" + ~~(this.crystal_matter_regen ) + "%)" );
+		//sdEntity.Tooltip( ctx, "Matter amplifier ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
 	}
 	Draw( ctx, attached )
 	{
@@ -269,6 +274,7 @@ class sdMatterAmplifier extends sdEntity
 
 			ent.matter_max = this.matter_max;
 			ent.matter = this.matter;
+			ent.matter_regen = this.crystal_matter_regen;
 			ent._damagable_in = 0;
 
 			sdEntity.entities.push( ent );
@@ -276,6 +282,7 @@ class sdMatterAmplifier extends sdEntity
 
 			this.matter_max = 0;
 			this.matter = 0;
+			this.crystal_matter_regen = 0;
 			
 			// Update hitbox size (won't happen for static entities because their _last_x/y never change)
 			//sdWorld.UpdateHashPosition( this, false ); // Optional, but will make it visible as early as possible
@@ -373,6 +380,7 @@ class sdMatterAmplifier extends sdEntity
 				
 				this.matter_max = from_entity.matter_max;
 				this.matter = from_entity.matter;
+				this.crystal_matter_regen = from_entity.matter_regen;
 
 				// Update hitbox size (won't happen for static entities because their _last_x/y never change)
 				//sdWorld.UpdateHashPosition( this, false ); // Optional, but will make it visible as early as possible

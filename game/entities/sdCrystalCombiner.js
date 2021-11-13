@@ -48,6 +48,10 @@ class sdCrystalCombiner extends sdEntity
 		this._hea = this._hmax;
 		
 		this.crystals = 0;
+
+		this.crystal1_matter_regen = 0; // Matter regen, taken from crystals when they are inserted
+
+		this.crystal2_matter_regen = 0; // For 2nd crystal
 		
 		this._ignore_pickup_tim = 0;
 		
@@ -80,7 +84,7 @@ class sdCrystalCombiner extends sdEntity
 
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
+		//this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
 		
 		if ( this._last_matter_max !== this.matter_max )
 		{
@@ -263,6 +267,7 @@ class sdCrystalCombiner extends sdEntity
 
 			ent.matter_max = this.matter_max;
 			ent.matter = this.matter;
+			ent.matter_regen = ( this.crystal1_matter_regen + this.crystal2_matter_regen ) / 2;
 			ent._damagable_in = 0;
 
 			sdEntity.entities.push( ent );
@@ -333,19 +338,25 @@ class sdCrystalCombiner extends sdEntity
 				ent.matter_max = this.matter_max / this.crystals;
 				ent.matter = this.matter / this.crystals;
 				ent._damagable_in = 0;
+				if ( this.crystals === 2 )
+				ent.matter_regen = this.crystal2_matter_regen;
+				else
+				ent.matter_regen = this.crystal1_matter_regen;
 
 				sdEntity.entities.push( ent );
 				sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
 
 				if ( this.crystals === 1 )
 				{
-				this.matter_max = 0;
-				this.matter = 0;
+					this.matter_max = 0;
+					this.matter = 0;
+					this.crystal1_matter_regen = 0;
 				}
 				else
 				{
-				this.matter_max = this.matter_max / this.crystals;
-				this.matter = this.matter / this.crystals;
+					this.matter_max = this.matter_max / this.crystals;
+					this.matter = this.matter / this.crystals;
+					this.crystal2_matter_regen = 0;
 				}
 				// Update hitbox size (won't happen for static entities because their _last_x/y never change)
 				//sdWorld.UpdateHashPosition( this, false ); // Optional, but will make it visible as early as possible
@@ -443,6 +454,7 @@ class sdCrystalCombiner extends sdEntity
 					{
 						this.matter_max += from_entity.matter_max;
 						this.matter += from_entity.matter;
+						this.crystal2_matter_regen = from_entity.matter_regen;
 						crystal_add = 1;
 					}
 					//if ( this.crystals === 0 && from_entity.matter_max < 5120 ) // Can't put orange crystals into the combiner
@@ -450,6 +462,7 @@ class sdCrystalCombiner extends sdEntity
 					{
 						this.matter_max = from_entity.matter_max;
 						this.matter = from_entity.matter;
+						this.crystal1_matter_regen = from_entity.matter_regen;
 						crystal_add = 1;
 					}
 					// Update hitbox size (won't happen for static entities because their _last_x/y never change)

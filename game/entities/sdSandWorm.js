@@ -69,9 +69,9 @@ class sdSandWorm extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this.scale = Math.max( 0.6, Math.random() * 2 );
+		this.scale = params.scale || Math.max( 0.6, Math.random() * 2 );
 
-		this._hmax = 700 * Math.max( 0.6, Math.pow( this.scale, 2 ) );// Bigger worms = more health
+		this._hmax = 700 * Math.pow( this.scale, 2 );// Bigger worms = more health
 		this._hea = this._hmax;
 		
 		this._time_until_full_remove = 30 * 10 + Math.random() * 30 * 10; // 10-20 seconds to get removed

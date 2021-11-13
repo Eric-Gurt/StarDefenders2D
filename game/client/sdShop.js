@@ -53,20 +53,20 @@ class sdShop
 	
 		sdShop.options.push({ _class: 'sdBall', _category:'Other' });
 		sdShop.options.push({ _class: 'sdTheatre', _category:'Other' });
-		sdShop.options.push({ _class: 'sdBeamProjector', _category:'Other', _min_build_tool_level: 3 });
+		sdShop.options.push({ _class: 'sdBeamProjector', _category:'Other', _min_build_tool_level: 25 });
 		
 		sdShop.options.push({ _class: 'sdHover', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles' });
-		sdShop.options.push({ _class: 'sdHover', type: 1, _category:'Vehicles', _min_build_tool_level: 3 });
-		sdShop.options.push({ _class: 'sdHover', type: 1, filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 3 });
-		sdShop.options.push({ _class: 'sdHover', type: 1, filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 3 });
-		sdShop.options.push({ _class: 'sdHover', type: 1, filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 3 });
+		sdShop.options.push({ _class: 'sdHover', type: 1, _category:'Vehicles', _min_build_tool_level: 17 });
+		sdShop.options.push({ _class: 'sdHover', type: 1, filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 17 });
+		sdShop.options.push({ _class: 'sdHover', type: 1, filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 17 });
+		sdShop.options.push({ _class: 'sdHover', type: 1, filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 17 });
 		sdShop.options.push({ _class: 'sdHover', type: 2, _category:'Vehicles', _min_build_tool_level: 4 });
-		sdShop.options.push({ _class: 'sdHover', type: 2, filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 4 });
-		sdShop.options.push({ _class: 'sdHover', type: 2, filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 4 });
-		sdShop.options.push({ _class: 'sdHover', type: 2, filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 4 });
+		sdShop.options.push({ _class: 'sdHover', type: 2, filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 24 });
+		sdShop.options.push({ _class: 'sdHover', type: 2, filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 24 });
+		sdShop.options.push({ _class: 'sdHover', type: 2, filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 24 });
 		sdShop.options.push({ _class: 'sdLifeBox', _category:'Vehicles', _min_build_tool_level:1 });
 		sdShop.options.push({ _class: 'sdQuadro', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdQuadro', filter: 'hue-rotate(300deg)', _category:'Vehicles' });
@@ -92,17 +92,17 @@ class sdShop
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, filter: filter, _category:'Walls' });
 			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, filter: filter, _category:'Walls' });
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, filter: filter, _category:'Walls' });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 2 });
-			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 2 });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 2 });
-			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 2 });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 2 });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 7 });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 7 });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 7 });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 7 });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 7 });
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, filter: filter, _category:'Walls' });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL2, _reinforced_level: 2, _category:'Walls', _min_build_tool_level: 4 });
-			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL2, _reinforced_level: 2, _category:'Walls', _min_build_tool_level: 4 });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL2, _reinforced_level: 2, _category:'Walls', _min_build_tool_level: 4 });
-			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL2, _reinforced_level: 2, _category:'Walls', _min_build_tool_level: 4 });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL2, _reinforced_level: 2, _category:'Walls', _min_build_tool_level: 4 });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL2, _reinforced_level: 2, _category:'Walls', _min_build_tool_level: 16 });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL2, _reinforced_level: 2, _category:'Walls', _min_build_tool_level: 16 });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL2, _reinforced_level: 2, _category:'Walls', _min_build_tool_level: 16 });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL2, _reinforced_level: 2, _category:'Walls', _min_build_tool_level: 16 });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL2, _reinforced_level: 2, _category:'Walls', _min_build_tool_level: 16 });
 			
 			//if ( i !== 0 )
 			//{
@@ -134,8 +134,8 @@ class sdShop
 			{
 				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, _category:'Doors' });
 				//var filter = ( i === 0 ) ? '' : 'hue-rotate('+(~~(i/12*360))+'deg) contrast(0.75)';
-				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED, _reinforced_level: 1, _category:'Doors', _min_build_tool_level: 2 });
-				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _reinforced_level: 2, _category:'Doors', _min_build_tool_level: 4 });
+				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED, _reinforced_level: 1, _category:'Doors', _min_build_tool_level: 7 });
+				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _reinforced_level: 2, _category:'Doors', _min_build_tool_level: 16 });
 			}
 		}
 		AddBuildPack( 'hue-rotate(-90deg) contrast(0.5) brightness(1.5) saturate(0)' );
@@ -145,13 +145,13 @@ class sdShop
 
 		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_GROUND, _category:'Walls' });
 		sdShop.options.push({ _class: 'sdCom', _category:'Base equipment' });
-		sdShop.options.push({ _class: 'sdCom', variation: 1, _category:'Base equipment', _min_build_tool_level:1 });
-		sdShop.options.push({ _class: 'sdCom', variation: 2, _category:'Base equipment', _min_build_tool_level:2 });
-		sdShop.options.push({ _class: 'sdCom', variation: 3, _category:'Base equipment', _min_build_tool_level:3 });
-		sdShop.options.push({ _class: 'sdCom', variation: 4, _category:'Base equipment', _min_build_tool_level:4 });
-		sdShop.options.push({ _class: 'sdCom', variation: 5, _category:'Base equipment', _min_build_tool_level:5 });
-		sdShop.options.push({ _class: 'sdCom', variation: 6, _category:'Base equipment', _min_build_tool_level:6 });
-		sdShop.options.push({ _class: 'sdCom', variation: 7, _category:'Base equipment', _min_build_tool_level:7 });
+		sdShop.options.push({ _class: 'sdCom', variation: 1, _category:'Base equipment', _min_build_tool_level:2 });
+		sdShop.options.push({ _class: 'sdCom', variation: 2, _category:'Base equipment', _min_build_tool_level:4 });
+		sdShop.options.push({ _class: 'sdCom', variation: 3, _category:'Base equipment', _min_build_tool_level:6 });
+		sdShop.options.push({ _class: 'sdCom', variation: 4, _category:'Base equipment', _min_build_tool_level:8 });
+		sdShop.options.push({ _class: 'sdCom', variation: 5, _category:'Base equipment', _min_build_tool_level:10 });
+		sdShop.options.push({ _class: 'sdCom', variation: 6, _category:'Base equipment', _min_build_tool_level:12 });
+		sdShop.options.push({ _class: 'sdCom', variation: 7, _category:'Base equipment', _min_build_tool_level:14 });
 		sdShop.options.push({ _class: 'sdTeleport', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdLamp', _category:'Base equipment' });
@@ -185,17 +185,17 @@ class sdShop
 		
 		sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_LASER, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_ROCKET, _category:'Base equipment' });
-		sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_RAPID_LASER, _category:'Base equipment', _min_build_tool_level: 2 });
-		sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_SNIPER, _category:'Base equipment', _min_build_tool_level: 3 });
+		sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_RAPID_LASER, _category:'Base equipment', _min_build_tool_level: 6 });
+		sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_SNIPER, _category:'Base equipment', _min_build_tool_level: 13 });
 		/*sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 / 2, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2, _category:'Base equipment' });*/
 		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Base equipment' });
-		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2 * 2, _category:'Base equipment', _min_build_tool_level: 2 });
+		sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2 * 2, _category:'Base equipment', _min_build_tool_level: 3 });
 		sdShop.options.push({ _class: 'sdMatterAmplifier', _category:'Base equipment' });
-		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 2, _category:'Base equipment', _min_build_tool_level: 1 });
-		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 3, _category:'Base equipment', _min_build_tool_level: 2 });
-		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 4, _category:'Base equipment', _min_build_tool_level: 3 });
+		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 2, _category:'Base equipment', _min_build_tool_level: 3 });
+		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 3, _category:'Base equipment', _min_build_tool_level: 9 });
+		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 4, _category:'Base equipment', _min_build_tool_level: 18 });
 		sdShop.options.push({ _class: 'sdCommandCentre', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdCrystalCombiner', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdRescueTeleport', _category:'Base equipment' });
@@ -210,8 +210,8 @@ class sdShop
 		for ( let i = 0; i < sdCaption.colors.length / 3; i++ )
 		sdShop.options.push({ _class: 'sdCaption', type: i, _category:'Base equipment' });
 	
-		sdShop.options.push({ _class: 'sdUpgradeStation', _category:'Base equipment', _min_build_tool_level: 1  });
-		sdShop.options.push({ _class: 'sdWorkbench', _category:'Base equipment', _min_build_tool_level: 2  });
+		sdShop.options.push({ _class: 'sdUpgradeStation', _category:'Base equipment', _min_build_tool_level: 3  });
+		sdShop.options.push({ _class: 'sdWorkbench', _category:'Base equipment', _min_build_tool_level: 11  });
 		
 		for ( var i = 0; i < 3; i++ )
 		{
@@ -282,9 +282,9 @@ class sdShop
 		}
 		sdShop.options.push({ _class: 'sdBomb', _category:'Equipment' });
 		sdShop.options.push({ _class: 'sdBarrel', _category:'Equipment' });
-		sdShop.options.push({ _class: 'sdBarrel', filter: 'hue-rotate(130deg) saturate(10)', variation: 1, _category:'Equipment', _min_build_tool_level:1 });
-		sdShop.options.push({ _class: 'sdBarrel', filter: 'hue-rotate(300deg) saturate(20)', variation: 2, _category:'Equipment', _min_build_tool_level:2 });
-		sdShop.options.push({ _class: 'sdBarrel', filter: 'hue-rotate(30deg) saturate(20)', variation: 3, _category:'Equipment', _min_build_tool_level:3 });
+		sdShop.options.push({ _class: 'sdBarrel', filter: 'hue-rotate(130deg) saturate(10)', variation: 1, _category:'Equipment', _min_build_tool_level:2 });
+		sdShop.options.push({ _class: 'sdBarrel', filter: 'hue-rotate(300deg) saturate(20)', variation: 2, _category:'Equipment', _min_build_tool_level:5 });
+		sdShop.options.push({ _class: 'sdBarrel', filter: 'hue-rotate(30deg) saturate(20)', variation: 3, _category:'Equipment', _min_build_tool_level:8 });
 
 		sdShop.upgrades = {
 			upgrade_suit:
@@ -377,7 +377,7 @@ class sdShop
 					character._recoil_mult = 1 - ( 0.0055 * level_purchased ) ; // Small recoil reduction, don't want rifles turn to laser beams
 				}
 			},
-			upgrade_underwater_breath_capacity: // Upgrade idea & pull request by Booraz149 ( https://github.com/Booraz149 )
+			upgrade_oxygen_capacity: // Upgrade idea & pull request by Booraz149 ( https://github.com/Booraz149 )
 			{
 				max_level: 3,
 				matter_cost: 100,
@@ -437,6 +437,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdEnemyMech', _category:'Development tests' });
 			//sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdJunk', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdJunk', type: 3, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBadDog', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdShark', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWorkbench', _category:'Development tests' });
