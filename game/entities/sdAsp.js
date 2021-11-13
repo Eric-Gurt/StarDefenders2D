@@ -132,7 +132,7 @@ class sdAsp extends sdEntity
 	
 		}
 		
-		if ( this._hea < -this._hmax / 80 * 100 )
+		if ( this._hea < -this._hmax / 80 * 100 || this._tier === 2 )
 		this.remove();
 	}
 	get mass() { return 300; }
@@ -156,10 +156,8 @@ class sdAsp extends sdEntity
 	{
 		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
 		
-		
 		if ( this._hea <= 0 )
 		{
-			if ( this._tier !== 2 )
 			if ( this.death_anim < sdAsp.death_duration + sdAsp.post_death_ttl )
 			this.death_anim += GSPEED;
 			else
