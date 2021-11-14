@@ -108,7 +108,7 @@ class sdSunPanel extends sdEntity
 
 			if ( this.dirt <= 1 )
 			{
-				this.dirt += GSPEED * 0.0001;
+				this.dirt += GSPEED * 0.00001;
 
 				if ( this.dirt >= 1 )
 				this._update_version++;
@@ -129,7 +129,7 @@ class sdSunPanel extends sdEntity
 
 			if ( sun_intensity > 0.2 )
 			{
-				this._matter = Math.min( this._matter_max, this._matter + GSPEED * 0.001 * 500 / 80 * sun_intensity );
+				this._matter = Math.min( this._matter_max, this._matter + GSPEED * 0.001 * 1000 / 80 * sun_intensity );
 				this.MatterGlow( 0.01, 50, GSPEED );
 			}
 

@@ -17,15 +17,22 @@ class sdCrystal extends sdEntity
 		
 		sdCrystal.anticrystal_value = 10240;
 		
+		sdCrystal.TYPE_CRYSTAL = 1;
+		sdCrystal.TYPE_CRYSTAL_BIG = 2;
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.should_draw === 0 ? -2 : this.type === 2 ? -14 : -4; }
+	/*get hitbox_x1() { return this.should_draw === 0 ? -2 : this.type === 2 ? -14 : -4; }
 	get hitbox_x2() { return this.should_draw === 0 ? 2 : this.type === 2 ? 14 : 5; }
 	get hitbox_y1() { return this.should_draw === 0 ? -2 : this.type === 2 ? -14 : -7; }
-	get hitbox_y2() { return this.should_draw === 0 ? 2 : this.type === 2 ? 16 : 5; }
+	get hitbox_y2() { return this.should_draw === 0 ? 2 : this.type === 2 ? 16 : 5; }*/
+	get hitbox_x1() { return this.type === sdCrystal.TYPE_CRYSTAL_BIG ? -14 : -4; }
+	get hitbox_x2() { return this.type === sdCrystal.TYPE_CRYSTAL_BIG ? 14 : 5; }
+	get hitbox_y1() { return this.type === sdCrystal.TYPE_CRYSTAL_BIG ? -14 : -7; }
+	get hitbox_y2() { return this.type === sdCrystal.TYPE_CRYSTAL_BIG ? 16 : 5; }
 	
 	get hard_collision() // For world geometry where players can walk
-	{ return this._held_by !== null ? false : true; }
+	{ return this.held_by !== null ? false : true; }
 	
 	/* Causes client-side falling through unsynced ground, probably bad thing to do and it won't be complex entity after sdSnapPack is added
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
@@ -34,6 +41,15 @@ class sdCrystal extends sdEntity
 	get title()
 	{
 		return 'Crystal';
+	}
+	
+	get should_draw()
+	{
+		throw new Error('Obsolete, use this.held_by instead');
+	}
+	set should_draw( v )
+	{
+		throw new Error('Obsolete, use this.held_by instead');
 	}
 	
 	constructor( params )
@@ -45,8 +61,8 @@ class sdCrystal extends sdEntity
 		this.type = params.type || 1;
 		this.matter_max = this.type === 2 ? 160 : 40;
 
-		this._held_by = null; // For storage crates
-		this.should_draw = 1; // For storage crates, guns have ttl which can make them dissapear
+		this.held_by = null; // For storage crates
+		//this.should_draw = 1; // For storage crates, guns have ttl which can make them dissapear // EG: I think I'm missing something, but ttl is for deletion rather than being drawn? Revert to .should_draw if my changes break anything
 		
 		let bad_luck = 1.45; // High value crystals are more rare if this value is high
 		
@@ -93,7 +109,7 @@ class sdCrystal extends sdEntity
 		else
 		{
 			this.matter = this.matter_max;
-			this._hea = this.type === 2 ? 240 : 60;
+			this._hea = this.type === sdCrystal.TYPE_CRYSTAL_BIG ? 240 : 60;
 			this._damagable_in = sdWorld.time + 1000; // Suggested by zimmermannliam, will only work for sdCharacter damage		
 		}
 		
@@ -109,7 +125,7 @@ class sdCrystal extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 
-		if ( this._held_by !== null )
+		if ( this.held_by !== null )
 		return;
 	
 		//if ( initiator !== null )
@@ -179,28 +195,28 @@ class sdCrystal extends sdEntity
 	}
 	IsVisible( observer_character ) // Can be used to hide crystals that are held by crates
 	{
-		if ( this._held_by === null )
+		if ( this.held_by === null )
 		return true;
 		else
 		{
-			if ( this._held_by.is( sdStorage ) )
+			if ( this.held_by.is( sdStorage ) )
 			{
 				if ( observer_character )
 				if ( sdWorld.inDist2D_Boolean( observer_character.x, observer_character.y, this.x, this.y, sdStorage.access_range ) )
 				return true;
 			}
 			/*else
-			if ( this._held_by.is( sdCharacter ) )
+			if ( this.held_by.is( sdCharacter ) )
 			{
 				// Because in else case B key won't work
 				//if ( sdGun.classes[ this.class ].is_build_gun ) Maybe it should always work better if player will know info about all of his guns. Probably that will be later used in interface anyway
-				if ( this._held_by === observer_character )
+				if ( this.held_by === observer_character )
 				return true;
 		
-				if ( !this._held_by.ghosting || this._held_by.IsVisible( observer_character ) )
-				if ( !this._held_by.driver_of )
+				if ( !this.held_by.ghosting || this.held_by.IsVisible( observer_character ) )
+				if ( !this.held_by.driver_of )
 				{
-					return ( this._held_by.gun_slot === sdGun.classes[ this.class ].slot );
+					return ( this.held_by.gun_slot === sdGun.classes[ this.class ].slot );
 				}
 			}*/
 		}
@@ -209,22 +225,22 @@ class sdCrystal extends sdEntity
 	}
 	UpdateHeldPosition()
 	{
-		if ( this._held_by ) // Should not happen but just in case
+		if ( this.held_by ) // Should not happen but just in case
 		{
 			let old_x = this.x;
 			let old_y = this.y;
 			
-			this.x = this._held_by.x;
-			this.y = this._held_by.y;
+			this.x = this.held_by.x;
+			this.y = this.held_by.y;
 
-			if ( typeof this._held_by.sx !== 'undefined' )
+			if ( typeof this.held_by.sx !== 'undefined' )
 			{
-				this.sx = this._held_by.sx;
-				this.sy = this._held_by.sy;
+				this.sx = this.held_by.sx;
+				this.sy = this.held_by.sy;
 				
 				if ( isNaN( this.sx ) )
 				{
-					console.log( 'Entity with corrupted velocity: ', this._held_by );
+					console.log( 'Entity with corrupted velocity: ', this.held_by );
 					throw new Error('sdCrystal is held by entity with .sx as NaN');
 				}
 			}
@@ -241,7 +257,7 @@ class sdCrystal extends sdEntity
 		this.sy += sdWorld.gravity * GSPEED;
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
-		if ( this._held_by === null ) // Don't emit matter if inside a crate
+		if ( this.held_by === null ) // Don't emit matter if inside a crate
 		{
 			if ( ( this.matter_max === sdCrystal.anticrystal_value && this.type === 1 ) || ( this.matter_max === sdCrystal.anticrystal_value * 4 && this.type === 2 ) )
 			{
@@ -267,7 +283,8 @@ class sdCrystal extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		if ( this.should_draw === 1 )
+		//if ( this.should_draw === 1 )
+		if ( this.held_by === null )
 		{
 			if ( ( this.matter_max === sdCrystal.anticrystal_value && this.type === 1 ) || ( this.matter_max === sdCrystal.anticrystal_value * 4 && this.type === 2 ) )
 			sdEntity.Tooltip( ctx, "Anti-crystal ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
@@ -277,7 +294,8 @@ class sdCrystal extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		if ( this.should_draw === 1 )
+		//if ( this.should_draw === 1 )
+		if ( this.held_by === null )
 		{
 			if ( this.type === 1 )
 			{

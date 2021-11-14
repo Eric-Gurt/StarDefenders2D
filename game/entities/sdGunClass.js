@@ -14,6 +14,53 @@ class sdGunClass
 {
 	static init_class()
 	{
+		function AddRecolorsFromColorAndCost( arr, from_color, cost, prefix='' )
+		{
+			let colors = [
+				'cyan', '#00fff6',
+				'yellow', '#ffff00',
+				'white', '#dddddd',
+				'pink', '#ff00ff',
+				
+				'red', '#fb6464',
+				'green', '#31ff6b',
+				'blue', '#213eec',
+				'dark', '#434447',
+				'bright-pink', '#ffa2e1'
+			];
+			
+			for ( let i = 0; i < colors.length; i += 2 )
+			arr.push(
+			{ 
+				title: 'Make ' + ( prefix?prefix+' ':'' ) + colors[ i ],
+				cost: cost,
+				action: ( gun, initiator=null )=>
+				{ 
+					if ( !gun.sd_filter )
+					gun.sd_filter = sdWorld.CreateSDFilter();
+				
+					sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, from_color, colors[ i + 1 ] );
+				}
+			});
+			
+			arr.push(
+			{ 
+				title: 'Remove colors',
+				cost: cost,
+				action: ( gun, initiator=null )=>
+				{ 
+					gun.sd_filter = null;
+				}
+			});
+			
+			return arr;
+		}
+		function AppendBasicCubeGunRecolorUpgrades( arr )
+		{
+			AddRecolorsFromColorAndCost( arr, '#00fff6', 100 );
+			
+			return arr;
+		}
 		/*
 		
 			Uses defined indices in order to optimize performance AND to keep gun classes compatible across different snapshots.
@@ -48,7 +95,8 @@ class sdGunClass
 			spread: 0.01,
 			count: 1,
 			fire_type: 2,
-			projectile_properties: { _damage: 20 }
+			projectile_properties: { _damage: 20 },
+			upgrades: AddRecolorsFromColorAndCost( [], '#808080', 5 )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_RIFLE = 1 ] = 
@@ -62,7 +110,8 @@ class sdGunClass
 			ammo_capacity: 30,
 			spread: 0.01, // 0.03
 			count: 1,
-			projectile_properties: { _damage: 25 }
+			projectile_properties: { _damage: 25 },
+			upgrades: AddRecolorsFromColorAndCost( [], '#ff0000', 15 )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_SHOTGUN = 2 ] = 
@@ -77,7 +126,8 @@ class sdGunClass
 			count: 5,
 			spread: 0.1,
 			matter_cost: 40,
-			projectile_properties: { _damage: 20 }
+			projectile_properties: { _damage: 20 },
+			upgrades: AddRecolorsFromColorAndCost( [], '#808080', 5 )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_RAILGUN = 3 ] = 
@@ -91,7 +141,8 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			matter_cost: 50,
-			projectile_properties: { _rail: true, _damage: 70, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ }
+			projectile_properties: { _rail: true, _damage: 70, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
+			upgrades: AddRecolorsFromColorAndCost( [], '#62c8f2', 20 )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_ROCKET = 4 ] = 
@@ -107,7 +158,8 @@ class sdGunClass
 			projectile_velocity: 14,
 			count: 1,
 			matter_cost: 60,
-			projectile_properties: { explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:1 }
+			projectile_properties: { explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:1 },
+			upgrades: AddRecolorsFromColorAndCost( [], '#808000', 20 )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_MEDIKIT = 5 ] = 
@@ -223,7 +275,8 @@ class sdGunClass
 			count: 1,
 			is_sword: true,
 			projectile_velocity: 16 * 1.5,
-			projectile_properties: { time_left: 1, _damage: 35, color: 'transparent', _knock_scale:0.025 * 8 }
+			projectile_properties: { time_left: 1, _damage: 35, color: 'transparent', _knock_scale:0.025 * 8 },
+			upgrades: AddRecolorsFromColorAndCost( [], '#ff0000', 20 )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_STIMPACK = 12 ] = 
@@ -269,7 +322,8 @@ class sdGunClass
 			spread: 0.02,
 			count: 1,
 			projectile_properties: { _damage: 25, color:'#afdfff' },
-			spawnable: false
+			spawnable: false,
+			upgrades: AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( [], '#ff0000', 15, 'pointer' ), '#007bcc', 15, 'circles' )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_TRIPLE_RAIL = 14 ] = 
@@ -283,7 +337,17 @@ class sdGunClass
 			ammo_capacity: -1,// 10, // 3
 			count: 1,
 			projectile_properties: { _rail: true, _damage: 15, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ }, // 70
-			spawnable: false
+			spawnable: false,
+			upgrades:
+			AppendBasicCubeGunRecolorUpgrades( 
+				[
+					{ 
+						title: 'Upgrade to v2',
+						cost: 300,
+						action: ( gun, initiator=null )=>{ gun.class = sdGun.CLASS_TRIPLE_RAIL2; }
+					}
+				]
+			)
 		};
 		
 		sdGun.classes[ sdGun.CLASS_FISTS = 15 ] = 
@@ -342,7 +406,8 @@ class sdGunClass
 				{
 					sdSound.PlaySound({ name:'saber_hit2', x:bullet.x, y:bullet.y, volume:1.5 });
 				}
-			}
+			},
+			upgrades: AddRecolorsFromColorAndCost( [], '#0000ff', 30 )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_RAIL_PISTOL = 17 ] = { // Original weapon idea, image & pull request by Booraz149 ( https://github.com/Booraz149 )
@@ -357,7 +422,8 @@ class sdGunClass
 			count: 1,
 			fire_type: 2,
 			projectile_properties: { _rail: true, _damage: 25, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
-			spawnable: false
+			spawnable: false,
+			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_RAYGUN = 18 ] = { // Original sprite and weapon balancing by The_Commander 
@@ -408,7 +474,14 @@ class sdGunClass
 			spread: 0.11,
 			count: 5,
 			projectile_properties: { _rail: true, _damage: 20, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
-			spawnable: false
+			spawnable: false,
+			upgrades: AppendBasicCubeGunRecolorUpgrades( [
+					{ 
+						title: 'Upgrade to v2',
+						cost: 300,
+						action: ( gun, initiator=null )=>{ gun.class = sdGun.CLASS_RAIL_SHOTGUN2; }
+					}
+				] )
 		};		
 		
 		sdGun.classes[ sdGun.CLASS_RAIL_CANNON = 21 ] = { // sprite by Booraz149
@@ -422,7 +495,8 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			projectile_properties: { _rail: true, _damage: 62, color: '#FF0000'/*, _knock_scale:0.01 * 8*/ },
-			spawnable: false
+			spawnable: false,
+			upgrades: AddRecolorsFromColorAndCost( [], '#bf1d00', 30 )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_CUBE_SHARD = 22 ] = 
@@ -452,7 +526,8 @@ class sdGunClass
 				}
 
 				return false; 
-			} 
+			},
+			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
 		};
 
 		sdGun.classes[ sdGun.CLASS_PISTOL_MK2 = 23 ] = { // sprite by Booraz149
@@ -757,7 +832,8 @@ class sdGunClass
 					gun._held_by.Damage( -15, null ); // Heal self if HP isn't max. However this healing is unaffected by damage mult and power pack
 				}
 				return true;
-			}
+			},
+			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
 		};
 
 		sdGun.classes[ sdGun.CLASS_SHOVEL = 35 ] = { // Sprite made by Silk
@@ -937,7 +1013,8 @@ class sdGunClass
 						}
 					}
 				}
-			}
+			},
+			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
 		};
 		
 		const cable_reaction_method = ( bullet, target_entity )=>
@@ -1779,7 +1856,8 @@ class sdGunClass
 			projectile_velocity: sdGun.default_projectile_velocity * 2,
 			matter_cost: 120,
 			min_build_tool_level: 1,
-			projectile_properties: { _damage: 105, /*_knock_scale:0.01 * 8, */penetrating:true }
+			projectile_properties: { _damage: 105, /*_knock_scale:0.01 * 8, */penetrating:true },
+			upgrades: AddRecolorsFromColorAndCost( [], '#85ffcc', 30 )
 		};
     
 		sdGun.classes[ sdGun.CLASS_DMR = 64 ] =  // sprite made by The Commander
@@ -2109,6 +2187,39 @@ class sdGunClass
 			matter_cost: 90,
 			min_build_tool_level: 2,
 			projectile_properties: { explosion_radius: 16, time_left: 30 * 3, model: 'grenade', _damage: 16 * 2, color:sdEffect.default_explosion_color, is_grenade: true }
+		};
+		
+		sdGun.classes[ sdGun.CLASS_TRIPLE_RAIL2 = 75 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'triple_rail2' ),
+			sound: 'cube_attack',
+			sound_pitch: 0.8,
+			title: 'Cube-gun v2',
+			slot: 4,
+			reload_time: 3,
+			muzzle_x: 7,
+			ammo_capacity: -1,// 10, // 3
+			count: 1,
+			projectile_properties: { _rail: true, _damage: 15 * 1.2, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ }, // 70
+			spawnable: false,
+			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
+		};
+		
+		sdGun.classes[ sdGun.CLASS_RAIL_SHOTGUN2 = 76 ] = { // Image by LazyRain
+			image: sdWorld.CreateImageFromFile( 'rail_shotgun2' ),
+			sound: 'cube_attack',
+			sound_pitch: 0.4 * 0.8,
+			sound_volume: 2,
+			title: 'Cube-shotgun v2',
+			slot: 3,
+			reload_time: 20,
+			muzzle_x: 6,
+			ammo_capacity: -1,
+			spread: 0.11,
+			count: 5,
+			projectile_properties: { _rail: true, _damage: 20 * 1.2, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
+			spawnable: false,
+			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
 		};
 		// Add new gun classes above this line //
 		

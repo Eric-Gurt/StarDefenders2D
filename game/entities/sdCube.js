@@ -142,6 +142,26 @@ class sdCube extends sdEntity
 	{
 		return this.filter;
 	}*/
+	
+	ColorGunAccordingly( gun )
+	{
+		if ( this.kind === 3 )
+		{
+			gun.sd_filter = sdWorld.CreateSDFilter();
+			gun.sd_filter.s = sdCube.pink_filter.s;
+		}
+		if ( this.kind === 2 )
+		{
+			gun.sd_filter = sdWorld.CreateSDFilter();
+			gun.sd_filter.s = sdCube.white_filter.s;
+		}
+		if ( this.kind === 1 )
+		{
+			gun.sd_filter = sdWorld.CreateSDFilter();
+			gun.sd_filter.s = sdCube.huge_filter.s;
+		}
+	}
+	
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )
@@ -249,7 +269,10 @@ class sdCube extends sdEntity
 
 						gun.sx = sx;
 						gun.sy = sy;
-						gun.extra = ( this.kind === 3 ? 3 : this.kind === 2 ? 2 : this.kind === 1 ? 1 : 0 ); // Color it
+						//gun.extra = ( this.kind === 3 ? 3 : this.kind === 2 ? 2 : this.kind === 1 ? 1 : 0 ); // Color it
+						
+						this.ColorGunAccordingly( gun );
+						
 						sdEntity.entities.push( gun );
 
 					}, 500 );
@@ -271,7 +294,8 @@ class sdCube extends sdEntity
 					gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_CUBE_SHARD });
 					gun.sx = sx;
 					gun.sy = sy;
-					gun.extra = (this.kind === 3 ? 3 : this.kind === 2 ? 2 : this.kind === 1 ? 1 : 0 ); // Color it
+					//gun.extra = (this.kind === 3 ? 3 : this.kind === 2 ? 2 : this.kind === 1 ? 1 : 0 ); // Color it
+					this.ColorGunAccordingly( gun );
 					sdEntity.entities.push( gun );
 
 					}, 500 );
@@ -570,7 +594,7 @@ class sdCube extends sdEntity
 			let v = ( this.attack_anim > 0 ) ? 0.3 : 0.1;
 				
 			if ( 
-					this.y > sdWorld.world_bounds.y1 + 200 &&
+					//this.y > sdWorld.world_bounds.y1 + 200 &&
 					sdWorld.CheckLineOfSight( this.x, this.y, this.x + this._move_dir_x * 50, this.y + this._move_dir_y * 50, this, sdCom.com_visibility_ignored_classes, null ) &&  // Can move forward
 				( 
 				   !sdWorld.CheckLineOfSight( this.x, this.y, this.x + this._move_dir_x * 200, this.y + this._move_dir_y * 200, this, sdCom.com_visibility_ignored_classes, null ) || // something is in front in distance

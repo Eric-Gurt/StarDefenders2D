@@ -629,7 +629,7 @@ class sdCharacter extends sdEntity
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
 	{
 		if ( observer_character )
-		if ( observer_character.is( sdCharacter ) )
+		if ( observer_character.IsPlayerClass() )
 		if ( observer_character._god )
 		return true;
 		
@@ -1068,6 +1068,8 @@ class sdCharacter extends sdEntity
 					else
 					sdSound.PlaySound({ name:'sd_death', x:this.x, y:this.y, volume:1, pitch:this.GetVoicePitch() });
 				}
+			
+				this._sickness /= 4;
 				
 				if ( this.driver_of )
 				this.driver_of.ExcludeDriver( this );
@@ -1110,7 +1112,7 @@ class sdCharacter extends sdEntity
 				sdWorld.server_config.onKill( this, initiator );
 
 				if ( initiator )
-				if ( initiator.is( sdCharacter ) )
+				if ( initiator.IsPlayerClass() )
 				if ( initiator._socket )
 				{
 					if ( this.IsHostileAI() )
@@ -2336,7 +2338,8 @@ class sdCharacter extends sdEntity
 							this._hook_relative_to.sx = sdWorld.MorphWithTimeScale( this._hook_relative_to.sx, my_ent.sx, 0.8, GSPEED * ( 1 - self_effect_scale ) );
 							this._hook_relative_to.sy = sdWorld.MorphWithTimeScale( this._hook_relative_to.sy, my_ent.sy, 0.8, GSPEED * ( 1 - self_effect_scale ) );
 
-							if ( this._hook_relative_to.is( sdCharacter ) )
+							//if ( this._hook_relative_to.is( sdCharacter ) )
+							if ( this._hook_relative_to.IsPlayerClass() )
 							this._hook_relative_to.ApplyServerSidePositionAndVelocity( true, this._hook_relative_to.sx - lx, this._hook_relative_to.sy - ly );
 
 							if ( this._hook_relative_to._hiberstate === sdEntity.HIBERSTATE_HIBERNATED )

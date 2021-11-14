@@ -254,7 +254,8 @@ class sdStorage extends sdEntity
 		if ( this.type === 2 )
 		if ( from_entity.is( sdCrystal ) && from_entity.type === 1 )
 		{
-			if ( from_entity._held_by === null )
+			//if ( from_entity._held_by === null )
+			if ( from_entity.held_by === null )
 			{
 				let free_slot = -1;
 				
@@ -274,8 +275,9 @@ class sdStorage extends sdEntity
 				{
 					this[ 'item' + free_slot ] = from_entity;
 
-					from_entity.should_draw = 0;
-					from_entity._held_by = this;
+					//from_entity.should_draw = 0;
+					//from_entity._held_by = this;
+					from_entity.held_by = this;
 					
 					if ( this.type === 0 || this.type === 2 )
 					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
@@ -360,11 +362,12 @@ class sdStorage extends sdEntity
 			}
 			if ( this.type === 2 ) // Crystals don't have hiberstate
 			{
-				item.should_draw = 1;
-				item._held_by = null;
+				//item.should_draw = 1;
+				//item._held_by = null;
+				item.held_by = null;
 				//item.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 			
-				//item.PhysWakeUp();
+				item.PhysWakeUp();
 			}
 		}
 	}

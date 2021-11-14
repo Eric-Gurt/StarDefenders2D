@@ -94,6 +94,8 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdHoverBike from './entities/sdHoverBike.js';	
 	import sdObelisk from './entities/sdObelisk.js';
 	import sdSunPanel from './entities/sdSunPanel.js';
+	import sdWeaponBench from './entities/sdWeaponBench.js';
+	
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -164,6 +166,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdHoverBike.init_class();
 	sdObelisk.init_class();
 	sdSunPanel.init_class();
+	sdWeaponBench.init_class();
 
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;

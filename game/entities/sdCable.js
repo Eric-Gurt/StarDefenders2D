@@ -601,7 +601,7 @@ class sdCable extends sdEntity
 				this.p.sx -= pc_dx / di * force * 400 / this.p.mass;
 				this.p.sy -= pc_dy / di * force * 400 / this.p.mass;
 				
-				if ( this.p.is( sdCharacter ) )
+				if ( this.p.IsPlayerClass() )
 				this.p.ApplyServerSidePositionAndVelocity( true, -pc_dx / di * force * 400 / this.p.mass, -pc_dy / di * force * 400 / this.p.mass );
 			
 				if ( this.p._hiberstate === sdEntity.HIBERSTATE_HIBERNATED )
@@ -612,7 +612,7 @@ class sdCable extends sdEntity
 				this.c.sx += pc_dx / di * force * 400 / this.c.mass;
 				this.c.sy += pc_dy / di * force * 400 / this.c.mass;
 				
-				if ( this.c.is( sdCharacter ) )
+				if ( this.c.IsPlayerClass() )
 				this.c.ApplyServerSidePositionAndVelocity( true, pc_dx / di * force * 400 / this.p.mass, pc_dy / di * force * 400 / this.c.mass );
 			
 				if ( this.c._hiberstate === sdEntity.HIBERSTATE_HIBERNATED )

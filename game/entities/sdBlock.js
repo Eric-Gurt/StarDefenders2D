@@ -348,6 +348,7 @@ class sdBlock extends sdEntity
 							let blocks_near = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, 16, null, [ 'sdBlock' ] );
 
 							for ( let i = 0; i < blocks_near.length; i++ )
+							if ( blocks_near[ i ]._natural )
 							map[ ( blocks_near[ i ].x - this.x ) / 16 + ':' + ( blocks_near[ i ].y - this.y ) / 16 ] = blocks_near[ i ];
 
 							done:
@@ -381,12 +382,13 @@ class sdBlock extends sdEntity
 							}
 						}
 						else
-						if ( Math.random() < 0.2 && ( this._contains_class === 'sdCrystal' || this._contains_class === 'sdCrystal.deep' ) ) // Big crystals, I feel like I'm butchering the code at the moment - Booraz
+						if ( Math.random() < 0.1 && ( this._contains_class === 'sdCrystal' || this._contains_class === 'sdCrystal.deep' ) ) // Big crystals, I feel like I'm butchering the code at the moment - Booraz
 						{
 							let map = {};
 							let blocks_near = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, 16, null, [ 'sdBlock' ] );
 
 							for ( let i = 0; i < blocks_near.length; i++ )
+							if ( blocks_near[ i ]._natural )
 							map[ ( blocks_near[ i ].x - this.x ) / 16 + ':' + ( blocks_near[ i ].y - this.y ) / 16 ] = blocks_near[ i ];
 
 							done:
@@ -401,7 +403,7 @@ class sdBlock extends sdEntity
 									let parts = this._contains_class.split( '.' );
 									this._contains_class = parts[ 0 ];
 
-									let params = { x: this.x + xx * 16 + 16, y: this.y + yy * 16 + 16, type: 2, tag:( parts.length > 1 )?parts[1]:null };
+									let params = { x: this.x + xx * 16 + 16, y: this.y + yy * 16 + 16, type: sdCrystal.TYPE_CRYSTAL_BIG, tag:( parts.length > 1 )?parts[1]:null };
 
 									if ( this._contains_class_params )
 									{
@@ -542,15 +544,15 @@ class sdBlock extends sdEntity
 	}
 	Corrupt( from=null )
 	{
-		let ent2 = new sdBlock({ x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_CORRUPTION, filter:this.filter, rank: from ? from.rank - 1 : undefined });
+		let ent2 = new sdBlock({ x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_CORRUPTION, filter:this.filter, rank: from ? Math.max( 0, from.rank - 1 - Math.floor( Math.random(), 3 ) ) : undefined });
 
 		this.remove();
 		this._broken = false;
 
 		sdEntity.entities.push( ent2 );
 		
-		ent2._hmax = this._hmax * 2;
-		ent2._hea = this._hea * 2;
+		ent2._hmax = this._hmax * 1.5;
+		ent2._hea = this._hea * 1.5;
 	}
 	//RequireSpawnAlign() 
 	//{ return true; }

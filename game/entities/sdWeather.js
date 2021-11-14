@@ -61,6 +61,24 @@ class sdWeather extends sdEntity
 		
 		sdWeather.only_instance = null;
 		
+		let event_counter = 0;
+		sdWeather.EVENT_ACID_RAIN =				event_counter++; // 0
+		sdWeather.EVENT_ASTEROIDS =				event_counter++; // 1
+		sdWeather.EVENT_CUBES =					event_counter++; // 2
+		sdWeather.EVENT_FALKOKS =				event_counter++; // 3
+		sdWeather.EVENT_ASPS =					event_counter++; // 4
+		sdWeather.EVENT_FALKOKS_INVASION =		event_counter++; // 5
+		sdWeather.EVENT_BIG_VIRUS =				event_counter++; // 6
+		sdWeather.EVENT_FLYING_MECH =			event_counter++; // 7
+		sdWeather.EVENT_QUAKE =					event_counter++; // 8
+		sdWeather.EVENT_BAD_DOGS =				event_counter++; // 9
+		sdWeather.EVENT_RIFT_PORTAL =			event_counter++; // 10
+		sdWeather.EVENT_ERTHALS =				event_counter++; // 11
+		sdWeather.EVENT_OBELISK =				event_counter++; // 12
+		sdWeather.EVENT_CORRUPTION =			event_counter++; // 13
+		sdWeather.EVENT_WATER_RAIN =			event_counter++; // 14
+		sdWeather.EVENT_SNOW =					event_counter++; // 15
+		
 		sdWeather.last_crystal_near_quake = null; // Used to damage left over crystals. Could be used to damage anything really
 		
 		sdWeather.pattern = [];
@@ -136,7 +154,7 @@ class sdWeather extends sdEntity
 	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
 	{
 		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
-		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 ];
+		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ];
 				
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -181,18 +199,9 @@ class sdWeather extends sdEntity
 	ExecuteEvent( r = -1 ) // Used to be under OnThink ( GSPEED ) but swapped for this so any event can be executed at any time, from any entity
 	{
 		//console.log( r );
-		if ( r === 0 )
+		if ( r === 0 || r === 14 || r === 15 )
 		{
 			this._rain_amount = 30 * 15 * ( 1 + Math.random() * 2 ); // start rain for ~15 seconds
-			
-			if ( this.raining_intensity <= 0 )
-			{
-				this.acid_rain = Math.random() < 0.5 ? 1 : 0;
-				
-				this.snow = Math.random() < 0.333 ? 1 : 0;
-				if ( this.snow )
-				this.acid_rain = false;
-			}
 		}
 
 		if ( r === 1 )
@@ -981,6 +990,24 @@ class sdWeather extends sdEntity
 					break;
 				}
 			}
+		}
+		
+		if ( r === 0 || 
+			 r === 14 || 
+			 r === 15 )
+		if ( this.raining_intensity <= 0 )
+		{
+			if ( r === 0 )
+			this.acid_rain = 1;
+		
+			if ( r === 14 )
+			this.acid_rain = 0;
+
+			if ( r === 15 )
+			this.snow = 1;
+		
+			if ( this.snow )
+			this.acid_rain = 0;
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

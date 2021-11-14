@@ -172,6 +172,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdStorage', type: 2, filter: 'hue-rotate(135deg)', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdNode', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdSunPanel', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdWeaponBench', _category:'Base equipment' });
 		
 
 		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, _category:'Base equipment' });

@@ -314,7 +314,7 @@ class sdVirus extends sdEntity
 				{
 					this.side = ( this._current_target.x > this.x ) ? 1 : -1;
 			
-					if ( this.hurt_timer <= 0 )
+					if ( this.hurt_timer <= 0.5 )
 					if ( this._last_jump < sdWorld.time - 100 * this.hmax / sdVirus.normal_max_health )
 					//if ( this._last_stand_on )
 					if ( !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) )
