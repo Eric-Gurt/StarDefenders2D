@@ -674,6 +674,16 @@ class sdWorld
 				plants.push( grass._net_id );
 				plants_objs.push( grass );
 			}
+			
+			let potential_crystal = ( ( y > from_y + 256 ) ? 'sdCrystal.deep' : 'sdCrystal' );
+			
+			if ( Math.random() < 0.1 )
+			{
+				if ( y > from_y + 256 )
+				potential_crystal = 'sdCrystal.deep_crab';
+				else
+				potential_crystal = 'sdCrystal.crab';
+			}
 
 			ent = new sdBlock({ 
 				x:x, 
@@ -681,7 +691,7 @@ class sdWorld
 				width:16, 
 				height: half ? 8 : 16,
 				material: sdBlock.MATERIAL_GROUND,
-				contains_class: ( !half && Math.random() > 0.75 / hp_mult ) ? ( Math.random() < 0.3 ? random_enemy : ( ( y > from_y + 256 ) ? 'sdCrystal.deep' : 'sdCrystal' ) ) : null,
+				contains_class: ( !half && Math.random() > 0.75 / hp_mult ) ? ( Math.random() < 0.3 ? random_enemy : potential_crystal ) : null,
 				filter: f,
 				natural: true,
 				plants: plants
@@ -2574,15 +2584,15 @@ class sdWorld
 		return false;
 	}
 	
-	static GetCrystalHue( v )
+	static GetCrystalHue( v, glow_radius_scale=1, glow_opacity_hex='' )
 	{
 		if ( v > 40 )
 		{
 			if ( v === 10240 ) // === sdCrystal.anticrystal_value
-		    return 'brightness(0) drop-shadow(0px 0px 6px #000000)';
+		    return 'brightness(0) drop-shadow(0px 0px '+( glow_radius_scale * 6 )+'px #000000'+glow_opacity_hex+')';
 			else
 			if ( v === 5120 )
-		    return 'hue-rotate(200deg) brightness(1.3) drop-shadow(0px 0px 6px #FFFFAA)';
+		    return 'hue-rotate(200deg) brightness(1.3) drop-shadow(0px 0px '+( glow_radius_scale * 6 )+'px #FFFFAA'+glow_opacity_hex+')';
 			else
 			if ( v === 2560 )
 			return 'hue-rotate(170deg) brightness(0.8) contrast(2)';

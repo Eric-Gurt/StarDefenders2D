@@ -1526,9 +1526,19 @@ class sdEntity
 			//console.log( 'Known entity classes: ', sdWorld.entity_classes );
 			throw new Error( 'Unknown entity class "'+snapshot._class+'". Download or it is missing?' );
 		}
-	
+		
+		let params = { x:snapshot.x, y:snapshot.y, _net_id:snapshot._net_id };
+		
+		// Some entities like crystal crabs have separate set of properties
+		
+		if ( typeof snapshot.class !== 'undefined' )
+		params.class = snapshot.class;
+		
+		if ( typeof snapshot.type !== 'undefined' )
+		params.type = snapshot.type;
+		
 		//var ret = new sdWorld.entity_classes[ snapshot._class ]({ x:snapshot.x, y:snapshot.y });
-		var ret = new sdWorld.entity_classes[ snapshot._class ]({ x:snapshot.x, y:snapshot.y, _net_id:snapshot._net_id });
+		var ret = new sdWorld.entity_classes[ snapshot._class ]( params );
 		//ret._net_id = snapshot._net_id;
 		//sdEntity.entities_by_net_id_cache[ ret._net_id ] = ret; // Same for client, done here rather than during object creation
 		

@@ -132,9 +132,15 @@ class sdMatterAmplifier extends sdEntity
 		}
 		else
 		{
-			let matter_to_transfer = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( this.crystal_matter_regen / 100 ) * ( sdMatterAmplifier.relative_regen_amplification_to_crystals * ( this.multiplier ) ) ) - this.matter;
-			this.crystal_matter_regen = Math.max( 20, this.crystal_matter_regen - ( ( matter_to_transfer / this.matter_max ) ) );
+			//let matter_to_transfer = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( this.crystal_matter_regen / 100 ) * ( sdMatterAmplifier.relative_regen_amplification_to_crystals * ( this.multiplier ) ) ) - this.matter;
+			//this.crystal_matter_regen = Math.max( 20, this.crystal_matter_regen - ( ( matter_to_transfer / this.matter_max ) ) );
+			
+			let matter_before_regen = this.matter;
+				
 			this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( this.crystal_matter_regen / 100 ) * ( sdMatterAmplifier.relative_regen_amplification_to_crystals * ( this.multiplier ) ) );
+			
+			this.matter_regen = Math.max( 20, this.matter_regen - ( this.matter - matter_before_regen ) / this.matter_max * 100 / 30 ); // 30 full recharges
+				
 			this.MatterGlow( 0.01, 50, GSPEED );
 		}
 	
@@ -350,7 +356,8 @@ class sdMatterAmplifier extends sdEntity
 		{
 			if ( this._ignore_pickup_tim === 0 )
 			if ( from_entity.is( sdCrystal ) )
-			if ( from_entity._held_by === null && from_entity.type === 1 ) // Prevent crystals which are stored in a crate
+			//if ( from_entity._held_by === null && from_entity.type === 1 ) // Prevent crystals which are stored in a crate
+			if ( from_entity.held_by === null && from_entity.type === sdCrystal.TYPE_CRYSTAL ) // Prevent crystals which are stored in a crate
 			if ( sdWorld.Dist2D_Vector( from_entity.sx, from_entity.sy ) < 1.5 )
 			{
 				//console.log( 'vel ',sdWorld.Dist2D_Vector( from_entity.sx, from_entity.sy ));

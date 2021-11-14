@@ -339,7 +339,7 @@ class sdJunk extends sdEntity
 			{
 				this.MatterGlow( 0.01, 30, GSPEED );
 			}
-			if ( this.type === 0 || ( this.type === 1 && this.hea != this.hmax ) || ( this.type === 2 && this.hea != this.hmax ) )
+			if ( this.type === 0 || ( this.type === 1 && this.hea !== this.hmax ) || ( this.type === 2 && this.hea !== this.hmax ) )
 			this.Damage( GSPEED );
 
 			if ( this.type === 3 )
@@ -378,7 +378,7 @@ class sdJunk extends sdEntity
 						{
 							//if ( sdWorld.sockets[ i ].character.build_tool_level > 0 )
 							{
-								di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
+								di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, this.x, this.y );
 								if ( di < 500 )
 								di_mult = 0.6;
 								else
@@ -416,9 +416,9 @@ class sdJunk extends sdEntity
 		if ( this.type === 1 )
 		sdEntity.Tooltip( ctx, "Alien battery" );
 		if ( this.type === 2 )
-		sdEntity.Tooltip( ctx, "Lost particle container" )
+		sdEntity.Tooltip( ctx, "Lost particle container" );
 		if ( this.type === 3 )
-		sdEntity.Tooltip( ctx, "Large Anti-crystal" )
+		sdEntity.Tooltip( ctx, "Large Anti-crystal" );
 	}
 	Draw( ctx, attached )
 	{

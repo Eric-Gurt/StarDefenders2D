@@ -84,7 +84,7 @@ class sdCrystalCombiner extends sdEntity
 
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		//this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
+		//this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 ); // Commented to not deal with matter regen, which is probably a bad approach. Keep crystals as real entities instead?
 		
 		if ( this._last_matter_max !== this.matter_max )
 		{
@@ -419,7 +419,8 @@ class sdCrystalCombiner extends sdEntity
 		//if ( from_entity._is_being_removed )
 		//return;
 	
-		if ( this._ignore_pickup_tim === 0 && !from_entity._is_being_removed && from_entity.is( sdCrystal ) && from_entity.matter_max !== sdCrystal.anticrystal_value && from_entity._held_by === null && from_entity.type === 1 )
+		//if ( this._ignore_pickup_tim === 0 && !from_entity._is_being_removed && from_entity.is( sdCrystal ) && from_entity.matter_max !== sdCrystal.anticrystal_value && from_entity._held_by === null && from_entity.type === 1 )
+		if ( this._ignore_pickup_tim === 0 && !from_entity._is_being_removed && from_entity.is( sdCrystal ) && from_entity.matter_max !== sdCrystal.anticrystal_value && from_entity.held_by === null && from_entity.type === sdCrystal.TYPE_CRYSTAL )
 		{
 			if ( sdWorld.Dist2D_Vector( from_entity.sx, from_entity.sy ) < 1.5 )
 			{
