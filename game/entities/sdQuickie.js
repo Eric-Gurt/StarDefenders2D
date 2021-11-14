@@ -114,7 +114,7 @@ class sdQuickie extends sdEntity
 			initiator._score += 1;
 		}
 		
-		if ( this._hea < -this._hmax / 80 * 100 )
+		if ( this._hea < -this._hmax / 80 * 100 || this._tier === 2 )
 		this.remove();
 	}
 	

@@ -122,7 +122,13 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_skeleton' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'helmet_rose' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'helmet_avre' ), // by Silk1
-			sdWorld.CreateImageFromFile( 'helmet_spaghetti' ) // by Silk1
+			sdWorld.CreateImageFromFile( 'helmet_spaghetti' ), // by Silk1
+                        sdWorld.CreateImageFromFile( 'helmet_tacticalSD' ), // by The_Commander
+                        sdWorld.CreateImageFromFile( 'helmet_vengeance' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_sovereign' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_oxide' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_mythic' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_outcast' ) // by LordBored
 		];
 		
 		sdCharacter.skin_part_indices = {
@@ -179,7 +185,15 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'skins/skeleton' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'skins/rose' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'skins/avre' ), // by Silk1
-			sdWorld.CreateImageFromFile( 'skins/spaghetti' ) // by Silk1
+			sdWorld.CreateImageFromFile( 'skins/spaghetti' ), // by Silk1
+                        sdWorld.CreateImageFromFile( 'skins/trooper' ), // by AlbanianTrooper
+                        sdWorld.CreateImageFromFile( 'skins/vengeance' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/arbiter' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/ranger' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/oxide' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/survivor' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/mythic' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/outcast' ), // by LordBored
 		];
 		
 		// x y rotation, for images below
@@ -526,10 +540,14 @@ class sdCharacter extends sdEntity
 		this._matter_regeneration_multiplier = 1; // Matter regen multiplier upgrade
 		this.workbench_level = 0; // Stand near workbench to unlock some workbench build stuff
 
-		this._acquired_bt_mech = false; // Has the character picked up build tool upgrade that the flying mech drops?
-		this._acquired_bt_rift = false; // Has the character picked up build tool upgrade that the portals drop?
-		this._acquired_bt_score = false; // Has the character reached over 5000 score?
-		this._acquired_bt_projector = false; // Has the character picked up build tool upgrade that the dark matter beam projectors drop?
+		this._score_to_level = 300;// How much score is needed to level up character?
+		this._score_to_level_additive = 300; // How much score it increases to level up next level
+		this._max_level = 30; // Current maximum level for players to reach
+
+		//this._acquired_bt_mech = false; // Has the character picked up build tool upgrade that the flying mech drops?
+		//this._acquired_bt_rift = false; // Has the character picked up build tool upgrade that the portals drop?
+		//this._acquired_bt_score = false; // Has the character reached over 5000 score?
+		//this._acquired_bt_projector = false; // Has the character picked up build tool upgrade that the dark matter beam projectors drop?
 		this.flying = false; // Jetpack flying
 		//this._last_act_y = this.act_y; // For mid-air jump jetpack activation
 		
@@ -1075,38 +1093,6 @@ class sdCharacter extends sdEntity
 				this.driver_of.ExcludeDriver( this );
 			
 				this.DropWeapons();
-				
-				if ( this._acquired_bt_mech )
-				{
-					this._acquired_bt_mech = false;
-					this.build_tool_level--;
-			   		let upg = new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_BUILDTOOL_UPG });
-					upg.sx = this.sx;
-					upg.sy = this.sy;
-					sdEntity.entities.push( upg );
-				}
-
-				if ( this._acquired_bt_rift )
-				{
-					this._acquired_bt_rift = false;
-					this.build_tool_level--;
-			   		let upg2 = new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_BUILDTOOL_UPG });
-					upg2.extra = 1;
-					upg2.sx = this.sx;
-					upg2.sy = this.sy;
-					sdEntity.entities.push( upg2 );
-				}
-
-				if ( this._acquired_bt_projector )
-				{
-					this._acquired_bt_projector = false;
-					this.build_tool_level--;
-			   		let upg3 = new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_BUILDTOOL_UPG });
-					upg3.extra = 2;
-					upg3.sx = this.sx;
-					upg3.sy = this.sy;
-					sdEntity.entities.push( upg3 );
-				}
 
 				if ( sdWorld.server_config.onKill )
 				sdWorld.server_config.onKill( this, initiator );
@@ -1754,17 +1740,12 @@ class sdCharacter extends sdEntity
 		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED );
 		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED );
 
-		if ( this._score >= 5000 && this._acquired_bt_score === false )
+		if ( this._score >= this._score_to_level && this.build_tool_level < this._max_level )
 		{
-			this.Say( 'My experience on this planet expanded my knowledge' );
+			//this.Say( 'My experience on this planet expanded my knowledge' );
 			this.build_tool_level++;
-			this._acquired_bt_score = true;
-		}
-		else
-		if ( this._score < 5000 && this._acquired_bt_score === true )
-		{
-			this.build_tool_level--;
-			this._acquired_bt_score = false;
+			this._score_to_level_additive = this._score_to_level_additive * 1.04;
+			this._score_to_level = this._score_to_level + this._score_to_level_additive;
 		}
 		
 		if ( this.hea <= 0 )

@@ -46,6 +46,7 @@ import sdSpider from './sdSpider.js';
 import sdAmphid from './sdAmphid.js';
 import sdObelisk from './sdObelisk.js';
 import sdWater from './sdWater.js';
+import sdJunk from './sdJunk.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -154,7 +155,7 @@ class sdWeather extends sdEntity
 	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
 	{
 		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
-		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ];
+		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16 ];
 				
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -991,7 +992,7 @@ class sdWeather extends sdEntity
 				}
 			}
 		}
-		
+
 		if ( r === 0 || 
 			 r === 14 || 
 			 r === 15 )
@@ -1008,6 +1009,78 @@ class sdWeather extends sdEntity
 		
 			if ( this.snow )
 			this.acid_rain = 0;
+		}
+
+		if ( r === 16 ) // Spawn a Large Anti-Crystal anywhere on the map outside player views which drains active players' matter if they're close enough
+		{
+			if ( Math.random() < 0.4 ) // 40% chance for the 
+			{
+				let instances = 0;
+				let instances_tot = 1;
+
+				while ( instances < instances_tot && sdJunk.anti_crystals < 1 )
+				{
+					let anticrystal = new sdJunk({ x:0, y:0, type: 3 });
+
+					sdEntity.entities.push( anticrystal );
+
+					let x,y,i;
+					let tr = 1000;
+					do
+					{
+						x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+						if ( anticrystal.CanMoveWithoutOverlap( x, y, 0 ) )
+						if ( !anticrystal.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+						if ( sdWorld.last_hit_entity )
+						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+						if ( !sdWorld.CheckWallExistsBox( 
+								x + anticrystal._hitbox_x1 - 16, 
+								y + anticrystal._hitbox_y1 - 16, 
+								x + anticrystal._hitbox_x2 + 16, 
+								y + anticrystal._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+						{
+							let di_allowed = true;
+									
+							for ( i = 0; i < sdWorld.sockets.length; i++ )
+							if ( sdWorld.sockets[ i ].character )
+							{
+								let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
+										
+								if ( di < 500 )
+								{
+									di_allowed = false;
+									break;
+								}
+							}
+									
+							if ( di_allowed )
+							{
+								anticrystal.x = x;
+								anticrystal.y = y;
+
+								break;
+							}
+						}
+								
+
+
+						tr--;
+						if ( tr < 0 )
+							{
+							anticrystal.remove();
+							anticrystal._broken = false;
+							break;
+						}
+					} while( true );
+
+					instances++;
+				}
+
+			}
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

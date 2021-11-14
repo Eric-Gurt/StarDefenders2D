@@ -395,7 +395,7 @@ class sdGunClass
 			count: 1,
 			is_sword: true,
 			matter_cost: 90, // Was 200, but I don't feel like this weapon is overpowered enough to have high cost like stimpack does /EG
-			min_build_tool_level: 1, // Was available from start before, however MK2 shovel needs this aswell
+			min_build_tool_level: 2, // Was available from start before, however MK2 shovel needs this aswell
 			projectile_velocity: 20 * 1.5,
 			projectile_properties: { time_left: 1, _damage: 60, color: 'transparent', _knock_scale:0.025 * 8, 
 				_custom_target_reaction:( bullet, target_entity )=>
@@ -560,8 +560,8 @@ class sdGunClass
 			spread: 0.02,
 			count: 1,
 			matter_cost: 90,
-			min_build_tool_level: 1,
-			projectile_properties: { _damage: 36 }
+			min_build_tool_level: 4,
+			projectile_properties: { _damage: 29 }
 		};
 
 		sdGun.classes[ sdGun.CLASS_BUILDTOOL_UPG = 25 ] = 
@@ -591,8 +591,47 @@ class sdGunClass
 						if ( character._socket )
 						sdSound.PlaySound({ name:'reload', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
 					}
+					else
+					if ( gun.extra === 0 )
+					{
+						if ( Math.random() > 0.5 )
+						character.Say( "This will be useful" );
+						else
+						character.Say( "This is definitely gonna help me");
+						character._score += 350;
+						gun.remove(); 
+
+						if ( character._socket )
+						sdSound.PlaySound({ name:'reload', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
+					}
+					else
+					if ( gun.extra === 1 )
+					{
+						if ( Math.random() > 0.5 )
+						character.Say( "This will be useful" );
+						else
+						character.Say( "This is definitely gonna help me");
+						character._score += 600;
+						gun.remove(); 
+
+						if ( character._socket )
+						sdSound.PlaySound({ name:'reload', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
+					}
+					else
+					if ( gun.extra === 2 )
+					{
+						if ( Math.random() > 0.5 )
+						character.Say( "This will be useful" );
+						else
+						character.Say( "This is definitely gonna help me");
+						character._score += 900;
+						gun.remove(); 
+
+						if ( character._socket )
+						sdSound.PlaySound({ name:'reload', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
+					}
 					
-					if ( character._acquired_bt_mech === false && gun.extra === 0 ) // Has the player found this upgrade before?
+					/*if ( character._acquired_bt_mech === false && gun.extra === 0 ) // Has the player found this upgrade before?
 					{
 						character.build_tool_level++;
 						character._acquired_bt_mech = true;
@@ -632,7 +671,7 @@ class sdGunClass
 
 						if ( character._socket )
 						sdSound.PlaySound({ name:'reload', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
-					}
+					}*/
 				}
 
 				return false; 
@@ -740,7 +779,7 @@ class sdGunClass
 			matter_cost: 90,
 			burst: 3, // Burst fire count
 			burst_reload: 30, // Burst fire reload, needed when giving burst fire
-			min_build_tool_level: 2,
+			min_build_tool_level: 6,
 			projectile_properties: { _damage: 25 }
 		};
 
@@ -774,7 +813,7 @@ class sdGunClass
 			count: 1,
 			burst: 3, // Burst fire count
 			burst_reload: 10, // Burst fire reload, needed when giving burst fire
-			min_build_tool_level: 2,
+			min_build_tool_level: 7,
 			matter_cost: 45,
 			projectile_properties: { _damage: 18 }
 		};
@@ -789,7 +828,7 @@ class sdGunClass
 			ammo_capacity: 30,
 			spread: 0.1,
 			count: 1,
-			min_build_tool_level: 3,
+			min_build_tool_level: 12,
 			matter_cost: 90,
 			projectile_properties: { _damage: 20 }
 		};
@@ -806,7 +845,7 @@ class sdGunClass
 			spread: 0.05,
 			projectile_velocity: 14,
 			count: 1,
-			min_build_tool_level: 3,
+			min_build_tool_level: 18,
 			matter_cost: 90,
 			projectile_properties: { time_left: 60, explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.02 }
 		};
@@ -866,7 +905,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			is_sword: false,
-			min_build_tool_level: 1,
+			min_build_tool_level: 4,
 			matter_cost: 90,
 			projectile_velocity: 20 * 1.5,
 			projectile_properties: { time_left: 1, _damage: 30, color: 'transparent', _dirt_mult: 2 , _knock_scale:0.025 * 8, 
@@ -1123,7 +1162,7 @@ class sdGunClass
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
-			min_build_tool_level: 1,
+			min_build_tool_level: 2,
 			matter_cost: 300 / 2 * 2.5, // More DPS relative to stimpack
 			projectile_velocity: 16,
 			GetAmmoCost: ()=>
@@ -1296,7 +1335,7 @@ class sdGunClass
 			spread: 0.03,
 			count: 1,
 			matter_cost: 140,
-			min_build_tool_level: 3,
+			min_build_tool_level: 11,
 			projectile_properties: { _damage: 42, color: '#FFEB00' }
 		};
 
@@ -1315,7 +1354,7 @@ class sdGunClass
 			spread: 0.02,
 			count: 1,
 			matter_cost: 190,
-			min_build_tool_level: 5,
+			min_build_tool_level: 24,
 			projectile_properties: { _damage: 48, color: '#FFEB00' }
 		};
 
@@ -1339,7 +1378,7 @@ class sdGunClass
             count: 1,
             matter_cost: 280,
             projectile_properties: { _rail: true, _damage: 98, color: '#62c8f2', explosion_radius: 20}, // buffed damage by player request - Ghost581
-            min_build_tool_level: 3
+            min_build_tool_level: 19
 		};
 
 		sdGun.classes[ sdGun.CLASS_ADMIN_TELEPORTER = 50 ] = 
@@ -1855,7 +1894,7 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: sdGun.default_projectile_velocity * 2,
 			matter_cost: 120,
-			min_build_tool_level: 1,
+			min_build_tool_level: 9,
 			projectile_properties: { _damage: 105, /*_knock_scale:0.01 * 8, */penetrating:true },
 			upgrades: AddRecolorsFromColorAndCost( [], '#85ffcc', 30 )
 		};
@@ -1873,7 +1912,7 @@ class sdGunClass
 			ammo_capacity: 8,
 			count: 1,
 			matter_cost: 160,
-			min_build_tool_level: 1,
+			min_build_tool_level: 8,
 			fire_type: 2,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.7,
 			projectile_properties: { _damage: 72, color: '#33ffff', penetrating: true }
@@ -1897,7 +1936,7 @@ class sdGunClass
 			matter_cost: 120,
 			burst: 3,
 			burst_reload: 35,
-			min_build_tool_level: 3,
+			min_build_tool_level: 13,
 			projectile_properties: { _damage: 33, color:'#00aaff' }
 		};
     
@@ -1917,7 +1956,7 @@ class sdGunClass
 			matter_cost: 1000,
 			projectile_velocity: sdGun.default_projectile_velocity * 2,
 			min_workbench_level: 6,
-			min_build_tool_level: 3,
+			min_build_tool_level: 5,
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
 				if ( shoot_from_scenario )
@@ -1966,7 +2005,7 @@ class sdGunClass
 			count: 1,
 			matter_cost: 120,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.3,
-			min_build_tool_level: 3,
+			min_build_tool_level: 10,
 			projectile_properties: { _damage: 40 }
 		};
 
@@ -1985,7 +2024,7 @@ class sdGunClass
 			count: 1,
 			burst: 2,
 			burst_reload: 32, 
-			min_build_tool_level: 3,
+			min_build_tool_level: 5,
 			min_workbench_level: 2,
 			matter_cost: 240,
 			projectile_properties: { time_left: 90, explosion_radius: 20, model: 'mini_missile_p241', _damage: 32, color:sdEffect.default_explosion_color, ac:0.01, _homing: true, _homing_mult: 0.3 }
@@ -2060,7 +2099,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			is_sword: true,
-			min_build_tool_level: 3,
+			min_build_tool_level: 20,
 			matter_cost: 300,
 			projectile_velocity: 37,
 			GetAmmoCost: ()=>
@@ -2185,7 +2224,7 @@ class sdGunClass
 			projectile_velocity: 9,
 			fire_type: 2, // Semi auto
 			matter_cost: 90,
-			min_build_tool_level: 2,
+			min_build_tool_level: 13,
 			projectile_properties: { explosion_radius: 16, time_left: 30 * 3, model: 'grenade', _damage: 16 * 2, color:sdEffect.default_explosion_color, is_grenade: true }
 		};
 		
