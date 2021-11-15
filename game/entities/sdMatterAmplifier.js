@@ -139,7 +139,7 @@ class sdMatterAmplifier extends sdEntity
 				
 			this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( this.matter_regen / 100 ) * ( sdMatterAmplifier.relative_regen_amplification_to_crystals * ( this.multiplier ) ) );
 			
-			this.matter_regen = Math.max( 20, this.matter_regen - ( this.matter - matter_before_regen ) / this.matter_max * 100 / 30 ); // 30 full recharges
+			this.matter_regen = Math.max( 20, this.matter_regen - ( this.matter - matter_before_regen ) / this.matter_max * 100 / sdCrystal.recharges_until_depleated ); // 30 full recharges
 				
 			this.MatterGlow( 0.01, 50, GSPEED );
 		}

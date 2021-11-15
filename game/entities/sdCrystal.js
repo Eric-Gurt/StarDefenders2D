@@ -27,6 +27,8 @@ class sdCrystal extends sdEntity
 		sdCrystal.TYPE_CRYSTAL_BIG = 2;
 		sdCrystal.TYPE_CRYSTAL_CRAB = 3;
 		
+		sdCrystal.recharges_until_depleated = 100;
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	/*get hitbox_x1() { return this.should_draw === 0 ? -2 : this.type === 2 ? -14 : -4; }
@@ -389,7 +391,7 @@ class sdCrystal extends sdEntity
 				
 				this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( this.matter_regen / 100 ) );
 				
-				this.matter_regen = Math.max( 20, this.matter_regen - ( this.matter - matter_before_regen ) / this.matter_max * 100 / 30 ); // 30 full recharges
+				this.matter_regen = Math.max( 20, this.matter_regen - ( this.matter - matter_before_regen ) / this.matter_max * 100 / sdCrystal.recharges_until_depleated ); // 30 full recharges
 				
 				this.MatterGlow( 0.01, 30, GSPEED );
 			}
