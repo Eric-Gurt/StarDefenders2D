@@ -646,8 +646,8 @@ class sdCube extends sdEntity
 					}
 					else
 					{
-						if ( ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ].hea < targets_raw[ i ].hmax && sdCube.IsTargetFriendly( targets_raw[ i ] ) ) ||
-							 ( targets_raw[ i ].GetClass() === 'sdCube' && targets_raw[ i ].hea < targets_raw[ i ]._hmax && targets_raw[ i ]!== this ) )
+						if ( ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ].hea < targets_raw[ i ].hmax && sdCube.IsTargetFriendly( targets_raw[ i ] ) && targets_raw[ i ]._socket ) || // Only with socket
+							 ( targets_raw[ i ].GetClass() === 'sdCube' && targets_raw[ i ].hea < targets_raw[ i ]._hmax && targets_raw[ i ] !== this ) )
 							if ( sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdCube' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ] ) )
 							targets.push( targets_raw[ i ] );
 					}

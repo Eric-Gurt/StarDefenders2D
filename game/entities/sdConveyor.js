@@ -212,6 +212,8 @@ class sdConveyor extends sdEntity
 						another_entity.tilt_speed += Math.sin( another_entity.tilt / 100 * 2 + Math.random() * 0.2 - 0.1 ) * 0.5 * Math.abs( this.dir ) * GSPEED;
 					}
 					
+					another_entity.PhysWakeUp();
+					
 					if ( another_entity.y + another_entity._hitbox_y2 < this.y + 4 ) // On top
 					{
                         another_entity.sx = sdWorld.MorphWithTimeScale( another_entity.sx, this.dir * 1.5, 0.9, GSPEED );

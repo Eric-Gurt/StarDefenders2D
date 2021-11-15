@@ -85,9 +85,13 @@ class sdWeaponBench extends sdEntity
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		}
 	}
+	get title()
+	{
+		return 'Weapon Modification Bench';
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, 'Weapon workbench' );
+		sdEntity.Tooltip( ctx, this.title );
 	}
 	Draw( ctx, attached )
 	{
