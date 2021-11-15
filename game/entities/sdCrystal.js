@@ -45,6 +45,11 @@ class sdCrystal extends sdEntity
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return true; }*/
 	
+	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Guns are not targetable when held, same for sdCharacters that are driving something
+	{
+		return ( this.held_by === null );
+	}
+	
 	get title()
 	{
 		if ( ( this.matter_max === sdCrystal.anticrystal_value && this.type !== 2 ) || ( this.matter_max === sdCrystal.anticrystal_value * 4 && this.type === 2 ) )
