@@ -337,6 +337,18 @@ class sdBlock extends sdEntity
 
 			if ( this._hea <= 0 )
 			{
+				if ( this.material === sdBlock.MATERIAL_CORRUPTION )
+				{
+					if ( initiator )
+					if ( typeof initiator._score !== 'undefined' )
+					{
+						if ( this.rank === sdBlock.max_corruption_rank )
+						initiator._score += 10;
+						else
+						initiator._score += 1;
+					}
+				}
+				
 				{
 					if ( this._contains_class )
 					{
