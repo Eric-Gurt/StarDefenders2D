@@ -63,7 +63,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdHover', type: 1, filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 17 });
 		sdShop.options.push({ _class: 'sdHover', type: 1, filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 17 });
 		sdShop.options.push({ _class: 'sdHover', type: 1, filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 17 });
-		sdShop.options.push({ _class: 'sdHover', type: 2, _category:'Vehicles', _min_build_tool_level: 4 });
+		sdShop.options.push({ _class: 'sdHover', type: 2, _category:'Vehicles', _min_build_tool_level: 24 });
 		sdShop.options.push({ _class: 'sdHover', type: 2, filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 24 });
 		sdShop.options.push({ _class: 'sdHover', type: 2, filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 24 });
 		sdShop.options.push({ _class: 'sdHover', type: 2, filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 24 });
