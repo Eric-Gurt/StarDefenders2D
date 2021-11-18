@@ -159,6 +159,8 @@ const __dirname = ( isWin ) ?
 	: 
 	'/home/admin/sd2d/';*/
 
+globalThis.sdServerToServerProtocol = sdServerToServerProtocol;
+
 let io;
 
 if ( SOCKET_IO_MODE ) // Socket.io
@@ -265,6 +267,8 @@ import sdHoverBike from './game/entities/sdHoverBike.js';
 import sdObelisk from './game/entities/sdObelisk.js';
 import sdSunPanel from './game/entities/sdSunPanel.js';
 import sdWeaponBench from './game/entities/sdWeaponBench.js';
+import sdLongRangeTeleport from './game/entities/sdLongRangeTeleport.js';
+import sdServerToServerProtocol from './game/server/sdServerToServerProtocol.js';
 
 import LZW from './game/server/LZW.js';
 import LZUTF8 from './game/server/LZUTF8.js';
@@ -434,7 +438,7 @@ sdHoverBike.init_class();
 sdObelisk.init_class();
 sdSunPanel.init_class();
 sdWeaponBench.init_class();
-
+sdLongRangeTeleport.init_class();
 
 
 

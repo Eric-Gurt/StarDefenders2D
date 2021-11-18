@@ -758,7 +758,7 @@ class sdRenderer
 			ctx.fillStyle = '#000000';
 			for ( var step = 1; step <= 4; step++ )
 			{
-				ctx.globalAlpha = 1 - ( step / 5 );
+				ctx.globalAlpha = ( 1 - ( step / 5 ) ) * 0.5;
 				
 				ctx.fillRect(	sdWorld.world_bounds.x1 + 10 * ( step - 1 ), 
 								sdWorld.world_bounds.y1 + 10 * ( step - 1 ), 

@@ -95,6 +95,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdObelisk from './entities/sdObelisk.js';
 	import sdSunPanel from './entities/sdSunPanel.js';
 	import sdWeaponBench from './entities/sdWeaponBench.js';
+	import sdLongRangeTeleport from './entities/sdLongRangeTeleport.js';
 	
 
 	sdWorld.init_class();
@@ -167,6 +168,7 @@ meSpeak.loadVoice("voices/en/en.json");
 	sdObelisk.init_class();
 	sdSunPanel.init_class();
 	sdWeaponBench.init_class();
+	sdLongRangeTeleport.init_class();
 
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;

@@ -1940,6 +1940,28 @@ class sdEntity
 	Impulse( sx, sy )
 	{
 	}
+	SafeAddVelocity( sx, sy ) // Caps velocity at 16 pixels per frame after adding it - in order to prevent too fast object velocities that can pass through walls. It means that velocity will be incorrect after it reaches maximum value. Better approach would be to add more substeps instead of it but that would cause perofrmance issues at some point
+	{
+		let sx2 = this.sx + sx;
+		let sy2 = this.sy + sy;
+		
+		let di_pow2 = sx2 * sx2 + sy2 * sy2;
+		
+		const max_vel_pow2 = 16 * 16;
+		
+		// Cap max velocity
+		if ( di_pow2 > max_vel_pow2 )
+		{
+			const di = Math.sqrt( di_pow2 );
+			const max_vel = Math.sqrt( max_vel_pow2 );
+			
+			sx2 = sx2 / di * max_vel;
+			sy2 = sy2 / di * max_vel;
+		}
+		
+		this.sx = sx2;
+		this.sy = sy2;
+	}
 	Draw( ctx, attached )
 	{
 	}

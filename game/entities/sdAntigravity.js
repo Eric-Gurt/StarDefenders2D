@@ -184,8 +184,10 @@ class sdAntigravity extends sdEntity
 											arr[ i ].sy = sdWorld.MorphWithTimeScale( arr[ i ].sy, 0, 0.75, GSPEED );
 											else
 											{
-												if ( arr[ i ].sy > -16 * GSPEED ) // Prevent speeds higher than wall tolerance
-												arr[ i ].sy -= GSPEED * sdWorld.gravity * 0.9 * this.power;
+												//if ( arr[ i ].sy > -16 * GSPEED ) // Prevent speeds higher than wall tolerance
+												//arr[ i ].sy -= GSPEED * sdWorld.gravity * 0.9 * this.power;
+												
+												arr[ i ].SafeAddVelocity( 0, -GSPEED * sdWorld.gravity * 0.9 * this.power );
 											}
 										}
 									}
