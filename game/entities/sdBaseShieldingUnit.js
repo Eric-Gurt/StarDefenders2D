@@ -31,7 +31,7 @@ class sdBaseShieldingUnit extends sdEntity
 
 		sdBaseShieldingUnit.protect_distance = 275;
 				
-		sdBaseShieldingUnit.regen_matter_cost_per_1_hp = 0.001; // Much less than player's automatic regeneration
+		sdBaseShieldingUnit.regen_matter_cost_per_1_hp = 0.002; // Much less than player's automatic regeneration
 		
 		sdBaseShieldingUnit.all_shield_units = [];
 		
@@ -80,6 +80,9 @@ class sdBaseShieldingUnit extends sdEntity
 		this._protected_entities = [];
 		this.enabled = false;
 		this.attack_other_units = false;
+		this._matter_drain = 0;
+
+		this._check_blocks = 30; // Temporary, checks for old pre-rework BSU's protected blocks and applies cost for "this._matter_drain" which is now used when BSU attacks BSU. Will be commented out / removed later.
 		
 		//this.filter = params.filter || 'none';
 
@@ -170,6 +173,7 @@ class sdBaseShieldingUnit extends sdEntity
 				}
 			}
 			this._protected_entities = [];
+			this._matter_drain = 0; // Reset matter drain
 		}
 
 		if ( this.enabled ) // Scan unprotected blocks and fortify them
@@ -189,6 +193,7 @@ class sdBaseShieldingUnit extends sdEntity
 						blocks[ i ]._shielded = this;
 						sdWorld.SendEffect({ x:this.x, y:this.y, x2:blocks[ i ].x + ( blocks[ i ].hitbox_x2 / 2 ), y2:blocks[ i ].y + ( blocks[ i ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#0ACC0A' });
 						this._protected_entities.push( blocks[ i ]._net_id ); // Since for some reason arrays don't save _net_id's in this entity, this is obsolete
+						this._matter_drain += ( blocks[ i ].height + blocks[ i ].width ) / 32;
 					}
 				}
 				else
@@ -199,6 +204,7 @@ class sdBaseShieldingUnit extends sdEntity
 						blocks[ i ]._shielded = this;
 						sdWorld.SendEffect({ x:this.x, y:this.y, x2:blocks[ i ].x + ( blocks[ i ].hitbox_x2 / 2 ), y2:blocks[ i ].y + ( blocks[ i ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#0ACC0A' });
 						this._protected_entities.push( blocks[ i ]._net_id );
+						this._matter_drain += ( blocks[ i ].height + blocks[ i ].width ) / 32;
 					}
 				}
 			}
@@ -247,6 +253,17 @@ class sdBaseShieldingUnit extends sdEntity
 		if ( this.regen_timeout > 0 )
 		this.regen_timeout -= GSPEED;
 
+		if ( this._check_blocks > 0 && this.enabled )
+		this._check_blocks -= GSPEED;
+		else
+		if ( this._matter_drain === 0 && this.enabled )
+		{
+			for ( let i = 0; i < this._protected_entities.length; i++ ) // For non-reworked BSU's that exist pre-update
+			{
+				this._matter_drain += ( blocks[ i ].height + blocks[ i ].width ) / 32;
+			}
+		}
+
 		if ( this.matter_crystal < 800 )
 		{
 			this.SetShieldState( false ); // Shut down if no matter
@@ -282,8 +299,11 @@ class sdBaseShieldingUnit extends sdEntity
 				{
 					if ( units[ i ].matter_crystal > 80 ) // Not really needed since the units turn off below 800 matter
 					{
-						units[ i ].matter_crystal -= 80;
-						this.matter_crystal -= 80;
+						if ( units[ i ]._matter_drain - this._matter_drain > 0 )
+						{
+							units[ i ].matter_crystal -= ( units[ i ].matter_crystal > 100000 ? 0.9 : 1 ) * ( units[ i ]._matter_drain - this._matter_drain );
+							this.matter_crystal -= ( units[ i ]._matter_drain - this._matter_drain );
+						}
 						sdWorld.SendEffect({ x:this.x, y:this.y, x2:units[ i ].x, y2:units[ i ].y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
 						this._attack_timer = 30;
 						this.attack_anim = 20;
@@ -355,8 +375,22 @@ class sdBaseShieldingUnit extends sdEntity
 			if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
 			{
 				sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2, pitch:2 });
+				let matter_to_feed = ( this.matter_crystal < 50000 ? 1.2 : this.matter_crystal < 100000 ? 1.1 : 1 ) * from_entity.matter_max;
+				let old_matter = this.matter_crystal;
+				if ( this.matter_crystal < 50000 )
+				if ( this.matter_crystal + matter_to_feed > 50000 )
+				{
+					this.matter_crystal = 50000;
+					matter_to_feed = ( ( matter_to_feed - ( this.matter_crystal - old_matter ) ) / 1.2 ) * 1.1;
+				}
+				if ( this.matter_crystal > 50000 && this.matter_crystal < 100000 )
+				if ( this.matter_crystal + matter_to_feed > 100000 )
+				{
+					this.matter_crystal = 100000;
+					matter_to_feed = ( matter_to_feed - ( this.matter_crystal - old_matter ) ) / 1.1;
+				}
 
-				this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + from_entity.matter_max); // Drain the crystal for it's max value and destroy it
+				this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + matter_to_feed); // Drain the crystal for it's max value and destroy it
 				//this._update_version++;
 				from_entity.remove();
 			}
