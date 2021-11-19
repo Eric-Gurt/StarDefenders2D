@@ -528,6 +528,9 @@ class sdBullet extends sdEntity
 						// Some entities need to inherit impact velocity on damage so it is higher now
 						from_entity.Impulse( this.sx * Math.abs( this._damage ) * this._knock_scale, 
 											 this.sy * Math.abs( this._damage ) * this._knock_scale );
+											 
+						if ( typeof from_entity.sx !== 'undefined' )
+						from_entity.SafeAddVelocity( 0, 0 ); // Will only verify, without adding anything
 
 						from_entity.Damage( dmg, this._owner, limb_mult !== 1 );
 						
@@ -630,6 +633,9 @@ class sdBullet extends sdEntity
 							// Some entities need to inherit impact velocity on damage so it is higher now
 							from_entity.Impulse( this.sx * Math.abs( dmg ) * this._knock_scale, 
 												 this.sy * Math.abs( dmg ) * this._knock_scale );
+							
+							if ( typeof from_entity.sx !== 'undefined' )
+							from_entity.SafeAddVelocity( 0, 0 ); // Will only verify, without adding anything
 
 							let old_hea = ( from_entity.hea || from_entity._hea || 0 );
 							//if ( from_entity.GetClass() !== 'sdBlock' && from_entity.GetClass() !== 'sdDoor'  )

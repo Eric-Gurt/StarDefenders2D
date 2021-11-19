@@ -18,6 +18,7 @@ import sdBG from './sdBG.js';
 import sdArea from './sdArea.js';
 import sdOctopus from './sdOctopus.js';
 import sdRift from './sdRift.js';
+import sdWeaponBench from './sdWeaponBench.js';
 
 import sdGunClass from './sdGunClass.js';
 
@@ -268,7 +269,7 @@ class sdGun extends sdEntity
 		this.muzzle = 0;
 		
 		// Old way of entity pointers I guess. ApplySnapshot handles this case but only for sdGun case
-		this._held_by = null;
+		this._held_by = null; // This property is cursed and outdated. Use public properties for new entitties - they will work fine and will handle pointers when pointed entiteis exist (null in else cases)
 		this.held_by_net_id = -1;
 		this.held_by_class = '';
 		
@@ -278,6 +279,8 @@ class sdGun extends sdEntity
 		this.burst_ammo = -123;
 		//this.ttl = params.ttl || sdGun.disowned_guns_ttl;
 		this.extra = ( params.extra === undefined ) ? 0 : params.extra; // shard value will be here
+
+		this.sd_filter = null;
 
 		this.fire_mode = 1; // 1 = full auto, 2 = semi auto
 		
@@ -299,6 +302,9 @@ class sdGun extends sdEntity
 		return true;
 		else
 		{
+			if ( this._held_by.is( sdWeaponBench ) )
+			return true;
+			else
 			if ( this._held_by.is( sdStorage ) )
 			{
 				if ( observer_character )
@@ -936,7 +942,7 @@ class sdGun extends sdEntity
 			if ( this._held_by === null )
 			ctx.rotate( this.tilt / sdGun.tilt_scale );
 			
-			if ( this.class === sdGun.CLASS_SNIPER || this.class === sdGun.CLASS_RAYGUN || this.class === sdGun.CLASS_PHASERCANNON_P03 || this.class === sdGun.CLASS_ERTHAL_BURST_RIFLE || this.class === sdGun.CLASS_BURST_PISTOL || this.class === sdGun.CLASS_GAUSS_RIFLE || this.class === sdGun.CLASS_ZAPPER ) // It could probably be separated as a variable declared in sdGunClass to determine if it has reloading animation or not
+			if ( this.class === sdGun.CLASS_SNIPER || this.class === sdGun.CLASS_RAYGUN || this.class === sdGun.CLASS_PHASERCANNON_P03 || this.class === sdGun.CLASS_ERTHAL_BURST_RIFLE || this.class === sdGun.CLASS_BURST_PISTOL || this.class === sdGun.CLASS_GAUSS_RIFLE || this.class === sdGun.CLASS_ZAPPER || this.class === sdGun.CLASS_KIVORTEC_AVRS_P09 ) // It could probably be separated as a variable declared in sdGunClass to determine if it has reloading animation or not
 			{
 				let odd = ( this.reload_time_left % 10 ) < 5 ? 0 : 1;
 				
@@ -974,6 +980,11 @@ class sdGun extends sdEntity
 			if ( this.ttl >= 0 && this.ttl < 30 )
 			ctx.globalAlpha = 0.5;
 		
+			if ( this.sd_filter )
+			{
+				ctx.sd_filter = this.sd_filter;
+			}
+		
 			if ( this.class === sdGun.CLASS_CRYSTAL_SHARD )
 			{
 				let v = this.extra / sdWorld.crystal_shard_value * 40;
@@ -983,7 +994,7 @@ class sdGun extends sdEntity
 				ctx.filter = sdWorld.GetCrystalHue( v );
 			}
 			
-			if ( this.class === sdGun.CLASS_TRIPLE_RAIL || 
+			/*if ( this.class === sdGun.CLASS_TRIPLE_RAIL || 
 				 this.class === sdGun.CLASS_RAIL_PISTOL || 
 				 this.class === sdGun.CLASS_RAIL_SHOTGUN || 
 				 this.class === sdGun.CLASS_CUBE_SHARD || 
@@ -1002,7 +1013,7 @@ class sdGun extends sdEntity
 				{
 					ctx.filter = 'hue-rotate(120deg)  saturate(100)'; // pink
 				}
-			}
+			}*/
 
 			if ( this.class === sdGun.CLASS_BUILDTOOL_UPG )
 			{
@@ -1057,6 +1068,7 @@ class sdGun extends sdEntity
 			}
 			
 			ctx.globalAlpha = 1;
+			ctx.sd_filter = null;
 		}
 	}
 	MeasureMatterCost()
