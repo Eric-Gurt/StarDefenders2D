@@ -206,9 +206,13 @@ class sdContextMenu
 				{
 					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdCom.action_range ) >= 0 )
 					{
-						if ( sdContextMenu.current_target.subscribers.indexOf( sdWorld.my_entity._net_id ) === -1 )
+						/*if ( sdContextMenu.current_target.subscribers.indexOf( sdWorld.my_entity._net_id ) === -1 )
 						sdContextMenu.options.push({ title: 'Subscribe myself to network',
 							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, sdWorld.my_entity._net_id ] ); }
+						});*/
+						if ( sdContextMenu.current_target.subscribers.indexOf( sdWorld.my_entity.biometry ) === -1 )
+						sdContextMenu.options.push({ title: 'Subscribe myself to network',
+							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, sdWorld.my_entity.biometry ] ); }
 						});
 					
 						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdCharacter' ) === -1 )
@@ -253,16 +257,23 @@ class sdContextMenu
 						
 						for ( var i = 0; i < sdContextMenu.current_target.subscribers.length; i++ )
 						{
-							let net_id = sdContextMenu.current_target.subscribers[ i ];
-							sdContextMenu.options.push({ title: 'Kick ' + sdEntity.GuessEntityName( net_id )/*user ' + net_id*/,
+							let net_id_or_biometry = sdContextMenu.current_target.subscribers[ i ];
+							sdContextMenu.options.push({ title: 'Kick ' + sdEntity.GuessEntityName( net_id_or_biometry )/*user ' + net_id*/,
 								action: ()=>
 								{
-									globalThis.socket.emit( 'COM_KICK', [ sdContextMenu.current_target._net_id, net_id ] );
+									globalThis.socket.emit( 'COM_KICK', [ sdContextMenu.current_target._net_id, net_id_or_biometry ] );
 								}
 							});
 						}
 					}
-					if ( sdContextMenu.current_target.subscribers.indexOf( sdWorld.my_entity._net_id ) !== -1 )
+					/*if ( sdContextMenu.current_target.subscribers.indexOf( sdWorld.my_entity._net_id ) !== -1 )
+					sdContextMenu.options.push({ title: 'Unsubscribe from network',
+						action: ()=>
+						{
+							globalThis.socket.emit( 'COM_UNSUB', sdContextMenu.current_target._net_id );
+						}
+					});*/
+					if ( sdContextMenu.current_target.subscribers.indexOf( sdWorld.my_entity.biometry ) !== -1 )
 					sdContextMenu.options.push({ title: 'Unsubscribe from network',
 						action: ()=>
 						{

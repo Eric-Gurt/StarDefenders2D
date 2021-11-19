@@ -200,7 +200,12 @@ class sdTeleport extends sdEntity
 				let allowed = true;
 
 				//for ( let i = 0; i < coms_near.length; i++ )
-				if ( com_near.subscribers.indexOf( from_entity._net_id ) !== -1 || com_near.subscribers.indexOf( from_entity.GetClass() ) !== -1 || com_near.subscribers.indexOf( '*' ) !== -1 )
+				//if ( com_near.subscribers.indexOf( from_entity._net_id ) !== -1 || com_near.subscribers.indexOf( from_entity.GetClass() ) !== -1 || com_near.subscribers.indexOf( '*' ) !== -1 )
+				if ( 
+						com_near.subscribers.indexOf( from_entity._net_id ) !== -1 || 
+						com_near.subscribers.indexOf( from_entity.biometry ) !== -1 || 
+						com_near.subscribers.indexOf( from_entity.GetClass() ) !== -1 || 
+						com_near.subscribers.indexOf( '*' ) !== -1 )
 				{
 					allowed = true;
 					//break;
@@ -253,6 +258,8 @@ class sdTeleport extends sdEntity
 
 						this.SetDelay( 90 );
 						best_tele.SetDelay( 90 );
+						
+						sdWorld.SendEffect({ x:from_entity.x + (from_entity.hitbox_x1+from_entity.hitbox_x2)/2, y:from_entity.y + (from_entity.hitbox_y1+from_entity.hitbox_y2)/2, type:sdEffect.TYPE_TELEPORT });
 
 						from_entity.x += best_tele.x - this.x;
 						from_entity.y += best_tele.y - this.y;
@@ -264,6 +271,8 @@ class sdTeleport extends sdEntity
 
 						sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 						sdSound.PlaySound({ name:'teleport', x:best_tele.x, y:best_tele.y, volume:0.5 });
+						
+						sdWorld.SendEffect({ x:from_entity.x + (from_entity.hitbox_x1+from_entity.hitbox_x2)/2, y:from_entity.y + (from_entity.hitbox_y1+from_entity.hitbox_y2)/2, type:sdEffect.TYPE_TELEPORT });
 					}
 				}
 				else

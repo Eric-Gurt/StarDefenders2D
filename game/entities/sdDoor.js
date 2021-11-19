@@ -278,7 +278,12 @@ class sdDoor extends sdEntity
 					//{
 						for ( let i2 = 0; i2 < ents_near.length; i2++ )
 						//if ( coms_near[ i ].subscribers.indexOf( ents_near[ i2 ]._net_id ) !== -1 || coms_near[ i ].subscribers.indexOf( ents_near[ i2 ].GetClass() ) !== -1 )
-						if ( com_near.subscribers.indexOf( ents_near[ i2 ]._net_id ) !== -1 || com_near.subscribers.indexOf( ents_near[ i2 ].GetClass() ) !== -1 || com_near.subscribers.indexOf( '*' ) !== -1 )
+						//if ( com_near.subscribers.indexOf( ents_near[ i2 ]._net_id ) !== -1 || com_near.subscribers.indexOf( ents_near[ i2 ].GetClass() ) !== -1 || com_near.subscribers.indexOf( '*' ) !== -1 )
+						if ( 
+							com_near.subscribers.indexOf( ents_near[ i2 ]._net_id ) !== -1 || 
+							com_near.subscribers.indexOf( ents_near[ i2 ].biometry ) !== -1 || 
+							com_near.subscribers.indexOf( ents_near[ i2 ].GetClass() ) !== -1 || 
+							com_near.subscribers.indexOf( '*' ) !== -1 )
 						{
 							if ( this.opening_tim === 0 )
 							this.Sound( 'door_start' );

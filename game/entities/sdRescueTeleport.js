@@ -107,6 +107,7 @@ class sdRescueTeleport extends sdEntity
 		this._owner = params.owner || null;
 		this.owner_net_id = null;
 		this.owner_title = '';
+		this.owner_biometry = -1;
 		
 		this._matter_max = sdRescueTeleport.max_matter;
 		this.matter = 0;
@@ -114,6 +115,12 @@ class sdRescueTeleport extends sdEntity
 		//this.owner_net_id = this._owner ? this._owner._net_id : null;
 		
 		sdRescueTeleport.rescue_teleports.push( this );
+	}
+	onBuilt()
+	{
+		if ( this._owner )
+		this.owner_biometry = this._owner.biometry;
+		
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
@@ -253,6 +260,7 @@ class sdRescueTeleport extends sdEntity
 					if ( this._owner === null || ( this._owner.hea || this._owner._hea ) <= 0 || this._owner._is_being_removed )
 					{
 						this._owner = exectuter_character;
+						this.owner_biometry = exectuter_character.biometry;
 						
 						this._update_version++;
 
@@ -269,6 +277,7 @@ class sdRescueTeleport extends sdEntity
 					if ( exectuter_character === this._owner )
 					{
 						this._owner = null;
+						this.owner_biometry = -1;
 
 						this._update_version++;
 

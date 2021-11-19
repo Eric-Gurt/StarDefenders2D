@@ -88,7 +88,7 @@ class sdCom extends sdEntity
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 
-		this.subscribers = []; // _net_ids
+		this.subscribers = []; // works with _net_ids but should use biometry now
 		
 		this._owner = null; // Only used to add creator to subscribers list on spawn
 		
@@ -102,7 +102,8 @@ class sdCom extends sdEntity
 	onBuilt()
 	{
 		if ( this._owner )
-		this.NotifyAboutNewSubscribers( 1, [ this._owner._net_id ] );
+		this.NotifyAboutNewSubscribers( 1, [ this._owner.biometry ] );
+		//this.NotifyAboutNewSubscribers( 1, [ this._owner._net_id ] );
 	}
 	NotifyAboutNewSubscribers( append1_or_remove0_or_inherit_back2, subs, counter_recursive_array=null ) // inherit_back is for new coms
 	{
@@ -141,22 +142,6 @@ class sdCom extends sdEntity
 				}
 			}
 		}
-		/*
-		let nearby_coms = sdWorld.GetComsNear( this.x, this.y, null, null );
-		for ( var i = 0; i < nearby_coms.length; i++ )
-		//if ( sdWorld.CheckLineOfSight( this.x, this.y, nearby_coms[ i ].x, nearby_coms[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
-		if ( this.variation === nearby_coms[ i ].variation )
-		{
-			if ( sdWorld.CheckLineOfSight( this.x, this.y, nearby_coms[ i ].x, nearby_coms[ i ].y, this, null, sdCom.com_visibility_unignored_classes ) )
-			{
-				if ( append1_or_remove0_or_inherit_back2 === 2 )
-				{
-					this.NotifyAboutNewSubscribers( 1, nearby_coms[ i ].subscribers, [] );
-				}
-				else
-			 	nearby_coms[ i ].NotifyAboutNewSubscribers( append1_or_remove0_or_inherit_back2, subs, counter_recursive_array );
-			}
-		}*/
 	}
 	
 	onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens

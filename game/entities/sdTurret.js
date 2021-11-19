@@ -289,7 +289,8 @@ class sdTurret extends sdEntity
 									//if ( e.GetClass() === 'sdCharacter' || e.GetClass() === 'sdVirus' || e.GetClass() === 'sdQuickie' || e.GetClass() === 'sdOctopus' || e.GetClass() === 'sdCube' )
 									//if ( e instanceof sdCharacter || e instanceof sdVirus || e instanceof sdQuickie || e instanceof sdOctopus || e instanceof sdCube )
 									//if ( NetIDSearch( e._net_id ) === 0 && ClassSearch( e.GetClass() ) === 0 )
-									if ( ( is_char && e.IsHostileAI() ) || ( ( !is_char || RuleAllowedByNodes( e._net_id ) ) && RuleAllowedByNodes( e.GetClass() ) ) )
+									//if ( ( is_char && e.IsHostileAI() ) || ( ( !is_char || RuleAllowedByNodes( e._net_id ) ) && RuleAllowedByNodes( e.GetClass() ) ) )
+									if ( ( is_char && e.IsHostileAI() ) || ( ( !is_char || ( RuleAllowedByNodes( e._net_id ) || RuleAllowedByNodes( e.biometry ) ) ) && RuleAllowedByNodes( e.GetClass() ) ) )
 									{
 										if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdCommandCentre' ], this.ShootPossibilityFilter ) )
 										{

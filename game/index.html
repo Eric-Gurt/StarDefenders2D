@@ -1451,6 +1451,8 @@
 	    </div>
 	    -->
 	    <div style="position:absolute;left:20px;bottom:20px">
+		
+	    <input id="my_hash" type="hidden">
 	    
 	    <input type="button" style="background-color:#2b7939; width: 300px;" id="start_btn" onclick="sdWorld.Start( globalThis.GetPlayerSettings() );" value="Play with other players"> <input type="button" onclick="globalThis.ResetSkin();" value="Reset skin to default">
 	    
@@ -1460,12 +1462,13 @@
 	</div>
 
 	<script>
-
 	{
 	    globalThis.connection_established = false;
 	    
 	    let settings_container = document.getElementById( 'settings_container' );
 	    let start_btn = document.getElementById( 'start_btn' );
+	    
+	    let my_hash_input = document.getElementById( 'my_hash' );
 	    
 	    let inputs = [];
 	    let inputs_hash = {};
@@ -1599,7 +1602,24 @@
 	    globalThis.preview_interval = setInterval( globalThis.preview_fnc, 16 );
 	    
 	    let conditional_elements = [];
+
+	    let NO_DEFAULT_VALUE_PTR = {};
 	    
+	    {
+		let obj = { 
+		    el: my_hash_input,
+		    default_value: NO_DEFAULT_VALUE_PTR
+		};
+		inputs.push( obj );
+		inputs_hash[ obj.el.id ] = obj;
+		my_hash_input.value = [ Math.random(), Math.random(), Math.random(), Math.random(), Math.random() ].join('');
+		try {
+		    let v = localStorage.getItem( 'my_hash' );
+		    if ( v !== null )
+		    my_hash.value = v;
+		} catch(e){}
+	    }
+			
 	    function LoopThrough( settings_container )
 	    {
 		for ( let i = 0; i < settings_container.childNodes.length; i++ )
@@ -1639,6 +1659,7 @@
 			    });
 			}
 
+			if ( obj.default_value !== NO_DEFAULT_VALUE_PTR )
 			obj.default_value = settings_container.childNodes[ i ].value;
 
 			inputs.push( obj );
@@ -1647,10 +1668,7 @@
 			try {
 			    let v = localStorage.getItem( obj.el.id );
 			    if ( v !== null )
-			    {
-				//console.log( obj.el.id, 'set to ', v );
-				obj.el.value = v;
-			    }
+			    obj.el.value = v;
 			} catch(e){}
 
 
@@ -1690,7 +1708,7 @@
 	    
 	    globalThis.enable_debug_info = false;
 	    
-	    globalThis.GetPlayerSettings = function( last_changed_el=null )
+	    globalThis.GetPlayerSettings = function( last_changed_el=null, do_not_export_password=false )
 	    {
 		let ret = {};
 		
@@ -1724,10 +1742,17 @@
 		    ret[ obj.el.id ] = obj.el.value;
 		}
 		
-		//debugger;
+		ret.save_file = globalThis.SavePlayerSettingsAsObject();
+		
+		if ( do_not_export_password )
+		{
+		    delete ret.save_file;
+		    delete ret.my_hash;
+		}
 		
 		return ret;
 	    };
+	    
 	    globalThis.SavePlayerSettings = function() // Should be done after validation which is done by globalThis.GetPlayerSettings
 	    {
 		for ( let i = 0; i < inputs.length; i++ )
@@ -1737,6 +1762,32 @@
 		    try {
 			localStorage.setItem( obj.el.id, obj.el.value );
 		    } catch(e){}
+		}
+	    };
+	    globalThis.SavePlayerSettingsAsObject = function() // Should be done after validation which is done by globalThis.GetPlayerSettings
+	    {
+		let save = {};
+		
+		for ( let i = 0; i < inputs.length; i++ )
+		{
+		    let obj = inputs[ i ];
+		    save[ obj.el.id ] = obj.el.value;
+		}
+		
+		return save;
+	    };
+	    globalThis.LoadPlayerSettingsFromObject = function( save ) // Should be done after validation which is done by globalThis.GetPlayerSettings
+	    {
+		if ( !save )
+		{
+		    trace( 'No save file was passed' );
+		    return;
+		}
+		
+		for ( let i = 0; i < inputs.length; i++ )
+		{
+		    let obj = inputs[ i ];
+		    obj.el.value = save[ obj.el.id ];
 		}
 	    };
 	    

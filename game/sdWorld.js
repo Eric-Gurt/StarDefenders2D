@@ -120,6 +120,9 @@ class sdWorld
 		//sdWorld.active_build_settings = { _class: 'sdBlock', width:32, height:32 }; // Changes every time some client tries to build something
 		
 		sdWorld.leaders = [];
+		sdWorld.leaders_global = [];
+		
+		sdWorld.outgoing_server_connections_obj = null;
 		
 		sdWorld.GSPEED = 0;
 		
@@ -131,7 +134,6 @@ class sdWorld
 		sdWorld.el_hit_cache = [];
 		
 		sdWorld.unresolved_entity_pointers = null; // Temporarily becomes array during backup loading just so cross pointer properties can be set (for example driver and vehicle)
-		
 		
 		
 		
@@ -2120,7 +2122,7 @@ class sdWorld
 			for ( let i2 = 0; i2 < sockets.length; i2++ )
 			{
 				if ( sockets[ i2 ].character && !sockets[ i2 ].character._is_being_removed )
-				sdWorld.leaders.push({ name:sockets[ i2 ].character.title, score:sockets[ i2 ].GetScore() });
+				sdWorld.leaders.push({ name:sockets[ i2 ].character.title, score:sockets[ i2 ].GetScore(), here:1 });
 			
 				if ( sockets[ i2 ].ffa_warning > 0 )
 				{
@@ -2134,10 +2136,37 @@ class sdWorld
 				}
 			}
 
-			sdWorld.leaders.sort((a,b)=>{return b.score - a.score;});
+			sdWorld.leaders_global = sdWorld.leaders.slice();
 			
-			if ( sdWorld.leaders.length > 15 )
-			sdWorld.leaders = sdWorld.leaders.slice( 0, 15 );
+			if ( sdWorld.outgoing_server_connections_obj )
+			{
+				for ( let remote_server_url in sdWorld.outgoing_server_connections_obj )
+				{
+					let socket = sdServerToServerProtocol.outgoing_connections[ remote_server_url ];
+					/*
+					for ( let i = 0; i < socket.leaders.length; i++ )
+					{
+						socket.leaders[ i ].here = 0;
+						sdWorld.leaders_global.push( socket.leaders[ i ] );
+					}*/
+					
+					sdWorld.leaders_global.push( ...socket.leaders );
+				}
+			}
+			
+			sdWorld.leaders_global.sort((a,b)=>
+			{
+				/*if ( b.here > a.here )
+				return 1;
+			
+				if ( b.here < a.here )
+				return -1;
+				*/
+				return b.score - a.score;
+			});
+			
+			if ( sdWorld.leaders_global.length > 30 )
+			sdWorld.leaders_global = sdWorld.leaders_global.slice( 0, 30 );
 		}
 		
 		let t4 = Date.now();
@@ -3050,21 +3079,9 @@ class sdWorld
 			sdWorld.soft_camera = player_settings['camera1'] ? true : false;
 			
 			player_settings.full_reset = full_reset;
-			player_settings.my_hash = [ Math.random(), Math.random(), Math.random(), Math.random(), Math.random() ].join(''); // Sort of password
-			player_settings.my_net_id = undefined;
-			
-			/*try 
-			{
-				let v;
-				
-				v = localStorage.getItem( 'perm_password' );
-				if ( v !== null )
-				player_settings.perm_password = v;
-				else
-				localStorage.setItem( 'perm_password', player_settings.perm_password );
-
-			} catch(e){}*/
-			
+			//player_settings.my_hash = [ Math.random(), Math.random(), Math.random(), Math.random(), Math.random() ].join(''); // Sort of password
+			//player_settings.my_net_id = undefined;
+			/*
 			try 
 			{
 				let v;
@@ -3075,30 +3092,34 @@ class sdWorld
 				else
 				localStorage.setItem( 'my_hash', player_settings.my_hash );
 			
-			    v = localStorage.getItem( 'my_net_id' );
-			    if ( v !== null )
-				player_settings.my_net_id = v;
+			    //v = localStorage.getItem( 'my_net_id' );
+			    //if ( v !== null )
+				//player_settings.my_net_id = v;
 			
-			} catch(e){}
+			} catch(e){}*/
 
 			socket.emit( 'RESPAWN', player_settings );
+			
+			sdWorld.GotoGame();
+		}
+	}
+	static GotoGame()
+	{
+		sdRenderer.canvas.style.display = 'block';
+		globalThis.settings_container.style.display = 'none';
 
-			sdRenderer.canvas.style.display = 'block';
-			globalThis.settings_container.style.display = 'none';
+		if ( globalThis.preview_interval !== null )
+		{
+			clearInterval( globalThis.preview_interval );
+			globalThis.preview_interval = null;
+		}
 
-			if ( globalThis.preview_interval !== null )
-			{
-				clearInterval( globalThis.preview_interval );
-				globalThis.preview_interval = null;
-			}
+		globalThis.meSpeak.stop();
 
-			globalThis.meSpeak.stop();
-
-			if ( sdWorld.mobile )
-			{
-				sdSound.AllowSound();
-				sdWorld.GoFullscreen();
-			}
+		if ( sdWorld.mobile )
+		{
+			sdSound.AllowSound();
+			sdWorld.GoFullscreen();
 		}
 	}
 	static Stop()

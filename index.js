@@ -47,6 +47,8 @@ let   httpsServer = null;
 var isWin = process.platform === "win32";
 globalThis.isWin = isWin;
 
+globalThis.trace = console.log;
+
 if ( !isWin )
 {
 	let ssl_key_path;
@@ -169,7 +171,7 @@ if ( SOCKET_IO_MODE ) // Socket.io
 	  // ...
 	  pingInterval: 30000,
 	  pingTimeout: 15000,
-	  maxHttpBufferSize: 2048, // 1024 // 512 is minimum that works (but lacks long-name support on join)
+	  maxHttpBufferSize: 1024 * 1024, // 2048 was good for player-to-server connections but not for server-to-server protocol // 1024 // 512 is minimum that works (but lacks long-name support on join)
 	  perMessageDeflate: {
 		threshold: 1024
 	  }, // Promised to be laggy but with traffic bottlenecking it might be the only way (and nature of barely optimized network snapshots)
@@ -439,7 +441,7 @@ sdObelisk.init_class();
 sdSunPanel.init_class();
 sdWeaponBench.init_class();
 sdLongRangeTeleport.init_class();
-
+sdServerToServerProtocol.init_class();
 
 
 /* Do like that later, not sure if I want to deal with path problems yet again... Add awaits where needed too
@@ -488,6 +490,8 @@ for ( let i = 0; i < process.argv.length; i++ )
 console.log('world_slot = ' + world_slot + ' (defines server instance file prefixes, can be added to run command arguments in form of world_slot=1)' );
 
 let frame = 0;
+
+globalThis.GetFrame = ()=>{ return frame; };
 
 /*function file_exists( url )
 {
@@ -690,6 +694,16 @@ sdWorld.server_config = {};
 	// If this all looks scary and you are using NetBeans - use "Ctrl + -" and "Ctrl + *" to hide big methods.
 	
 	static game_title = 'Star Defenders';
+	
+	static allowed_s2s_protocol_ips = [
+		'127.0.0.1',
+		'::1',
+		'::ffff:127.0.0.1'
+	];
+	
+	static notify_about_failed_s2s_attempts = true;
+	
+	static log_s2s_messages = false;
 	
 	static GetHitAllowed( bullet_or_sword, target )
 	{
@@ -1838,6 +1852,8 @@ io.on("connection", (socket) =>
 	
 	socket.max_update_rate = sdWorld.max_update_rate;
 	
+	let ip_accurate = ip;
+	
 	ip = ip.split(':');
 	
 	// To subnet format
@@ -1847,6 +1863,11 @@ io.on("connection", (socket) =>
 	
 	ip = ip.join(':');
 	
+	
+	socket.on( 'S2SProtocolMessage', ( v )=>
+	{
+		sdServerToServerProtocol.IncomingData( v, socket, ip_accurate );
+	});
 	
 	
 	if ( DEBUG_CONNECTIONS )
@@ -1993,6 +2014,14 @@ io.on("connection", (socket) =>
 	socket.last_player_settings.full_reset = true;
 	socket.Respawn( socket.last_player_settings );
 	*/
+   
+	socket.Redirect = ( new_url, one_time_key=undefined )=>
+	{
+		if ( one_time_key !== undefined )
+		new_url += '#one_time_key=' + one_time_key;
+	
+		socket.emit('redirect', new_url, { reliable: true, runs: 100 } );
+	};
 	
 	socket.last_player_settings = null;
 	socket.Respawn = ( player_settings, force_allow=false ) => { 
@@ -2071,33 +2100,38 @@ io.on("connection", (socket) =>
 			//player_settings.my_hash = Math.random() + '';
 			//player_settings.my_net_id = undefined;
 			
-			let ent = sdEntity.entities_by_net_id_cache_map.get( parseInt( player_settings.my_net_id ) );
-			
-			if ( ent )
-			if ( !ent._is_being_removed )
+			for ( let i = 0; i < sdCharacter.characters.length; i++ )
 			{
-				if ( ent._my_hash === player_settings.my_hash )
+				//let ent = sdEntity.entities_by_net_id_cache_map.get( parseInt( player_settings.my_net_id ) );
+				let ent = sdCharacter.characters[ i ];
+
+				if ( ent )
+				if ( !ent._is_being_removed )
 				{
-					if ( ent._socket )
+					if ( ent._my_hash === player_settings.my_hash )
 					{
-						if ( sockets_by_ip[ ip ].indexOf( ent._socket ) !== -1 )
+						if ( ent._socket )
 						{
-							//await ent._socket.close(); // Try to disconnect old connection, can happen in geckos case if player reconnects too quickly
-							ent._socket.CharacterDisconnectLogic();
+							if ( sockets_by_ip[ ip ].indexOf( ent._socket ) !== -1 )
+							{
+								//await ent._socket.close(); // Try to disconnect old connection, can happen in geckos case if player reconnects too quickly
+								ent._socket.CharacterDisconnectLogic();
+							}
 						}
-					}
-					
-					if ( !ent._socket )
-					{
-						ent._socket = socket;
-						socket.character = ent;
-						
-						socket.character.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 
-						character_entity = ent;
+						if ( !ent._socket )
+						{
+							ent._socket = socket;
+							ent._save_file = player_settings.save_file;
+							socket.character = ent;
 
-						//socket.score = character_entity._old_score;
-						//character_entity._old_score = 0;
+							socket.character.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+							character_entity = ent;
+
+							//socket.score = character_entity._old_score;
+							//character_entity._old_score = 0;
+						}
 					}
 				}
 			}
@@ -2155,19 +2189,29 @@ io.on("connection", (socket) =>
 		{
 			
 		}
-		character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( player_settings );
-		character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( player_settings );
 		
-		character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( player_settings );
-		character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( player_settings );
-		character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( player_settings );
-		
-		character_entity.title = player_settings.hero_name;
-		
+		if ( player_settings.keep_style )
+		{
+		}
+		else
+		{
+			character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( player_settings );
+			character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( player_settings );
+
+			character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( player_settings );
+			character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( player_settings );
+			character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( player_settings );
+
+			character_entity.title = player_settings.hero_name;
+		}
 		//character_entity.sd_filter = {};
 		//sdWorld.ReplaceColorInSDFilter( character_entity.sd_filter, [ 0,0,128 ], [ 128,0,0 ] );
 
 		character_entity._socket = socket; // prevent json appearence
+		character_entity._save_file = player_settings.save_file;
+		
+		if ( !character_entity._save_file )
+		debugger;
 		
 		//playing_players++;
 		
@@ -2252,6 +2296,38 @@ io.on("connection", (socket) =>
 	};
 	
 	socket.on('RESPAWN', socket.Respawn );
+	
+	socket.on('one_time_key', ( v )=>
+	{
+		for ( let i = 0; i < sdLongRangeTeleport.one_time_keys.length; i++ )
+		{
+			if ( sdWorld.time > sdLongRangeTeleport.one_time_keys[ i ].until )
+			{
+				sdLongRangeTeleport.one_time_keys.splice( i,1 );
+				i--;
+				continue;
+			}
+				
+			if ( sdLongRangeTeleport.one_time_keys[ i ].hash === v )
+			{
+				/*socket.Respawn( 
+					{ 
+						my_hash: sdLongRangeTeleport.one_time_keys[ i ].ent._my_hash,
+						keep_style: 1
+					}, 
+					true 
+				);*/
+				if ( !sdLongRangeTeleport.one_time_keys[ i ].ent._save_file )
+				debugger;
+				
+				socket.emit( 'settings_replace_and_start', sdLongRangeTeleport.one_time_keys[ i ].ent._save_file );
+		
+				sdLongRangeTeleport.one_time_keys.splice( i,1 );
+				i--;
+				break;
+			}
+		}
+	});
 	
 	// Input
 	//socket.on('K1', ( key ) => { if ( socket.character ) socket.character._key_states.SetKey( key, 1 ); }); Mobile users send these too quickly as for TCP connection
@@ -2808,7 +2884,10 @@ io.on("connection", (socket) =>
 		{
 			let ent = sdEntity.GetObjectByClassAndNetId( 'sdCom', net_id );
 			if ( ent !== null )
-			ent.NotifyAboutNewSubscribers( 0, [ socket.character._net_id ] );
+			{
+				ent.NotifyAboutNewSubscribers( 0, [ socket.character._net_id ] );
+				ent.NotifyAboutNewSubscribers( 0, [ socket.character.biometry ] );
+			}
 			else
 			socket.SDServiceMessage( 'Communication node no longer exists' );
 		}
@@ -3422,7 +3501,7 @@ const ServerMainMethod = ()=>
 						socket.last_sync_score = sdWorld.time;
 
 						//socket.emit('LEADERS', [ sdWorld.leaders, GetPlayingPlayersCount() ] );
-						leaders = [ sdWorld.leaders, GetPlayingPlayersCount() ];
+						leaders = [ sdWorld.leaders_global, GetPlayingPlayersCount() ];
 					}
 					
 					let sd_events = [];

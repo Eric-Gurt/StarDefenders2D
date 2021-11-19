@@ -924,7 +924,7 @@ class sdEntity
 		}
 	}
 	
-	GetComWiredCache( accept_test_method=null ) // Cretes .cio property for clients to know if com exists
+	GetComWiredCache( accept_test_method=null, alternate_class_to_search=sdWorld.entity_classes.sdCom ) // Cretes .cio property for clients to know if com exists
 	{
 		if ( !sdWorld.is_server )
 		{
@@ -939,7 +939,8 @@ class sdEntity
 		if ( accept_test_method || sdWorld.time > ( this._next_com_rethink || 0 ) )
 		{
 			const sdCable = sdWorld.entity_classes.sdCable;
-			const sdCom = sdWorld.entity_classes.sdCom;
+			//const sdCom = sdWorld.entity_classes.sdCom;
+			const sdCom = alternate_class_to_search;
 
 			var worked_out_ents = [];
 			var active_ents = [ this ];
@@ -1304,48 +1305,57 @@ class sdEntity
 			if ( prop !== '_net_id' )
 			if ( prop !== '_class' )
 			{
-				if ( snapshot[ prop ] !== null )
-				if ( typeof snapshot[ prop ] === 'object' )
+				if ( snapshot[ prop ] !== null && typeof snapshot[ prop ] === 'object' && snapshot[ prop ]._net_id && snapshot[ prop ]._class )
 				{
-					if ( snapshot[ prop ]._net_id )
-					if ( snapshot[ prop ]._class )
+					if ( this[ prop ] && !this[ prop ]._is_being_removed && this[ prop ]._net_id === snapshot[ prop ]._net_id )
 					{
-						if ( this[ prop ] && !this[ prop ]._is_being_removed && this[ prop ]._net_id === snapshot[ prop ]._net_id )
+						snapshot[ prop ] = this[ prop ];
+					}
+					else
+					{
+						// It is reworked now to be able to alter pointers within inserted group which long range teleports require
+						if ( sdWorld.unresolved_entity_pointers ) // Used by client-side cables now
 						{
-							snapshot[ prop ] = this[ prop ];
+							sdWorld.unresolved_entity_pointers.push([ this, prop, snapshot[ prop ]._class, snapshot[ prop ]._net_id ]);
 						}
 						else
 						{
 							let new_val = sdEntity.GetObjectByClassAndNetId( snapshot[ prop ]._class, snapshot[ prop ]._net_id );
-							
+
+							/*if ( new_val === null )
+							{
+								if ( sdWorld.unresolved_entity_pointers ) // Used by client-side cables now
+								sdWorld.unresolved_entity_pointers.push([ this, prop, snapshot[ prop ]._class, snapshot[ prop ]._net_id ]);
+							}*/
+
+							snapshot[ prop ] = new_val;
+							/*
+							let new_val = sdEntity.GetObjectByClassAndNetId( snapshot[ prop ]._class, snapshot[ prop ]._net_id );
+
 							if ( new_val === null )
 							{
-								//if ( sdWorld.is_server )
-								//{
-									if ( sdWorld.unresolved_entity_pointers ) // Used by client-side cables now
-									sdWorld.unresolved_entity_pointers.push([ this, prop, snapshot[ prop ]._class, snapshot[ prop ]._net_id ]);
-									
-									//throw new Error('Unresolvable sdEntity pointer at ApplySnapshot. This isn\'t good especially if world snapshot is loaded...');
-									//debugger; // Unresolvable sdEntity pointer at ApplySnapshot. This isn't good especially if world snapshot is loaded...
-								//}
+								if ( sdWorld.unresolved_entity_pointers ) // Used by client-side cables now
+								sdWorld.unresolved_entity_pointers.push([ this, prop, snapshot[ prop ]._class, snapshot[ prop ]._net_id ]);
 							}
-							
-							snapshot[ prop ] = new_val;
+
+							snapshot[ prop ] = new_val;*/
 						}
 					}
 				}
-				
-				if ( my_entity !== this )
-				{
-					this[ prop ] = snapshot[ prop ];
-				}
 				else
 				{
-					if ( !my_entity_protected_vars )
-					my_entity_protected_vars = sdWorld.my_entity_protected_vars;
-					
-					if ( typeof my_entity_protected_vars[ prop ] === 'undefined' || !this.AllowClientSideState() )
-					this[ prop ] = snapshot[ prop ];
+					if ( my_entity !== this )
+					{
+						this[ prop ] = snapshot[ prop ];
+					}
+					else
+					{
+						if ( !my_entity_protected_vars )
+						my_entity_protected_vars = sdWorld.my_entity_protected_vars;
+
+						if ( typeof my_entity_protected_vars[ prop ] === 'undefined' || !this.AllowClientSideState() )
+						this[ prop ] = snapshot[ prop ];
+					}
 				}
 			}
 		}
@@ -1359,16 +1369,27 @@ class sdEntity
 			if ( this.GetClass() === 'sdGun' )
 			if ( this.held_by_class !== 'sdCharacter' ) // Old gun code handles it
 			{
-				let potential_held_by = sdEntity.GetObjectByClassAndNetId( this.held_by_class, this.held_by_net_id );
-				
-				if ( potential_held_by )
+				// For long-range teleportation
+				if ( sdWorld.unresolved_entity_pointers )
 				{
-					this._held_by = potential_held_by;
+					if ( this.held_by_net_id === -1 )
+					this._held_by = null;
+					else
+					sdWorld.unresolved_entity_pointers.push([ this, '_held_by', this.held_by_class, this.held_by_net_id ]);
 				}
 				else
 				{
-					if ( this.held_by_class !== '' )
-					sdWorld.unresolved_entity_pointers.push([ this, '_held_by', this.held_by_class, this.held_by_net_id ]);
+					let potential_held_by = sdEntity.GetObjectByClassAndNetId( this.held_by_class, this.held_by_net_id );
+
+					if ( potential_held_by )
+					{
+						this._held_by = potential_held_by;
+					}
+					else
+					{
+						if ( this.held_by_class !== '' )
+						sdWorld.unresolved_entity_pointers.push([ this, '_held_by', this.held_by_class, this.held_by_net_id ]);
+					}
 				}
 			}
 			
@@ -1551,8 +1572,11 @@ class sdEntity
 	
 		return ret;
 	}	
-	static GuessEntityName( net_id ) // For client-side coms, also for server bound extend report. Use sdWorld.ClassNameToProperName in other cases
+	//static GuessEntityName( net_id ) // For client-side coms, also for server bound extend report. Use sdWorld.ClassNameToProperName in other cases
+	static GuessEntityName( net_id_or_biometry ) // For client-side coms, also for server bound extend report. Use sdWorld.ClassNameToProperName in other cases
 	{
+		let net_id = net_id_or_biometry;
+		
 		if ( typeof net_id === 'string' )
 		{
 			if ( net_id === 'sdCharacter' )
@@ -1575,8 +1599,20 @@ class sdEntity
 			return net_id;
 		}
 		
+		let e = null;
+		
+		
 		//let e = sdEntity.entities_by_net_id_cache[ net_id ];
-		let e = sdEntity.entities_by_net_id_cache_map.get( net_id );
+		e = sdEntity.entities_by_net_id_cache_map.get( net_id );
+		
+		if ( !e )
+		for ( let i = 0; i < sdWorld.entity_classes.sdCharacter.characters.length; i++ )
+		if ( sdWorld.entity_classes.sdCharacter.characters[ i ].biometry === net_id_or_biometry )
+		{
+			e = sdWorld.entity_classes.sdCharacter.characters[ i ];
+			break;
+		}
+	
 	
 		//if ( typeof sdEntity.entities_by_net_id_cache[ net_id ] === 'undefined' )
 		if ( !e )

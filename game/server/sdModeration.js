@@ -23,7 +23,7 @@ class sdModeration
 				// { my_hash, access_level, pseudonym, promoter_hash } // lower access_level - more rights // promoter_hash can be null for first admin
 			],
 			ban_ips: {},
-			ban_passwords: {}
+			ban_passwords: {},
 			// xxx: { until, reason, pseudonym, time } // not working yet
 		};
 		sdModeration.ever_loaded = false;

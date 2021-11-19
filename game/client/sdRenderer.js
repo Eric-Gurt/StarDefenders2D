@@ -977,49 +977,50 @@ class sdRenderer
 		// On-screen foregroud
 		if ( sdWorld.my_entity )
 		{
+			let scale = ( 0.3 + 0.7 * sdRenderer.resolution_quality );
 			
 			ctx.globalAlpha = 0.5;
 			ctx.fillStyle = '#000000';
-			ctx.fillRect( 5, 5, 445, 17 );
+			ctx.fillRect( 5, 5, 445 * scale, 17 );
 			
 			if ( sdRenderer.show_leader_board )
-			ctx.fillRect( sdRenderer.screen_width - 200 - 5, 5, 200, 20 + 20 * sdWorld.leaders.length + 5 );
+			ctx.fillRect( sdRenderer.screen_width - 200 * scale - 5, 5, 200 * scale, 20 + 20 * sdWorld.leaders.length * scale + 5 );
 			
 			ctx.globalAlpha = 1;
 			
 			ctx.fillStyle = '#ff0000';
 			//ctx.fillRect( 7, 7, 296 * sdWorld.my_entity.hea / sdWorld.my_entity.hmax, 2 );
-			ctx.font = "11px Verdana";
+			ctx.font = 11*scale + "px Verdana";
 			ctx.textAlign = 'left';
 			ctx.fillStyle = '#ff0000';
-			ctx.fillText("Health: " + Math.ceil( sdWorld.my_entity.hea ), 10, 17 );
+			ctx.fillText("Health: " + Math.ceil( sdWorld.my_entity.hea ), 5 + 5 * scale, 17 );
 
 			ctx.fillStyle = '#77aaff';
-			ctx.fillText("Armor: " + Math.ceil( sdWorld.my_entity.armor ), 100, 17 );			
+			ctx.fillText("Armor: " + Math.ceil( sdWorld.my_entity.armor ), 5 + 95 * scale, 17 );			
 
 			ctx.fillStyle = '#00ffff';
-			ctx.fillText("Matter: " + Math.floor( sdWorld.my_entity.matter ), 190, 17 );
+			ctx.fillText("Matter: " + Math.floor( sdWorld.my_entity.matter ), 5 + 185 * scale, 17 );
 			
 			ctx.fillStyle = '#ffff00';
-			ctx.fillText("Score: " + Math.floor( sdWorld.my_score ), 280, 17 );
+			ctx.fillText("Score: " + Math.floor( sdWorld.my_score ), 5 + 275 * scale, 17 );
 
 			ctx.fillStyle = '#ffff00';
-			ctx.fillText("Level: " + Math.floor( sdWorld.my_entity.build_tool_level ), 376, 17 );
+			ctx.fillText("Level: " + Math.floor( sdWorld.my_entity.build_tool_level ), 5 + 370 * scale, 17 );
 
 			if ( globalThis.enable_debug_info )
 			{
 				ctx.fillStyle = '#AAAAff';
-				ctx.fillText("Last long server frame time took: " + Math.floor( sdWorld.last_frame_time ) + "ms (slowest case entity was "+sdWorld.last_slowest_class+")", 450, 17 );
+				ctx.fillText("Last long server frame time took: " + Math.floor( sdWorld.last_frame_time ) + "ms (slowest case entity was "+sdWorld.last_slowest_class+")", 5 + 445 * scale, 17 );
 				
 				ctx.fillStyle = '#AAAAff'; // By MrMcShroom / ZapruderFilm // EG: Could be also nice to eventually not let players know where they are exactly - maybe some in-game events would lead to that
            		//ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 420, 50 );	
-           		ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 450, 30 );	
+           		ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 5 + 445 * scale, 30 );	
 			}
 			
 			if ( sdRenderer.show_leader_board )
 			{
 				ctx.fillStyle = '#AAAAAA';
-				ctx.fillText("Leaderboard:", sdRenderer.screen_width - 200 - 5 + 5, 20 );
+				ctx.fillText("Leaderboard:", sdRenderer.screen_width - 200 * scale - 5 + 5, 20 );
 
 				ctx.textAlign = 'right';
 				ctx.fillStyle = '#AAAAAA';
@@ -1029,11 +1030,16 @@ class sdRenderer
 				for ( var i = 0; i < sdWorld.leaders.length; i++ )
 				{
 					ctx.textAlign = 'left';
+					
+					if ( sdWorld.leaders[ i ].here )
 					ctx.fillStyle = '#FFFFFF';
-					ctx.fillText( (i+1)+". " + ( ( i < sdWorld.leaders.length ) ? sdWorld.leaders[ i ].name : '' ), sdRenderer.screen_width - 200 - 5 + 5, 20 + ( i + 1 ) * 20 );
+					else
+					ctx.fillStyle = '#666666';
+					
+					ctx.fillText( (i+1)+". " + ( ( i < sdWorld.leaders.length ) ? sdWorld.leaders[ i ].name : '' ), sdRenderer.screen_width - 200 * scale - 5 + 5, 20 + ( i + 1 ) * 20 * scale );
 
 					ctx.textAlign = 'right';
-					ctx.fillText( ( ( i < sdWorld.leaders.length ) ? sdWorld.leaders[ i ].score : '' ), sdRenderer.screen_width - 15, 20 + ( i + 1 ) * 20 );
+					ctx.fillText( ( ( i < sdWorld.leaders.length ) ? sdWorld.leaders[ i ].score : '' ), sdRenderer.screen_width - 15, 20 + ( i + 1 ) * 20 * scale );
 				}
 			}
 			ctx.globalAlpha = 1;

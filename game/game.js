@@ -2,7 +2,34 @@
     /* global globalThis */
 
 meSpeak.loadVoice("voices/en/en.json");
+meSpeak.loadVoice("voices/pl.json");
+
+globalThis.trace = console.log;
+
+	//let one_time_key = null;
 	
+	window.onhashchange = ( e )=>
+	{
+		let hash = {};
+
+		let params = e.newURL.split('#').pop().split('&');
+		for ( let i = 0; i < params.length; i++ )
+		{
+			let parts = params[ i ].split('=');
+			hash[ parts[ 0 ] ] = parts[ 1 ];
+		}
+
+		if ( hash.one_time_key )
+		{
+			//one_time_key = hash.one_time_key;
+			
+			socket.emit( 'one_time_key', hash.one_time_key );
+			
+			window.location = '#';
+			return;
+		}
+	};
+
 	// socket.io-specific
 	var socket = io( '/', {
 		
@@ -96,7 +123,6 @@ meSpeak.loadVoice("voices/en/en.json");
 	import sdSunPanel from './entities/sdSunPanel.js';
 	import sdWeaponBench from './entities/sdWeaponBench.js';
 	import sdLongRangeTeleport from './entities/sdLongRangeTeleport.js';
-	
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -338,6 +364,8 @@ let enf_once = true;
 		socket.on('connect', () =>
 		//socket.onConnect( error =>
 		{
+			window.onhashchange({ newURL: window.location.href });
+			
 			ClearWorld();
 
 			globalThis.connection_established = true;
@@ -395,6 +423,20 @@ let enf_once = true;
 		let played_events = [];
 		let assumptions_event_types = {};
 
+		socket.on( 'redirect', ( one_time_url )=>
+		{
+			window.location = one_time_url;
+		});
+		socket.on( 'settings_replace_and_start', ( new_save_file )=>
+		{
+			globalThis.LoadPlayerSettingsFromObject( new_save_file );
+			
+			globalThis.SavePlayerSettings();
+			
+			sdWorld.Start( globalThis.GetPlayerSettings() );
+		});
+		
+		
 		socket.on( 'RESv2', ( stuff_arr )=>
 		{
 			if ( !SOCKET_IO_MODE )

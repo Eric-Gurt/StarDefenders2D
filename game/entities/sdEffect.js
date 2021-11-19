@@ -29,6 +29,7 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_LAG = 9;
 		sdEffect.TYPE_GLOW_HIT = 10;
 		sdEffect.TYPE_POPCORN = 11;
+		sdEffect.TYPE_TELEPORT = 12;
 		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
@@ -160,6 +161,96 @@ class sdEffect extends sdEntity
 			gravity: true,
 			collisions: true
 		};
+		sdEffect.types[ sdEffect.TYPE_TELEPORT ] = {
+			images: [ sdWorld.CreateImageFromFile( 'long_range_teleport' ) ],
+			duration: 9,
+			speed: 0.3,
+			random_flip: true,
+			random_rotation: false,
+		};
+		
+		
+	
+		sdEffect.translit_result_assumed_language = null;
+		sdEffect.translit_map_ru = {
+			"Ё":"YO",
+			"Й":"I",
+			"Ц":"TS",
+			"У":"U",
+			"К":"K",
+			"Е":"E",
+			"Н":"N",
+			"Г":"G",
+			"Ш":"SH",
+			"Щ":"SCH",
+			"З":"Z",
+			"Х":"H",
+			"Ъ":"'",
+			"ё":"yo",
+			"й":"i",
+			"ц":"ts",
+			"у":"u",
+			"к":"k",
+			"е":"e",
+			"н":"n",
+			"г":"g",
+			"ш":"sh",
+			"щ":"sch",
+			"з":"z",
+			"х":"h",
+			"ъ":"'",
+			"Ф":"F",
+			"Ы":"I",
+			"В":"V",
+			"А":"a",
+			"П":"P",
+			"Р":"R",
+			"О":"O",
+			"Л":"L",
+			"Д":"D",
+			"Э":"E",
+			"ф":"f",
+			"ы":"i",
+			"в":"v",
+			"а":"a",
+			"п":"p",
+			"р":"r",
+			"о":"o",
+			"л":"l",
+			"д":"d",
+			"э":"e",
+			"Я":"Ya",
+			"Ч":"CH",
+			"С":"S",
+			"М":"M",
+			"И":"I",
+			"Т":"T",
+			"Ь":"'",
+			"Б":"B",
+			"Ю":"YU",
+			"я":"ya",
+			"ч":"ch",
+			"с":"s",
+			"м":"m",
+			"и":"i",
+			"т":"t",
+			"ь":"'",
+			"б":"b",
+			"ю":"yu",
+			
+			//"Ж":"ZH",
+			//"ж":"zh",
+			
+			"Ж":"J",
+			"ж":"j",
+			
+			"Є":"E",
+			"є":"e",
+			
+			"І":"I",
+			"і":"i"
+		};
+
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -249,6 +340,12 @@ class sdEffect extends sdEntity
 			if ( spoken === 'ty' )
 			spoken = 'thank you';
 			
+			if ( spoken === 'ikr' )
+			spoken = 'i know right';
+			
+			if ( spoken === 'ily' )
+			spoken = 'i love you';
+			
 			if ( spoken === 'np' )
 			spoken = 'no problems';
 			
@@ -271,7 +368,7 @@ class sdEffect extends sdEntity
 			spoken = 'i don\'t know';
 			
 			if ( spoken === 'jk' )
-			spoken = 'joking';
+			spoken = 'just kidding';
 			
 			if ( spoken === 'wdym' || spoken === 'wdym?' )
 			spoken = 'what do you mean?';
@@ -318,6 +415,16 @@ class sdEffect extends sdEntity
 			
 			spoken = spoken.split('Z').join('z'); // pronounce bug
 			
+			let voice = params.voice.voice; // Language
+			
+			spoken = sdEffect.Transliterate( spoken );
+			
+			if ( voice === 'en' )
+			voice = 'en/en';
+			
+			if ( sdEffect.translit_result_assumed_language )
+			voice = sdEffect.translit_result_assumed_language;
+			
 			let that = this;
 			
 			let since = sdWorld.time;
@@ -328,7 +435,7 @@ class sdEffect extends sdEntity
 					pitch: params.voice.pitch,
 					speed: params.voice.speed,
 					variant: params.voice.variant,
-					voice: params.voice.voice
+					voice: voice
 				}, 
 				(e)=>
 				{ 
@@ -360,6 +467,23 @@ class sdEffect extends sdEntity
 		if ( this.y >= sdWorld.world_bounds.y2 )
 		this.remove();
 	}
+	static Transliterate( word )
+	{
+		sdEffect.translit_result_assumed_language = null;
+		
+		return word.split('').map(function (char) 
+		{ 
+			if ( sdEffect.translit_result_assumed_language === null )
+			{
+				if ( sdEffect.translit_map_ru[char] )
+				sdEffect.translit_result_assumed_language = 'pl';
+			}
+			
+			return sdEffect.translit_map_ru[char] || char; 
+		}).join("");
+	}
+
+
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
 		return [ 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdCrystal', 'sdAsp', 'sdSandWorm', 'sdSlug', 'sdAmphid' ];
@@ -458,6 +582,10 @@ class sdEffect extends sdEntity
 		}
 		else
 		if ( this._type === sdEffect.TYPE_GLOW_HIT )
+		{
+		}
+		else
+		if ( this._type === sdEffect.TYPE_TELEPORT )
 		{
 		}
 		else
@@ -606,6 +734,12 @@ class sdEffect extends sdEntity
 				ctx.sd_tint_filter = null;
 			}
 			ctx.blend_mode = THREE.NormalBlending;
+		}
+		else
+		if ( this._type === sdEffect.TYPE_TELEPORT )
+		{
+			let frame = ~~( this._ani );
+			ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], 96 + (frame%3)*32, 0 + ~~(frame/3)*32, 32,32, -16,-16,32,32 );
 		}
 	}
 	onRemove() // Class-specific, if needed
