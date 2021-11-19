@@ -12,6 +12,8 @@ import sdDoor from './sdDoor.js';
 import sdGun from './sdGun.js';
 import sdArea from './sdArea.js';
 import sdRift from './sdRift.js';
+import sdQuadro from './sdQuadro.js';
+import sdHover from './sdHover.js';
 
 
 
@@ -126,7 +128,8 @@ class sdBullet extends sdEntity
 
 		this._dirt_mult = 0; // Damage bonus multiplier (relative to initial damage) against dirt blocks, used in Laser Drill weapon
 		this._shield_block_mult = 0; // Damage bonus multiplier (relative to initial damage) against shield blocks, used in Life Box
-		
+		this._vehicle_mult = 0;
+
 		this._bouncy = false;
 		
 		this._owner = null;
@@ -676,6 +679,9 @@ class sdBullet extends sdEntity
 
 							if ( from_entity.GetClass() === 'sdBlock' && from_entity.material === sdBlock.MATERIAL_GROUND ) // Dirt damage bonus multiplier (relative to initial damage)
 							from_entity.Damage( dmg * this._dirt_mult, this._owner );
+
+							if ( from_entity.GetClass() === 'sdHover' || from_entity.GetClass() === 'sdQuadro' )
+							from_entity.Damage( dmg * this._vehicle_mult, this._owner );
 
 							if ( from_entity.GetClass() === 'sdBlock' && from_entity.material === sdBlock.MATERIAL_TRAPSHIELD ) // Shield block damage bonus multiplier (relative to initial damage)
 							from_entity.Damage( dmg * this._shield_block_mult, this._owner );
