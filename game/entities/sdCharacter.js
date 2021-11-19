@@ -81,7 +81,6 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_alpha' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'helmet_templar' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_dragon' ), // by LordBored
-			sdWorld.CreateImageFromFile( 'helmet_shade' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_agilus' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_biohazard' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_bulwark' ), // by LordBored
@@ -351,7 +350,6 @@ class sdCharacter extends sdEntity
 		if ( prop === '_voice' ) return true;
 		//if ( prop === '_ai' ) return true; Bad idea, object pointers here
 		if ( prop === '_upgrade_counters' ) return true;
-		if ( prop === '_save_file' ) return true;
 		
 		return false;
 	}
@@ -451,8 +449,6 @@ class sdCharacter extends sdEntity
 		
 		this.title = params.title || ( 'Random Hero #' + this._net_id );
 		this._my_hash = undefined; // Will be used to let players repsawn within same entity if it exists on map
-		this._save_file = undefined; // Used to transfer save file together with character
-		this.biometry = Math.floor( Math.random() * 9007199254740991 ); // Used for entities to recognize player when he leaves server (_net_id is different on other servers)
 		//this._old_score = 0; // This value is only read/written to when player disconnects and reconnects
 		this._score = 0; // Only place where score will be kept from now
 		
@@ -587,8 +583,7 @@ class sdCharacter extends sdEntity
 			wordgap: 0,
 			pitch: 50,
 			speed: 175,
-			variant: 'klatt',
-			voice: 'en'
+			variant: 'klatt'
 		};
 		this._speak_id = -1; // Required by speak effects // last voice message
 		this._say_allowed_in = 0;
@@ -800,8 +795,7 @@ class sdCharacter extends sdEntity
 		for ( var i = 0; i < sdRescueTeleport.rescue_teleports.length; i++ )
 		{
 			let t = sdRescueTeleport.rescue_teleports[ i ];
-			
-			if ( t._owner === this || t.owner_biometry === this.biometry )
+			if ( t._owner === this )
 			if ( t.delay <= 0 )
 			if ( t.matter >= t._matter_max ) // Fully charged
 			if ( t.matter >= tele_cost ) // Has enough matter for this kind of teleport out
@@ -834,7 +828,6 @@ class sdCharacter extends sdEntity
 			copy_ent._socket = null;
 			copy_ent._my_hash = undefined;
 			copy_ent.matter = 0;
-			copy_ent.biometry = -2;
 			
 			copy_ent.death_anim = sdCharacter.disowned_body_ttl - 2480 / 1000 * 30; // Vanishing opacity
 			
@@ -885,11 +878,9 @@ class sdCharacter extends sdEntity
 
 			//sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 			sdSound.PlaySound({ name:'teleport', x:best_t.x, y:best_t.y, volume:0.5 });
-			
+
 			this.x = best_t.x;
 			this.y = best_t.y;
-			
-			sdWorld.SendEffect({ x:this.x + (this.hitbox_x1+this.hitbox_x2)/2, y:this.y + (this.hitbox_y1+this.hitbox_y2)/2, type:sdEffect.TYPE_TELEPORT });
 			
 			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 

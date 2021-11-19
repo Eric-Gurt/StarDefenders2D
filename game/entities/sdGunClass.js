@@ -2260,6 +2260,26 @@ class sdGunClass
 			spawnable: false,
 			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
 		};
+
+		sdGun.classes[ sdGun.CLASS_KIVORTEC_AVRS_P09 = 75 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'kivortec_avrs_p09' ),
+			image0: [ sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload1' ), sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload2' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload1' ), sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload2' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload1' ), sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload2' ) ],
+			sound: 'gun_railgun_malicestorm_terrorphaser4',
+			sound_pitch: 0.7,
+			title: 'KIVORTEC-AVRS P09',
+			slot: 4,
+			reload_time: 140,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			matter_cost: 260,
+			min_build_tool_level: 19,
+			projectile_properties: { explosion_radius: 16, _rail: true, _damage: 125, _vehicle_mult: 3, color: '#91bfd7' } // 3x more damage against vehicles
+		};
+
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
