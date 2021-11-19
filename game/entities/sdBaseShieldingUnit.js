@@ -258,6 +258,7 @@ class sdBaseShieldingUnit extends sdEntity
 		else
 		if ( this._matter_drain === 0 && this.enabled )
 		{
+			let blocks = this._protected_entities;
 			for ( let i = 0; i < this._protected_entities.length; i++ ) // For non-reworked BSU's that exist pre-update
 			{
 				this._matter_drain += ( blocks[ i ].height + blocks[ i ].width ) / 32;
