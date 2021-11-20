@@ -394,6 +394,47 @@ class sdLongRangeTeleport extends sdEntity
 				*/
 			}
 		}
+		
+		const Append = ( ent2 )=>
+		{
+			if ( IsTeleportable( ent2 ) ) // Still check if targetable just in case so sdLifeBox won't be teleported for example
+			if ( ents_final.indexOf( ent2 ) === -1 )
+			ents_final.push( ent2 );
+		};
+		
+		// Attempt to catch drivers, held guns, held items and driven vehicles - because they might not have accurate positions and might have them delayed for the sake of low-rate cache update when held/transported. Will prevent cases of death due to sdHover teleportation but not players who are in it
+		for ( let i = 0; i < ents_final.length; i++ )
+		{
+			let ent = ents_final[ i ];
+			
+			for ( let prop in ent )
+			{
+				if ( ent[ prop ] instanceof sdEntity )
+				{
+					if ( 
+							prop.indexOf( 'driver' ) === 0 // drivers of vehicle
+							||
+							prop.indexOf( 'item' ) === 0 // contents of sdStorage
+							||
+							prop === 'driver_of' // driven vehicle
+							||
+							prop === '_held_by' // keeper of weapon
+						)
+					Append( ent[ prop ] );
+				}
+				else
+				if ( ent[ prop ] instanceof Array )
+				if ( prop === '_inventory' ) // Held guns by player
+				{
+					let arr = ent[ prop ];
+					
+					for ( let i2 = 0; i2 < arr.length; i2++ )
+					if ( arr[ i2 ] )
+					Append( arr[ i2 ] );
+				}
+			}
+		}
+		
 		return ents_final;
 	}
 
