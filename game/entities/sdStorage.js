@@ -252,7 +252,7 @@ class sdStorage extends sdEntity
 			}
 		}
 		if ( this.type === 2 )
-		if ( from_entity.is( sdCrystal ) && from_entity.type === 1 )
+		if ( from_entity.is( sdCrystal ) && from_entity.type !== sdCrystal.TYPE_CRYSTAL_BIG )
 		{
 			//if ( from_entity._held_by === null )
 			if ( from_entity.held_by === null )
