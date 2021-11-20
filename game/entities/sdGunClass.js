@@ -1332,7 +1332,7 @@ class sdGunClass
 			reload_time: 4.4,
 			muzzle_x: 10,
 			ammo_capacity: 50,
-			spread: 0.02,
+			spread: 0.03,
 			count: 1,
 			matter_cost: 140,
 			min_build_tool_level: 11,
@@ -1348,10 +1348,10 @@ class sdGunClass
 			//sound_volume: 1.65,
 			title: 'The Ripper MK2',
 			slot: 2,
-			reload_time: 4.6,
+			reload_time: 4.8,
 			muzzle_x: 10,
 			ammo_capacity: 55,
-			spread: 0.03,
+			spread: 0.02,
 			count: 1,
 			matter_cost: 190,
 			min_build_tool_level: 24,
@@ -1361,6 +1361,9 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_PHASERCANNON_P03 = 49 ] = // sprite by Ghost581
         {
             image: sdWorld.CreateImageFromFile( 'phasercannon_p03' ),
+           	// image0: [ sdWorld.CreateImageFromFile( 'railgun_p03_c' ), sdWorld.CreateImageFromFile( 'railgun_p03_c' ) ],
+            //image1: [ sdWorld.CreateImageFromFile( 'railgun_p03_r1' ), sdWorld.CreateImageFromFile( 'railgun_p03_r1b' ) ],
+            //image2: [ sdWorld.CreateImageFromFile( 'railgun_p03_r2' ), sdWorld.CreateImageFromFile( 'railgun_p03_r2b' ) ],
             image0: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
             image1: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
             image2: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
@@ -1369,12 +1372,12 @@ class sdGunClass
 			sound_pitch: 1.6, // re-added cause weapon sounds better with the sound pitch. - Ghost581
 			sound_volume: 1.5,
             slot: 8, // moved it to slot 8 cause of it being supposed to be a power weapon and slot 9 still is bound to the BT - Ghost581
-            reload_time: 220,
+            reload_time: 360, // can one-shot 250 HP players so it has been bumped back up to its original reload time. - Ghost581
             muzzle_x: null,
             ammo_capacity: -1,
             count: 1,
             matter_cost: 280,
-            projectile_properties: { _rail: true, _damage: 98, color: '#62c8f2', explosion_radius: 20 },
+            projectile_properties: { _rail: true, _damage: 98, color: '#62c8f2', explosion_radius: 20}, // buffed damage by player request - Ghost581
             min_build_tool_level: 19
 		};
 
@@ -2258,7 +2261,7 @@ class sdGunClass
 			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
 		};
 
-		sdGun.classes[ sdGun.CLASS_KIVORTEC_AVRS_P09 = 75 ] = 
+		sdGun.classes[ sdGun.CLASS_KIVORTEC_AVRS_P09 = 77 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'kivortec_avrs_p09' ),
 			image0: [ sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload1' ), sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload2' ) ],
