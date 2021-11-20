@@ -75,6 +75,8 @@ class sdWorld
 		sdWorld.my_score = 0;
 		sdWorld.my_entity_upgrades_later_set_obj = null;
 		
+		sdWorld.client_side_censorship = false;
+		
 		//sdWorld.world_bounds = { x1: 0, y1: -400, x2: 800, y2: 0 };
 		sdWorld.world_bounds = { 
 			x1: 0, 
@@ -427,6 +429,20 @@ class sdWorld
 			let c = sdWorld.entity_classes[ i ];
 			c._class = c.prototype.constructor.name;
 		}
+	}
+	
+	static CensoredText( t )
+	{
+		let p = '!@#%&*';
+		let p2 = '';
+
+		while ( p2.length < t.length )
+		if ( t.charAt( p2.length ) === ' ' )
+		p2 += ' ';
+		else
+		p2 += p.charAt( p2.length % p.length );
+
+		return p2;
 	}
 	static GoFullscreen()
 	{
@@ -2122,7 +2138,7 @@ class sdWorld
 			for ( let i2 = 0; i2 < sockets.length; i2++ )
 			{
 				if ( sockets[ i2 ].character && !sockets[ i2 ].character._is_being_removed )
-				sdWorld.leaders.push({ name:sockets[ i2 ].character.title, score:sockets[ i2 ].GetScore(), here:1 });
+				sdWorld.leaders.push({ name:sockets[ i2 ].character.title, name_censored:sockets[ i2 ].character.title_censored, score:sockets[ i2 ].GetScore(), here:1 });
 			
 				if ( sockets[ i2 ].ffa_warning > 0 )
 				{
@@ -3074,7 +3090,9 @@ class sdWorld
 			sdRenderer.resolution_quality = BoolToInt( player_settings['density1'] ) * 1 + BoolToInt( player_settings['density2'] ) * 0.5 + BoolToInt( player_settings['density3'] ) * 0.25;
 			window.onresize();
 			
-			sdSound.SetVolumeScale( BoolToInt( player_settings['volume1'] ) * 0.4 + BoolToInt( player_settings['volume2'] ) * 0.25 + BoolToInt( player_settings['volume3'] ) * 0.1 ) ;
+			sdSound.SetVolumeScale( BoolToInt( player_settings['volume1'] ) * 0.4 + BoolToInt( player_settings['volume2'] ) * 0.25 + BoolToInt( player_settings['volume3'] ) * 0.1 );
+			
+			sdWorld.client_side_censorship = player_settings['censorship1'] ? true : false;
 			
 			sdWorld.soft_camera = player_settings['camera1'] ? true : false;
 			

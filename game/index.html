@@ -1445,6 +1445,15 @@
 		<input type="checkbox" id="volume3" value="1" checked>
 		<label for="volume3">10%</label>
 	    </div>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Censorship</span><br>
+		<input type="checkbox" id="censorship1" value="1" checked>
+		<label for="censorship1">Yes</label>
+		<br>
+		<input type="checkbox" id="censorship2" value="0">
+		<label for="censorship2">No</label>
+	    </div>
 	    <!--
 	    <div class="set_block" tabindex="1" style="width: 485px">
 		<span class="sdtitle">Other Star Defenders servers</span><br>
@@ -1726,6 +1735,7 @@
 		JustOne( 'body', last_changed_el );
 		JustOne( 'legs', last_changed_el );
 		JustOne( 'entity', last_changed_el );
+		JustOne( 'censorship', last_changed_el );
 		
 		for ( let i = 0; i < conditional_elements.length; i++ )
 		{

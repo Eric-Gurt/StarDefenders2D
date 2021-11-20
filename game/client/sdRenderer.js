@@ -1043,7 +1043,10 @@ class sdRenderer
 					}
 					else
 					ctx.fillStyle = '#666666';
-					
+				
+					if ( sdWorld.client_side_censorship && sdWorld.leaders[ i ].name_censored )
+					ctx.fillText( (i+1)+". " + ( ( i < sdWorld.leaders.length ) ? 'Censored Defender' : '' ), sdRenderer.screen_width - 200 * scale - 5 + 5, 20 + ( i + 1 ) * 20 * scale );
+					else
 					ctx.fillText( (i+1)+". " + ( ( i < sdWorld.leaders.length ) ? sdWorld.leaders[ i ].name : '' ), sdRenderer.screen_width - 200 * scale - 5 + 5, 20 + ( i + 1 ) * 20 * scale );
 
 					ctx.fillStyle = main_color;

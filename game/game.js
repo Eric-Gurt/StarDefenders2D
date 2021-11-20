@@ -436,6 +436,17 @@ let enf_once = true;
 			sdWorld.Start( globalThis.GetPlayerSettings() );
 		});
 		
+		socket.on( 'censored_chat', ( stuff_arr )=>
+		{
+			if ( !sdChat.open )
+			{
+				sdChat.open = true;
+				sdChat.text = sdChat.last_message;
+				
+				if ( stuff_arr[ 0 ] > 0 )
+				sdChat.censorship_ping_until = Math.max( sdChat.censorship_ping_until, sdWorld.time + stuff_arr[ 0 ] );
+			}
+		});
 		
 		socket.on( 'RESv2', ( stuff_arr )=>
 		{

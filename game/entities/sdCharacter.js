@@ -450,6 +450,8 @@ class sdCharacter extends sdEntity
 		this._ai_dig = 0; // Amount of blocks for AI to shoot when stuck; given randomly in AILogic when AITargetBlocks is called
 		
 		this.title = params.title || ( 'Random Hero #' + this._net_id );
+		this.title_censored = 0;
+		
 		this._my_hash = undefined; // Will be used to let players repsawn within same entity if it exists on map
 		this._save_file = undefined; // Used to transfer save file together with character
 		this.biometry = Math.floor( Math.random() * 9007199254740991 ); // Used for entities to recognize player when he leaves server (_net_id is different on other servers)
@@ -3035,10 +3037,15 @@ class sdCharacter extends sdEntity
 				
 			} while( text_size.width < 20 && size < 10 );
 			
+			let t = this.title;
+			
+			if ( sdWorld.client_side_censorship && this.title_censored )
+			t = 'Censored Defender';//sdWorld.CensoredText( t );
+			
 			ctx.fillStyle = '#000000';
-			ctx.fillText( this.title, 0, -raise - 4.5, 50 ); 
+			ctx.fillText( t, 0, -raise - 4.5, 50 ); 
 			ctx.fillStyle = '#ffffff';
-			ctx.fillText( this.title, 0, -raise - 5, 50 );
+			ctx.fillText( t, 0, -raise - 5, 50 );
 			
 			if ( this._inventory[ this.gun_slot ] )
 			if ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].is_build_gun )
@@ -3585,6 +3592,7 @@ class sdCharacter extends sdEntity
 			attachment_x: 0,
 			attachment_y: -36,
 			text:t,
+			text_censored: ( typeof sdModeration === 'undefined' ) ? 0 : sdModeration.IsPhraseBad( t, this._socket ),
 			voice:this._voice,
 			no_ef:simulate_sound
 		};

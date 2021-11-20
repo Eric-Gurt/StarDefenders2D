@@ -36,6 +36,8 @@ class sdModeration
 			my_hash: null
 		};
 		
+		sdModeration.bad_words = [];
+		
 		sdModeration.Load();
 	}
 	
@@ -73,6 +75,61 @@ class sdModeration
 			
 			}, timeout );
 		}
+		
+		if ( sdWorld.server_config.apply_censorship || sdWorld.server_config.apply_censorship === undefined )
+		if ( globalThis.file_exists( sdWorld.censorship_file_path ) )
+		{
+			try
+			{
+				let bad_words = fs.readFileSync( sdWorld.censorship_file_path ).toString().split( '\r' ).join('').split( '\n' );
+				
+				for ( let i = 0; i < bad_words.length; i++ )
+				sdModeration.bad_words.push( [ 
+					sdModeration.SpecialsReplaceWithLatin( bad_words[ i ].split( ' // ' )[ 0 ] ), 
+					parseFloat( bad_words[ i ].split( ' // ' )[ 1 ] )
+				] );
+			}
+			catch( e )
+			{
+				console.warn( 'Bad words could not be loaded. Error: ', e );
+			}
+		}
+	}
+	static SpecialsReplaceWithLatin( s )
+	{
+		return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+	}
+	static IsPhraseBad( phrase, coming_from_socket=null )
+	{
+		// Note: Delay any kicks as it sometimes executed within loops of socket arrays
+		
+		if ( sdWorld.server_config.apply_censorship || sdWorld.server_config.apply_censorship === undefined )
+		{
+			phrase = ' ' + sdModeration.SpecialsReplaceWithLatin( phrase ) + ' ';
+
+			for ( let i = 0; i < sdModeration.bad_words.length; i++ )
+			{
+				if ( phrase.indexOf( sdModeration.bad_words[ i ][ 0 ] ) !== -1 )
+				{
+					// Potentially tracking IPs and lowering reaction level would make sense against some obsessed people, hopefully there won't be any
+					
+					if ( sdModeration.bad_words[ i ][ 1 ] < 0.15 ) // In current implementation some words can be ignored since they can be mean but not exactly worthy censoring
+					{
+						// Low tier phrases should prevent higher tier to react to them
+						phrase = phrase.split( sdModeration.bad_words[ i ][ 1 ] ).join( ' ' );
+					}
+					else
+					{
+						/*if ( coming_from_socket )
+						{
+							coming_from_socket.muted_until = sdWorld.time + ( sdWorld.server_config.censorship_mute_duration !== undefined ? sdWorld.server_config.censorship_mute_duration : 5000 );
+						}*/
+						return 1;
+					}
+				}
+			}
+		}
+		return 0;
 	}
 	
 	static CommandReceived( socket, text )

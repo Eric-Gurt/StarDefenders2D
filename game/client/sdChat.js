@@ -16,6 +16,7 @@ class sdChat
 		sdChat.style = sdChat.STYLE_CHATBOX;
 		
 		sdChat.max_characters = 100;
+		sdChat.censorship_ping_until = 0;
 		
 		sdChat.hint = '';
 		
@@ -28,6 +29,8 @@ class sdChat
 		sdChat.style = sdChat.STYLE_PROMPT;
 		sdChat.hint = hint;
 		sdChat.max_characters = max_characters;
+		
+		sdChat.last_message = '';
 		
 		sdChat.custom_destination_callback = callback;
 	}
@@ -52,7 +55,10 @@ class sdChat
 				else
 				{
 					if ( sdChat.text.length > 0 )
-					globalThis.socket.emit( 'CHAT', sdChat.text );
+					{
+						globalThis.socket.emit( 'CHAT', sdChat.text );
+						sdChat.last_message = sdChat.text;
+					}
 				}
 				sdChat.open = false;
 			}
@@ -123,7 +129,11 @@ class sdChat
 			ctx.fillRect( 10, sdRenderer.screen_height - 40, sdRenderer.screen_width - 20, 30 );
 			ctx.globalAlpha = 1;
 
+			if ( sdWorld.time < sdChat.censorship_ping_until )
+			ctx.fillStyle = '#ff0000';
+			else
 			ctx.fillStyle = '#ffffff';
+		
 			ctx.font = "12px Verdana";
 
 			ctx.textAlign = 'left';

@@ -72,6 +72,7 @@ class sdCaption extends sdEntity
 		this._regen_timeout = 0;
 		
 		this.text = '';
+		this.text_censored = 0;
 		
 		this.type = params.type;
 	}
@@ -104,12 +105,17 @@ class sdCaption extends sdEntity
 
 		ctx.font = "7px Verdana";
 		ctx.textAlign = 'center';
+		
+		let t = this._text;
+		
+		if ( sdWorld.client_side_censorship && this.text_censored )
+		t = sdWorld.CensoredText( t );
 
 		ctx.fillStyle = sdCaption.colors[ this.type * 3 + 1 ];
-		ctx.fillText( this.text, 0, 3.15 );
+		ctx.fillText( t, 0, 3.15 );
 		
 		ctx.fillStyle = sdCaption.colors[ this.type * 3 + 2 ];
-		ctx.fillText( this.text, 0, 2.5 );
+		ctx.fillText( t, 0, 2.5 );
 	}
 	MeasureMatterCost()
 	{
@@ -134,10 +140,23 @@ class sdCaption extends sdEntity
 			{
 				if ( parameters_array[ 0 ].length < 100 )
 				{
-					this.text = parameters_array[ 0 ];
+					/*if ( sdWorld.time < executer_socket.muted_until )
+					{
+						executer_socket.SDServiceMessage( 'Rejected by censorship filter' );
+					}
+					else
+					if ( sdModeration.IsPhraseBad( parameters_array[ 0 ], executer_socket ) )
+					{
+						executer_socket.SDServiceMessage( 'Rejected by censorship filter' );
+					}
+					else*/
+					{
+						this.text = parameters_array[ 0 ];
+						this.text_censored = sdModeration.IsPhraseBad( parameters_array[ 0 ], executer_socket );
 
-					this._update_version++;
-					executer_socket.SDServiceMessage( 'Text updated' );
+						this._update_version++;
+						executer_socket.SDServiceMessage( 'Text updated' );
+					}
 				}
 				else
 				executer_socket.SDServiceMessage( 'Text appears to be too long' );
@@ -151,7 +170,7 @@ class sdCaption extends sdEntity
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 		{
-			this.AddPromptContextOption( 'Change text', 'SET_TEXT', [ undefined ], 'Enter caption text', this.text, 100 );
+			this.AddPromptContextOption( 'Change text', 'SET_TEXT', [ undefined ], 'Enter caption text', ( sdWorld.client_side_censorship && this.text_censored ) ? sdWorld.CensoredText( this.text ) : this.text, 100 );
 		}
 	}
 }

@@ -306,7 +306,12 @@ class sdEffect extends sdEntity
 		this._rotation = sdEffect.types[ this._type ].random_rotation ? Math.random() * Math.PI * 2 : 0;
 		
 		this._text = ( params.text !== undefined ) ? params.text : null;
+		this._text_censored = ( params.text_censored !== undefined ) ? params.text_censored : null;
 		//this._attachment = params.attachment || null;
+		
+		
+		if ( sdWorld.client_side_censorship && this._text_censored )
+		this._text = sdWorld.CensoredText( this._text );
 		
 		if ( params.attachment instanceof Array )
 		this._attachment = params.attachment ? sdEntity.GetObjectByClassAndNetId( params.attachment[ 0 ], params.attachment[ 1 ] ) : null;
@@ -429,22 +434,31 @@ class sdEffect extends sdEntity
 			
 			let since = sdWorld.time;
 			
-			let t = meSpeak.speak( spoken, {
-					amplitude: 100 * sdSound.volume_speech * sdSound.GetDistanceMultForPosition( this.x, this.y ),
-					wordgap: params.voice.wordgap,
-					pitch: params.voice.pitch,
-					speed: params.voice.speed,
-					variant: params.voice.variant,
-					voice: voice
-				}, 
-				(e)=>
-				{ 
-					if ( sdWorld.time - since < 3000 )
-					setTimeout(()=>{ that.remove();},3000);
-					else
-					setTimeout(()=>{ that.remove();},100);
-				} 
-			);
+			let t = -1;
+			
+			if ( sdWorld.client_side_censorship && this._text_censored )
+			{
+				sdSound.PlaySound({ name:'sd_beacon', x:this.x, y:this.y, volume:0.35, pitch:0.4, _server_allowed: true });
+			}
+			else
+			{
+				t = meSpeak.speak( spoken, {
+						amplitude: 100 * sdSound.volume_speech * sdSound.GetDistanceMultForPosition( this.x, this.y ),
+						wordgap: params.voice.wordgap,
+						pitch: params.voice.pitch,
+						speed: params.voice.speed,
+						variant: params.voice.variant,
+						voice: voice
+					}, 
+					(e)=>
+					{ 
+						if ( sdWorld.time - since < 3000 )
+						setTimeout(()=>{ that.remove();},3000);
+						else
+						setTimeout(()=>{ that.remove();},100);
+					} 
+				);
+			}
 	
 			if ( this._attachment )
 			{

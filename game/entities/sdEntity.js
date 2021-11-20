@@ -1631,6 +1631,9 @@ class sdEntity
 			if ( e.GetClass() === 'sdCharacter' )
 			{
 				let s = e.title;
+
+				if ( sdWorld.client_side_censorship && e.title_censored )
+				s = 'Censored Defender';
 				
 				if ( e._is_being_removed )
 				s += ' [ body is broken ]';

@@ -674,6 +674,19 @@ const moderation_data_path_const = __dirname + '/moderation_data' + ( world_slot
 const superuser_pass_path = __dirname + '/superuser_pass' + ( world_slot || '' ) + '.txt'; // Used to be .v
 const sync_debug_path = __dirname + '/sync_debug' + ( world_slot || '' ) + '.v';
 
+const censorship_file_path = __dirname + '/star_defenders_censorship.v'; 
+/* Each line is a new word/phras, separated with " // " where right part is a baddness of word/phrase. 
+ * Right now right part is ignored and all words simply prevent messages from being sent. 
+ * All messages get added spaces a the beginning and end upon lookup. 
+ * 
+ * Example:
+
+ amogus  // 0.1
+ uwu  // 0.1
+ :*  // 0.1
+
+*/
+
 sdWorld.server_config = {};
 
 {
@@ -706,7 +719,9 @@ sdWorld.server_config = {};
 	static log_s2s_messages = false;
 	
 	static enable_bounds_move = false;
-	
+		
+	static apply_censorship = true;
+		
 	static GetHitAllowed( bullet_or_sword, target )
 	{
 		// Cancel damage from bullet_or_sword towards target. ( bullet_or_sword._owner || bullet_or_sword._dangerous_from ) is a possible owner (can be null)
@@ -1382,6 +1397,7 @@ sdWorld.snapshot_path_const = snapshot_path_const;
 sdWorld.timewarp_path_const = timewarp_path_const;
 sdWorld.moderation_data_path_const = moderation_data_path_const;
 sdWorld.superuser_pass_path = superuser_pass_path;
+sdWorld.censorship_file_path = censorship_file_path;
 
 let strange_position_classes = {};
 
@@ -2197,11 +2213,11 @@ io.on("connection", (socket) =>
 			
 		}
 		
-		if ( player_settings.keep_style )
+		/*if ( player_settings.keep_style )
 		{
 		}
 		else
-		{
+		{*/
 			character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( player_settings );
 			character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( player_settings );
 
@@ -2209,8 +2225,12 @@ io.on("connection", (socket) =>
 			character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( player_settings );
 			character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( player_settings );
 
+			//if ( sdWorld.time < socket.muted_until || sdModeration.IsPhraseBad( player_settings.hero_name, socket ) )
+			//character_entity.title = 'Censored Defender #' + character_entity.biometry;
+			//else
 			character_entity.title = player_settings.hero_name;
-		}
+			character_entity.title_censored = sdModeration.IsPhraseBad( character_entity.title, socket );
+		//}
 		//character_entity.sd_filter = {};
 		//sdWorld.ReplaceColorInSDFilter( character_entity.sd_filter, [ 0,0,128 ], [ 128,0,0 ] );
 
@@ -2376,15 +2396,29 @@ io.on("connection", (socket) =>
 			}
 		}
 		
-		if ( t.length > 100 )
-		{
-			t = t.slice( 0, 100 ) + '...';
-		}
-		
 		if ( socket.character )
 		if ( socket.character.hea > 0 || socket.character.death_anim < 30 ) // allow last words
-		socket.character.Say( t, false );
+		{
+			if ( t.length > 100 )
+			{
+				t = t.slice( 0, 100 ) + '...';
+			}
+			
+			/*if ( sdWorld.time < socket.muted_until )
+			{
+				socket.emit( 'censored_chat', [ 0 ] );
+			}
+			else
+			if ( sdModeration.IsPhraseBad( t, socket ) )
+			{
+				socket.emit( 'censored_chat', [ ( sdWorld.server_config.censorship_mute_duration !== undefined ? sdWorld.server_config.censorship_mute_duration : 5000 ) ] );
+			}
+			else*/
+			socket.character.Say( t, false );
+		}
 	});
+	socket.muted_until = 0;
+	
 	socket.on('BUILD_SEL', ( v )=>
 	{
 		if ( socket.character ) 
