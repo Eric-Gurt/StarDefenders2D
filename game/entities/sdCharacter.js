@@ -1927,6 +1927,9 @@ class sdCharacter extends sdEntity
 					let will_fire = this._key_states.GetKey( 'Mouse1' );
 					let shoot_from_scenario = false;
 					
+					if ( will_fire )
+					this._respawn_protection = 0;
+					
 					if ( this._weapon_draw_timer > 0 )
 					will_fire = false;
 					
