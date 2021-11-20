@@ -379,19 +379,19 @@ class sdJunk extends sdEntity
 							//if ( sdWorld.sockets[ i ].character.build_tool_level > 0 )
 							{
 								di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, this.x, this.y );
-								if ( di < 500 )
+								if ( di < 300 )
 								di_mult = 0.6;
 								else
-								if ( di < 1000 )
+								if ( di < 600 )
 								di_mult = 0.7;
 								else
-								if ( di < 1500 )
+								if ( di < 900 )
 								di_mult = 0.8;
 								else
-								if ( di < 2000 )
+								if ( di < 1200 )
 								di_mult = 0.9;
 
-								if ( di < 2500 )
+								if ( di < 1500 )
 								sdWorld.sockets[ i ].character.matter = sdWorld.sockets[ i ].character.matter * multiplier * di_mult;
 							}
 						}
