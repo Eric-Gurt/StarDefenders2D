@@ -999,16 +999,22 @@ class sdWeather extends sdEntity
 		if ( this.raining_intensity <= 0 )
 		{
 			if ( r === 0 )
-			this.acid_rain = 1;
+			{
+				this.acid_rain = 1;
+				this.snow = 0;
+			}
 		
 			if ( r === 14 )
-			this.acid_rain = 0;
+			{
+				this.acid_rain = 0;
+				this.snow = 0;
+			}
 
 			if ( r === 15 )
-			this.snow = 1;
-		
-			if ( this.snow )
-			this.acid_rain = 0;
+			{
+				this.snow = 1;
+				this.acid_rain = 0;
+			}
 		}
 
 		if ( r === 16 ) // Spawn a Large Anti-Crystal anywhere on the map outside player views which drains active players' matter if they're close enough
