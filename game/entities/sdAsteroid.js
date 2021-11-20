@@ -37,6 +37,8 @@ class sdAsteroid extends sdEntity
 	}
 	Damage( dmg, initiator=null )
 	{
+		dmg = Math.abs( dmg );
+		
 		if ( this._hea > 0 )
 		{
 			this._hea -= dmg;
