@@ -332,6 +332,11 @@ class sdContextMenu
 	{
 		ctx.save();
 		{
+			if ( sdContextMenu.y + sdContextMenu.options.length * 30 + 60 > sdRenderer.screen_height )
+			{
+				sdContextMenu.y = sdRenderer.screen_height - sdContextMenu.options.length * 30 - 60;
+			}
+			
 			ctx.translate( sdContextMenu.x, sdContextMenu.y );
 
 			//let width = 180;
