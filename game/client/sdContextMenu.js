@@ -167,7 +167,7 @@ class sdContextMenu
 							else
 							{
 								let net_id = items[ i ]._net_id;
-								sdContextMenu.options.push({ title: 'Get Crystal (' + items[ i ].matter_max + ' max matter )',
+								sdContextMenu.options.push({ title: 'Get '+items[ i ].title+' ( ' + items[ i ].matter_max + ' max matter )',
 									action: ()=>
 									{
 										globalThis.socket.emit( 'STORAGE_GET', [ sdContextMenu.current_target._net_id, net_id ] );

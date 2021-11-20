@@ -700,7 +700,7 @@ sdWorld.server_config = {};
 		'::1',
 		'::ffff:127.0.0.1'
 	];
-	
+		
 	static notify_about_failed_s2s_attempts = true;
 	
 	static log_s2s_messages = false;
@@ -2071,6 +2071,8 @@ io.on("connection", (socket) =>
 
 				if ( socket.character.title.indexOf( 'Disconnected ' ) !== 0 )
 				socket.character.title = 'Disconnected ' + socket.character.title;
+			
+				socket.character._key_states.Reset();
 
 				if ( !socket.character._is_being_removed )
 				if ( socket.character.hea > 0 )

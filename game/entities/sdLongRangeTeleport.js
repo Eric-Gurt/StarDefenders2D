@@ -455,6 +455,11 @@ class sdLongRangeTeleport extends sdEntity
 				sdWorld.UpdateHashPosition( ent, false, false );
 			
 				sdWorld.SendEffect({ x:ent.x + (ent.hitbox_x1+ent.hitbox_x2)/2, y:ent.y + (ent.hitbox_y1+ent.hitbox_y2)/2, type:sdEffect.TYPE_TELEPORT });
+				
+				if ( ent.IsPlayerClass() )
+				{
+					ent._respawn_protection = 30 * 10; // 10 seconds of protection once teleported
+				}
 			}
 			
 			let key = {

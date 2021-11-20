@@ -5,6 +5,11 @@ class sdKeyStates
 {
 	constructor()
 	{
+		this.Reset();
+	}
+	
+	Reset()
+	{
 		this.key_states = {
 			KeyD: 0,
 			KeyW: 0,

@@ -559,6 +559,8 @@ class sdCharacter extends sdEntity
 		this._last_e_state = 0; // For E key taps to activate ghosting
 		this._last_fire_state = 0; // For semi auto weaponry
 		
+		this._respawn_protection = 0; // Given after long-range teleported
+		
 		this._upgrade_counters = {}; // key = upgrade
 		
 		this._regen_timeout = 0;
@@ -964,6 +966,9 @@ class sdCharacter extends sdEntity
 		this.callEventListener( 'DAMAGE', this, dmg, initiator );
 		
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		
+		if ( this._respawn_protection > 0 )
+		return;
 	
 		if ( dmg > 0 )
 		{
@@ -1727,6 +1732,11 @@ class sdCharacter extends sdEntity
 	{
 		if ( sdWorld.is_server )
 		this.lst = sdLost.entities_and_affection.get( this ) || 0;
+	
+		if ( this._respawn_protection > 0 )
+		{
+			this._respawn_protection = Math.max( 0, this._respawn_protection - GSPEED );
+		}
 	
 		if ( this._weapon_draw_timer > 0 )
 		{
