@@ -1502,7 +1502,7 @@ let is_terminating = false;
 		SaveSnapshot( snapshot_path_const, ( err )=>
 		{
 			for ( var i = 0; i < sockets.length; i++ )
-			sockets[ i ].SDServiceMessage( 'Server: Backup is compelte ('+(err?'Error!':'successfully')+')!' );
+			sockets[ i ].SDServiceMessage( 'Server: Backup is complete ('+(err?'Error!':'successfully')+')!' );
 		});
 	}, 1000 * 60 * 15 ); // Once per 15 minutes
 	
