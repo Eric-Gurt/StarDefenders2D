@@ -151,10 +151,10 @@ class sdEntity
 	IsAdminEntity() // Influences remover gun hit test
 	{ return false; }
 	
-	GetRocketDamageScale() // Mostly defines damage from rockets multiplier so far
+	/*GetRocketDamageScale() // Mostly defines damage from rockets multiplier so far
 	{
 		return 1;
-	}
+	}*/
 	IsVehicle()
 	{
 		return false;

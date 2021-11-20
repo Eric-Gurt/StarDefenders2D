@@ -9,6 +9,8 @@ import sdLost from './sdLost.js';
 import sdCable from './sdCable.js';
 import sdEntity from './sdEntity.js';
 import sdNode from './sdNode.js';
+import sdBullet from './sdBullet.js';
+
 
 class sdGunClass
 {
@@ -158,7 +160,7 @@ class sdGunClass
 			projectile_velocity: 14,
 			count: 1,
 			matter_cost: 60,
-			projectile_properties: { explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:1 },
+			projectile_properties: { explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:1, _vehicle_mult:sdBullet.default_vehicle_mult_bonus },
 			upgrades: AddRecolorsFromColorAndCost( [], '#808000', 20 )
 		};
 		
@@ -847,7 +849,7 @@ class sdGunClass
 			count: 1,
 			min_build_tool_level: 18,
 			matter_cost: 90,
-			projectile_properties: { time_left: 60, explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.02 }
+			projectile_properties: { time_left: 60, explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.02, _vehicle_mult:sdBullet.default_vehicle_mult_bonus }
 		};
 
 		sdGun.classes[ sdGun.CLASS_HEALING_RAY = 34 ] = { // Sprite made by LazyRain
@@ -2027,7 +2029,7 @@ class sdGunClass
 			min_build_tool_level: 5,
 			min_workbench_level: 2,
 			matter_cost: 240,
-			projectile_properties: { time_left: 90, explosion_radius: 20, model: 'mini_missile_p241', _damage: 32, color:sdEffect.default_explosion_color, ac:0.01, _homing: true, _homing_mult: 0.3 }
+			projectile_properties: { time_left: 90, explosion_radius: 20, model: 'mini_missile_p241', _damage: 32, color:sdEffect.default_explosion_color, ac:0.01, _homing: true, _homing_mult: 0.3, _vehicle_mult:sdBullet.default_vehicle_mult_bonus }
 		};
 		
 		sdGun.classes[ sdGun.CLASS_F_HEAVY_RIFLE = 69 ] = 
@@ -2277,7 +2279,7 @@ class sdGunClass
 			count: 1,
 			matter_cost: 260,
 			min_build_tool_level: 19,
-			projectile_properties: { explosion_radius: 16, _rail: true, _damage: 125, _vehicle_mult: 3, color: '#91bfd7' } // 3x more damage against vehicles
+			projectile_properties: { explosion_radius: 16, _rail: true, _damage: 125, _vehicle_mult: sdBullet.default_vehicle_mult_bonus, color: '#91bfd7' } // 3x more damage against vehicles
 		};
 
 		// Add new gun classes above this line //

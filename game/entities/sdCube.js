@@ -109,7 +109,7 @@ class sdCube extends sdEntity
 		
 		this._alert_intensity = 0; // Grows until some value and only then it will shoot
 		
-		this.matter_max = (this.kind === 2 ? 6 : this.kind=== 1 ? 4 : 1 ) * 160;
+		this.matter_max = (this.kind === 2 ? 6 : this.kind === 1 ? 4 : 1 ) * 160;
 		this.matter = this.matter_max;
 		
 		sdCube.alive_cube_counter++;

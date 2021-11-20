@@ -43,10 +43,10 @@ class sdLifeBox extends sdEntity
 		return [ 'sdCharacter', 'sdCrystal', 'sdGun', 'sdStorage' ];
 	}
 	
-	GetRocketDamageScale()
+	/*GetRocketDamageScale()
 	{
 		return 3;
-	}
+	}*/
 	IsVehicle()
 	{
 		return true;
@@ -164,14 +164,23 @@ class sdLifeBox extends sdEntity
 		if ( c._socket )
 		c._socket.emit('SERVICE_MESSAGE', 'Error: Attempted leaving vehicle in which character is not located.' );
 	}
-	Damage( dmg, initiator=null, hit_turret = false )
+	GetHitDamageMultiplier( x, y )
+	{
+		if ( this.driver0 )
+		return ( y <= this.y ) ? 1 : 0;
+		
+		return 1;
+	}
+	Damage( dmg, initiator=null, hit_turret=false )
 	{
 		if ( !sdWorld.is_server )
 		return;
 
-		if ( this.driver0 && !hit_turret ) // If somebody is inside the life box it cannot be damaged without attacking the turret
-		return;
+		//if ( this.driver0 && !hit_turret ) // If somebody is inside the life box it cannot be damaged without attacking the turret
+		//return;
 
+		if ( dmg === 0 ) // If somebody is inside the life box it cannot be damaged without attacking the turret. dmg will be 0 in that case according to .GetHitDamageMultiplier(x,y)
+		return;
 	
 		if ( initiator !== null )
 		if ( this.driver0 )

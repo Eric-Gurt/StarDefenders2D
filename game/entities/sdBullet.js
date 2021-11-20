@@ -12,10 +12,11 @@ import sdDoor from './sdDoor.js';
 import sdGun from './sdGun.js';
 import sdArea from './sdArea.js';
 import sdRift from './sdRift.js';
-import sdQuadro from './sdQuadro.js';
-import sdHover from './sdHover.js';
-
-
+//import sdQuadro from './sdQuadro.js';
+//import sdHover from './sdHover.js';
+import sdLifeBox from './sdLifeBox.js';
+import sdTurret from './sdTurret.js';
+import sdCrystal from './sdCrystal.js';
 
 class sdBullet extends sdEntity
 {
@@ -35,6 +36,8 @@ class sdBullet extends sdEntity
 			'transparent_proj':  sdWorld.CreateImageFromFile( 'transparent_proj' ),
 			'f_hover_rocket':  sdWorld.CreateImageFromFile( 'f_hover_rocket' )
 		};
+		
+		sdBullet.default_vehicle_mult_bonus = 3; // Use this as base value and multiply it just so these can be scaled together
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -126,9 +129,9 @@ class sdBullet extends sdEntity
 		this._emp = false; // EMP effect, used for turrets to set them to "sleep mode"
 		this._emp_mult = 1; // How long will the turret sleep ( 1 = 5 seconds )
 
-		this._dirt_mult = 0; // Damage bonus multiplier (relative to initial damage) against dirt blocks, used in Laser Drill weapon
-		this._shield_block_mult = 0; // Damage bonus multiplier (relative to initial damage) against shield blocks, used in Life Box
-		this._vehicle_mult = 0;
+		this._dirt_mult = 0; // bonus Damage multiplier (relative to initial damage) against dirt blocks, used in Laser Drill weapon
+		this._shield_block_mult = 0; // bonus Damage multiplier (relative to initial damage) against shield blocks, used in Life Box
+		this._vehicle_mult = 0; // bonus Damage multiplier (relative to initial damage) against vehicles
 
 		this._bouncy = false;
 		
@@ -628,10 +631,10 @@ class sdBullet extends sdEntity
 
 							let dmg = this._damage;// * dmg_mult;
 
-							if ( this.ac > 0 )
+							/*if ( this.ac > 0 )
 							{
 								dmg *= from_entity.GetRocketDamageScale();
-							}
+							}*/
 
 							// Some entities need to inherit impact velocity on damage so it is higher now
 							from_entity.Impulse( this.sx * Math.abs( dmg ) * this._knock_scale, 
@@ -641,56 +644,56 @@ class sdBullet extends sdEntity
 							from_entity.SafeAddVelocity( 0, 0 ); // Will only verify, without adding anything
 
 							let old_hea = ( from_entity.hea || from_entity._hea || 0 );
-							//if ( from_entity.GetClass() !== 'sdBlock' && from_entity.GetClass() !== 'sdDoor'  )
-							from_entity.Damage( dmg, this._owner );
-							/*else
-							if ( from_entity._reinforced_level <= this._reinforced_level )
-							from_entity.Damage( dmg, this._owner );
-							else
-							if ( this._owner )
-							if ( this._owner.is( sdCharacter ) )
-							if ( this._owner._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
-							{
-								this._owner._last_damage_upg_complain = sdWorld.time;
-
-								if ( Math.random() < 0.5 )
-								this._owner.Say( 'I could do with a Deconstructor Hammer' );
-								else
-								this._owner.Say( 'I need a Deconstructor Hammer to damage this' );
-							}*/
+							
+							let limb_mult = from_entity.GetHitDamageMultiplier( this.x, this.y );
+							
+							dmg *= limb_mult;
+							
+							let base_damage = dmg;
+							
+							//from_entity.Damage( dmg, this._owner );
+							
 
 							if ( this._custom_target_reaction )
 							this._custom_target_reaction( this, from_entity );
-							if ( from_entity.GetClass() === 'sdLifeBox' )
+						
+							/*if ( from_entity.GetClass() === 'sdLifeBox' ) This logic is moved to sdLifeBox.prototype.GetHitDamageMultiplier
 							if ( from_entity.driver0 )
 							if ( this.y <= from_entity.y )
-							from_entity.Damage( dmg, this._owner, true );
+							from_entity.Damage( dmg, this._owner, true );*/
 
-							if ( from_entity.GetClass() === 'sdTurret' && this._emp === true ) // Disable turrets if they're hit by an EMP bullet
+							//if ( from_entity.GetClass() === 'sdTurret' && this._emp === true ) // Disable turrets if they're hit by an EMP bullet
+							if ( from_entity.is( sdTurret ) && this._emp === true ) // Disable turrets if they're hit by an EMP bullet
 							{
 								from_entity.disabled = true;
 								from_entity._disabled_timeout = 150 * this._emp_mult;
 							}
 
-							if ( from_entity.GetClass() === 'sdLifeBox' )
-							//if ( from_entity.driver0 )
+							//if ( from_entity.GetClass() === 'sdLifeBox' )
+							if ( from_entity.is( sdLifeBox ) )
 							if ( this._bouncy && !this.is_grenade )
 							this.remove(); // Prevent falkonian PSI cutter oneshotting lifebox
 
-							if ( from_entity.GetClass() === 'sdBlock' && from_entity.material === sdBlock.MATERIAL_GROUND ) // Dirt damage bonus multiplier (relative to initial damage)
-							from_entity.Damage( dmg * this._dirt_mult, this._owner );
+							if ( from_entity.is( sdBlock ) && from_entity.material === sdBlock.MATERIAL_GROUND ) // Dirt damage bonus multiplier (relative to initial damage)
+							dmg += base_damage * this._dirt_mult;
+							//from_entity.Damage( dmg * this._dirt_mult, this._owner );
 
-							if ( from_entity.GetClass() === 'sdHover' || from_entity.GetClass() === 'sdQuadro' )
-							from_entity.Damage( dmg * this._vehicle_mult, this._owner );
+							if ( from_entity.IsVehicle() && ( typeof from_entity.sx !== 'undefined' && typeof from_entity.sy !== 'undefined' ) ) // All vehicles except for static ones like sdLifeBox
+							dmg += base_damage * this._vehicle_mult;
+							//from_entity.Damage( dmg * this._vehicle_mult, this._owner );
 
-							if ( from_entity.GetClass() === 'sdBlock' && from_entity.material === sdBlock.MATERIAL_TRAPSHIELD ) // Shield block damage bonus multiplier (relative to initial damage)
-							from_entity.Damage( dmg * this._shield_block_mult, this._owner );
+							if ( from_entity.is( sdBlock ) && from_entity.material === sdBlock.MATERIAL_TRAPSHIELD ) // Shield block damage bonus multiplier (relative to initial damage)
+							dmg += base_damage * this._shield_block_mult;
+							//from_entity.Damage( dmg * this._shield_block_mult, this._owner );
+						
+							from_entity.Damage( dmg, this._owner, limb_mult > 1 );
 
 							if ( this._owner )
 							if ( old_hea > 0 )
 							if ( old_hea !== ( from_entity.hea || from_entity._hea || 0 ) ) // Any damage actually dealt
 							{
-								if ( from_entity.GetClass() === 'sdCube' || from_entity.GetClass() === 'sdCrystal' )
+								//if ( from_entity.GetClass() === 'sdCube' || from_entity.GetClass() === 'sdCrystal' )
+								if ( from_entity.is( sdCube ) || from_entity.is( sdCrystal ) )
 								if ( typeof this._owner._nature_damage !== 'undefined' )
 								this._owner._nature_damage += dmg;
 							}
