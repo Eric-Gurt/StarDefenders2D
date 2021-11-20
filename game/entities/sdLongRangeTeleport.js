@@ -1,4 +1,13 @@
+/*
 
+	TODO: sdCom-like subscription to portals as a result of which (store at player-side list of possible teleportation locations, probably)
+
+
+
+
+
+
+*/
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';

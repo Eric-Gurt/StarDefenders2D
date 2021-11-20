@@ -77,22 +77,29 @@ class sdModeration
 		}
 		
 		if ( sdWorld.server_config.apply_censorship || sdWorld.server_config.apply_censorship === undefined )
-		if ( globalThis.file_exists( sdWorld.censorship_file_path ) )
 		{
-			try
+			if ( globalThis.file_exists( sdWorld.censorship_file_path ) )
 			{
-				let bad_words = fs.readFileSync( sdWorld.censorship_file_path ).toString().split( '\r' ).join('').split( '\n' );
+				try
+				{
+					let bad_words = fs.readFileSync( sdWorld.censorship_file_path ).toString().split( '\r' ).join('').split( '\n' );
+
+					for ( let i = 0; i < bad_words.length; i++ )
+					sdModeration.bad_words.push( [ 
+						sdModeration.SpecialsReplaceWithLatin( bad_words[ i ].split( ' // ' )[ 0 ] ), 
+						parseFloat( bad_words[ i ].split( ' // ' )[ 1 ] )
+					] );
 				
-				for ( let i = 0; i < bad_words.length; i++ )
-				sdModeration.bad_words.push( [ 
-					sdModeration.SpecialsReplaceWithLatin( bad_words[ i ].split( ' // ' )[ 0 ] ), 
-					parseFloat( bad_words[ i ].split( ' // ' )[ 1 ] )
-				] );
+					trace( 'Censorship file loaded: ' + bad_words.length + ' lines' );
+				}
+				catch( e )
+				{
+					console.warn( 'Bad words could not be loaded. Error: ', e );
+				}
 			}
-			catch( e )
-			{
-				console.warn( 'Bad words could not be loaded. Error: ', e );
-			}
+			else
+			if ( sdWorld.server_config.apply_censorship )
+			trace( 'Censorship file does not exist' );
 		}
 	}
 	static SpecialsReplaceWithLatin( s )
@@ -103,8 +110,12 @@ class sdModeration
 	{
 		// Note: Delay any kicks as it sometimes executed within loops of socket arrays
 		
+		//trace( '------IsPhraseBad', phrase );
+		
 		if ( sdWorld.server_config.apply_censorship || sdWorld.server_config.apply_censorship === undefined )
 		{
+			//trace( 'Checking words', sdModeration.bad_words.length );
+			
 			phrase = ' ' + sdModeration.SpecialsReplaceWithLatin( phrase ) + ' ';
 
 			for ( let i = 0; i < sdModeration.bad_words.length; i++ )
@@ -117,9 +128,11 @@ class sdModeration
 					{
 						// Low tier phrases should prevent higher tier to react to them
 						phrase = phrase.split( sdModeration.bad_words[ i ][ 1 ] ).join( ' ' );
+						//trace( 'Partially found', i, ' -- ', sdModeration.bad_words[ i ][ 0 ], ' -- ', sdModeration.bad_words[ i ][ 1 ] );
 					}
 					else
 					{
+						//trace( 'Found bad word' );
 						/*if ( coming_from_socket )
 						{
 							coming_from_socket.muted_until = sdWorld.time + ( sdWorld.server_config.censorship_mute_duration !== undefined ? sdWorld.server_config.censorship_mute_duration : 5000 );
@@ -129,6 +142,7 @@ class sdModeration
 				}
 			}
 		}
+		//trace( 'It is fine' );
 		return 0;
 	}
 	

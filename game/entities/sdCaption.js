@@ -106,7 +106,7 @@ class sdCaption extends sdEntity
 		ctx.font = "7px Verdana";
 		ctx.textAlign = 'center';
 		
-		let t = this._text;
+		let t = this.text;
 		
 		if ( sdWorld.client_side_censorship && this.text_censored )
 		t = sdWorld.CensoredText( t );
