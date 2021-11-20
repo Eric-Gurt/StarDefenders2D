@@ -37,7 +37,7 @@ class sdServerToServerProtocol
 						{
 							socket.leaders = response;
 							
-							let url_short = ' :: ' + remote_server_url.split('http://').join('').split('https://').join('').split('wwww.').join('').split('/').join('');
+							let url_short = ' :: ' + sdLongRangeTeleport.ShortenURL( remote_server_url );
 							
 							for ( let i = 0; i < socket.leaders.length; i++ )
 							{
@@ -60,12 +60,17 @@ class sdServerToServerProtocol
 	{
 		if ( sdWorld.server_config.log_s2s_messages )
 		trace( 'Incoming S2SProtocolMessage (from ' + ip + '): ', route_and_data_object );
+	
+		let rejection = false;
 			
 		// Any verification needs to be done here - any player can send these messages. Check IPs or something
 		try
 		{
 			if ( sdWorld.server_config.allowed_s2s_protocol_ips.indexOf( ip ) === -1 )
-			throw new Error( 'IP is not specified in sdWorld.server_config.allowed_s2s_protocol_ips array (server_config*.js)' );
+			{
+				rejection = true;
+				throw new Error( 'IP is not specified in sdWorld.server_config.allowed_s2s_protocol_ips array (server_config*.js)' );
+			}
 
 			if ( typeof route_and_data_object === 'object' )
 			{
@@ -81,7 +86,9 @@ class sdServerToServerProtocol
 						{
 							if ( data_object.action === 'Require long-range teleportation' ||
 								 data_object.action === 'Do long-range teleportation' ||
-								 data_object.action === 'Exchange new _net_ids' )
+								 data_object.action === 'Exchange new _net_ids' ||
+								 data_object.action === 'Post-teleporation swap-back one-time keys'
+								)
 							{
 								if ( sdWorld.server_config.log_s2s_messages )
 								trace( 'calling sdLongRangeTeleport.AuthorizedIncomingS2SProtocolMessageHandler' );
@@ -100,6 +107,7 @@ class sdServerToServerProtocol
 							if ( data_object.action === 'Get leaders' )
 							{
 								socket.emit( 'S2SProtocolMessage', [ route, sdWorld.leaders ] );
+								return;
 							}
 						}
 					}
@@ -112,9 +120,9 @@ class sdServerToServerProtocol
 		}
 		catch( e )
 		{
-			if ( sdWorld.server_config.log_s2s_messages )
+			if ( sdWorld.server_config.log_s2s_messages || ( rejection && sdWorld.server_config.notify_about_failed_s2s_attempts ) )
 			{
-				trace( 'Error at IncomingData: ', e );
+				trace( 'Error at IncomingData: ', e, ' :: route_and_data_object: ', route_and_data_object );
 
 				for ( var i = 0; i < sdWorld.sockets.length; i++ )
 				{
@@ -141,14 +149,24 @@ class sdServerToServerProtocol
 				remote_server_url, 
 				{ 
 					forceNew: false,
-					transports: [ 'websocket' ]
+					transports: [ 'websocket' ], 
+					rejectUnauthorized: false 
 				}
 			);
+	
+			
+			socket.on("connect_error", (err) => 
+			{  
+				console.log(`SendData socket: connect_error due to ${err.message}`);
+			});
 	
 			socket.leaders = [];
 		}
 		else
 		socket = sdServerToServerProtocol.outgoing_connections[ remote_server_url ];
+	
+		if ( sdWorld.server_config.log_s2s_messages )
+		trace('SendData: Working with outgoing socket: ', socket );
 		
 		/*
 		let socket = io( 
@@ -162,7 +180,9 @@ class sdServerToServerProtocol
 		//socket.once('connect', ()=>
 		//{
 			socket.emit( 'S2SProtocolMessage', [ route, data_object ] );
-			//trace( 'S2SProtocolMessage :: Sending: ', [ route, data_object ] );
+			
+			if ( sdWorld.server_config.log_s2s_messages )
+			trace( 'S2SProtocolMessage :: Sending: ', [ route, data_object ] );
 		//});
 		
 		const handler = ( v )=>

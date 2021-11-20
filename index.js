@@ -705,6 +705,8 @@ sdWorld.server_config = {};
 	
 	static log_s2s_messages = false;
 	
+	static enable_bounds_move = false;
+	
 	static GetHitAllowed( bullet_or_sword, target )
 	{
 		// Cancel damage from bullet_or_sword towards target. ( bullet_or_sword._owner || bullet_or_sword._dangerous_from ) is a possible owner (can be null)
@@ -999,6 +1001,9 @@ sdWorld.server_config = {};
 		// Setup a logic for world bounds shifter
 		setInterval( ()=>
 		{
+			if ( !sdWorld.server_config.enable_bounds_move )
+			return;
+		
 			let x1 = sdWorld.world_bounds.x1;
 			let y1 = sdWorld.world_bounds.y1;
 			let x2 = sdWorld.world_bounds.x2;

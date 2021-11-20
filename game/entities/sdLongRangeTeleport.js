@@ -116,6 +116,8 @@ class sdLongRangeTeleport extends sdEntity
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
 		
+		this._last_collected_entities_array = [];
+		
 		this.delay = sdLongRangeTeleport.delay_simple;
 		//this._update_version++
 		
@@ -132,7 +134,7 @@ class sdLongRangeTeleport extends sdEntity
 		this.remote_server_url = 'http://localhost:3000';
 		this.remote_server_target_net_id = this._net_id + '';
 		
-		this.is_busy_since = 0; // Used to prevent activations whenever data is being sent/received
+		this._is_busy_since = 0; // Used to prevent activations whenever data is being sent/received
 		
 		//this.owner_net_id = this._owner ? this._owner._net_id : null;
 		
@@ -147,7 +149,7 @@ class sdLongRangeTeleport extends sdEntity
 	
 	MeasureMatterCost()
 	{
-		return this.is_server_teleport ? Infinity : ( this.hmax * sdWorld.damage_to_matter + 100 );
+		return this.is_server_teleport ? Infinity : ( this.hmax * sdWorld.damage_to_matter + 300 );
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -271,9 +273,15 @@ class sdLongRangeTeleport extends sdEntity
 			ctx.fillRect( 1 - w / 2, 1 - 70, ( w - 2 ) * Math.max( 0, this.charge_timer / 100 ), 1 );
 		}
 	}
+	static ShortenURL( remote_server_url )
+	{
+		return remote_server_url.split('http://').join('').split('https://').join('').split('www.').join('').split('/').join('');
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		sdEntity.Tooltip( ctx, this.title, 0, -48 );
+		if ( this.is_server_teleport )
+		sdEntity.Tooltip( ctx, sdLongRangeTeleport.ShortenURL( this.remote_server_url ), 0, 32 + 5, '#33ff33' );
 	}
 	
 	onRemove() // Class-specific, if needed
@@ -345,7 +353,8 @@ class sdLongRangeTeleport extends sdEntity
 					return false;
 				}
 				else
-				if ( ent.is_static || ent.IsBGEntity() !== 0 || ent._is_being_removed || ( ent.hea || ent._hea ) === undefined )
+				//if ( ent.is_static || ent.IsBGEntity() !== 0 || ent._is_being_removed || ( ent.hea || ent._hea ) === undefined )
+				if ( typeof ent.sx === 'undefined' || typeof ent.sy === 'undefined' || ent.IsBGEntity() !== 0 || ent._is_being_removed || ( ent.hea || ent._hea ) === undefined )
 				{
 					return false;
 				}
@@ -497,10 +506,21 @@ class sdLongRangeTeleport extends sdEntity
 			{
 				if ( data_object.action === 'Require long-range teleportation' )
 				{
-					ret = {
-						message: 'Granted'
-					};
-					possible_ent.Activation();
+					if ( possible_ent.is_charging || sdWorld.time < possible_ent._is_busy_since + 60 * 1000 )
+					{
+						ret = {
+							message: 'Started sequence is not finished yet',
+							is_charing: possible_ent.is_charging,
+							is_busy: ( sdWorld.time < possible_ent._is_busy_since + 60 * 1000 )
+						};
+					}
+					else
+					{
+						ret = {
+							message: 'Granted'
+						};
+						possible_ent.Activation();
+					}
 				}
 				else
 				if ( data_object.action === 'Do long-range teleportation' )
@@ -509,13 +529,30 @@ class sdLongRangeTeleport extends sdEntity
 					
 					let one_time_keys = possible_ent.InsertEntitiesOnTop( data_object.snapshots, data_object.relative_x, data_object.relative_y );
 
+					possible_ent._last_collected_entities_array = [];
+
 					ret = {
 						message: 'Take these',
-						snapshots: possible_ent.ExtractEntitiesOnTop(),
+						snapshots: possible_ent.ExtractEntitiesOnTop( possible_ent._last_collected_entities_array ),
 						relative_x: possible_ent.x,
 						relative_y: possible_ent.y,
 						one_time_keys: one_time_keys
 					};
+				}
+				else
+				if ( data_object.action === 'Post-teleporation swap-back one-time keys' )
+				{
+					
+					let collected_entities_array = possible_ent._last_collected_entities_array;
+					
+					trace( '--AuthorizedIncomingS2SProtocolMessageHandler--');
+					trace( 'Executing: ' + data_object.action );
+					trace( 'collected_entities_array: '+collected_entities_array )
+					
+					for ( let i = 0; i < collected_entities_array.length; i++ )
+					if ( collected_entities_array[ i ].IsPlayerClass() )
+					if ( collected_entities_array[ i ]._socket )
+					collected_entities_array[ i ]._socket.Redirect( possible_ent.remote_server_url, data_object.one_time_keys[ i ] );
 				}
 			}
 			else
@@ -536,6 +573,12 @@ class sdLongRangeTeleport extends sdEntity
 		{
 			if ( exectuter_character._god || sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
 			{
+				if ( exectuter_character._god && command_name === 'TELEPORT_RESET' )
+				{
+					this.Deactivation();
+					this._is_busy_since = 0;
+				}
+				else
 				if ( command_name === 'TELEPORT_STUFF' )
 				{
 					if ( !this.is_server_teleport )
@@ -574,7 +617,7 @@ class sdLongRangeTeleport extends sdEntity
 					}
 					else
 					{
-						if ( sdWorld.time < this.is_busy_since + 60 * 1000 )
+						if ( this.is_charging || sdWorld.time < this._is_busy_since + 60 * 1000 )
 						{
 							executer_socket.SDServiceMessage( 'Busy - previous sequence is not finished yet' );
 							return;
@@ -594,7 +637,7 @@ class sdLongRangeTeleport extends sdEntity
 								},
 								( response=null )=>
 								{
-									this.is_busy_since = 0;
+									this._is_busy_since = 0;
 
 									if ( response )
 									{
@@ -626,24 +669,32 @@ class sdLongRangeTeleport extends sdEntity
 														
 														if ( response )
 														{
-															//let net_id_replacements = 
-															this.InsertEntitiesOnTop( response.snapshots, response.relative_x, response.relative_y );
+															let one_time_keys_for_remote = this.InsertEntitiesOnTop( response.snapshots, response.relative_x, response.relative_y );
 
-															/*sdServerToServerProtocol.SendData(
-																this.remote_server_url,
-																{
-																	action: 'Exchange new _net_ids',
-																	net_id_replacements: net_id_replacements
-																},
-																( response=null )=>
-																{
-																	debugger;
-																}
-															);*/
 															for ( let i = 0; i < collected_entities_array.length; i++ )
 															if ( collected_entities_array[ i ].IsPlayerClass() )
 															if ( collected_entities_array[ i ]._socket )
 															collected_entities_array[ i ]._socket.Redirect( this.remote_server_url, response.one_time_keys[ i ] );
+												
+
+															sdServerToServerProtocol.SendData(
+																this.remote_server_url,
+																{
+																	action: 'Post-teleporation swap-back one-time keys',
+																	target_net_id: this.remote_server_target_net_id,
+																	one_time_keys: one_time_keys_for_remote
+																},
+																( response=null )=>
+																{
+																	if ( response )
+																	{
+																	}
+																	else
+																	{
+																		trace('Remote server did not receive swap-back redirect keys... This can cause players to not be redirected towards this server');
+																	}
+																}
+															);
 														}
 														else
 														{
@@ -706,6 +757,7 @@ class sdLongRangeTeleport extends sdEntity
 				this.AddPromptContextOption( 'Set remote server URL', 'SET_REMOTE_SERVER_URL', [ undefined ], 'Enter remote server URL (same as for players)', this.remote_server_url, 300 );
 				this.AddPromptContextOption( 'Set remote long-range teleport _net_id', 'SET_REMOTE_TARGET_NET_ID', [ undefined ], 'Enter remote server URL (same as for players)', this.remote_server_target_net_id, 64 );
 				this.AddPromptContextOption( 'Get this long-range teleport _net_id', 'GET_REMOTE_TARGET_NET_ID', [ undefined ], 'This is a _net_id of this long-range teleport entity', this._net_id, 64 );
+				this.AddContextOption( 'Forcefully reset state', 'TELEPORT_RESET', [] );
 			}
 			
 			if ( !this.is_server_teleport )

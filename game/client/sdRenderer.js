@@ -1030,13 +1030,23 @@ class sdRenderer
 				for ( var i = 0; i < sdWorld.leaders.length; i++ )
 				{
 					ctx.textAlign = 'left';
+
+					let main_color = '#FFFFFF';
+
+					if ( sdWorld.leaders[ i ].name === sdWorld.my_entity.title )
+					if ( sdWorld.leaders[ i ].score === sdWorld.my_score )
+					main_color = '#66ff66';
 					
 					if ( sdWorld.leaders[ i ].here )
-					ctx.fillStyle = '#FFFFFF';
+					{
+					    ctx.fillStyle = main_color;
+					}
 					else
 					ctx.fillStyle = '#666666';
 					
 					ctx.fillText( (i+1)+". " + ( ( i < sdWorld.leaders.length ) ? sdWorld.leaders[ i ].name : '' ), sdRenderer.screen_width - 200 * scale - 5 + 5, 20 + ( i + 1 ) * 20 * scale );
+
+					ctx.fillStyle = main_color;
 
 					ctx.textAlign = 'right';
 					ctx.fillText( ( ( i < sdWorld.leaders.length ) ? sdWorld.leaders[ i ].score : '' ), sdRenderer.screen_width - 15, 20 + ( i + 1 ) * 20 * scale );
