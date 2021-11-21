@@ -189,11 +189,24 @@ class sdWeather extends sdEntity
 		}
 		//console.log( this._daily_events );
 	}
-	TraceDamagePossibleHere( x,y, steps_max=Infinity )
+	TraceDamagePossibleHere( x,y, steps_max=Infinity, sun_light_tracer=false )
 	{
 		for ( var yy = y; yy > sdWorld.world_bounds.y1 && steps_max > 0; yy -= 8, steps_max-- )
-		if ( sdWorld.CheckWallExists( x, yy, null, null, [ 'sdBlock', 'sdDoor', 'sdWater' ] ) )
-		return false;
+		{
+			if ( sdWorld.CheckWallExists( x, yy, null, null, [ 'sdBlock', 'sdDoor', 'sdWater' ] ) )
+			{
+				if ( sun_light_tracer )
+				{
+					if ( sdWorld.last_hit_entity )
+					if ( sdWorld.last_hit_entity.is( sdBlock ) )
+					{
+						if ( sdWorld.last_hit_entity.IsPartiallyTransparent() )
+						continue;
+					}
+				}
+				return false;
+			}
+		}
 
 		return true;
 	}

@@ -101,7 +101,7 @@ class sdSunPanel extends sdEntity
 
 			if ( sdWorld.time > this._next_trace_rethink )
 			{
-				this._sun_reaches = sdWeather.only_instance.TraceDamagePossibleHere( this.x, this.y );
+				this._sun_reaches = sdWeather.only_instance.TraceDamagePossibleHere( this.x, this.y + this.hitbox_y1, Infinity, true );
 
 				this._next_trace_rethink = sdWorld.time + 5000 + Math.random() * 10000;
 			}

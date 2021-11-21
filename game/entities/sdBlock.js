@@ -132,6 +132,20 @@ class sdBlock extends sdEntity
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
 	{ return this.material === sdBlock.MATERIAL_SHARP; }
 	
+	IsPartiallyTransparent()
+	{
+		if ( this.material === sdBlock.MATERIAL_SHARP || this.material === sdBlock.MATERIAL_TRAPSHIELD )
+		return true;
+	
+		if ( this.DrawIn3D() === FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT )
+		return true;
+	
+		if ( this.texture_id === sdBlock.TEXTURE_ID_CAGE )
+		return true;
+
+		return false;
+	}
+	
 	static Install3DSupport()
 	{
 		if ( typeof window !== 'undefined' )
@@ -153,13 +167,15 @@ class sdBlock extends sdEntity
 				
 				sdBlock.prototype.DrawBG = function( ctx, attached )
 				{
-					if ( this.material === sdBlock.MATERIAL_SHARP || this.material === sdBlock.MATERIAL_TRAPSHIELD )
+					/*if ( this.material === sdBlock.MATERIAL_SHARP || this.material === sdBlock.MATERIAL_TRAPSHIELD )
 					return;
 				
 					if ( this.DrawIn3D() === FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT )
 					return;
 				
 					if ( this.texture_id === sdBlock.TEXTURE_ID_CAGE )
+					return;*/
+					if ( this.IsPartiallyTransparent() )
 					return;
 
 					for ( var a = 0; a < this._affected_hash_arrays.length; a++ )
