@@ -359,20 +359,33 @@ class sdSound
 		return;
 
 		let name = params.name;
-		let x = params.x;
-		let y = params.y;
 		let volume = params.volume || 1;
 		let rate = params.pitch || 1;
 		
-		if ( x < sdWorld.world_bounds.x1 )
-		return;
-		if ( x >= sdWorld.world_bounds.x2 )
-		return;
+		let v;
 		
-		if ( y < sdWorld.world_bounds.y1 )
-		return;
-		if ( y >= sdWorld.world_bounds.y2 )
-		return;
+		if ( typeof params.x !== 'undefined' )
+		{
+		
+			let x = params.x;
+			let y = params.y;
+
+			if ( x < sdWorld.world_bounds.x1 )
+			return;
+			if ( x >= sdWorld.world_bounds.x2 )
+			return;
+
+			if ( y < sdWorld.world_bounds.y1 )
+			return;
+			if ( y >= sdWorld.world_bounds.y2 )
+			return;
+
+			v = sdSound.GetDistanceMultForPosition( x,y ) * sdSound.volume * volume;
+		}
+		else
+		{
+			v = sdSound.volume * volume;
+		}
 	
 		if ( typeof sdSound.sounds[ name ] === 'undefined' )
 		{
@@ -382,7 +395,6 @@ class sdSound
 		
 		if ( sdSound.allowed )
 		{
-			let v = sdSound.GetDistanceMultForPosition( x,y ) * sdSound.volume * volume;
 			
 			if ( isNaN( v ) || v === Infinity || v === -Infinity )
 			{

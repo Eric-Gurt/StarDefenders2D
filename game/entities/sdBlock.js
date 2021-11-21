@@ -299,6 +299,12 @@ class sdBlock extends sdEntity
 							this._client_side_bg = Object.assign( {}, this );
 							
 							this._client_side_bg.texture_id = sdBG.TEXTURE_PLATFORMS;
+							
+							if ( this._client_side_bg.material === sdBlock.MATERIAL_GROUND )
+							{
+								// Keep color for grass/ground only
+							}
+							else
 							this._client_side_bg.filter = 'none';
 						}
 						sdBG.prototype.DrawBG.call( this._client_side_bg, ctx, attached );

@@ -83,6 +83,8 @@ class sdWorld
 		
 		sdWorld.client_side_censorship = false;
 		
+		sdWorld.will_play_startup_tune = false;
+		
 		//sdWorld.world_bounds = { x1: 0, y1: -400, x2: 800, y2: 0 };
 		sdWorld.world_bounds = { 
 			x1: 0, 
@@ -3102,6 +3104,8 @@ class sdWorld
 	}
 	static Start( player_settings, full_reset=false, retry=0 )
 	{
+		sdSound.AllowSound();
+			
 		if ( !globalThis.connection_established )
 		{
 			//alert('Connection is not open yet, for some reason...');
@@ -3162,6 +3166,15 @@ class sdWorld
 				//player_settings.my_net_id = v;
 			
 			} catch(e){}*/
+						
+			//if ( sdWorld.time > player_settings['last_local_time_start'] + 1000 * 60 * 60 * 8 )
+			if ( globalThis.will_play_startup_tune )
+			{
+				setTimeout( ()=>
+				{
+					sdSound.PlaySound({ name:'piano_world_startB2_cutA', volume:0.3, _server_allowed:true });
+				}, 2500 );
+			}
 
 			socket.emit( 'RESPAWN', player_settings );
 			

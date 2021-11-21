@@ -1459,6 +1459,8 @@
 	    <div style="position:absolute;left:20px;bottom:20px">
 		
 	    <input id="my_hash" type="hidden">
+	    <input id="last_local_time_start" type="hidden">
+	    
 	    
 	    <input type="button" style="background-color:#2b7939; width: 300px;" id="start_btn" onclick="sdWorld.Start( globalThis.GetPlayerSettings() );" value="Play with other players"> <input type="button" onclick="globalThis.ResetSkin();" value="Reset skin to default">
 	    
@@ -1611,19 +1613,35 @@
 
 	    let NO_DEFAULT_VALUE_PTR = {};
 	    
+	    function AcceptField( my_hash, default_v='unset' )
 	    {
 		let obj = { 
-		    el: my_hash_input,
+		    el: document.getElementById( my_hash ),
 		    default_value: NO_DEFAULT_VALUE_PTR
 		};
 		inputs.push( obj );
 		inputs_hash[ obj.el.id ] = obj;
-		my_hash_input.value = [ Math.random(), Math.random(), Math.random(), Math.random(), Math.random() ].join('');
+		obj.el.value = default_v;
 		try {
-		    let v = localStorage.getItem( 'my_hash' );
+		    let v = localStorage.getItem( my_hash );
 		    if ( v !== null )
-		    my_hash.value = v;
+		    obj.el.value = v;
 		} catch(e){}
+		
+		obj.el.onchange = ()=>
+		{
+		    globalThis.GetPlayerSettings( obj.el );
+
+		    globalThis.SavePlayerSettings();
+		};
+	    }
+	    
+	    AcceptField( 'my_hash', [ Math.random(), Math.random(), Math.random(), Math.random(), Math.random() ].join('') );
+	    AcceptField( 'last_local_time_start', 0 );
+	    
+	    if ( Date.now() > parseInt( document.getElementById( 'last_local_time_start' ).value ) + 1000 * 60 * 60 * 8 )
+	    {
+		globalThis.will_play_startup_tune = true;
 	    }
 			
 	    function LoopThrough( settings_container )
@@ -1797,6 +1815,11 @@
 		    obj.el.value = save[ obj.el.id ];
 		}
 	    };
+	    
+	
+	    document.getElementById( 'last_local_time_start' ).value = Date.now();
+	    globalThis.SavePlayerSettings();
+	    
 	    
 	    globalThis.ResetSkin = function()
 	    {
