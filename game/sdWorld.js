@@ -22,6 +22,7 @@ import sdPlayerDrone from './entities/sdPlayerDrone.js';
 
 
 import sdRenderer from './client/sdRenderer.js';
+import sdBitmap from './client/sdBitmap.js';
 import sdSound from './sdSound.js';
 
 class sdWorld
@@ -2992,11 +2993,12 @@ class sdWorld
 		
 		return _voice;
 	}
-	static CreateImageFromFile( filename, cb=null )
+	static CreateImageFromFile( filename, cb=null ) // In cases when processing calls are added to filename - expect correct image to be returned as part of return_value.canvas_override
 	{
+		filename = filename.split(' -> ').join('->'); // Remove prettiness to save pair of bytes when transfering sdLost data
+		
 		if ( sdWorld.is_server )
 		return filename; // Actually return image name now just so sdLost could be drawn using these
-		//return null;
 		
 		if ( sdWorld.lost_images_cache && sdWorld.lost_images_cache[ filename ] )
 		{
@@ -3013,13 +3015,22 @@ class sdWorld
 			return img;
 		}
 	
-		let img = new Image();
+		let img = null;
+		
+		//if ( filename_parts.length > 1 )
+		//img = sdBitmap.CreateBitmap(); // Assume it should be a canvas on its own
+		//else
+		img = new Image();
+		
+		let filename_parts = filename.split('->'); // Preprocessing right in the file name (for sdLost to be able to require such images as well)
+		
+		if ( filename_parts.length > 1 )
+		img.canvas_override = sdBitmap.CreateBitmap();
+		else
+		img.canvas_override = null;
 		
 		img.ever_requested = false;
-		img.pending_src = './assets/' + filename + '.png';
-		
-		//img.src = '';
-		//img.src = './assets/' + filename + '.png';
+		img.pending_src = './assets/' + filename_parts[ 0 ] + '.png';
 		
 		img.loaded = false;
 		
@@ -3037,8 +3048,39 @@ class sdWorld
 			}
 		};
 	
-		img.onload = ()=>{ 
+		img.onload = ()=>
+		{
 			img.loaded = true; 
+			
+			if ( filename_parts.length > 1 )
+			{
+				for ( let i = 1; i < filename_parts.length; i++ )
+				{
+					//try
+					//{
+						let method_call = filename_parts[ i ];
+
+						let colon_pos = method_call.indexOf( '(' );
+						let method = method_call.substring( 0, colon_pos );
+						//let params = JSON.parse( method_call.substring( colon_pos + 1 ).split('(').join('[').split(')').join(']') );
+						
+						let s = method_call.substring( colon_pos + 1 );
+						
+						s = s.substring( 0, s.length - 1 );
+						
+						let params = JSON.parse( '['+s+']' );
+
+						if ( method === 'CreateBitmap' )
+						throw new Error('Method is not allowed and is pointless here');
+
+						sdBitmap[ method ]( img, ...params );
+					//}
+					/*catch ( e )
+					{
+						debugger;
+					}*/
+				}
+			}
 			
 			for ( let i = 0; i < img.callbacks.length; i++ )
 			img.callbacks[ i ]();

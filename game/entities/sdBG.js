@@ -12,13 +12,22 @@ class sdBG extends sdEntity
 	{
 		sdBG.img_bg22 = sdWorld.CreateImageFromFile( 'bg' );
 		sdBG.img_bg22_blue = sdWorld.CreateImageFromFile( 'bg_blue' );
+		sdBG.img_stripes = sdWorld.CreateImageFromFile( 'bg_stripes' );
+		sdBG.img_hex = sdWorld.CreateImageFromFile( 'bg_hex' );
+		sdBG.img_hex2 = sdWorld.CreateImageFromFile( 'bg_hex2' );
 		
 		// Better to keep these same as in sdBlock, so 3D effects will work as intended
 		sdBG.MATERIAL_PLATFORMS = 0;
 		sdBG.MATERIAL_GROUND = 1;
 		// 2
-		sdBG.MATERIAL_PLATFORMS_COLORED = 3;
+		sdBG.MATERIAL_PLATFORMS_COLORED = 3; // Obsolete, use texture instead
 		// 4 trapshield
+		
+		let t = 0;
+		sdBG.TEXTURE_PLATFORMS = t++;
+		sdBG.TEXTURE_STRIPES = t++;
+		sdBG.TEXTURE_PLATFORMS_COLORED = t++;
+		sdBG.TEXTURE_HEX = t++;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -55,6 +64,8 @@ class sdBG extends sdEntity
 		
 		this.material = params.material || sdBG.MATERIAL_PLATFORMS;
 		
+		this.texture_id = params.texture_id || sdBG.TEXTURE_PLATFORMS;
+		
 		this.filter = params.filter || '';
 		
 		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
@@ -81,9 +92,25 @@ class sdBG extends sdEntity
 		ctx.filter = ctx.filter + 'brightness('+(1+lumes)+')';
 
 		if ( this.material === sdBG.MATERIAL_PLATFORMS )
-		ctx.drawImageFilterCache( sdBG.img_bg22, 0, 0, w,h, 0,0, w,h );
+		{
+			let img = null;
+			
+			if ( this.texture_id === sdBG.TEXTURE_PLATFORMS )
+			img = sdBG.img_bg22;
+		
+			if ( this.texture_id === sdBG.TEXTURE_PLATFORMS_COLORED )
+			img = sdBG.img_bg22_blue;
+		
+			if ( this.texture_id === sdBG.TEXTURE_STRIPES )
+			img = sdBG.img_stripes;
+		
+			if ( this.texture_id === sdBG.TEXTURE_HEX )
+			img = ( sdWorld.time % 4000 < 2000 ) ? sdBG.img_hex : sdBG.img_hex2;
+		
+			ctx.drawImageFilterCache( img, 0, 0, w,h, 0,0, w,h );
+		}
 		else
-		if ( this.material === sdBG.MATERIAL_PLATFORMS_COLORED )
+		if ( this.material === sdBG.MATERIAL_PLATFORMS_COLORED ) // Never use this one again
 		ctx.drawImageFilterCache( sdBG.img_bg22_blue, 0, 0, w,h, 0,0, w,h );
 		else
 		if ( this.material === sdBG.MATERIAL_GROUND )

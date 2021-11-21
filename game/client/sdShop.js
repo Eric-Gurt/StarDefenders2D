@@ -92,12 +92,14 @@ class sdShop
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, filter: filter, _category:'Walls' });
 			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, filter: filter, _category:'Walls' });
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, filter: filter, _category:'Walls' });
+			sdShop.options.push({ _class: 'sdBlock', width: 8, height: 16, filter: filter, _category:'Walls' });
+			
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 7 });
 			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 7 });
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 7 });
 			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 7 });
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 7 });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, filter: filter, _category:'Walls' });
+			
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL2, _reinforced_level: 2, _category:'Walls', _min_build_tool_level: 16 });
 			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL2, _reinforced_level: 2, _category:'Walls', _min_build_tool_level: 16 });
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL2, _reinforced_level: 2, _category:'Walls', _min_build_tool_level: 16 });
@@ -106,10 +108,15 @@ class sdShop
 			
 			//if ( i !== 0 )
 			//{
-				sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: filter + 'brightness(1.5)', material: sdBG.MATERIAL_PLATFORMS_COLORED, _category:'Background walls' });
-				sdShop.options.push({ _class: 'sdBG', width: 32, height: 16, filter: filter + 'brightness(1.5)', material: sdBG.MATERIAL_PLATFORMS_COLORED, _category:'Background walls' });
-				sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, filter: filter + 'brightness(1.5)', material: sdBG.MATERIAL_PLATFORMS_COLORED, _category:'Background walls' });
-				sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter + 'brightness(1.5)', material: sdBG.MATERIAL_PLATFORMS_COLORED, _category:'Background walls' });
+				sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: filter + 'brightness(1.5)', texture_id: sdBG.TEXTURE_PLATFORMS_COLORED, _category:'Background walls' });
+				sdShop.options.push({ _class: 'sdBG', width: 32, height: 16, filter: filter + 'brightness(1.5)', texture_id: sdBG.TEXTURE_PLATFORMS_COLORED, _category:'Background walls' });
+				sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, filter: filter + 'brightness(1.5)', texture_id: sdBG.TEXTURE_PLATFORMS_COLORED, _category:'Background walls' });
+				sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter + 'brightness(1.5)', texture_id: sdBG.TEXTURE_PLATFORMS_COLORED, _category:'Background walls' });
+				
+				sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: filter, texture_id: sdBG.TEXTURE_HEX, _category:'Background walls' });
+				sdShop.options.push({ _class: 'sdBG', width: 32, height: 16, filter: filter, texture_id: sdBG.TEXTURE_HEX, _category:'Background walls' });
+				sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, filter: filter, texture_id: sdBG.TEXTURE_HEX, _category:'Background walls' });
+				sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter, texture_id: sdBG.TEXTURE_HEX, _category:'Background walls' });
 			//}
 		}
 		
@@ -141,6 +148,22 @@ class sdShop
 		AddBuildPack( 'hue-rotate(-90deg) contrast(0.5) brightness(1.5) saturate(0)' );
 			
 		AddBuildPack( 'hue-rotate(-90deg) saturate(0)' );
+		
+		for ( let i = sdBlock.TEXTURE_ID_PORTAL; i <= sdBlock.TEXTURE_ID_GLASS; i++ )
+		{
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, texture_id: i, _category:'Walls' });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, texture_id: i, _category:'Walls' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, texture_id: i, _category:'Walls' });
+			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, texture_id: i, _category:'Walls' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, texture_id: i, _category:'Walls' });
+			sdShop.options.push({ _class: 'sdBlock', width: 8, height: 16, texture_id: i, _category:'Walls' });
+			if ( i === sdBlock.TEXTURE_ID_GLASS )
+			{
+				sdShop.options.push({ _class: 'sdBlock', width: 32, height: 8, texture_id: i, _category:'Walls' });
+				sdShop.options.push({ _class: 'sdBlock', width: 8, height: 32, texture_id: i, _category:'Walls' });
+			}
+		}
+		
 		sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: 'saturate(0)', _category:'Doors' });
 
 		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_GROUND, _category:'Walls' });
@@ -226,6 +249,17 @@ class sdShop
 			sdShop.options.push({ _class: 'sdBG', width: 32, height: 16, filter: filter, _category:'Background walls' });
 			sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, filter: filter, _category:'Background walls' });
 			sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter, _category:'Background walls' });
+		
+			let filter2 = '';
+			if ( i === 1 )
+			filter2 = 'hue-rotate(-60deg)brightness(.5)';
+			if ( i === 2 )
+			filter2 = 'hue-rotate(44deg)brightness(.8)';
+
+			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 32, height: 16, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 16, height: 32, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'Background walls' });
+			sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'Background walls' });
 		}
 		
 		//sdShop.options.push({ _class: 'sdWater' });

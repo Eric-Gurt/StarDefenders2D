@@ -10,6 +10,7 @@ import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdCharacter from './sdCharacter.js';
 
 import sdRenderer from '../client/sdRenderer.js';
+import sdBitmap from '../client/sdBitmap.js';
 
 import sdSound from '../sdSound.js';
 
@@ -17,11 +18,11 @@ class sdBlock extends sdEntity
 {
 	static init_class()
 	{
-		sdBlock.img_wall22 = sdWorld.CreateImageFromFile( 'wall_2x2' );
+		/*sdBlock.img_wall22 = sdWorld.CreateImageFromFile( 'wall_2x2' );
 		sdBlock.img_wall21 = sdWorld.CreateImageFromFile( 'wall_2x1' );
 		sdBlock.img_wall12 = sdWorld.CreateImageFromFile( 'wall_1x2' );
 		sdBlock.img_wall11 = sdWorld.CreateImageFromFile( 'wall_1x1' );
-		sdBlock.img_wall05 = sdWorld.CreateImageFromFile( 'wall_half' );
+		sdBlock.img_wall05 = sdWorld.CreateImageFromFile( 'wall_half' );*/
 		sdBlock.img_lvl1_wall22 = sdWorld.CreateImageFromFile( 'wall_lvl1_2x2' );//Reinforced walls, level 1
 		sdBlock.img_lvl1_wall21 = sdWorld.CreateImageFromFile( 'wall_lvl1_2x1' );
 		sdBlock.img_lvl1_wall12 = sdWorld.CreateImageFromFile( 'wall_lvl1_1x2' );
@@ -32,6 +33,54 @@ class sdBlock extends sdEntity
 		sdBlock.img_lvl2_wall12 = sdWorld.CreateImageFromFile( 'wall_lvl2_1x2' );
 		sdBlock.img_lvl2_wall11 = sdWorld.CreateImageFromFile( 'wall_lvl2_1x1' );
 		sdBlock.img_lvl2_wall05 = sdWorld.CreateImageFromFile( 'wall_lvl2_half' );		
+		
+		// Version 2, here we will create walls automatically, from Grid-9 sliceable sources (so we could make nearly infinite variety of walls that meet our needs)
+		//sdBlock.img_wall = sdWorld.CreateImageFromFile( 'wall' );
+		//sdBlock.img_wall_portal = sdWorld.CreateImageFromFile( 'wall_portal' );
+		//sdBlock.img_wall_vertical_test = sdWorld.CreateImageFromFile( 'wall -> Grid9( 4, 8, 16 )' );//sdBitmap.ProduceGrid9BlockTexture( sdBlock.img_wall, 4, 8, 16 );
+		//sdBlock.img_wall_vertical_test = sdWorld.CreateImageFromFile( 'wall -> Grid9( 4, 8, 8 )' );//sdBitmap.ProduceGrid9BlockTexture( sdBlock.img_wall, 4, 8, 16 );
+
+		function SpawnSizes( texture_id, base_filename, corner_size )
+		{
+			let cases = [
+				[ 32, 32 ],
+				[ 32, 16 ],
+				[ 16, 32 ],
+				[ 16, 16 ],
+				[ 16, 8 ],
+				[ 8, 16 ],
+				[ 8, 8 ],
+				[ 32, 8 ],
+				[ 8, 32 ]
+			];
+			
+			sdBlock.textures[ texture_id ] = {};
+			
+			for ( let i = 0; i < cases.length; i++ )
+			{
+				let w = cases[i][0];
+				let h = cases[i][1];
+				
+				let img = sdWorld.CreateImageFromFile( `${base_filename} -> Grid9( ${corner_size}, ${w}, ${h} )` );
+				
+				// Netbeans syntax highlight bug-fix
+				//let e = eval;
+				//e( evaluted_variable_name.split('...').join( w + 'x' + h ) + ` = img` );
+				
+				//sdBlock[ evaluted_variable_name.split('...').join( w + 'x' + h ).split( 'sdBlock.' ).join('') ] = img;
+				sdBlock.textures[ texture_id ][ w + 'x' + h ] = img;
+			}
+		}
+		
+		sdBlock.textures = [];
+		
+		let tc = 0;
+		SpawnSizes( sdBlock.TEXTURE_ID_WALL = tc++,		'wall',			4 );
+		SpawnSizes( sdBlock.TEXTURE_ID_PORTAL = tc++,	'wall_portal',	5 );
+		SpawnSizes( sdBlock.TEXTURE_ID_CAGE = tc++,		'wall_cage',	0 );
+		SpawnSizes( sdBlock.TEXTURE_ID_GLASS = tc++,	'wall_glass',	1 );
+		// TODO: Rework other walls like this. Also - important to standartise all reinforced blocks as well as extra reinforcements through items
+		
 
 		sdBlock.trapshield_block_health_ratio = 1 / 2;
 		sdBlock.trapshield_block_regen_ratio = 3;
@@ -105,6 +154,12 @@ class sdBlock extends sdEntity
 				sdBlock.prototype.DrawBG = function( ctx, attached )
 				{
 					if ( this.material === sdBlock.MATERIAL_SHARP || this.material === sdBlock.MATERIAL_TRAPSHIELD )
+					return;
+				
+					if ( this.DrawIn3D() === FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT )
+					return;
+				
+					if ( this.texture_id === sdBlock.TEXTURE_ID_CAGE )
 					return;
 
 					for ( var a = 0; a < this._affected_hash_arrays.length; a++ )
@@ -222,7 +277,16 @@ class sdBlock extends sdEntity
 					//this._vis_back = visible;
 					
 					if ( visible )
-					sdBG.prototype.DrawBG.call( this, ctx, attached );
+					{
+						if ( !this._client_side_bg )
+						{
+							this._client_side_bg = Object.assign( {}, this );
+							
+							this._client_side_bg.texture_id = sdBG.TEXTURE_PLATFORMS;
+							this._client_side_bg.filter = 'none';
+						}
+						sdBG.prototype.DrawBG.call( this._client_side_bg, ctx, attached );
+					}
 				};
 			}
 		}
@@ -235,7 +299,7 @@ class sdBlock extends sdEntity
 	
 	DrawIn3D()
 	{
-		if ( this.material === sdBlock.MATERIAL_TRAPSHIELD )
+		if ( this.material === sdBlock.MATERIAL_TRAPSHIELD || this.texture_id === sdBlock.TEXTURE_ID_GLASS )
 		return FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT; 
 		else
 		return FakeCanvasContext.DRAW_IN_3D_BOX; 
@@ -482,10 +546,14 @@ class sdBlock extends sdEntity
 			this._stack_trace = globalThis.getStackTrace();
 		}
 		
+		this._client_side_bg = null;
+		
 		this.width = params.width || 32;
 		this.height = params.height || 32;
 		
 		this.material = params.material || sdBlock.MATERIAL_WALL;
+		
+		this.texture_id = params.texture_id || 0; // Only changes texture, but keeps meaning
 		
 		this._hmax = 550 * ( this.width / 32 * this.height / 32 ) * ( this.material === sdBlock.MATERIAL_GROUND ? 0.8 : 1 );
 		
@@ -811,7 +879,17 @@ class sdBlock extends sdEntity
 		else
 		if ( this.material === sdBlock.MATERIAL_WALL )
 		{
-			if ( w === 32 && h === 32 )
+			let img = sdBlock.textures[ this.texture_id ][ w + 'x' + h ];
+			if ( img )
+			ctx.drawImageFilterCache( img, 0, 0, w,h, 0,0, w,h );
+			else
+			{
+				ctx.fillStyle = '#ff0000';
+				ctx.fillRect( 0,0,w,h );
+			}
+			//ctx.drawImageFilterCache( sdBlock.img_wall_2x2, 0, 0, w,h, 0,0, w,h );
+			
+			/*if ( w === 32 && h === 32 )
 			ctx.drawImageFilterCache( sdBlock.img_wall22, 0, 0, w,h, 0,0, w,h );
 			else
 			if ( w === 32 && h === 16 )
@@ -826,7 +904,15 @@ class sdBlock extends sdEntity
 			if ( w === 16 && h === 8 )
 			ctx.drawImageFilterCache( sdBlock.img_wall05, 0, 0, w,h, 0,0, w,h );
 			else
-			ctx.drawImageFilterCache( sdBlock.img_wall22, 0, 0, w,h, 0,0, w,h );
+			if ( w === 8 && h === 16 )
+			{
+				//ctx.drawImageFilterCache( sdBlock.img_wall_vertical_test, 0, 0, w,h, 0,0, w,h );
+				ctx.drawImageFilterCache( sdBlock.img_wall_vertical_test, 0, 0, 8,8, 0,0, 8,8 );
+			}
+			else
+			ctx.drawImageFilterCache( sdBlock.img_wall22, 0, 0, w,h, 0,0, w,h );*/
+		
+		
 		}
 		else
 		if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 )
@@ -949,6 +1035,9 @@ class sdBlock extends sdEntity
 			if ( this._net_id !== undefined ) // Was ever synced rather than just temporarily object for shop
 			if ( this._broken )
 			{
+				if ( this.texture_id === sdBlock.TEXTURE_ID_GLASS )
+				sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.25, pitch: 0.6, _server_allowed:true });
+				else
 				sdSound.PlaySound({ name:'block4', 
 					x:this.x + this.width / 2, 
 					y:this.y + this.height / 2, 

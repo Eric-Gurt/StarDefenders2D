@@ -156,6 +156,9 @@ class sdRenderer
 					return;
 				}
 				
+				if ( args[ 0 ].canvas_override )
+				args[ 0 ] = args[ 0 ].canvas_override;
+				
 				const filter = ctx0.filter; // native
 				const sd_filter = ctx0.sd_filter; // custom filter, { colorA:replacementA, colorB:replacementB }
 				const sd_tint_filter = ctx0.sd_tint_filter; // custom filter, [ r, g, b ], multiplies
