@@ -2,6 +2,7 @@
 
 	Potentially this song could be added as a welcome tune whenever player joins server for the first time/empty server:
 	https://samplefocus.com/users/first-name-last-name-af33092b-2f17-46f3-b312-a66932926d0a/samples (Chill Piano Chords)
+	Currently used btw ^ I still have more cuts out of it - EG
 
 */
 /* global sdShop */
@@ -82,8 +83,6 @@ class sdWorld
 		sdWorld.my_entity_upgrades_later_set_obj = null;
 		
 		sdWorld.client_side_censorship = false;
-		
-		sdWorld.will_play_startup_tune = false;
 		
 		//sdWorld.world_bounds = { x1: 0, y1: -400, x2: 800, y2: 0 };
 		sdWorld.world_bounds = { 
@@ -3170,6 +3169,8 @@ class sdWorld
 			//if ( sdWorld.time > player_settings['last_local_time_start'] + 1000 * 60 * 60 * 8 )
 			if ( globalThis.will_play_startup_tune )
 			{
+				globalThis.will_play_startup_tune = false;
+				
 				setTimeout( ()=>
 				{
 					sdSound.PlaySound({ name:'piano_world_startB2_cutA', volume:0.3, _server_allowed:true });
