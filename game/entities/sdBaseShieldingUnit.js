@@ -294,16 +294,22 @@ class sdBaseShieldingUnit extends sdEntity
 			
 			for ( let i = 0; i < units.length; i++ ) // Protect nearby entities inside base unit's radius
 			{
-			if ( ( sdWorld.Dist2D( this.x, this.y, units[ i ].x, units[ i ].y ) < sdBaseShieldingUnit.protect_distance + 64 ) ) // Only attack close range shields can be attacked
+				if ( ( sdWorld.Dist2D( this.x, this.y, units[ i ].x, units[ i ].y ) < sdBaseShieldingUnit.protect_distance + 64 ) ) // Only attack close range shields can be attacked
 				if ( units[ i ] !== this )
 				if ( units[ i ].enabled === true )
 				{
 					if ( units[ i ].matter_crystal > 80 ) // Not really needed since the units turn off below 800 matter
 					{
-						if ( units[ i ]._matter_drain - this._matter_drain > 0 )
+						units[ i ].matter_crystal -= 80;
+						this.matter_crystal -= 80;
+						
+						if ( false ) // Something does not feel right here, yet (no damage is registered in some cases, possibly due to _matter_drain being 0, though I haven't checked)
 						{
-							units[ i ].matter_crystal -= ( units[ i ].matter_crystal > 100000 ? 0.9 : 1 ) * ( units[ i ]._matter_drain - this._matter_drain );
-							this.matter_crystal -= ( units[ i ]._matter_drain - this._matter_drain );
+							if ( units[ i ]._matter_drain - this._matter_drain > 0 )
+							{
+								units[ i ].matter_crystal -= ( units[ i ].matter_crystal > 100000 ? 0.9 : 1 ) * ( units[ i ]._matter_drain - this._matter_drain );
+								this.matter_crystal -= ( units[ i ]._matter_drain - this._matter_drain );
+							}
 						}
 						sdWorld.SendEffect({ x:this.x, y:this.y, x2:units[ i ].x, y2:units[ i ].y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
 						this._attack_timer = 30;
