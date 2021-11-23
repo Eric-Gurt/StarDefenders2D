@@ -149,12 +149,13 @@ class sdContextMenu
 				if ( sdContextMenu.current_target.GetClass() === 'sdStorage' )
 				{
 					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdStorage.access_range ) >= 0 )
+					if ( sdContextMenu.current_target.held_by === null )
 					{
 						let items = sdContextMenu.current_target.GetItems();
 						
 						for ( var i = 0; i < items.length; i++ )
 						{
-							if ( sdContextMenu.current_target.type !== 2 )
+							if ( sdContextMenu.current_target.type === 0 || sdContextMenu.current_target.type === 1 )
 							{
 								let net_id = items[ i ]._net_id;
 								sdContextMenu.options.push({ title: 'Get ' + sdEntity.GuessEntityName( net_id )/*user ' + net_id*/,
@@ -164,10 +165,20 @@ class sdContextMenu
 									}
 								});
 							}
-							else
+							if ( sdContextMenu.current_target.type === 2 )
 							{
 								let net_id = items[ i ]._net_id;
 								sdContextMenu.options.push({ title: 'Get '+items[ i ].title+' ( ' + items[ i ].matter_max + ' max matter )',
+									action: ()=>
+									{
+										globalThis.socket.emit( 'STORAGE_GET', [ sdContextMenu.current_target._net_id, net_id ] );
+									}
+								});
+							}
+							if ( sdContextMenu.current_target.type === 3 )
+							{
+								let net_id = items[ i ]._net_id;
+								sdContextMenu.options.push({ title: 'Get '+items[ i ].title,
 									action: ()=>
 									{
 										globalThis.socket.emit( 'STORAGE_GET', [ sdContextMenu.current_target._net_id, net_id ] );

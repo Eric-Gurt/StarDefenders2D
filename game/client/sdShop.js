@@ -193,6 +193,11 @@ class sdShop
 		sdShop.options.push({ _class: 'sdStorage', type: 2, filter: 'hue-rotate(205deg) saturate(10)', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdStorage', type: 2, filter: 'hue-rotate(220deg)', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdStorage', type: 2, filter: 'hue-rotate(135deg)', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'saturate(0)', _category:'Base equipment', _min_build_tool_level: 2 });
+		sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'none', _category:'Base equipment', _min_build_tool_level: 2 });
+		sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'hue-rotate(205deg) saturate(10)', _category:'Base equipment', _min_build_tool_level: 2 });
+		sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'hue-rotate(220deg)', _category:'Base equipment', _min_build_tool_level: 2 });
+		sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'hue-rotate(135deg)', _category:'Base equipment', _min_build_tool_level: 2 });
 		sdShop.options.push({ _class: 'sdNode', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdSunPanel', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdWeaponBench', _category:'Base equipment' });
