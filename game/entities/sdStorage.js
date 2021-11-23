@@ -1,4 +1,12 @@
+/*
 
+	Stores other entities, depending on type
+
+	TODO: Cargo storages?
+
+	TODO: Optimize snapshot data in a way where only string representation of contents item title will be given to players nearby?
+
+*/
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';

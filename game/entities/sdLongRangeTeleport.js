@@ -2,10 +2,9 @@
 
 	TODO: sdCom-like subscription to portals as a result of which (store at player-side list of possible teleportation locations, probably)
 
+	TODO: Add chat so players could send messages to other side? And do some sort of trading like that?
 
-
-
-
+	TODO: Make RTPs work cross-server?
 
 */
 import sdWorld from '../sdWorld.js';

@@ -1837,6 +1837,7 @@
 		let _voice = sdWorld.ConvertPlayerDescriptionToVoice( s );
 		
 		_voice.amplitude = sdSound.volume_speech * 100;
+		_voice.voice = 'en/en';
 		
 		meSpeak.stop();
 		meSpeak.speak( phrase, _voice );

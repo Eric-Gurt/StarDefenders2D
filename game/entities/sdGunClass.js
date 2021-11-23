@@ -11,6 +11,21 @@ import sdEntity from './sdEntity.js';
 import sdNode from './sdNode.js';
 import sdBullet from './sdBullet.js';
 
+/*
+
+	Spritesheet suggestion:
+
+	level1_idle		| level2_idle	| level3_idle	| level4_idle 
+	attack1			| attack1		| attack1		| attack1 
+	attack2			| attack2		| attack2		| attack2 
+	attack3			| attack3		| attack3		| attack3 
+	reload1			| reload1		| reload1		| reload1 
+	reload2			| reload2		| reload2		| reload2 
+	reload3			| reload3		| reload3		| reload3 
+	reload4			| reload4		| reload4		| reload4 
+	attachment1		| attachment2	| attachment3	| attachment4
+
+*/
 
 class sdGunClass
 {
