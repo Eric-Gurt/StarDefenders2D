@@ -149,6 +149,7 @@ class sdContextMenu
 				if ( sdContextMenu.current_target.GetClass() === 'sdStorage' )
 				{
 					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdStorage.access_range ) >= 0 )
+					if ( sdContextMenu.current_target.held_by === null )
 					{
 						let items = sdContextMenu.current_target.GetItems();
 						

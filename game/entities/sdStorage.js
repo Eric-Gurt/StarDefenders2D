@@ -2,7 +2,7 @@
 
 	Stores other entities, depending on type
 
-	TODO: Cargo storages?
+	TODO: Cargo storages? Would maybe need a code check if crashes happen.
 
 	TODO: Optimize snapshot data in a way where only string representation of contents item title will be given to players nearby?
 
@@ -265,10 +265,11 @@ class sdStorage extends sdEntity
 	{
 		if ( this._broken )
 		{
-			let save_item = 1; // Only up one for now to prevent crystals and crates getting stuck in each other
+			let save_item = 1; // Only up one for now to prevent crystals stuck in each other
 			for ( var i = 0; i < sdStorage.slots_tot; i++ )
 			{
-				if ( ( this.type !== 2 || this.type !== 3 ) || save_item > 0)
+				if ( ( this.type !== 2 ) || save_item > 0 )
+				if ( this.type !== 3 ) // Crates can't save crates since items would get stuck inside last remaining crate which has no space, so players need to build new ones when the large one gets destroyed
 				this.DropSlot( i );
 				else
 				{
