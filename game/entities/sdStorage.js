@@ -29,8 +29,8 @@ class sdStorage extends sdEntity
 	}
 	get hitbox_x1()  { return this.type === 3 ? -13 : this.type === 2 ? -13 : this.type === 1 ? -4 : -7; }
 	get hitbox_x2()  { return this.type === 3 ? 13 : this.type === 2 ? 13 : this.type === 1 ? 4 : 7; }
-	get hitbox_y1()  { return this.type === 3 ? -14 : this.type === 2 ? -9 : this.type === 1 ? -4 : -5; }
-	get hitbox_y2()  { return this.type === 3 ? 15 : this.type === 2 ? 6 : this.type === 1 ? 4 : 6; }
+	get hitbox_y1()  { return this.type === 3 ? -11 : this.type === 2 ? -9 : this.type === 1 ? -4 : -5; }
+	get hitbox_y2()  { return this.type === 3 ? 13 : this.type === 2 ? 6 : this.type === 1 ? 4 : 6; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return this.held_by !== null ? false : true; }
