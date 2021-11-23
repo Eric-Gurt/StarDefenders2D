@@ -60,6 +60,9 @@ class sdGun extends sdEntity
 				- Matter consumption is what defines weapons and should always be aligned to damage dealt, unless it exposes some unfair features.
 		
 		*/
+		
+		sdGun.default_vehicle_mult_bonus = 3; // Use this as base value and multiply it just so these can be scaled together
+		
 		sdGun.classes = [];
 		
 		sdGunClass.init_class(); // Will populate sdGun.classes array

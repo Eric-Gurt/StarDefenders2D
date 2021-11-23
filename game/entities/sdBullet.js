@@ -37,8 +37,6 @@ class sdBullet extends sdEntity
 			'f_hover_rocket':  sdWorld.CreateImageFromFile( 'f_hover_rocket' )
 		};
 		
-		sdBullet.default_vehicle_mult_bonus = 3; // Use this as base value and multiply it just so these can be scaled together
-		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return this.is_grenade || this.ac > 0 ? -2 : 0; }
