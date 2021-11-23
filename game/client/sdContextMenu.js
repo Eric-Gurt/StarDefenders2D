@@ -154,7 +154,7 @@ class sdContextMenu
 						
 						for ( var i = 0; i < items.length; i++ )
 						{
-							if ( sdContextMenu.current_target.type !== 2 )
+							if ( sdContextMenu.current_target.type === 0 || sdContextMenu.current_target.type === 1 )
 							{
 								let net_id = items[ i ]._net_id;
 								sdContextMenu.options.push({ title: 'Get ' + sdEntity.GuessEntityName( net_id )/*user ' + net_id*/,
@@ -164,10 +164,20 @@ class sdContextMenu
 									}
 								});
 							}
-							else
+							if ( sdContextMenu.current_target.type === 2 )
 							{
 								let net_id = items[ i ]._net_id;
 								sdContextMenu.options.push({ title: 'Get '+items[ i ].title+' ( ' + items[ i ].matter_max + ' max matter )',
+									action: ()=>
+									{
+										globalThis.socket.emit( 'STORAGE_GET', [ sdContextMenu.current_target._net_id, net_id ] );
+									}
+								});
+							}
+							if ( sdContextMenu.current_target.type === 3 )
+							{
+								let net_id = items[ i ]._net_id;
+								sdContextMenu.options.push({ title: 'Get '+items[ i ].title,
 									action: ()=>
 									{
 										globalThis.socket.emit( 'STORAGE_GET', [ sdContextMenu.current_target._net_id, net_id ] );

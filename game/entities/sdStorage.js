@@ -20,19 +20,25 @@ class sdStorage extends sdEntity
 		sdStorage.img_storage = sdWorld.CreateImageFromFile( 'storage2' );
 		sdStorage.img_storage2 = sdWorld.CreateImageFromFile( 'portal_storage' );
 		sdStorage.img_storage3 = sdWorld.CreateImageFromFile( 'storage3' ); // Sprite by LazyRain
+		sdStorage.img_storage4 = sdWorld.CreateImageFromFile( 'storage4' );
 		
 		sdStorage.access_range = 64; // Used by sdMatterAmplifier as well
 		sdStorage.slots_tot = 6;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1()  { return this.type === 2 ? -13 : this.type === 1 ? -4 : -7; }
-	get hitbox_x2()  { return this.type === 2 ? 13 : this.type === 1 ? 4 : 7; }
-	get hitbox_y1()  { return this.type === 2 ? -9 : this.type === 1 ? -4 : -5; }
-	get hitbox_y2()  { return this.type === 2 ? 6 : this.type === 1 ? 4 : 6; }
+	get hitbox_x1()  { return this.type === 3 ? -13 : this.type === 2 ? -13 : this.type === 1 ? -4 : -7; }
+	get hitbox_x2()  { return this.type === 3 ? 13 : this.type === 2 ? 13 : this.type === 1 ? 4 : 7; }
+	get hitbox_y1()  { return this.type === 3 ? -14 : this.type === 2 ? -9 : this.type === 1 ? -4 : -5; }
+	get hitbox_y2()  { return this.type === 3 ? 15 : this.type === 2 ? 6 : this.type === 1 ? 4 : 6; }
 	
 	get hard_collision() // For world geometry where players can walk
-	{ return true; }
+	{ return this.held_by !== null ? false : true; }
+
+	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Crates are not targetable when stored, same for crystals and guns
+	{
+		return ( this.held_by === null );
+	}
 	
 	constructor( params )
 	{
@@ -43,8 +49,10 @@ class sdStorage extends sdEntity
 
 		this.type = params.type || 0;
 		
-		this._hea = this.type === 2 ? 400 : 100;
-		this._hmax = this.type === 2 ? 400 : 100;
+		this._hea = this.type === 3 ? 600 : this.type === 2 ? 400 : 100;
+		this._hmax = this.type === 3 ? 600 : this.type === 2 ? 400 : 100;
+
+		this.held_by = null;
 		
 		this._regen_timeout = 0;
 		
@@ -74,6 +82,9 @@ class sdStorage extends sdEntity
 	{
 		if ( !sdWorld.is_server )
 		return;
+
+		if ( this.held_by !== null )
+		return;
 	
 		dmg = Math.abs( dmg );
 		
@@ -101,6 +112,62 @@ class sdStorage extends sdEntity
 		throw new Error('sdStorage got x impulse '+x+' which caused NaN at stStorage.prototype.sx' );
 	}
 	
+	IsVisible( observer_character ) // Can be used to hide storage crates that are held by cargo storage crates
+	{
+		if ( this.held_by === null )
+		return true;
+		else
+		{
+			if ( this.held_by.is( sdStorage ) )
+			{
+				if ( observer_character )
+				if ( sdWorld.inDist2D_Boolean( observer_character.x, observer_character.y, this.x, this.y, sdStorage.access_range ) )
+				return true;
+			}
+			/*else
+			if ( this.held_by.is( sdCharacter ) )
+			{
+				// Because in else case B key won't work
+				//if ( sdGun.classes[ this.class ].is_build_gun ) Maybe it should always work better if player will know info about all of his guns. Probably that will be later used in interface anyway
+				if ( this.held_by === observer_character )
+				return true;
+		
+				if ( !this.held_by.ghosting || this.held_by.IsVisible( observer_character ) )
+				if ( !this.held_by.driver_of )
+				{
+					return ( this.held_by.gun_slot === sdGun.classes[ this.class ].slot );
+				}
+			}*/
+		}
+		
+		return false;
+	}
+	UpdateHeldPosition()
+	{
+		if ( this.held_by ) // Should not happen but just in case
+		{
+			let old_x = this.x;
+			let old_y = this.y;
+			
+			this.x = this.held_by.x;
+			this.y = this.held_by.y;
+
+			if ( typeof this.held_by.sx !== 'undefined' )
+			{
+				this.sx = this.held_by.sx;
+				this.sy = this.held_by.sy;
+				
+				if ( isNaN( this.sx ) )
+				{
+					console.log( 'Entity with corrupted velocity: ', this.held_by );
+					throw new Error('sdStorage is held by entity with .sx as NaN');
+				}
+			}
+
+			if ( this.x !== old_x || this.y !== old_y )
+			sdWorld.UpdateHashPosition( this, false, false );
+		}
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this._regen_timeout > 0 )
@@ -152,24 +219,44 @@ class sdStorage extends sdEntity
 			this.awake = 1;
 		}
 	}
-	DrawHUD( ctx, attached ) // foreground layer
+	get title()
 	{
 		if ( this.type === 0 )
-		sdEntity.Tooltip( ctx, 'Storage crate' );
+		return 'Storage crate';
+
 		if ( this.type === 1 )
-		sdEntity.Tooltip( ctx, 'Portal Storage Device' );
+		return 'Portal Storage device';
+
 		if ( this.type === 2 )
-		sdEntity.Tooltip( ctx, 'Crystal Storage crate' );
+		return 'Crystal Storage crate';
+
+		if ( this.type === 3 )
+		return 'Cargo Storage crate';
+	}
+	DrawHUD( ctx, attached ) // foreground layer
+	{
+		if ( this.held_by === null )
+		{
+			sdEntity.Tooltip( ctx, this.title );
+		}
 	}
 	Draw( ctx, attached )
 	{
-		ctx.filter = this.filter;
-		if ( this.type === 0 )
-		ctx.drawImageFilterCache( sdStorage.img_storage, - 16, - 16, 32,32 );
-		if ( this.type === 1 )
-		ctx.drawImageFilterCache( sdStorage.img_storage2, - 16, - 16, 32,32 );
-		if ( this.type === 2 )
-		ctx.drawImageFilterCache( sdStorage.img_storage3, - 16, - 16, 32,32 );
+		if ( this.held_by === null )
+		{
+			ctx.filter = this.filter;
+			if ( this.type === 0 )
+			ctx.drawImageFilterCache( sdStorage.img_storage, - 16, - 16, 32,32 );
+
+			if ( this.type === 1 )
+			ctx.drawImageFilterCache( sdStorage.img_storage2, - 16, - 16, 32,32 );
+
+			if ( this.type === 2 )
+			ctx.drawImageFilterCache( sdStorage.img_storage3, - 16, - 16, 32,32 );
+
+			if ( this.type === 3 )
+			ctx.drawImageFilterCache( sdStorage.img_storage4, - 16, - 16, 32,32 );
+		}
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
@@ -178,17 +265,17 @@ class sdStorage extends sdEntity
 	{
 		if ( this._broken )
 		{
-			let save_crystal = 1; // Only up one for now to prevent crystals getting stuck in each other
+			let save_item = 1; // Only up one for now to prevent crystals and crates getting stuck in each other
 			for ( var i = 0; i < sdStorage.slots_tot; i++ )
 			{
-				if ( this.type !== 2 || save_crystal > 0)
+				if ( ( this.type !== 2 || this.type !== 3 ) || save_item > 0)
 				this.DropSlot( i );
 				else
 				{
 					if ( this[ 'item' + i ] )
 					this[ 'item' + i ].remove();
 				}
-				save_crystal--;
+				save_item--;
 			}
 
 			sdWorld.BasicEntityBreakEffect( this, 5 );
@@ -208,6 +295,8 @@ class sdStorage extends sdEntity
 		return 50 + this._hmax * sdWorld.damage_to_matter;
 		if ( this.type === 2 )
 		return 80 + this._hmax * sdWorld.damage_to_matter;
+		if ( this.type === 3 )
+		return 160 + this._hmax * sdWorld.damage_to_matter;
 	}
 	onMovementInRange( from_entity )
 	{
@@ -261,6 +350,43 @@ class sdStorage extends sdEntity
 		}
 		if ( this.type === 2 )
 		if ( from_entity.is( sdCrystal ) && from_entity.type !== sdCrystal.TYPE_CRYSTAL_BIG )
+		{
+			//if ( from_entity._held_by === null )
+			if ( from_entity.held_by === null )
+			{
+				let free_slot = -1;
+				
+				for ( var i = 0; i < sdStorage.slots_tot; i++ )
+				{
+					if ( this[ 'item' + i ] )
+					{
+						if ( this[ 'item' + i ] === from_entity )
+						return;
+					}
+					else
+					if ( free_slot === -1 )
+					free_slot = i;
+				}
+
+				if ( free_slot !== -1 )
+				{
+					this[ 'item' + free_slot ] = from_entity;
+
+					//from_entity.should_draw = 0;
+					//from_entity._held_by = this;
+					from_entity.held_by = this;
+					
+					if ( this.type === 0 || this.type === 2 )
+					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
+					if ( this.type === 1 )
+					sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume: 1, pitch: 5 });
+				}
+			}
+		}
+
+		if ( this.type === 3 )
+		if ( from_entity !== this )
+		if ( from_entity.is( sdStorage ) && ( from_entity.type === 0 || from_entity.type === 1 ) )
 		{
 			//if ( from_entity._held_by === null )
 			if ( from_entity.held_by === null )
@@ -351,6 +477,17 @@ class sdStorage extends sdEntity
 				else
 				initiator_character._socket.SDServiceMessage( 'Not enough space to extract item' );
 			}
+			if ( this.type === 3 )
+			if ( initiator_character )
+			{
+				if ( item.CanMoveWithoutOverlap( initiator_character.x + ( initiator_character._side * 18 ), initiator_character.y - 4, 0 ) ) // Not ideal, but shouldn't cause a bug since otherwise it just gets put back in the crate I believe - Booraz149
+				{
+					item.x = initiator_character.x + ( initiator_character._side * 18 );
+					item.y = initiator_character.y - 4;
+				}
+				else
+				initiator_character._socket.SDServiceMessage( 'Not enough space to extract item' );
+			}
 		}
 	}
 	DropSlot( slot )
@@ -374,6 +511,15 @@ class sdStorage extends sdEntity
 				//item._held_by = null;
 				item.held_by = null;
 				//item.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+			
+				item.PhysWakeUp();
+			}
+			if ( this.type === 3 )
+			{
+				//item.should_draw = 1;
+				//item._held_by = null;
+				item.held_by = null;
+				item.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 			
 				item.PhysWakeUp();
 			}
