@@ -10,17 +10,6 @@ import sdBlock from './sdBlock.js';
 import sdBullet from './sdBullet.js';
 import sdCube from './sdCube.js';
 import sdCharacter from './sdCharacter.js';
-import sdWorld from '../sdWorld.js';
-import sdSound from '../sdSound.js';
-import sdEntity from './sdEntity.js';
-import sdEffect from './sdEffect.js';
-import sdGun from './sdGun.js';
-import sdWater from './sdWater.js';
-import sdCom from './sdCom.js';
-import sdBlock from './sdBlock.js';
-import sdBullet from './sdBullet.js';
-import sdCube from './sdCube.js';
-import sdCharacter from './sdCharacter.js';
 import sdSpider from './sdSpider.js';
 
 class sdDrone extends sdEntity
