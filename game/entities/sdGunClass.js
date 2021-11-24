@@ -2309,7 +2309,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			spawnable: false,
-			projectile_properties: { model: 'ball_orange', color: '#ffc080', _damage: 20, explosion_radius: 40 }
+			projectile_properties: { model: 'ball_orange', color: '#ffc080', _damage: 20, explosion_radius: 32 }
 		};
 
 		// Add new gun classes above this line //
