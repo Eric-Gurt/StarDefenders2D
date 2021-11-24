@@ -211,7 +211,7 @@ class sdDrone extends sdEntity
 				type:sdEffect.TYPE_EXPLOSION,
 				armor_penetration_level: 0,
 				owner:this,
-				color:'#00ff00'
+				color:sdEffect.default_explosion_color
 				});
 			}
 			if ( Math.random() < 0.2 ) // 20% chance to drop a metal shard on destruction
