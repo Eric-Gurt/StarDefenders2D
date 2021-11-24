@@ -588,7 +588,7 @@ class sdDrone extends sdEntity
 
 								bullet_obj._damage = 20;
 								bullet_obj.color = '#ffc080';
-								bullet_obj.explosion_radius = 35;
+								bullet_obj.explosion_radius = 32;
 								bullet_obj.model = 'ball_orange';
 
 
