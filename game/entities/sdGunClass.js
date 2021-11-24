@@ -2296,6 +2296,21 @@ class sdGunClass
 			min_build_tool_level: 19,
 			projectile_properties: { explosion_radius: 16, _rail: true, _damage: 125, _vehicle_mult: sdGun.default_vehicle_mult_bonus, color: '#91bfd7' } // 3x more damage against vehicles
 		};
+		
+		sdGun.classes[ sdGun.CLASS_ALIEN_ENERGY_RIFLE = 78 ] = 
+		{
+			image: sdWorld.CreateImageFromFile ( 'alien_energygun' ),
+			sound: 'gun_spark',
+			sound_pitch: 0.5,
+			title: 'Sarrornian Energy Rifle',
+			slot: 8,
+			reload_time: 50,
+			muzzle_x: 7,
+			ammo_capacity: -1,
+			count: 1,
+			spawnable: false,
+			projectile_properties: { model: 'ball_orange', color: '#ffc080', _damage: 20, explosion_radius: 40 }
+		};
 
 		// Add new gun classes above this line //
 		
