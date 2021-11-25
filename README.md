@@ -40,7 +40,7 @@ After you've done that, green cube icon will magically appear at top left of any
 
 # Start server
 
-You'll need to update SSL (https thing) info in index.js or just get rid of SSL support. It will automatically let it run on Windows without SSL on localhost:3000
+You'll need to update SSL (https thing) info in index.js or just get rid of SSL support. It will automatically let it run on Windows without SSL on localhost:3000 .
 Then do:
 ```
 node index.js > stdout.txt 2> stderr.txt &
