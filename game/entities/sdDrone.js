@@ -24,6 +24,10 @@ class sdDrone extends sdEntity
 		sdDrone.img_drone_robot_attack = sdWorld.CreateImageFromFile( 'drone_robot_attack2' );
 		sdDrone.img_drone_robot_destroyed = sdWorld.CreateImageFromFile( 'drone_robot_destroyed2' );
 		sdDrone.img_drone_robot_hurt = sdWorld.CreateImageFromFile( 'drone_robot_hurt' );
+
+		sdDrone.img_alien_drone = sdWorld.CreateImageFromFile( 'alien_drone' );
+		sdDrone.img_alien_attack = sdWorld.CreateImageFromFile( 'alien_attack' );
+		sdDrone.img_alien_destroyed = sdWorld.CreateImageFromFile( 'alien_drone_destroyed' );
 		
 		sdDrone.death_duration = 15;
 		sdDrone.post_death_ttl = 30 * 10;
@@ -34,10 +38,10 @@ class sdDrone extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return ( this.type === 1 ) ? -10 : -6; }
-	get hitbox_x2() { return ( this.type === 1 ) ? 10 : 6; }
-	get hitbox_y1() { return ( this.type === 1 ) ? -10 : -6; }
-	get hitbox_y2() { return ( this.type === 1 ) ? 10 : 6; }
+	get hitbox_x1() { return this.type === 3 ? -11 : this.type === 1 ? -10 : -6; }
+	get hitbox_x2() { return this.type === 3 ? 11 : this.type === 1 ? 10 : 6; }
+	get hitbox_y1() { return this.type === 3 ? -11 : this.type === 1 ? -10 : -6; }
+	get hitbox_y2() { return this.type === 3 ? 11 : this.type === 1 ? 10 : 6; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -51,7 +55,7 @@ class sdDrone extends sdEntity
 		
 		this.type = params.type || 1;
 		
-		this._hmax = ( this.type === 1 ) ? 130 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
+		this._hmax =  this.type === 3 ? 1000 : this.type === 1 ? 130 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
 		this._hea = this._hmax;
 		this._ai_team = params._ai_team || 1;
 
@@ -63,9 +67,9 @@ class sdDrone extends sdEntity
 		this.hurt_timer = 0;
 
 		this._attack_timer = 0;
-		this._burst_ammo_start = this.type === 2 ? 6 : 0;
+		this._burst_ammo_start = this.type === 3 ? 4 : this.type === 2 ? 6 : 0;
 		this._burst_ammo = this._burst_ammo_start;
-		this._burst_reload = this.type === 2 ? 2 : 0; // Reload time when it's burst firing
+		this._burst_reload = this.type === 3 ? 3 : this.type === 2 ? 2 : 0; // Reload time when it's burst firing
 
 		//this._last_stand_on = null;
 		this._last_jump = sdWorld.time;
@@ -196,12 +200,28 @@ class sdDrone extends sdEntity
 			
 				sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:1, pitch:2 });
 			}
+			else
+			if ( this.type === 3 )
+			{
+				sdWorld.SendEffect({ 
+					x:this.x, 
+					y:this.y, 
+					radius: 50, 
+				damage_scale: 1,
+				type:sdEffect.TYPE_EXPLOSION,
+				armor_penetration_level: 0,
+				owner:this,
+				color:sdEffect.default_explosion_color
+				});
+			}
 			if ( Math.random() < 0.2 ) // 20% chance to drop a metal shard on destruction
 			{
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
 					let gun;
-
+					if ( this.type === 3 )
+					gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_ALIEN_ENERGY_RIFLE });
+					else
 					gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_METAL_SHARD });
 
 					gun.sx = this.sx + Math.random() - Math.random();
@@ -541,7 +561,6 @@ class sdDrone extends sdEntity
 								sdEntity.entities.push( bullet_obj );
 
 								this.attack_frame = 2;
-								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
 								this._burst_ammo--;
 								if ( this._burst_ammo > 0 )
 								this._attack_timer = this._burst_reload;
@@ -552,7 +571,33 @@ class sdDrone extends sdEntity
 								}
 
 								sdSound.PlaySound({ name:'spider_attackC', x:this.x, y:this.y, volume:0.33, pitch:6 });
-								//sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.33, pitch:10 }); // Could maybe do with other sound effect?
+							}
+							if ( this.type === 3  )
+							{
+								let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+
+								bullet_obj._owner = this;
+
+								bullet_obj.sx = dx;
+								bullet_obj.sy = dy;
+								bullet_obj.x += bullet_obj.sx * 3;
+								bullet_obj.y += bullet_obj.sy * 3;
+
+								bullet_obj.sx *= 12;
+								bullet_obj.sy *= 12;
+
+								bullet_obj._damage = 20;
+								bullet_obj.color = '#ffc080';
+								bullet_obj.explosion_radius = 32;
+								bullet_obj.model = 'ball_orange';
+
+
+								sdEntity.entities.push( bullet_obj );
+
+								this.attack_frame = 3;
+								this._attack_timer = 65;
+
+								sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:1.25, pitch:0.5 });
 							}
 							break;
 						}
@@ -576,6 +621,8 @@ class sdDrone extends sdEntity
 			sdEntity.Tooltip( ctx, "Falkok Drone" );
 			if ( this.type === 2 )
 			sdEntity.Tooltip( ctx, "Erthal Drone" );
+			if ( this.type === 3 )
+			sdEntity.Tooltip( ctx, "Sarrornian Drone" );
 		}
 	}
 	Draw( ctx, attached )
@@ -601,6 +648,8 @@ class sdDrone extends sdEntity
 			ctx.drawImageFilterCache( sdDrone.img_drone_falkok_destroyed, - 16, - 16, 32, 32 );
 			if ( this.type === 2  )
 			ctx.drawImageFilterCache( sdDrone.img_drone_robot_destroyed, - 16, - 16, 32, 32 );
+			if ( this.type === 3  )
+			ctx.drawImageFilterCache( sdDrone.img_alien_destroyed, - 16, - 16, 32, 32 );
 		}
 		else
 		{
@@ -610,11 +659,17 @@ class sdDrone extends sdEntity
 				ctx.drawImageFilterCache( sdDrone.img_drone_falkok_attack, - 16, - 16, 32, 32 );
 				if ( this.type === 2  )
 				ctx.drawImageFilterCache( sdDrone.img_drone_robot_attack, - 16, - 16, 32, 32 );
+				if ( this.type === 1  )
+				ctx.drawImageFilterCache( sdDrone.img_drone_falkok_attack, - 16, - 16, 32, 32 );
+				if ( this.type === 3  )
+				ctx.drawImageFilterCache( sdDrone.img_alien_attack, - 16, - 16, 32, 32 );
 			}
 			else
 			{
 				if ( this.type === 1  )
 				ctx.drawImageFilterCache( sdDrone.img_drone_falkok, - 16, - 16, 32, 32 );
+				if ( this.type === 3  )
+				ctx.drawImageFilterCache( sdDrone.img_alien_drone, - 16, - 16, 32, 32 );
 				if ( this.type === 2  )
 				{
 					if ( this.hurt_timer > 0 )
