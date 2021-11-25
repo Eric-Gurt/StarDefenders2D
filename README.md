@@ -45,6 +45,13 @@ Then do:
 
 node index.js > stdout.txt 2> stderr.txt &
 
+But there is a better way to start server (it will prevent server turning off, though there still been cases when something sends termination signal to server):
+
+nohup node index.js > stdout.txt 2> stderr.txt & disown
+
+There is also alternate guide from MrMcShroom:
+https://docs.google.com/document/d/17ydIOjwjUKnHRcEVuYIYi35fBcIBid7k440I3X5fh9A/edit
+
 # Admin commands
 
 These might change so type /selfhost - it will hint you what to do next. Once you've got admin rights you can type /help for full list of commands you can execute.
