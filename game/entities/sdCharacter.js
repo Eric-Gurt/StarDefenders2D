@@ -2105,6 +2105,8 @@ class sdCharacter extends sdEntity
 						this.DropWeapon( this.gun_slot );
 
 						this.gun_slot = 0;
+						if ( sdWorld.my_entity === this )
+						sdWorld.PreventCharacterPropertySyncForAWhile( 'gun_slot' );
 						
 						if ( this.reload_anim > 0 )
 						this.reload_anim = 0;
@@ -2125,6 +2127,8 @@ class sdCharacter extends sdEntity
 
 						this._backup_slot = this.gun_slot;
 						this.gun_slot = b;
+						if ( sdWorld.my_entity === this )
+						sdWorld.PreventCharacterPropertySyncForAWhile( 'gun_slot' );
 
 						if ( this.reload_anim > 0 )
 						this.reload_anim = 0;
@@ -2143,6 +2147,8 @@ class sdCharacter extends sdEntity
 						{
 							this._backup_slot = this.gun_slot;
 							this.gun_slot = i;
+							if ( sdWorld.my_entity === this )
+							sdWorld.PreventCharacterPropertySyncForAWhile( 'gun_slot' );
 
 							if ( this.reload_anim > 0 )
 							this.reload_anim = 0;

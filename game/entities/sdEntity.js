@@ -1290,7 +1290,7 @@ class sdEntity
 		if ( snapshot._class !== 'auto' )
 		debugger;
 	
-		let my_entity_protected_vars = null;
+		//let my_entity_protected_vars = null;
 			
 		for ( var prop in snapshot )
 		{
@@ -1350,10 +1350,26 @@ class sdEntity
 					}
 					else
 					{
-						if ( !my_entity_protected_vars )
-						my_entity_protected_vars = sdWorld.my_entity_protected_vars;
-
-						if ( typeof my_entity_protected_vars[ prop ] === 'undefined' || !this.AllowClientSideState() )
+						if ( 
+								(
+									(
+										// Movement, aiming
+										typeof sdWorld.my_entity_protected_vars[ prop ] === 'undefined'
+									)
+									&&
+									(
+										// Weapon slot changes are usually here
+										typeof sdWorld.my_entity_protected_vars_untils[ prop ] === 'undefined' || 
+										sdWorld.time > sdWorld.my_entity_protected_vars_untils[ prop ] 
+									)
+								) 
+								|| 
+								
+								// Being held by something on server, for example ropes seem to cause it, which isn't good actually
+								!this.AllowClientSideState()
+									
+								
+							)
 						this[ prop ] = snapshot[ prop ];
 					}
 				}
