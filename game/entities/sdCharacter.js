@@ -132,6 +132,7 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_isaac' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_soldier_rig' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_witch' ) // by LazyRain
+			sdWorld.CreateImageFromFile( 'helmet_modeus' ) // by LazyRain
 		];
 		
 		sdCharacter.skin_part_indices = {
@@ -203,6 +204,7 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'skins/legless' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'skins/soldier_rig' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'skins/witch' ), // by LazyRain
+			sdWorld.CreateImageFromFile( 'skins/modeus' ), // by LazyRain
 		];
 		
 		// x y rotation, for images below
