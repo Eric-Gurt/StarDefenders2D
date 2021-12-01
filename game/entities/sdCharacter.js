@@ -133,6 +133,7 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_soldier_rig' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_witch' ) // by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_modeus' ) // by LazyRain
+			sdWorld.CreateImageFromFile( 'helmet_pepe' ) // by LazyRain
 		];
 		
 		sdCharacter.skin_part_indices = {
