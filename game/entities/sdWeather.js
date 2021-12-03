@@ -1033,7 +1033,7 @@ class sdWeather extends sdEntity
 
 		if ( r === 16 ) // Spawn a Large Anti-Crystal anywhere on the map outside player views which drains active players' matter if they're close enough
 		{
-			if ( Math.random() < 0.4 ) // 40% chance for the 
+			if ( Math.random() < 0.2 ) // 20% chance for the Large Anti-Crystal to spawn
 			{
 				let instances = 0;
 				let instances_tot = 1;
