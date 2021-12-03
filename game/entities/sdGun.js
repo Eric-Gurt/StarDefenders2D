@@ -1048,6 +1048,10 @@ class sdGun extends sdEntity
 				if ( this.extra === -123 )
 				ctx.filter = 'invert(1)';
 			}
+			if ( this.class === sdGun.CLASS_WYRMHIDE )
+			{
+				ctx.filter = this.extra;
+			}
 
 			if ( sdGun.classes[ this.class ].is_sword )
 			//if ( this.class === sdGun.CLASS_SWORD )
