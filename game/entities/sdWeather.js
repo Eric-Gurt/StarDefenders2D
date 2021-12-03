@@ -420,7 +420,7 @@ class sdWeather extends sdEntity
 					{
 
 						let drone = new sdDrone({ x:0, y:0 , _ai_team: 1});
-						drone.type = ( Math.random() < 0.07 ) ? 3 : 1;
+						drone.type = ( Math.random() < 0.15 ) ? 3 : 1;
 
 						sdEntity.entities.push( drone );
 
