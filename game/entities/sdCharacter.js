@@ -1996,7 +1996,8 @@ class sdCharacter extends sdEntity
 										this.fire_anim = 5;
 									}
 								}
-								if ( this._inventory[ this.gun_slot ].fire_mode === 2 &&  this._last_fire_state !== will_fire )
+								else
+								if ( this._inventory[ this.gun_slot ].fire_mode === 2 && this._last_fire_state !== will_fire ) // Somehow this line caused crash, possible due to .Shoot call above caused weapon to be removed
 								{
 									if ( !offset )
 									offset = this.GetBulletSpawnOffset();
