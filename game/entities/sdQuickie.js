@@ -51,6 +51,9 @@ class sdQuickie extends sdEntity
 		if ( this._tier === 1 )
 		this._hmax = 50;
 		else
+		if ( this._tier === 2 ) // Crystal quickies were meant to have 2x HP due to turning into crystal shards on death.
+		this._hmax = 100;
+		else
 		this._hmax = 7;
 	
 		this._hea = this._hmax;
@@ -124,7 +127,7 @@ class sdQuickie extends sdEntity
 			initiator._score += 1;
 		}
 		
-		if ( this._hea < -this._hmax / 80 * 100 )
+		if ( this._hea < -this._hmax / 80 * 100 || ( this._hea < 0 && this._tier === 2 ) ) // used to be only " ||this._tier === 2 " which resulted in instant death for Crystal Quickies, unintentional - Booraz
 		this.remove();
 	}
 	

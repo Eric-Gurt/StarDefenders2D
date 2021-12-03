@@ -56,6 +56,9 @@ class sdAsp extends sdEntity
 		if ( this._tier === 1 )
 		this._hmax = 80;
 		else
+		if ( this._tier === 2 ) // Crystal asps were meant to have 2x HP due to turning into crystal shards on death.
+		this._hmax = 160;
+		else
 		this._hmax = 10;
 	
 		this._hea = this._hmax;
@@ -142,7 +145,7 @@ class sdAsp extends sdEntity
 	
 		}
 		
-		if ( this._hea < -this._hmax / 80 * 100 )
+		if ( this._hea < -this._hmax / 80 * 100 || ( this._hea < 0 && this._tier === 2 ) ) // used to be only " ||this._tier === 2 " which resulted in instant death for Crystal Asps, unintentional - Booraz
 		this.remove();
 	}
 	get mass() { return 300; }
