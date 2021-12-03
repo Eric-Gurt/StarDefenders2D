@@ -218,6 +218,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 0,
 			is_build_gun: true,
+			allow_aim_assist: false,
 			projectile_properties: { _damage: 0 }
 		};
 		
@@ -1412,6 +1413,7 @@ class sdGunClass
 			matter_cost: Infinity,
 			projectile_velocity: 16,
 			spawnable: false,
+			allow_aim_assist: false,
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
 				if ( sdWorld.is_server )

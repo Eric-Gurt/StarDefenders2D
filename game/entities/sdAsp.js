@@ -53,7 +53,11 @@ class sdAsp extends sdEntity
 
 		this._tier = params._tier || 1; // Used determine it's HP and damage
 		
-		this._hmax = 80 * this._tier;
+		if ( this._tier === 1 )
+		this._hmax = 80;
+		else
+		this._hmax = 10;
+	
 		this._hea = this._hmax;
 		
 		this.death_anim = 0;
@@ -98,11 +102,17 @@ class sdAsp extends sdEntity
 	}
 	GetBleedEffect()
 	{
+		if ( this._tier === 1 )
 		return sdEffect.TYPE_BLOOD_GREEN;
+	
+		return sdEffect.TYPE_WALL_HIT;
 	}
 	GetBleedEffectFilter()
 	{
+		if ( this._tier === 1 )
 		return this.filter;
+	
+		return '';
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -132,7 +142,7 @@ class sdAsp extends sdEntity
 	
 		}
 		
-		if ( this._hea < -this._hmax / 80 * 100 || this._tier === 2 )
+		if ( this._hea < -this._hmax / 80 * 100 )
 		this.remove();
 	}
 	get mass() { return 300; }

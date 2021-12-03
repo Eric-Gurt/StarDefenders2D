@@ -236,12 +236,20 @@ class sdGun extends sdEntity
 	
 	IsTargetable( by_entity ) // Guns are not targetable when held, same for sdCharacters that are driving something
 	{
-		if ( !sdArea.CheckPointDamageAllowed( this.x + ( this._hitbox_x1 + this._hitbox_x2 ) / 2, this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2 ) )
-		return false;
-		
-		return	( 
-					( by_entity && 
-					  by_entity.is( sdOctopus ) && 
+		let r = false;
+	
+		if ( by_entity )
+		{
+			if ( by_entity.is( sdBullet ) )
+			{
+				if ( ( by_entity._hook || by_entity._admin_picker ) && !this._held_by )
+				r = true;
+				else
+				r = false;
+			}
+			else
+			r = ( 
+					( by_entity.is( sdOctopus ) && 
 					  this._held_by && 
 					  this._held_by.IsVisible( by_entity ) && 
 					  this._held_by.gun_slot === sdGun.classes[ this.class ].slot && 
@@ -251,6 +259,13 @@ class sdGun extends sdEntity
 					  ) || // sdOctopus rule
 					this._held_by === null 
 				);
+		}
+		
+		if ( r )
+		if ( !sdArea.CheckPointDamageAllowed( this.x + ( this._hitbox_x1 + this._hitbox_x2 ) / 2, this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2 ) )
+		return false;
+
+		return r;
 	}
 	
 	
@@ -283,7 +298,7 @@ class sdGun extends sdEntity
 		//this.ttl = params.ttl || sdGun.disowned_guns_ttl;
 		this.extra = ( params.extra === undefined ) ? 0 : params.extra; // shard value will be here
 
-		this.sd_filter = null;
+		this.sd_filter = ( params.sd_filter === undefined ) ? null : params.sd_filter;
 
 		this.fire_mode = 1; // 1 = full auto, 2 = semi auto
 		
@@ -746,9 +761,13 @@ class sdGun extends sdEntity
 		return false;
 	}
 	
+	get hard_collision() // For world geometry where players can walk
+	{ return false; }
+	
 	GetIgnoredEntityClasses()
 	{
 		return [ 'sdCharacter', 'sdGun' ];
+		//return [ 'sdCharacter' ];
 	}
 	
 	UpdateHolderClientSide()

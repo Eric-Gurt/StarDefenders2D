@@ -268,8 +268,6 @@ class sdVirus extends sdEntity
 	{
 		this.sx += x / this.mass;
 		this.sy += y / this.mass;
-		//this.sx += x * 0.1;
-		//this.sy += y * 0.1;
 	}
 	/*Impact( vel ) // fall damage basically
 	{

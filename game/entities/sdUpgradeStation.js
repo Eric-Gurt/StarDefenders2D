@@ -27,6 +27,10 @@ class sdUpgradeStation extends sdEntity
 	get hard_collision()
 	{ return true; }
 	
+	// Because of matter steal
+	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
+	{ return true; }
+	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return true; }
 	

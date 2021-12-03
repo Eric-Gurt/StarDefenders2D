@@ -40,14 +40,17 @@ class sdBullet extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.is_grenade || this.ac > 0 ? -2 : 0; }
-	get hitbox_x2() { return this.is_grenade || this.ac > 0 ? 2 : 0; }
-	get hitbox_y1() { return this.is_grenade || this.ac > 0 ? -2 : 0; }
-	get hitbox_y2() { return this.is_grenade || this.ac > 0 ? 2 : 0; }
-	
+	get hitbox_x1() { return this.is_grenade || this.ac > 0 ? -2 : -0.1; }
+	get hitbox_x2() { return this.is_grenade || this.ac > 0 ? 2 : 0.1; }
+	get hitbox_y1() { return this.is_grenade || this.ac > 0 ? -2 : -0.1; }
+	get hitbox_y2() { return this.is_grenade || this.ac > 0 ? 2 : 0.1; }
+	/*
 	get substeps() // Bullets will need more
 	{ return 6; } // 3 was generally fine expect for sniper
-
+	
+	get substeps() // Bullets will need more
+	{ return 1; } // 3 was generally fine expect for sniper
+	*/
 	get hard_collision() // For world geometry where players can walk
 	{ return this.is_grenade; }
 	
@@ -231,13 +234,19 @@ class sdBullet extends sdEntity
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return this._bouncy ? null : ( this.is_grenade ? [ 'sdCharacter' ] : [ 'sdCharacter', 'sdTurret', 'sdHover', 'sdEnemyMech' , 'sdCube', 'sdAsp', 'sdJunk', 'sdRift', 'sdDrone', 'sdLifeBox' ] );
+		return null; // Adapting to new way of working - nothing is ignored
+		//return this._bouncy ? null : ( this.is_grenade ? [ 'sdCharacter' ] : [ 'sdCharacter', 'sdTurret', 'sdHover', 'sdEnemyMech' , 'sdCube', 'sdAsp', 'sdJunk', 'sdRift', 'sdDrone', 'sdLifeBox' ] );
 	}
 	get bounce_intensity()
 	{ return this._bouncy ? 0.8 : ( this.is_grenade ? 0.55 : 0.3 ); } // 0.3 not felt right for grenades
 	
 	get friction_remain()
 	{ return this._bouncy ? 0.8 : ( this.is_grenade ? 0.8 : 0.3 ); }
+	
+	IsFrictionTimeScaled() // Whether morph or just multiply
+	{
+		return this.is_grenade ? true : false;
+	}
 	
 	Damage( dmg, initiator=null )
 	{
@@ -385,12 +394,17 @@ class sdBullet extends sdEntity
 		{
 			if ( this.penetrating || this._rail )
 			{
-				this.x += this.sx * GSPEED;
-				this.y += this.sy * GSPEED;
+				// Old penetration logic is now handled by GetCollisionMode()
+				//this.x += this.sx * GSPEED;
+				//this.y += this.sy * GSPEED;
+				
+				this.ApplyVelocityAndCollisions( GSPEED, 0, false, 0, null );
 			}
 			else
 			{
 				let vel = this.sx * this.sx + this.sy * this.sy;
+				let old_sx = this.sx;
+				let old_sy = this.sy;
 
 				sdWorld.last_hit_entity = null;
 
@@ -400,11 +414,16 @@ class sdBullet extends sdEntity
 
 				if ( !this._bouncy )
 				if ( vel2 < vel )
+				if ( this.sx !== old_sx || this.sy !== old_sy )
 				{
 					vel = Math.sqrt( vel );
 					vel2 = Math.sqrt( vel2 );
 					
-					if ( vel2 < vel * 0.5 )
+					//trace( sdWorld.Dist2D_Vector( this.sx / vel2 - old_sx / vel, this.sy / vel2 - old_sy / vel ) );
+					
+					//if ( vel2 < vel * 0.5 )
+					//if ( sdWorld.Dist2D_Vector( this.sx / vel2 - old_sx / vel, this.sy / vel2 - old_sy / vel ) > 0.8 )
+					if ( sdWorld.Dist2D_Vector_pow2( this.sx / vel2 - old_sx / vel, this.sy / vel2 - old_sy / vel ) > 0.8 * 0.8 )
 					{
 						this.remove();
 						return true;
@@ -454,8 +473,28 @@ class sdBullet extends sdEntity
 		return false;
 	}
 
+	GetCollisionMode()
+	{
+		if ( this.is_grenade )
+		return sdEntity.COLLISION_MODE_BOUNCE_AND_FRICTION;
+		else
+		{
+			if ( this.penetrating || this._rail )
+			return sdEntity.COLLISION_MODE_ONLY_CALL_TOUCH_EVENTS;
+			else
+			return sdEntity.COLLISION_MODE_BOUNCE_AND_FRICTION;
+		}
+	}
+	
 	onMovementInRange( from_entity )
 	{
+		/*if ( this._hook )
+		if ( from_entity._class === 'sdCharacter' || from_entity._class === 'sdGun' )
+		debugger;*/
+		
+		if ( this._last_target === from_entity )
+		return; // Prevent bouncing bullets to deal multiple damage when they stuck in something?
+	
 		if ( !this._hook && !this._admin_picker )
 		{
 			if ( from_entity.is( sdGun ) )
@@ -777,10 +816,12 @@ class sdBullet extends sdEntity
 					this.sx *= ( 1 - dmg_mult );
 					this.sy *= ( 1 - dmg_mult );
 				}*/
+						
+				this._last_target = from_entity;
 
 				if ( this._damage === 0 )
 				{
-					this._last_target = from_entity;
+					//this._last_target = from_entity;
 
 					this.remove();
 				}

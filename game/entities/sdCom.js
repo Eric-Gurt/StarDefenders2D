@@ -60,6 +60,10 @@ class sdCom extends sdEntity
 	//IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
 	//{ return true; }
 	
+	// Imaging creating fake com so people inside base connect it to everything. That would be fun
+	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
+	{ return true; }
+	
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )

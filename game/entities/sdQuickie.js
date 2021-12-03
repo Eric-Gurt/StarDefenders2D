@@ -48,9 +48,13 @@ class sdQuickie extends sdEntity
 		
 		this._tier = params._tier || 1; // Used determine it's HP and damage
 
-		this._hmax = 50 * this._tier;
+		if ( this._tier === 1 )
+		this._hmax = 50;
+		else
+		this._hmax = 7;
+	
 		this._hea = this._hmax;
-		
+	
 		this.death_anim = 0;
 		
 		this._current_target = null;
@@ -83,17 +87,23 @@ class sdQuickie extends sdEntity
 			}
 		}
 	}
+	
 	GetBleedEffect()
 	{
+		if ( this._tier === 1 )
 		return sdEffect.TYPE_BLOOD_GREEN;
+	
+		return sdEffect.TYPE_WALL_HIT;
 	}
 	GetBleedEffectFilter()
 	{
-		if ( this._tier !== 2 )
-		return 'hue-rotate(-56deg)'; // Yellow
-		else
-		return this.filter;
+		if ( this._tier === 1 )
+		return 'hue-rotate(-56deg)';
+	
+		return '';
 	}
+	
+	
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )
@@ -114,7 +124,7 @@ class sdQuickie extends sdEntity
 			initiator._score += 1;
 		}
 		
-		if ( this._hea < -this._hmax / 80 * 100 || this._tier === 2 )
+		if ( this._hea < -this._hmax / 80 * 100 )
 		this.remove();
 	}
 	

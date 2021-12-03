@@ -25,6 +25,7 @@ import sdSandWorm from './entities/sdSandWorm.js';
 import sdCable from './entities/sdCable.js';
 import sdArea from './entities/sdArea.js';
 import sdPlayerDrone from './entities/sdPlayerDrone.js';
+import sdQuadro from './entities/sdQuadro.js';
 
 
 import sdRenderer from './client/sdRenderer.js';
@@ -1208,10 +1209,6 @@ class sdWorld
 	{
 		let ret = append_to || [];
 		
-		/*let min_x = _x - range - 32;
-		let max_x = _x + range + 32;
-		let min_y = _y - range - 32;
-		let max_y = _y + range + 32;*/
 		let min_x = sdWorld.FastFloor((_x - range)/32);
 		let min_y = sdWorld.FastFloor((_y - range)/32);
 		let max_x = sdWorld.FastCeil((_x + range)/32);
@@ -1225,8 +1222,7 @@ class sdWorld
 		let x, y, arr, i, e;
 		let cx,cy;
 		let x1,y1,x2,y2;
-		//for ( x = min_x; x <= max_x; x++ )
-		//for ( y = min_y; y <= max_y; y++ )
+		
 		for ( x = min_x; x < max_x; x++ )
 		for ( y = min_y; y < max_y; y++ )
 		{
@@ -1251,7 +1247,27 @@ class sdWorld
 			}
 		}
 		
+		return ret;
+	}
+	static GetCellsInRect( _x, _y, _x2, _y2 )
+	{
+		let ret = [];
 		
+		let min_x = sdWorld.FastFloor(_x/32);
+		let min_y = sdWorld.FastFloor(_y/32);
+		let max_x = sdWorld.FastCeil(_x2/32);
+		let max_y = sdWorld.FastCeil(_y2/32);
+		
+		if ( max_x === min_x )
+		max_x++;
+		if ( max_y === min_y )
+		max_y++;
+	
+		let x, y;
+		
+		for ( x = min_x; x < max_x; x++ )
+		for ( y = min_y; y < max_y; y++ )
+		ret.push( sdWorld.RequireHashPosition( x * 32, y * 32 ) );
 		
 		return ret;
 	}
@@ -1978,6 +1994,9 @@ class sdWorld
 							else
 							if ( e.is( sdSandWorm ) )
 							skip_frames = 5; // These are just unstable on high GSPEED
+							else
+							if ( e.is( sdQuadro ) )
+							skip_frames = 2; // These are just unstable on high GSPEED
 
 							if ( e._net_id % skip_frames === frame % skip_frames )
 							{
@@ -2453,8 +2472,8 @@ class sdWorld
 						if ( y2 >= arr_i_y + arr_i._hitbox_y1 )
 						if ( y1 <= arr_i_y + arr_i._hitbox_y2 )
 						if ( ignore_entity === null || arr_i.IsBGEntity() === ignore_entity.IsBGEntity() )
-						//if ( arr_i.hard_collision || include_only_specific_classes )
-						if ( include_only_specific_classes || arr_i.hard_collision )
+						//if ( arr_i._hard_collision || include_only_specific_classes )
+						if ( include_only_specific_classes || arr_i._hard_collision )
 						{
 							if ( include_only_specific_classes || ignore_entity_classes )
 							class_str = arr_i.GetClass();
@@ -2513,7 +2532,7 @@ class sdWorld
 			arr = sdWorld.RequireHashPosition( xx, yy );
 			
 			for ( i = 0; i < arr.length; i++ )
-			if ( arr[ i ].hard_collision || include_only_specific_classes )
+			if ( arr[ i ]._hard_collision || include_only_specific_classes )
 			if ( arr[ i ] !== ignore_entity )
 			if ( ignore_entity === null || arr[ i ].IsBGEntity() === ignore_entity.IsBGEntity() )
 			{
@@ -2615,7 +2634,7 @@ class sdWorld
 						if ( y >= arr_i_y + arr_i._hitbox_y1 )
 						if ( y <= arr_i_y + arr_i._hitbox_y2 )
 						if ( ignore_entity === null || arr_i.IsBGEntity() === ignore_entity.IsBGEntity() )
-						if ( include_only_specific_classes || arr_i.hard_collision )
+						if ( include_only_specific_classes || arr_i._hard_collision )
 						{
 							if ( include_only_specific_classes || ignore_entity_classes )
 							class_str = arr_i.GetClass();

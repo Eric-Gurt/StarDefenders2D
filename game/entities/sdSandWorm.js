@@ -669,8 +669,8 @@ class sdSandWorm extends sdEntity
 			this._in_surface_time = sdWorld.time;
 		}
 		
-		if ( !from_entity.hard_collision )
-		return;
+		//if ( !from_entity._hard_collision ) // No longer ignores non-hard collision entities because it will actually stuck in them
+		//return;
 	
 		if ( !from_entity.IsTargetable() )
 		return;

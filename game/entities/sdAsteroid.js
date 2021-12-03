@@ -12,10 +12,16 @@ class sdAsteroid extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -6; }
-	get hitbox_x2() { return 6; }
-	get hitbox_y1() { return -6; }
-	get hitbox_y2() { return 6; }
+	get hitbox_x1() { return -5; }
+	get hitbox_x2() { return 5; }
+	get hitbox_y1() { return -5; }
+	get hitbox_y2() { return 5; }
+	
+	Impulse( x, y )
+	{
+		this.sx += x / this.mass;
+		this.sy += y / this.mass;
+	}
 	
 	constructor( params )
 	{
@@ -80,6 +86,9 @@ class sdAsteroid extends sdEntity
 			this.sy += sdWorld.gravity * GSPEED;
 			this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 			this._time_to_despawn -= GSPEED;
+			
+			this._an += this.sx * GSPEED * 20 / 100;
+			
 			if ( this._time_to_despawn < 0 )
 			this.remove();
 		}
@@ -87,30 +96,46 @@ class sdAsteroid extends sdEntity
 		{
 			this.x += this.sx * GSPEED;
 			this.y += this.sy * GSPEED;
-		}
-		
-		if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) < 10 )
-		{
-			this.sy += sdWorld.gravity * GSPEED;
-		}
-		
-		if ( !sdWorld.is_server )
-		this._an = Math.atan2( this.sy, this.sx ) - Math.PI / 2;
-	
-		if ( sdWorld.CheckWallExists( this.x, this.y + this._hitbox_y2, this ) )
-		{
-			if ( this._type === 0 )
-			this.Damage( 1000 );
-			if ( this._type === 1 && this.landed === false )
+			
+			if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) < 10 )
 			{
-				sdWorld.SendEffect({ x:this.x, y:this.y, radius:12, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color });
-				this.landed = true;
+				this.sy += sdWorld.gravity * GSPEED;
 			}
-			//this.remove();
+
+			if ( !sdWorld.is_server )
+			this._an = Math.atan2( this.sy, this.sx ) - Math.PI / 2;
+		
+			if ( sdWorld.CheckWallExists( this.x, this.y + this._hitbox_y2, this ) )
+			{
+				if ( this._type === 0 )
+				this.Damage( 1000 );
+			
+				if ( this._type === 1 && this.landed === false )
+				{
+					sdWorld.SendEffect({ x:this.x, y:this.y, radius:12, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color });
+					this.landed = true;
+					
+					this.x -= this.sx * GSPEED;
+					this.y -= this.sy * GSPEED; // Revert overlapping position
+					
+					this.sx *= 0.02;
+					this.sy *= 0.02;
+				}
+				//this.remove();
+			}
 		}
 	}
+	get mass() { return 80; }
+	
+	get hard_collision() // For world geometry where players can walk
+	{ return this.landed; }
+	
 	onRemove() // Class-specific, if needed
 	{
+		if ( this.landed )
+		if ( this._broken )
+		sdWorld.BasicEntityBreakEffect( this, 3, undefined, undefined, 1.4 );
+	
 		if ( this._type === 0 )
 		sdWorld.SendEffect({ x:this.x, y:this.y, radius:19, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color });
 	}

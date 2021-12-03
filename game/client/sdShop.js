@@ -529,7 +529,11 @@ class sdShop
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:32, _category:'Admin tools' });
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:16, _category:'Admin tools' });
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_ERASER_AREA, size:16, _category:'Admin tools' });
-		sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_ADMIN_REMOVER, _category:'Admin tools' });
+		
+		let remover_sd_filter = sdWorld.CreateSDFilter();
+		sdWorld.ReplaceColorInSDFilter_v2( remover_sd_filter, '#abcbf4', '#ff9292' );
+		
+		sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_ADMIN_REMOVER, sd_filter:remover_sd_filter, _category:'Admin tools' });
 		sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_ADMIN_TELEPORTER, _category:'Admin tools' });
 		sdShop.options.push({ _class: 'sdLongRangeTeleport', is_server_teleport:1, _category:'Admin tools' });
 		

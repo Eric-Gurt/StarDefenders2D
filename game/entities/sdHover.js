@@ -58,6 +58,9 @@ class sdHover extends sdEntity
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
 	
+	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
+	{ return true; }
+	
 	/*GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
 		return [ 'sdCharacter' ];

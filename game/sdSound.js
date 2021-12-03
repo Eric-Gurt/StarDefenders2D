@@ -416,9 +416,12 @@ class sdSound
 				clone.playbackRate = rate;
 				clone.preservesPitch = false;
 				clone.play();*/
+				
+				
 				sdSound.sounds[ name ].volume( v );
 				sdSound.sounds[ name ].rate( rate );
 				sdSound.sounds[ name ].play();
+				
 			}
 		}
 	}
