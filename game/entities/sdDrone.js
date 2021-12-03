@@ -67,9 +67,9 @@ class sdDrone extends sdEntity
 		this.hurt_timer = 0;
 
 		this._attack_timer = 0;
-		this._burst_ammo_start = this.type === 3 ? 4 : this.type === 2 ? 6 : 0;
+		this._burst_ammo_start = this.type === 2 ? 6 : 0;
 		this._burst_ammo = this._burst_ammo_start;
-		this._burst_reload = this.type === 3 ? 3 : this.type === 2 ? 2 : 0; // Reload time when it's burst firing
+		this._burst_reload = this.type === 2 ? 2 : 0; // Reload time when it's burst firing
 
 		//this._last_stand_on = null;
 		this._last_jump = sdWorld.time;
@@ -659,8 +659,6 @@ class sdDrone extends sdEntity
 				ctx.drawImageFilterCache( sdDrone.img_drone_falkok_attack, - 16, - 16, 32, 32 );
 				if ( this.type === 2  )
 				ctx.drawImageFilterCache( sdDrone.img_drone_robot_attack, - 16, - 16, 32, 32 );
-				if ( this.type === 1  )
-				ctx.drawImageFilterCache( sdDrone.img_drone_falkok_attack, - 16, - 16, 32, 32 );
 				if ( this.type === 3  )
 				ctx.drawImageFilterCache( sdDrone.img_alien_attack, - 16, - 16, 32, 32 );
 			}
