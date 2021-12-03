@@ -841,6 +841,8 @@ class sdEntity
 							trace('Stuck before');
 						}
 					}*/
+							
+					const best_t_original = best_t;
 
 					best_t = Math.max( 0, best_t - 0.00001 / Math.max( old_sx, old_sy ) ); // Because math will betray us and bullet will stuck bouncing in a wall
 
@@ -866,7 +868,7 @@ class sdEntity
 							
 							let do_unstuck = false;
 
-							if ( best_t === 0 )
+							if ( best_t_original === 0 )
 							if ( hard_collision )
 							if ( hitbox_x1 < best_ent.x + best_ent._hitbox_x2 )
 							if ( hitbox_x2 > best_ent.x + best_ent._hitbox_x1 )
@@ -1077,6 +1079,42 @@ class sdEntity
 
 							if ( this._is_being_removed )
 							return;
+						}
+					}
+					else
+					{
+						if ( best_t_original === 0 )
+						if ( hard_collision )
+						{
+							if ( hitbox_x1 < sdWorld.world_bounds.x1 )
+							{
+								const x_risen = sdWorld.world_bounds.x1 - this._hitbox_x1;
+
+								if ( this.CanMoveWithoutOverlap( x_risen, this.y, 0.001 ) )
+								this.x = x_risen;
+							}
+							if ( hitbox_x2 > sdWorld.world_bounds.x2 )
+							{
+								const x_risen = sdWorld.world_bounds.x2 - this._hitbox_x2;
+
+								if ( this.CanMoveWithoutOverlap( x_risen, this.y, 0.001 ) )
+								this.x = x_risen;
+							}
+							if ( hitbox_y1 < sdWorld.world_bounds.y1 )
+							{
+								const y_risen = sdWorld.world_bounds.y1 - this._hitbox_y1;
+
+								if ( this.CanMoveWithoutOverlap( this.x, y_risen, 0.001 ) )
+								this.y = y_risen;
+							}
+							if ( hitbox_y2 > sdWorld.world_bounds.y2 )
+							if ( this.onPhysicallyStuck() )
+							{
+								const y_risen = sdWorld.world_bounds.y2 - this._hitbox_y2;
+
+								if ( this.CanMoveWithoutOverlap( this.x, y_risen, 0.001 ) )
+								this.y = y_risen;
+							}
 						}
 					}
 
