@@ -306,8 +306,9 @@ class sdEntity
 			this._phys_sleep = hit_what._phys_sleep = Math.max( this._phys_sleep, hit_what._phys_sleep );
 		}
 	}*/
-	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call
+	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call. Return true if entity needs unstuck logic appleid, which can be performance-damaging too
 	{
+		return false;
 	}
 	IsMovesLogic( sx_sign, sy_sign )
 	{
@@ -708,17 +709,23 @@ class sdEntity
 									{
 										if ( t < best_t )
 										{
-											best_t = t;
-											best_ent = arr_i;
+											//if ( arr_i._hard_collision )
+											//{
 
-											if ( best_t === 0 )
-											break;
+												best_t = t;
+												best_ent = arr_i;
+
+												if ( best_t === 0 )
+												break;
+										
+											//}
+											//else
+											//hits.push({ ent:arr_i, t:t });
 										}
 									}
 									else
 									if ( GetCollisionMode === sdEntity.COLLISION_MODE_ONLY_CALL_TOUCH_EVENTS )
 									{
-										//if ( t <= 1 )
 										hits.push({ ent:arr_i, t:t });
 									}
 								}
@@ -817,6 +824,23 @@ class sdEntity
 
 					const old_sx = Math.abs( this.sx );
 					const old_sy = Math.abs( this.sy );
+					
+					/*if ( best_ent )
+					if ( hard_collision )
+					if ( best_ent._hard_collision )
+					{
+						if ( hitbox_x1 < best_ent.x + best_ent._hitbox_x2 )
+						if ( hitbox_x2 > best_ent.x + best_ent._hitbox_x1 )
+						if ( hitbox_y1 < best_ent.y + best_ent._hitbox_y2 )
+						if ( hitbox_y2 > best_ent.y + best_ent._hitbox_y1 )
+						{
+							//debugger;
+							this.Damage( 10 );
+							best_ent.Damage( 10 );
+							this.onPhysicallyStuck();
+							trace('Stuck before');
+						}
+					}*/
 
 					best_t = Math.max( 0, best_t - 0.00001 / Math.max( old_sx, old_sy ) ); // Because math will betray us and bullet will stuck bouncing in a wall
 
@@ -838,6 +862,26 @@ class sdEntity
 							if ( x_not_teleported !== this.x || y_not_teleported !== this.y )
 							{
 								return;
+							}
+							
+							let do_unstuck = false;
+
+							if ( best_t === 0 )
+							if ( hard_collision )
+							if ( hitbox_x1 < best_ent.x + best_ent._hitbox_x2 )
+							if ( hitbox_x2 > best_ent.x + best_ent._hitbox_x1 )
+							if ( hitbox_y1 < best_ent.y + best_ent._hitbox_y2 )
+							if ( hitbox_y2 > best_ent.y + best_ent._hitbox_y1 )
+							{
+								// Moving caused stuck effect
+								//debugger;
+								//this.Damage( 10 );
+								//best_ent.Damage( 10 );
+								if ( this.onPhysicallyStuck() )
+								{
+									do_unstuck = true;
+									step_size = 8;
+								}
 							}
 
 							let on_top = Math.abs( ( this.y + this._hitbox_y2 ) - ( best_ent.y + best_ent._hitbox_y1 ) );
@@ -929,6 +973,15 @@ class sdEntity
 
 									if ( typeof best_ent.sy !== 'undefined' )
 									best_ent.sy -= old_sy * ( 1 - self_effect_scale );
+								
+									if ( do_unstuck )
+									if ( hard_collision && best_ent._hard_collision )
+									{
+										const y_risen = best_ent.y + best_ent._hitbox_y2 - this._hitbox_y1;
+
+										if ( this.CanMoveWithoutOverlap( this.x, y_risen, 0.001 ) )
+										this.y = y_risen;
+									}
 								}	
 								break;
 								case on_left:
@@ -940,6 +993,15 @@ class sdEntity
 
 									if ( typeof best_ent.sx !== 'undefined' )
 									best_ent.sx += old_sx * ( 1 - self_effect_scale );
+								
+									if ( do_unstuck )
+									if ( hard_collision && best_ent._hard_collision )
+									{
+										const x_risen = best_ent.x + best_ent._hitbox_x1 - this._hitbox_x2;
+
+										if ( this.CanMoveWithoutOverlap( x_risen, this.y, 0.001 ) )
+										this.x = x_risen;
+									}
 								}
 								break;
 								case on_right:
@@ -951,6 +1013,15 @@ class sdEntity
 
 									if ( typeof best_ent.sx !== 'undefined' )
 									best_ent.sx -= old_sx * ( 1 - self_effect_scale );
+								
+									if ( do_unstuck )
+									if ( hard_collision && best_ent._hard_collision )
+									{
+										const x_risen = best_ent.x + best_ent._hitbox_x2 - this._hitbox_x1;
+
+										if ( this.CanMoveWithoutOverlap( x_risen, this.y, 0.001 ) )
+										this.x = x_risen;
+									}
 								}
 								break;
 							}

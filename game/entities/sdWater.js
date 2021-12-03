@@ -7,6 +7,7 @@ import sdBG from './sdBG.js';
 import sdDoor from './sdDoor.js';
 import sdGun from './sdGun.js';
 import sdCharacter from './sdCharacter.js';
+import sdBullet from './sdBullet.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -39,6 +40,19 @@ class sdWater extends sdEntity
 	get hitbox_x2() { return 16; }
 	get hitbox_y1() { return 0; }
 	get hitbox_y2() { return 16; }
+	
+	get hard_collision() // For world geometry where players can walk
+	{ return false; }
+	
+	IsTargetable( by_entity ) // Guns are not targetable when held, same for sdCharacters that are driving something
+	{
+		if ( by_entity )
+		if ( by_entity.is( sdBullet ) )
+		if ( by_entity._admin_picker )
+		return true;
+	
+		return false;
+	}
 	
 	DrawIn3D()
 	{ return ( this.type === sdWater.TYPE_LAVA ) ? FakeCanvasContext.DRAW_IN_3D_BOX : FakeCanvasContext.DRAW_IN_3D_LIQUID; }
@@ -593,7 +607,26 @@ class sdWater extends sdEntity
 					this._swimmers.add( from_entity );
 					
 					if ( this.type !== sdWater.TYPE_TOXIC_GAS )
-					sdWater.all_swimmers.add( from_entity );
+					{
+						sdWater.all_swimmers.add( from_entity );
+						/* Buggy
+						if ( !sdWorld.is_server )
+						{
+						
+							let e = null;
+
+							if ( this.type === sdWater.TYPE_ACID )
+							e = new sdEffect({ x:from_entity.x, y:from_entity.y, type:sdEffect.TYPE_BLOOD_GREEN, filter:'opacity('+(~~((1 * 0.5)*10))/10+')' });
+							else
+							if ( this.type === sdWater.TYPE_WATER )
+							e = new sdEffect({ x:from_entity.x, y:from_entity.y, type:sdEffect.TYPE_BLOOD_GREEN, filter:'hue-rotate(90deg) opacity('+(~~((1 * 0.5)*10))/10+')' });
+
+							if ( e )
+							{
+								sdEntity.entities.push( e );
+							}
+						}*/
+					}
 				}
 			}
 		}

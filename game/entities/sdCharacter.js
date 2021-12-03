@@ -1662,10 +1662,10 @@ class sdCharacter extends sdEntity
 		return { x: m1[ 4 ], y: m1[ 5 ] };*/
 	}
 	
-	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call
+	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call. Return true if entity needs unstuck logic appleid, which can be performance-damaging too
 	{
 		// 14 is a full width, so revived players don't stuck in each other
-		if ( !this.CanMoveWithoutOverlap( this.x, this.y, this.UseServerCollisions() ? 0 : 0.01 ) )
+		/*if ( !this.CanMoveWithoutOverlap( this.x, this.y, this.UseServerCollisions() ? 0 : 0.01 ) )
 		{
 			if ( this.CanMoveWithoutOverlap( this.x, this.y - 14 ) )
 			this.y -= 0.5;
@@ -1678,7 +1678,9 @@ class sdCharacter extends sdEntity
 
 			if ( this.CanMoveWithoutOverlap( this.x + 14, this.y ) )
 			this.x += 0.5;
-		}
+		}*/
+		
+		return true;
 	}
 
 
@@ -2204,6 +2206,8 @@ class sdCharacter extends sdEntity
 		}
 		//let new_leg_height = 16 - this._crouch_intens * 6;
 		let new_leg_height = this.hitbox_y2; // Through getter
+		
+		this._hitbox_y2 = new_leg_height; // Prevent short-term stucking in ground
 		
 		//leg_height		*= 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7;
 		//new_leg_height  *= 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7;

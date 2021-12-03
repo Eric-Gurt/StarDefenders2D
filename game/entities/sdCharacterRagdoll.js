@@ -1109,9 +1109,11 @@ class sdBone extends sdEntity
 			}
 		}
 	}
-	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call
+	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call. Return true if entity needs unstuck logic appleid, which can be performance-damaging too
 	{
 		this.ragdoll._ignore_sounds_until = sdWorld.time + 100;
+		
+		return true;
 	}
 	
 	constructor( params )

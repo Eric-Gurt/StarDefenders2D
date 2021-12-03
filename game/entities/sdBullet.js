@@ -12,6 +12,7 @@ import sdDoor from './sdDoor.js';
 import sdGun from './sdGun.js';
 import sdArea from './sdArea.js';
 import sdRift from './sdRift.js';
+import sdWater from './sdWater.js';
 //import sdQuadro from './sdQuadro.js';
 //import sdHover from './sdHover.js';
 import sdLifeBox from './sdLifeBox.js';
@@ -305,9 +306,10 @@ class sdBullet extends sdEntity
 		return true;
 
 		if ( from_entity.is( sdRift ) ) // Ignore portals
-		{
-			return false;
-		};
+		return false;
+
+		if ( from_entity.is( sdWater ) ) // Ignore water
+		return false;
 		
 		return true;
 	}
