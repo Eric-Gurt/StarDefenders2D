@@ -154,7 +154,7 @@ class sdTheatre extends sdEntity
 
 			let width = ( ( ( this.x + this.hitbox_x2 - ( sdWorld.camera.x ) ) ) - ( ( this.x + this.hitbox_x1 - ( sdWorld.camera.x ) ) ) ) * scale;
 
-            let s = 1 / 600 * width;
+            let s = 1 / 600 * width / sdRenderer.resolution_quality;
 			
 			let divs = [ globalThis.twitch_player_div, globalThis.youtube_player_div ];
 			let services = [ 'twitch', 'youtube' ];
@@ -171,9 +171,9 @@ class sdTheatre extends sdEntity
 					div.style.display = 'block';
 
 
-					div.style.left = ( ( this.x + this.hitbox_x1 - ( sdWorld.camera.x ) ) * scale + sdRenderer.screen_width / 2 ) + 'px';
-					div.style.top = ( ( this.y + this.hitbox_y1 - ( sdWorld.camera.y ) ) * scale + sdRenderer.screen_height / 2 + Math.sin( sdWorld.time / 30 ) * sdWorld.entity_classes.sdWeather.only_instance.quake_intensity / 100 ) + 'px';
-
+					div.style.left = ( ( this.x + this.hitbox_x1 - ( sdWorld.camera.x ) ) * scale + sdRenderer.screen_width / 2 ) / sdRenderer.resolution_quality + 'px';
+					div.style.top = ( ( this.y + this.hitbox_y1 - ( sdWorld.camera.y ) ) * scale + sdRenderer.screen_height / 2 + Math.sin( sdWorld.time / 30 ) * sdWorld.entity_classes.sdWeather.only_instance.quake_intensity / 100 ) / sdRenderer.resolution_quality + 'px';
+					
 					div.style.transform = 'scale(' + s + ')';
 					div.style.transformOrigin = 'left top';
 
