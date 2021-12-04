@@ -232,7 +232,7 @@ class sdAmphid extends sdEntity
 			this.sy -= sdWorld.gravity * GSPEED * 2;
 		}
 
-		if ( this.CanMoveWithoutOverlap( this.x, this.y, -3, this.CustomFilteringMethod ) )
+		if ( this._hea <= 0 || this.CanMoveWithoutOverlap( this.x, this.y, -3, this.CustomFilteringMethod ) )
 		this.sy += sdWorld.gravity * GSPEED;
 		
 

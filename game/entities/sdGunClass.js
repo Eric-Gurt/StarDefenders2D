@@ -218,6 +218,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 0,
 			is_build_gun: true,
+			allow_aim_assist: false,
 			projectile_properties: { _damage: 0 }
 		};
 		
@@ -745,7 +746,7 @@ class sdGunClass
 					character.armor = 190;
 					character.armor_max = 190;
 					character._armor_absorb_perc = 0.4; // 40% damage reduction
-					character.armor_speed_reduction = 10; // Armor speed reduction, 10% for medium armor
+					character.armor_speed_reduction = 5; // Armor speed reduction, 5% for medium armor
 					gun.remove(); 
 				}
 
@@ -774,7 +775,7 @@ class sdGunClass
 					character.armor = 250;
 					character.armor_max = 250;
 					character._armor_absorb_perc = 0.5; // 50% damage reduction
-					character.armor_speed_reduction = 20; // Armor speed reduction, 20% for heavy armor
+					character.armor_speed_reduction = 10; // Armor speed reduction, 10% for heavy armor
 					gun.remove(); 
 				}
 
@@ -1285,7 +1286,7 @@ class sdGunClass
 					character.armor = 280;
 					character.armor_max = 280;
 					character._armor_absorb_perc = 0.45; // 45% damage reduction
-					character.armor_speed_reduction = 10; // Armor speed reduction, 10% for medium armor
+					character.armor_speed_reduction = 5; // Armor speed reduction, 5% for medium armor
 					gun.remove(); 
 				}
 
@@ -1313,7 +1314,7 @@ class sdGunClass
 					character.armor = 370;
 					character.armor_max = 370;
 					character._armor_absorb_perc = 0.55; // 55% damage reduction
-					character.armor_speed_reduction = 20; // Armor speed reduction, 20% for heavy armor
+					character.armor_speed_reduction = 10; // Armor speed reduction, 10% for heavy armor
 					gun.remove(); 
 				}
 
@@ -1412,6 +1413,7 @@ class sdGunClass
 			matter_cost: Infinity,
 			projectile_velocity: 16,
 			spawnable: false,
+			allow_aim_assist: false,
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
 				if ( sdWorld.is_server )
@@ -1589,7 +1591,7 @@ class sdGunClass
 					character.armor = 400;
 					character.armor_max = 400;
 					character._armor_absorb_perc = 0.5; // 50% damage reduction
-					character.armor_speed_reduction = 10; // Armor speed reduction, 10% for medium armor
+					character.armor_speed_reduction = 5; // Armor speed reduction, 5% for medium armor
 					gun.remove(); 
 				}
 
@@ -1617,7 +1619,7 @@ class sdGunClass
 					character.armor = 500;
 					character.armor_max = 500;
 					character._armor_absorb_perc = 0.6; // 60% damage reduction
-					character.armor_speed_reduction = 20; // Armor speed reduction, 20% for heavy armor
+					character.armor_speed_reduction = 10; // Armor speed reduction, 10% for heavy armor
 					gun.remove(); 
 				}
 
@@ -2310,6 +2312,35 @@ class sdGunClass
 			count: 1,
 			spawnable: false,
 			projectile_properties: { model: 'ball_orange', color: '#ffc080', _damage: 20, explosion_radius: 32 }
+		};
+
+
+		sdGun.classes[ sdGun.CLASS_WYRMHIDE = 79 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'wyrmhide' ),
+			title: 'Wyrmhide',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			spawnable: false,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
+			{ 
+				// 2 was too bad for case of randomly breaking crystals when digging
+				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
+				{
+					character.armor = 190;
+					character.armor_max = 190;
+					character._armor_absorb_perc = 0.4; // 40% damage reduction
+					character.armor_speed_reduction = 5; // Armor speed reduction, 5% for medium armor
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
 		};
 
 		// Add new gun classes above this line //

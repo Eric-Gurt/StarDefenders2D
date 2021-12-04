@@ -256,15 +256,7 @@ class sdShark extends sdEntity
 		this.chomp = ( sdWorld.time < this._last_bite + 300 ) ? 1 : 0;
 		
 	}
-	/*onMovementInRange( from_entity )
-	{
-		if ( sdWorld.is_server )
-		if ( from_entity.hard_collision )
-		{
-			if ( !this._current_target )
-			this.side *= -1;
-		}
-	}*/
+	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )

@@ -811,7 +811,12 @@ class sdCharacterRagdoll
 					this.bones[ i ].sy += sdWorld.gravity * GSPEED;
 				}
 			
+				//let old_hit = this.bones[ i ]._phys_last_touch;
 				this.bones[ i ].ApplyVelocityAndCollisions( GSPEED, 0, true );
+				if ( !this.bones[ i ]._phys_last_touch )
+				this.bones[ i ]._can_make_sound = Math.min( 3, this.bones[ i ]._can_make_sound + GSPEED );
+				else
+				this.bones[ i ]._can_make_sound = 0;
 				/*
 				if ( s === 0 )
 				if ( this.character._key_states.GetKey('Mouse1') )
@@ -1084,16 +1089,31 @@ class sdBone extends sdEntity
 	
 	Impact( vel ) // fall damage basically
 	{
+		//throw new Error('Fix impact sounds (probably) missing');
 		if ( vel > 3 )
 		{
 			if ( !sdWorld.is_server )
-			if ( sdWorld.time > this.ragdoll._ignore_sounds_until )
-			sdSound.PlaySound({ name:'player_step', x:this.x, y:this.y, pitch:1.5, volume: Math.min( 0.5, 0.2 * vel ), _server_allowed:true });
+			{
+				if ( sdWorld.time > this.ragdoll._ignore_sounds_until )
+				{
+					if ( this._can_make_sound >= 3 )
+					{
+						this._can_make_sound = 0;
+
+						this.ragdoll._ignore_sounds_until = sdWorld.time + 16;
+
+						if ( this.ragdoll.character._local_ragdoll_ever_synced ) // Mute when prethinking new ragdoll
+						sdSound.PlaySound({ name:'player_step', x:this.x, y:this.y, pitch:1.5, volume: Math.min( 0.5, 0.2 * vel ), _server_allowed:true });
+					}
+				}
+			}
 		}
 	}
-	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call
+	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call. Return true if entity needs unstuck logic appleid, which can be performance-damaging too
 	{
-		this.ragdoll._ignore_sounds_until = sdWorld.time + 100
+		this.ragdoll._ignore_sounds_until = sdWorld.time + 100;
+		
+		return true;
 	}
 	
 	constructor( params )
@@ -1118,6 +1138,8 @@ class sdBone extends sdEntity
 		this._friction_remain = params.friction_remain || 0.7;
 		
 		this._soft_bone_of = params.soft_bone_of || null;
+		
+		this._can_make_sound = 0;
 		
 		//if ( this._bone_name === 'head' )
 		//this._bounciness = 0.5;

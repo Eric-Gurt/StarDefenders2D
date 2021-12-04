@@ -45,7 +45,17 @@ class sdEntity
 		sdEntity.phys_stand_on_map = new WeakMap(); // Key is an object on which something lies on, value is an array of objects that are currently hibernated (such as sdStorage)
 		//this._phys_last_touch
 		
+		sdEntity.COLLISION_MODE_BOUNCE_AND_FRICTION = 1;
+		sdEntity.COLLISION_MODE_ONLY_CALL_TOUCH_EVENTS = 2;
+		
+		sdEntity.flag_counter = 0; // For marking entities as visited by WeakSet-like logic, but works faster
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
+	}
+	
+	GetCollisionMode()
+	{
+		return sdEntity.COLLISION_MODE_BOUNCE_AND_FRICTION;
 	}
 	
 	static TrackPhysWakeup( sleeping_ent, hibernated_ent )
@@ -167,7 +177,7 @@ class sdEntity
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
 	{ return false; }
 	
-	Impact( vel ) // fall damage basically
+	Impact( vel ) // fall damage basically. Values below 5 won't be reported due to no-damage area lookup optimization
 	{
 		//if ( vel > 7 )
 		if ( vel > 6 ) // For new mass-based model
@@ -223,6 +233,11 @@ class sdEntity
 	
 	get friction_remain()
 	{ return 0.8; }
+	
+	IsFrictionTimeScaled() // Whether morph or just multiply
+	{
+		return true;
+	}
 	
 	UseServerCollisions()
 	{
@@ -291,8 +306,9 @@ class sdEntity
 			this._phys_sleep = hit_what._phys_sleep = Math.max( this._phys_sleep, hit_what._phys_sleep );
 		}
 	}*/
-	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call
+	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call. Return true if entity needs unstuck logic appleid, which can be performance-damaging too
 	{
+		return false;
 	}
 	IsMovesLogic( sx_sign, sy_sign )
 	{
@@ -300,8 +316,1046 @@ class sdEntity
 			   sy_sign !== this._phys_last_sy || 
 			   !sdWorld.inDist2D_Boolean( this.sx, this.sy, 0, 0, sdWorld.gravity + 0.1 );
 	}
+	/*ApplyVelocityAndCollisions( GSPEED, step_size=0, apply_friction=false, impact_scale=1, custom_filtering_method=null ) // step_size can be used by entities that can use stairs
+	{
+		sdEntity.chet = ( ( sdEntity.chet || 0 ) + 1 ) % 100;
+		
+		if ( !sdEntity.measure )
+		sdEntity.measure = [ 0, 0 ];
+		
+		let t = Date.now();
+		
+		if ( sdEntity.chet < 50 )
+		this.ApplyVelocityAndCollisions_New( GSPEED, step_size, apply_friction, impact_scale, custom_filtering_method );
+		else
+		this.ApplyVelocityAndCollisions_Old( GSPEED, step_size, apply_friction, impact_scale, custom_filtering_method );
 	
+		if ( sdWorld.is_server )
+		{
+			
+			sdEntity.measure[ sdEntity.chet < 50 ? 1 : 0 ] += Date.now() - t;
+		
+			if ( Math.random() < 0.001 )
+			{
+				if ( sdEntity.measure[ 1 ] > sdEntity.measure[ 0 ] )
+				trace( Math.round( sdEntity.measure[ 1 ] / sdEntity.measure[ 0 ] * 100 ) - 100 + '% slower', sdEntity.measure );
+				else
+				trace( -(Math.round( sdEntity.measure[ 1 ] / sdEntity.measure[ 0 ] * 100 ) - 100) + '% FASTER!', sdEntity.measure );
+			}
+
+			while ( sdEntity.measure[ sdEntity.chet < 50 ? 1 : 0 ] > 100 )
+			{
+				sdEntity.measure[ 0 ] *= 0.999;
+				sdEntity.measure[ 1 ] *= 0.999;
+			}
+		}
+	}*/
+	// Optimized to the point where it is same as old method (sometimes +20% slower on average though), but both methods were optimized by _hard_collision optimization
 	ApplyVelocityAndCollisions( GSPEED, step_size=0, apply_friction=false, impact_scale=1, custom_filtering_method=null ) // step_size can be used by entities that can use stairs
+	{
+		//const debug = ( sdWorld.my_entity === this );
+		//const debug = ( this._class === 'sdBullet' ) && sdWorld.is_server;
+		//const debug = ( this._class === 'sdSandWorm' ) && sdWorld.is_server;
+		const debug = false;
+		
+		//throw new Error('Fix sword not hitting character in test world 3003');
+		
+		// TODO: Bullet ricochet randomly does not bounce of walls but disappears instead
+		//throw new Error('Bullet ricochet randomly does not bounce off walls but disappears instead');
+		
+		//if ( debug )
+		//debugger;
+		
+		///////// Some ancient sleep logic ////////////
+		{
+			this.PhysInitIfNeeded();
+
+			let sx_sign = ( this.sx > 0 );
+			let sy_sign = ( this.sy > 0 );
+
+			//let moves = this.IsMovesLogic( sx_sign, sy_sign );
+			let moves = ( sx_sign !== this._phys_last_sx || 
+						  sy_sign !== this._phys_last_sy || 
+						  
+							Math.max(
+								Math.abs( this.sx ),
+								Math.abs( this.sy )
+							) < sdWorld.gravity + 0.1 );
+						  //!sdWorld.inDist2D_Boolean( this.sx, this.sy, 0, 0, sdWorld.gravity + 0.1 ) );
+
+			if ( !moves )
+			if ( this._phys_last_touch )
+			{
+				if ( this._phys_last_touch._is_being_removed )
+				{
+					this._phys_last_touch = null;
+					moves = true;
+
+					//if ( this.GetClass() === 'sdHover' )
+					//console.log( this.GetClass() + ' moves due to this._phys_last_touch being removed' );
+				}
+				else
+				{
+					if ( this._phys_last_touch_targetable !== this._phys_last_touch.IsTargetable( null, true ) )
+					{
+
+						//if ( this.GetClass() === 'sdHover' )
+						//console.log( this.GetClass() + ' moves due to IsTargetable change of this._phys_last_touch' );
+
+						this._phys_last_touch_targetable = this._phys_last_touch.IsTargetable( null, true );
+						moves = true;
+					}
+					else
+					if ( !sdWorld.inDist2D_Boolean( this._phys_last_touch_x, this._phys_last_touch_y, this._phys_last_touch.x, this._phys_last_touch.y, sdWorld.gravity + 0.1 ) )
+					{
+						this._phys_last_touch_x = this._phys_last_touch.x;
+						this._phys_last_touch_y = this._phys_last_touch.y;
+
+						//if ( this.GetClass() === 'sdHover' )
+						//console.log( this.GetClass() + ' moves due to slight move of this._phys_last_touch' );
+
+						moves = true;
+					}
+				}
+			}
+
+			if ( !moves )
+			{
+				let w = this._hitbox_x2 - this._hitbox_x1;
+				let h = this._hitbox_y2 - this._hitbox_y1;
+
+				if ( this._phys_last_w !== w || this._phys_last_h !== h )
+				{
+					this._phys_last_w = w;
+					this._phys_last_h = h;
+					moves = true;
+				}
+			}
+
+			if ( moves )
+			{
+				//if ( this._phys_sleep <= 0 )
+				//if ( this.GetClass() === 'sdHover' )
+				//console.log( this.GetClass() + ' becomes physically active' );
+
+				//if ( this._phys_sleep <= 0 ) Because top entity might enter hibernation while this one moves just slightly to the left/right
+				//{
+					this.ManageTrackedPhysWakeup();
+				//}
+				this._phys_sleep = 10;
+
+				this._phys_last_sx = sx_sign;
+				this._phys_last_sy = sy_sign;
+			}
+			else
+			{
+				if ( this._phys_sleep > 0 )
+				{
+					if ( this._phys_last_touch ) // Do not sleep mid-air
+					{
+						this._phys_sleep -= Math.min( 1, GSPEED );
+
+					}
+				}
+				else
+				{
+					this.sx = 0;
+					this.sy = 0;
+
+					sdWorld.last_hit_entity = this._phys_last_touch;
+					return;
+				}
+			}
+		}
+		///////////////////////////////////////////////
+		
+		if ( this.sx === 0 && this.sy === 0 )
+		{
+			sdWorld.last_hit_entity = this._phys_last_touch;
+			//this._phys_last_touch = this._phys_last_touch;
+				
+			return;
+		}
+		
+		let ignore_entity_classes = this.GetIgnoredEntityClasses();
+		
+		let ignore_entity_classes_classes = null;
+		if ( ignore_entity_classes )
+		{
+			ignore_entity_classes_classes = new WeakSet();
+			for ( let i = 0; i < ignore_entity_classes.length; i++ )
+			ignore_entity_classes_classes.add( sdWorld.entity_classes[ ignore_entity_classes[ i ] ] );
+		}
+			
+		let include_only_specific_classes = this.GetNonIgnoredEntityClasses();
+		
+		let include_only_specific_classes_classes = null;
+		if ( include_only_specific_classes )
+		{
+			include_only_specific_classes_classes = new WeakSet();
+			for ( let i = 0; i < include_only_specific_classes.length; i++ )
+			include_only_specific_classes_classes.add( sdWorld.entity_classes[ include_only_specific_classes[ i ] ] );
+		}
+		
+		if ( this.sx !== this.sx || this.sy !== this.sy ) // NaN check
+		{
+			console.log('Entity has achieved NaN velocity: ', this );
+			
+			this.sx = 0;
+			this.sy = 0;
+		}
+
+		const bounce_intensity = this.bounce_intensity;
+		const friction_remain = this.friction_remain;
+		const IsFrictionTimeScaled = this.IsFrictionTimeScaled();
+		const hard_collision = this._hard_collision;
+		const GetCollisionMode = this.GetCollisionMode();
+		
+		let hits = null; // arr of { ent, t }
+		
+		if ( GetCollisionMode === sdEntity.COLLISION_MODE_ONLY_CALL_TOUCH_EVENTS )
+		{
+			hits = [];
+		}
+		
+		let affected_cells = null;
+		
+		let hitbox_x1_first;
+		let hitbox_y1_first;
+
+		let hitbox_x2_first;
+		let hitbox_y2_first;
+		
+		let skip_cell_scan = false;
+
+		sdWorld.last_hit_entity = null;
+		this._phys_last_touch = null;
+
+		const is_bg_entity = this.IsBGEntity();
+
+		for ( let iter = 0; iter < 2; iter++ ) // Only 2 iterations of linear movement, enough to allow sliding in box-collisions-world
+		{
+			let sx = this.sx * GSPEED;
+			let sy = this.sy * GSPEED;
+
+
+			//let cell_size = 32;
+			//let step_size = 8; // How many (at most) X or Y pixels to move per step
+
+			//let vel_quad = Math.max( Math.abs( sx ), Math.abs( sy ) );
+			//let steps = Math.ceil( vel_quad / step_size );
+
+
+			// Absolute coords
+			let hitbox_x1 = this.x + this._hitbox_x1;
+			let hitbox_y1 = this.y + this._hitbox_y1;
+
+			let hitbox_x2 = this.x + this._hitbox_x2;
+			let hitbox_y2 = this.y + this._hitbox_y2;
+			
+			if ( iter === 0 )
+			{
+				hitbox_x1_first = hitbox_x1;
+				hitbox_y1_first = hitbox_y1;
+				hitbox_x2_first = hitbox_x2;
+				hitbox_y2_first = hitbox_y2;
+			}
+			else
+			{
+				skip_cell_scan =  ( hitbox_x1 >= hitbox_x1_first &&
+									hitbox_x2 <= hitbox_x2_first &&
+									hitbox_y1 >= hitbox_y1_first &&
+									hitbox_y2 <= hitbox_y2_first );
+			}
+
+			if ( skip_cell_scan )
+			{
+			}
+			else
+			{
+				// Only once is enough since iter 2 usually is a remaining horizontal movement, unless there is any bounce or strange friction
+				if ( affected_cells === null || bounce_intensity > 0 || friction_remain > 1 )
+				affected_cells = sdWorld.GetCellsInRect(
+					hitbox_x1 + Math.min( sx, 0 ),
+					hitbox_y1 + Math.min( sy, 0 ),
+					hitbox_x2 + Math.max( sx, 0 ),
+					hitbox_y2 + Math.max( sy, 0 ),
+				);
+			}
+
+			let best_t = 1;
+			let best_ent = null;
+
+			//const ignore_entity = this;
+
+			//const visited_ent = new WeakSet();
+			//visited_ent.add( this );
+			
+			const visited_ent_flag = sdEntity.flag_counter++;
+			this._flag = visited_ent_flag;
+			
+			for ( let c = 0; c < affected_cells.length; c++ )
+			{
+				const cell = affected_cells[ c ];
+				for ( let e = 0; e < cell.length; e++ )
+				{
+					const arr_i = cell[ e ];
+
+					//if ( !visited_ent.has( arr_i ) )
+					if ( arr_i._flag !== visited_ent_flag )
+					{
+						//visited_ent.add( arr_i );
+						arr_i._flag = visited_ent_flag;
+
+						/*
+
+		if ( sdWorld.CheckWallExistsBox( 
+		---, 
+		---, 
+		---, 
+		---, this, ignored_classes, this.GetNonIgnoredEntityClasses(), custom_filtering_method ) )
+
+						*/
+						/*if ( debug )
+						if ( arr_i._class === 'sdGun' )
+						debugger;*/
+
+		//CheckWallExistsBox( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
+						if ( arr_i.IsBGEntity() === is_bg_entity )
+						//if ( include_only_specific_classes_classes || arr_i.hard_collision )
+						if ( include_only_specific_classes_classes || arr_i._hard_collision || custom_filtering_method )
+						{
+							//class_str = arr_i.GetClass();
+
+							if ( include_only_specific_classes_classes && !include_only_specific_classes_classes.has( arr_i.__proto__.constructor ) )
+							{
+							}
+							else
+							//if ( ignore_entity_classes && ignore_entity_classes.indexOf( class_str ) !== -1 )
+							if ( ignore_entity_classes_classes && ignore_entity_classes_classes.has( arr_i.__proto__.constructor ) )
+							{
+							}
+							else
+							if ( custom_filtering_method === null || custom_filtering_method( arr_i ) )
+							if ( !arr_i._is_being_removed )
+							{
+								let t = sdEntity.MovingRectIntersectionCheck(
+									hitbox_x1,
+									hitbox_y1,
+									hitbox_x2,
+									hitbox_y2,
+
+									sx,
+									sy,
+
+									arr_i.x + arr_i._hitbox_x1,
+									arr_i.y + arr_i._hitbox_y1,
+									arr_i.x + arr_i._hitbox_x2,
+									arr_i.y + arr_i._hitbox_y2
+								);
+
+								if ( debug )
+								{
+									if ( t === 0 )
+									if ( arr_i._class === 'sdBlock' )
+									if ( 
+										 !(
+											( this.x + this._hitbox_x1 <= arr_i.x + arr_i._hitbox_x2 ) &&
+											( this.x + this._hitbox_x2 >= arr_i.x + arr_i._hitbox_x1 ) &&
+											( this.y + this._hitbox_y1 <= arr_i.y + arr_i._hitbox_y2 ) &&
+											( this.y + this._hitbox_y2 >= arr_i.y + arr_i._hitbox_y1 ) 
+										 )
+									)
+									{
+										debugger;
+										
+										trace(
+												'Hitting sdBlock but no real overlap: ',
+											hitbox_x1,
+											hitbox_y1,
+											hitbox_x2,
+											hitbox_y2,
+
+											sx,
+											sy,
+
+											arr_i.x + arr_i._hitbox_x1,
+											arr_i.y + arr_i._hitbox_y1,
+											arr_i.x + arr_i._hitbox_x2,
+											arr_i.y + arr_i._hitbox_y2, ' :: t = '+t
+										);
+
+										t = sdEntity.MovingRectIntersectionCheck(
+											hitbox_x1,
+											hitbox_y1,
+											hitbox_x2,
+											hitbox_y2,
+
+											sx,
+											sy,
+
+											arr_i.x + arr_i._hitbox_x1,
+											arr_i.y + arr_i._hitbox_y1,
+											arr_i.x + arr_i._hitbox_x2,
+											arr_i.y + arr_i._hitbox_y2
+										);
+									}
+								}
+								
+								if ( t <= 1 )
+								if ( arr_i.IsTargetable( this, true ) ) // So guns are ignored
+								{
+									if ( GetCollisionMode === sdEntity.COLLISION_MODE_BOUNCE_AND_FRICTION )
+									{
+										if ( t < best_t )
+										{
+											//if ( arr_i._hard_collision )
+											//{
+
+												best_t = t;
+												best_ent = arr_i;
+
+												if ( best_t === 0 )
+												break;
+										
+											//}
+											//else
+											//hits.push({ ent:arr_i, t:t });
+										}
+									}
+									else
+									if ( GetCollisionMode === sdEntity.COLLISION_MODE_ONLY_CALL_TOUCH_EVENTS )
+									{
+										hits.push({ ent:arr_i, t:t });
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			if ( hitbox_x2 + sx > sdWorld.world_bounds.x2 || hitbox_x1 + sx < sdWorld.world_bounds.x1 )
+			{
+				best_t = 0;
+				best_ent = null;
+
+				const old_sx_real = this.sx;
+				const old_sx = Math.abs( this.sx );
+
+				this.sx = ( ( hitbox_x2 + sx > sdWorld.world_bounds.x2 ) ? -old_sx : old_sx ) * bounce_intensity;
+
+				if ( apply_friction )
+				{
+					if ( IsFrictionTimeScaled )
+					this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, friction_remain, GSPEED );
+					else
+					this.sy *= friction_remain;
+				}
+
+				const self_effect_scale = 1;
+				this.Impact( Math.abs( this.sx - old_sx_real ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
+			}
+			if ( hitbox_y2 + sy > sdWorld.world_bounds.y2 || hitbox_y1 + sy < sdWorld.world_bounds.y1 )
+			{
+				best_t = 0;
+				best_ent = null;
+
+				const old_sy_real = this.sy;
+				const old_sy = Math.abs( this.sy );
+
+				this.sy = ( ( hitbox_y2 + sy > sdWorld.world_bounds.y2 ) ? -old_sy : old_sy ) * bounce_intensity;
+				
+				if ( apply_friction )
+				{
+					if ( IsFrictionTimeScaled )
+					this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, friction_remain, GSPEED );
+					else
+					this.sx *= friction_remain;
+				}
+
+				const self_effect_scale = 1;
+				this.Impact( Math.abs( this.sy - old_sy_real ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
+			}
+
+			if ( debug )
+			{
+				//trace( '-- best_t='+best_t, ' :: iter='+iter );
+				
+				if ( best_ent )
+				trace( 'Hitting ', best_t, best_ent.GetClass() );
+				
+				//if ( best_t < 1 )
+				//debugger;
+			}
+			
+			if ( GetCollisionMode === sdEntity.COLLISION_MODE_BOUNCE_AND_FRICTION )
+			{
+				if ( best_t === 1 )
+				{
+					this.x += sx;
+					this.y += sy;
+
+					break;
+				}/*
+				else
+				if ( best_t === 0 )
+				{
+					sdWorld.last_hit_entity = best_ent;
+					this._phys_last_touch = best_ent;
+
+					if ( best_ent ) // Void already changes velocity
+					{
+						this.sx = 0;
+						this.sy = 0;
+						this.Touches( best_ent );
+					}
+
+					this.onPhysicallyStuck();
+
+					if ( best_ent )
+					break;
+					else
+					continue; // Perhaps sliding?
+				}*/
+				else
+				{
+					//best_t = Math.max( 0, best_t );
+
+					const old_sx = Math.abs( this.sx );
+					const old_sy = Math.abs( this.sy );
+					
+					/*if ( best_ent )
+					if ( hard_collision )
+					if ( best_ent._hard_collision )
+					{
+						if ( hitbox_x1 < best_ent.x + best_ent._hitbox_x2 )
+						if ( hitbox_x2 > best_ent.x + best_ent._hitbox_x1 )
+						if ( hitbox_y1 < best_ent.y + best_ent._hitbox_y2 )
+						if ( hitbox_y2 > best_ent.y + best_ent._hitbox_y1 )
+						{
+							//debugger;
+							this.Damage( 10 );
+							best_ent.Damage( 10 );
+							this.onPhysicallyStuck();
+							trace('Stuck before');
+						}
+					}*/
+							
+					const best_t_original = best_t;
+
+					best_t = Math.max( 0, best_t - 0.00001 / Math.max( old_sx, old_sy ) ); // Because math will betray us and bullet will stuck bouncing in a wall
+
+					this.x += sx * best_t;
+					this.y += sy * best_t;
+
+					if ( best_ent )
+					{
+						const x_not_teleported = this.x;
+						const y_not_teleported = this.y;
+
+						const old_sx_real = this.sx;
+						const old_sy_real = this.sy;
+
+						this.Touches( best_ent );
+
+						if ( best_ent._hard_collision )
+						{
+							if ( x_not_teleported !== this.x || y_not_teleported !== this.y )
+							{
+								return;
+							}
+							
+							let do_unstuck = false;
+
+							if ( best_t_original === 0 )
+							if ( hard_collision )
+							if ( hitbox_x1 < best_ent.x + best_ent._hitbox_x2 )
+							if ( hitbox_x2 > best_ent.x + best_ent._hitbox_x1 )
+							if ( hitbox_y1 < best_ent.y + best_ent._hitbox_y2 )
+							if ( hitbox_y2 > best_ent.y + best_ent._hitbox_y1 )
+							{
+								// Moving caused stuck effect
+								//debugger;
+								//this.Damage( 10 );
+								//best_ent.Damage( 10 );
+								if ( this.onPhysicallyStuck() )
+								{
+									do_unstuck = true;
+									step_size = 8;
+								}
+							}
+
+							let on_top = Math.abs( ( this.y + this._hitbox_y2 ) - ( best_ent.y + best_ent._hitbox_y1 ) );
+							//const on_top = Math.max( 0, Math.abs( ( this.y + this._hitbox_y2 ) - ( best_ent.y + best_ent._hitbox_y1 ) ) - step_size );
+
+							const under = Math.abs( ( this.y + this._hitbox_y1 ) - ( best_ent.y + best_ent._hitbox_y2 ) );
+							const on_left = Math.abs( ( this.x + this._hitbox_x2 ) - ( best_ent.x + best_ent._hitbox_x1 ) );
+							const on_right = Math.abs( ( this.x + this._hitbox_x1 ) - ( best_ent.x + best_ent._hitbox_x2 ) );
+
+							if ( step_size > 0 )
+							{
+								if ( step_size > on_top )
+								{
+									step_size = on_top;
+								}
+								on_top -= step_size;
+							}
+
+							/*if ( step_size > 0 )
+							{
+								on_top = Math.max( 0, on_top - step_size );
+							}*/
+
+							const smallest = Math.min( on_top, under, on_left, on_right );
+
+							const self_effect_scale = 
+									( hard_collision && best_ent._hard_collision ) ?
+										best_ent.mass / ( best_ent.mass + this.mass ) :
+									( hard_collision ) ?
+										0 :
+										1;
+
+							//let old_sx2 = best_ent.sx;
+							//let old_sy2 = best_ent.sy;
+
+							if ( debug )
+							{
+								//trace( [ on_top, under, on_left, on_right ], smallest );
+
+								/*if ( smallest === on_left )
+								{
+									{
+										let arr_i  = best_ent;
+									debugger;
+									sdEntity.MovingRectIntersectionCheck(
+																				hitbox_x1,
+																				hitbox_y1,
+																				hitbox_x2,
+																				hitbox_y2,
+
+																				sx,
+																				sy,
+
+																				arr_i.x + arr_i._hitbox_x1,
+																				arr_i.y + arr_i._hitbox_y1,
+																				arr_i.x + arr_i._hitbox_x2,
+																				arr_i.y + arr_i._hitbox_y2
+																			);
+									}
+								}*/
+							}
+
+							switch ( smallest )
+							{
+								case on_top:
+								{
+									//this.sy = ( this.mass - best_ent.mass ) * old_sy;
+									this.sy = - old_sy * bounce_intensity;
+
+									if ( typeof best_ent.sy !== 'undefined' )
+									best_ent.sy += old_sy * ( 1 - self_effect_scale );
+
+									if ( step_size > 0 )
+									if ( hard_collision && best_ent._hard_collision )
+									{
+										const y_risen = best_ent.y + best_ent._hitbox_y1 - this._hitbox_y2;
+
+										if ( this.CanMoveWithoutOverlap( this.x, y_risen, 0.001 ) )
+										this.y = y_risen;
+									}
+								}
+								break;
+								case under:
+								{
+									this.sy = old_sy * bounce_intensity;
+
+									//if ( hard_collision && best_ent._hard_collision )
+									//this.y = best_ent.y + best_ent._hitbox_y2 - this._hitbox_y1;
+
+									if ( typeof best_ent.sy !== 'undefined' )
+									best_ent.sy -= old_sy * ( 1 - self_effect_scale );
+								
+									if ( do_unstuck )
+									if ( hard_collision && best_ent._hard_collision )
+									{
+										const y_risen = best_ent.y + best_ent._hitbox_y2 - this._hitbox_y1;
+
+										if ( this.CanMoveWithoutOverlap( this.x, y_risen, 0.001 ) )
+										this.y = y_risen;
+									}
+								}	
+								break;
+								case on_left:
+								{
+									this.sx = - old_sx * bounce_intensity;
+
+									//if ( hard_collision && best_ent._hard_collision )
+									//this.x = best_ent.x + best_ent._hitbox_x1 - this._hitbox_x2;
+
+									if ( typeof best_ent.sx !== 'undefined' )
+									best_ent.sx += old_sx * ( 1 - self_effect_scale );
+								
+									if ( do_unstuck )
+									if ( hard_collision && best_ent._hard_collision )
+									{
+										const x_risen = best_ent.x + best_ent._hitbox_x1 - this._hitbox_x2;
+
+										if ( this.CanMoveWithoutOverlap( x_risen, this.y, 0.001 ) )
+										this.x = x_risen;
+									}
+								}
+								break;
+								case on_right:
+								{
+									this.sx = old_sx * bounce_intensity;
+
+									//if ( hard_collision && best_ent._hard_collision )
+									//this.x = best_ent.x + best_ent._hitbox_x2 - this._hitbox_x1;
+
+									if ( typeof best_ent.sx !== 'undefined' )
+									best_ent.sx -= old_sx * ( 1 - self_effect_scale );
+								
+									if ( do_unstuck )
+									if ( hard_collision && best_ent._hard_collision )
+									{
+										const x_risen = best_ent.x + best_ent._hitbox_x2 - this._hitbox_x1;
+
+										if ( this.CanMoveWithoutOverlap( x_risen, this.y, 0.001 ) )
+										this.x = x_risen;
+									}
+								}
+								break;
+							}
+
+							if ( smallest === on_top || smallest === under )
+							{
+								if ( apply_friction )
+								{
+									if ( IsFrictionTimeScaled )
+									this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, friction_remain, GSPEED );
+									else
+									this.sx *= friction_remain;
+								}
+								
+								const impact = Math.abs( old_sy_real - this.sy ) * impact_scale * ( 1 + bounce_intensity );
+
+								if ( impact > 5 )
+								{
+									if ( sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x, this.y ) )
+									{
+										//if ( best_ent._hard_collision )
+										this.Impact( impact * self_effect_scale );
+
+										//if ( hard_collision )
+										best_ent.Impact( impact * ( 1 - self_effect_scale ) );
+									}
+								}
+							}
+							else
+							{
+								if ( apply_friction )
+								{
+									if ( IsFrictionTimeScaled )
+									this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, friction_remain, GSPEED );
+									else
+									this.sy *= friction_remain;
+								}
+								
+								const impact = Math.abs( old_sx_real - this.sx ) * impact_scale * ( 1 + bounce_intensity );
+
+								if ( impact > 5 )
+								{
+									if ( sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x, this.y ) )
+									{
+										//if ( best_ent._hard_collision )
+										this.Impact( impact * self_effect_scale );
+
+										//if ( hard_collision )
+										best_ent.Impact( impact * ( 1 - self_effect_scale ) );
+									}
+								}
+							}
+
+							if ( this._is_being_removed )
+							return;
+						}
+					}
+					else
+					{
+						if ( best_t_original === 0 )
+						if ( hard_collision )
+						{
+							if ( hitbox_x1 < sdWorld.world_bounds.x1 )
+							{
+								const x_risen = sdWorld.world_bounds.x1 - this._hitbox_x1;
+
+								if ( this.CanMoveWithoutOverlap( x_risen, this.y, 0.001 ) )
+								this.x = x_risen;
+							}
+							if ( hitbox_x2 > sdWorld.world_bounds.x2 )
+							{
+								const x_risen = sdWorld.world_bounds.x2 - this._hitbox_x2;
+
+								if ( this.CanMoveWithoutOverlap( x_risen, this.y, 0.001 ) )
+								this.x = x_risen;
+							}
+							if ( hitbox_y1 < sdWorld.world_bounds.y1 )
+							{
+								const y_risen = sdWorld.world_bounds.y1 - this._hitbox_y1;
+
+								if ( this.CanMoveWithoutOverlap( this.x, y_risen, 0.001 ) )
+								this.y = y_risen;
+							}
+							if ( hitbox_y2 > sdWorld.world_bounds.y2 )
+							if ( this.onPhysicallyStuck() )
+							{
+								const y_risen = sdWorld.world_bounds.y2 - this._hitbox_y2;
+
+								if ( this.CanMoveWithoutOverlap( this.x, y_risen, 0.001 ) )
+								this.y = y_risen;
+							}
+						}
+					}
+
+					// Keep first collision
+					if ( !this._phys_last_touch )
+					{
+						sdWorld.last_hit_entity = best_ent;
+						this._phys_last_touch = best_ent;
+					}
+
+					GSPEED = GSPEED * ( 1 - best_t );
+
+					if ( GSPEED < 0.01 )
+					break; // Not worth recursion
+
+					continue;
+				}
+			}
+			else
+			{
+				const old_x = this.x;
+				const old_y = this.y;
+				
+				hits = hits.sort( sdEntity.PenetrationHitSorter );
+				
+				//trace( 'hits in order:',hits);
+				
+				for ( let i = 0; i < hits.length; i++ )
+				if ( i === 0 && !hits[ i ]._is_being_removed )
+				{
+					this.x = old_x + sx * hits[ i ].t;
+					this.y = old_y + sy * hits[ i ].t;
+					
+					this.Touches( hits[ i ].ent );
+					
+					if ( this._is_being_removed )
+					return;
+				}
+				
+				this.x = old_x + sx;
+				this.y = old_y + sy;
+				break;
+			}
+		}
+	}
+	static PenetrationHitSorter( a, b )
+	{
+		return ( a.t < b.t ) ? -1 : 1;
+	}
+	static MovingRectIntersectionCheck( a,c,b,d, w,v, e,g,f,h ) // AC - left top, BC - right bottom of hitbox, WV is a movement direction vector, EG - top left of another box, FH - bottom right of another box. Retuns "t" (time) where 1 is no hit
+	{
+		/*
+			a + w * t < f
+			b + w * t > e
+			c + v * t < h
+			d + v * t > g
+		*/
+	   
+		// Division by zero
+		/*if ( w === 0 )
+		w = 0.0000001;
+		if ( v === 0 )
+		v = 0.0000001;*/
+	
+		// There should exist "t" which:
+		/*
+			//( e - b ) / w    <    t    <    ( f - a ) / w -- WRONG
+			//( g - d ) / v    <    t    <    ( h - c ) / v
+			
+			a + w * t < f
+			b + w * t > e
+			c + v * t < h
+			d + v * t > g
+			
+			w * t < f - a
+			w * t > e - b
+			v * t < h - c
+			v * t > g - d
+			
+		*/
+		
+		let min_value;// = Math.max( ( e - b ) / w, ( g - d ) / v );
+		let max_value;// = Math.min( ( f - a ) / w, ( h - c ) / v );
+		
+		//throw new Error();
+		// TODO: Properly handle cases of moving-bounding-box collisions for 
+		// cases when velocity is 0 along one of axis (use raw bbox hit tests)
+		
+		if ( w === 0 )
+		{
+			if ( v === 0 )
+			{
+				if ( a < f && b > e && c < h && d > g ) // Full overlap test
+				{
+					min_value = 0;
+					max_value = 1;
+				}
+				else
+				{
+					return 2;
+				}
+			}
+			else
+			{
+				if ( a < f && b > e )
+				{
+					if ( v > 0 )
+					{
+						min_value = ( g - d ) / v;
+						max_value = ( h - c ) / v;
+					}
+					else
+					{
+						min_value = ( h - c ) / v;
+						max_value = ( g - d ) / v;
+					}
+				}
+				else
+				{
+					return 2;
+				}
+			}
+		}
+		else
+		if ( w > 0 )
+		{
+			if ( v === 0 )
+			{
+				if ( c < h && d > g )
+				{
+					min_value = ( e - b ) / w;
+					max_value = ( f - a ) / w;
+				}
+				else
+				{
+					return 2;
+				}
+			}
+			else
+			if ( v > 0 )
+			{
+				/*
+					w * t < f - a
+					w * t > e - b
+					v * t < h - c
+					v * t > g - d
+					
+					t < ( f - a ) / w
+					t > ( e - b ) / w
+					t < ( h - c ) / v
+					t > ( g - d ) / v
+				*/
+	   
+				min_value = Math.max( ( e - b ) / w, ( g - d ) / v );
+				max_value = Math.min( ( f - a ) / w, ( h - c ) / v );
+			}
+			else
+			{
+				/*
+					w * t < f - a
+					w * t > e - b
+					v * t < h - c
+					v * t > g - d
+					
+					t < ( f - a ) / w
+					t > ( e - b ) / w
+					t > ( h - c ) / v
+					t < ( g - d ) / v
+				*/
+				min_value = Math.max( ( e - b ) / w, ( h - c ) / v );
+				max_value = Math.min( ( f - a ) / w, ( g - d ) / v );
+			}
+		}
+		else
+		{
+			if ( v === 0 )
+			{
+				if ( c < h && d > g )
+				{
+					min_value = ( f - a ) / w;
+					max_value = ( e - b ) / w;
+				}
+				else
+				{
+					return 2;
+				}
+			}
+			else
+			if ( v > 0 )
+			{
+				/*
+					w * t < f - a
+					w * t > e - b
+					v * t < h - c
+					v * t > g - d
+					
+					t > ( f - a ) / w
+					t < ( e - b ) / w
+					t < ( h - c ) / v
+					t > ( g - d ) / v
+				*/
+				min_value = Math.max( ( f - a ) / w, ( g - d ) / v );
+				max_value = Math.min( ( e - b ) / w, ( h - c ) / v );
+			}
+			else
+			{
+				/*
+					w * t < f - a
+					w * t > e - b
+					v * t < h - c
+					v * t > g - d
+					
+					t > ( f - a ) / w
+					t < ( e - b ) / w
+					t > ( h - c ) / v
+					t < ( g - d ) / v
+				*/
+				min_value = Math.max( ( f - a ) / w, ( h - c ) / v );
+				max_value = Math.min( ( e - b ) / w, ( g - d ) / v );
+			}
+		}
+		/*
+		*/
+		if ( min_value < 0 )
+		min_value = 0;
+	
+		if ( max_value > 1 )
+		max_value = 1;
+		
+		if ( min_value < max_value ) // <= will cause sticking to walls
+		{
+			// Hit exists, also t is from 0 to 1
+			return min_value;
+		}
+		else
+		{
+			// Hit is impossible
+			return 2;
+		}
+	}
+	/*ApplyVelocityAndCollisions_Old( GSPEED, step_size=0, apply_friction=false, impact_scale=1, custom_filtering_method=null ) // step_size can be used by entities that can use stairs
 	{
 		this.PhysInitIfNeeded();
 		
@@ -309,10 +1363,6 @@ class sdEntity
 		let sy_sign = ( this.sy > 0 );
 		
 		let moves = this.IsMovesLogic( sx_sign, sy_sign );
-		/*let moves = 
-				sx_sign !== this._phys_last_sx || 
-				sy_sign !== this._phys_last_sy || 
-				!sdWorld.inDist2D_Boolean( this.sx, this.sy, 0, 0, sdWorld.gravity + 0.1 );*/
 		
 		if ( !moves )
 		if ( this._phys_last_touch )
@@ -386,11 +1436,6 @@ class sdEntity
 				{
 					this._phys_sleep -= Math.min( 1, GSPEED );
 
-					/*if ( this._phys_sleep <= 0 )
-					{
-						if ( this.GetClass() === 'sdHover' )
-						console.log( this.GetClass() + ' becomes physically inactive' );
-					}*/
 				}
 			}
 			else
@@ -451,22 +1496,6 @@ class sdEntity
 			
 			let bounce_intensity = this.bounce_intensity;
 			let friction_remain = this.friction_remain;
-			
-			/*if ( step_size > 0 )
-			if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) < 7 )
-			{
-				for ( let i = 1; i <= step_size; i++ )
-				{
-					if ( this.CanMoveWithoutOverlap( new_x, new_y - i, 0, custom_filtering_method ) )
-					{
-						this.x = new_x;
-						this.y = new_y - i;
-						
-						this._phys_last_touch = sdWorld.last_hit_entity;
-						return;
-					}
-				}
-			}*/
 			
 			let last_touch = null;
 			
@@ -609,7 +1638,7 @@ class sdEntity
 			this._phys_last_touch = sdWorld.last_hit_entity || last_touch;
 		}
 		
-	}
+	}*/
 	MeasureMatterCost()
 	{
 		return Infinity; // Infinity means godmode players only
@@ -725,6 +1754,8 @@ class sdEntity
 		this._hitbox_y1 = sdEntity.NotNaN( this.hitbox_y1, this._hitbox_y1 );
 		this._hitbox_x2 = sdEntity.NotNaN( this.hitbox_x2, this._hitbox_x2 );
 		this._hitbox_y2 = sdEntity.NotNaN( this.hitbox_y2, this._hitbox_y2 );
+		
+		this._hard_collision = this.hard_collision;
 	}
 	UpdateHitbox()
 	{
@@ -736,6 +1767,8 @@ class sdEntity
 			this._hitbox_y1 = this.hitbox_y1;
 			this._hitbox_x2 = this.hitbox_x2;
 			this._hitbox_y2 = this.hitbox_y2;
+		
+			this._hard_collision = this.hard_collision;
 		}
 	}
 	GetClass()
@@ -775,6 +1808,8 @@ class sdEntity
 		this.PreInit();
 		
 		this._class = this.constructor.name;
+		
+		this._flag = 0; // Used to mark entities as visited/added/mentioned just so WeakSet is not needed. Compare it to sdEntity.flag_counter++
 		//debugger;
 		
 		// Because getters are slow in JS, especially when they are virtual methods. Trying this method?
@@ -782,6 +1817,7 @@ class sdEntity
 		this._hitbox_y1 = 0;
 		this._hitbox_x2 = 0;
 		this._hitbox_y2 = 0;
+		this._hard_collision = false;
 		this.UpdateHitboxInitial(); // Update hitbox
 		this._hitbox_last_update = 0; // But be ready for it to be updated again (sdCrystal that is being ejected from sdMatterAmplifier would need it to be not stuck in it)
 		
@@ -1903,6 +2939,12 @@ class sdEntity
 		// Or else some entities won't be removed
 		if ( !this._is_being_removed )
 		{
+			/*if ( this._class === 'sdBullet' )
+			{
+				trace( 'Bullet is being removed' );
+				debugger;
+			}*/
+
 			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 
 			this._is_being_removed = true;
@@ -1997,7 +3039,9 @@ class sdEntity
 	}
 	SafeAddVelocity( sx, sy ) // Caps velocity at 16 pixels per frame after adding it - in order to prevent too fast object velocities that can pass through walls. It means that velocity will be incorrect after it reaches maximum value. Better approach would be to add more substeps instead of it but that would cause perofrmance issues at some point
 	{
-		let sx2 = this.sx + sx;
+		// No longer needed with new collision model
+		
+		/*let sx2 = this.sx + sx;
 		let sy2 = this.sy + sy;
 		
 		let di_pow2 = sx2 * sx2 + sy2 * sy2;
@@ -2015,7 +3059,7 @@ class sdEntity
 		}
 		
 		this.sx = sx2;
-		this.sy = sy2;
+		this.sy = sy2;*/
 	}
 	Draw( ctx, attached )
 	{

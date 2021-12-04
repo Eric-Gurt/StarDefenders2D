@@ -53,7 +53,14 @@ class sdAsp extends sdEntity
 
 		this._tier = params._tier || 1; // Used determine it's HP and damage
 		
-		this._hmax = 80 * this._tier;
+		if ( this._tier === 1 )
+		this._hmax = 80;
+		else
+		if ( this._tier === 2 ) // Crystal asps were meant to have 2x HP due to turning into crystal shards on death.
+		this._hmax = 160;
+		else
+		this._hmax = 10;
+	
 		this._hea = this._hmax;
 		
 		this.death_anim = 0;
@@ -98,11 +105,17 @@ class sdAsp extends sdEntity
 	}
 	GetBleedEffect()
 	{
+		if ( this._tier === 1 )
 		return sdEffect.TYPE_BLOOD_GREEN;
+	
+		return sdEffect.TYPE_WALL_HIT;
 	}
 	GetBleedEffectFilter()
 	{
+		if ( this._tier === 1 )
 		return this.filter;
+	
+		return '';
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -132,7 +145,7 @@ class sdAsp extends sdEntity
 	
 		}
 		
-		if ( this._hea < -this._hmax / 80 * 100 || this._tier === 2 )
+		if ( this._hea < -this._hmax / 80 * 100 || ( this._hea < 0 && this._tier === 2 ) ) // used to be only " ||this._tier === 2 " which resulted in instant death for Crystal Asps, unintentional - Booraz
 		this.remove();
 	}
 	get mass() { return 300; }

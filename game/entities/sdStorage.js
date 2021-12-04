@@ -263,20 +263,63 @@ class sdStorage extends sdEntity
 	}
 	onRemove() // Class-specific, if needed
 	{
+		let break_pattern_spin = Math.random() * Math.PI * 2;
+		
 		if ( this._broken )
 		{
-			let save_item = 1; // Only up one for now to prevent crystals stuck in each other
+			//let save_item = 1; // Only up one for now to prevent crystals stuck in each other
+			
+			let dropped_items = [];
+			
 			for ( var i = 0; i < sdStorage.slots_tot; i++ )
 			{
-				if ( ( this.type !== 2 ) || save_item > 0 )
+				let ent = this.DropSlot( i );
+				
+				if ( ent )
+				{
+					// We need to make sure items have restored their collisions before we could try placing them
+					ent._hard_collision = ent.hard_collision; // These are cached
+
+					dropped_items.push( ent );
+				}
+				
+				/*if ( ( this.type !== 2 ) || save_item > 0 )
 				if ( this.type !== 3 ) // Crates can't save crates since items would get stuck inside last remaining crate which has no space, so players need to build new ones when the large one gets destroyed
 				this.DropSlot( i );
 				else
 				{
 					if ( this[ 'item' + i ] )
 					this[ 'item' + i ].remove();
+				}*/
+				//save_item--;
+			}
+			
+			if ( this.type === 0 || this.type === 1 ) // Weapon storages
+			{
+			}
+			else
+			for ( let i = 0; i < dropped_items.length; i++ )
+			{
+				let ent = dropped_items[ i ];
+				
+				out:
+				for ( let r = 0; r < 32; r += 8 )
+				for ( let an = 0; an < 16; an++ )
+				{
+					let ang = an / 16 * Math.PI * 2 + break_pattern_spin;
+
+					let new_x = this.x + Math.sin( ang ) * r;
+					let new_y = this.y + Math.cos( ang ) * r;
+
+					if ( ent.CanMoveWithoutOverlap( new_x, new_y, 1 ) )
+					{
+						ent.x = new_x;
+						ent.y = new_y;
+
+						sdWorld.UpdateHashPosition( ent, false ); // Prevent intersection with other ones
+						break out;
+					}
 				}
-				save_item--;
 			}
 
 			sdWorld.BasicEntityBreakEffect( this, 5 );
@@ -342,8 +385,9 @@ class sdStorage extends sdEntity
 						from_entity._dangerous = false;
 						from_entity._dangerous_from = null;
 					}
-					if ( this.type === 0 || this.type === 2 )
+					if ( this.type === 0 )
 					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
+					else
 					if ( this.type === 1 )
 					sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume: 1, pitch: 5 });
 				}
@@ -377,10 +421,8 @@ class sdStorage extends sdEntity
 					//from_entity._held_by = this;
 					from_entity.held_by = this;
 					
-					if ( this.type === 0 || this.type === 2 )
+					if ( this.type === 2 )
 					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
-					if ( this.type === 1 )
-					sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume: 1, pitch: 5 });
 				}
 			}
 		}
@@ -414,10 +456,8 @@ class sdStorage extends sdEntity
 					//from_entity._held_by = this;
 					from_entity.held_by = this;
 					
-					if ( this.type === 0 || this.type === 2 )
-					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
-					if ( this.type === 1 )
-					sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume: 1, pitch: 5 });
+					if ( this.type === 3 )
+					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:3 });
 				}
 			}
 		}
@@ -525,6 +565,8 @@ class sdStorage extends sdEntity
 				item.PhysWakeUp();
 			}
 		}
+		
+		return item;
 	}
 }
 //sdStorage.init_class();

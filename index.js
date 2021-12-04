@@ -826,12 +826,12 @@ sdWorld.server_config = {};
 		{
 			if ( character_entity.hea - dmg <= 30 )
 			{
-				sdWorld.no_respawn_areas.push({
+				/*sdWorld.no_respawn_areas.push({
 					x: character_entity.x,
 					y: character_entity.y,
 					radius:150,
 					until: sdWorld.time + 1000 * 60 // 1 minute at area
-				});
+				});*/
 
 				if ( initiator )
 				{
@@ -1336,18 +1336,27 @@ sdWorld.server_config = {};
 				bad_areas_near++;
 				break;
 			}
+			
+			sdWorld.last_hit_entity = null;
 
 			let can_stand_here = character_entity.CanMoveWithoutOverlap( x, y, 0 ) && !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 );
 			
 			let ground_ent = sdWorld.last_hit_entity;
+			
+			// Note: socket.command_centre is no longer used (CC no longer goes there)
 
+			// Dedicated first 60% of attempts to spawn somewhere where there is no early damage
 			if ( tr > max_tr * 0.6 || bad_areas_near === 0 )
+			// Dedicated first 80% of attempts to spawn somewhere where can stand and there is no water
 			if ( tr > max_tr * 0.8 || ( can_stand_here && !sdWorld.CheckWallExistsBox( 
 					x + character_entity._hitbox_x1 - 16, 
 					y + character_entity._hitbox_y1 - 16, 
 					x + character_entity._hitbox_x2 + 16, 
 					y + character_entity._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) ) )
-			if ( tr > max_tr * 0.4 || socket.command_centre || ground_ent === null || ( ground_ent.GetClass() === 'sdBlock' && ground_ent.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+			// Dedicated first 40% of attempts to spawn somewhere where ground exists
+			if ( tr > max_tr * 0.4 || socket.command_centre || ( ground_ent !== null && ( ground_ent.GetClass() === 'sdBlock' && ground_ent.material === sdBlock.MATERIAL_GROUND ) ) ) // Only spawn on ground (or near CC)
+			// Dedicated first 10% of attempts to spawn somewhere that does not look like a cave
+			if ( tr > max_tr * 0.4 || sdWorld.GetAnythingNear( x, y - 120, 110, null, [ 'sdBlock' ] ).length < 10 )
 			{
 				character_entity.x = x;
 				character_entity.y = y;
@@ -2485,7 +2494,9 @@ io.on("connection", (socket) =>
 				let look_at_relative_to_direct_angle = arr[ 10 ];
 				
 				if ( look_at_net_id !== -1 )
-				if ( socket.character._inventory[ socket.character.gun_slot ] && !sdGun.classes[ socket.character._inventory[ socket.character.gun_slot ].class ].is_build_gun ) // No aim assist for build gun
+				if ( !socket.character.is( sdCharacter ) || // Always on for drones & different creatures
+					 !socket.character._inventory[ socket.character.gun_slot ] || // Fists
+					 sdGun.classes[ socket.character._inventory[ socket.character.gun_slot ].class ].allow_aim_assist !== false ) // No aim assist for build gun and admin teleport gun
 				{
 					let look_at_entity = sdEntity.entities_by_net_id_cache_map.get( look_at_net_id );
 					if ( look_at_entity )
@@ -2640,9 +2651,11 @@ io.on("connection", (socket) =>
 							let steps = Math.ceil( jump_di / 8 );
 
 							corrected = true;
+							
+							const overlap = 0.001; // 1
 
 							for ( let i = 1; i > 0; i -= 1 / steps )
-							if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx * i, socket.character.y + dy * i, 1 ) )
+							if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx * i, socket.character.y + dy * i, overlap ) )
 							{
 								corrected = false;
 								break;
@@ -2654,7 +2667,7 @@ io.on("connection", (socket) =>
 
 								// Up
 								for ( let i = 1; i > 0; i -= 1 / steps )
-								if ( !socket.character.CanMoveWithoutOverlap( socket.character.x, socket.character.y + dy * i, 1 ) )
+								if ( !socket.character.CanMoveWithoutOverlap( socket.character.x, socket.character.y + dy * i, overlap ) )
 								{
 									corrected = false;
 									break;
@@ -2663,7 +2676,7 @@ io.on("connection", (socket) =>
 								// Then to right
 								if ( corrected )
 								for ( let i = 1; i > 0; i -= 1 / steps )
-								if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx * i, socket.character.y + dy, 1 ) )
+								if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx * i, socket.character.y + dy, overlap ) )
 								{
 									corrected = false;
 									break;
@@ -2677,7 +2690,7 @@ io.on("connection", (socket) =>
 
 								// Right
 								for ( let i = 1; i > 0; i -= 1 / steps )
-								if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx * i, socket.character.y, 1 ) )
+								if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx * i, socket.character.y, overlap ) )
 								{
 									corrected = false;
 									break;
@@ -2686,14 +2699,14 @@ io.on("connection", (socket) =>
 								// Then to up
 								if ( corrected )
 								for ( let i = 1; i > 0; i -= 1 / steps )
-								if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx, socket.character.y + dy * i, 1 ) )
+								if ( !socket.character.CanMoveWithoutOverlap( socket.character.x + dx, socket.character.y + dy * i, overlap ) )
 								{
 									corrected = false;
 									break;
 								}
 							}
 
-							//if ( socket.character.CanMoveWithoutOverlap( socket.character.x + dx, socket.character.y + dy, 1 ) )
+							//if ( socket.character.CanMoveWithoutOverlap( socket.character.x + dx, socket.character.y + dy, overlap ) )
 							if ( corrected )
 							{
 								socket.next_position_correction_allowed = sdWorld.time + 100;

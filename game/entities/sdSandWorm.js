@@ -6,6 +6,7 @@ import sdEffect from './sdEffect.js';
 import sdWater from './sdWater.js';
 import sdBlock from './sdBlock.js';
 import sdCube from './sdCube.js';
+import sdGun from './sdGun.js';
 import sdCrystal from './sdCrystal.js';
 import sdBG from './sdBG.js';
 import sdCharacter from './sdCharacter.js';
@@ -73,6 +74,8 @@ class sdSandWorm extends sdEntity
 
 		this._hmax = 700 * Math.pow( this.scale, 2 );// Bigger worms = more health
 		this._hea = this._hmax;
+
+		this._spawn_wyrmhide_on_death = false; // Should this body part spawn Wyrmhide on death?
 		
 		this._time_until_full_remove = 30 * 10 + Math.random() * 30 * 10; // 10-20 seconds to get removed
 		
@@ -248,6 +251,21 @@ class sdSandWorm extends sdEntity
 		
 		if ( this._hea <= 0 )
 		{
+			if ( this._spawn_wyrmhide_on_death ) // Spawn wyrmhide on ground if it's set to true
+			{
+				let x = this.x;
+				let y = this.y;
+				let sx = this.sx;
+				let sy = this.sy;
+
+				setTimeout(()=>{ // Hacky, without this item does not appear to be pickable or interactable...
+					let wyrmhide = new sdGun({ x:x, y:y, class:sdGun.CLASS_WYRMHIDE });
+					wyrmhide.sx = sx;
+					wyrmhide.sy = sy;
+					wyrmhide.extra = this.filter + ' brightness(0.5)';
+					sdEntity.entities.push( wyrmhide );
+				}, 500 );
+			}
 			this.remove();
 		}
 	}
@@ -284,6 +302,23 @@ class sdSandWorm extends sdEntity
 				//this.sx = 0;
 				//this.sy = 0;
 				//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+				
+				if ( this._spawn_wyrmhide_on_death ) // Spawn wyrmhide on ground if it's set to true
+				{
+					let x = this.x;
+					let y = this.y;
+					let sx = this.sx;
+					let sy = this.sy;
+
+					setTimeout(()=>{ // Hacky, without this item does not appear to be pickable or interactable...
+						let wyrmhide = new sdGun({ x:x, y:y, class:sdGun.CLASS_WYRMHIDE });
+						wyrmhide.sx = sx;
+						wyrmhide.sy = sy;
+						wyrmhide.extra = this.filter + ' brightness(0.5)';
+						sdEntity.entities.push( wyrmhide );
+
+					}, 500 );
+				}
 				this.remove();
 				return;
 			}
@@ -355,6 +390,7 @@ class sdSandWorm extends sdEntity
 			
 			for ( let i = 1; i < 7; i++ )
 			{
+				let wyrmhide_chance = 0.25;
 				let ent_scale = ( 1 - Math.pow( i / 7, 2 ) * 0.5 ) * this.scale;
 				
 				offset += ( this.scale + ent_scale ) * sdSandWorm.segment_dist / 2;
@@ -364,6 +400,14 @@ class sdSandWorm extends sdEntity
 				
 				ent.filter = this.filter;
 				
+				if ( Math.random() < wyrmhide_chance || ( i === 5 && wyrmhide_chance > 0 ) ) // Should this part spawn wymrhide when it dies? Can only spawn one per worm though.
+				{
+					ent._spawn_wyrmhide_on_death = true;
+					wyrmhide_chance = 0;
+				}
+				else
+				wyrmhide_chance += 0.1; // Increase the chance
+
 				ent.scale = ent_scale;
 				
 				ent.model = 2;
@@ -669,8 +713,8 @@ class sdSandWorm extends sdEntity
 			this._in_surface_time = sdWorld.time;
 		}
 		
-		if ( !from_entity.hard_collision )
-		return;
+		//if ( !from_entity._hard_collision ) // No longer ignores non-hard collision entities because it will actually stuck in them
+		//return;
 	
 		if ( !from_entity.IsTargetable() )
 		return;

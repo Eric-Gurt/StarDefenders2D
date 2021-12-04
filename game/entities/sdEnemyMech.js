@@ -165,7 +165,7 @@ class sdEnemyMech extends sdEntity
 			if ( initiator )
 			if ( typeof initiator._score !== 'undefined' )
 			{
-				initiator._score += 50;
+				initiator._score += 250;
 			}
 				let that = this;
 				for ( var i = 0; i < 20; i++ )
@@ -252,9 +252,9 @@ class sdEnemyMech extends sdEntity
 
 							let gun;
 
-							if ( random_value < 0.45 )
-							gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
-							else
+							//if ( random_value < 0.45 )
+							//gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
+							//else
 							{
 								if ( random_value > 0.92 ) // ( random value < 0.08 ) couldn't occur because if it's below 0.5 it drops BT upgrade instead 
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_FMECH_MINIGUN });

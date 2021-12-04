@@ -170,6 +170,10 @@ class sdCube extends sdEntity
 	
 		//dmg = Math.abs( dmg );
 		
+		let explode_on_hea = ( this.kind === 2 ? -2000 : -1000 )
+		
+		let was_existing = ( this.hea > explode_on_hea );
+		
 		let was_alive = this.hea > 0;
 		
 		this.hea -= dmg;
@@ -192,7 +196,7 @@ class sdCube extends sdEntity
 			sdSound.PlaySound({ name:'cube_offline', pitch: (this.kind === 1 || this.kind === 2) ? 0.5 : 1, x:this.x, y:this.y, volume:1.5 });
 		}
 		
-		if ( this.hea < ( this.kind === 2 ? -2000 : -1000 ) )
+		if ( this.hea <= explode_on_hea && was_existing )
 		{
 			sdWorld.SendEffect({ 
 				x:this.x, 

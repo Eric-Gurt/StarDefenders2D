@@ -18,6 +18,9 @@ class sdArea extends sdEntity
 		//sdBlock.img_area_no_dmg = sdWorld.CreateImageFromFile( 'area_no_dmg' );
 		//sdBlock.img_area_del = sdWorld.CreateImageFromFile( 'area_del' );
 		
+		sdArea.just_area = [ 'sdArea' ];
+		//sdArea.AreaFilteringMethod = ( e ) => e.is( sdArea );
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 
@@ -44,7 +47,8 @@ class sdArea extends sdEntity
 	
 	static CheckPointDamageAllowed( x, y )
 	{
-		if ( sdWorld.CheckWallExists( x, y, null, null, [ 'sdArea' ] ) )
+		if ( sdWorld.CheckWallExists( x, y, null, null, sdArea.just_area ) )
+		//if ( sdWorld.CheckWallExists( x, y, null, null, null, sdArea.AreaFilteringMethod ) )
 		if ( sdWorld.last_hit_entity )
 		if ( sdWorld.last_hit_entity.type === sdArea.TYPE_PREVENT_DAMAGE )
 		{

@@ -155,7 +155,7 @@ class sdWeather extends sdEntity
 	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
 	{
 		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
-		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16 ];
+		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ];
 				
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -420,7 +420,7 @@ class sdWeather extends sdEntity
 					{
 
 						let drone = new sdDrone({ x:0, y:0 , _ai_team: 1});
-						drone.type = ( Math.random() < 0.07 ) ? 3 : 1;
+						drone.type = ( Math.random() < 0.15 ) ? 3 : 1;
 
 						sdEntity.entities.push( drone );
 
@@ -1033,7 +1033,7 @@ class sdWeather extends sdEntity
 
 		if ( r === 16 ) // Spawn a Large Anti-Crystal anywhere on the map outside player views which drains active players' matter if they're close enough
 		{
-			if ( Math.random() < 0.4 ) // 40% chance for the 
+			if ( Math.random() < 0.2 ) // 20% chance for the Large Anti-Crystal to spawn
 			{
 				let instances = 0;
 				let instances_tot = 1;

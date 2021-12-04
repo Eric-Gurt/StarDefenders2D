@@ -2,6 +2,7 @@
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
+import sdBullet from './sdBullet.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -23,6 +24,14 @@ class sdGrass extends sdEntity
 	get hitbox_x2() { return 16; }
 	get hitbox_y1() { return ( 16 - sdGrass.heights[ this.variation ] ) || 0; }
 	get hitbox_y2() { return 16; }
+	
+	IsTargetable( by_entity ) // Guns are not targetable when held, same for sdCharacters that are driving something
+	{
+		if ( by_entity && by_entity.is( sdBullet ) && by_entity._admin_picker )
+		return true;
+
+		return false;
+	}
 	
 	DrawIn3D()
 	{ return FakeCanvasContext.DRAW_IN_3D_GRASS; }

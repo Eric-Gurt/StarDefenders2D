@@ -418,7 +418,9 @@ class sdCharacter extends sdEntity
 	{
 		super( params );
 		
-		//this._is_cable_priority = true;
+		//this._is_cable_priority = true;										
+		
+		this._local_ragdoll_ever_synced = false; // To track need to precalculate ragdoll logic
 		
 		this.s = 100; // Scale, %
 		
@@ -627,6 +629,7 @@ class sdCharacter extends sdEntity
 		this._ragdoll = null; // Client-side ragdolls could be here? Not ready.
 		
 		this._sickness = 0; // When sick - occasionally gets random damage and when dies turns into zombie?
+		this._last_sickness_from_ent = null;
 		this._sick_damage_timer = 0;
 		//this.lost = 0; // Set to lost type if sdCharacter is lost
 		
@@ -1672,10 +1675,10 @@ class sdCharacter extends sdEntity
 		return { x: m1[ 4 ], y: m1[ 5 ] };*/
 	}
 	
-	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call
+	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call. Return true if entity needs unstuck logic appleid, which can be performance-damaging too
 	{
 		// 14 is a full width, so revived players don't stuck in each other
-		if ( !this.CanMoveWithoutOverlap( this.x, this.y, this.UseServerCollisions() ? 0 : 0.01 ) )
+		/*if ( !this.CanMoveWithoutOverlap( this.x, this.y, this.UseServerCollisions() ? 0 : 0.01 ) )
 		{
 			if ( this.CanMoveWithoutOverlap( this.x, this.y - 14 ) )
 			this.y -= 0.5;
@@ -1688,7 +1691,9 @@ class sdCharacter extends sdEntity
 
 			if ( this.CanMoveWithoutOverlap( this.x + 14, this.y ) )
 			this.x += 0.5;
-		}
+		}*/
+		
+		return true;
 	}
 
 
@@ -1838,7 +1843,7 @@ class sdCharacter extends sdEntity
 					this._sick_damage_timer = 0;
 					
 					this._sickness = Math.max( 0, this._sickness - 10 );
-					this.Damage( 10 );
+					this.Damage( 10, this._last_sickness_from_ent );
 					sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_BLOOD_GREEN, filter:'none' });
 					
 					// And then it spreads to players near, sounds fun
@@ -1853,6 +1858,11 @@ class sdCharacter extends sdEntity
 					{
 						if ( targets_raw[ i ].IsTargetable( this ) )
 						targets_raw[ i ]._sickness += 5 / targets_raw.length;
+					}
+					
+					if ( this._sickness === 0 )
+					{
+						this._last_sickness_from_ent = null;
 					}
 				}
 			}
@@ -2001,7 +2011,8 @@ class sdCharacter extends sdEntity
 										this.fire_anim = 5;
 									}
 								}
-								if ( this._inventory[ this.gun_slot ].fire_mode === 2 &&  this._last_fire_state !== will_fire )
+								else
+								if ( this._inventory[ this.gun_slot ].fire_mode === 2 && this._last_fire_state !== will_fire ) // Somehow this line caused crash, possible due to .Shoot call above caused weapon to be removed
 								{
 									if ( !offset )
 									offset = this.GetBulletSpawnOffset();
@@ -2208,6 +2219,8 @@ class sdCharacter extends sdEntity
 		}
 		//let new_leg_height = 16 - this._crouch_intens * 6;
 		let new_leg_height = this.hitbox_y2; // Through getter
+		
+		this._hitbox_y2 = new_leg_height; // Prevent short-term stucking in ground
 		
 		//leg_height		*= 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7;
 		//new_leg_height  *= 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7;
@@ -2429,20 +2442,33 @@ class sdCharacter extends sdEntity
 			let still_stands = false;
 
 			if ( old_stands )
-			if ( !this._stands_on._is_being_removed )
+			/*if ( !this._stands_on._is_being_removed )
 			if ( this.x + this._hitbox_x2 <= this._stands_on.x + this._stands_on._hitbox_x1 )
 			if ( this.x + this._hitbox_x1 >= this._stands_on.x + this._stands_on._hitbox_x2 )
-			if ( this.y + this._hitbox_y2 + ( this.UseServerCollisions() ? 2 : 3 ) <= this._stands_on.y + this._stands_on._hitbox_y1 )
-			if ( this.y + this._hitbox_y1 + ( this.UseServerCollisions() ? 2 : 3 ) >= this._stands_on.y + this._stands_on._hitbox_y2 )
+			//if ( this.y + this._hitbox_y2 + ( this.UseServerCollisions() ? 2 : 3 ) <= this._stands_on.y + this._stands_on._hitbox_y1 )
+			//if ( this.y + this._hitbox_y1 + ( this.UseServerCollisions() ? 2 : 3 ) >= this._stands_on.y + this._stands_on._hitbox_y2 )
+			if ( this.y + this._hitbox_y2 + 2 <= this._stands_on.y + this._stands_on._hitbox_y1 )
+			if ( this.y + this._hitbox_y1 + 2 >= this._stands_on.y + this._stands_on._hitbox_y2 )
+			*/
+			if ( !this._stands_on._is_being_removed )
+			//if ( this.x + this._hitbox_x2 <= this._stands_on.x + this._stands_on._hitbox_x1 )
+			//if ( this.x + this._hitbox_x1 >= this._stands_on.x + this._stands_on._hitbox_x2 )
+			if ( this.x + this._hitbox_x1 <= this._stands_on.x + this._stands_on._hitbox_x2 )
+			if ( this.x + this._hitbox_x2 >= this._stands_on.x + this._stands_on._hitbox_x1 )
+			//if ( this.y + this._hitbox_y2 + ( this.UseServerCollisions() ? 2 : 3 ) <= this._stands_on.y + this._stands_on._hitbox_y1 )
+			//if ( this.y + this._hitbox_y1 + ( this.UseServerCollisions() ? 2 : 3 ) >= this._stands_on.y + this._stands_on._hitbox_y2 )
+			//if ( this.y + this._hitbox_y2 - 2 <= this._stands_on.y + this._stands_on._hitbox_y1 )
+			//if ( this.y + this._hitbox_y1 - 2 >= this._stands_on.y + this._stands_on._hitbox_y2 )
+			if ( this.y + this._hitbox_y1 + 2 <= this._stands_on.y + this._stands_on._hitbox_y2 )
+			if ( this.y + this._hitbox_y2 + 2 >= this._stands_on.y + this._stands_on._hitbox_y1 )
 			{
 				sdWorld.last_hit_entity = this._stands_on;
 				
 				still_stands = true;
 			}
 
-			//if ( !this.CanMoveWithoutOverlap( this.x, this.y + ( this.UseServerCollisions() ? 2 : 3 ), 1 ) ) Has egde-stand-constant-fall bug, not sure why it was done like that exactly
-			if ( still_stands || !this.CanMoveWithoutOverlap( this.x, this.y + ( this.UseServerCollisions() ? 2 : 3 ), 0 ) )
-			//if ( !this.CanMoveWithoutOverlap( this.x, this.y + 2, 1 ) )
+			//if ( still_stands || !this.CanMoveWithoutOverlap( this.x, this.y + ( this.UseServerCollisions() ? 2 : 3 ), 0 ) )
+			if ( still_stands || !this.CanMoveWithoutOverlap( this.x, this.y + 2, 1 ) )
 			{
 				this.stands = true;
 				
@@ -2766,9 +2792,19 @@ class sdCharacter extends sdEntity
 			if ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_SHARP )
 			this.Damage( Infinity );
 		}*/
-										
+									
 		if ( this._ragdoll )
-		this._ragdoll.Think( GSPEED );
+		{
+			if ( !sdWorld.is_server && !this._local_ragdoll_ever_synced )
+			{
+				for ( let i = 0; i < 30; i++ )
+				this._ragdoll.Think( 1 );
+			
+				this._local_ragdoll_ever_synced = true;
+			}
+			else
+			this._ragdoll.Think( GSPEED );
+		}
 									
 		if ( sdWorld.is_server && !this._socket && !this._ai && this._phys_sleep <= 0 && !in_water && !this.driver_of && this.hea > 0 && !this._dying && this.pain_anim <= 0 && this.death_anim <= 0 )
 		{

@@ -30,7 +30,7 @@ class sdBomb extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this.detonation_in = 30 * 45; // 30 * 60;
+		this.detonation_in = 30 * 25; // 25 seconds, was 45
 		
 		this.hea = 100;
 		

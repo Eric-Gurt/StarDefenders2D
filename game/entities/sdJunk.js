@@ -72,6 +72,7 @@ class sdJunk extends sdEntity
 		this.hmax = 500;
 
 		// Variables for large anti-crystal
+		this._next_score_at = this.hmax; // To prevent spark or erthal blaster score abuse, score is now given to player on every 100+ damage.
 		this._time_to_drain = 30 * 1;
 		this._time_to_drain_more = 30 * 60 * 40; // 40 minutes, every 10 minutes it increases matter drain percentage
 		//this._time_to_drain_rtps = 30 * 60 * 30; // 30 minutes until it also starts draining matter from rescue teleporters
@@ -123,7 +124,11 @@ class sdJunk extends sdEntity
 			if ( initiator )
 			if ( typeof initiator._score !== 'undefined' )
 			{
-				initiator._score += Math.max( 1, Math.round( dmg / 100 ) );
+				if ( this.hea <= this._next_score_at )
+				{
+					initiator._score += 1;
+					this._next_score_at = this.hea - 80;
+				}
 			}
 		}
 		
