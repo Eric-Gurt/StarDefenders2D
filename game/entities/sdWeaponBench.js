@@ -265,6 +265,24 @@ class sdWeaponBench extends sdEntity
 						else
 						executer_socket.SDServiceMessage( 'Not enough matter' );
 					}
+					else
+					if ( command_name === 'INCREASE_HP' )
+					{
+						let matter_cost = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost || 30 ) : 300;
+						if ( exectuter_character.matter >= ( matter_cost ) )
+						{
+
+							sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+
+							exectuter_character.matter -= matter_cost;
+
+							this.item0._hea = 500;
+
+							this._update_version++;
+						}
+						else
+						executer_socket.SDServiceMessage( 'Not enough matter' );
+					}
 				}
 				else
 				{
@@ -288,6 +306,8 @@ class sdWeaponBench extends sdEntity
 			if ( this.item0 )
 			{
 				this.AddContextOption( 'Get ' + sdEntity.GuessEntityName( this.item0._net_id ), 'GET', [ ] );
+				let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost || 30 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
+				this.AddContextOption( 'Upgrade weapon durability ('+ matter_cost_durability +' matter)', 'INCREASE_HP', [ ] );
 				
 				let upgrades = sdGun.classes[ this.item0.class ].upgrades;
 				
