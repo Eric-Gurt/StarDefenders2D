@@ -127,7 +127,13 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_sovereign' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_oxide' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_mythic' ), // by LordBored
-			sdWorld.CreateImageFromFile( 'helmet_outcast' ) // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_outcast' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_angel' ), // by LazyRain
+			sdWorld.CreateImageFromFile( 'helmet_isaac' ), // by LazyRain
+			sdWorld.CreateImageFromFile( 'helmet_soldier_rig' ), // by LazyRain
+			sdWorld.CreateImageFromFile( 'helmet_witch' ) // by LazyRain
+			sdWorld.CreateImageFromFile( 'helmet_modeus' ) // by LazyRain
+			sdWorld.CreateImageFromFile( 'helmet_pepe' ) // by LazyRain
 		];
 		
 		sdCharacter.skin_part_indices = {
@@ -193,6 +199,13 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'skins/survivor' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/mythic' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/outcast' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/amogus' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/angel' ), // by LazyRain
+			sdWorld.CreateImageFromFile( 'skins/isaac' ), // by LazyRain
+			sdWorld.CreateImageFromFile( 'skins/legless' ), // by LazyRain
+			sdWorld.CreateImageFromFile( 'skins/soldier_rig' ), // by LazyRain
+			sdWorld.CreateImageFromFile( 'skins/witch' ), // by LazyRain
+			sdWorld.CreateImageFromFile( 'skins/modeus' ), // by LazyRain
 		];
 		
 		// x y rotation, for images below
