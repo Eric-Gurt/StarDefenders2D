@@ -122,18 +122,19 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_rose' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'helmet_avre' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'helmet_spaghetti' ), // by Silk1
-                        sdWorld.CreateImageFromFile( 'helmet_tacticalSD' ), // by The_Commander
-                        sdWorld.CreateImageFromFile( 'helmet_vengeance' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_tacticalSD' ), // by The_Commander
+			sdWorld.CreateImageFromFile( 'helmet_vengeance' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_sovereign' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_oxide' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_mythic' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_outcast' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_angel' ), // by LazyRain
-			sdWorld.CreateImageFromFile( 'helmet_isaac' ), // by LazyRain
+			sdWorld.CreateImageFromFile( 'helmet_split_visor' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_soldier_rig' ), // by LazyRain
-			sdWorld.CreateImageFromFile( 'helmet_witch' ) // by LazyRain
-			sdWorld.CreateImageFromFile( 'helmet_modeus' ) // by LazyRain
+			sdWorld.CreateImageFromFile( 'helmet_witch' ), // by LazyRain
+			sdWorld.CreateImageFromFile( 'helmet_modeus' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_pepe' ) // by LazyRain
+			// Note: Commas -> , are important since it all is just a big Array: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 		];
 		
 		sdCharacter.skin_part_indices = {
@@ -191,8 +192,8 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'skins/rose' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'skins/avre' ), // by Silk1
 			sdWorld.CreateImageFromFile( 'skins/spaghetti' ), // by Silk1
-                        sdWorld.CreateImageFromFile( 'skins/trooper' ), // by AlbanianTrooper
-                        sdWorld.CreateImageFromFile( 'skins/vengeance' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/trooper' ), // by AlbanianTrooper
+			sdWorld.CreateImageFromFile( 'skins/vengeance' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/arbiter' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/ranger' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/oxide' ), // by LordBored
@@ -201,7 +202,7 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'skins/outcast' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/amogus' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/angel' ), // by LazyRain
-			sdWorld.CreateImageFromFile( 'skins/isaac' ), // by LazyRain
+			sdWorld.CreateImageFromFile( 'skins/split_visor' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'skins/legless' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'skins/soldier_rig' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'skins/witch' ), // by LazyRain
@@ -295,6 +296,31 @@ class sdCharacter extends sdEntity
 	
 	DrawHelmet( ctx, frame=undefined )
 	{
+		// This won't work in lost effect since server does not load images
+		
+		let source_x_offset = 0;
+		let source_y_offset = ( this.hea <= this.hmax / 2 ) ? 32 : 0; // Gory version
+		
+		if ( sdWorld.time > this._anim_blink_next )
+		{
+			source_x_offset = 32;
+			
+			if ( sdWorld.time > this._anim_blink_next + 200 )
+			this._anim_blink_next = sdWorld.time + 1000 * 60 / ( Math.random() * 5 + 15 ); // 15-20 times per minute
+		}
+	
+		if ( this.hea <= 0 )
+		{
+			source_y_offset = 64;
+			source_x_offset = 32;
+		}
+		
+		if ( sdCharacter.img_helmets[ this.helmet ].loaded )
+		{
+			source_x_offset = Math.min( source_x_offset, sdCharacter.img_helmets[ this.helmet ].naturalWidth - 32 );
+			source_y_offset = Math.min( source_y_offset, sdCharacter.img_helmets[ this.helmet ].naturalHeight - 32 );
+		}
+		
 		if ( frame !== undefined )
 		{
 			ctx.save();
@@ -308,12 +334,13 @@ class sdCharacter extends sdEntity
 			ctx.translate( x, y );
 			ctx.rotate( an / 180 * Math.PI );
 
-			ctx.drawImageFilterCache( sdCharacter.img_helmets[ this.helmet ], - 16, - 16, 32,32 );
+			//ctx.drawImageFilterCache( sdCharacter.img_helmets[ this.helmet ], - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( sdCharacter.img_helmets[ this.helmet ], source_x_offset,source_y_offset,32,32, - 16, - 16, 32,32 );
 
 			ctx.restore();
 		}
 		else
-		ctx.drawImageFilterCache( sdCharacter.img_helmets[ this.helmet ], - 16, - 16, 32,32 );
+		ctx.drawImageFilterCache( sdCharacter.img_helmets[ this.helmet ], source_x_offset,source_y_offset,32,32, - 16, - 16, 32,32 );
 	}
 	
 	get substeps() // sdCharacter that is being controlled by player will need more
@@ -632,6 +659,9 @@ class sdCharacter extends sdEntity
 		this._last_sickness_from_ent = null;
 		this._sick_damage_timer = 0;
 		//this.lost = 0; // Set to lost type if sdCharacter is lost
+		
+		// Client-side blinking
+		this._anim_blink_next = sdWorld.time + 5000; // Better like this for main screen since it is recreated all the time
 		
 		if ( !sdWorld.is_server )
 		{
