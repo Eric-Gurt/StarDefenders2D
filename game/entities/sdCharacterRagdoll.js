@@ -49,7 +49,7 @@ class sdCharacterRagdoll
 		
 		this.springs.push( new sdSpring( this.torso, this.chest, null, 0, 0, 0, sdCharacterRagdoll.spring_both ) );
 		this.springs.push( new sdSpring( this.torso, this.neck, null, 0, 0, 0, sdCharacterRagdoll.spring_both ) );
-		this.springs.push( new sdSpring( this.torso, this.spine, 'body_lower', 0, 0, 0, sdCharacterRagdoll.spring_both ) );
+		this.springs.push( new sdSpring( this.torso, this.spine, 'body_lower', 1, 0, 0, sdCharacterRagdoll.spring_both ) );
 		
 		this.springs.push( new sdSpring( this.spine, this.chest, null, 0, 0, 0, sdCharacterRagdoll.spring_both ) );
 		this.springs.push( new sdSpring( this.spine, this.neck, 'body_upper', 0, 0.001, 0, sdCharacterRagdoll.spring_both ) );
