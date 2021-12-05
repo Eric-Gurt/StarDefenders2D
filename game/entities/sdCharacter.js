@@ -2223,32 +2223,44 @@ class sdCharacter extends sdEntity
 		//let new_x = this.x + this.sx * GSPEED;
 		//let new_y = this.y + this.sy * GSPEED;
 		
-		//let leg_height = 16 - this._crouch_intens * 6;
-		let leg_height = this._hitbox_y2;
-		
 		let speed_scale = 1 * ( 1 - ( this.armor_speed_reduction / 100 ) );
 		
-		if ( this.act_y === 1 )
+		let leg_height;
+		let new_leg_height;
+		
+		if ( ( ( this.act_y === 1 ) ? 1 : 0 ) !== this._crouch_intens )
 		{
-			speed_scale *= 0.5;
-			
-			this._crouch_intens = sdWorld.MorphWithTimeScale( this._crouch_intens, 1, 0.7, GSPEED );
+			leg_height = this.hitbox_y2;
+
+			if ( this.act_y === 1 )
+			{
+				speed_scale *= 0.5;
+
+				
+				if ( this._crouch_intens < 0.99 )
+				this._crouch_intens = sdWorld.MorphWithTimeScale( this._crouch_intens, 1, 0.7, GSPEED );
+				else
+				this._crouch_intens = 1;
+			}
+			else
+			{
+				if ( this._crouch_intens > 0 )
+				{
+					if ( this.CanMoveWithoutOverlap( this.x, this.y - 4, 0.001 ) )
+					{
+						if ( this._crouch_intens > 0.01 )
+						this._crouch_intens = sdWorld.MorphWithTimeScale( this._crouch_intens, 0, 0.7, GSPEED );
+						else
+						this._crouch_intens = 0;
+					}
+				}
+			}
+			new_leg_height = this.hitbox_y2; // Through getter
 		}
 		else
 		{
-			if ( this._crouch_intens > 0 )
-			{
-				if ( this.CanMoveWithoutOverlap( this.x, this.y - 4, 1 ) )
-				{
-					if ( this._crouch_intens > 0.01 )
-					this._crouch_intens = sdWorld.MorphWithTimeScale( this._crouch_intens, 0, 0.7, GSPEED );
-					else
-					this._crouch_intens = 0;
-				}
-			}
+			leg_height = new_leg_height = this._hitbox_y2; // Fake-ish outdated value since there is no crouch
 		}
-		//let new_leg_height = 16 - this._crouch_intens * 6;
-		let new_leg_height = this.hitbox_y2; // Through getter
 		
 		this._hitbox_y2 = new_leg_height; // Prevent short-term stucking in ground
 		
@@ -2714,13 +2726,27 @@ class sdCharacter extends sdEntity
 					if ( isNaN( this.y ) || this.y === undefined )
 					throw new Error( 'this.y is '+this.y );
 				}
-
-				//new_y -= new_leg_height - leg_height;
-				this.y -= new_leg_height - leg_height;
 				
-				// Prevent leg shaking when stopping crouch, probablyt caused by stand target cache delaying fall, especially after step logic applied (it leaves player slightly floating)
-				if ( new_leg_height - leg_height > 0 )
-				this.sy += new_leg_height - leg_height;
+				// No longer goes into ground, possibly doe to different hitbox cache handling
+				if ( new_leg_height !== leg_height )
+				this.y -= new_leg_height - leg_height;
+			
+				/*if ( new_leg_height > leg_height )
+				{
+					// Stands up from crouch - should be fine
+					this.y -= new_leg_height - leg_height;
+				}
+				else
+				{
+					// Goes into crouch. Should be fine too?
+					this.y -= new_leg_height - leg_height;
+				}*/
+
+				//this.y -= new_leg_height - leg_height; Causes dogs to somehow push player into the ground
+				
+				// Prevent leg shaking when stopping crouch, probably caused by stand target cache delaying fall, especially after step logic applied (it leaves player slightly floating)
+				//if ( new_leg_height - leg_height > 0 )
+				//this.sy += new_leg_height - leg_height;
 
 				if ( Math.abs( Math.sin( this.tilt / 100 ) ) > 0.3 )
 				{

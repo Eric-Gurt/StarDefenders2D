@@ -954,7 +954,8 @@ class sdEntity
 									this.sy = - old_sy * bounce_intensity;
 
 									if ( typeof best_ent.sy !== 'undefined' )
-									best_ent.sy += old_sy * ( 1 - self_effect_scale );
+									best_ent.sy = Math.max( best_ent.sy, best_ent.sy + old_sy * ( 1 - self_effect_scale ) );
+									//best_ent.sy += old_sy * ( 1 - self_effect_scale );
 
 									if ( step_size > 0 )
 									if ( hard_collision && best_ent._hard_collision )
@@ -974,7 +975,8 @@ class sdEntity
 									//this.y = best_ent.y + best_ent._hitbox_y2 - this._hitbox_y1;
 
 									if ( typeof best_ent.sy !== 'undefined' )
-									best_ent.sy -= old_sy * ( 1 - self_effect_scale );
+									best_ent.sy = Math.min( best_ent.sy, best_ent.sy - old_sy * ( 1 - self_effect_scale ) );
+									//best_ent.sy -= old_sy * ( 1 - self_effect_scale );
 								
 									if ( do_unstuck )
 									if ( hard_collision && best_ent._hard_collision )
@@ -994,7 +996,8 @@ class sdEntity
 									//this.x = best_ent.x + best_ent._hitbox_x1 - this._hitbox_x2;
 
 									if ( typeof best_ent.sx !== 'undefined' )
-									best_ent.sx += old_sx * ( 1 - self_effect_scale );
+									best_ent.sx = Math.max( best_ent.sx, best_ent.sx + old_sx * ( 1 - self_effect_scale ) );
+									//best_ent.sx += old_sx * ( 1 - self_effect_scale );
 								
 									if ( do_unstuck )
 									if ( hard_collision && best_ent._hard_collision )
@@ -1014,7 +1017,8 @@ class sdEntity
 									//this.x = best_ent.x + best_ent._hitbox_x2 - this._hitbox_x1;
 
 									if ( typeof best_ent.sx !== 'undefined' )
-									best_ent.sx -= old_sx * ( 1 - self_effect_scale );
+									best_ent.sx = Math.min( best_ent.sx, best_ent.sx - old_sx * ( 1 - self_effect_scale ) );
+									//best_ent.sx -= old_sx * ( 1 - self_effect_scale );
 								
 									if ( do_unstuck )
 									if ( hard_collision && best_ent._hard_collision )
