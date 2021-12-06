@@ -354,6 +354,7 @@ class sdEntity
 	ApplyVelocityAndCollisions( GSPEED, step_size=0, apply_friction=false, impact_scale=1, custom_filtering_method=null ) // step_size can be used by entities that can use stairs
 	{
 		//const debug = ( sdWorld.my_entity === this );
+		//const debug = ( this._class === 'sdBullet' && this._rail ) && sdWorld.is_server;
 		//const debug = ( this._class === 'sdBullet' ) && sdWorld.is_server;
 		//const debug = ( this._class === 'sdSandWorm' ) && sdWorld.is_server;
 		const debug = false;
@@ -793,6 +794,11 @@ class sdEntity
 			{
 				if ( best_t === 1 )
 				{
+					if ( debug )
+					{
+						debugger;
+					}
+					
 					this.x += sx;
 					this.y += sy;
 
@@ -1147,7 +1153,7 @@ class sdEntity
 				//trace( 'hits in order:',hits);
 				
 				for ( let i = 0; i < hits.length; i++ )
-				if ( i === 0 && !hits[ i ]._is_being_removed )
+				if ( i === 0 || !hits[ i ]._is_being_removed )
 				{
 					this.x = old_x + sx * hits[ i ].t;
 					this.y = old_y + sy * hits[ i ].t;
