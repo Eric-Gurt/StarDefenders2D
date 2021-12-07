@@ -42,6 +42,8 @@ class sdWeaponBench extends sdEntity
 		this._hmax = 800;
 		
 		this._regen_timeout = 0;
+
+		this.upgraded_dur = false; // Apparently I need a public variable for "this.AddContextOption" for durability upgrading so this is the one - Booraz149
 		
 		//this._held_items = [];
 		//this.held_net_ids = [];
@@ -210,6 +212,8 @@ class sdWeaponBench extends sdEntity
 				item.y = initiator_character.y;
 			}
 		}
+
+		this.upgraded_dur = false;
 	}
 	DropSlot( slot )
 	{
@@ -225,6 +229,8 @@ class sdWeaponBench extends sdEntity
 
 			item.PhysWakeUp();
 		}
+
+		this.upgraded_dur = false;
 	}
 	
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
@@ -278,6 +284,8 @@ class sdWeaponBench extends sdEntity
 
 							this.item0._hea = 500;
 
+							this.upgraded_dur = true;
+
 							this._update_version++;
 						}
 						else
@@ -307,6 +315,7 @@ class sdWeaponBench extends sdEntity
 			{
 				this.AddContextOption( 'Get ' + sdEntity.GuessEntityName( this.item0._net_id ), 'GET', [ ] );
 				let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost || 30 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
+				if ( this.upgraded_dur === false )
 				this.AddContextOption( 'Upgrade weapon durability ('+ matter_cost_durability +' matter)', 'INCREASE_HP', [ ] );
 				
 				let upgrades = sdGun.classes[ this.item0.class ].upgrades;

@@ -387,10 +387,11 @@ class sdSandWorm extends sdEntity
 			let arr = [ this ];
 			
 			let offset = 0;// this.scale * sdSandWorm.segment_dist
-			
+
+			let wyrmhide_chance = 0.25;
+
 			for ( let i = 1; i < 7; i++ )
 			{
-				let wyrmhide_chance = 0.25;
 				let ent_scale = ( 1 - Math.pow( i / 7, 2 ) * 0.5 ) * this.scale;
 				
 				offset += ( this.scale + ent_scale ) * sdSandWorm.segment_dist / 2;
@@ -400,12 +401,13 @@ class sdSandWorm extends sdEntity
 				
 				ent.filter = this.filter;
 				
-				if ( Math.random() < wyrmhide_chance || ( i === 5 && wyrmhide_chance > 0 ) ) // Should this part spawn wymrhide when it dies? Can only spawn one per worm though.
+				if ( ( Math.random() < wyrmhide_chance ) || ( i === 5 && wyrmhide_chance > 0 ) ) // Should this part spawn wymrhide when it dies? Should spawn one per worm though.
 				{
 					ent._spawn_wyrmhide_on_death = true;
-					wyrmhide_chance = 0;
+					wyrmhide_chance = -1;
 				}
 				else
+				if ( wyrmhide_chance > 0 )
 				wyrmhide_chance += 0.1; // Increase the chance
 
 				ent.scale = ent_scale;
