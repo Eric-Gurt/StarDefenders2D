@@ -2464,13 +2464,17 @@ class sdWorld
 				{
 					arr_i_x = arr_i.x;
 					
-					if ( x2 >= arr_i_x + arr_i._hitbox_x1 )
-					if ( x1 <= arr_i_x + arr_i._hitbox_x2 )
+					//if ( x2 >= arr_i_x + arr_i._hitbox_x1 )
+					//if ( x1 <= arr_i_x + arr_i._hitbox_x2 )
+					if ( x2 > arr_i_x + arr_i._hitbox_x1 )
+					if ( x1 < arr_i_x + arr_i._hitbox_x2 )
 					{
 						arr_i_y = arr_i.y;
 						
-						if ( y2 >= arr_i_y + arr_i._hitbox_y1 )
-						if ( y1 <= arr_i_y + arr_i._hitbox_y2 )
+						//if ( y2 >= arr_i_y + arr_i._hitbox_y1 )
+						//if ( y1 <= arr_i_y + arr_i._hitbox_y2 )
+						if ( y2 > arr_i_y + arr_i._hitbox_y1 )
+						if ( y1 < arr_i_y + arr_i._hitbox_y2 )
 						if ( ignore_entity === null || arr_i.IsBGEntity() === ignore_entity.IsBGEntity() )
 						//if ( arr_i._hard_collision || include_only_specific_classes )
 						if ( include_only_specific_classes || arr_i._hard_collision )

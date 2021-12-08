@@ -563,8 +563,8 @@ class sdEntity
 
 		const is_bg_entity = this.IsBGEntity();
 
-		//for ( let iter = 0; iter < 2; iter++ ) // Only 2 iterations of linear movement, enough to allow sliding in box-collisions-world
-		for ( let iter = 0; iter < 10; iter++ ) // Only 2 iterations of linear movement, enough to allow sliding in box-collisions-world
+		for ( let iter = 0; iter < 2; iter++ ) // Only 2 iterations of linear movement, enough to allow sliding in box-collisions-world
+		//for ( let iter = 0; iter < 10; iter++ ) // Only 2 iterations of linear movement, enough to allow sliding in box-collisions-world
 		{
 			let sx = this.sx * GSPEED;
 			let sy = this.sy * GSPEED;

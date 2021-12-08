@@ -354,102 +354,118 @@ class sdBullet extends sdEntity
 			}
 		}
 		
-		this.time_left -= GSPEED;
-		if ( this.time_left <= 0 )
-		{
-			this._hook = false;
-			this.remove();
-			return;
-		}
-		
-		if ( this.ac > 0 )
-		{
-			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.93, GSPEED );
-			this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.93, GSPEED );
+		let GSPEED_to_solve = GSPEED;
 
-			if ( this._homing && this._owner )
-			{
-				let di_targ = sdWorld.Dist2D_Vector( this._owner.look_x - this.x, this._owner.look_y - this.y );
-				let xx = 1 * ( this._owner.look_x - this.x ) - this.sx * di_targ / 15;
-				let yy = 1 * ( this._owner.look_y - this.y ) - this.sy * di_targ / 15;
-
-				let di = sdWorld.Dist2D_Vector( xx, yy );
-				if ( di > 0.01 )
-				{
-					this.acx = sdWorld.MorphWithTimeScale( this.acx, xx / di * 50, 1 - this._homing_mult, GSPEED );
-					this.acy = sdWorld.MorphWithTimeScale( this.acy, yy / di * 50, 1 - this._homing_mult, GSPEED );
-				}
-			}
-			
-			this.sx += this.acx * GSPEED * this.ac * 1;
-			this.sy += this.acy * GSPEED * this.ac * 1;
-		}
-
-		
-		if ( this.is_grenade )
-		{
-			this.sy += sdWorld.gravity * GSPEED;
-
-			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, this.RegularCollisionFiltering );
-		}
+		// Sub-step precision to time_left
+		if ( this.time_left < GSPEED )
+		GSPEED = Math.max( this.time_left - 0.001, 0.01 );
 		else
+		GSPEED = GSPEED_to_solve;
+
+		while ( GSPEED_to_solve > 0 )
 		{
-			if ( this.penetrating || this._rail )
+			GSPEED_to_solve -= GSPEED;
+
+			this.time_left -= GSPEED;
+			if ( this.time_left <= 0 )
 			{
-				// Old penetration logic is now handled by GetCollisionMode()
-				//this.x += this.sx * GSPEED;
-				//this.y += this.sy * GSPEED;
-				
-				this.ApplyVelocityAndCollisions( GSPEED, 0, false, 0, null );
-			}
-			else
-			{
-				let vel = this.sx * this.sx + this.sy * this.sy;
-				let old_sx = this.sx;
-				let old_sy = this.sy;
-
-				sdWorld.last_hit_entity = null;
-
-				this.ApplyVelocityAndCollisions( GSPEED, 0, true, 0, this._bouncy ? this.BouncyCollisionFiltering : this.RegularCollisionFiltering );
-
-				let vel2 = this.sx * this.sx + this.sy * this.sy;
-
-				if ( !this._bouncy )
-				if ( vel2 < vel )
-				if ( this.sx !== old_sx || this.sy !== old_sy )
-				{
-					vel = Math.sqrt( vel );
-					vel2 = Math.sqrt( vel2 );
-					
-					//trace( sdWorld.Dist2D_Vector( this.sx / vel2 - old_sx / vel, this.sy / vel2 - old_sy / vel ) );
-					
-					//if ( vel2 < vel * 0.5 )
-					//if ( sdWorld.Dist2D_Vector( this.sx / vel2 - old_sx / vel, this.sy / vel2 - old_sy / vel ) > 0.8 )
-					if ( sdWorld.Dist2D_Vector_pow2( this.sx / vel2 - old_sx / vel, this.sy / vel2 - old_sy / vel ) > 0.8 * 0.8 )
-					{
-						this.remove();
-						return true;
-					}
-
-					if ( vel > 0.001 )
-					this._damage = this._damage / vel * vel2;
-
-					if ( !sdWorld.is_server )
-					if ( sdWorld.last_hit_entity === null || !this.CanBounceOff( sdWorld.last_hit_entity ) )
-					{
-						this.remove();
-						return true;
-					}
-				}
-			}
-
-			if ( this.y > sdWorld.world_bounds.y2 )
-			{
-				if ( !this._wave )
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_WALL_HIT });
+				this._hook = false;
 				this.remove();
 				return;
 			}
+
+			if ( this.ac > 0 )
+			{
+				this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.93, GSPEED );
+				this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.93, GSPEED );
+
+				if ( this._homing && this._owner )
+				{
+					let di_targ = sdWorld.Dist2D_Vector( this._owner.look_x - this.x, this._owner.look_y - this.y );
+					let xx = 1 * ( this._owner.look_x - this.x ) - this.sx * di_targ / 15;
+					let yy = 1 * ( this._owner.look_y - this.y ) - this.sy * di_targ / 15;
+
+					let di = sdWorld.Dist2D_Vector( xx, yy );
+					if ( di > 0.01 )
+					{
+						this.acx = sdWorld.MorphWithTimeScale( this.acx, xx / di * 50, 1 - this._homing_mult, GSPEED );
+						this.acy = sdWorld.MorphWithTimeScale( this.acy, yy / di * 50, 1 - this._homing_mult, GSPEED );
+					}
+				}
+
+				this.sx += this.acx * GSPEED * this.ac * 1;
+				this.sy += this.acy * GSPEED * this.ac * 1;
+			}
+
+
+			if ( this.is_grenade )
+			{
+				this.sy += sdWorld.gravity * GSPEED;
+
+				this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, this.RegularCollisionFiltering );
+			}
+			else
+			{
+				if ( this.penetrating || this._rail )
+				{
+					// Old penetration logic is now handled by GetCollisionMode()
+					//this.x += this.sx * GSPEED;
+					//this.y += this.sy * GSPEED;
+
+					this.ApplyVelocityAndCollisions( GSPEED, 0, false, 0, null );
+				}
+				else
+				{
+					let vel = this.sx * this.sx + this.sy * this.sy;
+					let old_sx = this.sx;
+					let old_sy = this.sy;
+
+					sdWorld.last_hit_entity = null;
+
+					this.ApplyVelocityAndCollisions( GSPEED, 0, true, 0, this._bouncy ? this.BouncyCollisionFiltering : this.RegularCollisionFiltering );
+
+					let vel2 = this.sx * this.sx + this.sy * this.sy;
+
+					if ( !this._bouncy )
+					if ( vel2 < vel )
+					if ( this.sx !== old_sx || this.sy !== old_sy )
+					{
+						vel = Math.sqrt( vel );
+						vel2 = Math.sqrt( vel2 );
+
+						//trace( sdWorld.Dist2D_Vector( this.sx / vel2 - old_sx / vel, this.sy / vel2 - old_sy / vel ) );
+
+						//if ( vel2 < vel * 0.5 )
+						//if ( sdWorld.Dist2D_Vector( this.sx / vel2 - old_sx / vel, this.sy / vel2 - old_sy / vel ) > 0.8 )
+						if ( sdWorld.Dist2D_Vector_pow2( this.sx / vel2 - old_sx / vel, this.sy / vel2 - old_sy / vel ) > 0.8 * 0.8 )
+						{
+							this.remove();
+							return true;
+						}
+
+						if ( vel > 0.001 )
+						this._damage = this._damage / vel * vel2;
+
+						if ( !sdWorld.is_server )
+						if ( sdWorld.last_hit_entity === null || !this.CanBounceOff( sdWorld.last_hit_entity ) )
+						{
+							this.remove();
+							return true;
+						}
+					}
+				}
+
+				if ( this.y > sdWorld.world_bounds.y2 )
+				{
+					if ( !this._wave )
+					sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_WALL_HIT });
+					this.remove();
+					return;
+				}
+			}
+			
+			if ( this._is_being_removed )
+			return;
 		}
 	}
 
