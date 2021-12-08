@@ -50,6 +50,8 @@ class sdEntity
 		
 		sdEntity.flag_counter = 0; // For marking entities as visited by WeakSet-like logic, but works faster
 		
+		sdEntity.y_rest_tracker = new WeakMap(); // entity => { y, repeated_sync_count }
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	
@@ -350,6 +352,32 @@ class sdEntity
 			}
 		}
 	}*/
+	static TrackPotentialYRest( ent )
+	{
+		let obj = sdEntity.y_rest_tracker.get( ent );
+		
+		if ( !obj )
+		{
+			obj = {
+				y: ent.y,
+				repeated_sync_count: 0
+			};
+			sdEntity.y_rest_tracker.set( ent, obj );
+		}
+		else
+		{
+			if ( ent.y === obj.y )
+			{
+				if ( obj.repeated_sync_count < 30 )
+				obj.repeated_sync_count++;
+			}
+			else
+			{
+				obj.y = ent.y;
+				obj.repeated_sync_count = 0;
+			}
+		}
+	}
 	// Optimized to the point where it is same as old method (sometimes +20% slower on average though), but both methods were optimized by _hard_collision optimization
 	ApplyVelocityAndCollisions( GSPEED, step_size=0, apply_friction=false, impact_scale=1, custom_filtering_method=null ) // step_size can be used by entities that can use stairs
 	{
@@ -357,6 +385,7 @@ class sdEntity
 		//const debug = ( this._class === 'sdBullet' && this._rail ) && sdWorld.is_server;
 		//const debug = ( this._class === 'sdBullet' ) && sdWorld.is_server;
 		//const debug = ( this._class === 'sdSandWorm' ) && sdWorld.is_server;
+		//const debug = ( this._class === 'sdBaseShieldingUnit' ) && sdWorld.is_server;
 		const debug = false;
 		
 		//throw new Error('Fix sword not hitting character in test world 3003');
@@ -381,7 +410,7 @@ class sdEntity
 							Math.max(
 								Math.abs( this.sx ),
 								Math.abs( this.sy )
-							) < sdWorld.gravity + 0.1 );
+							) > sdWorld.gravity + 0.1 );
 						  //!sdWorld.inDist2D_Boolean( this.sx, this.sy, 0, 0, sdWorld.gravity + 0.1 ) );
 
 			if ( !moves )
@@ -534,7 +563,8 @@ class sdEntity
 
 		const is_bg_entity = this.IsBGEntity();
 
-		for ( let iter = 0; iter < 2; iter++ ) // Only 2 iterations of linear movement, enough to allow sliding in box-collisions-world
+		//for ( let iter = 0; iter < 2; iter++ ) // Only 2 iterations of linear movement, enough to allow sliding in box-collisions-world
+		for ( let iter = 0; iter < 10; iter++ ) // Only 2 iterations of linear movement, enough to allow sliding in box-collisions-world
 		{
 			let sx = this.sx * GSPEED;
 			let sy = this.sy * GSPEED;
@@ -586,6 +616,7 @@ class sdEntity
 
 			let best_t = 1;
 			let best_ent = null;
+			let best_min_xy = Infinity;
 
 			//const ignore_entity = this;
 
@@ -594,6 +625,8 @@ class sdEntity
 			
 			const visited_ent_flag = sdEntity.flag_counter++;
 			this._flag = visited_ent_flag;
+			
+			let min_xy = Infinity;
 			
 			for ( let c = 0; c < affected_cells.length; c++ )
 			{
@@ -708,13 +741,31 @@ class sdEntity
 								{
 									if ( GetCollisionMode === sdEntity.COLLISION_MODE_BOUNCE_AND_FRICTION )
 									{
-										if ( t < best_t )
+										if ( t === best_t )
+										{
+											//trace( 'it happens' );
+											
+											min_xy = Math.min(
+
+												Math.abs( ( hitbox_x1 + hitbox_x2 ) - ( arr_i.x + arr_i._hitbox_x1 ) + ( arr_i.x + arr_i._hitbox_x2 ) ),
+												Math.abs( ( hitbox_y1 + hitbox_y2 ) - ( arr_i.y + arr_i._hitbox_y1 ) + ( arr_i.y + arr_i._hitbox_y2 ) )
+
+											);
+										}
+										
+										if ( t < best_t || ( t === best_t && min_xy < best_min_xy ) )
 										{
 											//if ( arr_i._hard_collision )
 											//{
 
 												best_t = t;
 												best_ent = arr_i;
+												
+												if ( t === best_t )
+												{
+													//trace( 'it happens and improvements happens too' );
+													best_min_xy = min_xy;
+												}
 
 												if ( best_t === 0 )
 												break;
@@ -783,8 +834,8 @@ class sdEntity
 			{
 				//trace( '-- best_t='+best_t, ' :: iter='+iter );
 				
-				if ( best_ent )
-				trace( 'Hitting ', best_t, best_ent.GetClass() );
+				//if ( best_ent )
+				//trace( 'Hitting ', best_t, best_ent.GetClass() );
 				
 				//if ( best_t < 1 )
 				//debugger;
@@ -996,6 +1047,9 @@ class sdEntity
 								break;
 								case on_left:
 								{
+									if ( debug )
+										trace('on left', [ on_top, under, on_left, on_right ], smallest );
+									
 									this.sx = - old_sx * bounce_intensity;
 
 									//if ( hard_collision && best_ent._hard_collision )
@@ -1017,6 +1071,9 @@ class sdEntity
 								break;
 								case on_right:
 								{
+									if ( debug )
+										trace('on right', [ on_top, under, on_left, on_right ], smallest );
+									
 									this.sx = old_sx * bounce_intensity;
 
 									//if ( hard_collision && best_ent._hard_collision )
@@ -1167,6 +1224,23 @@ class sdEntity
 				this.x = old_x + sx;
 				this.y = old_y + sy;
 				break;
+			}
+		}
+		
+		/*if ( debug )
+		{
+			if ( GSPEED > 0 )
+			trace('remaining GSPEED',GSPEED, this.sx, this.sy );
+		}*/
+		
+		if ( !sdWorld.is_server )
+		if ( this !== sdWorld.my_entity )
+		{
+			let obj = sdEntity.y_rest_tracker.get( this );
+			if ( obj )
+			if ( obj.repeated_sync_count > 2 )
+			{
+				this.y = obj.y;
 			}
 		}
 	}
@@ -2593,6 +2667,12 @@ class sdEntity
 		if ( existing )
 		{
 			existing.ApplySnapshot( snapshot );
+			
+			if ( !sdWorld.is_server )
+			{
+				sdEntity.TrackPotentialYRest( existing );
+			}
+			
 			return existing;
 		}
 		
@@ -3050,6 +3130,9 @@ class sdEntity
 	SafeAddVelocity( sx, sy ) // Caps velocity at 16 pixels per frame after adding it - in order to prevent too fast object velocities that can pass through walls. It means that velocity will be incorrect after it reaches maximum value. Better approach would be to add more substeps instead of it but that would cause perofrmance issues at some point
 	{
 		// No longer needed with new collision model
+		
+		this.sx += sx;
+		this.sy += sy;
 		
 		/*let sx2 = this.sx + sx;
 		let sy2 = this.sy + sy;

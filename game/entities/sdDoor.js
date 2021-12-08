@@ -340,7 +340,8 @@ class sdDoor extends sdEntity
 						let new_x = this.x0 + this.dir_x * this.openness;
 						let new_y = this.y0 + this.dir_y * this.openness;
 
-						if ( this.CanMoveWithoutOverlap( new_x, new_y, 0.1 ) ) // Small gap for doors that are placed too close
+						//if ( this.CanMoveWithoutOverlap( new_x, new_y, 0.1 ) ) // Small gap for doors that are placed too close
+						if ( this.CanMoveWithoutOverlap( new_x, new_y, 0 ) ) // Small gap for doors that are placed too close
 						{
 							this.x = new_x;
 							this.y = new_y;
@@ -350,7 +351,8 @@ class sdDoor extends sdEntity
 						{
 							let interrupter1 = sdWorld.last_hit_entity;
 
-							if ( interrupter1 !== null && sdWorld.last_hit_entity.CanMoveWithoutOverlap( sdWorld.last_hit_entity.x + ( new_x - this.x ), sdWorld.last_hit_entity.y + ( new_y - this.y ), 0.1 ) )  // Small gap for doors that are placed too close (?)
+							//if ( interrupter1 !== null && sdWorld.last_hit_entity.CanMoveWithoutOverlap( sdWorld.last_hit_entity.x + ( new_x - this.x ), sdWorld.last_hit_entity.y + ( new_y - this.y ), 0.1 ) )  // Small gap for doors that are placed too close (?)
+							if ( interrupter1 !== null && sdWorld.last_hit_entity.CanMoveWithoutOverlap( sdWorld.last_hit_entity.x + ( new_x - this.x ), sdWorld.last_hit_entity.y + ( new_y - this.y ), 0 ) )  // Small gap for doors that are placed too close (?)
 							{
 								sdWorld.last_hit_entity.x += new_x - this.x;
 								sdWorld.last_hit_entity.y += new_y - this.y;
