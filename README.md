@@ -7,9 +7,13 @@ Reason for that is a usual "I must go, my planet needs me". But once I'm done af
 
 https://twitter.com/Eric_Gurt
 
-https://www.patreon.com/Eric_Gurt
+As for my part of code, art and sound effects - this project can be used commercially (you are allowed to get revenue from it - be it ads, donations, subscriptions or purchases of game access or in-game items). Once you are over $1000 (USD) in total - just support me via my Patreon (https://www.patreon.com/Eric_Gurt).
 
-Discussion so far happens at Plazma Burst 2 discord server (besides game itself), but that isn't easy place to get into if you don't play Plazma Burst 2 though.
+As for other contributors - feel free to ask at our Discord server. If you are contributor - you can specify your requirements here as well.
+
+Currently project isn't like restricted to specific people to work on it - everyone is free to suggest pull requests or make branches and even separate games.
+
+Development-related discussions so far happen here: https://discord.gg/rX4xEc2Y9E
 
 
 # Installation
