@@ -586,8 +586,8 @@ class sdCharacter extends sdEntity
 		this._matter_regeneration_multiplier = 1; // Matter regen multiplier upgrade
 		this.workbench_level = 0; // Stand near workbench to unlock some workbench build stuff
 
-		this._score_to_level = 300;// How much score is needed to level up character?
-		this._score_to_level_additive = 300; // How much score it increases to level up next level
+		this._score_to_level = 50;// How much score is needed to level up character?
+		this._score_to_level_additive = 50; // How much score it increases to level up next level
 		this._max_level = 30; // Current maximum level for players to reach
 
 		//this._acquired_bt_mech = false; // Has the character picked up build tool upgrade that the flying mech drops?
