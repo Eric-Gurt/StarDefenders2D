@@ -709,10 +709,9 @@ class sdGunClass
 			ignore_slot: true,
 			matter_cost: 150,
 			min_workbench_level: 1,
-			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
-				// 2 was too bad for case of randomly breaking crystals when digging
-				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
+				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.3 ) * 130 ) )
 				{
 					character.armor = 130;
 					character.armor_max = 130;
@@ -740,8 +739,7 @@ class sdGunClass
 			min_workbench_level: 1,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				// 2 was too bad for case of randomly breaking crystals when digging
-				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
+				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 190 ) )
 				{
 					character.armor = 190;
 					character.armor_max = 190;
@@ -769,8 +767,7 @@ class sdGunClass
 			min_workbench_level: 1,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				// 2 was too bad for case of randomly breaking crystals when digging
-				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
+				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.5 ) * 250 ) )
 				{
 					character.armor = 250;
 					character.armor_max = 250;
@@ -1253,7 +1250,7 @@ class sdGunClass
 			min_workbench_level: 2,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
+				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.35 ) * 190 ) )
 				{
 					character.armor = 190;
 					character.armor_max = 190;
@@ -1281,7 +1278,7 @@ class sdGunClass
 			min_workbench_level: 2,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
+				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.45 ) * 280 ) )
 				{
 					character.armor = 280;
 					character.armor_max = 280;
@@ -1309,7 +1306,7 @@ class sdGunClass
 			min_workbench_level: 2,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
+				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.55 ) * 370 ) )
 				{
 					character.armor = 370;
 					character.armor_max = 370;
@@ -1558,7 +1555,7 @@ class sdGunClass
 			min_workbench_level: 6,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
+				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 300 ) )
 				{
 					character.armor = 300;
 					character.armor_max = 300;
@@ -1586,7 +1583,7 @@ class sdGunClass
 			min_workbench_level: 6,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
+				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.5 ) * 400 ) )
 				{
 					character.armor = 400;
 					character.armor_max = 400;
@@ -1614,7 +1611,7 @@ class sdGunClass
 			min_workbench_level: 6,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
+				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.6 ) * 500 ) )
 				{
 					character.armor = 500;
 					character.armor_max = 500;
@@ -2329,8 +2326,7 @@ class sdGunClass
 			spawnable: false,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
-				// 2 was too bad for case of randomly breaking crystals when digging
-				//if ( character.armor === 0 || character._armor_absorb_perc <= character._armor_absorb_perc )
+				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 190 ) )
 				{
 					character.armor = 190;
 					character.armor_max = 190;
