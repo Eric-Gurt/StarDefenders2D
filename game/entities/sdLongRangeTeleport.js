@@ -508,6 +508,7 @@ class sdLongRangeTeleport extends sdEntity
 				if ( ent.IsPlayerClass() )
 				{
 					ent._respawn_protection = 30 * 10; // 10 seconds of protection once teleported
+					ent._god = false;
 				}
 			}
 			
