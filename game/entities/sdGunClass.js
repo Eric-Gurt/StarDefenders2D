@@ -711,14 +711,19 @@ class sdGunClass
 			min_workbench_level: 1,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
+				if ( character.ApplyArmor({ armor: 130, _armor_absorb_perc: 0.3, armor_speed_reduction: 0 }) )
+				gun.remove();
+				/*
 				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.3 ) * 130 )
 				{
 					character.armor = 130;
 					character.armor_max = 130;
 					character._armor_absorb_perc = 0.3; // 30% damage reduction
 					character.armor_speed_reduction = 0; // Armor speed reduction, 0% for light armor
+					if ( character._socket ) 
+						sdSound.PlaySound({ name:'armor_pickup', x:character.x, y:character.y, volume:1, pitch: 1.2 - character._armor_absorb_perc * 0.4 }, [ character._socket ] );
 					gun.remove(); 
-				}
+				}*/
 
 				return false; 
 			} 
@@ -739,14 +744,19 @@ class sdGunClass
 			min_workbench_level: 1,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 190 )
+				if ( character.ApplyArmor({ armor: 190, _armor_absorb_perc: 0.4, armor_speed_reduction: 5 }) )
+				gun.remove();
+			
+				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 190 )
 				{
 					character.armor = 190;
 					character.armor_max = 190;
 					character._armor_absorb_perc = 0.4; // 40% damage reduction
 					character.armor_speed_reduction = 5; // Armor speed reduction, 5% for medium armor
+					if ( character._socket ) 
+						sdSound.PlaySound({ name:'armor_pickup', x:character.x, y:character.y, volume:1, pitch: 1.2 - character._armor_absorb_perc * 0.4 }, [ character._socket ] );
 					gun.remove(); 
-				}
+				}*/
 
 				return false; 
 			} 
@@ -767,14 +777,19 @@ class sdGunClass
 			min_workbench_level: 1,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.5 ) * 250 )
+				if ( character.ApplyArmor({ armor: 250, _armor_absorb_perc: 0.5, armor_speed_reduction: 10 }) )
+				gun.remove();
+			
+				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.5 ) * 250 )
 				{
 					character.armor = 250;
 					character.armor_max = 250;
 					character._armor_absorb_perc = 0.5; // 50% damage reduction
 					character.armor_speed_reduction = 10; // Armor speed reduction, 10% for heavy armor
+					if ( character._socket ) 
+						sdSound.PlaySound({ name:'armor_pickup', x:character.x, y:character.y, volume:1, pitch: 1.2 - character._armor_absorb_perc * 0.4 }, [ character._socket ] );
 					gun.remove(); 
-				}
+				}*/
 
 				return false; 
 			} 
@@ -1250,14 +1265,19 @@ class sdGunClass
 			min_workbench_level: 2,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.35 ) * 190 )
+				if ( character.ApplyArmor({ armor: 190, _armor_absorb_perc: 0.35, armor_speed_reduction: 0 }) )
+				gun.remove();
+			
+				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.35 ) * 190 )
 				{
 					character.armor = 190;
 					character.armor_max = 190;
 					character._armor_absorb_perc = 0.35; // 35% damage reduction
 					character.armor_speed_reduction = 0; // Armor speed reduction, 0% for light armor
+					if ( character._socket ) 
+						sdSound.PlaySound({ name:'armor_pickup', x:character.x, y:character.y, volume:1, pitch: 1.2 - character._armor_absorb_perc * 0.4 }, [ character._socket ] );
 					gun.remove(); 
-				}
+				}*/
 
 				return false; 
 			} 
@@ -1278,14 +1298,19 @@ class sdGunClass
 			min_workbench_level: 2,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.45 ) * 280 )
+				if ( character.ApplyArmor({ armor: 280, _armor_absorb_perc: 0.45, armor_speed_reduction: 5 }) )
+				gun.remove();
+			
+				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.45 ) * 280 )
 				{
 					character.armor = 280;
 					character.armor_max = 280;
 					character._armor_absorb_perc = 0.45; // 45% damage reduction
 					character.armor_speed_reduction = 5; // Armor speed reduction, 5% for medium armor
+					if ( character._socket ) 
+						sdSound.PlaySound({ name:'armor_pickup', x:character.x, y:character.y, volume:1, pitch: 1.2 - character._armor_absorb_perc * 0.4 }, [ character._socket ] );
 					gun.remove(); 
-				}
+				}*/
 
 				return false; 
 			} 
@@ -1306,14 +1331,19 @@ class sdGunClass
 			min_workbench_level: 2,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.55 ) * 370 )
+				if ( character.ApplyArmor({ armor: 370, _armor_absorb_perc: 0.55, armor_speed_reduction: 10 }) )
+				gun.remove();
+			
+				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.55 ) * 370 )
 				{
 					character.armor = 370;
 					character.armor_max = 370;
 					character._armor_absorb_perc = 0.55; // 55% damage reduction
 					character.armor_speed_reduction = 10; // Armor speed reduction, 10% for heavy armor
+					if ( character._socket ) 
+						sdSound.PlaySound({ name:'armor_pickup', x:character.x, y:character.y, volume:1, pitch: 1.2 - character._armor_absorb_perc * 0.4 }, [ character._socket ] );
 					gun.remove(); 
-				}
+				}*/
 
 				return false; 
 			} 
@@ -1555,14 +1585,19 @@ class sdGunClass
 			min_workbench_level: 6,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 300 )
+				if ( character.ApplyArmor({ armor: 300, _armor_absorb_perc: 0.4, armor_speed_reduction: 0 }) )
+				gun.remove();
+			
+				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 300 )
 				{
 					character.armor = 300;
 					character.armor_max = 300;
 					character._armor_absorb_perc = 0.4; // 40% damage reduction
 					character.armor_speed_reduction = 0; // Armor speed reduction, 0% for light armor
+					if ( character._socket ) 
+						sdSound.PlaySound({ name:'armor_pickup', x:character.x, y:character.y, volume:1, pitch: 1.2 - character._armor_absorb_perc * 0.4 }, [ character._socket ] );
 					gun.remove(); 
-				}
+				}*/
 
 				return false; 
 			} 
@@ -1583,14 +1618,19 @@ class sdGunClass
 			min_workbench_level: 6,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.5 ) * 400 )
+				if ( character.ApplyArmor({ armor: 400, _armor_absorb_perc: 0.5, armor_speed_reduction: 5 }) )
+				gun.remove();
+			
+				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.5 ) * 400 )
 				{
 					character.armor = 400;
 					character.armor_max = 400;
 					character._armor_absorb_perc = 0.5; // 50% damage reduction
 					character.armor_speed_reduction = 5; // Armor speed reduction, 5% for medium armor
+					if ( character._socket ) 
+						sdSound.PlaySound({ name:'armor_pickup', x:character.x, y:character.y, volume:1, pitch: 1.2 - character._armor_absorb_perc * 0.4 }, [ character._socket ] );
 					gun.remove(); 
-				}
+				}*/
 
 				return false; 
 			} 
@@ -1611,14 +1651,19 @@ class sdGunClass
 			min_workbench_level: 6,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
-				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.6 ) * 500 )
+				if ( character.ApplyArmor({ armor: 500, _armor_absorb_perc: 0.6, armor_speed_reduction: 10 }) )
+				gun.remove();
+			
+				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.6 ) * 500 )
 				{
 					character.armor = 500;
 					character.armor_max = 500;
 					character._armor_absorb_perc = 0.6; // 60% damage reduction
 					character.armor_speed_reduction = 10; // Armor speed reduction, 10% for heavy armor
+					if ( character._socket ) 
+						sdSound.PlaySound({ name:'armor_pickup', x:character.x, y:character.y, volume:1, pitch: 1.2 - character._armor_absorb_perc * 0.4 }, [ character._socket ] );
 					gun.remove(); 
-				}
+				}*/
 
 				return false; 
 			} 
@@ -2326,14 +2371,19 @@ class sdGunClass
 			spawnable: false,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as armor
 			{ 
-				if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 190 )
+				if ( character.ApplyArmor({ armor: 190, _armor_absorb_perc: 0.4, armor_speed_reduction: 5 }) )
+				gun.remove();
+			
+				/*if ( ( 1 - character._armor_absorb_perc ) * character.armor <= ( 1 - 0.4 ) * 190 )
 				{
 					character.armor = 190;
 					character.armor_max = 190;
 					character._armor_absorb_perc = 0.4; // 40% damage reduction
 					character.armor_speed_reduction = 5; // Armor speed reduction, 5% for medium armor
+					if ( character._socket ) 
+						sdSound.PlaySound({ name:'armor_pickup', x:character.x, y:character.y, volume:1, pitch: 1.2 - character._armor_absorb_perc * 0.4 }, [ character._socket ] );
 					gun.remove(); 
-				}
+				}*/
 
 				return false; 
 			} 

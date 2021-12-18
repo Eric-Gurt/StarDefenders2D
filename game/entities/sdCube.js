@@ -170,7 +170,7 @@ class sdCube extends sdEntity
 	
 		//dmg = Math.abs( dmg );
 		
-		let explode_on_hea = ( this.kind === 2 ? -2000 : -1000 )
+		let explode_on_hea = ( this.kind === 2 ? -2000 : -1000 );
 		
 		let was_existing = ( this.hea > explode_on_hea );
 		

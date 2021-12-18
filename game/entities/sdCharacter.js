@@ -990,6 +990,26 @@ class sdCharacter extends sdEntity
 		this.armor_speed_reduction = 0; 
 		this._armor_repair_amount = 0; // Completely broken armor cannot be repaired
 	}
+	ApplyArmor( params )
+	{
+		params.armor = params.armor || 100;
+		params._armor_absorb_perc = params._armor_absorb_perc || 0;
+		params.armor_speed_reduction = params.armor_speed_reduction || 0;
+		
+		if ( ( 1 - this._armor_absorb_perc ) * this.armor < ( 1 - params._armor_absorb_perc ) * params.armor )
+		{
+			this.armor = params.armor;
+			this.armor_max = params.armor;
+			this._armor_absorb_perc = params._armor_absorb_perc; // 0..1 * 100% damage reduction
+			this.armor_speed_reduction = params.armor_speed_reduction; // Armor speed reduction, 5% for medium armor
+			
+			if ( this._socket ) 
+			sdSound.PlaySound({ name:'armor_pickup', x:this.x, y:this.y, volume:1, pitch: 1.5 - this._armor_absorb_perc * 1 }, [ this._socket ] );
+		
+			return true;
+		}
+		return false;
+	}
 	
 	Damage( dmg, initiator=null, headshot=false, affects_armor=true )
 	{
@@ -1113,7 +1133,11 @@ class sdCharacter extends sdEntity
 					if ( damage_to_deal < 0 )
 					throw new Error( 'Armor logic error, hitpoints damage is negative damage_to_deal === ' + damage_to_deal );
 					
+					sdSound.PlaySound({ name:'armor_break', x:this.x, y:this.y, volume:1, pitch: 1.5 - this._armor_absorb_perc * 1 } );
+					
 					this.RemoveArmor();
+					
+					
 				}
 			}
 			
