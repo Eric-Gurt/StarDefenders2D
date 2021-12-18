@@ -69,7 +69,7 @@ class sdServerToServerProtocol
 			if ( sdWorld.server_config.allowed_s2s_protocol_ips.indexOf( ip ) === -1 )
 			{
 				rejection = true;
-				throw new Error( 'IP is not specified in sdWorld.server_config.allowed_s2s_protocol_ips array (server_config*.js)' );
+				throw new Error( 'IP '+ip+' is not specified in sdWorld.server_config.allowed_s2s_protocol_ips array (server_config*.js)' );
 			}
 
 			if ( typeof route_and_data_object === 'object' )
