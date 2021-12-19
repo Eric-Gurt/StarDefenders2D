@@ -506,9 +506,9 @@ class sdStorage extends sdEntity
 	              		ent.sx = 0;
 	                	ent.sy = 0;
 	                }
-			if ( ent.held_by !== 'undefined' )
+			if ( typeof ent.held_by !== 'undefined' )
 			ent.held_by = null;
-			if ( ent._held_by !== 'undefined' )
+			if ( typeof ent._held_by !== 'undefined' )
 			ent._held_by = null;
 	        }
 
