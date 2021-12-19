@@ -372,11 +372,6 @@ class sdStorage extends sdEntity
 				{
 					if ( i + 1 > this._stored_items.length )
 					{
-						if ( from_entity._held_by )
-						from_entity._held_by = null;
-
-						if ( from_entity.held_by )
-						from_entity.held_by = null;
 
 						this._stored_items.push( from_entity.GetSnapshot( GetFrame, true ) );
 						//console.log( this._stored_items );
@@ -389,6 +384,19 @@ class sdStorage extends sdEntity
 						//console.log( this.stored_names );
 						from_entity.remove();
 						from_entity._broken = false;
+						
+						if ( this.type === 0 )
+						sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
+
+						if ( this.type === 1 )
+						sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume: 1, pitch: 5 });
+
+						if ( this.type === 2 )
+						sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
+
+						if ( this.type === 3 )
+						sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:3 });
+
 						return;
 					}
 					else
