@@ -56,6 +56,8 @@ globalThis.trace = console.log;
 	import LZW from './server/LZW.js';
 	import LZUTF8 from './server/LZUTF8.js';
 	import sdSnapPack from './server/sdSnapPack.js';
+	
+	import sdPathFinding from './ai/sdPathFinding.js';
 
 	import sdWorld from './sdWorld.js';
 	import sdSound from './sdSound.js';
@@ -127,6 +129,8 @@ globalThis.trace = console.log;
 	sdWorld.init_class();
 	sdRenderer.init_class();
 	LZW.init_class();
+	
+	sdPathFinding.init_class();
 	
 	sdSound.init_class();
 	sdContextMenu.init_class();
@@ -209,6 +213,7 @@ globalThis.trace = console.log;
 	globalThis.sdChat = sdChat;
 	globalThis.sdContextMenu = sdContextMenu;
 	globalThis.LZW = LZW;
+	globalThis.sdPathFinding = sdPathFinding;
 	
 	sdWorld.FinalizeClasses();
 

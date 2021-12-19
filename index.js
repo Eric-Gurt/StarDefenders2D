@@ -272,6 +272,8 @@ import sdWeaponBench from './game/entities/sdWeaponBench.js';
 import sdLongRangeTeleport from './game/entities/sdLongRangeTeleport.js';
 import sdServerToServerProtocol from './game/server/sdServerToServerProtocol.js';
 
+import sdPathFinding from './game/ai/sdPathFinding.js';
+
 import LZW from './game/server/LZW.js';
 import LZUTF8 from './game/server/LZUTF8.js';
 import sdSnapPack from './game/server/sdSnapPack.js';
@@ -443,6 +445,8 @@ sdWeaponBench.init_class();
 sdLongRangeTeleport.init_class();
 sdServerToServerProtocol.init_class();
 
+	
+sdPathFinding.init_class();
 
 /* Do like that later, not sure if I want to deal with path problems yet again... Add awaits where needed too
 

@@ -6,6 +6,8 @@ import sdShop from '../client/sdShop.js';
 import sdChat from '../client/sdChat.js';
 import sdContextMenu from '../client/sdContextMenu.js';
 
+import sdPathFinding from '../ai/sdPathFinding.js';
+
 import sdEntity from '../entities/sdEntity.js';
 import sdWeather from '../entities/sdWeather.js';
 import sdBlock from '../entities/sdBlock.js';
@@ -969,6 +971,8 @@ class sdRenderer
 				}
 			}
 		}
+		
+		sdPathFinding.StaticRender( ctx );
 		
 		ctx.resetTransform();
 		
