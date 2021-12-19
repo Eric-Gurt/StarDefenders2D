@@ -155,17 +155,18 @@ class sdContextMenu
 						
 						for ( var i = 0; i < items.length; i++ )
 						{
-							if ( sdContextMenu.current_target.type === 0 || sdContextMenu.current_target.type === 1 )
+							//if ( sdContextMenu.current_target.type === 0 || sdContextMenu.current_target.type === 1 )
 							{
-								let net_id = items[ i ]._net_id;
-								sdContextMenu.options.push({ title: 'Get ' + sdEntity.GuessEntityName( net_id )/*user ' + net_id*/,
+								let item = items[ i ]; // Name of the item
+								let it_c = i; // For some reason I need this since otherwise setting "i" value on socket emit array below results always in last value - Booraz
+								sdContextMenu.options.push({ title: 'Get ' + item,
 									action: ()=>
 									{
-										globalThis.socket.emit( 'STORAGE_GET', [ sdContextMenu.current_target._net_id, net_id ] );
+										globalThis.socket.emit( 'STORAGE_GET', [ sdContextMenu.current_target._net_id, it_c ] );
 									}
 								});
 							}
-							if ( sdContextMenu.current_target.type === 2 )
+							/*if ( sdContextMenu.current_target.type === 2 )
 							{
 								let net_id = items[ i ]._net_id;
 								sdContextMenu.options.push({ title: 'Get '+items[ i ].title+' ( ' + items[ i ].matter_max + ' max matter )',
@@ -185,6 +186,7 @@ class sdContextMenu
 									}
 								});
 							}
+							*/
 						}
 					}
 				}
