@@ -351,7 +351,7 @@ class sdGun extends sdEntity
 	{
 		if ( this._held_by )
 		{
-			this._held_by.DropSpecificWeapon( this );
+			//this._held_by.DropSpecificWeapon( this );
 			/*
 			if ( this._held_by._inventory[ sdGun.classes[ this.class ].slot ] === this )
 			this._held_by._inventory[ sdGun.classes[ this.class ].slot ] = null;

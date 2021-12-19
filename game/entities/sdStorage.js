@@ -58,9 +58,12 @@ class sdStorage extends sdEntity
 		
 		//this._held_items = [];
 		//this.held_net_ids = [];
+
+		this.stored_names = [];
+		this._stored_items = [];
 		
 		for ( var i = 0; i < sdStorage.slots_tot; i++ )
-		this[ 'item' + i ] = null;
+		this[ 'item' + i ] = null; // This should be removed later since it is not needed beside storage crates rework storing pre-rework items - Booraz149
 	
 		this._allow_pickup = false;
 		
@@ -185,8 +188,8 @@ class sdStorage extends sdEntity
 		this[ 'item' + i ].UpdateHeldPosition();
 		*/
 		// Same but without string operations, it is faster but stould be reverted in case of more/less max items
-
-		if ( this.item0 )
+		
+		/*if ( this.item0 )
 		this.item0.UpdateHeldPosition();
 		if ( this.item1 )
 		this.item1.UpdateHeldPosition();
@@ -197,7 +200,7 @@ class sdStorage extends sdEntity
 		if ( this.item4 )
 		this.item4.UpdateHeldPosition();
 		if ( this.item5 )
-		this.item5.UpdateHeldPosition();
+		this.item5.UpdateHeldPosition();*/
 		
 		if ( sdWorld.is_server || this.awake )
 		{
@@ -273,8 +276,8 @@ class sdStorage extends sdEntity
 			
 			for ( var i = 0; i < sdStorage.slots_tot; i++ )
 			{
-				let ent = this.DropSlot( i );
-				
+				let ent = this.DropSlot( 0 ); // "this.DropSlot( i );" stops working halfway since DropSlot checks length of this._stored_items, which results in "i" being larger than stored items length - Booraz149
+				//this.DropSlot( i );
 				if ( ent )
 				{
 					// We need to make sure items have restored their collisions before we could try placing them
@@ -326,10 +329,14 @@ class sdStorage extends sdEntity
 		}
 		else
 		{
-			for ( var i = 0; i < sdStorage.slots_tot; i++ )
-			if ( this[ 'item' + i ] )
-			this[ 'item' + i ].remove();
+			//for ( var i = 0; i < sdStorage.slots_tot; i++ )
+			//if ( this[ 'item' + i ] )
+			//this[ 'item' + i ].remove();
 		}
+	}
+	ExtraSerialzableFieldTest( prop )
+	{
+		return ( prop === '_stored_items' );
 	}
 	MeasureMatterCost()
 	{
@@ -354,110 +361,47 @@ class sdStorage extends sdEntity
 			return;
 			//throw new Error('Should not happen');
 		}
-		if ( this.type === 0 || this.type === 1 )
-		if ( from_entity.is( sdGun ) )
-		{
-			if ( from_entity._held_by === null )
-			{
-				let free_slot = -1;
-				
-				for ( var i = 0; i < sdStorage.slots_tot; i++ )
-				{
-					if ( this[ 'item' + i ] )
-					{
-						if ( this[ 'item' + i ] === from_entity )
-						return;
-					}
-					else
-					if ( free_slot === -1 )
-					free_slot = i;
-				}
-
-				if ( free_slot !== -1 )
-				{
-					this[ 'item' + free_slot ] = from_entity;
-
-					from_entity.ttl = -1;
-					from_entity._held_by = this;
-					
-					if ( from_entity._dangerous )
-					{
-						from_entity._dangerous = false;
-						from_entity._dangerous_from = null;
-					}
-					if ( this.type === 0 )
-					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
-					else
-					if ( this.type === 1 )
-					sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume: 1, pitch: 5 });
-				}
-			}
-		}
-		if ( this.type === 2 )
-		if ( from_entity.is( sdCrystal ) && from_entity.type !== sdCrystal.TYPE_CRYSTAL_BIG )
+		if ( ( ( this.type === 0 || this.type === 1 ) && from_entity.is( sdGun ) ) || ( this.type === 2 && from_entity.is( sdCrystal ) && from_entity.type !== sdCrystal.TYPE_CRYSTAL_BIG ) || ( this.type === 3 && from_entity !== this && from_entity.is( sdStorage ) && ( from_entity.type === 0 || from_entity.type === 1 ) ) )
 		{
 			//if ( from_entity._held_by === null )
-			if ( from_entity.held_by === null )
+			if ( !from_entity._is_being_removed )
 			{
 				let free_slot = -1;
 				
 				for ( var i = 0; i < sdStorage.slots_tot; i++ )
 				{
-					if ( this[ 'item' + i ] )
+					if ( i + 1 > this._stored_items.length )
 					{
-						if ( this[ 'item' + i ] === from_entity )
+
+						this._stored_items.push( from_entity.GetSnapshot( GetFrame, true ) );
+						//console.log( this._stored_items );
+						if ( from_entity.is( sdGun ) )
+						this.stored_names.push( sdEntity.GuessEntityName( from_entity._net_id ) );
+						if ( from_entity.is( sdCrystal ) )
+						this.stored_names.push( from_entity.title+' ( ' + from_entity.matter_max + ' max matter )' );
+						if ( from_entity.is( sdStorage ) )
+						this.stored_names.push( from_entity.title );
+						//console.log( this.stored_names );
+						from_entity.remove();
+						from_entity._broken = false;
+						
+						if ( this.type === 0 )
+						sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
+
+						if ( this.type === 1 )
+						sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume: 1, pitch: 5 });
+
+						if ( this.type === 2 )
+						sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
+
+						if ( this.type === 3 )
+						sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:3 });
+
 						return;
 					}
 					else
 					if ( free_slot === -1 )
 					free_slot = i;
-				}
-
-				if ( free_slot !== -1 )
-				{
-					this[ 'item' + free_slot ] = from_entity;
-
-					//from_entity.should_draw = 0;
-					//from_entity._held_by = this;
-					from_entity.held_by = this;
-					
-					if ( this.type === 2 )
-					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
-				}
-			}
-		}
-
-		if ( this.type === 3 )
-		if ( from_entity !== this )
-		if ( from_entity.is( sdStorage ) && ( from_entity.type === 0 || from_entity.type === 1 ) )
-		{
-			//if ( from_entity._held_by === null )
-			if ( from_entity.held_by === null )
-			{
-				let free_slot = -1;
-				
-				for ( var i = 0; i < sdStorage.slots_tot; i++ )
-				{
-					if ( this[ 'item' + i ] )
-					{
-						if ( this[ 'item' + i ] === from_entity )
-						return;
-					}
-					else
-					if ( free_slot === -1 )
-					free_slot = i;
-				}
-
-				if ( free_slot !== -1 )
-				{
-					this[ 'item' + free_slot ] = from_entity;
-
-					//from_entity.should_draw = 0;
-					//from_entity._held_by = this;
-					from_entity.held_by = this;
-					
-					if ( this.type === 3 )
-					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:3 });
 				}
 			}
 		}
@@ -467,8 +411,8 @@ class sdStorage extends sdEntity
 		let arr = [];
 		
 		for ( var i = 0; i < sdStorage.slots_tot; i++ )
-		if ( this[ 'item' + i ] )
-		arr.push( this[ 'item' + i ] );
+		if ( i < this.stored_names.length )
+		arr.push( this.stored_names[ i ] );
 		
 		return arr;
 	}
@@ -478,10 +422,10 @@ class sdStorage extends sdEntity
 	}
 	ExtractItem( item_net_id, initiator_character=null, throw_on_not_found=false )
 	{
+		//console.log( item_net_id )
 		let slot = -1;
 		for ( var i = 0; i < sdStorage.slots_tot; i++ )
-		if ( this[ 'item' + i ] )
-		if ( this[ 'item' + i ]._net_id === item_net_id )
+		if ( i === item_net_id )
 		{
 			slot = i;
 			break;
@@ -498,10 +442,10 @@ class sdStorage extends sdEntity
 		}
 		else
 		{
-			let item = this[ 'item' + slot ];
+			//let item = this._stored_items[ i ];
 			
-			this.DropSlot( slot );
-			if ( this.type === 0 || this.type === 1 )
+			let item = this.DropSlot( slot, initiator_character );
+			if ( this.type === 0 || this.type === 1 ) // For this one I don't know if it's needed but it is for the other two
 			if ( initiator_character )
 			{
 				item.x = initiator_character.x;
@@ -516,7 +460,11 @@ class sdStorage extends sdEntity
 					item.y = initiator_character.y - 4;
 				}
 				else
-				initiator_character._socket.SDServiceMessage( 'Not enough space to extract item' );
+				{
+					initiator_character._socket.SDServiceMessage( 'Not enough space to extract item' );
+					item.x = this.x; // Put it back in crate to prevent glitching
+					item.y = this.y;
+				}
 			}
 			if ( this.type === 3 )
 			if ( initiator_character )
@@ -527,46 +475,44 @@ class sdStorage extends sdEntity
 					item.y = initiator_character.y - 4;
 				}
 				else
-				initiator_character._socket.SDServiceMessage( 'Not enough space to extract item' );
+				{
+					initiator_character._socket.SDServiceMessage( 'Not enough space to extract item' );
+					item.x = this.x; // Put it back in crate to prevent glitching
+					item.y = this.y;
+				}
 			}
 		}
 	}
-	DropSlot( slot )
-	{
-		let item = this[ 'item' + slot ];
-		
-		if ( item )
-		{
-			this[ 'item' + slot ] = null;
-			if ( this.type === 0 || this.type === 1 )
-			{
-				item.ttl = sdGun.disowned_guns_ttl;
-				item._held_by = null;
-				item.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-			
-				item.PhysWakeUp();
-			}
-			if ( this.type === 2 ) // Crystals don't have hiberstate
-			{
-				//item.should_draw = 1;
-				//item._held_by = null;
-				item.held_by = null;
-				//item.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-			
-				item.PhysWakeUp();
-			}
-			if ( this.type === 3 )
-			{
-				//item.should_draw = 1;
-				//item._held_by = null;
-				item.held_by = null;
-				item.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-			
-				item.PhysWakeUp();
-			}
-		}
-		
-		return item;
+	DropSlot( slot, initiator_character=null )
+	    {
+	        let ent;
+	        if ( slot >= 0 && slot < this._stored_items.length )
+	        {
+	                ent = sdEntity.GetObjectFromSnapshot( this._stored_items[ slot ] );
+	                this._stored_items.splice( slot, 1 );
+			//console.log(this._stored_items);
+	                this.stored_names.splice( slot, 1 );
+	                if ( !initiator_character )
+	                {
+	                	ent.x = this.x;
+	                	ent.y = this.y;
+	                	ent.sx = 0;
+	                	ent.sy = 0;
+	                }
+	                if ( initiator_character )
+	                {
+	                	ent.x = initiator_character.x;
+	               		ent.y = initiator_character.y;
+	              		ent.sx = 0;
+	                	ent.sy = 0;
+	                }
+			if ( ent.held_by !== 'undefined' )
+			ent.held_by = null;
+			if ( ent._held_by !== 'undefined' )
+			ent._held_by = null;
+	        }
+
+		return ent;
 	}
 }
 //sdStorage.init_class();
