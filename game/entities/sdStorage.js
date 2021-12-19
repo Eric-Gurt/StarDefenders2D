@@ -506,11 +506,11 @@ class sdStorage extends sdEntity
 	              		ent.sx = 0;
 	                	ent.sy = 0;
 	                }
+			if ( ent.held_by !== 'undefined' )
+			ent.held_by = null;
+			if ( ent._held_by !== 'undefined' )
+			ent._held_by = null;
 	        }
-		if ( ent.held_by )
-		ent.held_by = null;
-		if ( ent._held_by )
-		ent._held_by = null;
 
 		return ent;
 	}
