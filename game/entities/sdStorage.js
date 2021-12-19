@@ -494,19 +494,24 @@ class sdStorage extends sdEntity
 	                this.stored_names.splice( slot, 1 );
 	                if ( !initiator_character )
 	                {
-	                    ent.x = this.x;
-	                    ent.y = this.y;
-	                    ent.sx = 0;
-	                    ent.sy = 0;
+	                	ent.x = this.x;
+	                	ent.y = this.y;
+	                	ent.sx = 0;
+	                	ent.sy = 0;
 	                }
 	                if ( initiator_character )
 	                {
-	                    ent.x = initiator_character.x;
-	                    ent.y = initiator_character.y;
-	                    ent.sx = 0;
-	                    ent.sy = 0;
+	                	ent.x = initiator_character.x;
+	               		ent.y = initiator_character.y;
+	              		ent.sx = 0;
+	                	ent.sy = 0;
 	                }
 	        }
+		if ( ent.held_by )
+		ent.held_by = null;
+		if ( ent._held_by )
+		ent._held_by = null;
+
 		return ent;
 	}
 }
