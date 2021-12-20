@@ -220,7 +220,11 @@ class sdStorage extends sdEntity
 			for ( var i = 0; i < sdStorage.slots_tot; i++ )
 			if ( this[ 'item' + i ] )
 			{
+				if ( typeof this[ 'item' + i ]._held_by !== 'undefined' )
 				this[ 'item' + i ]._held_by = null;
+			
+				if ( typeof this[ 'item' + i ].held_by !== 'undefined' )
+				this[ 'item' + i ].held_by = null;
 				
 				this.onMovementInRange( this[ 'item' + i ] );
 				
