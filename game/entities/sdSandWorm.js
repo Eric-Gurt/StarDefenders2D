@@ -19,6 +19,10 @@ class sdSandWorm extends sdEntity
 		sdSandWorm.img_worm_head_idle = sdWorld.CreateImageFromFile( 'worm_head_idle' );
 		sdSandWorm.img_worm_head_attack = sdWorld.CreateImageFromFile( 'worm_head_attack' );
 		sdSandWorm.img_worm_body = sdWorld.CreateImageFromFile( 'worm_body' );
+
+		sdSandWorm.img_worm_spiky_head_idle = sdWorld.CreateImageFromFile( 'worm_spiky_head_idle' ); // Sprite by Gashadokuro for spiky worms
+		sdSandWorm.img_worm_spiky_head_attack = sdWorld.CreateImageFromFile( 'worm_spiky_head_attack' );
+		sdSandWorm.img_worm_spiky_body = sdWorld.CreateImageFromFile( 'worm_spiky_body' );
 		
 		sdSandWorm.post_death_ttl = 30 * 6;
 		
@@ -37,6 +41,10 @@ class sdSandWorm extends sdEntity
 		
 		sdSandWorm.ignoring = [ 'sdWater', 'sdSandWorm' ];
 		sdSandWorm.ignoring_dead = [ 'sdSandWorm' ];
+
+		sdSandWorm.KIND_NORMAL_WORM = 0;
+		sdSandWorm.KIND_SPIKY_WORM = 1;
+		sdSandWorm.KIND_CORRUPTED_WORM = 2; // Not made yet
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -69,6 +77,8 @@ class sdSandWorm extends sdEntity
 		
 		this.sx = 0;
 		this.sy = 0;
+
+		this.kind = params.kind || 0;
 		
 		this.scale = params.scale || Math.max( 0.6, Math.random() * 2 );
 
@@ -129,7 +139,7 @@ class sdSandWorm extends sdEntity
 	
 	HasEnoughMatter( ent ) // sdSandWorms will actually hunt entities that have some amount of matter, for example one that is enough to buy damage upgrades. Thus won't target new players
 	{
-		return ( ent.matter >= 200 * this.scale ); // I think getting to 100 matter sets worms to hunt players while they're upgrading damage and health, this is more fair IMO - Booraz
+		return ( ent.matter >= ( this.kind === 1 ? 400 : 200 ) * this.scale ); // I think getting to 100 matter sets worms to hunt players while they're upgrading damage and health, this is more fair IMO - Booraz
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
@@ -167,6 +177,9 @@ class sdSandWorm extends sdEntity
 		dmg = Math.abs( dmg );
 		
 		let head_entity = this.GetHeadEntity();
+
+		if ( head_entity !== this && this.kind === sdSandWorm.KIND_SPIKY_WORM ) // Is this the spiky worm?
+		dmg = dmg * 0.15; // 85% damage reduction to body damage for spiky worms, to force players to shoot them in the head
 		
 		if ( initiator )
 		//if ( !initiator.is( sdSandWorm ) )
@@ -411,6 +424,7 @@ class sdSandWorm extends sdEntity
 				wyrmhide_chance += 0.1; // Increase the chance
 
 				ent.scale = ent_scale;
+				ent.kind = this.kind;
 				
 				ent.model = 2;
 				
@@ -677,7 +691,13 @@ class sdSandWorm extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 && ( !this._in_surface || this._in_water ) )
-		sdEntity.Tooltip( ctx, "Worm" );
+		{
+			if ( this.kind === sdSandWorm.KIND_NORMAL_WORM )
+			sdEntity.Tooltip( ctx, "Worm" );
+
+			if ( this.kind === sdSandWorm.KIND_SPIKY_WORM )
+			sdEntity.Tooltip( ctx, "Spiky Worm" );
+		}
 	}
 	Draw( ctx, attached )
 	{
@@ -690,13 +710,26 @@ class sdSandWorm extends sdEntity
 		
 		ctx.scale( this.scale, this.scale );
 		
-		if ( this.model === 1 /*|| ( this.model === 0 && this._in_surface )*/ )
-		ctx.drawImageFilterCache( sdSandWorm.img_worm_head_attack, - 16, - 16, 32,32 );
-		else
-		if ( this.model === 0 )
-		ctx.drawImageFilterCache( sdSandWorm.img_worm_head_idle, - 16, - 16, 32,32 );
-		else
-		ctx.drawImageFilterCache( sdSandWorm.img_worm_body, - 16, - 16, 32,32 );
+		if ( this.kind === sdSandWorm.KIND_NORMAL_WORM  )
+		{
+			if ( this.model === 1 /*|| ( this.model === 0 && this._in_surface )*/ )
+			ctx.drawImageFilterCache( sdSandWorm.img_worm_head_attack, - 16, - 16, 32,32 );
+			else
+			if ( this.model === 0 )
+			ctx.drawImageFilterCache( sdSandWorm.img_worm_head_idle, - 16, - 16, 32,32 );
+			else
+			ctx.drawImageFilterCache( sdSandWorm.img_worm_body, - 16, - 16, 32,32 );
+		}
+		if ( this.kind === sdSandWorm.KIND_SPIKY_WORM  )
+		{
+			if ( this.model === 1 /*|| ( this.model === 0 && this._in_surface )*/ )
+			ctx.drawImageFilterCache( sdSandWorm.img_worm_spiky_head_attack, - 16, - 16, 32,32 );
+			else
+			if ( this.model === 0 )
+			ctx.drawImageFilterCache( sdSandWorm.img_worm_spiky_head_idle, - 16, - 16, 32,32 );
+			else
+			ctx.drawImageFilterCache( sdSandWorm.img_worm_spiky_body, - 16, - 16, 32,32 );
+		}
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
@@ -738,14 +771,14 @@ class sdSandWorm extends sdEntity
 
 			if ( !this.towards_head ) // Is head
 			{
-				if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )
+				/*if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )
 				{
 					if ( from_entity._reinforced_level > 0 ) // Worms should not damage reinforced blocks to prevent raiders using them
 					from_entity.Damage( 0, this );
 					else
 					from_entity.Damage( 300 * this.scale, this );
 				}
-				else
+				else*/
 				from_entity.Damage( 300 * this.scale, this );
 				
 				this.model = 0;
@@ -767,15 +800,15 @@ class sdSandWorm extends sdEntity
 			}
 			else
 			{
-				if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )
+				/*if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )
 				{
 					if ( from_entity._reinforced_level > 0 ) // Worms should not damage reinforced blocks to prevent raiders using them
 					from_entity.Damage( 0, this );
 					else
 					from_entity.Damage( 20 * this.scale, this );
 				}
-				else
-				from_entity.Damage( 20 * this.scale, this );
+				else*/
+				from_entity.Damage( ( this.kind === sdSandWorm.KIND_SPIKY_WORM ? 5 : 1 ) * 20 * this.scale, this );
 			}
 		}
 	}

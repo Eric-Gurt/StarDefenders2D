@@ -460,6 +460,7 @@ class sdBlock extends sdEntity
 								{
 									let ent = new sdWorld.entity_classes[ this._contains_class ]({ x: this.x + xx * 16 + 16, y: this.y + yy * 16 + 16 });
 									ent.scale = Math.min( 2, Math.max( 0.6, this._hmax / 440 ) );
+									ent.kind = Math.random() < 0.15 ? 1 : 0; // 15% chance for the worm to be spiky
 									sdEntity.entities.push( ent );
 									sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
 
