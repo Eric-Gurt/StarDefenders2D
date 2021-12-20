@@ -13,6 +13,7 @@
 import sdWorld from '../sdWorld.js';
 import sdCom from '../entities/sdCom.js';
 
+
 class sdPathFinding
 {
 	static init_class()
@@ -64,11 +65,56 @@ class sdPathFinding
 	
 	static StaticRender( ctx )
 	{
+		const sdRenderer = globalThis.sdRenderer;
+		
 		for ( let i = 0; i < sdPathFinding.rect_space_maps.length; i++ )
 		{
 			let rect_space_map = sdPathFinding.rect_space_maps[ i ];
 			
-			debugger; // Preview is made for previous version
+			let offset_x = Math.floor( ( sdWorld.camera.x - sdRenderer.screen_width / 2 / sdWorld.camera.scale ) / 16 );
+			let offset_y = Math.floor( ( sdWorld.camera.y - sdRenderer.screen_height / 2 / sdWorld.camera.scale ) / 16 );
+			
+			let w = Math.ceil( sdRenderer.screen_width / 16 );
+			let h = Math.ceil( sdRenderer.screen_height / 16 );
+			
+			ctx.globalAlpha = 0.5;
+				
+			for ( let y = 0; y < h; y++ )
+			for ( let x = 0; x < w; x++ )
+			{
+				let offset = rect_space_map.GetBitOffsetFromXY( ( offset_x + x ) * 16, ( offset_y + y ) * 16 );
+				let distance = -1;
+				let draw_quad = true;
+				
+				if ( offset === 0 ) // Out of bounds or actually 0
+				{
+					ctx.fillStyle = '#0000ff';
+				}
+				else
+				{
+					distance = rect_space_map.bitmap_dataView.getUint16( BYTES_PER_VALUE * ( offset + OFFSET_DISTANCE_TO_TARGET ) );
+					
+					if ( distance > 0 )
+					{
+						ctx.fillStyle = '#ff0000';
+					}
+					else
+					{
+						//continue;
+						draw_quad = false;
+					}
+				}
+				
+				if ( draw_quad )
+				{
+					ctx.fillRect( ( offset_x + x ) * 16 + 1, ( offset_y + y ) * 16 + 1, 14, 14 );
+
+					ctx.font = "4px Verdana";
+					ctx.textAlign = 'center';
+					ctx.fillStyle = '#ffffff';
+					ctx.fillText( distance+'', ( offset_x + x ) * 16 + 8, ( offset_y + y ) * 16 + 8 );
+				}
+			}
 			/*
 			for ( let r = 0; r < rect_space_map.rects.length; r++ )
 			{
@@ -155,10 +201,14 @@ class RectSpaceMap
 	
 	GetBitOffsetFromXY( _x, _y )
 	{
-		let x = Math.floor( _x / 16 );
-		let y = Math.floor( _y / 16 );
+		let x = Math.floor( ( _x - this.x1 ) / 16 );
+		let y = Math.floor( ( _y - this.y1 ) / 16 );
 		
-		if ( x < this.x1 || y < this.y1 || x >= this.x2 || y > this.y2 )
+		//x -=  / 16;
+		//y -= this.y1 / 16;
+		
+		//if ( x < this.x1 || y < this.y1 || x >= this.x2 || y > this.y2 )
+		if ( x < 0 || y < 0 || x >= this.w || y >= this.h )
 		{
 			if ( isNaN( x ) )
 			{
@@ -184,12 +234,9 @@ class RectSpaceMap
 				return GetBitOffsetFromXY( _x, _y );
 			}
 			
-			debugger;
+			//debugger;
 			return 0;
 		}
-		
-		x -= this.x1 / 16;
-		y -= this.y1 / 16;
 		
 		return ( y * this.w + x ) * DATA_PER_CELL * BYTES_PER_VALUE;
 	}

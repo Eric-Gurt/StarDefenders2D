@@ -495,7 +495,7 @@ console.log('world_slot = ' + world_slot + ' (defines server instance file prefi
 
 let frame = 0;
 
-globalThis.GetFrame = ()=>{ return frame; };
+globalThis.GetFrame = ()=>{ return frame; }; // Call like this: GetFrame()
 
 /*function file_exists( url )
 {
@@ -2981,13 +2981,15 @@ io.on("connection", (socket) =>
 		if ( socket.character.hea > 0 ) 
 		{
 			let net_id = arr[ 0 ];
-			let net_id_to_get = arr[ 1 ];
+			//let net_id_to_get = arr[ 1 ];
+			let slot = arr[ 1 ];
 			let ent = sdEntity.GetObjectByClassAndNetId( 'sdStorage', net_id );
 			if ( ent !== null )
 			{
 				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdStorage.access_range ) >= 0 )
 				{
-					ent.ExtractItem( net_id_to_get, socket.character );
+					//ent.ExtractItem( net_id_to_get, socket.character );
+					ent.ExtractItem( slot, socket.character );
 				}
 				else
 				socket.SDServiceMessage( 'Storage is too far' );

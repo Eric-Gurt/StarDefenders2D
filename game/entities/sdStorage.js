@@ -25,12 +25,17 @@ class sdStorage extends sdEntity
 		sdStorage.access_range = 64; // Used by sdMatterAmplifier as well
 		sdStorage.slots_tot = 6;
 		
+		sdStorage.TYPE_GUNS = 0;
+		sdStorage.TYPE_PORTAL = 1;
+		sdStorage.TYPE_CRYSTALS = 2;
+		sdStorage.TYPE_CARGO = 3;
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1()  { return this.type === 3 ? -13 : this.type === 2 ? -13 : this.type === 1 ? -4 : -7; }
-	get hitbox_x2()  { return this.type === 3 ? 13 : this.type === 2 ? 13 : this.type === 1 ? 4 : 7; }
-	get hitbox_y1()  { return this.type === 3 ? -11 : this.type === 2 ? -9 : this.type === 1 ? -4 : -5; }
-	get hitbox_y2()  { return this.type === 3 ? 13 : this.type === 2 ? 6 : this.type === 1 ? 4 : 6; }
+	get hitbox_x1() { return this.type === sdStorage.TYPE_CARGO ? -13 : this.type === sdStorage.TYPE_CRYSTALS ? -13 : this.type === sdStorage.TYPE_PORTAL ? -4 : -7; }
+	get hitbox_x2() { return this.type === sdStorage.TYPE_CARGO ? 13 :  this.type === sdStorage.TYPE_CRYSTALS ? 13 :  this.type === sdStorage.TYPE_PORTAL ? 4 : 7; }
+	get hitbox_y1() { return this.type === sdStorage.TYPE_CARGO ? -11 : this.type === sdStorage.TYPE_CRYSTALS ? -9 :  this.type === sdStorage.TYPE_PORTAL ? -4 : -5; }
+	get hitbox_y2() { return this.type === sdStorage.TYPE_CARGO ? 13 :  this.type === sdStorage.TYPE_CRYSTALS ? 6 :   this.type === sdStorage.TYPE_PORTAL ? 4 : 6; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return this.held_by !== null ? false : true; }
@@ -49,10 +54,10 @@ class sdStorage extends sdEntity
 
 		this.type = params.type || 0;
 		
-		this._hea = this.type === 3 ? 600 : this.type === 2 ? 400 : 100;
-		this._hmax = this.type === 3 ? 600 : this.type === 2 ? 400 : 100;
+		this._hea =  this.type === sdStorage.TYPE_CARGO ? 600 : this.type === sdStorage.TYPE_CRYSTALS ? 400 : 100;
+		this._hmax = this.type === sdStorage.TYPE_CARGO ? 600 : this.type === sdStorage.TYPE_CRYSTALS ? 400 : 100;
 
-		this.held_by = null;
+		this.held_by = null; // Might still remain for cargo ships?
 		
 		this._regen_timeout = 0;
 		
@@ -101,7 +106,7 @@ class sdStorage extends sdEntity
 		}
 	}
 	
-	get mass() { return this.type === 1 ? 10 : 30; }
+	get mass() { return this.type === sdStorage.TYPE_PORTAL ? 10 : 30; }
 	Impulse( x, y )
 	{
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
@@ -209,6 +214,21 @@ class sdStorage extends sdEntity
 			this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 		}
 		
+		// Patch: Old to new storage method (TODO: Remove this code after June 2022)
+		if ( sdWorld.is_server )
+		{
+			for ( var i = 0; i < sdStorage.slots_tot; i++ )
+			if ( this[ 'item' + i ] )
+			{
+				this[ 'item' + i ]._held_by = null;
+				
+				this.onMovementInRange( this[ 'item' + i ] );
+				
+				this[ 'item' + i ] = null;
+			}
+		}
+		// End of patch
+		
 		if ( this._phys_sleep <= 0 && this._hea >= this._hmax )
 		{
 			if ( sdWorld.is_server )
@@ -224,16 +244,16 @@ class sdStorage extends sdEntity
 	}
 	get title()
 	{
-		if ( this.type === 0 )
+		if ( this.type === sdStorage.TYPE_GUNS )
 		return 'Storage crate';
 
-		if ( this.type === 1 )
+		if ( this.type === sdStorage.TYPE_PORTAL )
 		return 'Portal Storage device';
 
-		if ( this.type === 2 )
+		if ( this.type === sdStorage.TYPE_CRYSTALS )
 		return 'Crystal Storage crate';
 
-		if ( this.type === 3 )
+		if ( this.type === sdStorage.TYPE_CARGO )
 		return 'Cargo Storage crate';
 	}
 	DrawHUD( ctx, attached ) // foreground layer
@@ -248,16 +268,16 @@ class sdStorage extends sdEntity
 		if ( this.held_by === null )
 		{
 			ctx.filter = this.filter;
-			if ( this.type === 0 )
+			if ( this.type === sdStorage.TYPE_GUNS )
 			ctx.drawImageFilterCache( sdStorage.img_storage, - 16, - 16, 32,32 );
 
-			if ( this.type === 1 )
+			if ( this.type === sdStorage.TYPE_PORTAL )
 			ctx.drawImageFilterCache( sdStorage.img_storage2, - 16, - 16, 32,32 );
 
-			if ( this.type === 2 )
+			if ( this.type === sdStorage.TYPE_CRYSTALS )
 			ctx.drawImageFilterCache( sdStorage.img_storage3, - 16, - 16, 32,32 );
 
-			if ( this.type === 3 )
+			if ( this.type === sdStorage.TYPE_CARGO )
 			ctx.drawImageFilterCache( sdStorage.img_storage4, - 16, - 16, 32,32 );
 		}
 		
@@ -274,10 +294,12 @@ class sdStorage extends sdEntity
 			
 			let dropped_items = [];
 			
-			for ( var i = 0; i < sdStorage.slots_tot; i++ )
+			//for ( var i = 0; i < sdStorage.slots_tot; i++ )
+			for ( var i = this._stored_items.length - 1; i >= 0; i-- )
 			{
-				let ent = this.DropSlot( 0 ); // "this.DropSlot( i );" stops working halfway since DropSlot checks length of this._stored_items, which results in "i" being larger than stored items length - Booraz149
-				//this.DropSlot( i );
+				//let ent = this.ExtractEntityFromSnapshotAtSlot( 0 ); // "this.ExtractEntityFromSnapshotAtSlot( i );" stops working halfway since ExtractEntityFromSnapshotAtSlot checks length of this._stored_items, which results in "i" being larger than stored items length - Booraz149
+				let ent = this.ExtractItem( i );
+				//this.ExtractEntityFromSnapshotAtSlot( i );
 				if ( ent )
 				{
 					// We need to make sure items have restored their collisions before we could try placing them
@@ -288,7 +310,7 @@ class sdStorage extends sdEntity
 				
 				/*if ( ( this.type !== 2 ) || save_item > 0 )
 				if ( this.type !== 3 ) // Crates can't save crates since items would get stuck inside last remaining crate which has no space, so players need to build new ones when the large one gets destroyed
-				this.DropSlot( i );
+				this.ExtractEntityFromSnapshotAtSlot( i );
 				else
 				{
 					if ( this[ 'item' + i ] )
@@ -297,8 +319,15 @@ class sdStorage extends sdEntity
 				//save_item--;
 			}
 			
-			if ( this.type === 0 || this.type === 1 ) // Weapon storages
+			if ( this.type === sdStorage.TYPE_GUNS || this.type === sdStorage.TYPE_PORTAL ) // Weapon storages
 			{
+				for ( let i = 0; i < dropped_items.length; i++ )
+				{
+					let ang = Math.random() * Math.PI * 2;
+					let power = Math.random() * 2.5;
+					dropped_items[ i ].sx = this.sx + Math.sin( ang ) * power;
+					dropped_items[ i ].sy = this.sy + Math.cos( ang ) * power - 3;
+				}
 			}
 			else
 			for ( let i = 0; i < dropped_items.length; i++ )
@@ -340,13 +369,16 @@ class sdStorage extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		if ( this.type === 0 )
+		if ( this.type === sdStorage.TYPE_GUNS )
 		return this._hmax * sdWorld.damage_to_matter;
-		if ( this.type === 1 )
+	
+		if ( this.type === sdStorage.TYPE_PORTAL )
 		return 50 + this._hmax * sdWorld.damage_to_matter;
-		if ( this.type === 2 )
+	
+		if ( this.type === sdStorage.TYPE_CRYSTALS )
 		return 80 + this._hmax * sdWorld.damage_to_matter;
-		if ( this.type === 3 )
+	
+		if ( this.type === sdStorage.TYPE_CARGO )
 		return 160 + this._hmax * sdWorld.damage_to_matter;
 	}
 	onMovementInRange( from_entity )
@@ -361,7 +393,29 @@ class sdStorage extends sdEntity
 			return;
 			//throw new Error('Should not happen');
 		}
-		if ( ( ( this.type === 0 || this.type === 1 ) && from_entity.is( sdGun ) ) || ( this.type === 2 && from_entity.is( sdCrystal ) && from_entity.type !== sdCrystal.TYPE_CRYSTAL_BIG ) || ( this.type === 3 && from_entity !== this && from_entity.is( sdStorage ) && ( from_entity.type === 0 || from_entity.type === 1 ) ) )
+		if ( 
+				( 
+					( this.type === sdStorage.TYPE_GUNS || this.type === sdStorage.TYPE_PORTAL ) && 
+					from_entity.is( sdGun ) 
+				) 
+		
+				|| 
+				
+				( 
+					this.type === sdStorage.TYPE_CRYSTALS && 
+					from_entity.is( sdCrystal ) && 
+					from_entity.type !== sdCrystal.TYPE_CRYSTAL_BIG 
+				) 
+		
+				|| 
+				
+				( 
+					this.type === sdStorage.TYPE_CARGO && 
+					from_entity !== this && 
+					from_entity.is( sdStorage ) && 
+					( from_entity.type === sdStorage.TYPE_GUNS || from_entity.type === sdStorage.TYPE_PORTAL ) 
+				) 
+			)
 		{
 			//if ( from_entity._held_by === null )
 			if ( !from_entity._is_being_removed )
@@ -370,31 +424,36 @@ class sdStorage extends sdEntity
 				
 				for ( var i = 0; i < sdStorage.slots_tot; i++ )
 				{
-					if ( i + 1 > this._stored_items.length )
+					//if ( i + 1 > this._stored_items.length )
+					if ( i >= this._stored_items.length )
 					{
-
-						this._stored_items.push( from_entity.GetSnapshot( GetFrame, true ) );
+						this._stored_items.push( from_entity.GetSnapshot( GetFrame(), true ) );
+						
 						//console.log( this._stored_items );
+						
 						if ( from_entity.is( sdGun ) )
 						this.stored_names.push( sdEntity.GuessEntityName( from_entity._net_id ) );
+						
 						if ( from_entity.is( sdCrystal ) )
 						this.stored_names.push( from_entity.title+' ( ' + from_entity.matter_max + ' max matter )' );
+						
 						if ( from_entity.is( sdStorage ) )
 						this.stored_names.push( from_entity.title );
+						
 						//console.log( this.stored_names );
 						from_entity.remove();
 						from_entity._broken = false;
 						
-						if ( this.type === 0 )
+						if ( this.type === sdStorage.TYPE_GUNS )
 						sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
 
-						if ( this.type === 1 )
+						if ( this.type === sdStorage.TYPE_PORTAL )
 						sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume: 1, pitch: 5 });
 
-						if ( this.type === 2 )
+						if ( this.type === sdStorage.TYPE_CRYSTALS )
 						sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
 
-						if ( this.type === 3 )
+						if ( this.type === sdStorage.TYPE_CARGO )
 						sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:3 });
 
 						return;
@@ -416,14 +475,19 @@ class sdStorage extends sdEntity
 		
 		return arr;
 	}
-	DropSpecificWeapon( ent ) // sdGun keepers need this method for case of sdGun removal
+	DropSpecificWeapon( ent ) // Outdated method for guns
+	{
+	}
+	/*DropSpecificWeapon( ent ) // sdGun keepers need this method for case of sdGun removal
 	{
 		this.ExtractItem( ent._net_id, null, sdWorld.is_server ); // Only throw for server's case. Clients will have guns locally disappearing when players move away from sdStorage
 	}
-	ExtractItem( item_net_id, initiator_character=null, throw_on_not_found=false )
+	*/
+	//ExtractItem( item_net_id, initiator_character=null, throw_on_not_found=false )
+	ExtractItem( slot, initiator_character=null )
 	{
 		//console.log( item_net_id )
-		let slot = -1;
+		/*let slot = -1;
 		for ( var i = 0; i < sdStorage.slots_tot; i++ )
 		if ( i === item_net_id )
 		{
@@ -440,18 +504,61 @@ class sdStorage extends sdEntity
 			if ( throw_on_not_found )
 			throw new Error('Should not happen');
 		}
-		else
-		{
+		else*/
+		//{
 			//let item = this._stored_items[ i ];
 			
-			let item = this.DropSlot( slot, initiator_character );
-			if ( this.type === 0 || this.type === 1 ) // For this one I don't know if it's needed but it is for the other two
+			let ent = null;
+		
+			if ( slot >= 0 && slot < this._stored_items.length )
+			{
+				ent = sdEntity.GetObjectFromSnapshot( this._stored_items[ slot ] );
+
+				this._stored_items.splice( slot, 1 );
+				//console.log(this._stored_items);
+				this.stored_names.splice( slot, 1 );
+
+				if ( !initiator_character )
+				{
+					ent.x = this.x;
+					ent.y = this.y;
+					ent.sx = this.sx;
+					ent.sy = this.sy;
+				}
+				if ( initiator_character )
+				{
+					ent.x = initiator_character.x;
+					ent.y = initiator_character.y;
+					ent.sx = initiator_character.sx;
+					ent.sy = initiator_character.sy;
+				}
+
+				if ( typeof ent.held_by !== 'undefined' )
+				ent.held_by = null;
+			}
+			
+			//let item = this.ExtractEntityFromSnapshotAtSlot( slot, initiator_character );
+			let item = ent;
+			
+			if ( item )
+			{
+			}
+			else
+			{
+				if ( initiator_character )
+				if ( initiator_character._socket )
+				initiator_character._socket.SDServiceMessage( 'Item is already taken' );
+		
+				return null;
+			}
+			
+			if ( this.type === sdStorage.TYPE_GUNS || this.type === sdStorage.TYPE_PORTAL ) // For this one I don't know if it's needed but it is for the other two
 			if ( initiator_character )
 			{
 				item.x = initiator_character.x;
 				item.y = initiator_character.y;
 			}
-			if ( this.type === 2 )
+			if ( this.type === sdStorage.TYPE_CRYSTALS )
 			if ( initiator_character )
 			{
 				if ( item.CanMoveWithoutOverlap( initiator_character.x + ( initiator_character._side * 18 ), initiator_character.y - 4, 0 ) ) // Not ideal, but shouldn't cause a bug since otherwise it just gets put back in the crate I believe - Booraz149
@@ -466,7 +573,7 @@ class sdStorage extends sdEntity
 					item.y = this.y;
 				}
 			}
-			if ( this.type === 3 )
+			if ( this.type === sdStorage.TYPE_CARGO )
 			if ( initiator_character )
 			{
 				if ( item.CanMoveWithoutOverlap( initiator_character.x + ( initiator_character._side * 18 ), initiator_character.y - 4, 0 ) ) // Not ideal, but shouldn't cause a bug since otherwise it just gets put back in the crate I believe - Booraz149
@@ -481,39 +588,43 @@ class sdStorage extends sdEntity
 					item.y = this.y;
 				}
 			}
-		}
+			
+			return item;
+		//}
 	}
-	DropSlot( slot, initiator_character=null )
-	    {
-	        let ent;
-	        if ( slot >= 0 && slot < this._stored_items.length )
-	        {
-	                ent = sdEntity.GetObjectFromSnapshot( this._stored_items[ slot ] );
-	                this._stored_items.splice( slot, 1 );
+	/*ExtractEntityFromSnapshotAtSlot( slot, initiator_character=null )
+	{
+		let ent = null;
+		
+		if ( slot >= 0 && slot < this._stored_items.length )
+		{
+			ent = sdEntity.GetObjectFromSnapshot( this._stored_items[ slot ] );
+			
+			this._stored_items.splice( slot, 1 );
 			//console.log(this._stored_items);
-	                this.stored_names.splice( slot, 1 );
-	                if ( !initiator_character )
-	                {
-	                	ent.x = this.x;
-	                	ent.y = this.y;
-	                	ent.sx = 0;
-	                	ent.sy = 0;
-	                }
-	                if ( initiator_character )
-	                {
-	                	ent.x = initiator_character.x;
-	               		ent.y = initiator_character.y;
-	              		ent.sx = 0;
-	                	ent.sy = 0;
-	                }
+			this.stored_names.splice( slot, 1 );
+			
+			if ( !initiator_character )
+			{
+				ent.x = this.x;
+				ent.y = this.y;
+				ent.sx = this.sx;
+				ent.sy = this.sy;
+			}
+			if ( initiator_character )
+			{
+				ent.x = initiator_character.x;
+				ent.y = initiator_character.y;
+				ent.sx = initiator_character.sx;
+				ent.sy = initiator_character.sy;
+			}
+			
 			if ( typeof ent.held_by !== 'undefined' )
 			ent.held_by = null;
-			if ( typeof ent._held_by !== 'undefined' )
-			ent._held_by = null;
-	        }
+		}
 
 		return ent;
-	}
+	}*/
 }
 //sdStorage.init_class();
 
