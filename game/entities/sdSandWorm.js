@@ -139,7 +139,7 @@ class sdSandWorm extends sdEntity
 	
 	HasEnoughMatter( ent ) // sdSandWorms will actually hunt entities that have some amount of matter, for example one that is enough to buy damage upgrades. Thus won't target new players
 	{
-		return ( ent.matter >= ( this.kind === 1 ? 400 : 200 ) * this.scale ); // I think getting to 100 matter sets worms to hunt players while they're upgrading damage and health, this is more fair IMO - Booraz
+		return ( ent.matter >= ( this.kind === sdSandWorm.KIND_SPIKY_WORM ? 400 : 200 ) * this.scale ); // I think getting to 100 matter sets worms to hunt players while they're upgrading damage and health, this is more fair IMO - Booraz
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
