@@ -178,7 +178,7 @@ if ( SOCKET_IO_MODE ) // Socket.io
 	  httpCompression: {
 		threshold: 1024
 	  },
-	  transports: [ 'websocket' ] // Trying to disable polling one, maybe this will work better?
+	  //transports: [ 'websocket' ] // Trying to disable polling one, maybe this will work better?
 	});
 }
 else // Geckos

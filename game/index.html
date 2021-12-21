@@ -14,6 +14,10 @@
 		overflow: hidden;
 		background-blend-mode: overlay;
 		transition: background-color 1s ease;
+		
+		position:fixed;
+		left:0;
+		top:0;
 	    }
 	    *::-moz-selection { background-color: red; }
 	    *::selection { background-color: red; }
@@ -205,6 +209,8 @@
 		vertical-align: middle;
 		border:0px;
 		
+		pointer-events: none;
+		
 		-webkit-touch-callout: none; /* iOS Safari */
 		-webkit-user-select: none; /* Safari */
 		-khtml-user-select: none; /* Konqueror HTML */
@@ -225,6 +231,42 @@
 	</style>
     </head>
     <body>
+	<script>
+	{
+	    let can_show_error = true;
+	    window.onerror = ( message, source, lineno, colno, error )=>
+	    {
+		if ( !can_show_error )
+		return;
+	    
+		can_show_error = false;
+		
+		let div = document.createElement('DIV');
+		div.style.cssText = `position:fixed;left:0;top:0;padding:20px;color:red;background:black;pointer-events:none;z-index:1000;`;
+		
+		let json='can not set';
+		try
+		{
+		    json = error.stack;//JSON.stringify( error );
+		}catch(e){}
+		
+		div.textContent = 'Star Defenders error: ' + message + '[::]Source: ' + source + '[::]LineNumber: ' + lineno + '[::]ColumnNumber: '+colno + '[::]ErrorObject: '+json;
+		div.innerHTML = div.innerHTML.split( '[::]' ).join('<br><br>');
+		
+		document.body.append( div );
+	    };
+	    globalThis.ModalTrace = ( message )=>
+	    {
+		let div = document.createElement('DIV');
+		div.style.cssText = `position:fixed;right:0;bottom:100px;padding:20px;color:white;background:black;pointer-events:none;z-index:1000;`;
+		
+		div.textContent = 'Star Defenders modal trace ' + message;
+		div.innerHTML = div.innerHTML.split( '[::]' ).join('<br><br>');
+		
+		document.body.append( div );
+	    };
+	}
+	</script>
 	<!-- window.location.hostname -->
 	<script src="https://player.twitch.tv/js/embed/v1.js"></script>
 	<div id="twitch_player_div"></div>
@@ -1580,6 +1622,9 @@
 		if ( !ctx.drawImageFilterCache )
 		return;
 	    
+		if ( globalThis.socket_io_crashed )
+		start_btn.value = globalThis.socket_io_crashed;
+		else    
 		start_btn.value = 'Play with ' + format( globalThis.players_playing ) + ' other players (' + format( globalThis.players_online ) + ' online)';
 	    
 		ctx.fillStyle = '#7b3219';
@@ -1673,7 +1718,8 @@
 
 	    let NO_DEFAULT_VALUE_PTR = {};
 	    
-	    function AcceptField( my_hash, default_v='unset' )
+	    //function AcceptField( my_hash, default_v='unset' )
+	    let AcceptField = ( my_hash, default_v='unset' )=>
 	    {
 		let obj = { 
 		    el: document.getElementById( my_hash ),
@@ -1694,7 +1740,7 @@
 
 		    globalThis.SavePlayerSettings();
 		};
-	    }
+	    };
 	    
 	    AcceptField( 'my_hash', [ Math.random(), Math.random(), Math.random(), Math.random(), Math.random() ].join('') );
 	    AcceptField( 'last_local_time_start', 0 );
@@ -1704,7 +1750,8 @@
 		globalThis.will_play_startup_tune = true;
 	    }
 			
-	    function LoopThrough( settings_container )
+	    //function LoopThrough( settings_container )
+	    let LoopThrough = ( settings_container )=>
 	    {
 		for ( let i = 0; i < settings_container.childNodes.length; i++ )
 		{
@@ -1764,7 +1811,7 @@
 			});
 		    }
 		}
-	    }
+	    };
 	    LoopThrough( settings_container );
 	    
 	    let JustOne = function( prefix, last_changed_el )
@@ -1906,47 +1953,50 @@
 	    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
 	    const SpeechGrammarList = window.webkitSpeechGrammarList || window.SpeechGrammarList;
 	    
-	    const recognition = new SpeechRecognition();
-	    
-	    recognition.continuous = true;
-	    recognition.lang = 'en-US';
-	    recognition.interimResults = false;
-	    recognition.maxAlternatives = 1;
-	    
-	    let crashed = false;
-	    
-	    globalThis.StartVoiceRecognition = function()
+	    if ( SpeechRecognition )
 	    {
-		if ( inputs_hash[ 'voice_chat2' ] )
-		if ( inputs_hash[ 'voice_chat2' ].el.checked )
-		{
-		    recognition.start();
-		    crashed = false;
-		}
-	    };
-	    globalThis.StartVoiceRecognition();
 	    
-	    globalThis.recognition = recognition;
-	   
-	    recognition.onresult = function( event )
-	    {
-		const last = event.results.length - 1;
-		
-		globalThis.TestVoice( null, event.results[ last ][ 0 ].transcript );
-		
-		globalThis.socket.emit( 'CHAT', event.results[ last ][ 0 ].transcript.trim() );
-	    };
-	    recognition.onend = (e)=>
-	    {
-		console.log( 'onend' );
-		if ( !crashed )
-		recognition.start();
-	    };
-	    recognition.onerror = function(event) {
-	      console.log( 'Error occurred in recognition: ' + event.error );
-	      crashed = true;
-	    };
+		const recognition = new SpeechRecognition();
 
+		recognition.continuous = true;
+		recognition.lang = 'en-US';
+		recognition.interimResults = false;
+		recognition.maxAlternatives = 1;
+
+		let crashed = false;
+
+		globalThis.StartVoiceRecognition = function()
+		{
+		    if ( inputs_hash[ 'voice_chat2' ] )
+		    if ( inputs_hash[ 'voice_chat2' ].el.checked )
+		    {
+			recognition.start();
+			crashed = false;
+		    }
+		};
+		globalThis.StartVoiceRecognition();
+
+		globalThis.recognition = recognition;
+
+		recognition.onresult = function( event )
+		{
+		    const last = event.results.length - 1;
+
+		    globalThis.TestVoice( null, event.results[ last ][ 0 ].transcript );
+
+		    globalThis.socket.emit( 'CHAT', event.results[ last ][ 0 ].transcript.trim() );
+		};
+		recognition.onend = (e)=>
+		{
+		    console.log( 'onend' );
+		    if ( !crashed )
+		    recognition.start();
+		};
+		recognition.onerror = function(event) {
+		  console.log( 'Error occurred in recognition: ' + event.error );
+		  crashed = true;
+		};
+	    }
 	}
 	</script>
     </body>

@@ -33,9 +33,36 @@ globalThis.trace = console.log;
 	// socket.io-specific
 	var socket = io( '/', {
 		
-		transports: [ 'websocket' ]
+		//transports: [ 'websocket', 'polling' ]
 		
 	} );
+	
+	globalThis.socket_io_crashed = false;
+	
+	socket.on("connect_error", (err) => 
+	{
+		//console.log(`connect_error due to ${err.message}`);
+		
+		globalThis.socket_io_crashed = err;
+		
+		//throw new Error('Socket connect_error: '+ err );
+	});
+	
+	/*setTimeout( ()=>
+	{
+		let obj = {};
+		
+		for ( let p in socket )
+		{
+			if ( !( socket[ p ] instanceof Function ) )
+			obj[ p ] = socket[ p ] + '';
+		}
+		
+		ModalTrace( JSON.stringify( obj ) );
+		
+		if ( socket.disconnected )
+		socket.connect();
+	}, 3000 );*/
 
 	// geckos-specific
 	

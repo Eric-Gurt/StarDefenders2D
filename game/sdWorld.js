@@ -184,7 +184,7 @@ class sdWorld
 		sdWorld.fake_empty_array = { length:0 };
 		Object.freeze( sdWorld.fake_empty_array );
 
-		function MobileCheck() 
+		/*function MobileCheck() 
 		{
 			if ( typeof navigator !== 'undefined' )
 			{
@@ -196,7 +196,9 @@ class sdWorld
 		};
 		
 		if ( MobileCheck() )
-		ForMobile();
+		ForMobile();*/
+	
+		document.ontouchstart = ()=>{ ForMobile(); };
 
 		function ForMobile()
 		{
@@ -360,6 +362,11 @@ class sdWorld
 					}
 				}
 				
+				
+				//globalThis.ModalTrace( e.target.tagName +'' );
+				
+				if ( e.target && e.target.tagName === 'CANVAS' )
+				e.preventDefault();
 			}
 
 			function end_handler( e )
@@ -378,6 +385,10 @@ class sdWorld
 						break;
 					}
 				}
+				
+				
+				if ( e.target && e.target.tagName === 'CANVAS' )
+				e.preventDefault();
 			}
 
 			function move_handler( e )
@@ -401,6 +412,10 @@ class sdWorld
 						break;
 					}
 				}
+				
+				
+				if ( e.target && e.target.tagName === 'CANVAS' )
+				e.preventDefault();
 			}
 		};
 		
