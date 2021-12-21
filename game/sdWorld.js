@@ -198,6 +198,7 @@ class sdWorld
 		if ( MobileCheck() )
 		ForMobile();*/
 	
+		if ( typeof document !== 'undefined' ) // If server
 		document.ontouchstart = ()=>{ ForMobile(); };
 
 		function ForMobile()

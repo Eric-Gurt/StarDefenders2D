@@ -1624,7 +1624,7 @@
 		if ( !ctx.drawImageFilterCache )
 		return;
 	    
-		if ( globalThis.socket_io_crashed )
+		if ( globalThis.socket_io_crashed && !socket.connected )
 		start_btn.value = globalThis.socket_io_crashed;
 		else    
 		start_btn.value = 'Play with ' + format( globalThis.players_playing ) + ' other players (' + format( globalThis.players_online ) + ' online)';
