@@ -7,6 +7,8 @@ import sdGun from './sdGun.js';
 import sdWater from './sdWater.js';
 import sdCharacter from './sdCharacter.js';
 
+import sdPathFinding from '../ai/sdPathFinding.js';
+
 import sdBlock from './sdBlock.js';
 
 class sdBadDog extends sdEntity
@@ -91,6 +93,8 @@ class sdBadDog extends sdEntity
 		this._regen_timeout = 0;
 		
 		this.side = 1;
+		
+		this._pathfinding = null;
 
 		this.SetMethod( 'MasterDamaged', this.MasterDamaged );
 		this.SetMethod( 'MasterRemoved', this.MasterRemoved );
@@ -100,6 +104,17 @@ class sdBadDog extends sdEntity
 		this._last_speak = 0;
 		this._speak_id = -1; // Required by speak effects // last voice message
 	}
+	
+	SetTarget( ent )
+	{
+		if ( ent !== this._current_target )
+		{
+			this._current_target = ent;
+
+			this._pathfinding = new sdPathFinding({ target: ent, traveler: this, options: [ sdPathFinding.OPTION_CAN_CRAWL ] });
+		}
+	}
+	
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( this.hea > 0 )
@@ -113,7 +128,8 @@ class sdBadDog extends sdEntity
 				 ( this._current_target.hea || this._current_target._hea ) <= 0 || 
 				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
 			{
-				this._current_target = character;
+				//this._current_target = character;
+				this.SetTarget( character );
 
 				sdSound.PlaySound({ name:'bad_dog_alert', x:this.x, y:this.y, volume: 0.5 });
 			}
@@ -145,7 +161,10 @@ class sdBadDog extends sdEntity
 
 			if ( initiator )
 			if ( initiator !== this.master )
-			this._current_target = initiator;
+			{
+				//this._current_target = initiator;
+				this.SetTarget( initiator );
+			}
 		}
 		else
 		{
@@ -186,7 +205,8 @@ class sdBadDog extends sdEntity
 					{
 						this.master = initiator;
 						
-						this._current_target = null;
+						//this._current_target = null;
+						this.SetTarget( null );
 					}
 				}
 			}
@@ -233,7 +253,10 @@ class sdBadDog extends sdEntity
 		if ( initiator2 !== this.master )
 		if ( dmg2 > 0 )
 		if ( initiator2 !== this )
-		this._current_target = initiator2;
+		{
+			//this._current_target = initiator2;
+			this.SetTarget( initiator2 );
+		}
 	}
 
 	MasterRemoved( removed_ent )
@@ -294,18 +317,26 @@ class sdBadDog extends sdEntity
 					}
 				}
 
-						
-						
-				if ( sdWorld.Dist2D( this.x, this.y, this.master.x, this.master.y ) > ( this._current_target ? 300 : 100 ) )
+				if ( this._current_target === this.master )
 				{
-					this._current_target = this.master;
+					if ( sdWorld.Dist2D( this.x, this.y, this.master.x, this.master.y ) < 100 )
+					this.SetTarget( null );
 				}
 				else
 				{
-					if ( this._current_target === this.master )
+					if ( sdWorld.Dist2D( this.x, this.y, this.master.x, this.master.y ) > ( this._current_target ? 300 : 100 ) )
 					{
-						this._current_target = null;
+						//this._current_target = this.master;
+						this.SetTarget( this.master );
 					}
+					/*else
+					{
+						if ( this._current_target === this.master )
+						{
+							//this._current_target = null;
+							this.SetTarget( null );
+						}
+					}*/
 				}
 			}
 			
@@ -313,25 +344,57 @@ class sdBadDog extends sdEntity
 			if ( this._current_target )
 			{
 				if ( this._current_target._is_being_removed || ( this._current_target.master && this._current_target.master === this.master ) || ( this._current_target.hea || this._current_target._hea ) <= 0 || !this._current_target.IsTargetable() || !this._current_target.IsVisible( this ) || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdBadDog.max_seek_range + 32 )
-				this._current_target = null;
+				{
+					//this._current_target = null;
+					this.SetTarget( null );
+				}
 				else
 				{
-					this.side = ( this._current_target.x > this.x ) ? 1 : -1;
+					let jump_delay_scale = 1;
+					
+					let pathfinding_result = this._pathfinding.Think( GSPEED );
+					
+					if ( pathfinding_result )
+					{
+						if ( pathfinding_result.act_x > 0 )
+						this.side = 1;
+						else
+						if ( pathfinding_result.act_x < 0 )
+						this.side = -1;
+				
+						if ( pathfinding_result.act_y > 0 )
+						jump_delay_scale = 10;
+						else
+						if ( pathfinding_result.act_y < 0 )
+						{
+							jump_delay_scale = 0.25;
+							
+							if ( this._phys_last_touch )
+							{
+								this.side = ( this._phys_last_touch.x + ( this._phys_last_touch._hitbox_x1 + this._phys_last_touch._hitbox_x2 ) / 2 - this.x ) > 0 ? 1 : -1;
+							}
+						}
+					}
+					else
+					{
+						this.side = ( this._current_target.x > this.x ) ? 1 : -1;
+					}
 
 					if ( !this.master )
 					if ( this.hea < this.hmax * this._retreat_hp_mult )
 					this.side *= -1;
 
-					if ( sdWorld.is_server )
-					if ( this._last_jump < sdWorld.time - 400 )
+					//if ( sdWorld.is_server )
+					if ( this._last_jump < sdWorld.time - 400 * jump_delay_scale )
 					{
 						//if ( this._last_stand_on )
 						if ( in_water || !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) )
 						{
 							this._last_jump = sdWorld.time;
 
-							let dx = ( this._current_target.x - this.x );
+							//let dx = ( this._current_target.x - this.x );
 							//let dy = ( this._current_target.y - this.y );
+							let dx = this.side;
 
 							if ( !this.master )
 							if ( this.hea < this.hmax * this._retreat_hp_mult )

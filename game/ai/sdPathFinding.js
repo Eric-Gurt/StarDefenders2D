@@ -6,6 +6,8 @@
 
 		new sdPathFinding({ target: sdWorld.my_entity });
 
+	BUG: sdBadDog keeps running right when standing on sdCom at test map, even when client-side simulation says it should go left. Issue in navigation when 9 cells are tested?
+
 */
 
 
@@ -18,7 +20,31 @@ class sdPathFinding
 {
 	static init_class()
 	{
-		sdPathFinding.rect_space_maps_by_entity = new WeakMap(); // entity => RectSpaceMap
+		/*sdPathFinding.MOVEMENT_MODEL_CHARACTER = {
+			moves:
+			[
+				{
+					dx: -1,
+					dy: 0,
+					cost: 1,
+					through_wall: false,
+					action: ( entity, GSPEED )=>
+					{
+						entity.
+					}
+				}
+			]
+		};*/
+		
+		// x2 each time
+		sdPathFinding.OPTION_CAN_GO_THROUGH_WALLS = 1;
+		sdPathFinding.OPTION_CAN_FLY = 2;
+		sdPathFinding.OPTION_CAN_CRAWL = 4; // Crawl up the walls
+		sdPathFinding.OPTION_CAN_SWIM = 8;
+		
+		//sdPathFinding.STRATEGY_FOLLOW = 1;
+		
+		sdPathFinding.rect_space_maps_by_entity = new WeakMap(); // entity => [ RectSpaceMap, RectSpaceMap, RectSpaceMap... ]
 		sdPathFinding.rect_space_maps = [];
 		
 		sdWorld.static_think_methods.push( sdPathFinding.StaticThink );
@@ -27,24 +53,153 @@ class sdPathFinding
 	constructor( params )
 	{
 		this.target = null;
+		this.rect_space_map = null; // Rect space map of target entity
+		
+		this.control_pattern = { act_x:0, act_y:0, look_x:0, look_y:0, attack_target:null }; // Reusable object that is returned as a result of Think call
 		
 		if ( params.target )
 		{
 			this.target = params.target;
 			
-			let rect_space_map = new RectSpaceMap( this.target, true );
+			//let rect_space_map = new RectSpaceMap( this.target, false );
+			let rect_space_map = null;
 			
-			sdPathFinding.rect_space_maps_by_entity.set( this.target, rect_space_map );
-			sdPathFinding.rect_space_maps.push( rect_space_map );
+			let space_maps_by_entity = sdPathFinding.rect_space_maps_by_entity.get( this.target );
+			
+			if ( space_maps_by_entity === undefined )
+			{
+				space_maps_by_entity = [];
+				
+				sdPathFinding.rect_space_maps_by_entity.set( this.target, space_maps_by_entity );
+			}
+			
+			let hash = 0;
+			
+			let options = params.options || [];
+			
+			for ( let i = 0; i < options.lenth; i++ )
+			hash += options[ i ];
+			
+			for ( let i = 0; i < space_maps_by_entity.length; i++ )
+			if ( space_maps_by_entity[ i ].hash === hash )
+			{
+				rect_space_map = space_maps_by_entity[ i ];
+				break;
+			}
+			
+			if ( !rect_space_map )
+			{
+				rect_space_map = new RectSpaceMap( this.target, options, hash );
+				
+				space_maps_by_entity.push( rect_space_map );
+
+				sdPathFinding.rect_space_maps.push( rect_space_map );
+			}
+			
+			this.rect_space_map = rect_space_map;
 		}
+		
+		this.traveler = params.traveler;
+		
+		this.attack_range = params.attack_range || 0;
+		
+		if ( !this.traveler )
+		throw new Error('sdPathFinding needs to know who\'s movement it controls (.traveler is not passed to constructor)');
 	}
 	
 	Think( GSPEED )
 	{
-		let rect_space_map = sdPathFinding.rect_space_maps_by_entity.get( this.target );
-		rect_space_map.time_to_live = sdWorld.time + 5000;
+		if ( !globalThis.Pathfuinding_debug )
+		{
+			console.warn('Pathfuinding is disabled -- in progress');
+			globalThis.Pathfuinding_debug = true;
+		}
+		return null;
+		
+		this.rect_space_map.exist_until = sdWorld.time + 3000;
 		
 		// TODO: Return preferred action or maybe even simply move traveler in some optimized way towards .target (without actual hit detections of any kind, at least on server) while triggering collision events?
+		
+		if ( this.attack_range > 0 )
+		if ( sdWorld.Dist2D_Vector( this.traveler.x - this.target.x, this.traveler.y - this.target.y ) < this.attack_range )
+		{
+			if ( sdWorld.CheckLineOfSight( this.traveler.x, this.traveler.y, this.target.x, this.target.y, null, null, sdCom.com_visibility_unignored_classes, null ) )
+			{
+				this.control_pattern.act_x = 0;
+				this.control_pattern.act_y = 0;
+
+				this.control_pattern.look_x = this.target.x;
+				this.control_pattern.look_y = this.target.y;
+
+				this.control_pattern.attack_target = this.target;
+
+				return this.control_pattern;
+			}
+		}
+		
+		let best_dx = 0;
+		let best_dy = 0;
+		let best_di = Infinity;
+		let best_is_wall = null;
+		
+		let offset_current = this.rect_space_map.GetBitOffsetFromXY( this.traveler.x, this.traveler.y );
+
+		let version_at_traveler = this.rect_space_map.bitmap_dataView.getUint32( BYTES_PER_VALUE * ( offset_current + OFFSET_VERSION ) );
+		
+		for ( let dx = -1; dx <= 1; dx++ )
+		for ( let dy = -1; dy <= 1; dy++ )
+		if ( dx !== 0 || dy !== 0 )
+		{
+			let offset = this.rect_space_map.GetBitOffsetFromXY( this.traveler.x + dx * 16, this.traveler.y + dx * 16 );
+			let di = this.rect_space_map.bitmap_dataView.getUint16( BYTES_PER_VALUE * ( offset + OFFSET_DISTANCE_TO_TARGET ) );
+			
+			if ( di !== 0 )
+			if ( di < best_di || ( di === best_di && ( Math.abs( dx ) < Math.abs( best_dx ) || Math.abs( dy ) < Math.abs( best_dy ) ) ) ) // Also prefer non-diagonal moves
+			{
+				best_di = di;
+				best_dx = dx;
+				best_dy = dy;
+				
+				let x = Math.floor( this.traveler.x / 16 + dx ) * 16;
+				let y = Math.floor( this.traveler.y / 16 + dy ) * 16;
+				
+				best_is_wall = null;
+				if ( sdWorld.CheckWallExistsBox( x + 1, y + 1, x + 15, y + 15, null, null, sdCom.com_visibility_unignored_classes, null ) )
+				{
+					best_is_wall = sdWorld.last_hit_entity;
+				}
+			}
+		}
+		
+		
+		if ( ( best_dx === 0 && best_dy === 0 ) || version_at_traveler !== this.rect_space_map.version )
+		if ( Math.random() < 0.1 ) // In case if there is more than one traveler
+		{
+			this.rect_space_map.solve_until = sdWorld.time + 3000;
+			this.rect_space_map.solve_near_x = this.traveler.x;
+			this.rect_space_map.solve_near_y = this.traveler.y;
+		}
+		
+		if ( best_dx !== 0 || best_dy !== 0 )
+		{
+			if ( best_dx !== 0 && best_dy !== 0 )
+			{
+				let di = Math.max( 1, sdWorld.Dist2D_Vector( best_dx, best_dy ) );
+				best_dx = best_dx / di;
+				best_dy = best_dy / di;
+			}
+			
+			this.control_pattern.act_x = best_dx;
+			this.control_pattern.act_y = best_dy;
+			
+			this.control_pattern.look_x = this.traveler.x + best_dx * 32;
+			this.control_pattern.look_y = this.traveler.y + best_dy * 32;
+			
+			this.control_pattern.attack_target = best_is_wall;
+			
+			return this.control_pattern;
+		}
+		return null;
 	}
 	
 	static StaticThink( GSPEED )
@@ -55,7 +210,17 @@ class sdPathFinding
 			
 			if ( rect_space_map.Iteration( GSPEED ) )
 			{
+				let space_maps_by_entity = sdPathFinding.rect_space_maps_by_entity.get( rect_space_map.target );
+			
+				let i2 = space_maps_by_entity.indexOf( rect_space_map );
+				if ( i2 !== -1 )
+				space_maps_by_entity.splice( i2, 1 );
+				else
+				debugger;
+			
+				if ( space_maps_by_entity.length === 0 )
 				sdPathFinding.rect_space_maps_by_entity.delete( rect_space_map.target );
+				
 				sdPathFinding.rect_space_maps.splice( i, 1 );
 				i--;
 				continue;
@@ -67,6 +232,7 @@ class sdPathFinding
 	{
 		const sdRenderer = globalThis.sdRenderer;
 		
+		if ( false )
 		for ( let i = 0; i < sdPathFinding.rect_space_maps.length; i++ )
 		{
 			let rect_space_map = sdPathFinding.rect_space_maps[ i ];
@@ -96,7 +262,8 @@ class sdPathFinding
 					
 					if ( distance > 0 )
 					{
-						ctx.fillStyle = '#ff0000';
+						//ctx.fillStyle = '#ff0000';
+						ctx.fillStyle = `rgb(${distance%256},0,0)`;
 					}
 					else
 					{
@@ -140,16 +307,29 @@ const DATA_PER_CELL = 7; // Bytes per cell (sum of all values below)
 const OFFSET_DISTANCE_TO_TARGET = 0; // uint16 = 2 bytes // 0 - undefined, 1+ - means distance from this cell towards cell with target. Pathfinding then would scan nearby cells and go towards smallest value that is not 0
 const OFFSET_VERSION = 2; // uint32 = 4 bytes // Updates every time target moves. Is a reason of all cells to be slowly recalculated
 const OFFSET_IS_FULLY_SOLVED = 6; // uint8 = 1 byte // 0 or 1 // When cell already dealt with all nearby cells and received/sent optimized distance to target
-		
+
+const COST_MOVE = 1;
+const COST_BREAK_WALL = 11;
+//const COST_FLY = 3;
+
 // Slowly built around each target so travelers can reach it
 class RectSpaceMap
 {
-	constructor( ent, include_ground=false )
+	constructor( ent, options, hash )
 	{
-		this.target = ent;
-		this.include_ground = include_ground;
+		this.hash = hash;
+		//this.options = options;
 		
-		this.time_to_live = sdWorld.time + 5000;
+		this.target = ent;
+		this.can_dig = options.indexOf( sdPathFinding.OPTION_CAN_GO_THROUGH_WALLS ) !== -1;
+		this.can_fly = options.indexOf( sdPathFinding.OPTION_CAN_FLY ) !== -1;
+		this.can_crawl = options.indexOf( sdPathFinding.OPTION_CAN_CRAWL ) !== -1;
+		
+		this.exist_until = sdWorld.time + 3000;
+		
+		this.solve_until = sdWorld.time + 3000;
+		this.solve_near_x = 0;
+		this.solve_near_y = 0;
 		
 		this.Reinit();
 	}
@@ -170,7 +350,12 @@ class RectSpaceMap
 		this.bitmap = new ArrayBuffer( this.w * this.h * DATA_PER_CELL * BYTES_PER_VALUE );
 		this.bitmap_dataView = new DataView( this.bitmap );
 		
-		this.active_bits = []; // Where iterative calculation should happen
+		this.active_bits_arr = []; // arr of { offset, x, y }, will be reordered to favor closest cells to travelers
+		this.active_bits_set = new Set(); // Same but offsets are keys
+		
+		/*this.active_bits = []; // Where iterative calculation should happen. This is an offset
+		this.active_bits_x = []; // Same as above but X
+		this.active_bits_y = []; // Same as above but Y*/
 		
 		this.version = 0; // Version might go up every time target moves from rect to rect. Then all versions of all rects and towards_target-s will be updated.
 		
@@ -179,14 +364,24 @@ class RectSpaceMap
 		this.UpdateTargetPosition();
 	}
 	
+	ScheduleCellUpdate( offset, x, y )
+	{
+		if ( !this.active_bits_set.has( offset ) )
+		{
+			this.active_bits_set.add( offset );
+			this.active_bits_arr.push({ offset:offset, x:x, y:y, di:-1 });
+		}
+	}
+	
 	UpdateTargetPosition()
 	{
-		let offset = this.GetBitOffsetFromXY( this.target.x + ( this.target._hitbox_x1 + this.target._hitbox_x2 ) / 2, this.target.y + ( this.target._hitbox_y1 + this.target._hitbox_y2 ) / 2 );
+		let x = Math.floor( ( this.target.x + ( this.target._hitbox_x1 + this.target._hitbox_x2 ) / 2 ) / 16 ) * 16;
+		let y = Math.floor( ( this.target.y + ( this.target._hitbox_y1 + this.target._hitbox_y2 ) / 2 ) / 16 ) * 16;
+		let offset = this.GetBitOffsetFromXY( x, y );
 		
 		if ( this.last_player_offset !== offset )
 		{
-			if ( this.active_bits.indexOf( offset ) === -1 )
-			this.active_bits.push( offset );
+			this.ScheduleCellUpdate( offset, x, y );
 		
 			this.last_player_offset = offset;
 			
@@ -244,7 +439,7 @@ class RectSpaceMap
 	GetXYFromBitOffset( offset )
 	{
 		offset /= DATA_PER_CELL * BYTES_PER_VALUE;
-		return [ offset % this.w + this.x1 * 16, Math.ceil( offset / this.w ) + this.y1 * 16 ];
+		return [ ( offset % this.w ) * 16 + this.x1, Math.floor( offset / this.w ) * 16 + this.y1 ];
 	}
 	
 	Iteration( GSPEED )
@@ -252,97 +447,218 @@ class RectSpaceMap
 		if ( this.target._is_being_removed )
 		return true; // Delete
 	
-		// TODO: Add removal logic for case when nobody is looking for target for few seconds
+		// Removal logic for case when nobody is looking for target for few seconds
+		if ( sdWorld.time > this.exist_until )
+		return true;
 		
-		this.active_bits;
-		
-		let active_bits_to_handle = 1;//Math.ceil( this.active_bits.length * 0.1 );
-		
-		for ( let b = 0; b < this.active_bits.length; b++ )
+		// Disable any iteration logic if all travelers have cell with path AND travelers are on cells that have same version as this whole RectSpaceMap
+		if ( sdWorld.time < this.solve_until )
 		{
-			if ( active_bits_to_handle-- <= 0 )
-			break;
-			
-			let offset = this.active_bits.shift(); // this.active_bits[ b ];
-			
-			let [ active_cell_x, active_cell_y ] = this.GetXYFromBitOffset( offset );
-			
-			let active_cell_version = this.bitmap_dataView.getUint8( BYTES_PER_VALUE * ( offset + OFFSET_VERSION ) );
-			
-			for ( let d = 0; d < 4; d++ )
+			let active_bits_to_handle = 5;//Math.ceil( this.active_bits.length * 0.1 );
+
+			// Check if target moved from previous cell and if so - update version and add new active cell
+			this.UpdateTargetPosition();
+
+			for ( let b = 0; b < this.active_bits_arr.length; b++ )
 			{
-				let x = active_cell_x;
-				let y = active_cell_y;
-				if ( d === 0 )
+				if ( active_bits_to_handle-- <= 0 )
+				break;
+
+				let obj = this.active_bits_arr.shift();
+				this.active_bits_set.delete( obj.offset );
+
+				let offset = obj.offset;
+				let active_cell_x = obj.x;
+				let active_cell_y = obj.y;
+
+				let active_cell_is_wall = sdWorld.CheckWallExistsBox( active_cell_x + 1, active_cell_y + 1, active_cell_x + 15, active_cell_y + 15, null, null, sdCom.com_visibility_unignored_classes, null );
+
+				if ( active_cell_is_wall )
+				if ( !this.can_dig )
 				{
-					x -= 16;
-					if ( x < this.x1 )
 					continue;
 				}
-				else
-				if ( d === 1 )
+
+				let active_cell_version = this.bitmap_dataView.getUint32( BYTES_PER_VALUE * ( offset + OFFSET_VERSION ) );
+
+				let active_cell_distance = this.bitmap_dataView.getUint16( BYTES_PER_VALUE * ( offset + OFFSET_DISTANCE_TO_TARGET ) );
+
+
+				for ( let d = 0; d < 4; d++ )
 				{
-					x += 16;
-					if ( x >= this.x2 )
-					continue;
-				}
-				else
-				if ( d === 2 )
-				{
-					y -= 16;
-					if ( y < this.y1 )
-					continue;
-				}
-				else
-				if ( d === 3 )
-				{
-					y += 16;
-					if ( y >= this.y2 )
-					continue;
-				}
-				
-				let offset_nearby = this.GetBitOffsetFromXY( x, y );
-				
-				let nearby_version = this.bitmap_dataView.getUint8( BYTES_PER_VALUE * ( offset_nearby + OFFSET_VERSION ) );
-				
-				// Rule: Sometimes it will be +10 instead of +1, but only when nearby cell is in the wall. Only entrance into cell counts as extra distance penalty.
-				// Basically leaving wall does not have penalty, but entering wall has penalty.
-				
-				if ( nearby_version < active_cell_version )
-				{
-					// TODO: Update version and set distance for nearby cell as current +1
-					
-					// TODO: Add nearby cell to .active_bits
-				}
-				else
-				if ( nearby_version === active_cell_version )
-				{
-					// TODO: Same version, can either take near cell's path distance as +1 or give own path distance as +1
-					
-					// TODO: Add to .active_bits either this or near cell again if they did exchange path distances. If not - continue to another nearby cell
-				}
-				else
-				{
-					// TODO: Newer version cell found - it is a sign to simply remove this cell from active cells and any logic will be done by newer cell anyway
+					let x = active_cell_x;
+					let y = active_cell_y;
+					if ( d === 0 )
+					{
+						x -= 16;
+						if ( x < this.x1 )
+						continue;
+					}
+					else
+					if ( d === 1 )
+					{
+						x += 16;
+						if ( x >= this.x2 )
+						continue;
+					}
+					else
+					if ( d === 2 )
+					{
+						y -= 16;
+						if ( y < this.y1 )
+						continue;
+					}
+					else
+					if ( d === 3 )
+					{
+						y += 16;
+						if ( y >= this.y2 )
+						continue;
+					}
+
+					let offset_nearby = this.GetBitOffsetFromXY( x, y );
+					let nearby_is_wall = sdWorld.CheckWallExistsBox( x + 1, y + 1, x + 15, y + 15, null, null, sdCom.com_visibility_unignored_classes, null );
+
+					if ( nearby_is_wall )
+					{
+						if ( !this.can_dig )
+						{
+							continue;
+						}
+					}
+					else
+					{
+						if ( this.can_fly )
+						{
+
+						}
+						else
+						{
+							if ( d === 2 ) // Only upwards (because any cell can be reached from above
+							{
+
+							}
+							else
+							{
+								if ( this.can_crawl )
+								{
+									if ( sdWorld.CheckWallExistsBox( x - 1, y + 1, x + 17, y + 17 + 16, null, null, sdCom.com_visibility_unignored_classes, null ) )
+									{
+									}
+									else
+									{
+										continue;
+									}
+								}
+								else
+								{
+									// Or if near ground, but no wall in cell around fall
+									if ( sdWorld.CheckWallExistsBox( x + 1, y + 1, x + 15, y + 15 + 32, null, null, sdCom.com_visibility_unignored_classes, null ) /*&&
+										 !sdWorld.CheckWallExistsBox( x - 1, y + 1, x + 17, y + 15, null, null, sdCom.com_visibility_unignored_classes, null )*/ )
+									{
+									}
+									else
+									{
+										/*if ( this.can_crawl )
+										{
+											sdWorld.CheckWallExistsBox( x - 1, y + 1, x + 18, y + 15, null, null, sdCom.com_visibility_unignored_classes, null )
+										}
+										else
+										{*/
+											continue;
+										//}
+									}
+								}
+							}
+						}
+					}
+
+					let nearby_version = this.bitmap_dataView.getUint32( BYTES_PER_VALUE * ( offset_nearby + OFFSET_VERSION ) );
+
+					let nearby_distance = this.bitmap_dataView.getUint16( BYTES_PER_VALUE * ( offset_nearby + OFFSET_DISTANCE_TO_TARGET ) );
+
+					// Rule: Sometimes it will be +10 instead of +1, but only when nearby cell is in the wall. Only entrance into cell counts as extra distance penalty.
+					// Basically leaving wall does not have penalty, but entering wall has penalty.
+
+					if ( nearby_version < active_cell_version )
+					{
+						// Update version and set distance for nearby cell as current +1
+						this.bitmap_dataView.setUint16( BYTES_PER_VALUE * ( offset_nearby + OFFSET_DISTANCE_TO_TARGET ), active_cell_distance + ( nearby_is_wall ? COST_BREAK_WALL : COST_MOVE ) );
+
+						this.bitmap_dataView.setUint32( BYTES_PER_VALUE * ( offset_nearby + OFFSET_VERSION ), active_cell_version );
+
+						// Add nearby cell to .active_bits
+						this.ScheduleCellUpdate( offset_nearby, x, y );
+					}
+					else
+					if ( nearby_version === active_cell_version )
+					{
+						// Same version, can either take near cell's path distance as +1 or give own path distance as +1
+
+						// Add to .active_bits either this or near cell again if they did exchange path distances. If not - continue to another nearby cell
+
+						if ( nearby_distance === active_cell_distance )
+						{
+							// Nothing to do here, they are equally close
+						}
+						else
+						{
+							if ( nearby_distance < active_cell_distance )
+							{
+								// Nearby is closer
+								if ( nearby_distance + ( active_cell_is_wall ? COST_BREAK_WALL : COST_MOVE ) < active_cell_distance )
+								{
+									active_cell_distance = nearby_distance + ( active_cell_is_wall ? COST_BREAK_WALL : COST_MOVE );
+
+									this.bitmap_dataView.setUint16( BYTES_PER_VALUE * ( offset + OFFSET_DISTANCE_TO_TARGET ), active_cell_distance );
+
+									this.ScheduleCellUpdate( offset, active_cell_x, active_cell_y );
+								}
+							}
+							else
+							{
+								// Active is closer
+								if ( active_cell_distance + ( nearby_is_wall ? COST_BREAK_WALL : COST_MOVE ) < nearby_distance )
+								{
+									nearby_distance = active_cell_distance + ( nearby_is_wall ? COST_BREAK_WALL : COST_MOVE );
+
+									this.bitmap_dataView.setUint16( BYTES_PER_VALUE * ( offset_nearby + OFFSET_DISTANCE_TO_TARGET ), nearby_distance );
+
+									this.ScheduleCellUpdate( offset_nearby, x, y );
+								}
+							}
+						}
+					}
+					else
+					{
+						// Newer version cell found - it is a sign to simply remove this cell from active cells and any logic will be done by newer cell anyway
+						break;
+					}
 				}
 			}
+
+			// Sort active cells by being close to travelers so we get faster path build where it needs to be built. Maybe also prioritize greatly active cells that have higher version (by ranking down any cell with (this.version - cell_version)*5 )
+			for ( let i = 0; i < this.active_bits_arr.length; i++ )
+			{
+				let obj = this.active_bits_arr[ i ];
+				obj.di = sdWorld.Dist2D_Vector_pow2( obj.x + 8 - this.solve_near_x, obj.y + 8 - this.solve_near_y );
+			}
+			this.active_bits_arr.sort( this.SortCompare );
 		}
 		
-		// Check if target moved from previous cell and if so - update version and add new active cell
-		this.UpdateTargetPosition();
-		
-		// TODO: Sort active cells by being close to travelers so we get faster path build where it needs to be built. Maybe also prioritize greatly active cells that have higher version (by ranking down any cell with (this.version - cell_version)*5 )
-		
-		// TODO: Disable any iteration logic if all travelers have cell with path AND travelers are on cells that have same version as this whole RectSpaceMap
-		
 		return false; // Keep
+	}
+	
+	SortCompare( a, b )
+	{
+		return a.di - b.di;
 	}
 }	
 /*
 // Slowly built around each target so travelers can reach it
 class RectSpaceMap
 {
-	constructor( ent, include_ground=false )
+	constructor( ent, can_dig=false )
 	{
 		// TODO: Somehow prioritize rect Iterating for those that are closest to known travelers
 		
@@ -352,9 +668,9 @@ class RectSpaceMap
 		
 		this.version = 0; // Version might go up every time target moves from rect to rect. Then all versions of all rects and towards_target-s will be updated.
 		
-		this.include_ground = include_ground;
+		this.can_dig = can_dig;
 		
-		this.time_to_live = sdWorld.time + 5000;
+		this.exist_until = sdWorld.time + 5000;
 	}
 	
 	Iteration( GSPEED )
@@ -598,7 +914,7 @@ class Rect
 							{
 								// Wall
 
-								if ( this.rect_space_map.include_ground )
+								if ( this.rect_space_map.can_dig )
 								{
 									spawn_rect = true;
 									spawn_rect_is_ground = is_ground_there;
