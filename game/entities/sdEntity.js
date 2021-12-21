@@ -2523,8 +2523,9 @@ class sdEntity
 					}
 					else
 					{
-						if ( this.held_by_class !== '' )
-						sdWorld.unresolved_entity_pointers.push([ this, '_held_by', this.held_by_class, this.held_by_net_id ]);
+						this._held_by = null;
+						//if ( this.held_by_class !== '' )
+						//sdWorld.unresolved_entity_pointers.push([ this, '_held_by', this.held_by_class, this.held_by_net_id ]);
 					}
 				}
 			}
@@ -2652,6 +2653,8 @@ class sdEntity
 		}
 		return null;*/
 	}
+	
+	// If you are going to use this method while snapshot may contain pointers towards not-yet-existing objects - you can try catching cases by setting sdWorld.unresolved_entity_pointers = []; (temporarily! Or else memory leaks. Once you've done - do sdWorld.unresolved_entity_pointers = null; )
 	static GetObjectFromSnapshot( snapshot )
 	{
 		/*for ( var i = 0; i < sdEntity.entities.length; i++ )
