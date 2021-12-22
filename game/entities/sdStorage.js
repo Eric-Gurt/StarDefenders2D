@@ -400,14 +400,15 @@ class sdStorage extends sdEntity
 		if ( 
 				( 
 					( this.type === sdStorage.TYPE_GUNS || this.type === sdStorage.TYPE_PORTAL ) && 
-					from_entity.is( sdGun ) 
+					from_entity.is( sdGun ) && !from_entity._held_by // Guns can still be held by sdCharacter
 				) 
 		
 				|| 
 				
 				( 
 					this.type === sdStorage.TYPE_CRYSTALS && 
-					from_entity.is( sdCrystal ) && 
+					from_entity.is( sdCrystal ) && !from_entity.held_by // sdCrystals would be held by amplifiers and other things
+					&& 
 					from_entity.type !== sdCrystal.TYPE_CRYSTAL_BIG 
 				) 
 		
