@@ -2534,7 +2534,8 @@ class sdCharacter extends sdEntity
 			}
 
 			//if ( still_stands || !this.CanMoveWithoutOverlap( this.x, this.y + ( this.UseServerCollisions() ? 2 : 3 ), 0 ) )
-			if ( still_stands || !this.CanMoveWithoutOverlap( this.x, this.y + 2, 1 ) )
+			//if ( still_stands || !this.CanMoveWithoutOverlap( this.x, this.y + 2, 1 ) )
+			if ( still_stands || !this.CanMoveWithoutOverlap( this.x, this.y + 2, 0.0001 ) )
 			{
 				this.stands = true;
 				

@@ -952,11 +952,16 @@ class sdEntity
 
 							if ( step_size > 0 )
 							{
-								if ( step_size > on_top )
-								{
-									step_size = on_top;
-								}
-								on_top -= step_size;
+							    if ( this.CanMoveWithoutOverlap( this.x, best_ent.y + best_ent._hitbox_y1 - this._hitbox_y2 - 0.001, -0.0005 ) ) // Prevent standing on vertical walls
+							    {
+									if ( step_size > on_top )
+									{
+										step_size = on_top;
+									}
+									on_top -= step_size;
+							    }
+							    else
+							    step_size = 0;
 							}
 
 							/*if ( step_size > 0 )
