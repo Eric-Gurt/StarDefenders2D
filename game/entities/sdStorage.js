@@ -594,6 +594,8 @@ class sdStorage extends sdEntity
 				}
 			}
 			
+			item.PhysWakeUp();
+			
 			return item;
 		//}
 	}

@@ -128,7 +128,7 @@ class sdWater extends sdEntity
 		return 5;
 	}
 	
-	GetWaterObjectAt( nx, ny ) // for visuals, also for chain-awake
+	static GetWaterObjectAt( nx, ny ) // for visuals, also for chain-awake
 	{
 		if ( nx >= sdWorld.world_bounds.x2 || nx <= sdWorld.world_bounds.x1 || 
 			 ny >= sdWorld.world_bounds.y2 || ny <= sdWorld.world_bounds.y1 )
@@ -170,28 +170,28 @@ class sdWater extends sdEntity
 			for ( var y = -1; y <= 1; y++ )
 			if ( x !== 0 || y !== 0 )
 			{
-				e = this.GetWaterObjectAt( this.x + x * 16, this.y + y * 16 );
+				e = sdWater.GetWaterObjectAt( this.x + x * 16, this.y + y * 16 );
 				if ( e )
 				e.AwakeSelfAndNear( recursive_catcher );
 			}
 		}
 		/*
-		e = this.GetWaterObjectAt( this.x, this.y - 16 );
+		e = sdWater.GetWaterObjectAt( this.x, this.y - 16 );
 		if ( e )
 		e.AwakeSelfAndNear( recursive_catcher );
 		//e._sleep_tim = sdWater.sleep_tim_max;
 	
-		e = this.GetWaterObjectAt( this.x - 16, this.y );
+		e = sdWater.GetWaterObjectAt( this.x - 16, this.y );
 		if ( e )
 		e.AwakeSelfAndNear( recursive_catcher );
 		//e._sleep_tim = sdWater.sleep_tim_max;
 	
-		e = this.GetWaterObjectAt( this.x + 16, this.y );
+		e = sdWater.GetWaterObjectAt( this.x + 16, this.y );
 		if ( e )
 		e.AwakeSelfAndNear( recursive_catcher );
 		//e._sleep_tim = sdWater.sleep_tim_max;
 	
-		e = this.GetWaterObjectAt( this.x, this.y + 16 );
+		e = sdWater.GetWaterObjectAt( this.x, this.y + 16 );
 		if ( e )
 		e.AwakeSelfAndNear( recursive_catcher );
 		//e._sleep_tim = sdWater.sleep_tim_max;
@@ -637,9 +637,9 @@ class sdWater extends sdEntity
 		
 		//let wall_below = sdWorld.CheckWallExists( this.x + 8, this.y + 16 + 8, null, null, sdWater.classes_to_interact_with );
 		
-		//let below = this.GetWaterObjectAt( this.x, this.y + 16 );
-		//let left = this.GetWaterObjectAt( this.x - 16, this.y );
-		//let right = this.GetWaterObjectAt( this.x + 16, this.y );
+		//let below = sdWater.GetWaterObjectAt( this.x, this.y + 16 );
+		//let left = sdWater.GetWaterObjectAt( this.x - 16, this.y );
+		//let right = sdWater.GetWaterObjectAt( this.x + 16, this.y );
 		
 		//let drawn = false;
 		

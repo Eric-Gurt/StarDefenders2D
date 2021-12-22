@@ -2390,6 +2390,11 @@ class sdCharacter extends sdEntity
 				{
 					this.hook_x = this._hook_relative_to.x + this._hook_relative_x;
 					this.hook_y = this._hook_relative_to.y + this._hook_relative_y;
+					
+					if ( this._hook_relative_to.is( sdCube ) )
+					{
+						this._nature_damage += GSPEED;
+					}
 				}
 
 				let from_y = this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2;

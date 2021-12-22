@@ -111,7 +111,10 @@ class sdBadDog extends sdEntity
 		{
 			this._current_target = ent;
 
-			this._pathfinding = new sdPathFinding({ target: ent, traveler: this, options: [ sdPathFinding.OPTION_CAN_CRAWL ] });
+			if ( ent )
+			this._pathfinding = new sdPathFinding({ target: ent, traveler: this, options: [ sdPathFinding.OPTION_CAN_CRAWL, sdPathFinding.OPTION_CAN_SWIM ] });
+			else
+			this._pathfinding = null;
 		}
 	}
 	
@@ -283,6 +286,8 @@ class sdBadDog extends sdEntity
 			this.owned = this.master ? 1 : 0;
 		}
 		
+		let pathfinding_result = null;
+		
 		if ( this.hea <= 0 )
 		{
 			if ( this.death_anim < sdBadDog.death_duration + sdBadDog.post_death_ttl )
@@ -352,7 +357,7 @@ class sdBadDog extends sdEntity
 				{
 					let jump_delay_scale = 1;
 					
-					let pathfinding_result = this._pathfinding.Think( GSPEED );
+					pathfinding_result = this._pathfinding.Think( GSPEED );
 					
 					if ( pathfinding_result )
 					{
@@ -365,7 +370,7 @@ class sdBadDog extends sdEntity
 						if ( pathfinding_result.act_y > 0 )
 						jump_delay_scale = 10;
 						else
-						if ( pathfinding_result.act_y < 0 )
+						if ( pathfinding_result.act_y < -0.5 )
 						{
 							jump_delay_scale = 0.25;
 							
@@ -384,11 +389,18 @@ class sdBadDog extends sdEntity
 					if ( this.hea < this.hmax * this._retreat_hp_mult )
 					this.side *= -1;
 
-					//if ( sdWorld.is_server )
+                    if ( in_water && pathfinding_result )
+                    {
+                        this.sx += pathfinding_result.act_x * GSPEED * 0.3;
+                        this.sy += pathfinding_result.act_y * GSPEED * 0.3;
+                        this.PhysWakeUp();
+                    }
+                    else
 					if ( this._last_jump < sdWorld.time - 400 * jump_delay_scale )
 					{
 						//if ( this._last_stand_on )
 						if ( in_water || !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) )
+						//if ( in_water || this._phys_last_touch )
 						{
 							this._last_jump = sdWorld.time;
 
@@ -417,7 +429,8 @@ class sdBadDog extends sdEntity
 
 							let dy = -1;
 
-							if ( Math.abs( this.sx ) < 0.5 )
+							//if ( Math.abs( this.sx ) < 0.5 )
+							if ( pathfinding_result && pathfinding_result.act_y < -0.5 )
 							dy = -5;
 
 							let di = sdWorld.Dist2D_Vector( dx, dy );
@@ -430,7 +443,8 @@ class sdBadDog extends sdEntity
 								dy *= 5;
 							}
 
-							this.sx = dx;
+							//this.sx = dx;
+							this.sx += dx * 0.35;
 							this.sy = dy;
 
 
@@ -438,7 +452,8 @@ class sdBadDog extends sdEntity
 						}
 						else
 						{
-							let dx = ( this._current_target.x > this.x ) ? 1 : -1;
+							//let dx = ( this._current_target.x > this.x ) ? 1 : -1;
+							let dx = this.side;
 
 							if ( !this.master )
 							if ( this.hea < this.hmax * this._retreat_hp_mult )
@@ -459,7 +474,7 @@ class sdBadDog extends sdEntity
 			this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.87, GSPEED );
 			
 			if ( this.hea > 0 )
-			this.sy -= sdWorld.gravity * GSPEED * 2;
+			this.sy -= sdWorld.gravity * GSPEED * ( pathfinding_result ? 1 : 2 ); // Don't swim up if navigating in water
 		}
 		
 		this.sy += sdWorld.gravity * GSPEED;

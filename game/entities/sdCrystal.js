@@ -153,7 +153,11 @@ class sdCrystal extends sdEntity
 			this._hea = this.type === sdCrystal.TYPE_CRYSTAL_BIG ? 240 : 60;
 			this._damagable_in = sdWorld.time + 1000; // Suggested by zimmermannliam, will only work for sdCharacter damage		
 		}
+		this._hmax = this._hea; // For repair logic
 		
+		// Crabs can be healed x2 from original health (from grass)
+		if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB )
+		this._hmax *= 2; 
 	}
 
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
@@ -552,7 +556,7 @@ class sdCrystal extends sdEntity
 		{
 			if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB )
 			{
-				this.AddContextOption( 'Poke living thing out', 'POKE', [] );
+				this.AddContextOption( 'Melt into regular crytal', 'POKE', [] );
 			}
 		}
 	}

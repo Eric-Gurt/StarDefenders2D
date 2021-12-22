@@ -260,6 +260,12 @@ class sdGun extends sdEntity
 					this._held_by === null 
 				);
 		}
+		else
+		{
+			// Lost effect won't work in else case
+			if ( this._held_by === null )
+			r = true;
+		}
 		
 		if ( r )
 		if ( !sdArea.CheckPointDamageAllowed( this.x + ( this._hitbox_x1 + this._hitbox_x2 ) / 2, this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2 ) )

@@ -448,6 +448,8 @@ sdServerToServerProtocol.init_class();
 	
 sdPathFinding.init_class();
 
+
+
 /* Do like that later, not sure if I want to deal with path problems yet again... Add awaits where needed too
 
 let ent_modules = [];
@@ -475,6 +477,7 @@ globalThis.sdWorld = sdWorld;
 globalThis.sdShop = sdShop;
 globalThis.sdModeration = sdModeration;
 globalThis.sdSnapPack = sdSnapPack;
+globalThis.sdPathFinding = sdPathFinding;
 
 sdWorld.FinalizeClasses();
 

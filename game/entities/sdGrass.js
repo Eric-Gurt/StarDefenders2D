@@ -1,8 +1,10 @@
 
 import sdWorld from '../sdWorld.js';
+import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
 import sdBullet from './sdBullet.js';
+import sdCrystal from './sdCrystal.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -148,6 +150,23 @@ class sdGrass extends sdEntity
 			{
 				this._block._plants.splice( id, 1 );
 			}
+		}
+	}
+	
+	onMovementInRange( from_entity )
+	{
+		if ( !this._is_being_removed )
+		if ( from_entity.is( sdCrystal ) )
+		if ( from_entity.type === sdCrystal.TYPE_CRYSTAL_CRAB )
+		{
+			if ( from_entity.matter_regen < 400 )
+			from_entity.matter_regen = Math.min( from_entity.matter_regen + 10, 400 );
+		
+			from_entity._hea = Math.min( from_entity._hea + 10, from_entity._hmax );
+			
+			sdSound.PlaySound({ name:'popcorn', x:from_entity.x, y:from_entity.y, volume:0.3, pitch:1.5 });
+			
+			this.remove();
 		}
 	}
 }

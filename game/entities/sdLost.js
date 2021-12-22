@@ -27,12 +27,20 @@ class sdLost extends sdEntity
 	{
 		sdLost.entities_and_affection = new Map();
 		
+		sdLost.filters = [
+			'contrast(0.8) sepia(1) hue-rotate(10deg) saturate(16)',
+			'saturate(0) brightness(2.5)'
+		];
+		
+		sdLost.FILTER_GOLDEN = 0;
+		sdLost.FILTER_WHITE = 1;
+		
 		sdWorld.static_think_methods.push( sdLost.StaticThink );
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	
-	static ApplyAffection( ent, amonut, bullet )
+	static ApplyAffection( ent, amonut, bullet=null, f=sdLost.FILTER_GOLDEN )
 	{
 		let is_dead = ( ( ent.hea || ent._hea || 1 ) <= 0 );
 		
@@ -43,17 +51,17 @@ class sdLost extends sdEntity
 		//if ( !ent.is( sdCharacter ) || !ent._god ) Should be handled by impossibility of damage
 		//if ( ent.IsTargetable() || is_dead )
 		{
-			if ( ( typeof ent._armor_protection_level === 'undefined' || bullet._armor_penetration_level >= ent._armor_protection_level ) &&
+			/*if ( ( typeof ent._armor_protection_level === 'undefined' || bullet._armor_penetration_level >= ent._armor_protection_level ) &&
 				 ( typeof ent._reinforced_level === 'undefined' || bullet._reinforced_level >= ent._reinforced_level ) )
 			{
 				
 			}
 			else
-			return;
+			return;*/
 		
 			let hea = ( ent._hea || ent.hea || 0 );
 			
-			ent.Damage( 1, bullet._owner );
+			ent.Damage( 1, bullet ? bullet._owner : null );
 			
 			let hea2 = ( ent._hea || ent.hea || 0 );
 			
@@ -132,7 +140,8 @@ class sdLost extends sdEntity
 					d: sdWorld.GetDrawOperations( ent ),
 					matter_max: ent.matter || ent._matter || 1,
 					s: ent.is_static,
-					t: title
+					t: title,
+					f: f
 				});
 				sdEntity.entities.push( ent2 );
 				sdWorld.UpdateHashPosition( ent2, false ); // Optional, but will make it visible as early as possible
@@ -142,7 +151,7 @@ class sdLost extends sdEntity
 					if ( ent.hea > 0 )
 					{
 						if ( sdWorld.server_config.onKill )
-						sdWorld.server_config.onKill( ent, bullet._owner );
+						sdWorld.server_config.onKill( ent, bullet ? bullet._owner : null );
 					}
 					
 					if ( ent._ragdoll )
@@ -161,13 +170,13 @@ class sdLost extends sdEntity
 					if ( ent.towards_head )
 					{
 						if ( !ent.towards_head._is_being_removed )
-						sdLost.ApplyAffection( ent.towards_head, Infinity, bullet );
+						sdLost.ApplyAffection( ent.towards_head, Infinity, bullet, f );
 					}
 					
 					if ( ent.towards_tail )
 					{
 						if ( !ent.towards_tail._is_being_removed )
-						sdLost.ApplyAffection( ent.towards_tail, Infinity, bullet );
+						sdLost.ApplyAffection( ent.towards_tail, Infinity, bullet, f );
 					}
 				}
 			}
@@ -245,6 +254,8 @@ class sdLost extends sdEntity
 		
 		this.t = params.t || null;
 		
+		this.f = params.f || 0; // Filter ID
+		
 		this.awake = 1; // For client sync
 		
 		//if ( this.s )
@@ -274,15 +285,21 @@ class sdLost extends sdEntity
 		{
 			if ( was_alive )
 			{
-				//sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:1 });
-				sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.5 });
+				if ( this.f === 0 )
+				{
+					sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.5 });
 
-				sdWorld.DropShards( this.x + ( this.x2 + this.x1 ) / 2, this.y + ( this.y2 + this.y1 ) / 2, this.sx, this.sy, 
-					Math.ceil( Math.min( 10, Math.max( 1, this._matter / sdWorld.crystal_shard_value ) ) ),
-					//this._matter_max / 40,
-					40 * 16 / 40,
-					( this.x2 - this.x1 + this.y2 - this.y1 ) / 4
-				);
+					sdWorld.DropShards( this.x + ( this.x2 + this.x1 ) / 2, this.y + ( this.y2 + this.y1 ) / 2, this.sx, this.sy, 
+						Math.ceil( Math.min( 10, Math.max( 1, this._matter / sdWorld.crystal_shard_value ) ) ),
+						//this._matter_max / 40,
+						40 * 16 / 40,
+						( this.x2 - this.x1 + this.y2 - this.y1 ) / 4
+					);
+				}
+				else
+				{
+					sdWorld.BasicEntityBreakEffect( this, 3, undefined, undefined, 1.4 );
+				}
 
 				this.remove();
 			}
@@ -292,6 +309,8 @@ class sdLost extends sdEntity
 			if ( sdWorld.time > this._last_damage + 50 )
 			{
 				this._last_damage = sdWorld.time;
+				
+				if ( this.f === 0 )
 				sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, volume:1 });
 			}
 		}
@@ -350,7 +369,13 @@ class sdLost extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.t )
-		sdEntity.Tooltip( ctx, 'Lost ' + this.t );
+		{
+			if ( this.f === 0 )
+			sdEntity.Tooltip( ctx, 'Lost ' + this.t );
+		
+			if ( this.f === 1 )
+			sdEntity.Tooltip( ctx, 'Empty ' + this.t );
+		}
 	}
 	Draw( ctx, attached )
 	{
@@ -368,7 +393,10 @@ class sdLost extends sdEntity
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';*/
 		
-		ctx.filter = 'contrast(0.8) sepia(1) hue-rotate(10deg) saturate(16)';
+		//ctx.filter = 'contrast(0.8) sepia(1) hue-rotate(10deg) saturate(16)';
+		//ctx.globalAlpha = 0.8;
+		
+		ctx.filter = sdLost.filters[ this.f ];
 		ctx.globalAlpha = 0.8;
 		
 		sdWorld.ApplyDrawOperations( ctx, this.d );

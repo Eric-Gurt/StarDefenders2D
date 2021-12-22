@@ -9,6 +9,7 @@ import sdCom from './sdCom.js';
 import sdBullet from './sdBullet.js';
 import sdCharacter from './sdCharacter.js';
 import sdDrone from './sdDrone.js';
+import sdCube from './sdCube.js';
 //import sdMatterAmplifier from './sdMatterAmplifier.js';
 //import sdCrystalCombiner from './sdCrystalCombiner.js';
 import sdArea from './sdArea.js';
@@ -191,6 +192,9 @@ class sdPlayerDrone extends sdCharacter
 			this._nature_damage = 0; // Hack
 			this._player_damage = 0; // Hack
 		}
+		
+		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED );
+		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED );
 		
 		const matter_cost_4 = ( Math.abs( 100 * this._damage_mult * ( this.power_ef > 0 ? 2.5 : 1 ) ) * 1 + 30 ) * sdWorld.damage_to_matter;
 		const matter_cost_5 = 100;
@@ -486,6 +490,12 @@ class sdPlayerDrone extends sdCharacter
 
 							this.grabbed.Impulse( dx * p, 
 												  dy * p );
+												  
+												  
+							if ( this.grabbed.is( sdCube ) )
+							{
+								this._nature_damage += GSPEED;
+							}
 						}
 					}
 					else

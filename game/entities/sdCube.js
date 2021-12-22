@@ -7,6 +7,9 @@ import sdGun from './sdGun.js';
 import sdWater from './sdWater.js';
 import sdCom from './sdCom.js';
 import sdBullet from './sdBullet.js';
+import sdLost from './sdLost.js';
+
+import sdPathFinding from '../ai/sdPathFinding.js';
 
 class sdCube extends sdEntity
 {
@@ -77,6 +80,8 @@ class sdCube extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
+		this._dropped_items = new WeakSet(); // Just so they won't be lost by boss cube
+		
 		this.regen_timeout = 0;
 		this.kind = params.kind || 0;
 		//this.is_huge = ( this.kind === 1 ) ? true : false;
@@ -85,6 +90,9 @@ class sdCube extends sdEntity
 		
 		this._hmax = this.kind === 2 ? 1600 : this.kind === 1 ? 800 : 200;
 		this.hea = this._hmax;
+		
+		this._boss_death_ping_timer = 0;
+		this._boss_death_pings_left = 0;
 		
 		//this.death_anim = 0;
 		
@@ -107,6 +115,9 @@ class sdCube extends sdEntity
 		
 		//this.side = 1;
 		
+		this._current_target = null; // Mostly related to following
+		this._pathfinding = null;
+		
 		this._alert_intensity = 0; // Grows until some value and only then it will shoot
 		
 		this.matter_max = (this.kind === 2 ? 6 : this.kind === 1 ? 4 : 1 ) * 160;
@@ -124,6 +135,18 @@ class sdCube extends sdEntity
 		sdCube.alive_pink_cube_counter++;
 		
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
+	}
+	SetTarget( ent )
+	{
+		if ( ent !== this._current_target )
+		{
+			this._current_target = ent;
+
+			if ( ent )
+			this._pathfinding = new sdPathFinding({ target: ent, traveler: this, attack_range: 1000, options: [ sdPathFinding.OPTION_CAN_FLY, sdPathFinding.OPTION_CAN_GO_THROUGH_WALLS, sdPathFinding.OPTION_CAN_SWIM ] });
+			else
+			this._pathfinding = null;
+		}
 	}
 	/*SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
@@ -194,6 +217,9 @@ class sdCube extends sdEntity
 			this._alert_intensity = 0;
 			
 			sdSound.PlaySound({ name:'cube_offline', pitch: (this.kind === 1 || this.kind === 2) ? 0.5 : 1, x:this.x, y:this.y, volume:1.5 });
+			
+			this._boss_death_ping_timer = 0;
+			this._boss_death_pings_left = 10;
 		}
 		
 		if ( this.hea <= explode_on_hea && was_existing )
@@ -278,6 +304,8 @@ class sdCube extends sdEntity
 						this.ColorGunAccordingly( gun );
 						
 						sdEntity.entities.push( gun );
+						
+						this._dropped_items.add( gun );
 
 					}, 500 );
 				//}
@@ -301,8 +329,10 @@ class sdCube extends sdEntity
 					//gun.extra = (this.kind === 3 ? 3 : this.kind === 2 ? 2 : this.kind === 1 ? 1 : 0 ); // Color it
 					this.ColorGunAccordingly( gun );
 					sdEntity.entities.push( gun );
+					
+					this._dropped_items.add( gun );
 
-					}, 500 );
+				}, 500 );
 			}
 
 			this.remove();
@@ -434,6 +464,12 @@ class sdCube extends sdEntity
 			this.regen_timeout = Math.max( this.regen_timeout - GSPEED, 0 );
 		}
 		
+		let pathfinding_result = null;
+		
+		// It makes sense to call it at all times because it also handles wall attack logic
+		if ( this._current_target )
+		pathfinding_result = this._pathfinding.Think( GSPEED );
+		
 		if ( this.hea <= 0 )
 		{
 			this.sy += sdWorld.gravity * GSPEED;
@@ -442,6 +478,59 @@ class sdCube extends sdEntity
 			this.death_anim += GSPEED;
 			//else
 			//this.remove();
+			
+			if ( this.kind === 2 ) // Bosses
+			if ( this._boss_death_pings_left > 0 )
+			{
+				this._boss_death_ping_timer += GSPEED;
+				
+				this.regen_timeout = 30;
+				
+				if ( this._boss_death_ping_timer > 45 )
+				{
+					this._boss_death_ping_timer -= 45;
+				
+					sdSound.PlaySound({ name:'cube_boss_ping', pitch: 1 - ( 10 - this._boss_death_pings_left ) / 10 * 0.5, x:this.x, y:this.y, volume:1.5 });
+					
+					this._boss_death_pings_left--;
+					
+					if ( this._boss_death_pings_left === 0 )
+					{
+						for ( let t = 0; t < 5; t++ )
+						{
+							setTimeout( ()=>{
+								
+								sdWorld.SendEffect({ 
+									x:this.x, 
+									y:this.y, 
+									radius:32 * t + 32,
+									damage_scale: 0, // Just a decoration effect
+									type:sdEffect.TYPE_EXPLOSION, 
+									owner:this,
+									color:'#aaaaaa' 
+								});
+
+								let nears = sdWorld.GetAnythingNear( this.x, this.y, 32 * t + 32 );
+								
+								for ( let i = 0; i < nears.length; i++ )
+								{
+									if ( this._dropped_items.has( nears[ i ] ) )
+									{
+									}
+									else
+									{
+										// Normally won't lost guns since they have high HP
+										sdLost.ApplyAffection( nears[ i ], 200 / 5, null, sdLost.FILTER_WHITE );
+									}
+								}
+							
+							}, t * 700 );
+							
+							this.Damage( 10000 );
+						}
+					}
+				}
+			}
 			
 			this.MatterGlow( 0.01, 30, GSPEED );
 			/*var x = this.x;
@@ -506,16 +595,46 @@ class sdCube extends sdEntity
 							}
 						}
 					}
+					
+					this.SetTarget( closest );
 
 					if ( closest )
 					{
 						// Get closer
-						let an_desired = Math.atan2( closest.y - this.y, closest.x - this.x ) - 0.5 + Math.random();
-
-						this._move_dir_x = Math.cos( an_desired ) * 3;
-						this._move_dir_y = Math.sin( an_desired ) * 3;
+						
+						let travel_speed = 3;
 						
 						if ( closest_di_real < sdCube.attack_range ) // close enough to dodge obstacles
+						{
+							travel_speed = 1;
+						}
+						
+						if ( pathfinding_result )
+						{
+							if ( pathfinding_result.attack_target )
+							{
+								let an = Math.random() * Math.PI * 2;
+
+								this._move_dir_x = Math.cos( an );
+								this._move_dir_y = Math.sin( an );
+							}
+							else
+							{
+								this._move_dir_x = pathfinding_result.act_x * travel_speed;
+								this._move_dir_y = pathfinding_result.act_y * travel_speed;
+							}
+						}
+						else
+						{
+							let an_desired = Math.atan2( closest.y - this.y, closest.x - this.x ) - 0.5 + Math.random();
+
+							this._move_dir_x = Math.cos( an_desired ) * travel_speed;
+							this._move_dir_y = Math.sin( an_desired ) * travel_speed;
+						}
+						
+						// pathfinding_result.attack_target
+						
+						/*if ( closest_di_real < sdCube.attack_range ) // close enough to dodge obstacles
 						{
 							let an = Math.random() * Math.PI * 2;
 
@@ -581,7 +700,7 @@ class sdCube extends sdEntity
 								//sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_WALL_HIT });
 							
 							}
-						}
+						}*/
 					}
 					else
 					{
@@ -597,7 +716,7 @@ class sdCube extends sdEntity
 		
 			let v = ( this.attack_anim > 0 ) ? 0.3 : 0.1;
 				
-			if ( 
+			/*if ( 
 					//this.y > sdWorld.world_bounds.y1 + 200 &&
 					sdWorld.CheckLineOfSight( this.x, this.y, this.x + this._move_dir_x * 50, this.y + this._move_dir_y * 50, this, sdCom.com_visibility_ignored_classes, null ) &&  // Can move forward
 				( 
@@ -606,16 +725,16 @@ class sdCube extends sdEntity
 				   !sdWorld.CheckLineOfSight( this.x, this.y, this.x - this._move_dir_y * 100, this.y + this._move_dir_x * 100, this, sdCom.com_visibility_ignored_classes, null ) || // side
 				   !sdWorld.CheckLineOfSight( this.x, this.y, this.x + this._move_dir_y * 100, this.y - this._move_dir_x * 100, this, sdCom.com_visibility_ignored_classes, null ) // side
 				   ) )
-			{
+			{*/
 				
 				this.sx += this._move_dir_x * v * GSPEED;
 				this.sy += this._move_dir_y * v * GSPEED;
-			}
+			/*}
 			else
 			{
 				this._move_dir_timer = 0;
 				this.sy += 0.03 * GSPEED;
-			}
+			}*/
 			
 			if ( sdWorld.is_server )
 			{
@@ -628,11 +747,32 @@ class sdCube extends sdEntity
 					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdCube.attack_range, null, [ 'sdCharacter', 'sdTurret', 'sdEnemyMech', 'sdCube', 'sdDrone' ] );
 
 					let targets = [];
+					
+					if ( pathfinding_result )
+					if ( pathfinding_result.attack_target )
+					{
+						if ( pathfinding_result.attack_target.IsPlayerClass() )
+						{
+							if ( sdCube.IsTargetFriendly( pathfinding_result.attack_target ) )
+							{
+							}
+							else
+							{
+								// Non-friendly player seen
+							}
+						}
+						else
+						{
+							// Block or some else obstacle
+							if ( !sdCube.IsTargetFriendly( this._current_target ) )
+							targets.push( pathfinding_result.attack_target );
+						}
+					}
 
 					for ( let i = 0; i < targets_raw.length; i++ )
 					if ( this.kind !== 3 ) // Pink cubes heal friendly entities
 					{
-						if ( ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ].hea > 0 && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) ||
+						if ( ( targets_raw[ i ].IsPlayerClass() && targets_raw[ i ].hea > 0 && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) ||
 							 ( targets_raw[ i ].GetClass() === 'sdTurret' && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) || 
 							 ( targets_raw[ i ].GetClass() === 'sdEnemyMech' && targets_raw[ i ].hea > 0  && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) )
 						{
@@ -640,7 +780,8 @@ class sdCube extends sdEntity
 							targets.push( targets_raw[ i ] );
 							else
 							{
-								if ( targets_raw[ i ].GetClass() === 'sdCharacter' )
+								//if ( targets_raw[ i ].GetClass() === 'sdCharacter' )
+								if ( targets_raw[ i ].IsPlayerClass() )
 								if ( targets_raw[ i ]._nature_damage >= targets_raw[ i ]._player_damage + ( (this.kind === 1 || this.kind === 2 ) ? 120 : 200 ) ) // Highly wanted by sdCubes in this case
 								{
 									targets.push( targets_raw[ i ] );
@@ -650,7 +791,7 @@ class sdCube extends sdEntity
 					}
 					else
 					{
-						if ( ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ].hea < targets_raw[ i ].hmax && sdCube.IsTargetFriendly( targets_raw[ i ] ) && targets_raw[ i ]._socket ) || // Only with socket
+						if ( ( targets_raw[ i ].IsPlayerClass() && targets_raw[ i ].hea < targets_raw[ i ].hmax && sdCube.IsTargetFriendly( targets_raw[ i ] ) && targets_raw[ i ]._socket ) || // Only with socket
 							 ( targets_raw[ i ].GetClass() === 'sdCube' && targets_raw[ i ].hea < targets_raw[ i ]._hmax && targets_raw[ i ] !== this ) )
 							if ( sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdCube' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ] ) )
 							targets.push( targets_raw[ i ] );
@@ -787,7 +928,8 @@ class sdCube extends sdEntity
 	
 	static IsTargetFriendly( ent ) // Assumes _nature_damage and _player_damage are defined properties, thus will work mostly only for sdCharacter
 	{
-		if ( ent.GetClass() === 'sdCharacter' )
+		//if ( ent.GetClass() === 'sdCharacter' )
+		if ( ent.IsPlayerClass() )
 		if ( ent._nature_damage >= ent._player_damage + 60 )
 		return false;
 
