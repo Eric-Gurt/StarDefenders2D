@@ -6,6 +6,8 @@ meSpeak.loadVoice("voices/pl.json");
 
 globalThis.trace = console.log;
 
+globalThis.GetFrame = ()=>{ return sdWorld.frame; }; // Call like this: GetFrame()
+
 	//let one_time_key = null;
 	
 	window.onhashchange = ( e )=>

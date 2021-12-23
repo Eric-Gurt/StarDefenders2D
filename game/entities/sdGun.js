@@ -315,7 +315,7 @@ class sdGun extends sdEntity
 		else
 		this._hea = 50;
 	
-		if ( this.class != sdGun.CLASS_CRYSTAL_SHARD && sdGun.classes[ this.class ].spawnable === false ) // Unbuildable guns have 3 minutes to despawn, enough for players to find them if they lost them
+		if ( this.class !== sdGun.CLASS_CRYSTAL_SHARD && sdGun.classes[ this.class ].spawnable === false ) // Unbuildable guns have 3 minutes to despawn, enough for players to find them if they lost them
 		this.ttl = params.ttl || sdGun.disowned_guns_ttl * 3;
 		else
 		this.ttl = params.ttl || sdGun.disowned_guns_ttl;
@@ -353,7 +353,9 @@ class sdGun extends sdEntity
 		
 		return false;
 	}
-	onRemove()
+	
+	//onRemove()
+	onBeforeRemove() // Right when .remove() is called for the first time
 	{
 		if ( this._held_by )
 		{
@@ -846,16 +848,6 @@ class sdGun extends sdEntity
 
 		this.fire_mode = sdGun.classes[ this.class ].fire_type || 1; // Adjust fire mode for the weapon
 
-		if ( this.ttl > 0 )
-		{
-			this.ttl -= GSPEED;
-			if ( this.ttl <= 0 )
-			{
-				this.remove();
-				return;
-			}
-		}
-		
 		if ( this.muzzle > 0 )
 		this.muzzle -= GSPEED;
 			
@@ -865,6 +857,17 @@ class sdGun extends sdEntity
 			{
 				this.held_by_net_id = -1;
 				this.held_by_class = '';
+				
+				if ( this.ttl > 0 )
+				{
+					this.ttl -= GSPEED;
+					if ( this.ttl <= 0 )
+					{
+						this.remove();
+						return;
+					}
+				}
+
 			}
 			
 			this.sy += sdWorld.gravity * GSPEED;

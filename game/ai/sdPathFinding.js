@@ -133,7 +133,7 @@ class sdPathFinding
 		if ( this.rect_space_map._is_being_removed )
 		{
 			this.Reinit();
-			console.warn( 'rect_space_map has already expired - possibly inefficient usage of pathfinding. Will recreate' );
+			console.warn( 'rect_space_map has already expired - possibly inefficient usage of pathfinding. Will recreate (expired by '+( sdWorld.time - this.rect_space_map.exist_until )+'ms)' );
 		}
 		/*if ( !globalThis.Pathfuinding_debug )
 		{

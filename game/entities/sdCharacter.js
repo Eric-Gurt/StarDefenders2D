@@ -2163,11 +2163,19 @@ class sdCharacter extends sdEntity
 				}
 			}			
 
-
+			// Patch for bugged guns. 
 			if ( this._inventory[ this.gun_slot ] )
 			if ( this._inventory[ this.gun_slot ]._is_being_removed )
 			{
-				throw new Error( 'sdCharacter holds removed gun (slot '+this.gun_slot+'). Sun snapshot: ' + this._inventory[ this.gun_slot ].GetSnapshot( GetFrame(), true ) );
+				console.warn( 'sdCharacter holds removed gun (slot '+this.gun_slot+'). Gun snapshot: ' + JSON.stringify( this._inventory[ this.gun_slot ].GetSnapshot( GetFrame(), true ) ) );
+					
+				if ( sdWorld.is_server )
+				{
+					if ( this._socket )
+					this._socket.SDServiceMessage( 'Error: Your character holds gun that is already removed. Report if you know how this happened ~' );
+				}
+				
+				this._inventory[ this.gun_slot ] = null;
 			}
 			
 			
@@ -2935,7 +2943,8 @@ class sdCharacter extends sdEntity
 		sdCharacter.characters.splice( sdCharacter.characters.indexOf( this ), 1 );
 	}
 	
-	onRemove() // Class-specific, if needed
+	//onRemove() // Class-specific, if needed
+	onBeforeRemove() // Right when .remove() is called for the first time
 	{
 		if ( this._ragdoll )
 		this._ragdoll.Delete();
@@ -2997,6 +3006,8 @@ class sdCharacter extends sdEntity
 			//else
 			
 			console.warn( 'Should not happen' ); // Rarely happened on server, not sure what caused this. Could be related to floating guns in mid-air, which happened after client self-initated respawn while he already had character in world but snapshots were simply not sent to players due to bug.
+			
+			throw new Error('Can\'t drop gun. Gun snapshot: '+JSON.stringify( ent.GetSnapshot( GetFrame(), true ) ) );
 			return;
 		}
 		
@@ -3058,7 +3069,11 @@ class sdCharacter extends sdEntity
 			else
 			if ( from_entity.is( sdGun ) )
 			{
-				
+				if ( from_entity._is_being_removed )
+				{
+					throw new Error('[ 1 ] How did character touch gun that is _is_being_removed? Gun snapshot: ' + JSON.stringify( from_entity.GetSnapshot( GetFrame(), true ) ) );
+				}
+
 				for ( var i = 0; i < this._ignored_guns_until.length; i++ )
 				{
 					if ( sdWorld.time > this._ignored_guns_until[ i ] )
@@ -3090,6 +3105,11 @@ class sdCharacter extends sdEntity
 								  sdGun.classes[ from_entity.class ].onPickupAttempt( this, from_entity ) )
 							{	
 								//console.warn( this.title + '['+this._net_id+'] picks up gun ' + from_entity._net_id + ' // this._is_being_removed = ' + this._is_being_removed );
+								
+								if ( from_entity._is_being_removed )
+								{
+									throw new Error('[ 2 ] How did character pick gun that is _is_being_removed? Gun snapshot: ' + JSON.stringify( from_entity.GetSnapshot( GetFrame(), true ) ) );
+								}
 
 								this._inventory[ sdGun.classes[ from_entity.class ].slot ] = from_entity;
 								from_entity._held_by = this;

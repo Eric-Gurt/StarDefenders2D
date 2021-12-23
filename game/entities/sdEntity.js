@@ -3081,11 +3081,16 @@ class sdEntity
 
 		return this._is_being_removed;
 	}*/
+	onBeforeRemove() // Right when .remove() is called for the first time
+	{
+	}
 	remove()
 	{
 		// Or else some entities won't be removed
 		if ( !this._is_being_removed )
 		{
+			this.onBeforeRemove();
+			
 			/*if ( this._class === 'sdBullet' )
 			{
 				trace( 'Bullet is being removed' );
