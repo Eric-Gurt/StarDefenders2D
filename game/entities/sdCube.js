@@ -764,6 +764,7 @@ class sdCube extends sdEntity
 						else
 						{
 							// Block or some else obstacle
+							if ( this._current_target )
 							if ( !sdCube.IsTargetFriendly( this._current_target ) )
 							targets.push( pathfinding_result.attack_target );
 						}
