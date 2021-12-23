@@ -3212,7 +3212,7 @@ const RunWorkerService = ( WorkerData )=>
 		
 		
     
-        const worker = new Worker('./game/server/worker_service.js', { WorkerData });
+        const worker = new Worker( __dirname + '/game/server/worker_service.js', { WorkerData });
         worker.on('message', ( data )=>{
 			
 			worker.is_busy = false;
