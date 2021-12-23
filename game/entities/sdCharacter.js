@@ -2163,6 +2163,14 @@ class sdCharacter extends sdEntity
 				}
 			}			
 
+
+			if ( this._inventory[ this.gun_slot ] )
+			if ( this._inventory[ this.gun_slot ]._is_being_removed )
+			{
+				throw new Error( 'sdCharacter holds removed gun (slot '+this.gun_slot+'). Sun snapshot: ' + this._inventory[ this.gun_slot ].GetSnapshot( GetFrame(), true ) );
+			}
+			
+			
 			if ( this._auto_shoot_in <= 0 )
 			{
 				if ( this._key_states.GetKey( 'KeyV' ) )
@@ -2180,7 +2188,7 @@ class sdCharacter extends sdEntity
 							if ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].sound )
 							sdSound.PlaySound({ name:sdGun.classes[ this._inventory[ this.gun_slot ].class ].sound, x:this.x, y:this.y, volume: 0.5 * ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].sound_volume || 1 ), pitch: 0.8 * ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].sound_pitch || 1 ) });
 						}
-
+						
 						this.DropWeapon( this.gun_slot );
 
 						this.gun_slot = 0;
