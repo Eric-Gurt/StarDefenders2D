@@ -133,7 +133,8 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_soldier_rig' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_witch' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_modeus' ), // by LazyRain
-			sdWorld.CreateImageFromFile( 'helmet_pepe' ) // by LazyRain
+			sdWorld.CreateImageFromFile( 'helmet_pepe' ), // by LazyRain
+			sdWorld.CreateImageFromFile( 'helmet_santa' ) // by LazyRain
 			// Note: Commas -> , are important since it all is just a big Array: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 		];
 		
