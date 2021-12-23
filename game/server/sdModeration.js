@@ -10,6 +10,7 @@ import fs from 'fs';
 //import fs from 'fs-extra';
 
 import sdWorld from '../sdWorld.js';
+//import sdEntity from '../entities/sdEntity.js';
 
 import { spawn } from 'child_process';
 

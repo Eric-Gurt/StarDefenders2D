@@ -605,7 +605,10 @@ class sdBlock extends sdEntity
 		
 		this._plants = params.plants || null; // Array of _net_id-s actually
 		
+		this._owner = null; // Only used by sharp so far
 		this.p = 0; // Material property value. In case of spike it is an animation, in case of corruption it is a rank
+		this._next_attack = 0; // Only used by Corruption
+		this._next_spread = -1; // Only used by Corruption
 		
 		if ( this.material === sdBlock.MATERIAL_SHARP )
 		{
@@ -852,6 +855,13 @@ class sdBlock extends sdEntity
 	{
 		if ( sdWorld.time > this._next_attack )
 		{
+			// Outdated block version, just remove. Remove this logic after June 2022
+			if ( this._next_spread === -1 )
+			{
+				this.remove();
+				this._broken = false;
+			}
+			
 			this._next_attack = sdWorld.time + 100;
 
 			sdWorld.SendEffect({ x:from_entity.x, y:from_entity.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
