@@ -1,5 +1,6 @@
 
 import LZW from './LZW.js';
+import LZUTF8 from './LZUTF8.js';
 
 class sdSnapPack
 {
@@ -164,7 +165,7 @@ class sdSnapPack
 		return JSON.stringify( a );
 	}
 	*/
-	static Compress( object_array, track_worst_case=false )
+	static async Compress( object_array, track_worst_case=false )
 	{
 		let unique_objects = new WeakSet();
 	    
@@ -549,11 +550,23 @@ class sdSnapPack
 					/*object_array = LZW.lzw_encode( 
 						sdSnapPack.stringify_method( object_array ) 
 					);*/
+						
+					/*let sent_data = JSON.stringify( object_array );
 					
+					let object_array_sample = LZW.lzw_encode( 
+						sent_data
+					);*/
+			
+					//let echo = await globalThis.ExecuteParallelPromise({ action: WorkerServiceLogic.ACTION_ECHO, data: sent_data });
+			
+					object_array = await globalThis.ExecuteParallelPromise({ action: WorkerServiceLogic.ACTION_LZW, data: JSON.stringify( object_array ) });
 					
-					object_array = LZW.lzw_encode( 
-						JSON.stringify( object_array ) 
-					);
+					//if ( object_array_sample !== object_array )
+					/*if ( object_array !== object_array_sample )
+					{
+						debugger;
+						throw new Error();
+					}*/
 				}
 				else
 				Iteration( object_array, 0 );

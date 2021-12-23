@@ -52,6 +52,9 @@ class sdEntity
 		
 		sdEntity.y_rest_tracker = new WeakMap(); // entity => { y, repeated_sync_count }
 		
+		sdEntity.properties_by_class_all = new WeakMap(); // class => [ 'x', 'y' ... ]
+		sdEntity.properties_by_class_public = new WeakMap(); // class => [ 'x', 'y' ... ]
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	
@@ -2296,27 +2299,35 @@ class sdEntity
 			
 		if ( current_frame !== this._snapshot_cache_frame || save_as_much_as_possible )
 		{
-			returned_object = {
+			/*returned_object = {
 				_net_id: this._net_id,
 				_class: this.GetClass()
-			};
+			};*/
 
 			// Some extra logic so backup saving does not corrupt _snapshot_cache for 1 frame
 			if ( save_as_much_as_possible )
 			{
-			}
-			else
-			{
-				this._snapshot_cache_frame = current_frame;
-
-				/*this._snapshot_cache = {
+				returned_object = {
 					_net_id: this._net_id,
 					_class: this.GetClass()
 				};
+			}
+			else
+			{
+				// This code prevents conditional property visibility, but does some optimisations
+				if ( this._snapshot_cache === null )
+				{
+					returned_object = {
+						_net_id: this._net_id,
+						_class: this.GetClass()
+					};
+					this._snapshot_cache = returned_object;
+				}
+				else
+				returned_object = this._snapshot_cache;
 				
-				returned_object = this._snapshot_cache;*/
-				
-				this._snapshot_cache = returned_object;
+				this._snapshot_cache_frame = current_frame;
+				//this._snapshot_cache = returned_object;
 			}
 			
 			//throw new Error( this.__proto__ );
@@ -2331,14 +2342,52 @@ class sdEntity
 				debugger;
 			}
 			
-			for ( var prop in this )
+			let props;
+			
+			if ( save_as_much_as_possible )
 			{
-				if ( prop.charAt( 0 ) !== '_' || 
-					 ( save_as_much_as_possible && prop !== '_snapshot_cache_frame' && prop !== '_snapshot_cache' && prop !== '_hiberstate' && prop !== '_last_x' && prop !== '_last_y' && ( typeof this[ prop ] === 'number' || typeof this[ prop ] === 'string' || typeof this[ prop ] === 'boolean' /*|| ( typeof this[ prop ] === 'object' && typeof this[ prop ]._net_id !== 'undefined' && typeof this[ prop ]._class !== 'undefined' )*/ || this.ExtraSerialzableFieldTest( prop ) ) ) )
+				props = sdEntity.properties_by_class_all.get( this.__proto__.constructor );
+				
+				if ( props === undefined )
+				{
+					props = [];
+					
+					for ( var prop in this )
+					if ( prop.charAt( 0 ) !== '_' || 
+						 ( save_as_much_as_possible && prop !== '_snapshot_cache_frame' && prop !== '_snapshot_cache' && prop !== '_hiberstate' && prop !== '_last_x' && prop !== '_last_y' && ( typeof this[ prop ] === 'number' || typeof this[ prop ] === 'string' || typeof this[ prop ] === 'boolean' || this.ExtraSerialzableFieldTest( prop ) ) ) )
+					props.push( prop );
+					
+					sdEntity.properties_by_class_all.set( this.__proto__.constructor, props );
+				}
+			}
+			else
+			{
+				props = sdEntity.properties_by_class_public.get( this.__proto__.constructor );
+				
+				if ( props === undefined )
+				{
+					props = [];
+					
+					for ( var prop in this )
+					if ( prop.charAt( 0 ) !== '_' )
+					props.push( prop );
+					
+					sdEntity.properties_by_class_public.set( this.__proto__.constructor, props );
+				}
+			}
+			
+			//for ( var prop in this )
+			for ( let i = 0; i < props.length; i++ )
+			{
+				var prop = props[ i ];
+				
+				//if ( prop.charAt( 0 ) !== '_' || 
+				//	 ( save_as_much_as_possible && prop !== '_snapshot_cache_frame' && prop !== '_snapshot_cache' && prop !== '_hiberstate' && prop !== '_last_x' && prop !== '_last_y' && ( typeof this[ prop ] === 'number' || typeof this[ prop ] === 'string' || typeof this[ prop ] === 'boolean' /*|| ( typeof this[ prop ] === 'object' && typeof this[ prop ]._net_id !== 'undefined' && typeof this[ prop ]._class !== 'undefined' )*/ || this.ExtraSerialzableFieldTest( prop ) ) ) )
 				{
 					var v = this[ prop ];
 					
-					if ( this[ prop ] !== null )
+					//if ( this[ prop ] !== null )
+					if ( v !== null )
 					{
 						/*if ( typeof this[ prop ] === 'object' )
 						if ( prop !== 'sd_filter' )
@@ -2396,7 +2445,7 @@ class sdEntity
 		
 		return returned_object;
 	}
-	ExtraSerialzableFieldTest( prop ) // Some object properties testing might go here, for snapshots only
+	ExtraSerialzableFieldTest( prop ) // Some object properties testing might go here, for snapshots only. Should never be dynamic
 	{
 		return false; 
 	}

@@ -373,6 +373,8 @@ class sdModeration
 		else
 		if ( parts[ 0 ] === 'quit' || parts[ 0 ] === 'shutdown' || parts[ 0 ] === 'exit' )
 		{
+			globalThis.StopAllWorkers();
+			
 			process.exit();
 		}
 		else
@@ -414,6 +416,9 @@ class sdModeration
 							stdio: "inherit"
 						});
 					});
+					
+					globalThis.StopAllWorkers();
+					
 					process.exit();
 				}, 100 );
 

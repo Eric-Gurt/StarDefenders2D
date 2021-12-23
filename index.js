@@ -38,6 +38,10 @@ import https from "https";
 //const geckos = pkg.default;
 import { Server } from "socket.io";
 
+import { Worker } from "worker_threads";
+import WorkerServiceLogic from './game/server/worker_service_logic.js';
+globalThis.WorkerServiceLogic = WorkerServiceLogic;
+
 const SOCKET_IO_MODE = ( typeof Server !== 'undefined' ); // In else case geckos.io
 
 
@@ -1964,6 +1968,8 @@ io.on("connection", (socket) =>
 	socket.last_sync = sdWorld.time;
 	socket.last_sync_score = sdWorld.time;
 	
+	socket.sync_busy = false; // Will be busy if separate threads will be still preparing snapshot
+	
 	socket.camera = { x:0,y:0,scale:1 };
 	
 	socket.observed_entities = [];
@@ -3196,6 +3202,106 @@ io.on("reconnect", (socket) => {
 	console.log('listening on *:' + ( port0 + world_slot ) );
 });
 
+import os from 'os';
+
+const RunWorkerService = ( WorkerData )=>
+{
+    return new Promise( ( resolve, reject )=>
+	{
+        // import script..
+		
+		
+    
+        const worker = new Worker('./game/server/worker_service.js', { WorkerData });
+        worker.on('message', ( data )=>{
+			
+			worker.is_busy = false;
+			
+			if ( worker.next_callback )
+			worker.next_callback( data );
+		} );
+        worker.on('error', reject );
+        worker.on('exit', ( code )=>
+		{
+            if ( code !== 0 )
+			{
+                reject(new Error(`Worker ${ WorkerData } stopped with ${ code } exit code`));
+			}
+        });
+		
+		worker.is_busy = false;
+		
+		worker.next_callback = ( data )=>
+		{ 
+			resolve( worker ); 
+		}
+		
+		worker.Execute = ( command, callback=null )=>
+		{
+			if ( !worker.is_busy )
+			{
+				worker.is_busy = true;
+				
+				worker.postMessage( command );
+				worker.next_callback = callback;
+			}
+			else
+			throw new Error('Worker is busy')
+		};
+    });
+};
+
+let cpu_cores = os.cpus().length;
+//trace( 'System CPU info: ' + cpu_cores + ' cores' );
+
+let worker_services = [];
+
+for ( let i = 0; i < Math.max( 0, Math.min( cpu_cores * 0.8 ) ); i++ ) // Leave some space for GC?
+{
+	worker_services.push( await RunWorkerService( 'Worker #'+i ) );
+	//trace('Started worker thread #'+i);
+}
+trace( 'Starting '+worker_services.length+' extra threads for parallel tasks (compression)' );
+globalThis.StopAllWorkers = ()=> // Probably not needed
+{
+	/*
+	for ( let i = 0; i < worker_services.length; i++ )
+	{
+		worker_services[ i ].is_busy = false;
+		worker_services[ i ].Execute({ action: WorkerServiceLogic.ACTION_EXIT });
+	}*/
+};
+globalThis.ExecuteParallel = ( command, callback )=>
+{
+	for ( let i = 0; i < worker_services.length; i++ )
+	{
+		if ( !worker_services[ i ].is_busy )
+		{
+			worker_services[ i ].Execute( command, callback );
+			return;
+		}
+	}
+	WorkerServiceLogic.HandleCommand( command, callback );
+};
+globalThis.ExecuteParallelPromise = ( command )=>
+{
+	let p = new Promise( ( resolve, reject )=>
+	{
+		/*setTimeout(() => {
+		  resolve('foo');
+		}, 300);*/
+		
+		globalThis.ExecuteParallel( command, resolve );
+
+		//resolve( data );
+	});
+	
+	
+	
+	
+	return p;
+};
+
 let only_do_nth_connection_per_frame = 1;
 let nth_connection_shift = 0;
 
@@ -3259,7 +3365,7 @@ const ServerMainMethod = ()=>
 		//sockets_array_locked = true;
 		for ( var i = 0; i < sockets.length; i++ )
 		{
-			var socket = sockets[ i ]; // can disappear from array in the middle of loop
+			let socket = sockets[ i ]; // can disappear from array in the middle of loop
 
 			if ( !SOCKET_IO_MODE )
 			{
@@ -3318,440 +3424,463 @@ const ServerMainMethod = ()=>
 				if ( i % only_do_nth_connection_per_frame === nth_connection_shift )
 				if ( sdWorld.time > socket.last_sync + socket.max_update_rate && socket.client.conn.transport.writable && sdWorld.time > socket.waiting_on_M_event_until ) // Buffering prevention?
 				{
-					let previous_sync_time = socket.last_sync;
-					
-					socket.last_sync = sdWorld.time;
-					socket.waiting_on_M_event_until = sdWorld.time + 1000;
-
-					var snapshot = [];
-					var snapshot_only_statics = [];
-
-					var observed_entities = [];
-					//var observed_statics = [];
-					
-					var observed_entities_map = new Set();
-					
-					//var observed_statics_map = new WeakSet();
-					var observed_statics_map2 = new Set();
-					
-
-					socket.camera.scale = 2;
-
-					let min_x = socket.camera.x - 800/2 / socket.camera.scale;
-					let max_x = socket.camera.x + 800/2 / socket.camera.scale;
-
-					let min_y = socket.camera.y - 400/2 / socket.camera.scale;
-					let max_y = socket.camera.y + 400/2 / socket.camera.scale;
-					
-
-					min_x -= 32 * 3;
-					min_y -= 32 * 3;
-					max_x += 32 * 3;
-					max_y += 32 * 3;
-					
-					const MaxCompleteEntitiesCount = 40; // 50 sort of fine for PC, but now for mobile
-					
-					//let meet_once = new WeakSet();
-					let meet_once2 = new Set();
-					
-					const AddEntity = ( ent, forced )=>
+					if ( !socket.sync_busy )
 					{
-						/*
-						if ( ent === sdWeather.only_instance )
+						const SyncDataToPlayer = async ()=>
 						{
-							debugger;
-						}
-						*/
-					   
-						if ( //!meet_once.has( ent ) && 
-							 !meet_once2.has( ent._net_id ) )
-						{
-							//meet_once.add( ent );
-							meet_once2.add( ent._net_id );
+							let previous_sync_time = socket.last_sync;
 
-							if ( ent.IsVisible === sdEntity.prototype.IsVisible || 
-								 ent.IsVisible( socket.character ) )
+							socket.sync_busy = true;
+
+							socket.last_sync = sdWorld.time;
+							socket.waiting_on_M_event_until = sdWorld.time + 1000;
+
+							var snapshot = [];
+							var snapshot_only_statics = [];
+
+							var observed_entities = [];
+							//var observed_statics = [];
+
+							var observed_entities_map = new Set();
+
+							//var observed_statics_map = new WeakSet();
+							var observed_statics_map2 = new Set();
+
+
+							socket.camera.scale = 2;
+
+							let min_x = socket.camera.x - 800/2 / socket.camera.scale;
+							let max_x = socket.camera.x + 800/2 / socket.camera.scale;
+
+							let min_y = socket.camera.y - 400/2 / socket.camera.scale;
+							let max_y = socket.camera.y + 400/2 / socket.camera.scale;
+
+
+							min_x -= 32 * 3;
+							min_y -= 32 * 3;
+							max_x += 32 * 3;
+							max_y += 32 * 3;
+
+							const MaxCompleteEntitiesCount = 40; // 50 sort of fine for PC, but now for mobile
+
+							//let meet_once = new WeakSet();
+							let meet_once2 = new Set();
+
+							const AddEntity = ( ent, forced )=>
 							{
-								
-								if ( ent.is_static ) // 5.8
+								/*
+								if ( ent === sdWeather.only_instance )
 								{
-									//observed_statics_map.add( ent ); // 16.6
-									observed_statics_map2.add( ent._net_id ); // ?
+									debugger;
+								}
+								*/
 
-									if ( snapshot.length < MaxCompleteEntitiesCount || forced )
+								if ( //!meet_once.has( ent ) && 
+									 !meet_once2.has( ent._net_id ) )
+								{
+									//meet_once.add( ent );
+									meet_once2.add( ent._net_id );
+
+									if ( ent.IsVisible === sdEntity.prototype.IsVisible || 
+										 ent.IsVisible( socket.character ) )
 									{
-										//if ( socket.known_statics_versions_map.get( ent ) !== ent._update_version ) // known_statics_versions_map.get can be undefined which does not equals to _update_version ever. Faster than doing .has
-										if ( socket.known_statics_versions_map2.get( ent._net_id ) !== ent._update_version ) // known_statics_versions_map.get can be undefined which does not equals to _update_version ever. Faster than doing .has
-										{
-											//socket.known_statics_versions_map.set( ent, ent._update_version );
-											socket.known_statics_versions_map2.set( ent._net_id, ent._update_version );
 
-											let snap = ent.GetSnapshot( frame, false, socket.character );
-											snapshot.push( snap );
-											snapshot_only_statics.push( snap );
+										if ( ent.is_static ) // 5.8
+										{
+											//observed_statics_map.add( ent ); // 16.6
+											observed_statics_map2.add( ent._net_id ); // ?
+
+											if ( snapshot.length < MaxCompleteEntitiesCount || forced )
+											{
+												//if ( socket.known_statics_versions_map.get( ent ) !== ent._update_version ) // known_statics_versions_map.get can be undefined which does not equals to _update_version ever. Faster than doing .has
+												if ( socket.known_statics_versions_map2.get( ent._net_id ) !== ent._update_version ) // known_statics_versions_map.get can be undefined which does not equals to _update_version ever. Faster than doing .has
+												{
+													//socket.known_statics_versions_map.set( ent, ent._update_version );
+													socket.known_statics_versions_map2.set( ent._net_id, ent._update_version );
+
+													let snap = ent.GetSnapshot( frame, false, socket.character );
+													snapshot.push( snap );
+													snapshot_only_statics.push( snap );
+												}
+											}
+										}
+										else
+										{
+											observed_entities.push( ent );
+											observed_entities_map.add( ent );
+										}
+
+										if ( ent.SyncedToPlayer !== sdEntity.prototype.SyncedToPlayer )
+										ent.SyncedToPlayer( socket.character );
+
+										if ( ent.getRequiredEntities !== sdEntity.prototype.getRequiredEntities )
+										{
+											let ents = ent.getRequiredEntities();
+											for ( let i = 0; i < ents.length; i++ )
+											AddEntity( ents[ i ], true );
 										}
 									}
 								}
-								else
-								{
-									observed_entities.push( ent );
-									observed_entities_map.add( ent );
-								}
-
-								if ( ent.SyncedToPlayer !== sdEntity.prototype.SyncedToPlayer )
-								ent.SyncedToPlayer( socket.character );
-							
-								if ( ent.getRequiredEntities !== sdEntity.prototype.getRequiredEntities )
-								{
-									let ents = ent.getRequiredEntities();
-									for ( let i = 0; i < ents.length; i++ )
-									AddEntity( ents[ i ], true );
-								}
-							}
-						}
-					};
-					
-					const VisitCell = ( x, y )=>
-					{
-						let arr = sdWorld.RequireHashPosition( x, y );
-						
-						for ( let i2 = 0; i2 < arr.length; i2++ )
-						{
-							//let ent = arr[ i2 ];
-							
-							AddEntity( arr[ i2 ], false );
-						}
-					};
-
-					/*for ( let x = min_x; x < max_x; x += 32 )
-					for ( let y = min_y; y < max_y; y += 32 )
-					VisitCell( x, y );*/
-					
-					let cells = vision_cells_cache[ socket.camera.scale ];
-					
-					if ( !cells )
-					{
-						if ( socket.camera.scale !== 2 )
-						debugger; // Watch out for too many versions of ordered cells here... Round scale that is used there?
-						
-						vision_cells_cache[ socket.camera.scale ] = 
-							cells = 
-								[];
-					
-						for ( let x = min_x; x < max_x; x += 32 )
-						for ( let y = min_y; y < max_y; y += 32 )
-						{
-							cells.push({ x: x - min_x, y: y - min_y, dist: sdWorld.Dist2D( (min_x+max_x)/2, (min_y+max_y)/2, x, y ) });
-						}
-						cells.sort((a,b)=>{
-							return a.dist-b.dist;
-						});
-						
-						for ( let c = 0; c < cells.length; c++ )
-						delete cells[ c ].dist;
-					}
-					
-					for ( let c = 0; c < cells.length; c++ )
-					VisitCell( cells[ c ].x + min_x, cells[ c ].y + min_y );
-					
-			
-					// Forget offscreen statics (and removed ones)
-					//socket.known_statics_versions_map.forEach( ( value, key, map )=>
-					socket.known_statics_versions_map2.forEach( ( value, net_id, map )=>
-					{
-						//if ( !observed_statics_map.has( key ) )
-						//if ( !observed_statics_map2.has( key._net_id ) )
-						if ( !observed_statics_map2.has( net_id ) )
-						{
-							let key = sdEntity.entities_by_net_id_cache_map.get( net_id );
-							
-							let snapshot_of_deletion;
-							
-							if ( key )
-							{
-							}
-							else
-							{
-								let info = sdEntity.removed_entities_info.get( net_id );
-								
-								if ( info )
-								key = info.entity;
-								else
-								console.log('Entity no longer exists in any array - no idea what break info to send...');
-							}
-							
-							if ( key )
-							{
-								snapshot_of_deletion = { 
-									_class: key.GetClass(), 
-									_net_id: net_id,
-									_is_being_removed: true,
-									_broken: key._broken
-								};
-							}
-							else
-							{
-								snapshot_of_deletion = { 
-									_class: 'auto', 
-									_net_id: net_id,
-									_is_being_removed: true,
-									_broken: false
-								};
-							}
-
-							snapshot.push( snapshot_of_deletion );
-							snapshot_only_statics.push( snapshot_of_deletion );
-
-							//socket.known_statics_versions_map.delete( key );
-							socket.known_statics_versions_map2.delete( net_id );
-						}
-					} );
-					
-					// Better handling of ._broken for dynamics
-					socket.known_non_removed_dynamics.forEach( ( value, key, map )=>
-					{
-						if ( !observed_entities_map.has( key ) )
-						{
-							if ( key === socket.character || key === socket.character.driver_of )
-							if ( !key._is_being_removed )
-							return;
-								
-							let snapshot_of_deletion = { 
-								_class: key.GetClass(), 
-								_net_id: key._net_id,
-								_is_being_removed: true,
-								_broken: key._broken
 							};
-							snapshot.push( snapshot_of_deletion );
-						}
-					} );
-					socket.known_non_removed_dynamics = observed_entities_map;
 
-					if ( !socket.character._is_being_removed )
-					if ( observed_entities.indexOf( socket.character ) === -1 )
-					{
-						observed_entities.push( socket.character );
-						
-						if ( socket.character.driver_of )
-						if ( observed_entities.indexOf( socket.character.driver_of ) === -1 )
-						observed_entities.push( socket.character.driver_of );
-						
-						if ( socket.character.cc )
-						if ( observed_entities.indexOf( socket.character.cc ) === -1 )
-						observed_entities.push( socket.character.cc );
-					}
-
-					for ( var i2 = 0; i2 < sdEntity.global_entities.length; i2++ ) // So it is drawn on back
-					snapshot.push( sdEntity.global_entities[ i2 ].GetSnapshot( frame, false, socket.character ) );
-
-					for ( var i2 = 0; i2 < observed_entities.length; i2++ )
-					if ( !observed_entities[ i2 ].IsGlobalEntity() ) // Global entities are already sent few lines above
-					snapshot.push( observed_entities[ i2 ].GetSnapshot( frame, false, socket.character ) );
-				
-					//var isTransportWritable = socket.io.engine && socket.io.engine.transport && socket.io.engine.transport.writable;
-					//console.log( isTransportWritable );
-					
-					//socket.broadcast.emit( snapshot );
-					
-					//socket.emit('RES', snapshot );
-
-					//socket.emit('SCORE', socket.score );
-					
-					let leaders = null;
-					
-					if ( sdWorld.time > socket.last_sync_score + 1000 )
-					{
-						socket.last_sync_score = sdWorld.time;
-
-						//socket.emit('LEADERS', [ sdWorld.leaders, GetPlayingPlayersCount() ] );
-						leaders = [ sdWorld.leaders_global, GetPlayingPlayersCount() ];
-					}
-					
-					let sd_events = [];
-					
-					if ( socket.sd_events.length > 100 )
-					{
-						//console.log('socket.sd_events overflow (last sync was ' + ( sdWorld.time - previous_sync_time ) + 'ms ago): ', socket.sd_events );
-						
-						//debugger;
-						
-						sockets[ i ].SDServiceMessage( 'Server: .sd_events overflow (' + socket.sd_events.length + ' events were skipped). Some sounds and effects might not spawn as result of that.' );
-						
-						socket.sd_events.length = 0;
-					}
-					
-					while ( sd_events.length < 10 && socket.sd_events.length > 0 )
-					sd_events.push( socket.sd_events.shift() );
-				
-					let leftovers_tot = Object.keys( socket.left_overs ).length;
-					if ( leftovers_tot > 5000 )
-					{
-						console.log('socket.left_overs.length = ' + leftovers_tot + '... giving up with resends' );
-						socket.left_overs = {};
-					}
-				
-					let v = 0;
-					for ( let prop in socket.left_overs )
-					{
-					
-						let found = false;
-					
-						// Not needed anymore due to it being done later near AAA
-						
-						for ( let s = 0; s < snapshot_only_statics.length; s++ )
-						if ( snapshot_only_statics[ s ]._net_id === socket.left_overs[ prop ]._net_id )
-						{
-							//debugger; // Does this even happen? Should not but what if it helps catching some bug. And we do not want to send 2 states of same object
-							
-							// It still does happen... Which is maybe fine.
-							
-							delete socket.left_overs[ prop ];
-							
-							//console.log('Dropped packet entity was already in snapshot: ' + snapshot[ s ]._class + '['+snapshot[ s ]._net_id+']' );
-							found = true;
-							break;
-						}
-						
-
-						if ( !found )
-						{
-							if ( v <= leftovers_tot * 0.05 || v <= 10 )
+							const VisitCell = ( x, y )=>
 							{
-								// Serious bug here: It resends outdated states AND one of these states might tell client that entity is being removed (for example due to looking away from it) BUT this info might arrive after entity already reappeared
-								
-								//console.log('Dropped packet entity was readded: ' + socket.left_overs[ prop ]._class + '['+socket.left_overs[ prop ]._net_id+']' );
-								snapshot.push( socket.left_overs[ prop ] );
-								snapshot_only_statics.push( socket.left_overs[ prop ] );
-								delete socket.left_overs[ prop ];
+								let arr = sdWorld.RequireHashPosition( x, y );
 
-								v++;
-							}
-							else
-							break
-							//if ( v > leftovers_tot * 0.05 )
-							//break;
-						}
-						
-						//delete socket.left_overs[ prop ];
-					}
-					
-					// Walk through socket.sent_messages and get rid of mentions of current snapshot's static entities (because we are about to send fresher versions of their state or even deletion)
-					for ( let m = socket.sent_messages_first; m < socket.sent_messages_last; m++ )
-					{
-						let msg = socket.sent_messages.get( m );
-						if ( !msg.arrived )
-						{
-							for ( let d = 0; d < msg.data[ 0 ].length; d++ )
-							{
-								let del = false;
-								
-								// AAA
-								if ( !del )
-								for ( let s = 0; s < snapshot_only_statics.length; s++ )
-								if ( msg.data[ 0 ][ d ]._net_id === snapshot_only_statics[ s ]._net_id )
+								for ( let i2 = 0; i2 < arr.length; i2++ )
 								{
-									//console.log('Preventing outdated state resend for ' + snapshot_only_statics[ s ]._class );
-									del = true;
-									//delete msg.data[ 0 ][ d ];
+									//let ent = arr[ i2 ];
+
+									AddEntity( arr[ i2 ], false );
+								}
+							};
+
+							/*for ( let x = min_x; x < max_x; x += 32 )
+							for ( let y = min_y; y < max_y; y += 32 )
+							VisitCell( x, y );*/
+
+							let cells = vision_cells_cache[ socket.camera.scale ];
+
+							if ( !cells )
+							{
+								if ( socket.camera.scale !== 2 )
+								debugger; // Watch out for too many versions of ordered cells here... Round scale that is used there?
+
+								vision_cells_cache[ socket.camera.scale ] = 
+									cells = 
+										[];
+
+								for ( let x = min_x; x < max_x; x += 32 )
+								for ( let y = min_y; y < max_y; y += 32 )
+								{
+									cells.push({ x: x - min_x, y: y - min_y, dist: sdWorld.Dist2D( (min_x+max_x)/2, (min_y+max_y)/2, x, y ) });
+								}
+								cells.sort((a,b)=>{
+									return a.dist-b.dist;
+								});
+
+								for ( let c = 0; c < cells.length; c++ )
+								delete cells[ c ].dist;
+							}
+
+							for ( let c = 0; c < cells.length; c++ )
+							VisitCell( cells[ c ].x + min_x, cells[ c ].y + min_y );
+
+
+							// Forget offscreen statics (and removed ones)
+							//socket.known_statics_versions_map.forEach( ( value, key, map )=>
+							socket.known_statics_versions_map2.forEach( ( value, net_id, map )=>
+							{
+								//if ( !observed_statics_map.has( key ) )
+								//if ( !observed_statics_map2.has( key._net_id ) )
+								if ( !observed_statics_map2.has( net_id ) )
+								{
+									let key = sdEntity.entities_by_net_id_cache_map.get( net_id );
+
+									let snapshot_of_deletion;
+
+									if ( key )
+									{
+									}
+									else
+									{
+										let info = sdEntity.removed_entities_info.get( net_id );
+
+										if ( info )
+										key = info.entity;
+										else
+										console.log('Entity no longer exists in any array - no idea what break info to send...');
+									}
+
+									if ( key )
+									{
+										snapshot_of_deletion = { 
+											_class: key.GetClass(), 
+											_net_id: net_id,
+											_is_being_removed: true,
+											_broken: key._broken
+										};
+									}
+									else
+									{
+										snapshot_of_deletion = { 
+											_class: 'auto', 
+											_net_id: net_id,
+											_is_being_removed: true,
+											_broken: false
+										};
+									}
+
+									snapshot.push( snapshot_of_deletion );
+									snapshot_only_statics.push( snapshot_of_deletion );
+
+									//socket.known_statics_versions_map.delete( key );
+									socket.known_statics_versions_map2.delete( net_id );
+								}
+							} );
+
+							// Better handling of ._broken for dynamics
+							socket.known_non_removed_dynamics.forEach( ( value, key, map )=>
+							{
+								if ( !observed_entities_map.has( key ) )
+								{
+									if ( key === socket.character || key === socket.character.driver_of )
+									if ( !key._is_being_removed )
+									return;
+
+									let snapshot_of_deletion = { 
+										_class: key.GetClass(), 
+										_net_id: key._net_id,
+										_is_being_removed: true,
+										_broken: key._broken
+									};
+									snapshot.push( snapshot_of_deletion );
+								}
+							} );
+							socket.known_non_removed_dynamics = observed_entities_map;
+
+							if ( !socket.character._is_being_removed )
+							if ( observed_entities.indexOf( socket.character ) === -1 )
+							{
+								observed_entities.push( socket.character );
+
+								if ( socket.character.driver_of )
+								if ( observed_entities.indexOf( socket.character.driver_of ) === -1 )
+								observed_entities.push( socket.character.driver_of );
+
+								if ( socket.character.cc )
+								if ( observed_entities.indexOf( socket.character.cc ) === -1 )
+								observed_entities.push( socket.character.cc );
+							}
+
+							for ( var i2 = 0; i2 < sdEntity.global_entities.length; i2++ ) // So it is drawn on back
+							snapshot.push( sdEntity.global_entities[ i2 ].GetSnapshot( frame, false, socket.character ) );
+
+							for ( var i2 = 0; i2 < observed_entities.length; i2++ )
+							if ( !observed_entities[ i2 ].IsGlobalEntity() ) // Global entities are already sent few lines above
+							snapshot.push( observed_entities[ i2 ].GetSnapshot( frame, false, socket.character ) );
+
+							//var isTransportWritable = socket.io.engine && socket.io.engine.transport && socket.io.engine.transport.writable;
+							//console.log( isTransportWritable );
+
+							//socket.broadcast.emit( snapshot );
+
+							//socket.emit('RES', snapshot );
+
+							//socket.emit('SCORE', socket.score );
+
+							let leaders = null;
+
+							if ( sdWorld.time > socket.last_sync_score + 1000 )
+							{
+								socket.last_sync_score = sdWorld.time;
+
+								//socket.emit('LEADERS', [ sdWorld.leaders, GetPlayingPlayersCount() ] );
+								leaders = [ sdWorld.leaders_global, GetPlayingPlayersCount() ];
+							}
+
+							let sd_events = [];
+
+							if ( socket.sd_events.length > 100 )
+							{
+								//console.log('socket.sd_events overflow (last sync was ' + ( sdWorld.time - previous_sync_time ) + 'ms ago): ', socket.sd_events );
+
+								//debugger;
+
+								sockets[ i ].SDServiceMessage( 'Server: .sd_events overflow (' + socket.sd_events.length + ' events were skipped). Some sounds and effects might not spawn as result of that.' );
+
+								socket.sd_events.length = 0;
+							}
+
+							while ( sd_events.length < 10 && socket.sd_events.length > 0 )
+							sd_events.push( socket.sd_events.shift() );
+
+							let leftovers_tot = Object.keys( socket.left_overs ).length;
+							if ( leftovers_tot > 5000 )
+							{
+								console.log('socket.left_overs.length = ' + leftovers_tot + '... giving up with resends' );
+								socket.left_overs = {};
+							}
+
+							let v = 0;
+							for ( let prop in socket.left_overs )
+							{
+
+								let found = false;
+
+								// Not needed anymore due to it being done later near AAA
+
+								for ( let s = 0; s < snapshot_only_statics.length; s++ )
+								if ( snapshot_only_statics[ s ]._net_id === socket.left_overs[ prop ]._net_id )
+								{
+									//debugger; // Does this even happen? Should not but what if it helps catching some bug. And we do not want to send 2 states of same object
+
+									// It still does happen... Which is maybe fine.
+
+									delete socket.left_overs[ prop ];
+
+									//console.log('Dropped packet entity was already in snapshot: ' + snapshot[ s ]._class + '['+snapshot[ s ]._net_id+']' );
+									found = true;
 									break;
 								}
-								
-								if ( del )
+
+
+								if ( !found )
 								{
-									msg.data[ 0 ].splice( d, 1 );
-									d--;
-									continue;
+									if ( v <= leftovers_tot * 0.05 || v <= 10 )
+									{
+										// Serious bug here: It resends outdated states AND one of these states might tell client that entity is being removed (for example due to looking away from it) BUT this info might arrive after entity already reappeared
+
+										//console.log('Dropped packet entity was readded: ' + socket.left_overs[ prop ]._class + '['+socket.left_overs[ prop ]._net_id+']' );
+										snapshot.push( socket.left_overs[ prop ] );
+										snapshot_only_statics.push( socket.left_overs[ prop ] );
+										delete socket.left_overs[ prop ];
+
+										v++;
+									}
+									else
+									break
+									//if ( v > leftovers_tot * 0.05 )
+									//break;
+								}
+
+								//delete socket.left_overs[ prop ];
+							}
+
+							// Walk through socket.sent_messages and get rid of mentions of current snapshot's static entities (because we are about to send fresher versions of their state or even deletion)
+							for ( let m = socket.sent_messages_first; m < socket.sent_messages_last; m++ )
+							{
+								let msg = socket.sent_messages.get( m );
+								if ( !msg.arrived )
+								{
+									for ( let d = 0; d < msg.data[ 0 ].length; d++ )
+									{
+										let del = false;
+
+										// AAA
+										if ( !del )
+										for ( let s = 0; s < snapshot_only_statics.length; s++ )
+										if ( msg.data[ 0 ][ d ]._net_id === snapshot_only_statics[ s ]._net_id )
+										{
+											//console.log('Preventing outdated state resend for ' + snapshot_only_statics[ s ]._class );
+											del = true;
+											//delete msg.data[ 0 ][ d ];
+											break;
+										}
+
+										if ( del )
+										{
+											msg.data[ 0 ].splice( d, 1 );
+											d--;
+											continue;
+										}
+									}
 								}
 							}
-						}
-					}
-					
-					const resend_in = 1000;
-					const old_shapshots_expire_in_in = 3000; // 3000 kind of fine, but holes still might happen in stress-cases of spark firing at ground, but that is probably unrelated
-					
-					if ( resend_in >= old_shapshots_expire_in_in )
-					throw new Error('Keep resend_in value less than old_shapshots_expire_in_in');
-				
-					for ( let m = socket.sent_messages_first; m < socket.sent_messages_last; m++ )
-					{
-						let msg = socket.sent_messages.get( m );
-						if ( !msg.arrived )
-						//if ( msg.time < sdWorld.time - 350 )
-						if ( msg.time < sdWorld.time - resend_in )
-						{
-							socket.myDrop({ event:'RESv2', data:msg.data }); // { event, data }
-							
-							msg.arrived = true; // Prevent resend
-						}
-					}
-					
-					
-					if ( socket.lost_messages.length > 5000 )
-					{
-						
-						console.log('socket.lost_messages.length = ' + socket.lost_messages.length + '... giving up with resends' );
-						socket.lost_messages = [];
-					}
-					
-					for ( let s = 0; s < Math.min( 3, socket.lost_messages.length ); s++ )
-					{
-						sd_events.push( socket.lost_messages.shift() );
-					}
-					
-					let full_msg = [ 
-						sdSnapPack.Compress( snapshot ), // 0
-						socket.GetScore(), // 1
-						LZW.lzw_encode( JSON.stringify( leaders ) ), // 2
-						LZW.lzw_encode( JSON.stringify( sd_events ) ), // 3
-						//leaders, // 2
-						//sd_events, // 3
-						Math.round( socket.character._force_add_sx * 1000 ) / 1000, // 4
-						Math.round( socket.character._force_add_sy * 1000 ) / 1000, // 5
-						Math.max( -1, socket.character._position_velocity_forced_until - sdWorld.time ), // 6
-						sdWorld.last_frame_time, // 7
-						sdWorld.last_slowest_class, // 8
-						socket.sent_messages_last // 9
-					];
-					
-					let full_msg_story = [ 
-						snapshot_only_statics, // 0
-						null, // 1
-						null, // 2
-						sd_events, // 3
-						null, // 4
-						null, // 5
-						null, // 6
-						null, // 7
-						null, // 8
-						socket.sent_messages_last // 8
-					];
-					
-					
-					//socket.sent_messages = new Map();
-					//socket.sent_messages_first = 0;
-					//socket.sent_messages_last = 0;
-					
-					socket.sent_messages.set( socket.sent_messages_last++, { data: full_msg_story, time: sdWorld.time, arrived: false } );
-					
-					// Forget too old messages
-					while ( socket.sent_messages.get( socket.sent_messages_first ).time < sdWorld.time - old_shapshots_expire_in_in ) // Used to be 10000 but lower value is better because static entities will be removed in each sync from all these snapshots
-					socket.sent_messages.delete( socket.sent_messages_first++ );
-					
-					//for ( let g = 0; g < 25; g++ )
-					//if ( Math.random() < 0.2 )
-					{
-						if ( !SOCKET_IO_MODE )
-						socket.compress( true ).emit('RESv2', LZW.lzw_encode( JSON.stringify( full_msg ) ) );
-						else
-						socket.compress( true ).emit('RESv2', full_msg );
-					}
-				
-					socket.sent_result_ok++;
-					
-					socket.character._force_add_sx = 0;
-					socket.character._force_add_sy = 0;
 
-					socket.observed_entities = observed_entities;
+							const resend_in = 1000;
+							const old_shapshots_expire_in_in = 3000; // 3000 kind of fine, but holes still might happen in stress-cases of spark firing at ground, but that is probably unrelated
+
+							if ( resend_in >= old_shapshots_expire_in_in )
+							throw new Error('Keep resend_in value less than old_shapshots_expire_in_in');
+
+							for ( let m = socket.sent_messages_first; m < socket.sent_messages_last; m++ )
+							{
+								let msg = socket.sent_messages.get( m );
+								if ( !msg.arrived )
+								//if ( msg.time < sdWorld.time - 350 )
+								if ( msg.time < sdWorld.time - resend_in )
+								{
+									socket.myDrop({ event:'RESv2', data:msg.data }); // { event, data }
+
+									msg.arrived = true; // Prevent resend
+								}
+							}
+
+
+							if ( socket.lost_messages.length > 5000 )
+							{
+
+								console.log('socket.lost_messages.length = ' + socket.lost_messages.length + '... giving up with resends' );
+								socket.lost_messages = [];
+							}
+
+							for ( let s = 0; s < Math.min( 3, socket.lost_messages.length ); s++ )
+							{
+								sd_events.push( socket.lost_messages.shift() );
+							}
+
+							let promise_snapshot_compress = sdSnapPack.Compress( snapshot );
+							let promise_sd_events_compress = globalThis.ExecuteParallelPromise({ action: WorkerServiceLogic.ACTION_LZW, data: JSON.stringify( sd_events ) });
+							//LZW.lzw_encode( JSON.stringify( sd_events ) )
+
+							//await Promise.all([ promise_snapshot_compress, promise_sd_events_compress ]);
+
+							//debugger;
+
+							let full_msg = [ 
+								await promise_snapshot_compress, // 0
+								socket.GetScore(), // 1
+								LZW.lzw_encode( JSON.stringify( leaders ) ), // 2
+								await promise_sd_events_compress, // 3
+								//leaders, // 2
+								//sd_events, // 3
+								socket.character ? Math.round( socket.character._force_add_sx * 1000 ) / 1000 : 0, // 4
+								socket.character ? Math.round( socket.character._force_add_sy * 1000 ) / 1000 : 0, // 5
+								socket.character ? Math.max( -1, socket.character._position_velocity_forced_until - sdWorld.time ) : 0, // 6
+								sdWorld.last_frame_time, // 7
+								sdWorld.last_slowest_class, // 8
+								socket.sent_messages_last // 9
+							];
+
+							let full_msg_story = [ 
+								snapshot_only_statics, // 0
+								null, // 1
+								null, // 2
+								sd_events, // 3
+								null, // 4
+								null, // 5
+								null, // 6
+								null, // 7
+								null, // 8
+								socket.sent_messages_last // 8
+							];
+
+
+							//socket.sent_messages = new Map();
+							//socket.sent_messages_first = 0;
+							//socket.sent_messages_last = 0;
+
+							socket.sent_messages.set( socket.sent_messages_last++, { data: full_msg_story, time: sdWorld.time, arrived: false } );
+
+							// Forget too old messages
+							while ( socket.sent_messages.get( socket.sent_messages_first ).time < sdWorld.time - old_shapshots_expire_in_in ) // Used to be 10000 but lower value is better because static entities will be removed in each sync from all these snapshots
+							socket.sent_messages.delete( socket.sent_messages_first++ );
+
+							//for ( let g = 0; g < 25; g++ )
+							//if ( Math.random() < 0.2 )
+							{
+								if ( !SOCKET_IO_MODE )
+								socket.compress( true ).emit('RESv2', LZW.lzw_encode( JSON.stringify( full_msg ) ) );
+								else
+								socket.compress( true ).emit('RESv2', full_msg );
+							}
+
+							socket.sent_result_ok++;
+
+							if ( socket.character )
+							{
+								socket.character._force_add_sx = 0;
+								socket.character._force_add_sy = 0;
+							}
+
+							socket.observed_entities = observed_entities;
+
+							socket.sync_busy = false;
+						}
+
+						SyncDataToPlayer();
+					}
 				}
 
 				if ( sdWorld.time > socket.last_ping + 60000 )
