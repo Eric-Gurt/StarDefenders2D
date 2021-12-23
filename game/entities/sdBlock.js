@@ -428,7 +428,7 @@ class sdBlock extends sdEntity
 					if ( initiator )
 					if ( typeof initiator._score !== 'undefined' )
 					{
-						if ( this.rank === sdBlock.max_corruption_rank )
+						if ( this.p === sdBlock.max_corruption_rank )
 						initiator._score += 10;
 						else
 						initiator._score += 1;
@@ -605,10 +605,12 @@ class sdBlock extends sdEntity
 		
 		this._plants = params.plants || null; // Array of _net_id-s actually
 		
+		this.p = 0; // Material property value. In case of spike it is an animation, in case of corruption it is a rank
+		
 		if ( this.material === sdBlock.MATERIAL_SHARP )
 		{
 			this._owner = params.owner || null; // Useful in case of sharp trap
-			this.spikes_ani = 0; // 30 when somebody near, 15...30 - visible spikes, 0...15 - not visible spikes
+			this.p = 0; // 30 when somebody near, 15...30 - visible spikes, 0...15 - not visible spikes
 		}
 		
 		if ( this.material === sdBlock.MATERIAL_CORRUPTION )
@@ -616,7 +618,7 @@ class sdBlock extends sdEntity
 			//this.blood = 0;
 			this._next_attack = 0;
 			this._next_spread = sdWorld.time + 5000 + Math.random() * 10000;
-			this.rank = ( params.rank === undefined ) ? sdBlock.max_corruption_rank : params.rank;
+			this.p = ( params.rank === undefined ) ? sdBlock.max_corruption_rank : params.rank;
 		}
 		
 		this.destruction_frame = 0;
@@ -648,7 +650,7 @@ class sdBlock extends sdEntity
 	}
 	Corrupt( from=null )
 	{
-		let ent2 = new sdBlock({ x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_CORRUPTION, filter:this.filter, rank: from ? Math.max( 0, from.rank - 1 - Math.floor( Math.random(), 3 ) ) : undefined });
+		let ent2 = new sdBlock({ x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_CORRUPTION, filter:this.filter, rank: from ? Math.max( 0, from.p - 1 - Math.floor( Math.random(), 3 ) ) : undefined });
 
 		this.remove();
 		this._broken = false;
@@ -727,9 +729,9 @@ class sdBlock extends sdEntity
 		
 		if ( this.material === sdBlock.MATERIAL_SHARP )
 		{
-			if ( this.spikes_ani > 0 )
+			if ( this.p > 0 )
 			{
-				this.spikes_ani = Math.max( 0, this.spikes_ani - GSPEED );
+				this.p = Math.max( 0, this.p - GSPEED );
 				this._update_version++;
 			}
 			else
@@ -768,7 +770,7 @@ class sdBlock extends sdEntity
 				
 					if ( ent )
 					{
-						if ( ent.material === sdBlock.MATERIAL_GROUND && this.rank >= 1 )
+						if ( ent.material === sdBlock.MATERIAL_GROUND && this.p >= 1 )
 						{
 							ent.Corrupt( this );
 						}
@@ -824,10 +826,10 @@ class sdBlock extends sdEntity
 			{
 				if ( this.material === sdBlock.MATERIAL_SHARP )
 				{
-					if ( this.spikes_ani === 0 )
+					if ( this.p === 0 )
 					//if ( sdWorld.GetComsNear( this.x + this.width / 2, this.y + this.height / 2, null, from_entity._net_id, true ).length === 0 && sdWorld.GetComsNear( this.x + this.width / 2, this.y + this.height / 2, null, from_entity.GetClass(), true ).length === 0 )
 					{
-						this.spikes_ani = 30;
+						this.p = 30;
 						this._update_version++;
 
 						sdWorld.SendEffect({ x:from_entity.x, y:from_entity.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
@@ -894,9 +896,9 @@ class sdBlock extends sdEntity
 			if ( this.material === sdBlock.MATERIAL_CORRUPTION )
 			{
 				//ctx.filter = 'none';
-				//ctx.filter = 'hue-rotate('+( this.rank - 12 )*(15)+'deg)';
-				//ctx.filter = 'hue-rotate('+( this.rank - 12 )*(15)+'deg) saturate('+(this.rank/12 * 0.75 + 0.25)+')';
-				ctx.filter = 'hue-rotate('+( this.rank - sdBlock.max_corruption_rank )*(15)+'deg) saturate('+(this.rank/ sdBlock.max_corruption_rank * 0.75 + 0.25)+') brightness('+(this.rank / sdBlock.max_corruption_rank * 0.75 + 0.25)+')';
+				//ctx.filter = 'hue-rotate('+( this.p - 12 )*(15)+'deg)';
+				//ctx.filter = 'hue-rotate('+( this.p - 12 )*(15)+'deg) saturate('+(this.p/12 * 0.75 + 0.25)+')';
+				ctx.filter = 'hue-rotate('+( this.p - sdBlock.max_corruption_rank )*(15)+'deg) saturate('+(this.p/ sdBlock.max_corruption_rank * 0.75 + 0.25)+') brightness('+(this.p / sdBlock.max_corruption_rank * 0.75 + 0.25)+')';
 				ctx.drawImageFilterCache( sdBlock.img_corruption, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
 			}
 		}
@@ -981,7 +983,7 @@ class sdBlock extends sdEntity
 		else
 		if ( this.material === sdBlock.MATERIAL_SHARP )
 		{
-			ctx.drawImageFilterCache( ( this.spikes_ani < 15 ) ? sdBlock.img_sharp_inactive : sdBlock.img_sharp, 0, 0, w,h, 0,0, w,h );
+			ctx.drawImageFilterCache( ( this.p < 15 ) ? sdBlock.img_sharp_inactive : sdBlock.img_sharp, 0, 0, w,h, 0,0, w,h );
 		}
 		else
 		{
