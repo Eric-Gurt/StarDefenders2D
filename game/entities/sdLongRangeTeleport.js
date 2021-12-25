@@ -148,6 +148,12 @@ class sdLongRangeTeleport extends sdEntity
 		
 		sdLongRangeTeleport.long_range_teleports.push( this );
 	}
+	onServerSideSnapshotLoaded() // Something like LRT will use this to reset phase on load
+	{
+		this.charge_timer = 0;
+		this.is_charging = 0;
+		this._is_busy_since = 0;
+	}
 	/*ExtraSerialzableFieldTest( prop )
 	{
 		if ( prop === '_owner' ) return true;

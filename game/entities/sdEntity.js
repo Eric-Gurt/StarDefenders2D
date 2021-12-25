@@ -52,7 +52,7 @@ class sdEntity
 		
 		sdEntity.y_rest_tracker = new WeakMap(); // entity => { y, repeated_sync_count }
 		
-		sdEntity.properties_by_class_all = new WeakMap(); // class => [ 'x', 'y' ... ]
+		//sdEntity.properties_by_class_all = new WeakMap(); // class => [ 'x', 'y' ... ]
 		sdEntity.properties_by_class_public = new WeakMap(); // class => [ 'x', 'y' ... ]
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -2346,19 +2346,33 @@ class sdEntity
 			
 			if ( save_as_much_as_possible )
 			{
-				props = sdEntity.properties_by_class_all.get( this.__proto__.constructor );
+				// Sometimes it could consider null as acceptable but then writes whole socket data...
+				//props = sdEntity.properties_by_class_all.get( this.__proto__.constructor );
 				
-				if ( props === undefined )
-				{
+				//if ( props === undefined )
+				//{
 					props = [];
 					
 					for ( var prop in this )
 					if ( prop.charAt( 0 ) !== '_' || 
-						 ( save_as_much_as_possible && prop !== '_snapshot_cache_frame' && prop !== '_snapshot_cache' && prop !== '_hiberstate' && prop !== '_last_x' && prop !== '_last_y' && ( typeof this[ prop ] === 'number' || typeof this[ prop ] === 'string' || typeof this[ prop ] === 'boolean' || this.ExtraSerialzableFieldTest( prop ) ) ) )
-					props.push( prop );
+						 ( save_as_much_as_possible && prop !== '_snapshot_cache_frame' && prop !== '_snapshot_cache' && prop !== '_hiberstate' && prop !== '_last_x' && prop !== '_last_y' && ( typeof this[ prop ] === 'number' || typeof this[ prop ] === 'string' || this[ prop ] === null || typeof this[ prop ] === 'boolean' || this.ExtraSerialzableFieldTest( prop ) ) ) )
+					{
+						/*if ( prop === '_listeners' )
+						{
+							throw new Error('How? Bad.');
+						}
+						*/
+						props.push( prop );
+					}
+			
+					/*if ( this.GetClass() === 'sdBlock' )
+					{
+						if ( props.indexOf( '_contains_class' ) === -1 )
+						throw new Error('Something is not right. Props for block are missing contained class: ' + JSON.stringify( props ) );
+					}*/
 					
-					sdEntity.properties_by_class_all.set( this.__proto__.constructor, props );
-				}
+					//sdEntity.properties_by_class_all.set( this.__proto__.constructor, props );
+				//}
 			}
 			else
 			{
@@ -2520,6 +2534,13 @@ class sdEntity
 				{
 					if ( my_entity !== this )
 					{
+						// Patch - probably remove after June 2022
+						//if ( sdWorld.is_server )
+						{
+							if ( prop === '_listeners' )
+							snapshot[ prop ] = null;
+						}
+						
 						this[ prop ] = snapshot[ prop ];
 					}
 					else
@@ -2614,6 +2635,8 @@ class sdEntity
 			{
 				sdWorld.ApplyDrawOperations( null, this.d );
 			}
+			
+			this.onServerSideSnapshotLoaded();
 		}
 		else
 		{
@@ -2623,6 +2646,10 @@ class sdEntity
 		
 		this._hitbox_last_update = 0;
 		this.UpdateHitbox();
+	}
+	
+	onServerSideSnapshotLoaded() // Something like LRT will use this to reset phase on load
+	{
 	}
 	
 	static GetObjectByClassAndNetId( _class, _net_id ) // GetEntityByNetID // FindEntityByNetID
@@ -2971,6 +2998,12 @@ class sdEntity
 	
 		if ( typeof this._listeners[ str ] === 'undefined' )
 		this._listeners[ str ] = [];
+	
+		/*if ( typeof method !== 'function' )
+		{
+			throw new Error( 'Not a function passed to listener: '+(typeof method)+' :: '+method );
+		}
+		trace( 'adding '+str+' listener '+method.name+' to '+this.GetClass() );*/
 		
 		this._listeners[ str ].push( method );
 	}

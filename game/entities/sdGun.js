@@ -521,6 +521,20 @@ class sdGun extends sdEntity
 			for ( var i = 0; i < sdWorld.sockets.length; i++ )
 			sdWorld.sockets[ i ].SDServiceMessage( 'Server logic error: Something calls .Shoot method of sdGun but sdGun has no owner - report this error if you understand how, when or why it happens.' );
 		
+			this.remove();
+			return false;
+		}
+		
+		if ( !this._held_by.IsPlayerClass() )
+		{
+			console.warn( 'Server logic error: Something calls .Shoot method of sdGun is not owned by PlayerClass.' );
+			
+			debugger;
+			
+			for ( var i = 0; i < sdWorld.sockets.length; i++ )
+			sdWorld.sockets[ i ].SDServiceMessage( 'Server logic error: Something calls .Shoot method of sdGun but sdGun owner isn\'t a PlayerClass - report this error if you understand how, when or why it happens.' );
+		
+			this.remove();
 			return false;
 		}
 			
