@@ -2931,7 +2931,7 @@ io.on("connection", (socket) =>
 		if ( net_id !== undefined )
 		{
 			let ent = sdEntity.GetObjectByClassAndNetId( _class, net_id );
-			if ( ent !== null )
+			if ( ent !== null && !ent._is_being_removed )
 			{
 				ent.ExecuteContextCommand( params[ 2 ], params[ 3 ], socket.character, socket );
 			}
@@ -2993,7 +2993,7 @@ io.on("connection", (socket) =>
 			//let net_id_to_get = arr[ 1 ];
 			let slot = arr[ 1 ];
 			let ent = sdEntity.GetObjectByClassAndNetId( 'sdStorage', net_id );
-			if ( ent !== null )
+			if ( ent !== null && !ent._is_being_removed )
 			{
 				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdStorage.access_range ) >= 0 )
 				{

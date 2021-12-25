@@ -282,6 +282,8 @@ class sdGun extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
+		this._remove_stack_trace = null;
+		
 		this._last_hit_sound = 0;
 		
 		this.tilt = 0;
@@ -357,6 +359,9 @@ class sdGun extends sdEntity
 	//onRemove()
 	onBeforeRemove() // Right when .remove() is called for the first time
 	{
+		if ( sdWorld.is_server )
+		this._remove_stack_trace = getStackTrace();
+		
 		if ( this._held_by )
 		{
 			this._held_by.DropSpecificWeapon( this );

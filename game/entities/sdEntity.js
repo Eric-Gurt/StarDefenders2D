@@ -2201,7 +2201,8 @@ class sdEntity
 				if ( this._is_being_removed )
 				{
 					debugger;
-					throw new Error('Logic error: ' + this.GetClass() + ' is not allowed to become active after was removed');
+					
+					throw new Error('Logic error: ' + this.GetClass() + ' is not allowed to become active after was removed. Originally was removed here (from ._remove_stack_trace): ' + this._remove_stack_trace );
 				}
 			}
 
