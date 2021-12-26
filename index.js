@@ -3256,12 +3256,18 @@ let cpu_cores = os.cpus().length;
 
 let worker_services = [];
 
+trace( 'Starting '+(~~(Math.max( 0, Math.min( cpu_cores * 0.8 ) )))+' extra threads for parallel tasks (compression)' );
 for ( let i = 0; i < Math.max( 0, Math.min( cpu_cores * 0.8 ) ); i++ ) // Leave some space for GC?
 {
-	worker_services.push( await RunWorkerService( 'Worker #'+i ) );
-	//trace('Started worker thread #'+i);
+	// Some Node.js versions seem to be unable to handle await at top-level so wrapping these into function (for a short period of time worker_services will be empty and main thread will handle all snapshot compressions/tasks)
+	(async ()=>
+	{
+		
+		worker_services.push( await RunWorkerService( 'Worker #'+i ) );
+		//trace('Started worker thread #'+i);
+		
+	})();
 }
-trace( 'Starting '+worker_services.length+' extra threads for parallel tasks (compression)' );
 globalThis.StopAllWorkers = ()=> // Probably not needed
 {
 	/*
