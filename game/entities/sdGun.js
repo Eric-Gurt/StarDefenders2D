@@ -674,7 +674,7 @@ class sdGun extends sdEntity
 					
 					let count = this._count; //sdGun.classes[ this.class ].count === undefined ? 1 : sdGun.classes[ this.class ].count;
 					let spread = this._spread; //sdGun.classes[ this.class ].spread || 0;
-					console.log(spread);
+
 					for ( let i = 0; i < count; i++ )
 					{
 						//let offset = this._held_by.GetBulletSpawnOffset();
