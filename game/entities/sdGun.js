@@ -311,6 +311,9 @@ class sdGun extends sdEntity
 		this.fire_mode = 1; // 1 = full auto, 2 = semi auto
 		
 		this.class = params.class || 0;
+
+		this._count = sdGun.classes[ this.class ].count === undefined ? 1 : sdGun.classes[ this.class ].count;
+		this._spread = sdGun.classes[ this.class ].spread || 0;
 		
 		if ( this.class === sdGun.CLASS_CRYSTAL_SHARD )
 		this._hea = 5;
@@ -669,8 +672,9 @@ class sdGun extends sdEntity
 					
 					let initial_an = this._held_by.GetLookAngle() + this._held_by._side * ( ( Math.pow( this._held_by._recoil * 5, 2 ) / 5 ) * ( 0.5 + 0.5 * Math.random() ) );
 					
-					let count = sdGun.classes[ this.class ].count === undefined ? 1 : sdGun.classes[ this.class ].count;
-					let spread = sdGun.classes[ this.class ].spread || 0;
+					let count = this._count; //sdGun.classes[ this.class ].count === undefined ? 1 : sdGun.classes[ this.class ].count;
+					let spread = this._spread; //sdGun.classes[ this.class ].spread || 0;
+					console.log(spread);
 					for ( let i = 0; i < count; i++ )
 					{
 						//let offset = this._held_by.GetBulletSpawnOffset();
