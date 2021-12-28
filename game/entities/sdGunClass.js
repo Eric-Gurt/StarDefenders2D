@@ -78,30 +78,6 @@ class sdGunClass
 			
 			return arr;
 		}
-		function AddShotgunAmmoTypes( arr )
-		{
-			arr.push(
-			{ 
-				title: 'Convert ammo type to slug pellets',
-				cost: 100,
-				action: ( gun, initiator=null )=>
-				{ 
-					gun._spread = 0; // Perhaps it should take properties from sdGunClass, although it's the same?
-				}
-			});
-			
-			arr.push(
-			{ 
-				title: 'Revert projectile type to default',
-				cost: 0,
-				action: ( gun, initiator=null )=>
-				{ 
-					gun._spread = sdGun.classes[ gun.class ].spread; // Perhaps it should take properties from sdGunClass, although it's the same?
-				}
-			});
-			
-			return arr;
-		}
 		/*
 		
 			Uses defined indices in order to optimize performance AND to keep gun classes compatible across different snapshots.
@@ -168,7 +144,7 @@ class sdGunClass
 			spread: 0.1,
 			matter_cost: 40,
 			projectile_properties: { _damage: 20 },
-			upgrades: AddRecolorsFromColorAndCost( [], '#808080', 5 ) // Needs "AddShotgunAmmoTypes( [] )" aswell, although not sure how I'd implement multiple upgrade options here. - Booraz149
+			upgrades: AddRecolorsFromColorAndCost( [], '#808080', 5 )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_RAILGUN = 3 ] = 
@@ -834,8 +810,7 @@ class sdGunClass
 			burst: 3, // Burst fire count
 			burst_reload: 30, // Burst fire reload, needed when giving burst fire
 			min_build_tool_level: 6,
-			projectile_properties: { _damage: 25 },
-			upgrades: AddShotgunAmmoTypes( [] )
+			projectile_properties: { _damage: 25 }
 		};
 
 		sdGun.classes[ sdGun.CLASS_LASER_DRILL = 30 ] = { // Sprite made by Silk1 / AdibAdrian
