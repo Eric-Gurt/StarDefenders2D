@@ -168,7 +168,7 @@ class sdGunClass
 			spread: 0.1,
 			matter_cost: 40,
 			projectile_properties: { _damage: 20 },
-			upgrades: AddRecolorsFromColorAndCost( [], '#808080', 5 ) // Needs "AddShotgunAmmoTypes( [] )" aswell, although not sure how I'd implement multiple upgrade options here. - Booraz149
+			upgrades:AddRecolorsFromColorAndCost( AddShotgunAmmoTypes([]), '#808080', 5 )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_RAILGUN = 3 ] = 
