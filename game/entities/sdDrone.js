@@ -25,9 +25,9 @@ class sdDrone extends sdEntity
 		sdDrone.img_drone_robot_destroyed = sdWorld.CreateImageFromFile( 'drone_robot_destroyed2' );
 		sdDrone.img_drone_robot_hurt = sdWorld.CreateImageFromFile( 'drone_robot_hurt' );
 
-		sdDrone.img_alien_drone = sdWorld.CreateImageFromFile( 'alien_drone' );
-		sdDrone.img_alien_attack = sdWorld.CreateImageFromFile( 'alien_attack' );
-		sdDrone.img_alien_destroyed = sdWorld.CreateImageFromFile( 'alien_drone_destroyed' );
+		sdDrone.img_drone_alien = sdWorld.CreateImageFromFile( 'drone_alien' );
+		sdDrone.img_drone_alien_attack = sdWorld.CreateImageFromFile( 'drone_alien_attack' );
+		sdDrone.img_drone_alien_destroyed = sdWorld.CreateImageFromFile( 'drone_alien_destroyed' );
 		
 		sdDrone.death_duration = 15;
 		sdDrone.post_death_ttl = 30 * 10;
@@ -649,7 +649,7 @@ class sdDrone extends sdEntity
 			if ( this.type === 2  )
 			ctx.drawImageFilterCache( sdDrone.img_drone_robot_destroyed, - 16, - 16, 32, 32 );
 			if ( this.type === 3  )
-			ctx.drawImageFilterCache( sdDrone.img_alien_destroyed, - 16, - 16, 32, 32 );
+			ctx.drawImageFilterCache( sdDrone.img_drone_alien_destroyed, - 16, - 16, 32, 32 );
 		}
 		else
 		{
@@ -660,14 +660,14 @@ class sdDrone extends sdEntity
 				if ( this.type === 2  )
 				ctx.drawImageFilterCache( sdDrone.img_drone_robot_attack, - 16, - 16, 32, 32 );
 				if ( this.type === 3  )
-				ctx.drawImageFilterCache( sdDrone.img_alien_attack, - 16, - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdDrone.img_drone_alien_attack, - 16, - 16, 32, 32 );
 			}
 			else
 			{
 				if ( this.type === 1  )
 				ctx.drawImageFilterCache( sdDrone.img_drone_falkok, - 16, - 16, 32, 32 );
 				if ( this.type === 3  )
-				ctx.drawImageFilterCache( sdDrone.img_alien_drone, - 16, - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdDrone.img_drone_alien, - 16, - 16, 32, 32 );
 				if ( this.type === 2  )
 				{
 					if ( this.hurt_timer > 0 )
