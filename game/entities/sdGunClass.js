@@ -151,7 +151,7 @@ class sdGunClass
 			ammo_capacity: 30,
 			spread: 0.01, // 0.03
 			count: 1,
-			projectile_properties: { _damage: 25 },
+			projectile_properties: { _damage: 25, _dirt_mult: -0.5 },
 			upgrades: AddRecolorsFromColorAndCost( [], '#ff0000', 15 )
 		};
 		
@@ -199,7 +199,7 @@ class sdGunClass
 			projectile_velocity: 14,
 			count: 1,
 			matter_cost: 60,
-			projectile_properties: { explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:1, _vehicle_mult:sdGun.default_vehicle_mult_bonus },
+			projectile_properties: { explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:1, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 },
 			upgrades: AddRecolorsFromColorAndCost( [], '#808000', 20 )
 		};
 		
@@ -228,7 +228,7 @@ class sdGunClass
 			count: 1,
 			matter_cost: 60,
 			projectile_velocity: 16,
-			projectile_properties: { explosion_radius: 10, model: 'ball', _damage: 5, color:'#00ffff' }
+			projectile_properties: { explosion_radius: 10, model: 'ball', _damage: 5, color:'#00ffff', _dirt_mult: 1 }
 		};
 		
 		sdGun.classes[ sdGun.CLASS_BUILD_TOOL = 7 ] = 
@@ -284,7 +284,7 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: 7,
 			matter_cost: 60,
-			projectile_properties: { explosion_radius: 13, time_left: 30 * 3, model: 'grenade', _damage: 13 * 2, color:sdEffect.default_explosion_color, is_grenade: true }
+			projectile_properties: { explosion_radius: 13, time_left: 30 * 3, model: 'grenade', _damage: 13 * 2, color:sdEffect.default_explosion_color, is_grenade: true, _dirt_mult: 2 }
 		};
 		
 		sdGun.classes[ sdGun.CLASS_NEEDLE = 10 ] = 
@@ -300,7 +300,7 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
 			matter_cost: 60,
-			projectile_properties: { _damage: 48, /*_knock_scale:0.01 * 8, */penetrating:true }
+			projectile_properties: { _damage: 50, /*_knock_scale:0.01 * 8, */penetrating:true }
 		};
 		
 		sdGun.classes[ sdGun.CLASS_SWORD = 11 ] = 
@@ -363,7 +363,7 @@ class sdGunClass
 			ammo_capacity: 35,
 			spread: 0.02,
 			count: 1,
-			projectile_properties: { _damage: 25, color:'#afdfff' },
+			projectile_properties: { _damage: 25, color:'#afdfff', _dirt_mult: -0.5 },
 			spawnable: false,
 			upgrades: AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( [], '#ff0000', 15, 'pointer' ), '#007bcc', 15, 'circles' )
 		};
@@ -498,8 +498,8 @@ class sdGunClass
 			ammo_capacity: -1,
 			spread: 0.01,
 			count: 1,
-			projectile_velocity: 10 * 2,  // Slower bullet velocity than sniper but more damage
-			projectile_properties: { _damage: 55/*111*/, color:'#00ffff', model: 'f_psicutter_proj'/*, _knock_scale:0.01 * 8*/, penetrating: false, _bouncy: true },
+			projectile_velocity: 10 * 2,  // Slower bullet velocity than sniper but ricochet projectiles
+			projectile_properties: { _damage: 80/*111*/, color:'#00ffff', model: 'f_psicutter_proj'/*, _knock_scale:0.01 * 8*/, penetrating: false, _bouncy: true },
 			spawnable:false
 		};
 		
@@ -603,7 +603,7 @@ class sdGunClass
 			count: 1,
 			matter_cost: 90,
 			min_build_tool_level: 4,
-			projectile_properties: { _damage: 29 }
+			projectile_properties: { _damage: 29, _dirt_mult: -0.5 }
 		};
 
 		sdGun.classes[ sdGun.CLASS_BUILDTOOL_UPG = 25 ] = 
@@ -853,7 +853,7 @@ class sdGunClass
 			matter_cost: 300,
 			projectile_velocity: 1 * 1.5,
 			min_workbench_level: 2,
-			projectile_properties: { _rail: true, _damage: 25, color: '#ffb300', _knock_scale:0.1, _dirt_mult: 2 } // 3X ( 1 + 2 ) damage against dirt blocks
+			projectile_properties: { _rail: true, _damage: 32, color: '#ffb300', _knock_scale:0.1, _dirt_mult: 2 }
 		};
 
 		sdGun.classes[ sdGun.CLASS_SMG = 31 ] = { // Sprite made by LazyRain
@@ -902,7 +902,7 @@ class sdGunClass
 			count: 1,
 			min_build_tool_level: 18,
 			matter_cost: 90,
-			projectile_properties: { time_left: 60, explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.02, _vehicle_mult:sdGun.default_vehicle_mult_bonus }
+			projectile_properties: { time_left: 60, explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.02, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 }
 		};
 
 		sdGun.classes[ sdGun.CLASS_HEALING_RAY = 34 ] = { // Sprite made by LazyRain
@@ -1387,7 +1387,7 @@ class sdGunClass
 			count: 1,
 			spawnable: false,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.6,
-			projectile_properties: { _damage: 66, color: '#92D0EC'}
+			projectile_properties: { _damage: 66, color: '#92D0EC', _dirt_mult: -0.5 }
 		};
 		
 		sdGun.classes[ sdGun.CLASS_MMG_THE_RIPPER_T2 = 47 ] = // sprite by Ghost581
@@ -1406,7 +1406,7 @@ class sdGunClass
 			count: 1,
 			matter_cost: 140,
 			min_build_tool_level: 11,
-			projectile_properties: { _damage: 42, color: '#FFEB00' }
+			projectile_properties: { _damage: 42, color: '#FFEB00', _dirt_mult: -0.5 }
 		};
 
 		sdGun.classes[ sdGun.CLASS_MMG_THE_RIPPER_T3 = 48 ] = // sprite by Ghost581
@@ -1425,7 +1425,7 @@ class sdGunClass
 			count: 1,
 			matter_cost: 190,
 			min_build_tool_level: 24,
-			projectile_properties: { _damage: 48, color: '#FFEB00' }
+			projectile_properties: { _damage: 48, color: '#FFEB00', _dirt_mult: -0.5 }
 		};
 
 		sdGun.classes[ sdGun.CLASS_PHASERCANNON_P03 = 49 ] = // sprite by Ghost581
@@ -1887,7 +1887,7 @@ class sdGunClass
 			burst: 6, // Burst fire count
 			burst_reload: 24, // Burst fire reload, needed when giving burst fire
 			projectile_velocity: 18,
-			projectile_properties: { _damage: 38,  color: '#00aaff' }
+			projectile_properties: { _damage: 38,  color: '#00aaff', _dirt_mult: -0.5 }
 		};
 
 		sdGun.classes[ sdGun.CLASS_ERTHAL_PLASMA_PISTOL = 61 ] = 
@@ -1962,7 +1962,7 @@ class sdGunClass
 				}
 				return true;
 			},
-			projectile_properties: { _damage: 30 } // Combined with fire rate
+			projectile_properties: { _damage: 30, _dirt_mult: -0.5 } // Combined with fire rate
 		};
 
 		sdGun.classes[ sdGun.CLASS_SNIPER = 63 ] = 
@@ -2092,7 +2092,7 @@ class sdGunClass
 			matter_cost: 120,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.3,
 			min_build_tool_level: 10,
-			projectile_properties: { _damage: 40 }
+			projectile_properties: { _damage: 40, _dirt_mult: -0.5 }
 		};
 
 		sdGun.classes[ sdGun.CLASS_MISSLE_LAUNCHER_P07 = 68 ] = 
@@ -2113,7 +2113,7 @@ class sdGunClass
 			min_build_tool_level: 5,
 			min_workbench_level: 2,
 			matter_cost: 240,
-			projectile_properties: { time_left: 90, explosion_radius: 20, model: 'mini_missile_p241', _damage: 32, color:sdEffect.default_explosion_color, ac:0.01, _homing: true, _homing_mult: 0.3, _vehicle_mult:sdGun.default_vehicle_mult_bonus }
+			projectile_properties: { time_left: 90, explosion_radius: 20, model: 'mini_missile_p241', _damage: 32, color:sdEffect.default_explosion_color, ac:0.01, _homing: true, _homing_mult: 0.3, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 }
 		};
 		
 		sdGun.classes[ sdGun.CLASS_F_HEAVY_RIFLE = 69 ] = 
@@ -2165,7 +2165,7 @@ class sdGunClass
 				}
 				return true;
 			},
-			projectile_properties: { _damage: 27, color:'#afdfff' }
+			projectile_properties: { _damage: 27, color:'#afdfff', _dirt_mult: -0.5 }
 		};
 		
 		sdGun.classes[ sdGun.CLASS_ZAPPER = 70 ] = 
@@ -2311,7 +2311,7 @@ class sdGunClass
 			fire_type: 2, // Semi auto
 			matter_cost: 90,
 			min_build_tool_level: 13,
-			projectile_properties: { explosion_radius: 16, time_left: 30 * 3, model: 'grenade', _damage: 16 * 2, color:sdEffect.default_explosion_color, is_grenade: true }
+			projectile_properties: { explosion_radius: 16, time_left: 30 * 3, model: 'grenade', _damage: 16 * 2, color:sdEffect.default_explosion_color, is_grenade: true, _dirt_mult: 2 }
 		};
 		
 		sdGun.classes[ sdGun.CLASS_TRIPLE_RAIL2 = 75 ] = 
