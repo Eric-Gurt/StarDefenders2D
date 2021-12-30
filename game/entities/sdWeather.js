@@ -1056,6 +1056,8 @@ class sdWeather extends sdEntity
 						x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
 						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
 
+
+						if ( anticrystal.CanMoveWithoutOverlap( x, y - 64, 0 ) )
 						if ( anticrystal.CanMoveWithoutOverlap( x, y, 0 ) )
 						if ( !anticrystal.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 						if ( sdWorld.last_hit_entity )
