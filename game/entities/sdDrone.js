@@ -28,6 +28,15 @@ class sdDrone extends sdEntity
 		sdDrone.img_drone_alien = sdWorld.CreateImageFromFile( 'drone_alien' );
 		sdDrone.img_drone_alien_attack = sdWorld.CreateImageFromFile( 'drone_alien_attack' );
 		sdDrone.img_drone_alien_destroyed = sdWorld.CreateImageFromFile( 'drone_alien_destroyed' );
+
+
+		sdDrone.img_drone_alien2 = sdWorld.CreateImageFromFile( 'drone_alien2' );
+		sdDrone.img_drone_alien2_attack = sdWorld.CreateImageFromFile( 'drone_alien2_attack' );
+		sdDrone.img_drone_alien2_destroyed = sdWorld.CreateImageFromFile( 'drone_alien2_destroyed' );
+
+		sdDrone.img_drone_alien3 = sdWorld.CreateImageFromFile( 'drone_alien3' );
+		//sdDrone.img_drone_alien3_attack = sdWorld.CreateImageFromFile( 'drone_alien3_attack' );
+		//sdDrone.img_drone_alien3_destroyed = sdWorld.CreateImageFromFile( 'drone_alien3_destroyed' );
 		
 		sdDrone.death_duration = 15;
 		sdDrone.post_death_ttl = 30 * 10;
@@ -38,13 +47,13 @@ class sdDrone extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.type === 3 ? -11 : this.type === 1 ? -10 : -6; }
-	get hitbox_x2() { return this.type === 3 ? 11 : this.type === 1 ? 10 : 6; }
-	get hitbox_y1() { return this.type === 3 ? -11 : this.type === 1 ? -10 : -6; }
-	get hitbox_y2() { return this.type === 3 ? 11 : this.type === 1 ? 10 : 6; }
+	get hitbox_x1() { return ( this.type === 3 || this.type === 4 ) ? -11 : this.type === 1 ? -10 : -6; }
+	get hitbox_x2() { return ( this.type === 3 || this.type === 4 ) ? 11 : this.type === 1 ? 10 : 6; }
+	get hitbox_y1() { return ( this.type === 3 || this.type === 4 ) ? -11 : this.type === 1 ? -10 : -6; }
+	get hitbox_y2() { return ( this.type === 3 || this.type === 4 ) ? 11 : this.type === 1 ? 10 : 6; }
 	
 	get hard_collision() // For world geometry where players can walk
-	{ return true; }
+	{ return this._collision; }
 	
 	constructor( params )
 	{
@@ -52,10 +61,12 @@ class sdDrone extends sdEntity
 		
 		this.sx = 0;
 		this.sy = 0;
+
+		this._collision = true;
 		
 		this.type = params.type || 1;
 		
-		this._hmax =  this.type === 3 ? 1000 : this.type === 1 ? 130 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
+		this._hmax =  this.type === 5 ? 100 : this.type === 4 ? 4000 : this.type === 3 ? 1000 : this.type === 1 ? 130 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
 		this._hea = this._hmax;
 		this._ai_team = params._ai_team || 1;
 
@@ -74,6 +85,8 @@ class sdDrone extends sdEntity
 		//this._last_stand_on = null;
 		this._last_jump = sdWorld.time;
 		this._last_attack = sdWorld.time;
+
+		this._summon_ent_count = 3; // How much entities is ( a specific drone) allowed to create?
 		
 		this.side = 1;
 		
@@ -99,6 +112,21 @@ class sdDrone extends sdEntity
 			else
 			{
 				if ( ent._ai_team === 0 && ent.matter < 200 && this._current_target !== ent )
+				return false;
+				else
+				{
+				this._current_target === ent;
+				return true;
+				}
+			}
+		}
+		if ( this._ai_team === 4 ) // Sarrornian drones
+		{
+			if ( ent._ai_team === 4 )
+			return false;
+			else
+			{
+				if ( ent._ai_team === 0 && ent.matter < 400 && this._current_target !== ent )
 				return false;
 				else
 				{
@@ -168,6 +196,15 @@ class sdDrone extends sdEntity
 		dmg = Math.abs( dmg );
 		
 		let was_alive = this._hea > 0;
+
+
+		if ( this.type === 4 )
+		{
+			let hp_current_mod = this._hea % 1000;
+			let hp_after_mod = ( this._hea - dmg) % 1000;
+			if ( hp_current_mod > hp_after_mod )
+			this._summon_ent_count = 3;
+		}
 		
 		this._hea -= dmg;
 		
@@ -176,7 +213,7 @@ class sdDrone extends sdEntity
 
 			if ( initiator )
 			if ( typeof initiator._score !== 'undefined' )
-			initiator._score += 7;
+			initiator._score += Math.round( this._hmax / 80 );
 	
 			if ( this.type === 1 )
 			{
@@ -201,13 +238,26 @@ class sdDrone extends sdEntity
 				sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:1, pitch:2 });
 			}
 			else
-			if ( this.type === 3 )
+			if ( this.type === 3 || this.type === 4 )
 			{
 				sdWorld.SendEffect({ 
 					x:this.x, 
 					y:this.y, 
 					radius: 50, 
 				damage_scale: 1,
+				type:sdEffect.TYPE_EXPLOSION,
+				armor_penetration_level: 0,
+				owner:this,
+				color:sdEffect.default_explosion_color
+				});
+			}
+			if ( this.type === 5 ) // These are suicide bomber drones basically, lethal drones
+			{
+				sdWorld.SendEffect({ 
+					x:this.x, 
+					y:this.y, 
+					radius: 15, 
+				damage_scale: 15,
 				type:sdEffect.TYPE_EXPLOSION,
 				armor_penetration_level: 0,
 				owner:this,
@@ -245,7 +295,7 @@ class sdDrone extends sdEntity
 			}
 		}
 		
-		if ( this._hea < -600 )
+		if ( this._hea < -600 || this._hea < 0 && this.type === 5 )
 		this.remove();
 	}
 	get mass() { return 500; }
@@ -307,17 +357,38 @@ class sdDrone extends sdEntity
 						let di = sdWorld.Dist2D_Vector( dx, dy );
 						if ( di > 2 )
 						{
+
 							dx /= di;
 							dy /= di;
 
-							//dx *= 2;
-							//dy *= 2;
+							if ( this.type === 5 )
+							{
+								if ( di > 100 )
+								{
+									dx *= 1.2;
+									dy *= 1.2;
+								}
+								else
+								if ( di < 50 ) // When closing in, increase speed of the suicide bomber drone
+								{
+									dx *= 3;
+									dy *= 3;
+								}
+								else
+								{
+									dx *= 2;
+									dy *= 2;
+								}
+							}
 
+
+							if ( this.type !== 5 )
 							if ( di < 100 + Math.random() * 100 )
 							{
 								dx *= -0.2;
 								dy *= -0.2;
 							}
+
 						}
 
 						this.sx += dx;
@@ -378,6 +449,10 @@ class sdDrone extends sdEntity
 		{
 			if ( this._attack_timer > 0 )
 			this._attack_timer -= GSPEED;
+			else
+			if ( this.type === 5 )
+			if ( this.CanMoveWithoutOverlap( this.x, this.y, 0 ) )
+			this._collision = true;
 
 			if ( this.hurt_timer > 0 )
 			this.hurt_timer = Math.max( 0, this.hurt_timer - GSPEED );
@@ -393,6 +468,7 @@ class sdDrone extends sdEntity
 				
 				this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
 			}
+
 			
 			//if ( this.sy > 0 )
 			if ( !this.CanMoveWithoutOverlap( this.x, this.y + 48, 0 ) )
@@ -572,7 +648,7 @@ class sdDrone extends sdEntity
 
 								sdSound.PlaySound({ name:'spider_attackC', x:this.x, y:this.y, volume:0.33, pitch:6 });
 							}
-							if ( this.type === 3  )
+							if ( this.type === 3 || ( this.type === 4 && this._summon_ent_count === 0 )  )
 							{
 								let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 
@@ -599,6 +675,35 @@ class sdDrone extends sdEntity
 
 								sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:1.25, pitch:0.5 });
 							}
+							if ( this.type === 4 && this._summon_ent_count > 0 )
+							if ( this.CanMoveWithoutOverlap( this.x, this.y, 0 ) )
+							{
+								let drone = new sdDrone({ x: this.x, y: this.y, type:5, _ai_team: this._ai_team });
+
+
+								drone.sx = dx;
+								drone.sy = dy;
+								drone.x += drone.sx * 3;
+								drone.y += drone.sy * 3;
+
+
+
+								sdEntity.entities.push( drone );
+
+								this.attack_frame = 6;
+								this._attack_timer = 90;
+								this._collision = false;
+
+								sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:1.25, pitch:0.1 });
+
+								this._summon_ent_count--;
+							
+							}
+							if ( this.type === 5  ) // Detonate if in proximity
+							{
+								if ( di < 32 )
+								this.Damage( 1000 );
+							}
 							break;
 						}
 					}
@@ -623,6 +728,10 @@ class sdDrone extends sdEntity
 			sdEntity.Tooltip( ctx, "Erthal Drone" );
 			if ( this.type === 3 )
 			sdEntity.Tooltip( ctx, "Sarrornian Drone" );
+			if ( this.type === 4 )
+			sdEntity.Tooltip( ctx, "Sarrornian Detonator Container" );
+			if ( this.type === 5 )
+			sdEntity.Tooltip( ctx, "Sarrornian Detonator" );
 		}
 	}
 	Draw( ctx, attached )
@@ -650,6 +759,8 @@ class sdDrone extends sdEntity
 			ctx.drawImageFilterCache( sdDrone.img_drone_robot_destroyed, - 16, - 16, 32, 32 );
 			if ( this.type === 3  )
 			ctx.drawImageFilterCache( sdDrone.img_drone_alien_destroyed, - 16, - 16, 32, 32 );
+			if ( this.type === 4  )
+			ctx.drawImageFilterCache( sdDrone.img_drone_alien2_destroyed, - 16, - 16, 32, 32 );
 		}
 		else
 		{
@@ -661,6 +772,8 @@ class sdDrone extends sdEntity
 				ctx.drawImageFilterCache( sdDrone.img_drone_robot_attack, - 16, - 16, 32, 32 );
 				if ( this.type === 3  )
 				ctx.drawImageFilterCache( sdDrone.img_drone_alien_attack, - 16, - 16, 32, 32 );
+				if ( this.type === 4  )
+				ctx.drawImageFilterCache( sdDrone.img_drone_alien2_attack, - 16, - 16, 32, 32 );
 			}
 			else
 			{
@@ -668,6 +781,10 @@ class sdDrone extends sdEntity
 				ctx.drawImageFilterCache( sdDrone.img_drone_falkok, - 16, - 16, 32, 32 );
 				if ( this.type === 3  )
 				ctx.drawImageFilterCache( sdDrone.img_drone_alien, - 16, - 16, 32, 32 );
+				if ( this.type === 4  )
+				ctx.drawImageFilterCache( sdDrone.img_drone_alien2, - 16, - 16, 32, 32 );
+				if ( this.type === 5  )
+				ctx.drawImageFilterCache( sdDrone.img_drone_alien3, - 16, - 16, 32, 32 );
 				if ( this.type === 2  )
 				{
 					if ( this.hurt_timer > 0 )

@@ -6,7 +6,7 @@
 	Test specific event on server (will break any other event):
 
 		sdWorld.entity_classes.sdWeather.only_instance._time_until_event = 0
-		sdWorld.server_config.GetAllowedWorldEvents = ()=>[ 8 ];
+		sdWorld.server_config.GetAllowedWorldEvents = ()=>[ 17 ];
 		sdWorld.server_config.GetDisallowedWorldEvents = ()=>[];
 		sdWorld.entity_classes.sdWeather.only_instance._daily_events = sdWorld.server_config.GetAllowedWorldEvents();
 
@@ -15,8 +15,8 @@
 
 		sdWorld.server_config.GetAllowedWorldEvents = ()=>[];
 		sdWorld.entity_classes.sdWeather.only_instance._daily_events = [];
-*/
 
+*/
 /*
 
 	// Not sure if method above works anymore, use this:
@@ -68,17 +68,19 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_CUBES =					event_counter++; // 2
 		sdWeather.EVENT_FALKOKS =				event_counter++; // 3
 		sdWeather.EVENT_ASPS =					event_counter++; // 4
-		sdWeather.EVENT_FALKOKS_INVASION =		event_counter++; // 5
+		sdWeather.EVENT_FALKOKS_INVASION =			event_counter++; // 5
 		sdWeather.EVENT_BIG_VIRUS =				event_counter++; // 6
-		sdWeather.EVENT_FLYING_MECH =			event_counter++; // 7
+		sdWeather.EVENT_FLYING_MECH =				event_counter++; // 7
 		sdWeather.EVENT_QUAKE =					event_counter++; // 8
 		sdWeather.EVENT_BAD_DOGS =				event_counter++; // 9
-		sdWeather.EVENT_RIFT_PORTAL =			event_counter++; // 10
+		sdWeather.EVENT_RIFT_PORTAL =				event_counter++; // 10
 		sdWeather.EVENT_ERTHALS =				event_counter++; // 11
 		sdWeather.EVENT_OBELISK =				event_counter++; // 12
-		sdWeather.EVENT_CORRUPTION =			event_counter++; // 13
-		sdWeather.EVENT_WATER_RAIN =			event_counter++; // 14
+		sdWeather.EVENT_CORRUPTION =				event_counter++; // 13
+		sdWeather.EVENT_WATER_RAIN =				event_counter++; // 14
 		sdWeather.EVENT_SNOW =					event_counter++; // 15
+		sdWeather.EVENT_LARGE_ANTICRYSTAL =			event_counter++; // 16
+		sdWeather.EVENT_SARRORNIANS =				event_counter++; // 17
 		
 		sdWeather.last_crystal_near_quake = null; // Used to damage left over crystals. Could be used to damage anything really
 		
@@ -155,7 +157,7 @@ class sdWeather extends sdEntity
 	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
 	{
 		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
-		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ];
+		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 ];
 				
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -420,7 +422,7 @@ class sdWeather extends sdEntity
 					{
 
 						let drone = new sdDrone({ x:0, y:0 , _ai_team: 1});
-						drone.type = ( Math.random() < 0.15 ) ? 3 : 1;
+						//drone.type = ( Math.random() < 0.15 ) ? 3 : 1;
 
 						sdEntity.entities.push( drone );
 
@@ -1105,6 +1107,60 @@ class sdWeather extends sdEntity
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
+		if ( r === 17 ) // Sarrornian faction event, although only drones exist for now.
+		{
+			{ 
+				let instances = 0;
+				let instances_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
+
+				let left_side = ( Math.random() < 0.5 );
+
+				while ( instances < instances_tot && sdDrone.drones_tot < 20 )
+				{
+
+					let drone = new sdDrone({ x:0, y:0 , _ai_team: 4, type: ( Math.random() < 0.15 ) ? 4 : 3});
+					//drone.type = ( Math.random() < 0.15 ) ? 4 : 3; // This was causing drones to spawn as proper types but not proper HP.
+
+					sdEntity.entities.push( drone );
+
+					{
+						let x,y;
+						let tr = 1000;
+						do
+						{
+							if ( left_side )
+							x = sdWorld.world_bounds.x1 + 64 + 64 * instances;
+							else
+							x = sdWorld.world_bounds.x2 - 64 - 64 * instances;
+
+							y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+							if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
+							//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+							//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+							{
+								drone.x = x;
+								drone.y = y;
+
+								//sdWorld.UpdateHashPosition( ent, false );
+								//console.log('Drone spawned!');
+								break;
+							}
+
+
+							tr--;
+							if ( tr < 0 )
+							{
+								drone.remove();
+								drone._broken = false;
+								break;
+							}
+						} while( true );
+					}
+					instances++;
+				}
+			}
+		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -1116,7 +1172,7 @@ class sdWeather extends sdEntity
 			this.y2 = sdWorld.world_bounds.y2;
 			
 			//return; // Hack
-			
+
 			this.day_time += GSPEED;
 			if ( this.day_time > 30 * 60 * 24 )
 			{
