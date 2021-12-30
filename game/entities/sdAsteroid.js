@@ -27,10 +27,10 @@ class sdAsteroid extends sdEntity
 	{
 		super( params );
 
-		this._type = Math.random() < 0.2 ? 1 : 0;
+		this._type = params._type || Math.random() < 0.2 ? 1 : 0;
 		this.landed = false;
 		
-		this._hmax = this.type === 1 ? 250 : 200; // Asteroids that land need more HP to survive the "explosion" when they land
+		this._hmax = this._type === 1 ? 250 : 200; // Asteroids that land need more HP to survive the "explosion" when they land
 		this._hea = this._hmax;
 		
 		this.sx = Math.random() * 12 - 6;

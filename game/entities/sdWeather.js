@@ -672,6 +672,9 @@ class sdWeather extends sdEntity
 							y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
 							if ( Math.random() < 0.2 ) // 20% chance it's a "Cube" spawning portal
 							portal.tier = 2;
+							else
+							if ( Math.random() < 0.2 ) // 20% chance it's a "Asteroid" spawning portal
+							portal.tier = 3;
 
 							if ( portal.CanMoveWithoutOverlap( x, y, 0 ) )
 							if ( !portal.CanMoveWithoutOverlap( x, y + 24, 0 ) )

@@ -13,6 +13,7 @@ import sdBlock from './sdBlock.js';
 import sdCube from './sdCube.js';
 import sdJunk from './sdJunk.js';
 import sdLost from './sdLost.js';
+import sdAsteroid from './sdAsteroid.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -82,6 +83,9 @@ class sdRift extends sdEntity
 	
 		if ( this.type === 2 )
 		return 'none';
+
+		if ( this.type === 3 )
+		return 'hue-rotate(' + 180 + 'deg)';
 	}
 	MeasureMatterCost()
 	{
@@ -183,9 +187,30 @@ class sdRift extends sdEntity
 							sdWorld.UpdateHashPosition( cube, false ); // Prevent inersection with other ones
 						}
 					}
+					if ( this.type === 3 ) // Asteroid portal, always creates asteroids which explode on impact
+					{
+						{
+							let asteroid = new sdAsteroid({ 
+								x:this.x,
+								y:this.y
+							});
+							asteroid._type = 0;
+							asteroid.sy += ( 10 - ( Math.random() * 20 ) );
+							asteroid.sx += ( 10 - ( Math.random() * 20 ) );
+
+							sdEntity.entities.push( asteroid );
+
+							/*if ( !asteroid.CanMoveWithoutOverlap( cube.x, cube.y, 0 ) )
+							{
+								asteroid.remove();
+							}
+							else
+							sdWorld.UpdateHashPosition( asteroid, false ); // Prevent inersection with other ones*/
+						}
+					}
 				}, 1223 );
 
-				this._spawn_timer_cd = this._spawn_timer * Math.max( 0.1, this.hea / this.hmax ); // Reset spawn timer countdown, depending on HP left off the portal
+				this._spawn_timer_cd = ( this.type === 3 ? 0.25 : 1 ) * this._spawn_timer * Math.max( 0.1, this.hea / this.hmax ); // Reset spawn timer countdown, depending on HP left off the portal
 			}
 			
 			if ( this.matter_crystal > 0 ) // Has the rift drained any matter?
