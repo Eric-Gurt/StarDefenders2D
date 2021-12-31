@@ -2413,6 +2413,51 @@ class sdGunClass
 				return false; 
 			} 
 		};
+		
+		sdGun.classes[ sdGun.CLASS_EMPTY_CONVERTER = 80 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'cube_empty_cannon' ),
+			title: 'Cube empty cannon',
+			sound: 'supercharge_combined2_part1',
+			sound_pitch: 2,
+			sound_volume: 3,
+			slot: 8,
+			reload_time: 7,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_velocity: 16,
+			spawnable: false,
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{		
+				return 5;
+			},
+			projectile_properties: { 
+				model: 'ball_white', _damage: 0, time_left: 30, _custom_detonation_logic:( bullet )=>
+				{
+					if ( bullet._owner )
+					{
+						sdWorld.SendEffect({ 
+							x:bullet.x, 
+							y:bullet.y, 
+							radius:16,
+							damage_scale: 0, // Just a decoration effect
+							type:sdEffect.TYPE_EXPLOSION, 
+							owner:this,
+							color:'#aaaaaa' 
+						});
+
+						let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 16 );
+
+						for ( let i = 0; i < nears.length; i++ )
+						{
+							sdLost.ApplyAffection( nears[ i ], 35, bullet, sdLost.FILTER_WHITE );
+						}
+					}
+				}
+			},
+			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
+		};
 
 		// Add new gun classes above this line //
 		
