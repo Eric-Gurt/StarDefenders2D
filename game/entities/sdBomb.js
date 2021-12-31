@@ -52,7 +52,7 @@ class sdBomb extends sdEntity
 	
 		let old_hp = this.hea;
 	
-		this.hea -= dmg;
+		this.hea -= Math.abs( dmg );
 		
 		if ( this.hea <= 0 )
 		if ( old_hp > 0 )

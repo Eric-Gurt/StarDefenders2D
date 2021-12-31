@@ -235,6 +235,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdConveyor', filter:'sepia(1) saturate(1.5) hue-rotate(170deg) brightness(0.7)', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdConveyor', filter:'sepia(1) saturate(2) hue-rotate(220deg) brightness(0.7)', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdConveyor', filter:'sepia(1) saturate(1.7) hue-rotate(300deg) brightness(0.7)', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdBeacon', _category:'Base equipment' });
 		
 		
 		for ( let i = 0; i < sdCaption.colors.length / 3; i++ )

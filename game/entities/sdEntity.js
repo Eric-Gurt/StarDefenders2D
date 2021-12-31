@@ -1751,7 +1751,7 @@ class sdEntity
 	{
 		return null;
 	}
-	IsBGEntity() // 0 for in-game entities, 1 for background entities, 2 is for moderator areas, 3 is for cables. Should handle collisions separately
+	IsBGEntity() // 0 for in-game entities, 1 for background entities, 2 is for moderator areas, 3 is for cables, 4 for task in-world interfaces. Should handle collisions separately
 	{ return 0; }
 	CanMoveWithoutOverlap( new_x, new_y, safe_bound=0, custom_filtering_method=null ) // Safe bound used to check if sdCharacter can stand and not just collides with walls nearby. Also due to number rounding clients should better have it (or else they will teleport while sliding on vertical wall)
 	{
@@ -2493,6 +2493,7 @@ class sdEntity
 
 			if ( prop !== '_net_id' )
 			if ( prop !== '_class' )
+			if ( prop !== '_is_being_removed' )
 			{
 				if ( snapshot[ prop ] !== null && typeof snapshot[ prop ] === 'object' && snapshot[ prop ]._net_id && snapshot[ prop ]._class )
 				{
@@ -2647,6 +2648,18 @@ class sdEntity
 		
 		this._hitbox_last_update = 0;
 		this.UpdateHitbox();
+		
+		// This will make entity be properly removed out of class arrays
+		if ( typeof snapshot._is_being_removed !== 'undefined' )
+		{
+			if ( snapshot._is_being_removed )
+			{
+				this.remove();
+				
+				if ( typeof snapshot._broken !== 'undefined' )
+				this._broken = snapshot._broken;
+			}
+		}
 	}
 	
 	onServerSideSnapshotLoaded() // Something like LRT will use this to reset phase on load
@@ -3120,6 +3133,9 @@ class sdEntity
 	}
 	remove()
 	{
+		//if ( this.GetClass() === 'sdTask' )
+		//debugger;
+		
 		// Or else some entities won't be removed
 		if ( !this._is_being_removed )
 		{
@@ -3140,6 +3156,9 @@ class sdEntity
 	}
 	_remove()
 	{
+		//if ( this.GetClass() === 'sdTask' )
+		//debugger;
+	
 		// Method should be called only ever once per entity, but there was case where it didn't. Since it has no side effects I haven't debugged callstack of first removal, but it surely can be done (performance damage)
 		
 		// Just in case? Never needed but OnThink might return true for removal without .remove() call
