@@ -393,6 +393,8 @@ class RectSpaceMap
 		this.hash = hash;
 		//this.options = options;
 		
+		this.active_bits_set = undefined;
+		
 		this.target = ent;
 		this.can_dig = options.indexOf( sdPathFinding.OPTION_CAN_GO_THROUGH_WALLS ) !== -1;
 		this.can_fly = options.indexOf( sdPathFinding.OPTION_CAN_FLY ) !== -1;
@@ -440,7 +442,10 @@ class RectSpaceMap
 		
 		this.last_player_offset = -1;
 		
-		this.UpdateTargetPosition();
+		if ( sdWorld.is_server || sdPathFinding.allow_client_side )
+		{
+			this.UpdateTargetPosition();
+		}
 	}
 	
 	ScheduleCellUpdate( offset, x, y )
