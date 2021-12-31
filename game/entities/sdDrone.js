@@ -120,7 +120,7 @@ class sdDrone extends sdEntity
 				}
 			}
 		}
-		if ( this._ai_team === 4 ) // Sarrornian drones
+		if ( this._ai_team === 4 ) // Sarronian drones
 		{
 			if ( ent._ai_team === 4 )
 			return false;
@@ -727,11 +727,11 @@ class sdDrone extends sdEntity
 			if ( this.type === 2 )
 			sdEntity.Tooltip( ctx, "Erthal Drone" );
 			if ( this.type === 3 )
-			sdEntity.Tooltip( ctx, "Sarrornian Drone" );
+			sdEntity.Tooltip( ctx, "Sarronian Drone" );
 			if ( this.type === 4 )
-			sdEntity.Tooltip( ctx, "Sarrornian Detonator Container" );
+			sdEntity.Tooltip( ctx, "Sarronian Detonator Container" );
 			if ( this.type === 5 )
-			sdEntity.Tooltip( ctx, "Sarrornian Detonator" );
+			sdEntity.Tooltip( ctx, "Sarronian Detonator" );
 		}
 	}
 	Draw( ctx, attached )
