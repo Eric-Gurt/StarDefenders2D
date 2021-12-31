@@ -263,6 +263,7 @@ class sdCube extends sdEntity
 
 						let gun;
 
+						const probability_empty_converter = 0.2;
 						const probability_lost_converter = 0.075;
 						const probability_shotgun = 0.1;
 						const probability_triple_rail = 0.233;
@@ -272,6 +273,9 @@ class sdCube extends sdEntity
 						if ( this.kind === 1 )
 						total_drop_probability += probability_lost_converter + probability_shotgun + probability_triple_rail;
 						else
+						if ( this.kind === 2 )
+						total_drop_probability += probability_empty_converter + probability_lost_converter + probability_shotgun + probability_triple_rail;
+						else
 						total_drop_probability += probability_shotgun + probability_triple_rail;
 
 						if ( random_value < total_drop_probability && this.kind !== 3 )
@@ -280,6 +284,17 @@ class sdCube extends sdEntity
 							{
 								if ( random_value < probability_lost_converter )
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_LOST_CONVERTER });
+								else
+								if ( random_value < random_value < probability_lost_converter + probability_shotgun )
+								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_SHOTGUN });
+								else
+								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_TRIPLE_RAIL });
+							}
+							else
+							if ( this.kind === 2 )
+							{
+								if ( random_value < probability_empty_converter )
+								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_EMPTY_CONVERTER });
 								else
 								if ( random_value < random_value < probability_lost_converter + probability_shotgun )
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_SHOTGUN });
