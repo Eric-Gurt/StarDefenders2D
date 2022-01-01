@@ -2632,7 +2632,7 @@ class sdGunClass
 							x:bullet.x, 
 							y:bullet.y, 
 							radius:16,
-							damage_scale: 0, // Just a decoration effect
+							damage_scale: 0,
 							type:sdEffect.TYPE_EXPLOSION, 
 							owner:this,
 							color:'#aaaaaa' 
