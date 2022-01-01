@@ -2517,7 +2517,7 @@ io.on("connection", (socket) =>
 				if ( look_at_net_id !== -1 )
 				if ( !socket.character.is( sdCharacter ) || // Always on for drones & different creatures
 					 !socket.character._inventory[ socket.character.gun_slot ] || // Fists
-					 sdGun.classes[ socket.character._inventory[ socket.character.gun_slot ].class ].allow_aim_assist !== false ) // No aim assist for build gun and admin teleport gun
+					 ( sdGun.classes[ socket.character._inventory[ socket.character.gun_slot ].class ] && sdGun.classes[ socket.character._inventory[ socket.character.gun_slot ].class ].allow_aim_assist !== false ) ) // No aim assist for build gun and admin teleport gun
 				{
 					let look_at_entity = sdEntity.entities_by_net_id_cache_map.get( look_at_net_id );
 					if ( look_at_entity )

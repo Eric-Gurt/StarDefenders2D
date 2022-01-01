@@ -2886,7 +2886,10 @@ class sdEntity
 			else
 			if ( e.GetClass() === 'sdGun' )
 			{
+				if ( sdWorld.entity_classes.sdGun.classes[ e.class ] )
 				return sdWorld.entity_classes.sdGun.classes[ e.class ].title;
+				else
+				return 'Item of unknown class ' + e.class;
 			}
 			else
 			return e.GetClass() + '#' + net_id;

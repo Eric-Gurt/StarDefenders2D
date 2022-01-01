@@ -941,6 +941,7 @@ class sdRenderer
 			if ( sdRenderer.UseCrosshair() )
 			{
 				if ( sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ] &&
+					 sdGun.classes[ sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ].class ] &&
 					 sdGun.classes[ sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ].class ].is_build_gun )
 				{
 					/*ctx.drawImage( sdWorld.img_crosshair_build, 

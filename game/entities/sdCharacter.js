@@ -2028,6 +2028,22 @@ class sdCharacter extends sdEntity
 					}
 					
 					if ( will_fire )
+					if ( this._inventory[ this.gun_slot ] )
+					if ( !sdGun.classes[ this._inventory[ this.gun_slot ].class ] )
+					{
+						will_fire = false;
+						
+						switch ( ~~( Math.random() * 5 ) )
+						{
+							case 0: this.Say( 'This item does not work in this environment' ); break;
+							case 1: this.Say( 'Maybe it is not a right place to use it' ); break;
+							case 2: this.Say( 'This won\'t work here' ); break;
+							case 3: this.Say( 'I don\'t think this item can be used there' ); break;
+							case 4: this.Say( 'This item belongs to another realm' ); break;
+						}
+					}
+					
+					if ( will_fire )
 					{
 						if ( !this._inventory[ this.gun_slot ] || !sdGun.classes[ this._inventory[ this.gun_slot ].class ].is_build_gun )
 						if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
@@ -2193,6 +2209,7 @@ class sdCharacter extends sdEntity
 					if ( this._inventory[ this.gun_slot ] )
 					{
 						//if ( this.gun_slot === 0 )
+						if ( sdGun.classes[ this._inventory[ this.gun_slot ].class ] )
 						if ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].is_sword )
 						{
 							this._inventory[ this.gun_slot ].dangerous = true;
@@ -3223,7 +3240,7 @@ class sdCharacter extends sdEntity
 			ctx.fillText( t, 0, -raise - 5, 50 );
 			
 			if ( this._inventory[ this.gun_slot ] )
-			if ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].is_build_gun )
+			if ( sdGun.classes[ this._inventory[ this.gun_slot ].class ] && sdGun.classes[ this._inventory[ this.gun_slot ].class ].is_build_gun )
 			if ( this._build_params )
 			{
 				let fake_ent = this.CreateBuildObject( false );
