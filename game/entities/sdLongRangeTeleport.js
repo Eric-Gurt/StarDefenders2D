@@ -574,15 +574,15 @@ class sdLongRangeTeleport extends sdEntity
 		{
 
 			let possible_ent = sdEntity.entities_by_net_id_cache_map.get( parseInt( data_object.target_net_id ) );
-
+				
 			if ( possible_ent )
 			{
 				if ( data_object.action === 'Require long-range teleportation' )
 				{
 					if ( data_object.supported_entity_classes )
-					this._remote_supported_entity_classes = data_object.supported_entity_classes;
+					possible_ent._remote_supported_entity_classes = data_object.supported_entity_classes;
 					else
-					this._remote_supported_entity_classes = null; // Old version probably
+					possible_ent._remote_supported_entity_classes = null; // Old version probably
 					
 					if ( possible_ent.is_charging || sdWorld.time < possible_ent._is_busy_since + 60 * 1000 )
 					{
@@ -594,10 +594,10 @@ class sdLongRangeTeleport extends sdEntity
 					}
 					else
 					{
-						this._local_supported_entity_classes = Object.keys( sdWorld.entity_classes );
+						possible_ent._local_supported_entity_classes = Object.keys( sdWorld.entity_classes );
 						ret = {
 							message: 'Granted',
-							supported_entity_classes: this._local_supported_entity_classes
+							supported_entity_classes: possible_ent._local_supported_entity_classes
 						};
 						possible_ent.Activation();
 					}

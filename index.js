@@ -1025,7 +1025,7 @@ sdWorld.server_config = {};
 		if ( sdWorld.world_bounds.y2 === 0 )
 		{
 			console.log( 'Reinitializing world bounds' );
-			sdWorld.ChangeWorldBounds( -16 * 10, -16 * 10, 16 * 10, 16 * 10 );
+			sdWorld.ChangeWorldBounds( -16 * Math.round( 4000 / 16 ), -16 * Math.round( 2000 / 16 ), 16 * Math.round( 4000 / 16 ), 16 * Math.round( 2000 / 16 ) );
 		}
 			
 		const world_edge_think_rate = 500;
