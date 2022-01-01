@@ -42,6 +42,11 @@ class sdBeacon extends sdEntity
 			this.Damage( ( vel - 4 ) * 5 );
 		}
 	}
+	Impulse( x, y )
+	{
+		this.sx += x * 0.03;
+		this.sy += y * 0.03;
+	}
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )

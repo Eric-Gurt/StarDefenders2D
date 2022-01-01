@@ -324,9 +324,9 @@ class sdShop
 		}
 		sdShop.options.push({ _class: 'sdBomb', _category:'Equipment' });
 		sdShop.options.push({ _class: 'sdBarrel', _category:'Equipment' });
-		sdShop.options.push({ _class: 'sdBarrel', filter: 'hue-rotate(130deg) saturate(10)', variation: 1, _category:'Equipment', _min_build_tool_level:2 });
-		sdShop.options.push({ _class: 'sdBarrel', filter: 'hue-rotate(300deg) saturate(20)', variation: 2, _category:'Equipment', _min_build_tool_level:5 });
-		sdShop.options.push({ _class: 'sdBarrel', filter: 'hue-rotate(30deg) saturate(20)', variation: 3, _category:'Equipment', _min_build_tool_level:8 });
+		sdShop.options.push({ _class: 'sdBarrel', color: '#33FFFF', filter: 'hue-rotate(130deg) saturate(10)', variation: 1, _category:'Equipment', _min_build_tool_level:2 });
+		sdShop.options.push({ _class: 'sdBarrel', color: '#ff6633', filter: 'hue-rotate(300deg) saturate(20)', variation: 2, _category:'Equipment', _min_build_tool_level:5 });
+		sdShop.options.push({ _class: 'sdBarrel', color: '#ffffff', filter: 'saturate(0)', variation: 3, _category:'Equipment', _min_build_tool_level:8 });
 
 		sdShop.upgrades = {
 			upgrade_suit:

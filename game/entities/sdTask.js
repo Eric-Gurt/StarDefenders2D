@@ -330,11 +330,46 @@ class sdTask extends sdEntity
 		//let anB = 0;
 		
 		let an;
+		
+		
+        /*
+            dxA * s * dxA * s + dyA * s * dyA * s = 200 * 200
+            dyA * s = 100
+
+            s = 100 / dyA
+
+            dxA^2 * s^2 + dyA^2 * s^2 = 200 * 200
+
+            s^2 = ( 200 * 200 ) / ( dxA^2 + dyA^2 )
+
+            s = sqrt( ( 200 * 200 ) / ( dxA^2 + dyA^2 ) )
+		*/
+		
+		let far_dist_horiz = 200;
+		let far_dist_vert = far_dist_horiz / document.body.clientWidth * document.body.clientHeight;
+		
+		let far_dist_default = Math.sqrt( far_dist_horiz * far_dist_horiz + far_dist_vert * far_dist_vert );
 
 		// When far
-		dxA = dx / di * 200;
-		dyA = dy / di * 200;
+		dxA = dx / di * far_dist_default;
+		dyA = dy / di * far_dist_default;
 		//anA = Math.atan2( -dy, -dx );
+	   
+		let s = 1;
+		
+		if ( dyA > far_dist_vert )
+		dyA = far_dist_vert;
+		if ( dyA < -far_dist_vert )
+		dyA = -far_dist_vert;
+		if ( dxA > far_dist_horiz )
+		dxA = far_dist_horiz;
+		if ( dxA < -far_dist_horiz )
+		dxA = -far_dist_horiz;
+	
+		s = Math.min( s, Math.sqrt( ( far_dist_default * far_dist_default ) / ( dxA * dxA + dyA * dyA ) ) );
+		
+		dxA *= s;
+		dyA *= s;
 
 		// When near
 		dxB = dx;

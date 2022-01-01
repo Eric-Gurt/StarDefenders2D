@@ -321,6 +321,11 @@ class sdCharacter extends sdEntity
 			source_x_offset = Math.min( source_x_offset, sdCharacter.img_helmets[ this.helmet ].naturalWidth - 32 );
 			source_y_offset = Math.min( source_y_offset, sdCharacter.img_helmets[ this.helmet ].naturalHeight - 32 );
 		}
+		else
+		{
+			source_x_offset = 0;
+			source_y_offset = 0;
+		}
 		
 		if ( frame !== undefined )
 		{

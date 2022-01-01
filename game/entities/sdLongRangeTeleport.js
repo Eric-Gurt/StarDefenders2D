@@ -6,6 +6,8 @@
 
 	TODO: Make RTPs work cross-server?
 
+	Note: Test locally pair of new fresh LRTs - they are bugged in one direction...
+
 */
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
@@ -631,6 +633,10 @@ class sdLongRangeTeleport extends sdEntity
 					if ( collected_entities_array[ i ].IsPlayerClass() )
 					if ( collected_entities_array[ i ]._socket )
 					collected_entities_array[ i ]._socket.Redirect( possible_ent.remote_server_url, data_object.one_time_keys[ i ] );
+		
+					ret = {
+						message: 'Final redirects done'
+					};
 				}
 			}
 			else

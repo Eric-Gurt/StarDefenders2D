@@ -133,7 +133,7 @@ class sdJunk extends sdEntity
 			}
 		}
 		
-		if ( this.hea < 0 )
+		if ( this.hea <= 0 && was_alive )
 		{
 			if ( this.type === 0 ) // Actual cube corpses explode into rails.
 			{

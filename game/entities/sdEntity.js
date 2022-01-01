@@ -3249,6 +3249,8 @@ class sdEntity
 		this.sx += sx;
 		this.sy += sy;
 		
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // Wake up hibernated storages
+		
 		/*let sx2 = this.sx + sx;
 		let sy2 = this.sy + sy;
 		

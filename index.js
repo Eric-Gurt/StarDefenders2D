@@ -276,6 +276,8 @@ import sdSunPanel from './game/entities/sdSunPanel.js';
 import sdWeaponBench from './game/entities/sdWeaponBench.js';
 import sdLongRangeTeleport from './game/entities/sdLongRangeTeleport.js';
 import sdTask from './game/entities/sdTask.js';
+import sdPortal from './game/entities/sdPortal.js';
+
 import sdServerToServerProtocol from './game/server/sdServerToServerProtocol.js';
 
 import sdPathFinding from './game/ai/sdPathFinding.js';
@@ -452,7 +454,8 @@ sdWeaponBench.init_class();
 sdLongRangeTeleport.init_class();
 sdServerToServerProtocol.init_class();
 sdTask.init_class();
-	
+sdPortal.init_class();
+
 sdPathFinding.init_class();
 
 
