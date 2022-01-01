@@ -2372,7 +2372,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile ( 'alien_energygun' ),
 			sound: 'gun_spark',
 			sound_pitch: 0.5,
-			title: 'Sarrornian Energy Rifle',
+			title: 'Sarronian Energy Rifle',
 			slot: 8,
 			reload_time: 50,
 			muzzle_x: 7,
