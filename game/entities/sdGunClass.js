@@ -10,6 +10,7 @@ import sdCable from './sdCable.js';
 import sdEntity from './sdEntity.js';
 import sdNode from './sdNode.js';
 import sdBullet from './sdBullet.js';
+import sdPortal from './sdPortal.js';
 
 /*
 
@@ -136,7 +137,7 @@ class sdGunClass
 			spread: 0.01,
 			count: 1,
 			fire_type: 2,
-			projectile_properties: { _damage: 20 },
+			projectile_properties: { _damage: 20, _dirt_mult: -0.5 },
 			upgrades: AddRecolorsFromColorAndCost( [], '#808080', 5 )
 		};
 		
@@ -300,7 +301,7 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
 			matter_cost: 60,
-			projectile_properties: { _damage: 50, /*_knock_scale:0.01 * 8, */penetrating:true }
+			projectile_properties: { _damage: 50, /*_knock_scale:0.01 * 8, */penetrating:true, _dirt_mult: -0.5 }
 		};
 		
 		sdGun.classes[ sdGun.CLASS_SWORD = 11 ] = 
@@ -328,7 +329,7 @@ class sdGunClass
 			title: 'Stimpack',
 			sound_pitch: 0.5,
 			slot: 7,
-			reload_time: 30 * 3,
+			reload_time: 30 * 2,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 1,
@@ -586,7 +587,7 @@ class sdGunClass
 			matter_cost: 90,
 			min_build_tool_level: 1,
 			fire_type: 2,
-			projectile_properties: { _damage: 35 }
+			projectile_properties: { _damage: 35, _dirt_mult: -0.5 }
 		};
 
 		sdGun.classes[ sdGun.CLASS_LMG = 24 ] = { // sprite by LazyRain
@@ -870,7 +871,7 @@ class sdGunClass
 			burst_reload: 10, // Burst fire reload, needed when giving burst fire
 			min_build_tool_level: 7,
 			matter_cost: 45,
-			projectile_properties: { _damage: 18 }
+			projectile_properties: { _damage: 18, _dirt_mult: -0.5 }
 		};
 
 		sdGun.classes[ sdGun.CLASS_SMG_MK2 = 32 ] = { // Sprite made by LazyRain
@@ -885,7 +886,7 @@ class sdGunClass
 			count: 1,
 			min_build_tool_level: 12,
 			matter_cost: 90,
-			projectile_properties: { _damage: 20 }
+			projectile_properties: { _damage: 20, _dirt_mult: -0.5 }
 		};
 
 		sdGun.classes[ sdGun.CLASS_ROCKET_MK2 = 33 ] = 
@@ -1705,7 +1706,7 @@ class sdGunClass
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
-			matter_cost: 300, // More DPS relative to stimpack
+			matter_cost: 200, // More DPS relative to stimpack
 			projectile_velocity: 16,
 			spawnable: false,
 			GetAmmoCost: ()=>
@@ -1904,7 +1905,7 @@ class sdGunClass
 			spawnable:false,
 			projectile_velocity: 16,
 			fire_type: 2,
-			projectile_properties: { explosion_radius: 7, model: 'ball', _damage: 12, color:'#00aaff' }
+			projectile_properties: { explosion_radius: 7, model: 'ball', _damage: 12, color:'#00aaff', _dirt_mult: 1 }
 		};
 		
 		sdGun.classes[ sdGun.CLASS_FMECH_MINIGUN = 62 ] = 
@@ -1981,7 +1982,7 @@ class sdGunClass
 			projectile_velocity: sdGun.default_projectile_velocity * 2,
 			matter_cost: 120,
 			min_build_tool_level: 9,
-			projectile_properties: { _damage: 105, /*_knock_scale:0.01 * 8, */penetrating:true },
+			projectile_properties: { _damage: 105, /*_knock_scale:0.01 * 8, */penetrating:true, _dirt_mult: -0.5 },
 			upgrades: AddRecolorsFromColorAndCost( [], '#85ffcc', 30 )
 		};
     
@@ -2001,7 +2002,7 @@ class sdGunClass
 			min_build_tool_level: 8,
 			fire_type: 2,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.7,
-			projectile_properties: { _damage: 72, color: '#33ffff', penetrating: true }
+			projectile_properties: { _damage: 72, color: '#33ffff', penetrating: true, _dirt_mult: -0.5 }
 		};
     
 		sdGun.classes[ sdGun.CLASS_BURST_PISTOL = 65 ] = 
@@ -2023,7 +2024,7 @@ class sdGunClass
 			burst: 3,
 			burst_reload: 35,
 			min_build_tool_level: 13,
-			projectile_properties: { _damage: 33, color:'#00aaff' }
+			projectile_properties: { _damage: 33, color:'#00aaff', _dirt_mult: -0.5 }
 		};
     
 		sdGun.classes[ sdGun.CLASS_GAUSS_RIFLE = 66 ] = 
@@ -2156,11 +2157,11 @@ class sdGunClass
 				{
 					sdSound.PlaySound({ name: 'saber_hit2', x:gun.x, y:gun.y, volume: 2, pitch: 3 });
 					
-					if ( gun._held_by.matter >= 3 )
+					if ( gun._held_by.matter >= 2 )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
 						gun._held_by._auto_shoot_in = ( gun._held_by.stim_ef > 0 ) ? 1 : 2;
-						gun._held_by.matter -= 3;
+						gun._held_by.matter -= 2; // Was 3. It is not that strong to drain matter that fast
 					}
 				}
 				return true;
@@ -2414,7 +2415,197 @@ class sdGunClass
 			} 
 		};
 		
-		sdGun.classes[ sdGun.CLASS_EMPTY_CONVERTER = 80 ] = 
+		sdGun.classes[ sdGun.CLASS_SNOWBALL = 80 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'snowball' ),
+			sound: 'sword_attack2',
+			title: 'Snowball',
+			slot: 7,
+			reload_time: 15,
+			muzzle_x: null,
+			ammo_capacity: 5,
+			spread: 0.05,
+			count: 1,
+			projectile_velocity: 8,
+			spawnable: true,
+			category: 'Other',
+			matter_cost: 10,
+			projectile_properties: { time_left: 30 * 3, model: 'snowball', _damage: 0, color:sdEffect.default_explosion_color, is_grenade: true,
+				_custom_target_reaction: ( bullet, target_entity )=>
+				{
+					bullet.remove();
+					
+					if ( target_entity.IsPlayerClass() )
+					{
+						target_entity.Damage( 1 );
+						target_entity.Damage( -1 );
+					}
+					
+					for ( let i = 0; i < 6; i++ )
+					{
+						let a = Math.random() * 2 * Math.PI;
+						let s = Math.random() * 4;
+
+						let k = Math.random();
+
+						let x = bullet.x;
+						let y = bullet.y;
+
+						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_POPCORN, sx: bullet.sx*k + Math.sin(a)*s, sy: bullet.sy*k + Math.cos(a)*s });
+					}
+				},
+				_custom_target_reaction_protected: ( bullet, target_entity )=>
+				{
+					bullet.remove();
+					
+					if ( target_entity.IsPlayerClass() )
+					{
+						target_entity.Damage( 1 );
+						target_entity.Damage( -1 );
+					}
+					
+					for ( let i = 0; i < 6; i++ )
+					{
+						let a = Math.random() * 2 * Math.PI;
+						let s = Math.random() * 4;
+
+						let k = Math.random();
+
+						let x = bullet.x;
+						let y = bullet.y;
+
+						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_POPCORN, sx: bullet.sx*k + Math.sin(a)*s, sy: bullet.sy*k + Math.cos(a)*s });
+					}
+				}
+			}
+		};
+		
+		
+		sdGun.classes[ sdGun.CLASS_PORTAL = 81 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'portalgun' ),
+			sound: 'gun_portal4',
+			sound_volume: 4,
+			title: 'ASHPD',
+			slot: 7,
+			reload_time: 15,
+			muzzle_x: 7,
+			ammo_capacity: 16,
+			count: 1,
+			matter_cost: 60,
+			projectile_velocity: 16,
+			projectile_properties: { model: 'ball', _damage: 0, color:'#00ffff',
+				_custom_target_reaction_protected: ( bullet, target_entity )=>
+				{
+					if ( target_entity.is( sdBlock ) && target_entity.texture_id === sdBlock.TEXTURE_ID_PORTAL )
+					{
+						let portals_by_owner = [];
+						
+						for ( let i = 0; i < sdPortal.portals.length; i++ )
+						{
+							if ( sdPortal.portals[ i ]._owner === bullet._owner )
+							portals_by_owner.push( sdPortal.portals[ i ] );
+						}
+						
+						let options = [];
+						
+						for ( let x = 8; x < target_entity._hitbox_x2; x += 16 )
+						{
+							if ( bullet.y <= target_entity.y )
+							options.push({
+								x: x,
+								y: 0,
+								orientation: 0
+							});
+							if ( bullet.y >= target_entity.y + target_entity._hitbox_y2 )
+							options.push({
+								x: x,
+								y: target_entity._hitbox_y2,
+								orientation: 0
+							});
+						}
+						
+						for ( let y = 16; y <= target_entity._hitbox_y2 - 16; y += 16 )
+						{
+							if ( bullet.x <= target_entity.x )
+							options.push({
+								x: 0,
+								y: y,
+								orientation: 1
+							});
+							if ( bullet.x >= target_entity.x + target_entity._hitbox_x2 )
+							options.push({
+								x: target_entity._hitbox_x2,
+								y: y,
+								orientation: 1
+							});
+						}
+						
+						let best_di = Infinity;
+						let best_i = -1;
+						
+						for ( let i = 0; i < options.length; i++ )
+						{
+							let di;
+							
+							//di = sdWorld.Dist2D( options[ i ].x, options[ i ].y, bullet.x - target_entity.x, bullet.y - target_entity.y );
+							
+							let lx = bullet.x - target_entity.x;
+							let ly = bullet.y - target_entity.y;
+							
+							if ( options[ i ].orientation === 0 )
+							{
+								di = sdWorld.Dist2D( Math.max( options[ i ].x - 8, Math.min( lx, options[ i ].x + 8 ) ), options[ i ].y, lx, ly );
+							}
+							else
+							di = sdWorld.Dist2D( options[ i ].x, Math.max( options[ i ].y - 16, Math.min( ly, options[ i ].y + 16 ) ), lx, ly );
+							
+							if ( di < best_di )
+							{
+								best_i = i;
+								best_di = di;
+							}
+						}
+						
+						if ( best_i !== -1 )
+						{
+							let allow = true;
+
+							for ( let p = 0; p < portals_by_owner.length; p++ )
+							if ( portals_by_owner[ p ].attachment === target_entity )
+							if ( portals_by_owner[ p ].attachment_x === options[ best_i ].x )
+							if ( portals_by_owner[ p ].attachment_y === options[ best_i ].y )
+							{
+								allow = false;
+								break;
+							}
+
+							if ( allow )
+							{
+								while ( portals_by_owner.length > 1 )
+								portals_by_owner.shift().remove();
+
+								let portal = new sdPortal({
+									attachment: target_entity,
+									owner: bullet._owner,
+									attachment_x: options[ best_i ].x,
+									attachment_y: options[ best_i ].y,
+									orientation: options[ best_i ].orientation
+								});
+								sdEntity.entities.push( portal );
+
+								if ( portals_by_owner.length > 0 )
+								{
+									portal._output = portals_by_owner[ 0 ];
+									portals_by_owner[ 0 ]._output = portal;
+								}
+							}
+						}
+					}
+				}
+			}
+		};
+    		sdGun.classes[ sdGun.CLASS_EMPTY_CONVERTER = 82 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'cube_empty_cannon' ),
 			title: 'Cube empty cannon',
@@ -2457,7 +2648,6 @@ class sdGunClass
 				}
 			},
 			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
-		};
 
 		// Add new gun classes above this line //
 		

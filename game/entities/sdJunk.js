@@ -12,6 +12,7 @@ import sdLost from './sdLost.js';
 import sdCrystal from './sdCrystal.js';
 import sdRescueTeleport from './sdRescueTeleport.js';
 import sdCharacter from './sdCharacter.js';
+import sdTask from './sdTask.js';
 
 class sdJunk extends sdEntity
 {
@@ -132,7 +133,7 @@ class sdJunk extends sdEntity
 			}
 		}
 		
-		if ( this.hea < 0 )
+		if ( this.hea <= 0 && was_alive )
 		{
 			if ( this.type === 0 ) // Actual cube corpses explode into rails.
 			{
@@ -397,7 +398,19 @@ class sdJunk extends sdEntity
 								di_mult = 0.9;
 
 								if ( di < 1500 )
-								sdWorld.sockets[ i ].character.matter = sdWorld.sockets[ i ].character.matter * multiplier * di_mult;
+								{
+									sdWorld.sockets[ i ].character.matter = sdWorld.sockets[ i ].character.matter * multiplier * di_mult;
+									
+									sdTask.MakeSureCharacterHasTask({ 
+										similarity_hash:'DESTROY-'+this._net_id, 
+										executer: sdWorld.sockets[ i ].character,
+										target: this,
+										mission: sdTask.MISSION_DESTROY_ENTITY,
+										
+										title: 'Destroy anti-crystal',
+										description: 'There is an anti-crystal spotted nearby. Destroy it before it drains all our matter!'
+									});
+								}
 							}
 						}
 					}

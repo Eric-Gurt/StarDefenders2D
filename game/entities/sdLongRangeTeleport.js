@@ -6,6 +6,8 @@
 
 	TODO: Make RTPs work cross-server?
 
+	Note: Test locally pair of new fresh LRTs - they are bugged in one direction...
+
 */
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
@@ -123,6 +125,9 @@ class sdLongRangeTeleport extends sdEntity
 		this.hmax = 1500;
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
+		
+		this._local_supported_entity_classes = null;
+		this._remote_supported_entity_classes = null;
 		
 		this._last_collected_entities_array = [];
 		
@@ -264,7 +269,8 @@ class sdLongRangeTeleport extends sdEntity
 
 		    if ( this.charge_timer > 0 )
 		    {
-			    ctx.filter = 'brightness('+ ( 1 +(~~(this.charge_timer)) / 100 ) + ')';
+			    //ctx.filter = 'brightness('+ ( 1 +(~~(this.charge_timer)) / 50 ) + ')';
+				ctx.filter = 'hue-rotate('+( 0 + 90*(~~(this.charge_timer)) / 100 )+'deg) saturate('+( 1 -(~~(this.charge_timer)) / 200 )+') brightness('+ ( 1 +(~~(this.charge_timer)) / 50 ) + ')';
 			    ctx.drawImageFilterCache( sdLongRangeTeleport.img_long_range_teleport, 0,version_offset,96,32, -48,-16,96,32 );
 			    ctx.filter = 'none';
 		    }
@@ -360,6 +366,12 @@ class sdLongRangeTeleport extends sdEntity
 			}
 			else
 			{
+				// Check if remote server supports this kind of entity
+				if ( this._remote_supported_entity_classes !== null )
+				if ( this._remote_supported_entity_classes.indexOf( ent.GetClass() ) === -1 )
+				{
+					return false;
+				}
 
 				if ( ent.IsPlayerClass() && !ent._socket && ent._ai_enabled <= 0 )
 				{
@@ -567,6 +579,11 @@ class sdLongRangeTeleport extends sdEntity
 			{
 				if ( data_object.action === 'Require long-range teleportation' )
 				{
+					if ( data_object.supported_entity_classes )
+					this._remote_supported_entity_classes = data_object.supported_entity_classes;
+					else
+					this._remote_supported_entity_classes = null; // Old version probably
+					
 					if ( possible_ent.is_charging || sdWorld.time < possible_ent._is_busy_since + 60 * 1000 )
 					{
 						ret = {
@@ -577,8 +594,10 @@ class sdLongRangeTeleport extends sdEntity
 					}
 					else
 					{
+						this._local_supported_entity_classes = Object.keys( sdWorld.entity_classes );
 						ret = {
-							message: 'Granted'
+							message: 'Granted',
+							supported_entity_classes: this._local_supported_entity_classes
 						};
 						possible_ent.Activation();
 					}
@@ -608,12 +627,16 @@ class sdLongRangeTeleport extends sdEntity
 					
 					trace( '--AuthorizedIncomingS2SProtocolMessageHandler--');
 					trace( 'Executing: ' + data_object.action );
-					trace( 'collected_entities_array: '+collected_entities_array )
+					trace( 'collected_entities_array: '+collected_entities_array );
 					
 					for ( let i = 0; i < collected_entities_array.length; i++ )
 					if ( collected_entities_array[ i ].IsPlayerClass() )
 					if ( collected_entities_array[ i ]._socket )
 					collected_entities_array[ i ]._socket.Redirect( possible_ent.remote_server_url, data_object.one_time_keys[ i ] );
+		
+					ret = {
+						message: 'Final redirects done'
+					};
 				}
 			}
 			else
@@ -690,11 +713,14 @@ class sdLongRangeTeleport extends sdEntity
 							this.SetDelay( sdLongRangeTeleport.delay_simple );
 							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 
+							this._local_supported_entity_classes = Object.keys( sdWorld.entity_classes );
+
 							sdServerToServerProtocol.SendData(
 								this.remote_server_url,
 								{
 									action: 'Require long-range teleportation',
-									target_net_id: this.remote_server_target_net_id
+									target_net_id: this.remote_server_target_net_id,
+									supported_entity_classes: this._local_supported_entity_classes
 								},
 								( response=null )=>
 								{
@@ -706,6 +732,11 @@ class sdLongRangeTeleport extends sdEntity
 							
 										if ( response.message === 'Granted' )
 										{
+											if ( response.supported_entity_classes )
+											this._remote_supported_entity_classes = response.supported_entity_classes;
+											else
+											this._remote_supported_entity_classes = null; // Old version probably
+											
 											//sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:1 });
 											this.Activation();
 											
@@ -783,6 +814,7 @@ class sdLongRangeTeleport extends sdEntity
 					if ( parameters_array.length === 1 && typeof parameters_array[ 0 ] === 'string' && parameters_array[ 0 ].length < 300 )
 					{
 						this.remote_server_url = parameters_array[ 0 ];
+						this._update_version++;
 						executer_socket.SDServiceMessage( 'Remote server URL set' );
 					}
 					
@@ -790,6 +822,7 @@ class sdLongRangeTeleport extends sdEntity
 					if ( parameters_array.length === 1 && typeof parameters_array[ 0 ] === 'string' && parameters_array[ 0 ].length < 64 )
 					{
 						this.remote_server_target_net_id = parameters_array[ 0 ];
+						this._update_version++;
 						executer_socket.SDServiceMessage( 'Remote _net_id set' );
 					}
 				}

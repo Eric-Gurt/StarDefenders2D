@@ -14,7 +14,7 @@ import sdBlock from '../entities/sdBlock.js';
 import sdEffect from '../entities/sdEffect.js';
 import sdGun from '../entities/sdGun.js';
 import sdTheatre from '../entities/sdTheatre.js';
-
+import sdTask from '../entities/sdTask.js';
 import sdLamp from '../entities/sdLamp.js';
 
 class sdRenderer
@@ -1023,6 +1023,15 @@ class sdRenderer
            		//ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 420, 50 );	
            		ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 5 + 445 * scale, 30 );	
 			}
+			
+			ctx.save();
+			ctx.translate( 5 + 5 * scale, 50 );
+			for ( let t = 0; t < sdTask.tasks.length; t++ )
+			{
+				let task = sdTask.tasks[ t ];
+				task.DrawTaskInterface( ctx, scale );
+			}
+			ctx.restore();
 			
 			if ( sdRenderer.show_leader_board )
 			{

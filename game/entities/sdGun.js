@@ -132,6 +132,8 @@ class sdGun extends sdEntity
 			if ( from_entity.is( sdRift ) ) // Ignore portals
 			return;
 		
+			const is_unknown = ( sdGun.classes[ this.class ] === undefined ); // Detect unknown weapons from LRT teleports
+		
 			if ( from_entity.IsBGEntity() === 0 || from_entity.IsBGEntity() === 1 )
 			{
 			}
@@ -175,6 +177,7 @@ class sdGun extends sdEntity
 				return;
 			}
 			
+			if ( !is_unknown )
 			if ( !sdWorld.server_config.GetHitAllowed || sdWorld.server_config.GetHitAllowed( this, from_entity ) )
 			if ( !this._dangerous_from || !from_entity.is( sdCharacter ) || !this._dangerous_from.is( sdCharacter ) || from_entity.cc_id === 0 || from_entity.cc_id !== this._dangerous_from.cc_id )
 			{
@@ -545,8 +548,10 @@ class sdGun extends sdEntity
 			this.remove();
 			return false;
 		}
-			
-		if ( this.reload_time_left <= 0 )
+		
+		const is_unknown = ( sdGun.classes[ this.class ] === undefined ); // Detect unknown weapons from LRT teleports
+		
+		if ( this.reload_time_left <= 0 && !is_unknown )
 		{
 			if ( this.ammo_left === -123 )
 			{
@@ -836,7 +841,6 @@ class sdGun extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		
 		if ( !sdWorld.is_server )
 		{
 			this.UpdateHolderClientSide();
@@ -868,11 +872,16 @@ class sdGun extends sdEntity
 			if ( this.reload_time_left > 0 )
 			this.reload_time_left = Math.max( 0, this.reload_time_left - GSPEED * ( ( this._held_by && this._held_by.stim_ef > 0 ) ? 2 : 1 ) );
 		}
+		
+		const is_unknown = ( sdGun.classes[ this.class ] === undefined ); // Detect unknown weapons from LRT teleports
+		
+		if ( !is_unknown )
+		{
+			this.fire_mode = sdGun.classes[ this.class ].fire_type || 1; // Adjust fire mode for the weapon
 
-		this.fire_mode = sdGun.classes[ this.class ].fire_type || 1; // Adjust fire mode for the weapon
-
-		if ( this.muzzle > 0 )
-		this.muzzle -= GSPEED;
+			if ( this.muzzle > 0 )
+			this.muzzle -= GSPEED;
+		}
 			
 		if ( this._held_by === null )
 		{
@@ -899,7 +908,7 @@ class sdGun extends sdEntity
 			
 			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1 );
 			
-			if ( this.class === sdGun.CLASS_CRYSTAL_SHARD || this.class === sdGun.CLASS_CUBE_SHARD )
+			if ( this.class === sdGun.CLASS_CRYSTAL_SHARD || this.class === sdGun.CLASS_CUBE_SHARD || is_unknown )
 			this.tilt = 0; // These have offset which better to not rotate for better visuals
 			else
 			{
@@ -909,28 +918,6 @@ class sdGun extends sdEntity
 				this.tilt += this.sx * 20 * GSPEED;
 			}
 			
-			/*
-			
-			let new_x = this.x + this.sx * GSPEED;
-			let new_y = this.y + this.sy * GSPEED;
-
-			if ( sdWorld.CheckWallExists( new_x, new_y + this._hitbox_y2, this, [ 'sdCharacter', 'sdGun' ] ) )
-			{
-				this.sx = 0;
-				this.sy = 0;
-				
-				this.tilt += -Math.sin( this.tilt / sdGun.tilt_scale * 2 ) * 0.4 * sdGun.tilt_scale;
-				//this.dangerous = false;
-			}
-			else
-			{
-				this.sy += sdWorld.gravity * GSPEED;
-
-				this.x = new_x;
-				this.y = new_y;
-				
-				this.tilt += this.sx * 10;
-			}*/
 		}
 		else
 		{

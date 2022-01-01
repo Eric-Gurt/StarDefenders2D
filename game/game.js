@@ -154,6 +154,10 @@ globalThis.GetFrame = ()=>{ return sdWorld.frame; }; // Call like this: GetFrame
 	import sdSunPanel from './entities/sdSunPanel.js';
 	import sdWeaponBench from './entities/sdWeaponBench.js';
 	import sdLongRangeTeleport from './entities/sdLongRangeTeleport.js';
+	import sdTask from './entities/sdTask.js';
+	import sdBeacon from './entities/sdBeacon.js';
+	import sdPortal from './entities/sdPortal.js';
+
 
 	sdWorld.init_class();
 	sdRenderer.init_class();
@@ -192,6 +196,7 @@ globalThis.GetFrame = ()=>{ return sdWorld.frame; }; // Call like this: GetFrame
 	sdLamp.init_class();
 	sdCommandCentre.init_class();
 	sdBomb.init_class();
+	sdBeacon.init_class();
 	sdHover.init_class();
 	sdStorage.init_class();
 	sdAsp.init_class();
@@ -228,6 +233,8 @@ globalThis.GetFrame = ()=>{ return sdWorld.frame; }; // Call like this: GetFrame
 	sdSunPanel.init_class();
 	sdWeaponBench.init_class();
 	sdLongRangeTeleport.init_class();
+	sdTask.init_class();
+	sdPortal.init_class();
 
 	globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;

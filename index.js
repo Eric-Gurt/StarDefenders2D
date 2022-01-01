@@ -237,6 +237,7 @@ import sdCube from './game/entities/sdCube.js';
 import sdLamp from './game/entities/sdLamp.js';
 import sdCommandCentre from './game/entities/sdCommandCentre.js';
 import sdBomb from './game/entities/sdBomb.js';
+import sdBeacon from './game/entities/sdBeacon.js';
 import sdHover from './game/entities/sdHover.js';
 import sdStorage from './game/entities/sdStorage.js';
 import sdAsp from './game/entities/sdAsp.js';
@@ -274,6 +275,9 @@ import sdObelisk from './game/entities/sdObelisk.js';
 import sdSunPanel from './game/entities/sdSunPanel.js';
 import sdWeaponBench from './game/entities/sdWeaponBench.js';
 import sdLongRangeTeleport from './game/entities/sdLongRangeTeleport.js';
+import sdTask from './game/entities/sdTask.js';
+import sdPortal from './game/entities/sdPortal.js';
+
 import sdServerToServerProtocol from './game/server/sdServerToServerProtocol.js';
 
 import sdPathFinding from './game/ai/sdPathFinding.js';
@@ -409,6 +413,7 @@ sdCube.init_class();
 sdLamp.init_class();
 sdCommandCentre.init_class();
 sdBomb.init_class();
+sdBeacon.init_class();
 sdHover.init_class();
 sdStorage.init_class();
 sdAsp.init_class();
@@ -448,8 +453,9 @@ sdSunPanel.init_class();
 sdWeaponBench.init_class();
 sdLongRangeTeleport.init_class();
 sdServerToServerProtocol.init_class();
+sdTask.init_class();
+sdPortal.init_class();
 
-	
 sdPathFinding.init_class();
 
 
@@ -2173,6 +2179,8 @@ io.on("connection", (socket) =>
 							socket.character.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 
 							character_entity = ent;
+							
+							sdTask.WakeUpTasksFor( ent );
 
 							//socket.score = character_entity._old_score;
 							//character_entity._old_score = 0;
@@ -3540,6 +3548,23 @@ const ServerMainMethod = ()=>
 									AddEntity( arr[ i2 ], false );
 								}
 							};
+							
+							
+							if ( !socket.character._is_being_removed )
+							{
+								AddEntity( socket.character, false );
+								
+								if ( socket.character.driver_of )
+								AddEntity( socket.character.driver_of, false );
+							}
+						
+							// Add player's tasks
+							if ( socket.character )
+							for ( let t = 0; t < sdTask.tasks.length; t++ )
+							if ( sdTask.tasks[ t ]._executer === socket.character )
+							if ( observed_entities.indexOf( sdTask.tasks[ t ] ) === -1 )
+							//observed_entities.push( sdTask.tasks[ t ] );
+							AddEntity( sdTask.tasks[ t ], false );
 
 							/*for ( let x = min_x; x < max_x; x += 32 )
 							for ( let y = min_y; y < max_y; y += 32 )
@@ -3645,11 +3670,12 @@ const ServerMainMethod = ()=>
 							} );
 							socket.known_non_removed_dynamics = observed_entities_map;
 
-							if ( !socket.character._is_being_removed )
+							/*if ( !socket.character._is_being_removed )
 							if ( observed_entities.indexOf( socket.character ) === -1 )
 							{
 								observed_entities.push( socket.character );
 
+								// Add player's vehicle
 								if ( socket.character.driver_of )
 								if ( observed_entities.indexOf( socket.character.driver_of ) === -1 )
 								observed_entities.push( socket.character.driver_of );
@@ -3657,7 +3683,7 @@ const ServerMainMethod = ()=>
 								if ( socket.character.cc )
 								if ( observed_entities.indexOf( socket.character.cc ) === -1 )
 								observed_entities.push( socket.character.cc );
-							}
+							}*/
 
 							for ( var i2 = 0; i2 < sdEntity.global_entities.length; i2++ ) // So it is drawn on back
 							snapshot.push( sdEntity.global_entities[ i2 ].GetSnapshot( frame, false, socket.character ) );

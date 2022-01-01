@@ -264,7 +264,7 @@ class sdTeleport extends sdEntity
 						from_entity.x += best_tele.x - this.x;
 						from_entity.y += best_tele.y - this.y;
 
-						if ( from_entity.GetClass() === 'sdCharacter' )
+						if ( from_entity.IsPlayerClass() )
 						{
 							from_entity.ApplyServerSidePositionAndVelocity( true, 0, 0 );
 						}

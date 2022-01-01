@@ -9,7 +9,8 @@ class sdBarrel extends sdEntity
 {
 	static init_class()
 	{
-		sdBarrel.img_barrel = sdWorld.CreateImageFromFile( 'barrel_y' ); // Sprite image by PeacyQuack, slightly edited by Booraz149
+		//sdBarrel.img_barrel = sdWorld.CreateImageFromFile( 'barrel_y' ); // Sprite image by PeacyQuack, slightly edited by Booraz149
+		sdBarrel.img_barrel = sdWorld.CreateImageFromFile( 'barrel2' ); // Sprite by EG
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -28,10 +29,12 @@ class sdBarrel extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this.hea = 70;
+		this.hea = 40;
 		this.filter = params.filter || 'none';
-		this.variation = params._variation || 0;
+		this.variation = params.variation || 0;
 		this._owner = null;
+		
+		this._color = params.color || sdEffect.default_explosion_color;
 	}
 	Impact( vel ) // fall damage basically
 	{
@@ -90,12 +93,12 @@ class sdBarrel extends sdEntity
 			x:this.x, 
 			y:this.y, 
 			radius:30 + 5 * ( this.variation ) , // 70 was too much?
-			damage_scale: 9 * (1 + this.variation ) * ( this._owner ? this._owner._damage_mult : 1 ), // 5 was too deadly on relatively far range
+			damage_scale: 9 * ( 1 + this.variation ) * ( this._owner ? this._owner._damage_mult : 1 ), // 5 was too deadly on relatively far range
 			type:sdEffect.TYPE_EXPLOSION, 
 			owner:this._owner,
 			can_hit_owner: true,
 			armor_penetration_level: this._owner ? this._owner._upgrade_counters[ 'upgrade_damage' ] : undefined,
-			color:sdEffect.default_explosion_color 
+			color: this._color 
 		});
 	}
 	MeasureMatterCost()
