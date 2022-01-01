@@ -801,7 +801,15 @@ class sdLongRangeTeleport extends sdEntity
 										executer_socket.SDServiceMessage( 'Remote server responded with: ' + JSON.stringify( response ) );
 									}
 									else
-									executer_socket.SDServiceMessage( 'Unable to reach remote server' );
+									{
+										executer_socket.SDServiceMessage( 'Unable to reach remote server' );
+										trace('Unable to reach remote server error happened. Data object sent: ', 
+										{
+											action: 'Require long-range teleportation',
+											target_net_id: this.remote_server_target_net_id,
+											supported_entity_classes: this._local_supported_entity_classes
+										} );
+									}
 								}
 							);
 						}

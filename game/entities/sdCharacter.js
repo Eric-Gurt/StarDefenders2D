@@ -3104,6 +3104,7 @@ class sdCharacter extends sdEntity
 						}*/
 										
 						//if ( this._inventory[ sdGun.classes[ from_entity.class ].slot ] === null )
+						if ( sdGun.classes[ from_entity.class ] !== undefined ) // Incompatible guns
 						if ( sdGun.classes[ from_entity.class ].ignore_slot || this._inventory[ sdGun.classes[ from_entity.class ].slot ] === null )
 						{
 							if ( !sdGun.classes[ from_entity.class ].onPickupAttempt || 

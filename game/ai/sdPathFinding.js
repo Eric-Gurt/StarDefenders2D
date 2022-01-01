@@ -137,16 +137,16 @@ class sdPathFinding
 			{
 				if ( !this.target._is_being_removed )
 				{
-					this.Reinit();
 					console.warn( '[1] rect_space_map has already expired - possibly inefficient usage of pathfinding. Will recreate (expired by '+( sdWorld.time - this.rect_space_map.exist_until )+'ms)' );
+					this.Reinit();
 				}
 				else
 				return null;
 			}
 			else
 			{
-				this.Reinit();
 				console.warn( '[2] rect_space_map has already expired - possibly inefficient usage of pathfinding. Will recreate (expired by '+( sdWorld.time - this.rect_space_map.exist_until )+'ms)' );
+				this.Reinit();
 			}
 		}
 		/*if ( !globalThis.Pathfuinding_debug )

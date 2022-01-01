@@ -75,43 +75,72 @@ class sdServerToServerProtocol
 			if ( typeof route_and_data_object === 'object' )
 			{
 				if ( route_and_data_object.length === 2 )
-				if ( typeof route_and_data_object[ 0 ] === 'number' )
 				{
-					let route = route_and_data_object[ 0 ];
-					let data_object = route_and_data_object[ 1 ];
-					
-					if ( typeof data_object === 'object' )
+					if ( typeof route_and_data_object[ 0 ] === 'number' )
 					{
-						if ( typeof data_object.action === 'string' )
+						let route = route_and_data_object[ 0 ];
+						let data_object = route_and_data_object[ 1 ];
+
+						if ( typeof data_object === 'object' )
 						{
-							if ( data_object.action === 'Require long-range teleportation' ||
-								 data_object.action === 'Do long-range teleportation' ||
-								 data_object.action === 'Exchange new _net_ids' ||
-								 data_object.action === 'Post-teleporation swap-back one-time keys'
-								)
+							if ( typeof data_object.action === 'string' )
 							{
-								if ( sdWorld.server_config.log_s2s_messages )
-								trace( 'calling sdLongRangeTeleport.AuthorizedIncomingS2SProtocolMessageHandler' );
-
-								sdLongRangeTeleport.AuthorizedIncomingS2SProtocolMessageHandler( data_object, ( response )=>{
-									
+								if ( data_object.action === 'Require long-range teleportation' ||
+									 data_object.action === 'Do long-range teleportation' ||
+									 data_object.action === 'Exchange new _net_ids' ||
+									 data_object.action === 'Post-teleporation swap-back one-time keys'
+									)
+								{
 									if ( sdWorld.server_config.log_s2s_messages )
-									trace( 'replying ',[ route, response ] );
+									trace( 'calling sdLongRangeTeleport.AuthorizedIncomingS2SProtocolMessageHandler' );
 
-									socket.emit( 'S2SProtocolMessage', [ route, response ] );
-								
-								} );
-								return;
+									try
+									{
+										sdLongRangeTeleport.AuthorizedIncomingS2SProtocolMessageHandler( data_object, ( response )=>{
+
+											if ( sdWorld.server_config.log_s2s_messages )
+											trace( 'replying ',[ route, response ] );
+
+											socket.emit( 'S2SProtocolMessage', [ route, response ] );
+
+										} );
+										return;
+									}
+									catch( e )
+									{
+										trace( 'Error during message handling at sdLongRangeTeleport.AuthorizedIncomingS2SProtocolMessageHandler: ', e );
+									}
+								}
+								else
+								if ( data_object.action === 'Get leaders' )
+								{
+									socket.emit( 'S2SProtocolMessage', [ route, sdWorld.leaders ] );
+									return;
+								}
 							}
 							else
-							if ( data_object.action === 'Get leaders' )
 							{
-								socket.emit( 'S2SProtocolMessage', [ route, sdWorld.leaders ] );
-								return;
+								trace( '[ 1 ] Unexpected S2S message' );
 							}
 						}
+						else
+						{
+							trace( '[ 2 ] Unexpected S2S message' );
+						}
+					}
+					else
+					{
+						trace( '[ 3 ] Unexpected S2S message' );
 					}
 				}
+				else
+				{
+					trace( '[ 4 ] Unexpected S2S message' );
+				}
+			}
+			else
+			{
+				trace( '[ 5 ] Unexpected S2S message' );
 			}
 			//else
 			//throw new Error( 'route_and_data_object should be "object", got "'+(typeof route_and_data_object)+'" instead' );
