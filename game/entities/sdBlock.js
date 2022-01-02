@@ -8,6 +8,7 @@ import sdWater from './sdWater.js';
 import sdBG from './sdBG.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdCharacter from './sdCharacter.js';
+import sdSandWorm from './sdSandWorm.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 import sdBitmap from '../client/sdBitmap.js';
