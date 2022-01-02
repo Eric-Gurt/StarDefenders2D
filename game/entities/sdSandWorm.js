@@ -808,6 +808,13 @@ class sdSandWorm extends sdEntity
 				else*/
 				from_entity.Damage( 300 * this.scale, this );
 				
+				if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
+				if ( from_entity.is( sdCharacter ) ) // Copy-pasted from sdBlock.CorruptAttack();
+				{
+					from_entity._sickness += 30;
+					from_entity._last_sickness_from_ent = this;
+				}
+				
 				this.model = 0;
 				
 				this.forced_x = ( from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2 - this.x ) * 10;
@@ -836,6 +843,12 @@ class sdSandWorm extends sdEntity
 				}
 				else*/
 				from_entity.Damage( ( this.kind === sdSandWorm.KIND_SPIKY_WORM ? 5 : 1 ) * 20 * this.scale, this );
+				if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
+				if ( from_entity.is( sdCharacter ) ) // Copy-pasted from sdBlock.CorruptAttack();
+				{
+					from_entity._sickness += 30;
+					from_entity._last_sickness_from_ent = this;
+				}
 			}
 		}
 	}
