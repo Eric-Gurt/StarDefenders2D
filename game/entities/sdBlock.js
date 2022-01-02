@@ -846,6 +846,10 @@ class sdBlock extends sdEntity
 				else
 				if ( this.material === sdBlock.MATERIAL_CORRUPTION )
 				{
+					if ( from_entity.GetClass() !=='sdSandWorm' ) // If we were to have more corrupted entities we should probably filter them out with a function.
+					this.CorruptAttack( from_entity );
+					else
+					if ( from_entity.kind !== sdSandWorm.KIND_CORRUPTED_WORM )
 					this.CorruptAttack( from_entity );
 				}
 			}
