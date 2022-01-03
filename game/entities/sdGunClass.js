@@ -2212,13 +2212,13 @@ class sdGunClass
 			sound_pitch: 1.5,
 			title: 'Council Pistol',
 			slot: 1,
-			reload_time: 3.3,
+			reload_time: 10,
 			muzzle_x: 7,
 			ammo_capacity: -1,
 			spread: 0.01,
 			count: 1,
 			spawnable: false,
-			fire_type: 2,
+			//fire_type: 2,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
 			projectile_properties: { _damage: 30, color:'ffff00' }
 		};
