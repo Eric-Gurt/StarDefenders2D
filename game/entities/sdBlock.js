@@ -441,13 +441,13 @@ class sdBlock extends sdEntity
 					{
 						//this._contains_class = 'sdSandWorm'; // Hack
 					
-						if ( this._contains_class === 'sdSandWorm' )
+						if ( this._contains_class === 'sdSandWorm' || this._contains_class === 'sdSandWorm.corrupted' )
 						{
 							let map = {};
 							let blocks_near = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, 16, null, [ 'sdBlock' ] );
 
 							for ( let i = 0; i < blocks_near.length; i++ )
-							if ( blocks_near[ i ]._natural )
+							if ( blocks_near[ i ]._natural || ( this.material === sdBlock.MATERIAL_CORRUPTION && this._contains_class === 'sdSandWorm.corrupted' && blocks_near[ i ].material === sdBlock.MATERIAL_CORRUPTION ) )
 							map[ ( blocks_near[ i ].x - this.x ) / 16 + ':' + ( blocks_near[ i ].y - this.y ) / 16 ] = blocks_near[ i ];
 
 							done:
@@ -459,8 +459,20 @@ class sdBlock extends sdEntity
 								if ( map[ ( xx + 0 ) + ':' + ( yy + 1 ) ] )
 								if ( map[ ( xx + 1 ) + ':' + ( yy + 1 ) ] )
 								{
-									let ent = new sdWorld.entity_classes[ this._contains_class ]({ x: this.x + xx * 16 + 16, y: this.y + yy * 16 + 16 });
+									let parts = this._contains_class.split( '.' );
+									this._contains_class = parts[ 0 ];
+
+									let params = { x: this.x + xx * 16 + 16, y: this.y + yy * 16 + 16, tag:( parts.length > 1 )?parts[1]:null };
+
+									if ( this._contains_class_params )
+									{
+										for ( let i in this._contains_class_params )
+										params[ i ] = this._contains_class_params[ i ];
+									}
+
+									let ent = new sdWorld.entity_classes[ this._contains_class ]( params );
 									ent.scale = Math.min( 2, Math.max( 0.6, this._hmax / 440 ) );
+									if ( parts.length < 1 ) // If worm is not corrupted, etc, spawn regular worm types
 									ent.kind = Math.random() < 0.15 ? 1 : 0; // 15% chance for the worm to be spiky
 									sdEntity.entities.push( ent );
 									sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
@@ -658,6 +670,9 @@ class sdBlock extends sdEntity
 
 		this.remove();
 		this._broken = false;
+
+		if ( this._contains_class === 'sdSandWorm' ) // Is there a worm spawn inside this block?
+		ent2._contains_class = 'sdSandWorm.corrupted'; // Corrupt the worm aswell
 
 		sdEntity.entities.push( ent2 );
 		
