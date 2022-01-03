@@ -91,7 +91,7 @@ class sdSandWorm extends sdEntity
 
 		this.scale = params.scale || Math.max( 0.6, Math.random() * 2 );
 
-		this._hmax = 700 * Math.pow( this.scale, 2 );// Bigger worms = more health
+		this._hmax = ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM ? 1.5 : 1 ) * 700 * Math.pow( this.scale, 2 );// Bigger worms = more health
 		this._hea = this._hmax;
 
 		this._spawn_wyrmhide_on_death = false; // Should this body part spawn Wyrmhide on death?
