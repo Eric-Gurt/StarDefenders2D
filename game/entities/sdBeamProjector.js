@@ -8,6 +8,7 @@ import sdCom from './sdCom.js';
 import sdCrystal from './sdCrystal.js';
 import sdBlock from './sdBlock.js';
 import sdGun from './sdGun.js';
+import sdTask from './sdTask.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -359,18 +360,30 @@ class sdBeamProjector extends sdEntity
 			{
 				if ( players[ i ].GetClass() === 'sdCharacter' && !players[ i ]._ai && players[ i ]._ai_team === 0  && players[ i ].hea > 0 )
 				if ( players[ i ]._socket !== null )
-				if ( sdWorld.CheckLineOfSight( this.x, this.y - 16, players[ i ].x, players[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) ) // Needs line of sight with players, otherwise it doesn't work
 				{
-					if ( this.hea < this.hmax )
-					if ( this.no_obstacles ) // No progression if the beam can't go into the sky
+					sdTask.MakeSureCharacterHasTask({ 
+						similarity_hash:'TRACK-'+this._net_id, 
+						executer: players[ i ],
+						target: this,
+						mission: sdTask.MISSION_TRACK_ENTITY,
+										
+						title: 'Protect dark matter beam projector',
+						description: 'Protect the dark matter beam projector! If it stops working, restart it!'
+					});
+
+					if ( sdWorld.CheckLineOfSight( this.x, this.y - 16, players[ i ].x, players[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) ) // Needs line of sight with players, otherwise it doesn't work
 					{
-						this.hea = Math.min( this.hea + GSPEED * 90 * this._regen_mult, this.hmax );
-						//if ( sdWorld.is_server )
-						//this.hea = this.hmax; // Hack
-						this._regen_timeout = 30;
-						this.has_players_nearby = true;
-						//this._update_version++;
-						return;
+						if ( this.hea < this.hmax )
+						if ( this.no_obstacles ) // No progression if the beam can't go into the sky
+						{
+							this.hea = Math.min( this.hea + GSPEED * 90 * this._regen_mult, this.hmax );
+							//if ( sdWorld.is_server )
+							//this.hea = this.hmax; // Hack
+							this._regen_timeout = 30;
+							this.has_players_nearby = true;
+							//this._update_version++;
+							return;
+						}
 					}
 				}
 			}
