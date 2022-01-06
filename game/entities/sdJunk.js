@@ -540,7 +540,7 @@ class sdJunk extends sdEntity
 						for( let i = 0; i < sdWeather.only_instance._daily_events.length; i++)
 						{
 							n = sdWeather.only_instance._daily_events[ i ];
-							if ( n == 2 ) // Are cubes possible spawns on planet?
+							if ( n === 2 ) // Are cubes possible spawns on planet?
 							spawn_cubes = true;
 						}
 						if ( spawn_cubes === true ) // Spawn a ton of cubes
