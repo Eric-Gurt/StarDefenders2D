@@ -69,7 +69,7 @@ class sdJunk extends sdEntity
 		this.type = params.type || t_s;
 
 		if ( this.type === 4 ) // Council bomb
-		this.hmax = 75000;
+		this.hmax = 60000;
 		if ( this.type === 3 ) // Large anti-crystal
 		this.hmax = 10000;
 		else
@@ -138,7 +138,7 @@ class sdJunk extends sdEntity
 		
 		this.regen_timeout = Math.max( this.regen_timeout, 60 );
 
-		if ( this.type === 3 ) // Recieve score for damaging the crystal
+		if ( this.type === 3 || this.type === 4 ) // Recieve score for damaging the crystal or council bomb
 		{
 			if ( initiator )
 			if ( typeof initiator._score !== 'undefined' )
