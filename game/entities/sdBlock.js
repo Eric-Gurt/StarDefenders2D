@@ -462,17 +462,16 @@ class sdBlock extends sdEntity
 									let parts = this._contains_class.split( '.' );
 									this._contains_class = parts[ 0 ];
 
-									let params = { x: this.x + xx * 16 + 16, y: this.y + yy * 16 + 16, tag:( parts.length > 1 )?parts[1]:null };
+									let sc = Math.min( 2, Math.max( 0.6, this._hmax / 440 ) );
+									let params = { x: this.x + xx * 16 + 16, y: this.y + yy * 16 + 16, scale: sc, tag:( parts.length > 1 )?parts[1]:null };
 
 									if ( this._contains_class_params )
 									{
 										for ( let i in this._contains_class_params )
 										params[ i ] = this._contains_class_params[ i ];
 									}
-
 									let ent = new sdWorld.entity_classes[ this._contains_class ]( params );
-									ent.scale = Math.min( 2, Math.max( 0.6, this._hmax / 440 ) );
-									if ( parts.length < 1 ) // If worm is not corrupted, etc, spawn regular worm types
+									if ( parts.length < 2 ) // If worm is not corrupted, etc, spawn regular worm types
 									ent.kind = Math.random() < 0.15 ? 1 : 0; // 15% chance for the worm to be spiky
 									sdEntity.entities.push( ent );
 									sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
