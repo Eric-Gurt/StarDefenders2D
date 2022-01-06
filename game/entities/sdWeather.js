@@ -81,6 +81,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_SNOW =					event_counter++; // 15
 		sdWeather.EVENT_LARGE_ANTICRYSTAL =			event_counter++; // 16
 		sdWeather.EVENT_SARRORNIANS =				event_counter++; // 17
+		sdWeather.EVENT_COUNCIL_BOMB =				event_counter++; // 18
 		
 		sdWeather.last_crystal_near_quake = null; // Used to damage left over crystals. Could be used to damage anything really
 		
@@ -157,7 +158,7 @@ class sdWeather extends sdEntity
 	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
 	{
 		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
-		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 ];
+		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ];
 				
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -1162,6 +1163,95 @@ class sdWeather extends sdEntity
 					instances++;
 				}
 			}
+		}
+		if ( r === 18 ) // Spawn a Council Bomb anywhere on the map outside player views which detonates in 10 minutes
+		{
+			let chance = 0;
+			let req_char = 0;
+			let char = 0;
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			{
+				if ( sdWorld.sockets[ i ].character !== null )
+				if ( sdWorld.sockets[ i ].character.hea > 0 )
+				if ( !sdWorld.sockets[ i ].character._is_being_removed )
+				{
+					char++;
+					if ( sdWorld.sockets[ i ].character.build_tool_level >= 15 )
+					req_char++;
+				}
+			}
+			chance = req_char / char; // Chance to execute this event depends on how many players reached 15+
+
+			if ( Math.random() < chance )
+			{
+				let instances = 0;
+				let instances_tot = 1;
+
+				while ( instances < instances_tot && sdJunk.council_bombs < 1 )
+				{
+					let council_bomb = new sdJunk({ x:0, y:0, type: 4 });
+
+					sdEntity.entities.push( council_bomb );
+
+					let x,y,i;
+					let tr = 1000;
+					do
+					{
+						x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+
+						if ( council_bomb.CanMoveWithoutOverlap( x, y - 64, 0 ) )
+						if ( council_bomb.CanMoveWithoutOverlap( x, y, 0 ) )
+						if ( !council_bomb.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+						if ( sdWorld.last_hit_entity )
+						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+						if ( !sdWorld.CheckWallExistsBox( 
+								x + council_bomb._hitbox_x1 - 16, 
+								y + council_bomb._hitbox_y1 - 16, 
+								x + council_bomb._hitbox_x2 + 16, 
+								y + council_bomb._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+						{
+							let di_allowed = true;
+									
+							for ( i = 0; i < sdWorld.sockets.length; i++ )
+							if ( sdWorld.sockets[ i ].character )
+							{
+								let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
+										
+								if ( di < 500 )
+								{
+									di_allowed = false;
+									break;
+								}
+							}
+									
+							if ( di_allowed )
+							{
+								council_bomb.x = x;
+								council_bomb.y = y;
+
+								break;
+							}
+						}
+								
+
+
+						tr--;
+						if ( tr < 0 )
+							{
+							council_bomb.remove();
+							council_bomb._broken = false;
+							break;
+						}
+					} while( true );
+
+					instances++;
+				}
+
+			}
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

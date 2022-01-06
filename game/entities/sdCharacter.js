@@ -1382,6 +1382,7 @@ class sdCharacter extends sdEntity
 		}
 		if ( this._ai_team === 3 )
 		{
+			if ( Math.random() < 0.1 )
 			this.Say( [ 
 				'This universe is doomed. You cannot stop it.', 
 				'Give in. You are not to survive.', 
