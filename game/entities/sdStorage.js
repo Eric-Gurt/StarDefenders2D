@@ -492,6 +492,27 @@ class sdStorage extends sdEntity
 	ExtractItem( slot, initiator_character=null )
 	{
 			
+		//console.log( item_net_id )
+		/*let slot = -1;
+		for ( var i = 0; i < sdStorage.slots_tot; i++ )
+		if ( i === item_net_id )
+		{
+			slot = i;
+			break;
+		}
+		
+		if ( slot === -1 )
+		{
+			if ( initiator_character )
+			if ( initiator_character._socket )
+			initiator_character._socket.SDServiceMessage( 'Item is already taken' );
+	
+			if ( throw_on_not_found )
+			throw new Error('Should not happen');
+		}
+		else*/
+		//{
+			//let item = this._stored_items[ i ];
 			let ent = null;
 		
 			if ( slot >= 0 && slot < this._stored_items.length )
