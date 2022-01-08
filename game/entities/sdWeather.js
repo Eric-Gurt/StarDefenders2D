@@ -137,6 +137,7 @@ class sdWeather extends sdEntity
 		//this._rain_offset = 0;
 		this._time_until_event = 30 * 30; // 30 seconds since world reset
 		this._daily_events = [ 8 ];
+		this.draw_events = []; // Used for sdRender to draw stuff in the background (cubes, drones, etc) to tell player these can spawn during that planet day.
 		
 		this._asteroid_timer = 0; // 60 * 1000 / ( ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) / 800 )
 		this._asteroid_timer_scale_next = 0;
@@ -158,6 +159,7 @@ class sdWeather extends sdEntity
 	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
 	{
 		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
+		this.draw_events = [];
 		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ];
 				
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
@@ -186,11 +188,42 @@ class sdWeather extends sdEntity
 				{
 					this._daily_events.push( n );
 					daily_event_count--;
+					// Select what to draw in skybox/background
+					if ( n === 2 )
+					{
+						let num = 1 + Math.round( Math.random() * 3 ); // 1 - 4
+						this.draw_events.push( num );
+					}
+					if ( n === 4 )
+					{
+						let num = 5 + Math.round( Math.random() * 2 ); // 5 - 7
+						this.draw_events.push( num );
+					}
+					if ( n === 5 )
+					{
+						let num = 8;
+						this.draw_events.push( num );
+					}
+					if ( n === 7 )
+					{
+						let num = 9 + Math.round( Math.random() * 1 ); // 9 - 10
+						this.draw_events.push( num );
+					}
+					if ( n === 11 )
+					{
+						let num = 11;
+						this.draw_events.push( num );
+					}
+					if ( n === 12 )
+					{
+						let num = 12;
+						this.draw_events.push( num );
+					}
 				}
 				time--;
 			}
+			//console.log( this.draw_events );
 		}
-		//console.log( this._daily_events );
 	}
 	TraceDamagePossibleHere( x,y, steps_max=Infinity, sun_light_tracer=false )
 	{
