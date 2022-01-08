@@ -128,6 +128,13 @@ class sdRenderer
 			//window.onresize();
 			
 			sdRenderer.img_dark_lands = sdWorld.CreateImageFromFile( 'dark_lands' );
+			//Insert images to draw in sky below
+			sdRenderer.img_cube = sdWorld.CreateImageFromFile( 'cube_idle' ); // Cube
+			sdRenderer.img_asp = sdWorld.CreateImageFromFile( 'asp_idle' ); // Asp
+			sdRenderer.img_fmech = sdWorld.CreateImageFromFile( 'fmech2' ); //Flying Mech
+			sdRenderer.img_drone_falkok = sdWorld.CreateImageFromFile( 'drone_falkok' ); // Falkok drone
+			sdRenderer.img_drone_robot = sdWorld.CreateImageFromFile( 'drone_robot2' ); // Erthal drone
+			sdRenderer.img_drone_alien = sdWorld.CreateImageFromFile( 'drone_alien' ); // Sarronian drone
 		}
 		
 		sdRenderer.image_filter_cache = new Map();
@@ -518,8 +525,86 @@ class sdRenderer
 			
 				//ctx.drawImage( sdRenderer.img_dark_lands, 0,0, sdRenderer.screen_width, sdRenderer.screen_height );
 				ctx.drawImageFilterCache( sdRenderer.img_dark_lands, 0,0, sdRenderer.screen_width, sdRenderer.screen_height );
+
+				if ( sdWeather.only_instance.draw_events.length > 0 ) // A very rough implementation of entities roaming in the sky, could do with many improvements - Booraz149
+				{
+					let n = 0;
+					for( let i = 0; i < sdWeather.only_instance.draw_events.length; i++)
+					{
+						n = sdWeather.only_instance.draw_events[ i ];
+						// Cubes
+						if ( n === 1 || n === 4 )
+						{
+							ctx.drawImageFilterCache( sdRenderer.img_cube, - 32 + ( ( 8 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 64 ) , 150, 32, 32 );
+							ctx.drawImageFilterCache( sdRenderer.img_cube, - 60 + ( ( 6 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 64 ) , 190, 32, 32 );
+							ctx.drawImageFilterCache( sdRenderer.img_cube, - 32 + ( ( 4 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 64 ) , 230, 32, 32 );
+						}
+						if ( n === 2 || n === 4 )
+						{
+							ctx.drawImageFilterCache( sdRenderer.img_cube, - 32 + ( ( 4 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 64 ) , 270, 32, 32 );
+							ctx.drawImageFilterCache( sdRenderer.img_cube, sdRenderer.screen_width + 64 - ( ( 3 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 128 ) , 310, 32, 32 );
+							ctx.drawImageFilterCache( sdRenderer.img_cube, sdRenderer.screen_width + 32 - ( ( 2 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 64 ) , 350, 32, 32 );
+						}
+						if ( n === 3 || n === 4 )
+						{
+							ctx.drawImageFilterCache( sdRenderer.img_cube, - 32 + ( ( 7 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 64 ) , 390, 32, 32 );
+							ctx.drawImageFilterCache( sdRenderer.img_cube, - 32 + ( ( 5 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 64 ) , 430, 32, 32 );
+							ctx.drawImageFilterCache( sdRenderer.img_cube, sdRenderer.screen_width + 32 - ( ( 6 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 64 ) , 470, 32, 32 );
+						}
+
+						// Asps
+						if ( n === 5 || n === 7 )
+						{
+							ctx.drawImageFilterCache( sdRenderer.img_asp, sdRenderer.screen_width + 320 - ( ( 7 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 640 ) , 120, 32, 32 );
+							ctx.drawImageFilterCache( sdRenderer.img_asp, sdRenderer.screen_width + 320 - ( ( 4 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 640 ) , 100, 32, 32 );
+							ctx.drawImageFilterCache( sdRenderer.img_asp, sdRenderer.screen_width + 320 - ( ( 6 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 640 ) , 80, 32, 32 );
+						}
+						if ( n === 6 || n === 7 )
+						{
+							ctx.drawImageFilterCache( sdRenderer.img_asp, sdRenderer.screen_width + 640 - ( ( 6 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 1280 ) , 60, 32, 32 );
+							ctx.drawImageFilterCache( sdRenderer.img_asp, sdRenderer.screen_width + 640 - ( ( 5 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 1280 ) , 40, 32, 32 );
+							ctx.drawImageFilterCache( sdRenderer.img_asp, sdRenderer.screen_width + 640 - ( ( 8 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 1280 ) , 20, 32, 32 );
+						}
+						
+						// Falkok invasion
+						if ( n === 8 )
+						{
+							ctx.drawImageFilterCache( sdRenderer.img_drone_falkok, sdRenderer.screen_width + 640 - ( ( 6 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 1280 ) , 500, 32, 32 );
+						}
+						// Flying mech
+						if ( n === 9 )
+						{
+							ctx.drawImageFilterCache( sdRenderer.img_fmech, sdRenderer.screen_width + 1920 - ( ( 3 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 3840 ) , 550, 64, 96 );
+						}
+						// Sarrorian faction spawn
+						if ( n === 12 )
+						{
+							ctx.drawImageFilterCache( sdRenderer.img_drone_alien, 1920 + ( ( 3 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 3840 ) , 600, -32, 32 );
+						}
+					}
+				}
 				
 				ctx.globalAlpha = 1;
+				if ( sdWeather.only_instance.draw_events.length > 0 ) // Same as above, only closer
+				{
+					let n = 0;
+					for( let i = 0; i < sdWeather.only_instance.draw_events.length; i++)
+					{
+						n = sdWeather.only_instance.draw_events[ i ];
+						// Flying mech
+						if ( n === 10 )
+						{
+							ctx.drawImageFilterCache( sdRenderer.img_fmech, sdRenderer.screen_width + 3840 - ( ( 3 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 3840 ) , 320, 128, 192 );
+						}
+						// Erthal faction spawn
+						if ( n === 11 )
+						{
+							ctx.drawImageFilterCache( sdRenderer.img_drone_robot, sdRenderer.screen_width + 640 - ( ( 5 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 640 ) , 280, 64, 64 );
+							ctx.drawImageFilterCache( sdRenderer.img_drone_robot, - 1280 + ( ( 5 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 1280 ) , 250, -64, 64 );
+							ctx.drawImageFilterCache( sdRenderer.img_drone_robot, - 1920 + ( ( 4 * sdWeather.only_instance.day_time % ( 30 * 60 * 24 ) ) / ( 30 * 60 * 24 ) ) * ( sdRenderer.screen_width + 1920 ) , 220, -64, 64 );
+						}
+					}
+				}
 				
 			}
 			
