@@ -491,27 +491,6 @@ class sdStorage extends sdEntity
 	//ExtractItem( item_net_id, initiator_character=null, throw_on_not_found=false )
 	ExtractItem( slot, initiator_character=null )
 	{
-		//console.log( item_net_id )
-		/*let slot = -1;
-		for ( var i = 0; i < sdStorage.slots_tot; i++ )
-		if ( i === item_net_id )
-		{
-			slot = i;
-			break;
-		}
-		
-		if ( slot === -1 )
-		{
-			if ( initiator_character )
-			if ( initiator_character._socket )
-			initiator_character._socket.SDServiceMessage( 'Item is already taken' );
-	
-			if ( throw_on_not_found )
-			throw new Error('Should not happen');
-		}
-		else*/
-		//{
-			//let item = this._stored_items[ i ];
 			
 			let ent = null;
 		
@@ -520,7 +499,7 @@ class sdStorage extends sdEntity
 				ent = sdEntity.GetObjectFromSnapshot( this._stored_items[ slot ] );
 
 				this._stored_items.splice( slot, 1 );
-				//console.log(this._stored_items);
+
 				this.stored_names.splice( slot, 1 );
 
 				if ( !initiator_character )
@@ -540,6 +519,10 @@ class sdStorage extends sdEntity
 
 				if ( typeof ent.held_by !== 'undefined' )
 				ent.held_by = null;
+
+				if ( typeof ent._held_by !== 'undefined' ) // For sdGun? - Booraz149
+				ent._held_by = null;
+
 			}
 			
 			//let item = this.ExtractEntityFromSnapshotAtSlot( slot, initiator_character );
