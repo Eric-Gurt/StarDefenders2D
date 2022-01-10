@@ -415,11 +415,13 @@ class sdGunClass
 					if ( target_entity.GetClass() !== 'sdBlock' || target_entity.material !== sdBlock.MATERIAL_GROUND )
 					//if ( target_entity.material !== ''
 					{
+						if ( !bullet._owner._is_being_removed )
 						bullet._owner.Damage( 5 );
 					}
 				},
 				_custom_target_reaction_protected:( bullet, target_entity )=>
 				{
+					if ( !bullet._owner._is_being_removed )
 					bullet._owner.Damage( 5 );
 				}
 			}
