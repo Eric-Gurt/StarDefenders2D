@@ -575,11 +575,11 @@ class sdBlock extends sdEntity
 	{
 		super( params );
 		
-		if ( !sdWorld.is_server )
+		/*if ( !sdWorld.is_server )
 		{
 			// Debugging NaN x/y of broken particles
 			this._stack_trace = globalThis.getStackTrace();
-		}
+		}*/
 		
 		this._client_side_bg = null;
 		

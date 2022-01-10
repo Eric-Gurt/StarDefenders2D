@@ -33,6 +33,8 @@ class FakeCanvasContext
 		this.texture_cache = new Map();
 		this.texture_cache_keys = []; // Just keys, for GC looping
 		
+		this.matrix_reusable = new THREE.Matrix4();
+		
 		let geometry_plane = new THREE.PlaneGeometry( 1, 1 );
 			geometry_plane.scale( 1, 1, 1 );
 			geometry_plane.translate( 0.5, 0.5, 0 );
@@ -267,9 +269,12 @@ class FakeCanvasContext
 		
 		let crop_hash = source_x+'/'+source_y+'/'+source_w+'/'+(source_h||'')+'/'+volumetric_mode+'/'+opacity+'/'+quality_scale;
 		
-		let image_specific_hash_keeper = null;
+		let image_specific_hash_keeper;// = null;
 		
-		if ( !this.texture_cache.has( image ) )
+		image_specific_hash_keeper = this.texture_cache.get( image );
+			
+		//if ( !this.texture_cache.has( image ) )
+		if ( image_specific_hash_keeper === undefined )
 		{
 			image_specific_hash_keeper = {
 				_last_used: this.frame
@@ -279,7 +284,7 @@ class FakeCanvasContext
 		}
 		else
 		{
-			image_specific_hash_keeper = this.texture_cache.get( image );
+			//image_specific_hash_keeper = this.texture_cache.get( image );
 			image_specific_hash_keeper._last_used = this.frame;
 		}
 	
@@ -707,13 +712,13 @@ class FakeCanvasContext
 		
 		if ( this.object_offset === null )
 		{
-			m.matrix.multiply( new THREE.Matrix4().makeTranslation( destination_x, destination_y, -this.z_offset ) );
+			m.matrix.multiply( this.matrix_reusable.makeTranslation( destination_x, destination_y, -this.z_offset ) );
 		}
 		else
 		{
-			m.matrix.multiply( new THREE.Matrix4().makeTranslation( destination_x + this.object_offset[ 0 ], destination_y + this.object_offset[ 1 ], -this.z_offset + this.object_offset[ 2 ] ) );
+			m.matrix.multiply( this.matrix_reusable.makeTranslation( destination_x + this.object_offset[ 0 ], destination_y + this.object_offset[ 1 ], -this.z_offset + this.object_offset[ 2 ] ) );
 		}
-		m.matrix.multiply( new THREE.Matrix4().makeScale( destination_w, destination_h, this.z_depth ) );
+		m.matrix.multiply( this.matrix_reusable.makeScale( destination_w, destination_h, this.z_depth ) );
 		
 		m.updateMatrixWorld();
 		
@@ -723,9 +728,9 @@ class FakeCanvasContext
 		
 		if ( this.camera_relative_world_scale !== 1 )
 		{
-			m.matrix.premultiply( new THREE.Matrix4().makeTranslation( -this.camera.position.x, -this.camera.position.y, -this.camera.position.z ) );
-			m.matrix.premultiply( new THREE.Matrix4().makeScale( this.camera_relative_world_scale, this.camera_relative_world_scale, this.camera_relative_world_scale ) );
-			m.matrix.premultiply( new THREE.Matrix4().makeTranslation( this.camera.position.x, this.camera.position.y, this.camera.position.z ) );
+			m.matrix.premultiply( this.matrix_reusable.makeTranslation( -this.camera.position.x, -this.camera.position.y, -this.camera.position.z ) );
+			m.matrix.premultiply( this.matrix_reusable.makeScale( this.camera_relative_world_scale, this.camera_relative_world_scale, this.camera_relative_world_scale ) );
+			m.matrix.premultiply( this.matrix_reusable.makeTranslation( this.camera.position.x, this.camera.position.y, this.camera.position.z ) );
 		}
 		
 		if ( this.draw_offset === 0 && this.camera_relative_world_scale === 1 )
