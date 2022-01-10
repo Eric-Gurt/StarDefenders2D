@@ -23,6 +23,10 @@ class sdSandWorm extends sdEntity
 		sdSandWorm.img_worm_spiky_head_idle = sdWorld.CreateImageFromFile( 'worm_spiky_head_idle' ); // Sprite by Gashadokuro for spiky worms
 		sdSandWorm.img_worm_spiky_head_attack = sdWorld.CreateImageFromFile( 'worm_spiky_head_attack' );
 		sdSandWorm.img_worm_spiky_body = sdWorld.CreateImageFromFile( 'worm_spiky_body' );
+
+		sdSandWorm.img_worm_corrupted_head_idle = sdWorld.CreateImageFromFile( 'worm_corrupted_head_idle' );
+		sdSandWorm.img_worm_corrupted_head_attack = sdWorld.CreateImageFromFile( 'worm_corrupted_head_attack' );
+		sdSandWorm.img_worm_corrupted_body = sdWorld.CreateImageFromFile( 'worm_corrupted_body' );
 		
 		sdSandWorm.post_death_ttl = 30 * 6;
 		
@@ -44,7 +48,7 @@ class sdSandWorm extends sdEntity
 
 		sdSandWorm.KIND_NORMAL_WORM = 0;
 		sdSandWorm.KIND_SPIKY_WORM = 1;
-		sdSandWorm.KIND_CORRUPTED_WORM = 2; // Not made yet
+		sdSandWorm.KIND_CORRUPTED_WORM = 2;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -80,9 +84,14 @@ class sdSandWorm extends sdEntity
 
 		this.kind = params.kind || 0;
 		
+		let is_corrupted = params.tag === 'corrupted';
+
+		if ( is_corrupted )
+		this.kind = sdSandWorm.KIND_CORRUPTED_WORM;
+
 		this.scale = params.scale || Math.max( 0.6, Math.random() * 2 );
 
-		this._hmax = 700 * Math.pow( this.scale, 2 );// Bigger worms = more health
+		this._hmax = ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM ? 1.5 : 1 ) * 700 * Math.pow( this.scale, 2 );// Bigger worms = more health
 		this._hea = this._hmax;
 
 		this._spawn_wyrmhide_on_death = false; // Should this body part spawn Wyrmhide on death?
@@ -228,7 +237,7 @@ class sdSandWorm extends sdEntity
 		{
 			if ( initiator )
 			if ( typeof initiator._score !== 'undefined' )
-			initiator._score += Math.round( 60 * this.scale );
+			initiator._score += Math.round( 60 * this.scale * ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM ? 1.5 : 1 ) );
 	
 			sdSound.PlaySound({ name:'octopus_alert', x:head_entity.x, y:head_entity.y, pitch:0.25, volume:4 });
 	
@@ -697,6 +706,10 @@ class sdSandWorm extends sdEntity
 
 			if ( this.kind === sdSandWorm.KIND_SPIKY_WORM )
 			sdEntity.Tooltip( ctx, "Spiky Worm" );
+
+
+			if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
+			sdEntity.Tooltip( ctx, "Corrupted Worm" );
 		}
 	}
 	Draw( ctx, attached )
@@ -729,6 +742,16 @@ class sdSandWorm extends sdEntity
 			ctx.drawImageFilterCache( sdSandWorm.img_worm_spiky_head_idle, - 16, - 16, 32,32 );
 			else
 			ctx.drawImageFilterCache( sdSandWorm.img_worm_spiky_body, - 16, - 16, 32,32 );
+		}
+		if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
+		{
+			if ( this.model === 1 /*|| ( this.model === 0 && this._in_surface )*/ )
+			ctx.drawImageFilterCache( sdSandWorm.img_worm_corrupted_head_attack, - 16, - 16, 32,32 );
+			else
+			if ( this.model === 0 )
+			ctx.drawImageFilterCache( sdSandWorm.img_worm_corrupted_head_idle, - 16, - 16, 32,32 );
+			else
+			ctx.drawImageFilterCache( sdSandWorm.img_worm_corrupted_body, - 16, - 16, 32,32 );
 		}
 		
 		ctx.globalAlpha = 1;
@@ -765,7 +788,11 @@ class sdSandWorm extends sdEntity
 				
 			if ( from_entity.is( sdBlock ) )
 			if ( from_entity.material === sdBlock.MATERIAL_GROUND )
+			if ( this.kind !== sdSandWorm.KIND_CORRUPTED_WORM )
 			return;
+			else
+			if ( !this.towards_head ) // Is head
+			from_entity.Corrupt();
 			
 			this._last_attack = sdWorld.time;
 
@@ -780,6 +807,13 @@ class sdSandWorm extends sdEntity
 				}
 				else*/
 				from_entity.Damage( 300 * this.scale, this );
+				
+				if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
+				if ( from_entity.is( sdCharacter ) ) // Copy-pasted from sdBlock.CorruptAttack();
+				{
+					from_entity._sickness += 30;
+					from_entity._last_sickness_from_ent = this;
+				}
 				
 				this.model = 0;
 				
@@ -809,6 +843,12 @@ class sdSandWorm extends sdEntity
 				}
 				else*/
 				from_entity.Damage( ( this.kind === sdSandWorm.KIND_SPIKY_WORM ? 5 : 1 ) * 20 * this.scale, this );
+				if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
+				if ( from_entity.is( sdCharacter ) ) // Copy-pasted from sdBlock.CorruptAttack();
+				{
+					from_entity._sickness += 30;
+					from_entity._last_sickness_from_ent = this;
+				}
 			}
 		}
 	}

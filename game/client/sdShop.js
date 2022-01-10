@@ -487,6 +487,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_TOXIC_GAS, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAsp', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdSandWorm', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdSandWorm', kind: 1, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdSandWorm', kind: 2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGrass', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdSlug', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdEnemyMech', _category:'Development tests' });

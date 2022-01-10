@@ -13,6 +13,7 @@ import sdCrystal from './sdCrystal.js';
 import sdRescueTeleport from './sdRescueTeleport.js';
 import sdCharacter from './sdCharacter.js';
 import sdTask from './sdTask.js';
+import sdWeather from './sdWeather.js';
 
 class sdJunk extends sdEntity
 {
@@ -29,14 +30,18 @@ class sdJunk extends sdEntity
 		sdJunk.img_crystal_map_drainer_empty = sdWorld.CreateImageFromFile( 'crystal_cluster_empty' ); // Sprite by HastySnow / LazyRain
 		sdJunk.img_crystal_map_drainer = sdWorld.CreateImageFromFile( 'crystal_cluster' ); // Sprite by HastySnow / LazyRain
 
+		sdJunk.img_council_bomb = sdWorld.CreateImageFromFile( 'council_bomb' );
+		sdJunk.img_council_bomb2 = sdWorld.CreateImageFromFile( 'council_bomb2' );
+
 		sdJunk.anti_crystals = 0;
+		sdJunk.council_bombs = 0;
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.type === 3 ? -28 : -5; }
-	get hitbox_x2() { return this.type === 3 ? 28 : 5; }
-	get hitbox_y1() { return this.type === 3 ? -28 : -5; }
-	get hitbox_y2() { return this.type === 3 ? 32 : 5; }
+	get hitbox_x1() { return this.type === 4 ? -11 : this.type === 3 ? -28 : -5; }
+	get hitbox_x2() { return this.type === 4 ? 11 : this.type === 3 ? 28 : 5; }
+	get hitbox_y1() { return this.type === 4 ? -30 : this.type === 3 ? -28 : -5; }
+	get hitbox_y2() { return this.type === 4 ? 31 : this.type === 3 ? 32 : 5; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -63,7 +68,9 @@ class sdJunk extends sdEntity
 
 		this.type = params.type || t_s;
 
-		if ( this.type === 3 )
+		if ( this.type === 4 ) // Council bomb
+		this.hmax = 60000;
+		if ( this.type === 3 ) // Large anti-crystal
 		this.hmax = 10000;
 		else
 		if ( this.type === 1 || this.type === 2 ) // Current barrels
@@ -79,13 +86,24 @@ class sdJunk extends sdEntity
 		//this._time_to_drain_rtps = 30 * 60 * 30; // 30 minutes until it also starts draining matter from rescue teleporters
 		this._last_damage = 0; // Sound flood prevention
 		//
+
+		// Variables for Council bomb
+		this.glow_animation = 0; // Glow animation for the bomb
+		this._glow_fade = 0; // Should the glow fade or not?
+		this.detonation_in = 30 * 60 * 10; // 10 minutes until the bomb explodes
+		this._rate = 120;
+		//
 		this.hea = this.hmax;
 		this.matter_max = 320;
 		this.matter = this.matter_max;
 		this._damagable_in = sdWorld.time + 1500; // Copied from sdCrystal to prevent high ping players injure themselves, will only work for sdCharacter damage
+		this._spawn_ent_in = 60; // Used in Council Bomb, although could be used in other things
 
 		if ( this.type === 3 )
-		sdJunk.anti_crystals++;		
+		sdJunk.anti_crystals++;
+
+		if ( this.type === 4 )
+		sdJunk.council_bombs++;		
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
 	/*GetBleedEffect()
@@ -120,7 +138,7 @@ class sdJunk extends sdEntity
 		
 		this.regen_timeout = Math.max( this.regen_timeout, 60 );
 
-		if ( this.type === 3 ) // Recieve score for damaging the crystal
+		if ( this.type === 3 || this.type === 4 ) // Recieve score for damaging the crystal or council bomb
 		{
 			if ( initiator )
 			if ( typeof initiator._score !== 'undefined' )
@@ -284,6 +302,26 @@ class sdJunk extends sdEntity
 				sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
 			}
 
+			if ( this.type === 4 )
+			{
+				let x = this.x;
+				let y = this.y;
+				let sx = this.sx;
+				let sy = this.sy;
+
+				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+				let gun;
+				gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
+				gun.extra = 2;
+
+				//gun.sx = sx;
+				//gun.sy = sy;
+				sdEntity.entities.push( gun );
+
+				}, 500 );
+			}
+
 			let r = Math.random();
 
 			r = Math.random(); // Cube shard dropping roll
@@ -318,7 +356,7 @@ class sdJunk extends sdEntity
 		
 	}
 	
-	get mass() { return this.type === 3 ? 500 : 30; }
+	get mass() { return this.type === 4 ? 1000 : this.type === 3 ? 500 : 30; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -423,6 +461,279 @@ class sdJunk extends sdEntity
 					}*/
 				}
 			}
+
+			if ( this.type === 4 )
+			{
+				if ( this._glow_fade === 0 )
+				{
+					if ( this.glow_animation < 60 )
+					this.glow_animation =  Math.min( this.glow_animation + GSPEED, 60 );
+					else
+					this._glow_fade = 1;
+				}
+				else
+				{
+					if ( this.glow_animation > 0 )
+					this.glow_animation = Math.max( this.glow_animation - GSPEED, 0 );
+					else
+					this._glow_fade = 0;
+				}
+				let old = this.detonation_in;
+
+				this.detonation_in -= GSPEED;
+
+				let rate = 120;
+
+				if ( this.detonation_in < 30 * 60 )
+				rate = 30;
+				else
+				if ( this.detonation_in < 30 * 60 * 4 )
+				rate = 60;
+				else
+				if ( this.detonation_in < 30 * 60 * 10 )
+				rate = 120;
+
+				this._rate = rate;
+
+				if ( old % rate >= rate / 2 )
+				if ( this.detonation_in % rate < rate / 2 )
+				{
+					// Beep
+					sdSound.PlaySound({ name:'sd_beacon', x:this.x, y:this.y, volume:0.25, pitch:2 });
+
+					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be defused
+					{
+						sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'DESTROY-'+this._net_id, 
+							executer: sdWorld.sockets[ i ].character,
+							target: this,
+							mission: sdTask.MISSION_DESTROY_ENTITY,
+										
+							title: 'Disarm Council bomb',
+							description: 'Looks like Council paid us a visit and decided to bomb some parts of the planet. Stop them!'
+						});
+					}
+				}
+
+				if ( this.detonation_in <= 0 )
+				{
+					// Explosion
+				
+					sdWorld.SendEffect({ 
+						x:this.x, 
+						y:this.y, 
+						radius:120, // run
+						damage_scale: 80,
+						type:sdEffect.TYPE_EXPLOSION, 
+						owner:this._owner,
+						can_hit_owner: true,
+						color:sdEffect.default_explosion_color
+					});
+
+					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Punish players for not defusing the bomb
+					sdWorld.sockets[ i ].character._nature_damage += 100000;
+
+					if ( sdWeather.only_instance._daily_events.length > 0 )
+					{
+						let n = 0;
+						let spawn_cubes = false;
+						for( let i = 0; i < sdWeather.only_instance._daily_events.length; i++)
+						{
+							n = sdWeather.only_instance._daily_events[ i ];
+							if ( n === 2 ) // Are cubes possible spawns on planet?
+							spawn_cubes = true;
+						}
+						if ( spawn_cubes === true ) // Spawn a ton of cubes
+						{
+							sdWeather.only_instance.ExecuteEvent( 2 );
+							sdWeather.only_instance.ExecuteEvent( 2 );
+							sdWeather.only_instance.ExecuteEvent( 2 );
+						}
+			}
+					
+
+					this.remove();
+				}
+			if ( this._spawn_ent_in > 0 )
+			this._spawn_ent_in -= GSPEED;
+
+			if ( this._spawn_ent_in <= 0 && this.detonation_in > 30 * 60 )
+			{
+				this._spawn_ent_in = 450;
+				let ais = 0;
+				//let percent = 0;
+				for ( var i = 0; i < sdCharacter.characters.length; i++ )
+				{
+					if ( sdCharacter.characters[ i ].hea > 0 )
+					if ( !sdCharacter.characters[ i ]._is_being_removed )
+					if ( sdCharacter.characters[ i ]._ai_team === 3 )
+					{
+						ais++;
+						//console.log(ais);
+					}
+
+					let councils = 0;
+					let councils_tot = 2;
+
+					let left_side = ( Math.random() < 0.5 );
+
+					while ( councils < councils_tot && ais < 3 )
+					{
+
+						let character_entity = new sdCharacter({ x:0, y:0 });
+
+						sdEntity.entities.push( character_entity );
+						character_entity.s = 110;
+
+						{
+							let x,y;
+							let tr = 1000;
+							do
+							{
+								if ( left_side )
+								{
+									x = this.x + 16 + 16 * councils + ( Math.random() * 192 );
+
+									if (x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 * councils + ( Math.random() * 192 );
+
+									if (x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 * councils - ( Math.random() * 192 );
+								}
+								else
+								{
+									x = this.x - 16 - 16 * councils - ( Math.random() * 192 );
+
+									if (x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 * councils + ( Math.random() * 192 );
+
+									if (x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 * councils - ( Math.random() * 192 );
+								}
+
+								y = this.y + 192 - ( Math.random() * ( 384 ) );
+								if ( y < sdWorld.world_bounds.y1 + 32 )
+								y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+								if ( y > sdWorld.world_bounds.y2 - 32 )
+								y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+								if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+								if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, character_entity, sdCom.com_visibility_ignored_classes, null ) )
+								//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+								{
+									character_entity.x = x;
+									character_entity.y = y;
+
+									//sdWorld.UpdateHashPosition( ent, false );
+									if ( Math.random() < ( 0.7 - ( ( this.hea / this.hmax ) * 0.4 ) ) ) // Chances increase as the bomb has less health
+									{
+										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_BURST_RAIL }) );
+										character_entity._ai_gun_slot = 4;
+									}
+									else
+									{
+										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_PISTOL }) );
+										character_entity._ai_gun_slot = 1;
+									}
+									let robot_settings;
+									//if ( character_entity._ai_gun_slot === 2 )
+									robot_settings = {"hero_name":"Council Vanguard","color_bright":"#e1e100","color_dark":"#ffffff","color_bright3":"#ffff00","color_dark3":"#e1e1e1","color_visor":"#ffff00","color_suit":"#ffffff","color_suit2":"#e1e1e1","color_dark2":"#ffe100","color_shoes":"#e1e1e1","color_skin":"#ffffff","color_extra1":"#ffff00","helmet1":false,"helmet23":true,"body11":true,"legs8":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":false,"voice7":false,"voice8":true};
+
+									character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( robot_settings );
+									character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( robot_settings );
+									character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( robot_settings );
+									character_entity.title = robot_settings.hero_name;
+									character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( robot_settings );
+									character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( robot_settings );
+									//if ( character_entity._ai_gun_slot === 4 || character_entity._ai_gun_slot === 1 )
+									{
+										character_entity.matter = 300;
+										character_entity.matter_max = 300; // Let player leech matter off the bodies
+
+										character_entity.hea = 250;
+										character_entity.hmax = 250;
+
+										character_entity.armor = 1500;
+										character_entity.armor_max = 1500;
+										character_entity._armor_absorb_perc = 0.87; // 87% damage absorption, since armor will run out before just a little before health
+
+										character_entity._damage_mult = 1; // Supposed to put up a challenge
+									}
+									character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+									character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
+										
+									character_entity._ai_level = 10;
+										
+									character_entity._matter_regeneration = 10 + character_entity._ai_level; // At least some ammo regen
+									character_entity._jetpack_allowed = true; // Jetpack
+									character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
+									character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+									character_entity._ai_team = 3; // AI team 3 is for the Council
+									character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
+									sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, pitch: 1, volume:1 });
+									character_entity._ai.next_action = 5;
+
+									const logic = ()=>
+									{
+										if ( character_entity._ai ) // AI moving so it stays close to the Beam projector
+										{
+
+											if ( character_entity.x > this.x + 32 )
+											character_entity._ai.direction = -1;
+							
+											if ( character_entity.x < this.x - 32 )
+											character_entity._ai.direction = 1;
+
+											if ( character_entity.y < this.y - 32 )
+											character_entity._key_states.SetKey( 'KeyW', 1 );
+
+											//if ( character_entity._ai.target === null )
+											//character_entity._ai.target = this;
+										}
+										if ( character_entity.hea <= 0 )
+										if ( !character_entity._is_being_removed )
+										{
+											sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
+											character_entity.remove();
+										}
+							
+									};
+						
+							
+									setInterval( logic, 1000 );
+									setTimeout(()=>
+									{
+										clearInterval( logic );
+							
+							
+										if ( !character_entity._is_being_removed )
+										sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
+										character_entity.remove();
+
+										character_entity._broken = false;
+									}, 30000 ); // Despawn the Council Vanquishers if they are in world longer than intended
+
+									break;
+							}
+
+
+							tr--;
+							if ( tr < 0 )
+							{
+								character_entity.remove();
+								character_entity._broken = false;
+								break;
+							}
+						} while( true );
+					}
+					councils++;
+					ais++;
+					}
+				}
+			}
+			}
 		}
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
@@ -436,7 +747,9 @@ class sdJunk extends sdEntity
 		if ( this.type === 2 )
 		sdEntity.Tooltip( ctx, "Lost particle container" );
 		if ( this.type === 3 )
-		sdEntity.Tooltip( ctx, "Large Anti-crystal" );
+		sdEntity.Tooltip( ctx, "Large Anti-crystal", 0, -8 );
+		if ( this.type === 4 )
+		sdEntity.Tooltip( ctx, "Council bomb (" + ~~( this.detonation_in / ( 30 * 60 ) ) + " minutes, "+  ~~ ~~( this.detonation_in % ( 30 * 60 ) / 30 ) + " seconds)", 0, -8 );
 	}
 	Draw( ctx, attached )
 	{
@@ -481,6 +794,26 @@ class sdJunk extends sdEntity
 
 				ctx.drawImageFilterCache( sdJunk.img_crystal_map_drainer, - 48, - 48, 96, 96 );
 			}
+			if ( this.type === 4 ) // Council bomb
+			{
+				if ( this.detonation_in % this._rate < this._rate / 2 )
+				{
+					ctx.drawImageFilterCache( sdJunk.img_council_bomb2, 0, 0, 64, 128, - 32, - 48, 64, 128 );
+					ctx.globalAlpha = Math.min( 1, this.glow_animation / 30 );
+					ctx.filter = ' drop-shadow(0px 0px 8px #FFF000)';
+					ctx.drawImageFilterCache( sdJunk.img_council_bomb2, 64, 0, 64, 128, - 32, - 48, 64, 128 );
+				}
+				else
+				{
+					ctx.drawImageFilterCache( sdJunk.img_council_bomb, 0, 0, 64, 128, - 32, - 48, 64, 128 );
+					ctx.globalAlpha = Math.min( 1, this.glow_animation / 30 );
+					ctx.filter = ' drop-shadow(0px 0px 8px #FFF000)';
+					ctx.drawImageFilterCache( sdJunk.img_council_bomb, 64, 0, 64, 128, - 32, - 48, 64, 128 );
+				}
+			}
+
+		ctx.filter = 'none';
+		ctx.globalAlpha = 1;
 		}
 
 		
@@ -495,6 +828,13 @@ class sdJunk extends sdEntity
 	{
 		if ( this.type === 3 )
 		sdJunk.anti_crystals--;
+
+		if ( this.type === 4 )
+		{
+			sdJunk.council_bombs--;
+			if ( this._broken )
+			sdWorld.BasicEntityBreakEffect( this, 30, 3, 0.75, 0.75 );
+		}
 	}
 	MeasureMatterCost()
 	{
