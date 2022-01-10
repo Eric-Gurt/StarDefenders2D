@@ -2354,7 +2354,7 @@ class sdEntity
 				//{
 					props = [];
 					
-					for ( var prop in this )
+					for ( let prop in this )
 					if ( prop.charAt( 0 ) !== '_' || 
 						 ( save_as_much_as_possible && prop !== '_snapshot_cache_frame' && prop !== '_snapshot_cache' && prop !== '_hiberstate' && prop !== '_last_x' && prop !== '_last_y' && ( typeof this[ prop ] === 'number' || typeof this[ prop ] === 'string' || this[ prop ] === null || typeof this[ prop ] === 'boolean' || this.ExtraSerialzableFieldTest( prop ) ) ) )
 					{
@@ -2377,7 +2377,30 @@ class sdEntity
 			}
 			else
 			{
-				props = sdEntity.properties_by_class_public.get( this.__proto__.constructor );
+				let kinds = sdEntity.properties_by_class_public.get( this.__proto__.constructor );
+				
+				if ( kinds === undefined )
+				{
+					kinds = [];
+					sdEntity.properties_by_class_public.set( this.__proto__.constructor, kinds );
+				}
+				
+				let current_kind = this.material || this.type || this.kind || this.class || 0;
+				
+				props = kinds[ current_kind ];
+				
+				if ( props === undefined )
+				{
+					props = [];
+					
+					for ( let prop in this )
+					if ( prop.charAt( 0 ) !== '_' )
+					props.push( prop );
+			
+					kinds[ current_kind ] = props;
+				}
+				
+				/*props = sdEntity.properties_by_class_public.get( this.__proto__.constructor );
 				
 				if ( props === undefined )
 				{
@@ -2388,18 +2411,18 @@ class sdEntity
 					props.push( prop );
 					
 					sdEntity.properties_by_class_public.set( this.__proto__.constructor, props );
-				}
+				}*/
 			}
 			
 			//for ( var prop in this )
 			for ( let i = 0; i < props.length; i++ )
 			{
-				var prop = props[ i ];
+				let prop = props[ i ];
 				
 				//if ( prop.charAt( 0 ) !== '_' || 
 				//	 ( save_as_much_as_possible && prop !== '_snapshot_cache_frame' && prop !== '_snapshot_cache' && prop !== '_hiberstate' && prop !== '_last_x' && prop !== '_last_y' && ( typeof this[ prop ] === 'number' || typeof this[ prop ] === 'string' || typeof this[ prop ] === 'boolean' /*|| ( typeof this[ prop ] === 'object' && typeof this[ prop ]._net_id !== 'undefined' && typeof this[ prop ]._class !== 'undefined' )*/ || this.ExtraSerialzableFieldTest( prop ) ) ) )
 				{
-					var v = this[ prop ];
+					let v = this[ prop ];
 					
 					//if ( this[ prop ] !== null )
 					if ( v !== null )
