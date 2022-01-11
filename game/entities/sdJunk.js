@@ -530,8 +530,13 @@ class sdJunk extends sdEntity
 						color:sdEffect.default_explosion_color
 					});
 
-					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Punish players for not defusing the bomb
-					sdWorld.sockets[ i ].character._nature_damage += 100000;
+					// Will ignore ones who disconnected during explosion
+					//for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Punish players for not defusing the bomb
+					//if ( sdWorld.sockets[ i ].character )
+					//sdWorld.sockets[ i ].character._nature_damage += 100000;
+					
+					for ( let i = 0; i < sdCharacter.characters.length; i++ )
+					sdCharacter.characters[ i ]._nature_damage += 100000;
 
 					if ( sdWeather.only_instance._daily_events.length > 0 )
 					{
@@ -541,7 +546,10 @@ class sdJunk extends sdEntity
 						{
 							n = sdWeather.only_instance._daily_events[ i ];
 							if ( n === 2 ) // Are cubes possible spawns on planet?
-							spawn_cubes = true;
+							{
+								spawn_cubes = true;
+								break;
+							}
 						}
 						if ( spawn_cubes === true ) // Spawn a ton of cubes
 						{
