@@ -458,10 +458,10 @@ class sdCrystal extends sdEntity
 			}
 		}
 	}
-	HookAttempt( from_entity ) // true for allow. from_entity is sdBullet that is hook tracer
+	HookAttempt() // true for allow. from_entity is sdBullet that is hook tracer
 	{
 		if ( !sdWorld.is_server )
-		return;
+		return false;
 	
 		if ( this.held_by )
 		if ( typeof this.held_by.DropCrystal !== 'undefined' )

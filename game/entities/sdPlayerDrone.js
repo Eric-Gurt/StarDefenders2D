@@ -433,6 +433,7 @@ class sdPlayerDrone extends sdCharacter
 									if ( this._god || sdArea.CheckPointDamageAllowed( nears[ i ].x + ( nears[ i ]._hitbox_x1 + nears[ i ]._hitbox_x2 ) / 2, nears[ i ].y + ( nears[ i ]._hitbox_y1 + nears[ i ]._hitbox_y2 ) / 2 ) )
 									{
 										if ( typeof nears[ i ].sx !== 'undefined' && typeof nears[ i ].sy !== 'undefined' )
+										if ( nears[ i ].HookAttempt() )
 										{
 											sdSound.PlaySound({ name:'teleport_ready', x:this.x, y:this.y, volume:0.5, pitch:2 });
 
@@ -442,7 +443,7 @@ class sdPlayerDrone extends sdCharacter
 
 											break;
 										}
-										else
+										/*else
 										{
 											if ( nears[ i ].is( sdWorld.entity_classes.sdMatterAmplifier ) || nears[ i ].is( sdWorld.entity_classes.sdCrystalCombiner ) )
 											{
@@ -454,7 +455,7 @@ class sdPlayerDrone extends sdCharacter
 												
 												break;
 											}
-										}
+										}*/
 									}
 								}
 							}

@@ -3271,7 +3271,7 @@ class sdEntity
 			enumerable: false
 		});
 	}
-	HookAttempt( from_entity ) // true for allow. from_entity is sdBullet that is hook tracer
+	HookAttempt() // true for allow. from_entity is sdBullet that is hook tracer
 	{
 		return true;
 	}

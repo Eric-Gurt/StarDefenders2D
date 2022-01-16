@@ -525,7 +525,7 @@ class sdCrystalCombiner extends sdEntity
 		return false;
 	}
 	
-	/*HookAttempt( from_entity ) // true for allow. from_entity is sdBullet that is hook tracer
+	/*HookAttempt() // true for allow. from_entity is sdBullet that is hook tracer
 	{
 		if ( !sdWorld.is_server )
 		return;
@@ -643,7 +643,7 @@ class sdCrystalCombiner extends sdEntity
 	MeasureMatterCost()
 	{
 	//	return 0; // Hack
-		return 1500 + this._hmax * sdWorld.damage_to_matter + this.matter;
+		return 1500 + this._hmax * sdWorld.damage_to_matter;
 	}
 }
 //sdCrystalCombiner.init_class();
