@@ -430,7 +430,7 @@ class sdBlock extends sdEntity
 					if ( typeof initiator._score !== 'undefined' )
 					{
 						if ( this.p === sdBlock.max_corruption_rank )
-						initiator._score += 10;
+						initiator._score += 3;
 						else
 						initiator._score += 1;
 					}
@@ -672,6 +672,12 @@ class sdBlock extends sdEntity
 
 		if ( this._contains_class === 'sdSandWorm' ) // Is there a worm spawn inside this block?
 		ent2._contains_class = 'sdSandWorm.corrupted'; // Corrupt the worm aswell
+
+		if ( this._contains_class === 'sdCrystal' ) // Is there a worm spawn inside this block?
+		ent2._contains_class = 'sdCrystal.corrupted'; // Corrupt the worm aswell
+
+		if ( this._contains_class === 'sdCrystal.deep' ) // Is there a worm spawn inside this block?
+		ent2._contains_class = 'sdCrystal.deep_corrupted'; // Corrupt the worm aswell
 
 		sdEntity.entities.push( ent2 );
 		

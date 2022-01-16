@@ -171,12 +171,14 @@ class sdAntigravity extends sdEntity
 												if ( this.power === -1 )
 												arr[ i ].sy = sdWorld.MorphWithTimeScale( arr[ i ].sy, 0, 0.75, GSPEED );
 												else
-												arr[ i ].sy -= GSPEED * sdWorld.gravity * 0.9 * this.power;
+												arr[ i ].Impulse( 0, - ( GSPEED * sdWorld.gravity * 0.9 * this.power ) * arr[ i ].mass );
+												//arr[ i ].sy -= GSPEED * sdWorld.gravity * 0.9 * this.power;
 
 												if ( arr[ i ].hea > 0 )
 												{
 													if ( this.power !== -1 )
-													arr[ i ].sy += GSPEED * arr[ i ].act_y * 0.1;
+													arr[ i ].Impulse( 0, ( GSPEED * arr[ i ].act_y * 0.1 ) * arr[ i ].mass );
+													//arr[ i ].sy += GSPEED * arr[ i ].act_y * 0.1;
 
 													arr[ i ].ApplyServerSidePositionAndVelocity( false, 0, arr[ i ].sy - old_sy );
 												}
@@ -191,7 +193,8 @@ class sdAntigravity extends sdEntity
 												//if ( arr[ i ].sy > -16 * GSPEED ) // Prevent speeds higher than wall tolerance
 												//arr[ i ].sy -= GSPEED * sdWorld.gravity * 0.9 * this.power;
 												
-												arr[ i ].SafeAddVelocity( 0, -GSPEED * sdWorld.gravity * 0.9 * this.power );
+												arr[ i ].Impulse( 0, - ( GSPEED * sdWorld.gravity * 0.9 * this.power ) * arr[ i ].mass );
+												//arr[ i ].SafeAddVelocity( 0, -GSPEED * sdWorld.gravity * 0.9 * this.power );
 											}
 										}
 									}

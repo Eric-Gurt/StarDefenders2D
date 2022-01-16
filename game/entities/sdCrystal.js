@@ -5,6 +5,8 @@ import sdEntity from './sdEntity.js';
 import sdGun from './sdGun.js';
 import sdStorage from './sdStorage.js';
 import sdPlayerDrone from './sdPlayerDrone.js';
+import sdMatterAmplifier from './sdMatterAmplifier.js';
+
 
 class sdCrystal extends sdEntity
 {
@@ -12,6 +14,9 @@ class sdCrystal extends sdEntity
 	{
 		sdCrystal.img_crystal = sdWorld.CreateImageFromFile( 'crystal' );
 		sdCrystal.img_crystal_empty = sdWorld.CreateImageFromFile( 'crystal_empty' );
+		
+		sdCrystal.img_crystal_artificial = sdWorld.CreateImageFromFile( 'crystal_artificial' );
+		sdCrystal.img_crystal_artificial_empty = sdWorld.CreateImageFromFile( 'crystal_artificial_empty' );
 
 		sdCrystal.img_crystal_cluster = sdWorld.CreateImageFromFile( 'crystal_cluster' ); // Sprite by HastySnow / LazyRain
 		sdCrystal.img_crystal_cluster_empty = sdWorld.CreateImageFromFile( 'crystal_cluster_empty' ); // Sprite by HastySnow / LazyRain
@@ -21,13 +26,19 @@ class sdCrystal extends sdEntity
 		
 		sdCrystal.img_crystal_crab = sdWorld.CreateImageFromFile( 'sdCrystalCrab' );
 		
+		sdCrystal.img_crystal_corrupted = sdWorld.CreateImageFromFile( 'crystal_corrupted' );
+		
 		sdCrystal.anticrystal_value = 10240;
 		
 		sdCrystal.TYPE_CRYSTAL = 1;
 		sdCrystal.TYPE_CRYSTAL_BIG = 2;
 		sdCrystal.TYPE_CRYSTAL_CRAB = 3;
+		sdCrystal.TYPE_CRYSTAL_CORRUPTED = 4;
+		sdCrystal.TYPE_CRYSTAL_ARTIFICIAL = 5;
 		
 		sdCrystal.recharges_until_depleated = 100;
+		
+		sdCrystal.hitpoints_artificial = 140;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -37,20 +48,21 @@ class sdCrystal extends sdEntity
 	get hitbox_y2() { return this.should_draw === 0 ? 2 : this.type === 2 ? 16 : 5; }*/
 	get hitbox_x1() { return this.type === sdCrystal.TYPE_CRYSTAL_BIG ? -14 : -4; }
 	get hitbox_x2() { return this.type === sdCrystal.TYPE_CRYSTAL_BIG ? 14 : 5; }
-	get hitbox_y1() { return this.type === sdCrystal.TYPE_CRYSTAL_BIG ? -14 : -7; }
+	get hitbox_y1() { return this.type === sdCrystal.TYPE_CRYSTAL_BIG ? -14 : this.type === sdCrystal.TYPE_CRYSTAL_ARTIFICIAL ? -4 : -7; }
 	get hitbox_y2() { return this.type === sdCrystal.TYPE_CRYSTAL_BIG ? 16 : 5; }
 	
 	get hard_collision() // For world geometry where players can walk
-	{ return this.held_by !== null ? false : true; }
+	//{ return this.held_by !== null ? false : true; }
+	{ return true; }
 	
 	/* Causes client-side falling through unsynced ground, probably bad thing to do and it won't be complex entity after sdSnapPack is added
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return true; }*/
 	
-	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Guns are not targetable when held, same for sdCharacters that are driving something
+	/*IsTargetable( by_entity=null, ignore_safe_areas=false ) // Guns are not targetable when held, same for sdCharacters that are driving something
 	{
 		return ( this.held_by === null );
-	}
+	}*/
 	
 	get title()
 	{
@@ -68,30 +80,36 @@ class sdCrystal extends sdEntity
 		return 'Crystal';
 	}
 	
-	get should_draw()
+	/*get should_draw()
 	{
 		throw new Error('Obsolete, use this.held_by instead');
 	}
 	set should_draw( v )
 	{
 		throw new Error('Obsolete, use this.held_by instead');
-	}
+	}*/
 	
 	constructor( params )
 	{
 		super( params );
 		
-		let is_deep = params.tag === 'deep' || params.tag === 'deep_crab';
+		let is_deep = params.tag && params.tag.indexOf( 'deep' ) !== -1; // params.tag === 'deep' || params.tag === 'deep_crab';
 		
-		if ( params.tag === 'deep_crab' || params.tag === 'crab' )
-		params.type = sdCrystal.TYPE_CRYSTAL_CRAB;
-		
+		if ( params.tag )
+		{
+			if ( params.tag.indexOf( 'crab' ) !== -1 )
+			params.type = sdCrystal.TYPE_CRYSTAL_CRAB;
+			else
+			if ( params.tag.indexOf( 'corrupted' ) !== -1 )
+			params.type = sdCrystal.TYPE_CRYSTAL_CORRUPTED;
+		}
+	
 		this.sx = 0;
 		this.sy = 0;
 		this.type = params.type || 1;
 		this.matter_max = this.type === sdCrystal.TYPE_CRYSTAL_BIG ? 160 : 40;
 
-		this.held_by = null; // For storage crates
+		this.held_by = null; // For amplifiers
 		//this.should_draw = 1; // For storage crates, guns have ttl which can make them dissapear // EG: I think I'm missing something, but ttl is for deletion rather than being drawn? Revert to .should_draw if my changes break anything
 		
 		let bad_luck = 1.45; // High value crystals are more rare if this value is high
@@ -170,8 +188,14 @@ class sdCrystal extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 
-		if ( this.held_by !== null )
-		return;
+		//if ( this.held_by !== null )
+		//return;
+		
+		if ( this.held_by )
+		if ( typeof this.held_by.DropCrystal !== 'undefined' )
+		{
+			this.held_by.DropCrystal( this, true );
+		}
 	
 		//if ( initiator !== null )
 		if ( initiator === null || initiator.IsPlayerClass() )
@@ -246,12 +270,15 @@ class sdCrystal extends sdEntity
 	get mass() { return this.type === 2 ? 120 : 30; }
 	Impulse( x, y )
 	{
+		if ( this.held_by )
+		return;
+	
 		this.sx += x / this.mass;
 		this.sy += y / this.mass;
 		//this.sx += x * 0.1;
 		//this.sy += y * 0.1;
 	}
-	IsVisible( observer_character ) // Can be used to hide crystals that are held by crates
+	/*IsVisible( observer_character ) // Can be used to hide crystals that are held by crates
 	{
 		if ( this.held_by === null )
 		return true;
@@ -263,25 +290,11 @@ class sdCrystal extends sdEntity
 				if ( sdWorld.inDist2D_Boolean( observer_character.x, observer_character.y, this.x, this.y, sdStorage.access_range ) )
 				return true;
 			}
-			/*else
-			if ( this.held_by.is( sdCharacter ) )
-			{
-				// Because in else case B key won't work
-				//if ( sdGun.classes[ this.class ].is_build_gun ) Maybe it should always work better if player will know info about all of his guns. Probably that will be later used in interface anyway
-				if ( this.held_by === observer_character )
-				return true;
-		
-				if ( !this.held_by.ghosting || this.held_by.IsVisible( observer_character ) )
-				if ( !this.held_by.driver_of )
-				{
-					return ( this.held_by.gun_slot === sdGun.classes[ this.class ].slot );
-				}
-			}*/
 		}
 		
 		return false;
-	}
-	UpdateHeldPosition()
+	}*/
+	/*UpdateHeldPosition()
 	{
 		if ( this.held_by ) // Should not happen but just in case
 		{
@@ -306,11 +319,19 @@ class sdCrystal extends sdEntity
 			if ( this.x !== old_x || this.y !== old_y )
 			sdWorld.UpdateHashPosition( this, false, false );
 		}
-	}
+	}*/
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( ( this.matter_max === sdCrystal.anticrystal_value && this.type !== 2 ) || ( this.matter_max === sdCrystal.anticrystal_value * 4 && this.type === 2 ) )
 		GSPEED *= 0.25;
+	
+		if ( this.held_by )
+		{
+			// Usually all crystals can regenerate when they are in some amplifiers
+			
+			if ( this._hea < this._hmax )
+			this._hea = Math.min( this._hmax, this._hea + GSPEED * 0.01 ); // Quite slow
+		}
 			
 		this.sy += sdWorld.gravity * GSPEED;
 		
@@ -379,7 +400,7 @@ class sdCrystal extends sdEntity
 		
 		
 		
-		if ( this.held_by === null ) // Don't emit matter if inside a crate
+		//if ( this.held_by === null ) // Don't emit matter if inside a crate
 		{
 			if ( ( this.matter_max === sdCrystal.anticrystal_value && this.type !== 2 ) || ( this.matter_max === sdCrystal.anticrystal_value * 4 && this.type === 2 ) )
 			{
@@ -393,6 +414,9 @@ class sdCrystal extends sdEntity
 				
 				let matter_before_regen = this.matter;
 				
+				if ( this.held_by && this.held_by.is( sdMatterAmplifier ) )
+				this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( this.matter_regen / 100 ) * ( sdMatterAmplifier.relative_regen_amplification_to_crystals * ( this.held_by.multiplier ) ) );
+				else
 				this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( this.matter_regen / 100 ) );
 				
 				this.matter_regen = Math.max( 20, this.matter_regen - ( this.matter - matter_before_regen ) / this.matter_max * 100 / sdCrystal.recharges_until_depleated ); // 30 full recharges
@@ -413,7 +437,7 @@ class sdCrystal extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		//if ( this.should_draw === 1 )
-		if ( this.held_by === null )
+		//if ( this.held_by === null )
 		{
 			if ( ( this.matter_max === sdCrystal.anticrystal_value && this.type !== 2 ) || ( this.matter_max === sdCrystal.anticrystal_value * 4 && this.type === 2 ) )
 			sdEntity.Tooltip( ctx, this.title + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
@@ -434,33 +458,68 @@ class sdCrystal extends sdEntity
 			}
 		}
 	}
+	HookAttempt( from_entity ) // true for allow. from_entity is sdBullet that is hook tracer
+	{
+		if ( !sdWorld.is_server )
+		return;
+	
+		if ( this.held_by )
+		if ( typeof this.held_by.DropCrystal !== 'undefined' )
+		{
+			this.held_by.DropCrystal( this, true );
+		}
+		
+		return true;
+	}
+	static DoNothing( filter )
+	{
+		return filter;
+	}
 	Draw( ctx, attached )
 	{
+		let filter_brightness_effect = sdCrystal.DoNothing;
+		
+		if ( attached )
+		if ( this.held_by )
+		if ( this.held_by.ModifyHeldCrystalFilter )
+		filter_brightness_effect = ( f )=>{ return this.held_by.ModifyHeldCrystalFilter( f ) };
+		
 		//if ( this.should_draw === 1 )
-		if ( this.held_by === null )
+		if ( this.held_by === null || attached )
 		{
-			if ( this.type === 1 )
+			if ( this.type === sdCrystal.TYPE_CRYSTAL || this.type === sdCrystal.TYPE_CRYSTAL_CORRUPTED || this.type === sdCrystal.TYPE_CRYSTAL_ARTIFICIAL )
 			{
+				if ( this.type === sdCrystal.TYPE_CRYSTAL_ARTIFICIAL )
+				ctx.drawImageFilterCache( sdCrystal.img_crystal_artificial_empty, - 16, - 16, 32, 32 );
+				else
 				ctx.drawImageFilterCache( sdCrystal.img_crystal_empty, - 16, - 16, 32, 32 );
 		
-				ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
+				ctx.filter = filter_brightness_effect( sdWorld.GetCrystalHue( this.matter_max ) );
 
 				if ( this.matter_max === sdCrystal.anticrystal_value )
 				ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
 				else
 				ctx.globalAlpha = this.matter / this.matter_max;
 		
+				if ( this.type === sdCrystal.TYPE_CRYSTAL_ARTIFICIAL )
+				ctx.drawImageFilterCache( sdCrystal.img_crystal_artificial, - 16, - 16, 32, 32 );
+				else
 				ctx.drawImageFilterCache( sdCrystal.img_crystal, - 16, - 16, 32, 32 );
 		
 				ctx.globalAlpha = 1;
 				ctx.filter = 'none';
+				
+				if ( this.type === sdCrystal.TYPE_CRYSTAL_CORRUPTED )
+				{
+					ctx.drawImageFilterCache( sdCrystal.img_crystal_corrupted, - 16, - 16, 32, 32 );
+				}
 			}
 			else
-			if ( this.type === 2 )
+			if ( this.type === sdCrystal.TYPE_CRYSTAL_BIG )
 			{
 				ctx.drawImageFilterCache( sdCrystal.img_crystal_cluster2_empty, - 24, - 24, 48, 48 );
 		
-				ctx.filter = sdWorld.GetCrystalHue( this.matter_max / 4 );
+				ctx.filter = filter_brightness_effect( sdWorld.GetCrystalHue( this.matter_max / 4 ) );
 
 				if ( this.matter_max === sdCrystal.anticrystal_value * 4 )
 				ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
@@ -489,7 +548,7 @@ class sdCrystal extends sdEntity
 				
 				ctx.drawImageFilterCache( sdCrystal.img_crystal_crab, frame*32,32,32,32, - 16, - 16, 32,32 );
 		
-				ctx.filter = sdWorld.GetCrystalHue( this.matter_max, 0.75, 'aa' );
+				ctx.filter = filter_brightness_effect( sdWorld.GetCrystalHue( this.matter_max, 0.75, 'aa' ) );
 
 				if ( this.matter_max === sdCrystal.anticrystal_value )
 				ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
@@ -504,8 +563,14 @@ class sdCrystal extends sdEntity
 		
 		}
 	}
-	onRemove() // Class-specific, if needed
+	onBeforeRemove() // Class-specific, if needed
 	{
+		if ( this.held_by )
+		if ( typeof this.held_by.DropCrystal !== 'undefined' )
+		{
+			this.held_by.DropCrystal( this );
+		}
+		
 		/*if ( this._hea <= 0 ) // In else case it was just removed (not best way to check)
 		{
 			sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
@@ -521,7 +586,7 @@ class sdCrystal extends sdEntity
 		//return this._hmax * sdWorld.damage_to_matter + this.matter;
 	}
 	
-	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	/*ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
 		if ( this._hea > 0 )
@@ -559,7 +624,7 @@ class sdCrystal extends sdEntity
 				this.AddContextOption( 'Melt into regular crytal', 'POKE', [] );
 			}
 		}
-	}
+	}*/
 }
 //sdCrystal.init_class();
 

@@ -566,13 +566,26 @@ class sdWorld
 		return Math.round( Math.pow( Math.sin( ( sdWorld.base_grass_level[ xx ] || 0 ) * 15 ) * 0.5 + 0.5, pow ) * 2 );
 
 	}
-	static GetGroundElevation( xx )
+	static GetGroundElevation( x )
 	{
-		//return sdWorld.base_ground_level - Math.round( ( Math.sin( sdWorld.base_ground_level1[ xx ] ) * 64 + Math.sin( sdWorld.base_ground_level2[ xx ] ) * 64 ) / 16 ) * 16;
-		//return sdWorld.base_ground_level - Math.round( ( Math.sin( sdWorld.base_ground_level1[ xx ] ) * 64 + Math.sin( sdWorld.base_ground_level2[ xx ] ) * 64 ) / 8 ) * 8;
-
-		//console.log( Math.abs( Math.sin( sdWorld.base_ground_level2[ xx ] * 0.9 ) ) / ( 0.1 + 0.9 * Math.abs( Math.cos( sdWorld.base_ground_level1[ xx ] * 0.5 ) ) ) * 64 );
-
+		let s = 0;
+		let tot = 0;
+		
+		let r = 20;
+		
+		for ( var xx = -r; xx <= r; xx++ )
+		{
+			let influence = 1;// Math.pow( 1 + r - Math.abs( xx ), 0.1 );
+			s += sdWorld.SeededRandomNumberGenerator.random( x + xx * 1, 512 ) * influence;
+			tot += influence;
+		}
+		
+		s /= tot;
+		
+		return sdWorld.base_ground_level - Math.round( ( s - 0.5 ) / 0.5 * 1024 / 8 ) * 8;
+	}
+	/*static GetGroundElevation( xx )
+	{
 		return sdWorld.base_ground_level - Math.round( ( 
 
 				Math.sin( sdWorld.base_ground_level1[ xx ] ) * 64 + 
@@ -584,7 +597,7 @@ class sdWorld
 				+ Math.abs( Math.sin( sdWorld.base_ground_level2[ xx ] * 0.9 ) ) / ( 0.1 + 0.9 * Math.abs( Math.cos( sdWorld.base_ground_level1[ xx ] * 0.55 ) ) ) * 128
 
 		) / 8 ) * 8;
-	}
+	}*/
 	static FillGroundQuad( x, y, from_y, half=false, only_plantless_block=false )
 	{
 		var ent = null;
@@ -2697,7 +2710,7 @@ class sdWorld
 			return 'hue-rotate('+( v - 40 )+'deg)';
 		}
 		
-		return '';
+		return 'none';
 	}
 	
 	static BasicEntityBreakEffect( that, debris_count=3, max_rand_velocity=3, volume=0.25, pitch=1 )

@@ -458,6 +458,8 @@ class sdCharacter extends sdEntity
 		this.s = 100; // Scale, %
 		
 		this._socket = null; // undefined causes troubles
+		this._my_hash = undefined;
+		this._save_file = null;
 		/*this._pos_corr_x = this.x;
 		this._pos_corr_y = this.y;
 		this._pos_corr_until = 0;*/

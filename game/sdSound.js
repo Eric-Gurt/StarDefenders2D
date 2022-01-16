@@ -293,7 +293,7 @@ class sdSound
 				else
 				if ( sdEntity.entities[ i ].GetClass() === 'sdMatterAmplifier' )
 				{
-					if ( sdEntity.entities[ i ].matter_max > 0 )
+					if ( sdEntity.entities[ i ].matter_max > 0 || sdEntity.entities[ i ].crystal )
 					count_amplifier_loop += 0.5 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
 				}
 				else

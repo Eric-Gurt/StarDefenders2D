@@ -3117,7 +3117,8 @@ io.on("connection", (socket) =>
 			{
 				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdStorage.access_range ) >= 0 )
 				{
-					if ( ent.crystals === 2 )
+					//if ( ent.crystals === 2 )
+					if ( ent.crystal0 && ent.crystal1 )
 					ent.CombineCrystals();
 					else
 					socket.SDServiceMessage( 'Crystal combiner needs 2 crystals to combine them' );

@@ -109,6 +109,9 @@ class sdStorage extends sdEntity
 	get mass() { return this.type === sdStorage.TYPE_PORTAL ? 10 : 30; }
 	Impulse( x, y )
 	{
+		if ( this.held_by )
+		return;
+			
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		
 		this.sx += x / this.mass;

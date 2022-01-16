@@ -2566,7 +2566,15 @@ class sdEntity
 							snapshot[ prop ] = null;
 						}
 						
+						//if ( typeof this[ prop ] !== 'undefined' ) // Disallow creation of new properties
+						if ( this.hasOwnProperty( prop ) )
 						this[ prop ] = snapshot[ prop ];
+						else
+						{
+							trace('[1]Rejecting creaton of ',prop,'on',this.GetClass(),'(probably and old version property)');
+							//trace( this );
+							//throw new Error();
+						}
 					}
 					else
 					{
@@ -2590,7 +2598,17 @@ class sdEntity
 									
 								
 							)
-						this[ prop ] = snapshot[ prop ];
+						{
+							//if ( typeof this[ prop ] !== 'undefined' ) // Disallow creation of new properties
+							if ( this.hasOwnProperty( prop ) )
+							this[ prop ] = snapshot[ prop ];
+							else
+							{
+								trace('[2]Rejecting creaton of ',prop,'on',this.GetClass(),'(probably and old version property)');
+								//trace( this );
+								//throw new Error();
+							}
+						}
 					}
 				}
 			}
@@ -2661,7 +2679,7 @@ class sdEntity
 				sdWorld.ApplyDrawOperations( null, this.d );
 			}
 			
-			this.onServerSideSnapshotLoaded();
+			this.onServerSideSnapshotLoaded( snapshot );
 		}
 		else
 		{

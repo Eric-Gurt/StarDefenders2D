@@ -176,7 +176,7 @@ class sdWeather extends sdEntity
 		{
 			let n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
 			let old_n = n;
-			let daily_event_count = Math.min( allowed_event_ids.length, 4 );
+			let daily_event_count = Math.min( allowed_event_ids.length, 6 );
 			let time = 1000;
 			while ( daily_event_count > 0 && time > 0 )
 			{
@@ -1266,10 +1266,11 @@ class sdWeather extends sdEntity
 			//return; // Hack
 
 			this.day_time += GSPEED;
-			if ( this.day_time > 30 * 60 * 24 )
+			//if ( this.day_time > 30 * 60 * 24 ) // While in sandbox mode and not that many events - might seem too boring. Also It does not change when nobody is online which can effectively make it rotate on weekly basis
+			if ( this.day_time > 30 * 60 * 3 )
 			{
-			this.day_time = 0;
-			this.GetDailyEvents();
+				this.day_time = 0;
+				this.GetDailyEvents();
 			}
 			
 			if ( this._invasion ) // Invasion event
