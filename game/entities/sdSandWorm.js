@@ -788,11 +788,11 @@ class sdSandWorm extends sdEntity
 				
 			if ( from_entity.is( sdBlock ) )
 			if ( from_entity.material === sdBlock.MATERIAL_GROUND )
-			if ( this.kind !== sdSandWorm.KIND_CORRUPTED_WORM )
+			//if ( this.kind !== sdSandWorm.KIND_CORRUPTED_WORM )
 			return;
-			else
-			if ( !this.towards_head ) // Is head
-			from_entity.Corrupt();
+			//else
+			//if ( !this.towards_head ) // Is head
+			//from_entity.Corrupt();
 			
 			this._last_attack = sdWorld.time;
 
