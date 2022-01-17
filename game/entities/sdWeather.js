@@ -1267,7 +1267,7 @@ class sdWeather extends sdEntity
 
 			this.day_time += GSPEED;
 			//if ( this.day_time > 30 * 60 * 24 ) // While in sandbox mode and not that many events - might seem too boring. Also It does not change when nobody is online which can effectively make it rotate on weekly basis
-			if ( this.day_time > 30 * 60 * 3 )
+			if ( this.day_time > 30 * 60 * 15 ) // Every 15 minutes
 			{
 				this.day_time = 0;
 				this.GetDailyEvents();

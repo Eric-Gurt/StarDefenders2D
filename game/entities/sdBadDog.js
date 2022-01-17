@@ -387,7 +387,11 @@ class sdBadDog extends sdEntity
 
 					if ( !this.master )
 					if ( this.hea < this.hmax * this._retreat_hp_mult )
-					this.side *= -1;
+					{
+						this.side *= -1;
+						pathfinding_result.act_x *= -1;
+						pathfinding_result.act_y *= -1;
+					}
 
                     if ( in_water && pathfinding_result )
                     {
@@ -408,12 +412,12 @@ class sdBadDog extends sdEntity
 							//let dy = ( this._current_target.y - this.y );
 							let dx = this.side;
 
-							if ( !this.master )
+							/*if ( !this.master )
 							if ( this.hea < this.hmax * this._retreat_hp_mult )
 							{
 								dx *= -1;
 								//dy *= -1;
-							}
+							}*/
 
 							//dy -= Math.abs( dx ) * 0.5;
 

@@ -210,7 +210,8 @@ class sdPathFinding
 				let y = Math.floor( this.traveler.y / 16 + dy ) * 16;
 				
 				best_is_wall = null;
-				if ( sdWorld.CheckWallExistsBox( x + 1, y + 1, x + 15, y + 15, null, null, sdCom.com_visibility_unignored_classes, null ) )
+				//if ( sdWorld.CheckWallExistsBox( x + 1, y + 1, x + 15, y + 15, null, null, sdCom.com_visibility_unignored_classes, null ) )
+				if ( sdWorld.CheckWallExistsBox( x + 1, y + 1, x + 15, y + 15, this.traveler, null, null, null ) ) // Attack anything really - there can be even crystals on a way
 				{
 					best_is_wall = sdWorld.last_hit_entity;
 				}

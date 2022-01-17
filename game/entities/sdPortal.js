@@ -149,6 +149,7 @@ class sdPortal extends sdEntity
 	{
 		if ( sdWorld.is_server )
 		if ( this._output )
+		if ( !this._output._is_being_removed )
 		if ( this._teleport_delay <= 0 )
 		//if ( from_entity.hard_collision )
 		if ( typeof from_entity.sx !== 'undefined' )

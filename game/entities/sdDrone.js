@@ -12,6 +12,8 @@ import sdCube from './sdCube.js';
 import sdCharacter from './sdCharacter.js';
 import sdSpider from './sdSpider.js';
 
+import sdPathFinding from '../ai/sdPathFinding.js';
+
 class sdDrone extends sdEntity
 {
 	static init_class()
@@ -74,6 +76,7 @@ class sdDrone extends sdEntity
 		this.death_anim = 0;
 		
 		this._current_target = null;
+		this._pathfinding = null;
 		
 		this.hurt_timer = 0;
 
@@ -97,6 +100,19 @@ class sdDrone extends sdEntity
 		sdDrone.drones_tot++;
 		
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
+	}
+	
+	SetTarget( ent )
+	{
+		if ( ent !== this._current_target )
+		{
+			this._current_target = ent;
+
+			if ( ent )
+			this._pathfinding = new sdPathFinding({ target: ent, traveler: this, attack_range: 240, options: [ sdPathFinding.OPTION_CAN_FLY, sdPathFinding.OPTION_CAN_GO_THROUGH_WALLS, sdPathFinding.OPTION_CAN_SWIM ] });
+			else
+			this._pathfinding = null;
+		}
 	}
 	CanAttackEnt( ent )
 	{
@@ -150,7 +166,8 @@ class sdDrone extends sdEntity
 			{
 				if ( this.CanAttackEnt( character ) )
 				{
-					this._current_target = character;
+					//this._current_target = character;
+					this.SetTarget( character );
 				
 					if ( this.type === 2 )
 					sdSound.PlaySound({ name:'spider_welcomeC', x:this.x, y:this.y, volume: 1, pitch:2 });
@@ -186,11 +203,17 @@ class sdDrone extends sdEntity
 		if ( initiator )
 		{
 			if ( !initiator.is( sdDrone ) && initiator._ai_team !== this._ai_team )
-			if ( !initiator.is( sdCharacter ) && initiator._ai_team !== this._ai_team )
-			this._current_target = initiator;
+			if ( !initiator.IsPlayerClass() && initiator._ai_team !== this._ai_team )
+			{
+				//this._current_target = initiator;
+				this.SetTarget( initiator );
+			}
 			else
-			if ( ( initiator.is( sdDrone ) || initiator.is( sdCharacter ) ) && initiator._ai_team !== this._ai_team )
-			this._current_target = initiator;
+			if ( ( initiator.is( sdDrone ) || initiator.IsPlayerClass() ) && initiator._ai_team !== this._ai_team )
+			{
+				//this._current_target = initiator;
+				this.SetTarget( initiator );
+			}
 		}
 
 		dmg = Math.abs( dmg );
@@ -319,6 +342,8 @@ class sdDrone extends sdEntity
 	{
 		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
 		
+		let pathfinding_result = null;
+			
 		if ( this._hea <= 0 )
 		{
 			//this.attack_an += this.sx / 6;
@@ -332,10 +357,18 @@ class sdDrone extends sdEntity
 		}
 		else
 		{
+
+			// It makes sense to call it at all times because it also handles wall attack logic
+			if ( this._current_target )
+			pathfinding_result = this._pathfinding.Think( GSPEED );
+			
 			if ( this._current_target )
 			{
 				if ( this._current_target._is_being_removed || !this._current_target.IsVisible( this ) || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdDrone.max_seek_range + 32 )
-				this._current_target = null;
+				{
+					//this._current_target = null;
+					this.SetTarget( null );
+				}
 				else
 				{
 					if ( this.attack_frame < 1 ) // Not attacking
@@ -347,17 +380,36 @@ class sdDrone extends sdEntity
 					{
 						this._last_jump = sdWorld.time;
 
-						let dx = ( this._current_target.x + ( this._current_target.sx || 0 ) * 10 - this.x - this.sx * 10 );
-						let dy = ( this._current_target.y + ( this._current_target.sy || 0 ) * 10 - this.y - this.sy * 10 );
+						//let dx = ( this._current_target.x + ( this._current_target.sx || 0 ) * 10 - this.x - this.sx * 10 );
+						//let dy = ( this._current_target.y + ( this._current_target.sy || 0 ) * 10 - this.y - this.sy * 10 );
+						
+						let dx = 0;
+						let dy = 0;
+						
+						if ( pathfinding_result && pathfinding_result.attack_target === this._current_target )
+						{
+							dx = ( this._current_target.x + ( this._current_target.sx || 0 ) * 10 - this.x - this.sx * 10 );
+							dy = ( this._current_target.y + ( this._current_target.sy || 0 ) * 10 - this.y - this.sy * 10 );
+						}
+						else
+						if ( pathfinding_result )
+						{
+							dx = pathfinding_result.act_x;
+							dy = pathfinding_result.act_y;
+							
+							dx += Math.random() * 0.25 - 0.125;
+							dy += Math.random() * 0.25 - 0.125;
+						}
 
 						// Bad formula but whatever
-						dx += Math.random() * 40 - 20;
-						dy += -Math.random() * 20;
+						//dx += Math.random() * 40 - 20;
+						//dy += -Math.random() * 20;
+						//dx += Math.random() * 0.25 - 0.125;
+						//dy += Math.random() * 0.25 - 0.125;
 
 						let di = sdWorld.Dist2D_Vector( dx, dy );
 						if ( di > 2 )
 						{
-
 							dx /= di;
 							dy /= di;
 
@@ -381,14 +433,12 @@ class sdDrone extends sdEntity
 								}
 							}
 
-
 							if ( this.type !== 5 )
 							if ( di < 100 + Math.random() * 100 )
 							{
 								dx *= -0.2;
 								dy *= -0.2;
 							}
-
 						}
 
 						this.sx += dx;
@@ -471,18 +521,18 @@ class sdDrone extends sdEntity
 
 			
 			//if ( this.sy > 0 )
-			if ( !this.CanMoveWithoutOverlap( this.x, this.y + 48, 0 ) )
+			/*if ( !this.CanMoveWithoutOverlap( this.x, this.y + 48, 0 ) )
 			{
 				this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.8, GSPEED ); // Slowdown
 				this.sy -= 0.4 * GSPEED; // More than gravity
-			}
+			}*/
 		
 			if ( this._current_target )
 			{
 				// Doodging
 				if ( this.type === 2 )
 				{
-					if ( this._current_target.is( sdCharacter ) )
+					if ( this._current_target.IsPlayerClass() )
 					if ( Math.random() < 0.3 || ( 
 						this._current_target._inventory[ this._current_target.gun_slot ] && 
 						!sdGun.classes[ this._current_target._inventory[ this._current_target.gun_slot ].class ].is_sword && 
@@ -522,7 +572,7 @@ class sdDrone extends sdEntity
 				{
 					this._last_attack = sdWorld.time; // So it is not so much calc intensive
 
-					let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 240, null, [ 'sdCharacter', 'sdDrone', 'sdEnemyMech' ] );
+					let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 240, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdDrone', 'sdEnemyMech' ] );
 					let from_entity;
 
 					let nears = [];
@@ -530,23 +580,23 @@ class sdDrone extends sdEntity
 					{
 						from_entity = nears_raw[ i ];
 
-						if ( ( ( from_entity.GetClass() === 'sdCharacter' && from_entity._ai_team !== this._ai_team || this._current_target === from_entity ) && ( from_entity.hea || from_entity._hea ) > 0 ) )
+						if ( ( ( from_entity.IsPlayerClass() && from_entity._ai_team !== this._ai_team || this._current_target === from_entity ) && ( from_entity.hea || from_entity._hea ) > 0 ) )
 						{
 							let rank = Math.random() * 0.1;
 
-							nears.push( { ent: from_entity, rank: rank } );
+							nears.push( { ent: from_entity, rank: rank, ignore_line_of_sight: false } );
 						}
 						if ( from_entity.GetClass() === 'sdDrone' && from_entity._ai_team !== this._ai_team )
 						{
 							let rank = Math.random() * 0.1;
 
-							nears.push( { ent: from_entity, rank: rank } );
+							nears.push( { ent: from_entity, rank: rank, ignore_line_of_sight: false } );
 						}
 						if ( from_entity.GetClass() === 'sdEnemyMech' && from_entity._ai_team !== this._ai_team )
 						{
 							let rank = Math.random() * 0.1;
 
-							nears.push( { ent: from_entity, rank: rank } );
+							nears.push( { ent: from_entity, rank: rank, ignore_line_of_sight: false } );
 						}
 					}
 
@@ -557,6 +607,11 @@ class sdDrone extends sdEntity
 					//sdWorld.shuffleArray( nears );
 
 					//let hits_left = 4;
+					
+					if ( pathfinding_result && pathfinding_result.attack_target )
+					{
+						nears.push( { ent: pathfinding_result.attack_target, rank: 0, ignore_line_of_sight: true } ); // Not a priority usually
+					}
 
 					for ( var i = 0; i < nears.length; i++ )
 					{
@@ -565,7 +620,7 @@ class sdDrone extends sdEntity
 						let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
 						let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 
-						if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
+						if ( nears[ i ].ignore_line_of_sight || sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
 						{
 							let dx = xx - this.x;
 							let dy = yy - this.y;
@@ -630,7 +685,7 @@ class sdDrone extends sdEntity
 								bullet_obj.sx *= 18;
 								bullet_obj.sy *= 18;
 
-								bullet_obj._damage = 15;
+								bullet_obj._damage = 10; // 15 was too deadly
 								bullet_obj.color = '#00aaff';
 
 
