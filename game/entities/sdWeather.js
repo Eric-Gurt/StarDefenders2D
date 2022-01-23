@@ -1195,7 +1195,7 @@ class sdWeather extends sdEntity
 					req_char++;
 				}
 			}
-			chance = req_char / char; // Chance to execute this event depends on how many players reached 15+
+			chance = ( req_char / char ) * 0.5; // Chance to execute this event depends on how many players reached 15+, max is 50% chance
 
 			if ( Math.random() < chance )
 			{
