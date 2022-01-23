@@ -11,6 +11,7 @@ import sdBullet from './sdBullet.js';
 import sdCube from './sdCube.js';
 import sdCharacter from './sdCharacter.js';
 import sdSpider from './sdSpider.js';
+import sdJunk from './sdJunk.js';
 
 import sdPathFinding from '../ai/sdPathFinding.js';
 
@@ -39,6 +40,10 @@ class sdDrone extends sdEntity
 		sdDrone.img_drone_alien3 = sdWorld.CreateImageFromFile( 'drone_alien3' );
 		//sdDrone.img_drone_alien3_attack = sdWorld.CreateImageFromFile( 'drone_alien3_attack' );
 		//sdDrone.img_drone_alien3_destroyed = sdWorld.CreateImageFromFile( 'drone_alien3_destroyed' );
+
+		sdDrone.img_drone_council = sdWorld.CreateImageFromFile( 'drone_council' );
+		sdDrone.img_drone_council_attack = sdWorld.CreateImageFromFile( 'drone_council_attack' );
+		sdDrone.img_drone_council_destroyed = sdWorld.CreateImageFromFile( 'drone_council_destroyed' );
 		
 		sdDrone.death_duration = 15;
 		sdDrone.post_death_ttl = 30 * 10;
@@ -68,7 +73,7 @@ class sdDrone extends sdEntity
 		
 		this.type = params.type || 1;
 		
-		this._hmax =  this.type === 5 ? 100 : this.type === 4 ? 4000 : this.type === 3 ? 1000 : this.type === 1 ? 130 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
+		this._hmax =  this.type === 6 ? 400 : this.type === 5 ? 100 : this.type === 4 ? 4000 : this.type === 3 ? 1000 : this.type === 1 ? 130 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
 		this._hea = this._hmax;
 		this._ai_team = params._ai_team || 1;
 
@@ -199,7 +204,7 @@ class sdDrone extends sdEntity
 		if ( initiator )
 		if ( initiator.is( sdSpider ) || ( initiator.is( sdDrone ) && initiator.type === 2 ) )
 		return;
-
+		if ( this.type !== 6 ) // Council support drones don't swap targets
 		if ( initiator )
 		{
 			if ( !initiator.is( sdDrone ) && initiator._ai_team !== this._ai_team )
@@ -238,7 +243,7 @@ class sdDrone extends sdEntity
 			if ( typeof initiator._score !== 'undefined' )
 			initiator._score += Math.round( this._hmax / 80 );
 	
-			if ( this.type === 1 )
+			if ( this.type === 1 || this.type === 6 )
 			{
 				sdWorld.SendEffect({ 
 					x:this.x, 
@@ -292,7 +297,7 @@ class sdDrone extends sdEntity
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
 					let gun;
-					if ( this.type === 3 )
+					if ( this.type === 3 || this.type == 4 )
 					gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_ALIEN_ENERGY_RIFLE });
 					else
 					gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_METAL_SHARD });
@@ -347,7 +352,6 @@ class sdDrone extends sdEntity
 		if ( this._hea <= 0 )
 		{
 			//this.attack_an += this.sx / 6;
-			
 			this.attack_an += -this.sx * 20 * GSPEED * this.side;
 
 			if ( this.death_anim < sdDrone.death_duration + sdDrone.post_death_ttl )
@@ -515,7 +519,7 @@ class sdDrone extends sdEntity
 			{
 				let dx = this._current_target.x - this.x;
 				let dy = this._current_target.y - this.y;
-				
+				if ( this.type !== 6 )
 				this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
 			}
 
@@ -639,7 +643,7 @@ class sdDrone extends sdEntity
 							}
 
 							this.side = ( dx > 0 ) ? 1 : -1;
-
+							if ( this.type !== 6 )
 							this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
 
 							//this.an = Math.atan2( this._target.y + this._target.sy * di / vel - this.y, this._target.x + this._target.sx * di / vel - this.x ) * 100;
@@ -759,6 +763,39 @@ class sdDrone extends sdEntity
 								if ( di < 32 )
 								this.Damage( 1000 );
 							}
+							if ( this.type === 6 ) // Council support drones, heal and repair the council + council bomb which makes them a priority target
+							{
+								let entities = sdWorld.GetAnythingNear( this.x, this.y, 128, null, [ 'sdCharacter', 'sdJunk' ] );
+								let att_anim = false;
+								for ( let i = 0; i < entities.length; i++ )
+								{
+									if ( entities[ i ].GetClass() === 'sdCharacter' ) // Is it a character?
+									{
+										if ( entities[ i ]._ai_team === 3 ) // Does it belong to Council faction?
+										if ( entities[ i ].armor < entities[ i ].armor_max ) // Is it missing armor?
+										{
+											entities[ i ].armor = Math.min( entities[ i ].armor + 250, entities[ i ].armor_max ); // In that case, repair their armor
+											att_anim = true;
+											sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x + ( entities[ i ].hitbox_x2 / 2 ), y2:entities[ i ].y + ( entities[ i ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#fff000' });
+										}
+									}
+									if ( entities[ i ].GetClass() === 'sdJunk' ) // Is it a junk entity?
+									{
+										if ( entities[ i ].type === 4 ) // Is it a council bomb?
+										if ( entities[ i ].hea < entities[ i ].hmax ) // Does it need repairing?
+										{
+											entities[ i ].hea = Math.min( entities[ i ].hea + 1000, entities[ i ].hmax ); // In that case, repair the bomb
+											att_anim = true;
+											sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x + ( entities[ i ].hitbox_x2 / 2 ), y2:entities[ i ].y + ( entities[ i ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#fff000' });
+										}
+									}
+								}
+								if ( att_anim === true )
+								{
+									this.attack_frame = 2;
+									this._attack_timer = 60;
+								}
+							}
 							break;
 						}
 					}
@@ -787,6 +824,8 @@ class sdDrone extends sdEntity
 			sdEntity.Tooltip( ctx, "Sarronian Detonator Container" );
 			if ( this.type === 5 )
 			sdEntity.Tooltip( ctx, "Sarronian Detonator" );
+			if ( this.type === 6 )
+			sdEntity.Tooltip( ctx, "Council Support Drone" );
 		}
 	}
 	Draw( ctx, attached )
@@ -816,6 +855,8 @@ class sdDrone extends sdEntity
 			ctx.drawImageFilterCache( sdDrone.img_drone_alien_destroyed, - 16, - 16, 32, 32 );
 			if ( this.type === 4  )
 			ctx.drawImageFilterCache( sdDrone.img_drone_alien2_destroyed, - 16, - 16, 32, 32 );
+			if ( this.type === 6  )
+			ctx.drawImageFilterCache( sdDrone.img_drone_council_destroyed, - 16, - 16, 32, 32 );
 		}
 		else
 		{
@@ -829,6 +870,8 @@ class sdDrone extends sdEntity
 				ctx.drawImageFilterCache( sdDrone.img_drone_alien_attack, - 16, - 16, 32, 32 );
 				if ( this.type === 4  )
 				ctx.drawImageFilterCache( sdDrone.img_drone_alien2_attack, - 16, - 16, 32, 32 );
+				if ( this.type === 6  )
+				ctx.drawImageFilterCache( sdDrone.img_drone_council_attack, - 16, - 16, 32, 32 );
 			}
 			else
 			{
@@ -840,6 +883,8 @@ class sdDrone extends sdEntity
 				ctx.drawImageFilterCache( sdDrone.img_drone_alien2, - 16, - 16, 32, 32 );
 				if ( this.type === 5  )
 				ctx.drawImageFilterCache( sdDrone.img_drone_alien3, - 16, - 16, 32, 32 );
+				if ( this.type === 6  )
+				ctx.drawImageFilterCache( sdDrone.img_drone_council, - 16, - 16, 32, 32 );
 				if ( this.type === 2  )
 				{
 					if ( this.hurt_timer > 0 )

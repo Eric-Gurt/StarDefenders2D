@@ -12,6 +12,7 @@ import sdLost from './sdLost.js';
 import sdCrystal from './sdCrystal.js';
 import sdRescueTeleport from './sdRescueTeleport.js';
 import sdCharacter from './sdCharacter.js';
+import sdDrone from './sdDrone.js';
 import sdTask from './sdTask.js';
 import sdWeather from './sdWeather.js';
 
@@ -738,6 +739,74 @@ class sdJunk extends sdEntity
 					}
 					councils++;
 					ais++;
+					}
+					// Spawn a council support drone
+					if ( this.hea < ( this.hmax * 0.75 ) )
+
+					if ( sdDrone.drones_tot < 20 )
+					{
+
+						let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: 6});
+
+						sdEntity.entities.push( drone );
+
+						{
+							let x,y;
+							let tr = 1000;
+							do
+							{
+								if ( left_side )
+								{
+									x = this.x + 16 + 16 + ( Math.random() * 192 );
+
+									if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 + ( Math.random() * 192 );
+
+									if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 - ( Math.random() * 192 );
+								}
+								else
+								{
+									x = this.x - 16 - 16 - ( Math.random() * 192 );
+
+									if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 + ( Math.random() * 192 );
+
+									if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 - ( Math.random() * 192 );
+								}
+
+								y = this.y + 192 - ( Math.random() * ( 384 ) );
+								if ( y < sdWorld.world_bounds.y1 + 32 )
+								y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+								if ( y > sdWorld.world_bounds.y2 - 32 )
+								y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+								if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
+								//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+								{
+									drone.x = x;
+									drone.y = y;
+
+									drone.SetTarget( this );
+
+									sdWorld.UpdateHashPosition( drone, false );
+									//console.log('Drone spawned!');
+									break;
+								}
+
+
+								tr--;
+								if ( tr < 0 )
+								{
+									drone.remove();
+									drone._broken = false;
+									break;
+								}
+							} while( true );
+						}
 					}
 				}
 			}
