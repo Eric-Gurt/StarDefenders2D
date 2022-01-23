@@ -568,7 +568,7 @@ class sdJunk extends sdEntity
 
 			if ( this._spawn_ent_in <= 0 && this.detonation_in > 30 * 60 )
 			{
-				this._spawn_ent_in = 450;
+				this._spawn_ent_in = 480 - Math.min( 180, 30 * sdWorld.GetPlayingPlayersCount() );
 				let ais = 0;
 				//let percent = 0;
 				for ( var i = 0; i < sdCharacter.characters.length; i++ )
@@ -580,13 +580,15 @@ class sdJunk extends sdEntity
 						ais++;
 						//console.log(ais);
 					}
+				}
+				{
 
 					let councils = 0;
-					let councils_tot = 2;
+					let councils_tot = Math.min( 6, Math.max( 2, 1 + sdWorld.GetPlayingPlayersCount() ) );
 
 					let left_side = ( Math.random() < 0.5 );
 
-					while ( councils < councils_tot && ais < 3 )
+					while ( councils < councils_tot && ais < Math.min( 6, Math.max( 3, sdWorld.GetPlayingPlayersCount() ) ) )
 					{
 
 						let character_entity = new sdCharacter({ x:0, y:0 });
