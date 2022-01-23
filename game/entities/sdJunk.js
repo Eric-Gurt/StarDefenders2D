@@ -740,11 +740,15 @@ class sdJunk extends sdEntity
 					councils++;
 					ais++;
 					}
+				}
+				{
 					// Spawn a council support drone
 					if ( this.hea < ( this.hmax * 0.75 ) )
 
 					if ( sdDrone.drones_tot < 20 )
 					{
+						
+						let left_side = ( Math.random() < 0.5 );
 
 						let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: 6});
 
