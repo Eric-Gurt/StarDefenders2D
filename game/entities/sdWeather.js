@@ -1998,7 +1998,6 @@ class sdWeather extends sdEntity
 				}
 			}
 			ctx.globalAlpha = 1;
-			ctx.filter = 'none';
 		}
 	}
 	
