@@ -58,6 +58,7 @@ class sdWeather extends sdEntity
 		sdWeather.img_rain = sdWorld.CreateImageFromFile( 'rain' );
 		sdWeather.img_rain_water = sdWorld.CreateImageFromFile( 'rain_water' );
 		sdWeather.img_snow = sdWorld.CreateImageFromFile( 'snow' );
+		sdWeather.img_crystal_shard = sdWorld.CreateImageFromFile( 'crystal_shard' );
 		sdWeather.img_scary_mode = sdWorld.CreateImageFromFile( 'scary_mode' );
 		
 		sdWeather.only_instance = null;
@@ -82,6 +83,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_LARGE_ANTICRYSTAL =			event_counter++; // 16
 		sdWeather.EVENT_SARRORNIANS =				event_counter++; // 17
 		sdWeather.EVENT_COUNCIL_BOMB =				event_counter++; // 18
+		sdWeather.EVENT_MATTER_RAIN =				event_counter++; // 19
 		
 		sdWeather.last_crystal_near_quake = null; // Used to damage left over crystals. Could be used to damage anything really
 		
@@ -123,6 +125,7 @@ class sdWeather extends sdEntity
 		this.raining_intensity = 0;
 		this.acid_rain = 0; // 0 or 1
 		this.snow = 0; // 0 or 1
+		this.matter_rain = 0; // 0 or 1
 		
 		this._asteroid_spam_amount = 0;
 		
@@ -142,6 +145,7 @@ class sdWeather extends sdEntity
 		this._asteroid_timer_scale_next = 0;
 		
 		this.day_time = 30 * 60 * 24 / 3;
+		this._event_rotation_time = 0; // Time until potential events rotate
 		
 		// World bounds, but slow
 		this.x1 = 0;
@@ -158,7 +162,7 @@ class sdWeather extends sdEntity
 	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
 	{
 		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
-		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18 ];
+		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 ];
 				
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -216,7 +220,7 @@ class sdWeather extends sdEntity
 	ExecuteEvent( r = -1 ) // Used to be under OnThink ( GSPEED ) but swapped for this so any event can be executed at any time, from any entity
 	{
 		//console.log( r );
-		if ( r === 0 || r === 14 || r === 15 )
+		if ( r === 0 || r === 14 || r === 15 || r === 19 )
 		{
 			this._rain_amount = 30 * 15 * ( 1 + Math.random() * 2 ); // start rain for ~15 seconds
 		}
@@ -1015,24 +1019,35 @@ class sdWeather extends sdEntity
 
 		if ( r === 0 || 
 			 r === 14 || 
-			 r === 15 )
+			 r === 15 ||
+			 r === 19 )
 		if ( this.raining_intensity <= 0 )
 		{
 			if ( r === 0 )
 			{
 				this.acid_rain = 1;
 				this.snow = 0;
+				this.matter_rain = 0;
 			}
 		
 			if ( r === 14 )
 			{
 				this.acid_rain = 0;
 				this.snow = 0;
+				this.matter_rain = 0;
 			}
 
 			if ( r === 15 )
 			{
 				this.snow = 1;
+				this.acid_rain = 0;
+				this.matter_rain = 0;
+			}
+
+			if ( r === 19 )
+			{
+				this.matter_rain = 1;
+				this.snow = 0;
 				this.acid_rain = 0;
 			}
 		}
@@ -1266,10 +1281,15 @@ class sdWeather extends sdEntity
 			//return; // Hack
 
 			this.day_time += GSPEED;
+			this._event_rotation_time += GSPEED;
 			//if ( this.day_time > 30 * 60 * 24 ) // While in sandbox mode and not that many events - might seem too boring. Also It does not change when nobody is online which can effectively make it rotate on weekly basis
-			if ( this.day_time > 30 * 60 * 15 ) // Every 15 minutes
+			if ( this.day_time > 30 * 60 * 24 ) // This is the day time cycle, 24 minutes
 			{
 				this.day_time = 0;
+			}
+			if ( this._event_rotation_time > 30 * 60 * 15 ) // Event rotation cycle
+			{
+				this._event_rotation_time = 0;
 				this.GetDailyEvents();
 			}
 			
@@ -1528,13 +1548,28 @@ class sdWeather extends sdEntity
 								}
 							}
 							
-							if ( !this.snow )
+							if ( !this.snow && !this.matter_rain )
 							if ( Math.random() < 0.01 )
 							{
 								let water = new sdWater({ x:Math.floor(sdWorld.last_hit_entity.x/16)*16, y:Math.floor(sdWorld.last_hit_entity.y/16)*16 - 16, type: this.acid_rain ? sdWater.TYPE_ACID : sdWater.TYPE_WATER });
 								sdEntity.entities.push( water );
 							}
 						}
+					}
+				}
+
+				if ( this.matter_rain )
+				for ( var i = 0; i < sdWorld.sockets.length; i++ )
+				if ( sdWorld.sockets[ i ].character )
+				if ( !sdWorld.sockets[ i ].character._is_being_removed )
+				{
+					if ( sdWorld.sockets[ i ].character.driver_of === null )
+					if ( this.TraceDamagePossibleHere( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y ) )
+					{
+						//if ( sdWorld.sockets[ i ].character.pain_anim <= 0 && sdWorld.sockets[ i ].character.hea > 0 )
+						//sdWorld.SendEffect({ x:sdWorld.sockets[ i ].character.x, y:sdWorld.sockets[ i ].character.y + sdWorld.sockets[ i ].character._hitbox_y1, type:sdWorld.sockets[ i ].character.GetBleedEffect(), filter:sdWorld.sockets[ i ].character.GetBleedEffectFilter() });
+
+						sdWorld.sockets[ i ].character.matter = Math.min( sdWorld.sockets[ i ].character.matter + ( GSPEED * this.raining_intensity / 120 ), sdWorld.sockets[ i ].character.matter_max );
 					}
 				}
 				
@@ -1883,6 +1918,8 @@ class sdWeather extends sdEntity
 		if ( this.raining_intensity > 0 )
 		{
 			ctx.globalAlpha = Math.pow( this.raining_intensity / 50, 1 );
+			if ( this.matter_rain ) // Is it raining crystal shards?
+			ctx.globalAlpha = 1;
 			for ( var i = 0; i < sdWeather.pattern.length * this.raining_intensity / 100; i++ )
 			{
 				var p = sdWeather.pattern[ i ];
@@ -1894,7 +1931,7 @@ class sdWeather extends sdEntity
 				{
 					xx = sdWorld.mod( p.x * sdRenderer.screen_width + Math.sin( ( sdWorld.time * 0.001 + i ) )  * 5 - sdWorld.camera.x, sdRenderer.screen_width ) + sdWorld.camera.x - sdRenderer.screen_width / sdWorld.camera.scale;
 				    yy = sdWorld.mod( p.y * sdRenderer.screen_height + ( sdWorld.time * 0.01 ) - sdWorld.camera.y, sdRenderer.screen_height ) + sdWorld.camera.y - sdRenderer.screen_height / sdWorld.camera.scale;
-			    }
+				}
 				else
 				{
 					xx = sdWorld.mod( p.x * sdRenderer.screen_width - sdWorld.camera.x, sdRenderer.screen_width ) + sdWorld.camera.x - sdRenderer.screen_width / sdWorld.camera.scale;
@@ -1912,6 +1949,7 @@ class sdWeather extends sdEntity
 					{
 						p.last_vis = this.TraceDamagePossibleHere( xx, yy, 2 );
 						if ( !this.snow )
+						if ( !this.matter_rain )
 						if ( this.raining_intensity >= 30 )
 						if ( !p.last_vis )
 						{
@@ -1943,6 +1981,12 @@ class sdWeather extends sdEntity
 					else
 					if ( this.acid_rain )
 					ctx.drawImageFilterCache( sdWeather.img_rain, 
+						xx - 16, 
+						yy - 16, 
+						32,32 );
+					else
+					if ( this.matter_rain )
+					ctx.drawImageFilterCache( sdWeather.img_crystal_shard, 
 						xx - 16, 
 						yy - 16, 
 						32,32 );
