@@ -125,7 +125,7 @@ class sdWeather extends sdEntity
 		this.raining_intensity = 0;
 		this.acid_rain = 0; // 0 or 1
 		this.snow = 0; // 0 or 1
-		this.matter_rain = 0; // 0 or 1
+		this.matter_rain = 0; // 0,1 or 2 ( 1 = crystal shard rain, 2 = anti-crystal shard rain )
 		
 		this._asteroid_spam_amount = 0;
 		
@@ -1046,9 +1046,18 @@ class sdWeather extends sdEntity
 
 			if ( r === 19 )
 			{
-				this.matter_rain = 1;
-				this.snow = 0;
-				this.acid_rain = 0;
+				if ( Math.random() < 0.8 )
+				{
+					this.matter_rain = 1;
+					this.snow = 0;
+					this.acid_rain = 0;
+				}
+				else
+				{
+					this.matter_rain = 2;
+					this.snow = 0;
+					this.acid_rain = 0;
+				}
 			}
 		}
 
@@ -1195,9 +1204,9 @@ class sdWeather extends sdEntity
 					req_char++;
 				}
 			}
-			chance = ( req_char / char ) * 0.5; // Chance to execute this event depends on how many players reached 15+, max is 50% chance
+			chance = req_char / char; // Chance to execute this event depends on how many players reached 15+
 
-			if ( Math.random() < chance )
+			if ( Math.random() < ( chance * 0.5 ) ) // 50% chance when all online players are over level 15
 			{
 				let instances = 0;
 				let instances_tot = 1;
@@ -1569,7 +1578,10 @@ class sdWeather extends sdEntity
 						//if ( sdWorld.sockets[ i ].character.pain_anim <= 0 && sdWorld.sockets[ i ].character.hea > 0 )
 						//sdWorld.SendEffect({ x:sdWorld.sockets[ i ].character.x, y:sdWorld.sockets[ i ].character.y + sdWorld.sockets[ i ].character._hitbox_y1, type:sdWorld.sockets[ i ].character.GetBleedEffect(), filter:sdWorld.sockets[ i ].character.GetBleedEffectFilter() });
 
+						if ( this.matter_rain === 1 )
 						sdWorld.sockets[ i ].character.matter = Math.min( sdWorld.sockets[ i ].character.matter + ( GSPEED * this.raining_intensity / 120 ), sdWorld.sockets[ i ].character.matter_max );
+						if ( this.matter_rain === 2 )
+						sdWorld.sockets[ i ].character.matter = Math.max( sdWorld.sockets[ i ].character.matter - ( GSPEED * this.raining_intensity / 60 ), 0 );
 					}
 				}
 				
@@ -1852,7 +1864,7 @@ class sdWeather extends sdEntity
 			{
 				//this._time_until_event = Math.random() * 30 * 60 * 8; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
 				//this._time_until_event = Math.random() * 30 * 60 * 3; // Changed after sdWeather logic was being called twice, which caused events to happen twice as frequently
-				this._time_until_event = Math.random() * 30 * 60 * 3 * ( 3 / 2 ); // Changed after introducing "daily events" since there is only up to 5 events that can happen to prevent them overflowing the map for new players
+				this._time_until_event = Math.random() * 30 * 60 * 3 * ( 3 / 2 ); // Changed after introducing "daily events" since there is only up to 7 events that can happen to prevent them overflowing the map for new players
 				/*let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ];
 				
 				let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
@@ -1918,8 +1930,12 @@ class sdWeather extends sdEntity
 		if ( this.raining_intensity > 0 )
 		{
 			ctx.globalAlpha = Math.pow( this.raining_intensity / 50, 1 );
-			if ( this.matter_rain ) // Is it raining crystal shards?
-			ctx.globalAlpha = 1;
+			if ( this.matter_rain === 1 || this.matter_rain === 2 ) // Is it raining crystal shards?
+			{
+				ctx.globalAlpha = 1;
+				if ( this.matter_rain === 2 )
+				ctx.filter = sdWorld.GetCrystalHue( sdCrystal.anticrystal_value );
+			}
 			for ( var i = 0; i < sdWeather.pattern.length * this.raining_intensity / 100; i++ )
 			{
 				var p = sdWeather.pattern[ i ];
@@ -1985,7 +2001,7 @@ class sdWeather extends sdEntity
 						yy - 16, 
 						32,32 );
 					else
-					if ( this.matter_rain )
+					if ( this.matter_rain === 1 || this.matter_rain === 2 )
 					ctx.drawImageFilterCache( sdWeather.img_crystal_shard, 
 						xx - 16, 
 						yy - 16, 
@@ -1998,6 +2014,7 @@ class sdWeather extends sdEntity
 				}
 			}
 			ctx.globalAlpha = 1;
+			ctx.filter = 'none';
 		}
 	}
 	
