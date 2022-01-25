@@ -12,6 +12,7 @@ import sdLost from './sdLost.js';
 import sdCrystal from './sdCrystal.js';
 import sdRescueTeleport from './sdRescueTeleport.js';
 import sdCharacter from './sdCharacter.js';
+import sdDrone from './sdDrone.js';
 import sdTask from './sdTask.js';
 import sdWeather from './sdWeather.js';
 
@@ -92,6 +93,8 @@ class sdJunk extends sdEntity
 		this._glow_fade = 0; // Should the glow fade or not?
 		this.detonation_in = 30 * 60 * 10; // 10 minutes until the bomb explodes
 		this._rate = 120;
+		this._max_damage = 4000; // Max damage the council bomb can take under a timer
+		this._max_damage_timer = 30; // Timer which resets max damage the Council bomb can recieve in a second ( counters barrel spam )
 		//
 		this.hea = this.hmax;
 		this.matter_max = 320;
@@ -119,6 +122,10 @@ class sdJunk extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
+		if ( this.type === 4 )
+		if ( this._max_damage <= 0 )
+		return;
+
 		//if ( initiator !== null )
 		if ( initiator === null || initiator.IsPlayerClass() )
 		if ( sdWorld.time < this._damagable_in )
@@ -135,6 +142,17 @@ class sdJunk extends sdEntity
 		let was_alive = this.hea > 0;
 		
 		this.hea -= dmg;
+
+		if ( this.type === 4 )
+		{
+			this._max_damage -= dmg;
+			if ( this._max_damage < 0 ) // If the max damage threshold per timer was crossed
+			{
+				this.hea -= this._max_damage; // Refund health above threshold
+				this._max_damage = 0;
+			}
+		}
+
 		
 		this.regen_timeout = Math.max( this.regen_timeout, 60 );
 
@@ -464,6 +482,13 @@ class sdJunk extends sdEntity
 
 			if ( this.type === 4 )
 			{
+				this._max_damage_timer -= GSPEED;
+				if ( this._max_damage_timer < 0 )
+				{
+					this._max_damage_timer = 30;
+					this._max_damage = 4000;
+				}
+				
 				if ( this._glow_fade === 0 )
 				{
 					if ( this.glow_animation < 60 )
@@ -567,7 +592,7 @@ class sdJunk extends sdEntity
 
 			if ( this._spawn_ent_in <= 0 && this.detonation_in > 30 * 60 )
 			{
-				this._spawn_ent_in = 450;
+				this._spawn_ent_in = 480 - Math.min( 180, 30 * sdWorld.GetPlayingPlayersCount() );
 				let ais = 0;
 				//let percent = 0;
 				for ( var i = 0; i < sdCharacter.characters.length; i++ )
@@ -579,13 +604,15 @@ class sdJunk extends sdEntity
 						ais++;
 						//console.log(ais);
 					}
+				}
+				{
 
 					let councils = 0;
-					let councils_tot = 2;
+					let councils_tot = Math.min( 6, Math.max( 2, 1 + sdWorld.GetPlayingPlayersCount() ) );
 
 					let left_side = ( Math.random() < 0.5 );
 
-					while ( councils < councils_tot && ais < 3 )
+					while ( councils < councils_tot && ais < Math.min( 6, Math.max( 3, sdWorld.GetPlayingPlayersCount() ) ) )
 					{
 
 						let character_entity = new sdCharacter({ x:0, y:0 });
@@ -738,6 +765,78 @@ class sdJunk extends sdEntity
 					}
 					councils++;
 					ais++;
+					}
+				}
+				{
+					// Spawn a council support drone
+					if ( this.hea < ( this.hmax * 0.75 ) )
+
+					if ( sdDrone.drones_tot < 20 )
+					{
+						
+						let left_side = ( Math.random() < 0.5 );
+
+						let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: 6});
+
+						sdEntity.entities.push( drone );
+
+						{
+							let x,y;
+							let tr = 1000;
+							do
+							{
+								if ( left_side )
+								{
+									x = this.x + 16 + 16 + ( Math.random() * 192 );
+
+									if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 + ( Math.random() * 192 );
+
+									if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 - ( Math.random() * 192 );
+								}
+								else
+								{
+									x = this.x - 16 - 16 - ( Math.random() * 192 );
+
+									if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 + ( Math.random() * 192 );
+
+									if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 - ( Math.random() * 192 );
+								}
+
+								y = this.y + 192 - ( Math.random() * ( 384 ) );
+								if ( y < sdWorld.world_bounds.y1 + 32 )
+								y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+								if ( y > sdWorld.world_bounds.y2 - 32 )
+								y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+								if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
+								//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+								{
+									drone.x = x;
+									drone.y = y;
+
+									drone.SetTarget( this );
+
+									sdWorld.UpdateHashPosition( drone, false );
+									//console.log('Drone spawned!');
+									break;
+								}
+
+
+								tr--;
+								if ( tr < 0 )
+								{
+									drone.remove();
+									drone._broken = false;
+									break;
+								}
+							} while( true );
+						}
 					}
 				}
 			}
