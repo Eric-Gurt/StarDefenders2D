@@ -3075,6 +3075,7 @@ class sdWorld
 	static CreateImageFromFile( filename, cb=null ) // In cases when processing calls are added to filename - expect correct image to be returned as part of return_value.canvas_override
 	{
 		// For singleplayer lost effect
+		if ( typeof Image !== 'undefined' )
 		if ( filename instanceof Image )
 		{
 			filename = filename.filename;
