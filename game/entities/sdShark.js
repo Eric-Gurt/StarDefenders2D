@@ -285,7 +285,7 @@ class sdShark extends sdEntity
 		
 		
 		ctx.globalAlpha = 1;
-		//ctx.filter = 'none';
+		ctx.filter = 'none';
 	}
 	/*onMovementInRange( from_entity )
 	{

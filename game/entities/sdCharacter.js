@@ -671,9 +671,16 @@ class sdCharacter extends sdEntity
 		// Client-side blinking
 		this._anim_blink_next = sdWorld.time + 5000; // Better like this for main screen since it is recreated all the time
 		
-		if ( !sdWorld.is_server )
+		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 		{
 			this._ragdoll = new sdCharacterRagdoll( this );
+			/*
+			if ( sdWorld.is_singleplayer )
+			{
+				trace( this._is_being_removed );
+				EnforceChangeLog( this, '_is_being_removed' );
+				EnforceChangeLog( this, '_ragdoll' );
+			}*/
 		}
 		
 		sdCharacter.characters.push( this );
@@ -3264,6 +3271,7 @@ class sdCharacter extends sdEntity
 					fake_ent.DrawConnections( ctx );
 					
 					fake_ent.remove();
+					fake_ent._broken = false;
 					fake_ent._remove();
 				}
 			}

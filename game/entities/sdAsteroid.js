@@ -137,6 +137,7 @@ class sdAsteroid extends sdEntity
 		sdWorld.BasicEntityBreakEffect( this, 3, undefined, undefined, 1.4 );
 	
 		if ( this._type === 0 )
+		if ( this._broken )
 		sdWorld.SendEffect({ x:this.x, y:this.y, radius:19, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color });
 	}
 	DrawHUD( ctx, attached ) // foreground layer

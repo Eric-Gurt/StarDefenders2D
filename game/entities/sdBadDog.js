@@ -389,8 +389,11 @@ class sdBadDog extends sdEntity
 					if ( this.hea < this.hmax * this._retreat_hp_mult )
 					{
 						this.side *= -1;
-						pathfinding_result.act_x *= -1;
-						pathfinding_result.act_y *= -1;
+						if ( pathfinding_result )
+						{
+							pathfinding_result.act_x *= -1;
+							pathfinding_result.act_y *= -1;
+						}
 					}
 
                     if ( in_water && pathfinding_result )

@@ -346,17 +346,23 @@ class sdSound
 	}
 	static PlaySound( params, exclusive_to_sockets_arr=null )// name, x,y, volume=1, server_allowed=true )
 	{
-		if ( sdWorld.is_server )
+		if ( sdWorld.is_singleplayer )
 		{
-			if ( !sdSound.server_mute )
-			if ( !params._server_allowed )
-			sdWorld.SendSound( params, exclusive_to_sockets_arr );
-		
-			return;
 		}
 		else
-		if ( !params._server_allowed )
-		return;
+		{
+			if ( sdWorld.is_server )
+			{
+				if ( !sdSound.server_mute )
+				if ( !params._server_allowed )
+				sdWorld.SendSound( params, exclusive_to_sockets_arr );
+
+				return;
+			}
+			else
+			if ( !params._server_allowed )
+			return;
+		}
 
 		let name = params.name;
 		let volume = params.volume || 1;

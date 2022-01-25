@@ -262,11 +262,17 @@ class sdEffect extends sdEntity
 	CameraDistanceScale3D( layer ) // so far layer is only FG (1), usually only used by chat messages
 	{ return ( this._type === sdEffect.TYPE_CHAT ) ? 0.8 : 1; }
 	
+	
+	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Guns are not targetable when held, same for sdCharacters that are driving something
+	{
+		return false;
+	}
+	
 	constructor( params )
 	{
 		super( params );
 		
-		if ( sdWorld.is_server )
+		if ( sdWorld.is_server && !sdWorld.is_singleplayer )
 		{
 			throw new Error('Server should not spawn these ever - they will at very least be missing proper description');
 		}

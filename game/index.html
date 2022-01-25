@@ -1569,7 +1569,9 @@
 	    <input id="last_local_time_start" type="hidden">
 	    
 	    
-	    <input type="button" style="background-color:#2b7939; width: 300px;" id="start_btn" onclick="sdWorld.Start( globalThis.GetPlayerSettings() );" value="Play with other players"> <input type="button" onclick="globalThis.ResetSkin();" value="Reset skin to default">
+	    <input type="button" style="background-color:#2b7939; width: 300px;" id="start_btn" onclick="sdWorld.Start( globalThis.GetPlayerSettings() );" value="Play with other players"> 
+	    <input type="button" style="background-color:#333333; width: 300px;" id="start_offline_btn" onclick="sdWorld.StartOffline( globalThis.GetPlayerSettings() );" value="Play offline (does not work)"> 
+	    <input type="button" onclick="globalThis.ResetSkin();" value="Reset skin to default">
 	    
 	    </div>
 	    
@@ -1582,6 +1584,7 @@
 	    
 	    let settings_container = document.getElementById( 'settings_container' );
 	    let start_btn = document.getElementById( 'start_btn' );
+	    let start_offline_btn = document.getElementById( 'start_offline_btn' );
 	    
 	    let my_hash_input = document.getElementById( 'my_hash' );
 	    
@@ -1611,8 +1614,13 @@
 		return v;
 	    };
 	    
+	    let draw_once = true;
+	    
 	    let DrawPreview = function()
 	    {
+		//if ( !draw_once )
+		//return;
+	    
 		settings_container.style.transform = 'scale(' + Math.min( document.body.clientWidth / 1260, Math.min( document.body.clientHeight / 760, 1 ) ) + ')';
 		
 		if ( !ctx.drawImageFilterCache )
@@ -1715,6 +1723,8 @@
 		ent2._remove();
 
 		ctx.restore();
+		
+		draw_once = false;
 	    };
 	    globalThis.preview_fnc = DrawPreview;
 	    globalThis.preview_interval = setInterval( globalThis.preview_fnc, 16 );

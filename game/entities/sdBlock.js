@@ -1083,7 +1083,7 @@ class sdBlock extends sdEntity
 				this._plants = null;
 			}
 		}
-		else
+		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 		{
 			if ( isNaN( this.x ) || isNaN( this.y ) )
             {

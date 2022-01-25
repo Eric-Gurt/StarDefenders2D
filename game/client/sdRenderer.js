@@ -435,7 +435,7 @@ class sdRenderer
 		//else
 		//sdRenderer.canvas.style.cursor = '';
 	}
-	static Render()
+	static Render( frame )
 	{
 		/*if ( !document.hasFocus() ) Can be inaccurate
 		if ( Math.random() > 0.1 )
@@ -694,6 +694,7 @@ class sdRenderer
 					   e.y + e._hitbox_y1 < max_y ) ||
 					   e === sdWeather.only_instance ||
 					   ( e.__proto__.constructor === sdEffect.prototype.constructor && e._type === sdEffect.TYPE_BEAM ) ) // sdWorld.my_entity.__proto__.constructor
+				if ( !sdWorld.is_singleplayer || e.IsVisible( sdWorld.my_entity ) )
 				{
 					ctx.volumetric_mode = e.DrawIn3D( 0 );
 					ctx.object_offset = e.ObjectOffset3D( 0 );
@@ -703,7 +704,6 @@ class sdRenderer
 					{
 						ctx.translate( e.x, e.y );
 
-						// TODO: Add bounds check, thought that is maybe pointless if server won't tell offscreen info
 						e.Draw( ctx, false );
 					}
 					catch( err )
@@ -711,6 +711,11 @@ class sdRenderer
 						console.log( 'Image could not be drawn for ', e, err );
 					}
 					ctx.restore();
+					
+					if ( sdWorld.is_singleplayer )
+					//if ( frame % 50 === 0 )
+					if ( e.SyncedToPlayer !== sdEntity.prototype.SyncedToPlayer )
+					e.SyncedToPlayer( sdWorld.my_entity );
 				}
 			}
 			

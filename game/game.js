@@ -6,6 +6,8 @@ meSpeak.loadVoice("voices/pl.json");
 
 globalThis.trace = console.log;
 
+globalThis.isWin = true; // For singleplayer shop
+
 globalThis.GetFrame = ()=>{ return sdWorld.frame; }; // Call like this: GetFrame()
 
 	//let one_time_key = null;
@@ -381,6 +383,9 @@ let enf_once = true;
 
 	function SpawnConnection()
 	{
+		if ( sdWorld.is_singleplayer )
+		return;
+		
 		globalThis.connection_started = true;
 		
 		if ( !SOCKET_IO_MODE )
@@ -405,6 +410,9 @@ let enf_once = true;
 		socket.on('connect', () =>
 		//socket.onConnect( error =>
 		{
+			if ( sdWorld.is_singleplayer )
+			return;
+			
 			window.onhashchange({ newURL: window.location.href });
 			
 			ClearWorld();
@@ -421,6 +429,9 @@ let enf_once = true;
 		socket.on('disconnect', () => 
 		//socket.onDisconnect( ()=>
 		{
+			if ( sdWorld.is_singleplayer )
+			return;
+			
 			globalThis.connection_established = false;
 			globalThis.connection_started = false;
 
@@ -698,12 +709,12 @@ let enf_once = true;
 	}
 	
 	//let last_sent_snapshot = [];
-	
+	let frame = 0;
 	const logic = ()=>
 	{
 		try
 		{
-			sdWorld.HandleWorldLogic();
+			sdWorld.HandleWorldLogic( frame );
 
 			const isTransportWritable = socket.io.engine &&
 										socket.io.engine.transport &&
@@ -815,7 +826,7 @@ let enf_once = true;
 				}
 			}
 
-			sdRenderer.Render();
+			sdRenderer.Render( frame );
 		}
 		catch( e )
 		{
@@ -825,6 +836,8 @@ let enf_once = true;
 		}
 		
 		window.requestAnimationFrame( logic );
+		
+		frame++;
 	};
 	window.requestAnimationFrame( logic );
 
@@ -883,6 +896,9 @@ let enf_once = true;
 			if ( sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_BUILD_TOOL ].slot ] && 
 			     sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_BUILD_TOOL ].slot ].class === sdGun.CLASS_BUILD_TOOL )
 			{
+				key_states.SetKey( 'Digit9', 1 );
+				key_states.SetKey( 'Digit9', 0 );
+				
 				sd_events.push( [ 'K1', 'Digit9' ] );
 				sd_events.push( [ 'K0', 'Digit9' ] );
 				

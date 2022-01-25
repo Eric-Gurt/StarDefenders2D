@@ -141,7 +141,7 @@ class sdCable extends sdEntity
 		
 		this._points = null;
 		
-		if ( sdWorld.is_server )
+		if ( sdWorld.is_server && !sdWorld.is_singleplayer )
 		{
 			//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false ); // 2nd parameter is important as it will prevent temporary entities from reacting to world entities around it (which can happen for example during item price measure - something like sdBlock can kill player-initiator and cause server crash)
 		}

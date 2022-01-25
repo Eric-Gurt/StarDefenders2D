@@ -792,6 +792,7 @@ class sdShop
 					ctx.translate( 16 - ( ent._hitbox_x2 + ent._hitbox_x1 ) / 2, 16 - ( ent._hitbox_y2 + ent._hitbox_y1 ) / 2 );
 					
 					ent.remove();
+					ent._broken = false;
 					ent._remove();
 				}
 				

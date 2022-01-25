@@ -1081,10 +1081,17 @@ class sdBone extends sdEntity
 	*/
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
 	{
-		if ( sdWorld.is_server )
+		if ( sdWorld.is_server && !sdWorld.is_singleplayer )
 		{
 			return false;
 		}
+		
+		return true;
+	}
+	
+	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Guns are not targetable when held, same for sdCharacters that are driving something
+	{
+		return false;
 	}
 	
 	Impact( vel ) // fall damage basically
@@ -1092,7 +1099,7 @@ class sdBone extends sdEntity
 		//throw new Error('Fix impact sounds (probably) missing');
 		if ( vel > 3 )
 		{
-			if ( !sdWorld.is_server )
+			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 			{
 				if ( sdWorld.time > this.ragdoll._ignore_sounds_until )
 				{
@@ -1144,7 +1151,7 @@ class sdBone extends sdEntity
 		//if ( this._bone_name === 'head' )
 		//this._bounciness = 0.5;
 		
-		if ( sdWorld.is_server )
+		if ( sdWorld.is_server && !sdWorld.is_singleplayer )
 		{
 			this.remove(); // Remove or at least schedule removal - these should not exist on server for more than one frame
 		}
@@ -1203,6 +1210,10 @@ class sdBone extends sdEntity
 	{
 		this.ragdoll.Delete();
 	}
+	/*onBeforeRemove()
+	{
+		debugger;
+	}*/
 }
 
 export default sdCharacterRagdoll;

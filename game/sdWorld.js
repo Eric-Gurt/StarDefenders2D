@@ -58,6 +58,7 @@ class sdWorld
 		sdWorld.entity_classes = {}; // Will be filled up later
 		
 		sdWorld.is_server = ( typeof window === 'undefined' );
+		sdWorld.is_singleplayer = false; // Local offline mode has it as true
 		sdWorld.mobile = false;
 		
 		sdWorld.soft_camera = true;
@@ -1961,7 +1962,7 @@ class sdWorld
 				sdEntity.to_seal_list.length = 0;
 			}
 			
-			if ( sdWorld.is_server )
+			if ( sdWorld.is_server && !sdWorld.is_singleplayer )
 			{
 				for ( i = 0; i < sdWorld.sockets.length; i++ )
 				if ( sdWorld.sockets[ i ].character )
@@ -2137,7 +2138,7 @@ class sdWorld
 				}
 			}
 
-			if ( !sdWorld.is_server )
+			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 			{
 				if ( sdWorld.my_entity )
 				{
@@ -3057,16 +3058,37 @@ class sdWorld
 		
 		return _voice;
 	}
+	
+	static ApplyPlayerSettingsToPlayer( character_entity, player_settings, socket ) 
+	{
+		character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( player_settings );
+		character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( player_settings );
+
+		character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( player_settings );
+		character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( player_settings );
+		character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( player_settings );
+
+		character_entity.title = player_settings.hero_name;
+		character_entity.title_censored = ( typeof sdModeration !== 'undefined' && socket ) ? sdModeration.IsPhraseBad( character_entity.title, socket ) : false;
+	}
+	
 	static CreateImageFromFile( filename, cb=null ) // In cases when processing calls are added to filename - expect correct image to be returned as part of return_value.canvas_override
 	{
+		// For singleplayer lost effect
+		if ( filename instanceof Image )
+		{
+			filename = filename.filename;
+		}
+		
 		filename = filename.split(' -> ').join('->'); // Remove prettiness to save pair of bytes when transfering sdLost data
 		
-		if ( sdWorld.is_server )
+		if ( sdWorld.is_server && !sdWorld.is_singleplayer )
 		return filename; // Actually return image name now just so sdLost could be drawn using these
 		
 		if ( sdWorld.lost_images_cache && sdWorld.lost_images_cache[ filename ] )
 		{
 			let img = sdWorld.lost_images_cache[ filename ];
+			img.filename = filename;
 			
 			if ( cb )
 			{
@@ -3085,6 +3107,7 @@ class sdWorld
 		//img = sdBitmap.CreateBitmap(); // Assume it should be a canvas on its own
 		//else
 		img = new Image();
+		img.filename = filename;
 		
 		let filename_parts = filename.split('->'); // Preprocessing right in the file name (for sdLost to be able to require such images as well)
 		
@@ -3159,11 +3182,137 @@ class sdWorld
 		
 		return img;
 	}
+	static StartOffline( player_settings, full_reset=false, retry=0 )
+	{
+		let offline_socket = {
+			
+			GetScore: ()=>
+			{
+				return 123;
+			},
+			
+			character: null,
+			
+			post_death_spectate_ttl: 12345,
+			
+			sd_events: {
+				push: ( arr )=>
+				{
+					if ( arr[ 0 ] === 'EFF' )
+					{
+						let e = new sdEffect( arr[ 1 ] );
+						sdEntity.entities.push( e );
+					}
+					else
+					debugger;
+				}
+			},
+			
+			emit: ( command, value )=>
+			{
+			}
+		};
+		
+		sdWorld.is_server = true; 
+		sdWorld.is_singleplayer = true; 
+		globalThis.sockets = sdWorld.sockets = [
+			offline_socket
+		];
+		
+		// From client to server
+		globalThis.sd_events = {
+			push: ( command, obj )=>
+			{
+				debugger;
+				offline_socket.character._key_states.SetKey( key, 1 );
+			}
+		};
+		
+		let socket = globalThis.socket;
+		socket.close();
+		
+		let w = 20;
+		let h = 10;
+		
+		sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 );
+		
+		if ( sdEntity.global_entities.length === 0 )
+		sdEntity.entities.push( new sdWeather({}) );
+		
+		globalThis.socket = {
+			emit: ( cmd, obj )=>
+			{
+				let socket = offline_socket;
+						
+				if ( cmd === 'RESPAWN' )
+				{
+					let player_settings = obj;
+					
+					let character_entity;
+					
+					function SpawnNewPlayer()
+					{
+						const allowed_classes = sdWorld.allowed_player_classes;
+
+						let preferred_entity = sdWorld.ConvertPlayerDescriptionToEntity( player_settings );
+
+						if ( allowed_classes.indexOf( preferred_entity ) === -1 )
+						character_entity = new sdCharacter({ x:0, y:0 });
+						else
+						character_entity = new sdWorld.entity_classes[ preferred_entity ]({ x:0, y:0 });
+					
+						sdEntity.entities.push( character_entity );
+					}
+					
+					SpawnNewPlayer();
+					
+					sdWorld.ApplyPlayerSettingsToPlayer( character_entity, player_settings, null );
+					
+					sdWorld.my_entity = character_entity;
+					sdWorld.my_entity._key_states = sdWorld.my_key_states;
+					
+					offline_socket.character = sdWorld.my_entity;
+					offline_socket.character._socket = offline_socket;
+					
+					for ( let i = 0; i < sdShop.options.length; i++ )
+					if ( sdShop.options[ i ]._class === 'sdGun' )
+					if ( sdShop.options[ i ]._min_build_tool_level === 0 )
+					if ( sdShop.options[ i ]._min_workbench_level === 0 )
+					{
+						let gun = new sdGun({ x: character_entity.x, y: character_entity.y, class: sdShop.options[ i ].class });
+						sdEntity.entities.push( gun );
+					}
+				}
+				else
+				if ( cmd === 'BUILD_SEL' )
+				{
+					trace( 'build selection', sdShop.options[ obj ], obj );
+					
+					socket.character._build_params = sdShop.options[ obj ] || null;
+				}
+				else
+				if ( cmd === 'CHAT' )
+				{
+					if ( obj === '/god 1' )
+					socket.character._god = 1;
+					else
+					if ( obj === '/god 0' )
+					socket.character._god = 0;
+					else
+					socket.character.Say( obj, false );
+				}
+				else
+				debugger;
+			}
+		};
+		
+		sdWorld.Start( player_settings, full_reset, retry );
+	}
 	static Start( player_settings, full_reset=false, retry=0 )
 	{
 		sdSound.AllowSound();
 			
-		if ( !globalThis.connection_established )
+		if ( !globalThis.connection_established && !sdWorld.is_singleplayer )
 		{
 			//alert('Connection is not open yet, for some reason...');
 			//console.log('Connection is not open yet, for some reason...');
@@ -3462,6 +3611,9 @@ class sdWorld
 							}
 							else
 							{
+								if ( args instanceof Image )
+								args = [ args.filename, -16, -16, 32, 32 ]; // for singleplayer
+								else
 								args = args.slice(); // Do not overwrite old array
 							}
 

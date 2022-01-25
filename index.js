@@ -2242,27 +2242,18 @@ io.on("connection", (socket) =>
 		{
 			
 		}
-		
-		/*if ( player_settings.keep_style )
-		{
-		}
-		else
-		{*/
-			character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( player_settings );
-			character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( player_settings );
 
-			character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( player_settings );
-			character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( player_settings );
-			character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( player_settings );
+		/*character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( player_settings );
+		character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( player_settings );
 
-			//if ( sdWorld.time < socket.muted_until || sdModeration.IsPhraseBad( player_settings.hero_name, socket ) )
-			//character_entity.title = 'Censored Defender #' + character_entity.biometry;
-			//else
-			character_entity.title = player_settings.hero_name;
-			character_entity.title_censored = sdModeration.IsPhraseBad( character_entity.title, socket );
-		//}
-		//character_entity.sd_filter = {};
-		//sdWorld.ReplaceColorInSDFilter( character_entity.sd_filter, [ 0,0,128 ], [ 128,0,0 ] );
+		character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( player_settings );
+		character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( player_settings );
+		character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( player_settings );
+
+		character_entity.title = player_settings.hero_name;
+		character_entity.title_censored = sdModeration.IsPhraseBad( character_entity.title, socket );*/
+
+		sdWorld.ApplyPlayerSettingsToPlayer( character_entity, player_settings, socket );
 
 		character_entity._socket = socket; // prevent json appearence
 		character_entity._save_file = player_settings.save_file;
