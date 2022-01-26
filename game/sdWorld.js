@@ -3210,6 +3210,12 @@ class sdWorld
 			
 			emit: ( command, value )=>
 			{
+			},
+			
+			SDServiceMessage: ( v )=>
+			{
+				sdRenderer.service_mesage_until = sdWorld.time + 6500;
+				sdRenderer.service_mesage = v;
 			}
 		};
 		
