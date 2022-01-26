@@ -448,6 +448,7 @@ class sdBlock extends sdEntity
 
 							for ( let i = 0; i < blocks_near.length; i++ )
 							if ( blocks_near[ i ]._natural || ( this.material === sdBlock.MATERIAL_CORRUPTION && this._contains_class === 'sdSandWorm.corrupted' && blocks_near[ i ].material === sdBlock.MATERIAL_CORRUPTION ) )
+							if ( !blocks_near[ i ]._is_being_removed )
 							map[ ( blocks_near[ i ].x - this.x ) / 16 + ':' + ( blocks_near[ i ].y - this.y ) / 16 ] = blocks_near[ i ];
 
 							done:
@@ -501,6 +502,7 @@ class sdBlock extends sdEntity
 
 							for ( let i = 0; i < blocks_near.length; i++ )
 							if ( blocks_near[ i ]._natural )
+							if ( !blocks_near[ i ]._is_being_removed )
 							map[ ( blocks_near[ i ].x - this.x ) / 16 + ':' + ( blocks_near[ i ].y - this.y ) / 16 ] = blocks_near[ i ];
 
 							done:
