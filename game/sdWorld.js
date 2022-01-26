@@ -3309,7 +3309,26 @@ class sdWorld
 					socket.character.Say( obj, false );
 				}
 				else
-				debugger;
+				if ( cmd === 'ENTITY_CONTEXT_ACTION' )
+				{
+					let _class = obj[ 0 ];
+					let net_id = obj[ 1 ];
+
+					let ent = sdEntity.GetObjectByClassAndNetId( _class, net_id );
+					if ( ent !== null && !ent._is_being_removed )
+					ent.ExecuteContextCommand( obj[ 2 ], obj[ 3 ], socket.character, socket );
+					else
+					socket.SDServiceMessage( 'Entity no longer exists' );
+				}
+				else
+				{
+					socket.SDServiceMessage( 'Singleplayer mode does not yet supports command "'+cmd+'"' );
+					debugger; // In case if it is related to context actions - these need to be moved to entity's ExecuteContextCommand and PopulateContextOptions methods
+				}
+			},
+			
+			close: ()=>
+			{
 			}
 		};
 		

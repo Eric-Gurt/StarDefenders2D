@@ -1855,12 +1855,41 @@ class sdEntity
 		{
 			this._hitbox_last_update = sdWorld.time;
 			
-			this._hitbox_x1 = this.hitbox_x1;
-			this._hitbox_y1 = this.hitbox_y1;
-			this._hitbox_x2 = this.hitbox_x2;
-			this._hitbox_y2 = this.hitbox_y2;
-		
-			this._hard_collision = this.hard_collision;
+			if ( sdWorld.is_server )
+			{
+				// More liteweight approach. On server-side it is important to update hash position manually when hitbox offsets changes
+				this._hitbox_x1 = this.hitbox_x1;
+				this._hitbox_y1 = this.hitbox_y1;
+				this._hitbox_x2 = this.hitbox_x2;
+				this._hitbox_y2 = this.hitbox_y2;
+
+				this._hard_collision = this.hard_collision;
+			}
+			else
+			{
+				// It is done to make amplifier shields update hashes without extra info from server
+				let x1 = this.hitbox_x1;
+				let y1 = this.hitbox_y1;
+				let x2 = this.hitbox_x2;
+				let y2 = this.hitbox_y2;
+				
+				let h = ( 
+					this._hitbox_x1 !== x1 || 
+					this._hitbox_y1 !== y1 || 
+					this._hitbox_x2 !== x2 || 
+					this._hitbox_y2 !== y2 
+				);
+				
+				this._hitbox_x1 = x1;
+				this._hitbox_y1 = y1;
+				this._hitbox_x2 = x2;
+				this._hitbox_y2 = y2;
+
+				this._hard_collision = this.hard_collision;
+				
+				if ( h )
+				sdWorld.UpdateHashPosition( this, true );
+			}
 		}
 	}
 	GetClass()

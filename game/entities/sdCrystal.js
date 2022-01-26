@@ -89,6 +89,14 @@ class sdCrystal extends sdEntity
 		throw new Error('Obsolete, use this.held_by instead');
 	}*/
 	
+	/*getRequiredEntities() // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
+	{
+		if ( this.held_by )
+		return [ this.held_by ]; 
+	
+		return [];
+	}*/
+	
 	constructor( params )
 	{
 		super( params );

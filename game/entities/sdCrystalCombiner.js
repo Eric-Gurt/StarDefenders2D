@@ -33,6 +33,20 @@ class sdCrystalCombiner extends sdEntity
 	RequireSpawnAlign()
 	{ return true; }
 	
+	getRequiredEntities() // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
+	{
+		if ( this.crystal0 && this.crystal1 )
+		return [ this.crystal0, this.crystal1 ]; 
+	
+		if ( this.crystal0 )
+		return [ this.crystal0 ]; 
+	
+		if ( this.crystal1 )
+		return [ this.crystal1 ]; 
+		
+		return [];
+	}
+	
 	constructor( params )
 	{
 		super( params );
