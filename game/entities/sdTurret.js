@@ -43,7 +43,25 @@ class sdTurret extends sdEntity
 		sdTurret.img_turret4 = sdWorld.CreateImageFromFile( 'turret4' );
 		sdTurret.img_turret4_fire = sdWorld.CreateImageFromFile( 'turret4_fire' );
 		
-		sdTurret.targetable_classes = new WeakSet( [ sdCharacter, sdVirus, sdQuickie, sdOctopus, sdCube, sdBomb, sdAsp, sdSandWorm, sdSlug, sdEnemyMech, sdDrone, sdBadDog, sdShark, sdSpider, sdWorld.entity_classes.sdPlayerDrone ] ); // Module random load order that causes error prevention
+		sdTurret.targetable_classes = new WeakSet( [ 
+			sdCharacter, 
+			sdVirus, 
+			sdQuickie, 
+			sdOctopus, 
+			sdCube, 
+			sdBomb, 
+			sdAsp, 
+			sdSandWorm, 
+			sdSlug, 
+			sdShark, 
+			sdEnemyMech, 
+			sdDrone, 
+			sdBadDog, 
+			sdShark, 
+			sdSpider, 
+			sdWorld.entity_classes.sdPlayerDrone,
+			sdWorld.entity_classes.sdAmphid
+		] ); // Module random load order that causes error prevention
 		
 		sdTurret.KIND_LASER = 0;
 		sdTurret.KIND_ROCKET = 1;
