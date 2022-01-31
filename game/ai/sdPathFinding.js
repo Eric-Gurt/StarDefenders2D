@@ -192,6 +192,11 @@ class sdPathFinding
 
 		let version_at_traveler = this.rect_space_map.bitmap_dataView.getUint32( BYTES_PER_VALUE * ( offset_current + OFFSET_VERSION ) );
 		
+		//if ( Math.max( Math.abs( this.traveler._hitbox_x2 ), Math.abs( this.traveler._hitbox_x1 ), Math.abs( this.traveler._hitbox_y2 ), Math.abs( this.traveler._hitbox_y1 ) ) > 8 )
+		let hitbox_radius = Math.max( Math.abs( this.traveler._hitbox_x2 ), Math.abs( this.traveler._hitbox_x1 ), Math.abs( this.traveler._hitbox_y2 ), Math.abs( this.traveler._hitbox_y1 ) );
+		
+		//trace( hitbox_radius, test_positions_scale );
+		
 		for ( let dx = -1; dx <= 1; dx++ )
 		for ( let dy = -1; dy <= 1; dy++ )
 		if ( dx !== 0 || dy !== 0 )
@@ -211,7 +216,13 @@ class sdPathFinding
 				
 				best_is_wall = null;
 				//if ( sdWorld.CheckWallExistsBox( x + 1, y + 1, x + 15, y + 15, null, null, sdCom.com_visibility_unignored_classes, null ) )
-				if ( sdWorld.CheckWallExistsBox( x + 1, y + 1, x + 15, y + 15, this.traveler, null, null, null ) ) // Attack anything really - there can be even crystals on a way
+				//if ( sdWorld.CheckWallExistsBox( x + 1, y + 1, x + 15, y + 15, this.traveler, null, null, null ) ) // Attack anything really - there can be even crystals on a way
+				if ( sdWorld.CheckWallExistsBox( 
+						this.traveler.x + this.traveler._hitbox_x1 + dx * 16 + 1, 
+						this.traveler.y + this.traveler._hitbox_y1 + dy * 16 + 1, 
+						this.traveler.x + this.traveler._hitbox_x2 + dx * 16 - 1, 
+						this.traveler.y + this.traveler._hitbox_y2 + dy * 16 - 1, 
+						this.traveler, null, null, null ) ) // Attack anything really - there can be even crystals on a way
 				{
 					best_is_wall = sdWorld.last_hit_entity;
 				}

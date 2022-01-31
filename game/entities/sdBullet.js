@@ -26,6 +26,7 @@ class sdBullet extends sdEntity
 		sdBullet.images = {
 			'ball': sdWorld.CreateImageFromFile( 'ball' ),
 			'ball_g': sdWorld.CreateImageFromFile( 'ball_g' ),
+			'blaster_proj': sdWorld.CreateImageFromFile( 'blaster_proj' ),
 			'rocket_proj': sdWorld.CreateImageFromFile( 'rocket_proj' ),
 			'grenade': sdWorld.CreateImageFromFile( 'grenade' ),
 			'snowball': sdWorld.CreateImageFromFile( 'snowball' ),

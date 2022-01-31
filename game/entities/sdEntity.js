@@ -2600,7 +2600,7 @@ class sdEntity
 						this[ prop ] = snapshot[ prop ];
 						else
 						{
-							trace('[1]Rejecting creaton of ',prop,'on',this.GetClass(),'(probably and old version property)');
+							trace('[1]Rejecting creaton of ',prop,'on',this.GetClass(),'(probably an old version property)');
 							//trace( this );
 							//throw new Error();
 						}
@@ -2633,7 +2633,7 @@ class sdEntity
 							this[ prop ] = snapshot[ prop ];
 							else
 							{
-								trace('[2]Rejecting creaton of ',prop,'on',this.GetClass(),'(probably and old version property)');
+								trace('[2]Rejecting creaton of ',prop,'on',this.GetClass(),'(probably an old version property)');
 								//trace( this );
 								//throw new Error();
 							}

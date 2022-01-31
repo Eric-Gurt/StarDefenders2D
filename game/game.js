@@ -39,6 +39,8 @@ globalThis.GetFrame = ()=>{ return sdWorld.frame; }; // Call like this: GetFrame
 		
 		//transports: [ 'websocket', 'polling' ]
 		
+		autoConnect: false
+		
 	} );
 	
 	globalThis.socket_io_crashed = false;
@@ -77,6 +79,12 @@ globalThis.GetFrame = ()=>{ return sdWorld.frame; }; // Call like this: GetFrame
 	
 	let socket = geckos( geckos_start_options );*/
 
+	// This is to automatically load what is needed
+	let entity_class_names = ( await ( await fetch( '/get_entity_classes.txt' ) ).text() ).split(','); // Almost same as entity_files on server-side but without .js
+	
+	let import_entity_class_promises = [];
+	let imported_entity_classes = [];
+
 	import FakeCanvasContext from './libs/FakeCanvasContext.js';
 	globalThis.FakeCanvasContext = FakeCanvasContext;
 
@@ -94,7 +102,24 @@ globalThis.GetFrame = ()=>{ return sdWorld.frame; }; // Call like this: GetFrame
 	import sdSound from './sdSound.js';
 	import sdKeyStates from './sdKeyStates.js';
 	import sdEntity from './entities/sdEntity.js';
-	import sdCharacter from './entities/sdCharacter.js';
+	
+	let entity_classes_directory_relative = './entities/';
+	
+	entity_class_names.forEach( ( file )=>
+	{
+		import_entity_class_promises.push( ( async ()=>
+		{ 
+			let imported = await import( entity_classes_directory_relative + file + '.js' );
+			imported_entity_classes.push( imported.default );
+			
+			globalThis[ file ] = imported.default; // For ease of access through devtools
+
+		})() );
+	});
+	
+	await Promise.all( import_entity_class_promises );
+	
+	/*import sdCharacter from './entities/sdCharacter.js';
 	import sdGun from './entities/sdGun.js';
 	import sdEffect from './entities/sdEffect.js';
 	import sdBlock from './entities/sdBlock.js';
@@ -158,7 +183,7 @@ globalThis.GetFrame = ()=>{ return sdWorld.frame; }; // Call like this: GetFrame
 	import sdLongRangeTeleport from './entities/sdLongRangeTeleport.js';
 	import sdTask from './entities/sdTask.js';
 	import sdBeacon from './entities/sdBeacon.js';
-	import sdPortal from './entities/sdPortal.js';
+	import sdPortal from './entities/sdPortal.js';*/
 
 
 	sdWorld.init_class();
@@ -169,7 +194,12 @@ globalThis.GetFrame = ()=>{ return sdWorld.frame; }; // Call like this: GetFrame
 	
 	sdSound.init_class();
 	sdContextMenu.init_class();
-	sdEntity.init_class();
+
+
+	for ( let i = 0; i < imported_entity_classes.length; i++ )
+	imported_entity_classes[ i ].init_class();
+	
+	/*sdEntity.init_class();
 	sdCharacter.init_class();
 	sdPlayerDrone.init_class();
 	sdEffect.init_class(); 
@@ -178,8 +208,6 @@ globalThis.GetFrame = ()=>{ return sdWorld.frame; }; // Call like this: GetFrame
 	sdCrystal.init_class();
 	sdBG.init_class();
 	sdCaption.init_class();
-	sdShop.init_class();
-	sdChat.init_class();
 	sdBullet.init_class();
 	sdCom.init_class();
 	sdAsteroid.init_class();
@@ -236,17 +264,21 @@ globalThis.GetFrame = ()=>{ return sdWorld.frame; }; // Call like this: GetFrame
 	sdWeaponBench.init_class();
 	sdLongRangeTeleport.init_class();
 	sdTask.init_class();
-	sdPortal.init_class();
+	sdPortal.init_class();*/
 
-	globalThis.sdCharacter = sdCharacter; // for console access
+	sdShop.init_class();
+	sdChat.init_class();
+	
+	/*globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;
 	globalThis.sdGun = sdGun;
+	globalThis.sdBullet = sdBullet;
+	globalThis.sdWeather = sdWeather;*/
+	
+	globalThis.sdWorld = sdWorld;
 	globalThis.socket = socket;
 	globalThis.sdRenderer = sdRenderer;
-	globalThis.sdBullet = sdBullet;
-	globalThis.sdWorld = sdWorld;
 	globalThis.sdSound = sdSound;
-	globalThis.sdWeather = sdWeather;
 	globalThis.sdShop = sdShop;
 	globalThis.sdChat = sdChat;
 	globalThis.sdContextMenu = sdContextMenu;
@@ -1023,3 +1055,5 @@ let enf_once = true;
 	
 		sdShop.MouseWheel( e );
 	};
+	
+	socket.open();

@@ -11,6 +11,7 @@ import sdEntity from './sdEntity.js';
 import sdNode from './sdNode.js';
 import sdBullet from './sdBullet.js';
 import sdPortal from './sdPortal.js';
+import sdOverlord from './sdOverlord.js';
 
 /*
 
@@ -2606,6 +2607,41 @@ class sdGunClass
 						}
 					}
 				}
+			}
+		};
+		
+		
+		
+		sdGun.classes[ sdGun.CLASS_OVERLORD_BLASTER = 82 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'overlord_blaster' ),
+			sound: 'overlord_cannon4',
+			title: 'Overlord\'s blaster',
+			slot: 8,
+			reload_time: 5,
+			muzzle_x: 11,
+			ammo_capacity: -1,
+			count: 1,
+			matter_cost: 60,
+			spawnable: false,
+			projectile_velocity: 12,
+			projectile_properties: { explosion_radius: 9, model: 'blaster_proj', _damage: 0, color:'#ff00aa' },
+			
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				for ( let i = 0; i < sdOverlord.overlords.length; i++ )
+				{
+					if ( sdWorld.inDist2D_Boolean( gun.x, gun.y, sdOverlord.overlords[ i ].x, sdOverlord.overlords[ i ].y, 250 ) )
+					return true;
+				}
+				
+				if ( gun._held_by )
+				if ( gun._held_by.IsPlayerClass() )
+				{
+					gun._held_by.Say( 'This weapon does not shoot anymore' );
+				}
+				
+				return false;
 			}
 		};
 

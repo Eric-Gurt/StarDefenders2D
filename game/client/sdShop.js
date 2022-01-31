@@ -528,6 +528,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdObelisk', type: 3, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdObelisk', type: 4, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdQuadro', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdOverlord', _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });
@@ -544,6 +545,10 @@ class sdShop
 		sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_ADMIN_TELEPORTER, _category:'Admin tools' });
 		sdShop.options.push({ _class: 'sdLongRangeTeleport', is_server_teleport:1, _category:'Admin tools' });
 		
+		// Make all admin tools have Infinite cost to prevent them from being build by non-admins
+		for ( let i = 0; i < sdShop.options.length; i++ )
+		if ( sdShop.options[ i ]._category === 'Admin tools' || sdShop.options[ i ]._category === 'Development tests' )
+		sdShop.options[ i ].matter_cost = Infinity;
 		
 		sdShop.potential_selection = -1;
 	}

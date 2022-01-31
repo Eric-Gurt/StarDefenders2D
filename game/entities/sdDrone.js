@@ -297,7 +297,7 @@ class sdDrone extends sdEntity
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
 					let gun;
-					if ( this.type === 3 || this.type == 4 )
+					if ( this.type === 3 || this.type === 4 )
 					gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_ALIEN_ENERGY_RIFLE });
 					else
 					gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_METAL_SHARD });

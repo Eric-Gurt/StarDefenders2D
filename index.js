@@ -19,6 +19,12 @@ let directory_to_save_player_count = null;
  
 */
 
+
+// Early error catching
+//console.log('Early error catching enabled, waiting 10 seconds before doing anything...');
+//await new Promise(resolve => setTimeout(resolve, 10000)); // Unexpected reserver word
+
+
 //import heapdump from 'heapdump';
 //import ofe from 'ofe';
 
@@ -278,6 +284,48 @@ import sdLongRangeTeleport from './game/entities/sdLongRangeTeleport.js';
 import sdTask from './game/entities/sdTask.js';
 import sdPortal from './game/entities/sdPortal.js';
 
+let entity_classes_directory_physical = __dirname + 'game/entities/'; // For scanning
+let entity_classes_directory_relative = './game/entities/'; // For importing
+
+//if ( isWin )
+//entity_classes_directory_relative = entity_classes_directory_relative.split( '/' ).join( '\\' );
+
+let import_entity_class_promises = [];
+let imported_entity_classes = [];
+let class_name_duplciate_seeker = new Map();
+
+let entity_files = fs.readdirSync( entity_classes_directory_physical );
+
+entity_files.forEach( ( file )=>
+{
+	import_entity_class_promises.push( ( async ()=>
+	{ 
+		// Better to import this one manually
+		if ( file === 'sdEntity' )
+		return;
+	
+		//trace( 'Auto-import: ' + entity_classes_directory_relative + file );
+
+		let imported = await import( entity_classes_directory_relative + file );
+
+		imported_entity_classes.push( imported.default );
+		
+		if ( class_name_duplciate_seeker.has( imported.default.name ) )
+		throw new Error( 'Class "' + imported.default.name + '" is imported twice from two different files:\n' + class_name_duplciate_seeker.get( imported.default.name ) + '\nand\n' + entity_classes_directory_relative + file );
+	
+		class_name_duplciate_seeker.set( imported.default.name, entity_classes_directory_relative + file );
+
+	})() );
+});
+
+if ( import_entity_class_promises.length < 5 )
+trace( 'Too few entities modules ('+import_entity_class_promises.length+') to load. Is entities folder being read properly?' );
+
+await Promise.all( import_entity_class_promises );
+
+let get_entity_classes_page = Array.from( class_name_duplciate_seeker.keys() ).join(',');
+class_name_duplciate_seeker = null;
+
 import sdServerToServerProtocol from './game/server/sdServerToServerProtocol.js';
 
 import sdPathFinding from './game/ai/sdPathFinding.js';
@@ -383,13 +431,15 @@ globalThis.getStackTrace = ()=>
 	}
 };
 
-// Early error catching
-//console.log('Early error catching enabled, waiting 10 seconds before doing anything...');
-//await new Promise(resolve => setTimeout(resolve, 10000)); // Unexpected reserver word
-
 sdWorld.init_class();
 sdEntity.init_class();
-sdCharacter.init_class();
+
+for ( let i = 0; i < imported_entity_classes.length; i++ )
+imported_entity_classes[ i ].init_class();
+
+//throw 'TEST done: ' + entity_classes_directory_relative;
+
+/*sdCharacter.init_class();
 sdEffect.init_class();
 sdGun.init_class(); // must be after sdEffect
 sdBlock.init_class();
@@ -451,10 +501,11 @@ sdHoverBike.init_class();
 sdObelisk.init_class();
 sdSunPanel.init_class();
 sdWeaponBench.init_class();
-sdLongRangeTeleport.init_class();
-sdServerToServerProtocol.init_class();
 sdTask.init_class();
 sdPortal.init_class();
+sdLongRangeTeleport.init_class();*/
+
+sdServerToServerProtocol.init_class();
 
 sdPathFinding.init_class();
 
@@ -648,6 +699,13 @@ app.get('/*', function cb( req, res, repeated=false )
 	fs.access(path.split('?')[0], fs.F_OK, (err) => 
 	{
 		//let t3 = Date.now();
+		
+		if ( req.url === '/get_entity_classes.txt' )
+		{
+			res.send( get_entity_classes_page );
+			Finalize();
+			return;
+		}
 		
 		if ( !file_exists( path ) ) // Silent
 		{
@@ -2075,6 +2133,9 @@ io.on("connection", (socket) =>
 	socket.last_player_settings = null;
 	socket.Respawn = ( player_settings, force_allow=false ) => { 
 		
+		if ( typeof player_settings !== 'object' )
+		return;
+		
 		socket.last_ping = sdWorld.time;
 		socket.waiting_on_M_event_until = 0;
 		
@@ -2406,6 +2467,9 @@ io.on("connection", (socket) =>
 	
 	socket.on('CHAT', ( t ) => { 
 		
+		if ( typeof t !== 'string' )
+		return;
+		
 		if ( t.charAt( 0 ) === '/' )
 		{
 			if ( t.length > 1000 )
@@ -2459,6 +2523,7 @@ io.on("connection", (socket) =>
 	socket.next_position_correction_allowed = 0;
 	socket.on('M', ( arr ) => { // Position corrections. Cheating can happen here. Better solution could be UDP instead of TCP connections.
 		
+		if ( arr instanceof Array )
 		if ( typeof arr[ 0 ] === 'number' )
 		if ( typeof arr[ 1 ] === 'number' )
 		if ( typeof arr[ 2 ] === 'number' )

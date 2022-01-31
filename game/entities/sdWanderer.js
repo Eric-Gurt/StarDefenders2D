@@ -6,6 +6,7 @@
 
 */
 
+import sdEntity from './sdEntity.js';
 import sdWorld from '../sdWorld.js';
 import sdCube from './sdCube.js';
 import sdAsp from './sdAsp.js';

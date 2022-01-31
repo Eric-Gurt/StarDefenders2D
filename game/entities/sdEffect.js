@@ -15,6 +15,11 @@ class sdEffect extends sdEntity
 {
 	static init_class()
 	{
+		if ( sdEffect.initiated )
+		return;
+		else
+		sdEffect.initiated = true;
+		
 		console.log('sdEffect class initiated');
 		
 		sdEffect.TYPE_BLOOD = 0;
@@ -448,22 +453,29 @@ class sdEffect extends sdEntity
 			}
 			else
 			{
-				t = meSpeak.speak( spoken, {
-						amplitude: 100 * sdSound.volume_speech * sdSound.GetDistanceMultForPosition( this.x, this.y ),
-						wordgap: params.voice.wordgap,
-						pitch: params.voice.pitch,
-						speed: params.voice.speed,
-						variant: params.voice.variant,
-						voice: voice
-					}, 
-					(e)=>
-					{ 
-						if ( sdWorld.time - since < 3000 )
-						setTimeout(()=>{ that.remove();},3000);
-						else
-						setTimeout(()=>{ that.remove();},100);
-					} 
-				);
+				if ( params.voice.variant !== 'silence' )
+				{
+					t = meSpeak.speak( spoken, {
+							amplitude: 100 * sdSound.volume_speech * sdSound.GetDistanceMultForPosition( this.x, this.y ),
+							wordgap: params.voice.wordgap,
+							pitch: params.voice.pitch,
+							speed: params.voice.speed,
+							variant: params.voice.variant,
+							voice: voice
+						}, 
+						(e)=>
+						{ 
+							if ( sdWorld.time - since < 3000 )
+							setTimeout(()=>{ that.remove();},3000);
+							else
+							setTimeout(()=>{ that.remove();},100);
+						} 
+					);
+				}
+				else
+				{
+					setTimeout(()=>{ that.remove();}, spoken.length * 120 + 100);
+				}
 			}
 	
 			if ( this._attachment )

@@ -29,6 +29,9 @@ class sdGun extends sdEntity
 {
 	static init_class()
 	{
+		if ( !sdEffect.initiated )
+		sdEffect.init_class();
+		
 		sdGun.img_muzzle1 = sdWorld.CreateImageFromFile( 'muzzle1' );
 		sdGun.img_muzzle2 = sdWorld.CreateImageFromFile( 'muzzle2' );
 		
@@ -417,10 +420,8 @@ class sdGun extends sdEntity
 					return Infinity; // Maxed out
 				}
 				
-				if ( this._held_by._build_params.matter_cost )
+				if ( typeof this._held_by._build_params.matter_cost !== 'undefined' )
 				{
-					//this._held_by_unenforce();
-				
 					return this._held_by._build_params.matter_cost;
 				}
 			}
@@ -442,7 +443,8 @@ class sdGun extends sdEntity
 				return Infinity; // Unable to place anyway
 			}
 		
-			let cost = ent.MeasureMatterCost();
+			// Allow cost override at shop
+			let cost = ( typeof this._held_by._build_params.matter_cost !== 'undefined' ) ? this._held_by._build_params.matter_cost : ent.MeasureMatterCost();
 			
 			if ( cost === Infinity )
 			if ( this._held_by )
