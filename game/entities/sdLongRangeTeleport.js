@@ -17,6 +17,9 @@ import sdCom from './sdCom.js';
 import sdArea from './sdArea.js';
 import sdCommandCentre from './sdCommandCentre.js';
 import sdCrystal from './sdCrystal.js';
+import sdGun from './sdGun.js';
+
+import sdTask from './sdTask.js';
 
 //import sdServerToServerProtocol from '../server/sdServerToServerProtocol.js';
 
@@ -464,6 +467,28 @@ class sdLongRangeTeleport extends sdEntity
 		return ents_final;
 	}
 
+	GiveRewards()
+	{
+		let rewards = Math.random();
+		if ( rewards < 0.5 )
+		{
+			let shard, shard2, shard3;
+			shard = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
+			sdEntity.entities.push( shard );
+			shard2 = new sdGun({ x:this.x - 8, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
+			sdEntity.entities.push( shard2 );
+			shard3 = new sdGun({ x:this.x + 8, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
+			sdEntity.entities.push( shard3 );
+		}
+		else
+		{
+			let pstim;
+			pstim = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_POWER_STIMPACK });
+			sdEntity.entities.push( pstim );
+		}
+		sdWorld.SendEffect({ x:this.x, y:this.y - 16, type:sdEffect.TYPE_TELEPORT });
+	}
+
 	ExtractEntitiesOnTop( collected_entities_array=null, use_task_filter=false )
 	{
 		let ents_to_push = this.GetEntitiesOnTop( use_task_filter );
@@ -661,6 +686,37 @@ class sdLongRangeTeleport extends sdEntity
 				{
 					this.Deactivation();
 					this._is_busy_since = 0;
+				}
+				else
+				if ( command_name === 'CLAIM_REWARD' )
+				{
+					if ( !this.is_server_teleport )
+					{
+						let cc_near = this.GetComWiredCache( null, sdCommandCentre );
+						if ( cc_near )
+						{
+							if ( this.matter >= this._matter_max )
+							{
+								if ( this.delay === 0 && exectuter_character._task_reward_counter >= 1 )
+								{
+									this.Activation();
+									
+									this._charge_complete_method = ()=>
+									{
+										this.Deactivation();
+										this.GiveRewards();
+										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - 1 );
+									};
+								}
+								else
+								executer_socket.SDServiceMessage( 'Not activated yet - possibly due to damage' );
+							}
+							else
+							executer_socket.SDServiceMessage( 'Not enough matter' );
+						}
+						else
+						executer_socket.SDServiceMessage( 'Long-range teleport requires Command Centre connected' );
+					}
 				}
 				else
 				if ( command_name === 'TELEPORT_STUFF' )
@@ -863,7 +919,13 @@ class sdLongRangeTeleport extends sdEntity
 			}
 			
 			if ( !this.is_server_teleport )
-			this.AddContextOption( 'Initiate teleportation (300 mater)', 'TELEPORT_STUFF', [] );
+			{
+				this.AddContextOption( 'Initiate teleportation (300 mater)', 'TELEPORT_STUFF', [] );
+				for( let i = 0; i < sdTask.tasks.length; i++ )
+				if ( sdTask.tasks[ i ].mission )
+				if ( sdTask.tasks[ i ].mission === sdTask.MISSION_TASK_CLAIM_REWARD )
+				this.AddContextOption( 'Claim rewards', 'CLAIM_REWARD', [] );
+			}
 			else
 			this.AddContextOption( 'Initiate teleportation', 'TELEPORT_STUFF', [] );
 		}

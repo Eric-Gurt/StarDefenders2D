@@ -26,6 +26,8 @@ import sdRescueTeleport from './sdRescueTeleport.js';
 import sdLifeBox from './sdLifeBox.js';
 import sdLost from './sdLost.js';
 
+import sdTask from './sdTask.js';
+
 import sdCharacterRagdoll from './sdCharacterRagdoll.js';
 
 import sdShop from '../client/sdShop.js';
@@ -593,6 +595,7 @@ class sdCharacter extends sdEntity
 		this._jetpack_fuel_multiplier = 1; // Fuel cost reduction upgrade
 		this._matter_regeneration_multiplier = 1; // Matter regen multiplier upgrade
 		this.workbench_level = 0; // Stand near workbench to unlock some workbench build stuff
+		this._task_reward_counter = 0;
 
 		this._score_to_level = 50;// How much score is needed to level up character?
 		this._score_to_level_additive = 50; // How much score it increases to level up next level
@@ -1992,6 +1995,15 @@ class sdCharacter extends sdEntity
 				this._wb_timer -= GSPEED;
 				if ( this._wb_timer <= 0 && this.workbench_level > 0 )
 				this.workbench_level = 0;
+
+				//this._task_reward_counter = Math.min(1, this._task_reward_counter + GSPEED / 1800 ); // For testing
+
+				if ( this._task_reward_counter >= 1 )
+				sdTask.MakeSureCharacterHasTask({ 
+					similarity_hash:'CLAIM_REWARD-'+this._net_id, 
+					executer: this,
+					mission: sdTask.MISSION_TASK_CLAIM_REWARD
+				});
 			}
 
 			//let offset = this.GetBulletSpawnOffset();
