@@ -2676,6 +2676,7 @@ class sdGunClass
 			ammo_capacity: 20,
 			count: 3,
 			spread: 0.13,
+			spawnable: false,
 			projectile_properties: { _damage: 25 },
 			upgrades: AddRecolorsFromColorAndCost( AddShotgunAmmoTypes( [] ), '#ff0000', 15 )
 		};
