@@ -21,6 +21,7 @@ class sdTask extends sdEntity
 		sdTask.APPEARANCE_ATTACK_POINT = 1; // Attack something, like anti-crystal
 		sdTask.APPEARANCE_STARRED = 2; // Players can star their base perhaps? Not sure yet
 		sdTask.APPEARANCE_HINT_POINT = 3;
+		sdTask.APPEARANCE_NOTHING = 4;
 		
 		sdTask.missions = [];
 		
@@ -96,6 +97,36 @@ class sdTask extends sdEntity
 				return true;
 			
 				return false;
+			}
+		};
+		sdTask.missions[ sdTask.MISSION_TASK_CLAIM_REWARD = id++ ] = 
+		{
+			appearance: sdTask.APPEARANCE_NOTHING,
+	
+			GetDefaultTitle: ( task )=>{
+				return 'Claim rewards';
+			},
+			GetDefaultDescription: ( task )=>{
+				return 'Your good performance has been noticed by the mothership. Claim rewards they are willing to send through a long range teleporter.';
+			},
+			GetDefaultTimeLeft: ( task )=>
+			{
+				return -1;
+			},
+			
+			completion_condition: ( task )=>
+			{
+				if ( task._executer._task_reward_counter < 1 )
+				return true;
+				else
+				return false;
+			},
+			onCompletion: ( task )=>
+			{
+				// With LRTs, it is usually impossible to detect if something was removed or just teleported
+			},
+			onTimeOut: ( task )=>
+			{
 			}
 		};
 		
@@ -417,6 +448,7 @@ class sdTask extends sdEntity
 			}
 		}
 		
+		if ( mission.appearance !== sdTask.APPEARANCE_NOTHING )
 		ctx.drawImageFilterCache( img, 
 			- 16, 
 			- 16, 

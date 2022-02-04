@@ -2005,7 +2005,7 @@ class sdGunClass
 			min_build_tool_level: 8,
 			fire_type: 2,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.7,
-			projectile_properties: { _damage: 72, color: '#33ffff', penetrating: true, _dirt_mult: -0.5 }
+			projectile_properties: { _damage: 62, color: '#33ffff', penetrating: true, _dirt_mult: -0.5 }
 		};
     
 		sdGun.classes[ sdGun.CLASS_BURST_PISTOL = 65 ] = 
@@ -2644,6 +2644,42 @@ class sdGunClass
 				
 				return false;
 			}
+		};
+
+		sdGun.classes[ sdGun.CLASS_TOPS_DMR = 83 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'tops_dmr' ),
+			sound: 'gun_dmr',
+			sound_volume: 2.5,
+			sound_pitch: 0.8,
+			title: 'Task Ops DMR',
+			slot: 4,
+			reload_time: 9,
+			muzzle_x: 12,
+			ammo_capacity: 20,
+			count: 1,
+			fire_type: 2,
+			spawnable: false,
+			projectile_velocity: sdGun.default_projectile_velocity * 1.7,
+			projectile_properties: { _damage: 72, color: '#33ffff', penetrating: true, _dirt_mult: -0.5 },
+			upgrades: AddRecolorsFromColorAndCost( [], '#ff0000', 15 )
+		};
+		sdGun.classes[ sdGun.CLASS_TOPS_SHOTGUN = 84 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'tops_shotgun' ),
+			sound: 'gun_shotgun',
+			sound_pitch: 1.2,
+			sound_volume: 1.5,
+			title: 'Task Ops Shotgun',
+			slot: 3,
+			reload_time: 8,
+			muzzle_x: 10,
+			ammo_capacity: 20,
+			count: 3,
+			spread: 0.13,
+			spawnable: false,
+			projectile_properties: { _damage: 25 },
+			upgrades: AddRecolorsFromColorAndCost( AddShotgunAmmoTypes( [] ), '#ff0000', 15 )
 		};
 
 		// Add new gun classes above this line //
