@@ -40,6 +40,8 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.climb_filter = [ 'sdBlock', 'sdLost', 'sdBarrel', 'sdCrystal', 'sdCharacter', 'sdDoor', 'sdMatterContainer', 'sdCube' ];
 		
+		sdCharacter.stability_damage_from_damage_scale = 1.25;
+		sdCharacter.stability_damage_from_velocity_changes_scale = 128 / 6;
 		/*
 		sdCharacter.img_legs_idle = sdWorld.CreateImageFromFile( 'legs_idle' );
 		sdCharacter.img_legs_walk1 = sdWorld.CreateImageFromFile( 'legs_walk1' );
@@ -364,8 +366,8 @@ class sdCharacter extends sdEntity
 	{
 		if ( this.hea > 0 )
 		{
-			let di_to_head = sdWorld.Dist2D( x, y, this.x + 8 * Math.sin( this.tilt / 100 ), this.y - 8 * Math.cos( this.tilt / 100 ) );
-			let di_to_body = sdWorld.Dist2D( x, y, this.x + 0 * Math.sin( this.tilt / 100 ), this.y - 0 * Math.cos( this.tilt / 100 ) );
+			let di_to_head = sdWorld.Dist2D( x, y, this.x, this.y - 8 );
+			let di_to_body = sdWorld.Dist2D( x, y, this.x, this.y );
 
 			if ( di_to_head < di_to_body )
 			return 1.65;
@@ -447,6 +449,43 @@ class sdCharacter extends sdEntity
 		}
 	}
 	
+	get tilt()
+	{
+		debugger;
+		return 0;
+	}
+	set tilt( v )
+	{
+		debugger;
+		//this.DamageStability( 50 );
+	}
+	get tilt_speed()
+	{
+		debugger;
+		return 0;
+	}
+	set tilt_speed( v )
+	{
+		debugger;
+	}
+	
+	DamageStability( v ) // v is usually a velocity or damage received
+	{
+		let delta_since_last_damage = sdWorld.time - this._ignored_stability_damage_last;
+		
+		this._ignored_stability_damage = sdWorld.MorphWithTimeScale( this._ignored_stability_damage, 0, 0.85, delta_since_last_damage / 1000 * 30 );
+		
+		this._ignored_stability_damage_last = sdWorld.time;
+		
+		this._ignored_stability_damage += v;
+		
+		if ( this._ignored_stability_damage > 33 )
+		{
+			this.stability = Math.max( -100, this.stability - this._ignored_stability_damage );
+			this._ignored_stability_damage = 0;
+		}
+	}
+	
 	constructor( params )
 	{
 		super( params );
@@ -456,6 +495,10 @@ class sdCharacter extends sdEntity
 		this._local_ragdoll_ever_synced = false; // To track need to precalculate ragdoll logic
 		
 		this.s = 100; // Scale, %
+		
+		this.stability = 100; // -100...100. Low values cause player to activate ragdoll and move slower. Drops down due to high damage (not towards the armor) and high impulses received
+		this._ignored_stability_damage = 0; // Grows when stability damage is received. If above certain moment - it goes towards stabiltiy damage. Slowly decreses overtime. Should accumulate shotgun-like damages
+		this._ignored_stability_damage_last = 0; // Time of last stability damage for passive solving of accumulation decrease
 		
 		this._socket = null; // undefined causes troubles
 		this._my_hash = undefined;
@@ -560,8 +603,8 @@ class sdCharacter extends sdEntity
 		this.look_y = 0;
 		//this._an = 0; Became a getter because gun offsets calculation isn't easy task and is not needed unless player shoots
 		
-		this.tilt = 0; // X button
-		this.tilt_speed = 0;
+		//this.tilt = 0; // X button
+		//this.tilt_speed = 0;
 		
 		this._crouch_intens = 0;
 		
@@ -824,7 +867,8 @@ class sdCharacter extends sdEntity
 	get hitbox_x1() { return this.s / 100 * ( this.death_anim < 10 ? -5 : -5 ); } // 7
 	get hitbox_x2() { return this.s / 100 * ( this.death_anim < 10 ? 5 : 5 ); }
 	get hitbox_y1() { return this.s / 100 * ( this.death_anim < 10 ? -12 : 10 ); }
-	get hitbox_y2() { return this.s / 100 * ( this.death_anim < 10 ? ( ( 16 - this._crouch_intens * 6 ) * ( 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7 ) ) : 16 ); }
+	get hitbox_y2() { return this.s / 100 * ( this.death_anim < 10 ? ( ( 16 - this._crouch_intens * 6 ) ) : 16 ); }
+	//get hitbox_y2() { return this.s / 100 * ( this.death_anim < 10 ? ( ( 16 - this._crouch_intens * 6 ) * ( 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7 ) ) : 16 ); }
 
 //0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7
 
@@ -849,6 +893,8 @@ class sdCharacter extends sdEntity
 		{
 			//this.Damage( ( vel - 4 ) * 15 );
 			this.Damage( ( vel - 3 ) * 17, null, false, false );
+			
+			this.DamageStability( vel * sdCharacter.stability_damage_from_velocity_changes_scale );
 		}
 	}
 	AttemptTeleportOut( from_ent=null )
@@ -1166,6 +1212,7 @@ class sdCharacter extends sdEntity
 			}
 			
 			this.hea -= damage_to_deal;
+			this.DamageStability( damage_to_deal * sdCharacter.stability_damage_from_damage_scale );
 			
 			if ( this.hea <= 0 && was_alive )
 			{
@@ -1342,6 +1389,10 @@ class sdCharacter extends sdEntity
 	{
 		this.sx += x / this.mass;
 		this.sy += y / this.mass;
+		
+		let di = sdWorld.Dist2D_Vector( x / this.mass, y / this.mass );
+		this.DamageStability( di * sdCharacter.stability_damage_from_velocity_changes_scale );
+		
 		this.ApplyServerSidePositionAndVelocity( false, x / this.mass, y / this.mass );
 		
 		/*this.sx += x * 0.1;
@@ -2293,19 +2344,28 @@ class sdCharacter extends sdEntity
 	
 		this.HandlePlayerPowerups( GSPEED );
 		
+
+		let act_y_or_unstable = this.act_y;
+		
+		if ( this.stability < 50 )
+		act_y_or_unstable = 1;
+	
+	
 		//let new_x = this.x + this.sx * GSPEED;
 		//let new_y = this.y + this.sy * GSPEED;
 		
 		let speed_scale = 1 * ( 1 - ( this.armor_speed_reduction / 100 ) );
 		
+		speed_scale *= Math.max( 0.1, this.stability / 100 );
+		
 		let leg_height;
 		let new_leg_height;
 		
-		if ( ( ( this.act_y === 1 ) ? 1 : 0 ) !== this._crouch_intens )
+		if ( ( ( act_y_or_unstable === 1 ) ? 1 : 0 ) !== this._crouch_intens )
 		{
 			leg_height = this.hitbox_y2;
 
-			if ( this.act_y === 1 )
+			if ( act_y_or_unstable === 1 )
 			{
 				speed_scale *= 0.5;
 
@@ -2344,13 +2404,16 @@ class sdCharacter extends sdEntity
 	 
 		let ledge_holding = false;
 		this._ledge_holding = false;
-	
+		
 		if ( sdWorld.is_server || sdWorld.my_entity === this )
 		{
 			if ( this.hea > 0 )
 			{
 				this.act_x = this._key_states.GetKey( 'KeyD' ) - this._key_states.GetKey( 'KeyA' );
 				this.act_y = this._key_states.GetKey( 'KeyS' ) - ( ( this._key_states.GetKey( 'KeyW' ) || this._key_states.GetKey( 'Space' ) ) ? 1 : 0 );
+				
+				if ( this.stability < 50 )
+				////this.act_y = 1;
 				
 				/*if ( sdWorld.time < this._pos_corr_until )
 				{
@@ -2371,7 +2434,7 @@ class sdCharacter extends sdEntity
 				this.act_y = 0;
 			}
 		}
-
+	
 		if ( sdWorld.is_server )
 		{
 			/*if ( this.hea > 0 )
@@ -2617,7 +2680,7 @@ class sdCharacter extends sdEntity
 
 
 		// Walljumps
-		if ( this.act_y === -1 )
+		if ( act_y_or_unstable === -1 )
 		if ( !this.stands )
 		if ( Math.abs( this.sy ) < 3 )
 		if ( Math.abs( this.sx ) < 3 )
@@ -2636,21 +2699,6 @@ class sdCharacter extends sdEntity
 			}
 		}
 		
-		
-		if ( this._key_states.GetKey( 'KeyX' ) )
-		{
-			//this.tilt_speed += this.act_x * 1 * GSPEED;
-			
-			this.tilt_speed = sdWorld.MorphWithTimeScale( this.tilt_speed, this.act_x * 30, 0.9, GSPEED );
-			
-			speed_scale = 0.1 * ( 1 - ( this.armor_speed_reduction / 100 ) );
-		}
-	
-		this.tilt += this.tilt_speed * GSPEED;
-		
-		
-		this.ManagePlayerVehicleEntrance();
-		
 		//let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
 		/*let local_arr = sdWorld.RequireHashPosition( this.x, this.y );
 		let in_water = false;
@@ -2664,6 +2712,30 @@ class sdCharacter extends sdEntity
 		let in_water = sdWater.all_swimmers.has( this );
 		
 		this._in_water = in_water;
+		
+		if ( this._key_states.GetKey( 'KeyX' ) || in_water )
+		{
+			//this.tilt_speed += this.act_x * 1 * GSPEED;
+			
+			//this.tilt_speed = sdWorld.MorphWithTimeScale( this.tilt_speed, this.act_x * 30, 0.9, GSPEED );
+			
+			//speed_scale = 0.1 * ( 1 - ( this.armor_speed_reduction / 100 ) );
+			
+			if ( in_water )
+			this.stability = Math.min( 10, this.stability );
+			else
+			this.stability = Math.min( 0, this.stability );
+		}
+		else
+		{
+			this.stability = Math.min( 100, this.stability + ( Math.max( 0, this.stability ) * 0.1 + GSPEED * 2.5 ) * GSPEED );
+		}
+	
+		//this.tilt += this.tilt_speed * GSPEED;
+		
+		
+		this.ManagePlayerVehicleEntrance();
+		
 		
 		if ( this.ghosting )
 		{
@@ -2713,6 +2785,7 @@ class sdCharacter extends sdEntity
 			if ( !this.driver_of )
 			if ( this._jetpack_allowed &&
 				 this.act_y === -1 &&
+				 !in_water &&
 				 this._in_air_timer > 200 / 1000 * 30 && // after 200 ms
 				 //this._last_act_y !== -1 &&
 				 !last_ledge_holding &&
@@ -2772,7 +2845,7 @@ class sdCharacter extends sdEntity
 					this.sy = 0;
 				}
 
-				this.tilt_speed = sdWorld.MorphWithTimeScale( this.tilt_speed, 0, 0.9, GSPEED );
+				/*this.tilt_speed = sdWorld.MorphWithTimeScale( this.tilt_speed, 0, 0.9, GSPEED );
 
 				if ( this._key_states.GetKey( 'KeyX' ) && this.hea > 0 )
 				this.tilt_speed += Math.sin( this.tilt / 100 * 2 ) * GSPEED;
@@ -2781,7 +2854,7 @@ class sdCharacter extends sdEntity
 					this.tilt -= Math.sin( this.tilt / 100 ) * 4 * GSPEED;
 					this.tilt_speed -= Math.sin( this.tilt / 100 ) * 4 * GSPEED;
 					this.tilt_speed = sdWorld.MorphWithTimeScale( this.tilt_speed, 0, 0.7, GSPEED );
-				}
+				}*/
 				
 				if ( globalThis.CATCH_ERRORS )
 				{
@@ -2827,21 +2900,21 @@ class sdCharacter extends sdEntity
 				//if ( new_leg_height - leg_height > 0 )
 				//this.sy += new_leg_height - leg_height;
 
-				if ( Math.abs( Math.sin( this.tilt / 100 ) ) > 0.3 )
+				/*if ( Math.abs( Math.sin( this.tilt / 100 ) ) > 0.3 )
 				{
 					this._crouch_intens = 1;
 					this.act_y = 1;
 
 					this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.8, GSPEED );
 				}
-				else
+				else*/
 				{
-					if ( this.act_y === -1 )
+					if ( act_y_or_unstable === -1 )
 					{
 						//if ( this._crouch_intens > 0.1 )
 						//this.sy = Math.min( this.sy, -6 );
 						//else
-						this.sy = Math.min( this.sy, -4 * ( 1 - ( this.armor_speed_reduction / 100 ) ) );
+						this.sy = Math.min( this.sy, -4 * speed_scale /*( 1 - ( this.armor_speed_reduction / 100 ) )*/ );
 					}
 					else
 					{
@@ -2868,12 +2941,12 @@ class sdCharacter extends sdEntity
 					if ( Math.sign( this.sx ) !== this.act_x )
 					this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.65, GSPEED );
 				
-					//if ( Math.sign( this.sy ) !== this.act_y )
-					if ( ( this.sy > 0 ) !== ( this.act_y > 0 ) )
+					//if ( Math.sign( this.sy ) !== act_y_or_unstable )
+					if ( ( this.sy > 0 ) !== ( act_y_or_unstable > 0 ) )
 					this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.65, GSPEED );
 					
 					this.sx += this.act_x * 0.15 * GSPEED;
-					this.sy += this.act_y * 0.15 * GSPEED;
+					this.sy += act_y_or_unstable * 0.15 * GSPEED;
 					
 					this._side = this.act_x;
 					//this._ledge_holding = 0;

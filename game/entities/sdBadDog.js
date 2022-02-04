@@ -544,10 +544,14 @@ class sdBadDog extends sdEntity
 					
 					if ( from_entity.IsPlayerClass() )
 					{
-						from_entity.tilt = Math.PI / 2 * this.side * 100;
+						/*from_entity.tilt = Math.PI / 2 * this.side * 100;
 						from_entity.tilt_speed = 0;
 						if ( from_entity.flying )
+						from_entity.flying = false;*/
+							
 						from_entity.flying = false;
+						from_entity.DamageStability( 100 );
+						from_entity._in_air_timer = 0;
 					}
 					
 					max_targets--;

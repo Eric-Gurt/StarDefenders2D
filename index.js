@@ -22,7 +22,7 @@ let directory_to_save_player_count = null;
 
 // Early error catching
 //console.log('Early error catching enabled, waiting 10 seconds before doing anything...');
-//await new Promise(resolve => setTimeout(resolve, 10000)); // Unexpected reserver word
+//await new Promise(resolve => setTimeout(resolve, 10000)); // Unexpected reserved word
 
 
 //import heapdump from 'heapdump';

@@ -57,6 +57,8 @@ class sdRenderer
 		sdRenderer.last_source_entity = null;
 		sdRenderer.last_source_cmd = '';
 		
+		sdRenderer.show_key_hints = 0;
+		
 		//canvas.style.width = '100%';
 		
 		//canvas.style.transform = 'scale(' + window.innerWidth / 800 + ')';
@@ -992,6 +994,8 @@ class sdRenderer
 		{
 			let scale = ( 0.3 + 0.7 * sdRenderer.resolution_quality );
 			
+			ctx.font = 11*scale + "px Verdana";
+			
 			ctx.globalAlpha = 0.5;
 			ctx.fillStyle = '#000000';
 			ctx.fillRect( 5, 5, 445 * scale, 17 );
@@ -999,11 +1003,103 @@ class sdRenderer
 			if ( sdRenderer.show_leader_board )
 			ctx.fillRect( sdRenderer.screen_width - 200 * scale - 5, 5, 200 * scale, 20 + 20 * sdWorld.leaders.length * scale + 5 );
 			
+			{
+				let i = 0;
+				for ( let t = 0; t < 10; t++ )
+				{
+					i++;
+					
+					if ( i >= 10 )
+					i = 0;
+
+					if ( sdWorld.my_entity._inventory[ i ] )
+					{
+						let icons_opacity = Math.max( 0, ( sdWorld.my_entity_protected_vars_untils[ 'gun_slot' ] + 1000 - sdWorld.time ) / 1000 );
+
+						ctx.globalAlpha = 0.5;
+
+						if ( sdWorld.my_entity && i === sdWorld.my_entity.gun_slot )
+						{
+							ctx.globalAlpha = 0.5 + icons_opacity * 0.5;
+						}
+
+						ctx.fillStyle = '#000000';
+						ctx.fillRect( 5 + t * 35, 5 + 17 + 5, 30, 17 );
+
+						ctx.globalAlpha = ( sdWorld.my_entity && i === sdWorld.my_entity.gun_slot ) ? 1 : 0.5;
+
+						ctx.fillStyle = '#ffffff';
+						ctx.textAlign = 'center';
+						ctx.fillText( i + '', 5 + t * 35 + 30 / 2, 5 + 17 + 5 + 12 );
+
+						//if ( sdWorld.time < sdWorld.my_entity_protected_vars_untils[ 'gun_slot' ] + 1000 )
+						if ( icons_opacity > 0 )
+						{
+							ctx.globalAlpha = icons_opacity;
+
+							ctx.save();
+							ctx.translate( 5 + t * 35 + 30 / 2, 5 + 17 + 5 + 30 );
+							sdWorld.my_entity._inventory[ i ].Draw( ctx, true );
+							ctx.restore();
+						}
+
+					}
+					else
+					{
+						ctx.globalAlpha = 0.15;
+						ctx.fillStyle = '#000000';
+						ctx.fillRect( 5 + i * 35, 5 + 17 + 5, 30, 17 );
+					}
+				}
+			}
+			
+			if ( sdWorld.my_entity )
+			if ( sdRenderer.show_key_hints > 0 )
+			{
+				ctx.globalAlpha = Math.min( 1, sdRenderer.show_key_hints );
+				sdRenderer.show_key_hints -= sdWorld.GSPEED * 0.1;
+				
+				let keySuggestions = []; // Such as enter fullscreen - F11, Invisibility - E, Drop weapon V
+				keySuggestions.push({ title: 'Fullscreen', key: 'F11' });
+				
+				keySuggestions.push({ title: 'Chat', key: 'Enter' });
+				
+				keySuggestions.push({ title: 'Enter vehicle', key: 'E' });
+				
+				if ( sdWorld.my_entity._upgrade_counters.upgrade_invisibility )
+				keySuggestions.push({ title: 'Invisibility', key: 'E' });
+			
+				keySuggestions.push({ title: 'Drop weapon', key: 'V' });
+				
+				if ( sdWorld.my_entity._upgrade_counters.upgrade_hook )
+				keySuggestions.push({ title: 'Grappling hook', key: 'C' });
+			
+				if ( sdWorld.my_entity._inventory[ 9 ] )
+				keySuggestions.push({ title: 'Select build item', key: 'B' });
+				else
+				keySuggestions.push({ title: 'Select build item', key: '- no build tool -' });
+			
+				for ( let i = 0; i < keySuggestions.length; i++ )
+				{
+					let s = keySuggestions[ i ];
+
+					ctx.fillStyle = '#ffffff';
+					ctx.textAlign = 'center';
+					ctx.fillText( s.title, sdRenderer.screen_width - ( i * 100 + 50 ) * scale, sdRenderer.screen_height - 15 );
+
+					if ( s.key.charAt( 0 ) === '-' )
+					ctx.fillStyle = '#ff6666';
+					else
+					ctx.fillStyle = '#ffff00';
+				
+					ctx.fillText( s.key, sdRenderer.screen_width - ( i * 100 + 50 ) * scale, sdRenderer.screen_height - 28 );
+				}
+			}
 			ctx.globalAlpha = 1;
 			
 			ctx.fillStyle = '#ff0000';
 			//ctx.fillRect( 7, 7, 296 * sdWorld.my_entity.hea / sdWorld.my_entity.hmax, 2 );
-			ctx.font = 11*scale + "px Verdana";
+			
 			ctx.textAlign = 'left';
 			ctx.fillStyle = '#ff0000';
 			ctx.fillText("Health: " + Math.ceil( sdWorld.my_entity.hea ), 5 + 5 * scale, 17 );
@@ -1031,7 +1127,7 @@ class sdRenderer
 			}
 			
 			ctx.save();
-			ctx.translate( 5 + 5 * scale, 50 );
+			ctx.translate( 5 + 5 * scale, 80 );
 			for ( let t = 0; t < sdTask.tasks.length; t++ )
 			{
 				let task = sdTask.tasks[ t ];

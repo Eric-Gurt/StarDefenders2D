@@ -937,6 +937,7 @@ let enf_once = true;
 				sdShop.open = true;
 				//sdRenderer.UpdateCursor();
 			}
+			return;
 		}
 		else
 		if ( code === 'Escape' || code === 'Space' || ( code === 'KeyR' && sdWorld.mobile ) )
@@ -950,6 +951,12 @@ let enf_once = true;
 				if ( code === 'Space' || code === 'KeyR' )
 				sdWorld.Start( globalThis.GetPlayerSettings(), true );
 			}
+			return;
+		}
+		
+		if ( typeof key_states.key_states[ code ] === 'undefined' )
+		{
+			sdRenderer.show_key_hints = 6;
 		}
 	};
 	window.onkeypress = ( e )=>
@@ -1052,6 +1059,37 @@ let enf_once = true;
 	{
 		if ( sdRenderer.canvas.style.display !== 'block' )
 		return;
+	
+		if ( !sdShop.open )
+		if ( sdWorld.my_entity )
+		{
+			let dir = ( e.deltaY < 0 ) ? 1 : -1;
+			
+			let i = sdWorld.my_entity.gun_slot;
+			
+			for ( let t = 0; t < 10; t++ )
+			{
+				if ( i >= sdWorld.my_entity._inventory.length )
+				i = 0;
+				else
+				if ( i < 0 )
+				i = sdWorld.my_entity._inventory.length - 1;
+						
+				if ( t !== 0 )
+				if ( sdWorld.my_entity._inventory[ i ] )
+				{
+					key_states.SetKey( 'Digit' + i, 1 );
+					key_states.SetKey( 'Digit' + i, 0 );
+
+					sd_events.push( [ 'K1', 'Digit' + i ] );
+					sd_events.push( [ 'K0', 'Digit' + i ] );
+
+					break;
+				}
+				
+				i += dir;
+			}
+		}
 	
 		sdShop.MouseWheel( e );
 	};

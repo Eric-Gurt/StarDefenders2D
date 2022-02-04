@@ -36,13 +36,19 @@ class sdChat
 	}
 	static async KeyDown( e )
 	{
+		let do_not_allow_other_keys = false;
+		
 		if ( e.key === 'Escape' )
 		{
 			sdChat.open = false;
+			
+			do_not_allow_other_keys = true;
 		}
 		else
 		if ( e.key === 'Enter' )
 		{
+			do_not_allow_other_keys = true;
+				
 			if ( sdChat.open )
 			{
 				if ( sdChat.custom_destination_callback )
@@ -100,7 +106,7 @@ class sdChat
 		
 		sdChat.blink_offset = sdWorld.time;
 		
-		return sdChat.open;
+		return sdChat.open || do_not_allow_other_keys;
 	}
 	static async KeyPress( e )
 	{

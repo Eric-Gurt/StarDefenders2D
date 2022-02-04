@@ -101,8 +101,15 @@ class sdOverlord extends sdEntity
 		this._anim_shift = ~~( Math.random() * 10000 );
 		
 		this.has_gun = 1;
+		this._droppen_gun_entity = null;
 		
 		this._relations_to_classes = {};
+		
+		//EnforceChangeLog( this, '_relations_to_classes', false );
+		
+		this.melee_arm = 0; // 0 or 1
+		this.melee_anim = 0; // changes from 0 to 15 or something, then Damage happens, then goes back to 30
+		this._melee_scheduled = false; // Becomes true when melee should start
 		
 		/*for ( let i = 0; i < sdWorld.entity_classes.length; i++ )
 		{
@@ -114,13 +121,17 @@ class sdOverlord extends sdEntity
 		//sdOverlord.overlord_tot++;
 		sdOverlord.overlords.push( this );
 		
-		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
+		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
 	
 	
 	ExtraSerialzableFieldTest( prop )
 	{
 		if ( prop === '_relations_to_classes' ) return true;
+		
+		if ( prop === '_attack_target' ) return true;
+		//if ( prop === '_current_target' ) return true;
+		if ( prop === '_droppen_gun_entity' ) return true;
 		
 		return false;
 	}
@@ -136,7 +147,10 @@ class sdOverlord extends sdEntity
 			if ( ent )
 			{
 				if ( !peaceful_mode )
-				this.Say( sdWorld.ClassNameToProperName( ent.GetClass() ) + ' is to be destroyed' );
+				{
+					if ( ent !== this._droppen_gun_entity )
+					this.Say( sdWorld.ClassNameToProperName( ent.GetClass() ) + ' is to be destroyed' );
+				}
 				
 				this._pathfinding = new sdPathFinding({ target: ent, traveler: this, attack_range: ( this.has_gun || peaceful_mode ) ? 350 : 32, options: ( this.has_gun && !peaceful_mode ) ? [ sdPathFinding.OPTION_CAN_FLY, sdPathFinding.OPTION_CAN_GO_THROUGH_WALLS ] : [ sdPathFinding.OPTION_CAN_FLY ] });
 			}
@@ -263,6 +277,8 @@ class sdOverlord extends sdEntity
 					gun.sy = this.sy;
 					
 					sdEntity.entities.push( gun );
+					
+					this._droppen_gun_entity = gun;
 					
 				}, 0 );
 			}
@@ -417,7 +433,7 @@ class sdOverlord extends sdEntity
 
 				if ( this._current_target )
 				{
-					if ( this._current_target._is_being_removed || !this._current_target.IsVisible( this ) || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdOverlord.max_seek_range + 32 )
+					if ( this._current_target._is_being_removed || /*!this._current_target.IsVisible( this ) ||*/ sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdOverlord.max_seek_range + 32 )
 					{
 						//this._current_target = null;
 						this.SetTarget( null );
@@ -455,10 +471,31 @@ class sdOverlord extends sdEntity
 					
 					//this.SetTarget( e, false, true );
 					
-					let i = Math.floor( Math.random() * sdWorld.sockets.length );
-					if ( sdWorld.sockets[ i ].character )
+					if ( sdWorld.sockets.length > 0 )
 					{
-						this.SetTarget( sdWorld.sockets[ i ].character, false, true );
+						let i = Math.floor( Math.random() * sdWorld.sockets.length );
+						if ( sdWorld.sockets[ i ].character )
+						{
+							this.SetTarget( sdWorld.sockets[ i ].character, false, true );
+						}
+					}
+				}
+				
+				if ( this.state_hp <= 0 ) // Only if healthy - in else case it won't be able to melee
+				if ( !this.has_gun )
+				if ( this._droppen_gun_entity && !this._droppen_gun_entity._is_being_removed )
+				{
+					let t = this._droppen_gun_entity;
+					if ( sdWorld.inDist2D_Boolean( t.x, t.y, this.x, this.y, 100 ) )
+					if ( sdWorld.CheckLineOfSight( this.x, this.y, t.x, t.y, this ) )
+					{
+						if ( this._current_target !== t )
+						{
+							if ( t._held_by )
+							this.Say( 'This belongs to us' );
+						
+							this.SetTarget( t );
+						}
 					}
 				}
 			}
@@ -576,7 +613,13 @@ class sdOverlord extends sdEntity
 				
 		if ( sdWorld.is_server )
 		{
-			if ( this.state_hp <= 1 && this._attack_target && !this._attack_target._is_being_removed && this.sentence_to_speak.length <= 0 )
+			if ( this._attack_target )
+			if ( this._attack_target._is_being_removed )
+			{
+				this._attack_target = null;
+			}
+			
+			if ( this.state_hp <= 1 && this._attack_target && this.sentence_to_speak.length <= 0 )
 			{
 				this._concentration = Math.min( 1, this._concentration + GSPEED * 0.001 );
 				
@@ -584,6 +627,7 @@ class sdOverlord extends sdEntity
 
 				this.side = ( t.x > this.x ) ? 1 : -1;
 
+				//let an = Math.atan2( this.x - ( t.x + ( t._hitbox_x1 + t._hitbox_x2 ) / 2 ), this.y + sdOverlord.rifle_offset_y - ( t.y + ( t._hitbox_y1 + t._hitbox_y2 ) / 2 ) );
 				let an = Math.atan2( this.x - ( t.x + ( t._hitbox_x1 + t._hitbox_x2 ) / 2 ), this.y + sdOverlord.rifle_offset_y - ( t.y + ( t._hitbox_y1 + t._hitbox_y2 ) / 2 ) );
 
 				let waving = Math.sin( sdWorld.time / 500 * Math.PI + this._anim_shift ) * 0.3;
@@ -617,8 +661,8 @@ class sdOverlord extends sdEntity
 						let dx2 = 0;
 						let dy2 = 0;
 						{
-							dx2 = this._attack_target.x - this.x;
-							dy2 = this._attack_target.y - this.y;
+							dx2 = this._attack_target.x + ( this._attack_target._hitbox_x1 + this._attack_target._hitbox_x2 ) / 2 - this.x;
+							dy2 = this._attack_target.y + ( this._attack_target._hitbox_y1 + this._attack_target._hitbox_y2 ) / 2 - ( this.y + sdOverlord.rifle_offset_y );
 
 							let di = sdWorld.Dist2D_Vector( dx2, dy2 );
 
@@ -658,8 +702,15 @@ class sdOverlord extends sdEntity
 						bullet_obj.model = 'blaster_proj';
 
 						bullet_obj.explosion_radius = 9;
+						
+						//bullet_obj.explosion_radius = 0; // Hack
 
 						sdEntity.entities.push( bullet_obj );
+					}
+					else
+					{
+						this._reload_timer *= 10;
+						this._melee_scheduled = true;
 					}
 				}
 			}
@@ -672,7 +723,6 @@ class sdOverlord extends sdEntity
 
 			if ( this._muzzle_timer > 0 )
 			this._muzzle_timer -= GSPEED;
-
 		}
 		
 		if ( in_water )
@@ -690,7 +740,53 @@ class sdOverlord extends sdEntity
 		
 		if ( this.state_hp <= 1 )
 		{
-			
+			if ( this.state_hp <= 0 ) // Only when healthy (no animation frames so far)
+			{
+				if ( ( this._melee_scheduled && sdWorld.is_server ) || this.melee_anim > 0 )
+				{
+					let before = this.melee_anim;
+					this.melee_anim += GSPEED * 2;
+
+					if ( before < 15 )
+					if ( this.melee_anim >= 15 )
+					{
+						let t = this._attack_target;
+						if ( t )
+						if ( !t._is_being_removed )
+						if ( sdWorld.inDist2D_Boolean( t.x, t.y, this.x, this.y + sdOverlord.rifle_offset_y, 50 ) )
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, t.x, t.y, this, [ t.GetClass() ] ) )
+						{
+							if ( t === this._droppen_gun_entity )
+							{
+								t.remove();
+								this.has_gun = true;
+								
+								this.Say( 'Where did we stop again?' );
+							}
+							else
+							{
+								t.Damage( 60 );
+
+								let an = Math.atan2( this.x - ( t.x + ( t._hitbox_x1 + t._hitbox_x2 ) / 2 ), this.y + sdOverlord.rifle_offset_y - ( t.y + ( t._hitbox_y1 + t._hitbox_y2 ) / 2 ) );
+
+								let dx = -Math.sin( an ) * 80 * 8;
+								let dy = -Math.cos( an ) * 80 * 8;
+
+								t.Impulse( dx, dy );
+
+								sdWorld.SendEffect({ x:t.x + ( t._hitbox_x1 + t._hitbox_x2 ) / 2, y:t.y + ( t._hitbox_y1 + t._hitbox_y2 ) / 2, type:t.GetBleedEffect(), filter:t.GetBleedEffectFilter() });
+							}
+						}
+					}
+
+					if ( this.melee_anim > 30 )
+					{
+						this.melee_anim = 0;
+						this._melee_scheduled = false;
+						this.melee_arm = 1 - this.melee_arm;
+					}
+				}
+			}
 		}
 		else
 		{
@@ -745,7 +841,7 @@ class sdOverlord extends sdEntity
 		if ( !e )
 		return 0;
 	
-		if ( e.is( sdBlock ) && e._natural && e.material === sdBlock.MATERIAL_GROUND )
+		if ( e.is( sdBlock ) && e._natural && e.material === sdBlock.MATERIAL_GROUND && Math.random() < 0.995 )
 		return 0;
 		
 		if ( e.IsPlayerClass() && e._score <= 30 )
@@ -779,12 +875,38 @@ class sdOverlord extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		//ctx.filter = this.filter;
+		ctx.filter = this.filter;
 		
 		ctx.scale( -this.side, 1 );
 		//ctx.rotate( this.attack_an / 100 );
 		
 		let offset = this.state_hp;
+		
+		let draw_arm = null;
+		
+		if ( offset === 0 && this.melee_anim !== 0 )
+		{
+			draw_arm = ()=>
+			{
+				let origin_x = 14;
+				let origin_y = 41;
+
+				if ( this.melee_arm === 1 )
+				origin_x = 23;
+
+				ctx.save();
+				{
+					ctx.translate( origin_x - 16, origin_y - 32 );
+					ctx.rotate( this.attack_an / 180 * Math.PI + Math.PI / 2 );
+
+					if ( this.melee_anim < 7.5 || this.melee_anim > 15 + 7.5 )
+					ctx.drawImageFilterCache( sdOverlord.img_overlord, 9*32,0,32,64, -16, -32, 32,64 );
+					else
+					ctx.drawImageFilterCache( sdOverlord.img_overlord, 10*32,0,32,64, -16, -32, 32,64 );
+				}
+				ctx.restore();
+			};
+		}
 			
 		if ( offset <= 1 )
 		{
@@ -799,7 +921,19 @@ class sdOverlord extends sdEntity
 			}
 		}
 		
+		if ( this.melee_arm === 0 )
+		if ( draw_arm )
+		draw_arm();
+		
+		if ( offset > 0 || this.melee_anim === 0 )
 		ctx.drawImageFilterCache( sdOverlord.img_overlord, offset*32,0,32,64, -16, -32, 32,64 );
+		else
+		{
+			if ( this.melee_arm === 0 )
+			ctx.drawImageFilterCache( sdOverlord.img_overlord, 7*32,0,32,64, -16, -32, 32,64 );
+			else
+			ctx.drawImageFilterCache( sdOverlord.img_overlord, 8*32,0,32,64, -16, -32, 32,64 );
+		}
 		
 		if ( offset === 0 )
 		{
@@ -813,12 +947,20 @@ class sdOverlord extends sdEntity
 			ctx.drawImageFilterCache( sdOverlord.img_overlord, (2+this.mouth)*32,64,32,64, -16, -32, 32,64 );
 		}
 		
-		//if ( offset <= 1 )
-		if ( this.has_gun )
+		if ( offset <= 1 )
 		{
 			if ( this.sweat )
 			ctx.drawImageFilterCache( sdOverlord.img_overlord, 6*32,64,32,64, -16, -32, 32,64 );
-
+		}
+		
+		
+		if ( this.melee_arm === 1 )
+		if ( draw_arm )
+		draw_arm();
+		
+		if ( this.has_gun )
+		{
+			ctx.filter = 'none';
 			ctx.save();
 			{
 				ctx.translate( 0, sdOverlord.rifle_offset_y );
@@ -831,10 +973,26 @@ class sdOverlord extends sdEntity
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
-	/*onMovementInRange( from_entity )
+	
+	onMovementInRange( from_entity )
 	{
-		//this._last_stand_on = from_entity;
-	}*/
+		if ( sdWorld.is_server )
+		if ( this.state_hp <= 1 )
+		if ( !this.has_gun )
+		if ( from_entity.is( sdGun ) )
+		if ( from_entity.class === sdGun.CLASS_OVERLORD_BLASTER )
+		if ( !from_entity._is_being_removed )
+		{
+			if ( this._droppen_gun_entity === from_entity )
+			this.Say( 'What a coincedence' );
+			else
+			this.Say( 'This will do' );
+			
+			this.has_gun = true;
+			from_entity.remove();
+		}
+	}
+	
 	onRemove() // Class-specific, if needed
 	{
 		this.onRemoveAsFakeEntity();

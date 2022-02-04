@@ -12,7 +12,9 @@ class sdOctopus extends sdEntity
 {
 	static init_class()
 	{
-		sdOctopus.img_octopus_idle1 = sdWorld.CreateImageFromFile( 'octopus_idle1' );
+		sdOctopus.img_octopus = sdWorld.CreateImageFromFile( 'sdOctopus' );
+		
+		/*sdOctopus.img_octopus_idle1 = sdWorld.CreateImageFromFile( 'octopus_idle1' );
 		sdOctopus.img_octopus_idle2 = sdWorld.CreateImageFromFile( 'octopus_idle2' );
 		sdOctopus.img_octopus_idle3 = sdWorld.CreateImageFromFile( 'octopus_idle3' );
 		sdOctopus.img_octopus_jump = sdWorld.CreateImageFromFile( 'octopus_jump' );
@@ -22,7 +24,7 @@ class sdOctopus extends sdEntity
 			sdWorld.CreateImageFromFile( 'octopus_death2' ),
 			sdWorld.CreateImageFromFile( 'octopus_death3' ),
 			sdWorld.CreateImageFromFile( 'octopus_death4' )
-		];
+		];*/
 		sdOctopus.death_duration = 30;
 		sdOctopus.post_death_ttl = 30 * 6;
 		
@@ -63,12 +65,15 @@ class sdOctopus extends sdEntity
 		this.tenta_y = 0;
 		this.tenta_tim = 0;
 		
+		
+		
 		this.side = 1;
 		
 		this._anim_shift = ~~( Math.random() * 10000 );
 		
 		//this._consumed_matter = [];
-		this._consumed_guns = [];
+		//this._consumed_guns = [];
+		this._consumed_guns_snapshots = [];
 		
 		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
 	}
@@ -126,7 +131,7 @@ class sdOctopus extends sdEntity
 				this._consumed_matter.shift();
 			}*/
 			
-			while ( this._consumed_guns.length > 0 )
+			/*while ( this._consumed_guns.length > 0 )
 			{
 				let ent = new sdGun({ class:this._consumed_guns[ 0 ], x: this.x, y:this.y });
 				ent.sx = this.sx + Math.random() * 8 - 4;
@@ -135,6 +140,25 @@ class sdOctopus extends sdEntity
 				sdEntity.entities.push( ent );
 				
 				this._consumed_guns.shift();
+			}*/
+			while ( this._consumed_guns_snapshots.length > 0 )
+			{
+				let snapshot = this._consumed_guns_snapshots.shift();
+				try
+				{
+					let ent = sdEntity.GetObjectFromSnapshot( snapshot );
+					ent.x = this.x;
+					ent.y = this.y;
+					ent.sx = this.sx + Math.random() * 8 - 4;
+					ent.sy = this.sy + Math.random() * 8 - 4;
+					ent.ttl = sdGun.disowned_guns_ttl;
+					ent._held_by = null;
+					sdEntity.entities.push( ent );
+				}
+				catch ( e )
+				{
+					trace( 'Octopus can\'t drop consumed weapon', snapshot );
+				}
 			}
 		}
 		else
@@ -244,7 +268,7 @@ class sdOctopus extends sdEntity
 		if ( this.death_anim === 0 )
 		{
 			if ( this.tenta_tim > 0 )
-			this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 15 );
+			this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
 		
 			if ( this.hurt_timer > 0 )
 			this.hurt_timer = Math.max( 0, this.hurt_timer - GSPEED * 0.075 );
@@ -331,27 +355,37 @@ class sdOctopus extends sdEntity
 						 ( typeof from_entity._hea !== 'undefined' && from_entity._hea <= 0 ) )*/
 					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
 					{
-						if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )
+						//if ( from_entity._is_being_removed )
+						if ( from_entity.GetClass() === 'sdGun' && !from_entity._is_being_removed )
 						{
-							if ( from_entity._reinforced_level > 0 ) // Octopus should not damage reinforced blocks to prevent raiders using them
-							{
-								// No damage
-							}
-							else
-							from_entity.Damage( 75, this );
-						}
-						else
-						from_entity.Damage( 75, this );
-						
-						if ( from_entity._is_being_removed )
-						if ( from_entity.GetClass() === 'sdGun' )
-						{
-							if ( from_entity.class === sdGun.CLASS_CRYSTAL_SHARD )
+							/*if ( from_entity.class === sdGun.CLASS_CRYSTAL_SHARD )
 							{
 								//this._consumed_matter.push( from_entity.extra );
 							}
+							else*/
+							//{
+								//this._consumed_guns.push( from_entity.class );
+								if ( this._consumed_guns_snapshots.length < 64 )
+								{
+									//from_entity._held_by = null;
+									this._consumed_guns_snapshots.push( from_entity.GetSnapshot( globalThis.GetFrame(), true ) );
+									from_entity.remove();
+								}
+							//}
+						}
+						else
+						{
+							if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )
+							{
+								/*if ( from_entity._reinforced_level > 0 ) // Octopus should not damage reinforced blocks to prevent raiders using them
+								{
+									// No damage
+								}
+								else*/
+								from_entity.Damage( 75, this );
+							}
 							else
-							this._consumed_guns.push( from_entity.class );
+							from_entity.Damage( 75, this );
 						}
 						
 						this._hea = Math.min( this._hmax, this._hea + 25 );
@@ -385,6 +419,37 @@ class sdOctopus extends sdEntity
 		
 		ctx.scale( this.side, 1 );
 		
+		let xx = 0;
+		let yy = 0;
+		
+		if ( this.tenta_tim > 0 )
+		{
+			let sprites = [
+				3,0,
+				2,1,
+				3,1
+			];
+			
+			let morph = ( Math.sin( this.tenta_tim / 100 * Math.PI ) );
+			let best_id = Math.round( morph * 2 );
+			
+			let xx = sprites[ best_id * 2 + 0 ];
+			let yy = sprites[ best_id * 2 + 1 ];
+			
+			let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y ) * ( ( best_id + 1 ) / 3 );
+			
+			if ( di < 200 )
+			{
+			    ctx.save();
+				{
+					ctx.scale( this.side, 1 );
+					ctx.rotate( Math.PI / 2 - Math.atan2( this.tenta_x, this.tenta_y ) );
+					ctx.drawImageFilterCache( sdOctopus.img_octopus, xx * 32, yy * 32, 32,32, 0, -16, di,32 );
+				}
+			    ctx.restore();
+			}
+		}
+		
 		if ( this.death_anim > 0 )
 		{
 			if ( this.death_anim > sdOctopus.death_duration + sdOctopus.post_death_ttl - 30 )
@@ -392,14 +457,30 @@ class sdOctopus extends sdEntity
 				ctx.globalAlpha = 0.5;
 			}
 			
-			let frame = Math.min( sdOctopus.death_imgs.length - 1, ~~( ( this.death_anim / sdOctopus.death_duration ) * sdOctopus.death_imgs.length ) );
-			ctx.drawImageFilterCache( sdOctopus.death_imgs[ frame ], - 16, - 16, 32,32 );
+			
+			xx = Math.min( 4 - 1, ~~( ( this.death_anim / sdOctopus.death_duration ) * 4 ) );
+			yy = 2;
+			
+			//ctx.drawImageFilterCache( sdOctopus.death_imgs[ frame ], - 16, - 16, 32,32 );
 		}
 		else
-		{
+		{			
+			if ( this.hurt_timer > 0 )
+			{
+				xx = 0;
+				yy = 2;
+				//ctx.drawImageFilterCache( sdOctopus.death_imgs[ 0 ], - 16, - 16, 32,32 );
+			}
+			else
 			if ( this.tenta_tim > 0 )
 			{
+
 				let morph = ( Math.sin( this.tenta_tim / 100 * Math.PI ) );
+				let best_id = Math.round( morph * 2 );
+
+				xx = best_id;
+				yy = 3;
+				/*let morph = ( Math.sin( this.tenta_tim / 100 * Math.PI ) );
 				
 				for ( let layer = 0; layer < 2; layer++ )
 				{
@@ -419,19 +500,24 @@ class sdOctopus extends sdEntity
 						ctx.lineTo( morph2 * this.tenta_x * morph * this.side, morph2 * this.tenta_y * morph );
 						ctx.stroke();
 					}
-				}
-			}
-			
-			if ( this.hurt_timer > 0 )
-			{
-				ctx.drawImageFilterCache( sdOctopus.death_imgs[ 0 ], - 16, - 16, 32,32 );
+				}*/
 			}
 			else
 			if ( Math.abs( this.sx ) < 1 )
-			ctx.drawImageFilterCache( ( (sdWorld.time+this._anim_shift) % 5000 < 200 ) ? sdOctopus.img_octopus_idle2 : ( (sdWorld.time+this._anim_shift) % 5000 < 400 ) ? sdOctopus.img_octopus_idle3 : sdOctopus.img_octopus_idle1, - 16, - 16, 32,32 );
+			{
+				xx = ( (sdWorld.time+this._anim_shift) % 5000 < 200 ) ? 1 : ( (sdWorld.time+this._anim_shift) % 5000 < 400 ) ? 2 : 0;
+				yy = 0;
+				//ctx.drawImageFilterCache( ( (sdWorld.time+this._anim_shift) % 5000 < 200 ) ? sdOctopus.img_octopus_idle2 : ( (sdWorld.time+this._anim_shift) % 5000 < 400 ) ? sdOctopus.img_octopus_idle3 : sdOctopus.img_octopus_idle1, - 16, - 16, 32,32 );
+			}
 			else
-			ctx.drawImageFilterCache( sdOctopus.img_octopus_jump, - 16, - 16, 32,32 );
+			{
+				xx = 0;
+				yy = 1;
+				//ctx.drawImageFilterCache( sdOctopus.img_octopus_jump, - 16, - 16, 32,32 );
+			}
 		}
+		
+		ctx.drawImageFilterCache( sdOctopus.img_octopus, xx * 32, yy * 32, 32,32, -16, -16, 32,32 );
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';

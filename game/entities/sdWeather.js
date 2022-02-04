@@ -47,6 +47,7 @@ import sdAmphid from './sdAmphid.js';
 import sdObelisk from './sdObelisk.js';
 import sdWater from './sdWater.js';
 import sdJunk from './sdJunk.js';
+import sdOverlord from './sdOverlord.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -84,6 +85,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_SARRORNIANS =				event_counter++; // 17
 		sdWeather.EVENT_COUNCIL_BOMB =				event_counter++; // 18
 		sdWeather.EVENT_MATTER_RAIN =				event_counter++; // 19
+		sdWeather.EVENT_OVERLORD =					event_counter++; // 20
 		
 		sdWeather.last_crystal_near_quake = null; // Used to damage left over crystals. Could be used to damage anything really
 		
@@ -1278,6 +1280,58 @@ class sdWeather extends sdEntity
 			}
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
+		
+		if ( r === sdWeather.EVENT_OVERLORD )
+		{
+			let instances = 0;
+			let instances_tot = 1;
+
+			let left_side = ( Math.random() < 0.5 );
+
+			while ( instances < instances_tot )
+			{
+				let ent = new sdOverlord({ x:0, y:0 });
+
+				sdEntity.entities.push( ent );
+
+				{
+					let x,y;
+					let tr = 1000;
+					do
+					{
+						if ( left_side )
+						x = sdWorld.world_bounds.x1 + 64;
+						else
+						x = sdWorld.world_bounds.x2 - 64;
+
+						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+						if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
+						//if ( !ent.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+						//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+						{
+							ent.x = x;
+							ent.y = y;
+
+							//sdWorld.UpdateHashPosition( ent, false );
+							//console.log('Flying mech spawned!');
+							break;
+						}
+
+
+						tr--;
+						if ( tr < 0 )
+						{
+							ent.remove();
+							ent._broken = false;
+							break;
+						}
+					} while( true );
+				}
+
+				instances++;
+			}
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

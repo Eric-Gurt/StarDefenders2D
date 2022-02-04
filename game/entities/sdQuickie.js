@@ -25,7 +25,7 @@ class sdQuickie extends sdEntity
 		sdQuickie.death_duration = 10;
 		sdQuickie.post_death_ttl = 90;
 		
-		sdQuickie.max_seek_range = 1000;
+		sdQuickie.max_seek_range = 800;
 
 		sdQuickie.quickies_tot = 0;
 		

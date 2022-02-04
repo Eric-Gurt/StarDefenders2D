@@ -1114,12 +1114,20 @@ class sdGun extends sdEntity
 				}
 				*/
 		   }
+		   
+			if ( this.muzzle > 0 )//2.5 )
+			if ( sdGun.classes[ this.class ] )
+			if ( sdGun.classes[ this.class ].image_firing !== undefined )
+			{
+				image = sdGun.classes[ this.class ].image_firing;
+			}
 			
 			ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
 			
 			ctx.filter = 'none';
 			ctx.sd_filter = null;
 			
+			if ( sdGun.classes[ this.class ].muzzle_x !== undefined )
 			if ( sdGun.classes[ this.class ] )
 			{
 				if ( this.muzzle > 2.5 )
