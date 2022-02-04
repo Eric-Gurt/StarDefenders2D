@@ -961,7 +961,8 @@ class sdCharacterRagdoll
 					di = sdWorld.Dist2D_Vector( dx, dy );
 
 					//if ( limit_mode === sdCharacterRagdoll.spring_both || ( limit_mode === sdCharacterRagdoll.spring_min && di < target_di ) || ( limit_mode === sdCharacterRagdoll.spring_max && di > target_di ) )
-					if ( limit_mode === sdCharacterRagdoll.spring_both || ( this.character.hea <= 0 && limit_mode === sdCharacterRagdoll.spring_min && di < target_di ) || ( this.character.hea <= 0 && limit_mode === sdCharacterRagdoll.spring_max && di > target_di ) ) // Disable limiters as they will interfere with crouching
+					//if ( limit_mode === sdCharacterRagdoll.spring_both || ( this.character.hea <= 0 && limit_mode === sdCharacterRagdoll.spring_min && di < target_di ) || ( this.character.hea <= 0 && limit_mode === sdCharacterRagdoll.spring_max && di > target_di ) ) // Disable limiters as they will interfere with crouching
+					if ( limit_mode === sdCharacterRagdoll.spring_both || ( true && limit_mode === sdCharacterRagdoll.spring_min && di < target_di ) || ( true && limit_mode === sdCharacterRagdoll.spring_max && di > target_di ) ) // Disable limiters as they will interfere with crouching
 					if ( Math.abs( di - target_di ) > 0.1 )
 					{
 						//p = 1 / di * ( di - target_di ) * 0.5 * GSPEED;
@@ -1010,7 +1011,8 @@ class sdCharacterRagdoll
 							//if ( !c.RelaxedPush( dx * p, dy * p ) )
 							//break;
 							
-							if ( this.character.hea <= 0 )
+							//if ( this.character.hea <= 0 )
+							if ( true )
 							{
 								p /= 2;
 								a.RelaxedPush( -dx * p, -dy * p );
