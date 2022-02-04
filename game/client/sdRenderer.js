@@ -1048,7 +1048,7 @@ class sdRenderer
 					{
 						ctx.globalAlpha = 0.15;
 						ctx.fillStyle = '#000000';
-						ctx.fillRect( 5 + i * 35, 5 + 17 + 5, 30, 17 );
+						ctx.fillRect( 5 + t * 35, 5 + 17 + 5, 30, 17 );
 					}
 				}
 			}
