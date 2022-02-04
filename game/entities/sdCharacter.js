@@ -1015,6 +1015,8 @@ class sdCharacter extends sdEntity
 
 			this.hea = Math.max( this.hea, 30 );
 			
+			this.stability = 100;
+			
 			this._sickness /= 4;
 
 			//best_t.SetDelay( sdRescueTeleport.delay_2nd ); // 5 minutes

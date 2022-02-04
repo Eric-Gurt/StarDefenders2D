@@ -104,7 +104,7 @@ class sdBarrel extends sdEntity
 	MeasureMatterCost()
 	{
 		//return 0; // Hack
-		return 125;
+		return Math.round( 150 * ( 0.8 * ( 1 + this.variation ) + 0.2 * ( 30 + 5 * this.variation ) / 30 ) );
 		//return this.hmax * sdWorld.damage_to_matter + 50;
 	}
 }
