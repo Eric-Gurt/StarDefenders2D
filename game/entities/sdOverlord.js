@@ -8,6 +8,7 @@ import sdWater from './sdWater.js';
 import sdBlock from './sdBlock.js';
 import sdBullet from './sdBullet.js';
 import sdCharacter from './sdCharacter.js';
+import sdArea from './sdArea.js';
 
 import sdPathFinding from '../ai/sdPathFinding.js';
 
@@ -73,6 +74,8 @@ class sdOverlord extends sdEntity
 		this._pathfinding = null;
 		
 		this._attack_target = null; // Can be both wall and target, stays in memory for longer time
+		this._shots_fired_towards_target = 0;
+		this._last_known_target_health_before_shots_fired = 0;
 		
 		this._hurt_timer = 0;
 		
@@ -423,6 +426,9 @@ class sdOverlord extends sdEntity
 						let t = pathfinding_result.attack_target;
 						
 						this._attack_target = t;
+						
+						this._last_known_target_health_before_shots_fired = t.hea || t._hea || 100;
+						this._shots_fired_towards_target = 0;
 					}
 					else
 					{
@@ -656,18 +662,33 @@ class sdOverlord extends sdEntity
 					{
 						sdSound.PlaySound({ name:'overlord_cannon4', x:this.x, y:this.y, volume:0.33 });
 
+						this._shots_fired_towards_target++;
+						
+						if ( this._shots_fired_towards_target > 60 )
+						{
+							if ( ( t.hea || t._hea || 100 ) >= this._last_known_target_health_before_shots_fired )
+							{
+								this._attack_target = null;
+								
+								if ( this._current_target === t )
+								{
+									this.SetTarget( null );
+								}
+							}
+						}
+
 						an += ( Math.random() * 0.2 - 0.1 + waving ) * ( 1 - this._concentration * 0.9 );
 
 						let dx2 = 0;
 						let dy2 = 0;
 						{
-							dx2 = this._attack_target.x + ( this._attack_target._hitbox_x1 + this._attack_target._hitbox_x2 ) / 2 - this.x;
-							dy2 = this._attack_target.y + ( this._attack_target._hitbox_y1 + this._attack_target._hitbox_y2 ) / 2 - ( this.y + sdOverlord.rifle_offset_y );
+							dx2 = t.x + ( t._hitbox_x1 + t._hitbox_x2 ) / 2 - this.x;
+							dy2 = t.y + ( t._hitbox_y1 + t._hitbox_y2 ) / 2 - ( this.y + sdOverlord.rifle_offset_y );
 
 							let di = sdWorld.Dist2D_Vector( dx2, dy2 );
 
-							dx2 += ( this._attack_target.sx || 0 ) * di / 12;
-							dy2 += ( this._attack_target.sy || 0 ) * di / 12;
+							dx2 += ( t.sx || 0 ) * di / 12;
+							dy2 += ( t.sy || 0 ) * di / 12;
 
 							di = sdWorld.Dist2D_Vector( dx2, dy2 );
 
@@ -845,6 +866,9 @@ class sdOverlord extends sdEntity
 		return 0;
 		
 		if ( e.IsPlayerClass() && e._score <= 30 )
+		return 0;
+	
+		if ( !sdArea.CheckPointDamageAllowed( e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2, e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2 ) )
 		return 0;
 	
 		let class_name = e.GetClass();
