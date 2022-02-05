@@ -265,11 +265,11 @@ class sdOctopus extends sdEntity
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 		
+		if ( this.tenta_tim > 0 )
+		this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
+
 		if ( this.death_anim === 0 )
 		{
-			if ( this.tenta_tim > 0 )
-			this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
-		
 			if ( this.hurt_timer > 0 )
 			this.hurt_timer = Math.max( 0, this.hurt_timer - GSPEED * 0.075 );
 		

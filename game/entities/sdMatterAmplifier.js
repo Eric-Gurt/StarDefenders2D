@@ -65,7 +65,7 @@ class sdMatterAmplifier extends sdEntity
 		this._last_sync_matter = this.matter;*/
 		
 		// Buffer for being able to give away matter from crystal
-		this._matter_max = 0;
+		this._matter_max = 20;
 		this._matter = 0;
 		
 		this.crystal = null;

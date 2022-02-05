@@ -412,8 +412,11 @@ class sdCrystal extends sdEntity
 		{
 			if ( ( this.matter_max === sdCrystal.anticrystal_value && this.type !== 2 ) || ( this.matter_max === sdCrystal.anticrystal_value * 4 && this.type === 2 ) )
 			{
-				this.HungryMatterGlow( 0.01, 100, GSPEED );
-				this.matter = Math.max( 0, this.matter - GSPEED * 0.01 * this.matter );
+				if ( this.held_by === null || !this.held_by.shielded )
+				{
+					this.HungryMatterGlow( 0.01, 100, GSPEED );
+					this.matter = Math.max( 0, this.matter - GSPEED * 0.01 * this.matter );
+				}
 			}
 			else
 			{

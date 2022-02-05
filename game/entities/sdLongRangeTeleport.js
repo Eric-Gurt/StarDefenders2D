@@ -612,10 +612,15 @@ class sdLongRangeTeleport extends sdEntity
 					if ( possible_ent.is_charging || sdWorld.time < possible_ent._is_busy_since + 60 * 1000 )
 					{
 						ret = {
-							message: 'Started sequence is not finished yet',
+							message: 'Started sequence is not finished yet (will be forcefully canceled if old enough)',
 							is_charing: possible_ent.is_charging,
 							is_busy: ( sdWorld.time < possible_ent._is_busy_since + 60 * 1000 )
 						};
+						
+						if ( sdWorld.time < possible_ent._is_busy_since + 60 * 1000 )
+						{
+							possible_ent.Deactivation();
+						}
 					}
 					else
 					{
@@ -759,7 +764,13 @@ class sdLongRangeTeleport extends sdEntity
 					{
 						if ( this.is_charging || sdWorld.time < this._is_busy_since + 60 * 1000 )
 						{
-							executer_socket.SDServiceMessage( 'Busy - previous sequence is not finished yet' );
+							executer_socket.SDServiceMessage( 'Busy - previous sequence is not finished yet (will be forcefully canceled if old enough)' );
+							
+							if ( sdWorld.time > this._is_busy_since + 60 * 1000 )
+							{
+								this.Deactivation();
+							}
+							
 							return;
 						}
 						else

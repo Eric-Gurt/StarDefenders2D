@@ -77,6 +77,8 @@ class sdOverlord extends sdEntity
 		this._shots_fired_towards_target = 0;
 		this._last_known_target_health_before_shots_fired = 0;
 		
+		this._wont_attack_net_ids = {}; // biometry, _biometry or _net_id
+		
 		this._hurt_timer = 0;
 		
 		this._occasional_anger_noises_timer = 0;
@@ -135,6 +137,9 @@ class sdOverlord extends sdEntity
 		if ( prop === '_attack_target' ) return true;
 		//if ( prop === '_current_target' ) return true;
 		if ( prop === '_droppen_gun_entity' ) return true;
+		if ( prop === '_wont_attack_net_ids' ) return true;
+		
+		
 		
 		return false;
 	}
@@ -215,6 +220,13 @@ class sdOverlord extends sdEntity
 		let old_hp = this._hea;
 
 		this._hea -= dmg;
+		
+		if ( dmg > 0 )
+		{
+			if ( initiator )
+			if ( typeof this._wont_attack_net_ids[ initiator.biometry || initiator._biometry || initiator._net_id ] !== 'undefined' )
+			delete this._wont_attack_net_ids[ initiator.biometry || initiator._biometry || initiator._net_id ];
+		}
 		
 		if ( this._hea > this._hmax )
 		this._hea = this._hmax;
@@ -425,10 +437,13 @@ class sdOverlord extends sdEntity
 
 						let t = pathfinding_result.attack_target;
 						
-						this._attack_target = t;
-						
-						this._last_known_target_health_before_shots_fired = t.hea || t._hea || 100;
-						this._shots_fired_towards_target = 0;
+						if ( this._attack_target !== t )
+						{
+							this._attack_target = t;
+
+							this._last_known_target_health_before_shots_fired = t.hea || t._hea || 100;
+							this._shots_fired_towards_target = 0;
+						}
 					}
 					else
 					{
@@ -672,6 +687,9 @@ class sdOverlord extends sdEntity
 								
 								if ( this._current_target === t )
 								{
+									this.Say( 'I don\'t like you ' + sdWorld.ClassNameToProperName( t.GetClass() ) + ', you are annoying' );
+									this._wont_attack_net_ids[ t.biometry || t._biometry || t._net_id ] = 1;
+									
 									this.SetTarget( null );
 								}
 							}
@@ -866,6 +884,9 @@ class sdOverlord extends sdEntity
 		return 0;
 		
 		if ( e.IsPlayerClass() && e._score <= 30 )
+		return 0;
+	
+		if ( typeof this._wont_attack_net_ids[ e.biometry || e._biometry || e._net_id ] !== 'undefined' )
 		return 0;
 	
 		if ( !sdArea.CheckPointDamageAllowed( e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2, e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2 ) )

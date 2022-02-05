@@ -82,6 +82,7 @@ class sdAntigravity extends sdEntity
 		
 		var non_recursive = new WeakSet();
 		
+		if ( this.power !== 0 )
 		for ( var t = 0; t < 2; t++ )
 		{
 			var x1 = this.x + this._hitbox_x1 + ( this._hitbox_x2 - this._hitbox_x1 ) / 2 * t;
