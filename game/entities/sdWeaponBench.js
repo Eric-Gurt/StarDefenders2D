@@ -246,6 +246,7 @@ class sdWeaponBench extends sdEntity
 				{
 					if ( command_name === 'GET' )
 					{
+						if ( this.item0 )
 						this.ExtractItem( this.item0._net_id, exectuter_character );
 
 						this._update_version++;
@@ -257,39 +258,45 @@ class sdWeaponBench extends sdEntity
 
 						let i = parseInt( parameters_array[ 0 ] );
 
-						if ( exectuter_character.matter >= ( upgrades[ i ].cost || 0 ) )
+						if ( i >= 0 & i < upgrades.length )
 						{
-							if ( upgrades[ i ].action )
-							upgrades[ i ].action( this.item0, exectuter_character );
+							if ( exectuter_character.matter >= ( upgrades[ i ].cost || 0 ) )
+							{
+								if ( upgrades[ i ].action )
+								upgrades[ i ].action( this.item0, exectuter_character );
 
-							sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+								sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 
-							exectuter_character.matter -= ( upgrades[ i ].cost || 0 );
+								exectuter_character.matter -= ( upgrades[ i ].cost || 0 );
 
-							this._update_version++;
+								this._update_version++;
+							}
+							else
+							executer_socket.SDServiceMessage( 'Not enough matter' );
 						}
-						else
-						executer_socket.SDServiceMessage( 'Not enough matter' );
 					}
 					else
 					if ( command_name === 'INCREASE_HP' )
 					{
-						let matter_cost = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost || 30 ) : 300;
-						if ( exectuter_character.matter >= ( matter_cost ) )
+						if ( this.item0 )
 						{
+							let matter_cost = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost || 30 ) : 300;
+							if ( exectuter_character.matter >= ( matter_cost ) )
+							{
 
-							sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+								sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 
-							exectuter_character.matter -= matter_cost;
+								exectuter_character.matter -= matter_cost;
 
-							this.item0._hea = 500;
+								this.item0._hea = 500;
 
-							this.upgraded_dur = true;
+								this.upgraded_dur = true;
 
-							this._update_version++;
+								this._update_version++;
+							}
+							else
+							executer_socket.SDServiceMessage( 'Not enough matter' );
 						}
-						else
-						executer_socket.SDServiceMessage( 'Not enough matter' );
 					}
 				}
 				else
