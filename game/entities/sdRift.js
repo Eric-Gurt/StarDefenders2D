@@ -336,6 +336,9 @@ class sdRift extends sdEntity
 		if ( this.teleport_alpha < 55 ) // Prevent crystal feeding if it's spawning or dissapearing
 		return;
 
+		if ( this.type === 4 )
+		from_entity.Damage( 0.25 );
+
 		if ( from_entity.is( sdCrystal ) )
 		if ( from_entity.held_by === null ) // Prevent crystals which are stored in a crate
 		{
