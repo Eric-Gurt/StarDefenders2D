@@ -686,6 +686,9 @@ class sdWeather extends sdEntity
 							else
 							if ( chance < 0.4 ) // 20% chance it's a "Asteroid" spawning portal ( 0.2 - 0.4 )
 							portal.type = 3;
+							else
+							if ( chance < 0.5 ) // 10% chance it's a "Black hole" portal ( 0.4 - 0.5 )
+							portal.type = 4;
 
 							if ( portal.CanMoveWithoutOverlap( x, y, 0 ) )
 							if ( !portal.CanMoveWithoutOverlap( x, y + 24, 0 ) )
