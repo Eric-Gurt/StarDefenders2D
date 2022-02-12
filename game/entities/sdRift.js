@@ -132,7 +132,7 @@ class sdRift extends sdEntity
 								if ( ents[ i ].GetClass() === 'sdBlock' )
 								ents[ i ].Damage( 8 );
 								else
-								if ( sdWorld.inDist2D( ents[ i ].x, ents[ i ].y, this.x, this.y ) < 64 )
+								if ( sdWorld.inDist2D( ents[ i ].x, ents[ i ].y, this.x, this.y ) < 16 )
 								ents[ i ].Damage( 16 );
 							}
 							else
