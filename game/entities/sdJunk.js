@@ -34,15 +34,18 @@ class sdJunk extends sdEntity
 		sdJunk.img_council_bomb = sdWorld.CreateImageFromFile( 'council_bomb' );
 		sdJunk.img_council_bomb2 = sdWorld.CreateImageFromFile( 'council_bomb2' );
 
+		sdJunk.img_erthal_beacon = sdWorld.CreateImageFromFile( 'erthal_distress_beacon' );
+
 		sdJunk.anti_crystals = 0;
 		sdJunk.council_bombs = 0;
+		sdJunk.erthal_beacons = 0;
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.type === 4 ? -11 : this.type === 3 ? -28 : -5; }
-	get hitbox_x2() { return this.type === 4 ? 11 : this.type === 3 ? 28 : 5; }
-	get hitbox_y1() { return this.type === 4 ? -30 : this.type === 3 ? -28 : -5; }
-	get hitbox_y2() { return this.type === 4 ? 31 : this.type === 3 ? 32 : 5; }
+	get hitbox_x1() { return this.type === 5 ? - 11 : this.type === 4 ? -11 : this.type === 3 ? -28 : -5; }
+	get hitbox_x2() { return this.type === 5 ? 11 : this.type === 4 ? 11 : this.type === 3 ? 28 : 5; }
+	get hitbox_y1() { return this.type === 5 ? - 21 : this.type === 4 ? -30 : this.type === 3 ? -28 : -5; }
+	get hitbox_y2() { return this.type === 5 ? 29 : this.type === 4 ? 31 : this.type === 3 ? 32 : 5; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -69,6 +72,8 @@ class sdJunk extends sdEntity
 
 		this.type = params.type || t_s;
 
+		if ( this.type === 5 ) // Erthal distress beacon
+		this.hmax = 40000;
 		if ( this.type === 4 ) // Council bomb
 		this.hmax = 60000;
 		if ( this.type === 3 ) // Large anti-crystal
@@ -106,7 +111,10 @@ class sdJunk extends sdEntity
 		sdJunk.anti_crystals++;
 
 		if ( this.type === 4 )
-		sdJunk.council_bombs++;		
+		sdJunk.council_bombs++;
+
+		if ( this.type === 5 )
+		sdJunk.erthal_beacons++;
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
 	/*GetBleedEffect()
@@ -320,7 +328,7 @@ class sdJunk extends sdEntity
 				sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
 			}
 
-			if ( this.type === 4 )
+			if ( this.type === 4 || this.type === 5 )
 			{
 				let x = this.x;
 				let y = this.y;
@@ -331,7 +339,7 @@ class sdJunk extends sdEntity
 
 				let gun;
 				gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
-				gun.extra = 2;
+				gun.extra = this.type === 4 ? 2 : 1;
 
 				//gun.sx = sx;
 				//gun.sy = sy;
@@ -374,7 +382,7 @@ class sdJunk extends sdEntity
 		
 	}
 	
-	get mass() { return this.type === 4 ? 1000 : this.type === 3 ? 500 : 30; }
+	get mass() { return this.type === 5 ? 800 : this.type === 4 ? 1000 : this.type === 3 ? 500 : 30; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -480,7 +488,7 @@ class sdJunk extends sdEntity
 				}
 			}
 
-			if ( this.type === 4 )
+			if ( this.type === 4 ) // Council bomb
 			{
 				this._max_damage_timer -= GSPEED;
 				if ( this._max_damage_timer < 0 )
@@ -841,6 +849,29 @@ class sdJunk extends sdEntity
 				}
 			}
 			}
+
+			if ( this.type === 5 ) // Erthal distress beacon
+			{
+				if ( this._spawn_ent_in > 0 ) // spawn timer
+				this._spawn_ent_in -= GSPEED;
+				else
+				{
+					this._spawn_ent_in = 30 * 45; // 45 seconds
+					sdWeather.only_instance.ExecuteEvent( 11 ); // Execute Erthal spawn event
+
+					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be destroyed
+					{
+						sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'DESTROY-'+this._net_id, 
+							executer: sdWorld.sockets[ i ].character,
+							target: this,
+							mission: sdTask.MISSION_DESTROY_ENTITY,		
+							title: 'Destroy Erthal distress beacon',
+							description: 'The Erthals have placed a distress beacon nearby and are rallying their troops! Destroy the beacon before they overflow the land!'
+						});
+					}
+				}
+			}
 		}
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
@@ -857,6 +888,8 @@ class sdJunk extends sdEntity
 		sdEntity.Tooltip( ctx, "Large Anti-crystal", 0, -8 );
 		if ( this.type === 4 )
 		sdEntity.Tooltip( ctx, "Council bomb (" + ~~( this.detonation_in / ( 30 * 60 ) ) + " minutes, "+  ~~ ~~( this.detonation_in % ( 30 * 60 ) / 30 ) + " seconds)", 0, -8 );
+		if ( this.type === 5 )
+		sdEntity.Tooltip( ctx, "Erthal distress beacon" );
 	}
 	Draw( ctx, attached )
 	{
@@ -918,6 +951,10 @@ class sdJunk extends sdEntity
 					ctx.drawImageFilterCache( sdJunk.img_council_bomb, 64, 0, 64, 128, - 32, - 48, 64, 128 );
 				}
 			}
+			if ( this.type === 5 ) // Erthal distress beacon
+			{
+				ctx.drawImageFilterCache( sdJunk.img_erthal_beacon, - 32, - 32, 64, 64 );
+			}
 
 		ctx.filter = 'none';
 		ctx.globalAlpha = 1;
@@ -939,6 +976,12 @@ class sdJunk extends sdEntity
 		if ( this.type === 4 )
 		{
 			sdJunk.council_bombs--;
+			if ( this._broken )
+			sdWorld.BasicEntityBreakEffect( this, 30, 3, 0.75, 0.75 );
+		}
+		if ( this.type === 5 )
+		{
+			sdJunk.erthal_beacons--;
 			if ( this._broken )
 			sdWorld.BasicEntityBreakEffect( this, 30, 3, 0.75, 0.75 );
 		}

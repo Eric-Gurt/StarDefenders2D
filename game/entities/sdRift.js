@@ -15,6 +15,8 @@ import sdJunk from './sdJunk.js';
 import sdLost from './sdLost.js';
 import sdAsteroid from './sdAsteroid.js';
 
+import sdTask from './sdTask.js';
+
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -86,6 +88,9 @@ class sdRift extends sdEntity
 
 		if ( this.type === 3 )
 		return 'hue-rotate(' + 180 + 'deg)';
+
+		if ( this.type === 4 )
+		return 'saturate(0.1) brightness(0.4)';
 	}
 	MeasureMatterCost()
 	{
@@ -103,6 +108,58 @@ class sdRift extends sdEntity
 				if ( this.frame > 6 )
 				this.frame = 0;
 				this._rotate_timer = 10 * this.scale;
+
+				if ( this.frame % 3 === 0 )
+				if ( this.type === 4 ) // Black portal / Black hole attack
+				{
+					let ents = sdWorld.GetAnythingNear( this.x, this.y, 192 );
+					for ( let i = 0; i < ents.length; i++ )
+					{
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, ents[ i ].x, ents[ i ].y, ents[ i ] ) )
+						{
+							if ( typeof ents[ i ].sx !== 'undefined' )
+							ents[ i ].sx -= ( ents[ i ].x - this.x ) / 10;
+							if ( typeof ents[ i ].sy !== 'undefined' )
+							ents[ i ].sy -= ( ents[ i ].y - this.y ) / 10;
+
+							if ( ents[ i ].GetClass() === 'sdCharacter' )
+							{
+								ents[ i ].stability = Math.min( 0, ents[ i ].stability );
+								if ( ents[ i ].gun_slot !== 9 )
+								ents[ i ].DropWeapon( ents[ i ].gun_slot );
+							}
+
+							if ( ents[ i ].GetClass() !== 'sdGun' && ents[ i ].GetClass() !== 'sdCrystal' && ents[ i ].GetClass() !== 'sdBG' )
+							{
+								if ( ents[ i ].GetClass() === 'sdBlock' )
+								ents[ i ].Damage( 8 );
+								//else
+								//if ( sdWorld.inDist2D( ents[ i ].x, ents[ i ].y, this.x, this.y ) < 16 )
+								//ents[ i ].Damage( 16 );
+							}
+							else
+							{
+								if ( ents[ i ].GetClass() === 'sdBG' )
+								if ( Math.random() < 0.01 )
+								ents[ i ].Damage( 16 );
+							}
+						}
+					}
+
+					//Set task for players to remove the dimensional tear
+					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be closed
+					{
+						sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'DESTROY-'+this._net_id, 
+							executer: sdWorld.sockets[ i ].character,
+							target: this,
+							mission: sdTask.MISSION_DESTROY_ENTITY,
+										
+							title: 'Close the dimensional tear',
+							description: 'A dimensional tear appeared on this planet. It should be closed down before it destroyes large chunks of the planet. We can close it using an Anti-crystal.'
+						});
+					}
+				}
 			}
 			if ( this._spawn_timer_cd > 0 ) // Spawn entity timer
 			this._spawn_timer_cd -= GSPEED;
@@ -122,6 +179,7 @@ class sdRift extends sdEntity
 			}
 			if ( this._spawn_timer_cd <= 0 ) // Spawn an entity
 			if ( this.CanMoveWithoutOverlap( this.x, this.y, 0 ) )
+			if ( this.type !== 4 ) // Black portals / Black holes do not spawn things
 			{
 				sdSound.PlaySound({ name:'rift_spawn1', x:this.x, y:this.y, volume:2 });
 				
@@ -294,15 +352,43 @@ class sdRift extends sdEntity
 		if ( this.teleport_alpha < 55 ) // Prevent crystal feeding if it's spawning or dissapearing
 		return;
 
+		if ( this.type === 4 ) // Black portal deals damage / vacuums stuff inside
+		{
+			from_entity.Damage( 0.25 );
+			if ( typeof from_entity.sx !== 'undefined' )
+			from_entity.sx -= ( from_entity.x - this.x ) / 40;
+			if ( typeof from_entity.sy !== 'undefined' )
+			from_entity.sy -= ( from_entity.y - this.y ) / 40;
+		}
+
 		if ( from_entity.is( sdCrystal ) )
 		if ( from_entity.held_by === null ) // Prevent crystals which are stored in a crate
 		{
 			if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
 			{
 				sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2 });
-
-				this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + from_entity.matter_max ); // Drain the crystal for it's max value and destroy it
-				this._regen_timeout = 30 * 60 * 20; // 20 minutes until it starts regenerating if it didn't drain matter
+				if ( this.type !== 4 ) // Black portal needs anticrystal to be shut down
+				{
+					this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + from_entity.matter_max ); // Drain the crystal for it's max value and destroy it
+					this._regen_timeout = 30 * 60 * 20; // 20 minutes until it starts regenerating if it didn't drain matter
+				}
+				else
+				{
+					if ( from_entity.type !== sdCrystal.TYPE_CRYSTAL_BIG )
+					{
+						if ( from_entity.matter_max === sdCrystal.anticrystal_value )
+						{
+							this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + from_entity.matter_max ); // Drain the crystal for it's max value and destroy it
+							this._regen_timeout = 30 * 60 * 20; // 20 minutes until it starts regenerating if it didn't drain matter
+						}
+					}
+					else
+					if ( from_entity.matter_max === sdCrystal.anticrystal_value * 4 )
+					{
+						this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + from_entity.matter_max ); // Drain the crystal for it's max value and destroy it
+						this._regen_timeout = 30 * 60 * 20; // 20 minutes until it starts regenerating if it didn't drain matter
+					}
+				}
 				//this._update_version++;
 				from_entity.remove();
 			}
@@ -323,7 +409,7 @@ class sdRift extends sdEntity
 
 		if ( from_entity.is( sdJunk ) )
 		if ( from_entity.type === 1 ) // Is it an alien battery?
-		if ( this.type !== 2 ) // The portal is not a "cube" one?
+		if ( this.type !== 2 && this.type !== 4 ) // The portal is not a "cube" one?
 		{
 			this.type = 2;
 			//this.GetFilterColor();

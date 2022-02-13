@@ -85,7 +85,8 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_SARRORNIANS =				event_counter++; // 17
 		sdWeather.EVENT_COUNCIL_BOMB =				event_counter++; // 18
 		sdWeather.EVENT_MATTER_RAIN =				event_counter++; // 19
-		sdWeather.EVENT_OVERLORD =					event_counter++; // 20
+		sdWeather.EVENT_OVERLORD =				event_counter++; // 20
+		sdWeather.EVENT_ERTHAL_BEACON =				event_counter++; // 21
 		
 		sdWeather.last_crystal_near_quake = null; // Used to damage left over crystals. Could be used to damage anything really
 		
@@ -164,7 +165,7 @@ class sdWeather extends sdEntity
 	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
 	{
 		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
-		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 ];
+		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 ];
 				
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -686,6 +687,9 @@ class sdWeather extends sdEntity
 							else
 							if ( chance < 0.4 ) // 20% chance it's a "Asteroid" spawning portal ( 0.2 - 0.4 )
 							portal.type = 3;
+							else
+							if ( chance < 0.5 ) // 10% chance it's a "Black hole" portal ( 0.4 - 0.5 )
+							portal.type = 4;
 
 							if ( portal.CanMoveWithoutOverlap( x, y, 0 ) )
 							if ( !portal.CanMoveWithoutOverlap( x, y + 24, 0 ) )
@@ -880,7 +884,7 @@ class sdWeather extends sdEntity
 									character_entity.hea = 250;
 									character_entity.hmax = 250;
 
-									character_entity.armor = 250;
+									character_entity.armor = 500;
 									character_entity.armor_max = 500;
 									character_entity._armor_absorb_perc = 0.75; // 75% damage absorption, since armor will run out before health, they effectively have 750 health
 
@@ -1332,6 +1336,95 @@ class sdWeather extends sdEntity
 
 				instances++;
 			}
+		}
+		if ( r === sdWeather.EVENT_ERTHAL_BEACON ) // Spawn an Erthal anywhere on the map outside player views which summons Erthals until destroyed
+		{
+			let chance = 0;
+			let req_char = 0;
+			let char = 0;
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			{
+				if ( sdWorld.sockets[ i ].character !== null )
+				if ( sdWorld.sockets[ i ].character.hea > 0 )
+				if ( !sdWorld.sockets[ i ].character._is_being_removed )
+				{
+					char++;
+					if ( sdWorld.sockets[ i ].character.build_tool_level >= 5 )
+					req_char++;
+				}
+			}
+			chance = ( req_char / char ) * 0.4; // Chance to execute this event depends on how many players reached 5+ , max 40% chance
+
+			if ( Math.random() < chance )
+			{
+				let instances = 0;
+				let instances_tot = 1;
+
+				while ( instances < instances_tot && sdJunk.erthal_beacons < 1 )
+				{
+					let erthal_beacon = new sdJunk({ x:0, y:0, type: 5 });
+
+					sdEntity.entities.push( erthal_beacon );
+
+					let x,y,i;
+					let tr = 1000;
+					do
+					{
+						x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+
+						if ( erthal_beacon.CanMoveWithoutOverlap( x, y - 64, 0 ) )
+						if ( erthal_beacon.CanMoveWithoutOverlap( x, y, 0 ) )
+						if ( !erthal_beacon.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+						if ( sdWorld.last_hit_entity )
+						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+						if ( !sdWorld.CheckWallExistsBox( 
+								x + erthal_beacon._hitbox_x1 - 16, 
+								y + erthal_beacon._hitbox_y1 - 16, 
+								x + erthal_beacon._hitbox_x2 + 16, 
+								y + erthal_beacon._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+						{
+							let di_allowed = true;
+									
+							for ( i = 0; i < sdWorld.sockets.length; i++ )
+							if ( sdWorld.sockets[ i ].character )
+							{
+								let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
+										
+								if ( di < 500 )
+								{
+									di_allowed = false;
+									break;
+								}
+							}
+									
+							if ( di_allowed )
+							{
+								erthal_beacon.x = x;
+								erthal_beacon.y = y;
+
+								break;
+							}
+						}
+								
+
+
+						tr--;
+						if ( tr < 0 )
+							{
+							erthal_beacon.remove();
+							erthal_beacon._broken = false;
+							break;
+						}
+					} while( true );
+
+					instances++;
+				}
+
+			}
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

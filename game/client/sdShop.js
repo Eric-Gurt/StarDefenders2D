@@ -496,12 +496,15 @@ class sdShop
 			//sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdJunk', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdJunk', type: 3, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdJunk', type: 4, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdJunk', type: 5, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBadDog', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdShark', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWorkbench', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdRift', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdRift', type: 2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdRift', type: 3, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdRift', type: 4, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120, _category:'Development tests' }); // Glowing one
 			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: sdCrystal.anticrystal_value, _category:'Development tests' });
