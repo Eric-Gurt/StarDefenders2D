@@ -131,9 +131,9 @@ class sdRift extends sdEntity
 							{
 								if ( ents[ i ].GetClass() === 'sdBlock' )
 								ents[ i ].Damage( 8 );
-								else
-								if ( sdWorld.inDist2D( ents[ i ].x, ents[ i ].y, this.x, this.y ) < 16 )
-								ents[ i ].Damage( 16 );
+								//else
+								//if ( sdWorld.inDist2D( ents[ i ].x, ents[ i ].y, this.x, this.y ) < 16 )
+								//ents[ i ].Damage( 16 );
 							}
 							else
 							{
@@ -336,8 +336,14 @@ class sdRift extends sdEntity
 		if ( this.teleport_alpha < 55 ) // Prevent crystal feeding if it's spawning or dissapearing
 		return;
 
-		if ( this.type === 4 )
-		from_entity.Damage( 0.25 );
+		if ( this.type === 4 ) // Black portal deals damage / vacuums stuff inside
+		{
+			from_entity.Damage( 0.25 );
+			if ( typeof from_entity.sx !== 'undefined' )
+			from_entity.sx -= ( from_entity.x - this.x ) / 40;
+			if ( typeof from_entity.sy !== 'undefined' )
+			from_entity.sy -= ( from_entity.y - this.y ) / 40;
+		}
 
 		if ( from_entity.is( sdCrystal ) )
 		if ( from_entity.held_by === null ) // Prevent crystals which are stored in a crate
