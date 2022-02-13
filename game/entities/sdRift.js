@@ -15,6 +15,8 @@ import sdJunk from './sdJunk.js';
 import sdLost from './sdLost.js';
 import sdAsteroid from './sdAsteroid.js';
 
+import sdTask from './sdTask.js';
+
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -142,6 +144,20 @@ class sdRift extends sdEntity
 								ents[ i ].Damage( 16 );
 							}
 						}
+					}
+
+					//Set task for players to remove the dimensional tear
+					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be closed
+					{
+						sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'DESTROY-'+this._net_id, 
+							executer: sdWorld.sockets[ i ].character,
+							target: this,
+							mission: sdTask.MISSION_DESTROY_ENTITY,
+										
+							title: 'Close the dimensional tear',
+							description: 'A dimensional tear appeared on this planet. It should be closed down before it destroyes large chunks of the planet. We can close it using an Anti-crystal.'
+						});
 					}
 				}
 			}
