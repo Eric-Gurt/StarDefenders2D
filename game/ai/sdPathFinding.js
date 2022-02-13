@@ -48,6 +48,8 @@ class sdPathFinding
 		
 		sdPathFinding.allow_client_side = false;
 		
+		sdPathFinding.exist_until_extra_time = 7000; // 5000 was not enough by something like 860 ms, 1326 ms
+		
 		//sdPathFinding.STRATEGY_FOLLOW = 1;
 		
 		sdPathFinding.rect_space_maps_by_entity = new WeakMap(); // entity => [ RectSpaceMap, RectSpaceMap, RectSpaceMap... ]
@@ -137,6 +139,7 @@ class sdPathFinding
 			{
 				if ( !this.target._is_being_removed )
 				{
+					if ( sdWorld.time - this.rect_space_map.exist_until < 30000 )
 					console.warn( '[1] rect_space_map has already expired - possibly inefficient usage of pathfinding. Will recreate (expired by '+( sdWorld.time - this.rect_space_map.exist_until )+'ms)' );
 					this.Reinit();
 				}
@@ -145,6 +148,7 @@ class sdPathFinding
 			}
 			else
 			{
+				if ( sdWorld.time - this.rect_space_map.exist_until < 30000 )
 				console.warn( '[2] rect_space_map has already expired - possibly inefficient usage of pathfinding. Will recreate (expired by '+( sdWorld.time - this.rect_space_map.exist_until )+'ms)' );
 				this.Reinit();
 			}
@@ -156,7 +160,7 @@ class sdPathFinding
 		}
 		return null;*/
 		
-		this.rect_space_map.exist_until = sdWorld.time + 5000;
+		this.rect_space_map.exist_until = sdWorld.time + sdPathFinding.exist_until_extra_time;
 		
 		// TODO: Return preferred action or maybe even simply move traveler in some optimized way towards .target (without actual hit detections of any kind, at least on server) while triggering collision events?
 		
@@ -240,7 +244,7 @@ class sdPathFinding
 			if ( sdWorld.time > this.rect_space_map.solve_until - 1000 || // Keep in runnin if nobody needs it
 				 Math.random() < 0.1 ) // In case if there is more than one traveler
 			{
-				this.rect_space_map.solve_until = sdWorld.time + 5000;
+				this.rect_space_map.solve_until = sdWorld.time + sdPathFinding.exist_until_extra_time;
 				this.rect_space_map.solve_near_x = this.traveler.x;
 				this.rect_space_map.solve_near_y = this.traveler.y;
 			}
@@ -413,9 +417,9 @@ class RectSpaceMap
 		this.can_crawl = options.indexOf( sdPathFinding.OPTION_CAN_CRAWL ) !== -1;
 		this.can_swim = options.indexOf( sdPathFinding.OPTION_CAN_SWIM ) !== -1;
 		
-		this.exist_until = sdWorld.time + 5000;
+		this.exist_until = sdWorld.time + sdPathFinding.exist_until_extra_time;
 		
-		this.solve_until = sdWorld.time + 5000;
+		this.solve_until = sdWorld.time + sdPathFinding.exist_until_extra_time;
 		this.solve_near_x = 0;
 		this.solve_near_y = 0;
 		
@@ -791,7 +795,7 @@ class RectSpaceMap
 		
 		this.can_dig = can_dig;
 		
-		this.exist_until = sdWorld.time + 5000;
+		this.exist_until = sdWorld.time + sdPathFinding.exist_until_extra_time;
 	}
 	
 	Iteration( GSPEED )
