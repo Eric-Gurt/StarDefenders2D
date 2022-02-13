@@ -34,7 +34,7 @@ class sdJunk extends sdEntity
 		sdJunk.img_council_bomb = sdWorld.CreateImageFromFile( 'council_bomb' );
 		sdJunk.img_council_bomb2 = sdWorld.CreateImageFromFile( 'council_bomb2' );
 
-		sdJunk.img_erthal_beacon = sdWorld.CreateImageFromFile( 'erthal_distress_beacon' );
+		sdJunk.img_erthal_beacon = sdWorld.CreateImageFromFile( 'erthal_distress_beacon2' );
 
 		sdJunk.anti_crystals = 0;
 		sdJunk.council_bombs = 0;
