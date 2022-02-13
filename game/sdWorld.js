@@ -3241,7 +3241,8 @@ class sdWorld
 		let w = 20;
 		let h = 10;
 		
-		sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 );
+		//sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 );
+		sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 + 100 * 16 );
 		
 		if ( sdEntity.global_entities.length === 0 )
 		sdEntity.entities.push( new sdWeather({}) );

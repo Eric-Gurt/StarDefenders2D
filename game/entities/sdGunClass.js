@@ -2681,6 +2681,117 @@ class sdGunClass
 			projectile_properties: { _damage: 25 },
 			upgrades: AddRecolorsFromColorAndCost( AddShotgunAmmoTypes( [] ), '#ff0000', 15 )
 		};
+		
+		// ID ranges 85...88 (including) are reserved by Basilix
+		
+		let spear_targer_reaction = ( bullet, target_entity )=>
+		{
+			let dmg_scale = 1;
+			
+			if ( bullet._owner )
+			if ( bullet._owner.power_ef > 0 )
+			dmg_scale *= 2.5;
+			
+			if ( target_entity.is( sdLost ) )
+			{
+				target_entity.Damage( 33 * dmg_scale, bullet._owner );
+			}
+			else
+			{
+				sdWorld.SendEffect({ 
+					x: bullet.x, 
+					y: bullet.y, 
+					radius: 16,
+					damage_scale: 0, // Just a decoration effect
+					type: sdEffect.TYPE_EXPLOSION, 
+					owner: this,
+					color: '#aaaaaa'
+				});
+
+				sdLost.ApplyAffection( target_entity, 33 * dmg_scale, bullet, sdLost.FILTER_WHITE );
+			}
+		};
+		sdGun.classes[ sdGun.CLASS_CUBE_SPEAR = 89 ] = 
+        { 
+			image: sdWorld.CreateImageFromFile( 'cube_spear2' ),
+			image_charging: sdWorld.CreateImageFromFile( 'cube_spear2_charging' ),
+			image_no_matter: sdWorld.CreateImageFromFile( 'cube_spear2' ),
+			sound: 'saber_attack',
+			sound_volume: 1.5,
+			title: 'Cube Empty Speargun',
+			slot: 0,
+			reload_time: 5,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 5,
+			spread: 0.4,
+			is_sword: true,
+			projectile_velocity: 20,
+            spawnable: false,
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				if ( gun._held_by._auto_shoot_in > 0 )
+				return 0;
+			
+				let dmg_scale = 1;
+
+				if ( gun._held_by )
+				if ( gun._held_by.power_ef > 0 )
+				dmg_scale *= 2.5;
+				
+				return 33 * dmg_scale;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( !shoot_from_scenario )
+				{
+					if ( gun._held_by )
+					if ( gun._held_by._auto_shoot_in <= 0 )
+					{
+						gun._held_by._auto_shoot_in = 2200 / 1000 * 30 / 2;
+
+
+						//sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 2 });
+						sdSound.PlaySound({ name: 'armor_pickup', x:gun.x, y:gun.y, volume: 1.5, pitch: 0.25 });
+					}
+					return false;
+				}
+				else
+				{
+					sdSound.PlaySound({ name: 'supercharge_combined2_part2', x:gun.x, y:gun.y, volume: 1.5, pitch: 2 });
+					
+					if ( gun._held_by.matter >= 33 )
+					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					{
+						if ( gun._held_by.stim_ef > 0 )
+						gun._held_by._auto_shoot_in = 7.5;
+						else
+						gun._held_by._auto_shoot_in = 15;
+
+
+						let dmg_scale = 1;
+
+						if ( gun._held_by )
+						if ( gun._held_by.power_ef > 0 )
+						dmg_scale *= 2.5;
+
+						gun._held_by.matter -= 33 * dmg_scale;
+					}
+				}
+				return true;
+			},
+			projectile_properties: { 
+                _rail: true,
+				color:'#aaaaaa',
+				_damage: 0, time_left: 30,
+				_custom_target_reaction_protected:spear_targer_reaction,
+				_custom_target_reaction:spear_targer_reaction
+			},			
+			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
+		};
 
 		// Add new gun classes above this line //
 		
@@ -2699,7 +2810,22 @@ class sdGunClass
 		}
 		for ( let i = 0; i < sdGun.classes.length; i++ )
 		if ( typeof index_to_const[ i ] === 'undefined' )
-		throw new Error( 'Check sdGunClass for a place where index values are assigned - there seems to be an ID number '+i+' skipped (assuming sdGun.classes.length is '+sdGun.classes.length+' and thus highest ID should be '+(sdGun.classes.length-1)+', with IDs starting at 0). Holes in ID list will cause server to crash when some parts of logic will try to loop through all classes. Currently defined IDs are following: ', index_to_const );
+		{
+			sdGun.classes[ i ] = {
+				image: sdWorld.CreateImageFromFile( 'present' ),
+				sound: 'gun_defibrillator',
+				title: 'Missing weapon',
+				//slot: -1,
+				reload_time: 25,
+				muzzle_x: null,
+				ammo_capacity: -1,
+				count: 0,
+				spawnable: false,
+				//ignore_slot: true,
+				projectile_properties: { time_left: 0, _damage: 0, color: 'transparent', _return_damage_to_owner:true }
+			};
+			//throw new Error( 'Check sdGunClass for a place where index values are assigned - there seems to be an ID number '+i+' skipped (assuming sdGun.classes.length is '+sdGun.classes.length+' and thus highest ID should be '+(sdGun.classes.length-1)+', with IDs starting at 0). Holes in ID list will cause server to crash when some parts of logic will try to loop through all classes. Currently defined IDs are following: ', index_to_const );
+		}
 	}
 }
 

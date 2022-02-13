@@ -284,6 +284,7 @@ class sdShop
 			}
 			//else
 			if ( globalThis.isWin )
+			if ( sdGun.classes[ i ].title !== 'Missing weapon' )
 			{
 				if ( i === sdGun.CLASS_BUILDTOOL_UPG )
 				{

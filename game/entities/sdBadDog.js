@@ -6,6 +6,8 @@ import sdEffect from './sdEffect.js';
 import sdGun from './sdGun.js';
 import sdWater from './sdWater.js';
 import sdCharacter from './sdCharacter.js';
+import sdCom from './sdCom.js';
+import sdBullet from './sdBullet.js';
 
 import sdPathFinding from '../ai/sdPathFinding.js';
 
@@ -17,6 +19,7 @@ class sdBadDog extends sdEntity
 	{
 		sdBadDog.img_bad_dog_anim = sdWorld.CreateImageFromFile( 'sdBadDog' );
 		sdBadDog.img_bad_dog_armored_anim = sdWorld.CreateImageFromFile( 'sdBadDog_armored' );
+		sdBadDog.img_portable_turret = sdWorld.CreateImageFromFile( 'sdPortableTurret' );
 		
 		sdBadDog.frame_idle = 0;
 		sdBadDog.frame_jump = 1;
@@ -93,6 +96,12 @@ class sdBadDog extends sdEntity
 		this._regen_timeout = 0;
 		
 		this.side = 1;
+		
+		this.turret_timer = -1; // Negative value = not installed, anything above is shoot delay. 0 = can shoot
+		this.turret_ang = 0;
+		this._last_turret_attack_attempt = 0; // Failed one
+		
+		this.follow = 1;
 		
 		this._pathfinding = null;
 
@@ -299,6 +308,11 @@ class sdBadDog extends sdEntity
 		}
 		else
 		{
+
+			if ( this.turret_timer > 0 )
+			this.turret_timer = Math.max( 0, this.turret_timer - GSPEED );
+
+
 			if ( this.hea < this.hmax )
 			{
 				this._regen_timeout -= GSPEED;
@@ -329,6 +343,7 @@ class sdBadDog extends sdEntity
 				}
 				else
 				{
+					if ( this.follow )
 					if ( sdWorld.Dist2D( this.x, this.y, this.master.x, this.master.y ) > ( this._current_target ? 300 : 100 ) )
 					{
 						//this._current_target = this.master;
@@ -470,6 +485,47 @@ class sdBadDog extends sdEntity
 
 							this.sx += dx * 0.01 * GSPEED;
 						}
+					}
+					
+					if ( this.turret_timer >= 0 )
+					{
+						if ( this.turret_timer === 0 )
+						if ( this._current_target !== this.master )
+						{
+							if ( sdWorld.time > this._last_turret_attack_attempt + 200 )
+							{
+								if ( sdWorld.CheckLineOfSight( this.x, this.y, this._current_target.x, this._current_target.y, this, null, sdCom.com_creature_attack_unignored_classes ) )
+								{
+									this.turret_timer = 10;
+									
+									sdSound.PlaySound({ name:'turret', x:this.x, y:this.y, volume:0.5, pitch: 1.5 });
+									
+									let di = sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y );
+									
+									let vel = 15;
+									let an = Math.atan2( this._current_target.y + (this._current_target.sy||0) * di / vel - this.y, this._current_target.x + (this._current_target.sx||0) * di / vel - this.x );
+									
+									let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+
+									bullet_obj._owner = this;
+
+									bullet_obj.sx = Math.cos( an );
+									bullet_obj.sy = Math.sin( an );
+
+									bullet_obj.sx *= vel;
+									bullet_obj.sy *= vel;
+
+									bullet_obj._damage = 12;
+									bullet_obj.color = '#ff0000';
+									
+									sdEntity.entities.push( bullet_obj );
+								}
+								else
+								this._last_turret_attack_attempt = sdWorld.time;
+							}
+						}
+							
+						this.turret_ang = ( Math.PI + Math.atan2( this._current_target.y - this.y, this._current_target.x - this.x ) ) * 360;
 					}
 				}
 			}
@@ -621,6 +677,28 @@ class sdBadDog extends sdEntity
 		if ( this.type === 1 )
 		ctx.drawImageFilterCache( sdBadDog.img_bad_dog_armored_anim, frame*32,0,32,32, - 16, - 16, 32,32 );
 		
+		if ( this.death_anim <= 0 )
+		if ( this.turret_timer >= 0 )
+		{
+			ctx.translate( 4, -8 );
+				
+			ctx.drawImageFilterCache( sdBadDog.img_portable_turret, 0,0,32,32, - 16, - 16, 32,32 );
+			
+			ctx.save();
+			{
+				if ( this.side < 0 )
+				ctx.rotate( this.turret_ang / 360 );
+				else
+				ctx.rotate( Math.PI - this.turret_ang / 360 );
+
+				if ( this.turret_timer >= 5 )
+				ctx.drawImageFilterCache( sdBadDog.img_portable_turret, 64,0,32,32, - 16, - 16, 32,32 );
+				else
+				ctx.drawImageFilterCache( sdBadDog.img_portable_turret, 32,0,32,32, - 16, - 16, 32,32 );
+			}
+			ctx.restore();
+		}
+		
 		ctx.globalAlpha = 1;
 		//ctx.filter = 'none';
 	}
@@ -670,7 +748,7 @@ class sdBadDog extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		{
-			if ( command_name === 'PAT' || command_name === 'ARMOR' )
+			if ( command_name === 'PAT' || command_name === 'ARMOR' || command_name === 'TURRET' )
 			{
 				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 				{
@@ -679,6 +757,15 @@ class sdBadDog extends sdEntity
 				{
 					executer_socket.SDServiceMessage( 'Bad Dog is too far' );
 					return;
+				}
+			}
+			
+			if ( command_name === 'OWN' )
+			{
+				if ( exectuter_character._god )
+				{
+					this.master = exectuter_character;
+					this.SetTarget( null );
 				}
 			}
 			
@@ -716,30 +803,32 @@ class sdBadDog extends sdEntity
 				}
 			}
 			
-			if ( command_name === 'DISOWN' )
+			if ( this.master === exectuter_character )
 			{
-				if ( this.master === exectuter_character )
+				if ( command_name === 'FOLLOW_TOGGLE' )
+				{
+					this.follow = 1 - this.follow;
+				}
+
+				if ( command_name === 'DISOWN' )
 				{
 					//this.master = null;
 					this.MasterRemoved( this.master );
 				}
-			}
 
-			if ( command_name === 'ARMOR' )
-			{
-				if ( this.master === exectuter_character )
+				if ( command_name === 'ARMOR' )
 				{
-					if ( this.master.matter >= 500 )
+					if ( this.master.matter >= 300 )
 					{
 						if ( this.type !== 1 )
 						{
 							if ( this.type === 0 )
 							{
 								this.type = 1; // Small armored baddog
-								this.master.matter -= 500;
+								this.master.matter -= 300;
 								this.hmax += 200;
 								this.hea += 200;
-								
+
 								sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 							}
 						}
@@ -748,6 +837,26 @@ class sdBadDog extends sdEntity
 					}
 					else
 					executer_socket.SDServiceMessage( 'Not enough matter' );
+
+				}
+
+				if ( command_name === 'TURRET' )
+				{
+					if ( this.master.matter >= 175 )
+					{
+						if ( this.type === 1 && this.turret_timer < 0 )
+						{
+							this.master.matter -= 175;
+							this.turret_timer = 0;
+
+							sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+						}
+						else
+						executer_socket.SDServiceMessage( 'Turret is installed' );
+					}
+					else
+					executer_socket.SDServiceMessage( 'Not enough matter' );
+
 				}
 			}
 		}
@@ -758,18 +867,40 @@ class sdBadDog extends sdEntity
 		if ( this.hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 		{
-			if ( this.master )
+			if ( exectuter_character._god )
+			if ( this.master !== exectuter_character )
 			{
-				this.AddContextOption( 'Give pats', 'PAT', [] );
-		
-				if ( this.master === exectuter_character )
-				this.AddContextOption( 'Stop following me', 'DISOWN', [] );
+				this.AddContextOption( 'sudo own', 'OWN', [] );
+			}
 
-				if ( this.master === exectuter_character )
-				if ( this.type === 0 )
-				this.AddContextOption( 'Build armor for the dog (500 matter)', 'ARMOR', [] );
+			if ( this.master )
+			if ( this.master === exectuter_character )
+			{
+				if ( this.follow )
+				this.AddContextOption( 'Stop following me', 'FOLLOW_TOGGLE', [] );
+				else
+				this.AddContextOption( 'Follow me', 'FOLLOW_TOGGLE', [] );
+
+				this.AddContextOption( 'Lose ownership', 'DISOWN', [] );
+			}
+
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+			{
+				if ( this.master )
+				{
+					this.AddContextOption( 'Give pats', 'PAT', [] );
+
+					if ( this.master === exectuter_character )
+					{
+						if ( this.type === 0 )
+						this.AddContextOption( 'Build armor for the dog (300 matter)', 'ARMOR', [] );
+
+						if ( this.type === 1 )
+						if ( this.turret_timer < 0 )
+						this.AddContextOption( 'Install portable turret on the dog (175 matter)', 'TURRET', [] );
+					}
+				}
 			}
 		}
 	}
