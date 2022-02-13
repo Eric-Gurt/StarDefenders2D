@@ -645,6 +645,8 @@ class sdEnemyMech extends sdEntity
 	{
 		//if ( this.death_anim === 0 )
 		sdEntity.Tooltip( ctx, "Flying Mech", 0, -30 );
+		
+		this.DrawHealthBar( ctx, undefined, 10 );
 	}
 	Draw( ctx, attached )
 	{

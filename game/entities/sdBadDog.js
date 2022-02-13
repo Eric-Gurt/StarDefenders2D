@@ -624,7 +624,8 @@ class sdBadDog extends sdEntity
 	
 		if ( this.death_anim < 20 )
 		if ( this.owned )
-		{
+		this.DrawHealthBar( ctx, undefined, 10 );
+		/*{
 			let w = 20;
 			
 			let snap_frame = ( ~~( this.death_anim / 10 ) ) * 10 / 20;
@@ -638,7 +639,7 @@ class sdBadDog extends sdEntity
 			
 			ctx.fillStyle = '#FF0000';
 			ctx.fillRect( 1 - w / 2, 1 - 20, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
-		}
+		}*/
 	}
 	Draw( ctx, attached )
 	{

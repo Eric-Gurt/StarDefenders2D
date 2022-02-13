@@ -47,8 +47,8 @@ class sdOverlord extends sdEntity
 		
 		this._speak_id = -1;
 		
-		this._hmax = 3000;
-		this._hea = this._hmax;
+		this.hmax = 3000;
+		this.hea = this.hmax;
 		
 		this._regen_timeout = 0;
 		
@@ -172,7 +172,7 @@ class sdOverlord extends sdEntity
 	}*/
 	/*SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
-		if ( this._hea > 0 )
+		if ( this.hea > 0 )
 		if ( character.IsTargetable() && character.IsVisible() )
 		if ( character.hea > 0 )
 		{
@@ -215,11 +215,11 @@ class sdOverlord extends sdEntity
 
 		//dmg = Math.abs( dmg );
 		
-		let was_alive = this._hea > 0;
+		let was_alive = this.hea > 0;
 		
-		let old_hp = this._hea;
+		let old_hp = this.hea;
 
-		this._hea -= dmg;
+		this.hea -= dmg;
 		
 		if ( dmg > 0 )
 		{
@@ -228,8 +228,8 @@ class sdOverlord extends sdEntity
 			delete this._wont_attack_net_ids[ initiator.biometry || initiator._biometry || initiator._net_id ];
 		}
 		
-		if ( this._hea > this._hmax )
-		this._hea = this._hmax;
+		if ( this.hea > this.hmax )
+		this.hea = this.hmax;
 		
 		//if ( initiator )
 		//{
@@ -240,30 +240,30 @@ class sdOverlord extends sdEntity
 				this._relations_to_classes[ class_name ] = Math.random() - 0.5;
 			}
 			
-			this._relations_to_classes[ class_name ] -= ( old_hp - this._hea ) / this._hmax;
+			this._relations_to_classes[ class_name ] -= ( old_hp - this.hea ) / this.hmax;
 			*/
 			let e = this.GetRandomEntityNearby();
-			this.AddRelationLevelToEntity( e, -( old_hp - this._hea ) / this._hmax * 1 );
+			this.AddRelationLevelToEntity( e, -( old_hp - this.hea ) / this.hmax * 1 );
 			
-			this.AddRelationLevelToEntity( initiator, -( old_hp - this._hea ) / this._hmax * 1 );
+			this.AddRelationLevelToEntity( initiator, -( old_hp - this.hea ) / this.hmax * 1 );
 			
-			if ( this._hea < this._hmax / 2 )
+			if ( this.hea < this.hmax / 2 )
 			if ( this.GetRelationLevelWithEntity( initiator ) < 0 )
 			{
 				this.SetTarget( initiator );
 			}
 		//}
 		
-		if ( this._hea > 0 )
+		if ( this.hea > 0 )
 		this._regen_timeout = 30 * 3;
 		else
 		this._regen_timeout = 30 * 60;
 		
-		if ( this._hea > 0 && !was_alive )
+		if ( this.hea > 0 && !was_alive )
 		if ( initiator && initiator.IsPlayerClass() )
 		this.Say( 'What is this generosity', true );
 		
-		if ( this._hea <= 0 && was_alive )
+		if ( this.hea <= 0 && was_alive )
 		{
 			if ( !this.scar )
 			{
@@ -307,7 +307,7 @@ class sdOverlord extends sdEntity
 				if ( initiator && initiator.IsPlayerClass() )
 				this.Say( 'You are hitting us' );
 
-				if ( ~~( old_hp / this._hmax * 6 ) !== ~~( this._hea / this._hmax * 6 ) )
+				if ( ~~( old_hp / this.hmax * 6 ) !== ~~( this.hea / this.hmax * 6 ) )
 				{
 					sdSound.PlaySound({ name:'overlord_hurtC', x:this.x, y:this.y, volume:0.7 });
 					this.sentence_to_speak = '';
@@ -316,7 +316,7 @@ class sdOverlord extends sdEntity
 			}
 		}
 		
-		if ( this._hea < -1000 )
+		if ( this.hea < -3000 )
 		{
 			{
 				let a,s,x,y,k;
@@ -362,8 +362,8 @@ class sdOverlord extends sdEntity
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
-		if ( this._hea < this._hmax )
-		this._hea = Math.min( this._hea + GSPEED, this._hmax );
+		if ( this.hea < this.hmax )
+		this.hea = Math.min( this.hea + GSPEED, this.hmax );
 
 		if ( sdWorld.is_server )
 		if ( !this._current_target || this._peaceful_mode )
@@ -376,7 +376,7 @@ class sdOverlord extends sdEntity
 		
 		let extremely_mad_intent = false;
 			
-		if ( this._hea <= 0 )
+		if ( this.hea <= 0 )
 		{
 			if ( sdWorld.is_server )
 			{
@@ -393,7 +393,7 @@ class sdOverlord extends sdEntity
 						setTimeout( ()=>
 						{
 							if ( !this._is_being_removed )
-							if ( this._hea <= 0 )
+							if ( this.hea <= 0 )
 							this.Say([ 
 								'We were only executing orders',
 								'We are innocent',
@@ -419,7 +419,7 @@ class sdOverlord extends sdEntity
 		else
 		{
 			if ( sdWorld.is_server )
-			this.state_hp = ( this._hea < this._hmax * 0.5 ) ? 1 : 0;
+			this.state_hp = ( this.hea < this.hmax * 0.5 ) ? 1 : 0;
 
 			// It makes sense to call it at all times because it also handles wall attack logic
 			if ( this._current_target )
@@ -914,7 +914,10 @@ class sdOverlord extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.state_hp <= 1 )
-		sdEntity.Tooltip( ctx, "Overlord" );
+		{
+			sdEntity.Tooltip( ctx, "Overlord" );
+			this.DrawHealthBar( ctx, undefined, 10 );
+		}
 		else
 		sdEntity.Tooltip( ctx, "Defeated overlord" );
 	}

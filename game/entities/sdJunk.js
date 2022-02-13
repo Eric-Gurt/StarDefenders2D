@@ -28,8 +28,8 @@ class sdJunk extends sdEntity
 		sdJunk.img_cube_unstable3 = sdWorld.CreateImageFromFile( 'cube_unstable_corpse3' );
 		sdJunk.img_cube_unstable3_detonate = sdWorld.CreateImageFromFile( 'cube_unstable_corpse3_on' );
 
-		sdJunk.img_crystal_map_drainer_empty = sdWorld.CreateImageFromFile( 'crystal_cluster_empty' ); // Sprite by HastySnow / LazyRain
-		sdJunk.img_crystal_map_drainer = sdWorld.CreateImageFromFile( 'crystal_cluster' ); // Sprite by HastySnow / LazyRain
+		sdJunk.img_crystal_map_drainer_empty = sdWorld.CreateImageFromFile( 'crystal_cluster3_empty' ); // Sprite by HastySnow / LazyRain
+		sdJunk.img_crystal_map_drainer = sdWorld.CreateImageFromFile( 'crystal_cluster3' ); // Sprite by HastySnow / LazyRain
 
 		sdJunk.img_council_bomb = sdWorld.CreateImageFromFile( 'council_bomb' );
 		sdJunk.img_council_bomb2 = sdWorld.CreateImageFromFile( 'council_bomb2' );
@@ -44,8 +44,8 @@ class sdJunk extends sdEntity
 	}
 	get hitbox_x1() { return this.type === 5 ? - 11 : this.type === 4 ? -11 : this.type === 3 ? -28 : -5; }
 	get hitbox_x2() { return this.type === 5 ? 11 : this.type === 4 ? 11 : this.type === 3 ? 28 : 5; }
-	get hitbox_y1() { return this.type === 5 ? - 21 : this.type === 4 ? -30 : this.type === 3 ? -28 : -5; }
-	get hitbox_y2() { return this.type === 5 ? 29 : this.type === 4 ? 31 : this.type === 3 ? 32 : 5; }
+	get hitbox_y1() { return this.type === 5 ? - 21 : this.type === 4 ? -30 : this.type === 3 ? 0 : -5; }
+	get hitbox_y2() { return this.type === 5 ? 29 : this.type === 4 ? 31 : this.type === 3 ? 23 : 5; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -471,8 +471,8 @@ class sdJunk extends sdEntity
 										target: this,
 										mission: sdTask.MISSION_DESTROY_ENTITY,
 										
-										title: 'Destroy anti-crystal',
-										description: 'There is an anti-crystal spotted nearby. Destroy it before it drains all our matter!'
+										title: 'Destroy planetary matter drainer',
+										description: 'There is a planetary matter drainer spotted nearby. Destroy it before it drains all our matter!'
 									});
 								}
 							}
@@ -880,16 +880,28 @@ class sdJunk extends sdEntity
 	{
 		if ( this.type === 0 )
 		sdEntity.Tooltip( ctx, "Unstable cube corpse" );
+	
 		if ( this.type === 1 )
 		sdEntity.Tooltip( ctx, "Alien battery" );
+	
 		if ( this.type === 2 )
 		sdEntity.Tooltip( ctx, "Lost particle container" );
+	
 		if ( this.type === 3 )
-		sdEntity.Tooltip( ctx, "Large Anti-crystal", 0, -8 );
+		{
+			sdEntity.Tooltip( ctx, "Planetary matter drainer", 0, -8 );
+			this.DrawHealthBar( ctx );
+		}
 		if ( this.type === 4 )
-		sdEntity.Tooltip( ctx, "Council bomb (" + ~~( this.detonation_in / ( 30 * 60 ) ) + " minutes, "+  ~~ ~~( this.detonation_in % ( 30 * 60 ) / 30 ) + " seconds)", 0, -8 );
+		{
+			sdEntity.Tooltip( ctx, "Council bomb (" + ~~( this.detonation_in / ( 30 * 60 ) ) + " minutes, "+  ~~ ~~( this.detonation_in % ( 30 * 60 ) / 30 ) + " seconds)", 0, -8 );
+			this.DrawHealthBar( ctx );
+		}
 		if ( this.type === 5 )
-		sdEntity.Tooltip( ctx, "Erthal distress beacon" );
+		{
+			sdEntity.Tooltip( ctx, "Erthal distress beacon" );
+			this.DrawHealthBar( ctx );
+		}
 	}
 	Draw( ctx, attached )
 	{

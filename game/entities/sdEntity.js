@@ -3356,6 +3356,32 @@ class sdEntity
 		ctx.fillStyle = color;
 		ctx.fillText(t, 0 + x, -25 + y ); 
 	}
+	DrawHealthBar( ctx, color=undefined, y_raise=20 ) // Not called automatically, needs .hea and .hmax as public properties
+	{
+		if ( this.hea > 0 )
+		{
+			let w = ~~Math.max( ( this._hitbox_x2 - this._hitbox_x1 ) * 1.25, ( this._hitbox_y2 - this._hitbox_y1 ) * 0.75 );
+
+			let h = this._hitbox_y1;
+
+			ctx.globalAlpha = 1;
+
+			ctx.fillStyle = '#000000';
+			ctx.fillRect( 0 - w / 2, 0 + h - y_raise, w, 3 );
+
+			if ( color === undefined )
+			{
+				if ( this.IsPlayerClass() || ( this.master && this.master.IsPlayerClass() ) || this.owned )
+				ctx.fillStyle = '#FF0000';
+				else
+				ctx.fillStyle = '#FFAA00';
+			}
+			else
+			ctx.fillStyle = color;//'#FF0000';
+		
+			ctx.fillRect( 1 - w / 2, 1 + h - y_raise, ( w - 2 ) * Math.max( 0, ( this.hea || this._hea ) / ( this.hmax || this._hmax ) ), 1 );
+		}
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 	}

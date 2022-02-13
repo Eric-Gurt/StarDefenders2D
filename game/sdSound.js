@@ -5,6 +5,7 @@ import sdWeather from './entities/sdWeather.js';
 import sdWater from './entities/sdWater.js';
 import sdCharacterRagdoll from './entities/sdCharacterRagdoll.js';
 import sdEffect from './entities/sdEffect.js';
+import sdCrystal from './entities/sdCrystal.js';
 
 /*
 
@@ -79,6 +80,7 @@ class sdSound
 		MakeLoopAmbient( 'lava_loop', './audio/lava_loop4.wav' );
 		MakeLoopAmbient( 'lava_burn', './audio/lava_burn2.wav' );
 		MakeLoopAmbient( 'rift_loop', './audio/rift_loop.wav' );
+		MakeLoopAmbient( 'anti_crystal_ambient', './audio/anti_crystal_ambient.wav' );
 		
 		/*sdSound.ambient1 = new Audio( './audio/ambient1_looped3.wav' );
 		sdSound.ambient1.volume = 0;
@@ -273,6 +275,7 @@ class sdSound
 		let count_lava_loop = 0;
 		let count_lava_burn = 0;
 		let count_rift_loop = 0;
+		let count_anti_crystal_ambient = 0;
 			
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
 		{
@@ -309,6 +312,23 @@ class sdSound
 				{
 					count_rift_loop += 2.5 * sdEntity.entities[ i ].scale * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
 				}
+				else
+				if ( sdEntity.entities[ i ].GetClass() === 'sdJunk' && sdEntity.entities[ i ].type === 3 )
+				{
+					count_anti_crystal_ambient += 1 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+				}
+				else
+				if ( sdEntity.entities[ i ].GetClass() === 'sdCrystal' )
+				{
+					if ( sdEntity.entities[ i ].type === sdCrystal.TYPE_CRYSTAL_BIG )
+					{
+						if ( sdEntity.entities[ i ].matter_max === sdCrystal.anticrystal_value * 4 )
+						count_anti_crystal_ambient += 0.1 * 4 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+					}
+					else
+					if ( sdEntity.entities[ i ].matter_max === sdCrystal.anticrystal_value )
+					count_anti_crystal_ambient += 0.1 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+				}
 			}
 		}
 		
@@ -335,6 +355,10 @@ class sdSound
 		sdSound.rift_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.rift_loop_volume_last, count_rift_loop, 0.8, GSPEED );
 		sdSound.rift_loop.volume = Math.min( 1, Math.min( 10, sdSound.rift_loop_volume_last ) * sdSound.volume_ambient );
 		//sdSound.rift_loop.volume = Math.min( 1, Math.min( 10, sdSound.rift_loop_volume_last ) * sdSound.volume_ambient );
+		
+		sdSound.anti_crystal_ambient_volume_last = sdWorld.MorphWithTimeScale( sdSound.anti_crystal_ambient_volume_last, count_anti_crystal_ambient, 0.8, GSPEED );
+		sdSound.anti_crystal_ambient.volume = Math.min( 1, Math.min( 10, sdSound.anti_crystal_ambient_volume_last ) * sdSound.volume_ambient );
+		
 		
 		// Note: Never go over 1 on .volume - browsers will throw an error and freeze screen
 	}

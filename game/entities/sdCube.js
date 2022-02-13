@@ -88,8 +88,8 @@ class sdCube extends sdEntity
 		//this.is_white = ( this.kind === 2 ) ? true : false;
 		//this.is_pink = ( this.kind === 3 ) ? true : false;
 		
-		this._hmax = this.kind === 2 ? 1600 : this.kind === 1 ? 800 : 200;
-		this.hea = this._hmax;
+		this.hmax = this.kind === 2 ? 1600 : this.kind === 1 ? 800 : 200;
+		this.hea = this.hmax;
 		
 		this._boss_death_ping_timer = 0;
 		this._boss_death_pings_left = 0;
@@ -200,7 +200,7 @@ class sdCube extends sdEntity
 		let was_alive = this.hea > 0;
 		
 		this.hea -= dmg;
-		this.hea = Math.min( this.hea, this._hmax ); // Prevent overhealing
+		this.hea = Math.min( this.hea, this.hmax ); // Prevent overhealing
 		
 		if ( this.hea > 0 )
 		{
@@ -352,7 +352,7 @@ class sdCube extends sdEntity
 			this.remove();
 		}
 		
-		//if ( this.hea < -this._hmax / 80 * 100 )
+		//if ( this.hea < -this.hmax / 80 * 100 )
 		//this.remove();
 	}
 	
@@ -468,9 +468,9 @@ class sdCube extends sdEntity
 	{
 		if ( this.regen_timeout <= 0 )
 		{
-			if ( this.hea < this._hmax )
+			if ( this.hea < this.hmax )
 			{
-				this.hea = Math.min( this.hea + GSPEED, this._hmax );
+				this.hea = Math.min( this.hea + GSPEED, this.hmax );
 			}
 		}
 		else
@@ -807,7 +807,7 @@ class sdCube extends sdEntity
 					else
 					{
 						if ( ( targets_raw[ i ].IsPlayerClass() && targets_raw[ i ].hea < targets_raw[ i ].hmax && sdCube.IsTargetFriendly( targets_raw[ i ] ) && targets_raw[ i ]._socket ) || // Only with socket
-							 ( targets_raw[ i ].GetClass() === 'sdCube' && targets_raw[ i ].hea < targets_raw[ i ]._hmax && targets_raw[ i ] !== this ) )
+							 ( targets_raw[ i ].GetClass() === 'sdCube' && targets_raw[ i ].hea < targets_raw[ i ].hmax && targets_raw[ i ] !== this ) )
 							if ( sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdCube' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ] ) )
 							targets.push( targets_raw[ i ] );
 					}
@@ -963,6 +963,9 @@ class sdCube extends sdEntity
 	{
 		//if ( this.death_anim === 0 )
 		sdEntity.Tooltip( ctx, "Cube" );
+		
+		if ( this.kind === 1 || this.kind === 2 )
+		this.DrawHealthBar( ctx, undefined, 10 );
 	}
 	Draw( ctx, attached )
 	{
