@@ -1849,11 +1849,32 @@ function IsGameActive()
 
 var no_respawn_areas = []; // arr of { x, y, radius, until }
 
+function UpdateOnlineCount()
+{
+	let pc = GetPlayingPlayersCount();
+
+	let connected_total = 0;
+
+	for ( var i = 0; i < sockets.length; i++ )
+	if ( sockets[ i ].likely_a_real_player )
+	connected_total++;
+
+	for ( var i = 0; i < sockets.length; i++ )
+	if ( sockets[ i ].likely_a_real_player )
+	{
+		if ( sockets[ i ].character && !sockets[ i ].character._is_being_removed )
+		sockets[ i ].sd_events.push( [ 'ONLINE', [ connected_total, pc ] ] ); // In-game case
+		else
+		sockets[ i ].emit( 'ONLINE', [ connected_total, pc ] ); // Character cusomization screen
+	}
+}
 
 let next_drop_log = 0;
 io.on("connection", (socket) => 
 //io.onConnection( socket =>
 {
+	socket.likely_a_real_player = true; // Can be a sign of webcrawler too, though these are likely to disconnect quickly
+	
 	//socket.packets_sent = 0;
 	//socket.packets_dropped = 0;
 	if ( !SOCKET_IO_MODE )
@@ -1971,6 +1992,7 @@ io.on("connection", (socket) =>
 	
 	socket.on( 'S2SProtocolMessage', ( v )=>
 	{
+		socket.likely_a_real_player = false;
 		sdServerToServerProtocol.IncomingData( v, socket, ip_accurate );
 	});
 	
@@ -2010,16 +2032,7 @@ io.on("connection", (socket) =>
 	socket.respawn_block_until = sdWorld.time + 400;
 	socket.ffa_warning = 0; // Will be used for slower respawn
 	
-	{
-		let pc = GetPlayingPlayersCount();
-		for ( var i = 0; i < sockets.length; i++ )
-		{
-			if ( sockets[ i ].character && !sockets[ i ].character._is_being_removed )
-			sockets[ i ].sd_events.push( [ 'ONLINE', [ sockets.length, pc ] ] ); // In-game case
-			else
-			sockets[ i ].emit( 'ONLINE', [ sockets.length, pc ] ); // Character cusomization screen
-		}
-	}
+	UpdateOnlineCount();
 	
 	socket.emit( 'INIT', 
 	{
@@ -2402,6 +2415,7 @@ io.on("connection", (socket) =>
 			sdWorld.server_config.onReconnect( character_entity, player_settings );
 		}
 		
+		UpdateOnlineCount();
 	};
 	
 	socket.on('RESPAWN', socket.Respawn );
@@ -3250,6 +3264,8 @@ io.on("connection", (socket) =>
 			sockets_by_ip[ ip ].splice( sockets_by_ip[ ip ].indexOf( socket ), 1 );
 			if ( sockets_by_ip[ ip ].length === 0 )
 			delete sockets_by_ip[ ip ];
+		
+			UpdateOnlineCount();
 			
 		},0);
 	});
