@@ -1545,7 +1545,60 @@ class sdCharacter extends sdEntity
 				}
 
 				if ( !closest )
-				for ( let i = 0; i < sdCharacter.characters.length; i++ )
+				{
+					let targets,di;
+
+					di = 300;
+					targets = sdWorld.GetAnythingNear( this.x, this.y, 400, null, [ 'sdAmphid', 'sdBadDog', 'sdOctopus', 'sdVirus', 'sdEnemyMech', 'sdCube', 'sdDrone', 'sdAsp', 'sdQuickie', 'sdSpider', 'sdSandWorm', 'sdShark', 'sdCharacter' ] );
+					for ( let i = 0; i < targets.length; i++) // Target closest entity which AI can see
+					{
+						let target_is_alive = false;
+						if ( typeof targets[ i ]._hea !== 'undefined' )
+						if ( targets[ i ]._hea > 0 )
+						target_is_alive = true;
+						if ( typeof targets[ i ].hea !== 'undefined' )
+						if ( targets[ i ].hea > 0 )
+						target_is_alive = true;
+
+						if ( target_is_alive === true )
+						{
+							if ( this._ai_team >= 0 && this._ai_team <= 999 ) // Non-instructor
+							{
+								let should_target = true;
+								if ( typeof targets[ i ]._ai_team !== 'undefined' ) // Erthal spider bots, humanoids, drones
+								if ( this._ai_team === targets[ i ]._ai_team )
+								should_target = false;
+								if ( should_target === true )
+								if ( sdWorld.CheckLineOfSight( this.x, this.y, targets[ i ].x, targets[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
+								if ( sdWorld.Dist2D( this.x, this.y, targets[ i ].x, targets[ i ].y ) <= di )
+								//if ( targets[ i ] !== old_target ) // Don't target entity which isn't possible to attack
+								{
+									this._ai.target = targets[ i ];
+									di = sdWorld.Dist2D( this.x, this.y, targets[ i ].x, targets[ i ].y );
+								}
+							}
+							else // Instructor has _ai_team set to "owner.cc_id + 4141" so it's obviously over 999
+							{
+								let should_target = true;
+								if ( typeof targets[ i ]._ai_team !== 'undefined' ) // Erthal spider bots, humanoids, drones
+								if ( this._ai_team === targets[ i ]._ai_team )
+								should_target = false;
+								if ( targets[ i ]._ai_team === 0 )
+								should_target = false;
+								if ( should_target === true )
+								if ( sdWorld.CheckLineOfSight( this.x, this.y, targets[ i ].x, targets[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
+								if ( sdWorld.Dist2D( this.x, this.y, targets[ i ].x, targets[ i ].y ) <= di )
+								//if ( targets[ i ] !== old_target ) // Don't target entity which isn't possible to attack
+								{
+									this._ai.target = targets[ i ];
+									di = sdWorld.Dist2D( this.x, this.y, targets[ i ].x, targets[ i ].y );
+								}
+							}
+						}
+					}
+
+				}
+				/*for ( let i = 0; i < sdCharacter.characters.length; i++ )
 				{
 					var ent = sdCharacter.characters[ i ];
 					if ( this._ai_team === 0 ) // Keep emergency instructor's behaviour as it is right now
@@ -1600,7 +1653,7 @@ class sdCharacter extends sdEntity
 							}
 						}
 					}
-				}
+				}*/
 
 				this._key_states.SetKey( 'KeyA', 0 );
 				this._key_states.SetKey( 'KeyD', 0 );
