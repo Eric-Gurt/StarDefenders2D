@@ -1562,7 +1562,7 @@ class sdCharacter extends sdEntity
 
 						if ( target_is_alive === true )
 						{
-							if ( this._ai_team >= 0 && this._ai_team <= 999 ) // Non-instructor
+							//if ( this._ai_team >= 0 && this._ai_team <= 999 ) // Non-instructor
 							{
 								let should_target = true;
 								if ( typeof targets[ i ]._ai_team !== 'undefined' ) // Erthal spider bots, humanoids, drones
@@ -1577,7 +1577,7 @@ class sdCharacter extends sdEntity
 									di = sdWorld.Dist2D( this.x, this.y, targets[ i ].x, targets[ i ].y );
 								}
 							}
-							else // Instructor has _ai_team set to "owner.cc_id + 4141" so it's obviously over 999
+							/*else // Instructor has _ai_team set to "owner.cc_id + 4141" so it's obviously over 999
 							{
 								let should_target = true;
 								if ( typeof targets[ i ]._ai_team !== 'undefined' ) // Erthal spider bots, humanoids, drones
@@ -1593,7 +1593,7 @@ class sdCharacter extends sdEntity
 									this._ai.target = targets[ i ];
 									di = sdWorld.Dist2D( this.x, this.y, targets[ i ].x, targets[ i ].y );
 								}
-							}
+							}*/
 						}
 					}
 
