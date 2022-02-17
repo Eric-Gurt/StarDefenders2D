@@ -838,7 +838,7 @@ class sdCharacter extends sdEntity
 			if ( sdWorld.last_hit_entity._ai_team !== this._ai_team )
 			found_enemy = true;
 
-			if ( sdWorld.last_hit_entity.GetClass() === 'sdAsp' || sdWorld.last_hit_entity.GetClass() === 'sdBadDog' || sdWorld.last_hit_entity.GetClass() === 'sdCube' || sdWorld.last_hit_entity.GetClass() === 'sdOctopus' || sdWorld.last_hit_entity.GetClass() === 'sdQuickie' || sdWorld.last_hit_entity.GetClass() === 'sdSandWorm' || sdWorld.last_hit_entity.GetClass() === 'sdVirus' ) 
+			if ( sdWorld.last_hit_entity.GetClass() === 'sdAmphid' || sdWorld.last_hit_entity.GetClass() === 'sdAsp' || sdWorld.last_hit_entity.GetClass() === 'sdBadDog' || sdWorld.last_hit_entity.GetClass() === 'sdCube' || sdWorld.last_hit_entity.GetClass() === 'sdOctopus' || sdWorld.last_hit_entity.GetClass() === 'sdQuickie' || sdWorld.last_hit_entity.GetClass() === 'sdSandWorm' || sdWorld.last_hit_entity.GetClass() === 'sdVirus' ) 
 			found_enemy = true;
 
 			if ( found_enemy === true )
