@@ -826,10 +826,26 @@ class sdCharacter extends sdEntity
 	
 	}
 	
-	/*AIProtectTeammate ( target )
+	GetRandomEntityNearby() // From sdOverlord but checks for classes for enemies instead of considering anything as a target
 	{
-	this._ai.target = target;
-	}*/
+		let an = Math.random() * Math.PI * 2;
+
+		if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.x + Math.sin( an ) * 900, this.y + Math.cos( an ) * 900, this ) )
+		if ( sdWorld.last_hit_entity )
+		{
+			let found_enemy = false;
+			if ( sdWorld.last_hit_entity.GetClass() === 'sdCharacter' ||  sdWorld.last_hit_entity.GetClass() === 'sdDrone' || sdWorld.last_hit_entity.GetClass() === 'sdEnemyMech' || sdWorld.last_hit_entity.GetClass() === 'sdSpider')
+			if ( sdWorld.last_hit_entity._ai_team !== this._ai_team )
+			found_enemy = true;
+
+			if ( sdWorld.last_hit_entity.GetClass() === 'sdAsp' || sdWorld.last_hit_entity.GetClass() === 'sdBadDog' || sdWorld.last_hit_entity.GetClass() === 'sdCube' || sdWorld.last_hit_entity.GetClass() === 'sdOctopus' || sdWorld.last_hit_entity.GetClass() === 'sdQuickie' || sdWorld.last_hit_entity.GetClass() === 'sdSandWorm' || sdWorld.last_hit_entity.GetClass() === 'sdVirus' ) 
+			found_enemy = true;
+
+			if ( found_enemy === true )
+			return sdWorld.last_hit_entity;
+		}
+		return null;
+	}
 
 	AITargetBlocks() // Targets first "GetAnythingNear" sdBlock.
 	{
@@ -1478,6 +1494,10 @@ class sdCharacter extends sdEntity
 				return;
 			}
 
+			if ( !this._ai.target )
+			{
+				this._ai.target = this.GetRandomEntityNearby();
+			}
 			this._ai.next_action -= GSPEED;
 
 			if ( this._ai.next_action <= 0 )
@@ -1544,7 +1564,7 @@ class sdCharacter extends sdEntity
 					this._ai.target = null;
 				}
 
-				if ( !closest )
+				/*if ( !closest )
 				{
 					let targets,di;
 
@@ -1577,27 +1597,10 @@ class sdCharacter extends sdEntity
 									di = sdWorld.Dist2D( this.x, this.y, targets[ i ].x, targets[ i ].y );
 								}
 							}
-							/*else // Instructor has _ai_team set to "owner.cc_id + 4141" so it's obviously over 999
-							{
-								let should_target = true;
-								if ( typeof targets[ i ]._ai_team !== 'undefined' ) // Erthal spider bots, humanoids, drones
-								if ( this._ai_team === targets[ i ]._ai_team )
-								should_target = false;
-								if ( targets[ i ]._ai_team === 0 )
-								should_target = false;
-								if ( should_target === true )
-								if ( sdWorld.CheckLineOfSight( this.x, this.y, targets[ i ].x, targets[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
-								if ( sdWorld.Dist2D( this.x, this.y, targets[ i ].x, targets[ i ].y ) <= di )
-								//if ( targets[ i ] !== old_target ) // Don't target entity which isn't possible to attack
-								{
-									this._ai.target = targets[ i ];
-									di = sdWorld.Dist2D( this.x, this.y, targets[ i ].x, targets[ i ].y );
-								}
-							}*/
 						}
 					}
 
-				}
+				}*/
 				/*for ( let i = 0; i < sdCharacter.characters.length; i++ )
 				{
 					var ent = sdCharacter.characters[ i ];
