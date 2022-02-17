@@ -138,7 +138,8 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_witch' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_modeus' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_pepe' ), // by LazyRain
-			sdWorld.CreateImageFromFile( 'helmet_santa' ) // by LazyRain
+			sdWorld.CreateImageFromFile( 'helmet_santa' ), // by LazyRain
+			sdWorld.CreateImageFromFile( 'helmet_velox' ) // by Booraz149
 			// Note: Commas -> , are important since it all is just a big Array: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 		];
 		
@@ -212,6 +213,7 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'skins/soldier_rig' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'skins/witch' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'skins/modeus' ), // by LazyRain
+			sdWorld.CreateImageFromFile( 'skins/velox' ) // by Booraz149
 		];
 		
 		// x y rotation, for images below
