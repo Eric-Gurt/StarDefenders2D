@@ -51,7 +51,7 @@ class sdEnemyMech extends sdEntity
 		this._hmax = 15000; // Was 6000 but even 12000 is too easy if you have anything in slot 7
 		this.hea = this._hmax;
 
-		this._ai_team = 2;
+		this._ai_team = 5;
 		this.tilt = 0;
 		
 		this._time_until_full_remove = 30 * 5 + Math.random() * 30 * 5; // 5-10 seconds to get removed
@@ -112,11 +112,11 @@ class sdEnemyMech extends sdEntity
 	}*/
 	CanAttackEnt( ent )
 	{
-		if ( ( ent === this._current_target && ent._ai_team !== 2 ) || ent.build_tool_level > 0 )
+		if ( ( ent === this._current_target && ent._ai_team !== this._ai_team ) || ent.build_tool_level > 0 )
 		return true;
 		else
 		{
-			if ( ( ( ent.matter >= 800 && ent._ai_team === 0 ) && ent._ai_team !== 2 ) || ( ent._ai_enabled !== sdCharacter.AI_MODEL_NONE && ent._ai_team !== 2 ) )
+			if ( ( ( ent.matter >= 800 && ent._ai_team === 0 ) && ent._ai_team !== this._ai_team ) || ( ent._ai_enabled !== sdCharacter.AI_MODEL_NONE && ent._ai_team !== this._ai_team ) )
 			{
 				this._current_target = ent; // Don't stop targetting if the player has below 800 matter mid fight
 				return true; // Only players have mercy from mechs
@@ -458,12 +458,12 @@ class sdEnemyMech extends sdEntity
 					let targets = [];
 
 					for ( let i = 0; i < targets_raw.length; i++ )
-					if ( ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ]._ai_team !== 2 && targets_raw[ i ].hea > 0 && this.CanAttackEnt( targets_raw[ i ] )  ) ||
+					if ( ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ]._ai_team !== this._ai_team && targets_raw[ i ].hea > 0 && this.CanAttackEnt( targets_raw[ i ] )  ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdTurret' ) ||
 						( targets_raw[ i ].GetClass() === 'sdCommandCentre' ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdCube' && targets_raw[ i ].hea > 0 ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdCube' && this.hea < ( this._hmax / 3 ) ) ||
-						 ( targets_raw[ i ].GetClass() === 'sdDrone' && targets_raw[ i ]._ai_team !== 2 && targets_raw[ i ]._hea > 0 ) )
+						 ( targets_raw[ i ].GetClass() === 'sdDrone' && targets_raw[ i ]._ai_team !== this._ai_team && targets_raw[ i ]._hea > 0 ) )
 					{
 						if ( sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdEnemyMech' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer' ] ) )
 							targets.push( targets_raw[ i ] );
@@ -475,7 +475,7 @@ class sdEnemyMech extends sdEntity
 						else
 						{
 							if ( this.hea < ( this._hmax / 3 ) )
-							if ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ]._ai_team !== 2 && this.CanAttackEnt( targets_raw[ i ] ) ) // Highly wanted by sdEnemyMechs in this case
+							if ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ]._ai_team !== this._ai_team && this.CanAttackEnt( targets_raw[ i ] ) ) // Highly wanted by sdEnemyMechs in this case
 							{
 								targets.push( targets_raw[ i ] );
 							}
@@ -644,7 +644,7 @@ class sdEnemyMech extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		//if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, "Flying Mech", 0, -30 );
+		sdEntity.Tooltip( ctx, "Velox Flying Mech", 0, -30 );
 		
 		this.DrawHealthBar( ctx, undefined, 10 );
 	}

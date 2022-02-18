@@ -87,6 +87,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_MATTER_RAIN =				event_counter++; // 19
 		sdWeather.EVENT_OVERLORD =				event_counter++; // 20
 		sdWeather.EVENT_ERTHAL_BEACON =				event_counter++; // 21
+		sdWeather.EVENT_VELOX =					event_counter++; // 22
 		
 		sdWeather.last_crystal_near_quake = null; // Used to damage left over crystals. Could be used to damage anything really
 		
@@ -148,7 +149,7 @@ class sdWeather extends sdEntity
 		this._asteroid_timer_scale_next = 0;
 		
 		this.day_time = 30 * 60 * 24 / 3;
-		this._event_rotation_time = 0; // Time until potential events rotate
+		this._event_rotation_time = ( 30 * 60 * 14 ) + ( 30 * 45 ); // Time until potential events rotate, set to 14 minutes and 45 seconds so it can roll new events when fresh game starts instead of having earthquakes only for 15 minutes
 		
 		// World bounds, but slow
 		this.x1 = 0;
@@ -165,7 +166,7 @@ class sdWeather extends sdEntity
 	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
 	{
 		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
-		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 ];
+		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 ];
 				
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -1426,6 +1427,171 @@ class sdWeather extends sdEntity
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
+		if ( r === sdWeather.EVENT_VELOX ) // Velox faction spawn. TO DO: Support healing drones
+		{
+			let ais = 0;
+			let percent = 0;
+			for ( var i = 0; i < sdCharacter.characters.length; i++ )
+			{
+				if ( sdCharacter.characters[ i ].hea > 0 )
+				if ( !sdCharacter.characters[ i ]._is_being_removed )
+				if ( sdCharacter.characters[ i ]._ai_team === 2 )
+				{
+					ais++;
+				}
+
+				if ( sdCharacter.characters[ i ].hea > 0 )
+				if ( !sdCharacter.characters[ i ]._is_being_removed )
+				//if ( !sdCharacter.characters[ i ]._ai )
+				if ( sdCharacter.characters[ i ].build_tool_level > 5 )
+				{
+					percent++;
+				}
+			}
+			if ( Math.random() < ( percent / sdWorld.GetPlayingPlayersCount() ) ) // Spawn chance depends on RNG, chances increase if more players ( or all ) have at least 5 levels
+			{
+				let instances = 0;
+				let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
+
+				let left_side = ( Math.random() < 0.5 );
+
+				while ( instances < instances_tot && ais < 8 ) // max AI value up to 8, as other events I think. - Booraz149
+				{
+
+					let character_entity = new sdCharacter({ x:0, y:0 });
+
+					sdEntity.entities.push( character_entity );
+
+					{
+						let x,y;
+						let tr = 1000;
+						do
+						{
+							if ( left_side )
+							x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
+							else
+							x = sdWorld.world_bounds.x2 - 16 - 16 * instances;
+
+							y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+							if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+							//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+							//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+							{
+								character_entity.x = x;
+								character_entity.y = y;
+
+								//sdWorld.UpdateHashPosition( ent, false );
+								if ( Math.random() < 0.35 )
+								{
+									if ( Math.random() < 0.25 )
+									{
+										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAIL_CANNON }) );
+										character_entity._ai_gun_slot = 4;
+									}
+									else
+									{
+										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_VELOX_COMBAT_RIFLE }) );
+										character_entity._ai_gun_slot = 2;
+									}
+								}
+								else
+								{ 
+									{
+										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_VELOX_PISTOL }) );
+										character_entity._ai_gun_slot = 1;
+									}
+								}
+								let velox_settings;
+								if ( character_entity._ai_gun_slot === 1 )
+								velox_settings = {"hero_name":"Velox Soldier","color_bright":"#c0c0c0","color_dark":"#a0a0a0","color_bright3":"#00ffff","color_dark3":"#202020","color_visor":"#00ffff","color_suit":"#c0c0c0","color_suit2":"#080808","color_dark2":"#000000","color_shoes":"#000000","color_skin":"#000000","helmet1":false,"helmet86":true,"voice1":false,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice7":true,"body59":true, "legs59":true};
+								if ( character_entity._ai_gun_slot === 2 )
+								velox_settings = {"hero_name":"Velox Soldier","color_bright":"#c0c0c0","color_dark":"#a0a0a0","color_bright3":"#00ff44","color_dark3":"#202020","color_visor":"#00ff44","color_suit":"#c0c0c0","color_suit2":"#080808","color_dark2":"#000000","color_shoes":"#000000","color_skin":"#000000","helmet1":false,"helmet86":true,"voice1":false,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice7":true,"body59":true, "legs59":true};
+
+								if ( character_entity._ai_gun_slot === 4 )
+								velox_settings = {"hero_name":"Velox Assassin","color_bright":"#c0c0c0","color_dark":"#a0a0a0","color_bright3":"#ff0000","color_dark3":"#202020","color_visor":"#ff0000","color_suit":"#c0c0c0","color_suit2":"#080808","color_dark2":"#000000","color_shoes":"#000000","color_skin":"#000000","helmet1":false,"helmet86":true,"voice1":false,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice7":true,"body59":true, "legs59":true};
+
+								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( velox_settings );
+								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( velox_settings );
+								character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( velox_settings );
+								character_entity.title = velox_settings.hero_name;
+								character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( velox_settings );
+								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( velox_settings );
+								if ( character_entity._ai_gun_slot === 1 ) // If a regular Velox soldier
+								{
+									character_entity.matter = 150;
+									character_entity.matter_max = 150;
+
+									character_entity.hea = 250;
+									character_entity.hmax = 250;
+
+									character_entity.armor = 500;
+									character_entity.armor_max = 500;
+									character_entity._armor_absorb_perc = 0.75; // 75% damage absorption, since armor will run out before health, they effectively have 750 health
+
+									character_entity._damage_mult = 0.8;
+								}
+
+								if ( character_entity._ai_gun_slot === 2 ) // Combat rifle Velox
+								{
+									character_entity.matter = 150;
+									character_entity.matter_max = 150;
+
+									character_entity.hea = 250;
+									character_entity.hmax = 250;
+
+									character_entity.armor = 1000;
+									character_entity.armor_max = 1000;
+									character_entity._armor_absorb_perc = 0.93; // 93% damage absorption, since armor will run out before health, they effectively have 1250 health
+
+									character_entity._damage_mult = 1;
+								}
+
+								if ( character_entity._ai_gun_slot === 4 ) // Rail cannon Velox, harder to kill
+								{
+									character_entity.matter = 250;
+									character_entity.matter_max = 250;
+
+									character_entity.hea = 250;
+									character_entity.hmax = 250;
+
+									character_entity.armor = 1750;
+									character_entity.armor_max = 1750;
+									character_entity._armor_absorb_perc = 0.97; // 97% damage absorption, since armor will run out before health, they effectively have 2000 health
+
+									character_entity._damage_mult = 1 + ( 1 / 3 );
+								}
+								character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+								character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
+								character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
+
+								character_entity._matter_regeneration = 5; // At least some ammo regen
+								character_entity._jetpack_allowed = true; // Jetpack
+								character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
+								character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+								character_entity._ai_team = 5; // AI team 5 is for Velox faction
+								character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
+
+								break;
+							}
+
+							tr--;
+							if ( tr < 0 )
+							{
+								character_entity.death_anim = sdCharacter.disowned_body_ttl + 1;
+								character_entity.remove();
+								break;
+							}
+						} while( true );
+					}
+
+					instances++;
+					ais++;
+				}
+			}
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -1527,7 +1693,7 @@ class sdWeather extends sdEntity
 											character_entity._ai_gun_slot = 2;
 										}
 										else
-										if ( Math.random() < 0.03 ) // was 1% but events are somewhat rarer now
+										if ( Math.random() < 0.0025 ) // even at 1% it's still to common given the fact regular Falkoks die from anything
 										{
 											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_HEAVY_RIFLE }) );
 											character_entity._ai_gun_slot = 2;

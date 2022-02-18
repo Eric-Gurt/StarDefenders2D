@@ -2008,25 +2008,24 @@ class sdGunClass
 			projectile_properties: { _damage: 62, color: '#33ffff', penetrating: true, _dirt_mult: -0.5 }
 		};
     
-		sdGun.classes[ sdGun.CLASS_BURST_PISTOL = 65 ] = 
+		sdGun.classes[ sdGun.CLASS_VELOX_PISTOL = 65 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'burst_pistol' ),
-			image0: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload' ), sdWorld.CreateImageFromFile( 'burst_pistol' ) ],
-			image1: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload' ), sdWorld.CreateImageFromFile( 'burst_pistol' ) ],
-			image2: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload' ), sdWorld.CreateImageFromFile( 'burst_pistol' ) ],
+			image: sdWorld.CreateImageFromFile( 'burst_pistol2' ),
+			image0: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload2' ), sdWorld.CreateImageFromFile( 'burst_pistol2' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload2' ), sdWorld.CreateImageFromFile( 'burst_pistol2' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload2' ), sdWorld.CreateImageFromFile( 'burst_pistol2' ) ],
 			sound: 'gun_f_rifle',
 			sound_pitch: 1.5,
-			title: 'Burst Pistol',
+			title: 'Velox Burst Pistol',
 			slot: 1,
 			reload_time: 2,
 			muzzle_x: 5,
 			ammo_capacity: 12,
 			count: 1,
 			spread: 0.01,
-			matter_cost: 120,
+			spawnable: false,
 			burst: 3,
 			burst_reload: 35,
-			min_build_tool_level: 13,
 			projectile_properties: { _damage: 33, color:'#00aaff', _dirt_mult: -0.5 }
 		};
     
@@ -2080,12 +2079,12 @@ class sdGunClass
 			projectile_properties: { explosion_radius: 25, model: 'gauss_rifle_proj', _damage: 140, color:sdEffect.default_explosion_color }
 		};
 		
-		sdGun.classes[ sdGun.CLASS_COMBAT_RIFLE = 67 ] = 
+		sdGun.classes[ sdGun.CLASS_VELOX_COMBAT_RIFLE = 67 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'combat_rifle' ),
 			sound: 'gun_the_ripper2',
 			sound_pitch: 2,
-			title: 'Combat Rifle',
+			title: 'Velox Combat Rifle',
 			slot: 2,
 			reload_time: 1.5,
 			muzzle_x: 10,
@@ -2093,9 +2092,8 @@ class sdGunClass
 			burst: 3,
 			burst_reload: 16,
 			count: 1,
-			matter_cost: 120,
+			spawnable: false,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.3,
-			min_build_tool_level: 10,
 			projectile_properties: { _damage: 40, _dirt_mult: -0.5 }
 		};
 
