@@ -470,23 +470,37 @@ class sdLongRangeTeleport extends sdEntity
 	GiveRewards()
 	{
 		let rewards = Math.random();
-		if ( rewards < 0.5 )
+		if ( rewards < 0.2 )
 		{
 			let shard, shard2, shard3;
 			shard = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
 			sdEntity.entities.push( shard );
-			shard2 = new sdGun({ x:this.x - 8, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
+			shard2 = new sdGun({ x:this.x - 4, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
 			sdEntity.entities.push( shard2 );
-			shard3 = new sdGun({ x:this.x + 8, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
+			shard3 = new sdGun({ x:this.x + 4, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
 			sdEntity.entities.push( shard3 );
 		}
 		else
+		if ( rewards < 0.4 )
 		{
-			let pstim;
-			pstim = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_POWER_STIMPACK });
-			sdEntity.entities.push( pstim );
+			let gun, rng;
+			rng = Math.random();
+			if ( rng < 0.1 )
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_DMR });
+			else
+			if ( rng < 0.2 )
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_SHOTGUN });
+			else
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_COMBAT_INSTRUCTOR });
+			sdEntity.entities.push( gun );
 		}
-		sdWorld.SendEffect({ x:this.x, y:this.y - 16, type:sdEffect.TYPE_TELEPORT });
+		else
+		{
+			let crystal;
+			crystal = new sdCrystal({ x:this.x, y:this.y - 24, matter_max: 5120, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
+			sdEntity.entities.push( crystal );
+		}
+		sdWorld.SendEffect({ x:this.x, y:this.y - 24, type:sdEffect.TYPE_TELEPORT });
 	}
 
 	ExtractEntitiesOnTop( collected_entities_array=null, use_task_filter=false )

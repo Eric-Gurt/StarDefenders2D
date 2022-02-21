@@ -534,7 +534,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'rail_cannon' ),
 			sound: 'gun_railgun',
 			sound_pitch: 0.5,
-			title: 'Rail Cannon',
+			title: 'Velox Rail Cannon',
 			slot: 4,
 			reload_time: 20,
 			muzzle_x: 7,
@@ -2026,7 +2026,7 @@ class sdGunClass
 			spawnable: false,
 			burst: 3,
 			burst_reload: 35,
-			projectile_properties: { _damage: 33, color:'#00aaff', _dirt_mult: -0.5 }
+			projectile_properties: { _damage: 33, _dirt_mult: -0.5 }
 		};
     
 		sdGun.classes[ sdGun.CLASS_GAUSS_RIFLE = 66 ] = 
@@ -2789,6 +2789,139 @@ class sdGunClass
 				_custom_target_reaction:spear_targer_reaction
 			},			
 			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
+		};
+
+		sdGun.classes[ sdGun.CLASS_EMERGENCY_INSTRUCTOR = 90 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'emergency_instructor' ),
+			sound: 'gun_defibrillator',
+			title: 'Combat instructor',
+			sound_pitch: 0.5,
+			slot: 7,
+			reload_time: 30 * 3,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_velocity: 16,
+			spawnable: false,
+			GetAmmoCost: ()=>
+			{
+				return 400;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				let owner = gun._held_by;
+				
+				setTimeout(()=> // Out of loop spawn
+				{
+					if ( sdWorld.is_server )
+					if ( owner )
+					//if ( owner.is( sdCharacter ) )
+					{
+						let instructor_settings = {"hero_name":"Combat Instructor","color_bright":"#7aadff","color_dark":"#25668e","color_bright3":"#7aadff","color_dark3":"#25668e","color_visor":"#ffffff","color_suit":"#000000","color_shoes":"#303954","color_skin":"#51709a","voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"color_suit2":"#000000","color_dark2":"#25668e"};
+
+						let ent = new sdCharacter({ x: owner.x + 16 * owner._side, y: owner.y,
+							hmax: 250,
+							hea: 250,
+							_ai_enabled: sdCharacter.AI_MODEL_TEAMMATE, 
+							_ai_gun_slot: 4,
+							_ai_level: 10,
+							_ai_team: owner.cc_id + 4141,
+							sd_filter: sdWorld.ConvertPlayerDescriptionToSDFilter_v2( instructor_settings ), 
+							_voice: sdWorld.ConvertPlayerDescriptionToVoice( instructor_settings ), 
+							title: instructor_settings.hero_name,
+							cc_id: owner.cc_id,
+							_owner: owner
+						});
+						ent.gun_slot = 4;
+						ent._jetpack_allowed = true;
+						ent.ApplyArmor({ armor: 370, _armor_absorb_perc: 0.55, armor_speed_reduction: 10 }) // Level 2 heavy armor
+						ent._matter_regeneration = 5;
+						ent._matter_regeneration_multiplier = 4;
+						ent._damage_mult = 1 + 3 / 3 * 1;
+						sdEntity.entities.push( ent );
+
+						let ent2 = new sdGun({ x: ent.x, y: ent.y,
+							class: sdGun.CLASS_RAILGUN
+						});
+						sdEntity.entities.push( ent2 );
+
+						sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
+						
+						let side_set = false;
+						const logic = ()=>
+						{
+							if ( ent._ai )
+							{
+								if ( !side_set )
+								{
+									ent._ai.direction = owner._side;
+									side_set = false;
+								}
+								if ( ent.x > owner.x + 100 )
+								ent._ai.direction = -1;
+							
+								if ( ent.x < owner.x - 100 )
+								ent._ai.direction = 1;
+							} // Stay close to player
+						};
+						
+						const MasterDamaged = ( victim, dmg, enemy )=>
+						{
+							if ( enemy && enemy.IsTargetable( ent ) )
+							if ( dmg > 0 )
+							if ( ent._ai )
+							{
+								if ( !ent._ai.target || Math.random() > 0.5 )
+								ent._ai.target = enemy;
+							}
+						};
+						
+						owner.addEventListener( 'DAMAGE', MasterDamaged );
+						
+						setInterval( logic, 1000 );
+						
+						setTimeout(()=>
+						{
+							if ( ent.hea > 0 )
+							if ( !ent._is_being_removed )
+							{
+								ent.Say( [ 
+									'Was nice seeing you', 
+									'I can\'t stay any longer', 
+									'Thanks for the invite, ' + owner.title, 
+									'Glad I didn\'t die here lol',
+									'Until next time',
+									'You can call be later',
+									'My time is almost out',
+									( ent._inventory[ 4 ] === ent2 ) ? 'You can take my railgun' : 'I\'ll miss my railgun',
+									'Time for me to go'
+								][ ~~( Math.random() * 9 ) ], false, false, false );
+							}
+						}, 60000 - 4000 );
+						setTimeout(()=>
+						{
+							clearInterval( logic );
+							
+							owner.removeEventListener( 'DAMAGE', MasterDamaged );
+							
+							if ( !ent._is_being_removed )
+							sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
+
+							ent.DropWeapons();
+							ent.remove();
+							//ent2.remove();
+
+							ent._broken = false;
+							//ent2._broken = false;
+
+						}, 60000 );
+					}
+				}, 1 );
+				
+				return true;
+			},
+			projectile_properties: {}
 		};
 
 		// Add new gun classes above this line //
