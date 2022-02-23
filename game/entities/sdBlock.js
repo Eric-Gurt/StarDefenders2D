@@ -98,12 +98,14 @@ class sdBlock extends sdEntity
 		sdBlock.MATERIAL_REINFORCED_WALL_LVL1 = 5;
 		sdBlock.MATERIAL_REINFORCED_WALL_LVL2 = 6;
 		sdBlock.MATERIAL_CORRUPTION = 7;
+		sdBlock.MATERIAL_CRYSTAL_SHARDS = 8;
 		
 		//sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
 		//sdBlock.img_ground44 = sdWorld.CreateImageFromFile( 'ground_4x4' );
 		sdBlock.img_ground88 = sdWorld.CreateImageFromFile( 'ground_8x8' );
 		
 		sdBlock.img_corruption = sdWorld.CreateImageFromFile( 'corruption' );
+		sdBlock.img_crystal_shards = sdWorld.CreateImageFromFile( 'crystal_shards' );
 		
 		sdBlock.img_trapshield11 = sdWorld.CreateImageFromFile( 'trapshield_1x1' );
 		sdBlock.img_trapshield05 = sdWorld.CreateImageFromFile( 'trapshield_half' );
@@ -416,7 +418,7 @@ class sdBlock extends sdEntity
 			}
 			else
 			{
-				if ( this.material === sdBlock.MATERIAL_GROUND )
+				if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
 				this._regen_timeout = 120; // Longer so digging can be less accurate towards specific block
 				else
 				this._regen_timeout = 60;
@@ -434,6 +436,15 @@ class sdBlock extends sdEntity
 						else
 						initiator._score += 1;
 					}
+				}
+
+				if ( this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+				{
+					sdWorld.DropShards( this.x, this.y, 0, 0, 
+						10,
+						Math.pow( 2, this.p ),
+						8
+					); // Spawn some shards
 				}
 				
 				{
@@ -637,6 +648,11 @@ class sdBlock extends sdEntity
 			this._next_spread = sdWorld.time + 5000 + Math.random() * 10000;
 			this.p = ( params.rank === undefined ) ? sdBlock.max_corruption_rank : params.rank;
 		}
+
+		if ( this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+		{
+			this.p = ( params.rank === undefined ) ? 0 : params.rank;
+		}
 		
 		this.destruction_frame = 0;
 		this.HandleDestructionUpdate();
@@ -685,6 +701,21 @@ class sdBlock extends sdEntity
 		
 		ent2._hmax = this._hmax * 1.5;
 		ent2._hea = this._hea * 1.5;
+	}
+	Crystalize( from=null )
+	{
+		let ent2 = new sdBlock({ x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_CRYSTAL_SHARDS, filter:this.filter, rank: Math.round( Math.random() * 6 ) }); // Don't allow orange and anticrystal shards due to their glow effect overriding the block.
+
+		this.remove();
+		this._broken = false;
+
+		//if ( this._contains_class === 'sdSandWorm' ) // Is there a worm spawn inside this block?
+		//ent2._contains_class = 'sdSandWorm.crystallized'; // Potential crystal worm later?
+
+		sdEntity.entities.push( ent2 );
+		
+		ent2._hmax = this._hmax * 0.5;
+		ent2._hea = this._hea * 0.5;
 	}
 	//RequireSpawnAlign() 
 	//{ return true; }
@@ -932,7 +963,7 @@ class sdBlock extends sdEntity
 		
 		//ctx.filter = 'hsl(120,100%,25%)';
 		
-		if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_CORRUPTION )
+		if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_CORRUPTION || this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
 		{
 			//ctx.drawImageFilterCache( sdBlock.img_ground11, 0, 0, w,h, 0,0, w,h );
 			ctx.drawImageFilterCache( sdBlock.img_ground88, this.x - Math.floor( this.x / 256 ) * 256, this.y - Math.floor( this.y / 256 ) * 256, w,h, 0,0, w,h );
@@ -944,6 +975,14 @@ class sdBlock extends sdEntity
 				//ctx.filter = 'hue-rotate('+( this.p - 12 )*(15)+'deg) saturate('+(this.p/12 * 0.75 + 0.25)+')';
 				ctx.filter = 'hue-rotate('+( this.p - sdBlock.max_corruption_rank )*(15)+'deg) saturate('+(this.p/ sdBlock.max_corruption_rank * 0.75 + 0.25)+') brightness('+(this.p / sdBlock.max_corruption_rank * 0.75 + 0.25)+')';
 				ctx.drawImageFilterCache( sdBlock.img_corruption, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
+			}
+			if ( this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+			{
+				//ctx.filter = 'none';
+				//ctx.filter = 'hue-rotate('+( this.p - 12 )*(15)+'deg)';
+				//ctx.filter = 'hue-rotate('+( this.p - 12 )*(15)+'deg) saturate('+(this.p/12 * 0.75 + 0.25)+')';
+				ctx.filter = sdWorld.GetCrystalHue( 40 * Math.pow( 2, this.p ) );
+				ctx.drawImageFilterCache( sdBlock.img_crystal_shards, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
 			}
 		}
 		else
@@ -1064,7 +1103,7 @@ class sdBlock extends sdEntity
 				//nears[ i ]._sleep_tim = sdWater.sleep_tim_max;
 			}
 
-			if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_CORRUPTION )
+			if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_CORRUPTION || this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
 			{
 				let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, filter:this.filter + ' brightness(0.5)' });
 				if ( new_bg.CanMoveWithoutOverlap( this.x, this.y, 1 ) )
