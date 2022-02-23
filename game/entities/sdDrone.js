@@ -772,11 +772,22 @@ class sdDrone extends sdEntity
 									if ( entities[ i ].GetClass() === 'sdCharacter' ) // Is it a character?
 									{
 										if ( entities[ i ]._ai_team === 3 ) // Does it belong to Council faction?
-										if ( entities[ i ].armor < entities[ i ].armor_max ) // Is it missing armor?
 										{
-											entities[ i ].armor = Math.min( entities[ i ].armor + 250, entities[ i ].armor_max ); // In that case, repair their armor
-											att_anim = true;
-											sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x + ( entities[ i ].hitbox_x2 / 2 ), y2:entities[ i ].y + ( entities[ i ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#fff000' });
+											if ( entities[ i ].armor < entities[ i ].armor_max ) // Is it missing armor?
+											{
+												entities[ i ].armor = Math.min( entities[ i ].armor + 250, entities[ i ].armor_max ); // In that case, repair their armor
+												att_anim = true;
+												sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x + ( entities[ i ].hitbox_x2 / 2 ), y2:entities[ i ].y + ( entities[ i ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#fff000' });
+											}
+										}
+										else
+										if ( sdWorld.CheckLineOfSight( this.x, this.y, entities[ i ].x, entities[ i ].y, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
+										{
+												entities[ i ].Damage( 10, this ); // Damage it
+												if ( entities[ i ].ghosting )
+												entities[ i ].TogglePlayerGhosting(); // And remove it's invisibility
+												att_anim = true;
+												sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x + ( entities[ i ].hitbox_x2 / 2 ), y2:entities[ i ].y + ( entities[ i ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#ff0000' });
 										}
 									}
 									if ( entities[ i ].GetClass() === 'sdJunk' ) // Is it a junk entity?
@@ -784,7 +795,7 @@ class sdDrone extends sdEntity
 										if ( entities[ i ].type === 4 ) // Is it a council bomb?
 										if ( entities[ i ].hea < entities[ i ].hmax ) // Does it need repairing?
 										{
-											entities[ i ].hea = Math.min( entities[ i ].hea + 1000, entities[ i ].hmax ); // In that case, repair the bomb
+											entities[ i ].hea = Math.min( entities[ i ].hea + 1500, entities[ i ].hmax ); // In that case, repair the bomb
 											att_anim = true;
 											sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x + ( entities[ i ].hitbox_x2 / 2 ), y2:entities[ i ].y + ( entities[ i ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#fff000' });
 										}
