@@ -154,9 +154,11 @@ class sdJunk extends sdEntity
 		if ( this.type === 4 )
 		{
 			this._max_damage -= dmg;
+			this._spawn_ent_in -= dmg / 1000; // Speed up council spawning when taking damage
 			if ( this._max_damage < 0 ) // If the max damage threshold per timer was crossed
 			{
 				this.hea -= this._max_damage; // Refund health above threshold
+				this._spawn_ent_in -= this._max_damage / 1000; // Refund spawn timer when it can't deal damage
 				this._max_damage = 0;
 			}
 		}
@@ -623,7 +625,7 @@ class sdJunk extends sdEntity
 					while ( councils < councils_tot && ais < Math.min( 6, Math.max( 3, sdWorld.GetPlayingPlayersCount() ) ) )
 					{
 
-						let character_entity = new sdCharacter({ x:0, y:0 });
+						let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
 
 						sdEntity.entities.push( character_entity );
 						character_entity.s = 110;
@@ -705,7 +707,7 @@ class sdJunk extends sdEntity
 										character_entity._damage_mult = 1; // Supposed to put up a challenge
 									}
 									character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-									character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
+									//character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
 										
 									character_entity._ai_level = 10;
 										

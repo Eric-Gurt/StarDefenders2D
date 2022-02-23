@@ -278,7 +278,7 @@ class sdWeather extends sdEntity
 			while ( instances < instances_tot && ais < 8 )
 			{
 
-				let character_entity = new sdCharacter({ x:0, y:0 });
+				let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 
 				sdEntity.entities.push( character_entity );
 
@@ -360,7 +360,7 @@ class sdWeather extends sdEntity
 								character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
 							}	
 							character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-							character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
+							//character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
 										
 							character_entity._ai_level = Math.floor( Math.random() * 2 ); // Either 0 or 1
 										
@@ -833,7 +833,7 @@ class sdWeather extends sdEntity
 				while ( robots < robots_tot && ais < 8 )
 				{
 
-					let character_entity = new sdCharacter({ x:0, y:0 });
+					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 
 					sdEntity.entities.push( character_entity );
 
@@ -903,7 +903,7 @@ class sdWeather extends sdEntity
 									character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
 								}*/	
 								character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-								character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
+								//character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
 										
 								character_entity._ai_level = 4;
 										
@@ -1458,7 +1458,7 @@ class sdWeather extends sdEntity
 				while ( instances < instances_tot && ais < 8 ) // max AI value up to 8, as other events I think. - Booraz149
 				{
 
-					let character_entity = new sdCharacter({ x:0, y:0 });
+					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
 
 					sdEntity.entities.push( character_entity );
 
@@ -1562,7 +1562,7 @@ class sdWeather extends sdEntity
 									character_entity._damage_mult = 1 + ( 1 / 3 );
 								}
 								character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-								character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
+								//character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
 								character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
 
 								character_entity._matter_regeneration = 5; // At least some ammo regen
@@ -1648,7 +1648,7 @@ class sdWeather extends sdEntity
 					while ( instances < instances_tot && ais < 16 ) // max AI value up to 16 during invasion, but should be reduced if laggy for server
 					{
 
-						let character_entity = new sdCharacter({ x:0, y:0 });
+						let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 
 						sdEntity.entities.push( character_entity );
 
@@ -1736,7 +1736,7 @@ class sdWeather extends sdEntity
 										character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
 									}	
 									character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-									character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
+									//character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
 									character_entity._ai_level = Math.floor( 1 + Math.random() * 3 ); // AI Levels from 1 to 3
 
 									character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen

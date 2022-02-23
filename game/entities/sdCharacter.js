@@ -241,6 +241,7 @@ class sdCharacter extends sdEntity
 		sdCharacter.AI_MODEL_DUMMY_UNREVIVABLE_ENEMY = 3;
 		sdCharacter.AI_MODEL_TEAMMATE = 4;
 		sdCharacter.AI_MODEL_AGGRESSIVE = 5;
+		sdCharacter.AI_MODEL_DISTANT = 6;
 		
 		sdCharacter.ghost_breath_delay = 10 * 30;
 		/*
@@ -537,6 +538,7 @@ class sdCharacter extends sdEntity
 		
 		this._ai = null; // Object, won't be saved to snapshot
 		this._ai_enabled = ( params._ai_enabled ) || 0; // Now means id of AI model // false;
+		this._init_ai_model = this._ai_enabled || 0; // Initial / AI model on spawn. AI model needs to be declared in parameters of "new sdCharacter({...});"
 		this._ai_gun_slot = ( params._ai_gun_slot ) || 0; // When AI spawns with a weapon, this variable needs to be defined to the same slot as the spawned gun so AI can use it
 		this._ai_level = ( params._ai_level ) || 0; // Self explanatory
 		this._ai_team = 0; // AI "Teammates" do not target each other
@@ -840,13 +842,25 @@ class sdCharacter extends sdEntity
 			if ( sdWorld.last_hit_entity._ai_team !== this._ai_team )
 			found_enemy = true;
 
-			if ( sdWorld.last_hit_entity.GetClass() === 'sdAmphid' || sdWorld.last_hit_entity.GetClass() === 'sdAsp' || sdWorld.last_hit_entity.GetClass() === 'sdBadDog' || sdWorld.last_hit_entity.GetClass() === 'sdCube' || sdWorld.last_hit_entity.GetClass() === 'sdOctopus' || sdWorld.last_hit_entity.GetClass() === 'sdQuickie' || sdWorld.last_hit_entity.GetClass() === 'sdSandWorm' || sdWorld.last_hit_entity.GetClass() === 'sdVirus' ) 
+			if ( sdWorld.last_hit_entity.GetClass() === 'sdAmphid' || sdWorld.last_hit_entity.GetClass() === 'sdAsp' || sdWorld.last_hit_entity.GetClass() === 'sdBadDog' || sdWorld.last_hit_entity.GetClass() === 'sdOctopus' || sdWorld.last_hit_entity.GetClass() === 'sdQuickie' || sdWorld.last_hit_entity.GetClass() === 'sdSandWorm' || sdWorld.last_hit_entity.GetClass() === 'sdVirus' ) 
+			found_enemy = true;
+
+			if ( sdWorld.last_hit_entity.GetClass() === 'sdCube' ) // Only confront cubes when they want to attack AI
+			if ( this._nature_damage >= this._player_damage + 60 )
 			found_enemy = true;
 
 			if ( found_enemy === true )
 			return sdWorld.last_hit_entity;
 		}
 		return null;
+	}
+
+	GetBehaviourAgainstTarget() // AI has specific ways to fight specific mobs sometimes, like running away from worms, octopus, quickies and virus.
+	{
+		if ( this._ai.target.GetClass() === 'sdOctopus' || this._ai.target.GetClass() === 'sdAmphid' || this._ai.target.GetClass() === 'sdSandWorm' || this._ai.target.GetClass() === 'sdQuickie' || this._ai.target.GetClass() === 'sdVirus' )
+		return sdCharacter.AI_MODEL_DISTANT;
+
+		return this._init_ai_model; // Return to normal behaviour against other mobs
 	}
 
 	AITargetBlocks() // Targets first "GetAnythingNear" sdBlock.
@@ -1435,7 +1449,7 @@ class sdCharacter extends sdEntity
 	}
 	IsHostileAI() // Used to check if standartized score will be given for killing them and also for turrets to attack them
 	{
-		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_AGGRESSIVE || this._ai_enabled === sdCharacter.AI_MODEL_DUMMY_UNREVIVABLE_ENEMY )
+		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_AGGRESSIVE || this._ai_enabled === sdCharacter.AI_MODEL_DUMMY_UNREVIVABLE_ENEMY || sdCharacter.AI_MODEL_DISTANT )
 		{
 			return true;
 		}
@@ -1482,7 +1496,7 @@ class sdCharacter extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
-		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_AGGRESSIVE || this._ai_enabled === sdCharacter.AI_MODEL_TEAMMATE )
+		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_AGGRESSIVE || this._ai_enabled === sdCharacter.AI_MODEL_TEAMMATE || sdCharacter.AI_MODEL_DISTANT )
 		{
 			if ( typeof this._ai.next_action === 'undefined' )
 			this._ai.next_action = 30;
@@ -1499,6 +1513,11 @@ class sdCharacter extends sdEntity
 			if ( !this._ai.target )
 			{
 				this._ai.target = this.GetRandomEntityNearby();
+			}
+
+			if ( this._ai.target && this._ai_enabled !== sdCharacter.AI_MODEL_TEAMMATE )
+			{
+				this._ai_enabled = this.GetBehaviourAgainstTarget(); // Set their fighting behaviour appropriately when they fight specific enemies
 			}
 			this._ai.next_action -= GSPEED;
 
@@ -1521,7 +1540,7 @@ class sdCharacter extends sdEntity
 				this._ai.direction = ( Math.random() < 0.5 ) ? 1 : -1;
 
 				this._ai_action_counter++;
-				if ( ( this.x - this._ai_last_x ) < -50 || ( this.x - this._ai_last_x ) > 50 ) // Has the AI moved a bit or is it stuck?
+				if ( ( this.x - this._ai_last_x ) < -64 || ( this.x - this._ai_last_x ) > 64 ) // Has the AI moved a bit or is it stuck?
 				{
 					this._ai_last_x = this.x;
 					this._ai_action_counter = 0;
@@ -1533,7 +1552,7 @@ class sdCharacter extends sdEntity
 						this._ai.target = null;
 					}
 				}
-				if ( ( this.y - this._ai_last_y ) < -50 || ( this.y - this._ai_last_y ) > 50 ) // Same but Y coordinate
+				if ( ( this.y - this._ai_last_y ) < -64 || ( this.y - this._ai_last_y ) > 64 ) // Same but Y coordinate
 				{
 					this._ai_last_y = this.y;
 					this._ai_action_counter = 0;
@@ -1546,10 +1565,10 @@ class sdCharacter extends sdEntity
 					}
 				}
 
-				if ( this._ai_action_counter >= 50 || ( this._ai_dig > 0 && !this._ai.target ) ) // In case if AI is stuck in blocks (earthquakes, player buildings etc) will target nearby blocks
+				if ( this._ai_action_counter >= 40 || ( this._ai_dig > 0 && !this._ai.target ) ) // In case if AI is stuck in blocks (earthquakes, player buildings etc) will target nearby blocks
 				{
 					this.AITargetBlocks();
-					if ( this._ai_action_counter >= 50 )
+					if ( this._ai_action_counter >= 40 )
 					{
 						this._ai_action_counter = 0;
 						this._ai_dig = 2 + Math.floor( Math.random() * 3 ); // Shoot down at least 2 nearby blocks
@@ -1708,10 +1727,25 @@ class sdCharacter extends sdEntity
 						if ( this.x < closest.x - 32 )
 						this._key_states.SetKey( 'KeyD', 1 );
 
-						if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30  ) || ( this.y > closest.y + 64 ) )
+						if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30  ) || ( this.y > closest.y + Math.random() * 64 ) )
 						this._key_states.SetKey( 'KeyW', 1 );
 
 						if ( Math.random() < 0.4 )
+						this._key_states.SetKey( 'KeyS', 1 );
+					}
+
+					if ( this._ai_enabled === sdCharacter.AI_MODEL_DISTANT )
+					{
+						if ( this.x < closest.x && this.x > ( closest.x - 250 ) )
+						this._key_states.SetKey( 'KeyA', 1 );
+						else
+						if ( this.x > closest.x && this.x < ( closest.x + 250 ) )
+						this._key_states.SetKey( 'KeyD', 1 );
+
+						if ( Math.random() < 0.2 || ( this.sy > 4.5 && this._jetpack_allowed && this.matter > 30 ) )
+						this._key_states.SetKey( 'KeyW', 1 );
+
+						if ( Math.random() < 0.1 )
 						this._key_states.SetKey( 'KeyS', 1 );
 					}
 

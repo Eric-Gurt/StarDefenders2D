@@ -174,7 +174,7 @@ class sdBeamProjector extends sdEntity
 					while ( robots < robots_tot && ais < 3 )
 					{
 
-						let character_entity = new sdCharacter({ x:0, y:0 });
+						let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
 
 						sdEntity.entities.push( character_entity );
 						character_entity.s = 110;
@@ -256,7 +256,7 @@ class sdBeamProjector extends sdEntity
 										character_entity._damage_mult = 1; // Supposed to put up a challenge
 									}
 									character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-									character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
+									//character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
 										
 									character_entity._ai_level = 10;
 										
