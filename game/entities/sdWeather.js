@@ -20,7 +20,7 @@
 /*
 
 	// Not sure if method above works anymore, use this:
-	sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 8 ); // Swap 8 for number you want to test
+	sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 8 ); // Swap 8 for number you want to test inside
  
 */
 import sdWorld from '../sdWorld.js';
@@ -88,6 +88,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_OVERLORD =				event_counter++; // 20
 		sdWeather.EVENT_ERTHAL_BEACON =				event_counter++; // 21
 		sdWeather.EVENT_VELOX =					event_counter++; // 22
+		sdWeather.EVENT_CRYSTAL_BLOCKS =			event_counter++; // 23
 		
 		sdWeather.last_crystal_near_quake = null; // Used to damage left over crystals. Could be used to damage anything really
 		
@@ -166,7 +167,7 @@ class sdWeather extends sdEntity
 	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
 	{
 		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
-		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22 ];
+		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23 ];
 				
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -1591,6 +1592,32 @@ class sdWeather extends sdEntity
 			}
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
+		if ( r === sdWeather.EVENT_CRYSTAL_BLOCKS ) // Put crystal shards in a 30 blocks
+		{
+			for ( let j = 0; j < 30; j++ )
+			{
+				for ( let tr = 0; tr < 100; tr++ )
+				{
+					let i = Math.floor( Math.random() * sdEntity.entities.length );
+					
+					if ( i < sdEntity.entities.length )
+					{
+						let ent = sdEntity.entities[ i ];
+						
+						if ( ent.is( sdBlock ) )
+						if ( ent._natural )
+						{
+							ent.Crystalize();
+							break;
+						}
+					}
+					else
+					{
+						break;
+					}
+				}
+			}
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
