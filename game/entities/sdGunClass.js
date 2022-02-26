@@ -2791,7 +2791,7 @@ class sdGunClass
 			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
 		};
 
-		sdGun.classes[ sdGun.CLASS_EMERGENCY_INSTRUCTOR = 90 ] = 
+		sdGun.classes[ sdGun.CLASS_COMBAT_INSTRUCTOR = 90 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'emergency_instructor' ),
 			sound: 'gun_defibrillator',
