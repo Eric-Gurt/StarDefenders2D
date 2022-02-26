@@ -361,11 +361,11 @@ class sdLongRangeTeleport extends sdEntity
 		{
 			if ( use_task_filter )
 			{
-				/*if ( ent.is( sdCrystal ) )
+				if ( ent.is( sdCrystal ) )
 				if ( ent.type === sdCrystal.TYPE_CRYSTAL_CRAB )
-				return true;*/
+				return true;
 
-				for( let i = 0; i < sdTask.tasks.length; i++ )
+				/*for( let i = 0; i < sdTask.tasks.length; i++ )
 				{
 					if ( sdTask.tasks[ i ].mission === sdTask.MISSION_LRTP_EXTRACTION )
 					if ( ent.GetClass() === sdTask.tasks[ i ]._target )
@@ -377,8 +377,8 @@ class sdLongRangeTeleport extends sdEntity
 						return true;
 						break;
 					}
-				}
-		
+				}*/
+				// Need a better approach - tasks are clientside but with multiple people having same task - it doesn't count for the initiator.
 				return false;
 			}
 			else
