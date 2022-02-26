@@ -346,7 +346,7 @@ class sdLongRangeTeleport extends sdEntity
 	}
 	
 	//GetEntitiesOnTop( partial_colision_too=false )
-	GetEntitiesOnTop( use_task_filter=false )
+	GetEntitiesOnTop( use_task_filter=false, initiator=null )
 	{
 		let x1 = this.x - 48;
 		let x2 = this.x + 48;
@@ -361,24 +361,54 @@ class sdLongRangeTeleport extends sdEntity
 		{
 			if ( use_task_filter )
 			{
-				if ( ent.is( sdCrystal ) )
+				/*if ( ent.is( sdCrystal ) )
 				if ( ent.type === sdCrystal.TYPE_CRYSTAL_CRAB )
-				return true;
+				return true;*/
 
-				/*for( let i = 0; i < sdTask.tasks.length; i++ )
+				for( let i = 0; i < sdTask.tasks.length; i++ )
 				{
 					if ( sdTask.tasks[ i ].mission === sdTask.MISSION_LRTP_EXTRACTION )
+					if ( sdTask.tasks[ i ]._executer === initiator )
 					if ( ent.GetClass() === sdTask.tasks[ i ]._target )
-					if ( ent.type === sdTask.tasks[ i ].extra )
-					if ( sdTask.tasks[ i ].lrtp_ents_count < sdTask.tasks[ i ].lrtp_ents_needed )
 					{
-						sdTask.tasks[ i ].lrtp_ents_count++;
-						sdTask.tasks[ i ]._update_version++;
-						return true;
-						break;
+						if ( ent.GetClass() === 'sdCrystal' || ent.GetClass() === 'sdJunk' )
+						if ( ent.type === sdTask.tasks[ i ].extra )
+						if ( sdTask.tasks[ i ].lrtp_ents_count < sdTask.tasks[ i ].lrtp_ents_needed )
+						{
+							sdTask.tasks[ i ].lrtp_ents_count++;
+							sdTask.tasks[ i ]._update_version++;
+							return true;
+							break;
+						}
+						if ( ent.GetClass() === 'sdSlug' || ent.GetClass() === 'sdVirus' )
+						if ( ent._hea > 0 ) // No dead entities
+						if ( sdTask.tasks[ i ].lrtp_ents_count < sdTask.tasks[ i ].lrtp_ents_needed )
+						{
+							sdTask.tasks[ i ].lrtp_ents_count++;
+							sdTask.tasks[ i ]._update_version++;
+							return true;
+							break;
+						}
+						if ( ent.GetClass() === 'sdCube' )
+						if ( sdTask.tasks[ i ].lrtp_ents_count < sdTask.tasks[ i ].lrtp_ents_needed )
+						{
+							sdTask.tasks[ i ].lrtp_ents_count++;
+							sdTask.tasks[ i ]._update_version++;
+							return true;
+							break;
+						}
+						if ( ent.GetClass() === 'sdGun' )
+						if ( ent.class === sdTask.tasks[ i ].extra )
+						if ( sdTask.tasks[ i ].lrtp_ents_count < sdTask.tasks[ i ].lrtp_ents_needed )
+						{
+							sdTask.tasks[ i ].lrtp_ents_count++;
+							sdTask.tasks[ i ]._update_version++;
+							return true;
+							break;
+						}
 					}
-				}*/
-				// Need a better approach - tasks are clientside but with multiple people having same task - it doesn't count for the initiator.
+				}
+				// Need a better approach if CC's should give tasks to whole team, and not the initiator only. ( Right click CC -> Give task )
 				return false;
 			}
 			else
@@ -522,11 +552,12 @@ class sdLongRangeTeleport extends sdEntity
 			sdEntity.entities.push( crystal );
 		}
 		sdWorld.SendEffect({ x:this.x, y:this.y - 24, type:sdEffect.TYPE_TELEPORT });
+		sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 	}
 
-	ExtractEntitiesOnTop( collected_entities_array=null, use_task_filter=false )
+	ExtractEntitiesOnTop( collected_entities_array=null, use_task_filter=false, initiator=null )
 	{
-		let ents_to_push = this.GetEntitiesOnTop( use_task_filter );
+		let ents_to_push = this.GetEntitiesOnTop( use_task_filter, initiator );
 		let snapshots = [];
 		let current_frame = globalThis.GetFrame();
 
@@ -778,10 +809,10 @@ class sdLongRangeTeleport extends sdEntity
 										
 										let collected_entities_array = [];
 										
-										this.ExtractEntitiesOnTop( collected_entities_array, true );
+										this.ExtractEntitiesOnTop( collected_entities_array, true, exectuter_character );
 										
 										if ( collected_entities_array.length === 0 )
-										executer_socket.SDServiceMessage( 'Tasks are not ready yet... But you can find some crab crystals for the mothership!' );
+										executer_socket.SDServiceMessage( 'You need to assign yourself a task using a Command Centre!' );
 										else
 										exectuter_character._score += collected_entities_array.length * 20;
 									};

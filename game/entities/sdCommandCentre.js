@@ -4,7 +4,9 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdCharacter from './sdCharacter.js';
-
+import sdTask from './sdTask.js';
+import sdGun from './sdGun.js';
+import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -116,6 +118,174 @@ class sdCommandCentre extends sdEntity
 		
 		return 1500;
 		//return this.hmax * sdWorld.damage_to_matter + 50;
+	}
+	GivePlayerTask( initiator )
+	{
+		if ( initiator.cc_id === this._net_id ) // Only if you're part of the team
+		{
+			let task = Math.round( Math.random() * 9 );
+			let num_ents;
+			if ( task === 0 ) // Extract any natural crystals
+			{
+				num_ents = 10 + Math.round( Math.random() * 20 );
+				sdTask.MakeSureCharacterHasTask({ 
+					similarity_hash:'EXTRACT-'+this._net_id, 
+					executer: initiator,
+					target: 'sdCrystal',
+					mission: sdTask.MISSION_LRTP_EXTRACTION,
+					difficulty: ( 0.167 * ( num_ents / 20 ) ),
+					extra: 1,
+					title: 'Extract natural crystals',
+					time_left: 30 * 60 * 20,
+					lrtp_ents_needed: num_ents,
+					description: 'Extract natural crystals by using a long range teleporter.'
+				});
+			}
+			if ( task === 1 ) // Extract any natural large/big crystals
+			{
+				num_ents = 5 + Math.round( Math.random() * 5 );
+				sdTask.MakeSureCharacterHasTask({ 
+					similarity_hash:'EXTRACT-'+this._net_id, 
+					executer: initiator,
+					target: 'sdCrystal',
+					mission: sdTask.MISSION_LRTP_EXTRACTION,
+					difficulty: ( 0.167 * ( num_ents / 10 ) ),
+					extra: 2,
+					title: 'Extract natural large crystals',
+					time_left: 30 * 60 * 20,
+					lrtp_ents_needed: num_ents,
+					description: 'Extract natural large crystals by using a long range teleporter.'
+				});
+			}
+			if ( task === 2 ) // Extract slugs
+			{
+				num_ents = 4 + Math.round( Math.random() * 6 );
+				sdTask.MakeSureCharacterHasTask({ 
+					similarity_hash:'EXTRACT-'+this._net_id, 
+					executer: initiator,
+					target: 'sdSlug',
+					mission: sdTask.MISSION_LRTP_EXTRACTION,
+					difficulty: ( 0.167 * ( num_ents / 10 ) ),
+					extra: 2,
+					title: 'Extract slugs',
+					time_left: 30 * 60 * 20,
+					lrtp_ents_needed: num_ents,
+					description: 'Extract slugs to the mothership by using a long range teleporter.'
+				});
+			}
+			if ( task === 3 ) // Extract alien batteries
+			{
+				num_ents = 2 + Math.round( Math.random() * 3 );
+				sdTask.MakeSureCharacterHasTask({ 
+					similarity_hash:'EXTRACT-'+this._net_id, 
+					executer: initiator,
+					target: 'sdJunk',
+					mission: sdTask.MISSION_LRTP_EXTRACTION,
+					difficulty: ( 0.167 * ( num_ents / 5 ) ),
+					extra: 1,
+					title: 'Extract alien batteries',
+					time_left: 30 * 60 * 20,
+					lrtp_ents_needed: num_ents,
+					description: 'Extract alien batteries to the mothership by using a long range teleporter, so we can study them.'
+				});
+			}
+			if ( task === 4 ) // Extract lost particle containers
+			{
+				num_ents = 2 + Math.round( Math.random() * 3 );
+				sdTask.MakeSureCharacterHasTask({ 
+					similarity_hash:'EXTRACT-'+this._net_id, 
+					executer: initiator,
+					target: 'sdJunk',
+					mission: sdTask.MISSION_LRTP_EXTRACTION,
+					difficulty: ( 0.167 * ( num_ents / 5 ) ),
+					extra: 2,
+					title: 'Extract lost particle containers',
+					time_left: 30 * 60 * 20,
+					lrtp_ents_needed: num_ents,
+					description: 'Extract lost particle containers to the mothership, so we can see how we can utilize them.'
+				});
+			}
+			if ( task === 5 ) // Extract any crystal crabs
+			{
+				num_ents = 5 + Math.round( Math.random() * 10 );
+				sdTask.MakeSureCharacterHasTask({ 
+					similarity_hash:'EXTRACT-'+this._net_id, 
+					executer: initiator,
+					target: 'sdCrystal',
+					mission: sdTask.MISSION_LRTP_EXTRACTION,
+					difficulty: ( 0.167 * ( num_ents / 20 ) ),
+					extra: 3,
+					title: 'Extract crab crystals',
+					time_left: 30 * 60 * 20,
+					lrtp_ents_needed: num_ents,
+					description: 'Extract crab crystals by using a long range teleporter.'
+				});
+			}
+			if ( task === 6 ) // Extract any cube shards
+			{
+				num_ents = 2 + Math.round( Math.random() * 3 );
+				sdTask.MakeSureCharacterHasTask({ 
+					similarity_hash:'EXTRACT-'+this._net_id, 
+					executer: initiator,
+					target: 'sdGun',
+					mission: sdTask.MISSION_LRTP_EXTRACTION,
+					difficulty: ( 0.167 * ( num_ents / 5 ) ),
+					extra: sdGun.CLASS_CUBE_SHARD,
+					title: 'Extract cube shards',
+					time_left: 30 * 60 * 20,
+					lrtp_ents_needed: num_ents,
+					description: 'Extract cube shards by using a long range teleporter.'
+				});
+			}
+			if ( task === 7 ) // Extract any metal shards
+			{
+				num_ents = 2 + Math.round( Math.random() * 3 );
+				sdTask.MakeSureCharacterHasTask({ 
+					similarity_hash:'EXTRACT-'+this._net_id, 
+					executer: initiator,
+					target: 'sdGun',
+					mission: sdTask.MISSION_LRTP_EXTRACTION,
+					difficulty: ( 0.167 * ( num_ents / 5 ) ),
+					extra: sdGun.CLASS_METAL_SHARD,
+					title: 'Extract metal shards',
+					time_left: 30 * 60 * 20,
+					lrtp_ents_needed: num_ents,
+					description: 'Extract metal shards by using a long range teleporter.'
+				});
+			}
+			if ( task === 8 ) // Extract any Cubes
+			{
+				num_ents = 2 + Math.round( Math.random() * 3 );
+				sdTask.MakeSureCharacterHasTask({ 
+					similarity_hash:'EXTRACT-'+this._net_id, 
+					executer: initiator,
+					target: 'sdCube',
+					mission: sdTask.MISSION_LRTP_EXTRACTION,
+					difficulty: ( 0.167 * ( num_ents / 5 ) ),
+					extra: -1,
+					title: 'Extract Cubes',
+					time_left: 30 * 60 * 20,
+					lrtp_ents_needed: num_ents,
+					description: 'Extract Cubes by using a long range teleporter.'
+				});
+			}
+			if ( task === 9 ) // Extract Virus
+			{
+				num_ents = 5 + Math.round( Math.random() * 5 );
+				sdTask.MakeSureCharacterHasTask({ 
+					similarity_hash:'EXTRACT-'+this._net_id, 
+					executer: initiator,
+					target: 'sdVirus',
+					mission: sdTask.MISSION_LRTP_EXTRACTION,
+					difficulty: ( 0.167 * ( num_ents / 10 ) ),
+					extra: -1,
+					title: 'Extract Virus entities',
+					time_left: 30 * 60 * 20,
+					lrtp_ents_needed: num_ents,
+					description: 'Extract Virus entities by using a long range teleporter.'
+				});
+			}
+		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -363,6 +533,15 @@ class sdCommandCentre extends sdEntity
 					executer_socket.SDServiceMessage( 'Could not find user in list' );
 				}
 				else
+				if ( command_name === 'REQUEST_TASK' )
+				{
+					//let lrtp_near = this.GetComWiredCache( null, sdLongRangeTeleport );
+					//if ( lrtp_near )
+					this.GivePlayerTask( exectuter_character );
+					//else
+					//executer_socket.SDServiceMessage( 'You need to connect a long range teleporter to command centre!' );
+				}
+				else
 				executer_socket.SDServiceMessage( 'Command is not allowed' );
 			}
 			else
@@ -394,7 +573,16 @@ class sdCommandCentre extends sdEntity
 					}
 				}
 				else
-				executer_socket.SDServiceMessage( 'Command is not allowed' );
+				if ( command_name === 'REQUEST_TASK' )
+				{
+					//let lrtp_near = this.GetComWiredCache( null, sdLongRangeTeleport );
+					//if ( lrtp_near )
+					this.GivePlayerTask( exectuter_character );
+					//else
+					//executer_socket.SDServiceMessage( 'You need to connect a long range teleporter to command centre!' );
+				}
+				else
+				executer_socket.SDServiceMessage( 'Command is not allowed' ); // For some reason it displays when you request tasks
 			}
 		}
 	}
@@ -422,6 +610,8 @@ class sdCommandCentre extends sdEntity
 			{
 				this.AddContextOption( 'Request team join', 'REQUEST', [] );
 			}
+			if ( exectuter_character.cc_id === this._net_id )
+			this.AddContextOption( 'Request a task', 'REQUEST_TASK', [] );
 		}
 	}
 }
