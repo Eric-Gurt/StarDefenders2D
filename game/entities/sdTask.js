@@ -22,6 +22,8 @@ class sdTask extends sdEntity
 		sdTask.APPEARANCE_STARRED = 2; // Players can star their base perhaps? Not sure yet
 		sdTask.APPEARANCE_HINT_POINT = 3;
 		sdTask.APPEARANCE_NOTHING = 4;
+
+		sdTask.lrtp_extraction_classes = [ 'sdCrystal', 'sdJunk' ];
 		
 		sdTask.missions = [];
 		
@@ -136,6 +138,36 @@ class sdTask extends sdEntity
 			{
 			}
 		};
+		sdTask.missions[ sdTask.MISSION_LRTP_EXTRACTION = id++ ] = 
+		{
+			appearance: sdTask.APPEARANCE_NOTHING,
+	
+			GetDefaultTitle: ( task )=>{
+				return 'Extract';
+			},
+			GetDefaultDescription: ( task )=>{
+				return 'You really need to add a description here.';
+			},
+			GetDefaultTimeLeft: ( task )=>
+			{
+				return -1;
+			},
+			onCompletion: ( task )=>
+			{
+				task._executer._task_reward_counter += task._difficulty; // Only workaround I can see since I can't make it put onComplete and work in task parameters - Booraz149
+			},
+			completion_condition: ( task )=>
+			{
+				if ( task.lrtp_ents_count >= task.lrtp_ents_needed )
+				return true;
+			
+				return false;
+			},
+			onTimeOut: ( task )=>
+			{
+				task.remove();
+			}
+		};
 		
 		sdTask.tasks = [];
 	}
@@ -191,7 +223,10 @@ class sdTask extends sdEntity
 		
 		this._executer = params.executer || null; // Who is responsible for completion of this task. Make extra task for each alive character
 
-		this._difficulty = params.difficulty || 1; // Task difficulty, 1 = easy ( planetary drainer, erthal beacon ), 3 = hard ( council bomb ). I'd use onComplete for tasks separately when they are created but it doesn't work - Booraz149 
+		this._difficulty = params.difficulty || 0.1; // Task difficulty, decides how much percentage the player gets closer towards task rewards when completed ( 1 = 100%, 0.1 = 10%)
+		this.lrtp_ents_count = 0;
+		this.lrtp_ents_needed = params.lrtp_ents_needed || 3; // For LRT delivery tasks
+		this.extra = params.extra || 0; // For LRT delivery tasks, used to determine entity type ( sdCrystal, sdJunk )
 		
 		this._target = params.target || null;
 		this.target_hitbox_y1 = this._target ? this._target._hitbox_y1 : 0;
@@ -509,6 +544,12 @@ class sdTask extends sdEntity
 		ctx.globalAlpha = 0.5;
 		ctx.fillStyle = '#ffffff';
 		PutMultilineText( this.description, true );
+
+		if ( this.mission === sdTask.MISSION_LRTP_EXTRACTION )
+		{
+			ctx.fillStyle = '#ffff00';
+			PutMultilineText( '(' + this.lrtp_ents_count + '/' + this.lrtp_ents_needed + ')' , true );
+		}
 		
 		if ( this.time_left !== -1 )
 		{

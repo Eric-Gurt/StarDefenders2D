@@ -361,9 +361,23 @@ class sdLongRangeTeleport extends sdEntity
 		{
 			if ( use_task_filter )
 			{
-				if ( ent.is( sdCrystal ) )
+				/*if ( ent.is( sdCrystal ) )
 				if ( ent.type === sdCrystal.TYPE_CRYSTAL_CRAB )
-				return true;
+				return true;*/
+
+				for( let i = 0; i < sdTask.tasks.length; i++ )
+				{
+					if ( sdTask.tasks[ i ].mission === sdTask.MISSION_LRTP_EXTRACTION )
+					if ( ent.GetClass() === sdTask.tasks[ i ]._target )
+					if ( ent.type === sdTask.tasks[ i ].extra )
+					if ( sdTask.tasks[ i ].lrtp_ents_count < sdTask.tasks[ i ].lrtp_ents_needed )
+					{
+						sdTask.tasks[ i ].lrtp_ents_count++;
+						sdTask.tasks[ i ]._update_version++;
+						return true;
+						break;
+					}
+				}
 		
 				return false;
 			}
