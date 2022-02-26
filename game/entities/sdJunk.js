@@ -873,7 +873,7 @@ class sdJunk extends sdEntity
 							mission: sdTask.MISSION_DESTROY_ENTITY,
 							difficulty: 0.167,
 							title: 'Destroy Erthal distress beacon',
-							description: 'The Erthals have placed a distress beacon nearby and are rallying their troops! Destroy the beacon before they overflow the land!',
+							description: 'The Erthals have placed a distress beacon nearby and are rallying their troops! Destroy the beacon before they overflow the land!'
 						});
 					}
 				}
