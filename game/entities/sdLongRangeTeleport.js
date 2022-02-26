@@ -470,7 +470,7 @@ class sdLongRangeTeleport extends sdEntity
 	GiveRewards()
 	{
 		let rewards = Math.random();
-		if ( rewards < 0.2 )
+		if ( rewards < 0.3 )
 		{
 			let shard, shard2, shard3;
 			shard = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
@@ -481,17 +481,24 @@ class sdLongRangeTeleport extends sdEntity
 			sdEntity.entities.push( shard3 );
 		}
 		else
-		if ( rewards < 0.4 )
+		if ( rewards < 0.6 )
 		{
 			let gun, rng;
 			rng = Math.random();
-			if ( rng < 0.1 )
+			if ( rng < 0.2 )
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_DMR });
 			else
-			if ( rng < 0.2 )
+			if ( rng < 0.4 )
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_SHOTGUN });
 			else
+			if ( rng < 0.6 )
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_COMBAT_INSTRUCTOR });
+			else
+			if ( rng < 0.8 )
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_ZAPPER });
+			else
+			//if ( rng < 1 ) // With more gun rewards, these values will change
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_MMG_THE_RIPPER_T3 });
 			sdEntity.entities.push( gun );
 		}
 		else

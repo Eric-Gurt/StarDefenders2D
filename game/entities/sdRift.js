@@ -154,7 +154,7 @@ class sdRift extends sdEntity
 							executer: sdWorld.sockets[ i ].character,
 							target: this,
 							mission: sdTask.MISSION_DESTROY_ENTITY,
-										
+							difficulty: 0.167,		
 							title: 'Close the dimensional tear',
 							description: 'A dimensional tear appeared on this planet. It should be closed down before it destroyes large chunks of the planet. We can close it using an Anti-crystal.'
 						});

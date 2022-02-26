@@ -1409,7 +1409,7 @@ class sdGunClass
 			spread: 0.03,
 			count: 1,
 			matter_cost: 140,
-			min_build_tool_level: 11,
+			spawnable: false,
 			projectile_properties: { _damage: 42, color: '#FFEB00', _dirt_mult: -0.5 }
 		};
 
@@ -1428,7 +1428,7 @@ class sdGunClass
 			spread: 0.02,
 			count: 1,
 			matter_cost: 190,
-			min_build_tool_level: 24,
+			spawnable: false,
 			projectile_properties: { _damage: 48, color: '#FFEB00', _dirt_mult: -0.5 }
 		};
 
@@ -2187,7 +2187,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			is_sword: true,
-			min_build_tool_level: 20,
+			spawnable: false,
 			matter_cost: 300,
 			projectile_velocity: 37,
 			GetAmmoCost: ()=>
@@ -2824,7 +2824,7 @@ class sdGunClass
 							hmax: 250,
 							hea: 250,
 							_ai_enabled: sdCharacter.AI_MODEL_TEAMMATE, 
-							_ai_gun_slot: 4,
+							_ai_gun_slot: 2,
 							_ai_level: 10,
 							_ai_team: owner.cc_id + 4141,
 							sd_filter: sdWorld.ConvertPlayerDescriptionToSDFilter_v2( instructor_settings ), 
@@ -2833,17 +2833,17 @@ class sdGunClass
 							cc_id: owner.cc_id,
 							_owner: owner
 						});
-						ent.gun_slot = 4;
+						ent.gun_slot = 2;
 						ent._jetpack_allowed = true;
 						ent.ApplyArmor({ armor: 370, _armor_absorb_perc: 0.55, armor_speed_reduction: 10 }) // Level 2 heavy armor
 						ent._matter_regeneration = 5;
-						ent._matter_regeneration_multiplier = 4;
+						ent._matter_regeneration_multiplier = 10;
 						ent._damage_mult = 1 + 3 / 3 * 1;
 						sdEntity.entities.push( ent );
 
 						let ent2 = new sdGun({ x: ent.x, y: ent.y,
-							class: sdGun.CLASS_RAILGUN
-						});
+							class: sdGun.CLASS_LMG
+						}); // Even with LMG it seems weak compared to power-stimpack
 						sdEntity.entities.push( ent2 );
 
 						sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
@@ -2894,7 +2894,7 @@ class sdGunClass
 									'Until next time',
 									'You can call be later',
 									'My time is almost out',
-									( ent._inventory[ 4 ] === ent2 ) ? 'You can take my railgun' : 'I\'ll miss my railgun',
+									( ent._inventory[ 4 ] === ent2 ) ? 'You can take my assault rifle' : 'I\'ll miss my assault rifle',
 									'Time for me to go'
 								][ ~~( Math.random() * 9 ) ], false, false, false );
 							}

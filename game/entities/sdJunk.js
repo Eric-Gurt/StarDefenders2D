@@ -472,7 +472,7 @@ class sdJunk extends sdEntity
 										executer: sdWorld.sockets[ i ].character,
 										target: this,
 										mission: sdTask.MISSION_DESTROY_ENTITY,
-										
+										difficulty: 0.125,
 										title: 'Destroy planetary matter drainer',
 										description: 'There is a planetary matter drainer spotted nearby. Destroy it before it drains all our matter!'
 									});
@@ -535,18 +535,21 @@ class sdJunk extends sdEntity
 				{
 					// Beep
 					sdSound.PlaySound({ name:'sd_beacon', x:this.x, y:this.y, volume:0.25, pitch:2 });
-
-					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be defused
+					if ( this.detonation_in > 30 * 5 )
 					{
-						sdTask.MakeSureCharacterHasTask({ 
-							similarity_hash:'DESTROY-'+this._net_id, 
-							executer: sdWorld.sockets[ i ].character,
-							target: this,
-							mission: sdTask.MISSION_DESTROY_ENTITY,
-										
-							title: 'Disarm Council bomb',
-							description: 'Looks like Council paid us a visit and decided to bomb some parts of the planet. Stop them!'
-						});
+						for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be defused
+						{
+							sdTask.MakeSureCharacterHasTask({ 
+								similarity_hash:'DESTROY-'+this._net_id, 
+								executer: sdWorld.sockets[ i ].character,
+								target: this,
+								mission: sdTask.MISSION_DESTROY_ENTITY,
+								difficulty: 0.334,
+								time_left: ( this.detonation_in - 30 * 2 ),
+								title: 'Disarm Council bomb',
+								description: 'Looks like Council paid us a visit and decided to bomb some parts of the planet. Stop them!'
+							});
+						}
 					}
 				}
 
@@ -867,9 +870,10 @@ class sdJunk extends sdEntity
 							similarity_hash:'DESTROY-'+this._net_id, 
 							executer: sdWorld.sockets[ i ].character,
 							target: this,
-							mission: sdTask.MISSION_DESTROY_ENTITY,		
+							mission: sdTask.MISSION_DESTROY_ENTITY,
+							difficulty: 0.167,
 							title: 'Destroy Erthal distress beacon',
-							description: 'The Erthals have placed a distress beacon nearby and are rallying their troops! Destroy the beacon before they overflow the land!'
+							description: 'The Erthals have placed a distress beacon nearby and are rallying their troops! Destroy the beacon before they overflow the land!',
 						});
 					}
 				}

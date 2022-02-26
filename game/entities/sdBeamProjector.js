@@ -356,7 +356,7 @@ class sdBeamProjector extends sdEntity
 			this.has_players_nearby = false;
 			//this._update_version++;
 
-			let players = sdWorld.GetAnythingNear( this.x, this.y, 256, null, [ 'sdCharacter' ] );
+			/*let players = sdWorld.GetAnythingNear( this.x, this.y, 256, null, [ 'sdCharacter' ] );
 			for ( let i = 0; i < players.length; i++ )
 			{
 				if ( players[ i ].GetClass() === 'sdCharacter' && !players[ i ]._ai && players[ i ]._ai_team === 0  && players[ i ].hea > 0 )
@@ -387,7 +387,7 @@ class sdBeamProjector extends sdEntity
 						}
 					}
 				}
-			}
+			}*/
 		}
 		
 	}

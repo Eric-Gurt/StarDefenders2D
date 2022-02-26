@@ -67,13 +67,20 @@ class sdTask extends sdEntity
 			{
 				return -1;
 			},
-			
+			onCompletion: ( task )=>
+			{
+				task._executer._task_reward_counter += task._difficulty; // Only workaround I can see since I can't make it put onComplete and work in task parameters - Booraz149
+			},
 			completion_condition: ( task )=>
 			{
 				if ( !task._target || task._target._is_being_removed )
 				return true;
 			
 				return false;
+			},
+			onTimeOut: ( task )=>
+			{
+				task.remove();
 			}
 		};
 		sdTask.missions[ sdTask.MISSION_TRACK_ENTITY = id++ ] = 
@@ -183,6 +190,8 @@ class sdTask extends sdEntity
 		//EnforceChangeLog( this, '_is_being_removed' );
 		
 		this._executer = params.executer || null; // Who is responsible for completion of this task. Make extra task for each alive character
+
+		this._difficulty = params.difficulty || 1; // Task difficulty, 1 = easy ( planetary drainer, erthal beacon ), 3 = hard ( council bomb ). I'd use onComplete for tasks separately when they are created but it doesn't work - Booraz149 
 		
 		this._target = params.target || null;
 		this.target_hitbox_y1 = this._target ? this._target._hitbox_y1 : 0;
@@ -506,7 +515,7 @@ class sdTask extends sdEntity
 			ctx.globalAlpha = 1;
 			ctx.fillStyle = '#ffff00';
 			
-			let seconds = Math.floor( this.time_left / 30 * 1000 );
+			let seconds = Math.floor( this.time_left / 30 ); // Used to be "Math.floor( this.time_left / 30 * 1000 );" but seems to be inaccurate.
 			
 			PutMultilineText( Math.floor( seconds / 60 / 60 ) + ':' + ( Math.floor( seconds / 60 ) % 60 ) + ':' + ( seconds % 60 ), true );
 		}
