@@ -73,7 +73,7 @@ class sdDrone extends sdEntity
 		
 		this.type = params.type || 1;
 		
-		this._hmax =  this.type === 6 ? 400 : this.type === 5 ? 100 : this.type === 4 ? 4000 : this.type === 3 ? 1000 : this.type === 1 ? 130 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
+		this._hmax =  this.type === 6 ? 800 : this.type === 5 ? 100 : this.type === 4 ? 4000 : this.type === 3 ? 1000 : this.type === 1 ? 130 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
 		this._hea = this._hmax;
 		this._ai_team = params._ai_team || 1;
 
@@ -765,6 +765,7 @@ class sdDrone extends sdEntity
 							}
 							if ( this.type === 6 ) // Council support drones, heal and repair the council + council bomb which makes them a priority target
 							{
+								this._attack_timer = 60;
 								let entities = sdWorld.GetAnythingNear( this.x, this.y, 128, null, [ 'sdCharacter', 'sdJunk' ] );
 								let att_anim = false;
 								for ( let i = 0; i < entities.length; i++ )
@@ -777,17 +778,17 @@ class sdDrone extends sdEntity
 											{
 												entities[ i ].armor = Math.min( entities[ i ].armor + 250, entities[ i ].armor_max ); // In that case, repair their armor
 												att_anim = true;
-												sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x + ( entities[ i ].hitbox_x2 / 2 ), y2:entities[ i ].y + ( entities[ i ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#fff000' });
+												sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x, y2:entities[ i ].y, type:sdEffect.TYPE_BEAM, color:'#fff000' });
 											}
 										}
 										else
 										if ( sdWorld.CheckLineOfSight( this.x, this.y, entities[ i ].x, entities[ i ].y, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
 										{
-												entities[ i ].Damage( 10, this ); // Damage it
+												entities[ i ].Damage( 30, this ); // Damage it
 												if ( entities[ i ].ghosting )
 												entities[ i ].TogglePlayerGhosting(); // And remove it's invisibility
 												att_anim = true;
-												sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x + ( entities[ i ].hitbox_x2 / 2 ), y2:entities[ i ].y + ( entities[ i ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#ff0000' });
+												sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x, y2:entities[ i ].y , type:sdEffect.TYPE_BEAM, color:'#ff0000' });
 										}
 									}
 									if ( entities[ i ].GetClass() === 'sdJunk' ) // Is it a junk entity?
@@ -797,14 +798,13 @@ class sdDrone extends sdEntity
 										{
 											entities[ i ].hea = Math.min( entities[ i ].hea + 1500, entities[ i ].hmax ); // In that case, repair the bomb
 											att_anim = true;
-											sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x + ( entities[ i ].hitbox_x2 / 2 ), y2:entities[ i ].y + ( entities[ i ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#fff000' });
+											sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x, y2:entities[ i ].y, type:sdEffect.TYPE_BEAM, color:'#fff000' });
 										}
 									}
 								}
 								if ( att_anim === true )
 								{
 									this.attack_frame = 2;
-									this._attack_timer = 60;
 								}
 							}
 							break;
