@@ -22,8 +22,6 @@ class sdTask extends sdEntity
 		sdTask.APPEARANCE_STARRED = 2; // Players can star their base perhaps? Not sure yet
 		sdTask.APPEARANCE_HINT_POINT = 3;
 		sdTask.APPEARANCE_NOTHING = 4;
-
-		sdTask.lrtp_extraction_classes = [ 'sdCrystal', 'sdJunk' ];
 		
 		sdTask.missions = [];
 		
