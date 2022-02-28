@@ -1449,7 +1449,7 @@ class sdCharacter extends sdEntity
 	}
 	IsHostileAI() // Used to check if standartized score will be given for killing them and also for turrets to attack them
 	{
-		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_AGGRESSIVE || this._ai_enabled === sdCharacter.AI_MODEL_DUMMY_UNREVIVABLE_ENEMY || sdCharacter.AI_MODEL_DISTANT )
+		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_AGGRESSIVE || this._ai_enabled === sdCharacter.AI_MODEL_DUMMY_UNREVIVABLE_ENEMY || this._ai_enabled === sdCharacter.AI_MODEL_DISTANT )
 		{
 			return true;
 		}
@@ -1496,7 +1496,7 @@ class sdCharacter extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
-		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_AGGRESSIVE || this._ai_enabled === sdCharacter.AI_MODEL_TEAMMATE || sdCharacter.AI_MODEL_DISTANT )
+		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_AGGRESSIVE || this._ai_enabled === sdCharacter.AI_MODEL_TEAMMATE || this._ai_enabled === sdCharacter.AI_MODEL_DISTANT )
 		{
 			if ( typeof this._ai.next_action === 'undefined' )
 			this._ai.next_action = 30;
