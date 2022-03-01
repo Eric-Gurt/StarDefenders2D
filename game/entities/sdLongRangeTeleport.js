@@ -369,42 +369,54 @@ class sdLongRangeTeleport extends sdEntity
 				{
 					if ( sdTask.tasks[ i ].mission === sdTask.MISSION_LRTP_EXTRACTION )
 					if ( sdTask.tasks[ i ]._executer === initiator )
-					if ( ent.GetClass() === sdTask.tasks[ i ]._target )
 					{
-						if ( ent.GetClass() === 'sdCrystal' || ent.GetClass() === 'sdJunk' )
-						if ( ent.type === sdTask.tasks[ i ].extra )
-						if ( sdTask.tasks[ i ].lrtp_ents_count < sdTask.tasks[ i ].lrtp_ents_needed )
+						if ( ent.GetClass() === sdTask.tasks[ i ]._target ) // For CC tasks
 						{
-							sdTask.tasks[ i ].lrtp_ents_count++;
-							sdTask.tasks[ i ]._update_version++;
-							return true;
-							break;
+							if ( ent.GetClass() === 'sdCrystal' || ent.GetClass() === 'sdJunk' )
+							if ( ent.type === sdTask.tasks[ i ].extra )
+							if ( sdTask.tasks[ i ].lrtp_ents_count < sdTask.tasks[ i ].lrtp_ents_needed )
+							{
+								sdTask.tasks[ i ].lrtp_ents_count++;
+								sdTask.tasks[ i ]._update_version++;
+								return true;
+								break;
+							}
+							if ( ent.GetClass() === 'sdSlug' || ent.GetClass() === 'sdVirus' )
+							if ( ent._hea > 0 ) // No dead entities
+							if ( sdTask.tasks[ i ].lrtp_ents_count < sdTask.tasks[ i ].lrtp_ents_needed )
+							{
+								sdTask.tasks[ i ].lrtp_ents_count++;
+								sdTask.tasks[ i ]._update_version++;
+								return true;
+								break;
+							}
+							if ( ent.GetClass() === 'sdCube' )
+							if ( sdTask.tasks[ i ].lrtp_ents_count < sdTask.tasks[ i ].lrtp_ents_needed )
+							{
+								sdTask.tasks[ i ].lrtp_ents_count++;
+								sdTask.tasks[ i ]._update_version++;
+								return true;
+								break;
+							}
+							if ( ent.GetClass() === 'sdGun' )
+							if ( ent.class === sdTask.tasks[ i ].extra )
+							if ( sdTask.tasks[ i ].lrtp_ents_count < sdTask.tasks[ i ].lrtp_ents_needed )
+							{
+								sdTask.tasks[ i ].lrtp_ents_count++;
+								sdTask.tasks[ i ]._update_version++;
+								return true;
+								break;
+							}
 						}
-						if ( ent.GetClass() === 'sdSlug' || ent.GetClass() === 'sdVirus' )
-						if ( ent._hea > 0 ) // No dead entities
-						if ( sdTask.tasks[ i ].lrtp_ents_count < sdTask.tasks[ i ].lrtp_ents_needed )
+						if ( ent === sdTask.tasks[ i ]._target ) // For actual entity "target" extraction like that star defender event
 						{
-							sdTask.tasks[ i ].lrtp_ents_count++;
-							sdTask.tasks[ i ]._update_version++;
-							return true;
-							break;
-						}
-						if ( ent.GetClass() === 'sdCube' )
-						if ( sdTask.tasks[ i ].lrtp_ents_count < sdTask.tasks[ i ].lrtp_ents_needed )
-						{
-							sdTask.tasks[ i ].lrtp_ents_count++;
-							sdTask.tasks[ i ]._update_version++;
-							return true;
-							break;
-						}
-						if ( ent.GetClass() === 'sdGun' )
-						if ( ent.class === sdTask.tasks[ i ].extra )
-						if ( sdTask.tasks[ i ].lrtp_ents_count < sdTask.tasks[ i ].lrtp_ents_needed )
-						{
-							sdTask.tasks[ i ].lrtp_ents_count++;
-							sdTask.tasks[ i ]._update_version++;
-							return true;
-							break;
+							if ( sdTask.tasks[ i ].lrtp_ents_count < sdTask.tasks[ i ].lrtp_ents_needed )
+							{
+								sdTask.tasks[ i ].lrtp_ents_count++;
+								sdTask.tasks[ i ]._update_version++;
+								return true;
+								break;
+							}
 						}
 					}
 				}

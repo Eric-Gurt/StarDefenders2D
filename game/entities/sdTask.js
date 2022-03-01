@@ -141,7 +141,7 @@ class sdTask extends sdEntity
 			appearance: sdTask.APPEARANCE_NOTHING,
 	
 			GetDefaultTitle: ( task )=>{
-				return 'Extract';
+				return 'Extract an entity';
 			},
 			GetDefaultDescription: ( task )=>{
 				return 'You really need to add a description here.';
@@ -158,6 +158,9 @@ class sdTask extends sdEntity
 			{
 				if ( task.lrtp_ents_count >= task.lrtp_ents_needed )
 				return true;
+
+				if ( !task._target || task._target._is_being_removed ) // Am I doing something illegal here? Keep in mind on CC extraction tasks target is something like 'sdCrystal' or 'sdJunk', but not actual entity, while this is for actual entities which need extraction - Booraz149
+				task.remove();
 			
 				return false;
 			},

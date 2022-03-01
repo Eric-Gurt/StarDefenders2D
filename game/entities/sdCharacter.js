@@ -1504,8 +1504,9 @@ class sdCharacter extends sdEntity
 			if ( typeof this._ai.direction === 'undefined' )
 			this._ai.direction = ( Math.random() < 0.5 ) ? 1 : -1;
 
-			if ( ( this._ai.direction > 0 && this.x > sdWorld.world_bounds.x2 - 32 ) || ( this._ai.direction > 0 && this.x < sdWorld.world_bounds.x1 + 32 ) )
+			if ( ( this._ai.direction > 0 && this.x > sdWorld.world_bounds.x2 - 24 ) || ( this._ai.direction < 0 && this.x < sdWorld.world_bounds.x1 + 24 ) )
 			{
+				if ( this._ai_team !== 0 && this._ai_team !== 6)// Prevent SD and Instructor from disappearing
 				this.remove();
 				return;
 			}
