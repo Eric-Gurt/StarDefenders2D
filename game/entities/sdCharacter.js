@@ -2034,7 +2034,7 @@ class sdCharacter extends sdEntity
 				if ( this._socket === null )
 				{
 					this.death_anim += GSPEED;
-					if ( this.death_anim > sdCharacter.disowned_body_ttl )
+					if ( this.death_anim > sdCharacter.disowned_body_ttl && this._ai_team !== 6 ) // Prevent disappearance of Criminal Star Defenders
 					{
 						this.remove();
 					}
