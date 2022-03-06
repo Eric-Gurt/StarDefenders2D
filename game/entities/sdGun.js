@@ -1127,8 +1127,8 @@ class sdGun extends sdEntity
 			ctx.filter = 'none';
 			ctx.sd_filter = null;
 			
-			if ( sdGun.classes[ this.class ].muzzle_x !== undefined )
 			if ( sdGun.classes[ this.class ] )
+			if ( sdGun.classes[ this.class ].muzzle_x !== undefined )
 			{
 				if ( this.muzzle > 2.5 )
 				{
