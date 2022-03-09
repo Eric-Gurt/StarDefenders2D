@@ -156,7 +156,7 @@ class sdRift extends sdEntity
 							mission: sdTask.MISSION_DESTROY_ENTITY,
 							difficulty: 0.167,		
 							title: 'Close the dimensional tear',
-							description: 'A dimensional tear appeared on this planet. It should be closed down before it destroyes large chunks of the planet. We can close it using an Anti-crystal.'
+							description: 'A dimensional tear appeared on this planet. It should be closed down before it destroys large chunks of the planet. We can close it using an Anti-crystal.'
 						});
 					}
 				}
