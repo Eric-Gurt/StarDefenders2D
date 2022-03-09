@@ -2033,6 +2033,7 @@ class sdCharacter extends sdEntity
 				
 				if ( this._socket === null )
 				{
+					if ( this._ai_team !== 6 && this._ai_team !== 0 ) // Without this criminal and regular star defender despawn their ragdolls which causes them to flicker on sdCharacter x and y
 					this.death_anim += GSPEED;
 					if ( this.death_anim > sdCharacter.disowned_body_ttl && this._ai_team !== 6 ) // Prevent disappearance of Criminal Star Defenders
 					{
