@@ -973,6 +973,8 @@ class sdBlock extends sdEntity
 			else
 			if ( sdRenderer.dirt_settings === 3 )
 			ctx.drawImageFilterCache( sdBlock.img_ground88, this.x - Math.floor( this.x / 256 ) * 256, this.y - Math.floor( this.y / 256 ) * 256, w,h, 0,0, w,h );
+			else
+			ctx.drawImageFilterCache( sdBlock.img_ground11, 0, 0, w,h, 0,0, w,h ); // Temporary fix when blocks get Lost or Empty effect.
 			
 			if ( this.material === sdBlock.MATERIAL_CORRUPTION )
 			{
