@@ -166,6 +166,47 @@ class sdBomb extends sdEntity
 		return 300; // 3 bombs is enough to destroy sdCommandCentre, if they are planted around it.
 		//return this.hmax * sdWorld.damage_to_matter + 50;
 	}
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( this.hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		{
+			if ( command_name === 'DEFUSE' )
+			{
+				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 24 ) )
+				{
+				}
+				else
+				{
+					executer_socket.SDServiceMessage( 'Bomb is too far' );
+					return;
+				}
+			}
+
+			if ( command_name === 'DEFUSE' )
+			{
+				if ( exectuter_character.matter >= 270 )
+				{
+					this.hea = 0;
+					exectuter_character.matter -= 270;
+					exectuter_character.Say( 'Bomb has been defused, Counter-Terrorist wins!' );
+					sdSound.PlaySound({ name:'sd_beacon_disarm', x:this.x, y:this.y, volume:0.5 });
+				}
+				if ( exectuter_character.matter < 270 )
+				exectuter_character.Say( 'I cannot defuse the bomb because I don\'t have enough matter' );
+			}
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( this.hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		{
+			this.AddContextOption( 'Defuse the Bomb for (270 matter)', 'DEFUSE', [] );
+		}
+	}
 }
 //sdBomb.init_class();
 
