@@ -2958,6 +2958,9 @@ class sdWorld
 		
 		if ( player_description['voice8'] ) // Council voice
 		sdWorld.ReplaceColorInSDFilter_v2( ret, '#800000', '#ffaa00', false ); 
+
+		if ( player_description['voice9'] ) // Setr voice
+		sdWorld.ReplaceColorInSDFilter_v2( ret, '#800000', '#3e5ede', false ); 
 	
 		return ret;
 	}
@@ -3054,6 +3057,13 @@ class sdWorld
 			_voice.pitch = 1;
 			_voice.speed = 140;
 			_voice.voice = 'es-la';
+		}
+		if ( player_description['voice9'] )
+		{
+			_voice.variant = 'm2';
+			_voice.pitch = 40;
+			_voice.speed = 60;
+			_voice.voice = 'hr';
 		}
 		
 		return _voice;
