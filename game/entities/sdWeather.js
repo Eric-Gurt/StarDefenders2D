@@ -20,7 +20,7 @@
 /*
 
 	// Not sure if method above works anymore, use this:
-	sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 24 ); // Swap 24 for number you want to test inside
+	sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 25 ); // Swap 25 for number you want to test inside
  
 */
 import sdWorld from '../sdWorld.js';
@@ -92,6 +92,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_VELOX =					event_counter++; // 22
 		sdWeather.EVENT_CRYSTAL_BLOCKS =			event_counter++; // 23
 		sdWeather.EVENT_SD_EXTRACTION =				event_counter++; // 24
+		sdWeather.EVENT_SETR =					event_counter++; // 25
 		
 		sdWeather.last_crystal_near_quake = null; // Used to damage left over crystals. Could be used to damage anything really
 		
@@ -170,7 +171,7 @@ class sdWeather extends sdEntity
 	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
 	{
 		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
-		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 ];
+		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 ];
 				
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -1770,6 +1771,170 @@ class sdWeather extends sdEntity
 					});
 				}
 			}
+		}
+		if ( r === sdWeather.EVENT_SETR ) // Setr faction spawn. Spawns humanoids and drones.
+		{
+			let ais = 0;
+			let percent = 0;
+			for ( var i = 0; i < sdCharacter.characters.length; i++ )
+			{
+				if ( sdCharacter.characters[ i ].hea > 0 )
+				if ( !sdCharacter.characters[ i ]._is_being_removed )
+				if ( sdCharacter.characters[ i ]._ai_team === 7 )
+				{
+					ais++;
+				}
+
+				if ( sdCharacter.characters[ i ].hea > 0 )
+				if ( !sdCharacter.characters[ i ]._is_being_removed )
+				//if ( !sdCharacter.characters[ i ]._ai )
+				if ( sdCharacter.characters[ i ].build_tool_level > 5 )
+				{
+					percent++;
+				}
+			}
+			if ( Math.random() < ( percent / sdWorld.GetPlayingPlayersCount() ) ) // Spawn chance depends on RNG, chances increase if more players ( or all ) have at least 5 levels
+			{
+				let instances = 0;
+				let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
+
+				let left_side = ( Math.random() < 0.5 );
+
+				while ( instances < instances_tot && ais < 8 ) // max AI value up to 8, as other events I think. - Booraz149
+				{
+
+					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+
+					sdEntity.entities.push( character_entity );
+
+					{
+						let x,y;
+						let tr = 1000;
+						do
+						{
+							if ( left_side )
+							x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
+							else
+							x = sdWorld.world_bounds.x2 - 16 - 16 * instances;
+
+							y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+							if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+							//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+							//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+							{
+								character_entity.x = x;
+								character_entity.y = y;
+
+								//sdWorld.UpdateHashPosition( ent, false );
+								{ 
+									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SETR_PLASMA_SHOTGUN }) );
+									character_entity._ai_gun_slot = 3;
+								}
+								let setr_settings;
+
+								if ( character_entity._ai_gun_slot === 3 )
+								setr_settings = {"hero_name":"Setr Soldier","color_bright":"#0000c0","color_dark":"#404040","color_bright3":"#404040","color_dark3":"#202020","color_visor":"#c8c800","color_suit":"#000080","color_suit2":"#000080","color_dark2":"#404040","color_shoes":"#000000","color_skin":"#000000","helmet1":false,"helmet3":true,"voice1":false,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice9":true,"body18":true, "legs22":true};
+
+								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( setr_settings );
+								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( setr_settings );
+								character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( setr_settings );
+								character_entity.title = setr_settings.hero_name;
+								character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( setr_settings );
+								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( setr_settings );
+								if ( character_entity._ai_gun_slot === 3 ) // If a regular Setr soldier
+								{
+									character_entity.matter = 150;
+									character_entity.matter_max = 150;
+
+									character_entity.hea = 210;
+									character_entity.hmax = 210;
+
+									character_entity.armor = 350;
+									character_entity.armor_max = 350;
+									character_entity._armor_absorb_perc = 0.7; // 70% damage absorption
+
+									character_entity._damage_mult = 1;
+								}
+
+								character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+								//character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
+								character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
+
+								character_entity._matter_regeneration = 5; // At least some ammo regen
+								character_entity._jetpack_allowed = true; // Jetpack
+								character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
+								character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+								character_entity._ai_team = 7; // AI team 5 is for Setr faction
+								character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
+
+								break;
+							}
+
+							tr--;
+							if ( tr < 0 )
+							{
+								character_entity.death_anim = sdCharacter.disowned_body_ttl + 1;
+								character_entity.remove();
+								break;
+							}
+						} while( true );
+					}
+
+					instances++;
+					ais++;
+				}
+
+				let drones = 0;
+				let drones_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
+
+
+				while ( drones < drones_tot && sdDrone.drones_tot < 20 )
+				{
+
+					let drone = new sdDrone({ x:0, y:0 , _ai_team: 7, type: 7});
+
+					sdEntity.entities.push( drone );
+
+					{
+						let x,y;
+						let tr = 1000;
+						do
+						{
+							if ( left_side )
+							x = sdWorld.world_bounds.x1 + 64 + 64 * instances;
+							else
+							x = sdWorld.world_bounds.x2 - 64 - 64 * instances;
+
+							y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+							if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
+							//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+							//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+							{
+								drone.x = x;
+								drone.y = y;
+
+								//sdWorld.UpdateHashPosition( ent, false );
+								//console.log('Drone spawned!');
+								break;
+							}
+
+
+							tr--;
+							if ( tr < 0 )
+							{
+								drone.remove();
+								drone._broken = false;
+								break;
+							}
+						} while( true );
+					}
+					drones++;
+				}
+			}
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

@@ -283,7 +283,7 @@ class sdCharacter extends sdEntity
 	
 	GetBleedEffect()
 	{
-		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' )
+		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' || this._voice.variant ==='m2' )
 		return sdEffect.TYPE_BLOOD_GREEN;
 		
 		if ( this._voice.variant === 'klatt3' )
@@ -298,6 +298,9 @@ class sdCharacter extends sdEntity
 	
 		if ( this._voice.variant === 'whisperf' )
 		return 'hue-rotate(73deg)';
+
+		if ( this._voice.variant === 'm2' )
+		return 'hue-rotate(133deg)';
 	
 		return '';
 	}
@@ -1263,6 +1266,7 @@ class sdCharacter extends sdEntity
 					sdSound.PlaySound({ name:'f_death' + ~~(1+Math.random() * 3), x:this.x, y:this.y, volume:0.4 });
 				}
 				else
+				if ( this._voice.variant !== 'm2' )
 				{
 					if ( this.hea < -100 )
 					sdSound.PlaySound({ name:'sd_death2', x:this.x, y:this.y, volume:1, pitch:this.GetVoicePitch() });
@@ -1319,6 +1323,7 @@ class sdCharacter extends sdEntity
 						if ( this._voice.variant === 'whisperf' )
 						sdSound.PlaySound({ name:'f_pain' + ~~(2+Math.random() * 3), x:this.x, y:this.y, volume:( ( dmg > 1 )? 1 : 0.5 ) * 0.4 }); // less volume for bleeding
 						else
+						if ( this._voice.variant !== 'm2' )
 						sdSound.PlaySound({ name:'sd_hurt' + ~~(1+Math.random() * 2), x:this.x, y:this.y, pitch:this.GetVoicePitch(), volume:( dmg > 1 )? 1 : 0.5 }); // less volume for bleeding
 					
 						this.pain_anim = 10;
@@ -1489,6 +1494,17 @@ class sdCharacter extends sdEntity
 				'You can only delay your inevitable death.',
 				'You cannot harm me, you can only send me back.'
 				][ ~~( Math.random() * 7 ) ], false, false, false );
+		}
+		if ( this._ai_team === 7 ) // Setr faction
+		{
+			if ( Math.random() < 0.8 )
+			this.Say( [ 
+				'Uytiuk mdmhjmye.', 
+				'Toisv muke!', 
+				'Jpbitp amlrn! ', 
+				'Monmfig eiayyse.',
+				'Smmems iiedyg.'
+				][ ~~( Math.random() * 5 ) ], false, false, false );
 		}
 	}
 	AILogic( GSPEED ) // aithink

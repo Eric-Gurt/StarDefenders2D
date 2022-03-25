@@ -2923,6 +2923,23 @@ class sdGunClass
 			},
 			projectile_properties: {}
 		};
+		sdGun.classes[ sdGun.CLASS_SETR_PLASMA_SHOTGUN = 91 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'setr_plasma_shotgun' ),
+			sound: 'gun_spark',
+			sound_pitch: 1.5,
+			sound_volume: 1.5,
+			title: 'Setr Plasma Shotgun',
+			slot: 3,
+			reload_time: 23,
+			muzzle_x: 7,
+			ammo_capacity: 10,
+			count: 4,
+			spread: 0.13,
+			spawnable: false,
+			projectile_velocity: 16,
+			projectile_properties: { explosion_radius: 10, model: 'ball', _damage: 5, color:'#0000c8', _dirt_mult: 1 }
+		};
 
 		// Add new gun classes above this line //
 		

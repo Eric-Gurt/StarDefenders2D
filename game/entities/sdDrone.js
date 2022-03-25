@@ -44,6 +44,10 @@ class sdDrone extends sdEntity
 		sdDrone.img_drone_council = sdWorld.CreateImageFromFile( 'drone_council' );
 		sdDrone.img_drone_council_attack = sdWorld.CreateImageFromFile( 'drone_council_attack' );
 		sdDrone.img_drone_council_destroyed = sdWorld.CreateImageFromFile( 'drone_council_destroyed' );
+
+		sdDrone.img_drone_setr = sdWorld.CreateImageFromFile( 'drone_setr' );
+		sdDrone.img_drone_setr_attack = sdWorld.CreateImageFromFile( 'drone_setr_attack' );
+		sdDrone.img_drone_setr_destroyed = sdWorld.CreateImageFromFile( 'drone_setr_destroyed' );
 		
 		sdDrone.death_duration = 15;
 		sdDrone.post_death_ttl = 30 * 10;
@@ -73,7 +77,7 @@ class sdDrone extends sdEntity
 		
 		this.type = params.type || 1;
 		
-		this._hmax =  this.type === 6 ? 800 : this.type === 5 ? 100 : this.type === 4 ? 4000 : this.type === 3 ? 1000 : this.type === 1 ? 130 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
+		this._hmax =  this.type === 7 ? 300 : this.type === 6 ? 800 : this.type === 5 ? 100 : this.type === 4 ? 4000 : this.type === 3 ? 1000 : this.type === 1 ? 130 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
 		this._hea = this._hmax;
 		this._ai_team = params._ai_team || 1;
 
@@ -156,6 +160,8 @@ class sdDrone extends sdEntity
 				}
 			}
 		}
+
+		return true; // Default case for newer drone types, like Setr
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
@@ -243,7 +249,7 @@ class sdDrone extends sdEntity
 			if ( typeof initiator._score !== 'undefined' )
 			initiator._score += Math.round( this._hmax / 80 );
 	
-			if ( this.type === 1 || this.type === 6 )
+			if ( this.type === 1 || this.type === 6 || this.type === 7 )
 			{
 				sdWorld.SendEffect({ 
 					x:this.x, 
@@ -807,6 +813,35 @@ class sdDrone extends sdEntity
 									this.attack_frame = 2;
 								}
 							}
+							if ( this.type === 7 ) // Setr drones
+							{
+								let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+
+								bullet_obj._owner = this;
+
+								bullet_obj.sx = dx;
+								bullet_obj.sy = dy;
+								bullet_obj.x += bullet_obj.sx * 3;
+								bullet_obj.y += bullet_obj.sy * 3;
+
+								bullet_obj.sx *= 12;
+								bullet_obj.sy *= 12;
+
+								bullet_obj._damage = 20;
+								bullet_obj.color = '#0000c8';
+								bullet_obj._rail = true;
+								bullet_obj._knock_scale = 3; // Low damage, high knockback
+								bullet_obj._dirt_mult = 10; // For easier digging blocks when pathfinding
+
+
+								sdEntity.entities.push( bullet_obj );
+
+								this.attack_frame = 2;
+								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
+								this._attack_timer = 37;
+
+								sdSound.PlaySound({ name:'gun_railgun', x:this.x, y:this.y, volume:0.33, pitch:5 });
+							}
 							break;
 						}
 					}
@@ -837,6 +872,8 @@ class sdDrone extends sdEntity
 			sdEntity.Tooltip( ctx, "Sarronian Detonator" );
 			if ( this.type === 6 )
 			sdEntity.Tooltip( ctx, "Council Support Drone" );
+			if ( this.type === 7 )
+			sdEntity.Tooltip( ctx, "Setr Drone" );
 		}
 	}
 	Draw( ctx, attached )
@@ -868,6 +905,8 @@ class sdDrone extends sdEntity
 			ctx.drawImageFilterCache( sdDrone.img_drone_alien2_destroyed, - 16, - 16, 32, 32 );
 			if ( this.type === 6  )
 			ctx.drawImageFilterCache( sdDrone.img_drone_council_destroyed, - 16, - 16, 32, 32 );
+			if ( this.type === 7  )
+			ctx.drawImageFilterCache( sdDrone.img_drone_setr_destroyed, - 16, - 16, 32, 32 );
 		}
 		else
 		{
@@ -883,6 +922,8 @@ class sdDrone extends sdEntity
 				ctx.drawImageFilterCache( sdDrone.img_drone_alien2_attack, - 16, - 16, 32, 32 );
 				if ( this.type === 6  )
 				ctx.drawImageFilterCache( sdDrone.img_drone_council_attack, - 16, - 16, 32, 32 );
+				if ( this.type === 7  )
+				ctx.drawImageFilterCache( sdDrone.img_drone_setr_attack, - 16, - 16, 32, 32 );
 			}
 			else
 			{
@@ -896,6 +937,8 @@ class sdDrone extends sdEntity
 				ctx.drawImageFilterCache( sdDrone.img_drone_alien3, - 16, - 16, 32, 32 );
 				if ( this.type === 6  )
 				ctx.drawImageFilterCache( sdDrone.img_drone_council, - 16, - 16, 32, 32 );
+				if ( this.type === 7  )
+				ctx.drawImageFilterCache( sdDrone.img_drone_setr, - 16, - 16, 32, 32 );
 				if ( this.type === 2  )
 				{
 					if ( this.hurt_timer > 0 )
