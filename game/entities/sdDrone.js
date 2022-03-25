@@ -128,7 +128,7 @@ class sdDrone extends sdEntity
 		if ( this._current_target === ent )
 		return true;
 
-		if ( this._ai_team === 1 ) // Falkok drones
+		if ( this._ai_team === 1 || this._ai_team === 6 || this._ai_team === 7) // Falkok, Council and Setr drones
 		return true;
 		if ( this._ai_team === 2 ) // Erthal drones
 		{
@@ -161,7 +161,6 @@ class sdDrone extends sdEntity
 			}
 		}
 
-		return true; // Default case for newer drone types, like Setr
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
