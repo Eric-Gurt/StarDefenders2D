@@ -2940,6 +2940,23 @@ class sdGunClass
 			projectile_velocity: 16,
 			projectile_properties: { explosion_radius: 10, model: 'ball', _damage: 5, color:'#0000c8', _dirt_mult: 1 }
 		};
+		sdGun.classes[ sdGun.CLASS_SETR_ROCKET = 92 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'setr_homing_launcher' ),
+			sound: 'gun_rocket',
+			title: 'Setr Rocket Launcher',
+			slot: 5,
+			reload_time: 6,
+			muzzle_x: 8,
+			ammo_capacity: -1,
+			burst: 3,
+			burst_reload: 45,
+			spread: 0.05,
+			projectile_velocity: 14,
+			count: 1,
+			spawnable: false,
+			projectile_properties: { time_left: 30, explosion_radius: 19, model: 'rocket_proj', _damage: 16 * 3, color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.02, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 }
+		};
 
 		// Add new gun classes above this line //
 		

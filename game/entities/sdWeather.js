@@ -20,7 +20,7 @@
 /*
 
 	// Not sure if method above works anymore, use this:
-	sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 25 ); // Swap 25 for number you want to test inside
+	sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 26 ); // Swap 26 for number you want to test inside
  
 */
 import sdWorld from '../sdWorld.js';
@@ -48,6 +48,7 @@ import sdObelisk from './sdObelisk.js';
 import sdWater from './sdWater.js';
 import sdJunk from './sdJunk.js';
 import sdOverlord from './sdOverlord.js';
+import sdSetrDestroyer from './sdSetrDestroyer.js';
 
 import sdTask from './sdTask.js';
 
@@ -93,6 +94,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_CRYSTAL_BLOCKS =			event_counter++; // 23
 		sdWeather.EVENT_SD_EXTRACTION =				event_counter++; // 24
 		sdWeather.EVENT_SETR =					event_counter++; // 25
+		sdWeather.EVENT_SETR_DESTROYER =			event_counter++; // 26
 		
 		sdWeather.last_crystal_near_quake = null; // Used to damage left over crystals. Could be used to damage anything really
 		
@@ -171,7 +173,7 @@ class sdWeather extends sdEntity
 	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
 	{
 		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
-		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25 ];
+		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26 ];
 				
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -1865,7 +1867,7 @@ class sdWeather extends sdEntity
 								character_entity._jetpack_allowed = true; // Jetpack
 								character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
 								character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-								character_entity._ai_team = 7; // AI team 5 is for Setr faction
+								character_entity._ai_team = 7; // AI team 7 is for Setr faction
 								character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
 
 								break;
@@ -1935,6 +1937,58 @@ class sdWeather extends sdEntity
 			}
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
+		if ( r === sdWeather.EVENT_SETR_DESTROYER ) // Setr Destroyer, basically alternate "flying mech"
+		{
+			let instances = 0;
+			let instances_tot = 1;
+
+			let left_side = ( Math.random() < 0.5 );
+
+			while ( instances < instances_tot && sdSetrDestroyer.destroyer_counter < 3 )
+			{
+
+				let destroyer_entity = new sdSetrDestroyer({ x:0, y:0 });
+
+				sdEntity.entities.push( destroyer_entity );
+
+				{
+					let x,y;
+					let tr = 1000;
+					do
+					{
+						if ( left_side )
+						x = sdWorld.world_bounds.x1 + 64 + 64 * instances;
+						else
+						x = sdWorld.world_bounds.x2 - 64 - 64 * instances;
+
+						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+						if ( destroyer_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+						//if ( !destroyer_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+						//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+						{
+							destroyer_entity.x = x;
+							destroyer_entity.y = y;
+
+							//sdWorld.UpdateHashPosition( ent, false );
+							//console.log('Setr Destroyer spawned!');
+							break;
+						}
+
+
+						tr--;
+						if ( tr < 0 )
+						{
+							destroyer_entity.remove();
+							destroyer_entity._broken = false;
+							break;
+						}
+					} while( true );
+				}
+
+				instances++;
+			}
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

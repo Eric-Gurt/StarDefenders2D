@@ -380,7 +380,7 @@ class sdCube extends sdEntity
 		let bullet_obj1 = new sdBullet({ x: this.x, y: this.y });
 					bullet_obj1._owner = this;
 					bullet_obj1.sx = -1;
-					bullet_obj1.sy = 0
+					bullet_obj1.sy = 0;
 					//bullet_obj1.x += bullet_obj1.sx * 5;
 					//bullet_obj1.y += bullet_obj1.sy * 5;
 
@@ -417,7 +417,7 @@ class sdCube extends sdEntity
 		let bullet_obj3 = new sdBullet({ x: this.x, y: this.y });
 					bullet_obj3._owner = this;
 					bullet_obj3.sx = 1;
-					bullet_obj3.sy = 0
+					bullet_obj3.sy = 0;
 					//bullet_obj3.x += bullet_obj3.sx * 5;
 					//bullet_obj3.y += bullet_obj3.sy * 5;
 
