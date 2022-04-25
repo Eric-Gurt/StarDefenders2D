@@ -10,7 +10,8 @@ import sdGun from './sdGun.js';
 import sdCrystal from './sdCrystal.js';
 import sdBG from './sdBG.js';
 import sdCharacter from './sdCharacter.js';
-
+import sdBullet from './sdBullet.js';
+import sdCom from './sdCom.js';
 
 class sdSandWorm extends sdEntity
 {
@@ -27,6 +28,10 @@ class sdSandWorm extends sdEntity
 		sdSandWorm.img_worm_corrupted_head_idle = sdWorld.CreateImageFromFile( 'worm_corrupted_head_idle' );
 		sdSandWorm.img_worm_corrupted_head_attack = sdWorld.CreateImageFromFile( 'worm_corrupted_head_attack' );
 		sdSandWorm.img_worm_corrupted_body = sdWorld.CreateImageFromFile( 'worm_corrupted_body' );
+
+		sdSandWorm.img_worm_council_head_idle = sdWorld.CreateImageFromFile( 'worm_council_head_idle' ); // Council mecha worm or something.
+		sdSandWorm.img_worm_council_head_attack = sdWorld.CreateImageFromFile( 'worm_council_head_attack' );
+		sdSandWorm.img_worm_council_body = sdWorld.CreateImageFromFile( 'worm_council_body' );
 		
 		sdSandWorm.post_death_ttl = 30 * 6;
 		
@@ -49,6 +54,7 @@ class sdSandWorm extends sdEntity
 		sdSandWorm.KIND_NORMAL_WORM = 0;
 		sdSandWorm.KIND_SPIKY_WORM = 1;
 		sdSandWorm.KIND_CORRUPTED_WORM = 2;
+		sdSandWorm.KIND_COUNCIL_WORM = 3;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -91,7 +97,7 @@ class sdSandWorm extends sdEntity
 
 		this.scale = params.scale || Math.max( 0.6, Math.random() * 2 );
 
-		this._hmax = ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM ? 1.5 : 1 ) * 700 * Math.pow( this.scale, 2 );// Bigger worms = more health
+		this._hmax = ( this.kind === sdSandWorm.KIND_COUNCIL_WORM ? 10 : this.kind === sdSandWorm.KIND_CORRUPTED_WORM ? 1.5 : 1 ) * 700 * Math.pow( this.scale, 2 );// Bigger worms = more health
 		this._hea = this._hmax;
 
 		this._spawn_wyrmhide_on_death = false; // Should this body part spawn Wyrmhide on death?
@@ -148,7 +154,7 @@ class sdSandWorm extends sdEntity
 	
 	HasEnoughMatter( ent ) // sdSandWorms will actually hunt entities that have some amount of matter, for example one that is enough to buy damage upgrades. Thus won't target new players
 	{
-		return ( ent.matter >= ( this.kind === sdSandWorm.KIND_SPIKY_WORM ? 400 : 200 ) * this.scale ); // I think getting to 100 matter sets worms to hunt players while they're upgrading damage and health, this is more fair IMO - Booraz
+		return ( ent.matter >= ( this.kind === sdSandWorm.KIND_COUNCIL_WORM ? 1000 : this.kind === sdSandWorm.KIND_SPIKY_WORM ? 400 : 200 ) * this.scale ); // I think getting to 100 matter sets worms to hunt players while they're upgrading damage and health, this is more fair IMO - Booraz
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
@@ -172,23 +178,27 @@ class sdSandWorm extends sdEntity
 	}
 	GetBleedEffect()
 	{
-		return sdEffect.TYPE_BLOOD_GREEN;
+		return this.kind === sdSandWorm.KIND_COUNCIL_WORM ? sdEffect.TYPE_WALL_HIT : sdEffect.TYPE_BLOOD_GREEN;
 	}
 	GetBleedEffectFilter()
 	{
-		return this.filter;
+		return this.kind === sdSandWorm.KIND_COUNCIL_WORM ? '' : this.filter;
 	}
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )
 		return;
-	
+
 		dmg = Math.abs( dmg );
 		
 		let head_entity = this.GetHeadEntity();
 
 		if ( head_entity !== this && this.kind === sdSandWorm.KIND_SPIKY_WORM ) // Is this the spiky worm?
 		dmg = dmg * 0.15; // 85% damage reduction to body damage for spiky worms, to force players to shoot them in the head
+
+	
+		if ( head_entity !== this && this.kind === sdSandWorm.KIND_COUNCIL_WORM ) // Is this the council worm?
+		dmg = dmg * 0.01; // 99% damage reduction to body damage for council worms, they are sort of a boss after all
 		
 		if ( initiator )
 		//if ( !initiator.is( sdSandWorm ) )
@@ -239,7 +249,10 @@ class sdSandWorm extends sdEntity
 			if ( typeof initiator._score !== 'undefined' )
 			initiator._score += Math.round( 60 * this.scale * ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM ? 1.5 : 1 ) );
 	
+			if ( this.kind !== sdSandWorm.KIND_COUNCIL_WORM )
 			sdSound.PlaySound({ name:'octopus_alert', x:head_entity.x, y:head_entity.y, pitch:0.25, volume:4 });
+			else
+			sdSound.PlaySound({ name:'enemy_mech_alert', x:head_entity.x, y:head_entity.y, pitch:0.25, volume:4 });
 	
 			let ptr = head_entity;
 			while ( ptr )
@@ -273,7 +286,7 @@ class sdSandWorm extends sdEntity
 		
 		if ( this._hea <= 0 )
 		{
-			if ( this._spawn_wyrmhide_on_death ) // Spawn wyrmhide on ground if it's set to true
+			if ( this._spawn_wyrmhide_on_death && this.kind !== sdSandWorm.KIND_COUNCIL_WORM ) // Spawn wyrmhide on ground if it's set to true
 			{
 				let x = this.x;
 				let y = this.y;
@@ -286,6 +299,21 @@ class sdSandWorm extends sdEntity
 					wyrmhide.sy = sy;
 					wyrmhide.extra = this.filter + ' brightness(0.5)';
 					sdEntity.entities.push( wyrmhide );
+				}, 500 );
+			}
+			if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM ) // Council mecha worms spawn metal shards on death
+			{
+				let x = this.x;
+				let y = this.y;
+				let sx = this.sx;
+				let sy = this.sy;
+
+				setTimeout(()=>{ // Hacky, without this item does not appear to be pickable or interactable...
+					let shard = new sdGun({ x:x, y:y, class:sdGun.CLASS_METAL_SHARD });
+					shard.sx = sx;
+					shard.sy = sy;
+					sdEntity.entities.push( shard );
+
 				}, 500 );
 			}
 			this.remove();
@@ -325,7 +353,7 @@ class sdSandWorm extends sdEntity
 				//this.sy = 0;
 				//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 				
-				if ( this._spawn_wyrmhide_on_death ) // Spawn wyrmhide on ground if it's set to true
+				if ( this._spawn_wyrmhide_on_death && this.kind !== sdSandWorm.KIND_COUNCIL_WORM ) // Spawn wyrmhide on ground if it's set to true
 				{
 					let x = this.x;
 					let y = this.y;
@@ -338,6 +366,21 @@ class sdSandWorm extends sdEntity
 						wyrmhide.sy = sy;
 						wyrmhide.extra = this.filter + ' brightness(0.5)';
 						sdEntity.entities.push( wyrmhide );
+
+					}, 500 );
+				}
+				if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM ) // Council mecha worms spawn metal shards on death
+				{
+					let x = this.x;
+					let y = this.y;
+					let sx = this.sx;
+					let sy = this.sy;
+
+					setTimeout(()=>{ // Hacky, without this item does not appear to be pickable or interactable...
+						let shard = new sdGun({ x:x, y:y, class:sdGun.CLASS_METAL_SHARD });
+						shard.sx = sx;
+						shard.sy = sy;
+						sdEntity.entities.push( shard );
 
 					}, 500 );
 				}
@@ -544,7 +587,10 @@ class sdSandWorm extends sdEntity
 						{
 							//console.log('SOUND!');
 							//console.log( this._last_attack - sdWorld.time  );
+							if ( this.kind !== sdSandWorm.KIND_COUNCIL_WORM )
 							sdSound.PlaySound({ name:'octopus_death', x:this.x, y:this.y, pitch: 0.5, volume: 0.5 });
+							else
+							sdSound.PlaySound({ name:'enemy_mech_alert', x:this.x, y:this.y, pitch:0.5, volume:1 });
 							this.model = 1;
 						}
 					}
@@ -622,7 +668,37 @@ class sdSandWorm extends sdEntity
 
 							}
 						}
+						let head_entity = this.GetHeadEntity();
+						if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM && head_entity === this ) // Council worm head fires yellow beams at visible target it's approaching
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, this._current_target.x, this._current_target.y, this, sdCom.com_visibility_ignored_classes, null ) )
+						//if ( sdWorld.last_hit_entity === this._current_target )
+						if ( sdWorld.time > this._last_attack + 1500 )
+						{
 						
+							let an = Math.atan2( this._current_target.y + ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2 - this.y, this._current_target.x + ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2 - this.x );
+
+							let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+							bullet_obj._owner = this;
+							bullet_obj.sx = Math.cos( an );
+							bullet_obj.sy = Math.sin( an );
+
+							bullet_obj.sx *= 16;
+							bullet_obj.sy *= 16;
+
+							bullet_obj.time_left = 60;
+
+							bullet_obj._rail = true;
+
+							bullet_obj._damage = 150;
+
+							bullet_obj.color = '#ffff00'; // Yellow color
+
+							sdEntity.entities.push( bullet_obj );
+							this._last_attack = sdWorld.time;
+							sdSound.PlaySound({ name:'cube_attack', pitch: 0.25, x:this.x, y:this.y, volume:2 });
+							this.forced_x = ( this._current_target.x + ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2 - this.x ) * 10;
+							this.forced_y = ( this._current_target.y + ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2 - this.y ) * 10;
+						}
 						// Reset target from time to time if in seek mode
 						if ( Math.random() < 0.0001 )
 						if ( !this._current_target.is( sdCharacter ) )
@@ -707,9 +783,11 @@ class sdSandWorm extends sdEntity
 			if ( this.kind === sdSandWorm.KIND_SPIKY_WORM )
 			sdEntity.Tooltip( ctx, "Spiky Worm" );
 
-
 			if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
 			sdEntity.Tooltip( ctx, "Corrupted Worm" );
+
+			if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM )
+			sdEntity.Tooltip( ctx, "Council Mecha Worm" );
 		}
 	}
 	Draw( ctx, attached )
@@ -752,6 +830,17 @@ class sdSandWorm extends sdEntity
 			ctx.drawImageFilterCache( sdSandWorm.img_worm_corrupted_head_idle, - 16, - 16, 32,32 );
 			else
 			ctx.drawImageFilterCache( sdSandWorm.img_worm_corrupted_body, - 16, - 16, 32,32 );
+		}
+		if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM )
+		{
+			ctx.filter = 'none';
+			if ( this.model === 1 /*|| ( this.model === 0 && this._in_surface )*/ )
+			ctx.drawImageFilterCache( sdSandWorm.img_worm_council_head_attack, - 16, - 16, 32,32 );
+			else
+			if ( this.model === 0 )
+			ctx.drawImageFilterCache( sdSandWorm.img_worm_council_head_idle, - 16, - 16, 32,32 );
+			else
+			ctx.drawImageFilterCache( sdSandWorm.img_worm_council_body, - 16, - 16, 32,32 );
 		}
 		
 		ctx.globalAlpha = 1;
@@ -814,7 +903,7 @@ class sdSandWorm extends sdEntity
 					from_entity._sickness += 30;
 					from_entity._last_sickness_from_ent = this;
 				}
-				
+
 				this.model = 0;
 				
 				this.forced_x = ( from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2 - this.x ) * 10;
@@ -877,9 +966,13 @@ class sdSandWorm extends sdEntity
 				y = this.y + this._hitbox_y1 + Math.random() * ( this._hitbox_y2 - this._hitbox_y1 );
 				
 				//console.warn( { x: this.x, y: this.y, type:sdEffect.TYPE_GIB, sx: this.sx + Math.sin(a)*s, sy: this.sy + Math.cos(a)*s } )
-				
-				sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter() });
-				sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter() });
+				if ( this.kind !== sdSandWorm.KIND_COUNCIL_WORM )
+				{
+					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter() });
+					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter() });
+				}
+				else
+				sdWorld.BasicEntityBreakEffect( this, 6, 3, 0.25, 1 );
 			}
 			
 			// High price shards
