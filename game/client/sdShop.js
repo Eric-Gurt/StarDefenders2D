@@ -52,6 +52,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdVirus', _category:'root', _opens_category:'Development tests' });
 	
 		sdShop.options.push({ _class: 'sdBall', _category:'Other' });
+		sdShop.options.push({ _class: 'sdBall', type: 1, _category:'Other' });
 		sdShop.options.push({ _class: 'sdTheatre', _category:'Other' });
 		sdShop.options.push({ _class: 'sdBeamProjector', _category:'Other', _min_build_tool_level: 25 });
 		
@@ -493,6 +494,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdGrass', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdSlug', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdEnemyMech', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdSetrDestroyer', _category:'Development tests' });
 			//sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdJunk', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdJunk', type: 3, _category:'Development tests' });
