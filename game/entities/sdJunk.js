@@ -15,6 +15,7 @@ import sdCharacter from './sdCharacter.js';
 import sdDrone from './sdDrone.js';
 import sdTask from './sdTask.js';
 import sdWeather from './sdWeather.js';
+import sdSandWorm from './sdSandWorm.js';
 
 class sdJunk extends sdEntity
 {
@@ -567,6 +568,12 @@ class sdJunk extends sdEntity
 						can_hit_owner: true,
 						color:sdEffect.default_explosion_color
 					});
+
+					// Spawn Council mecha worm as a punishment aswell
+
+					setTimeout(()=>{//Just in case
+						let worm = new sdSandWorm({x: this.x, y:this.y, kind: sdSandWorm.KIND_COUNCIL_WORM, scale: 1})
+					}, 500 );
 
 					// Will ignore ones who disconnected during explosion
 					//for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Punish players for not defusing the bomb
