@@ -198,7 +198,7 @@ class sdSandWorm extends sdEntity
 
 	
 		if ( head_entity !== this && this.kind === sdSandWorm.KIND_COUNCIL_WORM ) // Is this the council worm?
-		dmg = dmg * 0.01; // 99% damage reduction to body damage for council worms, they are sort of a boss after all
+		dmg = dmg * 0.05; // 95% damage reduction to body damage for council worms, they are sort of a boss after all
 		
 		if ( initiator )
 		//if ( !initiator.is( sdSandWorm ) )
@@ -672,6 +672,7 @@ class sdSandWorm extends sdEntity
 						if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM && head_entity === this ) // Council worm head fires yellow beams at visible target it's approaching
 						if ( sdWorld.CheckLineOfSight( this.x, this.y, this._current_target.x, this._current_target.y, this, sdCom.com_visibility_ignored_classes, null ) )
 						//if ( sdWorld.last_hit_entity === this._current_target )
+						if ( sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) <= 380 )
 						if ( sdWorld.time > this._last_attack + 1500 )
 						{
 						
