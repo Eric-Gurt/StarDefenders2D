@@ -1089,7 +1089,11 @@ class sdGunClass
 			},
 			projectile_properties: { 
 				//explosion_radius: 10, 
-				model: 'ball_charged', _damage: 0, /*color:'#ffff66',*/ time_left: 30, _custom_detonation_logic:( bullet )=>
+				model: 'ball_charged', 
+				_damage: 0, /*color:'#ffff66',*/ 
+				time_left: 30, 
+				_hittable_by_bullets: false,
+				_custom_detonation_logic:( bullet )=>
 				{
 					if ( bullet._owner )
 					{
@@ -2624,7 +2628,10 @@ class sdGunClass
 			matter_cost: 60,
 			spawnable: false,
 			projectile_velocity: 12,
-			projectile_properties: { explosion_radius: 9, model: 'blaster_proj', _damage: 0, color:'#ff00aa' },
+			projectile_properties: { 
+				
+				explosion_radius: 9, model: 'blaster_proj', _damage: 0, color:'#ff00aa',
+			},
 			
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{

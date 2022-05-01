@@ -32,6 +32,8 @@ import sdRenderer from './client/sdRenderer.js';
 import sdBitmap from './client/sdBitmap.js';
 import sdSound from './sdSound.js';
 
+const CHUNK_SIZE = 128; // 32
+
 class sdWorld
 {
 	static init_class()
@@ -185,20 +187,6 @@ class sdWorld
 		sdWorld.fake_empty_array = { length:0 };
 		Object.freeze( sdWorld.fake_empty_array );
 
-		/*function MobileCheck() 
-		{
-			if ( typeof navigator !== 'undefined' )
-			{
-				let check = false;
-				(function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino|android|ipad|playbook|silk/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4))) check = true;})(navigator.userAgent||navigator.vendor||window.opera);
-				return check;
-			}
-			return false;
-		};
-		
-		if ( MobileCheck() )
-		ForMobile();*/
-	
 		if ( typeof document !== 'undefined' ) // If server
 		document.ontouchstart = ()=>{ ForMobile(); };
 
@@ -669,40 +657,91 @@ class sdWorld
 
 		if ( y >= from_y && allow_block )
 		{
-			let enemy_rand_num = Math.random();
-			let random_enemy;
-
-			if ( Math.pow( enemy_rand_num, 10 ) > 1 / hp_mult )
+			//let enemy_rand_num = Math.random();
+			let random_enemy = null;
+			
+			//if ( Math.random() < 0.2 )
 			{
-				random_enemy = 'sdSandWorm';
-			}
-			else
-			if ( Math.pow( enemy_rand_num, 5 ) > 1 / hp_mult )
-			random_enemy = 'sdOctopus';
-			else
-			if ( Math.pow( enemy_rand_num, 4 ) > 1 / hp_mult )
-			random_enemy = 'sdWater.toxic';
-			else
-			if ( Math.pow( enemy_rand_num, 3 ) > 0.8 / hp_mult )
-			random_enemy = 'sdSlug';
-			else
-			if ( Math.pow( enemy_rand_num, 2 ) > 0.8 / hp_mult )
-			random_enemy = 'sdQuickie';
-			else
-			if ( Math.pow( enemy_rand_num, 1.2 ) > 0.8 / hp_mult )
-			random_enemy = 'sdJunk';
-			else
-			{
-				if ( Math.random() < 0.05 ) // Small chance to spawn on ground levels since they are passive if unprovoked
+				// Format is [ type, relative probability ]
+				let chances = ( hp_mult === 1 ) ? 
+					[ // Surface
+						'sdBadDog', 2
+					] 
+					: 
+					[ // Deep
+						'sdSandWorm', 1,
+						'sdOctopus', 2,
+						'sdTutel', 5,
+						'sdWater.toxic', 5,
+						'sdWater.lava', 1,
+						'sdWater.acid', 2
+					]
+				;
+				
+				// Add general creatures
+				chances.push( ...[
+					
+						'sdVirus', 5 / hp_mult,
+						'sdQuickie', 5 / hp_mult,
+						'sdAsp', 4 / hp_mult,
+						'sdAmphid', 3 / hp_mult,
+						'sdSlug', 3 / hp_mult,
+						'sdJunk', 5,
+						'sdWater.water', 5
+				] );
+				
+				let sum_chance = 0;
+				for ( let i = 0; i < chances.length; i += 2 )
+				sum_chance += chances[ i + 1 ];
+			
+				let r = Math.random() * sum_chance;
+				
+				for ( let i = 0; i < chances.length; i += 2 )
+				{
+					if ( r < chances[ i + 1 ] )
+					{
+						random_enemy = chances[ i ];
+						break;
+					}
+					else
+					r -= chances[ i + 1 ];
+				}
+			
+				/*if ( Math.pow( enemy_rand_num, 10 ) > 1 / hp_mult )
+				{
+					random_enemy = 'sdSandWorm';
+				}
+				else
+				if ( Math.pow( enemy_rand_num, 5 ) > 1 / hp_mult )
+				random_enemy = 'sdOctopus';
+				else
+				if ( Math.pow( enemy_rand_num, 5 ) > 1 / hp_mult )
+				random_enemy = 'sdTutel';
+				else
+				if ( Math.pow( enemy_rand_num, 4 ) > 1 / hp_mult )
+				random_enemy = 'sdWater.toxic';
+				else
+				if ( Math.pow( enemy_rand_num, 3 ) > 1 / hp_mult )
 				random_enemy = 'sdSlug';
 				else
-				if ( Math.random() < 0.1 )
-				random_enemy = 'sdAmphid';
+				if ( Math.pow( enemy_rand_num, 2 ) > 1 / hp_mult )
+				random_enemy = 'sdQuickie';
 				else
-				if ( Math.random() < 0.2 )
-				random_enemy = 'sdAsp';
+				if ( Math.pow( enemy_rand_num, 1.2 ) > 1 / hp_mult )
+				random_enemy = 'sdJunk';
 				else
-				random_enemy = 'sdVirus';
+				{
+					if ( Math.random() < 0.05 ) // Small chance to spawn on ground levels since they are passive if unprovoked
+					random_enemy = 'sdSlug';
+					else
+					if ( Math.random() < 0.1 )
+					random_enemy = 'sdAmphid';
+					else
+					if ( Math.random() < 0.2 )
+					random_enemy = 'sdAsp';
+					else
+					random_enemy = 'sdVirus';
+				}*/
 			}
 			
 			let plants = null;
@@ -746,14 +785,20 @@ class sdWorld
 				else
 				potential_crystal = 'sdCrystal.crab';
 			}
-
+			
+			let contains_class = ( !half && Math.random() > 0.75 / hp_mult ) ? 
+									( ( Math.random() < 0.2 * ( 1*0.75 + hp_mult*0.25 ) ) ? random_enemy : potential_crystal ) : 
+									( 
+										( Math.random() < 0.1 ) ? 'weak_ground' : null 
+									);
+							
 			ent = new sdBlock({ 
 				x:x, 
 				y:y, 
 				width:16, 
 				height: half ? 8 : 16,
 				material: sdBlock.MATERIAL_GROUND,
-				contains_class: ( !half && Math.random() > 0.75 / hp_mult ) ? ( Math.random() < 0.3 ? random_enemy : potential_crystal ) : null,
+				contains_class: contains_class,
 				filter: f,
 				natural: true,
 				plants: plants
@@ -1173,14 +1218,14 @@ class sdWorld
 	{
 		let ret = append_to || [];
 		
-		let min_x = _x - sdCom.retransmit_range - 32;
-		let max_x = _x + sdCom.retransmit_range + 32;
-		let min_y = _y - sdCom.retransmit_range - 32;
-		let max_y = _y + sdCom.retransmit_range + 32;
+		let min_x = _x - sdCom.retransmit_range - CHUNK_SIZE;
+		let max_x = _x + sdCom.retransmit_range + CHUNK_SIZE;
+		let min_y = _y - sdCom.retransmit_range - CHUNK_SIZE;
+		let max_y = _y + sdCom.retransmit_range + CHUNK_SIZE;
 		
 		let x, y, arr, i;
-		for ( x = min_x; x <= max_x; x += 32 )
-		for ( y = min_y; y <= max_y; y += 32 )
+		for ( x = min_x; x <= max_x; x += CHUNK_SIZE )
+		for ( y = min_y; y <= max_y; y += CHUNK_SIZE )
 		{
 			arr = sdWorld.RequireHashPosition( x, y );
 			for ( i = 0; i < arr.length; i++ )
@@ -1208,10 +1253,10 @@ class sdWorld
 	{
 		let ret = append_to || [];
 		
-		let min_x = sdWorld.FastFloor((_x - range)/32);
-		let min_y = sdWorld.FastFloor((_y - range)/32);
-		let max_x = sdWorld.FastCeil((_x + range)/32);
-		let max_y = sdWorld.FastCeil((_y + range)/32);
+		let min_x = sdWorld.FastFloor((_x - range)/CHUNK_SIZE);
+		let min_y = sdWorld.FastFloor((_y - range)/CHUNK_SIZE);
+		let max_x = sdWorld.FastCeil((_x + range)/CHUNK_SIZE);
+		let max_y = sdWorld.FastCeil((_y + range)/CHUNK_SIZE);
 		
 		if ( max_x === min_x )
 		max_x++;
@@ -1224,7 +1269,7 @@ class sdWorld
 		for ( x = min_x; x < max_x; x++ )
 		for ( y = min_y; y < max_y; y++ )
 		{
-			arr = sdWorld.RequireHashPosition( x * 32, y * 32 );
+			arr = sdWorld.RequireHashPosition( x * CHUNK_SIZE, y * CHUNK_SIZE );
 			for ( i = 0; i < arr.length; i++ )
 			//if ( arr[ i ].GetClass() === 'sdCharacter' )
 			//if ( arr[ i ] instanceof sdCharacter )
@@ -1239,10 +1284,10 @@ class sdWorld
 	{
 		let ret = append_to || [];
 		
-		let min_x = sdWorld.FastFloor((_x - range)/32);
-		let min_y = sdWorld.FastFloor((_y - range)/32);
-		let max_x = sdWorld.FastCeil((_x + range)/32);
-		let max_y = sdWorld.FastCeil((_y + range)/32);
+		let min_x = sdWorld.FastFloor((_x - range)/CHUNK_SIZE);
+		let min_y = sdWorld.FastFloor((_y - range)/CHUNK_SIZE);
+		let max_x = sdWorld.FastCeil((_x + range)/CHUNK_SIZE);
+		let max_y = sdWorld.FastCeil((_y + range)/CHUNK_SIZE);
 		
 		if ( max_x === min_x )
 		max_x++;
@@ -1256,7 +1301,7 @@ class sdWorld
 		for ( x = min_x; x < max_x; x++ )
 		for ( y = min_y; y < max_y; y++ )
 		{
-			arr = sdWorld.RequireHashPosition( x * 32, y * 32 );
+			arr = sdWorld.RequireHashPosition( x * CHUNK_SIZE, y * CHUNK_SIZE );
 			for ( i = 0; i < arr.length; i++ )
 			{
 				e = arr[ i ];
@@ -1283,10 +1328,10 @@ class sdWorld
 	{
 		let ret = [];
 		
-		let min_x = sdWorld.FastFloor(_x/32);
-		let min_y = sdWorld.FastFloor(_y/32);
-		let max_x = sdWorld.FastCeil(_x2/32);
-		let max_y = sdWorld.FastCeil(_y2/32);
+		let min_x = sdWorld.FastFloor(_x/CHUNK_SIZE);
+		let min_y = sdWorld.FastFloor(_y/CHUNK_SIZE);
+		let max_x = sdWorld.FastCeil(_x2/CHUNK_SIZE);
+		let max_y = sdWorld.FastCeil(_y2/CHUNK_SIZE);
 		
 		if ( max_x === min_x )
 		max_x++;
@@ -1297,7 +1342,7 @@ class sdWorld
 		
 		for ( x = min_x; x < max_x; x++ )
 		for ( y = min_y; y < max_y; y++ )
-		ret.push( sdWorld.RequireHashPosition( x * 32, y * 32 ) );
+		ret.push( sdWorld.RequireHashPosition( x * CHUNK_SIZE, y * CHUNK_SIZE ) );
 		
 		return ret;
 	}
@@ -1588,11 +1633,11 @@ class sdWorld
 	static RequireHashPosition( x, y, spawn_if_empty=false )
 	{
 		/*
-		x = sdWorld.FastFloor( x / 32 );
-		y = sdWorld.FastFloor( y / 32 );
+		x = sdWorld.FastFloor( x / CHUNK_SIZE );
+		y = sdWorld.FastFloor( y / CHUNK_SIZE );
 		
-		//x = Math.floor( x / 32 );
-		//y = Math.floor( y / 32 );
+		//x = Math.floor( x / CHUNK_SIZE );
+		//y = Math.floor( y / CHUNK_SIZE );
 		
 		var a;
 		
@@ -1610,12 +1655,12 @@ class sdWorld
 	
 		return b;*/
 		
-		//x = ~~( x / 32 );
+		//x = ~~( x / CHUNK_SIZE );
 		//y = ;
 		
-		//x = ( ~~( y / 32 ) ) * 4098 + ~~( x / 32 ); // Too many left-over empty arrays when bounds move?
+		//x = ( ~~( y / CHUNK_SIZE ) ) * 4098 + ~~( x / CHUNK_SIZE ); // Too many left-over empty arrays when bounds move?
 		
-		x = ( sdWorld.FastFloor( y / 32 ) ) * 4098 + sdWorld.FastFloor( x / 32 );
+		x = ( sdWorld.FastFloor( y / CHUNK_SIZE ) ) * 4098 + sdWorld.FastFloor( x / CHUNK_SIZE );
 		
 		if ( !sdWorld.world_hash_positions.has( x ) )
 		{
@@ -1698,17 +1743,17 @@ class sdWorld
 			}
 			else
 			{
-				let from_x = sdWorld.FastFloor( ( entity.x + entity._hitbox_x1 ) / 32 );
-				let from_y = sdWorld.FastFloor( ( entity.y + entity._hitbox_y1 ) / 32 );
-				let to_x = sdWorld.FastCeil( ( entity.x + entity._hitbox_x2 ) / 32 );
-				let to_y = sdWorld.FastCeil( ( entity.y + entity._hitbox_y2 ) / 32 );
+				let from_x = sdWorld.FastFloor( ( entity.x + entity._hitbox_x1 ) / CHUNK_SIZE );
+				let from_y = sdWorld.FastFloor( ( entity.y + entity._hitbox_y1 ) / CHUNK_SIZE );
+				let to_x = sdWorld.FastCeil( ( entity.x + entity._hitbox_x2 ) / CHUNK_SIZE );
+				let to_y = sdWorld.FastCeil( ( entity.y + entity._hitbox_y2 ) / CHUNK_SIZE );
 
 				if ( to_x === from_x )
 				to_x++;
 				if ( to_y === from_y )
 				to_y++;
 
-				if ( to_x - from_x < 32 && to_y - from_y < 32 )
+				if ( to_x - from_x < CHUNK_SIZE && to_y - from_y < CHUNK_SIZE )
 				{
 					var xx, yy;
 
@@ -1722,7 +1767,7 @@ class sdWorld
 					//for ( yy = from_y; yy <= to_y; yy++ )
 					for ( xx = from_x; xx < to_x; xx++ )
 					for ( yy = from_y; yy < to_y; yy++ )
-					new_affected_hash_arrays.push( sdWorld.RequireHashPosition( xx * 32, yy * 32, true ) );
+					new_affected_hash_arrays.push( sdWorld.RequireHashPosition( xx * CHUNK_SIZE, yy * CHUNK_SIZE, true ) );
 
 					/*
 					if ( entity.GetClass() === 'sdArea' )
@@ -1928,6 +1973,8 @@ class sdWorld
 				if ( GSPEED > 10 ) // Should be best for weaker devices, just so at least server would not initiate player teleportation back to where he thinks player is
 				GSPEED = 10;
 			}
+			
+			//GSPEED = 4;
 
 			sdWorld.GSPEED = GSPEED;
 			//console.log( GSPEED );
@@ -2458,10 +2505,10 @@ class sdWorld
 		let arr_i_x;
 		let arr_i_y;
 		
-		var xx_from = sdWorld.FastFloor( x1 / 32 ); // Overshoot no longer needed, due to big entities now taking all needed hash arrays
-		var yy_from = sdWorld.FastFloor( y1 / 32 );
-		var xx_to = sdWorld.FastCeil( x2 / 32 );
-		var yy_to = sdWorld.FastCeil( y2 / 32 );
+		var xx_from = sdWorld.FastFloor( x1 / CHUNK_SIZE ); // Overshoot no longer needed, due to big entities now taking all needed hash arrays
+		var yy_from = sdWorld.FastFloor( y1 / CHUNK_SIZE );
+		var xx_to = sdWorld.FastCeil( x2 / CHUNK_SIZE );
+		var yy_to = sdWorld.FastCeil( y2 / CHUNK_SIZE );
 		
 		if ( xx_to === xx_from )
 		xx_to++;
@@ -2481,9 +2528,9 @@ class sdWorld
 		for ( xx = xx_from; xx < xx_to; xx++ )
 		for ( yy = yy_from; yy < yy_to; yy++ )
 		{
-			//arr = sdWorld.RequireHashPosition( x1 + xx * 32, y1 + yy * 32 );
-			//arr = sdWorld.RequireHashPosition( x2 + xx * 32, y2 + yy * 32 ); // Better player-matter container collisions. Worse for player-block cases
-			arr = sdWorld.RequireHashPosition( xx * 32, yy * 32 );
+			//arr = sdWorld.RequireHashPosition( x1 + xx * CHUNK_SIZE, y1 + yy * CHUNK_SIZE );
+			//arr = sdWorld.RequireHashPosition( x2 + xx * CHUNK_SIZE, y2 + yy * CHUNK_SIZE ); // Better player-matter container collisions. Worse for player-block cases
+			arr = sdWorld.RequireHashPosition( xx * CHUNK_SIZE, yy * CHUNK_SIZE );
 			
 			//ent_skip: 
 			for ( i = 0; i < arr.length; i++ )
@@ -2547,10 +2594,10 @@ class sdWorld
 		let arr;
 		let i;
 		
-		var xx_from = x1 - 32; // TODO: Overshoot no longer needed, due to big entities now taking all needed hash arrays?
-		var yy_from = y1 - 32;
-		var xx_to = x2 + 32;
-		var yy_to = y2 + 32;
+		var xx_from = x1 - CHUNK_SIZE; // TODO: Overshoot no longer needed, due to big entities now taking all needed hash arrays?
+		var yy_from = y1 - CHUNK_SIZE;
+		var xx_to = x2 + CHUNK_SIZE;
+		var yy_to = y2 + CHUNK_SIZE;
 	
 		//for ( var xx = -1; xx <= 2; xx++ )
 		//for ( var yy = -1; yy <= 2; yy++ )
@@ -2558,11 +2605,11 @@ class sdWorld
 		//for ( var yy = -1; yy <= 0; yy++ )
 		//for ( var xx = -1; xx <= 1; xx++ )
 		//for ( var yy = -1; yy <= 1; yy++ )
-		for ( var xx = xx_from; xx <= xx_to; xx += 32 )
-		for ( var yy = yy_from; yy <= yy_to; yy += 32 )
+		for ( var xx = xx_from; xx <= xx_to; xx += CHUNK_SIZE )
+		for ( var yy = yy_from; yy <= yy_to; yy += CHUNK_SIZE )
 		{
-			//arr = sdWorld.RequireHashPosition( x1 + xx * 32, y1 + yy * 32 );
-			//arr = sdWorld.RequireHashPosition( x2 + xx * 32, y2 + yy * 32 ); // Better player-matter container collisions. Worse for player-block cases
+			//arr = sdWorld.RequireHashPosition( x1 + xx * CHUNK_SIZE, y1 + yy * CHUNK_SIZE );
+			//arr = sdWorld.RequireHashPosition( x2 + xx * CHUNK_SIZE, y2 + yy * CHUNK_SIZE ); // Better player-matter container collisions. Worse for player-block cases
 			arr = sdWorld.RequireHashPosition( xx, yy );
 			
 			for ( i = 0; i < arr.length; i++ )
@@ -2650,7 +2697,7 @@ class sdWorld
 		//for ( var xx = -1; xx <= 1; xx++ ) // TODO: Overshoot no longer needed, due to big entities now taking all needed hash arrays?
 		//for ( var yy = -1; yy <= 1; yy++ )
 		{
-			//arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
+			//arr = sdWorld.RequireHashPosition( x + xx * CHUNK_SIZE, y + yy * CHUNK_SIZE );
 			arr = sdWorld.RequireHashPosition( x, y );
 			for ( i = 0; i < arr.length; i++ )
 			{
@@ -3419,8 +3466,9 @@ class sdWorld
 				
 				setTimeout( ()=>
 				{
-					sdSound.PlaySound({ name:'piano_world_startB2_cutA', volume:0.3, _server_allowed:true });
-				}, 2500 );
+					sdSound.PlaySound({ name:'sci_fi_world_start', volume:0.3, _server_allowed:true });
+					//sdSound.PlaySound({ name:'piano_world_startB2_cutA', volume:0.3, _server_allowed:true });
+				}, 0 );//2500 );
 			}
 
 			socket.emit( 'RESPAWN', player_settings );

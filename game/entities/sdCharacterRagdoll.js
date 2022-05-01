@@ -1273,9 +1273,12 @@ class sdBone extends sdEntity
 		}
 		else
 		{
+			this.PhysInitIfNeeded();
+		
 			if ( sdEntity.active_entities.length > 50000 ) // Somehow it gets flooded with bones when tab is inactive, catching
 			debugger;
 		}
+		
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions. Most probably will have conflicts with .GetNonIgnoredEntityClasses()
 	{

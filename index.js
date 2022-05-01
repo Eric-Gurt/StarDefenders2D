@@ -1869,6 +1869,8 @@ function UpdateOnlineCount()
 	}
 }
 
+const DEBUG_SOCKET_CHANGES = false;
+
 let next_drop_log = 0;
 io.on("connection", (socket) => 
 //io.onConnection( socket =>
@@ -2197,6 +2199,9 @@ io.on("connection", (socket) =>
 				socket.character.Damage( socket.character.hea ); // With weapon drop
 		
 				//socket.character._old_score = socket.score;
+				
+				if ( DEBUG_SOCKET_CHANGES )
+				trace( 'characters['+socket.character._net_id + ']._socket = null');
 
 				socket.character._socket = null;
 
@@ -2225,6 +2230,8 @@ io.on("connection", (socket) =>
 			//player_settings.my_hash = Math.random() + '';
 			//player_settings.my_net_id = undefined;
 			
+			let best_ent = null;
+			
 			for ( let i = 0; i < sdCharacter.characters.length; i++ )
 			{
 				//let ent = sdEntity.entities_by_net_id_cache_map.get( parseInt( player_settings.my_net_id ) );
@@ -2235,37 +2242,45 @@ io.on("connection", (socket) =>
 				{
 					if ( ent._my_hash === player_settings.my_hash )
 					{
-						if ( ent._socket )
+						/*if ( ent._socket )
 						{
 							if ( sockets_by_ip[ ip ].indexOf( ent._socket ) !== -1 )
 							{
 								//await ent._socket.close(); // Try to disconnect old connection, can happen in geckos case if player reconnects too quickly
 								ent._socket.CharacterDisconnectLogic();
 							}
-						}
+						}*/
 
 						if ( !ent._socket )
 						{
-							ent._socket = socket;
-							ent._save_file = player_settings.save_file;
-							socket.character = ent;
-
-							socket.character.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-
-							character_entity = ent;
-							
-							sdTask.WakeUpTasksFor( ent );
-
-							//socket.score = character_entity._old_score;
-							//character_entity._old_score = 0;
+							if ( best_ent === null || ( best_ent.hea || best_ent._hea ) <= 0 )
+							best_ent = ent;
 						}
 					}
 				}
 			}
 			
+			if ( best_ent )
+			{
+				let ent = best_ent;
+				
+				//if ( DEBUG_SOCKET_CHANGES )
+				//trace( 'characters['+ent._net_id + ']._socket = socket');
+
+				//ent._socket = socket;
+				//ent._save_file = player_settings.save_file;
+				//socket.character = ent;
+
+				//socket.character.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+				character_entity = ent;
+
+				//sdTask.WakeUpTasksFor( ent );
+			}
+			
 			// Probably not a good thing to do since non-full reset will not can bypass respawn timeout
-			if ( character_entity === null )
-			player_settings.full_reset = true; // Full reset if no player can be found
+			//if ( character_entity === null )
+			//player_settings.full_reset = true; // Full reset if no player can be found
 		}
 		
 		if ( typeof player_settings.hero_name === 'string' )
@@ -2289,8 +2304,14 @@ io.on("connection", (socket) =>
 		else
 		player_settings.my_hash = 'unset' + Math.random() + '_got_' + ( typeof player_settings.my_hash );
 	
-		
-		TryToAssignDisconnectedPlayerEntity();
+		if ( !player_settings.full_reset )
+		{
+			// Will only find appropriate player, no extra actions. Updates character_entity value
+			TryToAssignDisconnectedPlayerEntity();
+			
+			if ( !character_entity )
+			player_settings.full_reset = true;
+		}
 		
 		if ( player_settings.full_reset )
 		{
@@ -2307,7 +2328,7 @@ io.on("connection", (socket) =>
 
 
 			RemoveOldPlayerOnSocket();
-			SpawnNewPlayer();
+			SpawnNewPlayer(); // Updates character_entity value
 			
 			//if ( typeof player_settings.my_hash === 'string' )
 			character_entity._my_hash = player_settings.my_hash;
@@ -2328,9 +2349,18 @@ io.on("connection", (socket) =>
 		character_entity.title_censored = sdModeration.IsPhraseBad( character_entity.title, socket );*/
 
 		sdWorld.ApplyPlayerSettingsToPlayer( character_entity, player_settings, socket );
-
+		
+		if ( DEBUG_SOCKET_CHANGES )
+		trace( 'characters['+character_entity._net_id + ']._socket = socket');
+			
 		character_entity._socket = socket; // prevent json appearence
 		character_entity._save_file = player_settings.save_file;
+		
+		socket.character = character_entity;
+		
+		character_entity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+		sdTask.WakeUpTasksFor( character_entity );
 		
 		if ( !character_entity._save_file )
 		debugger;
@@ -3236,6 +3266,9 @@ io.on("connection", (socket) =>
 
 			//socket.character._old_score = socket.score;
 
+			if ( DEBUG_SOCKET_CHANGES )
+			trace( 'characters['+socket.character._net_id + ']._socket = null');
+
 			socket.character._socket = null;
 
 			socket.character = null;
@@ -4004,6 +4037,7 @@ const ServerMainMethod = ()=>
 	
 	frame++;
 	
+	//setTimeout( ServerMainMethod, 50 );
 	setTimeout( ServerMainMethod, Math.max( 5, sdWorld.logic_rate - ( Date.now() - ttt ) ) );
 };
 

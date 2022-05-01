@@ -37,7 +37,7 @@ class sdGun extends sdEntity
 		
 		sdGun.img_present = sdWorld.CreateImageFromFile( 'present' );
 		
-		sdGun.disowned_guns_ttl = 30 * 60;
+		sdGun.disowned_guns_ttl = 30 * 60 * 2; // Was 1 minute before, 2 now
 		
 		sdGun.default_projectile_velocity = 20; // 16
 		
@@ -75,10 +75,10 @@ class sdGun extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -4; }
-	get hitbox_x2() { return 4; }
-	get hitbox_y1() { return -3; }
-	get hitbox_y2() { return 3; }
+	get hitbox_x1() { return ( this.class === sdGun.CLASS_CRYSTAL_SHARD ) ? -2 : -4; }
+	get hitbox_x2() { return ( this.class === sdGun.CLASS_CRYSTAL_SHARD ) ? 2 : 4; }
+	get hitbox_y1() { return ( this.class === sdGun.CLASS_CRYSTAL_SHARD ) ? 1 : -3; }
+	get hitbox_y2() { return ( this.class === sdGun.CLASS_CRYSTAL_SHARD ) ? 4 : 3; }
 	get mass()
 	{
 		return 30;
@@ -301,6 +301,7 @@ class sdGun extends sdEntity
 		
 		this.reload_time_left = 0;
 		this.muzzle = 0;
+		this._last_muzzle = 0; // Used for client-side shells
 		
 		// Old way of entity pointers I guess. ApplySnapshot handles this case but only for sdGun case
 		this._held_by = null; // This property is cursed and outdated. Use public properties for new entitties - they will work fine and will handle pointers when pointed entiteis exist (null in else cases)
@@ -649,7 +650,22 @@ class sdGun extends sdEntity
 					this.burst_ammo = sdGun.classes[ this.class ].burst;
 				}
 				if ( sdGun.classes[ this.class ].muzzle_x !== null )
-				this.muzzle = 5;
+				{
+					this.muzzle = 5;
+
+					if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+					//if ( this._last_muzzle < this.muzzle )
+					//if ( this._held_by )
+					{
+						let initial_an = this._held_by.GetLookAngle() + this._held_by._side * Math.PI / 2;
+						let an = initial_an + ( Math.random() * 2 - 1 ) * 0.5 + this._held_by._side * Math.PI / 2 * 0.5;
+
+						let vel = 1 + Math.random();
+
+						let ef = new sdEffect({ x: this.x, y: this.y, type: sdEffect.TYPE_SHELL, sx:Math.sin( an ) * vel, sy:Math.cos( an ) * vel, rotation: Math.PI / 2 - initial_an });
+						sdEntity.entities.push( ef );
+					}
+				}
 			
 				if ( sdWorld.is_server )
 				{
@@ -891,8 +907,23 @@ class sdGun extends sdEntity
 		{
 			this.fire_mode = sdGun.classes[ this.class ].fire_type || 1; // Adjust fire mode for the weapon
 
+			/*if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+			if ( this._last_muzzle < this.muzzle )
+			if ( this._held_by )
+			{
+				let initial_an = this._held_by.GetLookAngle() + this._held_by._side * Math.PI / 2 * 1.5;
+				let an = initial_an + ( Math.random() * 2 - 1 ) * 0.5;
+
+				let vel = 1 + Math.random();
+					
+				let ef = new sdEffect({ x: this.x, y: this.y, type: sdEffect.TYPE_SHELL, sx:Math.sin( an ) * vel, sy:Math.cos( an ) * vel, rotation: Math.PI / 2 - initial_an });
+				sdEntity.entities.push( ef );
+			}*/
+			
 			if ( this.muzzle > 0 )
 			this.muzzle -= GSPEED;
+		
+			this._last_muzzle = this.muzzle;
 		}
 			
 		if ( this._held_by === null )

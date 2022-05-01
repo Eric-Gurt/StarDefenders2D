@@ -72,6 +72,9 @@ class sdWater extends sdEntity
 			if ( params.tag === 'water' )
 			params.type = sdWater.TYPE_WATER;
 		
+			if ( params.tag === 'lava' )
+			params.type = sdWater.TYPE_LAVA;
+		
 			if ( params.tag === 'acid' )
 			params.type = sdWater.TYPE_ACID;
 		
@@ -250,6 +253,8 @@ class sdWater extends sdEntity
 		{
 			//if ( this.type === sdWater.TYPE_LAVA || this.type === sdWater.TYPE_ACID )
 			{
+				let effect_once = true;
+				
 				this._swimmers.forEach( ( e )=>
 				{
 					if ( e.x + e._hitbox_x2 >= this.x + this._hitbox_x1 &&
@@ -258,16 +263,25 @@ class sdWater extends sdEntity
  						 e.y + e._hitbox_y1 <= this.y + this._hitbox_y2 &&
 						 !e._is_being_removed )
 					{
-						if ( !sdWorld.is_server )
+						if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 						{
 							if ( this.type === sdWater.TYPE_LAVA )
-							if ( Math.random() < 0.3 )
+							if ( !e.isWaterDamageResistant() )
 							{
-								let ent = new sdEffect({ x: e.x, y: this.y, type:sdEffect.TYPE_GLOW_HIT, color:'#FFAA33' });
-								sdEntity.entities.push( ent );
+								if ( effect_once )
+								{
+									effect_once = false;
+									
+									if ( Math.random() < 0.3 )
+									{
+										let ent = new sdEffect({ x: e.x, y: this.y, type:sdEffect.TYPE_GLOW_HIT, color:'#FFAA33' });
+										sdEntity.entities.push( ent );
+									}
+								}
 							}
 						}
-						else
+						
+						if ( sdWorld.is_server )
 						{
 							let e_is_organic = ( ( e.IsPlayerClass() || e.GetBleedEffect() === sdEffect.TYPE_BLOOD || e.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN ) );
 							
@@ -285,6 +299,7 @@ class sdWater extends sdEntity
 							}
 							if ( sdWater.damage_by_type[ this.type ] !== 0 )
 							if ( this.type === sdWater.TYPE_LAVA || ( this.type === sdWater.TYPE_ACID && e_is_organic ) )
+							if ( !e.isWaterDamageResistant() )
 							e.Damage( sdWater.damage_by_type[ this.type ] * GSPEED ); 
 						}
 					}
@@ -297,7 +312,7 @@ class sdWater extends sdEntity
 			}
 		}
 		
-		if ( !sdWorld.is_server )
+		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 		{
 			if ( this.type === sdWater.TYPE_LAVA )
 			if ( Math.random() < 0.05 )
@@ -317,10 +332,12 @@ class sdWater extends sdEntity
 				ent = new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_BLOOD_GREEN, sx: Math.sin(a)*s, sy: Math.cos(a)*s, filter:'hue-rotate(-90deg) saturate(1.5)' });
 				sdEntity.entities.push( ent );
 			}
-
-			return;
 		}
-		else
+		
+		if ( !sdWorld.is_server )
+		return;
+	
+		if ( sdWorld.is_server )
 		{
 			if ( this.type === sdWater.TYPE_TOXIC_GAS )
 			{

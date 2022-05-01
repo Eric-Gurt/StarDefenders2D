@@ -559,7 +559,15 @@ class sdTask extends sdEntity
 			
 			let seconds = Math.floor( this.time_left / 30 ); // Used to be "Math.floor( this.time_left / 30 * 1000 );" but seems to be inaccurate.
 			
-			PutMultilineText( Math.floor( seconds / 60 / 60 ) + ':' + ( Math.floor( seconds / 60 ) % 60 ) + ':' + ( seconds % 60 ), true );
+			function TwoDigits( n )
+			{
+				if ( n < 10 )
+				return '0' + n;
+			
+				return n;
+			}
+			
+			PutMultilineText( Math.floor( seconds / 60 / 60 ) + ':' + TwoDigits( Math.floor( seconds / 60 ) % 60 ) + ':' + TwoDigits( seconds % 60 ), true );
 		}
 		
 		ctx.globalAlpha = 1;

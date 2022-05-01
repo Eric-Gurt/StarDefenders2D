@@ -80,7 +80,7 @@ class sdOctopus extends sdEntity
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( this._hea > 0 )
-		if ( character.IsTargetable() && character.IsVisible() )
+		if ( character.IsTargetable() && character.IsVisible( this ) )
 		if ( character.hea > 0 )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
@@ -154,6 +154,8 @@ class sdOctopus extends sdEntity
 					ent.ttl = sdGun.disowned_guns_ttl;
 					ent._held_by = null;
 					sdEntity.entities.push( ent );
+					
+					sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
 				}
 				catch ( e )
 				{
@@ -208,7 +210,7 @@ class sdOctopus extends sdEntity
 		else
 		if ( this._current_target )
 		{
-			if ( this._current_target._is_being_removed || !this._current_target.IsTargetable() || !this._current_target.IsVisible() || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdOctopus.max_seek_range + 32 )
+			if ( this._current_target._is_being_removed || !this._current_target.IsTargetable() || !this._current_target.IsVisible( this ) || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdOctopus.max_seek_range + 32 )
 			this._current_target = null;
 			else
 			{
@@ -288,7 +290,7 @@ class sdOctopus extends sdEntity
 				{
 					from_entity = nears_raw[ i ];
 					
-					if ( ( from_entity.GetClass() === 'sdCharacter' && from_entity.IsVisible() ) ||
+					if ( ( from_entity.GetClass() === 'sdCharacter' && from_entity.IsVisible( this ) ) ||
 						 ( from_entity.GetClass() === 'sdBlock' && !from_entity._natural ) ||
 						 from_entity.GetClass() === 'sdCom' ||
 						 from_entity.GetClass() === 'sdNode' ||

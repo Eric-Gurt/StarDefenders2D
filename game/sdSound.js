@@ -74,7 +74,8 @@ class sdSound
 		MakeLoopAmbient( 'scary_monsters_in_the_dark', './audio/scary_monsters_in_the_dark.wav' );
 		MakeLoopAmbient( 'rain_low_res', './audio/rain_low_res.wav' );
 		MakeLoopAmbient( 'earthquake', './audio/earthquake.wav' );
-		MakeLoopAmbient( 'jetpack', './audio/jetpack.wav' );
+		//MakeLoopAmbient( 'jetpack', './audio/jetpack.wav' );
+		MakeLoopAmbient( 'jetpack', './audio/jetpack_hd2.wav' );
 		MakeLoopAmbient( 'hover_loop', './audio/hover_loop.wav' );
 		MakeLoopAmbient( 'amplifier_loop', './audio/amplifier_loop2.wav' );
 		MakeLoopAmbient( 'lava_loop', './audio/lava_loop4.wav' );
@@ -304,8 +305,14 @@ class sdSound
 				{
 					count_lava_loop += 0.02 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
 
-					if ( sdEntity.entities[ i ]._swimmers.size > 0 )
-					count_lava_burn += 0.15 * sdEntity.entities[ i ]._swimmers.size * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+					//if ( sdEntity.entities[ i ]._swimmers.size > 0 )
+					//count_lava_burn += 0.15 * sdEntity.entities[ i ]._swimmers.size * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+				
+					for ( let e of sdEntity.entities[ i ]._swimmers )
+					if ( !e.isWaterDamageResistant() )
+					{
+						count_lava_burn += 0.15 * 1 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+					}
 				}
 				else
 				if ( sdEntity.entities[ i ].GetClass() === 'sdRift' )

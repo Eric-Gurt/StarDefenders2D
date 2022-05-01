@@ -75,7 +75,7 @@ class sdQuickie extends sdEntity
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( this._hea > 0 )
-		if ( character.IsTargetable() && character.IsVisible() )
+		if ( character.IsTargetable() && character.IsVisible( this ) )
 		if ( character.hea > 0 )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
@@ -85,8 +85,9 @@ class sdQuickie extends sdEntity
 				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
 			{
 				this._current_target = character;
-
-				sdSound.PlaySound({ name:'quickie_alert', x:this.x, y:this.y, volume: 0.5 });
+				
+				sdSound.PlaySound({ name:'quickie_alert', x:this.x, y:this.y, volume: 0.2 });
+				
 			}
 		}
 	}
@@ -164,7 +165,7 @@ class sdQuickie extends sdEntity
 		else
 		if ( this._current_target )
 		{
-			if ( this._current_target._is_being_removed || !this._current_target.IsTargetable() || !this._current_target.IsVisible() || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdQuickie.max_seek_range + 32 )
+			if ( this._current_target._is_being_removed || !this._current_target.IsTargetable() || !this._current_target.IsVisible( this ) || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdQuickie.max_seek_range + 32 )
 			this._current_target = null;
 			else
 			{

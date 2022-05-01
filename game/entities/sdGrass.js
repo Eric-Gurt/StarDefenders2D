@@ -155,6 +155,7 @@ class sdGrass extends sdEntity
 	
 	onMovementInRange( from_entity )
 	{
+		if ( sdWorld.is_server )
 		if ( !this._is_being_removed )
 		if ( from_entity.is( sdCrystal ) )
 		if ( from_entity.type === sdCrystal.TYPE_CRYSTAL_CRAB )

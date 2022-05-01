@@ -1,5 +1,8 @@
+/*
 
+	Perhaps to make listeners (such as story characters) to be able to hear chat from players and react to closest options?
 
+*/
 class sdScript
 {
 	static init_class()

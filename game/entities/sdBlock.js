@@ -367,7 +367,7 @@ class sdBlock extends sdEntity
 
 		dmg = Math.abs( dmg / ( 1 + this._reinforced_level ) ); // Reinforced blocks have damage reduction
 		
-		if ( this._contains_class === 'sdVirus' || this._contains_class === 'sdQuickie' || this._contains_class === 'sdAsp' )
+		if ( this._contains_class === 'sdVirus' || this._contains_class === 'sdQuickie' || this._contains_class === 'sdAsp' || this._contains_class === 'weak_ground' )
 		dmg = this._hea + 1;
 		
 		if ( this._hea > 0 )
@@ -486,7 +486,7 @@ class sdBlock extends sdEntity
 									if ( parts.length < 2 ) // If worm is not corrupted, etc, spawn regular worm types
 									ent.kind = Math.random() < 0.15 ? 1 : 0; // 15% chance for the worm to be spiky
 									sdEntity.entities.push( ent );
-									sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
+									sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
 
 
 									map[ ( xx + 0 ) + ':' + ( yy + 0 ) ]._contains_class = null;
@@ -538,7 +538,7 @@ class sdBlock extends sdEntity
 
 									let ent = new sdWorld.entity_classes[ this._contains_class ]( params );
 									sdEntity.entities.push( ent );
-									sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
+									sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
 
 
 									map[ ( xx + 0 ) + ':' + ( yy + 0 ) ]._contains_class = null;
@@ -559,21 +559,27 @@ class sdBlock extends sdEntity
 						}
 						else
 						{
-							let parts = this._contains_class.split( '.' );
-							this._contains_class = parts[ 0 ];
-
-							let params = { x: this.x + this.width / 2, y: this.y + this.height / 2, tag:( parts.length > 1 )?parts[1]:null };
-
-							if ( this._contains_class_params )
+							if ( this._contains_class === 'weak_ground' )
 							{
-								for ( let i in this._contains_class_params )
-								params[ i ] = this._contains_class_params[ i ];
 							}
+							else
+							{
+								let parts = this._contains_class.split( '.' );
+								this._contains_class = parts[ 0 ];
 
-							let ent = new sdWorld.entity_classes[ this._contains_class ]( params );
-							sdEntity.entities.push( ent );
+								let params = { x: this.x + this.width / 2, y: this.y + this.height / 2, tag:( parts.length > 1 )?parts[1]:null };
 
-							sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
+								if ( this._contains_class_params )
+								{
+									for ( let i in this._contains_class_params )
+									params[ i ] = this._contains_class_params[ i ];
+								}
+
+								let ent = new sdWorld.entity_classes[ this._contains_class ]( params );
+								sdEntity.entities.push( ent );
+
+								sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
+							}
 						}
 					}
 					

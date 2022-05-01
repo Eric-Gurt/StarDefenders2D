@@ -96,6 +96,8 @@ class sdBullet extends sdEntity
 		this.sy = 0;
 		this.color = '#FFFF00';
 		
+		this._hittable_by_bullets = true;
+		
 		//globalThis.EnforceChangeLog( this, 'color' );
 		
 		this._start_x = this.x;
@@ -293,6 +295,9 @@ class sdBullet extends sdEntity
 				if ( this._owner2 )
 				if ( this._owner2 === from_entity._owner2 )
 				return false;
+		
+				if ( !this._hittable_by_bullets || !from_entity._hittable_by_bullets )
+				return false;
 			}
 
 
@@ -361,21 +366,14 @@ class sdBullet extends sdEntity
 
 		// Sub-step precision to time_left
 		if ( this.time_left < GSPEED )
-		GSPEED = Math.max( this.time_left - 0.001, 0.01 );
+		GSPEED = Math.max( this.time_left + 0.000001, 0.01 );
+		//GSPEED = Math.max( this.time_left - 0.001, 0.01 );
 		else
 		GSPEED = GSPEED_to_solve;
 
 		while ( GSPEED_to_solve > 0 )
 		{
 			GSPEED_to_solve -= GSPEED;
-
-			this.time_left -= GSPEED;
-			if ( this.time_left <= 0 )
-			{
-				this._hook = false;
-				this.remove();
-				return;
-			}
 
 			if ( this.ac > 0 )
 			{
@@ -465,6 +463,14 @@ class sdBullet extends sdEntity
 					this.remove();
 					return;
 				}
+			}
+
+			this.time_left -= GSPEED;
+			if ( this.time_left <= 0 )
+			{
+				this._hook = false;
+				this.remove();
+				return;
 			}
 			
 			if ( this._is_being_removed )
@@ -564,7 +570,7 @@ class sdBullet extends sdEntity
 			{
 				if ( from_entity.IsTargetable( this, !this._hook ) ) // Ignore safe areas only if not a hook
 				if ( !sdWorld.server_config.GetHitAllowed || sdWorld.server_config.GetHitAllowed( this, from_entity ) )
-				if ( this._damage < 0 || !this._owner || !from_entity.IsPlayerClass() || !this._owner.IsPlayerClass() || from_entity.cc_id === 0 || from_entity.cc_id !== this._owner.cc_id )
+				if ( this._damage < 0 || !this._owner || !from_entity.IsPlayerClass() || !this._owner.IsPlayerClass() || from_entity.cc_id === 0 || from_entity.cc_id !== this._owner.cc_id || from_entity === this._owner )
 				{
 					if ( sdWorld.is_server ) // Or else fake self-knock
 					{
@@ -574,9 +580,9 @@ class sdBullet extends sdEntity
 
 							if ( !this._wave )
 							{
-								if ( this.explosion_radius <= 0 )
-								if ( this.color !== 'transparent' )
-								sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_GLOW_HIT, color:this.color });
+								//if ( this.explosion_radius <= 0 )
+								//if ( this.color !== 'transparent' )
+								//sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_GLOW_HIT, color:this.color });
 
 								if ( this._damage > 1 )
 								if ( from_entity._last_hit_time !== sdWorld.time ) // Prevent flood from splash damage bullets
@@ -681,9 +687,9 @@ class sdBullet extends sdEntity
 						{
 							if ( !this._wave )
 							{
-								if ( this.explosion_radius <= 0 )
-								if ( this.color !== 'transparent' )
-								sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_GLOW_HIT, color:this.color });
+								//if ( this.explosion_radius <= 0 )
+								//if ( this.color !== 'transparent' )
+								//sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_GLOW_HIT, color:this.color });
 
 								if ( this._soft )
 								{
@@ -896,24 +902,9 @@ class sdBullet extends sdEntity
 		
 			let vel = Math.sqrt( this.sx * this.sx + this.sy * this.sy ) * 0.7;
 
-			/*ctx.fillStyle = this.color;
-			ctx.fillRect( -0.5 * 0.666, -vel/2, 1 * 0.666, vel );
-			
-			ctx.globalAlpha = 0.03;
-			ctx.fillRect( -0.5 - 5, -vel/2 - 5, 1 + 10, vel + 10 );
-			*/
-
-			ctx.globalAlpha = 0.5;
 			ctx.fillStyle = this.color;
-			ctx.fillRect( -0.5, -vel/2, 1, vel );
-			
-			ctx.globalAlpha = 0.03;
-			ctx.fillRect( -0.5 - 5, -vel/2 - 5, 1 + 10, vel + 10 );
-
-			ctx.fillStyle = '#ffffff';
 			ctx.globalAlpha = 1;
-			const b = 0.3 * 0.666;
-			ctx.fillRect( -0.5 * 0.666 + b, -vel/2 + b, 1 * 0.666 - 2*b, vel - 2*b );
+			ctx.fillRect( -0.5, -vel/2, 1, vel );
 		}
 	}
 }

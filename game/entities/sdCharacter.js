@@ -788,8 +788,13 @@ class sdCharacter extends sdEntity
 		return true;
 	
 		if ( observer_character )
-		if ( sdWorld.Dist2D( observer_character.x, observer_character.y, this.x, this.y ) < 20 )
-		return true;
+		{
+			let px = Math.max( observer_character.x + observer_character._hitbox_x1, Math.min( this.x, observer_character.x + observer_character._hitbox_x2 ) );
+			let py = Math.max( observer_character.y + observer_character._hitbox_y1, Math.min( this.y, observer_character.y + observer_character._hitbox_y2 ) );
+			
+			if ( sdWorld.Dist2D( px, py, this.x, this.y ) < 16 )
+			return true;
+		}
 		
 		if ( observer_character )
 		if ( sdWorld.GetComsNear( this.x, this.y, null, observer_character._net_id ).length > 0 )
@@ -2614,7 +2619,8 @@ class sdCharacter extends sdEntity
 
 				this._hook_once = true;
 			}
-
+			
+			
 			if ( this.hook_x !== 0 || this.hook_y !== 0 )
 			{
 				/*let my_ent = this;
@@ -3290,7 +3296,7 @@ class sdCharacter extends sdEntity
 		{
 			if ( from_entity.is( sdBlock ) )
 			{
-				if ( from_entity._contains_class === 'sdQuickie' )
+				if ( from_entity._contains_class === 'sdQuickie' || from_entity._contains_class === 'weak_ground' )
 				{
 					from_entity.Damage( 1 ); // Will break
 				}

@@ -536,6 +536,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdObelisk', type: 4, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdQuadro', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdOverlord', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdTutel', _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });

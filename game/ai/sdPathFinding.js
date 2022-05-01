@@ -19,6 +19,7 @@ import sdWorld from '../sdWorld.js';
 import sdCom from '../entities/sdCom.js';
 import sdWater from '../entities/sdWater.js';
 
+const ALLOW_AI_IMPORVEMENT_WARNINGS = false;
 
 class sdPathFinding
 {
@@ -139,8 +140,10 @@ class sdPathFinding
 			{
 				if ( !this.target._is_being_removed )
 				{
+					if ( ALLOW_AI_IMPORVEMENT_WARNINGS )
 					if ( sdWorld.time - this.rect_space_map.exist_until < 30000 )
 					console.warn( '[1] rect_space_map has already expired - possibly inefficient usage of pathfinding. Will recreate (expired by '+( sdWorld.time - this.rect_space_map.exist_until )+'ms)' );
+			
 					this.Reinit();
 				}
 				else
@@ -148,8 +151,10 @@ class sdPathFinding
 			}
 			else
 			{
+				if ( ALLOW_AI_IMPORVEMENT_WARNINGS )
 				if ( sdWorld.time - this.rect_space_map.exist_until < 30000 )
 				console.warn( '[2] rect_space_map has already expired - possibly inefficient usage of pathfinding. Will recreate (expired by '+( sdWorld.time - this.rect_space_map.exist_until )+'ms)' );
+		
 				this.Reinit();
 			}
 		}

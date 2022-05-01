@@ -911,6 +911,7 @@ class sdLongRangeTeleport extends sdEntity
 															for ( let i = 0; i < collected_entities_array.length; i++ )
 															if ( collected_entities_array[ i ].IsPlayerClass() )
 															if ( collected_entities_array[ i ]._socket )
+															//if ( collected_entities_array[ i ].hea > 0 )
 															collected_entities_array[ i ]._socket.Redirect( this.remote_server_url, response.one_time_keys[ i ] );
 												
 

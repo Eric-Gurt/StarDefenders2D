@@ -35,6 +35,7 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_GLOW_HIT = 10;
 		sdEffect.TYPE_POPCORN = 11;
 		sdEffect.TYPE_TELEPORT = 12;
+		sdEffect.TYPE_SHELL = 13;
 		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
@@ -63,8 +64,10 @@ class sdEffect extends sdEntity
 				sdWorld.CreateImageFromFile( 'blood2' ), 
 				sdWorld.CreateImageFromFile( 'blood3' ) 
 			],
-			blood_cloud: sdWorld.CreateImageFromFile( 'blood_cloud' ),
-			speed: 0.2,
+			//blood_cloud: sdWorld.CreateImageFromFile( 'blood_cloud' ),
+			speed: 0.3,
+			gravity: true,
+			random_rotation90: true,
 			random_flip: true
 		};
 		sdEffect.types[ sdEffect.TYPE_WALL_HIT ] = {
@@ -91,8 +94,8 @@ class sdEffect extends sdEntity
 			speed: 1.5,
 			random_flip: true,
 			random_rotation: true,
-			sound_to_play: 'explosion',
-			sound_to_play_volume: 0.5
+			sound_to_play: 'explosion3',
+			sound_to_play_volume: 1.5
 		};
 		sdEffect.types[ sdEffect.TYPE_CHAT ] = {
 			images: [],
@@ -129,8 +132,10 @@ class sdEffect extends sdEntity
 				sdWorld.CreateImageFromFile( 'blood2g' ), 
 				sdWorld.CreateImageFromFile( 'blood3g' ) 
 			],
-			blood_cloud: sdWorld.CreateImageFromFile( 'blood_cloudg' ),
-			speed: 0.2,
+			//blood_cloud: sdWorld.CreateImageFromFile( 'blood_cloudg' ),
+			speed: 0.3,
+			gravity: true,
+			random_rotation90: true,
 			random_flip: true
 		};
 		sdEffect.types[ sdEffect.TYPE_GIB_GREEN ] = {
@@ -171,9 +176,18 @@ class sdEffect extends sdEntity
 			duration: 9,
 			speed: 0.3,
 			random_flip: true,
-			random_rotation: false,
+			random_rotation: false
 		};
-		
+		sdEffect.types[ sdEffect.TYPE_SHELL ] = {
+			images: [ 
+				sdWorld.CreateImageFromFile( 'shell' ),
+			],
+			speed: 1 / 90,
+			random_speed_percentage: 0.1,
+			random_flip: false,
+			gravity: true,
+			collisions: true
+		};
 		
 	
 		sdEffect.translit_result_assumed_language = null;
@@ -314,7 +328,10 @@ class sdEffect extends sdEntity
 		this._duration = sdEffect.types[ this._type ].duration || sdEffect.types[ this._type ].images.length;
 		
 		this._xscale = ( sdEffect.types[ this._type ].random_flip && Math.random() < 0.5 ) ? -1 : 1;
-		this._rotation = sdEffect.types[ this._type ].random_rotation ? Math.random() * Math.PI * 2 : 0;
+		this._rotation = ( sdEffect.types[ this._type ].random_rotation * sdEffect.types[ this._type ].random_rotation90 ) ? Math.random() * Math.PI * 2 : 0;
+		
+		if ( sdEffect.types[ this._type ].random_rotation90 )
+		this._rotation = Math.round( this._rotation / ( Math.PI / 2 ) ) * ( Math.PI / 2 );
 		
 		this._text = ( params.text !== undefined ) ? params.text : null;
 		this._text_censored = ( params.text_censored !== undefined ) ? params.text_censored : null;
@@ -337,6 +354,11 @@ class sdEffect extends sdEntity
 		
 		this.sx = params.sx || 0;
 		this.sy = params.sy || 0;
+		
+		if ( this._type === sdEffect.TYPE_BLOOD || this._type === sdEffect.TYPE_BLOOD_GREEN )
+		{
+			this.sy -= 1;
+		}
 		
 		if ( sdEffect.types[ this._type ].sound_to_play )
 		sdSound.PlaySound({ name:sdEffect.types[ this._type ].sound_to_play, x:this.x, y:this.y, volume:sdEffect.types[ this._type ].sound_to_play_volume, _server_allowed:true });
@@ -488,6 +510,10 @@ class sdEffect extends sdEntity
 			  //debugger;
 		}
 		
+		if ( typeof params.rotation !== 'undefined' )
+		{
+			this._rotation = params.rotation;
+		}
 		
 		if ( this.x < sdWorld.world_bounds.x1 )
 		this.remove();
@@ -576,6 +602,9 @@ class sdEffect extends sdEntity
 		
 		if ( this._scale !== 1 )
 		ctx.scale( this._scale, this._scale );
+	
+		if ( this._rotation !== 0 )
+		ctx.rotate( this._rotation );
 		
 		//if ( this._type === sdEffect.TYPE_BLOOD )
 		if ( sdEffect.types[ this._type ].blood_cloud )

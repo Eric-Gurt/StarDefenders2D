@@ -3277,9 +3277,14 @@ class sdEntity
 				sdEntity.entities_by_net_id_cache_map.delete( this._net_id );
 				
 				if ( sdWorld.is_server )
+				if ( !sdWorld.is_singleplayer )
 				sdEntity.removed_entities_info.set( this._net_id, { entity: this, ttl: sdWorld.time + 10000 } );
 			}
 		}
+	}
+	isWaterDamageResistant()
+	{
+		return false;
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
