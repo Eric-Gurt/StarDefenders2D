@@ -753,7 +753,7 @@ class sdBullet extends sdEntity
 								if ( this._bouncy && !this.is_grenade )
 								this.remove(); // Prevent falkonian PSI cutter oneshotting lifebox
 
-								if ( from_entity.is( sdBlock ) && from_entity.material === sdBlock.MATERIAL_GROUND ) // Dirt damage bonus multiplier (relative to initial damage)
+								if ( from_entity.is( sdBlock ) && ( from_entity.material === sdBlock.MATERIAL_GROUND || from_entity.material === sdBlock.MATERIAL_CORRUPTION || from_entity.material === sdBlock.MATERIAL_CRYSTAL_SHARDS ) ) // Dirt damage bonus multiplier (relative to initial damage)
 								dmg += base_damage * this._dirt_mult;
 								//from_entity.Damage( dmg * this._dirt_mult, this._owner );
 

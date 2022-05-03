@@ -600,8 +600,8 @@ class sdSetrDestroyer extends sdEntity
 						bullet_obj.explosion_radius = 10 * 1.5;
 						bullet_obj.color = '#7acaff';
 						bullet_obj._homing = true;
-						bullet_obj._homing_mult = 0.02;
-						bullet_obj.ac = 0.1;
+						bullet_obj._homing_mult = 0.04;
+						bullet_obj.ac = 0.12;
 
 						sdEntity.entities.push( bullet_obj );
 
