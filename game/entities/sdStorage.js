@@ -12,6 +12,8 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdGun from './sdGun.js';
 import sdCrystal from './sdCrystal.js';
+import sdJunk from './sdJunk.js';
+import sdBarrel from './sdBarrel.js';
 
 class sdStorage extends sdEntity
 {
@@ -414,6 +416,22 @@ class sdStorage extends sdEntity
 					&& 
 					from_entity.type !== sdCrystal.TYPE_CRYSTAL_BIG 
 				) 
+
+				||
+
+				( 
+					this.type === sdStorage.TYPE_CRYSTALS && 
+					from_entity.is( sdJunk )
+					&& 
+					( from_entity.type === 1 || from_entity.type === 2 )
+				) 
+
+				||
+
+				( 
+					this.type === sdStorage.TYPE_CRYSTALS && 
+					from_entity.is( sdBarrel )
+				) 
 		
 				|| 
 				
@@ -444,6 +462,18 @@ class sdStorage extends sdEntity
 						
 						if ( from_entity.is( sdCrystal ) )
 						this.stored_names.push( from_entity.title+' ( ' + from_entity.matter_max + ' max matter )' );
+
+						if ( from_entity.is( sdJunk ) )
+						{
+							if ( from_entity.type === 1 )
+							this.stored_names.push( 'Alien battery' );
+
+							if ( from_entity.type === 2 )
+							this.stored_names.push( 'Lost particle container' );
+						}
+
+						if ( from_entity.is( sdBarrel ) )
+						this.stored_names.push( 'Barrel' );
 						
 						if ( from_entity.is( sdStorage ) )
 						this.stored_names.push( from_entity.title );
