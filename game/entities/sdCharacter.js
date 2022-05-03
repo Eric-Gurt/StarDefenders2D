@@ -846,11 +846,11 @@ class sdCharacter extends sdEntity
 		if ( sdWorld.last_hit_entity )
 		{
 			let found_enemy = false;
-			if ( sdWorld.last_hit_entity.GetClass() === 'sdCharacter' ||  sdWorld.last_hit_entity.GetClass() === 'sdDrone' || sdWorld.last_hit_entity.GetClass() === 'sdEnemyMech' || sdWorld.last_hit_entity.GetClass() === 'sdSpider')
+			if ( sdWorld.last_hit_entity.GetClass() === 'sdCharacter' ||  sdWorld.last_hit_entity.GetClass() === 'sdDrone' || sdWorld.last_hit_entity.GetClass() === 'sdEnemyMech' || sdWorld.last_hit_entity.GetClass() === 'sdSpider' || sdWorld.last_hit_entity.GetClass() === 'sdSetrDestroyer')
 			if ( sdWorld.last_hit_entity._ai_team !== this._ai_team )
 			found_enemy = true;
 
-			if ( sdWorld.last_hit_entity.GetClass() === 'sdAmphid' || sdWorld.last_hit_entity.GetClass() === 'sdAsp' || sdWorld.last_hit_entity.GetClass() === 'sdBadDog' || sdWorld.last_hit_entity.GetClass() === 'sdOctopus' || sdWorld.last_hit_entity.GetClass() === 'sdQuickie' || sdWorld.last_hit_entity.GetClass() === 'sdSandWorm' || sdWorld.last_hit_entity.GetClass() === 'sdVirus' ) 
+			if ( sdWorld.last_hit_entity.GetClass() === 'sdAmphid' || sdWorld.last_hit_entity.GetClass() === 'sdAsp' || sdWorld.last_hit_entity.GetClass() === 'sdBadDog' || sdWorld.last_hit_entity.GetClass() === 'sdOctopus' || sdWorld.last_hit_entity.GetClass() === 'sdQuickie' || sdWorld.last_hit_entity.GetClass() === 'sdSandWorm' || sdWorld.last_hit_entity.GetClass() === 'sdVirus' || sdWorld.last_hit_entity.GetClass() === 'sdTutel') 
 			found_enemy = true;
 
 			if ( sdWorld.last_hit_entity.GetClass() === 'sdCube' ) // Only confront cubes when they want to attack AI
@@ -865,7 +865,7 @@ class sdCharacter extends sdEntity
 
 	GetBehaviourAgainstTarget() // AI has specific ways to fight specific mobs sometimes, like running away from worms, octopus, quickies and virus.
 	{
-		if ( this._ai.target.GetClass() === 'sdOctopus' || this._ai.target.GetClass() === 'sdAmphid' || this._ai.target.GetClass() === 'sdSandWorm' || this._ai.target.GetClass() === 'sdQuickie' || this._ai.target.GetClass() === 'sdVirus' )
+		if ( this._ai.target.GetClass() === 'sdOctopus' || this._ai.target.GetClass() === 'sdAmphid' || this._ai.target.GetClass() === 'sdSandWorm' || this._ai.target.GetClass() === 'sdQuickie' || this._ai.target.GetClass() === 'sdVirus' || sdWorld.last_hit_entity.GetClass() === 'sdTutel' )
 		return sdCharacter.AI_MODEL_DISTANT;
 
 		return this._init_ai_model; // Return to normal behaviour against other mobs
