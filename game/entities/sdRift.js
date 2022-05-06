@@ -122,12 +122,16 @@ class sdRift extends sdEntity
 							if ( typeof ents[ i ].sy !== 'undefined' )
 							ents[ i ].sy -= ( ents[ i ].y - this.y ) / 10;
 
+
 							if ( ents[ i ].GetClass() === 'sdCharacter' )
 							{
 								ents[ i ].stability = Math.min( 0, ents[ i ].stability );
 								if ( ents[ i ].gun_slot !== 9 )
 								ents[ i ].DropWeapon( ents[ i ].gun_slot );
 							}
+
+							if ( ents[ i ].IsPlayerClass() )
+							ents[ i ].ApplyServerSidePositionAndVelocity( true, ( ( ents[ i ].x - this.x ) / 20 ), ( ( ents[ i ].y - this.y ) / 20 ) );
 
 							if ( ents[ i ].GetClass() !== 'sdGun' && ents[ i ].GetClass() !== 'sdCrystal' && ents[ i ].GetClass() !== 'sdBG' )
 							{
