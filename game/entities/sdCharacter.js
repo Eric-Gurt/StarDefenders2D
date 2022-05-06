@@ -865,7 +865,7 @@ class sdCharacter extends sdEntity
 
 	GetBehaviourAgainstTarget() // AI has specific ways to fight specific mobs sometimes, like running away from worms, octopus, quickies and virus.
 	{
-		if ( this._ai.target.GetClass() === 'sdOctopus' || this._ai.target.GetClass() === 'sdAmphid' || this._ai.target.GetClass() === 'sdSandWorm' || this._ai.target.GetClass() === 'sdQuickie' || this._ai.target.GetClass() === 'sdVirus' || sdWorld.last_hit_entity.GetClass() === 'sdTutel' )
+		if ( this._ai.target.GetClass() === 'sdOctopus' || this._ai.target.GetClass() === 'sdAmphid' || this._ai.target.GetClass() === 'sdSandWorm' || this._ai.target.GetClass() === 'sdQuickie' || this._ai.target.GetClass() === 'sdVirus' || this._ai.target.GetClass() === 'sdTutel' )
 		return sdCharacter.AI_MODEL_DISTANT;
 
 		return this._init_ai_model; // Return to normal behaviour against other mobs
