@@ -132,6 +132,7 @@ class sdRenderer
 			//window.onresize();
 			
 			sdRenderer.img_dark_lands = sdWorld.CreateImageFromFile( 'dark_lands' );
+			sdRenderer.img_dark_lands2 = sdWorld.CreateImageFromFile( 'dark_lands2' ); // For parallax background
 		}
 		
 		sdRenderer.image_filter_cache = new Map();
@@ -551,8 +552,13 @@ class sdRenderer
 				
 			
 				//ctx.drawImage( sdRenderer.img_dark_lands, 0,0, sdRenderer.screen_width, sdRenderer.screen_height );
-				ctx.drawImageFilterCache( sdRenderer.img_dark_lands, 0,0, sdRenderer.screen_width, sdRenderer.screen_height );
-				
+				ctx.drawImageFilterCache( sdRenderer.img_dark_lands, 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
+				//ctx.globalAlpha = 1; // Not sure if parallax stuff in front should be transparent during planet's daylight
+
+				//Parallax background
+				ctx.drawImageFilterCache( sdRenderer.img_dark_lands2, - sdRenderer.screen_width - ( sdWorld.camera.x % sdRenderer.screen_width ), sdRenderer.screen_height / 2, sdRenderer.screen_width, sdRenderer.screen_height / 2);
+				ctx.drawImageFilterCache( sdRenderer.img_dark_lands2, 0 - ( sdWorld.camera.x % sdRenderer.screen_width ), sdRenderer.screen_height / 2, sdRenderer.screen_width, sdRenderer.screen_height / 2);
+				ctx.drawImageFilterCache( sdRenderer.img_dark_lands2, sdRenderer.screen_width - ( sdWorld.camera.x % sdRenderer.screen_width ), sdRenderer.screen_height / 2, sdRenderer.screen_width, sdRenderer.screen_height / 2);
 				ctx.globalAlpha = 1;
 				
 			}
