@@ -232,6 +232,7 @@ class sdTask extends sdEntity
 		this._target = params.target || null;
 		this.target_hitbox_y1 = this._target ? this._target._hitbox_y1 : 0;
 		//this._target_title = sdWorld.ClassNameToProperName( this._target.GetClass(), this._target );
+		this.extract_target = params.extract_target || 0; // For "Extract entity tasks" , like "Rescue / Arrest Star Defender" event
 		
 		this._similarity_hash = params.similarity_hash; // In some cases it can be used to prevent spawning of similar tasks. For example it can be called 'Destroy-1239123921'
 		
@@ -492,13 +493,15 @@ class sdTask extends sdEntity
 				ctx.filter = 'hue-rotate(71deg) saturate(20)';
 			}
 		}
+
 		
-		if ( mission.appearance !== sdTask.APPEARANCE_NOTHING )
+		if ( mission.appearance !== sdTask.APPEARANCE_NOTHING || this.extract_target === 1 )
 		ctx.drawImageFilterCache( img, 
 			- 16, 
 			- 16, 
 			32,32 
 		);
+		
 
 		ctx.filter = 'none';
 	}

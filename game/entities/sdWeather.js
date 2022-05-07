@@ -1751,6 +1751,7 @@ class sdWeather extends sdEntity
 						similarity_hash:'EXTRACT-'+character_entity._net_id, 
 						executer: sdWorld.sockets[ i ].character,
 						target: character_entity,
+						extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
 						mission: sdTask.MISSION_LRTP_EXTRACTION,
 						difficulty: 0.14,
 						lrtp_ents_needed: 1,
@@ -1765,6 +1766,7 @@ class sdWeather extends sdEntity
 						similarity_hash:'EXTRACT-'+character_entity._net_id, 
 						executer: sdWorld.sockets[ i ].character,
 						target: character_entity,
+						extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
 						mission: sdTask.MISSION_LRTP_EXTRACTION,
 						difficulty: 0.14,
 						lrtp_ents_needed: 1,

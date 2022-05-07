@@ -1500,6 +1500,22 @@ class sdCharacter extends sdEntity
 				'You cannot harm me, you can only send me back.'
 				][ ~~( Math.random() * 7 ) ], false, false, false );
 		}
+		if ( this._ai_team === 6 ) // Criminal Star Defender
+		{
+			// Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false )
+			if ( closest.GetClass() === 'sdCharacter' )
+			if (closest._ai_team === 0 )
+			this.Say( [ 
+				'I refuse to answer for something I had not done!',
+				'I was just following orders.',
+				'One day you will be in my place.',
+				'Responsibility comes.',
+				'They will eventually issue a warrant on you too.',
+				'We are replacable, so I ran.',
+				'Dying seems like a better option to me. Come, I am ready.',
+				'What exactly will you get by capturing me?'
+			][ ~~( Math.random() * 8 ) ], false, false, false );
+		}
 		if ( this._ai_team === 7 ) // Setr faction
 		{
 			if ( Math.random() < 0.8 )
@@ -1535,6 +1551,8 @@ class sdCharacter extends sdEntity
 			if ( !this._ai.target )
 			{
 				this._ai.target = this.GetRandomEntityNearby();
+				if ( this._ai.target)
+				this.PlayAIAlertedSound( this._ai.target );
 			}
 
 			if ( this._ai.target && this._ai_enabled !== sdCharacter.AI_MODEL_TEAMMATE )
