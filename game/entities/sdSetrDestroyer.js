@@ -382,6 +382,8 @@ class sdSetrDestroyer extends sdEntity
 			
 			if ( sdWorld.is_server )
 			{
+				if ( this.hea < this._hmax ) 
+				this.hea += GSPEED; // Give them constant health regen
 				if ( this._move_dir_timer <= 0 )
 				{
 					this._move_dir_timer = 5;
