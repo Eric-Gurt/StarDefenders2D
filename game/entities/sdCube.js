@@ -266,6 +266,7 @@ class sdCube extends sdEntity
 						const probability_lost_converter = 0.075;
 						const probability_shotgun = 0.1;
 						const probability_triple_rail = 0.233;
+						const probability_teleporter = 0.233;
 						
 						let total_drop_probability = 0; // In else case it is always pistol or healing ray gun
 						
@@ -273,7 +274,7 @@ class sdCube extends sdEntity
 						total_drop_probability += probability_lost_converter + probability_shotgun + probability_triple_rail;
 						else
 						if ( this.kind === 2 ) // white
-						total_drop_probability += probability_lost_converter + probability_shotgun + probability_triple_rail;
+						total_drop_probability += probability_lost_converter + probability_shotgun + probability_triple_rail + probability_teleporter;
 						else
 						total_drop_probability += probability_shotgun + probability_triple_rail;
 
@@ -295,8 +296,11 @@ class sdCube extends sdEntity
 								if ( random_value < probability_lost_converter )
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_CUBE_SPEAR });
 								else
-								if ( random_value < random_value < probability_lost_converter + probability_shotgun )
+								if ( random_value < probability_lost_converter + probability_shotgun )
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_RAIL_SHOTGUN });
+								else
+								if ( random_value < probability_lost_converter + probability_shotgun + probability_teleporter )
+								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_CUBE_TELEPORTER });
 								else
 								gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_TRIPLE_RAIL });
 							}

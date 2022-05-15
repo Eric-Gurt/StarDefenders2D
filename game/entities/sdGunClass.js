@@ -12,6 +12,7 @@ import sdNode from './sdNode.js';
 import sdBullet from './sdBullet.js';
 import sdPortal from './sdPortal.js';
 import sdOverlord from './sdOverlord.js';
+import sdCom from './sdCom.js';
 
 /*
 
@@ -2963,6 +2964,42 @@ class sdGunClass
 			count: 1,
 			spawnable: false,
 			projectile_properties: { time_left: 30, explosion_radius: 19, model: 'rocket_proj', _damage: 16 * 3, color:sdEffect.default_explosion_color, ac:0.4, _homing: true, _homing_mult: 0.02, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 }
+		};
+
+		sdGun.classes[ sdGun.CLASS_CUBE_TELEPORTER = 93 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'cube_teleporter' ),
+			sound: 'cube_teleport',
+			title: 'Cube-teleporter',
+			sound_pitch: 0.5,
+			slot: 7,
+			reload_time: 30,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_velocity: 16,
+			spawnable: false,
+			allow_aim_assist: false,
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( sdWorld.is_server )
+				if ( gun._held_by )
+				if ( gun._held_by.IsPlayerClass() )
+				if ( gun._held_by.matter >= 70 )
+				if ( sdWorld.CheckLineOfSight( gun._held_by.x, gun._held_by.y, gun._held_by.look_x, gun._held_by.look_y, gun._held_by, sdCom.com_visibility_ignored_classes, null ) )
+				if ( !sdWorld.CheckWallExistsBox( gun._held_by.look_x - 16, gun._held_by.look_y - 16, gun._held_by.look_x + 16, gun._held_by.look_y + 16, gun._held_by, sdCom.com_visibility_ignored_classes, null, null ) )
+				{
+					gun._held_by.x = gun._held_by.look_x;
+					gun._held_by.y = gun._held_by.look_y;
+					gun._held_by.sx = 0;
+					gun._held_by.sy = 0;
+					gun._held_by.ApplyServerSidePositionAndVelocity( true, 0, 0 );
+					gun._held_by.matter -= 70;
+					return true;
+				}
+				return false;
+			},
+			projectile_properties: { _rail: true, time_left: 0, _damage: 1, color: '#ffffff'}
 		};
 
 		// Add new gun classes above this line //
