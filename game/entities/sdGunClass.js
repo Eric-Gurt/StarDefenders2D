@@ -3002,6 +3002,23 @@ class sdGunClass
 			projectile_properties: { _rail: true, time_left: 0, _damage: 1, color: '#ffffff'}
 		};
 
+		sdGun.classes[ sdGun.CLASS_RAYRIFLE = 94 ] =
+		{
+			image: sdWorld.CreateImageFromFile( 'rayrifle_tcorr' ),
+			sound: 'gun_rifle',
+			title: 'Ray Rifle TCoRR',
+			slot: 2,
+			reload_time: 2.8,
+			muzzle_x: 7,
+			ammo_capacity: 16,
+			count: 1,
+			spread: 0.01, // 0.03
+			projectile_properties: { _damage: 18, color: '#afdfff', penetrating: true }, // Damage used to be 27, but it was too OP for beginners.
+			matter_cost: 160,
+			min_build_tool_level: 6,
+			spawnable:true
+		};
+
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
