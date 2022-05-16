@@ -3015,8 +3015,7 @@ class sdGunClass
 			spread: 0.01, // 0.03
 			projectile_properties: { _damage: 18, color: '#afdfff', penetrating: true }, // Damage used to be 27, but it was too OP for beginners.
 			matter_cost: 160,
-			min_build_tool_level: 6,
-			spawnable:true
+			spawnable:false
 		};
 
 		// Add new gun classes above this line //
