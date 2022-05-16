@@ -3006,6 +3006,8 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'rayrifle_tcorr' ),
 			sound: 'gun_rifle',
+			sound_volume: 1.2,
+			sound_pitch: 0.2,
 			title: 'Ray Rifle TCoRR',
 			slot: 2,
 			reload_time: 2.8,
