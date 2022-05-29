@@ -83,6 +83,10 @@ class sdAsp extends sdEntity
 		
 		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
 	}
+	onBeforeRemove() // Right when .remove() is called for the first time
+	{
+		this._current_target = null;
+	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( this._hea > 0 )

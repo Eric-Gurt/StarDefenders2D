@@ -248,6 +248,7 @@ import sdHover from './game/entities/sdHover.js';
 import sdStorage from './game/entities/sdStorage.js';
 import sdAsp from './game/entities/sdAsp.js';
 import sdModeration from './game/server/sdModeration.js';
+import sdMemoryLeakSeeker from './game/server/sdMemoryLeakSeeker.js';
 import sdSandWorm from './game/entities/sdSandWorm.js';
 import sdGrass from './game/entities/sdGrass.js';
 import sdSlug from './game/entities/sdSlug.js';
@@ -1780,6 +1781,9 @@ sdWorld.server_config.onAfterSnapshotLoad();
 
 
 sdModeration.init_class();
+sdMemoryLeakSeeker.init_class();
+
+globalThis.sdMemoryLeakSeeker = sdMemoryLeakSeeker;
 
 if ( !SOCKET_IO_MODE )
 {
@@ -1846,6 +1850,7 @@ function IsGameActive()
 	
 	return ( game_ttl > 0 );
 }
+globalThis.IsGameActive = IsGameActive;
 
 var no_respawn_areas = []; // arr of { x, y, radius, until }
 
@@ -4036,6 +4041,8 @@ const ServerMainMethod = ()=>
 	}
 	
 	frame++;
+	
+	sdMemoryLeakSeeker.ThinkNow();
 	
 	//setTimeout( ServerMainMethod, 50 );
 	setTimeout( ServerMainMethod, Math.max( 5, sdWorld.logic_rate - ( Date.now() - ttt ) ) );

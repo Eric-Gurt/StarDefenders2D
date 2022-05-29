@@ -457,7 +457,7 @@ class sdCharacter extends sdEntity
 		}
 	}
 	
-	get tilt()
+	/*get tilt()
 	{
 		debugger;
 		return 0;
@@ -475,7 +475,7 @@ class sdCharacter extends sdEntity
 	set tilt_speed( v )
 	{
 		debugger;
-	}
+	}*/
 	
 	DamageStability( v ) // v is usually a velocity or damage received
 	{
@@ -739,7 +739,7 @@ class sdCharacter extends sdEntity
 		sdCharacter.characters.push( this );
 	}
 	
-	get _an()
+	/*get _an()
 	{
 		debugger; // sdCharacter\'s property _an is obsolete now
 		return 0;
@@ -748,7 +748,7 @@ class sdCharacter extends sdEntity
 	{
 		debugger; // sdCharacter\'s property _an is obsolete now
 		//console.log( 'sdCharacter\'s property _an is obsolete now' );
-	}
+	}*/
 	GetLookAngle( for_visuals=false )
 	{
 		if ( for_visuals )
@@ -825,7 +825,7 @@ class sdCharacter extends sdEntity
 		let teammates = sdWorld.GetAnythingNear( this.x, this.y, 200, null, [ 'sdCharacter' ] );
 		for ( let i = 0; i < teammates.length; i++ )
 		{
-			if ( teammates[ i ].GetClass() === 'sdCharacter' && teammates[ i ]._ai && teammates[ i ]._ai_team === this._ai_team  && teammates[ i ].hea > 0 )
+			if ( teammates[ i ].is( sdCharacter ) && teammates[ i ]._ai && teammates[ i ]._ai_team === this._ai_team  && teammates[ i ].hea > 0 )
 			{
 				if ( teammates[ i ].target ) // Check if teammate has a target already
 				if ( teammates[ i ].target.GetClass() !== 'sdBlock' ) // Check if the target is a threat
@@ -846,14 +846,14 @@ class sdCharacter extends sdEntity
 		if ( sdWorld.last_hit_entity )
 		{
 			let found_enemy = false;
-			if ( sdWorld.last_hit_entity.GetClass() === 'sdCharacter' ||  sdWorld.last_hit_entity.GetClass() === 'sdDrone' || sdWorld.last_hit_entity.GetClass() === 'sdEnemyMech' || sdWorld.last_hit_entity.GetClass() === 'sdSpider' || sdWorld.last_hit_entity.GetClass() === 'sdSetrDestroyer')
+			if ( sdWorld.last_hit_entity.is( sdCharacter ) ||  sdWorld.last_hit_entity.GetClass() === 'sdDrone' || sdWorld.last_hit_entity.GetClass() === 'sdEnemyMech' || sdWorld.last_hit_entity.GetClass() === 'sdSpider' || sdWorld.last_hit_entity.GetClass() === 'sdSetrDestroyer')
 			if ( sdWorld.last_hit_entity._ai_team !== this._ai_team )
 			found_enemy = true;
 
 			if ( sdWorld.last_hit_entity.GetClass() === 'sdAmphid' || sdWorld.last_hit_entity.GetClass() === 'sdAsp' || sdWorld.last_hit_entity.GetClass() === 'sdBadDog' || sdWorld.last_hit_entity.GetClass() === 'sdOctopus' || sdWorld.last_hit_entity.GetClass() === 'sdQuickie' || sdWorld.last_hit_entity.GetClass() === 'sdSandWorm' || sdWorld.last_hit_entity.GetClass() === 'sdVirus' || sdWorld.last_hit_entity.GetClass() === 'sdTutel') 
 			found_enemy = true;
 
-			if ( sdWorld.last_hit_entity.GetClass() === 'sdCube' ) // Only confront cubes when they want to attack AI
+			if ( sdWorld.last_hit_entity.is( sdCube ) ) // Only confront cubes when they want to attack AI
 			if ( this._nature_damage >= this._player_damage + 60 )
 			found_enemy = true;
 
@@ -877,14 +877,14 @@ class sdCharacter extends sdEntity
 		return;
 
 		if ( this._ai.target )
-		if ( this._ai.target.GetClass() !== 'sdBlock' ) // Check if the target is a threat
+		if ( !this._ai.target.is( sdBlock ) ) // Check if the target is a threat
 		if ( sdWorld.CheckLineOfSight( this.x, this.y, this._ai.target.x, this._ai.target.y, this, sdCom.com_visibility_ignored_classes, null ) )
 		return; // Does not target blocks if a threat is in line of sight.
 
 		let targets = sdWorld.GetAnythingNear( this.x, this.y + 12, 32, null, [ 'sdBlock' ] );
 		for ( let i = 0; i < targets.length; i++ )
 		{
-			if ( targets[ i ].GetClass() === 'sdBlock' )
+			if ( targets[ i ].is( sdBlock ) )
 			if ( targets[ i ]._armor_protection_level <= this._damage_mult ) // Target only damagable blocks
 			{
 				this._ai.target = targets[ i ];
@@ -1394,6 +1394,11 @@ class sdCharacter extends sdEntity
 		else
 		if ( this._socket !== null || this._my_hash !== undefined || !this.IsHostileAI() ) // Allow healing disconnected players
 		{
+			// Forget nearby entities that were only known because of character was dead and was giving out matter (memory leak prevention)
+			if ( typeof this._anything_near !== 'undefined' )
+			this._anything_near.length = 0;
+		
+			
 			if ( this.hea < 0 )
 			this.hea = 0;
 			
@@ -1503,7 +1508,7 @@ class sdCharacter extends sdEntity
 		if ( this._ai_team === 6 ) // Criminal Star Defender
 		{
 			// Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false )
-			if ( closest.GetClass() === 'sdCharacter' )
+			if ( closest.is( sdCharacter ) )
 			if (closest._ai_team === 0 )
 			this.Say( [ 
 				'I refuse to answer for something I had not done!',
@@ -1588,7 +1593,7 @@ class sdCharacter extends sdEntity
 					{
 						this._ai_dig = 0; // Stop digging and reset target if AI is targeting sdBlock
 						if ( this._ai.target )
-						if ( this._ai.target.GetClass() === 'sdBlock' )
+						if ( this._ai.target.is( sdBlock ) )
 						this._ai.target = null;
 					}
 				}
@@ -1600,7 +1605,7 @@ class sdCharacter extends sdEntity
 					{
 						this._ai_dig = 0; // Stop digging and reset target if AI is targeting sdBlock
 						if ( this._ai.target )
-						if ( this._ai.target.GetClass() === 'sdBlock' )
+						if ( this._ai.target.is( sdBlock ) )
 						this._ai.target = null;
 					}
 				}
@@ -1617,7 +1622,10 @@ class sdCharacter extends sdEntity
 
 				if ( this._ai.target )
 				{
-					if ( ( this._ai.target.hea || this._ai.target._hea || 0 ) > 0 && this._ai.target.IsVisible( this ) && sdWorld.Dist2D( this.x, this.y, this._ai.target.x, this._ai.target.y ) < 800 )
+					if ( ( this._ai.target.hea || this._ai.target._hea || 0 ) > 0 && 
+						 !this._ai.target._is_being_removed &&
+					     this._ai.target.IsVisible( this ) && 
+						 sdWorld.Dist2D( this.x, this.y, this._ai.target.x, this._ai.target.y ) < 800 )
 					{
 						closest = this._ai.target;
 					}
@@ -2816,6 +2824,9 @@ class sdCharacter extends sdEntity
 			}
 			else
 			{
+				if ( this._stands_on )
+				this._stands_on = null;
+			
 				if ( this.hea > 0 )
 				if ( this.act_x !== 0 )
 				if ( sdWorld.CheckWallExistsBox( this.x + this.act_x * 7, this.y, this.x + this.act_x * 7, this.y + 10, null, null, sdCharacter.climb_filter ) )
@@ -3144,7 +3155,7 @@ class sdCharacter extends sdEntity
 		/*
 		if ( sdWorld.last_hit_entity )
 		{
-			if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' )
+			if ( sdWorld.last_hit_entity.is( sdBlock ) )
 			if ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_SHARP )
 			this.Damage( Infinity );
 		}*/
@@ -3199,8 +3210,15 @@ class sdCharacter extends sdEntity
 	//onRemove() // Class-specific, if needed
 	onBeforeRemove() // Right when .remove() is called for the first time
 	{
+		// Release object
+		if ( this._ai )
+		this._ai.target = null;
+		
 		if ( this._ragdoll )
 		this._ragdoll.Delete();
+	
+		this._ignored_guns = [];
+		this._ignored_guns_until = [];
 	
 		if ( this._socket )
 		{

@@ -366,12 +366,18 @@ class sdOverlord extends sdEntity
 		this.hea = Math.min( this.hea + GSPEED, this.hmax );
 
 		if ( sdWorld.is_server )
-		if ( !this._current_target || this._peaceful_mode )
 		{
-			let e = this.GetRandomEntityNearby();
+			if ( !this._current_target || this._peaceful_mode )
+			{
+				let e = this.GetRandomEntityNearby();
+
+				if ( this.GetRelationLevelWithEntity( e ) < 0 )
+				this.SetTarget( e );
+			}
 			
-			if ( this.GetRelationLevelWithEntity( e ) < 0 )
-			this.SetTarget( e );
+			if ( this._droppen_gun_entity )
+			if ( this._droppen_gun_entity._is_being_removed )
+			this._droppen_gun_entity = null;
 		}
 		
 		let extremely_mad_intent = false;
@@ -504,7 +510,7 @@ class sdOverlord extends sdEntity
 				
 				if ( this.state_hp <= 0 ) // Only if healthy - in else case it won't be able to melee
 				if ( !this.has_gun )
-				if ( this._droppen_gun_entity && !this._droppen_gun_entity._is_being_removed )
+				if ( this._droppen_gun_entity )//&& !this._droppen_gun_entity._is_being_removed )
 				{
 					let t = this._droppen_gun_entity;
 					if ( sdWorld.inDist2D_Boolean( t.x, t.y, this.x, this.y, 100 ) )
@@ -514,7 +520,7 @@ class sdOverlord extends sdEntity
 						{
 							if ( t._held_by )
 							this.Say( 'This belongs to us' );
-						
+
 							this.SetTarget( t );
 						}
 					}

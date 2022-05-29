@@ -130,6 +130,24 @@ class sdSandWorm extends sdEntity
 		
 		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
 	}
+	onBeforeRemove()
+	{
+		// Forget all pointers
+		this._current_target = null;
+		this._in_surface = null;
+		this._in_water = null;
+		
+		if ( this.towards_head )
+		{
+			this.towards_head.towards_tail = null;
+			this.towards_head = null;
+		}
+		if ( this.towards_tail )
+		{
+			this.towards_tail.towards_head = null;
+			this.towards_tail = null;
+		}
+	}
 	GetHeadEntity()
 	{
 		var ptr = this;

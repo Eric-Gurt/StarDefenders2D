@@ -84,7 +84,7 @@ class sdCommandCentre extends sdEntity
 	{
 		super( params );
 		
-		this.hmax = 10000;
+		this.hmax = 4000;
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
 		
@@ -93,11 +93,11 @@ class sdCommandCentre extends sdEntity
 		
 		this.owner = params.owner || null;
 		
-		this.self_destruct_on = sdWorld.time + sdCommandCentre.time_to_live_without_matter_keepers_near; // Exists for 24 hours by default
+		//this.self_destruct_on = sdWorld.time + sdCommandCentre.time_to_live_without_matter_keepers_near; // Exists for 24 hours by default
 		
 		this.pending_team_joins = []; // array of net_ids, similar to how coms work. Owner is able to reject and accept these
 		
-		this._armor_protection_level = 0;
+		//this._armor_protection_level = 0;
 		
 		sdCommandCentre.centres.push( this );
 	}
@@ -308,18 +308,18 @@ class sdCommandCentre extends sdEntity
 				
 				this._update_version++;
 			}
-			else
-			this._armor_protection_level = 4; // Once reached max HP - it can be only destroyed with big explosions
+			//else
+			//this._armor_protection_level = 4; // Once reached max HP - it can be only destroyed with big explosions
 		}
 		
-		if ( sdWorld.time > this.self_destruct_on )
+		/*if ( sdWorld.time > this.self_destruct_on )
 		{
 			for ( var i = 0; i < sdWorld.sockets.length; i++ )
 			sdWorld.sockets[ i ].SDServiceMessage( 'Some Command Centre has expired' );
 		
 			//throw new Error('this.self_destruct_on = '+sdWorld.time+'::'+this.self_destruct_on+'::'+sdCommandCentre.time_to_live_without_matter_keepers_near);
 			this.remove();
-		}
+		}*/
 	}
 	get title()
 	{
@@ -333,11 +333,11 @@ class sdCommandCentre extends sdEntity
 	{
 		sdEntity.Tooltip( ctx, this.title, 0, -10 );
 		
-		if ( this.self_destruct_on > sdWorld.time + sdCommandCentre.time_to_live_without_matter_keepers_near - 10 * 1000 )
+		/*if ( this.self_destruct_on > sdWorld.time + sdCommandCentre.time_to_live_without_matter_keepers_near - 10 * 1000 )
 		sdEntity.Tooltip( ctx, 'No expiration', 0, -3, '#66ff66' );
 		else
 		sdEntity.Tooltip( ctx, Math.ceil( ( this.self_destruct_on - sdWorld.time ) / ( 1000 * 60 * 60 ) ) + ' hours left', 0, -3, '#ffff66' );
-		
+		*/
 		let w = 40;
 	
 		ctx.fillStyle = '#000000';

@@ -90,7 +90,7 @@ class sdQuadro extends sdEntity
 		
 		this.w1 = null; // Wheels, if this is a main part
 		this.w2 = null; // Wheels, if this is a main part
-		this.p = null; // Main part, if this is a vehicle
+		this.p = null; // Main part, if this is a wheel
 		
 		this._spawn_wheels = 1; // Whether vehicle is just made or not. If it is just made - it will spawn wheels
 		
@@ -677,6 +677,23 @@ class sdQuadro extends sdEntity
 	}*/
 	onRemove() // Class-specific, if needed
 	{
+		if ( this.p )
+		{
+			if ( this.p.w1 === this )
+			this.p.w1 = null;
+		
+			if ( this.p.w2 === this )
+			this.p.w2 = null;
+		}
+		else
+		{
+			if ( this.w1 )
+			this.w1.p = null;
+		
+			if ( this.w2 )
+			this.w2.p = null;
+		}
+		
 		if ( this._broken )
 		{
 			if ( this.part === 0 )

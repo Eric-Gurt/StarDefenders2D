@@ -3231,7 +3231,7 @@ class sdEntity
 	{
 		//if ( this.GetClass() === 'sdTask' )
 		//debugger;
-	
+		
 		// Method should be called only ever once per entity, but there was case where it didn't. Since it has no side effects I haven't debugged callstack of first removal, but it surely can be done (performance damage)
 		
 		// Just in case? Never needed but OnThink might return true for removal without .remove() call
@@ -3252,6 +3252,51 @@ class sdEntity
 		this.SetHiberState( sdEntity.HIBERSTATE_REMOVED );
 		
 		sdWorld.UpdateHashPosition( this, false );
+		
+		// Some more memory leak preventing cleanup logic
+		{
+			if ( typeof this._anything_near !== 'undefined' )
+			this._anything_near = null;
+
+			if ( typeof this._com_near_cache !== 'undefined' )
+			this._com_near_cache = null;
+
+			if ( typeof this._phys_last_touch !== 'undefined' )
+			{
+				if ( this._phys_last_touch )
+				{
+					if ( typeof this._phys_last_touch._phys_last_touch !== 'undefined' )
+					if ( this._phys_last_touch._phys_last_touch === this )
+					this._phys_last_touch._phys_last_touch = null;
+				}
+				
+				this._phys_last_touch = null;
+			}
+		
+			//_stands_on
+			
+			const is_vehicle = this.IsVehicle();
+			//const is_hard_collision = this._hard_collision;
+		
+			if ( is_vehicle )//|| is_hard_collision )
+			{
+				const sdCharacter = sdWorld.entity_classes.sdCharacter;
+				
+				for ( let i = 0; i < sdCharacter.characters.length; i++ )
+				{
+					if ( is_vehicle )
+					if ( sdCharacter.characters[ i ]._potential_vehicle === this )
+					sdCharacter.characters[ i ]._potential_vehicle = null;
+				
+					/*if ( is_hard_collision )
+					if ( sdCharacter.characters[ i ]._stands_on === this )
+					{
+						sdCharacter.characters[ i ]._stands_on = null;
+						sdCharacter.characters[ i ].stands = false;
+					}*/
+				}
+			}
+		}
 		
 		if ( this.IsGlobalEntity() )
 		{
