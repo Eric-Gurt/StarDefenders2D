@@ -154,17 +154,20 @@ class sdMemoryLeakSeeker
 				//let prop = sdMemoryLeakSeeker.scheduled_current_object_properties.shift();
 				let prop = sdMemoryLeakSeeker.scheduled_current_object_properties[ sdMemoryLeakSeeker.scheduled_current_object_properties_offset++ ];
 				
-				if ( sdMemoryLeakSeeker.current_object === sdEntity )
+				//if ( sdMemoryLeakSeeker.current_object === sdEntity )
+				if ( sdMemoryLeakSeeker.current_object === sdEntity.removed_entities_info ||
+					 sdMemoryLeakSeeker.current_object === sdEntity.entities ||
+					 sdMemoryLeakSeeker.current_object === sdEntity.entities_by_net_id_cache_map )
 				{
-					if ( prop === 'removed_entities_info' )
-					{
+					//if ( prop === 'removed_entities_info' )
+					//{
 						return true; // This one should remember removed entities for a short period of time
-					}
+					//}
 				}
 				else
 				{
 					if ( sdMemoryLeakSeeker.current_object.connected ) // Quick check if object is a connected socket
-					if ( prop === 'observed_entities' || prop === 'known_non_removed_dynamics' ) // Part of socket
+					if ( prop === 'observed_entities' || prop === 'known_non_removed_dynamics' || prop === 'character' ) // Part of socket
 					{
 						return true; // This should be allowed
 					}

@@ -3501,7 +3501,7 @@ const ServerMainMethod = ()=>
 		for ( var i = 0; i < sockets.length; i++ )
 		{
 			let socket = sockets[ i ]; // can disappear from array in the middle of loop
-
+			
 			if ( !SOCKET_IO_MODE )
 			{
 				
@@ -3988,6 +3988,11 @@ const ServerMainMethod = ()=>
 								sdWorld.last_slowest_class, // 8
 								socket.sent_messages_last // 9
 							];
+							
+							// Await can happen after disconnection and full GC removal of any pointer on socket
+							if ( !socket.connected )
+							return;
+
 
 							let full_msg_story = [ 
 								snapshot_only_statics, // 0
