@@ -95,18 +95,9 @@ class sdDoor extends sdEntity
 			this._hea -= dmg;
 			else
 			{
-				if ( initiator )
-				if ( initiator._socket )
-				if ( initiator._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
-				{
-					initiator._last_damage_upg_complain = sdWorld.time;
-					if ( Math.random() < 0.5 )
-					initiator.Say( 'This entity is protected by a base shielding unit' );
-					else
-					initiator.Say( 'A base shielding unit is protecting this' );
-				}
-
-				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:0.2 });
+				this._shielded.ProtectedEntityAttacked( this, dmg, initiator );
+				
+				/*sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:0.2 });
 				this._shielded.matter_crystal = Math.max( 0, this._shielded.matter_crystal - dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp );
 
 				if ( this._shielded.matter_crystal >= 50000 )
@@ -121,7 +112,7 @@ class sdDoor extends sdEntity
 							sdWorld.SendEffect({ x:this.x + ( this._hitbox_x2 / 2 ), y:this.y + ( this._hitbox_y2 / 2 ), x2:initiator.x, y2:initiator.y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
 						}
 					}
-				}
+				}*/
 			}
 
 			/*if ( this._shielded === null || dmg === Infinity )

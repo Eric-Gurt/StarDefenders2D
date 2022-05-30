@@ -41,6 +41,8 @@ class sdWorld
 		console.log('sdWorld class initiated');
 		sdWorld.logic_rate = 16; // for server
 		
+		sdWorld.CHUNK_SIZE = CHUNK_SIZE;
+		
 		//sdWorld.max_update_rate = 64;
 		sdWorld.max_update_rate = 75; // For weaker servers (more like bandwidth-limited)
 		
@@ -1231,6 +1233,7 @@ class sdWorld
 			for ( i = 0; i < arr.length; i++ )
 			//if ( arr[ i ].GetClass() === 'sdCom' ) can take up to 11% of execution time
 			//if ( arr[ i ] instanceof sdCom )
+			if ( !arr[ i ]._is_being_removed )
 			if ( arr[ i ].is( sdCom ) )
 			if ( require_auth_for_net_id === null || arr[ i ].subscribers.indexOf( require_auth_for_net_id ) !== -1 /*|| arr[ i ].subscribers.indexOf( 'sdCharacter' ) !== -1*/ )
 			if ( ret.indexOf( arr[ i ] ) === -1 )
@@ -1273,6 +1276,7 @@ class sdWorld
 			for ( i = 0; i < arr.length; i++ )
 			//if ( arr[ i ].GetClass() === 'sdCharacter' )
 			//if ( arr[ i ] instanceof sdCharacter )
+			if ( !arr[ i ]._is_being_removed )
 			if ( arr[ i ].is( sdCharacter ) )
 			if ( require_auth_for_net_id_by_list === null /*|| ( arr[ i ]._coms_allowed && require_auth_for_net_id_by_list.indexOf( arr[ i ]._net_id ) !== -1 )*/ )
 			if ( ret.indexOf( arr[ i ] ) === -1 )
@@ -1305,6 +1309,8 @@ class sdWorld
 			for ( i = 0; i < arr.length; i++ )
 			{
 				e = arr[ i ];
+				
+				if ( !e._is_being_removed )
 				if ( specific_classes === null || specific_classes.indexOf( e.GetClass() ) !== -1 )
 				{
 					x1 = e._hitbox_x1;
@@ -2141,7 +2147,7 @@ class sdWorld
 								let id = sdEntity.entities.indexOf( e );
 								if ( id === -1 )
 								{
-									console.log('Removing unlisted entity ' + e.GetClass() + ', hiberstate was ' + hiber_state );
+									console.log('Removing unlisted entity ' + e.GetClass() + ', hiberstate was ' + hiber_state + '. Entity was made at: ' + e._stack_trace );
 									debugger;
 								}
 								else

@@ -230,7 +230,8 @@ class sdShop
 		sdShop.options.push({ _class: 'sdLongRangeTeleport', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdCrystalCombiner', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdRescueTeleport', _category:'Base equipment' });
-		sdShop.options.push({ _class: 'sdBaseShieldingUnit', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:0, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:1, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdConveyor', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdConveyor', filter:'sepia(1) saturate(2) hue-rotate(30deg) brightness(0.8)', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdConveyor', filter:'sepia(1) saturate(1.5) hue-rotate(170deg) brightness(0.7)', _category:'Base equipment' });
@@ -538,6 +539,11 @@ class sdShop
 			sdShop.options.push({ _class: 'sdOverlord', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdTutel', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGrub', _category:'Development tests' });
+			
+
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 2, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 3, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 4, _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });

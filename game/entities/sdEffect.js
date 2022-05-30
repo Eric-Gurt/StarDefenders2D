@@ -316,6 +316,9 @@ class sdEffect extends sdEntity
 		this._y2 = params.y2;
 		this._color = params.color;
 		
+		//if ( this._color.indexOf(' ') !== -1 )
+		//debugger;
+		
 		this._scale = params.scale || 1;
 		
 		this._sd_tint_filter = null;//sdWorld.hexToRgb( params.color );
@@ -762,9 +765,14 @@ class sdEffect extends sdEntity
 			if ( this._sd_tint_filter === null )
 			{
 				this._sd_tint_filter = sdWorld.hexToRgb( this._color );
-				this._sd_tint_filter[ 0 ] /= 255;
-				this._sd_tint_filter[ 1 ] /= 255;
-				this._sd_tint_filter[ 2 ] /= 255;
+				if ( this._sd_tint_filter )
+				{
+					this._sd_tint_filter[ 0 ] /= 255;
+					this._sd_tint_filter[ 1 ] /= 255;
+					this._sd_tint_filter[ 2 ] /= 255;
+				}
+				else
+				debugger;
 			}
 			
 			ctx.blend_mode = THREE.AdditiveBlending;

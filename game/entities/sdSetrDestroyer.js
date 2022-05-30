@@ -129,7 +129,7 @@ class sdSetrDestroyer extends sdEntity
 					bullet_obj1.explosion_radius = 10; 
 					bullet_obj1.model = 'ball';
 					bullet_obj1._damage= 5;
-					bullet_obj1.color ='# 0000c8';
+					bullet_obj1.color ='#0000c8';
 					bullet_obj1._dirt_mult = 1;
 
 					sdEntity.entities.push( bullet_obj1 );
@@ -147,7 +147,7 @@ class sdSetrDestroyer extends sdEntity
 					bullet_obj2.explosion_radius = 10; 
 					bullet_obj2.model = 'ball';
 					bullet_obj2._damage= 5;
-					bullet_obj2.color ='# 0000c8';
+					bullet_obj2.color ='#0000c8';
 					bullet_obj2._dirt_mult = 1;
 					sdEntity.entities.push( bullet_obj2 );
 
@@ -164,7 +164,7 @@ class sdSetrDestroyer extends sdEntity
 					bullet_obj3.explosion_radius = 10; 
 					bullet_obj3.model = 'ball';
 					bullet_obj3._damage= 5;
-					bullet_obj3.color ='# 0000c8';
+					bullet_obj3.color ='#0000c8';
 					bullet_obj3._dirt_mult = 1;
 
 					sdEntity.entities.push( bullet_obj3 );
@@ -182,7 +182,7 @@ class sdSetrDestroyer extends sdEntity
 					bullet_obj4.explosion_radius = 10; 
 					bullet_obj4.model = 'ball';
 					bullet_obj4._damage= 5;
-					bullet_obj4.color ='# 0000c8';
+					bullet_obj4.color ='#0000c8';
 					bullet_obj4._dirt_mult = 1;
 					sdEntity.entities.push( bullet_obj4 );
 	}

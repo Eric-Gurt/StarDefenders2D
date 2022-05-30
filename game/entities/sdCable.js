@@ -58,7 +58,8 @@ class sdCable extends sdEntity
 			'sdPlayerDrone',
 			'sdSunPanel',
 			'sdCommandCentre',
-			'sdLongRangeTeleport'
+			'sdLongRangeTeleport',
+			'sdBaseShieldingUnit'
 		];
 		
 		// Override protection

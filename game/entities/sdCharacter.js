@@ -617,8 +617,9 @@ class sdCharacter extends sdEntity
 		
 		this._crouch_intens = 0;
 		
-		this._ignored_guns = [];
-		this._ignored_guns_until = [];
+		//this._ignored_guns = [];
+		//this._ignored_guns_until = [];
+		this._ignored_guns_infos = []; // arr of { ent, until }
 		
 		this._inventory = []; this._inventory.length = 10; this._inventory.fill( null );
 		this.gun_slot = 0;
@@ -1553,8 +1554,10 @@ class sdCharacter extends sdEntity
 				return;
 			}
 
-			if ( !this._ai.target )
+			if ( !this._ai.target || this._ai.target._is_being_removed )
 			{
+				this._ai.target = null;
+				
 				this._ai.target = this.GetRandomEntityNearby();
 				if ( this._ai.target)
 				this.PlayAIAlertedSound( this._ai.target );
@@ -1941,6 +1944,10 @@ class sdCharacter extends sdEntity
 		return { x: m1[ 4 ], y: m1[ 5 ] };*/
 	}
 	
+	DoStuckCheck() // Makes _hard_collision-less entities receive unstuck logic
+	{
+		return true;
+	}
 	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call. Return true if entity needs unstuck logic appleid, which can be performance-damaging too
 	{
 		// 14 is a full width, so revived players don't stuck in each other
@@ -3217,8 +3224,8 @@ class sdCharacter extends sdEntity
 		if ( this._ragdoll )
 		this._ragdoll.Delete();
 	
-		this._ignored_guns = [];
-		this._ignored_guns_until = [];
+		//this._ignored_guns = [];
+		//this._ignored_guns_until = [];
 	
 		if ( this._socket )
 		{
@@ -3260,6 +3267,8 @@ class sdCharacter extends sdEntity
 				this._speak_id = -1;
 			}
 		}
+		
+		this._ignored_guns_infos = null;
 	}
 	
 	DropWeapons()
@@ -3308,8 +3317,7 @@ class sdCharacter extends sdEntity
 				this._inventory[ i ].sx += Math.sin( an ) * 5;
 				this._inventory[ i ].sy += Math.cos( an ) * 5;
 				
-				this._ignored_guns.push( this._inventory[ i ] );
-				this._ignored_guns_until.push( sdWorld.time + 300 );
+				this._ignored_guns_infos.push( { ent: this._inventory[ i ], until: sdWorld.time + 300 } );
 			}
 
 			this._inventory[ i ].ttl = sdGun.disowned_guns_ttl;
@@ -3321,6 +3329,32 @@ class sdCharacter extends sdEntity
 		}
 		//else
 		//console.log( this.title + ' is unable to drop drop gun with slot ' + i );
+	}
+	
+	IsGunIgnored( from_entity, fast_check ) // fast_check causes it to skip expiration logic
+	{
+		let will_ignore_pickup = false;
+
+		for ( var i = 0; i < this._ignored_guns_infos.length; i++ )
+		{
+			if ( !fast_check )
+			if ( sdWorld.time > this._ignored_guns_infos[ i ].until )
+			{
+				this._ignored_guns_infos.splice( i, 1 );
+				i--;
+				continue;
+			}
+
+			if ( this._ignored_guns_infos[ i ].ent === from_entity )
+			{
+				will_ignore_pickup = true;
+				
+				if ( fast_check )
+				break;
+			}
+		}
+
+		return will_ignore_pickup;
 	}
 
 	onMovementInRange( from_entity )
@@ -3345,21 +3379,13 @@ class sdCharacter extends sdEntity
 					throw new Error('[ 1 ] How did character touch gun that is _is_being_removed? Gun snapshot: ' + JSON.stringify( from_entity.GetSnapshot( GetFrame(), true ) ) );
 				}
 
-				for ( var i = 0; i < this._ignored_guns_until.length; i++ )
-				{
-					if ( sdWorld.time > this._ignored_guns_until[ i ] )
-					{
-						this._ignored_guns.splice( i, 1 );
-						this._ignored_guns_until.splice( i, 1 );
-						i--;
-						continue;
-					}
-				}
-				
+				let will_ignore_pickup = this.IsGunIgnored( from_entity, false );
+
 				if ( from_entity._held_by === null )
 				{
 
-					if ( this._ignored_guns.indexOf( from_entity ) === -1 )
+					if ( !will_ignore_pickup )
+					//if ( this._ignored_guns.indexOf( from_entity ) === -1 )
 					//if ( Math.abs( from_entity.x - this.x ) < 8 )
 					//if ( Math.abs( from_entity.y - this.y ) < 16 )
 					{

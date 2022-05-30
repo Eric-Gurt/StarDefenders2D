@@ -132,6 +132,15 @@ class sdCharacterRagdoll
 			this.springs[ this.springs.length - 1 ].radius += 0.6;
 		}
 		
+		for ( let i = 0; i < this.bones.length; i++ )
+		{
+			let dx = this.character.x + ( this.character._hitbox_x1 + this.character._hitbox_x2 ) / 2;
+			let dy = this.character.y + ( this.character._hitbox_y1 + this.character._hitbox_y2 ) / 2;
+			
+			this.bones[ i ].x = dx + Math.random() - 0.5;
+			this.bones[ i ].y = dy + Math.random() - 0.5;
+		}
+		
 		this.springs.sort( (a,b)=>a.z_offset-b.z_offset );
 		
 		this._stress = 0;
@@ -142,7 +151,8 @@ class sdCharacterRagdoll
 	
 	UseCorrections()
 	{
-		return ( this.character.hea <= 0 );
+		//return ( this.character.hea <= 0 );
+		return ( this.character.hea <= 0 || this.character.stability <= 100 );
 	}
 	
 	MoveBone( bone, x, y )
@@ -727,6 +737,8 @@ class sdCharacterRagdoll
 			sdEntity.entities.push( soft_bone );
 			this.springs.push( new sdSpring( bone, soft_bone, null, 0, 0, 0, sdCharacterRagdoll.spring_both ) );
 			this.bones.push( soft_bone );
+			
+			bone._soft_bone = soft_bone;
 		}
 	
 		this[ part_name ] = bone;
@@ -810,7 +822,40 @@ class sdCharacterRagdoll
 		
 		if ( use_corrections )
 		{
+			dx = this.character.x + ( this.character._hitbox_x1 + this.character._hitbox_x2 ) / 2 - ( this.torso.x + this.chest.x ) / 2;
+			dy = this.character.y + ( this.character._hitbox_y1 + this.character._hitbox_y2 ) / 2 - ( this.torso.y + this.chest.y ) / 2;
 
+
+			this.chest.x += dx;
+			this.chest.y += dy;
+			
+			this.torso.x += dx;
+			this.torso.y += dy;
+			this.torso.sx = this.character.sx;
+			this.torso.sy = this.character.sy;
+			
+			if ( this.torso._soft_bone )
+			{
+				this.torso._soft_bone.x = this.torso.x;
+				this.torso._soft_bone.y = this.torso.y;
+				this.torso._soft_bone.sx = this.torso.sx;
+				this.torso._soft_bone.sy = this.torso.sy;
+			}
+			
+			if ( this.chest._soft_bone )
+			{
+				this.chest._soft_bone.x = this.chest.x;
+				this.chest._soft_bone.y = this.chest.y;
+				this.chest._soft_bone.sx = this.chest.sx;
+				this.chest._soft_bone.sy = this.chest.sy;
+			}
+			
+			
+			for ( i = 0; i < this.bones.length; i++ )
+			{
+				
+			}
+			/*
 			// Pulling towards logical server-side position of sdCharacter
 			avx = 0;
 			avy = 0;
@@ -866,7 +911,7 @@ class sdCharacterRagdoll
 				{
 					this.bones[ i ].RelaxedPush( dx * p, dy * p );
 				}
-			}
+			}*/
 
 		}
 		
@@ -892,13 +937,6 @@ class sdCharacterRagdoll
 					{
 						this.bones[ i ]._phys_last_sx = ( this.bones[ i ].sx > 0 );
 						this.bones[ i ]._phys_last_sy = ( this.bones[ i ].sy > 0 );
-						/*
-						if ( this.bones[ i ]._phys_sleep >= 0 && this.bones[ i ]._phys_sleep < 10 )
-						{
-							//this.bones[ i ]._phys_sleep / 10
-							this.bones[ i ].sx = sdWorld.MorphWithTimeScale( this.bones[ i ].sx, 0, 0.9, GSPEED );
-							this.bones[ i ].sy = sdWorld.MorphWithTimeScale( this.bones[ i ].sy, 0, 0.9, GSPEED );
-						}*/
 					}
 					else
 					{
@@ -909,11 +947,6 @@ class sdCharacterRagdoll
 
 						if ( this.character.hea <= 0 )
 						this.bones[ i ].sy += sdWorld.gravity * GSPEED;
-						/*else
-						if ( this.character.stability <= 100 )
-						{
-							this.bones[ i ].sy += sdWorld.gravity * GSPEED * Math.min( 1, 1 - this.character.stability / 100 );
-						}*/
 					}
 				}
 				else
@@ -1229,6 +1262,10 @@ class sdBone extends sdEntity
 			}
 		}
 	}
+	DoStuckCheck() // Makes _hard_collision-less entities receive unstuck logic
+	{
+		return true;
+	}
 	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call. Return true if entity needs unstuck logic appleid, which can be performance-damaging too
 	{
 		this.ragdoll._ignore_sounds_until = sdWorld.time + 100;
@@ -1261,6 +1298,7 @@ class sdBone extends sdEntity
 		this._friction_remain = params.friction_remain || 0.7;
 		
 		this._soft_bone_of = params.soft_bone_of || null;
+		this._soft_bone = null;
 		
 		this._can_make_sound = 0;
 		

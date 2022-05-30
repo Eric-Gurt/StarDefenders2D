@@ -2556,6 +2556,7 @@ class sdWeather extends sdEntity
 							if ( sdWorld.CheckWallExistsBox( x - 4, y + 4, x+16 + 4, y+16 + 4, null, null, [ 'sdBlock' ] ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) )  )
 							{
 								//sdWeather.last_crystal_near_quake.Damage( 15 );
+								if ( sdWeather.last_crystal_near_quake.IsTargetable( this ) )
 								sdWeather.last_crystal_near_quake.Damage( 20 );
 							}
 						}

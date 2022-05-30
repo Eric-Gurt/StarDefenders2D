@@ -1882,8 +1882,8 @@ io.on("connection", (socket) =>
 {
 	socket.likely_a_real_player = true; // Can be a sign of webcrawler too, though these are likely to disconnect quickly
 	
-	//socket.packets_sent = 0;
-	//socket.packets_dropped = 0;
+	// Note: Make sure to remove all pointers at socket.on('disconnect', () => 
+	
 	if ( !SOCKET_IO_MODE )
 	{
 		const old_on = socket.on;
@@ -3303,6 +3303,13 @@ io.on("connection", (socket) =>
 			if ( sockets_by_ip[ ip ].length === 0 )
 			delete sockets_by_ip[ ip ];
 		
+			socket.observed_entities = null;
+			socket.sd_events = null;
+			socket.known_statics_versions_map2 = null;
+			socket.known_non_removed_dynamics = null;
+			socket.lost_messages = null;
+			socket.sent_messages = null;
+		
 			UpdateOnlineCount();
 			
 		},0);
@@ -3450,6 +3457,8 @@ const ServerMainMethod = ()=>
 		game_ttl--;
 		
 		sdWorld.HandleWorldLogic( frame );
+							
+		const CHUNK_SIZE = sdWorld.CHUNK_SIZE;
 		
 		let unwritable = 0;
 		for ( var i = 0; i < sockets.length; i++ )
@@ -3691,9 +3700,12 @@ const ServerMainMethod = ()=>
 								vision_cells_cache[ socket.camera.scale ] = 
 									cells = 
 										[];
+								
 
-								for ( let x = min_x; x < max_x; x += 32 )
-								for ( let y = min_y; y < max_y; y += 32 )
+								//for ( let x = min_x; x < max_x; x += 32 )
+								//for ( let y = min_y; y < max_y; y += 32 )
+								for ( let x = min_x; x < max_x; x += CHUNK_SIZE )
+								for ( let y = min_y; y < max_y; y += CHUNK_SIZE )
 								{
 									cells.push({ x: x - min_x, y: y - min_y, dist: sdWorld.Dist2D( (min_x+max_x)/2, (min_y+max_y)/2, x, y ) });
 								}

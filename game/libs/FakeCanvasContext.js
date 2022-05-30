@@ -272,13 +272,17 @@ class FakeCanvasContext
 		let image_specific_hash_keeper;// = null;
 		
 		image_specific_hash_keeper = this.texture_cache.get( image );
-			
+
 		//if ( !this.texture_cache.has( image ) )
 		if ( image_specific_hash_keeper === undefined )
 		{
-			image_specific_hash_keeper = {
+			/*image_specific_hash_keeper = {
 				_last_used: this.frame
-			};
+			};*/
+			
+			image_specific_hash_keeper = new Map();
+			image_specific_hash_keeper._last_used = this.frame;
+			
 			this.texture_cache.set( image, image_specific_hash_keeper );
 			this.texture_cache_keys.push( image );
 		}
@@ -288,12 +292,14 @@ class FakeCanvasContext
 			image_specific_hash_keeper._last_used = this.frame;
 		}
 	
+		r = image_specific_hash_keeper.get( crop_hash );
 		
-		if ( typeof image_specific_hash_keeper[ crop_hash ] !== 'undefined' )
+		/*if ( typeof image_specific_hash_keeper[ crop_hash ] !== 'undefined' )
 		{
 			r = image_specific_hash_keeper[ crop_hash ];
 		}
-		else
+		else*/
+		if ( r === undefined )
 		{
 			if ( image === this._stroke_ptr )
 			{
@@ -481,7 +487,8 @@ class FakeCanvasContext
 			}
 			
 			
-			image_specific_hash_keeper[ crop_hash ] = r;
+			//image_specific_hash_keeper[ crop_hash ] = r;
+			image_specific_hash_keeper.set( crop_hash, r );
 			
 			//if ( this.debug_new )
 			//console.warn( 'New crop_hash: ', image, crop_hash );
@@ -874,16 +881,25 @@ class FakeCanvasContext
 			this.gc_loopie = ( this.gc_loopie + 1 ) % this.texture_cache_keys.length;
 			
 			var cache = this.texture_cache.get( this.texture_cache_keys[ this.gc_loopie ] );
+			
 			if ( cache._last_used < this.frame - 30 ) // At least 1 second old, useful for rain case
 			{
-				for ( var key in cache )
+				/*for ( var key in cache )
 				if ( key !== '_last_used' )
 				{
 					var m = cache[ key ];
 					m.dispose();
 					if ( typeof m.userData.customDepthMaterial !== 'undefined' )
 					m.userData.customDepthMaterial.dispose();
-				}
+				}*/
+				
+				cache.forEach( ( m, key )=>
+				{
+					m.dispose();
+					
+					if ( typeof m.userData.customDepthMaterial !== 'undefined' )
+					m.userData.customDepthMaterial.dispose();
+				});
 				
 				this.texture_cache.delete( this.texture_cache_keys[ this.gc_loopie ] );
 				this.texture_cache_keys.splice( this.gc_loopie, 1 );

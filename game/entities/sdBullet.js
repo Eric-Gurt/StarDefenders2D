@@ -237,6 +237,12 @@ class sdBullet extends sdEntity
 				this._damage = 0;
 			}
 		}
+		
+		// Cleanup
+		this._last_target = null;
+		this._owner = null;
+		this._owner2 = null;
+		this._penetrated_list = null;
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
@@ -343,6 +349,11 @@ class sdBullet extends sdEntity
 	{
 		if ( this._first_frame )
 		{
+			if ( this.color )
+			if ( this.color.indexOf(' ') !== -1 )
+			debugger;
+
+
 			this._first_frame = false;
 			if ( !this._hook && !this._admin_picker )
 			if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )

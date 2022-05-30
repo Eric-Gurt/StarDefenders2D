@@ -572,7 +572,8 @@ class sdJunk extends sdEntity
 					// Spawn Council mecha worm as a punishment aswell
 
 					setTimeout(()=>{//Just in case
-						let worm = new sdSandWorm({x: this.x, y:this.y, kind: sdSandWorm.KIND_COUNCIL_WORM, scale: 1})
+						let worm = new sdSandWorm({x: this.x, y:this.y, kind: sdSandWorm.KIND_COUNCIL_WORM, scale: 1});
+						sdEntity.entities.push( worm );
 					}, 500 );
 
 					// Will ignore ones who disconnected during explosion

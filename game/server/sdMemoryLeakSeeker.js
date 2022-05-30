@@ -1,14 +1,21 @@
 /*
 
-	Scans anything that is accessible from globalThis, incrementally. Should help at detecting memory leaks in most cases.
+	Scans anything that is accessible from globalThis, incrementally. 
+	Should help detecting memory leaks in most cases. 
+	But will also handle them by itself, assuiming left over entities were removed properly with .remove() calls.
 	
 	It has delays of 10 seconds and compares pair of most recent potentially leaking pointers towards removed entities. It should be pretty accurate.
 
+	if ( sdMemoryLeakSeeker.erase_pointers_towards_removed_entities === false )
 	Reports each leak case just once per 6 hours (assuming they have same access stack). This will cause double-reporting of same issues if something really stays leaked for that long time which is alarming.
 
-	It seems to be really robust.
+	It seems to be robust.
 
 	Note: Will detect too long arrays but don't expect it to be useful here.
+
+	Add this to DevTools' watch list for debugging:
+		sdMemoryLeakSeeker.always_do_full_cycle = true; sdMemoryLeakSeeker.log_erased_pointers = true; sdMemoryLeakSeeker.log_erased_pointers_count = true;
+		( sdMemoryLeakSeeker.steps_total_currently / sdMemoryLeakSeeker.steps_total_previously * 100 )
 
 */
 import sdWorld from '../sdWorld.js';
@@ -23,6 +30,12 @@ class sdMemoryLeakSeeker
 		sdMemoryLeakSeeker.is_currently_executed = false; // You can use this property to prevent it from causing certain logic whenever getters are called
 		
 		sdMemoryLeakSeeker.always_do_full_cycle = false; // Hack. Does nearly instant check, but can cause lags. For debugging only
+		
+		sdMemoryLeakSeeker.erase_pointers_towards_removed_entities = true;
+		
+		sdMemoryLeakSeeker.log_erased_pointers = false;
+		
+		sdMemoryLeakSeeker.log_erased_pointers_count = false;
 	   
 		if ( sdMemoryLeakSeeker.always_do_full_cycle )
 		trace( 'Debug option is enabled: sdMemoryLeakSeeker.always_do_full_cycle - it can cause performance issues' );
@@ -34,6 +47,8 @@ class sdMemoryLeakSeeker
 		sdMemoryLeakSeeker.current_found_entries = [];
 		
 		sdMemoryLeakSeeker.announced_entries = new Set();
+		
+		sdMemoryLeakSeeker.erased_pointers = 0;
 	   
 		sdMemoryLeakSeeker.Reset();
 	}
@@ -47,20 +62,21 @@ class sdMemoryLeakSeeker
 			if ( sdMemoryLeakSeeker.last_found_entries.indexOf( str ) !== -1 )
 			{
 				sdMemoryLeakSeeker.announced_entries.add( obj );
-			
+
 				console.error( 'Potential memory leak detected. Location of pointer towards destroyed object (it stayed here for more than 10 seconds): ', str );
-				
+
 				for ( var i = 0; i < sdWorld.sockets.length; i++ )
 				sdWorld.sockets[ i ].SDServiceMessage( 'New memory leak detected (' + obj.GetClass() + ')! Tell server admin to check error logs file' );
-			
+
 				// Forget after 6 hours
 				setTimeout( ()=>
 				{
 					sdMemoryLeakSeeker.announced_entries.delete( obj );
-					
+
 				}, 1000 * 60 * 60 * 6 );
 			}
 		}
+		
 	}
 	
 	static Reset()
@@ -74,12 +90,21 @@ class sdMemoryLeakSeeker
 		sdMemoryLeakSeeker.current_found_entries = [];
 		
 		sdMemoryLeakSeeker.scheduled_objects = [ globalThis ];
+		sdMemoryLeakSeeker.scheduled_objects_offset = 0;
 		
 		sdMemoryLeakSeeker.current_object = null;
 		sdMemoryLeakSeeker.scheduled_current_object_properties = null;
+		sdMemoryLeakSeeker.scheduled_current_object_properties_offset = 0;
 		
 		sdMemoryLeakSeeker.visited_objects = new WeakSet();
 		sdMemoryLeakSeeker.parental_structure = new WeakMap(); // obj -> [ parentObj, prop ]
+		
+		if ( sdMemoryLeakSeeker.erased_pointers > 0 && sdMemoryLeakSeeker.log_erased_pointers_count )
+		{
+			trace( 'sdMemoryLeakSeeker task complete. Erased pointers: ' + sdMemoryLeakSeeker.erased_pointers );
+		}
+		
+		sdMemoryLeakSeeker.erased_pointers = 0;
 		
 		sdMemoryLeakSeeker.visited_objects.add( sdMemoryLeakSeeker );
 	}
@@ -123,14 +148,32 @@ class sdMemoryLeakSeeker
 	{		
 		if ( sdMemoryLeakSeeker.current_object )
 		{
-			if ( sdMemoryLeakSeeker.scheduled_current_object_properties.length > 0 )
+			//if ( sdMemoryLeakSeeker.scheduled_current_object_properties.length > 0 )
+			if ( sdMemoryLeakSeeker.scheduled_current_object_properties_offset < sdMemoryLeakSeeker.scheduled_current_object_properties.length )
 			{
-				let prop = sdMemoryLeakSeeker.scheduled_current_object_properties.shift();
+				//let prop = sdMemoryLeakSeeker.scheduled_current_object_properties.shift();
+				let prop = sdMemoryLeakSeeker.scheduled_current_object_properties[ sdMemoryLeakSeeker.scheduled_current_object_properties_offset++ ];
+				
+				if ( sdMemoryLeakSeeker.current_object === sdEntity )
+				{
+					if ( prop === 'removed_entities_info' )
+					{
+						return true; // This one should remember removed entities for a short period of time
+					}
+				}
+				else
+				{
+					if ( sdMemoryLeakSeeker.current_object.connected ) // Quick check if object is a connected socket
+					if ( prop === 'observed_entities' || prop === 'known_non_removed_dynamics' ) // Part of socket
+					{
+						return true; // This should be allowed
+					}
+				}
 				
 				let value;
 				
 				if ( sdMemoryLeakSeeker.current_object instanceof Map )
-				value = sdMemoryLeakSeeker.current_object.get( value );
+				value = sdMemoryLeakSeeker.current_object.get( prop );
 				else
 				if ( sdMemoryLeakSeeker.current_object instanceof Set )
 				{
@@ -148,12 +191,14 @@ class sdMemoryLeakSeeker
 					}
 				}
 				
-				if ( value === null || value === undefined || typeof value === 'number' || typeof value === 'string' || typeof value === 'boolean' || typeof value === 'symbol' )
+				/*if ( value === null || value === undefined || typeof value === 'number' || typeof value === 'string' || typeof value === 'boolean' || typeof value === 'symbol' )
 				{
 				}
-				else
+				else*/
+				if ( value !== null )
 				if ( typeof value === 'object' || typeof value === 'function' )
 				{
+					
 					if ( !sdMemoryLeakSeeker.visited_objects.has( value ) )
 					{
 						if ( value instanceof Array )
@@ -167,16 +212,44 @@ class sdMemoryLeakSeeker
 						sdMemoryLeakSeeker.parental_structure.set( value, [ sdMemoryLeakSeeker.current_object, prop ] );
 						
 						if ( value instanceof sdEntity )
-						if ( value._is_being_removed )
-						sdMemoryLeakSeeker.NewDetection( sdMemoryLeakSeeker.GetLocationOf( value ), value );
+						//if ( value.prototype ) // Actually instance rather than class
+						if ( value._hiberstate !== undefined )
+						//if ( value._is_being_removed ) // Can be false-positive due to delayed _remove() call
+						//if ( sdEntity.entities_by_net_id_cache_map.get( value._net_id ) !== value ) // _remove() has been called on object
+						if ( value._hiberstate === sdEntity.HIBERSTATE_REMOVED || sdEntity.entities.indexOf( value ) === -1 )
+						{
+							if ( sdMemoryLeakSeeker.erase_pointers_towards_removed_entities )
+							{
+								if ( sdMemoryLeakSeeker.log_erased_pointers )
+								{
+									if ( sdMemoryLeakSeeker.current_object !== sdEntity.to_seal_list ) // Ignore these
+									trace( 'Erasing pointer: ' + sdMemoryLeakSeeker.GetLocationOf( value ) );
+								}
+								
+								//trace( value.prototype );
+								
+								// Fix the issue by overriding pointers towards removed objects
+								if ( sdMemoryLeakSeeker.current_object instanceof Map )
+								sdMemoryLeakSeeker.current_object.set( prop, sdEntity.removed_object );
+								else
+								if ( sdMemoryLeakSeeker.current_object instanceof Set )
+								sdMemoryLeakSeeker.current_object.delete( prop );
+								else
+								sdMemoryLeakSeeker.current_object[ prop ] = sdEntity.removed_object;
+							
+								sdMemoryLeakSeeker.erased_pointers++;
+							}
+							else
+							sdMemoryLeakSeeker.NewDetection( sdMemoryLeakSeeker.GetLocationOf( value ), value );
+						}
 						
 						sdMemoryLeakSeeker.scheduled_objects.push( value );
 					}
 				}
-				else
+				/*else
 				{
 					throw new Error( 'Unknown object type...' + typeof value );
-				}
+				}*/
 			}
 			else
 			{
@@ -184,9 +257,11 @@ class sdMemoryLeakSeeker
 			}
 		}
 		else
-		if ( sdMemoryLeakSeeker.scheduled_objects.length > 0 )
+		//if ( sdMemoryLeakSeeker.scheduled_objects.length > 0 )
+		if ( sdMemoryLeakSeeker.scheduled_objects_offset < sdMemoryLeakSeeker.scheduled_objects.length )
 		{
-			let obj = sdMemoryLeakSeeker.scheduled_objects.shift();
+			//let obj = sdMemoryLeakSeeker.scheduled_objects.shift();
+			let obj = sdMemoryLeakSeeker.scheduled_objects[ sdMemoryLeakSeeker.scheduled_objects_offset++ ];
 			
 			if ( !sdMemoryLeakSeeker.visited_objects.has( obj ) )
 			{
@@ -225,6 +300,8 @@ class sdMemoryLeakSeeker
 						sdMemoryLeakSeeker.scheduled_current_object_properties = Object.getOwnPropertyNames( obj );
 					}
 				}
+				
+				sdMemoryLeakSeeker.scheduled_current_object_properties_offset = 0;
 			}
 		}
 		else
@@ -258,11 +335,27 @@ class sdMemoryLeakSeeker
 		
 		sdMemoryLeakSeeker.is_currently_executed = true;
 		{
-			const steps = ( sdMemoryLeakSeeker.always_do_full_cycle || sdMemoryLeakSeeker.steps_total_previously === 0 || !IsGameActive() ) ? 10000 : 10; // Will work quite slowly, like 1% percent per 10-20 seconds depending on world size. Unless all players left - then it will finish remaining cycle and won't start any new ones
+			const many_steps = ( sdMemoryLeakSeeker.always_do_full_cycle || sdMemoryLeakSeeker.steps_total_previously === 0 || !IsGameActive() );
+			
+			const steps = many_steps ? 10000 : 5; // Will work quite slowly, like 1% percent per 10-20 seconds depending on world size. Unless all players left - then it will finish remaining cycle and won't start any new ones
+
+			let t = Date.now();
+			let t2;
 
 			for ( let i = 0; i < steps; i++ ) // Verify 10 properties at a time (per frame basically)
-			if ( !sdMemoryLeakSeeker.Step() )
-			break;
+			{
+				if ( !sdMemoryLeakSeeker.Step() )
+				break;
+				
+				if ( !many_steps )
+				{
+					t2 = Date.now();
+					
+					// Don't waste too much time here, 2ms at most
+					if ( t2 - t >= 2 )
+					break;
+				}
+			}
 		}
 		sdMemoryLeakSeeker.is_currently_executed = false;
 	}

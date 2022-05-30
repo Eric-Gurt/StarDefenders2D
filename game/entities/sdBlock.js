@@ -381,7 +381,7 @@ class sdBlock extends sdEntity
 			this._hea -= dmg;
 			else
 			{
-				if ( initiator )
+				/*if ( initiator )
 				if ( initiator._socket )
 				if ( initiator._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
 				{
@@ -390,24 +390,9 @@ class sdBlock extends sdEntity
 					initiator.Say( 'This entity is protected by a base shielding unit' );
 					else
 					initiator.Say( 'A base shielding unit is protecting this' );
-				}
-
-				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:0.2 });
-				this._shielded.matter_crystal = Math.max( 0, this._shielded.matter_crystal - dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp );
-
-				if ( this._shielded.matter_crystal >= 50000 )
-				{
-					if ( initiator )
-					if ( !initiator._is_being_removed )
-					{
-						if ( !sdWorld.inDist2D_Boolean( initiator.x, initiator.y, this._shielded.x, this._shielded.y, sdBaseShieldingUnit.protect_distance - 64 ) ) // Check if it is far enough from the shield to prevent players in base take damage
-						{
-							initiator.Damage( 5 );
-							sdWorld.SendEffect({ x:this._shielded.x, y:this._shielded.y, x2:this.x + ( this._hitbox_x2 / 2 ), y2:this.y + ( this._hitbox_y2 / 2 ), type:sdEffect.TYPE_BEAM, color:'#f9e853' });
-							sdWorld.SendEffect({ x:this.x + ( this._hitbox_x2 / 2 ), y:this.y + ( this._hitbox_y2 / 2 ), x2:initiator.x, y2:initiator.y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
-						}
-					}
-				}
+				}*/
+				
+				this._shielded.ProtectedEntityAttacked( this, dmg, initiator );
 			}
 
 			this.HandleDestructionUpdate();
@@ -1108,13 +1093,15 @@ class sdBlock extends sdEntity
 	{
 		if ( sdWorld.is_server )
 		{
-
-			let nears = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, Math.max( this.width, this.height ) / 2 + 16 );
-			for ( let i = 0; i < nears.length; i++ )
-			if ( nears[ i ] instanceof sdWater )
+			if ( this._broken ) // Prevent this logic in shop
 			{
-				nears[ i ].AwakeSelfAndNear();
-				//nears[ i ]._sleep_tim = sdWater.sleep_tim_max;
+				let nears = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, Math.max( this.width, this.height ) / 2 + 16 );
+				for ( let i = 0; i < nears.length; i++ )
+				if ( nears[ i ] instanceof sdWater )
+				{
+					nears[ i ].AwakeSelfAndNear();
+					//nears[ i ]._sleep_tim = sdWater.sleep_tim_max;
+				}
 			}
 
 			if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_CORRUPTION || this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )

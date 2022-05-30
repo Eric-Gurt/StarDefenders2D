@@ -40,6 +40,8 @@ class sdCrystal extends sdEntity
 		
 		sdCrystal.hitpoints_artificial = 140;
 		
+		sdCrystal.lowest_matter_regen = 0; // 20;
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	/*get hitbox_x1() { return this.should_draw === 0 ? -2 : this.type === 2 ? -14 : -4; }
@@ -59,10 +61,14 @@ class sdCrystal extends sdEntity
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
 	{ return true; }*/
 	
-	/*IsTargetable( by_entity=null, ignore_safe_areas=false ) // Guns are not targetable when held, same for sdCharacters that are driving something
+	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Guns are not targetable when held, same for sdCharacters that are driving something
 	{
-		return ( this.held_by === null );
-	}*/
+		if ( this.held_by )
+		if ( this.held_by.shielded )
+		return false;
+	
+		return true;
+	}
 	
 	get title()
 	{
@@ -430,7 +436,7 @@ class sdCrystal extends sdEntity
 				else
 				this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( this.matter_regen / 100 ) );
 				
-				this.matter_regen = Math.max( 20, this.matter_regen - ( this.matter - matter_before_regen ) / this.matter_max * 100 / sdCrystal.recharges_until_depleated ); // 30 full recharges
+				this.matter_regen = Math.max( sdCrystal.lowest_matter_regen, this.matter_regen - ( this.matter - matter_before_regen ) / this.matter_max * 100 / sdCrystal.recharges_until_depleated ); // 30 full recharges
 				
 				this.MatterGlow( 0.01, 30, GSPEED );
 			}

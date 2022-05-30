@@ -55,6 +55,9 @@ class sdEntity
 		//sdEntity.properties_by_class_all = new WeakMap(); // class => [ 'x', 'y' ... ]
 		sdEntity.properties_by_class_public = new WeakMap(); // class => [ 'x', 'y' ... ]
 		
+		sdEntity.removed_object = { _is_being_removed: true };//404.12345;
+		sdEntity.pointer_has_been_cleared = { _inaccessible: true };//403.98765;
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	
@@ -311,7 +314,11 @@ class sdEntity
 			this._phys_sleep = hit_what._phys_sleep = Math.max( this._phys_sleep, hit_what._phys_sleep );
 		}
 	}*/
-	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call. Return true if entity needs unstuck logic appleid, which can be performance-damaging too
+	DoStuckCheck() // Makes _hard_collision-less entities receive unstuck logic
+	{
+		return false;
+	}
+	onPhysicallyStuck() // Requires _hard_collision OR DoStuckCheck() to return true. Called as a result of ApplyVelocityAndCollisions call. Return true if entity needs unstuck logic appleid, which can be performance-damaging too
 	{
 		return false;
 	}
@@ -542,6 +549,7 @@ class sdEntity
 		const friction_remain = this.friction_remain;
 		const IsFrictionTimeScaled = this.IsFrictionTimeScaled();
 		const hard_collision = this._hard_collision;
+		const do_stuck_check = hard_collision || this.DoStuckCheck();
 		const GetCollisionMode = this.GetCollisionMode();
 		
 		let hits = null; // arr of { ent, t }
@@ -639,6 +647,7 @@ class sdEntity
 					const arr_i = cell[ e ];
 
 					//if ( !visited_ent.has( arr_i ) )
+					if ( !arr_i._is_being_removed )
 					if ( arr_i._flag !== visited_ent_flag )
 					{
 						//visited_ent.add( arr_i );
@@ -929,7 +938,7 @@ class sdEntity
 							let do_unstuck = false;
 
 							if ( best_t_original === 0 )
-							if ( hard_collision )
+							if ( do_stuck_check )
 							if ( hitbox_x1 < best_ent.x + best_ent._hitbox_x2 )
 							if ( hitbox_x2 > best_ent.x + best_ent._hitbox_x1 )
 							if ( hitbox_y1 < best_ent.y + best_ent._hitbox_y2 )
@@ -1023,7 +1032,7 @@ class sdEntity
 									//best_ent.sy += old_sy * ( 1 - self_effect_scale );
 
 									if ( step_size > 0 )
-									if ( hard_collision && best_ent._hard_collision )
+									if ( do_stuck_check && best_ent._hard_collision )
 									{
 										const y_risen = best_ent.y + best_ent._hitbox_y1 - this._hitbox_y2;
 
@@ -1044,7 +1053,7 @@ class sdEntity
 									//best_ent.sy -= old_sy * ( 1 - self_effect_scale );
 								
 									if ( do_unstuck )
-									if ( hard_collision && best_ent._hard_collision )
+									if ( do_stuck_check && best_ent._hard_collision )
 									{
 										const y_risen = best_ent.y + best_ent._hitbox_y2 - this._hitbox_y1;
 
@@ -1068,7 +1077,7 @@ class sdEntity
 									//best_ent.sx += old_sx * ( 1 - self_effect_scale );
 								
 									if ( do_unstuck )
-									if ( hard_collision && best_ent._hard_collision )
+									if ( do_stuck_check && best_ent._hard_collision )
 									{
 										const x_risen = best_ent.x + best_ent._hitbox_x1 - this._hitbox_x2;
 
@@ -1092,7 +1101,7 @@ class sdEntity
 									//best_ent.sx -= old_sx * ( 1 - self_effect_scale );
 								
 									if ( do_unstuck )
-									if ( hard_collision && best_ent._hard_collision )
+									if ( do_stuck_check && best_ent._hard_collision )
 									{
 										const x_risen = best_ent.x + best_ent._hitbox_x2 - this._hitbox_x1;
 
@@ -1159,7 +1168,7 @@ class sdEntity
 					else
 					{
 						if ( best_t_original === 0 )
-						if ( hard_collision )
+						if ( do_stuck_check )
 						{
 							if ( hitbox_x1 < sdWorld.world_bounds.x1 )
 							{
@@ -1923,7 +1932,7 @@ class sdEntity
 	
 	constructor( params )
 	{
-		//this._stack_trace = globalThis.getStackTrace();
+		this._stack_trace = globalThis.getStackTrace();
 		
 		if ( this.PreInit !== sdEntity.prototype.PreInit )
 		this.PreInit();
@@ -2250,7 +2259,7 @@ class sdEntity
 			{
 				if ( v === sdEntity.HIBERSTATE_HIBERNATED || v === sdEntity.HIBERSTATE_REMOVED || v === sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP )
 				{
-					if ( this._affected_hash_arrays.length === 0 ) // Usually it is a sign that entity (ex. sdBlock) just spawned and wasn't added to any hash arrays for collision and visibility checks (alternatively _last_x/y === undefined check could be here, but probably not needed or not efficient). Hibernation would prevent that event further so we do it now
+					if ( this._affected_hash_arrays.length === 0 || v === sdEntity.HIBERSTATE_REMOVED ) // Usually it is a sign that entity (ex. sdBlock) just spawned and wasn't added to any hash arrays for collision and visibility checks (alternatively _last_x/y === undefined check could be here, but probably not needed or not efficient). Hibernation would prevent that event further so we do it now
 					{
 						sdWorld.UpdateHashPosition( this, false, allow_calling_movement_in_range );
 					}
@@ -3272,13 +3281,11 @@ class sdEntity
 				
 				this._phys_last_touch = null;
 			}
-		
-			//_stands_on
 			
+			/* It is handled by memory leak seeker now instead
 			const is_vehicle = this.IsVehicle();
-			//const is_hard_collision = this._hard_collision;
 		
-			if ( is_vehicle )//|| is_hard_collision )
+			if ( is_vehicle )
 			{
 				const sdCharacter = sdWorld.entity_classes.sdCharacter;
 				
@@ -3287,15 +3294,71 @@ class sdEntity
 					if ( is_vehicle )
 					if ( sdCharacter.characters[ i ]._potential_vehicle === this )
 					sdCharacter.characters[ i ]._potential_vehicle = null;
-				
-					/*if ( is_hard_collision )
-					if ( sdCharacter.characters[ i ]._stands_on === this )
-					{
-						sdCharacter.characters[ i ]._stands_on = null;
-						sdCharacter.characters[ i ].stands = false;
-					}*/
 				}
 			}
+			
+			// More of automated approach for cross-pointer removal
+			let entities_for_back_scan = [];
+			
+			let props = Object.getOwnPropertyNames( this );
+			
+			for ( let i = 0; i < props.length; i++ )
+			{
+				let prop = props[ i ];
+				
+				let value = this[ prop ];
+				
+				if ( value instanceof sdEntity )
+				{
+					entities_for_back_scan.push( value );
+					
+					this[ prop ] = sdEntity.pointer_has_been_cleared;
+				}
+				else
+				if ( value instanceof Array )
+				{
+					if ( value.length > 0 )
+					this[ prop ] = sdEntity.pointer_has_been_cleared;
+				}
+				else
+				if ( value instanceof Map || value instanceof Set )
+				{
+					this[ prop ] = sdEntity.pointer_has_been_cleared;
+				}
+			}
+			
+			for ( let i = 0; i < entities_for_back_scan.length; i++ )
+			{
+				let ent = entities_for_back_scan[ i ];
+				
+				for ( let i2 = 0; i2 < props.length; i2++ )
+				{
+					let prop = props[ i2 ];
+
+					let value = ent[ prop ];
+
+					if ( value === this )
+					ent[ prop ] = sdEntity.immutable_removed_object;
+					else
+					if ( value instanceof Array )
+					{
+						for ( let i3 = 0; i3 < value.length; i3++ )
+						{
+							if ( value[ i3 ] === this )
+							value[ i3 ] = sdEntity.removed_object;
+						}
+					}
+					else
+					if ( value instanceof Object )
+					{
+						for ( let i3 in value )
+						{
+							if ( value[ i3 ] === this )
+							value[ i3 ] = sdEntity.removed_object;
+						}
+					}
+				}
+			}*/
 		}
 		
 		if ( this.IsGlobalEntity() )
