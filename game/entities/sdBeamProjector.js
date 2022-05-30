@@ -238,7 +238,7 @@ class sdBeamProjector extends sdEntity
 									character_entity.y = y;
 
 									//sdWorld.UpdateHashPosition( ent, false );
-									if ( Math.random() < ( 0.7 - ( ( this.hea / this.hmax ) * 0.4 ) ) ) // Chances increase as the bomb has less health
+									if ( Math.random() < ( 0.1 + ( ( this.hea / this.hmax )* 0.4 ) ) ) // Chances increase as the beam projector progresses further
 									{
 										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_BURST_RAIL }) );
 										character_entity._ai_gun_slot = 4;
