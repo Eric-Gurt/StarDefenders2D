@@ -955,6 +955,7 @@ class sdCube extends sdEntity
 
 		if ( ent.GetClass() === 'sdTurret' )
 		if ( ent._target )
+		if ( !ent._target._is_being_removed )
 		if ( ent._target.GetClass() === 'sdCube' )
 		//if ( sdWorld.GetComsNear( ent.x, ent.y, null, 'sdCube', true ).length === 0 )
 		return false;
