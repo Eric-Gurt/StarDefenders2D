@@ -619,6 +619,22 @@ class sdEnemyMech extends sdEntity
 					this._rocket_attack_timer -= GSPEED;
 					if ( this._rail_attack_timer > 0)
 					this._rail_attack_timer -= GSPEED;
+
+					if ( this.hea < this._hmax / 2 )
+					{
+						let an_desired;
+						if ( this._move_dir_timer <= 0 )
+						an_desired = Math.atan2( Math.random() * 200 - Math.random() * 200, Math.random() * 200 - Math.random() * 200 ) - 0.5 + Math.random();
+						else
+						an_desired = Math.atan2( this.sx * 10, this.sy * 10 ) - 0.5 + Math.random();
+						this._move_dir_x = Math.cos( an_desired ) * 10;
+						this._move_dir_y = Math.sin( an_desired ) * 10;
+
+						let v = 0.10;
+				
+						this.sx += this._move_dir_x * ( v ) * GSPEED;
+						this.sy += this._move_dir_y * ( v ) * GSPEED;
+					}
 				}
 			}
 		
