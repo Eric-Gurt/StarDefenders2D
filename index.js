@@ -1514,6 +1514,7 @@ let is_terminating = false;
 		};
 
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
+		if ( !sdEntity.entities[ i ]._is_being_removed )
 		if ( !sdWorld.server_config.EntitySaveAllowedTest || sdWorld.server_config.EntitySaveAllowedTest( sdEntity.entities[ i ] ) )
 		{
 			if ( isNaN( sdEntity.entities[ i ].x ) || isNaN( sdEntity.entities[ i ].y ) || sdEntity.entities[ i ].x === null || sdEntity.entities[ i ].y === null )
