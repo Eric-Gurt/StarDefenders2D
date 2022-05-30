@@ -695,7 +695,7 @@ class sdBlock extends sdEntity
 	}
 	Crystalize( from=null )
 	{
-		let ent2 = new sdBlock({ x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_CRYSTAL_SHARDS, filter:this.filter, rank: Math.round( Math.random() * 6 ) }); // Don't allow orange and anticrystal shards due to their glow effect overriding the block.
+		let ent2 = new sdBlock({ x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_CRYSTAL_SHARDS, natural:true, filter:this.filter, rank: Math.round( Math.random() * 6 ) }); // Don't allow orange and anticrystal shards due to their glow effect overriding the block.
 
 		this.remove();
 		this._broken = false;

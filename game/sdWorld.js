@@ -688,6 +688,7 @@ class sdWorld
 						'sdAsp', 4 / hp_mult,
 						'sdAmphid', 3 / hp_mult,
 						'sdSlug', 3 / hp_mult,
+						'sdGrub', 3 / hp_mult,
 						'sdJunk', 5,
 						'sdWater.water', 5
 				] );

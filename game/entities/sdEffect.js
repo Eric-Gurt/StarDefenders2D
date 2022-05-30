@@ -808,7 +808,9 @@ class sdEffect extends sdEntity
 		if ( this._type === sdEffect.TYPE_TELEPORT )
 		{
 			let frame = ~~( this._ani );
+			ctx.filter = this._filter;
 			ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], 96 + (frame%3)*32, 0 + ~~(frame/3)*32, 32,32, -16,-16,32,32 );
+			ctx.filter = 'none';
 		}
 	}
 	onRemove() // Class-specific, if needed
