@@ -774,6 +774,7 @@ class sdCharacter extends sdEntity
 		return true;
 		
 		if ( this.driver_of )
+		if ( !this.driver_of._is_being_removed )
 		if ( !this.driver_of.IsVisible( observer_character ) )
 		return false;
 		
