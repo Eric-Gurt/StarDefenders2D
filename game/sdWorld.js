@@ -2561,6 +2561,7 @@ class sdWorld
 						if ( ignore_entity === null || arr_i.IsBGEntity() === ignore_entity.IsBGEntity() )
 						//if ( arr_i._hard_collision || include_only_specific_classes )
 						if ( include_only_specific_classes || arr_i._hard_collision )
+						if ( !arr_i._is_being_removed )
 						{
 							if ( include_only_specific_classes || ignore_entity_classes )
 							class_str = arr_i.GetClass();

@@ -3599,16 +3599,17 @@ class sdCharacter extends sdEntity
 							//if ( fake_ent.is( sdBG ) && sdWorld.last_hit_entity.is( sdBG ) )
 							if ( fake_ent.IsBGEntity() === 1 && sdWorld.last_hit_entity.is( sdBG ) )
 							{
-								if ( sdWorld.last_hit_entity.material === sdBG.MATERIAL_GROUND )
+								//if ( sdWorld.last_hit_entity.material === sdBG.MATERIAL_GROUND )
 								{
 									sdCharacter.last_build_deny_reason = null;
 									sdWorld.last_hit_entity.remove();
-									return false;
+									//return false;
+									return this.CheckBuildObjectPossibilityNow( fake_ent );
 								}
-								else
+								/*else
 								{
 									sdCharacter.last_build_deny_reason = 'Holding Left Shift key while shooting could help getting rid of those';
-								}
+								}*/
 							}
 							else
 							if ( fake_ent.is( sdArea ) && fake_ent.type === sdArea.TYPE_ERASER_AREA && sdWorld.last_hit_entity.is( sdArea ) )
