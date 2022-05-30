@@ -555,32 +555,37 @@ class sdTurret extends sdEntity
 		{
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 128 ) )
 			{
-				if ( command_name === 'UPGRADE' )
+				if ( command_name === 'UPGRADE' || command_name === 'UPGRADE_MAX' )
 				{
-					if ( this.lvl < 3 )
+					let upgrades_to_do = ( command_name === 'UPGRADE_MAX' ) ? 3 : 1;
+					
+					while ( upgrades_to_do > 0 )
 					{
-						/*if ( this.matter >= 100 )
+						upgrades_to_do--;
+						
+						if ( this.lvl < 3 )
 						{
-							sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:1 });
-							
-							this.lvl += 1;
-							this.matter -= 100;
-						}
-						else*/
-						if ( exectuter_character.matter >= 100 )
-						{
-							sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
-							
-							this.lvl += 1;
-							exectuter_character.matter -= 100;
-							
-							this._update_version++;
+							if ( exectuter_character.matter >= 100 )
+							{
+								sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+
+								this.lvl += 1;
+								exectuter_character.matter -= 100;
+
+								this._update_version++;
+							}
+							else
+							{
+								executer_socket.SDServiceMessage( 'Not enough matter' );
+								break;
+							}
 						}
 						else
-						executer_socket.SDServiceMessage( 'Not enough matter' );
+						{
+							executer_socket.SDServiceMessage( 'Turret is at maximum level' );
+							break;
+						}
 					}
-					else
-					executer_socket.SDServiceMessage( 'Turret is at maximum level' );
 				}
 			}
 			else
@@ -596,7 +601,10 @@ class sdTurret extends sdEntity
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 128 ) )
 		{
 			if ( this.lvl < 3 )
-			this.AddContextOption( 'Upgrade damage (100 matter)', 'UPGRADE', [] );
+			{
+				this.AddContextOption( 'Upgrade damage to level 3 ('+ (3-this.lvl)*100 +' matter)', 'UPGRADE_MAX', [] );
+				this.AddContextOption( 'Upgrade damage (100 matter)', 'UPGRADE', [] );
+			}
 			else
 			this.AddContextOption( '- no upgrades available -', 'UPGRADE', [] );
 		}
