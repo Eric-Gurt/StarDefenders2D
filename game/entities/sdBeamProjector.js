@@ -140,12 +140,27 @@ class sdBeamProjector extends sdEntity
 			sdEntity.entities.push( gun );
 
 			}, 500 );
+
+
+			for( let i = 0; i < sdTask.tasks.length; i++ )
+			{
+				if ( sdTask.tasks[ i ].mission === sdTask.MISSION_TRACK_ENTITY )
+				if ( sdTask.tasks[ i ]._target === this )
+				{
+					sdTask.tasks[ i ]._executer._task_reward_counter += 0.25;
+				}
+			}
+
 			this.remove();
 		}
 
 		this._armor_protection_level = 0; // Never has protection
 		if ( !this.has_anticrystal ) // Can't "charge" up if there's no anticrystal
-		this._regen_timeout = 150;
+		{
+			this._regen_timeout = 150;
+			if ( this.hea < 1000 )
+			this.hea -= GSPEED; // Lose health when unattended
+		}
 		else
 		{
 			if ( this._spawn_timer > 0 )
@@ -153,7 +168,7 @@ class sdBeamProjector extends sdEntity
 
 			if ( this._spawn_timer <= 0 && this.no_obstacles && this.has_players_nearby )
 			{
-				this._spawn_timer = 600;
+				this._spawn_timer = 300;
 				let ais = 0;
 				//let percent = 0;
 				for ( var i = 0; i < sdCharacter.characters.length; i++ )
@@ -165,13 +180,15 @@ class sdBeamProjector extends sdEntity
 						ais++;
 						//console.log(ais);
 					}
+				}
+				{
 
-					let robots = 0;
-					let robots_tot = 2;
+					let councils = 0;
+					let councils_tot = Math.min( 6, Math.max( 2, 1 + sdWorld.GetPlayingPlayersCount() ) );
 
 					let left_side = ( Math.random() < 0.5 );
 
-					while ( robots < robots_tot && ais < 3 )
+					while ( councils < councils_tot && ais < Math.min( 6, Math.max( 3, sdWorld.GetPlayingPlayersCount() ) ) )
 					{
 
 						let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
@@ -186,23 +203,23 @@ class sdBeamProjector extends sdEntity
 							{
 								if ( left_side )
 								{
-									x = this.x + 16 + 16 * robots + ( Math.random() * 192 );
+									x = this.x + 16 + 16 * councils + ( Math.random() * 192 );
 
 									if (x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 * robots + ( Math.random() * 192 );
+									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 * councils + ( Math.random() * 192 );
 
 									if (x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 * robots - ( Math.random() * 192 );
+									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 * councils - ( Math.random() * 192 );
 								}
 								else
 								{
-									x = this.x - 16 - 16 * robots - ( Math.random() * 192 );
+									x = this.x - 16 - 16 * councils - ( Math.random() * 192 );
 
 									if (x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 * robots + ( Math.random() * 192 );
+									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 * councils + ( Math.random() * 192 );
 
 									if (x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 * robots - ( Math.random() * 192 );
+									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 * councils - ( Math.random() * 192 );
 								}
 
 								y = this.y + 192 - ( Math.random() * ( 384 ) );
@@ -221,7 +238,7 @@ class sdBeamProjector extends sdEntity
 									character_entity.y = y;
 
 									//sdWorld.UpdateHashPosition( ent, false );
-									if ( Math.random() < ( 0.1 + ( ( this.hea / this.hmax )* 0.4 ) ) ) // Chances increase as the beam projector progresses further
+									if ( Math.random() < ( 0.7 - ( ( this.hea / this.hmax ) * 0.4 ) ) ) // Chances increase as the bomb has less health
 									{
 										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_BURST_RAIL }) );
 										character_entity._ai_gun_slot = 4;
@@ -268,6 +285,9 @@ class sdBeamProjector extends sdEntity
 									character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
 									sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, pitch: 1, volume:1 });
 									character_entity._ai.next_action = 5;
+
+									sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+
 									const logic = ()=>
 									{
 										if ( character_entity._ai ) // AI moving so it stays close to the Beam projector
@@ -282,13 +302,14 @@ class sdBeamProjector extends sdEntity
 											if ( character_entity.y < this.y - 32 )
 											character_entity._key_states.SetKey( 'KeyW', 1 );
 
-											if ( character_entity._ai.target === null )
-											character_entity._ai.target = this;
+											//if ( character_entity._ai.target === null )
+											//character_entity._ai.target = this;
 										}
 										if ( character_entity.hea <= 0 )
 										if ( !character_entity._is_being_removed )
 										{
 											sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
+											sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 											character_entity.remove();
 										}
 							
@@ -302,10 +323,13 @@ class sdBeamProjector extends sdEntity
 							
 							
 										if ( !character_entity._is_being_removed )
-										sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
-										character_entity.remove();
+										{
+											sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
+											sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+											character_entity.remove();
 
-										character_entity._broken = false;
+											character_entity._broken = false;
+										}
 									}, 30000 ); // Despawn the Council Vanquishers if they are in world longer than intended
 
 									break;
@@ -321,7 +345,7 @@ class sdBeamProjector extends sdEntity
 							}
 						} while( true );
 					}
-					robots++;
+					councils++;
 					ais++;
 					}
 				}
@@ -356,7 +380,7 @@ class sdBeamProjector extends sdEntity
 			this.has_players_nearby = false;
 			//this._update_version++;
 
-			/*let players = sdWorld.GetAnythingNear( this.x, this.y, 256, null, [ 'sdCharacter' ] );
+			let players = sdWorld.GetAnythingNear( this.x, this.y, 256, null, [ 'sdCharacter' ] );
 			for ( let i = 0; i < players.length; i++ )
 			{
 				if ( players[ i ].GetClass() === 'sdCharacter' && !players[ i ]._ai && players[ i ]._ai_team === 0  && players[ i ].hea > 0 )
@@ -369,7 +393,7 @@ class sdBeamProjector extends sdEntity
 						mission: sdTask.MISSION_TRACK_ENTITY,
 										
 						title: 'Protect dark matter beam projector',
-						description: 'Protect the dark matter beam projector! If it stops working, restart it!'
+						description: 'Protect the dark matter beam projector so it can try to shrink parts of the expanding black hole! If it stops working, restart it!'
 					});
 
 					if ( sdWorld.CheckLineOfSight( this.x, this.y - 16, players[ i ].x, players[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) ) // Needs line of sight with players, otherwise it doesn't work
@@ -377,7 +401,7 @@ class sdBeamProjector extends sdEntity
 						if ( this.hea < this.hmax )
 						if ( this.no_obstacles ) // No progression if the beam can't go into the sky
 						{
-							this.hea = Math.min( this.hea + GSPEED * 90 * this._regen_mult, this.hmax );
+							this.hea = Math.min( this.hea + GSPEED * 120 * this._regen_mult, this.hmax );
 							//if ( sdWorld.is_server )
 							//this.hea = this.hmax; // Hack
 							this._regen_timeout = 30;
@@ -387,7 +411,7 @@ class sdBeamProjector extends sdEntity
 						}
 					}
 				}
-			}*/
+			}
 		}
 		
 	}
@@ -442,7 +466,7 @@ class sdBeamProjector extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( !this.has_anticrystal )
-		sdEntity.Tooltip( ctx, "Dark matter beam projector (needs Anti-crystal) ", 0, -10 );
+		sdEntity.Tooltip( ctx, "Dark matter beam projector (needs natural Anti-crystal) ", 0, -10 );
 		else
 		if ( this.has_players_nearby && this.no_obstacles )
 		sdEntity.Tooltip( ctx, "Dark matter beam projector", 0, -10 );

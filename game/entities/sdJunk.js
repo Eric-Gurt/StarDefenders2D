@@ -731,6 +731,8 @@ class sdJunk extends sdEntity
 									sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, pitch: 1, volume:1 });
 									character_entity._ai.next_action = 5;
 
+									sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+
 									const logic = ()=>
 									{
 										if ( character_entity._ai ) // AI moving so it stays close to the Beam projector
@@ -752,6 +754,7 @@ class sdJunk extends sdEntity
 										if ( !character_entity._is_being_removed )
 										{
 											sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
+											sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 											character_entity.remove();
 										}
 							
@@ -765,10 +768,13 @@ class sdJunk extends sdEntity
 							
 							
 										if ( !character_entity._is_being_removed )
-										sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
-										character_entity.remove();
+										{
+											sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
+											sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+											character_entity.remove();
 
-										character_entity._broken = false;
+											character_entity._broken = false;
+										}
 									}, 30000 ); // Despawn the Council Vanquishers if they are in world longer than intended
 
 									break;
@@ -840,6 +846,9 @@ class sdJunk extends sdEntity
 								{
 									drone.x = x;
 									drone.y = y;
+
+									sdSound.PlaySound({ name:'teleport', x:drone.x, y:drone.y, volume:0.5 });
+									sdWorld.SendEffect({ x:drone.x, y:drone.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 
 									drone.SetTarget( this );
 
