@@ -303,7 +303,8 @@ class sdTurret extends sdEntity
 								//if ( e.is( sdCharacter ) || e.is( sdVirus ) || e.is( sdQuickie ) || e.is( sdOctopus ) || e.is( sdCube ) || e.is( sdBomb ) )
 								if ( ( e.hea || e._hea ) > 0 && ( !e.is( sdSandWorm ) || e.death_anim === 0 ) )
 								if ( !e.is( sdBadDog ) || !e.owned )
-								if ( e.IsVisible( this._owner ) || ( e.driver_of && !e.driver_of._is_being_removed && e.driver_of.IsVisible( this._owner ) ) )
+								//if ( e.IsVisible( this._owner ) || ( e.driver_of && !e.driver_of._is_being_removed && e.driver_of.IsVisible( this._owner ) ) )
+								if ( e.IsPlayerClass() || e.IsVisible( this ) || ( e.driver_of && !e.driver_of._is_being_removed && e.driver_of.IsVisible( this ) ) )
 								{
 									//var is_char = e.is( sdCharacter );
 									var is_char = e.IsPlayerClass();
