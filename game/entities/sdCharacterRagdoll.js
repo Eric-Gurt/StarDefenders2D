@@ -997,6 +997,7 @@ class sdCharacterRagdoll
 					//if ( limit_mode === sdCharacterRagdoll.spring_both || ( this.character.hea <= 0 && limit_mode === sdCharacterRagdoll.spring_min && di < target_di ) || ( this.character.hea <= 0 && limit_mode === sdCharacterRagdoll.spring_max && di > target_di ) ) // Disable limiters as they will interfere with crouching
 					if ( limit_mode === sdCharacterRagdoll.spring_both || ( true && limit_mode === sdCharacterRagdoll.spring_min && di < target_di ) || ( true && limit_mode === sdCharacterRagdoll.spring_max && di > target_di ) ) // Disable limiters as they will interfere with crouching
 					if ( Math.abs( di - target_di ) > 0.1 )
+					if ( di > 0.0001 )
 					{
 						//p = 1 / di * ( di - target_di ) * 0.5 * GSPEED;
 						p = 1 / di * ( di - target_di ) * 0.5 * solver_strength;
