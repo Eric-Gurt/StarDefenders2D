@@ -205,46 +205,38 @@ class sdBaseShieldingUnit extends sdEntity
 		this.enabled = enable;
 		if ( !this.enabled ) // Disabled protected blocks and doors
 		{
-			
 			sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:2, pitch:0.25 });
 			
-			/*let blocks = sdWorld.GetAnythingNear( this.x, this.y, sdBaseShieldingUnit.protect_distance, null, [ 'sdBlock', 'sdDoor' ] );
-			for ( let i = 0; i < blocks.length; i++ ) // Protect nearby entities inside base unit's radius
-			{
-				if ( blocks[ i ].GetClass() === 'sdBlock' )
-				{
-					if ( blocks[ i ].material === sdBlock.MATERIAL_WALL || blocks[ i ].material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 ) // Only walls, no trap or shield blocks
-					if ( blocks[ i ]._shielded === this._net_id )
-					{
-						blocks[ i ]._shielded = null;
-						sdWorld.SendEffect({ x:this.x, y:this.y, x2:blocks[ i ].x + ( blocks[ i ].hitbox_x2 / 2 ), y2:blocks[ i ].y + ( blocks[ i ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#855805' });
-						//this._protected_entities.push( blocks[ i ]._net_id );
-					}
-				}
-			
-				if ( blocks[ i ].GetClass() === 'sdDoor' )
-				{
-					if ( blocks[ i ]._shielded === this._net_id )
-					{
-						blocks[ i ]._shielded = null;
-						sdWorld.SendEffect({ x:this.x, y:this.y, x2:blocks[ i ].x + ( blocks[ i ].hitbox_x2 / 2 ), y2:blocks[ i ].y + ( blocks[ i ].hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#855805' });
-						//this._protected_entities.push( blocks[ i ]._net_id );
-					}
-				}
-			}*/
 			let obj;
+			
+			let effect_for = [];
+			
 			for ( let j = 0; j < this._protected_entities.length; j++ )
 			{
 				obj = sdEntity.entities_by_net_id_cache_map.get( this._protected_entities[ j ] );
-				//if ( ( sdWorld.Dist2D( this.x, this.y, this._protected_entities[ j ].x, this._protected_entities[ j ].y ) > sdBaseShieldingUnit.protect_distance ) || ( !this.enabled ) ) // If an entity is too far away, let players know it's not protected anymore
-				//if ( obj._shielded === this._net_id )
 				if ( obj ) // If not - admin removed it. Or world border
+				if ( !obj._is_being_removed )
 				if ( obj._shielded === this )
 				{
 					obj._shielded = null;
-					sdWorld.SendEffect({ x:this.x, y:this.y, x2:obj.x + ( obj._hitbox_x2 / 2 ), y2:obj.y + ( obj._hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#855805' });
+						
+					effect_for.push( obj );
+						
+					//sdWorld.SendEffect({ x:this.x, y:this.y, x2:obj.x + ( obj._hitbox_x2 / 2 ), y2:obj.y + ( obj._hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#855805' });
 				}
 			}
+			
+			for ( let t = 0; t < 30 && effect_for.length > 0; t++ )
+			{
+				let p = ~~( Math.random() * effect_for.length );
+				
+				let b = effect_for[ p ];
+				
+				sdWorld.SendEffect({ x:this.x, y:this.y, x2:b.x + ( b.hitbox_x2 / 2 ), y2:b.y + ( b.hitbox_y2 / 2 ), type:sdEffect.TYPE_BEAM, color:'#855805' });
+				
+				effect_for.splice( p, 1 );
+			}
+			
 			this._protected_entities = [];
 			this._matter_drain = 0; // Reset matter drain
 		}
@@ -265,7 +257,7 @@ class sdBaseShieldingUnit extends sdEntity
 				if ( blocks[ i ].GetClass() === 'sdBlock' )
 				{
 					if ( blocks[ i ].material === sdBlock.MATERIAL_WALL || blocks[ i ].material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 || blocks[ i ].material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 ) // Only walls, no trap or shield blocks
-					if ( blocks[ i ]._shielded === null )
+					if ( blocks[ i ]._shielded === null || blocks[ i ]._shielded._is_being_removed )
 					{
 						blocks[ i ]._shielded = this;
 						
@@ -278,7 +270,7 @@ class sdBaseShieldingUnit extends sdEntity
 				else
 				if ( blocks[ i ].GetClass() === 'sdDoor' )
 				{
-					if ( blocks[ i ]._shielded === null )
+					if ( blocks[ i ]._shielded === null || blocks[ i ]._shielded._is_being_removed )
 					{
 						blocks[ i ]._shielded = this;
 						
@@ -291,7 +283,6 @@ class sdBaseShieldingUnit extends sdEntity
 			}
 			
 			for ( let t = 0; t < 30 && effect_for.length > 0; t++ )
-			//for ( let i = 0; i < effect_for.length; i++ )
 			{
 				let p = ~~( Math.random() * effect_for.length );
 				
