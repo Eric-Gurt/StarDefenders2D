@@ -114,12 +114,19 @@ class sdRenderer
 						sdRenderer.ctx.camera.aspect = innerWidth / innerHeight;
 						sdRenderer.ctx.renderer.setSize( innerWidth, innerHeight );
 
-						sdRenderer.ctx.camera.position.x = innerWidth / 2;
-						sdRenderer.ctx.camera.position.y = innerHeight / 2;
-						sdRenderer.ctx.camera.position.z = -811 * ( 1 * innerHeight / 937 );
-						
-						sdRenderer.ctx.camera.near = 400 * ( 1 * innerHeight / 937 );
-						sdRenderer.ctx.camera.far = 1000 * ( 1 * innerHeight / 937 );
+						/*if ( sdRenderer.visual_settings === 4 )
+						{
+						}
+						else*/
+						{
+
+							sdRenderer.ctx.camera.position.x = innerWidth / 2;
+							sdRenderer.ctx.camera.position.y = innerHeight / 2;
+							sdRenderer.ctx.camera.position.z = -811 * ( 1 * innerHeight / 937 );
+
+							sdRenderer.ctx.camera.near = 400 * ( 1 * innerHeight / 937 );
+							sdRenderer.ctx.camera.far = 1000 * ( 1 * innerHeight / 937 );
+						}
 
 						sdRenderer.ctx.camera.updateProjectionMatrix();
 					}
@@ -139,6 +146,8 @@ class sdRenderer
 		sdRenderer.image_filter_cache = new Map();
 		
 		sdRenderer.unavailable_image_collector = null; // Fills up indefinitely if array
+	
+		sdRenderer.last_frame_times = []; // For framerate measurement
 	
 		sdRenderer.AddCacheDrawMethod = function( ctx0 )
 		{
@@ -387,10 +396,11 @@ class sdRenderer
 			sdRenderer.ctx = sdRenderer.canvas.getContext("2d");
 			else
 			sdRenderer.ctx = new FakeCanvasContext( sdRenderer.canvas );
+			
 		
 			sdRenderer.AddCacheDrawMethod( sdRenderer.ctx );
 			
-			if ( v === 2 )
+			if ( v === 2 || v === 4 )
 			{
 				if ( sdRenderer.ctx.sky.parent );
 				sdRenderer.ctx.sky.parent.remove( sdRenderer.ctx.sky );
@@ -412,7 +422,7 @@ class sdRenderer
 				sdRenderer.ctx.renderer.shadowMap.enabled = true;
 			}
 			
-			if ( v === 2 || v === 3 )
+			if ( v === 2 || v === 3 || v === 4 )
 			{
 				sdBlock.Install3DSupport();
 			}
@@ -435,19 +445,6 @@ class sdRenderer
 		if  ( sdRenderer._dirt_settings === 0 )
 		{
 			sdRenderer._dirt_settings = v;
-
-			if ( v  === 1 )
-			{
-			    sdRenderer.ctx.img_ground11;
-		    }
-			if ( v === 2 )
-			{
-				sdRenderer.ctx.img_ground44;
-			}
-			if ( v === 3 )
-			{
-				sdRenderer.ctx.img_ground88;
-			}
 		}
 		else
 		alert('Application restart required for dirt settings to change once again');
@@ -550,24 +547,28 @@ class sdRenderer
 					}
 				}
 			
-				
-			
-				//ctx.drawImage( sdRenderer.img_dark_lands, 0,0, sdRenderer.screen_width, sdRenderer.screen_height );
-				ctx.drawImageFilterCache( sdRenderer.img_dark_lands, 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
-				//ctx.globalAlpha = 1; // Not sure if parallax stuff in front should be transparent during planet's daylight
+				/*if ( sdRenderer.visual_settings === 4 )
+				{
+				}
+				else*/
+				{
+					//ctx.drawImage( sdRenderer.img_dark_lands, 0,0, sdRenderer.screen_width, sdRenderer.screen_height );
+					ctx.drawImageFilterCache( sdRenderer.img_dark_lands, 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
+					//ctx.globalAlpha = 1; // Not sure if parallax stuff in front should be transparent during planet's daylight
 
-				//Parallax background
-				ctx.drawImageFilterCache( sdRenderer.img_dark_lands2, - sdRenderer.screen_width - ( ( sdWorld.camera.x / 2 ) % sdRenderer.screen_width ), sdRenderer.screen_height / 4 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height ) ), sdRenderer.screen_width, sdRenderer.screen_height );
-				ctx.drawImageFilterCache( sdRenderer.img_dark_lands2, 0 - ( ( sdWorld.camera.x / 2 ) % sdRenderer.screen_width ), sdRenderer.screen_height / 4 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height ) ), sdRenderer.screen_width, sdRenderer.screen_height );
-				ctx.drawImageFilterCache( sdRenderer.img_dark_lands2, sdRenderer.screen_width - ( ( sdWorld.camera.x / 2 ) % sdRenderer.screen_width ), sdRenderer.screen_height / 4 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height ) ), sdRenderer.screen_width, sdRenderer.screen_height );
-				ctx.globalAlpha = 1;
+					//Parallax background
+					ctx.drawImageFilterCache( sdRenderer.img_dark_lands2, - sdRenderer.screen_width - ( ( sdWorld.camera.x / 2 ) % sdRenderer.screen_width ), sdRenderer.screen_height / 4 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height ) ), sdRenderer.screen_width, sdRenderer.screen_height );
+					ctx.drawImageFilterCache( sdRenderer.img_dark_lands2, 0 - ( ( sdWorld.camera.x / 2 ) % sdRenderer.screen_width ), sdRenderer.screen_height / 4 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height ) ), sdRenderer.screen_width, sdRenderer.screen_height );
+					ctx.drawImageFilterCache( sdRenderer.img_dark_lands2, sdRenderer.screen_width - ( ( sdWorld.camera.x / 2 ) % sdRenderer.screen_width ), sdRenderer.screen_height / 4 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height ) ), sdRenderer.screen_width, sdRenderer.screen_height );
+					ctx.globalAlpha = 1;
 
-				// Closer parallax background
+					// Closer parallax background
 
-				ctx.drawImageFilterCache( sdRenderer.img_dark_lands3, - sdRenderer.screen_width - ( ( sdWorld.camera.x ) % sdRenderer.screen_width ), sdRenderer.screen_height / 2 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height * 1.5 ) ), sdRenderer.screen_width, sdRenderer.screen_height * 2 );
-				ctx.drawImageFilterCache( sdRenderer.img_dark_lands3, 0 - ( ( sdWorld.camera.x ) % sdRenderer.screen_width ), sdRenderer.screen_height / 2 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height * 1.5 ) ), sdRenderer.screen_width, sdRenderer.screen_height * 2 );
-				ctx.drawImageFilterCache( sdRenderer.img_dark_lands3, sdRenderer.screen_width - ( ( sdWorld.camera.x ) % sdRenderer.screen_width ), sdRenderer.screen_height / 2 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height * 1.5 ) ), sdRenderer.screen_width, sdRenderer.screen_height * 2 );
-				ctx.globalAlpha = 1; // Just in case
+					ctx.drawImageFilterCache( sdRenderer.img_dark_lands3, - sdRenderer.screen_width - ( ( sdWorld.camera.x ) % sdRenderer.screen_width ), sdRenderer.screen_height / 2 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height * 1.5 ) ), sdRenderer.screen_width, sdRenderer.screen_height * 2 );
+					ctx.drawImageFilterCache( sdRenderer.img_dark_lands3, 0 - ( ( sdWorld.camera.x ) % sdRenderer.screen_width ), sdRenderer.screen_height / 2 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height * 1.5 ) ), sdRenderer.screen_width, sdRenderer.screen_height * 2 );
+					ctx.drawImageFilterCache( sdRenderer.img_dark_lands3, sdRenderer.screen_width - ( ( sdWorld.camera.x ) % sdRenderer.screen_width ), sdRenderer.screen_height / 2 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height * 1.5 ) ), sdRenderer.screen_width, sdRenderer.screen_height * 2 );
+					ctx.globalAlpha = 1; // Just in case
+				}
 			}
 			
 			if ( sdWorld.time > sdRenderer.last_source_change + 5000 )
@@ -700,6 +701,8 @@ class sdRenderer
 			
 			const void_draw = sdEntity.prototype.DrawBG;
 			
+			//let double_draw_catcher = new WeakMap();
+			
 			for ( var i = 0; i < sdEntity.entities.length; i++ )
 			{
 				const e = sdEntity.entities[ i ];
@@ -709,6 +712,14 @@ class sdRenderer
 				if ( e.y + e._hitbox_y2 > min_y )
 				if ( e.y + e._hitbox_y1 < max_y )
 				{
+					/*if ( e.GetClass() === 'sdGrass' )
+					{
+						if ( double_draw_catcher.has( e ) )
+						continue;
+						else
+						double_draw_catcher.set( e, 'first' );
+					}*/
+					
 					ctx.volumetric_mode = e.DrawIn3D( -1 );
 					ctx.object_offset = e.ObjectOffset3D( -1 );
 
@@ -743,6 +754,14 @@ class sdRenderer
 					   ( e.__proto__.constructor === sdEffect.prototype.constructor && e._type === sdEffect.TYPE_BEAM ) ) // sdWorld.my_entity.__proto__.constructor
 				if ( !sdWorld.is_singleplayer || e.IsVisible( sdWorld.my_entity ) )
 				{
+					/*if ( e.GetClass() === 'sdGrass' )
+					{
+						if ( double_draw_catcher.has( e ) )
+						continue;
+						else
+						double_draw_catcher.set( e, 'second' );
+					}*/
+				
 					ctx.volumetric_mode = e.DrawIn3D( 0 );
 					ctx.object_offset = e.ObjectOffset3D( 0 );
 
@@ -788,6 +807,14 @@ class sdRenderer
 						   e.y + e._hitbox_y2 > min_y &&
 						   e.y + e._hitbox_y1 < max_y ) )
 					{
+						/*if ( e.GetClass() === 'sdGrass' )
+						{
+							if ( double_draw_catcher.has( e ) )
+							continue;
+							else
+							double_draw_catcher.set( e, 'third' );
+						}*/
+
 						ctx.save();
 						try
 						{
@@ -1168,7 +1195,9 @@ class sdRenderer
 				
 				ctx.fillStyle = '#AAAAff'; // By MrMcShroom / ZapruderFilm // EG: Could be also nice to eventually not let players know where they are exactly - maybe some in-game events would lead to that
            		//ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 420, 50 );	
-           		ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 5 + 445 * scale, 30 );	
+           		ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 5 + 445 * scale, 30 );
+				
+				ctx.fillText("Framerate: "+sdRenderer.last_frame_times.length+" FPS", 5 + 445 * scale, 47 );
 			}
 			
 			ctx.save();
@@ -1273,6 +1302,10 @@ class sdRenderer
 		
 		if ( typeof ctx.FakeEnd !== 'undefined' )
 		ctx.FakeEnd();
+	
+		sdRenderer.last_frame_times.push( sdWorld.time );
+		while ( sdRenderer.last_frame_times.length > 0 && sdRenderer.last_frame_times[ 0 ] < sdWorld.time - 1000 )
+		sdRenderer.last_frame_times.shift();
 	}
 }
 //sdRenderer.init_class();

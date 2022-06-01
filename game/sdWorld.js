@@ -1387,7 +1387,7 @@ class sdWorld
 						
 						sdWorld.my_entity_upgrades_later_set_obj = null;
 					}
-					
+										
 					return;
 				}
 			}
@@ -2236,6 +2236,12 @@ class sdWorld
 					if ( sdWorld.camera.y > sdWorld.my_entity.y + 200 )
 					sdWorld.camera.y = sdWorld.my_entity.y + 200;
 
+					/*if ( sdRenderer.visual_settings === 4 )
+					{
+						sdRenderer.ctx.camera.position.x = sdWorld.camera.x;
+						sdRenderer.ctx.camera.position.y = sdWorld.camera.y;
+						sdRenderer.ctx.camera.position.z = -811 / sdWorld.camera.scale;
+					}*/
 
 					sdWorld.my_entity.look_x = sdWorld.mouse_screen_x / sdWorld.camera.scale + sdWorld.camera.x - sdRenderer.screen_width / 2 / sdWorld.camera.scale;
 					sdWorld.my_entity.look_y = sdWorld.mouse_screen_y / sdWorld.camera.scale + sdWorld.camera.y - sdRenderer.screen_height / 2 / sdWorld.camera.scale;
@@ -3308,10 +3314,15 @@ class sdWorld
 		let h = 10;
 		
 		//sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 );
-		sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 + 100 * 16 );
+		//sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 + 100 * 16 );
+		sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 );
 		
 		if ( sdEntity.global_entities.length === 0 )
 		sdEntity.entities.push( new sdWeather({}) );
+	
+		// Stop all events
+		sdWorld.server_config.GetAllowedWorldEvents = ()=>[];
+		sdWorld.entity_classes.sdWeather.only_instance._daily_events = [];
 		
 		globalThis.socket = {
 			emit: ( cmd, obj )=>
@@ -3435,7 +3446,7 @@ class sdWorld
 				return v?1:0;
 			};
 			
-			sdRenderer.visual_settings = BoolToInt( player_settings['visuals1'] ) * 1 + BoolToInt( player_settings['visuals2'] ) * 2 + BoolToInt( player_settings['visuals3'] ) * 3;
+			sdRenderer.visual_settings = BoolToInt( player_settings['visuals1'] ) * 1 + BoolToInt( player_settings['visuals2'] ) * 2 + BoolToInt( player_settings['visuals3'] ) * 3 + BoolToInt( player_settings['visuals4'] ) * 4;
 
 			sdRenderer.dirt_settings = BoolToInt( player_settings['dirts1'] ) * 1 + BoolToInt( player_settings['dirts2'] ) * 2 + BoolToInt( player_settings['dirts3'] ) * 3;
 			

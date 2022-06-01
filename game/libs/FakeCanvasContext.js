@@ -107,8 +107,10 @@ class FakeCanvasContext
 		this.camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 400, 1000 );
 		
 		this.camera.position.z = -811;
-		
 		this.camera.rotation.x = Math.PI;
+		this.camera.far = 2000;
+		this.camera.near = 1;
+		this.camera.updateProjectionMatrix();
 
 		this.scene = new THREE.Scene();
 
@@ -230,6 +232,8 @@ class FakeCanvasContext
 		this._debugInfo = this._gl.getExtension('WEBGL_debug_renderer_info');
 		this._renderer = this._debugInfo ? this._gl.getParameter( this._debugInfo.UNMASKED_RENDERER_WEBGL ) : null;
 		this._vendor = this._debugInfo ? this._gl.getParameter( this._debugInfo.UNMASKED_VENDOR_WEBGL ) : null;
+		
+		this._matrix3 = new THREE.Matrix3();
 	}
 	
 	
@@ -523,39 +527,81 @@ class FakeCanvasContext
 	
 	fillRect( destination_x, destination_y, destination_w, destination_h )
 	{
+		if ( sdRenderer.visual_settings === 4 )
+		return;
+	
 		let m = this.RequireMesh( this.geometries_by_draw_in[ this.volumetric_mode ], this.RequireMaterial( this.fillStyle, 0, 0, 32, 32, this.volumetric_mode, this.globalAlpha ) );
 		
 		this.DrawObject( m, destination_x, destination_y, destination_w, destination_h );
 	}
 	translate( x, y )
 	{
+		if ( sdRenderer.visual_settings === 4 )
+		{
+			let m = new THREE.Matrix3();
+			m.translate( x, y );
+			
+			this._matrix3.multiply( m );
+		}
+		else
 		this.transform.multiply( new THREE.Matrix4().makeTranslation( x, y, 0 ) );
 	}
 	scale( x, y )
 	{
+		if ( sdRenderer.visual_settings === 4 )
+		{
+			let m = new THREE.Matrix3();
+			m.scale( x, y );
+			
+			this._matrix3.multiply( m );
+		}
+		else
 		this.transform.multiply( new THREE.Matrix4().makeScale( x, y, 1 ) );
 	}
 	rotate( a )
 	{
+		if ( sdRenderer.visual_settings === 4 )
+		{
+			let m = new THREE.Matrix3();
+			m.rotate( -a );
+			
+			this._matrix3.multiply( m );
+		}
+		else
 		this.transform.multiply( new THREE.Matrix4().makeRotationZ( a ) );
 	}
 	save()
 	{
+		if ( sdRenderer.visual_settings === 4 )
+		this.save_stack.push( [ this._matrix3.clone(), this.globalAlpha ] );
+		else
 		this.save_stack.push( [ this.transform.clone(), this.globalAlpha ] );
 	}
 	restore()
 	{
 		let save = this.save_stack.pop();
+		
+		if ( sdRenderer.visual_settings === 4 )
+		this._matrix3 = save[ 0 ];
+		else
 		this.transform = save[ 0 ];
+	
 		this.globalAlpha = save[ 1 ];
 	}
 	resetTransform()
 	{
 		this.save_stack.length = 0;
+		
+		if ( sdRenderer.visual_settings === 4 )
+		this._matrix3.identity();
+		else
 		this.transform.identity();
 	}
 	fillText( text, x, y, max_width=undefined )
-	{
+	{	
+		if ( sdRenderer.visual_settings === 4 )
+		return;
+	
 		let mat = this.RequireMaterial( text, this.font, this.textAlign, this.fillStyle, max_width, FakeCanvasContext.DRAW_IN_3D_FLAT, this.globalAlpha, 1 * this.transform.elements[ 5 ] );
 		
 		let m = this.RequireMesh( this.geometries_by_draw_in[ FakeCanvasContext.DRAW_IN_3D_FLAT ], mat );
@@ -703,12 +749,16 @@ class FakeCanvasContext
 			debugger;
 		}
 		
-		
-		
-		
-		let m = this.RequireMesh( this.geometries_by_draw_in[ this.volumetric_mode ], this.RequireMaterial( image, source_x, source_y, source_w, source_h, this.volumetric_mode, this.globalAlpha ) );
-		
-		this.DrawObject( m, destination_x, destination_y, destination_w, destination_h );
+		if ( sdRenderer.visual_settings === 4 )
+		{
+			sdAtlasMaterial.drawImage( image, source_x, source_y, source_w, source_h, destination_x, destination_y, destination_w, destination_h );
+		}
+		else
+		{
+			let m = this.RequireMesh( this.geometries_by_draw_in[ this.volumetric_mode ], this.RequireMaterial( image, source_x, source_y, source_w, source_h, this.volumetric_mode, this.globalAlpha ) );
+
+			this.DrawObject( m, destination_x, destination_y, destination_w, destination_h );
+		}
 	}
 	
 	DrawObject( m, destination_x, destination_y, destination_w, destination_h )
@@ -776,8 +826,11 @@ class FakeCanvasContext
 	}
 	arc( x, y, di, from_an, to_an )
 	{
+		if ( sdRenderer.visual_settings === 4 )
+		return;
+	
 		if ( isNaN( x ) || isNaN( y ) || isNaN( di ) )
-			debugger
+		debugger
 				
 		// ctx.arc( this.x0 - this.x, this.y0 - this.y, sdDoor.connection_range, 0, Math.PI*2 );
 		var steps = Math.min( 50, Math.max( 16, ~~( Math.PI * di * ( to_an - from_an ) / 50 ) ) );
@@ -799,7 +852,10 @@ class FakeCanvasContext
 	{
 	}
 	stroke()
-	{
+	{	
+		if ( sdRenderer.visual_settings === 4 )
+		return;
+	
 		for ( var i = 0; i < this.shapes.length; i++ )
 		{
 			const points = [];
@@ -871,7 +927,13 @@ class FakeCanvasContext
 	}
 	
 	FakeStart()
-	{
+	{		
+		if ( sdRenderer.visual_settings === 4 )
+		{
+			sdAtlasMaterial.FrameStart();
+		}
+		
+		
 		this.z_offset = 0;
 		this.z_depth = 0;
 		
@@ -910,6 +972,11 @@ class FakeCanvasContext
 	}
 	FakeEnd()
 	{
+		if ( sdRenderer.visual_settings === 4 )
+		{
+			sdAtlasMaterial.FrameEnd();
+		}
+		
 		let time_start = Date.now();
 		
 		this.renderer.render( this.scene, this.camera );
@@ -973,7 +1040,7 @@ class FakeCanvasContext
 			continue;
 		}
 		
-		if ( time_end - time_start > 10 )
+		if ( time_end - time_start > 16 )
 		{
 			if ( !this.graphics_complain_spoken )
 			if ( this.graphics_complain_skips-- <= 0 )
@@ -1040,7 +1107,6 @@ class FakeCanvasContext
 		{
 			this.graphics_complain_skips = 60;
 		}
-		
 	}
 }
 FakeCanvasContext.init_class();

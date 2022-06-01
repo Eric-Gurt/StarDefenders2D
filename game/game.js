@@ -87,7 +87,9 @@ globalThis.GetFrame = ()=>{ return sdWorld.frame; }; // Call like this: GetFrame
 
 	import FakeCanvasContext from './libs/FakeCanvasContext.js';
 	globalThis.FakeCanvasContext = FakeCanvasContext;
+	globalThis.sdAtlasMaterial = sdAtlasMaterial;
 
+	import sdAtlasMaterial from './client/sdAtlasMaterial.js';
 	import sdRenderer from './client/sdRenderer.js';
 	import sdShop from './client/sdShop.js';
 	import sdChat from './client/sdChat.js';
@@ -187,6 +189,7 @@ globalThis.GetFrame = ()=>{ return sdWorld.frame; }; // Call like this: GetFrame
 
 
 	sdWorld.init_class();
+	sdAtlasMaterial.init_class();
 	sdRenderer.init_class();
 	LZW.init_class();
 	
@@ -867,11 +870,16 @@ let enf_once = true;
 			debugger;
 		}
 		
+		if ( globalThis.frame_by_frame )
+		setTimeout( logic, 500 );
+		else
 		window.requestAnimationFrame( logic );
 		
 		frame++;
 	};
 	window.requestAnimationFrame( logic );
+	
+	globalThis.frame_by_frame = false;
 
 	let key_states = new sdKeyStates();
 	sdWorld.my_key_states = key_states;

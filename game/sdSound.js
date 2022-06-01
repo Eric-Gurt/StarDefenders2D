@@ -197,6 +197,7 @@ class sdSound
 		if ( sdWorld.my_entity.hea > 0 )
 		{
 			let old_old = sdWorld.my_entity._matter_old;
+			
 			sdWorld.my_entity._matter_old = sdWorld.MorphWithTimeScale( sdWorld.my_entity._matter_old, sdWorld.my_entity.matter, 0.9, GSPEED );
 			
 			target_volume = ( ( sdWorld.my_entity._matter_old - old_old ) );

@@ -848,7 +848,10 @@ class sdShop
 
 			ctx.font = "12px Verdana";
 			
-			let t = 'No description for ' + JSON.stringify( sdShop.options[ sdShop.potential_selection ] );
+			let simple_obj = Object.assign( sdShop.options[ sdShop.potential_selection ] );
+			delete simple_obj._cache;
+			
+			let t = 'No description for ' + JSON.stringify( simple_obj );
 			let desc = null; // Secondary description, used for upgrades
 			
 			if ( sdShop.options[ sdShop.potential_selection ]._opens_category )

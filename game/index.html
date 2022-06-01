@@ -122,8 +122,11 @@
 	    .set_block input
 	    {
 		height: 0;
-		/*transition: all 0.2s ease;*/
 		opacity: 0;
+	    }
+	    .set_block label
+	    {
+		font-size: 70%;
 	    }
 	    .set_block:hover
 	    {
@@ -146,7 +149,7 @@
 	    }
 	    .set_block:focus-within input
 	    {
-		height: 15px;
+		height: 10px;
 		opacity: 1;
 		pointer-events: unset;
 	    }
@@ -808,6 +811,9 @@
 		<br>
 		<input type="checkbox" id="visuals3" value="yes">
 		<label for="visuals3">3D+ (GPU accelerated)</label>
+		<br>
+		<input type="checkbox" id="visuals4" value="yes">
+		<label for="visuals4">experimental: 3D++ (GPU accelerated and optimized)</label>
 		<br>
 		<br>
 		<input type="checkbox" id="density1" value="no">
