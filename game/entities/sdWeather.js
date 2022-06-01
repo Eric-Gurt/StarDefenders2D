@@ -690,14 +690,16 @@ class sdWeather extends sdEntity
 							y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
 
 							let chance = Math.random();
-							if ( chance < 0.2 ) // 20% chance it's a "Cube" spawning portal ( 0 - 0.2 )
+							if ( chance < 0.25 ) // 25% chance it's a "Cube" spawning portal ( 0 - 0.25 )
 							portal.type = 2;
 							else
-							if ( chance < 0.4 ) // 20% chance it's a "Asteroid" spawning portal ( 0.2 - 0.4 )
+							if ( chance < 0.5 ) // 20% chance it's a "Asteroid" spawning portal ( 0.25 - 0.5 )
 							portal.type = 3;
 							else
-							if ( chance < 0.5 ) // 10% chance it's a "Black hole" portal ( 0.4 - 0.5 )
+							if ( chance < 0.6 ) // 10% chance it's a "Black hole" portal ( 0.5 - 0.6 )
 							portal.type = 4;
+							else
+							portal.type = 1;
 
 							if ( portal.CanMoveWithoutOverlap( x, y, 0 ) )
 							if ( !portal.CanMoveWithoutOverlap( x, y + 24, 0 ) )
