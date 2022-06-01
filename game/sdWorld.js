@@ -2712,6 +2712,7 @@ class sdWorld
 				arr_i = arr[ i ];
 				
 				if ( arr_i !== ignore_entity )
+				if ( !arr_i._is_being_removed )
 				{
 					arr_i_x = arr_i.x;
 					
