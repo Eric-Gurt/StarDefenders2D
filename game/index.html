@@ -11,12 +11,24 @@
 	<meta name="language" content="English">
 	<meta name="revisit-after" content="30 days">
 	<style>
+	    @font-face {
+		font-family: "ui_font";
+		src: url("/assets/fonts/CozetteVector.ttf") format("truetype");
+	    }
+	    
+	    *
+	    {
+		font-family: ui_font, Verdana;
+		
+		cursor: url(/assets/cursor_2x.png), auto;
+	    }
+
 	    body
 	    {
-		font-family: Verdana;
-		font-size: 13px;
+		user-select: none;
+		
+		font-size: 12px;
 		background: repeating-linear-gradient( -45deg, black 0px, black 5.1px, #0b0b0b 5.1px, #0b0b0b 10.2px );
-		cursor: default;
 		height: 100%;
 		overflow: hidden;
 		background-blend-mode: overlay;
@@ -26,17 +38,18 @@
 		left:0;
 		top:0;
 	    }
-	    *::-moz-selection { background-color: red; }
-	    *::selection { background-color: red; }
+	    *::-moz-selection { background-color: #ffffff; color: #000000; }
+	    *::selection { background-color: #ffffff; color: #000000; }
 	    input
 	    {
+		font-size: 12px;
+		
 		border: none;
 		background-color: #414141;
 		padding: 6px;
 		height: 30px;
 		color: white;
 		border-radius: 0;
-		cursor: hand;
 		outline: none;
 		margin-top: 3px;
 	    }
@@ -126,12 +139,11 @@
 	    }
 	    .set_block label
 	    {
-		font-size: 70%;
+		/*font-size: 70%;*/
 	    }
 	    .set_block:hover
 	    {
 		background-color: #0d1710;
-		cursor: pointer;
 	    }
 	    .set_block:focus-within
 	    {
@@ -146,6 +158,19 @@
 		
 		margin-bottom: -100%;
 		z-index:1000;
+		
+		
+	    }
+	    .set_block:focus-within::-webkit-scrollbar
+	    {
+		width: 12px;
+		height: 12px;
+		background-color: #1e3424;
+	    }
+	    .set_block:focus-within::-webkit-scrollbar-thumb
+	    {
+		background-color: white;
+		box-shadow: inset 0 0 0px 5px #1e3424;
 	    }
 	    .set_block:focus-within input
 	    {
@@ -156,7 +181,7 @@
 	    .sdtitle
 	    {
 		color: #5ce98a;
-		font-size: 12px;
+		/*font-size: 12px;*/
 	    }
 	    .sdgroup
 	    {
@@ -422,7 +447,6 @@
 	<script src="libs/howler.js.min.js"></script>
 	<!--<script src="libs/hqx.js"></script>-->
 	<script src="game.js" type="module"></script>
-	
 	<div id="mobile_ui" style="display:none;z-index:100;position:fixed;left:0;top:0">
 	    
         	<span id="mobile_move_button" class="r_conteiner" style="
@@ -654,7 +678,7 @@
     color: #2f2f2f;
     text-align: right;
     "><span style="color:#ffffff5e" id="game_title_text">...</span><br>
-	    <div style="font-size:10px;color:#355a52;font-weight: bold;">v0.9</div></div>
+	    <div style="font-size:12px;color:#355a52;">v0.9</div></div>
 	    
 	    <div style="position: absolute; left: calc( 100% + 20px ); top:0; width: 300px; height: 100%;
 		box-sizing: border-box; background-color: black;
@@ -1612,7 +1636,7 @@
 	    
 	    </div>
 	    
-	    <canvas style="position: absolute;right: 40px;top: 40px;border-radius: 20px;box-shadow: 0 0 0px 5px #7b321963;" id="skin_preview" width="128" height="128"></canvas>
+	    <canvas style="position: absolute;right: 40px;top: 40px;/*border-radius: 20px;box-shadow: 0 0 0px 5px #7b321963;*/" id="skin_preview" width="128" height="128"></canvas>
 	</div>
 
 	<script>

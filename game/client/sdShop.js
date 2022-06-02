@@ -579,7 +579,7 @@ class sdShop
 		
 		let old_active_build_settings = sdWorld.my_entity._build_params;
 			
-		ctx.fillStyle = 'rgb(0,0,0)';
+		ctx.fillStyle = '#000000';
 		ctx.globalAlpha = 0.8;
 		ctx.fillRect( 20, 20, sdRenderer.screen_width - 40, sdRenderer.screen_height - 40 );
 		ctx.globalAlpha = 1;
@@ -704,22 +704,26 @@ class sdShop
 					ctx.globalAlpha = 0.2;
 					if ( sdWorld.my_entity.matter >= matter_cost )
 					{
-						ctx.fillStyle = 'rgb(0,255,0)';
+						ctx.fillStyle = '#00ff00';
 					}
 					else
 					{
-						ctx.fillStyle = 'rgb(255,0,0)';
+						ctx.fillStyle = '#ff0000';
 					}
 
-					if ( sdWorld.mouse_screen_x >= xx - 10 )
+					/*if ( sdWorld.mouse_screen_x >= xx - 10 )
 					if ( sdWorld.mouse_screen_x < xx + 64 + 10 )
 					if ( sdWorld.mouse_screen_y >= yy - 10 )
-					if ( sdWorld.mouse_screen_y < yy + 64 + 10 )
+					if ( sdWorld.mouse_screen_y < yy + 64 + 10 )*/
+					if ( sdWorld.mouse_screen_x >= xx - 20 )
+					if ( sdWorld.mouse_screen_x < xx + 64 + 20 )
+					if ( sdWorld.mouse_screen_y >= yy - 20 )
+					if ( sdWorld.mouse_screen_y < yy + 64 + 20 )
 					if ( sdShop.potential_selection === -1 )
 					{
 						sdShop.potential_selection = sdWorld.my_entity._build_params._main_array_index; // i;
 						
-						ctx.fillStyle = 'rgb(255,255,0)';
+						ctx.fillStyle = '#ffff00';
 						ctx.globalAlpha = 0.3;
 					}
 					ctx.fillRect( -5,-5, 32+10,32+10 );
@@ -820,7 +824,8 @@ class sdShop
 				if ( max_level > 0 )
 				{
 					ctx.fillStyle = '#ffffff';
-					ctx.font = "4.5px Verdana";
+					//ctx.font = "4.5px Verdana";
+					ctx.font = "5.5px Verdana";
 					ctx.textAlign = 'right';
 					ctx.fillText( cur_level + " / " + max_level, 32, 32 );
 				}
@@ -848,7 +853,7 @@ class sdShop
 
 			ctx.font = "12px Verdana";
 			
-			let simple_obj = Object.assign( sdShop.options[ sdShop.potential_selection ] );
+			let simple_obj = Object.assign( {}, sdShop.options[ sdShop.potential_selection ] );
 			delete simple_obj._cache;
 			
 			let t = 'No description for ' + JSON.stringify( simple_obj );
@@ -879,7 +884,7 @@ class sdShop
 			}
 			
 			let d = ctx.measureText( t );
-			let d2 = ctx.measureText( desc ); // Secondary description, used for upgrades
+			let d2 = ( desc !== null ) ? ctx.measureText( desc ) : null; // Secondary description, used for upgrades
 			
 			let xx = sdWorld.mouse_screen_x + 16;
 			

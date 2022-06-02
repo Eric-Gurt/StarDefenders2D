@@ -2248,6 +2248,7 @@ io.on("connection", (socket) =>
 				{
 					if ( ent._my_hash === player_settings.my_hash )
 					{
+						//trace('hash_match');
 						/*if ( ent._socket )
 						{
 							if ( sockets_by_ip[ ip ].indexOf( ent._socket ) !== -1 )
@@ -2259,9 +2260,20 @@ io.on("connection", (socket) =>
 
 						if ( !ent._socket )
 						{
-							if ( best_ent === null || ( best_ent.hea || best_ent._hea ) <= 0 )
-							best_ent = ent;
+							if ( best_ent === null || ( best_ent.hea || best_ent._hea || 0 ) <= 0 )
+							{
+								//if ( best_ent )
+								//trace('found better option', ent.hea, ent._hea, best_ent.hea, best_ent._hea );
+								//else
+								//trace('found first option', ent.hea, ent._hea );
+							
+								best_ent = ent;
+							}
+							//else
+							//trace('not a better option?', best_ent === null, ( best_ent.hea || best_ent._hea || 0 ), ( best_ent.hea || best_ent._hea || 0 ) <= 0 );
 						}
+						//else
+						//trace('has socket...?');
 					}
 				}
 			}

@@ -130,7 +130,7 @@ class sdChat
 	{
 		if ( sdChat.style === sdChat.STYLE_CHATBOX )
 		{
-			ctx.fillStyle = 'rgba(0,0,0)';
+			ctx.fillStyle = '#000000';
 			ctx.globalAlpha = 0.5;
 			ctx.fillRect( 10, sdRenderer.screen_height - 40, sdRenderer.screen_width - 20, 30 );
 			ctx.globalAlpha = 1;

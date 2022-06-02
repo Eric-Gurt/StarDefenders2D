@@ -120,7 +120,7 @@ class sdEntity
 	get hitbox_y2() { return 5; }
 	
 	DrawIn3D()
-	{ return FakeCanvasContext.DRAW_IN_3D_FLAT; }
+	{ return FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT; }
 	
 	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG, return null or array of [x,y,z] offsets
 	{ return null; }
@@ -2884,6 +2884,8 @@ class sdEntity
 		
 		ret.ApplySnapshot( snapshot );
 		
+		ret.onSnapshotApplied();
+		
 		ret.UpdateHitbox();
 		
 		sdEntity.entities.push( ret );
@@ -2891,6 +2893,9 @@ class sdEntity
 	
 		return ret;
 	}	
+	onSnapshotApplied() // To override
+	{
+	}
 	//static GuessEntityName( net_id ) // For client-side coms, also for server bound extend report. Use sdWorld.ClassNameToProperName in other cases
 	static GuessEntityName( net_id_or_biometry ) // For client-side coms, also for server bound extend report. Use sdWorld.ClassNameToProperName in other cases
 	{

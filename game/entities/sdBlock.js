@@ -181,6 +181,8 @@ class sdBlock extends sdEntity
 					if ( this.IsPartiallyTransparent() )
 					return;
 
+					let visible = true;
+					/*
 					for ( var a = 0; a < this._affected_hash_arrays.length; a++ )
 					{
 						for ( var i = 0; i < this._affected_hash_arrays[ a ].length; i++ )
@@ -237,12 +239,7 @@ class sdBlock extends sdEntity
 								sdWorld.CheckWallExists( this.x + 16 + 8, this.y + this.height + 8, null, null, filter );
 							}
 							this._vis_block_bottom = sdWorld.last_hit_entity;
-							/*
-							if ( this.material === sdBlock.MATERIAL_WALL )
-							{
-								if ( this._vis_block_bottom )
-								debugger;
-							}*/
+							
 						}
 						
 						if ( !this._vis_block_bottom )
@@ -294,6 +291,7 @@ class sdBlock extends sdEntity
 					}
 					
 					//this._vis_back = visible;
+					*/
 					
 					if ( visible )
 					{
@@ -575,6 +573,18 @@ class sdBlock extends sdEntity
 		
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 	}
+	onSnapshotApplied() // To override
+	{
+		// Update version where hue is a separate property
+		if ( this.filter.indexOf( 'hue-rotate' ) !== -1 || this.filter.indexOf( 'brightness' ) !== -1 )
+		{
+			[ this.hue, this.br, this.filter ] = sdWorld.ExtractHueRotate( this.hue, this.br, this.filter );
+		}
+	}
+	onBuilt()
+	{
+		this.onSnapshotApplied();
+	}
 	constructor( params )
 	{
 		super( params );
@@ -615,6 +625,8 @@ class sdBlock extends sdEntity
 		//this._hidden_crystal = params.hidden_crystal || false;
 		//this._hidden_virus = params.hidden_virus || false;
 		
+		this.hue = params.hue || 0;
+		this.br = params.br || 100;
 		this.filter = params.filter || '';
 		
 		this._natural = params.natural === true;
@@ -663,6 +675,8 @@ class sdBlock extends sdEntity
 				throw new Error('Double wall bug detected');
 			}
 		}*/
+		
+		this.onSnapshotApplied();
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
@@ -674,7 +688,7 @@ class sdBlock extends sdEntity
 	}
 	Corrupt( from=null )
 	{
-		let ent2 = new sdBlock({ x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_CORRUPTION, filter:this.filter, rank: from ? Math.max( 0, from.p - 1 - Math.floor( Math.random(), 3 ) ) : undefined });
+		let ent2 = new sdBlock({ x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_CORRUPTION, hue:this.hue,br:this.br,filter:this.filter, rank: from ? Math.max( 0, from.p - 1 - Math.floor( Math.random(), 3 ) ) : undefined });
 
 		this.remove();
 		this._broken = false;
@@ -695,7 +709,7 @@ class sdBlock extends sdEntity
 	}
 	Crystalize( from=null )
 	{
-		let ent2 = new sdBlock({ x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_CRYSTAL_SHARDS, natural:true, filter:this.filter, rank: Math.round( Math.random() * 6 ) }); // Don't allow orange and anticrystal shards due to their glow effect overriding the block.
+		let ent2 = new sdBlock({ x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_CRYSTAL_SHARDS, natural:true, hue:this.hue,br:this.br,filter:this.filter, rank: Math.round( Math.random() * 6 ) }); // Don't allow orange and anticrystal shards due to their glow effect overriding the block.
 
 		this.remove();
 		this._broken = false;
@@ -944,11 +958,43 @@ class sdBlock extends sdEntity
 		var w = this.width;
 		var h = this.height;
 		
-		ctx.filter = this.filter;//'hue-rotate(90deg)';
+		ctx.filter = this.filter;
+		
+		if ( this.hue !== 0 )
+		{
+			// Less cache usage by making .hue as something GPU understands, so we don't have as many versions of same images
+			if ( sdRenderer.visual_settings === 4 )
+			ctx.sd_hue_rotation = this.hue;
+			else
+			ctx.filter = 'hue-rotate('+this.hue+'deg)' + ctx.filter;
+		}
+		
+		if ( this.br / 100 !== 1 )
+		{
+			if ( sdRenderer.visual_settings === 4 )
+			{
+				ctx.sd_color_mult_r = this.br / 100;
+				ctx.sd_color_mult_g = this.br / 100;
+				ctx.sd_color_mult_b = this.br / 100;
+			}
+			else
+			{
+				ctx.filter = 'brightness('+this.br+'%)';
+			}
+		}
 		
 		let lumes = sdWorld.GetClientSideGlowReceived( this.x + w / 2, this.y + h / 2, this );
 		if ( lumes > 0 )
-		ctx.filter = ctx.filter + 'brightness('+(1+lumes)+')';
+		{
+			if ( sdRenderer.visual_settings === 4 )
+			{
+				ctx.sd_color_mult_r *= (1+lumes);
+				ctx.sd_color_mult_g *= (1+lumes);
+				ctx.sd_color_mult_b *= (1+lumes);
+			}
+			else
+			ctx.filter = ctx.filter + 'brightness('+(1+lumes)+')';
+		}
 
 		
 		
@@ -969,14 +1015,26 @@ class sdBlock extends sdEntity
 			
 			if ( this.material === sdBlock.MATERIAL_CORRUPTION )
 			{
-				//ctx.filter = 'none';
-				//ctx.filter = 'hue-rotate('+( this.p - 12 )*(15)+'deg)';
-				//ctx.filter = 'hue-rotate('+( this.p - 12 )*(15)+'deg) saturate('+(this.p/12 * 0.75 + 0.25)+')';
+				if ( sdRenderer.visual_settings === 4 )
+				{
+					ctx.filter = 'saturate('+(this.p/ sdBlock.max_corruption_rank * 0.75 + 0.25)+')';
+					ctx.sd_hue_rotation = ( this.p - sdBlock.max_corruption_rank )*(15);
+					ctx.sd_color_mult_r = (this.p / sdBlock.max_corruption_rank * 0.75 + 0.25);
+					ctx.sd_color_mult_g = (this.p / sdBlock.max_corruption_rank * 0.75 + 0.25);
+					ctx.sd_color_mult_b = (this.p / sdBlock.max_corruption_rank * 0.75 + 0.25);
+				}
+				else
 				ctx.filter = 'hue-rotate('+( this.p - sdBlock.max_corruption_rank )*(15)+'deg) saturate('+(this.p/ sdBlock.max_corruption_rank * 0.75 + 0.25)+') brightness('+(this.p / sdBlock.max_corruption_rank * 0.75 + 0.25)+')';
+			
 				ctx.drawImageFilterCache( sdBlock.img_corruption, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
 			}
 			if ( this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
 			{
+				ctx.sd_hue_rotation = 0;
+				ctx.sd_color_mult_r = 1;
+				ctx.sd_color_mult_g = 1;
+				ctx.sd_color_mult_b = 1;
+
 				//ctx.filter = 'none';
 				//ctx.filter = 'hue-rotate('+( this.p - 12 )*(15)+'deg)';
 				//ctx.filter = 'hue-rotate('+( this.p - 12 )*(15)+'deg) saturate('+(this.p/12 * 0.75 + 0.25)+')';
@@ -1084,6 +1142,10 @@ class sdBlock extends sdEntity
 		ctx.drawImageFilterCache( sdBlock.metal_reinforces[ this.reinforced_frame ], 0, 0, w,h, 0,0, w,h );
 
 		ctx.filter = 'none';
+		ctx.sd_hue_rotation = 0;
+		ctx.sd_color_mult_r = 1;
+		ctx.sd_color_mult_g = 1;
+		ctx.sd_color_mult_b = 1;
 		
 		if ( sdBlock.cracks[ this.destruction_frame ] !== null )
 		ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], 0, 0, w,h, 0,0, w,h );
@@ -1106,7 +1168,8 @@ class sdBlock extends sdEntity
 
 			if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_CORRUPTION || this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
 			{
-				let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, filter:this.filter + ' brightness(0.5)' });
+				//let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, hue:this.hue, br:this.br, filter:this.filter + ' brightness(0.5)' });
+				let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, hue:this.hue, br:this.br * 0.5, filter:this.filter });
 				if ( new_bg.CanMoveWithoutOverlap( this.x, this.y, 1 ) )
 				{
 					sdEntity.entities.push( new_bg );

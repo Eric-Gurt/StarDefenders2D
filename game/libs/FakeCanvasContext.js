@@ -12,10 +12,64 @@ class FakeCanvasContext
 		FakeCanvasContext.DRAW_IN_3D_LIQUID = 2;
 		FakeCanvasContext.DRAW_IN_3D_GRASS = 3;
 		FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT = 4;
+		FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT = 5;
 		
 		FakeCanvasContext.LIQUID_OPACITY_STEPS = 5;
 		FakeCanvasContext.GRASS_OPACITY_STEPS = 4;
 	}
+
+	/*set filter( v )
+	{
+		if ( this._filter !== v )
+		{
+			if ( sdRenderer.visual_settings === 4 )
+			{
+				this.sd_hue_rotation = 0;
+
+				let parts = v.split( ')' );
+
+				for ( let i = 0; i < parts.length; i++ )
+				{
+					let part = parts[ i ];
+					part = part.trim();
+					
+					if ( part.length > 0 )
+					{
+						let parts2 = part.split( '(' );
+
+						let func_name = parts2[ 0 ];
+						let value_str = parts2[ 1 ];
+
+						let keep = true;
+
+						if ( func_name === 'hue-rotate' )
+						{
+							this.sd_hue_rotation = parseFloat( value_str );
+							keep = false;
+						}
+
+						if ( keep )
+						{
+							if ( part[ part.length - 1 ] !== ')' )
+							part += ')';
+						}
+						else
+						part = '';
+
+						parts[ i ] = part;
+					}
+				}
+
+				this._filter = parts.join('');
+			}
+			else
+			this._filter = v;
+		}
+	}
+	get filter( )
+	{
+		return this._filter;
+	}*/
 	constructor( old_canvas )
 	{
 		this.camera = null;
@@ -99,7 +153,14 @@ class FakeCanvasContext
 			
 		}, 300 );
 		
-		this.geometries_by_draw_in = [ geometry_plane, geometry_box, geometry_liquid, geometry_grass, geometry_box ];
+		this.geometries_by_draw_in = [ 
+			geometry_plane, 
+			geometry_box, 
+			geometry_liquid, 
+			geometry_grass, 
+			geometry_box,
+			geometry_plane
+		];
 		
 		
 		let geometry, material, mesh;
@@ -202,6 +263,11 @@ class FakeCanvasContext
 		this.camera_relative_world_scale = 1;
 		
 		this.globalAlpha = 1;
+		this.sd_hue_rotation = 0;
+		this.filter = 'none';
+		this.sd_color_mult_r = 1;
+		this.sd_color_mult_g = 1;
+		this.sd_color_mult_b = 1;
 		
 		this.line_dash_arr = [];
 		this.lineDashOffset = 0;
@@ -528,7 +594,53 @@ class FakeCanvasContext
 	fillRect( destination_x, destination_y, destination_w, destination_h )
 	{
 		if ( sdRenderer.visual_settings === 4 )
-		return;
+		{
+			let img = sdAtlasMaterial.white_pixel;
+			
+			//this.fillStyle;
+			
+			if ( this.fillStyle.isLinearGradient )
+			{
+				img = this.fillStyle.cached_canvas;
+				
+				if ( !img )
+				{
+					img = this.fillStyle.cached_canvas = sdAtlasMaterial.CreateLinearGradientImage( this.fillStyle );
+				}
+			}
+			else
+			{
+				img = sdAtlasMaterial.white_pixel;
+				
+				let rgb_or_null = sdWorld.hexToRgb( this.fillStyle );
+				
+				if ( rgb_or_null === null )
+				{
+					debugger;
+					return;
+				}
+				
+				this.sd_color_mult_r = rgb_or_null[ 0 ] / 255;
+				this.sd_color_mult_g = rgb_or_null[ 1 ] / 255;
+				this.sd_color_mult_b = rgb_or_null[ 2 ] / 255;
+			}
+			
+			let old_mode = this.volumetric_mode;
+			
+			if ( this.globalAlpha < 1 )
+			{
+				if ( this.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_FLAT )
+				this.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT;
+			}
+			
+			sdAtlasMaterial.drawImage( img, 0, 0, 1, 1, destination_x, destination_y, destination_w, destination_h );
+			
+			this.volumetric_mode = old_mode;
+			this.sd_color_mult_r = 1;
+			this.sd_color_mult_g = 1;
+			this.sd_color_mult_b = 1;
+			return;
+		}
 	
 		let m = this.RequireMesh( this.geometries_by_draw_in[ this.volumetric_mode ], this.RequireMaterial( this.fillStyle, 0, 0, 32, 32, this.volumetric_mode, this.globalAlpha ) );
 		
@@ -539,6 +651,10 @@ class FakeCanvasContext
 		if ( sdRenderer.visual_settings === 4 )
 		{
 			let m = new THREE.Matrix3();
+			
+			//x = Math.round( x * 100 ) / 100;
+			//y = Math.round( y * 100 ) / 100;
+			
 			m.translate( x, y );
 			
 			this._matrix3.multiply( m );
@@ -551,6 +667,10 @@ class FakeCanvasContext
 		if ( sdRenderer.visual_settings === 4 )
 		{
 			let m = new THREE.Matrix3();
+			
+			//x = Math.round( x * 100 ) / 100;
+			//y = Math.round( y * 100 ) / 100;
+			
 			m.scale( x, y );
 			
 			this._matrix3.multiply( m );
@@ -563,6 +683,9 @@ class FakeCanvasContext
 		if ( sdRenderer.visual_settings === 4 )
 		{
 			let m = new THREE.Matrix3();
+			
+			//a = Math.round( a * 10000 ) / 10000;
+			
 			m.rotate( -a );
 			
 			this._matrix3.multiply( m );
@@ -600,7 +723,58 @@ class FakeCanvasContext
 	fillText( text, x, y, max_width=undefined )
 	{	
 		if ( sdRenderer.visual_settings === 4 )
-		return;
+		{
+			let size = parseFloat( this.font.split( ' ', 1 )[ 0 ] ) / sdAtlasMaterial.global_font_scale;
+			
+			y -= sdAtlasMaterial.global_font_offset_y * size;
+			
+			if ( this.textAlign === 'center' )
+			x -= this.measureText( text, false ).width / 2 * size;
+			else
+			if ( this.textAlign === 'right' )
+			x -= this.measureText( text, false ).width * size;
+	
+			let rgb_or_null = sdWorld.hexToRgb( this.fillStyle );
+
+			if ( rgb_or_null === null )
+			{
+				debugger;
+				return;
+			}
+
+			this.sd_color_mult_r = rgb_or_null[ 0 ] / 255;
+			this.sd_color_mult_g = rgb_or_null[ 1 ] / 255;
+			this.sd_color_mult_b = rgb_or_null[ 2 ] / 255;
+			
+			let old_mode = this.volumetric_mode;
+			
+			if ( this.globalAlpha < 1 )
+			{
+				if ( this.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_FLAT )
+				this.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT;
+			}
+			
+			for ( let i = 0; i < text.length; i++ )
+			{
+				let char = text.charCodeAt( i );
+				
+				let img = sdAtlasMaterial.character_images.get( char );
+				
+				if ( !img )
+				{
+					sdAtlasMaterial.character_images.set( char, img = sdAtlasMaterial.CreateImageForCharacter( char ) );
+				}
+				
+				if ( img )
+				sdAtlasMaterial.drawImage( img, 0, 0, 7, 13, x + i * 7 * size, y, 7 * size, 13 * size );
+			}
+			
+			this.volumetric_mode = old_mode;
+			this.sd_color_mult_r = 1;
+			this.sd_color_mult_g = 1;
+			this.sd_color_mult_b = 1;
+			return;
+		}
 	
 		let mat = this.RequireMaterial( text, this.font, this.textAlign, this.fillStyle, max_width, FakeCanvasContext.DRAW_IN_3D_FLAT, this.globalAlpha, 1 * this.transform.elements[ 5 ] );
 		
@@ -615,8 +789,14 @@ class FakeCanvasContext
 		if ( mat.userData.textAlign === 'right' )
 		this.DrawObject( m, x - mat.userData.width, y - mat.userData.height / 2, mat.userData.width, mat.userData.height );
 	}
-	measureText( text )
+	measureText( text, scaled=true )
 	{
+		if ( sdRenderer.visual_settings === 4 )
+		{
+			let size = scaled ? parseFloat( this.font.split( ' ', 1 )[ 0 ] ) / sdAtlasMaterial.global_font_scale : 1;
+			
+			return { width: text.length * 7 * size };
+		}
 		this.ctx_text_measure.font = this.font;
 		
 		return this.ctx_text_measure.measureText( text );

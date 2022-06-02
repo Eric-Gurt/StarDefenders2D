@@ -2990,6 +2990,8 @@ class sdWorld
 		return ret;
 	}
 	
+	
+	
 	static CreateSDFilter()
 	{
 		return { s: '' };
@@ -3026,6 +3028,67 @@ class sdWorld
 	
 		return ret;
 	}
+	
+		
+	static ExtractHueRotate( old_hue, old_brightness, filter_str )
+	{
+		let sd_hue_rotation = old_hue;
+		
+		let parts = filter_str.split( ')' );
+
+				
+		//if ( old_brightness === 0 )
+		//throw new Error( 'old_brightness = 0' );
+					
+		for ( let i = 0; i < parts.length; i++ )
+		{
+			let part = parts[ i ];
+			part = part.trim();
+
+			if ( part.length > 0 )
+			{
+				let parts2 = part.split( '(' );
+
+				let func_name = parts2[ 0 ];
+				let value_str = parts2[ 1 ];
+
+				let keep = true;
+
+				if ( func_name === 'hue-rotate' )
+				{
+					sd_hue_rotation += parseFloat( value_str );
+					keep = false;
+				}
+
+				if ( func_name === 'brightness' )
+				{
+					if ( value_str.indexOf( '%' ) !== -1 )
+					old_brightness *= parseFloat( value_str ) / 100;
+					else
+					old_brightness *= parseFloat( value_str );
+				
+					//if ( old_brightness === 0 )
+					//throw new Error( 'old_brightness = 0 after mult by ' + value_str + ' (='+parseFloat( value_str )+')' );
+				
+					keep = false;
+				}
+
+				if ( keep )
+				{
+					if ( part[ part.length - 1 ] !== ')' )
+					part += ')';
+				}
+				else
+				part = '';
+
+				parts[ i ] = part;
+			}
+		}
+
+		return [ sd_hue_rotation, old_brightness, parts.join('') ];
+	}
+	
+	
 	static ConvertPlayerDescriptionToHelmet( player_description )
 	{
 		if ( player_description['entity2'] )

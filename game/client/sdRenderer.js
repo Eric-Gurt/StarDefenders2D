@@ -125,7 +125,7 @@ class sdRenderer
 							sdRenderer.ctx.camera.position.z = -811 * ( 1 * innerHeight / 937 );
 
 							sdRenderer.ctx.camera.near = 400 * ( 1 * innerHeight / 937 );
-							sdRenderer.ctx.camera.far = 1000 * ( 1 * innerHeight / 937 );
+							sdRenderer.ctx.camera.far = 1200 * ( 1 * innerHeight / 937 );
 						}
 
 						sdRenderer.ctx.camera.updateProjectionMatrix();
@@ -214,6 +214,11 @@ class sdRenderer
 						image_obj_cache = new Map();
 						sdRenderer.image_filter_cache.set( image_obj, image_obj_cache );
 					}
+					
+					/*if ( complex_filter_name.indexOf( 'hue-rotate' ) !== -1 )
+					{
+						debugger;
+					}*/
 					
 					let image_obj_cache_named_item = image_obj_cache.get( complex_filter_name );
 					
@@ -364,7 +369,11 @@ class sdRenderer
 						//image_obj_cache.set( complex_filter_name, image_obj_cache_named_item );
 					}
 					
+					//let sd_hue_rotation = ctx0.sd_hue_rotation; // This one is now handled by optimized rendering mode (v4)
+					
 					ctx0.filter = 'none';
+					
+					//ctx0.sd_hue_rotation = sd_hue_rotation;
 
 					//ctx0.drawImage( image_obj_cache[ complex_filter_name ], ...args.slice( 1 ) );
 					//ctx0.drawImage( image_obj_cache[ complex_filter_name ], ...args.slice( 1 ) );
@@ -500,9 +509,12 @@ class sdRenderer
 		ctx.z_offset = 0;
 		ctx.z_depth = 0;
 		ctx.draw_offset = -100;
-		ctx.camera_relative_world_scale = 1.2;
+		//ctx.camera_relative_world_scale = 1.2;
+		ctx.camera_relative_world_scale = 1.4;
 		
 		ctx.imageSmoothingEnabled = false;
+		
+		ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_FLAT;
 		
 		// BG
 		{
@@ -837,7 +849,7 @@ class sdRenderer
 			ctx.object_offset = null;
 			
 			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_FLAT;
-			ctx.camera_relative_world_scale = 0.5;
+			ctx.camera_relative_world_scale = 0.7;
 			
 			ctx.fillStyle = '#000000';
 			for ( var step = 1; step <= 4; step++ )
@@ -1059,7 +1071,8 @@ class sdRenderer
 		ctx.z_offset = 0;
 		ctx.z_depth = 0;
 		ctx.draw_offset = 100;
-		ctx.camera_relative_world_scale = 0.5;
+		ctx.camera_relative_world_scale = 0.6;
+		ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT;
 		
 		// On-screen foregroud
 		if ( sdWorld.my_entity )
@@ -1250,6 +1263,7 @@ class sdRenderer
 			ctx.globalAlpha = 1;
 			
 			
+			ctx.camera_relative_world_scale = 0.5;
 			
 			if ( sdShop.open )
 			sdShop.Draw( ctx );

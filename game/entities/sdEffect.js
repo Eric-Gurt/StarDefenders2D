@@ -712,7 +712,7 @@ class sdEffect extends sdEntity
                 ctx.translate( 0, sdWorld.camera.y - sdRenderer.screen_height / 2 / sdWorld.camera.scale + 15 - this.y );
             }
 			
-			ctx.fillStyle = 'rgb(0,0,0)';
+			ctx.fillStyle = '#000000';
 			ctx.globalAlpha = 0.7;
 			ctx.fillRect( -details.width / 2 - 2, -7, details.width + 4, 10 );
 			ctx.globalAlpha = 1;

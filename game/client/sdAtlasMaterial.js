@@ -28,6 +28,8 @@ class sdSuperTexture
 		this.canvas.width = sdAtlasMaterial.super_texture_width;
 		this.canvas.height = sdAtlasMaterial.super_texture_height;
 		
+		this.canvas_size_scale_down_vector = new THREE.Vector2( 1 / this.canvas.width, 1 / this.canvas.height );
+		
 		this.ctx = this.canvas.getContext( '2d' );
 
 		this.texture = new THREE.CanvasTexture( this.canvas );
@@ -55,24 +57,29 @@ class sdSuperTexture
 				side: THREE.DoubleSide,
 
 				depthTest: true,
+				depthFunc: transparent ? THREE.LessDepth : THREE.LessEqualDepth,
 				//depthFunc: THREE.LessEqualDepth,
-				depthWrite: transparent ? false : true,
+				depthWrite: !transparent,
 				//transparent: false, 
-				transparent: true,//transparent, 
+				transparent: transparent, 
 				flatShading: true,
 
 				vertexShader: `
 				
 					attribute vec4 color; // From custom attributes
+					attribute float hue_rotation; // From custom attributes
 				
 					varying vec2 uv_current; // Give it to fragment shader
 					varying vec4 color_current; // Give it to fragment shader
+					varying float hue_rotation_current; // Give it to fragment shader
 				
 					void main() 
 					{
 						uv_current = uv;
 				
 						color_current.rgba = color.rgba;
+				
+						hue_rotation_current = hue_rotation;
 				
 						gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
 					}
@@ -84,16 +91,51 @@ class sdSuperTexture
 				
 					varying vec2 uv_current; // Take value from vertex shader (for fragment shader-only)
 					varying vec4 color_current; // Take value from vertex shader (for fragment shader-only)
+					varying float hue_rotation_current; // Take value from vertex shader (for fragment shader-only)
+					
+					vec3 hueShift(vec3 color, float hue) 
+					{
+						const vec3 k = vec3(0.57735, 0.57735, 0.57735);
+						float cosAngle = cos(hue);
+						return vec3(color * cosAngle + cross(k, color) * sin(hue) + k * dot(k, color) * (1.0 - cosAngle));
+					}
+					/*vec3 hueShift( vec3 color, float hueAdjust )
+					{
+						const vec3  kRGBToYPrime = vec3 (0.299, 0.587, 0.114);
+						const vec3  kRGBToI      = vec3 (0.596, -0.275, -0.321);
+						const vec3  kRGBToQ      = vec3 (0.212, -0.523, 0.311);
+
+						const vec3  kYIQToR     = vec3 (1.0, 0.956, 0.621);
+						const vec3  kYIQToG     = vec3 (1.0, -0.272, -0.647);
+						const vec3  kYIQToB     = vec3 (1.0, -1.107, 1.704);
+
+						float   YPrime  = dot (color, kRGBToYPrime);
+						float   I       = dot (color, kRGBToI);
+						float   Q       = dot (color, kRGBToQ);
+						float   hue     = atan (Q, I);
+						float   chroma  = sqrt (I * I + Q * Q);
+
+						hue += hueAdjust;
+
+						Q = chroma * sin (hue);
+						I = chroma * cos (hue);
+
+						vec3    yIQ   = vec3 (YPrime, I, Q);
+
+						return vec3( dot (yIQ, kYIQToR), dot (yIQ, kYIQToG), dot (yIQ, kYIQToB) );
+					}*/
 					
 					void main()
 					{
 						if ( color_current.a <= 0.0 || texture2D( tDiffuse, uv_current ).a <= 0.0 )
 						discard;
 				
-						//gl_FragColor.rgba = vec4( 1.0, 0.0, 0.0, 1.0 );
 						gl_FragColor.rgba = texture2D( tDiffuse, uv_current ).rgba * color_current.rgba;
 				
-						//gl_FragColor.rgba = vec4( 1.0, 0.0, 0.0, 0.5 );
+						if ( hue_rotation_current != 0.0 )
+						{
+							gl_FragColor.rgb = hueShift( gl_FragColor.rgb, hue_rotation_current );
+						}
 					}
 				`
 			});
@@ -158,15 +200,9 @@ class sdSuperTexture
 						rotated.x -= 0.5;
 						rotated.y -= 0.5;
 						
-						//rotated.x *= size_current.x;
-						//rotated.y *= size_current.y;
-						
 						rotated.x *= size_current.z;
 						rotated.y *= size_current.z;
 						
-						//rotated.x *= 64.0;
-						//rotated.y *= 64.0;
-
 						if ( rotation_current != 0.0 )
 						{
 							float _cos = cos( rotation_current );
@@ -212,10 +248,42 @@ class sdSuperTexture
 		
 		//this.Preview();
 		
-		this.mesh.renderOrder = transparent ? 2 : 1;
+		//this.mesh.renderOrder = transparent ? 2 : 1;
 		
 		this.geometry_mesh.last_offset_indices = 0;
 		//this.geometry_dots.last_offset_indices = 0;
+		
+		// Init buffers
+		
+		let geometry = this.geometry_mesh;
+
+		geometry.index = new THREE.BufferAttribute( new Uint16Array( 3 * sdAtlasMaterial.maximum_dots_per_super_texture ), 1 ); // Uint16, but can be redefined to allow larger indices
+		geometry.index_dataView = new DataView( geometry.index.array.buffer );
+		geometry.setIndex( geometry.index );
+
+		geometry.position = new THREE.BufferAttribute( new Float32Array( 3 * sdAtlasMaterial.maximum_dots_per_super_texture ), 3 );
+		geometry.position_dataView = new DataView( geometry.position.array.buffer );
+		geometry.setAttribute( 'position', geometry.position );
+
+		geometry.uv = new THREE.BufferAttribute( new Float32Array( 2 * sdAtlasMaterial.maximum_dots_per_super_texture ), 2 );
+		geometry.uv_dataView = new DataView( geometry.uv.array.buffer );
+		geometry.setAttribute( 'uv', geometry.uv );
+
+		// Color multiplier + alpha
+		geometry.color = new THREE.BufferAttribute( new Float32Array( 4 * sdAtlasMaterial.maximum_dots_per_super_texture ), 4 );
+		geometry.color_dataView = new DataView( geometry.color.array.buffer );
+		geometry.setAttribute( 'color', geometry.color );
+		
+		geometry.hue_rotation = new THREE.BufferAttribute( new Float32Array( 1 * sdAtlasMaterial.maximum_dots_per_super_texture ), 1 );
+		geometry.hue_rotation_dataView = new DataView( geometry.hue_rotation.array.buffer );
+		geometry.setAttribute( 'hue_rotation', geometry.hue_rotation );
+		
+		//this.color_native = [];
+		//this.hue_rotation_native = [];
+		
+		this.FrameStart(); // It usually skips start
+		
+		Object.seal( this );
 	}
 	
 	FrameStart()
@@ -233,6 +301,20 @@ class sdSuperTexture
 		
 		if ( geometry.offset_indices > 0 )
 		{
+			geometry.position.updateRange.count = geometry.offset * 3;
+			geometry.uv.updateRange.count = geometry.offset * 2;
+			geometry.color.updateRange.count = geometry.offset * 4;
+			geometry.hue_rotation.updateRange.count = geometry.offset * 1;
+			geometry.index.updateRange.count = geometry.offset_indices;
+
+			geometry.position.needsUpdate = true;
+			geometry.uv.needsUpdate = true;
+			geometry.color.needsUpdate = true;
+			geometry.hue_rotation.needsUpdate = true;
+			geometry.index.needsUpdate = true;
+			
+			
+			
 			const last_offset_indices = geometry.last_offset_indices;
 			if ( geometry.offset_indices < last_offset_indices )
 			{
@@ -257,83 +339,78 @@ class sdSuperTexture
 		}
 	}
 	
-	DrawPolygon( x1,y1,z1, x2,y2,z2, x3,y3,z3, u1,v1, u2,v2, u3,v3, r,g,b,a )
+	GetVertex( x1,y1,z1, u1,v1, geometry,r,g,b,a, hue_rotation )
+	{
+		
+		/*let similar = this.last_vertices.get( x1 + y1 + u1 + v1 );
+		if ( similar )
+		{
+			if ( similar.u === u1 &&
+				 similar.v === v1 &&
+				 similar.x === x1 &&
+				 similar.y === y1 &&
+				 similar.z === z1 &&
+				 similar.r === r &&
+				 similar.g === g &&
+				 similar.b === b &&
+				 similar.a === a )
+			{
+				//sdAtlasMaterial.get_vertex_hits++;
+				return similar.i;
+			}
+		}*/
+
+		let offset = geometry.offset;
+		
+		const offset_4_1 = offset * 4 * 1;
+		const offset_4_2 = offset * 4 * 2;
+		const offset_4_3 = offset * 4 * 3;
+		const offset_4_4 = offset * 4 * 4;
+
+		const position_dataView = geometry.position_dataView;
+		const color_dataView = geometry.color_dataView;
+		const uv_dataView = geometry.uv_dataView;
+		const hue_rotation_dataView = geometry.hue_rotation_dataView;
+
+		position_dataView.setFloat32( offset_4_3 + 0, x1, true );
+		position_dataView.setFloat32( offset_4_3 + 4, y1, true );
+		position_dataView.setFloat32( offset_4_3 + 8, z1, true );
+
+		uv_dataView.setFloat32( offset_4_2 + 0, u1, true );
+		uv_dataView.setFloat32( offset_4_2 + 4, v1, true );
+
+		//if ( this.color_native[ offset ] !== r )
+		//{
+		//	this.color_native[ offset ] = r;
+			color_dataView.setFloat32( offset_4_4 + 0, r, true );
+		//}
+	
+		color_dataView.setFloat32( offset_4_4 + 4, g, true );
+		
+		color_dataView.setFloat32( offset_4_4 + 8, b, true );
+		
+		color_dataView.setFloat32( offset_4_4 + 12, a, true );
+
+		hue_rotation_dataView.setFloat32( offset_4_1, hue_rotation, true );
+
+		//this.last_vertices.set( x1 + y1 + u1 + v1, { x:x1, y:y1, z:z1, u:u1, v:v1, r:r,g:g,b:b,a:a, i:offset });
+
+		geometry.offset++;
+
+		//sdAtlasMaterial.get_vertex_misses++;
+		return offset;
+	}
+	
+	DrawPolygon( x1,y1,z1, x2,y2,z2, x3,y3,z3, u1,v1, u2,v2, u3,v3, r,g,b,a, hue_rotation )
 	{
 		const geometry = this.geometry_mesh;
-		
-		//this.draws.push( [ x1,y1,z1, x2,y2,z2, x3,y3,z3, u1,v1, u2,v2, u3,v3, r,g,b,a ] );
-		
-		if ( !geometry.position )
-		{
-			geometry.index = new THREE.BufferAttribute( new Uint16Array( 3 * sdAtlasMaterial.maximum_dots_per_super_texture ), 1 ); // Uint16, but can be redefined to allow larger indices
-			geometry.index_dataView = new DataView( geometry.index.array.buffer );
-			geometry.setIndex( geometry.index );
-			
-			geometry.position = new THREE.BufferAttribute( new Float32Array( 3 * sdAtlasMaterial.maximum_dots_per_super_texture ), 3 );
-			geometry.position_dataView = new DataView( geometry.position.array.buffer );
-			geometry.setAttribute( 'position', geometry.position );
-			
-			geometry.uv = new THREE.BufferAttribute( new Float32Array( 2 * sdAtlasMaterial.maximum_dots_per_super_texture ), 2 );
-			geometry.uv_dataView = new DataView( geometry.uv.array.buffer );
-			geometry.setAttribute( 'uv', geometry.uv );
-			
-			// Color multiplier + alpha
-			geometry.color = new THREE.BufferAttribute( new Float32Array( 4 * sdAtlasMaterial.maximum_dots_per_super_texture ), 4 );
-			geometry.color_dataView = new DataView( geometry.color.array.buffer );
-			geometry.setAttribute( 'color', geometry.color );
-		}
 		
 		if ( geometry.offset + 3 >= sdAtlasMaterial.maximum_dots_per_super_texture )
 		return;
 		
 		if ( geometry.offset_indices + 3 >= 3 * sdAtlasMaterial.maximum_dots_per_super_texture )
 		return;
-		
-		const GetVertex = ( x1,y1,z1, u1,v1 )=>
-		{
-			/*let similar = this.last_vertices.get( x1 + y1 + u1 + v1 );
-			if ( similar )
-			{
-				if ( similar.u === u1 &&
-					 similar.v === v1 &&
-					 similar.x === x1 &&
-					 similar.y === y1 &&
-					 similar.z === z1 &&
-					 similar.r === r &&
-					 similar.g === g &&
-					 similar.b === b &&
-					 similar.a === a )
-				{
-					//sdAtlasMaterial.get_vertex_hits++;
-					return similar.i;
-				}
-			}*/
-			
-			let vertex1 = geometry.offset;
-			
-			geometry.position_dataView.setFloat32( geometry.offset * 4 * 3 + 0, x1, true );
-			geometry.position_dataView.setFloat32( geometry.offset * 4 * 3 + 4, y1, true );
-			geometry.position_dataView.setFloat32( geometry.offset * 4 * 3 + 8, z1, true );
-
-			geometry.uv_dataView.setFloat32( geometry.offset * 4 * 2 + 0, u1, true );
-			geometry.uv_dataView.setFloat32( geometry.offset * 4 * 2 + 4, v1, true );
-
-			geometry.color_dataView.setFloat32( geometry.offset * 4 * 4 + 0, r, true );
-			geometry.color_dataView.setFloat32( geometry.offset * 4 * 4 + 4, g, true );
-			geometry.color_dataView.setFloat32( geometry.offset * 4 * 4 + 8, b, true );
-			geometry.color_dataView.setFloat32( geometry.offset * 4 * 4 + 12, a, true );
-			
-			//this.last_vertices.set( x1 + y1 + u1 + v1, { x:x1, y:y1, z:z1, u:u1, v:v1, r:r,g:g,b:b,a:a, i:vertex1 });
-
-			geometry.offset++;
-			
-			//sdAtlasMaterial.get_vertex_misses++;
-			return vertex1;
-		};
 	
-		let vertex1 = GetVertex( x1,y1,z1, u1,v1 );
-		let vertex2 = GetVertex( x2,y2,z2, u2,v2 );
-		let vertex3 = GetVertex( x3,y3,z3, u3,v3 );
 		//
 		/*
 		let vertex2 = geometry.offset;
@@ -368,19 +445,26 @@ class sdSuperTexture
 		geometry.offset++;
 		//
 		*/
+	   
+		/*const vertex1 = GetVertex( x1,y1,z1, u1,v1, geometry,r,g,b,a, hue_rotation );
+		const vertex2 = GetVertex( x2,y2,z2, u2,v2, geometry,r,g,b,a, hue_rotation );
+		const vertex3 = GetVertex( x3,y3,z3, u3,v3, geometry,r,g,b,a, hue_rotation );
+		
 		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, vertex1, true );
 		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, vertex2, true );
-		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, vertex3, true );
+		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, vertex3, true );*/
 		
-		geometry.position.updateRange.count = geometry.offset * 3;
-		geometry.uv.updateRange.count = geometry.offset * 2;
-		geometry.color.updateRange.count = geometry.offset * 4;
-		geometry.index.updateRange.count = geometry.offset_indices;
+		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
+			this.GetVertex( x1,y1,z1, u1,v1, geometry,r,g,b,a, hue_rotation )
+			, true );
+			
+		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
+			this.GetVertex( x2,y2,z2, u2,v2, geometry,r,g,b,a, hue_rotation )
+			, true );
 		
-		geometry.position.needsUpdate = true;
-		geometry.uv.needsUpdate = true;
-		geometry.color.needsUpdate = true;
-		geometry.index.needsUpdate = true;
+		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
+			this.GetVertex( x3,y3,z3, u3,v3, geometry,r,g,b,a, hue_rotation )
+			, true );
 	}
 	/*
 	DrawDot( x, y, z, sx, sy, rotation, dedicated_space )
@@ -444,6 +528,11 @@ class sdSuperTexture
 	
 		//if ( w > 64 || h > 64 )
 		//throw new Error();
+		
+		const safe_area = 1;
+		
+		w += safe_area * 2;
+		h += safe_area * 2;
 	
 		let dedication = null;
 		
@@ -461,6 +550,12 @@ class sdSuperTexture
 			{
 				// Fits
 				dedication = new sdSpaceDedication( this.offset_x, this.offset_y, w, h, this );
+		
+				dedication.x += safe_area;
+				dedication.y += safe_area;
+				dedication.w -= safe_area * 2;
+				dedication.h -= safe_area * 2;
+
 				this.dedications.push( dedication );
 				
 				this.offset_x += w;
@@ -474,15 +569,26 @@ class sdSuperTexture
 	
 	Preview()
 	{
-		document.body.appendChild( this.canvas );
-		this.canvas.style.cssText = `position:fixed;left:0px;top:0px;border:1px solid grey;`;
+		//document.body.appendChild( this.canvas );
+		//this.canvas.style.cssText = `position:fixed;left:0px;top:0px;border:1px solid grey;`;
+		
+		sdAtlasMaterial.PreviewCanvas( this.canvas );
 	}
 }
 
 class sdAtlasMaterial
 {
+	static PreviewCanvas( canvas )
+	{
+		document.body.appendChild( canvas );
+		canvas.style.cssText = `position:fixed;left:${ sdAtlasMaterial.preview_offset }px;top:0px;border:1px solid grey;`;
+		
+		sdAtlasMaterial.preview_offset += canvas.width + 2;
+	}
 	static init_class()
 	{
+		sdAtlasMaterial.preview_offset = 0;
+		
 		sdAtlasMaterial.super_texture_width = 1024;
 		sdAtlasMaterial.super_texture_height = 1024;
 		
@@ -496,6 +602,91 @@ class sdAtlasMaterial
 		sdAtlasMaterial.get_vertex_hits = 0;
 		sdAtlasMaterial.get_vertex_misses = 0;
 		sdAtlasMaterial.get_vertex_cache_length = 1024;
+		
+		// Reusable vectors
+		sdAtlasMaterial.a = new THREE.Vector2();
+		sdAtlasMaterial.b = new THREE.Vector2();
+		sdAtlasMaterial.c = new THREE.Vector2();
+		sdAtlasMaterial.d = new THREE.Vector2();
+		
+		sdAtlasMaterial.uv_a = new THREE.Vector2();
+		sdAtlasMaterial.uv_b = new THREE.Vector2();
+		sdAtlasMaterial.uv_c = new THREE.Vector2();
+		sdAtlasMaterial.uv_d = new THREE.Vector2();
+		
+		sdAtlasMaterial.cam_xy = new THREE.Vector2();
+		
+		sdAtlasMaterial.white_pixel = document.createElement('canvas');
+		sdAtlasMaterial.white_pixel.width = 1;
+		sdAtlasMaterial.white_pixel.height = 1;
+		let ctx = sdAtlasMaterial.white_pixel.getContext("2d");
+		ctx.fillStyle = '#ffffff';
+		ctx.fillRect( 0,0,1,1 );
+		
+		sdAtlasMaterial.global_font_scale = 11;
+		sdAtlasMaterial.global_font_offset_y = 10;
+		
+		sdAtlasMaterial.character_images = new Map(); // Cache each new character
+	}
+	
+	static CreateLinearGradientImage( obj )
+	{
+		let stops = obj.stops;
+		
+		if ( stops.length !== 2 )
+		debugger;
+	
+		let canvas = document.createElement('canvas');
+		
+		canvas.width = 1;
+		canvas.height = stops.length;
+		let ctx = canvas.getContext("2d");
+		for ( let y = 0; y < stops.length; y++ )
+		{
+			ctx.fillStyle = stops[ y ][ 1 ];
+			ctx.fillRect( 0, y, 1, 1 );
+		}
+		return canvas;
+	}
+	
+	static CreateImageForCharacter( char )
+	{
+		//sdAtlasMaterial.character_images
+		
+		if ( !document.fonts.check("12px ui_font") )
+		return undefined;
+		
+		let canvas = document.createElement('canvas');
+		
+		canvas.width = 7;
+		canvas.height = 13;
+		
+		let ctx = canvas.getContext("2d");
+		
+		/*ctx.imageSmoothingEnabled = false;
+		
+		ctx.shadowOffsetX = 0;
+		ctx.shadowOffsetY = 0;
+		ctx.shadowBlur = 1;
+		ctx.shadowColor = 'rgba(0,0,0,0)';*/
+		
+		ctx.fillStyle = '#ffffff';
+		ctx.font = '12px ui_font';
+		ctx.fillText( String.fromCharCode( char ), 0, 10 );
+		
+		let myImageData = ctx.getImageData( 0, 0, 7, 13 );
+		
+		// Sharpen becaue browsers don't have antialiasing
+		for ( let i = 0; i < myImageData.data.length; i += 4 )
+		if ( myImageData.data[ i + 3 ] !== 0 )
+		myImageData.data[ i + 3 ] = ( myImageData.data[ i + 3 ] < 127 ) ? 0 : 255;
+		
+		ctx.putImageData( myImageData, 0, 0 );
+		
+		//trace( 'Character: '+ String.fromCharCode( char ) );
+		//sdAtlasMaterial.PreviewCanvas( canvas );
+		
+		return canvas;
 	}
 	
 	static DedicateSpace( w, h, is_transparent_int=sdAtlasMaterial.GROUP_OPAQUE )
@@ -523,9 +714,6 @@ class sdAtlasMaterial
 		if ( sdRenderer.ctx.globalAlpha <= 0 )
 		return;
 	
-	//}
-	//static DrawSprite( img, x, y, z, sx, sy, rotation, r,g,b,a )
-	//{
 		if ( img.loaded !== false ) // Offscreen canvas may appear here too
 		{
 		}
@@ -546,11 +734,17 @@ class sdAtlasMaterial
 		let is_transparent_int = sdAtlasMaterial.GROUP_OPAQUE;
 		let odd_x_offset = 0;
 		let top_x_offset = 0;
+		let opacity_div = 1;
 		
 		switch ( sdRenderer.ctx.volumetric_mode )
 		{
 			case FakeCanvasContext.DRAW_IN_3D_FLAT:
 			{
+			}
+			break;
+			case FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT:
+			{
+				is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT;
 			}
 			break;
 			case FakeCanvasContext.DRAW_IN_3D_BOX:
@@ -563,6 +757,7 @@ class sdAtlasMaterial
 			{
 				layers = 5;
 				is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT;
+				opacity_div = 5;
 			}
 			break;
 			case FakeCanvasContext.DRAW_IN_3D_GRASS:
@@ -585,41 +780,76 @@ class sdAtlasMaterial
 		let super_texture;
 		let dedication;
 		
-		let dedicated_super_texture_space_prop = 'dedicated_super_texture_space' + is_transparent_int;
+		//const super_texture_prop = 'super_texture' + is_transparent_int;
 		
-		if ( img[ dedicated_super_texture_space_prop ] )
+		if ( is_transparent_int )
 		{
-			dedication = img[ dedicated_super_texture_space_prop ];
-			
+			if ( img.super_texture_prop1 )
+			{
+				dedication = img.super_texture_prop1;
+				super_texture = dedication.super_texture;
+			}
+			else
+			{
+				dedication = sdAtlasMaterial.DedicateSpace( img.width, img.height, is_transparent_int );
+				img.super_texture_prop1 = dedication;
+				super_texture = dedication.super_texture;
+				super_texture.ctx.drawImage( img, dedication.x, dedication.y, img.width, img.height );
+				super_texture.texture.needsUpdate = true;
+			}
+		}
+		else
+		{
+			if ( img.super_texture_prop0 )
+			{
+				dedication = img.super_texture_prop0;
+				super_texture = dedication.super_texture;
+			}
+			else
+			{
+				dedication = sdAtlasMaterial.DedicateSpace( img.width, img.height, is_transparent_int );
+				img.super_texture_prop0 = dedication;
+				super_texture = dedication.super_texture;
+				super_texture.ctx.drawImage( img, dedication.x, dedication.y, img.width, img.height );
+				super_texture.texture.needsUpdate = true;
+			}
+		}
+		
+		/*if ( img[ super_texture_prop ] )
+		{
+			dedication = img[ super_texture_prop ];
 			super_texture = dedication.super_texture;
 		}
 		else
 		{
 			dedication = sdAtlasMaterial.DedicateSpace( img.width, img.height, is_transparent_int );
-			
-			img[ dedicated_super_texture_space_prop ] = dedication;
-			
+			img[ super_texture_prop ] = dedication;
 			super_texture = dedication.super_texture;
-			
 			super_texture.ctx.drawImage( img, dedication.x, dedication.y, img.width, img.height );
-			
 			super_texture.texture.needsUpdate = true;
-		}
+		}*/
 		
-		img[ dedicated_super_texture_space_prop ].last_time_used = sdWorld.time;
+		dedication.last_time_used = sdWorld.time;
 		
-		const canvas_size = new THREE.Vector2( 1 / super_texture.canvas.width, 1 / super_texture.canvas.height );
+		const canvas_size = super_texture.canvas_size_scale_down_vector;//new THREE.Vector2( 1 / super_texture.canvas.width, 1 / super_texture.canvas.height );
 		const mat = sdRenderer.ctx._matrix3;//.clone().invert();
 
-		const cr = 1;
-		const cg = 1;
-		const cb = 1;
-		const ca = sdRenderer.ctx.globalAlpha;
-
-		const a = new THREE.Vector2( dx, dy ); // Left-top
-		const b = new THREE.Vector2( dx + dWidth, dy ); // Right-top
-		const c = new THREE.Vector2( dx, dy + dHeight ); // Left-bottom
-		const d = new THREE.Vector2( dx + dWidth, dy + dHeight ); // Right-bottom
+		const cr = sdRenderer.ctx.sd_color_mult_r;
+		const cg = sdRenderer.ctx.sd_color_mult_g;
+		const cb = sdRenderer.ctx.sd_color_mult_b;
+		const ca = sdRenderer.ctx.globalAlpha / opacity_div;
+		const hue_rotation = sdRenderer.ctx.sd_hue_rotation / 180 * Math.PI;
+		
+		
+		//const a = new THREE.Vector2( dx, dy ); // Left-top
+		//const b = new THREE.Vector2( dx + dWidth, dy ); // Right-top
+		//const c = new THREE.Vector2( dx, dy + dHeight ); // Left-bottom
+		//const d = new THREE.Vector2( dx + dWidth, dy + dHeight ); // Right-bottom
+		
+		const a = sdAtlasMaterial.a.set( dx, dy ); // Left-top
+		const b = sdAtlasMaterial.b.set( dx + dWidth, dy ); // Right-top
+		const c = sdAtlasMaterial.c.set( dx, dy + dHeight ); // Left-bottom
+		const d = sdAtlasMaterial.d.set( dx + dWidth, dy + dHeight ); // Right-bottom
 		
 		if ( top_x_offset !== 0 )
 		{
@@ -634,7 +864,8 @@ class sdAtlasMaterial
 
 		if ( sdRenderer.ctx.camera_relative_world_scale !== 1 )
 		{
-			const cam_xy = new THREE.Vector2( sdRenderer.ctx.camera.position.x, sdRenderer.ctx.camera.position.y );
+			//const cam_xy = new THREE.Vector2( sdRenderer.ctx.camera.position.x, sdRenderer.ctx.camera.position.y );
+			const cam_xy = sdAtlasMaterial.cam_xy.set( sdRenderer.ctx.camera.position.x, sdRenderer.ctx.camera.position.y );
 
 			a.sub( cam_xy );
 			b.sub( cam_xy );
@@ -655,10 +886,15 @@ class sdAtlasMaterial
 		sx += dedication.x;
 		sy += dedication.y;
 
-		let uv_a = new THREE.Vector2( sx, sy ); // Left-top
-		let uv_b = new THREE.Vector2( sx + sWidth, sy ); // Right-top
-		let uv_c = new THREE.Vector2( sx, sy + sHeight ); // Left-bottom
-		let uv_d = new THREE.Vector2( sx + sWidth, sy + sHeight ); // Right-bottom
+		//let uv_a = new THREE.Vector2( sx, sy ); // Left-top
+		//let uv_b = new THREE.Vector2( sx + sWidth, sy ); // Right-top
+		//let uv_c = new THREE.Vector2( sx, sy + sHeight ); // Left-bottom
+		//let uv_d = new THREE.Vector2( sx + sWidth, sy + sHeight ); // Right-bottom
+
+		const uv_a = sdAtlasMaterial.uv_a.set( sx, sy ); // Left-top
+		const uv_b = sdAtlasMaterial.uv_b.set( sx + sWidth, sy ); // Right-top
+		const uv_c = sdAtlasMaterial.uv_c.set( sx, sy + sHeight ); // Left-bottom
+		const uv_d = sdAtlasMaterial.uv_d.set( sx + sWidth, sy + sHeight ); // Right-bottom
 
 		uv_a.multiply( canvas_size );
 		uv_b.multiply( canvas_size );
@@ -671,7 +907,14 @@ class sdAtlasMaterial
 			let z0 = z;
 			
 			if ( layers > 1 )
-			z += sdRenderer.ctx.z_depth * layer / ( layers - 1 );
+			{
+				z += sdRenderer.ctx.z_depth * layer / ( layers - 1 );
+				
+				
+				
+				z -= sdRenderer.ctx.z_depth / 2;
+				z0 -= sdRenderer.ctx.z_depth / 2;
+			}
 
 			if ( sdRenderer.ctx.camera_relative_world_scale !== 1 )
 			{
@@ -696,7 +939,7 @@ class sdAtlasMaterial
 							uv_b.x, uv_b.y,
 							uv_c.x, uv_c.y,
 
-							cr,cg,cb,ca
+							cr,cg,cb,ca,hue_rotation
 					);
 					super_texture.DrawPolygon( 
 							a.x, a.y, z,
@@ -707,7 +950,7 @@ class sdAtlasMaterial
 							uv_d.x, uv_d.y,
 							uv_c.x, uv_c.y,
 
-							cr,cg,cb,ca
+							cr,cg,cb,ca,hue_rotation
 					);
 				}
 		
@@ -723,7 +966,7 @@ class sdAtlasMaterial
 							uv_b.x, uv_b.y,
 							uv_c.x, uv_c.y,
 
-							cr,cg,cb,ca
+							cr,cg,cb,ca,hue_rotation
 					);
 					super_texture.DrawPolygon( 
 							b.x, b.y, z,
@@ -734,7 +977,7 @@ class sdAtlasMaterial
 							uv_d.x, uv_d.y,
 							uv_c.x, uv_c.y,
 
-							cr,cg,cb,ca
+							cr,cg,cb,ca,hue_rotation
 					);
 				}
 		
@@ -750,7 +993,7 @@ class sdAtlasMaterial
 							uv_b.x, uv_b.y,
 							uv_c.x, uv_c.y,
 
-							cr,cg,cb,ca
+							cr,cg,cb,ca,hue_rotation
 					);
 					super_texture.DrawPolygon( 
 							d.x, d.y, z0,
@@ -761,7 +1004,7 @@ class sdAtlasMaterial
 							uv_d.x, uv_d.y,
 							uv_c.x, uv_c.y,
 
-							cr,cg,cb,ca
+							cr,cg,cb,ca,hue_rotation
 					);
 				}
 		
@@ -777,7 +1020,7 @@ class sdAtlasMaterial
 							uv_b.x, uv_b.y,
 							uv_c.x, uv_c.y,
 
-							cr,cg,cb,ca
+							cr,cg,cb,ca,hue_rotation
 					);
 					super_texture.DrawPolygon( 
 							b.x, b.y, z,
@@ -788,7 +1031,7 @@ class sdAtlasMaterial
 							uv_d.x, uv_d.y,
 							uv_c.x, uv_c.y,
 
-							cr,cg,cb,ca
+							cr,cg,cb,ca,hue_rotation
 					);
 				}
 			}
@@ -797,6 +1040,9 @@ class sdAtlasMaterial
 				// cap
 				
 				const current_odd_x_offset = ( layer % 2 === 0 ) ? -odd_x_offset : odd_x_offset;
+				
+				//if ( connect_layers ) // Hack
+				//continue;
 				
 				super_texture.DrawPolygon( 
 						a.x + current_odd_x_offset, a.y, z,
@@ -807,7 +1053,7 @@ class sdAtlasMaterial
 						uv_b.x, uv_b.y,
 						uv_c.x, uv_c.y,
 
-						cr,cg,cb,ca
+						cr,cg,cb,ca,hue_rotation
 				);
 				super_texture.DrawPolygon( 
 						b.x + current_odd_x_offset, b.y, z,
@@ -818,7 +1064,7 @@ class sdAtlasMaterial
 						uv_d.x, uv_d.y,
 						uv_c.x, uv_c.y,
 
-						cr,cg,cb,ca
+						cr,cg,cb,ca,hue_rotation
 				);
 			}
 		}
@@ -845,7 +1091,7 @@ class sdAtlasMaterial
 				
 				r,g,b,a
 		);*/
-		//super_texture.DrawDot( x, y, z, sx, sy, rotation, img.dedicated_super_texture_space );
+		//super_texture.DrawDot( x, y, z, sx, sy, rotation, img.super_texture );
 	}
 	
 	constructor()
