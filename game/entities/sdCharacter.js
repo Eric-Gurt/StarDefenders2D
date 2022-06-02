@@ -1130,6 +1130,10 @@ class sdCharacter extends sdEntity
 		return;
 		
 		dmg /= this.s / 100;
+		
+		// For onDamage logic that exists in default config
+		if ( initiator && initiator._is_being_removed )
+		initiator = null;
 	
 		if ( initiator === this )
 		initiator = null;
