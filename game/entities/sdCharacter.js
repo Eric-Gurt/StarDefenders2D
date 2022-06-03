@@ -3638,6 +3638,8 @@ class sdCharacter extends sdEntity
 									
 									obstacle.texture_id = fake_ent.texture_id;
 									
+									obstacle._update_version++;
+									
 									sdCharacter.last_build_deny_reason = 'Repainting...';
 									return false;
 								}
