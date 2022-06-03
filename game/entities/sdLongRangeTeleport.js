@@ -241,6 +241,9 @@ class sdLongRangeTeleport extends sdEntity
 	
 	Draw( ctx, attached )
 	{
+		if ( sdShop.isDrawing )
+		ctx.scale( 0.333,0.333 );
+	
 		//if ( this.matter >= this._matter_max || sdShop.isDrawing )
 		{
 			if ( this.delay === 0 || sdShop.isDrawing )

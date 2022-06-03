@@ -126,7 +126,8 @@ class sdOverlord extends sdEntity
 		//sdOverlord.overlord_tot++;
 		sdOverlord.overlords.push( this );
 		
-		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
+		this.hue = ~~( Math.random() * 360 )
+		//this.filter = 'hue-rotate(' +  + 'deg)';
 	}
 	
 	
@@ -820,8 +821,9 @@ class sdOverlord extends sdEntity
 								let dy = -Math.cos( an ) * 80 * 8;
 
 								t.Impulse( dx, dy );
-
-								sdWorld.SendEffect({ x:t.x + ( t._hitbox_x1 + t._hitbox_x2 ) / 2, y:t.y + ( t._hitbox_y1 + t._hitbox_y2 ) / 2, type:t.GetBleedEffect(), filter:t.GetBleedEffectFilter() });
+								
+								t.PlayDamageEffect( t.x + ( t._hitbox_x1 + t._hitbox_x2 ) / 2, t.y + ( t._hitbox_y1 + t._hitbox_y2 ) / 2 );
+								//sdWorld.SendEffect({ x:t.x + ( t._hitbox_x1 + t._hitbox_x2 ) / 2, y:t.y + ( t._hitbox_y1 + t._hitbox_y2 ) / 2, type:t.GetBleedEffect(), filter:t.GetBleedEffectFilter() });
 							}
 						}
 					}
@@ -931,7 +933,15 @@ class sdOverlord extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.filter = this.filter;
+		if ( !sdShop.isDrawing )
+		{
+			//ctx.filter = this.filter;
+			
+			if ( sdRenderer.visual_settings === 4 )
+			ctx.sd_hue_rotation = this.hue;
+			else
+			ctx.filter = 'hue-rotate(' + this.hue + 'deg)';
+		}
 		
 		ctx.scale( -this.side, 1 );
 		//ctx.rotate( this.attack_an / 100 );
@@ -966,6 +976,7 @@ class sdOverlord extends sdEntity
 			
 		if ( offset <= 1 )
 		{
+			if ( !sdShop.isDrawing )
 			ctx.translate( 0, Math.sin( (sdWorld.time+this._anim_shift) / 1000 * Math.PI ) * 2 );
 		}
 		else
@@ -1028,6 +1039,7 @@ class sdOverlord extends sdEntity
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
+		ctx.sd_hue_rotation = 0;
 	}
 	
 	onMovementInRange( from_entity )

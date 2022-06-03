@@ -194,10 +194,18 @@ class sdDrone extends sdEntity
 		return sdEffect.TYPE_WALL_HIT;
 	
 	}
-	GetBleedEffectFilter()
+	
+	GetBleedEffectHue()
 	{
 		if ( this.type === 2 )
-		return 'hue-rotate(100deg)'; // Blue
+		return 100; // Blue
+	
+		return 0;
+	}
+	GetBleedEffectFilter()
+	{
+		//if ( this.type === 2 )
+		//return 'hue-rotate(100deg)'; // Blue
 	
 		return '';
 	}
@@ -884,8 +892,8 @@ class sdDrone extends sdEntity
 		
 		if ( this.death_anim === 0 )
 		{
+			if ( !sdShop.isDrawing )
 			ctx.translate( 0, Math.sin( (sdWorld.time+this._anim_shift) / 1000 * Math.PI ) * 2 );
-
 		}
 		
 		if ( this.death_anim > 0 )

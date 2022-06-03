@@ -126,6 +126,9 @@ class sdTheatre extends sdEntity
 	DrawBG( ctx, attached )
 	//Draw( ctx, attached )
 	{
+		if ( sdShop.isDrawing )
+		ctx.scale( 0.25,0.25 );
+		
 		ctx.drawImageFilterCache( sdTheatre.img_theatre, 0, 0, 128,64, -128/2,-64/2, 128,64 ); // Reinforced walls etc
 		
 		let destruction_frame;

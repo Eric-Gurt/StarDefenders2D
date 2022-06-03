@@ -81,7 +81,9 @@ class sdAsp extends sdEntity
 		
 		sdAsp.asps_tot++;
 		
-		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
+		this.hue = ~~( Math.random() * 360 );
+		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
+		this.filter = 'saturate(0.5)';
 	}
 	onBeforeRemove() // Right when .remove() is called for the first time
 	{
@@ -113,6 +115,10 @@ class sdAsp extends sdEntity
 		return sdEffect.TYPE_BLOOD_GREEN;
 	
 		return sdEffect.TYPE_WALL_HIT;
+	}
+	GetBleedEffectHue()
+	{
+		return this.hue;
 	}
 	GetBleedEffectFilter()
 	{
@@ -380,12 +386,21 @@ class sdAsp extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.filter = this.filter;
+		if ( !sdShop.isDrawing )
+		{
+			ctx.filter = this.filter;
+			
+			if ( sdRenderer.visual_settings === 4 )
+			ctx.sd_hue_rotation = this.hue;
+			else
+			ctx.filter = 'hue-rotate(' + this.hue + 'deg)' + ctx.filter;
+		}
 		
 		ctx.scale( -this.side, 1 );
 		
 		if ( this.death_anim === 0 )
 		{
+			if ( !sdShop.isDrawing )
 			ctx.translate( 0, Math.sin( (sdWorld.time+this._anim_shift) / 1000 * Math.PI ) * 2 );
 			
 			if ( this.attack_frame >= 1 )
@@ -417,6 +432,7 @@ class sdAsp extends sdEntity
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
+		ctx.sd_hue_rotation = 0;
 	}
 	/*onMovementInRange( from_entity )
 	{

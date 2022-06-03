@@ -373,7 +373,8 @@ class sdTutel extends sdEntity
 					
 					this._hea = Math.min( this.hmax, this._hea + 15 * this.hmax / sdTutel.normal_max_health );
 
-					sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
+					from_entity.PlayDamageEffect( xx, yy );
+					//sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 					
 					this.attack_anim = 10;
 					

@@ -475,7 +475,7 @@ class sdDoor extends sdEntity
 			img_normal = sdDoor.img_a2door;
 		}
 		
-		if ( this.x0 === null && this._net_id !== undefined ) // undefined // Client-side doors won't not have any _net_id
+		if ( this.x0 === null && this._net_id !== undefined && !sdShop.isDrawing ) // undefined // Client-side doors won't not have any _net_id
 		{
 			if ( !com_near )
 			{

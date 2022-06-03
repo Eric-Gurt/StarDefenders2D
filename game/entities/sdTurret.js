@@ -145,8 +145,8 @@ class sdTurret extends sdEntity
 		
 		//this._coms_near_cache = [];
 		
-		this.matter = 0;
-		this._matter_max = 20;
+		this.matter = params.matter || 0;
+		this._matter_max = params.matter_max || 20;
 		
 		this.lvl = 0;
 		
@@ -362,6 +362,8 @@ class sdTurret extends sdEntity
 
 						bullet_obj.sx = Math.cos( this.an / 100 );
 						bullet_obj.sy = Math.sin( this.an / 100 );
+						
+						bullet_obj._armor_penetration_level = 3; // Prevent damaging world in arena but also prevent damage to workbench
 
 						//bullet_obj.x += bullet_obj.sx * 5;
 						//bullet_obj.y += bullet_obj.sy * 5;

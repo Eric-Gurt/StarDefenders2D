@@ -42,7 +42,16 @@ class sdSuperTexture
 			flipY: false
 		});
 		
-		let transparent = ( is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT );
+		let transparent = ( 
+			is_transparent_int !== sdAtlasMaterial.GROUP_OPAQUE &&
+			is_transparent_int !== sdAtlasMaterial.GROUP_OPAQUE_DECAL 
+		);
+		
+		let depthTest = ( 
+			is_transparent_int === sdAtlasMaterial.GROUP_OPAQUE ||
+			is_transparent_int === sdAtlasMaterial.GROUP_OPAQUE_DECAL ||
+			is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT
+		);
 		
 		this.material_mesh;
 		//this.material_dots;
@@ -56,8 +65,9 @@ class sdSuperTexture
 				
 				side: THREE.DoubleSide,
 
-				depthTest: true,
+				depthTest: depthTest,
 				depthFunc: transparent ? THREE.LessDepth : THREE.LessEqualDepth,
+				//depthFunc: THREE.LessEqualDepth,
 				//depthFunc: THREE.LessEqualDepth,
 				depthWrite: !transparent,
 				//transparent: false, 
@@ -249,6 +259,7 @@ class sdSuperTexture
 		//this.Preview();
 		
 		//this.mesh.renderOrder = transparent ? 2 : 1;
+		this.mesh.renderOrder = is_transparent_int;
 		
 		this.geometry_mesh.last_offset_indices = 0;
 		//this.geometry_dots.last_offset_indices = 0;
@@ -595,9 +606,14 @@ class sdAtlasMaterial
 		sdAtlasMaterial.maximum_dots_per_super_texture = 65535;//2048;
 		
 		sdAtlasMaterial.GROUP_OPAQUE = 0;
-		sdAtlasMaterial.GROUP_TRANSPARENT = 1;
+		sdAtlasMaterial.GROUP_OPAQUE_DECAL = 1;
+		sdAtlasMaterial.GROUP_TRANSPARENT = 2;
+		sdAtlasMaterial.GROUP_TRANSPARENT_UNSORTED = 3;
+		//sdAtlasMaterial.GROUP_TRANSPARENT_IN_GAME_HUD = 2;
+		//sdAtlasMaterial.GROUP_TRANSPARENT_ONSCREEN_HUD = 3;
+		//sdAtlasMaterial.GROUP_TRANSPARENT_ONSCREEN_FOREGROUND = 4;
 
-		sdAtlasMaterial.super_textures = [ [], [] ]; // arr of arr-groups of sdSuperTexture
+		sdAtlasMaterial.super_textures = [ [], [], [], [] ]; // arr of arr-groups of sdSuperTexture
 		
 		sdAtlasMaterial.get_vertex_hits = 0;
 		sdAtlasMaterial.get_vertex_misses = 0;
@@ -679,7 +695,8 @@ class sdAtlasMaterial
 		// Sharpen becaue browsers don't have antialiasing
 		for ( let i = 0; i < myImageData.data.length; i += 4 )
 		if ( myImageData.data[ i + 3 ] !== 0 )
-		myImageData.data[ i + 3 ] = ( myImageData.data[ i + 3 ] < 127 ) ? 0 : 255;
+		myImageData.data[ i + 3 ] = ( myImageData.data[ i + 3 ] < 200 ) ? 0 : 255;
+		//myImageData.data[ i + 3 ] = ( myImageData.data[ i + 3 ] < 127 ) ? 0 : 255;
 		
 		ctx.putImageData( myImageData, 0, 0 );
 		
@@ -744,7 +761,24 @@ class sdAtlasMaterial
 			break;
 			case FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT:
 			{
-				is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT;
+				//is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT;
+				
+				switch ( sdRenderer.ctx.camera_relative_world_scale )
+				{
+					case sdRenderer.distance_scale_in_game_hud: 
+					//	is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT_IN_GAME_HUD;
+					//break;
+					case sdRenderer.distance_scale_on_screen_hud: 
+					//	is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT_ONSCREEN_HUD;
+					//break;
+					case sdRenderer.distance_scale_on_screen_foreground: 
+					//	is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT_ONSCREEN_FOREGROUND;
+						is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT_UNSORTED;
+					break;
+					default:
+						is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT;
+					break;
+				}
 			}
 			break;
 			case FakeCanvasContext.DRAW_IN_3D_BOX:
@@ -775,6 +809,14 @@ class sdAtlasMaterial
 				is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT;
 			}
 			break;
+			case FakeCanvasContext.DRAW_IN_3D_BOX_DECAL:
+			{
+				connect_layers = true;
+				layers = 2;
+				is_transparent_int = sdAtlasMaterial.GROUP_OPAQUE_DECAL;
+			}
+			
+			break;
 		}
 		
 		let super_texture;
@@ -782,7 +824,28 @@ class sdAtlasMaterial
 		
 		//const super_texture_prop = 'super_texture' + is_transparent_int;
 		
-		if ( is_transparent_int )
+		if ( !img.super_textures )
+		{
+			img.super_textures = [];
+			for ( let i = 0; i < sdAtlasMaterial.super_textures.length; i++ )
+			img.super_textures[ i ] = null;
+		}
+		
+		if ( img.super_textures[ is_transparent_int ] )
+		{
+			dedication = img.super_textures[ is_transparent_int ];
+			super_texture = dedication.super_texture;
+		}
+		else
+		{
+			dedication = sdAtlasMaterial.DedicateSpace( img.width, img.height, is_transparent_int );
+			img.super_textures[ is_transparent_int ] = dedication;
+			super_texture = dedication.super_texture;
+			super_texture.ctx.drawImage( img, dedication.x, dedication.y, img.width, img.height );
+			super_texture.texture.needsUpdate = true;
+		}
+		
+		/*if ( is_transparent_int )
 		{
 			if ( img.super_texture_prop1 )
 			{
@@ -813,7 +876,7 @@ class sdAtlasMaterial
 				super_texture.ctx.drawImage( img, dedication.x, dedication.y, img.width, img.height );
 				super_texture.texture.needsUpdate = true;
 			}
-		}
+		}*/
 		
 		/*if ( img[ super_texture_prop ] )
 		{
@@ -861,6 +924,27 @@ class sdAtlasMaterial
 		b.applyMatrix3( mat );
 		c.applyMatrix3( mat );
 		d.applyMatrix3( mat );
+			
+		let z_position = -sdRenderer.ctx.z_offset;
+		
+		if ( sdRenderer.ctx.object_offset !== null )
+		{
+			const x = sdRenderer.ctx.object_offset[ 0 ];
+			const y = sdRenderer.ctx.object_offset[ 1 ];
+			const z = sdRenderer.ctx.object_offset[ 2 ];
+			
+			a.x += x;
+			b.x += x;
+			c.x += x;
+			d.x += x;
+			
+			a.y += y;
+			b.y += y;
+			c.y += y;
+			d.y += y;
+			
+			z_position += z;
+		}
 
 		if ( sdRenderer.ctx.camera_relative_world_scale !== 1 )
 		{
@@ -903,8 +987,8 @@ class sdAtlasMaterial
 
 		for ( let layer = 0; layer < layers; layer++ )
 		{
-			let z = -sdRenderer.ctx.z_offset;
-			let z0 = z;
+			let z0 = z_position;
+			let z = z0;
 			
 			if ( layers > 1 )
 			{
@@ -1100,7 +1184,7 @@ class sdAtlasMaterial
 	
 	static FrameStart()
 	{
-		for ( let g = 0; g < 2; g++ )
+		for ( let g = 0; g < sdAtlasMaterial.super_textures.length; g++ )
 		for ( let i = 0; i < sdAtlasMaterial.super_textures[ g ].length; i++ )
 		sdAtlasMaterial.super_textures[ g ][ i ].FrameStart();
 	
@@ -1118,7 +1202,7 @@ class sdAtlasMaterial
 	}
 	static FrameEnd()
 	{
-		for ( let g = 0; g < 2; g++ )
+		for ( let g = 0; g < sdAtlasMaterial.super_textures.length; g++ )
 		for ( let i = 0; i < sdAtlasMaterial.super_textures[ g ].length; i++ )
 		sdAtlasMaterial.super_textures[ g ][ i ].FrameEnd( true );
 	}

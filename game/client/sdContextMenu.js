@@ -355,7 +355,7 @@ class sdContextMenu
 			//let width = 180;
 			let width = 260;
 
-			ctx.fillStyle = 'rgb(0,0,0)';
+			ctx.fillStyle = '#000000';
 			ctx.globalAlpha = 0.7;
 			ctx.fillRect( 0, 0, width, ( sdContextMenu.options.length + 1 ) * ( 30 ) );
 			ctx.globalAlpha = 1;
@@ -384,7 +384,7 @@ class sdContextMenu
 					{
 						sdContextMenu.potential_option = sdContextMenu.options[ i ];
 						
-						ctx.fillStyle = 'rgb(255,255,0)';
+						ctx.fillStyle = '#ffff00';
 						ctx.globalAlpha = 0.3;
 						ctx.fillRect( 1, ( i + 1 ) * 30 + 1, width-2, 28 );
 						ctx.globalAlpha = 1;

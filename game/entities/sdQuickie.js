@@ -273,7 +273,8 @@ class sdQuickie extends sdEntity
 					
 					this._hea = Math.min( this._hmax, this._hea + ( 7 * this._tier ) );
 
-					sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
+					from_entity.PlayDamageEffect( xx, yy );
+					//sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 					
 					max_targets--;
 					if ( max_targets <= 0 )

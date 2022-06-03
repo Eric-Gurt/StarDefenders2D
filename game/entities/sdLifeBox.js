@@ -361,6 +361,9 @@ class sdLifeBox extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		if ( sdShop.isDrawing )
+		ctx.scale( 0.5,0.5 );
+	
 		ctx.filter = this.filter;
 		
 		ctx.drawImageFilterCache( ( this.driver0 /*&& ( this.driver0.act_x !== 0 || this.driver0.act_y !== 0 )*/ ) ? sdLifeBox.img_lifebox_closed : sdLifeBox.img_lifebox_open, - 16, - 32, 32, 64 );

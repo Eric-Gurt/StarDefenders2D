@@ -590,7 +590,8 @@ class sdBadDog extends sdEntity
 					if ( this._last_bite_sound < sdWorld.time - 500 )
 					{
 						from_entity.Damage( 25, this );
-						sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
+						from_entity.PlayDamageEffect( xx, yy );
+						//sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 						this.hea = Math.min( this.hmax, this.hea + 25 );
 					
 						this._last_bite_sound = sdWorld.time;

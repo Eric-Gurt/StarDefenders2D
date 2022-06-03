@@ -694,9 +694,9 @@
 		    <a class="server serverA" href="http://localhost:3000">localhost:3000<div>your local server will be here<br>(contact us to appear in list)</div></a>
 		    
 		    <a class="server serverB" href="https://www.gevanni.com:3000">gevanni.com:3000<div>Europe, Ukraine<br>Main test server, core game in its' raw unchanged state</div></a>
-		    <!--<a class="server serverB" href="https://www.gevanni.com:3001">gevanni.com:3001<div>Europe, Ukraine<br>Main server, combat allowed, no rules</div></a>
-		    <a class="server serverB" href="https://www.gevanni.com:3002">gevanni.com:3002<div>Europe, Ukraine<br>Main server, combat arena (or more like PB2 arena)</div></a>-->
-		    <a class="server serverB" href="https://www.plazmaburst2.com:8443">plazmaburst2.com:8443<div>USA, California<br>Secondary server, no rules, rare updates<br>Hosted by Coolbuddy.com<br>since July 31, 2021</div></a>
+		    <!--<a class="server serverB" href="https://www.gevanni.com:3001">gevanni.com:3001<div>Europe, Ukraine<br>Main server, combat allowed, no rules</div></a>-->
+		    <a class="server serverB" href="https://www.gevanni.com:3004">gevanni.com:3004<div>Europe, Ukraine<br>Combat arena</div></a>
+		    <a class="server serverB" href="https://www.plazmaburst2.com:8443">plazmaburst2.com:8443<div>USA, California<br>Secondary server, no rules, only blue base shielding units<br>Hosted by Coolbuddy.com<br>since July 31, 2021</div></a>
 		    
 		    
 		    
@@ -826,8 +826,8 @@
 	    </div>
 	    
 	    <div class="set_block" tabindex="1">
-		<span class="sdtitle">Visual settings</span><br>
-		<input type="checkbox" id="visuals1" value="no">
+		<span class="sdtitle">Resolution downscaling</span><br>
+		<!--<input type="checkbox" id="visuals1" value="no">
 		<label for="visuals1">2D (old, unoptimized)</label>
 		<br>
 		<input type="checkbox" id="visuals2" value="yes" checked>
@@ -839,11 +839,13 @@
 		<input type="checkbox" id="visuals4" value="yes">
 		<label for="visuals4">experimental: 3D++ (GPU accelerated and optimized)</label>
 		<br>
-		<br>
+		<br>-->
 		<input type="checkbox" id="density1" value="no">
 		<label for="density1">100%</label>
+		<br>
 		<input type="checkbox" id="density2" value="no">
 		<label for="density2">50%</label>
+		<br>
 		<input type="checkbox" id="density3" value="no">
 		<label for="density3">25%</label>
 		
@@ -1924,7 +1926,7 @@
 		//JustOne( 'voice_chat', last_changed_el );
 		JustOne( 'hints', last_changed_el );
 		JustOne( 'bugs', last_changed_el );
-		JustOne( 'visuals', last_changed_el );
+		//JustOne( 'visuals', last_changed_el );
 		JustOne( 'dirts', last_changed_el );
 		JustOne( 'density', last_changed_el );
 		JustOne( 'helmet', last_changed_el );

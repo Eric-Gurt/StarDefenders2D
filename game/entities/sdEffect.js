@@ -366,6 +366,7 @@ class sdEffect extends sdEntity
 		if ( sdEffect.types[ this._type ].sound_to_play )
 		sdSound.PlaySound({ name:sdEffect.types[ this._type ].sound_to_play, x:this.x, y:this.y, volume:sdEffect.types[ this._type ].sound_to_play_volume, _server_allowed:true });
 		
+		this._hue = params.hue || 0;
 		this._filter = params.filter || '';
 		
 		if ( this._text )
@@ -601,6 +602,7 @@ class sdEffect extends sdEntity
 	
 		var y = 0;
 	
+		ctx.sd_hue_rotation = this._hue;
 		ctx.filter = this._filter;
 		
 		if ( this._scale !== 1 )
@@ -683,6 +685,7 @@ class sdEffect extends sdEntity
 		}
 			
 		ctx.filter = 'none';
+		ctx.sd_hue_rotation = 0;
 	}
 	DrawFG( ctx, attached )
 	{

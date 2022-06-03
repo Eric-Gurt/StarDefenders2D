@@ -291,17 +291,21 @@ class sdCharacter extends sdEntity
 	
 		return sdEffect.TYPE_BLOOD;
 	}
-	GetBleedEffectFilter()
+	GetBleedEffectHue()
 	{
 		if ( this._voice.variant === 'croak' )
-		return 'hue-rotate(-73deg)';
+		return -73;
 	
 		if ( this._voice.variant === 'whisperf' )
-		return 'hue-rotate(73deg)';
+		return 73;
 
 		if ( this._voice.variant === 'm2' )
-		return 'hue-rotate(133deg)';
+		return 133;
 	
+		return 0;
+	}
+	GetBleedEffectFilter()
+	{
 		return '';
 	}
 	
@@ -2154,7 +2158,8 @@ class sdCharacter extends sdEntity
 				if ( this._dying_bleed_tim <= 0 )
 				{
 					this._dying_bleed_tim = 15;
-					sdWorld.SendEffect({ x:this.x, y:this.y, type:this.GetBleedEffect(), filter:this.GetBleedEffectFilter() });
+					this.PlayDamageEffect( this.x, this.y );
+					//sdWorld.SendEffect({ x:this.x, y:this.y, type:this.GetBleedEffect(), filter:this.GetBleedEffectFilter() });
 				}
 				else
 				this._dying_bleed_tim -= GSPEED;
@@ -3526,30 +3531,40 @@ class sdCharacter extends sdEntity
 				let fake_ent = this.CreateBuildObject( false );
 				if ( fake_ent )
 				{
-					if ( this.CheckBuildObjectPossibilityNow( fake_ent ) )
+					if ( this.CheckBuildObjectPossibilityNow( fake_ent, false ) )
 					ctx.globalAlpha = 0.5;
 					else
 					ctx.globalAlpha = 0.2 * ( ( sdWorld.time % 200 < 100 ) ? 1 : 0.5 );
+				
+					let old_volumetric_mode = ctx.volumetric_mode;
+					let old_object_offset = ctx.object_offset;
+					{
+						ctx.volumetric_mode = fake_ent.DrawIn3D();
 
-					ctx.translate( -this.x + fake_ent.x, -this.y + fake_ent.y );
-					ctx.save();
-					fake_ent.DrawBG( ctx, false );
-					ctx.restore();
-					fake_ent.Draw( ctx, false );
-					
-					if ( fake_ent.DrawConnections )
-					fake_ent.DrawConnections( ctx );
-					
-					fake_ent.remove();
-					fake_ent._broken = false;
-					fake_ent._remove();
+						ctx.translate( -this.x + fake_ent.x, -this.y + fake_ent.y );
+						ctx.save();
+						ctx.object_offset = fake_ent.ObjectOffset3D( -1 );
+						fake_ent.DrawBG( ctx, false );
+						ctx.restore();
+						ctx.object_offset = fake_ent.ObjectOffset3D( 0 );
+						fake_ent.Draw( ctx, false );
+
+						if ( fake_ent.DrawConnections )
+						fake_ent.DrawConnections( ctx );
+
+						fake_ent.remove();
+						fake_ent._broken = false;
+						fake_ent._remove();
+					}
+					ctx.object_offset = old_object_offset;
+					ctx.volumetric_mode = old_volumetric_mode;
 				}
 			}
 			
 			ctx.globalAlpha = 1;
 		}
 	}
-	CheckBuildObjectPossibilityNow( fake_ent )
+	CheckBuildObjectPossibilityNow( fake_ent, allow_erase=true )
 	{
 		fake_ent.GetIgnoredEntityClasses = sdEntity.prototype.GetIgnoredEntityClasses; // Discard effect of this method because doors will have problems in else case
 		
@@ -3599,34 +3614,65 @@ class sdCharacter extends sdEntity
 				{
 					if ( sdWorld.is_server )
 					{
-						if ( sdWorld.last_hit_entity )
+						let obstacle = sdWorld.last_hit_entity;
+						
+						if ( obstacle )
 						{
-							//if ( fake_ent.is( sdBG ) && sdWorld.last_hit_entity.is( sdBG ) )
-							if ( fake_ent.IsBGEntity() === 1 && sdWorld.last_hit_entity.is( sdBG ) )
+							if ( fake_ent.is( sdBlock ) && obstacle.is( sdBlock ) && 
+								 fake_ent.x === obstacle.x && 
+								 fake_ent.y === obstacle.y && 
+								 fake_ent.w === obstacle.w && 
+								 fake_ent.h === obstacle.h &&
+								 fake_ent.material === obstacle.material &&
+								 fake_ent._hmax === obstacle._hmax &&
+								 fake_ent._armor_protection_level >= obstacle._armor_protection_level &&
+								 ( obstacle._shielded === null || fake_ent._owner === obstacle._owner ) )
 							{
-								//if ( sdWorld.last_hit_entity.material === sdBG.MATERIAL_GROUND )
+								if ( allow_erase )
 								{
-									sdCharacter.last_build_deny_reason = null;
-									sdWorld.last_hit_entity.remove();
-									//return false;
-									return this.CheckBuildObjectPossibilityNow( fake_ent );
+									obstacle.hue = fake_ent.hue;
+									obstacle.br = fake_ent.br;
+									obstacle.filter = fake_ent.filter;
+									
+									obstacle._armor_protection_level = fake_ent._armor_protection_level;
+									
+									obstacle.texture_id = fake_ent.texture_id;
+									
+									sdCharacter.last_build_deny_reason = 'Repainting...';
+									return false;
 								}
-								/*else
+								else
 								{
-									sdCharacter.last_build_deny_reason = 'Holding Left Shift key while shooting could help getting rid of those';
-								}*/
+									sdCharacter.last_build_deny_reason = 'You shouldn\'t be able to hear this';
+									return false;
+								}
 							}
 							else
-							if ( fake_ent.is( sdArea ) && fake_ent.type === sdArea.TYPE_ERASER_AREA && sdWorld.last_hit_entity.is( sdArea ) )
+							if ( fake_ent.IsBGEntity() === 1 && obstacle.is( sdBG ) )
+							{
+								if ( allow_erase )
+								{
+									sdCharacter.last_build_deny_reason = null;
+									obstacle.remove();
+									return this.CheckBuildObjectPossibilityNow( fake_ent, allow_erase );
+								}
+								else
+								{
+									sdCharacter.last_build_deny_reason = 'You shouldn\'t be able to hear this';
+									return false;
+								}
+							}
+							else
+							if ( fake_ent.is( sdArea ) && fake_ent.type === sdArea.TYPE_ERASER_AREA && obstacle.is( sdArea ) )
 							{
 								sdCharacter.last_build_deny_reason = 'Erasing...';
-								sdWorld.last_hit_entity.remove();
+								obstacle.remove();
 								return false;
 							}
 							else
 							{
 								//sdCharacter.last_build_deny_reason = 'It overlaps with something';
-								sdCharacter.last_build_deny_reason = 'It overlaps with ' + sdWorld.ClassNameToProperName( sdWorld.last_hit_entity.GetClass(), sdWorld.last_hit_entity ); // sdWorld.last_hit_entity.GetClass();
+								sdCharacter.last_build_deny_reason = 'It overlaps with ' + sdWorld.ClassNameToProperName( obstacle.GetClass(), obstacle ); // obstacle.GetClass();
 							}
 						}
 					}

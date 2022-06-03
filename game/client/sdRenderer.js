@@ -26,6 +26,13 @@ class sdRenderer
 		if ( typeof window === 'undefined' )
 		return;
 	
+		sdRenderer.distance_scale_background = 1.4; // 1.2
+		sdRenderer.distance_scale_in_world = 1; // Can be altered with .CameraDistanceScale3D
+		sdRenderer.distance_scale_fading_world_edges = 0.8;
+		sdRenderer.distance_scale_in_game_hud = 0.7;
+		sdRenderer.distance_scale_on_screen_hud = 0.6; // Hitpoints, tasks
+		sdRenderer.distance_scale_on_screen_foreground = 0.5; // Shop, chat, context menu
+				
 		sdRenderer.resolution_quality = 1;
 	
 		var canvas = document.createElement('canvas');
@@ -394,6 +401,8 @@ class sdRenderer
 	
 	static set visual_settings( v )
 	{
+		v = 4; // Only one rendering mode for now
+		
 		if ( v === sdRenderer._visual_settings )
 		return;
 	
@@ -509,8 +518,7 @@ class sdRenderer
 		ctx.z_offset = 0;
 		ctx.z_depth = 0;
 		ctx.draw_offset = -100;
-		//ctx.camera_relative_world_scale = 1.2;
-		ctx.camera_relative_world_scale = 1.4;
+		ctx.camera_relative_world_scale = sdRenderer.distance_scale_background;
 		
 		ctx.imageSmoothingEnabled = false;
 		
@@ -683,7 +691,7 @@ class sdRenderer
 		// In-world
 		{
 			ctx.draw_offset = 0;
-			ctx.camera_relative_world_scale = 1;
+			ctx.camera_relative_world_scale = sdRenderer.distance_scale_in_world;
 			
 			
 
@@ -766,14 +774,6 @@ class sdRenderer
 					   ( e.__proto__.constructor === sdEffect.prototype.constructor && e._type === sdEffect.TYPE_BEAM ) ) // sdWorld.my_entity.__proto__.constructor
 				if ( !sdWorld.is_singleplayer || e.IsVisible( sdWorld.my_entity ) )
 				{
-					/*if ( e.GetClass() === 'sdGrass' )
-					{
-						if ( double_draw_catcher.has( e ) )
-						continue;
-						else
-						double_draw_catcher.set( e, 'second' );
-					}*/
-				
 					ctx.volumetric_mode = e.DrawIn3D( 0 );
 					ctx.object_offset = e.ObjectOffset3D( 0 );
 
@@ -791,7 +791,6 @@ class sdRenderer
 					ctx.restore();
 					
 					if ( sdWorld.is_singleplayer )
-					//if ( frame % 50 === 0 )
 					if ( e.SyncedToPlayer !== sdEntity.prototype.SyncedToPlayer )
 					e.SyncedToPlayer( sdWorld.my_entity );
 				}
@@ -849,7 +848,7 @@ class sdRenderer
 			ctx.object_offset = null;
 			
 			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_FLAT;
-			ctx.camera_relative_world_scale = 0.7;
+			ctx.camera_relative_world_scale = sdRenderer.distance_scale_fading_world_edges;
 			
 			ctx.fillStyle = '#000000';
 			for ( var step = 1; step <= 4; step++ )
@@ -1025,7 +1024,7 @@ class sdRenderer
 			ctx.z_offset = 0;
 			ctx.z_depth = 0;
 			ctx.draw_offset = 100;
-			ctx.camera_relative_world_scale = 0.5;
+			ctx.camera_relative_world_scale = sdRenderer.distance_scale_in_game_hud;
 			
 			// Ingame hud
 			if ( sdWorld.my_entity )
@@ -1071,7 +1070,7 @@ class sdRenderer
 		ctx.z_offset = 0;
 		ctx.z_depth = 0;
 		ctx.draw_offset = 100;
-		ctx.camera_relative_world_scale = 0.6;
+		ctx.camera_relative_world_scale = sdRenderer.distance_scale_on_screen_hud;
 		ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT;
 		
 		// On-screen foregroud
@@ -1263,7 +1262,7 @@ class sdRenderer
 			ctx.globalAlpha = 1;
 			
 			
-			ctx.camera_relative_world_scale = 0.5;
+			ctx.camera_relative_world_scale = sdRenderer.distance_scale_on_screen_foreground;
 			
 			if ( sdShop.open )
 			sdShop.Draw( ctx );

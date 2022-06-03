@@ -64,7 +64,9 @@ class sdAmphid extends sdEntity
 
 		sdAmphid.amphids_tot++;
 		
-		this.filter = 'hue-rotate(' + ~~( Math.random() * 120 - 80 ) + 'deg) saturate(0.5)';
+		this.hue = ~~( Math.random() * 360 );
+		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
+		this.filter = 'saturate(0.5)';
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
@@ -273,7 +275,8 @@ class sdAmphid extends sdEntity
 					
 					this._hea = Math.min( this.hmax, this._hea + 15 );
 
-					sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
+					from_entity.PlayDamageEffect( xx, yy );
+					//sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 					
 					break;
 				}
@@ -288,7 +291,15 @@ class sdAmphid extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.filter = this.filter;
+		if ( !sdShop.isDrawing )
+		{
+			ctx.filter = this.filter;
+			
+			if ( sdRenderer.visual_settings === 4 )
+			ctx.sd_hue_rotation = this.hue;
+			else
+			ctx.filter = 'hue-rotate(' + this.hue + 'deg)' + ctx.filter;
+		}
 		
 		ctx.scale( this.side, 1 );
 		
@@ -313,6 +324,7 @@ class sdAmphid extends sdEntity
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
+		ctx.sd_hue_rotation = 0;
 	}
 	/*onMovementInRange( from_entity )
 	{

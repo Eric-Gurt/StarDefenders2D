@@ -215,6 +215,7 @@ import sdWorld from './game/sdWorld.js';
 
 import FakeCanvasContext from './game/libs/FakeCanvasContext.js'; // consts
 globalThis.FakeCanvasContext = FakeCanvasContext;
+globalThis.sdRenderer = { visual_settings: 4 }; // Fake object
 
 import sdEntity from './game/entities/sdEntity.js';
 import sdCharacter from './game/entities/sdCharacter.js';

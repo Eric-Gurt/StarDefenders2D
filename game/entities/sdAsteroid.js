@@ -149,6 +149,7 @@ class sdAsteroid extends sdEntity
 	{
 		var image = this.landed ? sdAsteroid.img_asteroid_landed : sdAsteroid.img_asteroid;
 		
+		if ( !sdShop.isDrawing )
 		ctx.rotate( this._an );
 
 		ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );

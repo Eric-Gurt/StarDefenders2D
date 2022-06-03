@@ -60,6 +60,14 @@ class sdGrass extends sdEntity
 		this.remove();
 	}
 	
+	onSnapshotApplied() // To override
+	{
+		// Update version where hue is a separate property
+		if ( this.filter.indexOf( 'hue-rotate' ) !== -1 || this.filter.indexOf( 'brightness' ) !== -1 )
+		{
+			[ this.hue, this.br, this.filter ] = sdWorld.ExtractHueRotate( this.hue, this.br, this.filter );
+		}
+	}
 	constructor( params )
 	{
 		super( params );
@@ -71,6 +79,8 @@ class sdGrass extends sdEntity
 		
 		this.material = params.material || sdGrass.MATERIAL_PLATFORMS;
 		*/
+		this.hue = params.hue || 0;
+		this.br = params.br || 100;
 		this.filter = params.filter || '';
 		
 		this._block = params.block || null;
@@ -80,6 +90,8 @@ class sdGrass extends sdEntity
 		//this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
 		
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false ); // 2nd parameter is important as it will prevent temporary entities from reacting to world entities around it (which can happen for example during item price measure - something like sdBlock can kill player-initiator and cause server crash)
+		
+		this.onSnapshotApplied();
 	}
 	MeasureMatterCost()
 	{
@@ -117,6 +129,29 @@ class sdGrass extends sdEntity
 		
 		ctx.filter = this.filter;//'hue-rotate(90deg)';
 		
+		if ( this.hue !== 0 )
+		{
+			// Less cache usage by making .hue as something GPU understands, so we don't have as many versions of same images
+			if ( sdRenderer.visual_settings === 4 )
+			ctx.sd_hue_rotation = this.hue;
+			else
+			ctx.filter = 'hue-rotate('+this.hue+'deg)' + ctx.filter;
+		}
+		
+		if ( this.br / 100 !== 1 )
+		{
+			if ( sdRenderer.visual_settings === 4 )
+			{
+				ctx.sd_color_mult_r = this.br / 100;
+				ctx.sd_color_mult_g = this.br / 100;
+				ctx.sd_color_mult_b = this.br / 100;
+			}
+			else
+			{
+				ctx.filter = 'brightness('+this.br+'%)';
+			}
+		}
+		
 		if ( this.snowed )
 		{
 			ctx.filter += 'saturate(0.05) brightness(2)';
@@ -139,6 +174,10 @@ class sdGrass extends sdEntity
 		}
 		
 		ctx.filter = 'none';
+		ctx.sd_hue_rotation = 0;
+		ctx.sd_color_mult_r = 1;
+		ctx.sd_color_mult_g = 1;
+		ctx.sd_color_mult_b = 1;
 	}
 	onRemove() // Class-specific, if needed
 	{

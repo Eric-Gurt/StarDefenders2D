@@ -112,14 +112,22 @@ class sdBall extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.filter = 'hue-rotate('+( (( this._net_id )%36) * 10 )+'deg)';
+		if ( !sdShop.isDrawing )
+		{
+			if ( sdRenderer.visual_settings === 4 )
+			ctx.sd_hue_rotation = ( (( this._net_id )%36) * 10 );
+			else
+			ctx.filter = 'hue-rotate('+( (( this._net_id )%36) * 10 )+'deg)';
+		}
 		
 		ctx.rotate( Math.round( this.x / 5 / Math.PI * 2 ) * Math.PI / 2 );
 		if ( this.type === 0 )
 		ctx.drawImageFilterCache( sdBall.img_ball, - 16, - 16, 32,32 );
 		if ( this.type === 1 )
 		ctx.drawImageFilterCache( sdBall.img_ball2, - 16, - 16, 32,32 );	
+	
 		ctx.filter = 'none';
+		ctx.sd_hue_rotation = 0;
 	}
 	onRemove() // Class-specific, if needed
 	{

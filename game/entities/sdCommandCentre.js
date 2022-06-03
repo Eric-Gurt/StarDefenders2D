@@ -116,8 +116,7 @@ class sdCommandCentre extends sdEntity
 	{
 		//return 0; // Hack
 		
-		return 1500;
-		//return this.hmax * sdWorld.damage_to_matter + 50;
+		return this.hmax * sdWorld.damage_to_matter + 200;
 	}
 	GivePlayerTask( initiator )
 	{
@@ -327,6 +326,9 @@ class sdCommandCentre extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		if ( sdShop.isDrawing )
+		ctx.scale( 0.5,0.5 );
+	
 		ctx.drawImageFilterCache( sdCommandCentre.img_cc, -16, -16 - 32, 32,64 );
 	}
 	DrawHUD( ctx, attached ) // foreground layer

@@ -243,7 +243,8 @@ class sdShark extends sdEntity
 					
 					this._hea = Math.min( this._hmax, this._hea + 20 );
 
-					sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
+					from_entity.PlayDamageEffect( xx, yy );
+					//sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 					
 					max_targets--;
 					if ( max_targets <= 0 )
@@ -266,6 +267,7 @@ class sdShark extends sdEntity
 	{
 		ctx.filter = this.filter;
 		
+		if ( !sdShop.isDrawing )
 		ctx.scale( this.side, ( this.death_anim === 0 ) ? 1 : -1 );
 		
 		if ( this.death_anim > 0 )

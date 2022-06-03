@@ -1823,10 +1823,20 @@ class sdEntity
 	{
 		return 1; // sdEffect.TYPE_WALL_HIT; unavailable due to early init
 	}
+	GetBleedEffectHue()
+	{
+		return 0;
+	}
 	GetBleedEffectFilter()
 	{
 		return '';
 	}
+	
+	PlayDamageEffect( xx, yy, scale=1 )
+	{
+		sdWorld.SendEffect({ x:xx, y:yy, type:this.GetBleedEffect(), hue:this.GetBleedEffectHue(), filter:this.GetBleedEffectFilter() });
+	}
+	
 	/*
 	get _hash_position()
 	{

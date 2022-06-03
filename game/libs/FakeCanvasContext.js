@@ -13,6 +13,7 @@ class FakeCanvasContext
 		FakeCanvasContext.DRAW_IN_3D_GRASS = 3;
 		FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT = 4;
 		FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT = 5;
+		FakeCanvasContext.DRAW_IN_3D_BOX_DECAL = 6;
 		
 		FakeCanvasContext.LIQUID_OPACITY_STEPS = 5;
 		FakeCanvasContext.GRASS_OPACITY_STEPS = 4;
@@ -724,6 +725,10 @@ class FakeCanvasContext
 	{	
 		if ( sdRenderer.visual_settings === 4 )
 		{
+			text += '';
+			
+			let max_width_x = x + max_width;
+			
 			let size = parseFloat( this.font.split( ' ', 1 )[ 0 ] ) / sdAtlasMaterial.global_font_scale;
 			
 			y -= sdAtlasMaterial.global_font_offset_y * size;
@@ -754,6 +759,21 @@ class FakeCanvasContext
 				this.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT;
 			}
 			
+			let scale_x = 1;
+			/*let scroll_x = 0;
+			
+			if ( x + (text.length+1) * 7 * size > max_width_x )
+			{
+				scroll_x = sdWorld.time % 
+			}*/
+			if ( x + (text.length+1) * 7 * size > max_width_x )
+			{
+				//x + (text.length+1) * 7 * size * scale_x = max_width_x;
+				//(text.length+1) * 7 * size * scale_x = max_width_x - x;
+				scale_x = ( max_width_x - x ) / ( (text.length+1) * 7 * size );
+			}
+			
+			
 			for ( let i = 0; i < text.length; i++ )
 			{
 				let char = text.charCodeAt( i );
@@ -765,8 +785,13 @@ class FakeCanvasContext
 					sdAtlasMaterial.character_images.set( char, img = sdAtlasMaterial.CreateImageForCharacter( char ) );
 				}
 				
+				/*if ( x + (i+1) * 7 * size > max_width_x )
+				{
+					break;
+				}*/
+				
 				if ( img )
-				sdAtlasMaterial.drawImage( img, 0, 0, 7, 13, x + i * 7 * size, y, 7 * size, 13 * size );
+				sdAtlasMaterial.drawImage( img, 0, 0, 7, 13, x + i * 7 * size * scale_x, y, 7 * size, 13 * size );
 			}
 			
 			this.volumetric_mode = old_mode;
@@ -1006,11 +1031,11 @@ class FakeCanvasContext
 	}
 	arc( x, y, di, from_an, to_an )
 	{
-		if ( sdRenderer.visual_settings === 4 )
-		return;
+		//if ( sdRenderer.visual_settings === 4 )
+		//return;
 	
-		if ( isNaN( x ) || isNaN( y ) || isNaN( di ) )
-		debugger
+		//if ( isNaN( x ) || isNaN( y ) || isNaN( di ) )
+		//debugger
 				
 		// ctx.arc( this.x0 - this.x, this.y0 - this.y, sdDoor.connection_range, 0, Math.PI*2 );
 		var steps = Math.min( 50, Math.max( 16, ~~( Math.PI * di * ( to_an - from_an ) / 50 ) ) );
@@ -1034,7 +1059,66 @@ class FakeCanvasContext
 	stroke()
 	{	
 		if ( sdRenderer.visual_settings === 4 )
-		return;
+		{
+			const ctx = this;
+			const radius = ctx.lineWidth / 2;
+			
+			let old_fillStyle = ctx.fillStyle;
+			ctx.fillStyle = ctx.strokeStyle;
+			{
+
+				for ( var s = 0; s < this.shapes.length; s++ )
+				{
+					const points = this.shapes[ s ];
+
+					/*let full_length = 0;
+
+					for ( var i2 = 0; i2 < this.shapes[ i ].length; i2++ )
+					{
+						//points.push( this.shapes[ i ][ i2 ].x, this.shapes[ i ][ i2 ].y, 0 );
+						points.push( this.shapes[ i ][ i2 ] );
+
+
+
+						if ( i2 > 0 )
+						{
+							full_length += sdWorld.Dist2D_Vector( ( points[ points.length - 3 ] - points[ points.length - 6 ] ) * this.renderer.domElement.width / this.renderer.domElement.height, 
+																  ( points[ points.length - 2 ] - points[ points.length - 5 ] ) );
+						}
+
+					}*/
+					
+					//let dash_current = 0;
+					//let dash_is_filling = true;
+
+					for ( let i = 0; i < points.length - 1; i++ )
+					{
+						ctx.save();
+						{
+							let dx = points[ i + 1 ].x - points[ i ].x;
+							let dy = points[ i + 1 ].y - points[ i ].y;
+
+							ctx.translate( points[ i ].x, points[ i ].y );
+
+							ctx.rotate( Math.atan2( dy, dx ) - Math.PI / 2 );
+
+							//if ( this.line_dash_arr.length === 0 )
+							//{
+								ctx.fillRect( -radius, -radius, radius * 2, radius * 2 + sdWorld.Dist2D_Vector( dx,dy ) );
+							//}
+							//else
+							//{
+							//	ctx.fillRect( -radius, 0, radius * 2, sdWorld.Dist2D_Vector( dx,dy ) );
+							//}
+						}
+						ctx.restore();
+					}
+				}
+			}
+			ctx.fillStyle = old_fillStyle;
+			
+			return;
+		}
 	
 		for ( var i = 0; i < this.shapes.length; i++ )
 		{

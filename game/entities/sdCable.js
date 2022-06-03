@@ -733,7 +733,7 @@ class sdCable extends sdEntity
 	}
 	
 	DrawBG( ctx, attached )
-	//DrawBG( ctx, attached )
+	//Draw( ctx, attached )
 	{
 		/*ctx.filter = this.filter;//'hue-rotate(90deg)';
 		
@@ -746,11 +746,14 @@ class sdCable extends sdEntity
 		
 		//ctx.fillRect( -4, -4, 8, 8 );
 		
+		let assumed_type = 0;
+		
 		for ( let stage = ( sdWorld.hovered_entity === this ? 0 : 1 ); stage < 2; stage++ )
 		//let stage = 1;
 		{
-			ctx.fillStyle = sdCable.colors[ this.t * 3 ];
-			ctx.globalAlpha = sdCable.colors[ this.t * 3 + 1 ];
+			
+			ctx.fillStyle = sdCable.colors[ assumed_type * 3 ];
+			ctx.globalAlpha = sdCable.colors[ assumed_type * 3 + 1 ];
 		
 			let radius = sdCable.colors[ this.t * 3 + 2 ];
 
@@ -921,12 +924,12 @@ class sdCable extends sdEntity
 		if ( this.GetAccurateDistance( exectuter_character.x, exectuter_character.y ) < 20 ) // 32 can cause door to be "hackable" if first socket was on top
 		{
 			this.AddContextOption( 'Cut cable', 'CUT_CABLE', [] );
-			this.AddContextOption( 'Transfer matter', 'SET_TYPE', [ sdCable.TYPE_MATTER ] );
+			/*this.AddContextOption( 'Transfer matter', 'SET_TYPE', [ sdCable.TYPE_MATTER ] );
 			this.AddContextOption( 'Transfer oxygen', 'SET_TYPE', [ sdCable.TYPE_AIR ] );
 			this.AddContextOption( 'Transfer liquid', 'SET_TYPE', [ sdCable.TYPE_LIQUID ] );
 			this.AddContextOption( 'Transfer IO-1 signals', 'SET_TYPE', [ sdCable.TYPE_IO1 ] );
 			this.AddContextOption( 'Transfer IO-2 signals', 'SET_TYPE', [ sdCable.TYPE_IO2 ] );
-			this.AddContextOption( 'Transfer IO-3 signals', 'SET_TYPE', [ sdCable.TYPE_IO3 ] );
+			this.AddContextOption( 'Transfer IO-3 signals', 'SET_TYPE', [ sdCable.TYPE_IO3 ] );*/
 		}
 	}
 }

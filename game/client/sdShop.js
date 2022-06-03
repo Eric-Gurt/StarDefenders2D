@@ -121,7 +121,7 @@ class sdShop
 			//}
 		}
 		
-		for ( var i = 0; i < 11; i++ )
+		/*for ( var i = 0; i < 11; i++ )
 		{
 			var filter = ( i === 0 ) ? '' : 'hue-rotate('+(~~(i/12*360))+'deg)';
 			
@@ -145,23 +145,69 @@ class sdShop
 				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED, _reinforced_level: 1, _category:'Doors', _min_build_tool_level: 7 });
 				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _reinforced_level: 2, _category:'Doors', _min_build_tool_level: 16 });
 			}
-		}
-		AddBuildPack( 'hue-rotate(-90deg) contrast(0.5) brightness(1.5) saturate(0)' );
-			
-		AddBuildPack( 'hue-rotate(-90deg) saturate(0)' );
-		
-		for ( let i = sdBlock.TEXTURE_ID_PORTAL; i <= sdBlock.TEXTURE_ID_GLASS; i++ )
+		}*/
+		for ( var i = 0; i < 20; i++ )
 		{
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, texture_id: i, _category:'Walls' });
-			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, texture_id: i, _category:'Walls' });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, texture_id: i, _category:'Walls' });
-			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, texture_id: i, _category:'Walls' });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, texture_id: i, _category:'Walls' });
-			sdShop.options.push({ _class: 'sdBlock', width: 8, height: 16, texture_id: i, _category:'Walls' });
+			/*
+				0 good
+				1 bad
+				2 good
+				3 bad
+				4 good 
+				5 bad
+				6 good
+				7 bad
+				8 bad
+				9 good
+				10 good
+				11 good
+				12 bad
+				13 good
+				14 bad
+				15 good
+				16 bad
+				17 good
+				18 good
+				19 bad
+			*/
+		   
+			if ( [
+				1, 
+				3, 
+				5, 
+				7, 
+				8, 
+				12,
+				14,
+				16,
+				19 ].indexOf( i ) !== -1 )
+			continue;
+			
+			var filter = ( i === 0 ) ? '' : 'hue-rotate('+(~~(i/20*360))+'deg)';
+			AddBuildPack( filter, i );
+
+			sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, _category:'Doors' });
+			sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED, _reinforced_level: 1, _category:'Doors', _min_build_tool_level: 7 });
+			sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _reinforced_level: 2, _category:'Doors', _min_build_tool_level: 16 });
+		}
+		//AddBuildPack( 'hue-rotate(-90deg) contrast(0.5) brightness(1.5) saturate(0)' );
+		//AddBuildPack( 'hue-rotate(-90deg) brightness(1.5) saturate(0)' );
+		//AddBuildPack( 'saturate(0) brightness(8)' );
+		
+		for ( let br = 50; br <= 150; br += 50 )
+		for ( let i = sdBlock.TEXTURE_ID_PORTAL; i <= sdBlock.TEXTURE_ID_GREY; i++ )
+		if ( br === 100 || i === sdBlock.TEXTURE_ID_GREY )
+		{
+			sdShop.options.push({ _class: 'sdBlock', br:br, width: 16, height: 16, texture_id: i, _category:'Walls' });
+			sdShop.options.push({ _class: 'sdBlock', br:br, width: 32, height: 16, texture_id: i, _category:'Walls' });
+			sdShop.options.push({ _class: 'sdBlock', br:br, width: 16, height: 32, texture_id: i, _category:'Walls' });
+			sdShop.options.push({ _class: 'sdBlock', br:br, width: 32, height: 32, texture_id: i, _category:'Walls' });
+			sdShop.options.push({ _class: 'sdBlock', br:br, width: 16, height: 8, texture_id: i, _category:'Walls' });
+			sdShop.options.push({ _class: 'sdBlock', br:br, width: 8, height: 16, texture_id: i, _category:'Walls' });
 			if ( i === sdBlock.TEXTURE_ID_GLASS )
 			{
-				sdShop.options.push({ _class: 'sdBlock', width: 32, height: 8, texture_id: i, _category:'Walls' });
-				sdShop.options.push({ _class: 'sdBlock', width: 8, height: 32, texture_id: i, _category:'Walls' });
+				sdShop.options.push({ _class: 'sdBlock', br:br, width: 32, height: 8, texture_id: i, _category:'Walls' });
+				sdShop.options.push({ _class: 'sdBlock', br:br, width: 8, height: 32, texture_id: i, _category:'Walls' });
 			}
 		}
 		
@@ -666,8 +712,7 @@ class sdShop
 				let selectable = true;
 				let max_level = 0;
 				let cur_level = 0;
-
-				
+					
 				if ( sdWorld.my_entity._build_params._class === null )
 				{
 					if ( typeof sdWorld.my_entity._build_params._opens_category !== 'undefined' )
@@ -699,9 +744,15 @@ class sdShop
 					matter_cost = ent.MeasureMatterCost();
 				}
 
+				// Overrides
+				if ( current_shop_options[ i ].matter_cost !== undefined )
+				matter_cost = current_shop_options[ i ].matter_cost;
+			
+
 				if ( selectable )
 				{
 					ctx.globalAlpha = 0.2;
+					
 					if ( sdWorld.my_entity.matter >= matter_cost )
 					{
 						ctx.fillStyle = '#00ff00';
@@ -731,7 +782,60 @@ class sdShop
 				}
 
 				
-
+				if ( sdRenderer.visual_settings === 4 )
+				{
+					if ( ent )
+					{
+						ctx.save();
+						{
+							ctx.translate( ~~( 16 - ( ent._hitbox_x2 + ent._hitbox_x1 ) / 2 ), 
+											~~( 16 - ( ent._hitbox_y2 + ent._hitbox_y1 ) / 2 ) );
+							
+							ctx.save();
+							ent.DrawBG( ctx, false );
+							ctx.restore();
+	
+							ctx.save();
+							ent.Draw( ctx, false );
+							ctx.restore();
+	
+							ctx.save();
+							ent.DrawFG( ctx, false );
+							ctx.restore();
+						}
+						ctx.restore();
+					}
+					else
+					if ( sdWorld.my_entity._build_params.image )
+					{
+						if ( !sdWorld.my_entity._build_params.image_obj /*|| !sdWorld.my_entity._build_params.image_obj.loaded*/ )
+						{
+							let obj = sdWorld.my_entity._build_params;
+							sdWorld.my_entity._build_params.image_obj = sdWorld.CreateImageFromFile( sdWorld.my_entity._build_params.image, ()=>
+							{
+								obj._cache = null;
+							});
+							sdWorld.my_entity._build_params.image_obj.RequiredNow();
+						}
+						
+						ctx.drawImage( sdWorld.my_entity._build_params.image_obj, 0,0, 32,32 );
+					}
+					else
+					{
+						if ( !sdShop.upgrades[ sdWorld.my_entity._build_params.upgrade_name ].image.loaded )
+						{
+							let obj = sdWorld.my_entity._build_params;
+							sdShop.upgrades[ obj.upgrade_name ].image.callbacks.push( ()=>
+							{
+								obj._cache = null;
+							});
+							sdShop.upgrades[ obj.upgrade_name ].image.RequiredNow();
+						}
+						
+						ctx.drawImage( sdShop.upgrades[ sdWorld.my_entity._build_params.upgrade_name ].image, 0,0, 32,32 );
+					}
+				}
+				else
 				if ( sdWorld.my_entity._build_params._cache )
 				{
 					ctx.drawImage( sdWorld.my_entity._build_params._cache, 0,0 );
@@ -855,6 +959,7 @@ class sdShop
 			
 			let simple_obj = Object.assign( {}, sdShop.options[ sdShop.potential_selection ] );
 			delete simple_obj._cache;
+			delete simple_obj.image_obj;
 			
 			let t = 'No description for ' + JSON.stringify( simple_obj );
 			let desc = null; // Secondary description, used for upgrades

@@ -603,7 +603,10 @@ class sdBullet extends sdEntity
 								}
 
 								if ( !this._soft )
-								sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter(), scale:( limb_mult === 1 ? 1 : 1.65 ) });
+								{
+									from_entity.PlayDamageEffect( this.x, this.y, ( limb_mult === 1 ? 1 : 1.65 ) );
+									//sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter(), scale:( limb_mult === 1 ? 1 : 1.65 ) });
+								}
 							}
 
 							let dmg = limb_mult * this._damage;

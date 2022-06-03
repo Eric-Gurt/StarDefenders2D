@@ -148,9 +148,9 @@ class sdWeather extends sdEntity
 		this._quake_scheduled_amount = 0;
 		this.quake_intensity = 0;
 		
-		//this._rain_offset = 0;
 		this._time_until_event = 30 * 30; // 30 seconds since world reset
-		this._daily_events = [ 8 ];
+		//this._daily_events = [ 8 ];
+		this._daily_events = []; // Let's start with some silence. Also we need check to make sure server modification allows earthquakes
 		
 		this._asteroid_timer = 0; // 60 * 1000 / ( ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) / 800 )
 		this._asteroid_timer_scale_next = 0;
@@ -172,8 +172,10 @@ class sdWeather extends sdEntity
 	}
 	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
 	{
-		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
 		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26 ];
+				
+		if ( allowed_event_ids.indexOf( 8 ) !== -1 ) // Only if allowed
+		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
 				
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
@@ -2233,7 +2235,7 @@ class sdWeather extends sdEntity
 							{
 								if ( sdWorld.last_hit_entity._plants === null )
 								{
-									let grass = new sdGrass({ x:sdWorld.last_hit_entity.x, y:sdWorld.last_hit_entity.y - 16, filter: sdWorld.last_hit_entity.filter, block:sdWorld.last_hit_entity  });
+									let grass = new sdGrass({ x:sdWorld.last_hit_entity.x, y:sdWorld.last_hit_entity.y - 16, hue:sdWorld.last_hit_entity.hue, br:sdWorld.last_hit_entity.br, filter: sdWorld.last_hit_entity.filter, block:sdWorld.last_hit_entity  });
 									sdEntity.entities.push( grass );
 									
 									//grass.snowed = this.snow;
@@ -2314,7 +2316,10 @@ class sdWeather extends sdEntity
 					if ( this.TraceDamagePossibleHere( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y ) )
 					{
 						if ( sdWorld.sockets[ i ].character.pain_anim <= 0 && sdWorld.sockets[ i ].character.hea > 0 )
-						sdWorld.SendEffect({ x:sdWorld.sockets[ i ].character.x, y:sdWorld.sockets[ i ].character.y + sdWorld.sockets[ i ].character._hitbox_y1, type:sdWorld.sockets[ i ].character.GetBleedEffect(), filter:sdWorld.sockets[ i ].character.GetBleedEffectFilter() });
+						{
+							sdWorld.sockets[ i ].character.PlayDamageEffect( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y + sdWorld.sockets[ i ].character._hitbox_y1 );
+							//sdWorld.SendEffect({ x:sdWorld.sockets[ i ].character.x, y:sdWorld.sockets[ i ].character.y + sdWorld.sockets[ i ].character._hitbox_y1, type:sdWorld.sockets[ i ].character.GetBleedEffect(), filter:sdWorld.sockets[ i ].character.GetBleedEffectFilter() });
+						}
 
 						sdWorld.sockets[ i ].character.Damage( GSPEED * this.raining_intensity / 240 );
 					}

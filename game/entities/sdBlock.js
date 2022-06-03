@@ -52,7 +52,16 @@ class sdBlock extends sdEntity
 				[ 8, 16 ],
 				[ 8, 8 ],
 				[ 32, 8 ],
-				[ 8, 32 ]
+				[ 8, 32 ],
+				
+				// Special ones for arena mode
+				[ 24, 8 ],
+				[ 8, 24 ],
+				[ 24, 24 ],
+				[ 16, 24 ],
+				[ 24, 16 ],
+				[ 24, 32 ],
+				[ 32, 24 ]
 			];
 			
 			sdBlock.textures[ texture_id ] = {};
@@ -80,6 +89,7 @@ class sdBlock extends sdEntity
 		SpawnSizes( sdBlock.TEXTURE_ID_PORTAL = tc++,	'wall_portal',	5 );
 		SpawnSizes( sdBlock.TEXTURE_ID_CAGE = tc++,		'wall_cage',	0 );
 		SpawnSizes( sdBlock.TEXTURE_ID_GLASS = tc++,	'wall_glass',	1 );
+		SpawnSizes( sdBlock.TEXTURE_ID_GREY = tc++,		'wall_grey',	2 );
 		// TODO: Rework other walls like this. Also - important to standartise all reinforced blocks as well as extra reinforcements through items
 		
 
@@ -894,7 +904,8 @@ class sdBlock extends sdEntity
 						this.p = 30;
 						this._update_version++;
 
-						sdWorld.SendEffect({ x:from_entity.x, y:from_entity.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
+						from_entity.PlayDamageEffect( from_entity.x, from_entity.y );
+						//sdWorld.SendEffect({ x:from_entity.x, y:from_entity.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 
 						if ( ( from_entity._reinforced_level || 0 ) === 0 )
 						from_entity.Damage( 100, this._owner );
@@ -934,7 +945,8 @@ class sdBlock extends sdEntity
 			
 			this._next_attack = sdWorld.time + 100;
 
-			sdWorld.SendEffect({ x:from_entity.x, y:from_entity.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
+			from_entity.PlayDamageEffect( from_entity.x, from_entity.y );
+			//sdWorld.SendEffect({ x:from_entity.x, y:from_entity.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 
 			//if ( ( from_entity.hea || from_entity._hea ) >= 0 )
 			//this.blood += 10;
@@ -1148,7 +1160,14 @@ class sdBlock extends sdEntity
 		ctx.sd_color_mult_b = 1;
 		
 		if ( sdBlock.cracks[ this.destruction_frame ] !== null )
-		ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], 0, 0, w,h, 0,0, w,h );
+		{
+			let old_volumetric_mode = ctx.volumetric_mode;
+			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
+			{
+				ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], 0, 0, w,h, 0,0, w,h );
+			}
+			ctx.volumetric_mode = old_volumetric_mode;
+		}
 	}
 	
 	onRemove() // Class-specific, if needed

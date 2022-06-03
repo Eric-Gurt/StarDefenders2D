@@ -24,7 +24,7 @@ class sdLamp extends sdEntity
 	get hitbox_y2() { return 2; }
 	
 	DrawIn3D()
-	{ return FakeCanvasContext.DRAW_IN_3D_FLAT; }
+	{ return FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT; }
 	
 	get hard_collision()
 	{ return true; }

@@ -128,7 +128,9 @@ class sdSandWorm extends sdEntity
 		
 		sdSandWorm.worms_tot++;
 		
-		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
+		this.hue = ~~( Math.random() * 360 );
+		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
+		this.filter = 'saturate(0.5)';
 	}
 	onBeforeRemove()
 	{
@@ -197,6 +199,10 @@ class sdSandWorm extends sdEntity
 	GetBleedEffect()
 	{
 		return this.kind === sdSandWorm.KIND_COUNCIL_WORM ? sdEffect.TYPE_WALL_HIT : sdEffect.TYPE_BLOOD_GREEN;
+	}
+	GetBleedEffectHue()
+	{
+		return this.kind === sdSandWorm.KIND_COUNCIL_WORM ? 0 : this.hue;
 	}
 	GetBleedEffectFilter()
 	{
@@ -482,6 +488,7 @@ class sdSandWorm extends sdEntity
 				//let ent = new sdSandWorm({ x: this.x + offset, y: this.y });
 				let ent = new sdSandWorm({ x: this.x + Math.random() - 0.5, y: this.y + Math.random() - 0.5 });
 				
+				ent.hue = this.hue;
 				ent.filter = this.filter;
 				
 				if ( ( Math.random() < wyrmhide_chance ) || ( i === 5 && wyrmhide_chance > 0 ) ) // Should this part spawn wymrhide when it dies? Should spawn one per worm though.
@@ -811,13 +818,22 @@ class sdSandWorm extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.filter = this.filter;
+		if ( !sdShop.isDrawing )
+		{
+			ctx.filter = this.filter;
+			
+			if ( sdRenderer.visual_settings === 4 )
+			ctx.sd_hue_rotation = this.hue;
+			else
+			ctx.filter = 'hue-rotate(' + this.hue + 'deg)' + ctx.filter;
+		}
 		
 		if ( this.death_anim === 1 )
 		ctx.filter += ' brightness(0.5)';
 		
 		ctx.rotate( this._an );
 		
+		if ( !sdShop.isDrawing )
 		ctx.scale( this.scale, this.scale );
 		
 		if ( this.kind === sdSandWorm.KIND_NORMAL_WORM  )
@@ -864,6 +880,7 @@ class sdSandWorm extends sdEntity
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
+		ctx.sd_hue_rotation = 0;
 	}
 	onMovementInRange( from_entity )
 	{
@@ -929,7 +946,8 @@ class sdSandWorm extends sdEntity
 				this.forced_y = ( from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2 - this.y ) * 10;
 				
 				//this._hea = Math.min( this._hmax, this._hea + 25 );
-				sdWorld.SendEffect({ x:from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2, y:from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
+				from_entity.PlayDamageEffect( from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2, from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2 );
+				//sdWorld.SendEffect({ x:from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2, y:from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 				
 				let ptr = this;
 				while ( ptr && ptr._hea > 0 && !ptr._is_being_removed )

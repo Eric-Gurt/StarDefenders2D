@@ -75,7 +75,9 @@ class sdOctopus extends sdEntity
 		//this._consumed_guns = [];
 		this._consumed_guns_snapshots = [];
 		
-		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
+		this.hue = ~~( Math.random() * 360 );
+		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
+		this.filter = 'saturate(0.5)';
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
@@ -98,6 +100,10 @@ class sdOctopus extends sdEntity
 	GetBleedEffect()
 	{
 		return sdEffect.TYPE_BLOOD_GREEN;
+	}
+	GetBleedEffectHue()
+	{
+		return this.hue;
 	}
 	GetBleedEffectFilter()
 	{
@@ -392,7 +398,8 @@ class sdOctopus extends sdEntity
 						
 						this._hea = Math.min( this._hmax, this._hea + 25 );
 
-						sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
+						from_entity.PlayDamageEffect( xx, yy );
+						//sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 
 						this.tenta_x = xx - this.x;
 						this.tenta_y = yy - this.y;
@@ -417,7 +424,15 @@ class sdOctopus extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.filter = this.filter;
+		if ( !sdShop.isDrawing )
+		{
+			ctx.filter = this.filter;
+			
+			if ( sdRenderer.visual_settings === 4 )
+			ctx.sd_hue_rotation = this.hue;
+			else
+			ctx.filter = 'hue-rotate(' + this.hue + 'deg)' + ctx.filter;
+		}
 		
 		ctx.scale( this.side, 1 );
 		
@@ -507,7 +522,9 @@ class sdOctopus extends sdEntity
 			else
 			if ( Math.abs( this.sx ) < 1 )
 			{
+				if ( !sdShop.isDrawing )
 				xx = ( (sdWorld.time+this._anim_shift) % 5000 < 200 ) ? 1 : ( (sdWorld.time+this._anim_shift) % 5000 < 400 ) ? 2 : 0;
+			
 				yy = 0;
 				//ctx.drawImageFilterCache( ( (sdWorld.time+this._anim_shift) % 5000 < 200 ) ? sdOctopus.img_octopus_idle2 : ( (sdWorld.time+this._anim_shift) % 5000 < 400 ) ? sdOctopus.img_octopus_idle3 : sdOctopus.img_octopus_idle1, - 16, - 16, 32,32 );
 			}
@@ -523,6 +540,7 @@ class sdOctopus extends sdEntity
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
+		ctx.sd_hue_rotation = 0;
 	}
 	/*onMovementInRange( from_entity )
 	{
