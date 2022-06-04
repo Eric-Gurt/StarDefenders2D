@@ -10,78 +10,86 @@ globalThis.isWin = true; // For singleplayer shop
 
 globalThis.GetFrame = ()=>{ return sdWorld.frame; }; // Call like this: GetFrame()
 
-	//let one_time_key = null;
-	
-	window.onhashchange = ( e )=>
+//let one_time_key = null;
+
+window.onhashchange = ( e )=>
+{
+	let hash = {};
+
+	let params = e.newURL.split('#').pop().split('&');
+	for ( let i = 0; i < params.length; i++ )
 	{
-		let hash = {};
+		let parts = params[ i ].split('=');
+		hash[ parts[ 0 ] ] = parts[ 1 ];
+	}
 
-		let params = e.newURL.split('#').pop().split('&');
-		for ( let i = 0; i < params.length; i++ )
-		{
-			let parts = params[ i ].split('=');
-			hash[ parts[ 0 ] ] = parts[ 1 ];
-		}
-
-		if ( hash.one_time_key )
-		{
-			//one_time_key = hash.one_time_key;
-			
-			socket.emit( 'one_time_key', hash.one_time_key );
-			
-			window.location = '#';
-			return;
-		}
-	};
-
-	// socket.io-specific
-	var socket = io( '/', {
-		
-		//transports: [ 'websocket', 'polling' ]
-		
-		autoConnect: false
-		
-	} );
-	
-	globalThis.socket_io_crashed = false;
-	
-	socket.on("connect_error", (err) => 
+	if ( hash.one_time_key )
 	{
-		//console.log(`connect_error due to ${err.message}`);
-		
-		globalThis.socket_io_crashed = err;
-		
-		//throw new Error('Socket connect_error: '+ err );
+		//one_time_key = hash.one_time_key;
+
+		socket.emit( 'one_time_key', hash.one_time_key );
+
+		window.location = '#';
+		return;
+	}
+};
+
+// socket.io-specific
+var socket = io( '/', {
+
+	//transports: [ 'websocket', 'polling' ]
+
+	autoConnect: false
+
+} );
+
+globalThis.socket_io_crashed = false;
+
+socket.on("connect_error", (err) => 
+{
+	//console.log(`connect_error due to ${err.message}`);
+
+	globalThis.socket_io_crashed = err;
+
+	//throw new Error('Socket connect_error: '+ err );
+});
+
+/*setTimeout( ()=>
+{
+	let obj = {};
+
+	for ( let p in socket )
+	{
+		if ( !( socket[ p ] instanceof Function ) )
+		obj[ p ] = socket[ p ] + '';
+	}
+
+	ModalTrace( JSON.stringify( obj ) );
+
+	if ( socket.disconnected )
+	socket.connect();
+}, 3000 );*/
+
+// geckos-specific
+
+/*const geckos_start_options = {
+	port: 3000,
+	authorization: 'Hi, Star Defenders 2D server!'
+};
+
+let socket = geckos( geckos_start_options );*/
+
+// This is to automatically load what is needed
+let entity_class_names = ( await ( await fetch( '/get_entity_classes.txt' ) ).text() ).split(','); // Almost same as entity_files on server-side but without .js
+
+/*fetch( '/get_entity_classes.txt' ).then( ( result )=>{
+	result.text().then( ( result )=>
+	{
+		entity_class_names = result;
+		EntityClassesLoaded();
 	});
-	
-	/*setTimeout( ()=>
-	{
-		let obj = {};
-		
-		for ( let p in socket )
-		{
-			if ( !( socket[ p ] instanceof Function ) )
-			obj[ p ] = socket[ p ] + '';
-		}
-		
-		ModalTrace( JSON.stringify( obj ) );
-		
-		if ( socket.disconnected )
-		socket.connect();
-	}, 3000 );*/
+});*/
 
-	// geckos-specific
-	
-	/*const geckos_start_options = {
-		port: 3000,
-		authorization: 'Hi, Star Defenders 2D server!'
-	};
-	
-	let socket = geckos( geckos_start_options );*/
-
-	// This is to automatically load what is needed
-	let entity_class_names = ( await ( await fetch( '/get_entity_classes.txt' ) ).text() ).split(','); // Almost same as entity_files on server-side but without .js
-	
 	let import_entity_class_promises = [];
 	let imported_entity_classes = [];
 

@@ -1,3 +1,4 @@
+
 class sdServerConfig
 {
 	// This file should contain one object (for example class like this one), it will be interpreted using basic eval method and automatically assigned to global variable sdWorld.server_config
@@ -33,21 +34,35 @@ class sdServerConfig
 			[ 4, Infinity, `<player uid="#player*2" x="2280" y="421" tox="0" toy="0" hea="130" hmax="130" team="12" side="-1" char="74" incar="-1" botaction="0" ondeath="-1" /><player uid="#player*1" x="-120" y="-99" tox="0" toy="0" hea="130" hmax="130" team="13" side="1" char="73" incar="-1" botaction="0" ondeath="-1" /><player uid="#player*4" x="2350" y="421" tox="0" toy="0" hea="130" hmax="130" team="12" side="-1" char="74" incar="-1" botaction="0" ondeath="-1" /><player uid="#player*3" x="-50" y="-99" tox="0" toy="0" hea="130" hmax="130" team="13" side="1" char="73" incar="-1" botaction="0" ondeath="-1" /><player uid="#player*5" x="2420" y="421" tox="0" toy="0" hea="130" hmax="130" team="12" side="-1" char="74" incar="-1" botaction="0" ondeath="-1" /><player uid="#player*7" x="20" y="-99" tox="0" toy="0" hea="130" hmax="130" team="13" side="1" char="73" incar="-1" botaction="0" ondeath="-1" /><player uid="#player" x="2490" y="421" tox="0" toy="0" hea="130" hmax="130" team="12" side="-1" char="74" incar="-1" botaction="0" ondeath="-1" /><player uid="#player*6" x="90" y="-99" tox="0" toy="0" hea="130" hmax="130" team="13" side="1" char="73" incar="-1" botaction="0" ondeath="-1" /><pushf uid="#pushf*1" x="-1800" y="700" w="7780" h="700" tox="0" toy="0" stab="0" damage="1000" /><pushf uid="#pushf" x="2030" y="200" w="120" h="260" tox="0" toy="-1" stab="0" damage="0" /><bg x="300" y="-180" w="530" h="680" m="0" /><bg x="1340" y="-300" w="460" h="900" m="0" /><bg x="1800" y="-570" w="320" h="1170" m="0" /><bg x="300" y="-230" w="500" h="50" m="0" /><bg x="0" y="-90" w="300" h="490" m="0" /><bg x="830" y="-150" w="510" h="750" m="0" /><bg x="1470" y="-520" w="60" h="220" m="4" /><bg x="2120" y="-140" w="680" h="740" m="0" /><bg x="2800" y="120" w="260" h="480" m="0" /><bg x="3590" y="-30" w="160" h="130" m="4" /><bg x="1530" y="-570" w="270" h="270" m="0" /><bg x="2120" y="-410" w="590" h="270" m="0" /><box x="310" y="60" w="90" h="80" m="0" /><box x="670" y="0" w="830" h="170" m="0" /><box x="300" y="-230" w="500" h="70" m="0" /><box x="330" y="-300" w="70" h="120" m="0" /><box x="900" y="-30" w="400" h="80" m="0" /><box x="-100" y="-100" w="300" h="150" m="0" /><box x="130" y="-50" w="140" h="100" m="0" /><box x="1100" y="-170" w="100" h="220" m="0" /><box x="1380" y="-330" w="220" h="60" m="0" /><box x="1340" y="-300" w="460" h="60" m="0" /><box x="1460" y="-260" w="80" h="130" m="0" /><box x="1500" y="400" w="200" h="1000" m="0" /><box x="2020" y="-200" w="300" h="150" m="0" /><box x="1900" y="-130" w="130" h="40" m="0" /><box x="760" y="-180" w="70" h="60" m="0" /><box x="1670" y="-30" w="130" h="120" m="0" /><box x="-200" y="-150" w="30" h="90" m="0" /><box x="1460" y="-590" w="80" h="80" m="0" /><box x="3360" y="50" w="480" h="1350" m="0" /><box x="3580" y="-100" w="160" h="130" m="0" /><box x="2540" y="-160" w="280" h="80" m="0" /><box x="530" y="120" w="210" h="50" m="0" /><box x="3060" y="0" w="30" h="90" m="0" /><box x="3350" y="0" w="30" h="90" m="0" /><box x="2200" y="-240" w="540" h="140" m="0" /><box x="2700" y="50" w="380" h="150" m="0" /><box x="1740" y="50" w="300" h="50" m="0" /><box x="2440" y="170" w="110" h="30" m="0" /><box x="2400" y="120" w="70" h="140" m="0" /><box x="2150" y="200" w="80" h="300" m="0" /><box x="1150" y="50" w="750" h="150" m="0" /><box x="2600" y="-200" w="180" h="90" m="0" /><box x="2500" y="-420" w="200" h="40" m="0" /><box x="2200" y="-420" w="200" h="40" m="0" /><box x="2170" y="-430" w="80" h="80" m="0" /><box x="2650" y="-430" w="80" h="80" m="0" /><box x="1510" y="-580" w="240" h="40" m="0" /><box x="1850" y="-580" w="240" h="40" m="0" /><box x="2060" y="-590" w="80" h="80" m="0" /><box x="1320" y="-590" w="80" h="80" m="0" /><box x="1330" y="-650" w="20" h="80" m="0" /><box x="2110" y="-650" w="20" h="80" m="0" /><box x="2700" y="-490" w="20" h="80" m="0" /><box x="2120" y="-580" w="80" h="20" m="0" /><box x="550" y="-260" w="220" h="60" m="0" /><box x="3130" y="340" w="40" h="20" m="0" /><box x="3230" y="240" w="40" h="20" m="0" /><box x="2660" y="340" w="240" h="160" m="0" /><box x="2600" y="370" w="180" h="130" m="0" /><box x="2440" y="230" w="150" h="30" m="0" /><box x="2440" y="100" w="60" h="160" m="0" /><box x="300" y="300" w="300" h="1100" m="0" /><box x="500" y="360" w="300" h="1040" m="0" /><box x="700" y="470" w="900" h="930" m="0" /><box x="1100" y="80" w="100" h="220" m="0" /><box x="0" y="330" w="400" h="1070" m="0" /><box x="-190" y="-100" w="290" h="1500" m="0" /><box x="500" y="330" w="200" h="150" m="0" /><box x="700" y="390" w="200" h="210" m="0" /><box x="1600" y="500" w="300" h="900" m="0" /><box x="2630" y="400" w="450" h="1000" m="0" /><box x="1800" y="460" w="430" h="940" m="0" /><box x="2180" y="420" w="500" h="980" m="0" /><box x="1740" y="50" w="240" h="100" m="0" /><box x="2000" y="-200" w="40" h="180" m="0" /><box x="2200" y="210" w="220" h="30" m="0" /><box x="3130" y="140" w="40" h="20" m="0" /><box x="3830" y="10" w="30" h="90" m="0" /><box x="3710" y="-180" w="50" h="210" m="0" /><box x="1900" y="400" w="130" h="140" m="0" /><box x="1700" y="150" w="100" h="120" m="0" /><box x="1400" y="150" w="100" h="120" m="0" /><box x="1300" y="440" w="100" h="120" m="0" /><box x="610" y="60" w="100" h="90" m="0" /><box x="1070" y="140" w="220" h="80" m="0" /><box x="1310" y="190" w="280" h="30" m="0" /><box x="1610" y="190" w="120" h="30" m="0" /><box x="0" y="0" w="350" h="100" m="0" /><box x="2610" y="50" w="140" h="50" m="0" /><box x="380" y="120" w="50" h="50" m="0" /><door uid="#door*1" x="1470" y="-520" w="60" h="200" moving="false" tarx="0" tary="0" maxspeed="5" vis="true" /><door uid="#door*2" x="2010" y="-10" w="20" h="20" moving="false" tarx="0" tary="0" maxspeed="1" vis="true" /><door uid="#door*3" x="2010" y="20" w="20" h="20" moving="false" tarx="0" tary="0" maxspeed="1" vis="true" /><door uid="#door*6" x="3140" y="350" w="10" h="80" moving="false" tarx="0" tary="0" maxspeed="1" vis="true" /><door uid="#door*4" x="3070" y="420" w="80" h="10" moving="false" tarx="0" tary="0" maxspeed="1" vis="true" /><door uid="#door*5" x="3140" y="150" w="10" h="30" moving="false" tarx="0" tary="0" maxspeed="1" vis="true" /><door uid="#door*7" x="3070" y="170" w="80" h="10" moving="false" tarx="0" tary="0" maxspeed="1" vis="true" /><door uid="#door*12" x="3240" y="250" w="10" h="30" moving="false" tarx="0" tary="0" maxspeed="1" vis="true" /><door uid="#door*8" x="3240" y="270" w="130" h="10" moving="false" tarx="0" tary="0" maxspeed="1" vis="true" /><door uid="#door" x="2900" y="-30" w="80" h="120" moving="false" tarx="0" tary="0" maxspeed="1" vis="true" /><decor uid="#decor" model="antigravity" at="-1" x="2090" y="460" addx="0" addy="0" /><gun uid="#gun*1" x="-120" y="-130" model="gun_rifle" command="-1" upg="0" /><gun uid="#gun*2" x="-50" y="-130" model="gun_rifle" command="-1" upg="0" /><gun uid="#gun*4" x="20" y="-130" model="gun_rifle" command="-1" upg="0" /><gun uid="#gun*3" x="90" y="-130" model="gun_rifle" command="-1" upg="0" /><gun uid="#gun*6" x="-120" y="-120" model="gun_pistol" command="-1" upg="0" /><gun uid="#gun*7" x="-50" y="-120" model="gun_pistol" command="-1" upg="0" /><gun uid="#gun*11" x="20" y="-120" model="gun_pistol" command="-1" upg="0" /><gun uid="#gun*8" x="90" y="-120" model="gun_pistol" command="-1" upg="0" /><gun uid="#gun*10" x="2280" y="390" model="gun_rifle_b" command="-1" upg="0" /><gun uid="#gun*5" x="2280" y="400" model="gun_pistol_b" command="-1" upg="0" /><gun uid="#gun*14" x="2350" y="390" model="gun_rifle_b" command="-1" upg="0" /><gun uid="#gun*12" x="2420" y="390" model="gun_rifle_b" command="-1" upg="0" /><gun uid="#gun*16" x="2490" y="390" model="gun_rifle_b" command="-1" upg="0" /><gun uid="#gun*13" x="2350" y="400" model="gun_pistol_b" command="-1" upg="0" /><gun uid="#gun*9" x="2420" y="400" model="gun_pistol_b" command="-1" upg="0" /><gun uid="#gun*15" x="2490" y="400" model="gun_pistol_b" command="-1" upg="0" /><gun uid="#gun*20" x="-120" y="-110" model="gun_shotgun_b" command="-1" upg="0" /><gun uid="#gun*19" x="-50" y="-110" model="gun_shotgun_b" command="-1" upg="0" /><gun uid="#gun*23" x="20" y="-110" model="gun_shotgun_b" command="-1" upg="0" /><gun uid="#gun*18" x="90" y="-110" model="gun_shotgun_b" command="-1" upg="0" /><gun uid="#gun*27" x="2280" y="410" model="gun_shotgun" command="-1" upg="0" /><gun uid="#gun*22" x="2350" y="410" model="gun_shotgun" command="-1" upg="0" /><gun uid="#gun*21" x="2420" y="410" model="gun_shotgun" command="-1" upg="0" /><gun uid="#gun*33" x="2490" y="410" model="gun_shotgun" command="-1" upg="0" /><gun uid="#gun*26" x="2280" y="370" model="gun_plasmagun" command="-1" upg="0" /><gun uid="#gun*24" x="2350" y="370" model="gun_plasmagun" command="-1" upg="0" /><gun uid="#gun*25" x="2420" y="370" model="gun_plasmagun" command="-1" upg="0" /><gun uid="#gun*31" x="2490" y="370" model="gun_plasmagun" command="-1" upg="0" /><gun uid="#gun*34" x="2280" y="360" model="gun_railgun" command="-1" upg="0" /><gun uid="#gun*17" x="2350" y="360" model="gun_railgun" command="-1" upg="0" /><gun uid="#gun*28" x="2420" y="360" model="gun_railgun" command="-1" upg="0" /><gun uid="#gun*36" x="2490" y="360" model="gun_railgun" command="-1" upg="0" /><gun uid="#gun*35" x="-120" y="-150" model="gun_plasmagun" command="-1" upg="0" /><gun uid="#gun*45" x="-120" y="-160" model="gun_railgun" command="-1" upg="0" /><gun uid="#gun*38" x="-50" y="-150" model="gun_plasmagun" command="-1" upg="0" /><gun uid="#gun*42" x="20" y="-150" model="gun_plasmagun" command="-1" upg="0" /><gun uid="#gun*29" x="90" y="-150" model="gun_plasmagun" command="-1" upg="0" /><gun uid="#gun*43" x="-50" y="-160" model="gun_railgun" command="-1" upg="0" /><gun uid="#gun*40" x="20" y="-160" model="gun_railgun" command="-1" upg="0" /><gun uid="#gun*32" x="90" y="-160" model="gun_railgun" command="-1" upg="0" /><gun uid="#gun*49" x="-120" y="-140" model="gun_defibrillator" command="-1" upg="0" /><gun uid="#gun*37" x="-50" y="-140" model="gun_defibrillator" command="-1" upg="0" /><gun uid="#gun*47" x="20" y="-140" model="gun_defibrillator" command="-1" upg="0" /><gun uid="#gun*52" x="90" y="-140" model="gun_defibrillator" command="-1" upg="0" /><gun uid="#gun*46" x="2280" y="380" model="gun_defibrillator" command="-1" upg="0" /><gun uid="#gun*63" x="2350" y="380" model="gun_defibrillator" command="-1" upg="0" /><gun uid="#gun*44" x="2420" y="380" model="gun_defibrillator" command="-1" upg="0" /><gun uid="#gun" x="2490" y="380" model="gun_defibrillator" command="-1" upg="0" /><lamp uid="#light*24" x="2090" y="450" power="0.4" flare="0" /><lamp uid="#light*22" x="1600" y="210" power="0.4" flare="1" /><lamp uid="#light*11" x="1300" y="210" power="0.4" flare="1" /><lamp uid="#light*14" x="200" y="110" power="0.4" flare="1" /><lamp uid="#light*30" x="3200" y="200" power="1" flare="0" /><lamp uid="#light" x="3200" y="300" power="1" flare="0" /><inf x="-250" y="-330" mark="sky" forteam="2" /><inf x="-170" y="-330" mark="he_nades_count" forteam="2" /><inf x="-130" y="-330" mark="port_nades_count" forteam="2" />`]
 		];
 		
+		//sdWorld.allowed_player_classes = [ 'sdCharacter' ];
+		
 		sdShop.options = [];
-		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, _category:'root' });
-		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, _category:'root' });
-		sdShop.options.push({ _class: 'sdVirus', _spawn_with_full_hp: true, _category:'root' });
-		sdShop.options.push({ _class: 'sdOctopus', _spawn_with_full_hp: true, _category:'root' });
-		sdShop.options.push({ _class: 'sdCrystal', _spawn_with_full_hp: true, _category:'root' });
-		sdShop.options.push({ _class: 'sdBomb', _category:'root' });
-		sdShop.options.push({ _class: 'sdGun', _spawn_with_full_hp: true, class: sdGun.CLASS_PISTOL, _category:'root' });
-		sdShop.options.push({ _class: 'sdWater', type:2, _category:'root' }); // Lava
+		sdShop.options.push({ _class: 'sdBlock', matter_cost:10, width: 16, height: 16, _category:'root' });
+		sdShop.options.push({ _class: 'sdBlock', matter_cost:10, width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, _category:'root' });
+		sdShop.options.push({ _class: 'sdVirus', matter_cost:10, _spawn_with_full_hp: true, _category:'root' });
+		sdShop.options.push({ _class: 'sdOctopus', matter_cost:75, _spawn_with_full_hp: true, _category:'root' });
+		sdShop.options.push({ _class: 'sdCrystal', matter_cost:75, _spawn_with_full_hp: true, _category:'root' });
+		sdShop.options.push({ _class: 'sdBomb', matter_cost:50, _category:'root' });
+		sdShop.options.push({ _class: 'sdGun', matter_cost:10, _spawn_with_full_hp: true, class: sdGun.CLASS_PISTOL, _category:'root' });
+		sdShop.options.push({ _class: 'sdWater', matter_cost:10, type:2, _category:'root' }); // Lava
+		sdShop.options.push({ _class: 'sdLifeBox', matter_cost:75, _category:'root' });
+		sdShop.options.push({ _class: 'sdTurret', _spawn_with_full_hp: true, matter: 20, matter_cost:50, _category:'root' });
+		
+		sdCharacter.disowned_body_ttl = 5 * 30; // 5 seconds
+		
+		sdTurret.prototype.GetComWiredCache = ()=>
+		{
+			return {
+				subscribers: []
+			};
+		};
 		
 		
 		let instructor_settings = {"hero_name":"Instructor","color_bright":"#7aadff","color_dark":"#25668e","color_bright3":"#7aadff","color_dark3":"#25668e","color_visor":"#ffffff","color_suit":"#000000","color_shoes":"#303954","color_skin":"#51709a","voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"color_suit2":"#000000","color_dark2":"#25668e"};
 
 				
-		sdShop.options.push({ _class: 'sdCharacter', 
+		sdShop.options.push({ _class: 'sdCharacter',
+			matter_cost:30,
 			_ai_enabled: sdCharacter.AI_MODEL_FALKOK, 
 			_ai_gun_slot: 1,
 			_ai_level: 10,
@@ -56,17 +71,20 @@ class sdServerConfig
 			title:instructor_settings.hero_name, 
 			_spawn_with_full_hp: true,
 			_category:'root' });
-		sdShop.options.push({ _class: null, matter_cost: 30, upgrade_name: 'upgrade_jetpack', _category:'root' });
-		sdShop.options.push({ _class: null, matter_cost: 30, upgrade_name: 'upgrade_invisibility', _category:'root' });
+		//sdShop.options.push({ _class: null, matter_cost: 30, upgrade_name: 'upgrade_jetpack', _category:'root' });
+		//sdShop.options.push({ _class: null, matter_cost: 30, upgrade_name: 'upgrade_invisibility', _category:'root' });
 			
-		sdBlock.prototype.MeasureMatterCost = ()=>{ return 10; };
+		/*sdBlock.prototype.MeasureMatterCost = ()=>{ return 10; };
 		sdVirus.prototype.MeasureMatterCost = ()=>{ return 10; };
 		sdOctopus.prototype.MeasureMatterCost = ()=>{ return 75; };
 		sdCrystal.prototype.MeasureMatterCost = ()=>{ return 75; };
 		sdBomb.prototype.MeasureMatterCost = ()=>{ return 50; };
 		sdWater.prototype.MeasureMatterCost = ()=>{ return 10; };
 		sdCharacter.prototype.MeasureMatterCost = ()=>{ return 30; };
-		sdGun.prototype.MeasureMatterCost = ()=>{ return 10; };
+		sdGun.prototype.MeasureMatterCost = ()=>{ return 10; };*/
+		//sdLifeBox.prototype.MeasureMatterCost = ()=>{ return 75; };
+		
+		sdGun.classes[ sdGun.CLASS_OVERLORD_BLASTER ].onShootAttempt = ()=>{ return true; };
 		
 		for ( let i = 0; i < sdGun.classes.length; i++ )
 		{
@@ -269,15 +287,23 @@ class sdServerConfig
 	{
 		for ( let i = 0; i < sdCharacter.characters.length; i++ )
 		{
-			sdCharacter.characters[ i ].death_anim = sdCharacter.disowned_body_ttl + 1000; // Silent
-			sdCharacter.characters[ i ].remove();
-			sdCharacter.characters[ i ]._broken = false;
+			let ch = sdCharacter.characters[ i ];
+			if ( !ch._is_being_removed )
+			{
+				ch.death_anim = sdCharacter.disowned_body_ttl + 1000; // Silent
+				ch.remove();
+				ch._broken = false;
+			}
 		}
 		
 		for ( let i = 0; i < sdWorld.tracked_creatures.length; i++ )
 		{
-			sdWorld.tracked_creatures[ i ].remove();
-			sdWorld.tracked_creatures[ i ]._broken = false;
+			let cr = sdWorld.tracked_creatures[ i ];
+			if ( !cr._is_being_removed )
+			{
+				cr.remove();
+				cr._broken = false;
+			}
 		}
 		sdWorld.tracked_creatures.length = 0;
 		
@@ -332,6 +358,7 @@ class sdServerConfig
 				if ( socket.last_player_settings )
 				{
 					socket.last_player_settings.full_reset = true;
+					
 					socket.Respawn( socket.last_player_settings, true );
 				}
 			}
@@ -417,7 +444,7 @@ class sdServerConfig
 	{
 		// Player (initiator) killed another player (target)
 		
-		target.matter = 0;
+		target.matter = Math.min( 20, target.matter );
 		
 		if ( target._ai_enabled === sdCharacter.AI_MODEL_NONE )
 		{
@@ -458,6 +485,14 @@ class sdServerConfig
 
 			}, 2000 );
 		}
+			
+		setTimeout( ()=>
+		{
+			if ( !target._is_being_removed )
+			if ( target.hea <= 0 )
+			target.remove();
+
+		}, sdCharacter.disowned_body_ttl / 30 * 1000 );
 	}
 	static GetAllowedWorldEvents()
 	{
@@ -591,32 +626,159 @@ class sdServerConfig
 		
 		// Spawn starter items based off what player wants to spawn with
 		
-		let i = -1;
+		let slots = [];
 		
 		//while ( i === -1 || i === sdGun.CLASS_BUILD_TOOL || i === sdGun.CLASS_CRYSTAL_SHARD || i === sdGun.CLASS_FISTS )
 		//while ( i === -1 || sdGun.classes[ i ].ignore_slot === true || i === sdGun.CLASS_BUILD_TOOL || i === sdGun.CLASS_CRYSTAL_SHARD || i === sdGun.CLASS_FISTS || sdGun.classes[ i ].projectile_properties._admin_picker )
-		while ( i === -1 || sdGun.classes[ i ].ignore_slot === true || i === sdGun.CLASS_CRYSTAL_SHARD || i === sdGun.CLASS_FISTS || sdGun.classes[ i ].projectile_properties._admin_picker )
+		//while ( i === -1 || sdGun.classes[ i ].ignore_slot === true || i === sdGun.CLASS_CRYSTAL_SHARD || i === sdGun.CLASS_FISTS || sdGun.classes[ i ].projectile_properties._admin_picker )
+		while ( slots.length < 1 )
 		{
-			i = ~~( Math.random() * sdGun.classes.length );
+			let i = ~~( Math.random() * sdGun.classes.length );
+			
+			//if ( slots.length === 0 )
+			//i = sdGun.CLASS_BUILD_TOOL;
+			
+			let skip = false;
+			for ( let i2 = 0; i2 < slots.length; i2++ )
+			if ( sdGun.classes[ i2 ].slot === sdGun.classes[ i ].slot )
+			{
+				skip = true;
+				break;
+			}
+			
+			if ( skip || sdGun.classes[ i ].ignore_slot === true || i === sdGun.CLASS_CRYSTAL_SHARD || i === sdGun.CLASS_FISTS || sdGun.classes[ i ].projectile_properties._admin_picker )
+			{
+			}
+			else
+			slots.push( i );
+			//slots.push( ~~( Math.random() * sdGun.classes.length ) );
+			//slots.push( ~~( Math.random() * sdGun.classes.length ) );
 			
 			//i = sdGun.CLASS_BUILD_TOOL; // hack
 		}
+		
+		let i = slots[ 0 ];
+		
+		let feature_report = [];
 
-		let gun = new sdGun({ x:character_entity.x, y:character_entity.y, class: i });
-		sdEntity.entities.push( gun );
+		for ( let s = 0; s < slots.length; s++ )
+		{
+			let gun = new sdGun({ x:character_entity.x, y:character_entity.y, class: slots[ s ] });
+			sdEntity.entities.push( gun );
+			
+			feature_report.push( sdGun.classes[ gun.class ].title || ( 'slot ' + sdGun.classes[ gun.class ].slot ) );
+		}
 		
 		character_entity.gun_slot = sdGun.classes[ i ].slot;
 		character_entity._backup_slot = 0;
 		
-		character_entity._hook_allowed = true;
+		let ability = ~~( Math.random() * 100 );
+		
+		if ( ability < 32 )
+		{
+			character_entity._hook_allowed = true;
+			feature_report.push( 'hook' );
+		}
+		else
+		if ( ability < 64 )
+		{
+			character_entity._jetpack_allowed = true;
+			feature_report.push( 'jetpack' );
+
+			character_entity._upgrade_counters[ 'upgrade_jetpack' ] = 1;
+			if ( character_entity._socket )
+			character_entity._socket.emit( 'UPGRADE_SET', [ 'upgrade_jetpack', character_entity._upgrade_counters[ 'upgrade_jetpack' ] ] );
+		}
+		else
+		if ( ability < 96 )
+		{
+			character_entity._ghost_allowed = true;
+			feature_report.push( 'invisibility' );
+		}
+		else
+		//if ( ability < 80 )
+		{
+			const sdCube = sdWorld.entity_classes.sdCube;
+			const sdOverlord = sdWorld.entity_classes.sdOverlord;
+			const sdBomb = sdWorld.entity_classes.sdBomb;
+			
+			let options = [ sdCube, sdOverlord, sdBomb ];
+			let ENT = options[ ~~( Math.random() * options.length ) ];
+			
+			for ( let a = 0; a < 8; a++ )
+			{
+				let ent = new ENT({ 
+					x:character_entity.x + Math.sin( a / 8 * Math.PI * 2 ) * 32, 
+					y:character_entity.y + Math.cos( a / 8 * Math.PI * 2 ) * 32,
+					kind: ~~( Math.random() * 4 )
+				});
+				sdEntity.entities.push( ent );
+
+				if ( !ent.CanMoveWithoutOverlap( ent.x, ent.y, 0 ) )
+				{
+					ent.remove();
+					ent._broken = false;
+				}
+				else
+				{
+					sdWorld.UpdateHashPosition( ent, false ); // Prevent inersection with other ones
+					
+					if ( ENT === sdCube )
+					{
+						feature_report.push( 'personal cube' );
+						character_entity._nature_damage = -10000;
+					}
+					else
+					if ( ENT === sdOverlord )
+					{
+						feature_report.push( 'personal overlord' );
+						ent._wont_attack_net_ids[ character_entity.biometry || character_entity._biometry || character_entity._net_id ] = 1;
+					}
+					else
+					{
+						feature_report.push( 'personal bomb' );
+						ent._owner = character_entity;
+					}
+					
+					sdWorld.tracked_creatures.push( ent );
+					
+					break;
+				}
+			}
+		}
 		
 		character_entity._last_damage_from = null;
 		character_entity._last_damage_when = 0;
 		
+		//character_entity._damage_mult = 2; // 3 upgrades
+		
 		character_entity.matter_max = 150;
 		character_entity.matter = 150;
 		
+		for ( let s = 0; s < feature_report.length; s++ )
+		{
+			if ( s > 0 )
+			{
+				if ( s < feature_report.length - 1 )
+				feature_report[ s ] = ', ' + feature_report[ s ];
+				else
+				feature_report[ s ] = ' and ' + feature_report[ s ];
+			}
+		}
+		
+		character_entity.Say( '' + feature_report.join('') );
+		/*
+		
+		if ( character_entity._socket )
+		{
+			character_entity._socket.SDServiceMessage( 'Starting with ' + feature_report.join('') );
+		}*/
+		
+		const from_entity = character_entity;
+		
+		sdWorld.SendEffect({ x:from_entity.x + (from_entity.hitbox_x1+from_entity.hitbox_x2)/2, y:from_entity.y + (from_entity.hitbox_y1+from_entity.hitbox_y2)/2, type:sdEffect.TYPE_TELEPORT });
 		sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
+		
 	}
 	static EntitySaveAllowedTest( entity )
 	{
@@ -822,10 +984,19 @@ class sdServerConfig
 							
 							let normal_size = 16;
 							
+							let texture_id = undefined;
+							
+							let br = 100;
+							
 							if ( tag === 'box' || tag === 'door' )
 							if ( instance.m !== '1' ) // not grass
 							if ( instance.m !== '2' ) // nor sand
-							normal_size = 32;
+							{
+								normal_size = 32;
+								
+								texture_id = sdBlock.TEXTURE_ID_PORTAL;
+								br = 50;
+							}
 				
 							if ( tag === 'bg' )
 							if ( instance.m !== '1' )
@@ -837,6 +1008,9 @@ class sdServerConfig
 							{
 								let ww = ( x + normal_size < maxx ) ? normal_size : ( maxx - x );
 								let hh = ( y + normal_size < maxy ) ? normal_size : ( maxy - y );
+								
+								ww = Math.round( ww / 8 ) * 8;
+								hh = Math.round( hh / 8 ) * 8;
 							
 								if ( !sdWorld.CheckWallExists( instance.x + x + 1, instance.y + y + 1, null, null, ignored_classes ) ||
 									 !sdWorld.CheckWallExists( instance.x + x + ww - 1, instance.y + y + 1, null, null, ignored_classes ) || 
@@ -860,13 +1034,14 @@ class sdServerConfig
 										material = sdBlock.MATERIAL_WALL;
 										
 										if ( tag === 'door' )
-										filter = 'saturate(0)contrast(.2)brightness(.1)';
+										{
+											//filter = 'saturate(0)contrast(.2)brightness(.1)';
+										}
 										else
 										{
 											if ( instance.m === '1' ) // grass
 											{
 												material = sdBlock.MATERIAL_GROUND;
-												//filter = 'hue-rotate(90deg)brightness(.5)';
 												filter = 'hue-rotate(90deg)brightness(.25)';
 												
 												if ( y === 0 )
@@ -884,28 +1059,32 @@ class sdServerConfig
 											if ( instance.m === '2' ) // sand
 											{
 												material = sdBlock.MATERIAL_GROUND;
-												filter = 'hue-rotate(45deg)saturate(2)brightness(.6)';
+												//filter = 'hue-rotate(45deg)saturate(2)brightness(.6)';
 											}
 											else
-											filter = 'saturate(0)contrast(.2)brightness(.3)';
+											{
+												//filter = 'saturate(0)contrast(.2)brightness(.3)';
+											}
 										}
 										
 									}
 									else
 									{
 										ENT_CLASS = sdBG;
-										filter = 'contrast(.8)brightness(.6)';
+										//filter = 'contrast(.8)brightness(.6)';
 										material = sdBG.MATERIAL_PLATFORMS;
+										
+										br = 50;
 										
 										if ( instance.m === '2' ) // usurp
 										{
-											material = sdBG.MATERIAL_PLATFORMS_COLORED;
-											filter = 'hue-rotate(180deg)saturate(40)';
+											//material = sdBG.MATERIAL_PLATFORMS_COLORED;
+											//filter = 'hue-rotate(180deg)saturate(40)';
 										}
 										else
 										if ( instance.m === '1' ) // ground
 										{
-											filter = 'hue-rotate(45deg)saturate(2)brightness(.4)';
+											//filter = 'hue-rotate(45deg)saturate(2)brightness(.4)';
 											material = sdBG.MATERIAL_GROUND;
 										}
 									}
@@ -916,6 +1095,8 @@ class sdServerConfig
 										width: ww, 
 										height: hh,
 										material: material,
+										texture_id: texture_id,
+										br: br,
 										filter: filter,
 										natural: true,
 										plants: plants
@@ -962,7 +1143,7 @@ class sdServerConfig
 						
 				for ( let i = 0; i < sdEntity.entities.length; i++ )
 				if ( typeof sdEntity.entities[ i ]._armor_protection_level !== 'undefined' )
-				sdEntity.entities[ i ]._armor_protection_level = 1;
+				sdEntity.entities[ i ]._armor_protection_level = 100;
 
 			});
 
