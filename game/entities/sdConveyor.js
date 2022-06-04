@@ -402,7 +402,14 @@ class sdConveyor extends sdEntity
 		ctx.filter = 'none';
 		
 		if ( sdBlock.cracks[ this.destruction_frame ] !== null )
-		ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], 0, 0, w,h, -16,-4, w,h );
+		{
+			let old_volumetric_mode = ctx.volumetric_mode;
+			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
+			{
+				ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], 0, 0, w,h, -16,-4, w,h );
+			}
+			ctx.volumetric_mode = old_volumetric_mode;
+		} 
 	}
 	
 	onRemove() // Class-specific, if needed

@@ -4,6 +4,8 @@
 
 	TODO: Make logic to swap dedicated spaces between frequently and rarely updated geometries
 
+	TODO: DrawQuad, DrawTriangle (keep), DrawDot (even faster sprite draw, especially on mobile)
+
 */
 
 import sdWorld from '../sdWorld.js';
@@ -52,9 +54,21 @@ class sdSuperTexture
 			is_transparent_int === sdAtlasMaterial.GROUP_OPAQUE_DECAL ||
 			is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT
 		);
+
+		const hueShift_function = `
+		
+			vec3 hueShift( vec3 color, float hue ) 
+			{
+				const vec3 k = vec3(0.57735, 0.57735, 0.57735);
+				float cosAngle = cos(hue);
+				return vec3(color * cosAngle + cross(k, color) * sin(hue) + k * dot(k, color) * (1.0 - cosAngle));
+			}
+		
+		`;
 		
 		this.material_mesh;
-		//this.material_dots;
+		this.material_dots;
+		
 		{
 			this.material_mesh = new THREE.ShaderMaterial({
 
@@ -63,14 +77,11 @@ class sdSuperTexture
 					tDiffuse: { type: "t", value: this.texture }
 				},
 				
+				// Copy [ 1 / 2 ]
 				side: THREE.DoubleSide,
-
 				depthTest: depthTest,
 				depthFunc: transparent ? THREE.LessDepth : THREE.LessEqualDepth,
-				//depthFunc: THREE.LessEqualDepth,
-				//depthFunc: THREE.LessEqualDepth,
 				depthWrite: !transparent,
-				//transparent: false, 
 				transparent: transparent, 
 				flatShading: true,
 
@@ -103,37 +114,7 @@ class sdSuperTexture
 					varying vec4 color_current; // Take value from vertex shader (for fragment shader-only)
 					varying float hue_rotation_current; // Take value from vertex shader (for fragment shader-only)
 					
-					vec3 hueShift(vec3 color, float hue) 
-					{
-						const vec3 k = vec3(0.57735, 0.57735, 0.57735);
-						float cosAngle = cos(hue);
-						return vec3(color * cosAngle + cross(k, color) * sin(hue) + k * dot(k, color) * (1.0 - cosAngle));
-					}
-					/*vec3 hueShift( vec3 color, float hueAdjust )
-					{
-						const vec3  kRGBToYPrime = vec3 (0.299, 0.587, 0.114);
-						const vec3  kRGBToI      = vec3 (0.596, -0.275, -0.321);
-						const vec3  kRGBToQ      = vec3 (0.212, -0.523, 0.311);
-
-						const vec3  kYIQToR     = vec3 (1.0, 0.956, 0.621);
-						const vec3  kYIQToG     = vec3 (1.0, -0.272, -0.647);
-						const vec3  kYIQToB     = vec3 (1.0, -1.107, 1.704);
-
-						float   YPrime  = dot (color, kRGBToYPrime);
-						float   I       = dot (color, kRGBToI);
-						float   Q       = dot (color, kRGBToQ);
-						float   hue     = atan (Q, I);
-						float   chroma  = sqrt (I * I + Q * Q);
-
-						hue += hueAdjust;
-
-						Q = chroma * sin (hue);
-						I = chroma * cos (hue);
-
-						vec3    yIQ   = vec3 (YPrime, I, Q);
-
-						return vec3( dot (yIQ, kYIQToR), dot (yIQ, kYIQToG), dot (yIQ, kYIQToB) );
-					}*/
+					${ hueShift_function }
 					
 					void main()
 					{
@@ -150,7 +131,6 @@ class sdSuperTexture
 				`
 			});
 
-			if ( false )
 			this.material_dots = new THREE.ShaderMaterial({
 
 				uniforms:
@@ -161,9 +141,13 @@ class sdSuperTexture
 					canvas_w: { type: "f", value: this.canvas.width },
 					canvas_h: { type: "f", value: this.canvas.height }
 				},
-
-				depthWrite: true,
-				transparent: true, 
+				
+				// Copy [ 2 / 2 ]
+				side: THREE.DoubleSide,
+				depthTest: depthTest,
+				depthFunc: transparent ? THREE.LessDepth : THREE.LessEqualDepth,
+				depthWrite: !transparent,
+				transparent: transparent, 
 				flatShading: true,
 
 				vertexShader: `
@@ -177,12 +161,15 @@ class sdSuperTexture
 					varying vec2 uv_current; // Give it to fragment shader
 					varying vec3 size_current; // Give it to fragment shader
 					varying float rotation_current; // Give it to fragment shader
+					varying float hue_rotation_current; // Give it to fragment shader
 				
 					void main() 
 					{
 						uv_current.xy = uv2.xy;
 						size_current = dot_scale_and_size;
 						rotation_current = rotation;
+				
+						hue_rotation_current = hue_rotation;
 				
 						gl_PointSize = global_dot_scale * dot_scale_and_size.z;
 				
@@ -197,10 +184,13 @@ class sdSuperTexture
 					varying vec2 uv_current; // Take value from vertex shader (for fragment shader-only)
 					varying vec3 size_current; // Take value from vertex shader (for fragment shader-only)
 					varying float rotation_current; // Take value from vertex shader (for fragment shader-only)
+					varying float hue_rotation_current; // Take value from vertex shader (for fragment shader-only)
 
 					uniform float canvas_w; // From material.uniform
 					uniform float canvas_h; // From material.uniform
 				
+					${ hueShift_function }
+					
 					void main()
 					{
 						// discard;
@@ -229,6 +219,11 @@ class sdSuperTexture
 				
 						gl_FragColor.rgba = texture2D( tDiffuse, rotated ).rgba;
 				
+						if ( hue_rotation_current != 0.0 )
+						{
+							gl_FragColor.rgb = hueShift( gl_FragColor.rgb, hue_rotation_current );
+						}
+				
 						gl_FragColor.a = 0.1 + gl_FragColor.a * 0.9;
 					}
 				`
@@ -253,13 +248,17 @@ class sdSuperTexture
 		this.mesh.frustumCulled = false;
 		//this.dots.frustumCulled = false;
 		
+		//this.mesh.renderOrder = transparent ? 2 : 1;
+		this.mesh.renderOrder = is_transparent_int;
+		
+		
 		sdRenderer.ctx.scene.add( this.mesh );
+		
+		sdRenderer.ctx.scene.children.sort( ( a,b )=>{ return a.renderOrder - b.renderOrder; } ); // For whatever reason sorting does not happen it seems
+		
 		//sdRenderer.ctx.scene.add( this.dots );
 		
 		//this.Preview();
-		
-		//this.mesh.renderOrder = transparent ? 2 : 1;
-		this.mesh.renderOrder = is_transparent_int;
 		
 		this.geometry_mesh.last_offset_indices = 0;
 		//this.geometry_dots.last_offset_indices = 0;
@@ -350,6 +349,65 @@ class sdSuperTexture
 		}
 	}
 	
+	/*GetBrightnessInt( xx0, yy0 )
+	{
+		let hash = yy0 * sdAtlasMaterial.brightness_map_width * 3 + xx0;
+		
+		let v = sdAtlasMaterial.brightness_map.get( hash );
+		
+		if ( v === undefined )
+		{
+			//v = 0.5 + Math.random();
+			
+			v = 4;
+			
+			//let wx = sdWorld.camera.x + ( xx0 / sdAtlasMaterial.brightness_map_width - 0.5 ) * sdRenderer.screen_width;
+			//let wy = sdWorld.camera.y + ( yy0 / sdAtlasMaterial.brightness_map_height - 0.5 ) * sdRenderer.screen_height;
+			
+			let wx = xx0 / sdAtlasMaterial.brightness_map_width * sdRenderer.screen_width / sdWorld.camera.scale + sdWorld.camera.x - sdRenderer.screen_width / 2 / sdWorld.camera.scale;
+			let wy = yy0 / sdAtlasMaterial.brightness_map_height * sdRenderer.screen_height / sdWorld.camera.scale + sdWorld.camera.y - sdRenderer.screen_height / 2 / sdWorld.camera.scale;
+			
+			//let wx = xx0 / sdAtlasMaterial.brightness_map_width * sdRenderer.screen_width;
+			//let wy = yy0 / sdAtlasMaterial.brightness_map_height * sdRenderer.screen_height;
+			
+			//globalThis.last_w = [ xx0, yy0, wx, wy ];
+			
+			let w = 1 / sdAtlasMaterial.brightness_map_width * sdRenderer.screen_width / sdWorld.camera.scale;
+			let h = 1 / sdAtlasMaterial.brightness_map_height * sdRenderer.screen_height / sdWorld.camera.scale;
+			
+			if ( sdWorld.CheckWallExistsBox( wx - w / 2, wy - h / 2, wx + w, wy + h, null, null, [ 'sdBlock' ] ) )
+			{
+				v = 0.25;
+			}
+			
+			sdAtlasMaterial.brightness_map.set( hash, v );
+		}
+		
+		return v;
+	}
+	GetBrightness( x1, y1 )
+	{
+		x1 = ( x1 ) / sdRenderer.screen_width * sdAtlasMaterial.brightness_map_width;
+		y1 = ( y1 ) / sdRenderer.screen_height * sdAtlasMaterial.brightness_map_height;
+		//x1 = ( x1 / sdWorld.camera.scale + sdWorld.camera.x ) / sdRenderer.screen_width * sdAtlasMaterial.brightness_map_width;
+		//y1 = ( y1 / sdWorld.camera.scale + sdWorld.camera.y ) / sdRenderer.screen_height * sdAtlasMaterial.brightness_map_height;
+		
+		let xx0 = Math.floor( x1 );
+		let xx1 = Math.ceil( x1 );
+		
+		let yy0 = Math.floor( y1 );
+		let yy1 = Math.ceil( y1 );
+		
+		let prog_x = x1 - xx0;
+		let prog_y = y1 - yy0;
+		
+		let br = ( this.GetBrightnessInt( xx0, yy0 ) * ( 1 - prog_x ) +
+				   this.GetBrightnessInt( xx1, yy0 ) * ( prog_x ) ) * ( 1 - prog_y ) +
+				 ( this.GetBrightnessInt( xx0, yy1 ) * ( 1 - prog_x ) +
+				   this.GetBrightnessInt( xx1, yy1 ) * ( prog_x ) ) * ( prog_y );
+		   
+		return br;
+	}*/
 	GetVertex( x1,y1,z1, u1,v1, geometry,r,g,b,a, hue_rotation )
 	{
 		
@@ -370,6 +428,12 @@ class sdSuperTexture
 				return similar.i;
 			}
 		}*/
+		
+		/*let br = this.GetBrightness( x1, y1 );
+		
+		r *= br;
+		g *= br;
+		b *= br;*/
 
 		let offset = geometry.offset;
 		
@@ -422,49 +486,6 @@ class sdSuperTexture
 		if ( geometry.offset_indices + 3 >= 3 * sdAtlasMaterial.maximum_dots_per_super_texture )
 		return;
 	
-		//
-		/*
-		let vertex2 = geometry.offset;
-		geometry.position_dataView.setFloat32( geometry.offset * 4 * 3 + 0, x2, true );
-		geometry.position_dataView.setFloat32( geometry.offset * 4 * 3 + 4, y2, true );
-		geometry.position_dataView.setFloat32( geometry.offset * 4 * 3 + 8, z2, true );
-		
-		geometry.uv_dataView.setFloat32( geometry.offset * 4 * 2 + 0, u2, true );
-		geometry.uv_dataView.setFloat32( geometry.offset * 4 * 2 + 4, v2, true );
-		
-		geometry.color_dataView.setFloat32( geometry.offset * 4 * 4 + 0, r, true );
-		geometry.color_dataView.setFloat32( geometry.offset * 4 * 4 + 4, g, true );
-		geometry.color_dataView.setFloat32( geometry.offset * 4 * 4 + 8, b, true );
-		geometry.color_dataView.setFloat32( geometry.offset * 4 * 4 + 12, a, true );
-		
-		geometry.offset++;
-		//
-		
-		let vertex3 = geometry.offset;
-		geometry.position_dataView.setFloat32( geometry.offset * 4 * 3 + 0, x3, true );
-		geometry.position_dataView.setFloat32( geometry.offset * 4 * 3 + 4, y3, true );
-		geometry.position_dataView.setFloat32( geometry.offset * 4 * 3 + 8, z3, true );
-		
-		geometry.uv_dataView.setFloat32( geometry.offset * 4 * 2 + 0, u3, true );
-		geometry.uv_dataView.setFloat32( geometry.offset * 4 * 2 + 4, v3, true );
-		
-		geometry.color_dataView.setFloat32( geometry.offset * 4 * 4 + 0, r, true );
-		geometry.color_dataView.setFloat32( geometry.offset * 4 * 4 + 4, g, true );
-		geometry.color_dataView.setFloat32( geometry.offset * 4 * 4 + 8, b, true );
-		geometry.color_dataView.setFloat32( geometry.offset * 4 * 4 + 12, a, true );
-		
-		geometry.offset++;
-		//
-		*/
-	   
-		/*const vertex1 = GetVertex( x1,y1,z1, u1,v1, geometry,r,g,b,a, hue_rotation );
-		const vertex2 = GetVertex( x2,y2,z2, u2,v2, geometry,r,g,b,a, hue_rotation );
-		const vertex3 = GetVertex( x3,y3,z3, u3,v3, geometry,r,g,b,a, hue_rotation );
-		
-		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, vertex1, true );
-		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, vertex2, true );
-		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, vertex3, true );*/
-		
 		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
 			this.GetVertex( x1,y1,z1, u1,v1, geometry,r,g,b,a, hue_rotation )
 			, true );
@@ -643,6 +664,10 @@ class sdAtlasMaterial
 		sdAtlasMaterial.global_font_offset_y = 10;
 		
 		sdAtlasMaterial.character_images = new Map(); // Cache each new character
+		
+		sdAtlasMaterial.brightness_map_width = 26;
+		sdAtlasMaterial.brightness_map_height = 13;
+		sdAtlasMaterial.brightness_map = new Map();
 	}
 	
 	static CreateLinearGradientImage( obj )
@@ -1184,6 +1209,8 @@ class sdAtlasMaterial
 	
 	static FrameStart()
 	{
+		sdAtlasMaterial.brightness_map.clear();
+		
 		for ( let g = 0; g < sdAtlasMaterial.super_textures.length; g++ )
 		for ( let i = 0; i < sdAtlasMaterial.super_textures[ g ].length; i++ )
 		sdAtlasMaterial.super_textures[ g ][ i ].FrameStart();
