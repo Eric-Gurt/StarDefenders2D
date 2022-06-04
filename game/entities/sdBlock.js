@@ -971,6 +971,8 @@ class sdBlock extends sdEntity
 		var h = this.height;
 		
 		ctx.filter = this.filter;
+
+		let old_volumetric_mode = ctx.volumetric_mode;
 		
 		if ( this.hue !== 0 )
 		{
@@ -1024,6 +1026,8 @@ class sdBlock extends sdEntity
 			ctx.drawImageFilterCache( sdBlock.img_ground88, this.x - Math.floor( this.x / 256 ) * 256, this.y - Math.floor( this.y / 256 ) * 256, w,h, 0,0, w,h );
 			else
 			ctx.drawImageFilterCache( sdBlock.img_ground11, 0, 0, w,h, 0,0, w,h ); // Temporary fix when blocks get Lost or Empty effect.
+			
+			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
 			
 			if ( this.material === sdBlock.MATERIAL_CORRUPTION )
 			{
@@ -1150,9 +1154,14 @@ class sdBlock extends sdEntity
 			else
 			ctx.drawImageFilterCache( sdBlock.img_trapshield11, 0, 0, w,h, 0,0, w,h );
 		}
+		
+	
+		ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
+		
+			
 		if ( sdBlock.metal_reinforces[ this.reinforced_frame ] !== null )
 		ctx.drawImageFilterCache( sdBlock.metal_reinforces[ this.reinforced_frame ], 0, 0, w,h, 0,0, w,h );
-
+	
 		ctx.filter = 'none';
 		ctx.sd_hue_rotation = 0;
 		ctx.sd_color_mult_r = 1;
@@ -1161,13 +1170,10 @@ class sdBlock extends sdEntity
 		
 		if ( sdBlock.cracks[ this.destruction_frame ] !== null )
 		{
-			let old_volumetric_mode = ctx.volumetric_mode;
-			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
-			{
-				ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], 0, 0, w,h, 0,0, w,h );
-			}
-			ctx.volumetric_mode = old_volumetric_mode;
+			ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], 0, 0, w,h, 0,0, w,h );
 		}
+		
+		ctx.volumetric_mode = old_volumetric_mode;
 	}
 	
 	onRemove() // Class-specific, if needed
