@@ -1878,6 +1878,19 @@ function UpdateOnlineCount()
 
 const DEBUG_SOCKET_CHANGES = false;
 
+const VoidArray = {
+	push: ()=>{},
+	has: ()=>{ return false },
+	set: ()=>{},
+	get: ()=>{ return undefined },
+	add: ()=>{},
+	push: ()=>{},
+	indexOf: ()=>{ return -1 },
+	length: 0,
+	clear: ()=>{},
+	delete: ()=>{}
+};
+
 let next_drop_log = 0;
 io.on("connection", (socket) => 
 //io.onConnection( socket =>
@@ -3317,12 +3330,12 @@ io.on("connection", (socket) =>
 			if ( sockets_by_ip[ ip ].length === 0 )
 			delete sockets_by_ip[ ip ];
 		
-			socket.observed_entities = null;
-			socket.sd_events = null;
-			socket.known_statics_versions_map2 = null;
-			socket.known_non_removed_dynamics = null;
-			socket.lost_messages = null;
-			socket.sent_messages = null;
+			socket.observed_entities = VoidArray;
+			socket.sd_events = VoidArray;
+			socket.known_statics_versions_map2 = VoidArray;
+			socket.known_non_removed_dynamics = VoidArray;
+			socket.lost_messages = VoidArray;
+			socket.sent_messages = VoidArray;
 		
 			UpdateOnlineCount();
 			
