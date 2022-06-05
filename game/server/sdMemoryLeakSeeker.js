@@ -20,6 +20,7 @@
 */
 import sdWorld from '../sdWorld.js';
 import sdEntity from '../entities/sdEntity.js';
+import sdPathFinding from '../ai/sdPathFinding.js';
 
 class sdMemoryLeakSeeker
 {
@@ -157,7 +158,9 @@ class sdMemoryLeakSeeker
 				//if ( sdMemoryLeakSeeker.current_object === sdEntity )
 				if ( sdMemoryLeakSeeker.current_object === sdEntity.removed_entities_info ||
 					 sdMemoryLeakSeeker.current_object === sdEntity.entities ||
-					 sdMemoryLeakSeeker.current_object === sdEntity.entities_by_net_id_cache_map )
+					 sdMemoryLeakSeeker.current_object === sdEntity.entities_by_net_id_cache_map ||
+					 sdMemoryLeakSeeker.current_object instanceof sdPathFinding // It is better to keep these for reverse keys to work properly
+				   )
 				{
 					//if ( prop === 'removed_entities_info' )
 					//{

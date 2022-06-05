@@ -366,6 +366,9 @@ let enf_once = true;
 	};
 	globalThis.getStackTrace = ()=>
 	{
+		if ( sdWorld.mobile )
+		return 581;
+	
 		var obj = {};
 		try
 		{

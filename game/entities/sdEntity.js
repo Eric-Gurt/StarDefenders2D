@@ -122,6 +122,130 @@ class sdEntity
 	DrawIn3D()
 	{ return FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT; }
 	
+	InstallBoxCapVisibilitySupport()
+	{
+		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+		{
+			this._box_cap_rethink_next = 0;
+			this._box_cap_rethinks_total = 0;
+			this._box_cap_left = null;
+			this._box_cap_right = null;
+			this._box_cap_top = null;
+			this._box_cap_bottom = null;
+		}
+	}
+	FigureOutBoxCapVisibilities()
+	{
+		if ( this._box_cap_left )
+		{
+			let ent = this._box_cap_left;
+			
+			if ( !ent._is_being_removed &&
+				 this.y + this._hitbox_y1 >= ent.y + ent._hitbox_y1 &&
+			     this.y + this._hitbox_y2 <= ent.y + ent._hitbox_y2 &&
+			     this.x + this._hitbox_x1 === ent.x + ent._hitbox_x2 )
+			{
+			}
+			else
+			this._box_cap_left = null;
+		}
+		if ( this._box_cap_right )
+		{
+			let ent = this._box_cap_right;
+			
+			if ( !ent._is_being_removed &&
+				 this.y + this._hitbox_y1 >= ent.y + ent._hitbox_y1 &&
+			     this.y + this._hitbox_y2 <= ent.y + ent._hitbox_y2 &&
+			     this.x + this._hitbox_x2 === ent.x + ent._hitbox_x1 )
+			{
+			}
+			else
+			this._box_cap_right = null;
+		}
+		if ( this._box_cap_top )
+		{
+			let ent = this._box_cap_top;
+			
+			if ( !ent._is_being_removed &&
+				 this.x + this._hitbox_x1 >= ent.x + ent._hitbox_x1 &&
+			 	 this.x + this._hitbox_x2 <= ent.x + ent._hitbox_x2 &&
+			 	 this.y + this._hitbox_y1 === ent.y + ent._hitbox_y2 )
+			{
+			}
+			else
+			this._box_cap_top = null;
+		}
+		if ( this._box_cap_bottom )
+		{
+			let ent = this._box_cap_bottom;
+			
+			if ( !ent._is_being_removed &&
+				 this.x + this._hitbox_x1 >= ent.x + ent._hitbox_x1 &&
+			 	 this.x + this._hitbox_x2 <= ent.x + ent._hitbox_x2 &&
+			 	 this.y + this._hitbox_y2 === ent.y + ent._hitbox_y1 )
+			{
+			}
+			else
+			this._box_cap_bottom = null;
+		}
+		
+		if ( !this._box_cap_left || !this._box_cap_right || !this._box_cap_top || !this._box_cap_bottom )
+		if ( this._box_cap_rethink_next < sdWorld.time )
+		{
+			if ( this._box_cap_rethinks_total === 0 )
+			this._box_cap_rethink_next = sdWorld.time + 50;
+			else
+			if ( this._box_cap_rethinks_total === 1 )
+			this._box_cap_rethink_next = sdWorld.time + 100;
+			else
+			this._box_cap_rethink_next = sdWorld.time + 500 + Math.random() * 500;
+		
+			this._box_cap_rethinks_total++
+
+			let cells = sdWorld.GetCellsInRect( this.x + this._hitbox_x1 - 1, this.y + this._hitbox_y1 - 1, this.x + this._hitbox_x2 + 1, this.y + this._hitbox_y2 + 1 );
+
+			for ( let c = 0; c < cells.length; c++ )
+			{
+				let arr = cells[ c ];
+				for ( let i = 0; i < arr.length; i++ )
+				{
+					let ent = arr[ i ];
+					if ( ent.GetClass() === this.GetClass() )
+					if ( typeof ent.IsPartiallyTransparent === 'undefined' || ent.IsPartiallyTransparent() === this.IsPartiallyTransparent() )
+					{
+						if ( this.y + this._hitbox_y1 >= ent.y + ent._hitbox_y1 )
+						if ( this.y + this._hitbox_y2 <= ent.y + ent._hitbox_y2 )
+						{
+							if ( this.x + this._hitbox_x1 === ent.x + ent._hitbox_x2 )
+							this._box_cap_left = ent;
+							else
+							if ( this.x + this._hitbox_x2 === ent.x + ent._hitbox_x1 )
+							this._box_cap_right = ent;
+						}
+
+						if ( this.x + this._hitbox_x1 >= ent.x + ent._hitbox_x1 )
+						if ( this.x + this._hitbox_x2 <= ent.x + ent._hitbox_x2 )
+						{
+							if ( this.y + this._hitbox_y1 === ent.y + ent._hitbox_y2 )
+							this._box_cap_top = ent;
+							else
+							if ( this.y + this._hitbox_y2 === ent.y + ent._hitbox_y1 )
+							this._box_cap_bottom = ent;
+						}
+					}
+				}
+			}
+			
+			
+			
+		}
+		
+		sdRenderer.ctx.box_caps.top = !this._box_cap_top;
+		sdRenderer.ctx.box_caps.right = !this._box_cap_right;
+		sdRenderer.ctx.box_caps.bottom = !this._box_cap_bottom;
+		sdRenderer.ctx.box_caps.left = !this._box_cap_left;
+	}
+	
 	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG, return null or array of [x,y,z] offsets
 	{ return null; }
 	
@@ -678,7 +802,8 @@ class sdEntity
 							}
 							else
 							//if ( ignore_entity_classes && ignore_entity_classes.indexOf( class_str ) !== -1 )
-							if ( ignore_entity_classes_classes && ignore_entity_classes_classes.has( arr_i.__proto__.constructor ) )
+							//if ( ignore_entity_classes_classes && ignore_entity_classes_classes.has( arr_i.__proto__.constructor ) )
+							if ( ignore_entity_classes_classes && ignore_entity_classes_classes.has( arr_i.constructor ) )
 							{
 							}
 							else
@@ -1942,7 +2067,8 @@ class sdEntity
 	
 	constructor( params )
 	{
-		this._stack_trace = globalThis.getStackTrace();
+		//if ( !sdWorld.mobile )
+		//this._stack_trace = globalThis.getStackTrace();
 		
 		if ( this.PreInit !== sdEntity.prototype.PreInit )
 		this.PreInit();

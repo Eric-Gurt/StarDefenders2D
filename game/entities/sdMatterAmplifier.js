@@ -461,14 +461,22 @@ class sdMatterAmplifier extends sdEntity
 					}
 				}
 				
-				from_entity.held_by = this;
-				this.crystal = from_entity;
-				
-				this._matter_max = Math.max( 20, this.crystal.matter_max / 10 );
-				
-				this._hitbox_y1 = this.hitbox_y1;
-				sdWorld.UpdateHashPosition( this, false ); // Hitbox update
-				this._update_version++;
+				let can_put = from_entity.CanMoveWithoutOverlap( 
+							this.x, 
+							this.y + 7 - from_entity._hitbox_y2, 
+							0 );
+							
+				if ( can_put )
+				{
+					from_entity.held_by = this;
+					this.crystal = from_entity;
+
+					this._matter_max = Math.max( 20, this.crystal.matter_max / 10 );
+
+					this._hitbox_y1 = this.hitbox_y1;
+					sdWorld.UpdateHashPosition( this, false ); // Hitbox update
+					this._update_version++;
+				}
 			}
 		}
 		else

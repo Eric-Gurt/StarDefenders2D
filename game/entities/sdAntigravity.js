@@ -133,6 +133,7 @@ class sdAntigravity extends sdEntity
 						//worked_out_arrs.push( arr );
 
 						for ( var i = 0; i < arr.length; i++ )
+						if ( !arr[ i ]._is_being_removed )
 						//if ( !arr[ i ].is_static || arr[ i ] instanceof sdBlock || arr[ i ] instanceof sdDoor )
 						//if ( !arr[ i ].is_static || arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) )
 						if ( arr[ i ].IsBGEntity() === 0 && ( typeof arr[ i ].sy !== 'undefined' || arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) ) ) // Faster?

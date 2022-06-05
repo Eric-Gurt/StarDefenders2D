@@ -159,8 +159,16 @@ class sdBlock extends sdEntity
 		return false;
 	}
 	
-	static Install3DSupport()
+	/*Install3DSupport()
 	{
+		this._box_cap_rethink_next = 0;
+		this._box_cap_left = null;
+		this._box_cap_right = null;
+		this._box_cap_top = null;
+		this._box_cap_bottom = null;
+		
+		return;
+		
 		if ( typeof window !== 'undefined' )
 		{
 			sdBlock.cracks[ 1 ].expand = true;
@@ -177,131 +185,13 @@ class sdBlock extends sdEntity
 				//sdBlock.prototype.DrawBG = sdBG.prototype.DrawBG;
 				
 				
-				
 				sdBlock.prototype.DrawBG = function( ctx, attached )
 				{
-					/*if ( this.material === sdBlock.MATERIAL_SHARP || this.material === sdBlock.MATERIAL_TRAPSHIELD )
-					return;
-				
-					if ( this.DrawIn3D() === FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT )
-					return;
-				
-					if ( this.texture_id === sdBlock.TEXTURE_ID_CAGE )
-					return;*/
+					
 					if ( this.IsPartiallyTransparent() )
 					return;
 
 					let visible = true;
-					/*
-					for ( var a = 0; a < this._affected_hash_arrays.length; a++ )
-					{
-						for ( var i = 0; i < this._affected_hash_arrays[ a ].length; i++ )
-						{
-							var e = this._affected_hash_arrays[ a ][ i ];
-							if ( e instanceof sdBG )
-							{
-								if ( this.x + this._hitbox_x1 >= e.x + e._hitbox_x1 )
-								if ( this.x + this._hitbox_x2 <= e.x + e._hitbox_x2 )
-								if ( this.y + this._hitbox_y1 >= e.y + e._hitbox_y1 )
-								if ( this.y + this._hitbox_y2 <= e.y + e._hitbox_y2 )
-    							return;
-	    					}
-						}
-					}
-					
-					let visible = false;
-					
-					if ( !visible )
-					if ( sdWorld.camera.y < this.y )
-					{
-						if ( this._vis_block_top && this._vis_block_top._is_being_removed )
-						this._vis_block_top = null;
-						
-						if ( !this._vis_block_top )
-						{
-							sdWorld.last_hit_entity = null;
-							sdWorld.CheckWallExists( this.x + 8, this.y - 8, null, null, filter );
-							if ( this.width > 16 && sdWorld.last_hit_entity )
-							{
-								sdWorld.last_hit_entity = null;
-								sdWorld.CheckWallExists( this.x + 16 + 8, this.y - 8, null, null, filter );
-							}
-							this._vis_block_top = sdWorld.last_hit_entity;
-						}
-						
-						if ( !this._vis_block_top )
-						visible = true;
-					}
-			
-					if ( !visible )
-					if ( sdWorld.camera.y > this.y + this.height )
-					{
-						if ( this._vis_block_bottom && this._vis_block_bottom._is_being_removed )
-						this._vis_block_bottom = null;
-					
-						if ( !this._vis_block_bottom )
-						{
-							sdWorld.last_hit_entity = null;
-							sdWorld.CheckWallExists( this.x + 8, this.y + this.height + 8, null, null, filter );
-							if ( this.width > 16 && sdWorld.last_hit_entity )
-							{
-								sdWorld.last_hit_entity = null;
-								sdWorld.CheckWallExists( this.x + 16 + 8, this.y + this.height + 8, null, null, filter );
-							}
-							this._vis_block_bottom = sdWorld.last_hit_entity;
-							
-						}
-						
-						if ( !this._vis_block_bottom )
-						visible = true;
-					}
-					
-					if ( !visible )
-					if ( sdWorld.camera.x < this.x )
-					{
-						if ( this._vis_block_left && this._vis_block_left._is_being_removed )
-						this._vis_block_left = null;
-					
-						if ( !this._vis_block_left )
-						{
-							sdWorld.last_hit_entity = null;
-							sdWorld.CheckWallExists( this.x - 8, this.y + Math.min( 8, this.height / 2 ), null, null, filter ); // Math.min is for half-block support
-							if ( this.height > 16 && sdWorld.last_hit_entity )
-							{
-								sdWorld.last_hit_entity = null;
-								sdWorld.CheckWallExists( this.x - 8, this.y + 16 + 8, null, null, filter );
-							}
-							this._vis_block_left = sdWorld.last_hit_entity;
-						}
-						
-						if ( !this._vis_block_left )
-						visible = true;
-					}
-
-					if ( !visible )
-					if ( sdWorld.camera.x > this.x + this.width )
-					{
-						if ( this._vis_block_right && this._vis_block_right._is_being_removed )
-						this._vis_block_right = null;
-					
-						if ( !this._vis_block_right )
-						{
-							sdWorld.last_hit_entity = null;
-							sdWorld.CheckWallExists( this.x + this.width + 8, this.y + Math.min( 8, this.height / 2 ), null, null, filter );// Math.min is for half-block support
-							if ( this.height > 16 && sdWorld.last_hit_entity )
-							{
-								sdWorld.last_hit_entity = null;
-								sdWorld.CheckWallExists( this.x + this.width + 8, this.y + 16 + 8, null, null, filter );
-							}
-							this._vis_block_right = sdWorld.last_hit_entity;
-						}
-						
-						if ( !this._vis_block_right )
-						visible = true;
-					}
-					
-					//this._vis_back = visible;
-					*/
 					
 					if ( visible )
 					{
@@ -323,7 +213,7 @@ class sdBlock extends sdEntity
 				};
 			}
 		}
-	}
+	}*/
 	
 	get hitbox_x1() { return 0; }
 	get hitbox_x2() { return this.width; }
@@ -685,6 +575,8 @@ class sdBlock extends sdEntity
 				throw new Error('Double wall bug detected');
 			}
 		}*/
+		
+		this.InstallBoxCapVisibilitySupport();
 		
 		this.onSnapshotApplied();
 	}

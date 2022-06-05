@@ -4,7 +4,7 @@
 
 	TODO: Make logic to swap dedicated spaces between frequently and rarely updated geometries
 
-	TODO: DrawQuad, DrawTriangle (keep), DrawDot (even faster sprite draw, especially on mobile)
+	Note: DrawDot is fast to send to GPU but GPU isn't as fast to render it which can cause extra lags
 
 */
 
@@ -67,8 +67,7 @@ class sdSuperTexture
 		`;
 		
 		this.material_mesh;
-		this.material_dots;
-		
+		//this.material_dots;
 		{
 			this.material_mesh = new THREE.ShaderMaterial({
 
@@ -130,13 +129,13 @@ class sdSuperTexture
 					}
 				`
 			});
-
+			/*
 			this.material_dots = new THREE.ShaderMaterial({
 
 				uniforms:
 				{
 					tDiffuse: { type: "t", value: this.texture },
-					global_dot_scale: { type: "f", value: 1 },
+					global_dot_scale: { type: "f", value: sdRenderer.screen_height },
 					
 					canvas_w: { type: "f", value: this.canvas.width },
 					canvas_h: { type: "f", value: this.canvas.height }
@@ -157,10 +156,13 @@ class sdSuperTexture
 					attribute vec3 dot_scale_and_size; // From custom attributes
 					attribute vec2 uv2; // From custom attributes
 					attribute float rotation; // From custom attributes
+					attribute vec4 color; // From custom attributes
+					attribute float hue_rotation; // From custom attributes
 
 					varying vec2 uv_current; // Give it to fragment shader
 					varying vec3 size_current; // Give it to fragment shader
 					varying float rotation_current; // Give it to fragment shader
+					varying vec4 color_current; // Give it to fragment shader
 					varying float hue_rotation_current; // Give it to fragment shader
 				
 					void main() 
@@ -169,11 +171,17 @@ class sdSuperTexture
 						size_current = dot_scale_and_size;
 						rotation_current = rotation;
 				
+						color_current.rgba = color.rgba;
+				
 						hue_rotation_current = hue_rotation;
 				
-						gl_PointSize = global_dot_scale * dot_scale_and_size.z;
-				
 						gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+				
+						//gl_PointSize = global_dot_scale / 2.0 * dot_scale_and_size.z / gl_Position.z;
+				
+						//size_current.z = size_current.z / gl_Position.z;
+				
+						gl_PointSize = 64.0;
 					}
 				`,
 
@@ -184,6 +192,7 @@ class sdSuperTexture
 					varying vec2 uv_current; // Take value from vertex shader (for fragment shader-only)
 					varying vec3 size_current; // Take value from vertex shader (for fragment shader-only)
 					varying float rotation_current; // Take value from vertex shader (for fragment shader-only)
+					varying vec4 color_current; // Take value from vertex shader (for fragment shader-only)
 					varying float hue_rotation_current; // Take value from vertex shader (for fragment shader-only)
 
 					uniform float canvas_w; // From material.uniform
@@ -195,6 +204,7 @@ class sdSuperTexture
 					{
 						// discard;
 
+						
 						vec2 rotated = gl_PointCoord;
 
 						rotated.x -= 0.5;
@@ -225,9 +235,12 @@ class sdSuperTexture
 						}
 				
 						gl_FragColor.a = 0.1 + gl_FragColor.a * 0.9;
+						
+				
+						//gl_FragColor.rgba = vec4( 1.0, 0.0, 0.0, 1.0 );
 					}
 				`
-			});
+			});*/
 		}
 		
 		this.offset_x = 0;
@@ -248,45 +261,72 @@ class sdSuperTexture
 		this.mesh.frustumCulled = false;
 		//this.dots.frustumCulled = false;
 		
-		//this.mesh.renderOrder = transparent ? 2 : 1;
 		this.mesh.renderOrder = is_transparent_int;
+		//this.dots.renderOrder = is_transparent_int;
 		
 		
 		sdRenderer.ctx.scene.add( this.mesh );
-		
-		sdRenderer.ctx.scene.children.sort( ( a,b )=>{ return a.renderOrder - b.renderOrder; } ); // For whatever reason sorting does not happen it seems
-		
 		//sdRenderer.ctx.scene.add( this.dots );
+		sdRenderer.ctx.scene.children.sort( ( a,b )=>{ return a.renderOrder - b.renderOrder; } ); // For whatever reason sorting does not happen it seems
 		
 		//this.Preview();
 		
 		this.geometry_mesh.last_offset_indices = 0;
-		//this.geometry_dots.last_offset_indices = 0;
+		//this.geometry_dots.last_offset = 0;
 		
 		// Init buffers
 		
-		let geometry = this.geometry_mesh;
+		{
+			let geometry = this.geometry_mesh;
 
-		geometry.index = new THREE.BufferAttribute( new Uint16Array( 3 * sdAtlasMaterial.maximum_dots_per_super_texture ), 1 ); // Uint16, but can be redefined to allow larger indices
-		geometry.index_dataView = new DataView( geometry.index.array.buffer );
-		geometry.setIndex( geometry.index );
+			geometry.index = new THREE.BufferAttribute( new Uint16Array( 3 * sdAtlasMaterial.maximum_dots_per_super_texture ), 1 ); // Uint16, but can be redefined to allow larger indices
+			geometry.index_dataView = new DataView( geometry.index.array.buffer );
+			geometry.setIndex( geometry.index );
 
-		geometry.position = new THREE.BufferAttribute( new Float32Array( 3 * sdAtlasMaterial.maximum_dots_per_super_texture ), 3 );
-		geometry.position_dataView = new DataView( geometry.position.array.buffer );
-		geometry.setAttribute( 'position', geometry.position );
+			geometry.position = new THREE.BufferAttribute( new Float32Array( 3 * sdAtlasMaterial.maximum_dots_per_super_texture ), 3 );
+			geometry.position_dataView = new DataView( geometry.position.array.buffer );
+			geometry.setAttribute( 'position', geometry.position );
 
-		geometry.uv = new THREE.BufferAttribute( new Float32Array( 2 * sdAtlasMaterial.maximum_dots_per_super_texture ), 2 );
-		geometry.uv_dataView = new DataView( geometry.uv.array.buffer );
-		geometry.setAttribute( 'uv', geometry.uv );
+			geometry.uv = new THREE.BufferAttribute( new Float32Array( 2 * sdAtlasMaterial.maximum_dots_per_super_texture ), 2 );
+			geometry.uv_dataView = new DataView( geometry.uv.array.buffer );
+			geometry.setAttribute( 'uv', geometry.uv );
 
-		// Color multiplier + alpha
-		geometry.color = new THREE.BufferAttribute( new Float32Array( 4 * sdAtlasMaterial.maximum_dots_per_super_texture ), 4 );
-		geometry.color_dataView = new DataView( geometry.color.array.buffer );
-		geometry.setAttribute( 'color', geometry.color );
-		
-		geometry.hue_rotation = new THREE.BufferAttribute( new Float32Array( 1 * sdAtlasMaterial.maximum_dots_per_super_texture ), 1 );
-		geometry.hue_rotation_dataView = new DataView( geometry.hue_rotation.array.buffer );
-		geometry.setAttribute( 'hue_rotation', geometry.hue_rotation );
+			// Color multiplier + alpha
+			geometry.color = new THREE.BufferAttribute( new Float32Array( 4 * sdAtlasMaterial.maximum_dots_per_super_texture ), 4 );
+			geometry.color_dataView = new DataView( geometry.color.array.buffer );
+			geometry.setAttribute( 'color', geometry.color );
+
+			geometry.hue_rotation = new THREE.BufferAttribute( new Float32Array( 1 * sdAtlasMaterial.maximum_dots_per_super_texture ), 1 );
+			geometry.hue_rotation_dataView = new DataView( geometry.hue_rotation.array.buffer );
+			geometry.setAttribute( 'hue_rotation', geometry.hue_rotation );
+		}
+		/*{
+			let geometry = this.geometry_dots;
+			
+			geometry.position = new THREE.BufferAttribute( new Float32Array( 3 * sdAtlasMaterial.maximum_dots_per_super_texture ), 3 );
+			geometry.position_dataView = new DataView( geometry.position.array.buffer );
+			geometry.setAttribute( 'position', geometry.position );
+			
+			geometry.dot_scale_and_size = new THREE.BufferAttribute( new Float32Array( 3 * sdAtlasMaterial.maximum_dots_per_super_texture ), 3 );
+			geometry.dot_scale_and_size_dataView = new DataView( geometry.dot_scale_and_size.array.buffer );
+			geometry.setAttribute( 'dot_scale_and_size', geometry.dot_scale_and_size );
+			
+			geometry.rotation = new THREE.BufferAttribute( new Float32Array( 1 * sdAtlasMaterial.maximum_dots_per_super_texture ), 1 );
+			geometry.rotation_dataView = new DataView( geometry.rotation.array.buffer );
+			geometry.setAttribute( 'rotation', geometry.rotation );
+			
+			geometry.uv2 = new THREE.BufferAttribute( new Float32Array( 2 * sdAtlasMaterial.maximum_dots_per_super_texture ), 2 );
+			geometry.uv2_dataView = new DataView( geometry.uv2.array.buffer );
+			geometry.setAttribute( 'uv2', geometry.uv2 );
+			
+			geometry.color = new THREE.BufferAttribute( new Float32Array( 4 * sdAtlasMaterial.maximum_dots_per_super_texture ), 4 );
+			geometry.color_dataView = new DataView( geometry.color.array.buffer );
+			geometry.setAttribute( 'color', geometry.color );
+			
+			geometry.hue_rotation = new THREE.BufferAttribute( new Float32Array( 1 * sdAtlasMaterial.maximum_dots_per_super_texture ), 1 );
+			geometry.hue_rotation_dataView = new DataView( geometry.hue_rotation.array.buffer );
+			geometry.setAttribute( 'hue_rotation', geometry.hue_rotation );
+		}*/
 		
 		//this.color_native = [];
 		//this.hue_rotation_native = [];
@@ -296,57 +336,107 @@ class sdSuperTexture
 		Object.seal( this );
 	}
 	
+	UpdateDotsScale()
+	{
+		//this.material_dots.uniforms.global_dot_scale.value = sdRenderer.screen_height;
+	}
+	
 	FrameStart()
 	{
-		const geometry = this.geometry_mesh;
-	
-		geometry.offset = 0;
-		geometry.offset_indices = 0;
+		this.geometry_mesh.offset = 0;
+		this.geometry_mesh.offset_indices = 0;
+		
+		//this.geometry_dots.offset = 0;
 		
 		//this.last_vertices.clear();
 	}
 	FrameEnd( draw )
 	{
-		const geometry = this.geometry_mesh;
-		
-		if ( geometry.offset_indices > 0 )
 		{
-			geometry.position.updateRange.count = geometry.offset * 3;
-			geometry.uv.updateRange.count = geometry.offset * 2;
-			geometry.color.updateRange.count = geometry.offset * 4;
-			geometry.hue_rotation.updateRange.count = geometry.offset * 1;
-			geometry.index.updateRange.count = geometry.offset_indices;
+			const geometry = this.geometry_mesh;
 
-			geometry.position.needsUpdate = true;
-			geometry.uv.needsUpdate = true;
-			geometry.color.needsUpdate = true;
-			geometry.hue_rotation.needsUpdate = true;
-			geometry.index.needsUpdate = true;
-			
-			
-			
-			const last_offset_indices = geometry.last_offset_indices;
-			if ( geometry.offset_indices < last_offset_indices )
+			if ( geometry.offset > 0 )
 			{
-				//for ( let i = geometry.offset_indices; i < last_offset_indices; i++ )
-				//geometry.index_dataView.setUint16( i * 2, 0, true );
-			
-				for ( let i = geometry.offset_indices; i < last_offset_indices; i += 4 )
-				geometry.index_dataView.setFloat64( i * 2, 0 );
-				
-				geometry.index.updateRange.count = last_offset_indices;
-		
+				geometry.position.updateRange.count = geometry.offset * 3;
+				geometry.uv.updateRange.count = geometry.offset * 2;
+				geometry.color.updateRange.count = geometry.offset * 4;
+				geometry.hue_rotation.updateRange.count = geometry.offset * 1;
+				geometry.index.updateRange.count = geometry.offset_indices;
+
+				geometry.position.needsUpdate = true;
+				geometry.uv.needsUpdate = true;
+				geometry.color.needsUpdate = true;
+				geometry.hue_rotation.needsUpdate = true;
 				geometry.index.needsUpdate = true;
+
+				const last_offset_indices = geometry.last_offset_indices;
+				if ( geometry.offset_indices < last_offset_indices )
+				{
+					for ( let i = geometry.offset_indices; i < last_offset_indices; i += 4 )
+					geometry.index_dataView.setFloat64( i * 2, 0 );
+
+					geometry.index.updateRange.count = last_offset_indices;
+
+					geometry.index.needsUpdate = true;
+				}
+
+				geometry.last_offset_indices = geometry.offset_indices;
+
+				this.mesh.visible = draw && true;
 			}
-			
-			geometry.last_offset_indices = geometry.offset_indices;
-			
-			this.mesh.visible = draw && true;
+			else
+			{
+				this.mesh.visible = false;
+			}
 		}
-		else
-		{
-			this.mesh.visible = false;
-		}
+		/*{
+			const geometry = this.geometry_dots;
+
+			if ( geometry.offset > 0 )
+			{
+				geometry.position.updateRange.count = geometry.offset * 3;
+				geometry.dot_scale_and_size.updateRange.count = geometry.offset * 3;
+				geometry.rotation.updateRange.count = geometry.offset * 1;
+				geometry.uv2.updateRange.count = geometry.offset * 2;
+				geometry.color.updateRange.count = geometry.offset * 4;
+				geometry.hue_rotation.updateRange.count = geometry.offset * 1;
+				
+				geometry.position.needsUpdate = true;
+				geometry.dot_scale_and_size.needsUpdate = true;
+				geometry.rotation.needsUpdate = true;
+				geometry.uv2.needsUpdate = true;
+				geometry.color.needsUpdate = true;
+				geometry.hue_rotation.needsUpdate = true;
+
+				const last_offset = geometry.last_offset;
+				
+				if ( geometry.offset < last_offset )
+				{
+					for ( let i = geometry.offset; i < last_offset; i++ )
+					{
+						geometry.position_dataView.setFloat32( i * 4 * 3 + 0, -10000, true );
+						
+						//geometry.dot_scale_and_size_dataView.setFloat32( i * 4 * 3, 0 );
+						//geometry.dot_scale_and_size_dataView.setFloat32( i * 4 * 3 + 4, 0 );
+						//geometry.dot_scale_and_size_dataView.setFloat32( i * 4 * 3 + 8, 0 );
+					}
+
+					//geometry.dot_scale_and_size.updateRange.count = last_offset;
+					//eometry.dot_scale_and_size.needsUpdate = true;
+					
+					geometry.position.updateRange.count = last_offset * 3;
+					geometry.position.needsUpdate = true;
+				}
+
+				geometry.last_offset = geometry.offset;
+
+				this.dots.visible = draw && true;
+			}
+			else
+			{
+				this.dots.visible = false;
+			}
+		}*/
 	}
 	
 	/*GetBrightnessInt( xx0, yy0 )
@@ -435,7 +525,7 @@ class sdSuperTexture
 		g *= br;
 		b *= br;*/
 
-		let offset = geometry.offset;
+		const offset = geometry.offset;
 		
 		const offset_4_1 = offset * 4 * 1;
 		const offset_4_2 = offset * 4 * 2;
@@ -443,8 +533,8 @@ class sdSuperTexture
 		const offset_4_4 = offset * 4 * 4;
 
 		const position_dataView = geometry.position_dataView;
-		const color_dataView = geometry.color_dataView;
 		const uv_dataView = geometry.uv_dataView;
+		const color_dataView = geometry.color_dataView;
 		const hue_rotation_dataView = geometry.hue_rotation_dataView;
 
 		position_dataView.setFloat32( offset_4_3 + 0, x1, true );
@@ -454,16 +544,9 @@ class sdSuperTexture
 		uv_dataView.setFloat32( offset_4_2 + 0, u1, true );
 		uv_dataView.setFloat32( offset_4_2 + 4, v1, true );
 
-		//if ( this.color_native[ offset ] !== r )
-		//{
-		//	this.color_native[ offset ] = r;
-			color_dataView.setFloat32( offset_4_4 + 0, r, true );
-		//}
-	
+		color_dataView.setFloat32( offset_4_4 + 0, r, true );
 		color_dataView.setFloat32( offset_4_4 + 4, g, true );
-		
 		color_dataView.setFloat32( offset_4_4 + 8, b, true );
-		
 		color_dataView.setFloat32( offset_4_4 + 12, a, true );
 
 		hue_rotation_dataView.setFloat32( offset_4_1, hue_rotation, true );
@@ -476,7 +559,7 @@ class sdSuperTexture
 		return offset;
 	}
 	
-	DrawPolygon( x1,y1,z1, x2,y2,z2, x3,y3,z3, u1,v1, u2,v2, u3,v3, r,g,b,a, hue_rotation )
+	/*DrawPolygon( x1,y1,z1, x2,y2,z2, x3,y3,z3, u1,v1, u2,v2, u3,v3, r,g,b,a, hue_rotation )
 	{
 		const geometry = this.geometry_mesh;
 		
@@ -497,60 +580,103 @@ class sdSuperTexture
 		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
 			this.GetVertex( x3,y3,z3, u3,v3, geometry,r,g,b,a, hue_rotation )
 			, true );
+	}*/
+	DrawPolygon()
+	{
+		debugger;
+		return; // Hack
 	}
-	/*
-	DrawDot( x, y, z, sx, sy, rotation, dedicated_space )
+	DrawQuad( x1,y1,z1, x2,y2,z2, x3,y3,z3, x4,y4,z4, u1,v1, u2,v2, u3,v3, u4,v4, r,g,b,a, hue_rotation ) // left-top, right-top, bottom-left, bottom-right
+	{
+		const geometry = this.geometry_mesh;
+		
+		if ( geometry.offset + 4 >= sdAtlasMaterial.maximum_dots_per_super_texture )
+		return;
+		
+		if ( geometry.offset_indices + 6 >= 3 * sdAtlasMaterial.maximum_dots_per_super_texture )
+		return;
+	
+		let lt = this.GetVertex( x1,y1,z1, u1,v1, geometry,r,g,b,a, hue_rotation );
+		let rt = this.GetVertex( x2,y2,z2, u2,v2, geometry,r,g,b,a, hue_rotation );
+		let lb = this.GetVertex( x3,y3,z3, u3,v3, geometry,r,g,b,a, hue_rotation );
+		let rb = this.GetVertex( x4,y4,z4, u4,v4, geometry,r,g,b,a, hue_rotation );
+	
+		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
+			lt
+			, true );
+			
+		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
+			rt
+			, true );
+		
+		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
+			lb
+			, true );
+			
+			
+			
+			
+			
+	
+		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
+			rt
+			, true );
+		
+		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
+			lb
+			, true );
+			
+		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
+			rb
+			, true );
+			
+	}
+	
+	/*DrawDot( x, y, z, sx, sy, rotation, dedicated_space, r,g,b,a, hue_rotation )
 	{
 		const geometry = this.geometry_dots;
 		
-		//const this.geometry_dots.;
+		const color_dataView = geometry.color_dataView;
+		const hue_rotation_dataView = geometry.hue_rotation_dataView;
 		
+		const offset = geometry.offset;
 		
-		if ( !geometry.position )
-		{
-			//geometry.index = geometry.getIndex();
-			
-			geometry.position = new THREE.BufferAttribute( new Float32Array( 3 * sdAtlasMaterial.maximum_dots_per_super_texture ), 3 );
-			geometry.position_dataView = new DataView( geometry.position.array.buffer );
-			geometry.setAttribute( 'position', geometry.position );
-			
-			geometry.dot_scale_and_size = new THREE.BufferAttribute( new Float32Array( 3 * sdAtlasMaterial.maximum_dots_per_super_texture ), 3 );
-			geometry.dot_scale_and_size_dataView = new DataView( geometry.dot_scale_and_size.array.buffer );
-			geometry.setAttribute( 'dot_scale_and_size', geometry.dot_scale_and_size );
-			
-			geometry.rotation = new THREE.BufferAttribute( new Float32Array( 1 * sdAtlasMaterial.maximum_dots_per_super_texture ), 1 );
-			geometry.rotation_dataView = new DataView( geometry.rotation.array.buffer );
-			geometry.setAttribute( 'rotation', geometry.rotation );
-			
-			geometry.uv2 = new THREE.BufferAttribute( new Float32Array( 2 * sdAtlasMaterial.maximum_dots_per_super_texture ), 2 );
-			geometry.uv2_dataView = new DataView( geometry.uv2.array.buffer );
-			geometry.setAttribute( 'uv2', geometry.uv2 );
-		}
+		const offset_4_1 = offset * 4 * 1;
+		const offset_4_2 = offset * 4 * 2;
+		const offset_4_3 = offset * 4 * 3;
+		const offset_4_4 = offset * 4 * 4;
 		
-		geometry.position_dataView.setFloat32( geometry.offset * 4 * 3 + 0, x, true );
-		geometry.position_dataView.setFloat32( geometry.offset * 4 * 3 + 4, y, true );
-		geometry.position_dataView.setFloat32( geometry.offset * 4 * 3 + 8, z, true );
+		geometry.position_dataView.setFloat32( offset_4_3 + 0, x, true );
+		geometry.position_dataView.setFloat32( offset_4_3 + 4, y, true );
+		geometry.position_dataView.setFloat32( offset_4_3 + 8, z, true );
 		
 		let size = Math.max( sx, sy ) / Math.sin( Math.PI / 4 );
 		
-		geometry.dot_scale_and_size_dataView.setFloat32( geometry.offset * 4 * 3 + 0, sx, true ); // x
-		geometry.dot_scale_and_size_dataView.setFloat32( geometry.offset * 4 * 3 + 4, sy, true ); // y
-		geometry.dot_scale_and_size_dataView.setFloat32( geometry.offset * 4 * 3 + 8, size, true ); // z
+		geometry.dot_scale_and_size_dataView.setFloat32( offset_4_3 + 0, sx, true ); // x
+		geometry.dot_scale_and_size_dataView.setFloat32( offset_4_3 + 4, sy, true ); // y
+		geometry.dot_scale_and_size_dataView.setFloat32( offset_4_3 + 8, size, true ); // z
 		
-		geometry.rotation_dataView.setFloat32( geometry.offset * 4 * 1, rotation, true );
+		geometry.rotation_dataView.setFloat32( offset_4_1, rotation, true );
 		
-		geometry.uv2_dataView.setFloat32( geometry.offset * 4 * 2 + 0, ( dedicated_space.x + dedicated_space.w / 2 ) / this.canvas.width, true );
-		geometry.uv2_dataView.setFloat32( geometry.offset * 4 * 2 + 4, ( dedicated_space.y + dedicated_space.h / 2 ) / this.canvas.height, true );
+		geometry.uv2_dataView.setFloat32( offset_4_2 + 0, ( dedicated_space.x + dedicated_space.w / 2 ) / this.canvas.width, true );
+		geometry.uv2_dataView.setFloat32( offset_4_2 + 4, ( dedicated_space.y + dedicated_space.h / 2 ) / this.canvas.height, true );
 		
+
+		color_dataView.setFloat32( offset_4_4 + 0, r, true );
+		color_dataView.setFloat32( offset_4_4 + 4, g, true );
+		color_dataView.setFloat32( offset_4_4 + 8, b, true );
+		color_dataView.setFloat32( offset_4_4 + 12, a, true );
+
+		hue_rotation_dataView.setFloat32( offset_4_1, hue_rotation, true );
 		
 		
 		geometry.offset++;
 	
-		//geometry.index.needsUpdate = true;
 		geometry.position.needsUpdate = true;
 		geometry.dot_scale_and_size.needsUpdate = true;
 		geometry.rotation.needsUpdate = true;
 		geometry.uv2.needsUpdate = true;
+		geometry.hue_rotation.needsUpdate = true;
 	}*/
 	
 	DedicateSpace( w, h )
@@ -665,9 +791,9 @@ class sdAtlasMaterial
 		
 		sdAtlasMaterial.character_images = new Map(); // Cache each new character
 		
-		sdAtlasMaterial.brightness_map_width = 26;
+		/*sdAtlasMaterial.brightness_map_width = 26;
 		sdAtlasMaterial.brightness_map_height = 13;
-		sdAtlasMaterial.brightness_map = new Map();
+		sdAtlasMaterial.brightness_map = new Map();*/
 	}
 	
 	static CreateLinearGradientImage( obj )
@@ -1009,7 +1135,7 @@ class sdAtlasMaterial
 		uv_b.multiply( canvas_size );
 		uv_c.multiply( canvas_size );
 		uv_d.multiply( canvas_size );
-
+		
 		for ( let layer = 0; layer < layers; layer++ )
 		{
 			let z0 = z_position;
@@ -1036,10 +1162,25 @@ class sdAtlasMaterial
 			
 			if ( connect_layers && layer !== 0 )
 			{
+				
 				// left ( a + c )
+				if ( sdRenderer.ctx.box_caps.left )
 				if ( sdRenderer.screen_width / 2 < a.x )
 				{
-					super_texture.DrawPolygon( 
+					super_texture.DrawQuad( 
+							a.x, a.y, z0,
+							a.x, a.y, z,
+							c.x, c.y, z0,
+							c.x, c.y, z,
+
+							uv_a.x, uv_a.y,
+							uv_b.x, uv_b.y,
+							uv_c.x, uv_c.y,
+							uv_d.x, uv_d.y,
+
+							cr,cg,cb,ca,hue_rotation
+					);
+					/*super_texture.DrawPolygon( 
 							a.x, a.y, z0,
 							a.x, a.y, z,
 							c.x, c.y, z0,
@@ -1060,13 +1201,27 @@ class sdAtlasMaterial
 							uv_c.x, uv_c.y,
 
 							cr,cg,cb,ca,hue_rotation
-					);
+					);*/
 				}
 		
 				// right ( b + d )
+				if ( sdRenderer.ctx.box_caps.right )
 				if ( sdRenderer.screen_width / 2 > b.x )
 				{
-					super_texture.DrawPolygon( 
+					super_texture.DrawQuad( 
+							b.x, b.y, z0,
+							b.x, b.y, z,
+							d.x, d.y, z0,
+							d.x, d.y, z,
+
+							uv_a.x, uv_a.y,
+							uv_b.x, uv_b.y,
+							uv_c.x, uv_c.y,
+							uv_d.x, uv_d.y,
+
+							cr,cg,cb,ca,hue_rotation
+					);
+					/*super_texture.DrawPolygon( 
 							b.x, b.y, z0,
 							b.x, b.y, z,
 							d.x, d.y, z0,
@@ -1087,12 +1242,27 @@ class sdAtlasMaterial
 							uv_c.x, uv_c.y,
 
 							cr,cg,cb,ca,hue_rotation
-					);
+					);*/
 				}
 		
 				// bottom ( c + d )
+				if ( sdRenderer.ctx.box_caps.bottom )
 				if ( sdRenderer.screen_height / 2 > c.y )
 				{
+					super_texture.DrawQuad( 
+							c.x, c.y, z0,
+							d.x, d.y, z0,
+							c.x, c.y, z,
+							d.x, d.y, z,
+
+							uv_a.x, uv_a.y,
+							uv_b.x, uv_b.y,
+							uv_c.x, uv_c.y,
+							uv_d.x, uv_d.y,
+
+							cr,cg,cb,ca,hue_rotation
+					);
+					/*
 					super_texture.DrawPolygon( 
 							c.x, c.y, z0,
 							d.x, d.y, z0,
@@ -1115,12 +1285,28 @@ class sdAtlasMaterial
 
 							cr,cg,cb,ca,hue_rotation
 					);
+					 */
 				}
 		
 				// top ( a + b )
+				if ( sdRenderer.ctx.box_caps.top )
 				if ( sdRenderer.screen_height / 2 < a.y )
 				{
-					super_texture.DrawPolygon( 
+					super_texture.DrawQuad( 
+							a.x, a.y, z,
+							b.x, b.y, z,
+							a.x, a.y, z0,
+							b.x, b.y, z0,
+
+							uv_a.x, uv_a.y,
+							uv_b.x, uv_b.y,
+							uv_c.x, uv_c.y,
+							uv_d.x, uv_d.y,
+
+							cr,cg,cb,ca,hue_rotation
+					);
+					
+					/*super_texture.DrawPolygon( 
 							a.x, a.y, z,
 							b.x, b.y, z,
 							a.x, a.y, z0,
@@ -1141,7 +1327,7 @@ class sdAtlasMaterial
 							uv_c.x, uv_c.y,
 
 							cr,cg,cb,ca,hue_rotation
-					);
+					);*/
 				}
 			}
 			else
@@ -1150,9 +1336,38 @@ class sdAtlasMaterial
 				
 				const current_odd_x_offset = ( layer % 2 === 0 ) ? -odd_x_offset : odd_x_offset;
 				
-				//if ( connect_layers ) // Hack
-				//continue;
-				
+				// Dot test? Makes GPU a bottleneck instead
+				/*if ( dWidth < 128 && dHeight < 128 )
+				{
+					let scaled_size = sdWorld.Dist2D_Vector( a.x - b.x, a.y - b.y ) / 2;
+					
+					super_texture.DrawDot( 
+						( a.x + b.x + c.x + d.x ) / 4,
+						( a.y + b.y + c.y + d.y ) / 4,
+						z,
+						scaled_size,
+						scaled_size,
+						Math.atan2( a.x - b.x, a.y - b.y ),
+						dedication,
+						cr,cg,cb,ca,hue_rotation
+					);
+				}*/
+				//if ( Math.random() < 0.1 )
+				super_texture.DrawQuad( 
+						a.x + current_odd_x_offset, a.y, z,
+						b.x + current_odd_x_offset, b.y, z,
+						c.x + current_odd_x_offset, c.y, z,
+						d.x + current_odd_x_offset, d.y, z,
+
+						uv_a.x, uv_a.y,
+						uv_b.x, uv_b.y,
+						uv_c.x, uv_c.y,
+						uv_d.x, uv_d.y,
+
+						cr,cg,cb,ca,hue_rotation
+				);
+						
+				/*
 				super_texture.DrawPolygon( 
 						a.x + current_odd_x_offset, a.y, z,
 						b.x + current_odd_x_offset, b.y, z,
@@ -1174,7 +1389,7 @@ class sdAtlasMaterial
 						uv_c.x, uv_c.y,
 
 						cr,cg,cb,ca,hue_rotation
-				);
+				);*/
 			}
 		}
 		/*
@@ -1209,7 +1424,7 @@ class sdAtlasMaterial
 	
 	static FrameStart()
 	{
-		sdAtlasMaterial.brightness_map.clear();
+		//sdAtlasMaterial.brightness_map.clear();
 		
 		for ( let g = 0; g < sdAtlasMaterial.super_textures.length; g++ )
 		for ( let i = 0; i < sdAtlasMaterial.super_textures[ g ].length; i++ )
@@ -1232,6 +1447,13 @@ class sdAtlasMaterial
 		for ( let g = 0; g < sdAtlasMaterial.super_textures.length; g++ )
 		for ( let i = 0; i < sdAtlasMaterial.super_textures[ g ].length; i++ )
 		sdAtlasMaterial.super_textures[ g ][ i ].FrameEnd( true );
+	}
+	
+	static UpdateDotsScale()
+	{
+		for ( let g = 0; g < sdAtlasMaterial.super_textures.length; g++ )
+		for ( let i = 0; i < sdAtlasMaterial.super_textures[ g ].length; i++ )
+		sdAtlasMaterial.super_textures[ g ][ i ].UpdateDotsScale();
 	}
 }
 

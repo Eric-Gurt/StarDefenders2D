@@ -136,6 +136,8 @@ class sdRenderer
 						}
 
 						sdRenderer.ctx.camera.updateProjectionMatrix();
+						
+						sdAtlasMaterial.UpdateDotsScale();
 					}
 
 					sdRenderer.sky_gradient = sdRenderer.ctx.createLinearGradient( 0, 0, 0, sdRenderer.screen_height );
@@ -440,10 +442,10 @@ class sdRenderer
 				sdRenderer.ctx.renderer.shadowMap.enabled = true;
 			}
 			
-			if ( v === 2 || v === 3 || v === 4 )
+			/*if ( v === 2 || v === 3 || v === 4 )
 			{
 				sdBlock.Install3DSupport();
-			}
+			}*/
 			
 			window.onresize();
 		}
@@ -742,6 +744,11 @@ class sdRenderer
 					
 					ctx.volumetric_mode = e.DrawIn3D( -1 );
 					ctx.object_offset = e.ObjectOffset3D( -1 );
+					
+					if ( ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX || 
+						 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT || 
+						 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_DECAL )
+					e.FigureOutBoxCapVisibilities();
 
 					ctx.save();
 					try
@@ -776,6 +783,11 @@ class sdRenderer
 				{
 					ctx.volumetric_mode = e.DrawIn3D( 0 );
 					ctx.object_offset = e.ObjectOffset3D( 0 );
+					
+					if ( ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX || 
+						 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT || 
+						 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_DECAL )
+					e.FigureOutBoxCapVisibilities();
 
 					ctx.save();
 					try
@@ -811,6 +823,11 @@ class sdRenderer
 					ctx.volumetric_mode = e.DrawIn3D( 1 );
 					ctx.object_offset = e.ObjectOffset3D( 1 );
 					ctx.camera_relative_world_scale = e.CameraDistanceScale3D( 1 );
+					
+					if ( ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX || 
+						 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT || 
+						 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_DECAL )
+					e.FigureOutBoxCapVisibilities();
 
 					if ( ctx.camera_relative_world_scale < 1 ||
 						 ( e.x + e._hitbox_x2 > min_x &&

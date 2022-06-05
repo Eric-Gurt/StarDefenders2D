@@ -294,6 +294,13 @@ class FakeCanvasContext
 		this._stroke_ptr = {};
 		
 		this.blend_mode = THREE.NormalBlending;
+		
+		this.box_caps = {
+			top: true,
+			left: true,
+			bottom: true,
+			right: true
+		};
 
 		this._gl = this.renderer.getContext();
 		this._debugInfo = this._gl.getExtension('WEBGL_debug_renderer_info');
@@ -1196,6 +1203,12 @@ class FakeCanvasContext
 		{
 			sdAtlasMaterial.FrameStart();
 		}
+		
+		
+		this.box_caps.top = true;
+		this.box_caps.right = true;
+		this.box_caps.bottom = true;
+		this.box_caps.left = true;
 		
 		
 		this.z_offset = 0;

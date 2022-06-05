@@ -919,6 +919,44 @@ class sdCharacterRagdoll
 		
 		const solver_strength = 1; // Do not use values above 1
 		
+		let wall_exists_cache = new Map(); // Bone_obj => result
+		
+		const CheckWallExistsNearBone = ( i )=>
+		{
+			let bone = this.bones[ i ];
+			
+			let r = wall_exists_cache.get( bone );
+			
+			if ( r === undefined )
+			{
+				if ( bone._soft_bone_of )
+				{
+					r = wall_exists_cache.get( bone._soft_bone_of );
+				}
+				else
+				if ( bone._soft_bone )
+				{
+					r = wall_exists_cache.get( bone._soft_bone );
+				}
+				
+				if ( r !== undefined )
+				wall_exists_cache.set( bone, r );
+			}
+			
+			if ( r === undefined )
+			{
+				r = sdWorld.CheckWallExistsBox( 
+					  bone.x-5, 
+					  bone.y, 
+					  bone.x+5, 
+					  bone.y+8, bone, bone.GetIgnoredEntityClasses(), bone.GetNonIgnoredEntityClasses(), null );
+					  
+				wall_exists_cache.set( bone, r );
+			}
+				  
+			return r;
+		};
+		
 		GSPEED /= steps;
 		for ( let s = 0; s < steps; s++ )
 		{
@@ -929,11 +967,7 @@ class sdCharacterRagdoll
 				{
 					if ( sdWorld.inDist2D_Boolean( this.bones[ i ]._rag_lx, this.bones[ i ]._rag_ly, this.bones[ i ].x, this.bones[ i ].y, 2 ) && 
 						  this._stress < 0.2 &&
-						  sdWorld.CheckWallExistsBox( 
-								this.bones[ i ].x-5, 
-								this.bones[ i ].y, 
-								this.bones[ i ].x+5, 
-								this.bones[ i ].y+8, this.bones[ i ], this.bones[ i ].GetIgnoredEntityClasses(), this.bones[ i ].GetNonIgnoredEntityClasses(), null ) )
+						  CheckWallExistsNearBone( i ) )
 					{
 						this.bones[ i ]._phys_last_sx = ( this.bones[ i ].sx > 0 );
 						this.bones[ i ]._phys_last_sy = ( this.bones[ i ].sy > 0 );

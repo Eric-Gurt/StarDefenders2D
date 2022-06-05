@@ -47,6 +47,17 @@ class sdCrystalCombiner extends sdEntity
 		return [];
 	}
 	
+	MergeCollisionTest( another_entity )
+	{
+		if ( another_entity === this.crystal0 )
+		return false;
+	
+		if ( another_entity === this.crystal1 )
+		return false;
+		
+		return true;
+	}
+	
 	constructor( params )
 	{
 		super( params );
@@ -71,6 +82,8 @@ class sdCrystalCombiner extends sdEntity
 		this._regen_timeout = 0;
 		
 		this.prog = 0; // progress
+		
+		this.SetMethod( 'MergeCollisionTest', this.MergeCollisionTest ); // Here it used for "this" binding so method can be passed to collision logic
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -225,6 +238,7 @@ class sdCrystalCombiner extends sdEntity
 		
 		let merge_prog = this.prog / this.GetBaseAnimDuration();
 		let merge_intens = Math.min( 1, Math.pow( merge_prog, 8 ) ) * 8;
+		
 		
 		if ( this.crystal0 )
 		{
@@ -601,11 +615,46 @@ class sdCrystalCombiner extends sdEntity
 		
 					if ( from_entity.matter_max % 40 !== 0 ) // Make sure it is compatible with artificial one
 					return;
+				
+					let can_put_left = ( !this.crystal0 && from_entity.CanMoveWithoutOverlap( 
+							this.x - 24 + 16, 
+							this.y + 7 - from_entity._hitbox_y2, 
+							0 ) );
 					
-					if ( !this.crystal0 )
-					this.crystal0 = from_entity;
+					let can_put_right = ( !this.crystal1 && from_entity.CanMoveWithoutOverlap( 
+							this.x - 24 + 16, 
+							this.y + 7 - from_entity._hitbox_y2, 
+							0 ) );
+							
+					let di0 = Math.abs( ( this.x - 24 + 16 ) - from_entity.x );
+					let di1 = Math.abs( ( this.x - 8 + 16 ) - from_entity.x );
+					
+					let slot = null;
+					
+					if ( di0 < di1 )
+					{
+						if ( can_put_left )
+						slot = 'crystal0';
+						else
+						if ( can_put_right )
+						slot = 'crystal1';
+					}
 					else
-					this.crystal1 = from_entity;
+					{
+						if ( can_put_right )
+						slot = 'crystal1';
+						else
+						if ( can_put_left )
+						slot = 'crystal0';
+					}
+					
+					if ( slot === null )
+					return;
+					
+					this[ slot ] = from_entity;
+				
+				
+					//
 				
 					
 					from_entity.held_by = this;
