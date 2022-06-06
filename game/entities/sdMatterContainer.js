@@ -65,6 +65,10 @@ class sdMatterContainer extends sdEntity
 		this._update_version++; // Just in case
 	}
 	
+	PrioritizeGivingMatterAway() // sdNode, sdCom, sdCommandCentre, sdMaterContainer, sdMatterAmplifier all do that in order to prevent slow matter flow through cables
+	{
+		return true;
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		// No regen, just give away matter

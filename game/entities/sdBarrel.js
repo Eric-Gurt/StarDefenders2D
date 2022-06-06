@@ -101,7 +101,7 @@ class sdBarrel extends sdEntity
 			type:sdEffect.TYPE_EXPLOSION, 
 			owner:this._owner,
 			can_hit_owner: true,
-			armor_penetration_level: this._owner ? this._owner._upgrade_counters[ 'upgrade_damage' ] : undefined,
+			armor_penetration_level: ( this._owner && this.variation >= 3 ) ? this._owner._upgrade_counters[ 'upgrade_damage' ] : undefined, // No-owner barrels can damage workbenches, also white barrels can too
 			color: this._color 
 		});
 	}

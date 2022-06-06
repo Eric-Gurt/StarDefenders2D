@@ -153,6 +153,10 @@ class sdCom extends sdEntity
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 	}
 	
+	PrioritizeGivingMatterAway() // sdNode, sdCom, sdCommandCentre, sdMaterContainer, sdMatterAmplifier all do that in order to prevent slow matter flow through cables
+	{
+		return true;
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		this.MatterGlow( 0.1, 0, GSPEED ); // 0 radius means only towards cables

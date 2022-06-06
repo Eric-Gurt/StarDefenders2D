@@ -3132,6 +3132,10 @@ class sdEntity
 			connected_ents[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		}
 	}
+	PrioritizeGivingMatterAway() // sdNode, sdCom, sdCommandCentre, sdMaterContainer, sdMatterAmplifier all do that in order to prevent slow matter flow through cables
+	{
+		return false;
+	}
 	MatterGlow( how_much=0.01, radius=30, GSPEED ) // Set radius to 0 to only glow into cables. Make sure to call WakeUpMatterSources when matter drops or else some mid-way nodes might end up not being awaken
 	{
 		if ( !sdWorld.is_server )
@@ -3145,12 +3149,43 @@ class sdEntity
 			sdCable = sdWorld.entity_classes.sdCable;
 		
 			let i;
+			
+			let visited_ents = new Set();
+			visited_ents.add( this );
+			
+			let array_is_not_cloned = true;
+			
 			let connected_ents = sdCable.GetConnectedEntities( this, sdCable.TYPE_MATTER );
 			for ( i = 0; i < connected_ents.length; i++ )
 			{
 				if ( ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' ) && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
-				this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+				{
+					this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+					
+					visited_ents.add( connected_ents[ i ] );
+							
+					if ( connected_ents[ i ].PrioritizeGivingMatterAway() )
+					{
+						if ( array_is_not_cloned )
+						{
+							array_is_not_cloned = false;
+							connected_ents = connected_ents.slice(); // Clone
+						}
+						
+						let recursively_connected = sdCable.GetConnectedEntities( connected_ents[ i ], sdCable.TYPE_MATTER );
+						
+						if ( recursively_connected )
+						for ( let i2 = 0; i2 < recursively_connected.length; i2++ )
+						if ( !visited_ents.has( recursively_connected[ i2 ] ) )
+						{
+							visited_ents.add( recursively_connected[ i2 ] );
+							
+							connected_ents.push( recursively_connected[ i2 ] );
+						}
+					}
+				}
 			}
+			visited_ents = null;
 			
 			if ( radius > 0 )
 			if ( this_matter > 0.05 )

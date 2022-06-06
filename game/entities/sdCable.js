@@ -78,7 +78,7 @@ class sdCable extends sdEntity
 		]);*/
 		
 		sdCable.cables_per_entity = new WeakMap();
-		sdCable.connected_entities_per_entity = new WeakMap();
+		sdCable.connected_entities_per_entity = new WeakMap(); // Map => array of entities
 		
 		sdCable.max_distance = 200; // Same as for sdCom, at least for now
 		
