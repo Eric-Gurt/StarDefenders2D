@@ -220,7 +220,7 @@ class sdEnemyMech extends sdEntity
 		// less fall damage
 		if ( vel > 10 )
 		{
-			this.Damage( ( vel - 4 ) * 15 );
+			this.DamageWithEffect( ( vel - 4 ) * 15 );
 		}
 	}*/
 	onThink( GSPEED ) // Class-specific, if needed

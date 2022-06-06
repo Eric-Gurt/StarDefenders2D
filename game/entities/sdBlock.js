@@ -254,7 +254,7 @@ class sdBlock extends sdEntity
 		else
 		if ( vel > 6 ) // For new mass-based model
 		{
-			this.Damage( ( vel - 3 ) * 15 );
+			this.DamageWithEffect( ( vel - 3 ) * 15 );
 		}
 	}
 	
@@ -377,12 +377,12 @@ class sdBlock extends sdEntity
 									map[ ( xx + 0 ) + ':' + ( yy + 1 ) ]._contains_class = null;
 									map[ ( xx + 1 ) + ':' + ( yy + 1 ) ]._contains_class = null;
 
-									map[ ( xx + 0 ) + ':' + ( yy + 0 ) ].Damage( Infinity );
-									map[ ( xx + 1 ) + ':' + ( yy + 0 ) ].Damage( Infinity );
-									map[ ( xx + 0 ) + ':' + ( yy + 1 ) ].Damage( Infinity );
-									map[ ( xx + 1 ) + ':' + ( yy + 1 ) ].Damage( Infinity );
+									map[ ( xx + 0 ) + ':' + ( yy + 0 ) ].DamageWithEffect( Infinity );
+									map[ ( xx + 1 ) + ':' + ( yy + 0 ) ].DamageWithEffect( Infinity );
+									map[ ( xx + 0 ) + ':' + ( yy + 1 ) ].DamageWithEffect( Infinity );
+									map[ ( xx + 1 ) + ':' + ( yy + 1 ) ].DamageWithEffect( Infinity );
 									
-									//setTimeout(()=>{ent.Damage( Infinity )}, 2000 ); // Hack
+									//setTimeout(()=>{ent.DamageWithEffect( Infinity )}, 2000 ); // Hack
 
 									break done;
 								}
@@ -429,12 +429,12 @@ class sdBlock extends sdEntity
 									map[ ( xx + 0 ) + ':' + ( yy + 1 ) ]._contains_class = null;
 									map[ ( xx + 1 ) + ':' + ( yy + 1 ) ]._contains_class = null;
 
-									map[ ( xx + 0 ) + ':' + ( yy + 0 ) ].Damage( Infinity );
-									map[ ( xx + 1 ) + ':' + ( yy + 0 ) ].Damage( Infinity );
-									map[ ( xx + 0 ) + ':' + ( yy + 1 ) ].Damage( Infinity );
-									map[ ( xx + 1 ) + ':' + ( yy + 1 ) ].Damage( Infinity );
+									map[ ( xx + 0 ) + ':' + ( yy + 0 ) ].DamageWithEffect( Infinity );
+									map[ ( xx + 1 ) + ':' + ( yy + 0 ) ].DamageWithEffect( Infinity );
+									map[ ( xx + 0 ) + ':' + ( yy + 1 ) ].DamageWithEffect( Infinity );
+									map[ ( xx + 1 ) + ':' + ( yy + 1 ) ].DamageWithEffect( Infinity );
 									
-									//setTimeout(()=>{ent.Damage( Infinity )}, 2000 ); // Hack
+									//setTimeout(()=>{ent.DamageWithEffect( Infinity )}, 2000 ); // Hack
 
 									break done;
 								}
@@ -800,7 +800,7 @@ class sdBlock extends sdEntity
 						//sdWorld.SendEffect({ x:from_entity.x, y:from_entity.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 
 						if ( ( from_entity._reinforced_level || 0 ) === 0 )
-						from_entity.Damage( 100, this._owner );
+						from_entity.DamageWithEffect( 100, this._owner );
 
 						this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 					}
@@ -853,7 +853,7 @@ class sdBlock extends sdEntity
 			}
 			else
 			{
-				from_entity.Damage( 10, this );
+				from_entity.DamageWithEffect( 10, this );
 			}
 		}
 	}

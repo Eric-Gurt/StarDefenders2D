@@ -130,7 +130,7 @@ class sdGrub extends sdEntity
 	{
 		if ( vel > 10 ) // less fall damage
 		{
-			this.Damage( ( vel - 3 ) * 15 );
+			this.DamageWithEffect( ( vel - 3 ) * 15 );
 		}
 	}*/
 	onThink( GSPEED ) // Class-specific, if needed
@@ -318,10 +318,10 @@ class sdGrub extends sdEntity
 					this._last_bite = sdWorld.time;
 				if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )
 				{
-					from_entity.Damage( 30, this );
+					from_entity.DamageWithEffect( 30, this );
 				}
 				else
-				from_entity.Damage( 30, this );
+				from_entity.DamageWithEffect( 30, this );
 					
 					//this._hea = Math.min( this._hmax, this._hea + 3 );
 

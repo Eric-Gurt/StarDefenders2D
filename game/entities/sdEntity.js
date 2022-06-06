@@ -9,7 +9,7 @@ import sdWorld from '../sdWorld.js';
 //var entity_net_ids = 0;
 
 let sdCable = null;
-let sdCom = null;
+let sdStatusEffect = null;
 			
 class sdEntity
 {
@@ -309,13 +309,34 @@ class sdEntity
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
 	{ return false; }
 	
+	ImpactWithDamageEffect( vel )
+	{
+		if ( sdWorld.is_server || sdWorld.is_singleplayer )
+		{
+			if ( !sdStatusEffect )
+			sdStatusEffect = sdWorld.entity_classes.sdStatusEffect;
+		
+			let hp_old = Math.max( 0, this.hea || this._hea || 0 );
+
+			this.Impact( vel );
+
+			let dmg = hp_old - Math.max( 0, this.hea || this._hea || 0 );
+			if ( dmg !== 0 )
+			this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_DAMAGED, by: null, dmg: dmg });
+		}
+		else
+		{
+			this.Impact( vel );
+		}
+	}
+	
 	Impact( vel ) // fall damage basically. Values below 5 won't be reported due to no-damage area lookup optimization
 	{
 		//if ( vel > 7 )
 		if ( vel > 6 ) // For new mass-based model
 		{
-			//this.Damage( ( vel - 4 ) * 15 );
-			this.Damage( ( vel - 3 ) * 15 );
+			//this.DamageWithEffect( ( vel - 4 ) * 15 );
+			this.DamageWithEffect( ( vel - 3 ) * 15 );
 		}
 	}
 	TriggerMovementInRange() // Should cause onMovementInRange to be called even if no movement happens for entity. Can be used in cases when sdCharacter drops guns (so other guns can be picked up) or upgrades matter capacity (so shards can be picken up)
@@ -943,7 +964,7 @@ class sdEntity
 				}
 
 				const self_effect_scale = 1;
-				this.Impact( Math.abs( this.sx - old_sx_real ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
+				this.ImpactWithDamageEffect( Math.abs( this.sx - old_sx_real ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
 			}
 			if ( hitbox_y2 + sy > sdWorld.world_bounds.y2 || hitbox_y1 + sy < sdWorld.world_bounds.y1 )
 			{
@@ -964,7 +985,7 @@ class sdEntity
 				}
 
 				const self_effect_scale = 1;
-				this.Impact( Math.abs( this.sy - old_sy_real ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
+				this.ImpactWithDamageEffect( Math.abs( this.sy - old_sy_real ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
 			}
 
 			if ( debug )
@@ -1029,8 +1050,8 @@ class sdEntity
 						if ( hitbox_y2 > best_ent.y + best_ent._hitbox_y1 )
 						{
 							//debugger;
-							this.Damage( 10 );
-							best_ent.Damage( 10 );
+							this.DamageWithEffect( 10 );
+							best_ent.DamageWithEffect( 10 );
 							this.onPhysicallyStuck();
 							trace('Stuck before');
 						}
@@ -1071,8 +1092,8 @@ class sdEntity
 							{
 								// Moving caused stuck effect
 								//debugger;
-								//this.Damage( 10 );
-								//best_ent.Damage( 10 );
+								//this.DamageWithEffect( 10 );
+								//best_ent.DamageWithEffect( 10 );
 								if ( this.onPhysicallyStuck() )
 								{
 									do_unstuck = true;
@@ -1254,10 +1275,10 @@ class sdEntity
 									if ( sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x, this.y ) )
 									{
 										//if ( best_ent._hard_collision )
-										this.Impact( impact * self_effect_scale );
+										this.ImpactWithDamageEffect( impact * self_effect_scale );
 
 										//if ( hard_collision )
-										best_ent.Impact( impact * ( 1 - self_effect_scale ) );
+										best_ent.ImpactWithDamageEffect( impact * ( 1 - self_effect_scale ) );
 									}
 								}
 							}
@@ -1278,10 +1299,10 @@ class sdEntity
 									if ( sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x, this.y ) )
 									{
 										//if ( best_ent._hard_collision )
-										this.Impact( impact * self_effect_scale );
+										this.ImpactWithDamageEffect( impact * self_effect_scale );
 
 										//if ( hard_collision )
-										best_ent.Impact( impact * ( 1 - self_effect_scale ) );
+										best_ent.ImpactWithDamageEffect( impact * ( 1 - self_effect_scale ) );
 									}
 								}
 							}
@@ -1885,7 +1906,7 @@ class sdEntity
 	{
 		return null;
 	}
-	IsBGEntity() // 0 for in-game entities, 1 for background entities, 2 is for moderator areas, 3 is for cables, 4 for task in-world interfaces, 5 for wandering around background entities. Should handle collisions separately
+	IsBGEntity() // 0 for in-game entities, 1 for background entities, 2 is for moderator areas, 3 is for cables, 4 for task in-world interfaces, 5 for wandering around background entities, 6 for status effects. Should handle collisions separately
 	{ return 0; }
 	CanMoveWithoutOverlap( new_x, new_y, safe_bound=0, custom_filtering_method=null ) // Safe bound used to check if sdCharacter can stand and not just collides with walls nearby. Also due to number rounding clients should better have it (or else they will teleport while sliding on vertical wall)
 	{
@@ -2226,6 +2247,49 @@ class sdEntity
 		}
 	}
 	
+	FindObjectsInACableNetwork( accept_test_method=null, alternate_class_to_search=sdWorld.entity_classes.sdBaseShieldingUnit ) // No cache, so far
+	{
+		const sdCable = sdWorld.entity_classes.sdCable;
+		const SearchedClass = alternate_class_to_search;
+		
+		let ret = [];
+
+		let worked_out_ents = [];
+		let active_ents = [ this ];
+		while ( active_ents.length > 0 )
+		{
+			let connected_ents = sdCable.GetConnectedEntities( active_ents[ 0 ], sdCable.TYPE_ANY );
+
+			worked_out_ents.push( active_ents[ 0 ] );
+			active_ents.shift();
+
+			for ( let i = 0; i < connected_ents.length; i++ )
+			{
+				if ( worked_out_ents.indexOf( connected_ents[ i ] ) === -1 )
+				{
+					if ( accept_test_method )
+					{
+						if ( accept_test_method( connected_ents[ i ] ) )
+						{
+							//return connected_ents[ i ];
+							ret.push( connected_ents[ i ] );
+						}
+					}
+					else
+					if ( connected_ents[ i ].is( SearchedClass ) )
+					{
+						ret.push( connected_ents[ i ] );
+					}
+
+					if ( active_ents.indexOf( connected_ents[ i ] ) === -1 )
+					active_ents.push( connected_ents[ i ] );
+				}
+			}
+		}
+
+		return ret;
+	}
+	
 	GetComWiredCache( accept_test_method=null, alternate_class_to_search=sdWorld.entity_classes.sdCom ) // Cretes .cio property for clients to know if com exists
 	{
 		if ( !sdWorld.is_server )
@@ -2234,36 +2298,39 @@ class sdEntity
 			return null;
 		
 			if ( this.cio !== 0 )
-			return { _net_id: this.cio, subscribers:[] };
+			{
+				return { _net_id: this.cio, subscribers:[] };
+			}
 		
 			return null;
 		}
 		if ( accept_test_method || sdWorld.time > ( this._next_com_rethink || 0 ) )
 		{
 			const sdCable = sdWorld.entity_classes.sdCable;
-			//const sdCom = sdWorld.entity_classes.sdCom;
-			const sdCom = alternate_class_to_search;
-
-			var worked_out_ents = [];
-			var active_ents = [ this ];
+			const SearchedClass = alternate_class_to_search;
+			
+			let worked_out_ents = [];
+			let active_ents = [ this ];
 			while ( active_ents.length > 0 )
 			{
-				var connected_ents = sdCable.GetConnectedEntities( active_ents[ 0 ], sdCable.TYPE_ANY );
+				let connected_ents = sdCable.GetConnectedEntities( active_ents[ 0 ], sdCable.TYPE_ANY );
 
 				worked_out_ents.push( active_ents[ 0 ] );
 				active_ents.shift();
 
-				for ( var i = 0; i < connected_ents.length; i++ )
+				for ( let i = 0; i < connected_ents.length; i++ )
 				{
 					if ( worked_out_ents.indexOf( connected_ents[ i ] ) === -1 )
 					{
 						if ( accept_test_method )
 						{
 							if ( accept_test_method( connected_ents[ i ] ) )
-							return connected_ents[ i ];
+							{
+								return connected_ents[ i ];
+							}
 						}
 						else
-						if ( connected_ents[ i ].is( sdCom ) )
+						if ( connected_ents[ i ].is( SearchedClass ) )
 						{
 							this._com_near_cache = connected_ents[ i ];
 							this._next_com_rethink = sdWorld.time + 1000 + Math.random() * 100;
@@ -3595,6 +3662,34 @@ class sdEntity
 	}
 	onMovementInRange( from_entity )
 	{
+	}
+	ApplyStatusEffect( params )
+	{
+		if ( !sdStatusEffect )
+		sdStatusEffect = sdWorld.entity_classes.sdStatusEffect;
+		
+		params.for = this;
+		sdStatusEffect.ApplyStatusEffectForEntity( params );
+	}
+	DamageWithEffect( dmg, initiator=null, headshot=false, affects_armor=true )
+	{
+		if ( sdWorld.is_server || sdWorld.is_singleplayer )
+		{
+			if ( !sdStatusEffect )
+			sdStatusEffect = sdWorld.entity_classes.sdStatusEffect;
+		
+			let hp_old = Math.max( 0, this.hea || this._hea || 0 );
+
+			this.Damage( dmg, initiator, headshot, affects_armor );
+
+			dmg = hp_old - Math.max( 0, this.hea || this._hea || 0 );
+			if ( dmg !== 0 )
+			this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_DAMAGED, by: initiator, dmg: dmg });
+		}
+		else
+		{
+			this.Damage( dmg, initiator, headshot, affects_armor );
+		}
 	}
 	Damage( dmg, initiator=null, headshot=false, affects_armor=true )
 	{

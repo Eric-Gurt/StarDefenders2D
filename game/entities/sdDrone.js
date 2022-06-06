@@ -353,7 +353,7 @@ class sdDrone extends sdEntity
 		// less fall damage
 		if ( vel > 15 )
 		{
-			this.Damage( ( vel - 4 ) * 15 );
+			this.DamageWithEffect( ( vel - 4 ) * 15 );
 		}
 	}*/
 	onThink( GSPEED ) // Class-specific, if needed
@@ -774,7 +774,7 @@ class sdDrone extends sdEntity
 							if ( this.type === 5  ) // Detonate if in proximity
 							{
 								if ( di < 32 )
-								this.Damage( 1000 );
+								this.DamageWithEffect( 1000 );
 							}
 							if ( this.type === 6 ) // Council support drones, heal and repair the council + council bomb which makes them a priority target
 							{
@@ -797,7 +797,7 @@ class sdDrone extends sdEntity
 										else
 										if ( sdWorld.CheckLineOfSight( this.x, this.y, entities[ i ].x, entities[ i ].y, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
 										{
-												entities[ i ].Damage( 30, this ); // Damage it
+												entities[ i ].DamageWithEffect( 30, this ); // Damage it
 												if ( entities[ i ].ghosting )
 												entities[ i ].TogglePlayerGhosting(); // And remove it's invisibility
 												att_anim = true;

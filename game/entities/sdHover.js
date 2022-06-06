@@ -79,7 +79,7 @@ class sdHover extends sdEntity
 	{
 		if ( vel > 5 )
 		{
-			this.Damage( ( vel - 3 ) * 45 );
+			this.DamageWithEffect( ( vel - 3 ) * 45 );
 		}
 	}
 	
@@ -223,7 +223,7 @@ class sdHover extends sdEntity
 					
 					if ( this.hea <= break_at_hp )
 					{
-						driver.Damage( 400 );
+						driver.DamageWithEffect( 400 );
 					}
 				}
 				

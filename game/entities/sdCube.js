@@ -373,7 +373,7 @@ class sdCube extends sdEntity
 		// less fall damage
 		if ( vel > 10 )
 		{
-			this.Damage( ( vel - 4 ) * 15 );
+			this.DamageWithEffect( ( vel - 4 ) * 15 );
 		}
 	}*/
 	FireDirectionalBeams() // Fire 4 rail beams in 4 different directions - up, down, left and right
@@ -544,7 +544,7 @@ class sdCube extends sdEntity
 							
 							}, t * 700 );
 							
-							this.Damage( 10000 );
+							this.DamageWithEffect( 10000 );
 						}
 					}
 				}

@@ -146,7 +146,7 @@ class sdQuickie extends sdEntity
 		// less fall damage
 		if ( vel > 15 )
 		{
-			this.Damage( ( vel - 4 ) * 15 );
+			this.DamageWithEffect( ( vel - 4 ) * 15 );
 		}
 	}*/
 	onThink( GSPEED ) // Class-specific, if needed
@@ -266,10 +266,10 @@ class sdQuickie extends sdEntity
 							// No damage
 						}
 						else
-						from_entity.Damage( 15 * this._tier, this );
+						from_entity.DamageWithEffect( 15 * this._tier, this );
 					}
 					else
-					from_entity.Damage( 15 * this._tier, this );
+					from_entity.DamageWithEffect( 15 * this._tier, this );
 					
 					this._hea = Math.min( this._hmax, this._hea + ( 7 * this._tier ) );
 

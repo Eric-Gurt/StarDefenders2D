@@ -120,7 +120,7 @@ class sdShark extends sdEntity
 		// less fall damage
 		if ( vel > 15 )
 		{
-			this.Damage( ( vel - 4 ) * 15 );
+			this.DamageWithEffect( ( vel - 4 ) * 15 );
 		}
 	}*/
 	onThink( GSPEED ) // Class-specific, if needed
@@ -211,7 +211,7 @@ class sdShark extends sdEntity
 			this.sy += sdWorld.gravity * GSPEED;
 			
 			if ( this._hea > 0 )
-			this.Damage( GSPEED );
+			this.DamageWithEffect( GSPEED );
 		}
 		
 		
@@ -239,7 +239,7 @@ class sdShark extends sdEntity
 				if ( from_entity.IsTargetable() )
 				{
 					this._last_bite = sdWorld.time;
-					from_entity.Damage( 40, this );
+					from_entity.DamageWithEffect( 40, this );
 					
 					this._hea = Math.min( this._hmax, this._hea + 20 );
 

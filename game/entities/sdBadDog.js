@@ -249,7 +249,7 @@ class sdBadDog extends sdEntity
 		// less fall damage
 		if ( vel > 15 )
 		{
-			this.Damage( ( vel - 4 ) * 15 );
+			this.DamageWithEffect( ( vel - 4 ) * 15 );
 		}
 	}*/
 	/*GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
@@ -589,7 +589,7 @@ class sdBadDog extends sdEntity
 					
 					if ( this._last_bite_sound < sdWorld.time - 500 )
 					{
-						from_entity.Damage( 25, this );
+						from_entity.DamageWithEffect( 25, this );
 						from_entity.PlayDamageEffect( xx, yy );
 						//sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 						this.hea = Math.min( this.hmax, this.hea + 25 );

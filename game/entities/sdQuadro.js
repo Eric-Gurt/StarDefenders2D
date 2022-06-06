@@ -63,13 +63,13 @@ class sdQuadro extends sdEntity
 		//{
 			if ( vel > 8 ) // less fall damage
 			{
-				this.Damage( ( vel - 3 ) * 7 );
+				this.DamageWithEffect( ( vel - 3 ) * 7 );
 			}
 		/*}
 		else
 		if ( vel > 5 )
 		{
-			this.Damage( ( vel - 3 ) * 45 );
+			this.DamageWithEffect( ( vel - 3 ) * 45 );
 		}*/
 	}
 	
@@ -235,7 +235,7 @@ class sdQuadro extends sdEntity
 					
 					if ( this.hea <= break_at_hp )
 					{
-						driver.Damage( 100 );
+						driver.DamageWithEffect( 100 );
 					}
 				}
 				

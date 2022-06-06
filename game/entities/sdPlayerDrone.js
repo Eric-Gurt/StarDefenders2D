@@ -337,7 +337,7 @@ class sdPlayerDrone extends sdCharacter
 						if ( !this._is_being_removed )
 						if ( this._beep_charge >= 90 )
 						{
-							this.Damage( this.hea * scale + 1 );
+							this.DamageWithEffect( this.hea * scale + 1 );
 							return;
 						}
 					}

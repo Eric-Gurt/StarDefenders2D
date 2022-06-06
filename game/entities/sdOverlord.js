@@ -813,7 +813,7 @@ class sdOverlord extends sdEntity
 							}
 							else
 							{
-								t.Damage( 60 );
+								t.DamageWithEffect( 60 );
 
 								let an = Math.atan2( this.x - ( t.x + ( t._hitbox_x1 + t._hitbox_x2 ) / 2 ), this.y + sdOverlord.rifle_offset_y - ( t.y + ( t._hitbox_y1 + t._hitbox_y2 ) / 2 ) );
 

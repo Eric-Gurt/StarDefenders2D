@@ -40,7 +40,7 @@ class sdBarrel extends sdEntity
 	{
 		if ( vel > 7 )
 		{
-			this.Damage( ( vel - 4 ) * 5 );
+			this.DamageWithEffect( ( vel - 4 ) * 5 );
 		}
 	}
 	Damage( dmg, initiator=null )

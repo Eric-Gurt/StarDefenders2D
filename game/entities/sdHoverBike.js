@@ -65,7 +65,7 @@ class sdHoverBike extends sdEntity
 	{
 		if ( vel > 10 )
 		{
-			this.Damage( ( vel - 3 ) * 15 ); // Less impact damage than hover
+			this.DamageWithEffect( ( vel - 3 ) * 15 ); // Less impact damage than hover
 		}
 	}
 	
@@ -196,7 +196,7 @@ class sdHoverBike extends sdEntity
 					
 					if ( this.hea <= break_at_hp )
 					{
-						driver.Damage( 400 );
+						driver.DamageWithEffect( 400 );
 					}
 				}
 				

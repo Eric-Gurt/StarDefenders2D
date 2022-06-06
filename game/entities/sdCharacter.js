@@ -940,8 +940,8 @@ class sdCharacter extends sdEntity
 		//if ( vel > 7 )
 		if ( vel > 6.5 ) // For new mass-based model
 		{
-			//this.Damage( ( vel - 4 ) * 15 );
-			this.Damage( ( vel - 3 ) * 17, null, false, false );
+			//this.DamageWithEffect( ( vel - 4 ) * 15 );
+			this.DamageWithEffect( ( vel - 3 ) * 17, null, false, false );
 			
 			this.DamageStability( vel * sdCharacter.stability_damage_from_velocity_changes_scale );
 		}
@@ -2126,7 +2126,7 @@ class sdCharacter extends sdEntity
 					this._sick_damage_timer = 0;
 					
 					this._sickness = Math.max( 0, this._sickness - 10 );
-					this.Damage( 10, this._last_sickness_from_ent );
+					this.DamageWithEffect( 10, this._last_sickness_from_ent );
 					sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_BLOOD_GREEN, filter:'none' });
 					
 					// And then it spreads to players near, sounds fun
@@ -2153,7 +2153,7 @@ class sdCharacter extends sdEntity
 
 			if ( this._dying )
 			{
-				this.Damage( GSPEED * 0.1 );
+				this.DamageWithEffect( GSPEED * 0.1 );
 				
 				if ( this._dying_bleed_tim <= 0 )
 				{
@@ -2174,7 +2174,7 @@ class sdCharacter extends sdEntity
 						if ( this.matter > GSPEED )
 						{
 							this.matter -= GSPEED * 0.15; // 0.3
-							this.Damage( -GSPEED );
+							this.DamageWithEffect( -GSPEED );
 						}
 					}
 				}
@@ -3161,7 +3161,7 @@ class sdCharacter extends sdEntity
 			else
 			{
 				if ( this.hea > 0 )
-				this.Damage( GSPEED );
+				this.DamageWithEffect( GSPEED );
 			}
 		}
 		
@@ -3174,7 +3174,7 @@ class sdCharacter extends sdEntity
 		{
 			if ( sdWorld.last_hit_entity.is( sdBlock ) )
 			if ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_SHARP )
-			this.Damage( Infinity );
+			this.DamageWithEffect( Infinity );
 		}*/
 									
 		if ( this._ragdoll )
@@ -3378,7 +3378,7 @@ class sdCharacter extends sdEntity
 			{
 				if ( from_entity._contains_class === 'sdQuickie' || from_entity._contains_class === 'weak_ground' )
 				{
-					from_entity.Damage( 1 ); // Will break
+					from_entity.DamageWithEffect( 1 ); // Will break
 				}
 			}
 			else
@@ -3401,7 +3401,7 @@ class sdCharacter extends sdEntity
 					{
 						/*if ( from_entity.dangerous )
 						{
-							this.Damage( 30 );
+							this.DamageWithEffect( 30 );
 							from_entity.dangerous = false;
 						}*/
 										

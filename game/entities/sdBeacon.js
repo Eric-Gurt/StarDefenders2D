@@ -39,7 +39,7 @@ class sdBeacon extends sdEntity
 	{
 		if ( vel > 7 )
 		{
-			this.Damage( ( vel - 4 ) * 5 );
+			this.DamageWithEffect( ( vel - 4 ) * 5 );
 		}
 	}
 	Impulse( x, y )

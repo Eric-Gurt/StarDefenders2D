@@ -61,7 +61,7 @@ class sdLost extends sdEntity
 		
 			let hea = ( ent._hea || ent.hea || 0 );
 			
-			ent.Damage( 1, bullet ? bullet._owner : null );
+			ent.DamageWithEffect( 1, bullet ? bullet._owner : null );
 			
 			let hea2 = ( ent._hea || ent.hea || 0 );
 			

@@ -107,7 +107,7 @@ class sdDoor extends sdEntity
 					{
 						if ( !sdWorld.inDist2D_Boolean( initiator.x, initiator.y, this._shielded.x, this._shielded.y, sdBaseShieldingUnit.protect_distance - 64 ) ) // Check if it is far enough from the shield to prevent players in base take damage
 						{
-							initiator.Damage( 5 );
+							initiator.DamageWithEffect( 5 );
 							sdWorld.SendEffect({ x:this._shielded.x, y:this._shielded.y, x2:this.x + ( this._hitbox_x2 / 2 ), y2:this.y + ( this._hitbox_y2 / 2 ), type:sdEffect.TYPE_BEAM, color:'#f9e853' });
 							sdWorld.SendEffect({ x:this.x + ( this._hitbox_x2 / 2 ), y:this.y + ( this._hitbox_y2 / 2 ), x2:initiator.x, y2:initiator.y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
 						}
@@ -360,11 +360,11 @@ class sdDoor extends sdEntity
 
 								if ( interrupter1 !== null )
 								//if ( ( interrupter1._reinforced_level || 0 ) === 0 )
-								interrupter1.Damage( 5 * GSPEED );
+								interrupter1.DamageWithEffect( 5 * GSPEED );
 
 								if ( interrupter2 !== null )
 								//if ( ( interrupter2._reinforced_level || 0 ) === 0 )
-								interrupter2.Damage( 5 * GSPEED );
+								interrupter2.DamageWithEffect( 5 * GSPEED );
 							}
 						}
 
@@ -421,7 +421,7 @@ class sdDoor extends sdEntity
 
 						this.x0 = null; // undefined; // Reinit
 						*/
-						//this.Damage( 5 * GSPEED );
+						//this.DamageWithEffect( 5 * GSPEED );
 					}
 				}
 

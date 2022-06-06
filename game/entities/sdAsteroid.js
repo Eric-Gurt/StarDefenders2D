@@ -108,7 +108,7 @@ class sdAsteroid extends sdEntity
 			if ( sdWorld.CheckWallExists( this.x, this.y + this._hitbox_y2, this ) )
 			{
 				if ( this._type === 0 )
-				this.Damage( 1000 );
+				this.DamageWithEffect( 1000 );
 			
 				if ( this._type === 1 && this.landed === false )
 				{

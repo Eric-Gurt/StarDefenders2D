@@ -16,6 +16,7 @@ import sdGun from '../entities/sdGun.js';
 import sdTheatre from '../entities/sdTheatre.js';
 import sdTask from '../entities/sdTask.js';
 import sdLamp from '../entities/sdLamp.js';
+import sdStatusEffect from '../entities/sdStatusEffect.js';
 
 class sdRenderer
 {
@@ -163,6 +164,9 @@ class sdRenderer
 			ctx0.sd_filter = null;
 			ctx0.sd_tint_filter = null;
 			
+			ctx0.sd_status_effect_filter = null;
+			ctx0.sd_status_effect_tint_filter = null;
+			
 			ctx0.drawImageFilterCache = function( ...args )
 			{
 				if ( args[ 0 ].loaded === false )
@@ -186,9 +190,13 @@ class sdRenderer
 				args[ 0 ] = args[ 0 ].canvas_override;
 				
 				const filter = ctx0.filter; // native
-				const sd_filter = ctx0.sd_filter; // custom filter, { colorA:replacementA, colorB:replacementB }
-				const sd_tint_filter = ctx0.sd_tint_filter; // custom filter, [ r, g, b ], multiplies
-
+				//const sd_filter = ctx0.sd_filter; // custom filter, { colorA:replacementA, colorB:replacementB }
+				//const sd_tint_filter = ctx0.sd_tint_filter; // custom filter, [ r, g, b ], multiplies
+				
+				//const sd_status_effect_filter = ctx0.sd_status_effect_filter; // Separate slot to apply sd_fitlers
+				
+				const sd_filter = ctx0.sd_status_effect_filter ? ctx0.sd_status_effect_filter : ctx0.sd_filter; // custom filter, { colorA:replacementA, colorB:replacementB }
+				const sd_tint_filter = ctx0.sd_status_effect_tint_filter ? ( ctx0.sd_tint_filter ? [ ctx0.sd_tint_filter[0]*ctx0.sd_status_effect_tint_filter[0], ctx0.sd_tint_filter[1]*ctx0.sd_status_effect_tint_filter[1], ctx0.sd_tint_filter[2]*ctx0.sd_status_effect_tint_filter[2] ] : ctx0.sd_status_effect_tint_filter ) : ctx0.sd_tint_filter; // custom filter, [ r, g, b ], multiplies
 
 				if ( sd_filter || sd_tint_filter || filter !== 'none' )
 				{
@@ -297,60 +305,56 @@ class sdRenderer
 							
 							if ( sd_filter )
 							{
-								//debugger
-								let structured_sd_filter = {};
-								for ( let i = 0; i < sd_filter.s.length; i += 12 )
+								if ( sd_filter.s.length === 6 ) // Flood fill
 								{
-									r = parseInt( sd_filter.s.substring( i, i + 2 ), 16 );
-									g = parseInt( sd_filter.s.substring( i + 2, i + 4 ), 16 );
-									b = parseInt( sd_filter.s.substring( i + 4, i + 6 ), 16 );
-									
-									let r2 = parseInt( sd_filter.s.substring( 6+ i, 6+ i + 2 ), 16 );
-									let g2 = parseInt( sd_filter.s.substring( 6+ i + 2, 6+ i + 4 ), 16 );
-									let b2 = parseInt( sd_filter.s.substring( 6+ i + 4, 6+ i + 6 ), 16 );
-									
-									//console.log( r,g,b, '::', r2,g2,b2 );
-									
-									//if ( isNaN( r2 ) )
-									//debugger;
-									
-									structured_sd_filter[ r * 256 * 256 + g * 256 + b ] = [ r2, g2, b2 ];
-								}
-								for ( let i = 0; i < data.length; i += 4 )
-								{
-									r = data[ i ];
-									g = data[ i + 1 ];
-									b = data[ i + 2 ];
-									
-									arr = structured_sd_filter[ r * 256 * 256 + g * 256 + b ];
-									if ( arr )
+									let r2 = parseInt( sd_filter.s.substring( 0, 2 ), 16 );
+									let g2 = parseInt( sd_filter.s.substring( 2, 4 ), 16 );
+									let b2 = parseInt( sd_filter.s.substring( 4, 6 ), 16 );
+
+									for ( let i = 0; i < data.length; i += 4 )
+									if ( data[ i + 3 ] > 0 )
 									{
-										data[ i ] = arr[ 0 ];
-										data[ i + 1 ] = arr[ 1 ];
-										data[ i + 2 ] = arr[ 2 ];
+										data[ i ] = r2;
+										data[ i + 1 ] = g2;
+										data[ i + 2 ] = b2;
 									}
 								}
-							}
-							/*for ( let i = 0; i < data.length; i += 4 )
-							{
-								//data[ i ] = 255;
-								r = data[ i ];
-								
-								if ( typeof sd_filter[ r ] !== 'undefined' )
+								else
 								{
-									g = data[ i+1 ];
-									if ( typeof sd_filter[ r ][ g ] !== 'undefined' )
+									let structured_sd_filter = {};
+									for ( let i = 0; i < sd_filter.s.length; i += 12 )
 									{
-										b = data[ i+2 ];
-										if ( typeof sd_filter[ r ][ g ][ b ] !== 'undefined' )
+										r = parseInt( sd_filter.s.substring( i, i + 2 ), 16 );
+										g = parseInt( sd_filter.s.substring( i + 2, i + 4 ), 16 );
+										b = parseInt( sd_filter.s.substring( i + 4, i + 6 ), 16 );
+
+										let r2 = parseInt( sd_filter.s.substring( 6+ i, 6+ i + 2 ), 16 );
+										let g2 = parseInt( sd_filter.s.substring( 6+ i + 2, 6+ i + 4 ), 16 );
+										let b2 = parseInt( sd_filter.s.substring( 6+ i + 4, 6+ i + 6 ), 16 );
+
+										//console.log( r,g,b, '::', r2,g2,b2 );
+
+										//if ( isNaN( r2 ) )
+										//debugger;
+
+										structured_sd_filter[ r * 256 * 256 + g * 256 + b ] = [ r2, g2, b2 ];
+									}
+									for ( let i = 0; i < data.length; i += 4 )
+									{
+										r = data[ i ];
+										g = data[ i + 1 ];
+										b = data[ i + 2 ];
+
+										arr = structured_sd_filter[ r * 256 * 256 + g * 256 + b ];
+										if ( arr )
 										{
-											data[ i ] = sd_filter[ r ][ g ][ b ][ 0 ];
-											data[ i+1 ] = sd_filter[ r ][ g ][ b ][ 1 ];
-											data[ i+2 ] = sd_filter[ r ][ g ][ b ][ 2 ];
+											data[ i ] = arr[ 0 ];
+											data[ i + 1 ] = arr[ 1 ];
+											data[ i + 2 ] = arr[ 2 ];
 										}
 									}
 								}
-							}*/
+							}
 							
 							if ( sd_tint_filter )
 							for ( let i = 0; i < data.length; i += 4 )
@@ -725,6 +729,13 @@ class sdRenderer
 			
 			//let double_draw_catcher = new WeakMap();
 			
+			const STATUS_EFFECT_LAYER_BG = 0;
+			const STATUS_EFFECT_LAYER_NORMAL = 1;
+			const STATUS_EFFECT_LAYER_FG = 2;
+			
+			const STATUS_EFFECT_BEFORE = 0;
+			const STATUS_EFFECT_AFTER = 1;
+			
 			for ( var i = 0; i < sdEntity.entities.length; i++ )
 			{
 				const e = sdEntity.entities[ i ];
@@ -741,6 +752,8 @@ class sdRenderer
 						else
 						double_draw_catcher.set( e, 'first' );
 					}*/
+						
+					sdStatusEffect.DrawEffectsFor( e, STATUS_EFFECT_LAYER_BG, STATUS_EFFECT_BEFORE, ctx, false );
 					
 					ctx.volumetric_mode = e.DrawIn3D( -1 );
 					ctx.object_offset = e.ObjectOffset3D( -1 );
@@ -763,6 +776,8 @@ class sdRenderer
 						console.log( 'Image could not be drawn for ', e, err );
 					}
 					ctx.restore();
+					
+					sdStatusEffect.DrawEffectsFor( e, STATUS_EFFECT_LAYER_BG, STATUS_EFFECT_AFTER, ctx, false );
 				}
 			}
 			
@@ -781,6 +796,8 @@ class sdRenderer
 					   ( e.__proto__.constructor === sdEffect.prototype.constructor && e._type === sdEffect.TYPE_BEAM ) ) // sdWorld.my_entity.__proto__.constructor
 				if ( !sdWorld.is_singleplayer || e.IsVisible( sdWorld.my_entity ) )
 				{
+					sdStatusEffect.DrawEffectsFor( e, STATUS_EFFECT_LAYER_NORMAL, STATUS_EFFECT_BEFORE, ctx, false );
+					
 					ctx.volumetric_mode = e.DrawIn3D( 0 );
 					ctx.object_offset = e.ObjectOffset3D( 0 );
 					
@@ -801,6 +818,8 @@ class sdRenderer
 						console.log( 'Image could not be drawn for ', e, err );
 					}
 					ctx.restore();
+					
+					sdStatusEffect.DrawEffectsFor( e, STATUS_EFFECT_LAYER_NORMAL, STATUS_EFFECT_AFTER, ctx, false );
 					
 					if ( sdWorld.is_singleplayer )
 					if ( e.SyncedToPlayer !== sdEntity.prototype.SyncedToPlayer )
@@ -843,6 +862,8 @@ class sdRenderer
 							double_draw_catcher.set( e, 'third' );
 						}*/
 
+						sdStatusEffect.DrawEffectsFor( e, STATUS_EFFECT_LAYER_FG, STATUS_EFFECT_BEFORE, ctx, false );
+					
 						ctx.save();
 						try
 						{
@@ -856,6 +877,8 @@ class sdRenderer
 							console.log( 'Image could not be drawn for ', e, err );
 						}
 						ctx.restore();
+						
+						sdStatusEffect.DrawEffectsFor( e, STATUS_EFFECT_LAYER_FG, STATUS_EFFECT_AFTER, ctx, false );
 					}
 				}
 			}

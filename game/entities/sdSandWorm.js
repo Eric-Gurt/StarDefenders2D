@@ -357,7 +357,7 @@ class sdSandWorm extends sdEntity
 		// less fall damage
 		if ( vel > 10 )
 		{
-			this.Damage( ( vel - 4 ) * 15 );
+			this.DamageWithEffect( ( vel - 4 ) * 15 );
 		}
 	}*/
 	
@@ -926,12 +926,12 @@ class sdSandWorm extends sdEntity
 				/*if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )
 				{
 					if ( from_entity._reinforced_level > 0 ) // Worms should not damage reinforced blocks to prevent raiders using them
-					from_entity.Damage( 0, this );
+					from_entity.DamageWithEffect( 0, this );
 					else
-					from_entity.Damage( 300 * this.scale, this );
+					from_entity.DamageWithEffect( 300 * this.scale, this );
 				}
 				else*/
-				from_entity.Damage( 300 * this.scale, this );
+				from_entity.DamageWithEffect( 300 * this.scale, this );
 				
 				if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
 				if ( from_entity.is( sdCharacter ) ) // Copy-pasted from sdBlock.CorruptAttack();
@@ -963,12 +963,12 @@ class sdSandWorm extends sdEntity
 				/*if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )
 				{
 					if ( from_entity._reinforced_level > 0 ) // Worms should not damage reinforced blocks to prevent raiders using them
-					from_entity.Damage( 0, this );
+					from_entity.DamageWithEffect( 0, this );
 					else
-					from_entity.Damage( 20 * this.scale, this );
+					from_entity.DamageWithEffect( 20 * this.scale, this );
 				}
 				else*/
-				from_entity.Damage( ( this.kind === sdSandWorm.KIND_SPIKY_WORM ? 5 : 1 ) * 20 * this.scale, this );
+				from_entity.DamageWithEffect( ( this.kind === sdSandWorm.KIND_SPIKY_WORM ? 5 : 1 ) * 20 * this.scale, this );
 				if ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM )
 				if ( from_entity.is( sdCharacter ) ) // Copy-pasted from sdBlock.CorruptAttack();
 				{

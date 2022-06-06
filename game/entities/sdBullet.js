@@ -18,6 +18,7 @@ import sdWater from './sdWater.js';
 import sdLifeBox from './sdLifeBox.js';
 import sdTurret from './sdTurret.js';
 import sdCrystal from './sdCrystal.js';
+import sdStatusEffect from './sdStatusEffect.js';
 
 class sdBullet extends sdEntity
 {
@@ -229,7 +230,7 @@ class sdBullet extends sdEntity
 			if ( this._owner )
 			if ( !this._owner._is_being_removed )
 			{
-				this._owner.Damage( this._damage, null, false, false );
+				this._owner.DamageWithEffect( this._damage, null, false, false );
 				
 				if ( this._custom_target_reaction )
 				this._custom_target_reaction( this, this._owner );
@@ -619,8 +620,8 @@ class sdBullet extends sdEntity
 
 							if ( typeof from_entity.sx !== 'undefined' )
 							from_entity.SafeAddVelocity( 0, 0 ); // Will only verify, without adding anything
-
-							from_entity.Damage( dmg, this._owner, limb_mult !== 1 );
+						
+							from_entity.DamageWithEffect( dmg, this._owner, limb_mult !== 1 );
 
 							if ( this._owner )
 							if ( old_hea > 0 )
@@ -747,13 +748,13 @@ class sdBullet extends sdEntity
 
 								let base_damage = dmg;
 
-								//from_entity.Damage( dmg, this._owner );
+								//from_entity.DamageWithEffect( dmg, this._owner );
 
 
 								/*if ( from_entity.GetClass() === 'sdLifeBox' ) This logic is moved to sdLifeBox.prototype.GetHitDamageMultiplier
 								if ( from_entity.driver0 )
 								if ( this.y <= from_entity.y )
-								from_entity.Damage( dmg, this._owner, true );*/
+								from_entity.DamageWithEffect( dmg, this._owner, true );*/
 
 								//if ( from_entity.GetClass() === 'sdTurret' && this._emp === true ) // Disable turrets if they're hit by an EMP bullet
 								if ( from_entity.is( sdTurret ) && this._emp === true ) // Disable turrets if they're hit by an EMP bullet
@@ -769,17 +770,17 @@ class sdBullet extends sdEntity
 
 								if ( from_entity.is( sdBlock ) && ( from_entity.material === sdBlock.MATERIAL_GROUND || from_entity.material === sdBlock.MATERIAL_CORRUPTION || from_entity.material === sdBlock.MATERIAL_CRYSTAL_SHARDS ) ) // Dirt damage bonus multiplier (relative to initial damage)
 								dmg += base_damage * this._dirt_mult;
-								//from_entity.Damage( dmg * this._dirt_mult, this._owner );
+								//from_entity.DamageWithEffect( dmg * this._dirt_mult, this._owner );
 
 								if ( from_entity.IsVehicle() && ( typeof from_entity.sx !== 'undefined' && typeof from_entity.sy !== 'undefined' ) ) // All vehicles except for static ones like sdLifeBox
 								dmg += base_damage * this._vehicle_mult;
-								//from_entity.Damage( dmg * this._vehicle_mult, this._owner );
+								//from_entity.DamageWithEffect( dmg * this._vehicle_mult, this._owner );
 
 								if ( from_entity.is( sdBlock ) && from_entity.material === sdBlock.MATERIAL_TRAPSHIELD ) // Shield block damage bonus multiplier (relative to initial damage)
 								dmg += base_damage * this._shield_block_mult;
-								//from_entity.Damage( dmg * this._shield_block_mult, this._owner );
+								//from_entity.DamageWithEffect( dmg * this._shield_block_mult, this._owner );
 
-								from_entity.Damage( dmg, this._owner, limb_mult > 1 );
+								from_entity.DamageWithEffect( dmg, this._owner, limb_mult > 1 );
 
 								if ( this._owner )
 								if ( old_hea > 0 )

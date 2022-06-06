@@ -198,7 +198,7 @@ class sdOctopus extends sdEntity
 		// less fall damage
 		if ( vel > 10 )
 		{
-			this.Damage( ( vel - 4 ) * 15 );
+			this.DamageWithEffect( ( vel - 4 ) * 15 );
 		}
 	}*/
 	onThink( GSPEED ) // Class-specific, if needed
@@ -390,10 +390,10 @@ class sdOctopus extends sdEntity
 									// No damage
 								}
 								else*/
-								from_entity.Damage( 75, this );
+								from_entity.DamageWithEffect( 75, this );
 							}
 							else
-							from_entity.Damage( 75, this );
+							from_entity.DamageWithEffect( 75, this );
 						}
 						
 						this._hea = Math.min( this._hmax, this._hea + 25 );

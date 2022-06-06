@@ -418,13 +418,13 @@ class sdGunClass
 					//if ( target_entity.material !== ''
 					{
 						if ( !bullet._owner._is_being_removed )
-						bullet._owner.Damage( 5 );
+						bullet._owner.DamageWithEffect( 5 );
 					}
 				},
 				_custom_target_reaction_protected:( bullet, target_entity )=>
 				{
 					if ( !bullet._owner._is_being_removed )
-					bullet._owner.Damage( 5 );
+					bullet._owner.DamageWithEffect( 5 );
 				}
 			}
 		};
@@ -928,7 +928,7 @@ class sdGunClass
 				if ( gun._held_by.IsPlayerClass() )
 				if ( gun._held_by.hea < gun._held_by.hmax )
 				{
-					gun._held_by.Damage( -15, null ); // Heal self if HP isn't max. However this healing is unaffected by damage mult and power pack
+					gun._held_by.DamageWithEffect( -15, null ); // Heal self if HP isn't max. However this healing is unaffected by damage mult and power pack
 				}
 				return true;
 			},
@@ -1017,7 +1017,7 @@ class sdGunClass
 					{
 						if ( bullet._owner._god )
 						{
-							target_entity.Damage( Infinity, bullet._owner, false, false );
+							target_entity.DamageWithEffect( Infinity, bullet._owner, false, false );
 							target_entity.remove();
 						}
 						else
@@ -1240,7 +1240,7 @@ class sdGunClass
 				{
 					gun._held_by.AnnounceTooManyEffectsIfNeeded();
 					gun._held_by.power_ef = 30 * 30;
-					//gun._held_by.Damage( 40 );
+					//gun._held_by.DamageWithEffect( 40 );
 					
 					//if ( gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ] )
 					//gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ].remove();
@@ -1274,7 +1274,7 @@ class sdGunClass
 				{
 					gun._held_by.AnnounceTooManyEffectsIfNeeded();
 					gun._held_by.time_ef = 30 * 30;
-					//gun._held_by.Damage( 40 );
+					//gun._held_by.DamageWithEffect( 40 );
 					
 					//if ( gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_TIME_PACK ].slot ] )
 					//gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_TIME_PACK ].slot ].remove();
@@ -1519,7 +1519,7 @@ class sdGunClass
 					gun._held_by.AnnounceTooManyEffectsIfNeeded();
 					gun._held_by.stim_ef = 30 * 30;
 					gun._held_by.power_ef = 30 * 30;
-					gun._held_by.Damage( 40, null, false, false ); // Don't damage armor
+					gun._held_by.DamageWithEffect( 40, null, false, false ); // Don't damage armor
 					
 					/*if ( gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ] )
 					gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ].remove();*/
@@ -2444,8 +2444,8 @@ class sdGunClass
 					
 					if ( target_entity.IsPlayerClass() )
 					{
-						target_entity.Damage( 1 );
-						target_entity.Damage( -1 );
+						target_entity.DamageWithEffect( 1 );
+						target_entity.DamageWithEffect( -1 );
 					}
 					
 					for ( let i = 0; i < 6; i++ )
@@ -2467,8 +2467,8 @@ class sdGunClass
 					
 					if ( target_entity.IsPlayerClass() )
 					{
-						target_entity.Damage( 1 );
-						target_entity.Damage( -1 );
+						target_entity.DamageWithEffect( 1 );
+						target_entity.DamageWithEffect( -1 );
 					}
 					
 					for ( let i = 0; i < 6; i++ )
@@ -2700,7 +2700,7 @@ class sdGunClass
 			
 			if ( target_entity.is( sdLost ) )
 			{
-				target_entity.Damage( 33 * dmg_scale, bullet._owner );
+				target_entity.DamageWithEffect( 33 * dmg_scale, bullet._owner );
 			}
 			else
 			{

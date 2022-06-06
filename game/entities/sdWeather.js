@@ -2321,7 +2321,7 @@ class sdWeather extends sdEntity
 							//sdWorld.SendEffect({ x:sdWorld.sockets[ i ].character.x, y:sdWorld.sockets[ i ].character.y + sdWorld.sockets[ i ].character._hitbox_y1, type:sdWorld.sockets[ i ].character.GetBleedEffect(), filter:sdWorld.sockets[ i ].character.GetBleedEffectFilter() });
 						}
 
-						sdWorld.sockets[ i ].character.Damage( GSPEED * this.raining_intensity / 240 );
+						sdWorld.sockets[ i ].character.DamageWithEffect( GSPEED * this.raining_intensity / 240 );
 					}
 				}
 
@@ -2562,9 +2562,9 @@ class sdWeather extends sdEntity
 							sdWorld.last_hit_entity = null;
 							if ( sdWorld.CheckWallExistsBox( x - 4, y + 4, x+16 + 4, y+16 + 4, null, null, [ 'sdBlock' ] ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) )  )
 							{
-								//sdWeather.last_crystal_near_quake.Damage( 15 );
+								//sdWeather.last_crystal_near_quake.DamageWithEffect( 15 );
 								if ( sdWeather.last_crystal_near_quake.IsTargetable( this ) )
-								sdWeather.last_crystal_near_quake.Damage( 20 );
+								sdWeather.last_crystal_near_quake.DamageWithEffect( 20 );
 							}
 						}
 

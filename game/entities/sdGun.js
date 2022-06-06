@@ -217,11 +217,11 @@ class sdGun extends sdEntity
 					}
 
 					if ( this._dangerous_from && this._dangerous_from.is( sdCharacter ) )
-					from_entity.Damage( sdGun.classes[ this.class ].projectile_properties._damage * this._dangerous_from._damage_mult, this._dangerous_from );
+					from_entity.DamageWithEffect( sdGun.classes[ this.class ].projectile_properties._damage * this._dangerous_from._damage_mult, this._dangerous_from );
 					else
-					from_entity.Damage( sdGun.classes[ this.class ].projectile_properties._damage, this._dangerous_from );
+					from_entity.DamageWithEffect( sdGun.classes[ this.class ].projectile_properties._damage, this._dangerous_from );
 
-					this.Damage( 1 );
+					this.DamageWithEffect( 1 );
 					
 					if ( sdGun.classes[ this.class ].onThrownSwordReaction )
 					sdGun.classes[ this.class ].onThrownSwordReaction( this, from_entity, false );
@@ -687,10 +687,10 @@ class sdGun extends sdEntity
 							{
 
 								if ( typeof ent.hmax !== 'undefined' )
-								ent.Damage( ent.hmax * 0.9 ); // Start with low hp
+								ent.DamageWithEffect( ent.hmax * 0.9 ); // Start with low hp
 
 								if ( typeof ent._hmax !== 'undefined' )
-								ent.Damage( ent._hmax * 0.9 ); // Start with low hp
+								ent.DamageWithEffect( ent._hmax * 0.9 ); // Start with low hp
 							}
 						
 							ent.onBuilt();

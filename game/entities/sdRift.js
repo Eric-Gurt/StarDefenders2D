@@ -136,16 +136,16 @@ class sdRift extends sdEntity
 							if ( ents[ i ].GetClass() !== 'sdGun' && ents[ i ].GetClass() !== 'sdCrystal' && ents[ i ].GetClass() !== 'sdBG' )
 							{
 								if ( ents[ i ].GetClass() === 'sdBlock' )
-								ents[ i ].Damage( 8 );
+								ents[ i ].DamageWithEffect( 8 );
 								//else
 								//if ( sdWorld.inDist2D( ents[ i ].x, ents[ i ].y, this.x, this.y ) < 16 )
-								//ents[ i ].Damage( 16 );
+								//ents[ i ].DamageWithEffect( 16 );
 							}
 							else
 							{
 								if ( ents[ i ].GetClass() === 'sdBG' )
 								if ( Math.random() < 0.01 )
-								ents[ i ].Damage( 16 );
+								ents[ i ].DamageWithEffect( 16 );
 							}
 						}
 					}
@@ -358,7 +358,7 @@ class sdRift extends sdEntity
 
 		if ( this.type === 4 ) // Black portal deals damage / vacuums stuff inside
 		{
-			from_entity.Damage( 0.25 );
+			from_entity.DamageWithEffect( 0.25 );
 			if ( typeof from_entity.sx !== 'undefined' )
 			from_entity.sx -= ( from_entity.x - this.x ) / 40;
 			if ( typeof from_entity.sy !== 'undefined' )

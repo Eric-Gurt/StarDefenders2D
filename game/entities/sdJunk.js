@@ -396,7 +396,7 @@ class sdJunk extends sdEntity
 		// less fall damage
 		if ( vel > 10 )
 		{
-			this.Damage( ( vel - 4 ) * 15 );
+			this.DamageWithEffect( ( vel - 4 ) * 15 );
 		}
 	}*/
 	onThink( GSPEED ) // Class-specific, if needed
@@ -413,7 +413,7 @@ class sdJunk extends sdEntity
 				this.MatterGlow( 0.01, 30, GSPEED );
 			}
 			if ( this.type === 0 || ( this.type === 1 && this.hea !== this.hmax ) || ( this.type === 2 && this.hea !== this.hmax ) )
-			this.Damage( GSPEED );
+			this.DamageWithEffect( GSPEED );
 
 			if ( this.type === 3 )
 			{

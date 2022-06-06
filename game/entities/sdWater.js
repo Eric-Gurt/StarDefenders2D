@@ -294,13 +294,13 @@ class sdWater extends sdEntity
 								else
 								if ( e_is_organic )
 								{
-									e.Damage( 0.5 * GSPEED * this._volume, this );
+									e.DamageWithEffect( 0.5 * GSPEED * this._volume, this );
 								}
 							}
 							if ( sdWater.damage_by_type[ this.type ] !== 0 )
 							if ( this.type === sdWater.TYPE_LAVA || ( this.type === sdWater.TYPE_ACID && e_is_organic ) )
 							if ( !e.isWaterDamageResistant() )
-							e.Damage( sdWater.damage_by_type[ this.type ] * GSPEED ); 
+							e.DamageWithEffect( sdWater.damage_by_type[ this.type ] * GSPEED ); 
 						}
 					}
 					else
@@ -617,7 +617,7 @@ class sdWater extends sdEntity
 			{
 				this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 				
-				//from_entity.Damage( GSPEED * 5 );
+				//from_entity.DamageWithEffect( GSPEED * 5 );
 				if ( !sdWater.all_swimmers.has( from_entity ) )
 				if ( !this._swimmers.has( from_entity ) )
 				{

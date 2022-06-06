@@ -1112,7 +1112,7 @@ class sdWorld
 			/*let targets = sdWorld.GetAnythingNear( params.x, params.y, params.radius );
 			
 			for ( var i = 0; i < targets.length; i++ )
-			targets[ i ].Damage( params.radius * 2 );*/
+			targets[ i ].DamageWithEffect( params.radius * 2 );*/
 			
 			if ( params.color === undefined )
 			throw new Error('Should not happen');

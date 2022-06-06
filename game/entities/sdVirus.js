@@ -276,14 +276,14 @@ class sdVirus extends sdEntity
 		// less fall damage
 		if ( vel > 10 )
 		{
-			this.Damage( ( vel - 4 ) * 15 );
+			this.DamageWithEffect( ( vel - 4 ) * 15 );
 		}
 	}*/
 	Impact( vel ) // fall damage basically
 	{
 		if ( vel > 8 ) // less fall damage
 		{
-			this.Damage( ( vel - 3 ) * 15 );
+			this.DamageWithEffect( ( vel - 3 ) * 15 );
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
@@ -398,7 +398,7 @@ class sdVirus extends sdEntity
 				if ( from_entity.IsTargetable() )
 				if ( sdWorld.CheckLineOfSight( this.x, this.y, from_entity.x, from_entity.y, null, null, sdCom.com_creature_attack_unignored_classes ) )
 				{
-					from_entity.Damage( 20 * this.hmax / sdVirus.normal_max_health, this );
+					from_entity.DamageWithEffect( 20 * this.hmax / sdVirus.normal_max_health, this );
 					
 					this._hea = Math.min( this.hmax, this._hea + 15 * this.hmax / sdVirus.normal_max_health );
 					

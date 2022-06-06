@@ -53,7 +53,7 @@ class sdConveyor extends sdEntity
 	{
 		if ( vel > 6 ) // For new mass-based model
 		{
-			this.Damage( ( vel - 3 ) * 15 );
+			this.DamageWithEffect( ( vel - 3 ) * 15 );
 		}
 	}
 	

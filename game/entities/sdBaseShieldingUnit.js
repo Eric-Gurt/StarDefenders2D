@@ -64,7 +64,7 @@ class sdBaseShieldingUnit extends sdEntity
 		// No impact damage if has driver (because no headshot damage)
 		if ( vel > 5 )
 		{
-			this.Damage( ( vel - 3 ) * 25 );
+			this.DamageWithEffect( ( vel - 3 ) * 25 );
 		}
 	}
 	RequireSpawnAlign() 
@@ -144,7 +144,7 @@ class sdBaseShieldingUnit extends sdEntity
 				{
 					if ( !sdWorld.inDist2D_Boolean( initiator.x, initiator.y, this.x, this.y, sdBaseShieldingUnit.protect_distance - 64 ) ) // Check if it is far enough from the shield to prevent players in base take damage
 					{
-						initiator.Damage( 5 );
+						initiator.DamageWithEffect( 5 );
 						
 						if ( fx )
 						{
@@ -426,7 +426,7 @@ class sdBaseShieldingUnit extends sdEntity
 									color: '#55aaff'
 								});
 								
-								that.Damage( this.hmax / 20 * 0.95 ); // Leave with 5 hitpoints
+								that.DamageWithEffect( this.hmax / 20 * 0.95 ); // Leave with 5 hitpoints
 							}
 						}, i * 150 );
 					}
@@ -474,6 +474,8 @@ class sdBaseShieldingUnit extends sdEntity
 			const range = ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER ) ? 
 				sdBaseShieldingUnit.protect_distance + 64 :
 				sdBaseShieldingUnit.protect_distance * 1.5;
+		
+			let friendly_shields = this.FindObjectsInACableNetwork( null, sdBaseShieldingUnit );
 			
 			for ( let i = 0; i < units.length; i++ ) // Protect nearby entities inside base unit's radius
 			if ( units[ i ].type === this.type )
@@ -483,6 +485,7 @@ class sdBaseShieldingUnit extends sdEntity
 				if ( ( sdWorld.Dist2D( this.x, this.y, units[ i ].x, units[ i ].y ) < range ) ) // Only attack close range shields can be attacked
 				if ( units[ i ] !== this )
 				if ( units[ i ].enabled === true )
+				if ( units[ i ].indexOf( friendly_shields ) === -1 ) // Do not attack same base's shields
 				{
 					if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 					{

@@ -42,7 +42,7 @@ class sdBomb extends sdEntity
 	{
 		if ( vel > 7 )
 		{
-			this.Damage( ( vel - 4 ) * 5 );
+			this.DamageWithEffect( ( vel - 4 ) * 5 );
 		}
 	}
 	Damage( dmg, initiator=null )
@@ -124,7 +124,7 @@ class sdBomb extends sdEntity
 		}
 		else
 		{
-			this.Damage( GSPEED );
+			this.DamageWithEffect( GSPEED );
 		}
 	}
 	DrawHUD( ctx, attached ) // foreground layer

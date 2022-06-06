@@ -136,14 +136,14 @@ class sdAmphid extends sdEntity
 		// less fall damage
 		if ( vel > 10 )
 		{
-			this.Damage( ( vel - 4 ) * 15 );
+			this.DamageWithEffect( ( vel - 4 ) * 15 );
 		}
 	}*/
 	Impact( vel ) // fall damage basically
 	{
 		if ( vel > 13 ) // less fall damage
 		{
-			this.Damage( ( vel - 4 ) * 12 );
+			this.DamageWithEffect( ( vel - 4 ) * 12 );
 		}
 	}
 	CustomFilteringMethod( hit_entity )
@@ -271,7 +271,7 @@ class sdAmphid extends sdEntity
 				if ( from_entity.IsTargetable() )
 				if ( sdWorld.CheckLineOfSight( this.x, this.y, from_entity.x, from_entity.y, null, null, sdCom.com_creature_attack_unignored_classes ) )
 				{
-					from_entity.Damage( 50, this );
+					from_entity.DamageWithEffect( 50, this );
 					
 					this._hea = Math.min( this.hmax, this._hea + 15 );
 
