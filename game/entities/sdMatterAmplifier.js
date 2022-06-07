@@ -502,7 +502,7 @@ class sdMatterAmplifier extends sdEntity
 	{
 	//	return 0; // Hack
 		if ( this.multiplier === 1 )
-		return 300 + this._hmax * sdWorld.damage_to_matter;
+		return 200 + this._hmax * sdWorld.damage_to_matter;
 		if ( this.multiplier === 2 )
 		return 600 + this._hmax * sdWorld.damage_to_matter;
 		if ( this.multiplier === 3 )
