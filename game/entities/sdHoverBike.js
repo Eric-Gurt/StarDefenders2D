@@ -575,7 +575,7 @@ class sdHoverBike extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		return this.hmax * sdWorld.damage_to_matter + 850;
+		return this.hmax * sdWorld.damage_to_matter + 550;
 	}
 }
 //sdHoverBike.init_class();

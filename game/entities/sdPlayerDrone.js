@@ -398,12 +398,14 @@ class sdPlayerDrone extends sdCharacter
 							bullet_obj.color = '#aaaa55';
 							bullet_obj.time_left = 12;
 							bullet_obj._rail = true;
+							bullet_obj._dirt_mult = 4;
 						}
 						else
 						{
 							bullet_obj.color = '#223355';
 							bullet_obj.time_left = 8;
 							bullet_obj._rail = true;
+							bullet_obj._dirt_mult = 4;
 						}
 						
 						bullet_obj.time_left *= scale;

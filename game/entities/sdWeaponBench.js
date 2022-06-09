@@ -123,7 +123,7 @@ class sdWeaponBench extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		return 800;
+		return 550;
 	}
 	onMovementInRange( from_entity )
 	{
