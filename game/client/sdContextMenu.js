@@ -28,7 +28,7 @@ class sdContextMenu
 			
 			sdContextMenu.options = [];
 				
-			if ( sdContextMenu.current_target === sdWorld.my_entity )
+			/*if ( sdContextMenu.current_target === sdWorld.my_entity )
 			{
 				sdContextMenu.options.push({ title: 'Quit and forget this character',
 					action: ()=>
@@ -42,16 +42,16 @@ class sdContextMenu
 					}
 				});
 				sdContextMenu.options.push({ title: 'Copy character hash ID',
-				action: ()=>
-				{
-					//globalThis.socket.emit( 'SELF_EXTRACT' );
-					
-				if(confirm( 'Sharing this with others, or not knowing how to use this properly can make you lose your character and progress. Are you sure?' ) )
-				{
-					prompt('This is your hash, keep it private and remember it to recover your character.', localStorage.my_hash + "|" + localStorage.my_net_id);
-				}
-				}
-			});
+					action: ()=>
+					{
+						//globalThis.socket.emit( 'SELF_EXTRACT' );
+
+						if(confirm( 'Sharing this with others, or not knowing how to use this properly can make you lose your character and progress. Are you sure?' ) )
+						{
+							prompt('This is your hash, keep it private and remember it to recover your character.', localStorage.my_hash + "|" + localStorage.my_net_id);
+						}
+					}
+				});
 				
 				if ( sdContextMenu.current_target.cc_id )
 				{
@@ -79,9 +79,9 @@ class sdContextMenu
 					}
 				});
 			}
-			else
+			else*/
 			{
-				if ( sdContextMenu.current_target.GetClass() === 'sdCharacter' )
+				/*if ( sdContextMenu.current_target.GetClass() === 'sdCharacter' )
 				{
 					if ( sdContextMenu.current_target.cc_id )
 					{
@@ -93,7 +93,7 @@ class sdContextMenu
 						});
 					}
 				}
-				else
+				else*/
 				if ( sdContextMenu.current_target.GetClass() === 'sdUpgradeStation' )
 				{
 					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdCom.action_range_command_centre ) >= 0 )

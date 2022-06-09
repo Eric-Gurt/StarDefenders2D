@@ -3823,6 +3823,12 @@ class sdEntity
 			}
 		});
 	}
+	AddClientSideActionContextOption( title, action )
+	{
+		sdContextMenu.options.push({ title: title,
+			action: action
+		});
+	}
 }
 //sdEntity.init_class();
 

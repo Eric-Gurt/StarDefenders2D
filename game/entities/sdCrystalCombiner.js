@@ -622,7 +622,7 @@ class sdCrystalCombiner extends sdEntity
 							0 ) );
 					
 					let can_put_right = ( !this.crystal1 && from_entity.CanMoveWithoutOverlap( 
-							this.x - 24 + 16, 
+							this.x - 8 + 16, 
 							this.y + 7 - from_entity._hitbox_y2, 
 							0 ) );
 							

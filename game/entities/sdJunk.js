@@ -413,7 +413,7 @@ class sdJunk extends sdEntity
 				this.MatterGlow( 0.01, 30, GSPEED );
 			}
 			if ( this.type === 0 || ( this.type === 1 && this.hea !== this.hmax ) || ( this.type === 2 && this.hea !== this.hmax ) )
-			this.DamageWithEffect( GSPEED );
+			this.Damage( GSPEED );
 
 			if ( this.type === 3 )
 			{

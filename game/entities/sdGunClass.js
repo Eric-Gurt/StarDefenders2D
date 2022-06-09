@@ -486,7 +486,7 @@ class sdGunClass
 				ammo_capacity: -1,
 				count: 3,
 				projectile_velocity: 14 * 2,
-				spread: 0.15,
+				spread: 0.11, // 0.15,
 				projectile_properties: { _damage: 40, color: '#DDDDDD', penetrating: true }, // I nerfed it's damage from 45 to 40 but that's up to balancing decisions - Booraz149
 				spawnable:false
 		};

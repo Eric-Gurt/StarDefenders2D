@@ -36,6 +36,7 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_POPCORN = 11;
 		sdEffect.TYPE_TELEPORT = 12;
 		sdEffect.TYPE_SHELL = 13;
+		sdEffect.TYPE_HEARTS = 14;
 		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
@@ -187,6 +188,14 @@ class sdEffect extends sdEntity
 			random_flip: false,
 			gravity: true,
 			collisions: true
+		};
+		sdEffect.types[ sdEffect.TYPE_HEARTS ] = {
+			images: [ sdWorld.CreateImageFromFile( 'effect_hearts' ) ],
+			duration: 3,
+			random_flip: false,
+			random_rotation: false,
+			speed: 1 / 30,
+			//random_speed_percentage: 0.2
 		};
 		
 	
@@ -655,6 +664,10 @@ class sdEffect extends sdEntity
 		{
 		}
 		else
+		if ( this._type === sdEffect.TYPE_HEARTS )
+		{
+		}
+		else
 		if ( typeof sdEffect.types[ this._type ].images[ ~~this._ani ] === 'number' )
 		{
 			let width = sdEffect.types[ this._type ].images[ ~~this._ani ];
@@ -813,6 +826,14 @@ class sdEffect extends sdEntity
 			let frame = ~~( this._ani );
 			ctx.filter = this._filter;
 			ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], 96 + (frame%3)*32, 0 + ~~(frame/3)*32, 32,32, -16,-16,32,32 );
+			ctx.filter = 'none';
+		}
+		else
+		if ( this._type === sdEffect.TYPE_HEARTS )
+		{
+			let frame = ~~( this._ani );
+			ctx.filter = this._filter;
+			ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], 0 + frame*16, 0, 16,16, -8,-8,16,16 );
 			ctx.filter = 'none';
 		}
 	}

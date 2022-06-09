@@ -5,6 +5,7 @@ import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdKeyStates from '../sdKeyStates.js';
 
+
 import sdEntity from './sdEntity.js';
 import sdGun from './sdGun.js';
 import sdEffect from './sdEffect.js';
@@ -27,6 +28,7 @@ import sdLifeBox from './sdLifeBox.js';
 import sdLost from './sdLost.js';
 
 import sdTask from './sdTask.js';
+import sdStatusEffect from './sdStatusEffect.js';
 
 import sdCharacterRagdoll from './sdCharacterRagdoll.js';
 
@@ -4100,10 +4102,121 @@ class sdCharacter extends sdEntity
 			ctx.drawImageFilterCache( sdCharacter.img_teammate, - 16, - 16 - 32, 32,32 );
 		}
 	}
+	
+	
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( !this._is_being_removed )
+		if ( this.hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		{
+			if ( exectuter_character ) 
+			if ( exectuter_character.hea > 0 ) 
+			{
+				if ( command_name === 'EMOTE' )
+				{
+					if ( parameters_array[ 0 ] === 'HEARTS' )
+					{
+						exectuter_character.ApplyStatusEffect({ type: sdStatusEffect.TYPE_HEARTS });
+					}
+					if ( parameters_array[ 0 ] === 'NOTHING' )
+					{
+						sdStatusEffect.PerformActionOnStatusEffectsOf( this, ( status_effect )=>
+						{
+							if ( status_effect.GetStatusType().is_emote )
+							status_effect.remove();
+						});
+					}
+				}
+
+				if ( command_name === 'REMOVE_ARMOR' )
+				{
+					if ( exectuter_character.armor > 0 ) 
+					{
+						exectuter_character.RemoveArmor();
+					}
+				}
+
+				if ( command_name === 'REMOVE_EFFECTS' )
+				{
+					exectuter_character.stim_ef = 0;
+					exectuter_character.power_ef = 0;
+					exectuter_character.time_ef = 0;
+				}
+			}
+
+			if ( command_name === 'CC_SET_SPAWN' )
+			{
+				if ( exectuter_character )
+				if ( exectuter_character.cc )
+				if ( this.cc === exectuter_character.cc )
+				{
+					if ( exectuter_character._cc_rank < this._cc_rank || exectuter_character === this )
+					{
+						exectuter_character.cc.KickNetID( this, true );
+					}
+					else
+					executer_socket.SDServiceMessage( 'Not enough rights to kick user' );
+				}
+			}
+
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( !this._is_being_removed )
+		if ( this.hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+		{
+			if ( this === exectuter_character )
+			{
+				this.AddClientSideActionContextOption( 'Quit and forget this character', ()=>
+				{
+					if ( sdWorld.my_score < 50 || confirm( 'Are you sure you want to forget this character?' ) )
+					{
+						sdWorld.Stop();
+					}
+				});
+				this.AddClientSideActionContextOption( 'Copy character hash ID', ()=>
+				{
+					if(confirm( 'Sharing this with others, or not knowing how to use this properly can make you lose your character and progress. Are you sure?' ) )
+					{
+						prompt('This is your hash, keep it private and remember it to recover your character.', localStorage.my_hash + "|" + localStorage.my_net_id);
+					}
+				});
+				
+				if ( this.cc_id )
+				{
+					this.AddContextOption( 'Leave team', 'CC_SET_SPAWN', [] );
+				}
+				
+				if ( this.armor > 0 )
+				this.AddContextOption( 'Lose armor', 'REMOVE_ARMOR', [] );
+				
+				if ( this.stim_ef > 0 || this.power_ef > 0 || this.time_ef > 0 )
+				this.AddContextOption( 'Remove pack effects', 'REMOVE_EFFECTS', [] );
+			
+				this.AddContextOption( 'Emote: Hearts', 'EMOTE', [ 'HEARTS' ] );
+				this.AddContextOption( 'Stop emotes', 'EMOTE', [ 'NOTHING' ] );
+			}
+			else
+			{
+				if ( this.cc_id )
+				{
+					this.AddContextOption( 'Kick from team', 'CC_SET_SPAWN', [] );
+				}
+			}
+		}
+	}
+	
 	MeasureMatterCost()
 	{
 		return 200; // Hack
 	}
+	
 	Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false, simulate_sound=false )
 	{
 		let params = { 

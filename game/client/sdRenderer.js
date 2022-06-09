@@ -196,7 +196,7 @@ class sdRenderer
 				//const sd_status_effect_filter = ctx0.sd_status_effect_filter; // Separate slot to apply sd_fitlers
 				
 				const sd_filter = ctx0.sd_status_effect_filter ? ctx0.sd_status_effect_filter : ctx0.sd_filter; // custom filter, { colorA:replacementA, colorB:replacementB }
-				const sd_tint_filter = ctx0.sd_status_effect_tint_filter ? ( ctx0.sd_tint_filter ? [ ctx0.sd_tint_filter[0]*ctx0.sd_status_effect_tint_filter[0], ctx0.sd_tint_filter[1]*ctx0.sd_status_effect_tint_filter[1], ctx0.sd_tint_filter[2]*ctx0.sd_status_effect_tint_filter[2] ] : ctx0.sd_status_effect_tint_filter ) : ctx0.sd_tint_filter; // custom filter, [ r, g, b ], multiplies
+				const sd_tint_filter = null;//ctx0.sd_status_effect_tint_filter ? ( ctx0.sd_tint_filter ? [ ctx0.sd_tint_filter[0]*ctx0.sd_status_effect_tint_filter[0], ctx0.sd_tint_filter[1]*ctx0.sd_status_effect_tint_filter[1], ctx0.sd_tint_filter[2]*ctx0.sd_status_effect_tint_filter[2] ] : ctx0.sd_status_effect_tint_filter ) : ctx0.sd_tint_filter; // custom filter, [ r, g, b ], multiplies
 
 				if ( sd_filter || sd_tint_filter || filter !== 'none' )
 				{
@@ -973,32 +973,38 @@ class sdRenderer
 					for ( var i = 0; i < sdEntity.entities.length; i++ )
 					if ( sdEntity.entities[ i ].DrawHUD !== sdEntity.prototype.DrawHUD )
 					{
-						// If cursor overlaps
-						var di = sdEntity.entities[ i ].GetAccurateDistance( sdWorld.my_entity.look_x, sdWorld.my_entity.look_y );
+						//let cache = sdStatusEffect.line_of_sight_visibility_cache.get( sdEntity.entities[ i ] );
 						
-						/*
-						
-						var di = sdWorld.inDist2D(	sdWorld.my_entity.look_x, 
-													sdWorld.my_entity.look_y, 
-													Math.min( Math.max( sdEntity.entities[ i ].x + sdEntity.entities[ i ]._hitbox_x1, sdWorld.my_entity.look_x ), sdEntity.entities[ i ].x + sdEntity.entities[ i ]._hitbox_x2 ), 
-													Math.min( Math.max( sdEntity.entities[ i ].y + sdEntity.entities[ i ]._hitbox_y1, sdWorld.my_entity.look_y ), sdEntity.entities[ i ].y + sdEntity.entities[ i ]._hitbox_y2 ), 8 );
-													
-						if ( di >= 0 ) */
-						if ( di < 12 )
+						//if ( cache && ( cache.result > 0 || cache.result_soft > 0 ) ) // If client-side visible
 						{
-							if ( di <= 0 )
-							di -= 1;
-						
-							// Prioritize physical center
-							di += sdWorld.Dist2D( sdWorld.my_entity.look_x, 
-												  sdWorld.my_entity.look_y,
-												  sdEntity.entities[ i ].x + ( sdEntity.entities[ i ]._hitbox_x1 + sdEntity.entities[ i ]._hitbox_x2 ) / 2,
-												  sdEntity.entities[ i ].y + ( sdEntity.entities[ i ]._hitbox_y1 + sdEntity.entities[ i ]._hitbox_y2 ) / 2 ) * 0.001;
+							// If cursor overlaps
+							var di = sdEntity.entities[ i ].GetAccurateDistance( sdWorld.my_entity.look_x, sdWorld.my_entity.look_y );
 
-							if ( di < best_di || best_ent === null )
+
+							/*
+
+							var di = sdWorld.inDist2D(	sdWorld.my_entity.look_x, 
+														sdWorld.my_entity.look_y, 
+														Math.min( Math.max( sdEntity.entities[ i ].x + sdEntity.entities[ i ]._hitbox_x1, sdWorld.my_entity.look_x ), sdEntity.entities[ i ].x + sdEntity.entities[ i ]._hitbox_x2 ), 
+														Math.min( Math.max( sdEntity.entities[ i ].y + sdEntity.entities[ i ]._hitbox_y1, sdWorld.my_entity.look_y ), sdEntity.entities[ i ].y + sdEntity.entities[ i ]._hitbox_y2 ), 8 );
+
+							if ( di >= 0 ) */
+							if ( di < 12 )
 							{
-								best_ent = sdEntity.entities[ i ];
-								best_di = di;
+								if ( di <= 0 )
+								di -= 1;
+
+								// Prioritize physical center
+								di += sdWorld.Dist2D( sdWorld.my_entity.look_x, 
+													  sdWorld.my_entity.look_y,
+													  sdEntity.entities[ i ].x + ( sdEntity.entities[ i ]._hitbox_x1 + sdEntity.entities[ i ]._hitbox_x2 ) / 2,
+													  sdEntity.entities[ i ].y + ( sdEntity.entities[ i ]._hitbox_y1 + sdEntity.entities[ i ]._hitbox_y2 ) / 2 ) * 0.001;
+
+								if ( di < best_di || best_ent === null )
+								{
+									best_ent = sdEntity.entities[ i ];
+									best_di = di;
+								}
 							}
 						}
 					}

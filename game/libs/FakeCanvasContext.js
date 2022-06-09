@@ -641,6 +641,21 @@ class FakeCanvasContext
 				this.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT;
 			}
 			
+			// ctx0.sd_tint_filter[0]*ctx0.sd_status_effect_tint_filter[0]
+			if ( this.sd_tint_filter )
+			{
+				this.sd_color_mult_r *= this.sd_tint_filter[ 0 ];
+				this.sd_color_mult_g *= this.sd_tint_filter[ 1 ];
+				this.sd_color_mult_b *= this.sd_tint_filter[ 2 ];
+			}
+			if ( this.sd_status_effect_tint_filter )
+			{
+				this.sd_color_mult_r *= this.sd_status_effect_tint_filter[ 0 ];
+				this.sd_color_mult_g *= this.sd_status_effect_tint_filter[ 1 ];
+				this.sd_color_mult_b *= this.sd_status_effect_tint_filter[ 2 ];
+			}
+			
+			
 			sdAtlasMaterial.drawImage( img, 0, 0, 1, 1, destination_x, destination_y, destination_w, destination_h );
 			
 			this.volumetric_mode = old_mode;
@@ -963,7 +978,35 @@ class FakeCanvasContext
 		
 		if ( sdRenderer.visual_settings === 4 )
 		{
-			sdAtlasMaterial.drawImage( image, source_x, source_y, source_w, source_h, destination_x, destination_y, destination_w, destination_h );
+			if ( this.sd_tint_filter || this.sd_status_effect_tint_filter )
+			{
+				let old_r = this.sd_color_mult_r;
+				let old_g = this.sd_color_mult_g;
+				let old_b = this.sd_color_mult_b;
+
+				if ( this.sd_tint_filter )
+				{
+					this.sd_color_mult_r *= this.sd_tint_filter[ 0 ];
+					this.sd_color_mult_g *= this.sd_tint_filter[ 1 ];
+					this.sd_color_mult_b *= this.sd_tint_filter[ 2 ];
+				}
+				if ( this.sd_status_effect_tint_filter )
+				{
+					this.sd_color_mult_r *= this.sd_status_effect_tint_filter[ 0 ];
+					this.sd_color_mult_g *= this.sd_status_effect_tint_filter[ 1 ];
+					this.sd_color_mult_b *= this.sd_status_effect_tint_filter[ 2 ];
+				}
+
+				sdAtlasMaterial.drawImage( image, source_x, source_y, source_w, source_h, destination_x, destination_y, destination_w, destination_h );
+
+				this.sd_color_mult_r = old_r;
+				this.sd_color_mult_g = old_g;
+				this.sd_color_mult_b = old_b;
+			}
+			else
+			{
+				sdAtlasMaterial.drawImage( image, source_x, source_y, source_w, source_h, destination_x, destination_y, destination_w, destination_h );
+			}
 		}
 		else
 		{
