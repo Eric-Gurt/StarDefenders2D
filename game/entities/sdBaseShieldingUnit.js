@@ -485,7 +485,7 @@ class sdBaseShieldingUnit extends sdEntity
 				if ( ( sdWorld.Dist2D( this.x, this.y, units[ i ].x, units[ i ].y ) < range ) ) // Only attack close range shields can be attacked
 				if ( units[ i ] !== this )
 				if ( units[ i ].enabled === true )
-				if ( units[ i ].indexOf( friendly_shields ) === -1 ) // Do not attack same base's shields
+				if ( friendly_shields.indexOf( units[ i ] ) === -1 ) // Do not attack same base's shields
 				{
 					if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 					{
