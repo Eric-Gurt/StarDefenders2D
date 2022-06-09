@@ -18,6 +18,7 @@ import sdArea from './sdArea.js';
 import sdCommandCentre from './sdCommandCentre.js';
 import sdCrystal from './sdCrystal.js';
 import sdGun from './sdGun.js';
+import sdStatusEffect from './sdStatusEffect.js';
 
 import sdTask from './sdTask.js';
 
@@ -360,6 +361,18 @@ class sdLongRangeTeleport extends sdEntity
 		
 		let ents_final = [];
 		
+		let IsClassSupported = ( ent )=>
+		{
+			// Check if remote server supports this kind of entity
+			if ( this._remote_supported_entity_classes !== null )
+			if ( this._remote_supported_entity_classes.indexOf( ent.GetClass() ) === -1 )
+			{
+				return false;
+			}
+			
+			return true;
+		};
+		
 		let IsTeleportable = ( ent )=>
 		{
 			if ( use_task_filter )
@@ -428,12 +441,8 @@ class sdLongRangeTeleport extends sdEntity
 			}
 			else
 			{
-				// Check if remote server supports this kind of entity
-				if ( this._remote_supported_entity_classes !== null )
-				if ( this._remote_supported_entity_classes.indexOf( ent.GetClass() ) === -1 )
-				{
-					return false;
-				}
+				if ( !IsClassSupported( ent ) )
+				return false;
 
 				if ( ent.IsPlayerClass() && !ent._socket && ent._ai_enabled <= 0 )
 				{
@@ -442,7 +451,7 @@ class sdLongRangeTeleport extends sdEntity
 				}
 				else
 				//if ( ent.is_static || ent.IsBGEntity() !== 0 || ent._is_being_removed || ( ent.hea || ent._hea ) === undefined )
-				if ( typeof ent.sx === 'undefined' || typeof ent.sy === 'undefined' || ent.IsBGEntity() !== 0 || ent._is_being_removed || ( ent.hea || ent._hea ) === undefined )
+				if ( typeof ent.sx === 'undefined' || typeof ent.sy === 'undefined' || ent.IsBGEntity() !== 0 || ent._is_being_removed || ( ent.hea || ent._hea ) === undefined ) // This will prevent tasks and status effects, but these will be caught later
 				{
 					return false;
 				}
@@ -494,6 +503,13 @@ class sdLongRangeTeleport extends sdEntity
 		for ( let i = 0; i < ents_final.length; i++ )
 		{
 			let ent = ents_final[ i ];
+			
+			// Append status-effects, without extra checks
+			let status_effects = sdStatusEffect.entity_to_status_effects.get( ent );
+			if ( status_effects )
+			for ( let i2 = 0; i2 < status_effects.length; i2++ )
+			if ( IsClassSupported( status_effects[ i2 ] ) )
+			ents_final.push( status_effects[ i2 ] );
 			
 			for ( let prop in ent )
 			{
@@ -737,8 +753,8 @@ class sdLongRangeTeleport extends sdEntity
 					let collected_entities_array = possible_ent._last_collected_entities_array;
 					
 					trace( '--AuthorizedIncomingS2SProtocolMessageHandler--');
-					trace( 'Executing: ' + data_object.action );
-					trace( 'collected_entities_array: '+collected_entities_array );
+					trace( 'Executing: ', data_object.action );
+					trace( 'collected_entities_array: ', collected_entities_array );
 					
 					for ( let i = 0; i < collected_entities_array.length; i++ )
 					if ( collected_entities_array[ i ].IsPlayerClass() )

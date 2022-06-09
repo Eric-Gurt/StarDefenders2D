@@ -487,6 +487,8 @@ class sdStatusEffect extends sdEntity
 		
 			if ( status_type.remove_if_for_removed === false )
 			this.remove_if_for_removed = false;
+			else
+			this.remove_if_for_removed = true;
 		}
 		
 		sdStatusEffect.status_effects.push( this );
@@ -590,7 +592,15 @@ class sdStatusEffect extends sdEntity
 			isforless = true;
 		}
 
-		if ( !isforless )
+		if ( isforless )
+		{
+			if ( this.remove_if_for_removed )
+			{
+				this.remove();
+				return true;
+			}
+		}
+		else
 		{
 			this.x = this.for.x + ( this.for._hitbox_x1 + this.for._hitbox_x2 ) / 2;
 			this.y = this.for.y + ( this.for._hitbox_x2 + this.for._hitbox_x2 ) / 2;
@@ -607,13 +617,7 @@ class sdStatusEffect extends sdEntity
 				return true;
 			}
 		}
-		
-		if ( isforless )
-		if ( this.remove_if_for_removed )
-		{
-			this.remove();
-			return true;
-		}
+		return false;
 	}
 	
 	/*Draw( ctx, attached )
