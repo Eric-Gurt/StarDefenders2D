@@ -92,6 +92,16 @@ class sdGunClass
 					gun._spread = 0; // Perhaps it should take properties from sdGunClass, although it's the same?
 				}
 			});
+
+			arr.push(
+			{ 
+				title: 'Add incediary ammo to shotgun',
+				cost: 200,
+				action: ( gun, initiator=null )=>
+				{ 
+					gun._dragons_breath = true; // Perhaps it should take properties from sdGunClass, although it's the same?
+				}
+			});
 			
 			arr.push(
 			{ 
@@ -100,6 +110,7 @@ class sdGunClass
 				action: ( gun, initiator=null )=>
 				{ 
 					gun._spread = sdGun.classes[ gun.class ].spread; // Perhaps it should take properties from sdGunClass, although it's the same?
+					gun._dragons_breath = false; // Remove Dragon's breath aswell
 				}
 			});
 			

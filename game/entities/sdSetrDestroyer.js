@@ -535,7 +535,7 @@ class sdSetrDestroyer extends sdEntity
 						if ( this.hea < ( this._hmax / 2 ) )
 						{
 							this.FireDirectionalProjectiles();
-							this._rail_attack_timer = 9;
+							this._rail_attack_timer = 4.5;
 						}
 					}
 					//let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 800 );

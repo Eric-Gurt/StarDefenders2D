@@ -8,6 +8,7 @@ import sdDoor from './sdDoor.js';
 import sdGun from './sdGun.js';
 import sdCharacter from './sdCharacter.js';
 import sdBullet from './sdBullet.js';
+import sdStatusEffect from './sdStatusEffect.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -300,7 +301,11 @@ class sdWater extends sdEntity
 							if ( sdWater.damage_by_type[ this.type ] !== 0 )
 							if ( this.type === sdWater.TYPE_LAVA || ( this.type === sdWater.TYPE_ACID && e_is_organic ) )
 							if ( !e.isWaterDamageResistant() )
-							e.DamageWithEffect( sdWater.damage_by_type[ this.type ] * GSPEED ); 
+							{
+								e.DamageWithEffect( sdWater.damage_by_type[ this.type ] * GSPEED ); 
+								if ( this.type === sdWater.TYPE_LAVA )
+								e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_FIRE });
+							}
 						}
 					}
 					else

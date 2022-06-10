@@ -182,6 +182,7 @@ class sdStatusEffect extends sdEntity
 			},
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
 			{
+
 				return true; // Cancel merge process
 			},
 			
@@ -245,6 +246,103 @@ class sdStatusEffect extends sdEntity
 			}
 		};
 		
+		sdStatusEffect.types[ sdStatusEffect.TYPE_FIRE = 2 ] = 
+		{
+			is_emote: false, // Not emote option
+	
+			onMade: ( status_entity, params )=>
+			{
+				//trace('-- You are on fire');
+				
+				status_entity._ttl = 30 * 6; // 6 seconds
+				status_entity._next_spawn = 0;
+				status_entity._next_damage = 10;
+				
+				status_entity._effects = [];
+				
+				if ( params.ttl !== undefined )
+				status_entity._ttl = params.ttl;
+			},
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				status_entity._ttl = 30 * 6; // 6 seconds
+				return true; // Fire should perhaps stack?
+			},
+			
+			onThink: ( status_entity, GSPEED )=>
+			{
+				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+				//if ( status_entity.for.hea > 0 )
+				{
+					status_entity._next_spawn -= GSPEED;					
+					const up_velocity = -0.4;
+					const y_offset = 8;
+					const range = 8;
+					const range_affection = 8;
+
+					if ( status_entity._next_spawn <= 0 )
+					{
+						status_entity._next_spawn = 5 + Math.random() * 10;
+
+						let a = Math.random() * Math.PI * 2;
+
+						let r = Math.pow( Math.random(), 0.5 ) * range;
+
+						let xx = status_entity.for.x + Math.sin( a ) * r;
+						let yy = status_entity.for.y + y_offset + Math.cos( a ) * r;
+
+						let ent = new sdEffect({ x: xx, y: yy, type:sdEffect.TYPE_GLOW_HIT, sx: 0, sy: up_velocity, color:'#FFAA33' });
+						sdEntity.entities.push( ent );
+
+						status_entity._effects.push( ent );
+
+
+						//let ent2 = new sdEffect({ x: xx, y: yy, type:sdEffect.TYPE_GIB_GREEN, sx: 0, sy: up_velocity, filter:'hue-rotate(-90deg) saturate(1.5)' });
+						//sdEntity.entities.push( ent2 ); // I don't think this looks good. - Booraz149
+
+						//status_entity._effects.push( ent2 );
+
+					}
+					
+					while ( status_entity._effects.length > 0 && status_entity._effects[ 0 ]._is_being_removed )
+					status_entity._effects.shift();
+				
+					for ( let i = 0; i < status_entity._effects.length; i++ )
+					{
+						let ent = status_entity._effects[ i ];
+						
+						let di = sdWorld.inDist2D( ent.x, ent.y, status_entity.for.x, status_entity.for.y + y_offset, range_affection );
+						
+						if ( di >= 0 )
+						{
+							ent.sx = sdWorld.MorphWithTimeScale( ent.sx, status_entity.for.sx, 0.95, GSPEED * ( range_affection - di ) );
+							ent.sy = sdWorld.MorphWithTimeScale( ent.sy, status_entity.for.sy + up_velocity, 0.95, GSPEED * ( range_affection - di ) );
+						}
+
+						ent.sx = sdWorld.MorphWithTimeScale( ent.sx, 0, 0.95, GSPEED );
+						ent.sy = sdWorld.MorphWithTimeScale( ent.sy, up_velocity, 0.95, GSPEED );
+					}
+				}
+				if ( sdWorld.is_server )
+				{
+					status_entity._next_damage -= GSPEED;
+					if ( status_entity._next_damage <= 0 )
+					{
+						status_entity._next_damage = 10;
+						status_entity.for.DamageWithEffect( 2 );
+					}
+				}
+				if ( status_entity._ttl > 0 )
+				{
+					status_entity._ttl -= GSPEED;
+
+					return ( status_entity._ttl <= 0 ); // return true = delete
+				}
+				
+				return false; // Keep
+			}
+		};
+
 		sdStatusEffect.status_effects = [];
 		
 		sdStatusEffect.entity_to_status_effects = new WeakMap(); // entity => [ eff1, eff2 ... ].inversed = [ ... eff2, eff1 ]

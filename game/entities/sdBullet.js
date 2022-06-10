@@ -138,6 +138,8 @@ class sdBullet extends sdEntity
 		this._emp = false; // EMP effect, used for turrets to set them to "sleep mode"
 		this._emp_mult = 1; // How long will the turret sleep ( 1 = 5 seconds )
 
+		this._dragons_breath = false; // Set enemies on fire?
+
 		this._dirt_mult = 0; // bonus Damage multiplier (relative to initial damage) against dirt blocks, used in Laser Drill weapon
 		this._shield_block_mult = 0; // bonus Damage multiplier (relative to initial damage) against shield blocks, used in Life Box
 		this._vehicle_mult = 0; // bonus Damage multiplier (relative to initial damage) against vehicles
@@ -623,6 +625,8 @@ class sdBullet extends sdEntity
 						
 							from_entity.DamageWithEffect( dmg, this._owner, limb_mult !== 1 );
 
+							if ( this._dragons_breath ) // Is this an incediary bullet?
+							from_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_FIRE }); // Set enemy on fire
 							if ( this._owner )
 							if ( old_hea > 0 )
 							if ( old_hea !== ( from_entity.hea || from_entity._hea || 0 ) ) // Any damage actually dealt
@@ -781,6 +785,9 @@ class sdBullet extends sdEntity
 								//from_entity.DamageWithEffect( dmg * this._shield_block_mult, this._owner );
 
 								from_entity.DamageWithEffect( dmg, this._owner, limb_mult > 1 );
+
+								if ( this._dragons_breath ) // Is this an incediary bullet?
+								from_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_FIRE }); // Set enemy on fire
 
 								if ( this._owner )
 								if ( old_hea > 0 )
