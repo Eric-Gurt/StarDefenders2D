@@ -202,6 +202,10 @@ class sdCrystal extends sdEntity
 	{
 		if ( !sdWorld.is_server )
 		return;
+	
+		if ( initiator )
+		if ( initiator._is_being_removed )
+		initiator = null;
 
 		//if ( this.held_by !== null )
 		//return;

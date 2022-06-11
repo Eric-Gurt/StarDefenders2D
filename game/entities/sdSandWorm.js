@@ -212,6 +212,10 @@ class sdSandWorm extends sdEntity
 	{
 		if ( !sdWorld.is_server )
 		return;
+	
+		if ( initiator )
+		if ( initiator._is_being_removed )
+		initiator = null;
 
 		dmg = Math.abs( dmg );
 		
