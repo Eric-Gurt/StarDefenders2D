@@ -95,6 +95,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_SD_EXTRACTION =				event_counter++; // 24
 		sdWeather.EVENT_SETR =					event_counter++; // 25
 		sdWeather.EVENT_SETR_DESTROYER =			event_counter++; // 26
+		sdWeather.EVENT_CRYSTALS_MATTER =			event_counter++; // 27
 		
 		sdWeather.last_crystal_near_quake = null; // Used to damage left over crystals. Could be used to damage anything really
 		
@@ -172,7 +173,7 @@ class sdWeather extends sdEntity
 	}
 	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
 	{
-		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26 ];
+		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27 ];
 				
 		if ( allowed_event_ids.indexOf( 8 ) !== -1 ) // Only if allowed
 		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
@@ -1997,6 +1998,25 @@ class sdWeather extends sdEntity
 
 				instances++;
 			}
+		}
+		if ( r === sdWeather.EVENT_CRYSTALS_MATTER ) // Task which tells players to deliver "X" amount of max matter worth of crystals.
+		{
+				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Create the tasks
+				{
+					let player_count = sdWorld.sockets.length;
+					sdTask.MakeSureCharacterHasTask({ 
+						similarity_hash:'EXTRACT-'+this._net_id, 
+						executer: sdWorld.sockets[ i ].character,
+						target: 'sdCrystal',
+						mission: sdTask.MISSION_LRTP_EXTRACTION,
+						difficulty: 0.5,
+						lrtp_ents_needed: 20480 + ( 5120 * sdWorld.sockets.length ),
+						title: 'Teleport crystals',
+						time_left: 30 * 60 * 30,
+						extra: -99, // This lets the game know to take max matter as progress instead of crystal count.
+						description: 'We need you to teleport a large amount of crystals. This is to help us keep the Mothership supplied with matter so our matter reserves do not deplete. With other Star Defenders on this planet, it should not be too hard.'
+					});
+				}
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

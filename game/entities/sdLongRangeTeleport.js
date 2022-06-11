@@ -389,7 +389,7 @@ class sdLongRangeTeleport extends sdEntity
 						if ( ent.GetClass() === sdTask.tasks[ i ]._target ) // For CC tasks
 						{
 							if ( ent.GetClass() === 'sdCrystal' || ent.GetClass() === 'sdJunk' )
-							if ( ent.type === sdTask.tasks[ i ].extra )
+							if ( ent.type === sdTask.tasks[ i ].extra && sdTask.tasks[ i ].extra !== -99 ) // -99 value is for "Teleport "X" matter worth of crystals task"
 							if ( sdTask.tasks[ i ].lrtp_ents_count < sdTask.tasks[ i ].lrtp_ents_needed )
 							{
 								sdTask.tasks[ i ].lrtp_ents_count++;
@@ -426,10 +426,30 @@ class sdLongRangeTeleport extends sdEntity
 						}
 						if ( ent === sdTask.tasks[ i ]._target ) // For actual entity "target" extraction like that star defender event
 						{
-							if ( sdTask.tasks[ i ].lrtp_ents_count < sdTask.tasks[ i ].lrtp_ents_needed )
+							sdTask.tasks[ j ].lrtp_ents_count++;
+							sdTask.tasks[ j ]._update_version++;
+							return true;
+							break;
+						}
+					}
+					if ( sdTask.tasks[ i ].mission === sdTask.MISSION_LRTP_EXTRACTION ) // If the extraction should apply progress for all players
+					if ( ent.GetClass() === sdTask.tasks[ i ]._target ) // For CC tasks
+					{
+						let prog = false;
+						if ( ent.GetClass() === 'sdCrystal' && sdTask.tasks[ i ].extra === -99 )
+						if ( sdTask.tasks[ i ].lrtp_ents_count < sdTask.tasks[ i ].lrtp_ents_needed )
+						{
+							for( let j = 0; j < sdTask.tasks.length; j++ ) // I'm not sure what I did here but it works - Booraz149
 							{
-								sdTask.tasks[ i ].lrtp_ents_count++;
-								sdTask.tasks[ i ]._update_version++;
+							if ( sdTask.tasks[ i ].extra === sdTask.tasks[ j ].extra )
+								{
+									sdTask.tasks[ j ].lrtp_ents_count += ent.matter_max;
+									sdTask.tasks[ j ]._update_version++;
+									prog = true;
+								}
+							}
+							if ( prog ) // Feels like I'm butchering the code once again - Booraz149
+							{
 								return true;
 								break;
 							}
