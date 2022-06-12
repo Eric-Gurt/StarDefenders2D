@@ -567,7 +567,7 @@ class sdLongRangeTeleport extends sdEntity
 		let rewards = Math.random();
 		if ( rewards < 0.3 )
 		{
-			let shard, shard2, shard3, shard4, shard5;
+			let shard, shard2, shard3, shard4, shard5, shard6, shard7;
 			shard = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
 			sdEntity.entities.push( shard );
 			shard2 = new sdGun({ x:this.x - 4, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
@@ -578,6 +578,10 @@ class sdLongRangeTeleport extends sdEntity
 			sdEntity.entities.push( shard4 );
 			shard5 = new sdGun({ x:this.x + 8, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
 			sdEntity.entities.push( shard5 );
+			shard6 = new sdGun({ x:this.x - 12, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
+			sdEntity.entities.push( shard6 );
+			shard7 = new sdGun({ x:this.x + 12, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
+			sdEntity.entities.push( shard7 );
 		}
 		else
 		if ( rewards < 0.6 )
@@ -602,11 +606,13 @@ class sdLongRangeTeleport extends sdEntity
 		}
 		else
 		{
-			let crystal, crystal2;
-			crystal = new sdCrystal({ x:this.x - 16, y:this.y - 24, matter_max: 5120, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
+			let crystal, crystal2, crystal3;
+			crystal = new sdCrystal({ x:this.x - 24, y:this.y - 24, matter_max: 5120, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
 			sdEntity.entities.push( crystal );
-			crystal2 = new sdCrystal({ x:this.x + 16, y:this.y - 24, matter_max: 5120, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
+			crystal2 = new sdCrystal({ x:this.x, y:this.y - 24, matter_max: 5120, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
 			sdEntity.entities.push( crystal2 );
+			crystal3 = new sdCrystal({ x:this.x + 24, y:this.y - 24, matter_max: 5120, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
+			sdEntity.entities.push( crystal3 );
 		}
 		sdWorld.SendEffect({ x:this.x, y:this.y - 24, type:sdEffect.TYPE_TELEPORT });
 		sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
