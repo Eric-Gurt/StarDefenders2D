@@ -426,8 +426,8 @@ class sdLongRangeTeleport extends sdEntity
 						}
 						if ( ent === sdTask.tasks[ i ]._target ) // For actual entity "target" extraction like that star defender event
 						{
-							sdTask.tasks[ j ].lrtp_ents_count++;
-							sdTask.tasks[ j ]._update_version++;
+							sdTask.tasks[ i ].lrtp_ents_count++;
+							sdTask.tasks[ i ]._update_version++;
 							return true;
 							break;
 						}
@@ -441,7 +441,7 @@ class sdLongRangeTeleport extends sdEntity
 						{
 							for( let j = 0; j < sdTask.tasks.length; j++ ) // I'm not sure what I did here but it works - Booraz149
 							{
-							if ( sdTask.tasks[ i ].extra === sdTask.tasks[ j ].extra )
+								if ( sdTask.tasks[ i ].extra === sdTask.tasks[ j ].extra )
 								{
 									sdTask.tasks[ j ].lrtp_ents_count += ent.matter_max;
 									sdTask.tasks[ j ]._update_version++;
