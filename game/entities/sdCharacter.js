@@ -555,6 +555,7 @@ class sdCharacter extends sdEntity
 		this._ai_last_y = 0;
 		this._ai_action_counter = 0; // Counter for AI "actions"
 		this._ai_dig = 0; // Amount of blocks for AI to shoot when stuck; given randomly in AILogic when AITargetBlocks is called
+		this._allow_despawn = true; // Use to prevent despawn of critically important characters once they are downed (task/mission-related)
 		
 		this.title = params.title || ( 'Random Hero #' + this._net_id );
 		this.title_censored = 0;
@@ -2096,14 +2097,18 @@ class sdCharacter extends sdEntity
 					}
 				}*/
 				
+				if ( !this._allow_despawn )
+				{
+					// Some AI characters for tasks
+				}
+				else
 				if ( this._socket === null )
 				{
-					if ( this._ai_team !== 6 && this._ai_team !== 0 ) // Without this criminal and regular star defender despawn their ragdolls which causes them to flicker on sdCharacter x and y
+					// Normal players and simple AI like starter instructor, perhaps
 					this.death_anim += GSPEED;
-					if ( this.death_anim > sdCharacter.disowned_body_ttl && this._ai_team !== 6 ) // Prevent disappearance of Criminal Star Defenders
-					{
-						this.remove();
-					}
+				
+					if ( this.death_anim > sdCharacter.disowned_body_ttl )
+					this.remove();
 				}
 			}
 		}
