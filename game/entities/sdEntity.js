@@ -3648,7 +3648,7 @@ class sdEntity
 		{
 			this.sy += sdWorld.gravity * GSPEED;
 			
-			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 5 ); // Extra fragile
+			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1 ); // Extra fragility is buggy
 		}
 			
 		if ( this._ragdoll )
