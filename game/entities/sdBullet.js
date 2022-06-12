@@ -327,6 +327,9 @@ class sdBullet extends sdEntity
 
 		if ( from_entity.is( sdWater ) ) // Ignore water
 		return false;
+	
+		if ( !from_entity.PrecieseHitDetection( this.x, this.y ) )
+		return false;
 		
 		return true;
 	}
@@ -535,6 +538,9 @@ class sdBullet extends sdEntity
 		
 		if ( this._last_target === from_entity )
 		return; // Prevent bouncing bullets to deal multiple damage when they stuck in something?
+	
+		if ( !from_entity.PrecieseHitDetection( this.x, this.y ) )
+		return;
 	
 		if ( !this._hook && !this._admin_picker )
 		{

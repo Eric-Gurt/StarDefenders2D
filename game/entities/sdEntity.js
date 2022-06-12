@@ -119,6 +119,11 @@ class sdEntity
 	get hitbox_y1() { return -5; }
 	get hitbox_y2() { return 5; }
 	
+	PrecieseHitDetection( x, y ) // Teleports use this to prevent bullets from hitting them like they do. Only ever used by bullets, as a second rule after box-like hit detection. It can make hitting entities past outer bounding box very inaccurate
+	{
+		return true;
+	}
+	
 	DrawIn3D()
 	{ return FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT; }
 	
@@ -2001,6 +2006,26 @@ class sdEntity
 		return b;
 	
 		return a;
+	}
+	
+	DoesOverlapWith( ent )
+	{
+		if ( this.x + this._hitbox_x2 < ent.x + ent._hitbox_x1 ||
+			 this.x + this._hitbox_x1 > ent.x + ent._hitbox_x2 ||
+			 this.y + this._hitbox_y2 < ent.y + ent._hitbox_y1 ||
+			 this.y + this._hitbox_y1 > ent.y + ent._hitbox_y2 )
+		return false;
+	
+		return true;
+		/*
+		if ( this.x + this._hitbox_x1 < ent.x + ent._hitbox_x2 )
+		if ( this.x + this._hitbox_x2 > ent.x + ent._hitbox_x1 )
+		if ( this.y + this._hitbox_y1 < ent.y + ent._hitbox_y2 )
+		if ( this.y + this._hitbox_y2 > ent.y + ent._hitbox_y1 )
+		return true;
+		
+		return false;
+		*/
 	}
 	
 	UpdateHitboxInitial() // Because there is no post-structors in JS, and implementing them normally would not be easy at this point...

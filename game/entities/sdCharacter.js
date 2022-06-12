@@ -596,7 +596,7 @@ class sdCharacter extends sdEntity
 		this.lst = 0; // How "lost" is this player?
 		this._dying = false;
 		this._dying_bleed_tim = 0;
-		this._wb_timer = 0; // Workbench timer, used to reset player's workbench level to 0 if he's not near it.
+		//this._wb_timer = 0; // Workbench timer, used to reset player's workbench level to 0 if he's not near it.
 
 		this.armor = 0; // Armor
 		this.armor_max = 0; // Max armor; used for drawing armor bar
@@ -652,7 +652,7 @@ class sdCharacter extends sdEntity
 		this.build_tool_level = 0; // Used for some unlockable upgrades in build tool
 		this._jetpack_fuel_multiplier = 1; // Fuel cost reduction upgrade
 		this._matter_regeneration_multiplier = 1; // Matter regen multiplier upgrade
-		this.workbench_level = 0; // Stand near workbench to unlock some workbench build stuff
+		//this.workbench_level = 0; // Stand near workbench to unlock some workbench build stuff
 		this._task_reward_counter = 0;
 
 		this._score_to_level = 50;// How much score is needed to level up character?
@@ -2208,11 +2208,11 @@ class sdCharacter extends sdEntity
 
 			if ( sdWorld.is_server )
 			{
-				if ( this._wb_timer > 0 && this.workbench_level > 0 )
+				/*if ( this._wb_timer > 0 && this.workbench_level > 0 )
 				if ( this.sx !== 0 || this.sy !== 0 ) // Do not affect timer unless player is moving, a circumvent solution for static players at workbench
 				this._wb_timer -= GSPEED;
 				if ( this._wb_timer <= 0 && this.workbench_level > 0 )
-				this.workbench_level = 0;
+				this.workbench_level = 0;*/
 
 				//this._task_reward_counter = Math.min(1, this._task_reward_counter + GSPEED / 1800 ); // For testing
 
@@ -3379,7 +3379,7 @@ class sdCharacter extends sdEntity
 		//console.log( from_entity.GetClass(), from_entity.material, sdBlock.MATERIAL_SHARP, this.hea, sdWorld.is_server );
 			
 		if ( this.hea > 0 )
-		if ( sdWorld.is_server )
+		if ( sdWorld.is_server || from_entity.IsVehicle() )
 		{
 			if ( from_entity.is( sdBlock ) )
 			{
@@ -3442,14 +3442,27 @@ class sdCharacter extends sdEntity
 			{
 				this._potential_vehicle = from_entity;
 			}
-			else
+			/*else
 			if ( from_entity.is( sdWorkbench ) )
 			{
 				this.workbench_level = from_entity.level;
 				this._wb_timer = 15;
 				//console.log( from_entity.GetClass(), this.workbench_level, this._wb_timer, sdWorld.is_server );
-			}
+			}*/
 		}
+	}
+	
+	GetWorkBenchLevel()
+	{
+		if ( this._potential_vehicle )
+		if ( !this._potential_vehicle._is_being_removed )
+		if ( this._potential_vehicle.is( sdWorkbench ) )
+		if ( this.DoesOverlapWith( this._potential_vehicle ) )
+		{
+			return this._potential_vehicle.level;
+		}
+		
+		return 0;
 	}
 	
 	DrawHUD( ctx, attached ) // foreground layer
@@ -3716,7 +3729,8 @@ class sdCharacter extends sdEntity
 			return null;
 		}
 
-		if ( ( this._build_params._min_workbench_level || 0 ) > this.workbench_level )
+		//if ( ( this._build_params._min_workbench_level || 0 ) > this.workbench_level )
+		if ( ( this._build_params._min_workbench_level || 0 ) > this.GetWorkBenchLevel() )
 		{
 			sdCharacter.last_build_deny_reason = 'I need a workbench to build this';
 			return null;

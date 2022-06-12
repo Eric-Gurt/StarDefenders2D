@@ -27,6 +27,11 @@ class sdTeleport extends sdEntity
 	get hitbox_y1() { return -16; }
 	get hitbox_y2() { return 16; }
 	
+	PrecieseHitDetection( x, y ) // Teleports use this to prevent bullets from hitting them like they do. Only ever used by bullets, as a second rule after box-like hit detection. It can make hitting entities past outer bounding box very inaccurate
+	{
+		return ( Math.abs( this.x - x ) > 8 && Math.abs( this.y - y ) > 8 );
+	}
+	
 	DrawIn3D()
 	{ return FakeCanvasContext.DRAW_IN_3D_BOX; }
 	
@@ -195,9 +200,7 @@ class sdTeleport extends sdEntity
 			//if ( allowed )
 			if ( com_near )
 			{
-				
-			
-				let allowed = true;
+				let allowed = false;
 
 				//for ( let i = 0; i < coms_near.length; i++ )
 				//if ( com_near.subscribers.indexOf( from_entity._net_id ) !== -1 || com_near.subscribers.indexOf( from_entity.GetClass() ) !== -1 || com_near.subscribers.indexOf( '*' ) !== -1 )
@@ -275,13 +278,13 @@ class sdTeleport extends sdEntity
 						sdWorld.SendEffect({ x:from_entity.x + (from_entity.hitbox_x1+from_entity.hitbox_x2)/2, y:from_entity.y + (from_entity.hitbox_y1+from_entity.hitbox_y2)/2, type:sdEffect.TYPE_TELEPORT });
 					}
 				}
-				else
+				/*else
 				{
 					this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 
 					// Unauthorized access
 					this.SetDelay( 90 );
-				}
+				}*/
 			}
 		}
 	}

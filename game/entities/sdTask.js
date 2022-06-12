@@ -188,18 +188,29 @@ class sdTask extends sdEntity
 		if ( params.similarity_hash === undefined )
 		throw new Error( '.similarity_hash is required when calling this method' );
 	
+		let tasks = 0;
+	
 		for ( let i = 0; i < sdTask.tasks.length; i++ )
 		if ( sdTask.tasks[ i ]._executer === params.executer )
-		if ( sdTask.tasks[ i ]._similarity_hash === params.similarity_hash )
 		{
-			if ( typeof params.time_left !== 'undefined' )
-			sdTask.tasks[ i ].time_left = Math.max( sdTask.tasks[ i ].time_left, params.time_left );
-		
-			return;
+			if ( sdTask.tasks[ i ]._similarity_hash === params.similarity_hash )
+			{
+				if ( typeof params.time_left !== 'undefined' )
+				sdTask.tasks[ i ].time_left = Math.max( sdTask.tasks[ i ].time_left, params.time_left );
+
+				return false;
+			}
+			
+			tasks++;
+			
+			if ( tasks > 32 )
+			return false; // Too many tasks - prevent server issues this way
 		}
 	
 		let task = new sdTask( params );
 		sdEntity.entities.push( task );
+		
+		return true;
 	}
 	
 	IsVisible( observer_entity )

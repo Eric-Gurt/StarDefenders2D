@@ -373,10 +373,10 @@ class sdShop
 			}
 		}
 		sdShop.options.push({ _class: 'sdBomb', _category:'Equipment' });
-		sdShop.options.push({ _class: 'sdBarrel', _category:'Equipment' });
-		sdShop.options.push({ _class: 'sdBarrel', color: '#33FFFF', filter: 'hue-rotate(130deg) saturate(10)', variation: 1, _category:'Equipment', _min_build_tool_level:2 });
-		sdShop.options.push({ _class: 'sdBarrel', color: '#ff6633', filter: 'hue-rotate(300deg) saturate(20)', variation: 2, _category:'Equipment', _min_build_tool_level:5 });
-		sdShop.options.push({ _class: 'sdBarrel', color: '#ffffff', filter: 'saturate(0)', variation: 3, _category:'Equipment', _min_build_tool_level:8 });
+		sdShop.options.push({ _class: 'sdBarrel', _category:'Equipment', _min_workbench_level: 1 });
+		sdShop.options.push({ _class: 'sdBarrel', color: '#33FFFF', filter: 'hue-rotate(130deg) saturate(10)', variation: 1, _category:'Equipment', _min_build_tool_level:2, _min_workbench_level: 1 });
+		sdShop.options.push({ _class: 'sdBarrel', color: '#ff6633', filter: 'hue-rotate(300deg) saturate(20)', variation: 2, _category:'Equipment', _min_build_tool_level:5, _min_workbench_level: 1 });
+		sdShop.options.push({ _class: 'sdBarrel', color: '#ffffff', filter: 'saturate(0)', variation: 3, _category:'Equipment', _min_build_tool_level:8, _min_workbench_level: 1 });
 
 		sdShop.upgrades = {
 			upgrade_suit:
@@ -689,7 +689,7 @@ class sdShop
 					if ( ( sdShop.options[ i ]._min_build_tool_level || 0 ) > sdWorld.my_entity.build_tool_level )
 					continue;
 
-					if ( ( sdShop.options[ i ]._min_workbench_level || 0 ) > sdWorld.my_entity.workbench_level )
+					if ( ( sdShop.options[ i ]._min_workbench_level || 0 ) > sdWorld.my_entity.GetWorkBenchLevel() )
 					continue;
 				
 					current_shop_options.push( sdShop.options[ i ] );

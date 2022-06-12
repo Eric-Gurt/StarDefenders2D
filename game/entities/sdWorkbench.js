@@ -118,6 +118,10 @@ class sdWorkbench extends sdEntity
 		}
 		
 	}
+	IsVehicle()
+	{
+		return true;
+	}
 	onMovementInRange( from_entity )
 	{
 		if ( from_entity.is( sdGun ) )

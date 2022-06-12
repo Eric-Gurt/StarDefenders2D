@@ -35,8 +35,8 @@ class sdWeaponBench extends sdEntity
 	{
 		super( params );
 		
-		this.sx = 0;
-		this.sy = 0;
+		//this.sx = 0;
+		//this.sy = 0;
 
 		this._hea = 800;
 		this._hmax = 800;
