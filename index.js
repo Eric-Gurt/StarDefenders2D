@@ -3567,7 +3567,7 @@ const ServerMainMethod = ()=>
 										}
 
 										if ( ent.SyncedToPlayer !== sdEntity.prototype.SyncedToPlayer )
-										if ( !ent._frozen )
+										if ( ent._frozen <= 0 )
 										ent.SyncedToPlayer( socket.character );
 
 										if ( ent.getRequiredEntities !== sdEntity.prototype.getRequiredEntities )

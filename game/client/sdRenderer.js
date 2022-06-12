@@ -978,25 +978,16 @@ class sdRenderer
 						//if ( cache && ( cache.result > 0 || cache.result_soft > 0 ) ) // If client-side visible
 						{
 							// If cursor overlaps
-							var di = sdEntity.entities[ i ].GetAccurateDistance( sdWorld.my_entity.look_x, sdWorld.my_entity.look_y );
+							var di = sdEntity.entities[ i ].GetAccurateDistance( sdWorld.mouse_world_x, sdWorld.mouse_world_y );
 
-
-							/*
-
-							var di = sdWorld.inDist2D(	sdWorld.my_entity.look_x, 
-														sdWorld.my_entity.look_y, 
-														Math.min( Math.max( sdEntity.entities[ i ].x + sdEntity.entities[ i ]._hitbox_x1, sdWorld.my_entity.look_x ), sdEntity.entities[ i ].x + sdEntity.entities[ i ]._hitbox_x2 ), 
-														Math.min( Math.max( sdEntity.entities[ i ].y + sdEntity.entities[ i ]._hitbox_y1, sdWorld.my_entity.look_y ), sdEntity.entities[ i ].y + sdEntity.entities[ i ]._hitbox_y2 ), 8 );
-
-							if ( di >= 0 ) */
 							if ( di < 12 )
 							{
 								if ( di <= 0 )
 								di -= 1;
 
 								// Prioritize physical center
-								di += sdWorld.Dist2D( sdWorld.my_entity.look_x, 
-													  sdWorld.my_entity.look_y,
+								di += sdWorld.Dist2D( sdWorld.mouse_world_x, 
+													  sdWorld.mouse_world_y,
 													  sdEntity.entities[ i ].x + ( sdEntity.entities[ i ]._hitbox_x1 + sdEntity.entities[ i ]._hitbox_x2 ) / 2,
 													  sdEntity.entities[ i ].y + ( sdEntity.entities[ i ]._hitbox_y1 + sdEntity.entities[ i ]._hitbox_y2 ) / 2 ) * 0.001;
 
@@ -1080,31 +1071,23 @@ class sdRenderer
 					 sdGun.classes[ sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ].class ] &&
 					 sdGun.classes[ sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ].class ].is_build_gun )
 				{
-					/*ctx.drawImage( sdWorld.img_crosshair_build, 
-						sdWorld.my_entity.look_x - 16, 
-						sdWorld.my_entity.look_y - 16, 32,32 );*/
-						
 					ctx.drawImageFilterCache( sdWorld.img_crosshair_build, 
-						sdWorld.my_entity.look_x - 16, 
-						sdWorld.my_entity.look_y - 16, 32,32 );
+						sdWorld.mouse_world_x - 16, 
+						sdWorld.mouse_world_y - 16, 32,32 );
 						
 					ctx.font = "5.5px Verdana";
 					ctx.textAlign = 'left';
 					ctx.fillStyle = '#ffff00';
 					let cost = sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ].GetBulletCost( false );
-					ctx.fillText("Matter cost: " + ( cost === Infinity ? '-' : Math.ceil( cost ) ), sdWorld.my_entity.look_x + 20, sdWorld.my_entity.look_y - 2 );
+					ctx.fillText("Matter cost: " + ( cost === Infinity ? '-' : Math.ceil( cost ) ), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y - 2 );
 					ctx.fillStyle = '#00ffff';
-					ctx.fillText("Matter carried: " + Math.floor( sdWorld.my_entity.matter ), sdWorld.my_entity.look_x + 20, sdWorld.my_entity.look_y + 5 );
+					ctx.fillText("Matter carried: " + Math.floor( sdWorld.my_entity.matter ), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y + 5 );
 				}
 				else
 				{
-					/*ctx.drawImage( sdWorld.img_crosshair, 
-						sdWorld.my_entity.look_x - 16, 
-						sdWorld.my_entity.look_y - 16, 32,32 );*/
-						
 					ctx.drawImageFilterCache( sdWorld.img_crosshair, 
-						sdWorld.my_entity.look_x - 16, 
-						sdWorld.my_entity.look_y - 16, 32,32 );
+						sdWorld.mouse_world_x - 16, 
+						sdWorld.mouse_world_y - 16, 32,32 );
 				}
 			}
 		}
@@ -1331,10 +1314,7 @@ class sdRenderer
 					
 					
 			}
-				/*if ( sdWorld.my_entity )
-			ctx.drawImage( sdWorld.img_crosshair, 
-				sdWorld.my_entity.look_x - 16 * sdWorld.camera.scale, 
-				sdWorld.my_entity.look_y - 16 * sdWorld.camera.scale, 32 * sdWorld.camera.scale,32 * sdWorld.camera.scale );*/
+			
 			
 		}
 		

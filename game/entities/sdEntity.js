@@ -2099,7 +2099,7 @@ class sdEntity
 		this._flag = 0; // Used to mark entities as visited/added/mentioned just so WeakSet is not needed. Compare it to sdEntity.flag_counter++
 		//debugger;
 		
-		this._frozen = false; // This value is changed by sdStatusEffect. Result of this value is an alternate ThinkNow function calls
+		this._frozen = 0; // This value is changed by sdStatusEffect. Result of this value is an alternate ThinkNow function calls. It shows how many degrees temperature is below freezing point, it is always positive value. Value like 1 means it is about to unfreeze - used by turrets to keep targets frozen
 		
 		// Because getters are slow in JS, especially when they are virtual methods. Trying this method?
 		this._hitbox_x1 = 0;

@@ -380,7 +380,7 @@ class sdStatusEffect extends sdEntity
 					}
 				}
 				
-				status_entity.for._frozen = ( status_entity.t <= temperature_frozen );
+				status_entity.for._frozen = Math.max( 0, temperature_frozen - status_entity.t + 1 ); //( status_entity.t <= temperature_frozen );
 				
 				if ( status_entity.t > temperature_frozen )
 				status_entity._last_world_time = sdWorld.time;
@@ -395,7 +395,7 @@ class sdStatusEffect extends sdEntity
 			onBeforeRemove: ( status_entity )=>
 			{
 				if ( status_entity.for )
-				status_entity.for._frozen = false;
+				status_entity.for._frozen = 0;
 			},
 			
 			onBeforeEntityRender: ( status_entity, ctx, attached )=>
