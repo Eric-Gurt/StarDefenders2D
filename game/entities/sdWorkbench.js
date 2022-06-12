@@ -122,6 +122,11 @@ class sdWorkbench extends sdEntity
 	{
 		return true;
 	}
+	AddDriver( c )
+	{
+		//if ( !sdWorld.is_server )
+		return;
+	}
 	onMovementInRange( from_entity )
 	{
 		if ( from_entity.is( sdGun ) )
