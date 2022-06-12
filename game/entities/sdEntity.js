@@ -2099,6 +2099,8 @@ class sdEntity
 		this._flag = 0; // Used to mark entities as visited/added/mentioned just so WeakSet is not needed. Compare it to sdEntity.flag_counter++
 		//debugger;
 		
+		this._frozen = false; // This value is changed by sdStatusEffect. Result of this value is an alternate ThinkNow function calls
+		
 		// Because getters are slow in JS, especially when they are virtual methods. Trying this method?
 		this._hitbox_x1 = 0;
 		this._hitbox_y1 = 0;
@@ -3640,6 +3642,18 @@ class sdEntity
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 	}
+	onThinkFrozen( GSPEED )
+	{
+		if ( this.onThink.has_ApplyVelocityAndCollisions ) // Likely is capable of falling
+		{
+			this.sy += sdWorld.gravity * GSPEED;
+			
+			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 5 ); // Extra fragile
+		}
+			
+		if ( this._ragdoll )
+		this._ragdoll.Think( GSPEED * 0.01 );
+	}
 	onRemove() // Class-specific, if needed. Can be overriden with onRemoveAsFakeEntity but only like this: ent.SetMethod( 'onRemove', ent.onRemoveAsFakeEntity ); ent.remove(); ent._remove();
 	{
 		// Make sure to not spawn any new potentially permanent entities there because that won't work well with world bounds move
@@ -3667,7 +3681,7 @@ class sdEntity
 	{
 		if ( !sdStatusEffect )
 		sdStatusEffect = sdWorld.entity_classes.sdStatusEffect;
-		
+	
 		params.for = this;
 		sdStatusEffect.ApplyStatusEffectForEntity( params );
 	}

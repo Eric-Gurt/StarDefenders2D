@@ -245,62 +245,96 @@ class sdStatusEffect extends sdEntity
 				return false; // Keep
 			}
 		};
+		const temperature_normal = 20;
+		const temperature_fire = 700;
+		const temperature_frozen = -50;
 		
-		sdStatusEffect.types[ sdStatusEffect.TYPE_FIRE = 2 ] = 
+		sdStatusEffect.temperature_normal = temperature_normal;
+		
+		sdStatusEffect.types[ sdStatusEffect.TYPE_TEMPERATURE = 2 ] = 
 		{
-			is_emote: false, // Not emote option
-	
 			onMade: ( status_entity, params )=>
 			{
-				//trace('-- You are on fire');
+				status_entity.t = temperature_normal; // Temperature
 				
-				status_entity._ttl = 30 * 6; // 6 seconds
 				status_entity._next_spawn = 0;
 				status_entity._next_damage = 10;
 				
 				status_entity._effects = [];
 				
-				if ( params.ttl !== undefined )
-				status_entity._ttl = params.ttl;
+				status_entity._saved_world_time = 0;
+				status_entity._last_world_time = sdWorld.time; // Used to save temporery world time values to mimic frozen animation
+				
+				if ( params.t !== undefined )
+				status_entity.t += params.t / ( ( params.for.hmax || params.for._hmax || 300 ) / 300 ); // Copy [ 1 / 2 ]
 			},
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
 			{
-				status_entity._ttl = 30 * 6; // 6 seconds
-				return true; // Fire should perhaps stack?
+				if ( params.t )
+				status_entity.t += params.t / ( ( params.for.hmax || params.for._hmax || 300 ) / 300 ); // Copy [ 2 / 2 ]
+				
+				// For water cooling
+				if ( params.remain_part !== undefined )
+				if ( params.target_value !== undefined )
+				if ( params.GSPEED !== undefined )
+				status_entity.t = sdWorld.MorphWithTimeScale( status_entity.t, params.target_value, params.remain_part, params.GSPEED );
+				
+				return true; // Do not create new status effect
+			},
+			
+			IsVisible: ( status_entity, observer_entity )=>
+			{
+				if ( status_entity.t >= temperature_fire || status_entity.t <= temperature_frozen )
+				if ( status_entity.for && !status_entity.for._is_being_removed )
+				return status_entity.for.IsVisible( observer_entity );
 			},
 			
 			onThink: ( status_entity, GSPEED )=>
 			{
+				if ( status_entity.for._god )
+				return true; // Cancel for gods
+				
 				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
-				//if ( status_entity.for.hea > 0 )
 				{
 					status_entity._next_spawn -= GSPEED;					
-					const up_velocity = -0.4;
-					const y_offset = 8;
-					const range = 8;
-					const range_affection = 8;
+					const up_velocity = ( status_entity.t >= temperature_fire ) ? 0 : 0.05;//-0.4;
+					const range = 4;
+					const y_offset = 0;
+					const range_affection = 16;
 
 					if ( status_entity._next_spawn <= 0 )
 					{
-						status_entity._next_spawn = 5 + Math.random() * 10;
+						if ( status_entity.t >= temperature_fire || status_entity.t <= temperature_frozen )
+						{
+							status_entity._next_spawn = 2 + Math.random() * 2; // We can go faster with how optimized rendering is now
 
-						let a = Math.random() * Math.PI * 2;
+							let a = Math.random() * Math.PI * 2;
 
-						let r = Math.pow( Math.random(), 0.5 ) * range;
+							let r = Math.pow( Math.random(), 0.5 ) * range;
 
-						let xx = status_entity.for.x + Math.sin( a ) * r;
-						let yy = status_entity.for.y + y_offset + Math.cos( a ) * r;
+							let xx = status_entity.for.x + status_entity.for._hitbox_x1 + ( status_entity.for._hitbox_x2 - status_entity.for._hitbox_x1 ) * Math.random() + Math.sin( a ) * r;
+							let yy = status_entity.for.y + status_entity.for._hitbox_y1 + ( status_entity.for._hitbox_y2 - status_entity.for._hitbox_y1 ) * Math.random() + Math.cos( a ) * r;
+							
+							if ( status_entity.for.DrawIn3D() === FakeCanvasContext.DRAW_IN_3D_BOX )
+							{
+								if ( Math.random() < 0.5 )
+								{
+									xx = status_entity.for.x + status_entity.for._hitbox_x1 + ( status_entity.for._hitbox_x2 - status_entity.for._hitbox_x1 ) * Math.random();
+									yy = status_entity.for.y + status_entity.for._hitbox_y1 + ( status_entity.for._hitbox_y2 - status_entity.for._hitbox_y1 ) * ( (Math.random() < 0.5) ? 0 : 1 );
+								}
+								else
+								{
+									xx = status_entity.for.x + status_entity.for._hitbox_x1 + ( status_entity.for._hitbox_x2 - status_entity.for._hitbox_x1 ) * ( (Math.random() < 0.5) ? 0 : 1 );
+									yy = status_entity.for.y + status_entity.for._hitbox_y1 + ( status_entity.for._hitbox_y2 - status_entity.for._hitbox_y1 ) * Math.random();
+								}
+							}
 
-						let ent = new sdEffect({ x: xx, y: yy, type:sdEffect.TYPE_GLOW_HIT, sx: 0, sy: up_velocity, color:'#FFAA33' });
-						sdEntity.entities.push( ent );
+							let ent = new sdEffect({ x: xx, y: yy, type: ( status_entity.t >= temperature_fire ) ? sdEffect.TYPE_FIRE : sdEffect.TYPE_FROZEN, sx: 0, sy: up_velocity * ( 0.5 + 0.5 * Math.random() ) });
+						
+							sdEntity.entities.push( ent );
 
-						status_entity._effects.push( ent );
-
-
-						//let ent2 = new sdEffect({ x: xx, y: yy, type:sdEffect.TYPE_GIB_GREEN, sx: 0, sy: up_velocity, filter:'hue-rotate(-90deg) saturate(1.5)' });
-						//sdEntity.entities.push( ent2 ); // I don't think this looks good. - Booraz149
-
-						//status_entity._effects.push( ent2 );
+							status_entity._effects.push( ent );
+						}
 
 					}
 					
@@ -329,18 +363,69 @@ class sdStatusEffect extends sdEntity
 					if ( status_entity._next_damage <= 0 )
 					{
 						status_entity._next_damage = 10;
-						status_entity.for.DamageWithEffect( 2 );
+						
+						if ( status_entity.t >= temperature_fire )
+						status_entity.for.DamageWithEffect( 4 );
+						else
+						if ( status_entity.t <= temperature_frozen )
+						{
+							let e = status_entity.for;
+							let e_is_organic = ( ( e.IsPlayerClass() || e.GetBleedEffect() === sdEffect.TYPE_BLOOD || e.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN ) );
+							
+							if ( e_is_organic )
+							status_entity.for.Damage( 1 );
+						}
+				
+						status_entity.t = ( status_entity.t - temperature_normal ) * 0.95 + temperature_normal; // Go towards normal temperature. It can go towards any desired value really, depending on environment
 					}
 				}
-				if ( status_entity._ttl > 0 )
-				{
-					status_entity._ttl -= GSPEED;
-
-					return ( status_entity._ttl <= 0 ); // return true = delete
-				}
+				
+				status_entity.for._frozen = ( status_entity.t <= temperature_frozen );
+				
+				if ( status_entity.t > temperature_frozen )
+				status_entity._last_world_time = sdWorld.time;
+						
+				if ( status_entity.t > temperature_normal - 10 )
+				if ( status_entity.t < temperature_normal + 10 )
+				return true; // Delete
 				
 				return false; // Keep
-			}
+			},
+			
+			onBeforeRemove: ( status_entity )=>
+			{
+				if ( status_entity.for )
+				status_entity.for._frozen = false;
+			},
+			
+			onBeforeEntityRender: ( status_entity, ctx, attached )=>
+			{
+				status_entity._saved_world_time = sdWorld.time;
+				
+				if ( !status_entity.for )
+				return;
+			
+				if ( status_entity.t >= temperature_fire )
+				{
+					ctx.sd_status_effect_tint_filter = [ 2, 1.5, 0.25 ];
+					ctx.hue_rotate = 0;
+				}
+				else
+				if ( status_entity.t <= temperature_frozen )
+				{
+					ctx.sd_status_effect_tint_filter = [ 0.25, 1.25, 1.5 ];
+					ctx.hue_rotate = 0;
+					
+					sdWorld.time = status_entity._last_world_time;
+				}
+			},
+			onAfterEntityRender: ( status_entity, ctx, attached )=>
+			{
+				ctx.sd_status_effect_filter = null;
+				ctx.sd_status_effect_tint_filter = null;
+				
+				sdWorld.time = status_entity._saved_world_time;
+			},
 		};
 
 		sdStatusEffect.status_effects = [];

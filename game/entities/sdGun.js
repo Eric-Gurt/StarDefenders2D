@@ -326,7 +326,7 @@ class sdGun extends sdEntity
 		this._spread = 0;
 		this._hea = 50;
 
-		this._dragons_breath = false; // Does this gun's projectile set enemies on fire?
+		this._temperature_addition = 0; // Does this gun's projectile set enemies on fire?
 		
 		this.ttl = params.ttl || sdGun.disowned_guns_ttl;
 		
@@ -336,7 +336,7 @@ class sdGun extends sdEntity
 		{
 			this._count = sdGun.classes[ this.class ].count === undefined ? 1 : sdGun.classes[ this.class ].count;
 			this._spread = sdGun.classes[ this.class ].spread || 0;
-			this._dragons_breath = sdGun.classes[ this.class ].dragons_breath || false;
+			this._temperature_addition = sdGun.classes[ this.class ].temperature_addition || 0;
 
 			if ( this.class === sdGun.CLASS_CRYSTAL_SHARD )
 			this._hea = 5;
@@ -710,7 +710,7 @@ class sdGun extends sdEntity
 					
 					let count = this._count; //sdGun.classes[ this.class ].count === undefined ? 1 : sdGun.classes[ this.class ].count;
 					let spread = this._spread; //sdGun.classes[ this.class ].spread || 0;
-					let dbreath = this._dragons_breath;
+					let temperature_addition = this._temperature_addition;
 
 					for ( let i = 0; i < count; i++ )
 					{
@@ -736,7 +736,7 @@ class sdGun extends sdEntity
 						bullet_obj.sx = Math.sin( an ) * vel;
 						bullet_obj.sy = Math.cos( an ) * vel;
 						
-						bullet_obj._dragons_breath = dbreath;
+						bullet_obj._temperature_addition = temperature_addition;
 
 						for ( var p in sdGun.classes[ this.class ].projectile_properties )
 						bullet_obj[ p ] = sdGun.classes[ this.class ].projectile_properties[ p ];

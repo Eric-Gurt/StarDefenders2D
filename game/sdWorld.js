@@ -2065,9 +2065,17 @@ class sdWorld
 					
 					if ( arr_i === 0 ) // Only for real in-world objects that have position
 					{
+						
+						/*let status_effects = sdStatusEffect.entity_to_status_effects.get( e );
+						
+						if ( status_effects )
+						{
+							for ( let i2 = 0; i2 < status_effects.length; i2++ )
+						}*/
 
 						if ( sdWorld.is_server )
 						if ( e._last_x !== undefined ) // sdEntity was never placed properly yet, can cause items to fall into each other after snapshot load
+						if ( !e._frozen )
 						if ( !sdWorld.CanAnySocketSee( e, arr_i === 1 ) )
 						{
 							// Make sure low tickrate entities are still catch up on time, this still improved performance because of calling same method multiple times is always faster than calling multiple methods once (apparently virtual method call issue)
@@ -2123,11 +2131,16 @@ class sdWorld
 					
 					substeps = e.substeps * substeps_mult;
 					progress_until_removed = e.progress_until_removed;
-
+					
 					for ( step = 0; step < substeps || progress_until_removed; step++ )
 					{
 						if ( !e._is_being_removed )
-						e.onThink( GSPEED / substeps * gspeed_mult );
+						{
+							if ( e._frozen )
+							e.onThinkFrozen( GSPEED / substeps * gspeed_mult );
+							else
+							e.onThink( GSPEED / substeps * gspeed_mult );
+						}
 						
 						if ( e._is_being_removed /*|| 
 							 e.Think( GSPEED / substeps * gspeed_mult )*/ )
@@ -2243,8 +2256,11 @@ class sdWorld
 						sdRenderer.ctx.camera.position.z = -811 / sdWorld.camera.scale;
 					}*/
 
-					sdWorld.my_entity.look_x = sdWorld.mouse_screen_x / sdWorld.camera.scale + sdWorld.camera.x - sdRenderer.screen_width / 2 / sdWorld.camera.scale;
-					sdWorld.my_entity.look_y = sdWorld.mouse_screen_y / sdWorld.camera.scale + sdWorld.camera.y - sdRenderer.screen_height / 2 / sdWorld.camera.scale;
+					if ( !sdWorld.my_entity._frozen )
+					{
+						sdWorld.my_entity.look_x = sdWorld.mouse_screen_x / sdWorld.camera.scale + sdWorld.camera.x - sdRenderer.screen_width / 2 / sdWorld.camera.scale;
+						sdWorld.my_entity.look_y = sdWorld.mouse_screen_y / sdWorld.camera.scale + sdWorld.camera.y - sdRenderer.screen_height / 2 / sdWorld.camera.scale;
+					}
 				}
 				
 				sdSound.HandleMatterChargeLoop( GSPEED );

@@ -99,9 +99,19 @@ class sdGunClass
 				cost: 200,
 				action: ( gun, initiator=null )=>
 				{ 
-					gun._dragons_breath = true; // Perhaps it should take properties from sdGunClass, although it's the same?
+					gun._temperature_addition = 800; // Perhaps it should take properties from sdGunClass, although it's the same?
 				}
 			});
+
+			/*arr.push(
+			{ 
+				title: 'Add freezing ammo to shotgun',
+				cost: 200,
+				action: ( gun, initiator=null )=>
+				{ 
+					gun._temperature_addition = -800; // Perhaps it should take properties from sdGunClass, although it's the same?
+				}
+			});*/
 			
 			arr.push(
 			{ 
@@ -110,7 +120,7 @@ class sdGunClass
 				action: ( gun, initiator=null )=>
 				{ 
 					gun._spread = sdGun.classes[ gun.class ].spread; // Perhaps it should take properties from sdGunClass, although it's the same?
-					gun._dragons_breath = false; // Remove Dragon's breath aswell
+					gun._temperature_addition = 0; // Remove Dragon's breath aswell
 				}
 			});
 			

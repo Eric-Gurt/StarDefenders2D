@@ -324,11 +324,6 @@ class sdLifeBox extends sdEntity
 				}
 			}
 		}
-		
-		
-		//sdWorld.last_hit_entity = null;
-		
-		//this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
 	
 	onMovementInRange( from_entity )

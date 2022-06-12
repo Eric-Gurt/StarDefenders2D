@@ -37,6 +37,8 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_TELEPORT = 12;
 		sdEffect.TYPE_SHELL = 13;
 		sdEffect.TYPE_HEARTS = 14;
+		sdEffect.TYPE_FIRE = 15;
+		sdEffect.TYPE_FROZEN = 16;
 		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
@@ -196,6 +198,22 @@ class sdEffect extends sdEntity
 			random_rotation: false,
 			speed: 1 / 30,
 			//random_speed_percentage: 0.2
+		};
+		sdEffect.types[ sdEffect.TYPE_FIRE ] = {
+			images: [ sdWorld.CreateImageFromFile( 'effect_fire' ) ],
+			duration: 8,
+			random_flip: true,
+			random_rotation: false,
+			speed: 6 / 30,
+			random_speed_percentage: 0.2
+		};
+		sdEffect.types[ sdEffect.TYPE_FROZEN ] = {
+			images: [ sdWorld.CreateImageFromFile( 'effect_frozen' ) ],
+			duration: 5,
+			random_flip: true,
+			random_rotation: false,
+			speed: 3 / 30,
+			random_speed_percentage: 0.2
 		};
 		
 	
@@ -664,7 +682,7 @@ class sdEffect extends sdEntity
 		{
 		}
 		else
-		if ( this._type === sdEffect.TYPE_HEARTS )
+		if ( this._type === sdEffect.TYPE_HEARTS || this._type === sdEffect.TYPE_FIRE || this._type === sdEffect.TYPE_FROZEN )
 		{
 		}
 		else
@@ -829,7 +847,7 @@ class sdEffect extends sdEntity
 			ctx.filter = 'none';
 		}
 		else
-		if ( this._type === sdEffect.TYPE_HEARTS )
+		if ( this._type === sdEffect.TYPE_HEARTS || this._type === sdEffect.TYPE_FIRE || this._type === sdEffect.TYPE_FROZEN )
 		{
 			let frame = ~~( this._ani );
 			ctx.filter = this._filter;

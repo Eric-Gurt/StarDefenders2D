@@ -44,6 +44,9 @@ class sdTurret extends sdEntity
 
 		sdTurret.img_turret4 = sdWorld.CreateImageFromFile( 'turret4' );
 		sdTurret.img_turret4_fire = sdWorld.CreateImageFromFile( 'turret4_fire' );
+
+		sdTurret.img_turret5 = sdWorld.CreateImageFromFile( 'turret5' );
+		sdTurret.img_turret5_fire = sdWorld.CreateImageFromFile( 'turret5_fire' );
 		
 		sdTurret.targetable_classes = new WeakSet( [ 
 			sdCharacter, 
@@ -72,6 +75,7 @@ class sdTurret extends sdEntity
 		sdTurret.KIND_ROCKET = 1;
 		sdTurret.KIND_RAPID_LASER = 2;
 		sdTurret.KIND_SNIPER = 3;
+		sdTurret.KIND_FREEZER = 4;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -98,6 +102,8 @@ class sdTurret extends sdEntity
 		return 'Automatic rapid laser turret' + prefix;
 		if ( this.kind === sdTurret.KIND_SNIPER )
 		return 'Automatic sniper turret' + prefix;
+		if ( this.kind === sdTurret.KIND_FREEZER )
+		return 'Automatic freezing turret' + prefix;
 	
 		return 'Automatic turret' + prefix;
 	}
@@ -128,7 +134,7 @@ class sdTurret extends sdEntity
 		
 		//this._is_cable_priority = true;
 		
-		this._hmax = ( this.kind === sdTurret.KIND_RAPID_LASER || this.kind === sdTurret.KIND_SNIPER ) ? 200 : 100;
+		this._hmax = ( this.kind === sdTurret.KIND_RAPID_LASER || this.kind === sdTurret.KIND_SNIPER || this.kind === sdTurret.KIND_FREEZER ) ? 200 : 100;
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 		
@@ -301,7 +307,7 @@ class sdTurret extends sdEntity
 								//if ( e._hiberstate === sdEntity.HIBERSTATE_ACTIVE ) // Don't target dead bodies or anything else that is hibernated, actually a big optimization and is faster than class constructor checking for some reason by a lot
 								if ( targetable_classes.has( e.constructor ) )
 								//if ( e.is( sdCharacter ) || e.is( sdVirus ) || e.is( sdQuickie ) || e.is( sdOctopus ) || e.is( sdCube ) || e.is( sdBomb ) )
-								if ( ( e.hea || e._hea ) > 0 && ( !e.is( sdSandWorm ) || e.death_anim === 0 ) )
+								if ( ( e.hea || e._hea ) > 0 && ( !e.is( sdSandWorm ) || e.death_anim === 0 ) && ( !e._frozen || this.kind !== sdTurret.KIND_FREEZER ) )
 								if ( !e.is( sdBadDog ) || !e.owned )
 								//if ( e.IsVisible( this._owner ) || ( e.driver_of && !e.driver_of._is_being_removed && e.driver_of.IsVisible( this._owner ) ) )
 								if ( e.IsPlayerClass() || e.IsVisible( this ) || ( e.driver_of && !e.driver_of._is_being_removed && e.driver_of.IsVisible( this ) ) )
@@ -316,7 +322,7 @@ class sdTurret extends sdEntity
 									//if ( ( is_char && e.IsHostileAI() ) || ( ( !is_char || RuleAllowedByNodes( e._net_id ) ) && RuleAllowedByNodes( e.GetClass() ) ) )
 									if ( ( is_char && e.IsHostileAI() ) || ( ( !is_char || ( RuleAllowedByNodes( e._net_id ) && RuleAllowedByNodes( e.biometry ) ) ) && RuleAllowedByNodes( e.GetClass() ) ) )
 									{
-										if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdCommandCentre' ], this.ShootPossibilityFilter ) )
+										if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier', 'sdCommandCentre', 'sdCrystalCombiner', 'sdTurret', 'sdCrystal' ], this.ShootPossibilityFilter ) )
 										{
 											this._target = e;
 											break;
@@ -351,10 +357,15 @@ class sdTurret extends sdEntity
 						
 						if ( this.kind === sdTurret.KIND_LASER || this.kind === sdTurret.KIND_RAPID_LASER )
 						sdSound.PlaySound({ name:'turret', x:this.x, y:this.y, volume:0.5, pitch: 1 / ( 1 + this.lvl / 3 ) });
+					
 						if ( this.kind === sdTurret.KIND_SNIPER )
 						sdSound.PlaySound({ name:'gun_sniper', x:this.x, y:this.y, volume:0.5, pitch: 1 / ( 1 + this.lvl / 3 ) });
+					
 						if ( this.kind === sdTurret.KIND_ROCKET )
 						sdSound.PlaySound({ name:sdGun.classes[ sdGun.CLASS_ROCKET ].sound, x:this.x, y:this.y, volume:0.5, pitch: 1 / ( 1 + this.lvl / 3 ) });
+					
+						if ( this.kind === sdTurret.KIND_FREEZER )
+						sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:0.5, pitch: 1 / ( 1 + this.lvl / 3 ) });
 
 						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 
@@ -401,9 +412,28 @@ class sdTurret extends sdEntity
 								bullet_obj.acx = Math.cos( this.an / 100 );
 								bullet_obj.acy = Math.sin( this.an / 100 );
 							}
-						}	
+						}
+						if ( this.kind === sdTurret.KIND_FREEZER )
+						{
+							bullet_obj._damage = 1;
+
+							bullet_obj.model = 'ball';
+							
+							bullet_obj._temperature_addition = -50;
+
+							//bullet_obj.color = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.color;
+
+							//bullet_obj.ac = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.ac;
+
+							/*if ( bullet_obj.ac > 0 )
+							{
+								bullet_obj.acx = Math.cos( this.an / 100 );
+								bullet_obj.acy = Math.sin( this.an / 100 );
+							}*/
+						}
 						
 						bullet_obj._damage *= 1 + this.lvl / 3;
+						bullet_obj._temperature_addition *= 1 + this.lvl / 3;
 
 						sdEntity.entities.push( bullet_obj );
 					}
@@ -442,12 +472,14 @@ class sdTurret extends sdEntity
 		return 5; // Twice as fast than regular laser
 		if ( this.kind === sdTurret.KIND_SNIPER )
 		return sdGun.classes[ sdGun.CLASS_SNIPER ].reload_time;
+		if ( this.kind === sdTurret.KIND_FREEZER )
+		return 30;
 	}
 	GetSize()
 	{
 		if ( this.kind === sdTurret.KIND_LASER )
 		return 3;
-		if ( this.kind === sdTurret.KIND_ROCKET )
+		if ( this.kind === sdTurret.KIND_ROCKET || this.kind === sdTurret.KIND_FREEZER )
 		return 6;
 		if ( this.kind === sdTurret.KIND_RAPID_LASER || this.kind === sdTurret.KIND_SNIPER )
 		return 4;
@@ -519,6 +551,9 @@ class sdTurret extends sdEntity
 		if ( this.kind === sdTurret.KIND_SNIPER )
 		ctx.drawImageFilterCache( not_firing_now ? sdTurret.img_turret4 : sdTurret.img_turret4_fire, -16, -16, 32,32 );
 	
+		if ( this.kind === sdTurret.KIND_FREEZER )
+		ctx.drawImageFilterCache( not_firing_now ? sdTurret.img_turret5 : sdTurret.img_turret5_fire, -16, -16, 32,32 );
+	
 		ctx.filter = 'none';
 		
 		if ( !sdShop.isDrawing )
@@ -538,6 +573,9 @@ class sdTurret extends sdEntity
 		return ~~( 100 * sdWorld.damage_to_matter + 450 );
 
 		if ( this.kind === sdTurret.KIND_SNIPER )
+		return ~~( 100 * sdWorld.damage_to_matter + 600 );
+
+		if ( this.kind === sdTurret.KIND_FREEZER )
 		return ~~( 100 * sdWorld.damage_to_matter + 600 );
 	}
 	onRemove()

@@ -539,7 +539,7 @@ class sdBaseShieldingUnit extends sdEntity
 
 							sdWorld.SendEffect({ x:this.x, y:this.y, x2:units[ i ].x, y2:units[ i ].y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
 
-							sdSound.PlaySound({ name:'zombie_alert2', x:this.x, y:this.y, volume:2, pitch:3 });
+							sdSound.PlaySound({ name:'zombie_alert2', x:this.x, y:this.y, volume:0.75, pitch:3 });
 						}
 					}
 				}

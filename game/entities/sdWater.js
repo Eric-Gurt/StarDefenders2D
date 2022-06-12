@@ -303,9 +303,13 @@ class sdWater extends sdEntity
 							if ( !e.isWaterDamageResistant() )
 							{
 								e.DamageWithEffect( sdWater.damage_by_type[ this.type ] * GSPEED ); 
+								
 								if ( this.type === sdWater.TYPE_LAVA )
-								e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_FIRE });
+								e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 100 * GSPEED });
 							}
+
+							if ( this.type === sdWater.TYPE_ACID || this.type === sdWater.TYPE_WATER )
+							e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, target_value:sdStatusEffect.temperature_normal, remain_part: 0.8, GSPEED:GSPEED }); // Neutralize hot values, cold too really, unless target temperature isn't ice by itself
 						}
 					}
 					else
