@@ -518,6 +518,7 @@ class sdStatusEffect extends sdEntity
 			{
 				if ( sdWorld.is_server )
 				if ( status_entity.for )
+				if ( typeof status_entity.for._update_version !== 'undefined' ) // Happens rarely
 				status_entity.for._update_version++;
 			},
 			
