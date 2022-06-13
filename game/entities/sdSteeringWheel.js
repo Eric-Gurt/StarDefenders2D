@@ -214,7 +214,13 @@ class sdSteeringWheel extends sdEntity
 		sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1, pitch:0.5 });
 		
 		if ( this._scan.length === 0 )
-		this.Scan( c );
+		{
+			this.Scan( c );
+		}
+		else
+		{
+			this.VerifyMissingParts();
+		}
 	
 		for ( let i = 0; i < this._scan.length; i++ )
 		{
@@ -242,6 +248,8 @@ class sdSteeringWheel extends sdEntity
 			c.PhysWakeUp();
 		}
 		
+		this.VerifyMissingParts();
+			
 		for ( let i = 0; i < this._scan.length; i++ )
 		{
 			if ( this._scan[ i ].is( sdThruster ) )
