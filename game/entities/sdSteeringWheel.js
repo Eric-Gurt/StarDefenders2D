@@ -15,6 +15,8 @@ import sdBG from './sdBG.js';
 //import sdWorkbench from './sdWorkbench.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdThruster from './sdThruster.js';
+import sdArea from './sdArea.js';
+import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 
 
 class sdSteeringWheel extends sdEntity
@@ -101,6 +103,8 @@ class sdSteeringWheel extends sdEntity
 		
 		const overlap = 8;
 		
+		let reason = 'Unnkown rejection reason';
+		
 		out:
 		while ( active.length > 0 )
 		{
@@ -137,6 +141,15 @@ class sdSteeringWheel extends sdEntity
 								
 								if ( collected.length > LIMIT )
 								{
+									reason = 'Skybase is likely stuck or too big to move (over ' + LIMIT + ' entities in a scan)';
+									collected = null;
+									break out;
+								}
+								
+								if ( ( ent2.is( sdLongRangeTeleport ) && ent2.is_server_teleport ) ||
+									 !sdArea.CheckPointDamageAllowed( ent2.x + ( ent2._hitbox_x1 + ent2._hitbox_x2 ) / 2, ent2.y + ( ent2._hitbox_y1 + ent2._hitbox_y2 ) / 2 ) )
+								{
+									reason = 'One of affected entities is in restricted area';
 									collected = null;
 									break out;
 								}
@@ -178,7 +191,7 @@ class sdSteeringWheel extends sdEntity
 		{
 			if ( socket_to_tell_result_to )
 			{
-				socket_to_tell_result_to.SDServiceMessage( 'Skybase is likely stuck or too big to move (over ' + LIMIT + ' entities in a scan)' );
+				socket_to_tell_result_to.SDServiceMessage( reason );
 			}
 		}
 	}
