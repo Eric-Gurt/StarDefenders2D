@@ -548,7 +548,10 @@ class sdStatusEffect extends sdEntity
 				if ( status_entity._rare_update_timer > 15 )
 				{
 					status_entity._rare_update_timer = 0;
+					
+					if ( typeof status_entity.for._update_version !== 'undefined' ) // Happens rarely
 					status_entity.for._update_version++;
+				
 					status_entity._update_version++;
 				}
 			
