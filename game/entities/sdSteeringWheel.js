@@ -103,7 +103,7 @@ class sdSteeringWheel extends sdEntity
 		
 		const overlap = 8;
 		
-		let reason = 'Unnkown rejection reason';
+		let reason = null;
 		
 		out:
 		while ( active.length > 0 )
@@ -160,14 +160,13 @@ class sdSteeringWheel extends sdEntity
 			}
 		}
 		
+		if ( reason === null )
 		if ( speed === 0 )
 		{
-			if ( socket_to_tell_result_to )
-			{
-				socket_to_tell_result_to.SDServiceMessage( 'Skybase requires at least 1 thruster' );
-			}
+			reason = 'Skybase requires at least 1 thruster'
+			collected = null;
 		}
-		else
+		
 		if ( collected )
 		{
 			let net_ids = [];
