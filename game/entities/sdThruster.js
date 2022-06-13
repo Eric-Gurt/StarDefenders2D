@@ -87,6 +87,7 @@ class sdThruster extends sdEntity
 			if ( nears[ i ].IsBGEntity() === 0 )
 			if ( !nears[ i ].is( sdBlock ) )
 			if ( !nears[ i ].is( sdDoor ) )
+			if ( nears[ i ].IsTargetable( this ) )
 			{
 				nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t:100 * GSPEED }); // Set enemy on fire
 			}
