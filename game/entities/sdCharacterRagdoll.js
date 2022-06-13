@@ -1119,7 +1119,7 @@ class sdCharacterRagdoll
 		
 		let gun_counter = 0;
 		
-		if ( !this.character.driver_of || attached )
+		if ( !this.character.driver_of || attached || !this.character.driver_of.VehicleHidesDrivers() )
 		for ( let i = 0; i < this.springs.length; i++ )
 		if ( this.springs[ i ].image !== null )
 		{

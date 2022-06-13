@@ -394,7 +394,7 @@ class sdCharacter extends sdEntity
 		if ( Math.abs( this._position_velocity_forced_until - sdWorld.time ) > 1000 * 60 * 30 ) // 30 minutes difference usually means timezone changes... Better to correct this when possible than having delayed input
 		this._position_velocity_forced_until = 0;
 			
-		return ( this.hea > 0 && this._frozen <= 0 && sdWorld.time > this._position_velocity_forced_until && ( this.hook_x === 0 && this.hook_y === 0 ) ); // Hook does not work well with position corrections for laggy players
+		return ( this.hea > 0 && !this.driver_of && this._frozen <= 0 && sdWorld.time > this._position_velocity_forced_until && ( this.hook_x === 0 && this.hook_y === 0 ) ); // Hook does not work well with position corrections for laggy players
 	}
 	ApplyServerSidePositionAndVelocity( restrict_correction, sx, sy ) // restrict_correction is usually ever only true when player should get position correction restriction, assuming some server-side events exist that control player (grappling hook case)
 	{
@@ -423,7 +423,7 @@ class sdCharacter extends sdEntity
 		if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
 		return false;
 	
-		return ( this.driver_of === null );
+		return ( this.driver_of === null || !this.driver_of.VehicleHidesDrivers() );
 	}
 	IsPlayerClass() // sdCharacter has it as well as everything that extends him
 	{
@@ -687,6 +687,7 @@ class sdCharacter extends sdEntity
 		this.air = sdCharacter.air_max;
 		
 		this._build_params = null; // What player is about to build
+		this._last_built_entity = null; // Used to resize regions, perhaps
 		
 		//this.hue = ~~( Math.random() * 360 );
 		//this.saturation = ~~( 50 + Math.random() * 200 );
@@ -782,6 +783,7 @@ class sdCharacter extends sdEntity
 		
 		if ( this.driver_of )
 		if ( !this.driver_of._is_being_removed )
+		if ( this.driver_of.VehicleHidesDrivers() )
 		if ( !this.driver_of.IsVisible( observer_character ) )
 		return false;
 		
@@ -951,6 +953,10 @@ class sdCharacter extends sdEntity
 	}
 	AttemptTeleportOut( from_ent=null )
 	{
+		if ( from_ent )
+		if ( from_ent._is_being_removed )
+		from_ent = null;
+		
 		let tele_cost = sdRescueTeleport.max_matter;
 		
 		if ( !this.is( sdCharacter ) )
@@ -1064,9 +1070,17 @@ class sdCharacter extends sdEntity
 
 			this.hea = Math.max( this.hea, 30 );
 			
+			sdStatusEffect.PerformActionOnStatusEffectsOf( this, ( status_effect )=>
+			{
+				if ( sdStatusEffect.types[ status_effect.type ] )
+				if ( sdStatusEffect.types[ status_effect.type ].remove_on_rescue_teleport_use )
+				status_effect.remove();
+			});
+			this._sickness = 0;
+			//this._sickness /= 4;
+			
 			this.stability = 100;
 			
-			this._sickness /= 4;
 
 			//best_t.SetDelay( sdRescueTeleport.delay_2nd ); // 5 minutes
 			best_t.SetDelay( sdRescueTeleport.delay_simple );
@@ -1265,7 +1279,7 @@ class sdCharacter extends sdEntity
 			if ( was_alive )
 			if ( this.hea - damage_to_deal <= 0 )
 			{
-				if ( this.AttemptTeleportOut() )
+				if ( this.AttemptTeleportOut( initiator ) )
 				return;
 			}
 			
@@ -2010,7 +2024,7 @@ class sdCharacter extends sdEntity
 			}
 			else
 			{
-				if ( this._potential_vehicle && this._potential_vehicle.hea > 0 && !this._potential_vehicle._is_being_removed && sdWorld.inDist2D_Boolean( this.x, this.y, this._potential_vehicle.x, this._potential_vehicle.y, sdCom.vehicle_entrance_radius ) )
+				if ( this._potential_vehicle && ( this._potential_vehicle.hea || this._potential_vehicle._hea ) > 0 && !this._potential_vehicle._is_being_removed && sdWorld.inDist2D_Boolean( this.x, this.y, this._potential_vehicle.x, this._potential_vehicle.y, sdCom.vehicle_entrance_radius ) )
 				{
 					this._potential_vehicle.AddDriver( this );
 				}
@@ -2524,7 +2538,7 @@ class sdCharacter extends sdEntity
 		this.HandlePlayerPowerups( GSPEED );
 		
 
-		let act_y_or_unstable = this.act_y;
+		let act_y_or_unstable = ( this.driver_of ) ? 0 : this.act_y;
 		
 		if ( this.stability < 50 )
 		act_y_or_unstable = 1;
@@ -2853,6 +2867,7 @@ class sdCharacter extends sdEntity
 			
 				if ( this.hea > 0 )
 				if ( this.act_x !== 0 )
+				if ( !this.driver_of )
 				if ( sdWorld.CheckWallExistsBox( this.x + this.act_x * 7, this.y, this.x + this.act_x * 7, this.y + 10, null, null, sdCharacter.climb_filter ) )
 				if ( !sdWorld.CheckWallExists( this.x + this.act_x * 7, this.y + this._hitbox_y1, null, null, sdCharacter.climb_filter ) )
 				{
@@ -2865,6 +2880,7 @@ class sdCharacter extends sdEntity
 		// Walljumps
 		if ( act_y_or_unstable === -1 )
 		if ( !this.stands )
+		if ( !this.driver_of )
 		if ( Math.abs( this.sy ) < 3 )
 		if ( Math.abs( this.sx ) < 3 )
 		{
@@ -3091,6 +3107,8 @@ class sdCharacter extends sdEntity
 					this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.8, GSPEED );
 				}
 				else*/
+				
+				if ( !this.driver_of )
 				{
 					if ( act_y_or_unstable === -1 )
 					{
@@ -3146,6 +3164,7 @@ class sdCharacter extends sdEntity
 					{
 					}
 					else
+					if ( !this.driver_of )
 					this.sx += this.act_x * 0.15 * GSPEED;
 					//this.sx += this.act_x * 0.2 * GSPEED;
 
@@ -3172,7 +3191,7 @@ class sdCharacter extends sdEntity
 			}
 		}
 		
-		if ( this.driver_of )
+		if ( this.driver_of && this.driver_of.VehicleHidesDrivers() )
 		this.PositionUpdateAsDriver();
 		else
 		this.ApplyVelocityAndCollisions( GSPEED, ( this.hea > 0 ) ? ( this.act_y !== 1 ? 10 : 3 ) : 0, ( this.hea <= 0 ) );
@@ -3205,10 +3224,13 @@ class sdCharacter extends sdEntity
 			
 	PositionUpdateAsDriver()
 	{
-		this.x = this.driver_of.x;
-		this.y = this.driver_of.y;
-		this.sx = this.driver_of.sx || 0;
-		this.sy = this.driver_of.sy || 0;
+		//if ( this.driver_of.VehicleHidesDrivers() )
+		{
+			this.x = this.driver_of.x;
+			this.y = this.driver_of.y;
+			this.sx = this.driver_of.sx || 0;
+			this.sy = this.driver_of.sy || 0;
+		}
 	}
 
 	HandlePlayerPowerups( GSPEED )
@@ -3562,12 +3584,27 @@ class sdCharacter extends sdEntity
 						ctx.volumetric_mode = fake_ent.DrawIn3D();
 
 						ctx.translate( -this.x + fake_ent.x, -this.y + fake_ent.y );
-						ctx.save();
+						
 						ctx.object_offset = fake_ent.ObjectOffset3D( -1 );
-						fake_ent.DrawBG( ctx, false );
+						ctx.save();
+						{
+							fake_ent.DrawBG( ctx, false );
+						}
 						ctx.restore();
+						
 						ctx.object_offset = fake_ent.ObjectOffset3D( 0 );
-						fake_ent.Draw( ctx, false );
+						ctx.save();
+						{
+							fake_ent.Draw( ctx, false );
+						}
+						ctx.restore();
+						
+						ctx.object_offset = fake_ent.ObjectOffset3D( 1 );
+						ctx.save();
+						{
+							fake_ent.DrawFG( ctx, false );
+						}
+						ctx.restore();
 
 						if ( fake_ent.DrawConnections )
 						fake_ent.DrawConnections( ctx );

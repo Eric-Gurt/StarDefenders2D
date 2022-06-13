@@ -405,6 +405,10 @@ class sdEntity
 	onBuilt() // Entity was successfully built and added to world, server-side
 	{
 	}
+	dragWhenBuilt( builder_entity ) // true = deny animation recovery, false = allow weapon reload animation recovery
+	{
+		return false; // false = allow weapon reload animation recovery
+	}
 	
 	getRequiredEntities() // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
 	{
@@ -1081,6 +1085,7 @@ class sdEntity
 
 						if ( best_ent._hard_collision )
 						{
+							// After touch reaction (teleporting?)
 							if ( x_not_teleported !== this.x || y_not_teleported !== this.y )
 							{
 								return;
@@ -1310,6 +1315,12 @@ class sdEntity
 										best_ent.ImpactWithDamageEffect( impact * ( 1 - self_effect_scale ) );
 									}
 								}
+							}
+							
+							// After impact (character rescued via RTP?)
+							if ( x_not_teleported !== this.x || y_not_teleported !== this.y )
+							{
+								return;
 							}
 
 							if ( this._is_being_removed )
@@ -1911,7 +1922,7 @@ class sdEntity
 	{
 		return null;
 	}
-	IsBGEntity() // 0 for in-game entities, 1 for background entities, 2 is for moderator areas, 3 is for cables, 4 for task in-world interfaces, 5 for wandering around background entities, 6 for status effects. Should handle collisions separately
+	IsBGEntity() // 0 for in-game entities, 1 for background entities, 2 is for moderator areas, 3 is for cables, 4 for task in-world interfaces, 5 for wandering around background entities, 6 for status effects, 7 for player-defined regions. Should handle collisions separately
 	{ return 0; }
 	CanMoveWithoutOverlap( new_x, new_y, safe_bound=0, custom_filtering_method=null ) // Safe bound used to check if sdCharacter can stand and not just collides with walls nearby. Also due to number rounding clients should better have it (or else they will teleport while sliding on vertical wall)
 	{
@@ -2008,12 +2019,12 @@ class sdEntity
 		return a;
 	}
 	
-	DoesOverlapWith( ent )
+	DoesOverlapWith( ent, extra_space_around=0 )
 	{
-		if ( this.x + this._hitbox_x2 < ent.x + ent._hitbox_x1 ||
-			 this.x + this._hitbox_x1 > ent.x + ent._hitbox_x2 ||
-			 this.y + this._hitbox_y2 < ent.y + ent._hitbox_y1 ||
-			 this.y + this._hitbox_y1 > ent.y + ent._hitbox_y2 )
+		if ( this.x + this._hitbox_x2 < ent.x + ent._hitbox_x1 - extra_space_around ||
+			 this.x + this._hitbox_x1 > ent.x + ent._hitbox_x2 + extra_space_around ||
+			 this.y + this._hitbox_y2 < ent.y + ent._hitbox_y1 - extra_space_around ||
+			 this.y + this._hitbox_y1 > ent.y + ent._hitbox_y2 + extra_space_around )
 		return false;
 	
 		return true;
@@ -2273,6 +2284,12 @@ class sdEntity
 			sdEntity.to_seal_list.push( this );
 		}
 	}
+	
+	VehicleHidesDrivers()
+	{
+		return true;
+	}
+
 	
 	FindObjectsInACableNetwork( accept_test_method=null, alternate_class_to_search=sdWorld.entity_classes.sdBaseShieldingUnit ) // No cache, so far
 	{

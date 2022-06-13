@@ -27,6 +27,8 @@ class sdStatusEffect extends sdEntity
 			remove_if_for_removed: false,
 	
 			is_emote: false,
+			
+			is_static: true,
 	
 			onMade: ( status_entity, params )=>
 			{
@@ -253,6 +255,8 @@ class sdStatusEffect extends sdEntity
 		
 		sdStatusEffect.types[ sdStatusEffect.TYPE_TEMPERATURE = 2 ] = 
 		{
+			remove_on_rescue_teleport_use: true,
+	
 			onMade: ( status_entity, params )=>
 			{
 				status_entity.t = temperature_normal; // Temperature
@@ -365,7 +369,11 @@ class sdStatusEffect extends sdEntity
 						status_entity._next_damage = 10;
 						
 						if ( status_entity.t >= temperature_fire )
-						status_entity.for.DamageWithEffect( 4 );
+						{
+							let burn_intensity = 1 + ( status_entity.t - temperature_fire ) / 500;
+							
+							status_entity.for.DamageWithEffect( 4 * burn_intensity );
+						}
 						else
 						if ( status_entity.t <= temperature_frozen )
 						{
@@ -427,6 +435,207 @@ class sdStatusEffect extends sdEntity
 				sdWorld.time = status_entity._saved_world_time;
 			},
 		};
+		
+		sdStatusEffect.types[ sdStatusEffect.TYPE_STEERING_WHEEL_PING = 3 ] = 
+		{
+			onMade: ( status_entity, params )=>
+			{
+				status_entity._ttl = 30 * 5;
+				
+				status_entity._observers = new WeakSet(); // Damage initiators
+				
+				if ( params.observer )
+				status_entity._observers.add( params.observer );
+			},
+			
+			IsVisible: ( status_entity, observer_entity )=>
+			{
+				return ( status_entity._observers.has( observer_entity ) );
+			},
+			onThink: ( status_entity, GSPEED )=>
+			{
+				status_entity._ttl -= GSPEED;
+			
+				return ( status_entity._ttl <= 0 ); // return true = delete
+			},
+			onBeforeEntityRender: ( status_entity, ctx, attached )=>
+			{
+				if ( !status_entity.for )
+				return;
+				
+				if ( sdWorld.time % 1000 < 500 )
+				ctx.sd_status_effect_tint_filter = [ 1, 2, 2 ];
+			},
+			onAfterEntityRender: ( status_entity, ctx, attached )=>
+			{
+				ctx.sd_status_effect_tint_filter = null;
+			}
+		};
+		
+		sdStatusEffect.types[ sdStatusEffect.TYPE_STEERING_WHEEL_MOVEMENT_SMOOTH = 4 ] = 
+		{
+			is_static: false,
+	
+			onMade: ( status_entity, params )=>
+			{
+				if ( params.for )
+				{
+					status_entity._x = params.for.x;
+					status_entity._y = params.for.y;
+				}
+				else
+				{
+					status_entity._x = 0;
+					status_entity._y = 0;
+				}
+				
+				status_entity._dx = 0;
+				status_entity._dy = 0;
+				
+				status_entity.tx = params.tx;
+				status_entity.ty = params.ty;
+				
+				status_entity._initialized = false;
+				
+				status_entity._rare_update_timer = 0;
+				
+				status_entity._ttl = 30;
+			},
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				status_entity._ttl = 30;
+				
+				if ( status_entity.tx !== params.tx || status_entity.ty !== params.ty )
+				{
+					status_entity.tx = params.tx;
+					status_entity.ty = params.ty;
+				}
+				
+				return true; // Do not create new status effect
+			},
+			
+			onBeforeRemove: ( status_entity )=>
+			{
+				if ( sdWorld.is_server )
+				if ( status_entity.for )
+				status_entity.for._update_version++;
+			},
+			
+			onThink: ( status_entity, GSPEED )=>
+			{
+				if ( !sdWorld.is_server )
+				{
+					if ( !status_entity._initialized && status_entity.for )
+					{
+						status_entity._initialized = true;
+						status_entity._x = status_entity.for.x;
+						status_entity._y = status_entity.for.y;
+					}
+					
+					if ( status_entity._initialized )
+					{
+						status_entity._dx = sdWorld.MorphWithTimeScale( status_entity._dx, status_entity.tx - status_entity._x, 0.8, GSPEED );
+						status_entity._dy = sdWorld.MorphWithTimeScale( status_entity._dy, status_entity.ty - status_entity._y, 0.8, GSPEED );
+
+						status_entity._x = sdWorld.MorphWithTimeScale( status_entity._x, status_entity.tx + status_entity._dx, 0.8, GSPEED );
+						status_entity._y = sdWorld.MorphWithTimeScale( status_entity._y, status_entity.ty + status_entity._dy, 0.8, GSPEED );
+					}
+					
+					return false; // Keep
+				}
+				
+				status_entity._rare_update_timer += GSPEED;
+				if ( status_entity._rare_update_timer > 15 )
+				{
+					status_entity._rare_update_timer = 0;
+					status_entity.for._update_version++;
+					status_entity._update_version++;
+				}
+			
+				status_entity._ttl -= GSPEED;
+			
+				return ( status_entity._ttl <= 0 ); // return true = delete
+			},
+			onBeforeEntityRender: ( status_entity, ctx, attached )=>
+			{
+				if ( !status_entity.for )
+				return;
+				
+				ctx.save();
+				
+				if ( status_entity._initialized )
+				ctx.translate( status_entity._x - status_entity.for.x, status_entity._y - status_entity.for.y );
+			},
+			onAfterEntityRender: ( status_entity, ctx, attached )=>
+			{
+				if ( !status_entity.for )
+				return;
+				
+				ctx.restore();
+			}
+		};
+		
+		sdStatusEffect.types[ sdStatusEffect.TYPE_FALLING_STATIC_BLOCK = 5 ] = 
+		{
+			is_static: false,
+	
+			onMade: ( status_entity, params )=>
+			{
+				status_entity._ttl = 30 * 30; // Fall for 30 seconds at max
+				status_entity._sy = 0;
+				
+				status_entity._fell = false;
+				
+				status_entity._lying_for = 0;
+			},
+			onThink: ( status_entity, GSPEED )=>
+			{
+				status_entity._ttl -= GSPEED;
+				
+				let current = status_entity.for;
+				
+				status_entity._sy += sdWorld.gravity * GSPEED;
+				
+				let yy = Math.round( status_entity._sy * GSPEED );
+				
+				if ( yy >= 1 )
+				{
+					if ( yy > 8 )
+					yy = 8;
+
+					if ( current.CanMoveWithoutOverlap( current.x, current.y + yy ) )
+					{
+						current.y += yy;
+						
+						current.ManageTrackedPhysWakeup();
+
+						current.ApplyStatusEffect({ type: sdStatusEffect.TYPE_STEERING_WHEEL_MOVEMENT_SMOOTH, tx:current.x, ty:current.y });
+						
+						current.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					}
+					else
+					{
+						status_entity._sy = 0;
+						
+						if ( !status_entity._fell )
+						{
+							status_entity._fell = true;
+							
+							status_entity.Damage( ( status_entity.hea || status_entity._hea || 0 ) * 0.9 );
+						}
+						
+						status_entity._lying_for += GSPEED;
+						
+						if ( status_entity._lying_for > 30 )
+						return true;
+					}
+				}
+			
+				return ( status_entity._ttl <= 0 ); // return true = delete
+			}
+		};
+		
+		
 
 		sdStatusEffect.status_effects = [];
 		
@@ -434,6 +643,7 @@ class sdStatusEffect extends sdEntity
 		
 		//sdStatusEffect.line_of_sight_visibility_cache = new WeakMap(); // entity => { next_update_time, result, result_soft, lx, ly }
 	}
+	
 	static DrawEffectsFor( entity, destination, start0_end1, ctx, attached ) // destination: 0 = BG, 1 = Normal, 2 = FG
 	{
 		let arr = sdStatusEffect.entity_to_status_effects.get( entity );
@@ -656,12 +866,13 @@ class sdStatusEffect extends sdEntity
 	{
 		super( params );
 		
+		this.type = params.type || 0;
+		let status_type = sdStatusEffect.types[ this.type ];
+		
+		this._is_static = ( status_type.is_static !== undefined ) ? status_type.is_static : true;
+		
 		this.for = params.for || null; // Target. Who has this status effect
 		this._for_confirmed = false;
-
-		this.type = params.type || 0;
-		
-		let status_type = sdStatusEffect.types[ this.type ];
 		
 		if ( status_type )
 		{
@@ -695,7 +906,9 @@ class sdStatusEffect extends sdEntity
 	{ return false; }
 	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
-	{ return true; }
+	{
+		return ( this._is_static === undefined ) ? true : this._is_static; 
+	}
 	
 	IsBGEntity() // Check sdEntity for meaning
 	{ return 6; }

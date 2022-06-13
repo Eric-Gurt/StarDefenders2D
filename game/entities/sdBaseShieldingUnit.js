@@ -33,6 +33,7 @@ class sdBaseShieldingUnit extends sdEntity
 		sdBaseShieldingUnit.img_unit2_repair = sdWorld.CreateImageFromFile( 'shield_unit2_repair' );
 
 		sdBaseShieldingUnit.protect_distance = 275;
+		sdBaseShieldingUnit.protect_distance_stretch = sdBaseShieldingUnit.protect_distance + 100; // If BSU moves...
 				
 		sdBaseShieldingUnit.regen_matter_cost_per_1_hp = 0.002; // Much less than player's automatic regeneration
 		sdBaseShieldingUnit.regen_matter_cost_per_1_hp_matter_type = 0.15;

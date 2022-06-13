@@ -91,8 +91,10 @@ class sdDoor extends sdEntity
 		
 		if ( this._hea > 0 )
 		{
-			if ( this._shielded === null || dmg === Infinity || this._shielded._is_being_removed || !this._shielded.enabled || !sdWorld.inDist2D_Boolean( this.x, this.y, this._shielded.x, this._shielded.y, sdBaseShieldingUnit.protect_distance ) )
-			this._hea -= dmg;
+			if ( this._shielded === null || dmg === Infinity || this._shielded._is_being_removed || !this._shielded.enabled || !sdWorld.inDist2D_Boolean( this.x, this.y, this._shielded.x, this._shielded.y, sdBaseShieldingUnit.protect_distance_stretch ) )
+			{
+				this._hea -= dmg;
+			}
 			else
 			{
 				this._shielded.ProtectedEntityAttacked( this, dmg, initiator );
@@ -360,11 +362,11 @@ class sdDoor extends sdEntity
 
 								if ( interrupter1 !== null )
 								//if ( ( interrupter1._reinforced_level || 0 ) === 0 )
-								interrupter1.DamageWithEffect( 5 * GSPEED );
+								interrupter1.Damage( 5 * GSPEED );
 
 								if ( interrupter2 !== null )
 								//if ( ( interrupter2._reinforced_level || 0 ) === 0 )
-								interrupter2.DamageWithEffect( 5 * GSPEED );
+								interrupter2.Damage( 5 * GSPEED );
 							}
 						}
 

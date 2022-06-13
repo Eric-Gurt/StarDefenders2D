@@ -690,10 +690,10 @@ class sdGun extends sdEntity
 							{
 
 								if ( typeof ent.hmax !== 'undefined' )
-								ent.DamageWithEffect( ent.hmax * 0.9 ); // Start with low hp
+								ent.Damage( ent.hmax * 0.9 ); // Start with low hp
 
 								if ( typeof ent._hmax !== 'undefined' )
-								ent.DamageWithEffect( ent._hmax * 0.9 ); // Start with low hp
+								ent.Damage( ent._hmax * 0.9 ); // Start with low hp
 							}
 						
 							ent.onBuilt();
@@ -703,6 +703,8 @@ class sdGun extends sdEntity
 							// Initially object is not spawned at cursor but near it. It means that huge static objects (sdBG, sdArea) will have incorrect hash array which will cause them to not have collisions when needed)
 							if ( ent._affected_hash_arrays.length > 0 ) // Easier than checking for hiberstates
 							sdWorld.UpdateHashPosition( ent, false, false );
+						
+							this._held_by._last_built_entity = ent;
 						}
 					}
 					
@@ -905,7 +907,26 @@ class sdGun extends sdEntity
 			}
 
 			if ( this.reload_time_left > 0 )
-			this.reload_time_left = Math.max( 0, this.reload_time_left - GSPEED * ( ( this._held_by && this._held_by.stim_ef > 0 ) ? 2 : 1 ) );
+			{
+				if ( this._held_by &&
+					 this._held_by._last_built_entity &&
+					 !this._held_by._last_built_entity._is_being_removed &&
+					 sdGun.classes[ this.class ] && 
+					 sdGun.classes[ this.class ].is_build_gun &&
+					 this._held_by.gun_slot === sdGun.classes[ this.class ].slot &&
+					 this._held_by._key_states.GetKey( 'Mouse1' ) &&
+					 this._held_by._last_built_entity.dragWhenBuilt( this._held_by ) )
+				{
+					
+				}
+				else
+				{
+					if ( this._held_by )
+					this._held_by._last_built_entity = null;
+					
+					this.reload_time_left = Math.max( 0, this.reload_time_left - GSPEED * ( ( this._held_by && this._held_by.stim_ef > 0 ) ? 2 : 1 ) );
+				}
+			}
 		}
 		
 		const is_unknown = ( sdGun.classes[ this.class ] === undefined ); // Detect unknown weapons from LRT teleports

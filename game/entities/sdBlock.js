@@ -275,8 +275,10 @@ class sdBlock extends sdEntity
 				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
 			}
 			
-			if ( this._shielded === null || dmg === Infinity || this._shielded._is_being_removed || !this._shielded.enabled || !sdWorld.inDist2D_Boolean( this.x, this.y, this._shielded.x, this._shielded.y, sdBaseShieldingUnit.protect_distance ) )
-			this._hea -= dmg;
+			if ( this._shielded === null || dmg === Infinity || this._shielded._is_being_removed || !this._shielded.enabled || !sdWorld.inDist2D_Boolean( this.x, this.y, this._shielded.x, this._shielded.y, sdBaseShieldingUnit.protect_distance_stretch ) )
+			{
+				this._hea -= dmg;
+			}
 			else
 			{
 				/*if ( initiator )

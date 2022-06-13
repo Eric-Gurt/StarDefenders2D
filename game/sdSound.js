@@ -296,6 +296,12 @@ class sdSound
 					count_hover_loop += 2 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
 				}
 				else
+				if ( sdEntity.entities[ i ].GetClass() === 'sdThruster' )
+				{
+					if ( sdEntity.entities[ i ].enabled )
+					count_hover_loop += 1 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+				}
+				else
 				if ( sdEntity.entities[ i ].GetClass() === 'sdMatterAmplifier' )
 				{
 					if ( sdEntity.entities[ i ].matter_max > 0 || sdEntity.entities[ i ].crystal )

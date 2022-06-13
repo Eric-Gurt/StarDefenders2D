@@ -1,4 +1,8 @@
+/*
 
+	Staff tools for damage prevention of sorts
+
+*/
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';

@@ -285,6 +285,11 @@ class sdShop
 		sdShop.options.push({ _class: 'sdConveyor', filter:'sepia(1) saturate(2) hue-rotate(220deg) brightness(0.7)', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdConveyor', filter:'sepia(1) saturate(1.7) hue-rotate(300deg) brightness(0.7)', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdBeacon', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdSteeringWheel', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdThruster', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(90deg) saturate(2)', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(180deg) saturate(2)', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(270deg) saturate(2)', _category:'Base equipment' });
 		
 		
 		for ( let i = 0; i < sdCaption.colors.length / 3; i++ )
@@ -599,6 +604,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:32, _category:'Admin tools' });
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:16, _category:'Admin tools' });
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_ERASER_AREA, size:16, _category:'Admin tools' });
+		sdShop.options.push({ _class: 'sdRegion', w:16, h:16, _category:'Admin tools' });
 		
 		let remover_sd_filter = sdWorld.CreateSDFilter();
 		sdWorld.ReplaceColorInSDFilter_v2( remover_sd_filter, '#abcbf4', '#ff9292' );

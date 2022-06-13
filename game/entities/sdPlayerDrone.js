@@ -521,7 +521,7 @@ class sdPlayerDrone extends sdCharacter
 		
 		this.HandlePlayerPowerups( GSPEED );
 		
-		if ( this.driver_of )
+		if ( this.driver_of && this.driver_of.VehicleHidesDrivers() )
 		this.PositionUpdateAsDriver();
 		else
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
