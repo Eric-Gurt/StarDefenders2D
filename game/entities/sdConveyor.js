@@ -209,7 +209,8 @@ class sdConveyor extends sdEntity
 					if ( Math.abs( this.dir ) >= 10 )
 					if ( another_entity.is( sdCharacter ) )
 					{
-						another_entity.tilt_speed += Math.sin( another_entity.tilt / 100 * 2 + Math.random() * 0.2 - 0.1 ) * 0.5 * Math.abs( this.dir ) * GSPEED;
+						//another_entity.tilt_speed += Math.sin( another_entity.tilt / 100 * 2 + Math.random() * 0.2 - 0.1 ) * 0.5 * Math.abs( this.dir ) * GSPEED;
+						another_entity.DamageStability( 100 );
 					}
 					
 					another_entity.PhysWakeUp();
