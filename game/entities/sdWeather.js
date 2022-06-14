@@ -2002,16 +2002,16 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_CRYSTALS_MATTER ) // Task which tells players to deliver "X" amount of max matter worth of crystals.
 		{
+			let player_count = sdWorld.GetPlayingPlayersCount();
 				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Create the tasks
 				{
-					let player_count = sdWorld.sockets.length;
 					sdTask.MakeSureCharacterHasTask({ 
 						similarity_hash:'EXTRACT-'+this._net_id, 
 						executer: sdWorld.sockets[ i ].character,
 						target: 'sdCrystal',
 						mission: sdTask.MISSION_LRTP_EXTRACTION,
 						difficulty: 0.5,
-						lrtp_ents_needed: 20480 + ( 5120 * sdWorld.sockets.length ),
+						lrtp_ents_needed: 15360 + ( 5120 * player_count ), // 20480 matter requirement for 1 player, although progress counts for all players I think
 						title: 'Teleport crystals',
 						time_left: 30 * 60 * 30,
 						extra: -99, // This lets the game know to take max matter as progress instead of crystal count.
