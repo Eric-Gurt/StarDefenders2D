@@ -129,6 +129,10 @@ class sdEnemyMech extends sdEntity
 		return;
 	
 		if ( initiator )
+		if ( initiator._is_being_removed )
+		initiator = null;
+	
+		if ( initiator )
 		if ( initiator.GetClass() === 'sdCharacter' )
 		if ( initiator._ai_team === 0 ) // Only target players
 		this._current_target = initiator;

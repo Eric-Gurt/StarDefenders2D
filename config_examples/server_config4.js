@@ -405,7 +405,9 @@ class sdServerConfig
 		
 		if ( !sdWorld.game_started )
 		{
-			if ( attacker && attacker.is( sdCharacter ) && attacker._ai_enabled === sdCharacter.AI_MODEL_NONE )
+			if ( attacker )
+			if ( !attacker._is_being_removed )
+			if ( attacker.is( sdCharacter ) && attacker._ai_enabled === sdCharacter.AI_MODEL_NONE )
 			if ( target.is( sdCharacter ) && target._ai_enabled === sdCharacter.AI_MODEL_NONE )
 			{
 				return false;
@@ -561,11 +563,12 @@ class sdServerConfig
 				}
 			}
 			
-			if ( sdWorld.tracked_creatures.length < 15 )
+			if ( sdWorld.tracked_creatures.length < 7 )
 			if ( Math.random() < 0.025 )
 			{
 				//let ent = new sdVirus({ x:0,y:0 });
-				let ent = new sdAsp({ x:0,y:0 });
+				//let ent = new sdAsp({ x:0,y:0 });
+				let ent = new sdDrone({ x:0,y:0, type: 2 });
 				//let ent = new sdCube({ x:0,y:0 });
 		
 
@@ -588,15 +591,15 @@ class sdServerConfig
 				
 				let rank = 1;
 				
-				if ( Math.random() < 0.2 )
+				/*if ( Math.random() < 0.2 )
 				{
 					rank = 20;
-					ent.filter = 'invert(1) sepia(1) saturate(100) hue-rotate(270deg) opacity(0.45)';
+					//ent.filter = 'invert(1) sepia(1) saturate(100) hue-rotate(270deg) opacity(0.45)';
 				}
 				else
 				{
-					ent.filter = 'invert(1) sepia(1) saturate(100) hue-rotate(110deg) opacity(0.45)';
-				}
+					//ent.filter = 'invert(1) sepia(1) saturate(100) hue-rotate(110deg) opacity(0.45)';
+				}*/
 				
 				ent._hmax = 80 / 10 * rank;
 				ent._hea = 80 / 10 * rank;
@@ -634,6 +637,9 @@ class sdServerConfig
 		while ( slots.length < 1 )
 		{
 			let i = ~~( Math.random() * sdGun.classes.length );
+			
+			if ( !sdGun.classes[ i ] || sdGun.classes[ i ].title === 'Missing weapon' )
+			continue;
 			
 			//if ( slots.length === 0 )
 			//i = sdGun.CLASS_BUILD_TOOL;

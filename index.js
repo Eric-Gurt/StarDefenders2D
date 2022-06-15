@@ -3665,8 +3665,8 @@ const ServerMainMethod = ()=>
 
 										if ( info )
 										key = info.entity;
-										else
-										console.log('Entity no longer exists in any array - no idea what break info to send...');
+										//else
+										//console.log('Entity no longer exists in any array - no idea what break info to send...');
 									}
 
 									if ( key )

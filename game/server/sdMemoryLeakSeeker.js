@@ -153,7 +153,12 @@ class sdMemoryLeakSeeker
 			if ( sdMemoryLeakSeeker.scheduled_current_object_properties_offset < sdMemoryLeakSeeker.scheduled_current_object_properties.length )
 			{
 				//let prop = sdMemoryLeakSeeker.scheduled_current_object_properties.shift();
+				
+				let old_offset = sdMemoryLeakSeeker.scheduled_current_object_properties_offset;
+				
 				let prop = sdMemoryLeakSeeker.scheduled_current_object_properties[ sdMemoryLeakSeeker.scheduled_current_object_properties_offset++ ];
+				
+				sdMemoryLeakSeeker.scheduled_current_object_properties[ old_offset ] = null;
 				
 				//if ( sdMemoryLeakSeeker.current_object === sdEntity )
 				if ( sdMemoryLeakSeeker.current_object === sdEntity.removed_entities_info ||
@@ -169,10 +174,17 @@ class sdMemoryLeakSeeker
 				}
 				else
 				{
-					if ( sdMemoryLeakSeeker.current_object.connected ) // Quick check if object is a connected socket
-					if ( prop === 'observed_entities' || prop === 'known_non_removed_dynamics' || prop === 'character' ) // Part of socket
+					if ( typeof sdMemoryLeakSeeker.current_object.connected !== 'undefined' ) // Quick check if object is a connected socket
+					if ( typeof sdMemoryLeakSeeker.current_object.acks !== 'undefined' ) // Quick check if object is a connected socket
 					{
-						return true; // This should be allowed
+						return true; // Ignore anything about them since there can be very big arrays of everything
+						
+						/*debugger;
+						
+						if ( prop === 'observed_entities' || prop === 'known_non_removed_dynamics' || prop === 'character' ) // Part of socket
+						{
+							return true; // This should be allowed
+						}*/
 					}
 				}
 				
@@ -266,8 +278,12 @@ class sdMemoryLeakSeeker
 		//if ( sdMemoryLeakSeeker.scheduled_objects.length > 0 )
 		if ( sdMemoryLeakSeeker.scheduled_objects_offset < sdMemoryLeakSeeker.scheduled_objects.length )
 		{
+			let old_offset = sdMemoryLeakSeeker.scheduled_objects_offset;
+			
 			//let obj = sdMemoryLeakSeeker.scheduled_objects.shift();
 			let obj = sdMemoryLeakSeeker.scheduled_objects[ sdMemoryLeakSeeker.scheduled_objects_offset++ ];
+			
+			sdMemoryLeakSeeker.scheduled_objects[ old_offset ] = null;
 			
 			if ( !sdMemoryLeakSeeker.visited_objects.has( obj ) )
 			{

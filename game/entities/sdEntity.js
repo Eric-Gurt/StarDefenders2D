@@ -2254,6 +2254,12 @@ class sdEntity
 					this.onThink.has_sdBlock_extras = true;
 				}
 			}
+			if ( this.onRemove.has_broken_property_check === undefined )
+			{
+				let onRemoveString = this.onRemove.toString();
+				
+				this.onRemove.has_broken_property_check = ( onRemoveString.indexOf( '_broken' ) !== -1 );
+			}
 			
 			if ( this.onThink.has_ApplyVelocityAndCollisions )
 			this.PhysInitIfNeeded();
@@ -3673,7 +3679,11 @@ class sdEntity
 				
 				if ( sdWorld.is_server )
 				if ( !sdWorld.is_singleplayer )
-				sdEntity.removed_entities_info.set( this._net_id, { entity: this, ttl: sdWorld.time + 10000 } );
+				if ( this.onRemove.has_broken_property_check )
+				{
+					sdEntity.removed_entities_info.set( this._net_id, { entity: this, ttl: sdWorld.time + 10000 } );
+					//trace( 'deleting ' + this.GetClass() );
+				}
 			}
 		}
 	}
@@ -3729,6 +3739,11 @@ class sdEntity
 	}
 	DamageWithEffect( dmg, initiator=null, headshot=false, affects_armor=true )
 	{
+		// Some extra check so old code works without changes and occasional crashes
+		if ( initiator )
+		if ( initiator._is_being_removed )
+		initiator = null;
+		
 		if ( sdWorld.is_server || sdWorld.is_singleplayer )
 		{
 			if ( !sdStatusEffect )
