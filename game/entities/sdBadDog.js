@@ -287,6 +287,10 @@ class sdBadDog extends sdEntity
 	{
 		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
 		
+		if ( this.master )
+		if ( this.master._is_being_removed )
+		this.master = null;
+		
 		if ( sdWorld.is_server )
 		{
 			this.bites = ( sdWorld.time < this._last_bite + 75 ) ? 1 : 0;

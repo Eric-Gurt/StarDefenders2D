@@ -253,7 +253,19 @@ class sdMemoryLeakSeeker
 								if ( sdMemoryLeakSeeker.current_object instanceof Set )
 								sdMemoryLeakSeeker.current_object.delete( prop );
 								else
-								sdMemoryLeakSeeker.current_object[ prop ] = sdEntity.removed_object;
+								{
+									if ( sdMemoryLeakSeeker.current_object instanceof Array )
+									{
+										sdMemoryLeakSeeker.current_object[ prop ] = sdEntity.removed_object; // Just to keep indices in case if there are multiple arrays of some sort
+									}
+									else
+									if ( sdMemoryLeakSeeker.current_object instanceof sdEntity )
+									{
+										sdMemoryLeakSeeker.current_object[ prop ] = null; // It is just easier to deal with...
+									}
+									else
+									sdMemoryLeakSeeker.current_object[ prop ] = sdEntity.removed_object; // Strange case, probably some kind of Object but not a regular entity...
+								}
 							
 								sdMemoryLeakSeeker.erased_pointers++;
 							}
