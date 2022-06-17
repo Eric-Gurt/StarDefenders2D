@@ -377,6 +377,7 @@ class sdDrone extends sdEntity
 
 			// It makes sense to call it at all times because it also handles wall attack logic
 			if ( this._current_target )
+			if ( this._pathfinding )
 			pathfinding_result = this._pathfinding.Think( GSPEED );
 			
 			if ( this._current_target )
