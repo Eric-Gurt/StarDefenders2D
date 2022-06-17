@@ -91,6 +91,7 @@ class sdLandMine extends sdEntity
 		let ent_sy = from_entity.sy || 0;
 		if ( ent_sx + ent_sy > 0.1 )
 		if ( from_entity.GetClass() !== 'sdBullet' )
+		if ( from_entity.mass > 25 )
 		if ( from_entity.y <= this.y )
 		{
 			sdSound.PlaySound({ name:'sd_beacon', x:this.x, y:this.y, volume:0.5, pitch: 1.5 });
