@@ -2444,6 +2444,7 @@ class sdEntity
 		
 		return coms_near;
 	}
+	
 	GetAnythingNearCache( _x, _y, range, append_to=null, specific_classes=null )
 	{
 		if ( append_to !== null || specific_classes !== null )
@@ -2466,7 +2467,7 @@ class sdEntity
 			
 
 			// Randomize array in-place using Durstenfeld shuffle algorithm. This should be more fair and also more relaxed for sdMatterContainers that exchange matter
-			function shuffleArray(array) 
+			/*function shuffleArray(array) 
 			{
 				for (var i = array.length - 1; i > 0; i--) {
 					var j = Math.floor(Math.random() * (i + 1));
@@ -2474,9 +2475,9 @@ class sdEntity
 					array[i] = array[j];
 					array[j] = temp;
 				}
-			}
+			}*/
 
-			shuffleArray( anything_near );
+			sdWorld.shuffleArray( anything_near );
 		}
 		
 		return anything_near;
@@ -3734,6 +3735,12 @@ class sdEntity
 		if ( !sdStatusEffect )
 		sdStatusEffect = sdWorld.entity_classes.sdStatusEffect;
 	
+		if ( this.is( sdStatusEffect ) )
+		{
+			debugger;
+			return;
+		}
+		
 		params.for = this;
 		sdStatusEffect.ApplyStatusEffectForEntity( params );
 	}

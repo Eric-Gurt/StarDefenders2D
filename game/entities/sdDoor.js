@@ -91,6 +91,8 @@ class sdDoor extends sdEntity
 		
 		if ( this._hea > 0 )
 		{
+			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+			
 			if ( this._shielded === null || dmg === Infinity || this._shielded._is_being_removed || !this._shielded.enabled || !sdWorld.inDist2D_Boolean( this.x, this.y, this._shielded.x, this._shielded.y, sdBaseShieldingUnit.protect_distance_stretch ) )
 			{
 				this._hea -= dmg;
@@ -436,6 +438,11 @@ class sdDoor extends sdEntity
 
 				//console.log( this.x, this.y );
 			}
+		}
+		else
+		{
+			if ( this._hea >= this._hmax )
+			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		}
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions

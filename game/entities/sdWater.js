@@ -24,6 +24,7 @@ class sdWater extends sdEntity
 		
 		sdWater.damage_by_type = [ 0, 1, 5, 0 ];
 		sdWater.never_sleep_by_type = [ 0, 0, 0, 1 ];
+		sdWater.can_sleep_if_has_entities = [ 1, 0, 0, 0 ];
 		
 		sdWater.DEBUG = false;
 		
@@ -301,6 +302,7 @@ class sdWater extends sdEntity
 							if ( sdWater.damage_by_type[ this.type ] !== 0 )
 							if ( this.type === sdWater.TYPE_LAVA || ( this.type === sdWater.TYPE_ACID && e_is_organic ) )
 							if ( !e.isWaterDamageResistant() )
+							//if ( e.Damage !== sdEntity.prototype.Damage )
 							{
 								e.DamageWithEffect( sdWater.damage_by_type[ this.type ] * GSPEED ); 
 								
@@ -396,12 +398,12 @@ class sdWater extends sdEntity
 		}*/
 		for ( var i = 0; i < arr.length; i++ )
 		{
-			if ( arr[ i ].is( sdWater ) || arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) )
 			if ( arr[ i ].x + arr[ i ]._hitbox_x1 < this.x + 16 )
 			if ( arr[ i ].x + arr[ i ]._hitbox_x2 > this.x )
 			if ( arr[ i ].y + arr[ i ]._hitbox_y1 < this.y + 16 + 16 )
 			if ( arr[ i ].y + arr[ i ]._hitbox_y2 > this.y + 16 )
 			if ( this !== arr[ i ] )
+			if ( arr[ i ].is( sdWater ) || arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) )
 			{
 				if ( this.BlendWith( arr[ i ] ) )
 				return;
@@ -491,8 +493,8 @@ class sdWater extends sdEntity
 				}
 				else
 				{
-					if ( sdWater.never_sleep_by_type[ this.type ] )
-					if ( this._swimmers.size === 0 )
+					if ( !sdWater.never_sleep_by_type[ this.type ] )
+					if ( this._swimmers.size === 0 || sdWater.can_sleep_if_has_entities[ this.type ] )
 					this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 				
 					this._sy = 0;
@@ -503,8 +505,8 @@ class sdWater extends sdEntity
 		
 		if ( this.y + 16 >= sdWorld.world_bounds.y2 )
 		{
-			if ( sdWater.never_sleep_by_type[ this.type ] )
-			if ( this._swimmers.size === 0 )
+			if ( !sdWater.never_sleep_by_type[ this.type ] )
+			if ( this._swimmers.size === 0 || sdWater.can_sleep_if_has_entities[ this.type ] )
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		
 			this._sy = 0;
@@ -615,12 +617,15 @@ class sdWater extends sdEntity
 	}
 	onMovementInRange( from_entity )
 	{
+		if ( from_entity.Damage !== sdEntity.prototype.Damage )
 		if ( !from_entity.is( sdWater ) )
 		if ( !from_entity.is( sdBG ) )
 		if ( !from_entity.is( sdBlock ) || ( ( sdWorld.is_server && !from_entity._natural ) || ( !sdWorld.is_server && from_entity.material !== sdBlock.MATERIAL_GROUND ) ) )
 		if ( !from_entity.is( sdDoor ) )
 		if ( !from_entity.is( sdEffect ) )
-		if ( !from_entity.is( sdGun ) || from_entity._held_by === null )
+		//if ( !from_entity.is( sdGun ) || from_entity._held_by === null )
+		//if ( !from_entity.is( sdStatusEffect ) ) These have regular damage function and ignored earlier
+		if ( from_entity.IsTargetable( this, false ) )
 		{
 			//if ( this.type === sdWater.TYPE_LAVA || this.type === sdWater.TYPE_ACID )
 			{

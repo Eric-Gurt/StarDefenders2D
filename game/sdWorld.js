@@ -32,7 +32,7 @@ import sdRenderer from './client/sdRenderer.js';
 import sdBitmap from './client/sdBitmap.js';
 import sdSound from './sdSound.js';
 
-const CHUNK_SIZE = 128; // 32
+const CHUNK_SIZE = 64; // 128 causes groups of 111 or so entities, it is probably too much // 32
 
 class sdWorld
 {
@@ -1325,7 +1325,8 @@ class sdWorld
 					cx = Math.max( e.x + x1, Math.min( _x, e.x + x2 ) );
 					cy = Math.max( e.y + y1, Math.min( _y, e.y + y2 ) );
 
-					if ( sdWorld.inDist2D( _x, _y, cx, cy, range ) >= 0 )
+					//if ( sdWorld.inDist2D( _x, _y, cx, cy, range ) >= 0 )
+					if ( sdWorld.inDist2D_Boolean( _x, _y, cx, cy, range ) )
 					if ( ret.indexOf( e ) === -1 )
 					ret.push( e );
 				}
@@ -1524,6 +1525,16 @@ class sdWorld
 		return false;
 
 		return true;
+	}
+	
+	static shuffleArray( array ) 
+	{
+		for (var i = array.length - 1; i > 0; i--) {
+			var j = Math.floor(Math.random() * (i + 1));
+			var temp = array[i];
+			array[i] = array[j];
+			array[j] = temp;
+		}
 	}
 	
 	static sqr( x )

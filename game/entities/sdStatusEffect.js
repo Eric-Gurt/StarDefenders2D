@@ -272,6 +272,15 @@ class sdStatusEffect extends sdEntity
 				if ( params.t !== undefined )
 				status_entity.t += params.t / ( ( params.for.hmax || params.for._hmax || 300 ) / 300 ); // Copy [ 1 / 2 ]
 			},
+			
+			onNotMergedAndAboutToBeMade: ( params )=>
+			{
+				if ( params.target_value === temperature_normal || params.t === 0 )
+				return false; // Do not make
+			
+				return true; // Make this effect
+			},
+			
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
 			{
 				if ( params.t )
@@ -810,11 +819,16 @@ class sdStatusEffect extends sdEntity
 	{
 		// TODO: Optimzie using map (though map is delayed and can cause other issues?)
 		
-		for ( let i = 0; i < sdStatusEffect.status_effects.length; i++ )
+		let status_effects_on_entity = sdStatusEffect.entity_to_status_effects.get( params.for );
+		
+		if ( status_effects_on_entity !== undefined )
+		//for ( let i = 0; i < sdStatusEffect.status_effects.length; i++ )
+		for ( let i = 0; i < status_effects_on_entity.length; i++ )
 		{
-			let old_status = sdStatusEffect.status_effects[ i ];
+			//let old_status = sdStatusEffect.status_effects[ i ];
+			let old_status = status_effects_on_entity[ i ];
 			
-			if ( old_status.for === params.for )
+			//if ( old_status.for === params.for )
 			{
 				let status_type = sdStatusEffect.types[ old_status.type ];
 		
@@ -835,9 +849,16 @@ class sdStatusEffect extends sdEntity
 				}
 			}
 		}
-	
-		let task = new sdStatusEffect( params );
-		sdEntity.entities.push( task );
+		
+		let status_type = sdStatusEffect.types[ params.type ];
+		
+		if ( !status_type.onNotMergedAndAboutToBeMade || status_type.onNotMergedAndAboutToBeMade( params ) )
+		{
+			let task = new sdStatusEffect( params );
+			sdEntity.entities.push( task );
+
+			task.onThink( 0 ); // Assign .for property instantly so sdStatusEffect.entity_to_status_effects is updated in case of multiple effects are going to be applied during same frame
+		}
 	}
 	
 	IsVisible( observer_entity )
