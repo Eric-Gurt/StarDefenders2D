@@ -24,7 +24,7 @@ class sdWater extends sdEntity
 		
 		sdWater.damage_by_type = [ 0, 1, 5, 0 ];
 		sdWater.never_sleep_by_type = [ 0, 0, 0, 1 ];
-		sdWater.can_sleep_if_has_entities = [ 1, 0, 0, 0 ];
+		//sdWater.can_sleep_if_has_entities = [ 1, 0, 0, 0 ];
 		
 		sdWater.DEBUG = false;
 		
@@ -494,7 +494,7 @@ class sdWater extends sdEntity
 				else
 				{
 					if ( !sdWater.never_sleep_by_type[ this.type ] )
-					if ( this._swimmers.size === 0 || sdWater.can_sleep_if_has_entities[ this.type ] )
+					if ( this._swimmers.size === 0 )//|| sdWater.can_sleep_if_has_entities[ this.type ] )
 					this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 				
 					this._sy = 0;
@@ -506,7 +506,7 @@ class sdWater extends sdEntity
 		if ( this.y + 16 >= sdWorld.world_bounds.y2 )
 		{
 			if ( !sdWater.never_sleep_by_type[ this.type ] )
-			if ( this._swimmers.size === 0 || sdWater.can_sleep_if_has_entities[ this.type ] )
+			if ( this._swimmers.size === 0 )//|| sdWater.can_sleep_if_has_entities[ this.type ] )
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		
 			this._sy = 0;
@@ -636,6 +636,8 @@ class sdWater extends sdEntity
 				if ( !this._swimmers.has( from_entity ) )
 				{
 					this._swimmers.add( from_entity );
+					
+					this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 					
 					if ( this.type !== sdWater.TYPE_TOXIC_GAS )
 					{
