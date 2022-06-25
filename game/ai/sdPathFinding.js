@@ -303,15 +303,18 @@ class sdPathFinding
 					rect_space_map._is_being_removed = true;
 
 					let space_maps_by_entity = sdPathFinding.rect_space_maps_by_entity.get( rect_space_map.target );
+					
+					if ( space_maps_by_entity ) // For some reason it does happen to be undefined, but very rarely
+					{
+						let i2 = space_maps_by_entity.indexOf( rect_space_map );
+						if ( i2 !== -1 )
+						space_maps_by_entity.splice( i2, 1 );
+						else
+						debugger;
 
-					let i2 = space_maps_by_entity.indexOf( rect_space_map );
-					if ( i2 !== -1 )
-					space_maps_by_entity.splice( i2, 1 );
-					else
-					debugger;
-
-					if ( space_maps_by_entity.length === 0 )
-					sdPathFinding.rect_space_maps_by_entity.delete( rect_space_map.target );
+						if ( space_maps_by_entity.length === 0 )
+						sdPathFinding.rect_space_maps_by_entity.delete( rect_space_map.target );
+					}
 
 					sdPathFinding.rect_space_maps.splice( i, 1 );
 					i--;
