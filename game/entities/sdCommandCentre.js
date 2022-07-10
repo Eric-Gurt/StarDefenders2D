@@ -84,7 +84,7 @@ class sdCommandCentre extends sdEntity
 	{
 		super( params );
 		
-		this.hmax = 4000;
+		this.hmax = 1000;
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
 		

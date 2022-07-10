@@ -27,6 +27,8 @@ class sdRenderer
 		if ( typeof window === 'undefined' )
 		return;
 	
+		sdRenderer.img_sun = sdWorld.CreateImageFromFile( 'sun' );
+	
 		sdRenderer.distance_scale_background = 1.4; // 1.2
 		sdRenderer.distance_scale_in_world = 1; // Can be altered with .CameraDistanceScale3D
 		sdRenderer.distance_scale_fading_world_edges = 0.8;
@@ -403,6 +405,145 @@ class sdRenderer
 
 			};
 		};
+		
+		sdRenderer.dark_lands_canvases = [];
+		sdRenderer.dark_lands_canvases_fill = [];
+		sdRenderer.dark_lands_colors = [
+			'#050203',
+			'#0b0507',
+			'#12070a',
+			'#1a090d',
+			'#250c12',
+			'#2d0e14',
+			'#40131c',
+			'#5a1b27'
+		];
+		sdRenderer.dark_lands_width = 800;
+		
+		if ( !sdWorld.is_server )
+		{
+			let img_ground88 = sdWorld.CreateImageFromFile( 'ground_8x8' );
+		
+			function GenerateDarkLands()
+			{
+				for ( let i = 0; i < sdRenderer.dark_lands_colors.length; i++ )
+				{
+					let c = document.createElement('canvas');
+					c.width = sdRenderer.dark_lands_width;
+					c.height = 400;
+					
+					let c2 = document.createElement('canvas');
+					c2.width = sdRenderer.dark_lands_width;
+					c2.height = 400;
+
+					let ctx = c.getContext("2d");
+					let ctx2 = c2.getContext("2d");
+					//
+
+					let scale = ( 1 / ( sdRenderer.dark_lands_colors.length - i ) );
+
+					sdWorld.SeededRandomNumberGenerator.seed = 5892489;
+					
+					
+					ctx2.save();
+					
+						let image_scale = scale * 2;
+					
+						ctx2.scale( image_scale, image_scale );
+						ctx2.filter = 'saturate(0) brightness(3)';
+						ctx2.fillStyle = ctx2.createPattern( sdBlock.img_ground88, "repeat" );
+						ctx2.fillRect( 0, 0, sdRenderer.dark_lands_width / image_scale, 400 / image_scale );
+
+						ctx2.filter = 'none';
+						ctx2.globalCompositeOperation = 'multiply';
+						ctx2.fillStyle = sdRenderer.dark_lands_colors[ i ];
+						ctx2.fillRect( 0, 0, sdRenderer.dark_lands_width / image_scale, 400 / image_scale );
+
+					ctx2.restore();
+					
+					ctx.drawImage( c2, 0,0 );
+					
+					
+					ctx.save();
+					
+						ctx.globalCompositeOperation = 'destination-atop';
+					
+						ctx.beginPath();
+						{
+							let h = 0;
+
+							let heights = [];
+							let iters = ~~( 300 * scale ); // 100 // Noise smooth
+							for ( let x = 0; x <= sdRenderer.dark_lands_width; x += 1 )
+							{
+								let sum = 0;
+								for ( let xx = 0; xx < iters; xx++ )
+								sum += sdWorld.SeededRandomNumberGenerator.random( ( x + xx ) % sdRenderer.dark_lands_width, i );
+
+								sum /= iters;
+
+								h = ( sum - 0.5 ) * scale * 800; // 400
+								heights.push( h );
+							}
+
+							let smoothness = ~~( 100 * scale ); // 160
+							for ( let s = 0; s < smoothness; s++ ) // Result smooth
+							{
+								let heights2 = heights.slice();
+								for ( let x = 0; x <= sdRenderer.dark_lands_width; x += 1 )
+								{
+									let x0 = heights[ ( x - 1 + sdRenderer.dark_lands_width ) % sdRenderer.dark_lands_width ];
+									let x1 = heights[ x ];
+									let x2 = heights[ ( x + 1 ) % sdRenderer.dark_lands_width ];
+
+									heights2[ x ] = ( x0 + x1 + x2 ) / 3;
+								}
+								heights = heights2;
+							}
+
+							for ( let x = 0; x <= sdRenderer.dark_lands_width; x += 1 )
+							{
+								h = heights[ x ];
+
+								if ( x === 0 )
+								ctx.moveTo( x, 200 + h );
+								else
+								ctx.lineTo( x, 200 + h );
+							}
+							ctx.lineTo( 800, 200 + h );
+							ctx.lineTo( 800, 400 );
+							ctx.lineTo( 0, 400 );
+						}
+
+
+						//ctx.globalCompositeOperation = 'source-over';
+						//ctx.filter = 'none';
+						//ctx.fillStyle = sdRenderer.dark_lands_colors[ i ];
+						ctx.fill();
+
+						//ctx.clip();
+
+						//ctx.globalCompositeOperation = 'luminosity';
+						//ctx.filter = 'grayscale(1) brightness(2)';
+						
+					ctx.restore();
+
+					sdRenderer.dark_lands_canvases.push( c );
+					sdRenderer.dark_lands_canvases_fill.push( c2 );
+				}
+			}
+			
+			if ( !img_ground88.loaded )
+			{
+				img_ground88.RequiredNow();
+				
+				img_ground88.callbacks.push( GenerateDarkLands );
+			}
+			else
+			{
+				GenerateDarkLands();
+			}
+		}
 	}
 	
 	static set visual_settings( v )
@@ -535,15 +676,16 @@ class sdRenderer
 			//ctx.fillStyle = "#7b3219";
 			
 			
-			ctx.fillStyle = sdRenderer.sky_gradient;
+			ctx.fillStyle = '#000000';//sdRenderer.sky_gradient;
 			ctx.fillRect( 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
 			
 			//ctx.drawImage( sdRenderer.img_dark_lands, 0,0, sdRenderer.screen_width, sdRenderer.screen_height );
 			
+			
 			if ( sdWeather.only_instance )
 			{
 				ctx.fillStyle = '#000000';
-				ctx.globalAlpha = Math.cos( sdWeather.only_instance.day_time / ( 30 * 60 * 24 ) * Math.PI * 2 ) * 0.5 + 0.5;
+				
 				if ( ctx.sky )
 				{	
 					let br = false;
@@ -573,28 +715,130 @@ class sdRenderer
 					}
 				}
 			
-				/*if ( sdRenderer.visual_settings === 4 )
-				{
-				}
-				else*/
-				{
-					//ctx.drawImage( sdRenderer.img_dark_lands, 0,0, sdRenderer.screen_width, sdRenderer.screen_height );
-					ctx.drawImageFilterCache( sdRenderer.img_dark_lands, 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
+				/*{
+					ctx.globalAlpha = 1;
+					
+					//ctx.drawImageFilterCache( sdRenderer.img_dark_lands, 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
 					//ctx.globalAlpha = 1; // Not sure if parallax stuff in front should be transparent during planet's daylight
 
 					//Parallax background
 					ctx.drawImageFilterCache( sdRenderer.img_dark_lands2, - sdRenderer.screen_width - ( ( sdWorld.camera.x / 2 ) % sdRenderer.screen_width ), sdRenderer.screen_height / 4 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height ) ), sdRenderer.screen_width, sdRenderer.screen_height );
 					ctx.drawImageFilterCache( sdRenderer.img_dark_lands2, 0 - ( ( sdWorld.camera.x / 2 ) % sdRenderer.screen_width ), sdRenderer.screen_height / 4 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height ) ), sdRenderer.screen_width, sdRenderer.screen_height );
 					ctx.drawImageFilterCache( sdRenderer.img_dark_lands2, sdRenderer.screen_width - ( ( sdWorld.camera.x / 2 ) % sdRenderer.screen_width ), sdRenderer.screen_height / 4 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height ) ), sdRenderer.screen_width, sdRenderer.screen_height );
-					ctx.globalAlpha = 1;
 
 					// Closer parallax background
-
 					ctx.drawImageFilterCache( sdRenderer.img_dark_lands3, - sdRenderer.screen_width - ( ( sdWorld.camera.x ) % sdRenderer.screen_width ), sdRenderer.screen_height / 2 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height * 1.5 ) ), sdRenderer.screen_width, sdRenderer.screen_height * 2 );
 					ctx.drawImageFilterCache( sdRenderer.img_dark_lands3, 0 - ( ( sdWorld.camera.x ) % sdRenderer.screen_width ), sdRenderer.screen_height / 2 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height * 1.5 ) ), sdRenderer.screen_width, sdRenderer.screen_height * 2 );
 					ctx.drawImageFilterCache( sdRenderer.img_dark_lands3, sdRenderer.screen_width - ( ( sdWorld.camera.x ) % sdRenderer.screen_width ), sdRenderer.screen_height / 2 - ( ( sdWorld.camera.y / sdWorld.world_bounds.y2 ) * ( sdRenderer.screen_height * 1.5 ) ), sdRenderer.screen_width, sdRenderer.screen_height * 2 );
+				}*/
+				
+				let current_camera_scale = ( sdWorld.camera.scale / 4.75 );
+				
+				let offset_scale = sdRenderer.screen_height / 400;
+				let w = offset_scale * 800 * current_camera_scale;
+				let h = offset_scale * 400 * current_camera_scale;
+				
+				
+				
+				ctx.sd_color_mult_r = 
+				ctx.sd_color_mult_g = 
+				ctx.sd_color_mult_b = 1 / ( 1 + Math.max( 0, sdWorld.camera.y - sdWorld.base_ground_level - 256 ) * 0.003 );
+				
+				
+				if ( sdRenderer.dark_lands_canvases )
+				for ( let i = 0; i < sdRenderer.dark_lands_colors.length; i++ )
+				{
+					ctx.camera_relative_world_scale = sdRenderer.distance_scale_background - i * 0.001;
+		
+					let xx = sdRenderer.screen_width / 2;
+					let yy = sdRenderer.screen_height / 2;
+			
+					let scale = ( 1 / ( sdRenderer.dark_lands_colors.length - i ) ) * offset_scale * current_camera_scale;
+					
+					xx += ( 0 - sdWorld.camera.x ) * scale;
+					yy += ( sdWorld.base_ground_level + 150 - sdWorld.camera.y ) * scale;
+					
+					xx -= sdRenderer.screen_width / 2 * current_camera_scale;
+					yy -= sdRenderer.screen_height / 2 * current_camera_scale;
+					
 					ctx.globalAlpha = 1; // Just in case
+					
+					ctx.sd_hue_rotation = ( sdWorld.mod( sdWorld.camera.x / 16, 360 ) );
+					
+					if ( yy < sdRenderer.screen_height )
+					{
+						while ( xx < 0 )
+						xx += w;
+
+						while ( xx > 0 )
+						xx -= w;
+
+						while ( xx < sdRenderer.screen_width )
+						{
+							ctx.drawImageFilterCache( sdRenderer.dark_lands_canvases[ i ], xx, yy, w, h );
+							
+							let yy2 = yy + h;
+							
+							while ( yy2 < sdRenderer.screen_height )
+							{
+								ctx.drawImageFilterCache( sdRenderer.dark_lands_canvases_fill[ i ], xx, yy2, w, h );
+								
+								yy2 += h;
+							}
+							
+							xx += w;
+						}
+
+						/*if ( yy + h < sdRenderer.screen_height )
+						{
+							ctx.fillStyle = sdRenderer.dark_lands_colors[ i ];
+							ctx.fillRect( 0, yy + h, sdRenderer.screen_width, sdRenderer.screen_height );
+						}*/
+					}
+					
+					//ctx.sd_hue_rotation = 1;
+					ctx.sd_hue_rotation = ( sdWorld.mod( sdWorld.camera.x * 0.8 / 16, 360 ) );
+					
+					let brightness = 3 / sdRenderer.dark_lands_colors.length;
+					
+					let day_progress = sdWeather.only_instance.day_time / ( 30 * 60 * 24 ) * Math.PI * 2;
+					
+					ctx.globalAlpha = ( Math.cos( day_progress ) * 0.5 + 0.5 ) * brightness;
+					ctx.fillStyle = sdRenderer.sky_gradient;
+					ctx.fillRect( 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
+					
+					if ( i === sdRenderer.dark_lands_colors.length - 1 )
+					{
+						ctx.globalAlpha = ( Math.cos( day_progress ) * 1 ); // Just in case
+						if ( ctx.globalAlpha > 0 )
+						{
+							let old_vol = ctx.volumetric_mode;
+							ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT;
+							ctx.camera_relative_world_scale = sdRenderer.distance_scale_background - 0.001;// - sdRenderer.dark_lands_colors.length * 0.001;
+
+							if ( sdRenderer.img_sun.loaded )
+							ctx.drawImageFilterCache( sdRenderer.img_sun, 
+								-32 + sdRenderer.screen_width / 2 - Math.sin( day_progress ) * sdRenderer.screen_width / 2 * 0.8, 
+								-32 + sdRenderer.screen_height / 2 - Math.cos( day_progress ) * sdRenderer.screen_height / 2 * 0.5 );
+							else
+							sdRenderer.img_sun.RequiredNow();
+
+							ctx.volumetric_mode = old_vol;
+						}
+					}
 				}
+				
+				ctx.sd_color_mult_r = 1;
+				ctx.sd_color_mult_g = 1;
+				ctx.sd_color_mult_b = 1;
+				
+				//ctx.camera_relative_world_scale = sdRenderer.distance_scale_background + sdRenderer.dark_lands_colors.length + 0.001;
+				
+				/*ctx.globalAlpha = Math.cos( sdWeather.only_instance.day_time / ( 30 * 60 * 24 ) * Math.PI * 2 ) * 0.5 + 0.5;
+				ctx.fillStyle = sdRenderer.sky_gradient;
+				ctx.fillRect( 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
+				*/
+				ctx.globalAlpha = 1; // Just in case
 			}
 			
 			if ( sdWorld.time > sdRenderer.last_source_change + 5000 )

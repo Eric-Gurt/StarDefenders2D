@@ -88,7 +88,7 @@ class sdSteeringWheel extends sdEntity
 		
 		this._last_scan = sdWorld.time;
 		
-		const LIMIT = 100;
+		const LIMIT = 400; // Was 100
 		
 		let speed = 0;
 		
@@ -126,10 +126,30 @@ class sdSteeringWheel extends sdEntity
 						{
 							visited.add( ent2 );
 								
-							if ( ( ent2.is( sdBlock ) && !ent2._natural ) || 
-								 ent2.is( sdDoor ) || 
-								 ent2.is( sdBG ) || 
-								 ( !ent2.onThink.has_ApplyVelocityAndCollisions && ent2.IsBGEntity() <= 1 ) ) // Ignore physical entities that will be pushed
+							if ( 
+									( ent2.is( sdBlock ) && !ent2._natural ) 
+
+									|| 
+
+									ent2.is( sdDoor ) 
+
+									|| 
+
+									( 
+									   ent2.IsBGEntity() === 1 &&
+
+									   (
+											( ent2.is( sdBG ) && ent2.material !== sdBG.MATERIAL_GROUND ) 
+											||
+											!ent2.is( sdBG ) 
+										)
+									) 
+
+									|| 
+
+									( !ent2.onThink.has_ApplyVelocityAndCollisions && ent2.IsBGEntity() === 0 ) // Ignore physical entities that will be pushed
+
+								)
 							{
 								active.push( ent2 );
 								collected.push( ent2 );
@@ -493,7 +513,7 @@ class sdSteeringWheel extends sdEntity
 				{
 					let another = unchecked[ i2 ];
 					
-					if ( current.DoesOverlapWith( another ) )
+					if ( current.DoesOverlapWith( another, overlap ) )
 					{
 						active.push( another );
 						
@@ -678,12 +698,12 @@ class sdSteeringWheel extends sdEntity
 		{
 			for ( let i = 0; i < stopping_entities.length; i++ )
 			{
-				if ( !stopping_entities[ i ].is( sdBG ) )
+				if ( !stopping_entities[ i ].is( sdBG ) || stopping_entities[ i ].material === sdBG.MATERIAL_GROUND )
 				stopping_entities[ i ].Damage( 5 * GSPEED );
 			}
 			for ( let i = 0; i < stopped_entities.length; i++ )
 			{
-				if ( !stopped_entities[ i ].is( sdBG ) )
+				if ( !stopped_entities[ i ].is( sdBG ) || stopped_entities[ i ].material === sdBG.MATERIAL_GROUND )
 				stopped_entities[ i ].Damage( 5 * GSPEED );
 			}
 			

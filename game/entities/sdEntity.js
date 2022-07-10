@@ -59,6 +59,14 @@ class sdEntity
 		sdEntity.pointer_has_been_cleared = { _inaccessible: true };//403.98765;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
+		
+		sdWorld.entity_classes_array = null;
+	}
+	static AllEntityClassesLoadedAndInitiated()
+	{
+		sdWorld.entity_classes_array = Object.values( sdWorld.entity_classes );
+		for ( let i = 0; i < sdWorld.entity_classes_array.length; i++ )
+		sdWorld.entity_classes_array[ i ].class_id = i;
 	}
 	
 	GetCollisionMode()
@@ -2104,7 +2112,7 @@ class sdEntity
 	is( c )
 	{
 		// sdEntity.prototype.isB is faster than sdEntity.prototype.isA without sdWorld.FastestMethod call, at least on some specs
-		return sdWorld.FastestMethod( this, sdEntity.prototype, sdEntity.prototype.is, [ sdEntity.prototype.isA, sdEntity.prototype.isB, sdEntity.prototype.isC, sdEntity.prototype.isD, sdEntity.prototype.isE ], [ c ] );
+		return sdWorld.FastestMethod( this, sdEntity.prototype, sdEntity.prototype.is, [ sdEntity.prototype.isA, sdEntity.prototype.isB, sdEntity.prototype.isC, sdEntity.prototype.isD, sdEntity.prototype.isE, sdEntity.prototype.isF ], [ c ] );
 	}
 	isA( c )
 	{ return this.constructor === c.prototype.constructor; }
@@ -2117,6 +2125,10 @@ class sdEntity
 	{ return this instanceof c; }
 	isE( c )
 	{ return this._class === c.prototype.constructor.name; }
+	isF( c )
+	{ 
+		return this._class_id === c.class_id; 
+	}
 	
 	PreInit() // Best place for NaN tracking methods initialization
 	{
@@ -2131,6 +2143,8 @@ class sdEntity
 		this.PreInit();
 		
 		this._class = this.constructor.name;
+		
+		this._class_id = this.__proto__.constructor.class_id;
 		
 		this._flag = 0; // Used to mark entities as visited/added/mentioned just so WeakSet is not needed. Compare it to sdEntity.flag_counter++
 		//debugger;
@@ -2809,6 +2823,7 @@ class sdEntity
 			if ( prop !== '_net_id' )
 			if ( prop !== '_class' )
 			if ( prop !== '_is_being_removed' )
+			if ( prop !== '_class_id' )
 			{
 				if ( snapshot[ prop ] !== null && typeof snapshot[ prop ] === 'object' && snapshot[ prop ]._net_id && snapshot[ prop ]._class )
 				{
@@ -2886,7 +2901,7 @@ class sdEntity
 								|| 
 								
 								// Being held by something on server, for example ropes seem to cause it, which isn't good actually
-								!this.AllowClientSideState()
+								( !this.AllowClientSideState() && prop !== 'look_x' && prop !== 'look_y' )
 									
 								
 							)

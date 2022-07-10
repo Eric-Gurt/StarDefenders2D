@@ -377,8 +377,11 @@ class sdHover extends sdEntity
 					bullet_obj.sx *= 15;
 					bullet_obj.sy *= 15;
 					
-					bullet_obj.sx += this.sx;
-					bullet_obj.sy += this.sy;
+					if ( this.type !== 2 )
+					{
+						bullet_obj.sx += this.sx;
+						bullet_obj.sy += this.sy;
+					}
 
 					if ( this.type === 1 )
 					bullet_obj._damage = 23;

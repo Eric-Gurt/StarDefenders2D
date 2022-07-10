@@ -392,13 +392,13 @@ class sdMatterAmplifier extends sdEntity
 						}
 						else
 						if ( s.character.hook_x !== 0 || s.character.hook_y !== 0 )
-						if ( s.character._hook_relative_to === that )
+						if ( s.character.hook_relative_to === that )
 						{
-							s.character._hook_relative_to = ent;
+							s.character.hook_relative_to = ent;
 							//s.character.hook_x = ent.x;
 							//s.character.hook_y = ent.y;
-							s.character._hook_relative_x = 0;
-							s.character._hook_relative_y = 0;
+							s.character.hook_relative_x = 0;
+							s.character.hook_relative_y = 0;
 							//debugger;
 						}
 					}
@@ -459,8 +459,8 @@ class sdMatterAmplifier extends sdEntity
 							}
 						}
 						else
-						if ( s.character.hook_x !== 0 || s.character.hook_y !== 0 )
-						if ( s.character._hook_relative_to === from_entity )
+						if ( s.character.hook_relative_to )
+						if ( s.character.hook_relative_to === from_entity )
 						return;
 					}
 				}

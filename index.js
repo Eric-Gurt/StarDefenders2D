@@ -439,6 +439,8 @@ sdEntity.init_class();
 for ( let i = 0; i < imported_entity_classes.length; i++ )
 imported_entity_classes[ i ].init_class();
 
+sdEntity.AllEntityClassesLoadedAndInitiated();
+
 //throw 'TEST done: ' + entity_classes_directory_relative;
 
 /*sdCharacter.init_class();

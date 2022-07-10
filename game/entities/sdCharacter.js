@@ -394,7 +394,7 @@ class sdCharacter extends sdEntity
 		if ( Math.abs( this._position_velocity_forced_until - sdWorld.time ) > 1000 * 60 * 30 ) // 30 minutes difference usually means timezone changes... Better to correct this when possible than having delayed input
 		this._position_velocity_forced_until = 0;
 			
-		return ( this.hea > 0 && !this.driver_of && this._frozen <= 0 && sdWorld.time > this._position_velocity_forced_until && ( this.hook_x === 0 && this.hook_y === 0 ) ); // Hook does not work well with position corrections for laggy players
+		return ( this.hea > 0 && !this.driver_of && this._frozen <= 0 && sdWorld.time > this._position_velocity_forced_until && !this.hook_relative_to ); // Hook does not work well with position corrections for laggy players
 	}
 	ApplyServerSidePositionAndVelocity( restrict_correction, sx, sy ) // restrict_correction is usually ever only true when player should get position correction restriction, assuming some server-side events exist that control player (grappling hook case)
 	{
@@ -632,13 +632,15 @@ class sdCharacter extends sdEntity
 		this.gun_slot = 0;
 		this._backup_slot = 0;
 		
-		this.hook_x = 0;
-		this.hook_y = 0;
-		this._hook_len = -1;
+		//this.hook_x = 0;
+		//this.hook_y = 0;
 		this._hook_once = true;
-		this._hook_relative_to = null;
-		this._hook_relative_x = 0;
-		this._hook_relative_y = 0;
+		
+		this.hook_relative_to = null;
+		this.hook_len = -1;
+		
+		this.hook_relative_x = 0;
+		this.hook_relative_y = 0;
 		
 		this._hook_allowed = false; // Through upgrade
 		this._jetpack_allowed = false; // Through upgrade
@@ -1047,9 +1049,15 @@ class sdCharacter extends sdEntity
 				copy_ent.remove();
 			}, 2480 );
 			
-			this.hook_x = 0;
-			this.hook_y = 0;
-			this._hook_len = -1;
+			//this.hook_x = 0;
+			//this.hook_y = 0;
+			
+			if ( this.hook_relative_to )
+			{
+				sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, volume:1, pitch:2 });
+				this.hook_relative_to = null;
+				this.hook_len = -1;
+			}
 
 			//sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 			sdSound.PlaySound({ name:'teleport', x:best_t.x, y:best_t.y, volume:0.5 });
@@ -2647,7 +2655,7 @@ class sdCharacter extends sdEntity
 				{
 					this._hook_once = false;
 
-					if ( this.hook_x === 0 && this.hook_y === 0 )
+					if ( !this.hook_relative_to )
 					{
 						this._hook_once = false;
 						let bullet_obj = new sdBullet({ x: this.x, y: this.y + sdCharacter.bullet_y_spawn_offset });
@@ -2670,9 +2678,12 @@ class sdCharacter extends sdEntity
 					}
 					else
 					{
-						this.hook_x = 0;
-						this.hook_y = 0;
-						this._hook_len = -1;
+						//this.hook_x = 0;
+						//this.hook_y = 0;
+						
+						sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, volume:1, pitch:2 });
+						this.hook_relative_to = null;
+						this.hook_len = -1;
 					}
 				}
 			}
@@ -2683,117 +2694,135 @@ class sdCharacter extends sdEntity
 
 				this._hook_once = true;
 			}
-			
-			
-			if ( this.hook_x !== 0 || this.hook_y !== 0 )
+		}
+
+		if ( this.hook_relative_to )
+		{
+			/*let my_ent = this;
+
+			if ( this.driver_of )
+			my_ent = this.driver_of;*/
+
+			let hook_x = 0;	
+			let hook_y = 0;
+
+			//if ( this.hook_relative_to )
 			{
-				/*let my_ent = this;
+				hook_x = this.hook_relative_to.x + this.hook_relative_x;
+				hook_y = this.hook_relative_to.y + this.hook_relative_y;
 
-				if ( this.driver_of )
-				my_ent = this.driver_of;*/
-
-				if ( this._hook_relative_to )
+				if ( this.hook_relative_to.is( sdCube ) )
 				{
-					this.hook_x = this._hook_relative_to.x + this._hook_relative_x;
-					this.hook_y = this._hook_relative_to.y + this._hook_relative_y;
-					
-					if ( this._hook_relative_to.is( sdCube ) )
-					{
-						this._nature_damage += GSPEED;
-					}
-				}
-
-				let from_y = this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2;
-
-				let cur_di = sdWorld.Dist2D( this.x, from_y, this.hook_x, this.hook_y );
-
-				if ( cur_di < 1 )
-				cur_di = 1;
-
-				if ( this._hook_len === -1 )
-				this._hook_len = cur_di;
-			
-				if ( cur_di > this._hook_len + 128 )
-				{
-					this.hook_x = 0;
-					this.hook_y = 0;
-				}
-				else
-				{
-
-					let pull_force = -( this._hook_len - cur_di ) / 15;
-					let vx = ( this.hook_x - this.x ) / cur_di;
-					let vy = ( this.hook_y - from_y ) / cur_di;
-					
-					let my_ent = this;
-					if ( this.driver_of )
-					{
-						if ( typeof this.driver_of.sx !== 'undefined' )
-						if ( typeof this.driver_of.sy !== 'undefined' )
-						my_ent = this.driver_of;
-					}
-
-					let self_effect_scale = 1;
-
-					if ( this._hook_relative_to )
-					{
-						if ( typeof this._hook_relative_to.sx !== 'undefined' )
-						{
-							let lx = this._hook_relative_to.sx;
-							let ly = this._hook_relative_to.sy;
-
-							self_effect_scale = this._hook_relative_to.mass / ( this._hook_relative_to.mass + my_ent.mass );
-
-							this._hook_relative_to.sx -= vx * pull_force * GSPEED * ( 1 - self_effect_scale );
-							this._hook_relative_to.sy -= vy * pull_force * GSPEED * ( 1 - self_effect_scale );
-
-							this._hook_relative_to.sx = sdWorld.MorphWithTimeScale( this._hook_relative_to.sx, my_ent.sx, 0.8, GSPEED * ( 1 - self_effect_scale ) );
-							this._hook_relative_to.sy = sdWorld.MorphWithTimeScale( this._hook_relative_to.sy, my_ent.sy, 0.8, GSPEED * ( 1 - self_effect_scale ) );
-
-							//if ( this._hook_relative_to.is( sdCharacter ) )
-							if ( this._hook_relative_to.IsPlayerClass() )
-							this._hook_relative_to.ApplyServerSidePositionAndVelocity( true, this._hook_relative_to.sx - lx, this._hook_relative_to.sy - ly );
-
-							if ( this._hook_relative_to._hiberstate === sdEntity.HIBERSTATE_HIBERNATED )
-							this._hook_relative_to.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-
-							if ( isNaN( this._hook_relative_to.sx ) )
-							{
-								throw new Error('sdCharacter\'s hook causes attached item to have NaN velocity '+[
-									this._hook_relative_to.mass,
-									this.mass,
-									self_effect_scale,
-									cur_di,
-									vx,
-									vy,
-									pull_force,
-									GSPEED,
-									lx,
-									ly,
-									this.sx,
-									this.sy
-
-								].join(',') );
-							}
-
-							pull_force /= 2;
-						}
-
-
-						if ( this._hook_relative_to._is_being_removed || this._hook_relative_to === this.driver_of )
-						{
-							this.hook_x = 0;
-							this.hook_y = 0;
-						}
-					}
-
-					my_ent.sx += vx * pull_force * GSPEED * self_effect_scale;
-					my_ent.sy += vy * pull_force * GSPEED * self_effect_scale;
-
+					this._nature_damage += GSPEED;
 				}
 			}
 
+			let from_y = this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2;
+
+			let cur_di = sdWorld.Dist2D( this.x, from_y, hook_x, hook_y );
+
+			if ( cur_di < 1 )
+			cur_di = 1;
+
+			if ( this.hook_len === -1 )
+			this.hook_len = cur_di;
+
+			if ( cur_di > this.hook_len + 128 )
+			{
+				//hook_x = 0;
+				//hook_y = 0;
+
+				sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, volume:1, pitch:2 });
+				this.hook_relative_to = null;
+				this.hook_len = -1;
+			}
+			else
+			{
+
+				let pull_force = -( this.hook_len - cur_di ) / 15;
+				let vx = ( hook_x - this.x ) / cur_di;
+				let vy = ( hook_y - from_y ) / cur_di;
+
+				let my_ent = this;
+				if ( this.driver_of )
+				{
+					if ( typeof this.driver_of.sx !== 'undefined' )
+					if ( typeof this.driver_of.sy !== 'undefined' )
+					my_ent = this.driver_of;
+				}
+
+				let self_effect_scale = 1;
+
+				if ( this.hook_relative_to )
+				{
+					if ( typeof this.hook_relative_to.sx !== 'undefined' )
+					{
+						let lx = this.hook_relative_to.sx;
+						let ly = this.hook_relative_to.sy;
+
+						self_effect_scale = this.hook_relative_to.mass / ( this.hook_relative_to.mass + my_ent.mass );
+
+						this.hook_relative_to.sx -= vx * pull_force * GSPEED * ( 1 - self_effect_scale );
+						this.hook_relative_to.sy -= vy * pull_force * GSPEED * ( 1 - self_effect_scale );
+
+						this.hook_relative_to.sx = sdWorld.MorphWithTimeScale( this.hook_relative_to.sx, my_ent.sx, 0.8, GSPEED * ( 1 - self_effect_scale ) );
+						this.hook_relative_to.sy = sdWorld.MorphWithTimeScale( this.hook_relative_to.sy, my_ent.sy, 0.8, GSPEED * ( 1 - self_effect_scale ) );
+
+						//if ( this.hook_relative_to.is( sdCharacter ) )
+						if ( this.hook_relative_to.IsPlayerClass() )
+						this.hook_relative_to.ApplyServerSidePositionAndVelocity( true, this.hook_relative_to.sx - lx, this.hook_relative_to.sy - ly );
+
+						if ( this.hook_relative_to._hiberstate === sdEntity.HIBERSTATE_HIBERNATED )
+						this.hook_relative_to.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+						if ( isNaN( this.hook_relative_to.sx ) )
+						{
+							throw new Error('sdCharacter\'s hook causes attached item to have NaN velocity '+[
+								this.hook_relative_to.mass,
+								this.mass,
+								self_effect_scale,
+								cur_di,
+								vx,
+								vy,
+								pull_force,
+								GSPEED,
+								lx,
+								ly,
+								this.sx,
+								this.sy
+
+							].join(',') );
+						}
+
+						pull_force /= 2;
+					}
+					else
+					{
+						// Some slowdown for case of hooking something while in Hover
+						if ( my_ent !== this )
+						{
+							my_ent.sx = sdWorld.MorphWithTimeScale( my_ent.sx, 0, 0.8, GSPEED * ( 0.3 ) );
+							my_ent.sy = sdWorld.MorphWithTimeScale( my_ent.sy, 0, 0.8, GSPEED * ( 0.3 ) );
+						}
+					}
+
+					if ( this.hook_relative_to._is_being_removed || this.hook_relative_to === this.driver_of )
+					{
+						//this.hook_x = 0;
+						//this.hook_y = 0;
+
+						sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, volume:1, pitch:2 });
+						this.hook_relative_to = null;
+						this.hook_len = -1;
+					}
+				}
+
+				my_ent.sx += vx * pull_force * GSPEED * self_effect_scale;
+				my_ent.sy += vy * pull_force * GSPEED * self_effect_scale;
+
+			}
 		}
+		
 
 		let old_stands = this.stands ? this._stands_on : null;
 		this.stands = false;
@@ -3025,7 +3054,7 @@ class sdCharacter extends sdEntity
 		}
 		else
 		{
-			if ( this.stands && !this.driver_of && ( this._stands_on !== this._hook_relative_to || ( this.hook_x === 0 && this.hook_y === 0 ) ) )
+			if ( this.stands && !this.driver_of && ( this._stands_on !== this.hook_relative_to || ( this.hook_x === 0 && this.hook_y === 0 ) ) )
 			{
 				if ( this.sy > -0.1 )
 				{
@@ -3632,7 +3661,7 @@ class sdCharacter extends sdEntity
 		
 		if ( sdWorld.Dist2D( this.x, this.y, this._build_params.x, this._build_params.y ) < 64 || this._god )
 		{
-			if ( this.stands || this._in_water || this.flying || ( this._hook_relative_to && sdWorld.Dist2D_Vector( this.sx, this.sy ) < 2 ) || this._god )
+			if ( this.stands || this._in_water || this.flying || ( this.hook_relative_to && sdWorld.Dist2D_Vector( this.sx, this.sy ) < 2 ) || this._god )
 			{
 				if ( fake_ent.CanMoveWithoutOverlap( fake_ent.x, fake_ent.y, 0.00001 ) ) // Very small so entity's velocity can be enough to escape this overlap
 				{
@@ -3659,7 +3688,7 @@ class sdCharacter extends sdEntity
 					
 					//if ( sdWorld.Dist2D( this.x, this.y, this._build_params.x, this._build_params.y ) < 64 )
 					//{
-						//if ( this.stands || this._in_water || this.flying || ( this._hook_relative_to && sdWorld.Dist2D_Vector( this.sx, this.sy ) < 2 ) )
+						//if ( this.stands || this._in_water || this.flying || ( this.hook_relative_to && sdWorld.Dist2D_Vector( this.sx, this.sy ) < 2 ) )
 						return true;
 						//else
 						//sdCharacter.last_build_deny_reason = 'I\'d need to stand on something or at least use jetpack';
@@ -3874,7 +3903,7 @@ class sdCharacter extends sdEntity
 		const char_filter = ctx.filter;
 		
 		if ( !attached )
-		if ( this.hook_x !== 0 || this.hook_y !== 0 )
+		if ( this.hook_relative_to )
 		{
 			let from_y = this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2;
 			
@@ -3882,7 +3911,7 @@ class sdCharacter extends sdEntity
 			ctx.strokeStyle = '#c0c0c0';
 			ctx.beginPath();
 			ctx.moveTo( 0,from_y - this.y );
-			ctx.lineTo( this.hook_x - this.x, this.hook_y - this.y );
+			ctx.lineTo( this.hook_relative_to.x + this.hook_relative_x - this.x, this.hook_relative_to.y + this.hook_relative_y - this.y );
 			ctx.stroke();
 		}
 		

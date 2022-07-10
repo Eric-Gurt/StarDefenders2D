@@ -181,8 +181,9 @@ class sdAntigravity extends sdEntity
 													if ( this.power !== -1 )
 													arr[ i ].Impulse( 0, ( GSPEED * arr[ i ].act_y * 0.1 ) * arr[ i ].mass );
 													//arr[ i ].sy += GSPEED * arr[ i ].act_y * 0.1;
-
-													arr[ i ].ApplyServerSidePositionAndVelocity( false, 0, arr[ i ].sy - old_sy );
+													else
+													//if ( this.power === -1 )
+													arr[ i ].ApplyServerSidePositionAndVelocity( false, 0, arr[ i ].sy - old_sy ); // It happens as part of .Impulse now
 												}
 											}
 										}

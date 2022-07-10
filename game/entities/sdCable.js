@@ -65,7 +65,8 @@ class sdCable extends sdEntity
 		// Override protection
 		sdCable.one_cable_entities = [
 			'sdDoor',
-			'sdTurret'
+			'sdTurret',
+			'sdTeleport'
 		];
 		// Flow ranks
 		/*sdCable.hungry_entities = new Set([

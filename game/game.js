@@ -209,6 +209,8 @@ let entity_class_names = ( await ( await fetch( '/get_entity_classes.txt' ) ).te
 
 	for ( let i = 0; i < imported_entity_classes.length; i++ )
 	imported_entity_classes[ i ].init_class();
+
+	sdEntity.AllEntityClassesLoadedAndInitiated();
 	
 	/*sdEntity.init_class();
 	sdCharacter.init_class();

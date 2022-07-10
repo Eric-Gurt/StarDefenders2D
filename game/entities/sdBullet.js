@@ -206,20 +206,24 @@ class sdBullet extends sdEntity
 			if ( this._owner )
 			if ( this._owner.IsPlayerClass() )
 			{
-				this._owner.hook_x = this.x;
-				this._owner.hook_y = this.y;
+				//this._owner.hook_x = this.x;
+				//this._owner.hook_y = this.y;
 				
 				if ( this._last_target && this._last_target.HookAttempt( this ) )
 				{
-					this._owner._hook_relative_to = this._last_target;
-					this._owner._hook_relative_x = this.x - this._last_target.x;
-					this._owner._hook_relative_y = this.y - this._last_target.y;
+					this._owner.hook_relative_to = this._last_target;
+					this._owner.hook_relative_x = this.x - this._last_target.x;
+					this._owner.hook_relative_y = this.y - this._last_target.y;
+					
+					sdSound.PlaySound({ name:'gun_psicutter_bounce', x:this.x, y:this.y, volume:0.5, pitch:3 });
 				}
 				else
 				{
-					this._owner._hook_relative_to = null;
-					this._owner._hook_relative_x = 0;
-					this._owner._hook_relative_y = 0;
+					this._owner.hook_relative_to = null;
+					this._owner.hook_relative_x = 0;
+					this._owner.hook_relative_y = 0;
+					
+					sdSound.PlaySound({ name:'world_hit', x:this._owner.x, y:this._owner.y, volume:0.5, pitch:2 });
 				}
 
 			}
@@ -485,7 +489,12 @@ class sdBullet extends sdEntity
 			this.time_left -= GSPEED;
 			if ( this.time_left <= 0 )
 			{
-				this._hook = false;
+				if ( this._hook )
+				{
+					this._last_target = null;
+					//this._hook = false;
+				}
+				
 				this.remove();
 				return;
 			}

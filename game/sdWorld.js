@@ -75,6 +75,8 @@ class sdWorld
 			scale:1
 		};
 		
+		sdWorld.mouse_speed_morph = 0; // Slow-down due to open context menu or shop, especially for fast camera
+		
 		sdWorld.last_frame_time = 0; // For lag reporting
 		sdWorld.last_slowest_class = 'nothing';
 		
@@ -1690,6 +1692,7 @@ class sdWorld
 				let arr = [];
 
 				arr.hash = x;
+				
 				//arr.unlinked = false; // Debugging client-side non-coliding sdBlock-s (they somehow point towards removed hashes
 
 				sdWorld.world_hash_positions.set( x, arr );
@@ -2221,8 +2224,13 @@ class sdWorld
 			
 			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 			{
-				sdWorld.mouse_world_x = sdWorld.mouse_screen_x / sdWorld.camera.scale + sdWorld.camera.x - sdRenderer.screen_width / 2 / sdWorld.camera.scale;
-				sdWorld.mouse_world_y = sdWorld.mouse_screen_y / sdWorld.camera.scale + sdWorld.camera.y - sdRenderer.screen_height / 2 / sdWorld.camera.scale;
+				if ( sdShop.open || sdContextMenu.open )
+				sdWorld.mouse_speed_morph = Math.max( sdWorld.mouse_speed_morph - GSPEED * 0.05, 0 );
+				else
+				sdWorld.mouse_speed_morph = Math.min( sdWorld.mouse_speed_morph + GSPEED * 0.05, 1 );
+				
+				sdWorld.mouse_world_x = ( sdWorld.mouse_screen_x / sdWorld.camera.scale + sdWorld.camera.x - sdRenderer.screen_width / 2 / sdWorld.camera.scale );// * sdWorld.mouse_speed_morph + sdWorld.mouse_world_x * ( 1 - sdWorld.mouse_speed_morph );
+				sdWorld.mouse_world_y = ( sdWorld.mouse_screen_y / sdWorld.camera.scale + sdWorld.camera.y - sdRenderer.screen_height / 2 / sdWorld.camera.scale );// * sdWorld.mouse_speed_morph + sdWorld.mouse_world_y * ( 1 - sdWorld.mouse_speed_morph );
 
 				if ( sdWorld.my_entity )
 				{
@@ -2235,13 +2243,18 @@ class sdWorld
 					{
 						if ( sdWorld.soft_camera )
 						{
-							sdWorld.camera.x = sdWorld.MorphWithTimeScale( sdWorld.camera.x, ( sdWorld.my_entity.x + sdWorld.my_entity.look_x ) / 2, 1 - 10/11, GSPEED/30 );
-							sdWorld.camera.y = sdWorld.MorphWithTimeScale( sdWorld.camera.y, ( sdWorld.my_entity.y + sdWorld.my_entity.look_y ) / 2, 1 - 10/11, GSPEED/30 );
+							sdWorld.camera.x = sdWorld.MorphWithTimeScale( sdWorld.camera.x, ( sdWorld.my_entity.x + sdWorld.my_entity.look_x ) / 2, 1 - 10/11, GSPEED/30 ) * sdWorld.mouse_speed_morph + sdWorld.camera.x * ( 1 - sdWorld.mouse_speed_morph );
+							sdWorld.camera.y = sdWorld.MorphWithTimeScale( sdWorld.camera.y, ( sdWorld.my_entity.y + sdWorld.my_entity.look_y ) / 2, 1 - 10/11, GSPEED/30 ) * sdWorld.mouse_speed_morph + sdWorld.camera.y * ( 1 - sdWorld.mouse_speed_morph );
 						}
 						else
 						{
-							sdWorld.camera.x = ( sdWorld.my_entity.x + sdWorld.my_entity.look_x ) / 2;
-							sdWorld.camera.y = ( sdWorld.my_entity.y + sdWorld.my_entity.look_y ) / 2;
+							//sdWorld.camera.x = ( sdWorld.my_entity.x + sdWorld.my_entity.look_x ) / 2;
+							//sdWorld.camera.y = ( sdWorld.my_entity.y + sdWorld.my_entity.look_y ) / 2;
+							//for ( let i = 0; i < 30; i++ )
+							{
+								sdWorld.camera.x = sdWorld.MorphWithTimeScale( sdWorld.camera.x, ( sdWorld.my_entity.x + sdWorld.my_entity.look_x ) / 2, 0.5, GSPEED * 30 ) * sdWorld.mouse_speed_morph + sdWorld.camera.x * ( 1 - sdWorld.mouse_speed_morph );
+								sdWorld.camera.y = sdWorld.MorphWithTimeScale( sdWorld.camera.y, ( sdWorld.my_entity.y + sdWorld.my_entity.look_y ) / 2, 0.5, GSPEED * 30 ) * sdWorld.mouse_speed_morph + sdWorld.camera.y * ( 1 - sdWorld.mouse_speed_morph );
+							}
 						}
 					}
 
@@ -2274,6 +2287,7 @@ class sdWorld
 					}*/
 
 					if ( sdWorld.my_entity._frozen <= 0 )
+					//if ( sdWorld.my_entity.AllowClientSideState() )
 					{
 						sdWorld.my_entity.look_x = sdWorld.mouse_world_x;
 						sdWorld.my_entity.look_y = sdWorld.mouse_world_y;
@@ -3412,6 +3426,15 @@ class sdWorld
 		//sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 );
 		//sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 + 100 * 16 );
 		sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 );
+		
+		// Hack
+		for ( let i = 0; i < sdEntity.entities.length; i++ )
+		{
+			sdEntity.entities[ i ].material = sdBlock.MATERIAL_WALL;
+			sdEntity.entities[ i ].remove();
+			
+			sdEntity.entities[ i ]._broken = false;
+		}
 		
 		if ( sdEntity.global_entities.length === 0 )
 		sdEntity.entities.push( new sdWeather({}) );
