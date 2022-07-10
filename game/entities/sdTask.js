@@ -239,6 +239,7 @@ class sdTask extends sdEntity
 		this.lrtp_ents_count = 0;
 		this.lrtp_ents_needed = params.lrtp_ents_needed || 3; // For LRT delivery tasks
 		this.extra = params.extra || 0; // For LRT delivery tasks, used to determine entity type ( sdCrystal, sdJunk )
+		this._type = params.type || 0; // "Public event task" or regular? If it's set to 1, task will be in active state regardless if player disconnected.
 		
 		this._target = params.target || null;
 		this.target_hitbox_y1 = this._target ? this._target._hitbox_y1 : 0;
@@ -386,7 +387,7 @@ class sdTask extends sdEntity
 		}
 		
 		if ( sdWorld.is_server )
-		if ( this._executer._socket === null )
+		if ( this._executer._socket === null && this._type === 0 ) // task._type = 1 is for public events which all players can contribute towards, so it should disappear regardless if player disconnects. ( Example - sdWeather.EVENT_CRYSTALS_MATTER )
 		{
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		}

@@ -2010,12 +2010,13 @@ class sdWeather extends sdEntity
 						executer: sdWorld.sockets[ i ].character,
 						target: 'sdCrystal',
 						mission: sdTask.MISSION_LRTP_EXTRACTION,
-						difficulty: 0.5,
-						lrtp_ents_needed: 15360 + ( 5120 * player_count ), // 20480 matter requirement for 1 player, although progress counts for all players I think
+						difficulty: 0.4,
+						lrtp_ents_needed: 10240 + ( 2560 * player_count ), // 12300 matter requirement for 1 player, although progress counts for all players I think
 						title: 'Teleport crystals',
 						time_left: 30 * 60 * 30,
 						extra: -99, // This lets the game know to take max matter as progress instead of crystal count.
-						description: 'We need you to teleport a large amount of crystals. This is to help us keep the Mothership supplied with matter so our matter reserves do not deplete. With other Star Defenders on this planet, it should not be too hard.'
+						description: 'We need you to teleport a large amount of crystals. This is to help us keep the Mothership supplied with matter so our matter reserves do not deplete. With other Star Defenders on this planet, it should not be too hard.',
+						type: 1 // Task remains active even if player disconnects, so it doesn't exist after the event expires
 					});
 				}
 		}
