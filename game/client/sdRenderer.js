@@ -839,6 +839,7 @@ class sdRenderer
 				ctx.fillRect( 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
 				*/
 				ctx.globalAlpha = 1; // Just in case
+				ctx.sd_hue_rotation = 0;
 			}
 			
 			if ( sdWorld.time > sdRenderer.last_source_change + 5000 )
