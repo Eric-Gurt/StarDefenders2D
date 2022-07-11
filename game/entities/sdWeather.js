@@ -96,6 +96,11 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_SETR =					event_counter++; // 25
 		sdWeather.EVENT_SETR_DESTROYER =			event_counter++; // 26
 		sdWeather.EVENT_CRYSTALS_MATTER =			event_counter++; // 27
+		sdWeather.EVENT_DIRTY_AIR =					event_counter++; // 28
+		
+		sdWeather.supported_events = [];
+		for ( let i = 0; i < event_counter; i++ )
+		sdWeather.supported_events.push( i );
 		
 		sdWeather.last_crystal_near_quake = null; // Used to damage left over crystals. Could be used to damage anything really
 		
@@ -159,6 +164,10 @@ class sdWeather extends sdEntity
 		this.day_time = 30 * 60 * 24 / 3;
 		this._event_rotation_time = ( 30 * 60 * 14 ) + ( 30 * 45 ); // Time until potential events rotate, set to 14 minutes and 45 seconds so it can roll new events when fresh game starts instead of having earthquakes only for 15 minutes
 		
+		this.air = 1; // Can happen to be 0, which means planet has no breathable air
+		this._no_air_duration = 0; // Usually no-air times will be limited
+		this._dustiness = 0; // Client-side variable that is used to apply visual dust effects
+		
 		// World bounds, but slow
 		this.x1 = 0;
 		this.y1 = 0;
@@ -173,7 +182,7 @@ class sdWeather extends sdEntity
 	}
 	GetDailyEvents() // Basically this function selects 4 random allowed events + earthquakes
 	{
-		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27 ];
+		let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || sdWeather.supported_events;
 				
 		if ( allowed_event_ids.indexOf( 8 ) !== -1 ) // Only if allowed
 		this._daily_events = [ 8 ]; // Always enable earthquakes so ground can regenerate
@@ -244,16 +253,21 @@ class sdWeather extends sdEntity
 
 		if ( r === 2 )
 		{
-			for ( let t = Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) + 1; t > 0; t-- )
-			if ( sdCube.alive_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 0 ) ) // 20
+			//for ( let t = Math.ceil( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) + 1; t > 0; t-- )
+			for ( let t = Math.ceil( Math.random() * 2 ) + 1; t > 0; t-- )
+			//if ( sdCube.alive_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 0 ) ) // 20
 			{
 				let cube = new sdCube({ 
 					x:sdWorld.world_bounds.x1 + 32 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 - 64 ), 
 					y:sdWorld.world_bounds.y1 + 32,
-					kind:   ( sdCube.alive_huge_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 1 ) && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.1 ) ) ? 1 : 
+					kind:   ( Math.random() < 0.1 ) ? 1 : 
+							( Math.random() < 0.04 ) ? 2 : 
+							( Math.random() < 0.14 ) ? 3 : 
+							0 // _kind = 1 -> is_huge = true , _kind = 2 -> is_white = true , _kind = 3 -> is_pink = true
+					/*kind:   ( sdCube.alive_huge_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 1 ) && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.1 ) ) ? 1 : 
 							( sdCube.alive_white_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 2 ) && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.04 ) ) ? 2 : 
 							( sdCube.alive_pink_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 3 ) && ( sdCube.alive_cube_counter >= 1 && Math.random() < 0.14 ) ) ? 3 : 
-							0 // _kind = 1 -> is_huge = true , _kind = 2 -> is_white = true , _kind = 3 -> is_pink = true
+							0 // _kind = 1 -> is_huge = true , _kind = 2 -> is_white = true , _kind = 3 -> is_pink = true*/
 				});
 				cube.sy += 10;
 				sdEntity.entities.push( cube );
@@ -607,8 +621,10 @@ class sdWeather extends sdEntity
 					
 		if ( r === 9 ) // Spawn few sdBadDog-s somewhere on ground where players don't see them
 		{
-			let instances = Math.floor( 3 + Math.random() * 6 );
-			while ( instances > 0 && sdBadDog.dogs_counter < 16 )
+			//let instances = Math.floor( 3 + Math.random() * 6 );
+			let instances = Math.floor( 1 + Math.random() * 2 );
+			//while ( instances > 0 && sdBadDog.dogs_counter < 16 )
+			while ( instances > 0 )
 			{
 
 				let dog = new sdBadDog({ x:0, y:0 });
@@ -742,7 +758,8 @@ class sdWeather extends sdEntity
 		if ( r === 11 ) // Spawn 3-6 sdSpiders, drones somewhere on ground where players don't see them and Erthal humanoids
 		{
 			let instances = Math.floor( 3 + Math.random() * 4 );
-			while ( instances > 0 && sdSpider.spider_counter < Math.min( 32, sdWorld.GetPlayingPlayersCount() * 10 ) )
+			//while ( instances > 0 && sdSpider.spider_counter < Math.min( 32, sdWorld.GetPlayingPlayersCount() * 10 ) )
+			while ( instances > 0 )
 			{
 
 				let ent = new sdSpider({ x:0, y:0 });
@@ -948,7 +965,7 @@ class sdWeather extends sdEntity
 		}
 		if ( r === 12 ) // Spawn an obelisk near ground where players don't see them
 		{
-			let instances = 1
+			let instances = 1;
 			while ( instances > 0 && sdObelisk.obelisks_counter < 5 )
 			{
 
@@ -2020,6 +2037,11 @@ class sdWeather extends sdEntity
 					});
 				}
 		}
+		if ( r === sdWeather.EVENT_DIRTY_AIR )
+		{
+			this.air = 0;
+			this._no_air_duration = 30 * 60 * 5;
+		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -2605,6 +2627,27 @@ class sdWeather extends sdEntity
 				ent._remove();
 			}
 			
+			if ( !this.air )
+			{
+				this._no_air_duration -= GSPEED;
+				
+				if ( this._no_air_duration <= 0 )
+				this.air = 1;
+				
+				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Create the tasks
+				{
+					sdTask.MakeSureCharacterHasTask({ 
+						similarity_hash:'DIRTY_AIR', 
+						executer: sdWorld.sockets[ i ].character,
+						mission: sdTask.MISSION_TIMED_NOTIFICATION,
+						difficulty: 0.1,
+						title: 'Low oxygen concentration in air',
+						time_left: this._no_air_duration,
+						description: 'Oxygen concentraion in atmosphere is getting low - we advice you to stay near oxygen sources, base shielding units or inside vehicles.',
+					});
+				}
+			}
+			
 			//this._time_until_event = 0; // Hack
 			
 			this._time_until_event -= GSPEED;
@@ -2643,6 +2686,11 @@ class sdWeather extends sdEntity
 			sdWorld.world_bounds.y1 = this.y1;
 			sdWorld.world_bounds.x2 = this.x2;
 			sdWorld.world_bounds.y2 = this.y2;
+			
+			if ( this.air )
+			this._dustiness = Math.max( 0, this._dustiness - GSPEED * 0.01 );
+			else
+			this._dustiness = Math.min( 1, this._dustiness + GSPEED * 0.01 );
 		}
 	}
 	static CrystalRemovalByEearthquakeFilter( ent )

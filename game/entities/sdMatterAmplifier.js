@@ -70,7 +70,7 @@ class sdMatterAmplifier extends sdEntity
 		
 		this.crystal = null;
 		
-		this.multiplier = params.multiplier || 1; // Crystal regeneration multiplier, used for higher tier matter amplifiers
+		this.multiplier = params.multiplier || 1; // Crystal regeneration multiplier, used for higher tier matter amplifiers. Only power of 2 values
 		this._hmax = 160 + ( 160 * this.multiplier ); // Regular matter amplifier has 160 + 160 hp which is 320
 		this._hea = this._hmax;
 		
@@ -79,6 +79,11 @@ class sdMatterAmplifier extends sdEntity
 		this._ignore_pickup_tim = 0;
 		
 		this._regen_timeout = 0;
+	}
+	onSnapshotApplied() // To override
+	{
+		if ( this.multiplier === 3 )
+		this.multiplier = 4;
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -243,9 +248,9 @@ class sdMatterAmplifier extends sdEntity
 			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam, - 16, - 16, 32,32 )
 			if ( this.multiplier === 2 )
 			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam2, - 16, - 16, 32,32 );
-			if ( this.multiplier === 3 )
-			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam3, - 16, - 16, 32,32 );
 			if ( this.multiplier === 4 )
+			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam3, - 16, - 16, 32,32 );
+			if ( this.multiplier === 8 )
 			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam4, - 16, - 16, 32,32 );
 			
 			if ( this.shielded )
@@ -255,63 +260,21 @@ class sdMatterAmplifier extends sdEntity
 				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield, - 16, - 16, 32,32 );
 				if ( this.multiplier === 2 )
 				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield2, - 16, - 16, 32,32 );
-				if ( this.multiplier === 3 )
-				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield3, - 16, - 16, 32,32 );
 				if ( this.multiplier === 4 )
+				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield3, - 16, - 16, 32,32 );
+				if ( this.multiplier === 8 )
 				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield4, - 16, - 16, 32,32 );
 			}
 		}
-		/*else
-		if ( this.matter_max > 0 )
-		{
-			
-			ctx.drawImageFilterCache( sdCrystal.img_crystal_empty, - 16, - 16 + offset_y, 32,32 );
-		
-			ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
-			
-			if ( this.matter_max === sdCrystal.anticrystal_value )
-			ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
-			else
-			ctx.globalAlpha = this.matter / this.matter_max;
-
-			ctx.drawImageFilterCache( sdCrystal.img_crystal, - 16, - 16 + offset_y, 32,32 );
-
-			ctx.globalAlpha = 1;
-			ctx.filter = 'none';
-			
-			ctx.globalAlpha = 0.75 + Math.sin( sdWorld.time / 300 ) * 0.25;
-			if ( this.multiplier === 1 )
-			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam, - 16, - 16, 32,32 )
-			if ( this.multiplier === 2 )
-			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam2, - 16, - 16, 32,32 );
-			if ( this.multiplier === 3 )
-			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam3, - 16, - 16, 32,32 );
-			if ( this.multiplier === 4 )
-			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam4, - 16, - 16, 32,32 );
-			
-			if ( this.shielded )
-			{
-				ctx.globalAlpha = 1;
-				if ( this.multiplier === 1 )
-				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield, - 16, - 16, 32,32 );
-				if ( this.multiplier === 2 )
-				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield2, - 16, - 16, 32,32 );
-				if ( this.multiplier === 3 )
-				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield3, - 16, - 16, 32,32 );
-				if ( this.multiplier === 4 )
-				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield4, - 16, - 16, 32,32 );
-			}
-			
-		}*/
 		
 		ctx.globalAlpha = 1;
 		if ( this.multiplier === 1 )
 		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier, - 16, - 16, 32, 32 );
 		if ( this.multiplier === 2 )
 		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier2, - 16, - 16, 32, 32 );
-		if ( this.multiplier === 3 )
-		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier3, - 16, - 16, 32, 32 );
 		if ( this.multiplier === 4 )
+		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier3, - 16, - 16, 32, 32 );
+		if ( this.multiplier === 8 )
 		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier4, - 16, - 16, 32, 32 );
 	}
 	onBeforeRemove() // Right when .remove() is called for the first time
@@ -500,15 +463,7 @@ class sdMatterAmplifier extends sdEntity
 	
 	MeasureMatterCost()
 	{
-	//	return 0; // Hack
-		if ( this.multiplier === 1 )
-		return 200 + this._hmax * sdWorld.damage_to_matter;
-		if ( this.multiplier === 2 )
-		return 600 + this._hmax * sdWorld.damage_to_matter;
-		if ( this.multiplier === 3 )
-		return 1200 + this._hmax * sdWorld.damage_to_matter;
-		if ( this.multiplier === 4 ) // Needs cube shards matter upgrades to be placable
-		return 2400 + this._hmax * sdWorld.damage_to_matter;
+		return 200 * this.multiplier + this._hmax * sdWorld.damage_to_matter;
 	}
 }
 //sdMatterAmplifier.init_class();

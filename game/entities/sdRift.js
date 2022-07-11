@@ -53,7 +53,7 @@ class sdRift extends sdEntity
 		this.hmax = 2560; // a 2560 matter crystal is enough for a rift to be removed over time
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
-		this._cooldown = 0;
+		//this._cooldown = 0;
 		this.matter_crystal_max = 5120; // a 5K crystal is max what it can be fed with
 		this.matter_crystal = 0; // Named differently to prevent matter absorption from entities that emit matter
 		this._spawn_timer = params._spawn_timer || 30 * 60; // Either defined by spawn or 60 seconds
@@ -272,7 +272,8 @@ class sdRift extends sdEntity
 					}
 				}, 1223 );
 
-				this._spawn_timer_cd = ( this.type === 3 ? 0.25 : 1 ) * this._spawn_timer * Math.max( 0.1, this.hea / this.hmax ); // Reset spawn timer countdown, depending on HP left off the portal
+				//this._spawn_timer_cd = ( this.type === 3 ? 0.25 : 1 ) * this._spawn_timer * Math.max( 0.1, this.hea / this.hmax ); // Reset spawn timer countdown, depending on HP left off the portal
+				this._spawn_timer_cd = ( this.type === 3 ? 0.25 : 1 ) * this._spawn_timer * Math.max( 0.1, Math.pow( Math.random(), 0.5 ) ); // Reset spawn timer countdown, but randomly while prioritizing longer spawns to prevent farming or not feeding any crystals to portal for too long
 			}
 			
 			if ( this.matter_crystal > 0 ) // Has the rift drained any matter?

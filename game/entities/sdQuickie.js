@@ -7,6 +7,8 @@ import sdGun from './sdGun.js';
 import sdWater from './sdWater.js';
 
 import sdBlock from './sdBlock.js';
+import sdVirus from './sdVirus.js';
+import sdAsp from './sdAsp.js';
 
 class sdQuickie extends sdEntity
 {
@@ -243,19 +245,28 @@ class sdQuickie extends sdEntity
 				let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
 				let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 
-				if ( from_entity.GetClass() === 'sdCharacter' ||
+				if ( /*from_entity.GetClass() === 'sdCharacter' ||
 					 from_entity.GetClass() === 'sdBlock' ||
 					 from_entity.GetClass() === 'sdMatterContainer' ||
 					 from_entity.GetClass() === 'sdMatterAmplifier' ||
 					 from_entity.GetClass() === 'sdCrystalCombiner' ||
 					 from_entity.GetClass() === 'sdConveyor' ||
 					 from_entity.GetClass() === 'sdStorage' ||
+					 from_entity.GetClass() === 'sdCrystal' ||
+					 from_entity.GetClass() === 'sdJunk' ||
 					 from_entity.GetClass() === 'sdTeleport' ||
 					 from_entity.GetClass() === 'sdDoor' ||
 					 from_entity.GetClass() === 'sdCom' ||
 					 from_entity.GetClass() === 'sdNode' ||
-					 from_entity.GetClass() === 'sdTurret' ||
-					 from_entity === this._current_target )
+					 from_entity.GetClass() === 'sdTurret' ||*/
+					 ( !from_entity.is( sdQuickie ) && 
+					   !from_entity.is( sdAsp ) && 
+					   !from_entity.is( sdVirus ) && 
+					   from_entity.IsBGEntity() === this.IsBGEntity() && 
+					   from_entity.IsTargetable( this ) 
+					 ) ||
+					 from_entity === this._current_target 
+				)
 				if ( from_entity.IsTargetable() )
 				{
 					this._last_bite = sdWorld.time;

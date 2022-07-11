@@ -32,11 +32,11 @@ class sdBaseShieldingUnit extends sdEntity
 		sdBaseShieldingUnit.img_unit2 = sdWorld.CreateImageFromFile( 'shield_unit2' );
 		sdBaseShieldingUnit.img_unit2_repair = sdWorld.CreateImageFromFile( 'shield_unit2_repair' );
 
-		sdBaseShieldingUnit.protect_distance = 275;
+		sdBaseShieldingUnit.protect_distance = 275; // Used for breathing when there is no air and if BSU is enabled
 		sdBaseShieldingUnit.protect_distance_stretch = sdBaseShieldingUnit.protect_distance + 100; // If BSU moves...
 				
 		sdBaseShieldingUnit.regen_matter_cost_per_1_hp = 0.002; // Much less than player's automatic regeneration
-		sdBaseShieldingUnit.regen_matter_cost_per_1_hp_matter_type = 0.15;
+		sdBaseShieldingUnit.regen_matter_cost_per_1_hp_matter_type = 0.075; // 0.15 / 1.32 * 0.66; // Was 0.15 but ( / 1.32 * 0.66 ) makes it equal to average matter cost of a weapon. It is slightly less effective for non-sword weapons such as bullets or rails
 		
 		sdBaseShieldingUnit.all_shield_units = [];
 		
@@ -158,6 +158,8 @@ class sdBaseShieldingUnit extends sdEntity
 		}
 		else
 		{
+			//trace( 'BSU matter wasted per damage: ', dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp_matter_type );
+			
 			this.matter = Math.max( 0, this.matter - dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp_matter_type );
 			this.WakeUpMatterSources();
 		}
@@ -770,6 +772,21 @@ class sdBaseShieldingUnit extends sdEntity
 					else
 					executer_socket.SDServiceMessage( 'Base shield unit needs to be enabled' );
 				}
+				if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
+				if ( command_name === 'CAPACITY' )
+				{
+					let cap = parseInt( parameters_array[ 0 ] );
+					
+					if ( cap === 1000 || cap === 10000 )
+					{
+						if ( this.matter > cap )
+						executer_socket.SDServiceMessage( 'Base shielding unit still has matter capacity over target capacity' );
+						
+						this.matter_max = Math.max( cap, this.matter );
+						
+						sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:1, pitch:0.25 });
+					}
+				}
 			}
 			else
 			executer_socket.SDServiceMessage( 'Base shielding unit is too far' );
@@ -795,6 +812,15 @@ class sdBaseShieldingUnit extends sdEntity
 					this.AddContextOption( 'Attack nearby shield units', 'ATTACK', [] );
 					else
 					this.AddContextOption( 'Stop attacking nearby shield units', 'ATTACK', [] );
+				}
+				
+				if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
+				{
+					if ( this.matter_max !== 10000 )
+					this.AddContextOption( 'Increase matter capacity to 10k', 'CAPACITY', [ 10000 ] );
+					
+					if ( this.matter_max !== 1000 )
+					this.AddContextOption( 'Decrease matter capacity to 1k', 'CAPACITY', [ 1000 ] );
 				}
 			}
 		}

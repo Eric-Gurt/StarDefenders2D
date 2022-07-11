@@ -758,14 +758,14 @@ class sdRenderer
 				
 				
 				
-				ctx.sd_color_mult_r = 
-				ctx.sd_color_mult_g = 
-				ctx.sd_color_mult_b = 1 / ( 1 + Math.max( 0, sdWorld.camera.y - sdWorld.base_ground_level - 256 ) * 0.003 );
-				
 				
 				if ( sdRenderer.dark_lands_canvases )
 				for ( let i = 0; i < sdRenderer.dark_lands_colors.length; i++ )
 				{
+					ctx.sd_color_mult_r = 
+					ctx.sd_color_mult_g = 
+					ctx.sd_color_mult_b = 1 / ( 1 + Math.max( 0, sdWorld.camera.y - sdWorld.base_ground_level - 256 ) * 0.003 );
+
 					ctx.camera_relative_world_scale = sdRenderer.distance_scale_background - i * 0.001;
 		
 					let xx = sdRenderer.screen_width / 2;
@@ -821,13 +821,17 @@ class sdRenderer
 					
 					let day_progress = sdWeather.only_instance.day_time / ( 30 * 60 * 24 ) * Math.PI * 2;
 					
-					ctx.globalAlpha = ( Math.cos( day_progress ) * 0.5 + 0.5 ) * brightness;
+					if ( sdWeather.only_instance._dustiness > 0 )
+					brightness += sdWeather.only_instance._dustiness * 6 / sdRenderer.dark_lands_colors.length;
+					
+					ctx.globalAlpha = Math.min( 0.99, ( Math.cos( day_progress ) * 0.5 + 0.5 ) * brightness );
 					ctx.fillStyle = sdRenderer.sky_gradient;
 					ctx.fillRect( 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
 					
 					if ( i === sdRenderer.dark_lands_colors.length - 1 )
 					{
-						ctx.globalAlpha = ( Math.cos( day_progress ) * 1 ); // Just in case
+						ctx.globalAlpha = ( Math.cos( day_progress ) * 1 ) * ( 1 - sdWeather.only_instance._dustiness * 0.9 ); // Just in case
+						
 						if ( ctx.globalAlpha > 0 )
 						{
 							let old_vol = ctx.volumetric_mode;
@@ -836,8 +840,8 @@ class sdRenderer
 
 							if ( sdRenderer.img_sun.loaded )
 							ctx.drawImageFilterCache( sdRenderer.img_sun, 
-								-32 + sdRenderer.screen_width / 2 - Math.sin( day_progress ) * sdRenderer.screen_width / 2 * 0.8, 
-								-32 + sdRenderer.screen_height / 2 - Math.cos( day_progress ) * sdRenderer.screen_height / 2 * 0.5 );
+								-200 + sdRenderer.screen_width / 2 - Math.sin( day_progress ) * sdRenderer.screen_width / 2 * 0.8, 
+								-200 + sdRenderer.screen_height / 2 - Math.cos( day_progress ) * sdRenderer.screen_height / 2 * 0.5 );
 							else
 							sdRenderer.img_sun.RequiredNow();
 
@@ -1130,6 +1134,10 @@ class sdRenderer
 					e.SyncedToPlayer( sdWorld.my_entity );
 				}
 			}
+
+			// Line of sight take 2
+			sdRenderer.DrawLineOfSightShading( ctx, ms_since_last_render );
+			
 			
 			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_FLAT;
 			
@@ -1195,6 +1203,10 @@ class sdRenderer
 			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_FLAT;
 			ctx.camera_relative_world_scale = sdRenderer.distance_scale_fading_world_edges;
 			
+			
+			
+			
+			
 			ctx.fillStyle = '#000000';
 			for ( var step = 1; step <= 4; step++ )
 			{
@@ -1243,10 +1255,6 @@ class sdRenderer
 							sdWorld.world_bounds.y2, 
 							sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1, 
 							sdRenderer.screen_height );
-
-
-			// Line of sight take 2
-			sdRenderer.DrawLineOfSightShading( ctx, ms_since_last_render );
 			
 			
 			if ( sdWorld.my_entity )
@@ -1407,6 +1415,24 @@ class sdRenderer
 		ctx.draw_offset = 100;
 		ctx.camera_relative_world_scale = sdRenderer.distance_scale_on_screen_hud;
 		ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT;
+		
+		
+		
+		
+		// Some of dustiness effect in front
+		if ( sdWeather.only_instance )
+		if ( sdWeather.only_instance._dustiness > 0 )
+		{
+			ctx.sd_hue_rotation = ( sdWorld.mod( sdWorld.camera.x * 0.8 / 16, 360 ) );
+
+			ctx.globalAlpha = sdWeather.only_instance._dustiness * 0.5;
+			ctx.fillStyle = sdRenderer.sky_gradient;
+			ctx.fillRect( 0, 0, sdRenderer.screen_width, sdRenderer.screen_height );
+
+			ctx.sd_hue_rotation = 0;
+		}
+		
+		
 		
 		// On-screen foregroud
 		if ( sdWorld.my_entity )
@@ -1701,7 +1727,7 @@ class sdRenderer
 			else
 			{
 				let x = sdWorld.my_entity.x;
-				let y = sdWorld.my_entity.y;
+				let y = sdWorld.my_entity.y + ( sdWorld.my_entity._hitbox_y1 + sdWorld.my_entity._hitbox_y2 ) / 2;
 
 				let an = angle / angles * Math.PI * 2;
 
@@ -1795,7 +1821,7 @@ class sdRenderer
 			if ( sdWorld.my_entity )
 			{
 				xx = sdWorld.my_entity.x;
-				yy = sdWorld.my_entity.y;
+				yy = sdWorld.my_entity.y + ( sdWorld.my_entity._hitbox_y1 + sdWorld.my_entity._hitbox_y2 ) / 2;
 				
 				if ( sdWorld.my_entity._god )
 				{

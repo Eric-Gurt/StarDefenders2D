@@ -26,6 +26,8 @@ import sdWorkbench from './sdWorkbench.js';
 import sdRescueTeleport from './sdRescueTeleport.js';
 import sdLifeBox from './sdLifeBox.js';
 import sdLost from './sdLost.js';
+import sdWeather from './sdWeather.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 import sdTask from './sdTask.js';
 import sdStatusEffect from './sdStatusEffect.js';
@@ -1902,7 +1904,7 @@ class sdCharacter extends sdEntity
 	GetBulletSpawnOffset()
 	{
 		// Anything else is no longer good with new ragdoll structure
-		return { x:0, y:sdCharacter.bullet_y_spawn_offset };
+		return { x:0, y:Math.min( sdCharacter.bullet_y_spawn_offset, ( this._hitbox_y1 + this._hitbox_y2 ) / 2 ) };
 		/*
 			
 		// Much better for digging down. Also will work with all short-range weapons like defibrillators
@@ -2238,7 +2240,7 @@ class sdCharacter extends sdEntity
 
 				//this._task_reward_counter = Math.min(1, this._task_reward_counter + GSPEED / 1800 ); // For testing
 
-				if ( this._task_reward_counter >= 0.5 ) // was 1 but players told me it takes too long
+				if ( this._task_reward_counter >= sdTask.reward_claim_task_amount ) // was 1 but players told me it takes too long
 				sdTask.MakeSureCharacterHasTask({ 
 					similarity_hash:'CLAIM_REWARD-'+this._net_id, 
 					executer: this,
@@ -2565,16 +2567,18 @@ class sdCharacter extends sdEntity
 		if ( ( ( act_y_or_unstable === 1 ) ? 1 : 0 ) !== this._crouch_intens )
 		{
 			leg_height = this.hitbox_y2;
+			
+			let target_crouch = ( this.stability < 50 ) ? 4 : 1;
 
 			if ( act_y_or_unstable === 1 )
 			{
 				speed_scale *= 0.5;
 
 				
-				if ( this._crouch_intens < 0.99 )
-				this._crouch_intens = sdWorld.MorphWithTimeScale( this._crouch_intens, 1, 0.7, GSPEED );
+				if ( this._crouch_intens < target_crouch - 0.01 )
+				this._crouch_intens = sdWorld.MorphWithTimeScale( this._crouch_intens, target_crouch, 0.7, GSPEED );
 				else
-				this._crouch_intens = 1;
+				this._crouch_intens = target_crouch;
 			}
 			else
 			{
@@ -3023,7 +3027,23 @@ class sdCharacter extends sdEntity
 			//this._last_act_y = this.act_y;
 		}
 		
-		let can_breathe = true;
+		let can_breathe = ( sdWeather.only_instance.air > 0 ) || ( this.driver_of && this.driver_of.VehicleHidesDrivers() );
+		
+		if ( !can_breathe )
+		{
+			for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
+			{
+				let e = sdBaseShieldingUnit.all_shield_units[ i ];
+				if ( e.enabled )
+				{
+					if ( sdWorld.inDist2D_Boolean( this.x, this.y, e.x, e.y, sdBaseShieldingUnit.protect_distance ) )
+					{
+						can_breathe = true;
+						break;
+					}
+				}
+			}
+		}
 		
 		if ( in_water )
 		{
@@ -3048,7 +3068,8 @@ class sdCharacter extends sdEntity
 				this.sy = -3;
 			}
 			else*/
-								
+					
+			if ( can_breathe )
 			if ( sdWorld.CheckWallExists( this.x, this.y + this._hitbox_y1, null, null, sdWater.water_class_array ) )
 			can_breathe = false;
 		}

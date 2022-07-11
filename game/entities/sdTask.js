@@ -112,6 +112,7 @@ class sdTask extends sdEntity
 				return false;
 			}
 		};
+		sdTask.reward_claim_task_amount = 0.5; // was 1
 		sdTask.missions[ sdTask.MISSION_TASK_CLAIM_REWARD = id++ ] = 
 		{
 			appearance: sdTask.APPEARANCE_NOTHING,
@@ -129,7 +130,7 @@ class sdTask extends sdEntity
 			
 			completion_condition: ( task )=>
 			{
-				if ( task._executer._task_reward_counter < 1 )
+				if ( task._executer._task_reward_counter < sdTask.reward_claim_task_amount )
 				return true;
 				else
 				return false;
@@ -187,6 +188,19 @@ class sdTask extends sdEntity
 			}
 		};
 		
+		sdTask.missions[ sdTask.MISSION_TIMED_NOTIFICATION = id++ ] = 
+		{
+			appearance: sdTask.APPEARANCE_NOTHING,
+	
+			completion_condition: ( task )=>
+			{
+				return false;
+			},
+			onTimeOut: ( task )=>
+			{
+				task.remove();
+			}
+		};
 		sdTask.tasks = [];
 	}
 	
@@ -422,113 +436,118 @@ class sdTask extends sdEntity
 		
 		ctx.translate( x - this.x, y - this.y );
 		
-		let dx = this.target_x - x;
-		let dy = this.target_y - y;
-		let di = sdWorld.Dist2D_Vector( dx, dy );
-		
-		let dxA = 0;
-		let dyA = 0;
-		//let anA = 0;
-		
-		let dxB = 0;
-		let dyB = 0;
-		//let anB = 0;
-		
-		let an;
-		
-		
-        /*
-            dxA * s * dxA * s + dyA * s * dyA * s = 200 * 200
-            dyA * s = 100
-
-            s = 100 / dyA
-
-            dxA^2 * s^2 + dyA^2 * s^2 = 200 * 200
-
-            s^2 = ( 200 * 200 ) / ( dxA^2 + dyA^2 )
-
-            s = sqrt( ( 200 * 200 ) / ( dxA^2 + dyA^2 ) )
-		*/
-		
-		let far_dist_horiz = 200;
-		let far_dist_vert = far_dist_horiz / document.body.clientWidth * document.body.clientHeight;
-		
-		let far_dist_default = Math.sqrt( far_dist_horiz * far_dist_horiz + far_dist_vert * far_dist_vert );
-
-		// When far
-		dxA = dx / di * far_dist_default;
-		dyA = dy / di * far_dist_default;
-		//anA = Math.atan2( -dy, -dx );
-	   
-		let s = 1;
-		
-		if ( dyA > far_dist_vert )
-		dyA = far_dist_vert;
-		if ( dyA < -far_dist_vert )
-		dyA = -far_dist_vert;
-		if ( dxA > far_dist_horiz )
-		dxA = far_dist_horiz;
-		if ( dxA < -far_dist_horiz )
-		dxA = -far_dist_horiz;
-	
-		s = Math.min( s, Math.sqrt( ( far_dist_default * far_dist_default ) / ( dxA * dxA + dyA * dyA ) ) );
-		
-		dxA *= s;
-		dyA *= s;
-
-		// When near
-		dxB = dx;
-		dyB = dy - 10 + this.target_hitbox_y1;
-		//anB = -Math.PI / 2;
-		
-		if ( di > 200 )
+		if ( this.target_x !== 0 || this.target_y !== 0 ) // For target-less version of task like sdTask.MISSION_LRTP_EXTRACTION
 		{
-			this._anim_morph = Math.min( 1, this._anim_morph + 0.05 );
-			//dx = dx / di * 200;
-			//dy = dy / di * 200;
-			
-			//ctx.translate( dx, dy );
-			//ctx.rotate( Math.atan2( -dy, -dx ) );
-			an = Math.atan2( -dy, -dx );
-		}
-		else
-		{
-			this._anim_morph = Math.max( 0, this._anim_morph - 0.05 );
-			
-			//ctx.translate( dx, dy - 10 + this.target_hitbox_y1 );
-			//ctx.rotate( -Math.PI / 2 );
-			an = -Math.PI / 2;
-		}
-		
-		ctx.translate(  dxA * this._anim_morph + dxB * ( 1 - this._anim_morph ),
-						dyA * this._anim_morph + dyB * ( 1 - this._anim_morph ) );
-			
-		
-		
-		ctx.rotate( an );
-		//ctx.rotate( anA * this._anim_morph + anB * ( 1 - this._anim_morph ) );
 
-		ctx.translate( ( sdWorld.time % 1000 < 500 ) ? 1 : 0, 0 );
-		
-		let img = sdTask.img_red_arrow;
-		
-		let mission = sdTask.missions[ this.mission ];
-		
-		if ( mission )
-		{
-			if ( mission.appearance === sdTask.APPEARANCE_HINT_POINT )
+			let dx = this.target_x - x;
+			let dy = this.target_y - y;
+			let di = sdWorld.Dist2D_Vector( dx, dy );
+
+			let dxA = 0;
+			let dyA = 0;
+			//let anA = 0;
+
+			let dxB = 0;
+			let dyB = 0;
+			//let anB = 0;
+
+			let an;
+
+
+			/*
+				dxA * s * dxA * s + dyA * s * dyA * s = 200 * 200
+				dyA * s = 100
+
+				s = 100 / dyA
+
+				dxA^2 * s^2 + dyA^2 * s^2 = 200 * 200
+
+				s^2 = ( 200 * 200 ) / ( dxA^2 + dyA^2 )
+
+				s = sqrt( ( 200 * 200 ) / ( dxA^2 + dyA^2 ) )
+			*/
+
+			let far_dist_horiz = 200;
+			let far_dist_vert = far_dist_horiz / document.body.clientWidth * document.body.clientHeight;
+
+			let far_dist_default = Math.sqrt( far_dist_horiz * far_dist_horiz + far_dist_vert * far_dist_vert );
+
+			// When far
+			dxA = dx / di * far_dist_default;
+			dyA = dy / di * far_dist_default;
+			//anA = Math.atan2( -dy, -dx );
+
+			let s = 1;
+
+			if ( dyA > far_dist_vert )
+			dyA = far_dist_vert;
+			if ( dyA < -far_dist_vert )
+			dyA = -far_dist_vert;
+			if ( dxA > far_dist_horiz )
+			dxA = far_dist_horiz;
+			if ( dxA < -far_dist_horiz )
+			dxA = -far_dist_horiz;
+
+			s = Math.min( s, Math.sqrt( ( far_dist_default * far_dist_default ) / ( dxA * dxA + dyA * dyA ) ) );
+
+			dxA *= s;
+			dyA *= s;
+
+			// When near
+			dxB = dx;
+			dyB = dy - 10 + this.target_hitbox_y1;
+			//anB = -Math.PI / 2;
+
+			if ( di > 200 )
 			{
-				ctx.filter = 'hue-rotate(71deg) saturate(20)';
-			}
-		}
+				this._anim_morph = Math.min( 1, this._anim_morph + 0.05 );
+				//dx = dx / di * 200;
+				//dy = dy / di * 200;
 
-		
-		if ( mission.appearance !== sdTask.APPEARANCE_NOTHING )//|| this.extract_target === 1 )
-		ctx.drawImageFilterCache( img, 
-			- 16, 
-			- 16, 
-			32,32 
-		);
+				//ctx.translate( dx, dy );
+				//ctx.rotate( Math.atan2( -dy, -dx ) );
+				an = Math.atan2( -dy, -dx );
+			}
+			else
+			{
+				this._anim_morph = Math.max( 0, this._anim_morph - 0.05 );
+
+				//ctx.translate( dx, dy - 10 + this.target_hitbox_y1 );
+				//ctx.rotate( -Math.PI / 2 );
+				an = -Math.PI / 2;
+			}
+
+			ctx.translate(  dxA * this._anim_morph + dxB * ( 1 - this._anim_morph ),
+							dyA * this._anim_morph + dyB * ( 1 - this._anim_morph ) );
+
+
+
+			ctx.rotate( an );
+			//ctx.rotate( anA * this._anim_morph + anB * ( 1 - this._anim_morph ) );
+
+			ctx.translate( ( sdWorld.time % 1000 < 500 ) ? 1 : 0, 0 );
+
+			let img = sdTask.img_red_arrow;
+
+			let mission = sdTask.missions[ this.mission ];
+
+			if ( mission )
+			{
+				if ( mission.appearance === sdTask.APPEARANCE_HINT_POINT )
+				{
+					ctx.filter = 'hue-rotate(71deg) saturate(20)';
+				}
+			}
+
+
+			if ( mission.appearance !== sdTask.APPEARANCE_NOTHING )//|| this.extract_target === 1 )
+			ctx.drawImageFilterCache( img, 
+				- 16, 
+				- 16, 
+				32,32 
+			);
+
+		}
 		
 
 		ctx.filter = 'none';

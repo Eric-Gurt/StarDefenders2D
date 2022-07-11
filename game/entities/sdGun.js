@@ -262,8 +262,8 @@ class sdGun extends sdEntity
 					  this._held_by && 
 					  this._held_by.IsVisible( by_entity ) && 
 					  this._held_by.gun_slot === sdGun.classes[ this.class ].slot && 
-					  this.class !== sdGun.CLASS_BUILD_TOOL && 
-					  sdGun.classes[ this.class ].projectile_properties._damage >= 0 && // no healing guns
+					  //this.class !== sdGun.CLASS_BUILD_TOOL && 
+					  //sdGun.classes[ this.class ].projectile_properties._damage >= 0 && // no healing guns
 					  sdGun.classes[ this.class ].projectile_properties._admin_picker !== true // no admin tools
 					  ) || // sdOctopus rule
 					this._held_by === null 
@@ -514,6 +514,8 @@ class sdGun extends sdEntity
 	
 		let ammo_to_spawn = sdGun.classes[ this.class ].ammo_capacity - this.ammo_left;
 		let ammo_cost = this.GetBulletCost( true );
+		
+		//trace( 'Matter cost for gun: ', ammo_cost );
 		
 		while ( ammo_to_spawn > 0 && this._held_by.matter >= ammo_cost )
 		{

@@ -74,6 +74,7 @@ class sdBadDog extends sdEntity
 		this._retreat_hp_mult = 0.5; // Goes closer to 1 each time and at some point makes creature friendly?
 		
 		this.master = null;
+		this._owner = null; // Special property that is used to prevent dog from shooting owner, bullets check for it
 		this.owned = 0; // Server sets this to true because this.master will be null on client-side in most cases for lost dogs
 		
 		this.death_anim = 0;
@@ -502,7 +503,8 @@ class sdBadDog extends sdEntity
 							{
 								if ( sdWorld.CheckLineOfSight( this.x, this.y, this._current_target.x, this._current_target.y, this, null, sdCom.com_creature_attack_unignored_classes ) )
 								{
-									this.turret_timer = 10;
+									//this.turret_timer = 10;
+									this.turret_timer = 7;
 									
 									sdSound.PlaySound({ name:'turret', x:this.x, y:this.y, volume:0.5, pitch: 1.5 });
 									
@@ -523,6 +525,8 @@ class sdBadDog extends sdEntity
 
 									bullet_obj._damage = 12;
 									bullet_obj.color = '#ff0000';
+									
+									this._owner = this.master; // To make bullets pass through master
 									
 									sdEntity.entities.push( bullet_obj );
 								}
