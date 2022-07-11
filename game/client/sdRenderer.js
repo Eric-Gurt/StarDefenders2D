@@ -1790,18 +1790,23 @@ class sdRenderer
 
 			let xx, yy;
 
+			let darkest_alpha = 1;
+
 			if ( sdWorld.my_entity )
 			{
 				xx = sdWorld.my_entity.x;
 				yy = sdWorld.my_entity.y;
+				
+				if ( sdWorld.my_entity._god )
+				{
+					darkest_alpha = 0.2;
+				}
 			}
 			else
 			{
 				xx = sdWorld.camera.x;
 				yy = sdWorld.camera.y;
 			}
-
-			const darkest_alpha = 1;
 			
 			const r = 0.01;
 			const g = 0.02;
