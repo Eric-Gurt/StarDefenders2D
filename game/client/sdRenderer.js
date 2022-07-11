@@ -1008,7 +1008,7 @@ class sdRenderer
 				
 				e._flag = 0; // Visibility detection
 				
-				if ( e.IsGlobalEntity() || sdWorld.my_entity === e || sdWorld.my_entity.driver_of === e )
+				if ( e.IsGlobalEntity() || ( sdWorld.my_entity && ( sdWorld.my_entity === e || sdWorld.my_entity.driver_of === e || sdWorld.my_entity._god ) ) )
 				e._flag = 1;
 				else
 				if ( sdWorld.my_entity )
