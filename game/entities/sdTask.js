@@ -129,7 +129,7 @@ class sdTask extends sdEntity
 			
 			completion_condition: ( task )=>
 			{
-				if ( task._executer._task_reward_counter < 1 )
+				if ( task._executer._task_reward_counter < 0.5 )
 				return true;
 				else
 				return false;
@@ -144,7 +144,7 @@ class sdTask extends sdEntity
 		};
 		sdTask.missions[ sdTask.MISSION_LRTP_EXTRACTION = id++ ] = 
 		{
-			appearance: sdTask.APPEARANCE_GET_ITEM,
+			appearance: sdTask.APPEARANCE_NOTHING,
 	
 			onTaskMade: ( task, params )=>
 			{
