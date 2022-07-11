@@ -1799,7 +1799,7 @@ class sdRenderer
 				
 				if ( sdWorld.my_entity._god )
 				{
-					darkest_alpha = 0.2;
+					darkest_alpha = 0.6;
 				}
 			}
 			else
