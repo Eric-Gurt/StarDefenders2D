@@ -3098,7 +3098,7 @@ class sdEntity
 	}
 	
 	// If you are going to use this method while snapshot may contain pointers towards not-yet-existing objects - you can try catching cases by setting sdWorld.unresolved_entity_pointers = []; (temporarily! Or else memory leaks. Once you've done - do sdWorld.unresolved_entity_pointers = null; )
-	static GetObjectFromSnapshot( snapshot )
+	static GetObjectFromSnapshot( snapshot ) // GetEntityFromSnapshot // GetEntityBySnapshot
 	{
 		/*for ( var i = 0; i < sdEntity.entities.length; i++ )
 		{
@@ -3145,6 +3145,9 @@ class sdEntity
 		
 		if ( typeof snapshot.type !== 'undefined' )
 		params.type = snapshot.type;
+		
+		if ( typeof snapshot.mission !== 'undefined' )
+		params.mission = snapshot.mission;
 		
 		//var ret = new sdWorld.entity_classes[ snapshot._class ]({ x:snapshot.x, y:snapshot.y });
 		var ret = new sdWorld.entity_classes[ snapshot._class ]( params );

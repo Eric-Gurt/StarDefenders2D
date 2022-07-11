@@ -432,6 +432,7 @@ class sdLongRangeTeleport extends sdEntity
 							break;
 						}
 					}
+					
 					if ( sdTask.tasks[ i ].mission === sdTask.MISSION_LRTP_EXTRACTION ) // If the extraction should apply progress for all players
 					if ( ent.GetClass() === sdTask.tasks[ i ]._target ) // For CC tasks
 					{
@@ -445,13 +446,14 @@ class sdLongRangeTeleport extends sdEntity
 								{
 									sdTask.tasks[ j ].lrtp_ents_count += ent.matter_max;
 									sdTask.tasks[ j ]._update_version++;
+									sdTask.tasks[ j ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // Will wake-up task for a brief moment if it happens to be inactive due to disconnected user
 									prog = true;
 								}
 							}
 							if ( prog ) // Feels like I'm butchering the code once again - Booraz149
 							{
 								return true;
-								break;
+								//break; // Break won't be called after return. Return stops IsTeleportable function execution
 							}
 						}
 					}

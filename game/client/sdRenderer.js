@@ -11,6 +11,7 @@ import sdPathFinding from '../ai/sdPathFinding.js';
 import sdEntity from '../entities/sdEntity.js';
 import sdWeather from '../entities/sdWeather.js';
 import sdBlock from '../entities/sdBlock.js';
+import sdDoor from '../entities/sdDoor.js';
 import sdEffect from '../entities/sdEffect.js';
 import sdGun from '../entities/sdGun.js';
 import sdTheatre from '../entities/sdTheatre.js';
@@ -420,8 +421,16 @@ class sdRenderer
 		];
 		sdRenderer.dark_lands_width = 800;
 		
+		sdRenderer.visibility_falloff = 64; // 32
+		sdRenderer.visibility_extra = 32; // 32
+		
+		sdRenderer.last_render = sdWorld.time;
+		
 		if ( !sdWorld.is_server )
 		{
+			sdRenderer.old_visibility_map = null;
+			sdRenderer.ray_trace_point_results = null; // arr of { x, y, until, hit_entity }
+			
 			let img_ground88 = sdWorld.CreateImageFromFile( 'ground_8x8' );
 		
 			function GenerateDarkLands()
@@ -638,6 +647,9 @@ class sdRenderer
 		/*if ( !document.hasFocus() ) Can be inaccurate
 		if ( Math.random() > 0.1 )
 		return;*/
+			
+		let ms_since_last_render = sdRenderer.last_render - sdWorld.time;
+		sdRenderer.last_render = sdWorld.time;
 		
 		var ctx = sdRenderer.ctx;
 		
@@ -670,6 +682,12 @@ class sdRenderer
 		ctx.imageSmoothingEnabled = false;
 		
 		ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_FLAT;
+		
+		
+		
+		
+			
+			
 		
 		// BG
 		{
@@ -930,6 +948,8 @@ class sdRenderer
 				   sdWorld.camera.scale );
 		ctx.translate( -sdRenderer.screen_width / 2, -sdRenderer.screen_height / 2 );
 		
+			
+		
 		ctx.translate( -sdWorld.camera.x, -sdWorld.camera.y );
 		
 		if ( sdWorld.entity_classes.sdWeather.only_instance )
@@ -981,9 +1001,47 @@ class sdRenderer
 			const STATUS_EFFECT_BEFORE = 0;
 			const STATUS_EFFECT_AFTER = 1;
 			
+			
+			for ( var i = 0; i < sdEntity.entities.length; i++ )
+			{
+				let e = sdEntity.entities[ i ];
+				
+				e._flag = 0; // Visibility detection
+				
+				if ( e.IsGlobalEntity() || sdWorld.my_entity === e || sdWorld.my_entity.driver_of === e )
+				e._flag = 1;
+				else
+				if ( sdWorld.my_entity )
+				if ( sdRenderer.old_visibility_map )
+				{
+					let x = sdWorld.my_entity.x;
+					let y = sdWorld.my_entity.y;
+					
+					let ex = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
+					let ey = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
+				
+					let angles = sdRenderer.old_visibility_map.length;
+					
+					let an = Math.round( Math.atan2( ex - x, ey - y ) / ( Math.PI * 2 ) * angles + angles ) % angles;
+					
+					if ( an < 0 )
+					debugger;
+				
+					if ( an >= angles )
+					debugger;
+				
+					let max_dimension = sdWorld.Dist2D_Vector( e._hitbox_x2 - e._hitbox_x1, e._hitbox_y2 - e._hitbox_y1 );
+					
+					if ( sdWorld.inDist2D_Boolean( x, y, ex, ey, sdRenderer.old_visibility_map[ an ] + sdRenderer.visibility_falloff + 32 + max_dimension ) )
+					e._flag = 1;
+				}
+			}
+			
 			for ( var i = 0; i < sdEntity.entities.length; i++ )
 			{
 				const e = sdEntity.entities[ i ];
+				
+				if ( e._flag )
 				if ( e.DrawBG !== void_draw )
 				if ( e.x + e._hitbox_x2 > min_x )
 				if ( e.x + e._hitbox_x1 < max_x )
@@ -1033,6 +1091,7 @@ class sdRenderer
 			{
 				const e = sdEntity.entities[ i ];
 				
+				if ( e._flag )
 				if ( ( e.x + e._hitbox_x2 > min_x &&
 					   e.x + e._hitbox_x1 < max_x &&
 					   e.y + e._hitbox_y2 > min_y &&
@@ -1082,6 +1141,7 @@ class sdRenderer
 			{
 				const e = sdEntity.entities[ i ];
 				
+				if ( e._flag )
 				if ( e.DrawFG !== void_draw_fg )
 				{
 					ctx.volumetric_mode = e.DrawIn3D( 1 );
@@ -1185,9 +1245,9 @@ class sdRenderer
 							sdRenderer.screen_height );
 
 
-
-
-
+			// Line of sight take 2
+			sdRenderer.DrawLineOfSightShading( ctx, ms_since_last_render );
+			
 			
 			if ( sdWorld.my_entity )
 			if ( !sdWorld.my_entity._is_being_removed )
@@ -1216,6 +1276,7 @@ class sdRenderer
 					var best_di = -1;
 
 					for ( var i = 0; i < sdEntity.entities.length; i++ )
+					if ( sdEntity.entities[ i ]._flag )
 					if ( sdEntity.entities[ i ].DrawHUD !== sdEntity.prototype.DrawHUD )
 					{
 						//let cache = sdStatusEffect.line_of_sight_visibility_cache.get( sdEntity.entities[ i ] );
@@ -1590,6 +1651,212 @@ class sdRenderer
 		sdRenderer.last_frame_times.push( sdWorld.time );
 		while ( sdRenderer.last_frame_times.length > 0 && sdRenderer.last_frame_times[ 0 ] < sdWorld.time - 1000 )
 		sdRenderer.last_frame_times.shift();
+	}
+	
+	// Line of sight take 2
+	static DrawLineOfSightShading( ctx, ms_since_last_render )
+	{		
+		let angles = 64;
+		let max_range = Math.sqrt( sdRenderer.screen_width*sdRenderer.screen_width + sdRenderer.screen_height*sdRenderer.screen_height ) / sdWorld.camera.scale;//1000;
+		let visibility_map = []; // [ angle ] = distance_until_shade_start
+
+
+		if ( !sdRenderer.old_visibility_map )
+		{
+			sdRenderer.old_visibility_map = [];
+			sdRenderer.ray_trace_point_results = [];
+
+			for ( let i = 0; i < angles; i++ )
+			{
+				sdRenderer.old_visibility_map[ i ] = 0;
+				sdRenderer.ray_trace_point_results[ i ] = null;
+			}
+		}
+		
+		function custom_filtering_method( ent )
+		{
+			if ( ent.is( sdBlock ) )
+			{
+				if ( ent.material === sdBlock.MATERIAL_TRAPSHIELD || ent.texture_id === sdBlock.TEXTURE_ID_GLASS )
+				{
+				}
+				else
+				return true;
+			}
+			else
+			if ( ent.is( sdDoor ) )
+			{
+				return true;
+			}
+	
+			return false;
+		}
+		
+		function SolveDepth( angle )
+		{
+			if ( !sdWorld.my_entity )
+			{
+				visibility_map[ angle ] = 0;
+			}
+			else
+			{
+				let x = sdWorld.my_entity.x;
+				let y = sdWorld.my_entity.y;
+
+				let an = angle / angles * Math.PI * 2;
+
+				let x2 = sdWorld.my_entity.x + Math.sin( an ) * max_range;
+				let y2 = sdWorld.my_entity.y + Math.cos( an ) * max_range;
+				
+				let cache = sdRenderer.ray_trace_point_results[ angle ];
+				
+				if ( cache && sdWorld.time < cache.until )
+				{
+					let hit = cache;
+					
+					visibility_map[ angle ] = sdWorld.Dist2D_Vector( hit.x - x, hit.y - y ) + sdRenderer.visibility_extra;
+				}
+				else
+				{
+					let hit = sdWorld.TraceRayPoint( x, y, x2, y2, sdWorld.my_entity, null, null, custom_filtering_method );//sdCom.com_vision_blocking_classes );
+					
+					let hx = x2;
+					let hy = y2;
+
+					if ( hit )
+					{
+						visibility_map[ angle ] = sdWorld.Dist2D_Vector( hit.x - x, hit.y - y ) + sdRenderer.visibility_extra;
+						hx = hit.x;
+						hy = hit.y;
+					}
+					else
+					visibility_map[ angle ] = max_range;
+				
+				
+				
+					if ( !cache )
+					sdRenderer.ray_trace_point_results[ angle ] = cache = { x: hx, y: hy, until: sdWorld.time + 100 + Math.random() * 200, hit_entity: sdWorld.last_hit_entity };
+					else
+					{
+						cache.x = hx;
+						cache.y = hy;
+						cache.until = sdWorld.time + 100 + Math.random() * 200;
+						cache.hit_entity = sdWorld.last_hit_entity;
+					}
+				}
+			}
+		}
+
+		for ( let i = 0; i < angles; i++ )
+		{
+			SolveDepth( i );
+		}
+
+		for ( let i = 0; i < angles; i++ )
+		{
+			//visibility_map[ i ] = visibility_map[ i ] * 0.5 + sdRenderer.old_visibility_map[ i ] * 0.5;
+			
+			if ( ms_since_last_render < 1 )
+			ms_since_last_render = 1;
+		
+			if ( visibility_map[ i ] < sdRenderer.old_visibility_map[ i ] - 32 )
+			{
+				//let a = 213321;
+			}
+			else
+			visibility_map[ i ] = sdWorld.MorphWithTimeScale( sdRenderer.old_visibility_map[ i ], visibility_map[ i ], 0.9, ms_since_last_render );
+		}
+		
+		sdRenderer.old_visibility_map = visibility_map.slice();
+
+		for ( let sm = 0; sm < 5; sm++ )
+		{
+			let new_visibility_map = visibility_map.slice();
+			for ( let i = 0; i < angles; i++ )
+			{
+				let i0 = ( i - 1 + angles ) % angles;
+				let i2 = ( i + 1 ) % angles;
+
+				new_visibility_map[ i ] = ( visibility_map[ i0 ] + visibility_map[ i ] + visibility_map[ i2 ] ) / 3;
+			}
+
+			visibility_map = new_visibility_map;
+		}
+
+		let z_offset_old = ctx.z_offset;
+		{
+			ctx.z_offset = 64;
+			//ctx.z_depth = 16 * sdWorld.camera.scale;
+
+			let xx, yy;
+
+			if ( sdWorld.my_entity )
+			{
+				xx = sdWorld.my_entity.x;
+				yy = sdWorld.my_entity.y;
+			}
+			else
+			{
+				xx = sdWorld.camera.x;
+				yy = sdWorld.camera.y;
+			}
+
+			const darkest_alpha = 1;
+			
+			const r = 0.01;
+			const g = 0.02;
+			const b = 0.1;
+
+			for ( let i = 0; i < angles; i++ )
+			for ( let d = 0; d <= 1; d++ )
+			{
+				let distance, distance2, distance3, distance4, a1, a2, a3, a4;
+
+				if ( d === 0 )
+				{
+					distance = visibility_map[ i ];
+					distance2 = visibility_map[ i ] + sdRenderer.visibility_falloff;
+					distance3 = visibility_map[ ( i + 1 ) % angles ];
+					distance4 = visibility_map[ ( i + 1 ) % angles ] + sdRenderer.visibility_falloff;
+
+					a1 = 0;
+					a2 = darkest_alpha;
+					a3 = 0;
+					a4 = darkest_alpha;
+				}
+				else
+				{
+					distance = visibility_map[ i ] + sdRenderer.visibility_falloff;
+					distance2 = max_range;
+					distance3 = visibility_map[ ( i + 1 ) % angles ] + sdRenderer.visibility_falloff;
+					distance4 = max_range;
+
+					a1 = darkest_alpha;
+					a2 = darkest_alpha;
+					a3 = darkest_alpha;
+					a4 = darkest_alpha;
+				}
+
+				let an = i / angles * Math.PI * 2;
+				let an2 = ( ( i + 1 ) % angles ) / angles * Math.PI * 2;
+
+				let x = xx + Math.sin( an ) * distance;
+				let y = yy + Math.cos( an ) * distance;
+
+				let x2 = xx + Math.sin( an ) * distance2;
+				let y2 = yy + Math.cos( an ) * distance2;
+
+				let x3 = xx + Math.sin( an2 ) * distance3;
+				let y3 = yy + Math.cos( an2 ) * distance3;
+
+				let x4 = xx + Math.sin( an2 ) * distance4;
+				let y4 = yy + Math.cos( an2 ) * distance4;
+
+				ctx.drawTriangle( x,y, x2,y2, x3,y3, r,g,b, a1,a2,a3 );
+				ctx.drawTriangle( x2,y2, x4,y4, x3,y3, r,g,b, a2,a4,a3 ); // 2, 4, 3
+			}
+		}
+		ctx.z_offset = z_offset_old;
 	}
 }
 //sdRenderer.init_class();

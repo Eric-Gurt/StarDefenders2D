@@ -599,6 +599,11 @@ class FakeCanvasContext
 		return this.draw_offset;
 	}
 	
+	drawTriangle( ...args ) // ( x,y, x2,y2, x3,y3, r,g,b, a,a2,a3 )
+	{
+		sdAtlasMaterial.drawTriangle( ...args );
+	}
+	
 	fillRect( destination_x, destination_y, destination_w, destination_h )
 	{
 		if ( sdRenderer.visual_settings === 4 )

@@ -500,6 +500,7 @@ class sdSuperTexture
 	}*/
 	GetVertex( x1,y1,z1, u1,v1, geometry,r,g,b,a, hue_rotation )
 	{
+		//trace( x1,y1,z1, u1,v1, geometry,r,g,b,a, hue_rotation );
 		
 		/*let similar = this.last_vertices.get( x1 + y1 + u1 + v1 );
 		if ( similar )
@@ -581,10 +582,35 @@ class sdSuperTexture
 			this.GetVertex( x3,y3,z3, u3,v3, geometry,r,g,b,a, hue_rotation )
 			, true );
 	}*/
-	DrawPolygon()
+	
+	DrawTriangle( x1,y1,z1, x2,y2,z2, x3,y3,z3, u1,v1, u2,v2, u3,v3, r,g,b, a,a2,a3, hue_rotation )
 	{
-		debugger;
-		return; // Hack
+		const geometry = this.geometry_mesh;
+		
+		if ( geometry.offset + 3 >= sdAtlasMaterial.maximum_dots_per_super_texture )
+		return;
+		
+		if ( geometry.offset_indices + 3 >= 3 * sdAtlasMaterial.maximum_dots_per_super_texture )
+		return;
+	
+		let p1 = this.GetVertex( x1,y1,z1, u1,v1, geometry,r,g,b,a, hue_rotation );
+		let p2 = this.GetVertex( x2,y2,z2, u2,v2, geometry,r,g,b,a2, hue_rotation );
+		let p3 = this.GetVertex( x3,y3,z3, u3,v3, geometry,r,g,b,a3, hue_rotation );
+		
+	
+		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
+			p1
+			, true );
+			
+		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
+			p2
+			, true );
+		
+		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
+			p3
+			, true );
+			
+		globalThis.super_texture_with_triangle = this;
 	}
 	DrawQuad( x1,y1,z1, x2,y2,z2, x3,y3,z3, x4,y4,z4, u1,v1, u2,v2, u3,v3, u4,v4, r,g,b,a, hue_rotation ) // left-top, right-top, bottom-left, bottom-right
 	{
@@ -614,7 +640,7 @@ class sdSuperTexture
 			, true );
 			
 			
-			
+			//return; // Hack
 			
 			
 	
@@ -877,6 +903,142 @@ class sdAtlasMaterial
 		
 		return new_super_texture.DedicateSpace( w, h );
 	}
+	
+	static drawTriangle( x,y, x2,y2, x3,y3, cr,cg,cb, a1,a2,a3 )
+	{
+		if ( sdRenderer.ctx.globalAlpha <= 0 )
+		return;
+	
+		let img = sdAtlasMaterial.white_pixel;
+		/*
+		if ( img.loaded !== false ) // Offscreen canvas may appear here too
+		{
+		}
+		else
+		{
+			img.RequiredNow();
+			return;
+		}
+		*/
+		let is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT;//~~Math.random() * 4;//GROUP_TRANSPARENT_UNSORTED;
+		
+		let super_texture;
+		let dedication;
+		
+		[ dedication, super_texture ] = sdAtlasMaterial.DedicateSpaceAndGetDedicationAndSuperTexture( img, is_transparent_int );
+
+		const canvas_size = super_texture.canvas_size_scale_down_vector;//new THREE.Vector2( 1 / super_texture.canvas.width, 1 / super_texture.canvas.height );
+		const mat = sdRenderer.ctx._matrix3;//.clone().invert();
+		
+		const a = sdAtlasMaterial.a.set( x, y ); // Left-top
+		const b = sdAtlasMaterial.b.set( x2, y2 ); // Right-top
+		const c = sdAtlasMaterial.c.set( x3, y3 ); // Left-bottom
+
+		a.applyMatrix3( mat );
+		b.applyMatrix3( mat );
+		c.applyMatrix3( mat );
+			
+		let z_position = -sdRenderer.ctx.z_offset;
+		
+		let sx = 0;
+		let sy = 0;
+		let sWidth = 1;
+		let sHeight = 1;
+		
+		sx += dedication.x;
+		sy += dedication.y;
+		
+		const uv_a = sdAtlasMaterial.uv_a.set( sx, sy ); // Left-top
+		const uv_b = sdAtlasMaterial.uv_b.set( sx + sWidth, sy ); // Right-top
+		const uv_c = sdAtlasMaterial.uv_c.set( sx, sy + sHeight ); // Left-bottom
+		//const uv_d = sdAtlasMaterial.uv_d.set( sx + sWidth, sy + sHeight ); // Right-bottom
+
+		uv_a.multiply( canvas_size );
+		uv_b.multiply( canvas_size );
+		uv_c.multiply( canvas_size );
+		//uv_d.multiply( canvas_size );
+		
+		if ( sdRenderer.ctx.camera_relative_world_scale !== 1 )
+		{
+			//const cam_xy = new THREE.Vector2( sdRenderer.ctx.camera.position.x, sdRenderer.ctx.camera.position.y );
+			const cam_xy = sdAtlasMaterial.cam_xy.set( sdRenderer.ctx.camera.position.x, sdRenderer.ctx.camera.position.y );
+
+			a.sub( cam_xy );
+			b.sub( cam_xy );
+			c.sub( cam_xy );
+
+			a.multiplyScalar( sdRenderer.ctx.camera_relative_world_scale );
+			b.multiplyScalar( sdRenderer.ctx.camera_relative_world_scale );
+			c.multiplyScalar( sdRenderer.ctx.camera_relative_world_scale );
+
+			a.add( cam_xy );
+			b.add( cam_xy );
+			c.add( cam_xy );
+		}
+		
+		/*a.x = 0;
+		a.y = 0;
+		
+		b.x = 100;
+		b.y = 0;
+		
+		c.x = 0;
+		c.y = -100;
+		
+		a1=a2=a3 = 1;
+		
+		z_position = 0;
+		super_texture.DrawQuad( a.x, a.y, z_position, a.x, a.y, z_position, b.x, b.y, z_position, c.x, c.y, z_position, 0,0, 0,0, 0,0, 0,0, cr,cg,cb, a1, 0 ) // left-top, right-top, bottom-left, bottom-right
+	*/
+		super_texture.DrawTriangle( 
+				a.x, a.y, z_position,
+				b.x, b.y, z_position,
+				c.x, c.y, z_position,
+				
+				uv_a.x,uv_a.y,
+				uv_b.x,uv_b.y,
+				uv_c.x,uv_c.y,
+
+				cr,cg,cb,
+				
+				a1,
+				a2,
+				a3,
+				
+				0
+		);
+	}
+	
+	static DedicateSpaceAndGetDedicationAndSuperTexture( img, is_transparent_int )
+	{
+		let dedication, super_texture;
+		
+		if ( !img.super_textures )
+		{
+			img.super_textures = [];
+			for ( let i = 0; i < sdAtlasMaterial.super_textures.length; i++ )
+			img.super_textures[ i ] = null;
+		}
+		
+		if ( img.super_textures[ is_transparent_int ] )
+		{
+			dedication = img.super_textures[ is_transparent_int ];
+			super_texture = dedication.super_texture;
+		}
+		else
+		{
+			dedication = sdAtlasMaterial.DedicateSpace( img.width, img.height, is_transparent_int );
+			img.super_textures[ is_transparent_int ] = dedication;
+			super_texture = dedication.super_texture;
+			super_texture.ctx.drawImage( img, dedication.x, dedication.y, img.width, img.height );
+			super_texture.texture.needsUpdate = true;
+		}
+		
+		dedication.last_time_used = sdWorld.time;
+		
+		return [ dedication, super_texture ];
+	}
+	
 	static drawImage( img, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight )
 	{
 		if ( sdRenderer.ctx.globalAlpha <= 0 )
@@ -973,7 +1135,9 @@ class sdAtlasMaterial
 		let super_texture;
 		let dedication;
 		
-		//const super_texture_prop = 'super_texture' + is_transparent_int;
+		[ dedication, super_texture ] = sdAtlasMaterial.DedicateSpaceAndGetDedicationAndSuperTexture( img, is_transparent_int );
+		
+		/*
 		
 		if ( !img.super_textures )
 		{
@@ -995,55 +1159,10 @@ class sdAtlasMaterial
 			super_texture.ctx.drawImage( img, dedication.x, dedication.y, img.width, img.height );
 			super_texture.texture.needsUpdate = true;
 		}
-		
-		/*if ( is_transparent_int )
-		{
-			if ( img.super_texture_prop1 )
-			{
-				dedication = img.super_texture_prop1;
-				super_texture = dedication.super_texture;
-			}
-			else
-			{
-				dedication = sdAtlasMaterial.DedicateSpace( img.width, img.height, is_transparent_int );
-				img.super_texture_prop1 = dedication;
-				super_texture = dedication.super_texture;
-				super_texture.ctx.drawImage( img, dedication.x, dedication.y, img.width, img.height );
-				super_texture.texture.needsUpdate = true;
-			}
-		}
-		else
-		{
-			if ( img.super_texture_prop0 )
-			{
-				dedication = img.super_texture_prop0;
-				super_texture = dedication.super_texture;
-			}
-			else
-			{
-				dedication = sdAtlasMaterial.DedicateSpace( img.width, img.height, is_transparent_int );
-				img.super_texture_prop0 = dedication;
-				super_texture = dedication.super_texture;
-				super_texture.ctx.drawImage( img, dedication.x, dedication.y, img.width, img.height );
-				super_texture.texture.needsUpdate = true;
-			}
-		}*/
-		
-		/*if ( img[ super_texture_prop ] )
-		{
-			dedication = img[ super_texture_prop ];
-			super_texture = dedication.super_texture;
-		}
-		else
-		{
-			dedication = sdAtlasMaterial.DedicateSpace( img.width, img.height, is_transparent_int );
-			img[ super_texture_prop ] = dedication;
-			super_texture = dedication.super_texture;
-			super_texture.ctx.drawImage( img, dedication.x, dedication.y, img.width, img.height );
-			super_texture.texture.needsUpdate = true;
-		}*/
-		
+					
 		dedication.last_time_used = sdWorld.time;
+		*/
+
 		
 		const canvas_size = super_texture.canvas_size_scale_down_vector;//new THREE.Vector2( 1 / super_texture.canvas.width, 1 / super_texture.canvas.height );
 		const mat = sdRenderer.ctx._matrix3;//.clone().invert();

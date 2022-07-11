@@ -699,7 +699,8 @@ class sdStatusEffect extends sdEntity
 			}
 		}
 		
-		/* Line of sight test. Not the best looking one
+		// Line of sight test. Not the best looking one
+		/*
 		if ( sdWorld.my_entity )
 		{
 			if ( start0_end1 === 0 )
@@ -744,12 +745,31 @@ class sdStatusEffect extends sdEntity
 					//for ( let x = 0.01; x < 1; x += 0.98 )
 					//for ( let y = 0.01; y < 1; y += 0.98 )
 					{
+						let x2 = entity.x + entity._hitbox_x1 + x * ( entity._hitbox_x2 + entity._hitbox_x1 );
+						let y2 = entity.y + entity._hitbox_y1 + y * ( entity._hitbox_y2 + entity._hitbox_y1 );
+						
+						let dx = x2 - sdWorld.my_entity.x;
+						let dy = y2 - sdWorld.my_entity.y;
+						
+						let di = sdWorld.Dist2D_Vector( dx, dy );
+						
+						if ( di > 1 )
+						{
+							dx /= di;
+							dy /= di;
+						}
+						
+						di = Math.max( 0, di - 32 );
+						
+						dx *= di;
+						dy *= di;
+						
 						//if ( sdWorld.CheckLineOfSight( entity.x + entity._hitbox_x1 + x * ( entity._hitbox_x2 + entity._hitbox_x1 ), entity.y + entity._hitbox_y1 + y * ( entity._hitbox_y2 + entity._hitbox_y1 ), sdWorld.my_entity.x, sdWorld.my_entity.y, entity, null, sdCom.com_visibility_unignored_classes, null ) || sdWorld.last_hit_entity === sdWorld.my_entity || sdWorld.last_hit_entity === sdWorld.my_entity.driver_of )
 						if ( sdWorld.CheckLineOfSight( 
 								sdWorld.my_entity.x, 
 								sdWorld.my_entity.y, 
-								entity.x + entity._hitbox_x1 + x * ( entity._hitbox_x2 + entity._hitbox_x1 ), 
-								entity.y + entity._hitbox_y1 + y * ( entity._hitbox_y2 + entity._hitbox_y1 ), 
+								sdWorld.my_entity.x + dx, 
+								sdWorld.my_entity.y + dy, 
 								sdWorld.my_entity, null, sdCom.com_vision_blocking_classes, null ) || sdWorld.last_hit_entity === entity )
 						{
 							r = 1;

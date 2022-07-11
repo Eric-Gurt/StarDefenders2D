@@ -18,10 +18,11 @@ class sdTask extends sdEntity
 		
 		sdTask.img_red_arrow = sdWorld.CreateImageFromFile( 'task_offscreen' );
 		
+		sdTask.APPEARANCE_NOTHING = 0;
 		sdTask.APPEARANCE_ATTACK_POINT = 1; // Attack something, like anti-crystal
 		sdTask.APPEARANCE_STARRED = 2; // Players can star their base perhaps? Not sure yet
 		sdTask.APPEARANCE_HINT_POINT = 3;
-		sdTask.APPEARANCE_NOTHING = 4;
+		sdTask.APPEARANCE_GET_ITEM = 4;
 		
 		sdTask.missions = [];
 		
@@ -29,6 +30,11 @@ class sdTask extends sdEntity
 		sdTask.missions[ sdTask.MISSION_NO_MISSION = id++ ] = 
 		{
 			appearance: sdTask.APPEARANCE_STARRED,
+	
+			onTaskMade: ( task, params )=>
+			{
+				// Create extra properties here
+			},
 	
 			GetDefaultTitle: ( task )=>{
 				return 'sdTask.MISSION_NO_MISSION task';
@@ -61,7 +67,7 @@ class sdTask extends sdEntity
 				return 'Eliminate';
 			},
 			GetDefaultDescription: ( task )=>{
-				return 'There is an unspecified urgency to destroy ' + sdWorld.ClassNameToProperName( task._target.GetClass(), task._target );
+				return 'There is an unspecified urgency to destroy ' + ( task._target ? sdWorld.ClassNameToProperName( task._target.GetClass(), task._target ) : 'something' );
 			},
 			GetDefaultTimeLeft: ( task )=>
 			{
@@ -138,7 +144,18 @@ class sdTask extends sdEntity
 		};
 		sdTask.missions[ sdTask.MISSION_LRTP_EXTRACTION = id++ ] = 
 		{
-			appearance: sdTask.APPEARANCE_NOTHING,
+			appearance: sdTask.APPEARANCE_GET_ITEM,
+	
+			onTaskMade: ( task, params )=>
+			{
+				// Create extra properties here
+				
+				task.lrtp_ents_count = 0;
+				task.lrtp_ents_needed = params.lrtp_ents_needed || 3; // For LRT delivery tasks
+
+				task.extra = params.extra || 0; // For LRT delivery tasks, used to determine entity type ( sdCrystal, sdJunk )
+				task._type = params.type || 0; // "Public event task" or regular? If it's set to 1, task will be in active state regardless if player disconnected.
+			},
 	
 			GetDefaultTitle: ( task )=>{
 				return 'Extract an entity';
@@ -230,21 +247,16 @@ class sdTask extends sdEntity
 	{
 		super( params );
 		
-		//if ( !sdWorld.is_server )
-		//EnforceChangeLog( this, '_is_being_removed' );
-		
+		// Note: Do not make extra properties here since these willl appear for all kinds of tasks, which means overcomplicating them. Use .onTaskMade as part of a specific mission
+
 		this._executer = params.executer || null; // Who is responsible for completion of this task. Make extra task for each alive character
 
 		this._difficulty = params.difficulty || 0.1; // Task difficulty, decides how much percentage the player gets closer towards task rewards when completed ( 1 = 100%, 0.1 = 10%)
-		this.lrtp_ents_count = 0;
-		this.lrtp_ents_needed = params.lrtp_ents_needed || 3; // For LRT delivery tasks
-		this.extra = params.extra || 0; // For LRT delivery tasks, used to determine entity type ( sdCrystal, sdJunk )
-		this._type = params.type || 0; // "Public event task" or regular? If it's set to 1, task will be in active state regardless if player disconnected.
 		
 		this._target = params.target || null;
 		this.target_hitbox_y1 = this._target ? this._target._hitbox_y1 : 0;
 		//this._target_title = sdWorld.ClassNameToProperName( this._target.GetClass(), this._target );
-		this.extract_target = params.extract_target || 0; // For "Extract entity tasks" , like "Rescue / Arrest Star Defender" event
+		//this.extract_target = params.extract_target || 0; // For "Extract entity tasks" , like "Rescue / Arrest Star Defender" event
 		
 		this._similarity_hash = params.similarity_hash; // In some cases it can be used to prevent spawning of similar tasks. For example it can be called 'Destroy-1239123921'
 		
@@ -256,6 +268,9 @@ class sdTask extends sdEntity
 		{
 			try
 			{
+				if ( mission.onTaskMade )
+				mission.onTaskMade( this, params );
+			
 				this.title = mission.GetDefaultTitle( this );
 				this.description = mission.GetDefaultDescription( this );
 				this.time_left = mission.GetDefaultTimeLeft( this );
@@ -387,7 +402,8 @@ class sdTask extends sdEntity
 		}
 		
 		if ( sdWorld.is_server )
-		if ( this._executer._socket === null && this._type === 0 ) // task._type = 1 is for public events which all players can contribute towards, so it should disappear regardless if player disconnects. ( Example - sdWeather.EVENT_CRYSTALS_MATTER )
+		if ( this._executer._socket === null )
+		//if ( this._executer._socket === null && this._type === 0 ) Let's just wake up updated tasks instead // task._type = 1 is for public events which all players can contribute towards, so it should disappear regardless if player disconnects. ( Example - sdWeather.EVENT_CRYSTALS_MATTER )
 		{
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		}
@@ -507,7 +523,7 @@ class sdTask extends sdEntity
 		}
 
 		
-		if ( mission.appearance !== sdTask.APPEARANCE_NOTHING || this.extract_target === 1 )
+		if ( mission.appearance !== sdTask.APPEARANCE_NOTHING )//|| this.extract_target === 1 )
 		ctx.drawImageFilterCache( img, 
 			- 16, 
 			- 16, 
