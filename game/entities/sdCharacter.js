@@ -2238,7 +2238,7 @@ class sdCharacter extends sdEntity
 
 				//this._task_reward_counter = Math.min(1, this._task_reward_counter + GSPEED / 1800 ); // For testing
 
-				if ( this._task_reward_counter >= 1 )
+				if ( this._task_reward_counter >= 0.5 ) // was 1 but players told me it takes too long
 				sdTask.MakeSureCharacterHasTask({ 
 					similarity_hash:'CLAIM_REWARD-'+this._net_id, 
 					executer: this,
