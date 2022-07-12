@@ -37,16 +37,19 @@ class sdJunk extends sdEntity
 
 		sdJunk.img_erthal_beacon = sdWorld.CreateImageFromFile( 'erthal_distress_beacon2' );
 
+		sdJunk.img_matter_container2 = sdWorld.CreateImageFromFile( 'matter_container2' );
+		sdJunk.img_matter_container2_empty = sdWorld.CreateImageFromFile( 'matter_container2_empty' );
+
 		sdJunk.anti_crystals = 0;
 		sdJunk.council_bombs = 0;
 		sdJunk.erthal_beacons = 0;
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.type === 5 ? - 11 : this.type === 4 ? -11 : this.type === 3 ? -28 : -5; }
-	get hitbox_x2() { return this.type === 5 ? 11 : this.type === 4 ? 11 : this.type === 3 ? 28 : 5; }
-	get hitbox_y1() { return this.type === 5 ? - 21 : this.type === 4 ? -30 : this.type === 3 ? 0 : -5; }
-	get hitbox_y2() { return this.type === 5 ? 29 : this.type === 4 ? 31 : this.type === 3 ? 23 : 5; }
+	get hitbox_x1() { return this.type === 6 ? -11 : this.type === 5 ? - 11 : this.type === 4 ? -11 : this.type === 3 ? -28 : -5; }
+	get hitbox_x2() { return this.type === 6 ? 11 : this.type === 5 ? 11 : this.type === 4 ? 11 : this.type === 3 ? 28 : 5; }
+	get hitbox_y1() { return this.type === 6 ? -15 : this.type === 5 ? - 21 : this.type === 4 ? -30 : this.type === 3 ? 0 : -5; }
+	get hitbox_y2() { return this.type === 6 ? 17 : this.type === 5 ? 29 : this.type === 4 ? 31 : this.type === 3 ? 23 : 5; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -73,6 +76,8 @@ class sdJunk extends sdEntity
 
 		this.type = params.type || t_s;
 
+		if ( this.type === 6 ) // Task reward matter container
+		this.hmax = 2000;
 		if ( this.type === 5 ) // Erthal distress beacon
 		this.hmax = 40000;
 		if ( this.type === 4 ) // Council bomb
@@ -103,10 +108,11 @@ class sdJunk extends sdEntity
 		this._max_damage_timer = 30; // Timer which resets max damage the Council bomb can recieve in a second ( counters barrel spam )
 		//
 		this.hea = this.hmax;
-		this.matter_max = 320;
+		this.matter_max = this.type === 6 ? ( 5120 * 8 ) : 320;
 		this.matter = this.matter_max;
 		this._damagable_in = sdWorld.time + 1500; // Copied from sdCrystal to prevent high ping players injure themselves, will only work for sdCharacter damage
 		this._spawn_ent_in = 60; // Used in Council Bomb, although could be used in other things
+		this._regen_timeout = 0; // Regen timeout for task reward matter container, although could be used in other things in future
 
 		if ( this.type === 3 )
 		sdJunk.anti_crystals++;
@@ -163,6 +169,9 @@ class sdJunk extends sdEntity
 				this._max_damage = 0;
 			}
 		}
+
+		if ( this.type === 6 )
+		this._regen_timeout = 60;
 
 		
 		this.regen_timeout = Math.max( this.regen_timeout, 60 );
@@ -385,7 +394,7 @@ class sdJunk extends sdEntity
 		
 	}
 	
-	get mass() { return this.type === 5 ? 800 : this.type === 4 ? 1000 : this.type === 3 ? 500 : 30; }
+	get mass() { return this.type === 6 ? 60 : this.type === 5 ? 800 : this.type === 4 ? 1000 : this.type === 3 ? 500 : 30; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -895,6 +904,18 @@ class sdJunk extends sdEntity
 					}
 				}
 			}
+			if ( this.type === 6 ) // Task reward matter container
+			{
+				if ( this._regen_timeout > 0 )
+				this._regen_timeout -= GSPEED;
+				else
+				{
+					if ( this._hea < this._hmax )
+					{
+						this._hea = Math.min( this._hea + GSPEED, this._hmax );
+					}
+				}
+			}
 		}
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
@@ -924,6 +945,11 @@ class sdJunk extends sdEntity
 		{
 			sdEntity.Tooltip( ctx, "Erthal distress beacon" );
 			this.DrawHealthBar( ctx );
+		}
+
+		if ( this.type === 6 )
+		{
+			sdEntity.Tooltip( ctx, "Advanced matter container ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
 		}
 	}
 	Draw( ctx, attached )
@@ -990,12 +1016,20 @@ class sdJunk extends sdEntity
 			{
 				ctx.drawImageFilterCache( sdJunk.img_erthal_beacon, - 32, - 32, 64, 64 );
 			}
+			if ( this.type === 6 ) // Task reward / Advanced matter container
+			{
 
-		ctx.filter = 'none';
-		ctx.globalAlpha = 1;
-		}
-
+				ctx.drawImageFilterCache( sdJunk.img_matter_container2_empty, - 32, - 32, 64, 64 );
 		
+				ctx.filter = sdWorld.GetCrystalHue( 40960 );
+	
+				ctx.globalAlpha = this.matter / this.matter_max;
+		
+				ctx.drawImageFilterCache( sdJunk.img_matter_container2, - 32, - 32, 64, 64 );
+		
+			}
+
+		}
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
@@ -1019,6 +1053,18 @@ class sdJunk extends sdEntity
 			sdJunk.erthal_beacons--;
 			if ( this._broken )
 			sdWorld.BasicEntityBreakEffect( this, 30, 3, 0.75, 0.75 );
+		}
+		if ( this.type === 6 )
+		{
+			sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
+
+			sdWorld.DropShards( this.x, this.y, 0, 0, 
+				Math.floor( Math.max( 0, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
+				this.matter_max / 40,
+				10
+			);
+
+			sdWorld.BasicEntityBreakEffect( this, 10 );
 		}
 	}
 	MeasureMatterCost()

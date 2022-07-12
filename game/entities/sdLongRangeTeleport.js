@@ -19,6 +19,7 @@ import sdCommandCentre from './sdCommandCentre.js';
 import sdCrystal from './sdCrystal.js';
 import sdGun from './sdGun.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdJunk from './sdJunk.js';
 
 import sdTask from './sdTask.js';
 
@@ -567,7 +568,7 @@ class sdLongRangeTeleport extends sdEntity
 	GiveRewards()
 	{
 		let rewards = Math.random();
-		if ( rewards < 0.3 )
+		if ( rewards < 0.2 )
 		{
 			let shard, shard2, shard3, shard4, shard5, shard6, shard7;
 			shard = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
@@ -586,7 +587,7 @@ class sdLongRangeTeleport extends sdEntity
 			sdEntity.entities.push( shard7 );
 		}
 		else
-		if ( rewards < 0.6 )
+		if ( rewards < 0.5 )
 		{
 			let gun, rng;
 			rng = Math.random();
@@ -607,6 +608,7 @@ class sdLongRangeTeleport extends sdEntity
 			sdEntity.entities.push( gun );
 		}
 		else
+		if ( rewards < 0.75 )
 		{
 			let crystal, crystal2, crystal3;
 			crystal = new sdCrystal({ x:this.x - 24, y:this.y - 24, matter_max: 5120, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
@@ -615,6 +617,12 @@ class sdLongRangeTeleport extends sdEntity
 			sdEntity.entities.push( crystal2 );
 			crystal3 = new sdCrystal({ x:this.x + 24, y:this.y - 24, matter_max: 5120, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
 			sdEntity.entities.push( crystal3 );
+		}
+		else
+		{
+			let container;
+			container = new sdJunk({ x:this.x, y:this.y - 32, type: 6 });
+			sdEntity.entities.push( container );
 		}
 		sdWorld.SendEffect({ x:this.x, y:this.y - 24, type:sdEffect.TYPE_TELEPORT });
 		sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
@@ -833,7 +841,7 @@ class sdLongRangeTeleport extends sdEntity
 						{
 							if ( this.matter >= this._matter_max )
 							{
-								if ( this.delay === 0 && exectuter_character._task_reward_counter >= 1 )
+								if ( this.delay === 0 && exectuter_character._task_reward_counter >= sdTask.reward_claim_task_amount )
 								{
 									this.Activation();
 									
