@@ -906,6 +906,8 @@ class sdJunk extends sdEntity
 			}
 			if ( this.type === 6 ) // Task reward matter container
 			{
+				this.MatterGlow( 0.01, 30, GSPEED );
+
 				if ( this._regen_timeout > 0 )
 				this._regen_timeout -= GSPEED;
 				else
