@@ -603,7 +603,7 @@ class sdLongRangeTeleport extends sdEntity
 			if ( rng < 0.8 )
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_ZAPPER });
 			else
-			if ( rng < 0.1 )
+			if ( rng < 0.9 )
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_RAYRIFLE });
 			else
 			//if ( rng < 1 ) // With more gun rewards, these values will change
