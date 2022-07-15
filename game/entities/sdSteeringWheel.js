@@ -332,7 +332,7 @@ class sdSteeringWheel extends sdEntity
 		}
 		
 		if ( this.driver )
-		if ( this.driver._is_being_removed )
+		if ( this.driver._is_being_removed || this.driver.hea <= 0 )
 		{
 			this.ExcludeDriver( this.driver );
 			//this.driver = null;
@@ -429,8 +429,11 @@ class sdSteeringWheel extends sdEntity
 
 						if ( this.ComplexElevatorLikeMove( this._scan, this._scan_net_ids, xx, yy, false, GSPEED ) )
 						{
-							this.driver.x += xx;
-							this.driver.y += yy;
+							if ( this.driver.CanMoveWithoutOverlap( this.driver.x + xx, this.driver.y + yy ) )
+							{
+								this.driver.x += xx;
+								this.driver.y += yy;
+							}
 						}
 						else
 						{					
