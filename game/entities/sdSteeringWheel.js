@@ -29,6 +29,9 @@ class sdSteeringWheel extends sdEntity
 		
 		sdSteeringWheel.lost_control_range = 80;
 		
+		sdSteeringWheel.overlap = 8;
+		
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1()  { return -5; }
@@ -101,7 +104,7 @@ class sdSteeringWheel extends sdEntity
 		
 		let collected = [ this ];
 		
-		const overlap = 8;
+		const overlap = sdSteeringWheel.overlap;
 		
 		let reason = null;
 		
@@ -502,6 +505,8 @@ class sdSteeringWheel extends sdEntity
 			unchecked.splice( unchecked.indexOf( this ), 1 );
 			
 			//debugger;
+		
+			const overlap = sdSteeringWheel.overlap;
 			
 			while ( active.length > 0 )
 			{
