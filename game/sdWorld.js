@@ -2808,6 +2808,10 @@ class sdWorld
 	{
 		if ( v > 40 )
 		{
+
+			if ( v === 5120 * 8 ) // Task reward / Advanced matter container
+		    return 'brightness(1) saturate(0) drop-shadow(0px 0px '+( glow_radius_scale * 6 )+'px #FFFFFF'+glow_opacity_hex+')';
+			else
 			if ( v === 10240 ) // === sdCrystal.anticrystal_value
 		    return 'brightness(0) drop-shadow(0px 0px '+( glow_radius_scale * 6 )+'px #000000'+glow_opacity_hex+')';
 			else
@@ -2818,6 +2822,7 @@ class sdWorld
 			return 'hue-rotate(170deg) brightness(0.8) contrast(2)';
 			else
 			return 'hue-rotate('+( v - 40 )+'deg)';
+
 		}
 		
 		return 'none';
