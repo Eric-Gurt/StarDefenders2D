@@ -106,7 +106,7 @@ class sdThruster extends sdEntity
 	{
 		ctx.filter = this.filter;
 		
-		let xx = this.enabled ? 32 : 0;
+		let xx = ( this.enabled || sdShop.isDrawing ) ? 32 : 0;
 		ctx.drawImageFilterCache( sdThruster.img_thruster, xx, 0, 32, 64, - 16, - 16, 32, 64 );
 		
 		ctx.filter = 'none';

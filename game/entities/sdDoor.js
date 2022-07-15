@@ -48,6 +48,9 @@ class sdDoor extends sdEntity
 			sdWorld.CreateImageFromFile( 'metal_d_reinforced4' )
 		];
 		
+		sdDoor.ignored_entity_classes = [ 'sdBlock' ];
+		sdDoor.ignored_entity_classes_travel = [];
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -16; }
@@ -447,7 +450,7 @@ class sdDoor extends sdEntity
 	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return [ 'sdBlock' ];
+		return sdDoor.ignored_entity_classes;
 	}
 	get title()
 	{

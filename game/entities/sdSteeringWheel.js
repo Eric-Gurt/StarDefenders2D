@@ -581,7 +581,7 @@ class sdSteeringWheel extends sdEntity
 					{
 						stuff_to_push.push( ent2 );
 						
-						ent2.CanMoveWithoutOverlap( ent2.x + xx, ent2.y + yy, 0, ( ent3 )=>{ return Filter( ent3, ent2 ); } );
+						ent2.CanMoveWithoutOverlap( ent2.x + xx, ent2.y + yy, 0, ( ent3 )=>{ return Filter( ent3, ent2 ); }, GetIgnoredEntityClassesFor( ent2 ) );
 					}
 				}
 				else
@@ -601,8 +601,18 @@ class sdSteeringWheel extends sdEntity
 
 				return false;
 			};
+			
+			const GetIgnoredEntityClassesFor = ( current )=>
+			{
+				if ( current.is( sdDoor ) )
+				{
+					return sdDoor.ignored_entity_classes_travel;
+				}
+				
+				return current.GetIgnoredEntityClasses();
+			};
 
-			current.CanMoveWithoutOverlap( current.x + xx, current.y + yy, 0, ( ent2 )=>{ return Filter( ent2, current ); } );
+			current.CanMoveWithoutOverlap( current.x + xx, current.y + yy, 0, ( ent2 )=>{ return Filter( ent2, current ); }, GetIgnoredEntityClassesFor( current ) );
 			
 			if ( current.x + xx + current._hitbox_x2 > sdWorld.world_bounds.x2 )
 			{

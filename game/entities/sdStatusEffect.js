@@ -603,6 +603,11 @@ class sdStatusEffect extends sdEntity
 			},
 			onThink: ( status_entity, GSPEED )=>
 			{
+				if ( !sdWorld.is_server )
+				{
+					return false; // Keep
+				}
+				
 				status_entity._ttl -= GSPEED;
 				
 				let current = status_entity.for;

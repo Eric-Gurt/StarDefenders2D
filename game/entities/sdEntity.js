@@ -1932,11 +1932,11 @@ class sdEntity
 	}
 	IsBGEntity() // 0 for in-game entities, 1 for background entities, 2 is for moderator areas, 3 is for cables, 4 for task in-world interfaces, 5 for wandering around background entities, 6 for status effects, 7 for player-defined regions. Should handle collisions separately
 	{ return 0; }
-	CanMoveWithoutOverlap( new_x, new_y, safe_bound=0, custom_filtering_method=null ) // Safe bound used to check if sdCharacter can stand and not just collides with walls nearby. Also due to number rounding clients should better have it (or else they will teleport while sliding on vertical wall)
+	CanMoveWithoutOverlap( new_x, new_y, safe_bound=0, custom_filtering_method=null, alter_ignored_classes=null ) // Safe bound used to check if sdCharacter can stand and not just collides with walls nearby. Also due to number rounding clients should better have it (or else they will teleport while sliding on vertical wall)
 	{
 		this.UpdateHitbox();
 		
-		var ignored_classes = this.GetIgnoredEntityClasses();
+		var ignored_classes = alter_ignored_classes || this.GetIgnoredEntityClasses();
 		
 		if ( sdWorld.CheckWallExistsBox( 
 				new_x + this._hitbox_x1 + safe_bound, 
@@ -1945,43 +1945,6 @@ class sdEntity
 				new_y + this._hitbox_y2 - safe_bound, this, ignored_classes, this.GetNonIgnoredEntityClasses(), custom_filtering_method ) )
 		return false;
 		
-		/*if ( sdWorld.CheckWallExists( new_x + this._hitbox_x1 + safe_bound, new_y + this._hitbox_y2 - safe_bound, this, ignored_classes ) )
-		return false;
-	
-		if ( sdWorld.CheckWallExists( new_x + this._hitbox_x2 - safe_bound, new_y + this._hitbox_y2 - safe_bound, this, ignored_classes ) )
-		return false;
-	
-		if ( sdWorld.CheckWallExists( new_x + this._hitbox_x1 + safe_bound, new_y + this._hitbox_y1 + safe_bound, this, ignored_classes ) )
-		return false;
-	
-		if ( sdWorld.CheckWallExists( new_x + this._hitbox_x2 - safe_bound, new_y + this._hitbox_y1 + safe_bound, this, ignored_classes ) )
-		return false;
-	
-		var extra_steps_x = Math.ceil( ( this._hitbox_x2 - this._hitbox_x1 ) / 8 );
-		var extra_steps_y = Math.ceil( ( this._hitbox_y2 - this._hitbox_y1 ) / 8 );
-		for ( var x = 1; x < extra_steps_x; x++ )
-		{
-			var morph = x / extra_steps_x;
-			var xx = ( new_x + this._hitbox_x1 + safe_bound ) * morph + ( new_x + this._hitbox_x2 - safe_bound ) * ( 1 - morph );
-			
-			if ( sdWorld.CheckWallExists( xx, new_y + this._hitbox_y2 - safe_bound, this, ignored_classes ) )
-			return false;
-		
-			if ( sdWorld.CheckWallExists( xx, new_y + this._hitbox_y1 + safe_bound, this, ignored_classes ) )
-			return false;
-		}
-		for ( var y = 1; y < extra_steps_y; y++ )
-		{
-			var morph = y / extra_steps_y;
-			var yy = ( new_y + this._hitbox_y1 + safe_bound ) * morph + ( new_y + this._hitbox_y2 - safe_bound ) * ( 1 - morph );
-			
-			if ( sdWorld.CheckWallExists( new_x + this._hitbox_x1 + safe_bound, yy, this, ignored_classes ) )
-			return false;
-		
-			if ( sdWorld.CheckWallExists( new_x + this._hitbox_x2 - safe_bound, yy, this, ignored_classes ) )
-			return false;
-		}
-		*/
 		return true;
 	}
 	
