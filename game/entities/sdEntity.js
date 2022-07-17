@@ -213,7 +213,7 @@ class sdEntity
 			else
 			this._box_cap_rethink_next = sdWorld.time + 500 + Math.random() * 500;
 		
-			this._box_cap_rethinks_total++
+			this._box_cap_rethinks_total++;
 
 			let cells = sdWorld.GetCellsInRect( this.x + this._hitbox_x1 - 1, this.y + this._hitbox_y1 - 1, this.x + this._hitbox_x2 + 1, this.y + this._hitbox_y2 + 1 );
 

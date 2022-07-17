@@ -527,6 +527,8 @@ class sdCharacter extends sdEntity
 		
 		this._god = false;
 		
+		this._can_breathe = true;
+		
 		this.helmet = 1;
 		this.body = 1;
 		this.legs = 1;
@@ -2055,7 +2057,7 @@ class sdCharacter extends sdEntity
 
 		this._last_e_state = e_state;
 	}
-
+	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( sdWorld.is_server )
@@ -2157,7 +2159,7 @@ class sdCharacter extends sdEntity
 					this._sick_damage_timer = 0;
 					
 					this._sickness = Math.max( 0, this._sickness - 10 );
-					this.DamageWithEffect( 10, this._last_sickness_from_ent );
+					this.DamageWithEffect( 10, this._last_sickness_from_ent, false, false );
 					sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_BLOOD_GREEN, filter:'none' });
 					
 					// And then it spreads to players near, sounds fun
@@ -2184,7 +2186,7 @@ class sdCharacter extends sdEntity
 
 			if ( this._dying )
 			{
-				this.DamageWithEffect( GSPEED * 0.1 );
+				this.DamageWithEffect( GSPEED * 0.1, null, false, false );
 				
 				if ( this._dying_bleed_tim <= 0 )
 				{
@@ -3237,9 +3239,11 @@ class sdCharacter extends sdEntity
 			else
 			{
 				if ( this.hea > 0 )
-				this.DamageWithEffect( GSPEED );
+				this.DamageWithEffect( GSPEED * 10 );
 			}
 		}
+		
+		this._can_breathe = can_breathe;
 		
 		if ( this.driver_of && this.driver_of.VehicleHidesDrivers() )
 		this.PositionUpdateAsDriver();

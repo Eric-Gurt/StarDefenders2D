@@ -757,7 +757,7 @@ class sdWeather extends sdEntity
 					
 		if ( r === 11 ) // Spawn 3-6 sdSpiders, drones somewhere on ground where players don't see them and Erthal humanoids
 		{
-			let instances = Math.floor( 3 + Math.random() * 4 );
+			let instances = Math.floor( 1 + Math.random() * 1 );
 			//while ( instances > 0 && sdSpider.spider_counter < Math.min( 32, sdWorld.GetPlayingPlayersCount() * 10 ) )
 			while ( instances > 0 )
 			{
@@ -2687,7 +2687,8 @@ class sdWeather extends sdEntity
 			sdWorld.world_bounds.x2 = this.x2;
 			sdWorld.world_bounds.y2 = this.y2;
 			
-			if ( this.air )
+			//if ( this.air )
+			if ( !sdWorld.my_entity || sdWorld.my_entity._can_breathe )
 			this._dustiness = Math.max( 0, this._dustiness - GSPEED * 0.01 );
 			else
 			this._dustiness = Math.min( 1, this._dustiness + GSPEED * 0.01 );
