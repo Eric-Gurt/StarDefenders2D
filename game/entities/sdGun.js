@@ -923,9 +923,11 @@ class sdGun extends sdEntity
 				}
 				else
 				{
-					if ( this._held_by )
-					this._held_by._last_built_entity = null;
-					
+					if ( this._held_by && !this._held_by._is_being_removed )
+					{
+						this._held_by._last_built_entity = null;
+					}
+
 					this.reload_time_left = Math.max( 0, this.reload_time_left - GSPEED * ( ( this._held_by && this._held_by.stim_ef > 0 ) ? 2 : 1 ) );
 				}
 			}
@@ -956,7 +958,7 @@ class sdGun extends sdEntity
 			this._last_muzzle = this.muzzle;
 		}
 			
-		if ( this._held_by === null )
+		if ( this._held_by === null || this._held_by._is_being_removed )
 		{
 			if ( sdWorld.is_server )
 			{
@@ -1002,7 +1004,7 @@ class sdGun extends sdEntity
 		}
 		
 		if ( sdWorld.is_server )
-		if ( this._held_by && ( this.held_by_net_id === this._held_by._net_id && this.held_by_class === this._held_by.GetClass() ) )
+		if ( this._held_by && !this._held_by._is_being_removed && ( this.held_by_net_id === this._held_by._net_id && this.held_by_class === this._held_by.GetClass() ) )
 		//if ( !this.IsVisible() ) // Usually means in storage or held by player
 		if ( this.reload_time_left <= 0 )
 		if ( this.muzzle <= 0 )
