@@ -925,6 +925,11 @@ class sdGun extends sdEntity
 				{
 					if ( this._held_by && !this._held_by._is_being_removed )
 					{
+						if ( typeof this._held_by._last_built_entity === 'undefined' )
+						{
+							console.warn( 'this._held_by = ', this._held_by );
+						}
+						
 						this._held_by._last_built_entity = null;
 					}
 
