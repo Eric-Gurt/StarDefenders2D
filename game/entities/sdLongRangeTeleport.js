@@ -565,10 +565,10 @@ class sdLongRangeTeleport extends sdEntity
 		return ents_final;
 	}
 
-	GiveRewards()
+	GiveRewards( reward_type = 1 )
 	{
-		let rewards = Math.random();
-		if ( rewards < 0.2 )
+		let rewards = reward_type || 1;
+		if ( rewards === 1 )
 		{
 			let shard, shard2, shard3, shard4, shard5, shard6, shard7;
 			shard = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
@@ -587,7 +587,7 @@ class sdLongRangeTeleport extends sdEntity
 			sdEntity.entities.push( shard7 );
 		}
 		else
-		if ( rewards < 0.5 )
+		if ( rewards === 2 )
 		{
 			let gun, rng;
 			rng = Math.random();
@@ -611,7 +611,7 @@ class sdLongRangeTeleport extends sdEntity
 			sdEntity.entities.push( gun );
 		}
 		else
-		if ( rewards < 0.75 )
+		if ( rewards === 3 )
 		{
 			let crystal, crystal2, crystal3;
 			crystal = new sdCrystal({ x:this.x - 24, y:this.y - 24, matter_max: 5120, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
@@ -622,6 +622,7 @@ class sdLongRangeTeleport extends sdEntity
 			sdEntity.entities.push( crystal3 );
 		}
 		else
+		if ( rewards === 4 )
 		{
 			let container;
 			container = new sdJunk({ x:this.x, y:this.y - 32, type: 6 });
@@ -835,7 +836,7 @@ class sdLongRangeTeleport extends sdEntity
 					this._is_busy_since = 0;
 				}
 				else
-				if ( command_name === 'CLAIM_REWARD' )
+				if ( command_name === 'CLAIM_REWARD_SHARDS' )
 				{
 					if ( !this.is_server_teleport )
 					{
@@ -851,7 +852,100 @@ class sdLongRangeTeleport extends sdEntity
 									this._charge_complete_method = ()=>
 									{
 										this.Deactivation();
-										this.GiveRewards();
+										this.GiveRewards( 1 );
+										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - 1 );
+									};
+								}
+								else
+								executer_socket.SDServiceMessage( 'Not activated yet - possibly due to damage' );
+							}
+							else
+							executer_socket.SDServiceMessage( 'Not enough matter' );
+						}
+						else
+						executer_socket.SDServiceMessage( 'Long-range teleport requires Command Centre connected' );
+					}
+				}
+				else
+				if ( command_name === 'CLAIM_REWARD_WEAPON' )
+				{
+					if ( !this.is_server_teleport )
+					{
+						let cc_near = this.GetComWiredCache( null, sdCommandCentre );
+						if ( cc_near )
+						{
+							if ( this.matter >= this._matter_max )
+							{
+								if ( this.delay === 0 && exectuter_character._task_reward_counter >= sdTask.reward_claim_task_amount )
+								{
+									this.Activation();
+									
+									this._charge_complete_method = ()=>
+									{
+										this.Deactivation();
+										this.GiveRewards( 2 );
+										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - 1 );
+									};
+								}
+								else
+								executer_socket.SDServiceMessage( 'Not activated yet - possibly due to damage' );
+							}
+							else
+							executer_socket.SDServiceMessage( 'Not enough matter' );
+						}
+						else
+						executer_socket.SDServiceMessage( 'Long-range teleport requires Command Centre connected' );
+					}
+				}
+				else
+				if ( command_name === 'CLAIM_REWARD_CRYSTALS' )
+				{
+					if ( !this.is_server_teleport )
+					{
+						let cc_near = this.GetComWiredCache( null, sdCommandCentre );
+						if ( cc_near )
+						{
+							if ( this.matter >= this._matter_max )
+							{
+								if ( this.delay === 0 && exectuter_character._task_reward_counter >= sdTask.reward_claim_task_amount )
+								{
+									this.Activation();
+									
+									this._charge_complete_method = ()=>
+									{
+										this.Deactivation();
+										this.GiveRewards( 3 );
+										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - 1 );
+									};
+								}
+								else
+								executer_socket.SDServiceMessage( 'Not activated yet - possibly due to damage' );
+							}
+							else
+							executer_socket.SDServiceMessage( 'Not enough matter' );
+						}
+						else
+						executer_socket.SDServiceMessage( 'Long-range teleport requires Command Centre connected' );
+					}
+				}
+				else
+				if ( command_name === 'CLAIM_REWARD_CONTAINER' )
+				{
+					if ( !this.is_server_teleport )
+					{
+						let cc_near = this.GetComWiredCache( null, sdCommandCentre );
+						if ( cc_near )
+						{
+							if ( this.matter >= this._matter_max )
+							{
+								if ( this.delay === 0 && exectuter_character._task_reward_counter >= sdTask.reward_claim_task_amount )
+								{
+									this.Activation();
+									
+									this._charge_complete_method = ()=>
+									{
+										this.Deactivation();
+										this.GiveRewards( 4 );
 										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - 1 );
 									};
 								}
@@ -1078,7 +1172,12 @@ class sdLongRangeTeleport extends sdEntity
 				for( let i = 0; i < sdTask.tasks.length; i++ )
 				if ( sdTask.tasks[ i ].mission )
 				if ( sdTask.tasks[ i ].mission === sdTask.MISSION_TASK_CLAIM_REWARD )
-				this.AddContextOption( 'Claim rewards', 'CLAIM_REWARD', [] );
+				{
+					this.AddContextOption( 'Claim rewards (Cube shards)', 'CLAIM_REWARD_SHARDS', [] );
+					this.AddContextOption( 'Claim rewards (Weapon)', 'CLAIM_REWARD_WEAPON', [] );
+					this.AddContextOption( 'Claim rewards (Crystals)', 'CLAIM_REWARD_CRYSTALS', [] );
+					this.AddContextOption( 'Claim rewards (Advanced matter container)', 'CLAIM_REWARD_CONTAINER', [] );
+				}
 			}
 			else
 			this.AddContextOption( 'Initiate teleportation', 'TELEPORT_STUFF', [] );
