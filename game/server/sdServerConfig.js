@@ -307,7 +307,7 @@ class sdServerConfigFull extends sdServerConfigShort
 				case 15: intro_to_speak.push( ...[  
 					'Watch out for Cubes, they protect this land.',
 					'They even protect crystals. Luckily, not the matter.',
-					'Good lick!'
+					'Good luck!'
 				] ); break;
 				
 				case 16: intro_to_speak.push( ...[  
