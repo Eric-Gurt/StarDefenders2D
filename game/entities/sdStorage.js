@@ -415,6 +415,8 @@ class sdStorage extends sdEntity
 					from_entity.is( sdCrystal ) && !from_entity.held_by // sdCrystals would be held by amplifiers and other things
 					&& 
 					from_entity.type !== sdCrystal.TYPE_CRYSTAL_BIG 
+					&& 
+					from_entity.type !== sdCrystal.TYPE_CRYSTAL_CRAB_BIG 
 				) 
 
 				||

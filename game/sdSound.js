@@ -334,7 +334,7 @@ class sdSound
 				else
 				if ( sdEntity.entities[ i ].GetClass() === 'sdCrystal' )
 				{
-					if ( sdEntity.entities[ i ].type === sdCrystal.TYPE_CRYSTAL_BIG )
+					if ( sdEntity.entities[ i ].type === sdCrystal.TYPE_CRYSTAL_BIG || sdEntity.entities[ i ].type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG)
 					{
 						if ( sdEntity.entities[ i ].matter_max === sdCrystal.anticrystal_value * 4 )
 						count_anti_crystal_ambient += 0.1 * 4 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );

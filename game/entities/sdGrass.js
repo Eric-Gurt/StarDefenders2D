@@ -197,7 +197,7 @@ class sdGrass extends sdEntity
 		if ( sdWorld.is_server )
 		if ( !this._is_being_removed )
 		if ( from_entity.is( sdCrystal ) )
-		if ( from_entity.type === sdCrystal.TYPE_CRYSTAL_CRAB )
+		if ( from_entity.type === sdCrystal.TYPE_CRYSTAL_CRAB || from_entity.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
 		{
 			if ( from_entity.matter_regen < 400 )
 			from_entity.matter_regen = Math.min( from_entity.matter_regen + 10, 400 );
