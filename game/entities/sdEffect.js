@@ -575,7 +575,7 @@ class sdEffect extends sdEntity
 
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return [ 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdCrystal', 'sdAsp', 'sdSandWorm', 'sdSlug', 'sdAmphid', 'sdJunk', 'sdTutel', 'sdGrub', 'sdBadDog', 'sdBiter' ];
+		return [ 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdCrystal', 'sdAsp', 'sdSandWorm', 'sdSlug', 'sdAmphid', 'sdJunk', 'sdTutel', 'sdGrub', 'sdBadDog' ];
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
