@@ -52,6 +52,7 @@ class sdAmphid extends sdEntity
 		this._hea = this.hmax;
 
 		this.death_anim = 0;
+		this._anim_shift = Math.random() * 1600;
 		
 		this._current_target = null;
 		
@@ -64,9 +65,9 @@ class sdAmphid extends sdEntity
 
 		sdAmphid.amphids_tot++;
 		
-		this.hue = ~~( Math.random() * 360 );
+		this.hue = ~~( Math.random() * 80 - 60 );
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
-		this.filter = 'saturate(0.5)';
+		this.filter = 'saturate(' + ( Math.random() * 0.5 + 0.5 ) + ')';
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
@@ -236,15 +237,17 @@ class sdAmphid extends sdEntity
 
 		if ( this._hea <= 0 || this.CanMoveWithoutOverlap( this.x, this.y, -3, this.CustomFilteringMethod ) )
 		this.sy += sdWorld.gravity * GSPEED;
-		
 
 		// Sometimes amphids won't stick to blocks while jumping against them, I noticed some other mobs do this but it's less significant for them due to their higher jump rates
-		if ( this.sx < 0.1 || this.sy < 0.1 )
-		if ( this._last_jump < sdWorld.time - 20 )
-		if ( !this.CanMoveWithoutOverlap( this.x, this.y, -3, this.CustomFilteringMethod ) ) 
+		if ( this._hea > 0 )
 		{
-			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.5, GSPEED );
-			this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.5, GSPEED );
+			if ( this.sx < 1 || this.sy < 1 )
+			if ( this._last_jump < sdWorld.time - 20 )
+			if ( !this.CanMoveWithoutOverlap( this.x, this.y, -3, this.CustomFilteringMethod ) ) 
+			{
+				this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.5, GSPEED );
+				this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.5, GSPEED );
+			}
 		}
 		
 		this.ApplyVelocityAndCollisions( GSPEED, ( this.death_anim === 0 && this._current_target ) ? 5 : 0, true );
@@ -255,9 +258,10 @@ class sdAmphid extends sdEntity
 		if ( sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) < 25 )
 		if ( Math.abs( this.sx ) > 0.1 || Math.abs( this.sy ) > 0.1 )
 		{
-			this._last_bite = sdWorld.time;
 
-			let nears = sdWorld.GetAnythingNear( this.x, this.y, 25 );
+			let nears = sdWorld.GetAnythingNear( this.x, this.y, 12 );
+			sdWorld.shuffleArray( nears );
+			
 			let from_entity;
 			
 			for ( var i = 0; i < nears.length; i++ )
@@ -271,11 +275,13 @@ class sdAmphid extends sdEntity
 				if ( from_entity.IsTargetable() )
 				if ( sdWorld.CheckLineOfSight( this.x, this.y, from_entity.x, from_entity.y, null, null, sdCom.com_creature_attack_unignored_classes ) )
 				{
+					this._last_bite = sdWorld.time;
+
 					from_entity.DamageWithEffect( 50, this );
+					from_entity.PlayDamageEffect( xx, yy );
 					
 					this._hea = Math.min( this.hmax, this._hea + 15 );
 
-					from_entity.PlayDamageEffect( xx, yy );
 					//sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 					
 					break;
@@ -318,7 +324,7 @@ class sdAmphid extends sdEntity
 			if ( Math.abs( this.sx ) > 2 || Math.abs( this.sy ) > 2 )
 			ctx.drawImageFilterCache( sdAmphid.img_amphid_jump, - 16, - 16, 32,32 );
 			else
-			ctx.drawImageFilterCache( ( sdWorld.time % 1600 < 800 ) ? sdAmphid.img_amphid_idle1 : sdAmphid.img_amphid_idle2, - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( ( ( sdWorld.time + this._anim_shift ) % 1600 < 800 ) ? sdAmphid.img_amphid_idle1 : sdAmphid.img_amphid_idle2, - 16, - 16, 32,32 );
 
 		}
 		

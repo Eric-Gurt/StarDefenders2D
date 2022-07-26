@@ -391,7 +391,7 @@ class sdBlock extends sdEntity
 							}
 						}
 						else
-						if ( Math.random() < 0.1 && ( this._contains_class === 'sdCrystal' || this._contains_class === 'sdCrystal.deep' ) ) // Big crystals, I feel like I'm butchering the code at the moment - Booraz
+						if ( Math.random() < 0.1 && ( this._contains_class === 'sdCrystal' || this._contains_class === 'sdCrystal.deep' || this._contains_class === 'sdCrystal.crab' || this._contains_class === 'sdCrystal.deep_crab') ) // Big crystals, I feel like I'm butchering the code at the moment - Booraz
 						{
 							let map = {};
 							let blocks_near = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, 16, null, [ 'sdBlock' ] );
@@ -413,7 +413,7 @@ class sdBlock extends sdEntity
 									let parts = this._contains_class.split( '.' );
 									this._contains_class = parts[ 0 ];
 
-									let params = { x: this.x + xx * 16 + 16, y: this.y + yy * 16 + 16, type: sdCrystal.TYPE_CRYSTAL_BIG, tag:( parts.length > 1 )?parts[1]:null };
+									let params = { x: this.x + xx * 16 + 16, y: this.y + yy * 16 + 16, type: ( parts.length > 1 && parts[1].indexOf( 'crab' ) !== -1 ) ? sdCrystal.TYPE_CRYSTAL_CRAB_BIG : sdCrystal.TYPE_CRYSTAL_BIG, tag:( parts.length > 1 )?parts[1]:null };
 
 									if ( this._contains_class_params )
 									{

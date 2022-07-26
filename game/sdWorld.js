@@ -691,6 +691,7 @@ class sdWorld
 						'sdVirus', 5 / hp_mult,
 						'sdQuickie', 5 / hp_mult,
 						'sdAsp', 4 / hp_mult,
+						'sdBiter', 4 / hp_mult,
 						'sdAmphid', 3 / hp_mult,
 						'sdSlug', 3 / hp_mult,
 						'sdGrub', 3 / hp_mult,
