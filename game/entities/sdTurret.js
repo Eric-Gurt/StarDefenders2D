@@ -68,7 +68,8 @@ class sdTurret extends sdEntity
 			sdSetrDestroyer,
 			sdWorld.entity_classes.sdOverlord,
 			sdWorld.entity_classes.sdPlayerDrone,
-			sdWorld.entity_classes.sdAmphid
+			sdWorld.entity_classes.sdAmphid,
+			sdWorld.entity_classes.sdBiter
 		] ); // Module random load order that causes error prevention
 		
 		sdTurret.KIND_LASER = 0;
