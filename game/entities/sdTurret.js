@@ -25,6 +25,7 @@ import sdShark from './sdShark.js';
 import sdSpider from './sdSpider.js';
 import sdTutel from './sdTutel.js';
 import sdSetrDestroyer from './sdSetrDestroyer.js';
+import sdBiter from './sdBiter.js';
 
 
 class sdTurret extends sdEntity
@@ -68,7 +69,8 @@ class sdTurret extends sdEntity
 			sdSetrDestroyer,
 			sdWorld.entity_classes.sdOverlord,
 			sdWorld.entity_classes.sdPlayerDrone,
-			sdWorld.entity_classes.sdAmphid
+			sdWorld.entity_classes.sdAmphid,
+			sdBiter
 		] ); // Module random load order that causes error prevention
 		
 		sdTurret.KIND_LASER = 0;
