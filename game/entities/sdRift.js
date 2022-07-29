@@ -379,7 +379,7 @@ class sdRift extends sdEntity
 				}
 				else
 				{
-					if ( from_entity.type !== ( sdCrystal.TYPE_CRYSTAL_BIG || sdCrystal.TYPE_CRYSTAL_CRAB_BIG ) )
+					if ( from_entity.type !== sdCrystal.TYPE_CRYSTAL_BIG && from_entity.type !== sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
 					{
 						if ( from_entity.matter_max === sdCrystal.anticrystal_value )
 						{
