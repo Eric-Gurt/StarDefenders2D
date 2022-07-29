@@ -44,7 +44,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdCom', _category:'root', _opens_category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_RIFLE, _category:'root', _opens_category:'Equipment' });
 		sdShop.options.push({ _class: null, image: 'vehicle', _category:'root', _opens_category:'Vehicles' });
-		sdShop.options.push({ _class: null, image: 'upgrade', _category:'root', _opens_category:'upgrades' });
+		sdShop.options.push({ _class: null, image: 'upgrade', _category:'root', _opens_category:'Upgrades' });
 		sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_POPCORN, _category:'root', _opens_category:'Other' });
 		sdShop.options.push({ _class: null, image: 'com_red', _category:'root', _godmode_only: true, _opens_category:'Admin tools' }); // Cost of Infinity is what actually prevents items here from being accessible to non-in-godmode-admins
 		
@@ -522,7 +522,7 @@ class sdShop
 		{
 			sdShop.upgrades[ i ].image = sdWorld.CreateImageFromFile( i );
 			sdShop.options.push({ _class: null, matter_cost: sdShop.upgrades[ i ].matter_cost, upgrade_name: i, description: sdShop.upgrades[ i ].description, 
-				_category:'upgrades', _min_build_tool_level: sdShop.upgrades[ i ].min_build_tool_level || 0 });
+				_category:'Upgrades', _min_build_tool_level: sdShop.upgrades[ i ].min_build_tool_level || 0 });
 		}
 		
 		if ( globalThis.isWin ) // Lack of this check will probably allow creation of these entities even if category can not be opened in normal way

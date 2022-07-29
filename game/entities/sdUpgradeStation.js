@@ -61,7 +61,7 @@ class sdUpgradeStation extends sdEntity
 	{
 		for ( var i = 0; i < sdShop.options.length; i++ )
 		{
-			if ( sdShop.options[ i ]._category === 'upgrades' )
+			if ( sdShop.options[ i ]._category === 'Upgrades' )
 			{
 			//	console.log("Detected upgrades");
 				let max_level = sdShop.upgrades[ sdShop.options[ i ].upgrade_name ].max_level;
