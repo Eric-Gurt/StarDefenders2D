@@ -788,7 +788,27 @@ eval( 'sdWorld.server_config = ' + sdServerConfigFull.toString() ); // Execute w
 
 	//eval( 'sdWorld.server_config = ' + file_raw );
 	
-	eval( `sdWorld.server_config = Object.assign( sdWorld.server_config, ${ file_raw } );` );
+	//trace( '( sdWorld.server_config.onBeforeSnapshotLoad ) === ', ( sdWorld.server_config.onBeforeSnapshotLoad.toString() ) )
+	
+	eval( `sdWorld.server_config_loaded = ${ file_raw.toString() };` );
+	
+	//eval( `sdWorld.server_config = Object.assign( sdWorld.server_config, ${ file_raw.toString() } );` );
+	
+	let keys = Object.getOwnPropertyNames( sdWorld.server_config_loaded );
+	
+	for ( let i = 0; i < keys.length; i++ )
+	{
+		let prop = keys[ i ];
+		
+		//trace( prop );
+		
+		if ( prop !== 'length' )
+		if ( prop !== 'prototype' )
+		if ( prop !== 'name' )
+		sdWorld.server_config[ prop ] = sdWorld.server_config_loaded[ prop ];
+	}
+	
+	//trace( '( sdWorld.server_config.onBeforeSnapshotLoad ) === ', ( sdWorld.server_config.onBeforeSnapshotLoad.toString() ) )
 }
 
 
@@ -983,9 +1003,9 @@ let is_terminating = false;
 }
 
 
-
 if ( sdWorld.server_config.onBeforeSnapshotLoad )
 sdWorld.server_config.onBeforeSnapshotLoad();
+
 
 try
 {
