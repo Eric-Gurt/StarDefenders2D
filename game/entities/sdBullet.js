@@ -150,6 +150,8 @@ class sdBullet extends sdEntity
 		this._owner2 = null; // Usually vehicle which _owner uses to shoot (or sdTurret?). Participates in collision ignoring as well
 		this._can_hit_owner = false;
 		
+		this._gun = null; // Gun that was used to fire this projectile. Is null in most cases
+		
 		this._admin_picker = false; // Whether it can hit anything including rift portals
 		
 		this._soft = false; // Punches
@@ -291,6 +293,10 @@ class sdBullet extends sdEntity
 	
 	RegularCollisionFiltering( from_entity )
 	{
+		//if ( from_entity.is( sdWorld.entity_classes.sdFaceCrab ) )
+		//debugger;
+		
+		
 		if ( this._can_hit_owner )
 		{
 		}
@@ -632,6 +638,11 @@ class sdBullet extends sdEntity
 							let old_hea = ( from_entity.hea || from_entity._hea || 0 );
 
 							// Some entities need to inherit impact velocity on damage so it is higher now
+							if ( from_entity._god && from_entity._socket )
+							{
+								// Do not throw arround developers who are testing something
+							}
+							else
 							from_entity.Impulse( this.sx * Math.abs( this._damage ) * this._knock_scale, 
 												 this.sy * Math.abs( this._damage ) * this._knock_scale );
 

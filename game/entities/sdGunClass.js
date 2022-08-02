@@ -13,6 +13,7 @@ import sdBullet from './sdBullet.js';
 import sdPortal from './sdPortal.js';
 import sdOverlord from './sdOverlord.js';
 import sdCom from './sdCom.js';
+import sdWater from './sdWater.js';
 
 /*
 
@@ -3041,6 +3042,97 @@ class sdGunClass
 			projectile_properties: { _damage: 18, color: '#afdfff', penetrating: true }, // Damage used to be 27, but it was too OP for beginners.
 			matter_cost: 160,
 			spawnable:false
+		};
+		
+		const liquid_carrier_base_color = '#518ad1';
+		const liquid_carrier_empty = '#424242';
+		// sdWater.reference_colors
+		sdGun.classes[ sdGun.CLASS_LIQUID_CARRIER = 95 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'liquid_carrier' ),
+			image_no_matter: sdWorld.CreateImageFromFile( 'liquid_carrier' ),
+			sound: 'sword_attack2',
+			title: 'Liquid carrier',
+			slot: 7,
+			reload_time: 15,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			matter_cost: 50,
+			projectile_velocity: 16 * 1.5,
+			spawnable: true,
+			category: 'Other',
+			is_sword: false,
+			GetAmmoCost: ()=>
+			{
+				return 5;
+			},
+			onMade: ( gun )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				gun.sd_filter = sdWorld.CreateSDFilter();
+				
+				sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, liquid_carrier_base_color, liquid_carrier_empty );
+			},
+			/*onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				sdSound.PlaySound({ name:'sword_attack2', x:gun.x, y:gun.y, volume:0.3 });
+				
+				return true;
+			},*/
+			projectile_properties: { time_left: 1, _damage: 1, color: 'transparent', 
+				_knock_scale: 0,
+				//_custom_target_reaction_protected: cable_reaction_method,
+				/*_custom_target_reaction: ( bullet, target_entity )=>
+				{
+					trace( target_entity );
+				},*/
+				_custom_detonation_logic:( bullet )=>
+				{
+					let gun = bullet._gun;
+					
+					if ( bullet._gun._held_item_snapshot )
+					{
+						let water_ent = sdWater.GetWaterObjectAt( bullet.x, bullet.y );
+						if ( !water_ent )
+						{
+							bullet._gun._held_item_snapshot.x = Math.floor( bullet.x / 16 ) * 16;
+							bullet._gun._held_item_snapshot.y = Math.floor( bullet.y / 16 ) * 16;
+							
+							let safe_bound = 1;
+							
+							if ( !sdWorld.CheckWallExistsBox( 
+								bullet._gun._held_item_snapshot.x + safe_bound, 
+								bullet._gun._held_item_snapshot.y + safe_bound, 
+								bullet._gun._held_item_snapshot.x + 16 - safe_bound, 
+								bullet._gun._held_item_snapshot.y + 16 - safe_bound, bullet, bullet.GetIgnoredEntityClasses(), bullet.GetNonIgnoredEntityClasses(), null ) )
+							{
+								water_ent = new sdWater( bullet._gun._held_item_snapshot );
+								sdEntity.entities.push( water_ent );
+								sdWorld.UpdateHashPosition( water_ent, false );
+								
+								bullet._gun._held_item_snapshot = null;
+								sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, liquid_carrier_base_color, liquid_carrier_empty );
+							}
+							
+						}
+					}
+					else
+					{
+						let water_ent = sdWater.GetWaterObjectAt( bullet.x, bullet.y );
+
+						if ( water_ent )
+						//if ( !water_ent._is_being_removed )
+						{
+							bullet._gun._held_item_snapshot = water_ent.GetSnapshot( GetFrame(), true );
+							sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, liquid_carrier_base_color, sdWater.reference_colors[ water_ent.type ] || '#ffffff' );
+
+							water_ent.AwakeSelfAndNear();
+							
+							water_ent.remove();
+						}
+					}
+				}
+			}
 		};
 
 		// Add new gun classes above this line //

@@ -265,7 +265,7 @@ class sdBlock extends sdEntity
 
 		dmg = Math.abs( dmg / ( 1 + this._reinforced_level ) ); // Reinforced blocks have damage reduction
 		
-		if ( this._contains_class === 'sdVirus' || this._contains_class === 'sdQuickie' || this._contains_class === 'sdAsp' || this._contains_class === 'weak_ground' )
+		if ( this._contains_class === 'sdVirus' || this._contains_class === 'sdQuickie' || this._contains_class === 'sdFaceCrab' || this._contains_class === 'sdAsp' || this._contains_class === 'weak_ground' )
 		dmg = this._hea + 1;
 		
 		if ( this._hea > 0 )

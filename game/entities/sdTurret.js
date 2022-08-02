@@ -24,6 +24,7 @@ import sdBadDog from './sdBadDog.js';
 import sdShark from './sdShark.js';
 import sdSpider from './sdSpider.js';
 import sdTutel from './sdTutel.js';
+import sdFaceCrab from './sdFaceCrab.js';
 import sdSetrDestroyer from './sdSetrDestroyer.js';
 import sdBiter from './sdBiter.js';
 
@@ -66,6 +67,7 @@ class sdTurret extends sdEntity
 			sdShark, 
 			sdSpider, 
 			sdTutel,
+			sdFaceCrab,
 			sdSetrDestroyer,
 			sdWorld.entity_classes.sdOverlord,
 			sdWorld.entity_classes.sdPlayerDrone,

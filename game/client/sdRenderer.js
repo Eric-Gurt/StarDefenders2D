@@ -17,6 +17,7 @@ import sdGun from '../entities/sdGun.js';
 import sdTheatre from '../entities/sdTheatre.js';
 import sdTask from '../entities/sdTask.js';
 import sdLamp from '../entities/sdLamp.js';
+import sdFaceCrab from '../entities/sdFaceCrab.js';
 import sdStatusEffect from '../entities/sdStatusEffect.js';
 
 class sdRenderer
@@ -1686,6 +1687,16 @@ class sdRenderer
 		let max_range = Math.sqrt( sdRenderer.screen_width*sdRenderer.screen_width + sdRenderer.screen_height*sdRenderer.screen_height ) / sdWorld.camera.scale;//1000;
 		let visibility_map = []; // [ angle ] = distance_until_shade_start
 
+		let close_to_no_vision = false;
+
+		if ( sdWorld.my_entity )
+		for ( let i2 = 0; i2 < sdFaceCrab.all_face_crabs.length; i2++ )
+		if ( sdFaceCrab.all_face_crabs[ i2 ].attached_to === sdWorld.my_entity )
+		{
+			close_to_no_vision = true;
+			break;
+		}
+
 
 		if ( !sdRenderer.old_visibility_map )
 		{
@@ -1720,7 +1731,7 @@ class sdRenderer
 		
 		function SolveDepth( angle )
 		{
-			if ( !sdWorld.my_entity )
+			if ( !sdWorld.my_entity || close_to_no_vision )
 			{
 				visibility_map[ angle ] = 0;
 			}

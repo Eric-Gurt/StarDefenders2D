@@ -47,6 +47,8 @@ class sdShark extends sdEntity
 		
 		this._current_target = null;
 		
+		this._air = 30;
+		
 		//this._last_stand_on = null;
 		//this._last_jump = sdWorld.time;
 		this._last_bite = sdWorld.time;
@@ -126,6 +128,11 @@ class sdShark extends sdEntity
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		let in_water = sdWater.all_swimmers.has( this );// sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
+		
+		if ( in_water )
+		this._air = 30;
+		else
+		this._air -= GSPEED;
 		
 		if ( this._hea <= 0 )
 		{
@@ -210,6 +217,7 @@ class sdShark extends sdEntity
 		{
 			this.sy += sdWorld.gravity * GSPEED;
 			
+			if ( this._air <= 0 )
 			if ( this._hea > 0 )
 			this.DamageWithEffect( GSPEED );
 		}

@@ -689,7 +689,8 @@ class sdStatusEffect extends sdEntity
 						type.onAfterEntityRender( arr[ i ], ctx, attached );
 					}
 					
-					if ( destination === 0 && start0_end1 === 1 )
+					// These will be drawn at zero coordinates... Proper draws will be called eventually since they are regular entities
+					/*if ( destination === 0 && start0_end1 === 1 )
 					if ( type.DrawBG )
 					type.DrawBG( arr[ i ], ctx, attached );
 			
@@ -699,7 +700,7 @@ class sdStatusEffect extends sdEntity
 			
 					if ( destination === 2 && start0_end1 === 1 )
 					if ( type.DrawFG )
-					type.DrawFG( arr[ i ], ctx, attached );
+					type.DrawFG( arr[ i ], ctx, attached );*/
 				}
 			}
 		}

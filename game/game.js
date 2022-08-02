@@ -486,9 +486,10 @@ let enf_once = true;
 			if ( sdWorld.my_entity )
 			{
 				sdWorld.my_entity.Say( sdWorld.GetAny([
-					'Connection has been lost... Can you believe that?',
-					'No connection to server',
-					'Connection to server has gone'
+					'Disconnected.'
+					//'Connection has been lost... Can you believe that?',
+					//'No connection to server',
+					//'Connection to server has gone'
 				]), true, true );
 				
 				setTimeout( ()=>{

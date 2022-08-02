@@ -17,6 +17,7 @@ import sdStatusEffect from './sdStatusEffect.js';
 import sdThruster from './sdThruster.js';
 import sdArea from './sdArea.js';
 import sdLongRangeTeleport from './sdLongRangeTeleport.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 
 class sdSteeringWheel extends sdEntity
@@ -427,12 +428,15 @@ class sdSteeringWheel extends sdEntity
 					{
 						this.VerifyMissingParts();
 
-						if ( this.ComplexElevatorLikeMove( this._scan, this._scan_net_ids, xx, yy, false, GSPEED ) )
+						if ( this.driver.CanMoveWithoutOverlap( this.driver.x, this.driver.y ) &&
+							 this.ComplexElevatorLikeMove( this._scan, this._scan_net_ids, xx, yy, false, GSPEED ) )
 						{
 							if ( this.driver.CanMoveWithoutOverlap( this.driver.x + xx, this.driver.y + yy ) )
 							{
 								this.driver.x += xx;
 								this.driver.y += yy;
+								
+								sdWorld.UpdateHashPosition( this.driver, false, false );
 							}
 						}
 						else
@@ -454,7 +458,7 @@ class sdSteeringWheel extends sdEntity
 		}
 	}
 	
-	ExcludeEntity( current, i )
+	ExcludeEntity( current, i, meltdown=false )
 	{
 		if ( current.is ) // Check if it is not a fake removed object
 		{
@@ -466,7 +470,8 @@ class sdSteeringWheel extends sdEntity
 				current._update_version++;
 			}
 			
-			current.ApplyStatusEffect({ type: sdStatusEffect.TYPE_FALLING_STATIC_BLOCK });
+			if ( meltdown )
+			current.ApplyStatusEffect({ type: sdStatusEffect.TYPE_FALLING_STATIC_BLOCK }); // Very cursed thing - can cause bases to be melted
 		}
 
 		this._scan.splice( i, 1 );
@@ -480,6 +485,22 @@ class sdSteeringWheel extends sdEntity
 	{
 		let do_structural_check = false;
 		
+		let meltdown = true;
+		
+		for ( let i = 0; i < this._scan.length; i++ )
+		{
+			let current = this._scan[ i ];
+
+			if ( !current._is_being_removed )
+			//if ( current.is( sdBaseShieldingUnit ) ) // It is never here
+			//if ( current.enabled )
+			if ( current._shielded )
+			{
+				meltdown = false;
+				break;
+			}
+		}
+		
 		for ( let i = 0; i < this._scan.length; i++ )
 		{
 			let current = this._scan[ i ];
@@ -488,7 +509,7 @@ class sdSteeringWheel extends sdEntity
 			{
 				do_structural_check = true;
 				
-				this.ExcludeEntity( current, i );
+				this.ExcludeEntity( current, i, meltdown );
 				i--;
 				continue;
 			}
@@ -540,7 +561,7 @@ class sdSteeringWheel extends sdEntity
 
 				if ( id !== -1 )
 				{
-					this.ExcludeEntity( current, id );
+					this.ExcludeEntity( current, id, meltdown );
 					i--;
 					continue;
 				}
@@ -577,6 +598,12 @@ class sdSteeringWheel extends sdEntity
 			{
 				if ( ent2._is_being_removed )
 				return false;
+			
+				// Normally, it should igonre all possible drivers
+				/*if ( ent2 === this.driver )
+				{
+					return false;
+				}*/
 
 				if ( ent2.onThink.has_ApplyVelocityAndCollisions )
 				{
@@ -652,6 +679,8 @@ class sdSteeringWheel extends sdEntity
 				current.x += xx;
 				current.y += yy;
 				
+				sdWorld.UpdateHashPosition( current, false, false );
+				
 				current.ManageTrackedPhysWakeup();
 
 				if ( current.is( sdDoor ) )
@@ -704,6 +733,8 @@ class sdSteeringWheel extends sdEntity
 					if ( item.sy < yy )
 					item.sy = yy + Math.abs( item.sy - yy ) * item.bounce_intensity;
 				}
+				
+				sdWorld.UpdateHashPosition( item, false, false );
 				
 				item.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 				

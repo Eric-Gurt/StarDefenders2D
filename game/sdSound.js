@@ -72,7 +72,8 @@ class sdSound
 		MakeLoopAmbient( 'scary_monster_spawned3', './audio/scary_monster_spawned3.wav' );
 		MakeLoopAmbient( 'scary_monster_spawned2', './audio/scary_monster_spawned2.wav' );
 		MakeLoopAmbient( 'scary_monsters_in_the_dark', './audio/scary_monsters_in_the_dark.wav' );
-		MakeLoopAmbient( 'rain_low_res', './audio/rain_low_res.wav' );
+		//MakeLoopAmbient( 'rain_low_res', './audio/rain_low_res.wav' );
+		MakeLoopAmbient( 'rain_low_res', './audio/rain_clean.wav' );
 		MakeLoopAmbient( 'earthquake', './audio/earthquake.wav' );
 		//MakeLoopAmbient( 'jetpack', './audio/jetpack.wav' );
 		MakeLoopAmbient( 'jetpack', './audio/jetpack_hd2.wav' );
@@ -247,7 +248,7 @@ class sdSound
 			if ( sdWeather.only_instance.snow )
 			rain_intens = 0;
 			else
-			rain_intens = sdWeather.only_instance.raining_intensity / 100;
+			rain_intens = sdWeather.only_instance.raining_intensity / 200;
 		
 			earthquake_intens = sdWeather.only_instance.quake_intensity * 1.3 / 100;
 		}
@@ -262,7 +263,8 @@ class sdSound
 		for ( var i = 0; i < sdSound.ambients.length; i++ )
 		{
 			var a = sdSound.ambients[ i ];
-			a.audio.volume = a.di / di_sum * sdSound.volume_ambient * ( 1 - rain_intens );
+			//a.audio.volume = a.di / di_sum * sdSound.volume_ambient * ( 1 - rain_intens );
+			a.audio.volume = a.di / di_sum * sdSound.volume_ambient * ( 1 - rain_intens ) * Math.max( 0, 1 - sdWorld.Dist2D( sdSound.ambient_seeker.x, sdSound.ambient_seeker.y, a.x, a.y ) ); // More silence
 		}
 		
 		sdSound.rain_low_res.volume = rain_intens * sdSound.volume_ambient;
@@ -305,7 +307,7 @@ class sdSound
 				if ( sdEntity.entities[ i ].GetClass() === 'sdMatterAmplifier' )
 				{
 					if ( sdEntity.entities[ i ].matter_max > 0 || sdEntity.entities[ i ].crystal )
-					count_amplifier_loop += 0.5 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+					count_amplifier_loop += 0.2 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
 				}
 				else
 				if ( sdEntity.entities[ i ].GetClass() === 'sdWater' && sdEntity.entities[ i ].type === sdWater.TYPE_LAVA )

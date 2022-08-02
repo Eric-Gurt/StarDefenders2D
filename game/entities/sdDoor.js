@@ -25,7 +25,7 @@ class sdDoor extends sdEntity
 		sdDoor.img_a2door = sdWorld.CreateImageFromFile( 'a2door' );
 		sdDoor.img_a2door_closed = sdWorld.CreateImageFromFile( 'a2door2' );
 		
-		sdDoor.img_door_path = sdWorld.CreateImageFromFile( 'door_open' );
+		sdDoor.img_door_path = sdWorld.CreateImageFromFile( 'door_open2' );
 		
 		sdDoor.img_door_no_matter = sdWorld.CreateImageFromFile( 'door_no_matter' );
 		sdDoor.img_door_no_matter2 = sdWorld.CreateImageFromFile( 'door_no_matter2' );

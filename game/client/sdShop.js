@@ -530,6 +530,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdOctopus', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdQuickie', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdVirus', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdFaceCrab', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAmphid', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCharacter', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAsteroid', _category:'Development tests' });

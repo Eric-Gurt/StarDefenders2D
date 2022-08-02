@@ -10,6 +10,7 @@ import sdWorld from '../sdWorld.js';
 
 let sdCable = null;
 let sdStatusEffect = null;
+let sdBullet = null;
 			
 class sdEntity
 {
@@ -560,6 +561,9 @@ class sdEntity
 		//const debug = ( this._class === 'sdBaseShieldingUnit' ) && sdWorld.is_server;
 		const debug = false;
 		
+		if ( !sdBullet )
+		sdBullet = sdWorld.entity_classes.sdBullet;
+		
 		//throw new Error('Fix sword not hitting character in test world 3003');
 		
 		// TODO: Bullet ricochet randomly does not bounce of walls but disappears instead
@@ -714,6 +718,8 @@ class sdEntity
 		const do_stuck_check = hard_collision || this.DoStuckCheck();
 		const GetCollisionMode = this.GetCollisionMode();
 		
+		const force_hit_non_hard_collision_entities = this.is( sdBullet );
+		
 		let hits = null; // arr of { ent, t }
 		
 		if ( GetCollisionMode === sdEntity.COLLISION_MODE_ONLY_CALL_TOUCH_EVENTS )
@@ -831,7 +837,7 @@ class sdEntity
 		//CheckWallExistsBox( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
 						if ( arr_i.IsBGEntity() === is_bg_entity )
 						//if ( include_only_specific_classes_classes || arr_i.hard_collision )
-						if ( include_only_specific_classes_classes || arr_i._hard_collision || custom_filtering_method )
+						if ( force_hit_non_hard_collision_entities || include_only_specific_classes_classes || arr_i._hard_collision || custom_filtering_method )
 						{
 							//class_str = arr_i.GetClass();
 

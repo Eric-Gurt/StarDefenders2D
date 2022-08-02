@@ -21,6 +21,7 @@ class sdWater extends sdEntity
 		sdWater.TYPE_ACID = 1;
 		sdWater.TYPE_LAVA = 2;
 		sdWater.TYPE_TOXIC_GAS = 3;
+		sdWater.reference_colors = [ '#518ad1', '#00ba01', '#ff8600', '#a277a2' ]; // For liquid carrier recolors
 		
 		sdWater.damage_by_type = [ 0, 1, 5, 0 ];
 		sdWater.never_sleep_by_type = [ 0, 0, 0, 1 ];
@@ -133,7 +134,7 @@ class sdWater extends sdEntity
 		return 5;
 	}
 	
-	static GetWaterObjectAt( nx, ny ) // for visuals, also for chain-awake
+	static GetWaterObjectAt( nx, ny ) // for visuals, also for chain-awake. Also for liquid carrier guns
 	{
 		if ( nx >= sdWorld.world_bounds.x2 || nx <= sdWorld.world_bounds.x1 || 
 			 ny >= sdWorld.world_bounds.y2 || ny <= sdWorld.world_bounds.y1 )
@@ -144,10 +145,14 @@ class sdWater extends sdEntity
 		for ( var i = 0; i < arr_under.length; i++ )
 		{
 			if ( arr_under[ i ] instanceof sdWater )
-			if ( arr_under[ i ].x === nx && arr_under[ i ].y === ny )
+			//if ( arr_under[ i ].x === nx && arr_under[ i ].y === ny )
+			if ( nx >= arr_under[ i ].x && nx < arr_under[ i ].x + 16 && 
+				 ny >= arr_under[ i ].y && ny < arr_under[ i ].y + 16 )
 			if ( !arr_under[ i ]._is_being_removed )
 			return arr_under[ i ];
 		}
+		
+		return null;
 	}
 				
 	
@@ -403,7 +408,7 @@ class sdWater extends sdEntity
 			if ( arr[ i ].y + arr[ i ]._hitbox_y1 < this.y + 16 + 16 )
 			if ( arr[ i ].y + arr[ i ]._hitbox_y2 > this.y + 16 )
 			if ( this !== arr[ i ] )
-			if ( arr[ i ].is( sdWater ) || arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) )
+			if ( arr[ i ].is( sdWater ) || ( arr[ i ].is( sdBlock ) && arr[ i ].texture_id !== sdBlock.TEXTURE_ID_CAGE ) || arr[ i ].is( sdDoor ) )
 			{
 				if ( this.BlendWith( arr[ i ] ) )
 				return;
@@ -423,7 +428,7 @@ class sdWater extends sdEntity
 
 					for ( var i2 = 0; i2 < down_left.length; i2++ )
 					{
-						if ( down_left[ i2 ].is( sdWater ) || down_left[ i2 ].is( sdBlock ) || down_left[ i2 ].is( sdDoor ) )
+						if ( down_left[ i2 ].is( sdWater ) || ( down_left[ i2 ].is( sdBlock ) && down_left[ i2 ].texture_id !== sdBlock.TEXTURE_ID_CAGE ) || down_left[ i2 ].is( sdDoor ) )
 						if ( down_left[ i2 ].x + down_left[ i2 ]._hitbox_x1 < this.x + 16 - 16 )
 						if ( down_left[ i2 ].x + down_left[ i2 ]._hitbox_x2 > this.x - 16 )
 						if ( down_left[ i2 ].y + down_left[ i2 ]._hitbox_y1 < this.y + 16 + 16 )
@@ -439,7 +444,7 @@ class sdWater extends sdEntity
 
 					for ( var i2 = 0; i2 < down_right.length; i2++ )
 					{
-						if ( down_right[ i2 ].is( sdWater ) || down_right[ i2 ].is( sdBlock ) || down_right[ i2 ].is( sdDoor ) )
+						if ( down_right[ i2 ].is( sdWater ) || ( down_right[ i2 ].is( sdBlock ) && down_right[ i2 ].texture_id !== sdBlock.TEXTURE_ID_CAGE ) || down_right[ i2 ].is( sdDoor ) )
 						if ( down_right[ i2 ].x + down_right[ i2 ]._hitbox_x1 < this.x + 16 + 16 )
 						if ( down_right[ i2 ].x + down_right[ i2 ]._hitbox_x2 > this.x + 16 )
 						if ( down_right[ i2 ].y + down_right[ i2 ]._hitbox_y1 < this.y + 16 + 16 )

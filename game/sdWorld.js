@@ -678,7 +678,8 @@ class sdWorld
 					[ // Deep
 						'sdSandWorm', 1,
 						'sdOctopus', 2,
-						'sdTutel', 5,
+						'sdFaceCrab', 3,
+						'sdTutel', 4,
 						'sdWater.toxic', 5,
 						'sdWater.lava', 1,
 						'sdWater.acid', 2
@@ -3434,13 +3435,14 @@ class sdWorld
 		sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 );
 		
 		// Hack
+		/*
 		for ( let i = 0; i < sdEntity.entities.length; i++ )
 		{
 			sdEntity.entities[ i ].material = sdBlock.MATERIAL_WALL;
 			sdEntity.entities[ i ].remove();
 			
 			sdEntity.entities[ i ]._broken = false;
-		}
+		}*/
 		
 		if ( sdEntity.global_entities.length === 0 )
 		sdEntity.entities.push( new sdWeather({}) );

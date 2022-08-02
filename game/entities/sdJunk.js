@@ -310,11 +310,11 @@ class sdJunk extends sdEntity
 							color:'#ffff66' 
 						});
 
-						let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 32 );
+						let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 48 );
 
 						for ( let i = 0; i < nears.length; i++ )
 						{
-							sdLost.ApplyAffection( nears[ i ], 90, bullet );
+							sdLost.ApplyAffection( nears[ i ], 110, bullet );
 						}
 					}
 				};
@@ -1001,17 +1001,17 @@ class sdJunk extends sdEntity
 			{
 				if ( this.detonation_in % this._rate < this._rate / 2 )
 				{
-					ctx.drawImageFilterCache( sdJunk.img_council_bomb2, 0, 0, 64, 128, - 32, - 48, 64, 128 );
+					ctx.drawImageFilterCache( sdJunk.img_council_bomb2, 0, 0, 64, 96, - 32, - 48, 64, 96 );
 					ctx.globalAlpha = Math.min( 1, this.glow_animation / 30 );
 					ctx.filter = ' drop-shadow(0px 0px 8px #FFF000)';
-					ctx.drawImageFilterCache( sdJunk.img_council_bomb2, 64, 0, 64, 128, - 32, - 48, 64, 128 );
+					ctx.drawImageFilterCache( sdJunk.img_council_bomb2, 64, 0, 64, 96, - 32, - 48, 64, 96 );
 				}
 				else
 				{
-					ctx.drawImageFilterCache( sdJunk.img_council_bomb, 0, 0, 64, 128, - 32, - 48, 64, 128 );
+					ctx.drawImageFilterCache( sdJunk.img_council_bomb, 0, 0, 64, 96, - 32, - 48, 64, 96 );
 					ctx.globalAlpha = Math.min( 1, this.glow_animation / 30 );
 					ctx.filter = ' drop-shadow(0px 0px 8px #FFF000)';
-					ctx.drawImageFilterCache( sdJunk.img_council_bomb, 64, 0, 64, 128, - 32, - 48, 64, 128 );
+					ctx.drawImageFilterCache( sdJunk.img_council_bomb, 64, 0, 64, 96, - 32, - 48, 64, 96 );
 				}
 			}
 			if ( this.type === 5 ) // Erthal distress beacon

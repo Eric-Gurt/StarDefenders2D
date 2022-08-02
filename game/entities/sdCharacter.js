@@ -677,7 +677,7 @@ class sdCharacter extends sdEntity
 		this._last_e_state = 0; // For E key taps to activate ghosting
 		this._last_fire_state = 0; // For semi auto weaponry
 		
-		this._respawn_protection = 0; // Given after long-range teleported
+		this._respawn_protection = 0; // Given after long-range teleported. Also on resque teleporting
 		
 		this._upgrade_counters = {}; // key = upgrade
 		
@@ -867,7 +867,16 @@ class sdCharacter extends sdEntity
 			if ( sdWorld.last_hit_entity._ai_team !== this._ai_team )
 			found_enemy = true;
 
-			if ( sdWorld.last_hit_entity.GetClass() === 'sdAmphid' || sdWorld.last_hit_entity.GetClass() === 'sdAsp' || sdWorld.last_hit_entity.GetClass() === 'sdBadDog' || sdWorld.last_hit_entity.GetClass() === 'sdOctopus' || sdWorld.last_hit_entity.GetClass() === 'sdQuickie' || sdWorld.last_hit_entity.GetClass() === 'sdSandWorm' || sdWorld.last_hit_entity.GetClass() === 'sdVirus' || sdWorld.last_hit_entity.GetClass() === 'sdTutel' || sdWorld.last_hit_entity.GetClass() === 'sdBiter') 
+			if (	sdWorld.last_hit_entity.GetClass() === 'sdAmphid' || 
+					sdWorld.last_hit_entity.GetClass() === 'sdAsp' || 
+					sdWorld.last_hit_entity.GetClass() === 'sdBadDog' || 
+					sdWorld.last_hit_entity.GetClass() === 'sdOctopus' || 
+					sdWorld.last_hit_entity.GetClass() === 'sdQuickie' || 
+					sdWorld.last_hit_entity.GetClass() === 'sdSandWorm' || 
+					sdWorld.last_hit_entity.GetClass() === 'sdVirus' || 
+					sdWorld.last_hit_entity.GetClass() === 'sdTutel' || 
+					sdWorld.last_hit_entity.GetClass() === 'sdFaceCrab' || 
+					sdWorld.last_hit_entity.GetClass() === 'sdBiter' ) 
 			found_enemy = true;
 
 			if ( sdWorld.last_hit_entity.is( sdCube ) ) // Only confront cubes when they want to attack AI
@@ -997,6 +1006,8 @@ class sdCharacter extends sdEntity
 				this.driver_of.ExcludeDriver( this );
 			}
 			
+			this._auto_shoot_in = 0; // Cancel lost particle converter-like guns from being shot
+			
 			// Create temporary copy just for visuals
 			//let copy_ent = new sdCharacter({ x:this.x, y:this.y });
 			let copy_ent = new sdWorld.entity_classes[ this.GetClass() ]({ x:this.x, y:this.y });
@@ -1093,7 +1104,8 @@ class sdCharacter extends sdEntity
 			
 			this.stability = 100;
 			
-
+			this._respawn_protection = 30;
+			
 			//best_t.SetDelay( sdRescueTeleport.delay_2nd ); // 5 minutes
 			best_t.SetDelay( sdRescueTeleport.delay_simple );
 		
@@ -2854,25 +2866,14 @@ class sdCharacter extends sdEntity
 			let still_stands = false;
 
 			if ( old_stands )
-			/*if ( !this._stands_on._is_being_removed )
-			if ( this.x + this._hitbox_x2 <= this._stands_on.x + this._stands_on._hitbox_x1 )
-			if ( this.x + this._hitbox_x1 >= this._stands_on.x + this._stands_on._hitbox_x2 )
-			//if ( this.y + this._hitbox_y2 + ( this.UseServerCollisions() ? 2 : 3 ) <= this._stands_on.y + this._stands_on._hitbox_y1 )
-			//if ( this.y + this._hitbox_y1 + ( this.UseServerCollisions() ? 2 : 3 ) >= this._stands_on.y + this._stands_on._hitbox_y2 )
-			if ( this.y + this._hitbox_y2 + 2 <= this._stands_on.y + this._stands_on._hitbox_y1 )
-			if ( this.y + this._hitbox_y1 + 2 >= this._stands_on.y + this._stands_on._hitbox_y2 )
-			*/
 			if ( !this._stands_on._is_being_removed )
-			//if ( this.x + this._hitbox_x2 <= this._stands_on.x + this._stands_on._hitbox_x1 )
-			//if ( this.x + this._hitbox_x1 >= this._stands_on.x + this._stands_on._hitbox_x2 )
+			if ( this._stands_on._hard_collision )
 			if ( this.x + this._hitbox_x1 <= this._stands_on.x + this._stands_on._hitbox_x2 )
 			if ( this.x + this._hitbox_x2 >= this._stands_on.x + this._stands_on._hitbox_x1 )
-			//if ( this.y + this._hitbox_y2 + ( this.UseServerCollisions() ? 2 : 3 ) <= this._stands_on.y + this._stands_on._hitbox_y1 )
-			//if ( this.y + this._hitbox_y1 + ( this.UseServerCollisions() ? 2 : 3 ) >= this._stands_on.y + this._stands_on._hitbox_y2 )
-			//if ( this.y + this._hitbox_y2 - 2 <= this._stands_on.y + this._stands_on._hitbox_y1 )
-			//if ( this.y + this._hitbox_y1 - 2 >= this._stands_on.y + this._stands_on._hitbox_y2 )
-			if ( this.y + this._hitbox_y1 + 2 <= this._stands_on.y + this._stands_on._hitbox_y2 )
-			if ( this.y + this._hitbox_y2 + 2 >= this._stands_on.y + this._stands_on._hitbox_y1 )
+			//if ( this.y + this._hitbox_y1 + 2 <= this._stands_on.y + this._stands_on._hitbox_y2 )
+			//if ( this.y + this._hitbox_y2 + 2 >= this._stands_on.y + this._stands_on._hitbox_y1 )
+			if ( this.y + this._hitbox_y1 <= this._stands_on.y + this._stands_on._hitbox_y2 )
+			if ( this.y + this._hitbox_y2 + 0.1 >= this._stands_on.y + this._stands_on._hitbox_y1 )
 			{
 				sdWorld.last_hit_entity = this._stands_on;
 				
@@ -2947,7 +2948,7 @@ class sdCharacter extends sdEntity
 		
 		this._in_water = in_water;
 		
-		if ( this._key_states.GetKey( 'KeyX' ) || in_water )
+		if ( this._key_states.GetKey( 'KeyX' ) || ( in_water && !this._can_breathe ) )
 		{
 			//this.tilt_speed += this.act_x * 1 * GSPEED;
 			
@@ -2955,7 +2956,7 @@ class sdCharacter extends sdEntity
 			
 			//speed_scale = 0.1 * ( 1 - ( this.armor_speed_reduction / 100 ) );
 			
-			if ( in_water )
+			if ( in_water && !this._can_breathe )
 			this.stability = Math.min( 10, this.stability );
 			else
 			this.stability = Math.min( 0, this.stability );
@@ -3459,7 +3460,7 @@ class sdCharacter extends sdEntity
 		{
 			if ( from_entity.is( sdBlock ) )
 			{
-				if ( from_entity._contains_class === 'sdQuickie' || from_entity._contains_class === 'weak_ground' )
+				if ( from_entity._contains_class === 'sdQuickie' || from_entity._contains_class === 'sdFaceCrab' || from_entity._contains_class === 'weak_ground' )
 				{
 					from_entity.DamageWithEffect( 1 ); // Will break
 				}
@@ -3628,18 +3629,37 @@ class sdCharacter extends sdEntity
 				if ( fake_ent )
 				{
 					if ( this.CheckBuildObjectPossibilityNow( fake_ent, false ) )
-					ctx.globalAlpha = 0.5;
+					ctx.globalAlpha = 0.9;
 					else
-					ctx.globalAlpha = 0.2 * ( ( sdWorld.time % 200 < 100 ) ? 1 : 0.5 );
+					{
+						ctx.globalAlpha = 0.4 * ( ( sdWorld.time % 200 < 100 ) ? 1 : 0.9 );
+						ctx.sd_status_effect_tint_filter = [ 1.5, 0.3, 0.3 ];
+					}
 				
 					let old_volumetric_mode = ctx.volumetric_mode;
 					let old_object_offset = ctx.object_offset;
+					let old_z_offset = ctx.z_offset;
+					let old_z_depth = ctx.z_depth;
+					let old_camera_relative_world_scale = ctx.camera_relative_world_scale;
+					//ctx.sd_status_effect_tint_filter = [ 1.5, 1.5, 1.5 ];
 					{
 						ctx.volumetric_mode = fake_ent.DrawIn3D();
 
 						ctx.translate( -this.x + fake_ent.x, -this.y + fake_ent.y );
 						
+
+						if ( ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX || 
+							 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT || 
+							 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_DECAL )
+						{
+							ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT;
+							fake_ent.FigureOutBoxCapVisibilities();
+						}
+					
 						ctx.object_offset = fake_ent.ObjectOffset3D( -1 );
+						ctx.z_offset = -32 * sdWorld.camera.scale;
+						ctx.z_depth = 16 * sdWorld.camera.scale;
+						ctx.camera_relative_world_scale = sdRenderer.distance_scale_in_world;
 						ctx.save();
 						{
 							fake_ent.DrawBG( ctx, false );
@@ -3647,6 +3667,8 @@ class sdCharacter extends sdEntity
 						ctx.restore();
 						
 						ctx.object_offset = fake_ent.ObjectOffset3D( 0 );
+						ctx.z_offset = -16 * sdWorld.camera.scale;
+						ctx.z_depth = 16 * sdWorld.camera.scale;
 						ctx.save();
 						{
 							fake_ent.Draw( ctx, false );
@@ -3669,6 +3691,10 @@ class sdCharacter extends sdEntity
 					}
 					ctx.object_offset = old_object_offset;
 					ctx.volumetric_mode = old_volumetric_mode;
+					ctx.z_offset = old_z_offset;
+					ctx.z_depth = old_z_depth;
+					ctx.camera_relative_world_scale = old_camera_relative_world_scale;
+					ctx.sd_status_effect_tint_filter = null;
 				}
 			}
 			

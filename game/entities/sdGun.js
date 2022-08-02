@@ -75,10 +75,10 @@ class sdGun extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return ( this.class === sdGun.CLASS_CRYSTAL_SHARD ) ? -2 : -4; }
-	get hitbox_x2() { return ( this.class === sdGun.CLASS_CRYSTAL_SHARD ) ? 2 : 4; }
-	get hitbox_y1() { return ( this.class === sdGun.CLASS_CRYSTAL_SHARD ) ? 1 : -3; }
-	get hitbox_y2() { return ( this.class === sdGun.CLASS_CRYSTAL_SHARD ) ? 4 : 3; }
+	get hitbox_x1() { return ( this.class === sdGun.CLASS_CRYSTAL_SHARD ) ? -2 : ( this.class === sdGun.CLASS_BUILDTOOL_UPG ) ? -7 : -4; }
+	get hitbox_x2() { return ( this.class === sdGun.CLASS_CRYSTAL_SHARD ) ? 2  : ( this.class === sdGun.CLASS_BUILDTOOL_UPG ) ? 7  : 4; }
+	get hitbox_y1() { return ( this.class === sdGun.CLASS_CRYSTAL_SHARD ) ? 1  : ( this.class === sdGun.CLASS_BUILDTOOL_UPG ) ? -6 : -3; }
+	get hitbox_y2() { return ( this.class === sdGun.CLASS_CRYSTAL_SHARD ) ? 4  : ( this.class === sdGun.CLASS_BUILDTOOL_UPG ) ? 5  : 3; }
 	get mass()
 	{
 		return 30;
@@ -260,6 +260,7 @@ class sdGun extends sdEntity
 			r = ( 
 					( by_entity.is( sdOctopus ) && 
 					  this._held_by && 
+					  !this._held_by._god && 
 					  this._held_by.IsVisible( by_entity ) && 
 					  this._held_by.gun_slot === sdGun.classes[ this.class ].slot && 
 					  //this.class !== sdGun.CLASS_BUILD_TOOL && 
@@ -325,6 +326,8 @@ class sdGun extends sdEntity
 		this._count = 0;
 		this._spread = 0;
 		this._hea = 50;
+		
+		this._held_item_snapshot = null; // In case of liquid carrier - it is a snapshot of a water object
 
 		this._temperature_addition = 0; // Does this gun's projectile set enemies on fire?
 		
@@ -343,6 +346,9 @@ class sdGun extends sdEntity
 
 			if ( this.class !== sdGun.CLASS_CRYSTAL_SHARD && sdGun.classes[ this.class ].spawnable === false ) // Unbuildable guns have 3 minutes to despawn, enough for players to find them if they lost them
 			this.ttl = params.ttl || sdGun.disowned_guns_ttl * 3;
+		
+			if ( has_class.onMade )
+			has_class.onMade( this ); // Should not make new entities, assume gun might be instantly removed once made
 		}
 	}
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
@@ -722,6 +728,8 @@ class sdGun extends sdEntity
 						
 						let bullet_obj = new sdBullet({ x: this._held_by.x + offset.x, y: this._held_by.y + offset.y });
 						bullet_obj._owner = this._held_by;
+						
+						bullet_obj._gun = this;
 
 						let an = initial_an + ( Math.random() * 2 - 1 ) * spread;
 						

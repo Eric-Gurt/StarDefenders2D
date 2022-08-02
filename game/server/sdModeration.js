@@ -10,7 +10,8 @@ import fs from 'fs';
 //import fs from 'fs-extra';
 
 import sdWorld from '../sdWorld.js';
-//import sdEntity from '../entities/sdEntity.js';
+import sdEntity from '../entities/sdEntity.js';
+import sdGun from '../entities/sdGun.js';
 
 import { spawn } from 'child_process';
 
@@ -513,6 +514,14 @@ class sdModeration
 					sdWorld.sockets[ i ].SDServiceMessage( socket.character.title + ' has entered "godmode".' );
 		
 					socket.character._god = true;
+					
+					sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_REMOVER }) );
+					sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_TELEPORTER }) );
+					
+					socket.character.InstallUpgrade( 'upgrade_jetpack' );
+					socket.character.InstallUpgrade( 'upgrade_hook' );
+					socket.character.InstallUpgrade( 'upgrade_invisibility' );
+					
 					socket.emit('SET sdWorld.my_entity._god', true );
 				}
 				else
