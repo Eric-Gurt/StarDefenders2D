@@ -2575,11 +2575,13 @@ class sdCharacter extends sdEntity
 		
 		speed_scale *= Math.max( 0.1, this.stability / 100 );
 		
+		let walk_speed_scale = speed_scale;
+		
 		let leg_height;
 		let new_leg_height;
 		
 		if ( act_y_or_unstable )
-		speed_scale *= 0.5;
+		walk_speed_scale *= 0.5;
 	
 		if ( ( ( act_y_or_unstable === 1 ) ? 1 : 0 ) !== this._crouch_intens )
 		{
@@ -2589,9 +2591,6 @@ class sdCharacter extends sdEntity
 
 			if ( act_y_or_unstable === 1 )
 			{
-				//speed_scale *= 0.25;
-
-				
 				if ( this._crouch_intens < target_crouch - 0.01 )
 				this._crouch_intens = sdWorld.MorphWithTimeScale( this._crouch_intens, target_crouch, 0.7, GSPEED );
 				else
@@ -3176,10 +3175,10 @@ class sdCharacter extends sdEntity
 					else
 					{
 						this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.8, GSPEED );
-						this.sx += this.act_x * 1.25 * GSPEED * speed_scale;
+						this.sx += this.act_x * 1.25 * GSPEED * walk_speed_scale;
 
 						let old_walk = this._anim_walk;
-						this._anim_walk += Math.abs( this.sx ) * 0.2 / speed_scale * GSPEED;
+						this._anim_walk += Math.abs( this.sx ) * 0.2 / walk_speed_scale * GSPEED;
 
 						if ( old_walk < 5 && this._anim_walk >= 5 )
 						if ( !this.ghosting )
