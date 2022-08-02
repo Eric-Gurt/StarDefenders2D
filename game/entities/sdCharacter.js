@@ -2578,6 +2578,9 @@ class sdCharacter extends sdEntity
 		let leg_height;
 		let new_leg_height;
 		
+		if ( act_y_or_unstable )
+		speed_scale *= 0.5;
+	
 		if ( ( ( act_y_or_unstable === 1 ) ? 1 : 0 ) !== this._crouch_intens )
 		{
 			leg_height = this.hitbox_y2;
@@ -2586,7 +2589,7 @@ class sdCharacter extends sdEntity
 
 			if ( act_y_or_unstable === 1 )
 			{
-				speed_scale *= 0.5;
+				//speed_scale *= 0.25;
 
 				
 				if ( this._crouch_intens < target_crouch - 0.01 )
