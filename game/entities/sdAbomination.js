@@ -56,6 +56,7 @@ class sdAbomination extends sdEntity
 		this.death_anim = 0;
 		this.attack_timer = 30;
 		this._pull_timer = 50; // Timer for pulling it's enemies towards it
+		this._tenta_target = null;
 
 		this.tenta_tim = 0;
 		this.tenta_x = 0;
@@ -138,8 +139,6 @@ class sdAbomination extends sdEntity
 	{
 		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
 
-		if ( this.tenta_tim > 0 )
-		this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
 		
 		
 		if ( this._hea <= 0 )
@@ -152,6 +151,29 @@ class sdAbomination extends sdEntity
 		else
 		{
 			this.time_since_jump = Math.min( 1000 / 1000 * 30, this.time_since_jump + GSPEED );
+
+			if ( this.tenta_tim > 0 )
+			{
+				this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
+					if ( this._tenta_target && this.tenta_tim > 10 )
+					{
+						if ( typeof this._tenta_target.sx !== 'undefined' ) // Is it an entity
+						this._tenta_target.sx += - this.tenta_x / 100; // Pull it in
+						else
+						this.sx += this.tenta_x / 100; // Pull itself towards the static entity
+
+						if ( typeof this._tenta_target.sy !== 'undefined' )
+						this._tenta_target.sy += - this.tenta_y / 100;
+						else
+						this.sy += this.tenta_y / 100; // Pull itself towards the entity
+
+						if ( this._tenta_target.IsPlayerClass() )
+						this._tenta_target.ApplyServerSidePositionAndVelocity( true, - this.tenta_x / 100, - this.tenta_y / 100 );
+
+						this.tenta_x = this._tenta_target.x - this.x;
+						this.tenta_y = this._tenta_target.y - this.y;
+					}
+			}
 
 			if ( this._hea < this._hmax )
 			this._hea = Math.min( this._hmax, this._hea + GSPEED / 10 );
@@ -166,7 +188,10 @@ class sdAbomination extends sdEntity
 				if ( this._current_target )
 				{
 					if ( this._current_target._is_being_removed || !this._current_target.IsTargetable() || !this._current_target.IsVisible() || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdAbomination.max_seek_range + 32 )
-					this._current_target = null;
+					{
+						this._current_target = null;
+						this._tenta_target = null;
+					}
 					else
 					{
 						this.side = ( this._current_target.x > this.x ) ? 1 : -1;
@@ -239,20 +264,21 @@ class sdAbomination extends sdEntity
 						this.tenta_x = xx - this.x;
 						this.tenta_y = yy - this.y;
 						this.tenta_tim = 100;
+						this._tenta_target = from_entity;
 
 
 						if ( typeof from_entity.sx !== 'undefined' ) // Is it an entity
-						from_entity.sx = - this.tenta_x / 20; // Pull it in
+						from_entity.sx += - this.tenta_x / 100; // Pull it in
 						else
-						this.sx = this.tenta_x / 25; // Pull itself towards the static entity
+						this.sx += this.tenta_x / 100; // Pull itself towards the static entity
 
 						if ( typeof from_entity.sy !== 'undefined' )
-						from_entity.sy = - this.tenta_y / 20;
+						from_entity.sy += - this.tenta_y / 100;
 						else
-						this.sy = this.tenta_y / 10; // Pull itself towards the entity
+						this.sy += this.tenta_y / 100; // Pull itself towards the entity
 						
 						if ( from_entity.IsPlayerClass() )
-						from_entity.ApplyServerSidePositionAndVelocity( true, - this.tenta_x / 20, - this.tenta_y / 20 );
+						from_entity.ApplyServerSidePositionAndVelocity( true, - this.tenta_x / 100, - this.tenta_y / 100 );
 						
 						let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y );
 						if ( di > 0 )
