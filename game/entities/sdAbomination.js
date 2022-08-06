@@ -18,6 +18,7 @@ class sdAbomination extends sdEntity
 	{
 		sdAbomination.img_abomination_idle1 = sdWorld.CreateImageFromFile( 'abomination_idle' );
 		sdAbomination.img_abomination_attack1 = sdWorld.CreateImageFromFile( 'abomination_attack' );
+		sdAbomination.img_abomination_grab= sdWorld.CreateImageFromFile( 'abomination_grab' );
 		
 		
 		sdAbomination.death_imgs = [
@@ -48,12 +49,17 @@ class sdAbomination extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 550;
+		this._hmax = 650;
 		this._hea = this._hmax;
 		this._move_timer = 30;
 		this.idle = 0;
 		this.death_anim = 0;
 		this.attack_timer = 30;
+		this._pull_timer = 50; // Timer for pulling it's enemies towards it
+
+		this.tenta_tim = 0;
+		this.tenta_x = 0;
+		this.tenta_y = 0;
 		
 		this._current_target = null;
 		
@@ -92,6 +98,9 @@ class sdAbomination extends sdEntity
 		return;
 	
 		//dmg = Math.abs( dmg ); Can be healed now
+
+		if ( initiator !== null )
+		this._current_target = initiator;
 		
 		let was_alive = this._hea > 0;
 		
@@ -103,14 +112,14 @@ class sdAbomination extends sdEntity
 			this.idle = 1;
 			if ( initiator )
 			if ( typeof initiator._score !== 'undefined' )
-			initiator._score += 1;
+			initiator._score += 15;
 		}
 		
 		if ( this._hea < -this._hmax / 80 * 100 )
 		this.remove();
 	}
 	
-	get mass() { return 150; } // 75
+	get mass() { return 350; } // 75
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -128,6 +137,9 @@ class sdAbomination extends sdEntity
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
+
+		if ( this.tenta_tim > 0 )
+		this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
 		
 		
 		if ( this._hea <= 0 )
@@ -146,6 +158,9 @@ class sdAbomination extends sdEntity
 
 			if ( this.attack_timer > 0 )
 			this.attack_timer = Math.max( 0, this.attack_timer - GSPEED );
+
+			if ( this._pull_timer > 0 )
+			this._pull_timer = Math.max( 0, this._pull_timer - GSPEED );
 			
 			{
 				if ( this._current_target )
@@ -195,6 +210,52 @@ class sdAbomination extends sdEntity
 							//this._last_stand_on = null; // wait for next collision
 							sdWorld.SendEffect({ x: this.x, y: this.y, type:sdEffect.TYPE_BLOOD });
 						}
+					}
+				}
+			}
+			if ( this._current_target )
+			if ( this._pull_timer <= 0 )
+			{
+				this._pull_timer = 50;
+						
+				//let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 170 );
+				let from_entity;
+				//for ( var i = 0; i < nears.length; i++ )
+				{
+					from_entity = this._current_target;
+					
+					let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
+					let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
+
+					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
+					{
+						from_entity.DamageWithEffect( 10, this );
+						this._hea = Math.min( this._hmax, this._hea + 25 );
+
+
+						//from_entity.PlayDamageEffect( xx, yy ); // Should pulling entities display this effect?
+
+						this.tenta_x = xx - this.x;
+						this.tenta_y = yy - this.y;
+						this.tenta_tim = 100;
+
+
+						if ( typeof from_entity.sx !== 'undefined' ) // Is it an entity
+						from_entity.sx = - this.tenta_x / 20; // Pull it in
+						else
+						this.sx = this.tenta_x / 15; // Pull itself towards the static entity
+
+						if ( typeof from_entity.sy !== 'undefined' )
+						from_entity.sy = - this.tenta_y / 20;
+						else
+						this.sy = this.tenta_y / 15; // Pull itself towards the entity
+						
+						if ( from_entity.IsPlayerClass() )
+						from_entity.ApplyServerSidePositionAndVelocity( true, - this.tenta_x / 20, - this.tenta_y / 20 );
+						
+						let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y );
+						if ( di > 0 )
+						from_entity.Impulse( this.tenta_x / di * 20, this.tenta_y / di * 20 );
 					}
 				}
 			}
@@ -300,6 +361,35 @@ class sdAbomination extends sdEntity
 			ctx.drawImageFilterCache( sdAbomination.img_abomination_attack1, - 32, - 32, 64,64 );
 			else
 			ctx.drawImageFilterCache( sdAbomination.img_abomination_idle1, - 32, - 32, 64,64 );
+
+
+			if ( this.tenta_tim > 0 )
+			{
+				let sprites = [
+					0,1,
+					1,1,
+					1,0
+				];
+				
+				let morph = ( Math.sin( this.tenta_tim / 100 * Math.PI ) );
+				let best_id = Math.round( morph * 2 );
+				
+				let xx = sprites[ best_id * 2 + 0 ];
+				let yy = sprites[ best_id * 2 + 1 ];
+				
+				let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y ) * ( ( best_id + 1 ) / 3 );
+			
+				if ( di < 200 )
+				{
+				    ctx.save();
+					{
+						ctx.scale( this.side, 1 );
+						ctx.rotate( Math.PI / 2 - Math.atan2( this.tenta_x, this.tenta_y ) );
+						ctx.drawImageFilterCache( sdAbomination.img_abomination_grab, xx * 32, yy * 32, 32,32, 0, -16, di,32 );
+					}
+				    ctx.restore();
+				}
+			}
 		}
 		
 		ctx.globalAlpha = 1;
