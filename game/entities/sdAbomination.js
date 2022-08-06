@@ -243,12 +243,12 @@ class sdAbomination extends sdEntity
 						if ( typeof from_entity.sx !== 'undefined' ) // Is it an entity
 						from_entity.sx = - this.tenta_x / 20; // Pull it in
 						else
-						this.sx = this.tenta_x / 15; // Pull itself towards the static entity
+						this.sx = this.tenta_x / 25; // Pull itself towards the static entity
 
 						if ( typeof from_entity.sy !== 'undefined' )
 						from_entity.sy = - this.tenta_y / 20;
 						else
-						this.sy = this.tenta_y / 15; // Pull itself towards the entity
+						this.sy = this.tenta_y / 10; // Pull itself towards the entity
 						
 						if ( from_entity.IsPlayerClass() )
 						from_entity.ApplyServerSidePositionAndVelocity( true, - this.tenta_x / 20, - this.tenta_y / 20 );
