@@ -216,14 +216,15 @@ class sdAbomination extends sdEntity
 			if ( this._current_target )
 			if ( this._pull_timer <= 0 )
 			{
-				this._pull_timer = 50;
 						
 				//let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 170 );
 				let from_entity;
-				//for ( var i = 0; i < nears.length; i++ )
+				let dist_att = sdWorld.Dist2D_Vector( this._current_target.x - this.x, this._current_target.y - this.y );
+				if ( dist_att < 150 )
 				{
 					from_entity = this._current_target;
-					
+					this._pull_timer = 50;
+
 					let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
 					let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 
@@ -233,7 +234,7 @@ class sdAbomination extends sdEntity
 						this._hea = Math.min( this._hmax, this._hea + 25 );
 
 
-						//from_entity.PlayDamageEffect( xx, yy ); // Should pulling entities display this effect?
+						from_entity.PlayDamageEffect( xx, yy ); // Should pulling entities display this effect?
 
 						this.tenta_x = xx - this.x;
 						this.tenta_y = yy - this.y;
@@ -333,6 +334,11 @@ class sdAbomination extends sdEntity
 						
 					}
 		}
+	}
+	onMovementInRange( from_entity )
+	{
+		if ( from_entity === this._current_target )
+		from_entity.DamageWithEffect( 1 );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
