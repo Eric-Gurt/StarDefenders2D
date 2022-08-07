@@ -122,6 +122,15 @@ class sdGun extends sdEntity
 	
 	onMovementInRange( from_entity )
 	{
+		// Just so we don't have to apply extra accuracy for sdGun-s and sdCharacter-s when they are too far from connected players...
+		if ( from_entity.IsPlayerClass() )
+		{
+			from_entity.onMovementInRange( this );
+			
+			if ( this._is_being_removed )
+			return;
+		}
+
 		if ( this.dangerous )
 		if ( sdWorld.is_server )
 		{
@@ -243,8 +252,12 @@ class sdGun extends sdEntity
 		}
 	}
 	
-	IsTargetable( by_entity ) // Guns are not targetable when held, same for sdCharacters that are driving something
+	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Guns are not targetable when held, same for sdCharacters that are driving something
 	{
+		if ( !super.IsTargetable( by_entity, ignore_safe_areas ) )
+		return false;
+		
+		
 		let r = false;
 	
 		if ( by_entity )
@@ -277,9 +290,9 @@ class sdGun extends sdEntity
 			r = true;
 		}
 		
-		if ( r )
+		/*if ( r )
 		if ( !sdArea.CheckPointDamageAllowed( this.x + ( this._hitbox_x1 + this._hitbox_x2 ) / 2, this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2 ) )
-		return false;
+		return false;*/
 
 		return r;
 	}

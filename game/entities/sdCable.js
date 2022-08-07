@@ -216,6 +216,9 @@ class sdCable extends sdEntity
 			if ( !e._is_being_removed )
 			e.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		}
+		
+		if ( !e._is_being_removed )
+		e._connected_ents = null; // Update cache instantly
 	}
 	static RemoveCableFromEntity( e, cable )
 	{
@@ -226,7 +229,10 @@ class sdCable extends sdEntity
 			set.delete( cable );
 			
 			if ( !e._is_being_removed )
-			e.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+			{
+				e.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+				e._connected_ents = null; // Update cache instantly
+			}
 			
 			if ( set.size === 0 )
 			{

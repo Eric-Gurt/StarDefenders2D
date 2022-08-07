@@ -1,0 +1,87 @@
+/*
+
+	Doors optimization + allowance for smaller doors that aren't radius-based
+
+*/
+import sdWorld from '../sdWorld.js';
+import sdEntity from './sdEntity.js';
+import sdBlock from './sdBlock.js';
+import sdCharacter from './sdCharacter.js';
+
+import sdRenderer from '../client/sdRenderer.js';
+
+
+class sdSensorArea extends sdEntity
+{
+	static init_class()
+	{
+		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
+	}
+
+	get hitbox_x1() { return 0; }
+	get hitbox_x2() { return this.w; }
+	get hitbox_y1() { return 0; }
+	get hitbox_y2() { return this.h; }
+	
+	get hard_collision()
+	{ return false; }
+	
+	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
+	{ return true; }
+	
+	IsVisible( observer_entity )
+	{
+		if ( observer_entity._god )
+		return true;
+		
+		return false;
+	}
+	
+	constructor( params )
+	{
+		super( params );
+		
+		this.w = params.w || 32;
+		
+		this.h = params.h || 32;
+		
+		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false );
+	}
+	MeasureMatterCost()
+	{
+		return Infinity;
+	}
+	
+	IsBGEntity() // 1 for BG entities, should handle collisions separately
+	{ return 3; }
+	//RequireSpawnAlign() 
+	//{ return true; }
+	
+	CameraDistanceScale3D( layer ) // so far layer is only FG (1), usually only used by chat messages
+	{ return 0.85; }
+	
+	Draw( ctx, attached )
+	{
+		if ( sdWorld.time % 1000 < 500 )
+		{
+			ctx.globalAlpha = 0.3;
+		}
+		else
+		{
+			ctx.globalAlpha = 0.2;
+		}
+		
+		ctx.fillStyle = '#00ff00';
+		
+		ctx.fillRect( 0, 0, this._hitbox_x2, this._hitbox_y2 );
+		
+		ctx.globalAlpha = 1;
+	}
+	DrawFG( ctx, attached )
+	{
+		this.Draw( ctx, attached );
+	}
+}
+//sdSensorArea.init_class();
+
+export default sdSensorArea;

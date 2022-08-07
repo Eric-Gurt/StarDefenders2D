@@ -35,6 +35,11 @@ class sdEntity
 		sdEntity.HIBERSTATE_REMOVED = 2;
 		sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP = 3; 
 		
+		/*sdEntity.MATTER_MODE_UNDECIDED = 0;
+		sdEntity.MATTER_MODE_NONE = 1;
+		sdEntity.MATTER_MODE_PUBLIC = 2;
+		sdEntity.MATTER_MODE_PRIVATE = 3;*/
+		
 		//sdEntity.entities_by_net_id_cache = {};
 		sdEntity.entities_by_net_id_cache_map = new Map();
 		sdEntity.removed_entities_info = new Map(); // Map[by _net_id] of { entity, ttl } // Is used to keep track for last state sync, usually just for _broken property of sdBlock objects
@@ -802,7 +807,7 @@ class sdEntity
 			//const visited_ent = new WeakSet();
 			//visited_ent.add( this );
 			
-			const visited_ent_flag = sdEntity.flag_counter++;
+			const visited_ent_flag = sdEntity.GetUniqueFlagValue();
 			this._flag = visited_ent_flag;
 			
 			let min_xy = Infinity;
@@ -1936,7 +1941,7 @@ class sdEntity
 	{
 		return null;
 	}
-	IsBGEntity() // 0 for in-game entities, 1 for background entities, 2 is for moderator areas, 3 is for cables, 4 for task in-world interfaces, 5 for wandering around background entities, 6 for status effects, 7 for player-defined regions. Should handle collisions separately
+	IsBGEntity() // 0 for in-game entities, 1 for background entities, 2 is for moderator areas, 3 is for cables/sensor areas, 4 for task in-world interfaces, 5 for wandering around background entities, 6 for status effects, 7 for player-defined regions. Should handle collisions separately
 	{ return 0; }
 	CanMoveWithoutOverlap( new_x, new_y, safe_bound=0, custom_filtering_method=null, alter_ignored_classes=null ) // Safe bound used to check if sdCharacter can stand and not just collides with walls nearby. Also due to number rounding clients should better have it (or else they will teleport while sliding on vertical wall)
 	{
@@ -2103,6 +2108,10 @@ class sdEntity
 	{
 	}
 	
+	static GetUniqueFlagValue() // Whenever there happens overflow (it probably will never happen) - you can do a full cycle over all entities and reset _flag value
+	{
+		return sdEntity.flag_counter++;
+	}
 	constructor( params )
 	{
 		//if ( !sdWorld.mobile )
@@ -2116,7 +2125,10 @@ class sdEntity
 		this._class_id = this.__proto__.constructor.class_id;
 		
 		this._flag = 0; // Used to mark entities as visited/added/mentioned just so WeakSet is not needed. Compare it to sdEntity.flag_counter++
-		//debugger;
+		//this._matter_mode = sdEntity.MATTER_MODE_UNDECIDED;
+		
+		this._connected_ents = null; // Can be array, for slower update rate
+		this._connected_ents_next_rethink = 0;
 		
 		this._frozen = 0; // This value is changed by sdStatusEffect. Result of this value is an alternate ThinkNow function calls. It shows how many degrees temperature is below freezing point, it is always positive value. Value like 1 means it is about to unfreeze - used by turrets to keep targets frozen
 		
@@ -2287,18 +2299,23 @@ class sdEntity
 		
 		let ret = [];
 
-		let worked_out_ents = [];
+		//let worked_out_ents = [];
+		const visited_ent_flag = sdEntity.GetUniqueFlagValue();
+		
 		let active_ents = [ this ];
 		while ( active_ents.length > 0 )
 		{
 			let connected_ents = sdCable.GetConnectedEntities( active_ents[ 0 ], sdCable.TYPE_ANY );
 
-			worked_out_ents.push( active_ents[ 0 ] );
+			//worked_out_ents.push( active_ents[ 0 ] );
+			active_ents[ 0 ]._flag = visited_ent_flag;
+			
 			active_ents.shift();
 
 			for ( let i = 0; i < connected_ents.length; i++ )
 			{
-				if ( worked_out_ents.indexOf( connected_ents[ i ] ) === -1 )
+				//if ( worked_out_ents.indexOf( connected_ents[ i ] ) === -1 )
+				if ( connected_ents[ i ]._flag !== visited_ent_flag )
 				{
 					if ( accept_test_method )
 					{
@@ -2428,7 +2445,7 @@ class sdEntity
 		return coms_near;
 	}
 	
-	GetAnythingNearCache( _x, _y, range, append_to=null, specific_classes=null )
+	GetAnythingNearCache( _x, _y, range, append_to=null, specific_classes=null, shuffle=true )
 	{
 		if ( append_to !== null || specific_classes !== null )
 		throw new Error('Bad usage of GetAnythingNearCache, use sdWorld.GetAnythingNear instead for this kind of use');
@@ -2460,6 +2477,7 @@ class sdEntity
 				}
 			}*/
 
+			if ( shuffle )
 			sdWorld.shuffleArray( anything_near );
 		}
 		
@@ -3245,7 +3263,7 @@ class sdEntity
 	{
 		if ( !sdWorld.is_server )
 		return;
-		
+	
 		let this_matter = ( this.matter || this._matter || 0 );
 		
 		if ( this_matter > 0.05 )
@@ -3255,42 +3273,79 @@ class sdEntity
 		
 			let i;
 			
-			let visited_ents = new Set();
-			visited_ents.add( this );
+			//let visited_ents = new Set();
+			//visited_ents.add( this );
+			
+			const visited_ent_flag = sdEntity.GetUniqueFlagValue();
+			this._flag = visited_ent_flag;
 			
 			let array_is_not_cloned = true;
 			
-			let connected_ents = sdCable.GetConnectedEntities( this, sdCable.TYPE_MATTER );
-			for ( i = 0; i < connected_ents.length; i++ )
+			let connected_ents;
+			
+			if ( this._connected_ents && sdWorld.time < this._connected_ents_next_rethink ) // This cache probably should not be rethinked at all (since cables erase it anyway)... But just in case...
 			{
-				if ( ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' ) && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
+				connected_ents = this._connected_ents;
+			}
+			else
+			{
+				connected_ents = sdCable.GetConnectedEntities( this, sdCable.TYPE_MATTER );
+				for ( i = 0; i < connected_ents.length; i++ )
 				{
-					this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
-					
-					visited_ents.add( connected_ents[ i ] );
-							
-					if ( connected_ents[ i ].PrioritizeGivingMatterAway() )
+					/*globalThis.max_connected_ents_length = globalThis.max_connected_ents_length || null;
+
+					// Top: 257
+					if ( globalThis.max_connected_ents_length === null || connected_ents.length > globalThis.max_connected_ents_length.len )
 					{
-						if ( array_is_not_cloned )
+						globalThis.max_connected_ents_length = {
+							len: connected_ents.length,
+							arr: connected_ents,
+							that: this
+						};
+					}*/
+
+					if ( ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' ) && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
+					{
+						//this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+
+						//visited_ents.add( connected_ents[ i ] );
+						connected_ents[ i ]._flag = visited_ent_flag;
+
+						if ( connected_ents[ i ].PrioritizeGivingMatterAway() )
 						{
-							array_is_not_cloned = false;
-							connected_ents = connected_ents.slice(); // Clone
-						}
-						
-						let recursively_connected = sdCable.GetConnectedEntities( connected_ents[ i ], sdCable.TYPE_MATTER );
-						
-						if ( recursively_connected )
-						for ( let i2 = 0; i2 < recursively_connected.length; i2++ )
-						if ( !visited_ents.has( recursively_connected[ i2 ] ) )
-						{
-							visited_ents.add( recursively_connected[ i2 ] );
-							
-							connected_ents.push( recursively_connected[ i2 ] );
+							if ( array_is_not_cloned )
+							{
+								array_is_not_cloned = false;
+								connected_ents = connected_ents.slice(); // Clone
+							}
+
+							let recursively_connected = sdCable.GetConnectedEntities( connected_ents[ i ], sdCable.TYPE_MATTER );
+
+							if ( recursively_connected )
+							for ( let i2 = 0; i2 < recursively_connected.length; i2++ )
+							//if ( !visited_ents.has( recursively_connected[ i2 ] ) )
+							if ( recursively_connected[ i2 ]._flag !== visited_ent_flag )
+							{
+								//visited_ents.add( recursively_connected[ i2 ] );
+								recursively_connected[ i2 ]._flag = visited_ent_flag;
+
+								connected_ents.push( recursively_connected[ i2 ] );
+							}
 						}
 					}
 				}
+				//visited_ents = null;
+				
+				this._connected_ents = connected_ents;
+				this._connected_ents_next_rethink = sdWorld.time + 200 + Math.random() * 50;
 			}
-			visited_ents = null;
+			
+			for ( let i = 0; i < connected_ents.length; i++ )
+			{
+				if ( !connected_ents[ i ]._is_being_removed )
+				this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+			}
+			
 			
 			if ( radius > 0 )
 			if ( this_matter > 0.05 )
@@ -3313,7 +3368,8 @@ class sdEntity
 				}
 			}
 			
-			this.WakeUpMatterSources( connected_ents );
+			//this.WakeUpMatterSources( connected_ents );
+			this.WakeUpMatterSources( null );
 		}
 	}
 	HungryMatterGlow( how_much=0.01, radius=30, GSPEED )
@@ -3409,9 +3465,58 @@ class sdEntity
 			this._listeners[ str ][ i ]( ...args );
 		}
 	}
+	
+	/*InitMatterMode()
+	{
+		if ( typeof this.matter !== 'undefined' )
+		this._matter_mode = sdEntity.MATTER_MODE_PUBLIC;
+		else
+		if ( typeof this._matter !== 'undefined' )
+		this._matter_mode = sdEntity.MATTER_MODE_PRIVATE;
+		else
+		this._matter_mode = sdEntity.MATTER_MODE_NONE;
+	}
+	GetMatter()
+	{
+		//if ( this._matter_mode === sdEntity.MATTER_MODE_UNDECIDED )
+		//this.InitMatterMode();
+		
+		switch ( this._matter_mode )
+		{
+			case sdEntity.MATTER_MODE_PUBLIC: return this.matter;
+			case sdEntity.MATTER_MODE_PRIVATE: return this._matter;
+			default: return 0;
+		}
+	}
+	SetMatter( v )
+	{
+		//if ( this._matter_mode === sdEntity.MATTER_MODE_UNDECIDED )
+		//this.InitMatterMode();
+		
+		switch ( this._matter_mode )
+		{
+			case sdEntity.MATTER_MODE_PUBLIC: this.matter = v; return;
+			case sdEntity.MATTER_MODE_PRIVATE: this._matter = v; return;
+			default: return;
+		}
+	}
+	AddMatter( v )
+	{
+		//if ( this._matter_mode === sdEntity.MATTER_MODE_UNDECIDED )
+		//this.InitMatterMode();
+		
+		switch ( this._matter_mode )
+		{
+			case sdEntity.MATTER_MODE_PUBLIC: this.matter += v; return;
+			case sdEntity.MATTER_MODE_PRIVATE: this._matter += v; return;
+			default: return;
+		}
+	}*/
+	
 	TransferMatter( to, how_much, GSPEED, optimize=false )
 	{
 		let this_matter = ( this.matter || this._matter || 0 );
+		//let this_matter = this.GetMatter();
 		
 		if ( optimize )
 		{
@@ -3420,6 +3525,8 @@ class sdEntity
 		}
 		
 		let to_matter = ( to.matter || to._matter || 0 );
+		//let to_matter = to.GetMatter();
+		
 		let to_matter_max = ( to.matter_max || to._matter_max || 0 );
 		
 		how_much = this_matter * how_much * GSPEED;
@@ -3453,6 +3560,7 @@ class sdEntity
 		
 			this._matter -= how_much;
 		}
+		//this.AddMatter( -how_much );
 	
 		if ( typeof to.matter !== 'undefined' )
 		{
@@ -3468,6 +3576,7 @@ class sdEntity
 		
 			to._matter += how_much;
 		}
+		//to.AddMatter( how_much );
 		
 		// Update update versions for static entities if matter property is public
 		
@@ -3562,6 +3671,8 @@ class sdEntity
 				
 				this._phys_last_touch = null;
 			}
+			
+			this._connected_ents = null;
 			
 			/* It is handled by memory leak seeker now instead
 			const is_vehicle = this.IsVehicle();

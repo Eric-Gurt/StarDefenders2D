@@ -138,7 +138,7 @@ class sdMatterAmplifier extends sdEntity
 	}
 	PrioritizeGivingMatterAway() // sdNode, sdCom, sdCommandCentre, sdMaterContainer, sdMatterAmplifier all do that in order to prevent slow matter flow through cables
 	{
-		return ( this.crystal || this.matter > 1 );
+		return ( this.crystal || this._matter > 1 );
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
