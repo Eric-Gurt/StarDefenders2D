@@ -16,11 +16,11 @@ class sdSlug extends sdEntity
 	{
 		/*sdSlug.img_slug_idle1 = sdWorld.CreateImageFromFile( 'slug_idle' );
 		sdSlug.img_slug_walk1 = sdWorld.CreateImageFromFile( 'slug_walk1' );
-		sdSlug.img_slug_walk2 = sdWorld.CreateImageFromFile( 'slug_walk2' );
+		sdSlug.img_slug_walk2 = sdWorld.CreateImageFromFile( 'slug_walk2' );*/
 		
 		sdSlug.img_slug_blinks = [ sdWorld.CreateImageFromFile( 'slug_blink1' ), sdWorld.CreateImageFromFile( 'slug_blink2' ), sdWorld.CreateImageFromFile( 'slug_blink3' ) ];
 		
-		sdSlug.death_imgs = [
+		/*sdSlug.death_imgs = [
 			sdWorld.CreateImageFromFile( 'slug_death1' ),
 			sdWorld.CreateImageFromFile( 'slug_death2' ),
 			sdWorld.CreateImageFromFile( 'slug_death3' ),
