@@ -2030,7 +2030,11 @@ class sdWorld
 				for ( i = 0; i < sdEntity.to_seal_list.length; i++ )
 				{
 					if ( !sdEntity.to_seal_list[ i ]._is_being_removed )
-					Object.seal( sdEntity.to_seal_list[ i ] );
+					{
+						//sdEntity.to_seal_list[ i ].InitMatterMode();
+				
+						Object.seal( sdEntity.to_seal_list[ i ] );
+					}
 				}
 				sdEntity.to_seal_list.length = 0;
 			}
@@ -2100,9 +2104,9 @@ class sdWorld
 							// Make sure low tickrate entities are still catch up on time, this still improved performance because of calling same method multiple times is always faster than calling multiple methods once (apparently virtual method call issue)
 							skip_frames = 30;
 
-							if ( e.is( sdCharacter ) || e.is( sdGun ) )
-							skip_frames = 5; // High values cause idling players to lose their guns
-							else
+							//if ( e.is( sdCharacter ) || e.is( sdGun ) )
+							//skip_frames = 5; // High values cause idling players to lose their guns
+							//else
 							if ( e.is( sdSandWorm ) )
 							skip_frames = 5; // These are just unstable on high GSPEED
 							else
@@ -2112,7 +2116,14 @@ class sdWorld
 							if ( e._net_id % skip_frames === frame % skip_frames )
 							{
 								gspeed_mult = skip_frames;
-								substeps_mult = skip_frames;
+								
+								if ( typeof e._phys_sleep === 'undefined' || e._phys_sleep <= 0 )
+								//if ( e.is_static || typeof e.sy === 'undefined' )
+								{
+									// Single substep for amplifiers, nodes, cables etc
+								}
+								else
+								substeps_mult = 5;
 							}
 							else
 							continue;

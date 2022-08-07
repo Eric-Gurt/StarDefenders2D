@@ -253,9 +253,12 @@ class sdDoor extends sdEntity
 			}
 			else
 			{
-
+				//let old_array_ptr = this._anything_near;
+				
 				//let ents_near = sdWorld.GetAnythingNear( this.x0, this.y0, 32 );
-				let ents_near = this.GetAnythingNearCache( this.x0, this.y0, 32 );
+				let ents_near = this.GetAnythingNearCache( this.x0, this.y0, 32, null, null, false );
+				
+				/*if ( old_array_ptr !== this._anything_near )
 				for ( let i = 0; i < ents_near.length; i++ )
 				{
 					if ( ents_near[ i ].is_static || ents_near[ i ].is( sdDoor ) || ents_near[ i ]._net_id === undefined ) // skip statics and ones that dont exist on server
@@ -264,7 +267,7 @@ class sdDoor extends sdEntity
 						i--;
 						continue;
 					}
-				}
+				}*/
 
 				if ( ents_near.length > 0 )
 				{
@@ -278,18 +281,28 @@ class sdDoor extends sdEntity
 						//if ( coms_near[ i ].subscribers.indexOf( ents_near[ i2 ]._net_id ) !== -1 || coms_near[ i ].subscribers.indexOf( ents_near[ i2 ].GetClass() ) !== -1 )
 						//if ( com_near.subscribers.indexOf( ents_near[ i2 ]._net_id ) !== -1 || com_near.subscribers.indexOf( ents_near[ i2 ].GetClass() ) !== -1 || com_near.subscribers.indexOf( '*' ) !== -1 )
 						if ( 
-							com_near.subscribers.indexOf( ents_near[ i2 ]._net_id ) !== -1 || 
-							com_near.subscribers.indexOf( ents_near[ i2 ].biometry ) !== -1 || 
-							com_near.subscribers.indexOf( ents_near[ i2 ].GetClass() ) !== -1 || 
-							com_near.subscribers.indexOf( '*' ) !== -1 )
+								!ents_near[ i2 ]._is_being_removed &&
+								(
+									com_near.subscribers.indexOf( ents_near[ i2 ]._net_id ) !== -1 || 
+									com_near.subscribers.indexOf( ents_near[ i2 ].biometry ) !== -1 || 
+									com_near.subscribers.indexOf( ents_near[ i2 ].GetClass() ) !== -1 || 
+									( com_near.subscribers.indexOf( '*' ) !== -1 && !ents_near[ i2 ].is_static && ents_near[ i2 ]._net_id !== undefined )
+								)
+							)
 						{
 							if ( this.opening_tim === 0 )
 							this.Sound( 'door_start' );
 							//sdSound.PlaySound({ name: ( ( this.model === sdDoor.MODEL_ARMORED || this.model === sdDoor.MODEL_ARMORED_LVL2  ) ? 'a' : '' ) + 'door_start', x:this.x, y:this.y, volume:0.5 });
-
+							
 							this.opening_tim = 15;
 							this._update_version++;
 							break;// outer;
+						}
+						else
+						{
+							ents_near.splice( i2, 1 );
+							i2--;
+							continue;
 						}
 					//}
 					/*else

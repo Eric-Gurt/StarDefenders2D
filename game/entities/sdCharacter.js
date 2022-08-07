@@ -420,11 +420,9 @@ class sdCharacter extends sdEntity
 	}
 	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Guns are not targetable when held, same for sdCharacters that are driving something
 	{
-		if ( !ignore_safe_areas )
-		if ( !by_entity || !by_entity._admin_picker )
-		if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
+		if ( !super.IsTargetable( by_entity, ignore_safe_areas ) )
 		return false;
-	
+		
 		return ( this.driver_of === null || !this.driver_of.VehicleHidesDrivers() );
 	}
 	IsPlayerClass() // sdCharacter has it as well as everything that extends him
@@ -3472,7 +3470,8 @@ class sdCharacter extends sdEntity
 			{
 				if ( from_entity._is_being_removed )
 				{
-					throw new Error('[ 1 ] How did character touch gun that is _is_being_removed? Gun snapshot: ' + JSON.stringify( from_entity.GetSnapshot( GetFrame(), true ) ) );
+					return; // Can happen is very rare cases, if gun self-destructs, perhaps.
+					//throw new Error('[ 1 ] How did character touch gun that is _is_being_removed? Gun snapshot: ' + JSON.stringify( from_entity.GetSnapshot( GetFrame(), true ) ) );
 				}
 
 				let will_ignore_pickup = this.IsGunIgnored( from_entity, false );

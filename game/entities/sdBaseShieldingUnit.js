@@ -470,6 +470,8 @@ class sdBaseShieldingUnit extends sdEntity
 		if ( this.enabled )
 		if ( this._attack_timer <= 0 )
 		{
+			this._attack_timer = 30 + Math.random() * 30; // Idling, do not check in each frame since this whole test can be complex enough
+			
 			//let units = sdWorld.GetAnythingNear( this.x, this.y, sdBaseShieldingUnit.protect_distance + 64, null, [ 'sdBaseShieldingUnit' ] );
 			
 			const units = sdBaseShieldingUnit.all_shield_units;

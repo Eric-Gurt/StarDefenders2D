@@ -44,6 +44,9 @@ class sdStorage extends sdEntity
 
 	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Crates are not targetable when stored, same for crystals and guns
 	{
+		if ( !super.IsTargetable( by_entity, ignore_safe_areas ) )
+		return false;
+		
 		return ( this.held_by === null );
 	}
 	

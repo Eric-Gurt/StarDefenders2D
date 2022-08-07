@@ -1714,7 +1714,7 @@ class sdRenderer
 		{
 			if ( ent.is( sdBlock ) )
 			{
-				if ( ent.material === sdBlock.MATERIAL_TRAPSHIELD || ent.texture_id === sdBlock.TEXTURE_ID_GLASS )
+				if ( ent.material === sdBlock.MATERIAL_TRAPSHIELD || ent.texture_id === sdBlock.TEXTURE_ID_GLASS || ent.texture_id === sdBlock.TEXTURE_ID_CAGE )
 				{
 				}
 				else
