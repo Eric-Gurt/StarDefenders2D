@@ -16,11 +16,11 @@ class sdSlug extends sdEntity
 	{
 		/*sdSlug.img_slug_idle1 = sdWorld.CreateImageFromFile( 'slug_idle' );
 		sdSlug.img_slug_walk1 = sdWorld.CreateImageFromFile( 'slug_walk1' );
-		sdSlug.img_slug_walk2 = sdWorld.CreateImageFromFile( 'slug_walk2' );*/
+		sdSlug.img_slug_walk2 = sdWorld.CreateImageFromFile( 'slug_walk2' );
 		
 		sdSlug.img_slug_blinks = [ sdWorld.CreateImageFromFile( 'slug_blink1' ), sdWorld.CreateImageFromFile( 'slug_blink2' ), sdWorld.CreateImageFromFile( 'slug_blink3' ) ];
 		
-		/*sdSlug.death_imgs = [
+		sdSlug.death_imgs = [
 			sdWorld.CreateImageFromFile( 'slug_death1' ),
 			sdWorld.CreateImageFromFile( 'slug_death2' ),
 			sdWorld.CreateImageFromFile( 'slug_death3' ),
@@ -366,7 +366,7 @@ class sdSlug extends sdEntity
 
 		let xx = 0;
 		let yy = 0;
-		
+
 		if ( this.death_anim > 0 )
 		{
 			if ( this.death_anim > sdSlug.death_duration + sdSlug.post_death_ttl - 30 )
@@ -390,9 +390,9 @@ class sdSlug extends sdEntity
 		{
 			//if ( Math.abs( this.sx ) < 2 )
 			//if ( sdWorld.time < this.last_jump + 400 ) // This approach would work better for in-place jumps
-			if ( this.time_since_jump < 400 / 1000 * 30 )
+			if ( this.time_since_jump < 200 / 1000 * 30 )
 			{
-				xx = Math.min( 2 - 1, ~~( ( this.time_since_jump < 200 / 1000 * 30 ) * 2 ) );
+				xx = Math.min( 2 - 1, ~~( ( this.time_since_jump < 400 / 1000 * 30 ) * 2 ) );
 				yy = 0;
 				//ctx.drawImageFilterCache( ( this.time_since_jump < 200 / 1000 * 30 ) ? sdSlug.img_slug_walk1 : sdSlug.img_slug_walk2, - 16, - 16, 32,32 );
 				//ctx.drawImageFilterCache( ( sdWorld.time < this.last_jump + 200 ) ? sdSlug.img_slug_walk1 : sdSlug.img_slug_walk2, - 16, - 16, 32,32 );
@@ -404,18 +404,37 @@ class sdSlug extends sdEntity
 
 				//ctx.drawImageFilterCache( sdSlug.img_slug_idle1, - 16, - 16, 32,32 );
 				
-				for ( let i = 0; i < 3; i++ )
+				/*for ( let i = 0; i < 3; i++ )
 				if ( this.blinks[ i ] )
-				/*{
-					xx = 6[ i ];
+				{
+					xx = [ i ];
 					yy = 2;
 				}*/
 
-				ctx.drawImageFilterCache( sdSlug.img_slug_blinks[ i ], - 16, - 16, 32,32 );
+				//ctx.drawImageFilterCache( sdSlug.img_slug_blinks[ i ], - 16, - 16, 32,32 );
 			}
 		}
 
 		ctx.drawImageFilterCache( sdSlug.img_slug, xx * 32, yy * 32, 32,32, -16, -16, 32,32 );
+
+		for ( let i = 0; i < 3; i++ )
+		if ( this.blinks[ i ] )
+		{
+			let sprite = [
+				2,2
+			];
+
+			let locations = [
+				-10,
+				-16,
+				-18
+			];
+
+			let xx = sprite[ i ];
+			let yy = sprite[ i ];
+
+			ctx.drawImageFilterCache( sdSlug.img_slug, xx * 32, yy * 32, 32,32,  locations[ i ], -16, 32,32 );
+		}
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
