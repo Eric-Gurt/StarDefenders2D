@@ -77,7 +77,7 @@ class sdJunk extends sdEntity
 		this.type = params.type || t_s;
 
 		if ( this.type === 6 ) // Task reward matter container
-		this.hmax = 2000;
+		this.hmax = 4000;
 		if ( this.type === 5 ) // Erthal distress beacon
 		this.hmax = 40000;
 		if ( this.type === 4 ) // Council bomb
