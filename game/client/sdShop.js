@@ -596,6 +596,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdOverlord', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdTutel', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGrub', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdAbomination', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBiter', _category:'Development tests' });
 		}
 		

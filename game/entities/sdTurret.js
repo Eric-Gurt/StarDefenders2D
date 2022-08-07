@@ -27,6 +27,7 @@ import sdTutel from './sdTutel.js';
 import sdFaceCrab from './sdFaceCrab.js';
 import sdSetrDestroyer from './sdSetrDestroyer.js';
 import sdBiter from './sdBiter.js';
+import sdAbomination from './sdAbomination.js';
 
 
 class sdTurret extends sdEntity
@@ -72,7 +73,8 @@ class sdTurret extends sdEntity
 			sdWorld.entity_classes.sdOverlord,
 			sdWorld.entity_classes.sdPlayerDrone,
 			sdWorld.entity_classes.sdAmphid,
-			sdBiter
+			sdBiter,
+			sdAbomination
 		] ); // Module random load order that causes error prevention
 		
 		sdTurret.KIND_LASER = 0;
