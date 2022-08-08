@@ -345,11 +345,16 @@ class sdTask extends sdEntity
 	
 	onRemoveAsFakeEntity()
 	{
-		sdTask.tasks.splice( sdTask.tasks.indexOf( this ), 1 );
+		let id = sdTask.tasks.indexOf( this );
+		
+		if ( id !== -1 )
+		sdTask.tasks.splice( id, 1 );
+		else
+		console.warn( 'Warning: sdTask is removed... Twice?' );
 	}
 	onBeforeRemove()
 	{
-		sdTask.tasks.splice( sdTask.tasks.indexOf( this ), 1 );
+		this.onRemoveAsFakeEntity();
 	}
 	
 	CameraDistanceScale3D( layer ) // so far layer is only FG (1), usually only used by chat messages
