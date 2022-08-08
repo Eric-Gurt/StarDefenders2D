@@ -385,7 +385,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdLandMine', _category:'Equipment' });
 
 		sdShop.upgrades = {
-			upgrade_suit:
+			/*upgrade_suit:
 			{
 				max_level: 3,
 				matter_cost: 120,
@@ -394,7 +394,7 @@ class sdShop
 				{
 					character.hmax = Math.round( 130 + level_purchased / 3 * 120 );
 				}
-			},
+			},*/
 			upgrade_damage:
 			{
 				max_level: 3,
