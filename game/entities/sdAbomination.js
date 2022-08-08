@@ -214,9 +214,9 @@ class sdAbomination extends sdEntity
 							dx = -2;
 
 							if ( dy > 0 )
-							dy = -2;
+							dy = -2.5;
 							else
-							dy = -2;
+							dy = -2.5;
 
 							let di = sdWorld.Dist2D_Vector( dx, dy );
 							if ( di > 5 )
@@ -309,56 +309,152 @@ class sdAbomination extends sdEntity
 		if ( this._current_target )
 		if ( this.attack_timer <= 0 )
 		{
-					let xx = this._current_target.x + ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2;
-					let yy = this._current_target.y + ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2;
+			let xx = this._current_target.x + ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2;
+			let yy = this._current_target.y + ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2;
+			let dist_ranged = sdWorld.Dist2D_Vector( this._current_target.x - this.x, this._current_target.y - this.y );
+			if ( dist_ranged < 400 ); // Distance for ranged attacks
+			if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this._current_target, null, sdCom.com_creature_attack_unignored_classes ) )
+			{
+				let dx = xx - this.x;
+				let dy = yy - this.y;
+						
+				let di = sdWorld.Dist2D_Vector( dx, dy );
+						
+				dx += ( this._current_target.sx || 0 ) * di / 12;
+				dy += ( this._current_target.sy || 0 ) * di / 12;
+						
+				di = sdWorld.Dist2D_Vector( dx, dy );
+						
+				if ( di > 1 )
+				{
+					dx /= di;
+					dy /= di;
+				}
+						
+				this.side = ( dx > 0 ) ? 1 : -1;
+						
+				//this.an = Math.atan2( this._target.y + this._target.sy * di / vel - this.y, this._target.x + this._target.sx * di / vel - this.x ) * 100;
+						
+				//sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.33, pitch:5 });
+				sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:0.33, pitch:1.5 });
 
-					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this._current_target, null, sdCom.com_creature_attack_unignored_classes ) )
+				let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+				let bullet_obj2 = new sdBullet({ x: this.x, y: this.y });
+				let bullet_obj3 = new sdBullet({ x: this.x, y: this.y });
+
+				bullet_obj._owner = this;
+
+				bullet_obj2._owner = this;
+
+				bullet_obj3._owner = this;
+
+				bullet_obj.sx = dx;
+				bullet_obj.sy = dy;
+				bullet_obj.x += bullet_obj.sx * 3;
+				bullet_obj.y += bullet_obj.sy * 3;
+
+				bullet_obj.sx *= 12;
+				bullet_obj.sy *= 12;
+
+				bullet_obj._damage = 15;
+						
+				bullet_obj.model = 'ab_tooth';
+
+				sdEntity.entities.push( bullet_obj );
+
+				bullet_obj2.sx = dx + ( Math.random() * 2 ) - ( Math.random() * 2 );
+				bullet_obj2.sy = dy + ( Math.random() * 2 ) - ( Math.random() * 2 );
+				bullet_obj2.x += bullet_obj2.sx * 3;
+				bullet_obj2.y += bullet_obj2.sy * 3;
+
+				bullet_obj2.sx *= 12 + ( Math.random() * 2 ) - ( Math.random() * 2 );
+				bullet_obj2.sy *= 12 + ( Math.random() * 2 ) - ( Math.random() * 2 );
+
+				bullet_obj2._damage = 15;
+						
+				bullet_obj2.model = 'ab_tooth';
+
+				sdEntity.entities.push( bullet_obj2 );
+
+				bullet_obj3.sx = dx + Math.random() - Math.random();
+				bullet_obj3.sy = dy + Math.random() - Math.random();
+				bullet_obj3.x += bullet_obj3.sx * 3;
+				bullet_obj3.y += bullet_obj3.sy * 3;
+
+				bullet_obj3.sx *= 12 + Math.random() - Math.random();
+				bullet_obj3.sy *= 12 + Math.random() - Math.random();
+
+				bullet_obj3._damage = 15;
+						
+				bullet_obj3.model = 'ab_tooth';
+
+				sdEntity.entities.push( bullet_obj3 );
+						
+				this.attack_timer = 30;
+						
+			}
+			else // If no line of sight towards target, grapple a random block nearby
+			{
+				if ( this._pull_timer <= 0 )
+				{
+					let from_entity = null;
+					let dist_att;
+					for ( let i = 0; i < 30; i++ )
 					{
-						let dx = xx - this.x;
-						let dy = yy - this.y;
-						
-						let di = sdWorld.Dist2D_Vector( dx, dy );
-						
-						dx += ( this._current_target.sx || 0 ) * di / 12;
-						dy += ( this._current_target.sy || 0 ) * di / 12;
-						
-						di = sdWorld.Dist2D_Vector( dx, dy );
-						
-						if ( di > 1 )
+						let an = Math.random() * Math.PI * 2;
+
+						if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.x + Math.sin( an ) * 150, this.y + Math.cos( an ) * 150, this ) )
+						if ( sdWorld.last_hit_entity.is( sdBlock ) )
 						{
-							dx /= di;
-							dy /= di;
+							dist_att = sdWorld.Dist2D_Vector( sdWorld.last_hit_entity.x - this.x, sdWorld.last_hit_entity.y - this.y );
+							if ( dist_att < 150 && dist_att > 32 )
+							{
+								from_entity = sdWorld.last_hit_entity;
+								break;
+							}
 						}
-						
-						this.side = ( dx > 0 ) ? 1 : -1;
-						
-						//this.an = Math.atan2( this._target.y + this._target.sy * di / vel - this.y, this._target.x + this._target.sx * di / vel - this.x ) * 100;
-						
-						//sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.33, pitch:5 });
-						sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:0.33, pitch:1.5 });
 
-						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
-
-						bullet_obj._owner = this;
-
-						bullet_obj.sx = dx;
-						bullet_obj.sy = dy;
-						bullet_obj.x += bullet_obj.sx * 3;
-						bullet_obj.y += bullet_obj.sy * 3;
-
-						bullet_obj.sx *= 12;
-						bullet_obj.sy *= 12;
-
-						bullet_obj._damage = 45;
-						bullet_obj.color = '#00ff00';
-						
-						bullet_obj.model = 'ab_tooth';
-
-						sdEntity.entities.push( bullet_obj );
-						
-						this.attack_timer = 30;
-						
 					}
+
+					if ( dist_att < 150 && dist_att > 32 && from_entity !== null ) // Just in case if it doesn't find a fitting candidate?
+					{
+						this._pull_timer = 50;
+
+						let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
+						let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
+						{
+							//from_entity.DamageWithEffect( 10, this );
+							this._hea = Math.min( this._hmax, this._hea + 25 );
+
+
+							//from_entity.PlayDamageEffect( xx, yy ); // Should pulling entities display this effect?
+
+							this.tenta_x = xx - this.x;
+							this.tenta_y = yy - this.y;
+							this.tenta_tim = 100;
+							this._tenta_target = from_entity;
+
+
+							if ( typeof from_entity.sx !== 'undefined' ) // Is it an entity
+							from_entity.sx += - this.tenta_x / 100; // Pull it in
+							else
+							this.sx += this.tenta_x / 100; // Pull itself towards the static entity
+
+							if ( typeof from_entity.sy !== 'undefined' )
+							from_entity.sy += - this.tenta_y / 100;
+							else
+							this.sy += this.tenta_y / 100; // Pull itself towards the entity
+						
+							if ( from_entity.IsPlayerClass() )
+							from_entity.ApplyServerSidePositionAndVelocity( true, - this.tenta_x / 100, - this.tenta_y / 100 );
+						
+							let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y );
+							if ( di > 0 )
+							from_entity.Impulse( this.tenta_x / di * 20, this.tenta_y / di * 20 );
+						}
+					}
+				}
+			}		
 		}
 	}
 	onMovementInRange( from_entity )
