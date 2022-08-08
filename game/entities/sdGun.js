@@ -423,7 +423,7 @@ class sdGun extends sdEntity
 		
 		sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.5 });
 		
-		this._held_by.reload_anim = 30;
+		this._held_by.reload_anim = 15;
 	}
 	
 	GetBulletCost( return_infinity_on_build_tool_fail_placement=true, shoot_from_scenario=false )

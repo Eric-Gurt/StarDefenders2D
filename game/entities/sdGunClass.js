@@ -359,19 +359,20 @@ class sdGunClass
 			count: 1,
 			matter_cost: 300,
 			projectile_velocity: 16,
+			spawnable: false,
 			GetAmmoCost: ()=>
 			{
-				return 100;
+				return 0;
 			},
-			projectile_properties: { time_left: 2, _damage: 40, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
+			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
 				{
 					if ( target_entity.IsPlayerClass() )
 					{
-						target_entity.AnnounceTooManyEffectsIfNeeded();
-						target_entity.stim_ef = 30 * 30;
+						//target_entity.AnnounceTooManyEffectsIfNeeded();
+						//target_entity.stim_ef = 30 * 30;
 						
-						//if ( bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_STIMPACK ].slot ] )
-						//bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_STIMPACK ].slot ].remove();
+						if ( bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_STIMPACK ].slot ] )
+						bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_STIMPACK ].slot ].remove();
 					}
 				}
 			}
@@ -1249,23 +1250,24 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 0,
 			min_build_tool_level: 2,
+			spawnable: false,
 			matter_cost: 300 / 2 * 2.5, // More DPS relative to stimpack
 			projectile_velocity: 16,
 			GetAmmoCost: ()=>
 			{
-				return 100 / 2 * 2.5;
+				return 0; //100 / 2 * 2.5;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
 				if ( gun._held_by )
 				if ( gun._held_by.IsPlayerClass() )
 				{
-					gun._held_by.AnnounceTooManyEffectsIfNeeded();
-					gun._held_by.power_ef = 30 * 30;
+					//gun._held_by.AnnounceTooManyEffectsIfNeeded();
+					//gun._held_by.power_ef = 30 * 30;
 					//gun._held_by.DamageWithEffect( 40 );
 					
-					//if ( gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ] )
-					//gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ].remove();
+					if ( gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ] )
+					gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ].remove();
 				}
 				return true;
 			},
@@ -1528,23 +1530,24 @@ class sdGunClass
 			count: 0,
 			matter_cost: 900,
 			min_workbench_level: 5,
+			spawnable: false,
 			projectile_velocity: 16,
 			GetAmmoCost: ()=>
 			{
-				return ( 100 / 2 * 2.5 + 100 ) * 2;
+				return 0 ; //( 100 / 2 * 2.5 + 100 ) * 2;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
 				if ( gun._held_by )
 				if ( gun._held_by.IsPlayerClass() )
 				{
-					gun._held_by.AnnounceTooManyEffectsIfNeeded();
-					gun._held_by.stim_ef = 30 * 30;
-					gun._held_by.power_ef = 30 * 30;
-					gun._held_by.DamageWithEffect( 40, null, false, false ); // Don't damage armor
+					//gun._held_by.AnnounceTooManyEffectsIfNeeded();
+					//gun._held_by.stim_ef = 30 * 30;
+					//gun._held_by.power_ef = 30 * 30;
+					//gun._held_by.DamageWithEffect( 40, null, false, false ); // Don't damage armor
 					
-					/*if ( gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ] )
-					gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_PACK ].slot ].remove();*/
+					if ( gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_STIMPACK ].slot ] )
+					gun._held_by._inventory[ sdGun.classes[ sdGun.CLASS_POWER_STIMPACK ].slot ].remove();
 				}
 				return true;
 			},
