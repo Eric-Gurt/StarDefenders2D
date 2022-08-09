@@ -2040,8 +2040,11 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_DIRTY_AIR )
 		{
-			this.air = 0;
-			this._no_air_duration = 30 * 60 * 5;
+			if ( this.air === 1 ) // Without this check event can roll multiple times while task doesn't display / refresh correct time left.
+			{
+				this.air = 0;
+				this._no_air_duration = 30 * 60 * 5;
+			}
 		}
 		if ( r === sdWeather.EVENT_AMPHIDS )
 		{
