@@ -2123,7 +2123,7 @@ class sdWorld
 									// Single substep for amplifiers, nodes, cables etc
 								}
 								else
-								substeps_mult = 5;
+								substeps_mult = 8; // 5 was not enough for crystals in amplifiers
 							}
 							else
 							continue;
