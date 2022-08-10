@@ -411,7 +411,7 @@ class sdSlug extends sdEntity
 						-16,
 						-18
 					];
-					
+
 					let aa = sprite[ i ]
 					let bb = sprite[ i ]
 					ctx.drawImageFilterCache( sdSlug.img_slug, aa * 32, bb * 32, 32,32,  locations[ i ], -16, 32,32 ) // Works but can't clip through because the 2nd image has been created
@@ -419,7 +419,6 @@ class sdSlug extends sdEntity
 
 				//ctx.drawImageFilterCache( sdSlug.img_slug_blinks[ i ], - 16, - 16, 32,32 );
 			}
-			ctx.drawImageFilterCache( sdSlug.img_slug, xx * 32, yy * 32, 32,32, -16, -16, 32,32 );
 
 			/*for ( let i = 0; i < 3; i++ )
 			if ( this.blinks[ i ] )
@@ -438,6 +437,7 @@ class sdSlug extends sdEntity
 				ctx.drawImageFilterCache( sdSlug.img_slug, xx * 32, yy * 32, 32,32,  locations[ i ], -16, 32,32 ); // The eye doesn't continue the idle state
 			}*/
 		}
+		ctx.drawImageFilterCache( sdSlug.img_slug, xx * 32, yy * 32, 32,32, -16, -16, 32,32 );
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
