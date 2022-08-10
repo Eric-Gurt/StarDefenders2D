@@ -925,6 +925,14 @@ let enf_once = true;
 		if ( KeyCodeRemap[ code ] )
 		code = KeyCodeRemap[ code ];
 		
+		if ( code === 'KeyZ' )
+		{
+			if ( sdWorld.target_scale === 8 )
+			window.onresize();
+			else
+			sdWorld.target_scale = 8;
+		}
+		
 		if ( key_states.GetKey( code ) !== 1 )
 		{
 			key_states.SetKey( code, 1 );

@@ -1927,7 +1927,9 @@ class sdCharacter extends sdEntity
 	GetBulletSpawnOffset()
 	{
 		// Anything else is no longer good with new ragdoll structure
-		return { x:0, y:Math.min( sdCharacter.bullet_y_spawn_offset, ( this._hitbox_y1 + this._hitbox_y2 ) / 2 ) };
+		//return { x:0, y:Math.max( sdCharacter.bullet_y_spawn_offset, ( this._hitbox_y1 + this._hitbox_y2 ) / 2 ) };
+		return { x:0, y:( this._hitbox_y1 + this._hitbox_y2 ) / 2 + sdCharacter.bullet_y_spawn_offset };
+		//return { x:0, y:( this._hitbox_y1 + this._hitbox_y2 ) / 2 };
 		/*
 			
 		// Much better for digging down. Also will work with all short-range weapons like defibrillators
@@ -2283,7 +2285,7 @@ class sdCharacter extends sdEntity
 
 			if ( this.reload_anim > 0 )
 			{
-				this.reload_anim -= GSPEED * 2 * ( ( this.stim_ef > 0 ) ? 1.25 : 1 );
+				this.reload_anim -= GSPEED * ( ( this.stim_ef > 0 ) ? 1.25 : 1 );
 
 				if ( this.reload_anim <= 0 )
 				{
@@ -2355,7 +2357,7 @@ class sdCharacter extends sdEntity
 					{
 						if ( this._key_states.GetKey( 'KeyR' ) &&
 							 this._inventory[ this.gun_slot ].ammo_left >= 0 && 
-							 this._inventory[ this.gun_slot ].ammo_left < sdGun.classes[ this._inventory[ this.gun_slot ].class ].ammo_capacity )
+							 this._inventory[ this.gun_slot ].ammo_left < this._inventory[ this.gun_slot ].GetAmmoCapacity() )
 						{
 							this._inventory[ this.gun_slot ].ReloadStart();
 						}

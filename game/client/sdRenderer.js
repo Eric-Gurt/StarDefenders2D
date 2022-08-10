@@ -1525,6 +1525,8 @@ class sdRenderer
 				else
 				keySuggestions.push({ title: 'Select build item', key: '- no build tool -' });
 			
+				keySuggestions.push({ title: 'Zoom in/out', key: 'Z' });
+			
 				for ( let i = 0; i < keySuggestions.length; i++ )
 				{
 					let s = keySuggestions[ i ];

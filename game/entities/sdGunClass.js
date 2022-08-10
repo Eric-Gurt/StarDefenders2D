@@ -3163,7 +3163,7 @@ class sdGunClass
 		{
 			gun._count = gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1;
 			gun._spread = gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 0.2 : ( 0.1 * gun.extra[ ID_RECOIL_SCALE ] );
-			gun._reload_time = ( gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1 ) * ( sdGun.classes[ gun.class ].reload_time / sdGun.classes[ gun.class ].parts_magazine[ gun.extra[ ID_MAGAZINE ] ].rate );//sdGun.classes[ gun.class ].reload_time * gun.extra[ ID_FIRE_RATE ];
+			gun._reload_time = ( gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1 ) * ( sdGun.classes[ gun.class ].reload_time / sdGun.classes[ gun.class ].parts_magazine[ gun.extra[ ID_MAGAZINE ] ].rate ) * gun.extra[ ID_FIRE_RATE ];
 			
 			gun._temperature_addition = gun.extra[ ID_TEMPERATURE_APPLIED ];
 			
@@ -3177,6 +3177,8 @@ class sdGunClass
 			gun.extra[ ID_SLOT ] = 5;
 			else
 			gun.extra[ ID_SLOT ] = 2;
+		
+			gun.ammo_left = Math.min( gun.ammo_left, gun.GetAmmoCapacity() );
 		}
 		
 		function AddGunEditorUpgrades( custom_rifle_upgrades=[] )
@@ -3379,14 +3381,14 @@ class sdGunClass
 					} 
 				} 
 			);
-			/*custom_rifle_upgrades.push(
+			custom_rifle_upgrades.push(
 				{
 					title: 'Increase fire rate', 
-					cost: 200, 
+					cost: 0, 
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
-						gun.extra[ ID_FIRE_RATE ] *= 0.95; // 5%
+						gun.extra[ ID_FIRE_RATE ] = Math.max( 1, gun.extra[ ID_FIRE_RATE ] - 0.1 );
 						UpdateCusomizableGunProperties( gun );
 					} 
 				} 
@@ -3398,11 +3400,11 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
-						gun.extra[ ID_FIRE_RATE ] *= ( 1.05 ); // 5%
+						gun.extra[ ID_FIRE_RATE ] = Math.min( 10, gun.extra[ ID_FIRE_RATE ] + 0.1 );
 						UpdateCusomizableGunProperties( gun );
 					} 
 				} 
-			);*/
+			);
 			custom_rifle_upgrades.push(
 				{
 					title: 'Improve recoil control', 
@@ -3517,7 +3519,7 @@ class sdGunClass
 				
 				if ( gun.extra[ ID_HAS_RAIL_EFFECT ] )
 				capacity /= 2;
-				
+			
 				return Math.ceil( capacity );
 			},
 			
@@ -3536,7 +3538,8 @@ class sdGunClass
 				if ( gun.extra[ ID_HAS_SHOTGUN_EFFECT ] )
 				{
 					obj._dirt_mult = 0;
-					obj._damage /= 5;
+					//obj._damage /= 5;
+					obj._damage /= 2;
 				}
 				if ( gun.extra[ ID_HAS_EXPLOSION ] )
 				{

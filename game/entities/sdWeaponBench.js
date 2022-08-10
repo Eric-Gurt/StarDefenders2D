@@ -111,6 +111,10 @@ class sdWeaponBench extends sdEntity
 			
 			if ( has_class.use_parts_rendering )
 			{
+				let gun = this.item0;
+				
+				let ID_MAGAZINE = 2;
+		
 				let ID_DAMAGE_MULT = 7;
 				let ID_FIRE_RATE = 8;
 				let ID_RECOIL_SCALE = 9;
@@ -121,15 +125,21 @@ class sdWeaponBench extends sdEntity
 				let ID_SLOT = 14;
 
 				//Tooltip( ctx, t, x=0, y=0, color='#ffffff' )
-				sdEntity.Tooltip( ctx, 'Damage: ' + Math.round( 25 * this.item0.extra[ ID_DAMAGE_MULT ] ), 0, -30, '#ffaaaa' );
-				sdEntity.Tooltip( ctx, 'Recoil: ' + Math.round( 100 * this.item0.extra[ ID_DAMAGE_MULT ] * this.item0.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -20, '#ffffaa' );
+				sdEntity.Tooltip( ctx, 'Damage: ' + Math.round( 25 * this.item0.extra[ ID_DAMAGE_MULT ] ), 0, -50, '#ffaaaa' );
+				sdEntity.Tooltip( ctx, 'Recoil: ' + Math.round( 100 * this.item0.extra[ ID_DAMAGE_MULT ] * this.item0.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -40, '#ffffaa' );
 				
-				if ( Math.round( this.item0._reload_time / 30 * 1000 ) < 16 )
-				sdEntity.Tooltip( ctx, 'Cooldown: 16ms (capped)', 0, -10, '#aaffaa' );
+				let reload_time = ( gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1 ) * ( sdGun.classes[ gun.class ].reload_time / sdGun.classes[ gun.class ].parts_magazine[ gun.extra[ ID_MAGAZINE ] ].rate ) * gun.extra[ ID_FIRE_RATE ];
+				
+				if ( Math.round( reload_time / 30 * 1000 ) < 16 )
+				sdEntity.Tooltip( ctx, 'Cooldown: 16ms (capped)', 0, -30, '#aaffaa' );
 				else
-				sdEntity.Tooltip( ctx, 'Cooldown: ' + Math.round( this.item0._reload_time / 30 * 1000 ) + 'ms', 0, -10, '#aaffaa' );
+				sdEntity.Tooltip( ctx, 'Cooldown: ' + Math.round( reload_time / 30 * 1000 ) + 'ms', 0, -30, '#aaffaa' );
 			
-				sdEntity.Tooltip( ctx, 'Temperature: ' + Math.round( this.item0.extra[ ID_TEMPERATURE_APPLIED ] ) + '°C', 0, 0, '#aaffff' );
+				sdEntity.Tooltip( ctx, 'Temperature: ' + Math.round( this.item0.extra[ ID_TEMPERATURE_APPLIED ] ) + '°C', 0, -20, '#aaffff' );
+				
+				sdEntity.Tooltip( ctx, 'Magazine capacity: ' + this.item0.GetAmmoCapacity(), 0, -10, '#ffffff' );
+				
+				sdEntity.Tooltip( ctx, 'Ammo cost: ' + Math.round( this.item0.GetBulletCost( false, false ) * 1000 ) / 1000, 0, 0, '#aaaaaa' );
 				
 				sdEntity.Tooltip( ctx, 'Biometry lock: ' + ( ( this.item0.biometry_lock !== -1 ) ? 'YES' : 'NO' ), 0, 10, '#333333' );
 			}

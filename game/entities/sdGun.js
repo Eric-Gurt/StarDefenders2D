@@ -557,8 +557,16 @@ class sdGun extends sdEntity
 		
 		if ( sdGun.classes[ this.class ].GetAmmoCost )
 		return sdGun.classes[ this.class ].GetAmmoCost( this, shoot_from_scenario );
+	
+		let dmg_mult = 1;
 		
-		return ( Math.abs( projectile_properties._damage * this._held_by._damage_mult * ( this._held_by.power_ef > 0 ? 2.5 : 1 ) ) * this._count + 
+		if ( this._held_by )
+		if ( this._held_by.IsPlayerClass() )
+		{
+			dmg_mult *= this._held_by._damage_mult * ( this._held_by.power_ef > 0 ? 2.5 : 1 );
+		}
+		
+		return ( Math.abs( projectile_properties._damage * dmg_mult ) * this._count + 
 				( projectile_properties._rail ? 30 : 0 ) + 
 				( projectile_properties.explosion_radius > 0 ? 250 : 0 ) ) * sdWorld.damage_to_matter;
 	}
@@ -739,8 +747,10 @@ class sdGun extends sdEntity
 						let an = initial_an + ( Math.random() * 2 - 1 ) * 0.5 + this._held_by._side * Math.PI / 2 * 0.5;
 
 						let vel = 1 + Math.random();
+						
+						let offset = this._held_by.GetBulletSpawnOffset();
 
-						let ef = new sdEffect({ x: this.x, y: this.y, type: sdEffect.TYPE_SHELL, sx:Math.sin( an ) * vel, sy:Math.cos( an ) * vel, rotation: Math.PI / 2 - initial_an });
+						let ef = new sdEffect({ x: this._held_by.x + offset.x, y: this._held_by.y + offset.y, type: sdEffect.TYPE_SHELL, sx:Math.sin( an ) * vel, sy:Math.cos( an ) * vel, rotation: Math.PI / 2 - initial_an });
 						sdEntity.entities.push( ef );
 					}
 				}
