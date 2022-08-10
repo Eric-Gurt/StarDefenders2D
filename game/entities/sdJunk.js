@@ -912,9 +912,9 @@ class sdJunk extends sdEntity
 				this._regen_timeout -= GSPEED;
 				else
 				{
-					if ( this._hea < this._hmax )
+					if ( this.hea < this.hmax )
 					{
-						this._hea = Math.min( this._hea + GSPEED, this._hmax );
+						this.hea = Math.min( this.hea + GSPEED, this.hmax );
 					}
 				}
 			}
