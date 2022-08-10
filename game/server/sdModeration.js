@@ -426,7 +426,7 @@ class sdModeration
 
 			};
 			
-			if ( parts[ 1 ] === 'nosave' )
+			if ( parts[ 1 ] === 'nosave' || parts[ 1 ] === '0' )
 			proceed();
 			else
 			sdWorld.SaveSnapshot( sdWorld.snapshot_path_const, proceed );
