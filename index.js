@@ -2753,7 +2753,7 @@ const ServerMainMethod = ()=>
 		});
 
 		//sockets_array_locked = true;
-		for ( var i = 0; i < sockets.length; i++ )
+		for ( let i = 0; i < sockets.length; i++ )
 		{
 			let socket = sockets[ i ]; // can disappear from array in the middle of loop
 			
@@ -2818,7 +2818,7 @@ const ServerMainMethod = ()=>
 					{
 						const SyncDataToPlayer = async ()=>
 						{
-							let previous_sync_time = socket.last_sync;
+							//let previous_sync_time = socket.last_sync;
 
 							socket.sync_busy = true;
 
@@ -2854,7 +2854,9 @@ const ServerMainMethod = ()=>
 							const MaxCompleteEntitiesCount = 40; // 50 sort of fine for PC, but now for mobile
 
 							//let meet_once = new WeakSet();
-							let meet_once2 = new Set();
+							//let meet_once2 = new Set();
+							const visited_ent_flag = sdEntity.GetUniqueFlagValue();
+							//this._flag = visited_ent_flag;
 
 							const AddEntity = ( ent, forced )=>
 							{
@@ -2865,11 +2867,13 @@ const ServerMainMethod = ()=>
 								}
 								*/
 
-								if ( //!meet_once.has( ent ) && 
-									 !meet_once2.has( ent._net_id ) )
+								//if ( //!meet_once.has( ent ) && 
+									 //!meet_once2.has( ent._net_id ) )
+								if ( ent._flag !== visited_ent_flag )
 								{
 									//meet_once.add( ent );
-									meet_once2.add( ent._net_id );
+									//meet_once2.add( ent._net_id );
+									ent._flag = visited_ent_flag;
 
 									if ( ent.IsVisible === sdEntity.prototype.IsVisible || 
 										 ent.IsVisible( socket.character ) )

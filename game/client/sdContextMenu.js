@@ -300,9 +300,12 @@ class sdContextMenu
 			
 			if ( sdContextMenu.options.length > 0 )
 			{
-				sdContextMenu.open = true;
-				sdContextMenu.x = sdWorld.mouse_screen_x;
-				sdContextMenu.y = sdWorld.mouse_screen_y;
+				if ( !sdContextMenu.open ) // Will be open in case of going through context menu categories
+				{
+					sdContextMenu.open = true;
+					sdContextMenu.x = sdWorld.mouse_screen_x;
+					sdContextMenu.y = sdWorld.mouse_screen_y;
+				}
 
 				sdRenderer.UpdateCursor();
 			}
@@ -333,7 +336,10 @@ class sdContextMenu
 			else
 			{
 				sdContextMenu.potential_option.action();
+				
+				if ( sdContextMenu.potential_option.close_on_click !== false )
 				sdContextMenu.open = false;
+			
 				sdRenderer.UpdateCursor();
 				return true;
 			}

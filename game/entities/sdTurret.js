@@ -196,6 +196,8 @@ class sdTurret extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		let can_hibernate = false;
+		
 		if ( this._disabled_timeout > 0 )
 		this._disabled_timeout -= GSPEED;
 		else
@@ -206,11 +208,17 @@ class sdTurret extends sdEntity
 		else
 		if ( this._hea < this._hmax )
 		this._hea = Math.min( this._hea + GSPEED, this._hmax );
+		else
+		{
+			can_hibernate = true;
+		}
 		
 		if ( sdWorld.is_server )
 		{
 			if ( this.matter > this.GetShootCost() )
 			{
+				can_hibernate = false;
+				
 				if ( this._seek_timer <= 0 && this.disabled === false )
 				{
 					this._seek_timer = 10 + Math.random() * 10;
@@ -340,6 +348,10 @@ class sdTurret extends sdEntity
 						
 						//this._debug1 = ents_looked_through;
 					}
+					else
+					{
+						can_hibernate = true;
+					}
 					
 				}
 				else
@@ -454,10 +466,16 @@ class sdTurret extends sdEntity
 					{
 						this.fire_timer = Math.max( 0, this.fire_timer - GSPEED );
 						this._update_version++;
+						
+						can_hibernate = false;
 					}
 				}
 			}
 		}
+		
+		if ( sdWorld.is_server )
+		if ( can_hibernate )
+		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 	}
 	ShootPossibilityFilter( ent )
 	{

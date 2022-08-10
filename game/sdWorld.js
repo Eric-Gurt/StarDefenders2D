@@ -75,7 +75,7 @@ class sdWorld
 			scale:1
 		};
 		
-		sdWorld.mouse_speed_morph = 0; // Slow-down due to open context menu or shop, especially for fast camera
+		//sdWorld.mouse_speed_morph = 0; // Slow-down due to open context menu or shop, especially for fast camera
 		
 		sdWorld.last_frame_time = 0; // For lag reporting
 		sdWorld.last_slowest_class = 'nothing';
@@ -2237,10 +2237,10 @@ class sdWorld
 			
 			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 			{
-				if ( sdShop.open || sdContextMenu.open )
-				sdWorld.mouse_speed_morph = Math.max( sdWorld.mouse_speed_morph - GSPEED * 0.05, 0 );
+				/*if ( sdShop.open || sdContextMenu.open )
+				sdWorld.mouse_speed_morph = Math.max( sdWorld.mouse_speed_morph - GSPEED * 0.15, 0 );
 				else
-				sdWorld.mouse_speed_morph = Math.min( sdWorld.mouse_speed_morph + GSPEED * 0.05, 1 );
+				sdWorld.mouse_speed_morph = Math.min( sdWorld.mouse_speed_morph + GSPEED * 0.15, 1 );*/
 				
 				sdWorld.mouse_world_x = ( sdWorld.mouse_screen_x / sdWorld.camera.scale + sdWorld.camera.x - sdRenderer.screen_width / 2 / sdWorld.camera.scale );// * sdWorld.mouse_speed_morph + sdWorld.mouse_world_x * ( 1 - sdWorld.mouse_speed_morph );
 				sdWorld.mouse_world_y = ( sdWorld.mouse_screen_y / sdWorld.camera.scale + sdWorld.camera.y - sdRenderer.screen_height / 2 / sdWorld.camera.scale );// * sdWorld.mouse_speed_morph + sdWorld.mouse_world_y * ( 1 - sdWorld.mouse_speed_morph );
@@ -2256,8 +2256,8 @@ class sdWorld
 					{
 						if ( sdWorld.soft_camera )
 						{
-							sdWorld.camera.x = sdWorld.MorphWithTimeScale( sdWorld.camera.x, ( sdWorld.my_entity.x + sdWorld.my_entity.look_x ) / 2, 1 - 10/11, GSPEED/30 ) * sdWorld.mouse_speed_morph + sdWorld.camera.x * ( 1 - sdWorld.mouse_speed_morph );
-							sdWorld.camera.y = sdWorld.MorphWithTimeScale( sdWorld.camera.y, ( sdWorld.my_entity.y + sdWorld.my_entity.look_y ) / 2, 1 - 10/11, GSPEED/30 ) * sdWorld.mouse_speed_morph + sdWorld.camera.y * ( 1 - sdWorld.mouse_speed_morph );
+							sdWorld.camera.x = sdWorld.MorphWithTimeScale( sdWorld.camera.x, ( sdWorld.my_entity.x + sdWorld.my_entity.look_x ) / 2, 1 - 10/11, GSPEED/30 );// * sdWorld.mouse_speed_morph + sdWorld.camera.x * ( 1 - sdWorld.mouse_speed_morph );
+							sdWorld.camera.y = sdWorld.MorphWithTimeScale( sdWorld.camera.y, ( sdWorld.my_entity.y + sdWorld.my_entity.look_y ) / 2, 1 - 10/11, GSPEED/30 );// * sdWorld.mouse_speed_morph + sdWorld.camera.y * ( 1 - sdWorld.mouse_speed_morph );
 						}
 						else
 						{
@@ -2265,8 +2265,8 @@ class sdWorld
 							//sdWorld.camera.y = ( sdWorld.my_entity.y + sdWorld.my_entity.look_y ) / 2;
 							//for ( let i = 0; i < 30; i++ )
 							{
-								sdWorld.camera.x = sdWorld.MorphWithTimeScale( sdWorld.camera.x, ( sdWorld.my_entity.x + sdWorld.my_entity.look_x ) / 2, 0.5, GSPEED * 30 ) * sdWorld.mouse_speed_morph + sdWorld.camera.x * ( 1 - sdWorld.mouse_speed_morph );
-								sdWorld.camera.y = sdWorld.MorphWithTimeScale( sdWorld.camera.y, ( sdWorld.my_entity.y + sdWorld.my_entity.look_y ) / 2, 0.5, GSPEED * 30 ) * sdWorld.mouse_speed_morph + sdWorld.camera.y * ( 1 - sdWorld.mouse_speed_morph );
+								sdWorld.camera.x = sdWorld.MorphWithTimeScale( sdWorld.camera.x, ( sdWorld.my_entity.x + sdWorld.my_entity.look_x ) / 2, 0.5, GSPEED * 30 );// * sdWorld.mouse_speed_morph + sdWorld.camera.x * ( 1 - sdWorld.mouse_speed_morph );
+								sdWorld.camera.y = sdWorld.MorphWithTimeScale( sdWorld.camera.y, ( sdWorld.my_entity.y + sdWorld.my_entity.look_y ) / 2, 0.5, GSPEED * 30 );// * sdWorld.mouse_speed_morph + sdWorld.camera.y * ( 1 - sdWorld.mouse_speed_morph );
 							}
 						}
 					}

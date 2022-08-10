@@ -894,6 +894,14 @@ class sdCharacter extends sdEntity
 
 		return this._init_ai_model; // Return to normal behaviour against other mobs
 	}
+	
+	/*get _damage_mult()
+	{
+		return 1;
+	}
+	set _damage_mult( v )
+	{
+	}*/
 
 	AITargetBlocks() // Targets first "GetAnythingNear" sdBlock.
 	{
@@ -931,13 +939,15 @@ class sdCharacter extends sdEntity
 		if ( this._socket )
 		this._socket.emit( 'UPGRADE_SET', [ upgrade_name, this._upgrade_counters[ upgrade_name ] ] );
 	}
-	get hitbox_x1() { return this.s / 100 * ( this.death_anim < 10 ? -5 : -5 ); } // 7
+	/*get hitbox_x1() { return this.s / 100 * ( this.death_anim < 10 ? -5 : -5 ); } // 7
 	get hitbox_x2() { return this.s / 100 * ( this.death_anim < 10 ? 5 : 5 ); }
 	get hitbox_y1() { return this.s / 100 * ( this.death_anim < 10 ? -12 : 10 ); }
-	get hitbox_y2() { return this.s / 100 * ( this.death_anim < 10 ? ( ( 16 - this._crouch_intens * 6 ) ) : 16 ); }
-	//get hitbox_y2() { return this.s / 100 * ( this.death_anim < 10 ? ( ( 16 - this._crouch_intens * 6 ) * ( 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7 ) ) : 16 ); }
-
-//0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7
+	get hitbox_y2() { return this.s / 100 * ( this.death_anim < 10 ? ( ( 16 - this._crouch_intens * 6 ) ) : 16 ); }*/
+	
+	get hitbox_x1() { return this.s / 100 * ( -5 ); }
+	get hitbox_x2() { return this.s / 100 * ( 5 ); }
+	get hitbox_y1() { return this.s / 100 * ( this.death_anim < 10 ? ( -12 + this._crouch_intens * 6 ) : 10 ); }
+	get hitbox_y2() { return this.s / 100 * ( 16 ); }
 
 	get hard_collision() // For world geometry where players can walk
 	{ return ( !this.driver_of ); }
@@ -2272,7 +2282,7 @@ class sdCharacter extends sdEntity
 
 			if ( this.reload_anim > 0 )
 			{
-				this.reload_anim -= GSPEED * ( ( this.stim_ef > 0 ) ? 2 : 1 );
+				this.reload_anim -= GSPEED * 2 * ( ( this.stim_ef > 0 ) ? 1.25 : 1 );
 
 				if ( this.reload_anim <= 0 )
 				{
@@ -2575,15 +2585,15 @@ class sdCharacter extends sdEntity
 		
 		let walk_speed_scale = speed_scale;
 		
-		let leg_height;
-		let new_leg_height;
+		//let leg_height;
+		//let new_leg_height;
 		
 		if ( act_y_or_unstable )
 		walk_speed_scale *= 0.5;
 	
 		if ( ( ( act_y_or_unstable === 1 ) ? 1 : 0 ) !== this._crouch_intens )
 		{
-			leg_height = this.hitbox_y2;
+			//leg_height = this.hitbox_y2;
 			
 			let target_crouch = ( this.stability < 50 ) ? 4 : 1;
 
@@ -2607,14 +2617,14 @@ class sdCharacter extends sdEntity
 					}
 				}
 			}
-			new_leg_height = this.hitbox_y2; // Through getter
+			//new_leg_height = this.hitbox_y2; // Through getter
 		}
 		else
 		{
-			leg_height = new_leg_height = this._hitbox_y2; // Fake-ish outdated value since there is no crouch
+			//leg_height = new_leg_height = this._hitbox_y2; // Fake-ish outdated value since there is no crouch
 		}
 		
-		this._hitbox_y2 = new_leg_height; // Prevent short-term stucking in ground
+		//this._hitbox_y2 = new_leg_height; // Prevent short-term stucking in ground
 		
 		//leg_height		*= 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7;
 		//new_leg_height  *= 0.3 + Math.abs( Math.cos( this.tilt / 100 ) ) * 0.7;
@@ -3108,10 +3118,10 @@ class sdCharacter extends sdEntity
 					this.tilt_speed = sdWorld.MorphWithTimeScale( this.tilt_speed, 0, 0.7, GSPEED );
 				}*/
 				
-				if ( globalThis.CATCH_ERRORS )
+				/*if ( globalThis.CATCH_ERRORS )
 				{
-					if ( isNaN( new_leg_height ) || new_leg_height === undefined )
-					throw new Error( 'new_leg_height is '+new_leg_height );
+					//if ( isNaN( new_leg_height ) || new_leg_height === undefined )
+					//throw new Error( 'new_leg_height is '+new_leg_height );
 				
 					if ( isNaN( leg_height ) || leg_height === undefined )
 					{
@@ -3129,11 +3139,11 @@ class sdCharacter extends sdEntity
 				
 					if ( isNaN( this.y ) || this.y === undefined )
 					throw new Error( 'this.y is '+this.y );
-				}
+				}*/
 				
 				// No longer goes into ground, possibly doe to different hitbox cache handling
-				if ( new_leg_height !== leg_height )
-				this.y -= new_leg_height - leg_height;
+				//if ( new_leg_height !== leg_height )
+				//this.y -= new_leg_height - leg_height;
 			
 				/*if ( new_leg_height > leg_height )
 				{
@@ -3490,9 +3500,8 @@ class sdCharacter extends sdEntity
 							from_entity.dangerous = false;
 						}*/
 										
-						//if ( this._inventory[ sdGun.classes[ from_entity.class ].slot ] === null )
 						if ( sdGun.classes[ from_entity.class ] !== undefined ) // Incompatible guns
-						if ( sdGun.classes[ from_entity.class ].ignore_slot || this._inventory[ sdGun.classes[ from_entity.class ].slot ] === null )
+						if ( sdGun.classes[ from_entity.class ].ignore_slot || this._inventory[ from_entity.GetSlot() ] === null )
 						{
 							if ( !sdGun.classes[ from_entity.class ].onPickupAttempt || 
 								  sdGun.classes[ from_entity.class ].onPickupAttempt( this, from_entity ) )
@@ -3504,7 +3513,7 @@ class sdCharacter extends sdEntity
 									throw new Error('[ 2 ] How did character pick gun that is _is_being_removed? Gun snapshot: ' + JSON.stringify( from_entity.GetSnapshot( GetFrame(), true ) ) );
 								}
 
-								this._inventory[ sdGun.classes[ from_entity.class ].slot ] = from_entity;
+								this._inventory[ from_entity.GetSlot() ] = from_entity;
 								from_entity._held_by = this;
 								from_entity.ttl = -1;
 
@@ -3858,7 +3867,7 @@ class sdCharacter extends sdEntity
 		
 		
 		// Note: X and Y are weird here. This can cause hash array being incorrect - hash update is important to do after entity was placed properly! It can not be done earlier due to entity sizes being unknown too
-		let fake_ent = new sdWorld.entity_classes[ this._build_params._class ]( this._build_params );
+		let fake_ent = new sdWorld.entity_classes[ this._build_params._class ]( Object.assign( { initiator: this }, this._build_params ) );
 		
 		fake_ent.UpdateHitbox();
 		

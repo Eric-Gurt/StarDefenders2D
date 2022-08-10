@@ -35,7 +35,7 @@ class sdGunClass
 {
 	static init_class()
 	{
-		function AddRecolorsFromColorAndCost( arr, from_color, cost, prefix='' )
+		function AddRecolorsFromColorAndCost( arr, from_color, cost, prefix='', category='' )
 		{
 			let colors = [
 				'cyan', '#00fff6',
@@ -55,6 +55,7 @@ class sdGunClass
 			{ 
 				title: 'Make ' + ( prefix?prefix+' ':'' ) + colors[ i ],
 				cost: cost,
+				category: category,
 				action: ( gun, initiator=null )=>
 				{ 
 					if ( !gun.sd_filter )
@@ -68,6 +69,7 @@ class sdGunClass
 			{ 
 				title: 'Remove colors',
 				cost: cost,
+				category: category,
 				action: ( gun, initiator=null )=>
 				{ 
 					gun.sd_filter = null;
@@ -3133,6 +3135,541 @@ class sdGunClass
 					}
 				}
 			}
+		};
+		
+		
+		let ID_BASE = 0;
+		let ID_STOCK = 1;
+		let ID_MAGAZINE = 2;
+		let ID_BARREL = 3;
+		let ID_UNDERBARREL = 4;
+		let ID_MUZZLE = 5;
+		let ID_SCOPE = 6;
+		let ID_DAMAGE_MULT = 7;
+		let ID_FIRE_RATE = 8;
+		let ID_RECOIL_SCALE = 9;
+		let ID_HAS_EXPLOSION = 10;
+		let ID_TEMPERATURE_APPLIED = 11;
+		let ID_HAS_SHOTGUN_EFFECT = 12;
+		let ID_HAS_RAIL_EFFECT = 13;
+		let ID_SLOT = 14;
+		let ID_TITLE = 15;
+		let ID_PROJECTILE_COLOR = 16;
+		
+		function UpdateCusomizableGunProperties( gun )
+		{
+			gun._count = gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1;
+			gun._spread = gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 0.2 : ( 0.1 * gun.extra[ ID_RECOIL_SCALE ] );
+			gun._reload_time = ( gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1 ) * ( sdGun.classes[ gun.class ].reload_time / sdGun.classes[ gun.class ].parts_magazine[ gun.extra[ ID_MAGAZINE ] ].rate );//sdGun.classes[ gun.class ].reload_time * gun.extra[ ID_FIRE_RATE ];
+			
+			gun._temperature_addition = gun.extra[ ID_TEMPERATURE_APPLIED ];
+			
+			if ( gun.extra[ ID_HAS_SHOTGUN_EFFECT ] )
+			gun.extra[ ID_SLOT ] = 3;
+			else
+			if ( gun.extra[ ID_HAS_RAIL_EFFECT ] )
+			gun.extra[ ID_SLOT ] = 4;
+			else
+			if ( gun.extra[ ID_HAS_EXPLOSION ] )
+			gun.extra[ ID_SLOT ] = 5;
+			else
+			gun.extra[ ID_SLOT ] = 2;
+		}
+		
+		function AddGunEditorUpgrades( custom_rifle_upgrades=[] )
+		{
+			function AddCustomizationUpgrade( custom_rifle_upgrades, id, class_prop )
+			{
+				custom_rifle_upgrades.push(
+						{
+							title: 'Change ' + class_prop.split( 'parts_' ).join( '' ), 
+							cost: 0, 
+							//represents_category: '',
+							category: 'customize_parts',
+							action: ( gun, initiator=null )=> 
+							{
+								if ( sdGun.classes[ gun.class ][ class_prop ].length > 0 )
+								{
+									gun.extra[ id ] = ( ( gun.extra[ id ] || 0 ) + 1 ) % sdGun.classes[ gun.class ][ class_prop ].length; 
+									UpdateCusomizableGunProperties( gun );
+								}
+								else
+								{
+									if ( initiator )
+									if ( initiator._socket )
+									initiator._socket.SDServiceMessage( 'Gun class does not support '+class_prop.split( 'parts_' ).join( '' )+' altering.' );
+								}
+							} 
+						} 
+				);
+		
+				return custom_rifle_upgrades;
+			}
+
+			AddCustomizationUpgrade( custom_rifle_upgrades, ID_BASE, 'parts_base' );
+			AddCustomizationUpgrade( custom_rifle_upgrades, ID_STOCK, 'parts_stock' );
+			AddCustomizationUpgrade( custom_rifle_upgrades, ID_MAGAZINE, 'parts_magazine' );
+			AddCustomizationUpgrade( custom_rifle_upgrades, ID_BARREL, 'parts_barrel' );
+			AddCustomizationUpgrade( custom_rifle_upgrades, ID_UNDERBARREL, 'parts_underbarrel' );
+			AddCustomizationUpgrade( custom_rifle_upgrades, ID_MUZZLE, 'parts_muzzle' );
+			AddCustomizationUpgrade( custom_rifle_upgrades, ID_SCOPE, 'parts_scope' );
+			
+			custom_rifle_upgrades.push(
+				{
+					title: 'Customize parts...', 
+					represents_category: 'customize_parts'
+				} 
+			);
+			custom_rifle_upgrades.push(
+				{
+					title: 'Customize colors...', 
+					represents_category: 'customize_colors'
+				} 
+			);
+			custom_rifle_upgrades.push(
+				{
+					title: 'Customize properties...', 
+					represents_category: 'customize_properties'
+				} 
+			);
+	
+			//
+			custom_rifle_upgrades.push(
+				{
+					title: 'Customize main color...', 
+					represents_category: 'customize_colors_main',
+					category: 'customize_colors'
+				} 
+			);
+			custom_rifle_upgrades.push(
+				{
+					title: 'Customize dark color...', 
+					represents_category: 'customize_colors_dark',
+					category: 'customize_colors'
+				} 
+			);
+			custom_rifle_upgrades.push(
+				{
+					title: 'Customize bright color...', 
+					represents_category: 'customize_colors_bright',
+					category: 'customize_colors'
+				} 
+			);
+			custom_rifle_upgrades.push(
+				{
+					title: 'Customize energy color...', 
+					represents_category: 'customize_colors_energy',
+					category: 'customize_colors'
+				} 
+			);
+			custom_rifle_upgrades.push(
+				{
+					title: 'Customize laser color...', 
+					represents_category: 'customize_colors_laser',
+					category: 'customize_colors'
+				} 
+			);
+			custom_rifle_upgrades.push(
+				{
+					title: 'Customize bullets color...', 
+					represents_category: 'customize_colors_bullets',
+					category: 'customize_colors'
+				} 
+			);
+	
+			custom_rifle_upgrades.push(
+				{
+					title: 'Randomize projectile color', 
+					cost: 0, 
+					category: 'customize_colors',
+					action: ( gun, initiator=null )=> 
+					{ 
+						gun.extra[ ID_PROJECTILE_COLOR ] = '#';
+						let str = '0123456789abcdef';
+						for ( let i = 0; i < 6; i++ )
+						gun.extra[ ID_PROJECTILE_COLOR ] += str.charAt( ~~( Math.random() * str.length ) );
+					} 
+				} 
+			);
+			custom_rifle_upgrades.push(
+				{
+					title: 'Randomize fire sound', 
+					cost: 0, 
+					category: 'customize_colors',
+					action: ( gun, initiator=null )=> 
+					{
+						let options = [];
+						for ( let i = 0; i < sdGun.classes.length; i++ )
+						{
+							if ( sdGun.classes[ i ] )
+							if ( sdGun.classes[ i ].sound )
+							if ( options.indexOf( sdGun.classes[ i ].sound ) === -1 )
+							{
+								options.push( sdGun.classes[ i ].sound );
+							}
+						}
+						if ( options.length > 0 )
+						{
+							gun._sound = options[ ~~( Math.random() * options.length ) ];
+						}
+						gun._sound_pitch = 0.5 + Math.pow( Math.random(), 2 ) * 2;
+					} 
+				} 
+			);
+			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#000000', 0, '', 'customize_colors_main' );
+			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#404040', 0, '', 'customize_colors_dark' );
+			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#808080', 0, '', 'customize_colors_bright' );
+			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#6ca2d0', 0, '', 'customize_colors_energy' );
+			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#ff0000', 0, '', 'customize_colors_laser' );
+			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#9d822f', 0, '', 'customize_colors_bullets' );
+			
+			custom_rifle_upgrades.push(
+				{
+					title: 'Increase damage', 
+					cost: 500, 
+					category: 'customize_properties',
+					action: ( gun, initiator=null )=> 
+					{ 
+						gun.extra[ ID_DAMAGE_MULT ] += 0.05; // 5%
+						//gun.extra[ ID_RECOIL_SCALE ] *= 0.95; // 5%
+						UpdateCusomizableGunProperties( gun );
+					} 
+				} 
+			);
+			custom_rifle_upgrades.push(
+				{
+					title: 'Decrease damage', 
+					cost: 0, 
+					category: 'customize_properties',
+					action: ( gun, initiator=null )=> 
+					{ 
+						if ( gun.extra[ ID_DAMAGE_MULT ] > 0 )
+						{
+							gun.extra[ ID_DAMAGE_MULT ] = Math.max( 0, gun.extra[ ID_DAMAGE_MULT ] - 0.05 ); // 5%
+							//gun.extra[ ID_RECOIL_SCALE ] *= 1.05; // 5%
+						}
+						UpdateCusomizableGunProperties( gun );
+					} 
+				} 
+			);
+			custom_rifle_upgrades.push(
+				{
+					title: 'Increase projectile temperature', 
+					cost: 250, 
+					category: 'customize_properties',
+					action: ( gun, initiator=null )=> 
+					{ 
+						gun.extra[ ID_TEMPERATURE_APPLIED ] += 20;
+						UpdateCusomizableGunProperties( gun );
+					} 
+				} 
+			);
+			custom_rifle_upgrades.push(
+				{
+					title: 'Decrease projectile temperature', 
+					cost: 500, 
+					category: 'customize_properties',
+					action: ( gun, initiator=null )=> 
+					{ 
+						gun.extra[ ID_TEMPERATURE_APPLIED ] -= 20;
+						UpdateCusomizableGunProperties( gun );
+					} 
+				} 
+			);
+			/*custom_rifle_upgrades.push(
+				{
+					title: 'Increase fire rate', 
+					cost: 200, 
+					category: 'customize_properties',
+					action: ( gun, initiator=null )=> 
+					{ 
+						gun.extra[ ID_FIRE_RATE ] *= 0.95; // 5%
+						UpdateCusomizableGunProperties( gun );
+					} 
+				} 
+			);
+			custom_rifle_upgrades.push(
+				{
+					title: 'Decrease fire rate', 
+					cost: 0, 
+					category: 'customize_properties',
+					action: ( gun, initiator=null )=> 
+					{ 
+						gun.extra[ ID_FIRE_RATE ] *= ( 1.05 ); // 5%
+						UpdateCusomizableGunProperties( gun );
+					} 
+				} 
+			);*/
+			custom_rifle_upgrades.push(
+				{
+					title: 'Improve recoil control', 
+					cost: 250, 
+					category: 'customize_properties',
+					action: ( gun, initiator=null )=> 
+					{ 
+						gun.extra[ ID_RECOIL_SCALE ] *= 0.95; // 5%
+						UpdateCusomizableGunProperties( gun );
+					} 
+				} 
+			);
+			custom_rifle_upgrades.push(
+				{
+					title: 'Worsen recoil control', 
+					cost: 0, 
+					category: 'customize_properties',
+					action: ( gun, initiator=null )=> 
+					{ 
+						gun.extra[ ID_RECOIL_SCALE ] *= 1.05; // 5%
+						UpdateCusomizableGunProperties( gun );
+					} 
+				} 
+			);
+	
+			custom_rifle_upgrades.push(
+				{
+					title: 'Toggle rail mode', 
+					cost: 500, 
+					category: 'customize_properties',
+					action: ( gun, initiator=null )=> 
+					{ 
+						gun.extra[ ID_HAS_RAIL_EFFECT ] = 1 - gun.extra[ ID_HAS_RAIL_EFFECT ];
+						UpdateCusomizableGunProperties( gun );
+					} 
+				} 
+			);
+			custom_rifle_upgrades.push(
+				{
+					title: 'Toggle explosive mode', 
+					cost: 500, 
+					category: 'customize_properties',
+					action: ( gun, initiator=null )=> 
+					{ 
+						gun.extra[ ID_HAS_EXPLOSION ] = 1 - gun.extra[ ID_HAS_EXPLOSION ];
+						UpdateCusomizableGunProperties( gun );
+					} 
+				} 
+			);
+			custom_rifle_upgrades.push(
+				{
+					title: 'Toggle shotgun mode', 
+					cost: 100, 
+					category: 'customize_properties',
+					action: ( gun, initiator=null )=> 
+					{ 
+						gun.extra[ ID_HAS_SHOTGUN_EFFECT ] = 1 - gun.extra[ ID_HAS_SHOTGUN_EFFECT ];
+						UpdateCusomizableGunProperties( gun );
+					} 
+				} 
+			);
+			custom_rifle_upgrades.push(
+				{
+					title: 'Toggle biometry lock', 
+					cost: 500, 
+					category: 'customize_properties',
+					action: ( gun, initiator=null )=> 
+					{ 
+						if ( initiator )
+						{
+							if ( gun.biometry_lock === -1 )
+							gun.biometry_lock = initiator.biometry;
+							else
+							gun.biometry_lock = -1;
+						}
+						UpdateCusomizableGunProperties( gun );
+					} 
+				} 
+			);
+	
+			return custom_rifle_upgrades;
+		}
+		
+		sdGun.classes[ sdGun.CLASS_CUSTOM_RIFLE = 96 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'rifle_parts' ),
+			
+			image_offset_x: -2,
+			image_offset_y: 0,
+	
+			sound: 'gun_rifle',
+			
+			//title: 'Rifle',
+			title_dynamic: ( gun )=> { return gun.extra[ ID_TITLE ]; },
+			
+			//slot: 2,
+			slot_dynamic: ( gun )=> { return gun.extra[ ID_SLOT ]; },
+			
+			reload_time: 3,
+			muzzle_x: 7,
+			
+			ammo_capacity: 30,
+			ammo_capacity_dynamic: ( gun )=>
+			{
+				let capacity = sdGun.classes[ gun.class ].parts_magazine[ gun.extra[ ID_MAGAZINE ] ].capacity;
+				
+				if ( gun.extra[ ID_HAS_EXPLOSION ] )
+				capacity /= 5;
+				
+				if ( gun.extra[ ID_HAS_SHOTGUN_EFFECT ] )
+				capacity /= 2;
+				
+				if ( gun.extra[ ID_HAS_RAIL_EFFECT ] )
+				capacity /= 2;
+				
+				return Math.ceil( capacity );
+			},
+			
+			spread: 0,//0.02,
+			//spread_dynamic: ( gun )=> { return 0.02 * gun.extra[ ID_RECOIL_SCALE ]; },
+			
+			//projectile_velocity: sdGun.default_projectile_velocity,
+			projectile_velocity_dynamic: ( gun )=> { return Math.min( 64, sdGun.default_projectile_velocity * Math.pow( gun.extra[ ID_DAMAGE_MULT ], 0.25 ) ) },
+			
+			count: 1,
+			projectile_properties: { _damage: 1 },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _damage: 25, _dirt_mult: -0.5, _knock_scale: 0.01 * 8 }; // Default value for _knock_scale
+				
+				if ( gun.extra[ ID_HAS_SHOTGUN_EFFECT ] )
+				{
+					obj._dirt_mult = 0;
+					obj._damage /= 5;
+				}
+				if ( gun.extra[ ID_HAS_EXPLOSION ] )
+				{
+					obj._dirt_mult = 1;
+					obj.explosion_radius = gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 13 : 19;
+					//obj.explosion_radius = 19;
+					obj.model = 'ball';
+				}
+				if ( gun.extra[ ID_HAS_RAIL_EFFECT ] )
+				{
+					obj._dirt_mult = 0;
+					obj._rail = true;
+				}
+				
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			
+			use_parts_rendering: true,
+			
+			parts_base: [
+				// W is where stock would start, H is where magazine would start
+				{ w:3, h:1, title:'Small' },
+				{ w:5, h:2, title:'Bulky' },
+				{ w:5, h:1, title:'Longer' },
+				{ w:5, h:2, title:'Larger' }
+			],
+			parts_stock: [
+				{ title:'Rifle' },
+				{ title:'Longer' },
+				{ title:'MP' },
+				{ title:'Holey large' }
+			],
+			parts_magazine: [
+				{ title:'Small', capacity: 18, rate: 1 },
+				{ title:'Box', capacity: 22, rate: 0.75 },
+				{ title:'Assault', capacity: 26, rate: 0.75 },
+				{ title:'Chain', capacity: 50, rate: 0.5 },
+				{ title:'Boxed chain', capacity: 100, rate: 0.5 }
+			],
+			parts_barrel: [
+				// W offsets muzzle, H offsets under barrel part
+				{ w:2, h:0, title:'Tiny' },
+				{ w:4, h:1, title:'Bulky' },
+				{ w:5, h:1, title:'Sniperish' },
+				{ w:5, h:1, title:'Shotgunish' },
+				{ w:5, h:2, title:'Grenade launcherish' },
+				{ w:5, h:2, title:'Energy' },
+				{ w:5, h:2, title:'Energy 2' },
+				{ w:5, h:2, title:'Energy 3' },
+				{ w:5, h:2, title:'Lasers' },
+				{ w:5, h:2, title:'Energy 4' },
+				{ w:5, h:2, title:'Holey' }
+			],
+			parts_underbarrel: [
+				{ title:'Dot' },
+				{ title:'Some mount thing' },
+				{ title:'Knife' },
+				{ title:'Laser' },
+				{ title:'Grenade launcher' },
+				{ title:'Some mount thing 2' },
+				{ title:'Forward dot' }
+			],
+			parts_muzzle: [
+				// W is offset for muzzle flash, H is vertical offset
+				{ w: 2, h: 0, title:'L' },
+				{ w: 1, h: 0, title:'Dot' },
+				{ w: 3, h: 0, title:'Bulky silencer' },
+				{ w: 3, h: 1, title:'Small silencer' },
+				{ w: 3, h: 0, title:'Larger L' },
+				{ w: 3, h: 0, title:'Mountable' },
+				{ w: 3, h: 0, title:'Bulky' },
+				{ w: 2, h: 1, title:'Energy shooter' },
+				{ w: 2, h: 1, title:'Energy shooter 2' }
+			],
+			parts_scope: [
+				{ title:'Reflex' },
+				{ title:'Merged scope' },
+				{ title:'Tiny scope' },
+				{ title:'Sniper scope' }
+			],
+			
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					
+					let offset = 0;
+					
+					function rand()
+					{
+						return sdWorld.SeededRandomNumberGenerator.random( Math.floor( sdWorld.time / 500 ), offset++ );
+					}
+
+					gun.extra[ ID_BASE ] = ~~( rand() * sdGun.classes[ gun.class ].parts_base.length );
+					gun.extra[ ID_STOCK ] = ~~( rand() * sdGun.classes[ gun.class ].parts_stock.length );
+					gun.extra[ ID_MAGAZINE ] = ~~( rand() * sdGun.classes[ gun.class ].parts_magazine.length );
+					gun.extra[ ID_BARREL ] = ~~( rand() * sdGun.classes[ gun.class ].parts_barrel.length );
+					gun.extra[ ID_UNDERBARREL ] = ~~( rand() * sdGun.classes[ gun.class ].parts_underbarrel.length );
+					gun.extra[ ID_MUZZLE ] = ~~( rand() * sdGun.classes[ gun.class ].parts_muzzle.length );
+					gun.extra[ ID_SCOPE ] = ~~( rand() * sdGun.classes[ gun.class ].parts_scope.length );
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					gun.extra[ ID_HAS_EXPLOSION ] = 0;
+					gun.extra[ ID_TEMPERATURE_APPLIED ] = 0;
+					gun.extra[ ID_HAS_SHOTGUN_EFFECT ] = 0;
+					gun.extra[ ID_HAS_RAIL_EFFECT ] = 0;
+					gun.extra[ ID_SLOT ] = 2;
+					
+					if ( params.initiator && params.initiator.IsPlayerClass() && params.initiator._socket )
+					{
+						gun.extra[ ID_TITLE ] = params.initiator.title + '\'s rifle';
+						gun.title_censored = ( typeof sdModeration !== 'undefined' && sdModeration.IsPhraseBad( params.initiator.title, params.initiator._socket ) ) ? 1 : 0;
+					}
+					else
+					{
+						gun.extra[ ID_TITLE ] = 'Rifle';
+						gun.title_censored = 0;
+					}
+				
+					gun.extra[ ID_PROJECTILE_COLOR ] = '#';
+					let str = '0123456789abcdef';
+					for ( let i = 0; i < 6; i++ )
+					gun.extra[ ID_PROJECTILE_COLOR ] += str.charAt( ~~( Math.random() * str.length ) );
+
+					UpdateCusomizableGunProperties( gun );
+				}
+			},
+			
+			upgrades: AddGunEditorUpgrades()
 		};
 
 		// Add new gun classes above this line //

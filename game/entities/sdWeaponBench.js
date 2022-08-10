@@ -45,6 +45,8 @@ class sdWeaponBench extends sdEntity
 
 		this.upgraded_dur = false; // Apparently I need a public variable for "this.AddContextOption" for durability upgrading so this is the one - Booraz149
 		
+		this._current_category_stack = [];
+		
 		//this._held_items = [];
 		//this.held_net_ids = [];
 		
@@ -101,8 +103,36 @@ class sdWeaponBench extends sdEntity
 		
 		if ( this.item0 )
 		{
-			ctx.translate( -1, -15 );
+			//ctx.translate( -1, -15 );
+			ctx.translate( -1, -17 );
 			this.item0.Draw( ctx, true );
+			
+			let has_class = sdGun.classes[ this.item0.class ];
+			
+			if ( has_class.use_parts_rendering )
+			{
+				let ID_DAMAGE_MULT = 7;
+				let ID_FIRE_RATE = 8;
+				let ID_RECOIL_SCALE = 9;
+				let ID_HAS_EXPLOSION = 10;
+				let ID_TEMPERATURE_APPLIED = 11;
+				let ID_HAS_SHOTGUN_EFFECT = 12;
+				let ID_HAS_RAIL_EFFECT = 13;
+				let ID_SLOT = 14;
+
+				//Tooltip( ctx, t, x=0, y=0, color='#ffffff' )
+				sdEntity.Tooltip( ctx, 'Damage: ' + Math.round( 25 * this.item0.extra[ ID_DAMAGE_MULT ] ), 0, -30, '#ffaaaa' );
+				sdEntity.Tooltip( ctx, 'Recoil: ' + Math.round( 100 * this.item0.extra[ ID_DAMAGE_MULT ] * this.item0.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -20, '#ffffaa' );
+				
+				if ( Math.round( this.item0._reload_time / 30 * 1000 ) < 16 )
+				sdEntity.Tooltip( ctx, 'Cooldown: 16ms (capped)', 0, -10, '#aaffaa' );
+				else
+				sdEntity.Tooltip( ctx, 'Cooldown: ' + Math.round( this.item0._reload_time / 30 * 1000 ) + 'ms', 0, -10, '#aaffaa' );
+			
+				sdEntity.Tooltip( ctx, 'Temperature: ' + Math.round( this.item0.extra[ ID_TEMPERATURE_APPLIED ] ) + '°C', 0, 0, '#aaffff' );
+				
+				sdEntity.Tooltip( ctx, 'Biometry lock: ' + ( ( this.item0.biometry_lock !== -1 ) ? 'YES' : 'NO' ), 0, 10, '#333333' );
+			}
 		}
 	}
 	onRemove() // Class-specific, if needed
@@ -155,12 +185,16 @@ class sdWeaponBench extends sdEntity
 					from_entity.ttl = -1;
 					from_entity._held_by = this;
 					
+					from_entity.tilt = 0;
+					
 					if ( from_entity._dangerous )
 					{
 						from_entity._dangerous = false;
 						from_entity._dangerous_from = null;
 					}
 					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
+					
+					this._current_category_stack = [];
 					
 					this._update_version++;
 				}
@@ -244,6 +278,12 @@ class sdWeaponBench extends sdEntity
 			{
 				if ( this.item0 )
 				{
+					if ( this.item0.biometry_lock !== -1 && this.item0.biometry_lock !== exectuter_character.biometry )
+					{
+						executer_socket.SDServiceMessage( 'This weapon is biometry-locked' );
+						return;
+					}
+
 					if ( command_name === 'GET' )
 					{
 						if ( this.item0 )
@@ -322,17 +362,41 @@ class sdWeaponBench extends sdEntity
 			{
 				this.AddContextOption( 'Get ' + sdEntity.GuessEntityName( this.item0._net_id ), 'GET', [ ] );
 				let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost || 30 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
+				
+				//if ( this._current_category_stack.length === 0 )
 				if ( this.upgraded_dur === false )
-				this.AddContextOption( 'Upgrade weapon durability ('+ matter_cost_durability +' matter)', 'INCREASE_HP', [ ] );
+				this.AddContextOption( 'Upgrade weapon durability ('+ matter_cost_durability +' matter)', 'INCREASE_HP', [ ], false );
+				
+				if ( this._current_category_stack.length > 0 )
+				this.AddClientSideActionContextOption( 'Go back...', ()=>
+				{
+					this._current_category_stack.pop();
+					this.RebuildContextMenu();
+				}, false );
 				
 				let upgrades = sdGun.classes[ this.item0.class ].upgrades;
 				
 				if ( upgrades )
 				for ( let i in upgrades )
 				{
-					this.AddContextOption( upgrades[ i ].title + ' (' + ( upgrades[ i ].cost || 0 ) + ' matter)', 'UPGRADE', [ i ] );
+					let upgrade = upgrades[ i ];
+					
+					if ( ( upgrade.category || undefined ) === this._current_category_stack[ this._current_category_stack.length - 1 ] )
+					{
+						if ( upgrade.represents_category )
+						{
+							this.AddClientSideActionContextOption( upgrade.title, ()=>
+							{
+								this._current_category_stack.push( upgrade.represents_category );
+								this.RebuildContextMenu();
+							}, false );
+						}
+						else
+						this.AddContextOption( upgrade.title + ( ( upgrade.cost || 0 ) > 0 ? ' (' + ( upgrade.cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false );
+					}
 				}
 			}
+			
 			/*
 			if ( this.owner === exectuter_character )
 			{

@@ -531,6 +531,21 @@ class sdCrystal extends sdEntity
 			this._update_version++;
 		}*/
 	}
+	
+	onMovementInRange( from_entity )
+	{
+		if ( !sdWorld.is_server )
+		return;
+	
+		// Easier crystal combining
+		if ( from_entity )
+		if ( from_entity.is( sdCrystal ) )
+		if ( this.held_by )
+		if ( from_entity.held_by !== this.held_by )
+		{
+			this.held_by.onMovementInRange( from_entity );
+		}
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		//if ( this.should_draw === 1 )

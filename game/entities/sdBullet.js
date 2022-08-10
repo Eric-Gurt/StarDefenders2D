@@ -653,7 +653,7 @@ class sdBullet extends sdEntity
 							from_entity.DamageWithEffect( dmg, this._owner, limb_mult !== 1 );
 
 							if ( this._temperature_addition !== 0 ) // Is this an incediary bullet?
-							from_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t:this._temperature_addition }); // Set enemy on fire
+							from_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t:this._temperature_addition, initiator: this._owner }); // Set enemy on fire
 							if ( this._owner )
 							if ( old_hea > 0 )
 							if ( old_hea !== ( from_entity.hea || from_entity._hea || 0 ) ) // Any damage actually dealt
@@ -814,7 +814,7 @@ class sdBullet extends sdEntity
 								from_entity.DamageWithEffect( dmg, this._owner, limb_mult > 1 );
 
 								if ( this._temperature_addition !== 0 ) // Is this an incediary bullet?
-								from_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t:this._temperature_addition }); // Set enemy on fire
+								from_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t:this._temperature_addition, initiator: this._owner }); // Set enemy on fire
 
 								if ( this._owner )
 								if ( old_hea > 0 )

@@ -3230,7 +3230,12 @@ class sdEntity
 			if ( e.GetClass() === 'sdGun' )
 			{
 				if ( sdWorld.entity_classes.sdGun.classes[ e.class ] )
-				return sdWorld.entity_classes.sdGun.classes[ e.class ].title;
+				{
+					if ( sdWorld.client_side_censorship && e.title_censored )
+					return 'item';
+				
+					return e.GetTitle();// sdWorld.entity_classes.sdGun.classes[ e.class ].title;
+				}
 				else
 				return 'Item of unknown class ' + e.class;
 			}
@@ -3977,9 +3982,11 @@ class sdEntity
 		}
 		*/
 	}
-	AddContextOption( title, command_name, parameters_array ) // Do not override
+	AddContextOption( title, command_name, parameters_array, close_on_click=true ) // Do not override
 	{
-		sdContextMenu.options.push({ title: title,
+		sdContextMenu.options.push({ 
+			title: title,
+			close_on_click: close_on_click,
 			action: ()=>
 			{
 				globalThis.socket.emit( 'ENTITY_CONTEXT_ACTION', [ this.GetClass(), this._net_id, command_name, parameters_array ] );
@@ -3999,11 +4006,18 @@ class sdEntity
 			}
 		});
 	}
-	AddClientSideActionContextOption( title, action )
+	AddClientSideActionContextOption( title, action, close_on_click=true )
 	{
-		sdContextMenu.options.push({ title: title,
+		sdContextMenu.options.push({ 
+			title: title,
+			close_on_click: close_on_click,
 			action: action
 		});
+	}
+	RebuildContextMenu()
+	{
+		sdWorld.hovered_entity = this;
+		sdContextMenu.Open();
 	}
 }
 //sdEntity.init_class();

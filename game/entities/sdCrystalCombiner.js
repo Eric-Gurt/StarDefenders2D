@@ -172,16 +172,25 @@ class sdCrystalCombiner extends sdEntity
 			sdWorld.UpdateHashPosition( this, false );
 		}*/
 		
+		let can_hibernate = true;
+		
 		if ( this._ignore_pickup_tim > 0 )
-		this._ignore_pickup_tim = Math.max( 0, this._ignore_pickup_tim - GSPEED );
+		{
+			this._ignore_pickup_tim = Math.max( 0, this._ignore_pickup_tim - GSPEED );
+			can_hibernate = false;
+		}
 		
 		if ( this._regen_timeout > 0 )
-		this._regen_timeout -= GSPEED;
+		{
+			this._regen_timeout -= GSPEED;
+			can_hibernate = false;
+		}
 		else
 		{
 			if ( this._hea < this._hmax )
 			{
 				this._hea = Math.min( this._hea + GSPEED, this._hmax );
+				can_hibernate = false;
 			}
 		}
 		
@@ -189,6 +198,8 @@ class sdCrystalCombiner extends sdEntity
 		
 		if ( this.prog > 0 )
 		{
+			can_hibernate = false;
+			
 			let prog0 = this.prog;
 			
 			let duration = this.GetBaseAnimDuration() + 30;
@@ -242,6 +253,8 @@ class sdCrystalCombiner extends sdEntity
 		
 		if ( this.crystal0 )
 		{
+			can_hibernate = false;
+			
 			this.crystal0.x = this.x - 24 + 16 + merge_intens;
 			this.crystal0.y = this.y + 7 - this.crystal0._hitbox_y2;
 			this.crystal0.sx = 0;
@@ -249,6 +262,8 @@ class sdCrystalCombiner extends sdEntity
 		}
 		if ( this.crystal1 )
 		{
+			can_hibernate = false;
+			
 			this.crystal1.x = this.x - 8 + 16 - merge_intens;
 			this.crystal1.y = this.y + 7 - this.crystal1._hitbox_y2;
 			this.crystal1.sx = 0;
@@ -260,6 +275,10 @@ class sdCrystalCombiner extends sdEntity
 			this._last_sync_matter = this.matter;
 			this._update_version++;
 		}*/
+		if ( can_hibernate )
+		{
+			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+		}
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{

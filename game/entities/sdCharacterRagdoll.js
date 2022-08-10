@@ -166,6 +166,8 @@ class sdCharacterRagdoll
 		x += this.character.x;
 		y += this.character.y;
 		
+		y += this.character._crouch_intens * 6;
+		
 		//if ( this.character.pain_anim <= 0 )
 		{
 			//bone.sx = 0;

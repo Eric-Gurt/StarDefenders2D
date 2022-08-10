@@ -269,6 +269,8 @@ class sdStatusEffect extends sdEntity
 				status_entity._saved_world_time = 0;
 				status_entity._last_world_time = sdWorld.time; // Used to save temporery world time values to mimic frozen animation
 				
+				status_entity._initiator = params.initiator || null;
+				
 				if ( params.t !== undefined )
 				status_entity.t += params.t / ( ( params.for.hmax || params.for._hmax || 300 ) / 300 ); // Copy [ 1 / 2 ]
 			},
@@ -284,7 +286,12 @@ class sdStatusEffect extends sdEntity
 			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
 			{
 				if ( params.t )
-				status_entity.t += params.t / ( ( params.for.hmax || params.for._hmax || 300 ) / 300 ); // Copy [ 2 / 2 ]
+				{
+					status_entity.t += params.t / ( ( params.for.hmax || params.for._hmax || 300 ) / 300 ); // Copy [ 2 / 2 ]
+					
+					if ( ( params.t > 0 ) === ( status_entity.t > 0 ) )
+					status_entity._initiator = params.initiator || status_entity._initiator || null;
+				}
 				
 				// For water cooling
 				if ( params.remain_part !== undefined )
@@ -381,7 +388,7 @@ class sdStatusEffect extends sdEntity
 						{
 							let burn_intensity = 1 + ( status_entity.t - temperature_fire ) / 500;
 							
-							status_entity.for.DamageWithEffect( 4 * burn_intensity );
+							status_entity.for.DamageWithEffect( 4 * burn_intensity, status_entity._initiator );
 						}
 						else
 						if ( status_entity.t <= temperature_frozen )
@@ -390,7 +397,7 @@ class sdStatusEffect extends sdEntity
 							let e_is_organic = ( ( e.IsPlayerClass() || e.GetBleedEffect() === sdEffect.TYPE_BLOOD || e.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN ) );
 							
 							if ( e_is_organic )
-							status_entity.for.Damage( 1 );
+							status_entity.for.Damage( 1, status_entity._initiator );
 						}
 				
 						status_entity.t = ( status_entity.t - temperature_normal ) * 0.95 + temperature_normal; // Go towards normal temperature. It can go towards any desired value really, depending on environment

@@ -174,6 +174,11 @@ class sdMatterAmplifier extends sdEntity
 			this.crystal.sx = 0;
 			this.crystal.sy = 0;
 		}
+		else
+		{
+			if ( this._hea >= this._hmax )
+			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+		}
 			
 		if ( this.PrioritizeGivingMatterAway() )
 		this.MatterGlow( 0.1, 0, GSPEED ); // 0 radius means only towards cables
@@ -443,6 +448,8 @@ class sdMatterAmplifier extends sdEntity
 					this._hitbox_y1 = this.hitbox_y1;
 					sdWorld.UpdateHashPosition( this, false ); // Hitbox update
 					this._update_version++;
+					
+					this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 				}
 			}
 		}
