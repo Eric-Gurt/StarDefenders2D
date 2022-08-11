@@ -1390,6 +1390,7 @@ class sdWorld
 							var arr1 = sdWorld.my_entity_upgrades_later_set_obj[ arr0 ];
 							
 							sdWorld.my_entity._upgrade_counters[ arr0 ] = arr1;
+							if ( sdShop.upgrades[ arr0 ] )
 							sdShop.upgrades[ arr0 ].action( sdWorld.my_entity, arr1 );
 						}
 						

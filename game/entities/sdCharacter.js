@@ -2096,16 +2096,27 @@ class sdCharacter extends sdEntity
 			this._weapon_draw_timer = Math.max( 0, this._weapon_draw_timer - GSPEED );
 		}
 		
-		if ( this._god )
-		if ( this._socket )
+		if ( this._socket )	
 		{
-			this.matter_max = 10000; // Hack
-			this.matter = this.matter_max; // Hack
-			this.hea = this.hmax; // Hack
-			this._dying = false; // Hack
-			this.air = sdCharacter.air_max; // Hack
-			this._nature_damage = 0; // Hack
-			this._player_damage = 0; // Hack
+			/*if ( this._jetpack_allowed )
+			{
+				if ( this._upgrade_counters[ 'upgrade_jetpack' ] !== 1 )
+				{
+					console.warn( 'Player "'+this.title+'" has jetpack allowed but no jetpack upgrade. His upgrade counters: ', this._upgrade_counters );
+					this.InstallUpgrade( 'upgrade_jetpack' );
+				}
+			}*/
+			
+			if ( this._god )
+			{
+				this.matter_max = 10000; // Hack
+				this.matter = this.matter_max; // Hack
+				this.hea = this.hmax; // Hack
+				this._dying = false; // Hack
+				this.air = sdCharacter.air_max; // Hack
+				this._nature_damage = 0; // Hack
+				this._player_damage = 0; // Hack
+			}
 		}
 		
 		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED );
