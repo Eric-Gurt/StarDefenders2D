@@ -738,6 +738,8 @@ let enf_once = true;
 			{
 				// Same at sdWorld.ResolveMyEntityByNetId()
 				sdWorld.my_entity._upgrade_counters[ arr[ 0 ] ] = arr[ 1 ];
+				
+				if ( sdShop.upgrades[ arr[ 0 ] ] )
 				sdShop.upgrades[ arr[ 0 ] ].action( sdWorld.my_entity, arr[ 1 ] );
 			}
 			else

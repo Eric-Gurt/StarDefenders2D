@@ -3335,9 +3335,18 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
-						gun.extra[ ID_DAMAGE_MULT ] += 0.05; // 5%
-						//gun.extra[ ID_RECOIL_SCALE ] *= 0.95; // 5%
-						UpdateCusomizableGunProperties( gun );
+						if ( gun.extra[ ID_DAMAGE_MULT ] < 10 )
+						{
+							gun.extra[ ID_DAMAGE_MULT ] += 0.05; // 5%
+							//gun.extra[ ID_RECOIL_SCALE ] *= 0.95; // 5%
+							UpdateCusomizableGunProperties( gun );
+						}
+						else
+						{
+							if ( initiator )
+							if ( initiator._socket )
+							initiator._socket.SDServiceMessage( 'Limit has been reached.' );
+						}
 					} 
 				} 
 			);
@@ -3352,8 +3361,14 @@ class sdGunClass
 						{
 							gun.extra[ ID_DAMAGE_MULT ] = Math.max( 0, gun.extra[ ID_DAMAGE_MULT ] - 0.05 ); // 5%
 							//gun.extra[ ID_RECOIL_SCALE ] *= 1.05; // 5%
+							UpdateCusomizableGunProperties( gun );
 						}
-						UpdateCusomizableGunProperties( gun );
+						else
+						{
+							if ( initiator )
+							if ( initiator._socket )
+							initiator._socket.SDServiceMessage( 'Limit has been reached.' );
+						}
 					} 
 				} 
 			);
@@ -3364,8 +3379,17 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
-						gun.extra[ ID_TEMPERATURE_APPLIED ] += 20;
-						UpdateCusomizableGunProperties( gun );
+						if ( gun.extra[ ID_TEMPERATURE_APPLIED ] < 750 )
+						{
+							gun.extra[ ID_TEMPERATURE_APPLIED ] += 20;
+							UpdateCusomizableGunProperties( gun );
+						}
+						else
+						{
+							if ( initiator )
+							if ( initiator._socket )
+							initiator._socket.SDServiceMessage( 'Limit has been reached.' );
+						}
 					} 
 				} 
 			);
@@ -3376,8 +3400,17 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
-						gun.extra[ ID_TEMPERATURE_APPLIED ] -= 20;
-						UpdateCusomizableGunProperties( gun );
+						if ( gun.extra[ ID_TEMPERATURE_APPLIED ] > -750 )
+						{
+							gun.extra[ ID_TEMPERATURE_APPLIED ] -= 20;
+							UpdateCusomizableGunProperties( gun );
+						}
+						else
+						{
+							if ( initiator )
+							if ( initiator._socket )
+							initiator._socket.SDServiceMessage( 'Limit has been reached.' );
+						}
 					} 
 				} 
 			);
