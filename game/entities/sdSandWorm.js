@@ -873,6 +873,7 @@ class sdSandWorm extends sdEntity
 		if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM )
 		{
 			ctx.filter = 'none';
+			ctx.sd_hue_rotation = 0;
 			if ( this.model === 1 /*|| ( this.model === 0 && this._in_surface )*/ )
 			ctx.drawImageFilterCache( sdSandWorm.img_worm_council_head_attack, - 16, - 16, 32,32 );
 			else

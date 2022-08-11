@@ -82,7 +82,7 @@ class sdRenderer
 		
 		sdRenderer._visual_settings = 0;
 
-		sdRenderer._dirt_settings = 0;
+		//sdRenderer._dirt_settings = 0; // No longer needed due to new rendering optimizations
 		
 		sdRenderer.show_leader_board = true;
 		
@@ -612,7 +612,7 @@ class sdRenderer
 		return sdRenderer._visual_settings;
 	}
 
-	static set dirt_settings( v )
+	/*static set dirt_settings( v )
 	{
 		if ( v === sdRenderer._dirt_settings )
 		return sdBlock.MATERIAL_GROUND;
@@ -627,7 +627,7 @@ class sdRenderer
 	static get dirt_settings()
 	{
 		return sdRenderer._dirt_settings;
-	}
+	}*/
 	
 	static UseCrosshair()
 	{
