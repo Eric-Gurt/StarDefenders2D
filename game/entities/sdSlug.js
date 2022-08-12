@@ -390,13 +390,10 @@ class sdSlug extends sdEntity
 		{
 			//if ( Math.abs( this.sx ) < 2 )
 			//if ( sdWorld.time < this.last_jump + 400 ) // This approach would work better for in-place jumps
-			if ( this.time_since_jump < 200 / 1000 * 30 )
-			{
-				xx = Math.min( 2 - 1, ~~( ( this.time_since_jump < 200 / 1000 * 30 ) * 2 ) );
-				yy = 0;
-				//ctx.drawImageFilterCache( ( this.time_since_jump < 200 / 1000 * 30 ) ? sdSlug.img_slug_walk1 : sdSlug.img_slug_walk2, - 16, - 16, 32,32 );
-				//ctx.drawImageFilterCache( ( sdWorld.time < this.last_jump + 200 ) ? sdSlug.img_slug_walk1 : sdSlug.img_slug_walk2, - 16, - 16, 32,32 );
-			}
+			if ( this.time_since_jump < 400 / 1000 * 30 )
+			xx = Math.min( 2 - 1, ~~( ( this.time_since_jump < 200 / 1000 * 30 ) * 2 ) );
+			//ctx.drawImageFilterCache( ( this.time_since_jump < 200 / 1000 * 30 ) ? sdSlug.img_slug_walk1 : sdSlug.img_slug_walk2, - 16, - 16, 32,32 );
+			//ctx.drawImageFilterCache( ( sdWorld.time < this.last_jump + 200 ) ? sdSlug.img_slug_walk1 : sdSlug.img_slug_walk2, - 16, - 16, 32,32 );
 			else
 			{
 				//ctx.drawImageFilterCache( sdSlug.img_slug_idle1, - 16, - 16, 32,32 );
@@ -412,9 +409,10 @@ class sdSlug extends sdEntity
 						-18
 					];
 
-					let aa = sprite[ i ]
-					let bb = sprite[ i ]
-					ctx.drawImageFilterCache( sdSlug.img_slug, aa * 32, bb * 32, 32,32,  locations[ i ], -16, 32,32 ) // Works but can't clip through because the 2nd image has been created
+					let xx = sprite[ i ];
+					let yy = sprite[ i ];
+
+					ctx.drawImageFilterCache( sdSlug.img_slug, xx * 32, yy * 32, 32,32,  locations[ i ], -16, 32,32 ) // Works but can't clip through because the 2nd image has been created
 				}
 
 				//ctx.drawImageFilterCache( sdSlug.img_slug_blinks[ i ], - 16, - 16, 32,32 );
