@@ -434,6 +434,9 @@ class sdCharacter extends sdEntity
 	{
 		let auto_give = Math.floor( killed_entity && allow_partical_drop ? amount * 0.2 : amount );
 		
+		// Prevent server's death when too much score is given
+		auto_give = Math.max( auto_give, Math.floor( amount - 50 ) );
+		
 		this._score += auto_give;
 		
 		amount -= auto_give;
