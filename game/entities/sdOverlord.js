@@ -268,10 +268,9 @@ class sdOverlord extends sdEntity
 		{
 			if ( !this.scar )
 			{
-				if ( initiator && typeof initiator._score !== 'undefined' )
-				{
-					initiator._score += 250;
-				}
+				if ( initiator )
+				initiator.GiveScore( sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB, this );
+		
 				this.scar = 1;
 			}
 			

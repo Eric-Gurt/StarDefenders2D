@@ -158,7 +158,7 @@ class sdUpgradeStation extends sdEntity
 		
 		//this._is_cable_priority = true;
 		
-		this.hmax = 5000;
+		this.hmax = 5000 * 4;
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
 		this._cooldown = 0;

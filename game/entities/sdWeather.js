@@ -371,7 +371,7 @@ class sdWeather extends sdEntity
 								character_entity.hea = 115; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
 								character_entity.hmax = 115;
 
-								character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
+								//character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
 							}
 
 							if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If a Phoenix Falkok spawns
@@ -382,7 +382,7 @@ class sdWeather extends sdEntity
 								character_entity.hea = 250; // It is a stronger falkok after all, although revert changes if you want
 								character_entity.hmax = 250;
 
-								character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
+								//character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
 							}	
 							character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 							//character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
@@ -919,7 +919,7 @@ class sdWeather extends sdEntity
 									character_entity.armor_max = 500;
 									character_entity._armor_absorb_perc = 0.75; // 75% damage absorption, since armor will run out before health, they effectively have 750 health
 
-									character_entity._damage_mult = 1; // Supposed to put up a challenge
+									//character_entity._damage_mult = 1; // Supposed to put up a challenge
 								}
 
 								/*if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // Nothing here so far
@@ -1559,7 +1559,7 @@ class sdWeather extends sdEntity
 									character_entity.armor_max = 500;
 									character_entity._armor_absorb_perc = 0.75; // 75% damage absorption, since armor will run out before health, they effectively have 750 health
 
-									character_entity._damage_mult = 0.8;
+									//character_entity._damage_mult = 0.8;
 								}
 
 								if ( character_entity._ai_gun_slot === 2 ) // Combat rifle Velox
@@ -1574,7 +1574,7 @@ class sdWeather extends sdEntity
 									character_entity.armor_max = 1000;
 									character_entity._armor_absorb_perc = 0.93; // 93% damage absorption, since armor will run out before health, they effectively have 1250 health
 
-									character_entity._damage_mult = 1;
+									//character_entity._damage_mult = 1;
 								}
 
 								if ( character_entity._ai_gun_slot === 4 ) // Rail cannon Velox, harder to kill
@@ -1589,7 +1589,7 @@ class sdWeather extends sdEntity
 									character_entity.armor_max = 1750;
 									character_entity._armor_absorb_perc = 0.97; // 97% damage absorption, since armor will run out before health, they effectively have 2000 health
 
-									character_entity._damage_mult = 1 + ( 1 / 3 );
+									//character_entity._damage_mult = 1 + ( 1 / 3 );
 								}
 								character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 								//character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
@@ -1741,7 +1741,7 @@ class sdWeather extends sdEntity
 							character_entity._armor_absorb_perc = 0.6; // 60% damage reduction
 							character_entity.armor_speed_reduction = 10; // Armor speed reduction, 10% for heavy armor
 
-							character_entity._damage_mult = 2;	
+							//character_entity._damage_mult = 2;	
 							character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 										
 							character_entity._ai_level = 5;
@@ -1777,10 +1777,10 @@ class sdWeather extends sdEntity
 						similarity_hash:'EXTRACT-'+character_entity._net_id, 
 						executer: sdWorld.sockets[ i ].character,
 						target: character_entity,
-						extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
+						//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
 						mission: sdTask.MISSION_LRTP_EXTRACTION,
 						difficulty: 0.14,
-						lrtp_ents_needed: 1,
+						//lrtp_ents_needed: 1,
 						title: 'Arrest Star Defender',
 						description: 'It seems that one of criminals is nearby and needs to answer for their crimes. Arrest them and bring them to the mothership, even if it means bringing the dead body!'
 					});
@@ -1792,10 +1792,10 @@ class sdWeather extends sdEntity
 						similarity_hash:'EXTRACT-'+character_entity._net_id, 
 						executer: sdWorld.sockets[ i ].character,
 						target: character_entity,
-						extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
+						//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
 						mission: sdTask.MISSION_LRTP_EXTRACTION,
 						difficulty: 0.14,
-						lrtp_ents_needed: 1,
+						//lrtp_ents_needed: 1,
 						title: 'Rescue Star Defender',
 						description: 'It seems that one of our soldiers is nearby and needs help. You should rescue the soldier and extract him to the mothership!'
 					});
@@ -1884,7 +1884,7 @@ class sdWeather extends sdEntity
 									character_entity.armor_max = 350;
 									character_entity._armor_absorb_perc = 0.7; // 70% damage absorption
 
-									character_entity._damage_mult = 1;
+									//character_entity._damage_mult = 1;
 								}
 
 								character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
@@ -2026,15 +2026,17 @@ class sdWeather extends sdEntity
 					sdTask.MakeSureCharacterHasTask({ 
 						similarity_hash:'EXTRACT-'+this._net_id, 
 						executer: sdWorld.sockets[ i ].character,
-						target: 'sdCrystal',
+						//target: 'sdCrystal',
+						lrtp_class_proprty_value_array: [ 'sdCrystal' ],
 						mission: sdTask.MISSION_LRTP_EXTRACTION,
 						difficulty: 0.4,
-						lrtp_ents_needed: 10240 + ( 2560 * player_count ), // 12300 matter requirement for 1 player, although progress counts for all players I think
+						//lrtp_ents_needed: 10240 + ( 2560 * player_count ), // 12300 matter requirement for 1 player, although progress counts for all players I think
+						lrtp_matter_capacity_needed: 10240 + ( 2560 * player_count ), // 12300 matter requirement for 1 player, although progress counts for all players I think
 						title: 'Teleport crystals',
 						time_left: 30 * 60 * 30,
-						extra: -99, // This lets the game know to take max matter as progress instead of crystal count.
+						//extra: -99, // This lets the game know to take max matter as progress instead of crystal count.
 						description: 'We need you to teleport a large amount of crystals. This is to help us keep the Mothership supplied with matter so our matter reserves do not deplete. With other Star Defenders on this planet, it should not be too hard.',
-						type: 1 // Task remains active even if player disconnects, so it doesn't exist after the event expires
+						//type: 1 // Task remains active even if player disconnects, so it doesn't exist after the event expires
 					});
 				}
 		}
@@ -2272,7 +2274,7 @@ class sdWeather extends sdEntity
 										character_entity.hea = 115; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
 										character_entity.hmax = 115;
 
-										character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
+										//character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
 									}
 
 									if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If a Phoenix Falkok spawns
@@ -2283,7 +2285,7 @@ class sdWeather extends sdEntity
 										character_entity.hea = 250; // It is a stronger falkok after all, although revert changes if you want
 										character_entity.hmax = 250;
 
-										character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
+										//character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
 									}	
 									character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 									//character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;

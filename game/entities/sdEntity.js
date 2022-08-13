@@ -35,6 +35,17 @@ class sdEntity
 		sdEntity.HIBERSTATE_REMOVED = 2;
 		sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP = 3; 
 		
+		sdEntity.SCORE_REWARD_EASY_MOB = 1;
+		sdEntity.SCORE_REWARD_AVERAGE_MOB = 3;
+		sdEntity.SCORE_REWARD_CHALLENGING_MOB = 5;
+		sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB = 10;
+		sdEntity.SCORE_REWARD_BOSS = 30;
+		sdEntity.SCORE_REWARD_COMMON_TASK = 15;
+		sdEntity.SCORE_REWARD_TEDIOUS_TASK = 20;
+		sdEntity.SCORE_REWARD_BIG_EVENT_TASK = 50;
+		sdEntity.SCORE_REWARD_ADMIN_CRATE = 100000;
+		sdEntity.SCORE_REWARD_SCORE_SHARD = 1;
+		
 		/*sdEntity.MATTER_MODE_UNDECIDED = 0;
 		sdEntity.MATTER_MODE_NONE = 1;
 		sdEntity.MATTER_MODE_PUBLIC = 2;
@@ -299,6 +310,9 @@ class sdEntity
 	IsPlayerClass() // sdCharacter has it as well as everything that extends him
 	{
 		return false;
+	}
+	GiveScore( amount, killed_entity=null )
+	{
 	}
 	
 	GetAccurateDistance( xx, yy ) // Used on client-side when right clicking on cables (also during cursor hovering for context menu and hint), also on server when distance between cable and player is measured
@@ -3982,16 +3996,16 @@ class sdEntity
 		}
 		*/
 	}
-	AddContextOption( title, command_name, parameters_array, close_on_click=true ) // Do not override
+	AddContextOption( title, command_name, parameters_array, close_on_click=true, extra={} ) // Do not override. extra goes straight to context menu properties
 	{
-		sdContextMenu.options.push({ 
+		sdContextMenu.options.push( Object.assign( extra, { 
 			title: title,
 			close_on_click: close_on_click,
 			action: ()=>
 			{
 				globalThis.socket.emit( 'ENTITY_CONTEXT_ACTION', [ this.GetClass(), this._net_id, command_name, parameters_array ] );
 			}
-		});
+		}) );
 	}
 	AddPromptContextOption( title, command_name, parameters_array, hint, default_text, max_characters=100 ) // Do not override. Sets entered text to parameters_array[ 0 ]
 	{

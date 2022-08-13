@@ -395,7 +395,7 @@ class sdShop
 					character.hmax = Math.round( 130 + level_purchased / 3 * 120 );
 				}
 			},*/
-			upgrade_damage:
+			/*upgrade_damage:
 			{
 				max_level: 3,
 				matter_cost: 100,
@@ -404,8 +404,8 @@ class sdShop
 				{
 					character._damage_mult = 1 + level_purchased / 3 * 1;
 				}
-			},
-			upgrade_build_hp:
+			},*/
+			/*upgrade_build_hp:
 			{
 				max_level: 3,
 				matter_cost: 120,
@@ -414,7 +414,7 @@ class sdShop
 				{
 					character._build_hp_mult = 1 + level_purchased / 3 * 3;
 				}
-			},
+			},*/
 			upgrade_energy:
 			{
 				max_level: 40,
@@ -475,7 +475,7 @@ class sdShop
 					character._matter_regeneration = level_purchased;
 				}
 			},
-			upgrade_recoil_reduction: // Upgrade idea & pull request by Booraz149 ( https://github.com/Booraz149 )
+			/*upgrade_recoil_reduction: // Upgrade idea & pull request by Booraz149 ( https://github.com/Booraz149 )
 			{
 				max_level: 5,
 				matter_cost: 150,
@@ -494,7 +494,7 @@ class sdShop
 				{
 					character._air_upgrade = 1 + level_purchased ; // 
 				}
-			},
+			},*/
 			upgrade_jetpack_fuel_cost_reduction: // Upgrade idea & pull request by Booraz149 ( https://github.com/Booraz149 )
 			{
 				max_level: 5,

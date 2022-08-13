@@ -140,7 +140,7 @@ class sdTurret extends sdEntity
 		
 		//this._is_cable_priority = true;
 		
-		this._hmax = ( this.kind === sdTurret.KIND_RAPID_LASER || this.kind === sdTurret.KIND_SNIPER || this.kind === sdTurret.KIND_FREEZER ) ? 200 : 100;
+		this._hmax = ( ( this.kind === sdTurret.KIND_RAPID_LASER || this.kind === sdTurret.KIND_SNIPER || this.kind === sdTurret.KIND_FREEZER ) ? 200 : 100 ) * 4;
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 		

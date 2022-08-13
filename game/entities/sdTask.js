@@ -57,6 +57,13 @@ class sdTask extends sdEntity
 			},
 			onTimeOut: ( task )=>
 			{
+			},
+			onLongRangeTeleportCalledForEntity: ( task, long_range_teleport, entity )=>
+			{
+				return false; // False means ignore entity
+			},
+			onLongRangeTeleportCalled: ( task, long_range_teleport )=> // Called after it gone through all entities
+			{
 			}
 		};
 		sdTask.missions[ sdTask.MISSION_DESTROY_ENTITY = id++ ] = 
@@ -151,11 +158,26 @@ class sdTask extends sdEntity
 			{
 				// Create extra properties here
 				
-				task.lrtp_ents_count = 0;
-				task.lrtp_ents_needed = params.lrtp_ents_needed || 3; // For LRT delivery tasks
+				task._lrtp_ents_count = 0;
+				task._lrtp_ents_needed = params.lrtp_ents_needed || 1; // For LRT delivery tasks
+				
+				task._lrtp_matter_capacity_current = 0;
+				task._lrtp_matter_capacity_needed = params.lrtp_matter_capacity_needed || -1;
+				
+				if ( task._target )
+				{
+					task._lrtp_ents_needed = 1;
+				}
+				
+				task._lrtp_class_proprty_value_array = params.lrtp_class_proprty_value_array || null; // [ Class, property, expected_value ] - should be enough to describe everything, especially if you will make "getters" on required entity.
 
-				task.extra = params.extra || 0; // For LRT delivery tasks, used to determine entity type ( sdCrystal, sdJunk )
-				task._type = params.type || 0; // "Public event task" or regular? If it's set to 1, task will be in active state regardless if player disconnected.
+				//task.extra = params.extra || 0; // For LRT delivery tasks, used to determine entity type ( sdCrystal, sdJunk )
+				//task._type = params.type || 0; // "Public event task" or regular? If it's set to 1, task will be in active state regardless if player disconnected.
+				
+				if ( task._lrtp_matter_capacity_needed !== -1 )
+				task.SetBasicProgress( task._lrtp_matter_capacity_current, task._lrtp_matter_capacity_needed );
+				else
+				task.SetBasicProgress( task._lrtp_ents_count, task._lrtp_ents_needed );
 			},
 	
 			GetDefaultTitle: ( task )=>{
@@ -174,17 +196,86 @@ class sdTask extends sdEntity
 			},
 			completion_condition: ( task )=>
 			{
-				if ( task.lrtp_ents_count >= task.lrtp_ents_needed )
-				return true;
-
-				if ( !task._target || task._target._is_being_removed ) // Am I doing something illegal here? Keep in mind on CC extraction tasks target is something like 'sdCrystal' or 'sdJunk', but not actual entity, while this is for actual entities which need extraction - Booraz149
-				task.remove();
+				if ( task._lrtp_matter_capacity_needed !== -1 )
+				{
+					// Matter capacity-based
+					if ( task._lrtp_matter_capacity_current >= task._lrtp_matter_capacity_needed )
+					return true;
+				}
+				else
+				{
+					// Count-based
+					if ( task._lrtp_ents_count >= task._lrtp_ents_needed )
+					return true;
+				}
+				
+				
+				if ( task._lrtp_class_proprty_value_array )
+				{
+					// In case of not specific entity
+				}
+				else
+				{
+					// Specific entity
+					if ( !task._target || task._target._is_being_removed ) // Am I doing something illegal here? Keep in mind on CC extraction tasks target is something like 'sdCrystal' or 'sdJunk', but not actual entity, while this is for actual entities which need extraction - Booraz149
+					task.remove();
+				}
 			
 				return false;
 			},
 			onTimeOut: ( task )=>
 			{
 				task.remove();
+			},
+			
+			onLongRangeTeleportCalledForEntity: ( task, long_range_teleport, entity )=>
+			{
+				let matches_expectations = false;
+				
+				if ( task._lrtp_class_proprty_value_array )
+				{
+					if ( task._lrtp_ents_count < task._lrtp_ents_needed || // Do not take extra items so other tasks could pick them up instead
+						 ( task._lrtp_matter_capacity_needed !== -1 && task._lrtp_matter_capacity_current < task._lrtp_matter_capacity_needed ) )
+					if ( entity.GetClass() === task._lrtp_class_proprty_value_array[ 0 ] )
+					{
+						matches_expectations = true;
+
+						for ( let i = 1; i < task._lrtp_class_proprty_value_array.length; i += 2 )
+						{
+							let prop = task._lrtp_class_proprty_value_array[ i ];
+							let value = task._lrtp_class_proprty_value_array[ i + 1 ];
+
+							if ( entity[ prop ] !== value )
+							{
+								matches_expectations = false;
+								break;
+							}
+						}
+					}
+				}
+				else
+				{
+					if ( entity === task._target )
+					matches_expectations = true;
+				}
+				
+
+				if ( matches_expectations )
+				{
+					if ( task._lrtp_matter_capacity_needed !== -1 )
+					task._lrtp_matter_capacity_current += entity.matter_max || entity._matter_max || 0;
+					
+					task._lrtp_ents_count++;
+					
+					if ( task._lrtp_matter_capacity_needed !== -1 )
+					task.SetBasicProgress( task._lrtp_matter_capacity_current, task._lrtp_matter_capacity_needed );
+					else
+					task.SetBasicProgress( task._lrtp_ents_count, task._lrtp_ents_needed );
+					
+					return true; // Correct entity
+				}
+
+				return false; // False means ignore entity
 			}
 		};
 		
@@ -253,8 +344,15 @@ class sdTask extends sdEntity
 	{
 		if ( prop === '_executer' ) return true;
 		if ( prop === '_target' ) return true;
+		if ( prop === '_lrtp_class_proprty_value_array' ) return true;
 		
 		return false;
+	}
+	
+	SetBasicProgress( current, total )
+	{
+		this.progress = '( ' + current + ' / ' + total + ' )';
+		this._update_version++;
 	}
 	
 	constructor( params )
@@ -264,6 +362,8 @@ class sdTask extends sdEntity
 		// Note: Do not make extra properties here since these willl appear for all kinds of tasks, which means overcomplicating them. Use .onTaskMade as part of a specific mission
 
 		this._executer = params.executer || null; // Who is responsible for completion of this task. Make extra task for each alive character
+		this._is_global = params.is_global || false; // All players can execute it
+
 
 		this._difficulty = params.difficulty || 0.1; // Task difficulty, decides how much percentage the player gets closer towards task rewards when completed ( 1 = 100%, 0.1 = 10%)
 		
@@ -277,6 +377,8 @@ class sdTask extends sdEntity
 		this.mission = params.mission || 0;
 		
 		let mission = sdTask.missions[ this.mission ];
+	
+		this.progress = '';
 		
 		if ( mission )
 		{
@@ -305,7 +407,6 @@ class sdTask extends sdEntity
 	
 		if ( params.time_left !== undefined )
 		this.time_left = params.time_left;
-		
 		
 		if ( this._target )
 		{
@@ -364,6 +465,7 @@ class sdTask extends sdEntity
 	{
 		if ( sdWorld.is_server )
 		{
+			if ( !this._is_global )
 			if ( !this._executer || this._executer._is_being_removed )
 			{
 				this.remove();
@@ -601,11 +703,11 @@ class sdTask extends sdEntity
 		ctx.fillStyle = '#ffffff';
 		PutMultilineText( this.description, true );
 
-		if ( this.mission === sdTask.MISSION_LRTP_EXTRACTION )
-		{
+		//if ( this.mission === sdTask.MISSION_LRTP_EXTRACTION )
+		//{
 			ctx.fillStyle = '#ffff00';
-			PutMultilineText( '(' + this.lrtp_ents_count + '/' + this.lrtp_ents_needed + ')' , true );
-		}
+			PutMultilineText( this.progress, true );//'(' + this.lrtp_ents_count + '/' + this.lrtp_ents_needed + ')' , true );
+		//}
 		
 		if ( this.time_left !== -1 )
 		{

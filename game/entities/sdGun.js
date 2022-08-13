@@ -227,9 +227,9 @@ class sdGun extends sdEntity
 						mult *= from_entity.GetHitDamageMultiplier( this.x, this.y );
 					}
 
-					if ( this._dangerous_from && this._dangerous_from.is( sdCharacter ) )
-					from_entity.DamageWithEffect( projectile_properties._damage * this._dangerous_from._damage_mult, this._dangerous_from );
-					else
+					//if ( this._dangerous_from && this._dangerous_from.is( sdCharacter ) )
+					//from_entity.DamageWithEffect( projectile_properties._damage * this._dangerous_from._damage_mult, this._dangerous_from );
+					//else
 					from_entity.DamageWithEffect( projectile_properties._damage, this._dangerous_from );
 
 					this.DamageWithEffect( 1 );
@@ -560,13 +560,18 @@ class sdGun extends sdEntity
 	
 		let dmg_mult = 1;
 		
-		if ( this._held_by )
+		/*if ( this._held_by )
 		if ( this._held_by.IsPlayerClass() )
 		{
 			dmg_mult *= this._held_by._damage_mult * ( this._held_by.power_ef > 0 ? 2.5 : 1 );
-		}
+		}*/
 		
-		return ( Math.abs( projectile_properties._damage * dmg_mult ) * this._count + 
+		let temperature_damage = Math.abs( this._temperature_addition ) / 500 * 50;
+		
+		if ( this._temperature_addition < -50 )
+		temperature_damage = Math.abs( this._temperature_addition ) / 100 * 50;
+		
+		return ( Math.abs( projectile_properties._damage * dmg_mult + temperature_damage ) * this._count + 
 				( projectile_properties._rail ? 30 : 0 ) + 
 				( projectile_properties.explosion_radius > 0 ? 250 : 0 ) ) * sdWorld.damage_to_matter;
 	}
@@ -847,17 +852,18 @@ class sdGun extends sdEntity
 							bullet_obj.acy = Math.cos( an );
 						}
 						
-						bullet_obj._damage *= bullet_obj._owner._damage_mult;
+						//bullet_obj._damage *= bullet_obj._owner._damage_mult;
 						
 						if ( bullet_obj._owner.power_ef > 0 )
 						bullet_obj._damage *= 2.5;
 					
 						bullet_obj._damage *= scale;
 						
-						if ( bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ] )
+						/*if ( bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ] )
 						bullet_obj._armor_penetration_level = bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ];
 						else
-						bullet_obj._armor_penetration_level = 0;
+						bullet_obj._armor_penetration_level = 0;*/
+						bullet_obj._armor_penetration_level = 3;
 					
 						if ( typeof projectile_properties._armor_penetration_level !== 'undefined' )
 						bullet_obj._armor_penetration_level = projectile_properties._armor_penetration_level;
@@ -1078,7 +1084,10 @@ class sdGun extends sdEntity
 			
 			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1 );
 			
-			if ( this.class === sdGun.CLASS_CRYSTAL_SHARD || this.class === sdGun.CLASS_CUBE_SHARD || is_unknown )
+			let known_class = sdGun.classes[ this.class ];
+			
+			//if ( this.class === sdGun.CLASS_CRYSTAL_SHARD || this.class === sdGun.CLASS_CUBE_SHARD || is_unknown )
+			if ( is_unknown || known_class.no_tilt )
 			this.tilt = 0; // These have offset which better to not rotate for better visuals
 			else
 			{
@@ -1355,6 +1364,12 @@ class sdGun extends sdEntity
 					
 					ctx.drawImageFilterCache( image, i * 32,32 + frame * 32,32,32, -16 + xx, -16 + yy, 32,32 );
 				}
+			}
+			else
+			if ( has_class.image_frames )
+			{
+				let frame = Math.floor( ( sdWorld.time + this._net_id * 2154 ) / has_class.image_duration ) % has_class.image_frames;
+				ctx.drawImageFilterCache( image, 0 + frame * 32,0,32,32,  - 16, - 16, 32,32 );
 			}
 			else
 			{

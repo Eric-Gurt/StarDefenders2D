@@ -80,7 +80,7 @@ class sdBaseShieldingUnit extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this.hmax = 500; // * 3 when enabled * construction hitpoints upgrades - Just enough so players don't accidentally destroy it when stimpacked and RTP'd
+		this.hmax = 500 * 4; // * 3 when enabled * construction hitpoints upgrades - Just enough so players don't accidentally destroy it when stimpacked and RTP'd
 		this.hea = this.hmax;
 		//this._hmax_old = this.hmax;
 		this.regen_timeout = 0;

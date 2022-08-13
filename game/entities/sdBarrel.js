@@ -97,7 +97,8 @@ class sdBarrel extends sdEntity
 			x:this.x, 
 			y:this.y, 
 			radius:30 + 5 * ( this.variation ) , // 70 was too much?
-			damage_scale: 9 * ( 1 + this.variation ) * ( this._owner ? this._owner._damage_mult : 1 ), // 5 was too deadly on relatively far range
+			damage_scale: 9 * ( 1 + this.variation ) * 2, // 5 was too deadly on relatively far range
+			//damage_scale: 9 * ( 1 + this.variation ) * ( this._owner ? this._owner._damage_mult : 1 ), // 5 was too deadly on relatively far range
 			type:sdEffect.TYPE_EXPLOSION, 
 			owner:this._owner,
 			can_hit_owner: true,

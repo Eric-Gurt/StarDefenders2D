@@ -150,8 +150,7 @@ class sdAsp extends sdEntity
 			//sdSound.PlaySound({ name:'asp_death', x:this.x, y:this.y, volume: 0.5 });
 
 			if ( initiator )
-			if ( typeof initiator._score !== 'undefined' )
-			initiator._score += 2;
+			initiator.GiveScore( sdEntity.SCORE_REWARD_EASY_MOB, this );
 	
 		}
 		

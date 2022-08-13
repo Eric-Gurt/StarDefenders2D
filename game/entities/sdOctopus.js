@@ -48,7 +48,7 @@ class sdOctopus extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 500; // Was 2000, but too boring to kill them
+		this._hmax = 1000; // Was 2000, but too boring to kill them
 		this._hea = this._hmax;
 		
 		this.death_anim = 0;
@@ -127,8 +127,7 @@ class sdOctopus extends sdEntity
 			sdSound.PlaySound({ name:'octopus_death', x:this.x, y:this.y, volume: 0.5 });
 
 			if ( initiator )
-			if ( typeof initiator._score !== 'undefined' )
-			initiator._score += 20;
+			initiator.GiveScore( sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB, this );
 	
 			/*while ( this._consumed_matter.length > 0 )
 			{

@@ -241,46 +241,44 @@ class sdSetrDestroyer extends sdEntity
 			sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:2 });
 			this.death_anim = 1;
 			if ( initiator )
-			if ( typeof initiator._score !== 'undefined' )
+			initiator.GiveScore( sdEntity.SCORE_REWARD_BOSS, this );
+		
+			let that = this;
+			for ( var i = 0; i < 20; i++ )
 			{
-				initiator._score += 250;
-			}
-				let that = this;
-				for ( var i = 0; i < 20; i++ )
+				let an = Math.random() * Math.PI * 2;
+				let d = ( i === 0 ) ? 0 : Math.random() * 20;
+				let r = ( i === 0 ) ? 50 : ( 10 + Math.random() * 20 );
+
+				setTimeout( ()=>
 				{
-					let an = Math.random() * Math.PI * 2;
-					let d = ( i === 0 ) ? 0 : Math.random() * 20;
-					let r = ( i === 0 ) ? 50 : ( 10 + Math.random() * 20 );
-					
-					setTimeout( ()=>
+					if ( !that._is_being_removed || i === 0 )
 					{
-						if ( !that._is_being_removed || i === 0 )
-						{
-							var a = Math.random() * 2 * Math.PI;
-							var s = Math.random() * 10;
+						var a = Math.random() * 2 * Math.PI;
+						var s = Math.random() * 10;
 
-							var k = 1;
+						var k = 1;
 
-							var x = that.x + that._hitbox_x1 + Math.random() * ( that._hitbox_x2 - that._hitbox_x1 );
-							var y = that.y + that._hitbox_y1 + Math.random() * ( that._hitbox_y2 - that._hitbox_y1 );
-							
-							that.sx -= Math.sin( an ) * d * r * 0.005;
-							that.sy -= Math.cos( an ) * d * r * 0.005;
+						var x = that.x + that._hitbox_x1 + Math.random() * ( that._hitbox_x2 - that._hitbox_x1 );
+						var y = that.y + that._hitbox_y1 + Math.random() * ( that._hitbox_y2 - that._hitbox_y1 );
 
-							sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: that.sx*k + Math.sin(a)*s, sy: that.sy*k + Math.cos(a)*s });
-							sdWorld.SendEffect({ 
-								x: that.x + Math.sin( an ) * d, 
-								y: that.y + Math.cos( an ) * d, 
-								radius: r, 
-								damage_scale: 1, 
-								type: sdEffect.TYPE_EXPLOSION,
-								owner: that,
-								can_hit_owner: true,
-								color: sdEffect.default_explosion_color 
-							});
-						}
-					}, i * 150 );
-				}
+						that.sx -= Math.sin( an ) * d * r * 0.005;
+						that.sy -= Math.cos( an ) * d * r * 0.005;
+
+						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: that.sx*k + Math.sin(a)*s, sy: that.sy*k + Math.cos(a)*s });
+						sdWorld.SendEffect({ 
+							x: that.x + Math.sin( an ) * d, 
+							y: that.y + Math.cos( an ) * d, 
+							radius: r, 
+							damage_scale: 1, 
+							type: sdEffect.TYPE_EXPLOSION,
+							owner: that,
+							can_hit_owner: true,
+							color: sdEffect.default_explosion_color 
+						});
+					}
+				}, i * 150 );
+			}
 		}
 			
 		//if ( this.hea < -this._hmax / 80 * 100 )

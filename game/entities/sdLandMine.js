@@ -29,7 +29,7 @@ class sdLandMine extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this.hea = 10;
+		this.hea = 40;
 		this.filter = params.filter || 'none';
 		this.variation = params.variation || 0;
 		this._owner = null;

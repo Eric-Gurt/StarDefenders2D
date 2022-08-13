@@ -314,13 +314,7 @@ class sdBlock extends sdEntity
 				if ( this.material === sdBlock.MATERIAL_CORRUPTION )
 				{
 					if ( initiator )
-					if ( typeof initiator._score !== 'undefined' )
-					{
-						if ( this.p === sdBlock.max_corruption_rank )
-						initiator._score += 3;
-						else
-						initiator._score += 1;
-					}
+					initiator.GiveScore( sdEntity.SCORE_REWARD_EASY_MOB, this );
 				}
 
 				if ( this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
@@ -506,7 +500,12 @@ class sdBlock extends sdEntity
 		
 		this.texture_id = params.texture_id || 0; // Only changes texture, but keeps meaning
 		
+		this._natural = params.natural === true;
+		
 		this._hmax = 550 * ( this.width / 32 * this.height / 32 ) * ( this.material === sdBlock.MATERIAL_GROUND ? 0.8 : 1 );
+		
+		if ( !this._natural )
+		this._hmax *= 4;
 		
 		if ( this.material === sdBlock.MATERIAL_TRAPSHIELD ) // Less health, but regeneration will have no delay
 		{
@@ -530,8 +529,6 @@ class sdBlock extends sdEntity
 		this.hue = params.hue || 0;
 		this.br = params.br || 100;
 		this.filter = params.filter || '';
-		
-		this._natural = params.natural === true;
 		
 		this._plants = params.plants || null; // Array of _net_id-s actually
 		

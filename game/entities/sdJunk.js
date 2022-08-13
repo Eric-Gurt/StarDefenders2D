@@ -183,7 +183,7 @@ class sdJunk extends sdEntity
 			{
 				if ( this.hea <= this._next_score_at )
 				{
-					initiator._score += 1;
+					//initiator._score += 1;
 					this._next_score_at = this.hea - 80;
 				}
 			}
@@ -724,7 +724,7 @@ class sdJunk extends sdEntity
 										character_entity.armor_max = 1500;
 										character_entity._armor_absorb_perc = 0.87; // 87% damage absorption, since armor will run out before just a little before health
 
-										character_entity._damage_mult = 1; // Supposed to put up a challenge
+										//character_entity._damage_mult = 1; // Supposed to put up a challenge
 									}
 									character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 									//character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
@@ -1058,15 +1058,18 @@ class sdJunk extends sdEntity
 		}
 		if ( this.type === 6 )
 		{
-			sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
+			if ( this._broken )
+			{
+				sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
 
-			sdWorld.DropShards( this.x, this.y, 0, 0, 
-				Math.floor( Math.max( 0, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
-				this.matter_max / 40,
-				10
-			);
+				sdWorld.DropShards( this.x, this.y, 0, 0, 
+					Math.floor( Math.max( 0, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
+					this.matter_max / 40,
+					10
+				);
 
-			sdWorld.BasicEntityBreakEffect( this, 10 );
+				sdWorld.BasicEntityBreakEffect( this, 10 );
+			}
 		}
 	}
 	MeasureMatterCost()

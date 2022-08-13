@@ -80,7 +80,7 @@ class sdHoverBike extends sdEntity
 
 		//this.type = params.type || 0;
 		
-		this.hmax = 300; // Hover has 600+, depending on type
+		this.hmax = 300 * 4; // Hover has 600+, depending on type
 		this.hea = this.hmax;
 		
 		this._tilt = 0;
@@ -340,14 +340,14 @@ class sdHoverBike extends sdEntity
 					bullet_obj.sx += this.sx;
 					bullet_obj.sy += this.sy;
 
-					bullet_obj._damage = 13.5;
+					bullet_obj._damage = 13.5 * 2;
 
 					bullet_obj.color = '#ffaa00';
 
 					bullet_obj._rail = false;
 					
 
-					bullet_obj._damage *= bullet_obj._owner._damage_mult;
+					//bullet_obj._damage *= bullet_obj._owner._damage_mult;
 
 					if ( bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ] )
 					bullet_obj._armor_penetration_level = bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ];
@@ -369,78 +369,6 @@ class sdHoverBike extends sdEntity
 				}
 			}
 			
-		
-			/*if ( this.driver2 )
-			if ( this._rockets_reload <= 0 )
-			{
-				if ( this.driver2._key_states.GetKey( 'Mouse1' ) )
-				{
-					sdSound.PlaySound({ name:'gun_rocket', x:this.x, y:this.y, volume:1, pitch:0.5 });
-
-					let bullet_obj = new sdBullet({ x: this.x, y: this.y });
-
-					bullet_obj._owner = this.driver2;
-					bullet_obj._owner2 = this;
-
-					let an = this.driver2.GetLookAngle() + ( Math.random() * 2 - 1 ) * 0.05;
-
-					bullet_obj.sx = Math.cos( Math.PI / 2 - an );
-					bullet_obj.sy = Math.sin( Math.PI / 2 - an );
-					bullet_obj.x += bullet_obj.sx * 5;
-					bullet_obj.y += bullet_obj.sy * 5;
-
-					bullet_obj.sx *= 15;
-					bullet_obj.sy *= 15;
-
-					if ( this.type === 1 )
-					bullet_obj.model = 'f_hover_rocket';		
-					else
-					bullet_obj.model = 'rocket_proj';
-
-					if ( this.type === 1 )
-					bullet_obj._damage = 30 * 2;
-					else
-					bullet_obj._damage = 19 * 2;
-					if ( this.type === 1 )
-					bullet_obj.explosion_radius = 25 * 1.5;
-					else
-					bullet_obj.explosion_radius = 19 * 1.5;
-
-					if ( this.type === 1 )
-					bullet_obj.color = '#ffca9e';
-					else
-					bullet_obj.color = '#7acaff';
-					
-					bullet_obj.ac = 1;
-					
-					if ( bullet_obj.ac > 0 )
-					{
-						bullet_obj.acx = Math.cos( Math.PI / 2 - an );
-						bullet_obj.acy = Math.sin( Math.PI / 2 - an );
-					}
-					
-
-					bullet_obj._damage *= bullet_obj._owner._damage_mult;
-
-					if ( bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ] )
-					bullet_obj._armor_penetration_level = bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ];
-					else
-					bullet_obj._armor_penetration_level = 0;
-
-					sdEntity.entities.push( bullet_obj );
-
-					this._rockets_reload = 5;
-
-					this._rockets--;
-				}
-
-				if ( this._rockets <= 0 || ( this._rockets < 2 && this.driver2._key_states.GetKey( 'KeyR' ) ) )
-				{
-					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:1, pitch:0.3 });
-					this._rockets = 2;
-					this._rockets_reload = 60;
-				}
-			}*/
 		}
 		
 		sdWorld.last_hit_entity = null;

@@ -75,7 +75,7 @@ class sdLifeBox extends sdEntity
 		this.damage_mult = 1;
 		this.rate_of_fire_mult = 1;
 		this.hp_regen_mult = 1;
-		this.hmax = 6000;
+		this.hmax = 6000 * 4;
 		this.hea = this.hmax;
 		this.hmax_old = this.hmax;
 		this._regen_timeout = 0;

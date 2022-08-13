@@ -56,8 +56,8 @@ class sdSteeringWheel extends sdEntity
 		//this.sx = 0;
 		//this.sy = 0;
 
-		this._hea = 800;
-		this._hmax = 800;
+		this._hea = 800 * 4;
+		this._hmax = 800 * 4;
 		
 		this._regen_timeout = 0;
 		
@@ -141,7 +141,9 @@ class sdSteeringWheel extends sdEntity
 
 									( 
 									   ent2.IsBGEntity() === 1 &&
-
+									   
+									   ( !ent2.is( sdBlock ) || !ent2._natural ) &&
+									   
 									   (
 											( ent2.is( sdBG ) && ent2.material !== sdBG.MATERIAL_GROUND ) 
 											||
@@ -166,6 +168,13 @@ class sdSteeringWheel extends sdEntity
 								if ( collected.length > LIMIT )
 								{
 									reason = 'Skybase is likely stuck or too big to move (over ' + LIMIT + ' entities in a scan)';
+									collected = null;
+									break out;
+								}
+								
+								if ( ent2.is( sdSteeringWheel ) && ent2 !== this )
+								{
+									reason = 'Only one steering wheel is allowed';
 									collected = null;
 									break out;
 								}

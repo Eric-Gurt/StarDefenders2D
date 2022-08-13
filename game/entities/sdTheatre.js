@@ -59,7 +59,7 @@ class sdTheatre extends sdEntity
 	{
 		super( params );
 		
-		this.hmax = 100;
+		this.hmax = 100 * 4;
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
 		

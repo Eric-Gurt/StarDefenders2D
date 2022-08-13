@@ -96,11 +96,11 @@ class sdQuadro extends sdEntity
 		
 		if ( this.part === 0 )
 		{
-			this.hmax = 200;
+			this.hmax = 200 * 4;
 		}
 		else
 		{
-			this.hmax = 130;
+			this.hmax = 130 * 4;
 		}
 		
 		this.hea = this.hmax;

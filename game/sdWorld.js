@@ -1047,7 +1047,7 @@ class sdWorld
 			return true;
 		}
 	}
-	static DropShards( x,y,sx,sy, tot, value_mult, radius=0 )
+	static DropShards( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9 )
 	{
 		if ( sdWorld.is_server )
 		{
@@ -1055,10 +1055,10 @@ class sdWorld
 			{
 				let xx = x - radius + Math.random() * radius * 2;
 				let yy = y - radius + Math.random() * radius * 2;
-				let ent = new sdGun({ class:sdGun.CLASS_CRYSTAL_SHARD, x: xx, y: yy });
+				let ent = new sdGun({ class:shard_class_id, x: xx, y: yy });
 				ent.sx = sx + Math.random() * 8 - 4;
 				ent.sy = sy + Math.random() * 8 - 4;
-				ent.ttl = 30 * 9 * ( 0.7 + Math.random() * 0.3 ); // was 7 seconds, now 9
+				ent.ttl = 30 * normal_ttl_seconds * ( 0.7 + Math.random() * 0.3 ); // was 7 seconds, now 9
 				ent.extra = value_mult * sdWorld.crystal_shard_value;
 				sdEntity.entities.push( ent );
 			}
@@ -2420,6 +2420,8 @@ class sdWorld
 			else
 			sdEntity.snapshot_clear_crawler_i = 0;
 		}
+		
+		sdWater.GlobalThink( GSPEED );
 		
 		// Keep it last:
 		sdWorld.frame++;

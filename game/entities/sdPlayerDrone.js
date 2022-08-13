@@ -196,7 +196,7 @@ class sdPlayerDrone extends sdCharacter
 		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED );
 		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED );
 		
-		const matter_cost_4 = ( Math.abs( 100 * this._damage_mult * ( this.power_ef > 0 ? 2.5 : 1 ) ) * 1 + 30 ) * sdWorld.damage_to_matter;
+		const matter_cost_4 = ( Math.abs( 100 * 1 * ( this.power_ef > 0 ? 2.5 : 1 ) ) * 1 + 30 ) * sdWorld.damage_to_matter;
 		const matter_cost_5 = 100;
 		const matter_cost_7 = 1;
 		
@@ -221,7 +221,7 @@ class sdPlayerDrone extends sdCharacter
 					x:this.x, 
 					y:this.y, 
 					radius:40 * scale, // 80 was too much?
-					damage_scale: 10 * ( this._damage_mult ), // 5 was too deadly on relatively far range
+					damage_scale: 10 * ( 1 ), // 5 was too deadly on relatively far range
 					type:sdEffect.TYPE_EXPLOSION, 
 					owner:this,
 					color:'#FF6633' 
@@ -382,7 +382,7 @@ class sdPlayerDrone extends sdCharacter
 						bullet_obj.sx = dx * 12;
 						bullet_obj.sy = dy * 12;
 
-						bullet_obj._damage = 10 * power * ( ( this.power_ef > 0 ) ? 2.5 : 1 ) * this._damage_mult * scale;
+						bullet_obj._damage = 10 * power * ( ( this.power_ef > 0 ) ? 2.5 : 1 ) * 1 * scale;
 
 						
 						if ( mode === 7 )

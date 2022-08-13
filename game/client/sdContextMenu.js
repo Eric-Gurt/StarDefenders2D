@@ -365,7 +365,7 @@ class sdContextMenu
 			ctx.globalAlpha = 0.7;
 			ctx.fillRect( 0, 0, width, ( sdContextMenu.options.length + 1 ) * ( 30 ) );
 			ctx.globalAlpha = 1;
-
+			
 			sdContextMenu.potential_option = null;
 			
 			for ( var i = -1; i < sdContextMenu.options.length; i++ )
@@ -381,18 +381,28 @@ class sdContextMenu
 				}
 				
 				if ( i >= 0 )
-				if ( sdWorld.mouse_screen_x >= sdContextMenu.x )
-				if ( sdWorld.mouse_screen_x < sdContextMenu.x + width )
-				if ( sdWorld.mouse_screen_y >= sdContextMenu.y + ( i + 1 ) * 30 )
-				if ( sdWorld.mouse_screen_y < sdContextMenu.y + ( i + 1 + 1 ) * 30 )
 				{
-					if ( sdContextMenu.potential_option === null )
+					if ( sdWorld.mouse_screen_x >= sdContextMenu.x )
+					if ( sdWorld.mouse_screen_x < sdContextMenu.x + width )
+					if ( sdWorld.mouse_screen_y >= sdContextMenu.y + ( i + 1 ) * 30 )
+					if ( sdWorld.mouse_screen_y < sdContextMenu.y + ( i + 1 + 1 ) * 30 )
 					{
-						sdContextMenu.potential_option = sdContextMenu.options[ i ];
-						
-						ctx.fillStyle = '#ffff00';
-						ctx.globalAlpha = 0.3;
-						ctx.fillRect( 1, ( i + 1 ) * 30 + 1, width-2, 28 );
+						if ( sdContextMenu.potential_option === null )
+						{
+							sdContextMenu.potential_option = sdContextMenu.options[ i ];
+
+							ctx.fillStyle = '#ffff00';
+							ctx.globalAlpha = 0.3;
+							ctx.fillRect( 1, ( i + 1 ) * 30 + 1, width-2, 28 );
+							ctx.globalAlpha = 1;
+						}
+					}
+
+					if ( sdContextMenu.options[ i ].hint_color )
+					{
+						ctx.fillStyle = sdContextMenu.options[ i ].hint_color;
+						ctx.globalAlpha = 1;
+						ctx.fillRect( width - 28 - 1, ( i + 1 ) * 30 + 1, 28, 28 );
 						ctx.globalAlpha = 1;
 					}
 				}

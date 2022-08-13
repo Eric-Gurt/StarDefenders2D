@@ -74,7 +74,7 @@ class sdCrystalCombiner extends sdEntity
 		this.crystal0 = null;
 		this.crystal1 = null;
 	   
-		this._hmax = 600;
+		this._hmax = 600 * 4;
 		this._hea = this._hmax;
 		
 		this._ignore_pickup_tim = 0;

@@ -56,6 +56,7 @@ class sdGunClass
 				title: 'Make ' + ( prefix?prefix+' ':'' ) + colors[ i ],
 				cost: cost,
 				category: category,
+				hint_color: colors[ i + 1 ],
 				action: ( gun, initiator=null )=>
 				{ 
 					if ( !gun.sd_filter )
@@ -277,6 +278,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'crystal_shard' ),
 			title: 'Crystal shard',
+			no_tilt: true,
 			slot: 0,
 			reload_time: 25,
 			muzzle_x: null,
@@ -575,6 +577,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'cube_shard2' ),
 			title: 'Cube shard',
+			no_tilt: true,
 			slot: 0,
 			reload_time: 25,
 			muzzle_x: null,
@@ -657,7 +660,8 @@ class sdGunClass
 					if ( gun.extra === -123 )
 					{
 						character.Say( "Score" );
-						character._score += 100000;
+						//character._score += 100000;
+						character.GiveScore( sdEntity.SCORE_REWARD_ADMIN_CRATE, gun );
 						gun.remove(); 
 
 						if ( character._socket )
@@ -670,7 +674,9 @@ class sdGunClass
 						character.Say( "This will be useful" );
 						else
 						character.Say( "This is definitely gonna help me");
-						character._score += 350;
+					
+						character.GiveScore( sdEntity.SCORE_REWARD_TEDIOUS_TASK, gun );
+						
 						gun.remove(); 
 
 						if ( character._socket )
@@ -683,7 +689,9 @@ class sdGunClass
 						character.Say( "This will be useful" );
 						else
 						character.Say( "This is definitely gonna help me");
-						character._score += 600;
+					
+						character.GiveScore( sdEntity.SCORE_REWARD_TEDIOUS_TASK, gun );
+						
 						gun.remove(); 
 
 						if ( character._socket )
@@ -696,7 +704,9 @@ class sdGunClass
 						character.Say( "This will be useful" );
 						else
 						character.Say( "This is definitely gonna help me");
-						character._score += 900;
+					
+						character.GiveScore( sdEntity.SCORE_REWARD_TEDIOUS_TASK, gun );
+						
 						gun.remove(); 
 
 						if ( character._socket )
@@ -1773,7 +1783,7 @@ class sdGunClass
 						});
 						ent.gun_slot = 4;
 						ent._matter_regeneration = 5;
-						ent._damage_mult = 1 + 3 / 3 * 1;
+						//ent._damage_mult = 1 + 3 / 3 * 1;
 						sdEntity.entities.push( ent );
 
 						let ent2 = new sdGun({ x: ent.x, y: ent.y,
@@ -2873,7 +2883,7 @@ class sdGunClass
 						ent.ApplyArmor({ armor: 370, _armor_absorb_perc: 0.55, armor_speed_reduction: 10 }) // Level 2 heavy armor
 						ent._matter_regeneration = 5;
 						ent._matter_regeneration_multiplier = 10;
-						ent._damage_mult = 1 + 3 / 3 * 1;
+						//ent._damage_mult = 1 + 3 / 3 * 1;
 						sdEntity.entities.push( ent );
 
 						let ent2 = new sdGun({ x: ent.x, y: ent.y,
@@ -3117,6 +3127,8 @@ class sdGunClass
 								
 								bullet._gun._held_item_snapshot = null;
 								sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, liquid_carrier_base_color, liquid_carrier_empty );
+								
+								sdSound.PlaySound({ name:'water_entrance', x:gun.x, y:gun.y, volume: 0.1, pitch: 1 });
 							}
 							
 						}
@@ -3134,6 +3146,8 @@ class sdGunClass
 							water_ent.AwakeSelfAndNear();
 							
 							water_ent.remove();
+							
+							sdSound.PlaySound({ name:'water_entrance', x:gun.x, y:gun.y, volume: 0.1, pitch: 1 });
 						}
 					}
 				}
@@ -3709,6 +3723,40 @@ class sdGunClass
 			},
 			
 			upgrades: AddGunEditorUpgrades()
+		};
+		
+		
+		
+		sdGun.classes[ sdGun.CLASS_SCORE_SHARD = 97 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'score' ),
+			image_frames: 4,
+			image_duration: 250,
+			title: 'Score shard',
+			no_tilt: true,
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			spawnable: false,
+			ignore_slot: true,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
+			{ 
+				if ( !gun._is_being_removed )
+				if ( character._socket ) // Prevent AI from picking these up
+				{
+					character.GiveScore( sdEntity.SCORE_REWARD_SCORE_SHARD, gun, false );
+
+					if ( character._socket )
+					sdSound.PlaySound({ name:'powerup_or_exp_pickup', x:character.x, y:character.y, volume:0.2, pitch:0.5 }, [ character._socket ] );
+				
+					gun.remove();
+				}
+
+				return false; 
+			} 
 		};
 
 		// Add new gun classes above this line //

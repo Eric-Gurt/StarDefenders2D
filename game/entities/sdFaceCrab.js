@@ -81,7 +81,7 @@ class sdFaceCrab extends sdEntity
 	{
 		if ( this.attached_to )
 		if ( by_entity )
-		if ( !this.attached_to.IsPlayerClass() || ( sdWorld.time % 3 > 0 ) ) // Decreased hit chance for players, no hit chance for creatures
+		if ( !this.attached_to.IsPlayerClass() || ( sdWorld.time % 5 > 0 ) ) // Decreased hit chance for players, no hit chance for creatures
 		{
 			if ( by_entity.is( sdBullet ) )
 			{
@@ -153,8 +153,7 @@ class sdFaceCrab extends sdEntity
 			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
 
 			if ( initiator )
-			if ( typeof initiator._score !== 'undefined' )
-			initiator._score += 5;
+			initiator.GiveScore( sdEntity.SCORE_REWARD_CHALLENGING_MOB, this );
 		}
 		
 		if ( this._hea < -this._hmax / 80 * 100 ) 

@@ -67,7 +67,7 @@ class sdBeamProjector extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this.hmax = 1000;
+		this.hmax = 1000 * 4;
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
 		this._cooldown = 0;
@@ -270,7 +270,7 @@ class sdBeamProjector extends sdEntity
 										character_entity.armor_max = 1500;
 										character_entity._armor_absorb_perc = 0.87; // 87% damage absorption, since armor will run out before just a little before health
 
-										character_entity._damage_mult = 1; // Supposed to put up a challenge
+										//character_entity._damage_mult = 1; // Supposed to put up a challenge
 									}
 									character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 									//character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
