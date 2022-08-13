@@ -46,7 +46,7 @@ class sdLost extends sdEntity
 		let is_dead = ( ( ent.hea || ent._hea || 1 ) <= 0 );
 		
 		if ( ( ent._hard_collision && !ent.is( sdCrystal ) && !ent.is( sdLost ) && ( !ent.is( sdJunk ) || ent.type !== 2 ) ) ||
-			 ( !ent._hard_collision && ( ent.is( sdFaceCrab ) || ( ent.is( sdGun ) && ent.class !== sdGun.CLASS_CRYSTAL_SHARD ) || is_dead ) ) ) // Not for BG entities
+			 ( !ent._hard_collision && ( ent.is( sdFaceCrab ) || ( ent.is( sdGun ) && ent.class !== sdGun.CLASS_CRYSTAL_SHARD && ent.class !== sdGun.CLASS_SCORE_SHARD ) || is_dead ) ) ) // Not for BG entities
 		if ( ent.IsBGEntity() === 0 ) // Not for BG entities
 		if ( ent.IsTargetable() )
 		//if ( !ent.is( sdCharacter ) || !ent._god ) Should be handled by impossibility of damage

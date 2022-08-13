@@ -187,8 +187,7 @@ class sdVirus extends sdEntity
 			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:4 * sdVirus.normal_max_health / this.hmax });
 
 			if ( initiator )
-			if ( typeof initiator._score !== 'undefined' )
-			initiator._score += ~~( 1 * this.hmax / sdVirus.normal_max_health );
+			initiator.GiveScore( sdEntity.SCORE_REWARD_EASY_MOB, this );
 	
 
 			//if ( this._split === 1 )

@@ -43,7 +43,7 @@ class sdMatterContainer extends sdEntity
 		
 		this._last_sync_matter = this.matter;
 		
-		this._hmax = 320;
+		this._hmax = 400 * 4;
 		this._hea = this._hmax;
 		
 		this._regen_timeout = 0;

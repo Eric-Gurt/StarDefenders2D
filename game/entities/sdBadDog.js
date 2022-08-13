@@ -198,9 +198,7 @@ class sdBadDog extends sdEntity
 
 			if ( this.master )
 			if ( initiator )
-			if ( typeof initiator._score !== 'undefined' )
-			//if ( initiator !== this.master ) // Prevent players killing then reviving dogs for free score // Already done 4 lines above (also prevents case of heal/kill farming by two players)
-			initiator._score += 5;
+			initiator.GiveScore( sdEntity.SCORE_REWARD_AVERAGE_MOB, this );
 		}
 		else
 		if ( this.hea > 0 )

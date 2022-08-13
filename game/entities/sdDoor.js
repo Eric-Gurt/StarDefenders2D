@@ -156,7 +156,7 @@ class sdDoor extends sdEntity
 	{
 		super( params );
 		
-		this._hmax = 550;
+		this._hmax = 550 * 4;
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 		

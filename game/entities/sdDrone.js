@@ -251,10 +251,10 @@ class sdDrone extends sdEntity
 		
 		if ( this._hea <= 0 && was_alive )
 		{
-
 			if ( initiator )
-			if ( typeof initiator._score !== 'undefined' )
-			initiator._score += Math.round( this._hmax / 80 );
+			{
+				initiator.GiveScore( sdEntity.SCORE_REWARD_AVERAGE_MOB, this );
+			}
 	
 			if ( this.type === 1 || this.type === 6 || this.type === 7 )
 			{

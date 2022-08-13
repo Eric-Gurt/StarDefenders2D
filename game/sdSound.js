@@ -63,6 +63,19 @@ class sdSound
 					return 0;
 				}
 			});
+			
+			Object.defineProperty( sdSound[ var_name ], 'pitch', 
+			{ 
+				set: function ( x ) 
+				{ 
+					sdSound[ var_name + '_howl' ].rate( x, sdSound[ var_name + '_sound_id' ] );
+				},
+				get: function()
+				{
+					debugger; // Won't work
+					return 0;
+				}
+			});
 		};
 		
 		MakeLoopAmbient( 'matter_charge_loop', './audio/matter_charge_loop2.wav' );
@@ -83,69 +96,7 @@ class sdSound
 		MakeLoopAmbient( 'lava_burn', './audio/lava_burn2.wav' );
 		MakeLoopAmbient( 'rift_loop', './audio/rift_loop.wav' );
 		MakeLoopAmbient( 'anti_crystal_ambient', './audio/anti_crystal_ambient.wav' );
-		
-		/*sdSound.ambient1 = new Audio( './audio/ambient1_looped3.wav' );
-		sdSound.ambient1.volume = 0;
-		sdSound.ambient1.loop = true;
-		
-		sdSound.ambient3 = new Audio( './audio/ambient3.wav' );
-		sdSound.ambient3.volume = 0;
-		sdSound.ambient3.loop = true;
-		
-		sdSound.ambient4_short = new Audio( './audio/ambient4_short.wav' );
-		sdSound.ambient4_short.volume = 0;
-		sdSound.ambient4_short.loop = true;
-		
-		sdSound.scary_monster_spawned3 = new Audio( './audio/scary_monster_spawned3.wav' );
-		sdSound.scary_monster_spawned3.volume = 0;
-		sdSound.scary_monster_spawned3.loop = true;
-		
-		sdSound.scary_monster_spawned2 = new Audio( './audio/scary_monster_spawned2.wav' );
-		sdSound.scary_monster_spawned2.volume = 0;
-		sdSound.scary_monster_spawned2.loop = true;
-		
-		sdSound.scary_monsters_in_the_dark = new Audio( './audio/scary_monsters_in_the_dark.wav' );
-		sdSound.scary_monsters_in_the_dark.volume = 0;
-		sdSound.scary_monsters_in_the_dark.loop = true;
-		
-		sdSound.rain_low_res = new Audio( './audio/rain_low_res.wav' );
-		sdSound.rain_low_res.volume = 0;
-		sdSound.rain_low_res.loop = true;
-		
-		sdSound.earthquake = new Audio( './audio/earthquake.wav' );
-		sdSound.earthquake.volume = 0;
-		sdSound.earthquake.loop = true;
-		
-		sdSound.jetpack_volume_last = 0;
-		sdSound.jetpack = new Audio( './audio/jetpack.wav' );
-		sdSound.jetpack.volume = 0;
-		sdSound.jetpack.loop = true;
-		
-		sdSound.hover_loop_volume_last = 0;
-		sdSound.hover_loop = new Audio( './audio/hover_loop.wav' );
-		sdSound.hover_loop.volume = 0;
-		sdSound.hover_loop.loop = true;
-		
-		sdSound.amplifier_loop_volume_last = 0;
-		sdSound.amplifier_loop = new Audio( './audio/amplifier_loop2.wav' );
-		sdSound.amplifier_loop.volume = 0;
-		sdSound.amplifier_loop.loop = true;
-		
-		sdSound.lava_loop_volume_last = 0;
-		sdSound.lava_loop = new Audio( './audio/lava_loop4.wav' );
-		sdSound.lava_loop.volume = 0;
-		sdSound.lava_loop.loop = true;
-		
-		sdSound.lava_burn_volume_last = 0;
-		sdSound.lava_burn = new Audio( './audio/lava_burn2.wav' );
-		sdSound.lava_burn.volume = 0;
-		sdSound.lava_burn.loop = true;
-		
-		sdSound.rift_loop_volume_last = 0;
-		sdSound.rift_loop = new Audio( './audio/rift_loop.wav' );
-		sdSound.rift_loop.volume = 0;
-		sdSound.rift_loop.loop = true;*/
-		
+		MakeLoopAmbient( 'water_loop', './audio/water.wav' );
 		
 		
 		sdSound.ambient_seeker = { x:Math.random()*2-1, y:Math.random()*2-1, tx:Math.random()*2-1, ty:Math.random()*2-1 };
@@ -174,20 +125,6 @@ class sdSound
 		if ( !sdSound.allowed )
 		{
 			sdSound.allowed = true;
-			/*sdSound.matter_charge_loop.play();
-			
-			for ( var i = 0; i < sdSound.ambients.length; i++ )
-			sdSound.ambients[ i ].audio.play();
-		
-			sdSound.rain_low_res.play();
-			sdSound.earthquake.play();
-			
-			sdSound.jetpack.play();
-			sdSound.hover_loop.play();
-			sdSound.amplifier_loop.play();
-			sdSound.lava_loop.play();
-			sdSound.lava_burn.play();
-			sdSound.rift_loop.play();*/
 		}
 	}
 	static HandleMatterChargeLoop( GSPEED )
@@ -280,6 +217,7 @@ class sdSound
 		let count_lava_burn = 0;
 		let count_rift_loop = 0;
 		let count_anti_crystal_ambient = 0;
+		let count_water_loop = 0;
 			
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
 		{
@@ -310,17 +248,22 @@ class sdSound
 					count_amplifier_loop += 0.2 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
 				}
 				else
-				if ( sdEntity.entities[ i ].GetClass() === 'sdWater' && sdEntity.entities[ i ].type === sdWater.TYPE_LAVA )
+				if ( sdEntity.entities[ i ].GetClass() === 'sdWater' )
 				{
-					count_lava_loop += 0.02 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
-
-					//if ( sdEntity.entities[ i ]._swimmers.size > 0 )
-					//count_lava_burn += 0.15 * sdEntity.entities[ i ]._swimmers.size * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
-				
-					for ( let e of sdEntity.entities[ i ]._swimmers )
-					if ( !e.isWaterDamageResistant() )
+					if ( sdEntity.entities[ i ].type === sdWater.TYPE_ACID || sdEntity.entities[ i ].type === sdWater.TYPE_WATER )
 					{
-						count_lava_burn += 0.15 * 1 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+						count_water_loop += 0.002 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+					}
+					
+					if ( sdEntity.entities[ i ].type === sdWater.TYPE_LAVA )
+					{
+						count_lava_loop += 0.02 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+
+						for ( let e of sdEntity.entities[ i ]._swimmers )
+						if ( !e.isWaterDamageResistant() )
+						{
+							count_lava_burn += 0.15 * 1 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+						}
 					}
 				}
 				else
@@ -350,27 +293,38 @@ class sdSound
 		
 		sdSound.jetpack_volume_last = sdWorld.MorphWithTimeScale( sdSound.jetpack_volume_last, count_flying, 0.8, GSPEED );
 		sdSound.jetpack.volume = Math.min( 1, sdSound.jetpack_volume_last * sdSound.volume_ambient );
-		//sdSound.jetpack.volume = Math.min( 1, sdSound.jetpack_volume_last * sdSound.volume_ambient );
 		
 		sdSound.hover_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.hover_loop_volume_last, count_hover_loop, 0.8, GSPEED );
 		sdSound.hover_loop.volume = Math.min( 1, sdSound.hover_loop_volume_last * sdSound.volume_ambient );
-		//sdSound.hover_loop.volume = Math.min( 1, sdSound.hover_loop_volume_last * sdSound.volume_ambient );
 		
 		sdSound.amplifier_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.amplifier_loop_volume_last, count_amplifier_loop, 0.8, GSPEED );
 		sdSound.amplifier_loop.volume = Math.min( 1, Math.min( 2, sdSound.amplifier_loop_volume_last ) * sdSound.volume_ambient );
-		//sdSound.amplifier_loop.volume = Math.min( 1, Math.min( 2, sdSound.amplifier_loop_volume_last ) * sdSound.volume_ambient );
 		
 		sdSound.lava_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.lava_loop_volume_last, count_lava_loop, 0.8, GSPEED );
 		sdSound.lava_loop.volume = Math.min( 1, Math.min( 1.5, sdSound.lava_loop_volume_last ) * sdSound.volume_ambient );
-		//sdSound.lava_loop.volume = Math.min( 1, Math.min( 1.5, sdSound.lava_loop_volume_last ) * sdSound.volume_ambient );
+		
+		if ( sdWorld.my_entity )
+		{
+			if ( sdWorld.my_entity._in_water && !sdWorld.my_entity._can_breathe )
+			{
+				count_water_loop = 0.1;
+				sdSound.water_loop.pitch = 0.25;
+			}
+			else
+			sdSound.water_loop.pitch = 1;
+		}
+		
+		count_water_loop = Math.max( 0, count_water_loop - ( 0.5 + Math.sin( sdWorld.time / 10000 ) * 0.5 ) * 0.05 );
+		sdSound.water_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.water_loop_volume_last, count_water_loop, 0.8, GSPEED );
+		sdSound.water_loop.volume = Math.min( 1, Math.min( 1.5, sdSound.water_loop_volume_last ) * sdSound.volume_ambient );
+		
+		
 		
 		sdSound.lava_burn_volume_last = sdWorld.MorphWithTimeScale( sdSound.lava_burn_volume_last, count_lava_burn, 0.8, GSPEED );
 		sdSound.lava_burn.volume = Math.min( 1, Math.min( 2, sdSound.lava_burn_volume_last ) * sdSound.volume_ambient );
-		//sdSound.lava_burn.volume = Math.min( 1, Math.min( 2, sdSound.lava_burn_volume_last ) * sdSound.volume_ambient );
 		
 		sdSound.rift_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.rift_loop_volume_last, count_rift_loop, 0.8, GSPEED );
 		sdSound.rift_loop.volume = Math.min( 1, Math.min( 10, sdSound.rift_loop_volume_last ) * sdSound.volume_ambient );
-		//sdSound.rift_loop.volume = Math.min( 1, Math.min( 10, sdSound.rift_loop_volume_last ) * sdSound.volume_ambient );
 		
 		sdSound.anti_crystal_ambient_volume_last = sdWorld.MorphWithTimeScale( sdSound.anti_crystal_ambient_volume_last, count_anti_crystal_ambient, 0.8, GSPEED );
 		sdSound.anti_crystal_ambient.volume = Math.min( 1, Math.min( 10, sdSound.anti_crystal_ambient_volume_last ) * sdSound.volume_ambient );

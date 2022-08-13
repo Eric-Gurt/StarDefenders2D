@@ -238,9 +238,9 @@ class sdCube extends sdEntity
 			if ( typeof initiator._score !== 'undefined' )
 			{
 				if ( this.kind === 1 || this.kind === 2 )
-				initiator._score += 40;
+				initiator.GiveScore( sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB, this );
 				else
-				initiator._score += 10;
+				initiator.GiveScore( sdEntity.SCORE_REWARD_CHALLENGING_MOB, this );
 			}
 			let r = Math.random();
 			

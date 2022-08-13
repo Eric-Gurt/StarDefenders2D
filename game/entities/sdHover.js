@@ -94,7 +94,7 @@ class sdHover extends sdEntity
 
 		this.type = params.type || 0;
 		
-		this.hmax = this.type === 1 ? 1200 : this.type === 2 ? 5000 : 600;
+		this.hmax = ( this.type === 1 ? 1200 : this.type === 2 ? 5000 : 600 ) * 4;
 		this.hea = this.hmax;
 		
 		this._tilt = 0;
@@ -384,12 +384,12 @@ class sdHover extends sdEntity
 					}
 
 					if ( this.type === 1 )
-					bullet_obj._damage = 23;
+					bullet_obj._damage = 23 * 2;
 					else
 					if ( this.type === 2 )
-					bullet_obj._damage = 16;
+					bullet_obj._damage = 16 * 2;
 					else
-					bullet_obj._damage = 13.5;
+					bullet_obj._damage = 13.5 * 2;
 
 					if ( this.type === 1 )
 					bullet_obj.color = '#800000';
@@ -412,7 +412,7 @@ class sdHover extends sdEntity
 					else
 					bullet_obj.explosion_radius = null;
 					
-					bullet_obj._damage *= bullet_obj._owner._damage_mult;
+					//bullet_obj._damage *= bullet_obj._owner._damage_mult;
 
 					if ( bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ] )
 					bullet_obj._armor_penetration_level = bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ];
@@ -476,12 +476,12 @@ class sdHover extends sdEntity
 					bullet_obj.model = 'rocket_proj';
 
 					if ( this.type === 1 )
-					bullet_obj._damage = 35 * 2;
+					bullet_obj._damage = 35 * 2 * 2;
 					else
 					if ( this.type === 2 )
-					bullet_obj._damage = 350;
+					bullet_obj._damage = 350 * 2;
 					else
-					bullet_obj._damage = 19 * 2;
+					bullet_obj._damage = 19 * 2 * 2;
 
 					if ( this.type === 1 )
 					bullet_obj.explosion_radius = 30 * 1.5;
@@ -513,7 +513,7 @@ class sdHover extends sdEntity
 					}
 					
 
-					bullet_obj._damage *= bullet_obj._owner._damage_mult;
+					//bullet_obj._damage *= bullet_obj._owner._damage_mult;
 
 					if ( bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ] )
 					bullet_obj._armor_penetration_level = bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ];

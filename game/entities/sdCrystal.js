@@ -111,6 +111,15 @@ class sdCrystal extends sdEntity
 		return [];
 	}*/
 	
+	get is_natural()
+	{ return ( this.type !== sdCrystal.TYPE_CRYSTAL_ARTIFICIAL ); }
+	
+	get is_big()
+	{ return ( this.type === sdCrystal.TYPE_CRYSTAL_BIG || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ); }
+	
+	get is_crab()
+	{ return ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ); }
+	
 	constructor( params )
 	{
 		super( params );

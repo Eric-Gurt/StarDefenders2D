@@ -127,7 +127,7 @@ class sdLongRangeTeleport extends sdEntity
 	{
 		super( params );
 		
-		this.hmax = 1500;
+		this.hmax = 1500 * 4;
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
 		
@@ -382,8 +382,21 @@ class sdLongRangeTeleport extends sdEntity
 				if ( ent.type === sdCrystal.TYPE_CRYSTAL_CRAB )
 				return true;*/
 
-				for( let i = 0; i < sdTask.tasks.length; i++ )
+				for ( let i = 0; i < sdTask.tasks.length; i++ )
 				{
+					let task = sdTask.tasks[ i ];
+					
+					if ( task._executer === initiator )
+					{
+						let mission = sdTask.missions[ task.mission ];
+
+						if ( mission.onLongRangeTeleportCalledForEntity )
+						if ( mission.onLongRangeTeleportCalledForEntity( task, this, ent ) )
+						{
+							return true;
+						}
+					}
+					/*
 					if ( sdTask.tasks[ i ].mission === sdTask.MISSION_LRTP_EXTRACTION )
 					if ( sdTask.tasks[ i ]._executer === initiator )
 					{
@@ -457,7 +470,7 @@ class sdLongRangeTeleport extends sdEntity
 								//break; // Break won't be called after return. Return stops IsTeleportable function execution
 							}
 						}
-					}
+					}*/
 				}
 				// Need a better approach if CC's should give tasks to whole team, and not the initiator only. ( Right click CC -> Give task )
 				return false;
@@ -558,6 +571,22 @@ class sdLongRangeTeleport extends sdEntity
 					for ( let i2 = 0; i2 < arr.length; i2++ )
 					if ( arr[ i2 ] )
 					Append( arr[ i2 ] );
+				}
+			}
+		}
+		
+		if ( use_task_filter )
+		for ( let i = 0; i < sdTask.tasks.length; i++ )
+		{
+			let task = sdTask.tasks[ i ];
+
+			if ( task._executer === initiator )
+			{
+				let mission = sdTask.missions[ task.mission ];
+
+				if ( mission.onLongRangeTeleportCalled )
+				if ( mission.onLongRangeTeleportCalled( task, this ) )
+				{
 				}
 			}
 		}
@@ -984,7 +1013,13 @@ class sdLongRangeTeleport extends sdEntity
 										if ( collected_entities_array.length === 0 )
 										executer_socket.SDServiceMessage( 'You need to assign yourself a task using a Command Centre!' );
 										else
-										exectuter_character._score += collected_entities_array.length * 20;
+										{
+											for ( let i = 0; i < collected_entities_array.length; i++ )
+											exectuter_character.GiveScore( sdEntity.SCORE_REWARD_COMMON_TASK, this );
+										
+											//exectuter_character._score += collected_entities_array.length * 20;
+											this.matter = 0;
+										}
 									};
 								}
 								else

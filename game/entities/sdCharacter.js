@@ -429,15 +429,48 @@ class sdCharacter extends sdEntity
 	{
 		return true;
 	}
-	/*get _old_score() // Obsolete now
+	GiveScore( amount, killed_entity=null, allow_partical_drop=true )
 	{
-		debugger;
-		return 0;
+		let auto_give = Math.floor( killed_entity && allow_partical_drop ? amount * 0.2 : amount );
+		
+		this._score += auto_give;
+		
+		amount -= auto_give;
+		
+		amount = Math.floor( amount );
+		
+		if ( killed_entity )
+		if ( amount > 0 )
+		{
+			sdWorld.DropShards( 
+				killed_entity.x + ( killed_entity._hitbox_x1 + killed_entity._hitbox_x2 ) / 2,
+				killed_entity.y + ( killed_entity._hitbox_y1 + killed_entity._hitbox_y2 ) / 2,
+				0,0, amount, 1, 0, sdGun.CLASS_SCORE_SHARD, 20 );
+		}
+		
+		let once = true;
+		
+		while ( this._score >= this._score_to_level && this.build_tool_level < this._max_level )
+		{
+			this.build_tool_level++;
+			this._score_to_level_additive = this._score_to_level_additive * 1.04;
+			this._score_to_level = this._score_to_level + this._score_to_level_additive;
+			
+			if ( once )
+			{
+				once = false;
+				
+				this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_LEVEL_UP, is_level_up: 1, level:this.build_tool_level });
+				//sdSound.PlaySound({ name:'powerup_or_exp_pickup', x:this.x, y:this.y, volume:4 });
+				sdSound.PlaySound({ name:'level_up', x:this.x, y:this.y, volume:1 });
+
+				if ( this.build_tool_level % 10 === 0 )
+				if ( this._socket )
+				sdSound.PlaySound({ name:'piano_world_startB', x:this.x, y:this.y, volume:0.5 }, [ this._socket ] );
+			}
+		}
 	}
-	set _old_score( v ) // Obsolete now
-	{
-		debugger;
-	}*/
+	
 	
 	PreInit() // Best place for NaN tracking methods initialization
 	{
@@ -648,11 +681,11 @@ class sdCharacter extends sdEntity
 		this._jetpack_allowed = false; // Through upgrade
 		this._ghost_allowed = false; // Through upgrade
 		//this._coms_allowed = false; // Through upgrade, only non-proximity one
-		this._damage_mult = 1; // Through upgrade
-		this._build_hp_mult = 1; // Through upgrade
+		this._damage_mult = 2; // Through upgrade. Has no effect anymore, but level of 3 allows damaging some buildings
+		//this._build_hp_mult = 1; // Through upgrade
 		this._matter_regeneration = 0; // Through upgrade
-		this._recoil_mult = 1; // Through upgrade
-		this._air_upgrade = 1; // Underwater breath capacity upgrade
+		//this._recoil_mult = 1; // Through upgrade
+		//this._air_upgrade = 1; // Underwater breath capacity upgrade
 		this.build_tool_level = 0; // Used for some unlockable upgrades in build tool
 		this._jetpack_fuel_multiplier = 1; // Fuel cost reduction upgrade
 		this._matter_regeneration_multiplier = 1; // Matter regen multiplier upgrade
@@ -896,14 +929,6 @@ class sdCharacter extends sdEntity
 		return this._init_ai_model; // Return to normal behaviour against other mobs
 	}
 	
-	/*get _damage_mult()
-	{
-		return 1;
-	}
-	set _damage_mult( v )
-	{
-	}*/
-
 	AITargetBlocks() // Targets first "GetAnythingNear" sdBlock.
 	{
 		if ( !sdWorld.is_server )
@@ -918,7 +943,7 @@ class sdCharacter extends sdEntity
 		for ( let i = 0; i < targets.length; i++ )
 		{
 			if ( targets[ i ].is( sdBlock ) )
-			if ( targets[ i ]._armor_protection_level <= this._damage_mult ) // Target only damagable blocks
+			//if ( targets[ i ]._armor_protection_level <= this._damage_mult ) // Target only damagable blocks
 			{
 				this._ai.target = targets[ i ];
 				return;
@@ -1355,8 +1380,13 @@ class sdCharacter extends sdEntity
 				{
 					if ( this.IsHostileAI() )
 					{
-						if ( typeof initiator._score !== 'undefined' )
-						initiator._score += 2;
+						if ( this.hmax < 200 )
+						initiator.GiveScore( sdEntity.SCORE_REWARD_EASY_MOB, this );
+						else
+						if ( this.hmax < 400 )
+						initiator.GiveScore( sdEntity.SCORE_REWARD_CHALLENGING_MOB, this );
+						else
+						initiator.GiveScore( sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB, this );
 					}
 					else
 					{
@@ -2033,7 +2063,7 @@ class sdCharacter extends sdEntity
 
 	TogglePlayerGhosting() // part of ManagePlayerVehicleEntrance()
 	{
-		if ( this._ghost_allowed )
+		if ( this._ghost_allowed || this.ghosting )
 		{
 			this.ghosting = !this.ghosting;
 			this._ghost_breath = sdCharacter.ghost_breath_delay;
@@ -2081,6 +2111,15 @@ class sdCharacter extends sdEntity
 		this._last_e_state = e_state;
 	}
 	
+	CanUnCrouch()
+	{
+		return !sdWorld.CheckWallExistsBox( 
+			this.x + this._hitbox_x1 + 1, 
+			this.y + ( - this.s / 100 * 12 ) + 1, 
+			this.x + this._hitbox_x2 - 1, 
+			this.y + this._hitbox_y2 - 1, this, this.GetIgnoredEntityClasses(), this.GetNonIgnoredEntityClasses() );
+	}
+
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( sdWorld.is_server )
@@ -2121,14 +2160,13 @@ class sdCharacter extends sdEntity
 		
 		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED );
 		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED );
-
+		/*
 		if ( this._score >= this._score_to_level && this.build_tool_level < this._max_level )
 		{
-			//this.Say( 'My experience on this planet expanded my knowledge' );
 			this.build_tool_level++;
 			this._score_to_level_additive = this._score_to_level_additive * 1.04;
 			this._score_to_level = this._score_to_level + this._score_to_level_additive;
-		}
+		}*/
 		
 		if ( this.hea <= 0 )
 		{
@@ -2183,7 +2221,8 @@ class sdCharacter extends sdEntity
 			}
 			
 			if ( this._recoil > 0 )
-			this._recoil = Math.max( 0, sdWorld.MorphWithTimeScale( this._recoil , -0.01, 0.935 * this._recoil_mult , GSPEED ) ); //0.9 was "laser beams" basically and nullified the point for "Recoil upgrade"
+			this._recoil = Math.max( 0, sdWorld.MorphWithTimeScale( this._recoil , -0.01, 0.935 , GSPEED ) ); //0.9 was "laser beams" basically and nullified the point for "Recoil upgrade"
+			//this._recoil = Math.max( 0, sdWorld.MorphWithTimeScale( this._recoil , -0.01, 0.935 * this._recoil_mult , GSPEED ) ); //0.9 was "laser beams" basically and nullified the point for "Recoil upgrade"
 
 			if ( this._sickness > 0 )
 			{
@@ -2473,8 +2512,8 @@ class sdCharacter extends sdEntity
 				}
 			}
 
-			
 			if ( this.matter < this._matter_regeneration * 20 )
+			if ( !this.ghosting )
 			{
 				if ( sdWorld.is_server )
 				if ( this.matter < this.matter_max ) // Character cannot store or regenerate more matter than what it can contain
@@ -2605,6 +2644,8 @@ class sdCharacter extends sdEntity
 		if ( act_y_or_unstable )
 		walk_speed_scale *= 0.5;
 	
+		let can_uncrouch = -1;
+		
 		if ( ( ( act_y_or_unstable === 1 ) ? 1 : 0 ) !== this._crouch_intens )
 		{
 			//leg_height = this.hitbox_y2;
@@ -2622,13 +2663,23 @@ class sdCharacter extends sdEntity
 			{
 				if ( this._crouch_intens > 0 )
 				{
-					if ( this.CanMoveWithoutOverlap( this.x, this.y - 4, 0.001 ) )
+					if ( can_uncrouch === -1 )
+					can_uncrouch = this.CanUnCrouch();
+					
+					if ( can_uncrouch )
 					{
 						if ( this._crouch_intens > 0.01 )
 						this._crouch_intens = sdWorld.MorphWithTimeScale( this._crouch_intens, 0, 0.7, GSPEED );
 						else
 						this._crouch_intens = 0;
 					}
+					/*else
+					{
+						if ( this._crouch_intens > 1 )
+						{
+							this.stability = Math.min( 25, this.stability );
+						}
+					}*/
 				}
 			}
 			//new_leg_height = this.hitbox_y2; // Through getter
@@ -2987,7 +3038,14 @@ class sdCharacter extends sdEntity
 		}
 		else
 		{
-			this.stability = Math.min( 100, this.stability + ( Math.max( 0, this.stability ) * 0.1 + GSPEED * 2.5 ) * GSPEED );
+			if ( this.stability < 100 )
+			{
+				if ( can_uncrouch === -1 )
+				can_uncrouch = this.CanUnCrouch();
+
+				if ( this._crouch_intens <= 1 || can_uncrouch )
+				this.stability = Math.min( 100, this.stability + ( Math.max( 0, this.stability ) * 0.1 + GSPEED * 2.5 ) * GSPEED );
+			}
 		}
 	
 		//this.tilt += this.tilt_speed * GSPEED;
@@ -2998,10 +3056,13 @@ class sdCharacter extends sdEntity
 		
 		if ( this.ghosting )
 		{
-			let fuel_cost = GSPEED; // 0.4 Previously
+			let fuel_cost = 0.4 * GSPEED; // 0.4 Previously
 			
 			if ( this.matter < fuel_cost || this.hea <= 0 || this.driver_of )
-			this.ghosting = false;
+			{
+				//this.ghosting = false;
+				this.TogglePlayerGhosting();
+			}
 			else
 			this.matter -= fuel_cost;
 		
@@ -3260,7 +3321,10 @@ class sdCharacter extends sdEntity
 		else
 		{
 			if ( this.air > 0 )
-			this.air = Math.max( 0, this.air - ( GSPEED / this._air_upgrade ) );
+			{
+				this.air = Math.max( 0, this.air - ( GSPEED ) );
+				//this.air = Math.max( 0, this.air - ( GSPEED / this._air_upgrade ) );
+			}
 			else
 			{
 				if ( this.hea > 0 )
@@ -3573,6 +3637,8 @@ class sdCharacter extends sdEntity
 			let w = 20 * Math.max( 0.5, this.s / 100 );
 			
 			let raise = 5 + 15 * this.s / 100;
+			
+			raise -= this._crouch_intens * 6;
 			
 			let show_air = false;
 			
@@ -3899,7 +3965,7 @@ class sdCharacter extends sdEntity
 			if ( fake_ent.owner !== undefined )
 			fake_ent.owner = this;
 
-			if ( fake_ent._hmax !== undefined )
+			/*if ( fake_ent._hmax !== undefined )
 			fake_ent._hmax *= this._build_hp_mult; // Source of price to go up
 
 			if ( fake_ent.hmax !== undefined )
@@ -3910,7 +3976,7 @@ class sdCharacter extends sdEntity
 
 			if ( fake_ent.hea !== undefined )
 			fake_ent.hea *= this._build_hp_mult; // Or else initial damage might instantly destroy it
-	
+			*/
 			if ( fake_ent._armor_protection_level !== undefined )
 			if ( this._upgrade_counters[ 'upgrade_build_hp' ] )
 			{
@@ -4259,7 +4325,7 @@ class sdCharacter extends sdEntity
 		if ( sdWorld.my_entity )
 		if ( this.cc_id === sdWorld.my_entity.cc_id )
 		{
-			ctx.drawImageFilterCache( sdCharacter.img_teammate, - 16, - 16 - 32, 32,32 );
+			ctx.drawImageFilterCache( sdCharacter.img_teammate, - 16, - 16 - 32 + this._crouch_intens * 6, 32,32 );
 		}
 	}
 	

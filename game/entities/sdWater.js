@@ -36,6 +36,8 @@ class sdWater extends sdEntity
 		sdWater.img_lava = sdWorld.CreateImageFromFile( 'lava2' );
 		
 		sdWater.all_swimmers = new Set(); // Prevent multiple damage water objects from applying damage onto same entity. Also handles more efficient is_in_water checks for entities
+		sdWater.all_swimmers_previous_frame_exit = new Set();
+		sdWater.all_swimmers_previous_frame_exit_swap = new Set();
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -93,6 +95,8 @@ class sdWater extends sdEntity
 		this.type = params.type || sdWater.TYPE_WATER;
 		
 		this._volume = params.volume || 1;
+		
+		this._spawn_time = sdWorld.time;
 		
 		if ( sdWater.DEBUG )
 		this.a = false; // awakeness for client, for debugging
@@ -323,6 +327,8 @@ class sdWater extends sdEntity
 					{
 						this._swimmers.delete( e );
 						sdWater.all_swimmers.delete( e );
+						
+						sdWater.all_swimmers_previous_frame_exit.add( e );
 					}
 				});
 			}
@@ -647,23 +653,32 @@ class sdWater extends sdEntity
 					if ( this.type !== sdWater.TYPE_TOXIC_GAS )
 					{
 						sdWater.all_swimmers.add( from_entity );
-						/* Buggy
-						if ( !sdWorld.is_server )
+						
+						if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+						if ( sdWorld.time > this._spawn_time + 2000 )
+						if ( !sdWater.all_swimmers_previous_frame_exit.has( from_entity ) )
+						if ( !sdWater.all_swimmers_previous_frame_exit_swap.has( from_entity ) )
 						{
 						
 							let e = null;
 
 							if ( this.type === sdWater.TYPE_ACID )
-							e = new sdEffect({ x:from_entity.x, y:from_entity.y, type:sdEffect.TYPE_BLOOD_GREEN, filter:'opacity('+(~~((1 * 0.5)*10))/10+')' });
+							{
+								e = new sdEffect({ x:from_entity.x, y:from_entity.y, type:sdEffect.TYPE_BLOOD_GREEN, filter:'opacity('+(~~((1 * 0.5)*10))/10+')' });
+								sdSound.PlaySound({ name:'water_entrance', x:from_entity.x, y:from_entity.y, _server_allowed: true, volume: 0.1, pitch: 0.75 });
+							}
 							else
 							if ( this.type === sdWater.TYPE_WATER )
-							e = new sdEffect({ x:from_entity.x, y:from_entity.y, type:sdEffect.TYPE_BLOOD_GREEN, filter:'hue-rotate(90deg) opacity('+(~~((1 * 0.5)*10))/10+')' });
-
+							{
+								e = new sdEffect({ x:from_entity.x, y:from_entity.y, type:sdEffect.TYPE_BLOOD_GREEN, filter:'hue-rotate(90deg) opacity('+(~~((1 * 0.5)*10))/10+')' });
+								sdSound.PlaySound({ name:'water_entrance', x:from_entity.x, y:from_entity.y, _server_allowed: true, volume: 0.1, pitch: 1 });
+							}
+					
 							if ( e )
 							{
 								sdEntity.entities.push( e );
 							}
-						}*/
+						}
 					}
 				}
 			}
@@ -812,6 +827,12 @@ class sdWater extends sdEntity
 	onRemoveAsFakeEntity() // Will be called instead of onRemove() if entity was never added to world
 	{
 		this.FullRemove();
+	}
+	static GlobalThink( GSPEED )
+	{
+		sdWater.all_swimmers_previous_frame_exit_swap = sdWater.all_swimmers_previous_frame_exit;
+		
+		sdWater.all_swimmers_previous_frame_exit = new Set();
 	}
 }
 //sdWater.init_class();

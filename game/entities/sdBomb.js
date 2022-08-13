@@ -32,7 +32,7 @@ class sdBomb extends sdEntity
 		
 		this.detonation_in = 30 * 25; // 25 seconds, was 45
 		
-		this.hea = 100;
+		this.hea = 100 * 2;
 		
 		this._rate = 60;
 		
@@ -112,7 +112,8 @@ class sdBomb extends sdEntity
 					x:this.x, 
 					y:this.y, 
 					radius:70, // 80 was too much?
-					damage_scale: 25 * ( this._owner ? this._owner._damage_mult : 1 ), // 5 was too deadly on relatively far range
+					//damage_scale: 25 * ( this._owner ? this._owner._damage_mult : 1 ), // 5 was too deadly on relatively far range
+					damage_scale: 25 * ( this._owner ? 2 : 1 ), // 5 was too deadly on relatively far range
 					type:sdEffect.TYPE_EXPLOSION, 
 					owner:this._owner,
 					can_hit_owner: true,

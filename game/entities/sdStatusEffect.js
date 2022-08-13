@@ -18,7 +18,7 @@ class sdStatusEffect extends sdEntity
 	{
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 		
-		//sdStatusEffect.img_red_arrow = sdWorld.CreateImageFromFile( 'task_offscreen' );
+		sdStatusEffect.img_level_up = sdWorld.CreateImageFromFile( 'level_up' );
 		
 		sdStatusEffect.types = [];
 		
@@ -660,6 +660,83 @@ class sdStatusEffect extends sdEntity
 			}
 		};
 		
+		sdStatusEffect.types[ sdStatusEffect.TYPE_LEVEL_UP = 6 ] = 
+		{
+			remove_if_for_removed: true,
+	
+			is_emote: false,
+			
+			is_static: true,
+	
+			onMade: ( status_entity, params )=>
+			{
+				status_entity.is_level_up = params.is_level_up || 0;
+				status_entity.level = params.level || 0;
+				
+				status_entity._progress = 0;
+				status_entity._max_progress = 5000 / 30;
+			},
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			onStatusOfDifferentTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			IsVisible: ( status_entity, observer_entity )=>
+			{
+				return true;
+			},
+			onThink: ( status_entity, GSPEED )=>
+			{
+				status_entity._progress += GSPEED;
+				
+				return ( status_entity._progress > status_entity._max_progress ); // return true = delete
+			},
+			onBeforeRemove: ( status_entity )=>
+			{
+			},
+			onBeforeEntityRender: ( status_entity, ctx, attached )=>
+			{
+				if ( !status_entity.for )
+				return;
+				
+				if ( sdWorld.time % 1000 < 500 )
+				ctx.sd_status_effect_tint_filter = [ 1.5, 1.5, 1.5 ];
+			},
+			onAfterEntityRender: ( status_entity, ctx, attached )=>
+			{
+				ctx.sd_status_effect_filter = null;
+				ctx.sd_status_effect_tint_filter = null;
+			},
+			DrawFG: ( status_entity, ctx, attached )=>
+			{
+				if ( status_entity.dmg === 0 )
+				return;
+			
+				ctx.textAlign = 'center';
+				ctx.font = "5px Verdana";
+				
+				{
+					ctx.fillStyle = '#aaffaa';
+					
+					ctx.globalAlpha = Math.min( 1, ( 1 - status_entity._progress / status_entity._max_progress ) * 2 );
+					
+					let xx = 0;
+					let yy = - 32 - status_entity._progress * 0.2;
+
+					ctx.fillText( 'Level up!', xx, yy );
+					
+					ctx.fillStyle = '#ffffff';
+					ctx.fillText( 'Level ' + status_entity.level, xx, yy + 10 );
+
+					ctx.drawImageFilterCache( sdStatusEffect.img_level_up, - 16, - 16 - 32, 32,64 );
+				}
+				
+				ctx.globalAlpha = 1;
+			}
+		};
 		
 
 		sdStatusEffect.status_effects = [];

@@ -417,7 +417,6 @@ class sdCharacterRagdoll
 			walk_amplitude_x = 4;
         
             legs_x += Math.max( -2, Math.min( 2, this.character.sx ) ) * this.character._side;
-            //legs_y -= 2;
 
 			walk_amplitude_y =  - Math.max( -4, Math.min( 4, this.character.sy ) );
 			

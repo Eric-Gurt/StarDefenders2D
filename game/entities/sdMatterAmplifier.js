@@ -71,7 +71,7 @@ class sdMatterAmplifier extends sdEntity
 		this.crystal = null;
 		
 		this.multiplier = params.multiplier || 1; // Crystal regeneration multiplier, used for higher tier matter amplifiers. Only power of 2 values
-		this._hmax = 160 + ( 160 * this.multiplier ); // Regular matter amplifier has 160 + 160 hp which is 320
+		this._hmax = ( 160 + ( 160 * this.multiplier ) ) * 4; // Regular matter amplifier has 160 + 160 hp which is 320
 		this._hea = this._hmax;
 		
 		this.shielded = false;

@@ -188,10 +188,7 @@ class sdTutel extends sdEntity
 			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:6 });
 
 			if ( initiator )
-			{
-				if ( typeof initiator._score !== 'undefined' )
-				initiator._score += ~~( 3 * this.hmax / sdTutel.normal_max_health );
-			}
+			initiator.GiveScore( sdEntity.SCORE_REWARD_AVERAGE_MOB, this );
 	
 		}
 		else

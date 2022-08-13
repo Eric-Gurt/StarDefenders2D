@@ -66,7 +66,7 @@ class sdThruster extends sdEntity
 	{
 		super( params );
 		
-		this._hmax = 1000; // Stronger variations have more health
+		this._hmax = 1000 * 4; // Stronger variations have more health
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 		

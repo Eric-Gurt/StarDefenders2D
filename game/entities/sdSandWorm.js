@@ -274,8 +274,7 @@ class sdSandWorm extends sdEntity
 		if ( head_entity._hp_main <= 0 && was_alive )
 		{
 			if ( initiator )
-			if ( typeof initiator._score !== 'undefined' )
-			initiator._score += Math.round( 60 * this.scale * ( this.kind === sdSandWorm.KIND_CORRUPTED_WORM ? 1.5 : 1 ) );
+			initiator.GiveScore( sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB, this );
 	
 			if ( this.kind !== sdSandWorm.KIND_COUNCIL_WORM )
 			sdSound.PlaySound({ name:'octopus_alert', x:head_entity.x, y:head_entity.y, pitch:0.25, volume:4 });

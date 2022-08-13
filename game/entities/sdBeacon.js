@@ -29,7 +29,7 @@ class sdBeacon extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this.hea = 100;
+		this.hea = 100 * 4;
 		
 		this.biometry = 1000 + Math.floor( Math.random() * 8999 );
 		
