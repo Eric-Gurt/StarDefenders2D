@@ -110,8 +110,8 @@ class sdBlock extends sdEntity
 		sdBlock.MATERIAL_CORRUPTION = 7;
 		sdBlock.MATERIAL_CRYSTAL_SHARDS = 8;
 		
-		sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
-		sdBlock.img_ground44 = sdWorld.CreateImageFromFile( 'ground_4x4' );
+		//sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
+		//sdBlock.img_ground44 = sdWorld.CreateImageFromFile( 'ground_4x4' );
 		sdBlock.img_ground88 = sdWorld.CreateImageFromFile( 'ground_8x8' );
 		
 		sdBlock.img_corruption = sdWorld.CreateImageFromFile( 'corruption' );
@@ -907,16 +907,16 @@ class sdBlock extends sdEntity
 		
 		if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_CORRUPTION || this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
 		{
-			if ( sdRenderer.dirt_settings === 1 )
+			/*if ( sdRenderer.dirt_settings === 1 )
 			ctx.drawImageFilterCache( sdBlock.img_ground11, 0, 0, w,h, 0,0, w,h );
 			else
 			if ( sdRenderer.dirt_settings === 2 )
 			ctx.drawImageFilterCache( sdBlock.img_ground44, this.x - Math.floor( this.x / 64 ) * 64, this.y - Math.floor( this.y / 64 ) * 64, w,h, 0,0, w,h );
 			else
-			if ( sdRenderer.dirt_settings === 3 )
+			if ( sdRenderer.dirt_settings === 3 )*/
 			ctx.drawImageFilterCache( sdBlock.img_ground88, this.x - Math.floor( this.x / 256 ) * 256, this.y - Math.floor( this.y / 256 ) * 256, w,h, 0,0, w,h );
-			else
-			ctx.drawImageFilterCache( sdBlock.img_ground11, 0, 0, w,h, 0,0, w,h ); // Temporary fix when blocks get Lost or Empty effect.
+			//else
+			//ctx.drawImageFilterCache( sdBlock.img_ground11, 0, 0, w,h, 0,0, w,h ); // Temporary fix when blocks get Lost or Empty effect.
 			
 			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
 			
