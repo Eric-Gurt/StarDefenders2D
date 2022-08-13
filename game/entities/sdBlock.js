@@ -110,8 +110,8 @@ class sdBlock extends sdEntity
 		sdBlock.MATERIAL_CORRUPTION = 7;
 		sdBlock.MATERIAL_CRYSTAL_SHARDS = 8;
 		
-		sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
-		sdBlock.img_ground44 = sdWorld.CreateImageFromFile( 'ground_4x4' );
+		//sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
+		//sdBlock.img_ground44 = sdWorld.CreateImageFromFile( 'ground_4x4' );
 		sdBlock.img_ground88 = sdWorld.CreateImageFromFile( 'ground_8x8' );
 		
 		sdBlock.img_corruption = sdWorld.CreateImageFromFile( 'corruption' );
