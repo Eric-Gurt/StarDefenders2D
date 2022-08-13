@@ -269,7 +269,8 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.air_max = 30 * 30; // 30 sec
 		
-		sdCharacter.bullet_y_spawn_offset = -2; // Not only used for sword attacks
+		//sdCharacter.bullet_y_spawn_offset = -2; // Not only used for sword attacks
+		sdCharacter.bullet_y_spawn_offset = -5; // Not only used for sword attacks
 		
 		sdCharacter.last_build_deny_reason = null;
 		
@@ -1958,7 +1959,8 @@ class sdCharacter extends sdEntity
 	{
 		// Anything else is no longer good with new ragdoll structure
 		//return { x:0, y:Math.max( sdCharacter.bullet_y_spawn_offset, ( this._hitbox_y1 + this._hitbox_y2 ) / 2 ) };
-		return { x:0, y:( this._hitbox_y1 + this._hitbox_y2 ) / 2 + sdCharacter.bullet_y_spawn_offset };
+		//return { x:0, y:( this._hitbox_y1 + this._hitbox_y2 ) / 2 + sdCharacter.bullet_y_spawn_offset };
+		return { x:0, y: ( this._hitbox_y1 + this._hitbox_y2 ) / 2 + sdCharacter.bullet_y_spawn_offset / ( 16 - (-12) ) * ( this._hitbox_y2 - this._hitbox_y1 ) };
 		//return { x:0, y:( this._hitbox_y1 + this._hitbox_y2 ) / 2 };
 		/*
 			
@@ -2405,6 +2407,11 @@ class sdCharacter extends sdEntity
 					
 					if ( this._inventory[ this.gun_slot ] )
 					{
+						if ( this._key_states.GetKey( 'KeyN' ) )
+						{
+							this._inventory[ this.gun_slot ].ChangeFireModeStart();
+						}
+						else
 						if ( this._key_states.GetKey( 'KeyR' ) &&
 							 this._inventory[ this.gun_slot ].ammo_left >= 0 && 
 							 this._inventory[ this.gun_slot ].ammo_left < this._inventory[ this.gun_slot ].GetAmmoCapacity() )
@@ -3448,6 +3455,13 @@ class sdCharacter extends sdEntity
 				meSpeak.stop( this._speak_id );
 				this._speak_id = -1;
 			}
+		}
+		
+		// Let all tasks be removed
+		for ( let i = 0; i < sdTask.tasks.length; i++ )
+		{
+			if ( sdTask.tasks[ i ]._executer === this )
+			sdTask.tasks[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		}
 		
 		this._ignored_guns_infos = null;

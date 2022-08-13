@@ -661,17 +661,23 @@ class sdWater extends sdEntity
 						{
 						
 							let e = null;
+							
+							let xx = from_entity.x;
+							let yy = from_entity.y;
+							
+							xx = Math.max( this.x + this._hitbox_x1, Math.min( xx, this.x + this._hitbox_x2 ) );
+							yy = Math.max( this.y + this._hitbox_y1, Math.min( yy, this.y + this._hitbox_y2 ) );
 
 							if ( this.type === sdWater.TYPE_ACID )
 							{
-								e = new sdEffect({ x:from_entity.x, y:from_entity.y, type:sdEffect.TYPE_BLOOD_GREEN, filter:'opacity('+(~~((1 * 0.5)*10))/10+')' });
-								sdSound.PlaySound({ name:'water_entrance', x:from_entity.x, y:from_entity.y, _server_allowed: true, volume: 0.1, pitch: 0.75 });
+								e = new sdEffect({ x:xx, y:yy, type:sdEffect.TYPE_BLOOD_GREEN, filter:'opacity('+(~~((1 * 0.5)*10))/10+')' });
+								sdSound.PlaySound({ name:'water_entrance', x:xx, y:yy, _server_allowed: true, volume: 0.1, pitch: 0.75 });
 							}
 							else
 							if ( this.type === sdWater.TYPE_WATER )
 							{
-								e = new sdEffect({ x:from_entity.x, y:from_entity.y, type:sdEffect.TYPE_BLOOD_GREEN, filter:'hue-rotate(90deg) opacity('+(~~((1 * 0.5)*10))/10+')' });
-								sdSound.PlaySound({ name:'water_entrance', x:from_entity.x, y:from_entity.y, _server_allowed: true, volume: 0.1, pitch: 1 });
+								e = new sdEffect({ x:xx, y:yy, type:sdEffect.TYPE_BLOOD_GREEN, filter:'hue-rotate(90deg) opacity('+(~~((1 * 0.5)*10))/10+')' });
+								sdSound.PlaySound({ name:'water_entrance', x:xx, y:yy, _server_allowed: true, volume: 0.1, pitch: 1 });
 							}
 					
 							if ( e )

@@ -217,7 +217,7 @@ class sdTask extends sdEntity
 				else
 				{
 					// Specific entity
-					if ( !task._target || task._target._is_being_removed ) // Am I doing something illegal here? Keep in mind on CC extraction tasks target is something like 'sdCrystal' or 'sdJunk', but not actual entity, while this is for actual entities which need extraction - Booraz149
+					if ( !task._target || task._target._is_being_removed || typeof task._target === 'string' ) // I will change it a bit, let's make _target only ever point at sdEntity objects while _lrtp_class_proprty_value_array would point at class string and required properties - Eric Gurt // Am I doing something illegal here? Keep in mind on CC extraction tasks target is something like 'sdCrystal' or 'sdJunk', but not actual entity, while this is for actual entities which need extraction - Booraz149
 					task.remove();
 				}
 			
@@ -362,7 +362,7 @@ class sdTask extends sdEntity
 		// Note: Do not make extra properties here since these willl appear for all kinds of tasks, which means overcomplicating them. Use .onTaskMade as part of a specific mission
 
 		this._executer = params.executer || null; // Who is responsible for completion of this task. Make extra task for each alive character
-		this._is_global = params.is_global || false; // All players can execute it
+		//this._is_global = params.is_global || false; // All players can execute it
 
 
 		this._difficulty = params.difficulty || 0.1; // Task difficulty, decides how much percentage the player gets closer towards task rewards when completed ( 1 = 100%, 0.1 = 10%)
@@ -465,7 +465,7 @@ class sdTask extends sdEntity
 	{
 		if ( sdWorld.is_server )
 		{
-			if ( !this._is_global )
+			//if ( !this._is_global )
 			if ( !this._executer || this._executer._is_being_removed )
 			{
 				this.remove();
@@ -518,10 +518,24 @@ class sdTask extends sdEntity
 					
 				if ( new_v <= 0 )
 				if ( mission.onTimeOut )
-				mission.onTimeOut( this );
+				{
+					mission.onTimeOut( this );
+				}
+			}
+			else
+			if ( this.time_left !== -1 ) // Getting rid of bugged tasks
+			{
+				console.warn( 'Likely bugged task removed', this );
+				this.remove();
+				return;
 			}
 		}
 		
+		if ( this._is_being_removed )
+		{
+			// Do not try to restore hiberstate after it was scheduled for removal
+		}
+		else
 		if ( sdWorld.is_server )
 		if ( this._executer._socket === null )
 		//if ( this._executer._socket === null && this._type === 0 ) Let's just wake up updated tasks instead // task._type = 1 is for public events which all players can contribute towards, so it should disappear regardless if player disconnects. ( Example - sdWeather.EVENT_CRYSTALS_MATTER )
@@ -702,12 +716,12 @@ class sdTask extends sdEntity
 		ctx.globalAlpha = 0.5;
 		ctx.fillStyle = '#ffffff';
 		PutMultilineText( this.description, true );
-
-		//if ( this.mission === sdTask.MISSION_LRTP_EXTRACTION )
-		//{
+		
+		if ( this.progress !== '' )
+		{
 			ctx.fillStyle = '#ffff00';
 			PutMultilineText( this.progress, true );//'(' + this.lrtp_ents_count + '/' + this.lrtp_ents_needed + ')' , true );
-		//}
+		}
 		
 		if ( this.time_left !== -1 )
 		{

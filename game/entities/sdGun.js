@@ -32,8 +32,9 @@ class sdGun extends sdEntity
 		if ( !sdEffect.initiated )
 		sdEffect.init_class();
 		
-		sdGun.img_muzzle1 = sdWorld.CreateImageFromFile( 'muzzle1' );
-		sdGun.img_muzzle2 = sdWorld.CreateImageFromFile( 'muzzle2' );
+		//sdGun.img_muzzle1 = sdWorld.CreateImageFromFile( 'muzzle1' );
+		//sdGun.img_muzzle2 = sdWorld.CreateImageFromFile( 'muzzle2' );
+		sdGun.img_muzzle_sheet = sdWorld.CreateImageFromFile( 'muzzle_sheet' );
 		
 		sdGun.img_present = sdWorld.CreateImageFromFile( 'present' );
 		
@@ -363,7 +364,7 @@ class sdGun extends sdEntity
 		
 		this._count = 0;
 		this._spread = 0;
-		this._sound = ''
+		this._sound = '';
 		this._sound_pitch = 1;
 		this._hea = 50;
 		
@@ -397,6 +398,8 @@ class sdGun extends sdEntity
 		
 			if ( has_class.onMade )
 			has_class.onMade( this, params ); // Should not make new entities, assume gun might be instantly removed once made
+		
+			this.fire_mode = has_class.fire_type || 1; // Adjust fire mode for the weapon
 		}
 	}
 	ExtraSerialzableFieldTest( prop )
@@ -460,12 +463,20 @@ class sdGun extends sdEntity
 	}
 	ReloadStart() // Can happen multiple times
 	{
-		//this.ammo_left = 0; // Bad because energy wastes this way
-		
-		
 		sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.5 });
-		
 		this._held_by.reload_anim = 15;
+	}
+	ChangeFireModeStart() // Can happen multiple times
+	{
+		if ( sdGun.classes[ this.class ] )
+		if ( !sdGun.classes[ this.class ].is_build_gun )
+		if ( !sdGun.classes[ this.class ].is_sword )
+		{
+			sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.5, pitch:1.5 });
+			this._held_by.reload_anim = 15;
+
+			this.fire_mode = ( this.fire_mode === 1 ) ? 2 : 1;
+		}
 	}
 	
 	GetBulletCost( return_infinity_on_build_tool_fail_placement=true, shoot_from_scenario=false )
@@ -740,25 +751,6 @@ class sdGun extends sdEntity
 					this.reload_time_left = sdGun.classes[ this.class ].burst_reload;
 					this.burst_ammo = sdGun.classes[ this.class ].burst;
 				}
-				if ( sdGun.classes[ this.class ].muzzle_x !== null )
-				{
-					this.muzzle = 5;
-
-					if ( !sdWorld.is_server || sdWorld.is_singleplayer )
-					//if ( this._last_muzzle < this.muzzle )
-					//if ( this._held_by )
-					{
-						let initial_an = this._held_by.GetLookAngle() + this._held_by._side * Math.PI / 2;
-						let an = initial_an + ( Math.random() * 2 - 1 ) * 0.5 + this._held_by._side * Math.PI / 2 * 0.5;
-
-						let vel = 1 + Math.random();
-						
-						let offset = this._held_by.GetBulletSpawnOffset();
-
-						let ef = new sdEffect({ x: this._held_by.x + offset.x, y: this._held_by.y + offset.y, type: sdEffect.TYPE_SHELL, sx:Math.sin( an ) * vel, sy:Math.cos( an ) * vel, rotation: Math.PI / 2 - initial_an });
-						sdEntity.entities.push( ef );
-					}
-				}
 			
 				if ( sdWorld.is_server )
 				{
@@ -868,7 +860,7 @@ class sdGun extends sdEntity
 						if ( typeof projectile_properties._armor_penetration_level !== 'undefined' )
 						bullet_obj._armor_penetration_level = projectile_properties._armor_penetration_level;
 					
-						if ( globalThis.CATCH_ERRORS )
+						/*if ( globalThis.CATCH_ERRORS )
 						if ( isNaN( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale ) || 
 							 isNaN( -bullet_obj.sy * 0.3 * bullet_obj._knock_scale ) || 
 							 isNaN( bullet_obj._owner.mass ) || 
@@ -905,7 +897,7 @@ class sdGun extends sdEntity
 						
 							console.warn( report.join(', \n') );
 							throw new Error( report.join(', \n') );
-						}
+						}*/
 						
 						bullet_obj._owner.Impulse( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale, -bullet_obj.sy * 0.3 * bullet_obj._knock_scale );
 						
@@ -917,6 +909,32 @@ class sdGun extends sdEntity
 						bullet_obj.time_left *= bullet_obj._owner.s / 100;
 
 						sdEntity.entities.push( bullet_obj );
+					}
+				}
+				
+				if ( sdGun.classes[ this.class ].muzzle_x !== null )
+				{
+					this.muzzle = Math.min( 5, ( sdGun.classes[ this.class ].projectile_properties._damage || 10 ) / 45 * 5 * sdGun.classes[ this.class ].count );
+
+					if ( sdGun.classes[ this.class ].projectile_properties._rail ||
+						 sdGun.classes[ this.class ].projectile_properties.explosion_radius )
+					{
+						this.muzzle = 5;
+					}
+
+					if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+					//if ( this._last_muzzle < this.muzzle )
+					//if ( this._held_by )
+					{
+						let initial_an = this._held_by.GetLookAngle() + this._held_by._side * Math.PI / 2;
+						let an = initial_an + ( Math.random() * 2 - 1 ) * 0.5 + this._held_by._side * Math.PI / 2 * 0.5;
+
+						let vel = 1 + Math.random();
+						
+						let offset = this._held_by.GetBulletSpawnOffset();
+
+						let ef = new sdEffect({ x: this._held_by.x + offset.x, y: this._held_by.y + offset.y, type: sdEffect.TYPE_SHELL, sx:Math.sin( an ) * vel, sy:Math.cos( an ) * vel, rotation: Math.PI / 2 - initial_an });
+						sdEntity.entities.push( ef );
 					}
 				}
 			
@@ -1038,7 +1056,7 @@ class sdGun extends sdEntity
 		
 		if ( !is_unknown )
 		{
-			this.fire_mode = sdGun.classes[ this.class ].fire_type || 1; // Adjust fire mode for the weapon
+			//this.fire_mode = sdGun.classes[ this.class ].fire_type || 1; // Adjust fire mode for the weapon
 
 			/*if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 			if ( this._last_muzzle < this.muzzle )
@@ -1298,10 +1316,13 @@ class sdGun extends sdEntity
 		   
 			if ( this.muzzle > 0 )//2.5 )
 			if ( has_class )
-			if ( has_class.image_firing !== undefined )
 			{
-				image = has_class.image_firing;
 				muzzle_x = has_class.muzzle_x;
+				
+				if ( has_class.image_firing !== undefined )
+				{
+					image = has_class.image_firing;
+				}
 			}
 			
 			if ( has_class.use_parts_rendering )
@@ -1380,8 +1401,9 @@ class sdGun extends sdEntity
 			ctx.sd_filter = null;
 			
 			if ( muzzle_x !== undefined )
+			if ( this.muzzle > 0 )
 			{
-				if ( this.muzzle > 2.5 )
+				/*if ( this.muzzle > 2.5 )
 				{
 					ctx.drawImageFilterCache( sdGun.img_muzzle2, muzzle_x - 16, muzzle_y - 16, 32,32 );
 				}
@@ -1389,7 +1411,31 @@ class sdGun extends sdEntity
 				if ( this.muzzle > 0 )
 				{
 					ctx.drawImageFilterCache( sdGun.img_muzzle1, muzzle_x - 16, muzzle_y - 16, 32,32 );
+				}*/
+						
+				let yy = 4 - ~~( Math.min( 5, this.muzzle ) / 5 * 5 );
+				
+				for ( let xx = 0; xx < 2; xx++ )
+				{
+					if ( xx === 0 )
+					{
+						if ( sdGun.classes[ this.class ].projectile_properties &&
+							 sdGun.classes[ this.class ].projectile_properties.color )
+						{
+							ctx.sd_tint_filter = sdWorld.hexToRgb( sdGun.classes[ this.class ].projectile_properties.color );
+							ctx.sd_tint_filter[ 0 ] /= 255;
+							ctx.sd_tint_filter[ 1 ] /= 255;
+							ctx.sd_tint_filter[ 2 ] /= 255;
+						}
+						else
+						ctx.sd_tint_filter = [ 255 / 255, 216 / 255, 33 / 255 ];
+					}
+				
+					ctx.drawImageFilterCache( sdGun.img_muzzle_sheet, xx*32,yy*32,32,32, muzzle_x - 16, muzzle_y - 16, 32,32 );
+					
+					ctx.sd_tint_filter = null;
 				}
+				
 			}
 			
 			ctx.globalAlpha = 1;
