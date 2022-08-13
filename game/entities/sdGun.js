@@ -362,6 +362,8 @@ class sdGun extends sdEntity
 		
 		this.class = params.class || 0;
 		
+		this._ignored_class = null; // Used by score shards to ignore entity from which score shards are dropped
+		
 		this._count = 0;
 		this._spread = 0;
 		this._sound = '';
@@ -953,8 +955,10 @@ class sdGun extends sdEntity
 	
 	GetIgnoredEntityClasses()
 	{
+		if ( this._ignored_class )
+		return [ 'sdCharacter', 'sdGun', this._ignored_class ];
+		else
 		return [ 'sdCharacter', 'sdGun' ];
-		//return [ 'sdCharacter' ];
 	}
 	
 	UpdateHolderClientSide()

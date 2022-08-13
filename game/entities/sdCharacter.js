@@ -446,7 +446,7 @@ class sdCharacter extends sdEntity
 			sdWorld.DropShards( 
 				killed_entity.x + ( killed_entity._hitbox_x1 + killed_entity._hitbox_x2 ) / 2,
 				killed_entity.y + ( killed_entity._hitbox_y1 + killed_entity._hitbox_y2 ) / 2,
-				0,0, amount, 1, 0, sdGun.CLASS_SCORE_SHARD, 20 );
+				0,0, amount, 1, 0, sdGun.CLASS_SCORE_SHARD, 20, killed_entity.GetClass() );
 		}
 		
 		let once = true;
