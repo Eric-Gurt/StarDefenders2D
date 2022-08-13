@@ -3750,7 +3750,7 @@ class sdGunClass
 					character.GiveScore( sdEntity.SCORE_REWARD_SCORE_SHARD, gun, false );
 
 					if ( character._socket )
-					sdSound.PlaySound({ name:'powerup_or_exp_pickup', x:character.x, y:character.y, volume:0.2, pitch:0.5 }, [ character._socket ] );
+					sdSound.PlaySound({ name:'powerup_or_exp_pickup', x:character.x, y:character.y, volume:0.4, pitch:0.5 }, [ character._socket ] );
 				
 					gun.remove();
 				}
