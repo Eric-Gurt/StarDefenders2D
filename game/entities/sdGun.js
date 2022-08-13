@@ -751,6 +751,8 @@ class sdGun extends sdEntity
 					this.reload_time_left = sdGun.classes[ this.class ].burst_reload;
 					this.burst_ammo = sdGun.classes[ this.class ].burst;
 				}
+
+				let projectile_properties = this.GetProjectileProperties();
 			
 				if ( sdWorld.is_server )
 				{
@@ -794,8 +796,6 @@ class sdGun extends sdEntity
 					let count = this._count; //sdGun.classes[ this.class ].count === undefined ? 1 : sdGun.classes[ this.class ].count;
 					let spread = this._spread; //sdGun.classes[ this.class ].spread || 0;
 					let temperature_addition = this._temperature_addition;
-
-					let projectile_properties = this.GetProjectileProperties();
 
 					for ( let i = 0; i < count; i++ )
 					{
@@ -914,10 +914,10 @@ class sdGun extends sdEntity
 				
 				if ( sdGun.classes[ this.class ].muzzle_x !== null )
 				{
-					this.muzzle = Math.min( 5, ( sdGun.classes[ this.class ].projectile_properties._damage || 10 ) / 45 * 5 * sdGun.classes[ this.class ].count );
+					this.muzzle = Math.min( 5, ( projectile_properties._damage || 10 ) / 45 * 5 * sdGun.classes[ this.class ].count );
 
-					if ( sdGun.classes[ this.class ].projectile_properties._rail ||
-						 sdGun.classes[ this.class ].projectile_properties.explosion_radius )
+					if ( projectile_properties._rail ||
+						 projectile_properties.explosion_radius )
 					{
 						this.muzzle = 5;
 					}
