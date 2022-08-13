@@ -1487,7 +1487,7 @@ class sdGunClass
 			sound_pitch: 1.6, // re-added cause weapon sounds better with the sound pitch. - Ghost581
 			sound_volume: 1.5,
             slot: 8, // moved it to slot 8 cause of it being supposed to be a power weapon and slot 9 still is bound to the BT - Ghost581
-            reload_time: 360, // can one-shot 250 HP players so it has been bumped back up to its original reload time. - Ghost581
+            reload_time: 30 * 2, // 360, // can one-shot 250 HP players so it has been bumped back up to its original reload time. - Ghost581
             muzzle_x: null,
             ammo_capacity: -1,
             count: 1,
@@ -2080,7 +2080,7 @@ class sdGunClass
 			image2: [ sdWorld.CreateImageFromFile( 'gauss_rifle4' ), sdWorld.CreateImageFromFile( 'gauss_rifle5' ) ],
 			title: 'Gauss Rifle',
 			slot: 8,
-			reload_time: 225,
+			reload_time: 30 * 3, // 225,
 			muzzle_x: 9,
 			ammo_capacity: -1,
 			count: 1,
@@ -2401,7 +2401,7 @@ class sdGunClass
 			sound_pitch: 0.7,
 			title: 'KIVORTEC-AVRS P09',
 			slot: 4,
-			reload_time: 140,
+			reload_time: 30 * 3,//140,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 1,

@@ -1015,7 +1015,7 @@ class sdLongRangeTeleport extends sdEntity
 										else
 										{
 											for ( let i = 0; i < collected_entities_array.length; i++ )
-											exectuter_character.GiveScore( sdEntity.SCORE_REWARD_COMMON_TASK, this );
+											exectuter_character.GiveScore( sdEntity.SCORE_REWARD_COMMON_TASK, collected_entities_array[ i ] );
 										
 											//exectuter_character._score += collected_entities_array.length * 20;
 											this.matter = 0;

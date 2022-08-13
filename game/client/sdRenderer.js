@@ -19,6 +19,7 @@ import sdTask from '../entities/sdTask.js';
 import sdLamp from '../entities/sdLamp.js';
 import sdFaceCrab from '../entities/sdFaceCrab.js';
 import sdStatusEffect from '../entities/sdStatusEffect.js';
+import sdCharacter from '../entities/sdCharacter.js';
 
 class sdRenderer
 {
@@ -1526,6 +1527,9 @@ class sdRenderer
 				keySuggestions.push({ title: 'Select build item', key: '- no build tool -' });
 			
 				keySuggestions.push({ title: 'Zoom in/out', key: 'Z' });
+			
+				if ( sdWorld.my_entity.is( sdCharacter ) )
+				keySuggestions.push({ title: 'Fire mode', key: 'N' });
 			
 				for ( let i = 0; i < keySuggestions.length; i++ )
 				{

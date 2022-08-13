@@ -43,6 +43,11 @@ class sdBullet extends sdEntity
 			'ab_tooth':  sdWorld.CreateImageFromFile( 'ab_tooth' )
 		};
 		
+		sdBullet.images_with_smoke = 
+		{
+			'rocket_proj': 1
+		};
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return this.is_grenade || this.ac > 0 ? -2 : -0.1; }
@@ -97,6 +102,8 @@ class sdBullet extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		this.color = '#FFFF00';
+		
+		this._smoke_spawn_wish = 0;
 		
 		this._hittable_by_bullets = true;
 		
@@ -509,6 +516,22 @@ class sdBullet extends sdEntity
 			
 			if ( this._is_being_removed )
 			return;
+		}
+		
+		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+		{
+			if ( sdBullet.images_with_smoke[ this.model ] )
+			{
+				this._smoke_spawn_wish += GSPEED;
+				if ( this._smoke_spawn_wish > 1 )
+				{
+					this._smoke_spawn_wish = this._smoke_spawn_wish % 1;
+					//this._smoke_spawn_wish -= 1;
+					
+					let ent = new sdEffect({ x: this.x, y: this.y, sy:-1, type:sdEffect.TYPE_GLOW_HIT, color:'#666666' });
+					sdEntity.entities.push( ent );
+				}
+			}
 		}
 	}
 
@@ -944,7 +967,6 @@ class sdBullet extends sdEntity
 		
 			//ctx.drawImage( sdBullet.images[ this.model ], - 16, - 16, 32,32 );
 			ctx.drawImageFilterCache( sdBullet.images[ this.model ], - 16, - 16, 32,32 );
-			
 		}
 		else
 		{

@@ -134,7 +134,7 @@ class sdCrystal extends sdEntity
 			if ( params.tag.indexOf( 'corrupted' ) !== -1 )
 			params.type = sdCrystal.TYPE_CRYSTAL_CORRUPTED;
 		}
-	
+		
 		this.sx = 0;
 		this.sy = 0;
 		this.type = params.type || 1;
