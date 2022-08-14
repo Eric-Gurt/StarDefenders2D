@@ -14,9 +14,11 @@ class sdTeleport extends sdEntity
 {
 	static init_class()
 	{
-		sdTeleport.img_teleport = sdWorld.CreateImageFromFile( 'teleport' );
+		sdTeleport.img_teleport = sdWorld.CreateImageFromFile( 'sdTeleport' );
+
+		/*sdTeleport.img_teleport = sdWorld.CreateImageFromFile( 'teleport' );
 		sdTeleport.img_teleport_offline = sdWorld.CreateImageFromFile( 'teleport_offline' );
-		sdTeleport.img_teleport_no_matter = sdWorld.CreateImageFromFile( 'teleport_no_matter' );
+		sdTeleport.img_teleport_no_matter = sdWorld.CreateImageFromFile( 'teleport_no_matter' );*/
 		
 		sdTeleport.connection_range = 400;
 		
@@ -135,15 +137,18 @@ class sdTeleport extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		let xx = 0;
+
 		if ( this.GetComWiredCache() || sdShop.isDrawing )
 		{
 			if ( this.delay === 0 || sdShop.isDrawing )
-			ctx.drawImageFilterCache( sdTeleport.img_teleport, -16, -16, 32,32 );
+			xx = 0;
 			else
-			ctx.drawImageFilterCache( sdTeleport.img_teleport_offline, -16, -16, 32,32 );
+			xx = 1;
 		}
 		else
-		ctx.drawImageFilterCache( sdTeleport.img_teleport_no_matter, -16, -16, 32,32 );
+		xx = 2;
+		ctx.drawImageFilterCache( sdTeleport.img_teleport, xx * 32, 0, 32, 32, - 16, - 16, 32,32 )
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
