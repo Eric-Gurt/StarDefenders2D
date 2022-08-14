@@ -293,7 +293,7 @@ class sdCommandCentre extends sdEntity
 					
 					template.title = 'Extract cube shards';
 					template.description = 'Extract cube shards by using a long range teleporter.';
-					template.lrtp_class_proprty_value_array = [ 'sdGun', 'class', sdGun.CLASS_CRYSTAL_SHARD ];
+					template.lrtp_class_proprty_value_array = [ 'sdGun', 'class', sdGun.CLASS_CUBE_SHARD ];
 					
 					/*sdTask.MakeSureCharacterHasTask({ 
 						similarity_hash:'EXTRACT-'+this._net_id+i, 

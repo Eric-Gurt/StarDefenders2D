@@ -385,7 +385,6 @@ class sdLongRangeTeleport extends sdEntity
 				for ( let i = 0; i < sdTask.tasks.length; i++ )
 				{
 					let task = sdTask.tasks[ i ];
-					
 					if ( task._executer === initiator )
 					{
 						let mission = sdTask.missions[ task.mission ];
@@ -393,6 +392,21 @@ class sdLongRangeTeleport extends sdEntity
 						if ( mission.onLongRangeTeleportCalledForEntity )
 						if ( mission.onLongRangeTeleportCalledForEntity( task, this, ent ) )
 						{
+							if ( mission.forAllPlayers ) // Check if initiator's task is "for all players" type
+							if ( mission.forAllPlayers( task ) )
+							for ( let j = 0; j < sdTask.tasks.length; j++ ) // For tasks which should count for all players
+							{
+								let task2 = sdTask.tasks[ j ];
+								let mission2 = sdTask.missions[ task2.mission ];
+								if ( task2._executer !== initiator ) // Make sure it doesn't check already confirmed task
+								if ( mission2.forAllPlayers )
+								if ( mission2.forAllPlayers( task2 ) )
+								if ( mission2.onLongRangeTeleportCalledForEntity )
+								if ( mission2.onLongRangeTeleportCalledForEntity( task2, this, ent ) )
+								{
+									// Feels like I'm butchering code, but it works - Booraz149
+								}
+							}
 							return true;
 						}
 					}
