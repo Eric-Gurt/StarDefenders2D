@@ -143,10 +143,13 @@ class sdTeleport extends sdEntity
 		{
 			if ( this.delay === 0 || sdShop.isDrawing )
 			xx = 0;
+			//ctx.drawImageFilterCache( sdTeleport.img_teleport, -16, -16, 32,32 );
 			else
 			xx = 1;
+			//ctx.drawImageFilterCache( sdTeleport.img_teleport_offline, -16, -16, 32,32 );
 		}
 		else
+		//ctx.drawImageFilterCache( sdTeleport.img_teleport_no_matter, -16, -16, 32,32 );
 		xx = 2;
 		ctx.drawImageFilterCache( sdTeleport.img_teleport, xx * 32, 0, 32, 32, - 16, - 16, 32,32 )
 	}
