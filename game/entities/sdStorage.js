@@ -299,7 +299,7 @@ class sdStorage extends sdEntity
 			if ( this.type === sdStorage.TYPE_CARGO )
 			xx = 2;
 			//ctx.drawImageFilterCache( sdStorage.img_storage4, - 16, - 16, 32,32 );
-			ctx.drawImageFilterCache( sdStorage.img_storage, xx * 32, 0, 32, 32, - 16, - 16, 32,32 )
+			ctx.drawImageFilterCache( sdStorage.img_storage, xx * 32, 0, 32, 32, - 16, - 16, 32,32 );
 		}
 		
 		ctx.globalAlpha = 1;
