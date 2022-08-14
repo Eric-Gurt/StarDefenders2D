@@ -20,7 +20,7 @@
 /*
 
 	// Not sure if method above works anymore, use this:
-	sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 26 ); // Swap 26 for number you want to test inside
+	sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 27 ); // Swap 27 for number you want to test inside
  
 */
 import sdWorld from '../sdWorld.js';
@@ -2034,6 +2034,7 @@ class sdWeather extends sdEntity
 						lrtp_matter_capacity_needed: 10240 + ( 2560 * player_count ), // 12300 matter requirement for 1 player, although progress counts for all players I think
 						title: 'Teleport crystals',
 						time_left: 30 * 60 * 30,
+						for_all_players: true, // This task lets everyone contribute towards it's completion
 						//extra: -99, // This lets the game know to take max matter as progress instead of crystal count.
 						description: 'We need you to teleport a large amount of crystals. This is to help us keep the Mothership supplied with matter so our matter reserves do not deplete. With other Star Defenders on this planet, it should not be too hard.',
 						//type: 1 // Task remains active even if player disconnects, so it doesn't exist after the event expires

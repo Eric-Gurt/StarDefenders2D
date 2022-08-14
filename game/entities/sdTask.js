@@ -64,6 +64,10 @@ class sdTask extends sdEntity
 			},
 			onLongRangeTeleportCalled: ( task, long_range_teleport )=> // Called after it gone through all entities
 			{
+			},
+			forAllPlayers: ( task )=>
+			{
+				return false;
 			}
 		};
 		sdTask.missions[ sdTask.MISSION_DESTROY_ENTITY = id++ ] = 
@@ -163,6 +167,8 @@ class sdTask extends sdEntity
 				
 				task._lrtp_matter_capacity_current = 0;
 				task._lrtp_matter_capacity_needed = params.lrtp_matter_capacity_needed || -1;
+
+				task._for_all_players = params.for_all_players || false; // Is this task for all players or only task executer?
 				
 				if ( task._target )
 				{
@@ -276,6 +282,10 @@ class sdTask extends sdEntity
 				}
 
 				return false; // False means ignore entity
+			},
+			forAllPlayers: ( task )=>
+			{
+				return task._for_all_players;
 			}
 		};
 		
@@ -345,6 +355,7 @@ class sdTask extends sdEntity
 		if ( prop === '_executer' ) return true;
 		if ( prop === '_target' ) return true;
 		if ( prop === '_lrtp_class_proprty_value_array' ) return true;
+		//if ( prop === '_for_all_players' ) return true;
 		
 		return false;
 	}
