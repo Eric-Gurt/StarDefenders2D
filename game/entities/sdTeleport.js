@@ -151,7 +151,7 @@ class sdTeleport extends sdEntity
 		else
 		//ctx.drawImageFilterCache( sdTeleport.img_teleport_no_matter, -16, -16, 32,32 );
 		xx = 2;
-		ctx.drawImageFilterCache( sdTeleport.img_teleport, xx * 32, 0, 32, 32, - 16, - 16, 32,32 )
+		ctx.drawImageFilterCache( sdTeleport.img_teleport, xx * 32, 0, 32, 32, - 16, - 16, 32,32 );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
