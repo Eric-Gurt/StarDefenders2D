@@ -1577,7 +1577,7 @@ class sdGunClass
 			count: 0,
 			projectile_properties: { _damage: 0 },
 			ignore_slot: true,
-			matter_cost: 250,
+			matter_cost: 125,
 			min_workbench_level: 3,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
@@ -1602,7 +1602,7 @@ class sdGunClass
 			count: 0,
 			projectile_properties: { _damage: 0 },
 			ignore_slot: true,
-			matter_cost: 500,
+			matter_cost: 250,
 			min_workbench_level: 4,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
@@ -1627,7 +1627,7 @@ class sdGunClass
 			count: 0,
 			projectile_properties: { _damage: 0 },
 			ignore_slot: true,
-			matter_cost: 750,
+			matter_cost: 375,
 			min_workbench_level: 7,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
