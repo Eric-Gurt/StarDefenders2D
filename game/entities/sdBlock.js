@@ -109,6 +109,7 @@ class sdBlock extends sdEntity
 		sdBlock.MATERIAL_REINFORCED_WALL_LVL2 = 6;
 		sdBlock.MATERIAL_CORRUPTION = 7;
 		sdBlock.MATERIAL_CRYSTAL_SHARDS = 8;
+		sdBlock.MATERIAL_FLESH = 9;
 		
 		//sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
 		//sdBlock.img_ground44 = sdWorld.CreateImageFromFile( 'ground_4x4' );
@@ -116,6 +117,7 @@ class sdBlock extends sdEntity
 		
 		sdBlock.img_corruption = sdWorld.CreateImageFromFile( 'corruption' );
 		sdBlock.img_crystal_shards = sdWorld.CreateImageFromFile( 'crystal_shards' );
+		sdBlock.img_flesh = sdWorld.CreateImageFromFile( 'flesh2' );
 		
 		sdBlock.img_trapshield11 = sdWorld.CreateImageFromFile( 'trapshield_1x1' );
 		sdBlock.img_trapshield05 = sdWorld.CreateImageFromFile( 'trapshield_half' );
@@ -136,7 +138,8 @@ class sdBlock extends sdEntity
 			sdWorld.CreateImageFromFile( 'metal_reinforced4' )
 		];
 		
-		 sdBlock.max_corruption_rank = 12; // 12
+		sdBlock.max_corruption_rank = 12; // 12
+		sdBlock.max_flesh_rank = 6; // 6
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -317,6 +320,12 @@ class sdBlock extends sdEntity
 					initiator.GiveScore( sdEntity.SCORE_REWARD_EASY_MOB, this );
 				}
 
+				if ( this.material === sdBlock.MATERIAL_FLESH )
+				{
+					if ( initiator )
+					initiator.GiveScore( sdEntity.SCORE_REWARD_EASY_MOB, this );
+				}
+
 				if ( this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
 				{
 					sdWorld.DropShards( this.x, this.y, 0, 0, 
@@ -408,6 +417,58 @@ class sdBlock extends sdEntity
 									this._contains_class = parts[ 0 ];
 
 									let params = { x: this.x + xx * 16 + 16, y: this.y + yy * 16 + 16, type: ( parts.length > 1 && parts[1].indexOf( 'crab' ) !== -1 ) ? sdCrystal.TYPE_CRYSTAL_CRAB_BIG : sdCrystal.TYPE_CRYSTAL_BIG, tag:( parts.length > 1 )?parts[1]:null };
+
+									if ( this._contains_class_params )
+									{
+										for ( let i in this._contains_class_params )
+										params[ i ] = this._contains_class_params[ i ];
+									}
+
+									let ent = new sdWorld.entity_classes[ this._contains_class ]( params );
+									sdEntity.entities.push( ent );
+									sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
+
+
+									map[ ( xx + 0 ) + ':' + ( yy + 0 ) ]._contains_class = null;
+									map[ ( xx + 1 ) + ':' + ( yy + 0 ) ]._contains_class = null;
+									map[ ( xx + 0 ) + ':' + ( yy + 1 ) ]._contains_class = null;
+									map[ ( xx + 1 ) + ':' + ( yy + 1 ) ]._contains_class = null;
+
+									map[ ( xx + 0 ) + ':' + ( yy + 0 ) ].DamageWithEffect( Infinity );
+									map[ ( xx + 1 ) + ':' + ( yy + 0 ) ].DamageWithEffect( Infinity );
+									map[ ( xx + 0 ) + ':' + ( yy + 1 ) ].DamageWithEffect( Infinity );
+									map[ ( xx + 1 ) + ':' + ( yy + 1 ) ].DamageWithEffect( Infinity );
+									
+									//setTimeout(()=>{ent.DamageWithEffect( Infinity )}, 2000 ); // Hack
+
+									break done;
+								}
+							}
+						}
+						else
+						if ( this._contains_class === 'sdAbomination' ) // Abomination spawn
+						{
+							let map = {};
+							let blocks_near = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, 16, null, [ 'sdBlock' ] );
+
+							for ( let i = 0; i < blocks_near.length; i++ )
+							if ( blocks_near[ i ].material = sdBlock.MATERIAL_FLESH )
+							if ( !blocks_near[ i ]._is_being_removed )
+							map[ ( blocks_near[ i ].x - this.x ) / 16 + ':' + ( blocks_near[ i ].y - this.y ) / 16 ] = blocks_near[ i ];
+
+							done:
+							for ( let xx = -1; xx <= 0; xx++ )
+							for ( let yy = -1; yy <= 0; yy++ )
+							{
+								if ( map[ ( xx + 0 ) + ':' + ( yy + 0 ) ] )
+								if ( map[ ( xx + 1 ) + ':' + ( yy + 0 ) ] )
+								if ( map[ ( xx + 0 ) + ':' + ( yy + 1 ) ] )
+								if ( map[ ( xx + 1 ) + ':' + ( yy + 1 ) ] )
+								{
+									let parts = this._contains_class.split( '.' );
+									this._contains_class = parts[ 0 ];
+
+									let params = { x: this.x + xx * 16 + 16, y: this.y + yy * 16 + 16 };
 
 									if ( this._contains_class_params )
 									{
@@ -555,13 +616,21 @@ class sdBlock extends sdEntity
 		{
 			this.p = ( params.rank === undefined ) ? 0 : params.rank;
 		}
+
+		if ( this.material === sdBlock.MATERIAL_FLESH )
+		{
+			//this.blood = 0;
+			this._next_attack = 0;
+			this._next_spread = sdWorld.time + 5000; // + Math.random() * 10000;
+			this.p = ( params.rank === undefined ) ? sdBlock.max_flesh_rank : params.rank;
+		}
 		
 		this.destruction_frame = 0;
 		this.HandleDestructionUpdate();
 		this.reinforced_frame = 0;
 		this.HandleReinforceUpdate();
 		
-		if ( this.material !== sdBlock.MATERIAL_CORRUPTION && this._hea >= this._hmax )
+		if ( this.material !== sdBlock.MATERIAL_CORRUPTION && this.material !== sdBlock.MATERIAL_FLESH && this._hea >= this._hmax )
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED, false ); // 2nd parameter is important as it will prevent temporary entities from reacting to world entities around it (which can happen for example during item price measure - something like sdBlock can kill player-initiator and cause server crash)
 		
 		/*if ( sdWorld.is_server )
@@ -622,6 +691,22 @@ class sdBlock extends sdEntity
 		
 		ent2._hmax = this._hmax * 0.5;
 		ent2._hea = this._hea * 0.5;
+	}
+	Fleshify( from=null )
+	{
+		let bri = 100 - ( Math.random() * 100 / 5 );
+		let ent2 = new sdBlock({ x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_FLESH, br:bri, rank: from ? Math.max( 0, from.p - 1 - Math.floor( Math.random(), 2 ) ) : undefined });
+
+		this.remove();
+		this._broken = false;
+
+		if ( this._contains_class === 'sdOctopus' || Math.random() < 0.05 ) // Octopus spawn gets replaced by abomination, or RNG puts abomination inside the flesh
+		ent2._contains_class = 'sdAbomination'; // Turn it into an abomination
+
+		sdEntity.entities.push( ent2 );
+		
+		ent2._hmax = 480; // Fixed health values regardless how deep it is
+		ent2._hea = 480;
 	}
 	//RequireSpawnAlign() 
 	//{ return true; }
@@ -744,6 +829,57 @@ class sdBlock extends sdEntity
 								
 							if ( ent.material !== sdBlock.MATERIAL_CORRUPTION )
 							this.CorruptAttack( ent );
+						}
+						corrupt_done = true;
+						break;
+					}
+				}
+				if ( !corrupt_done )
+				{
+					this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+				}
+			}
+		}
+		else
+		if ( this.material === sdBlock.MATERIAL_FLESH )
+		{
+			if ( !sdWorld.is_server )
+			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+			else
+			if ( sdWorld.time > this._next_spread )
+			{
+				this._next_spread = sdWorld.time + 30000 + Math.random() * 10000; // More time to spread but it can also spread more htan corruption
+				
+				let dir = ~~( Math.random() * 4 );
+				
+				let corrupt_done = false;
+				
+				for ( let d = 0; d < 4; d++, dir = dir % 4 )
+				{
+					let ent = null;
+					
+					if ( dir === 0 )
+					ent = sdBlock.GetGroundObjectAt( this.x + 16, this.y );
+					
+					if ( dir === 1 )
+					ent = sdBlock.GetGroundObjectAt( this.x - 16, this.y );
+					
+					if ( dir === 2 )
+					ent = sdBlock.GetGroundObjectAt( this.x, this.y + 16 );
+					
+					if ( dir === 3 )
+					ent = sdBlock.GetGroundObjectAt( this.x, this.y - 16 );
+				
+					if ( ent )
+					{
+						if ( ent.material === sdBlock.MATERIAL_GROUND && this.p >= 1 )
+						{
+							ent.Fleshify( this );
+						}
+						else
+						{
+							if ( ent.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+							ent.Fleshify( this );
 						}
 						corrupt_done = true;
 						break;
@@ -948,6 +1084,12 @@ class sdBlock extends sdEntity
 				ctx.filter = sdWorld.GetCrystalHue( 40 * Math.pow( 2, this.p ) );
 				ctx.drawImageFilterCache( sdBlock.img_crystal_shards, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
 			}
+		}
+		else
+		if ( this.material === sdBlock.MATERIAL_FLESH )
+		{
+			//ctx.filter = 'none';
+			ctx.drawImageFilterCache( sdBlock.img_flesh, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
 		}
 		else
 		if ( this.material === sdBlock.MATERIAL_WALL )

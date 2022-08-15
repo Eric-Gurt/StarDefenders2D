@@ -20,7 +20,7 @@
 /*
 
 	// Not sure if method above works anymore, use this:
-	sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 31 ); // Swap 31 for number you want to test inside
+	sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 32 ); // Swap 32 for number you want to test inside
  
 */
 import sdWorld from '../sdWorld.js';
@@ -100,7 +100,8 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_DIRTY_AIR =				event_counter++; // 28
 		sdWeather.EVENT_AMPHIDS =				event_counter++; // 29
 		sdWeather.EVENT_BITERS =				event_counter++; // 30
-		sdWeather.EVENT_LAND_SCAN =			event_counter++; // 31
+		sdWeather.EVENT_LAND_SCAN =				event_counter++; // 31
+		sdWeather.EVENT_FLESH_DIRT =				event_counter++; // 32
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -2164,6 +2165,29 @@ class sdWeather extends sdEntity
 						description: 'We need you to claim a land sacnner from a long range teleporter, then scan planet enviroment until data is at max capacity, then send the land scanner back to us using the long range teleporter so we can analyze the planet data.'
 					});
 				}
+		}
+		if ( r === sdWeather.EVENT_FLESH_DIRT ) // Ground fleshify start from random block
+		{
+			for ( let tr = 0; tr < 100; tr++ )
+			{
+				let i = Math.floor( Math.random() * sdEntity.entities.length );
+				
+				if ( i < sdEntity.entities.length )
+				{
+					let ent = sdEntity.entities[ i ];
+					
+					if ( ent.is( sdBlock ) )
+					if ( ent._natural )
+					{
+						ent.Fleshify();
+						break;
+					}
+				}
+				else
+				{
+					break;
+				}
+			}
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
