@@ -20,7 +20,7 @@
 /*
 
 	// Not sure if method above works anymore, use this:
-	sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 27 ); // Swap 27 for number you want to test inside
+	sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 31 ); // Swap 31 for number you want to test inside
  
 */
 import sdWorld from '../sdWorld.js';
@@ -97,9 +97,10 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_SETR =					event_counter++; // 25
 		sdWeather.EVENT_SETR_DESTROYER =			event_counter++; // 26
 		sdWeather.EVENT_CRYSTALS_MATTER =			event_counter++; // 27
-		sdWeather.EVENT_DIRTY_AIR =					event_counter++; // 28
+		sdWeather.EVENT_DIRTY_AIR =				event_counter++; // 28
 		sdWeather.EVENT_AMPHIDS =				event_counter++; // 29
 		sdWeather.EVENT_BITERS =				event_counter++; // 30
+		sdWeather.EVENT_LAND_SCAN =			event_counter++; // 31
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -2144,6 +2145,25 @@ class sdWeather extends sdEntity
 				else
 				sdWorld.UpdateHashPosition( biter, false ); // Prevent inersection with other ones
 			}
+		}
+		if ( r === sdWeather.EVENT_LAND_SCAN ) // Task which tells players to use a land scanner entity to scan the planet for data.
+		{
+			//let player_count = sdWorld.GetPlayingPlayersCount();
+				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Create the tasks
+				{
+					sdTask.MakeSureCharacterHasTask({ 
+						similarity_hash:'LAND_SCAN-'+this._net_id, 
+						executer: sdWorld.sockets[ i ].character,
+						lrtp_class_proprty_value_array: [ 'sdLandScanner', 'scanned_ents', 350 ],
+						mission: sdTask.MISSION_LRTP_EXTRACTION,
+						difficulty: 0.14,
+						lrtp_matter_capacity_needed: 1,
+						title: 'Planet scan',
+						time_left: 30 * 60 * 15,
+						extra: 1,
+						description: 'We need you to claim a land sacnner from a long range teleporter, then scan planet enviroment until data is at max capacity, then send the land scanner back to us using the long range teleporter so we can analyze the planet data.'
+					});
+				}
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
