@@ -687,7 +687,7 @@ class sdHover extends sdEntity
 		xx = 2;
 		//ctx.drawImageFilterCache( sdHover.img_hover_broken, - 32, - 16, 64,32 );
 
-		ctx.drawImageFilterCache( sdHover.img_hover, xx * 64, yy * 32, 64,32, -32, -16, 64,32 )
+		ctx.drawImageFilterCache( sdHover.img_hover, xx * 64, yy * 32, 64,32, -32, -16, 64,32 );
 		
 		
 		ctx.globalAlpha = 1;
