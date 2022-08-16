@@ -414,7 +414,7 @@ class sdSlug extends sdEntity
 					let xx = sprite[ i ];
 					let yy = sprite[ i ];
 
-					ctx.drawImageFilterCache( sdSlug.img_slug, xx * 32, yy * 32, 32,32,  locations[ i ], -16, 32,32 ) // Works but can't clip through because the 2nd image has been created
+					ctx.drawImageFilterCache( sdSlug.img_slug, xx * 32, yy * 32, 32,32,  locations[ i ], -16, 32,32 ); // Works but can't clip through because the 2nd image has been created
 				}
 
 				//ctx.drawImageFilterCache( sdSlug.img_slug_blinks[ i ], - 16, - 16, 32,32 );
