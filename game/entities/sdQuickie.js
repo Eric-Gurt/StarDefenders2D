@@ -333,7 +333,7 @@ class sdQuickie extends sdEntity
 			//ctx.drawImageFilterCache( ( sdWorld.time % 400 < 200 ) ? sdQuickie.img_quickie_walk1 : sdQuickie.img_quickie_walk2, - 16, - 16, 32,32 );
 		}
 
-		ctx.drawImageFilterCache( sdQuickie.img_quickie, xx * 32, yy * 32, 32,32, -16, -16, 32,32 )
+		ctx.drawImageFilterCache( sdQuickie.img_quickie, xx * 32, yy * 32, 32,32, -16, -16, 32,32 );
 		
 		ctx.globalAlpha = 1;
 		//ctx.sd_filter = null;

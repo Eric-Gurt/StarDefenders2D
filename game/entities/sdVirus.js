@@ -455,7 +455,7 @@ class sdVirus extends sdEntity
 		xx = Math.min( ( sdWorld.time % 400 < 200 ) ? 0 : 1 );
 		//ctx.drawImageFilterCache( ( sdWorld.time % 400 < 200 ) ? sdVirus.img_virus : sdVirus.img_virus_walk, - 16, - 16, 32,32 );
 
-		ctx.drawImageFilterCache( sdVirus.img_virus, xx * 32, yy * 32, 32,32, -16, -16, 32,32 )
+		ctx.drawImageFilterCache( sdVirus.img_virus, xx * 32, yy * 32, 32,32, -16, -16, 32,32 );
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';

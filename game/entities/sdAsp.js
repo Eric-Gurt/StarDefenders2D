@@ -441,7 +441,7 @@ class sdAsp extends sdEntity
 			//ctx.drawImageFilterCache( sdAsp.img_asp_idle, - 16, - 16, 32,32 );
 		}
 
-		ctx.drawImageFilterCache( sdAsp.img_asp, xx * 32, yy * 32, 32,32, -16, -16, 32,32 )
+		ctx.drawImageFilterCache( sdAsp.img_asp, xx * 32, yy * 32, 32,32, -16, -16, 32,32 );
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
