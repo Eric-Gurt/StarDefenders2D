@@ -14,6 +14,8 @@ class sdQuickie extends sdEntity
 {
 	static init_class()
 	{
+		sdQuickie.img_quickie = sdWorld.CreateImageFromFile( 'sdQuickie' );
+		/*
 		sdQuickie.img_quickie_idle1 = sdWorld.CreateImageFromFile( 'quickie_idle1' );
 		sdQuickie.img_quickie_idle2 = sdWorld.CreateImageFromFile( 'quickie_idle2' );
 		sdQuickie.img_quickie_walk1 = sdWorld.CreateImageFromFile( 'quickie_walk1' );
@@ -24,6 +26,7 @@ class sdQuickie extends sdEntity
 			sdWorld.CreateImageFromFile( 'quickie_death2' ),
 			sdWorld.CreateImageFromFile( 'quickie_death3' )
 		];
+		*/
 		sdQuickie.death_duration = 10;
 		sdQuickie.post_death_ttl = 90;
 		
@@ -303,6 +306,9 @@ class sdQuickie extends sdEntity
 		ctx.filter = this.filter;
 		//ctx.sd_filter = this.sd_filter;
 		ctx.scale( this.side, 1 );
+
+		let xx = 0;
+		let yy = 0;
 		
 		if ( this.death_anim > 0 )
 		{
@@ -310,17 +316,24 @@ class sdQuickie extends sdEntity
 			{
 				ctx.globalAlpha = 0.5;
 			}
+
+			xx = Math.min( 3 - 1, ~~( ( this.death_anim / sdQuickie.death_duration ) * 3 ) );
+			yy = 1;
 			
-			let frame = Math.min( sdQuickie.death_imgs.length - 1, ~~( ( this.death_anim / sdQuickie.death_duration ) * sdQuickie.death_imgs.length ) );
-			ctx.drawImageFilterCache( sdQuickie.death_imgs[ frame ], - 16, - 16, 32,32 );
+			//let frame = Math.min( sdQuickie.death_imgs.length - 1, ~~( ( this.death_anim / sdQuickie.death_duration ) * sdQuickie.death_imgs.length ) );
+			//ctx.drawImageFilterCache( sdQuickie.death_imgs[ frame ], - 16, - 16, 32,32 );
 		}
 		else
 		{
 			if ( Math.abs( this.sx ) < 2 )
-			ctx.drawImageFilterCache( ( sdWorld.time % 400 < 200 ) ? sdQuickie.img_quickie_idle1 : sdQuickie.img_quickie_idle2, - 16, - 16, 32,32 );
+			xx = Math.min( ( sdWorld.time % 400 < 200 ) ? 0 : 1 );
+			//ctx.drawImageFilterCache( ( sdWorld.time % 400 < 200 ) ? sdQuickie.img_quickie_idle1 : sdQuickie.img_quickie_idle2, - 16, - 16, 32,32 );
 			else
-			ctx.drawImageFilterCache( ( sdWorld.time % 400 < 200 ) ? sdQuickie.img_quickie_walk1 : sdQuickie.img_quickie_walk2, - 16, - 16, 32,32 );
+			xx = Math.min( ( sdWorld.time % 400 < 200 ) ? 2 : 3 );
+			//ctx.drawImageFilterCache( ( sdWorld.time % 400 < 200 ) ? sdQuickie.img_quickie_walk1 : sdQuickie.img_quickie_walk2, - 16, - 16, 32,32 );
 		}
+
+		ctx.drawImageFilterCache( sdQuickie.img_quickie, xx * 32, yy * 32, 32,32, -16, -16, 32,32 )
 		
 		ctx.globalAlpha = 1;
 		//ctx.sd_filter = null;

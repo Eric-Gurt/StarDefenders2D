@@ -391,7 +391,7 @@ class sdSlug extends sdEntity
 			//if ( sdWorld.time < this.last_jump + 400 ) // This approach would work better for in-place jumps
 			if ( this.time_since_jump < 400 / 1000 * 30 )
 			{
-				xx = Math.min( 2 - 1, ~~( ( this.time_since_jump < 200 / 1000 * 30 ) * 2 ) );
+				xx = Math.min( ( this.time_since_jump < 200 / 1000 * 30 ) ? 1 : 2 );
 				yy = 0;
 				//ctx.drawImageFilterCache( ( this.time_since_jump < 200 / 1000 * 30 ) ? sdSlug.img_slug_walk1 : sdSlug.img_slug_walk2, - 16, - 16, 32,32 );
 				//ctx.drawImageFilterCache( ( sdWorld.time < this.last_jump + 200 ) ? sdSlug.img_slug_walk1 : sdSlug.img_slug_walk2, - 16, - 16, 32,32 );

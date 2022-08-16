@@ -13,6 +13,8 @@ class sdVirus extends sdEntity
 {
 	static init_class()
 	{
+		sdVirus.img_virus = sdWorld.CreateImageFromFile( 'sdVirus' );
+		/*
 		sdVirus.img_virus = sdWorld.CreateImageFromFile( 'virus' );
 		sdVirus.img_virus_walk = sdWorld.CreateImageFromFile( 'virus_walk' );
 		sdVirus.img_virus_hurt = sdWorld.CreateImageFromFile( 'virus_hurt' );
@@ -24,6 +26,7 @@ class sdVirus extends sdEntity
 			sdWorld.CreateImageFromFile( 'virus_death4' ),
 			sdWorld.CreateImageFromFile( 'virus_death5' )
 		];
+		*/
 		sdVirus.death_duration = 10;
 		sdVirus.post_death_ttl = 90;
 		
@@ -427,6 +430,9 @@ class sdVirus extends sdEntity
 		}
 		
 		ctx.scale( this.side * this.hmax / sdVirus.normal_max_health, 1 * this.hmax / sdVirus.normal_max_health );
+
+		let xx = 0;
+		let yy = 0;
 		
 		if ( this.death_anim > 0 )
 		{
@@ -434,15 +440,22 @@ class sdVirus extends sdEntity
 			{
 				ctx.globalAlpha = 0.5;
 			}
+
+			xx = Math.min( 5 - 1, ~~( ( this.death_anim / sdVirus.death_duration ) * 5 ) );
+			yy = 1;
 			
-			let frame = Math.min( sdVirus.death_imgs.length - 1, ~~( ( this.death_anim / sdVirus.death_duration ) * sdVirus.death_imgs.length ) );
-			ctx.drawImageFilterCache( sdVirus.death_imgs[ frame ], - 16, - 16, 32,32 );
+			//let frame = Math.min( sdVirus.death_imgs.length - 1, ~~( ( this.death_anim / sdVirus.death_duration ) * sdVirus.death_imgs.length ) );
+			//ctx.drawImageFilterCache( sdVirus.death_imgs[ frame ], - 16, - 16, 32,32 );
 		}
 		else
 		if ( this.hurt_timer > 0 )
-		ctx.drawImageFilterCache( sdVirus.img_virus_hurt, - 16, - 16, 32,32 );
+		xx = 2;
+		//ctx.drawImageFilterCache( sdVirus.img_virus_hurt, - 16, - 16, 32,32 );
 		else
-		ctx.drawImageFilterCache( ( sdWorld.time % 400 < 200 ) ? sdVirus.img_virus : sdVirus.img_virus_walk, - 16, - 16, 32,32 );
+		xx = Math.min( ( sdWorld.time % 400 < 200 ) ? 0 : 1 );
+		//ctx.drawImageFilterCache( ( sdWorld.time % 400 < 200 ) ? sdVirus.img_virus : sdVirus.img_virus_walk, - 16, - 16, 32,32 );
+
+		ctx.drawImageFilterCache( sdVirus.img_virus, xx * 32, yy * 32, 32,32, -16, -16, 32,32 )
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
