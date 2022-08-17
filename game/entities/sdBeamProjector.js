@@ -18,9 +18,13 @@ class sdBeamProjector extends sdEntity
 {
 	static init_class()
 	{
+		sdBeamProjector.img_bp = sdWorld.CreateImageFromFile( 'sdBeamProjector' );
+
+		/*
 		sdBeamProjector.img_bp = sdWorld.CreateImageFromFile( 'beam_projector' );
 		sdBeamProjector.img_bp_working = sdWorld.CreateImageFromFile( 'beam_projector_working' );
 		sdBeamProjector.img_bp_blocked = sdWorld.CreateImageFromFile( 'beam_projector_blocked' );
+		*/
 		sdBeamProjector.img_crystal = sdWorld.CreateImageFromFile( 'crystal' );
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -443,15 +447,22 @@ class sdBeamProjector extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		let xx = 0;
+		
 		if ( !this.has_anticrystal )
-		ctx.drawImageFilterCache( sdBeamProjector.img_bp, -16, -16, 32, 32 );
+		xx = 0;
+		//ctx.drawImageFilterCache( sdBeamProjector.img_bp, -16, -16, 32, 32 );
 		else
 		{
 			if ( this.no_obstacles === true && this.has_players_nearby === true )
-			ctx.drawImageFilterCache( sdBeamProjector.img_bp_working, -16, -16, 32, 32 );
+			xx = 1;
+			//ctx.drawImageFilterCache( sdBeamProjector.img_bp_working, -16, -16, 32, 32 );
 			else
-			ctx.drawImageFilterCache( sdBeamProjector.img_bp_blocked, -16, -16, 32, 32 );
+			xx = 2;
+			//ctx.drawImageFilterCache( sdBeamProjector.img_bp_blocked, -16, -16, 32, 32 );
 		}
+		ctx.drawImageFilterCache( sdBeamProjector.img_bp, xx * 32, 0, 32,32, -16, -16, 32,32 );
+
 		ctx.globalAlpha = 1;
 		ctx.filter = sdWorld.GetCrystalHue( sdCrystal.anticrystal_value );
 		ctx.filter += ' saturate(' + (Math.round(( 2 )*10)/10) + ') brightness(' + (Math.round(( 1 * 10 )*10)/10) + ')';
