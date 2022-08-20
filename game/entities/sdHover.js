@@ -13,15 +13,15 @@ class sdHover extends sdEntity
 {
 	static init_class()
 	{
-		sdHover.img_hover = sdWorld.CreateImageFromFile( 'hover_sheet' );
+		//sdHover.img_hover = sdWorld.CreateImageFromFile( 'hover_sheet' );
 
-		/*sdHover.img_hover = sdWorld.CreateImageFromFile( 'hover' );
+		sdHover.img_hover = sdWorld.CreateImageFromFile( 'hover' );
 		sdHover.img_hover_boost = sdWorld.CreateImageFromFile( 'hover_boost' );
 		sdHover.img_hover_broken = sdWorld.CreateImageFromFile( 'hover_broken' );
 
 		sdHover.img_f_hover = sdWorld.CreateImageFromFile( 'f_hover' );
 		sdHover.img_f_hover_boost = sdWorld.CreateImageFromFile( 'f_hover_boost' );
-		sdHover.img_f_hover_broken = sdWorld.CreateImageFromFile( 'f_hover_broken' );*/
+		sdHover.img_f_hover_broken = sdWorld.CreateImageFromFile( 'f_hover_broken' );
 		
 		sdHover.img_tank_hover = sdWorld.CreateImageFromFile( 'tank' ); // image by lazyrain
 		sdHover.img_tank_hover_boost = sdWorld.CreateImageFromFile( 'tank_hover_boost' ); // image by lazyrain
@@ -585,8 +585,8 @@ class sdHover extends sdEntity
 		
 		ctx.rotate( this._tilt / 100 );
 
-		let xx = 0;
-		let yy = 0;
+		//let xx = 0;
+		//let yy = 0;
 		
 		if ( this._tilt > 0 )
 		{
@@ -624,14 +624,14 @@ class sdHover extends sdEntity
 		if ( this.hea > 0 )
 		{
 			if ( this.type === 1 )
-			xx = Math.min( ( this.driver0 ) ? 1 : 0 ),yy = 1;
-			//ctx.drawImageFilterCache( this.driver0 ? sdHover.img_f_hover_boost : sdHover.img_f_hover, - 32, - 16, 64,32 );
+			//xx = Math.min( ( this.driver0 ) ? 1 : 0 ),yy = 1;
+			ctx.drawImageFilterCache( this.driver0 ? sdHover.img_f_hover_boost : sdHover.img_f_hover, - 32, - 16, 64,32 );
 			else
 			if ( this.type === 2 )
 			ctx.drawImageFilterCache( this.driver2 ? sdHover.img_tank_hover_driver2 : this.driver0 ? sdHover.img_tank_hover_boost : sdHover.img_tank_hover, - 32, - 16, 64,32 );
 			else
-			xx = Math.min( ( this.driver0 ) ? 1 : 0 );
-			//ctx.drawImageFilterCache( this.driver0 ? sdHover.img_hover_boost : sdHover.img_hover, - 32, - 16, 64,32 );
+			//xx = Math.min( ( this.driver0 ) ? 1 : 0 );
+			ctx.drawImageFilterCache( this.driver0 ? sdHover.img_hover_boost : sdHover.img_hover, - 32, - 16, 64,32 );
 	
 	        var i = 0;
 
@@ -678,16 +678,16 @@ class sdHover extends sdEntity
 		}
 		else
 		if ( this.type === 1 )
-		xx = 2,yy = 1;
-		//ctx.drawImageFilterCache( sdHover.img_f_hover_broken, - 32, - 16, 64,32 );
+		//xx = 2,yy = 1;
+		ctx.drawImageFilterCache( sdHover.img_f_hover_broken, - 32, - 16, 64,32 );
 		else
 		if ( this.type === 2 )
 		ctx.drawImageFilterCache( sdHover.img_tank_hover_broken, - 32, - 16, 64,32 );
 		else
-		xx = 2;
-		//ctx.drawImageFilterCache( sdHover.img_hover_broken, - 32, - 16, 64,32 );
+		//xx = 2;
+		ctx.drawImageFilterCache( sdHover.img_hover_broken, - 32, - 16, 64,32 );
 
-		ctx.drawImageFilterCache( sdHover.img_hover, xx * 64, yy * 32, 64,32, -32, -16, 64,32 );
+		//ctx.drawImageFilterCache( sdHover.img_hover, xx * 64, yy * 32, 64,32, -32, -16, 64,32 );
 		
 		
 		ctx.globalAlpha = 1;
