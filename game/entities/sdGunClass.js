@@ -3759,6 +3759,30 @@ class sdGunClass
 			} 
 		};
 
+		sdGun.classes[ sdGun.CLASS_LVL4_ARMOR_REGEN = 98 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_repair_module_lvl4' ),
+			title: 'Task Ops Armor Repair Module',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			spawnable: false,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
+			{ 
+				if ( character.armor > 0 )
+				{
+					character._armor_repair_amount = 1000;
+					gun.remove(); 
+				}
+
+				return false; 
+			} 
+		};
+
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];

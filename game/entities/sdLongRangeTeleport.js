@@ -634,7 +634,7 @@ class sdLongRangeTeleport extends sdEntity
 		if ( rewards === 2 )
 		{
 			let gun, rng;
-			rng = Math.random();
+			rng = Math.random() * 1.4;
 			if ( rng < 0.2 )
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_DMR });
 			else
@@ -647,11 +647,13 @@ class sdLongRangeTeleport extends sdEntity
 			if ( rng < 0.8 )
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_ZAPPER });
 			else
-			if ( rng < 0.9 )
+			if ( rng < 1 )
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_RAYRIFLE });
 			else
-			//if ( rng < 1 ) // With more gun rewards, these values will change
+			if ( rng < 1.2 ) // With more gun rewards, these values will change
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_MMG_THE_RIPPER_T3 });
+			else
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_LVL4_ARMOR_REGEN });
 			sdEntity.entities.push( gun );
 		}
 		else
