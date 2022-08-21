@@ -1604,8 +1604,16 @@ class sdCharacter extends sdEntity
 			// Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false )
 			if ( closest.is( sdCharacter ) )
 			if (closest._ai_team === 0 )
-			this.Say( [ 
+				this.Say( [ 
 				'I refuse to answer for something I had not done!',
+				'Why would you bother with me anyway, I do not think I am worth the hassle.',
+				'You know, maybe I am just a clone.',
+				'Did they send you in here with nothing too?',
+				'Instructor laughed at me when I first got here.',
+				'The food on this planet is bad anyway.',
+				'It was just a little trolling.',
+				'My advice? Avoid the space mushrooms.',
+				'Were we not in the same platoon?',
 				'I was just following orders.',
 				'One day you will be in my place.',
 				'Responsibility comes.',
@@ -1613,7 +1621,7 @@ class sdCharacter extends sdEntity
 				'We are replacable, so I ran.',
 				'Dying seems like a better option to me. Come, I am ready.',
 				'What exactly will you get by capturing me?'
-			][ ~~( Math.random() * 8 ) ], false, false, false );
+			][ ~~( Math.random() * 16 ) ], false, false, false );
 		}
 		if ( this._ai_team === 7 ) // Setr faction
 		{

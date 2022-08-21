@@ -1656,11 +1656,51 @@ class sdWeather extends sdEntity
 			let hostile = ( Math.random() < 0.5 );
 
 			for ( var i = 0; i < sdCharacter.characters.length; i++ )
-			if ( sdCharacter.characters[ i ].hea > 0 )
 			if ( !sdCharacter.characters[ i ]._is_being_removed )
 			if ( sdCharacter.characters[ i ]._ai )
 			{
+				if ( sdCharacter.characters[ i ].hea > 0 )
 				ais++;
+
+				//Also alert players of other AI Star Defenders on the map which need addressing, otherwise they might be buried corpses somewhere forever
+
+				if ( sdCharacter.characters[ i ]._ai_team === 0 && sdCharacter.characters[ i ].title === 'Star Defender' )
+				{
+					let id = sdCharacter.characters[ i ]._net_id;
+					for ( let j = 0; j < sdWorld.sockets.length; j++ ) // Let players know that it needs to be arrested ( don't destroy the body )
+					{
+						sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'EXTRACT-'+id, 
+							executer: sdWorld.sockets[ j ].character,
+							target: sdCharacter.characters[ i ],
+							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
+							mission: sdTask.MISSION_LRTP_EXTRACTION,
+							difficulty: 0.14,
+							//lrtp_ents_needed: 1,
+							title: 'Rescue Star Defender',
+							description: 'It seems that one of our soldiers is nearby and needs help. You should rescue the soldier and extract him to the mothership!'
+						});
+					}
+				}
+
+				if ( sdCharacter.characters[ i ]._ai_team === 6 && sdCharacter.characters[ i ].title === 'Criminal Star Defender' )
+				{
+					let id = sdCharacter.characters[ i ]._net_id;
+					for ( let j = 0; j < sdWorld.sockets.length; j++ ) // Let players know that it needs to be arrested ( don't destroy the body )
+					{
+						sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'EXTRACT-'+id, 
+							executer: sdWorld.sockets[ j ].character,
+							target: sdCharacter.characters[ i ],
+							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
+							mission: sdTask.MISSION_LRTP_EXTRACTION,
+							difficulty: 0.14,
+							//lrtp_ents_needed: 1,
+							title: 'Arrest Star Defender',
+							description: 'It seems that one of criminals is nearby and needs to answer for their crimes. Arrest them and bring them to the mothership, even if it means bringing the dead body!'
+						});
+					}
+				}
 			}
 
 			let instances = 0;
