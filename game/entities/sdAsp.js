@@ -15,6 +15,9 @@ class sdAsp extends sdEntity
 {
 	static init_class()
 	{
+		sdAsp.img_asp = sdWorld.CreateImageFromFile( 'sdAsp' );
+
+		/*
 		sdAsp.img_asp_idle = sdWorld.CreateImageFromFile( 'asp_idle' );
 		sdAsp.img_asp_attack1 = sdWorld.CreateImageFromFile( 'asp_attack1' );
 		sdAsp.img_asp_attack2 = sdWorld.CreateImageFromFile( 'asp_attack2' );
@@ -26,6 +29,7 @@ class sdAsp extends sdEntity
 			sdWorld.CreateImageFromFile( 'asp_death4' ),
 			sdWorld.CreateImageFromFile( 'asp_death5' )
 		];
+		*/
 		sdAsp.death_duration = 15;
 		sdAsp.post_death_ttl = 30 * 6;
 		
@@ -394,6 +398,9 @@ class sdAsp extends sdEntity
 			else
 			ctx.filter = 'hue-rotate(' + this.hue + 'deg)' + ctx.filter;
 		}
+
+		let xx = 0;
+		let yy = 0;
 		
 		ctx.scale( -this.side, 1 );
 		
@@ -415,19 +422,26 @@ class sdAsp extends sdEntity
 				ctx.globalAlpha = 0.5;
 			}
 			
-			let frame = Math.min( sdAsp.death_imgs.length - 1, ~~( ( this.death_anim / sdAsp.death_duration ) * sdAsp.death_imgs.length ) );
-			ctx.drawImageFilterCache( sdAsp.death_imgs[ frame ], - 16, - 16, 32,32 );
+			xx = Math.min( 5 - 1, ~~( ( this.death_anim / sdAsp.death_duration ) * 5 ) );
+			yy = 1;
+			//let frame = Math.min( sdAsp.death_imgs.length - 1, ~~( ( this.death_anim / sdAsp.death_duration ) * sdAsp.death_imgs.length ) );
+			//ctx.drawImageFilterCache( sdAsp.death_imgs[ frame ], - 16, - 16, 32,32 );
 		}
 		else
 		{
 			if ( this.attack_frame >= 2 )
-			ctx.drawImageFilterCache( sdAsp.img_asp_attack1, - 16, - 16, 32,32 );
+			xx = 1;
+			//ctx.drawImageFilterCache( sdAsp.img_asp_attack1, - 16, - 16, 32,32 );
 			else
 			if ( this.attack_frame >= 1 )
-			ctx.drawImageFilterCache( sdAsp.img_asp_attack2, - 16, - 16, 32,32 );
+			xx = 2;
+			//ctx.drawImageFilterCache( sdAsp.img_asp_attack2, - 16, - 16, 32,32 );
 			else
-			ctx.drawImageFilterCache( sdAsp.img_asp_idle, - 16, - 16, 32,32 );
+			xx = 0;
+			//ctx.drawImageFilterCache( sdAsp.img_asp_idle, - 16, - 16, 32,32 );
 		}
+
+		ctx.drawImageFilterCache( sdAsp.img_asp, xx * 32, yy * 32, 32,32, -16, -16, 32,32 );
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
