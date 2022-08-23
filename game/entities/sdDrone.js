@@ -77,7 +77,7 @@ class sdDrone extends sdEntity
 		
 		this.type = params.type || 1;
 		
-		this._hmax =  this.type === 7 ? 300 : this.type === 6 ? 400 : this.type === 5 ? 100 : this.type === 4 ? 4000 : this.type === 3 ? 1000 : this.type === 1 ? 130 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
+		this._hmax =  this.type === 7 ? 300 : this.type === 6 ? 200 : this.type === 5 ? 100 : this.type === 4 ? 1000 : this.type === 3 ? 500 : this.type === 1 ? 130 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
 		this._hea = this._hmax;
 		this._ai_team = params._ai_team || 1;
 
@@ -810,7 +810,7 @@ class sdDrone extends sdEntity
 										if ( entities[ i ].type === 4 ) // Is it a council bomb?
 										if ( entities[ i ].hea < entities[ i ].hmax ) // Does it need repairing?
 										{
-											entities[ i ].hea = Math.min( entities[ i ].hea + 1500, entities[ i ].hmax ); // In that case, repair the bomb
+											entities[ i ].hea = Math.min( entities[ i ].hea + 600, entities[ i ].hmax ); // In that case, repair the bomb
 											att_anim = true;
 											sdWorld.SendEffect({ x:this.x, y:this.y, x2:entities[ i ].x, y2:entities[ i ].y, type:sdEffect.TYPE_BEAM, color:'#fff000' });
 										}
