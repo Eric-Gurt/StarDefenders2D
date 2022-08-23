@@ -915,6 +915,13 @@ class sdCharacter extends sdEntity
 					sdWorld.last_hit_entity.GetClass() === 'sdAbomination' ) 
 			found_enemy = true;
 
+			if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && this._ai_team !== 0 )
+			if ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_WALL || 
+					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 ||
+					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 ||
+					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_SHARP ) // Attack player built walls
+			found_enemy = true;
+
 			if ( sdWorld.last_hit_entity.is( sdCube ) ) // Only confront cubes when they want to attack AI
 			if ( this._nature_damage >= this._player_damage + 60 )
 			found_enemy = true;
@@ -929,6 +936,14 @@ class sdCharacter extends sdEntity
 	{
 		if ( this._ai.target.GetClass() === 'sdOctopus' || this._ai.target.GetClass() === 'sdAmphid' || this._ai.target.GetClass() === 'sdSandWorm' || this._ai.target.GetClass() === 'sdQuickie' || this._ai.target.GetClass() === 'sdVirus' || this._ai.target.GetClass() === 'sdTutel' || this._ai.target.GetClass() === 'sdBiter' || this._ai.target.GetClass() === 'sdAbomination' )
 		return sdCharacter.AI_MODEL_DISTANT;
+
+
+		if ( this._ai.target.GetClass() === 'sdBlock' )
+		if ( this._ai.target.material === sdBlock.MATERIAL_WALL || 
+				this._ai.target.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 ||
+				this._ai.target.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
+		return sdCharacter.AI_MODEL_AGGRESSIVE;
+		
 
 		return this._init_ai_model; // Return to normal behaviour against other mobs
 	}
@@ -1916,8 +1931,25 @@ class sdCharacter extends sdEntity
 							this._key_states.SetKey( 'Mouse1', 1 );
 						}
 						else
-						if ( this._ai_dig > 0 ) // If AI should dig blocks, shoot
-						this._key_states.SetKey( 'Mouse1', 1 );
+						{
+							if ( this._ai_dig > 0 ) // If AI should dig blocks, shoot
+							this._key_states.SetKey( 'Mouse1', 1 );
+
+							if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, null, ['sdBlock'] ) ) // Scenario for targetting player built blocks from neutral
+							if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' ) // Just in case
+							if ( sdWorld.last_hit_entity === this._ai.target || 
+								( sdWorld.last_hit_entity.GetClass() === this._ai.target.GetClass() && sdWorld.last_hit_entity.material === this._ai.target.material ) )
+							{
+								this._ai.target = sdWorld.last_hit_entity;
+								this._key_states.SetKey( 'Mouse1', 1 );
+							}
+							else
+							{
+								this._ai.target = this.GetRandomEntityNearby();
+								//if ( this._ai.target )
+								//this.PlayAIAlertedSound( this._ai.target );
+							}
+						}
 					}
 				}
 				else
