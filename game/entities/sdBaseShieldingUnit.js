@@ -609,7 +609,7 @@ class sdBaseShieldingUnit extends sdEntity
 
 		if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 		if ( from_entity.is( sdCrystal ) )
-		if ( from_entity.held_by === null && from_entity.type !== 2 ) // Prevent crystals which are stored in a crate
+		if ( from_entity.held_by === null && from_entity.type !== 2 && from_entity.type !== 6 ) // Prevent crystals which are stored in a crate
 		if ( this.matter_crystal < this.matter_crystal_max )
 		{
 			if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
