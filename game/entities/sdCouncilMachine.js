@@ -102,7 +102,7 @@ class sdCouncilMachine extends sdEntity
 						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
 
 
-						if ( council_mach.CanMoveWithoutOverlap( x, y - 64, 0 ) )
+						if ( council_mach.CanMoveWithoutOverlap( x, y - 32, 0 ) )
 						if ( council_mach.CanMoveWithoutOverlap( x, y, 0 ) )
 						if ( !council_mach.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 						if ( sdWorld.last_hit_entity )
@@ -164,7 +164,7 @@ class sdCouncilMachine extends sdEntity
 			}
 			else // If it's the last one or it didn't spawn next one due to limited space or something, end the event and reward players
 			{
-				for ( let i = 0; i < sdTask.tasks.length; i++ ) // All tasks related to this entity will set reward to 0 since it's not the last machine of the event.
+				for ( let i = 0; i < sdTask.tasks.length; i++ ) // All tasks related to this entity will set reward to 0.25 since it's the last machine.
 				{
 					let task = sdTask.tasks[ i ];
 					if ( task._target === this ) // Make sure this is the target. Maybe it should check if the mission is "destroy entity", but nothing else uses this as a task target anyway.
