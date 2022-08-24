@@ -379,8 +379,10 @@ class sdCrystal extends sdEntity
 			if ( this._hea < this._hmax )
 			this._hea = Math.min( this._hmax, this._hea + GSPEED * 0.01 ); // Quite slow
 		}
-			
-		this.sy += sdWorld.gravity * GSPEED;
+		else
+		{
+			this.sy += sdWorld.gravity * GSPEED;
+		}
 		
 		if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
 		{
@@ -472,32 +474,36 @@ class sdCrystal extends sdEntity
 				this.blink = 1;
 			}
 
-			if ( this.walk_direction !== 0 )
+			if ( !this.held_by )
 			{
-				if ( sdWorld.time < this._last_stand_when + 50 )
+				if ( this.walk_direction !== 0 )
 				{
-					this.sx += this.walk_direction * 0.01 * GSPEED;
-				}
-				
-				this.PhysWakeUp();
+					if ( sdWorld.time < this._last_stand_when + 50 )
+					{
+						this.sx += this.walk_direction * 0.01 * GSPEED;
+					}
 
-				if ( this.walk_direction > 0 )
-				this.walk_direction = Math.max( 0, this.walk_direction - GSPEED );
-				else
-				this.walk_direction = Math.min( 0, this.walk_direction + GSPEED );
-			}
-			
-			sdWorld.last_hit_entity = null;
-			
-			this.ApplyVelocityAndCollisions( GSPEED, 0, this.sy >= 0 );
-			
-			if ( sdWorld.last_hit_entity )
-			{
-				this._last_stand_when = sdWorld.time;
+					this.PhysWakeUp();
+
+					if ( this.walk_direction > 0 )
+					this.walk_direction = Math.max( 0, this.walk_direction - GSPEED );
+					else
+					this.walk_direction = Math.min( 0, this.walk_direction + GSPEED );
+				}
+
+				sdWorld.last_hit_entity = null;
+
+				this.ApplyVelocityAndCollisions( GSPEED, 0, this.sy >= 0 );
+
+				if ( sdWorld.last_hit_entity )
+				{
+					this._last_stand_when = sdWorld.time;
+				}
 			}
 		}
 		else
 		{
+			if ( !this.held_by )
 			this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 		}
 		

@@ -605,7 +605,7 @@ class sdEntity
 							Math.max(
 								Math.abs( this.sx ),
 								Math.abs( this.sy )
-							) > sdWorld.gravity + 0.1 );
+							) > ( sdWorld.gravity + 0.2 ) * GSPEED );
 						  //!sdWorld.inDist2D_Boolean( this.sx, this.sy, 0, 0, sdWorld.gravity + 0.1 ) );
 
 			if ( !moves )

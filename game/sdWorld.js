@@ -1047,7 +1047,7 @@ class sdWorld
 			return true;
 		}
 	}
-	static DropShards( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9 )
+	static DropShards( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9, ignored_class=null )
 	{
 		if ( sdWorld.is_server )
 		{
@@ -1060,6 +1060,7 @@ class sdWorld
 				ent.sy = sy + Math.random() * 8 - 4;
 				ent.ttl = 30 * normal_ttl_seconds * ( 0.7 + Math.random() * 0.3 ); // was 7 seconds, now 9
 				ent.extra = value_mult * sdWorld.crystal_shard_value;
+				ent._ignored_class = ignored_class;
 				sdEntity.entities.push( ent );
 			}
 		}
@@ -2124,7 +2125,7 @@ class sdWorld
 									// Single substep for amplifiers, nodes, cables etc
 								}
 								else
-								substeps_mult = 8; // 5 was not enough for crystals in amplifiers
+								substeps_mult = 10; // 8 and 5 were not enough for crystals in amplifiers
 							}
 							else
 							continue;
