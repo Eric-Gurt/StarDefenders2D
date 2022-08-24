@@ -20,6 +20,7 @@ import sdCrystal from './sdCrystal.js';
 import sdGun from './sdGun.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdJunk from './sdJunk.js';
+import sdLandScanner from './sdLandScanner.js';
 
 import sdTask from './sdTask.js';
 
@@ -385,7 +386,6 @@ class sdLongRangeTeleport extends sdEntity
 				for ( let i = 0; i < sdTask.tasks.length; i++ )
 				{
 					let task = sdTask.tasks[ i ];
-					
 					if ( task._executer === initiator )
 					{
 						let mission = sdTask.missions[ task.mission ];
@@ -393,6 +393,21 @@ class sdLongRangeTeleport extends sdEntity
 						if ( mission.onLongRangeTeleportCalledForEntity )
 						if ( mission.onLongRangeTeleportCalledForEntity( task, this, ent ) )
 						{
+							if ( mission.forAllPlayers ) // Check if initiator's task is "for all players" type
+							if ( mission.forAllPlayers( task ) )
+							for ( let j = 0; j < sdTask.tasks.length; j++ ) // For tasks which should count for all players
+							{
+								let task2 = sdTask.tasks[ j ];
+								let mission2 = sdTask.missions[ task2.mission ];
+								if ( task2._executer !== initiator ) // Make sure it doesn't check already confirmed task
+								if ( mission2.forAllPlayers )
+								if ( mission2.forAllPlayers( task2 ) )
+								if ( mission2.onLongRangeTeleportCalledForEntity )
+								if ( mission2.onLongRangeTeleportCalledForEntity( task2, this, ent ) )
+								{
+									// Feels like I'm butchering code, but it works - Booraz149
+								}
+							}
 							return true;
 						}
 					}
@@ -619,7 +634,7 @@ class sdLongRangeTeleport extends sdEntity
 		if ( rewards === 2 )
 		{
 			let gun, rng;
-			rng = Math.random();
+			rng = Math.random() * 1.4;
 			if ( rng < 0.2 )
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_DMR });
 			else
@@ -632,11 +647,13 @@ class sdLongRangeTeleport extends sdEntity
 			if ( rng < 0.8 )
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_ZAPPER });
 			else
-			if ( rng < 0.9 )
+			if ( rng < 1 )
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_RAYRIFLE });
 			else
-			//if ( rng < 1 ) // With more gun rewards, these values will change
+			if ( rng < 1.2 ) // With more gun rewards, these values will change
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_MMG_THE_RIPPER_T3 });
+			else
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_LVL4_ARMOR_REGEN });
 			sdEntity.entities.push( gun );
 		}
 		else
@@ -656,6 +673,13 @@ class sdLongRangeTeleport extends sdEntity
 			let container;
 			container = new sdJunk({ x:this.x, y:this.y - 32, type: 6 });
 			sdEntity.entities.push( container );
+		}
+		else
+		if ( rewards === 5 )
+		{
+			let scanner;
+			scanner = new sdLandScanner({ x:this.x, y:this.y - 32});
+			sdEntity.entities.push( scanner );
 		}
 		sdWorld.SendEffect({ x:this.x, y:this.y - 24, type:sdEffect.TYPE_TELEPORT });
 		sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
@@ -882,7 +906,7 @@ class sdLongRangeTeleport extends sdEntity
 									{
 										this.Deactivation();
 										this.GiveRewards( 1 );
-										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - 1 );
+										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - sdTask.reward_claim_task_amount );
 									};
 								}
 								else
@@ -913,7 +937,7 @@ class sdLongRangeTeleport extends sdEntity
 									{
 										this.Deactivation();
 										this.GiveRewards( 2 );
-										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - 1 );
+										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - sdTask.reward_claim_task_amount );
 									};
 								}
 								else
@@ -944,7 +968,7 @@ class sdLongRangeTeleport extends sdEntity
 									{
 										this.Deactivation();
 										this.GiveRewards( 3 );
-										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - 1 );
+										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - sdTask.reward_claim_task_amount );
 									};
 								}
 								else
@@ -975,11 +999,38 @@ class sdLongRangeTeleport extends sdEntity
 									{
 										this.Deactivation();
 										this.GiveRewards( 4 );
-										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - 1 );
+										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - sdTask.reward_claim_task_amount );
 									};
 								}
 								else
 								executer_socket.SDServiceMessage( 'Not activated yet - possibly due to damage' );
+							}
+							else
+							executer_socket.SDServiceMessage( 'Not enough matter' );
+						}
+						else
+						executer_socket.SDServiceMessage( 'Long-range teleport requires Command Centre connected' );
+					}
+				}
+				else
+				if ( command_name === 'CLAIM_SCANNER' )
+				{
+					if ( !this.is_server_teleport )
+					{
+						let cc_near = this.GetComWiredCache( null, sdCommandCentre );
+						if ( cc_near )
+						{
+							if ( this.matter >= this._matter_max )
+							{
+								{
+									this.Activation();
+									
+									this._charge_complete_method = ()=>
+									{
+										this.Deactivation();
+										this.GiveRewards( 5 );
+									};
+								}
 							}
 							else
 							executer_socket.SDServiceMessage( 'Not enough matter' );
@@ -1205,13 +1256,28 @@ class sdLongRangeTeleport extends sdEntity
 			{
 				this.AddContextOption( 'Initiate teleportation (300 mater)', 'TELEPORT_STUFF', [] );
 				for( let i = 0; i < sdTask.tasks.length; i++ )
-				if ( sdTask.tasks[ i ].mission )
-				if ( sdTask.tasks[ i ].mission === sdTask.MISSION_TASK_CLAIM_REWARD )
 				{
-					this.AddContextOption( 'Claim rewards (Cube shards)', 'CLAIM_REWARD_SHARDS', [] );
-					this.AddContextOption( 'Claim rewards (Weapon)', 'CLAIM_REWARD_WEAPON', [] );
-					this.AddContextOption( 'Claim rewards (Crystals)', 'CLAIM_REWARD_CRYSTALS', [] );
-					this.AddContextOption( 'Claim rewards (Advanced matter container)', 'CLAIM_REWARD_CONTAINER', [] );
+					if ( sdTask.tasks[ i ].mission )
+					{
+						if ( sdTask.tasks[ i ].mission === sdTask.MISSION_TASK_CLAIM_REWARD )
+						{
+							this.AddContextOption( 'Claim rewards (Cube shards)', 'CLAIM_REWARD_SHARDS', [] );
+							this.AddContextOption( 'Claim rewards (Weapon)', 'CLAIM_REWARD_WEAPON', [] );
+							this.AddContextOption( 'Claim rewards (Crystals)', 'CLAIM_REWARD_CRYSTALS', [] );
+							this.AddContextOption( 'Claim rewards (Advanced matter container)', 'CLAIM_REWARD_CONTAINER', [] );
+						}
+
+						if ( sdTask.tasks[ i ].mission === sdTask.MISSION_LRTP_EXTRACTION )
+						{
+							let task = sdTask.tasks[ i ];
+							{
+								if ( task.extra === 1 ) // This variable / property is the only way I got the context option to work, and that's after 6 beers and 3 hours - Booraz149
+								{
+									this.AddContextOption( 'Recieve the land scanner', 'CLAIM_SCANNER', [] );
+								}
+							}
+						}
+					}
 				}
 			}
 			else

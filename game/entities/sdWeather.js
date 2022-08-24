@@ -20,7 +20,7 @@
 /*
 
 	// Not sure if method above works anymore, use this:
-	sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 26 ); // Swap 26 for number you want to test inside
+	sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 32 ); // Swap 32 for number you want to test inside
  
 */
 import sdWorld from '../sdWorld.js';
@@ -97,9 +97,11 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_SETR =					event_counter++; // 25
 		sdWeather.EVENT_SETR_DESTROYER =			event_counter++; // 26
 		sdWeather.EVENT_CRYSTALS_MATTER =			event_counter++; // 27
-		sdWeather.EVENT_DIRTY_AIR =					event_counter++; // 28
+		sdWeather.EVENT_DIRTY_AIR =				event_counter++; // 28
 		sdWeather.EVENT_AMPHIDS =				event_counter++; // 29
 		sdWeather.EVENT_BITERS =				event_counter++; // 30
+		sdWeather.EVENT_LAND_SCAN =				event_counter++; // 31
+		sdWeather.EVENT_FLESH_DIRT =				event_counter++; // 32
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -1654,11 +1656,51 @@ class sdWeather extends sdEntity
 			let hostile = ( Math.random() < 0.5 );
 
 			for ( var i = 0; i < sdCharacter.characters.length; i++ )
-			if ( sdCharacter.characters[ i ].hea > 0 )
 			if ( !sdCharacter.characters[ i ]._is_being_removed )
 			if ( sdCharacter.characters[ i ]._ai )
 			{
+				if ( sdCharacter.characters[ i ].hea > 0 )
 				ais++;
+
+				//Also alert players of other AI Star Defenders on the map which need addressing, otherwise they might be buried corpses somewhere forever
+
+				if ( sdCharacter.characters[ i ]._ai_team === 0 && sdCharacter.characters[ i ].title === 'Star Defender' )
+				{
+					let id = sdCharacter.characters[ i ]._net_id;
+					for ( let j = 0; j < sdWorld.sockets.length; j++ ) // Let players know that it needs to be arrested ( don't destroy the body )
+					{
+						sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'EXTRACT-'+id, 
+							executer: sdWorld.sockets[ j ].character,
+							target: sdCharacter.characters[ i ],
+							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
+							mission: sdTask.MISSION_LRTP_EXTRACTION,
+							difficulty: 0.14,
+							//lrtp_ents_needed: 1,
+							title: 'Rescue Star Defender',
+							description: 'It seems that one of our soldiers is nearby and needs help. You should rescue the soldier and extract him to the mothership!'
+						});
+					}
+				}
+
+				if ( sdCharacter.characters[ i ]._ai_team === 6 && sdCharacter.characters[ i ].title === 'Criminal Star Defender' )
+				{
+					let id = sdCharacter.characters[ i ]._net_id;
+					for ( let j = 0; j < sdWorld.sockets.length; j++ ) // Let players know that it needs to be arrested ( don't destroy the body )
+					{
+						sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'EXTRACT-'+id, 
+							executer: sdWorld.sockets[ j ].character,
+							target: sdCharacter.characters[ i ],
+							//extract_target: 1, // This let's the game know that it needs to draw arrow towards target. Use only when actual entity, and not class ( Like in CC tasks) needs to be LRTP extracted.
+							mission: sdTask.MISSION_LRTP_EXTRACTION,
+							difficulty: 0.14,
+							//lrtp_ents_needed: 1,
+							title: 'Arrest Star Defender',
+							description: 'It seems that one of criminals is nearby and needs to answer for their crimes. Arrest them and bring them to the mothership, even if it means bringing the dead body!'
+						});
+					}
+				}
 			}
 
 			let instances = 0;
@@ -2034,6 +2076,7 @@ class sdWeather extends sdEntity
 						lrtp_matter_capacity_needed: 10240 + ( 2560 * player_count ), // 12300 matter requirement for 1 player, although progress counts for all players I think
 						title: 'Teleport crystals',
 						time_left: 30 * 60 * 30,
+						for_all_players: true, // This task lets everyone contribute towards it's completion
 						//extra: -99, // This lets the game know to take max matter as progress instead of crystal count.
 						description: 'We need you to teleport a large amount of crystals. This is to help us keep the Mothership supplied with matter so our matter reserves do not deplete. With other Star Defenders on this planet, it should not be too hard.',
 						//type: 1 // Task remains active even if player disconnects, so it doesn't exist after the event expires
@@ -2142,6 +2185,48 @@ class sdWeather extends sdEntity
 				}
 				else
 				sdWorld.UpdateHashPosition( biter, false ); // Prevent inersection with other ones
+			}
+		}
+		if ( r === sdWeather.EVENT_LAND_SCAN ) // Task which tells players to use a land scanner entity to scan the planet for data.
+		{
+			//let player_count = sdWorld.GetPlayingPlayersCount();
+				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Create the tasks
+				{
+					sdTask.MakeSureCharacterHasTask({ 
+						similarity_hash:'LAND_SCAN-'+this._net_id, 
+						executer: sdWorld.sockets[ i ].character,
+						lrtp_class_proprty_value_array: [ 'sdLandScanner', 'scanned_ents', 350 ],
+						mission: sdTask.MISSION_LRTP_EXTRACTION,
+						difficulty: 0.14,
+						lrtp_matter_capacity_needed: 1,
+						title: 'Planet scan',
+						time_left: 30 * 60 * 15,
+						extra: 1,
+						description: 'We need you to claim a land sacnner from a long range teleporter, then scan planet enviroment until data is at max capacity, then send the land scanner back to us using the long range teleporter so we can analyze the planet data.'
+					});
+				}
+		}
+		if ( r === sdWeather.EVENT_FLESH_DIRT ) // Ground fleshify start from random block
+		{
+			for ( let tr = 0; tr < 100; tr++ )
+			{
+				let i = Math.floor( Math.random() * sdEntity.entities.length );
+				
+				if ( i < sdEntity.entities.length )
+				{
+					let ent = sdEntity.entities[ i ];
+					
+					if ( ent.is( sdBlock ) )
+					if ( ent._natural )
+					{
+						ent.Fleshify();
+						break;
+					}
+				}
+				else
+				{
+					break;
+				}
 			}
 		}
 	}

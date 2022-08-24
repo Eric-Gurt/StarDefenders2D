@@ -641,7 +641,7 @@ class sdCharacter extends sdEntity
 		this.armor_max = 0; // Max armor; used for drawing armor bar
 		this._armor_absorb_perc = 0; // Armor absorption percentage
 		this.armor_speed_reduction = 0; // Armor speed reduction, depends on armor type
-		this._armor_repair_amount = 0; // How much armor value can be repaired, used for armor repair modules
+		this._armor_repair_amount = 0; // Armor repair speed
 
 		//this.anim_death = 0;
 		this._anim_walk = 0;
@@ -915,6 +915,13 @@ class sdCharacter extends sdEntity
 					sdWorld.last_hit_entity.GetClass() === 'sdAbomination' ) 
 			found_enemy = true;
 
+			if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && this._ai_team !== 0 )
+			if ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_WALL || 
+					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 ||
+					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 ||
+					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_SHARP ) // Attack player built walls
+			found_enemy = true;
+
 			if ( sdWorld.last_hit_entity.is( sdCube ) ) // Only confront cubes when they want to attack AI
 			if ( this._nature_damage >= this._player_damage + 60 )
 			found_enemy = true;
@@ -929,6 +936,14 @@ class sdCharacter extends sdEntity
 	{
 		if ( this._ai.target.GetClass() === 'sdOctopus' || this._ai.target.GetClass() === 'sdAmphid' || this._ai.target.GetClass() === 'sdSandWorm' || this._ai.target.GetClass() === 'sdQuickie' || this._ai.target.GetClass() === 'sdVirus' || this._ai.target.GetClass() === 'sdTutel' || this._ai.target.GetClass() === 'sdBiter' || this._ai.target.GetClass() === 'sdAbomination' )
 		return sdCharacter.AI_MODEL_DISTANT;
+
+
+		if ( this._ai.target.GetClass() === 'sdBlock' )
+		if ( this._ai.target.material === sdBlock.MATERIAL_WALL || 
+				this._ai.target.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 ||
+				this._ai.target.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
+		return sdCharacter.AI_MODEL_AGGRESSIVE;
+		
 
 		return this._init_ai_model; // Return to normal behaviour against other mobs
 	}
@@ -1177,9 +1192,9 @@ class sdCharacter extends sdEntity
 	RemoveArmor()
 	{
 		this.armor = 0;
-		this._armor_absorb_perc = 0;
-		this.armor_speed_reduction = 0; 
-		this._armor_repair_amount = 0; // Completely broken armor cannot be repaired
+		//this._armor_absorb_perc = 0;
+		//this.armor_speed_reduction = 0; 
+		//this._armor_repair_amount = 0; // Completely broken armor cannot be repaired
 	}
 	ApplyArmor( params )
 	{
@@ -1604,8 +1619,16 @@ class sdCharacter extends sdEntity
 			// Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false )
 			if ( closest.is( sdCharacter ) )
 			if (closest._ai_team === 0 )
-			this.Say( [ 
+				this.Say( [ 
 				'I refuse to answer for something I had not done!',
+				'Why would you bother with me anyway, I do not think I am worth the hassle.',
+				'You know, maybe I am just a clone.',
+				'Did they send you in here with nothing too?',
+				'Instructor laughed at me when I first got here.',
+				'The food on this planet is bad anyway.',
+				'It was just a little trolling.',
+				'My advice? Avoid the space mushrooms.',
+				'Were we not in the same platoon?',
 				'I was just following orders.',
 				'One day you will be in my place.',
 				'Responsibility comes.',
@@ -1613,7 +1636,7 @@ class sdCharacter extends sdEntity
 				'We are replacable, so I ran.',
 				'Dying seems like a better option to me. Come, I am ready.',
 				'What exactly will you get by capturing me?'
-			][ ~~( Math.random() * 8 ) ], false, false, false );
+			][ ~~( Math.random() * 16 ) ], false, false, false );
 		}
 		if ( this._ai_team === 7 ) // Setr faction
 		{
@@ -1908,8 +1931,25 @@ class sdCharacter extends sdEntity
 							this._key_states.SetKey( 'Mouse1', 1 );
 						}
 						else
-						if ( this._ai_dig > 0 ) // If AI should dig blocks, shoot
-						this._key_states.SetKey( 'Mouse1', 1 );
+						{
+							if ( this._ai_dig > 0 ) // If AI should dig blocks, shoot
+							this._key_states.SetKey( 'Mouse1', 1 );
+
+							if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, null, ['sdBlock'] ) ) // Scenario for targetting player built blocks from neutral
+							if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' ) // Just in case
+							if ( sdWorld.last_hit_entity === this._ai.target || 
+								( sdWorld.last_hit_entity.GetClass() === this._ai.target.GetClass() && sdWorld.last_hit_entity.material === this._ai.target.material ) )
+							{
+								this._ai.target = sdWorld.last_hit_entity;
+								this._key_states.SetKey( 'Mouse1', 1 );
+							}
+							else
+							{
+								this._ai.target = this.GetRandomEntityNearby();
+								//if ( this._ai.target )
+								//this.PlayAIAlertedSound( this._ai.target );
+							}
+						}
 					}
 				}
 				else
@@ -2296,9 +2336,9 @@ class sdCharacter extends sdEntity
 					{
 						if ( this.matter > GSPEED )
 						{
-							this.matter -= GSPEED * 0.025; // 0.15
-							this.armor += GSPEED * 1 / 6;
-							this._armor_repair_amount -= GSPEED * 1 / 6;
+							this.matter -= GSPEED * 0.1 * ( this._armor_repair_amount / 1000 ); // 0.15
+							this.armor += Math.min( this.armor_max, GSPEED * ( this._armor_repair_amount / 3000 ) );
+							//this._armor_repair_amount -= GSPEED * 1 / 6;
 						}
 					}
 				}

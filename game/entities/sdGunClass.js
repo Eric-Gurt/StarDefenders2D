@@ -893,7 +893,7 @@ class sdGunClass
 			matter_cost: 300,
 			projectile_velocity: 1 * 1.5,
 			min_workbench_level: 2,
-			projectile_properties: { _rail: true, _damage: 32, color: '#ffb300', _knock_scale:0.1, _dirt_mult: 2 }
+			projectile_properties: { _rail: true, _damage: 32, color: '#ffb300', _knock_scale:0.1, _dirt_mult: 5 } // Dirt mult was 2 but buffed to 5 since damage upgrade is gone for now
 		};
 
 		sdGun.classes[ sdGun.CLASS_SMG = 31 ] = { // Sprite made by LazyRain
@@ -1577,7 +1577,7 @@ class sdGunClass
 			count: 0,
 			projectile_properties: { _damage: 0 },
 			ignore_slot: true,
-			matter_cost: 250,
+			matter_cost: 125,
 			min_workbench_level: 3,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
@@ -1602,7 +1602,7 @@ class sdGunClass
 			count: 0,
 			projectile_properties: { _damage: 0 },
 			ignore_slot: true,
-			matter_cost: 500,
+			matter_cost: 250,
 			min_workbench_level: 4,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
@@ -1627,7 +1627,7 @@ class sdGunClass
 			count: 0,
 			projectile_properties: { _damage: 0 },
 			ignore_slot: true,
-			matter_cost: 750,
+			matter_cost: 375,
 			min_workbench_level: 7,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
@@ -3753,6 +3753,30 @@ class sdGunClass
 					sdSound.PlaySound({ name:'powerup_or_exp_pickup', x:character.x, y:character.y, volume:0.4, pitch:0.5 }, [ character._socket ] );
 				
 					gun.remove();
+				}
+
+				return false; 
+			} 
+		};
+
+		sdGun.classes[ sdGun.CLASS_LVL4_ARMOR_REGEN = 98 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'armor_repair_module_lvl4' ),
+			title: 'Task Ops Armor Repair Module',
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 0,
+			projectile_properties: { _damage: 0 },
+			ignore_slot: true,
+			spawnable: false,
+			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
+			{ 
+				if ( character.armor > 0 )
+				{
+					character._armor_repair_amount = 1000;
+					gun.remove(); 
 				}
 
 				return false; 

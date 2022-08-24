@@ -12,10 +12,14 @@ class sdShark extends sdEntity
 {
 	static init_class()
 	{
+		sdShark.img_shark = sdWorld.CreateImageFromFile( 'sdShark' );
+
+		/*
 		sdShark.img_shark = sdWorld.CreateImageFromFile( 'shark' );
 		sdShark.img_shark_chomp = sdWorld.CreateImageFromFile( 'shark_chomp' );
 		sdShark.img_shark_dead = sdWorld.CreateImageFromFile( 'shark_dead' );
-		
+		*/
+
 		sdShark.death_duration = 10;
 		sdShark.post_death_ttl = 90;
 		
@@ -276,6 +280,8 @@ class sdShark extends sdEntity
 		
 		if ( !sdShop.isDrawing )
 		ctx.scale( this.side, ( this.death_anim === 0 ) ? 1 : -1 );
+
+		let xx = 0;
 		
 		if ( this.death_anim > 0 )
 		{
@@ -283,14 +289,17 @@ class sdShark extends sdEntity
 			{
 				ctx.globalAlpha = 0.5;
 			}
-			ctx.drawImageFilterCache( sdShark.img_shark_dead, - 16, - 16, 32,32 );
+
+			xx = 2;
+			//ctx.drawImageFilterCache( sdShark.img_shark_dead, - 16, - 16, 32,32 );
 		}
 		else
 		{
-			ctx.drawImageFilterCache( this.chomp ? sdShark.img_shark_chomp : sdShark.img_shark, - 16, - 16, 32,32 );
+			xx = Math.min( ( this.chomp ) ? 1 : 0 );
+			//ctx.drawImageFilterCache( this.chomp ? sdShark.img_shark_chomp : sdShark.img_shark, - 16, - 16, 32,32 );
 		}
-		
-		
+
+		ctx.drawImageFilterCache( sdShark.img_shark, xx * 32, 0, 32,32, -16, -16, 32,32 );
 		
 		
 		ctx.globalAlpha = 1;

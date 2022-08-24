@@ -9,9 +9,12 @@ class sdBomb extends sdEntity
 {
 	static init_class()
 	{
+		sdBomb.img_beacon = sdWorld.CreateImageFromFile( 'sdBomb' );
+		/*
 		sdBomb.img_beacon = sdWorld.CreateImageFromFile( 'strike_beacon' );
 		sdBomb.img_beacon2 = sdWorld.CreateImageFromFile( 'strike_beacon2' );
 		sdBomb.img_beacon3 = sdWorld.CreateImageFromFile( 'strike_beacon3' );
+		*/
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -137,25 +140,32 @@ class sdBomb extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		let xx = 0;
+
 		if ( this.hea <= 0 )
 		{
 			if ( this.hea < -70 )
 			ctx.globalAlpha = 0.5;
 				
-			ctx.drawImageFilterCache( sdBomb.img_beacon2, - 16, - 16, 32,32 );
+			xx = 1;
+			//ctx.drawImageFilterCache( sdBomb.img_beacon2, - 16, - 16, 32,32 );
 			
 			ctx.globalAlpha = 1;
 		}
 		else
 		if ( this.detonation_in < 30 )
-		ctx.drawImageFilterCache( sdBomb.img_beacon3, - 16, - 16, 32,32 );
+		xx = 2;
+		//ctx.drawImageFilterCache( sdBomb.img_beacon3, - 16, - 16, 32,32 );
 		else
 		{
 			if ( this.detonation_in % this._rate < this._rate / 2 )
-			ctx.drawImageFilterCache( sdBomb.img_beacon, - 16, - 16, 32,32 );
+			xx = 0;
+			//ctx.drawImageFilterCache( sdBomb.img_beacon, - 16, - 16, 32,32 );
 			else
-			ctx.drawImageFilterCache( sdBomb.img_beacon2, - 16, - 16, 32,32 );
+			xx = 1;
+			//ctx.drawImageFilterCache( sdBomb.img_beacon2, - 16, - 16, 32,32 );
 		}
+		ctx.drawImageFilterCache( sdBomb.img_beacon, xx * 32, 0, 32,32, -16, -16, 32,32 );
 	}
 	onRemove() // Class-specific, if needed
 	{

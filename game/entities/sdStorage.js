@@ -19,10 +19,12 @@ class sdStorage extends sdEntity
 {
 	static init_class()
 	{
-		sdStorage.img_storage = sdWorld.CreateImageFromFile( 'storage2' );
+		sdStorage.img_storage = sdWorld.CreateImageFromFile( 'storage_sheet' );
+
+		/*sdStorage.img_storage = sdWorld.CreateImageFromFile( 'storage2' );
 		sdStorage.img_storage2 = sdWorld.CreateImageFromFile( 'portal_storage' );
 		sdStorage.img_storage3 = sdWorld.CreateImageFromFile( 'storage3' ); // Sprite by LazyRain
-		sdStorage.img_storage4 = sdWorld.CreateImageFromFile( 'storage4' );
+		sdStorage.img_storage4 = sdWorld.CreateImageFromFile( 'storage4' );*/
 		
 		sdStorage.access_range = 64; // Used by sdMatterAmplifier as well
 		sdStorage.slots_tot = 6;
@@ -277,20 +279,27 @@ class sdStorage extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		let xx = 0;
+
 		if ( this.held_by === null )
 		{
 			ctx.filter = this.filter;
 			if ( this.type === sdStorage.TYPE_GUNS )
-			ctx.drawImageFilterCache( sdStorage.img_storage, - 16, - 16, 32,32 );
+			xx = 0;
+			//ctx.drawImageFilterCache( sdStorage.img_storage, - 16, - 16, 32,32 );
 
 			if ( this.type === sdStorage.TYPE_PORTAL )
-			ctx.drawImageFilterCache( sdStorage.img_storage2, - 16, - 16, 32,32 );
+			xx = 3;
+			//ctx.drawImageFilterCache( sdStorage.img_storage2, - 16, - 16, 32,32 );
 
 			if ( this.type === sdStorage.TYPE_CRYSTALS )
-			ctx.drawImageFilterCache( sdStorage.img_storage3, - 16, - 16, 32,32 );
+			xx = 1;
+			//ctx.drawImageFilterCache( sdStorage.img_storage3, - 16, - 16, 32,32 );
 
 			if ( this.type === sdStorage.TYPE_CARGO )
-			ctx.drawImageFilterCache( sdStorage.img_storage4, - 16, - 16, 32,32 );
+			xx = 2;
+			//ctx.drawImageFilterCache( sdStorage.img_storage4, - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( sdStorage.img_storage, xx * 32, 0, 32, 32, - 16, - 16, 32,32 );
 		}
 		
 		ctx.globalAlpha = 1;
