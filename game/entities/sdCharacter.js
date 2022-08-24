@@ -1924,7 +1924,7 @@ class sdCharacter extends sdEntity
 					if ( Math.random() < 0.25 + Math.min( 0.75, ( 0.25 * this._ai_level ) ) && should_fire === true ) // Shoot on detection, depends on AI level
 					{
 
-						if ( this._ai.target.GetClass() !== 'sdBlock' ) // Check line of sight if not targeting blocks
+						if ( !this._ai.target.is( sdBlock ) ) // Check line of sight if not targeting blocks
 						{
 							if ( sdWorld.CheckLineOfSight( this.x, this.y, this._ai.target.x, this._ai.target.y, this, sdCom.com_visibility_ignored_classes, null ) )
 							if ( sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, sdCom.com_visibility_ignored_classes, null ) )
@@ -1935,10 +1935,15 @@ class sdCharacter extends sdEntity
 							if ( this._ai_dig > 0 ) // If AI should dig blocks, shoot
 							this._key_states.SetKey( 'Mouse1', 1 );
 
-							if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, null, ['sdBlock'] ) ) // Scenario for targetting player built blocks from neutral
-							if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' ) // Just in case
-							if ( sdWorld.last_hit_entity === this._ai.target || 
-								( sdWorld.last_hit_entity.GetClass() === this._ai.target.GetClass() && sdWorld.last_hit_entity.material === this._ai.target.material ) )
+							if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, null, ['sdBlock'] ) && // Scenario for targetting player built blocks from neutral
+								 sdWorld.last_hit_entity && // Can be null when hits void
+								 sdWorld.last_hit_entity.is( sdBlock ) && // Just in case
+								 ( 
+									sdWorld.last_hit_entity === this._ai.target 
+									|| 
+									( sdWorld.last_hit_entity.GetClass() === this._ai.target.GetClass() && sdWorld.last_hit_entity.material === this._ai.target.material ) 
+								)
+							)
 							{
 								this._ai.target = sdWorld.last_hit_entity;
 								this._key_states.SetKey( 'Mouse1', 1 );
