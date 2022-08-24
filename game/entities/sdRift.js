@@ -386,7 +386,7 @@ class sdRift extends sdEntity
 				}
 
 				//this._spawn_timer_cd = ( this.type === 3 ? 0.25 : 1 ) * this._spawn_timer * Math.max( 0.1, this.hea / this.hmax ); // Reset spawn timer countdown, depending on HP left off the portal
-				this._spawn_timer_cd = ( this.type === 3 ? 0.25 : 1 ) * this._spawn_timer * Math.max( 0.1, Math.pow( Math.random(), 0.5 ) ); // Reset spawn timer countdown, but randomly while prioritizing longer spawns to prevent farming or not feeding any crystals to portal for too long
+				this._spawn_timer_cd = ( this.type === 5 ? 0.5 : this.type === 3 ? 0.25 : 1 ) * this._spawn_timer * Math.max( 0.1, Math.pow( Math.random(), 0.5 ) ); // Reset spawn timer countdown, but randomly while prioritizing longer spawns to prevent farming or not feeding any crystals to portal for too long
 			}
 			
 			if ( this.matter_crystal > 0 ) // Has the rift drained any matter?
