@@ -8,6 +8,7 @@ import sdWater from './sdWater.js';
 import sdCom from './sdCom.js';
 import sdBlock from './sdBlock.js';
 import sdBullet from './sdBullet.js';
+import sdCharacter from './sdCharacter.js';
 
 
 class sdBiter extends sdEntity
@@ -69,7 +70,7 @@ class sdBiter extends sdEntity
 		
 		this.hue = ~~( Math.random() * 360 );
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
-		this.filter = 'saturate(0.5)';
+		//this.filter = 'saturate(0.5)';
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
@@ -95,13 +96,9 @@ class sdBiter extends sdEntity
 	{
 		return sdEffect.TYPE_BLOOD_GREEN;
 	}
-	GetBleedEffectHue()
-	{
-		return this.hue + 150;
-	}
 	GetBleedEffectFilter()
 	{
-		return this.filter;
+		return 'hue-rotate('+( this.hue + 150 )+'deg)';
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -294,6 +291,12 @@ class sdBiter extends sdEntity
 						from_entity.DamageWithEffect( 12, this );
 						from_entity.PlayDamageEffect( xx, yy );
 						
+						if ( from_entity.is( sdCharacter ) )
+						{
+							from_entity._sickness += 30;
+							from_entity._last_sickness_from_ent = this;
+						}
+						
 						this._hea = Math.min( this._hmax, this._hea + 15 );
 
 						this.attack_anim = 5;
@@ -327,7 +330,7 @@ class sdBiter extends sdEntity
 	{
 		if ( !sdShop.isDrawing )
 		{
-			ctx.filter = this.filter;
+			//ctx.filter = this.filter;
 			
 			if ( sdRenderer.visual_settings === 4 )
 			ctx.sd_hue_rotation = this.hue;

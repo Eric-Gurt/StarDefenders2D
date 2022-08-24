@@ -50,6 +50,7 @@ import sdJunk from './sdJunk.js';
 import sdOverlord from './sdOverlord.js';
 import sdSetrDestroyer from './sdSetrDestroyer.js';
 import sdBiter from './sdBiter.js';
+import sdCouncilMachine from './sdCouncilMachine.js';
 
 import sdTask from './sdTask.js';
 
@@ -102,6 +103,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_BITERS =				event_counter++; // 30
 		sdWeather.EVENT_LAND_SCAN =				event_counter++; // 31
 		sdWeather.EVENT_FLESH_DIRT =				event_counter++; // 32
+		sdWeather.EVENT_COUNCIL_PORTAL =			event_counter++; // 33
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -2228,6 +2230,95 @@ class sdWeather extends sdEntity
 					break;
 				}
 			}
+		}
+		if ( r === sdWeather.EVENT_COUNCIL_PORTAL ) // Spawn a Council portal machine anywhere on the map outside player views which summons a portal in 15 minutes or more, depending on player count.
+		{
+			let chance = 0;
+			let req_char = 0;
+			let char = 0;
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			{
+				if ( sdWorld.sockets[ i ].character !== null )
+				if ( sdWorld.sockets[ i ].character.hea > 0 )
+				if ( !sdWorld.sockets[ i ].character._is_being_removed )
+				{
+					char++;
+					if ( sdWorld.sockets[ i ].character.build_tool_level >= 15 )
+					req_char++;
+				}
+			}
+			chance = ( req_char / char ) * 0.8; // 80% chance to roll if all players are level 15 or above
+
+			if ( Math.random() < chance )
+			{
+				let instances = 0;
+				let instances_tot = 1;
+
+				while ( instances < instances_tot && sdCouncilMachine.ents < 1 )
+				{
+					let council_mach = new sdCouncilMachine({ x:0, y:0});
+
+					sdEntity.entities.push( council_mach );
+
+					let x,y,i;
+					let tr = 1000;
+					do
+					{
+						x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+
+						if ( council_mach.CanMoveWithoutOverlap( x, y - 64, 0 ) )
+						if ( council_mach.CanMoveWithoutOverlap( x, y, 0 ) )
+						if ( !council_mach.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+						if ( sdWorld.last_hit_entity )
+						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+						if ( !sdWorld.CheckWallExistsBox( 
+								x + council_mach._hitbox_x1 - 16, 
+								y + council_mach._hitbox_y1 - 16, 
+								x + council_mach._hitbox_x2 + 16, 
+								y + council_mach._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+						{
+							let di_allowed = true;
+									
+							for ( i = 0; i < sdWorld.sockets.length; i++ )
+							if ( sdWorld.sockets[ i ].character )
+							{
+								let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
+										
+								if ( di < 500 )
+								{
+									di_allowed = false;
+									break;
+								}
+							}
+									
+							if ( di_allowed )
+							{
+								council_mach.x = x;
+								council_mach.y = y;
+								sdCouncilMachine.ents_left = Math.min( 6, Math.max( 2, sdWorld.GetPlayingPlayersCount() ) ); // 2+1 = 3 machines on single player
+								break;
+							}
+						}
+								
+
+
+						tr--;
+						if ( tr < 0 )
+							{
+							council_mach.remove();
+							council_mach._broken = false;
+							break;
+						}
+					} while( true );
+
+					instances++;
+				}
+
+			}
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
