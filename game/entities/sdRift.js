@@ -50,7 +50,7 @@ class sdRift extends sdEntity
 	{
 		super( params );
 		
-		this.hmax = 2560; // a 2560 matter crystal is enough for a rift to be removed over time
+		this.hmax = this.type === 5 ? 36000 : 2560; // a 2560 matter crystal is enough for a rift to be removed over time
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
 		//this._cooldown = 0;
@@ -91,6 +91,9 @@ class sdRift extends sdEntity
 
 		if ( this.type === 4 )
 		return 'saturate(0.1) brightness(0.4)';
+
+		if ( this.type === 5 )
+		return 'brightness(2) saturate(0.1)';
 	}
 	MeasureMatterCost()
 	{
@@ -272,6 +275,116 @@ class sdRift extends sdEntity
 					}
 				}, 1223 );
 
+					if ( this.type === 5 )
+					{
+						let ais = 0;
+						for ( var i = 0; i < sdCharacter.characters.length; i++ )
+						{
+							if ( sdCharacter.characters[ i ].hea > 0 )
+							if ( !sdCharacter.characters[ i ]._is_being_removed )
+							if ( sdCharacter.characters[ i ]._ai_team === 3 )
+							{
+								ais++;
+								//console.log( 'AI count:' + ais );
+							}
+						}
+						{
+		
+							let councils = 0;
+							let councils_tot = 1;
+
+							let left_side = ( Math.random() < 0.5 );
+
+							while ( councils < councils_tot && ais < 6 )
+							{
+
+								let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
+
+								sdEntity.entities.push( character_entity );
+								character_entity.s = 110;
+								{
+								let x,y;
+								{
+									x = this.x
+									y = this.y;
+									{
+										character_entity.x = x;
+										character_entity.y = y;
+
+										//sdWorld.UpdateHashPosition( ent, false );
+										if ( Math.random() > ( 0.1 + ( ( this.hea / this.hmax )* 0.4 ) ) ) // Chances change as the portal machine has less health
+										{
+											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_BURST_RAIL }) );
+											character_entity._ai_gun_slot = 4;
+										}
+										else
+										{
+											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_PISTOL }) );
+											character_entity._ai_gun_slot = 1;
+										}
+										let robot_settings;
+										//if ( character_entity._ai_gun_slot === 2 )
+										robot_settings = {"hero_name":"Council Vanguard","color_bright":"#e1e100","color_dark":"#ffffff","color_bright3":"#ffff00","color_dark3":"#e1e1e1","color_visor":"#ffff00","color_suit":"#ffffff","color_suit2":"#e1e1e1","color_dark2":"#ffe100","color_shoes":"#e1e1e1","color_skin":"#ffffff","color_extra1":"#ffff00","helmet1":false,"helmet23":true,"body11":true,"legs8":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":false,"voice7":false,"voice8":true};
+
+										character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( robot_settings );
+										character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( robot_settings );
+										character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( robot_settings );
+										character_entity.title = robot_settings.hero_name;
+										character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( robot_settings );
+										character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( robot_settings );
+										//if ( character_entity._ai_gun_slot === 4 || character_entity._ai_gun_slot === 1 )
+										{
+											character_entity.matter = 300;
+											character_entity.matter_max = 300; // Let player leech matter off the bodies
+
+											character_entity.hea = 250;
+											character_entity.hmax = 250;
+
+											character_entity.armor = 1500;
+											character_entity.armor_max = 1500;
+											character_entity._armor_absorb_perc = 0.87; // 87% damage absorption, since armor will run out before just a little before health
+
+											//character_entity._damage_mult = 1; // Supposed to put up a challenge
+										}
+										character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+										//character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
+											
+										character_entity._ai_level = 10;
+										
+										character_entity._matter_regeneration = 10 + character_entity._ai_level; // At least some ammo regen
+										character_entity._jetpack_allowed = true; // Jetpack
+										character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
+										character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+										character_entity._ai_team = 3; // AI team 3 is for the Council
+										character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
+										sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, pitch: 1, volume:1 });
+										character_entity._ai.next_action = 5;
+
+										sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, hue:170/*, filter:'hue-rotate(' + ~~( 170 ) + 'deg)'*/ });
+
+										const logic = ()=>
+										{
+											if ( character_entity.hea <= 0 )
+											if ( !character_entity._is_being_removed )
+											{
+												sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
+												sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, hue:170/*, filter:'hue-rotate(' + ~~( 170 ) + 'deg)'*/ });
+												character_entity.remove();
+											}
+							
+										};
+										setInterval( logic, 1000 );
+	
+										break;
+								}
+							}
+						}
+						councils++;
+						ais++;
+						}
+					}
+				}
+
 				//this._spawn_timer_cd = ( this.type === 3 ? 0.25 : 1 ) * this._spawn_timer * Math.max( 0.1, this.hea / this.hmax ); // Reset spawn timer countdown, depending on HP left off the portal
 				this._spawn_timer_cd = ( this.type === 3 ? 0.25 : 1 ) * this._spawn_timer * Math.max( 0.1, Math.pow( Math.random(), 0.5 ) ); // Reset spawn timer countdown, but randomly while prioritizing longer spawns to prevent farming or not feeding any crystals to portal for too long
 			}
@@ -282,6 +395,8 @@ class sdRift extends sdEntity
 				this.matter_crystal--;
 				//this._update_version++;
 			}
+			if ( this.type === 5 ) // Council portal fades away on it's own
+			this.hea -= GSPEED; // But for a really long time, 20 minutes ( 36000 / 30 = 1200 seconds )
 			if ( this._time_until_teleport > 0 )
 			{
 				this._time_until_teleport -= GSPEED;
@@ -355,6 +470,9 @@ class sdRift extends sdEntity
 		return;
 
 		if ( this.teleport_alpha < 55 ) // Prevent crystal feeding if it's spawning or dissapearing
+		return;
+
+		if ( this.type === 5 ) // No feeding for council portals
 		return;
 
 		if ( this.type === 4 ) // Black portal deals damage / vacuums stuff inside
