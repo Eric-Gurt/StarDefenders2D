@@ -273,8 +273,7 @@ class sdSandWorm extends sdEntity
 		
 		if ( head_entity._hp_main <= 0 && was_alive )
 		{
-			if ( initiator )
-			initiator.GiveScore( sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB, this );
+			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB );
 	
 			if ( this.kind !== sdSandWorm.KIND_COUNCIL_WORM )
 			sdSound.PlaySound({ name:'octopus_alert', x:head_entity.x, y:head_entity.y, pitch:0.25, volume:4 });
@@ -367,6 +366,11 @@ class sdSandWorm extends sdEntity
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
 		return ( this.death_anim === 0 ) ? sdSandWorm.ignoring : sdSandWorm.ignoring_dead;
+	}
+	
+	onThinkFrozen( GSPEED )
+	{
+		this.onThink( GSPEED );
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -667,8 +671,8 @@ class sdSandWorm extends sdEntity
 									}
 									else
 									{
-										arr[ i ].sx += dx / di * 0.5 * vel_scale;
-										arr[ i ].sy += dy / di * 0.5 * vel_scale;
+										arr[ i ].sx += dx / di * 0.5 * vel_scale * arr.length / 7;
+										arr[ i ].sy += dy / di * 0.5 * vel_scale * arr.length / 7;
 									}
 
 									//if ( arr[ i ].towards_tail )
@@ -1009,8 +1013,8 @@ class sdSandWorm extends sdEntity
 				//console.warn( { x: this.x, y: this.y, type:sdEffect.TYPE_GIB, sx: this.sx + Math.sin(a)*s, sy: this.sy + Math.cos(a)*s } )
 				if ( this.kind !== sdSandWorm.KIND_COUNCIL_WORM )
 				{
-					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter() });
-					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter() });
+					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
+					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
 				}
 				else
 				sdWorld.BasicEntityBreakEffect( this, 6, 3, 0.25, 1 );

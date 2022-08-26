@@ -26,6 +26,7 @@ import sdCable from './entities/sdCable.js';
 import sdArea from './entities/sdArea.js';
 import sdPlayerDrone from './entities/sdPlayerDrone.js';
 import sdQuadro from './entities/sdQuadro.js';
+import sdStatusEffect from './entities/sdStatusEffect.js';
 
 
 import sdRenderer from './client/sdRenderer.js';
@@ -1047,7 +1048,62 @@ class sdWorld
 			return true;
 		}
 	}
-	static DropShards( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9, ignored_class=null )
+	
+	static GiveScoreToPlayerEntity( amount, killed_entity=null, allow_partial_drop=true, player_entity=null )
+	{
+		let auto_give = Math.floor( killed_entity && allow_partial_drop ? amount * 0.2 : amount );
+		
+		if ( player_entity )
+		{
+			// Prevent server's death when too much score is given
+			auto_give = Math.max( auto_give, Math.floor( amount - 50 ) );
+
+			player_entity._score += auto_give;
+		}
+		else
+		{
+			auto_give = 0;
+		}
+		
+		amount -= auto_give;
+		
+		amount = Math.floor( amount );
+		
+		if ( killed_entity )
+		if ( amount > 0 )
+		{
+			const sdGun = sdWorld.entity_classes.sdGun;
+			
+			sdWorld.DropShards( 
+				killed_entity.x + ( killed_entity._hitbox_x1 + killed_entity._hitbox_x2 ) / 2,
+				killed_entity.y + ( killed_entity._hitbox_y1 + killed_entity._hitbox_y2 ) / 2,
+				0,0, amount, 1, 0, sdGun.CLASS_SCORE_SHARD, 20, killed_entity, player_entity );
+		}
+		
+		let once = true;
+		
+		if ( player_entity )
+		while ( player_entity._score >= player_entity._score_to_level && player_entity.build_tool_level < player_entity._max_level )
+		{
+			player_entity.build_tool_level++;
+			player_entity._score_to_level_additive = player_entity._score_to_level_additive * 1.04;
+			player_entity._score_to_level = player_entity._score_to_level + player_entity._score_to_level_additive;
+			
+			if ( once )
+			{
+				once = false;
+				
+				player_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_LEVEL_UP, is_level_up: 1, level:player_entity.build_tool_level });
+				//sdSound.PlaySound({ name:'powerup_or_exp_pickup', x:player_entity.x, y:player_entity.y, volume:4 });
+				sdSound.PlaySound({ name:'level_up', x:player_entity.x, y:player_entity.y, volume:1 });
+
+				if ( player_entity.build_tool_level % 10 === 0 )
+				if ( player_entity._socket )
+				sdSound.PlaySound({ name:'piano_world_startB', x:player_entity.x, y:player_entity.y, volume:0.5 }, [ player_entity._socket ] );
+			}
+		}
+	}
+	static DropShards( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9, ignore_collisions_with=null, follow=null ) // Can drop anything, but if you want to drop score shards - use sdCharacter.prototype.GiveScore instead, and, most specifically - use this.GiveScoreToLastAttacker
 	{
 		if ( sdWorld.is_server )
 		{
@@ -1058,9 +1114,10 @@ class sdWorld
 				let ent = new sdGun({ class:shard_class_id, x: xx, y: yy });
 				ent.sx = sx + Math.random() * 8 - 4;
 				ent.sy = sy + Math.random() * 8 - 4;
-				ent.ttl = 30 * normal_ttl_seconds * ( 0.7 + Math.random() * 0.3 ); // was 7 seconds, now 9
+				//ent.ttl = 30 * normal_ttl_seconds * ( 0.7 + Math.random() * 0.3 ); // was 7 seconds, now 9
 				ent.extra = value_mult * sdWorld.crystal_shard_value;
-				ent._ignored_class = ignored_class;
+				ent._ignore_collisions_with = ignore_collisions_with;
+				ent.follow = follow;
 				sdEntity.entities.push( ent );
 			}
 		}
@@ -1743,7 +1800,7 @@ class sdWorld
 	}
 	static UpdateHashPosition( entity, delay_callback_calls, allow_calling_movement_in_range=true ) // allow_calling_movement_in_range better be false when it is not decided whether entity will be physically placed in world or won't be (so sdBlock SHARP won't kill initiator in the middle of Shoot method of a gun, which was causing crash)
 	{
-		//if ( entity === sdWeather.only_instance )
+		if ( sdWorld.is_server )
 		if ( entity.IsGlobalEntity() )
 		{
 			debugger;
@@ -2239,9 +2296,9 @@ class sdWorld
 			
 			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 			{
-				if ( sdShop.open || sdContextMenu.open )
-				sdWorld.mouse_speed_morph = Math.max( sdWorld.mouse_speed_morph - GSPEED * 0.01, 0 );
-				else
+				//if ( sdShop.open || sdContextMenu.open )
+				//sdWorld.mouse_speed_morph = Math.max( sdWorld.mouse_speed_morph - GSPEED * 0.01, 0 );
+				//else
 				sdWorld.mouse_speed_morph = Math.min( sdWorld.mouse_speed_morph + GSPEED * 0.2, 1 );
 				
 				sdWorld.mouse_world_x = ( sdWorld.mouse_screen_x / sdWorld.camera.scale + sdWorld.camera.x - sdRenderer.screen_width / 2 / sdWorld.camera.scale );// * sdWorld.mouse_speed_morph + sdWorld.mouse_world_x * ( 1 - sdWorld.mouse_speed_morph );
@@ -2830,22 +2887,31 @@ class sdWorld
 	
 	static GetCrystalHue( v, glow_radius_scale=1, glow_opacity_hex='' )
 	{
-		if ( v > 40 )
+		//if ( v > 40 )
 		{
-
 			if ( v === 5120 * 8 ) // Task reward / Advanced matter container
-		    return 'brightness(1) saturate(0) drop-shadow(0px 0px '+( glow_radius_scale * 6 )+'px #FFFFFF'+glow_opacity_hex+')';
+			{
+				return 'brightness(1) saturate(0) drop-shadow(0px 0px '+( glow_radius_scale * 6 )+'px #FFFFFF'+glow_opacity_hex+')';
+			}
 			else
 			if ( v === 10240 ) // === sdCrystal.anticrystal_value
-		    return 'brightness(0) drop-shadow(0px 0px '+( glow_radius_scale * 6 )+'px #000000'+glow_opacity_hex+')';
+			{
+				return 'brightness(0) drop-shadow(0px 0px '+( glow_radius_scale * 6 )+'px #000000'+glow_opacity_hex+')';
+			}
 			else
 			if ( v === 5120 )
-		    return 'hue-rotate(200deg) brightness(1.3) drop-shadow(0px 0px '+( glow_radius_scale * 6 )+'px #FFFFAA'+glow_opacity_hex+')';
+			{
+				return 'hue-rotate(' + ( 200 ) + 'deg) brightness(1.3) drop-shadow(0px 0px '+( glow_radius_scale * 6 )+'px #FFFFAA'+glow_opacity_hex+')';
+			}
 			else
 			if ( v === 2560 )
-			return 'hue-rotate(170deg) brightness(0.8) contrast(2)';
+			{
+				return 'hue-rotate(' + ( 170 ) + 'deg) brightness(0.8) contrast(2)';
+			}
 			else
-			return 'hue-rotate('+( v - 40 )+'deg)';
+			{
+				return 'hue-rotate(' + ( v - 40 ) + 'deg)';
+			}
 
 		}
 		

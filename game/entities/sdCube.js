@@ -237,13 +237,13 @@ class sdCube extends sdEntity
 				color:'#33FFFF' 
 			});
 
-			if ( initiator )
-			if ( typeof initiator._score !== 'undefined' )
+			//if ( initiator )
+			//if ( typeof initiator._score !== 'undefined' )
 			{
 				if ( this.kind === 1 || this.kind === 2 )
-				initiator.GiveScore( sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB, this );
+				this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB );
 				else
-				initiator.GiveScore( sdEntity.SCORE_REWARD_CHALLENGING_MOB, this );
+				this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_CHALLENGING_MOB );
 			}
 			let r = Math.random();
 			

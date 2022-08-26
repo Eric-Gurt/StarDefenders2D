@@ -240,8 +240,8 @@ class sdSetrDestroyer extends sdEntity
 			
 			sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:2 });
 			this.death_anim = 1;
-			if ( initiator )
-			initiator.GiveScore( sdEntity.SCORE_REWARD_BOSS, this );
+			
+			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_BOSS );
 		
 			let that = this;
 			for ( var i = 0; i < 20; i++ )

@@ -278,6 +278,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'crystal_shard' ),
 			title: 'Crystal shard',
+			hea: 5,
 			no_tilt: true,
 			slot: 0,
 			reload_time: 25,
@@ -295,9 +296,24 @@ class sdGunClass
 					character.matter += gun.extra;
 					gun.remove(); 
 				}
+				else
+				if ( character.matter < character.matter_max - 1 )
+				{
+					gun.extra -= character.matter_max - character.matter;
+					character.matter = character.matter_max;
+					
+					if ( gun.extra < 1 )
+					gun.remove(); 
+				}
 
 				return false; 
-			} 
+			},
+			onMade: ( gun )=>
+			{
+				const normal_ttl_seconds = 9;
+				
+				gun.ttl = 30 * normal_ttl_seconds * ( 0.7 + Math.random() * 0.3 ); // was 7 seconds, now 9
+			}
 		};
 		
 		sdGun.classes[ sdGun.CLASS_GRENADE_LAUNCHER = 9 ] = 
@@ -1065,6 +1081,13 @@ class sdGunClass
 						}
 					}
 				}
+			},
+			onMade: ( gun )=>
+			{
+				let remover_sd_filter = sdWorld.CreateSDFilter();
+				sdWorld.ReplaceColorInSDFilter_v2( remover_sd_filter, '#abcbf4', '#ff9292' );
+				
+				gun.sd_filter = remover_sd_filter;
 			}
 		};
 
@@ -3141,6 +3164,9 @@ class sdGunClass
 						//if ( !water_ent._is_being_removed )
 						{
 							bullet._gun._held_item_snapshot = water_ent.GetSnapshot( GetFrame(), true );
+							
+							delete bullet._gun._held_item_snapshot._net_id; // Erase this just so snapshot logic won't think that it is a some kind of object that should exist somewhere
+							
 							sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, liquid_carrier_base_color, sdWater.reference_colors[ water_ent.type ] || '#ffffff' );
 
 							water_ent.AwakeSelfAndNear();
@@ -3580,13 +3606,14 @@ class sdGunClass
 			projectile_properties: { _damage: 1 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _damage: 25, _dirt_mult: -0.5, _knock_scale: 0.01 * 8 }; // Default value for _knock_scale
+				let obj = { _damage: 25, _dirt_mult: -0.5, _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ] }; // Default value for _knock_scale
 				
 				if ( gun.extra[ ID_HAS_SHOTGUN_EFFECT ] )
 				{
 					obj._dirt_mult = 0;
 					//obj._damage /= 5;
 					obj._damage /= 2;
+					obj._knock_scale /= 2;
 				}
 				if ( gun.extra[ ID_HAS_EXPLOSION ] )
 				{
@@ -3733,6 +3760,7 @@ class sdGunClass
 			image_frames: 4,
 			image_duration: 250,
 			title: 'Score shard',
+			hea: 400,
 			no_tilt: true,
 			slot: 0,
 			reload_time: 25,
@@ -3756,7 +3784,37 @@ class sdGunClass
 				}
 
 				return false; 
-			} 
+			},
+			onMade: ( gun )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				gun.ttl = 30 * 60 * 1; // 1 minute
+			},
+			onThinkOwnerless: ( gun, GSPEED )=>
+			{
+				if ( gun.follow )
+				if ( !gun.follow._is_being_removed )
+				{
+					const magnet_time = 30 * 60 * 1 - 2 * 30;
+					if ( gun.ttl < magnet_time ) // Start following after 5 seconds
+					{
+						let dx = gun.follow.x + ( gun.follow._hitbox_x1 + gun.follow._hitbox_x2 ) / 2 - gun.x;
+						let dy = gun.follow.y + ( gun.follow._hitbox_y1 + gun.follow._hitbox_y2 ) / 2 - gun.y;
+
+						if ( sdWorld.inDist2D_Boolean( dx,dy,0,0, 64 ) )
+						{
+							dx += ( gun.follow.sx - gun.sx ) * 0.3;
+							dy += ( gun.follow.sy - gun.sy ) * 0.3;
+							
+							let intens = Math.min( -( gun.ttl - magnet_time ) / ( 30 * 5 ), 1 );
+
+							gun.sx += dx * 0.02 * GSPEED * intens;
+							gun.sy += dy * 0.02 * GSPEED * intens;
+						}
+					}
+				}
+		
+				return false; // False denies hibernation, true would allow
+			}
 		};
 
 		sdGun.classes[ sdGun.CLASS_LVL4_ARMOR_REGEN = 98 ] = 
@@ -3781,6 +3839,50 @@ class sdGunClass
 
 				return false; 
 			} 
+		};
+		
+		
+		sdGun.classes[ sdGun.CLASS_ADMIN_DAMAGER = 99 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'shark' ),
+			sound: 'gun_defibrillator',
+			title: 'Admin tool for damaging',
+			sound_pitch: 2,
+			slot: 2,
+			reload_time: 2,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			matter_cost: Infinity,
+			projectile_velocity: 16,
+			spawnable: false,
+			projectile_properties: { _rail: true, time_left: 30, _damage: 1, color: '#ffffff', _reinforced_level:Infinity, _armor_penetration_level:Infinity, _custom_target_reaction:( bullet, target_entity )=>
+				{
+					if ( bullet._owner )
+					{
+						if ( bullet._owner._god )
+						{
+							let dmg = Math.max( 50, Math.min( 300, target_entity.hea || target_entity._hea || 0 ) );
+							target_entity.DamageWithEffect( dmg, bullet._owner, false, false );
+						}
+						else
+						if ( bullet._owner.IsPlayerClass() )
+						{
+							// Remove if used by non-admin
+							if ( bullet._owner._inventory[ bullet._owner.gun_slot ] )
+							if ( sdGun.classes[ bullet._owner._inventory[ bullet._owner.gun_slot ].class ].projectile_properties._admin_picker )
+							bullet._owner._inventory[ bullet._owner.gun_slot ].remove();
+						}
+					}
+				}
+			},
+			onMade: ( gun )=>
+			{
+				let remover_sd_filter = sdWorld.CreateSDFilter();
+				sdWorld.ReplaceColorInSDFilter_v2( remover_sd_filter, '#abcbf4', '#ffaa00' );
+				
+				gun.sd_filter = remover_sd_filter;
+			}
 		};
 
 		// Add new gun classes above this line //

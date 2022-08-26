@@ -430,49 +430,9 @@ class sdCharacter extends sdEntity
 	{
 		return true;
 	}
-	GiveScore( amount, killed_entity=null, allow_partical_drop=true )
+	GiveScore( amount, killed_entity=null, allow_partial_drop=true )
 	{
-		let auto_give = Math.floor( killed_entity && allow_partical_drop ? amount * 0.2 : amount );
-		
-		// Prevent server's death when too much score is given
-		auto_give = Math.max( auto_give, Math.floor( amount - 50 ) );
-		
-		this._score += auto_give;
-		
-		amount -= auto_give;
-		
-		amount = Math.floor( amount );
-		
-		if ( killed_entity )
-		if ( amount > 0 )
-		{
-			sdWorld.DropShards( 
-				killed_entity.x + ( killed_entity._hitbox_x1 + killed_entity._hitbox_x2 ) / 2,
-				killed_entity.y + ( killed_entity._hitbox_y1 + killed_entity._hitbox_y2 ) / 2,
-				0,0, amount, 1, 0, sdGun.CLASS_SCORE_SHARD, 20, killed_entity.GetClass() );
-		}
-		
-		let once = true;
-		
-		while ( this._score >= this._score_to_level && this.build_tool_level < this._max_level )
-		{
-			this.build_tool_level++;
-			this._score_to_level_additive = this._score_to_level_additive * 1.04;
-			this._score_to_level = this._score_to_level + this._score_to_level_additive;
-			
-			if ( once )
-			{
-				once = false;
-				
-				this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_LEVEL_UP, is_level_up: 1, level:this.build_tool_level });
-				//sdSound.PlaySound({ name:'powerup_or_exp_pickup', x:this.x, y:this.y, volume:4 });
-				sdSound.PlaySound({ name:'level_up', x:this.x, y:this.y, volume:1 });
-
-				if ( this.build_tool_level % 10 === 0 )
-				if ( this._socket )
-				sdSound.PlaySound({ name:'piano_world_startB', x:this.x, y:this.y, volume:0.5 }, [ this._socket ] );
-			}
-		}
+		sdWorld.GiveScoreToPlayerEntity( amount, killed_entity, allow_partial_drop, this );
 	}
 	
 	
@@ -995,7 +955,9 @@ class sdCharacter extends sdEntity
 	get hitbox_y2() { return this.s / 100 * ( 16 ); }
 
 	get hard_collision() // For world geometry where players can walk
-	{ return ( !this.driver_of ); }
+	{
+		return ( !this.driver_of && this.death_anim < 10 ); 
+	}
 	//{ return ( this.death_anim < 20 && !this.driver_of ); }
 	
 	GetVoicePitch()
@@ -1393,19 +1355,19 @@ class sdCharacter extends sdEntity
 				if ( sdWorld.server_config.onKill )
 				sdWorld.server_config.onKill( this, initiator );
 
-				if ( initiator )
-				if ( initiator.IsPlayerClass() )
-				if ( initiator._socket )
+				//if ( initiator )
+				//if ( initiator.IsPlayerClass() )
+				//if ( initiator._socket )
 				{
 					if ( this.IsHostileAI() )
 					{
 						if ( this.hmax < 200 )
-						initiator.GiveScore( sdEntity.SCORE_REWARD_EASY_MOB, this );
+						this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_EASY_MOB );
 						else
 						if ( this.hmax < 400 )
-						initiator.GiveScore( sdEntity.SCORE_REWARD_CHALLENGING_MOB, this );
+						this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_CHALLENGING_MOB );
 						else
-						initiator.GiveScore( sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB, this );
+						this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB );
 					}
 					else
 					{
@@ -3383,7 +3345,7 @@ class sdCharacter extends sdEntity
 			else
 			{
 				if ( this.hea > 0 )
-				this.DamageWithEffect( GSPEED * 10 );
+				this.DamageWithEffect( GSPEED * 10, null, false, false );
 			}
 		}
 		

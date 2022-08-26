@@ -88,13 +88,40 @@ class sdShop
 		
 		function AddBuildPack( filter, i )
 		{
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, filter: filter, _category:'Walls' });
-			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, filter: filter, _category:'Walls' });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, filter: filter, _category:'Walls' });
-			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, filter: filter, _category:'Walls' });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, filter: filter, _category:'Walls' });
-			sdShop.options.push({ _class: 'sdBlock', width: 8, height: 16, filter: filter, _category:'Walls' });
-			
+			for ( let i2 = 0; i2 < 3; i2++ )
+			{
+				let material = sdBlock.MATERIAL_WALL;
+				
+				let _reinforced_level = 0;
+				
+				let _min_build_tool_level = 0;
+				
+				let texture_id = sdBlock.TEXTURE_ID_WALL; // sdBG.TEXTURE_PLATFORMS_COLORED;
+				
+				if ( i2 === 1 )
+				{
+					_min_build_tool_level = 7;
+					_reinforced_level = 1;
+					material = sdBlock.MATERIAL_REINFORCED_WALL_LVL1;
+					texture_id = sdBlock.TEXTURE_ID_REINFORCED_LVL1;
+				}
+				
+				if ( i2 === 2 )
+				{
+					_min_build_tool_level = 16;
+					_reinforced_level = 2;
+					material = sdBlock.MATERIAL_REINFORCED_WALL_LVL2; // We probably no longer need 2 kinds of these if we could just switch texture
+					texture_id = sdBlock.TEXTURE_ID_REINFORCED_LVL2;
+				}
+				
+				sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, filter: filter, _category:'Walls', _min_build_tool_level:_min_build_tool_level, _reinforced_level:_reinforced_level, material:material, texture_id:texture_id });
+				sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, filter: filter, _category:'Walls', _min_build_tool_level:_min_build_tool_level, _reinforced_level:_reinforced_level, material:material, texture_id:texture_id });
+				sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, filter: filter, _category:'Walls', _min_build_tool_level:_min_build_tool_level, _reinforced_level:_reinforced_level, material:material, texture_id:texture_id });
+				sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, filter: filter, _category:'Walls', _min_build_tool_level:_min_build_tool_level, _reinforced_level:_reinforced_level, material:material, texture_id:texture_id });
+				sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, filter: filter, _category:'Walls', _min_build_tool_level:_min_build_tool_level, _reinforced_level:_reinforced_level, material:material, texture_id:texture_id });
+				sdShop.options.push({ _class: 'sdBlock', width: 8, height: 16, filter: filter, _category:'Walls', _min_build_tool_level:_min_build_tool_level, _reinforced_level:_reinforced_level, material:material, texture_id:texture_id });
+			}
+			/*
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 7 });
 			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 7 });
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL1, _reinforced_level: 1, _category:'Walls', _min_build_tool_level: 7 });
@@ -106,7 +133,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL2, _reinforced_level: 2, _category:'Walls', _min_build_tool_level: 16 });
 			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL2, _reinforced_level: 2, _category:'Walls', _min_build_tool_level: 16 });
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, filter: filter, material: sdBlock.MATERIAL_REINFORCED_WALL_LVL2, _reinforced_level: 2, _category:'Walls', _min_build_tool_level: 16 });
-			
+			*/
 			//if ( i !== 0 )
 			//{
 				sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, filter: filter + 'brightness(1.5)', texture_id: sdBG.TEXTURE_PLATFORMS_COLORED, _category:'Background walls' });
@@ -566,6 +593,13 @@ class sdShop
 			sdShop.options.push({ _class: 'sdRift', type: 4, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdRift', type: 5, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 40, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 80, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 160, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 320, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 640, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 1280, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 2560, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120, _category:'Development tests' }); // Glowing one
 			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: sdCrystal.anticrystal_value, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', _category:'Development tests' });
@@ -600,6 +634,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdGrub', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAbomination', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBiter', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdSensorArea', _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });
@@ -610,11 +645,13 @@ class sdShop
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_ERASER_AREA, size:16, _category:'Admin tools' });
 		sdShop.options.push({ _class: 'sdRegion', w:16, h:16, _category:'Admin tools' });
 		
-		let remover_sd_filter = sdWorld.CreateSDFilter();
-		sdWorld.ReplaceColorInSDFilter_v2( remover_sd_filter, '#abcbf4', '#ff9292' );
+		//let remover_sd_filter = sdWorld.CreateSDFilter();
+		//sdWorld.ReplaceColorInSDFilter_v2( remover_sd_filter, '#abcbf4', '#ff9292' );
 		
-		sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_ADMIN_REMOVER, sd_filter:remover_sd_filter, _category:'Admin tools' });
+		//sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_ADMIN_REMOVER, sd_filter:remover_sd_filter, _category:'Admin tools' });
+		sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_ADMIN_REMOVER, _category:'Admin tools' });
 		sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_ADMIN_TELEPORTER, _category:'Admin tools' });
+		sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_ADMIN_DAMAGER, _category:'Admin tools' });
 		sdShop.options.push({ _class: 'sdLongRangeTeleport', is_server_teleport:1, _category:'Admin tools' });
 		
 		// Make all admin tools have Infinite cost to prevent them from being build by non-admins
@@ -772,22 +809,23 @@ class sdShop
 					{
 						ctx.fillStyle = '#ff0000';
 					}
+				}
+				if ( sdWorld.mouse_screen_x >= xx - 20 )
+				if ( sdWorld.mouse_screen_x < xx + 64 + 20 )
+				if ( sdWorld.mouse_screen_y >= yy - 20 )
+				if ( sdWorld.mouse_screen_y < yy + 64 + 20 )
+				if ( sdShop.potential_selection === -1 )
+				{
+					sdShop.potential_selection = sdWorld.my_entity._build_params._main_array_index; // i;
 
-					/*if ( sdWorld.mouse_screen_x >= xx - 10 )
-					if ( sdWorld.mouse_screen_x < xx + 64 + 10 )
-					if ( sdWorld.mouse_screen_y >= yy - 10 )
-					if ( sdWorld.mouse_screen_y < yy + 64 + 10 )*/
-					if ( sdWorld.mouse_screen_x >= xx - 20 )
-					if ( sdWorld.mouse_screen_x < xx + 64 + 20 )
-					if ( sdWorld.mouse_screen_y >= yy - 20 )
-					if ( sdWorld.mouse_screen_y < yy + 64 + 20 )
-					if ( sdShop.potential_selection === -1 )
+					if ( selectable )
 					{
-						sdShop.potential_selection = sdWorld.my_entity._build_params._main_array_index; // i;
-						
 						ctx.fillStyle = '#ffff00';
 						ctx.globalAlpha = 0.3;
 					}
+				}
+				if ( selectable )
+				{
 					ctx.fillRect( -5,-5, 32+10,32+10 );
 					ctx.globalAlpha = 1;
 				}

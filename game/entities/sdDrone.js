@@ -64,7 +64,7 @@ class sdDrone extends sdEntity
 	get hitbox_y2() { return ( this.type === 3 || this.type === 4 ) ? 11 : this.type === 1 ? 10 : 6; }
 	
 	get hard_collision() // For world geometry where players can walk
-	{ return this._collision; }
+	{ return ( this._collision && this.death_anim === 0 ); }
 	
 	constructor( params )
 	{
@@ -251,9 +251,9 @@ class sdDrone extends sdEntity
 		
 		if ( this._hea <= 0 && was_alive )
 		{
-			if ( initiator )
+			//if ( initiator )
 			{
-				initiator.GiveScore( sdEntity.SCORE_REWARD_AVERAGE_MOB, this );
+				this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_AVERAGE_MOB );
 			}
 	
 			if ( this.type === 1 || this.type === 6 || this.type === 7 )

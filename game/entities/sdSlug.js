@@ -119,8 +119,8 @@ class sdSlug extends sdEntity
 		{
 			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
 			this.idle = 1;
-			if ( initiator )
-			initiator.GiveScore( sdEntity.SCORE_REWARD_EASY_MOB, this );
+			
+			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_EASY_MOB );
 		}
 		
 		if ( this._hea < -this._hmax / 80 * 100 )
@@ -365,6 +365,8 @@ class sdSlug extends sdEntity
 		
 		let xx = 0;
 		let yy = 0;
+		
+		let draw_eyes = false;
 
 		if ( this.death_anim > 0 )
 		{
@@ -399,45 +401,25 @@ class sdSlug extends sdEntity
 			else
 			{
 				//ctx.drawImageFilterCache( sdSlug.img_slug_idle1, - 16, - 16, 32,32 );
-				
-				for ( let i = 0; i < 3; i++ )
-				if ( this.blinks[ i ] )
-				{
-					let sprite = [ 2 ];
-
-					let locations = [
-						-10,
-						-16,
-						-18
-					];
-
-					let xx = sprite[ i ];
-					let yy = sprite[ i ];
-
-					ctx.drawImageFilterCache( sdSlug.img_slug, xx * 32, yy * 32, 32,32,  locations[ i ], -16, 32,32 ); // Works but can't clip through because the 2nd image has been created
-				}
+				draw_eyes = true;
 
 				//ctx.drawImageFilterCache( sdSlug.img_slug_blinks[ i ], - 16, - 16, 32,32 );
 			}
-
-			/*for ( let i = 0; i < 3; i++ )
-			if ( this.blinks[ i ] )
-			{
-				let sprite = [ 2 ];
-	
-				let locations = [
-					-10,
-					-16,
-					-18
-				];
-	
-				let xx = sprite[ i ];
-				let yy = sprite[ i ];
-	
-				ctx.drawImageFilterCache( sdSlug.img_slug, xx * 32, yy * 32, 32,32,  locations[ i ], -16, 32,32 ); // The eye doesn't continue the idle state
-			}*/
 		}
 		ctx.drawImageFilterCache( sdSlug.img_slug, xx * 32, yy * 32, 32,32, -16, -16, 32,32 );
+		
+		if ( draw_eyes )
+		{
+			let locations = [
+				-22,
+				-16,
+				-10
+			];
+			
+			for ( let i = 0; i < 3; i++ )
+			if ( this.blinks[ i ] )
+			ctx.drawImageFilterCache( sdSlug.img_slug, 64,64,32,32,  locations[ i ], -16, 32,32 );
+		}
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
@@ -468,8 +450,8 @@ class sdSlug extends sdEntity
 				
 				//console.warn( { x: this.x, y: this.y, type:sdEffect.TYPE_GIB, sx: this.sx + Math.sin(a)*s, sy: this.sy + Math.cos(a)*s } )
 				
-				sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter() });
-				sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter() });
+				sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
+				sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
 			}
 		}
 	}

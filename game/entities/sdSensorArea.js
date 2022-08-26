@@ -45,11 +45,28 @@ class sdSensorArea extends sdEntity
 		
 		this.h = params.h || 32;
 		
+		this.on_movement_target = params.on_movement_target;
+		
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false );
 	}
 	MeasureMatterCost()
 	{
 		return Infinity;
+	}
+	
+	onMovementInRange( from_entity )
+	{
+		//trace( from_entity );
+		if ( this.on_movement_target )
+		{
+			if ( !this.on_movement_target._is_being_removed )
+			{
+				this.on_movement_target.SensorAreaMovementCallback( from_entity );
+				return;
+			}
+		}
+		
+		this.remove();
 	}
 	
 	IsBGEntity() // 1 for BG entities, should handle collisions separately
@@ -64,11 +81,11 @@ class sdSensorArea extends sdEntity
 	{
 		if ( sdWorld.time % 1000 < 500 )
 		{
-			ctx.globalAlpha = 0.3;
+			ctx.globalAlpha = 0.05;
 		}
 		else
 		{
-			ctx.globalAlpha = 0.2;
+			ctx.globalAlpha = 0.02;
 		}
 		
 		ctx.fillStyle = '#00ff00';

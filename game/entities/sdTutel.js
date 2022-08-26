@@ -187,8 +187,7 @@ class sdTutel extends sdEntity
 				
 			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:6 });
 
-			if ( initiator )
-			initiator.GiveScore( sdEntity.SCORE_REWARD_AVERAGE_MOB, this );
+			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_AVERAGE_MOB );
 	
 		}
 		else
@@ -442,8 +441,8 @@ class sdTutel extends sdEntity
 				
 				//console.warn( { x: this.x, y: this.y, type:sdEffect.TYPE_GIB, sx: this.sx + Math.sin(a)*s, sy: this.sy + Math.cos(a)*s } )
 				
-				sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter() });
-				sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter() });
+				sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
+				sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
 			}
 		}
 	}

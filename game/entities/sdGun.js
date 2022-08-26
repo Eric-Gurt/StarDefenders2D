@@ -84,6 +84,13 @@ class sdGun extends sdEntity
 	{
 		return 30;
 	}
+	get bounce_intensity()
+	{
+		if ( this.class === sdGun.CLASS_CRYSTAL_SHARD )
+		return 0.2 + Math.random() * 0.2;
+	
+		return 0;
+	}
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -362,7 +369,9 @@ class sdGun extends sdEntity
 		
 		this.class = params.class || 0;
 		
-		this._ignored_class = null; // Used by score shards to ignore entity from which score shards are dropped
+		//this._ignored_class = null; // Used by score shards to ignore entity from which score shards are dropped
+		this._ignore_collisions_with = null; // Used by score shards to ignore entity from which score shards are dropped
+		this.follow = null; // In case of score - score shards might follow player who should receive score, if such player is nearby
 		
 		this._count = 0;
 		this._spread = 0;
@@ -391,9 +400,9 @@ class sdGun extends sdEntity
 			
 			this._sound = sdGun.classes[ this.class ].sound || null;
 			this._sound_pitch = sdGun.classes[ this.class ].sound_pitch || 1;
-
-			if ( this.class === sdGun.CLASS_CRYSTAL_SHARD )
-			this._hea = 5;
+		
+			if ( sdGun.classes[ this.class ].hea !== undefined )
+			this._hea = sdGun.classes[ this.class ].hea;
 
 			if ( this.class !== sdGun.CLASS_CRYSTAL_SHARD && sdGun.classes[ this.class ].spawnable === false ) // Unbuildable guns have 3 minutes to despawn, enough for players to find them if they lost them
 			this.ttl = params.ttl || sdGun.disowned_guns_ttl * 3;
@@ -403,7 +412,18 @@ class sdGun extends sdEntity
 		
 			this.fire_mode = has_class.fire_type || 1; // Adjust fire mode for the weapon
 		}
+		
+		this.SetMethod( 'CollisionFiltering', this.CollisionFiltering ); // Here it used for "this" binding so method can be passed to collision logic
 	}
+	
+	CollisionFiltering( from_entity )
+	{
+		if ( from_entity.IsBGEntity() !== this.IsBGEntity() || !from_entity._hard_collision )
+		return false;
+		
+		return ( this._ignore_collisions_with !== from_entity );
+	}
+	
 	ExtraSerialzableFieldTest( prop )
 	{
 		if ( prop === '_held_item_snapshot' ) return true;
@@ -955,9 +975,9 @@ class sdGun extends sdEntity
 	
 	GetIgnoredEntityClasses()
 	{
-		if ( this._ignored_class )
-		return [ 'sdCharacter', 'sdGun', this._ignored_class ];
-		else
+		//if ( this._ignored_class )
+		//return [ 'sdCharacter', 'sdGun', this._ignored_class ];
+		//else
 		return [ 'sdCharacter', 'sdGun' ];
 	}
 	
@@ -1080,6 +1100,8 @@ class sdGun extends sdEntity
 		
 			this._last_muzzle = this.muzzle;
 		}
+		
+		let allow_hibernation_due_to_logic = true;
 			
 		if ( this._held_by === null || this._held_by._is_being_removed )
 		{
@@ -1104,9 +1126,23 @@ class sdGun extends sdEntity
 			
 			sdWorld.last_hit_entity = null;
 			
+			if ( this._ignore_collisions_with === null )
 			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1 );
+			else
+			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, this.CollisionFiltering );
 			
 			let known_class = sdGun.classes[ this.class ];
+			
+			if ( known_class )
+			{
+				if ( known_class.onThinkOwnerless )
+				{
+					allow_hibernation_due_to_logic = known_class.onThinkOwnerless( this, GSPEED );
+					
+					if ( allow_hibernation_due_to_logic === undefined )
+					throw new Error( 'onThinkOwnerless of gun class should return either true or false, depending whether you want hibernation to be allowed for a gun or not' );
+				}
+			}
 			
 			//if ( this.class === sdGun.CLASS_CRYSTAL_SHARD || this.class === sdGun.CLASS_CUBE_SHARD || is_unknown )
 			if ( is_unknown || known_class.no_tilt )
@@ -1130,6 +1166,7 @@ class sdGun extends sdEntity
 		}
 		
 		if ( sdWorld.is_server )
+		if ( allow_hibernation_due_to_logic )
 		if ( this._held_by && !this._held_by._is_being_removed && ( this.held_by_net_id === this._held_by._net_id && this.held_by_class === this._held_by.GetClass() ) )
 		//if ( !this.IsVisible() ) // Usually means in storage or held by player
 		if ( this.reload_time_left <= 0 )

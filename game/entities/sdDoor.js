@@ -7,6 +7,7 @@ import sdBlock from './sdBlock.js';
 import sdCom from './sdCom.js';
 import sdWater from './sdWater.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdSensorArea from './sdSensorArea.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -182,11 +183,14 @@ class sdDoor extends sdEntity
 		
 		this.model = params.model || 1;
 		
+		this._sensor_area = null;
+		this._entities_within_sensor_area = [];
+		
 		this.filter = params.filter;
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
-		return ( prop === '_shielded' );
+		return ( prop === '_shielded' || prop === '_sensor_area' );
 	}
 	MeasureMatterCost()
 	{
@@ -197,6 +201,38 @@ class sdDoor extends sdEntity
 	Sound( s )
 	{
 		sdSound.PlaySound({ name: ( ( this.model === sdDoor.MODEL_ARMORED || this.model === sdDoor.MODEL_ARMORED_LVL2 ) ? 'a' : '' ) + s, x:this.x, y:this.y, volume: ( this.model === sdDoor.MODEL_ARMORED || this.model === sdDoor.MODEL_ARMORED_LVL2 ) ? 1 : 0.5 });
+	}
+	SensorAreaMovementCallback( from_entity )
+	{
+		if ( this._entities_within_sensor_area.indexOf( from_entity ) === -1 )
+		{
+			let com_near = this.GetComWiredCache();
+			
+			if ( com_near )
+			if (
+				com_near.subscribers.indexOf( from_entity._net_id ) !== -1 || 
+				com_near.subscribers.indexOf( from_entity.biometry ) !== -1 || 
+				com_near.subscribers.indexOf( from_entity.GetClass() ) !== -1 || 
+				( com_near.subscribers.indexOf( '*' ) !== -1 && !from_entity.is_static && from_entity._net_id !== undefined )
+			)
+			{
+				this._entities_within_sensor_area.push( from_entity );
+				
+				this.Open();
+			}
+		}
+	}
+	Open()
+	{
+		if ( this.opening_tim === 0 )
+		{
+			this.Sound( 'door_start' );
+		}
+
+		this.opening_tim = 15;
+		this._update_version++;
+		
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -219,6 +255,27 @@ class sdDoor extends sdEntity
 				
 		if ( com_near )
 		{
+			if ( sdWorld.is_server )
+			{
+				if ( this._sensor_area && !this._sensor_area._is_being_removed )
+				{
+					let tx = this.x0 - 32 - 16;
+					let ty = this.y0 - 32 - 16;
+					if ( this._sensor_area.x !== tx || this._sensor_area.y !== ty )
+					{
+						this._sensor_area.x = tx;
+						this._sensor_area.y = ty;
+						this._sensor_area._update_version++;
+						this._sensor_area.SetHiberState( sdEntity.HIBERSTATE_ACTIVE, false );
+					}
+				}
+				else
+				{
+					this._sensor_area = new sdSensorArea({ x: this.x0 - 32 - 16, y: this.y0 - 32 - 16, w: 64 + 32, h: 64 + 32, on_movement_target: this });
+					sdEntity.entities.push( this._sensor_area );
+				}
+			}
+
 			if ( this.x0 === null ) // undefined
 			{
 				outer2:
@@ -253,47 +310,29 @@ class sdDoor extends sdEntity
 			}
 			else
 			{
-				//let old_array_ptr = this._anything_near;
+				//let ents_near = this.GetAnythingNearCache( this.x0, this.y0, 32, null, null, false );
+				/*let ents_near = this._entities_within_sensor_area;
 				
-				//let ents_near = sdWorld.GetAnythingNear( this.x0, this.y0, 32 );
-				let ents_near = this.GetAnythingNearCache( this.x0, this.y0, 32, null, null, false );
-				
-				/*if ( old_array_ptr !== this._anything_near )
-				for ( let i = 0; i < ents_near.length; i++ )
-				{
-					if ( ents_near[ i ].is_static || ents_near[ i ].is( sdDoor ) || ents_near[ i ]._net_id === undefined ) // skip statics and ones that dont exist on server
-					{
-						ents_near.splice( i, 1 );
-						i--;
-						continue;
-					}
-				}*/
-
 				if ( ents_near.length > 0 )
 				{
-					//let coms_near = this.GetComsNearCache( this.x0, this.y0, null, null, true );
+					for ( let i2 = 0; i2 < ents_near.length; i2++ )
+					{
+						let e = ents_near[ i2 ];
 
-					//outer:
-					//for ( let i = 0; i < coms_near.length; i++ )
-					//if ( com_near )
-					//{
-						for ( let i2 = 0; i2 < ents_near.length; i2++ )
-						//if ( coms_near[ i ].subscribers.indexOf( ents_near[ i2 ]._net_id ) !== -1 || coms_near[ i ].subscribers.indexOf( ents_near[ i2 ].GetClass() ) !== -1 )
-						//if ( com_near.subscribers.indexOf( ents_near[ i2 ]._net_id ) !== -1 || com_near.subscribers.indexOf( ents_near[ i2 ].GetClass() ) !== -1 || com_near.subscribers.indexOf( '*' ) !== -1 )
 						if ( 
-								!ents_near[ i2 ]._is_being_removed &&
+								!e._is_being_removed &&
+								//e.x + e._hitbox_x1 &&
 								(
-									com_near.subscribers.indexOf( ents_near[ i2 ]._net_id ) !== -1 || 
-									com_near.subscribers.indexOf( ents_near[ i2 ].biometry ) !== -1 || 
-									com_near.subscribers.indexOf( ents_near[ i2 ].GetClass() ) !== -1 || 
-									( com_near.subscribers.indexOf( '*' ) !== -1 && !ents_near[ i2 ].is_static && ents_near[ i2 ]._net_id !== undefined )
+									com_near.subscribers.indexOf( e._net_id ) !== -1 || 
+									com_near.subscribers.indexOf( e.biometry ) !== -1 || 
+									com_near.subscribers.indexOf( e.GetClass() ) !== -1 || 
+									( com_near.subscribers.indexOf( '*' ) !== -1 && !e.is_static && e._net_id !== undefined )
 								)
 							)
 						{
 							if ( this.opening_tim === 0 )
 							this.Sound( 'door_start' );
-							//sdSound.PlaySound({ name: ( ( this.model === sdDoor.MODEL_ARMORED || this.model === sdDoor.MODEL_ARMORED_LVL2  ) ? 'a' : '' ) + 'door_start', x:this.x, y:this.y, volume:0.5 });
-							
+
 							this.opening_tim = 15;
 							this._update_version++;
 							break;// outer;
@@ -304,19 +343,33 @@ class sdDoor extends sdEntity
 							i2--;
 							continue;
 						}
-					//}
-					/*else
-					//if ( coms_near.length === 0 )
+					}
+				}*/
+					
+				for ( let i2 = 0; i2 < this._entities_within_sensor_area.length; i2++ )
+				{
+					let e = this._entities_within_sensor_area[ i2 ];
+					
+					if ( !e._is_being_removed &&
+						 e.x + e._hitbox_x2 >= this._sensor_area.x + this._sensor_area._hitbox_x1 &&
+						 e.x + e._hitbox_x1 <= this._sensor_area.x + this._sensor_area._hitbox_x2 &&
+						 e.y + e._hitbox_y2 >= this._sensor_area.y + this._sensor_area._hitbox_y1 &&
+						 e.y + e._hitbox_y1 <= this._sensor_area.y + this._sensor_area._hitbox_y2
+						)
 					{
-						if ( this.opening_tim === 0 )
-						sdSound.PlaySound({ name:'door_start', x:this.x, y:this.y, volume:0.5 });
-
-						this.opening_tim = 15;
-						this._update_version++;
-					}*/
+					}
+					else
+					{
+						this._entities_within_sensor_area.splice( i2, 1 );
+						i2--;
+						continue;
+					}
 				}
 
-
+				if ( this._entities_within_sensor_area.length > 0 )
+				{
+					this.Open();
+				}
 
 
 				if ( this.opening_tim > 0 && !this.malfunction )
@@ -454,9 +507,18 @@ class sdDoor extends sdEntity
 
 				//console.log( this.x, this.y );
 			}
+			
+			if ( this.opening_tim === 0 && this.openness === 0 && !this.malfunction )
+			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		}
 		else
 		{
+			if ( this._sensor_area )
+			{
+				this._sensor_area.remove();
+				this._sensor_area = null;
+			}
+			
 			if ( this._hea >= this._hmax )
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		}
@@ -690,7 +752,11 @@ class sdDoor extends sdEntity
 			}
 		}*/
 	}
-	onRemove() // Class-specific, if needed
+	onRemove()
+	{
+		this.onRemoveAsFakeEntity();
+	}
+	onRemoveAsFakeEntity() // Class-specific, if needed
 	{
 		/*if ( sdWorld.is_server )
 		{
@@ -699,6 +765,9 @@ class sdDoor extends sdEntity
 			if ( nears[ i ] instanceof sdWater )
 			nears[ i ]._sleep_tim = sdWater.sleep_tim_max;
 		}*/
+						
+		if ( this._sensor_area )
+		this._sensor_area.remove();
 
 		if ( !sdWorld.is_server )
 		if ( this._net_id !== undefined ) // Was ever synced rather than just temporarily object for shop

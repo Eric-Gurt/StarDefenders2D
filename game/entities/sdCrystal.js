@@ -611,92 +611,115 @@ class sdCrystal extends sdEntity
 		if ( this.held_by.ModifyHeldCrystalFilter )
 		filter_brightness_effect = ( f )=>{ return this.held_by.ModifyHeldCrystalFilter( f ) };
 		
-		//if ( this.should_draw === 1 )
-		if ( this.held_by === null || attached )
+		const setFilter = ( crystal_hue_filter )=>
 		{
-			if ( this.type === sdCrystal.TYPE_CRYSTAL || this.type === sdCrystal.TYPE_CRYSTAL_CORRUPTED || this.type === sdCrystal.TYPE_CRYSTAL_ARTIFICIAL )
-			{
-				if ( this.type === sdCrystal.TYPE_CRYSTAL_ARTIFICIAL )
-				ctx.drawImageFilterCache( sdCrystal.img_crystal_artificial_empty, - 16, - 16, 32, 32 );
-				else
-				ctx.drawImageFilterCache( sdCrystal.img_crystal_empty, - 16, - 16, 32, 32 );
-		
-				ctx.filter = filter_brightness_effect( sdWorld.GetCrystalHue( this.matter_max ) );
+			let f = crystal_hue_filter;
 
-				if ( this.matter_max === sdCrystal.anticrystal_value )
-				ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
-				else
-				ctx.globalAlpha = this.matter / this.matter_max;
-		
-				if ( this.type === sdCrystal.TYPE_CRYSTAL_ARTIFICIAL )
-				ctx.drawImageFilterCache( sdCrystal.img_crystal_artificial, - 16, - 16, 32, 32 );
-				else
-				ctx.drawImageFilterCache( sdCrystal.img_crystal, - 16, - 16, 32, 32 );
-		
-				ctx.globalAlpha = 1;
-				ctx.filter = 'none';
-				
-				if ( this.type === sdCrystal.TYPE_CRYSTAL_CORRUPTED )
-				{
-					ctx.drawImageFilterCache( sdCrystal.img_crystal_corrupted, - 16, - 16, 32, 32 );
-				}
-			}
+			if ( this.matter_regen <= 5 )
+			f += 'saturate(0.15) hue-rotate(-20deg)';
 			else
-			if ( this.type === sdCrystal.TYPE_CRYSTAL_BIG )
-			{
-				ctx.drawImageFilterCache( sdCrystal.img_crystal_cluster2_empty, - 24, - 24, 48, 48 );
-		
-				ctx.filter = filter_brightness_effect( sdWorld.GetCrystalHue( this.matter_max / 4 ) );
+			if ( this.matter_regen <= 33 )
+			f += 'saturate(0.5) hue-rotate(-20deg)';
+			else
+			if ( this.matter_regen > 133 )
+			f += 'saturate(2) brightness(1.5)';
 
-				if ( this.matter_max === sdCrystal.anticrystal_value * 4 )
-				ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
-				else
-				ctx.globalAlpha = this.matter / this.matter_max;
+			ctx.filter = filter_brightness_effect( f );
+		};
 		
-				ctx.drawImageFilterCache( sdCrystal.img_crystal_cluster2, - 24, - 24, 48, 48 );
-		
-				ctx.globalAlpha = 1;
-				ctx.filter = 'none';
-			}
-			else
-			if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
+		//for ( let test = 0; test < 3; test++ )
+		{
+			if ( this.held_by === null || attached )
 			{
-				ctx.scale( -this.side, 1 );
-				
-				let frame = 0;
-				
-				if ( this.walk_direction !== 0 && this.attack_anim <= 0 )
+				if ( this.type === sdCrystal.TYPE_CRYSTAL || this.type === sdCrystal.TYPE_CRYSTAL_CORRUPTED || this.type === sdCrystal.TYPE_CRYSTAL_ARTIFICIAL )
 				{
-					frame = [ 0, 1, 0, 2 ][ ~~( Math.abs( this.walk_direction / 4 ) % 4 ) ];
+					if ( this.type === sdCrystal.TYPE_CRYSTAL_ARTIFICIAL )
+					ctx.drawImageFilterCache( sdCrystal.img_crystal_artificial_empty, - 16, - 16, 32, 32 );
+					else
+					ctx.drawImageFilterCache( sdCrystal.img_crystal_empty, - 16, - 16, 32, 32 );
+
+					//ctx.filter = filter_brightness_effect( sdWorld.GetCrystalHue( this.matter_max ) );
+					setFilter( sdWorld.GetCrystalHue( this.matter_max ) );
+
+					if ( this.matter_max === sdCrystal.anticrystal_value )
+					ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
+					else
+					ctx.globalAlpha = this.matter / this.matter_max;
+
+					if ( this.type === sdCrystal.TYPE_CRYSTAL_ARTIFICIAL )
+					ctx.drawImageFilterCache( sdCrystal.img_crystal_artificial, - 16, - 16, 32, 32 );
+					else
+					ctx.drawImageFilterCache( sdCrystal.img_crystal, - 16, - 16, 32, 32 );
+
+					ctx.globalAlpha = 1;
+					ctx.filter = 'none';
+
+					if ( this.type === sdCrystal.TYPE_CRYSTAL_CORRUPTED )
+					{
+						ctx.drawImageFilterCache( sdCrystal.img_crystal_corrupted, - 16, - 16, 32, 32 );
+					}
 				}
 				else
-				if ( this.blink )
-				frame = 3;
-				else
-				if ( this.attack_anim > 0 )
-				frame = 4
-				
-				if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB )
-				ctx.drawImageFilterCache( sdCrystal.img_crystal_crab, frame*32,32,32,32, - 16, - 16, 32,32 );
-				else
-				ctx.drawImageFilterCache( sdCrystal.img_crystal_crab_big, frame*48,48,48,48, - 24, - 24, 48,48 );
-				
-				ctx.filter = filter_brightness_effect( sdWorld.GetCrystalHue( (this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ) ? this.matter_max / 4: this.matter_max, 0.75, 'aa' ) );
+				if ( this.type === sdCrystal.TYPE_CRYSTAL_BIG )
+				{
+					ctx.drawImageFilterCache( sdCrystal.img_crystal_cluster2_empty, - 24, - 24, 48, 48 );
 
-				if ( ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB && this.matter_max === sdCrystal.anticrystal_value ) || ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG && this.matter_max === sdCrystal.anticrystal_value * 4 ) )
-				ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
+					//ctx.filter = filter_brightness_effect( sdWorld.GetCrystalHue( this.matter_max / 4 ) );
+					setFilter( sdWorld.GetCrystalHue( this.matter_max / 4 ) );
+
+					if ( this.matter_max === sdCrystal.anticrystal_value * 4 )
+					ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
+					else
+					ctx.globalAlpha = this.matter / this.matter_max;
+
+					ctx.drawImageFilterCache( sdCrystal.img_crystal_cluster2, - 24, - 24, 48, 48 );
+
+					ctx.globalAlpha = 1;
+					ctx.filter = 'none';
+				}
 				else
-				ctx.globalAlpha = this.matter / this.matter_max;
-				
-				if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB )
-				ctx.drawImageFilterCache( sdCrystal.img_crystal_crab, frame*32,0,32,32, - 16, - 16, 32,32 );
-				else
-				ctx.drawImageFilterCache( sdCrystal.img_crystal_crab_big, frame*48,0,48,48, - 24, - 24, 48,48 );
-		
-				ctx.globalAlpha = 1;
-				ctx.filter = 'none';
+				if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
+				{
+					ctx.scale( -this.side, 1 );
+
+					let frame = 0;
+
+					if ( this.walk_direction !== 0 && this.attack_anim <= 0 )
+					{
+						frame = [ 0, 1, 0, 2 ][ ~~( Math.abs( this.walk_direction / 4 ) % 4 ) ];
+					}
+					else
+					if ( this.blink )
+					frame = 3;
+					else
+					if ( this.attack_anim > 0 )
+					frame = 4;
+
+					if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB )
+					ctx.drawImageFilterCache( sdCrystal.img_crystal_crab, frame*32,32,32,32, - 16, - 16, 32,32 );
+					else
+					ctx.drawImageFilterCache( sdCrystal.img_crystal_crab_big, frame*48,48,48,48, - 24, - 24, 48,48 );
+
+					//ctx.filter = filter_brightness_effect( sdWorld.GetCrystalHue( (this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ) ? this.matter_max / 4: this.matter_max, 0.75, 'aa' ) );
+					setFilter( sdWorld.GetCrystalHue( (this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ) ? this.matter_max / 4: this.matter_max, 0.75, 'aa' ) );
+
+					if ( ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB && this.matter_max === sdCrystal.anticrystal_value ) || ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG && this.matter_max === sdCrystal.anticrystal_value * 4 ) )
+					ctx.globalAlpha = 0.8 + Math.sin( sdWorld.time / 3000 ) * 0.1;
+					else
+					ctx.globalAlpha = this.matter / this.matter_max;
+
+					if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB )
+					ctx.drawImageFilterCache( sdCrystal.img_crystal_crab, frame*32,0,32,32, - 16, - 16, 32,32 );
+					else
+					ctx.drawImageFilterCache( sdCrystal.img_crystal_crab_big, frame*48,0,48,48, - 24, - 24, 48,48 );
+
+					ctx.globalAlpha = 1;
+					ctx.filter = 'none';
+				}
+
 			}
-		
+			
+			//ctx.translate( 0, -16 );
 		}
 	}
 	onBeforeRemove() // Class-specific, if needed

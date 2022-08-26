@@ -773,8 +773,8 @@ class sdAtlasMaterial
 	{
 		sdAtlasMaterial.preview_offset = 0;
 		
-		sdAtlasMaterial.super_texture_width = 1024;
-		sdAtlasMaterial.super_texture_height = 1024;
+		sdAtlasMaterial.super_texture_width = 2048;
+		sdAtlasMaterial.super_texture_height = 2048;
 		
 		sdAtlasMaterial.maximum_dots_per_super_texture = 65535;//2048;
 		

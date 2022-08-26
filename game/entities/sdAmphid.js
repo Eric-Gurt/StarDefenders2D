@@ -115,8 +115,7 @@ class sdAmphid extends sdEntity
 		{
 			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
 
-			if ( initiator )
-			initiator.GiveScore( sdEntity.SCORE_REWARD_EASY_MOB, this );
+			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_EASY_MOB );
 		}
 		
 		if ( this._hea < -this.hmax / 80 * 100 )

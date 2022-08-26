@@ -176,6 +176,15 @@ class sdLongRangeTeleport extends sdEntity
 	{
 		return this.is_server_teleport ? Infinity : ( this.hmax * sdWorld.damage_to_matter + 300 );
 	}
+	onThinkFrozen( GSPEED )
+	{
+		if ( this.is_server_teleport )
+		this.onThink( GSPEED );
+		else
+		{
+			super.onThinkFrozen( GSPEED );
+		}
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( !sdWorld.is_server )

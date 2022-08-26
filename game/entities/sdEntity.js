@@ -1,6 +1,8 @@
 
 
 
+/* global sdSound */
+
 import sdWorld from '../sdWorld.js';
 //import sdSound from '../sdSound.js';
 //import sdEffect from './sdEffect.js';
@@ -311,8 +313,23 @@ class sdEntity
 	{
 		return false;
 	}
-	GiveScore( amount, killed_entity=null )
+	GiveScore( amount, killed_entity=null, allow_partial_drop=true )
 	{
+	}
+	GiveScoreToLastAttacker( amount )
+	{
+		if ( sdWorld.time < this._last_attacker_until )
+		{
+			let attacker = null;
+		
+			attacker = sdEntity.entities_by_net_id_cache_map.get( this._last_attacker_net_id );
+		
+			if ( attacker )
+			if ( attacker._is_being_removed || ( attacker.hea || attacker._hea || 0 ) <= 0 || !attacker.IsPlayerClass() )
+			attacker = null;
+
+			sdWorld.GiveScoreToPlayerEntity( amount, this, true, attacker );
+		}
 	}
 	
 	GetAccurateDistance( xx, yy ) // Used on client-side when right clicking on cables (also during cursor hovering for context menu and hint), also on server when distance between cable and player is measured
@@ -1028,6 +1045,13 @@ class sdEntity
 
 				const self_effect_scale = 1;
 				this.ImpactWithDamageEffect( Math.abs( this.sy - old_sy_real ) * ( 1 + bounce_intensity ) * self_effect_scale * impact_scale );
+				
+				if ( this.IsPlayerClass() )
+				//if ( this._socket )
+				if ( this.act_y < 0 )
+				{
+					this.sy = -5;
+				}
 			}
 
 			if ( debug )
@@ -2171,6 +2195,9 @@ class sdEntity
 		
 		this.x = params.x || 0;
 		this.y = params.y || 0;
+	
+		this._last_attacker_net_id = -1;
+		this._last_attacker_until = 0;
 		
 		if ( this.is_static )
 		this._update_version = 0;
@@ -2535,6 +2562,7 @@ class sdEntity
 					
 					if ( v === sdEntity.HIBERSTATE_REMOVED )
 					{
+						if ( sdWorld.is_server )
 						if ( this.IsGlobalEntity() )
 						debugger;
 					}
@@ -2563,6 +2591,7 @@ class sdEntity
 				else
 				if ( v === sdEntity.HIBERSTATE_ACTIVE )
 				{
+					if ( sdWorld.is_server )
 					if ( this.IsGlobalEntity() )
 					{
 						debugger;
@@ -2763,7 +2792,8 @@ class sdEntity
 							debugger;*/
 						
 						//if ( typeof this[ prop ] === 'object' && typeof this[ prop ]._net_id !== 'undefined' && typeof this[ prop ].constructor !== 'undefined' ) Last condition never happens
-						if ( typeof this[ prop ] === 'object' && typeof this[ prop ]._net_id !== 'undefined' /*&& typeof this[ prop ]._class !== 'undefined'*/ )
+						//if ( typeof this[ prop ] === 'object' && typeof this[ prop ]._net_id !== 'undefined' /*&& typeof this[ prop ]._class !== 'undefined'*/ )
+						if ( v instanceof sdEntity && this[ prop ]._net_id !== 'undefined' ) // We should allow snapshots as properties, needed for case of _held_item_snapshot of sdGun (liquid carriers used to lose their water when put into storages)
 						{
 							
 							//this._snapshot_cache_frame = -1;
@@ -3894,6 +3924,21 @@ class sdEntity
 		
 		if ( sdWorld.is_server || sdWorld.is_singleplayer )
 		{
+			if ( initiator )
+			{
+				if ( dmg > 0 )
+				{
+						this._last_attacker_net_id = initiator._net_id;
+						this._last_attacker_until = sdWorld.time + 7000;
+				}
+				else
+				{
+					this._last_attacker_net_id = -1;
+					this._last_attacker_until = 0;
+				}			
+			}
+
+
 			if ( !sdStatusEffect )
 			sdStatusEffect = sdWorld.entity_classes.sdStatusEffect;
 		

@@ -517,6 +517,7 @@ class sdModeration
 					
 					sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_REMOVER }) );
 					sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_TELEPORTER }) );
+					sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_DAMAGER }) );
 					
 					socket.character.InstallUpgrade( 'upgrade_jetpack' );
 					socket.character.InstallUpgrade( 'upgrade_hook' );

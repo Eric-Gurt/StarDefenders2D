@@ -9,6 +9,7 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdGun from './sdGun.js';
 import sdBlock from './sdBlock.js';
+import sdGrass from './sdGrass.js';
 import sdDoor from './sdDoor.js';
 import sdBG from './sdBG.js';
 //import sdCommandCentre from './sdCommandCentre.js';
@@ -153,9 +154,10 @@ class sdSteeringWheel extends sdEntity
 
 									|| 
 
-									( !ent2.onThink.has_ApplyVelocityAndCollisions && ent2.IsBGEntity() === 0 ) // Ignore physical entities that will be pushed
+									( !ent2.onThink.has_ApplyVelocityAndCollisions && ent2.IsBGEntity() === 0 && !ent2.is( sdBlock ) && !ent2.is( sdGrass ) ) // Ignore physical entities that will be pushed
 
 								)
+							//if ( !ent2.onThink.has_ApplyVelocityAndCollisions && ent2.IsBGEntity() === 0 ) // Ignore physical entities that will be pushed
 							{
 								active.push( ent2 );
 								collected.push( ent2 );

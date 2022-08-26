@@ -534,8 +534,12 @@ class sdStatusEffect extends sdEntity
 			{
 				if ( sdWorld.is_server )
 				if ( status_entity.for )
-				if ( typeof status_entity.for._update_version !== 'undefined' ) // Happens rarely
-				status_entity.for._update_version++;
+				{
+					if ( typeof status_entity.for._update_version !== 'undefined' ) // Happens rarely
+					status_entity.for._update_version++;
+				
+					status_entity.for.SetHiberState( sdEntity.HIBERSTATE_ACTIVE, false );
+				}
 			},
 			
 			onThink: ( status_entity, GSPEED )=>
@@ -568,6 +572,8 @@ class sdStatusEffect extends sdEntity
 					
 					if ( typeof status_entity.for._update_version !== 'undefined' ) // Happens rarely
 					status_entity.for._update_version++;
+				
+					status_entity.for.SetHiberState( sdEntity.HIBERSTATE_ACTIVE, false );
 				
 					status_entity._update_version++;
 				}

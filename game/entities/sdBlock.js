@@ -85,11 +85,13 @@ class sdBlock extends sdEntity
 		sdBlock.textures = [];
 		
 		let tc = 0;
-		SpawnSizes( sdBlock.TEXTURE_ID_WALL = tc++,		'wall',			4 );
-		SpawnSizes( sdBlock.TEXTURE_ID_PORTAL = tc++,	'wall_portal',	5 );
-		SpawnSizes( sdBlock.TEXTURE_ID_CAGE = tc++,		'wall_cage',	0 );
-		SpawnSizes( sdBlock.TEXTURE_ID_GLASS = tc++,	'wall_glass',	1 );
-		SpawnSizes( sdBlock.TEXTURE_ID_GREY = tc++,		'wall_grey',	2 );
+		SpawnSizes( sdBlock.TEXTURE_ID_WALL = tc++,					'wall',				4 );
+		SpawnSizes( sdBlock.TEXTURE_ID_PORTAL = tc++,				'wall_portal',		5 );
+		SpawnSizes( sdBlock.TEXTURE_ID_CAGE = tc++,					'wall_cage',		0 );
+		SpawnSizes( sdBlock.TEXTURE_ID_GLASS = tc++,				'wall_glass',		1 );
+		SpawnSizes( sdBlock.TEXTURE_ID_GREY = tc++,					'wall_grey',		2 );
+		SpawnSizes( sdBlock.TEXTURE_ID_REINFORCED_LVL1 = tc++,		'wall_lvl1_2x2',	3 );
+		SpawnSizes( sdBlock.TEXTURE_ID_REINFORCED_LVL2 = tc++,		'wall_lvl2_2x2',	3 );
 		// TODO: Rework other walls like this. Also - important to standartise all reinforced blocks as well as extra reinforcements through items
 		
 
@@ -117,7 +119,7 @@ class sdBlock extends sdEntity
 		
 		sdBlock.img_corruption = sdWorld.CreateImageFromFile( 'corruption' );
 		sdBlock.img_crystal_shards = sdWorld.CreateImageFromFile( 'crystal_shards' );
-		sdBlock.img_flesh = sdWorld.CreateImageFromFile( 'flesh2' );
+		sdBlock.img_flesh = sdWorld.CreateImageFromFile( 'flesh5' );
 		
 		sdBlock.img_trapshield11 = sdWorld.CreateImageFromFile( 'trapshield_1x1' );
 		sdBlock.img_trapshield05 = sdWorld.CreateImageFromFile( 'trapshield_half' );
@@ -251,10 +253,10 @@ class sdBlock extends sdEntity
 	
 	Impact( vel ) // fall damage basically
 	{
-		if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 || this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
+		/*if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 || this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
 		{
 		}
-		else
+		else*/
 		if ( vel > 6 ) // For new mass-based model
 		{
 			this.DamageWithEffect( ( vel - 3 ) * 15 );
@@ -316,14 +318,12 @@ class sdBlock extends sdEntity
 			{
 				if ( this.material === sdBlock.MATERIAL_CORRUPTION )
 				{
-					if ( initiator )
-					initiator.GiveScore( sdEntity.SCORE_REWARD_EASY_MOB, this );
+					this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_EASY_MOB );
 				}
 
 				if ( this.material === sdBlock.MATERIAL_FLESH )
 				{
-					if ( initiator )
-					initiator.GiveScore( sdEntity.SCORE_REWARD_EASY_MOB, this );
+					this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_EASY_MOB );
 				}
 
 				if ( this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
@@ -707,6 +707,10 @@ class sdBlock extends sdEntity
 		
 		ent2._hmax = 480; // Fixed health values regardless how deep it is
 		ent2._hea = 480;
+	}
+	GetBleedEffect()
+	{
+		return ( this.material === sdBlock.MATERIAL_FLESH ) ? sdEffect.TYPE_BLOOD : sdEffect.TYPE_WALL_HIT;
 	}
 	//RequireSpawnAlign() 
 	//{ return true; }
@@ -1092,7 +1096,9 @@ class sdBlock extends sdEntity
 			ctx.drawImageFilterCache( sdBlock.img_flesh, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
 		}
 		else
-		if ( this.material === sdBlock.MATERIAL_WALL )
+		if ( this.material === sdBlock.MATERIAL_WALL ||
+			 this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 || // We probably no longer need 2 kinds of these if we could just switch texture
+			 this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
 		{
 			let img = sdBlock.textures[ this.texture_id ][ w + 'x' + h ];
 			if ( img )
@@ -1129,7 +1135,7 @@ class sdBlock extends sdEntity
 		
 		
 		}
-		else
+		/*else
 		if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 )
 		{
 			if ( w === 32 && h === 32 )
@@ -1168,7 +1174,7 @@ class sdBlock extends sdEntity
 			ctx.drawImageFilterCache( sdBlock.img_lvl2_wall05, 0, 0, w,h, 0,0, w,h );
 			else
 			ctx.drawImageFilterCache( sdBlock.img_lvl2_wall22, 0, 0, w,h, 0,0, w,h );
-		}
+		}*/
 		else
 		if ( this.material === sdBlock.MATERIAL_SHARP )
 		{
@@ -1273,7 +1279,7 @@ class sdBlock extends sdEntity
 					x:this.x + this.width / 2, 
 					y:this.y + this.height / 2, 
 					volume:( this.width / 32 ) * ( this.height / 32 ), 
-					pitch: ( this.material === sdBlock.MATERIAL_CORRUPTION ) ? 0.4 : ( this.material === sdBlock.MATERIAL_WALL || this.material === sdBlock.MATERIAL_SHARP ) ? 1 : 1.5,
+					pitch: ( this.material === sdBlock.MATERIAL_FLESH ) ? 4 : ( this.material === sdBlock.MATERIAL_CORRUPTION ) ? 0.4 : ( this.material === sdBlock.MATERIAL_WALL || this.material === sdBlock.MATERIAL_SHARP ) ? 1 : 1.5,
 					_server_allowed:true });
 
 				let x,y,a,s;

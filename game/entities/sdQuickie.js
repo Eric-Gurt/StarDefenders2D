@@ -128,8 +128,7 @@ class sdQuickie extends sdEntity
 		{
 			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
 
-			if ( initiator )
-			initiator.GiveScore( sdEntity.SCORE_REWARD_EASY_MOB, this );
+			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_EASY_MOB );
 		}
 		
 		if ( this._hea < -this._hmax / 80 * 100 || ( this._hea < 0 && this._tier === 2 ) ) // used to be only " ||this._tier === 2 " which resulted in instant death for Crystal Quickies, unintentional - Booraz
@@ -369,8 +368,8 @@ class sdQuickie extends sdEntity
 				//console.warn( { x: this.x, y: this.y, type:sdEffect.TYPE_GIB, sx: this.sx + Math.sin(a)*s, sy: this.sy + Math.cos(a)*s } )
 				if ( this._tier !== 2 )
 				{
-					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter() });
-					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter() });
+					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
+					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
 				}
 				else
 				{

@@ -43,6 +43,7 @@ var socket = io( '/', {
 
 } );
 
+
 globalThis.socket_io_crashed = false;
 
 socket.on("connect_error", (err) => 

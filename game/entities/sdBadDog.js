@@ -196,9 +196,8 @@ class sdBadDog extends sdEntity
 		{
 			sdSound.PlaySound({ name:'bad_dog_death', x:this.x, y:this.y, volume: 0.5 });
 
-			if ( this.master )
-			if ( initiator )
-			initiator.GiveScore( sdEntity.SCORE_REWARD_AVERAGE_MOB, this );
+			if ( !this.master )
+			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_AVERAGE_MOB );
 		}
 		else
 		if ( this.hea > 0 )

@@ -298,7 +298,7 @@ class sdSound
 		sdSound.hover_loop.volume = Math.min( 1, sdSound.hover_loop_volume_last * sdSound.volume_ambient );
 		
 		sdSound.amplifier_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.amplifier_loop_volume_last, count_amplifier_loop, 0.8, GSPEED );
-		sdSound.amplifier_loop.volume = Math.min( 1, Math.min( 2, sdSound.amplifier_loop_volume_last ) * sdSound.volume_ambient );
+		sdSound.amplifier_loop.volume = Math.min( 1, Math.min( 1.25, sdSound.amplifier_loop_volume_last ) * sdSound.volume_ambient );
 		
 		sdSound.lava_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.lava_loop_volume_last, count_lava_loop, 0.8, GSPEED );
 		sdSound.lava_loop.volume = Math.min( 1, Math.min( 1.5, sdSound.lava_loop_volume_last ) * sdSound.volume_ambient );
