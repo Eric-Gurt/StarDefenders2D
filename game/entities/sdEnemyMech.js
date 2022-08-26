@@ -455,7 +455,7 @@ class sdEnemyMech extends sdEntity
 
 					//let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 800 );
 					//let targets_raw = sdWorld.GetCharactersNear( this.x, this.y, null, null, 800 );
-					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdEnemyMech.attack_range, null, [ 'sdCharacter', 'sdTurret' , 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdSetrDestroyer', 'sdOverlord' ] );
+					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdEnemyMech.attack_range, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret' , 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdSetrDestroyer', 'sdOverlord' ] );
 
 					let targets = [];
 
@@ -464,6 +464,7 @@ class sdEnemyMech extends sdEntity
 						 ( targets_raw[ i ].GetClass() === 'sdTurret' ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdOverlord' ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdSetrDestroyer' ) ||
+						 ( targets_raw[ i ].GetClass() === 'sdPlayerOverlord' ) ||
 						( targets_raw[ i ].GetClass() === 'sdCommandCentre' ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdCube' && targets_raw[ i ].hea > 0 ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdCube' && this.hea < ( this._hmax / 3 ) ) ||

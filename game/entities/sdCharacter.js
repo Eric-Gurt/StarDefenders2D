@@ -862,6 +862,10 @@ class sdCharacter extends sdEntity
 			if ( sdWorld.last_hit_entity._ai_team !== this._ai_team )
 			found_enemy = true;
 
+			if ( sdWorld.last_hit_entity.GetClass() === 'sdPlayerDrone' || sdWorld.last_hit_entity.GetClass() === 'sdPlayerOverlord' )
+			if ( this._ai_team !== 0 )
+			found_enemy = true;
+
 			if (	sdWorld.last_hit_entity.GetClass() === 'sdAmphid' || 
 					sdWorld.last_hit_entity.GetClass() === 'sdAsp' || 
 					sdWorld.last_hit_entity.GetClass() === 'sdBadDog' || 
