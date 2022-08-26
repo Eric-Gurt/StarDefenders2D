@@ -14,6 +14,8 @@ class sdGrub extends sdEntity
 {
 	static init_class()
 	{
+		sdGrub.img_grub = sdWorld.CreateImageFromFile( 'sdGrub' );
+		/*
 		sdGrub.img_grub_idle1 = sdWorld.CreateImageFromFile( 'grub_idle' );
 		sdGrub.img_grub_walk1 = sdWorld.CreateImageFromFile( 'grub_walk1' );
 		sdGrub.img_grub_walk2 = sdWorld.CreateImageFromFile( 'grub_walk2' );
@@ -25,6 +27,7 @@ class sdGrub extends sdEntity
 			sdWorld.CreateImageFromFile( 'grub_death3' ),
 			sdWorld.CreateImageFromFile( 'grub_death4' )
 		];
+		*/
 		sdGrub.death_duration = 20;
 		sdGrub.post_death_ttl = 120;
 		
@@ -344,6 +347,9 @@ class sdGrub extends sdEntity
 		ctx.filter = this.filter;
 		
 		ctx.scale( this.side, 1 );
+
+		let xx = 0;
+		let yy = 0;
 		
 		if ( this.death_anim > 0 )
 		{
@@ -351,9 +357,12 @@ class sdGrub extends sdEntity
 			{
 				ctx.globalAlpha = 0.5;
 			}
+
+			xx = Math.min( 4 - 1, ~~( ( this.death_anim / sdGrub.death_duration ) * 4 ) );
+			yy = 1;
 			
-			let frame = Math.min( sdGrub.death_imgs.length - 1, ~~( ( this.death_anim / sdGrub.death_duration ) * sdGrub.death_imgs.length ) );
-			ctx.drawImageFilterCache( sdGrub.death_imgs[ frame ], - 16, - 16, 32,32 );
+			//let frame = Math.min( sdGrub.death_imgs.length - 1, ~~( ( this.death_anim / sdGrub.death_duration ) * sdGrub.death_imgs.length ) );
+			//ctx.drawImageFilterCache( sdGrub.death_imgs[ frame ], - 16, - 16, 32,32 );
 		}
 		else
 		{
@@ -361,18 +370,22 @@ class sdGrub extends sdEntity
 			//if ( sdWorld.time < this.last_jump + 400 ) // This approach would work better for in-place jumps
 			if ( this.time_since_jump < 400 / 1000 * 30 )
 			{
-				ctx.drawImageFilterCache( ( this.time_since_jump < 200 / 1000 * 30 ) ? sdGrub.img_grub_walk1 : sdGrub.img_grub_walk2, - 16, - 16, 32,32 );
+				xx = Math.min( ( this.time_since_jump < 200 / 1000 * 30 ) ? 1 : 2 );
+				//ctx.drawImageFilterCache( ( this.time_since_jump < 200 / 1000 * 30 ) ? sdGrub.img_grub_walk1 : sdGrub.img_grub_walk2, - 16, - 16, 32,32 );
 				//ctx.drawImageFilterCache( ( sdWorld.time < this.last_jump + 200 ) ? sdGrub.img_grub_walk1 : sdGrub.img_grub_walk2, - 16, - 16, 32,32 );
 			}
 			else
 			{
-				ctx.drawImageFilterCache( sdGrub.img_grub_idle1, - 16, - 16, 32,32 );
+				xx = 0;
+				//ctx.drawImageFilterCache( sdGrub.img_grub_idle1, - 16, - 16, 32,32 );
 				
 				/*for ( let i = 0; i < 3; i++ )
 				if ( this.blinks[ i ] )
 				ctx.drawImageFilterCache( sdGrub.img_slug_blinks[ i ], - 16, - 16, 32,32 );*/
 			}
 		}
+
+		ctx.drawImageFilterCache( sdGrub.img_grub, xx * 32, yy * 32, 32,32, -16, -16, 32,32 );
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';

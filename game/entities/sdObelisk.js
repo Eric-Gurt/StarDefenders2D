@@ -16,9 +16,10 @@ class sdObelisk extends sdEntity
 {
 	static init_class()
 	{
-		sdObelisk.img_obelisk1 = sdWorld.CreateImageFromFile( 'obelisk1' );
+		sdObelisk.img_obelisk = sdWorld.CreateImageFromFile( 'obelisk' );
+		/*sdObelisk.img_obelisk1 = sdWorld.CreateImageFromFile( 'obelisk1' );
 		sdObelisk.img_obelisk2 = sdWorld.CreateImageFromFile( 'obelisk2' );
-		sdObelisk.img_obelisk3 = sdWorld.CreateImageFromFile( 'obelisk3' );
+		sdObelisk.img_obelisk3 = sdWorld.CreateImageFromFile( 'obelisk3' );*/
 		sdObelisk.img_obelisk4 = sdWorld.CreateImageFromFile( 'obelisk4' );
 		sdObelisk.img_obelisk5 = sdWorld.CreateImageFromFile( 'obelisk5' ); // Sprite by PeacyQuack
 		sdObelisk.img_obelisk6 = sdWorld.CreateImageFromFile( 'obelisk6' );
@@ -176,26 +177,26 @@ class sdObelisk extends sdEntity
 	{
 		if ( this.type === 1 )
 		{
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk1, 0, 0, 32, 64, - 16, - 32, 32, 64 ); // Regular obelisk sprite
+		ctx.drawImageFilterCache( sdObelisk.img_obelisk, 0, 0, 32, 64, - 16, - 32, 32, 64 ); // Regular obelisk sprite
 		ctx.globalAlpha = this.glow_animation / 60;
 		ctx.filter = ' drop-shadow(0px 0px 6px #FFFFFF)';
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk1, 32, 0, 32, 64, - 16, - 32, 32, 64 ); // Obelisk glow
+		ctx.drawImageFilterCache( sdObelisk.img_obelisk, 32, 0, 32, 64, - 16, - 32, 32, 64 ); // Obelisk glow
 		}
 
 		if ( this.type === 2 )
 		{
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk2, 0, 0, 32, 64, - 16, - 32, 32, 64 ); // Regular obelisk sprite
+		ctx.drawImageFilterCache( sdObelisk.img_obelisk, 0, 0, 32, 64, - 16, - 32, 32, 64 ); // Regular obelisk sprite
 		ctx.globalAlpha = this.glow_animation / 60;
 		ctx.filter = ' drop-shadow(0px 0px 6px #FFFFFF)';
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk2, 32, 0, 32, 64, - 16, - 32, 32, 64 ); // Obelisk glow
+		ctx.drawImageFilterCache( sdObelisk.img_obelisk, 64, 0, 32, 64, - 16, - 32, 32, 64 ); // Obelisk glow
 		}
 
 		if ( this.type === 3 )
 		{
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk3, 0, 0, 32, 64, - 16, - 32, 32, 64 );
+		ctx.drawImageFilterCache( sdObelisk.img_obelisk, 0, 0, 32, 64, - 16, - 32, 32, 64 ); // Regular obelisk sprite
 		ctx.globalAlpha = this.glow_animation / 60;
 		ctx.filter = ' drop-shadow(0px 0px 6px #FFFFFF)';
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk3, 32, 0, 32, 64, - 16, - 32, 32, 64 );
+		ctx.drawImageFilterCache( sdObelisk.img_obelisk, 96, 0, 32, 64, - 16, - 32, 32, 64 );
 		}
 
 		if ( this.type === 4 )

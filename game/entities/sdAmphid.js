@@ -14,6 +14,8 @@ class sdAmphid extends sdEntity
 {
 	static init_class()
 	{
+		sdAmphid.img_amphid = sdWorld.CreateImageFromFile( 'sdAmphid' );
+		/*
 		sdAmphid.img_amphid_idle1 = sdWorld.CreateImageFromFile( 'amphid_idle1' );
 		sdAmphid.img_amphid_idle2 = sdWorld.CreateImageFromFile( 'amphid_idle2' );
 		sdAmphid.img_amphid_jump = sdWorld.CreateImageFromFile( 'amphid_jump' );
@@ -25,6 +27,7 @@ class sdAmphid extends sdEntity
 			sdWorld.CreateImageFromFile( 'amphid_death4' ),
 			sdWorld.CreateImageFromFile( 'amphid_death5' ),
 		];
+		*/
 		sdAmphid.death_duration = 15;
 		sdAmphid.post_death_ttl = 30* 6;
 		
@@ -306,6 +309,9 @@ class sdAmphid extends sdEntity
 		}
 		
 		ctx.scale( this.side, 1 );
+
+		let xx = 0;
+		let yy = 0;
 		
 		if ( this.death_anim > 0 )
 		{
@@ -313,18 +319,23 @@ class sdAmphid extends sdEntity
 			{
 				ctx.globalAlpha = 0.5;
 			}
+
+			xx = Math.min( 5 - 1, ~~( ( this.death_anim / sdAmphid.death_duration ) * 5 ) );
+			yy = 1;
 			
-			let frame = Math.min( sdAmphid.death_imgs.length - 1, ~~( ( this.death_anim / sdAmphid.death_duration ) * sdAmphid.death_imgs.length ) );
-			ctx.drawImageFilterCache( sdAmphid.death_imgs[ frame ], - 16, - 16, 32,32 );
+			//let frame = Math.min( sdAmphid.death_imgs.length - 1, ~~( ( this.death_anim / sdAmphid.death_duration ) * sdAmphid.death_imgs.length ) );
+			//ctx.drawImageFilterCache( sdAmphid.death_imgs[ frame ], - 16, - 16, 32,32 );
 		}
 		else
 		{
 			if ( Math.abs( this.sx ) > 2 || Math.abs( this.sy ) > 2 )
-			ctx.drawImageFilterCache( sdAmphid.img_amphid_jump, - 16, - 16, 32,32 );
+			xx = 2;
+			//ctx.drawImageFilterCache( sdAmphid.img_amphid_jump, - 16, - 16, 32,32 );
 			else
-			ctx.drawImageFilterCache( ( ( sdWorld.time + this._anim_shift ) % 1600 < 800 ) ? sdAmphid.img_amphid_idle1 : sdAmphid.img_amphid_idle2, - 16, - 16, 32,32 );
-
+			xx = Math.min( ( sdWorld.time + this._anim_shift ) % 1600 < 800 ) ? 0 : 1;
+			//ctx.drawImageFilterCache( ( ( sdWorld.time + this._anim_shift ) % 1600 < 800 ) ? sdAmphid.img_amphid_idle1 : sdAmphid.img_amphid_idle2, - 16, - 16, 32,32 );
 		}
+		ctx.drawImageFilterCache( sdAmphid.img_amphid, xx * 32, yy * 32, 32,32, -16, -16, 32,32 );
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
