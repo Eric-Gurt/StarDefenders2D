@@ -84,7 +84,7 @@ class sdPlayerOverlord extends sdCharacter
 		this._speak_frame = 0;
 		this.speak_forced = false;
 		
-		this._anim_shift = ~~( Math.random() * 10000 );
+		this._anim_shift = 0; ~~( Math.random() * 10000 );
 		
 		this.has_gun = 1;
 		this._droppen_gun_entity = null;
@@ -140,10 +140,10 @@ class sdPlayerOverlord extends sdCharacter
 		this.hea = this.hmax;
 		
 		if ( this.hea > 0 )
-		if ( this.damage > 0 )
+		if ( dmg > 0 )
 		this._regen_timeout = 30 * 3;
 		else
-		if ( this.damage > 0 )
+		if ( dmg > 0 )
 		this._regen_timeout = 30 * 60;
 		
 		if ( this.hea > 0 && !was_alive )
@@ -705,7 +705,7 @@ class sdPlayerOverlord extends sdCharacter
 		if ( draw_arm )
 		draw_arm();
 		
-		if ( this.has_gun )
+		if ( this.has_gun && this.hea > 0 )
 		{
 			ctx.filter = 'none';
 			ctx.save();
