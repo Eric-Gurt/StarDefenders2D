@@ -858,8 +858,18 @@ let is_terminating = false;
 				console.log( sdEntity.entities[ i ].GetClass() + ' has strange position during saving: ' + sdEntity.entities[ i ].x + ', ' + sdEntity.entities[ i ].y + ' (nulls could mean NaNs) - not reporting this class with same kind of error anymore...' );
 				strange_position_classes[ sdEntity.entities[ i ].GetClass() ] = 1;
 			}
+			
+			let ent_snapshot = sdEntity.entities[ i ].GetSnapshot( frame, true );
+			
+			if ( ent_snapshot._affected_hash_arrays !== null )
+			if ( ent_snapshot._affected_hash_arrays instanceof Array )
+			{
+				console.warn( 'Snapshot', ent_snapshot );
+				console.warn( 'Object', sdEntity.entities[ i ] );
+				throw new Error('Strangely, object got non-allowed property.');
+			}
 		
-			entities.push( sdEntity.entities[ i ].GetSnapshot( frame, true ) );
+			entities.push( ent_snapshot );
 		}
 
 

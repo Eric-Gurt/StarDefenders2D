@@ -2662,9 +2662,33 @@ class sdEntity
 					props = [];
 					
 					for ( let prop in this )
-					if ( prop.charAt( 0 ) !== '_' || 
-						 ( save_as_much_as_possible && prop !== '_snapshot_cache_frame' && prop !== '_snapshot_cache' && prop !== '_hiberstate' && prop !== '_last_x' && prop !== '_last_y' && ( typeof this[ prop ] === 'number' || typeof this[ prop ] === 'string' || this[ prop ] === null || typeof this[ prop ] === 'boolean' || this.ExtraSerialzableFieldTest( prop ) ) ) )
+					if ( 
+							prop.charAt( 0 ) !== '_' 
+							|| 
+							( 
+							  save_as_much_as_possible && 
+							  prop !== '_snapshot_cache_frame' && 
+							  prop !== '_snapshot_cache' && 
+							  prop !== '_hiberstate' && 
+							  prop !== '_affected_hash_arrays' && 
+							  prop !== '_last_x' && 
+							  prop !== '_last_y' && 
+							  ( 
+								typeof this[ prop ] === 'number' || 
+								typeof this[ prop ] === 'string' || 
+								this[ prop ] === null || 
+								typeof this[ prop ] === 'boolean' || 
+								this.ExtraSerialzableFieldTest( prop ) 
+							  ) 
+							) 
+						)
 					{
+						if ( prop === '_affected_hash_arrays' )
+						{
+							console.warn( 'Strange object has property "_affected_hash_arrays", which is typeof "'+(typeof this[ prop ])+'": ', this );
+							throw new Error('How? Bad.');
+						}
+						
 						/*if ( prop === '_listeners' )
 						{
 							throw new Error('How? Bad.');
