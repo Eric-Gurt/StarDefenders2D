@@ -27,6 +27,7 @@ import sdArea from './entities/sdArea.js';
 import sdPlayerDrone from './entities/sdPlayerDrone.js';
 import sdQuadro from './entities/sdQuadro.js';
 import sdStatusEffect from './entities/sdStatusEffect.js';
+import sdPlayerOverlord from './entities/sdPlayerOverlord.js';
 
 
 import sdRenderer from './client/sdRenderer.js';
@@ -47,7 +48,7 @@ class sdWorld
 		//sdWorld.max_update_rate = 64;
 		sdWorld.max_update_rate = 75; // For weaker servers (more like bandwidth-limited)
 		
-		sdWorld.allowed_player_classes = [ 'sdCharacter', 'sdPlayerDrone' ]; // Options to spawn as
+		sdWorld.allowed_player_classes = [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord' ]; // Options to spawn as
 		
 		sdWorld.server_config = {};
 		
