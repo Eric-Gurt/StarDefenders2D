@@ -177,8 +177,6 @@ class sdTask extends sdEntity
 				
 				task._lrtp_class_proprty_value_array = params.lrtp_class_proprty_value_array || null; // [ Class, property, expected_value ] - should be enough to describe everything, especially if you will make "getters" on required entity.
 				//console.log( task._lrtp_class_proprty_value_array );
-
-				task.extra = params.extra || 0; // For some reasons, I can't get the array to work for context options land scan task, so I'm using this - Booraz149
 				//task._type = params.type || 0; // "Public event task" or regular? If it's set to 1, task will be in active state regardless if player disconnected.
 				
 				if ( task._lrtp_matter_capacity_needed !== -1 )

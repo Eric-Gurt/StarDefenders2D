@@ -1271,7 +1271,7 @@ class sdLongRangeTeleport extends sdEntity
 						{
 							let task = sdTask.tasks[ i ];
 							{
-								if ( task.extra === 1 ) // This variable / property is the only way I got the context option to work, and that's after 6 beers and 3 hours - Booraz149
+								if ( task.title === 'Planet scan' ) // This variable / property is the only way I got the context option to work, and that's after 6 beers and 3 hours - Booraz149
 								{
 									this.AddContextOption( 'Recieve the land scanner', 'CLAIM_SCANNER', [] );
 								}
