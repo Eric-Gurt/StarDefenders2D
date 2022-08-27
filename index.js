@@ -861,6 +861,7 @@ let is_terminating = false;
 			
 			let ent_snapshot = sdEntity.entities[ i ].GetSnapshot( frame, true );
 			
+			/*
 			if ( ent_snapshot._affected_hash_arrays !== null )
 			if ( ent_snapshot._affected_hash_arrays instanceof Array )
 			{
@@ -868,7 +869,19 @@ let is_terminating = false;
 				console.warn( 'Object', sdEntity.entities[ i ] );
 				throw new Error('Strangely, object got non-allowed property.');
 			}
-		
+			*/
+			try
+			{
+				let json_test = JSON.stringify( ent_snapshot );
+			}
+			catch(e)
+			{
+				console.warn( 'Object can not be json-ed! Snapshot likely contains recursion. Error: ', e );
+				
+				console.warn( ent_snapshot );
+				throw new Error( 'Stopping everything because saving is no longer possible...' );
+			}
+		   
 			entities.push( ent_snapshot );
 		}
 
