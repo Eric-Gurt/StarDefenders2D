@@ -9,6 +9,7 @@
 */
 
 import sdWorld from '../sdWorld.js';
+import sdRenderer from './sdRenderer.js';
 
 class sdSpaceDedication
 {
@@ -742,6 +743,8 @@ class sdSuperTexture
 
 				this.dedications.push( dedication );
 				
+				sdAtlasMaterial.images_total_counter++;
+				
 				this.offset_x += w;
 				
 				this.max_line_height = Math.max( this.max_line_height, h );
@@ -773,8 +776,12 @@ class sdAtlasMaterial
 	{
 		sdAtlasMaterial.preview_offset = 0;
 		
-		sdAtlasMaterial.super_texture_width = 2048;
-		sdAtlasMaterial.super_texture_height = 2048;
+		sdAtlasMaterial.images_total_counter = 0;
+		sdAtlasMaterial.textures_total_counter = 0;
+		
+		sdAtlasMaterial.super_texture_width = -1;//2048;
+		sdAtlasMaterial.super_texture_height = -1;//2048;
+		// Will be overriden later ^
 		
 		sdAtlasMaterial.maximum_dots_per_super_texture = 65535;//2048;
 		
@@ -898,6 +905,7 @@ class sdAtlasMaterial
 		}
 		
 		let new_super_texture = new sdSuperTexture( is_transparent_int );
+		sdAtlasMaterial.textures_total_counter++;
 		
 		sdAtlasMaterial.super_textures[ is_transparent_int ].push( new_super_texture );
 		

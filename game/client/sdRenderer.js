@@ -21,6 +21,8 @@ import sdFaceCrab from '../entities/sdFaceCrab.js';
 import sdStatusEffect from '../entities/sdStatusEffect.js';
 import sdCharacter from '../entities/sdCharacter.js';
 
+import sdAtlasMaterial from './sdAtlasMaterial.js';
+
 class sdRenderer
 {
 	static init_class()
@@ -81,7 +83,9 @@ class sdRenderer
 		
 		document.body.insertBefore( canvas, null );
 		
-		sdRenderer._visual_settings = 0;
+		//sdRenderer._visual_settings = 0;
+		sdRenderer.visual_settings = 0; // Still used at some parts of code
+	
 
 		//sdRenderer._dirt_settings = 0; // No longer needed due to new rendering optimizations
 		
@@ -557,7 +561,31 @@ class sdRenderer
 		}
 	}
 	
-	static set visual_settings( v )
+	static InitVisuals()
+	{
+		if ( sdRenderer.visual_settings !== 4 )
+		{
+			sdRenderer.visual_settings = 4;
+			
+			sdRenderer.ctx = new FakeCanvasContext( sdRenderer.canvas );
+			sdRenderer.AddCacheDrawMethod( sdRenderer.ctx );
+
+			sdAtlasMaterial.super_texture_width = 1024;
+			sdAtlasMaterial.super_texture_height = Math.min( sdRenderer.ctx.renderer.capabilities.maxTextureSize, 16384 );
+			
+			if ( sdRenderer.ctx.sky.parent );
+			sdRenderer.ctx.sky.parent.remove( sdRenderer.ctx.sky );
+
+			if ( sdRenderer.ctx.sun.parent );
+			sdRenderer.ctx.sun.parent.remove( sdRenderer.ctx.sun );
+
+			sdRenderer.ctx.renderer.shadowMap.enabled = false;
+			
+			window.onresize();
+		}
+	}
+	
+	/*static set visual_settings( v )
 	{
 		v = 4; // Only one rendering mode for now
 		
@@ -598,10 +626,6 @@ class sdRenderer
 				sdRenderer.ctx.renderer.shadowMap.enabled = true;
 			}
 			
-			/*if ( v === 2 || v === 3 || v === 4 )
-			{
-				sdBlock.Install3DSupport();
-			}*/
 			
 			window.onresize();
 		}
@@ -611,7 +635,7 @@ class sdRenderer
 	static get visual_settings()
 	{
 		return sdRenderer._visual_settings;
-	}
+	}*/
 
 	/*static set dirt_settings( v )
 	{
@@ -1007,18 +1031,27 @@ class sdRenderer
 			const STATUS_EFFECT_BEFORE = 0;
 			const STATUS_EFFECT_AFTER = 1;
 			
+			const frame_flag_reference = sdEntity.flag_counter++;
 			
 			for ( var i = 0; i < sdEntity.entities.length; i++ )
 			{
 				let e = sdEntity.entities[ i ];
 				
-				e._flag = 0; // Visibility detection
+				//e._flag = 0; // Visibility detection
 				
+				if ( !e.IsVisible( sdWorld.my_entity ) )
+				{
+				}
+				else
 				if ( e.IsGlobalEntity() || ( e.is( sdEffect ) && e.type === sdEffect.TYPE_CHAT ) || ( sdWorld.my_entity && ( sdWorld.my_entity === e || sdWorld.my_entity.driver_of === e || sdWorld.my_entity._god ) ) )
-				e._flag = 1;
+				e._flag = frame_flag_reference;
 				else
 				if ( sdWorld.my_entity )
 				if ( sdRenderer.old_visibility_map )
+				if (   e.x + e._hitbox_x2 > min_x &&
+					   e.x + e._hitbox_x1 < max_x &&
+					   e.y + e._hitbox_y2 > min_y &&
+					   e.y + e._hitbox_y1 < max_y )
 				{
 					let x = sdWorld.my_entity.x;
 					let y = sdWorld.my_entity.y;
@@ -1039,7 +1072,7 @@ class sdRenderer
 					let max_dimension = sdWorld.Dist2D_Vector( e._hitbox_x2 - e._hitbox_x1, e._hitbox_y2 - e._hitbox_y1 );
 					
 					if ( sdWorld.inDist2D_Boolean( x, y, ex, ey, sdRenderer.old_visibility_map[ an ] + sdRenderer.visibility_falloff + 32 + max_dimension ) )
-					e._flag = 1;
+					e._flag = frame_flag_reference;
 				}
 			}
 			
@@ -1047,12 +1080,12 @@ class sdRenderer
 			{
 				const e = sdEntity.entities[ i ];
 				
-				if ( e._flag )
+				if ( e._flag === frame_flag_reference )
 				if ( e.DrawBG !== void_draw )
-				if ( e.x + e._hitbox_x2 > min_x )
-				if ( e.x + e._hitbox_x1 < max_x )
-				if ( e.y + e._hitbox_y2 > min_y )
-				if ( e.y + e._hitbox_y1 < max_y )
+				//if ( e.x + e._hitbox_x2 > min_x )
+				//if ( e.x + e._hitbox_x1 < max_x )
+				//if ( e.y + e._hitbox_y2 > min_y )
+				//if ( e.y + e._hitbox_y1 < max_y )
 				{
 					/*if ( e.GetClass() === 'sdGrass' )
 					{
@@ -1097,7 +1130,7 @@ class sdRenderer
 			{
 				const e = sdEntity.entities[ i ];
 				
-				if ( e._flag )
+				if ( e._flag === frame_flag_reference )
 				if ( ( e.x + e._hitbox_x2 > min_x &&
 					   e.x + e._hitbox_x1 < max_x &&
 					   e.y + e._hitbox_y2 > min_y &&
@@ -1151,7 +1184,7 @@ class sdRenderer
 			{
 				const e = sdEntity.entities[ i ];
 				
-				if ( e._flag )
+				if ( e._flag === frame_flag_reference )
 				if ( e.DrawFG !== void_draw_fg )
 				{
 					ctx.volumetric_mode = e.DrawIn3D( 1 );
@@ -1286,7 +1319,7 @@ class sdRenderer
 					var best_di = -1;
 
 					for ( var i = 0; i < sdEntity.entities.length; i++ )
-					if ( sdEntity.entities[ i ]._flag )
+					if ( sdEntity.entities[ i ]._flag === frame_flag_reference )
 					if ( sdEntity.entities[ i ].DrawHUD !== sdEntity.prototype.DrawHUD )
 					{
 						//let cache = sdStatusEffect.line_of_sight_visibility_cache.get( sdEntity.entities[ i ] );
@@ -1578,6 +1611,8 @@ class sdRenderer
            		ctx.fillText("Coordinates: X = " + sdWorld.my_entity.x.toFixed(0) + ", Y = " + sdWorld.my_entity.y.toFixed(0), 5 + 445 * scale, 30 );
 				
 				ctx.fillText("Framerate: "+sdRenderer.last_frame_times.length+" FPS", 5 + 445 * scale, 47 );
+				
+				ctx.fillText("Atlas textures and images: "+sdAtlasMaterial.textures_total_counter+" / "+sdAtlasMaterial.images_total_counter, 5 + 445 * scale, 47 + 17 );
 			}
 			
 			ctx.save();

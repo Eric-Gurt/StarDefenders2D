@@ -838,7 +838,7 @@ class sdCube extends sdEntity
 							setTimeout(()=>
 							{
 								if ( !this._is_being_removed )
-								if ( this.hea > 0 ) // Not disabled in time
+								if ( this.hea > 0 && this._frozen <= 0 ) // Not disabled in time
 								{
 									let an = Math.atan2( targ.y + ( targ._hitbox_y1 + targ._hitbox_y2 ) / 2 - this.y, targ.x + ( targ._hitbox_x1 + targ._hitbox_x2 ) / 2 - this.x );
 

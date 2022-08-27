@@ -95,7 +95,12 @@ class sdGrub extends sdEntity
 	}
 	GetBleedEffectFilter()
 	{
-		return 'hue-rotate(-55deg)' + 'brightness(2)';
+		//return 'hue-rotate(-55deg)' + 'brightness(2)';
+		return 'brightness(2)';
+	}
+	GetBleedEffectHue()
+	{
+		return -55;
 	}
 	Damage( dmg, initiator=null )
 	{

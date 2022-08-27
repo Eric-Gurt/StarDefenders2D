@@ -326,17 +326,16 @@ class sdCrystalCombiner extends sdEntity
 			{
 				// Most probably alpha is wrong for final crystal during last 1 second, but maybe it is fine with how fast it happens
 
-				if ( show_new_crystal )
-				{
-					//ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
-				}
+				//ctx.filter += ' saturate(' + (Math.round(( 1 - merge_prog )*10)/10) + ') brightness(' + (Math.round(( 1.5 + merge_prog * 10 )*10)/10) + ')';
 
-				ctx.filter += ' saturate(' + (Math.round(( 1 - merge_prog )*10)/10) + ') brightness(' + (Math.round(( 1.5 + merge_prog * 10 )*10)/10) + ')';
+				ctx.sd_color_mult_r = 1 + merge_prog * 10;
+				ctx.sd_color_mult_g = 1 + merge_prog * 10;
+				ctx.sd_color_mult_b = 1 + merge_prog * 10;
 
-				if ( ctx.filter.indexOf( 'drop-shadow' ) === -1 )
+				/*if ( ctx.filter.indexOf( 'drop-shadow' ) === -1 )
 				{
 					ctx.filter += ' drop-shadow(0px 0px 7px rgba(255,255,255,'+(Math.round(( merge_prog * 5 )*10)/10)+'))';
-				}
+				}*/
 
 				ctx.globalAlpha = Math.min( 1, ctx.globalAlpha * merge_prog + 10 * ( 1 - merge_prog ) );
 			}
@@ -367,10 +366,14 @@ class sdCrystalCombiner extends sdEntity
 
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
+		ctx.sd_color_mult_r = 1;
+		ctx.sd_color_mult_g = 1;
+		ctx.sd_color_mult_b = 1;
 		ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal_combiner, - 32, - 16, 64,32 );
 	}
 	ModifyHeldCrystalFilter( old_filter )
 	{
+		/*
 		let merge_prog = this.prog / this.GetBaseAnimDuration();
 		//let merge_intens = Math.min( 1, Math.pow( merge_prog, 8 ) ) * 8;
 
@@ -398,7 +401,7 @@ class sdCrystalCombiner extends sdEntity
 
 			//ctx.globalAlpha = Math.min( 1, ctx.globalAlpha * merge_prog + 10 * ( 1 - merge_prog ) );
 		}
-		
+		*/
 		return old_filter;
 	}
 	onRemove() // Class-specific, if needed

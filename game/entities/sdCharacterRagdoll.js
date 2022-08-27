@@ -1263,12 +1263,14 @@ class sdBone extends sdEntity
 	*/
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
 	{
-		if ( sdWorld.is_server && !sdWorld.is_singleplayer )
+		return false;
+		
+		/*if ( sdWorld.is_server && !sdWorld.is_singleplayer )
 		{
 			return false;
-		}
+		}*/
 		
-		return true;
+		//return true;
 	}
 	
 	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Guns are not targetable when held, same for sdCharacters that are driving something

@@ -604,7 +604,7 @@ let enf_once = true;
 			sdWorld.SolveUnresolvedEntityPointers();
 			sdWorld.unresolved_entity_pointers = null;
 			
-			sdEntity.entities.sort( (a,b)=>{ return a._net_id-b._net_id; } ); // Sort so sdQuadro's body is behind wheels
+			//sdEntity.entities.sort( (a,b)=>{ return a._net_id-b._net_id; } ); // Sort so sdQuadro's body is behind wheels
 
 			// score
 			sdWorld.my_score = score;

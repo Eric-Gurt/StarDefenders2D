@@ -30,7 +30,7 @@ class sdAsteroid extends sdEntity
 		this._type = params._type || Math.random() < 0.2 ? 1 : 0;
 		this.landed = false;
 		
-		this._hmax = this._type === 1 ? 250 : 200; // Asteroids that land need more HP to survive the "explosion" when they land
+		this._hmax = 60; // Asteroids that land need more HP to survive the "explosion" when they land
 		this._hea = this._hmax;
 		
 		this.sx = Math.random() * 12 - 6;
@@ -105,14 +105,15 @@ class sdAsteroid extends sdEntity
 			if ( !sdWorld.is_server )
 			this._an = Math.atan2( this.sy, this.sx ) - Math.PI / 2;
 		
-			if ( sdWorld.CheckWallExists( this.x, this.y + this._hitbox_y2, this ) )
+			//if ( sdWorld.CheckWallExists( this.x, this.y + this._hitbox_y2, this ) )
+			if ( !this.CanMoveWithoutOverlap( this.x, this.y, 0 ) )
 			{
 				if ( this._type === 0 )
 				this.DamageWithEffect( 1000 );
 			
 				if ( this._type === 1 && this.landed === false )
 				{
-					sdWorld.SendEffect({ x:this.x, y:this.y, radius:12, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color });
+					sdWorld.SendEffect({ x:this.x, y:this.y, radius:12, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color, can_hit_owner:false, owner:this });
 					this.landed = true;
 					
 					this.x -= this.sx * GSPEED;

@@ -368,7 +368,7 @@ class sdCharacter extends sdEntity
 		ctx.drawImageFilterCache( sdCharacter.img_helmets[ this.helmet ], source_x_offset,source_y_offset,32,32, - 16, - 16, 32,32 );
 	}
 	
-	get substeps() // sdCharacter that is being controlled by player will need more
+	/*get substeps() // sdCharacter that is being controlled by player will need more
 	{
 		if ( !sdWorld.is_server )
 		{
@@ -377,7 +377,7 @@ class sdCharacter extends sdEntity
 		}
 		
 		return 1;
-	}
+	}*/
 	
 	GetHitDamageMultiplier( x, y )
 	{
