@@ -236,8 +236,8 @@ class sdBlock extends sdEntity
 	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
 	{
 		// Glowing lines prevention
-		if ( sdRenderer._visual_settings === 3 )
-		return [ 0, 0, 0.002 * Math.abs( sdWorld.camera.y - ( this.y + this.height / 2 ) ) ];
+		//if ( sdRenderer._visual_settings === 3 )
+		//return [ 0, 0, 0.002 * Math.abs( sdWorld.camera.y - ( this.y + this.height / 2 ) ) ];
 	
 		return null;
 	}
@@ -1289,8 +1289,11 @@ class sdBlock extends sdEntity
 				{
 					a = Math.random() * 2 * Math.PI;
 					s = Math.random() * 4;
-					let ent = new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_ROCK, sx: Math.sin(a)*s, sy: Math.cos(a)*s });
-					sdEntity.entities.push( ent );
+					
+					if ( this.material === sdBlock.MATERIAL_FLESH )
+					sdEntity.entities.push( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_GIB, sx: Math.sin(a)*s, sy: Math.cos(a)*s }) );
+					else
+					sdEntity.entities.push( new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_ROCK, sx: Math.sin(a)*s, sy: Math.cos(a)*s }) );
 				}
 			}
 		}

@@ -634,7 +634,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdGrub', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAbomination', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBiter', _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdSensorArea', _category:'Development tests' });
+			//sdShop.options.push({ _class: 'sdSensorArea', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdBloodDecal', _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });

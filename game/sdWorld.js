@@ -27,6 +27,7 @@ import sdArea from './entities/sdArea.js';
 import sdPlayerDrone from './entities/sdPlayerDrone.js';
 import sdQuadro from './entities/sdQuadro.js';
 import sdStatusEffect from './entities/sdStatusEffect.js';
+import sdBloodDecal from './entities/sdBloodDecal.js';
 
 
 import sdRenderer from './client/sdRenderer.js';
@@ -1231,6 +1232,36 @@ class sdWorld
 			delete params.owner;
 		}
 		
+		if ( params.type === sdEffect.TYPE_BLOOD || params.type === sdEffect.TYPE_BLOOD_GREEN )
+		{
+			for ( let t = 0; t < 3; t++ )
+			{
+				let r = Math.random() * 32;
+				let a = Math.random() * Math.PI * 2;
+				
+				let dx = Math.sin( a ) * r;
+				let dy = Math.cos( a ) * r;
+				
+				if ( sdWorld.CheckLineOfSight( params.x, params.y, params.x + dx, params.y + dy, null, null, sdCom.com_visibility_unignored_classes ) )
+				{
+					let bg = sdWorld.CheckWallExists( params.x + dx, params.y + dy, null, null, [ 'sdBG' ] );
+					
+					if ( bg )
+					{
+						let ent = new sdBloodDecal({
+							x: Math.floor( ( params.x + dx ) / 16 ) * 16,
+							y: Math.floor( ( params.y + dy ) / 16 ) * 16,
+							effect_type: params.type,
+							filter: params.filter,
+							hue: params.hue
+						});
+						sdEntity.entities.push( ent );
+						//sdWorld.UpdateHashPosition( ent, false ); // Prevent inersection with other ones
+					}
+				}
+			}
+		}
+		
 		let socket_arr = exclusive_to_sockets_arr ? exclusive_to_sockets_arr : sdWorld.sockets;
 		
 		
@@ -1350,7 +1381,11 @@ class sdWorld
 		}
 		return ret;
 	}
-	static GetAnythingNear( _x, _y, range, append_to=null, specific_classes=null )
+	static FilterHasMatterProperties( ent )
+	{
+		return ( typeof ent.matter !== 'undefined' || typeof ent._matter !== 'undefined' );
+	}
+	static GetAnythingNear( _x, _y, range, append_to=null, specific_classes=null, filter_candidates_function=null )
 	{
 		let ret = append_to || [];
 		
@@ -1377,6 +1412,7 @@ class sdWorld
 				e = arr[ i ];
 				
 				if ( !e._is_being_removed )
+				if ( filter_candidates_function === null || filter_candidates_function( e ) )
 				if ( specific_classes === null || specific_classes.indexOf( e.GetClass() ) !== -1 )
 				{
 					x1 = e._hitbox_x1;
@@ -1813,7 +1849,7 @@ class sdWorld
 		
 		//if ( entity.GetClass() === 'sdArea' )
 		//debugger;
-	
+		
 		
 		let new_affected_hash_arrays = [];
 		if ( !entity._is_being_removed && !delay_callback_calls ) // delay_callback_calls is useful here as it will delay ._hitbox_x2 access which in case of sdBlock will be undefined at the very beginning, due to .width not specified yet
@@ -2143,7 +2179,8 @@ class sdWorld
 					e = arr[ i ];
 					
 					gspeed_mult = 1;
-					substeps_mult = 1;
+					//substeps_mult = 1;
+					substeps = 1;
 					
 					if ( arr_i === 0 ) // Only for real in-world objects that have position
 					{
@@ -2182,7 +2219,8 @@ class sdWorld
 									// Single substep for amplifiers, nodes, cables etc
 								}
 								else
-								substeps_mult = 10; // 8 and 5 were not enough for crystals in amplifiers
+								substeps = 10; // 8 and 5 were not enough for crystals in amplifiers
+								//substeps_mult = 10; // 8 and 5 were not enough for crystals in amplifiers
 							}
 							else
 							continue;
@@ -2218,7 +2256,8 @@ class sdWorld
 						time_from = Date.now();
 					}
 					
-					substeps = e.substeps * substeps_mult;
+					//substeps = e.substeps * substeps_mult;
+					//substeps = substeps_mult;
 					progress_until_removed = e.progress_until_removed;
 					
 					for ( step = 0; step < substeps || progress_until_removed; step++ )
@@ -3661,8 +3700,9 @@ class sdWorld
 				return v?1:0;
 			};
 			
-			sdRenderer.visual_settings = BoolToInt( player_settings['visuals1'] ) * 1 + BoolToInt( player_settings['visuals2'] ) * 2 + BoolToInt( player_settings['visuals3'] ) * 3 + BoolToInt( player_settings['visuals4'] ) * 4;
-
+			//sdRenderer.visual_settings = BoolToInt( player_settings['visuals1'] ) * 1 + BoolToInt( player_settings['visuals2'] ) * 2 + BoolToInt( player_settings['visuals3'] ) * 3 + BoolToInt( player_settings['visuals4'] ) * 4;
+			sdRenderer.InitVisuals();
+			
 			//sdRenderer.dirt_settings = BoolToInt( player_settings['dirts1'] ) * 1 + BoolToInt( player_settings['dirts2'] ) * 2 + BoolToInt( player_settings['dirts3'] ) * 3;
 			
 			sdRenderer.resolution_quality = BoolToInt( player_settings['density1'] ) * 1 + BoolToInt( player_settings['density2'] ) * 0.5 + BoolToInt( player_settings['density3'] ) * 0.25;
