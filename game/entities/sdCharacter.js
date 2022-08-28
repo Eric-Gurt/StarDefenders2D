@@ -1097,7 +1097,7 @@ class sdCharacter extends sdEntity
 			sdSound.PlaySound({ name:'teleport', x:best_t.x, y:best_t.y, volume:0.5 });
 			
 			this.x = best_t.x;
-			this.y = best_t.y;
+			this.y = best_t.y + best_t._hitbox_y1 - this._hitbox_y2;
 			
 			sdWorld.SendEffect({ x:this.x + (this.hitbox_x1+this.hitbox_x2)/2, y:this.y + (this.hitbox_y1+this.hitbox_y2)/2, type:sdEffect.TYPE_TELEPORT });
 			
