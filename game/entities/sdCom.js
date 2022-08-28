@@ -32,8 +32,10 @@ class sdCom extends sdEntity
 		sdCom.max_subscribers = 32;
 		
 		//sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdMatterContainer', 'sdTeleport', 'sdCrystal', 'sdLamp', 'sdCube' ];
-		sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdTeleport', 'sdCube', 'sdEnemyMech', 'sdBadDog', 'sdShark', 'sdDrone', 'sdBeamProjector', 'sdSandWorm', 'sdAmphid', 'sdAbomination', 'sdAsp', 'sdBiter', 'sdCouncilMachine' ]; // Used for sdCube pathfinding now...
+
+		sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdTeleport', 'sdCube', 'sdEnemyMech', 'sdBadDog', 'sdShark', 'sdDrone', 'sdBeamProjector', 'sdSandWorm', 'sdAmphid', 'sdAbomination', 'sdAsp', 'sdBiter', 'sdCouncilMachine', 'sdPlayerOverlord' ]; // Used for sdCube pathfinding now...
 		sdCom.com_visibility_unignored_classes = [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier', 'sdCommandCentre', 'sdLongRangeTeleport' ]; // Used for early threat logic now. Coms don't really trace raycasts anymore. These arrays are a mess though.
+
 		sdCom.com_creature_attack_unignored_classes = [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ]; // Used by sdVirus so far. Also for rain that spawns grass
 		
 		sdCom.com_vision_blocking_classes = [ 'sdBlock', 'sdDoor' ];
