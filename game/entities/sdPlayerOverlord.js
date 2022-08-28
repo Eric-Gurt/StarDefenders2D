@@ -47,6 +47,9 @@ class sdPlayerOverlord extends sdCharacter
 		
 		this.hmax = 3000;
 		this.hea = this.hmax;
+
+		this.matter_max = 300;
+		this.matter = this.matter_max;
 		
 		this._regen_timeout = 0;
 		
@@ -314,7 +317,12 @@ class sdPlayerOverlord extends sdCharacter
 		else
 		{
 			if ( sdWorld.is_server )
-			this.state_hp = ( this.hea < this.hmax * 0.5 ) ? 1 : 0;
+			{
+				this.state_hp = ( this.hea < this.hmax * 0.5 ) ? 1 : 0;
+				if ( this.matter < this.matter_max )
+				this.matter = Math.min( this.matter + GSPEED / 600, this.matter_max );
+			}
+
 
 			// It makes sense to call it at all times because it also handles wall attack logic
 		}
@@ -380,7 +388,7 @@ class sdPlayerOverlord extends sdCharacter
 
 			if ( sdWorld.is_server )
 			{
-				this.mouth = ( this._speak_frame === -1 ) ? ( ( this._current_target && !this._peaceful_mode ) ? ( extremely_mad_intent ? 3 : 2 ) : 0 ) : this._speak_frame;
+				this.mouth = ( this._speak_frame === -1 ) ? ( ( extremely_mad_intent ? 3 : 2 ) : 0 ) : this._speak_frame;
 				
 				if ( this._hurt_timer > 0 )
 				{
@@ -442,7 +450,7 @@ class sdPlayerOverlord extends sdCharacter
 				if ( this._reload_timer > 0 )
 				this._reload_timer -= GSPEED;
 				else
-				if ( this._reload_timer <= 0 && this._key_states.GetKey( 'Mouse1' ) )
+				if ( this._reload_timer <= 0 && this._key_states.GetKey( 'Mouse1' ) && this.matter > 0.5 )
 				{
 					this._reload_timer = 5;
 
@@ -488,6 +496,8 @@ class sdPlayerOverlord extends sdCharacter
 						//bullet_obj.explosion_radius = 0; // Hack
 
 						sdEntity.entities.push( bullet_obj );
+
+						this.matter -= 0.5;
 					}
 					else
 					{
