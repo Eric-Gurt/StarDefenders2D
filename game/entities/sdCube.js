@@ -1067,7 +1067,7 @@ class sdCube extends sdEntity
 		{
 			ctx.globalAlpha = ( 1 - this.matter / this.matter_max ) * ( Math.sin( sdWorld.time / 2000 * Math.PI ) * 0.5 + 0.5 );
 
-			ctx.drawImageFilterCache( sdCube.img_cube, 64,0, 32,32, -16, -16, 32,32 );
+			ctx.drawImageFilterCache( sdCube.img_cube, 64,yy * 32, 32,32, -16, -16, 32,32 );
 		}
 		
 		ctx.globalAlpha = 1;
