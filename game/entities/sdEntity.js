@@ -284,8 +284,8 @@ class sdEntity
 	CameraDistanceScale3D( layer ) // so far called for layer FG (which is 1), usually only used by chat messages
 	{ return 1; }
 	
-	get substeps() // Bullets will need more
-	{ return 1; }
+	/*get substeps() // Bullets will need more
+	{ return 1; }*/
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return false; }
@@ -1979,7 +1979,7 @@ class sdEntity
 	{
 		return null;
 	}
-	IsBGEntity() // 0 for in-game entities, 1 for background entities, 2 is for moderator areas, 3 is for cables/sensor areas, 4 for task in-world interfaces, 5 for wandering around background entities, 6 for status effects, 7 for player-defined regions. Should handle collisions separately
+	IsBGEntity() // 0 for in-game entities, 1 for background entities, 2 is for moderator areas, 3 is for cables/sensor areas, 4 for task in-world interfaces, 5 for wandering around background entities, 6 for status effects, 7 for player-defined regions, 8 for decals. Should handle collisions separately
 	{ return 0; }
 	CanMoveWithoutOverlap( new_x, new_y, safe_bound=0, custom_filtering_method=null, alter_ignored_classes=null ) // Safe bound used to check if sdCharacter can stand and not just collides with walls nearby. Also due to number rounding clients should better have it (or else they will teleport while sliding on vertical wall)
 	{
@@ -2039,7 +2039,7 @@ class sdEntity
 		return a;
 	}
 	
-	DoesOverlapWith( ent, extra_space_around=0 )
+	DoesOverlapWith( ent, extra_space_around=0 ) // Overlaps( 
 	{
 		if ( this.x + this._hitbox_x2 < ent.x + ent._hitbox_x1 - extra_space_around ||
 			 this.x + this._hitbox_x1 > ent.x + ent._hitbox_x2 + extra_space_around ||
@@ -2074,10 +2074,10 @@ class sdEntity
 	{
 		if ( this._hitbox_last_update !== sdWorld.time )
 		{
-			this._hitbox_last_update = sdWorld.time;
-			
 			if ( sdWorld.is_server )
 			{
+				this._hitbox_last_update = sdWorld.time;
+			
 				// More liteweight approach. On server-side it is important to update hash position manually when hitbox offsets changes
 				this._hitbox_x1 = this.hitbox_x1;
 				this._hitbox_y1 = this.hitbox_y1;
@@ -2089,27 +2089,32 @@ class sdEntity
 			else
 			{
 				// It is done to make amplifier shields update hashes without extra info from server
-				let x1 = this.hitbox_x1;
-				let y1 = this.hitbox_y1;
-				let x2 = this.hitbox_x2;
-				let y2 = this.hitbox_y2;
-				
-				let h = ( 
-					this._hitbox_x1 !== x1 || 
-					this._hitbox_y1 !== y1 || 
-					this._hitbox_x2 !== x2 || 
-					this._hitbox_y2 !== y2 
-				);
-				
-				this._hitbox_x1 = x1;
-				this._hitbox_y1 = y1;
-				this._hitbox_x2 = x2;
-				this._hitbox_y2 = y2;
+				if ( this._hitbox_last_update < sdWorld.time - 100 )
+				{
+					this._hitbox_last_update = sdWorld.time;
+			
+					let x1 = this.hitbox_x1;
+					let y1 = this.hitbox_y1;
+					let x2 = this.hitbox_x2;
+					let y2 = this.hitbox_y2;
 
-				this._hard_collision = this.hard_collision;
-				
-				if ( h )
-				sdWorld.UpdateHashPosition( this, true );
+					let h = ( 
+						this._hitbox_x1 !== x1 || 
+						this._hitbox_y1 !== y1 || 
+						this._hitbox_x2 !== x2 || 
+						this._hitbox_y2 !== y2 
+					);
+
+					this._hitbox_x1 = x1;
+					this._hitbox_y1 = y1;
+					this._hitbox_x2 = x2;
+					this._hitbox_y2 = y2;
+
+					this._hard_collision = this.hard_collision;
+
+					if ( h )
+					sdWorld.UpdateHashPosition( this, true );
+				}
 			}
 		}
 	}
@@ -2150,6 +2155,7 @@ class sdEntity
 	{
 		return sdEntity.flag_counter++;
 	}
+	
 	constructor( params )
 	{
 		//if ( !sdWorld.mobile )
@@ -2486,7 +2492,7 @@ class sdEntity
 		return coms_near;
 	}
 	
-	GetAnythingNearCache( _x, _y, range, append_to=null, specific_classes=null, shuffle=true )
+	GetAnythingNearCache( _x, _y, range, append_to=null, specific_classes=null, shuffle=true, filter_candidates_function=null )
 	{
 		if ( append_to !== null || specific_classes !== null )
 		throw new Error('Bad usage of GetAnythingNearCache, use sdWorld.GetAnythingNear instead for this kind of use');
@@ -2503,7 +2509,7 @@ class sdEntity
 			}
 			this._next_anything_near_rethink = next_anything_near_rethink = sdWorld.time + 200 + Math.random() * 32;
 			
-			anything_near = this._anything_near = sdWorld.GetAnythingNear( _x, _y, range, append_to, specific_classes );
+			anything_near = this._anything_near = sdWorld.GetAnythingNear( _x, _y, range, append_to, specific_classes, filter_candidates_function );
 			anything_near_range = this._anything_near_range = range;
 			
 
@@ -3424,7 +3430,7 @@ class sdEntity
 			if ( this_matter > 0.05 )
 			{
 				//var arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null, ( e )=>!e.is( sdWorld.entity_classes.sdBG ) );
-				let arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null );
+				let arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null, true, sdWorld.FilterHasMatterProperties );
 
 				for ( i = 0; i < arr.length; i++ )
 				{
@@ -3457,7 +3463,7 @@ class sdEntity
 		
 		if ( this_matter < this_matter_max - 0.05 )
 		{
-			var arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null );
+			var arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null, true, sdWorld.FilterHasMatterProperties );
 
 			for ( var i = 0; i < arr.length; i++ )
 			{

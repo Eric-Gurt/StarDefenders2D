@@ -82,6 +82,8 @@ class sdBG extends sdEntity
 		this.br = params.br || 100;
 		this.filter = params.filter || '';
 		
+		this._decals = null; // array of _net_id-s of sdBloodDecal-s
+		
 		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
 		
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false ); // 2nd parameter is important as it will prevent temporary entities from reacting to world entities around it (which can happen for example during item price measure - something like sdBlock can kill player-initiator and cause server crash)
@@ -90,6 +92,10 @@ class sdBG extends sdEntity
 		
 		this.onSnapshotApplied();
 	}
+	ExtraSerialzableFieldTest( prop )
+	{
+		return ( prop === '_decals' );
+	}
 	MeasureMatterCost()
 	{
 		return this.width / 16 * this.height / 16;
@@ -97,6 +103,45 @@ class sdBG extends sdEntity
 	
 	get spawn_align_x(){ return Math.min( this.width, 16 ); };
 	get spawn_align_y(){ return Math.min( this.height, 16 ); };
+	
+	onThink( GSPEED )
+	{
+		if ( this._decals )
+		{
+			for ( let i = 0; i < this._decals.length; i++ )
+			{
+				let ent = sdEntity.entities_by_net_id_cache_map.get( this._decals[ i ] );
+
+				if ( ent )
+				ent.UpdateRelativePosition();
+				else
+				{
+					this._decals.splice( i, 1 );
+					i--;
+					continue;
+				}
+			}
+		}
+		
+		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false ); // 2nd parameter is important as it will prevent temporary entities from reacting to world entities around it (which can happen for example during item price measure - something like sdBlock can kill player-initiator and cause server crash)
+	}
+	
+	onRemove()
+	{
+		if ( this._decals )
+		{
+			for ( let i = 0; i < this._decals.length; i++ )
+			{
+				//let ent = sdEntity.entities_by_net_id_cache[ this._decals[ i ] ];
+				let ent = sdEntity.entities_by_net_id_cache_map.get( this._decals[ i ] );
+
+				if ( ent )
+				ent.remove();
+			}
+
+			this._decals = null;
+		}
+	}
 	
 	DrawBG( ctx, attached )
 	{

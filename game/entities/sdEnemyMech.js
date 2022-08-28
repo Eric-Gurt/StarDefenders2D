@@ -548,6 +548,8 @@ class sdEnemyMech extends sdEntity
 							bullet_obj.time_left = 60;
 
 							bullet_obj._rail = true;
+							bullet_obj._rail_circled = true;
+							
 							bullet_obj._emp = true; // Disable turrets
 							bullet_obj._emp_mult = 6; // 5 * 6 = 30 seconds of disabling a turret
 

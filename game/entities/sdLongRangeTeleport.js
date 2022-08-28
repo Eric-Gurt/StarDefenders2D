@@ -287,10 +287,18 @@ class sdLongRangeTeleport extends sdEntity
 
 		    if ( this.charge_timer > 0 )
 		    {
+				ctx.sd_color_mult_r = 1 + this.charge_timer / 100 * 5;
+				ctx.sd_color_mult_g = 1 + this.charge_timer / 100 * 5;
+				ctx.sd_color_mult_b = 1 + this.charge_timer / 100 * 5;
+
 			    //ctx.filter = 'brightness('+ ( 1 +(~~(this.charge_timer)) / 50 ) + ')';
-				ctx.filter = 'hue-rotate('+( 0 + 90*(~~(this.charge_timer)) / 100 )+'deg) saturate('+( 1 -(~~(this.charge_timer)) / 200 )+') brightness('+ ( 1 +(~~(this.charge_timer)) / 50 ) + ')';
+				//ctx.filter = 'hue-rotate('+( 0 + 90*(~~(this.charge_timer)) / 100 )+'deg) saturate('+( 1 -(~~(this.charge_timer)) / 200 )+') brightness('+ ( 1 +(~~(this.charge_timer)) / 50 ) + ')';
 			    ctx.drawImageFilterCache( sdLongRangeTeleport.img_long_range_teleport, 0,version_offset,96,32, -48,-16,96,32 );
-			    ctx.filter = 'none';
+			    //ctx.filter = 'none';
+
+				ctx.sd_color_mult_r = 1;
+				ctx.sd_color_mult_g = 1;
+				ctx.sd_color_mult_b = 1;
 		    }
 		    else
 			ctx.drawImageFilterCache( sdLongRangeTeleport.img_long_range_teleport, 0,version_offset,96,32, -48,-16,96,32 );

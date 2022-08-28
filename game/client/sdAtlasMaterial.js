@@ -9,6 +9,7 @@
 */
 
 import sdWorld from '../sdWorld.js';
+import sdRenderer from './sdRenderer.js';
 
 class sdSpaceDedication
 {
@@ -52,8 +53,11 @@ class sdSuperTexture
 		let depthTest = ( 
 			is_transparent_int === sdAtlasMaterial.GROUP_OPAQUE ||
 			is_transparent_int === sdAtlasMaterial.GROUP_OPAQUE_DECAL ||
-			is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT
+			is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT ||
+			is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT_ADDITIVE
 		);
+
+		let additive = ( is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT_ADDITIVE );
 
 		const hueShift_function = `
 		
@@ -83,6 +87,8 @@ class sdSuperTexture
 				depthWrite: !transparent,
 				transparent: transparent, 
 				flatShading: true,
+				
+				blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending,
 
 				vertexShader: `
 				
@@ -742,6 +748,8 @@ class sdSuperTexture
 
 				this.dedications.push( dedication );
 				
+				sdAtlasMaterial.images_total_counter++;
+				
 				this.offset_x += w;
 				
 				this.max_line_height = Math.max( this.max_line_height, h );
@@ -773,20 +781,25 @@ class sdAtlasMaterial
 	{
 		sdAtlasMaterial.preview_offset = 0;
 		
-		sdAtlasMaterial.super_texture_width = 2048;
-		sdAtlasMaterial.super_texture_height = 2048;
+		sdAtlasMaterial.images_total_counter = 0;
+		sdAtlasMaterial.textures_total_counter = 0;
+		
+		sdAtlasMaterial.super_texture_width = -1;//2048;
+		sdAtlasMaterial.super_texture_height = -1;//2048;
+		// Will be overriden later ^
 		
 		sdAtlasMaterial.maximum_dots_per_super_texture = 65535;//2048;
 		
 		sdAtlasMaterial.GROUP_OPAQUE = 0;
 		sdAtlasMaterial.GROUP_OPAQUE_DECAL = 1;
 		sdAtlasMaterial.GROUP_TRANSPARENT = 2;
-		sdAtlasMaterial.GROUP_TRANSPARENT_UNSORTED = 3;
+		sdAtlasMaterial.GROUP_TRANSPARENT_ADDITIVE = 3;
+		sdAtlasMaterial.GROUP_TRANSPARENT_UNSORTED = 4;
 		//sdAtlasMaterial.GROUP_TRANSPARENT_IN_GAME_HUD = 2;
 		//sdAtlasMaterial.GROUP_TRANSPARENT_ONSCREEN_HUD = 3;
 		//sdAtlasMaterial.GROUP_TRANSPARENT_ONSCREEN_FOREGROUND = 4;
 
-		sdAtlasMaterial.super_textures = [ [], [], [], [] ]; // arr of arr-groups of sdSuperTexture
+		sdAtlasMaterial.super_textures = [ [], [], [], [], [] ]; // arr of arr-groups of sdSuperTexture
 		
 		sdAtlasMaterial.get_vertex_hits = 0;
 		sdAtlasMaterial.get_vertex_misses = 0;
@@ -898,6 +911,7 @@ class sdAtlasMaterial
 		}
 		
 		let new_super_texture = new sdSuperTexture( is_transparent_int );
+		sdAtlasMaterial.textures_total_counter++;
 		
 		sdAtlasMaterial.super_textures[ is_transparent_int ].push( new_super_texture );
 		
@@ -1131,6 +1145,9 @@ class sdAtlasMaterial
 			
 			break;
 		}
+		
+		if ( sdRenderer.ctx.blend_mode === THREE.AdditiveBlending )
+		is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT_ADDITIVE;
 		
 		let super_texture;
 		let dedication;

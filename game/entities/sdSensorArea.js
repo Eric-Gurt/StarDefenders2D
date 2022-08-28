@@ -31,6 +31,7 @@ class sdSensorArea extends sdEntity
 	
 	IsVisible( observer_entity )
 	{
+		if ( observer_entity )
 		if ( observer_entity._god )
 		return true;
 		

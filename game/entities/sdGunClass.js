@@ -14,6 +14,7 @@ import sdPortal from './sdPortal.js';
 import sdOverlord from './sdOverlord.js';
 import sdCom from './sdCom.js';
 import sdWater from './sdWater.js';
+import sdBloodDecal from './sdBloodDecal.js';
 
 /*
 
@@ -210,7 +211,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			matter_cost: 50,
-			projectile_properties: { _rail: true, _damage: 70, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
+			projectile_properties: { _rail: true, _rail_circled: true, _damage: 70, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
 			upgrades: AddRecolorsFromColorAndCost( [], '#62c8f2', 20 )
 		};
 		
@@ -584,7 +585,7 @@ class sdGunClass
 			muzzle_x: 7,
 			ammo_capacity: -1,
 			count: 1,
-			projectile_properties: { _rail: true, _damage: 62, color: '#FF0000'/*, _knock_scale:0.01 * 8*/ },
+			projectile_properties: { _rail: true, _rail_circled: true, _damage: 62, color: '#FF0000'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false,
 			upgrades: AddRecolorsFromColorAndCost( [], '#bf1d00', 30 )
 		};
@@ -3111,19 +3112,8 @@ class sdGunClass
 				
 				sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, liquid_carrier_base_color, liquid_carrier_empty );
 			},
-			/*onShootAttempt: ( gun, shoot_from_scenario )=>
-			{
-				sdSound.PlaySound({ name:'sword_attack2', x:gun.x, y:gun.y, volume:0.3 });
-				
-				return true;
-			},*/
 			projectile_properties: { time_left: 1, _damage: 1, color: 'transparent', 
 				_knock_scale: 0,
-				//_custom_target_reaction_protected: cable_reaction_method,
-				/*_custom_target_reaction: ( bullet, target_entity )=>
-				{
-					trace( target_entity );
-				},*/
 				_custom_detonation_logic:( bullet )=>
 				{
 					let gun = bullet._gun;
@@ -3153,7 +3143,6 @@ class sdGunClass
 								
 								sdSound.PlaySound({ name:'water_entrance', x:gun.x, y:gun.y, volume: 0.1, pitch: 1 });
 							}
-							
 						}
 					}
 					else
@@ -3161,7 +3150,6 @@ class sdGunClass
 						let water_ent = sdWater.GetWaterObjectAt( bullet.x, bullet.y );
 
 						if ( water_ent )
-						//if ( !water_ent._is_being_removed )
 						{
 							bullet._gun._held_item_snapshot = water_ent.GetSnapshot( GetFrame(), true );
 							
@@ -3626,6 +3614,7 @@ class sdGunClass
 				{
 					obj._dirt_mult = 0;
 					obj._rail = true;
+					obj._rail_circled = true;
 				}
 				
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -3882,6 +3871,99 @@ class sdGunClass
 				sdWorld.ReplaceColorInSDFilter_v2( remover_sd_filter, '#abcbf4', '#ffaa00' );
 				
 				gun.sd_filter = remover_sd_filter;
+			}
+		};
+		
+		const mop_base_color = '#ffffff';
+		const mop_base_color_border = '#cbcbcb';
+		// sdWater.reference_colors
+		sdGun.classes[ sdGun.CLASS_MOP = 100 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'mop' ),
+			image_no_matter: sdWorld.CreateImageFromFile( 'mop' ),
+			sound: 'sword_attack2',
+			title: 'Mop',
+			slot: 7,
+			reload_time: 10,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			matter_cost: 50,
+			projectile_velocity: 16 * 1.5,
+			spawnable: true,
+			category: 'Other',
+			is_sword: false,
+			GetAmmoCost: ()=>
+			{
+				return 1;
+			},
+			onMade: ( gun )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				gun.sd_filter = sdWorld.CreateSDFilter();
+				
+				//sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, liquid_carrier_base_color, liquid_carrier_empty );
+			},
+			projectile_properties: { time_left: 1, _damage: 1, color: 'transparent', 
+				_knock_scale: 0,
+				_custom_detonation_logic:( bullet )=>
+				{
+					let gun = bullet._gun;
+					
+					if ( gun.extra <= 10 )
+					{
+						let blood_decal_ent = sdBloodDecal.GetBloodDecalObjectAt( bullet.x, bullet.y );
+
+						if ( blood_decal_ent )
+						{
+							gun.extra++;
+
+							sdSound.PlaySound({ name:'water_entrance', x:gun.x, y:gun.y, volume: 0.1, pitch: 1 });
+
+							blood_decal_ent.intensity -= 50;
+							if ( blood_decal_ent.intensity < 33 )
+							{
+								blood_decal_ent.remove();
+							}
+							else
+							{
+								blood_decal_ent._update_version++;
+							}
+						}
+					}
+					
+					let water_ent = sdWater.GetWaterObjectAt( bullet.x, bullet.y );
+					if ( water_ent )
+					{
+						sdSound.PlaySound({ name:'water_entrance', x:gun.x, y:gun.y, volume: 0.1, pitch: 1 });
+						
+						while ( gun.extra > 0 && water_ent.type === sdWater.TYPE_WATER )
+						{
+							gun.extra--;
+							if ( Math.random() < 0.1 )
+							{
+								water_ent.type = sdWater.TYPE_ACID;
+								water_ent._update_version++;
+							}
+						}
+					}
+					
+					if ( gun.extra > 10 )
+					{
+						sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, mop_base_color, '#8c6a00' );
+						sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, mop_base_color_border, '#6f5400' );
+					}
+					else
+					if ( gun.extra > 5 )
+					{
+						sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, mop_base_color, '#cfc22e' );
+						sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, mop_base_color_border, '#a59a25' );
+					}
+					else
+					{
+						sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, mop_base_color, mop_base_color );
+						sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, mop_base_color_border, mop_base_color_border );
+					}
+				}
 			}
 		};
 

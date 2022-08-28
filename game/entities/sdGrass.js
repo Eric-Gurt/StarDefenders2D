@@ -178,17 +178,20 @@ class sdGrass extends sdEntity
 		ctx.sd_color_mult_r = 1;
 		ctx.sd_color_mult_g = 1;
 		ctx.sd_color_mult_b = 1;
+		ctx.globalAlpha = 1;
 	}
 	onRemove() // Class-specific, if needed
 	{
 		if ( this._block )
-		if ( this._block._plants )
 		{
-			let id = this._block._plants.indexOf( this._net_id );
-			if ( id >= 0 )
+			if ( !this._block._is_being_removed )
+			if ( this._block._plants )
 			{
+				let id = this._block._plants.indexOf( this._net_id );
+				if ( id >= 0 )
 				this._block._plants.splice( id, 1 );
 			}
+			this._block = null;
 		}
 	}
 	

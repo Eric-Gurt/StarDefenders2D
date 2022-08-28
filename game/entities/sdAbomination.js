@@ -85,6 +85,9 @@ class sdAbomination extends sdEntity
 				 this._current_target.hea <= 0 || 
 				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
 			{
+				if ( !this._current_target )
+				sdSound.PlaySound({ name:'abomination_alert', x:this.x, y:this.y });
+			
 				this._current_target = character;
 			}
 		}
@@ -109,7 +112,8 @@ class sdAbomination extends sdEntity
 		
 		if ( this._hea <= 0 && was_alive )
 		{
-			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
+			//sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
+			sdSound.PlaySound({ name:'abomination_death', x:this.x, y:this.y, volume: 2 });
 			this.idle = 1;
 			
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_CHALLENGING_MOB );
@@ -153,25 +157,36 @@ class sdAbomination extends sdEntity
 
 			if ( this.tenta_tim > 0 )
 			{
+				let old_tenta_tim = this.tenta_tim;
+				
 				this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
-					if ( this._tenta_target && this.tenta_tim > 10 )
-					{
-						if ( typeof this._tenta_target.sx !== 'undefined' ) // Is it an entity
-						this._tenta_target.sx += - this.tenta_x / 100; // Pull it in
-						else
-						this.sx += this.tenta_x / 100; // Pull itself towards the static entity
+				
+				if ( this._tenta_target )
+				if ( this._tenta_target._is_being_removed )
+				this._tenta_target = null;
+				
+				if ( this._tenta_target )
+				if ( this.tenta_tim < 90 && old_tenta_tim >= 90 )
+				sdSound.PlaySound({ name:'tentacle_end', x:this._tenta_target.x, y:this._tenta_target.y });
+				
+				if ( this._tenta_target && this.tenta_tim > 10 && this.tenta_tim < 90 )
+				{
+					if ( typeof this._tenta_target.sx !== 'undefined' ) // Is it an entity
+					this._tenta_target.sx += - this.tenta_x / 100; // Pull it in
+					else
+					this.sx += this.tenta_x / 100; // Pull itself towards the static entity
 
-						if ( typeof this._tenta_target.sy !== 'undefined' )
-						this._tenta_target.sy += - this.tenta_y / 100;
-						else
-						this.sy += this.tenta_y / 100; // Pull itself towards the entity
+					if ( typeof this._tenta_target.sy !== 'undefined' )
+					this._tenta_target.sy += - this.tenta_y / 100;
+					else
+					this.sy += this.tenta_y / 100; // Pull itself towards the entity
 
-						if ( this._tenta_target.IsPlayerClass() )
-						this._tenta_target.ApplyServerSidePositionAndVelocity( true, - this.tenta_x / 100, - this.tenta_y / 100 );
+					if ( this._tenta_target.IsPlayerClass() )
+					this._tenta_target.ApplyServerSidePositionAndVelocity( true, - this.tenta_x / 100, - this.tenta_y / 100 );
 
-						this.tenta_x = this._tenta_target.x - this.x;
-						this.tenta_y = this._tenta_target.y - this.y;
-					}
+					this.tenta_x = this._tenta_target.x - this.x;
+					this.tenta_y = this._tenta_target.y - this.y;
+				}
 			}
 
 			if ( this._hea < this._hmax )
@@ -264,6 +279,8 @@ class sdAbomination extends sdEntity
 						this.tenta_y = yy - this.y;
 						this.tenta_tim = 100;
 						this._tenta_target = from_entity;
+						
+						sdSound.PlaySound({ name:'tentacle_start', x:this.x, y:this.y, volume: 0.5 });
 
 
 						if ( typeof from_entity.sx !== 'undefined' ) // Is it an entity
@@ -335,7 +352,8 @@ class sdAbomination extends sdEntity
 				//this.an = Math.atan2( this._target.y + this._target.sy * di / vel - this.y, this._target.x + this._target.sx * di / vel - this.x ) * 100;
 						
 				//sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.33, pitch:5 });
-				sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:0.33, pitch:1.5 });
+				//sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:0.33, pitch:1.5 });
+				sdSound.PlaySound({ name:'abomination_attack', x:this.x, y:this.y });
 
 				let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 				let bullet_obj2 = new sdBullet({ x: this.x, y: this.y });
@@ -432,6 +450,8 @@ class sdAbomination extends sdEntity
 							this.tenta_y = yy - this.y;
 							this.tenta_tim = 100;
 							this._tenta_target = from_entity;
+						
+							sdSound.PlaySound({ name:'tentacle_start', x:this.x, y:this.y, volume: 0.5 });
 
 
 							if ( typeof from_entity.sx !== 'undefined' ) // Is it an entity
@@ -484,12 +504,6 @@ class sdAbomination extends sdEntity
 		}
 		else
 		{
-			if ( this.attack_timer > 25 )
-			ctx.drawImageFilterCache( sdAbomination.img_abomination_attack1, - 32, - 32, 64,64 );
-			else
-			ctx.drawImageFilterCache( sdAbomination.img_abomination_idle1, - 32, - 32, 64,64 );
-
-
 			if ( this.tenta_tim > 0 )
 			{
 				let sprites = [
@@ -517,6 +531,11 @@ class sdAbomination extends sdEntity
 				    ctx.restore();
 				}
 			}
+			
+			if ( this.attack_timer > 25 )
+			ctx.drawImageFilterCache( sdAbomination.img_abomination_attack1, - 32, - 32, 64,64 );
+			else
+			ctx.drawImageFilterCache( sdAbomination.img_abomination_idle1, - 32, - 32, 64,64 );
 		}
 		
 		ctx.globalAlpha = 1;
