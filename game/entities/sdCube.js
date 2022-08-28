@@ -1065,9 +1065,8 @@ class sdCube extends sdEntity
 
 		if ( draw_sprite )
 		{
-			if ( this.matter < this.matter_max )
 			ctx.globalAlpha = ( 1 - this.matter / this.matter_max ) * ( Math.sin( sdWorld.time / 2000 * Math.PI ) * 0.5 + 0.5 );
-			
+
 			ctx.drawImageFilterCache( sdCube.img_cube, 64,0, 32,32, -16, -16, 32,32 );
 		}
 		
