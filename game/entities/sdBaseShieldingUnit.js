@@ -26,11 +26,14 @@ class sdBaseShieldingUnit extends sdEntity
 {
 	static init_class()
 	{
+		sdBaseShieldingUnit.img_unit = sdWorld.CreateImageFromFile( 'shield_unit_sheet' );
+		/*
 		sdBaseShieldingUnit.img_unit = sdWorld.CreateImageFromFile( 'shield_unit' );
 		sdBaseShieldingUnit.img_unit_repair = sdWorld.CreateImageFromFile( 'shield_unit_repair' );
 		
 		sdBaseShieldingUnit.img_unit2 = sdWorld.CreateImageFromFile( 'shield_unit2' );
 		sdBaseShieldingUnit.img_unit2_repair = sdWorld.CreateImageFromFile( 'shield_unit2_repair' );
+		*/
 
 		sdBaseShieldingUnit.protect_distance = 275; // Used for breathing when there is no air and if BSU is enabled
 		sdBaseShieldingUnit.protect_distance_stretch = sdBaseShieldingUnit.protect_distance + 100; // If BSU moves...
@@ -696,9 +699,13 @@ class sdBaseShieldingUnit extends sdEntity
 	Draw( ctx, attached )
 	{
 		//ctx.filter = this.filter;
+
+		let xx = 0;
+		let yy = 0;
 		
 		if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
-		ctx.drawImageFilterCache( ( this.enabled ) ? sdBaseShieldingUnit.img_unit_repair : sdBaseShieldingUnit.img_unit, - 16, -16, 32, 32 );
+		xx = Math.min( ( this.enabled ) ? 1 : 0 );
+		//ctx.drawImageFilterCache( ( this.enabled ) ? sdBaseShieldingUnit.img_unit_repair : sdBaseShieldingUnit.img_unit, - 16, -16, 32, 32 );
 		else
 		if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
 		{
@@ -706,8 +713,11 @@ class sdBaseShieldingUnit extends sdEntity
 			{
 				ctx.filter = ( sdWorld.time % 200 < 100 ) ? 'brightness(0.5)' : 'brightness(1.5)';
 			}
-			ctx.drawImageFilterCache( ( this.enabled ) ? sdBaseShieldingUnit.img_unit2_repair : sdBaseShieldingUnit.img_unit2, - 16, -16, 32, 32 );
+			xx = Math.min( ( this.enabled ) ? 1 : 0 );
+			yy = 1;
+			//ctx.drawImageFilterCache( ( this.enabled ) ? sdBaseShieldingUnit.img_unit2_repair : sdBaseShieldingUnit.img_unit2, - 16, -16, 32, 32 );
 		}
+		ctx.drawImageFilterCache( sdBaseShieldingUnit.img_unit, xx * 32, yy * 32, 32,32, -16, -16, 32,32 );
 		//ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
