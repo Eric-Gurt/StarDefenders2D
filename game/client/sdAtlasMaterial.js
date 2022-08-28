@@ -53,8 +53,11 @@ class sdSuperTexture
 		let depthTest = ( 
 			is_transparent_int === sdAtlasMaterial.GROUP_OPAQUE ||
 			is_transparent_int === sdAtlasMaterial.GROUP_OPAQUE_DECAL ||
-			is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT
+			is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT ||
+			is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT_ADDITIVE
 		);
+
+		let additive = ( is_transparent_int === sdAtlasMaterial.GROUP_TRANSPARENT_ADDITIVE );
 
 		const hueShift_function = `
 		
@@ -84,6 +87,8 @@ class sdSuperTexture
 				depthWrite: !transparent,
 				transparent: transparent, 
 				flatShading: true,
+				
+				blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending,
 
 				vertexShader: `
 				
@@ -788,12 +793,13 @@ class sdAtlasMaterial
 		sdAtlasMaterial.GROUP_OPAQUE = 0;
 		sdAtlasMaterial.GROUP_OPAQUE_DECAL = 1;
 		sdAtlasMaterial.GROUP_TRANSPARENT = 2;
-		sdAtlasMaterial.GROUP_TRANSPARENT_UNSORTED = 3;
+		sdAtlasMaterial.GROUP_TRANSPARENT_ADDITIVE = 3;
+		sdAtlasMaterial.GROUP_TRANSPARENT_UNSORTED = 4;
 		//sdAtlasMaterial.GROUP_TRANSPARENT_IN_GAME_HUD = 2;
 		//sdAtlasMaterial.GROUP_TRANSPARENT_ONSCREEN_HUD = 3;
 		//sdAtlasMaterial.GROUP_TRANSPARENT_ONSCREEN_FOREGROUND = 4;
 
-		sdAtlasMaterial.super_textures = [ [], [], [], [] ]; // arr of arr-groups of sdSuperTexture
+		sdAtlasMaterial.super_textures = [ [], [], [], [], [] ]; // arr of arr-groups of sdSuperTexture
 		
 		sdAtlasMaterial.get_vertex_hits = 0;
 		sdAtlasMaterial.get_vertex_misses = 0;
@@ -1139,6 +1145,9 @@ class sdAtlasMaterial
 			
 			break;
 		}
+		
+		if ( sdRenderer.ctx.blend_mode === THREE.AdditiveBlending )
+		is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT_ADDITIVE;
 		
 		let super_texture;
 		let dedication;

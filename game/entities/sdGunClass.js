@@ -211,7 +211,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			matter_cost: 50,
-			projectile_properties: { _rail: true, _damage: 70, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
+			projectile_properties: { _rail: true, _rail_circled: true, _damage: 70, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
 			upgrades: AddRecolorsFromColorAndCost( [], '#62c8f2', 20 )
 		};
 		
@@ -585,7 +585,7 @@ class sdGunClass
 			muzzle_x: 7,
 			ammo_capacity: -1,
 			count: 1,
-			projectile_properties: { _rail: true, _damage: 62, color: '#FF0000'/*, _knock_scale:0.01 * 8*/ },
+			projectile_properties: { _rail: true, _rail_circled: true, _damage: 62, color: '#FF0000'/*, _knock_scale:0.01 * 8*/ },
 			spawnable: false,
 			upgrades: AddRecolorsFromColorAndCost( [], '#bf1d00', 30 )
 		};
@@ -3614,6 +3614,7 @@ class sdGunClass
 				{
 					obj._dirt_mult = 0;
 					obj._rail = true;
+					obj._rail_circled = true;
 				}
 				
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];

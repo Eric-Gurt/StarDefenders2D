@@ -125,6 +125,8 @@ class sdBullet extends sdEntity
 		this._reinforced_level = 0; // For "reinforced" blocks which are unlocked from shop / build tool upgrades
 		
 		this._rail = false;
+		this._rail_circled = false;
+		
 		this.explosion_radius = 0;
 		this.model = null; // Custom image model
 		
@@ -193,8 +195,12 @@ class sdBullet extends sdEntity
 	}
 	onRemove()
 	{
+		if ( this._rail_circled )
+		sdWorld.SendEffect({ x:this._start_x, y:this._start_y, x2:this.x, y2:this.y, type:sdEffect.TYPE_BEAM_CIRCLED, color:this.color });
+		else
 		if ( this._rail )
 		sdWorld.SendEffect({ x:this._start_x, y:this._start_y, x2:this.x, y2:this.y, type:sdEffect.TYPE_BEAM, color:this.color });
+	
 	
 		if ( this._custom_detonation_logic )
 		this._custom_detonation_logic( this );
