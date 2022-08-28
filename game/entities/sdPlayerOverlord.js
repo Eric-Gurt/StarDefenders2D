@@ -388,7 +388,7 @@ class sdPlayerOverlord extends sdCharacter
 
 			if ( sdWorld.is_server )
 			{
-				this.mouth = ( this._speak_frame === -1 ) ? ( ( extremely_mad_intent ? 3 : 2 ) : 0 ) : this._speak_frame;
+				this.mouth = ( this._speak_frame === -1 ) ? 0 : this._speak_frame;
 				
 				if ( this._hurt_timer > 0 )
 				{
