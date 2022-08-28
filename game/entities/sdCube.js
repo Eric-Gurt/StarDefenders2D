@@ -983,6 +983,8 @@ class sdCube extends sdEntity
 	{
 		let xx = 0;
 		let yy = 0;
+
+		let draw_sprite = false;
 		
 		if ( this.kind === 1 )
 		{
@@ -1018,8 +1020,9 @@ class sdCube extends sdEntity
 
 					if ( this.matter < this.matter_max )
 					{
-						ctx.globalAlpha = ( 1 - this.matter / this.matter_max ) * ( Math.sin( sdWorld.time / 2000 * Math.PI ) * 0.5 + 0.5 );
-						xx = 1;
+						draw_sprite = true;
+						//ctx.globalAlpha = ( 1 - this.matter / this.matter_max ) * ( Math.sin( sdWorld.time / 2000 * Math.PI ) * 0.5 + 0.5 );
+						//xx = 1;
 						//ctx.drawImageFilterCache( sdCube.img_cube_sleep3, - 16, - 16, 32,32 );
 					}
 				}
@@ -1047,8 +1050,9 @@ class sdCube extends sdEntity
 
 					if ( this.matter < this.matter_max )
 					{
-						ctx.globalAlpha = ( 1 - this.matter / this.matter_max ) * ( Math.sin( sdWorld.time / 2000 * Math.PI ) * 0.5 + 0.5 );
-						xx = 1;
+						draw_sprite = true;
+						//ctx.globalAlpha = ( 1 - this.matter / this.matter_max ) * ( Math.sin( sdWorld.time / 2000 * Math.PI ) * 0.5 + 0.5 );
+						//xx = 1;
 						//ctx.drawImageFilterCache( sdCube.img_cube_sleep, - 16, - 16, 32,32 );
 					}
 				}
@@ -1058,6 +1062,14 @@ class sdCube extends sdEntity
 			//ctx.drawImageFilterCache( sdCube.img_cube_sleep, - 16, - 16, 32,32 );
 		}
 		ctx.drawImageFilterCache( sdCube.img_cube, xx * 32, yy * 32, 32,32, -16, -16, 32,32 );
+
+		if ( draw_sprite )
+		{
+			if ( this.matter < this.matter_max )
+			ctx.globalAlpha = ( 1 - this.matter / this.matter_max ) * ( Math.sin( sdWorld.time / 2000 * Math.PI ) * 0.5 + 0.5 );
+			
+			ctx.drawImageFilterCache( sdCube.img_cube, 64,0, 32,32, -16, -16, 32,32 );
+		}
 		
 		ctx.globalAlpha = 1;
 		//ctx.filter = 'none';
