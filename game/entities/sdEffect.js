@@ -39,6 +39,9 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_HEARTS = 14;
 		sdEffect.TYPE_FIRE = 15;
 		sdEffect.TYPE_FROZEN = 16;
+		sdEffect.TYPE_RAIL_TRAIL = 17;
+		sdEffect.TYPE_RAIL_HIT = 18;
+		sdEffect.TYPE_BEAM_CIRCLED = 19;
 		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
@@ -87,6 +90,11 @@ class sdEffect extends sdEntity
 			sound_to_play_volume: 0.25
 		};
 		sdEffect.types[ sdEffect.TYPE_BEAM ] = {
+			images: [ 2, 1, 0.5, 0.25 ],
+			speed: 0.4,
+			random_flip: false
+		};
+		sdEffect.types[ sdEffect.TYPE_BEAM_CIRCLED ] = {
 			images: [ 2, 1, 0.5, 0.25 ],
 			speed: 0.4,
 			random_flip: false
@@ -197,7 +205,7 @@ class sdEffect extends sdEntity
 			random_flip: false,
 			random_rotation: false,
 			speed: 1 / 30,
-			//random_speed_percentage: 0.2
+			spritesheet: true
 		};
 		sdEffect.types[ sdEffect.TYPE_FIRE ] = {
 			images: [ sdWorld.CreateImageFromFile( 'effect_fire' ) ],
@@ -205,7 +213,8 @@ class sdEffect extends sdEntity
 			random_flip: true,
 			random_rotation: false,
 			speed: 6 / 30,
-			random_speed_percentage: 0.2
+			random_speed_percentage: 0.2,
+			spritesheet: true
 		};
 		sdEffect.types[ sdEffect.TYPE_FROZEN ] = {
 			images: [ sdWorld.CreateImageFromFile( 'effect_frozen' ) ],
@@ -213,9 +222,26 @@ class sdEffect extends sdEntity
 			random_flip: true,
 			random_rotation: false,
 			speed: 3 / 30,
-			random_speed_percentage: 0.2
+			random_speed_percentage: 0.2,
+			spritesheet: true
 		};
-		
+		sdEffect.types[ sdEffect.TYPE_RAIL_TRAIL ] = {
+			images: [ sdWorld.CreateImageFromFile( 'rail_trail' ) ],
+			duration: 4,
+			random_flip: false,
+			random_rotation: false,
+			speed: 10 / 30,
+			spritesheet: true,
+			opacity: 0.5
+		};
+		sdEffect.types[ sdEffect.TYPE_RAIL_HIT ] = {
+			images: [ sdWorld.CreateImageFromFile( 'rail_hit' ) ],
+			duration: 4,
+			random_flip: true,
+			random_rotation90: true,
+			speed: 10 / 30,
+			spritesheet: true
+		};
 	
 		sdEffect.translit_result_assumed_language = null;
 		sdEffect.translit_map_ru = {
@@ -341,7 +367,7 @@ class sdEffect extends sdEntity
 		this._radius = params.radius;
 		this._x2 = params.x2;
 		this._y2 = params.y2;
-		this._color = params.color;
+		this._color = params.color || '#ffffff';
 		
 		//if ( this._color.indexOf(' ') !== -1 )
 		//debugger;
@@ -388,6 +414,36 @@ class sdEffect extends sdEntity
 		if ( this._type === sdEffect.TYPE_BLOOD || this._type === sdEffect.TYPE_BLOOD_GREEN )
 		{
 			this.sy -= 1;
+		}
+		
+		if ( this._type === sdEffect.TYPE_BEAM_CIRCLED )
+		{
+			let dx = this._x2 - this.x;
+			let dy = this._y2 - this.y;
+			
+			let steps = ~~( sdWorld.Dist2D_Vector( dx, dy ) / 16 );
+			
+			if ( steps > 0 )
+			{
+				dx /= steps;
+				dy /= steps;
+				let xx = this.x;
+				let yy = this.y;
+				for ( let i = 0; i < steps; i++ )
+				{
+					if ( i > 0 )
+					{
+						let ent = new sdEffect({ x: xx, y: yy, type:sdEffect.TYPE_RAIL_TRAIL, color:this._color });
+						sdEntity.entities.push( ent );
+					}
+					
+					xx += dx;
+					yy += dy;
+				}
+			}
+			
+			let ent = new sdEffect({ x: this._x2, y: this._y2, type:sdEffect.TYPE_RAIL_HIT, color:this._color });
+			sdEntity.entities.push( ent );
 		}
 		
 		if ( sdEffect.types[ this._type ].sound_to_play )
@@ -682,7 +738,8 @@ class sdEffect extends sdEntity
 		{
 		}
 		else
-		if ( this._type === sdEffect.TYPE_HEARTS || this._type === sdEffect.TYPE_FIRE || this._type === sdEffect.TYPE_FROZEN )
+		//if ( this._type === sdEffect.TYPE_HEARTS || this._type === sdEffect.TYPE_FIRE || this._type === sdEffect.TYPE_FROZEN )
+		if ( sdEffect.types[ this._type ].spritesheet )
 		{
 		}
 		else
@@ -703,8 +760,23 @@ class sdEffect extends sdEntity
 
 				if ( width > 0 )
 				{
-					ctx.fillStyle = '#FFFFFF';
+					//ctx.sd_color_mult_r = 20;
+					//ctx.sd_color_mult_g = 20;
+					//ctx.sd_color_mult_b = 20;
+					
+					let color_arr = sdWorld.hexToRgb( this._color );
+					
+					color_arr[ 0 ] *= 4;
+					color_arr[ 1 ] *= 4;
+					color_arr[ 2 ] *= 4;
+					
+					ctx.fillStyle = '#' + sdWorld.ColorArrayToHex( color_arr );
+					//ctx.fillStyle = '#FFFFFF';
 					ctx.fillRect( -0.5 * width, 0, 1 * width, vel );
+
+					//ctx.sd_color_mult_r = 1;
+					//ctx.sd_color_mult_g = 1;
+					//ctx.sd_color_mult_b = 1;
 				}
 			}
 		}
@@ -805,8 +877,6 @@ class sdEffect extends sdEntity
 					this._sd_tint_filter[ 1 ] /= 255;
 					this._sd_tint_filter[ 2 ] /= 255;
 				}
-				else
-				debugger;
 			}
 			
 			ctx.blend_mode = THREE.AdditiveBlending;
@@ -847,12 +917,36 @@ class sdEffect extends sdEntity
 			ctx.filter = 'none';
 		}
 		else
-		if ( this._type === sdEffect.TYPE_HEARTS || this._type === sdEffect.TYPE_FIRE || this._type === sdEffect.TYPE_FROZEN )
+		if ( sdEffect.types[ this._type ].spritesheet )
+		//if ( this._type === sdEffect.TYPE_HEARTS || this._type === sdEffect.TYPE_FIRE || this._type === sdEffect.TYPE_FROZEN )
 		{
+			if ( this._sd_tint_filter === null )
+			{
+				this._sd_tint_filter = sdWorld.hexToRgb( this._color );
+				if ( this._sd_tint_filter )
+				{
+					this._sd_tint_filter[ 0 ] /= 255;
+					this._sd_tint_filter[ 1 ] /= 255;
+					this._sd_tint_filter[ 2 ] /= 255;
+				}
+			}
+			
+			ctx.sd_color_mult_r = this._sd_tint_filter[ 0 ];
+			ctx.sd_color_mult_g = this._sd_tint_filter[ 1 ];
+			ctx.sd_color_mult_b = this._sd_tint_filter[ 2 ];
+			
+			if ( sdEffect.types[ this._type ].opacity !== undefined )
+			ctx.globalAlpha = sdEffect.types[ this._type ].opacity;
+			
 			let frame = ~~( this._ani );
 			ctx.filter = this._filter;
 			ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], 0 + frame*16, 0, 16,16, -8,-8,16,16 );
 			ctx.filter = 'none';
+			
+			ctx.sd_color_mult_r = 1;
+			ctx.sd_color_mult_g = 1;
+			ctx.sd_color_mult_b = 1;
+			ctx.globalAlpha = 1;
 		}
 	}
 	onRemove() // Class-specific, if needed

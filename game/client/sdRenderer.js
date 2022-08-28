@@ -1048,10 +1048,19 @@ class sdRenderer
 				else
 				if ( sdWorld.my_entity )
 				if ( sdRenderer.old_visibility_map )
-				if (   e.x + e._hitbox_x2 > min_x &&
+				if ( ( e.x + e._hitbox_x2 > min_x &&
 					   e.x + e._hitbox_x1 < max_x &&
 					   e.y + e._hitbox_y2 > min_y &&
-					   e.y + e._hitbox_y1 < max_y )
+					   e.y + e._hitbox_y1 < max_y ) ||
+					   (
+							e.is( sdEffect ) &&
+							e.type === sdEffect.TYPE_BEAM &&
+							e._x2 + e._hitbox_x2 > min_x &&
+							e._x2 + e._hitbox_x1 < max_x &&
+							e._y2 + e._hitbox_y2 > min_y &&
+							e._y2 + e._hitbox_y1 < max_y 
+					   )
+					)
 				{
 					let x = sdWorld.my_entity.x;
 					let y = sdWorld.my_entity.y;

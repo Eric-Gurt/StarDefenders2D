@@ -64,6 +64,7 @@ class sdOctopus extends sdEntity
 		this.tenta_x = 0;
 		this.tenta_y = 0;
 		this.tenta_tim = 0;
+		this._tenta_target = null;
 		
 		
 		
@@ -272,7 +273,57 @@ class sdOctopus extends sdEntity
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 		
 		if ( this.tenta_tim > 0 )
-		this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
+		{
+			this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
+			
+			if ( this._tenta_target )
+			if ( this._tenta_target._is_being_removed )
+			this._tenta_target = null;
+	
+			if ( this._tenta_target )
+			if ( this.tenta_tim > 20 && this.tenta_tim < 80 )
+			{
+				let from_entity = this._tenta_target;
+				
+				let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
+				let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
+
+				if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
+				{
+					if ( from_entity.GetClass() === 'sdGun' && !from_entity._is_being_removed )
+					{
+						if ( this._consumed_guns_snapshots.length < 64 )
+						{
+							this._consumed_guns_snapshots.push( from_entity.GetSnapshot( globalThis.GetFrame(), true ) );
+							from_entity.remove();
+						}
+					}
+					else
+					{
+						if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )
+						{
+							from_entity.DamageWithEffect( 75, this );
+						}
+						else
+						from_entity.DamageWithEffect( 75, this );
+					}
+
+					this._hea = Math.min( this._hmax, this._hea + 25 );
+
+					from_entity.PlayDamageEffect( xx, yy );
+					
+						
+					sdSound.PlaySound({ name:'tentacle_end', x:xx, y:yy });
+
+					let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y );
+					if ( di > 0 )
+					from_entity.Impulse( this.tenta_x / di * 20, this.tenta_y / di * 20 );
+				
+					this._tenta_target = null;
+
+				}
+			}
+		}
 
 		if ( this.death_anim === 0 )
 		{
@@ -347,47 +398,20 @@ class sdOctopus extends sdEntity
 					let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
 					let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 
-					/*if ( from_entity.GetClass() === 'sdCharacter' ||
-						 ( from_entity.GetClass() === 'sdBlock' && !from_entity._natural ) ||
-						 from_entity.GetClass() === 'sdCom' ||
-						 from_entity.GetClass() === 'sdCrystal' ||
-						 from_entity.GetClass() === 'sdTurret' ||
-						 from_entity.GetClass() === 'sdDoor' ||
-						 from_entity.GetClass() === 'sdMatterContainer' ||
-						 ( from_entity.GetClass() === 'sdGun' && from_entity.class !== sdGun.CLASS_BUILD_TOOL && from_entity.class !== sdGun.CLASS_MEDIKIT && ( from_entity._held_by === null || from_entity._held_by.gun_slot === sdGun.classes[ from_entity.class ].slot ) ) || // Yes, held guns too, but only currently held guns. Except for build tool and medikit
-						 from_entity.GetClass() === 'sdTeleport' ||
-						 from_entity.GetClass() === 'sdVirus' ||
-						 ( typeof from_entity.hea !== 'undefined' && from_entity.hea <= 0 ) ||
-						 ( typeof from_entity._hea !== 'undefined' && from_entity._hea <= 0 ) )*/
 					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
 					{
-						//if ( from_entity._is_being_removed )
-						if ( from_entity.GetClass() === 'sdGun' && !from_entity._is_being_removed )
+						/*if ( from_entity.GetClass() === 'sdGun' && !from_entity._is_being_removed )
 						{
-							/*if ( from_entity.class === sdGun.CLASS_CRYSTAL_SHARD )
+							if ( this._consumed_guns_snapshots.length < 64 )
 							{
-								//this._consumed_matter.push( from_entity.extra );
+								this._consumed_guns_snapshots.push( from_entity.GetSnapshot( globalThis.GetFrame(), true ) );
+								from_entity.remove();
 							}
-							else*/
-							//{
-								//this._consumed_guns.push( from_entity.class );
-								if ( this._consumed_guns_snapshots.length < 64 )
-								{
-									//from_entity._held_by = null;
-									this._consumed_guns_snapshots.push( from_entity.GetSnapshot( globalThis.GetFrame(), true ) );
-									from_entity.remove();
-								}
-							//}
 						}
 						else
 						{
 							if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )
 							{
-								/*if ( from_entity._reinforced_level > 0 ) // Octopus should not damage reinforced blocks to prevent raiders using them
-								{
-									// No damage
-								}
-								else*/
 								from_entity.DamageWithEffect( 75, this );
 							}
 							else
@@ -396,19 +420,19 @@ class sdOctopus extends sdEntity
 						
 						this._hea = Math.min( this._hmax, this._hea + 25 );
 
-						from_entity.PlayDamageEffect( xx, yy );
-						//sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
+						from_entity.PlayDamageEffect( xx, yy );*/
 
 						this.tenta_x = xx - this.x;
 						this.tenta_y = yy - this.y;
 						this.tenta_tim = 100;
+						this._tenta_target = from_entity;
 						
-						let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y );
+						sdSound.PlaySound({ name:'tentacle_start', x:this.x, y:this.y, volume: 0.5 });
+						
+						/*let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y );
 						if ( di > 0 )
-						from_entity.Impulse( this.tenta_x / di * 20, this.tenta_y / di * 20 );
+						from_entity.Impulse( this.tenta_x / di * 20, this.tenta_y / di * 20 );*/
 
-						//hits_left--;
-						//if ( hits_left <= 0 )
 						break;
 					}
 				}
