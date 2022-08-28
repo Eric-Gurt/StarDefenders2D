@@ -44,7 +44,7 @@ class sdCouncilMachine extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 
-		this.hmax = 5000;
+		this.hmax = 6000;
 		this.hea = this.hmax;
 
 		// Variables for Council portal machine
