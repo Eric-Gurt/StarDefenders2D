@@ -508,7 +508,7 @@ class sdDoor extends sdEntity
 				//console.log( this.x, this.y );
 			}
 			
-			if ( this.opening_tim === 0 && this.openness === 0 && !this.malfunction )
+			if ( this.opening_tim === 0 && this.openness === 0 && !this.malfunction && this._hea >= this._hmax )
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		}
 		else
