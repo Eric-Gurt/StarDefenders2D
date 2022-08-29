@@ -1748,6 +1748,7 @@ io.on("connection", (socket) =>
 		socket.character = character_entity;
 		
 		character_entity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		character_entity._frozen = 0; // Preventing results of a bug where status effects were removed but _frozen property wasn't reset. Still not sure why this happens
 
 		sdTask.WakeUpTasksFor( character_entity );
 		

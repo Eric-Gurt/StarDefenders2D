@@ -1119,6 +1119,7 @@ class sdCharacter extends sdEntity
 				status_effect.remove();
 			});
 			this._sickness = 0;
+			this._frozen = 0; // For some reason does not always happen...
 			//this._sickness /= 4;
 			
 			this.stability = 100;
