@@ -3407,7 +3407,8 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
-						if ( gun.extra[ ID_TEMPERATURE_APPLIED ] < 750 )
+						//if ( gun.extra[ ID_TEMPERATURE_APPLIED ] < 750 )
+						if ( gun.extra[ ID_TEMPERATURE_APPLIED ] < 500 )
 						{
 							gun.extra[ ID_TEMPERATURE_APPLIED ] += 20;
 							UpdateCusomizableGunProperties( gun );
@@ -3428,7 +3429,8 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
-						if ( gun.extra[ ID_TEMPERATURE_APPLIED ] > -750 )
+						//if ( gun.extra[ ID_TEMPERATURE_APPLIED ] > -750 )
+						if ( gun.extra[ ID_TEMPERATURE_APPLIED ] > -273 )
 						{
 							gun.extra[ ID_TEMPERATURE_APPLIED ] -= 20;
 							UpdateCusomizableGunProperties( gun );

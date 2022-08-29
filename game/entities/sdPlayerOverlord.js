@@ -270,6 +270,9 @@ class sdPlayerOverlord extends sdCharacter
 
 		this.sx += this.act_x * v * GSPEED;
 		this.sy += this.act_y * v * GSPEED;
+		
+		if ( this.act_x !== 0 || this.act_y !== 0 )
+		this.PhysWakeUp();
 			
 		this.an = ( -Math.PI/2 - Math.atan2( this.look_x - this.x, this.look_y - this.y - sdPlayerOverlord.rifle_offset_y ) ) * 100;
 		let extremely_mad_intent = false;
@@ -389,6 +392,24 @@ class sdPlayerOverlord extends sdCharacter
 			if ( sdWorld.is_server )
 			{
 				this.mouth = ( this._speak_frame === -1 ) ? 0 : this._speak_frame;
+				
+				if ( this.mouth === 0 )
+				{
+					if ( this._key_states.GetKey( 'Mouse1' ) )
+					{
+						this.mouth = 3;
+					}
+					else
+					if ( this._key_states.GetKey( 'Mouse3' ) )
+					{
+						this.mouth = 2;
+					}
+					else
+					if ( this.act_x !== 0 || this.act_y !== 0 )
+					{
+						this.mouth = 2;
+					}
+				}
 				
 				if ( this._hurt_timer > 0 )
 				{
@@ -619,6 +640,10 @@ class sdPlayerOverlord extends sdCharacter
 			ctx.sd_hue_rotation = this.hue;
 			else
 			ctx.filter = 'hue-rotate(' + this.hue + 'deg)';
+		}
+		else
+		{
+			this.mouth = ( ~~( sdWorld.time / 2000 ) ) % 4;
 		}
 		
 		if ( this.look_x - this.x > 0 )

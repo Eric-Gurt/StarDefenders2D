@@ -1032,56 +1032,72 @@ class sdRenderer
 			const STATUS_EFFECT_AFTER = 1;
 			
 			const frame_flag_reference = sdEntity.flag_counter++;
-			
-			for ( var i = 0; i < sdEntity.entities.length; i++ )
+
 			{
-				let e = sdEntity.entities[ i ];
-				
-				//e._flag = 0; // Visibility detection
-				
-				if ( !e.IsVisible( sdWorld.my_entity ) )
+				let x = sdWorld.my_entity ? sdWorld.my_entity.x : 0;
+				let y = sdWorld.my_entity ? sdWorld.my_entity.y : 0;
+
+				let angles = sdRenderer.old_visibility_map ? sdRenderer.old_visibility_map.length : null;
+				for ( var i = 0; i < sdEntity.entities.length; i++ )
 				{
-				}
-				else
-				if ( e.IsGlobalEntity() || ( e.is( sdEffect ) && e.type === sdEffect.TYPE_CHAT ) || ( sdWorld.my_entity && ( sdWorld.my_entity === e || sdWorld.my_entity.driver_of === e || sdWorld.my_entity._god ) ) )
-				e._flag = frame_flag_reference;
-				else
-				if ( sdWorld.my_entity )
-				if ( sdRenderer.old_visibility_map )
-				if ( ( e.x + e._hitbox_x2 > min_x &&
-					   e.x + e._hitbox_x1 < max_x &&
-					   e.y + e._hitbox_y2 > min_y &&
-					   e.y + e._hitbox_y1 < max_y ) ||
-					   (
-							e.is( sdEffect ) &&
-							e.type === sdEffect.TYPE_BEAM &&
-							e._x2 + e._hitbox_x2 > min_x &&
-							e._x2 + e._hitbox_x1 < max_x &&
-							e._y2 + e._hitbox_y2 > min_y &&
-							e._y2 + e._hitbox_y1 < max_y 
-					   )
-					)
-				{
-					let x = sdWorld.my_entity.x;
-					let y = sdWorld.my_entity.y;
+					let e = sdEntity.entities[ i ];
 					
-					let ex = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
-					let ey = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
-				
-					let angles = sdRenderer.old_visibility_map.length;
-					
-					let an = Math.round( Math.atan2( ex - x, ey - y ) / ( Math.PI * 2 ) * angles + angles ) % angles;
-					
-					if ( an < 0 )
-					debugger;
-				
-					if ( an >= angles )
-					debugger;
-				
-					let max_dimension = sdWorld.Dist2D_Vector( e._hitbox_x2 - e._hitbox_x1, e._hitbox_y2 - e._hitbox_y1 );
-					
-					if ( sdWorld.inDist2D_Boolean( x, y, ex, ey, sdRenderer.old_visibility_map[ an ] + sdRenderer.visibility_falloff + 32 + max_dimension ) )
+					/*if (	e.is( sdEffect ) &&
+								( e._type === sdEffect.TYPE_BEAM || e._type === sdEffect.TYPE_BEAM_CIRCLED ) )
+					{
+						trace( e );
+					}*/
+
+					//e._flag = 0; // Visibility detection
+
+					if ( !e.IsVisible( sdWorld.my_entity ) )
+					{
+					}
+					else
+					if ( e.IsGlobalEntity() || ( e.is( sdEffect ) && e._type === sdEffect.TYPE_CHAT ) || ( sdWorld.my_entity && ( sdWorld.my_entity === e || sdWorld.my_entity.driver_of === e || sdWorld.my_entity._god ) ) )
 					e._flag = frame_flag_reference;
+					else
+					if ( sdWorld.my_entity )
+					if ( sdRenderer.old_visibility_map )
+					{
+						if (   e.x + e._hitbox_x2 > min_x &&
+							   e.x + e._hitbox_x1 < max_x &&
+							   e.y + e._hitbox_y2 > min_y &&
+							   e.y + e._hitbox_y1 < max_y )
+						{
+							let ex = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
+							let ey = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
+
+							let an = Math.round( Math.atan2( ex - x, ey - y ) / ( Math.PI * 2 ) * angles + angles ) % angles;
+
+							let max_dimension = sdWorld.Dist2D_Vector( e._hitbox_x2 - e._hitbox_x1, e._hitbox_y2 - e._hitbox_y1 );
+
+							if ( sdWorld.inDist2D_Boolean( x, y, ex, ey, sdRenderer.old_visibility_map[ an ] + sdRenderer.visibility_falloff + 32 + max_dimension ) )
+							e._flag = frame_flag_reference;
+						}
+						else
+						if (	e.is( sdEffect ) &&
+								( e._type === sdEffect.TYPE_BEAM || e._type === sdEffect.TYPE_BEAM_CIRCLED ) )
+						{
+							
+							if ( 
+									e._x2 > min_x &&
+									e._x2 < max_x &&
+									e._y2 > min_y &&
+									e._y2 < max_y )
+							{
+								let ex = e._x2;
+								let ey = e._y2;
+
+								let an = Math.round( Math.atan2( ex - x, ey - y ) / ( Math.PI * 2 ) * angles + angles ) % angles;
+
+								let max_dimension = 0;
+
+								if ( sdWorld.inDist2D_Boolean( x, y, ex, ey, sdRenderer.old_visibility_map[ an ] + sdRenderer.visibility_falloff + 32 + max_dimension ) )
+								e._flag = frame_flag_reference;
+							}
+						}
+					}
 				}
 			}
 			

@@ -454,6 +454,8 @@ class sdOverlord extends sdEntity
 					{
 						this.sx += pathfinding_result.act_x * GSPEED * 0.1;
 						this.sy += pathfinding_result.act_y * GSPEED * 0.1;
+						
+						this.PhysWakeUp();
 					}
 				}
 

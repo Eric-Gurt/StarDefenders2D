@@ -1,10 +1,6 @@
 /*
 
-	
-	"If bases won't be possible to destroy with heavy armory vehicles and nuclear strikes - I'll be sad. 
-	It would be cool if some combat tank could be made with the cost of some anti-crystal and long construction process though."
-																											- Eric Gurt
-
+	Part of a task that makes you carry this thing and scan blocks for cookies.
 
 */
 import sdWorld from '../sdWorld.js';
@@ -71,7 +67,8 @@ class sdLandScanner extends sdEntity
 		this.regen_timeout = 0;
 		this.scan_timer = 0;
 		this._next_beep = 20; // for beep sfx
-		this._scanned_entities = [];
+		//this._scanned_entities = []; The issue here is that world snapshot has no information whether some array is an array of objects or numbers or strings, or non-entity objects (it checks only top-level properties of each entity). Because of that it just runs JSON.stringify on them and would throw an infinite recursion error if array contains sdEntity kinds of entities. Store just _net_id-s whenever possible in cases like these -- Eric Gurt
+		this._scanned_entity_net_ids = [];
 		this.enabled = false;
 		this.charge = 0;
 		this.matter_max = 100;
@@ -86,7 +83,8 @@ class sdLandScanner extends sdEntity
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
-		return ( prop === '_scanned_entities' );
+		//return ( prop === '_scanned_entities' );
+		return ( prop === '_scanned_entity_net_ids' );
 	}
 				
 
@@ -167,21 +165,31 @@ class sdLandScanner extends sdEntity
 				
 				for ( let i = 0; i < blocks.length; i++ ) // Protect nearby entities inside base unit's radius
 				{
+					if ( blocks[ i ].material === sdBlock.MATERIAL_GROUND || blocks[ i ].material === sdBlock.MATERIAL_CORRUPTION || blocks[ i ].material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
 					{
-						if ( blocks[ i ].material === sdBlock.MATERIAL_GROUND || blocks[ i ].material === sdBlock.MATERIAL_CORRUPTION || blocks[ i ].material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+						/*
+						let scanned_before = false;
+						for ( let j = 0; j < this._scanned_entities.length; j++ )
 						{
-							//console.log(i);
-							let scanned_before = false;
-							for ( let j = 0; j < this._scanned_entities.length; j++ )
-							{
-								if ( blocks[ i ] === this._scanned_entities[ j ] ) // Has this block been scanned before by this land scnaner?
-								scanned_before = true;
-							}
-							if ( scanned_before === false && this.scanned_ents < 350 ) // 350 is max capacity
-							{
-								this.scanned_ents++;
-								this._scanned_entities.push( blocks[ i ] );
-							}
+							if ( blocks[ i ] === this._scanned_entities[ j ] ) // Has this block been scanned before by this land scnaner?
+							scanned_before = true;
+						}
+						if ( scanned_before === false && this.scanned_ents < 350 ) // 350 is max capacity
+						{
+							this.scanned_ents++;
+							this._scanned_entities.push( blocks[ i ] );
+						}*/
+
+						let scanned_before = false;
+						for ( let j = 0; j < this._scanned_entity_net_ids.length; j++ )
+						{
+							if ( blocks[ i ]._net_id === this._scanned_entity_net_ids[ j ] ) // Has this block been scanned before by this land scnaner?
+							scanned_before = true;
+						}
+						if ( scanned_before === false && this.scanned_ents < 350 ) // 350 is max capacity
+						{
+							this.scanned_ents++;
+							this._scanned_entity_net_ids.push( blocks[ i ]._net_id );
 						}
 					}
 				}

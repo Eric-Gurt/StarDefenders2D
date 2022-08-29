@@ -97,6 +97,7 @@ class sdSound
 		MakeLoopAmbient( 'rift_loop', './audio/rift_loop.wav' );
 		MakeLoopAmbient( 'anti_crystal_ambient', './audio/anti_crystal_ambient.wav' );
 		MakeLoopAmbient( 'water_loop', './audio/water.wav' );
+		MakeLoopAmbient( 'antigravity', './audio/antigravity.wav' );
 		
 		
 		sdSound.ambient_seeker = { x:Math.random()*2-1, y:Math.random()*2-1, tx:Math.random()*2-1, ty:Math.random()*2-1 };
@@ -218,6 +219,7 @@ class sdSound
 		let count_rift_loop = 0;
 		let count_anti_crystal_ambient = 0;
 		let count_water_loop = 0;
+		let count_antigravity = 0;
 			
 		for ( var i = 0; i < sdEntity.entities.length; i++ )
 		{
@@ -246,6 +248,12 @@ class sdSound
 				{
 					if ( sdEntity.entities[ i ].matter_max > 0 || sdEntity.entities[ i ].crystal )
 					count_amplifier_loop += 0.2 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+				}
+				else
+				if ( sdEntity.entities[ i ].GetClass() === 'sdAntigravity' )
+				{
+					if ( sdEntity.entities[ i ].power > 0 )
+					count_antigravity += 0.2 * sdEntity.entities[ i ].power * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
 				}
 				else
 				if ( sdEntity.entities[ i ].GetClass() === 'sdWater' )
@@ -299,6 +307,9 @@ class sdSound
 		
 		sdSound.amplifier_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.amplifier_loop_volume_last, count_amplifier_loop, 0.8, GSPEED );
 		sdSound.amplifier_loop.volume = Math.min( 1, Math.min( 1.25, sdSound.amplifier_loop_volume_last ) * sdSound.volume_ambient );
+		
+		sdSound.antigravity_volume_last = sdWorld.MorphWithTimeScale( sdSound.antigravity_volume_last, count_antigravity, 0.8, GSPEED );
+		sdSound.antigravity.volume = Math.min( 1, Math.min( 1.25, sdSound.antigravity_volume_last ) * sdSound.volume_ambient );
 		
 		sdSound.lava_loop_volume_last = sdWorld.MorphWithTimeScale( sdSound.lava_loop_volume_last, count_lava_loop, 0.8, GSPEED );
 		sdSound.lava_loop.volume = Math.min( 1, Math.min( 1.5, sdSound.lava_loop_volume_last ) * sdSound.volume_ambient );

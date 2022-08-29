@@ -294,6 +294,10 @@ class sdOctopus extends sdEntity
 					{
 						if ( this._consumed_guns_snapshots.length < 64 )
 						{
+							// For some reason guns can disappear completely at random which is bad considering how some guns are very important to keep
+							if ( from_entity._hea < 50 )
+							from_entity._hea = 50;
+							
 							this._consumed_guns_snapshots.push( from_entity.GetSnapshot( globalThis.GetFrame(), true ) );
 							from_entity.remove();
 						}

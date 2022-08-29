@@ -4,6 +4,8 @@
 
 	Does not do anything currently. Perhaps could save events such as appearance/disappearance/storage access/hooking? Or could act as proper player that records lots of data, but that would require good optimized servers.
 
+	Alternatively could just report stuff to players via e-mail or I don't know really. Anybody wants to make Viber/Discord/WhatsUp integration?
+
 */
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';

@@ -1777,7 +1777,9 @@
 		ctx.scale( 4,4 );
 		ctx.translate( 16, 14 );
 
+		sdShop.isDrawing = true;
 		ent.Draw( ctx );
+		sdShop.isDrawing = false;
 		
 		if ( ent._ragdoll )
 		{
