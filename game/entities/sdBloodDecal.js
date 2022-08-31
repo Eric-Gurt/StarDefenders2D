@@ -23,7 +23,7 @@ class sdBloodDecal extends sdEntity
 	get hitbox_x1() { return 0; }
 	get hitbox_x2() { return 16; }
 	get hitbox_y1() { return 0; }
-	get hitbox_y2() { return 16; }
+	get hitbox_y2() { return this.h; }
 	
 	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG
 	{ 
@@ -72,7 +72,9 @@ class sdBloodDecal extends sdEntity
 		this.hue = params.hue || 0;
 		this.filter = params.filter || 'none';
 		
-		this._bg = params.bg || null;
+		this._bg = null;
+		
+		this.h = 16;
 		
 		this.intensity = params.intensity || 33; // 0..100 opacity
 		
@@ -85,6 +87,8 @@ class sdBloodDecal extends sdEntity
 		
 		setTimeout( ()=> { this._bleed++; }, 1000 );
 		setTimeout( ()=> { this._bleed++; }, 2000 );
+		
+		this.UpdateHitbox();
 	}
 	UpdateRelativePosition()
 	{
@@ -111,7 +115,7 @@ class sdBloodDecal extends sdEntity
 		{
 			this._first_frame = false;
 			
-			let arr = sdWorld.GetCellsInRect( this.x, this.y, this.x + 16, this.y + 16 );
+			let arr = sdWorld.GetCellsInRect( this.x, this.y, this.x + 16, this.y + this.h );
 			
 			both:
 			for ( let i = 0; i < arr.length; i++ )
@@ -128,6 +132,15 @@ class sdBloodDecal extends sdEntity
 							if ( !this._bg )
 							{
 								this._bg = from_entity;
+							
+								if ( this.y < this._bg.y )
+								this.y = this._bg.y;
+
+								if ( this.y + this.h > this._bg.y + this._bg.height )
+								{
+									this.h = this._bg.y + this._bg.height - this.y;
+									this.UpdateHitbox();
+								}
 								
 								this._bg_relative_x = this.x - this._bg.x;
 								this._bg_relative_y = this.y - this._bg.y;
@@ -183,7 +196,7 @@ class sdBloodDecal extends sdEntity
 	DrawBG( ctx, attached )
 	{
 		var w = 16;
-		var h = 16;
+		var h = this.h;
 		
 		ctx.sd_hue_rotation = this.hue;
 		ctx.globalAlpha = this.intensity / 200;

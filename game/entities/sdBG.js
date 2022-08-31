@@ -112,7 +112,7 @@ class sdBG extends sdEntity
 			{
 				let ent = sdEntity.entities_by_net_id_cache_map.get( this._decals[ i ] );
 
-				if ( ent )
+				if ( ent && !ent._is_being_removed )
 				ent.UpdateRelativePosition();
 				else
 				{

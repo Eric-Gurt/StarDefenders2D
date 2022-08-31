@@ -1246,19 +1246,45 @@ class sdWorld
 				
 				if ( sdWorld.CheckLineOfSight( params.x, params.y, params.x + dx, params.y + dy, null, null, sdCom.com_visibility_unignored_classes ) )
 				{
-					let bg = sdWorld.CheckWallExists( params.x + dx, params.y + dy, null, null, [ 'sdBG' ] );
-					
-					if ( bg )
+					if ( sdWorld.CheckWallExists( params.x + dx, params.y + dy, null, null, [ 'sdBG' ] ) )
+					if ( sdWorld.last_hit_entity )
 					{
+						//let bg = sdWorld.last_hit_entity;
+						
+						let x = Math.floor( ( params.x + dx ) / 16 ) * 16;
+						let y = Math.floor( ( params.y + dy ) / 16 ) * 16;
+						let h = 16;
+						
+						/*if ( y < bg.y )
+						{
+							trace( 'y', y, '->', bg.y );
+							y = bg.y;
+						}
+					
+						if ( y + h > bg.y + bg.height )
+						{
+							trace( 'h', h, '->', bg.y + bg.height - y );
+							h = bg.y + bg.height - y;
+						}*/
+						
 						let ent = new sdBloodDecal({
-							x: Math.floor( ( params.x + dx ) / 16 ) * 16,
-							y: Math.floor( ( params.y + dy ) / 16 ) * 16,
+							x: x,
+							y: y,
+							h: h,
+							//bg: bg,
+							//bg_relative_x: x - bg.x,
+							//bg_relative_y: y - bg.y,
 							effect_type: params.type,
 							filter: params.filter,
 							hue: params.hue
 						});
 						sdEntity.entities.push( ent );
 						//sdWorld.UpdateHashPosition( ent, false ); // Prevent inersection with other ones
+
+						/*if ( bg._decals === null )
+						bg._decals = [ ent._net_id ];
+						else
+						bg._decals.push( ent._net_id );*/
 					}
 				}
 			}
