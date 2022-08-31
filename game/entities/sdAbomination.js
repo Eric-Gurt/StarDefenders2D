@@ -421,6 +421,7 @@ class sdAbomination extends sdEntity
 						let an = Math.random() * Math.PI * 2;
 
 						if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.x + Math.sin( an ) * 150, this.y + Math.cos( an ) * 150, this ) )
+						if ( sdWorld.last_hit_entity )
 						if ( sdWorld.last_hit_entity.is( sdBlock ) )
 						{
 							dist_att = sdWorld.Dist2D_Vector( sdWorld.last_hit_entity.x - this.x, sdWorld.last_hit_entity.y - this.y );
