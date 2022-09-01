@@ -92,6 +92,14 @@ class sdBloodDecal extends sdEntity
 	}
 	UpdateRelativePosition()
 	{
+		if ( !this._bg ) // No idea why it happens
+		{
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			sdWorld.sockets[ i ].SDServiceMessage( 'Blood decal is being updated but it does not know about background item. What just happened? Removing decal for now...' );
+			
+			this.remove();
+			return;
+		}
 		this.x = this._bg.x + this._bg_relative_x;
 		this.y = this._bg.y + this._bg_relative_y;
 		this._update_version++;
