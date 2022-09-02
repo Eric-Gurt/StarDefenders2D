@@ -984,7 +984,7 @@ class sdCube extends sdEntity
 		let xx = 0;
 		let yy = 0;
 
-		let draw_sprite = false;
+		let draw_blinking_grey_sprite = false;
 		
 		if ( this.kind === 1 )
 		{
@@ -1000,74 +1000,35 @@ class sdCube extends sdEntity
 
 		if ( this.kind === 3 )
 		{
-			//ctx.scale( 0.6, 0.6 );
 			ctx.sd_filter = sdCube.pink_filter;
-			
 			yy = 1;
-			if ( this.hea > 0 )
-			{
-				if ( this.attack_anim > 0 )
-				xx = 3;
-				//ctx.drawImageFilterCache( sdCube.img_cube_attack3, - 16, - 16, 32,32 );
-				else
-				if ( this.regen_timeout > 45 )
-				xx = 2;
-				//ctx.drawImageFilterCache( sdCube.img_cube_hurt3, - 16, - 16, 32,32 );
-				else
-				{
-					xx = 0;
-					//ctx.drawImageFilterCache( sdCube.img_cube_idle3, - 16, - 16, 32,32 );
-
-					if ( this.matter < this.matter_max )
-					{
-						draw_sprite = true;
-						//ctx.globalAlpha = ( 1 - this.matter / this.matter_max ) * ( Math.sin( sdWorld.time / 2000 * Math.PI ) * 0.5 + 0.5 );
-						//xx = 1;
-						//ctx.drawImageFilterCache( sdCube.img_cube_sleep3, - 16, - 16, 32,32 );
-					}
-				}
-			}
+		}
+		
+		if ( this.hea > 0 )
+		{
+			if ( this.attack_anim > 0 )
+			xx = 3;
 			else
-			xx = 1;
-			//ctx.drawImageFilterCache( sdCube.img_cube_sleep3, - 16, - 16, 32,32 );
+			if ( this.regen_timeout > 45 )
+			xx = 2;
+			else
+			{
+				xx = 0;
+
+				if ( this.matter < this.matter_max )
+				draw_blinking_grey_sprite = true;
+			}
 		}
 		else
-		{
-			yy = 0;
-			if ( this.hea > 0 )
-			{
-				if ( this.attack_anim > 0 )
-				xx = 3;
-				//ctx.drawImageFilterCache( sdCube.img_cube_attack, - 16, - 16, 32,32 );
-				else
-				if ( this.regen_timeout > 45 )
-				xx = 2;
-				//ctx.drawImageFilterCache( sdCube.img_cube_hurt, - 16, - 16, 32,32 );
-				else
-				{
-					xx = 0;
-					//ctx.drawImageFilterCache( sdCube.img_cube_idle, - 16, - 16, 32,32 );
+		xx = 1;
 
-					if ( this.matter < this.matter_max )
-					{
-						draw_sprite = true;
-						//ctx.globalAlpha = ( 1 - this.matter / this.matter_max ) * ( Math.sin( sdWorld.time / 2000 * Math.PI ) * 0.5 + 0.5 );
-						//xx = 1;
-						//ctx.drawImageFilterCache( sdCube.img_cube_sleep, - 16, - 16, 32,32 );
-					}
-				}
-			}
-			else
-			xx = 1;
-			//ctx.drawImageFilterCache( sdCube.img_cube_sleep, - 16, - 16, 32,32 );
-		}
 		ctx.drawImageFilterCache( sdCube.img_cube, xx * 32, yy * 32, 32,32, -16, -16, 32,32 );
 
-		if ( draw_sprite )
+		if ( draw_blinking_grey_sprite )
 		{
 			ctx.globalAlpha = ( 1 - this.matter / this.matter_max ) * ( Math.sin( sdWorld.time / 2000 * Math.PI ) * 0.5 + 0.5 );
 
-			ctx.drawImageFilterCache( sdCube.img_cube, 64,yy * 32, 32,32, -16, -16, 32,32 );
+			ctx.drawImageFilterCache( sdCube.img_cube, 32,yy * 32, 32,32, -16, -16, 32,32 );
 		}
 		
 		ctx.globalAlpha = 1;
