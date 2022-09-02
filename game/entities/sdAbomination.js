@@ -16,17 +16,23 @@ class sdAbomination extends sdEntity
 {
 	static init_class()
 	{
+		sdAbomination.img_abomination = sdWorld.CreateImageFromFile( 'abomination' );
+
+		/*
 		sdAbomination.img_abomination_idle1 = sdWorld.CreateImageFromFile( 'abomination_idle' );
 		sdAbomination.img_abomination_attack1 = sdWorld.CreateImageFromFile( 'abomination_attack' );
+		*/
 		sdAbomination.img_abomination_grab= sdWorld.CreateImageFromFile( 'abomination_grab' );
 		
-		
+		/*
 		sdAbomination.death_imgs = [
 			sdWorld.CreateImageFromFile( 'abomination_death1' ),
 			sdWorld.CreateImageFromFile( 'abomination_death2' ),
 			sdWorld.CreateImageFromFile( 'abomination_death3' ),
 			sdWorld.CreateImageFromFile( 'abomination_death4' )
 		];
+		*/
+
 		sdAbomination.death_duration = 20;
 		sdAbomination.post_death_ttl = 120;
 		
@@ -492,6 +498,9 @@ class sdAbomination extends sdEntity
 		ctx.filter = this.filter;
 		
 		ctx.scale( this.side, 1 );
+
+		let xx = 0;
+		let yy = 0;
 		
 		if ( this.death_anim > 0 )
 		{
@@ -500,8 +509,11 @@ class sdAbomination extends sdEntity
 				ctx.globalAlpha = 0.5;
 			}
 			
-			let frame = Math.min( sdAbomination.death_imgs.length - 1, ~~( ( this.death_anim / sdAbomination.death_duration ) * sdAbomination.death_imgs.length ) );
-			ctx.drawImageFilterCache( sdAbomination.death_imgs[ frame ], - 32, - 32, 64,64 );
+			xx = Math.min( 4 - 1, ~~( ( this.death_anim / sdAbomination.death_duration ) * 4 ) );
+			yy = 1;
+			
+			//let frame = Math.min( sdAbomination.death_imgs.length - 1, ~~( ( this.death_anim / sdAbomination.death_duration ) * sdAbomination.death_imgs.length ) );
+			//ctx.drawImageFilterCache( sdAbomination.death_imgs[ frame ], - 32, - 32, 64,64 );
 		}
 		else
 		{
@@ -534,10 +546,13 @@ class sdAbomination extends sdEntity
 			}
 			
 			if ( this.attack_timer > 25 )
-			ctx.drawImageFilterCache( sdAbomination.img_abomination_attack1, - 32, - 32, 64,64 );
+			xx = 1;
+			//ctx.drawImageFilterCache( sdAbomination.img_abomination_attack1, - 32, - 32, 64,64 );
 			else
-			ctx.drawImageFilterCache( sdAbomination.img_abomination_idle1, - 32, - 32, 64,64 );
+			xx = 0;
+			//ctx.drawImageFilterCache( sdAbomination.img_abomination_idle1, - 32, - 32, 64,64 );
 		}
+		ctx.drawImageFilterCache( sdAbomination.img_abomination, xx * 64, yy * 64, 64,64, - 32, - 32, 64,64 );
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';

@@ -15,8 +15,11 @@ class sdEnemyMech extends sdEntity
 	static init_class()
 	{
 		sdEnemyMech.img_mech_idle = sdWorld.CreateImageFromFile( 'fmech2' );
-		sdEnemyMech.img_mech_boost = sdWorld.CreateImageFromFile( 'fmech2_boost' );
-		sdEnemyMech.img_mech_broken = sdWorld.CreateImageFromFile( 'fmech2_broken' );
+
+		sdEnemyMech.img_mech = sdWorld.CreateImageFromFile( 'fmech2_sheet' );
+
+		//sdEnemyMech.img_mech_boost = sdWorld.CreateImageFromFile( 'fmech2_boost' );
+		//sdEnemyMech.img_mech_broken = sdWorld.CreateImageFromFile( 'fmech2_broken' );
 
 		sdEnemyMech.img_mech_mg = sdWorld.CreateImageFromFile( 'fmech_lmg2' );
 		sdEnemyMech.img_mech_rc = sdWorld.CreateImageFromFile( 'rail_cannon' );
@@ -680,11 +683,17 @@ class sdEnemyMech extends sdEntity
 		ctx.scale( 1, 1 );
 		else	
 		ctx.scale( -1, 1 );
+
+		let xx = 0;
 		
 		if ( this.hea > 0 )
-		ctx.drawImageFilterCache( sdEnemyMech.img_mech_boost, - 32, - 48, 64, 96 );
+		xx = 0;
+		//ctx.drawImageFilterCache( sdEnemyMech.img_mech_boost, - 32, - 48, 64, 96 );
 		else
-		ctx.drawImageFilterCache( sdEnemyMech.img_mech_broken, - 32, - 48, 64, 96 );
+		xx = 1;
+		//ctx.drawImageFilterCache( sdEnemyMech.img_mech_broken, - 32, - 48, 64, 96 );
+
+		ctx.drawImageFilterCache( sdEnemyMech.img_mech, xx * 64, 0, 64,96, - 32, - 48, 64,96 );
 
 		ctx.filter = 'none';
 		if ( this.side === 1 )
