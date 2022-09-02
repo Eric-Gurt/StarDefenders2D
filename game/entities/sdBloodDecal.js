@@ -90,6 +90,18 @@ class sdBloodDecal extends sdEntity
 		
 		this.UpdateHitbox();
 	}
+	ExtraSerialzableFieldTest( prop )
+	{
+		return ( prop === '_bg' );
+	}
+	onServerSideSnapshotLoaded( snapshot )
+	{
+		if ( !this._bg )
+		{
+			this._first_frame = true;
+			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE, false );
+		}
+	}
 	UpdateRelativePosition()
 	{
 		if ( !this._bg ) // No idea why it happens

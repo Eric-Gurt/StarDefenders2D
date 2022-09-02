@@ -47,6 +47,7 @@ class sdEntity
 		sdEntity.SCORE_REWARD_BIG_EVENT_TASK = 50;
 		sdEntity.SCORE_REWARD_ADMIN_CRATE = 100000;
 		sdEntity.SCORE_REWARD_SCORE_SHARD = 1;
+		sdEntity.SCORE_REWARD_SCORE_MOP = 1;
 		
 		/*sdEntity.MATTER_MODE_UNDECIDED = 0;
 		sdEntity.MATTER_MODE_NONE = 1;

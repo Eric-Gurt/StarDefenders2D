@@ -15,6 +15,7 @@ import sdOverlord from './sdOverlord.js';
 import sdCom from './sdCom.js';
 import sdWater from './sdWater.js';
 import sdBloodDecal from './sdBloodDecal.js';
+import sdBG from './sdBG.js';
 
 /*
 
@@ -3905,13 +3906,13 @@ class sdGunClass
 				
 				//sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, liquid_carrier_base_color, liquid_carrier_empty );
 			},
-			projectile_properties: { time_left: 1, _damage: 1, color: 'transparent', 
+			projectile_properties: { time_left: 0.75, _damage: 1, color: 'transparent', 
 				_knock_scale: 0,
 				_custom_detonation_logic:( bullet )=>
 				{
 					let gun = bullet._gun;
 					
-					if ( gun.extra <= 10 )
+					if ( gun.extra <= 30 )
 					{
 						let blood_decal_ent = sdBloodDecal.GetBloodDecalObjectAt( bullet.x, bullet.y );
 
@@ -3930,6 +3931,13 @@ class sdGunClass
 							{
 								blood_decal_ent._update_version++;
 							}
+							
+							if ( blood_decal_ent._bg )
+							if ( blood_decal_ent._bg.material !== sdBG.MATERIAL_GROUND )
+							if ( gun._held_by )
+							{
+								sdWorld.GiveScoreToPlayerEntity( sdEntity.SCORE_REWARD_SCORE_MOP, blood_decal_ent, true, gun._held_by );
+							}
 						}
 					}
 					
@@ -3941,7 +3949,7 @@ class sdGunClass
 						while ( gun.extra > 0 && water_ent.type === sdWater.TYPE_WATER )
 						{
 							gun.extra--;
-							if ( Math.random() < 0.1 )
+							if ( Math.random() < 0.01 )
 							{
 								water_ent.type = sdWater.TYPE_ACID;
 								water_ent._update_version++;
@@ -3949,13 +3957,13 @@ class sdGunClass
 						}
 					}
 					
-					if ( gun.extra > 10 )
+					if ( gun.extra > 30 )
 					{
 						sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, mop_base_color, '#8c6a00' );
 						sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, mop_base_color_border, '#6f5400' );
 					}
 					else
-					if ( gun.extra > 5 )
+					if ( gun.extra > 15 )
 					{
 						sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, mop_base_color, '#cfc22e' );
 						sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, mop_base_color_border, '#a59a25' );
