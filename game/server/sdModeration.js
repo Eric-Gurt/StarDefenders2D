@@ -541,6 +541,38 @@ class sdModeration
 			socket.SDServiceMessage( 'Server: No active character.' );
 		}
 		else
+		if ( parts[ 0 ] === 'removewater' )
+		{
+			if ( socket.character )
+			{
+				if ( socket.character._god )
+				{
+					{
+						for ( let i = 0; i < sdWorld.sockets.length; i++ )
+						sdWorld.sockets[ i ].SDServiceMessage( 'Removed all planet water, lava and acid.' );
+					}
+	
+					for( let j = sdWorld.world_bounds.y1; j <= sdWorld.world_bounds.y2; j += 32 )
+					{
+						for( let i = sdWorld.world_bounds.x1; i <= sdWorld.world_bounds.x2; i += 32 )
+						{
+							let targets = sdWorld.GetAnythingNear( i, j, 64, null, [ 'sdWater' ] );
+							for ( let i = 0; i < targets.length; i++ )
+							{
+								{
+									targets[ i ].remove();
+								}
+							}
+						}
+					}
+				}
+				else
+				socket.SDServiceMessage( 'Server: Unknown command "removewater" ' );
+			}
+			else
+			socket.SDServiceMessage( 'Server: No active character.' );
+		}
+		else
 		if ( parts[ 0 ] === 'scale' )
 		{
 			if ( socket.character )
