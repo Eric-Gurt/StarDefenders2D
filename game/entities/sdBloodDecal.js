@@ -211,7 +211,7 @@ class sdBloodDecal extends sdEntity
 			}
 		}
 		
-		//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false );
+		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false );
 	}
 	DrawBG( ctx, attached )
 	{

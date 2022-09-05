@@ -113,10 +113,14 @@ class sdWorkbench extends sdEntity
 				
 				this._update_version++;
 			}
+			else
+			{
+				this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED, false );
+			}
+			
 			if ( this.level > 1 )
 			this._armor_protection_level = 4; // If upgraded at least once - it can be only destroyed with big explosions
 		}
-		
 	}
 	IsVehicle()
 	{

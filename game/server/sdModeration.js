@@ -605,6 +605,33 @@ class sdModeration
 			}
 		}
 		else
+		if ( parts[ 0 ] === 'topactive' )
+		{
+			for ( let t = 0; t < 30; t++ )
+			{
+				setTimeout( ()=>
+				{
+					let counts = {};
+					let ents = sdWorld.entity_classes.sdEntity.active_entities;
+					for ( let i = 0; i < ents.length; i++ )
+					counts[ ents[ i ].GetClass() ] = ( counts[ ents[ i ].GetClass() ] || 0 ) + 1;
+
+					let all_options = [];
+					for ( let i in counts )
+					all_options.push({ title: i, value: counts[ i ] });
+
+					all_options = all_options.sort((a,b)=>{return b.value-a.value;});
+
+					let strings = [];
+
+					for ( let i = 0; i < all_options.length && i < 10; i++ )
+					strings.push( all_options[ i ].title + ': ' + all_options[ i ].value );
+
+					socket.SDServiceMessage( 'Most active entitites by count: ' + strings.join(', ') );
+				}, t * 1000 );
+			}
+		}
+		else
 		socket.SDServiceMessage( 'Server: Unknown command "' + parts[ 0 ] + '"' );
 	}
 }
