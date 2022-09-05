@@ -86,7 +86,14 @@ class sdServerConfigFull extends sdServerConfigShort
 	{
 		return []; // Return array of disallowed event IDs. Has higher priority over GetAllowedWorldEvents() and can be used to allow any new events that will be added to the game with updates
 	}
-			
+	static GetAllowedWorldEventCount()
+	{
+		return 6; // Return number of allowed events to happen during planet day
+	}
+	static GetEventSpeed()
+	{
+		return 30 * 60 * 3 * ( 3 / 2 ); // Return max possible time until next event rolls
+	}		
 	static onExtraWorldLogic( GSPEED )
 	{
 	}
