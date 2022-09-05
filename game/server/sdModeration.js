@@ -12,6 +12,7 @@ import fs from 'fs';
 import sdWorld from '../sdWorld.js';
 import sdEntity from '../entities/sdEntity.js';
 import sdGun from '../entities/sdGun.js';
+import sdWater from '../entities/sdWater.js';
 
 import { spawn } from 'child_process';
 
@@ -187,10 +188,12 @@ class sdModeration
 				is_non_admin = ( sdModeration.non_admin_commands.indexOf( parts[ 0 ] ) !== -1 );
 
 				if ( sdModeration.ever_loaded )
-				if ( !is_non_admin )
 				{
-					socket.SDServiceMessage( 'Server: No permissions.' );
-					return;
+					if ( !is_non_admin )
+					{
+						socket.SDServiceMessage( 'Server: No permissions.' );
+						return;
+					}
 				}
 			}
 			else
@@ -198,6 +201,8 @@ class sdModeration
 				is_non_admin = false;
 			}
 		}
+		
+		// Anything below won't execute without admin permission, except for selfpromote. Nothing will also be executed if moderation data wasn't loaded yet or failed to load.
 		
 		if ( parts[ 0 ] === 'selfpromote' )
 		{
@@ -541,11 +546,24 @@ class sdModeration
 			socket.SDServiceMessage( 'Server: No active character.' );
 		}
 		else
-		if ( parts[ 0 ] === 'removewater' )
+		//if ( parts[ 0 ] === 'removewater' )
+		if ( parts[ 0 ] === 'remove' )
 		{
-			if ( socket.character )
+			if ( !sdWorld.entity_classes[ parts[ 1 ] ] && parts[ 1 ] !== '*' )
 			{
-				if ( socket.character._god )
+				socket.SDServiceMessage( 'Server: No such class was found. Examples: ' + Object.keys( sdWorld.entity_classes ).sort(()=>{return Math.random()-0.5;}).slice(0,10).join(', ') );
+			}
+			else
+			for ( let i = 0; i < sdEntity.entities.length; i++ )
+			if ( !sdEntity.entities[ i ].IsGlobalEntity() ) // Let's at least not remove sdWeather since it can't respawn
+			if ( sdEntity.entities[ i ].GetClass() === parts[ 1 ] || parts[ 1 ] === '*' )
+			{
+				sdEntity.entities[ i ].remove();
+				sdEntity.entities[ i ]._broken = false;
+			}
+			/*if ( socket.character )
+			{
+				if ( socket.character._god ) Godmode is already checked earlier
 				{
 					{
 						for ( let i = 0; i < sdWorld.sockets.length; i++ )
@@ -570,7 +588,7 @@ class sdModeration
 				socket.SDServiceMessage( 'Server: Unknown command "removewater" ' );
 			}
 			else
-			socket.SDServiceMessage( 'Server: No active character.' );
+			socket.SDServiceMessage( 'Server: No active character.' );*/
 		}
 		else
 		if ( parts[ 0 ] === 'scale' )
