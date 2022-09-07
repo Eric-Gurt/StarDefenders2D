@@ -208,7 +208,7 @@ class sdWeather extends sdEntity
 		{
 			let n = allowed_event_ids[ ~~( Math.random() * allowed_event_ids.length ) ];
 			let old_n = n;
-			let daily_event_count = Math.min( allowed_event_ids.length, 6 );
+			let daily_event_count = Math.min( allowed_event_ids.length, sdWorld.server_config.GetAllowedWorldEventCount() ? sdWorld.server_config.GetAllowedWorldEventCount() : 6 );
 			let time = 1000;
 			while ( daily_event_count > 0 && time > 0 )
 			{
@@ -503,7 +503,7 @@ class sdWeather extends sdEntity
 				}
 			}
 			else
-			this._time_until_event = Math.random() * 30 * 60 * 1; // if the event is already active, quickly initiate something else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // if the event is already active, quickly initiate something else
 						
 		}
 
@@ -2855,7 +2855,7 @@ class sdWeather extends sdEntity
 			{
 				//this._time_until_event = Math.random() * 30 * 60 * 8; // once in an ~4 minutes (was 8 but more event kinds = less events sort of)
 				//this._time_until_event = Math.random() * 30 * 60 * 3; // Changed after sdWeather logic was being called twice, which caused events to happen twice as frequently
-				this._time_until_event = Math.random() * 30 * 60 * 3 * ( 3 / 2 ); // Changed after introducing "daily events" since there is only up to 7 events that can happen to prevent them overflowing the map for new players
+				this._time_until_event = Math.random() * ( sdWorld.server_config.GetEventSpeed() ? sdWorld.server_config.GetEventSpeed() : 30 * 60 * 3 * ( 3 / 2 ) ); // Changed after introducing "daily events" since there is only up to 7 events that can happen to prevent them overflowing the map for new players
 				/*let allowed_event_ids = ( sdWorld.server_config.GetAllowedWorldEvents ? sdWorld.server_config.GetAllowedWorldEvents() : undefined ) || [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ];
 				
 				let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
