@@ -495,6 +495,8 @@ class sdCouncilMachine extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		ctx.apply_shading = false;
+
 		//ctx.filter = this.filter;
 		
 		{

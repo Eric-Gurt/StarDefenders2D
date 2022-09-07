@@ -175,6 +175,8 @@ class sdObelisk extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		ctx.apply_shading = false;
+		
 		if ( this.type === 1 )
 		{
 		ctx.drawImageFilterCache( sdObelisk.img_obelisk, 0, 0, 32, 64, - 16, - 32, 32, 64 ); // Regular obelisk sprite

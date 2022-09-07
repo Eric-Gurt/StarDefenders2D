@@ -478,6 +478,9 @@ class sdSpider extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		if ( this.death_anim === 0 )
+		ctx.apply_shading = false;
+		
 		//ctx.filter = this.filter;
 		
 		ctx.scale( this.side, 1 );

@@ -1213,6 +1213,13 @@ class sdGun extends sdEntity
 			let offset_y = ( has_class.image_offset_y || 0 );
 			
 			ctx.translate( offset_x, offset_y );
+			
+			ctx.apply_shading = ( has_class.apply_shading === undefined ) ? true : has_class.apply_shading;
+			
+			if ( this.muzzle > 0 )
+			{
+				ctx.apply_shading = false;
+			}
 		}
 
 
@@ -1423,7 +1430,7 @@ class sdGun extends sdEntity
 					}
 					//xx += offset_x;
 					//yy += offset_y;
-					
+		
 					ctx.drawImageFilterCache( image, i * 32,32 + frame * 32,32,32, -16 + xx, -16 + yy, 32,32 );
 				}
 			}

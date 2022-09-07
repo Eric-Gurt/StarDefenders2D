@@ -253,6 +253,8 @@ class sdLongRangeTeleport extends sdEntity
 	
 	Draw( ctx, attached )
 	{
+		ctx.apply_shading = false;
+		
 		if ( sdShop.isDrawing )
 		ctx.scale( 0.333,0.333 );
 	

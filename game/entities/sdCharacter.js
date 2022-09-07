@@ -2672,7 +2672,7 @@ class sdCharacter extends sdEntity
 		{
 			//leg_height = this.hitbox_y2;
 			
-			let target_crouch = ( this.stability < 50 ) ? 4 : 1;
+			let target_crouch = ( this.stability < 50 ) ? 3 : 1;
 
 			if ( act_y_or_unstable === 1 )
 			{
@@ -4046,6 +4046,10 @@ class sdCharacter extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		if ( this._inventory[ this.gun_slot ] )
+		if ( this._inventory[ this.gun_slot ].muzzle > 0 )
+		ctx.apply_shading = false;
+		
 		if ( this.ghosting )
 		ctx.globalAlpha = 0.3;
 	

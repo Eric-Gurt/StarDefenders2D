@@ -290,6 +290,9 @@ class sdCrystalCombiner extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		if ( this.prog > 0 )
+		ctx.apply_shading = false;
+		
 		const offset_y = 2;
 
 //		ctx.globalAlpha = 1;

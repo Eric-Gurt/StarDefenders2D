@@ -956,6 +956,8 @@ class sdJunk extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		if ( this.type === 0 || this.type === 1 || this.type === 2 || this.type === 4 || this.type === 5 || this.type === 6 )
+		ctx.apply_shading = false;
 		//ctx.filter = this.filter;
 		
 		{

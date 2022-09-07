@@ -886,6 +886,10 @@ class sdDrone extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		if ( this.death_anim === 0 )
+		if ( this.type === 2 )
+		ctx.apply_shading = false;
+		
 		//ctx.filter = this.filter;
 		
 		ctx.scale( -this.side, 1 );

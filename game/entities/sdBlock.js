@@ -34,6 +34,7 @@ class sdBlock extends sdEntity
 		sdBlock.img_lvl2_wall12 = sdWorld.CreateImageFromFile( 'wall_lvl2_1x2' );
 		sdBlock.img_lvl2_wall11 = sdWorld.CreateImageFromFile( 'wall_lvl2_1x1' );
 		sdBlock.img_lvl2_wall05 = sdWorld.CreateImageFromFile( 'wall_lvl2_half' );		
+		sdBlock.img_ice = sdWorld.CreateImageFromFile( 'wall_ice' );		
 		
 		// Version 2, here we will create walls automatically, from Grid-9 sliceable sources (so we could make nearly infinite variety of walls that meet our needs)
 		//sdBlock.img_wall = sdWorld.CreateImageFromFile( 'wall' );
@@ -112,6 +113,7 @@ class sdBlock extends sdEntity
 		sdBlock.MATERIAL_CORRUPTION = 7;
 		sdBlock.MATERIAL_CRYSTAL_SHARDS = 8;
 		sdBlock.MATERIAL_FLESH = 9;
+		sdBlock.MATERIAL_ICE = 10;
 		
 		//sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
 		//sdBlock.img_ground44 = sdWorld.CreateImageFromFile( 'ground_4x4' );
@@ -1028,7 +1030,7 @@ class sdBlock extends sdEntity
 			}
 		}
 		
-		let lumes = sdWorld.GetClientSideGlowReceived( this.x + w / 2, this.y + h / 2, this );
+		/*let lumes = sdWorld.GetClientSideGlowReceived( this.x + w / 2, this.y + h / 2, this );
 		if ( lumes > 0 )
 		{
 			if ( sdRenderer.visual_settings === 4 )
@@ -1039,24 +1041,27 @@ class sdBlock extends sdEntity
 			}
 			else
 			ctx.filter = ctx.filter + 'brightness('+(1+lumes)+')';
-		}
+		}*/
 
 		
 		
 		//ctx.filter = 'hsl(120,100%,25%)';
 		
-		if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_CORRUPTION || this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+		if ( this.material === sdBlock.MATERIAL_GROUND ||
+			 this.material === sdBlock.MATERIAL_ICE ||
+			 this.material === sdBlock.MATERIAL_CORRUPTION || 
+			 this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
 		{
-			/*if ( sdRenderer.dirt_settings === 1 )
-			ctx.drawImageFilterCache( sdBlock.img_ground11, 0, 0, w,h, 0,0, w,h );
-			else
-			if ( sdRenderer.dirt_settings === 2 )
-			ctx.drawImageFilterCache( sdBlock.img_ground44, this.x - Math.floor( this.x / 64 ) * 64, this.y - Math.floor( this.y / 64 ) * 64, w,h, 0,0, w,h );
-			else
-			if ( sdRenderer.dirt_settings === 3 )*/
-			ctx.drawImageFilterCache( sdBlock.img_ground88, this.x - Math.floor( this.x / 256 ) * 256, this.y - Math.floor( this.y / 256 ) * 256, w,h, 0,0, w,h );
-			//else
-			//ctx.drawImageFilterCache( sdBlock.img_ground11, 0, 0, w,h, 0,0, w,h ); // Temporary fix when blocks get Lost or Empty effect.
+			let texture = sdBlock.img_ground88;
+			let texture_size = 256;
+			
+			if ( this.material === sdBlock.MATERIAL_ICE )
+			{
+				texture = sdBlock.img_ice;
+				texture_size = 32;
+			}
+			
+			ctx.drawImageFilterCache( texture, this.x - Math.floor( this.x / texture_size ) * texture_size, this.y - Math.floor( this.y / texture_size ) * texture_size, w,h, 0,0, w,h );
 			
 			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_DECAL;
 			
@@ -1081,10 +1086,7 @@ class sdBlock extends sdEntity
 				ctx.sd_color_mult_r = 1;
 				ctx.sd_color_mult_g = 1;
 				ctx.sd_color_mult_b = 1;
-
-				//ctx.filter = 'none';
-				//ctx.filter = 'hue-rotate('+( this.p - 12 )*(15)+'deg)';
-				//ctx.filter = 'hue-rotate('+( this.p - 12 )*(15)+'deg) saturate('+(this.p/12 * 0.75 + 0.25)+')';
+				
 				ctx.filter = sdWorld.GetCrystalHue( 40 * Math.pow( 2, this.p ) );
 				ctx.drawImageFilterCache( sdBlock.img_crystal_shards, this.x - Math.floor( this.x / 128 ) * 128, this.y - Math.floor( this.y / 128 ) * 128, w,h, 0,0, w,h );
 			}

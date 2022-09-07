@@ -966,6 +966,7 @@ class sdBullet extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		ctx.apply_shading = false;
 		
 		if ( this.model )
 		{
@@ -984,6 +985,8 @@ class sdBullet extends sdEntity
 			ctx.globalAlpha = 1;
 			ctx.fillRect( -0.5, -vel/2, 1, vel );
 		}
+		
+		ctx.apply_shading = true;
 	}
 }
 //sdBullet.init_class();

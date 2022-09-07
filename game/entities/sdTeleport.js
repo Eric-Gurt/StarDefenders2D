@@ -137,6 +137,9 @@ class sdTeleport extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		if ( this.delay === 0 )
+		ctx.apply_shading = false;
+		
 		let xx = 0;
 
 		if ( this.GetComWiredCache() || sdShop.isDrawing )

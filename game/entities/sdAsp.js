@@ -387,7 +387,7 @@ class sdAsp extends sdEntity
 		sdEntity.Tooltip( ctx, "Asp" );
 	}
 	Draw( ctx, attached )
-	{
+	{		
 		if ( !sdShop.isDrawing )
 		{
 			ctx.filter = this.filter;

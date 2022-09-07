@@ -16,6 +16,7 @@ import sdCom from './entities/sdCom.js';
 import sdBullet from './entities/sdBullet.js';
 import sdWeather from './entities/sdWeather.js';
 import sdBlock from './entities/sdBlock.js';
+import sdDoor from './entities/sdDoor.js';
 import sdBG from './entities/sdBG.js';
 import sdWater from './entities/sdWater.js';
 import sdCharacter from './entities/sdCharacter.js';
@@ -1413,6 +1414,10 @@ class sdWorld
 	{
 		return ( typeof ent.matter !== 'undefined' || typeof ent._matter !== 'undefined' );
 	}
+	static FilterVisionBlocking( ent )
+	{
+		return ( ( ent.is( sdBlock ) && ent.texture_id !== sdBlock.TEXTURE_ID_CAGE && ent.texture_id !== sdBlock.TEXTURE_ID_GLASS && ent.material !== sdBlock.MATERIAL_TRAPSHIELD ) || ent.is( sdDoor ) );
+	}
 	static GetAnythingNear( _x, _y, range, append_to=null, specific_classes=null, filter_candidates_function=null )
 	{
 		let ret = append_to || [];
@@ -1847,7 +1852,14 @@ class sdWorld
 	
 		return true; // Try false here if method fails for some reason
 	}
-	
+	static limit( min, v, max )
+	{
+		if ( v <= min )
+		return min;
+		if ( v >= max )
+		return min;
+		return v;
+	}
 	static FastFloor( v ) // in case you need negative values, has 500000 as low limit.
 	{
 		if ( v < 0 )
@@ -2557,7 +2569,7 @@ class sdWorld
 	{
 		return ((a%n)+n)%n;
 	}
-	
+	/*
 	static GetClientSideGlowReceived( x, y, lume_receiver )
 	{
 		let lumes = 0;
@@ -2623,72 +2635,8 @@ class sdWorld
 		else
 		lumes = cache.lumes;
 		
-		/*
-		let xx = Math.floor( x / 16 );
-		let yy = Math.floor( y / 16 );
-		
-		let hash = xx+','+yy;
-		
-		if ( typeof sdRenderer.lumes_cache[ hash ] === 'undefined' )
-		{
-			sdRenderer.lumes_cache[ hash ] = { expiration: 0, lumes: 0 };
-			sdRenderer.lumes_cache_hashes.push( hash );
-		}
-		
-		if ( sdWorld.time > sdRenderer.lumes_cache[ hash ].expiration )
-		{
-			let nears = [];
-			sdWorld.GetAnythingNear( x, y, 64, nears, [ 'sdWater', 'sdLamp' ] );
-			
-			let ent;
-			
-			//sdWorld.CheckWallExistsBox( x - 64, y - 64, x + 64, y + 64, null, null, [ 'sdWater', 'sdLamp' ], ( ent )=>
-			for ( let i = 0; i < nears.length; i++ )
-			{
-				ent = nears[ i ];
-				
-				if ( ent.is( sdWorld.entity_classes.sdWater ) )
-				{
-					if ( ent.type === sdWorld.entity_classes.sdWater.TYPE_LAVA )
-					{
-						lumes += 10 / Math.max( 1, sdWorld.Dist2D( x, y, ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2, ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2 ) );
-					}
-				}
-				else
-				{
-					lumes += 10 / Math.max( 1, sdWorld.Dist2D( x, y, ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2, ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2 ) );
-				}
-				//return false;
-			}//);
-			
-			lumes = Math.min( 5, Math.floor( lumes * 2 ) / 2 );
-			
-			if ( sdRenderer.lumes_cache[ hash ].lumes !== lumes )
-			{
-				sdRenderer.lumes_cache[ hash ].lumes = lumes;
-			
-				if ( typeof sdRenderer.lumes_cache[ (xx-1)+','+(yy) ] !== 'undefined' )
-				sdRenderer.lumes_cache[ (xx-1)+','+(yy) ].expiration = 0;
-			
-				if ( typeof sdRenderer.lumes_cache[ (xx+1)+','+(yy) ] !== 'undefined' )
-				sdRenderer.lumes_cache[ (xx+1)+','+(yy) ].expiration = 0;
-			
-				if ( typeof sdRenderer.lumes_cache[ (xx)+','+(yy-1) ] !== 'undefined' )
-				sdRenderer.lumes_cache[ (xx)+','+(yy-1) ].expiration = 0;
-			
-				if ( typeof sdRenderer.lumes_cache[ (xx)+','+(yy+1) ] !== 'undefined' )
-				sdRenderer.lumes_cache[ (xx)+','+(yy+1) ].expiration = 0;
-			}
-			
-			sdRenderer.lumes_cache[ hash ].expiration = 1000 + sdWorld.time + Math.random() * 15000;
-		}
-		else
-		{
-			lumes = sdRenderer.lumes_cache[ hash ].lumes;
-		}
-		*/
 		return lumes;
-	}
+	}*/
 	
 	// custom_filtering_method( another_entity ) should return true in case if surface can not be passed through
 	static CheckWallExistsBox( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null ) // under 32x32 boxes unless line with arr = sdWorld.RequireHashPosition( x1 + xx * 32, y1 + yy * 32 ); changed
@@ -2847,7 +2795,7 @@ class sdWorld
 	
 		return false;
 	}*/
-	static CheckLineOfSight( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null ) // sdWorld.last_hit_entity will be set if false
+	static CheckLineOfSight( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null ) // sdWorld.last_hit_entity will be set if false, but not if world edge was met
 	{
 		var di = sdWorld.Dist2D( x1,y1,x2,y2 );
 		//var step = 16;
@@ -3587,7 +3535,7 @@ class sdWorld
 		
 		//sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 );
 		//sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 + 100 * 16 );
-		sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 );
+		sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 + 30 * 16 );
 		
 		// Hack
 		/*

@@ -55,7 +55,7 @@ class sdAbomination extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 650;
+		this._hmax = 900; // 650 was too easy to die? Not scary because of that? -- Eric Gurt
 		this._hea = this._hmax;
 		this._move_timer = 30;
 		this.idle = 0;

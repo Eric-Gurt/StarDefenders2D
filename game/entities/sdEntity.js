@@ -2270,6 +2270,11 @@ class sdEntity
 	
 		//if ( sdWorld.is_server )
 		
+		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+		{
+			this._vertex_cache = null;
+		}
+		
 		// Premade all needed variables so sealing would work best
 		{
 			if ( this.onThink.has_ApplyVelocityAndCollisions === undefined )

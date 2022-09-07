@@ -104,6 +104,9 @@ class sdThruster extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		if ( this.enabled )
+		ctx.apply_shading = false;
+		
 		ctx.filter = this.filter;
 		
 		let xx = ( this.enabled || sdShop.isDrawing ) ? 32 : 0;

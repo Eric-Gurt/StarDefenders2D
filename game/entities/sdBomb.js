@@ -140,6 +140,8 @@ class sdBomb extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		ctx.apply_shading = false;
+		
 		let xx = 0;
 
 		if ( this.hea <= 0 )

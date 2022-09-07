@@ -115,6 +115,8 @@ class sdMatterContainer extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		ctx.apply_shading = false;
+		
 		ctx.drawImageFilterCache( sdMatterContainer.img_matter_container_empty, - 32, - 32, 64, 64 );
 		
 		//if ( this.matter_max > 40 )

@@ -81,6 +81,8 @@ class sdBarrel extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		ctx.apply_shading = false;
+		
 		ctx.filter = this.filter;
 		ctx.drawImageFilterCache( sdBarrel.img_barrel, -16, -16 );
 		ctx.filter = 'none';

@@ -223,6 +223,9 @@ class sdMatterAmplifier extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		if ( this.crystal )
+		ctx.apply_shading = false;
+		
 		/*
 		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_empty, - 16, - 16, 32,32 );
 		

@@ -241,6 +241,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: 'saturate(0)', _category:'Doors' });
 
 		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_GROUND, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_ICE, _category:'Walls' });
 		sdShop.options.push({ _class: 'sdCom', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdCom', variation: 1, _category:'Base equipment', _min_build_tool_level:2 });
 		sdShop.options.push({ _class: 'sdCom', variation: 2, _category:'Base equipment', _min_build_tool_level:4 });
@@ -783,7 +784,7 @@ class sdShop
 				else
 				{
 					ent = sdWorld.my_entity.CreateBuildObject( false );
-					ent.x = -100;
+					ent.x = 0;//-100;
 					ent.y = 0;
 
 					if ( typeof sdWorld.my_entity._build_params._opens_category !== 'undefined' )

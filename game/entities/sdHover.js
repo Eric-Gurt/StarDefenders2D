@@ -578,6 +578,9 @@ class sdHover extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		if ( this.driver0 )
+		ctx.apply_shading = false;
+		
 		if ( sdShop.isDrawing )
 		{
 			ctx.scale( 0.5, 0.5 );

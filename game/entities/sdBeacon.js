@@ -78,6 +78,8 @@ class sdBeacon extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		ctx.apply_shading = false;
+		
 		ctx.drawImageFilterCache( sdBeacon.img_beacon, - 16, - 16, 32,32 );
 	}
 	onRemove() // Class-specific, if needed

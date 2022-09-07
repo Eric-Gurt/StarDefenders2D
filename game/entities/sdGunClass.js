@@ -290,6 +290,7 @@ class sdGunClass
 			projectile_properties: { _damage: 0 },
 			spawnable: false,
 			ignore_slot: true,
+			apply_shading: false,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				// 2 was too bad for case of randomly breaking crystals when digging
@@ -604,6 +605,7 @@ class sdGunClass
 			projectile_properties: { _damage: 0 },
 			spawnable: false,
 			ignore_slot: true,
+			apply_shading: false,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
 				if ( character._upgrade_counters[ 'upgrade_energy' ] )
@@ -3762,6 +3764,7 @@ class sdGunClass
 			projectile_properties: { _damage: 0 },
 			spawnable: false,
 			ignore_slot: true,
+			apply_shading: false,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup as matter
 			{ 
 				if ( !gun._is_being_removed )

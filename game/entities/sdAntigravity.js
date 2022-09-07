@@ -254,6 +254,8 @@ class sdAntigravity extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		ctx.apply_shading = false;
+		
 		ctx.drawImageFilterCache( sdAntigravity.img_antigravity, -16, -16, 32,32 );
 
         let repeat = 400;

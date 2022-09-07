@@ -276,55 +276,59 @@ class sdOctopus extends sdEntity
 		{
 			this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
 			
-			if ( this._tenta_target )
-			if ( this._tenta_target._is_being_removed )
-			this._tenta_target = null;
-	
-			if ( this._tenta_target )
-			if ( this.tenta_tim > 20 && this.tenta_tim < 80 )
+			if ( this._hea > 0 )
 			{
-				let from_entity = this._tenta_target;
-				
-				let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
-				let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 
-				if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
+				if ( this._tenta_target )
+				if ( this._tenta_target._is_being_removed )
+				this._tenta_target = null;
+
+				if ( this._tenta_target )
+				if ( this.tenta_tim > 20 && this.tenta_tim < 80 )
 				{
-					if ( from_entity.GetClass() === 'sdGun' && !from_entity._is_being_removed )
+					let from_entity = this._tenta_target;
+
+					let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
+					let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
+
+					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
 					{
-						if ( this._consumed_guns_snapshots.length < 64 )
+						if ( from_entity.GetClass() === 'sdGun' && !from_entity._is_being_removed )
 						{
-							// For some reason guns can disappear completely at random which is bad considering how some guns are very important to keep
-							if ( from_entity._hea < 50 )
-							from_entity._hea = 50;
-							
-							this._consumed_guns_snapshots.push( from_entity.GetSnapshot( globalThis.GetFrame(), true ) );
-							from_entity.remove();
-						}
-					}
-					else
-					{
-						if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )
-						{
-							from_entity.DamageWithEffect( 75, this );
+							if ( this._consumed_guns_snapshots.length < 64 )
+							{
+								// For some reason guns can disappear completely at random which is bad considering how some guns are very important to keep
+								if ( from_entity._hea < 50 )
+								from_entity._hea = 50;
+
+								this._consumed_guns_snapshots.push( from_entity.GetSnapshot( globalThis.GetFrame(), true ) );
+								from_entity.remove();
+							}
 						}
 						else
-						from_entity.DamageWithEffect( 75, this );
+						{
+							if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )
+							{
+								from_entity.DamageWithEffect( 75, this );
+							}
+							else
+							from_entity.DamageWithEffect( 75, this );
+						}
+
+						this._hea = Math.min( this._hmax, this._hea + 25 );
+
+						from_entity.PlayDamageEffect( xx, yy );
+
+
+						sdSound.PlaySound({ name:'tentacle_end', x:xx, y:yy });
+
+						let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y );
+						if ( di > 0 )
+						from_entity.Impulse( this.tenta_x / di * 20, this.tenta_y / di * 20 );
+
+						this._tenta_target = null;
+
 					}
-
-					this._hea = Math.min( this._hmax, this._hea + 25 );
-
-					from_entity.PlayDamageEffect( xx, yy );
-					
-						
-					sdSound.PlaySound({ name:'tentacle_end', x:xx, y:yy });
-
-					let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y );
-					if ( di > 0 )
-					from_entity.Impulse( this.tenta_x / di * 20, this.tenta_y / di * 20 );
-				
-					this._tenta_target = null;
-
 				}
 			}
 		}

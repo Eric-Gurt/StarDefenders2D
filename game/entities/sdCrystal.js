@@ -606,6 +606,8 @@ class sdCrystal extends sdEntity
 	{
 		let filter_brightness_effect = sdCrystal.DoNothing;
 		
+		ctx.apply_shading = false;
+		
 		if ( attached )
 		if ( this.held_by )
 		if ( this.held_by.ModifyHeldCrystalFilter )
@@ -721,6 +723,8 @@ class sdCrystal extends sdEntity
 			
 			//ctx.translate( 0, -16 );
 		}
+		
+		ctx.apply_shading = true;
 	}
 	onBeforeRemove() // Class-specific, if needed
 	{

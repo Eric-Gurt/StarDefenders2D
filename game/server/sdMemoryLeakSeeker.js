@@ -319,8 +319,10 @@ class sdMemoryLeakSeeker
 						
 						if ( struct.done )
 						break;
-						
+					
 						sdMemoryLeakSeeker.scheduled_current_object_properties.push( struct.value );
+						
+						
 					}
 				}
 				else
@@ -332,6 +334,18 @@ class sdMemoryLeakSeeker
 					else
 					{
 						sdMemoryLeakSeeker.scheduled_current_object_properties = Object.getOwnPropertyNames( obj );
+					}
+					
+					for ( let i = 0; i < sdMemoryLeakSeeker.scheduled_current_object_properties.length; i++ )
+					{
+						let descriptor = Object.getOwnPropertyDescriptor( obj, sdMemoryLeakSeeker.scheduled_current_object_properties[ i ] );
+
+						if ( descriptor.get ) // This is a getter, and those like to throw strange exceptions that may crash whole node process, for example on Ubuntu apparently
+						{
+							sdMemoryLeakSeeker.scheduled_current_object_properties.splice( i, 1 );
+							i--;
+							continue;
+						}
 					}
 				}
 				

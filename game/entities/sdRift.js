@@ -559,6 +559,8 @@ class sdRift extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		ctx.apply_shading = false;
+		
 		let frame = this.frame;
 		
 		ctx.filter = this.GetFilterColor(); // this.filter;

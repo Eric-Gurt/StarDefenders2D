@@ -543,6 +543,8 @@ class sdDoor extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		//ctx.apply_shading = false;
+		
 		let com_near = this.GetComWiredCache() || sdShop.isDrawing;
 		
 		let img_no_matter = ( sdWorld.time % 4000 < 2000 ) ? sdDoor.img_door_no_matter : sdDoor.img_door_no_matter2;

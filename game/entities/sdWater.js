@@ -39,6 +39,8 @@ class sdWater extends sdEntity
 		sdWater.all_swimmers_previous_frame_exit = new Set();
 		sdWater.all_swimmers_previous_frame_exit_swap = new Set();
 		
+		sdWater.all_waters = []; // Only for client-side
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return 0; }
@@ -126,6 +128,11 @@ class sdWater extends sdEntity
 			}
 			
 			sdWorld.UpdateHashPosition( this, false ); // Without this, new water objects will only discover each other after one first think event (and by that time multiple water objects will overlap each other). This could be called at sdEntity super constructor but some entities don't know their bounds by that time
+		}
+		
+		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+		{
+			sdWater.all_waters.push( this );
 		}
 	}
 	
@@ -691,8 +698,11 @@ class sdWater extends sdEntity
 		}
 	}
 			
-	DrawFG( ctx, attached )
+	//DrawFG( ctx, attached )
+	Draw( ctx, attached )
 	{
+		if ( this.type === sdWater.TYPE_LAVA )
+		ctx.apply_shading = false;
 		
 		//let wall_below = sdWorld.CheckWallExists( this.x + 8, this.y + 16 + 8, null, null, sdWater.classes_to_interact_with );
 		
@@ -819,6 +829,13 @@ class sdWater extends sdEntity
 	
 	FullRemove()
 	{
+		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+		{
+			let id = sdWater.all_waters.indexOf( this );
+			if ( id !== -1 )
+			sdWater.all_waters.splice( id, 1 );
+		}
+		
 		this._swimmers.forEach( ( e )=>
 		{
 			this._swimmers.delete( e );

@@ -173,7 +173,7 @@ class sdBG extends sdEntity
 			}
 		}
 		
-		let lumes = sdWorld.GetClientSideGlowReceived( this.x + w / 2, this.y + h / 2, this );
+		/*let lumes = sdWorld.GetClientSideGlowReceived( this.x + w / 2, this.y + h / 2, this );
 		if ( lumes > 0 )
 		{
 			if ( sdRenderer.visual_settings === 4 )
@@ -184,7 +184,7 @@ class sdBG extends sdEntity
 			}
 			else
 			ctx.filter = ctx.filter + 'brightness('+(1+lumes)+')';
-		}
+		}*/
 
 		if ( this.material === sdBG.MATERIAL_PLATFORMS )
 		{

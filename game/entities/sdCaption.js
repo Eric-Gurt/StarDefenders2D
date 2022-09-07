@@ -97,6 +97,8 @@ class sdCaption extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		ctx.apply_shading = false;
+		
 		ctx.filter = sdCaption.colors[ this.type * 3 ];
 		
 		ctx.drawImageFilterCache( sdCaption.img_caption, -16, -16, 32,32 );

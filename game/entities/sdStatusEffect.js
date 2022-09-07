@@ -154,12 +154,15 @@ class sdStatusEffect extends sdEntity
 					
 					let xx = 0;
 					let yy = -2.5 - status_entity._progress * 1 + Math.pow( status_entity._progress, 2 ) * 0.1;
+					
+					ctx.apply_shading = false;
 
 					if ( status_entity.dmg > 0 )
 					ctx.fillText( Math.floor( status_entity.dmg ) + '', xx, yy );
 					else
 					ctx.fillText( '+' + Math.abs( Math.floor( status_entity.dmg ) ) + '', xx, yy ); 
 
+					ctx.apply_shading = true;
 				}
 				
 				ctx.globalAlpha = 1;

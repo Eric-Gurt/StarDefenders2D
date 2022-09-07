@@ -1207,6 +1207,8 @@ class sdCharacterRagdoll
 							{
 								ctx.filter = 'none';
 								ctx.sd_filter = null;
+								
+								ctx.apply_shading = false;
 
 								ctx.drawImageFilterCache( sdCharacter.img_jetpack, - 16 + 2, - 16, 32,32 );
 

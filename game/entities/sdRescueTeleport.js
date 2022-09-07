@@ -197,6 +197,9 @@ class sdRescueTeleport extends sdEntity
 	
 	Draw( ctx, attached )
 	{
+		if ( this.matter >= this._matter_max )
+		ctx.apply_shading = false;
+		
 		if ( this.matter >= this._matter_max || sdShop.isDrawing )
 		{
 			if ( this.delay === 0 || sdShop.isDrawing )

@@ -981,6 +981,9 @@ class sdCube extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
+		if ( this.hea > 0 )
+		ctx.apply_shading = false;
+		
 		let xx = 0;
 		let yy = 0;
 

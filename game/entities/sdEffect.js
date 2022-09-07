@@ -87,17 +87,20 @@ class sdEffect extends sdEntity
 			speed: 0.2,
 			random_flip: true,
 			sound_to_play: 'world_hit',
-			sound_to_play_volume: 0.25
+			sound_to_play_volume: 0.25,
+			apply_shading: false
 		};
 		sdEffect.types[ sdEffect.TYPE_BEAM ] = {
 			images: [ 2, 1, 0.5, 0.25 ],
 			speed: 0.4,
-			random_flip: false
+			random_flip: false,
+			apply_shading: false
 		};
 		sdEffect.types[ sdEffect.TYPE_BEAM_CIRCLED ] = {
 			images: [ 2, 1, 0.5, 0.25 ],
 			speed: 0.4,
-			random_flip: false
+			random_flip: false,
+			apply_shading: false
 		};
 		sdEffect.types[ sdEffect.TYPE_EXPLOSION ] = {
 			images: [ sdWorld.CreateImageFromFile( 'explosion' ) ],
@@ -106,7 +109,8 @@ class sdEffect extends sdEntity
 			random_flip: true,
 			random_rotation: true,
 			sound_to_play: 'explosion3',
-			sound_to_play_volume: 1.5
+			sound_to_play_volume: 1.5,
+			apply_shading: false
 		};
 		sdEffect.types[ sdEffect.TYPE_CHAT ] = {
 			images: [],
@@ -164,13 +168,15 @@ class sdEffect extends sdEntity
 			images: [ 
 				sdWorld.CreateImageFromFile( 'lag' )
 			],
-			speed: 1 / ( 15 * 30 )
+			speed: 1 / ( 15 * 30 ),
+			apply_shading: false
 		};
 		sdEffect.types[ sdEffect.TYPE_GLOW_HIT ] = {
 			images: [ 
 				sdWorld.CreateImageFromFile( 'hit_glow' )
 			],
-			speed: 1 / 10
+			speed: 1 / 10,
+			apply_shading: false
 		};
 		sdEffect.types[ sdEffect.TYPE_POPCORN ] = {
 			images: [ 
@@ -187,7 +193,8 @@ class sdEffect extends sdEntity
 			duration: 9,
 			speed: 0.3,
 			random_flip: true,
-			random_rotation: false
+			random_rotation: false,
+			apply_shading: false
 		};
 		sdEffect.types[ sdEffect.TYPE_SHELL ] = {
 			images: [ 
@@ -205,7 +212,8 @@ class sdEffect extends sdEntity
 			random_flip: false,
 			random_rotation: false,
 			speed: 1 / 30,
-			spritesheet: true
+			spritesheet: true,
+			apply_shading: false
 		};
 		sdEffect.types[ sdEffect.TYPE_FIRE ] = {
 			images: [ sdWorld.CreateImageFromFile( 'effect_fire' ) ],
@@ -214,7 +222,8 @@ class sdEffect extends sdEntity
 			random_rotation: false,
 			speed: 6 / 30,
 			random_speed_percentage: 0.2,
-			spritesheet: true
+			spritesheet: true,
+			apply_shading: false
 		};
 		sdEffect.types[ sdEffect.TYPE_FROZEN ] = {
 			images: [ sdWorld.CreateImageFromFile( 'effect_frozen' ) ],
@@ -232,7 +241,8 @@ class sdEffect extends sdEntity
 			random_rotation: false,
 			speed: 10 / 30,
 			spritesheet: true,
-			opacity: 0.5
+			opacity: 0.5,
+			apply_shading: false
 		};
 		sdEffect.types[ sdEffect.TYPE_RAIL_HIT ] = {
 			images: [ sdWorld.CreateImageFromFile( 'rail_hit' ) ],
@@ -240,7 +250,8 @@ class sdEffect extends sdEntity
 			random_flip: true,
 			random_rotation90: true,
 			speed: 10 / 30,
-			spritesheet: true
+			spritesheet: true,
+			apply_shading: false
 		};
 	
 		sdEffect.translit_result_assumed_language = null;
@@ -683,6 +694,8 @@ class sdEffect extends sdEntity
 		if ( this._is_being_removed )
 		return;
 	
+		ctx.apply_shading = ( sdEffect.types[ this._type ].apply_shading === undefined ) ? true : sdEffect.types[ this._type ].apply_shading;
+	
 		var y = 0;
 	
 		ctx.sd_hue_rotation = this._hue;
@@ -794,6 +807,8 @@ class sdEffect extends sdEntity
 	{
 		if ( this._is_being_removed )
 		return;
+	
+		ctx.apply_shading = ( sdEffect.types[ this._type ].apply_shading === undefined ) ? false : sdEffect.types[ this._type ].apply_shading;
 		
 		if ( this._type === sdEffect.TYPE_CHAT )
 		{
@@ -948,6 +963,8 @@ class sdEffect extends sdEntity
 			ctx.sd_color_mult_b = 1;
 			ctx.globalAlpha = 1;
 		}
+		
+		ctx.apply_shading = true;
 	}
 	onRemove() // Class-specific, if needed
 	{

@@ -700,6 +700,8 @@ class sdRenderer
 		if ( typeof ctx.FakeStart !== 'undefined' )
 		ctx.FakeStart();
 	
+		sdAtlasMaterial.CameraPositionUpdated();
+			
 		ctx.z_offset = 0;
 		ctx.z_depth = 0;
 		ctx.draw_offset = -100;
@@ -709,6 +711,8 @@ class sdRenderer
 		
 		ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_FLAT;
 		
+		
+			
 		
 		
 		
@@ -994,6 +998,7 @@ class sdRenderer
 			ctx.draw_offset = 0;
 			ctx.camera_relative_world_scale = sdRenderer.distance_scale_in_world;
 			
+			ctx.apply_shading = true;
 			
 
 			let min_x = sdWorld.camera.x - 800/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width - 64;
@@ -1068,11 +1073,21 @@ class sdRenderer
 							let ex = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
 							let ey = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
 
-							let an = Math.round( Math.atan2( ex - x, ey - y ) / ( Math.PI * 2 ) * angles + angles ) % angles;
+							//let an = Math.round( Math.atan2( ex - x, ey - y ) / ( Math.PI * 2 ) * angles + angles ) % angles;
+							
+							let m = angles / ( Math.PI * 2 );
+							
+							let furthest_an = Math.max(
+									sdRenderer.old_visibility_map[ Math.round( Math.atan2( e.x + e._hitbox_x1 - sdRenderer.visibility_falloff - x, e.y + e._hitbox_y1 - sdRenderer.visibility_falloff - y ) * m + angles ) % angles ],
+									sdRenderer.old_visibility_map[ Math.round( Math.atan2( e.x + e._hitbox_x2 + sdRenderer.visibility_falloff - x, e.y + e._hitbox_y1 - sdRenderer.visibility_falloff - y ) * m + angles ) % angles ],
+									sdRenderer.old_visibility_map[ Math.round( Math.atan2( e.x + e._hitbox_x1 - sdRenderer.visibility_falloff - x, e.y + e._hitbox_y2 + sdRenderer.visibility_falloff - y ) * m + angles ) % angles ],
+									sdRenderer.old_visibility_map[ Math.round( Math.atan2( e.x + e._hitbox_x2 + sdRenderer.visibility_falloff - x, e.y + e._hitbox_y2 + sdRenderer.visibility_falloff - y ) * m + angles ) % angles ]
+							);
 
 							let max_dimension = sdWorld.Dist2D_Vector( e._hitbox_x2 - e._hitbox_x1, e._hitbox_y2 - e._hitbox_y1 );
 
-							if ( sdWorld.inDist2D_Boolean( x, y, ex, ey, sdRenderer.old_visibility_map[ an ] + sdRenderer.visibility_falloff + 32 + max_dimension ) )
+							//if ( sdWorld.inDist2D_Boolean( x, y, ex, ey, sdRenderer.old_visibility_map[ an ] + sdRenderer.visibility_falloff + 32 + max_dimension ) )
+							if ( sdWorld.inDist2D_Boolean( x, y, ex, ey, furthest_an + sdRenderer.visibility_falloff + max_dimension + 32 ) )
 							e._flag = frame_flag_reference;
 						}
 						else
@@ -1100,7 +1115,7 @@ class sdRenderer
 					}
 				}
 			}
-			
+		
 			for ( var i = 0; i < sdEntity.entities.length; i++ )
 			{
 				const e = sdEntity.entities[ i ];
@@ -1194,9 +1209,15 @@ class sdRenderer
 					e.SyncedToPlayer( sdWorld.my_entity );
 				}
 			}
-
+			
+			
+			ctx.apply_shading = false;
 			// Line of sight take 2
 			sdRenderer.DrawLineOfSightShading( ctx, ms_since_last_render );
+			
+			ctx.apply_shading = true;
+			
+			
 			
 			
 			ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_FLAT;
@@ -1255,6 +1276,12 @@ class sdRenderer
 					}
 				}
 			}
+			
+			
+			
+
+			
+			
 			
 			//ctx.draw_offset = 0;
 			
@@ -1316,6 +1343,7 @@ class sdRenderer
 							sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1, 
 							sdRenderer.screen_height );
 			
+			ctx.apply_shading = false;
 			
 			if ( sdWorld.my_entity )
 			if ( !sdWorld.my_entity._is_being_removed )

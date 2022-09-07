@@ -77,6 +77,8 @@ class FakeCanvasContext
 		this.scene = null;
 		this.renderer = null;
 		
+		this.apply_shading = false;
+		
 		this.draws = []; // arr of Mesh
 		this.sold_meshes = new Map(); // map[ mat ] of maps[ geom ] of meshes that are not needed and can potentially be reused in next frame
 		
@@ -724,9 +726,9 @@ class FakeCanvasContext
 	save()
 	{
 		if ( sdRenderer.visual_settings === 4 )
-		this.save_stack.push( [ this._matrix3.clone(), this.globalAlpha ] );
+		this.save_stack.push( [ this._matrix3.clone(), this.globalAlpha, this.apply_shading ] );
 		else
-		this.save_stack.push( [ this.transform.clone(), this.globalAlpha ] );
+		this.save_stack.push( [ this.transform.clone(), this.globalAlpha, this.apply_shading ] );
 	}
 	restore()
 	{
@@ -738,6 +740,8 @@ class FakeCanvasContext
 		this.transform = save[ 0 ];
 	
 		this.globalAlpha = save[ 1 ];
+	
+		this.apply_shading = save[ 2 ];
 	}
 	resetTransform()
 	{

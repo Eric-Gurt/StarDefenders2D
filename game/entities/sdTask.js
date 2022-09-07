@@ -561,6 +561,8 @@ class sdTask extends sdEntity
 	
 	DrawFG( ctx, attached )
 	{
+		ctx.apply_shading = false;
+					
 		let x = sdWorld.camera.x;
 		let y = sdWorld.camera.y;
 		
