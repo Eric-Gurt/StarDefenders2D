@@ -49,7 +49,7 @@ class sdEnemyMech extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this.regen_timeout = 0;
+		this._regen_timeout = 0;
 		
 		this._hmax = 15000; // Was 6000 but even 12000 is too easy if you have anything in slot 7
 		this.hea = this._hmax;
@@ -161,7 +161,7 @@ class sdEnemyMech extends sdEntity
 			//sdSound.PlaySound({ name:'hover_lowhp', x:this.x, y:this.y, volume:1 });
 		}
 		
-		//this.regen_timeout = Math.max( this.regen_timeout, 60 );
+		this._regen_timeout = Math.max( this._regen_timeout, 30 * 60 );
 		
 		if ( this.hea <= 0 && was_alive )
 		{	
@@ -309,6 +309,11 @@ class sdEnemyMech extends sdEntity
 			
 			if ( sdWorld.is_server )
 			{
+				if ( this._regen_timeout <= 0 )
+				if ( this.hea < this._hmax ) 
+				this.hea += GSPEED; // Give them health regen if not taking damage over min
+				if ( this._regen_timeout > 0 )
+				this._regen_timeout -= GSPEED;
 				if ( this._move_dir_timer <= 0 )
 				{
 					this._move_dir_timer = 5;
@@ -458,7 +463,7 @@ class sdEnemyMech extends sdEntity
 
 					//let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 800 );
 					//let targets_raw = sdWorld.GetCharactersNear( this.x, this.y, null, null, 800 );
-					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdEnemyMech.attack_range, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret' , 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdSetrDestroyer', 'sdOverlord' ] );
+					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdEnemyMech.attack_range, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret' , 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdSetrDestroyer', 'sdOverlord', 'sdSpider' ] );
 
 					let targets = [];
 
@@ -467,6 +472,7 @@ class sdEnemyMech extends sdEntity
 						 ( targets_raw[ i ].GetClass() === 'sdTurret' ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdOverlord' ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdSetrDestroyer' ) ||
+						 ( targets_raw[ i ].GetClass() === 'sdSpider' ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdPlayerOverlord' ) ||
 						( targets_raw[ i ].GetClass() === 'sdCommandCentre' ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdCube' && targets_raw[ i ].hea > 0 ) ||
