@@ -849,7 +849,7 @@ class sdRenderer
 					
 					let brightness = 3 / sdRenderer.dark_lands_colors.length;
 					
-					let day_progress = sdWeather.only_instance.day_time / ( 30 * 60 * 24 ) * Math.PI * 2;
+					let day_progress = sdWeather.only_instance.day_time / ( 30 * 60 * 24 ) * Math.PI * 2 - Math.PI;
 					
 					if ( sdWeather.only_instance._dustiness > 0 )
 					brightness += sdWeather.only_instance._dustiness * 6 / sdRenderer.dark_lands_colors.length;

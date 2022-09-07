@@ -34,6 +34,7 @@ import sdBloodDecal from './entities/sdBloodDecal.js';
 
 
 import sdRenderer from './client/sdRenderer.js';
+import { sdServerConfigShort, sdServerConfigFull } from './server/sdServerConfig.js';
 import sdBitmap from './client/sdBitmap.js';
 import sdSound from './sdSound.js';
 
@@ -3551,6 +3552,7 @@ class sdWorld
 		sdEntity.entities.push( new sdWeather({}) );
 	
 		// Stop all events
+		sdWorld.server_config = sdServerConfigFull;
 		sdWorld.server_config.GetAllowedWorldEvents = ()=>[];
 		sdWorld.entity_classes.sdWeather.only_instance._daily_events = [];
 		

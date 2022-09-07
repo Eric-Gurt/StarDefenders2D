@@ -597,7 +597,7 @@ class sdSuperTexture
 					sdWorld.last_hit_entity = null;
 					
 					if ( sdWorld.CheckLineOfSight( x, y, x2, y2, null, null, null, sdWorld.FilterVisionBlocking ) || !sdWorld.last_hit_entity ) // Count world edges too
-					rays += 1.5 * sdWeather.only_instance.GetSunIntensity();
+					rays += 1 * sdWeather.only_instance.GetSunIntensity() + 0.5;
 				}
 
 				TraceRayTowards( x, screen_top_y );
