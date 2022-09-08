@@ -45,7 +45,7 @@ class sdSetrDestroyer extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this.regen_timeout = 0;
+		this._regen_timeout = 0;
 		
 		this._hmax = 15000;
 		this.hea = this._hmax;
@@ -204,8 +204,8 @@ class sdSetrDestroyer extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
-		if ( dmg <= 10 )
-		return;
+		//if ( dmg <= 10 ) // This is unneeded since this thing gives like 20 score when destroyed
+		//return;
 		if ( initiator )
 		if ( initiator.GetClass() === 'sdCharacter' )
 		if ( initiator._ai_team === 0 ) // Only target players
@@ -232,7 +232,7 @@ class sdSetrDestroyer extends sdEntity
 			//sdSound.PlaySound({ name:'hover_lowhp', x:this.x, y:this.y, volume:1 });
 		}
 		
-		//this.regen_timeout = Math.max( this.regen_timeout, 60 );
+		this._regen_timeout = Math.max( this._regen_timeout, 30 * 60 );
 		
 		if ( this.hea <= 0 && was_alive )
 		{	
@@ -380,8 +380,11 @@ class sdSetrDestroyer extends sdEntity
 			
 			if ( sdWorld.is_server )
 			{
+				if ( this._regen_timeout <= 0 )
 				if ( this.hea < this._hmax ) 
-				this.hea += GSPEED; // Give them constant health regen
+				this.hea += GSPEED; // Give them health regen if not taking damage over min
+				if ( this._regen_timeout > 0 )
+				this._regen_timeout -= GSPEED;
 				if ( this._move_dir_timer <= 0 )
 				{
 					this._move_dir_timer = 5;
@@ -538,7 +541,7 @@ class sdSetrDestroyer extends sdEntity
 					}
 					//let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 800 );
 					//let targets_raw = sdWorld.GetCharactersNear( this.x, this.y, null, null, 800 );
-					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdSetrDestroyer.attack_range, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret' , 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdEnemyMech', 'sdOverlord' ] );
+					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdSetrDestroyer.attack_range, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret' , 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdEnemyMech', 'sdOverlord', 'sdSpider' ] );
 
 					let targets = [];
 
@@ -547,6 +550,7 @@ class sdSetrDestroyer extends sdEntity
 						 ( targets_raw[ i ].GetClass() === 'sdTurret' ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdOverlord' ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdEnemyMech' ) ||
+						 ( targets_raw[ i ].GetClass() === 'sdSpider' ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdPlayerOverlord' ) ||
 						( targets_raw[ i ].GetClass() === 'sdCommandCentre' ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdCube' && targets_raw[ i ].hea > 0 ) ||
