@@ -699,7 +699,7 @@ class sdWeather extends sdEntity
 			if ( Math.random() < 0.7 ) // 70% chance for rift portal to spawn
 			{
 				let instances = 1;
-				while ( instances > 0 && sdRift.portals < 2 )
+				while ( instances > 0 && sdRift.portals < 4 )
 				{
 
 					let portal = new sdRift({ x:0, y:0 });
