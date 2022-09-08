@@ -2159,6 +2159,11 @@ class sdEntity
 	
 	constructor( params )
 	{
+		// Warning: When adding new properties here - at least make sure you don't save them at GetSnapshot
+		//			All these properties will also sit in memory at all times, obviously. And we want to be able
+		//			to run game on low memory VDS servers too -- Eric Gurt
+		
+		
 		//if ( !sdWorld.mobile )
 		//this._stack_trace = globalThis.getStackTrace();
 		
@@ -2712,6 +2717,22 @@ class sdEntity
 							  prop !== '_snapshot_cache' && 
 							  prop !== '_hiberstate' && 
 							  prop !== '_affected_hash_arrays' && 
+							  prop !== '_class_id' && 
+							  prop !== '_flag' && 
+							  prop !== '_connected_ents' && 
+							  prop !== '_connected_ents_next_rethink' && 
+							  prop !== '_hitbox_x1' && 
+							  prop !== '_hitbox_y1' && 
+							  prop !== '_hitbox_x2' && 
+							  prop !== '_hitbox_y2' && 
+							  prop !== '_hard_collision' && 
+							  prop !== '_hitbox_last_update' && 
+							  prop !== '_last_hit_time' && 
+							  prop !== '_last_attacker_net_id' && 
+							  prop !== '_last_attacker_until' && 
+							  prop !== '_is_being_removed' && 
+							  prop !== '_broken' && 
+							  prop !== '_listeners' && 
 							  prop !== '_last_x' && 
 							  prop !== '_last_y' && 
 							  ( 

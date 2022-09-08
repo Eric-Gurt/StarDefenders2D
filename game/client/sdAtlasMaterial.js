@@ -596,6 +596,9 @@ class sdSuperTexture
 				{
 					sdWorld.last_hit_entity = null;
 					
+					if ( !sdWeather.only_instance )
+					rays += 1 + 0.5;
+					else
 					if ( sdWorld.CheckLineOfSight( x, y, x2, y2, null, null, null, sdWorld.FilterVisionBlocking ) || !sdWorld.last_hit_entity ) // Count world edges too
 					rays += 1 * sdWeather.only_instance.GetSunIntensity() + 0.5;
 				}
