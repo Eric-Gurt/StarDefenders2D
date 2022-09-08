@@ -396,7 +396,7 @@ class sdWeather extends sdEntity
 										
 							character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
 							character_entity._jetpack_allowed = true; // Jetpack
-							character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
+							//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
 							character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 							character_entity._ai_team = 1; // AI team 1 is for Falkoks, preparation for future AI factions
 							character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
@@ -699,7 +699,7 @@ class sdWeather extends sdEntity
 			if ( Math.random() < 0.7 ) // 70% chance for rift portal to spawn
 			{
 				let instances = 1;
-				while ( instances > 0 && sdRift.portals < 2 )
+				while ( instances > 0 && sdRift.portals < 4 )
 				{
 
 					let portal = new sdRift({ x:0, y:0 });
@@ -944,7 +944,7 @@ class sdWeather extends sdEntity
 										
 								character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
 								character_entity._jetpack_allowed = true; // Jetpack
-								character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
+								//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
 								character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 								character_entity._ai_team = 2; // AI team 2 is for Erthal
 								character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
@@ -1602,7 +1602,7 @@ class sdWeather extends sdEntity
 
 								character_entity._matter_regeneration = 5; // At least some ammo regen
 								character_entity._jetpack_allowed = true; // Jetpack
-								character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
+								//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
 								character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 								character_entity._ai_team = 5; // AI team 5 is for Velox faction
 								character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
@@ -1793,7 +1793,7 @@ class sdWeather extends sdEntity
 										
 							character_entity._matter_regeneration = 5; // At least some ammo regen
 							character_entity._jetpack_allowed = true; // Jetpack
-							character_entity._recoil_mult = 1 - ( 0.0055 * 5 ) ; // Recoil reduction
+							//character_entity._recoil_mult = 1 - ( 0.0055 * 5 ) ; // Recoil reduction
 							character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 							character_entity._ai_team = hostile ? 6 : 0; // AI team 6 is for Hostile Star Defenders, 0 is for normal Star Defenders
 							character_entity._allow_despawn = false;
@@ -1938,7 +1938,7 @@ class sdWeather extends sdEntity
 
 								character_entity._matter_regeneration = 5; // At least some ammo regen
 								character_entity._jetpack_allowed = true; // Jetpack
-								character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
+								//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
 								character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 								character_entity._ai_team = 7; // AI team 7 is for Setr faction
 								character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
@@ -2469,7 +2469,7 @@ class sdWeather extends sdEntity
 
 									character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
 									character_entity._jetpack_allowed = true; // Jetpack
-									character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
+									//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
 									character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 									character_entity._ai_team = 1; // AI team 1 is for Falkoks, preparation for future AI factions
 									character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
