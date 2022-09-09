@@ -457,7 +457,7 @@ class sdWeather extends sdEntity
 
 					let left_side = ( Math.random() < 0.5 );
 
-					while ( instances < instances_tot && sdDrone.drones_tot < 20 )
+					while ( instances < instances_tot && sdDrone.drones_tot < 40 )
 					{
 
 						let drone = new sdDrone({ x:0, y:0 , _ai_team: 1});
@@ -699,7 +699,7 @@ class sdWeather extends sdEntity
 			if ( Math.random() < 0.7 ) // 70% chance for rift portal to spawn
 			{
 				let instances = 1;
-				while ( instances > 0 && sdRift.portals < 2 )
+				while ( instances > 0 && sdRift.portals < 4 )
 				{
 
 					let portal = new sdRift({ x:0, y:0 });
@@ -772,7 +772,7 @@ class sdWeather extends sdEntity
 				sdEntity.entities.push( ent );
 				ent.type = ( Math.random() < 0.05 ) ? 1 : 0;
 
-				//if ( sdDrone.drones_tot < 20 ) // Not sure if this is needed to be honest, it also causes error because "let" can't be behind an "if" directly - Booraz149
+				//if ( sdDrone.drones_tot < 40 ) // Not sure if this is needed to be honest, it also causes error because "let" can't be behind an "if" directly - Booraz149
 				let ent_drone = new sdDrone({ x:0, y:0, _ai_team: 2, type: 2 }); 
 				sdEntity.entities.push( ent_drone );
 
@@ -1186,7 +1186,7 @@ class sdWeather extends sdEntity
 
 				let left_side = ( Math.random() < 0.5 );
 
-				while ( instances < instances_tot && sdDrone.drones_tot < 20 )
+				while ( instances < instances_tot && sdDrone.drones_tot < 40 )
 				{
 
 					let drone = new sdDrone({ x:0, y:0 , _ai_team: 4, type: ( Math.random() < 0.15 ) ? 4 : 3});
@@ -1964,7 +1964,7 @@ class sdWeather extends sdEntity
 				let drones_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
 
 
-				while ( drones < drones_tot && sdDrone.drones_tot < 20 )
+				while ( drones < drones_tot && sdDrone.drones_tot < 40 )
 				{
 
 					let drone = new sdDrone({ x:0, y:0 , _ai_team: 7, type: 7});

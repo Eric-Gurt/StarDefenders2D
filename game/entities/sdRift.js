@@ -71,6 +71,7 @@ class sdRift extends sdEntity
 		if ( this.type === 2 )
 		this.filter = 'none';*/
 
+		if ( this.type !== 5 ) // Council portals don't count towards other portal types so they don't prevent spawning of those other portals
 		sdRift.portals++;
 	}
 	GetFilterColor()
@@ -581,6 +582,7 @@ class sdRift extends sdEntity
 	
 	onRemove() // Class-specific, if needed
 	{
+		if ( this.type !== 5 ) // Council portals don't count towards other portal types so they don't prevent spawning of those other portals
 		sdRift.portals--;
 		//this.onRemoveAsFakeEntity();
 
