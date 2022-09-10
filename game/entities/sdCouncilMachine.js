@@ -330,7 +330,7 @@ class sdCouncilMachine extends sdEntity
 				{
 
 					let councils = 0;
-					let councils_tot = Math.min( 4, Math.max( 2, 1 + sdWorld.GetPlayingPlayersCount() ) );
+					let councils_tot = Math.min( 4, Math.max( 1, sdWorld.GetPlayingPlayersCount() ) );
 
 					let left_side = ( Math.random() < 0.5 );
 
@@ -461,7 +461,7 @@ class sdCouncilMachine extends sdEntity
 
 											character_entity._broken = false;
 										}
-									}, 30000 ); // Despawn the Council Vanquishers if they are in world longer than intended
+									}, 20000 ); // Despawn the Council Vanquishers if they are in world longer than intended
 
 									break;
 							}
