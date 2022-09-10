@@ -188,7 +188,7 @@ class sdBeamProjector extends sdEntity
 				{
 
 					let councils = 0;
-					let councils_tot = Math.min( 4, Math.max( 1, sdWorld.GetPlayingPlayersCount() ) );
+					let councils_tot = Math.min( 4, Math.max( 2, 1 + sdWorld.GetPlayingPlayersCount() ) );
 
 					let left_side = ( Math.random() < 0.5 );
 
