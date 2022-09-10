@@ -188,11 +188,11 @@ class sdBeamProjector extends sdEntity
 				{
 
 					let councils = 0;
-					let councils_tot = Math.min( 6, Math.max( 2, 1 + sdWorld.GetPlayingPlayersCount() ) );
+					let councils_tot = Math.min( 4, Math.max( 2, 1 + sdWorld.GetPlayingPlayersCount() ) );
 
 					let left_side = ( Math.random() < 0.5 );
 
-					while ( councils < councils_tot && ais < Math.min( 6, Math.max( 3, sdWorld.GetPlayingPlayersCount() ) ) )
+					while ( councils < councils_tot )
 					{
 
 						let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
