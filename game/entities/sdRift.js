@@ -175,7 +175,7 @@ class sdRift extends sdEntity
 			this._regen_timeout -= GSPEED;
 			else
 			{
-				if ( this.hea < this.hmax )
+				if ( this.hea < this.hmax && this.type !== 5 )
 				{
 					this.hea = Math.min( this.hea + GSPEED, this.hmax );
 				
