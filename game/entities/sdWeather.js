@@ -155,6 +155,8 @@ class sdWeather extends sdEntity
 		this._invasion_timer = 0; // invasion length timer
 		this._invasion_spawn_timer = 0; // invasion spawn timer
 		this._invasion_spawns_con = 0; // invasion spawn conditions, needs to be 0 or invasion can't end. Counter for falkoks left to spawn
+
+		this._max_ai_count = 8; //  Can be altered with AfterSnapshotLoad inside sdServerConfig maybe?
 		
 		this._quake_scheduled_amount = 0;
 		this.quake_intensity = 0;
@@ -306,7 +308,7 @@ class sdWeather extends sdEntity
 
 			let left_side = ( Math.random() < 0.5 );
 
-			while ( instances < instances_tot && ais < 8 )
+			while ( instances < instances_tot && ais < this._max_ai_count )
 			{
 
 				let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
@@ -846,7 +848,7 @@ class sdWeather extends sdEntity
 			{
 				if ( sdCharacter.characters[ i ].hea > 0 )
 				if ( !sdCharacter.characters[ i ]._is_being_removed )
-i				if ( sdCharacter.characters[ i ]._ai )
+				if ( sdCharacter.characters[ i ]._ai )
 				if ( sdCharacter.characters[ i ]._ai_team === 2 ) // Same as falkoks, needed so it doesn't block spawning other factions
 				{
 					ais++;
@@ -867,7 +869,7 @@ i				if ( sdCharacter.characters[ i ]._ai )
 
 				let left_side = ( Math.random() < 0.5 );
 
-				while ( robots < robots_tot && ais < 8 )
+				while ( robots < robots_tot && ais < this._max_ai_count )
 				{
 
 					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
@@ -1493,7 +1495,7 @@ i				if ( sdCharacter.characters[ i ]._ai )
 
 				let left_side = ( Math.random() < 0.5 );
 
-				while ( instances < instances_tot && ais < 8 ) // max AI value up to 8, as other events I think. - Booraz149
+				while ( instances < instances_tot && ais < this._max_ai_count ) // max AI value up to 8, as other events I think. - Booraz149
 				{
 
 					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
@@ -1714,7 +1716,7 @@ i				if ( sdCharacter.characters[ i ]._ai )
 
 			let left_side = ( Math.random() < 0.5 );
 
-			while ( instances < instances_tot && ais < 8 )
+			while ( instances < instances_tot && ais < this._max_ai_count )
 			{
 				let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled: hostile ? sdCharacter.AI_MODEL_FALKOK : sdCharacter.AI_MODEL_TEAMMATE });
 
@@ -1879,7 +1881,7 @@ i				if ( sdCharacter.characters[ i ]._ai )
 
 				let left_side = ( Math.random() < 0.5 );
 
-				while ( instances < instances_tot && ais < 8 ) // max AI value up to 8, as other events I think. - Booraz149
+				while ( instances < instances_tot && ais < this._max_ai_count ) // max AI value up to 8, as other events I think. - Booraz149
 				{
 
 					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
@@ -2378,7 +2380,7 @@ i				if ( sdCharacter.characters[ i ]._ai )
 
 					let left_side = ( Math.random() < 0.5 );
 
-					while ( instances < instances_tot && ais < 16 ) // max AI value up to 16 during invasion, but should be reduced if laggy for server
+					while ( instances < instances_tot && ais < this._max_ai_count * 2 ) // max AI value up to 2x max ai count during invasion, but should be reduced if laggy for server
 					{
 
 						let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
