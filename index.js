@@ -751,6 +751,7 @@ sdWorld.sockets = sockets;
 const server_config_path_const = __dirname + '/server_config' + ( world_slot || '' ) + '.js';
 
 const snapshot_path_const = __dirname + '/star_defenders_snapshot' + ( world_slot || '' ) + '.v';
+const backup_path_const = __dirname + '/star_defenders_backup' + ( world_slot || '' ) + '.v';
 const timewarp_path_const = __dirname + '/star_defenders_timewarp' + ( world_slot || '' ) + '.v';
 const moderation_data_path_const = __dirname + '/moderation_data' + ( world_slot || '' ) + '.v';
 const superuser_pass_path = __dirname + '/superuser_pass' + ( world_slot || '' ) + '.txt'; // Used to be .v
@@ -814,6 +815,7 @@ eval( 'sdWorld.server_config = ' + sdServerConfigFull.toString() ); // Execute w
 
 
 sdWorld.snapshot_path_const = snapshot_path_const;
+sdWorld.backup_path_const = backup_path_const;
 sdWorld.timewarp_path_const = timewarp_path_const;
 sdWorld.moderation_data_path_const = moderation_data_path_const;
 sdWorld.superuser_pass_path = superuser_pass_path;
@@ -964,7 +966,18 @@ let is_terminating = false;
 			for ( var i = 0; i < sockets.length; i++ )
 			sockets[ i ].SDServiceMessage( 'Server: Backup is complete ('+(err?'Error!':'successfully')+')!' );
 		});
-	}, 1000 * 60 * 15 ); // Once per 15 minutes
+
+		setTimeout( ()=>{
+			for ( var i = 0; i < sockets.length; i++ )
+			sockets[ i ].SDServiceMessage( 'Server: Alt backup is being done!' );
+
+			SaveSnapshot( backup_path_const, ( err )=>
+			{
+				for ( var i = 0; i < sockets.length; i++ )
+				sockets[ i ].SDServiceMessage( 'Server: Alt backup is complete ('+(err?'Error!':'successfully')+')!' );
+			});
+		}, 1000 * 60 * 15 ); // Once per 15 minutes
+	}, 1000 * 60 * 30 ); // Once per 30 minutes
 	
 	
 	
