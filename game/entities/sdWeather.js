@@ -296,6 +296,7 @@ class sdWeather extends sdEntity
 			if ( sdCharacter.characters[ i ].hea > 0 )
 			if ( !sdCharacter.characters[ i ]._is_being_removed )
 			if ( sdCharacter.characters[ i ]._ai )
+			if ( sdCharacter.characters[ i ]._ai_team === 1 ) // Otherwise it will prevent potentially spawning other factions, like Setr, Velox and Erthal
 			{
 				ais++;
 			}
@@ -845,7 +846,8 @@ class sdWeather extends sdEntity
 			{
 				if ( sdCharacter.characters[ i ].hea > 0 )
 				if ( !sdCharacter.characters[ i ]._is_being_removed )
-				if ( sdCharacter.characters[ i ]._ai_team === 2 )
+i				if ( sdCharacter.characters[ i ]._ai )
+				if ( sdCharacter.characters[ i ]._ai_team === 2 ) // Same as falkoks, needed so it doesn't block spawning other factions
 				{
 					ais++;
 				}
@@ -1470,7 +1472,8 @@ class sdWeather extends sdEntity
 			{
 				if ( sdCharacter.characters[ i ].hea > 0 )
 				if ( !sdCharacter.characters[ i ]._is_being_removed )
-				if ( sdCharacter.characters[ i ]._ai_team === 2 )
+				if ( sdCharacter.characters[ i ]._ai )
+				if ( sdCharacter.characters[ i ]._ai_team === 5 )
 				{
 					ais++;
 				}
@@ -1855,6 +1858,7 @@ class sdWeather extends sdEntity
 			{
 				if ( sdCharacter.characters[ i ].hea > 0 )
 				if ( !sdCharacter.characters[ i ]._is_being_removed )
+				if ( sdCharacter.characters[ i ]._ai )
 				if ( sdCharacter.characters[ i ]._ai_team === 7 )
 				{
 					ais++;
@@ -2346,7 +2350,7 @@ class sdWeather extends sdEntity
 				this.GetDailyEvents();
 			}
 			
-			if ( this._invasion ) // Invasion event
+			if ( this._invasion ) // Falkok invasion event. Maybe it could be changed to just execute randomly selected event so we can have all kinds of invasions?
 			{
 				this._invasion_timer -= 1 / 30  * GSPEED;
 				this._invasion_spawn_timer -= 1 / 30 * GSPEED;
@@ -2364,6 +2368,7 @@ class sdWeather extends sdEntity
 					if ( sdCharacter.characters[ i ].hea > 0 )
 					if ( !sdCharacter.characters[ i ]._is_being_removed )
 					if ( sdCharacter.characters[ i ]._ai )
+					if ( sdCharacter.characters[ i ]._ai_team === 1 ) // Otherwise it will prevent potentially spawning other factions, like Setr, Velox and Erthal
 					{
 						ais++;
 					}
