@@ -89,7 +89,7 @@ class sdRenderer
 
 		//sdRenderer._dirt_settings = 0; // No longer needed due to new rendering optimizations
 		
-		sdRenderer.show_leader_board = true;
+		sdRenderer.show_leader_board = 1; // Used for displaying tasks too
 		
 		//sdRenderer.ctx = canvas.getContext("2d");
 		//sdRenderer.ctx = canvas.getContext('webgl-2d');
@@ -1533,7 +1533,7 @@ class sdRenderer
 			ctx.fillStyle = '#000000';
 			ctx.fillRect( 5, 5, 445 * scale, 17 );
 			
-			if ( sdRenderer.show_leader_board )
+			if ( sdRenderer.show_leader_board === 1 || sdRenderer.show_leader_board === 2 )
 			ctx.fillRect( sdRenderer.screen_width - 200 * scale - 5, 5, 200 * scale, 20 + 20 * sdWorld.leaders.length * scale + 5 );
 			
 			{
@@ -1677,7 +1677,7 @@ class sdRenderer
 			}
 			ctx.restore();
 			
-			if ( sdRenderer.show_leader_board )
+			if ( sdRenderer.show_leader_board === 1 || sdRenderer.show_leader_board === 2 )
 			{
 				ctx.fillStyle = '#AAAAAA';
 				ctx.fillText("Leaderboard:", sdRenderer.screen_width - 200 * scale - 5 + 5, 20 );
