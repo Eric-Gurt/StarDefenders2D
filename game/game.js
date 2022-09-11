@@ -947,8 +947,11 @@ let enf_once = true;
 		if ( code === 'Tab' )
 		if ( sdWorld.my_entity )
 		{
-			sdRenderer.show_leader_board = !sdRenderer.show_leader_board;
+			sdRenderer.show_leader_board++;
+			if ( sdRenderer.show_leader_board > 3 )
+			sdRenderer.show_leader_board = 0;
 			e.preventDefault();
+			console.log(sdRenderer.show_leader_board);
 			return;
 		}
 		
