@@ -561,6 +561,9 @@ class sdTask extends sdEntity
 	
 	DrawFG( ctx, attached )
 	{
+		if ( sdRenderer.show_leader_board === 0 || sdRenderer.show_leader_board === 2 )
+		return;
+
 		ctx.apply_shading = false;
 					
 		let x = sdWorld.camera.x;
@@ -687,6 +690,9 @@ class sdTask extends sdEntity
 	
 	DrawTaskInterface( ctx, scale )
 	{
+		if ( sdRenderer.show_leader_board === 0 || sdRenderer.show_leader_board === 2 )
+		return;
+
 		ctx.font = 11*scale + "px Verdana";
 		
 		const PutMultilineText = ( text, subtext=false )=>
