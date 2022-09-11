@@ -156,7 +156,21 @@ class sdWeather extends sdEntity
 		this._invasion_spawn_timer = 0; // invasion spawn timer
 		this._invasion_spawns_con = 0; // invasion spawn conditions, needs to be 0 or invasion can't end. Counter for falkoks left to spawn
 
-		this._max_ai_count = 8; //  Can be altered with AfterSnapshotLoad inside sdServerConfig maybe?
+
+		// Max entity count variables
+		// To change values of these, you need to edit values inside sdServerConfig.js located under /game/server inside sdServerConfigFull class.
+		// Then you need to locate onAfterSnapshotLoad() and add inside the changed values, like this, for example:
+		// "sdWorld.entity_classes.sdWeather.only_instance._max_ai_count = 16;"
+		// ^ this would change max humanoid AI count to 16, which is set to 8 by default.
+
+		this._max_ai_count = 8; //  Can be altered with onAfterSnapshotLoad inside sdServerConfig
+		this._max_velox_mech_count = 3;
+		this._max_setr_destroyer_count = 3;
+		this._max_drone_count = 40;
+		this._max_portal_count = 4;
+
+		//
+		//
 		
 		this._quake_scheduled_amount = 0;
 		this.quake_intensity = 0;
@@ -460,7 +474,7 @@ class sdWeather extends sdEntity
 
 					let left_side = ( Math.random() < 0.5 );
 
-					while ( instances < instances_tot && sdDrone.drones_tot < 40 )
+					while ( instances < instances_tot && sdDrone.drones_tot < this._max_drone_count )
 					{
 
 						let drone = new sdDrone({ x:0, y:0 , _ai_team: 1});
@@ -577,7 +591,7 @@ class sdWeather extends sdEntity
 
 			let left_side = ( Math.random() < 0.5 );
 
-			while ( instances < instances_tot && sdEnemyMech.mechs_counter < 3 )
+			while ( instances < instances_tot && sdEnemyMech.mechs_counter < this._max_velox_mech_count )
 			{
 
 				let mech_entity = new sdEnemyMech({ x:0, y:0 });
@@ -702,7 +716,7 @@ class sdWeather extends sdEntity
 			if ( Math.random() < 0.7 ) // 70% chance for rift portal to spawn
 			{
 				let instances = 1;
-				while ( instances > 0 && sdRift.portals < 4 )
+				while ( instances > 0 && sdRift.portals < this._max_portal_count )
 				{
 
 					let portal = new sdRift({ x:0, y:0 });
@@ -775,7 +789,7 @@ class sdWeather extends sdEntity
 				sdEntity.entities.push( ent );
 				ent.type = ( Math.random() < 0.05 ) ? 1 : 0;
 
-				//if ( sdDrone.drones_tot < 40 ) // Not sure if this is needed to be honest, it also causes error because "let" can't be behind an "if" directly - Booraz149
+				//if ( sdDrone.drones_tot < this._max_drone_count ) // Not sure if this is needed to be honest, it also causes error because "let" can't be behind an "if" directly - Booraz149
 				let ent_drone = new sdDrone({ x:0, y:0, _ai_team: 2, type: 2 }); 
 				sdEntity.entities.push( ent_drone );
 
@@ -1190,7 +1204,7 @@ class sdWeather extends sdEntity
 
 				let left_side = ( Math.random() < 0.5 );
 
-				while ( instances < instances_tot && sdDrone.drones_tot < 40 )
+				while ( instances < instances_tot && sdDrone.drones_tot < this._max_drone_count )
 				{
 
 					let drone = new sdDrone({ x:0, y:0 , _ai_team: 4, type: ( Math.random() < 0.15 ) ? 4 : 3});
@@ -1970,7 +1984,7 @@ class sdWeather extends sdEntity
 				let drones_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
 
 
-				while ( drones < drones_tot && sdDrone.drones_tot < 40 )
+				while ( drones < drones_tot && sdDrone.drones_tot < this._max_drone_count )
 				{
 
 					let drone = new sdDrone({ x:0, y:0 , _ai_team: 7, type: 7});
@@ -2024,7 +2038,7 @@ class sdWeather extends sdEntity
 
 			let left_side = ( Math.random() < 0.5 );
 
-			while ( instances < instances_tot && sdSetrDestroyer.destroyer_counter < 3 )
+			while ( instances < instances_tot && sdSetrDestroyer.destroyer_counter < this._max_setr_destroyer_count )
 			{
 
 				let destroyer_entity = new sdSetrDestroyer({ x:0, y:0 });
