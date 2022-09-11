@@ -1671,6 +1671,11 @@ class sdCharacter extends sdEntity
 				this._ai.direction = ( Math.random() < 0.5 ) ? 1 : -1;
 
 				this._ai_action_counter++;
+
+				if ( this._ai_action_counter > 0 && this._ai_action_counter % 5 === 0 ) // In some cases if AI doesn't move a while, it should occasionally try changing direction
+				if ( Math.random() < 0.08 )
+				this._ai.direction = -this._ai.direction;
+
 				if ( ( this.x - this._ai_last_x ) < -64 || ( this.x - this._ai_last_x ) > 64 ) // Has the AI moved a bit or is it stuck?
 				{
 					this._ai_last_x = this.x;

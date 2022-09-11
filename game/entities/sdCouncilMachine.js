@@ -461,7 +461,7 @@ class sdCouncilMachine extends sdEntity
 
 											character_entity._broken = false;
 										}
-									}, 30000 ); // Despawn the Council Vanquishers if they are in world longer than intended
+									}, 20000 ); // Despawn the Council Vanquishers if they are in world longer than intended
 
 									break;
 							}
