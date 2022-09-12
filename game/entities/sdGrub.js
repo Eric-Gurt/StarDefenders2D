@@ -110,7 +110,7 @@ class sdGrub extends sdEntity
 		let was_alive = this._hea > 0;
 		
 		if ( this._hea <= 0 )
-		dmg = Math.abs( dmg ); Prevent healing after death
+		dmg = Math.abs( dmg ); // Prevent healing after death
 			
 		this._hea = Math.min( this._hea - dmg, this._hmax ); // Allow healing
 		
