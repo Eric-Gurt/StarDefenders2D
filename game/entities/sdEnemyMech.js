@@ -322,22 +322,34 @@ class sdEnemyMech extends sdEntity
 					let closest_di = Infinity;
 					let closest_di_real = Infinity;
 
-					for ( let i = 0; i < sdCharacter.characters.length; i++ )
+					for ( let i = 0; i < sdEntity.entities.length; i++ )
 					{
-						if ( sdCharacter.characters[ i ].hea > 0 )
-						if ( !sdCharacter.characters[ i ]._is_being_removed )
+						if ( sdEntity.entities[ i ].GetClass() === 'sdSetrDestroyer' || sdEntity.entities[ i ].GetClass() === 'sdSpider' || sdEntity.entities[ i ].GetClass() === 'sdCube' || sdEntity.entities[ i ].GetClass() === 'sdDrone' || sdEntity.entities[ i ].GetClass() === 'sdCharacter' )
+						if ( !sdEntity.entities[ i ]._is_being_removed )
 						{
-							let di = sdWorld.Dist2D( this.x, this.y, sdCharacter.characters[ i ].x, sdCharacter.characters[ i ].y );
-							let di_real = di;
-							
-							//if ( sdEnemyMech.IsTargetFriendly( sdWorld.sockets[ i ].character ) )
-							//di += 1000;
-							
-							if ( di < closest_di )
+							let has_hp = false; // Is the potential target alive?
+							if ( typeof sdEntity.entities[ i ]._hea !== 'undefined' )
+							if ( sdEntity.entities[ i ]._hea > 0 )
+							has_hp = true;
+
+							if ( typeof sdEntity.entities[ i ].hea !== 'undefined' )
+							if ( sdEntity.entities[ i ].hea > 0 )
+							has_hp = true;
+
+							if ( has_hp )
 							{
-								closest_di = di;
-								closest_di_real = di_real;
-								closest = sdCharacter.characters[ i ];
+								let di = sdWorld.Dist2D( this.x, this.y, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+								let di_real = di;
+							
+								//if ( sdEnemyMech.IsTargetFriendly( sdEntity.entities[ i ] ) )
+								//di += 1000;
+							
+								if ( di < closest_di )
+								{
+									closest_di = di;
+									closest_di_real = di_real;
+									closest = sdEntity.entities[ i ];
+								}
 							}
 						}
 					}

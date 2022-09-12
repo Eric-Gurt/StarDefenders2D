@@ -854,7 +854,7 @@ class sdBlock extends sdEntity
 			else
 			if ( sdWorld.time > this._next_spread )
 			{
-				this._next_spread = sdWorld.time + 30000 + Math.random() * 10000; // More time to spread but it can also spread more htan corruption
+				this._next_spread = sdWorld.time + 30000 + Math.random() * 10000; // More time to spread
 				
 				let dir = ~~( Math.random() * 4 );
 				
@@ -884,7 +884,7 @@ class sdBlock extends sdEntity
 						}
 						else
 						{
-							if ( ent.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+							if ( ent.material === sdBlock.MATERIAL_CRYSTAL_SHARDS && this.p >= 1 )
 							ent.Fleshify( this );
 						}
 						corrupt_done = true;
