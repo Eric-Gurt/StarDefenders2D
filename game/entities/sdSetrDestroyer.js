@@ -393,23 +393,22 @@ class sdSetrDestroyer extends sdEntity
 					let closest_di = Infinity;
 					let closest_di_real = Infinity;
 
-					for ( let i = 0; i < sdWorld.sockets.length; i++ )
+					for ( let i = 0; i < sdCharacter.characters.length; i++ )
 					{
-						if ( sdWorld.sockets[ i ].character )
-						if ( sdWorld.sockets[ i ].character.hea > 0 )
-						if ( !sdWorld.sockets[ i ].character._is_being_removed )
+						if ( sdCharacter.characters[ i ].hea > 0 )
+						if ( !sdCharacter.characters[ i ]._is_being_removed )
 						{
-							let di = sdWorld.Dist2D( this.x, this.y, sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y );
+							let di = sdWorld.Dist2D( this.x, this.y, sdCharacter.characters[ i ].x, sdCharacter.characters[ i ].y );
 							let di_real = di;
 							
-							//if ( sdSetrDestroyer.IsTargetFriendly( sdWorld.sockets[ i ].character ) )
+							//if ( sdEnemyMech.IsTargetFriendly( sdWorld.sockets[ i ].character ) )
 							//di += 1000;
 							
 							if ( di < closest_di )
 							{
 								closest_di = di;
 								closest_di_real = di_real;
-								closest = sdWorld.sockets[ i ].character;
+								closest = sdCharacter.characters[ i ];
 							}
 						}
 					}
