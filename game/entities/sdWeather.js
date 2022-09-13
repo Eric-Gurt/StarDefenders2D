@@ -156,7 +156,21 @@ class sdWeather extends sdEntity
 		this._invasion_spawn_timer = 0; // invasion spawn timer
 		this._invasion_spawns_con = 0; // invasion spawn conditions, needs to be 0 or invasion can't end. Counter for falkoks left to spawn
 
-		this._max_ai_count = 8; //  Can be altered with AfterSnapshotLoad inside sdServerConfig maybe?
+
+		// Max entity count variables
+		// To change values of these, you need to edit values inside sdServerConfig.js located under /game/server inside sdServerConfigFull class.
+		// Then you need to locate onAfterSnapshotLoad() and add inside the changed values, like this, for example:
+		// "sdWorld.entity_classes.sdWeather.only_instance._max_ai_count = 16;"
+		// ^ this would change max humanoid AI count to 16, which is set to 8 by default.
+
+		this._max_ai_count = 8; //  Can be altered with onAfterSnapshotLoad inside sdServerConfig
+		this._max_velox_mech_count = 3;
+		this._max_setr_destroyer_count = 3;
+		this._max_drone_count = 40;
+		this._max_portal_count = 4;
+
+		//
+		//
 		
 		this._quake_scheduled_amount = 0;
 		this.quake_intensity = 0;
@@ -226,6 +240,76 @@ class sdWeather extends sdEntity
 			}
 		}
 		//console.log( this._daily_events );
+	}
+	GetHumanoidSpawnLocation( ent ) //Locate spawn location for humanoids. First it uses same method as for Erthal spider bots / bad dogs, and if it doesn't find a position it uses old humanoid method.
+	{
+		let x,y,i;
+		let located_spawn = false;
+		let tr = 1500;
+		do
+		{
+			x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+			y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+			if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
+			if ( !ent.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+			if ( sdWorld.last_hit_entity )
+			if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+			if ( !sdWorld.CheckWallExistsBox( 
+					x + ent._hitbox_x1 - 16, 
+					y + ent._hitbox_y1 - 116, 
+					x + ent._hitbox_x2 + 16, 
+					y + ent._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+			{
+				let di_allowed = true;
+										
+				for ( i = 0; i < sdWorld.sockets.length; i++ )
+				if ( sdWorld.sockets[ i ].character )
+				{
+					let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
+											
+					if ( di < 700 )
+					{
+						di_allowed = false;
+						break;
+					}
+				}
+							
+				if ( di_allowed )
+				{
+					ent.x = x;
+					ent.y = y;
+					located_spawn = true;
+					return true;
+				}
+			}
+									
+			tr--;
+		} while (tr >= 500 );
+		if ( tr > 0 && tr < 500 ) // Regular "old" humanoid AI spawn
+		do
+		{
+			if ( Math.random() > 0.5 )
+			x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
+			else
+			x = sdWorld.world_bounds.x2 - 16 - 16 * instances;
+
+			y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+			if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+			if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+			if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+			{
+					ent.x = x;
+					ent.y = y;
+					located_spawn = true;
+					return true;
+			}
+			tr--;
+		} while (tr > 0 );
+
+		if ( tr <= 0 )
+		return false;
 	}
 	TraceDamagePossibleHere( x,y, steps_max=Infinity, sun_light_tracer=false )
 	{
@@ -316,23 +400,15 @@ class sdWeather extends sdEntity
 				sdEntity.entities.push( character_entity );
 
 				{
-					let x,y;
-					let tr = 1000;
-					do
+					if ( !this.GetHumanoidSpawnLocation( character_entity ) )
 					{
-						if ( left_side )
-						x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
-						else
-						x = sdWorld.world_bounds.x2 - 16 - 16 * instances;
-
-						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-						if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-						if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-						if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+						character_entity.remove();
+						character_entity._broken = false;
+						break;
+					}
+					else
+					{
 						{
-							character_entity.x = x;
-							character_entity.y = y;
 
 							//sdWorld.UpdateHashPosition( ent, false );
 							if ( Math.random() < 0.07 )
@@ -392,7 +468,7 @@ class sdWeather extends sdEntity
 
 								//character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
 							}	
-							character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+							character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 							//character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
 										
 							character_entity._ai_level = Math.floor( Math.random() * 2 ); // Either 0 or 1
@@ -406,16 +482,7 @@ class sdWeather extends sdEntity
 
 							break;
 						}
-
-
-						tr--;
-						if ( tr < 0 )
-						{
-							character_entity.remove();
-							character_entity._broken = false;
-							break;
-						}
-					} while( true );
+					}
 				}
 
 				instances++;
@@ -460,7 +527,7 @@ class sdWeather extends sdEntity
 
 					let left_side = ( Math.random() < 0.5 );
 
-					while ( instances < instances_tot && sdDrone.drones_tot < 40 )
+					while ( instances < instances_tot && sdDrone.drones_tot < this._max_drone_count )
 					{
 
 						let drone = new sdDrone({ x:0, y:0 , _ai_team: 1});
@@ -577,7 +644,7 @@ class sdWeather extends sdEntity
 
 			let left_side = ( Math.random() < 0.5 );
 
-			while ( instances < instances_tot && sdEnemyMech.mechs_counter < 3 )
+			while ( instances < instances_tot && sdEnemyMech.mechs_counter < this._max_velox_mech_count )
 			{
 
 				let mech_entity = new sdEnemyMech({ x:0, y:0 });
@@ -702,7 +769,7 @@ class sdWeather extends sdEntity
 			if ( Math.random() < 0.7 ) // 70% chance for rift portal to spawn
 			{
 				let instances = 1;
-				while ( instances > 0 && sdRift.portals < 4 )
+				while ( instances > 0 && sdRift.portals < this._max_portal_count )
 				{
 
 					let portal = new sdRift({ x:0, y:0 });
@@ -775,7 +842,7 @@ class sdWeather extends sdEntity
 				sdEntity.entities.push( ent );
 				ent.type = ( Math.random() < 0.05 ) ? 1 : 0;
 
-				//if ( sdDrone.drones_tot < 40 ) // Not sure if this is needed to be honest, it also causes error because "let" can't be behind an "if" directly - Booraz149
+				//if ( sdDrone.drones_tot < this._max_drone_count ) // Not sure if this is needed to be honest, it also causes error because "let" can't be behind an "if" directly - Booraz149
 				let ent_drone = new sdDrone({ x:0, y:0, _ai_team: 2, type: 2 }); 
 				sdEntity.entities.push( ent_drone );
 
@@ -872,106 +939,85 @@ class sdWeather extends sdEntity
 				while ( robots < robots_tot && ais < this._max_ai_count )
 				{
 
-					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 
-					sdEntity.entities.push( character_entity );
+				sdEntity.entities.push( character_entity );
 
+				{
+					if ( !this.GetHumanoidSpawnLocation( character_entity ) )
 					{
-						let x,y;
-						let tr = 1000;
-						do
+						character_entity.remove();
+						character_entity._broken = false;
+						break;
+					}
+					else
+					{
+						if ( Math.random() < 0.3 )
 						{
-							if ( left_side )
-							x = sdWorld.world_bounds.x1 + 16 + 16 * robots;
-							else
-							x = sdWorld.world_bounds.x2 - 16 - 16 * robots;
+							sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_BURST_RIFLE }) );
+							character_entity._ai_gun_slot = 2;
+						}
+						else
+						{
+							sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_PLASMA_PISTOL }) );
+							character_entity._ai_gun_slot = 1;
+						}
+						let robot_settings;
+						//if ( character_entity._ai_gun_slot === 2 )
+						robot_settings = {"hero_name":"Erthal","color_bright":"#37a2ff","color_dark":"#000000","color_bright3":"#464646","color_dark3":"#000000","color_visor":"#1664a8","color_suit":"#464646","color_suit2":"#000000","color_dark2":"#464646","color_shoes":"#000000","color_skin":"#1665a8","color_extra1":"#464646","helmet1":false,"helmet4":true,"body3":true,"legs3":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":false,"voice7":true};
 
-							y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+						character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( robot_settings );
+						character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( robot_settings );
+						character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( robot_settings );
+						character_entity.title = robot_settings.hero_name;
+						character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( robot_settings );
+						character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( robot_settings );
+						if ( character_entity._ai_gun_slot === 2 || character_entity._ai_gun_slot === 1 )
+						{
+							character_entity.matter = 150;
+							character_entity.matter_max = 150;
 
-							if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-							if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-							if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
-							{
-								character_entity.x = x;
-								character_entity.y = y;
+							character_entity.hea = 250;
+							character_entity.hmax = 250;
 
-								//sdWorld.UpdateHashPosition( ent, false );
-								if ( Math.random() < 0.3 )
-								{
-									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_BURST_RIFLE }) );
-									character_entity._ai_gun_slot = 2;
-								}
-								else
-								{
-									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_PLASMA_PISTOL }) );
-									character_entity._ai_gun_slot = 1;
-								}
-								let robot_settings;
-								//if ( character_entity._ai_gun_slot === 2 )
-								robot_settings = {"hero_name":"Erthal","color_bright":"#37a2ff","color_dark":"#000000","color_bright3":"#464646","color_dark3":"#000000","color_visor":"#1664a8","color_suit":"#464646","color_suit2":"#000000","color_dark2":"#464646","color_shoes":"#000000","color_skin":"#1665a8","color_extra1":"#464646","helmet1":false,"helmet4":true,"body3":true,"legs3":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":false,"voice7":true};
+							character_entity.armor = 500;
+							character_entity.armor_max = 500;
+							character_entity._armor_absorb_perc = 0.75; // 75% damage absorption, since armor will run out before health, they effectively have 750 health
 
-								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( robot_settings );
-								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( robot_settings );
-								character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( robot_settings );
-								character_entity.title = robot_settings.hero_name;
-								character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( robot_settings );
-								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( robot_settings );
-								if ( character_entity._ai_gun_slot === 2 || character_entity._ai_gun_slot === 1 )
-								{
-									character_entity.matter = 150;
-									character_entity.matter_max = 150;
-
-									character_entity.hea = 250;
-									character_entity.hmax = 250;
-
-									character_entity.armor = 500;
-									character_entity.armor_max = 500;
-									character_entity._armor_absorb_perc = 0.75; // 75% damage absorption, since armor will run out before health, they effectively have 750 health
-
-									//character_entity._damage_mult = 1; // Supposed to put up a challenge
-								}
-
-								/*if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // Nothing here so far
-								{
-									character_entity.matter = 100;
-									character_entity.matter_max = 100;
-
-									character_entity.hea = 250;
-									character_entity.hmax = 250;
-
-									character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
-								}*/	
-								character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-								//character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
-										
-								character_entity._ai_level = 4;
-										
-								character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
-								character_entity._jetpack_allowed = true; // Jetpack
-								//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
-								character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-								character_entity._ai_team = 2; // AI team 2 is for Erthal
-								character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
-
-							break;
+							//character_entity._damage_mult = 1; // Supposed to put up a challenge
 						}
 
-
-						tr--;
-						if ( tr < 0 )
+						/*if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // Nothing here so far
 						{
-							character_entity.remove();
-							character_entity._broken = false;
-							break;
-						}
-					} while( true );
-				}
+							character_entity.matter = 100;
+							character_entity.matter_max = 100;
 
-				robots++;
-				ais++;
-				//console.log('Erthal spawned!');
+							character_entity.hea = 250;
+							character_entity.hmax = 250;
+
+							character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
+						}*/	
+						character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+						//character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
+										
+						character_entity._ai_level = 4;
+										
+						character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
+						character_entity._jetpack_allowed = true; // Jetpack
+						//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
+						character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+						character_entity._ai_team = 2; // AI team 2 is for Erthal
+						character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
+
+					break;
 				}
 			}
+
+		robots++;
+		ais++;
+		//console.log('Erthal spawned!');
+		}
+	}
 		}
 		if ( r === 12 ) // Spawn an obelisk near ground where players don't see them
 		{
@@ -1190,7 +1236,7 @@ class sdWeather extends sdEntity
 
 				let left_side = ( Math.random() < 0.5 );
 
-				while ( instances < instances_tot && sdDrone.drones_tot < 40 )
+				while ( instances < instances_tot && sdDrone.drones_tot < this._max_drone_count )
 				{
 
 					let drone = new sdDrone({ x:0, y:0 , _ai_team: 4, type: ( Math.random() < 0.15 ) ? 4 : 3});
@@ -1494,34 +1540,23 @@ class sdWeather extends sdEntity
 				let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
 
 				let left_side = ( Math.random() < 0.5 );
-
-				while ( instances < instances_tot && ais < this._max_ai_count ) // max AI value up to 8, as other events I think. - Booraz149
+				while ( instances < instances_tot && ais < this._max_ai_count )
 				{
 
-					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
+					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 
 					sdEntity.entities.push( character_entity );
 
 					{
-						let x,y;
-						let tr = 1000;
-						do
+						if ( !this.GetHumanoidSpawnLocation( character_entity ) )
 						{
-							if ( left_side )
-							x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
-							else
-							x = sdWorld.world_bounds.x2 - 16 - 16 * instances;
-
-							y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-							if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-							//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-							//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+							character_entity.remove();
+							character_entity._broken = false;
+							break;
+						}
+						else
+						{
 							{
-								character_entity.x = x;
-								character_entity.y = y;
-
-								//sdWorld.UpdateHashPosition( ent, false );
 								if ( Math.random() < 0.35 )
 								{
 									if ( Math.random() < 0.25 )
@@ -1601,7 +1636,7 @@ class sdWeather extends sdEntity
 
 									//character_entity._damage_mult = 1 + ( 1 / 3 );
 								}
-								character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+								character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 								//character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
 								character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
 
@@ -1615,14 +1650,7 @@ class sdWeather extends sdEntity
 								break;
 							}
 
-							tr--;
-							if ( tr < 0 )
-							{
-								character_entity.death_anim = sdCharacter.disowned_body_ttl + 1;
-								character_entity.remove();
-								break;
-							}
-						} while( true );
+						}
 					}
 
 					instances++;
@@ -1881,33 +1909,26 @@ class sdWeather extends sdEntity
 
 				let left_side = ( Math.random() < 0.5 );
 
-				while ( instances < instances_tot && ais < this._max_ai_count ) // max AI value up to 8, as other events I think. - Booraz149
+
+			while ( instances < instances_tot && ais < this._max_ai_count )
+			{
+
+				let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+
+				sdEntity.entities.push( character_entity );
+
 				{
-
-					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-
-					sdEntity.entities.push( character_entity );
-
+					if ( !this.GetHumanoidSpawnLocation( character_entity ) )
 					{
-						let x,y;
-						let tr = 1000;
-						do
+						character_entity.remove();
+						character_entity._broken = false;
+						break;
+					}
+					else
+					{
 						{
-							if ( left_side )
-							x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
-							else
-							x = sdWorld.world_bounds.x2 - 16 - 16 * instances;
 
-							y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-							if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-							//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-							//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
-							{
-								character_entity.x = x;
-								character_entity.y = y;
-
-								//sdWorld.UpdateHashPosition( ent, false );
+							//sdWorld.UpdateHashPosition( ent, false );
 								{ 
 									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SETR_PLASMA_SHOTGUN }) );
 									character_entity._ai_gun_slot = 3;
@@ -1938,7 +1959,7 @@ class sdWeather extends sdEntity
 									//character_entity._damage_mult = 1;
 								}
 
-								character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+								character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 								//character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
 								character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
 
@@ -1951,15 +1972,7 @@ class sdWeather extends sdEntity
 
 								break;
 							}
-
-							tr--;
-							if ( tr < 0 )
-							{
-								character_entity.death_anim = sdCharacter.disowned_body_ttl + 1;
-								character_entity.remove();
-								break;
-							}
-						} while( true );
+						}
 					}
 
 					instances++;
@@ -1970,7 +1983,7 @@ class sdWeather extends sdEntity
 				let drones_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
 
 
-				while ( drones < drones_tot && sdDrone.drones_tot < 40 )
+				while ( drones < drones_tot && sdDrone.drones_tot < this._max_drone_count )
 				{
 
 					let drone = new sdDrone({ x:0, y:0 , _ai_team: 7, type: 7});
@@ -2024,7 +2037,7 @@ class sdWeather extends sdEntity
 
 			let left_side = ( Math.random() < 0.5 );
 
-			while ( instances < instances_tot && sdSetrDestroyer.destroyer_counter < 3 )
+			while ( instances < instances_tot && sdSetrDestroyer.destroyer_counter < this._max_setr_destroyer_count )
 			{
 
 				let destroyer_entity = new sdSetrDestroyer({ x:0, y:0 });

@@ -106,11 +106,12 @@ class sdGrub extends sdEntity
 	{
 		if ( !sdWorld.is_server )
 		return;
-	
-		//dmg = Math.abs( dmg ); Can be healed now
 		
 		let was_alive = this._hea > 0;
 		
+		if ( this._hea <= 0 )
+		dmg = Math.abs( dmg ); // Prevent healing after death
+			
 		this._hea = Math.min( this._hea - dmg, this._hmax ); // Allow healing
 		
 		if ( this._hea <= 0 && was_alive )
