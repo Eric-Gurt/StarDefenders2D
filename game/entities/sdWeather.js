@@ -334,9 +334,9 @@ class sdWeather extends sdEntity
 		do
 		{
 			if ( Math.random() > 0.5 )
-			x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
+			x = sdWorld.world_bounds.x1 + 16 + 16 * Math.random() * 4;
 			else
-			x = sdWorld.world_bounds.x2 - 16 - 16 * instances;
+			x = sdWorld.world_bounds.x2 - 16 - 16 * Math.random() * 4;
 
 			y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
 
