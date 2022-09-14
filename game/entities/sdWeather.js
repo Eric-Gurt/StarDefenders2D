@@ -246,6 +246,50 @@ class sdWeather extends sdEntity
 		let x,y,i;
 		let located_spawn = false;
 		let tr = 1500;
+
+		// New spawn but prioritizes open space / surface
+		do
+		{
+			x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+			y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+			if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
+			if ( !ent.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+			if ( ent.CanMoveWithoutOverlap( x, y - 64, 0 ) )
+			if ( sdWorld.last_hit_entity )
+			if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+			if ( !sdWorld.CheckWallExistsBox( 
+					x + ent._hitbox_x1 - 16, 
+					y + ent._hitbox_y1 - 116, 
+					x + ent._hitbox_x2 + 16, 
+					y + ent._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+			{
+				let di_allowed = true;
+										
+				for ( i = 0; i < sdWorld.sockets.length; i++ )
+				if ( sdWorld.sockets[ i ].character )
+				{
+					let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
+											
+					if ( di < 700 )
+					{
+						di_allowed = false;
+						break;
+					}
+				}
+							
+				if ( di_allowed )
+				{
+					ent.x = x;
+					ent.y = y;
+					located_spawn = true;
+					return true;
+				}
+			}
+									
+			tr--;
+		} while (tr >= 1000 );
+		if ( tr >= 500 && tr < 1000 ) // New spawn but can spawn in caves too
 		do
 		{
 			x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
