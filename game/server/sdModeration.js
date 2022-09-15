@@ -617,7 +617,10 @@ class sdModeration
 				
 				if ( !socket.character._is_being_removed )
 				if ( socket.character.hea > 0 )
+				{
+				socket.character.RemoveArmor();
 				socket.character.DamageWithEffect( socket.character.hea );
+				}
 			}
 		}
 		else
