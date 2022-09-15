@@ -1625,7 +1625,7 @@ class sdCharacter extends sdEntity
 		if ( this._ai_enabled === sdCharacter.AI_MODEL_FALKOK || this._ai_enabled === sdCharacter.AI_MODEL_AGGRESSIVE || this._ai_enabled === sdCharacter.AI_MODEL_TEAMMATE || this._ai_enabled === sdCharacter.AI_MODEL_DISTANT )
 		{
 			if ( typeof this._ai.next_action === 'undefined' )
-			this._ai.next_action = 30;
+			this._ai.next_action = 5; // At 30 they get shot down before they can even react
 
 			if ( typeof this._ai.direction === 'undefined' )
 			this._ai.direction = ( Math.random() < 0.5 ) ? 1 : -1;

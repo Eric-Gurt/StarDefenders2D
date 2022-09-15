@@ -50,7 +50,7 @@ class sdBaseShieldingUnit extends sdEntity
 	}
 	get hitbox_x1() { return -8; }
 	get hitbox_x2() { return 8; }
-	get hitbox_y1() { return -8; }
+	get hitbox_y1() { return -7; }
 	get hitbox_y2() { return 8; }
 	
 	get hard_collision() // For world geometry where players can walk
@@ -799,6 +799,22 @@ class sdBaseShieldingUnit extends sdEntity
 						sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:1, pitch:0.25 });
 					}
 				}
+				/*if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
+				if ( command_name === 'CAPACITY_CONSUMER' )
+				{
+					let cap = parseInt( parameters_array[ 0 ] );
+					
+					if ( cap === 4000000 )
+					{
+						if ( this.matter_crystal > cap )
+						executer_socket.SDServiceMessage( 'Base shielding unit still has matter capacity over target capacity' );
+						
+						this.matter_crystal_max = Math.max( cap, this.matter_crystal );
+						
+						sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:1, pitch:0.25 });
+					}
+				}*/
+				//Not sure if Crystal-based BSU should have extended matter capacity, I don't know - Booraz149
 			}
 			else
 			executer_socket.SDServiceMessage( 'Base shielding unit is too far' );
@@ -834,6 +850,14 @@ class sdBaseShieldingUnit extends sdEntity
 					if ( this.matter_max !== 1000 )
 					this.AddContextOption( 'Decrease matter capacity to 1k', 'CAPACITY', [ 1000 ] );
 				}
+
+				/*if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
+				{
+					if ( this.matter_crystal_max !== 4000000 )
+					this.AddContextOption( 'Increase max matter capacity to 4M', 'CAPACITY_CONSUMER', [ 4000000 ] );
+					
+				}*/
+				// In case if Crystal-consuming BSU would need a radius increase
 			}
 		}
 	}

@@ -201,47 +201,16 @@ class sdSetrDestroyer extends sdEntity
 			}
 		}
 	}
-	GetRandomEntityNearby() // From sdChar but checks for classes for enemies instead of considering anything as a target
+	GetRandomEntityNearby() // Scans random area on map for potential entities
 	{
-		let an = Math.random() * Math.PI * 2;
-
-		if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.x + Math.sin( an ) * 900, this.y + Math.cos( an ) * 900, this ) )
-		if ( sdWorld.last_hit_entity )
+		let x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+		let y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+		
+		let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 256, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret' , 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdSetrDestroyer', 'sdOverlord', 'sdSpider' ] );
+		for ( let i = 0; i < targets_raw.length; i++ )
 		{
-			let found_enemy = false;
-			if ( sdWorld.last_hit_entity.is( sdCharacter ) ||  sdWorld.last_hit_entity.GetClass() === 'sdDrone' || sdWorld.last_hit_entity.GetClass() === 'sdEnemyMech' || sdWorld.last_hit_entity.GetClass() === 'sdSpider' || sdWorld.last_hit_entity.GetClass() === 'sdSetrDestroyer' )
-			if ( sdWorld.last_hit_entity._ai_team !== this._ai_team )
-			found_enemy = true;
-
-			if ( sdWorld.last_hit_entity.GetClass() === 'sdPlayerDrone' || sdWorld.last_hit_entity.GetClass() === 'sdPlayerOverlord' )
-			if ( this._ai_team !== 0 )
-			found_enemy = true;
-
-			if (	sdWorld.last_hit_entity.GetClass() === 'sdAmphid' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdAsp' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdBadDog' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdOctopus' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdQuickie' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdSandWorm' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdVirus' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdTutel' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdFaceCrab' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdBiter'  ||
-					sdWorld.last_hit_entity.GetClass() === 'sdAbomination' ) 
-			found_enemy = true;
-
-			if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && this._ai_team !== 0 )
-			if ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_WALL || 
-					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 ||
-					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 ||
-					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_SHARP ) // Attack player built walls
-			found_enemy = true;
-
-			if ( sdWorld.last_hit_entity.is( sdCube ) ) // Only confront cubes when they want to attack AI
-			found_enemy = true;
-
-			if ( found_enemy === true )
-			return sdWorld.last_hit_entity;
+			i = Math.round( Math.random() * targets_raw.length ); // Randomize it
+			return targets_raw[ i ];
 		}
 		return null;
 	}
@@ -435,7 +404,7 @@ class sdSetrDestroyer extends sdEntity
 				{
 					this._follow_target = null;
 				
-					this._follow_target = this.GetRandomEntityNearby();
+					//this._follow_target = this.GetRandomEntityNearby();
 				}
 
 				if ( this._regen_timeout <= 0 )
@@ -453,18 +422,17 @@ class sdSetrDestroyer extends sdEntity
 
 					{
 						let target;
-						if ( this._follow_target === null )
-						target = this.GetRandomEntityNearby();
-						if ( this._follow_target !== null )
+						this._follow_target = this.GetRandomEntityNearby();
+						if ( this._follow_target )
 						target = this._follow_target;
-						if ( target !== null )
+						if ( target )
 						{
 							let has_hp = false; // Is the potential target alive?
 							if ( typeof target._hea !== 'undefined' )
 							if ( target._hea > 0 )
 							has_hp = true;
 
-							if ( target.hea !== 'undefined' )
+							if ( typeof target.hea !== 'undefined' )
 							if ( target.hea > 0 )
 							has_hp = true;
 
