@@ -3144,7 +3144,10 @@ class sdWorld
 		
 		if ( player_description['voice7'] ) // Robot voice
 		sdWorld.ReplaceColorInSDFilter( ret, '#800000', '#000000' ); // hue +73 deg
-		
+
+		if ( player_description['voice10'] ) // Silence
+		sdWorld.ReplaceColorInSDFilter( ret, '#800000', '#000000' ); // hue +73 deg
+
 		return ret;
 	}
 	
@@ -3183,6 +3186,9 @@ class sdWorld
 
 		if ( player_description['voice9'] ) // Setr voice
 		sdWorld.ReplaceColorInSDFilter_v2( ret, '#800000', '#3e5ede', false ); 
+
+		if ( player_description['voice10'] ) // Silence
+		sdWorld.ReplaceColorInSDFilter_v2( ret, '#800000', '#000000', false ); // hue +73 deg
 	
 		return ret;
 	}
@@ -3347,6 +3353,11 @@ class sdWorld
 			_voice.pitch = 40;
 			_voice.speed = 60;
 			_voice.voice = 'hr';
+		}
+		if ( player_description['voice10'] )
+		{
+			_voice.variant = 'silence';
+			_voice.pitch = 0;
 		}
 		
 		return _voice;
