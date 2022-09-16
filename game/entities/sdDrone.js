@@ -98,6 +98,9 @@ class sdDrone extends sdEntity
 		this._last_jump = sdWorld.time;
 		this._last_attack = sdWorld.time;
 
+		this._nature_damage = 0; // For cubes to attack drones
+		this._player_damage = 0;
+
 		this._summon_ent_count = 3; // How much entities is ( a specific drone) allowed to create?
 		
 		this.side = 1;
@@ -214,9 +217,9 @@ class sdDrone extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
-		if ( initiator )
-		if ( initiator.is( sdSpider ) || ( initiator.is( sdDrone ) && initiator.type === 2 ) )
-		return;
+		//if ( initiator )
+		//if ( initiator.is( sdSpider ) || ( initiator.is( sdDrone ) && initiator.type === 2 ) )
+		//return; // Why not let them infight?
 		if ( this.type !== 6 ) // Council support drones don't swap targets
 		if ( initiator )
 		{

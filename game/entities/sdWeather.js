@@ -532,6 +532,53 @@ class sdWeather extends sdEntity
 				instances++;
 				ais++;
 			}
+			{ // Spawn some drones aswell
+				instances = 0;
+				instances_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
+
+				while ( instances < instances_tot && sdDrone.drones_tot < this._max_drone_count )
+				{
+
+					let drone = new sdDrone({ x:0, y:0 , _ai_team: 1});
+					//drone.type = ( Math.random() < 0.15 ) ? 3 : 1;
+
+					sdEntity.entities.push( drone );
+
+					{
+						let x,y;
+						let tr = 1000;
+						do
+						{
+							if ( left_side )
+							x = sdWorld.world_bounds.x1 + 64 + 64 * instances;
+							else
+							x = sdWorld.world_bounds.x2 - 64 - 64 * instances;
+
+							y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+							if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
+							//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+							//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+							{
+								drone.x = x;
+								drone.y = y;
+
+								//sdWorld.UpdateHashPosition( ent, false );
+								//console.log('Drone spawned!');
+								break;
+							}
+							tr--;
+							if ( tr < 0 )
+							{
+								drone.remove();
+								drone._broken = false;
+								break;
+							}
+						} while( true );
+					}
+					instances++;
+				}
+			}
 		}
 
 		if ( r === 4 )

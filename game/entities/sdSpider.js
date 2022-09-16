@@ -86,6 +86,10 @@ class sdSpider extends sdEntity
 		this._burst_shots = 3;
 		//this.bites = false;
 		//this.jumps = false;
+
+		this._nature_damage = 0; // For cubes to attack spider bots
+		this._player_damage = 0;
+
 		
 		this._regen_timeout = 0;
 		
@@ -248,7 +252,7 @@ class sdSpider extends sdEntity
 			if ( sdWorld.is_server )
 			if ( this._current_target )
 			{
-				if ( this._current_target._is_being_removed || ( this._current_target.hea || this._current_target._hea || this._current_target.is( sdCube ) ) <= 0 || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdSpider.max_seek_range + 32 )
+				if ( this._current_target._is_being_removed || ( this._current_target.hea || this._current_target._hea ) <= 0 || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) > sdSpider.max_seek_range + 32 )
 				this._current_target = null;
 				else
 				{
