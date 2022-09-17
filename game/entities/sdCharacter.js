@@ -291,7 +291,7 @@ class sdCharacter extends sdEntity
 		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' || this._voice.variant ==='m2' )
 		return sdEffect.TYPE_BLOOD_GREEN;
 		
-		if ( this._voice.variant === 'klatt3' )
+		if ( this._voice.variant === 'klatt3' || this._voice.variant === 'silence' )
 		return sdEffect.TYPE_WALL_HIT;
 	
 		return sdEffect.TYPE_BLOOD;
@@ -1342,7 +1342,7 @@ class sdCharacter extends sdEntity
 					sdSound.PlaySound({ name:'f_death' + ~~(1+Math.random() * 3), x:this.x, y:this.y, volume:0.4 });
 				}
 				else
-				if ( this._voice.variant !== 'm2' )
+				if ( this._voice.variant !== 'm2' && this._voice.variant !== 'silence' )
 				{
 					if ( this.hea < -100 )
 					sdSound.PlaySound({ name:'sd_death2', x:this.x, y:this.y, volume:1, pitch:this.GetVoicePitch() });
@@ -1404,7 +1404,7 @@ class sdCharacter extends sdEntity
 						if ( this._voice.variant === 'whisperf' )
 						sdSound.PlaySound({ name:'f_pain' + ~~(2+Math.random() * 3), x:this.x, y:this.y, volume:( ( dmg > 1 )? 1 : 0.5 ) * 0.4 }); // less volume for bleeding
 						else
-						if ( this._voice.variant !== 'm2' )
+						if ( this._voice.variant !== 'm2' && this._voice.variant !== 'silence' )
 						sdSound.PlaySound({ name:'sd_hurt' + ~~(1+Math.random() * 2), x:this.x, y:this.y, pitch:this.GetVoicePitch(), volume:( dmg > 1 )? 1 : 0.5 }); // less volume for bleeding
 					
 						this.pain_anim = 10;
@@ -2489,7 +2489,6 @@ class sdCharacter extends sdEntity
 									let an = bullet_obj._owner.GetLookAngle();// + ( Math.random() * 2 - 1 ) * spread;
 
 									let vel = 16;
-
 									if ( sdGun.classes[ _class ].projectile_velocity )
 									vel = sdGun.classes[ _class ].projectile_velocity;
 
@@ -2530,6 +2529,14 @@ class sdCharacter extends sdEntity
 									//bullet_obj._owner.Impulse( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale, -bullet_obj.sy * 0.3 * bullet_obj._knock_scale );
 
 									//bullet_obj._bg_shooter = background_shoot ? true : false;
+
+									bullet_obj.time_left *= ( this.s / 100 );
+
+									bullet_obj._damage *= ( this.s / 100 );
+
+									if ( this._ai_team === 1 )
+									if ( this.title === 'Falkonian Sword Bot' )
+									bullet_obj._damage = 250; // Falkonian sword bot should be lethal at close range.
 
 									sdEntity.entities.push( bullet_obj );
 								}

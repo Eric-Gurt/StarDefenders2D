@@ -104,6 +104,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_LAND_SCAN =				event_counter++; // 31
 		sdWeather.EVENT_FLESH_DIRT =				event_counter++; // 32
 		sdWeather.EVENT_COUNCIL_PORTAL =			event_counter++; // 33
+		sdWeather.EVENT_SWORD_BOT =				event_counter++; // 34
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -2525,6 +2526,84 @@ class sdWeather extends sdEntity
 			}
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
+		if ( r === sdWeather.EVENT_SWORD_BOT ) // Falkonian sword bot, only one on map at the time
+		{
+			let ais = 0;
+
+			for ( var i = 0; i < sdCharacter.characters.length; i++ )
+			if ( sdCharacter.characters[ i ].hea > 0 )
+			if ( !sdCharacter.characters[ i ]._is_being_removed )
+			if ( sdCharacter.characters[ i ]._ai )
+			if ( sdCharacter.characters[ i ]._ai_team === 1 ) // Otherwise it will prevent potentially spawning other factions, like Setr, Velox and Erthal
+			if ( sdCharacter.characters[ i ].title === 'Falkonian Sword Bot' ) //Make sure it's the sword bot
+			{
+				ais++;
+			}
+
+			let instances = 0;
+			let instances_tot = 1;
+
+
+			while ( instances < instances_tot && ais < 1 ) // Capped to 1 on map
+			{
+
+				let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE, s:250 });
+
+				sdEntity.entities.push( character_entity );
+
+				{
+					if ( !this.GetHumanoidSpawnLocation( character_entity ) )
+					{
+						character_entity.remove();
+						character_entity._broken = false;
+						break;
+					}
+					else
+					{
+						{
+
+							//sdWorld.UpdateHashPosition( ent, false );
+							let falkok_settings;
+							falkok_settings = {"hero_name":"Falkonian Sword Bot","color_bright":"#404040","color_dark":"#303030","color_bright3":"#202020","color_dark3":"#101010","color_visor":"#FF0000","color_suit":"#404040","color_suit2":"#303030","color_dark2":"#202020","color_shoes":"#101010","color_skin":"#101010","color_extra1":"#FF0000","helmet1":false,"helmet40":true,"body1":false,"legs1":false,"body25":true,"legs25":true,"voice1":false,"voice2":false,"voice10":true};
+
+								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( falkok_settings );
+								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( falkok_settings );
+								character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( falkok_settings );
+								character_entity.title = falkok_settings.hero_name;
+								character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( falkok_settings );
+								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( falkok_settings );
+							{
+								character_entity.matter = 200;
+								character_entity.matter_max = 200;
+
+								character_entity.hea = 10000; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
+								character_entity.hmax = 10000;
+
+								//character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
+							}
+
+							character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+										
+							character_entity._ai_level = 4;
+							character_entity._ai_gun_slot = -1;
+										
+							character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
+							character_entity._jetpack_allowed = true; // Jetpack
+							//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
+							character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+							character_entity._ai_team = 1; // AI team 1 is for Falkoks, preparation for future AI factions
+							character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
+							character_entity.s = 250;
+
+							break;
+						}
+					}
+				}
+
+				instances++;
+				ais++;
+			}
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
