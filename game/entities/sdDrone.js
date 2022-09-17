@@ -98,6 +98,9 @@ class sdDrone extends sdEntity
 		this._last_jump = sdWorld.time;
 		this._last_attack = sdWorld.time;
 
+		this._nature_damage = 0; // For cubes to attack drones
+		this._player_damage = 0;
+
 		this._summon_ent_count = 3; // How much entities is ( a specific drone) allowed to create?
 		
 		this.side = 1;
@@ -214,9 +217,9 @@ class sdDrone extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
-		if ( initiator )
-		if ( initiator.is( sdSpider ) || ( initiator.is( sdDrone ) && initiator.type === 2 ) )
-		return;
+		//if ( initiator )
+		//if ( initiator.is( sdSpider ) || ( initiator.is( sdDrone ) && initiator.type === 2 ) )
+		//return; // Why not let them infight?
 		if ( this.type !== 6 ) // Council support drones don't swap targets
 		if ( initiator )
 		{
@@ -822,6 +825,7 @@ class sdDrone extends sdEntity
 								}
 							}
 							if ( this.type === 7 ) // Setr drones
+							if ( sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) < 160 )
 							{
 								let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 
@@ -840,6 +844,7 @@ class sdDrone extends sdEntity
 								bullet_obj._rail = true;
 								bullet_obj._knock_scale = 3; // Low damage, high knockback
 								bullet_obj._dirt_mult = 10; // For easier digging blocks when pathfinding
+								bullet_obj.time_left = 10;
 
 
 								sdEntity.entities.push( bullet_obj );

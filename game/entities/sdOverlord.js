@@ -84,6 +84,10 @@ class sdOverlord extends sdEntity
 		this._occasional_anger_noises_timer = 0;
 		this._occasional_levitation_sounds_timer = 0;
 
+		this._nature_damage = 0; // For cubes to attack overlords
+		this._player_damage = 0;
+
+
 		//this._attack_timer = 0;
 		//this._burst_ammo_start = 6;
 		//this._burst_ammo = this._burst_ammo_start;

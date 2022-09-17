@@ -765,7 +765,7 @@ class sdCube extends sdEntity
 
 					//let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 800 );
 					//let targets_raw = sdWorld.GetCharactersNear( this.x, this.y, null, null, 800 );
-					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdCube.attack_range, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret', 'sdEnemyMech', 'sdCube', 'sdDrone', 'sdSetrDestroyer' ] );
+					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdCube.attack_range, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret', 'sdEnemyMech', 'sdCube', 'sdDrone', 'sdSetrDestroyer', 'sdSpider', 'sdOverlord' ] );
 
 					let targets = [];
 					
@@ -797,6 +797,9 @@ class sdCube extends sdEntity
 						if ( ( targets_raw[ i ].IsPlayerClass() && targets_raw[ i ].hea > 0 && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) ||
 							 ( targets_raw[ i ].GetClass() === 'sdTurret' && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) || 
 							 ( targets_raw[ i ].GetClass() === 'sdEnemyMech' && targets_raw[ i ].hea > 0  && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) ||
+							 ( targets_raw[ i ].GetClass() === 'sdSpider' && targets_raw[ i ]._hea > 0  && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) ||
+							 ( targets_raw[ i ].GetClass() === 'sdDrone' && targets_raw[ i ]._hea > 0  && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) ||
+							 ( targets_raw[ i ].GetClass() === 'sdOverlord' && targets_raw[ i ].hea > 0  && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) ||
 							 ( targets_raw[ i ].GetClass() === 'sdSetrDestroyer' && targets_raw[ i ].hea > 0  && !sdCube.IsTargetFriendly( targets_raw[ i ] ) ) )
 						{
 							if ( sdWorld.CheckLineOfSight( this.x, this.y, targets_raw[ i ].x, targets_raw[ i ].y, targets_raw[ i ], [ 'sdCube' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ] ) )
@@ -952,7 +955,7 @@ class sdCube extends sdEntity
 	static IsTargetFriendly( ent ) // Assumes _nature_damage and _player_damage are defined properties, thus will work mostly only for sdCharacter
 	{
 		//if ( ent.GetClass() === 'sdCharacter' )
-		if ( ent.IsPlayerClass() )
+		if ( ent.IsPlayerClass() || ent.GetClass() === 'sdDrone' || ent.GetClass() === 'sdSpider' || ent.GetClass() === 'sdOverlord')
 		if ( ent._nature_damage >= ent._player_damage + 60 )
 		return false;
 
