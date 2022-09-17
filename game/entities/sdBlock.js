@@ -35,6 +35,8 @@ class sdBlock extends sdEntity
 		sdBlock.img_lvl2_wall11 = sdWorld.CreateImageFromFile( 'wall_lvl2_1x1' );
 		sdBlock.img_lvl2_wall05 = sdWorld.CreateImageFromFile( 'wall_lvl2_half' );		
 		sdBlock.img_ice = sdWorld.CreateImageFromFile( 'wall_ice' );		
+
+		sdBlock.img_snow_block = sdWorld.CreateImageFromFile( 'snow_wall' );		
 		
 		// Version 2, here we will create walls automatically, from Grid-9 sliceable sources (so we could make nearly infinite variety of walls that meet our needs)
 		//sdBlock.img_wall = sdWorld.CreateImageFromFile( 'wall' );
@@ -114,6 +116,7 @@ class sdBlock extends sdEntity
 		sdBlock.MATERIAL_CRYSTAL_SHARDS = 8;
 		sdBlock.MATERIAL_FLESH = 9;
 		sdBlock.MATERIAL_ICE = 10;
+		sdBlock.MATERIAL_SNOW = 11;
 		
 		//sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
 		//sdBlock.img_ground44 = sdWorld.CreateImageFromFile( 'ground_4x4' );
@@ -1049,6 +1052,7 @@ class sdBlock extends sdEntity
 		
 		if ( this.material === sdBlock.MATERIAL_GROUND ||
 			 this.material === sdBlock.MATERIAL_ICE ||
+			 this.material === sdBlock.MATERIAL_SNOW ||
 			 this.material === sdBlock.MATERIAL_CORRUPTION || 
 			 this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
 		{
@@ -1059,6 +1063,12 @@ class sdBlock extends sdEntity
 			{
 				texture = sdBlock.img_ice;
 				texture_size = 32;
+			}
+
+			if ( this.material === sdBlock.MATERIAL_SNOW )
+			{
+				texture = sdBlock.img_snow_block;
+				texture_size = 128;
 			}
 			
 			ctx.drawImageFilterCache( texture, this.x - Math.floor( this.x / texture_size ) * texture_size, this.y - Math.floor( this.y / texture_size ) * texture_size, w,h, 0,0, w,h );

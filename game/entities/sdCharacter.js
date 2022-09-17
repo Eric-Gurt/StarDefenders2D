@@ -266,6 +266,8 @@ class sdCharacter extends sdEntity
 		//sdCharacter.img_death4_visor_tint = sdWorld.CreateImageFromFile( 'death4_visor_tint' );
 		*/
 		sdCharacter.img_jetpack = sdWorld.CreateImageFromFile( 'jetpack' );
+
+		//sdCharacter.img_jetpack = sdWorld.CreateImageFromFile( 'jetpack_sheet' );
 		
 		sdCharacter.air_max = 30 * 30; // 30 sec
 		
