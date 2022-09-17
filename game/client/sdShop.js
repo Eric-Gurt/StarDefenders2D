@@ -545,6 +545,17 @@ class sdShop
 					character._matter_regeneration_multiplier = 1 + level_purchased;
 				}
 			},
+			upgrade_jetpack_power:
+			{
+				max_level: 3,
+				matter_cost: 100,
+				min_build_tool_level: 4,
+				description: 'Increases jetpack efficiency to reach higher speeds faster.',
+				action: ( character, level_purchased )=>
+				{
+					character._jetpack_power = 1 + ( level_purchased * 0.5 );
+				}
+			}
 		};
 		for ( var i in sdShop.upgrades )
 		{
