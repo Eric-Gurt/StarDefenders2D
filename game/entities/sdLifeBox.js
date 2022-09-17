@@ -16,10 +16,13 @@ class sdLifeBox extends sdEntity
 {
 	static init_class()
 	{
+		sdLifeBox.img_lifebox = sdWorld.CreateImageFromFile( 'life_box' );
+		/*
 		sdLifeBox.img_lifebox_open = sdWorld.CreateImageFromFile( 'life_box_open' );
 		sdLifeBox.img_lifebox_closed = sdWorld.CreateImageFromFile( 'life_box_closed' );
 		sdLifeBox.img_turret = sdWorld.CreateImageFromFile( 'life_box_turret' );
 		sdLifeBox.img_turret_fire = sdWorld.CreateImageFromFile( 'life_box_turret_fire' );
+		*/
 		
 		sdLifeBox.driver_slots = 1;
 		
@@ -358,12 +361,32 @@ class sdLifeBox extends sdEntity
 	{
 		if ( sdShop.isDrawing )
 		ctx.scale( 0.5,0.5 );
+
+		let xx = 0;
+		let yy = 0;
+
+		let draw_turret = false;
 	
 		ctx.filter = this.filter;
 		
-		ctx.drawImageFilterCache( ( this.driver0 /*&& ( this.driver0.act_x !== 0 || this.driver0.act_y !== 0 )*/ ) ? sdLifeBox.img_lifebox_closed : sdLifeBox.img_lifebox_open, - 16, - 32, 32, 64 );
+		if ( this.hea > 0 )
+		{
+			xx = Math.min( ( this.driver0 ) ? 0 : 1 );
+
+			draw_turret = true;
+		}
+
+		ctx.drawImageFilterCache( sdLifeBox.img_lifebox, xx * 32, 0, 32,64, -16, -32, 32,64 );
+
+		if ( draw_turret )
+		{
+			yy = Math.min( ( this.attack_timer > 0 ) ? 1 : 0 );
+			ctx.drawImageFilterCache( sdLifeBox.img_lifebox, 64, yy * 32, 32,32, -16, -32, 32,32 ); // Going to 96 won't display anything, because the default coordinate is 0, going beyond 64 does errors
+		}
+
+		//ctx.drawImageFilterCache( ( this.driver0 /*&& ( this.driver0.act_x !== 0 || this.driver0.act_y !== 0 )*/ ) ? sdLifeBox.img_lifebox_closed : sdLifeBox.img_lifebox_open, - 16, - 32, 32, 64 );
 		
-		ctx.drawImageFilterCache( ( this.attack_timer > 0 ) ? sdLifeBox.img_turret_fire : sdLifeBox.img_turret, - 16, -32, 32, 32 );
+		//ctx.drawImageFilterCache( ( this.attack_timer > 0 ) ? sdLifeBox.img_turret_fire : sdLifeBox.img_turret, - 16, -32, 32, 32 );
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}

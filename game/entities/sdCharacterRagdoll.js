@@ -1211,6 +1211,11 @@ class sdCharacterRagdoll
 								ctx.apply_shading = false;
 
 								ctx.drawImageFilterCache( sdCharacter.img_jetpack, - 16 + 2, - 16, 32,32 );
+								/*while( i < 0 )
+								for ( let i = 0; Math.min( i - 1, ~~( ( 3 - 3 ) * 3 ) ); i++ )
+								{
+									ctx.drawImageFilterCache( sdCharacter.img_jetpack, 0, i * 32, 32,32, -16 + 2, -16, 32,32 );
+								}*/
 
 								ctx.filter = char_filter;
 								ctx.sd_filter = this.character.sd_filter;
