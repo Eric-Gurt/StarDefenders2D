@@ -825,6 +825,7 @@ class sdDrone extends sdEntity
 								}
 							}
 							if ( this.type === 7 ) // Setr drones
+							if ( sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) < 160 )
 							{
 								let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 
@@ -843,6 +844,7 @@ class sdDrone extends sdEntity
 								bullet_obj._rail = true;
 								bullet_obj._knock_scale = 3; // Low damage, high knockback
 								bullet_obj._dirt_mult = 10; // For easier digging blocks when pathfinding
+								bullet_obj.time_left = 10;
 
 
 								sdEntity.entities.push( bullet_obj );
