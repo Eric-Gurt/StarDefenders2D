@@ -675,7 +675,7 @@ class sdWeather extends sdEntity
 			let instances = 0;
 			let instances_tot = 1 + Math.ceil( Math.random() * 3 );
 
-			let left_side = ( Math.random() < 0.5 );
+			//let left_side = ( Math.random() < 0.5 );
 
 			while ( instances < instances_tot && sdVirus.viruses_tot < 40  && sdVirus.big_viruses < 4 )
 			{
@@ -685,16 +685,14 @@ class sdWeather extends sdEntity
 				sdEntity.entities.push( virus_entity );
 				sdVirus.big_viruses++;
 				{
-					let x,y;
-					let tr = 1000;
-					do
+					if ( !this.GetHumanoidSpawnLocation( virus_entity ) )
 					{
-						if ( left_side )
-						x = sdWorld.world_bounds.x1 + 32 + 64 * instances;
-						else
-						x = sdWorld.world_bounds.x2 - 32 - 64 * instances;
-
-						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+						virus_entity.remove();
+						virus_entity._broken = false;
+						break;
+					}
+					/*else
+					{
 
 						if ( virus_entity.CanMoveWithoutOverlap( x, y, 0 ) )
 						if ( virus_entity.CanMoveWithoutOverlap( x + 32, y, 0 ) )
@@ -713,16 +711,7 @@ class sdWeather extends sdEntity
 							//console.log(sdVirus.big_viruses);
 							break;
 						}
-
-
-						tr--;
-						if ( tr < 0 )
-						{
-							virus_entity.remove();
-							virus_entity._broken = false;
-							break;
-						}
-					} while( true );
+					}*/
 				}
 
 				instances++;
@@ -745,37 +734,12 @@ class sdWeather extends sdEntity
 
 				{
 					let x,y;
-					let tr = 1000;
-					do
+					if ( !this.GetHumanoidSpawnLocation( mech_entity ) )
 					{
-						if ( left_side )
-						x = sdWorld.world_bounds.x1 + 64 + 64 * instances;
-						else
-						x = sdWorld.world_bounds.x2 - 64 - 64 * instances;
-
-						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-						if ( mech_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-						//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-						//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
-						{
-							mech_entity.x = x;
-							mech_entity.y = y;
-
-							//sdWorld.UpdateHashPosition( ent, false );
-							//console.log('Flying mech spawned!');
-							break;
-						}
-
-
-						tr--;
-						if ( tr < 0 )
-						{
-							mech_entity.remove();
-							mech_entity._broken = false;
-							break;
-						}
-					} while( true );
+						mech_entity.remove();
+						mech_entity._broken = false;
+						break;
+					}
 				}
 
 				instances++;
@@ -2234,37 +2198,12 @@ class sdWeather extends sdEntity
 
 				{
 					let x,y;
-					let tr = 1000;
-					do
+					if ( !this.GetHumanoidSpawnLocation( destroyer_entity ) )
 					{
-						if ( left_side )
-						x = sdWorld.world_bounds.x1 + 64 + 64 * instances;
-						else
-						x = sdWorld.world_bounds.x2 - 64 - 64 * instances;
-
-						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-						if ( destroyer_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-						//if ( !destroyer_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-						//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
-						{
-							destroyer_entity.x = x;
-							destroyer_entity.y = y;
-
-							//sdWorld.UpdateHashPosition( ent, false );
-							//console.log('Setr Destroyer spawned!');
-							break;
-						}
-
-
-						tr--;
-						if ( tr < 0 )
-						{
-							destroyer_entity.remove();
-							destroyer_entity._broken = false;
-							break;
-						}
-					} while( true );
+						destroyer_entity.remove();
+						destroyer_entity._broken = false;
+						break;
+					}
 				}
 
 				instances++;
