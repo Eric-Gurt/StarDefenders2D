@@ -543,6 +543,9 @@ class sdEnemyMech extends sdEntity
 
 					for ( let i = 0; i < targets.length; i++ )
 					{
+
+						this._follow_target = targets[ i ];
+
 						if ( this._alert_intensity < 45 )// Delay attack
 						break;
 
