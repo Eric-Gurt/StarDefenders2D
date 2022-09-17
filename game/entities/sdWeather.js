@@ -2542,10 +2542,10 @@ class sdWeather extends sdEntity
 			}
 
 			let instances = 0;
-			let instances_tot = 1;
+			let instances_tot = 5;
 
 
-			while ( instances < instances_tot && ais < 1 ) // Capped to 1 on map
+			while ( instances < instances_tot && ais < 1 ) // Capped to 1 on map, but will try to spawn it multiple times if it fails
 			{
 
 				let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE, s:250 });
@@ -2595,6 +2595,7 @@ class sdWeather extends sdEntity
 							character_entity._ai_team = 1; // AI team 1 is for Falkoks, preparation for future AI factions
 							character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
 							character_entity.s = 250;
+							character_entity._jetpack_power = 4;
 
 							break;
 						}

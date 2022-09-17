@@ -640,6 +640,8 @@ class sdCharacter extends sdEntity
 		
 		this.hook_relative_x = 0;
 		this.hook_relative_y = 0;
+
+		this._jetpack_power = 1; // Through upgrade
 		
 		this._hook_allowed = false; // Through upgrade
 		this._jetpack_allowed = false; // Through upgrade
@@ -3115,9 +3117,9 @@ class sdCharacter extends sdEntity
 			let di = Math.max( 1, sdWorld.Dist2D_Vector( this.act_x, this.act_y ) );
 			
 			let x_force = this.act_x / di * 0.1;
-			let y_force = this.act_y / di * 0.1 - sdWorld.gravity;
+			let y_force = ( this.act_y * this._jetpack_power ) / di * 0.1 - sdWorld.gravity;
 			
-			let fuel_cost = GSPEED * sdWorld.Dist2D_Vector( x_force, y_force ) * this._jetpack_fuel_multiplier;
+			let fuel_cost = GSPEED * sdWorld.Dist2D_Vector( x_force, y_force ) * this._jetpack_fuel_multiplier / this._jetpack_power;
 
 			if ( ( this.stands && this.act_y !== -1 ) || this.driver_of || this._in_water || this.act_y !== -1 || this._key_states.GetKey( 'KeyX' ) || this.matter < fuel_cost || this.hea <= 0 )
 			this.flying = false;
