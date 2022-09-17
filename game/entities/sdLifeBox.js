@@ -278,6 +278,7 @@ class sdLifeBox extends sdEntity
 				let should_fire = true;
 				if ( !sdWorld.CheckLineOfSight( this.x + this.offx2, this.y + this.offy2 - 16, this._target.x + this.offx1, this._target.y + this.offy1, this, sdCom.com_visibility_ignored_classes, null ) )
 				{
+					if ( sdWorld.last_hit_entity )
 					if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_TRAPSHIELD ) )
 					this._target = sdWorld.last_hit_entity;
 					else
