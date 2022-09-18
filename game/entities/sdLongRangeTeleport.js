@@ -396,6 +396,10 @@ class sdLongRangeTeleport extends sdEntity
 		
 		let IsTeleportable = ( ent )=>
 		{
+
+			if ( ent.y > this.y ) // I have no clue but for some reason blue LRTP teleports counts stuff placed under it but doesn't teleport it? - Booraz149
+			return false; // I just know that this fixes that, so I guess this is a bandaid fix.
+
 			if ( use_task_filter )
 			{
 				/*if ( ent.is( sdCrystal ) )
