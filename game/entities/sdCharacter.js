@@ -266,8 +266,6 @@ class sdCharacter extends sdEntity
 		//sdCharacter.img_death4_visor_tint = sdWorld.CreateImageFromFile( 'death4_visor_tint' );
 		*/
 		sdCharacter.img_jetpack = sdWorld.CreateImageFromFile( 'jetpack' );
-
-		//sdCharacter.img_jetpack = sdWorld.CreateImageFromFile( 'jetpack_sheet' );
 		
 		sdCharacter.air_max = 30 * 30; // 30 sec
 		
@@ -902,6 +900,10 @@ class sdCharacter extends sdEntity
 
 	GetBehaviourAgainstTarget() // AI has specific ways to fight specific mobs sometimes, like running away from worms, octopus, quickies and virus.
 	{
+		if ( this._ai_team === 1 ) // Is it falkok team?
+		if ( this.title === 'Falkonian Sword Bot' ) // Is it the falkonian sword bot?
+		return sdCharacter.AI_MODEL_AGGRESSIVE; // It is a robot and it is large, it does not fear.
+
 		if ( this._ai.target.GetClass() === 'sdOctopus' || this._ai.target.GetClass() === 'sdAmphid' || this._ai.target.GetClass() === 'sdSandWorm' || this._ai.target.GetClass() === 'sdQuickie' || this._ai.target.GetClass() === 'sdVirus' || this._ai.target.GetClass() === 'sdTutel' || this._ai.target.GetClass() === 'sdBiter' || this._ai.target.GetClass() === 'sdAbomination' )
 		return sdCharacter.AI_MODEL_DISTANT;
 
@@ -3121,7 +3123,7 @@ class sdCharacter extends sdEntity
 			let x_force = this.act_x / di * 0.1;
 			let y_force = ( this.act_y * this._jetpack_power ) / di * 0.1 - sdWorld.gravity;
 			
-			let fuel_cost = GSPEED * sdWorld.Dist2D_Vector( x_force, y_force ) * this._jetpack_fuel_multiplier / this._jetpack_power;
+			let fuel_cost = GSPEED * sdWorld.Dist2D_Vector( x_force, y_force ) * this._jetpack_fuel_multiplier;
 
 			if ( ( this.stands && this.act_y !== -1 ) || this.driver_of || this._in_water || this.act_y !== -1 || this._key_states.GetKey( 'KeyX' ) || this.matter < fuel_cost || this.hea <= 0 )
 			this.flying = false;
