@@ -1033,12 +1033,12 @@ class sdWeather extends sdEntity
 							character_entity.matter = 150;
 							character_entity.matter_max = 150;
 
-							character_entity.hea = 250;
-							character_entity.hmax = 250;
+							character_entity.hea = 750;
+							character_entity.hmax = 750;
 
-							character_entity.armor = 500;
-							character_entity.armor_max = 500;
-							character_entity._armor_absorb_perc = 0.75; // 75% damage absorption, since armor will run out before health, they effectively have 750 health
+							//character_entity.armor = 500;
+							//character_entity.armor_max = 500;
+							//character_entity._armor_absorb_perc = 0.75; // 75% damage absorption, since armor will run out before health, they effectively have 750 health
 
 							//character_entity._damage_mult = 1; // Supposed to put up a challenge
 						}
@@ -1048,8 +1048,8 @@ class sdWeather extends sdEntity
 							character_entity.matter = 100;
 							character_entity.matter_max = 100;
 
-							character_entity.hea = 250;
-							character_entity.hmax = 250;
+							character_entity.hea = 750;
+							character_entity.hmax = 750;
 
 							character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
 						}*/	
@@ -1353,12 +1353,12 @@ class sdWeather extends sdEntity
 									character_entity.matter = 150;
 									character_entity.matter_max = 150;
 
-									character_entity.hea = 200;
-									character_entity.hmax = 200;
+									character_entity.hea = 350;
+									character_entity.hmax = 350;
 
-									character_entity.armor = 150;
-									character_entity.armor_max = 150;
-									character_entity._armor_absorb_perc = 0.7; // 70% damage absorption
+									//character_entity.armor = 150;
+									//character_entity.armor_max = 150;
+									//character_entity._armor_absorb_perc = 0.7; // 70% damage absorption
 
 									//character_entity._damage_mult = 1;
 								}
@@ -1749,12 +1749,12 @@ class sdWeather extends sdEntity
 									character_entity.matter = 150;
 									character_entity.matter_max = 150;
 
-									character_entity.hea = 250;
-									character_entity.hmax = 250;
+									character_entity.hea = 750;
+									character_entity.hmax = 750;
 
-									character_entity.armor = 500;
-									character_entity.armor_max = 500;
-									character_entity._armor_absorb_perc = 0.75; // 75% damage absorption, since armor will run out before health, they effectively have 750 health
+									//character_entity.armor = 500;
+									//character_entity.armor_max = 500;
+									//character_entity._armor_absorb_perc = 0.75; // 75% damage absorption, since armor will run out before health, they effectively have 750 health
 
 									//character_entity._damage_mult = 0.8;
 								}
@@ -1764,12 +1764,12 @@ class sdWeather extends sdEntity
 									character_entity.matter = 150;
 									character_entity.matter_max = 150;
 
-									character_entity.hea = 250;
-									character_entity.hmax = 250;
+									character_entity.hea = 1250;
+									character_entity.hmax = 1250;
 
-									character_entity.armor = 1000;
-									character_entity.armor_max = 1000;
-									character_entity._armor_absorb_perc = 0.93; // 93% damage absorption, since armor will run out before health, they effectively have 1250 health
+									//character_entity.armor = 1000;
+									//character_entity.armor_max = 1000;
+									//character_entity._armor_absorb_perc = 0.93; // 93% damage absorption, since armor will run out before health, they effectively have 1250 health
 
 									//character_entity._damage_mult = 1;
 								}
@@ -1779,12 +1779,12 @@ class sdWeather extends sdEntity
 									character_entity.matter = 250;
 									character_entity.matter_max = 250;
 
-									character_entity.hea = 250;
-									character_entity.hmax = 250;
+									character_entity.hea = 2000;
+									character_entity.hmax = 2000;
 
-									character_entity.armor = 1750;
-									character_entity.armor_max = 1750;
-									character_entity._armor_absorb_perc = 0.97; // 97% damage absorption, since armor will run out before health, they effectively have 2000 health
+									//character_entity.armor = 1750;
+									//character_entity.armor_max = 1750;
+									//character_entity._armor_absorb_perc = 0.97; // 97% damage absorption, since armor will run out before health, they effectively have 2000 health
 
 									//character_entity._damage_mult = 1 + ( 1 / 3 );
 								}
@@ -2101,12 +2101,12 @@ class sdWeather extends sdEntity
 									character_entity.matter = 150;
 									character_entity.matter_max = 150;
 
-									character_entity.hea = 210;
-									character_entity.hmax = 210;
+									character_entity.hea = 560;
+									character_entity.hmax = 560;
 
-									character_entity.armor = 350;
-									character_entity.armor_max = 350;
-									character_entity._armor_absorb_perc = 0.7; // 70% damage absorption
+									//character_entity.armor = 350;
+									//character_entity.armor_max = 350;
+									//character_entity._armor_absorb_perc = 0.7; // 70% damage absorption
 
 									//character_entity._damage_mult = 1;
 								}

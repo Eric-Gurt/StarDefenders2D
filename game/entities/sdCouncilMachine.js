@@ -410,12 +410,12 @@ class sdCouncilMachine extends sdEntity
 										character_entity.matter = 300;
 										character_entity.matter_max = 300; // Let player leech matter off the bodies
 
-										character_entity.hea = 250;
-										character_entity.hmax = 250;
+										character_entity.hea = 1750;
+										character_entity.hmax = 1750;
 
-										character_entity.armor = 1500;
-										character_entity.armor_max = 1500;
-										character_entity._armor_absorb_perc = 0.87; // 87% damage absorption, since armor will run out before just a little before health
+										//character_entity.armor = 1500;
+										//character_entity.armor_max = 1500;
+										//character_entity._armor_absorb_perc = 0.87; // 87% damage absorption, since armor will run out before just a little before health
 
 										//character_entity._damage_mult = 1; // Supposed to put up a challenge
 									}
