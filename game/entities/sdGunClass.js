@@ -4135,8 +4135,8 @@ class sdGunClass
 				}
 				return false;
 			},
-			projectile_properties: { _rail: true, time_left: 0, _damage: 1, color: 'transparent'}
-			//upgrades: AddRecolorsFromColorAndCost( [], '#ff0000', 20 )
+			projectile_properties: { _rail: true, time_left: 0, _damage: 1, color: 'transparent'},
+			upgrades: AddRecolorsFromColorAndCost( [], '#dcdcdc', 20 )
 		};
 
 		// Add new gun classes above this line //
