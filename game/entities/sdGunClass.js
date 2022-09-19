@@ -3049,7 +3049,7 @@ class sdGunClass
 				if ( sdWorld.is_server )
 				if ( gun._held_by )
 				if ( gun._held_by.IsPlayerClass() )
-				if ( gun._held_by.matter >= 70 )
+				if ( gun._held_by.matter >= 30 )
 				//if ( sdWorld.CheckLineOfSight( gun._held_by.x, gun._held_by.y, gun._held_by.look_x, gun._held_by.look_y, gun._held_by, sdCom.com_visibility_ignored_classes, null ) )
 				//if ( !sdWorld.CheckWallExistsBox( gun._held_by.look_x - 16, gun._held_by.look_y - 16, gun._held_by.look_x + 16, gun._held_by.look_y + 16, gun._held_by, sdCom.com_visibility_ignored_classes, null, null ) )
 				if ( sdWorld.CheckLineOfSight( gun._held_by.x, gun._held_by.y, gun._held_by.look_x, gun._held_by.look_y, gun._held_by, null, sdCom.com_vision_blocking_classes ) )
@@ -3060,7 +3060,7 @@ class sdGunClass
 					gun._held_by.sx = 0;
 					gun._held_by.sy = 0;
 					gun._held_by.ApplyServerSidePositionAndVelocity( true, 0, 0 );
-					gun._held_by.matter -= 70;
+					gun._held_by.matter -= 30;
 					return true;
 				}
 				return false;
@@ -3978,6 +3978,165 @@ class sdGunClass
 					}
 				}
 			}
+		};
+
+		sdGun.classes[ sdGun.CLASS_TELEPORT_SWORD = 101 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'time_shifter_sword' ),
+			//sound: 'gun_medikit',
+			title: 'Time shifter blade',
+			sound: 'sword_attack2',
+			image_no_matter: sdWorld.CreateImageFromFile( 'time_shifter_sword' ),
+			slot: 0,
+			reload_time: 25,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			is_sword: true,
+			projectile_velocity: 16 * 1.5,
+           		spawnable: false,
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( sdWorld.is_server )
+				if ( gun._held_by )
+				if ( gun._held_by.IsPlayerClass() )
+				if ( gun._held_by.matter >= 25 )
+				{
+					let damage_value = 100 + Math.min( 200, 10 * gun._combo ); // Damage increases with combo so it can be efficient against higher health enemies
+					let dx = gun._held_by.look_x - gun._held_by.x;
+
+					if (dx === 0 ) // Could result in endless for loop
+					dx = gun._held_by._side;
+
+					let dy = gun._held_by.look_y - gun._held_by.y;
+
+					let landed_hit = false; // If char damages something, it costs less matter and can be used faster again
+
+					let last_x = gun._held_by.x; // Last location player can teleport to
+					let last_y = gun._held_by.y; // Last location player can teleport to
+
+					let rail_x = gun._held_by.x; // Rail visual effect location
+					let rail_y = gun._held_by.y;
+
+					let di = sdWorld.Dist2D_Vector( dx, dy );
+
+					if ( di > 1 )
+					{
+						dx /= di;
+						dy /= di;
+					}
+					let j = gun._held_by.y;
+
+
+					let hit_entities = []; // Array for entities that have been hit so they can't be hit multiple times
+
+					if ( gun._held_by.x < gun._held_by.look_x )
+					for ( let i = gun._held_by.x; i < gun._held_by.look_x; i += dx * 4 )
+					{
+						if ( gun._held_by.CanMoveWithoutOverlap( i, j , -4 ) )
+						{
+							last_x = i;
+							last_y = j;
+
+							rail_x = i;
+							rail_y = j;
+						}
+						if ( !sdWorld.CheckLineOfSight( last_x, last_y, i, j, gun._held_by, null ) )
+						if ( sdWorld.last_hit_entity )
+						{
+							let can_damage = true;
+							let k;
+							for( k = 0; k < hit_entities.length; k++ )
+							{
+								if ( sdWorld.last_hit_entity === hit_entities[ k ] ) // Make sure we didn't hit the target already
+								can_damage = false;
+							}
+							if ( can_damage === true )
+							{
+								sdWorld.last_hit_entity.DamageWithEffect( damage_value, gun._held_by );
+								hit_entities.push( sdWorld.last_hit_entity );
+								landed_hit = true;
+								sdSound.PlaySound({ name:'cube_teleport', x:i, y:j, volume:2, pitch: 1.5 });
+								rail_x = i;
+								rail_y = j;
+							}
+							let stop_attack = false;
+							for( k = 0; k < sdCom.com_visibility_unignored_classes.length; k++ )
+							if ( sdWorld.last_hit_entity.GetClass() === sdCom.com_visibility_unignored_classes[ k ] ) // Make sure we can pass through it
+							stop_attack = true;
+
+							if ( stop_attack === true )
+							break;
+							//if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' || sdWorld.last_hit_entity.GetClass() === 'sdDoor' )
+							//break;
+						}
+
+						j += dy * 4;
+					}
+					else // If character is looking to the left
+					for ( let i = gun._held_by.x; i > gun._held_by.look_x; i += dx * 4 )
+					{
+						if ( gun._held_by.CanMoveWithoutOverlap( i, j , -4 ) )
+						{
+							last_x = i;
+							last_y = j;
+
+							rail_x = i;
+							rail_y = j;
+						}
+						if ( !sdWorld.CheckLineOfSight( last_x, last_y, i, j, gun._held_by, null ) )
+						if ( sdWorld.last_hit_entity )
+						{
+							let can_damage = true;
+							let k;
+							for( k = 0; k < hit_entities.length; k++ )
+							{
+								if ( sdWorld.last_hit_entity === hit_entities[ k ] ) // Make sure we didn't hit the target already
+								can_damage = false;
+							}
+							if ( can_damage === true )
+							{
+								sdWorld.last_hit_entity.DamageWithEffect( damage_value, gun._held_by );
+								hit_entities.push( sdWorld.last_hit_entity );
+								landed_hit = true;
+								sdSound.PlaySound({ name:'cube_teleport', x:i, y:j, volume:2, pitch: 1.5 });
+								rail_x = i;
+								rail_y = j;
+							}
+							let stop_attack = false;
+							for( k = 0; k < sdCom.com_visibility_unignored_classes.length; k++ )
+							if ( sdWorld.last_hit_entity.GetClass() === sdCom.com_visibility_unignored_classes[ k ] ) // Make sure we can pass through it
+							stop_attack = true;
+
+							if ( stop_attack === true )
+							break;
+						}
+
+						j += dy * 4;
+					}
+					sdWorld.SendEffect({ x:gun._held_by.x, y:gun._held_by.y, x2:rail_x, y2:rail_y, type:sdEffect.TYPE_BEAM, color:'#CCCCCC' });
+					gun._held_by.x = last_x;
+					gun._held_by.y = last_y;
+					gun._held_by.sx = dx * 2;
+					gun._held_by.sy = dy * 2;
+					gun._held_by.ApplyServerSidePositionAndVelocity( true, 0, 0 );
+
+					if ( landed_hit === true )
+					{
+						gun._combo_timer = 45;
+						gun._combo++;
+					}
+					else
+					gun._combo = Math.max( 0, gun._combo - 1 );
+					gun._held_by.matter -= landed_hit === true ? 6 : 25; // Keep in mind custom guns deal 250 damage for something like 7 matter per bullet
+					gun._reload_time = 15 - Math.min( 7.5, gun._combo * 0.5 ); // Most efficient with timepack
+					return true;			
+
+				}
+				return false;
+			},
+			projectile_properties: { _rail: true, time_left: 0, _damage: 1, color: 'transparent'}
+			//upgrades: AddRecolorsFromColorAndCost( [], '#ff0000', 20 )
 		};
 
 		// Add new gun classes above this line //

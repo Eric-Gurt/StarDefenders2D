@@ -360,6 +360,9 @@ class sdGun extends sdEntity
 		
 		this.ammo_left = -123;
 		this.burst_ammo = -123;
+
+		this._combo = 0; // Specifically made for the time shifter blade, this increases rate of fire / swing rate of sword for every hit you make
+		this._combo_timer = 0;// Goes to 0, resets combo when it reaches 0
 		//this.ttl = params.ttl || sdGun.disowned_guns_ttl;
 		this.extra = ( params.extra === undefined ) ? 0 : params.extra; // shard value will be here
 
@@ -1024,7 +1027,11 @@ class sdGun extends sdEntity
 		}
 		else
 		{
-			
+			if ( this._combo_timer > 0 )
+			this._combo_timer = Math.max( 0, this._combo_timer - GSPEED );
+			else
+			this._combo = 0;
+
 			if ( this._held_by )
 			if ( this._held_by._is_being_removed )
 			{
@@ -1170,6 +1177,7 @@ class sdGun extends sdEntity
 		if ( this._held_by && !this._held_by._is_being_removed && ( this.held_by_net_id === this._held_by._net_id && this.held_by_class === this._held_by.GetClass() ) )
 		//if ( !this.IsVisible() ) // Usually means in storage or held by player
 		if ( this.reload_time_left <= 0 )
+		if ( this._combo_timer <= 0 )
 		if ( this.muzzle <= 0 )
 		{
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED ); // Note: Such hibernation will casue weapon to logically appear behind carrier. It means that carrier now should handle position logic
