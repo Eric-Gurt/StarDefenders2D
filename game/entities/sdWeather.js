@@ -545,37 +545,11 @@ class sdWeather extends sdEntity
 
 					sdEntity.entities.push( drone );
 
+					if ( !this.GetHumanoidSpawnLocation( drone ) )
 					{
-						let x,y;
-						let tr = 1000;
-						do
-						{
-							if ( left_side )
-							x = sdWorld.world_bounds.x1 + 64 + 64 * instances;
-							else
-							x = sdWorld.world_bounds.x2 - 64 - 64 * instances;
-
-							y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-							if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
-							//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-							//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
-							{
-								drone.x = x;
-								drone.y = y;
-
-								//sdWorld.UpdateHashPosition( ent, false );
-								//console.log('Drone spawned!');
-								break;
-							}
-							tr--;
-							if ( tr < 0 )
-							{
-								drone.remove();
-								drone._broken = false;
-								break;
-							}
-						} while( true );
+						drone.remove();
+						drone._broken = false;
+						break;
 					}
 					instances++;
 				}
@@ -627,39 +601,11 @@ class sdWeather extends sdEntity
 
 						sdEntity.entities.push( drone );
 
+						if ( !this.GetHumanoidSpawnLocation( drone ) )
 						{
-							let x,y;
-							let tr = 1000;
-							do
-							{
-								if ( left_side )
-								x = sdWorld.world_bounds.x1 + 64 + 64 * instances;
-								else
-								x = sdWorld.world_bounds.x2 - 64 - 64 * instances;
-
-								y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-								if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
-								//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
-								{
-									drone.x = x;
-									drone.y = y;
-
-									//sdWorld.UpdateHashPosition( ent, false );
-									//console.log('Drone spawned!');
-									break;
-								}
-
-
-								tr--;
-								if ( tr < 0 )
-								{
-									drone.remove();
-									drone._broken = false;
-									break;
-								}
-							} while( true );
+							drone.remove();
+							drone._broken = false;
+							break;
 						}
 						instances++;
 					}
@@ -1068,12 +1014,11 @@ class sdWeather extends sdEntity
 					break;
 				}
 			}
-
-		robots++;
-		ais++;
-		//console.log('Erthal spawned!');
+			robots++;
+			ais++;
+			//console.log('Erthal spawned!');
+			}
 		}
-	}
 		}
 		if ( r === 12 ) // Spawn an obelisk near ground where players don't see them
 		{
@@ -1394,39 +1339,11 @@ class sdWeather extends sdEntity
 
 					sdEntity.entities.push( drone );
 
+					if ( !this.GetHumanoidSpawnLocation( drone ) )
 					{
-						let x,y;
-						let tr = 1000;
-						do
-						{
-							if ( left_side )
-							x = sdWorld.world_bounds.x1 + 64 + 64 * instances;
-							else
-							x = sdWorld.world_bounds.x2 - 64 - 64 * instances;
-
-							y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-							if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
-							//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-							//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
-							{
-								drone.x = x;
-								drone.y = y;
-
-								//sdWorld.UpdateHashPosition( ent, false );
-								//console.log('Drone spawned!');
-								break;
-							}
-
-
-							tr--;
-							if ( tr < 0 )
-							{
-								drone.remove();
-								drone._broken = false;
-								break;
-							}
-						} while( true );
+						drone.remove();
+						drone._broken = false;
+						break;
 					}
 					drones++;
 				}
@@ -2142,39 +2059,11 @@ class sdWeather extends sdEntity
 
 					sdEntity.entities.push( drone );
 
+					if ( !this.GetHumanoidSpawnLocation( drone ) )
 					{
-						let x,y;
-						let tr = 1000;
-						do
-						{
-							if ( left_side )
-							x = sdWorld.world_bounds.x1 + 64 + 64 * instances;
-							else
-							x = sdWorld.world_bounds.x2 - 64 - 64 * instances;
-
-							y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-							if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
-							//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-							//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
-							{
-								drone.x = x;
-								drone.y = y;
-
-								//sdWorld.UpdateHashPosition( ent, false );
-								//console.log('Drone spawned!');
-								break;
-							}
-
-
-							tr--;
-							if ( tr < 0 )
-							{
-								drone.remove();
-								drone._broken = false;
-								break;
-							}
-						} while( true );
+						drone.remove();
+						drone._broken = false;
+						break;
 					}
 					drones++;
 				}
