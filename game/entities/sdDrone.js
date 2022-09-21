@@ -273,7 +273,7 @@ class sdDrone extends sdEntity
 				color:sdEffect.default_explosion_color
 				});
 
-			if ( dmg >= this._hmax * 0.5 ) // Instagib, gibs asp into 2 parts ( if you weapon deals enough damage )
+			if ( dmg >= this._hmax * 0.5 && this.type === 1 ) // Instagib, gibs asp into 2 parts ( if you weapon deals enough damage )
 			{
 				sdWorld.SpawnGib( this.x, this.y + 5, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_FALKOK_DRONE_PARTS , '', '', 100, this );
 				sdWorld.SpawnGib( this.x, this.y - 5, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_FALKOK_DRONE_PARTS , '', '', 100, this, 1 );
