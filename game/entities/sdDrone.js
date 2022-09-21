@@ -4,6 +4,7 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdGun from './sdGun.js';
+import sdGib from './sdGib.js';
 import sdWater from './sdWater.js';
 import sdCom from './sdCom.js';
 import sdBlock from './sdBlock.js';
@@ -271,6 +272,13 @@ class sdDrone extends sdEntity
 				owner:this,
 				color:sdEffect.default_explosion_color
 				});
+
+			if ( dmg >= this._hmax * 0.5 ) // Instagib, gibs asp into 2 parts ( if you weapon deals enough damage )
+			{
+				sdWorld.SpawnGib( this.x, this.y + 5, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_FALKOK_DRONE_PARTS , '', '', 100, this );
+				sdWorld.SpawnGib( this.x, this.y - 5, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_FALKOK_DRONE_PARTS , '', '', 100, this, 1 );
+				this.remove();
+			}
 			}
 			if ( this.type === 2 )
 			{

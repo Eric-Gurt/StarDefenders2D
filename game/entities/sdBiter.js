@@ -4,6 +4,7 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdGun from './sdGun.js';
+import sdGib from './sdGib.js';
 import sdWater from './sdWater.js';
 import sdCom from './sdCom.js';
 import sdBlock from './sdBlock.js';
@@ -122,6 +123,13 @@ class sdBiter extends sdEntity
 			//sdSound.PlaySound({ name:'biter_death', x:this.x, y:this.y, volume: 0.5 });
 
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_EASY_MOB );
+
+			if ( dmg >= this._hmax * 0.5 ) // Instagib, gibs biter into 2 parts ( if you weapon deals enough damage )
+			{
+				sdWorld.SpawnGib( this.x + ( 3 * this.side ), this.y, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_BITER_GIBS , 'hue-rotate(' + this.hue + 'deg)', 'hue-rotate('+( this.hue + 150 )+'deg)', 100, this );
+				sdWorld.SpawnGib( this.x - ( 3 * this.side ), this.y, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_BITER_GIBS , 'hue-rotate(' + this.hue + 'deg)', 'hue-rotate('+( this.hue + 150 )+'deg)', 100, this, 1 );
+				this.remove();
+			}
 	
 		}
 		

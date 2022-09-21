@@ -4,6 +4,7 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdGun from './sdGun.js';
+import sdGib from './sdGib.js';
 import sdWater from './sdWater.js';
 import sdCom from './sdCom.js';
 import sdBullet from './sdBullet.js';
@@ -37,7 +38,7 @@ class sdEnemyMech extends sdEntity
 	}
 	get hitbox_x1() { return -14; }
 	get hitbox_x2() { return 14; }
-	get hitbox_y1() { return -38; }
+	get hitbox_y1() { return this.hea > 0 ? -38 : -26; }
 	get hitbox_y2() { return 18; }
 	
 	get hard_collision() // For world geometry where players can walk
@@ -193,6 +194,8 @@ class sdEnemyMech extends sdEntity
 			this.death_anim = 1;
 			//if ( initiator )
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_BOSS );
+
+			sdWorld.SpawnGib( this.x, this.y + this._hitbox_y1, this.sx + Math.random() * 1 - Math.random() * 1, this.sy + Math.random() * 1 - Math.random() * 1, this.side, sdGib.CLASS_VELOX_MECH_HEAD , this.filter, null )
 
 			let that = this;
 			for ( var i = 0; i < 20; i++ )

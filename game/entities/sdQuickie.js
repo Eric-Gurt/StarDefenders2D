@@ -5,7 +5,7 @@ import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdGun from './sdGun.js';
 import sdWater from './sdWater.js';
-
+import sdGib from './sdGib.js';
 import sdBlock from './sdBlock.js';
 import sdVirus from './sdVirus.js';
 import sdAsp from './sdAsp.js';
@@ -28,7 +28,7 @@ class sdQuickie extends sdEntity
 		];
 		*/
 		sdQuickie.death_duration = 10;
-		sdQuickie.post_death_ttl = 90;
+		sdQuickie.post_death_ttl = 180;
 		
 		sdQuickie.max_seek_range = 800;
 
@@ -62,7 +62,7 @@ class sdQuickie extends sdEntity
 		this._hmax = 7;
 	
 		this._hea = this._hmax;
-	
+		this.gibbed = false; 
 		this.death_anim = 0;
 		
 		this._current_target = null;
@@ -121,6 +121,8 @@ class sdQuickie extends sdEntity
 		dmg = Math.abs( dmg );
 		
 		let was_alive = this._hea > 0;
+
+		let spawn_gib = ( this._hea > -this._hmax / 80 * 100 );
 		
 		this._hea -= dmg;
 		
@@ -130,8 +132,14 @@ class sdQuickie extends sdEntity
 
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_EASY_MOB );
 		}
-		
-		if ( this._hea < -this._hmax / 80 * 100 || ( this._hea < 0 && this._tier === 2 ) ) // used to be only " ||this._tier === 2 " which resulted in instant death for Crystal Quickies, unintentional - Booraz
+
+		if ( this._tier === 1 )
+		if ( this._hea < -this._hmax / 80 * 100 && spawn_gib && this._hea <= 0 )
+		{
+			sdWorld.SpawnGib( this.x - ( 8 * this.side ), this.y, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_QUICKIE_LIMB , 1, this.GetBleedEffectFilter(), 100, this );
+			this.gibbed = true;
+		}
+		if ( this._hea < -this._hmax / 40 * 100 || ( this._hea < 0 && this._tier === 2 ) ) // used to be only " ||this._tier === 2 " which resulted in instant death for Crystal Quickies, unintentional - Booraz
 		this.remove();
 	}
 	
@@ -315,8 +323,9 @@ class sdQuickie extends sdEntity
 			{
 				ctx.globalAlpha = 0.5;
 			}
-
 			xx = Math.min( 3 - 1, ~~( ( this.death_anim / sdQuickie.death_duration ) * 3 ) );
+			if ( this.gibbed === true )
+			xx = 3;
 			yy = 1;
 			
 			//let frame = Math.min( sdQuickie.death_imgs.length - 1, ~~( ( this.death_anim / sdQuickie.death_duration ) * sdQuickie.death_imgs.length ) );

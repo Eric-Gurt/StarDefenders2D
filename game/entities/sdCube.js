@@ -4,6 +4,7 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdGun from './sdGun.js';
+import sdGib from './sdGib.js';
 import sdWater from './sdWater.js';
 import sdCom from './sdCom.js';
 import sdBullet from './sdBullet.js';
@@ -245,6 +246,10 @@ class sdCube extends sdEntity
 				else
 				this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_CHALLENGING_MOB );
 			}
+
+			if ( this.kind !== 3 ) // Pink cube is too small to be gibbed
+			sdWorld.SpawnGib( this.x, this.y - ( 6 * this.kind === 2 ? 3 : this.kind === 1 ? 2 : 1 ) , this.sx + Math.random() * 1 - Math.random() * 1, this.sy + Math.random() * 1 - Math.random() * 1, 1, sdGib.CLASS_CUBE_GIB , null, null, this.kind === 2 ? 300 : this.kind === 1 ? 200 : 100, this )
+			
 			let r = Math.random();
 			
 			//console.log( 'CLASS_TRIPLE_RAIL drop chances: ' + r + ' < ' + ( this.kind === 1 ? 0.4 : 0.1 ) * 0.25 );
@@ -355,7 +360,6 @@ class sdCube extends sdEntity
 
 				}, 500 );
 			}
-
 			this.remove();
 		}
 		
@@ -1057,7 +1061,11 @@ class sdCube extends sdEntity
 
 		if ( this.kind === 3 )
 		sdCube.alive_pink_cube_counter--;
-		
+		//if ( this._broken )
+		//{
+			//if ( this.kind !== 3 ) // Pink cube is too small to be gibbed
+			//sdWorld.SpawnGib( this.x, this.y - ( 3 * this.kind === 2 ? 3 : this.kind === 1 ? 2 : 1 ) , this.sx + Math.random() * 1 - Math.random() * 1, this.sy + Math.random() * 1 - Math.random() * 1, 1, sdGib.CLASS_CUBE_GIB , null, null, this.kind === 2 ? 300 : this.kind === 1 ? 200 : 100, this )
+		//}
 		//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
 	}
 	MeasureMatterCost()

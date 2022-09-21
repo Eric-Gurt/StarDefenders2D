@@ -4,6 +4,7 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdGun from './sdGun.js';
+import sdGib from './sdGib.js';
 import sdWater from './sdWater.js';
 import sdCom from './sdCom.js';
 import sdBlock from './sdBlock.js';
@@ -154,6 +155,13 @@ class sdAsp extends sdEntity
 			//sdSound.PlaySound({ name:'asp_death', x:this.x, y:this.y, volume: 0.5 });
 
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_EASY_MOB );
+
+			if ( dmg >= this._hmax * 0.5 && this._tier === 1 ) // Instagib, gibs asp into 2 parts ( if you weapon deals enough damage )
+			{
+				sdWorld.SpawnGib( this.x + ( 4 * this.side ), this.y, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_ASP_GIBS , 'hue-rotate(' + this.hue + 'deg)' + this.filter, 'hue-rotate(' + this.hue + 'deg)' + this.filter, 100, this );
+				sdWorld.SpawnGib( this.x - ( 4 * this.side ), this.y, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_ASP_GIBS , 'hue-rotate(' + this.hue + 'deg)' + this.filter, 'hue-rotate(' + this.hue + 'deg)' + this.filter, 100, this, 1 );
+				this.remove();
+			}
 	
 		}
 		
