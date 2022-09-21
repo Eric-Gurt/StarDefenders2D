@@ -4,6 +4,7 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdGun from './sdGun.js';
+import sdGib from './sdGib.js';
 import sdWater from './sdWater.js';
 import sdBlock from './sdBlock.js';
 import sdCharacter from './sdCharacter.js';
@@ -119,6 +120,13 @@ class sdAmphid extends sdEntity
 			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
 
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_EASY_MOB );
+
+			if ( dmg >= this.hmax * 0.5 ) // Instagib, gibs amphid into 2 parts ( if you weapon deals enough damage )
+			{
+				sdWorld.SpawnGib( this.x - ( 4 * this.side ), this.y, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, this.side, sdGib.CLASS_AMPHID_GIBS , 'hue-rotate(' + this.hue + 'deg)' + this.filter, this.filter, 100, this );
+				sdWorld.SpawnGib( this.x + ( 4 * this.side ), this.y, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, this.side, sdGib.CLASS_AMPHID_GIBS , 'hue-rotate(' + this.hue + 'deg)' + this.filter, this.filter, 100, this, 1 );
+				this.remove();
+			}
 		}
 		
 		if ( this._hea < -this.hmax / 80 * 100 )

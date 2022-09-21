@@ -117,6 +117,18 @@ class sdGibClass
 			blood: 0 // 0 = wall_hit effect
 			
 		};
+		sdGib.classes[ sdGib.CLASS_AMPHID_GIBS = 6 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'gibs/amphid_gibs' ), // Make sure your gib image is in /gibs folder
+			hitbox_x1: -3,
+			hitbox_x2: 3,
+			hitbox_y1: -3,
+			hitbox_y2: 3,
+			mass: 15,
+			health: 70,
+			blood: 1 // 1 = green blood
+			
+		};
 		// Add new gib classes above this line //
 		
 		let index_to_const = [];
