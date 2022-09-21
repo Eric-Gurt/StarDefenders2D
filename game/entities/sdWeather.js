@@ -341,8 +341,8 @@ class sdWeather extends sdEntity
 
 			y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
 
-			if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-			if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+			if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
+			if ( !ent.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 			if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
 			{
 					ent.x = x;
