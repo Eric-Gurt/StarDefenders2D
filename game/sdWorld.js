@@ -30,7 +30,7 @@ import sdQuadro from './entities/sdQuadro.js';
 import sdStatusEffect from './entities/sdStatusEffect.js';
 import sdPlayerOverlord from './entities/sdPlayerOverlord.js';
 import sdBloodDecal from './entities/sdBloodDecal.js';
-
+import sdGib from './entities/sdGib.js';
 
 
 import sdRenderer from './client/sdRenderer.js';
@@ -1053,8 +1053,29 @@ class sdWorld
 			return true;
 		}
 	}
+	static SpawnGib( x, y, sx = Math.random() * 1 - Math.random() * 1, sy = Math.random() * 1 - Math.random() * 1, side = 1, gib_class, gib_filter, blood_filter = null, scale = 100, ignore_collisions_with=null, image = 0 )
+	{
+		if ( sdWorld.is_server )
+		{
+			let gib = new sdGib({ class:gib_class, x:x, y:y, filter: gib_filter, blood_filter: blood_filter, side: side, s: scale });
+			gib.sx = sx;
+			gib.sy = sy;
+			gib._ignore_collisions_with = ignore_collisions_with;
+			gib.image = image;
+
+			/*for ( let i = 0; i < sdStatusEffect.status_effects.length; i++ )
+			{
+				if ( sdStatusEffect.status_effects[ i ].for === ignore_collisions_with ) // Is this effect for the entity we just gibbed?
+				
+			}*/
+			// TO DO: TRANSFER STATUS EFFECTS FROM GIBBED ENTITY TO GIBS
+
+			sdEntity.entities.push( gib );
+			//gib.s = scale;
+		}
+	}
 	
-	static GiveScoreToPlayerEntity( amount, killed_entity=null, allow_partial_drop=true, player_entity=null )
+	static GiveScoreToPlayerEntity( amount, killed_entity = null, allow_partial_drop = true, player_entity = null )
 	{
 		let auto_give = Math.floor( killed_entity && allow_partial_drop ? amount * 0.2 : amount );
 		
