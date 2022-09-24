@@ -13,6 +13,7 @@ import sdArea from '../entities/sdArea.js';
 import sdWater from '../entities/sdWater.js';
 import sdDoor from '../entities/sdDoor.js';
 import sdCaption from '../entities/sdCaption.js';
+import sdGib from '../entities/sdGib.js';
 
 import sdRenderer from './sdRenderer.js';
 import sdContextMenu from './sdContextMenu.js';
@@ -250,7 +251,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdCom', variation: 5, _category:'Base equipment', _min_build_tool_level:10 });
 		sdShop.options.push({ _class: 'sdCom', variation: 6, _category:'Base equipment', _min_build_tool_level:12 });
 		sdShop.options.push({ _class: 'sdCom', variation: 7, _category:'Base equipment', _min_build_tool_level:14 });
-		sdShop.options.push({ _class: 'sdTeleport', _category:'Base equipment' });
+		//sdShop.options.push({ _class: 'sdTeleport', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdLamp', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdStorage', filter: 'saturate(0)', _category:'Base equipment' });
@@ -313,11 +314,11 @@ class sdShop
 		sdShop.options.push({ _class: 'sdConveyor', filter:'sepia(1) saturate(2) hue-rotate(220deg) brightness(0.7)', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdConveyor', filter:'sepia(1) saturate(1.7) hue-rotate(300deg) brightness(0.7)', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdBeacon', _category:'Base equipment' });
-		sdShop.options.push({ _class: 'sdSteeringWheel', _category:'Base equipment' });
-		sdShop.options.push({ _class: 'sdThruster', _category:'Base equipment' });
-		sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(90deg) saturate(2)', _category:'Base equipment' });
-		sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(180deg) saturate(2)', _category:'Base equipment' });
-		sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(270deg) saturate(2)', _category:'Base equipment' });
+		//sdShop.options.push({ _class: 'sdSteeringWheel', _category:'Base equipment' });
+		//sdShop.options.push({ _class: 'sdThruster', _category:'Base equipment' });
+		//sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(90deg) saturate(2)', _category:'Base equipment' });
+		//sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(180deg) saturate(2)', _category:'Base equipment' });
+		//sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(270deg) saturate(2)', _category:'Base equipment' });
 		
 		
 		for ( let i = 0; i < sdCaption.colors.length / 3; i++ )
@@ -650,6 +651,7 @@ class sdShop
 			//sdShop.options.push({ _class: 'sdBloodDecal', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBG', width: 16, height: 8, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SNOW, _category:'Development tests' }); // Currently does nothing for now, perhaps for more lore-related stuff in this game?
+			sdShop.options.push({ _class: 'sdGib', class:sdGib.CLASS_VELOX_MECH_HEAD, _category:'Development tests' }); // Currently does nothing for now, perhaps for more lore-related stuff in this game?
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });
