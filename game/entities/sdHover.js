@@ -96,7 +96,7 @@ class sdHover extends sdEntity
 
 		this.type = params.type || 0;
 		
-		this.hmax = ( this.type === 1 ? 1200 : this.type === 2 ? 5000 : 600 ) * 4;
+		this.hmax = ( this.type === 1 ? 1200 : this.type === 2 ? 2400 : 600 ) * 4;
 		this.hea = this.hmax;
 		
 		this._tilt = 0;
@@ -281,7 +281,7 @@ class sdHover extends sdEntity
 		sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
 	}
 	
-	get mass() { return this.type === 2 ? 2500 : this.type === 1 ? 1200 : 500; }
+	get mass() { return this.type === 2 ? 2000 : this.type === 1 ? 1200 : 500; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
