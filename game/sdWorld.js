@@ -614,6 +614,12 @@ class sdWorld
 		var s2 = 0;
 		var s2_tot = 0;
 		
+		var s3 = 0;
+		var s3_tot = 0;
+		
+		var s4 = 0;
+		var s4_tot = 0;
+		
 		var r = 10;
 		var r_plus = r + 1;
 		
@@ -627,11 +633,19 @@ class sdWorld
 				
 				s2 += sdWorld.SeededRandomNumberGenerator.random( x + xx * 8 + 1024, y + yy * 8 - 1024 );
 				s2_tot += 1;
+				
+				s3 += sdWorld.SeededRandomNumberGenerator.random( x + xx * 8 + 1024 * 2, y + yy * 8 - 1024 * 2 );
+				s3_tot += 1;
+				
+				s4 += sdWorld.SeededRandomNumberGenerator.random( x + xx * 8 + 1024 * 3, y + yy * 8 - 1024 * 3 );
+				s4_tot += 1;
 			}
 		}
 		
 		s /= s_tot;
 		s2 /= s2_tot;
+		s3 /= s3_tot;
+		s4 /= s4_tot;
 		
 		if ( s < 0.49 - ( 1 + Math.sin( y / 100 ) ) * 0.001 )
 		{
@@ -652,17 +666,28 @@ class sdWorld
 	
 	
 	
-		
+		let material = sdBlock.MATERIAL_GROUND;
 		let f = 'hue-rotate('+( ~~sdWorld.mod( x / 16, 360 ) )+'deg)';
-
 		let hp_mult = 1;
+		
+		if ( s3 < 0.495 )
+		{
+			material = sdBlock.MATERIAL_ICE;
+			hp_mult *= 1.5;
+			f = 'none';
+		}
+		if ( s4 < 0.495 )
+		{
+			material = sdBlock.MATERIAL_SNOW;
+			hp_mult *= 0.5;
+			f = 'none';
+		}
 
-		//if ( y > sdWorld.base_ground_level + 256 )
 		if ( y > from_y + 256 )
 		{
-			//hp_mult = 1 + ( y - sdWorld.base_ground_level - 256 ) / 200;
 			hp_mult = 1 + Math.ceil( ( y - from_y - 256 ) / 200 * 3 ) / 3;
-			f += 'brightness(' + Math.max( 0.2, 1 / hp_mult ) + ') saturate(' + Math.max( 0.2, 1 / hp_mult ) + ')';
+			//f += 'brightness(' + Math.max( 0.2, 1 / hp_mult ) + ') saturate(' + Math.max( 0.2, 1 / hp_mult ) + ')';
+			f = 'brightness(0.5) saturate(0.2)';
 		}
 		
 		
@@ -676,19 +701,19 @@ class sdWorld
 			//if ( Math.random() < 0.2 )
 			{
 				// Format is [ type, relative probability ]
-				let chances = ( hp_mult === 1 ) ? 
+				let chances = ( hp_mult <= 1 ) ? 
 					[ // Surface
 						'sdBadDog', 2
 					] 
 					: 
 					[ // Deep
-						'sdSandWorm', 1,
-						'sdOctopus', 2,
-						'sdFaceCrab', 3,
-						'sdTutel', 4,
-						'sdWater.toxic', 5,
-						'sdWater.lava', 1,
-						'sdWater.acid', 2
+						'sdSandWorm', 1.0,
+						'sdOctopus', 1.5,
+						'sdFaceCrab', 1.5,
+						'sdTutel', 1.5,
+						'sdWater.toxic', 2.0,
+						'sdWater.lava', 1.0,
+						'sdWater.acid', 2.0
 					]
 				;
 				
@@ -700,10 +725,10 @@ class sdWorld
 						'sdAsp', 4 / hp_mult,
 						'sdBiter', 4 / hp_mult,
 						'sdAmphid', 3 / hp_mult,
-						'sdSlug', 3 / hp_mult,
-						'sdGrub', 3 / hp_mult,
-						'sdJunk', 5,
-						'sdWater.water', 5
+						'sdSlug', 2 / hp_mult,
+						'sdGrub', 2 / hp_mult,
+						'sdJunk', 4,
+						'sdWater.water', 3
 				] );
 				
 				let sum_chance = 0;
@@ -763,21 +788,14 @@ class sdWorld
 			let plants = null;
 			let plants_objs = null;
 
+			if ( material === sdBlock.MATERIAL_GROUND )
 			if ( !only_plantless_block )
 			if ( y === from_y )
 			if ( y <= sdWorld.base_ground_level )
 			{
 
 				let grass = new sdGrass({ x:x, y:y - 16, filter:f });
-				/*
-				if ( Math.random() < 0.2 )
-				grass.variation = 2;
-				else
-				if ( Math.random() < 0.4 )
-				grass.variation = 1;
-				else
-				grass.variation = 0; // maybe unneeded since it's defined under constructor?
-				*/
+				
 				grass.variation = sdWorld.GetFinalGrassHeight( x );
 
 				sdEntity.entities.push( grass );
@@ -808,12 +826,18 @@ class sdWorld
 										( Math.random() < 0.1 ) ? 'weak_ground' : null 
 									);
 							
+			if ( material === sdBlock.MATERIAL_ICE || material === sdBlock.MATERIAL_SNOW )
+			{
+				if ( contains_class === 'sdWater.lava' )
+				contains_class = 'sdWater.water';
+			}
+							
 			ent = new sdBlock({ 
 				x:x, 
 				y:y, 
 				width:16, 
 				height: half ? 8 : 16,
-				material: sdBlock.MATERIAL_GROUND,
+				material: material,
 				contains_class: contains_class,
 				filter: f,
 				natural: true,
@@ -1311,6 +1335,12 @@ class sdWorld
 					}
 				}
 			}
+		}
+		
+		if ( params.color === 'transparent' )
+		{
+			// This should never happen
+			debugger;
 		}
 		
 		let socket_arr = exclusive_to_sockets_arr ? exclusive_to_sockets_arr : sdWorld.sockets;
@@ -3563,8 +3593,11 @@ class sdWorld
 		let socket = globalThis.socket;
 		socket.close();
 		
-		let w = 20;
-		let h = 10;
+		//let w = 20;
+		//let h = 10;
+		
+		let w = 80;
+		let h = 30;
 		
 		//sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 );
 		//sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 + 100 * 16 );

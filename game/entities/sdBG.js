@@ -15,6 +15,7 @@ class sdBG extends sdEntity
 		sdBG.img_stripes = sdWorld.CreateImageFromFile( 'bg_stripes' );
 		sdBG.img_hex = sdWorld.CreateImageFromFile( 'bg_hex' );
 		sdBG.img_hex2 = sdWorld.CreateImageFromFile( 'bg_hex2' );
+		sdBG.img_glowing = sdWorld.CreateImageFromFile( 'bg_glowing' );
 		
 		// Better to keep these same as in sdBlock, so 3D effects will work as intended
 		sdBG.MATERIAL_PLATFORMS = 0;
@@ -28,6 +29,7 @@ class sdBG extends sdEntity
 		sdBG.TEXTURE_STRIPES = t++;
 		sdBG.TEXTURE_PLATFORMS_COLORED = t++;
 		sdBG.TEXTURE_HEX = t++;
+		sdBG.TEXTURE_GLOWING = t++;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -201,6 +203,12 @@ class sdBG extends sdEntity
 		
 			if ( this.texture_id === sdBG.TEXTURE_HEX )
 			img = ( sdWorld.time % 4000 < 2000 ) ? sdBG.img_hex : sdBG.img_hex2;
+		
+			if ( this.texture_id === sdBG.TEXTURE_GLOWING )
+			{
+				ctx.apply_shading = false;
+				img = sdBG.img_glowing;
+			}
 		
 			ctx.drawImageFilterCache( img, 0, 0, w,h, 0,0, w,h );
 		}

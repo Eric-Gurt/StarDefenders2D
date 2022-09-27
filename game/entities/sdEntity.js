@@ -2040,7 +2040,7 @@ class sdEntity
 		return a;
 	}
 	
-	DoesOverlapWith( ent, extra_space_around=0 ) // Overlaps( 
+	DoesOverlapWith( ent, extra_space_around=0 ) // Overlaps( // OverlapsWith(
 	{
 		if ( this.x + this._hitbox_x2 < ent.x + ent._hitbox_x1 - extra_space_around ||
 			 this.x + this._hitbox_x1 > ent.x + ent._hitbox_x2 + extra_space_around ||

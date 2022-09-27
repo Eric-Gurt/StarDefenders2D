@@ -195,6 +195,7 @@ class sdTeleport extends sdEntity
 		if ( !from_entity.is_static )
 		if ( from_entity.GetClass() !== 'sdEffect' )
 		if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null )
+		if ( this.DoesOverlapWith( from_entity ) ) // Prevent bug that causes overlapping 2 telerpots make player teleports twice as further and raid some bases
 		{
 			//let coms_near = sdWorld.GetComsNear( this.x, this.y, null, null, true );
 			let com_near = this.GetComWiredCache();

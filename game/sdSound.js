@@ -234,7 +234,7 @@ class sdSound
 				else
 				if ( sdEntity.entities[ i ].GetClass() === 'sdHover' )
 				{
-					if ( sdEntity.entities[ i ].driver0 /*&& ( sdEntity.entities[ i ].driver0.act_x !== 0 || sdEntity.entities[ i ].driver0.act_y !== 0 )*/ )
+					if ( sdEntity.entities[ i ].driver0 && sdEntity.entities[ i ].matter > 1 /*&& ( sdEntity.entities[ i ].driver0.act_x !== 0 || sdEntity.entities[ i ].driver0.act_y !== 0 )*/ )
 					count_hover_loop += 2 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
 				}
 				else
@@ -253,6 +253,7 @@ class sdSound
 				if ( sdEntity.entities[ i ].GetClass() === 'sdAntigravity' )
 				{
 					if ( sdEntity.entities[ i ].power > 0 )
+					if ( sdEntity.entities[ i ].matter > 0 )
 					count_antigravity += 0.2 * sdEntity.entities[ i ].power * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
 				}
 				else

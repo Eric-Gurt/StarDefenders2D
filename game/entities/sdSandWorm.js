@@ -97,8 +97,10 @@ class sdSandWorm extends sdEntity
 
 		this.scale = params.scale || Math.max( 0.6, Math.random() * 2 );
 
-		this._hmax = ( this.kind === sdSandWorm.KIND_COUNCIL_WORM ? 10 : this.kind === sdSandWorm.KIND_CORRUPTED_WORM ? 1.5 : 1 ) * 700 * Math.pow( this.scale, 2 );// Bigger worms = more health
+		this._hmax = ( this.kind === sdSandWorm.KIND_COUNCIL_WORM ? 12 : this.kind === sdSandWorm.KIND_CORRUPTED_WORM ? 1.5 : 1 ) * 700 * Math.pow( this.scale, 2 );// Bigger worms = more health
 		this._hea = this._hmax;
+
+		this._regen_timeout = 0; // For council worm HP regen, for some reason it claims object is not extensible if placed in brackets below which check if the worm is council one.
 
 		this._spawn_wyrmhide_on_death = false; // Should this body part spawn Wyrmhide on death?
 		
@@ -131,6 +133,12 @@ class sdSandWorm extends sdEntity
 		this.hue = ~~( Math.random() * 360 );
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
 		this.filter = 'saturate(0.5)';
+		
+		if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM )
+		{
+			this._regen_timeout = 0; // For HP regen
+			this.scale = 1;
+		}
 	}
 	onBeforeRemove()
 	{
@@ -218,6 +226,9 @@ class sdSandWorm extends sdEntity
 		initiator = null;
 
 		dmg = Math.abs( dmg );
+
+		if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM )
+		this._regen_timeout = 30;
 		
 		let head_entity = this.GetHeadEntity();
 
@@ -377,6 +388,7 @@ class sdSandWorm extends sdEntity
 		if ( this.death_anim > 0 )
 		if ( sdWorld.is_server )
 		{
+
 			this._time_until_full_remove -= GSPEED;
 			if ( this._time_until_full_remove <= 0 )
 			{
@@ -525,6 +537,13 @@ class sdSandWorm extends sdEntity
 		
 		let an_x = 0;
 		let an_y = 0;
+		if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM )
+		{
+			if ( this._regen_timeout > 0 )
+			this._regen_timeout -= GSPEED;
+			else
+			this._hea = Math.min( this._hea + GSPEED, this._hmax );
+		}
 		
 		
 		if ( this.towards_head )
@@ -701,36 +720,49 @@ class sdSandWorm extends sdEntity
 							}
 						}
 						let head_entity = this.GetHeadEntity();
+
 						if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM && head_entity === this ) // Council worm head fires yellow beams at visible target it's approaching
-						if ( sdWorld.CheckLineOfSight( this.x, this.y, this._current_target.x, this._current_target.y, this, sdCom.com_visibility_ignored_classes, null ) )
-						//if ( sdWorld.last_hit_entity === this._current_target )
-						if ( sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) <= 380 )
-						if ( sdWorld.time > this._last_attack + 1500 )
+						if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.x + ( Math.cos( this._an + Math.PI ) * 360 ), this.y + ( Math.sin( this._an + Math.PI ) * 360 ), this ) )
+						if ( sdWorld.last_hit_entity )
+						if ( sdWorld.last_hit_entity === this._current_target ||
+						 ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material !== sdBlock.MATERIAL_GROUND ) ||
+						sdWorld.last_hit_entity.IsVehicle() ) // Shoot any kind of sdBlock if it's not dirt 
+						//if ( sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) <= 380 )
+						if ( sdWorld.time > this._last_attack + 100 )
 						{
 						
-							let an = Math.atan2( this._current_target.y + ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2 - this.y, this._current_target.x + ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2 - this.x );
-
+							//let an = Math.atan2( this._current_target.y + ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2 - this.y, this._current_target.x + ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2 - this.x );
 							let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 							bullet_obj._owner = this;
-							bullet_obj.sx = Math.cos( an );
-							bullet_obj.sy = Math.sin( an );
+
+
+							bullet_obj.sx = Math.cos( this._an + Math.PI );
+							bullet_obj.sy = Math.sin( this._an + Math.PI );
+							bullet_obj.x += 3 * Math.cos( this._an + Math.PI );
+							bullet_obj.y += 3 * Math.sin( this._an + Math.PI );
 
 							bullet_obj.sx *= 16;
 							bullet_obj.sy *= 16;
 
-							bullet_obj.time_left = 60;
+							bullet_obj._dirt_mult = 12;
+							bullet_obj._temperature_addition = 200; // Set stuff on fire
+							bullet_obj._shield_block_mult = 4;
+							bullet_obj._vehicle_mult = 4;
+
+							bullet_obj.time_left = 20;
 
 							bullet_obj._rail = true;
 
-							bullet_obj._damage = 150;
+							bullet_obj._damage = 20;
 
 							bullet_obj.color = '#ffff00'; // Yellow color
 
 							sdEntity.entities.push( bullet_obj );
 							this._last_attack = sdWorld.time;
-							sdSound.PlaySound({ name:'cube_attack', pitch: 0.25, x:this.x, y:this.y, volume:2 });
-							this.forced_x = ( this._current_target.x + ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2 - this.x ) * 10;
-							this.forced_y = ( this._current_target.y + ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2 - this.y ) * 10;
+
+							sdSound.PlaySound({ name:'cube_attack', pitch: 4, x:this.x, y:this.y, volume:0.8 });
+							//this.forced_x = ( this._current_target.x + ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2 - this.x ) * 10;
+							//this.forced_y = ( this._current_target.y + ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2 - this.y ) * 10;
 						}
 						// Reset target from time to time if in seek mode
 						if ( Math.random() < 0.0001 )
@@ -876,6 +908,8 @@ class sdSandWorm extends sdEntity
 		if ( this.kind === sdSandWorm.KIND_COUNCIL_WORM )
 		{
 			ctx.filter = 'none';
+			if ( this.death_anim === 1 )
+			ctx.filter = 'brightness(0.5)';
 			ctx.sd_hue_rotation = 0;
 			if ( this.model === 1 /*|| ( this.model === 0 && this._in_surface )*/ )
 			ctx.drawImageFilterCache( sdSandWorm.img_worm_council_head_attack, - 16, - 16, 32,32 );

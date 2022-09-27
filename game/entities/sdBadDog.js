@@ -100,6 +100,7 @@ class sdBadDog extends sdEntity
 		
 		this.turret_timer = -1; // Negative value = not installed, anything above is shoot delay. 0 = can shoot
 		this.turret_ang = 0;
+		this.turret_level = 0;
 		this._last_turret_attack_attempt = 0; // Failed one
 		
 		this.follow = 1;
@@ -240,6 +241,10 @@ class sdBadDog extends sdEntity
 		this.sy += y / this.mass;
 		//this.sx += x * 0.2;
 		//this.sy += y * 0.2;
+	}
+	isWaterDamageResistant()
+	{
+		return true;
 	}
 	/* Default fall damage
 	Impact( vel ) // fall damage basically
@@ -498,17 +503,20 @@ class sdBadDog extends sdEntity
 						{
 							if ( sdWorld.time > this._last_turret_attack_attempt + 200 )
 							{
-								if ( sdWorld.CheckLineOfSight( this.x, this.y, this._current_target.x, this._current_target.y, this, null, sdCom.com_creature_attack_unignored_classes ) )
+								let xx = this._current_target.x + ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2;
+								let yy = this._current_target.y + ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2;
+								
+								if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this, null, sdCom.com_creature_attack_unignored_classes ) )
 								{
 									//this.turret_timer = 10;
 									this.turret_timer = 7;
 									
-									sdSound.PlaySound({ name:'turret', x:this.x, y:this.y, volume:0.5, pitch: 1.5 });
+									sdSound.PlaySound({ name:'turret', x:this.x, y:this.y, volume:0.5, pitch: ( 1.5 ) / ( ( 12 + this.turret_level ) / 12 ) });
 									
-									let di = sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y );
+									let di = sdWorld.Dist2D( this.x, this.y, xx, yy );
 									
 									let vel = 15;
-									let an = Math.atan2( this._current_target.y + (this._current_target.sy||0) * di / vel - this.y, this._current_target.x + (this._current_target.sx||0) * di / vel - this.x );
+									let an = Math.atan2( yy + (this._current_target.sy||0) * di / vel - this.y, xx + (this._current_target.sx||0) * di / vel - this.x );
 									
 									let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 
@@ -520,7 +528,7 @@ class sdBadDog extends sdEntity
 									bullet_obj.sx *= vel;
 									bullet_obj.sy *= vel;
 
-									bullet_obj._damage = 12;
+									bullet_obj._damage = 12 + this.turret_level;
 									bullet_obj.color = '#ff0000';
 									
 									this._owner = this.master; // To make bullets pass through master
@@ -532,7 +540,7 @@ class sdBadDog extends sdEntity
 							}
 						}
 							
-						this.turret_ang = ( Math.PI + Math.atan2( this._current_target.y - this.y, this._current_target.x - this.x ) ) * 360;
+						this.turret_ang = ( Math.PI + Math.atan2( yy - this.y, xx - this.x ) ) * 360;
 					}
 				}
 			}
@@ -628,7 +636,7 @@ class sdBadDog extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, this.owned ? ( this.master ? sdEntity.GuessEntityName( this.master._net_id ) : 'Someone') + "'s Bad Dog" : "Bad Dog" );
+		sdEntity.Tooltip( ctx, this.owned ? ( this.master ? sdEntity.GuessEntityName( this.master._net_id ) : 'Someone') + "'s Bad Dog ( "+( 12 + this.turret_level )+" damage )" : "Bad Dog" );
 	
 		if ( this.death_anim < 20 )
 		if ( this.owned )
@@ -853,12 +861,21 @@ class sdBadDog extends sdEntity
 				{
 					if ( this.master.matter >= 175 )
 					{
-						if ( this.type === 1 && this.turret_timer < 0 )
+						if ( this.type === 1 )
 						{
-							this.master.matter -= 175;
-							this.turret_timer = 0;
+							if ( this.turret_level < 150 )
+							{
+								this.master.matter -= 175;
 
-							sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+								if ( this.turret_timer < 0 )
+								this.turret_timer = 0;
+
+								this.turret_level++;
+
+								sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+							}
+							else
+							executer_socket.SDServiceMessage( 'Turret is at max level' );
 						}
 						else
 						executer_socket.SDServiceMessage( 'Turret is installed' );
@@ -906,8 +923,12 @@ class sdBadDog extends sdEntity
 						this.AddContextOption( 'Build armor for the dog (300 matter)', 'ARMOR', [] );
 
 						if ( this.type === 1 )
-						if ( this.turret_timer < 0 )
-						this.AddContextOption( 'Install portable turret on the dog (175 matter)', 'TURRET', [] );
+						{
+							if ( this.turret_level === 0 )
+							this.AddContextOption( 'Install portable turret on the dog (175 matter)', 'TURRET', [] );
+							else
+							this.AddContextOption( 'Upgrade portable turret (175 matter)', 'TURRET', [], false );
+						}
 					}
 				}
 			}

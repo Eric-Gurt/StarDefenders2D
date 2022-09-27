@@ -36,7 +36,8 @@ class sdBlock extends sdEntity
 		sdBlock.img_lvl2_wall05 = sdWorld.CreateImageFromFile( 'wall_lvl2_half' );		
 		sdBlock.img_ice = sdWorld.CreateImageFromFile( 'wall_ice' );		
 
-		sdBlock.img_snow_block = sdWorld.CreateImageFromFile( 'snow_wall' );		
+		//sdBlock.img_snow_block = sdWorld.CreateImageFromFile( 'snow_wall' ); // Molis
+		sdBlock.img_snow_block = sdWorld.CreateImageFromFile( 'snow_wall2' ); // EG
 		
 		// Version 2, here we will create walls automatically, from Grid-9 sliceable sources (so we could make nearly infinite variety of walls that meet our needs)
 		//sdBlock.img_wall = sdWorld.CreateImageFromFile( 'wall' );
@@ -1242,7 +1243,8 @@ class sdBlock extends sdEntity
 				}
 			}
 
-			if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_CORRUPTION || this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+			//if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_CORRUPTION || this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+			if ( this._natural )
 			{
 				//let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, hue:this.hue, br:this.br, filter:this.filter + ' brightness(0.5)' });
 				let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, hue:this.hue, br:this.br * 0.5, filter:this.filter });

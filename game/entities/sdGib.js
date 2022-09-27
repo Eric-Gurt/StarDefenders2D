@@ -70,6 +70,7 @@ class sdGib extends sdEntity
 			if ( !sdWorld.is_server )
 			{
 				if ( sdWorld.time > this._last_hit_sound )
+				if ( this.GetBleedEffect() === sdEffect.TYPE_WALL_HIT )
 				{
 					sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.3, volume: Math.min( 0.25, 0.1 * vel ), _server_allowed:true });
 				}
@@ -123,12 +124,12 @@ class sdGib extends sdEntity
 
 		this.image = params.image || 0; // For spritesheet functionality / sprite index inside sheet
 		
-		this.dangerous = false; // Maybe larger gibs can damage players on impact? Although feels like gibs with enough mass already do that.
-		this._dangerous_from = null;
+		//this.dangerous = false; // Maybe larger gibs can damage players on impact? Although feels like gibs with enough mass already do that.
+		//this._dangerous_from = null;
 
 		this._ignore_collisions_with = null;
 		
-		this.extra = ( params.extra === undefined ) ? 0 : params.extra; // shard value will be here
+		//this.extra = ( params.extra === undefined ) ? 0 : params.extra; // shard value will be here
 
 		this.sd_filter = ( params.sd_filter === undefined ) ? null : params.sd_filter;
 		this.class = params.class || 0;

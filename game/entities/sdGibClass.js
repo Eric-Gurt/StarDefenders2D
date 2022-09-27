@@ -129,6 +129,18 @@ class sdGibClass
 			blood: 1 // 1 = green blood
 			
 		};
+		sdGib.classes[ sdGib.CLASS_VELOX_MECH_PARTS = 7 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'gibs/velox_mech_parts' ), // Make sure your gib image is in /gibs folder
+			hitbox_x1: -5,
+			hitbox_x2: 5,
+			hitbox_y1: -5,
+			hitbox_y2: 5,
+			mass: 100,
+			health: 300,
+			blood: 0 // 0 = wall_hit effect
+			
+		};
 		// Add new gib classes above this line //
 		
 		let index_to_const = [];

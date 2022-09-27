@@ -60,7 +60,8 @@ class sdCable extends sdEntity
 			'sdCommandCentre',
 			'sdLongRangeTeleport',
 			'sdBaseShieldingUnit',
-			'sdJunk'
+			'sdJunk',
+			'sdCube'
 		];
 		
 		// Override protection

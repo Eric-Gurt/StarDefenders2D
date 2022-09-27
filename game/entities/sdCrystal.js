@@ -724,7 +724,7 @@ class sdCrystal extends sdEntity
 			//ctx.translate( 0, -16 );
 		}
 		
-		ctx.apply_shading = true;
+		//ctx.apply_shading = true;
 	}
 	onBeforeRemove() // Class-specific, if needed
 	{

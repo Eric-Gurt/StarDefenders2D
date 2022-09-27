@@ -65,6 +65,8 @@ class sdLamp extends sdEntity
 	Draw( ctx, attached )
 	//DrawBG( ctx, attached )
 	{
+		ctx.apply_shading = false;
+		
 		ctx.filter = this.filter;//'hue-rotate(90deg)';
 		
 		ctx.drawImageFilterCache( sdLamp.img_lamp, -16, -16 );

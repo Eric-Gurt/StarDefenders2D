@@ -964,7 +964,7 @@ class sdEffect extends sdEntity
 			ctx.globalAlpha = 1;
 		}
 		
-		ctx.apply_shading = true;
+		//ctx.apply_shading = true;
 	}
 	onRemove() // Class-specific, if needed
 	{

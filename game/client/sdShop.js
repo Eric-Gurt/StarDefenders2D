@@ -13,6 +13,7 @@ import sdArea from '../entities/sdArea.js';
 import sdWater from '../entities/sdWater.js';
 import sdDoor from '../entities/sdDoor.js';
 import sdCaption from '../entities/sdCaption.js';
+import sdGib from '../entities/sdGib.js';
 
 import sdRenderer from './sdRenderer.js';
 import sdContextMenu from './sdContextMenu.js';
@@ -350,6 +351,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'Background walls' });
 		}
 		
+		
+		sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter, texture_id: sdBG.TEXTURE_GLOWING, _category:'Background walls' });
 		//sdShop.options.push({ _class: 'sdWater' });
 		
 		for ( var i = 0; i < sdGun.classes.length; i++ )
@@ -577,6 +580,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCube', kind:1, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', kind:2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', kind:3, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCube', kind:4, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCube', kind:5, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_LAVA, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_WATER, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_ACID, _category:'Development tests' });
@@ -650,6 +655,7 @@ class sdShop
 			//sdShop.options.push({ _class: 'sdBloodDecal', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBG', width: 16, height: 8, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SNOW, _category:'Development tests' }); // Currently does nothing for now, perhaps for more lore-related stuff in this game?
+			sdShop.options.push({ _class: 'sdGib', class:sdGib.CLASS_VELOX_MECH_HEAD, _category:'Development tests' }); // Currently does nothing for now, perhaps for more lore-related stuff in this game?
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });
