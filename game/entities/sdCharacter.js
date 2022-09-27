@@ -1014,7 +1014,7 @@ class sdCharacter extends sdEntity
 			if ( t.matter >= t._matter_max ) // Fully charged
 			if ( t.matter >= tele_cost ) // Has enough matter for this kind of teleport out
 			if ( !t._is_being_removed )
-			if ( this.CanMoveWithoutOverlap( t.x, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, 0 ) && !sdWorld.CheckWallExistsBox( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 8, this ) )
+			if ( this.CanMoveWithoutOverlap( t.x, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, 0 ) && sdWorld.CheckLineOfSight( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 12, this ) ) // Make sure it isn't blocked by anything
 			{
 				let di = sdWorld.Dist2D( this.x, this.y, t.x, t.y );
 				if ( di < best_di )
