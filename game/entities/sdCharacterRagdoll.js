@@ -1210,11 +1210,16 @@ class sdCharacterRagdoll
 								
 								ctx.apply_shading = false;
 
-								ctx.drawImageFilterCache( sdCharacter.img_jetpack, - 16 + 2, - 16, 32,32 );
-								/*while( i < 0 )
-								for ( let i = 0; Math.min( i - 1, ~~( ( 3 - 3 ) * 3 ) ); i++ )
+								//ctx.drawImageFilterCache( sdCharacter.img_jetpack, - 16 + 2, - 16, 32,32 );
+
+								/*let rng_loop = [ 0 ];
+
+								if ( this.character.sy >= 0 || this.character.sy <= 0 )
+								rng_loop = [ Math.random() * 3 / 3 * 2 ];
+								
+								let yy = 2 - ~~( Math.min( 3, rng_loop ) / 3 * 3 ); // For jetpack sheet
 								{
-									ctx.drawImageFilterCache( sdCharacter.img_jetpack, 0, i * 32, 32,32, -16 + 2, -16, 32,32 );
+									ctx.drawImageFilterCache( sdCharacter.img_jetpack, 0, yy * 32, 32,32, -16 + 2, -16, 32,32 );
 								}*/
 
 								ctx.filter = char_filter;
