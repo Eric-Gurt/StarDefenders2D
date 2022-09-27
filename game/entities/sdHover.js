@@ -50,6 +50,10 @@ class sdHover extends sdEntity
 			'Entered slot 6: Passenger'
 		];
 		
+		sdHover.TYPE_HOVER = 0;
+		sdHover.TYPE_FIGHTER_HOVER = 1;
+		sdHover.TYPE_TANK = 2;
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return this.type === 2 ? -27 : -26; }
@@ -126,6 +130,15 @@ class sdHover extends sdEntity
 		this.driver3 = null; // passenger
 		this.driver4 = null; // passenger
 		this.driver5 = null; // passenger
+		
+		this.matter = 300; // Should be less that Hover cost
+		this.matter_max = 1000;
+		
+		if ( sdHover.TYPE_FIGHTER_HOVER )
+		this.matter_max = 2000;
+		
+		if ( sdHover.TYPE_TANK )
+		this.matter_max = 3000;
 	}
 	AddDriver( c )
 	{
@@ -202,83 +215,90 @@ class sdHover extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
+		if ( initiator !== this ) // Only self-healing is allowed
 		dmg = Math.abs( dmg );
 		
 		let old_hea = this.hea;
 		
 		this.hea -= dmg;
-
-		if ( this.hea <= 0 )
+		
+		if ( this.hea > this.hmax )
+		this.hea = this.hmax;
+	
+		if ( dmg > 0 )
 		{
-			const break_at_hp = -400;
-			
-			if ( old_hea > 0 )
+			if ( this.hea <= 0 )
 			{
-				sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:2 });
-				
-				for ( var i = 0; i < sdHover.driver_slots; i++ )
-				if ( this[ 'driver' + i ] )
+				const break_at_hp = -400;
+
+				if ( old_hea > 0 )
 				{
-					let driver = this[ 'driver' + i ];
-					
-					this.ExcludeDriver( this[ 'driver' + i ] );
-					
-					if ( this.hea <= break_at_hp )
+					sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:2 });
+
+					for ( var i = 0; i < sdHover.driver_slots; i++ )
+					if ( this[ 'driver' + i ] )
 					{
-						driver.DamageWithEffect( 400 );
+						let driver = this[ 'driver' + i ];
+
+						this.ExcludeDriver( this[ 'driver' + i ] );
+
+						if ( this.hea <= break_at_hp )
+						{
+							driver.DamageWithEffect( 400 );
+						}
+					}
+
+					let that = this;
+					for ( var i = 0; i < 20; i++ )
+					{
+						let an = Math.random() * Math.PI * 2;
+						let d = ( i === 0 ) ? 0 : Math.random() * 20;
+						let r = ( i === 0 ) ? 50 : ( 10 + Math.random() * 20 );
+
+						setTimeout( ()=>
+						{
+							if ( !that._is_being_removed || i === 0 )
+							{
+								var a = Math.random() * 2 * Math.PI;
+								var s = Math.random() * 10;
+
+								var k = 1;
+
+								var x = that.x + that._hitbox_x1 + Math.random() * ( that._hitbox_x2 - that._hitbox_x1 );
+								var y = that.y + that._hitbox_y1 + Math.random() * ( that._hitbox_y2 - that._hitbox_y1 );
+
+								that.sx -= Math.sin( an ) * d * r * 0.005;
+								that.sy -= Math.cos( an ) * d * r * 0.005;
+
+								sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: that.sx*k + Math.sin(a)*s, sy: that.sy*k + Math.cos(a)*s });
+								sdWorld.SendEffect({ 
+									x: that.x + Math.sin( an ) * d, 
+									y: that.y + Math.cos( an ) * d, 
+									radius: r, 
+									damage_scale: 1, 
+									type: sdEffect.TYPE_EXPLOSION,
+									owner: that,
+									can_hit_owner: false,
+									color: sdEffect.default_explosion_color 
+								});
+							}
+						}, i * 150 );
 					}
 				}
-				
-				let that = this;
-				for ( var i = 0; i < 20; i++ )
-				{
-					let an = Math.random() * Math.PI * 2;
-					let d = ( i === 0 ) ? 0 : Math.random() * 20;
-					let r = ( i === 0 ) ? 50 : ( 10 + Math.random() * 20 );
-					
-					setTimeout( ()=>
-					{
-						if ( !that._is_being_removed || i === 0 )
-						{
-							var a = Math.random() * 2 * Math.PI;
-							var s = Math.random() * 10;
 
-							var k = 1;
-
-							var x = that.x + that._hitbox_x1 + Math.random() * ( that._hitbox_x2 - that._hitbox_x1 );
-							var y = that.y + that._hitbox_y1 + Math.random() * ( that._hitbox_y2 - that._hitbox_y1 );
-							
-							that.sx -= Math.sin( an ) * d * r * 0.005;
-							that.sy -= Math.cos( an ) * d * r * 0.005;
-
-							sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: that.sx*k + Math.sin(a)*s, sy: that.sy*k + Math.cos(a)*s });
-							sdWorld.SendEffect({ 
-								x: that.x + Math.sin( an ) * d, 
-								y: that.y + Math.cos( an ) * d, 
-								radius: r, 
-								damage_scale: 1, 
-								type: sdEffect.TYPE_EXPLOSION,
-								owner: that,
-								can_hit_owner: false,
-								color: sdEffect.default_explosion_color 
-							});
-						}
-					}, i * 150 );
-				}
+				if ( this.hea <= break_at_hp )
+				this.remove();
 			}
-			
-			if ( this.hea <= break_at_hp )
-			this.remove();
+			else
+			{
+				if ( this.hea <= 100 && old_hea > 100 )
+				sdSound.PlaySound({ name:'hover_lowhp', x:this.x, y:this.y, volume:1 });
+			}
+
+			this._regen_timeout = 90;
+
+			sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
 		}
-		else
-		{
-			if ( this.hea <= 100 && old_hea > 100 )
-			sdSound.PlaySound({ name:'hover_lowhp', x:this.x, y:this.y, volume:1 });
-		}
-	
-		this._regen_timeout = 90;
-		
-		sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
 	}
 	
 	get mass() { return this.type === 2 ? 2000 : this.type === 1 ? 1200 : 500; }
@@ -299,33 +319,60 @@ class sdHover extends sdEntity
 			if ( this.hea > 0 )
 			if ( this.hea < this.hmax )
 			{
-				if ( this.driver0 )
-				this.hea = Math.min( this.hea + GSPEED / 3, this.hmax );
-				else
-				this.hea = Math.min( this.hea + GSPEED, this.hmax );
+				const regen_amount = ( this.driver0 ) ? GSPEED / 3 : GSPEED;
+				
+				//this.hea = Math.min( this.hea + regen_amount, this.hmax );
+				
+				if ( this.matter > regen_amount * 0.15 )
+				{
+					this.matter -= regen_amount * 0.15;
+					this.DamageWithEffect( -regen_amount, this );
+				}
 			}
 		}
 		
+		this.MatterGlow( 0.001, 0, GSPEED ); // 0 radius means only towards cables
+		
 		if ( this.driver0 && this.hea > 0 )
 		{
-			this.sy += sdWorld.gravity * 0.2 * GSPEED;
+			let cost = ( ( sdWorld.Dist2D_Vector_pow2( this.driver0.act_x, this.driver0.act_y ) > 0 ) ? GSPEED : GSPEED * 0.01 ) * this.mass / 500;
 			
-			let di = Math.max( 1, sdWorld.Dist2D_Vector( this.driver0.act_x, this.driver0.act_y ) );
+			if ( this.matter >= cost )
+			{
+				this.matter -= cost;
+				
+				let di = Math.max( 1, sdWorld.Dist2D_Vector( this.driver0.act_x, this.driver0.act_y ) );
+
+				let force = 0.2;
+
+				this.sy += sdWorld.gravity * 0.2 * GSPEED;
 			
-			let x_force = this.driver0.act_x / di * 0.2;
-			let y_force = this.driver0.act_y / di * 0.2; 
-			
-			this.sx += x_force * GSPEED;
-			this.sy += y_force * GSPEED;
-			
-			this._tilt = sdWorld.MorphWithTimeScale( this._tilt, ( this.driver0.act_x ) * Math.PI / 4 * 100, 0.93, GSPEED );
-			
-			if ( this.driver0.act_x === 0 )
-			if ( Math.abs( this._tilt ) < 1 )
-			this._tilt = ( this._tilt > 0 ? 1 : -1 );
-	
-			if ( x_force !== 0 || y_force !== 0 )
-			this.PhysWakeUp();
+				let x_force = this.driver0.act_x / di * force;
+				let y_force = this.driver0.act_y / di * force; 
+
+				this.sx += x_force * GSPEED;
+				this.sy += y_force * GSPEED;
+
+				this._tilt = sdWorld.MorphWithTimeScale( this._tilt, ( this.driver0.act_x ) * Math.PI / 4 * 100, 0.93, GSPEED );
+
+				if ( this.driver0.act_x === 0 )
+				if ( Math.abs( this._tilt ) < 1 )
+				this._tilt = ( this._tilt > 0 ? 1 : -1 );
+
+				if ( x_force !== 0 || y_force !== 0 )
+				this.PhysWakeUp();
+			}
+			else
+			{
+				//this.matter = 0;
+
+				this.sy += sdWorld.gravity * GSPEED;
+
+				this._tilt = sdWorld.MorphWithTimeScale( this._tilt, 0, 0.93, GSPEED );
+				
+				if ( this.driver0._socket )
+				this.driver0._socket.SDServiceMessage( 'Vehicle is out of matter' );
+			}
 		}
 		else
 		{
@@ -378,12 +425,6 @@ class sdHover extends sdEntity
 
 					bullet_obj.sx *= 15;
 					bullet_obj.sy *= 15;
-					
-					if ( this.type !== 2 )
-					{
-						bullet_obj.sx += this.sx;
-						bullet_obj.sy += this.sy;
-					}
 
 					if ( this.type === 1 )
 					bullet_obj._damage = 23 * 2;
@@ -408,6 +449,15 @@ class sdHover extends sdEntity
 					bullet_obj._rail = true;
 					else
 					bullet_obj._rail = false;
+				
+				
+					
+					if ( !bullet_obj._rail )
+					{
+						bullet_obj.sx += this.sx;
+						bullet_obj.sy += this.sy;
+					}
+					
 
 					if ( this.type === 2 )
 					bullet_obj.explosion_radius = 7 * 1.5;
@@ -420,15 +470,33 @@ class sdHover extends sdEntity
 					bullet_obj._armor_penetration_level = bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ];
 					else
 					bullet_obj._armor_penetration_level = 0;
+				
+					let cost = sdGun.GetProjectileCost( bullet_obj, 1, 0 );
+					
+					if ( this.matter >= cost )
+					{
+						this.matter -= cost;
+						
+						sdEntity.entities.push( bullet_obj );
 
-					sdEntity.entities.push( bullet_obj );
+						if ( this.type === 2 )
+						this._bullets_reload = 2;
+						else
+						this._bullets_reload = 1.5;
 
-					if ( this.type === 2 )
-					this._bullets_reload = 2;
+						this._bullets--;
+					}
 					else
-					this._bullets_reload = 1.5;
-
-					this._bullets--;
+					{
+						bullet_obj.onRemoveAsFakeEntity();
+						bullet_obj._remove();
+						
+						if ( this.driver1._socket )
+						this.driver1._socket.SDServiceMessage( 'Out of matter' );
+					
+						sdSound.PlaySound({ name:'hover_lowhp', x:this.x, y:this.y, volume:1 });
+						this._bullets_reload = 30;
+					}
 				}
 
 				if ( this._bullets <= 0 || ( this._bullets < 300 && this.driver1._key_states.GetKey( 'KeyR' ) ) )
@@ -522,17 +590,35 @@ class sdHover extends sdEntity
 					else
 					bullet_obj._armor_penetration_level = 0;
 
-					sdEntity.entities.push( bullet_obj );
+					let cost = sdGun.GetProjectileCost( bullet_obj, 1, 0 );
+					
+					if ( this.matter >= cost )
+					{
+						this.matter -= cost;
+						
+						sdEntity.entities.push( bullet_obj );
 
-					if ( this.type === 2 )
-					this._rockets_reload = 50;
-					else
-					if ( this.type === 1 )
-					this._rockets_reload = 3;
-					else
-					this._rockets_reload = 5;
+						if ( this.type === 2 )
+						this._rockets_reload = 50;
+						else
+						if ( this.type === 1 )
+						this._rockets_reload = 3;
+						else
+						this._rockets_reload = 5;
 
-					this._rockets--;
+						this._rockets--;
+					}
+					else
+					{
+						bullet_obj.onRemoveAsFakeEntity();
+						bullet_obj._remove();
+						
+						if ( this.driver2._socket )
+						this.driver2._socket.SDServiceMessage( 'Out of matter' );
+					
+						sdSound.PlaySound({ name:'hover_lowhp', x:this.x, y:this.y, volume:1 });
+						this._bullets_reload = 30;
+					}
 				}
 
 				if ( this._rockets <= 0 || ( this._rockets < 2 && this.driver2._key_states.GetKey( 'KeyR' ) ) )
@@ -571,10 +657,13 @@ class sdHover extends sdEntity
 		let w = 40;
 	
 		ctx.fillStyle = '#000000';
-		ctx.fillRect( 0 - w / 2, 0 - 20, w, 3 );
+		ctx.fillRect( 0 - w / 2, 0 - 20, w, 5 );
 
 		ctx.fillStyle = '#FF0000';
 		ctx.fillRect( 1 - w / 2, 1 - 20, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
+
+		ctx.fillStyle = '#00ffff';
+		ctx.fillRect( 1 - w / 2, 1 - 20 + 2, ( w - 2 ) * Math.max( 0, this.matter / this.matter_max ), 1 );
 	}
 	Draw( ctx, attached )
 	{
@@ -624,17 +713,27 @@ class sdHover extends sdEntity
 		
 		ctx.filter = this.filter;
 		
+		let can_boost = !!this.driver0;
+		
+		if ( !sdShop.isDrawing )
+		if ( this.matter <= 1 )
+		if ( this.hea > 0 )
+		{
+			ctx.filter += 'brightness(0.1)';
+			can_boost = false;
+		}
+		
 		if ( this.hea > 0 )
 		{
 			if ( this.type === 1 )
 			//xx = Math.min( ( this.driver0 ) ? 1 : 0 ),yy = 1;
-			ctx.drawImageFilterCache( this.driver0 ? sdHover.img_f_hover_boost : sdHover.img_f_hover, - 32, - 16, 64,32 );
+			ctx.drawImageFilterCache( can_boost ? sdHover.img_f_hover_boost : sdHover.img_f_hover, - 32, - 16, 64,32 );
 			else
 			if ( this.type === 2 )
-			ctx.drawImageFilterCache( this.driver2 ? sdHover.img_tank_hover_driver2 : this.driver0 ? sdHover.img_tank_hover_boost : sdHover.img_tank_hover, - 32, - 16, 64,32 );
+			ctx.drawImageFilterCache( this.driver2 ? sdHover.img_tank_hover_driver2 : can_boost ? sdHover.img_tank_hover_boost : sdHover.img_tank_hover, - 32, - 16, 64,32 );
 			else
 			//xx = Math.min( ( this.driver0 ) ? 1 : 0 );
-			ctx.drawImageFilterCache( this.driver0 ? sdHover.img_hover_boost : sdHover.img_hover, - 32, - 16, 64,32 );
+			ctx.drawImageFilterCache( can_boost ? sdHover.img_hover_boost : sdHover.img_hover, - 32, - 16, 64,32 );
 	
 	        var i = 0;
 

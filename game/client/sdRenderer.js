@@ -99,7 +99,10 @@ class sdRenderer
 		//sdRenderer.lumes_cache = {};
 		//sdRenderer.lumes_cache_hashes = [];
 		//sdRenderer.lumes_cache_hash_i = 0;
-		sdRenderer.lumes_weak_cache = new WeakMap();
+		//sdRenderer.lumes_weak_cache = new WeakMap();
+		
+		sdRenderer.known_light_sources_previous = [];
+		sdRenderer.known_light_sources = []; // Array of entities
 		
 		if ( typeof window !== 'undefined' )
 		{
@@ -561,6 +564,12 @@ class sdRenderer
 		}
 	}
 	
+	static SaveLightSource( ent )
+	{
+		if ( sdRenderer.known_light_sources.indexOf( ent ) === -1 )
+		sdRenderer.known_light_sources.push( ent );
+	}
+	
 	static InitVisuals()
 	{
 		if ( sdRenderer.visual_settings !== 4 )
@@ -676,6 +685,9 @@ class sdRenderer
 			
 		let ms_since_last_render = sdRenderer.last_render - sdWorld.time;
 		sdRenderer.last_render = sdWorld.time;
+		
+		sdRenderer.known_light_sources_previous = sdRenderer.known_light_sources.slice();
+		sdRenderer.known_light_sources.length = 0;
 		
 		var ctx = sdRenderer.ctx;
 		
@@ -1152,6 +1164,9 @@ class sdRenderer
 
 						// TODO: Add bounds check, thought that is maybe pointless if server won't tell offscreen info
 						e.DrawBG( ctx, false );
+						
+						if ( !ctx.apply_shading )
+						sdRenderer.SaveLightSource( e );
 					}
 					catch( err )
 					{
@@ -1195,6 +1210,9 @@ class sdRenderer
 						ctx.translate( e.x, e.y );
 
 						e.Draw( ctx, false );
+						
+						if ( !ctx.apply_shading )
+						sdRenderer.SaveLightSource( e );
 					}
 					catch( err )
 					{
@@ -1265,6 +1283,9 @@ class sdRenderer
 
 							// TODO: Add bounds check, thought that is maybe pointless if server won't tell offscreen info
 							e.DrawFG( ctx, false );
+						
+							//if ( !ctx.apply_shading )
+							//sdRenderer.SaveLightSource( e );
 						}
 						catch( err )
 						{

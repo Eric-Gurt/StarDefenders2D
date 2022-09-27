@@ -1,4 +1,8 @@
+/*
 
+	TODO: It probably makes no sense to have this as separate entity. Could be mergen with sdHover at some point.
+
+*/
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';

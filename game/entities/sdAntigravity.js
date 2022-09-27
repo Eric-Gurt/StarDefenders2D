@@ -15,7 +15,7 @@ class sdAntigravity extends sdEntity
 {
 	static init_class()
 	{
-		sdAntigravity.img_antigravity = sdWorld.CreateImageFromFile( 'antigravity' );
+		sdAntigravity.img_antigravity = sdWorld.CreateImageFromFile( 'sdAntigravity' );
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -60,6 +60,9 @@ class sdAntigravity extends sdEntity
 		
 		this.power = 1;
 		
+		this.matter = 0;
+		this._matter_max = 20;
+		
 		//this._update_version++
 	}
 	MeasureMatterCost()
@@ -83,6 +86,7 @@ class sdAntigravity extends sdEntity
 		var non_recursive = new WeakSet();
 		
 		if ( this.power !== 0 )
+		if ( this.matter > 0 )
 		for ( var t = 0; t < 2; t++ )
 		{
 			var x1 = this.x + this._hitbox_x1 + ( this._hitbox_x2 - this._hitbox_x1 ) / 2 * t;
@@ -93,96 +97,65 @@ class sdAntigravity extends sdEntity
 			
 			var max_h = this.power === -1 ? 3 : 16;
 		
-			//var non_recursive = new Map();
-			
-			//var worked_out_arrs = [];
-		
-			//progress_loop:
 			for ( var s = 0; s < max_h; s++ )
 			{
-				//if ( Math.random() < 0.01 )
-				//sdWorld.SendEffect({ x:x1+(x2-x1)*Math.random(), y:y1+(y2-y1)*Math.random(), type:sdEffect.TYPE_WALL_HIT });
-								
-				//var arr = sdWorld.RequireHashPosition( x, y );
-				
-				/*var xx_from = ~~( x1 / 32 ); // Overshoot no longer needed, due to big entities now taking all needed hash arrays
-				var yy_from = ~~( y1 / 32 );
-				var xx_to = ~~( x2 / 32 );
-				var yy_to = ~~( y2 / 32 );*/
-				
-				/*var xx_from = Math.floor( x1 / 32 ); // Overshoot no longer needed, due to big entities now taking all needed hash arrays
-				var yy_from = Math.floor( y1 / 32 );
-				var xx_to = Math.floor( x2 / 32 );
-				var yy_to = Math.floor( y2 / 32 );*/
-				
-
 				let xx_from = sdWorld.FastFloor( x1 / 32 );
 				let yy_from = sdWorld.FastFloor( y1 / 32 );
 				let xx_to = sdWorld.FastCeil( x2 / 32 );
 				let yy_to = sdWorld.FastCeil( y2 / 32 );
 				
-				//for ( var xx = xx_from; xx <= xx_to; xx++ )
-				//for ( var yy = yy_from; yy <= yy_to; yy++ )
 				for ( var xx = xx_from; xx < xx_to; xx++ )
 				for ( var yy = yy_from; yy < yy_to; yy++ )
 				{
 					var arr = sdWorld.RequireHashPosition( xx * 32, yy * 32 );
 					
-					//if ( worked_out_arrs.indexOf( arr ) === -1 )
+					for ( var i = 0; i < arr.length; i++ )
+					if ( !arr[ i ]._is_being_removed )
+					if ( arr[ i ].IsBGEntity() === 0 && ( typeof arr[ i ].sy !== 'undefined' || arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) ) ) // Faster?
+					if ( !non_recursive.has( arr[ i ] ) )
 					{
-						//worked_out_arrs.push( arr );
-
-						for ( var i = 0; i < arr.length; i++ )
-						if ( !arr[ i ]._is_being_removed )
-						//if ( !arr[ i ].is_static || arr[ i ] instanceof sdBlock || arr[ i ] instanceof sdDoor )
-						//if ( !arr[ i ].is_static || arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) )
-						if ( arr[ i ].IsBGEntity() === 0 && ( typeof arr[ i ].sy !== 'undefined' || arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) ) ) // Faster?
-						//if ( !non_recursive.has( arr[ i ]._net_id ) )
-						if ( !non_recursive.has( arr[ i ] ) )
+						if ( x2 > arr[ i ].x + arr[ i ]._hitbox_x1 )
+						if ( x1 < arr[ i ].x + arr[ i ]._hitbox_x2 )
+						if ( y2 > arr[ i ].y + arr[ i ]._hitbox_y1 )
+						if ( y1 < arr[ i ].y + arr[ i ]._hitbox_y2 )
 						{
-							if ( x2 > arr[ i ].x + arr[ i ]._hitbox_x1 )
-							if ( x1 < arr[ i ].x + arr[ i ]._hitbox_x2 )
-							if ( y2 > arr[ i ].y + arr[ i ]._hitbox_y1 )
-							if ( y1 < arr[ i ].y + arr[ i ]._hitbox_y2 )
+							if ( arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) )
 							{
-								//if ( arr[ i ] instanceof sdBlock || arr[ i ] instanceof sdDoor )
-								if ( arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) )
-								{
-									max_h = 0; // Stop elevation
+								max_h = 0; // Stop elevation
 
-									//if ( Math.random() < 0.01 )
-									//sdWorld.SendEffect({ x:x1+(x2-x1)*Math.round(Math.random()), y:y1+(y2-y1)*Math.round(Math.random()), type:sdEffect.TYPE_WALL_HIT });
-								}
-								else
+								//if ( Math.random() < 0.01 )
+								//sdWorld.SendEffect({ x:x1+(x2-x1)*Math.round(Math.random()), y:y1+(y2-y1)*Math.round(Math.random()), type:sdEffect.TYPE_WALL_HIT });
+							}
+							else
+							{
+								non_recursive.add( arr[ i ] );
+
+								let mass_capped = Math.min( arr[ i ].mass, 80 ); // Anti-tank raiding (tank would damage walls its' being pushed into, without any damage to tank itself)
+
+								let matter_cost = mass_capped * 0.0001 * Math.max( 1, this.power ) * GSPEED;
+								
+								if ( this.matter > matter_cost )
 								{
-									//non_recursive.set( arr[ i ]._net_id, 1 );
-									non_recursive.add( arr[ i ] );
+									this.matter -= matter_cost;
 
 									if ( Math.abs( arr[ i ].x - this.x ) < 16 )
 									{
-										//arr[ i ].sy -= GSPEED * sdWorld.gravity * 0.9;
-
-										//if ( arr[ i ].GetClass() === 'sdCharacter' )
-										//if ( arr[ i ] instanceof sdCharacter )
 										if ( arr[ i ].is( sdCharacter ) )
 										{
 											if ( sdWorld.is_server )
 											{
 												let old_sy = arr[ i ].sy;
-												
+
 												if ( this.power === -1 )
 												arr[ i ].sy = sdWorld.MorphWithTimeScale( arr[ i ].sy, 0, 0.75, GSPEED );
 												else
-												arr[ i ].Impulse( 0, - ( GSPEED * sdWorld.gravity * 0.9 * this.power ) * arr[ i ].mass );
-												//arr[ i ].sy -= GSPEED * sdWorld.gravity * 0.9 * this.power;
+												arr[ i ].Impulse( 0, - ( GSPEED * sdWorld.gravity * 0.9 * this.power ) * mass_capped );
 
 												if ( arr[ i ].hea > 0 )
 												{
 													if ( this.power !== -1 )
-													arr[ i ].Impulse( 0, ( GSPEED * arr[ i ].act_y * 0.1 ) * arr[ i ].mass );
-													//arr[ i ].sy += GSPEED * arr[ i ].act_y * 0.1;
+													arr[ i ].Impulse( 0, ( GSPEED * arr[ i ].act_y * 0.1 ) * mass_capped );
 													else
-													//if ( this.power === -1 )
 													arr[ i ].ApplyServerSidePositionAndVelocity( false, 0, arr[ i ].sy - old_sy ); // It happens as part of .Impulse now
 												}
 											}
@@ -193,14 +166,14 @@ class sdAntigravity extends sdEntity
 											arr[ i ].sy = sdWorld.MorphWithTimeScale( arr[ i ].sy, 0, 0.75, GSPEED );
 											else
 											{
-												//if ( arr[ i ].sy > -16 * GSPEED ) // Prevent speeds higher than wall tolerance
-												//arr[ i ].sy -= GSPEED * sdWorld.gravity * 0.9 * this.power;
-												
-												arr[ i ].Impulse( 0, - ( GSPEED * sdWorld.gravity * 0.9 * this.power ) * arr[ i ].mass );
-												//arr[ i ].SafeAddVelocity( 0, -GSPEED * sdWorld.gravity * 0.9 * this.power );
+												arr[ i ].Impulse( 0, - ( GSPEED * sdWorld.gravity * 0.9 * this.power ) * mass_capped );
 											}
 										}
 									}
+								}
+								else
+								{
+									this.matter = 0;
 								}
 							}
 						}
@@ -211,71 +184,61 @@ class sdAntigravity extends sdEntity
 				y2 -= 16;
 			}
 		}
-		
-		
-		
-		/*
-		var x = this.x;
-		var y = this.y;
-		let non_recursive = [];
-		for ( var xx = -2; xx <= 2; xx++ )
-		for ( var yy = -12; yy <= 2; yy++ )
-		{
-			var arr = sdWorld.RequireHashPosition( x + xx * 32, y + yy * 32 );
-			for ( var i = 0; i < arr.length; i++ )
-			if ( arr[ i ] !== this )
-			if ( Math.abs( arr[ i ].x - this.x ) < 16 )
-			if ( arr[ i ].y < this.y )
-			if ( !arr[ i ].is_static )
-			{
-				if ( non_recursive.indexOf( arr[ i ] ) === -1 )
-				{
-					non_recursive.push( arr[ i ] );
-					if ( sdWorld.CheckLineOfSight( this.x, this.y, arr[ i ].x, arr[ i ].y, this, null, [ 'sdBlock' ] ) )
-					{
-						//if ( sdWorld.inDist2D( arr[ i ].x, arr[ i ].y, x, y, 30 ) >= 0 )
-						{
-							arr[ i ].sy -= GSPEED * sdWorld.gravity * 0.9;
-
-							if ( arr[ i ].GetClass() === 'sdCharacter' )
-							{
-								if ( arr[ i ].hea > 0 )
-								arr[ i ].sy += GSPEED * arr[ i ].act_y * 0.1;
-							}
-						}
-					}
-				}
-			}
-		}*/
+				
+		if ( this._hea >= this._hmax )
+		if ( this.matter <= 0 || this.power === 0 )
+		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+	}
+	
+	onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
+	{
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 	}
 	get title()
 	{
+		if ( this.matter > 0 )
 		return 'Antigravity field';
+	
+		return 'Antigravity field ( no matter )';
 	}
 	Draw( ctx, attached )
 	{
 		ctx.apply_shading = false;
 		
-		ctx.drawImageFilterCache( sdAntigravity.img_antigravity, -16, -16, 32,32 );
-
-        let repeat = 400;
+		let frame = 0;
 		
-		for ( let i = 0; i < 3; i++ )
+		if ( this.matter > 0 || sdShop.isDrawing )
+		frame = 0;
+		else
+		if ( sdWorld.time % 4000 < 2000 )
+		frame = 1;
+		else
+		frame = 2;
+	
+		ctx.drawImageFilterCache( sdAntigravity.img_antigravity, 0,frame*32,32,32, -16, -16, 32,32 );
+		
+		if ( frame === 0 )
 		{
-			let prog;
-			
-			if ( this.power >= 0 )
-			prog = ( ( sdWorld.time * this.power + i * repeat / 3 ) % repeat ) / repeat;
-			else
-			prog = 1 - ( ( sdWorld.time * 0.1 + i * repeat / 3 ) % repeat ) / repeat;
+			let repeat = 400;
 
-			prog *= prog;
+			for ( let i = 0; i < 3; i++ )
+			{
+				let prog;
 
-			prog = Math.round( prog * 40 ) / 40;
+				if ( this.power >= 0 )
+				prog = ( ( sdWorld.time * this.power + i * repeat / 3 ) % repeat ) / repeat;
+				else
+				prog = 1 - ( ( sdWorld.time * 0.1 + i * repeat / 3 ) % repeat ) / repeat;
 
-			ctx.globalAlpha = ( 1 - prog ) * 0.4 * Math.abs( this.power );
-			ctx.fillStyle = '#ffffff';
-			ctx.fillRect( -10 + prog * 2, -5 - prog * 20, 20 - prog * 4, 1 );
+				prog *= prog;
+
+				prog = Math.round( prog * 40 ) / 40;
+
+				ctx.globalAlpha = ( 1 - prog ) * 0.4 * Math.abs( this.power );
+				ctx.fillStyle = '#ffffff';
+				ctx.fillRect( -10 + prog * 2, -5 - prog * 20, 20 - prog * 4, 1 );
+			}
+
 		}
 
         ctx.globalAlpha = 1;
@@ -320,7 +283,7 @@ class sdAntigravity extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		{
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 46 ) )
 			{
 				if ( command_name === 'SETPOWER' )
 				{
@@ -346,7 +309,7 @@ class sdAntigravity extends sdEntity
 		if ( this._hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 46 ) )
 		{
 			if ( sdWorld.my_entity )
 			{

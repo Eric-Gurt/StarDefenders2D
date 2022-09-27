@@ -351,6 +351,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter2, texture_id: sdBG.TEXTURE_STRIPES, _category:'Background walls' });
 		}
 		
+		
+		sdShop.options.push({ _class: 'sdBG', width: 16, height: 16, filter: filter, texture_id: sdBG.TEXTURE_GLOWING, _category:'Background walls' });
 		//sdShop.options.push({ _class: 'sdWater' });
 		
 		for ( var i = 0; i < sdGun.classes.length; i++ )
@@ -578,6 +580,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCube', kind:1, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', kind:2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', kind:3, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCube', kind:4, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCube', kind:5, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_LAVA, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_WATER, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_ACID, _category:'Development tests' });

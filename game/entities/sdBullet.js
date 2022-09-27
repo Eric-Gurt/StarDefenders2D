@@ -19,6 +19,7 @@ import sdLifeBox from './sdLifeBox.js';
 import sdTurret from './sdTurret.js';
 import sdCrystal from './sdCrystal.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdBloodDecal from './sdBloodDecal.js';
 
 class sdBullet extends sdEntity
 {
@@ -195,16 +196,18 @@ class sdBullet extends sdEntity
 	}
 	onRemove()
 	{
-		if ( this._rail_circled )
-		sdWorld.SendEffect({ x:this._start_x, y:this._start_y, x2:this.x, y2:this.y, type:sdEffect.TYPE_BEAM_CIRCLED, color:this.color });
-		else
-		if ( this._rail )
-		sdWorld.SendEffect({ x:this._start_x, y:this._start_y, x2:this.x, y2:this.y, type:sdEffect.TYPE_BEAM, color:this.color });
-	
-	
 		if ( this._custom_detonation_logic )
 		this._custom_detonation_logic( this );
 	
+		if ( this.color !== 'transparent' )
+		{
+			if ( this._rail_circled )
+			sdWorld.SendEffect({ x:this._start_x, y:this._start_y, x2:this.x, y2:this.y, type:sdEffect.TYPE_BEAM_CIRCLED, color:this.color });
+			else
+			if ( this._rail )
+			sdWorld.SendEffect({ x:this._start_x, y:this._start_y, x2:this.x, y2:this.y, type:sdEffect.TYPE_BEAM, color:this.color });
+		}
+		
 		if ( this.explosion_radius > 0 )
 		sdWorld.SendEffect({ 
 			x:this.x, 
@@ -732,7 +735,10 @@ class sdBullet extends sdEntity
 				else
 				//if ( typeof from_entity.hea !== 'undefined' || typeof from_entity._hea !== 'undefined' || ( this._bg_shooter && !this._bouncy && from_entity.GetClass() === 'sdBG' ) || ( this._admin_picker && ( this._bg_shooter || from_entity.GetClass() !== 'sdBG' ) ) )
 				//if ( typeof from_entity.hea !== 'undefined' || typeof from_entity._hea !== 'undefined' || ( this._bg_shooter && !this._bouncy && from_entity.IsBGEntity() === 1 ) || ( this._admin_picker && ( this._bg_shooter || from_entity.IsBGEntity() !== 1 ) ) )
-				if ( ( from_entity.IsBGEntity() === 0 && ( typeof from_entity.hea !== 'undefined' || typeof from_entity._hea !== 'undefined' ) ) || ( this._bg_shooter && !this._bouncy && from_entity.IsBGEntity() === 1 ) || ( this._admin_picker && ( this._bg_shooter || from_entity.IsBGEntity() !== 1 ) ) )
+				if ( 
+						( from_entity.IsBGEntity() === 0 && ( typeof from_entity.hea !== 'undefined' || typeof from_entity._hea !== 'undefined' ) ) || 
+						( this._bg_shooter && !this._bouncy && from_entity.IsBGEntity() === 1 ) || 
+						( this._admin_picker && ( this._bg_shooter || from_entity.IsBGEntity() !== 1 ) && from_entity.IsBGEntity() !== 8 ) ) // 8 is blood decal
 				if ( from_entity.IsTargetable( this, !this._hook ) ) // Ignore safe areas only if not a hook
 				{
 					let will_bounce = false;
@@ -986,7 +992,7 @@ class sdBullet extends sdEntity
 			ctx.fillRect( -0.5, -vel/2, 1, vel );
 		}
 		
-		ctx.apply_shading = true;
+		//ctx.apply_shading = true;
 	}
 }
 //sdBullet.init_class();

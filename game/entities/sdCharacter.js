@@ -2305,7 +2305,7 @@ class sdCharacter extends sdEntity
 					this._regen_timeout -= GSPEED;
 					if ( this._regen_timeout < 0 )
 					{
-						if ( this.matter > GSPEED )
+						if ( this.matter > GSPEED * 0.15 )
 						{
 							this.matter -= GSPEED * 0.15; // 0.3
 							this.DamageWithEffect( -GSPEED );
@@ -4064,8 +4064,7 @@ class sdCharacter extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		if ( this._inventory[ this.gun_slot ] )
-		if ( this._inventory[ this.gun_slot ].muzzle > 0 )
+		if ( ( this._inventory[ this.gun_slot ] && this._inventory[ this.gun_slot ].muzzle > 0 ) || this.flying )
 		ctx.apply_shading = false;
 		
 		if ( this.ghosting )

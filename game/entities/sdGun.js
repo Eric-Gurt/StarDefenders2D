@@ -594,20 +594,19 @@ class sdGun extends sdEntity
 		if ( sdGun.classes[ this.class ].GetAmmoCost )
 		return sdGun.classes[ this.class ].GetAmmoCost( this, shoot_from_scenario );
 	
-		let dmg_mult = 1;
+		//let dmg_mult = 1;
 		
-		/*if ( this._held_by )
-		if ( this._held_by.IsPlayerClass() )
-		{
-			dmg_mult *= this._held_by._damage_mult * ( this._held_by.power_ef > 0 ? 2.5 : 1 );
-		}*/
+		return sdGun.GetProjectileCost( projectile_properties, this._count, this._temperature_addition );
+	}
+	
+	static GetProjectileCost( projectile_properties, _count=1, _temperature_addition=0 )
+	{
+		let temperature_damage = Math.abs( _temperature_addition ) / 500 * 50;
 		
-		let temperature_damage = Math.abs( this._temperature_addition ) / 500 * 50;
+		if ( _temperature_addition < -50 )
+		temperature_damage = Math.abs( _temperature_addition ) / 100 * 50;
 		
-		if ( this._temperature_addition < -50 )
-		temperature_damage = Math.abs( this._temperature_addition ) / 100 * 50;
-		
-		return ( Math.abs( projectile_properties._damage * dmg_mult + temperature_damage ) * this._count + 
+		return ( Math.abs( projectile_properties._damage + temperature_damage ) * _count + 
 				( projectile_properties._rail ? 30 : 0 ) + 
 				( projectile_properties.explosion_radius > 0 ? 250 : 0 ) ) * sdWorld.damage_to_matter;
 	}
