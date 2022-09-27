@@ -1014,6 +1014,7 @@ class sdCharacter extends sdEntity
 			if ( t.matter >= t._matter_max ) // Fully charged
 			if ( t.matter >= tele_cost ) // Has enough matter for this kind of teleport out
 			if ( !t._is_being_removed )
+			if ( this.CanMoveWithoutOverlap( t.x, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, 0 ) )
 			{
 				let di = sdWorld.Dist2D( this.x, this.y, t.x, t.y );
 				if ( di < best_di )
