@@ -251,7 +251,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdCom', variation: 5, _category:'Base equipment', _min_build_tool_level:10 });
 		sdShop.options.push({ _class: 'sdCom', variation: 6, _category:'Base equipment', _min_build_tool_level:12 });
 		sdShop.options.push({ _class: 'sdCom', variation: 7, _category:'Base equipment', _min_build_tool_level:14 });
-		//sdShop.options.push({ _class: 'sdTeleport', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdTeleport', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdLamp', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdStorage', filter: 'saturate(0)', _category:'Base equipment' });
