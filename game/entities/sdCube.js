@@ -90,6 +90,26 @@ class sdCube extends sdEntity
 		return ( this.kind === sdCube.KIND_PINK || this.kind === sdCube.KIND_BLUE );
 	}*/
 	
+	static GetRandomKind()
+	{
+		let r = Math.random();
+		
+		if ( r < 0.1 )
+		return sdCube.KIND_YELLOW;
+		if ( r < 0.1 + 0.04 )
+		return sdCube.KIND_WHITE;
+		if ( r < 0.1 + 0.04 + 0.14 )
+		return sdCube.KIND_PINK;
+		if ( r < 0.1 + 0.04 + 0.14 + 0.1 )
+		return sdCube.KIND_GREEN;
+		if ( r < 0.1 + 0.04 + 0.14 + 0.1 + 0.1 ) // 0.48
+		return sdCube.KIND_BLUE;
+		
+		return sdCube.KIND_CYAN;
+		
+		return ~~( Math.random() * 6 );
+	}
+	
 	static GetMaxAllowedCubesOfKind( kind ) // kind of 0 will return total maximum number
 	{
 		if ( kind === 0 )
