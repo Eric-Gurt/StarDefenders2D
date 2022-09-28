@@ -174,10 +174,7 @@ class sdBomb extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		//return 0; // Hack
-		
-		return 300; // 3 bombs is enough to destroy sdCommandCentre, if they are planted around it.
-		//return this.hmax * sdWorld.damage_to_matter + 50;
+		return 200; // 300
 	}
 }
 //sdBomb.init_class();

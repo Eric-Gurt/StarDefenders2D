@@ -212,12 +212,21 @@ class sdBadDog extends sdEntity
 					this._retreat_hp_mult = Math.min( 1, this._retreat_hp_mult + 0.2 );
 
 					if ( this._retreat_hp_mult >= 1 )
-					if ( initiator && initiator.IsPlayerClass() )
 					{
-						this.master = initiator;
+						// Make dogs capture other dogs and set same master
+						if ( initiator && initiator.is( sdBadDog ) )
+						if ( initiator.master )
+						{
+							initiator = initiator.master;
+						}
 						
-						//this._current_target = null;
-						this.SetTarget( null );
+						if ( initiator && initiator.IsPlayerClass() )
+						{
+							this.master = initiator;
+
+							//this._current_target = null;
+							this.SetTarget( null );
+						}
 					}
 				}
 			}

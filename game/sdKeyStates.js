@@ -24,6 +24,7 @@ class sdKeyStates
 			KeyC: 0,
 			KeyZ: 0,
 			KeyV: 0,
+			KeyF: 0,
 			ShiftLeft: 0,
 			Digit1: 0,
 			Digit2: 0,

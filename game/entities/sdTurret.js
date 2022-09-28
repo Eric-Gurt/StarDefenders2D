@@ -57,7 +57,7 @@ class sdTurret extends sdEntity
 			sdQuickie, 
 			sdOctopus, 
 			sdCube, 
-			sdBomb, 
+			//sdBomb, 
 			sdAsp, 
 			sdSandWorm, 
 			sdSlug, 

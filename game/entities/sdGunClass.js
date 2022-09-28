@@ -3939,6 +3939,7 @@ class sdGunClass
 							if ( blood_decal_ent._bg.material !== sdBG.MATERIAL_GROUND )
 							if ( gun._held_by )
 							{
+								if ( Math.random() < 0.666 ) // Lower score reward rate by 33%
 								sdWorld.GiveScoreToPlayerEntity( sdEntity.SCORE_REWARD_SCORE_MOP, blood_decal_ent, true, gun._held_by );
 							}
 						}

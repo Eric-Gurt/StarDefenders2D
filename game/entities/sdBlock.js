@@ -34,10 +34,10 @@ class sdBlock extends sdEntity
 		sdBlock.img_lvl2_wall12 = sdWorld.CreateImageFromFile( 'wall_lvl2_1x2' );
 		sdBlock.img_lvl2_wall11 = sdWorld.CreateImageFromFile( 'wall_lvl2_1x1' );
 		sdBlock.img_lvl2_wall05 = sdWorld.CreateImageFromFile( 'wall_lvl2_half' );		
-		sdBlock.img_ice = sdWorld.CreateImageFromFile( 'wall_ice' );		
+		sdBlock.img_rock = sdWorld.CreateImageFromFile( 'wall_rock' );		
 
-		//sdBlock.img_snow_block = sdWorld.CreateImageFromFile( 'snow_wall' ); // Molis
-		sdBlock.img_snow_block = sdWorld.CreateImageFromFile( 'snow_wall2' ); // EG
+		//sdBlock.img_sand = sdWorld.CreateImageFromFile( 'snow_wall' ); // Molis
+		sdBlock.img_sand = sdWorld.CreateImageFromFile( 'wall_sand' ); // EG
 		
 		// Version 2, here we will create walls automatically, from Grid-9 sliceable sources (so we could make nearly infinite variety of walls that meet our needs)
 		//sdBlock.img_wall = sdWorld.CreateImageFromFile( 'wall' );
@@ -116,8 +116,10 @@ class sdBlock extends sdEntity
 		sdBlock.MATERIAL_CORRUPTION = 7;
 		sdBlock.MATERIAL_CRYSTAL_SHARDS = 8;
 		sdBlock.MATERIAL_FLESH = 9;
-		sdBlock.MATERIAL_ICE = 10;
-		sdBlock.MATERIAL_SNOW = 11;
+		//sdBlock.MATERIAL_ROCK = 10;
+		//sdBlock.MATERIAL_SAND = 11;
+		sdBlock.MATERIAL_ROCK = 10;
+		sdBlock.MATERIAL_SAND = 11;
 		
 		//sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
 		//sdBlock.img_ground44 = sdWorld.CreateImageFromFile( 'ground_4x4' );
@@ -713,6 +715,12 @@ class sdBlock extends sdEntity
 		
 		ent2._hmax = 480; // Fixed health values regardless how deep it is
 		ent2._hea = 480;
+		
+		if ( this._shielded )
+		{
+			this._shielded = null;
+			sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:2, pitch:0.5 });
+		}
 	}
 	GetBleedEffect()
 	{
@@ -828,9 +836,12 @@ class sdBlock extends sdEntity
 				
 					if ( ent )
 					{
-						if ( ent.material === sdBlock.MATERIAL_GROUND && this.p >= 1 )
+						//if ( ent.material === sdBlock.MATERIAL_GROUND && this.p >= 1 )
+						if ( ent._natural && ent.material !== sdBlock.MATERIAL_CORRUPTION && this.p >= 1 )
 						{
 							ent.Corrupt( this );
+							
+							corrupt_done = true;
 						}
 						else
 						{
@@ -840,7 +851,6 @@ class sdBlock extends sdEntity
 							if ( ent.material !== sdBlock.MATERIAL_CORRUPTION )
 							this.CorruptAttack( ent );
 						}
-						corrupt_done = true;
 						break;
 					}
 				}
@@ -882,6 +892,10 @@ class sdBlock extends sdEntity
 				
 					if ( ent )
 					{
+						if ( this.p >= 1 )
+						if ( ent.material !== sdBlock.MATERIAL_FLESH )
+						ent.Fleshify( this );
+						/*
 						if ( ent.material === sdBlock.MATERIAL_GROUND && this.p >= 1 )
 						{
 							ent.Fleshify( this );
@@ -890,7 +904,7 @@ class sdBlock extends sdEntity
 						{
 							if ( ent.material === sdBlock.MATERIAL_CRYSTAL_SHARDS && this.p >= 1 )
 							ent.Fleshify( this );
-						}
+						}*/
 						corrupt_done = true;
 						break;
 					}
@@ -1052,23 +1066,23 @@ class sdBlock extends sdEntity
 		//ctx.filter = 'hsl(120,100%,25%)';
 		
 		if ( this.material === sdBlock.MATERIAL_GROUND ||
-			 this.material === sdBlock.MATERIAL_ICE ||
-			 this.material === sdBlock.MATERIAL_SNOW ||
+			 this.material === sdBlock.MATERIAL_ROCK ||
+			 this.material === sdBlock.MATERIAL_SAND ||
 			 this.material === sdBlock.MATERIAL_CORRUPTION || 
 			 this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
 		{
 			let texture = sdBlock.img_ground88;
 			let texture_size = 256;
 			
-			if ( this.material === sdBlock.MATERIAL_ICE )
+			if ( this.material === sdBlock.MATERIAL_ROCK )
 			{
-				texture = sdBlock.img_ice;
+				texture = sdBlock.img_rock;
 				texture_size = 32;
 			}
 
-			if ( this.material === sdBlock.MATERIAL_SNOW )
+			if ( this.material === sdBlock.MATERIAL_SAND )
 			{
-				texture = sdBlock.img_snow_block;
+				texture = sdBlock.img_sand;
 				texture_size = 128;
 			}
 			
@@ -1093,6 +1107,8 @@ class sdBlock extends sdEntity
 			}
 			if ( this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
 			{
+				ctx.apply_shading = false;
+				
 				ctx.sd_hue_rotation = 0;
 				ctx.sd_color_mult_r = 1;
 				ctx.sd_color_mult_g = 1;

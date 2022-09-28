@@ -609,6 +609,10 @@ class sdCharacter extends sdEntity
 		this.reload_anim = 0;
 		this.pain_anim = 0;
 		this.death_anim = 0;
+		
+		this.flashlight = 0;
+		this.has_flashlight = 0;
+		this._last_f_state = 0;
 
 		this.act_x = 0;
 		this.act_y = 0;
@@ -1014,6 +1018,8 @@ class sdCharacter extends sdEntity
 			if ( t.matter >= t._matter_max ) // Fully charged
 			if ( t.matter >= tele_cost ) // Has enough matter for this kind of teleport out
 			if ( !t._is_being_removed )
+			//if ( this.CanMoveWithoutOverlap( t.x, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, 0 ) && sdWorld.CheckLineOfSight( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 12, this ) ) // Make sure it isn't blocked by anything
+			if ( sdWorld.CheckLineOfSight( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 12, t, null, sdCom.com_vision_blocking_classes ) ) // Could be better. Should allow cases of storages and crystals on top of RTP
 			{
 				let di = sdWorld.Dist2D( this.x, this.y, t.x, t.y );
 				if ( di < best_di )
@@ -2102,11 +2108,38 @@ class sdCharacter extends sdEntity
 			sdSound.PlaySound({ name:'ghost_stop', x:this.x, y:this.y, volume:1 });
 		}
 	}
+	ManagePlayerFlashLight()
+	{
+		let f_state = this._key_states.GetKey( 'KeyF' );
+
+		if ( this.hea > 0 && this._frozen <= 0 )
+		if ( f_state )
+		if ( f_state !== this._last_f_state )
+		{
+			if ( this.flashlight )
+			{
+				this.flashlight = 0;
+				
+				sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, volume:0.5, pitch:1.5 });
+			}
+			else
+			{
+				if ( this.has_flashlight )
+				{
+					this.flashlight = 1;
+					
+					sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, volume:0.5, pitch:2 });
+				}
+			}
+		}
+
+		this._last_f_state = f_state;
+	}
 	ManagePlayerVehicleEntrance()
 	{
 		let e_state = this._key_states.GetKey( 'KeyE' );
 
-		if ( this.hea > 0 )
+		if ( this.hea > 0 && this._frozen <= 0 )
 		if ( e_state )
 		if ( e_state !== this._last_e_state )
 		{
@@ -2985,8 +3018,6 @@ class sdCharacter extends sdEntity
 			if ( this._stands_on._hard_collision )
 			if ( this.x + this._hitbox_x1 <= this._stands_on.x + this._stands_on._hitbox_x2 )
 			if ( this.x + this._hitbox_x2 >= this._stands_on.x + this._stands_on._hitbox_x1 )
-			//if ( this.y + this._hitbox_y1 + 2 <= this._stands_on.y + this._stands_on._hitbox_y2 )
-			//if ( this.y + this._hitbox_y2 + 2 >= this._stands_on.y + this._stands_on._hitbox_y1 )
 			if ( this.y + this._hitbox_y1 <= this._stands_on.y + this._stands_on._hitbox_y2 )
 			if ( this.y + this._hitbox_y2 + 0.1 >= this._stands_on.y + this._stands_on._hitbox_y1 )
 			{
@@ -2995,21 +3026,29 @@ class sdCharacter extends sdEntity
 				still_stands = true;
 			}
 
-			//if ( still_stands || !this.CanMoveWithoutOverlap( this.x, this.y + ( this.UseServerCollisions() ? 2 : 3 ), 0 ) )
-			//if ( still_stands || !this.CanMoveWithoutOverlap( this.x, this.y + 2, 1 ) )
-			if ( still_stands || !this.CanMoveWithoutOverlap( this.x, this.y + 2, 0.0001 ) )
+			//if ( still_stands || !this.CanMoveWithoutOverlap( this.x, this.y + 2, 0.0001 ) )
+			if ( still_stands )//|| !this.CanMoveWithoutOverlap( this.x, this.y + 2, 0.0001 ) )
 			{
+				/*let new_hit = sdWorld.last_hit_entity;
+				
 				this.stands = true;
 				
-				if ( this._stands_on !== sdWorld.last_hit_entity )
-                this.Touches( sdWorld.last_hit_entity );
+				if ( this._stands_on !== new_hit )
+                this.Touches( this._stands_on );
 			
-				this._stands_on = sdWorld.last_hit_entity;
+				this._stands_on = new_hit;
+				
+				if ( this._stands_on )
+				if ( !this._in_water )
+				this.y = this._stands_on.y + this._stands_on._hitbox_y1 - this._hitbox_y2;
 
 				this._in_air_timer = 0;
 
 				if ( !old_stands ) // Less calls of cases of moving on top of same surface?
-				this.Touches( sdWorld.last_hit_entity );
+				this.Touches( new_hit );
+				*/
+				this.stands = true;
+				this._in_air_timer = 0;
 			}
 			else
 			{
@@ -3090,6 +3129,8 @@ class sdCharacter extends sdEntity
 	
 		//this.tilt += this.tilt_speed * GSPEED;
 		
+		
+		this.ManagePlayerFlashLight();
 		
 		this.ManagePlayerVehicleEntrance();
 		
@@ -3377,7 +3418,7 @@ class sdCharacter extends sdEntity
 		if ( this.driver_of && this.driver_of.VehicleHidesDrivers() )
 		this.PositionUpdateAsDriver();
 		else
-		this.ApplyVelocityAndCollisions( GSPEED, ( this.hea > 0 ) ? ( this.act_y !== 1 ? 10 : 3 ) : 0, ( this.hea <= 0 ) );
+		this.ApplyVelocityAndCollisions( GSPEED, this.GetStepHeight(), ( this.hea <= 0 ) );
 		/*
 		if ( sdWorld.last_hit_entity )
 		{
@@ -3403,6 +3444,17 @@ class sdCharacter extends sdEntity
 		{
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 		}
+	}
+	GetStepHeight()
+	{
+		return ( this.hea > 0 ) ? ( this.act_y !== 1 ? 10 : 3 ) : 0;
+	}
+	onThinkFrozen( GSPEED )
+	{
+		super.onThinkFrozen( GSPEED );
+		
+		if ( this._ragdoll )
+		this._ragdoll.ThinkFrozen( GSPEED );
 	}
 			
 	PositionUpdateAsDriver()
@@ -3589,7 +3641,24 @@ class sdCharacter extends sdEntity
 	onMovementInRange( from_entity )
 	{
 		//console.log( from_entity.GetClass(), from_entity.material, sdBlock.MATERIAL_SHARP, this.hea, sdWorld.is_server );
-			
+		
+		if ( from_entity.IsBGEntity() === this.IsBGEntity() )
+		if ( from_entity._hard_collision )
+		{
+			if ( this.y + this._hitbox_y2 >= from_entity.y + from_entity._hitbox_y1 - this.GetStepHeight() )
+			if ( this.x + this._hitbox_x2 > from_entity.x + from_entity._hitbox_x1 )
+			if ( this.x + this._hitbox_x1 < from_entity.x + from_entity._hitbox_x2 )
+			if ( this.GetIgnoredEntityClasses().indexOf( from_entity.GetClass() ) === -1 )
+			{
+				let remote_ignored = from_entity.GetIgnoredEntityClasses();
+				if ( remote_ignored === null || remote_ignored.indexOf( this.GetClass() ) === -1 )
+				{
+					this.stands = true;
+					this._stands_on = from_entity;
+				}
+			}
+		}
+		
 		if ( this.hea > 0 )
 		if ( sdWorld.is_server || from_entity.IsVehicle() )
 		{

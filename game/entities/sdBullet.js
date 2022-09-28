@@ -41,7 +41,8 @@ class sdBullet extends sdEntity
 			'transparent_proj':  sdWorld.CreateImageFromFile( 'transparent_proj' ),
 			'f_hover_rocket':  sdWorld.CreateImageFromFile( 'f_hover_rocket' ),
 			'ball_orange':  sdWorld.CreateImageFromFile( 'ball_orange' ),
-			'ab_tooth':  sdWorld.CreateImageFromFile( 'ab_tooth' )
+			'ab_tooth':  sdWorld.CreateImageFromFile( 'ab_tooth' ),
+			'bullet':  sdWorld.CreateImageFromFile( 'bullet' )
 		};
 		
 		sdBullet.images_with_smoke = 
@@ -103,6 +104,7 @@ class sdBullet extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		this.color = '#FFFF00';
+		this._sd_tint_filter = null;
 		
 		this._smoke_spawn_wish = 0;
 		
@@ -983,13 +985,44 @@ class sdBullet extends sdEntity
 		}
 		else
 		{
-			ctx.rotate( Math.atan2( this.sy, this.sx ) + Math.PI / 2 );
+			/*ctx.rotate( Math.atan2( this.sy, this.sx ) + Math.PI / 2 );
 		
 			let vel = Math.sqrt( this.sx * this.sx + this.sy * this.sy ) * 0.7;
 
 			ctx.fillStyle = this.color;
 			ctx.globalAlpha = 1;
-			ctx.fillRect( -0.5, -vel/2, 1, vel );
+			ctx.fillRect( -0.5, -vel/2, 1, vel );*/
+								
+			if ( this._sd_tint_filter === null )
+			{
+				this._sd_tint_filter = sdWorld.hexToRgb( this.color );
+				if ( this._sd_tint_filter )
+				{
+					this._sd_tint_filter[ 0 ] /= 255;
+					this._sd_tint_filter[ 1 ] /= 255;
+					this._sd_tint_filter[ 2 ] /= 255;
+					
+					this._sd_tint_filter[ 0 ] += 0.2;
+					this._sd_tint_filter[ 1 ] += 0.2;
+					this._sd_tint_filter[ 2 ] += 0.2;
+					
+					this._sd_tint_filter[ 0 ] *= 1.5;
+					this._sd_tint_filter[ 1 ] *= 1.5;
+					this._sd_tint_filter[ 2 ] *= 1.5;
+				}
+			}
+			
+			ctx.blend_mode = THREE.AdditiveBlending;
+			{
+				ctx.sd_tint_filter = this._sd_tint_filter;
+			
+				ctx.rotate( Math.atan2( this.sy, this.sx ) );
+				ctx.scale( 0.5, 0.5 );
+				ctx.drawImageFilterCache( sdBullet.images[ 'bullet' ], - 22, - 5, 44,10 );
+
+				ctx.sd_tint_filter = null;
+			}
+			ctx.blend_mode = THREE.NormalBlending;
 		}
 		
 		//ctx.apply_shading = true;

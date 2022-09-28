@@ -746,8 +746,26 @@ class sdCharacterRagdoll
 		
 	}
 	
+	ThinkFrozen( GSPEED )
+	{
+		let dx,dy;
+
+		dx = this.character.x + ( this.character._hitbox_x1 + this.character._hitbox_x2 ) / 2 - ( this.torso.x + this.chest.x ) / 2;
+		dy = this.character.y + ( this.character._hitbox_y1 + this.character._hitbox_y2 ) / 2 - ( this.torso.y + this.chest.y ) / 2;
+		
+		for ( let i = 0; i < this.bones.length; i++ )
+		{
+			this.bones[ i ].x += dx;
+			this.bones[ i ].y += dy;
+			this.bones[ i ].sx = this.character.sx;
+			this.bones[ i ].sy = this.character.sy;
+		}
+	}
 	Think( GSPEED )
 	{
+		if ( this.character._frozen > 0 )
+		debugger;
+		
 		if ( this.character.hea > 0 || this.last_char_hea > 0 )
 		for ( let i = 0; i < this.bones.length; i++ )
 		if ( this.bones[ i ]._soft_bone_of )

@@ -72,6 +72,8 @@ class sdTheatre extends sdEntity
 		
 		this.volume = 50;
 		
+		this.looping = 0;
+		
 		this._playing_since = 0;
 		this.playing_offset = 0;
 		
@@ -81,10 +83,10 @@ class sdTheatre extends sdEntity
 		//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false ); // 2nd parameter is important as it will prevent temporary entities from reacting to world entities around it (which can happen for example during item price measure - something like sdBlock can kill player-initiator and cause server crash)
 	}
 	
-	SyncedToPlayer( character ) // Shortcut for enemies to react to players
+	/*SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		this;
-	}
+	}*/
 
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -191,6 +193,15 @@ class sdTheatre extends sdEntity
 			{
 				globalThis.RequireYoutubePlayerAndDo( ( player )=>
 				{
+					if ( this.looping )
+					{
+						if ( this.playing_offset / 1000 > player.getDuration() )
+						{
+							//this.playing_offset / 1000 = this.playing_offset / 1000 % player.getDuration();
+							this.playing_offset = ( ( this.playing_offset / 1000 ) % player.getDuration() ) * 1000;
+						}
+					}
+					
 					if ( Math.abs( player.getCurrentTime() - this.playing_offset / 1000 ) > 1 )
 					if ( sdWorld.time > this._next_seek_allowed_in )
 					{
@@ -301,6 +312,11 @@ class sdTheatre extends sdEntity
 				this._playing_since = sdWorld.time;
 			}
 			
+			if ( command_name === 'LOOP' )
+			{
+				this.looping = 1 - this.looping;
+			}
+			
 			if ( command_name === 'SHIFT' )
 			if ( parameters_array.length === 1 )
 			{
@@ -340,6 +356,12 @@ class sdTheatre extends sdEntity
 			this.AddContextOption( 'Set volume to 25%', 'SET_VOLUME', [ 25 ] );
 			this.AddContextOption( 'Set volume to 12%', 'SET_VOLUME', [ 12 ] );
 			this.AddContextOption( 'Replay video', 'REPLAY', [] );
+			
+			if ( this.looping )
+			this.AddContextOption( 'Disable looping', 'LOOP', [] );
+			else
+			this.AddContextOption( 'Enable looping', 'LOOP', [] );
+			
 			this.AddContextOption( 'Go to 30 seconds in past', 'SHIFT', [ 1000 * 30 ] );
 			this.AddContextOption( 'Go to 30 seconds in future', 'SHIFT', [ -1000 * 10 ] );
 			this.AddPromptContextOption( 'Go to time', 'GO_TO_TIME', [ undefined ], 'Enter time, in number of minutes', '', 32 );

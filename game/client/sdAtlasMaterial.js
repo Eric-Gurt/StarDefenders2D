@@ -637,7 +637,7 @@ class sdSuperTexture
 				
 				let fast_recalc = false;
 				
-				//if ( rays < rays_total )
+				if ( rays < rays_total )
 				for ( let i2 = 0; i2 < sdRenderer.known_light_sources_previous.length; i2++ )
 				{
 					let e = sdRenderer.known_light_sources_previous[ i2 ];
@@ -661,6 +661,40 @@ class sdSuperTexture
 					}
 				}
 				
+				/*if ( rays < rays_total )
+				{
+					for ( let i = 0; i < sdCharacter.characters.length; i++ )
+					{
+						let char = sdCharacter.characters[ i ];
+						if ( char.hea > 0 )
+						{
+							let firstAngle = Math.atan2( char.look_x - char.x, char.look_y - char.y );
+							let secondAngle = Math.atan2( wx - char.x, wy - char.y );
+
+							let an = firstAngle - secondAngle;
+
+							if ( an > Math.PI )
+							an -= Math.PI * 2;
+
+							if ( an < -Math.PI )
+							an += Math.PI * 2;
+
+							an = Math.abs( an ) / 0.5;
+
+							if ( an < 1 )
+							{
+								let di = sdWorld.Dist2D_Vector( wx - char.x, wy - char.y );
+								
+								fast_recalc = true;
+
+								if ( di < 400 )
+								if ( sdWorld.CheckLineOfSight( char.x, char.y, wx, wy, null, null, sdCom.com_vision_blocking_classes ) )
+								rays = Math.min( rays_total, rays + rays_total * ( 1 - an ) * ( 1 - di / 400 ) );
+								//current_result = Math.max( current_result, 255 * ( 1 - an ) * ( 1 - di / 400 ) );
+							}
+						}
+					}
+				}*/
 				
 				
 				target_result *= ( rays / rays_total ) * 0.9 + 0.1;
@@ -751,6 +785,86 @@ class sdSuperTexture
 			{
 				current_result = sdAtlasMaterial.brightness_cache_buffer_dataView.getUint8( cache_slot + OFFSET_AVERAGE_RESULT );
 			}
+			
+			if ( current_result < 255 )
+			{
+				const soft_end = 32;
+				
+				for ( let i = 0; i < sdCharacter.characters.length; i++ )
+				{
+					let char = sdCharacter.characters[ i ];
+					if ( char.flashlight )
+					if ( char.hea > 0 )
+					{
+						let firstAngle = Math.atan2( char.look_x - char.x, char.look_y - char.y );
+						let secondAngle = Math.atan2( wx - char.x, wy - char.y );
+
+						let an = firstAngle - secondAngle;
+
+						if ( an > Math.PI )
+						an -= Math.PI * 2;
+
+						if ( an < -Math.PI )
+						an += Math.PI * 2;
+
+						an = Math.abs( an ) / 0.5;
+
+						if ( an < 1 )
+						{
+							let di = sdWorld.Dist2D_Vector( wx - char.x, wy - char.y );
+
+							if ( di < 400 )
+							{
+								let entity_cache = sdAtlasMaterial.quick_radial_traces_cache.get( char );
+								if ( entity_cache === undefined )
+								{
+									entity_cache = new Map();
+									sdAtlasMaterial.quick_radial_traces_cache.set( char, entity_cache );
+								}
+
+								let rounded_secondAngle = ~~( secondAngle * 150 );
+
+								let length = entity_cache.get( rounded_secondAngle );
+								if ( length === undefined )
+								{
+									let dx = wx - char.x;
+									let dy = wy - char.y;
+
+									//let di = sdWorld.Dist2D_Vector( dx, dy );
+
+									if ( di > 1 )
+									{
+										dx /= di;
+										dy /= di;
+									}
+
+									sdWorld.TraceRayPoint( char.x, char.y, char.x + dx * 400, char.y + dy * 400, null, null, null, sdWorld.FilterOnlyVisionBlocking );
+
+									length = sdWorld.Dist2D_Vector( sdWorld.reusable_closest_point.x - char.x, sdWorld.reusable_closest_point.y - char.y ) + soft_end;
+
+									entity_cache.set( rounded_secondAngle, length );
+								}
+
+								//if ( sdWorld.CheckLineOfSight( char.x, char.y, wx, wy, null, null, sdCom.com_vision_blocking_classes ) )
+								//if ( sdWorld.CheckLineOfSight( char.x, char.y, wx, wy, null, null, null, sdWorld.FilterOnlyVisionBlocking ) )
+								if ( di < length )
+								{
+									let mult = 255;
+
+									mult *= ( 1 - an );
+
+									mult *= ( 1 - di / 400 );
+
+									if ( di > length - soft_end )
+									mult *= 1 - ( di - ( length - soft_end ) ) / soft_end;
+
+									current_result = Math.min( 255, Math.max( current_result, mult ) );
+								}
+							}
+						}
+					}
+				}
+			}
 
 			current_result /= 255;
 			
@@ -840,7 +954,7 @@ class sdSuperTexture
 		let lt = this.GetVertex( x1,y1,z1, u1,v1, geometry,r,g,b,a, hue_rotation, wx1,wy1,cache_slot1 );
 		let rt = this.GetVertex( x2,y2,z2, u2,v2, geometry,r,g,b,a, hue_rotation, wx2,wy2,cache_slot2 );
 		let lb = this.GetVertex( x3,y3,z3, u3,v3, geometry,r,g,b,a, hue_rotation, wx3,wy3,cache_slot3 );
-		let rb = this.GetVertex( x4,y4,z4, u4,v4, geometry,r,g,b,a, hue_rotation, wx3,wy3,cache_slot4 );
+		let rb = this.GetVertex( x4,y4,z4, u4,v4, geometry,r,g,b,a, hue_rotation, wx4,wy4,cache_slot4 );
 	
 		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
 			lt
@@ -1057,6 +1171,7 @@ class sdAtlasMaterial
 		sdAtlasMaterial.brightness_cache_mult_x = 0;
 		sdAtlasMaterial.brightness_cache_mult_y = 0;
 		
+		sdAtlasMaterial.quick_radial_traces_cache = new Map(); // Map( entity => Map( secondAngle, length ) )
 		
 		/*sdAtlasMaterial.brightness_map_width = 26;
 		sdAtlasMaterial.brightness_map_height = 13;
@@ -1857,6 +1972,8 @@ class sdAtlasMaterial
 	static FrameStart()
 	{
 		//sdAtlasMaterial.brightness_map.clear();
+		
+		sdAtlasMaterial.quick_radial_traces_cache.clear();
 		
 		for ( let g = 0; g < sdAtlasMaterial.super_textures.length; g++ )
 		for ( let i = 0; i < sdAtlasMaterial.super_textures[ g ].length; i++ )
