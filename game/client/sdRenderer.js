@@ -910,6 +910,7 @@ class sdRenderer
 			{
 				let best_source = null;
 				let best_di = Infinity;
+				if ( sdWorld.my_entity )
 				for ( let i = 0; i < sdTheatre.theatres.length; i++ )
 				{
 					let e = sdTheatre.theatres[ i ];
@@ -1616,13 +1617,19 @@ class sdRenderer
 				let keySuggestions = []; // Such as enter fullscreen - F11, Invisibility - E, Drop weapon V
 				keySuggestions.push({ title: 'Fullscreen', key: 'F11' });
 				
+				if ( sdWorld.my_entity.hea > 0 )
 				keySuggestions.push({ title: 'Chat', key: 'Enter' });
 				
+				if ( sdWorld.my_entity.driver_of )
+				keySuggestions.push({ title: 'Leave vehicle', key: 'E' });
+				else
+				if ( sdWorld.my_entity._potential_vehicle )
 				keySuggestions.push({ title: 'Enter vehicle', key: 'E' });
 				
 				if ( sdWorld.my_entity._upgrade_counters.upgrade_invisibility )
 				keySuggestions.push({ title: 'Invisibility', key: 'E' });
 			
+				if ( sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ] )
 				keySuggestions.push({ title: 'Drop weapon', key: 'V' });
 				
 				if ( sdWorld.my_entity._upgrade_counters.upgrade_hook )
@@ -1636,7 +1643,15 @@ class sdRenderer
 				keySuggestions.push({ title: 'Zoom in/out', key: 'Z' });
 			
 				if ( sdWorld.my_entity.is( sdCharacter ) )
-				keySuggestions.push({ title: 'Fire mode', key: 'N' });
+				{
+					if ( sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ] )
+					keySuggestions.push({ title: 'Fire mode', key: 'N' });
+				}
+
+				if ( sdWorld.my_entity.has_flashlight )
+				keySuggestions.push({ title: 'Flashlight', key: 'F' });
+				//else
+				//keySuggestions.push({ title: 'Flashlight', key: '- no flashlight -' });
 			
 				for ( let i = 0; i < keySuggestions.length; i++ )
 				{

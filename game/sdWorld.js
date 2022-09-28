@@ -614,7 +614,7 @@ class sdWorld
 		var s2 = 0;
 		var s2_tot = 0;
 		
-		var s3 = 0;
+		var s3 = 0; // Used for random hitpoint variety
 		var s3_tot = 0;
 		
 		var s4 = 0;
@@ -667,21 +667,31 @@ class sdWorld
 	
 	
 		let material = sdBlock.MATERIAL_GROUND;
-		let f = 'hue-rotate('+( ~~sdWorld.mod( x / 16, 360 ) )+'deg)';
+		let f;// = 'hue-rotate('+( ~~sdWorld.mod( x / 16, 360 ) )+'deg)';
 		let hp_mult = 1;
 		
-		if ( s3 < 0.495 )
+		if ( s3 < 0.5 - 0.005 )
 		{
-			material = sdBlock.MATERIAL_ICE;
+			material = sdBlock.MATERIAL_ROCK;
 			hp_mult *= 1.5;
-			f = 'none';
+			//f = 'none';
 		}
-		if ( s4 < 0.495 )
+		else
+		if ( s3 > 0.5 + 0.005 )
 		{
-			material = sdBlock.MATERIAL_SNOW;
+			material = sdBlock.MATERIAL_SAND;
 			hp_mult *= 0.5;
-			f = 'none';
+			//f = 'none';
 		}
+		
+		/*if ( s4 < 0.495 )
+		{
+			//material = sdBlock.MATERIAL_SAND;
+			hp_mult *= 0.5;
+			//f = 'none';
+			f = 'saturate(0)';
+		}*/
+		f = 'hue-rotate('+( ~~sdWorld.mod( x / 16 + ( s4 - 0.5 ) * 1000, 360 ) )+'deg)';
 
 		if ( y > from_y + 256 )
 		{
@@ -788,7 +798,7 @@ class sdWorld
 			let plants = null;
 			let plants_objs = null;
 
-			if ( material === sdBlock.MATERIAL_GROUND )
+			//if ( material === sdBlock.MATERIAL_GROUND )
 			if ( !only_plantless_block )
 			if ( y === from_y )
 			if ( y <= sdWorld.base_ground_level )
@@ -826,7 +836,7 @@ class sdWorld
 										( Math.random() < 0.1 ) ? 'weak_ground' : null 
 									);
 							
-			if ( material === sdBlock.MATERIAL_ICE || material === sdBlock.MATERIAL_SNOW )
+			if ( material === sdBlock.MATERIAL_ROCK || material === sdBlock.MATERIAL_SAND )
 			{
 				if ( contains_class === 'sdWater.lava' )
 				contains_class = 'sdWater.water';
@@ -2847,6 +2857,10 @@ class sdWorld
 	
 		return false;
 	}*/
+	static FilterOnlyVisionBlocking( e )
+	{
+		return e.is( sdBlock ) || e.is( sdDoor );
+	}
 	static CheckLineOfSight( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null ) // sdWorld.last_hit_entity will be set if false, but not if world edge was met
 	{
 		var di = sdWorld.Dist2D( x1,y1,x2,y2 );

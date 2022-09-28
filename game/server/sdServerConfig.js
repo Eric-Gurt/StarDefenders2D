@@ -200,7 +200,7 @@ class sdServerConfigFull extends sdServerConfigShort
 				case 3: intro_to_speak.push( 'Hello.' ); break;
 			}
 			
-			switch ( ~~( Math.random() * 17 ) )
+			switch ( ~~( Math.random() * 18 ) )
 			{
 				case 0: intro_to_speak.push( ...[ 
 					'Try not to die, lol.' 
@@ -319,6 +319,16 @@ class sdServerConfigFull extends sdServerConfigShort
 				
 				case 16: intro_to_speak.push( ...[  
 					'Some creatures really want our matter.'
+				] ); break;
+				
+				case 17: intro_to_speak.push( ...[  
+					'When you will build your base - put Base Shielding Unit inside.',
+					'You can pick one out of two avaialable Base Shielding Units.',
+					'Green one consumes crystals and Blue one uses their matter.',
+					'Also put at least 3 big blocks for a walls.',
+					'It works better because of anti-crystals and plenty of other nasty things that could help someone in base raiding.',
+					'You also might want to put a Steering Wheel in order to prevent base moving from outside.',
+					'Good luck with a base!'
 				] ); break;
 				
 			}

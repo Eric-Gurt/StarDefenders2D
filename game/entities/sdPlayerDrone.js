@@ -97,6 +97,8 @@ class sdPlayerDrone extends sdCharacter
 		
 		this._beep_delay = 0;
 		this._beep_charge = 0;
+		
+		this.has_flashlight = 1;
 	}
 	
 	CanSelfDestruct()
@@ -251,6 +253,8 @@ class sdPlayerDrone extends sdCharacter
 		}
 		else
 		{
+			this.ManagePlayerFlashLight();
+			
 			this.ManagePlayerVehicleEntrance();
 			
 			if ( this._key_states.GetKey( 'KeyV' ) )

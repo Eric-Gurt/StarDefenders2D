@@ -242,7 +242,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: 'saturate(0)', _category:'Doors' });
 
 		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_GROUND, _category:'Walls' });
-		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_ICE, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_ROCK, _category:'Walls' });
 		sdShop.options.push({ _class: 'sdCom', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdCom', variation: 1, _category:'Base equipment', _min_build_tool_level:2 });
 		sdShop.options.push({ _class: 'sdCom', variation: 2, _category:'Base equipment', _min_build_tool_level:4 });
@@ -486,6 +486,16 @@ class sdShop
 					character._ghost_allowed = true;
 				}
 			},
+			upgrade_flashlight:
+			{
+				max_level: 1,
+				matter_cost: 50,
+				description: 'Allows you to better see in complete darkness.',
+				action: ( character, level_purchased )=>
+				{
+					character.has_flashlight = 1;
+				}
+			},
 			/*upgrade_coms:
 			{
 				max_level: 1,
@@ -654,7 +664,7 @@ class sdShop
 			//sdShop.options.push({ _class: 'sdSensorArea', _category:'Development tests' });
 			//sdShop.options.push({ _class: 'sdBloodDecal', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBG', width: 16, height: 8, _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SNOW, _category:'Development tests' }); // Currently does nothing for now, perhaps for more lore-related stuff in this game?
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SAND, _category:'Development tests' }); // Currently does nothing for now, perhaps for more lore-related stuff in this game?
 			sdShop.options.push({ _class: 'sdGib', class:sdGib.CLASS_VELOX_MECH_HEAD, _category:'Development tests' }); // Currently does nothing for now, perhaps for more lore-related stuff in this game?
 		}
 		

@@ -1469,7 +1469,7 @@ class sdEntity
 			if ( GSPEED > 0 )
 			trace('remaining GSPEED',GSPEED, this.sx, this.sy );
 		}*/
-		
+						
 		if ( !sdWorld.is_server )
 		if ( this !== sdWorld.my_entity )
 		{
@@ -3908,8 +3908,8 @@ class sdEntity
 			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1 ); // Extra fragility is buggy
 		}
 			
-		if ( this._ragdoll )
-		this._ragdoll.Think( GSPEED * 0.01 );
+		//if ( this._ragdoll )
+		//this._ragdoll.Think( GSPEED * 0.01 );
 	}
 	onRemove() // Class-specific, if needed. Can be overriden with onRemoveAsFakeEntity but only like this: ent.SetMethod( 'onRemove', ent.onRemoveAsFakeEntity ); ent.remove(); ent._remove();
 	{
