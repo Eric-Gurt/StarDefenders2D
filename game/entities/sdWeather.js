@@ -397,10 +397,10 @@ class sdWeather extends sdEntity
 				let cube = new sdCube({ 
 					x:sdWorld.world_bounds.x1 + 32 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 - 64 ), 
 					y:sdWorld.world_bounds.y1 + 32,
-					kind:   ( Math.random() < 0.1 ) ? 1 : 
+					kind:   sdCube.GetRandomKind()/*( Math.random() < 0.1 ) ? 1 : 
 							( Math.random() < 0.04 ) ? 2 : 
-							( Math.random() < 0.14 ) ? 3 : 
-							0 // _kind = 1 -> is_huge = true , _kind = 2 -> is_white = true , _kind = 3 -> is_pink = true
+							( Math.random() < 0.14 ) ? 3 :
+							0 */ // _kind = 1 -> is_huge = true , _kind = 2 -> is_white = true , _kind = 3 -> is_pink = true
 					/*kind:   ( sdCube.alive_huge_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 1 ) && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.1 ) ) ? 1 : 
 							( sdCube.alive_white_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 2 ) && ( sdCube.alive_cube_counter >= 2 && Math.random() < 0.04 ) ) ? 2 : 
 							( sdCube.alive_pink_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 3 ) && ( sdCube.alive_cube_counter >= 1 && Math.random() < 0.14 ) ) ? 3 : 
