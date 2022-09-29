@@ -316,6 +316,8 @@ class FakeCanvasContext
 		this.fillStyle = '#000000';
 		this.font = '14px Verdana';
 		this.textAlign = 'left';
+		this.lineWidth = 1;
+		this.strokeStyle = '#000000';
 		
 		this.hue_rotate = 0;
 		
