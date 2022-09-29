@@ -2949,7 +2949,7 @@ class sdWeather extends sdEntity
 				
 				if ( this._no_air_duration <= 0 )
 				this.air = 1;
-				
+				else
 				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Create the tasks
 				{
 					sdTask.MakeSureCharacterHasTask({ 

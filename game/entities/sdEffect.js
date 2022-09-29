@@ -573,7 +573,7 @@ class sdEffect extends sdEntity
 			}
 			else
 			{
-				if ( params.voice.variant !== 'silence' )
+				if ( params.voice.variant !== 'silence' && !sdWorld.mobile )
 				{
 					t = meSpeak.speak( spoken, {
 							amplitude: 100 * sdSound.volume_speech * sdSound.GetDistanceMultForPosition( this.x, this.y ),

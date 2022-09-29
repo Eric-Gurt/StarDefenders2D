@@ -510,11 +510,11 @@ class sdBadDog extends sdEntity
 						if ( this.turret_timer === 0 )
 						if ( this._current_target !== this.master )
 						{
+							let xx = this._current_target.x + ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2;
+							let yy = this._current_target.y + ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2;
+
 							if ( sdWorld.time > this._last_turret_attack_attempt + 200 )
 							{
-								let xx = this._current_target.x + ( this._current_target._hitbox_x1 + this._current_target._hitbox_x2 ) / 2;
-								let yy = this._current_target.y + ( this._current_target._hitbox_y1 + this._current_target._hitbox_y2 ) / 2;
-								
 								if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this, null, sdCom.com_creature_attack_unignored_classes ) )
 								{
 									//this.turret_timer = 10;
@@ -547,9 +547,9 @@ class sdBadDog extends sdEntity
 								else
 								this._last_turret_attack_attempt = sdWorld.time;
 							}
-						}
 							
-						this.turret_ang = ( Math.PI + Math.atan2( yy - this.y, xx - this.x ) ) * 360;
+							this.turret_ang = ( Math.PI + Math.atan2( yy - this.y, xx - this.x ) ) * 360;
+						}
 					}
 				}
 			}

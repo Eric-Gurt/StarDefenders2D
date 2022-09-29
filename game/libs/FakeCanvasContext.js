@@ -257,6 +257,7 @@ class FakeCanvasContext
 		
 		this.transform = new THREE.Matrix4();
 		this.save_stack = [];
+		//this.matrix3_stack = [];
 		
 		this.z_offset = 0;
 		this.z_depth = 0;
@@ -310,6 +311,21 @@ class FakeCanvasContext
 		this._vendor = this._debugInfo ? this._gl.getParameter( this._debugInfo.UNMASKED_VENDOR_WEBGL ) : null;
 		
 		this._matrix3 = new THREE.Matrix3();
+		
+		this.imageSmoothingEnabled = false;
+		this.fillStyle = '#000000';
+		this.font = '14px Verdana';
+		this.textAlign = 'left';
+		this.lineWidth = 1;
+		this.strokeStyle = '#000000';
+		
+		this.hue_rotate = 0;
+		
+		this.reusable_matrix3 = new THREE.Matrix3();
+		
+		sdRenderer.AddCacheDrawMethod( this );
+		
+		Object.seal( this );
 	}
 	
 	
@@ -680,7 +696,8 @@ class FakeCanvasContext
 	{
 		if ( sdRenderer.visual_settings === 4 )
 		{
-			let m = new THREE.Matrix3();
+			let m = this.reusable_matrix3;
+			m.identity();
 			
 			//x = Math.round( x * 100 ) / 100;
 			//y = Math.round( y * 100 ) / 100;
@@ -696,7 +713,8 @@ class FakeCanvasContext
 	{
 		if ( sdRenderer.visual_settings === 4 )
 		{
-			let m = new THREE.Matrix3();
+			let m = this.reusable_matrix3;
+			m.identity();
 			
 			//x = Math.round( x * 100 ) / 100;
 			//y = Math.round( y * 100 ) / 100;
@@ -712,7 +730,8 @@ class FakeCanvasContext
 	{
 		if ( sdRenderer.visual_settings === 4 )
 		{
-			let m = new THREE.Matrix3();
+			let m = this.reusable_matrix3;
+			m.identity();
 			
 			//a = Math.round( a * 10000 ) / 10000;
 			
@@ -726,7 +745,9 @@ class FakeCanvasContext
 	save()
 	{
 		if ( sdRenderer.visual_settings === 4 )
-		this.save_stack.push( [ this._matrix3.clone(), this.globalAlpha, this.apply_shading ] );
+		{
+			this.save_stack.push( [ this._matrix3.clone(), this.globalAlpha, this.apply_shading ] );
+		}
 		else
 		this.save_stack.push( [ this.transform.clone(), this.globalAlpha, this.apply_shading ] );
 	}
@@ -804,16 +825,18 @@ class FakeCanvasContext
 				scale_x = ( max_width_x - x ) / ( (text.length+1) * 7 * size );
 			}
 			
+			const character_images = sdAtlasMaterial.character_images;
+			const drawImage = sdAtlasMaterial.drawImage;
 			
 			for ( let i = 0; i < text.length; i++ )
 			{
 				let char = text.charCodeAt( i );
 				
-				let img = sdAtlasMaterial.character_images.get( char );
+				let img = character_images.get( char );
 				
 				if ( !img )
 				{
-					sdAtlasMaterial.character_images.set( char, img = sdAtlasMaterial.CreateImageForCharacter( char ) );
+					character_images.set( char, img = sdAtlasMaterial.CreateImageForCharacter( char ) );
 				}
 				
 				/*if ( x + (i+1) * 7 * size > max_width_x )
@@ -822,7 +845,8 @@ class FakeCanvasContext
 				}*/
 				
 				if ( img )
-				sdAtlasMaterial.drawImage( img, 0, 0, 7, 13, x + i * 7 * size * scale_x, y, 7 * size, 13 * size );
+				drawImage( img, 0, 0, 7, 13, x + i * 7 * size * scale_x, y, 7 * size, 13 * size );
+				//sdAtlasMaterial.drawImage( img, 0, 0, 7, 13, x + i * 7 * size * scale_x, y, 7 * size, 13 * size );
 			}
 			
 			this.volumetric_mode = old_mode;

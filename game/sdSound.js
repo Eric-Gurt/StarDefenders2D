@@ -221,82 +221,105 @@ class sdSound
 		let count_water_loop = 0;
 		let count_antigravity = 0;
 			
-		for ( var i = 0; i < sdEntity.entities.length; i++ )
+		for ( let i = 0; i < sdEntity.entities.length; i++ )
 		{
-			if ( !sdEntity.entities[ i ].is( sdCharacterRagdoll.sdBone ) )
-			if ( !sdEntity.entities[ i ].is( sdEffect ) )
+			const e = sdEntity.entities[ i ];
+			
+			if ( !sdWorld.is_server || sdWorld.inDist2D_Boolean( e.x, e.y, sdWorld.camera.x, sdWorld.camera.y, 1000 ) )
+			//if ( !e.is( sdCharacterRagdoll.sdBone ) )
+			//if ( !e.is( sdEffect ) )
+			switch ( e.GetClass() )
 			{
-				if ( sdEntity.entities[ i ].GetClass() === 'sdCharacter' )
+				//if ( e.GetClass() === 'sdCharacter' )
+				case 'sdCharacter':
 				{
-					if ( sdEntity.entities[ i ].flying )
-					count_flying += 1 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+					if ( e.flying )
+					count_flying += 1 * sdSound.GetDistanceMultForPosition( e.x, e.y );
 				}
-				else
-				if ( sdEntity.entities[ i ].GetClass() === 'sdHover' )
+				break;
+				//else
+				//if ( e.GetClass() === 'sdHover' )
+				case 'sdHover':
 				{
-					if ( sdEntity.entities[ i ].driver0 && sdEntity.entities[ i ].matter > 1 /*&& ( sdEntity.entities[ i ].driver0.act_x !== 0 || sdEntity.entities[ i ].driver0.act_y !== 0 )*/ )
-					count_hover_loop += 2 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+					if ( e.driver0 && e.matter > 1 /*&& ( e.driver0.act_x !== 0 || e.driver0.act_y !== 0 )*/ )
+					count_hover_loop += 2 * sdSound.GetDistanceMultForPosition( e.x, e.y );
 				}
-				else
-				if ( sdEntity.entities[ i ].GetClass() === 'sdThruster' )
+				break;
+				//else
+				//if ( e.GetClass() === 'sdThruster' )
+				case 'sdThruster':
 				{
-					if ( sdEntity.entities[ i ].enabled )
-					count_hover_loop += 1 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+					if ( e.enabled )
+					count_hover_loop += 1 * sdSound.GetDistanceMultForPosition( e.x, e.y );
 				}
-				else
-				if ( sdEntity.entities[ i ].GetClass() === 'sdMatterAmplifier' )
+				break;
+				//else
+				//if ( e.GetClass() === 'sdMatterAmplifier' )
+				case 'sdMatterAmplifier':
 				{
-					if ( sdEntity.entities[ i ].matter_max > 0 || sdEntity.entities[ i ].crystal )
-					count_amplifier_loop += 0.2 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+					if ( e.matter_max > 0 || e.crystal )
+					count_amplifier_loop += 0.2 * sdSound.GetDistanceMultForPosition( e.x, e.y );
 				}
-				else
-				if ( sdEntity.entities[ i ].GetClass() === 'sdAntigravity' )
+				break;
+				//else
+				//if ( e.GetClass() === 'sdAntigravity' )
+				case 'sdAntigravity':
 				{
-					if ( sdEntity.entities[ i ].power > 0 )
-					if ( sdEntity.entities[ i ].matter > 0 )
-					count_antigravity += 0.2 * sdEntity.entities[ i ].power * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+					if ( e.power > 0 )
+					if ( e.matter > 0 )
+					count_antigravity += 0.2 * e.power * sdSound.GetDistanceMultForPosition( e.x, e.y );
 				}
-				else
-				if ( sdEntity.entities[ i ].GetClass() === 'sdWater' )
+				break;
+				//else
+				//if ( e.GetClass() === 'sdWater' )
+				case 'sdWater':
 				{
-					if ( sdEntity.entities[ i ].type === sdWater.TYPE_ACID || sdEntity.entities[ i ].type === sdWater.TYPE_WATER )
+					if ( e.type === sdWater.TYPE_ACID || e.type === sdWater.TYPE_WATER )
 					{
-						count_water_loop += 0.002 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+						count_water_loop += 0.002 * sdSound.GetDistanceMultForPosition( e.x, e.y );
 					}
 					
-					if ( sdEntity.entities[ i ].type === sdWater.TYPE_LAVA )
+					if ( e.type === sdWater.TYPE_LAVA )
 					{
-						count_lava_loop += 0.02 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+						count_lava_loop += 0.02 * sdSound.GetDistanceMultForPosition( e.x, e.y );
 
-						for ( let e of sdEntity.entities[ i ]._swimmers )
-						if ( !e.isWaterDamageResistant() )
+						for ( let sw of e._swimmers )
+						if ( !sw.isWaterDamageResistant() )
 						{
-							count_lava_burn += 0.15 * 1 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+							count_lava_burn += 0.15 * 1 * sdSound.GetDistanceMultForPosition( sw.x, sw.y );
 						}
 					}
 				}
-				else
-				if ( sdEntity.entities[ i ].GetClass() === 'sdRift' )
+				break;
+				//else
+				//if ( e.GetClass() === 'sdRift' )
+				case 'sdRift':
 				{
-					count_rift_loop += 2.5 * sdEntity.entities[ i ].scale * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+					count_rift_loop += 2.5 * e.scale * sdSound.GetDistanceMultForPosition( e.x, e.y );
 				}
-				else
-				if ( sdEntity.entities[ i ].GetClass() === 'sdJunk' && sdEntity.entities[ i ].type === 3 )
+				break;
+				//else
+				//if ( e.GetClass() === 'sdJunk' && e.type === 3 )
+				case 'sdJunk':
 				{
-					count_anti_crystal_ambient += 1 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+					if ( e.type === 3 )
+					count_anti_crystal_ambient += 1 * sdSound.GetDistanceMultForPosition( e.x, e.y );
 				}
-				else
-				if ( sdEntity.entities[ i ].GetClass() === 'sdCrystal' )
+				break;
+				//else
+				//if ( e.GetClass() === 'sdCrystal' )
+				case 'sdCrystal':
 				{
-					if ( sdEntity.entities[ i ].type === sdCrystal.TYPE_CRYSTAL_BIG || sdEntity.entities[ i ].type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG)
+					if ( e.type === sdCrystal.TYPE_CRYSTAL_BIG || e.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG)
 					{
-						if ( sdEntity.entities[ i ].matter_max === sdCrystal.anticrystal_value * 4 )
-						count_anti_crystal_ambient += 0.1 * 4 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+						if ( e.matter_max === sdCrystal.anticrystal_value * 4 )
+						count_anti_crystal_ambient += 0.1 * 4 * sdSound.GetDistanceMultForPosition( e.x, e.y );
 					}
 					else
-					if ( sdEntity.entities[ i ].matter_max === sdCrystal.anticrystal_value )
-					count_anti_crystal_ambient += 0.1 * sdSound.GetDistanceMultForPosition( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y );
+					if ( e.matter_max === sdCrystal.anticrystal_value )
+					count_anti_crystal_ambient += 0.1 * sdSound.GetDistanceMultForPosition( e.x, e.y );
 				}
+				break;
 			}
 		}
 		

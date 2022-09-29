@@ -741,6 +741,7 @@ class sdCharacter extends sdEntity
 		this._anim_blink_next = sdWorld.time + 5000; // Better like this for main screen since it is recreated all the time
 		
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+		if ( this.is( sdCharacter ) ) // Prevent ragdoll spawn for drones and overlords
 		{
 			this._ragdoll = new sdCharacterRagdoll( this );
 			/*
@@ -3859,7 +3860,7 @@ class sdCharacter extends sdEntity
 							 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_DECAL )
 						{
 							ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT;
-							fake_ent.FigureOutBoxCapVisibilities();
+							fake_ent.FigureOutBoxCapVisibilities( sdRenderer.ctx.box_caps );
 						}
 					
 						ctx.object_offset = fake_ent.ObjectOffset3D( -1 );

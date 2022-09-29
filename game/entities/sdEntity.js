@@ -167,7 +167,7 @@ class sdEntity
 			this._box_cap_bottom = null;
 		}
 	}
-	FigureOutBoxCapVisibilities()
+	FigureOutBoxCapVisibilities( box_caps )
 	{
 		if ( this._box_cap_left )
 		{
@@ -243,7 +243,8 @@ class sdEntity
 				for ( let i = 0; i < arr.length; i++ )
 				{
 					let ent = arr[ i ];
-					if ( ent.GetClass() === this.GetClass() )
+					//if ( ent.GetClass() === this.GetClass() )
+					if ( ent._class_id === this._class_id )
 					if ( typeof ent.IsPartiallyTransparent === 'undefined' || ent.IsPartiallyTransparent() === this.IsPartiallyTransparent() )
 					{
 						if ( this.y + this._hitbox_y1 >= ent.y + ent._hitbox_y1 )
@@ -273,10 +274,10 @@ class sdEntity
 			
 		}
 		
-		sdRenderer.ctx.box_caps.top = !this._box_cap_top;
-		sdRenderer.ctx.box_caps.right = !this._box_cap_right;
-		sdRenderer.ctx.box_caps.bottom = !this._box_cap_bottom;
-		sdRenderer.ctx.box_caps.left = !this._box_cap_left;
+		box_caps.top = !this._box_cap_top;
+		box_caps.right = !this._box_cap_right;
+		box_caps.bottom = !this._box_cap_bottom;
+		box_caps.left = !this._box_cap_left;
 	}
 	
 	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG, return null or array of [x,y,z] offsets
