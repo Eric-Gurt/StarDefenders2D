@@ -834,7 +834,17 @@ class sdServerConfigFull extends sdServerConfigShort
 					x + character_entity._hitbox_x2 + 16, 
 					y + character_entity._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) ) )
 			// Dedicated first 40% of attempts to spawn somewhere where ground exists
-			if ( tr > max_tr * 0.4 || socket.command_centre || ( ground_ent !== null && ( ground_ent.is( sdBlock ) && ground_ent.material === sdBlock.MATERIAL_GROUND ) ) ) // Only spawn on ground (or near CC)
+			if ( tr > max_tr * 0.4 || 
+				 socket.command_centre || 
+				 ( ground_ent !== null && 
+					( ground_ent.is( sdBlock ) && 
+						( 
+							ground_ent.material === sdBlock.MATERIAL_GROUND || 
+							ground_ent.material === sdBlock.MATERIAL_ROCK || 
+							ground_ent.material === sdBlock.MATERIAL_SAND )
+					) 
+				) 
+			) // Only spawn on ground (or near CC)
 			{
 				character_entity.x = x;
 				character_entity.y = y;
