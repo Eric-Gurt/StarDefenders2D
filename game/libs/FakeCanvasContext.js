@@ -317,6 +317,8 @@ class FakeCanvasContext
 		this.font = '14px Verdana';
 		this.textAlign = 'left';
 		
+		this.hue_rotate = 0;
+		
 		this.reusable_matrix3 = new THREE.Matrix3();
 		
 		sdRenderer.AddCacheDrawMethod( this );

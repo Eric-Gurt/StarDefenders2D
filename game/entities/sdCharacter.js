@@ -3860,7 +3860,7 @@ class sdCharacter extends sdEntity
 							 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_DECAL )
 						{
 							ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT;
-							fake_ent.FigureOutBoxCapVisibilities();
+							fake_ent.FigureOutBoxCapVisibilities( sdRenderer.ctx.box_caps );
 						}
 					
 						ctx.object_offset = fake_ent.ObjectOffset3D( -1 );
