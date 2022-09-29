@@ -508,7 +508,13 @@ class sdSuperTexture
 		   
 		return br;
 	}*/
-	GetVertex( x1,y1,z1, u1,v1, geometry,r,g,b,a, hue_rotation, wx,wy,cache_slot )
+	GetVertex( 
+				x1,y1,z1, 
+				u1,v1, 
+				geometry,r,g,b,a, 
+				hue_rotation, 
+				wx,wy,cache_slot,
+				apply_shading )
 	{
 		//trace( x1,y1,z1, u1,v1, geometry,r,g,b,a, hue_rotation );
 		
@@ -555,8 +561,9 @@ class sdSuperTexture
 		uv_dataView.setFloat32( offset_4_2 + 0, u1, true );
 		uv_dataView.setFloat32( offset_4_2 + 4, v1, true );
 		
-		if ( sdRenderer.ctx.apply_shading )
-		if ( sdAtlasMaterial.brightness_cache_buffer_dataView !== null )
+		//if ( sdRenderer.ctx.apply_shading ) // 39 ms
+		if ( apply_shading ) // 2 ms
+		if ( sdAtlasMaterial.brightness_cache_buffer_dataView !== null ) // 46 ms
 		{
 			/*
 			//const xx = ( x1 - sdAtlasMaterial.left_top.x ) * sdAtlasMaterial.one_div_right_minus_left_x;
@@ -873,7 +880,6 @@ class sdSuperTexture
 			b *= current_result;
 		}
 		
-
 		color_dataView.setFloat32( offset_4_4 + 0, r, true );
 		color_dataView.setFloat32( offset_4_4 + 4, g, true );
 		color_dataView.setFloat32( offset_4_4 + 8, b, true );
@@ -889,7 +895,19 @@ class sdSuperTexture
 		return offset;
 	}
 	
-	/*DrawPolygon( x1,y1,z1, x2,y2,z2, x3,y3,z3, u1,v1, u2,v2, u3,v3, r,g,b,a, hue_rotation )
+	DrawTriangle(	x1,y1,z1, 
+					x2,y2,z2, 
+					x3,y3,z3, 
+					u1,v1, 
+					u2,v2, 
+					u3,v3, 
+					r,g,b, 
+					a,a2,a3, 
+					hue_rotation, 
+					wx1,wy1,cache_slot1, 
+					wx2,wy2,cache_slot2, 
+					wx3,wy3,cache_slot3,
+					apply_shading )
 	{
 		const geometry = this.geometry_mesh;
 		
@@ -899,32 +917,9 @@ class sdSuperTexture
 		if ( geometry.offset_indices + 3 >= 3 * sdAtlasMaterial.maximum_dots_per_super_texture )
 		return;
 	
-		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
-			this.GetVertex( x1,y1,z1, u1,v1, geometry,r,g,b,a, hue_rotation )
-			, true );
-			
-		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
-			this.GetVertex( x2,y2,z2, u2,v2, geometry,r,g,b,a, hue_rotation )
-			, true );
-		
-		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
-			this.GetVertex( x3,y3,z3, u3,v3, geometry,r,g,b,a, hue_rotation )
-			, true );
-	}*/
-	
-	DrawTriangle( x1,y1,z1, x2,y2,z2, x3,y3,z3, u1,v1, u2,v2, u3,v3, r,g,b, a,a2,a3, hue_rotation, wx1,wy1,cache_slot1, wx2,wy2,cache_slot2, wx3,wy3,cache_slot3 )
-	{
-		const geometry = this.geometry_mesh;
-		
-		if ( geometry.offset + 3 >= sdAtlasMaterial.maximum_dots_per_super_texture )
-		return;
-		
-		if ( geometry.offset_indices + 3 >= 3 * sdAtlasMaterial.maximum_dots_per_super_texture )
-		return;
-	
-		let p1 = this.GetVertex( x1,y1,z1, u1,v1, geometry,r,g,b,a , hue_rotation, wx1,wy1,cache_slot1 );
-		let p2 = this.GetVertex( x2,y2,z2, u2,v2, geometry,r,g,b,a2, hue_rotation, wx2,wy2,cache_slot2 );
-		let p3 = this.GetVertex( x3,y3,z3, u3,v3, geometry,r,g,b,a3, hue_rotation, wx3,wy3,cache_slot3 );
+		let p1 = this.GetVertex( x1,y1,z1, u1,v1, geometry,r,g,b,a , hue_rotation, wx1,wy1,cache_slot1, apply_shading );
+		let p2 = this.GetVertex( x2,y2,z2, u2,v2, geometry,r,g,b,a2, hue_rotation, wx2,wy2,cache_slot2, apply_shading );
+		let p3 = this.GetVertex( x3,y3,z3, u3,v3, geometry,r,g,b,a3, hue_rotation, wx3,wy3,cache_slot3, apply_shading );
 		
 	
 		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
@@ -939,9 +934,23 @@ class sdSuperTexture
 			p3
 			, true );
 			
-		globalThis.super_texture_with_triangle = this;
+		//globalThis.super_texture_with_triangle = this;
 	}
-	DrawQuad( x1,y1,z1, x2,y2,z2, x3,y3,z3, x4,y4,z4, u1,v1, u2,v2, u3,v3, u4,v4, r,g,b,a, hue_rotation, wx1,wy1,cache_slot1, wx2,wy2,cache_slot2, wx3,wy3,cache_slot3, wx4,wy4,cache_slot4 ) // left-top, right-top, bottom-left, bottom-right
+	DrawQuad(	x1,y1,z1, 
+				x2,y2,z2, 
+				x3,y3,z3, 
+				x4,y4,z4, 
+				u1,v1, 
+				u2,v2, 
+				u3,v3, 
+				u4,v4, 
+				r,g,b,a, 
+				hue_rotation, 
+				wx1,wy1,cache_slot1, 
+				wx2,wy2,cache_slot2, 
+				wx3,wy3,cache_slot3, 
+				wx4,wy4,cache_slot4,
+				apply_shading ) // left-top, right-top, bottom-left, bottom-right
 	{
 		const geometry = this.geometry_mesh;
 		
@@ -951,10 +960,10 @@ class sdSuperTexture
 		if ( geometry.offset_indices + 6 >= 3 * sdAtlasMaterial.maximum_dots_per_super_texture )
 		return;
 	
-		let lt = this.GetVertex( x1,y1,z1, u1,v1, geometry,r,g,b,a, hue_rotation, wx1,wy1,cache_slot1 );
-		let rt = this.GetVertex( x2,y2,z2, u2,v2, geometry,r,g,b,a, hue_rotation, wx2,wy2,cache_slot2 );
-		let lb = this.GetVertex( x3,y3,z3, u3,v3, geometry,r,g,b,a, hue_rotation, wx3,wy3,cache_slot3 );
-		let rb = this.GetVertex( x4,y4,z4, u4,v4, geometry,r,g,b,a, hue_rotation, wx4,wy4,cache_slot4 );
+		let lt = this.GetVertex( x1,y1,z1, u1,v1, geometry,r,g,b,a, hue_rotation, wx1,wy1,cache_slot1, apply_shading );
+		let rt = this.GetVertex( x2,y2,z2, u2,v2, geometry,r,g,b,a, hue_rotation, wx2,wy2,cache_slot2, apply_shading );
+		let lb = this.GetVertex( x3,y3,z3, u3,v3, geometry,r,g,b,a, hue_rotation, wx3,wy3,cache_slot3, apply_shading );
+		let rb = this.GetVertex( x4,y4,z4, u4,v4, geometry,r,g,b,a, hue_rotation, wx4,wy4,cache_slot4, apply_shading );
 	
 		geometry.index_dataView.setUint16( ( geometry.offset_indices++ ) * 2, 
 			lt
@@ -1362,7 +1371,12 @@ class sdAtlasMaterial
 				a2,
 				a3,
 				
-				0
+				0,
+				
+				0,0,0,
+				0,0,0,
+				0,0,0,
+				false
 		);
 	}
 	
@@ -1398,7 +1412,9 @@ class sdAtlasMaterial
 	
 	static drawImage( img, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight )
 	{
-		if ( sdRenderer.ctx.globalAlpha <= 0 )
+		const ctx = sdRenderer.ctx;
+		
+		if ( ctx.globalAlpha <= 0 )
 		return;
 	
 		if ( img.loaded !== false ) // Offscreen canvas may appear here too
@@ -1423,7 +1439,7 @@ class sdAtlasMaterial
 		let top_x_offset = 0;
 		let opacity_div = 1;
 		
-		switch ( sdRenderer.ctx.volumetric_mode )
+		switch ( ctx.volumetric_mode )
 		{
 			case FakeCanvasContext.DRAW_IN_3D_FLAT:
 			{
@@ -1433,7 +1449,7 @@ class sdAtlasMaterial
 			{
 				//is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT;
 				
-				switch ( sdRenderer.ctx.camera_relative_world_scale )
+				switch ( ctx.camera_relative_world_scale )
 				{
 					case sdRenderer.distance_scale_in_game_hud: 
 					//	is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT_IN_GAME_HUD;
@@ -1489,7 +1505,7 @@ class sdAtlasMaterial
 			break;
 		}
 		
-		if ( sdRenderer.ctx.blend_mode === THREE.AdditiveBlending )
+		if ( ctx.blend_mode === THREE.AdditiveBlending )
 		is_transparent_int = sdAtlasMaterial.GROUP_TRANSPARENT_ADDITIVE;
 		
 		let super_texture;
@@ -1525,13 +1541,13 @@ class sdAtlasMaterial
 
 		
 		const canvas_size = super_texture.canvas_size_scale_down_vector;//new THREE.Vector2( 1 / super_texture.canvas.width, 1 / super_texture.canvas.height );
-		const mat = sdRenderer.ctx._matrix3;//.clone().invert();
+		const mat = ctx._matrix3;//.clone().invert();
 
-		const cr = sdRenderer.ctx.sd_color_mult_r;
-		const cg = sdRenderer.ctx.sd_color_mult_g;
-		const cb = sdRenderer.ctx.sd_color_mult_b;
-		const ca = sdRenderer.ctx.globalAlpha / opacity_div;
-		const hue_rotation = sdRenderer.ctx.sd_hue_rotation / 180 * Math.PI;
+		const cr = ctx.sd_color_mult_r;
+		const cg = ctx.sd_color_mult_g;
+		const cb = ctx.sd_color_mult_b;
+		const ca = ctx.globalAlpha / opacity_div;
+		const hue_rotation = ctx.sd_hue_rotation / 180 * Math.PI;
 		
 		
 		//const a = new THREE.Vector2( dx, dy ); // Left-top
@@ -1555,13 +1571,13 @@ class sdAtlasMaterial
 		c.applyMatrix3( mat );
 		d.applyMatrix3( mat );
 			
-		let z_position = -sdRenderer.ctx.z_offset;
+		let z_position = -ctx.z_offset;
 		
-		if ( sdRenderer.ctx.object_offset !== null )
+		if ( ctx.object_offset !== null )
 		{
-			const x = sdRenderer.ctx.object_offset[ 0 ];
-			const y = sdRenderer.ctx.object_offset[ 1 ];
-			const z = sdRenderer.ctx.object_offset[ 2 ];
+			const x = ctx.object_offset[ 0 ];
+			const y = ctx.object_offset[ 1 ];
+			const z = ctx.object_offset[ 2 ];
 			
 			a.x += x;
 			b.x += x;
@@ -1576,20 +1592,20 @@ class sdAtlasMaterial
 			z_position += z;
 		}
 
-		if ( sdRenderer.ctx.camera_relative_world_scale !== 1 )
+		if ( ctx.camera_relative_world_scale !== 1 )
 		{
-			//const cam_xy = new THREE.Vector2( sdRenderer.ctx.camera.position.x, sdRenderer.ctx.camera.position.y );
-			const cam_xy = sdAtlasMaterial.cam_xy.set( sdRenderer.ctx.camera.position.x, sdRenderer.ctx.camera.position.y );
+			//const cam_xy = new THREE.Vector2( ctx.camera.position.x, ctx.camera.position.y );
+			const cam_xy = sdAtlasMaterial.cam_xy.set( ctx.camera.position.x, ctx.camera.position.y );
 
 			a.sub( cam_xy );
 			b.sub( cam_xy );
 			c.sub( cam_xy );
 			d.sub( cam_xy );
 
-			a.multiplyScalar( sdRenderer.ctx.camera_relative_world_scale );
-			b.multiplyScalar( sdRenderer.ctx.camera_relative_world_scale );
-			c.multiplyScalar( sdRenderer.ctx.camera_relative_world_scale );
-			d.multiplyScalar( sdRenderer.ctx.camera_relative_world_scale );
+			a.multiplyScalar( ctx.camera_relative_world_scale );
+			b.multiplyScalar( ctx.camera_relative_world_scale );
+			c.multiplyScalar( ctx.camera_relative_world_scale );
+			d.multiplyScalar( ctx.camera_relative_world_scale );
 
 			a.add( cam_xy );
 			b.add( cam_xy );
@@ -1621,26 +1637,39 @@ class sdAtlasMaterial
 			d_wx,d_wy,d_cache_slot;
 	
 		if ( sdShop.isDrawing )
-		sdRenderer.ctx.apply_shading = false;
+		ctx.apply_shading = false;
 		
-		if ( sdRenderer.ctx.apply_shading )
+		if ( ctx.apply_shading )
 		{
-			a_wx = sdAtlasMaterial.brightness_cache_cam_x + ( ( a.x - sdAtlasMaterial.left_top.x ) * sdAtlasMaterial.one_div_right_minus_left_x - 0.5 ) * sdAtlasMaterial.brightness_cache_mult_x;
-			a_wy = sdAtlasMaterial.brightness_cache_cam_y + ( ( a.y - sdAtlasMaterial.left_top.y ) * sdAtlasMaterial.one_div_right_minus_left_y - 0.5 ) * sdAtlasMaterial.brightness_cache_mult_y;
+			const one_div_right_minus_left_x = sdAtlasMaterial.one_div_right_minus_left_x;
+			const one_div_right_minus_left_y = sdAtlasMaterial.one_div_right_minus_left_y;
+			
+			const brightness_cache_mult_x = sdAtlasMaterial.brightness_cache_mult_x;
+			const brightness_cache_mult_y = sdAtlasMaterial.brightness_cache_mult_y;
+			
+			const brightness_cache_cam_x = sdAtlasMaterial.brightness_cache_cam_x;
+			const brightness_cache_cam_y = sdAtlasMaterial.brightness_cache_cam_y;
+			
+			const left_top = sdAtlasMaterial.left_top;
+			
+			a_wx = brightness_cache_cam_x + ( ( a.x - left_top.x ) * one_div_right_minus_left_x - 0.5 ) * brightness_cache_mult_x;
+			a_wy = brightness_cache_cam_y + ( ( a.y - left_top.y ) * one_div_right_minus_left_y - 0.5 ) * brightness_cache_mult_y;
 			a_cache_slot = sdAtlasMaterial.GetCacheSlot( a_wx, a_wy );
 
-			b_wx = sdAtlasMaterial.brightness_cache_cam_x + ( ( b.x - sdAtlasMaterial.left_top.x ) * sdAtlasMaterial.one_div_right_minus_left_x - 0.5 ) * sdAtlasMaterial.brightness_cache_mult_x;
-			b_wy = sdAtlasMaterial.brightness_cache_cam_y + ( ( b.y - sdAtlasMaterial.left_top.y ) * sdAtlasMaterial.one_div_right_minus_left_y - 0.5 ) * sdAtlasMaterial.brightness_cache_mult_y;
+			b_wx = brightness_cache_cam_x + ( ( b.x - left_top.x ) * one_div_right_minus_left_x - 0.5 ) * brightness_cache_mult_x;
+			b_wy = brightness_cache_cam_y + ( ( b.y - left_top.y ) * one_div_right_minus_left_y - 0.5 ) * brightness_cache_mult_y;
 			b_cache_slot = sdAtlasMaterial.GetCacheSlot( b_wx, b_wy );
 
-			c_wx = sdAtlasMaterial.brightness_cache_cam_x + ( ( c.x - sdAtlasMaterial.left_top.x ) * sdAtlasMaterial.one_div_right_minus_left_x - 0.5 ) * sdAtlasMaterial.brightness_cache_mult_x;
-			c_wy = sdAtlasMaterial.brightness_cache_cam_y + ( ( c.y - sdAtlasMaterial.left_top.y ) * sdAtlasMaterial.one_div_right_minus_left_y - 0.5 ) * sdAtlasMaterial.brightness_cache_mult_y;
+			c_wx = brightness_cache_cam_x + ( ( c.x - left_top.x ) * one_div_right_minus_left_x - 0.5 ) * brightness_cache_mult_x;
+			c_wy = brightness_cache_cam_y + ( ( c.y - left_top.y ) * one_div_right_minus_left_y - 0.5 ) * brightness_cache_mult_y;
 			c_cache_slot = sdAtlasMaterial.GetCacheSlot( c_wx, c_wy );
 
-			d_wx = sdAtlasMaterial.brightness_cache_cam_x + ( ( d.x - sdAtlasMaterial.left_top.x ) * sdAtlasMaterial.one_div_right_minus_left_x - 0.5 ) * sdAtlasMaterial.brightness_cache_mult_x;
-			d_wy = sdAtlasMaterial.brightness_cache_cam_y + ( ( d.y - sdAtlasMaterial.left_top.y ) * sdAtlasMaterial.one_div_right_minus_left_y - 0.5 ) * sdAtlasMaterial.brightness_cache_mult_y;
+			d_wx = brightness_cache_cam_x + ( ( d.x - left_top.x ) * one_div_right_minus_left_x - 0.5 ) * brightness_cache_mult_x;
+			d_wy = brightness_cache_cam_y + ( ( d.y - left_top.y ) * one_div_right_minus_left_y - 0.5 ) * brightness_cache_mult_y;
 			d_cache_slot = sdAtlasMaterial.GetCacheSlot( d_wx, d_wy );
 		}
+			
+		const apply_shading = ctx.apply_shading;
 		
 		for ( let layer = 0; layer < layers; layer++ )
 		{
@@ -1649,28 +1678,28 @@ class sdAtlasMaterial
 			
 			if ( layers > 1 )
 			{
-				z += sdRenderer.ctx.z_depth * layer / ( layers - 1 );
+				z += ctx.z_depth * layer / ( layers - 1 );
 				
 				
 				
-				z -= sdRenderer.ctx.z_depth / 2;
-				z0 -= sdRenderer.ctx.z_depth / 2;
+				z -= ctx.z_depth / 2;
+				z0 -= ctx.z_depth / 2;
 			}
 
-			if ( sdRenderer.ctx.camera_relative_world_scale !== 1 )
+			if ( ctx.camera_relative_world_scale !== 1 )
 			{
-				let dz = z - sdRenderer.ctx.camera.position.z;
+				let dz = z - ctx.camera.position.z;
 
-				dz *= sdRenderer.ctx.camera_relative_world_scale;
+				dz *= ctx.camera_relative_world_scale;
 
-				z = dz + sdRenderer.ctx.camera.position.z;
+				z = dz + ctx.camera.position.z;
 			}
 			
 			if ( connect_layers && layer !== 0 )
 			{
 				
 				// left ( a + c )
-				if ( sdRenderer.ctx.box_caps.left )
+				if ( ctx.box_caps.left )
 				if ( sdRenderer.screen_width / 2 < a.x )
 				{
 					super_texture.DrawQuad( 
@@ -1689,7 +1718,9 @@ class sdAtlasMaterial
 							a_wx, a_wy, a_cache_slot,
 							a_wx, a_wy, a_cache_slot,
 							c_wx, c_wy, c_cache_slot,
-							c_wx, c_wy, c_cache_slot
+							c_wx, c_wy, c_cache_slot,
+							
+							apply_shading
 					);
 					/*super_texture.DrawPolygon( 
 							a.x, a.y, z0,
@@ -1716,7 +1747,7 @@ class sdAtlasMaterial
 				}
 		
 				// right ( b + d )
-				if ( sdRenderer.ctx.box_caps.right )
+				if ( ctx.box_caps.right )
 				if ( sdRenderer.screen_width / 2 > b.x )
 				{
 					super_texture.DrawQuad( 
@@ -1735,7 +1766,9 @@ class sdAtlasMaterial
 							b_wx, b_wy, b_cache_slot,
 							b_wx, b_wy, b_cache_slot,
 							d_wx, d_wy, d_cache_slot,
-							d_wx, d_wy, d_cache_slot
+							d_wx, d_wy, d_cache_slot,
+							
+							apply_shading
 					);
 					/*super_texture.DrawPolygon( 
 							b.x, b.y, z0,
@@ -1762,7 +1795,7 @@ class sdAtlasMaterial
 				}
 		
 				// bottom ( c + d )
-				if ( sdRenderer.ctx.box_caps.bottom )
+				if ( ctx.box_caps.bottom )
 				if ( sdRenderer.screen_height / 2 > c.y )
 				{
 					super_texture.DrawQuad( 
@@ -1781,7 +1814,9 @@ class sdAtlasMaterial
 							c_wx, c_wy, c_cache_slot,
 							d_wx, d_wy, d_cache_slot,
 							c_wx, c_wy, c_cache_slot,
-							d_wx, d_wy, d_cache_slot
+							d_wx, d_wy, d_cache_slot,
+							
+							apply_shading
 					);
 					/*
 					super_texture.DrawPolygon( 
@@ -1810,7 +1845,7 @@ class sdAtlasMaterial
 				}
 		
 				// top ( a + b )
-				if ( sdRenderer.ctx.box_caps.top )
+				if ( ctx.box_caps.top )
 				if ( sdRenderer.screen_height / 2 < a.y )
 				{
 					super_texture.DrawQuad( 
@@ -1829,7 +1864,9 @@ class sdAtlasMaterial
 							a_wx, a_wy, a_cache_slot,
 							b_wx, b_wy, b_cache_slot,
 							a_wx, a_wy, a_cache_slot,
-							b_wx, b_wy, b_cache_slot
+							b_wx, b_wy, b_cache_slot,
+							
+							apply_shading
 					);
 					
 					/*super_texture.DrawPolygon( 
@@ -1895,7 +1932,9 @@ class sdAtlasMaterial
 							a_wx, a_wy, a_cache_slot,
 							b_wx, b_wy, b_cache_slot,
 							c_wx, c_wy, c_cache_slot,
-							d_wx, d_wy, d_cache_slot
+							d_wx, d_wy, d_cache_slot,
+							
+							apply_shading
 				);
 						
 				/*

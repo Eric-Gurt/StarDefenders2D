@@ -524,7 +524,7 @@ class sdWorld
 
 		function s3()
 		{
-			screen.orientation.lock('landscape');
+			screen.orientation.lock('landscape').then( window.onresize ).catch( ()=>{} );
 			
 			window.onresize();
 		}

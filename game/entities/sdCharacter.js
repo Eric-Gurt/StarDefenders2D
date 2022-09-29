@@ -741,6 +741,7 @@ class sdCharacter extends sdEntity
 		this._anim_blink_next = sdWorld.time + 5000; // Better like this for main screen since it is recreated all the time
 		
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+		if ( this.is( sdCharacter ) ) // Prevent ragdoll spawn for drones and overlords
 		{
 			this._ragdoll = new sdCharacterRagdoll( this );
 			/*

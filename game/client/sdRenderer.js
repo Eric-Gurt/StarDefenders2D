@@ -228,15 +228,21 @@ class sdRenderer
 					}
 					
 					//const complex_filter_name = filter + '/' + ( sd_filter ? JSON.stringify( sd_filter ) : '' ) + '/' + ( sd_tint_filter ? JSON.stringify( sd_tint_filter ) : '' );
-					const complex_filter_name = filter + '/' + ( sd_filter ? sd_filter.s : '' ) + '/' + ( sd_tint_filter ? JSON.stringify( sd_tint_filter ) : '' );
+					const complex_filter_name = 
+							sd_tint_filter ?
+								filter + '/' + ( sd_filter ? sd_filter.s : '' ) + '/' + sd_tint_filter[ 0 ] + '/' + sd_tint_filter[ 1 ] + '/' + sd_tint_filter[ 2 ] :
+								filter + '/' + ( sd_filter ? sd_filter.s : '' );
 
 					let image_obj = args[ 0 ];
 
 					let image_obj_cache = null;
-
-					if ( sdRenderer.image_filter_cache.has( image_obj ) )
+					
 					image_obj_cache = sdRenderer.image_filter_cache.get( image_obj );
-					else
+
+					//if ( sdRenderer.image_filter_cache.has( image_obj ) )
+					//image_obj_cache = sdRenderer.image_filter_cache.get( image_obj );
+					//else
+					if ( image_obj_cache === undefined )
 					{
 						// Make
 						//image_obj_cache = {};
@@ -249,7 +255,14 @@ class sdRenderer
 						debugger;
 					}*/
 					
+					//let t0 = Date.now();
+					
 					let image_obj_cache_named_item = image_obj_cache.get( complex_filter_name );
+					
+					//let t1 = Date.now();
+					
+					//if ( image_obj_cache.size > 100 || t1-t0 > 2 )
+					//debugger;
 					
 					//if ( typeof image_obj_cache[ complex_filter_name ] === 'undefined' )
 					if ( !image_obj_cache_named_item )
@@ -577,7 +590,7 @@ class sdRenderer
 			sdRenderer.visual_settings = 4;
 			
 			sdRenderer.ctx = new FakeCanvasContext( sdRenderer.canvas );
-			sdRenderer.AddCacheDrawMethod( sdRenderer.ctx );
+			//sdRenderer.AddCacheDrawMethod( sdRenderer.ctx );
 
 			sdAtlasMaterial.super_texture_width = 1024;
 			sdAtlasMaterial.super_texture_height = Math.min( sdRenderer.ctx.renderer.capabilities.maxTextureSize, 16384 );
@@ -1056,9 +1069,9 @@ class sdRenderer
 				let y = sdWorld.my_entity ? sdWorld.my_entity.y : 0;
 
 				let angles = sdRenderer.old_visibility_map ? sdRenderer.old_visibility_map.length : null;
-				for ( var i = 0; i < sdEntity.entities.length; i++ )
+				for ( let i = 0; i < sdEntity.entities.length; i++ )
 				{
-					let e = sdEntity.entities[ i ];
+					const e = sdEntity.entities[ i ];
 					
 					/*if (	e.is( sdEffect ) &&
 								( e._type === sdEffect.TYPE_BEAM || e._type === sdEffect.TYPE_BEAM_CIRCLED ) )
@@ -1072,8 +1085,22 @@ class sdRenderer
 					{
 					}
 					else
-					if ( e.IsGlobalEntity() || ( e.is( sdEffect ) && e._type === sdEffect.TYPE_CHAT ) || ( sdWorld.my_entity && ( sdWorld.my_entity === e || sdWorld.my_entity.driver_of === e || sdWorld.my_entity._god ) ) )
-					e._flag = frame_flag_reference;
+					if ( 
+							e.IsGlobalEntity() || 
+							
+							( e.is( sdEffect ) && e._type === sdEffect.TYPE_CHAT ) || 
+							
+							( sdWorld.my_entity && 
+								( 
+									sdWorld.my_entity === e || 
+									sdWorld.my_entity.driver_of === e || 
+									sdWorld.my_entity._god 
+								) 
+							) 
+						)
+					{
+						e._flag = frame_flag_reference;
+					}
 					else
 					if ( sdWorld.my_entity )
 					if ( sdRenderer.old_visibility_map )
@@ -1128,8 +1155,10 @@ class sdRenderer
 					}
 				}
 			}
+			
+			const box_caps = sdRenderer.ctx.box_caps;
 		
-			for ( var i = 0; i < sdEntity.entities.length; i++ )
+			for ( let i = 0; i < sdEntity.entities.length; i++ )
 			{
 				const e = sdEntity.entities[ i ];
 				
@@ -1156,7 +1185,7 @@ class sdRenderer
 					if ( ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX || 
 						 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT || 
 						 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_DECAL )
-					e.FigureOutBoxCapVisibilities();
+					e.FigureOutBoxCapVisibilities( box_caps );
 
 					ctx.save();
 					try
@@ -1182,7 +1211,7 @@ class sdRenderer
 			ctx.z_offset = -16 * sdWorld.camera.scale;
 			ctx.z_depth = 16 * sdWorld.camera.scale;
 			
-			for ( var i = 0; i < sdEntity.entities.length; i++ )
+			for ( let i = 0; i < sdEntity.entities.length; i++ )
 			{
 				const e = sdEntity.entities[ i ];
 				
@@ -1203,7 +1232,7 @@ class sdRenderer
 					if ( ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX || 
 						 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT || 
 						 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_DECAL )
-					e.FigureOutBoxCapVisibilities();
+					e.FigureOutBoxCapVisibilities( box_caps );
 
 					ctx.save();
 					try
@@ -1245,21 +1274,14 @@ class sdRenderer
 			
 			//ctx.z_offset = 0 * sdWorld.camera.scale;
 			//ctx.z_depth = 16 * sdWorld.camera.scale;
-			for ( var i = 0; i < sdEntity.entities.length; i++ )
+			for ( let i = 0; i < sdEntity.entities.length; i++ )
 			{
 				const e = sdEntity.entities[ i ];
 				
 				if ( e._flag === frame_flag_reference )
 				if ( e.DrawFG !== void_draw_fg )
 				{
-					ctx.volumetric_mode = e.DrawIn3D( 1 );
-					ctx.object_offset = e.ObjectOffset3D( 1 );
 					ctx.camera_relative_world_scale = e.CameraDistanceScale3D( 1 );
-					
-					if ( ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX || 
-						 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT || 
-						 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_DECAL )
-					e.FigureOutBoxCapVisibilities();
 
 					if ( ctx.camera_relative_world_scale < 1 ||
 						 ( e.x + e._hitbox_x2 > min_x &&
@@ -1267,6 +1289,14 @@ class sdRenderer
 						   e.y + e._hitbox_y2 > min_y &&
 						   e.y + e._hitbox_y1 < max_y ) )
 					{
+						ctx.volumetric_mode = e.DrawIn3D( 1 );
+						ctx.object_offset = e.ObjectOffset3D( 1 );
+					
+						if ( ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX || 
+							 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT || 
+							 ctx.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_BOX_DECAL )
+						e.FigureOutBoxCapVisibilities( box_caps );
+
 						/*if ( e.GetClass() === 'sdGrass' )
 						{
 							if ( double_draw_catcher.has( e ) )
@@ -1445,7 +1475,7 @@ class sdRenderer
 				}
 				
 
-				if ( sdWeather.only_instance )
+				/*if ( sdWeather.only_instance )
 				if ( false )
 				{
 					if ( sdWorld.my_entity )
@@ -1477,7 +1507,7 @@ class sdRenderer
 										sdRenderer.screen_width * 2, 
 										sdRenderer.screen_height );
 					}
-				}
+				}*/
 			}
 			
 			
