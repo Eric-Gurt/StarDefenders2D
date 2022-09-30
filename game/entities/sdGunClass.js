@@ -2013,8 +2013,10 @@ class sdGunClass
 					{
 						//gun._held_by._auto_shoot_in = 15;
 						//return; // hack
-						
+						if ( gun._combo === 0 ) // Can't really divide with 0
 						gun._held_by._auto_shoot_in = 800 / 1000 * 30;
+						gun._held_by._auto_shoot_in = 800 / 1000 * 30 / ( 1 + gun._combo / 60 );
+
 
 						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
 						sdSound.PlaySound({ name: 'enemy_mech_charge', x:gun.x, y:gun.y, volume: 1.5 });
@@ -2029,8 +2031,11 @@ class sdGunClass
 					if ( gun._held_by.matter >= 4 )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						gun._held_by._auto_shoot_in = ( gun._held_by.stim_ef > 0 ) ? 1 : 2;
+						gun._held_by._auto_shoot_in = ( gun._held_by.stim_ef > 0 ) ? ( 1 / ( 1 + gun._combo / 90 ) ) : ( 2 / ( 1 + gun._combo / 90 ) ); // Faster rate of fire when shooting more
 						gun._held_by.matter -= 4;
+						gun._combo_timer = 30;
+						if ( gun._combo < 60 )
+						gun._combo++; // Speed up rate of fire, the longer it shoots
 					}
 				}
 				return true;
