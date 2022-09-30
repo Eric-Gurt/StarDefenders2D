@@ -94,7 +94,7 @@ class sdLost extends sdEntity
 				if ( ent.is( sdMatterAmplifier ) )
 				ent.DropCrystal();
 
-				if ( ent.is( sdCharacter ) )
+				/*if ( ent.is( sdCharacter ) )
 				{
 					if ( !ent._ragdoll )
 					{
@@ -111,7 +111,7 @@ class sdLost extends sdEntity
 							ent._ragdoll.Think( 1 );
 						}
 					}
-				}
+				}*/
 				
 				
 				sdLost.entities_and_affection.delete( ent );
@@ -155,10 +155,10 @@ class sdLost extends sdEntity
 						sdWorld.server_config.onKill( ent, bullet ? bullet._owner : null );
 					}
 					
-					if ( ent._ragdoll )
+					/*if ( ent._ragdoll )
 					{
 						ent._ragdoll.Delete(); // Or lese crash if this happens at the same time when snapshot is saved
-					}
+					}*/
 				}
 
 				ent.remove();

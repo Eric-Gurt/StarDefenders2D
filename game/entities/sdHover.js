@@ -138,7 +138,7 @@ class sdHover extends sdEntity
 		this.matter_max = 2000;
 		
 		if ( sdHover.TYPE_TANK )
-		this.matter_max = 3000;
+		this.matter_max = 12000;
 	}
 	AddDriver( c )
 	{

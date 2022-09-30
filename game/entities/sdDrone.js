@@ -159,8 +159,8 @@ class sdDrone extends sdEntity
 				return false;
 				else
 				{
-				this._current_target === ent;
-				return true;
+					this._current_target === ent;
+					return true;
 				}
 			}
 		}
@@ -168,9 +168,12 @@ class sdDrone extends sdEntity
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
+		if ( character.driver_of )
+		character = character.driver_of;
+		
 		if ( this._hea > 0 )
 		if ( character.IsTargetable() && character.IsVisible() )
-		if ( character.hea > 0 )
+		if ( ( character.hea || character._hea ) > 0 )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
 			if ( di < sdDrone.max_seek_range )

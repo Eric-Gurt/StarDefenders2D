@@ -31,6 +31,8 @@ import sdStatusEffect from './entities/sdStatusEffect.js';
 import sdPlayerOverlord from './entities/sdPlayerOverlord.js';
 import sdBloodDecal from './entities/sdBloodDecal.js';
 import sdGib from './entities/sdGib.js';
+import sdTimer from './entities/sdTimer.js';
+import sdCharacterRagdoll from './entities/sdCharacterRagdoll.js';
 
 
 import sdRenderer from './client/sdRenderer.js';
@@ -2595,6 +2597,8 @@ class sdWorld
 		let t5 = Date.now();
 		IncludeTimeCost( 'world_hash_positions_recheck_keys', t5 - t4 );
 		
+		sdTimer.ThinkNow();
+		
 		
 		if ( sdWorld.server_config.onExtraWorldLogic )
 		sdWorld.server_config.onExtraWorldLogic( GSPEED );
@@ -3851,7 +3855,28 @@ class sdWorld
 	
 	static GetDrawOperations( ent ) // Method that is used to collect draw logic for later to be used in sdLost
 	{
-		//var output = [];
+		let despawn_ragdoll = false;
+		
+		if ( ent.is( sdCharacter ) )
+		{
+			if ( !ent._ragdoll )
+			{
+				ent._ragdoll = new sdCharacterRagdoll( ent );
+				
+				despawn_ragdoll = true;
+
+				if ( ent.hea > 0 )
+				{
+					ent._ragdoll.AliveUpdate();
+				}
+				else
+				{
+					ent._ragdoll.AliveUpdate();
+					for ( let i = 0; i < 90; i++ )
+					ent._ragdoll.Think( 1 );
+				}
+			}
+		}
 		
 		const command_match_table = sdWorld.draw_operation_command_match_table;
 		const methods_per_command_id = sdWorld.draw_methods_per_command_id;
@@ -3862,6 +3887,8 @@ class sdWorld
 		
 		var blend_mode = THREE.NormalBlending;
 		
+		let any_drawImage_happened = false;
+		
 		var fake_ctx = new Proxy( 
 			{}, 
 			{
@@ -3869,6 +3896,11 @@ class sdWorld
 				{
 					if ( name === 'drawImage' )
 					name = 'drawImageFilterCache';
+				
+					if ( name === 'drawImageFilterCache' )
+					{
+						any_drawImage_happened = true;
+					}
 					
 					let command_offset = command_match_table.indexOf( name );
 					
@@ -3905,6 +3937,7 @@ class sdWorld
 									if ( args[ 3 ] === 32 )
 									if ( args[ 4 ] === 32 )
 									{
+										//any_drawImage_happened = true;
 										sdWorld.draw_methods_output_ptr.push( command_id, args[ 0 ] );
 										return;
 									}
@@ -3950,14 +3983,26 @@ class sdWorld
 		ent.Draw( fake_ctx, false );
 		ent.DrawFG( fake_ctx, false );
 		
-		if ( output.length === 0 )
+		/*if ( output.length === 0 ) Something like held crystals
 		{
 			debugger;
 			ent.Draw( fake_ctx, false );
 			ent.DrawFG( fake_ctx, false );
-		}
+		}*/
 		
 		sdWorld.draw_methods_output_ptr = null;
+		
+		if ( despawn_ragdoll )
+		{
+			if ( ent._ragdoll )
+			{
+				ent._ragdoll.Delete(); // Or lese crash if this happens at the same time when snapshot is saved
+				ent._ragdoll = null;
+			}
+		}
+		
+		if ( !any_drawImage_happened )
+		return [];
 		
 		// Remove final sd_filter sets (these are to null probably)
 		while ( output.length >= 2 && output[ output.length - 2 ] === 0 )
@@ -4030,10 +4075,16 @@ class sdWorld
 							}
 							else
 							{
-								if ( args instanceof Image )
+								if ( args instanceof Array )
+								args = args.slice(); // Do not overwrite old array
+								else
+								if ( args instanceof Image ) // Server won't have this one
 								args = [ args.filename, -16, -16, 32, 32 ]; // for singleplayer
 								else
-								args = args.slice(); // Do not overwrite old array
+								debugger;
+							
+								//else
+								//args = args.slice(); // Do not overwrite old array
 							}
 
 							args[ 0 ] = sdWorld.CreateImageFromFile( args[ 0 ] );

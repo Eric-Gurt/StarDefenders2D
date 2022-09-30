@@ -102,9 +102,12 @@ class sdFaceCrab extends sdEntity
 	
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
+		if ( character.driver_of )
+		character = character.driver_of;
+		
 		if ( this._hea > 0 )
 		if ( character.IsTargetable() && character.IsVisible( this ) )
-		if ( character.hea > 0 )
+		if ( ( character.hea || character._hea ) > 0 )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
 			if ( di < sdFaceCrab.max_seek_range )

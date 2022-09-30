@@ -5,6 +5,7 @@ import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
 import sdEffect from './sdEffect.js';
 import sdBG from './sdBG.js';
+import sdTimer from './sdTimer.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -85,8 +86,38 @@ class sdBloodDecal extends sdEntity
 		
 		this._first_frame = true;
 		
-		setTimeout( ()=> { this._bleed++; }, 1000 );
-		setTimeout( ()=> { this._bleed++; }, 2000 );
+		//setTimeout( ()=> { this._bleed++; }, 1000 );
+		//setTimeout( ()=> { this._bleed++; }, 2000 );
+		
+		sdTimer.ExecuteWithDelay( ( timer )=>{
+
+			if ( this._is_being_removed )
+			{
+				// Done
+			}
+			else
+			if ( this._bleed < 2 )
+			{
+				this._bleed++;
+				
+				timer.ScheduleAgain( 1000 );
+			}
+			else
+			if ( sdWorld.is_server )
+			{
+				if ( !this._bg || this._bg.material === sdBG.MATERIAL_GROUND )
+				{
+					this.intensity -= 25;
+					this._update_version++;
+					
+					if ( this.intensity <= 0 )
+					this.remove();
+					else
+					timer.ScheduleAgain( 10000 + 5000 * Math.random() );
+				}
+			}
+
+		}, 1000 );
 		
 		this.UpdateHitbox();
 	}
@@ -188,6 +219,9 @@ class sdBloodDecal extends sdEntity
 								this.intensity += from_entity.intensity;
 								if ( this.intensity > 200 )
 								this.intensity = 200;
+							
+								this._bleed = Math.max( this._bleed, from_entity._bleed );
+							
 								this._update_version++;
 							}
 							else
@@ -197,6 +231,8 @@ class sdBloodDecal extends sdEntity
 								if ( from_entity.intensity > 200 )
 								from_entity.intensity = 200;
 								from_entity._update_version++;
+							
+								from_entity._bleed = Math.max( this._bleed, from_entity._bleed );
 								//break both;
 								return true;
 							}

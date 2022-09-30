@@ -28,6 +28,7 @@ import sdFaceCrab from './sdFaceCrab.js';
 import sdSetrDestroyer from './sdSetrDestroyer.js';
 import sdBiter from './sdBiter.js';
 import sdAbomination from './sdAbomination.js';
+import sdMimic from './sdMimic.js';
 
 
 class sdTurret extends sdEntity
@@ -75,7 +76,8 @@ class sdTurret extends sdEntity
 			sdWorld.entity_classes.sdAmphid,
 			sdWorld.entity_classes.sdPlayerOverlord,
 			sdBiter,
-			sdAbomination
+			sdAbomination,
+			sdMimic
 		] ); // Module random load order that causes error prevention
 		
 		sdTurret.KIND_LASER = 0;
@@ -322,7 +324,12 @@ class sdTurret extends sdEntity
 								//if ( e._hiberstate === sdEntity.HIBERSTATE_ACTIVE ) // Don't target dead bodies or anything else that is hibernated, actually a big optimization and is faster than class constructor checking for some reason by a lot
 								if ( targetable_classes.has( e.constructor ) )
 								//if ( e.is( sdCharacter ) || e.is( sdVirus ) || e.is( sdQuickie ) || e.is( sdOctopus ) || e.is( sdCube ) || e.is( sdBomb ) )
-								if ( ( e.hea || e._hea ) > 0 && ( !e.is( sdSandWorm ) || e.death_anim === 0 ) && ( e._frozen < 10 || this.kind !== sdTurret.KIND_FREEZER ) )
+								if ( 
+										( e.hea || e._hea ) > 0 && 
+										( !e.is( sdSandWorm ) || e.death_anim === 0 ) && 
+										( !e.is( sdMimic ) || e.morph < 100 ) && 
+										( e._frozen < 10 || this.kind !== sdTurret.KIND_FREEZER ) 
+									)
 								if ( !e.is( sdBadDog ) || !e.owned )
 								//if ( e.IsVisible( this._owner ) || ( e.driver_of && !e.driver_of._is_being_removed && e.driver_of.IsVisible( this._owner ) ) )
 								if ( e.IsPlayerClass() || e.IsVisible( this ) || ( e.driver_of && !e.driver_of._is_being_removed && e.driver_of.IsVisible( this ) ) )

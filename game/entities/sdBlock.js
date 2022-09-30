@@ -9,6 +9,7 @@ import sdBG from './sdBG.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdCharacter from './sdCharacter.js';
 import sdSandWorm from './sdSandWorm.js';
+import sdTimer from './sdTimer.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 import sdBitmap from '../client/sdBitmap.js';
@@ -154,6 +155,21 @@ class sdBlock extends sdEntity
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	
+	DoesRegenerate()
+	{
+		return ( 
+				this.material === sdBlock.MATERIAL_GROUND || 
+				this.material === sdBlock.MATERIAL_ROCK || 
+				this.material === sdBlock.MATERIAL_SAND ||
+				this.material === sdBlock.MATERIAL_CORRUPTION ||
+				this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS ||
+				this.material === sdBlock.MATERIAL_FLESH 
+		);
+	}
+	DoesRegenerateButDoesntDamage()
+	{
+		return ( this.DoesRegenerate() && this.material !== sdBlock.MATERIAL_CORRUPTION );
+	}
 	
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
 	{ return this.material === sdBlock.MATERIAL_SHARP; }
@@ -710,6 +726,19 @@ class sdBlock extends sdEntity
 
 		if ( this._contains_class === 'sdOctopus' || Math.random() < 0.05 ) // Octopus spawn gets replaced by abomination, or RNG puts abomination inside the flesh
 		ent2._contains_class = 'sdAbomination'; // Turn it into an abomination
+
+		if ( this._contains_class === 'sdSlug' || Math.random() < 0.05 ) // Octopus spawn gets replaced with mimic, or RNG puts abomination inside the flesh
+		{
+			ent2._contains_class = 'sdMimic'; // Turn it into an mimic
+			
+			sdTimer.ExecuteWithDelay( ( timer )=>{
+
+				if ( !ent2._is_being_removed )
+				if ( ent2._contains_class === 'sdMimic' )
+				ent2.Damage( ent2._hea + 1 );
+
+			}, 5000 + Math.random() * 30000 );
+		}
 
 		sdEntity.entities.push( ent2 );
 		

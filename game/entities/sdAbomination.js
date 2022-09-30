@@ -16,13 +16,14 @@ class sdAbomination extends sdEntity
 {
 	static init_class()
 	{
-		sdAbomination.img_abomination = sdWorld.CreateImageFromFile( 'abomination' );
+		//sdAbomination.img_abomination = sdWorld.CreateImageFromFile( 'abomination' );
+		sdAbomination.img_abomination = sdWorld.CreateImageFromFile( 'sdAbomination' );
 
 		/*
 		sdAbomination.img_abomination_idle1 = sdWorld.CreateImageFromFile( 'abomination_idle' );
 		sdAbomination.img_abomination_attack1 = sdWorld.CreateImageFromFile( 'abomination_attack' );
 		*/
-		sdAbomination.img_abomination_grab= sdWorld.CreateImageFromFile( 'abomination_grab' );
+		sdAbomination.img_abomination_grab = sdWorld.CreateImageFromFile( 'abomination_grab' );
 		
 		/*
 		sdAbomination.death_imgs = [
@@ -33,17 +34,17 @@ class sdAbomination extends sdEntity
 		];
 		*/
 
-		sdAbomination.death_duration = 20;
+		sdAbomination.death_duration = 30; // 20
 		sdAbomination.post_death_ttl = 120;
 		
 		sdAbomination.max_seek_range = 1000;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -15; }
-	get hitbox_x2() { return 15; }
-	get hitbox_y1() { return -12; }
-	get hitbox_y2() { return 12; }
+	get hitbox_x1() { return ( this.death_anim === 0 ) ? -15	:	-15; }
+	get hitbox_x2() { return ( this.death_anim === 0 ) ? 15		:	15; }
+	get hitbox_y1() { return ( this.death_anim === 0 ) ? -12	:	7; }
+	get hitbox_y2() { return ( this.death_anim === 0 ) ? 12		:	12; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return this.death_anim === 0; }
@@ -82,8 +83,12 @@ class sdAbomination extends sdEntity
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
+		if ( character.driver_of )
+		character = character.driver_of;
+		
+		if ( this._hea > 0 )
 		if ( character.IsTargetable() && character.IsVisible() )
-		if ( character.hea > 0 )
+		if ( ( character.hea || character._hea ) > 0 )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
 			if ( di < sdAbomination.max_seek_range )
@@ -119,7 +124,10 @@ class sdAbomination extends sdEntity
 		if ( this._hea <= 0 && was_alive )
 		{
 			//sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
-			sdSound.PlaySound({ name:'abomination_death', x:this.x, y:this.y, volume: 2 });
+			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:2 });
+			
+			//sdSound.PlaySound({ name:'abomination_death', x:this.x, y:this.y, volume: 2 });
+			sdSound.PlaySound({ name:'abomination_death', x:this.x, y:this.y, volume: 2, pitch: 0.75 });
 			this.idle = 1;
 			
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_CHALLENGING_MOB );

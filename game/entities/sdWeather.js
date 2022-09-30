@@ -258,7 +258,7 @@ class sdWeather extends sdEntity
 			if ( !ent.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 			if ( ent.CanMoveWithoutOverlap( x, y - 64, 0 ) )
 			if ( sdWorld.last_hit_entity )
-			if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+			if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
 			if ( !sdWorld.CheckWallExistsBox( 
 					x + ent._hitbox_x1 - 16, 
 					y + ent._hitbox_y1 - 116, 
@@ -299,7 +299,7 @@ class sdWeather extends sdEntity
 			if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
 			if ( !ent.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 			if ( sdWorld.last_hit_entity )
-			if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+			if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
 			if ( !sdWorld.CheckWallExistsBox( 
 					x + ent._hitbox_x1 - 16, 
 					y + ent._hitbox_y1 - 116, 
@@ -343,7 +343,7 @@ class sdWeather extends sdEntity
 
 			if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
 			if ( !ent.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-			if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+			if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() ) ) // Only spawn on ground
 			{
 					ent.x = x;
 					ent.y = y;
@@ -647,7 +647,7 @@ class sdWeather extends sdEntity
 						if ( virus_entity.CanMoveWithoutOverlap( x + 32, y - 32, 0 ) )
 						if ( virus_entity.CanMoveWithoutOverlap( x - 32, y - 32, 0 ) )
 						if ( !virus_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-						if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+						if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() ) ) // Only spawn on ground
 						{
 							virus_entity.x = x;
 							virus_entity.y = y;
@@ -720,7 +720,7 @@ class sdWeather extends sdEntity
 						if ( dog.CanMoveWithoutOverlap( x, y, 0 ) )
 						if ( !dog.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 						if ( sdWorld.last_hit_entity )
-						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
 						if ( !sdWorld.CheckWallExistsBox( 
 								x + dog._hitbox_x1 - 16, 
 								y + dog._hitbox_y1 - 16, 
@@ -801,7 +801,7 @@ class sdWeather extends sdEntity
 							if ( portal.CanMoveWithoutOverlap( x, y, 0 ) )
 							if ( !portal.CanMoveWithoutOverlap( x, y + 24, 0 ) )
 							if ( sdWorld.last_hit_entity )
-							if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+							if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
 							if ( !sdWorld.CheckWallExistsBox( 
 									x + portal._hitbox_x1 - 8, 
 									y + portal._hitbox_y1 - 8, 
@@ -861,7 +861,7 @@ class sdWeather extends sdEntity
 						if ( !ent.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 						if ( ent_drone.CanMoveWithoutOverlap( x, y - 48, 0 ) ) // Check if drones have enough space to be placed above Erthal spider bots.
 						if ( sdWorld.last_hit_entity )
-						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
 						if ( !sdWorld.CheckWallExistsBox( 
 								x + ent._hitbox_x1 - 16, 
 								y + ent._hitbox_y1 - 116, 
@@ -1042,7 +1042,7 @@ class sdWeather extends sdEntity
 						if ( obelisk.CanMoveWithoutOverlap( x, y, 0 ) )
 						if ( !obelisk.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 						if ( sdWorld.last_hit_entity )
-						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
 						if ( !sdWorld.CheckWallExistsBox( 
 								x + obelisk._hitbox_x1 - 16, 
 								y + obelisk._hitbox_y1 - 16, 
@@ -1181,7 +1181,7 @@ class sdWeather extends sdEntity
 						if ( anticrystal.CanMoveWithoutOverlap( x, y, 0 ) )
 						if ( !anticrystal.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 						if ( sdWorld.last_hit_entity )
-						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
 						if ( !sdWorld.CheckWallExistsBox( 
 								x + anticrystal._hitbox_x1 - 16, 
 								y + anticrystal._hitbox_y1 - 16, 
@@ -1392,7 +1392,7 @@ class sdWeather extends sdEntity
 						if ( council_bomb.CanMoveWithoutOverlap( x, y, 0 ) )
 						if ( !council_bomb.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 						if ( sdWorld.last_hit_entity )
-						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
 						if ( !sdWorld.CheckWallExistsBox( 
 								x + council_bomb._hitbox_x1 - 16, 
 								y + council_bomb._hitbox_y1 - 16, 
@@ -1468,7 +1468,7 @@ class sdWeather extends sdEntity
 
 						if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
 						//if ( !ent.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-						//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+						//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() ) )
 						{
 							ent.x = x;
 							ent.y = y;
@@ -1533,7 +1533,7 @@ class sdWeather extends sdEntity
 						if ( erthal_beacon.CanMoveWithoutOverlap( x, y, 0 ) )
 						if ( !erthal_beacon.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 						if ( sdWorld.last_hit_entity )
-						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
 						if ( !sdWorld.CheckWallExistsBox( 
 								x + erthal_beacon._hitbox_x1 - 16, 
 								y + erthal_beacon._hitbox_y1 - 16, 
@@ -1835,7 +1835,7 @@ class sdWeather extends sdEntity
 						if ( character_entity.CanMoveWithoutOverlap( x, y - 64, 0 ) ) // Make them spawn on surface more often when possible
 						if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
 						if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-						if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+						if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() ) ) // Only spawn on ground
 						{
 							character_entity.x = x;
 							character_entity.y = y;
@@ -2159,7 +2159,7 @@ class sdWeather extends sdEntity
 						if ( this.TraceDamagePossibleHere( x, y, 20 ) )
 						if ( !amphid.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 						if ( sdWorld.last_hit_entity )
-						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
 						if ( ax || sdWorld.CheckWallExistsBox( 
 							x + amphid._hitbox_x1 - 16, 
 							y + amphid._hitbox_y1 - 16, 
@@ -2307,7 +2307,7 @@ class sdWeather extends sdEntity
 						if ( council_mach.CanMoveWithoutOverlap( x, y, 0 ) )
 						if ( !council_mach.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 						if ( sdWorld.last_hit_entity )
-						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
+						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
 						if ( !sdWorld.CheckWallExistsBox( 
 								x + council_mach._hitbox_x1 - 16, 
 								y + council_mach._hitbox_y1 - 16, 
@@ -2509,7 +2509,7 @@ class sdWeather extends sdEntity
 
 								if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
 								//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() ) ) // Only spawn on ground
 								{
 									character_entity.x = x;
 									character_entity.y = y;
@@ -2668,7 +2668,7 @@ class sdWeather extends sdEntity
 						if ( sdWorld.last_hit_entity )
 						if ( sdWorld.last_hit_entity.is( sdBlock ) )
 						{
-							if ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND )
+							if ( sdWorld.last_hit_entity.DoesRegenerate() )
 							{
 								if ( sdWorld.last_hit_entity._plants === null )
 								{
@@ -2795,7 +2795,7 @@ class sdWeather extends sdEntity
 						
 						if ( ent.CanMoveWithoutOverlap( x, y, 0.0001, sdWeather.CrystalRemovalByEearthquakeFilter ) )
 						{
-							//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+							//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() ) )
 							//if ( !sdWorld.CheckWallExistsBox( x, y, x+16, y+16, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava
 							if ( !sdWorld.CheckWallExistsBox( x + 0.0001, y + 0.0001, x+16 - 0.0001, y+16 - 0.0001, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava
 							{
@@ -2806,14 +2806,14 @@ class sdWeather extends sdEntity
 								let ent_below_exists = false;
 
 								sdWorld.last_hit_entity = null;
-								if ( !ent.CanMoveWithoutOverlap( x, y + 16, 0.0001 ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) ) )
+								if ( !ent.CanMoveWithoutOverlap( x, y + 16, 0.0001 ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural ) ) )
 								{
 									ent_below = sdWorld.last_hit_entity;
 									ent_below_exists = true;
 								}
 
 								sdWorld.last_hit_entity = null;
-								if ( !ent.CanMoveWithoutOverlap( x, y - 16, 0.0001 ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) ) )
+								if ( !ent.CanMoveWithoutOverlap( x, y - 16, 0.0001 ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural ) ) )
 								{
 									ent_above = sdWorld.last_hit_entity;
 									ent_above_exists = true;
@@ -2823,13 +2823,13 @@ class sdWeather extends sdEntity
 								if ( !ent_above_exists )
 								{
 									sdWorld.last_hit_entity = null;
-									if ( !ent.CanMoveWithoutOverlap( x - 16, y, 0.0001 ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) ) )
+									if ( !ent.CanMoveWithoutOverlap( x - 16, y, 0.0001 ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural ) ) )
 									{
 										ent_above = sdWorld.last_hit_entity;
 										ent_above_exists = true;
 									}
 									sdWorld.last_hit_entity = null;
-									if ( !ent.CanMoveWithoutOverlap( x + 16, y, 0.0001 ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) ) )
+									if ( !ent.CanMoveWithoutOverlap( x + 16, y, 0.0001 ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural ) ) )
 									{
 										ent_above = sdWorld.last_hit_entity;
 										ent_above_exists = true;
@@ -2920,7 +2920,7 @@ class sdWeather extends sdEntity
 						if ( sdWeather.last_crystal_near_quake )
 						{
 							sdWorld.last_hit_entity = null;
-							if ( sdWorld.CheckWallExistsBox( x - 4, y + 4, x+16 + 4, y+16 + 4, null, null, [ 'sdBlock' ] ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural ) )  )
+							if ( sdWorld.CheckWallExistsBox( x - 4, y + 4, x+16 + 4, y+16 + 4, null, null, [ 'sdBlock' ] ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural ) )  )
 							{
 								//sdWeather.last_crystal_near_quake.DamageWithEffect( 15 );
 								if ( sdWeather.last_crystal_near_quake.IsTargetable( this ) )

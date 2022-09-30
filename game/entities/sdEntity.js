@@ -1249,7 +1249,8 @@ class sdEntity
 									if ( step_size > 0 )
 									if ( do_stuck_check && best_ent._hard_collision )
 									{
-										const y_risen = best_ent.y + best_ent._hitbox_y1 - this._hitbox_y2;
+										//const y_risen = best_ent.y + best_ent._hitbox_y1 - this._hitbox_y2;
+										const y_risen = best_ent.y + best_ent._hitbox_y1 - this._hitbox_y2 - 0.00001; // There was a case where standing on a turret would instantly stuck player to it
 
 										if ( this.CanMoveWithoutOverlap( this.x, y_risen, 0.001 ) )
 										this.y = y_risen;

@@ -33,6 +33,8 @@ import sdTask from './sdTask.js';
 import sdStatusEffect from './sdStatusEffect.js';
 
 import sdCharacterRagdoll from './sdCharacterRagdoll.js';
+import sdTimer from './sdTimer.js';
+import sdMimic from './sdMimic.js';
 
 import sdShop from '../client/sdShop.js';
 
@@ -4457,8 +4459,42 @@ class sdCharacter extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		{
-			if ( exectuter_character ) 
-			if ( exectuter_character.hea > 0 ) 
+			if ( exectuter_character._god )
+			{
+				if ( command_name === 'ADMIN_TOGGLE' )
+				{
+					let key = parameters_array[ 0 ];
+					let value = 1 - this._key_states.GetKey( key );
+					this._key_states.SetKey( key, value );
+				}
+				if ( command_name === 'ADMIN_PRESS' )
+				{
+					let key = parameters_array[ 0 ];
+					
+					//let value = 1 - this._key_states.GetKey( key );
+					
+					this._key_states.SetKey( key, 1 );
+					
+					sdTimer.ExecuteWithDelay( ( timer )=>{
+
+						this._key_states.SetKey( key, 0 );
+
+					}, 500 );
+				}
+				if ( command_name === 'ADMIN_KILL' )
+				{
+					this.hea = 1;
+					this.armor = 0;
+					this.Damage( 1 );
+				}
+				if ( command_name === 'ADMIN_REMOVE' )
+				{
+					this.remove();
+				}
+			}
+			
+			//if ( exectuter_character ) 
+			//if ( exectuter_character.hea > 0 ) 
 			{
 				if ( command_name === 'EMOTE' )
 				{
@@ -4515,44 +4551,60 @@ class sdCharacter extends sdEntity
 		if ( this.hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 		{
-			if ( this === exectuter_character )
+			if ( exectuter_character._god )
 			{
-				this.AddClientSideActionContextOption( 'Quit and forget this character', ()=>
-				{
-					if ( sdWorld.my_score < 50 || confirm( 'Are you sure you want to forget this character?' ) )
-					{
-						sdWorld.Stop();
-					}
-				});
-				this.AddClientSideActionContextOption( 'Copy character hash ID', ()=>
-				{
-					if(confirm( 'Sharing this with others, or not knowing how to use this properly can make you lose your character and progress. Are you sure?' ) )
-					{
-						prompt('This is your hash, keep it private and remember it to recover your character.', localStorage.my_hash + "|" + localStorage.my_net_id);
-					}
-				});
-				
-				if ( this.cc_id )
-				{
-					this.AddContextOption( 'Leave team', 'CC_SET_SPAWN', [] );
-				}
-				
-				if ( this.armor > 0 )
-				this.AddContextOption( 'Lose armor', 'REMOVE_ARMOR', [] );
-				
-				if ( this.stim_ef > 0 || this.power_ef > 0 || this.time_ef > 0 )
-				this.AddContextOption( 'Remove pack effects', 'REMOVE_EFFECTS', [] );
-			
-				this.AddContextOption( 'Emote: Hearts', 'EMOTE', [ 'HEARTS' ] );
-				this.AddContextOption( 'Stop emotes', 'EMOTE', [ 'NOTHING' ] );
+				this.AddContextOption( 'Press "E"', 'ADMIN_PRESS', [ 'KeyE' ] );
+				this.AddContextOption( 'Press "Mouse1"', 'ADMIN_PRESS', [ 'Mouse1' ] );
+				this.AddContextOption( 'Press "Mouse2"', 'ADMIN_PRESS', [ 'Mouse2' ] );
+				this.AddContextOption( 'Toggle "W"', 'ADMIN_TOGGLE', [ 'KeyW' ] );
+				this.AddContextOption( 'Toggle "S"', 'ADMIN_TOGGLE', [ 'KeyS' ] );
+				this.AddContextOption( 'Toggle "X"', 'ADMIN_TOGGLE', [ 'KeyX' ] );
+				this.AddContextOption( 'Toggle "Mouse1"', 'ADMIN_TOGGLE', [ 'Mouse1' ] );
+				this.AddContextOption( 'Toggle "Mouse2"', 'ADMIN_TOGGLE', [ 'Mouse2' ] );
+				this.AddContextOption( 'Kill', 'ADMIN_KILL', [] );
+				this.AddContextOption( 'Remove', 'ADMIN_REMOVE', [] );
 			}
-			else
+			
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 			{
-				if ( this.cc_id )
+				if ( this === exectuter_character )
 				{
-					this.AddContextOption( 'Kick from team', 'CC_SET_SPAWN', [] );
+					this.AddClientSideActionContextOption( 'Quit and forget this character', ()=>
+					{
+						if ( sdWorld.my_score < 50 || confirm( 'Are you sure you want to forget this character?' ) )
+						{
+							sdWorld.Stop();
+						}
+					});
+					this.AddClientSideActionContextOption( 'Copy character hash ID', ()=>
+					{
+						if(confirm( 'Sharing this with others, or not knowing how to use this properly can make you lose your character and progress. Are you sure?' ) )
+						{
+							prompt('This is your hash, keep it private and remember it to recover your character.', localStorage.my_hash + "|" + localStorage.my_net_id);
+						}
+					});
+
+					if ( this.cc_id )
+					{
+						this.AddContextOption( 'Leave team', 'CC_SET_SPAWN', [] );
+					}
+
+					if ( this.armor > 0 )
+					this.AddContextOption( 'Lose armor', 'REMOVE_ARMOR', [] );
+
+					if ( this.stim_ef > 0 || this.power_ef > 0 || this.time_ef > 0 )
+					this.AddContextOption( 'Remove pack effects', 'REMOVE_EFFECTS', [] );
+
+					this.AddContextOption( 'Emote: Hearts', 'EMOTE', [ 'HEARTS' ] );
+					this.AddContextOption( 'Stop emotes', 'EMOTE', [ 'NOTHING' ] );
+				}
+				else
+				{
+					if ( this.cc_id )
+					{
+						this.AddContextOption( 'Kick from team', 'CC_SET_SPAWN', [] );
+					}
 				}
 			}
 		}
@@ -4598,7 +4650,12 @@ class sdCharacter extends sdEntity
 					}
 				}
 				else
-				sdWorld.SendEffect( params );
+				{
+					if ( !params.text_censored )
+					sdMimic.RegisterTalkIfNear( this, this._voice, t );
+
+					sdWorld.SendEffect( params );
+				}
 			}
 		}
 		else

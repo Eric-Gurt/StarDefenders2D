@@ -839,9 +839,7 @@ class sdServerConfigFull extends sdServerConfigShort
 				 ( ground_ent !== null && 
 					( ground_ent.is( sdBlock ) && 
 						( 
-							ground_ent.material === sdBlock.MATERIAL_GROUND || 
-							ground_ent.material === sdBlock.MATERIAL_ROCK || 
-							ground_ent.material === sdBlock.MATERIAL_SAND )
+							ground_ent.DoesRegenerateButDoesntDamage() )
 					) 
 				) 
 			) // Only spawn on ground (or near CC)

@@ -2,6 +2,7 @@
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
+import sdMimic from './sdMimic.js';
 
 class sdAsteroid extends sdEntity
 {
@@ -22,10 +23,16 @@ class sdAsteroid extends sdEntity
 		this.sx += x / this.mass;
 		this.sy += y / this.mass;
 	}
-	
+	SyncedToPlayer( character ) // Shortcut for enemies to react to players
+	{
+		if ( character.build_tool_level > this._max_build_tool_level_near )
+		this._max_build_tool_level_near = character.build_tool_level;
+	}
 	constructor( params )
 	{
 		super( params );
+		
+		this._max_build_tool_level_near = 0;
 
 		this._type = params._type || Math.random() < 0.2 ? 1 : 0;
 		this.landed = false;
@@ -50,6 +57,13 @@ class sdAsteroid extends sdEntity
 			this._hea -= dmg;
 			if ( this._hea <= 0 )
 			{
+				if ( this._max_build_tool_level_near >= 10 && Math.random() < this._max_build_tool_level_near / 30 * 0.05 )
+				{
+					let ent = new sdMimic({ x: this.x, y: this.y });
+					sdEntity.entities.push( ent );
+					sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
+				}
+				else
 				if ( Math.random() < 0.25 || this._type === 1 )
 				{
 					let matter_max = 40;
