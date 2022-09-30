@@ -9,6 +9,7 @@ import sdBlock from './sdBlock.js';
 import sdDoor from './sdDoor.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdWeather from './sdWeather.js';
+import sdCom from './sdCom.js';
 import sdSound from '../sdSound.js';
 
 
@@ -88,6 +89,7 @@ class sdThruster extends sdEntity
 			if ( !nears[ i ].is( sdBlock ) )
 			if ( !nears[ i ].is( sdDoor ) )
 			if ( nears[ i ].IsTargetable( this ) )
+			if ( sdWorld.CheckLineOfSight( this.x, this.y + this._hitbox_y2, nears[ i ].x, nears[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) ) // Otherwise it burns entities through walls
 			{
 				nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t:100 * GSPEED }); // Set enemy on fire
 			}
