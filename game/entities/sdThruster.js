@@ -89,9 +89,10 @@ class sdThruster extends sdEntity
 			if ( !nears[ i ].is( sdBlock ) )
 			if ( !nears[ i ].is( sdDoor ) )
 			if ( nears[ i ].IsTargetable( this ) )
-			if ( sdWorld.CheckLineOfSight( this.x, this.y + this._hitbox_y2, nears[ i ].x, nears[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) ) // Otherwise it burns entities through walls
+			//if ( sdWorld.CheckLineOfSight( this.x, this.y + this._hitbox_y2, nears[ i ].x, nears[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) ) // Otherwise it burns entities through walls
+			if ( sdWorld.CheckLineOfSight( this.x, this.y + this._hitbox_y2, nears[ i ].x + ( nears[ i ]._hitbox_x1 + nears[ i ]._hitbox_x2 ) / 2, nears[ i ].y + ( nears[ i ]._hitbox_y1 + nears[ i ]._hitbox_y2 ) / 2, nears[ i ], null, sdCom.com_vision_blocking_classes ) ) // Otherwise it burns entities through walls
 			{
-				nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t:100 * GSPEED }); // Set enemy on fire
+				nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t:100 * GSPEED }); // Set target on fire
 			}
 		}
 	}
