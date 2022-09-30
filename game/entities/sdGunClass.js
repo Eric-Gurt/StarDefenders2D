@@ -2013,8 +2013,6 @@ class sdGunClass
 					{
 						//gun._held_by._auto_shoot_in = 15;
 						//return; // hack
-						if ( gun._combo === 0 ) // Can't really divide with 0
-						gun._held_by._auto_shoot_in = 800 / 1000 * 30;
 						gun._held_by._auto_shoot_in = 800 / 1000 * 30 / ( 1 + gun._combo / 60 );
 
 
