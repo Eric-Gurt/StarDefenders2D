@@ -131,8 +131,8 @@ class sdAbomination extends sdEntity
 			sdSound.PlaySound({ name:'abomination_death', x:this.x, y:this.y, volume: 2, pitch: 0.75 });
 			this.idle = 1;
 			
-			sdWorld.SpawnGib( this.x - ( 10 * this.side ), this.y - 9, this.sx - this.side, this.sy - 1 - Math.random() * 1.5, this.side, sdGib.CLASS_ABOMINATION_GIBS ,'', '', 100, this );
-			sdWorld.SpawnGib( this.x + ( 10 * this.side ), this.y - 9, this.sx + this.side, this.sy - 1 - Math.random() * 1.5, this.side, sdGib.CLASS_ABOMINATION_GIBS ,'', '', 100, this, 1 );
+			sdWorld.SpawnGib( this.x - ( 6 * this.side ), this.y - 9, this.sx - this.side, this.sy - 1 - Math.random() * 1.5, this.side, sdGib.CLASS_ABOMINATION_GIBS ,'', '', 100, this );
+			sdWorld.SpawnGib( this.x + ( 6 * this.side ), this.y - 9, this.sx + this.side, this.sy - 1 - Math.random() * 1.5, this.side, sdGib.CLASS_ABOMINATION_GIBS ,'', '', 100, this, 1 );
 
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_CHALLENGING_MOB );
 
