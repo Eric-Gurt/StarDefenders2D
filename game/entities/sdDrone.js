@@ -604,7 +604,7 @@ class sdDrone extends sdEntity
 				{
 					this._last_attack = sdWorld.time; // So it is not so much calc intensive
 
-					let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 240, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdDrone', 'sdEnemyMech' ] );
+					let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 240, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdDrone', 'sdEnemyMech', 'sdSpider' ] );
 					let from_entity;
 
 					let nears = [];
@@ -619,6 +619,12 @@ class sdDrone extends sdEntity
 							nears.push( { ent: from_entity, rank: rank, ignore_line_of_sight: false } );
 						}
 						if ( from_entity.GetClass() === 'sdDrone' && from_entity._ai_team !== this._ai_team )
+						{
+							let rank = Math.random() * 0.1;
+
+							nears.push( { ent: from_entity, rank: rank, ignore_line_of_sight: false } );
+						}
+						if ( from_entity.GetClass() === 'sdSpider' && from_entity._ai_team !== this._ai_team )
 						{
 							let rank = Math.random() * 0.1;
 
