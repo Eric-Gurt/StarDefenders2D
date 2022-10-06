@@ -1763,6 +1763,7 @@ class sdWeather extends sdEntity
 			for ( var i = 0; i < sdCharacter.characters.length; i++ )
 			if ( !sdCharacter.characters[ i ]._is_being_removed )
 			if ( sdCharacter.characters[ i ]._ai )
+			if ( sdCharacter.characters[ i ]._ai_team === 0 || sdCharacter.characters[ i ]._ai_team === 6 )
 			{
 				if ( sdCharacter.characters[ i ].hea > 0 )
 				ais++;
@@ -1813,7 +1814,7 @@ class sdWeather extends sdEntity
 
 			let left_side = ( Math.random() < 0.5 );
 
-			while ( instances < instances_tot && ais < this._max_ai_count )
+			while ( instances < instances_tot && ais < 4 ) // Only 4 of these task types are available at once
 			{
 				let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled: hostile ? sdCharacter.AI_MODEL_FALKOK : sdCharacter.AI_MODEL_TEAMMATE });
 
