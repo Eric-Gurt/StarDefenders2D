@@ -437,11 +437,11 @@ class sdRift extends sdEntity
 			{
 				this.scale -= 0.0025 / GSPEED;
 			}
-			if ( this.scale <= 0 && this.type !== 5 )
+			if ( this.scale <= 0 )
 			{
 				let r = Math.random();
 
-				if ( r < ( 0.23 + ( 0.05 * this.type ) ) )
+				if ( r < ( 0.23 + ( 0.05 * this.type ) ) && this.type !== 5 )
 				{
 					let x = this.x;
 					let y = this.y;
