@@ -72,7 +72,9 @@ class sdServerConfigFull extends sdServerConfigShort
 			if ( initiator._socket.ffa_warning === 0 )
 			initiator._socket.SDServiceMessage( 'Your respawn rate was temporarily decreased' );
 
+			if ( initiator._socket.SyncFFAWarning ) // Singleplayer does not have it yet
 			initiator._socket.SyncFFAWarning();
+			
 			initiator._socket.ffa_warning += 1;
 			initiator._socket.respawn_block_until = sdWorld.time + initiator._socket.ffa_warning * 5000;
 		}
