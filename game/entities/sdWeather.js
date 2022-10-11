@@ -105,6 +105,8 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_FLESH_DIRT =				event_counter++; // 32
 		sdWeather.EVENT_COUNCIL_PORTAL =			event_counter++; // 33
 		sdWeather.EVENT_SWORD_BOT =				event_counter++; // 34
+		sdWeather.EVENT_TZYRG =					event_counter++; // 35
+
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -1282,17 +1284,17 @@ class sdWeather extends sdEntity
 									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ALIEN_ENERGY_RIFLE }) );
 									character_entity._ai_gun_slot = 8;
 								}
-								let setr_settings;
+								let char_settings;
 
 								if ( character_entity._ai_gun_slot === 8 )
-								setr_settings = {"hero_name":"Sarronian Soldier","color_bright":"#202020","color_dark":"#101010","color_bright3":"#000000","color_dark3":"#101010","color_visor":"#FFA000","color_suit":"#202020","color_suit2":"#101010","color_dark2":"#101010","color_shoes":"#000000","color_skin":"#FFFF00","color_extra1":"#00FF00","helmet1":false,"helmet77":true,"voice1":false,"voice2":false,"voice3":false,"voice4":false,"voice10":true,"body18":true, "legs36":true};
+								char_settings = {"hero_name":"Sarronian Soldier","color_bright":"#202020","color_dark":"#101010","color_bright3":"#000000","color_dark3":"#101010","color_visor":"#FFA000","color_suit":"#202020","color_suit2":"#101010","color_dark2":"#101010","color_shoes":"#000000","color_skin":"#FFFF00","color_extra1":"#00FF00","helmet1":false,"helmet77":true,"voice1":false,"voice2":false,"voice3":false,"voice4":false,"voice10":true,"body18":true, "legs36":true};
 
-								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( setr_settings );
-								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( setr_settings );
-								character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( setr_settings );
-								character_entity.title = setr_settings.hero_name;
-								character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( setr_settings );
-								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( setr_settings );
+								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( char_settings );
+								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( char_settings );
+								character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( char_settings );
+								character_entity.title = char_settings.hero_name;
+								character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( char_settings );
+								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( char_settings );
 								if ( character_entity._ai_gun_slot === 8 ) // If a regular Sarronian soldier
 								{
 									character_entity.matter = 150;
@@ -2433,6 +2435,118 @@ class sdWeather extends sdEntity
 
 				instances++;
 				ais++;
+			}
+		}
+		if ( r === sdWeather.EVENT_TZYRG ) // Tzyrg faction spawn. Spawns humanoids and drones.
+		{
+			let ais = 0;
+			for ( var i = 0; i < sdCharacter.characters.length; i++ )
+			{
+				if ( sdCharacter.characters[ i ].hea > 0 )
+				if ( !sdCharacter.characters[ i ]._is_being_removed )
+				if ( sdCharacter.characters[ i ]._ai )
+				if ( sdCharacter.characters[ i ]._ai_team === 8 )
+				{
+					ais++;
+				}
+
+			}
+
+			{
+				let instances = 0;
+				let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
+
+				let left_side = ( Math.random() < 0.5 );
+
+
+			while ( instances < instances_tot && ais < this._max_ai_count )
+			{
+
+				let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+
+				sdEntity.entities.push( character_entity );
+
+				{
+					if ( !this.GetHumanoidSpawnLocation( character_entity ) )
+					{
+						character_entity.remove();
+						character_entity._broken = false;
+						break;
+					}
+					else
+					{
+						{
+
+							//sdWorld.UpdateHashPosition( ent, false );
+								{ 
+									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TZYRG_SHOTGUN }) );
+									character_entity._ai_gun_slot = 3;
+								}
+								let char_settings;
+
+								if ( character_entity._ai_gun_slot === 3 )
+								char_settings = {"hero_name":"Tzyrg","color_bright":"#404040","color_dark":"#202020","color_bright3":"#303030","color_dark3":"#202020","color_visor":"#FF0000","color_suit":"#404040","color_suit2":"#383838","color_dark2":"#202020","color_shoes":"#000000","color_skin":"#101010","color_extra1":"#000000","helmet1":false,"helmet69":true,"voice1":false,"voice10":true,"body34":true, "legs36":true};
+
+								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( char_settings );
+								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( char_settings );
+								character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( char_settings );
+								character_entity.title = char_settings.hero_name;
+								character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( char_settings );
+								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( char_settings );
+								if ( character_entity._ai_gun_slot === 3 ) // If a regular Tzyrg
+								{
+									character_entity.matter = 100;
+									character_entity.matter_max = 100;
+
+									character_entity.hea = 200;
+									character_entity.hmax = 200;
+
+									//character_entity.armor = 150;
+									//character_entity.armor_max = 150;
+									//character_entity._armor_absorb_perc = 0.7; // 70% damage absorption
+
+									//character_entity._damage_mult = 1;
+								}
+
+								character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+								//character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
+								character_entity._ai_level = Math.floor( 1 + Math.random() * 2 ); // AI Levels
+
+								character_entity._matter_regeneration = 5; // At least some ammo regen
+								character_entity._jetpack_allowed = true; // Jetpack
+								//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
+								character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+								character_entity._ai_team = 8; // AI team 8 is for Tzyrg faction
+								character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
+
+								break;
+							}
+						}
+					}
+
+					instances++;
+					ais++;
+				}
+
+				/*let drones = 0;
+				let drones_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
+
+
+				while ( drones < drones_tot && sdDrone.drones_tot < this._max_drone_count )
+				{
+
+					let drone = new sdDrone({ x:0, y:0 , _ai_team: 4, type: ( Math.random() < 0.15 ) ? 4 : 3});
+
+					sdEntity.entities.push( drone );
+
+					if ( !this.GetHumanoidSpawnLocation( drone ) )
+					{
+						drone.remove();
+						drone._broken = false;
+						break;
+					}
+					drones++;
+				}*/
 			}
 		}
 	}

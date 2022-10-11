@@ -4143,6 +4143,24 @@ class sdGunClass
 			upgrades: AddRecolorsFromColorAndCost( [], '#dcdcdc', 20 )
 		};
 
+		sdGun.classes[ sdGun.CLASS_TZYRG_SHOTGUN = 102 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'tzyrg_shotgun' ),
+			sound: 'gun_shotgun',
+			sound_pitch: 1.25,
+			title: 'Tzyrg Shotgun',
+			slot: 3,
+			reload_time: 18,
+			muzzle_x: 11,
+			ammo_capacity: 12,
+			count: 5,
+			spread: 0.12,
+			spawnable: false,
+			projectile_velocity: 20,
+			projectile_properties: { _damage: 20 },
+			upgrades: AddShotgunAmmoTypes( [] )
+		};
+
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
