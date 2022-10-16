@@ -2732,6 +2732,7 @@ class sdWeather extends sdEntity
 			let located_spawn = true;
 			let tr = 1000;
 			// Check if there's 10x10 worth of 32x32 block free space.
+			if ( sdFactionSpawner.falkok_spawners === 0 )
 			do
 			{
 				located_spawn = true;
@@ -2755,7 +2756,7 @@ class sdWeather extends sdEntity
 								x - 32, 
 								y - 32, 
 								x + 32, 
-								y + 32, null, null, [ 'sdBlock', 'sdDoor', 'sdWater' ], null ) ) // Make sure nothing "blocks" ( pun intended ) outpost spawns
+								y + 32, null, null, [ 'sdBlock', 'sdDoor', 'sdWater', 'sdBG', 'sdLongRangeTeleport' ], null ) ) // Make sure nothing "blocks" ( pun intended ) outpost spawns
 						{
 							let di_allowed = true;
 											
