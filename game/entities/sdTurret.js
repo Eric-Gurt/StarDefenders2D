@@ -102,17 +102,32 @@ class sdTurret extends sdEntity
 	get title()
 	{
 		var prefix = ' ( level ' + this.lvl + ', '+ ~~(this.matter)+' / '+this._matter_max+' )';
-		
-		if ( this.kind === sdTurret.KIND_LASER )
-		return 'Automatic laser turret' + prefix;
-		if ( this.kind === sdTurret.KIND_ROCKET )
-		return 'Automatic missile turret' + prefix;
-		if ( this.kind === sdTurret.KIND_RAPID_LASER )
-		return 'Automatic rapid laser turret' + prefix;
-		if ( this.kind === sdTurret.KIND_SNIPER )
-		return 'Automatic sniper turret' + prefix;
-		if ( this.kind === sdTurret.KIND_FREEZER )
-		return 'Automatic freezing turret' + prefix;
+		if ( this.type === 0 )
+		{
+			if ( this.kind === sdTurret.KIND_LASER )
+			return 'Automatic laser turret' + prefix;
+			if ( this.kind === sdTurret.KIND_ROCKET )
+			return 'Automatic missile turret' + prefix;
+			if ( this.kind === sdTurret.KIND_RAPID_LASER )
+			return 'Automatic rapid laser turret' + prefix;
+			if ( this.kind === sdTurret.KIND_SNIPER )
+			return 'Automatic sniper turret' + prefix;
+			if ( this.kind === sdTurret.KIND_FREEZER )
+			return 'Automatic freezing turret' + prefix;
+		}
+		if ( this.type === 1 ) // AI faction base / outpost turrets.
+		{
+			if ( this.kind === sdTurret.KIND_LASER )
+			return 'Automatic laser turret';
+			if ( this.kind === sdTurret.KIND_ROCKET )
+			return 'Automatic missile turret';
+			if ( this.kind === sdTurret.KIND_RAPID_LASER )
+			return 'Automatic rapid laser turret';
+			if ( this.kind === sdTurret.KIND_SNIPER )
+			return 'Automatic sniper turret';
+			if ( this.kind === sdTurret.KIND_FREEZER )
+			return 'Automatic freezing turret';
+		}
 	
 		return 'Automatic turret' + prefix;
 	}
@@ -140,6 +155,8 @@ class sdTurret extends sdEntity
 		super( params );
 		
 		this.kind = params.kind || 0;
+		this.type = params.type || 0; // 0 = default SD turrets which need com nodes to work, 1 = faction base turrets which work without com nodes and matter source, target anything but their own faction.
+		this._ai_team = params._ai_team || 0; // AI Team, used in faction base / outpost turrets to determine friend from foe
 		
 		//this._is_cable_priority = true;
 		
@@ -192,6 +209,9 @@ class sdTurret extends sdEntity
 		}
 			
 		//return m * 0.1;
+
+		if ( this.type === 1 ) // Faction base / outpost turrets
+		return 0;
 		
 		return ( Math.abs( dmg * dmg_mult ) * count + 
 				( is_rail ? 30 : 0 ) + 
@@ -218,7 +238,7 @@ class sdTurret extends sdEntity
 		
 		if ( sdWorld.is_server )
 		{
-			if ( this.matter > this.GetShootCost() )
+			if ( this.matter > this.GetShootCost() || this.type === 1 )
 			{
 				can_hibernate = false;
 				
@@ -239,7 +259,7 @@ class sdTurret extends sdEntity
 					//let coms_near = this.GetComsNearCache( this.x, this.y, null, null, true );
 					let com_near = this.GetComWiredCache();
 
-					if ( com_near )
+					if ( ( com_near && this.type === 0 ) )
 					{
 
 						//let class_cache = {};
@@ -343,6 +363,97 @@ class sdTurret extends sdEntity
 									//if ( NetIDSearch( e._net_id ) === 0 && ClassSearch( e.GetClass() ) === 0 )
 									//if ( ( is_char && e.IsHostileAI() ) || ( ( !is_char || RuleAllowedByNodes( e._net_id ) ) && RuleAllowedByNodes( e.GetClass() ) ) )
 									if ( ( is_char && e.IsHostileAI() ) || ( ( !is_char || ( RuleAllowedByNodes( e._net_id ) && RuleAllowedByNodes( e.biometry ) ) ) && RuleAllowedByNodes( e.GetClass() ) ) )
+									{
+										if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier', 'sdCommandCentre', 'sdCrystalCombiner', 'sdTurret', 'sdCrystal' ], this.ShootPossibilityFilter ) )
+										{
+											this._target = e;
+											break;
+										}
+									}
+								}
+							}
+						}
+						
+						//this._debug1 = ents_looked_through;
+					}
+					else
+					if ( this.type === 1 )
+					{
+
+						//let class_cache = {};
+						function RuleAllowedByNodes( c )
+						{
+							return true;
+						}
+
+
+						const targetable_classes = sdTurret.targetable_classes;
+						
+						const range = this.GetTurretRange();
+						
+						const from_x = this.x - range;
+						const to_x = this.x + range;
+						const from_y = this.y - range;
+						const to_y = this.y + range;
+						
+						//let ents_looked_through = 0;
+						
+						/*
+						
+							Console code to measure stuff
+
+							var counters = [];
+							for ( var i = 0; i < sdWorld.entity_classes.sdEntity.active_entities.length; i++ )
+							if ( sdWorld.entity_classes.sdEntity.active_entities[ i ].GetClass() === 'sdTurret' )
+							{
+								var e = sdWorld.entity_classes.sdEntity.active_entities[ i ];
+								counters.push( [ e.kind, e.lvl, e._debug1 ] );
+							}
+							counters;
+
+						*/
+					   
+
+						{
+							//var arr = sdWorld.RequireHashPosition( x, y );
+							var arr = sdEntity.active_entities; // In many cases it is faster than running through 3D array, especially if we don't need hibernated targets
+
+							//ents_looked_through += arr.length;
+								
+							for ( var i2 = 0; i2 < arr.length; i2++ )
+							{
+								var e = arr[ i2 ];
+								
+								/*if ( targetable_classes.has( e.constructor ) )
+								counterA++;
+							
+								if ( e._hiberstate === sdEntity.HIBERSTATE_ACTIVE )
+								counterB++;*/
+								
+								/*if ( targetable_classes.has( e.constructor ) )
+								counterA++;
+							
+								if ( sdWorld.inDist2D_Boolean( e.x, e.y, this.x, this.y, range ) )
+								counterB++;*/
+								
+								if ( sdWorld.inDist2D_Boolean( e.x, e.y, this.x, this.y, range ) ) // Faster than class check
+								//if ( e._hiberstate === sdEntity.HIBERSTATE_ACTIVE ) // Don't target dead bodies or anything else that is hibernated, actually a big optimization and is faster than class constructor checking for some reason by a lot
+								if ( targetable_classes.has( e.constructor ) )
+								//if ( e.is( sdCharacter ) || e.is( sdVirus ) || e.is( sdQuickie ) || e.is( sdOctopus ) || e.is( sdCube ) || e.is( sdBomb ) )
+								if ( 
+										( e.hea || e._hea ) > 0 && 
+										( !e.is( sdSandWorm ) || e.death_anim === 0 ) && 
+										( !e.is( sdMimic ) || e.morph < 100 ) && 
+										( e._frozen < 10 || this.kind !== sdTurret.KIND_FREEZER ) 
+									)
+								{
+									//var is_char = e.is( sdCharacter );
+									var is_char = e.IsPlayerClass();
+
+									if ( ( e.is( sdCharacter ) && e._ai_team === this._ai_team ) || ( e.is( sdDrone ) && e._ai_team === this._ai_team ) )
+									{
+									}
+									else
 									{
 										if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier', 'sdCommandCentre', 'sdCrystalCombiner', 'sdTurret', 'sdCrystal' ], this.ShootPossibilityFilter ) )
 										{
@@ -563,7 +674,7 @@ class sdTurret extends sdEntity
 		let com_near = this.GetComWiredCache();
 		
 		if ( !sdShop.isDrawing )
-		if ( this.disabled || this.matter < this.GetShootCost() || !com_near )
+		if ( this.disabled || this.matter < this.GetShootCost() || ( !com_near && this.type === 0 ) )
 		{
 			ctx.filter = 'brightness(0.1)';
 			not_firing_now = true;

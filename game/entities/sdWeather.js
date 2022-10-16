@@ -51,6 +51,10 @@ import sdOverlord from './sdOverlord.js';
 import sdSetrDestroyer from './sdSetrDestroyer.js';
 import sdBiter from './sdBiter.js';
 import sdCouncilMachine from './sdCouncilMachine.js';
+import sdLamp from './sdLamp.js';
+import sdDoor from './sdDoor.js';
+import sdTurret from './sdTurret.js';
+import sdFactionSpawner from './sdFactionSpawner.js';
 
 import sdTask from './sdTask.js';
 
@@ -106,6 +110,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_COUNCIL_PORTAL =			event_counter++; // 33
 		sdWeather.EVENT_SWORD_BOT =				event_counter++; // 34
 		sdWeather.EVENT_TZYRG =					event_counter++; // 35
+		sdWeather.EVENT_FALKOK_OUTPOST =			event_counter++; // 36
 
 		
 		sdWeather.supported_events = [];
@@ -244,7 +249,7 @@ class sdWeather extends sdEntity
 		}
 		//console.log( this._daily_events );
 	}
-	GetHumanoidSpawnLocation( ent ) //Locate spawn location for humanoids. First it uses same method as for Erthal spider bots / bad dogs, and if it doesn't find a position it uses old humanoid method.
+	GetHumanoidSpawnLocation( ent ) // Locate spawn location for humanoids. First it uses same method as for Erthal spider bots / bad dogs, and if it doesn't find a position it uses old humanoid method.
 	{
 		let x,y,i;
 		let located_spawn = false;
@@ -357,6 +362,178 @@ class sdWeather extends sdEntity
 
 		if ( tr <= 0 )
 		return false;
+	}
+	GenerateOutpost( x = 0, y = 0, base_type = -1, interior_type = -1, ai_team = 0 ) // Generate a faction outpost.
+	{
+		let init_x = x;
+		let init_y = y;
+
+		let potential_doors = []; // Blocks which could get replaced by doors, so we can replace some with doors when we generate base interior
+
+		if ( base_type === 0 ) // 10x10 base
+		{
+			for ( let j = 0; j < 10; j++ )
+			{
+				y += 32;
+				x = init_x;
+				{
+					let block = new sdBlock({ x:x, y:y , material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+					sdEntity.entities.push( block );
+
+					if ( j === 4 || j === 5 )
+					potential_doors.push( block ); // Left-middle side is a potential door entrance
+
+					let bg = new sdBG({ x:x, y:y , width: 32, height: 32 });
+					sdEntity.entities.push( bg );
+				}
+				for ( let i = 0; i < 8; i++ )
+				{
+					x += 32;
+
+					let bg = new sdBG({ x:x, y:y , width: 32, height: 32 });
+					sdEntity.entities.push( bg );
+
+					if ( j === 0 || j === 9 )
+					{
+						let block = new sdBlock({ x:x, y:y , material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+						sdEntity.entities.push( block );
+
+						if ( i === 3 || i === 4 )
+						potential_doors.push( block ); // Top-middle and bottom-middle side is a potential door entrance
+					}
+				}
+				x += 32;
+				{
+					let block = new sdBlock({ x:x, y:y , material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+					sdEntity.entities.push( block );
+
+					if ( j === 4 || j === 5 )
+					potential_doors.push( block ); // Right-middle side is a potential door entrance
+
+					let bg = new sdBG({ x:x, y:y , width: 32, height: 32});
+					sdEntity.entities.push( bg );
+				}
+			}
+			// Interior types
+			if ( interior_type === 0 ) // -1 is test case which is blank, so we start with 0
+			{
+				x = init_x; // Reset starting coordinates
+				y = init_y + 32;
+
+				// Lamps
+
+				let lamp = new sdLamp({ x:x + 64 + 16, y:y + 64 + 16 });
+				sdEntity.entities.push( lamp );
+
+				let lamp2 = new sdLamp({ x:x + ( 32 * 8 ) - 32 + 16, y:y + 64 + 16 });
+				sdEntity.entities.push( lamp2 );
+
+				let lamp3 = new sdLamp({ x:x + ( 32 * 8 ) - 32 + 16, y:y + ( 32 * 8 ) - 32 + 16 });
+				sdEntity.entities.push( lamp3 );
+
+				let lamp4 = new sdLamp({ x:x + 64 + 16, y:y + ( 32 * 8 ) - 32 + 16 });
+				sdEntity.entities.push( lamp4 );
+
+				// Turrets
+
+				let turret = new sdTurret({ x:x + 64 + 32, y:y + 64 + 16, type:1, _ai_team:ai_team });
+				sdEntity.entities.push( turret );
+				turret.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
+				turret.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
+
+				let turret2 = new sdTurret({ x:x + 64 + 16, y:y + 64 + 32, type:1, _ai_team:ai_team });
+				sdEntity.entities.push( turret2 );
+				turret2.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
+				turret2.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
+
+				let turret3 = new sdTurret({ x:x + ( 32 * 8 ) - 32, y:y + 64 + 16, type:1, _ai_team:ai_team });
+				sdEntity.entities.push( turret3 );
+				turret3.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
+				turret3.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
+
+				let turret4 = new sdTurret({ x:x + ( 32 * 8 ) - 32 + 16, y:y + 64 + 32, type:1, _ai_team:ai_team });
+				sdEntity.entities.push( turret4 );
+				turret4.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
+				turret4.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
+
+				let turret5 = new sdTurret({ x:x + ( 32 * 8 ) - 32, y:y + ( 32 * 8 ) - 32 + 16 , type:1, _ai_team:ai_team });
+				sdEntity.entities.push( turret5 );
+				turret5.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
+				turret5.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
+
+				let turret6 = new sdTurret({ x:x + 64 + 32, y:y + ( 32 * 8 ) - 32 + 16 , type:1, _ai_team:ai_team });
+				sdEntity.entities.push( turret6 );
+				turret6.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
+				turret6.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
+
+
+
+				// Blocks
+
+				let block = new sdBlock({ x:x + 32, y:y + 32, material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block );
+
+				let block2 = new sdBlock({ x:x + 64, y:y + 32, material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block2 );
+
+				let block3 = new sdBlock({ x:x + 32, y:y + 64, material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block3 );
+
+				let block4 = new sdBlock({ x:x + ( 32 * 8 ), y:y + 32, material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block4 );
+
+				let block5 = new sdBlock({ x:x + ( 32 * 8 ) - 32, y:y + 32, material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block5 );
+
+				let block6 = new sdBlock({ x:x + ( 32 * 8 ), y:y + 64, material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block6 );
+
+				let block7 = new sdBlock({ x:x + ( 32 * 8 ), y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block7 );
+
+				let block8 = new sdBlock({ x:x + ( 32 * 8 ) - 32, y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block8 );
+
+				let block9 = new sdBlock({ x:x + ( 32 * 8 ), y:y + ( 32 * 8 ) - 32, material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block9 );
+
+				let block10 = new sdBlock({ x:x + 32, y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block10 );
+
+				let block11 = new sdBlock({ x:x + 64, y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block11 );
+
+				let block12 = new sdBlock({ x:x + 32, y:y + ( 32 * 8 ) - 32, material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block12 );
+
+				let block13 = new sdBlock({ x:x + 128, y:y + ( 32 * 5 ), material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block13 );
+
+				let block14 = new sdBlock({ x:x + 160, y:y + ( 32 * 5 ), material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block14 );
+
+				//Spawner
+					
+				let spawner = new sdFactionSpawner({ x:x + 160, y:y + ( 32 * 8 ) + 16, type:ai_team });
+				sdEntity.entities.push( spawner );
+
+				// Doors
+
+				for ( let i = 0; i < potential_doors.length - 2; i++ ) // No bottom entrance
+				{
+					let door_x = potential_doors[ i ].x + 16;
+					let door_y = potential_doors[ i ].y + 16;
+					potential_doors[ i ].remove();
+					potential_doors[ i ]._broken = false;
+
+
+					let door = new sdDoor({ x:door_x, y:door_y, open_type:1, _ai_team:ai_team });
+					sdEntity.entities.push( door );
+
+					door.Damage( 1 ); // Enable sdSensorArea so it can actually be opened by AI
+				}
+			}
+		}
 	}
 	TraceDamagePossibleHere( x,y, steps_max=Infinity, sun_light_tracer=false )
 	{
@@ -2548,6 +2725,79 @@ class sdWeather extends sdEntity
 					drones++;
 				}*/
 			}
+		}
+		if ( r === sdWeather.EVENT_FALKOK_OUTPOST ) // Falkok base / outpost spawn. Looks for fitting location to generate an outpost. Very primitive at the moment. 10x10 base size.
+		{
+			let x,y,i,j;
+			let located_spawn = true;
+			let tr = 1000;
+			// Check if there's 10x10 worth of 32x32 block free space.
+			do
+			{
+				located_spawn = true;
+				x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+				y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+				x = 16 * Math.floor( x / 16 ); // Round up the values
+				y = 16 * Math.floor( y / 16 );
+				x -= 32;
+				y -= 32;
+				let init_x = x;
+				let init_y = y;
+				for ( j = 0; j < 10; j++ )
+				{
+					y += 32;
+					x = init_x;
+					for ( i = 0; i < 10; i++ )
+					{
+						x += 32;
+						if ( !sdWorld.CheckWallExistsBox( 
+								x - 32, 
+								y - 32, 
+								x + 32, 
+								y + 32, null, null, [ 'sdBlock', 'sdDoor', 'sdWater' ], null ) ) // Make sure nothing "blocks" ( pun intended ) outpost spawns
+						{
+							let di_allowed = true;
+											
+							for ( let k = 0; k < sdWorld.sockets.length; k++ )
+							if ( sdWorld.sockets[ k ].character )
+							{
+								let di = sdWorld.Dist2D( sdWorld.sockets[ k ].character.x, sdWorld.sockets[ k ].character.y, x, y );
+												
+								if ( di < 700 )
+								{
+									di_allowed = false; // Too close to players
+									//break;
+								}
+							}
+								
+							if ( di_allowed === false ) // Look for new location
+							{
+								i = 10;
+								j = 10;
+								located_spawn = false;
+							}
+						}
+						else // Look for new location if something blocks outpost generation
+						{
+							i = 10;
+							j = 10;
+							located_spawn = false;
+						}
+					}
+				}		
+				tr--;
+				//if ( tr === 0 && !located_spawn )
+				//console.log( 'No fitting location for a base.' );
+				if ( located_spawn ) // Fitting base location
+				{
+					x = init_x;
+					y = init_y;
+					this.GenerateOutpost( x, y, 0, 0, 1 ); // Generate an outpost. Could be randomized preset in future.
+					//console.log( 'Located base location!' );
+					tr = 0;
+				}
+			} while (tr > 0 );
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

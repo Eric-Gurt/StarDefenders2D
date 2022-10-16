@@ -893,6 +893,7 @@ class sdCharacter extends sdEntity
 					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 ||
 					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 ||
 					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_SHARP ) // Attack player built walls
+			if ( sdWorld.last_hit_entity._ai_team === 0 ) // Don't attack if it's own faction outpost walls
 			found_enemy = true;
 
 			if ( sdWorld.last_hit_entity.is( sdCube ) ) // Only confront cubes when they want to attack AI
@@ -939,12 +940,13 @@ class sdCharacter extends sdEntity
 		for ( let i = 0; i < targets.length; i++ )
 		{
 			if ( targets[ i ].is( sdBlock ) )
-			//if ( targets[ i ]._armor_protection_level <= this._damage_mult ) // Target only damagable blocks
+			if ( targets[ i ].material === sdBlock.MATERIAL_GROUND || targets[ i ]._ai_team !== this._ai_team )
 			{
 				this._ai.target = targets[ i ];
 				return;
 			}
 		}
+		this._ai.direction = -this._ai.direction; // Change direction if no suitable blocks are found
 	}
 
 	InstallUpgrade( upgrade_name ) // Ignores upper limit condition. Upgrades better be revertable and resistent to multiple calls within same level as new level

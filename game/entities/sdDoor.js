@@ -185,6 +185,9 @@ class sdDoor extends sdEntity
 		
 		this._sensor_area = null;
 		this._entities_within_sensor_area = [];
+
+		this.open_type = params.open_type || 0; // 0 = normal doors, 1 = opens for specific AI team entities ( no communication node needed) , used in faction outpost generation
+		this._ai_team = params._ai_team || 0; // Used so AI humanoids don't attack their own base
 		
 		this.filter = params.filter;
 	}
@@ -204,17 +207,33 @@ class sdDoor extends sdEntity
 	}
 	SensorAreaMovementCallback( from_entity )
 	{
-		if ( this._entities_within_sensor_area.indexOf( from_entity ) === -1 )
+		if ( this.open_type === 0 ) // Normal doors
 		{
-			let com_near = this.GetComWiredCache();
-			
-			if ( com_near )
-			if (
-				com_near.subscribers.indexOf( from_entity._net_id ) !== -1 || 
-				com_near.subscribers.indexOf( from_entity.biometry ) !== -1 || 
-				com_near.subscribers.indexOf( from_entity.GetClass() ) !== -1 || 
-				( com_near.subscribers.indexOf( '*' ) !== -1 && !from_entity.is_static && from_entity._net_id !== undefined )
-			)
+			if ( this._entities_within_sensor_area.indexOf( from_entity ) === -1 )
+			{
+				let com_near = this.GetComWiredCache();
+				
+				if ( com_near )
+				if (
+					com_near.subscribers.indexOf( from_entity._net_id ) !== -1 || 
+					com_near.subscribers.indexOf( from_entity.biometry ) !== -1 || 
+					com_near.subscribers.indexOf( from_entity.GetClass() ) !== -1 || 
+					( com_near.subscribers.indexOf( '*' ) !== -1 && !from_entity.is_static && from_entity._net_id !== undefined )
+				)
+				{
+					this._entities_within_sensor_area.push( from_entity );
+						
+					this.Open();
+				}
+			}
+		}
+		if ( this.open_type === 1 )
+		{
+			if ( this._entities_within_sensor_area.indexOf( from_entity ) === -1 )
+			if ( !from_entity.is_static && from_entity._net_id !== undefined )
+			if ( from_entity.GetClass() === 'sdCharacter' || from_entity.GetClass() === 'sdDrone' ) // universal entities which have _ai_team variable
+			if ( this._sensor_area )
+			if ( from_entity._ai_team === this._ai_team ) // Open only if it's appropriate faction
 			{
 				this._entities_within_sensor_area.push( from_entity );
 				
@@ -253,7 +272,7 @@ class sdDoor extends sdEntity
 		
 		let com_near = this.GetComWiredCache();
 				
-		if ( com_near )
+		if ( ( com_near && this.open_type === 0 ) || this.open_type === 1 )
 		{
 			if ( sdWorld.is_server )
 			{
@@ -345,7 +364,6 @@ class sdDoor extends sdEntity
 						}
 					}
 				}*/
-					
 				for ( let i2 = 0; i2 < this._entities_within_sensor_area.length; i2++ )
 				{
 					let e = this._entities_within_sensor_area[ i2 ];
@@ -513,7 +531,7 @@ class sdDoor extends sdEntity
 		}
 		else
 		{
-			if ( this._sensor_area )
+			if ( this._sensor_area && this.open_type === 0 )
 			{
 				this._sensor_area.remove();
 				this._sensor_area = null;
@@ -566,7 +584,7 @@ class sdDoor extends sdEntity
 		
 		if ( this.x0 === null && this._net_id !== undefined && !sdShop.isDrawing ) // undefined // Client-side doors won't not have any _net_id
 		{
-			if ( !com_near )
+			if ( !com_near && this.open_type === 0 )
 			{
 				ctx.drawImageFilterCache( img_no_matter, -16, -16, 32,32 );
 			}
@@ -595,7 +613,7 @@ class sdDoor extends sdEntity
 					ctx.rect(  -16 - this.x + this.x0, -16 - this.y + this.y0, 32,32 );
 					ctx.clip();
 					
-					if ( !com_near )
+					if ( !com_near && this.open_type === 0 )
 					{
 						ctx.drawImageFilterCache( img_no_matter, -16, -16, 32,32 );
 					}
@@ -615,7 +633,7 @@ class sdDoor extends sdEntity
 			}
 			else
 			{
-				if ( !com_near )
+				if ( !com_near && this.open_type === 0 )
 				{
 					ctx.drawImageFilterCache( img_no_matter, -16, -16, 32,32 );
 				}
