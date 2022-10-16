@@ -205,7 +205,6 @@ class sdFactionSpawner extends sdEntity
 				// Drone spawns are disabled due to them attacking interior walls
 			}
 		}
-		//this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
 	
 	DrawHUD( ctx, attached ) // foreground layer
