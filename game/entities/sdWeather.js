@@ -2705,14 +2705,14 @@ class sdWeather extends sdEntity
 					ais++;
 				}
 
-				/*let drones = 0;
+				let drones = 0;
 				let drones_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
 
 
 				while ( drones < drones_tot && sdDrone.drones_tot < this._max_drone_count )
 				{
 
-					let drone = new sdDrone({ x:0, y:0 , _ai_team: 4, type: ( Math.random() < 0.15 ) ? 4 : 3});
+					let drone = new sdDrone({ x:0, y:0 , _ai_team: 8, type: sdDrone.DRONE_TZYRG });
 
 					sdEntity.entities.push( drone );
 
@@ -2723,82 +2723,87 @@ class sdWeather extends sdEntity
 						break;
 					}
 					drones++;
-				}*/
+				}
 			}
 		}
 		if ( r === sdWeather.EVENT_FALKOK_OUTPOST ) // Falkok base / outpost spawn. Looks for fitting location to generate an outpost. Very primitive at the moment. 10x10 base size.
 		{
-			let x,y,i,j;
-			let located_spawn = true;
-			let tr = 1000;
-			// Check if there's 10x10 worth of 32x32 block free space.
-			if ( sdFactionSpawner.falkok_spawners === 0 )
-			do
+			if ( Math.random() < 0.2 ) // Don't want these to flood maps since they're very basic
 			{
-				located_spawn = true;
-				x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
-				y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-				x = 16 * Math.floor( x / 16 ); // Round up the values
-				y = 16 * Math.floor( y / 16 );
-				x -= 32;
-				y -= 32;
-				let init_x = x;
-				let init_y = y;
-				for ( j = 0; j < 10; j++ )
+				let x,y,i,j;
+				let located_spawn = true;
+				let tr = 1000;
+				// Check if there's 10x10 worth of 32x32 block free space.
+				if ( sdFactionSpawner.falkok_spawners === 0 )
+				do
 				{
-					y += 32;
-					x = init_x;
-					for ( i = 0; i < 10; i++ )
+					located_spawn = true;
+					x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+					y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+	
+					x = 16 * Math.floor( x / 16 ); // Round up the values
+					y = 16 * Math.floor( y / 16 );
+					x -= 32;
+					y -= 32;
+					let init_x = x;
+					let init_y = y;
+					for ( j = 0; j < 10; j++ )
 					{
-						x += 32;
-						if ( !sdWorld.CheckWallExistsBox( 
-								x - 32, 
-								y - 32, 
-								x + 32, 
-								y + 32, null, null, [ 'sdBlock', 'sdDoor', 'sdWater', 'sdBG', 'sdLongRangeTeleport' ], null ) ) // Make sure nothing "blocks" ( pun intended ) outpost spawns
+						y += 32;
+						x = init_x;
+						for ( i = 0; i < 10; i++ )
 						{
-							let di_allowed = true;
-											
-							for ( let k = 0; k < sdWorld.sockets.length; k++ )
-							if ( sdWorld.sockets[ k ].character )
+							x += 32;
+							if ( !sdWorld.CheckWallExistsBox( 
+									x - 32, 
+									y - 32, 
+									x + 32, 
+									y + 32, null, null, [ 'sdBlock', 'sdDoor', 'sdWater', 'sdBG', 'sdLongRangeTeleport' ], null ) ) // Make sure nothing "blocks" ( pun intended ) outpost spawns
 							{
-								let di = sdWorld.Dist2D( sdWorld.sockets[ k ].character.x, sdWorld.sockets[ k ].character.y, x, y );
+								let di_allowed = true;
 												
-								if ( di < 700 )
+								for ( let k = 0; k < sdWorld.sockets.length; k++ )
+								if ( sdWorld.sockets[ k ].character )
 								{
-									di_allowed = false; // Too close to players
-									//break;
+									let di = sdWorld.Dist2D( sdWorld.sockets[ k ].character.x, sdWorld.sockets[ k ].character.y, x, y );
+													
+									if ( di < 700 )
+									{
+										di_allowed = false; // Too close to players
+										//break;
+									}
+								}
+									
+								if ( di_allowed === false ) // Look for new location
+								{
+									i = 10;
+									j = 10;
+									located_spawn = false;
 								}
 							}
-								
-							if ( di_allowed === false ) // Look for new location
+							else // Look for new location if something blocks outpost generation
 							{
 								i = 10;
 								j = 10;
 								located_spawn = false;
 							}
 						}
-						else // Look for new location if something blocks outpost generation
-						{
-							i = 10;
-							j = 10;
-							located_spawn = false;
-						}
+					}		
+					tr--;
+					//if ( tr === 0 && !located_spawn )
+					//console.log( 'No fitting location for a base.' );
+					if ( located_spawn ) // Fitting base location
+					{
+						x = init_x;
+						y = init_y;
+						this.GenerateOutpost( x, y, 0, 0, 1 ); // Generate an outpost. Could be randomized preset in future.
+						//console.log( 'Located base location!' );
+						tr = 0;
 					}
-				}		
-				tr--;
-				//if ( tr === 0 && !located_spawn )
-				//console.log( 'No fitting location for a base.' );
-				if ( located_spawn ) // Fitting base location
-				{
-					x = init_x;
-					y = init_y;
-					this.GenerateOutpost( x, y, 0, 0, 1 ); // Generate an outpost. Could be randomized preset in future.
-					//console.log( 'Located base location!' );
-					tr = 0;
-				}
-			} while (tr > 0 );
+				} while (tr > 0 );
+			}
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

@@ -806,8 +806,6 @@ class sdJunk extends sdEntity
 				{
 					// Spawn a council support drone
 					if ( this.hea < ( this.hmax * 0.75 ) )
-
-					if ( sdDrone.drones_tot < sdWorld.entity_classes.sdWeather._max_drone_count )
 					{
 						
 						let left_side = ( Math.random() < 0.5 );
