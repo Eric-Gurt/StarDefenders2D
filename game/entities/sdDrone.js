@@ -50,9 +50,14 @@ class sdDrone extends sdEntity
 		sdDrone.img_drone_setr_attack = sdWorld.CreateImageFromFile( 'drone_setr_attack' );
 		sdDrone.img_drone_setr_destroyed = sdWorld.CreateImageFromFile( 'drone_setr_destroyed' );
 
-		sdDrone.img_drone_tzyrg = sdWorld.CreateImageFromFile( 'drone_tzyrg' );
-		sdDrone.img_drone_tzyrg_attack = sdWorld.CreateImageFromFile( 'drone_tzyrg_attack' );
-		sdDrone.img_drone_tzyrg_destroyed = sdWorld.CreateImageFromFile( 'drone_tzyrg_destroyed' );
+		sdDrone.img_drone_tzyrg = sdWorld.CreateImageFromFile( 'drone_tzyrg' ); // By floor/flora
+		sdDrone.img_drone_tzyrg_attack = sdWorld.CreateImageFromFile( 'drone_tzyrg_attack' ); // By floor/flora
+		sdDrone.img_drone_tzyrg_destroyed = sdWorld.CreateImageFromFile( 'drone_tzyrg_destroyed' ); // By floor/flora
+
+
+		sdDrone.img_drone_tzyrg2 = sdWorld.CreateImageFromFile( 'drone_tzyrg2' );
+		sdDrone.img_drone_tzyrg2_attack = sdWorld.CreateImageFromFile( 'drone_tzyrg2_attack' );
+		sdDrone.img_drone_tzyrg2_destroyed = sdWorld.CreateImageFromFile( 'drone_tzyrg2_destroyed' );
 		
 		sdDrone.death_duration = 15;
 		sdDrone.post_death_ttl = 30 * 10;
@@ -69,13 +74,14 @@ class sdDrone extends sdEntity
 		sdDrone.DRONE_COUNCIL = 6;
 		sdDrone.DRONE_SETR = 7;
 		sdDrone.DRONE_TZYRG = 8;
+		sdDrone.DRONE_TZYRG_WATCHER = 9;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return ( this.type === sdDrone.DRONE_SARRORIAN || this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER ) ? -11 : this.type === sdDrone.DRONE_FALKOK ? -10 : -6; }
-	get hitbox_x2() { return ( this.type === sdDrone.DRONE_SARRORIAN || this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER ) ? 11 : this.type === sdDrone.DRONE_FALKOK ? 10 : 6; }
-	get hitbox_y1() { return ( this.type === sdDrone.DRONE_SARRORIAN || this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER ) ? -11 : this.type === sdDrone.DRONE_FALKOK ? -10 : -6; }
-	get hitbox_y2() { return ( this.type === sdDrone.DRONE_SARRORIAN || this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER ) ? 11 : this.type === sdDrone.DRONE_FALKOK ? 10 : 6; }
+	get hitbox_x1() { return ( this.type === sdDrone.DRONE_SARRORIAN || this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER || this.type === sdDrone.DRONE_TZYRG_WATCHER ) ? -11 : this.type === sdDrone.DRONE_FALKOK ? -10 : -6; }
+	get hitbox_x2() { return ( this.type === sdDrone.DRONE_SARRORIAN || this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER || this.type === sdDrone.DRONE_TZYRG_WATCHER ) ? 11 : this.type === sdDrone.DRONE_FALKOK ? 10 : 6; }
+	get hitbox_y1() { return ( this.type === sdDrone.DRONE_SARRORIAN || this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER || this.type === sdDrone.DRONE_TZYRG_WATCHER ) ? -11 : this.type === sdDrone.DRONE_FALKOK ? -10 : -6; }
+	get hitbox_y2() { return ( this.type === sdDrone.DRONE_SARRORIAN || this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER || this.type === sdDrone.DRONE_TZYRG_WATCHER ) ? 11 : this.type === sdDrone.DRONE_FALKOK ? 10 : 6; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return ( this._collision && this.death_anim === 0 ); }
@@ -91,7 +97,7 @@ class sdDrone extends sdEntity
 		
 		this.type = params.type || 1;
 		
-		this._hmax =  this.type === sdDrone.DRONE_SETR ? 300 : this.type === sdDrone.DRONE_COUNCIL ? 200 : this.type === sdDrone.DRONE_SARRORIAN_DETONATOR ? 100 : this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER ? 1000 : this.type === sdDrone.DRONE_SARRORIAN ? 500 : this.type === sdDrone.DRONE_FALKOK ? 130 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
+		this._hmax =  this.type === sdDrone.DRONE_SETR ? 300 : this.type === sdDrone.DRONE_COUNCIL ? 200 : this.type === sdDrone.DRONE_SARRORIAN_DETONATOR ? 100 : this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER ? 1000 : ( this.type === sdDrone.DRONE_SARRORIAN || this.type === sdDrone.DRONE_TZYRG_WATCHER ) ? 500 : this.type === sdDrone.DRONE_FALKOK ? 130 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
 		this._hea = this._hmax;
 		this._ai_team = params._ai_team || 1;
 
@@ -164,7 +170,7 @@ class sdDrone extends sdEntity
 		}
 		if ( this._ai_team === 4 ) // Sarronian drones
 		{
-			if ( ent._ai_team === 4 )
+			if ( ent._ai_team === 4  )
 			return false;
 			else
 			{
@@ -276,7 +282,7 @@ class sdDrone extends sdEntity
 				this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_AVERAGE_MOB );
 			}
 	
-			if ( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_COUNCIL || this.type === sdDrone.DRONE_SETR || this.type === sdDrone.DRONE_TZYRG )
+			if ( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_COUNCIL || this.type === sdDrone.DRONE_SETR || this.type === sdDrone.DRONE_TZYRG || this.type === sdDrone.DRONE_TZYRG_WATCHER )
 			{
 				sdWorld.SendEffect({ 
 					x:this.x, 
@@ -936,6 +942,34 @@ class sdDrone extends sdEntity
 
 								sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.5, pitch:4 });
 							}
+							if ( this.type === sdDrone.DRONE_TZYRG_WATCHER ) // Tzyrg watcher
+							{
+								for ( let i = 0; i < 5; i++ )
+								{
+									let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+
+									bullet_obj._owner = this;
+
+									bullet_obj.sx = dx;
+									bullet_obj.sy = dy;
+									bullet_obj.x += bullet_obj.sx * 3;
+									bullet_obj.y += bullet_obj.sy * 3;
+
+									bullet_obj.sx *= 12 + Math.random() * 8 - Math.random() * 8;
+									bullet_obj.sy *= 12 + Math.random() * 8 - Math.random() * 8;
+
+									bullet_obj._damage = 15;
+
+
+									sdEntity.entities.push( bullet_obj );
+								}
+
+								this.attack_frame = 2;
+								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
+								this._attack_timer = 24;
+
+								sdSound.PlaySound({ name:'gun_shotgun', x:this.x, y:this.y, pitch:1.25 });
+							}
 							break;
 						}
 					}
@@ -970,6 +1004,8 @@ class sdDrone extends sdEntity
 			sdEntity.Tooltip( ctx, "Setr Drone" );
 			if ( this.type === sdDrone.DRONE_TZYRG )
 			sdEntity.Tooltip( ctx, "Tzyrg Drone" );
+			if ( this.type === sdDrone.DRONE_TZYRG_WATCHER )
+			sdEntity.Tooltip( ctx, "Tzyrg Watcher" );
 		}
 	}
 	Draw( ctx, attached )
@@ -1009,6 +1045,8 @@ class sdDrone extends sdEntity
 			ctx.drawImageFilterCache( sdDrone.img_drone_setr_destroyed, - 16, - 16, 32, 32 );
 			if ( this.type === sdDrone.DRONE_TZYRG )
 			ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg_destroyed, - 16, - 16, 32, 32 );
+			if ( this.type === sdDrone.DRONE_TZYRG_WATCHER )
+			ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg2_destroyed, - 32, - 32, 64, 64 );
 		}
 		else
 		{
@@ -1028,6 +1066,8 @@ class sdDrone extends sdEntity
 				ctx.drawImageFilterCache( sdDrone.img_drone_setr_attack, - 16, - 16, 32, 32 );
 				if ( this.type === sdDrone.DRONE_TZYRG )
 				ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg_attack, - 16, - 16, 32, 32 );
+				if ( this.type === sdDrone.DRONE_TZYRG_WATCHER )
+				ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg2_attack, - 32, - 32, 64, 64 );
 			}
 			else
 			{
@@ -1045,6 +1085,8 @@ class sdDrone extends sdEntity
 				ctx.drawImageFilterCache( sdDrone.img_drone_setr, - 16, - 16, 32, 32 );
 				if ( this.type === sdDrone.DRONE_TZYRG )
 				ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg, - 16, - 16, 32, 32 );
+				if ( this.type === sdDrone.DRONE_TZYRG_WATCHER )
+				ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg2, - 32, - 32, 64, 64 );
 				if ( this.type === sdDrone.DRONE_ERTHAL )
 				{
 					if ( this.hurt_timer > 0 )

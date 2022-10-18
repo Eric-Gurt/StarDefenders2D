@@ -2712,7 +2712,7 @@ class sdWeather extends sdEntity
 				while ( drones < drones_tot && sdDrone.drones_tot < this._max_drone_count )
 				{
 
-					let drone = new sdDrone({ x:0, y:0 , _ai_team: 8, type: sdDrone.DRONE_TZYRG });
+					let drone = new sdDrone({ x:0, y:0 , _ai_team: 8, type: ( Math.random() < 0.1 ) ? sdDrone.DRONE_TZYRG_WATCHER : sdDrone.DRONE_TZYRG });
 
 					sdEntity.entities.push( drone );
 
