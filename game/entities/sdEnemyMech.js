@@ -131,6 +131,9 @@ class sdEnemyMech extends sdEntity
 	}
 	GetRandomEntityNearby() // Scans random area on map for potential entities
 	{
+		if ( this._follow_target ) 
+		return this._follow_target;
+
 		let x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
 		let y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
 		
@@ -663,7 +666,6 @@ class sdEnemyMech extends sdEntity
 
 						break;
 					}
-
 					if ( targets.length === 0 ) // lower seek rate when no targets around
 					this._attack_timer = 25 + Math.random() * 10;
 					else
@@ -687,11 +689,12 @@ class sdEnemyMech extends sdEntity
 					{
 						let an_desired;
 						if ( this._move_dir_timer <= 0 )
-						an_desired = Math.random() * Math.PI * 2;
-						else
-						an_desired = Math.atan2( this.sy * 2, this.sx * 2 )  - 0.5 + Math.random();
-						this._move_dir_x = Math.cos( an_desired ) * 10;
-						this._move_dir_y = Math.sin( an_desired ) * 10;
+						if ( !this._follow_target )
+						{
+							an_desired = Math.random() * Math.PI * 2;
+							this._move_dir_x = Math.cos( an_desired ) * 10;
+							this._move_dir_y = Math.sin( an_desired ) * 10;
+						}
 
 						let v = this.hea < this._hmax / 2 ? 0.10 : 0.045;
 				
