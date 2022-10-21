@@ -241,7 +241,8 @@ class sdDrone extends sdEntity
 		return;
 	
 		if ( initiator )
-		if ( initiator.is( sdSpider ) || ( initiator.is( sdDrone ) && initiator.type === 2 ) && this.type === 2 )
+		if ( this.type === sdDrone.DRONE_ERTHAL )
+		if ( initiator.is( sdSpider ) || ( initiator.is( sdDrone ) && initiator.type === 2 ) )
 		return;
 	
 
@@ -254,7 +255,7 @@ class sdDrone extends sdEntity
 				this.SetTarget( initiator );
 			}
 			else
-			if ( ( initiator.is( sdDrone ) || initiator.IsPlayerClass() ) && initiator._ai_team !== this._ai_team )
+			if ( ( initiator.is( sdSpider ) || initiator.is( sdDrone ) || initiator.IsPlayerClass() ) && initiator._ai_team !== this._ai_team )
 			{
 				//this._current_target = initiator;
 				this.SetTarget( initiator );
