@@ -55,9 +55,9 @@ class sdDrone extends sdEntity
 		sdDrone.img_drone_tzyrg_destroyed = sdWorld.CreateImageFromFile( 'drone_tzyrg_destroyed' ); // By floor/flora
 
 
-		sdDrone.img_drone_tzyrg2 = sdWorld.CreateImageFromFile( 'drone_tzyrg2' );
-		sdDrone.img_drone_tzyrg2_attack = sdWorld.CreateImageFromFile( 'drone_tzyrg2_attack' );
-		sdDrone.img_drone_tzyrg2_destroyed = sdWorld.CreateImageFromFile( 'drone_tzyrg2_destroyed' );
+		sdDrone.img_drone_tzyrg2 = sdWorld.CreateImageFromFile( 'drone_tzyrg2' ); // By floor / flora
+		sdDrone.img_drone_tzyrg2_attack = sdWorld.CreateImageFromFile( 'drone_tzyrg2_attack' ); // By floor / flora
+		sdDrone.img_drone_tzyrg2_destroyed = sdWorld.CreateImageFromFile( 'drone_tzyrg2_destroyed' ); // By floor / flora
 		
 		sdDrone.death_duration = 15;
 		sdDrone.post_death_ttl = 30 * 10;
@@ -241,8 +241,9 @@ class sdDrone extends sdEntity
 		return;
 	
 		if ( initiator )
-		if ( initiator.is( sdSpider ) || ( initiator.is( sdDrone ) && initiator.type === 2 ) )
+		if ( initiator.is( sdSpider ) || ( initiator.is( sdDrone ) && initiator.type === 2 ) && this.type === 2 )
 		return;
+	
 
 		if ( initiator )
 		{
