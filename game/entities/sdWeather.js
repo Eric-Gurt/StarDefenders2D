@@ -367,6 +367,8 @@ class sdWeather extends sdEntity
 	{
 		let init_x = x;
 		let init_y = y;
+		let i = Math.round( Math.random() * 12 );
+		var filter = 'hue-rotate('+(~~(i/12*360))+'deg)';
 
 		let potential_doors = []; // Blocks which could get replaced by doors, so we can replace some with doors when we generate base interior
 
@@ -377,7 +379,7 @@ class sdWeather extends sdEntity
 				y += 32;
 				x = init_x;
 				{
-					let block = new sdBlock({ x:x, y:y , material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+					let block = new sdBlock({ x:x, y:y , material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
 					sdEntity.entities.push( block );
 
 					if ( j === 4 || j === 5 )
@@ -395,7 +397,7 @@ class sdWeather extends sdEntity
 
 					if ( j === 0 || j === 9 )
 					{
-						let block = new sdBlock({ x:x, y:y , material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+						let block = new sdBlock({ x:x, y:y , material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
 						sdEntity.entities.push( block );
 
 						if ( i === 3 || i === 4 )
@@ -404,7 +406,7 @@ class sdWeather extends sdEntity
 				}
 				x += 32;
 				{
-					let block = new sdBlock({ x:x, y:y , material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+					let block = new sdBlock({ x:x, y:y , material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
 					sdEntity.entities.push( block );
 
 					if ( j === 4 || j === 5 )
@@ -470,46 +472,46 @@ class sdWeather extends sdEntity
 
 				// Blocks
 
-				let block = new sdBlock({ x:x + 32, y:y + 32, material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				let block = new sdBlock({ x:x + 32, y:y + 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
 				sdEntity.entities.push( block );
 
-				let block2 = new sdBlock({ x:x + 64, y:y + 32, material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				let block2 = new sdBlock({ x:x + 64, y:y + 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
 				sdEntity.entities.push( block2 );
 
-				let block3 = new sdBlock({ x:x + 32, y:y + 64, material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				let block3 = new sdBlock({ x:x + 32, y:y + 64, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
 				sdEntity.entities.push( block3 );
 
-				let block4 = new sdBlock({ x:x + ( 32 * 8 ), y:y + 32, material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				let block4 = new sdBlock({ x:x + ( 32 * 8 ), y:y + 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
 				sdEntity.entities.push( block4 );
 
-				let block5 = new sdBlock({ x:x + ( 32 * 8 ) - 32, y:y + 32, material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				let block5 = new sdBlock({ x:x + ( 32 * 8 ) - 32, y:y + 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
 				sdEntity.entities.push( block5 );
 
-				let block6 = new sdBlock({ x:x + ( 32 * 8 ), y:y + 64, material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				let block6 = new sdBlock({ x:x + ( 32 * 8 ), y:y + 64, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
 				sdEntity.entities.push( block6 );
 
-				let block7 = new sdBlock({ x:x + ( 32 * 8 ), y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				let block7 = new sdBlock({ x:x + ( 32 * 8 ), y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
 				sdEntity.entities.push( block7 );
 
-				let block8 = new sdBlock({ x:x + ( 32 * 8 ) - 32, y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				let block8 = new sdBlock({ x:x + ( 32 * 8 ) - 32, y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
 				sdEntity.entities.push( block8 );
 
-				let block9 = new sdBlock({ x:x + ( 32 * 8 ), y:y + ( 32 * 8 ) - 32, material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				let block9 = new sdBlock({ x:x + ( 32 * 8 ), y:y + ( 32 * 8 ) - 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
 				sdEntity.entities.push( block9 );
 
-				let block10 = new sdBlock({ x:x + 32, y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				let block10 = new sdBlock({ x:x + 32, y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
 				sdEntity.entities.push( block10 );
 
-				let block11 = new sdBlock({ x:x + 64, y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				let block11 = new sdBlock({ x:x + 64, y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
 				sdEntity.entities.push( block11 );
 
-				let block12 = new sdBlock({ x:x + 32, y:y + ( 32 * 8 ) - 32, material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				let block12 = new sdBlock({ x:x + 32, y:y + ( 32 * 8 ) - 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
 				sdEntity.entities.push( block12 );
 
-				let block13 = new sdBlock({ x:x + 128, y:y + ( 32 * 5 ), material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				let block13 = new sdBlock({ x:x + 128, y:y + ( 32 * 5 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
 				sdEntity.entities.push( block13 );
 
-				let block14 = new sdBlock({ x:x + 160, y:y + ( 32 * 5 ), material: sdBlock.MATERIAL_WALL, _ai_team:ai_team, width: 32, height: 32 });
+				let block14 = new sdBlock({ x:x + 160, y:y + ( 32 * 5 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
 				sdEntity.entities.push( block14 );
 
 				//Spawner
@@ -527,7 +529,7 @@ class sdWeather extends sdEntity
 					potential_doors[ i ]._broken = false;
 
 
-					let door = new sdDoor({ x:door_x, y:door_y, open_type:1, _ai_team:ai_team });
+					let door = new sdDoor({ x:door_x, y:door_y, open_type:1, model: sdDoor.MODEL_ARMORED, _reinforced_level: 1, filter: filter, _ai_team:ai_team });
 					sdEntity.entities.push( door );
 
 					door.Damage( 1 ); // Enable sdSensorArea so it can actually be opened by AI
@@ -2734,7 +2736,7 @@ class sdWeather extends sdEntity
 				let located_spawn = true;
 				let tr = 1000;
 				// Check if there's 10x10 worth of 32x32 block free space.
-				if ( sdFactionSpawner.falkok_spawners === 0 )
+				//if ( sdFactionSpawner.falkok_spawners === 0 ) // Not sure if these should be capped at all. They are capped by world size though.
 				do
 				{
 					located_spawn = true;
@@ -2758,7 +2760,7 @@ class sdWeather extends sdEntity
 									x - 32, 
 									y - 32, 
 									x + 32, 
-									y + 32, null, null, [ 'sdBlock', 'sdDoor', 'sdWater', 'sdBG', 'sdLongRangeTeleport' ], null ) ) // Make sure nothing "blocks" ( pun intended ) outpost spawns
+									y + 32, null, null, null, null ) ) // Make sure nothing "blocks" ( pun intended ) outpost spawns
 							{
 								let di_allowed = true;
 												
