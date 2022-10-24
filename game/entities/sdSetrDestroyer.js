@@ -10,6 +10,7 @@ import sdBullet from './sdBullet.js';
 import sdBlock from './sdBlock.js';
 import sdCharacter from './sdCharacter.js';
 import sdCube from './sdCube.js';
+import sdDrone from './sdDrone.js';
 
 class sdSetrDestroyer extends sdEntity
 {
@@ -247,6 +248,16 @@ class sdSetrDestroyer extends sdEntity
 			if ( Math.ceil( this.hea / this._hmax * 10 ) !== Math.ceil( old_hp / this._hmax * 10 ) )
 			{
 				sdSound.PlaySound({ name:'enemy_mech_hurt', x:this.x, y:this.y, volume:3, pitch:2 });
+
+				let drone = new sdDrone({ x: this.x, y: this.y, type: sdDrone.DRONE_SETR, _ai_team: this._ai_team }); // We do a little trolling
+
+				drone.sx = ( Math.random() - Math.random() ) * 10;
+				drone.sy = ( Math.random() - Math.random() ) * 10;
+				drone._ignore_collisions_with = this; // Make sure it can pass through the destroyer 
+
+				sdEntity.entities.push( drone );
+
+				//sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:1.25, pitch:0.1 });
 			}
 			
 			sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
