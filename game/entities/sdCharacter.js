@@ -145,7 +145,12 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_modeus' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_pepe' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_santa' ), // by LazyRain
-			sdWorld.CreateImageFromFile( 'helmet_velox' ) // by Booraz149
+			sdWorld.CreateImageFromFile( 'helmet_velox' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_apex' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_advisor' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_paradigm' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_sync' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_legend' ) // by LordBored
 			// Note: Commas -> , are important since it all is just a big Array: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 		];
 		
@@ -219,7 +224,12 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'skins/soldier_rig' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'skins/witch' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'skins/modeus' ), // by LazyRain
-			sdWorld.CreateImageFromFile( 'skins/velox' ) // by Booraz149
+			sdWorld.CreateImageFromFile( 'skins/velox' ), // by Booraz149
+			sdWorld.CreateImageFromFile( 'skins/falkok' ), // by Ghost581
+			sdWorld.CreateImageFromFile( 'skins/apex' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/advisor' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/paradigm' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/sync' ) // by LordBored
 		];
 		
 		// x y rotation, for images below
