@@ -150,7 +150,10 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_advisor' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_paradigm' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_sync' ), // by LordBored
-			sdWorld.CreateImageFromFile( 'helmet_legend' ) // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_legend' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_duster' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_vengeance2' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_bulwark2' ) // by LordBored
 			// Note: Commas -> , are important since it all is just a big Array: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 		];
 		
@@ -229,7 +232,10 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'skins/apex' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/advisor' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/paradigm' ), // by LordBored
-			sdWorld.CreateImageFromFile( 'skins/sync' ) // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/sync' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/duster' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/vengeance2' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/bulwark2' ) // by LordBored
 		];
 		
 		// x y rotation, for images below
