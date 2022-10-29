@@ -33,6 +33,7 @@ class sdServerConfigFull extends sdServerConfigShort
 {
 	// ...
 	
+	static save_raw_version_of_snapshot = true; // One that can be easily viewed in Notepad-like applications. It is never used within server logic. "true" can slow-down snapshot generation.
 	
 	static GetHitAllowed( bullet_or_sword, target )
 	{
@@ -880,6 +881,6 @@ class sdServerConfigFull extends sdServerConfigShort
 			}
 		} while( true );
 	}
-}
+};
 
 export { sdServerConfigShort, sdServerConfigFull };

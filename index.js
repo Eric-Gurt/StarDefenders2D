@@ -925,21 +925,40 @@ let is_terminating = false;
 			{
 				// This must run inside a function marked `async`:
 				//const file = await fs.readFile('filename.txt', 'utf8');
-				fs.writeFile( snapshot_path, buffer, ( err )=>
+				
+				let snapshot_path_temp = snapshot_path.split('.');
+				snapshot_path_temp[ snapshot_path_temp.length - 1 ] = 'TEMP.' + snapshot_path_temp[ snapshot_path_temp.length - 1 ]
+				snapshot_path_temp = snapshot_path_temp.join('.');
+				
+				fs.writeFile( snapshot_path_temp, buffer, ( err )=>
 				{
 					save_done_time = Date.now();
 
 					if ( err )
 					{
 						console.warn( 'Snapshot was not saved: ', err );
+						
+						Report( false );
+						snapshot_save_busy = false;
 					}
 					else
-					console.log('Snapshot saved.');
-
-
-					Report( false );
-					snapshot_save_busy = false;
+					{
+						console.log('Snapshot saved to TEMP file.');
+						
+						fs.rename( snapshot_path_temp, snapshot_path, ( err )=>
+						{
+							if ( err )
+							console.warn( 'Unable to rename TEMP file into proper snapshot file: ' + err );
+							else
+							console.log( 'TEMP file renamed.' );
+						
+							Report( false );
+							snapshot_save_busy = false;
+						});
+					}
 				});
+				
+				if ( sdWorld.server_config.save_raw_version_of_snapshot )
 				fs.writeFile( snapshot_path + '.raw.v', json, ( err )=>
 				{
 				});
