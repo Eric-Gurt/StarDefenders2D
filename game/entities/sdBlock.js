@@ -847,7 +847,7 @@ class sdBlock extends sdEntity
 				
 				let corrupt_done = false;
 				
-				for ( let d = 0; d < 4; d++, dir = dir % 4 )
+				for ( let d = 0; d < 4; d++, dir = ( dir + 1 ) % 4 )
 				{
 					let ent = null;
 					
@@ -871,16 +871,14 @@ class sdBlock extends sdEntity
 							ent.Corrupt( this );
 							
 							corrupt_done = true;
+							break;
 						}
-						else
+						/*else
 						{
-							if ( ent.material === sdBlock.MATERIAL_GROUND )
-							continue;
-								
 							if ( ent.material !== sdBlock.MATERIAL_CORRUPTION )
 							this.CorruptAttack( ent );
 						}
-						break;
+						break;*/
 					}
 				}
 				if ( !corrupt_done )
@@ -903,7 +901,7 @@ class sdBlock extends sdEntity
 				
 				let corrupt_done = false;
 				
-				for ( let d = 0; d < 4; d++, dir = dir % 4 )
+				for ( let d = 0; d < 4; d++, dir = ( dir + 1 ) % 4 )
 				{
 					let ent = null;
 					
@@ -923,19 +921,11 @@ class sdBlock extends sdEntity
 					{
 						if ( this.p >= 1 )
 						if ( ent.material !== sdBlock.MATERIAL_FLESH )
-						ent.Fleshify( this );
-						/*
-						if ( ent.material === sdBlock.MATERIAL_GROUND && this.p >= 1 )
 						{
 							ent.Fleshify( this );
+							corrupt_done = true;
+							break;
 						}
-						else
-						{
-							if ( ent.material === sdBlock.MATERIAL_CRYSTAL_SHARDS && this.p >= 1 )
-							ent.Fleshify( this );
-						}*/
-						corrupt_done = true;
-						break;
 					}
 				}
 				if ( !corrupt_done )
