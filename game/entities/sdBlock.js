@@ -621,6 +621,8 @@ class sdBlock extends sdEntity
 		this.p = 0; // Material property value. In case of spike it is an animation, in case of corruption it is a rank
 		this._next_attack = 0; // Only used by Corruption
 		this._next_spread = -1; // Only used by Corruption
+
+		this._ai_team === params._ai_team || 0; // For faction outposts, so AI doesn't attack their own bases
 		
 		if ( this.material === sdBlock.MATERIAL_SHARP )
 		{

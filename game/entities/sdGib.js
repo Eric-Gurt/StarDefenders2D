@@ -198,6 +198,10 @@ class sdGib extends sdEntity
 
 		if ( this._blood_type === 1 )
 		return sdEffect.TYPE_BLOOD_GREEN;
+
+
+		if ( this._blood_type === 2 )
+		return sdEffect.TYPE_BLOOD;
 	}
 	/*GetBleedEffectHue()
 	{

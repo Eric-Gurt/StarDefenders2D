@@ -1985,7 +1985,7 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'fmech_lmg2' ),
 			image_charging: sdWorld.CreateImageFromFile( 'fmech_lmg2' ),
 			//sound: 'supercharge_combined2',
-			title: 'Flying Mech Minigun',
+			title: 'Velox Flying Mech Minigun',
 			//sound_pitch: 0.5,
 			slot: 2,
 			reload_time: 0,
@@ -2013,8 +2013,8 @@ class sdGunClass
 					{
 						//gun._held_by._auto_shoot_in = 15;
 						//return; // hack
-						
-						gun._held_by._auto_shoot_in = 800 / 1000 * 30;
+						gun._held_by._auto_shoot_in = 800 / 1000 * 30 / ( 1 + gun._combo / 60 );
+
 
 						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
 						sdSound.PlaySound({ name: 'enemy_mech_charge', x:gun.x, y:gun.y, volume: 1.5 });
@@ -2029,8 +2029,11 @@ class sdGunClass
 					if ( gun._held_by.matter >= 4 )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						gun._held_by._auto_shoot_in = ( gun._held_by.stim_ef > 0 ) ? 1 : 2;
+						gun._held_by._auto_shoot_in = ( gun._held_by.stim_ef > 0 ) ? ( 1 / ( 1 + gun._combo / 90 ) ) : ( 2 / ( 1 + gun._combo / 90 ) ); // Faster rate of fire when shooting more
 						gun._held_by.matter -= 4;
+						gun._combo_timer = 30;
+						if ( gun._combo < 60 )
+						gun._combo++; // Speed up rate of fire, the longer it shoots
 					}
 				}
 				return true;
@@ -2079,10 +2082,10 @@ class sdGunClass
     
 		sdGun.classes[ sdGun.CLASS_VELOX_PISTOL = 65 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'burst_pistol2' ),
-			image0: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload2' ), sdWorld.CreateImageFromFile( 'burst_pistol2' ) ],
-			image1: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload2' ), sdWorld.CreateImageFromFile( 'burst_pistol2' ) ],
-			image2: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload2' ), sdWorld.CreateImageFromFile( 'burst_pistol2' ) ],
+			image: sdWorld.CreateImageFromFile( 'burst_pistol3' ),
+			image0: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload3' ), sdWorld.CreateImageFromFile( 'burst_pistol3' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload3' ), sdWorld.CreateImageFromFile( 'burst_pistol3' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'burst_pistol_reload3' ), sdWorld.CreateImageFromFile( 'burst_pistol3' ) ],
 			sound: 'gun_f_rifle',
 			sound_pitch: 1.5,
 			title: 'Velox Burst Pistol',
@@ -2277,7 +2280,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_COUNCIL_PISTOL = 71 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'council_pistol' ),
+			image: sdWorld.CreateImageFromFile( 'council_pistol2' ),
 			sound: 'cube_attack',
 			sound_pitch: 1.5,
 			title: 'Council Pistol',
@@ -4138,6 +4141,83 @@ class sdGunClass
 			},
 			projectile_properties: { _rail: true, time_left: 0, _damage: 1, color: 'transparent'},
 			upgrades: AddRecolorsFromColorAndCost( [], '#dcdcdc', 20 )
+		};
+
+		sdGun.classes[ sdGun.CLASS_TZYRG_SHOTGUN = 102 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'tzyrg_shotgun' ),
+			sound: 'gun_shotgun',
+			sound_pitch: 1.25,
+			title: 'Tzyrg Shotgun',
+			slot: 3,
+			reload_time: 18,
+			muzzle_x: 11,
+			ammo_capacity: 12,
+			count: 5,
+			spread: 0.12,
+			spawnable: false,
+			projectile_velocity: 20,
+			projectile_properties: { _damage: 20 },
+			upgrades: AddShotgunAmmoTypes( [] )
+		};
+
+		sdGun.classes[ sdGun.CLASS_COUNCIL_SHOTGUN = 103 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'council_shotgun' ),
+			sound: 'cube_attack',
+			sound_pitch: 1.2,
+			sound_volume: 1.5,
+			title: 'Council Shotgun',
+			slot: 3,
+			reload_time: 0,
+			muzzle_x: 7,
+			ammo_capacity: -1,
+			spread: 0.03,
+			count: 2,
+			spawnable: false,
+			//fire_type: 2,
+			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				if ( gun._held_by._auto_shoot_in > 0 )
+				return 0;
+				
+				return 4;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( !shoot_from_scenario )
+				{
+					if ( gun._held_by )
+					if ( gun._held_by._auto_shoot_in <= 0 )
+					{
+						//gun._held_by._auto_shoot_in = 15;
+						//return; // hack
+						gun._held_by._auto_shoot_in = 2;
+					}
+					return false;
+				}
+				else
+				{
+					//sdSound.PlaySound({ name: 'gun_pistol', x:gun.x, y:gun.y });
+					sdSound.PlaySound({ name:'enemy_mech_attack4', x:gun.x, y:gun.y, volume:1.5, pitch: 2 });
+					
+					if ( gun._held_by.matter >= 4 )
+					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					{
+						gun._held_by._auto_shoot_in = ( gun._held_by.stim_ef > 0 ) ? ( 7 / ( 1 + gun._combo / 10 ) ) : ( 14 / ( 1 + gun._combo / 10 ) ); // Faster rate of fire when shooting more
+						gun._held_by.matter -= 4;
+						gun._combo_timer = 16;
+						if ( gun._combo < 10 )
+						gun._combo++; // Speed up rate of fire, the longer it shoots
+					}
+				}
+				return true;
+			},
+			projectile_properties: { _damage: 30, color:'ffff00' }
 		};
 
 		// Add new gun classes above this line //

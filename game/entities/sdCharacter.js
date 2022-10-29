@@ -145,7 +145,17 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_modeus' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_pepe' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'helmet_santa' ), // by LazyRain
-			sdWorld.CreateImageFromFile( 'helmet_velox' ) // by Booraz149
+			sdWorld.CreateImageFromFile( 'helmet_velox' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_apex' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_advisor' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_paradigm' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_sync' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_legend' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_duster' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_vengeance2' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_bulwark2' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_empyrean' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_council' ) // by LordBored
 			// Note: Commas -> , are important since it all is just a big Array: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 		];
 		
@@ -193,7 +203,7 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'skins/supreme' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/walker' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/castellan' ), // by LordBored
-			sdWorld.CreateImageFromFile( 'skins/empyrean' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/empyrean2' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/jumper' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/matrix' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/runner' ), // by LordBored
@@ -219,7 +229,16 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'skins/soldier_rig' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'skins/witch' ), // by LazyRain
 			sdWorld.CreateImageFromFile( 'skins/modeus' ), // by LazyRain
-			sdWorld.CreateImageFromFile( 'skins/velox' ) // by Booraz149
+			sdWorld.CreateImageFromFile( 'skins/velox' ), // by Booraz149
+			sdWorld.CreateImageFromFile( 'skins/falkok' ), // by Ghost581
+			sdWorld.CreateImageFromFile( 'skins/apex' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/advisor' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/paradigm' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/sync' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/duster' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/vengeance2' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/bulwark2' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/council' ) // by LordBored
 		];
 		
 		// x y rotation, for images below
@@ -893,6 +912,7 @@ class sdCharacter extends sdEntity
 					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 ||
 					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 ||
 					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_SHARP ) // Attack player built walls
+			if ( sdWorld.last_hit_entity._ai_team === 0 ) // Don't attack if it's own faction outpost walls
 			found_enemy = true;
 
 			if ( sdWorld.last_hit_entity.is( sdCube ) ) // Only confront cubes when they want to attack AI
@@ -939,12 +959,13 @@ class sdCharacter extends sdEntity
 		for ( let i = 0; i < targets.length; i++ )
 		{
 			if ( targets[ i ].is( sdBlock ) )
-			//if ( targets[ i ]._armor_protection_level <= this._damage_mult ) // Target only damagable blocks
+			if ( targets[ i ].material === sdBlock.MATERIAL_GROUND || targets[ i ]._ai_team !== this._ai_team )
 			{
 				this._ai.target = targets[ i ];
 				return;
 			}
 		}
+		this._ai.direction = -this._ai.direction; // Change direction if no suitable blocks are found
 	}
 
 	InstallUpgrade( upgrade_name ) // Ignores upper limit condition. Upgrades better be revertable and resistent to multiple calls within same level as new level

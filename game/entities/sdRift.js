@@ -66,6 +66,8 @@ class sdRift extends sdEntity
 		this.scale = 1; // Portal scaling when it's about to be destroyed/removed
 		this.teleport_alpha = 0; // Alpha/transparency ( divided by 60 in draw code ) when portal is about to change location
 
+		this._pull_entities = []; // For dimensional tear
+
 		/*if ( this.type === 1 )
 		this.filter = 'hue-rotate(' + 75 + 'deg)';
 		if ( this.type === 2 )
@@ -116,43 +118,11 @@ class sdRift extends sdEntity
 				if ( this.frame % 3 === 0 )
 				if ( this.type === 4 ) // Black portal / Black hole attack
 				{
+					this._pull_entities = [];
 					let ents = sdWorld.GetAnythingNear( this.x, this.y, 192 );
 					for ( let i = 0; i < ents.length; i++ )
-					{
-						if ( sdWorld.CheckLineOfSight( this.x, this.y, ents[ i ].x, ents[ i ].y, ents[ i ] ) )
-						{
-							if ( typeof ents[ i ].sx !== 'undefined' )
-							ents[ i ].sx -= ( ents[ i ].x - this.x ) / 10;
-							if ( typeof ents[ i ].sy !== 'undefined' )
-							ents[ i ].sy -= ( ents[ i ].y - this.y ) / 10;
+					this._pull_entities.push( ents[ i ] );
 
-
-							if ( ents[ i ].GetClass() === 'sdCharacter' )
-							{
-								ents[ i ].stability = Math.min( 0, ents[ i ].stability );
-								if ( ents[ i ].gun_slot !== 9 )
-								ents[ i ].DropWeapon( ents[ i ].gun_slot );
-							}
-
-							if ( ents[ i ].IsPlayerClass() )
-							ents[ i ].ApplyServerSidePositionAndVelocity( true, ( ( ents[ i ].x - this.x ) / 20 ), ( ( ents[ i ].y - this.y ) / 20 ) );
-
-							if ( ents[ i ].GetClass() !== 'sdGun' && ents[ i ].GetClass() !== 'sdCrystal' && ents[ i ].GetClass() !== 'sdBG' )
-							{
-								if ( ents[ i ].GetClass() === 'sdBlock' )
-								ents[ i ].DamageWithEffect( 8 );
-								//else
-								//if ( sdWorld.inDist2D( ents[ i ].x, ents[ i ].y, this.x, this.y ) < 16 )
-								//ents[ i ].DamageWithEffect( 16 );
-							}
-							else
-							{
-								if ( ents[ i ].GetClass() === 'sdBG' )
-								if ( Math.random() < 0.01 )
-								ents[ i ].DamageWithEffect( 16 );
-							}
-						}
-					}
 
 					//Set task for players to remove the dimensional tear
 					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be closed
@@ -166,6 +136,49 @@ class sdRift extends sdEntity
 							title: 'Close the dimensional tear',
 							description: 'A dimensional tear appeared on this planet. It should be closed down before it destroys large chunks of the planet. We can close it using an Anti-crystal.'
 						});
+					}
+				}
+				if ( this.type === 4 ) // Black portal
+				{
+					if ( this._pull_entities.length > 0 )
+					for ( let i = 0; i < this._pull_entities.length; i++ )
+					{
+						//if ( this._pull_entities[ i ] )
+						if ( !this._pull_entities[ i ]._is_being_removed )
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, this._pull_entities[ i ].x, this._pull_entities[ i ].y, this._pull_entities[ i ] ) )
+						{
+							if ( typeof this._pull_entities[ i ].sx !== 'undefined' )
+							this._pull_entities[ i ].sx -= ( this._pull_entities[ i ].x - this.x ) / 20;
+							if ( typeof this._pull_entities[ i ].sy !== 'undefined' )
+							this._pull_entities[ i ].sy -= ( this._pull_entities[ i ].y - this.y ) / 20;
+
+
+							if ( this._pull_entities[ i ].GetClass() === 'sdCharacter' )
+							{
+								this._pull_entities[ i ].stability = Math.min( 0, this._pull_entities[ i ].stability );
+								if ( this._pull_entities[ i ].gun_slot !== 9 )
+								if ( Math.abs( this._pull_entities[ i ].sx + this._pull_entities[ i ].sy ) > 30 );
+								this._pull_entities[ i ].DropWeapon( this._pull_entities[ i ].gun_slot );
+							}
+
+							if ( this._pull_entities[ i ].IsPlayerClass() )
+							this._pull_entities[ i ].ApplyServerSidePositionAndVelocity( true, ( ( this._pull_entities[ i ].x - this.x ) / 20 ), ( ( this._pull_entities[ i ].y - this.y ) / 20 ) );
+
+							if ( this._pull_entities[ i ].GetClass() !== 'sdGun' && this._pull_entities[ i ].GetClass() !== 'sdCrystal' && this._pull_entities[ i ].GetClass() !== 'sdBG' )
+							{
+								if ( this._pull_entities[ i ].GetClass() === 'sdBlock' )
+								this._pull_entities[ i ].DamageWithEffect( 8 );
+								//else
+								//if ( sdWorld.inDist2D( this._pull_entities[ i ].x, this._pull_entities[ i ].y, this.x, this.y ) < 16 )
+								//this._pull_entities[ i ].DamageWithEffect( 16 );
+							}
+							else
+							{
+								if ( this._pull_entities[ i ].GetClass() === 'sdBG' )
+								if ( Math.random() < 0.01 )
+								this._pull_entities[ i ].DamageWithEffect( 16 );
+							}
+						}
 					}
 				}
 			}
@@ -338,12 +351,12 @@ class sdRift extends sdEntity
 											character_entity.matter = 300;
 											character_entity.matter_max = 300; // Let player leech matter off the bodies
 
-											character_entity.hea = 250;
-											character_entity.hmax = 250;
+											character_entity.hea = 1750;
+											character_entity.hmax = 1750;
 
-											character_entity.armor = 1500;
-											character_entity.armor_max = 1500;
-											character_entity._armor_absorb_perc = 0.87; // 87% damage absorption, since armor will run out before just a little before health
+											//character_entity.armor = 1500;
+											//character_entity.armor_max = 1500;
+											//character_entity._armor_absorb_perc = 0.87; // 87% damage absorption, since armor will run out before just a little before health
 
 											//character_entity._damage_mult = 1; // Supposed to put up a challenge
 										}
@@ -397,7 +410,7 @@ class sdRift extends sdEntity
 				//this._update_version++;
 			}
 			if ( this.type === 5 ) // Council portal fades away on it's own
-			this.hea -= GSPEED; // But for a really long time, 20 minutes ( 36000 / 30 = 1200 seconds )
+			this.hea = Math.max( this.hea - GSPEED, 0 );
 			if ( this._time_until_teleport > 0 )
 			{
 				this._time_until_teleport -= GSPEED;
@@ -441,7 +454,7 @@ class sdRift extends sdEntity
 			{
 				let r = Math.random();
 
-				if ( r < ( 0.23 + ( 0.05 * this.type ) ) )
+				if ( r < ( 0.23 + ( 0.05 * this.type ) ) && this.type !== 5 )
 				{
 					let x = this.x;
 					let y = this.y;

@@ -71,7 +71,7 @@ class sdLandScanner extends sdEntity
 		this._scanned_entity_net_ids = [];
 		this.enabled = false;
 		this.charge = 0;
-		this.matter_max = 100;
+		this.matter_max = 500;
 		this.matter = 0;
 		this.scanned_ents = 0; // How many unique dirt has this scanner scanned?
 		this._removed_in = params.removed_in || 30 * 60 * 15; // 15 minutes until it destroys since it's a task only entity, or less depending on when player claims the entity
@@ -165,7 +165,7 @@ class sdLandScanner extends sdEntity
 				
 				for ( let i = 0; i < blocks.length; i++ ) // Protect nearby entities inside base unit's radius
 				{
-					if ( blocks[ i ].material === sdBlock.MATERIAL_GROUND || blocks[ i ].material === sdBlock.MATERIAL_CORRUPTION || blocks[ i ].material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+					if ( blocks[ i ].DoesRegenerate() )
 					{
 						/*
 						let scanned_before = false;
@@ -193,7 +193,7 @@ class sdLandScanner extends sdEntity
 						}
 					}
 				}
-				this.matter = 0;
+				this.matter = Math.max( 0, this.matter - 100 );
 				this.charge = 0;
 				this.SetScanState();
 			}

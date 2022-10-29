@@ -10,6 +10,7 @@ import sdBullet from './sdBullet.js';
 import sdBlock from './sdBlock.js';
 import sdCharacter from './sdCharacter.js';
 import sdCube from './sdCube.js';
+import sdDrone from './sdDrone.js';
 
 class sdSetrDestroyer extends sdEntity
 {
@@ -203,6 +204,9 @@ class sdSetrDestroyer extends sdEntity
 	}
 	GetRandomEntityNearby() // Scans random area on map for potential entities
 	{
+		if ( this._follow_target ) 
+		return this._follow_target; // If there is already a target it follows, it should stick to it.
+
 		let x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
 		let y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
 		
@@ -244,6 +248,16 @@ class sdSetrDestroyer extends sdEntity
 			if ( Math.ceil( this.hea / this._hmax * 10 ) !== Math.ceil( old_hp / this._hmax * 10 ) )
 			{
 				sdSound.PlaySound({ name:'enemy_mech_hurt', x:this.x, y:this.y, volume:3, pitch:2 });
+
+				let drone = new sdDrone({ x: this.x, y: this.y, type: sdDrone.DRONE_SETR, _ai_team: this._ai_team }); // We do a little trolling
+
+				drone.sx = ( Math.random() - Math.random() ) * 10;
+				drone.sy = ( Math.random() - Math.random() ) * 10;
+				drone._ignore_collisions_with = this; // Make sure it can pass through the destroyer 
+
+				sdEntity.entities.push( drone );
+
+				//sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:1.25, pitch:0.1 });
 			}
 			
 			sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
@@ -696,11 +710,12 @@ class sdSetrDestroyer extends sdEntity
 					{
 						let an_desired;
 						if ( this._move_dir_timer <= 0 )
-						an_desired = Math.random() * Math.PI * 2;
-						else
-						an_desired = Math.atan2( this.sy * 2, this.sx * 2 )  - 0.5 + Math.random();
-						this._move_dir_x = Math.cos( an_desired ) * 10;
-						this._move_dir_y = Math.sin( an_desired ) * 10;
+						if ( !this._follow_target )
+						{
+							an_desired = Math.random() * Math.PI * 2;
+							this._move_dir_x = Math.cos( an_desired ) * 10;
+							this._move_dir_y = Math.sin( an_desired ) * 10;
+						}
 
 						let v = 0.035;
 				

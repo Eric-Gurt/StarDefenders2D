@@ -725,7 +725,7 @@ class sdSandWorm extends sdEntity
 						if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.x + ( Math.cos( this._an + Math.PI ) * 360 ), this.y + ( Math.sin( this._an + Math.PI ) * 360 ), this ) )
 						if ( sdWorld.last_hit_entity )
 						if ( sdWorld.last_hit_entity === this._current_target ||
-						 ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material !== sdBlock.MATERIAL_GROUND ) ||
+						 ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && !sdWorld.last_hit_entity.DoesRegenerate() ) ||
 						sdWorld.last_hit_entity.IsVehicle() ) // Shoot any kind of sdBlock if it's not dirt 
 						//if ( sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) <= 380 )
 						if ( sdWorld.time > this._last_attack + 100 )
@@ -954,7 +954,7 @@ class sdSandWorm extends sdEntity
 			//return;
 				
 			if ( from_entity.is( sdBlock ) )
-			if ( from_entity.material === sdBlock.MATERIAL_GROUND )
+			if ( from_entity.DoesRegenerate() )
 			//if ( this.kind !== sdSandWorm.KIND_CORRUPTED_WORM )
 			return;
 			//else

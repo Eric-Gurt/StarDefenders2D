@@ -51,6 +51,10 @@ import sdOverlord from './sdOverlord.js';
 import sdSetrDestroyer from './sdSetrDestroyer.js';
 import sdBiter from './sdBiter.js';
 import sdCouncilMachine from './sdCouncilMachine.js';
+import sdLamp from './sdLamp.js';
+import sdDoor from './sdDoor.js';
+import sdTurret from './sdTurret.js';
+import sdFactionSpawner from './sdFactionSpawner.js';
 
 import sdTask from './sdTask.js';
 
@@ -105,6 +109,9 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_FLESH_DIRT =				event_counter++; // 32
 		sdWeather.EVENT_COUNCIL_PORTAL =			event_counter++; // 33
 		sdWeather.EVENT_SWORD_BOT =				event_counter++; // 34
+		sdWeather.EVENT_TZYRG =					event_counter++; // 35
+		sdWeather.EVENT_FALKOK_OUTPOST =			event_counter++; // 36
+
 		
 		sdWeather.supported_events = [];
 		for ( let i = 0; i < event_counter; i++ )
@@ -242,7 +249,7 @@ class sdWeather extends sdEntity
 		}
 		//console.log( this._daily_events );
 	}
-	GetHumanoidSpawnLocation( ent ) //Locate spawn location for humanoids. First it uses same method as for Erthal spider bots / bad dogs, and if it doesn't find a position it uses old humanoid method.
+	GetHumanoidSpawnLocation( ent ) // Locate spawn location for humanoids. First it uses same method as for Erthal spider bots / bad dogs, and if it doesn't find a position it uses old humanoid method.
 	{
 		let x,y,i;
 		let located_spawn = false;
@@ -355,6 +362,180 @@ class sdWeather extends sdEntity
 
 		if ( tr <= 0 )
 		return false;
+	}
+	GenerateOutpost( x = 0, y = 0, base_type = -1, interior_type = -1, ai_team = 0 ) // Generate a faction outpost.
+	{
+		let init_x = x;
+		let init_y = y;
+		let i = Math.round( Math.random() * 12 );
+		var filter = 'hue-rotate('+(~~(i/12*360))+'deg)';
+
+		let potential_doors = []; // Blocks which could get replaced by doors, so we can replace some with doors when we generate base interior
+
+		if ( base_type === 0 ) // 10x10 base
+		{
+			for ( let j = 0; j < 10; j++ )
+			{
+				y += 32;
+				x = init_x;
+				{
+					let block = new sdBlock({ x:x, y:y , material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+					sdEntity.entities.push( block );
+
+					if ( j === 4 || j === 5 )
+					potential_doors.push( block ); // Left-middle side is a potential door entrance
+
+					let bg = new sdBG({ x:x, y:y , width: 32, height: 32 });
+					sdEntity.entities.push( bg );
+				}
+				for ( let i = 0; i < 8; i++ )
+				{
+					x += 32;
+
+					let bg = new sdBG({ x:x, y:y , width: 32, height: 32 });
+					sdEntity.entities.push( bg );
+
+					if ( j === 0 || j === 9 )
+					{
+						let block = new sdBlock({ x:x, y:y , material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+						sdEntity.entities.push( block );
+
+						if ( i === 3 || i === 4 )
+						potential_doors.push( block ); // Top-middle and bottom-middle side is a potential door entrance
+					}
+				}
+				x += 32;
+				{
+					let block = new sdBlock({ x:x, y:y , material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+					sdEntity.entities.push( block );
+
+					if ( j === 4 || j === 5 )
+					potential_doors.push( block ); // Right-middle side is a potential door entrance
+
+					let bg = new sdBG({ x:x, y:y , width: 32, height: 32});
+					sdEntity.entities.push( bg );
+				}
+			}
+			// Interior types
+			if ( interior_type === 0 ) // -1 is test case which is blank, so we start with 0
+			{
+				x = init_x; // Reset starting coordinates
+				y = init_y + 32;
+
+				// Lamps
+
+				let lamp = new sdLamp({ x:x + 64 + 16, y:y + 64 + 16 });
+				sdEntity.entities.push( lamp );
+
+				let lamp2 = new sdLamp({ x:x + ( 32 * 8 ) - 32 + 16, y:y + 64 + 16 });
+				sdEntity.entities.push( lamp2 );
+
+				let lamp3 = new sdLamp({ x:x + ( 32 * 8 ) - 32 + 16, y:y + ( 32 * 8 ) - 32 + 16 });
+				sdEntity.entities.push( lamp3 );
+
+				let lamp4 = new sdLamp({ x:x + 64 + 16, y:y + ( 32 * 8 ) - 32 + 16 });
+				sdEntity.entities.push( lamp4 );
+
+				// Turrets
+
+				let turret = new sdTurret({ x:x + 64 + 32, y:y + 64 + 16, type:1, _ai_team:ai_team });
+				sdEntity.entities.push( turret );
+				turret.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
+				turret.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
+
+				let turret2 = new sdTurret({ x:x + 64 + 16, y:y + 64 + 32, type:1, _ai_team:ai_team });
+				sdEntity.entities.push( turret2 );
+				turret2.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
+				turret2.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
+
+				let turret3 = new sdTurret({ x:x + ( 32 * 8 ) - 32, y:y + 64 + 16, type:1, _ai_team:ai_team });
+				sdEntity.entities.push( turret3 );
+				turret3.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
+				turret3.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
+
+				let turret4 = new sdTurret({ x:x + ( 32 * 8 ) - 32 + 16, y:y + 64 + 32, type:1, _ai_team:ai_team });
+				sdEntity.entities.push( turret4 );
+				turret4.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
+				turret4.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
+
+				let turret5 = new sdTurret({ x:x + ( 32 * 8 ) - 32, y:y + ( 32 * 8 ) - 32 + 16 , type:1, _ai_team:ai_team });
+				sdEntity.entities.push( turret5 );
+				turret5.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
+				turret5.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
+
+				let turret6 = new sdTurret({ x:x + 64 + 32, y:y + ( 32 * 8 ) - 32 + 16 , type:1, _ai_team:ai_team });
+				sdEntity.entities.push( turret6 );
+				turret6.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
+				turret6.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
+
+
+
+				// Blocks
+
+				let block = new sdBlock({ x:x + 32, y:y + 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block );
+
+				let block2 = new sdBlock({ x:x + 64, y:y + 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block2 );
+
+				let block3 = new sdBlock({ x:x + 32, y:y + 64, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block3 );
+
+				let block4 = new sdBlock({ x:x + ( 32 * 8 ), y:y + 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block4 );
+
+				let block5 = new sdBlock({ x:x + ( 32 * 8 ) - 32, y:y + 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block5 );
+
+				let block6 = new sdBlock({ x:x + ( 32 * 8 ), y:y + 64, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block6 );
+
+				let block7 = new sdBlock({ x:x + ( 32 * 8 ), y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block7 );
+
+				let block8 = new sdBlock({ x:x + ( 32 * 8 ) - 32, y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block8 );
+
+				let block9 = new sdBlock({ x:x + ( 32 * 8 ), y:y + ( 32 * 8 ) - 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block9 );
+
+				let block10 = new sdBlock({ x:x + 32, y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block10 );
+
+				let block11 = new sdBlock({ x:x + 64, y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block11 );
+
+				let block12 = new sdBlock({ x:x + 32, y:y + ( 32 * 8 ) - 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block12 );
+
+				let block13 = new sdBlock({ x:x + 128, y:y + ( 32 * 5 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block13 );
+
+				let block14 = new sdBlock({ x:x + 160, y:y + ( 32 * 5 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block14 );
+
+				//Spawner
+					
+				let spawner = new sdFactionSpawner({ x:x + 160, y:y + ( 32 * 8 ) + 16, type:ai_team });
+				sdEntity.entities.push( spawner );
+
+				// Doors
+
+				for ( let i = 0; i < potential_doors.length - 2; i++ ) // No bottom entrance
+				{
+					let door_x = potential_doors[ i ].x + 16;
+					let door_y = potential_doors[ i ].y + 16;
+					potential_doors[ i ].remove();
+					potential_doors[ i ]._broken = false;
+
+
+					let door = new sdDoor({ x:door_x, y:door_y, open_type:1, model: sdDoor.MODEL_ARMORED, _reinforced_level: 1, filter: filter, _ai_team:ai_team });
+					sdEntity.entities.push( door );
+
+					door.Damage( 1 ); // Enable sdSensorArea so it can actually be opened by AI
+				}
+			}
+		}
 	}
 	TraceDamagePossibleHere( x,y, steps_max=Infinity, sun_light_tracer=false )
 	{
@@ -484,13 +665,15 @@ class sdWeather extends sdEntity
 							}
 							let falkok_settings;
 							if ( character_entity._ai_gun_slot === 2 )
-							falkok_settings = {"hero_name":"Falkok","color_bright":"#6b0000","color_dark":"#420000","color_bright3":"#6b0000","color_dark3":"#420000","color_visor":"#5577b9","color_suit":"#240000","color_suit2":"#2e0000","color_dark2":"#560101","color_shoes":"#000000","color_skin":"#240000","helmet1":false,"helmet2":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
+							falkok_settings = {"hero_name":"Falkok","color_bright":"#6b0000","color_dark":"#420000","color_bright3":"#6b0000","color_dark3":"#420000","color_visor":"#5577b9","color_suit":"#240000","color_suit2":"#2e0000","color_dark2":"#560101","color_shoes":"#000000","color_skin":"#240000","color_extra1":"#240000","helmet1":false,"helmet2":true,"body60":true,"legs60":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
 							if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If Falkok spawns with Raygun or PSI-Cutter, change their looks Phoenix Falkok
 							falkok_settings = {"hero_name":"Phoenix Falkok","color_bright":"#ffc800","color_dark":"#a37000","color_bright3":"#ffc800","color_dark3":"#a37000","color_visor":"#000000","color_suit":"#ffc800","color_suit2":"#ffc800","color_dark2":"#000000","color_shoes":"#a37000","color_skin":"#a37000","helmet1":false,"helmet12":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
 
 							character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( falkok_settings );
 							character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( falkok_settings );
 							character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( falkok_settings );
+							character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( falkok_settings );
+							character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( falkok_settings );
 							character_entity.title = falkok_settings.hero_name;
 							if ( character_entity._ai_gun_slot === 2 ) // If a regular falkok spawns
 							{
@@ -1282,17 +1465,17 @@ class sdWeather extends sdEntity
 									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ALIEN_ENERGY_RIFLE }) );
 									character_entity._ai_gun_slot = 8;
 								}
-								let setr_settings;
+								let char_settings;
 
 								if ( character_entity._ai_gun_slot === 8 )
-								setr_settings = {"hero_name":"Sarronian Soldier","color_bright":"#202020","color_dark":"#101010","color_bright3":"#000000","color_dark3":"#101010","color_visor":"#FFA000","color_suit":"#202020","color_suit2":"#101010","color_dark2":"#101010","color_shoes":"#000000","color_skin":"#FFFF00","color_extra1":"#00FF00","helmet1":false,"helmet77":true,"voice1":false,"voice2":false,"voice3":false,"voice4":false,"voice10":true,"body18":true, "legs36":true};
+								char_settings = {"hero_name":"Sarronian Soldier","color_bright":"#202020","color_dark":"#101010","color_bright3":"#000000","color_dark3":"#101010","color_visor":"#FFA000","color_suit":"#202020","color_suit2":"#101010","color_dark2":"#101010","color_shoes":"#000000","color_skin":"#FFFF00","color_extra1":"#00FF00","helmet1":false,"helmet77":true,"voice1":false,"voice2":false,"voice3":false,"voice4":false,"voice10":true,"body18":true, "legs36":true};
 
-								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( setr_settings );
-								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( setr_settings );
-								character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( setr_settings );
-								character_entity.title = setr_settings.hero_name;
-								character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( setr_settings );
-								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( setr_settings );
+								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( char_settings );
+								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( char_settings );
+								character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( char_settings );
+								character_entity.title = char_settings.hero_name;
+								character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( char_settings );
+								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( char_settings );
 								if ( character_entity._ai_gun_slot === 8 ) // If a regular Sarronian soldier
 								{
 									character_entity.matter = 150;
@@ -1763,8 +1946,9 @@ class sdWeather extends sdEntity
 			for ( var i = 0; i < sdCharacter.characters.length; i++ )
 			if ( !sdCharacter.characters[ i ]._is_being_removed )
 			if ( sdCharacter.characters[ i ]._ai )
+			if ( sdCharacter.characters[ i ]._ai_team === 0 || sdCharacter.characters[ i ]._ai_team === 6 )
 			{
-				if ( sdCharacter.characters[ i ].hea > 0 )
+				if ( sdCharacter.characters[ i ].title === 'Star Defender' || sdCharacter.characters[ i ].title === 'Criminal Star Defender' )
 				ais++;
 
 				//Also alert players of other AI Star Defenders on the map which need addressing, otherwise they might be buried corpses somewhere forever
@@ -1813,7 +1997,7 @@ class sdWeather extends sdEntity
 
 			let left_side = ( Math.random() < 0.5 );
 
-			while ( instances < instances_tot && ais < this._max_ai_count )
+			while ( instances < instances_tot && ais < 4 ) // Only 4 of these task types are available at once
 			{
 				let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled: hostile ? sdCharacter.AI_MODEL_FALKOK : sdCharacter.AI_MODEL_TEAMMATE });
 
@@ -2434,6 +2618,197 @@ class sdWeather extends sdEntity
 				ais++;
 			}
 		}
+		if ( r === sdWeather.EVENT_TZYRG ) // Tzyrg faction spawn. Spawns humanoids and drones.
+		{
+			let ais = 0;
+			for ( var i = 0; i < sdCharacter.characters.length; i++ )
+			{
+				if ( sdCharacter.characters[ i ].hea > 0 )
+				if ( !sdCharacter.characters[ i ]._is_being_removed )
+				if ( sdCharacter.characters[ i ]._ai )
+				if ( sdCharacter.characters[ i ]._ai_team === 8 )
+				{
+					ais++;
+				}
+
+			}
+
+			{
+				let instances = 0;
+				let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
+
+				let left_side = ( Math.random() < 0.5 );
+
+
+			while ( instances < instances_tot && ais < this._max_ai_count )
+			{
+
+				let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+
+				sdEntity.entities.push( character_entity );
+
+				{
+					if ( !this.GetHumanoidSpawnLocation( character_entity ) )
+					{
+						character_entity.remove();
+						character_entity._broken = false;
+						break;
+					}
+					else
+					{
+						{
+
+							//sdWorld.UpdateHashPosition( ent, false );
+								{ 
+									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TZYRG_SHOTGUN }) );
+									character_entity._ai_gun_slot = 3;
+								}
+								let char_settings;
+
+								if ( character_entity._ai_gun_slot === 3 )
+								char_settings = {"hero_name":"Tzyrg","color_bright":"#404040","color_dark":"#202020","color_bright3":"#303030","color_dark3":"#202020","color_visor":"#FF0000","color_suit":"#404040","color_suit2":"#383838","color_dark2":"#202020","color_shoes":"#000000","color_skin":"#101010","color_extra1":"#000000","helmet1":false,"helmet69":true,"voice1":false,"voice10":true,"body34":true, "legs36":true};
+
+								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( char_settings );
+								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( char_settings );
+								character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( char_settings );
+								character_entity.title = char_settings.hero_name;
+								character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( char_settings );
+								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( char_settings );
+								if ( character_entity._ai_gun_slot === 3 ) // If a regular Tzyrg
+								{
+									character_entity.matter = 100;
+									character_entity.matter_max = 100;
+
+									character_entity.hea = 200;
+									character_entity.hmax = 200;
+
+									//character_entity.armor = 150;
+									//character_entity.armor_max = 150;
+									//character_entity._armor_absorb_perc = 0.7; // 70% damage absorption
+
+									//character_entity._damage_mult = 1;
+								}
+
+								character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+								//character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
+								character_entity._ai_level = Math.floor( 1 + Math.random() * 2 ); // AI Levels
+
+								character_entity._matter_regeneration = 5; // At least some ammo regen
+								character_entity._jetpack_allowed = true; // Jetpack
+								//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
+								character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+								character_entity._ai_team = 8; // AI team 8 is for Tzyrg faction
+								character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
+
+								break;
+							}
+						}
+					}
+
+					instances++;
+					ais++;
+				}
+
+				let drones = 0;
+				let drones_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
+
+
+				while ( drones < drones_tot && sdDrone.drones_tot < this._max_drone_count )
+				{
+
+					let drone = new sdDrone({ x:0, y:0 , _ai_team: 8, type: ( Math.random() < 0.1 ) ? sdDrone.DRONE_TZYRG_WATCHER : sdDrone.DRONE_TZYRG });
+
+					sdEntity.entities.push( drone );
+
+					if ( !this.GetHumanoidSpawnLocation( drone ) )
+					{
+						drone.remove();
+						drone._broken = false;
+						break;
+					}
+					drones++;
+				}
+			}
+		}
+		if ( r === sdWeather.EVENT_FALKOK_OUTPOST ) // Falkok base / outpost spawn. Looks for fitting location to generate an outpost. Very primitive at the moment. 10x10 base size.
+		{
+			if ( Math.random() < 0.2 ) // Don't want these to flood maps since they're very basic
+			{
+				let x,y,i,j;
+				let located_spawn = true;
+				let tr = 1000;
+				// Check if there's 10x10 worth of 32x32 block free space.
+				//if ( sdFactionSpawner.falkok_spawners === 0 ) // Not sure if these should be capped at all. They are capped by world size though.
+				do
+				{
+					located_spawn = true;
+					x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+					y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+	
+					x = 16 * Math.floor( x / 16 ); // Round up the values
+					y = 16 * Math.floor( y / 16 );
+					x -= 32;
+					y -= 32;
+					let init_x = x;
+					let init_y = y;
+					for ( j = 0; j < 10; j++ )
+					{
+						y += 32;
+						x = init_x;
+						for ( i = 0; i < 10; i++ )
+						{
+							x += 32;
+							if ( !sdWorld.CheckWallExistsBox( 
+									x - 32, 
+									y - 32, 
+									x + 32, 
+									y + 32, null, null, null, null ) ) // Make sure nothing "blocks" ( pun intended ) outpost spawns
+							{
+								let di_allowed = true;
+												
+								for ( let k = 0; k < sdWorld.sockets.length; k++ )
+								if ( sdWorld.sockets[ k ].character )
+								{
+									let di = sdWorld.Dist2D( sdWorld.sockets[ k ].character.x, sdWorld.sockets[ k ].character.y, x, y );
+													
+									if ( di < 700 )
+									{
+										di_allowed = false; // Too close to players
+										//break;
+									}
+								}
+									
+								if ( di_allowed === false ) // Look for new location
+								{
+									i = 10;
+									j = 10;
+									located_spawn = false;
+								}
+							}
+							else // Look for new location if something blocks outpost generation
+							{
+								i = 10;
+								j = 10;
+								located_spawn = false;
+							}
+						}
+					}		
+					tr--;
+					//if ( tr === 0 && !located_spawn )
+					//console.log( 'No fitting location for a base.' );
+					if ( located_spawn ) // Fitting base location
+					{
+						x = init_x;
+						y = init_y;
+						this.GenerateOutpost( x, y, 0, 0, 1 ); // Generate an outpost. Could be randomized preset in future.
+						//console.log( 'Located base location!' );
+						tr = 0;
+					}
+				} while (tr > 0 );
+			}
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -2549,13 +2924,15 @@ class sdWeather extends sdEntity
 									}
 									let falkok_settings;
 									if ( character_entity._ai_gun_slot === 2 )
-									falkok_settings = {"hero_name":"Falkok","color_bright":"#6b0000","color_dark":"#420000","color_bright3":"#6b0000","color_dark3":"#420000","color_visor":"#5577b9","color_suit":"#240000","color_suit2":"#2e0000","color_dark2":"#560101","color_shoes":"#000000","color_skin":"#240000","helmet1":false,"helmet2":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
+									falkok_settings = {"hero_name":"Falkok","color_bright":"#6b0000","color_dark":"#420000","color_bright3":"#6b0000","color_dark3":"#420000","color_visor":"#5577b9","color_suit":"#240000","color_suit2":"#2e0000","color_dark2":"#560101","color_shoes":"#000000","color_skin":"#240000","color_extra1":"#240000","helmet1":false,"helmet2":true,"body60":true,"legs60":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
 									if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If Falkok spawns with Raygun or PSI-Cutter, change their looks Phoenix Falkok
 									falkok_settings = {"hero_name":"Phoenix Falkok","color_bright":"#ffc800","color_dark":"#a37000","color_bright3":"#ffc800","color_dark3":"#a37000","color_visor":"#000000","color_suit":"#ffc800","color_suit2":"#ffc800","color_dark2":"#000000","color_shoes":"#a37000","color_skin":"#a37000","helmet1":false,"helmet12":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
 
 									character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( falkok_settings );
 									character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( falkok_settings );
 									character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( falkok_settings );
+									character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( falkok_settings );
+									character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( falkok_settings );
 									character_entity.title = falkok_settings.hero_name;
 									if ( character_entity._ai_gun_slot === 2 ) // If a regular falkok spawns
 									{
