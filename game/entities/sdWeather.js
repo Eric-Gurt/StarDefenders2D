@@ -2738,7 +2738,7 @@ class sdWeather extends sdEntity
 				let located_spawn = true;
 				let tr = 1000;
 				// Check if there's 10x10 worth of 32x32 block free space.
-				//if ( sdFactionSpawner.falkok_spawners === 0 ) // Not sure if these should be capped at all. They are capped by world size though.
+				if ( sdFactionSpawner.falkok_spawners === 0 ) // Capped to 1 for now.
 				do
 				{
 					located_spawn = true;
