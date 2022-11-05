@@ -2555,7 +2555,7 @@ class sdWeather extends sdEntity
 						lrtp_matter_capacity_needed: 1,
 						title: 'Planet scan',
 						time_left: 30 * 60 * 15,
-						description: 'We need you to claim a land scanner from a long range teleporter, then scan planet enviroment until data is at max capacity, then send the land scanner back to us using the long range teleporter so we can analyze the planet data.'
+						description: 'We need you to claim a land scanner from a long range teleporter, then scan planet environment until data is at max capacity, then send the land scanner back to us using the long range teleporter so we can analyze the planet data.'
 					});
 				}
 		}
