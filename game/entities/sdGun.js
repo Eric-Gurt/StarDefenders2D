@@ -1068,13 +1068,16 @@ class sdGun extends sdEntity
 				{
 					if ( this._held_by && !this._held_by._is_being_removed )
 					{
-						if ( typeof this._held_by._last_built_entity === 'undefined' )
-						{
-							console.warn( 'this._held_by = ', this._held_by );
-						}
-						
 						if ( this._held_by.IsPlayerClass() )
-						this._held_by._last_built_entity = null;
+						{
+							if ( typeof this._held_by._last_built_entity === 'undefined' )
+							{
+								console.warn( 'this._held_by = ', this._held_by );
+							}
+
+							this._held_by._last_built_entity = null;
+						}
+						// In else case it is weapon bench
 					}
 
 					this.reload_time_left = Math.max( 0, this.reload_time_left - GSPEED * ( ( this._held_by && this._held_by.stim_ef > 0 ) ? 2 : 1 ) );
