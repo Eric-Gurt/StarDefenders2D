@@ -535,6 +535,138 @@ class sdWeather extends sdEntity
 					door.Damage( 1 ); // Enable sdSensorArea so it can actually be opened by AI
 				}
 			}
+			if ( interior_type === 1 ) // -1 is test case which is blank, so we start with 0
+			{
+				x = init_x; // Reset starting coordinates
+				y = init_y + 32;
+
+				// Lamps
+
+				let lamp = new sdLamp({ x:x + 64 + 16, y:y + 64 + 16 });
+				sdEntity.entities.push( lamp );
+
+				let lamp2 = new sdLamp({ x:x + ( 32 * 8 ) - 32 + 16, y:y + 64 + 16 });
+				sdEntity.entities.push( lamp2 );
+
+				let lamp3 = new sdLamp({ x:x + ( 32 * 5 ), y:y + ( 32 * 6 ) + 48 });
+				sdEntity.entities.push( lamp3 );
+
+				//let lamp4 = new sdLamp({ x:x + 64 + 16, y:y + ( 32 * 8 ) - 32 + 16 });
+				//sdEntity.entities.push( lamp4 );
+
+				// Turrets
+
+				let turret = new sdTurret({ x:x + 64 + 32, y:y + 64 + 16, type:1, _ai_team:ai_team });
+				sdEntity.entities.push( turret );
+				turret.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
+				turret.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
+
+				let turret2 = new sdTurret({ x:x + 64 + 16, y:y + 64 + 32, type:1, _ai_team:ai_team });
+				sdEntity.entities.push( turret2 );
+				turret2.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
+				turret2.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
+
+				let turret3 = new sdTurret({ x:x + ( 32 * 8 ) - 32, y:y + 64 + 16, type:1, _ai_team:ai_team });
+				sdEntity.entities.push( turret3 );
+				turret3.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
+				turret3.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
+
+				let turret4 = new sdTurret({ x:x + ( 32 * 8 ) - 32 + 16, y:y + 64 + 32, type:1, _ai_team:ai_team });
+				sdEntity.entities.push( turret4 );
+				turret4.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
+				turret4.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
+
+				let turret5 = new sdTurret({ x:x + ( 32 * 8 ) - 64, y:y + ( 32 * 8 ) - 32 + 16 , type:1, _ai_team:ai_team });
+				sdEntity.entities.push( turret5 );
+				turret5.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
+				turret5.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
+
+				let turret6 = new sdTurret({ x:x + 64 + 64, y:y + ( 32 * 8 ) - 32 + 16 , type:1, _ai_team:ai_team });
+				sdEntity.entities.push( turret6 );
+				turret6.lvl = Math.round( Math.random() * 3 ); // Randomize turret level
+				turret6.kind = Math.round( Math.random() * 3 );	// Randomize turret kind
+
+
+
+				// Blocks
+
+				let block = new sdBlock({ x:x + 32, y:y + 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block );
+
+				let block2 = new sdBlock({ x:x + 64, y:y + 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block2 );
+
+				let block3 = new sdBlock({ x:x + 32, y:y + 64, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block3 );
+
+				let block4 = new sdBlock({ x:x + ( 32 * 8 ), y:y + 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block4 );
+
+				let block5 = new sdBlock({ x:x + ( 32 * 8 ) - 32, y:y + 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block5 );
+
+				let block6 = new sdBlock({ x:x + ( 32 * 8 ), y:y + 64, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block6 );
+
+				let block7 = new sdBlock({ x:x + ( 32 * 8 ), y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block7 );
+
+				let block8 = new sdBlock({ x:x + ( 32 * 8 ), y:y + ( 32 * 8 ) - 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block8 );
+
+				let block9 = new sdBlock({ x:x + ( 32 * 8 ), y:y + ( 32 * 8 ) - 64, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block9 );
+
+				let block10 = new sdBlock({ x:x + 32, y:y + ( 32 * 8 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block10 );
+
+				let block11 = new sdBlock({ x:x + 32, y:y + ( 32 * 8 ) - 32, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block11 );
+
+				let block12 = new sdBlock({ x:x + 32, y:y + ( 32 * 8 ) - 64, material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block12 );
+
+				let block13 = new sdBlock({ x:x + 128, y:y + ( 32 * 6 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block13 );
+
+				let block14 = new sdBlock({ x:x + 160, y:y + ( 32 * 6 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block14 );
+
+				let block15 = new sdBlock({ x:x + 96, y:y + ( 32 * 6 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block15 );
+
+				let block16 = new sdBlock({ x:x + 192, y:y + ( 32 * 6 ), material: sdBlock.MATERIAL_WALL, filter:filter, _ai_team:ai_team, width: 32, height: 32 });
+				sdEntity.entities.push( block16 );
+
+				//Spawner
+					
+				let spawner = new sdFactionSpawner({ x:x + 160, y:y + ( 32 * 8 ) + 16, type:ai_team });
+				sdEntity.entities.push( spawner );
+
+				// Doors
+
+				for ( let i = 0; i < potential_doors.length - 2; i++ ) // No bottom entrance
+				{
+					let door_x = potential_doors[ i ].x + 16;
+					let door_y = potential_doors[ i ].y + 16;
+					potential_doors[ i ].remove();
+					potential_doors[ i ]._broken = false;
+
+
+					let door = new sdDoor({ x:door_x, y:door_y, open_type:1, model: sdDoor.MODEL_ARMORED, _reinforced_level: 1, filter: filter, _ai_team:ai_team });
+					sdEntity.entities.push( door );
+
+					door.Damage( 1 ); // Enable sdSensorArea so it can actually be opened by AI
+				}
+
+				let door = new sdDoor({ x:x + 96 - 16, y:y + ( 32 * 6 ) + 16, open_type:1, model: sdDoor.MODEL_ARMORED, _reinforced_level: 1, filter: filter, _ai_team:ai_team });
+				sdEntity.entities.push( door );
+				door.Damage( 1 );
+
+				let door2 = new sdDoor({ x:x + 224 + 16, y:y + ( 32 * 6 ) + 16, open_type:1, model: sdDoor.MODEL_ARMORED, _reinforced_level: 1, filter: filter, _ai_team:ai_team });
+				sdEntity.entities.push( door2 );
+				door2.Damage( 1 );
+			}
 		}
 	}
 	TraceDamagePossibleHere( x,y, steps_max=Infinity, sun_light_tracer=false )
@@ -2738,7 +2870,7 @@ class sdWeather extends sdEntity
 				let located_spawn = true;
 				let tr = 1000;
 				// Check if there's 10x10 worth of 32x32 block free space.
-				//if ( sdFactionSpawner.falkok_spawners === 0 ) // Not sure if these should be capped at all. They are capped by world size though.
+				if ( sdFactionSpawner.falkok_spawners === 0 ) // Capped to 1 for now.
 				do
 				{
 					located_spawn = true;
@@ -2800,7 +2932,7 @@ class sdWeather extends sdEntity
 					{
 						x = init_x;
 						y = init_y;
-						this.GenerateOutpost( x, y, 0, 0, 1 ); // Generate an outpost. Could be randomized preset in future.
+						this.GenerateOutpost( x, y, 0, Math.round( Math.random() ), 1 ); // Generate an outpost. Could be randomized preset in future.
 						//console.log( 'Located base location!' );
 						tr = 0;
 					}
