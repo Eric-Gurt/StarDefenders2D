@@ -155,7 +155,26 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'helmet_vengeance2' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_bulwark2' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'helmet_empyrean' ), // by LordBored
-			sdWorld.CreateImageFromFile( 'helmet_council' ) // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_council' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_androidSD' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_androidSD2' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_assassin' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_automata' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_automata2' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_blackguard' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_duelist' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_monolith' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_reaper2' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_assassin2' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_assassin2' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_specialist' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_spectre' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_storm' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_swole' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_terminus' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_titan' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_terminus2' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'helmet_versatile' ) // by LordBored
 			// Note: Commas -> , are important since it all is just a big Array: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 		];
 		
@@ -238,7 +257,25 @@ class sdCharacter extends sdEntity
 			sdWorld.CreateImageFromFile( 'skins/duster' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/vengeance2' ), // by LordBored
 			sdWorld.CreateImageFromFile( 'skins/bulwark2' ), // by LordBored
-			sdWorld.CreateImageFromFile( 'skins/council' ) // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/council' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/androidSD' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/androidSD2' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/assassin' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/automata' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/automata2' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/blackguard' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/duelist' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/monolith' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/specialist' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/spectre' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/storm' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/stream' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/swole' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/terminus' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/titan' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/versatile' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/versatile2' ), // by LordBored
+			sdWorld.CreateImageFromFile( 'skins/warlord' ), // by LordBored
 		];
 		
 		// x y rotation, for images below
