@@ -1469,9 +1469,9 @@ class sdGunClass
 			//sound_pitch: 0.7,
 			sound_pitch: 1.6,
 			//sound_volume: 1.75,
-			title: 'The Ripper',
+			title: 'KVT MMG "The Ripper"',
 			slot: 2,
-			reload_time: 4.2,
+			reload_time: 4,
 			muzzle_x: 10,
 			ammo_capacity: 48,
 			spread: 0.03,
@@ -1488,9 +1488,9 @@ class sdGunClass
 			//sound_pitch: 1.6,
 			sound_pitch: 0.7,
 			//sound_volume: 1.65,
-			title: 'The Ripper MK2',
+			title: 'KVT MMG "The Ripper" Mk.2',
 			slot: 2,
-			reload_time: 4.4,
+			reload_time: 4.3,
 			muzzle_x: 10,
 			ammo_capacity: 56,
 			spread: 0.02,
@@ -1503,23 +1503,20 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_PHASERCANNON_P03 = 49 ] = // sprite by Ghost581
         {
             image: sdWorld.CreateImageFromFile( 'phasercannon_p03' ),
-           	// image0: [ sdWorld.CreateImageFromFile( 'railgun_p03_c' ), sdWorld.CreateImageFromFile( 'railgun_p03_c' ) ],
-            //image1: [ sdWorld.CreateImageFromFile( 'railgun_p03_r1' ), sdWorld.CreateImageFromFile( 'railgun_p03_r1b' ) ],
-            //image2: [ sdWorld.CreateImageFromFile( 'railgun_p03_r2' ), sdWorld.CreateImageFromFile( 'railgun_p03_r2b' ) ],
             image0: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
             image1: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
             image2: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
             sound: 'gun_railgun_malicestorm_terrorphaser4',
-            title: 'Phasercannon P03',
+            title: 'KVT Phasercannon P03 "Malicestorm"',
 			sound_pitch: 1.6, // re-added cause weapon sounds better with the sound pitch. - Ghost581
 			sound_volume: 1.5,
-            slot: 8, // moved it to slot 8 cause of it being supposed to be a power weapon and slot 9 still is bound to the BT - Ghost581
-            reload_time: 30 * 2, // 360, // can one-shot 250 HP players so it has been bumped back up to its original reload time. - Ghost581
+            slot: 8,
+            reload_time: 60,
             muzzle_x: null,
             ammo_capacity: -1,
             count: 1,
             matter_cost: 280,
-            projectile_properties: { _rail: true, _damage: 98, color: '#62c8f2', explosion_radius: 20}, // buffed damage by player request - Ghost581
+            projectile_properties: { _rail: true, _damage: 98, color: '#62c8f2', explosion_radius: 20},
             min_build_tool_level: 19
 		};
 
@@ -2173,21 +2170,21 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'missile_launcher_p07' ),
 			sound: 'gun_missile_launcher_p07',
-			title: 'Missile Launcher P07',
+			title: 'KVT Missile Launcher P07 "Hydra"',
 			sound_volume: 2.4,
 			slot: 5,
-			reload_time: 12,
+			reload_time: 8,
 			muzzle_x: null,
 			ammo_capacity: 6,
 			spread: 0.06,
 			projectile_velocity: 20,
 			count: 1,
 			burst: 2,
-			burst_reload: 32, 
+			burst_reload: 28, 
 			min_build_tool_level: 5,
 			min_workbench_level: 2,
 			matter_cost: 240,
-			projectile_properties: { time_left: 90, explosion_radius: 20, model: 'mini_missile_p241', _damage: 32, color:sdEffect.default_explosion_color, ac:0.01, _homing: true, _homing_mult: 0.3, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 }
+			projectile_properties: { time_left: 120, explosion_radius: 20, model: 'mini_missile_p241', _damage: 38, color:sdEffect.default_explosion_color, ac:0.01, _homing: true, _homing_mult: 0.3, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 }
 		};
 		
 		sdGun.classes[ sdGun.CLASS_F_HEAVY_RIFLE = 69 ] = 
@@ -4253,6 +4250,26 @@ class sdGunClass
 			};
 			//throw new Error( 'Check sdGunClass for a place where index values are assigned - there seems to be an ID number '+i+' skipped (assuming sdGun.classes.length is '+sdGun.classes.length+' and thus highest ID should be '+(sdGun.classes.length-1)+', with IDs starting at 0). Holes in ID list will cause server to crash when some parts of logic will try to loop through all classes. Currently defined IDs are following: ', index_to_const );
 		}
+
+		sdGun.classes[ sdGun.CLASS_KVT_ASSAULT_RIFLE = 104 ] = // sprite made by Ghost581
+		{
+			image: sdWorld.CreateImageFromFile( 'kvt_ar' ),
+			sound: 'gun_the_ripper2',
+			sound_pitch: 1.3,
+			title: 'KVT Assault Rifle "CER54"',
+			slot: 2,
+			reload_time: 1.8,
+			muzzle_x: 10,
+			ammo_capacity: 45,
+			burst: 3,
+			burst_reload: 12,
+			count: 1,
+			matter_cost: 186,
+			min_build_tool_level: 9,
+			spawnable: false, // still not done yet, will be spawnable later on
+			projectile_velocity: sdGun.default_projectile_velocity * 1.2,
+			projectile_properties: { _damage: 36, _dirt_mult: -0.5 }
+		};
 	}
 }
 
