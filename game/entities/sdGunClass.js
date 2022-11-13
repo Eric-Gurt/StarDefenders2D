@@ -3428,12 +3428,13 @@ class sdGunClass
 			custom_rifle_upgrades.push(
 				{
 					title: 'Decrease projectile temperature', 
-					cost: 500, 
+					cost: 0, 
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
 						//if ( gun.extra[ ID_TEMPERATURE_APPLIED ] > -750 )
-						if ( gun.extra[ ID_TEMPERATURE_APPLIED ] > -273 )
+						//if ( gun.extra[ ID_TEMPERATURE_APPLIED ] > -273.15 )
+						if ( gun.extra[ ID_TEMPERATURE_APPLIED ] > 0 )
 						{
 							gun.extra[ ID_TEMPERATURE_APPLIED ] -= 20;
 							UpdateCusomizableGunProperties( gun );
