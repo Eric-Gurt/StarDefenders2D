@@ -685,6 +685,18 @@ class sdModeration
 			}
 		}
 		else
+		if ( parts[ 0 ] === 'updatecache' )
+		{
+			globalThis.UpdateFileCache();
+			socket.SDServiceMessage( 'Done' );
+		}
+		else
+		if ( parts[ 0 ] === 'disablecache' )
+		{
+			globalThis.DisableFileCache();
+			socket.SDServiceMessage( 'Done' );
+		}
+		else
 		socket.SDServiceMessage( 'Server: Unknown command "' + parts[ 0 ] + '"' );
 	}
 }

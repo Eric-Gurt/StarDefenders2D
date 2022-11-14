@@ -35,6 +35,8 @@ class sdServerConfigFull extends sdServerConfigShort
 	
 	static save_raw_version_of_snapshot = true; // One that can be easily viewed in Notepad-like applications. It is never used within server logic. "true" can slow-down snapshot generation.
 	
+	static store_game_files_in_ram = true; // Will make server never use hard drive without need until next reboot, except for cases when backup is being made (more RAM usage, can be suitable for VPS servers that have strange Disk I/O issues)
+	
 	static GetHitAllowed( bullet_or_sword, target )
 	{
 		// Cancel damage from bullet_or_sword towards target. ( bullet_or_sword._owner || bullet_or_sword._dangerous_from ) is a possible owner (can be null)

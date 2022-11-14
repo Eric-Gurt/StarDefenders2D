@@ -1,5 +1,5 @@
 
-/* global globalThis, process */
+/* global globalThis, process, fs, mime */
 
 let port0 = 3000;
 let CloudFlareSupport = false;
@@ -39,6 +39,8 @@ import fs from 'fs';
 //import { createServer } from "http";
 import http from "http";
 import https from "https";
+
+import mime from "mime";
 
 //import pkg from '@geckos.io/server'; // 
 //const geckos = pkg.default;
@@ -586,157 +588,7 @@ globalThis.GetFrame = ()=>{ return frame; }; // Call like this: GetFrame()
 const file_exists = fs.existsSync;
 globalThis.file_exists = file_exists;
 
-let request_durations_worst = 0; // Normally would be 1-2ms
 
-let request_durations_per_second_sum_worst = 0;
-
-let request_durations = [];
-let request_durations_time = 0;
-let second_end_callback = null;
-// Wider url catcher breaks socket?
-/*
-app.get('/*', (req, res) => 
-{
-	let t_sum = 0;
-	
-	function Finalize()
-	{
-		request_durations.push({ time:t_sum, url:req.url });
-		
-		if ( t_sum >= 10 )
-		if ( t_sum > request_durations_worst )
-		{
-			request_durations_worst = t_sum;
-			console.log('New slowest request ['+req.url+']: '+t_sum+'ms');
-		}
-		
-		let s = 0;
-		for ( let i = 0; i < request_durations.length; i++ )
-		{
-			s += request_durations[ i ].time;
-		}
-		
-		if ( s > 100 )
-		if ( s > request_durations_per_second_sum_worst )
-		{
-			request_durations_per_second_sum_worst = s;
-			
-			second_end_callback = ()=>
-			{
-				console.log('Requests called within 1 second took longest time: '+s+'ms :: Requests: ' + JSON.stringify( request_durations.slice(0,5) )+'... ('+request_durations.length+' requests)');
-			};
-		}
-	}
-	
-	let t = Date.now();
-	
-	if ( request_durations_time !== Math.floor( t / 1000 ) )
-	{
-		if ( second_end_callback )
-		{
-			second_end_callback();
-			second_end_callback = null;
-		}
-		request_durations_time = Math.floor( t / 1000 );
-		request_durations.length = 0;
-	}
-	
-	if ( req.url.indexOf('./') !== -1 || req.url.indexOf('/.') !== -1 )
-	{
-		
-		t_sum += Date.now() - t;
-		Finalize();
-		return;
-	}
-	
-	var path = __dirname + '/game' + req.url;
-	//var path = './game' + req.url;
-	fs.access(path.split('?')[0], fs.F_OK, (err) => 
-	{
-		let t3 = Date.now();
-		
-		if (err)
-		{
-			res.send( '404' );//console.error(err)
-			
-			t_sum += Date.now() - t3;
-			Finalize();
-			return;
-		}
-		res.sendFile( path );
-		//file exists
-		
-		t_sum += Date.now() - t3;
-		Finalize();
-	});
-
-	t_sum += Date.now() - t;
-});*/
-
-// Slower but less file stacking that could slow down game
-let get_busy = false;
-let busy_tot = 0;
-app.get('/*', function cb( req, res, repeated=false )
-{
-	function Finalize()
-	{
-		get_busy = false;
-	}
-	
-	if ( repeated !== true )
-	busy_tot++;
-
-	if ( get_busy )
-	{
-	
-		setTimeout( ()=>{ cb( req, res, true ); }, 4 + Math.random() * 20 );
-		return;
-	}
-	
-	get_busy = true;
-	busy_tot--;
-	
-	if ( busy_tot > 20 )
-	console.log( 'Slowing down file download due to '+busy_tot+' files requested at the same time' );
-	
-	var path = __dirname + '/game' + req.url;
-	//var path = './game' + req.url;
-	
-	
-	fs.access(path.split('?')[0], fs.F_OK, (err) => 
-	{
-		//let t3 = Date.now();
-		
-		if ( req.url === '/get_entity_classes.txt' )
-		{
-			res.send( get_entity_classes_page );
-			Finalize();
-			return;
-		}
-		
-		if ( !file_exists( path ) ) // Silent
-		{
-			res.end();
-			
-			Finalize();
-			return;
-		}
-		
-		if ( err ) // Access errors usually
-		{
-			//res.send( '404' );//console.error(err)
-			res.status( 404 ).end();
-			
-			Finalize();
-			return;
-		}
-		
-		res.sendFile( path );
-		//file exists
-		
-		Finalize();
-	});
-});
 
 var sockets = [];
 var sockets_by_ip = {}; // values are arrays (for easier user counting per ip)
@@ -810,6 +662,9 @@ eval( 'sdWorld.server_config = ' + sdServerConfigFull.toString() ); // Execute w
 	
 	//trace( '( sdWorld.server_config.onBeforeSnapshotLoad ) === ', ( sdWorld.server_config.onBeforeSnapshotLoad.toString() ) )
 }
+
+
+
 
 
 
@@ -1147,6 +1002,7 @@ catch( e )
 }
 
 
+
 if ( sdEntity.global_entities.length === 0 )
 {
 	console.log( 'Recreating sdWeather' );
@@ -1156,6 +1012,160 @@ if ( sdEntity.global_entities.length === 0 )
 
 if ( sdWorld.server_config.onAfterSnapshotLoad )
 sdWorld.server_config.onAfterSnapshotLoad();
+
+
+
+
+
+
+
+
+
+
+
+let file_cache = null;
+
+// Moderators can call it
+globalThis.UpdateFileCache = ()=>
+{
+	file_cache = new Map();
+
+	const ReadRecursively = ( path )=>
+	{
+		fs.readdirSync( path ).forEach( ( file )=> 
+		{
+			let stat = fs.lstatSync( path + file );
+
+			if ( stat.isDirectory() )
+			{
+				ReadRecursively( path + file + '/' );
+			}
+			else
+			{
+				let url = ( path + file ).split( __dirname + '/' ).join( '' );
+				
+				let data = fs.readFileSync( path + file );
+				
+				file_cache.set( url, {
+					data: data,
+					type: mime.lookup( path + file ),
+					length: data.length
+				} );
+			}
+		});
+	};
+
+	ReadRecursively( __dirname + '/game/' );
+};
+globalThis.DisableFileCache = ()=>
+{
+	file_cache = null;
+};
+
+if ( sdWorld.server_config.store_game_files_in_ram )
+globalThis.UpdateFileCache();
+
+// Slower but less file stacking that could slow down game
+let get_busy = false;
+let busy_tot = 0;
+app.get('/*', function cb( req, res, repeated=false )
+{
+	function Finalize()
+	{
+		get_busy = false;
+	}
+	
+	if ( repeated !== true )
+	busy_tot++;
+
+	if ( get_busy )
+	{
+	
+		setTimeout( ()=>{ cb( req, res, true ); }, 2 + Math.random() * 10 );
+		return;
+	}
+	
+	get_busy = true;
+	busy_tot--;
+	
+	if ( busy_tot > 20 )
+	console.log( 'Slowing down file download due to '+busy_tot+' files requested at the same time' );
+	
+	var path = __dirname + '/game' + req.url;
+	//var path = './game' + req.url;
+	
+	
+	if ( req.url === '/get_entity_classes.txt' )
+	{
+		res.send( get_entity_classes_page );
+		Finalize();
+		return;
+	}
+	else
+	if ( file_cache )
+	{
+		let url = 'game' + req.url;
+		
+		if ( url.length > 0 )
+		if ( url.charAt( url.length - 1 ) === '/' )
+		url += 'index.html';
+
+		// Mespeak's path issue
+		url = url.split( '//' ).join( '/' );
+		
+		let obj = file_cache.get( url );
+		
+		//trace( 'RECV', url );
+		
+		if ( obj )
+		{
+			res.writeHead(200, {'Content-Type': obj.type, 'Content-Length':obj.length});
+			res.write( obj.data );
+			res.end();
+		}
+		else
+		{
+			res.writeHead( 404 );
+			res.write( '404' );
+			res.end();
+		}
+		Finalize();
+	}
+	else
+	fs.access(path.split('?')[0], fs.F_OK, (err) => 
+	{
+		//let t3 = Date.now();
+		
+		if ( !file_exists( path ) ) // Silent
+		{
+			res.end();
+			
+			Finalize();
+			return;
+		}
+		
+		if ( err ) // Access errors usually
+		{
+			//res.send( '404' );//console.error(err)
+			res.status( 404 ).end();
+			
+			Finalize();
+			return;
+		}
+		
+		res.sendFile( path );
+		//file exists
+		
+		Finalize();
+	});
+});
+
+
+
+
+
+
+
 
 
 sdModeration.init_class();
