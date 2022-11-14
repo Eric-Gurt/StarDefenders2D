@@ -649,6 +649,12 @@ class sdGun extends sdEntity
 	Shoot( background_shoot=0, offset=null, shoot_from_scenario=false ) // It becomes 1 when player holds shift
 	{
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+		if ( this._temperature_addition < 0 && this.class === sdGun.CLASS_CUSTOM_RIFLE )
+		{
+			this._temperature_addition = 0;
+			this.extra[ 11 ] = 0;
+		}
 			
 		if ( this._held_by === null )
 		{
