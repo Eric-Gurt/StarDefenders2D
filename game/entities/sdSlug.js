@@ -28,6 +28,7 @@ class sdSlug extends sdEntity
 		];*/
 
 		sdSlug.img_slug = sdWorld.CreateImageFromFile( 'sdSlug' );
+		//sdSlug.img_slug = sdWorld.CreateImageFromFile( 'sdSlug_old' );
 		//sdSlug.img_slug = sdWorld.CreateImageFromFile( 'sdSlugexample' );
 
 		sdSlug.death_duration = 20;
@@ -379,11 +380,13 @@ class sdSlug extends sdEntity
 			xx = Math.min( 4 - 1, ~~( ( this.death_anim / sdSlug.death_duration ) * 4 ) );
 			yy = 1;
 
+			/*
 			if ( xx === 3 ) // 4 makes it disappear
 			{
 				yy = 2;
 				xx = 0;
 			}
+			*/
 
 			//let frame = Math.min( sdSlug.death_imgs.length - 1, ~~( ( this.death_anim / sdSlug.death_duration ) * sdSlug.death_imgs.length ) );
 			//ctx.drawImageFilterCache( sdSlug.death_imgs[ frame ], - 16, - 16, 32,32 );
@@ -419,7 +422,7 @@ class sdSlug extends sdEntity
 			
 			for ( let i = 0; i < 3; i++ )
 			if ( this.blinks[ i ] )
-			ctx.drawImageFilterCache( sdSlug.img_slug, 64,64,32,32,  locations[ i ], -16, 32,32 );
+			ctx.drawImageFilterCache( sdSlug.img_slug, 96,0,32,32,  locations[ i ], -16, 32,32 );
 		}
 		
 		ctx.globalAlpha = 1;
