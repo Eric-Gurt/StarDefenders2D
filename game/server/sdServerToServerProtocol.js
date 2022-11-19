@@ -117,6 +117,14 @@ class sdServerToServerProtocol
 									socket.emit( 'S2SProtocolMessage', [ route, sdWorld.leaders ] );
 									return;
 								}
+								else
+								if ( data_object.action === 'db' )
+								{
+									sdDatabase.Exec( data_object.request, ( result )=>{
+										socket.emit( 'S2SProtocolMessage', [ route, result ] );
+									});
+									return;
+								}
 							}
 							else
 							{

@@ -252,6 +252,7 @@ import sdHover from './game/entities/sdHover.js';
 import sdStorage from './game/entities/sdStorage.js';
 import sdAsp from './game/entities/sdAsp.js';
 import sdModeration from './game/server/sdModeration.js';
+import sdDatabase from './game/server/sdDatabase.js';
 import sdMemoryLeakSeeker from './game/server/sdMemoryLeakSeeker.js';
 import { sdServerConfigShort, sdServerConfigFull } from './game/server/sdServerConfig.js';
 
@@ -546,6 +547,7 @@ LZW.init_class();
 globalThis.sdWorld = sdWorld;
 globalThis.sdShop = sdShop;
 globalThis.sdModeration = sdModeration;
+globalThis.sdDatabase = sdDatabase;
 globalThis.sdSnapPack = sdSnapPack;
 globalThis.sdPathFinding = sdPathFinding;
 
@@ -607,6 +609,7 @@ const timewarp_path_const = __dirname + '/star_defenders_timewarp' + ( world_slo
 const moderation_data_path_const = __dirname + '/moderation_data' + ( world_slot || '' ) + '.v';
 const superuser_pass_path = __dirname + '/superuser_pass' + ( world_slot || '' ) + '.txt'; // Used to be .v
 const sync_debug_path = __dirname + '/sync_debug' + ( world_slot || '' ) + '.v';
+const database_data_path_const = __dirname + '/database_data' + ( world_slot || '' ) + '.v';
 
 const censorship_file_path = __dirname + '/star_defenders_censorship.v'; 
 /* Each line is a new word/phras, separated with " // " where right part is a baddness of word/phrase. 
@@ -671,6 +674,7 @@ eval( 'sdWorld.server_config = ' + sdServerConfigFull.toString() ); // Execute w
 sdWorld.snapshot_path_const = snapshot_path_const;
 sdWorld.timewarp_path_const = timewarp_path_const;
 sdWorld.moderation_data_path_const = moderation_data_path_const;
+sdWorld.database_data_path_const = database_data_path_const;
 sdWorld.superuser_pass_path = superuser_pass_path;
 sdWorld.censorship_file_path = censorship_file_path;
 
@@ -689,6 +693,8 @@ let is_terminating = false;
 		let start_time = Date.now();
 
 		snapshot_save_busy = true;
+		
+		sdDatabase.Save();
 
 		let entities = [];
 		
@@ -1168,6 +1174,7 @@ app.get('/*', function cb( req, res, repeated=false )
 
 
 
+sdDatabase.init_class();
 sdModeration.init_class();
 sdMemoryLeakSeeker.init_class();
 

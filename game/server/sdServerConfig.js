@@ -16,6 +16,8 @@ class sdServerConfigShort
 		'::1',
 		'::ffff:127.0.0.1'
 	];
+	
+	static database_server = null; // Example: 'https://www.gevanni.com:3000'; // database_server must allow current server's IP in list above. Set as null if this server should have its' own database
 		
 	static notify_about_failed_s2s_attempts = true;
 	
@@ -23,7 +25,7 @@ class sdServerConfigShort
 	
 	static enable_bounds_move = false;
 		
-	static apply_censorship = true;
+	static apply_censorship = true; // Censorship file is not included
 		
 	// Check file sdServerConfig.js for more stuff to alter in server logic
 }
@@ -35,7 +37,7 @@ class sdServerConfigFull extends sdServerConfigShort
 	
 	static save_raw_version_of_snapshot = true; // One that can be easily viewed in Notepad-like applications. It is never used within server logic. "true" can slow-down snapshot generation.
 	
-	static store_game_files_in_ram = true; // Will make server never use hard drive without need until next reboot, except for cases when backup is being made (more RAM usage, can be suitable for VPS servers that have strange Disk I/O issues)
+	static store_game_files_in_ram = false; // Will make server never use hard drive without need until next reboot, except for cases when backup is being made (more RAM usage, can be suitable for VPS servers that have strange Disk I/O issues)
 	
 	static GetHitAllowed( bullet_or_sword, target )
 	{
