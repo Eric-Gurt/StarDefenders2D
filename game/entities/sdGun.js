@@ -408,7 +408,7 @@ class sdGun extends sdEntity
 			this._hea = sdGun.classes[ this.class ].hea;
 
 			if ( this.class !== sdGun.CLASS_CRYSTAL_SHARD && sdGun.classes[ this.class ].spawnable === false ) // Unbuildable guns have 3 minutes to despawn, enough for players to find them if they lost them
-			this.ttl = params.ttl || sdGun.disowned_guns_ttl * 3;
+			this.ttl = params.ttl || sdGun.disowned_guns_ttl * 2;
 		
 			if ( has_class.onMade )
 			has_class.onMade( this, params ); // Should not make new entities, assume gun might be instantly removed once made
@@ -649,11 +649,17 @@ class sdGun extends sdEntity
 	Shoot( background_shoot=0, offset=null, shoot_from_scenario=false ) // It becomes 1 when player holds shift
 	{
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-
-		if ( this._temperature_addition < 0 && this.class === sdGun.CLASS_CUSTOM_RIFLE )
+		if ( this.class === sdGun.CLASS_CUSTOM_RIFLE )
 		{
-			this._temperature_addition = 0;
-			this.extra[ 11 ] = 0;
+			if ( this._temperature_addition < 0 )
+			{
+				this._temperature_addition = 0;
+				this.extra[ 11 ] = 0;
+			}
+			if ( this.extra[ 7 ] > 3 )
+			{
+				this.extra[ 7 ] = 3;
+			}
 		}
 			
 		if ( this._held_by === null )
