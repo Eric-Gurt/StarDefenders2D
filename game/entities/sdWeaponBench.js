@@ -143,6 +143,38 @@ class sdWeaponBench extends sdEntity
 				
 				sdEntity.Tooltip( ctx, 'Biometry lock: ' + ( ( this.item0.biometry_lock !== -1 ) ? 'YES' : 'NO' ), 0, 10, '#333333' );
 			}
+			else // Regular guns
+			{
+				let gun = this.item0;
+				
+				//let ID_MAGAZINE = 2;
+		
+				let ID_DAMAGE_MULT = 7;
+				//let ID_FIRE_RATE = 8;
+				let ID_RECOIL_SCALE = 9;
+				let ID_DAMAGE_VALUE = 17;
+
+				//Tooltip( ctx, t, x=0, y=0, color='#ffffff' )
+				if ( this.item0.extra[ ID_DAMAGE_VALUE ] )
+				sdEntity.Tooltip( ctx, 'Damage: ' + Math.round( this.item0.extra[ ID_DAMAGE_VALUE ] * this.item0.extra[ ID_DAMAGE_MULT ] ), 0, -40, '#ffaaaa' );
+				if ( this.item0.extra[ ID_RECOIL_SCALE ] )
+				sdEntity.Tooltip( ctx, 'Recoil: ' + Math.round( 100 * this.item0.extra[ ID_DAMAGE_MULT ] * this.item0.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -30, '#ffffaa' );
+				
+				let reload_time = sdGun.classes[ gun.class ].reload_time; // Best to keep it simple.
+				
+				if ( Math.round( reload_time / 30 * 1000 ) < 16 )
+				sdEntity.Tooltip( ctx, 'Cooldown: 16ms (capped)', 0, -20, '#aaffaa' );
+				else
+				sdEntity.Tooltip( ctx, 'Cooldown: ' + Math.round( reload_time / 30 * 1000 ) + 'ms', 0, -20, '#aaffaa' );
+			
+				//sdEntity.Tooltip( ctx, 'Temperature: ' + Math.round( this.item0.extra[ ID_TEMPERATURE_APPLIED ] ) + '°C', 0, -20, '#aaffff' );
+				if ( this.item0.GetAmmoCapacity() !== -1 )
+				sdEntity.Tooltip( ctx, 'Magazine capacity: ' + this.item0.GetAmmoCapacity(), 0, -10, '#ffffff' );
+				
+				sdEntity.Tooltip( ctx, 'Ammo cost: ' + Math.round( this.item0.GetBulletCost( false, false ) * 1000 ) / 1000, 0, 0, '#aaaaaa' );
+				
+				//sdEntity.Tooltip( ctx, 'Biometry lock: ' + ( ( this.item0.biometry_lock !== -1 ) ? 'YES' : 'NO' ), 0, 10, '#333333' );
+			}
 		}
 	}
 	onRemove() // Class-specific, if needed
