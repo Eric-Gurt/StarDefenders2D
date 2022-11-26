@@ -1060,7 +1060,7 @@ class sdCharacter extends sdEntity
 		if ( from_ent )
 		if ( from_ent._is_being_removed )
 		from_ent = null;
-		
+
 		let tele_cost = sdRescueTeleport.max_matter;
 		
 		if ( !this.is( sdCharacter ) )
@@ -1072,7 +1072,21 @@ class sdCharacter extends sdEntity
 		for ( var i = 0; i < sdRescueTeleport.rescue_teleports.length; i++ )
 		{
 			let t = sdRescueTeleport.rescue_teleports[ i ];
-			
+
+			let close_enough = true;
+
+			tele_cost = t.type === sdRescueTeleport.TYPE_INFINITE_RANGE ? sdRescueTeleport.max_matter : sdRescueTeleport.max_matter_short; // Needed so short range RTPs work
+
+			if ( !this.is( sdCharacter ) )
+			tele_cost = 100;
+
+			if ( sdRescueTeleport.rescue_teleports[ i ].type === sdRescueTeleport.TYPE_SHORT_RANGE )
+			{
+				let di = sdWorld.Dist2D( this.x, this.y, t.x, t.y );
+				if ( di > sdRescueTeleport.max_short_range_distance ) // 1200 units
+				close_enough = false;
+			}
+			if ( close_enough )
 			if ( t._owner === this || t.owner_biometry === this.biometry )
 			if ( t.delay <= 0 )
 			if ( t.matter >= t._matter_max ) // Fully charged
@@ -1200,6 +1214,11 @@ class sdCharacter extends sdEntity
 			
 			//best_t.SetDelay( sdRescueTeleport.delay_2nd ); // 5 minutes
 			best_t.SetDelay( sdRescueTeleport.delay_simple );
+
+			tele_cost = best_t.type === sdRescueTeleport.TYPE_INFINITE_RANGE ? sdRescueTeleport.max_matter : sdRescueTeleport.max_matter_short; // Adjust matter cost depending on RTP type
+
+			if ( !this.is( sdCharacter ) )
+			tele_cost = 100;
 		
 			best_t.matter -= tele_cost;
 			

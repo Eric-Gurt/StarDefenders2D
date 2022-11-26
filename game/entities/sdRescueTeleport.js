@@ -17,8 +17,15 @@ class sdRescueTeleport extends sdEntity
 		sdRescueTeleport.img_teleport = sdWorld.CreateImageFromFile( 'rescue_portal' );
 		sdRescueTeleport.img_teleport_offline = sdWorld.CreateImageFromFile( 'rescue_portal_offline' );
 		sdRescueTeleport.img_teleport_no_matter = sdWorld.CreateImageFromFile( 'rescue_portal_no_matter' ); // 2 imgs
+
+		sdRescueTeleport.img_teleport_short = sdWorld.CreateImageFromFile( 'rescue_portal_short' ); // Short range rescue teleporter, rescues up to 1200 untis in distance ( approx 3 screen widths I think )
+		sdRescueTeleport.img_teleport_short_offline = sdWorld.CreateImageFromFile( 'rescue_portal_short_offline' );
+		sdRescueTeleport.img_teleport_short_no_matter = sdWorld.CreateImageFromFile( 'rescue_portal_short_no_matter' ); // 2 imgs
 		
 		sdRescueTeleport.max_matter = 1700;
+		sdRescueTeleport.max_matter_short = 500;
+
+		sdRescueTeleport.max_short_range_distance = 1200;
 		
 		sdRescueTeleport.rescue_teleports = [];
 		
@@ -26,6 +33,9 @@ class sdRescueTeleport extends sdEntity
 		sdRescueTeleport.delay_2nd = 30 * 60 * 5; // 5 minutes
 		
 		sdRescueTeleport.delay_simple = 3 * 10; // 3 seconds
+
+		sdRescueTeleport.TYPE_INFINITE_RANGE = 0; // Infinite range rescue teleporter
+		sdRescueTeleport.TYPE_SHORT_RANGE = 1; // Short range teleporter
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -97,6 +107,8 @@ class sdRescueTeleport extends sdEntity
 		this._hmax = 500 * 4;
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
+
+		this.type = params.type || sdRescueTeleport.TYPE_INFINITE_RANGE;
 		
 		//this._is_cable_priority = true;
 		
@@ -109,7 +121,7 @@ class sdRescueTeleport extends sdEntity
 		this.owner_title = '';
 		this.owner_biometry = -1;
 		
-		this._matter_max = sdRescueTeleport.max_matter;
+		this._matter_max = this.type === sdRescueTeleport.TYPE_INFINITE_RANGE ? sdRescueTeleport.max_matter : sdRescueTeleport.max_matter_short;
 		this.matter = 0;
 		
 		//this.owner_net_id = this._owner ? this._owner._net_id : null;
@@ -184,11 +196,23 @@ class sdRescueTeleport extends sdEntity
 	{
 		let postfix = "  ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + " )";
 		
-		//if ( this.owner_title === '' )
-		if ( this.owner_biometry === -1 )
-		return 'Rescue teleport' + postfix;
-		else
-		return this.owner_title + '\'s rescue teleport' + postfix;
+		if ( this.type === sdRescueTeleport.TYPE_INFINITE_RANGE )
+		{
+			//if ( this.owner_title === '' )
+			if ( this.owner_biometry === -1 )
+			return 'Rescue teleport' + postfix;
+			else
+			return this.owner_title + '\'s rescue teleport' + postfix;
+		}
+
+		if ( this.type === sdRescueTeleport.TYPE_SHORT_RANGE )
+		{
+			//if ( this.owner_title === '' )
+			if ( this.owner_biometry === -1 )
+			return 'Short-range rescue teleport' + postfix;
+			else
+			return this.owner_title + '\'s short-range rescue teleport' + postfix;
+		}
 
 	}
 	
@@ -200,17 +224,35 @@ class sdRescueTeleport extends sdEntity
 		if ( this.matter >= this._matter_max )
 		ctx.apply_shading = false;
 		
-		if ( this.matter >= this._matter_max || sdShop.isDrawing )
+		if ( this.type === sdRescueTeleport.TYPE_INFINITE_RANGE )
 		{
-			if ( this.delay === 0 || sdShop.isDrawing )
-			ctx.drawImageFilterCache( sdRescueTeleport.img_teleport, -16, -16, 32,32 );
+			if ( this.matter >= this._matter_max || sdShop.isDrawing )
+			{
+				if ( this.delay === 0 || sdShop.isDrawing )
+				ctx.drawImageFilterCache( sdRescueTeleport.img_teleport, -16, -16, 32,32 );
+				else
+				ctx.drawImageFilterCache( sdRescueTeleport.img_teleport_offline, -16, -16, 32,32 );
+			}
 			else
-			ctx.drawImageFilterCache( sdRescueTeleport.img_teleport_offline, -16, -16, 32,32 );
+			{
+				//ctx.drawImageFilterCache( sdRescueTeleport.img_teleport_no_matter, -16, -16, 32,32 );
+				ctx.drawImageFilterCache( sdRescueTeleport.img_teleport_no_matter, ( sdWorld.time % 4000 < 2000 ? 1 : 0 )*32,0,32,32, - 16, - 16, 32,32 );
+			}
 		}
-		else
+		if ( this.type === sdRescueTeleport.TYPE_SHORT_RANGE )
 		{
-			//ctx.drawImageFilterCache( sdRescueTeleport.img_teleport_no_matter, -16, -16, 32,32 );
-			ctx.drawImageFilterCache( sdRescueTeleport.img_teleport_no_matter, ( sdWorld.time % 4000 < 2000 ? 1 : 0 )*32,0,32,32, - 16, - 16, 32,32 );
+			if ( this.matter >= this._matter_max || sdShop.isDrawing )
+			{
+				if ( this.delay === 0 || sdShop.isDrawing )
+				ctx.drawImageFilterCache( sdRescueTeleport.img_teleport_short, -16, -16, 32,32 );
+				else
+				ctx.drawImageFilterCache( sdRescueTeleport.img_teleport_short_offline, -16, -16, 32,32 );
+			}
+			else
+			{
+				//ctx.drawImageFilterCache( sdRescueTeleport.img_teleport_short_no_matter, -16, -16, 32,32 );
+				ctx.drawImageFilterCache( sdRescueTeleport.img_teleport_short_no_matter, ( sdWorld.time % 4000 < 2000 ? 1 : 0 )*32,0,32,32, - 16, - 16, 32,32 );
+			}
 		}
 	}
 	DrawHUD( ctx, attached ) // foreground layer
