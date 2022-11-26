@@ -13,7 +13,8 @@ import sdArea from '../entities/sdArea.js';
 import sdWater from '../entities/sdWater.js';
 import sdDoor from '../entities/sdDoor.js';
 import sdCaption from '../entities/sdCaption.js';
-import sdGib from '../entities/sdGib.js';
+import sdGib from '../entities/sdGib.js'
+import sdRescueTeleport from '../entities/sdRescueTeleport.js';
 
 import sdRenderer from './sdRenderer.js';
 import sdContextMenu from './sdContextMenu.js';
@@ -306,6 +307,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdLongRangeTeleport', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdCrystalCombiner', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdRescueTeleport', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_SHORT_RANGE, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:0, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:1, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdConveyor', _category:'Base equipment' });
