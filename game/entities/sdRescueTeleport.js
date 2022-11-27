@@ -158,6 +158,9 @@ class sdRescueTeleport extends sdEntity
 		//this.owner_title = ( this._owner && !this._owner._is_being_removed ) ? this._owner.title : '';
 		if ( this.owner_biometry !== -1 )
 		{
+			if ( this._owner && this._owner.GetClass() === 'sdBadDog' )
+			this.owner_title = 'Bad Dog';
+			else
 			if ( this._owner )
 			this.owner_title = this._owner.title;
 		}

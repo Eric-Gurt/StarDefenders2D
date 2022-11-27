@@ -8,6 +8,7 @@ import sdWater from './sdWater.js';
 import sdCharacter from './sdCharacter.js';
 import sdCom from './sdCom.js';
 import sdBullet from './sdBullet.js';
+import sdRescueTeleport from './sdRescueTeleport.js';
 
 import sdPathFinding from '../ai/sdPathFinding.js';
 
@@ -157,6 +158,107 @@ class sdBadDog extends sdEntity
 	{
 		return 'hue-rotate(-56deg)'; // Yellow
 	}*/
+
+	AttemptTeleportOut( from_ent=null )
+	{
+		if ( from_ent )
+		if ( from_ent._is_being_removed )
+		from_ent = null;
+
+		let tele_cost = sdRescueTeleport.max_matter;
+		
+		tele_cost = 400;
+
+		let best_di = Infinity;
+		let best_t = null;
+
+		for ( var i = 0; i < sdRescueTeleport.rescue_teleports.length; i++ )
+		{
+			let t = sdRescueTeleport.rescue_teleports[ i ];
+
+			let close_enough = true;
+
+			tele_cost = t.type === sdRescueTeleport.TYPE_INFINITE_RANGE ? sdRescueTeleport.max_matter : sdRescueTeleport.max_matter_short; // Needed so short range RTPs work
+
+			tele_cost = 400;
+
+			if ( sdRescueTeleport.rescue_teleports[ i ].type === sdRescueTeleport.TYPE_SHORT_RANGE )
+			{
+				let di = sdWorld.Dist2D( this.x, this.y, t.x, t.y );
+				if ( di > sdRescueTeleport.max_short_range_distance ) // 1200 units
+				close_enough = false;
+			}
+			if ( close_enough )
+			if ( t._owner === this || t.owner_biometry === this.biometry )
+			if ( t.delay <= 0 )
+			if ( t.matter >= t._matter_max ) // Fully charged
+			if ( t.matter >= tele_cost ) // Has enough matter for this kind of teleport out
+			if ( !t._is_being_removed )
+			//if ( this.CanMoveWithoutOverlap( t.x, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, 0 ) && sdWorld.CheckLineOfSight( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 12, this ) ) // Make sure it isn't blocked by anything
+			if ( sdWorld.CheckLineOfSight( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 12, t, null, sdCom.com_vision_blocking_classes ) ) // Could be better. Should allow cases of storages and crystals on top of RTP
+			{
+				let di = sdWorld.Dist2D( this.x, this.y, t.x, t.y );
+				if ( di < best_di )
+				{
+					best_t = t;
+					best_di = di;
+				}
+			}
+		}
+
+		if ( best_t )
+		{
+			
+			//sdSound.PlaySound({ name:'rescue_teleport_fake_death2', x:copy_ent.x, y:copy_ent.y, volume:2 });
+			
+			sdSound.PlaySound({ name:'rescue_teleport_fake_death2', x:this.x, y:this.y, volume:2 });
+			sdSound.PlaySound({ name:'teleport', x:best_t.x, y:best_t.y, volume:0.5 });
+			
+			this.x = best_t.x;
+			this.y = best_t.y + best_t._hitbox_y1 - this._hitbox_y2;
+			
+			sdWorld.SendEffect({ x:this.x + (this.hitbox_x1+this.hitbox_x2)/2, y:this.y + (this.hitbox_y1+this.hitbox_y2)/2, type:sdEffect.TYPE_TELEPORT });
+			
+			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+			this.sx = 0;
+			this.sy = 0;
+			
+			this.death_anim = 0;
+
+			this.hea = Math.max( this.hea, 30 );
+			
+			//best_t.SetDelay( sdRescueTeleport.delay_2nd ); // 5 minutes
+			best_t.SetDelay( sdRescueTeleport.delay_simple );
+
+			tele_cost = best_t.type === sdRescueTeleport.TYPE_INFINITE_RANGE ? sdRescueTeleport.max_matter : sdRescueTeleport.max_matter_short; // Adjust matter cost depending on RTP type
+
+			tele_cost = 400;
+		
+			best_t.matter -= tele_cost;
+			
+			best_t.WakeUpMatterSources();
+			
+			/*setTimeout( ()=>
+			{
+				if ( this.hea > 0 )
+				this.Say( [ 
+					'Ok then', 
+					'That was close', 
+					'I live... Again!', 
+					from_ent ? 'Almost died from '+from_ent.GetClass() : 'Almost died', 
+					'I guess I live for now', 
+					'I\'d need more of these', 
+					'I wasn\'t welcomed there very well', 
+					'I\'m not saying farewell',
+					from_ent ? 'Not today, '+from_ent.GetClass()+'!' : 'Not today, Death!' ][ ~~( Math.random() * 9 ) ] );
+			}, 2000 );*/
+
+			return true;
+		}
+		return false;
+	}
+
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )
@@ -169,6 +271,13 @@ class sdBadDog extends sdEntity
 		
 		if ( dmg > 0 || !this.master || initiator !== this.master )
 		{
+
+			if ( this.hea - dmg <= 0 )
+			{
+				if ( this.AttemptTeleportOut( initiator ) )
+				return;
+			}
+
 			this.hea -= Math.abs( dmg );
 			
 			this._regen_timeout = 30;
@@ -872,7 +981,7 @@ class sdBadDog extends sdEntity
 					{
 						if ( this.type === 1 )
 						{
-							if ( this.turret_level < 150 )
+							if ( this.turret_level < 28 ) // Max 40 damage
 							{
 								this.master.matter -= 175;
 
@@ -892,6 +1001,57 @@ class sdBadDog extends sdEntity
 					else
 					executer_socket.SDServiceMessage( 'Not enough matter' );
 
+				}
+
+				if ( command_name === 'RTP' )
+				{
+					for ( var i = 0; i < sdRescueTeleport.rescue_teleports.length; i++ )
+					{
+						let t = sdRescueTeleport.rescue_teleports[ i ];
+						let di = sdWorld.Dist2D( this.x, this.y, t.x, t.y );
+						let di2 = sdWorld.Dist2D( exectuter_character.x, exectuter_character.y, t.x, t.y );
+						if ( di < 32 && di2 < 32 ) // Make sure both are close enough to the RTP
+						{
+							if ( !t._owner )
+							{
+								t._owner = this;
+								t.owner_biometry = -2; // For bad dogs? Not sure if this is okay though - Booraz149
+
+								t._update_version++;
+
+								t.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // .owner_net_id won't update without this
+						
+								executer_socket.SDServiceMessage( 'Rescue teleport is now owned by dog' );
+
+								if ( sdWorld.time > ( this._last_speak || 0 ) + 1000 )
+								{
+									this._last_speak = sdWorld.time;
+
+									let params = { 
+										x:this.x, 
+										y:this.y - 36, 
+										type:sdEffect.TYPE_CHAT, 
+										attachment:this, 
+										attachment_x: 0,
+										attachment_y: -36,
+										text: '?',
+										voice: {
+											wordgap: 0,
+											pitch: 0,
+											speed: 150,
+											variant: 'klatt'
+										} 
+								};	
+
+									params.text = 'Aw, thanks man';
+									sdWorld.SendEffect( params );
+								}
+								break;
+							}
+							else
+							executer_socket.SDServiceMessage( 'Rescue teleport is owned by something else.' );
+						}
+					}
 				}
 			}
 		}
@@ -937,6 +1097,17 @@ class sdBadDog extends sdEntity
 							this.AddContextOption( 'Install portable turret on the dog (175 matter)', 'TURRET', [] );
 							else
 							this.AddContextOption( 'Upgrade portable turret (175 matter)', 'TURRET', [], false );
+						}
+
+						for ( var i = 0; i < sdRescueTeleport.rescue_teleports.length; i++ )
+						{
+							let t = sdRescueTeleport.rescue_teleports[ i ];
+							let di = sdWorld.Dist2D( this.x, this.y, t.x, t.y );
+							let di2 = sdWorld.Dist2D( exectuter_character.x, exectuter_character.y, t.x, t.y );
+							if ( di < 32 && di2 < 32 ) // Make sure both are close enough to the RTP
+							if ( !t._owner )
+							this.AddContextOption( 'Subscribe dog to the rescue teleporter', 'RTP', [] );
+						
 						}
 					}
 				}
