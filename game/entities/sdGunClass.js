@@ -156,7 +156,7 @@ class sdGunClass
 		{
 			gun._count = gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1;
 			gun._spread = gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 0.2 : ( 0.1 * gun.extra[ ID_RECOIL_SCALE ] );
-			gun._reload_time = ( gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1 ) * ( sdGun.classes[ gun.class ].reload_time / sdGun.classes[ gun.class ].parts_magazine[ gun.extra[ ID_MAGAZINE ] ].rate ) * gun.extra[ ID_FIRE_RATE ];
+			gun._reload_time = ( gun.extra[ ID_HAS_RAIL_EFFECT ] ? 2 : 1 ) * ( gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1 ) * ( sdGun.classes[ gun.class ].reload_time / sdGun.classes[ gun.class ].parts_magazine[ gun.extra[ ID_MAGAZINE ] ].rate ) * gun.extra[ ID_FIRE_RATE ];
 			
 			gun._temperature_addition = gun.extra[ ID_TEMPERATURE_APPLIED ];
 			
@@ -453,7 +453,7 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
-						gun.extra[ ID_RECOIL_SCALE ] *= 1.05; // 5%
+						gun.extra[ ID_RECOIL_SCALE ] = Math.min( 2, gun.extra[ ID_RECOIL_SCALE ] * 1.05 ); // Limit recoil decreasing so it doesn't crash server
 						UpdateCusomizableGunProperties( gun );
 					} 
 				} 
@@ -616,7 +616,7 @@ class sdGunClass
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
-						gun.extra[ ID_RECOIL_SCALE ] *= 1.05; // 5%
+						gun.extra[ ID_RECOIL_SCALE ] = Math.min( 2, gun.extra[ ID_RECOIL_SCALE ] * 1.05 ); // Limit recoil decreasing so it doesn't crash server
 						//UpdateCusomizableGunProperties( gun );
 					} 
 				} 
@@ -4652,7 +4652,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#ff0000', 15 ) )
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddShotgunAmmoTypes([]), '#ff0000', 15 ) )
 		};
 		
 		// ID ranges 85...88 (including) are reserved by Basilix
