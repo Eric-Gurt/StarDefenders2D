@@ -1617,8 +1617,8 @@ class sdWeather extends sdEntity
 								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( char_settings );
 								if ( character_entity._ai_gun_slot === 8 ) // If a regular Sarronian soldier
 								{
-									character_entity.matter = 150;
-									character_entity.matter_max = 150;
+									character_entity.matter = 250;
+									character_entity.matter_max = 250;
 
 									character_entity.hea = 350;
 									character_entity.hmax = 350;
@@ -1639,7 +1639,7 @@ class sdWeather extends sdEntity
 								//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
 								character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 								character_entity._ai_team = 4; // AI team 4 is for Sarronian faction
-								character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
+								character_entity._matter_regeneration_multiplier = 25; // Their matter regenerates 20 times faster than normal, unupgraded players
 
 								break;
 							}
