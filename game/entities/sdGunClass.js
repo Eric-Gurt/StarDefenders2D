@@ -3640,16 +3640,17 @@ class sdGunClass
 			image0: [ sdWorld.CreateImageFromFile( 'gauss_rifle0' ), sdWorld.CreateImageFromFile( 'gauss_rifle1' ) ],
 			image1: [ sdWorld.CreateImageFromFile( 'gauss_rifle2' ), sdWorld.CreateImageFromFile( 'gauss_rifle3' ) ],
 			image2: [ sdWorld.CreateImageFromFile( 'gauss_rifle4' ), sdWorld.CreateImageFromFile( 'gauss_rifle5' ) ],
-			title: 'Gauss Rifle',
+			title: 'Sarronian Gauss Cannon',
 			slot: 8,
 			reload_time: 30 * 3, // 225,
 			muzzle_x: 9,
 			ammo_capacity: -1,
 			count: 1,
-			matter_cost: 1000,
+			// matter_cost: 1000,
+			spawnable: false,
 			projectile_velocity: sdGun.default_projectile_velocity * 2,
-			min_workbench_level: 6,
-			min_build_tool_level: 5,
+			// min_workbench_level: 6,
+			// min_build_tool_level: 5,
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
 			{
 				if ( shoot_from_scenario )
@@ -3680,10 +3681,10 @@ class sdGunClass
 					
 				}
 			},
-			projectile_properties: { explosion_radius: 25, model: 'gauss_rifle_proj', _damage: 140, color:sdEffect.default_explosion_color },
+			projectile_properties: { explosion_radius: 24, model: 'gauss_rifle_proj', _damage: 128, color:sdEffect.default_explosion_color },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { explosion_radius: 25, model: 'gauss_rifle_proj', color:sdEffect.default_explosion_color };
+				let obj = { explosion_radius: 24, model: 'gauss_rifle_proj', color:sdEffect.default_explosion_color };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -3702,7 +3703,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 140; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 128; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -4271,15 +4272,15 @@ class sdGunClass
 			sound_pitch: 0.5,
 			title: 'Sarronian Energy Rifle',
 			slot: 8,
-			reload_time: 50,
+			reload_time: 45,
 			muzzle_x: 7,
 			ammo_capacity: -1,
 			count: 1,
 			spawnable: false,
-			projectile_properties: { model: 'ball_orange', color: '#ffc080', _damage: 20, explosion_radius: 32 },
+			projectile_properties: { model: 'ball_orange', color: '#ffc080', _damage: 32, explosion_radius: 12 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { model: 'ball_orange', color: '#ffc080', explosion_radius: 32 };
+				let obj = { model: 'ball_orange', color: '#ffc080', explosion_radius: 12 };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -4298,7 +4299,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 20; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 32; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
