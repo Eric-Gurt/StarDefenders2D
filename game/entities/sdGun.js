@@ -660,6 +660,10 @@ class sdGun extends sdEntity
 			{
 				this.extra[ 7 ] = 3;
 			}
+			if ( this.extra[ 9 ] > 2 )
+			{
+				this.extra[ 9 ] = 2; // Make sure recoil is toned down to prevent server crashes or absurd knockback
+			}
 		}
 			
 		if ( this._held_by === null )
