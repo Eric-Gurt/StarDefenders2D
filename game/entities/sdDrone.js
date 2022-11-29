@@ -1007,11 +1007,11 @@ class sdDrone extends sdEntity
 			if ( this.type === sdDrone.DRONE_ERTHAL )
 			sdEntity.Tooltip( ctx, "Erthal Drone" );
 			if ( this.type === sdDrone.DRONE_SARRORIAN )
-			sdEntity.Tooltip( ctx, "Sarronian Drone" );
+			sdEntity.Tooltip( ctx, "Sarronian Fighter E3" );
 			if ( this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER )
-			sdEntity.Tooltip( ctx, "Sarronian Detonator Container" );
+			sdEntity.Tooltip( ctx, "Sarronian Carrier D7" );
 			if ( this.type === sdDrone.DRONE_SARRORIAN_DETONATOR )
-			sdEntity.Tooltip( ctx, "Sarronian Detonator" );
+			sdEntity.Tooltip( ctx, "Sarronian Detonator D7" );
 			if ( this.type === sdDrone.DRONE_COUNCIL )
 			sdEntity.Tooltip( ctx, "Council Support Drone" );
 			if ( this.type === sdDrone.DRONE_SETR )

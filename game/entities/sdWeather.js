@@ -218,7 +218,7 @@ class sdWeather extends sdEntity
 				
 		let disallowed_ones = ( sdWorld.server_config.GetDisallowedWorldEvents ? sdWorld.server_config.GetDisallowedWorldEvents() : [] );
 				
-		//allowed_event_ids = [ 8 ]; // Hack
+		// allowed_event_ids = [ 8 ]; // Hack
 				
 		for ( let d = 0; d < allowed_event_ids.length; d++ )
 		if ( disallowed_ones.indexOf( allowed_event_ids[ d ] ) !== -1 )
@@ -1593,14 +1593,21 @@ class sdWeather extends sdEntity
 						{
 
 							//sdWorld.UpdateHashPosition( ent, false );
-								{ 
+								if ( Math.random() < 0.3 )
+								{
+									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_GAUSS_RIFLE }) );
+									character_entity._ai_gun_slot = 8;
+								}
+								else
+								{
 									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ALIEN_ENERGY_RIFLE }) );
 									character_entity._ai_gun_slot = 8;
 								}
+
 								let char_settings;
 
 								if ( character_entity._ai_gun_slot === 8 )
-								char_settings = {"hero_name":"Sarronian Soldier","color_bright":"#202020","color_dark":"#101010","color_bright3":"#000000","color_dark3":"#101010","color_visor":"#FFA000","color_suit":"#202020","color_suit2":"#101010","color_dark2":"#101010","color_shoes":"#000000","color_skin":"#FFFF00","color_extra1":"#00FF00","helmet1":false,"helmet77":true,"voice1":false,"voice2":false,"voice3":false,"voice4":false,"voice10":true,"body18":true, "legs36":true};
+								char_settings = {"hero_name":"Sarronian E2 Unit","color_bright":"#202020","color_dark":"#101010","color_bright3":"#000000","color_dark3":"#101010","color_visor":"#FFA000","color_suit":"#202020","color_suit2":"#101010","color_dark2":"#101010","color_shoes":"#000000","color_skin":"#FFFF00","color_extra1":"#00FF00","helmet1":false,"helmet77":true,"voice1":false,"voice2":false,"voice3":false,"voice4":false,"voice10":true,"body18":true, "legs36":true};
 
 								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( char_settings );
 								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( char_settings );
@@ -3473,7 +3480,7 @@ class sdWeather extends sdEntity
 				}
 			}
 			
-			//this._time_until_event = 0; // Hack
+			// this._time_until_event = 0; // Hack
 			
 			this._time_until_event -= GSPEED;
 			if ( this._time_until_event < 0 )
