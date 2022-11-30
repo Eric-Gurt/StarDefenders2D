@@ -847,8 +847,7 @@ class sdGunClass
 			projectile_velocity: 14,
 			count: 1,
 			matter_cost: 60,
-			//projectile_properties: { explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:1, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 },
-			projectile_properties: { _damage:1 }, // Set properties inside projectile_properties_dynamic
+			projectile_properties: { explosion_radius: 19, model: 'rocket_proj', _damage: 19 * 3, color:sdEffect.default_explosion_color, ac:1, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 },// Set properties inside projectile_properties_dynamic
 			projectile_velocity_dynamic: ( gun )=> { return Math.min( 64, sdGun.default_projectile_velocity ) },
 			projectile_properties_dynamic: ( gun )=>{ 
 				

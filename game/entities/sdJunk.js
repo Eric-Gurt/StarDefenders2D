@@ -16,6 +16,7 @@ import sdDrone from './sdDrone.js';
 import sdTask from './sdTask.js';
 import sdWeather from './sdWeather.js';
 import sdSandWorm from './sdSandWorm.js';
+import sdStatusEffect from './sdStatusEffect.js';
 
 class sdJunk extends sdEntity
 {
@@ -40,16 +41,28 @@ class sdJunk extends sdEntity
 		sdJunk.img_matter_container2 = sdWorld.CreateImageFromFile( 'matter_container2' );
 		sdJunk.img_matter_container2_empty = sdWorld.CreateImageFromFile( 'matter_container2_empty' );
 
+		sdJunk.img_freeze_barrel = sdWorld.CreateImageFromFile( 'barrel_freeze' );
+
 		sdJunk.anti_crystals = 0;
 		sdJunk.council_bombs = 0;
 		sdJunk.erthal_beacons = 0;
+
+		sdJunk.TYPE_UNSTABLE_CUBE_CORPSE = 0;
+		sdJunk.TYPE_ALIEN_BATTERY = 1;
+		sdJunk.TYPE_LOST_CONTAINER = 2;
+		sdJunk.TYPE_PLANETARY_MATTER_DRAINER = 3;
+		sdJunk.TYPE_COUNCIL_BOMB = 4;
+		sdJunk.TYPE_ERTHAL_DISTRESS_BEACON = 5;
+		sdJunk.TYPE_ADVANCED_MATTER_CONTAINER = 6;
+		sdJunk.TYPE_FREEZE_BARREL = 7;
+
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.type === 6 ? -11 : this.type === 5 ? - 11 : this.type === 4 ? -11 : this.type === 3 ? -28 : -5; }
-	get hitbox_x2() { return this.type === 6 ? 11 : this.type === 5 ? 11 : this.type === 4 ? 11 : this.type === 3 ? 28 : 5; }
-	get hitbox_y1() { return this.type === 6 ? -15 : this.type === 5 ? - 21 : this.type === 4 ? -30 : this.type === 3 ? 0 : -5; }
-	get hitbox_y2() { return this.type === 6 ? 17 : this.type === 5 ? 29 : this.type === 4 ? 31 : this.type === 3 ? 23 : 5; }
+	get hitbox_x1() { return this.type === sdJunk.TYPE_FREEZE_BARREL ? -8 : this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? -11 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? - 11 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? -11 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? -28 : -5; }
+	get hitbox_x2() { return this.type === sdJunk.TYPE_FREEZE_BARREL ? 8 : this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? 11 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? 11 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? 11 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? 28 : 5; }
+	get hitbox_y1() { return this.type === sdJunk.TYPE_FREEZE_BARREL ? -8 : this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? -15 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? - 21 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? -30 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? 0 : -5; }
+	get hitbox_y2() { return this.type === sdJunk.TYPE_FREEZE_BARREL ? 8 : this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? 17 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? 29 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? 31 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? 23 : 5; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -66,29 +79,32 @@ class sdJunk extends sdEntity
 		let r = Math.random();
 		let t_s = 0;
 
-		if ( r < 0.3 )
-		t_s = 2;
+		if ( r < 0.25 )
+		t_s = sdJunk.TYPE_FREEZE_BARREL;
 		else
-		if ( r < 0.6 )
-		t_s = 1;
+		if ( r < 0.5 )
+		t_s = sdJunk.TYPE_LOST_CONTAINER;
 		else
-		t_s = 0;
+		if ( r < 0.75 )
+		t_s = sdJunk.TYPE_ALIEN_BATTERY;
+		else
+		t_s = sdJunk.TYPE_UNSTABLE_CUBE_CORPSE;
 
 		this.type = params.type || t_s;
 
-		if ( this.type === 6 ) // Task reward matter container
+		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ) // Task reward matter container
 		this.hmax = 4000;
-		if ( this.type === 5 ) // Erthal distress beacon
+		if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ) // Erthal distress beacon
 		this.hmax = 40000;
-		if ( this.type === 4 ) // Council bomb
+		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB ) // Council bomb
 		this.hmax = 60000;
-		if ( this.type === 3 ) // Large anti-crystal
+		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ) // Large anti-crystal
 		this.hmax = 10000;
 		else
-		if ( this.type === 1 || this.type === 2 ) // Current barrels
+		if ( this.type === sdJunk.TYPE_ALIEN_BATTERY || this.type === sdJunk.TYPE_LOST_CONTAINER || this.type === sdJunk.TYPE_FREEZE_BARREL ) // Current barrels ( 1 = Alien battery, 2 = Lost Particle Container, 7 = Freeze barrel )
 		this.hmax = 150;
 		else
-		if ( this.type === 0 )
+		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE )
 		this.hmax = 500;
 
 		// Variables for large anti-crystal
@@ -108,19 +124,19 @@ class sdJunk extends sdEntity
 		this._max_damage_timer = 30; // Timer which resets max damage the Council bomb can recieve in a second ( counters barrel spam )
 		//
 		this.hea = this.hmax;
-		this.matter_max = this.type === 6 ? ( 5120 * 8 ) : 320;
+		this.matter_max = this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? ( 5120 * 8 ) : 320;
 		this.matter = this.matter_max;
 		this._damagable_in = sdWorld.time + 1500; // Copied from sdCrystal to prevent high ping players injure themselves, will only work for sdCharacter damage
 		this._spawn_ent_in = 60; // Used in Council Bomb, although could be used in other things
 		this._regen_timeout = 0; // Regen timeout for task reward matter container, although could be used in other things in future
 
-		if ( this.type === 3 )
+		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER )
 		sdJunk.anti_crystals++;
 
-		if ( this.type === 4 )
+		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB )
 		sdJunk.council_bombs++;
 
-		if ( this.type === 5 )
+		if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON )
 		sdJunk.erthal_beacons++;
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
@@ -137,7 +153,7 @@ class sdJunk extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
-		if ( this.type === 4 )
+		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB )
 		if ( this._max_damage <= 0 )
 		return;
 
@@ -146,7 +162,7 @@ class sdJunk extends sdEntity
 		if ( sdWorld.time < this._damagable_in )
 		if ( !( initiator && initiator.IsPlayerClass() && initiator.power_ef > 0 ) )
 		{
-			if ( this.type === 3 )
+			if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER )
 			sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
 
 			return;
@@ -158,7 +174,7 @@ class sdJunk extends sdEntity
 		
 		this.hea -= dmg;
 
-		if ( this.type === 4 )
+		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB )
 		{
 			this._max_damage -= dmg;
 			this._spawn_ent_in -= dmg / 500; // Speed up council spawning when taking damage
@@ -170,13 +186,13 @@ class sdJunk extends sdEntity
 			}
 		}
 
-		if ( this.type === 6 )
+		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
 		this._regen_timeout = 60;
 
 		
 		this.regen_timeout = Math.max( this.regen_timeout, 60 );
 
-		if ( this.type === 3 || this.type === 4 ) // Recieve score for damaging the crystal or council bomb
+		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER || this.type === sdJunk.TYPE_COUNCIL_BOMB ) // Recieve score for damaging the crystal or council bomb
 		{
 			if ( initiator )
 			if ( typeof initiator._score !== 'undefined' )
@@ -191,7 +207,7 @@ class sdJunk extends sdEntity
 		
 		if ( this.hea <= 0 && was_alive )
 		{
-			if ( this.type === 0 ) // Actual cube corpses explode into rails.
+			if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE ) // Actual cube corpses explode into rails.
 			{
 
 				if (Math.random() < 0.1 ) // 10% chance to stabilize/revive the cube instead, idea by Bandit
@@ -278,7 +294,7 @@ class sdJunk extends sdEntity
 								sdEntity.entities.push( bullet_obj4 );
 				}
 			}
-			if ( this.type === 1  ) // Cube "barrels" explode
+			if ( this.type === sdJunk.TYPE_ALIEN_BATTERY  ) // Cube "barrels" explode
 			{
 				sdWorld.SendEffect({ 
 					x:this.x, 
@@ -290,7 +306,7 @@ class sdJunk extends sdEntity
 					color:'#33FFFF' 
 				});
 			}
-			if ( this.type === 2  ) // Cube yellow "barrels" use Lost affection, check code in case if I made a mistake somehow
+			if ( this.type === sdJunk.TYPE_LOST_CONTAINER  ) // Cube yellow "barrels" use Lost affection, check code in case if I made a mistake somehow
 			{
 				let bullet = new sdBullet({ x: this.x, y: this.y });
 				bullet.model = 'ball_charged';
@@ -320,7 +336,7 @@ class sdJunk extends sdEntity
 				};
 				sdEntity.entities.push( bullet );
 			}
-			if ( this.type === 3 ) // Large Anti-crystal degrades into a big Anti-crystal
+			if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ) // Large Anti-crystal degrades into a big Anti-crystal
 			{
 
 				sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.5 });
@@ -340,7 +356,7 @@ class sdJunk extends sdEntity
 				sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
 			}
 
-			if ( this.type === 4 || this.type === 5 )
+			if ( this.type === sdJunk.TYPE_COUNCIL_BOMB || this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON )
 			{
 				let x = this.x;
 				let y = this.y;
@@ -351,7 +367,7 @@ class sdJunk extends sdEntity
 
 				let gun;
 				gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
-				gun.extra = this.type === 4 ? 2 : 1;
+				gun.extra = this.type === sdJunk.TYPE_COUNCIL_BOMB ? 2 : 1;
 
 				//gun.sx = sx;
 				//gun.sy = sy;
@@ -360,10 +376,42 @@ class sdJunk extends sdEntity
 				}, 500 );
 			}
 
+			if ( this.type === sdJunk.TYPE_FREEZE_BARREL  ) // Freeze "barrels" freeze stuff
+			{
+				let bullet = new sdBullet({ x: this.x, y: this.y });
+				bullet.model = 'ball_charged';
+				bullet._damage = 1;
+				bullet.owner = this;
+				bullet.time_left = 0; 
+				bullet._custom_detonation_logic = ( bullet )=>
+				{
+					{
+						sdWorld.SendEffect({ 
+							x:bullet.x, 
+							y:bullet.y, 
+							radius:30,
+							damage_scale: 0, // Just a decoration effect
+							type:sdEffect.TYPE_EXPLOSION, 
+							owner:this,
+							color:'#33FFFF' 
+						});
+
+						let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 40 );
+
+						for ( let i = 0; i < nears.length; i++ )
+						{
+							if ( nears[ i ].GetClass() !== 'sdGrass' && nears[ i ].GetClass() !== 'sdRift' && nears[ i ].GetClass() !== 'sdWater' && nears[ i ].GetClass() !== 'sdTask' ) // Seeing frozen lava and task arrows was cursed
+							nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: -250, initiator: this._owner }); // Freeze nearby objects
+						}
+					}
+				};
+				sdEntity.entities.push( bullet );
+			}
+
 			let r = Math.random();
 
 			r = Math.random(); // Cube shard dropping roll
-			if ( this.type === 0 || this.type === 1 ) // unstable cube corpses
+			if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || this.type === sdJunk.TYPE_ALIEN_BATTERY ) // unstable cube corpses
 			if ( r < 0.1 )
 			{
 				let x = this.x;
@@ -386,7 +434,7 @@ class sdJunk extends sdEntity
 		}
 		else
 		if ( sdWorld.time > this._last_damage + 50 )
-		if ( this.type === 3 )
+		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER )
 		{
 			this._last_damage = sdWorld.time;
 			sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, volume:1 });
@@ -394,7 +442,7 @@ class sdJunk extends sdEntity
 		
 	}
 	
-	get mass() { return this.type === 6 ? 60 : this.type === 5 ? 800 : this.type === 4 ? 1000 : this.type === 3 ? 500 : 30; }
+	get mass() { return this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? 60 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? 800 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? 1000 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? 500 : 30; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -410,21 +458,21 @@ class sdJunk extends sdEntity
 	}*/
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		if ( this.type === 3 )
+		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER )
 		GSPEED *= 0.25;
 
 		this.sy += sdWorld.gravity * GSPEED;
 
 		if ( sdWorld.is_server )
 		{
-			if ( this.type === 0 || this.type === 1 )
+			if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || this.type === sdJunk.TYPE_ALIEN_BATTERY )
 			{
 				this.MatterGlow( 0.01, 30, GSPEED );
 			}
-			if ( this.type === 0 || ( this.type === 1 && this.hea !== this.hmax ) || ( this.type === 2 && this.hea !== this.hmax ) )
+			if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || ( this.type === sdJunk.TYPE_ALIEN_BATTERY && this.hea !== this.hmax ) || ( this.type === sdJunk.TYPE_LOST_CONTAINER && this.hea !== this.hmax ) )
 			this.Damage( GSPEED );
 
-			if ( this.type === 3 )
+			if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER )
 			{
 				this._time_to_drain -= GSPEED;
 				this._time_to_drain_more = Math.max( this._time_to_drain_more - GSPEED, 0 );
@@ -500,7 +548,7 @@ class sdJunk extends sdEntity
 				}
 			}
 
-			if ( this.type === 4 ) // Council bomb
+			if ( this.type === sdJunk.TYPE_COUNCIL_BOMB ) // Council bomb
 			{
 				this._max_damage_timer -= GSPEED;
 				if ( this._max_damage_timer < 0 )
@@ -901,7 +949,7 @@ class sdJunk extends sdEntity
 			}
 			}
 
-			if ( this.type === 5 ) // Erthal distress beacon
+			if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ) // Erthal distress beacon
 			{
 				if ( this._spawn_ent_in > 0 ) // spawn timer
 				this._spawn_ent_in -= GSPEED;
@@ -924,7 +972,7 @@ class sdJunk extends sdEntity
 					}
 				}
 			}
-			if ( this.type === 6 ) // Task reward matter container
+			if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ) // Task reward matter container
 			{
 				this.MatterGlow( 0.01, 30, GSPEED );
 
@@ -944,51 +992,54 @@ class sdJunk extends sdEntity
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		if ( this.type === 0 )
+		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE )
 		sdEntity.Tooltip( ctx, "Unstable cube corpse" );
 	
-		if ( this.type === 1 )
+		if ( this.type === sdJunk.TYPE_ALIEN_BATTERY )
 		sdEntity.Tooltip( ctx, "Alien battery" );
 	
-		if ( this.type === 2 )
+		if ( this.type === sdJunk.TYPE_LOST_CONTAINER )
 		sdEntity.Tooltip( ctx, "Lost particle container" );
 	
-		if ( this.type === 3 )
+		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER )
 		{
 			sdEntity.Tooltip( ctx, "Planetary matter drainer", 0, -8 );
 			this.DrawHealthBar( ctx );
 		}
-		if ( this.type === 4 )
+		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB )
 		{
 			sdEntity.Tooltip( ctx, "Council bomb (" + ~~( this.detonation_in / ( 30 * 60 ) ) + " minutes, "+  ~~ ~~( this.detonation_in % ( 30 * 60 ) / 30 ) + " seconds)", 0, -8 );
 			this.DrawHealthBar( ctx );
 		}
-		if ( this.type === 5 )
+		if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON )
 		{
 			sdEntity.Tooltip( ctx, "Erthal distress beacon" );
 			this.DrawHealthBar( ctx );
 		}
 
-		if ( this.type === 6 )
+		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
 		{
 			sdEntity.Tooltip( ctx, "Advanced matter container ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
 		}
+
+		if ( this.type === sdJunk.TYPE_FREEZE_BARREL )
+		sdEntity.Tooltip( ctx, "Cryo-substance barrel" );
 	}
 	Draw( ctx, attached )
 	{
-		if ( this.type === 0 || this.type === 1 || this.type === 2 || this.type === 4 || this.type === 5 || this.type === 6 )
+		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || this.type === sdJunk.TYPE_ALIEN_BATTERY || this.type === sdJunk.TYPE_LOST_CONTAINER || this.type === sdJunk.TYPE_COUNCIL_BOMB || this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON || this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
 		ctx.apply_shading = false;
 		//ctx.filter = this.filter;
 		
 		{
-			if ( this.type === 0 ) // First unstable cube corpse
+			if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE ) // First unstable cube corpse
 			{
 				if ( this.hea % 15 < ( this.hea / this.hmax ) * 9 )
 				ctx.drawImageFilterCache( sdJunk.img_cube_unstable, - 16, - 16, 32,32 );
 				else
 				ctx.drawImageFilterCache( sdJunk.img_cube_unstable_detonate, - 16, - 16, 32,32 );
 			}
-			if ( this.type === 1 ) // Alien battery
+			if ( this.type === sdJunk.TYPE_ALIEN_BATTERY ) // Alien battery
 			{
 				ctx.drawImageFilterCache( sdJunk.img_cube_unstable2_empty, - 16, - 16, 32,32 );
 
@@ -1003,14 +1054,14 @@ class sdJunk extends sdEntity
 					ctx.drawImageFilterCache( sdJunk.img_cube_unstable2_detonate, - 16, - 16, 32,32 );
 				}
 			}
-			if ( this.type === 2 ) // Lost converter cube barrel
+			if ( this.type === sdJunk.TYPE_LOST_CONTAINER ) // Lost converter cube barrel
 			{
 				if ( this.hea % 15 < ( this.hea / this.hmax ) * 9 )
 				ctx.drawImageFilterCache( sdJunk.img_cube_unstable3, - 16, - 18, 32,32 );
 				else
 				ctx.drawImageFilterCache( sdJunk.img_cube_unstable3_detonate, - 16, - 18, 32,32 );
 			}
-			if ( this.type === 3 ) // Large Anti-crystal, drains percentage of matter in active/online players
+			if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ) // Large Anti-crystal, drains percentage of matter in active/online players
 			{
 				ctx.drawImageFilterCache( sdJunk.img_crystal_map_drainer_empty, - 48, - 48, 96, 96 );
 
@@ -1019,7 +1070,7 @@ class sdJunk extends sdEntity
 
 				ctx.drawImageFilterCache( sdJunk.img_crystal_map_drainer, - 48, - 48, 96, 96 );
 			}
-			if ( this.type === 4 ) // Council bomb
+			if ( this.type === sdJunk.TYPE_COUNCIL_BOMB ) // Council bomb
 			{
 				if ( this.detonation_in % this._rate < this._rate / 2 )
 				{
@@ -1036,11 +1087,11 @@ class sdJunk extends sdEntity
 					ctx.drawImageFilterCache( sdJunk.img_council_bomb, 64, 0, 64, 96, - 32, - 48, 64, 96 );
 				}
 			}
-			if ( this.type === 5 ) // Erthal distress beacon
+			if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ) // Erthal distress beacon
 			{
 				ctx.drawImageFilterCache( sdJunk.img_erthal_beacon, - 32, - 32, 64, 64 );
 			}
-			if ( this.type === 6 ) // Task reward / Advanced matter container
+			if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ) // Task reward / Advanced matter container
 			{
 
 				ctx.drawImageFilterCache( sdJunk.img_matter_container2_empty, - 32, - 32, 64, 64 );
@@ -1051,6 +1102,13 @@ class sdJunk extends sdEntity
 		
 				ctx.drawImageFilterCache( sdJunk.img_matter_container2, - 32, - 32, 64, 64 );
 		
+			}
+			if ( this.type === sdJunk.TYPE_FREEZE_BARREL ) // Freeze barrel
+			{
+				//if ( this.hea < this.hmax / 2 )
+				//ctx.drawImageFilterCache( sdJunk.img_cube_unstable3, - 16, - 18, 32,32 );
+				//else
+				ctx.drawImageFilterCache( sdJunk.img_freeze_barrel, 0 + ( this.hea < this.hmax / 2 ? 32 : 0 ) , 0, 32, 32, - 16, - 16, 32, 32 );
 			}
 
 		}
@@ -1063,22 +1121,22 @@ class sdJunk extends sdEntity
 	}*/
 	onRemove() // Class-specific, if needed
 	{
-		if ( this.type === 3 )
+		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER )
 		sdJunk.anti_crystals--;
 
-		if ( this.type === 4 )
+		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB )
 		{
 			sdJunk.council_bombs--;
 			if ( this._broken )
 			sdWorld.BasicEntityBreakEffect( this, 30, 3, 0.75, 0.75 );
 		}
-		if ( this.type === 5 )
+		if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON )
 		{
 			sdJunk.erthal_beacons--;
 			if ( this._broken )
 			sdWorld.BasicEntityBreakEffect( this, 30, 3, 0.75, 0.75 );
 		}
-		if ( this.type === 6 )
+		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
 		{
 			if ( this._broken )
 			{
