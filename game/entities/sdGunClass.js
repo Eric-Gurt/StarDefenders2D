@@ -1471,7 +1471,7 @@ class sdGunClass
 			spread: 0.01,
 			count: 1,
 			projectile_velocity: 10 * 2,  // Slower bullet velocity than sniper but ricochet projectiles
-			projectile_properties: { _damage: 80/*111*/, color:'#00ffff', model: 'f_psicutter_proj'/*, _knock_scale:0.01 * 8*/, penetrating: false, _bouncy: true },
+			projectile_properties: { _damage: 82, color:'#00ffff', model: 'f_psicutter_proj'/*, _knock_scale:0.01 * 8*/, penetrating: false, _bouncy: true },
 			spawnable:false,
 			projectile_properties_dynamic: ( gun )=>{ 
 				
@@ -1494,7 +1494,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 80; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 82; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -2728,13 +2728,13 @@ class sdGunClass
 			sound_pitch: 2.4,
 			title: 'Falkonian Marksman Rifle',
 			slot: 2,
-			reload_time: 14,
+			reload_time: 18,
 			muzzle_x: 10,
-			ammo_capacity: 12,
+			ammo_capacity: 18,
 			count: 1,
 			spawnable: false,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.6,
-			projectile_properties: { _damage: 66, color: '#92D0EC', _dirt_mult: -0.5 },
+			projectile_properties: { _damage: 64, color: '#92D0EC', _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color: '#92D0EC', _dirt_mult: -0.5 };
@@ -2756,7 +2756,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 66; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 64; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -3849,7 +3849,7 @@ class sdGunClass
 				}
 				return true;
 			},
-			projectile_properties: { _damage: 27, color:'#afdfff', _dirt_mult: -0.5 },
+			projectile_properties: { _damage: 28, color:'#afdfff', _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color:'#afdfff', _dirt_mult: -0.5 };
@@ -3871,7 +3871,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 27; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 28; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},

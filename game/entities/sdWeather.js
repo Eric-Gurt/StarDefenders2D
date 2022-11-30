@@ -809,19 +809,19 @@ class sdWeather extends sdEntity
 							character_entity.title = falkok_settings.hero_name;
 							if ( character_entity._ai_gun_slot === 2 ) // If a regular falkok spawns
 							{
-								character_entity.matter = 75;
-								character_entity.matter_max = 75;
+								character_entity.matter = 85;
+								character_entity.matter_max = 85;
 
-								character_entity.hea = 115; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
-								character_entity.hmax = 115;
+								character_entity.hea = 130; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
+								character_entity.hmax = 130;
 
 								//character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
 							}
 
 							if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If a Phoenix Falkok spawns
 							{
-								character_entity.matter = 100;
-								character_entity.matter_max = 100;
+								character_entity.matter = 125;
+								character_entity.matter_max = 125;
 
 								character_entity.hea = 250; // It is a stronger falkok after all, although revert changes if you want
 								character_entity.hmax = 250;
@@ -1617,8 +1617,8 @@ class sdWeather extends sdEntity
 								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( char_settings );
 								if ( character_entity._ai_gun_slot === 8 ) // If a regular Sarronian soldier
 								{
-									character_entity.matter = 150;
-									character_entity.matter_max = 150;
+									character_entity.matter = 250;
+									character_entity.matter_max = 250;
 
 									character_entity.hea = 350;
 									character_entity.hmax = 350;
@@ -1634,12 +1634,12 @@ class sdWeather extends sdEntity
 								//character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
 								character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
 
-								character_entity._matter_regeneration = 5; // At least some ammo regen
+								character_entity._matter_regeneration = 10; // increased alongside matter regen multiplier to allow them to efficiently use the Gauss cannon.
 								character_entity._jetpack_allowed = true; // Jetpack
 								//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
 								character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 								character_entity._ai_team = 4; // AI team 4 is for Sarronian faction
-								character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
+								character_entity._matter_regeneration_multiplier = 25; // Their matter regenerates 25 times faster than normal, unupgraded players
 
 								break;
 							}
@@ -2725,11 +2725,11 @@ class sdWeather extends sdEntity
 								character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( falkok_settings );
 								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( falkok_settings );
 							{
-								character_entity.matter = 200;
-								character_entity.matter_max = 200;
+								character_entity.matter = 800;
+								character_entity.matter_max = 800;
 
-								character_entity.hea = 10000; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
-								character_entity.hmax = 10000;
+								character_entity.hea = 8500; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
+								character_entity.hmax = 8500;
 
 								//character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
 							}
@@ -3075,19 +3075,19 @@ class sdWeather extends sdEntity
 									character_entity.title = falkok_settings.hero_name;
 									if ( character_entity._ai_gun_slot === 2 ) // If a regular falkok spawns
 									{
-										character_entity.matter = 75;
-										character_entity.matter_max = 75;
+										character_entity.matter = 85;
+										character_entity.matter_max = 85;
 
-										character_entity.hea = 115; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
-										character_entity.hmax = 115;
+										character_entity.hea = 125; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
+										character_entity.hmax = 125;
 
 										//character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
 									}
 
 									if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If a Phoenix Falkok spawns
 									{
-										character_entity.matter = 100;
-										character_entity.matter_max = 100;
+										character_entity.matter = 125;
+										character_entity.matter_max = 125;
 
 										character_entity.hea = 250; // It is a stronger falkok after all, although revert changes if you want
 										character_entity.hmax = 250;

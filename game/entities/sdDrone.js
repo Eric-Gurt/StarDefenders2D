@@ -97,7 +97,7 @@ class sdDrone extends sdEntity
 		
 		this.type = params.type || 1;
 		
-		this._hmax =  this.type === sdDrone.DRONE_SETR ? 300 : this.type === sdDrone.DRONE_COUNCIL ? 200 : this.type === sdDrone.DRONE_SARRORIAN_DETONATOR ? 100 : this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER ? 1000 : ( this.type === sdDrone.DRONE_SARRORIAN || this.type === sdDrone.DRONE_TZYRG_WATCHER ) ? 500 : this.type === sdDrone.DRONE_FALKOK ? 130 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
+		this._hmax =  this.type === sdDrone.DRONE_SETR ? 300 : this.type === sdDrone.DRONE_COUNCIL ? 200 : this.type === sdDrone.DRONE_SARRORIAN_DETONATOR ? 100 : this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER ? 850 : this.type === sdDrone.DRONE_SARRORIAN ? 600 : this.type === sdDrone.DRONE_TZYRG_WATCHER ? 500 : this.type === sdDrone.DRONE_FALKOK ? 130 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
 		this._hea = this._hmax;
 		this._ai_team = params._ai_team || 1;
 
