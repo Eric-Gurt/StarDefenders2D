@@ -160,25 +160,32 @@ class sdLost extends sdEntity
 						ent._ragdoll.Delete(); // Or lese crash if this happens at the same time when snapshot is saved
 					}*/
 				}
-
-				ent.remove();
-				ent._broken = false; // No debris
 				
 				
-
 				if ( ent.is( sdSandWorm ) )
 				{
-					if ( ent.towards_head )
+					let e1 = ent.towards_head;
+					let e2 = ent.towards_tail;
+
+					ent.remove();
+					ent._broken = false; // No debris
+					
+					if ( e1 )
 					{
-						if ( !ent.towards_head._is_being_removed )
-						sdLost.ApplyAffection( ent.towards_head, Infinity, bullet, f );
+						if ( !e1._is_being_removed )
+						sdLost.ApplyAffection( e1, Infinity, bullet, f );
 					}
 					
-					if ( ent.towards_tail )
+					if ( e2 )
 					{
-						if ( !ent.towards_tail._is_being_removed )
-						sdLost.ApplyAffection( ent.towards_tail, Infinity, bullet, f );
+						if ( !e2._is_being_removed )
+						sdLost.ApplyAffection( e2, Infinity, bullet, f );
 					}
+				}
+				else
+				{
+					ent.remove();
+					ent._broken = false; // No debris
 				}
 			}
 			else
