@@ -136,7 +136,7 @@ class sdBiter extends sdEntity
 		if ( this._hea < -this._hmax / 80 * 100 )
 		this.remove();
 	}
-	get mass() { return 50; }
+	get mass() { return 10; } // sdBiter is capable of crashing hovers with 50 kg mass
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;

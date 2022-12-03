@@ -32,6 +32,7 @@ import sdPlayerOverlord from './entities/sdPlayerOverlord.js';
 import sdBloodDecal from './entities/sdBloodDecal.js';
 import sdGib from './entities/sdGib.js';
 import sdTimer from './entities/sdTimer.js';
+import sdRescueTeleport from './entities/sdRescueTeleport.js';
 import sdCharacterRagdoll from './entities/sdCharacterRagdoll.js';
 
 
@@ -39,6 +40,7 @@ import sdRenderer from './client/sdRenderer.js';
 import { sdServerConfigShort, sdServerConfigFull } from './server/sdServerConfig.js';
 import sdBitmap from './client/sdBitmap.js';
 import sdSound from './sdSound.js';
+import sdKeyStates from './sdKeyStates.js';
 
 const CHUNK_SIZE = 64; // 128 causes groups of 111 or so entities, it is probably too much // 32
 
@@ -723,9 +725,9 @@ class sdWorld
 						'sdOctopus', 1.5,
 						'sdFaceCrab', 1.5,
 						'sdTutel', 1.5,
-						'sdWater.toxic', 2.0,
-						'sdWater.lava', 1.0,
-						'sdWater.acid', 2.0
+						'sdWater.toxic', 1.0,
+						'sdWater.lava', 0.5,
+						'sdWater.acid', 1.0
 					]
 				;
 				
@@ -759,42 +761,6 @@ class sdWorld
 					else
 					r -= chances[ i + 1 ];
 				}
-			
-				/*if ( Math.pow( enemy_rand_num, 10 ) > 1 / hp_mult )
-				{
-					random_enemy = 'sdSandWorm';
-				}
-				else
-				if ( Math.pow( enemy_rand_num, 5 ) > 1 / hp_mult )
-				random_enemy = 'sdOctopus';
-				else
-				if ( Math.pow( enemy_rand_num, 5 ) > 1 / hp_mult )
-				random_enemy = 'sdTutel';
-				else
-				if ( Math.pow( enemy_rand_num, 4 ) > 1 / hp_mult )
-				random_enemy = 'sdWater.toxic';
-				else
-				if ( Math.pow( enemy_rand_num, 3 ) > 1 / hp_mult )
-				random_enemy = 'sdSlug';
-				else
-				if ( Math.pow( enemy_rand_num, 2 ) > 1 / hp_mult )
-				random_enemy = 'sdQuickie';
-				else
-				if ( Math.pow( enemy_rand_num, 1.2 ) > 1 / hp_mult )
-				random_enemy = 'sdJunk';
-				else
-				{
-					if ( Math.random() < 0.05 ) // Small chance to spawn on ground levels since they are passive if unprovoked
-					random_enemy = 'sdSlug';
-					else
-					if ( Math.random() < 0.1 )
-					random_enemy = 'sdAmphid';
-					else
-					if ( Math.random() < 0.2 )
-					random_enemy = 'sdAsp';
-					else
-					random_enemy = 'sdVirus';
-				}*/
 			}
 			
 			let plants = null;
@@ -832,8 +798,8 @@ class sdWorld
 				potential_crystal = 'sdCrystal.crab';
 			}
 			
-			let contains_class = ( !half && Math.random() > 0.75 / hp_mult ) ? 
-									( ( Math.random() < 0.2 * ( 1*0.75 + hp_mult*0.25 ) ) ? random_enemy : potential_crystal ) : 
+			let contains_class = ( !half && Math.random() > 0.85 / hp_mult ) ? 
+									( ( Math.random() < 0.3 * ( 1*0.75 + hp_mult*0.25 ) ) ? random_enemy : potential_crystal ) : 
 									( 
 										( Math.random() < 0.1 ) ? 'weak_ground' : null 
 									);
@@ -1062,6 +1028,8 @@ class sdWorld
 	}
 	static CanAnySocketSee( ent, is_global_entity=undefined ) // Actually used to lower think rate of some entities
 	{
+		return true; // It causes too many glitches
+		/*
 		//return false; // Hack, forces everything move like it would off-screen
 		
 		if ( is_global_entity === undefined )
@@ -1087,7 +1055,7 @@ class sdWorld
 
 			if ( sdWorld.CanSocketSee( socket, x, y ) )
 			return true;
-		}
+		}*/
 	}
 	static SpawnGib( x, y, sx = Math.random() * 1 - Math.random() * 1, sy = Math.random() * 1 - Math.random() * 1, side = 1, gib_class, gib_filter, blood_filter = null, scale = 100, ignore_collisions_with=null, image = 0 )
 	{
@@ -1163,6 +1131,11 @@ class sdWorld
 				if ( player_entity._socket )
 				sdSound.PlaySound({ name:'piano_world_startB', x:player_entity.x, y:player_entity.y, volume:0.5 }, [ player_entity._socket ] );
 			}
+		}
+		
+		if ( player_entity )
+		{
+			player_entity.onScoreChange();
 		}
 	}
 	static DropShards( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9, ignore_collisions_with=null, follow=null ) // Can drop anything, but if you want to drop score shards - use sdCharacter.prototype.GiveScore instead, and, most specifically - use this.GiveScoreToLastAttacker
@@ -1558,7 +1531,11 @@ class sdWorld
 		if ( sdWorld.my_entity_net_id !== undefined )
 		if ( sdWorld.my_entity === null || sdWorld.my_entity_net_id !== sdWorld.my_entity._net_id )
 		{
-			sdWorld.my_entity = null;
+			if ( sdWorld.my_entity )
+			{
+				sdWorld.my_entity._key_states = new sdKeyStates();
+				sdWorld.my_entity = null;
+			}
 			for ( var i = 0; i < sdEntity.entities.length; i++ )
 			if ( !sdEntity.entities[ i ]._is_being_removed )
 			{
@@ -1648,6 +1625,15 @@ class sdWorld
 				c = 'Combat & build (unless in godmode) preventing area';
 				if ( ent.type === sdArea.TYPE_ERASER_AREA )
 				c = 'Area eraser';
+			}
+
+			if ( c === 'Rescue Teleport' )
+			{
+				if ( ent.type === sdRescueTeleport.TYPE_INFINITE_RANGE )
+				c = 'Rescue teleport';
+				else
+				if ( ent.type === sdRescueTeleport.TYPE_SHORT_RANGE )
+				c = 'Short-range rescue teleport';
 			}
 
 			if ( c === 'Gun' )
@@ -2625,6 +2611,7 @@ class sdWorld
 		}
 		
 		sdWater.GlobalThink( GSPEED );
+		sdRescueTeleport.GlobalThink( GSPEED );
 		
 		// Keep it last:
 		sdWorld.frame++;
@@ -2974,14 +2961,29 @@ class sdWorld
 	{
 		//if ( v > 40 )
 		{
+			if ( v === 5120 * 16 /*10240*/ ) // === sdCrystal.anticrystal_value
+			{
+				return 'brightness(0) drop-shadow(0px 0px '+( glow_radius_scale * 6 )+'px #000000'+glow_opacity_hex+')';
+			}
+			/*else
 			if ( v === 5120 * 8 ) // Task reward / Advanced matter container
 			{
 				return 'brightness(1) saturate(0) drop-shadow(0px 0px '+( glow_radius_scale * 6 )+'px #FFFFFF'+glow_opacity_hex+')';
+			}*/
+			else
+			if ( v === 5120 * 8 ) // new 2022
+			{
+				return 'hue-rotate(' + ( 75 ) + 'deg) brightness(1.7) drop-shadow(0px 0px '+( glow_radius_scale * 6 )+'px #AAAAFF'+glow_opacity_hex+')';
 			}
 			else
-			if ( v === 10240 ) // === sdCrystal.anticrystal_value
+			if ( v === 5120 * 4 ) // new 2022
 			{
-				return 'brightness(0) drop-shadow(0px 0px '+( glow_radius_scale * 6 )+'px #000000'+glow_opacity_hex+')';
+				return 'hue-rotate(' + ( 330 ) + 'deg) brightness(1.6) drop-shadow(0px 0px '+( glow_radius_scale * 6 )+'px #AAFFFF'+glow_opacity_hex+')';
+			}
+			else
+			if ( v === 5120 * 2 ) // new 2022
+			{
+				return 'hue-rotate(' + ( 270 ) + 'deg) brightness(1.6) drop-shadow(0px 0px '+( glow_radius_scale * 6 )+'px #AAFFAA'+glow_opacity_hex+')';
 			}
 			else
 			if ( v === 5120 )

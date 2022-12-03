@@ -719,6 +719,11 @@ class sdSteeringWheel extends sdEntity
 				
 				item.x += xx;
 				item.y += yy;
+				
+				if ( item.is( sdBaseShieldingUnit ) )
+				{
+					item.charge = 0;
+				}
 
 				if ( xx < 0 )
 				{

@@ -13,6 +13,7 @@ import sdWorld from '../sdWorld.js';
 import sdEntity from '../entities/sdEntity.js';
 import sdGun from '../entities/sdGun.js';
 import sdWater from '../entities/sdWater.js';
+import sdRescueTeleport from '../entities/sdRescueTeleport.js';
 
 import { spawn } from 'child_process';
 
@@ -523,6 +524,7 @@ class sdModeration
 					sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_REMOVER }) );
 					sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_TELEPORTER }) );
 					sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_DAMAGER }) );
+					sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_BUILD_TOOL }) );
 					
 					socket.character.InstallUpgrade( 'upgrade_jetpack' );
 					socket.character.InstallUpgrade( 'upgrade_hook' );
@@ -612,14 +614,43 @@ class sdModeration
 		if ( parts[ 0 ] === 'kill' )
 		{
 			if ( socket.character )
+			if ( !socket.character._is_being_removed )
 			{
+				let was_god = socket.character._god;
+				
 				socket.character._god = false;
 				
-				if ( !socket.character._is_being_removed )
 				if ( socket.character.hea > 0 )
 				{
-				socket.character.RemoveArmor();
-				socket.character.DamageWithEffect( socket.character.hea );
+					function Proceed()
+					{
+						socket.character.RemoveArmor();
+						socket.character.DamageWithEffect( socket.character.hea );
+					}
+					
+					if ( socket.character._score < 30 || was_god || !sdRescueTeleport.players_can_build_rtps )
+					{
+						Proceed();
+					}
+					else
+					{
+						socket.character.Say( [ 'Emergency RTP - activate!' ][ ~~( Math.random() * 0 ) ], false, false, true );
+						
+						setTimeout( ()=>
+						{
+							if ( socket.character._has_rtp_in_range )
+							Proceed();
+							else
+							{
+								socket.character.Say( [ 'Oh wait!..', 'Uh...', 'Damn.', 'Well...', '...but do I have RTP?', 'RIP', 'Where is my RTP by the way?', '...but did I charge the batteries?' ][ ~~( Math.random() * 8 ) ], false, false, true );
+								setTimeout( ()=>
+								{
+									Proceed();
+								}, 2000 );
+							}
+							
+						}, 2000 );
+					}
 				}
 			}
 		}

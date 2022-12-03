@@ -447,7 +447,7 @@ class sdShop
 				{
 					character._build_hp_mult = 1 + level_purchased / 3 * 3;
 				}
-			},*/
+			},
 			upgrade_energy:
 			{
 				max_level: 40,
@@ -457,7 +457,7 @@ class sdShop
 				{
 					character.matter_max = Math.round( 50 + level_purchased * 45 ); // Max is 1850
 				}
-			},
+			},*/
 			upgrade_hook:
 			{
 				max_level: 1,
@@ -630,6 +630,9 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 1280, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 2560, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120, _category:'Development tests' }); // Glowing one
+			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120 * 2, _category:'Development tests' }); // Glowing one
+			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120 * 4, _category:'Development tests' }); // Glowing one
+			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120 * 8, _category:'Development tests' }); // Glowing one
 			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: sdCrystal.anticrystal_value, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 5120 * 4, _category:'Development tests' }); // Glowing one

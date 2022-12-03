@@ -32,7 +32,7 @@ class sdCrystal extends sdEntity
 		
 		sdCrystal.img_crystal_crab_big = sdWorld.CreateImageFromFile( 'sdCrystalCrabBig' ); // Sprite by Mrnat444
 		
-		sdCrystal.anticrystal_value = 10240;
+		sdCrystal.anticrystal_value = 5120 * 16; // 10240;
 		
 		sdCrystal.TYPE_CRYSTAL = 1;
 		sdCrystal.TYPE_CRYSTAL_BIG = 2;
@@ -143,7 +143,7 @@ class sdCrystal extends sdEntity
 		this.held_by = null; // For amplifiers
 		//this.should_draw = 1; // For storage crates, guns have ttl which can make them dissapear // EG: I think I'm missing something, but ttl is for deletion rather than being drawn? Revert to .should_draw if my changes break anything
 		
-		let bad_luck = 1.45; // High value crystals are more rare if this value is high
+		let bad_luck = 1; // 1.45; // High value crystals are more rare if this value is high
 		
 		let r = 1 - Math.pow( Math.random(), bad_luck );
 		//let r = Math.random();
@@ -160,7 +160,18 @@ class sdCrystal extends sdEntity
 			this.attack_anim = 0; // For big crystal crabs
 		}
 		
-		if ( r < 0.00390625 && is_deep ) // matter consuming crystal
+		
+		
+		if ( r < 0.00390625 / 8 && is_deep ) // matter consuming crystal
+		this.matter_max *= 256;
+		else
+		if ( r < 0.00390625 / 4 && is_deep ) // new 2022
+		this.matter_max *= 256;
+		else
+		if ( r < 0.00390625 / 2 && is_deep ) // new 2022
+		this.matter_max *= 256;
+		else
+		if ( r < 0.00390625 && is_deep ) // new 2022
 		this.matter_max *= 256;
 		else
 		if ( r < 0.0078125 && is_deep ) // glowing, new

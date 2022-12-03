@@ -94,6 +94,8 @@ class sdPlayerDrone extends sdCharacter
 		this.matter_max = 100;
 		this.matter = 0;
 		
+		this._matter_capacity_boosters_max = 0;
+		
 		this._jetpack_allowed = true; // For position correction tests
 		
 		this.an = 0;
@@ -110,6 +112,13 @@ class sdPlayerDrone extends sdCharacter
 		this._beep_charge = 0;
 		
 		this.has_flashlight = 1;
+	}
+	onScoreChange()
+	{
+		if ( sdWorld.server_config.LinkPlayerMatterCapacityToScore( this ) )
+		{
+			this.matter_max = Math.min( 100 + Math.max( 0, this._score * 20 ), 200 ) + this._matter_capacity_boosters;
+		}
 	}
 	
 	CanSelfDestruct()
@@ -168,6 +177,8 @@ class sdPlayerDrone extends sdCharacter
 				
 			if ( this.driver_of )
 			this.driver_of.ExcludeDriver( this );
+		
+			this.DropWeapons();
 
 			if ( sdWorld.server_config.onKill )
 			sdWorld.server_config.onKill( this, initiator );
@@ -215,7 +226,7 @@ class sdPlayerDrone extends sdCharacter
 		
 		let scale = this.s / 100;
 		
-		if ( this.matter >= matter_cost_5 && this.gun_slot === 5 )
+		if ( this.matter >= matter_cost_5 && this.gun_slot === 5 && !this._inventory[ this.gun_slot ] )
 		{
 			if ( this._beep_charge < 90 )
 			this._beep_charge += GSPEED;
@@ -313,7 +324,7 @@ class sdPlayerDrone extends sdCharacter
 			
 			let old_gun_slot = this.gun_slot;
 			
-			if ( this._key_states.GetKey( 'Digit1' ) )
+			/*if ( this._key_states.GetKey( 'Digit1' ) )
 			this.gun_slot = 1;
 			else
 			if ( this._key_states.GetKey( 'Digit4' ) )
@@ -323,7 +334,19 @@ class sdPlayerDrone extends sdCharacter
 			this.gun_slot = 5;
 			else
 			if ( this._key_states.GetKey( 'Digit7' ) )
-			this.gun_slot = 7;
+			this.gun_slot = 7;*/
+	
+			for ( let i = 0; i < 10; i++ )
+			{
+				if ( this._key_states.GetKey( 'Digit' + i ) )
+				{
+					if ( this._inventory[ i ] )
+					this.gun_slot = i;
+					else
+					if ( i === 1 || i === 4 || i === 5 || i === 7 )
+					this.gun_slot = i;
+				}
+			}
 	
 			if ( old_gun_slot !== this.gun_slot )
 			{
@@ -331,204 +354,216 @@ class sdPlayerDrone extends sdCharacter
 				sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:0.7 }, [ this._socket ] );
 			}
 			
-			if ( this.fire_anim <= 0 )
-			{
-				if ( !this.driver_of )
-				if ( this._key_states.GetKey( 'Mouse1' ) )
-				{	
-					let mode = 1;
-					
-					if ( ( this.gun_slot === 4 ) && this.matter >= matter_cost_4 )
-					mode = 4;
-					else
-					if ( ( this.gun_slot === 5 ) && this.matter >= matter_cost_5 )
-					mode = 5;
-					else
-					if ( ( this.gun_slot === 7 ) && this.matter >= matter_cost_7 )
-					mode = 7;
 			
-					if ( mode === 5 )
-					{
-						if ( !this._is_being_removed )
-						if ( this._beep_charge >= 90 )
+			// Has gun?
+			if ( this._inventory[ this.gun_slot ] )
+			{
+				this.ReloadAndCombatLogic( GSPEED );
+				
+				this.DropWeaponLogic( GSPEED );
+			}
+			else
+			{
+				// Drone fallback
+				if ( this.fire_anim <= 0 )
+				{
+					if ( !this.driver_of )
+					if ( this._key_states.GetKey( 'Mouse1' ) )
+					{	
+						let mode = 1;
+
+						if ( ( this.gun_slot === 4 ) && this.matter >= matter_cost_4 )
+						mode = 4;
+						else
+						if ( ( this.gun_slot === 5 ) && this.matter >= matter_cost_5 )
+						mode = 5;
+						else
+						if ( ( this.gun_slot === 7 ) && this.matter >= matter_cost_7 )
+						mode = 7;
+
+						if ( mode === 5 )
 						{
-							this.DamageWithEffect( this.hea * scale + 1 );
-							return;
+							if ( !this._is_being_removed )
+							if ( this._beep_charge >= 90 )
+							{
+								this.DamageWithEffect( this.hea * scale + 1 );
+								return;
+							}
 						}
-					}
-					
-					let power = ( mode === 4 ) ? 10 : 1;
-					
-					if ( mode !== 1 )
-					this.matter -= matter_cost_4;
 
-					if ( mode === 4 )
-					{
-						if ( this.helmet === 8 )
-						sdSound.PlaySound({ name:'cube_attack', pitch: 0.5 / scale, x:this.x, y:this.y, volume:0.5 });
-						else
-						sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.66, pitch: 2 / scale });
-					}
-					else
-					if ( mode === 7 )
-					sdSound.PlaySound({ name: sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].sound, x:this.x, y:this.y, volume:0.66, pitch:sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].sound_pitch });
-					else
-					{
-						if ( this.helmet === 8 )
-						sdSound.PlaySound({ name:'cube_attack', pitch: 1 / scale, x:this.x, y:this.y, volume:0.5 });
-						else
-						sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.33, pitch:3 / scale });
-					}
-					
-					if ( mode === 7 )
-					this.fire_anim = 15;
-					else
-					this.fire_anim = 5 * power;
+						let power = ( mode === 4 ) ? 10 : 1;
 
-					if ( sdWorld.is_server )
-					{
-						let dx = -Math.cos( this.an / 100 );
-						let dy = -Math.sin( this.an / 100 );
-						
-						let bullet_obj = new sdBullet({ x: this.x + dx * 5, y: this.y + dy * 5 });
+						if ( mode !== 1 )
+						this.matter -= matter_cost_4;
 
-						bullet_obj._owner = this;
-
-						bullet_obj.sx = dx * 12;
-						bullet_obj.sy = dy * 12;
-
-						bullet_obj._damage = 10 * power * ( ( this.power_ef > 0 ) ? 2.5 : 1 ) * 1 * scale;
-
-						
-						if ( mode === 7 )
-						{
-							//bullet_obj.time_left = 2;
-							//bullet_obj._damage = 1;
-							
-							Object.assign( bullet_obj, sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].projectile_properties );
-						}
-						else
 						if ( mode === 4 )
 						{
-							bullet_obj.color = '#aaaa55';
-							bullet_obj.time_left = 12;
-							bullet_obj._rail = true;
-							bullet_obj._dirt_mult = 4;
+							if ( this.helmet === 8 )
+							sdSound.PlaySound({ name:'cube_attack', pitch: 0.5 / scale, x:this.x, y:this.y, volume:0.5 });
+							else
+							sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.66, pitch: 2 / scale });
 						}
 						else
+						if ( mode === 7 )
+						sdSound.PlaySound({ name: sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].sound, x:this.x, y:this.y, volume:0.66, pitch:sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].sound_pitch });
+						else
 						{
-							bullet_obj.color = '#223355';
-							bullet_obj.time_left = 8;
-							bullet_obj._rail = true;
-							bullet_obj._dirt_mult = 4;
+							if ( this.helmet === 8 )
+							sdSound.PlaySound({ name:'cube_attack', pitch: 1 / scale, x:this.x, y:this.y, volume:0.5 });
+							else
+							sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.33, pitch:3 / scale });
 						}
-						
-						bullet_obj.time_left *= scale;
 
-						sdEntity.entities.push( bullet_obj );
+						if ( mode === 7 )
+						this.fire_anim = 15;
+						else
+						this.fire_anim = 5 * power;
+
+						if ( sdWorld.is_server )
+						{
+							let dx = -Math.cos( this.an / 100 );
+							let dy = -Math.sin( this.an / 100 );
+
+							let bullet_obj = new sdBullet({ x: this.x + dx * 5, y: this.y + dy * 5 });
+
+							bullet_obj._owner = this;
+
+							bullet_obj.sx = dx * 12;
+							bullet_obj.sy = dy * 12;
+
+							bullet_obj._damage = 10 * power * ( ( this.power_ef > 0 ) ? 2.5 : 1 ) * 1 * scale;
+
+
+							if ( mode === 7 )
+							{
+								//bullet_obj.time_left = 2;
+								//bullet_obj._damage = 1;
+
+								Object.assign( bullet_obj, sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].projectile_properties );
+							}
+							else
+							if ( mode === 4 )
+							{
+								bullet_obj.color = '#aaaa55';
+								bullet_obj.time_left = 12;
+								bullet_obj._rail = true;
+								bullet_obj._dirt_mult = 4;
+							}
+							else
+							{
+								bullet_obj.color = '#223355';
+								bullet_obj.time_left = 8;
+								bullet_obj._rail = true;
+								bullet_obj._dirt_mult = 4;
+							}
+
+							bullet_obj.time_left *= scale;
+
+							sdEntity.entities.push( bullet_obj );
+						}
 					}
 				}
-				
-				if ( sdWorld.is_server || this === sdWorld.my_entity )
+				else
 				{
-					if ( this._key_states.GetKey( 'Mouse3' ) && ( !this.grabbed || ( this.grabbed && sdWorld.inDist2D_Boolean( this.x, this.y, this.grabbed.x, this.grabbed.y, 400 ) ) ) )
+					this.fire_anim = Math.max( this.fire_anim - GSPEED * ( ( this.stim_ef > 0 ) ? 2 : 1 ), 0 );
+				}
+			}
+			
+			if ( sdWorld.is_server || this === sdWorld.my_entity )
+			{
+				if ( this._key_states.GetKey( 'Mouse3' ) && ( !this.grabbed || ( this.grabbed && sdWorld.inDist2D_Boolean( this.x, this.y, this.grabbed.x, this.grabbed.y, 400 ) ) ) )
+				{
+					if ( this.grabbed )
+					if ( this.grabbed._is_being_removed )
+					this.grabbed = null;
+
+					if ( this.grabbed === null )
 					{
-						if ( this.grabbed )
-						if ( this.grabbed._is_being_removed )
-						this.grabbed = null;
-				
-						if ( this.grabbed === null )
+						if ( sdWorld.inDist2D_Boolean( this.look_x, this.look_y, this.x, this.y, 400 ) )
 						{
-							if ( sdWorld.inDist2D_Boolean( this.look_x, this.look_y, this.x, this.y, 400 ) )
+							let nears = sdWorld.GetAnythingNear( this.look_x, this.look_y, 16, null, null );
+							for ( let i = 0; i < nears.length; i++ )
 							{
-								let nears = sdWorld.GetAnythingNear( this.look_x, this.look_y, 16, null, null );
-								for ( let i = 0; i < nears.length; i++ )
+								if ( nears[ i ] !== this )
+								if ( nears[ i ]._hiberstate === sdEntity.HIBERSTATE_HIBERNATED || nears[ i ]._hiberstate === sdEntity.HIBERSTATE_ACTIVE )
+								if ( this._god || sdWorld.CheckLineOfSight( this.x, this.y, nears[ i ].x + ( nears[ i ]._hitbox_x1 + nears[ i ]._hitbox_x2 ) / 2, nears[ i ].y + ( nears[ i ]._hitbox_y1 + nears[ i ]._hitbox_y2 ) / 2, this, null, [ 'sdBlock', 'sdDoor' ] ) )
+								if ( this._god || sdArea.CheckPointDamageAllowed( nears[ i ].x + ( nears[ i ]._hitbox_x1 + nears[ i ]._hitbox_x2 ) / 2, nears[ i ].y + ( nears[ i ]._hitbox_y1 + nears[ i ]._hitbox_y2 ) / 2 ) )
 								{
-									if ( nears[ i ] !== this )
-									if ( nears[ i ]._hiberstate === sdEntity.HIBERSTATE_HIBERNATED || nears[ i ]._hiberstate === sdEntity.HIBERSTATE_ACTIVE )
-									if ( this._god || sdWorld.CheckLineOfSight( this.x, this.y, nears[ i ].x + ( nears[ i ]._hitbox_x1 + nears[ i ]._hitbox_x2 ) / 2, nears[ i ].y + ( nears[ i ]._hitbox_y1 + nears[ i ]._hitbox_y2 ) / 2, this, null, [ 'sdBlock', 'sdDoor' ] ) )
-									if ( this._god || sdArea.CheckPointDamageAllowed( nears[ i ].x + ( nears[ i ]._hitbox_x1 + nears[ i ]._hitbox_x2 ) / 2, nears[ i ].y + ( nears[ i ]._hitbox_y1 + nears[ i ]._hitbox_y2 ) / 2 ) )
+									if ( typeof nears[ i ].sx !== 'undefined' && typeof nears[ i ].sy !== 'undefined' )
+									if ( nears[ i ].HookAttempt() )
 									{
-										if ( typeof nears[ i ].sx !== 'undefined' && typeof nears[ i ].sy !== 'undefined' )
-										if ( nears[ i ].HookAttempt() )
+										sdSound.PlaySound({ name:'teleport_ready', x:this.x, y:this.y, volume:0.5, pitch:2 });
+
+										this.grabbed = nears[ i ];
+										this.grabbed.PhysWakeUp();
+										this.grabbed.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+										break;
+									}
+									/*else
+									{
+										if ( nears[ i ].is( sdWorld.entity_classes.sdMatterAmplifier ) || nears[ i ].is( sdWorld.entity_classes.sdCrystalCombiner ) )
 										{
 											sdSound.PlaySound({ name:'teleport_ready', x:this.x, y:this.y, volume:0.5, pitch:2 });
 
 											this.grabbed = nears[ i ];
-											this.grabbed.PhysWakeUp();
-											this.grabbed.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+											nears[ i ].onMovementInRange( sdPlayerDrone.fake_bullet );
 
 											break;
 										}
-										/*else
-										{
-											if ( nears[ i ].is( sdWorld.entity_classes.sdMatterAmplifier ) || nears[ i ].is( sdWorld.entity_classes.sdCrystalCombiner ) )
-											{
-												sdSound.PlaySound({ name:'teleport_ready', x:this.x, y:this.y, volume:0.5, pitch:2 });
-
-												this.grabbed = nears[ i ];
-												
-												nears[ i ].onMovementInRange( sdPlayerDrone.fake_bullet );
-												
-												break;
-											}
-										}*/
-									}
+									}*/
 								}
-							}
-						}
-						else
-						if ( typeof this.grabbed.sx !== 'undefined' && typeof this.grabbed.sy !== 'undefined' ) // Amplifier and combiner tests
-						{
-							let xx = this.look_x - this.x;
-							let yy = this.look_y - this.y;
-							let di_look = sdWorld.Dist2D_Vector( xx, yy );
-							if ( di_look > 200 )
-							{
-								xx = xx / di_look * 200;
-								yy = yy / di_look * 200;
-								this.look_x = this.x + xx;
-								this.look_y = this.y + yy;
-							}
-
-
-
-							let p = 1.5;
-
-							let dx = ( this.look_x - this.grabbed.x ) + ( this.sx - this.grabbed.sx ) * 10;
-							let dy = ( this.look_y - this.grabbed.y ) + ( this.sy - this.grabbed.sy ) * 10;
-
-							let di = sdWorld.Dist2D_Vector( dx, dy );
-
-							if ( di > 10 )
-							{
-								dx /= di / 10;
-								dy /= di / 10;
-							}
-
-							this.grabbed.Impulse( dx * p, 
-												  dy * p );
-												  
-												  
-							if ( this.grabbed.is( sdCube ) )
-							{
-								this._nature_damage += GSPEED;
 							}
 						}
 					}
 					else
+					if ( typeof this.grabbed.sx !== 'undefined' && typeof this.grabbed.sy !== 'undefined' ) // Amplifier and combiner tests
 					{
-						if ( this.grabbed )
+						let xx = this.look_x - this.x;
+						let yy = this.look_y - this.y;
+						let di_look = sdWorld.Dist2D_Vector( xx, yy );
+						if ( di_look > 200 )
 						{
-							sdSound.PlaySound({ name:'teleport_ready', x:this.x, y:this.y, volume:2, pitch:0.5 });
-							this.grabbed = null;
+							xx = xx / di_look * 200;
+							yy = yy / di_look * 200;
+							this.look_x = this.x + xx;
+							this.look_y = this.y + yy;
+						}
+
+
+
+						let p = 1.5;
+
+						let dx = ( this.look_x - this.grabbed.x ) + ( this.sx - this.grabbed.sx ) * 10;
+						let dy = ( this.look_y - this.grabbed.y ) + ( this.sy - this.grabbed.sy ) * 10;
+
+						let di = sdWorld.Dist2D_Vector( dx, dy );
+
+						if ( di > 10 )
+						{
+							dx /= di / 10;
+							dy /= di / 10;
+						}
+
+						this.grabbed.Impulse( dx * p, 
+											  dy * p );
+
+
+						if ( this.grabbed.is( sdCube ) )
+						{
+							this._nature_damage += GSPEED;
 						}
 					}
 				}
-			}
-			else
-			{
-				this.fire_anim = Math.max( this.fire_anim - GSPEED * ( ( this.stim_ef > 0 ) ? 2 : 1 ), 0 );
+				else
+				{
+					if ( this.grabbed )
+					{
+						sdSound.PlaySound({ name:'teleport_ready', x:this.x, y:this.y, volume:2, pitch:0.5 });
+						this.grabbed = null;
+					}
+				}
 			}
 			
 			this.PhysWakeUp();
@@ -541,8 +576,20 @@ class sdPlayerDrone extends sdCharacter
 		else
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
+	DropWeapon( i ) // by slot
+	{
+		if ( this._inventory[ i ] )
+		{
+			this._inventory[ i ]._unblocked_for_drones = false;
+			
+			super.DropWeapon( i );
+		}
+	}
 	onMovementInRange( from_entity )
 	{
+		if ( from_entity.is( sdGun ) && ( from_entity._unblocked_for_drones || sdGun.classes[ from_entity.class ].ignore_slot || this._god ) ) // Shards
+		super.onMovementInRange( from_entity );
+		else
 		if ( from_entity.IsVehicle() )
 		{
 			this._potential_vehicle = from_entity;
@@ -582,79 +629,126 @@ class sdPlayerDrone extends sdCharacter
 		
 		if ( this.driver_of && !attached )
 		return;
-
-		if ( this.helmet !== 8 )
+	
+		//ctx.save();
 		{
-			if ( this.driver_of )
+			if ( this.helmet !== 8 ) // Cube
 			{
-				ctx.scale( -1, 1 );
+				if ( this.driver_of )
+				{
+					ctx.scale( -1, 1 );
+				}
+				else
+				{
+					ctx.rotate( this.an / 100 );
+
+					if ( this.look_x - this.x > 0 )
+					ctx.scale( 1, -1 );
+				}
+			}
+
+			let scale = this.s / 100;
+
+			ctx.scale( scale, scale );
+
+			//ctx.rotate( Math.atan2( this.look_x - this.x, this.look_y - this.y ) );
+
+			if ( this.hea > 0 )
+			{
+				/*if ( this.pain_anim > 0 )
+				{
+					ctx.filter = 'none';
+					ctx.drawImageFilterCache( sdDrone.img_drone_robot_hurt, - 16, - 16, 32, 32 );
+				}
+				else*/
+				{
+					if ( this.sd_filter )
+					if ( this._sd_filter_for_drone === null )
+					{
+						this._sd_filter_for_drone = sdWorld.CreateSDFilter();
+
+						sdWorld.ReplaceColorInSDFilter_v2( this._sd_filter_for_drone, '37a3ff', sdWorld.GetColorOfSDFilter( this.sd_filter, 'ff0000' ) );
+						sdWorld.ReplaceColorInSDFilter_v2( this._sd_filter_for_drone, '1665a8', sdWorld.MultiplyHexColor( sdWorld.GetColorOfSDFilter( this.sd_filter, 'ff0000' ), 0.66 ) );
+
+						sdWorld.ReplaceColorInSDFilter_v2( this._sd_filter_for_drone, '464646', sdWorld.GetColorOfSDFilter( this.sd_filter, '800080' ) );
+						sdWorld.ReplaceColorInSDFilter_v2( this._sd_filter_for_drone, '000000', sdWorld.GetColorOfSDFilter( this.sd_filter, 'c0c0c0' ) );
+					}
+					ctx.sd_filter = this._sd_filter_for_drone;
+
+					if ( this.pain_anim > 0 )
+					ctx.filter = 'sepia(1) hue-rotate(-40deg) saturate(5)';
+					else
+					if ( this.fire_anim > 2 )
+					ctx.filter = 'brightness(1.5)';
+					else
+					if ( this.gun_slot === 5 && !this._inventory[ this.gun_slot ] )
+					{
+						ctx.filter = 'sepia(1) hue-rotate(-40deg) saturate(5) brightness(' + ((sdWorld.time%1000<500)?1.5:0.5) + ')';
+					}
+					else
+					if ( this.grabbed )
+					ctx.filter = 'brightness(3)';
+					else
+					ctx.filter = 'none';
+
+					ctx.drawImageFilterCache( sdPlayerDrone.drone_helmets[ this.helmet ] || sdDrone.img_drone_robot, - 16, - 16, 32, 32 );
+				}
 			}
 			else
 			{
-				ctx.rotate( this.an / 100 );
-
-				if ( this.look_x - this.x > 0 )
-				ctx.scale( 1, -1 );
+				if ( this.helmet === 8 )
+				{
+					ctx.filter = 'saturate(0) brightness(0.5)';
+					ctx.drawImageFilterCache( sdPlayerDrone.drone_helmets[ this.helmet ] || sdDrone.img_drone_robot, - 16, - 16, 32, 32 );
+				}
+				else
+				ctx.drawImageFilterCache( sdDrone.img_drone_robot_destroyed, - 16, - 16, 32, 32 );
 			}
 		}
+		//ctx.restore();
 		
-		let scale = this.s / 100;
-		
-		ctx.scale( scale, scale );
-		
-		//ctx.rotate( Math.atan2( this.look_x - this.x, this.look_y - this.y ) );
-		
-		if ( this.hea > 0 )
+		if ( !this.driver_of )
+		if ( this._inventory[ this.gun_slot ] )
 		{
-			/*if ( this.pain_anim > 0 )
-			{
-				ctx.filter = 'none';
-				ctx.drawImageFilterCache( sdDrone.img_drone_robot_hurt, - 16, - 16, 32, 32 );
-			}
-			else*/
-			{
-				if ( this.sd_filter )
-				if ( this._sd_filter_for_drone === null )
-				{
-					this._sd_filter_for_drone = sdWorld.CreateSDFilter();
-
-					sdWorld.ReplaceColorInSDFilter_v2( this._sd_filter_for_drone, '37a3ff', sdWorld.GetColorOfSDFilter( this.sd_filter, 'ff0000' ) );
-					sdWorld.ReplaceColorInSDFilter_v2( this._sd_filter_for_drone, '1665a8', sdWorld.MultiplyHexColor( sdWorld.GetColorOfSDFilter( this.sd_filter, 'ff0000' ), 0.66 ) );
-					
-					sdWorld.ReplaceColorInSDFilter_v2( this._sd_filter_for_drone, '464646', sdWorld.GetColorOfSDFilter( this.sd_filter, '800080' ) );
-					sdWorld.ReplaceColorInSDFilter_v2( this._sd_filter_for_drone, '000000', sdWorld.GetColorOfSDFilter( this.sd_filter, 'c0c0c0' ) );
-				}
-				ctx.sd_filter = this._sd_filter_for_drone;
-				
-				if ( this.pain_anim > 0 )
-				ctx.filter = 'sepia(1) hue-rotate(-40deg) saturate(5)';
-				else
-				if ( this.fire_anim > 2 )
-				ctx.filter = 'brightness(1.5)';
-				else
-				if ( this.gun_slot === 5 )
-				{
-					ctx.filter = 'sepia(1) hue-rotate(-40deg) saturate(5) brightness(' + ((sdWorld.time%1000<500)?1.5:0.5) + ')';
-				}
-				else
-				if ( this.grabbed )
-				ctx.filter = 'brightness(3)';
-				else
-				ctx.filter = 'none';
+			ctx.translate( 0, 7 );
 			
-				ctx.drawImageFilterCache( sdPlayerDrone.drone_helmets[ this.helmet ] || sdDrone.img_drone_robot, - 16, - 16, 32, 32 );
-			}
-		}
-		else
-		{
-			if ( this.helmet === 8 )
+			if ( this.helmet !== 8 ) // Cube
 			{
-				ctx.filter = 'saturate(0) brightness(0.5)';
-				ctx.drawImageFilterCache( sdPlayerDrone.drone_helmets[ this.helmet ] || sdDrone.img_drone_robot, - 16, - 16, 32, 32 );
+				if ( this.driver_of )
+				{
+					ctx.scale( -1, 1 );
+				}
+				else
+				{
+					if ( this.look_x - this.x > 0 )
+					ctx.scale( 1, -1 );
+				
+					ctx.rotate( -this.an / 100 );
+				}
 			}
-			else
-			ctx.drawImageFilterCache( sdDrone.img_drone_robot_destroyed, - 16, - 16, 32, 32 );
+			
+			
+			
+			ctx.filter = 'none';
+			ctx.sd_filter = null;
+
+			ctx.rotate( this.an / 100 );
+
+			if ( this.look_x - this.x > 0 )
+			ctx.scale( 1, -1 );
+		
+			ctx.scale( -1, 1 );
+			
+			
+			this._inventory[ this.gun_slot ].Draw( ctx, true );
+			
 		}
+
+		//ctx.filter = char_filter;
+		//ctx.sd_filter = this.character.sd_filter;
+		
+		
+		
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';

@@ -264,6 +264,8 @@ class sdStatusEffect extends sdEntity
 			{
 				status_entity.t = temperature_normal; // Temperature
 				
+				status_entity._normal_temperature_removal_timer = 30; // Resets if temperature is being added, for example due to overheating
+				
 				status_entity._next_spawn = 0;
 				status_entity._next_damage = 10;
 				
@@ -291,6 +293,9 @@ class sdStatusEffect extends sdEntity
 				if ( params.t )
 				{
 					status_entity.t += params.t / ( ( params.for.hmax || params.for._hmax || 300 ) / 300 ); // Copy [ 2 / 2 ]
+					
+					if ( status_entity._normal_temperature_removal_timer < 30 )
+					status_entity._normal_temperature_removal_timer = 30;
 					
 					if ( ( params.t > 0 ) === ( status_entity.t > 0 ) )
 					status_entity._initiator = params.initiator || status_entity._initiator || null;
@@ -382,6 +387,8 @@ class sdStatusEffect extends sdEntity
 				}
 				if ( sdWorld.is_server )
 				{
+					status_entity._normal_temperature_removal_timer -= GSPEED;
+					
 					status_entity._next_damage -= GSPEED;
 					if ( status_entity._next_damage <= 0 )
 					{
@@ -412,6 +419,7 @@ class sdStatusEffect extends sdEntity
 				if ( status_entity.t > temperature_frozen )
 				status_entity._last_world_time = sdWorld.time;
 						
+				if ( status_entity._normal_temperature_removal_timer < 0 )
 				if ( status_entity.t > temperature_normal - 10 )
 				if ( status_entity.t < temperature_normal + 10 )
 				return true; // Delete

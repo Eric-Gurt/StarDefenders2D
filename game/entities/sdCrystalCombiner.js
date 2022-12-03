@@ -5,7 +5,7 @@ import sdEntity from './sdEntity.js';
 import sdCharacter from './sdCharacter.js';
 import sdCrystal from './sdCrystal.js';
 import sdBullet from './sdBullet.js';
-//import sdWorld.entity_classes.sdPlayerDrone from './sdWorld.entity_classes.sdPlayerDrone.js';
+import sdStatusEffect from './sdStatusEffect.js';
 
 class sdCrystalCombiner extends sdEntity
 {
@@ -211,6 +211,9 @@ class sdCrystalCombiner extends sdEntity
 			
 			this.prog += GSPEED;
 			
+			if ( sdWorld.is_server )
+			this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 27 * GSPEED, initiator: null }); // Overheat
+			
 			
 			if ( sdWorld.is_server && this.prog < X && ( !this.crystal0 || !this.crystal1 ) )
 			{
@@ -286,7 +289,6 @@ class sdCrystalCombiner extends sdEntity
 		sdEntity.Tooltip( ctx, "Crystal combiner" );
 		else
 		sdEntity.Tooltip( ctx, "Crystal combiner ( combining "+(~~Math.min( 100, this.prog / this.GetBaseAnimDuration() * 100 ))+"% )" );
-
 	}
 	Draw( ctx, attached )
 	{

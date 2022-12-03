@@ -1607,15 +1607,23 @@ class sdGunClass
 			apply_shading: false,
 			onPickupAttempt: ( character, gun )=> // Cancels pickup and removes itself if player can pickup
 			{ 
-				if ( character._upgrade_counters[ 'upgrade_energy' ] )
-				if ( character._upgrade_counters[ 'upgrade_energy' ] < 60 )
+				// 20 more levels, 20 * 45 more matter, 4 * 45 matter per shard
+				
+				//if ( character._upgrade_counters[ 'upgrade_energy' ] )
+				//if ( character._upgrade_counters[ 'upgrade_energy' ] < 60 )
+				if ( character._matter_capacity_boosters < character._matter_capacity_boosters_max ) // 20 * 45 )
 				{
-					character._upgrade_counters[ 'upgrade_energy' ] = Math.min( 60, character._upgrade_counters[ 'upgrade_energy' ] + 4 );
-					character.matter_max = Math.round( 50 + character._upgrade_counters[ 'upgrade_energy' ] * 45 );
+					character._matter_capacity_boosters = Math.min( character._matter_capacity_boosters + 4 * 45, character._matter_capacity_boosters_max );
+					character.onScoreChange();
+					
+					//character._upgrade_counters[ 'upgrade_energy' ] = Math.min( 60, character._upgrade_counters[ 'upgrade_energy' ] + 4 );
+					//character.matter_max = Math.round( 50 + character._upgrade_counters[ 'upgrade_energy' ] * 45 );
+					
+					
 					if ( Math.random() > 0.5 )
 					character.Say( "I can use this Cube shard to store matter inside it" );
 					else
-					character.Say( "Cube shard! These store matter pretty well");
+					character.Say( "Cube shard! These store matter pretty well" );
 					gun.remove(); 
 				}
 

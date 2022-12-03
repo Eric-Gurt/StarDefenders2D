@@ -97,6 +97,7 @@ class sdTask extends sdEntity
 			},
 			onTimeOut: ( task )=>
 			{
+				if ( sdWorld.is_server )
 				task.remove();
 			}
 		};
@@ -230,6 +231,7 @@ class sdTask extends sdEntity
 			},
 			onTimeOut: ( task )=>
 			{
+				if ( sdWorld.is_server )
 				task.remove();
 			},
 			
@@ -298,7 +300,27 @@ class sdTask extends sdEntity
 			},
 			onTimeOut: ( task )=>
 			{
+				if ( sdWorld.is_server )
 				task.remove();
+			}
+		};
+		sdTask.missions[ sdTask.MISSION_RTP_HINT = id++ ] = 
+		{
+			appearance: sdTask.APPEARANCE_NOTHING,
+			hide_time_left: true,
+	
+			completion_condition: ( task )=>
+			{
+				return false;
+			},
+			onTimeOut: ( task )=>
+			{
+				if ( sdWorld.is_server )
+				task.remove();
+			},
+			GetDefaultTimeLeft: ( task )=>
+			{
+				return 30;
 			}
 		};
 		sdTask.tasks = [];
@@ -326,6 +348,24 @@ class sdTask extends sdEntity
 		{
 			if ( sdTask.tasks[ i ]._similarity_hash === params.similarity_hash )
 			{
+				if ( typeof params.time_left === 'undefined' )
+				if ( sdTask.missions[ params.mission ].GetDefaultTimeLeft )
+				params.time_left = sdTask.missions[ params.mission ].GetDefaultTimeLeft( params );
+		
+				if ( typeof params.title !== 'undefined' )
+				if ( sdTask.tasks[ i ].title !== params.title )
+				{
+					sdTask.tasks[ i ].title = params.title;
+					sdTask.tasks[ i ]._update_version++;
+				}
+			
+				if ( typeof params.description !== 'undefined' )
+				if ( sdTask.tasks[ i ].description !== params.description )
+				{
+					sdTask.tasks[ i ].description = params.description;
+					sdTask.tasks[ i ]._update_version++;
+				}
+
 				if ( typeof params.time_left !== 'undefined' )
 				sdTask.tasks[ i ].time_left = Math.max( sdTask.tasks[ i ].time_left, params.time_left );
 
@@ -343,7 +383,17 @@ class sdTask extends sdEntity
 		
 		return true;
 	}
-	
+	/*
+	static CancelTasksBySimilarityHash( similarity_hash )
+	{
+		for ( let i = 0; i < sdTask.tasks.length; i++ )
+		{
+			if ( !sdTask.tasks[ i ]._is_being_removed )
+			if ( sdTask.tasks[ i ]._similarity_hash === similarity_hash )
+			sdTask.tasks[ i ].remove();
+		}
+	}
+	*/
 	IsVisible( observer_entity )
 	{
 		return ( observer_entity === this._executer );
@@ -532,6 +582,7 @@ class sdTask extends sdEntity
 				}
 			}
 			else
+			if ( mission.hide_time_left !== true )
 			if ( this.time_left !== -1 ) // Getting rid of bugged tasks
 			{
 				console.warn( 'Likely bugged task removed', this );
@@ -741,6 +792,7 @@ class sdTask extends sdEntity
 		}
 		
 		if ( this.time_left !== -1 )
+		if ( sdTask.missions[ this.mission ].hide_time_left !== true )
 		{
 			ctx.globalAlpha = 1;
 			ctx.fillStyle = '#ffff00';

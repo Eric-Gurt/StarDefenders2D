@@ -1,10 +1,14 @@
 
+/* global sdShop */
+
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdCom from './sdCom.js';
 import sdArea from './sdArea.js';
+import sdTask from './sdTask.js';
+import sdCharacter from './sdCharacter.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -37,8 +41,112 @@ class sdRescueTeleport extends sdEntity
 		sdRescueTeleport.TYPE_INFINITE_RANGE = 0; // Infinite range rescue teleporter
 		sdRescueTeleport.TYPE_SHORT_RANGE = 1; // Short range teleporter
 		
+		sdRescueTeleport.players_can_build_rtps = undefined;
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
+	static GlobalThink( GSPEED )
+	{
+		if ( sdWorld.is_server )
+		{
+			if ( sdRescueTeleport.players_can_build_rtps === undefined )
+			{
+				sdRescueTeleport.players_can_build_rtps = false;
+				for ( let i = 0; i < sdShop.options.length; i++ )
+				if ( sdShop.options[ i ]._class === 'sdRescueTeleport' )
+				{
+					sdRescueTeleport.players_can_build_rtps =  true;
+					break;
+				}
+			}
+			
+			if ( sdRescueTeleport.players_can_build_rtps )
+			{
+				for ( let i = 0; i < sdWorld.sockets.length; i++ )
+				{
+					let character = sdWorld.sockets[ i ].character;
+
+					if ( character )
+					if ( character.hea > 0 )
+					if ( character.is( sdCharacter ) )
+					{
+						let available_rtps = [];
+						let is_suitable = [];
+						
+						let any_is_suitable = false;
+						
+						let is_deeply_within_range = false;
+						
+						for ( let i2 = 0; i2 < sdRescueTeleport.rescue_teleports.length; i2++ )
+						{
+							let rtp = sdRescueTeleport.rescue_teleports[ i2 ];
+							if ( rtp.owner_biometry === character.biometry )
+							{
+								available_rtps.push( rtp );
+								is_suitable.push( false );
+							}
+						}
+						
+						for ( let i2 = 0; i2 < available_rtps.length; i2++ )
+						{
+							let rtp = available_rtps[ i2 ];
+							
+							let range = rtp.GetRTPRange( character );
+							let cost = rtp.GetRTPMatterCost( character );
+							
+							let suits = ( range === Infinity || sdWorld.inDist2D_Boolean( rtp.x, rtp.y, character.x, character.y, range ) ) && ( rtp.matter >= cost );
+							
+							if ( suits )
+							{
+								is_suitable[ i2 ] = suits;
+								any_is_suitable = true;
+								
+								if ( !is_deeply_within_range )
+								if ( sdWorld.inDist2D_Boolean( rtp.x, rtp.y, character.x, character.y, range - 500 ) )
+								is_deeply_within_range = true;
+							}
+						}
+						
+						character._has_rtp_in_range = any_is_suitable;
+						
+						if ( any_is_suitable )
+						{
+							if ( !is_deeply_within_range )
+							sdTask.MakeSureCharacterHasTask({ 
+								similarity_hash:'RTP-HINT', 
+								executer: character,
+								mission: sdTask.MISSION_RTP_HINT,
+								title: 'Rescue Teleport signal is weak',
+								description: 'You are likely leaving effective range of your Rescue Teleport.'
+							});
+						}
+						else
+						{
+							if ( available_rtps.length === 0 && character._score < 100 )
+							sdTask.MakeSureCharacterHasTask({ 
+								similarity_hash:'RTP-HINT', 
+								executer: character,
+								mission: sdTask.MISSION_RTP_HINT,
+								title: 'Rescue Teleport required',
+								description: 'You\'ll need a Rescue Teleport to keep your chances of survival high! You\'ll need matter from crystals to both build and charge it. Use Build Tool (B key) to build.'
+							});
+							else
+							sdTask.MakeSureCharacterHasTask({ 
+								similarity_hash:'RTP-HINT', 
+								executer: character,
+								mission: sdTask.MISSION_RTP_HINT,
+								title: 'Rescue Teleport signal lost',
+								description: 'Signal with your Rescue Teleport has been lost.'
+							});
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	
+	
 	get hitbox_x1() { return -11; }
 	get hitbox_x2() { return 11; }
 	get hitbox_y1() { return 10; }
@@ -128,6 +236,22 @@ class sdRescueTeleport extends sdEntity
 		
 		sdRescueTeleport.rescue_teleports.push( this );
 	}
+	GetRTPRange( character )
+	{
+		if ( this.type === sdRescueTeleport.TYPE_INFINITE_RANGE )
+		return Infinity;
+	
+		return sdRescueTeleport.max_short_range_distance;
+	}
+	GetRTPMatterCost( character )
+	{
+		let tele_cost = this.type === sdRescueTeleport.TYPE_INFINITE_RANGE ? sdRescueTeleport.max_matter : sdRescueTeleport.max_matter_short; // Needed so short range RTPs work
+
+		if ( !character.is( sdCharacter ) )
+		tele_cost = 100;
+	
+		return tele_cost;
+	}
 	onBuilt()
 	{
 		if ( this._owner )
@@ -143,7 +267,10 @@ class sdRescueTeleport extends sdEntity
 	
 	MeasureMatterCost()
 	{
-		return this._hmax * sdWorld.damage_to_matter + 500; // 1700
+		if ( this.type === sdRescueTeleport.TYPE_INFINITE_RANGE )
+		return this._hmax * sdWorld.damage_to_matter + 2000;
+		else
+		return this._hmax * sdWorld.damage_to_matter + 200; // 1700
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{

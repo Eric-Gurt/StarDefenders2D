@@ -400,7 +400,8 @@ class sdJunk extends sdEntity
 
 						for ( let i = 0; i < nears.length; i++ )
 						{
-							if ( nears[ i ].GetClass() !== 'sdGrass' && nears[ i ].GetClass() !== 'sdRift' && nears[ i ].GetClass() !== 'sdWater' && nears[ i ].GetClass() !== 'sdTask' ) // Seeing frozen lava and task arrows was cursed
+							//if ( nears[ i ].GetClass() !== 'sdGrass' && nears[ i ].GetClass() !== 'sdRift' && nears[ i ].GetClass() !== 'sdWater' && nears[ i ].GetClass() !== 'sdTask' ) // Seeing frozen lava and task arrows was cursed
+							if ( nears[ i ].IsTargetable( this ) )
 							nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: -250, initiator: this._owner }); // Freeze nearby objects
 						}
 					}

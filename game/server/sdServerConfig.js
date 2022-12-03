@@ -39,6 +39,11 @@ class sdServerConfigFull extends sdServerConfigShort
 	
 	static store_game_files_in_ram = false; // Will make server never use hard drive without need until next reboot, except for cases when backup is being made (more RAM usage, can be suitable for VPS servers that have strange Disk I/O issues)
 	
+	static LinkPlayerMatterCapacityToScore( character )
+	{
+		return true;
+	}
+	
 	static GetHitAllowed( bullet_or_sword, target )
 	{
 		// Cancel damage from bullet_or_sword towards target. ( bullet_or_sword._owner || bullet_or_sword._dangerous_from ) is a possible owner (can be null)

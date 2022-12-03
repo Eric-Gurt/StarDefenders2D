@@ -100,10 +100,12 @@ class sdCube extends sdEntity
 		return sdCube.KIND_WHITE;
 		if ( r < 0.1 + 0.04 + 0.14 )
 		return sdCube.KIND_PINK;
-		if ( r < 0.1 + 0.04 + 0.14 + 0.1 )
-		return sdCube.KIND_GREEN;
-		if ( r < 0.1 + 0.04 + 0.14 + 0.1 + 0.1 ) // 0.48
-		return sdCube.KIND_BLUE;
+	
+		// I hate them - EG
+		//if ( r < 0.1 + 0.04 + 0.14 + 0.1 )
+		//return sdCube.KIND_GREEN;
+		//if ( r < 0.1 + 0.04 + 0.14 + 0.1 + 0.1 ) // 0.48
+		//return sdCube.KIND_BLUE;
 		
 		return sdCube.KIND_CYAN;
 		

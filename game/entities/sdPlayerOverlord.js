@@ -51,6 +51,8 @@ class sdPlayerOverlord extends sdCharacter
 		this.matter_max = 300;
 		this.matter = this.matter_max;
 		
+		this._matter_capacity_boosters_max = 0;
+		
 		this._regen_timeout = 0;
 		
 		this.state_hp = 0; // 0 = healthy, 1 = damaged, 2 = falling down, 3 = fallen + falleng breathing
@@ -100,6 +102,13 @@ class sdPlayerOverlord extends sdCharacter
 		sdPlayerOverlord.overlords.push( this );
 		
 		this.hue = ~~( Math.random() * 360 );
+	}
+	onScoreChange()
+	{
+		if ( sdWorld.server_config.LinkPlayerMatterCapacityToScore( this ) )
+		{
+			this.matter_max = Math.min( 300 + Math.max( 0, this._score * 20 ), 600 );
+		}
 	}
 	
 	
@@ -763,6 +772,9 @@ class sdPlayerOverlord extends sdCharacter
 	
 	onMovementInRange( from_entity )
 	{
+		if ( from_entity.is( sdGun ) && sdGun.classes[ from_entity.class ].ignore_slot ) // Shards
+		super.onMovementInRange( from_entity );
+		
 		if ( sdWorld.is_server )
 		if ( this.state_hp <= 1 )
 		if ( !this.has_gun )

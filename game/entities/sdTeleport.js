@@ -283,6 +283,11 @@ class sdTeleport extends sdEntity
 						{
 							from_entity.ApplyServerSidePositionAndVelocity( true, 0, 0 );
 						}
+						
+						if ( from_entity.is( sdBaseShieldingUnit ) )
+						{
+							from_entity.charge = 0;
+						}
 
 						sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 						sdSound.PlaySound({ name:'teleport', x:best_tele.x, y:best_tele.y, volume:0.5 });

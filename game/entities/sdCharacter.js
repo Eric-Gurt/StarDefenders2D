@@ -1,4 +1,6 @@
 
+/* global Infinity, globalThis, meSpeak, FakeCanvasContext, sdRenderer, sdModeration */
+
 //const sdEntity = module.exports.sdEntity;
 
 import sdWorld from '../sdWorld.js';
@@ -28,6 +30,8 @@ import sdLifeBox from './sdLifeBox.js';
 import sdLost from './sdLost.js';
 import sdWeather from './sdWeather.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdWeaponBench from './sdWeaponBench.js';
+//import sdPlayerDrone from './sdPlayerDrone.js';
 
 import sdTask from './sdTask.js';
 import sdStatusEffect from './sdStatusEffect.js';
@@ -494,7 +498,13 @@ class sdCharacter extends sdEntity
 	{
 		sdWorld.GiveScoreToPlayerEntity( amount, killed_entity, allow_partial_drop, this );
 	}
-	
+	onScoreChange()
+	{
+		if ( sdWorld.server_config.LinkPlayerMatterCapacityToScore( this ) )
+		{
+			this.matter_max = Math.min( 50 + Math.max( 0, this._score * 20 ), 1850 ) + this._matter_capacity_boosters;
+		}
+	}
 	
 	PreInit() // Best place for NaN tracking methods initialization
 	{
@@ -780,6 +790,9 @@ class sdCharacter extends sdEntity
 		this.matter = sdCharacter.starter_matter;
 		this.matter_max = sdCharacter.starter_matter;
 		
+		this._matter_capacity_boosters = 0; // Cube shards are increasing this value
+		this._matter_capacity_boosters_max = 20 * 45;
+		
 		this.stim_ef = 0; // Stimpack effect
 		this.power_ef = 0; // Damage multiplication effect
 		this.time_ef = 0; // GSPEED manipulations
@@ -813,6 +826,8 @@ class sdCharacter extends sdEntity
 			}*/
 		}
 		
+		this._has_rtp_in_range = false; // Updated only when socket is connected. Also measures matter. Workd only when hints are working
+		
 		sdCharacter.characters.push( this );
 	}
 	
@@ -835,6 +850,321 @@ class sdCharacter extends sdEntity
 		let offset = this.GetBulletSpawnOffset();
 
 		return -Math.PI / 2 - Math.atan2( this.y + offset.y - this.look_y, this.x + offset.x - this.look_x );
+	}
+	
+	ReloadAndCombatLogic( GSPEED )
+	{
+		if ( this._weapon_draw_timer > 0 )
+		this._weapon_draw_timer = Math.max( 0, this._weapon_draw_timer - GSPEED );
+		
+		if ( this._recoil > 0 )
+		this._recoil = Math.max( 0, sdWorld.MorphWithTimeScale( this._recoil , -0.01, 0.935 , GSPEED ) ); //0.9 was "laser beams" basically and nullified the point for "Recoil upgrade"
+		//this._recoil = Math.max( 0, sdWorld.MorphWithTimeScale( this._recoil , -0.01, 0.935 * this._recoil_mult , GSPEED ) ); //0.9 was "laser beams" basically and nullified the point for "Recoil upgrade"
+
+		if ( this.fire_anim > 0 )
+		this.fire_anim = Math.max( 0, this.fire_anim - GSPEED );
+
+
+
+
+		let offset = null;
+		
+		for ( let i = 0; i < this._inventory.length; i++ )
+		if ( this._inventory[ i ] )
+		this._inventory[ i ].UpdateHeldPosition();
+
+		if ( this.reload_anim > 0 )
+		{
+			this.reload_anim -= GSPEED * ( ( this.stim_ef > 0 ) ? 1.25 : 1 );
+
+			if ( this.reload_anim <= 0 )
+			{
+				if ( this._inventory[ this.gun_slot ] )
+				this._inventory[ this.gun_slot ].ReloadComplete();
+			}
+		}
+		else
+		{
+			if ( !this.driver_of )
+			{
+				let will_fire = this._key_states.GetKey( 'Mouse1' );
+				let shoot_from_scenario = false;
+
+				if ( will_fire )
+				this._respawn_protection = 0;
+
+				if ( this._weapon_draw_timer > 0 )
+				will_fire = false;
+
+				if ( this._auto_shoot_in > 0 )
+				{
+					this._auto_shoot_in -= GSPEED;
+					if ( this._auto_shoot_in <= 0 )
+					{
+						will_fire = true;
+						shoot_from_scenario = true;
+					}
+				}
+
+				if ( will_fire )
+				if ( this._inventory[ this.gun_slot ] )
+				if ( !sdGun.classes[ this._inventory[ this.gun_slot ].class ] )
+				{
+					will_fire = false;
+
+					switch ( ~~( Math.random() * 5 ) )
+					{
+						case 0: this.Say( 'This item does not work in this environment' ); break;
+						case 1: this.Say( 'Maybe it is not a right place to use it' ); break;
+						case 2: this.Say( 'This won\'t work here' ); break;
+						case 3: this.Say( 'I don\'t think this item can be used there' ); break;
+						case 4: this.Say( 'This item belongs to another realm' ); break;
+					}
+				}
+
+				if ( will_fire )
+				{
+					if ( !this._inventory[ this.gun_slot ] || !sdGun.classes[ this._inventory[ this.gun_slot ].class ].is_build_gun )
+					if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
+					if ( !this._god )
+					{
+						will_fire = false;
+
+						switch ( ~~( Math.random() * 5 ) )
+						{
+							case 0: this.Say( 'This is a no-combat zone' ); break;
+							case 1: this.Say( 'Combat is not allowed here' ); break;
+							case 2: this.Say( 'This place is meant to be peaceful' ); break;
+							case 3: this.Say( 'Combat is restricted in this area' ); break;
+							case 4: this.Say( 'Admins have restricted combat in this area' ); break;
+						}
+					}
+				}
+				else
+				this._last_fire_state = 0;
+
+				if ( this._inventory[ this.gun_slot ] )
+				{
+					if ( this._key_states.GetKey( 'KeyN' ) )
+					{
+						this._inventory[ this.gun_slot ].ChangeFireModeStart();
+					}
+					else
+					if ( this._key_states.GetKey( 'KeyR' ) &&
+						 this._inventory[ this.gun_slot ].ammo_left >= 0 && 
+						 this._inventory[ this.gun_slot ].ammo_left < this._inventory[ this.gun_slot ].GetAmmoCapacity() )
+					{
+						this._inventory[ this.gun_slot ].ReloadStart();
+					}
+					else
+					{
+
+						if ( will_fire )
+						{
+							if ( this._inventory[ this.gun_slot ].fire_mode === 1 )
+							{
+								if ( !offset )
+								offset = this.GetBulletSpawnOffset();
+
+								if ( this._inventory[ this.gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ), offset, shoot_from_scenario ) )
+								{
+									this.fire_anim = 5;
+								}
+							}
+							else
+							if ( this._inventory[ this.gun_slot ].fire_mode === 2 && this._last_fire_state !== will_fire ) // Somehow this line caused crash, possible due to .Shoot call above caused weapon to be removed
+							{
+								if ( !offset )
+								offset = this.GetBulletSpawnOffset();
+
+								if ( this._inventory[ this.gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ), offset, shoot_from_scenario ) )
+								{
+									this.fire_anim = 5;
+									this._last_fire_state = will_fire;
+								}
+							}
+						}
+					}
+				}
+				else
+				{
+					if ( will_fire )
+					{
+						if ( this.fire_anim <= 0 )
+						{
+							this.fire_anim = 7.5;
+
+							if ( sdWorld.is_server )
+							{
+								let _class = sdGun.CLASS_FISTS;
+
+								if ( !offset )
+								offset = this.GetBulletSpawnOffset();
+
+								let bullet_obj = new sdBullet({ x: this.x + offset.x, y: this.y + offset.y });
+								bullet_obj._owner = this;
+
+								let an = bullet_obj._owner.GetLookAngle();// + ( Math.random() * 2 - 1 ) * spread;
+
+								let vel = 16;
+								if ( sdGun.classes[ _class ].projectile_velocity )
+								vel = sdGun.classes[ _class ].projectile_velocity;
+
+								/*if ( spread > 0 && count > 0 )
+								{
+									vel *= ( 1 - Math.random() * 0.15 );
+								}*/
+
+								bullet_obj.sx = Math.sin( an ) * vel;
+								bullet_obj.sy = Math.cos( an ) * vel;
+
+								for ( var p in sdGun.classes[ _class ].projectile_properties )
+								bullet_obj[ p ] = sdGun.classes[ _class ].projectile_properties[ p ];
+
+								//if ( bullet_obj.color !== 'transparent' )
+								//debugger;
+
+								//if ( bullet_obj.is_grenade )
+								/*if ( !bullet_obj._rail )
+								{
+									bullet_obj.sx += bullet_obj._owner.sx;
+									bullet_obj.sy += bullet_obj._owner.sy;
+								}
+
+								if ( bullet_obj.ac > 0 )
+								{
+									bullet_obj.acx = Math.sin( an );
+									bullet_obj.acy = Math.cos( an );
+								}*/
+
+								//bullet_obj._damage *= bullet_obj._owner._damage_mult;
+
+								//if ( bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ] )
+								//bullet_obj._armor_penetration_level = bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ];
+								//else
+								bullet_obj._armor_penetration_level = 0;
+
+								//bullet_obj._owner.Impulse( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale, -bullet_obj.sy * 0.3 * bullet_obj._knock_scale );
+
+								//bullet_obj._bg_shooter = background_shoot ? true : false;
+
+								bullet_obj.time_left *= ( this.s / 100 );
+
+								bullet_obj._damage *= ( this.s / 100 );
+
+								if ( this._ai_team === 1 )
+								if ( this.title === 'Falkonian Sword Bot' )
+								bullet_obj._damage = 250; // Falkonian sword bot should be lethal at close range.
+
+								sdEntity.entities.push( bullet_obj );
+							}
+						}
+					}
+				}
+			}
+		}
+		
+
+		// Patch for bugged guns. 
+		if ( this._inventory[ this.gun_slot ] )
+		if ( this._inventory[ this.gun_slot ]._is_being_removed )
+		{
+			console.warn( 'sdCharacter holds removed gun (slot '+this.gun_slot+'). Gun snapshot: ' + JSON.stringify( this._inventory[ this.gun_slot ].GetSnapshot( GetFrame(), true ) ) );
+
+			if ( sdWorld.is_server )
+			{
+				if ( this._socket )
+				this._socket.SDServiceMessage( 'Error: Your character holds gun that is already removed. Report if you know how this happened ~' );
+			}
+
+			this._inventory[ this.gun_slot ] = null;
+		}
+	}
+	
+	DropWeaponLogic( GSPEED )
+	{
+		if ( this._auto_shoot_in <= 0 )
+		{
+			if ( this._key_states.GetKey( 'KeyV' ) )
+			{
+				this._key_states.SetKey( 'KeyV', 0 ); // So sword is not dropped all the time
+
+				if ( this._inventory[ this.gun_slot ] )
+				{
+					//if ( this.gun_slot === 0 )
+					if ( sdGun.classes[ this._inventory[ this.gun_slot ].class ] )
+					if ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].is_sword )
+					{
+						this._inventory[ this.gun_slot ].dangerous = true;
+						this._inventory[ this.gun_slot ]._dangerous_from = this;
+
+						if ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].sound )
+						sdSound.PlaySound({ name:sdGun.classes[ this._inventory[ this.gun_slot ].class ].sound, x:this.x, y:this.y, volume: 0.5 * ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].sound_volume || 1 ), pitch: 0.8 * ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].sound_pitch || 1 ) });
+					}
+
+					this.DropWeapon( this.gun_slot );
+
+					this.gun_slot = 0;
+					if ( sdWorld.my_entity === this )
+					sdWorld.PreventCharacterPropertySyncForAWhile( 'gun_slot' );
+
+					if ( this.reload_anim > 0 )
+					this.reload_anim = 0;
+
+					this._weapon_draw_timer = sdCharacter.default_weapon_draw_time;
+				}
+			}
+		}
+	}
+
+	WeaponSwitchLogic( GSPEED )
+	{
+		if ( this._auto_shoot_in <= 0 )
+		{
+			if ( this._key_states.GetKey( 'KeyQ' ) )
+			{
+				if ( !this._q_held )
+				{
+					this._q_held = true;
+
+					let b = this._backup_slot;
+					if ( !this._inventory[ b ] )
+					b = 0;
+
+					this._backup_slot = this.gun_slot;
+					this.gun_slot = b;
+					if ( sdWorld.my_entity === this )
+					sdWorld.PreventCharacterPropertySyncForAWhile( 'gun_slot' );
+
+					if ( this.reload_anim > 0 )
+					this.reload_anim = 0;
+
+					this._weapon_draw_timer = sdCharacter.default_weapon_draw_time;
+				}
+			}
+			else
+			{
+				this._q_held = false;
+				for ( var i = 0; i < 10; i++ )
+				if ( this._inventory[ i ] || i === 0 )
+				if ( this._key_states.GetKey( 'Digit' + i ) || ( i === 0 && this._key_states.GetKey( 'Backquote' ) ) )
+				{
+					if ( this.gun_slot !== i )
+					{
+						this._backup_slot = this.gun_slot;
+						this.gun_slot = i;
+						if ( sdWorld.my_entity === this )
+						sdWorld.PreventCharacterPropertySyncForAWhile( 'gun_slot' );
+
+						if ( this.reload_anim > 0 )
+						this.reload_anim = 0;
+
+						this._weapon_draw_timer = sdCharacter.default_weapon_draw_time;
+					}
+					break;
+				}
+			}
+		}
 	}
 	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
@@ -1064,12 +1394,13 @@ class sdCharacter extends sdEntity
 		if ( from_ent._is_being_removed )
 		from_ent = null;
 
-		let tele_cost = sdRescueTeleport.max_matter;
+		/*let tele_cost = sdRescueTeleport.max_matter;
 		
 		if ( !this.is( sdCharacter ) )
-		tele_cost = 100;
+		tele_cost = 100;*/
 
 		let best_di = Infinity;
+		let best_cost = Infinity;
 		let best_t = null;
 
 		for ( var i = 0; i < sdRescueTeleport.rescue_teleports.length; i++ )
@@ -1078,17 +1409,29 @@ class sdCharacter extends sdEntity
 
 			let close_enough = true;
 
-			tele_cost = t.type === sdRescueTeleport.TYPE_INFINITE_RANGE ? sdRescueTeleport.max_matter : sdRescueTeleport.max_matter_short; // Needed so short range RTPs work
+			/*let tele_cost = t.type === sdRescueTeleport.TYPE_INFINITE_RANGE ? sdRescueTeleport.max_matter : sdRescueTeleport.max_matter_short; // Needed so short range RTPs work
 
 			if ( !this.is( sdCharacter ) )
 			tele_cost = 100;
+			*/
+			let tele_cost = t.GetRTPMatterCost( this );
 
-			if ( sdRescueTeleport.rescue_teleports[ i ].type === sdRescueTeleport.TYPE_SHORT_RANGE )
+			let rtp_range = t.GetRTPRange( this );
+			
+			if ( rtp_range === Infinity )
+			{
+			}
+			else
+			{
+				if ( !sdWorld.inDist2D_Boolean( this.x, this.y, t.x, t.y, rtp_range ) )
+				close_enough = false;
+			}
+			/*if ( sdRescueTeleport.rescue_teleports[ i ].type === sdRescueTeleport.TYPE_SHORT_RANGE )
 			{
 				let di = sdWorld.Dist2D( this.x, this.y, t.x, t.y );
 				if ( di > sdRescueTeleport.max_short_range_distance ) // 1200 units
 				close_enough = false;
-			}
+			}*/
 			if ( close_enough )
 			if ( t._owner === this || t.owner_biometry === this.biometry )
 			if ( t.delay <= 0 )
@@ -1099,10 +1442,15 @@ class sdCharacter extends sdEntity
 			if ( sdWorld.CheckLineOfSight( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 12, t, null, sdCom.com_vision_blocking_classes ) ) // Could be better. Should allow cases of storages and crystals on top of RTP
 			{
 				let di = sdWorld.Dist2D( this.x, this.y, t.x, t.y );
-				if ( di < best_di )
+				if ( 
+						( di < best_di && tele_cost <= best_cost ) 
+						||
+						tele_cost < best_cost 
+				   )
 				{
 					best_t = t;
 					best_di = di;
+					best_cost = tele_cost;
 				}
 			}
 		}
@@ -1218,10 +1566,12 @@ class sdCharacter extends sdEntity
 			//best_t.SetDelay( sdRescueTeleport.delay_2nd ); // 5 minutes
 			best_t.SetDelay( sdRescueTeleport.delay_simple );
 
-			tele_cost = best_t.type === sdRescueTeleport.TYPE_INFINITE_RANGE ? sdRescueTeleport.max_matter : sdRescueTeleport.max_matter_short; // Adjust matter cost depending on RTP type
+			/*let tele_cost = best_t.type === sdRescueTeleport.TYPE_INFINITE_RANGE ? sdRescueTeleport.max_matter : sdRescueTeleport.max_matter_short; // Adjust matter cost depending on RTP type
 
 			if ( !this.is( sdCharacter ) )
-			tele_cost = 100;
+			tele_cost = 100;*/
+																			
+			let tele_cost = best_t.GetRTPMatterCost( this );
 		
 			best_t.matter -= tele_cost;
 			
@@ -1589,9 +1939,9 @@ class sdCharacter extends sdEntity
 					}
 					else
 					{
-						let share = Math.min( Math.max( 0, initiator._score ), 10 );
+						/*let share = Math.min( Math.max( 0, initiator._score ), 10 );
 						initiator._score -= share;
-						this._score += share;
+						this._score += share;*/
 
 						if ( this._non_innocent_until < sdWorld.time ) // Healed player is innocent
 						initiator._socket.ffa_warning = Math.max( initiator._socket.ffa_warning - 1, 0 );
@@ -2262,21 +2612,14 @@ class sdCharacter extends sdEntity
 			this.x + this._hitbox_x2 - 1, 
 			this.y + this._hitbox_y2 - 1, this, this.GetIgnoredEntityClasses(), this.GetNonIgnoredEntityClasses() );
 	}
-
+	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( sdWorld.is_server )
 		this.lst = sdLost.entities_and_affection.get( this ) || 0;
 	
 		if ( this._respawn_protection > 0 )
-		{
-			this._respawn_protection = Math.max( 0, this._respawn_protection - GSPEED );
-		}
-	
-		if ( this._weapon_draw_timer > 0 )
-		{
-			this._weapon_draw_timer = Math.max( 0, this._weapon_draw_timer - GSPEED );
-		}
+		this._respawn_protection = Math.max( 0, this._respawn_protection - GSPEED );
 		
 		if ( this._socket )	
 		{
@@ -2313,10 +2656,10 @@ class sdCharacter extends sdEntity
 		
 		if ( this.hea <= 0 )
 		{
-			this.MatterGlow( 0.01, 30, GSPEED );
-
 			if ( this.AttemptTeleportOut() )
 			return;
+		
+			this.MatterGlow( 0.01, 30, GSPEED );
 
 			if ( this.death_anim < 90 )
 			this.death_anim += GSPEED;
@@ -2363,10 +2706,6 @@ class sdCharacter extends sdEntity
 				this.AILogic( GSPEED );
 			}
 			
-			if ( this._recoil > 0 )
-			this._recoil = Math.max( 0, sdWorld.MorphWithTimeScale( this._recoil , -0.01, 0.935 , GSPEED ) ); //0.9 was "laser beams" basically and nullified the point for "Recoil upgrade"
-			//this._recoil = Math.max( 0, sdWorld.MorphWithTimeScale( this._recoil , -0.01, 0.935 * this._recoil_mult , GSPEED ) ); //0.9 was "laser beams" basically and nullified the point for "Recoil upgrade"
-
 			if ( this._sickness > 0 )
 			{
 				this._sick_damage_timer += GSPEED;
@@ -2442,9 +2781,6 @@ class sdCharacter extends sdEntity
 				}
 			}
 			
-			if ( this.fire_anim > 0 )
-			this.fire_anim = Math.max( 0, this.fire_anim - GSPEED );
-
 			if ( this.pain_anim > 0 )
 			this.pain_anim -= GSPEED;
 
@@ -2470,202 +2806,9 @@ class sdCharacter extends sdEntity
 
 			//this._an = -Math.PI / 2 - Math.atan2( this.y + offset.y - this.look_y, this.x + offset.x - this.look_x );
 			
-			let offset = null;
 			
-			for ( let i = 0; i < this._inventory.length; i++ )
-			if ( this._inventory[ i ] )
-			this._inventory[ i ].UpdateHeldPosition();
-
-			if ( this.reload_anim > 0 )
-			{
-				this.reload_anim -= GSPEED * ( ( this.stim_ef > 0 ) ? 1.25 : 1 );
-
-				if ( this.reload_anim <= 0 )
-				{
-					if ( this._inventory[ this.gun_slot ] )
-					this._inventory[ this.gun_slot ].ReloadComplete();
-				}
-			}
-			else
-			{
-				if ( !this.driver_of )
-				{
-					let will_fire = this._key_states.GetKey( 'Mouse1' );
-					let shoot_from_scenario = false;
-					
-					if ( will_fire )
-					this._respawn_protection = 0;
-					
-					if ( this._weapon_draw_timer > 0 )
-					will_fire = false;
-					
-					if ( this._auto_shoot_in > 0 )
-					{
-						this._auto_shoot_in -= GSPEED;
-						if ( this._auto_shoot_in <= 0 )
-						{
-							will_fire = true;
-							shoot_from_scenario = true;
-						}
-					}
-					
-					if ( will_fire )
-					if ( this._inventory[ this.gun_slot ] )
-					if ( !sdGun.classes[ this._inventory[ this.gun_slot ].class ] )
-					{
-						will_fire = false;
-						
-						switch ( ~~( Math.random() * 5 ) )
-						{
-							case 0: this.Say( 'This item does not work in this environment' ); break;
-							case 1: this.Say( 'Maybe it is not a right place to use it' ); break;
-							case 2: this.Say( 'This won\'t work here' ); break;
-							case 3: this.Say( 'I don\'t think this item can be used there' ); break;
-							case 4: this.Say( 'This item belongs to another realm' ); break;
-						}
-					}
-					
-					if ( will_fire )
-					{
-						if ( !this._inventory[ this.gun_slot ] || !sdGun.classes[ this._inventory[ this.gun_slot ].class ].is_build_gun )
-						if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
-						if ( !this._god )
-						{
-							will_fire = false;
-							
-							switch ( ~~( Math.random() * 5 ) )
-							{
-								case 0: this.Say( 'This is a no-combat zone' ); break;
-								case 1: this.Say( 'Combat is not allowed here' ); break;
-								case 2: this.Say( 'This place is meant to be peaceful' ); break;
-								case 3: this.Say( 'Combat is restricted in this area' ); break;
-								case 4: this.Say( 'Admins have restricted combat in this area' ); break;
-							}
-						}
-					}
-					else
-					this._last_fire_state = 0;
-					
-					if ( this._inventory[ this.gun_slot ] )
-					{
-						if ( this._key_states.GetKey( 'KeyN' ) )
-						{
-							this._inventory[ this.gun_slot ].ChangeFireModeStart();
-						}
-						else
-						if ( this._key_states.GetKey( 'KeyR' ) &&
-							 this._inventory[ this.gun_slot ].ammo_left >= 0 && 
-							 this._inventory[ this.gun_slot ].ammo_left < this._inventory[ this.gun_slot ].GetAmmoCapacity() )
-						{
-							this._inventory[ this.gun_slot ].ReloadStart();
-						}
-						else
-						{
-
-							if ( will_fire )
-							{
-								if ( this._inventory[ this.gun_slot ].fire_mode === 1 )
-								{
-									if ( !offset )
-									offset = this.GetBulletSpawnOffset();
-							
-									if ( this._inventory[ this.gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ), offset, shoot_from_scenario ) )
-									{
-										this.fire_anim = 5;
-									}
-								}
-								else
-								if ( this._inventory[ this.gun_slot ].fire_mode === 2 && this._last_fire_state !== will_fire ) // Somehow this line caused crash, possible due to .Shoot call above caused weapon to be removed
-								{
-									if ( !offset )
-									offset = this.GetBulletSpawnOffset();
-							
-									if ( this._inventory[ this.gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ), offset, shoot_from_scenario ) )
-									{
-										this.fire_anim = 5;
-										this._last_fire_state = will_fire;
-									}
-								}
-							}
-						}
-					}
-					else
-					{
-						if ( will_fire )
-						{
-							if ( this.fire_anim <= 0 )
-							{
-								this.fire_anim = 7.5;
-								
-								if ( sdWorld.is_server )
-								{
-									let _class = sdGun.CLASS_FISTS;
-									
-									if ( !offset )
-									offset = this.GetBulletSpawnOffset();
-
-									let bullet_obj = new sdBullet({ x: this.x + offset.x, y: this.y + offset.y });
-									bullet_obj._owner = this;
-
-									let an = bullet_obj._owner.GetLookAngle();// + ( Math.random() * 2 - 1 ) * spread;
-
-									let vel = 16;
-									if ( sdGun.classes[ _class ].projectile_velocity )
-									vel = sdGun.classes[ _class ].projectile_velocity;
-
-									/*if ( spread > 0 && count > 0 )
-									{
-										vel *= ( 1 - Math.random() * 0.15 );
-									}*/
-
-									bullet_obj.sx = Math.sin( an ) * vel;
-									bullet_obj.sy = Math.cos( an ) * vel;
-
-									for ( var p in sdGun.classes[ _class ].projectile_properties )
-									bullet_obj[ p ] = sdGun.classes[ _class ].projectile_properties[ p ];
-
-									//if ( bullet_obj.color !== 'transparent' )
-									//debugger;
-
-									//if ( bullet_obj.is_grenade )
-									/*if ( !bullet_obj._rail )
-									{
-										bullet_obj.sx += bullet_obj._owner.sx;
-										bullet_obj.sy += bullet_obj._owner.sy;
-									}
-
-									if ( bullet_obj.ac > 0 )
-									{
-										bullet_obj.acx = Math.sin( an );
-										bullet_obj.acy = Math.cos( an );
-									}*/
-
-									//bullet_obj._damage *= bullet_obj._owner._damage_mult;
-
-									//if ( bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ] )
-									//bullet_obj._armor_penetration_level = bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ];
-									//else
-									bullet_obj._armor_penetration_level = 0;
-
-									//bullet_obj._owner.Impulse( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale, -bullet_obj.sy * 0.3 * bullet_obj._knock_scale );
-
-									//bullet_obj._bg_shooter = background_shoot ? true : false;
-
-									bullet_obj.time_left *= ( this.s / 100 );
-
-									bullet_obj._damage *= ( this.s / 100 );
-
-									if ( this._ai_team === 1 )
-									if ( this.title === 'Falkonian Sword Bot' )
-									bullet_obj._damage = 250; // Falkonian sword bot should be lethal at close range.
-
-									sdEntity.entities.push( bullet_obj );
-								}
-							}
-						}
-					}
-				}
-			}
+			
+			this.ReloadAndCombatLogic( GSPEED );
 
 			if ( this.matter < this._matter_regeneration * 20 )
 			if ( !this.ghosting )
@@ -2677,24 +2820,11 @@ class sdCharacter extends sdEntity
 					this.matter = Math.min( this.matter_max, this._matter_regeneration * 20, this.matter + ( 1 * this._matter_regeneration_multiplier ) / 30 * GSPEED );
 				}
 			}			
-
-			// Patch for bugged guns. 
-			if ( this._inventory[ this.gun_slot ] )
-			if ( this._inventory[ this.gun_slot ]._is_being_removed )
-			{
-				console.warn( 'sdCharacter holds removed gun (slot '+this.gun_slot+'). Gun snapshot: ' + JSON.stringify( this._inventory[ this.gun_slot ].GetSnapshot( GetFrame(), true ) ) );
-					
-				if ( sdWorld.is_server )
-				{
-					if ( this._socket )
-					this._socket.SDServiceMessage( 'Error: Your character holds gun that is already removed. Report if you know how this happened ~' );
-				}
-				
-				this._inventory[ this.gun_slot ] = null;
-			}
 			
+			this.DropWeaponLogic( GSPEED );
+			this.WeaponSwitchLogic( GSPEED );
 			
-			if ( this._auto_shoot_in <= 0 )
+			/*if ( this._auto_shoot_in <= 0 )
 			{
 				if ( this._key_states.GetKey( 'KeyV' ) )
 				{
@@ -2769,7 +2899,7 @@ class sdCharacter extends sdEntity
 						break;
 					}
 				}
-			}
+			}*/
 			
 		
 			this._side = ( this.x < this.look_x ) ? 1 : -1;
@@ -2906,7 +3036,10 @@ class sdCharacter extends sdEntity
 					if ( !this.hook_relative_to )
 					{
 						this._hook_once = false;
-						let bullet_obj = new sdBullet({ x: this.x, y: this.y + sdCharacter.bullet_y_spawn_offset });
+						
+						let offset = this.GetBulletSpawnOffset();
+						
+						let bullet_obj = new sdBullet({ x: this.x + offset.x, y: this.y + offset.y });
 						bullet_obj._owner = this;
 						let an = this.GetLookAngle();
 						let vel = 16;
@@ -3535,6 +3668,9 @@ class sdCharacter extends sdEntity
 	{
 		super.onThinkFrozen( GSPEED );
 		
+		if ( this._respawn_protection > 0 )
+		this._respawn_protection = Math.max( 0, this._respawn_protection - GSPEED );
+		
 		if ( this._ragdoll )
 		this._ragdoll.ThinkFrozen( GSPEED );
 	}
@@ -3650,7 +3786,7 @@ class sdCharacter extends sdEntity
 			
 			console.warn( 'Should not happen' ); // Rarely happened on server, not sure what caused this. Could be related to floating guns in mid-air, which happened after client self-initated respawn while he already had character in world but snapshots were simply not sent to players due to bug.
 			
-			throw new Error('Can\'t drop gun. Gun snapshot: '+JSON.stringify( ent.GetSnapshot( GetFrame(), true ) ) );
+			console.warn('Can\'t drop gun. Gun snapshot: '+JSON.stringify( ent.GetSnapshot( GetFrame(), true ) ) );
 			return;
 		}
 		
@@ -4570,6 +4706,30 @@ class sdCharacter extends sdEntity
 				{
 					this.remove();
 				}
+				if ( command_name === 'ADMIN_CONTROL' )
+				{
+					executer_socket;
+					
+					if ( this._socket )
+					{
+						executer_socket.SDServiceMessage( 'Player has connected socket' );
+					}
+					else
+					{
+						exectuter_character._god = false;
+						exectuter_character._socket = null;
+						
+						this._socket = executer_socket;
+						executer_socket.character = this;
+						
+						this.title = exectuter_character.title;
+						this.title_censored = exectuter_character.title_censored;
+						
+						this._god = true;
+							
+						executer_socket.emit('SET sdWorld.my_entity', this._net_id, { reliable: true, runs: 100 } );
+					}
+				}
 			}
 			
 			//if ( exectuter_character ) 
@@ -4621,7 +4781,59 @@ class sdCharacter extends sdEntity
 					executer_socket.SDServiceMessage( 'Not enough rights to kick user' );
 				}
 			}
-
+			
+			if ( command_name === 'INSTALL_DRONE_GUN' )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+			if ( exectuter_character.matter >= 200 )
+			//if ( this.is( sdPlayerDrone ) )
+			if ( this.GetClass() === 'sdPlayerDrone' )
+			if ( exectuter_character.is( sdCharacter ) )
+			{
+				let ents = sdWorld.GetAnythingNear( this.x, this.y, 32 );
+				
+				let ok = false;
+				
+				for ( let i = 0; i < ents.length; i++ )
+				if ( ents[ i ].is( sdWeaponBench ) || ents[ i ].is( sdWorkbench ) )
+				{
+					ok = true;
+					break;
+				}
+				
+				if ( ok )
+				{
+					let gun = exectuter_character._inventory[ exectuter_character.gun_slot ];
+					if ( gun && !sdGun.classes[ gun.class ].is_build_gun )
+					{
+						let guns = 0;
+						for ( let i = 0; i < this._inventory.length; i++ )
+						{
+							if ( this._inventory[ i ] )
+							guns++;
+						}
+						
+						if ( guns < 2 )
+						{
+							exectuter_character.matter -= 200;
+							exectuter_character.DropWeapon( exectuter_character.gun_slot );
+							gun._unblocked_for_drones = true;
+							gun.x = this.x;
+							gun.y = this.y;
+							this.onMovementInRange( gun );
+						}
+						else
+						executer_socket.SDServiceMessage( 'Only 2 guns can be installed on a drone' );
+					}
+					else
+					{
+						executer_socket.SDServiceMessage( 'No gun to install' );
+					}
+				}
+				else
+				{
+					executer_socket.SDServiceMessage( 'Procedure can be executed only near workbench and weapon bench' );
+				}
+			}
 		}
 	}
 	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
@@ -4636,13 +4848,19 @@ class sdCharacter extends sdEntity
 				this.AddContextOption( 'Press "E"', 'ADMIN_PRESS', [ 'KeyE' ] );
 				this.AddContextOption( 'Press "Mouse1"', 'ADMIN_PRESS', [ 'Mouse1' ] );
 				this.AddContextOption( 'Press "Mouse2"', 'ADMIN_PRESS', [ 'Mouse2' ] );
+				this.AddContextOption( 'Press "1"', 'ADMIN_PRESS', [ 'Digit1' ] );
+				this.AddContextOption( 'Press "2"', 'ADMIN_PRESS', [ 'Digit2' ] );
+				this.AddContextOption( 'Press "5"', 'ADMIN_PRESS', [ 'Digit5' ] );
 				this.AddContextOption( 'Toggle "W"', 'ADMIN_TOGGLE', [ 'KeyW' ] );
 				this.AddContextOption( 'Toggle "S"', 'ADMIN_TOGGLE', [ 'KeyS' ] );
 				this.AddContextOption( 'Toggle "X"', 'ADMIN_TOGGLE', [ 'KeyX' ] );
 				this.AddContextOption( 'Toggle "Mouse1"', 'ADMIN_TOGGLE', [ 'Mouse1' ] );
 				this.AddContextOption( 'Toggle "Mouse2"', 'ADMIN_TOGGLE', [ 'Mouse2' ] );
+				this.AddContextOption( 'Drop current weapon', 'ADMIN_PRESS', [ 'KeyV' ] );
 				this.AddContextOption( 'Kill', 'ADMIN_KILL', [] );
 				this.AddContextOption( 'Remove', 'ADMIN_REMOVE', [] );
+				
+				this.AddContextOption( 'Start controlling', 'ADMIN_CONTROL', [] );
 			}
 			
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
@@ -4680,11 +4898,23 @@ class sdCharacter extends sdEntity
 				}
 				else
 				{
-					if ( this.cc_id )
+					if ( this.GetClass() === 'sdPlayerDrone' )
+					if ( exectuter_character.is( sdCharacter ) )
+					this.AddContextOption( 'Install current weapon (200 matter)', 'INSTALL_DRONE_GUN', [] );
+						
+					/*if ( this.cc_id === exectuter_character.cc_id )
 					{
+						
 						this.AddContextOption( 'Kick from team', 'CC_SET_SPAWN', [] );
-					}
+					}*/
 				}
+			}
+			
+			if ( this !== exectuter_character )
+			{
+				if ( this.cc_id !== 0 )
+				if ( this.cc_id === exectuter_character.cc_id )
+				this.AddContextOption( 'Kick from team', 'CC_SET_SPAWN', [] );
 			}
 		}
 	}

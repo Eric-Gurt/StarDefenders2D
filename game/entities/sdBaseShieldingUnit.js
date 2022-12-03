@@ -46,6 +46,8 @@ class sdBaseShieldingUnit extends sdEntity
 		sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER = 0;
 		sdBaseShieldingUnit.TYPE_MATTER = 1;
 		
+		sdBaseShieldingUnit.longer_time_protected_bsu_priority = 9; // 5 // It is added to 1
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -8; }
@@ -99,7 +101,7 @@ class sdBaseShieldingUnit extends sdEntity
 		this.matter = 0;
 		this.timer_to_expect_matter = 30 * 10; // Goes down when out of matter so big explosions could not destroy BSU if there is more matter
 		
-		this.charge = 0; // Goes up while shield is activates - makes lose less matter on BSU-BSU attacks (TYPE_MATTER only)
+		this.charge = 0; // Goes up while shield is activated - makes lose less matter on BSU-BSU attacks (TYPE_MATTER only)
 		this.charge_blocked_until = 0; // Set during attacking
 
 		this._check_blocks = 30; // Temporary, checks for old pre-rework BSU's protected blocks and applies cost for "this._matter_drain" which is now used when BSU attacks BSU. Will be commented out / removed later.
@@ -518,8 +520,8 @@ class sdBaseShieldingUnit extends sdEntity
 					else
 					if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
 					{
-						let my_scale = ( 1 + 5 * this.charge / 100 );
-						let their_scale = ( 1 + 5 * unit.charge / 100 );
+						let my_scale = ( 1 + sdBaseShieldingUnit.longer_time_protected_bsu_priority * this.charge / 100 );
+						let their_scale = ( 1 + sdBaseShieldingUnit.longer_time_protected_bsu_priority * unit.charge / 100 );
 						
 						let my_matter_scaled = this.matter * my_scale; // 6 times more if charged
 						let their_matter_scaled = unit.matter * their_scale; // 6 times more if charged

@@ -186,7 +186,8 @@ class sdGun extends sdEntity
 			if ( from_entity_nonignored_classes.indexOf( 'sdGun' ) === -1 ) // Mostly it is here to prevent sword-sdArea reaction
 			return;
 			
-			if ( from_entity.is( sdCharacter ) )
+			//if ( from_entity.is( sdCharacter ) )
+			if ( from_entity.IsPlayerClass() )
 			{
 				//if ( from_entity._ignored_guns.indexOf( this ) !== -1 || from_entity.driver_of !== null )
 				if ( from_entity.IsGunIgnored( this, true ) || from_entity.driver_of !== null )
@@ -202,7 +203,7 @@ class sdGun extends sdEntity
 			
 			if ( !is_unknown )
 			if ( !sdWorld.server_config.GetHitAllowed || sdWorld.server_config.GetHitAllowed( this, from_entity ) )
-			if ( !this._dangerous_from || !from_entity.is( sdCharacter ) || !this._dangerous_from.is( sdCharacter ) || from_entity.cc_id === 0 || from_entity.cc_id !== this._dangerous_from.cc_id )
+			if ( !this._dangerous_from || !from_entity.IsPlayerClass() || !this._dangerous_from.IsPlayerClass() || from_entity.cc_id === 0 || from_entity.cc_id !== this._dangerous_from.cc_id )
 			{
 				let projectile_properties = this.GetProjectileProperties();
 
@@ -228,7 +229,7 @@ class sdGun extends sdEntity
 					
 					let mult = 1;
 					
-					if ( from_entity.is( sdCharacter ) )
+					if ( from_entity.IsPlayerClass() )
 					{
 						mult = 1.5;
 
@@ -382,6 +383,8 @@ class sdGun extends sdEntity
 		this._sound_pitch = 1;
 		this._hea = 50;
 		
+		this._unblocked_for_drones = false; // Only to prevent bug that is making server restart drop all guns of all players
+		
 		this.title_censored = 0;
 		
 		this.biometry_lock = -1;
@@ -450,7 +453,8 @@ class sdGun extends sdEntity
 				return true;
 			}
 			else
-			if ( this._held_by.is( sdCharacter ) )
+			//if ( this._held_by.is( sdCharacter ) )
+			if ( this._held_by.IsPlayerClass() )
 			{
 				// Because in else case B key won't work
 				//if ( sdGun.classes[ this.class ].is_build_gun ) Maybe it should always work better if player will know info about all of his guns. Probably that will be later used in interface anyway
@@ -749,7 +753,8 @@ class sdGun extends sdEntity
 						}
 						else
 						if ( ammo_cost > this._held_by.matter_max )
-						this._held_by.Say( 'Need matter capacity upgrade and more matter' );
+						this._held_by.Say( 'I need more score in order to have higher matter capacity' );
+						//this._held_by.Say( 'Need matter capacity upgrade and more matter' );
 						else
 						this._held_by.Say( 'Need at least ' + Math.ceil( ammo_cost - this._held_by.matter ) + ' more matter' );
 					
@@ -996,7 +1001,7 @@ class sdGun extends sdEntity
 		//if ( this._ignored_class )
 		//return [ 'sdCharacter', 'sdGun', this._ignored_class ];
 		//else
-		return [ 'sdCharacter', 'sdGun' ];
+		return [ 'sdCharacter', 'sdGun', 'sdPlayerDrone', 'sdPlayerOverlord' ];
 	}
 	
 	UpdateHolderClientSide()
@@ -1017,14 +1022,14 @@ class sdGun extends sdEntity
 				if ( old_held_by !== this._held_by )
 				{
 					if ( old_held_by )
-					if ( old_held_by.is( sdCharacter ) )
+					if ( old_held_by.IsPlayerClass() )
 					if ( old_held_by._inventory[ this.GetSlot() ] === this )
 					old_held_by._inventory[ this.GetSlot() ] = null;
 				}
 			}
 
 			if ( this._held_by )
-			if ( this._held_by.is( sdCharacter ) )
+			if ( this._held_by.IsPlayerClass() )
 			{
 				this._held_by._inventory[ this.GetSlot() ] = this;
 			}

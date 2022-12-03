@@ -194,7 +194,7 @@ class sdServerToServerProtocol
 			
 			socket.on("connect_error", (err) => 
 			{  
-				console.log(`SendData socket: connect_error due to ${err.message}`);
+				console.log(`S2SProtocolMessage :: SendData socket: connect_error due to ${err.message}`);
 			});
 	
 			socket.leaders = [];
@@ -203,7 +203,7 @@ class sdServerToServerProtocol
 		socket = sdServerToServerProtocol.outgoing_connections[ remote_server_url ];
 	
 		if ( sdWorld.server_config.log_s2s_messages )
-		trace('SendData: Working with outgoing socket: ', socket );
+		trace('S2SProtocolMessage :: SendData: Working with outgoing socket: ', socket );
 		
 		/*
 		let socket = io( 
@@ -264,7 +264,7 @@ class sdServerToServerProtocol
 				
 				if ( callback )
 				{
-					trace( 'No reply received... timeout' );
+					trace( 'S2SProtocolMessage :: No reply received... timeout' );
 					callback( null );
 					callback = null;
 				}

@@ -3018,7 +3018,7 @@ class sdEntity
 		
 			// Guns still use old pointer method
 			if ( this.GetClass() === 'sdGun' )
-			if ( this.held_by_class !== 'sdCharacter' ) // Old gun code handles it
+			if ( this.held_by_class !== 'sdCharacter' && this.held_by_class !== 'sdPlayerDrone' ) // Old gun code handles it
 			{
 				// For long-range teleportation
 				if ( sdWorld.unresolved_entity_pointers )
@@ -3943,7 +3943,7 @@ class sdEntity
 	
 		if ( this.is( sdStatusEffect ) )
 		{
-			debugger;
+			//debugger;
 			return;
 		}
 		

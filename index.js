@@ -5,6 +5,8 @@ let port0 = 3000;
 let CloudFlareSupport = false;
 let directory_to_save_player_count = null;
 
+globalThis.CATCH_HUGE_ARRAYS = true;
+
 // http://localhost:3000 + world_slot
 
 // CentOS crontab can be here: /etc/crontab
@@ -612,7 +614,7 @@ const sync_debug_path = __dirname + '/sync_debug' + ( world_slot || '' ) + '.v';
 const database_data_path_const = __dirname + '/database_data' + ( world_slot || '' ) + '.v';
 
 const censorship_file_path = __dirname + '/star_defenders_censorship.v'; 
-/* Each line is a new word/phras, separated with " // " where right part is a baddness of word/phrase. 
+/* Each line is a new word/phrase, separated with " // " where right part is a baddness of word/phrase. 
  * Right now right part is ignored and all words simply prevent messages from being sent. 
  * All messages get added spaces a the beginning and end upon lookup. 
  * 
@@ -623,6 +625,35 @@ const censorship_file_path = __dirname + '/star_defenders_censorship.v';
  :*  // 0.1
 
 */
+
+if ( globalThis.CATCH_HUGE_ARRAYS )
+{
+	const push0 = Array.prototype.push;
+	
+	const max_size = 200000; // Hopefully it is high enough for all kinds of proper worlds?
+	
+	const _Buffer = Buffer; // Store locally for least performance hit
+	
+	Array.prototype.next_panic_size = max_size;
+	
+	Array.prototype.push = function ( ...args )
+	{
+		if ( this.length + args.length > this.next_panic_size )
+		{
+			if ( args[ 0 ] instanceof _Buffer ) // Not an array of zlib buffers
+			{
+				this.next_panic_size = Infinity;
+			}
+			else
+			{
+				console.warn( 'Panic: Array at this callstack grows over the size of ' + this.next_panic_size + ' elements (it is best to look for first panic message). Size is becoming: ' + ( this.length + args.length ) + '; Next added element: ', args[ 0 ] );
+				this.next_panic_size *= 2;
+			}
+		}
+	
+		push0.call( this, ...args );
+	};
+}
 
 eval( 'sdWorld.server_config = ' + sdServerConfigFull.toString() ); // Execute while exposing same classes
 

@@ -273,6 +273,17 @@ class sdMemoryLeakSeeker
 							sdMemoryLeakSeeker.NewDetection( sdMemoryLeakSeeker.GetLocationOf( value ), value );
 						}
 						
+						if ( sdMemoryLeakSeeker.scheduled_objects.length > 1000 )
+						{
+							let cut_first_n = 0;
+							
+							while ( sdMemoryLeakSeeker.scheduled_objects[ cut_first_n ] === null && cut_first_n < sdMemoryLeakSeeker.scheduled_objects.length )
+							cut_first_n++;
+						
+							sdMemoryLeakSeeker.scheduled_objects.splice( 0, cut_first_n );
+							sdMemoryLeakSeeker.scheduled_objects_offset -= cut_first_n;
+						}
+						
 						sdMemoryLeakSeeker.scheduled_objects.push( value );
 					}
 				}
@@ -383,7 +394,8 @@ class sdMemoryLeakSeeker
 		
 		sdMemoryLeakSeeker.is_currently_executed = true;
 		{
-			const many_steps = ( sdMemoryLeakSeeker.always_do_full_cycle || sdMemoryLeakSeeker.steps_total_previously === 0 || !IsGameActive() );
+			//const many_steps = ( sdMemoryLeakSeeker.always_do_full_cycle || sdMemoryLeakSeeker.steps_total_previously === 0 || !IsGameActive() );
+			const many_steps = ( sdMemoryLeakSeeker.always_do_full_cycle || !IsGameActive() );
 			
 			const steps = many_steps ? 10000 : 5; // Will work quite slowly, like 1% percent per 10-20 seconds depending on world size. Unless all players left - then it will finish remaining cycle and won't start any new ones
 
