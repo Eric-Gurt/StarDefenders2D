@@ -856,6 +856,11 @@ class sdGun extends sdEntity
 						{
 							break;
 						}
+					
+						if ( projectile_properties._knock_scale !== undefined && isNaN( projectile_properties._knock_scale ) ) // Happened in one case it looks like, related to indefinitely bad recoil bug
+						{
+							break;
+						}
 						
 						if ( spread > 0 && count > 0 )
 						vel *= ( 1 - Math.random() * 0.15 );
