@@ -8,8 +8,11 @@ class sdAsteroid extends sdEntity
 {
 	static init_class()
 	{
+		sdAsteroid.img_asteroid = sdWorld.CreateImageFromFile( 'asteroid_sheet' );
+		/*
 		sdAsteroid.img_asteroid = sdWorld.CreateImageFromFile( 'asteroid' );
 		sdAsteroid.img_asteroid_landed = sdWorld.CreateImageFromFile( 'asteroid_landed' );
+		*/
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -162,12 +165,14 @@ class sdAsteroid extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		var image = this.landed ? sdAsteroid.img_asteroid_landed : sdAsteroid.img_asteroid;
+		var xx = this.landed ? 1 : 0;
+		//var image = this.landed ? sdAsteroid.img_asteroid_landed : sdAsteroid.img_asteroid;
 		
 		if ( !sdShop.isDrawing )
 		ctx.rotate( this._an );
 
-		ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
+		ctx.drawImageFilterCache( sdAsteroid.img_asteroid, xx * 32, 0, 32,32, -16, -16, 32,32 );
+		//ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
 	}
 	MeasureMatterCost()
 	{
