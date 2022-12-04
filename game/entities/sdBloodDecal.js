@@ -6,6 +6,7 @@ import sdBlock from './sdBlock.js';
 import sdEffect from './sdEffect.js';
 import sdBG from './sdBG.js';
 import sdTimer from './sdTimer.js';
+import sdRoach from './sdRoach.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -19,6 +20,13 @@ class sdBloodDecal extends sdEntity
 		sdBloodDecal.img_blood_decal_green = sdWorld.CreateImageFromFile( 'blood_decal_green' );
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
+	}
+	
+	static GetRoachSpawnRate()
+	{
+		//return 5000; // Hack
+		
+		return 1000 * 60 * 60 * ( 4 + Math.random() * 20 ); // Each 4 hours or once a 24 hour, randomly
 	}
 
 	get hitbox_x1() { return 0; }
@@ -61,6 +69,11 @@ class sdBloodDecal extends sdEntity
 		}
 		
 		return null;
+	}
+	
+	static IsRoachFilter( ent )
+	{
+		return ent.is( sdRoach );
 	}
 	
 	constructor( params )
@@ -118,6 +131,49 @@ class sdBloodDecal extends sdEntity
 			}
 
 		}, 1000 );
+		
+		// Will be cancelled on removal because there can be way too many of them at some point. In this case you might want to improve Cancel function logic on sdTimer object
+		this._roach_spawn_timer = null;
+		
+		// Each hour
+		if ( sdWorld.is_server )
+		{
+			this._roach_spawn_timer = sdTimer.ExecuteWithDelay( ( timer )=>{
+
+				if ( this._is_being_removed )
+				{
+					// Done
+					this._roach_spawn_timer = null;
+				}
+				else
+				{
+					let ent = new sdRoach({ x: this.x + this._hitbox_x2 / 2, y: this.y + this._hitbox_y2 / 2 });
+					sdEntity.entities.push( ent );
+					
+					if ( !ent.CanMoveWithoutOverlap( ent.x, ent.y ) )
+					{
+						ent.remove();
+						ent._broken = false;
+					}
+					else
+					{
+						let ents = sdWorld.GetAnythingNear( ent.x, ent.y, 128, null, null, sdBloodDecal.IsRoachFilter );
+						if ( ents.length > 22 )
+						{
+							ent.remove();
+							ent._broken = false;
+						}
+						else
+						{
+							ent.UpdateHashPosition( ent, false ); // Prevent inersection with other ones
+						}
+					}
+					
+					this._roach_spawn_timer = timer.ScheduleAgain( sdBloodDecal.GetRoachSpawnRate() );
+				}
+
+			}, sdBloodDecal.GetRoachSpawnRate() );
+		}
 		
 		this.UpdateHitbox();
 	}
@@ -278,6 +334,12 @@ class sdBloodDecal extends sdEntity
 	}
 	onRemove() // Class-specific, if needed
 	{
+		if ( this._roach_spawn_timer )
+		{
+			this._roach_spawn_timer.Cancel();
+			this._roach_spawn_timer = null;
+		}
+		
 		if ( this._bg )
 		{
 			if ( !this._bg._is_being_removed )

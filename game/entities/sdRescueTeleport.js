@@ -98,12 +98,16 @@ class sdRescueTeleport extends sdEntity
 							
 							if ( suits )
 							{
-								is_suitable[ i2 ] = suits;
-								any_is_suitable = true;
-								
-								if ( !is_deeply_within_range )
-								if ( sdWorld.inDist2D_Boolean( rtp.x, rtp.y, character.x, character.y, range - 500 ) )
-								is_deeply_within_range = true;
+								let t = rtp;
+								if ( sdWorld.CheckLineOfSight( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - character._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - character._hitbox_y2 - 12, t, null, sdCom.com_vision_blocking_classes ) )
+								{
+									is_suitable[ i2 ] = suits;
+									any_is_suitable = true;
+
+									if ( !is_deeply_within_range )
+									if ( sdWorld.inDist2D_Boolean( rtp.x, rtp.y, character.x, character.y, range - 500 ) )
+									is_deeply_within_range = true;
+								}
 							}
 						}
 						
@@ -115,7 +119,7 @@ class sdRescueTeleport extends sdEntity
 							sdTask.MakeSureCharacterHasTask({ 
 								similarity_hash:'RTP-HINT', 
 								executer: character,
-								mission: sdTask.MISSION_RTP_HINT,
+								mission: sdTask.MISSION_GAMEPLAY_HINT,
 								title: 'Rescue Teleport signal is weak',
 								description: 'You are likely leaving effective range of your Rescue Teleport.'
 							});
@@ -126,7 +130,7 @@ class sdRescueTeleport extends sdEntity
 							sdTask.MakeSureCharacterHasTask({ 
 								similarity_hash:'RTP-HINT', 
 								executer: character,
-								mission: sdTask.MISSION_RTP_HINT,
+								mission: sdTask.MISSION_GAMEPLAY_HINT,
 								title: 'Rescue Teleport required',
 								description: 'You\'ll need a Rescue Teleport to keep your chances of survival high! You\'ll need matter from crystals to both build and charge it. Use Build Tool (B key) to build.'
 							});
@@ -134,7 +138,7 @@ class sdRescueTeleport extends sdEntity
 							sdTask.MakeSureCharacterHasTask({ 
 								similarity_hash:'RTP-HINT', 
 								executer: character,
-								mission: sdTask.MISSION_RTP_HINT,
+								mission: sdTask.MISSION_GAMEPLAY_HINT,
 								title: 'Rescue Teleport signal lost',
 								description: 'Signal with your Rescue Teleport has been lost.'
 							});

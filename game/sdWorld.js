@@ -3092,11 +3092,11 @@ class sdWorld
 		}
 		return from;
 	}
-	static ColorArrayToHex( color )
+	static ColorArrayToHex( color ) // RGBtohex
 	{
-		color[ 0 ] = Math.min( Math.max( 0, color[ 0 ] ), 255 );
-		color[ 1 ] = Math.min( Math.max( 0, color[ 1 ] ), 255 );
-		color[ 2 ] = Math.min( Math.max( 0, color[ 2 ] ), 255 );
+		color[ 0 ] = Math.min( Math.max( 0, ~~color[ 0 ] ), 255 );
+		color[ 1 ] = Math.min( Math.max( 0, ~~color[ 1 ] ), 255 );
+		color[ 2 ] = Math.min( Math.max( 0, ~~color[ 2 ] ), 255 );
 		
 		color[ 0 ] = color[ 0 ].toString( 16 );
 		if ( color[ 0 ].length < 2 )

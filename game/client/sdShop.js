@@ -672,6 +672,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SAND, _category:'Development tests' }); // Currently does nothing for now, perhaps for more lore-related stuff in this game?
 			sdShop.options.push({ _class: 'sdGib', class:sdGib.CLASS_VELOX_MECH_HEAD, _category:'Development tests' }); // Currently does nothing for now, perhaps for more lore-related stuff in this game?
 			sdShop.options.push({ _class: 'sdMimic', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdRoach', _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });

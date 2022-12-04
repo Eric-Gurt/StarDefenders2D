@@ -1580,6 +1580,21 @@ class sdCharacter extends sdEntity
 			
 			this.ApplyServerSidePositionAndVelocity( true, 0, 0 );
 			
+			
+			let stack = globalThis.getStackTrace();
+			let x_expected = this.x;
+			let y_expected = this.y;
+			
+			// Detect improper movement while RTP-ing
+			setTimeout( ()=>
+			{
+				if ( Math.abs( this.x - x_expected ) > 100 ||
+					 Math.abs( this.y - y_expected ) > 100 )
+				{
+					console.warn( 'Found offset shift right after RTP call (offset: '+(this.x - x_expected)+', '+( this.y - y_expected )+'). Callstack of this happy event is following: ' + stack );
+				}
+			}, 0 );
+			
 			setTimeout( ()=>
 			{
 				if ( this.hea > 0 )
@@ -3411,7 +3426,7 @@ class sdCharacter extends sdEntity
 			//this._last_act_y = this.act_y;
 		}
 		
-		let can_breathe = ( sdWeather.only_instance.air > 0 ) || ( this.driver_of && this.driver_of.VehicleHidesDrivers() );
+		let can_breathe = ( sdWeather.only_instance.air > 0 ) || ( this.driver_of && this.driver_of.VehicleHidesDrivers() ) || ( this._score < 100 );
 		
 		if ( !can_breathe )
 		{
@@ -3612,14 +3627,23 @@ class sdCharacter extends sdEntity
 		if ( can_breathe )
 		{
 			if ( this.air < sdCharacter.air_max )
-			this.air = Math.min( sdCharacter.air_max, this.air + GSPEED * 3 );
+			this.air = Math.min( sdCharacter.air_max, this.air + GSPEED * 5 );
 		}
 		else
 		{
 			if ( this.air > 0 )
 			{
 				this.air = Math.max( 0, this.air - ( GSPEED ) );
-				//this.air = Math.max( 0, this.air - ( GSPEED / this._air_upgrade ) );
+				
+				//if ( this.air < 0.5 )
+				if ( !in_water )
+				sdTask.MakeSureCharacterHasTask({ 
+						similarity_hash:'NO-AIR-HINT', 
+						executer: this,
+						mission: sdTask.MISSION_GAMEPLAY_HINT,
+						title: 'No oxygen',
+						description: 'Enter vehicle or stay near charged and activated Base Shielding Unit.'
+					});
 			}
 			else
 			{
@@ -4138,7 +4162,8 @@ class sdCharacter extends sdEntity
 		{
 			if ( this.stands || this._in_water || this.flying || ( this.hook_relative_to && sdWorld.Dist2D_Vector( this.sx, this.sy ) < 2 ) || this._god )
 			{
-				if ( fake_ent.CanMoveWithoutOverlap( fake_ent.x, fake_ent.y, 0.00001 ) ) // Very small so entity's velocity can be enough to escape this overlap
+				//if ( fake_ent.CanMoveWithoutOverlap( fake_ent.x, fake_ent.y, 0.00001 ) ) // Very small so entity's velocity can be enough to escape this overlap
+				if ( fake_ent.CanMoveWithoutOverlap( fake_ent.x, fake_ent.y, 0 ) )
 				{
 					if ( fake_ent.IsEarlyThreat() )
 					//if ( fake_ent.is( sdTurret ) || fake_ent.is( sdCom ) || fake_ent.is( sdBarrel ) || fake_ent.is( sdBomb ) || ( fake_ent.is( sdBlock ) && fake_ent.material === sdBlock.MATERIAL_SHARP ) )

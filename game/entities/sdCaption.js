@@ -142,23 +142,11 @@ class sdCaption extends sdEntity
 			{
 				if ( parameters_array[ 0 ].length < 100 )
 				{
-					/*if ( sdWorld.time < executer_socket.muted_until )
-					{
-						executer_socket.SDServiceMessage( 'Rejected by censorship filter' );
-					}
-					else
-					if ( sdModeration.IsPhraseBad( parameters_array[ 0 ], executer_socket ) )
-					{
-						executer_socket.SDServiceMessage( 'Rejected by censorship filter' );
-					}
-					else*/
-					{
-						this.text = parameters_array[ 0 ];
-						this.text_censored = sdModeration.IsPhraseBad( parameters_array[ 0 ], executer_socket );
+					this.text = parameters_array[ 0 ];
+					this.text_censored = sdModeration.IsPhraseBad( parameters_array[ 0 ], executer_socket );
 
-						this._update_version++;
-						executer_socket.SDServiceMessage( 'Text updated' );
-					}
+					this._update_version++;
+					executer_socket.SDServiceMessage( 'Text updated' );
 				}
 				else
 				executer_socket.SDServiceMessage( 'Text appears to be too long' );

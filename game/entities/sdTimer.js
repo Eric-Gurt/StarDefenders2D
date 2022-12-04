@@ -88,7 +88,11 @@ class sdTimer
 	{
 		let expire_on = sdWorld.time + delay;
 		
-		sdTimer.InsertExistingTimer( new sdTimer( f, expire_on ) );
+		let t = new sdTimer( f, expire_on );
+		
+		sdTimer.InsertExistingTimer( t );
+		
+		return t;
 	}
 	
 	static ThinkNow()
@@ -101,6 +105,7 @@ class sdTimer
 			{
 				sdTimer.sorted_timeouts.shift();
 				
+				if ( timer.function )
 				timer.function( timer );
 			}
 			else
@@ -120,6 +125,12 @@ class sdTimer
 		this.expire_on = sdWorld.time + delay;
 		
 		sdTimer.InsertExistingTimer( this );
+		
+		return this;
+	}
+	Cancel()
+	{
+		this.function = null;
 	}
 }
 

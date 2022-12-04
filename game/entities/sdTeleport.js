@@ -1,10 +1,13 @@
 
+/* global sdShop, FakeCanvasContext */
+
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdCom from './sdCom.js';
 import sdCable from './sdCable.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';

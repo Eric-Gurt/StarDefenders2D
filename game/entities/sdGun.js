@@ -844,15 +844,6 @@ class sdGun extends sdEntity
 
 					for ( let i = 0; i < count; i++ )
 					{
-						//let offset = this._held_by.GetBulletSpawnOffset();
-						
-						let bullet_obj = new sdBullet({ x: this._held_by.x + offset.x, y: this._held_by.y + offset.y });
-						bullet_obj._owner = this._held_by;
-						
-						bullet_obj._gun = this;
-
-						let an = initial_an + ( Math.random() * 2 - 1 ) * spread;
-						
 						let vel = sdGun.default_projectile_velocity;
 						
 						if ( sdGun.classes[ this.class ].projectile_velocity_dynamic )
@@ -861,12 +852,20 @@ class sdGun extends sdEntity
 						if ( sdGun.classes[ this.class ].projectile_velocity )
 						vel = sdGun.classes[ this.class ].projectile_velocity;
 						
-						if ( spread > 0 && count > 0 )
+						if ( isNaN( vel ) ) // Happened in one case it looks like, related to indefinitely bad recoil bug
 						{
-							vel *= ( 1 - Math.random() * 0.15 );
+							break;
 						}
 						
-						//an += bullet_obj._owner._side * bullet_obj._owner._recoil;
+						if ( spread > 0 && count > 0 )
+						vel *= ( 1 - Math.random() * 0.15 );
+						
+						let bullet_obj = new sdBullet({ x: this._held_by.x + offset.x, y: this._held_by.y + offset.y });
+						bullet_obj._owner = this._held_by;
+						
+						bullet_obj._gun = this;
+
+						let an = initial_an + ( Math.random() * 2 - 1 ) * spread;
 						
 						bullet_obj.sx = Math.sin( an ) * vel;
 						bullet_obj.sy = Math.cos( an ) * vel;

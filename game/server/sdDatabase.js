@@ -188,7 +188,25 @@ class sdDatabase
 	static Save()
 	{
 		if ( sdDatabase.is_local )
-		fs.writeFile( sdWorld.database_data_path_const, JSON.stringify( sdDatabase.data ), ( err )=>{});
+		{
+			fs.writeFile( sdWorld.database_data_path_const + 'bac.v', JSON.stringify( sdDatabase.data ), ( err )=>{
+				
+				if ( err )
+				{
+					console.warn( 'Unable to save database to a backup file' );
+				}
+				else
+				fs.rename( sdWorld.database_data_path_const + 'bac.v', sdWorld.database_data_path_const, ( err )=>
+				{
+					if ( err )
+					{
+						console.warn( 'Unable to move saved database from a backup file to sdWorld.database_data_path_const' );
+					}
+				});
+
+			});
+			
+		}
 	}
 	static Exec( request_object, callback=null ) // Maybe in order to stack requests will be able to pass arrays of objects instead of just object for request_object
 	{

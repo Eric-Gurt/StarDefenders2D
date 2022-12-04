@@ -24,12 +24,18 @@ class sdTask extends sdEntity
 		sdTask.APPEARANCE_HINT_POINT = 3;
 		sdTask.APPEARANCE_GET_ITEM = 4;
 		
+		sdTask.COLOR_NOTIFICATION = '#aaffaa';
+		sdTask.COLOR_WARNING = ()=>{ return sdWorld.time % 2000 < 1000 ? '#ffff77' : '#dddd33'; };
+		sdTask.COLOR_ALERT = ()=>{ return sdWorld.time % 2000 < 1000 ? '#ff7777' : '#ff3333'; };
+		
 		sdTask.missions = [];
 		
 		let id = 0;
 		sdTask.missions[ sdTask.MISSION_NO_MISSION = id++ ] = 
 		{
 			appearance: sdTask.APPEARANCE_STARRED,
+	
+			task_title_color: sdTask.COLOR_NOTIFICATION,
 	
 			onTaskMade: ( task, params )=>
 			{
@@ -74,6 +80,8 @@ class sdTask extends sdEntity
 		{
 			appearance: sdTask.APPEARANCE_ATTACK_POINT,
 	
+			task_title_color: sdTask.COLOR_WARNING,
+	
 			GetDefaultTitle: ( task )=>{
 				return 'Eliminate';
 			},
@@ -105,6 +113,8 @@ class sdTask extends sdEntity
 		{
 			appearance: sdTask.APPEARANCE_HINT_POINT,
 	
+			task_title_color: sdTask.COLOR_NOTIFICATION,
+	
 			GetDefaultTitle: ( task )=>{
 				return 'Track';
 			},
@@ -128,6 +138,8 @@ class sdTask extends sdEntity
 		sdTask.missions[ sdTask.MISSION_TASK_CLAIM_REWARD = id++ ] = 
 		{
 			appearance: sdTask.APPEARANCE_NOTHING,
+	
+			task_title_color: sdTask.COLOR_NOTIFICATION,
 	
 			GetDefaultTitle: ( task )=>{
 				return 'Claim rewards';
@@ -158,6 +170,8 @@ class sdTask extends sdEntity
 		sdTask.missions[ sdTask.MISSION_LRTP_EXTRACTION = id++ ] = 
 		{
 			appearance: sdTask.APPEARANCE_GET_ITEM,
+	
+			task_title_color: sdTask.COLOR_NOTIFICATION,
 	
 			onTaskMade: ( task, params )=>
 			{
@@ -294,6 +308,8 @@ class sdTask extends sdEntity
 		{
 			appearance: sdTask.APPEARANCE_NOTHING,
 	
+			task_title_color: sdTask.COLOR_WARNING,
+	
 			completion_condition: ( task )=>
 			{
 				return false;
@@ -304,10 +320,12 @@ class sdTask extends sdEntity
 				task.remove();
 			}
 		};
-		sdTask.missions[ sdTask.MISSION_RTP_HINT = id++ ] = 
+		sdTask.missions[ sdTask.MISSION_GAMEPLAY_HINT = id++ ] = 
 		{
 			appearance: sdTask.APPEARANCE_NOTHING,
 			hide_time_left: true,
+	
+			task_title_color: sdTask.COLOR_ALERT,
 	
 			completion_condition: ( task )=>
 			{
@@ -345,6 +363,7 @@ class sdTask extends sdEntity
 	
 		for ( let i = 0; i < sdTask.tasks.length; i++ )
 		if ( sdTask.tasks[ i ]._executer === params.executer )
+		if ( !sdTask.tasks[ i ]._is_being_removed )
 		{
 			if ( sdTask.tasks[ i ]._similarity_hash === params.similarity_hash )
 			{
@@ -357,6 +376,7 @@ class sdTask extends sdEntity
 				{
 					sdTask.tasks[ i ].title = params.title;
 					sdTask.tasks[ i ]._update_version++;
+					sdTask.tasks[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 				}
 			
 				if ( typeof params.description !== 'undefined' )
@@ -364,10 +384,17 @@ class sdTask extends sdEntity
 				{
 					sdTask.tasks[ i ].description = params.description;
 					sdTask.tasks[ i ]._update_version++;
+					sdTask.tasks[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 				}
 
 				if ( typeof params.time_left !== 'undefined' )
-				sdTask.tasks[ i ].time_left = Math.max( sdTask.tasks[ i ].time_left, params.time_left );
+				{
+					sdTask.tasks[ i ].time_left = Math.max( sdTask.tasks[ i ].time_left, params.time_left );
+					sdTask.tasks[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					
+					//if ( sdTask.tasks[ i ].time_left === -1 )
+					//debugger;
+				}
 
 				return false;
 			}
@@ -446,15 +473,17 @@ class sdTask extends sdEntity
 				if ( mission.onTaskMade )
 				mission.onTaskMade( this, params );
 			
-				this.title = mission.GetDefaultTitle( this );
-				this.description = mission.GetDefaultDescription( this );
-				this.time_left = mission.GetDefaultTimeLeft( this );
+				this.title = mission.GetDefaultTitle ? mission.GetDefaultTitle( this ) : 'Untitled task';
+				this.description = mission.GetDefaultDescription ? mission.GetDefaultDescription( this ) : '';
+				this.time_left = mission.GetDefaultTimeLeft ? mission.GetDefaultTimeLeft( this ) : -1;
 			}
 			catch( e ) 
 			{
-				this.title = 'Error at title';
-				this.description = 'Error at description';
+				this.title = 'Error during mission construction';
+				this.description = 'Error during mission construction';
 				this.time_left = -1;
+				
+				trace( 'sdTask construction error in mission functions. params:', params );
 			}
 		}
 		
@@ -466,6 +495,10 @@ class sdTask extends sdEntity
 	
 		if ( params.time_left !== undefined )
 		this.time_left = params.time_left;
+	
+		if ( this.mission === sdTask.MISSION_GAMEPLAY_HINT )
+		if ( this.time_left === -1 )
+		debugger;
 		
 		if ( this._target )
 		{
@@ -743,6 +776,18 @@ class sdTask extends sdEntity
 	{
 		if ( sdRenderer.show_leader_board === 0 || sdRenderer.show_leader_board === 2 )
 		return;
+	
+		let mission = sdTask.missions[ this.mission ];
+		
+		if ( !mission )
+		{
+			return;
+		}
+		
+		let task_title_color = mission.task_title_color || sdTask.COLOR_NOTIFICATION;
+		
+		if ( task_title_color instanceof Function )
+		task_title_color = task_title_color();
 
 		ctx.font = 11*scale + "px Verdana";
 		
@@ -778,7 +823,7 @@ class sdTask extends sdEntity
 		};
 		
 		ctx.globalAlpha = 1;
-		ctx.fillStyle = '#aaffaa';
+		ctx.fillStyle = task_title_color; // '#aaffaa';
 		PutMultilineText( this.title );
 		
 		ctx.globalAlpha = 0.5;
@@ -792,7 +837,7 @@ class sdTask extends sdEntity
 		}
 		
 		if ( this.time_left !== -1 )
-		if ( sdTask.missions[ this.mission ].hide_time_left !== true )
+		if ( mission.hide_time_left !== true )
 		{
 			ctx.globalAlpha = 1;
 			ctx.fillStyle = '#ffff00';
