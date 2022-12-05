@@ -52,34 +52,58 @@ class sdTimer
 			insert_at = sdTimer.sorted_timeouts.length;
 			else
 			{
-				let from = 0;
-				let to = sdTimer.sorted_timeouts.length - 1;
+				let speed = 0.5;
 				
-				// 0...6, insert_at = ( 0 + 6 - 1 ) / 2 = 5 / 2 = 2.5 ~~ == 2
+				let step = sdTimer.sorted_timeouts.length + 1;
 				
-				do
+				insert_at = ~~( step * speed );
+				
+				while ( true )
 				{
-					insert_at = ~~( ( from + to ) / 2 );
-					
-					if ( expire_on === sdTimer.sorted_timeouts[ insert_at ].expire_on )
+					step = Math.max( 1, ~~( step * 0.5 ) );
+
+					if ( expire_on <= sdTimer.sorted_timeouts[ insert_at     ].expire_on &&
+						 expire_on >= sdTimer.sorted_timeouts[ insert_at - 1 ].expire_on )
 					{
 						break;
 					}
 					else
-					if ( expire_on < sdTimer.sorted_timeouts[ insert_at ].expire_on )
 					{
-						to = insert_at;
+						if ( expire_on > sdTimer.sorted_timeouts[ insert_at     ].expire_on )
+						{
+							insert_at += step;
+							
+							if ( insert_at >= sdTimer.sorted_timeouts.length - 1 )
+							insert_at = sdTimer.sorted_timeouts.length - 1;
+						}
+						else
+						if ( expire_on < sdTimer.sorted_timeouts[ insert_at - 1 ].expire_on )
+						{
+							insert_at -= step;
+							
+							if ( insert_at <= 1 )
+							insert_at = 1;
+						}
+						else
+						throw new Error();
 					}
-					else
-					{
-						from = insert_at + 1;
-					}
-					
-				} while( to !== from );
-				
-				insert_at = to;
+				}
 			}
 		}
+		
+		//if ( sdTimer.sorted_timeouts.length > 1 )
+		//trace( 'inserting ' + 'RELATIVE' + ' at ' + Math.round(insert_at/sdTimer.sorted_timeouts.length*100) + '% on array ' + (sdTimer.sorted_timeouts[ 0 ].expire_on-timer.expire_on) + ' ... ' + (sdTimer.sorted_timeouts[ sdTimer.sorted_timeouts.length - 1 ].expire_on-timer.expire_on) );
+		
+		/*if ( sdTimer.sorted_timeouts.length > 0 )
+		{
+			if ( insert_at - 1 >= 0 )
+			if ( sdTimer.sorted_timeouts[ insert_at - 1 ].expire_on > expire_on )
+			throw new Error();
+
+			if ( insert_at < sdTimer.sorted_timeouts.length )
+			if ( sdTimer.sorted_timeouts[ insert_at ].expire_on < expire_on )
+			throw new Error();
+		}*/
 		
 		sdTimer.sorted_timeouts.splice( insert_at, 0, timer );
 	}
