@@ -680,10 +680,12 @@ class sdCube extends sdEntity
 				}
 			}
 			
-			this.MatterGlow( 0.01, 30, GSPEED );
+			this.MatterGlow( 0.01, 30, GSPEED ); // Glow + cables
 		}
 		else
 		{
+			this.MatterGlow( 0.01, 0, GSPEED ); // Only through cables
+			
 			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.87, GSPEED );
 			this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.87, GSPEED );
 			
