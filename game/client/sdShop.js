@@ -648,6 +648,10 @@ class sdShop
 			sdShop.options.push({ _class: 'sdDrone', type: 3, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdDrone', type: 4,_ai_team: 4, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdDrone', type: 5,_ai_team: 4, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdDrone', type: 6, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdDrone', type: 7, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdDrone', type: 8, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdDrone', type: 9, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdLost', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_LOST_CONVERTER, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_CABLE_TOOL, _category:'Development tests' });
