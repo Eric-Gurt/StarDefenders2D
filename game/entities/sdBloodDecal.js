@@ -165,7 +165,7 @@ class sdBloodDecal extends sdEntity
 						}
 						else
 						{
-							ent.UpdateHashPosition( ent, false ); // Prevent inersection with other ones
+							sdWorld.UpdateHashPosition( ent, false ); // Prevent inersection with other ones
 						}
 					}
 					
