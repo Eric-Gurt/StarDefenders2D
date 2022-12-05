@@ -20,15 +20,25 @@ class sdDrone extends sdEntity
 {
 	static init_class()
 	{
+		sdDrone.img_drone_falkok = sdWorld.CreateImageFromFile( 'drone_falkok_sprite' );
+		sdDrone.img_drone_erthal = sdWorld.CreateImageFromFile( 'drone_erthal' );
+
+		/*
 		sdDrone.img_drone_falkok = sdWorld.CreateImageFromFile( 'drone_falkok' );
 		sdDrone.img_drone_falkok_attack = sdWorld.CreateImageFromFile( 'drone_falkok_attack' );
 		sdDrone.img_drone_falkok_destroyed = sdWorld.CreateImageFromFile( 'drone_falkok_destroyed' );
+		*/
 
+		// Maybe we should make sprite sheets too for "sdPlayerDrone"s? - Molis
 		sdDrone.img_drone_robot = sdWorld.CreateImageFromFile( 'drone_robot2' );
 		sdDrone.img_drone_robot_attack = sdWorld.CreateImageFromFile( 'drone_robot_attack2' );
 		sdDrone.img_drone_robot_destroyed = sdWorld.CreateImageFromFile( 'drone_robot_destroyed2' );
 		sdDrone.img_drone_robot_hurt = sdWorld.CreateImageFromFile( 'drone_robot_hurt' );
 
+		sdDrone.img_drone_alien = sdWorld.CreateImageFromFile( 'drone_alien_sprite' );
+		sdDrone.img_drone_alien2 = sdWorld.CreateImageFromFile( 'drone_alien2_sprite' );
+
+		/*
 		sdDrone.img_drone_alien = sdWorld.CreateImageFromFile( 'drone_alien' );
 		sdDrone.img_drone_alien_attack = sdWorld.CreateImageFromFile( 'drone_alien_attack' );
 		sdDrone.img_drone_alien_destroyed = sdWorld.CreateImageFromFile( 'drone_alien_destroyed' );
@@ -37,11 +47,19 @@ class sdDrone extends sdEntity
 		sdDrone.img_drone_alien2 = sdWorld.CreateImageFromFile( 'drone_alien2' );
 		sdDrone.img_drone_alien2_attack = sdWorld.CreateImageFromFile( 'drone_alien2_attack' );
 		sdDrone.img_drone_alien2_destroyed = sdWorld.CreateImageFromFile( 'drone_alien2_destroyed' );
+		*/
 
 		sdDrone.img_drone_alien3 = sdWorld.CreateImageFromFile( 'drone_alien3' );
 		//sdDrone.img_drone_alien3_attack = sdWorld.CreateImageFromFile( 'drone_alien3_attack' );
 		//sdDrone.img_drone_alien3_destroyed = sdWorld.CreateImageFromFile( 'drone_alien3_destroyed' );
 
+		sdDrone.img_drone_council = sdWorld.CreateImageFromFile( 'drone_council_sprite' );
+		sdDrone.img_drone_setr = sdWorld.CreateImageFromFile( 'drone_setr_sprite' );
+
+		sdDrone.img_drone_tzyrg = sdWorld.CreateImageFromFile( 'drone_tzyrg_sprite' ); // By floor/flora
+		sdDrone.img_drone_tzyrg2 = sdWorld.CreateImageFromFile( 'drone_tzyrg2_sprite' ); // By floor/flora
+
+		/*
 		sdDrone.img_drone_council = sdWorld.CreateImageFromFile( 'drone_council' );
 		sdDrone.img_drone_council_attack = sdWorld.CreateImageFromFile( 'drone_council_attack' );
 		sdDrone.img_drone_council_destroyed = sdWorld.CreateImageFromFile( 'drone_council_destroyed' );
@@ -58,6 +76,7 @@ class sdDrone extends sdEntity
 		sdDrone.img_drone_tzyrg2 = sdWorld.CreateImageFromFile( 'drone_tzyrg2' ); // By floor / flora
 		sdDrone.img_drone_tzyrg2_attack = sdWorld.CreateImageFromFile( 'drone_tzyrg2_attack' ); // By floor / flora
 		sdDrone.img_drone_tzyrg2_destroyed = sdWorld.CreateImageFromFile( 'drone_tzyrg2_destroyed' ); // By floor / flora
+		*/
 		
 		sdDrone.death_duration = 15;
 		sdDrone.post_death_ttl = 30 * 10;
@@ -1029,6 +1048,8 @@ class sdDrone extends sdEntity
 		ctx.apply_shading = false;
 		
 		//ctx.filter = this.filter;
+
+		let xx = 0;
 		
 		ctx.scale( -this.side, 1 );
 		ctx.rotate( this.attack_an / 100 );
@@ -1045,7 +1066,9 @@ class sdDrone extends sdEntity
 			{
 				ctx.globalAlpha = 0.5;
 			}
-			if ( this.type === sdDrone.DRONE_FALKOK )
+			if ( this.type !== -1 )
+			xx = 2;
+			/*if ( this.type === sdDrone.DRONE_FALKOK )
 			ctx.drawImageFilterCache( sdDrone.img_drone_falkok_destroyed, - 16, - 16, 32, 32 );
 			if ( this.type === sdDrone.DRONE_ERTHAL )
 			ctx.drawImageFilterCache( sdDrone.img_drone_robot_destroyed, - 16, - 16, 32, 32 );
@@ -1060,13 +1083,15 @@ class sdDrone extends sdEntity
 			if ( this.type === sdDrone.DRONE_TZYRG )
 			ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg_destroyed, - 16, - 16, 32, 32 );
 			if ( this.type === sdDrone.DRONE_TZYRG_WATCHER )
-			ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg2_destroyed, - 32, - 32, 64, 64 );
+			ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg2_destroyed, - 32, - 32, 64, 64 );*/
 		}
 		else
 		{
 			if ( this.attack_frame >= 1 )
 			{
-				if ( this.type === sdDrone.DRONE_FALKOK )
+				if ( this.type !== -1 )
+				xx = 1;
+				/*if ( this.type === sdDrone.DRONE_FALKOK )
 				ctx.drawImageFilterCache( sdDrone.img_drone_falkok_attack, - 16, - 16, 32, 32 );
 				if ( this.type === sdDrone.DRONE_ERTHAL )
 				ctx.drawImageFilterCache( sdDrone.img_drone_robot_attack, - 16, - 16, 32, 32 );
@@ -1081,35 +1106,62 @@ class sdDrone extends sdEntity
 				if ( this.type === sdDrone.DRONE_TZYRG )
 				ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg_attack, - 16, - 16, 32, 32 );
 				if ( this.type === sdDrone.DRONE_TZYRG_WATCHER )
-				ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg2_attack, - 32, - 32, 64, 64 );
+				ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg2_attack, - 32, - 32, 64, 64 );*/
 			}
 			else
 			{
-				if ( this.type === sdDrone.DRONE_FALKOK )
-				ctx.drawImageFilterCache( sdDrone.img_drone_falkok, - 16, - 16, 32, 32 );
+				if ( this.type !== 0 )
+				xx = 0;
+				/*ctx.drawImageFilterCache( sdDrone.img_drone_falkok, - 16, - 16, 32, 32 );
 				if ( this.type === sdDrone.DRONE_SARRORIAN )
 				ctx.drawImageFilterCache( sdDrone.img_drone_alien, - 16, - 16, 32, 32 );
 				if ( this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER )
-				ctx.drawImageFilterCache( sdDrone.img_drone_alien2, - 16, - 16, 32, 32 );
+				ctx.drawImageFilterCache( sdDrone.img_drone_alien2, - 16, - 16, 32, 32 );*/
 				if ( this.type === sdDrone.DRONE_SARRORIAN_DETONATOR )
 				ctx.drawImageFilterCache( sdDrone.img_drone_alien3, - 16, - 16, 32, 32 );
-				if ( this.type === sdDrone.DRONE_COUNCIL )
+				/*if ( this.type === sdDrone.DRONE_COUNCIL )
 				ctx.drawImageFilterCache( sdDrone.img_drone_council, - 16, - 16, 32, 32 );
 				if ( this.type === sdDrone.DRONE_SETR )
 				ctx.drawImageFilterCache( sdDrone.img_drone_setr, - 16, - 16, 32, 32 );
 				if ( this.type === sdDrone.DRONE_TZYRG )
 				ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg, - 16, - 16, 32, 32 );
 				if ( this.type === sdDrone.DRONE_TZYRG_WATCHER )
-				ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg2, - 32, - 32, 64, 64 );
+				ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg2, - 32, - 32, 64, 64 );*/
 				if ( this.type === sdDrone.DRONE_ERTHAL )
 				{
 					if ( this.hurt_timer > 0 )
-					ctx.drawImageFilterCache( sdDrone.img_drone_robot_hurt, - 16, - 16, 32, 32 );
+					xx = 3;
+					//ctx.drawImageFilterCache( sdDrone.img_drone_robot_hurt, - 16, - 16, 32, 32 );
 					else
-					ctx.drawImageFilterCache( sdDrone.img_drone_robot, - 16, - 16, 32, 32 );
+					xx = 0;
+					//ctx.drawImageFilterCache( sdDrone.img_drone_robot, - 16, - 16, 32, 32 );
 				}
 			}
 		}
+		// Bleh - Molis
+		if ( this.type === sdDrone.DRONE_FALKOK )
+		ctx.drawImageFilterCache( sdDrone.img_drone_falkok, xx * 32, 0, 32,32, -16, -16, 32,32 );
+
+		if ( this.type === sdDrone.DRONE_ERTHAL )
+		ctx.drawImageFilterCache( sdDrone.img_drone_erthal, xx * 32, 0, 32,32, -16, -16, 32,32 );
+
+		if ( this.type === sdDrone.DRONE_SARRORIAN )
+		ctx.drawImageFilterCache( sdDrone.img_drone_alien, xx * 32, 0, 32,32, -16, -16, 32,32 );
+
+		if ( this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER )
+		ctx.drawImageFilterCache( sdDrone.img_drone_alien2, xx * 32, 0, 32,32, -16, -16, 32,32 );
+
+		if ( this.type === sdDrone.DRONE_COUNCIL )
+		ctx.drawImageFilterCache( sdDrone.img_drone_council, xx * 32, 0, 32,32, -16, -16, 32,32 );
+
+		if ( this.type === sdDrone.DRONE_SETR )
+		ctx.drawImageFilterCache( sdDrone.img_drone_setr, xx * 32, 0, 32,32, -16, -16, 32,32 );
+
+		if ( this.type === sdDrone.DRONE_TZYRG )
+		ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg, xx * 32, 0, 32,32, -16, -16, 32,32 );
+
+		if ( this.type === sdDrone.DRONE_TZYRG_WATCHER )
+		ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg2, xx * 64, 0, 64,64, -32, -32, 64,64 );
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
