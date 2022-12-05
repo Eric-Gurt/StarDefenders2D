@@ -189,6 +189,7 @@ class sdMatterAmplifier extends sdEntity
 		}*/
 			
 		if ( can_hibernate1 && can_hibernate2 )
+		if ( sdWorld.is_server ) // Server-only. Clients will have to update hitbox
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 			
 		//if ( this.PrioritizeGivingMatterAway() )
