@@ -45,17 +45,17 @@ class sdPlayerDrone extends sdCharacter
 			sdWorld.CreateImageFromFile( 'drone_robot20' ),
 			sdWorld.CreateImageFromFile( 'drone_robot21' ),
 			sdWorld.CreateImageFromFile( 'drone_robot22' ),
-                        sdWorld.CreateImageFromFile( 'drone_robot23' ),
-                        sdWorld.CreateImageFromFile( 'drone_robot24' ),
-                        sdWorld.CreateImageFromFile( 'drone_robot25' ),
-                        sdWorld.CreateImageFromFile( 'drone_robot26' ),
-                        sdWorld.CreateImageFromFile( 'drone_robot27' ),
-                        sdWorld.CreateImageFromFile( 'drone_robot28' ),
-                        sdWorld.CreateImageFromFile( 'drone_robot29' ),
-                        sdWorld.CreateImageFromFile( 'drone_robot30' ),
-                        sdWorld.CreateImageFromFile( 'drone_robot31' ),
-                        sdWorld.CreateImageFromFile( 'drone_robot32' ),
-                        sdWorld.CreateImageFromFile( 'drone_robot33' ),
+            sdWorld.CreateImageFromFile( 'drone_robot23' ),
+            sdWorld.CreateImageFromFile( 'drone_robot24' ),
+            sdWorld.CreateImageFromFile( 'drone_robot25' ),
+            sdWorld.CreateImageFromFile( 'drone_robot26' ),
+            sdWorld.CreateImageFromFile( 'drone_robot27' ),
+            sdWorld.CreateImageFromFile( 'drone_robot28' ),
+            sdWorld.CreateImageFromFile( 'drone_robot29' ),
+            sdWorld.CreateImageFromFile( 'drone_robot30' ),
+            sdWorld.CreateImageFromFile( 'drone_robot31' ),
+            sdWorld.CreateImageFromFile( 'drone_robot32' ),
+        	sdWorld.CreateImageFromFile( 'drone_robot33' ),
 		];
 		
 		sdPlayerDrone.fake_bullet = {
@@ -223,6 +223,7 @@ class sdPlayerDrone extends sdCharacter
 		const matter_cost_4 = ( Math.abs( 100 * 1 * ( this.power_ef > 0 ? 2.5 : 1 ) ) * 1 + 30 ) * sdWorld.damage_to_matter;
 		const matter_cost_5 = 100;
 		const matter_cost_7 = 1;
+		const matter_cost_2 = 4;
 		
 		let scale = this.s / 100;
 		
@@ -343,7 +344,7 @@ class sdPlayerDrone extends sdCharacter
 					if ( this._inventory[ i ] )
 					this.gun_slot = i;
 					else
-					if ( i === 1 || i === 4 || i === 5 || i === 7 )
+					if ( i === 1 || i === 2 || i === 4 || i === 5 || i === 7 )
 					this.gun_slot = i;
 				}
 			}
@@ -372,6 +373,9 @@ class sdPlayerDrone extends sdCharacter
 					{	
 						let mode = 1;
 
+						if ( ( this.gun_slot === 2 ) && this.matter >= matter_cost_2 )
+						mode = 2;
+						else
 						if ( ( this.gun_slot === 4 ) && this.matter >= matter_cost_4 )
 						mode = 4;
 						else
@@ -396,6 +400,14 @@ class sdPlayerDrone extends sdCharacter
 						if ( mode !== 1 )
 						this.matter -= matter_cost_4;
 
+						if ( mode === 2 )
+						{
+							if ( this.helmet === 8 )
+							sdSound.PlaySound({ name:'cube_attack', pitch: 0.66 / scale, x:this.x, y:this.y, volume:0.5 });
+							else
+							sdSound.PlaySound({ name:'cube_attack', x:this.x, y:this.y, volume:0.66, pitch: 2.2 / scale });
+						}
+						else
 						if ( mode === 4 )
 						{
 							if ( this.helmet === 8 )
@@ -416,6 +428,9 @@ class sdPlayerDrone extends sdCharacter
 
 						if ( mode === 7 )
 						this.fire_anim = 15;
+						else
+						if ( mode === 2 )
+						this.fire_anim = 3;
 						else
 						this.fire_anim = 5 * power;
 
@@ -448,6 +463,14 @@ class sdPlayerDrone extends sdCharacter
 								bullet_obj.time_left = 12;
 								bullet_obj._rail = true;
 								bullet_obj._dirt_mult = 4;
+							}
+							else
+							if ( mode === 2 )
+							{
+								bullet_obj.color = '#ccff21';
+								bullet_obj.time_left = 6;
+								bullet_obj._rail = true;
+								bullet_obj._dirt_mult = 8;
 							}
 							else
 							{

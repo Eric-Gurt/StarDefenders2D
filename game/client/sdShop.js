@@ -570,6 +570,19 @@ class sdShop
 				{
 					character._jetpack_power = 1 + ( level_purchased * 0.5 );
 				}
+			},
+			upgrade_drone_health:
+			{
+				max_level: 3,
+				matter_cost: 75,
+				description: 'Increases health of the drone.',
+				action: ( character, level_purchased )=>
+				{
+					if ( character.hmax < 175 )
+					{
+						character.hmax = Math.round( 100 + level_purchased / 2 * 30 );
+					}
+				}
 			}
 		};
 		for ( var i in sdShop.upgrades )
@@ -635,6 +648,10 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: 5120 * 8, _category:'Development tests' }); // Glowing one
 			sdShop.options.push({ _class: 'sdCrystal', tag: 'deep', matter_max: sdCrystal.anticrystal_value, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdDrone', type: 6, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdDrone', type: 7, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdDrone', type: 8, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdDrone', type: 9, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 5120 * 4, _category:'Development tests' }); // Glowing one
 			sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: sdCrystal.anticrystal_value * 4, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB, tag: 'deep', _category:'Development tests' });
@@ -648,10 +665,6 @@ class sdShop
 			sdShop.options.push({ _class: 'sdDrone', type: 3, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdDrone', type: 4,_ai_team: 4, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdDrone', type: 5,_ai_team: 4, _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdDrone', type: 6, _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdDrone', type: 7, _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdDrone', type: 8, _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdDrone', type: 9, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdLost', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_LOST_CONVERTER, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_CABLE_TOOL, _category:'Development tests' });
