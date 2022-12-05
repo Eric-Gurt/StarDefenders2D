@@ -152,10 +152,10 @@ class sdCom extends sdEntity
 		}
 	}
 	
-	onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
+	/*onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
 	{
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-	}
+	}*/
 	
 	PrioritizeGivingMatterAway() // sdNode, sdCom, sdCommandCentre, sdMaterContainer, sdMatterAmplifier all do that in order to prevent slow matter flow through cables
 	{
@@ -171,7 +171,7 @@ class sdCom extends sdEntity
 		if ( this._hea < this._hmax )
 		this._hea = Math.min( this._hea + GSPEED, this._hmax );
 		else
-		if ( this._matter < 0.05 || this._matter >= this._matter_max )
+		//if ( this._matter < 0.05 || this._matter >= this._matter_max )
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
@@ -180,45 +180,7 @@ class sdCom extends sdEntity
 		
 		//this.DrawConnections( ctx );
 	}
-	/*DrawConnections( ctx )
-	{
-		ctx.lineWidth = 1;
-		ctx.strokeStyle = '#ffffff';
-		ctx.setLineDash([2, 2]);
-		ctx.lineDashOffset = ( sdWorld.time % 1000 ) / 250 * 2;
-
-		
-		for ( var i = 0; i < sdEntity.entities.length; i++ )
-		if ( sdEntity.entities[ i ] !== this )
-		if ( ( sdEntity.entities[ i ].GetClass() === 'sdCom' && sdEntity.entities[ i ].variation === this.variation ) || 
-			 sdEntity.entities[ i ].GetClass() === 'sdDoor' || 
-			 sdEntity.entities[ i ].GetClass() === 'sdTeleport' || 
-			 sdEntity.entities[ i ].GetClass() === 'sdTurret' || 
-			 ( sdEntity.entities[ i ].GetClass() === 'sdBlock' && sdEntity.entities[ i ].material === sdBlock.MATERIAL_SHARP ) )
-		{
-			// Door case
-			var xx = ( sdEntity.entities[ i ].x0 !== undefined ) ? sdEntity.entities[ i ].x0 : sdEntity.entities[ i ].x;
-			var yy = ( sdEntity.entities[ i ].y0 !== undefined ) ? sdEntity.entities[ i ].y0 : sdEntity.entities[ i ].y;
-			if ( sdWorld.Dist2D( xx, yy, this.x, this.y ) < sdCom.retransmit_range )
-			//if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this, sdCom.com_visibility_ignored_classes, null ) )
-			if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, this, null, sdCom.com_visibility_unignored_classes ) )
-			{
-				ctx.beginPath();
-
-				ctx.moveTo( xx - this.x, yy - this.y );
-
-				ctx.lineTo( 0,0 );
-				ctx.stroke();
-			}
-		}
-
-		ctx.beginPath();
-		ctx.arc( 0,0, sdCom.retransmit_range, 0, Math.PI*2 );
-		ctx.stroke();
-		
-		ctx.lineDashOffset = 0;
-		ctx.setLineDash([]);
-	}*/
+	
 	onRemove()
 	{
 		// Just notify everything for sprite updates // Bad approach, something like teleports will still won't update

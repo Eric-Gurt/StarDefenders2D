@@ -73,7 +73,7 @@ class sdBullet extends sdEntity
 		this.sy += y / this.mass;
 	}
 	
-	get progress_until_removed()
+	ThinkUntilRemoved()
 	{ return this._rail || this._hook || this._wave; }
 	
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way

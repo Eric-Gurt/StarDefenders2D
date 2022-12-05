@@ -1449,7 +1449,7 @@ class sdWorld
 	}
 	static FilterHasMatterProperties( ent )
 	{
-		return ( typeof ent.matter !== 'undefined' || typeof ent._matter !== 'undefined' );
+		return ent._has_matter_props;// ( typeof ent.matter !== 'undefined' || typeof ent._matter !== 'undefined' );
 	}
 	static FilterVisionBlocking( ent )
 	{
@@ -2214,11 +2214,14 @@ class sdWorld
 				//if ( false )
 				for ( i = 0; i < sdEntity.to_seal_list.length; i++ )
 				{
-					if ( !sdEntity.to_seal_list[ i ]._is_being_removed )
+					let e = sdEntity.to_seal_list[ i ];
+					
+					if ( !e._is_being_removed )
 					{
 						//sdEntity.to_seal_list[ i ].InitMatterMode();
+						e._has_matter_props = ( typeof e.matter !== 'undefined' || typeof e._matter !== 'undefined' );//sdWorld.FilterHasMatterProperties( e );
 				
-						Object.seal( sdEntity.to_seal_list[ i ] );
+						Object.seal( e );
 					}
 				}
 				sdEntity.to_seal_list.length = 0;
@@ -2260,6 +2263,10 @@ class sdWorld
 			for ( i = 0; i < sdWorld.static_think_methods.length; i++ )
 			sdWorld.static_think_methods[ i ]( GSPEED );
 		
+			//const think_function_ptr_cache = [];
+			
+			//let skipper = 0;
+			
 			for ( arr_i = 0; arr_i < 2; arr_i++ )
 			{
 				arr = ( arr_i === 0 ) ? sdEntity.active_entities : sdEntity.global_entities;
@@ -2274,14 +2281,7 @@ class sdWorld
 					
 					if ( arr_i === 0 ) // Only for real in-world objects that have position
 					{
-						
-						/*let status_effects = sdStatusEffect.entity_to_status_effects.get( e );
-						
-						if ( status_effects )
-						{
-							for ( let i2 = 0; i2 < status_effects.length; i2++ )
-						}*/
-
+						/*
 						if ( sdWorld.is_server )
 						if ( e._last_x !== undefined ) // sdEntity was never placed properly yet, can cause items to fall into each other after snapshot load
 						if ( e._frozen <= 0 )
@@ -2314,7 +2314,7 @@ class sdWorld
 							}
 							else
 							continue;
-						}
+						}*/
 
 						if ( timewarps )
 						{
@@ -2348,7 +2348,10 @@ class sdWorld
 					
 					//substeps = e.substeps * substeps_mult;
 					//substeps = substeps_mult;
-					progress_until_removed = e.progress_until_removed;
+					progress_until_removed = e.ThinkUntilRemoved();
+					
+					//if ( !e._onThinkPtr )
+					//e._onThinkPtr = e.onThink;
 					
 					for ( step = 0; step < substeps || progress_until_removed; step++ )
 					{
@@ -2357,7 +2360,12 @@ class sdWorld
 							if ( e._frozen >= 1 )
 							e.onThinkFrozen( GSPEED / substeps * gspeed_mult );
 							else
-							e.onThink( GSPEED / substeps * gspeed_mult );
+							{
+								//if ( skipper++ % 2 === 0 )
+								//e.onThink( GSPEED / substeps * gspeed_mult );
+								//else
+								e._onThinkPtr( GSPEED / substeps * gspeed_mult ); // Actually faster in v8... Has something to do with different objects having same property
+							}
 						}
 						
 						if ( e._is_being_removed /*|| 
@@ -2380,7 +2388,7 @@ class sdWorld
 								if ( id === -1 )
 								{
 									console.log('Removing unlisted entity ' + e.GetClass() + ', hiberstate was ' + hiber_state + '. Entity was made at: ' + e._stack_trace );
-									debugger;
+									debugger;	
 								}
 								else
 								sdEntity.entities.splice( id, 1 );

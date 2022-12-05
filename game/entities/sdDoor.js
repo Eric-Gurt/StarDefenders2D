@@ -699,35 +699,7 @@ class sdDoor extends sdEntity
 		
 		//this.DrawConnections( ctx );
 	}
-	/*DrawConnections( ctx )
-	{
-		var x0 = this.x0 || this.x;
-		var y0 = this.y0 || this.y;
-		
-		ctx.lineWidth = 1;
-		ctx.strokeStyle = '#ffffff';
-		ctx.setLineDash([2, 2]);
-		ctx.lineDashOffset = ( sdWorld.time % 1000 ) / 250 * 2;
-
-		for ( var i = 0; i < sdEntity.entities.length; i++ )
-		if ( sdEntity.entities[ i ].GetClass() === 'sdCom' )
-		if ( sdWorld.Dist2D( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, x0, y0 ) < sdCom.retransmit_range )
-		//if ( sdWorld.CheckLineOfSight( x0, y0, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
-		if ( sdWorld.CheckLineOfSight( x0, y0, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, null, sdCom.com_visibility_unignored_classes ) )
-		{
-			ctx.beginPath();
-			ctx.moveTo( sdEntity.entities[ i ].x - this.x, sdEntity.entities[ i ].y - this.y );
-			ctx.lineTo( x0 - this.x, y0 - this.y );
-			ctx.stroke();
-		}
-
-		ctx.beginPath();
-		ctx.arc( x0 - this.x, y0 - this.y, sdCom.retransmit_range, 0, Math.PI*2 );
-		ctx.stroke();
-		
-		ctx.lineDashOffset = 0;
-		ctx.setLineDash([]);
-	}*/
+	
 	onMovementInRange( from_entity )
 	{
 		//from_entity._net_id

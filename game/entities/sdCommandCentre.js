@@ -41,6 +41,8 @@ class sdCommandCentre extends sdEntity
 	
 		dmg = Math.abs( dmg );
 		
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		
 		if ( this.hea > 0 )
 		{
 			this.hea -= dmg;
@@ -407,18 +409,10 @@ class sdCommandCentre extends sdEntity
 				
 				this._update_version++;
 			}
-			//else
-			//this._armor_protection_level = 4; // Once reached max HP - it can be only destroyed with big explosions
+			else
+			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 		}
 		
-		/*if ( sdWorld.time > this.self_destruct_on )
-		{
-			for ( var i = 0; i < sdWorld.sockets.length; i++ )
-			sdWorld.sockets[ i ].SDServiceMessage( 'Some Command Centre has expired' );
-		
-			//throw new Error('this.self_destruct_on = '+sdWorld.time+'::'+this.self_destruct_on+'::'+sdCommandCentre.time_to_live_without_matter_keepers_near);
-			this.remove();
-		}*/
 	}
 	get title()
 	{

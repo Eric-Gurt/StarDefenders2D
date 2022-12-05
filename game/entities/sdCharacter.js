@@ -1213,18 +1213,6 @@ class sdCharacter extends sdEntity
 		
 		return false;
 	}
-	/*static GetNewNonFFATeamID()
-	{
-		var used_teams = {};
-		for ( var i = 0; i < sdEntity.entities.length; i++ )
-		if ( typeof sdEntity.entities[ i ].team_id !== 'undefined' )
-		used_teams[ sdEntity.entities[ i ].team_id ] = true;
-
-		var best_team_id = 1;
-		
-		while ( typeof used_teams[ best_team_id ] !== 'undefined' )
-		best_team_id++;
-	}*/
 	
 	AIWarnTeammates()
 	{

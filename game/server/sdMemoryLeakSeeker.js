@@ -284,6 +284,14 @@ class sdMemoryLeakSeeker
 							sdMemoryLeakSeeker.scheduled_objects_offset -= cut_first_n;
 						}
 						
+						if ( value === undefined )
+						{
+						}
+						else
+						if ( value instanceof Array && value.length === 0 )
+						{
+						}
+						else
 						sdMemoryLeakSeeker.scheduled_objects.push( value );
 					}
 				}

@@ -64,6 +64,9 @@ class sdCable extends sdEntity
 			'sdCube'
 		];
 		
+		sdCable.empty_array = [];
+		Object.freeze( sdCable.empty_array );
+		
 		// Override protection
 		sdCable.one_cable_entities = [
 			'sdDoor',
@@ -81,7 +84,8 @@ class sdCable extends sdEntity
 		]);*/
 		
 		sdCable.cables_per_entity = new WeakMap();
-		sdCable.connected_entities_per_entity = new WeakMap(); // Map => array of entities
+		//sdCable.connected_entities_per_entity = new WeakMap(); // entity => array of entities
+		sdCable.connected_entities_per_entity = new Map(); // entity => array of entities // Maps are faster?
 		
 		sdCable.max_distance = 200; // Same as for sdCom, at least for now
 		
@@ -250,9 +254,9 @@ class sdCable extends sdEntity
 		let set = sdCable.connected_entities_per_entity.get( e );
 		
 		if ( set )
-		return sdCable.connected_entities_per_entity.get( e )[ cable_type ] || [];
+		return sdCable.connected_entities_per_entity.get( e )[ cable_type ] || sdCable.empty_array;
 		else
-		return [];
+		return sdCable.empty_array;
 	}
 	static UpdateConnectedEntities( e )
 	{

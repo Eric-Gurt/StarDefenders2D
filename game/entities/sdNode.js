@@ -65,10 +65,10 @@ class sdNode extends sdEntity
 		this._matter = 0; // Just so it can transfer matter in cable network
 		this._matter_max = 20;
 	}
-	onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
+	/*onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
 	{
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-	}
+	}*/
 	PrioritizeGivingMatterAway() // sdNode, sdCom, sdCommandCentre, sdMaterContainer, sdMatterAmplifier all do that in order to prevent slow matter flow through cables
 	{
 		return true;
@@ -83,7 +83,7 @@ class sdNode extends sdEntity
 		if ( this._hea < this._hmax )
 		this._hea = Math.min( this._hea + GSPEED, this._hmax );
 		else
-		if ( this._matter < 0.05 || this._matter >= this._matter_max )
+		//if ( this._matter < 0.05 || this._matter >= this._matter_max )
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 	}
 	DrawHUD( ctx, attached ) // foreground layer

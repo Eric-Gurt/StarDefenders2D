@@ -659,17 +659,6 @@ class sdBlock extends sdEntity
 		if ( this.material !== sdBlock.MATERIAL_CORRUPTION && this.material !== sdBlock.MATERIAL_FLESH && this._hea >= this._hmax )
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED, false ); // 2nd parameter is important as it will prevent temporary entities from reacting to world entities around it (which can happen for example during item price measure - something like sdBlock can kill player-initiator and cause server crash)
 		
-		/*if ( sdWorld.is_server )
-		for ( var i = 0; i < sdEntity.entities.length; i++ )
-		{
-			if ( sdEntity.entities[ i ].x === params.x )
-			if ( sdEntity.entities[ i ].y === params.y )
-			{
-				debugger;
-				throw new Error('Double wall bug detected');
-			}
-		}*/
-		
 		this.InstallBoxCapVisibilitySupport();
 		
 		this.onSnapshotApplied();

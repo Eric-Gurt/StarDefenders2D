@@ -120,6 +120,10 @@ class sdCrystal extends sdEntity
 	get is_crab()
 	{ return ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ); }
 	
+	GetAutoConnectedEntityForMatterFlow()
+	{
+		return this.held_by;
+	}
 	constructor( params )
 	{
 		super( params );

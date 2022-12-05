@@ -9,6 +9,12 @@ import sdWater from './sdWater.js';
 import sdCom from './sdCom.js';
 import sdBullet from './sdBullet.js';
 import sdLost from './sdLost.js';
+import sdTurret from './sdTurret.js';
+import sdEnemyMech from './sdEnemyMech.js';
+import sdDrone from './sdDrone.js';
+import sdSetrDestroyer from './sdSetrDestroyer.js';
+import sdSpider from './sdSpider.js';
+import sdOverlord from './sdOverlord.js';
 
 import sdPathFinding from '../ai/sdPathFinding.js';
 
@@ -576,6 +582,19 @@ class sdCube extends sdEntity
 			sdSound.PlaySound({ name:'cube_teleport', pitch: ( this.kind === sdCube.KIND_WHITE || this.kind === sdCube.KIND_YELLOW ) ? 0.5 : 1, x:this.x, y:this.y, volume:1 });
 		}
 	}
+	static FilterCubeTargets( e )
+	{
+		//[ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret', 'sdEnemyMech', 'sdCube', 'sdDrone', 'sdSetrDestroyer', 'sdSpider', 'sdOverlord' ]
+		
+		return (	e.IsPlayerClass() || 
+					e.is( sdTurret ) || 
+					e.is( sdEnemyMech ) || 
+					e.is( sdCube ) || 
+					e.is( sdDrone ) || 
+					e.is( sdSetrDestroyer ) || 
+					e.is( sdSpider ) || 
+					e.is( sdOverlord ) );
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this.regen_timeout <= 0 )
@@ -770,7 +789,7 @@ class sdCube extends sdEntity
 				{
 					this._attack_timer = 3;
 
-					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdCube.attack_range, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret', 'sdEnemyMech', 'sdCube', 'sdDrone', 'sdSetrDestroyer', 'sdSpider', 'sdOverlord' ] );
+					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdCube.attack_range, null, null, sdCube.FilterCubeTargets );
 
 					let targets = [];
 					

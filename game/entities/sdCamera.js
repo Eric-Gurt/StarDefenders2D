@@ -75,10 +75,10 @@ class sdCamera extends sdEntity
 		
 		this.logs = [];
 	}
-	onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
+	/*onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
 	{
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-	}
+	}*/
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{

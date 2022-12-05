@@ -5,7 +5,7 @@ let port0 = 3000;
 let CloudFlareSupport = false;
 let directory_to_save_player_count = null;
 
-globalThis.CATCH_HUGE_ARRAYS = true;
+globalThis.CATCH_HUGE_ARRAYS = false; // Can worsen performance by 2-5%
 
 // http://localhost:3000 + world_slot
 

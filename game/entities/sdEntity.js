@@ -13,13 +13,19 @@ import sdWorld from '../sdWorld.js';
 let sdCable = null;
 let sdStatusEffect = null;
 let sdBullet = null;
+//let sdCrystal = null;
+//let sdMatterAmplifier = null;
+
+let skipper = 0;
+
+let GetAnythingNear = null;
 			
 class sdEntity
 {
-	static get entities_by_net_id_cache()
+	/*static get entities_by_net_id_cache()
 	{
 		throw new Error( 'Outdated property. Property is no longer an array but is a Map instead' );
-	}
+	}*/
 	static init_class()
 	{
 		console.log('sdEntity class initiated');
@@ -292,7 +298,7 @@ class sdEntity
 	get hard_collision() // For world geometry where players can walk
 	{ return false; }
 	
-	get progress_until_removed()
+	ThinkUntilRemoved()
 	{ return false; }
 	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these.
@@ -2282,6 +2288,10 @@ class sdEntity
 			this._vertex_cache = null;
 		}
 		
+		this._onThinkPtr = this.onThink; // Trying to make v8 optimize stuff better... It actually and unfortunately works.
+		
+		this._has_matter_props = false; // Becomes true on seal in cases where it is needed
+		
 		// Premade all needed variables so sealing would work best
 		{
 			if ( this.onThink.has_ApplyVelocityAndCollisions === undefined )
@@ -2522,7 +2532,14 @@ class sdEntity
 			}
 			this._next_anything_near_rethink = next_anything_near_rethink = sdWorld.time + 200 + Math.random() * 32;
 			
-			anything_near = this._anything_near = sdWorld.GetAnythingNear( _x, _y, range, append_to, specific_classes, filter_candidates_function );
+			if ( !GetAnythingNear )
+			GetAnythingNear = sdWorld.GetAnythingNear;
+			
+			//if ( skipper++ % 2 === 0 )
+			//anything_near = this._anything_near = sdWorld.GetAnythingNear( _x, _y, range, append_to, specific_classes, filter_candidates_function );
+			//else
+			anything_near = this._anything_near = GetAnythingNear( _x, _y, range, append_to, specific_classes, filter_candidates_function );
+			
 			anything_near_range = this._anything_near_range = range;
 			
 
@@ -2558,6 +2575,13 @@ class sdEntity
 					throw new Error('Logic error: ' + this.GetClass() + ' is not allowed to become active after was removed. Originally was removed here (from ._remove_stack_trace): ' + this._remove_stack_trace );
 				}
 			}
+			
+			/*if ( sdWorld.is_server )
+			if ( v === sdEntity.HIBERSTATE_ACTIVE )
+			{
+				if ( this.GetClass() === 'sdNode' )
+				debugger;
+			}*/
 
 			//if ( !this._hiberstate_history )
 			//this._hiberstate_history = [];
@@ -3359,13 +3383,19 @@ class sdEntity
 		for ( var i = 0; i < connected_ents.length; i++ )
 		{
 			if ( connected_ents[ i ]._hiberstate !== sdEntity.HIBERSTATE_ACTIVE )
-			if ( ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' ) && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
+			//if ( ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' ) && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
+			if ( connected_ents[ i ]._has_matter_props && !connected_ents[ i ]._is_being_removed )
+			if ( !connected_ents[ i ].PrioritizeGivingMatterAway() )
 			connected_ents[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		}
 	}
 	PrioritizeGivingMatterAway() // sdNode, sdCom, sdCommandCentre, sdMaterContainer, sdMatterAmplifier all do that in order to prevent slow matter flow through cables
 	{
 		return false;
+	}
+	GetAutoConnectedEntityForMatterFlow()
+	{
+		return null;
 	}
 	MatterGlow( how_much=0.01, radius=30, GSPEED ) // Set radius to 0 to only glow into cables. Make sure to call WakeUpMatterSources when matter drops or else some mid-way nodes might end up not being awaken
 	{
@@ -3389,6 +3419,7 @@ class sdEntity
 			
 			let array_is_not_cloned = true;
 			
+			
 			let connected_ents;
 			
 			if ( this._connected_ents && sdWorld.time < this._connected_ents_next_rethink ) // This cache probably should not be rethinked at all (since cables erase it anyway)... But just in case...
@@ -3398,6 +3429,25 @@ class sdEntity
 			else
 			{
 				connected_ents = sdCable.GetConnectedEntities( this, sdCable.TYPE_MATTER );
+				
+				/*if ( !sdCrystal )
+				sdCrystal = sdWorld.entity_classes.sdCrystal;
+				
+				if ( !sdMatterAmplifier )
+				sdMatterAmplifier = sdWorld.entity_classes.sdMatterAmplifier;*/
+				
+				let auto_entity = this.GetAutoConnectedEntityForMatterFlow();
+				
+				if ( auto_entity )
+				if ( array_is_not_cloned )
+				{
+					array_is_not_cloned = false;
+					connected_ents = connected_ents.slice(); // Clone
+					
+					connected_ents.push( auto_entity );
+				}
+				
+				
 				for ( i = 0; i < connected_ents.length; i++ )
 				{
 					/*globalThis.max_connected_ents_length = globalThis.max_connected_ents_length || null;
@@ -3412,7 +3462,8 @@ class sdEntity
 						};
 					}*/
 
-					if ( ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' ) && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
+					//if ( ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' ) && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
+					if ( connected_ents[ i ]._has_matter_props && !connected_ents[ i ]._is_being_removed )
 					{
 						//this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
 
@@ -3438,11 +3489,16 @@ class sdEntity
 								recursively_connected[ i2 ]._flag = visited_ent_flag;
 
 								connected_ents.push( recursively_connected[ i2 ] );
+								
+								let auto2 = recursively_connected[ i2 ].GetAutoConnectedEntityForMatterFlow();
+								if ( auto2 )
+								connected_ents.push( auto2 );
 							}
 						}
 					}
 				}
 				//visited_ents = null;
+				
 				
 				this._connected_ents = connected_ents;
 				this._connected_ents_next_rethink = sdWorld.time + 200 + Math.random() * 50;
@@ -3463,7 +3519,8 @@ class sdEntity
 
 				for ( i = 0; i < arr.length; i++ )
 				{
-					if ( ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' ) && arr[ i ] !== this && !arr[ i ]._is_being_removed )
+					//if ( ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' ) && arr[ i ] !== this && !arr[ i ]._is_being_removed )
+					if ( arr[ i ]._has_matter_props && arr[ i ] !== this && !arr[ i ]._is_being_removed )
 					{
 						this.TransferMatter( arr[ i ], how_much, GSPEED * 4 ); // Mult by X because targets no longer take 4 cells
 					}

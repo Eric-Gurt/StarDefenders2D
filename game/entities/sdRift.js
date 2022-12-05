@@ -154,6 +154,7 @@ class sdRift extends sdEntity
 
 
 							if ( this._pull_entities[ i ].GetClass() === 'sdCharacter' )
+							if ( !this._pull_entities[ i ]._god )
 							{
 								this._pull_entities[ i ].stability = Math.min( 0, this._pull_entities[ i ].stability );
 								if ( this._pull_entities[ i ].gun_slot !== 9 )

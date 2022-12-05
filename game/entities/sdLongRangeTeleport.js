@@ -107,7 +107,10 @@ class sdLongRangeTeleport extends sdEntity
 		if ( ( v > 0 ) !== ( this.delay > 0 ) )
 		{
 			if ( v === 0 )
-			sdSound.PlaySound({ name:'teleport_ready', x:this.x, y:this.y, volume:1 });
+			{
+				sdSound.PlaySound({ name:'teleport_ready', x:this.x, y:this.y, volume:1 });
+				this._update_version++;
+			}
 		}
 		
 		if ( Math.ceil( v / 30 ) !== Math.ceil( this.delay / 30 ) )

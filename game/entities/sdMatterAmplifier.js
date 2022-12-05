@@ -53,7 +53,10 @@ class sdMatterAmplifier extends sdEntity
 		
 		return [];
 	}
-	
+	GetAutoConnectedEntityForMatterFlow()
+	{
+		return this.crystal;
+	}
 	constructor( params )
 	{
 		super( params );
@@ -91,6 +94,8 @@ class sdMatterAmplifier extends sdEntity
 		return;
 	
 		dmg = Math.abs( dmg );
+
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		
 		if ( this.shielded && this.crystal )
 		//if ( this.matter_max > 0 )
@@ -152,18 +157,21 @@ class sdMatterAmplifier extends sdEntity
 		//if ( this.multiplier > 4 ) // Revert old max amplifiers to current max, this can be commented out/deleted once it is applied to server and overrides old max amplifiers
 		//this.multiplier = 4;
 		
+		let can_hibernate1 = false;
+		let can_hibernate2 = false;
+		
 		if ( this._ignore_pickup_tim > 0 )
 		this._ignore_pickup_tim = Math.max( 0, this._ignore_pickup_tim - GSPEED );
-		
+		else
+		can_hibernate1 = true;
+	
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
-		{
-			if ( this._hea < this._hmax )
-			{
-				this._hea = Math.min( this._hea + GSPEED, this._hmax );
-			}
-		}
+		if ( this._hea < this._hmax )
+		this._hea = Math.min( this._hea + GSPEED, this._hmax );
+		else
+		can_hibernate2 = true;
 		
 		if ( this.crystal )
 		{
@@ -174,42 +182,18 @@ class sdMatterAmplifier extends sdEntity
 			this.crystal.sx = 0;
 			this.crystal.sy = 0;
 		}
-		else
+		/*else
 		{
 			if ( this._hea >= this._hmax )
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
-		}
-			
-		if ( this.PrioritizeGivingMatterAway() )
-		this.MatterGlow( 0.1, 0, GSPEED ); // 0 radius means only towards cables
-	
-		/*
-		if ( this.matter_max === sdCrystal.anticrystal_value )
-		{
-			if ( !this.shielded )
-			{
-				this.HungryMatterGlow( 0.01, 100, GSPEED );
-			}
-		}
-		else
-		{
-			//let matter_to_transfer = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( this.crystal_matter_regen / 100 ) * ( sdMatterAmplifier.relative_regen_amplification_to_crystals * ( this.multiplier ) ) ) - this.matter;
-			//this.crystal_matter_regen = Math.max( 20, this.crystal_matter_regen - ( ( matter_to_transfer / this.matter_max ) ) );
-			
-			let matter_before_regen = this.matter;
-				
-			this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( this.matter_regen / 100 ) * ( sdMatterAmplifier.relative_regen_amplification_to_crystals * ( this.multiplier ) ) );
-			
-			this.matter_regen = Math.max( 20, this.matter_regen - ( this.matter - matter_before_regen ) / this.matter_max * 100 / sdCrystal.recharges_until_depleated ); // 30 full recharges
-				
-			this.MatterGlow( 0.01, 50, GSPEED );
 		}*/
+			
+		if ( can_hibernate1 && can_hibernate2 )
+		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+			
+		//if ( this.PrioritizeGivingMatterAway() )
+		//this.MatterGlow( 0.1, 0, GSPEED ); // 0 radius means only towards cables
 	
-		/*if ( Math.abs( this._last_sync_matter - this.matter ) > this.matter_max * 0.05 || this._last_x !== this.x || this._last_y !== this.y )
-		{
-			this._last_sync_matter = this.matter;
-			this._update_version++;
-		}*/
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
@@ -338,6 +322,8 @@ class sdMatterAmplifier extends sdEntity
 			}
 			
 			this._ignore_pickup_tim = 30;
+			
+			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 
 			this._hitbox_y1 = this.hitbox_y1;
 			sdWorld.UpdateHashPosition( this, false ); // Hitbox update

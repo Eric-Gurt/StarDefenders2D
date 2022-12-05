@@ -119,7 +119,7 @@ class sdTask extends sdEntity
 				return 'Track';
 			},
 			GetDefaultDescription: ( task )=>{
-				return 'There is an unspecified urgency to track ' + sdWorld.ClassNameToProperName( task._target.GetClass(), task._target );
+				return 'There is an unspecified urgency to track ' + ( task._target ? sdWorld.ClassNameToProperName( task._target.GetClass(), task._target ) : 'Nothing?! (task ._target is not specified)' );
 			},
 			GetDefaultTimeLeft: ( task )=>
 			{
