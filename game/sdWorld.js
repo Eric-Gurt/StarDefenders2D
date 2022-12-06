@@ -32,6 +32,7 @@ import sdPlayerOverlord from './entities/sdPlayerOverlord.js';
 import sdBloodDecal from './entities/sdBloodDecal.js';
 import sdGib from './entities/sdGib.js';
 import sdTimer from './entities/sdTimer.js';
+import sdCrystal from './entities/sdCrystal.js';
 import sdRescueTeleport from './entities/sdRescueTeleport.js';
 import sdCharacterRagdoll from './entities/sdCharacterRagdoll.js';
 
@@ -1615,8 +1616,43 @@ class sdWorld
 				c = 'Wall';
 				if ( ent.material === sdBlock.MATERIAL_GROUND )
 				c = 'Ground';
+				if ( ent.material === sdBlock.MATERIAL_ROCK )
+				c = 'Rock';
+				if ( ent.material === sdBlock.MATERIAL_SAND )
+				c = 'Sand';
 				if ( ent.material === sdBlock.MATERIAL_SHARP )
 				c = 'Trap';
+				if ( ent.material === sdBlock.MATERIAL_TRAPSHIELD )
+				c = 'Shield';
+				if ( ent.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 )
+				c = 'Reinforced wall';
+				if ( ent.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
+				c = 'Very reinforced wall';
+				if ( ent.material === sdBlock.MATERIAL_CORRUPTION )
+				c = 'Corruption';
+				if ( ent.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+				c = 'Flesh corruption';
+			}
+
+			if ( c === 'Crystal' )
+			{
+				/*sdCrystal.TYPE_CRYSTAL = 1;
+				sdCrystal.TYPE_CRYSTAL_BIG = 2;
+				sdCrystal.TYPE_CRYSTAL_CRAB = 3;
+				sdCrystal.TYPE_CRYSTAL_CORRUPTED = 4;
+				sdCrystal.TYPE_CRYSTAL_ARTIFICIAL = 5;
+				sdCrystal.TYPE_CRYSTAL_CRAB_BIG = 6;*/
+
+				if ( ent.type === sdCrystal.TYPE_CRYSTAL_BIG )
+				c = 'Large crystal';
+				if ( ent.type === sdCrystal.TYPE_CRYSTAL_CRAB )
+				c = 'Crystal crab';
+				if ( ent.type === sdCrystal.TYPE_CRYSTAL_CORRUPTED )
+				c = 'Corrupted crystal';
+				if ( ent.type === sdCrystal.TYPE_CRYSTAL_ARTIFICIAL )
+				c = 'Artificail crystal';
+				if ( ent.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
+				c = 'Large crystal crab';
 			}
 
 			if ( c === 'Area' )
