@@ -1050,9 +1050,47 @@ class sdDrone extends sdEntity
 		//ctx.filter = this.filter;
 
 		let xx = 0;
+
+		let xxoffset = 32;
+		let xyoffset = 16;
+		let image = sdDrone.img_drone_falkok;
+
+		let width  = 32;
+		let height = 32;
 		
 		ctx.scale( -this.side, 1 );
 		ctx.rotate( this.attack_an / 100 );
+
+		if ( this.type === sdDrone.DRONE_ERTHAL )
+		image = sdDrone.img_drone_erthal;
+
+		if ( this.type === sdDrone.DRONE_SARRORIAN )
+		image = sdDrone.img_drone_alien;
+
+		if ( this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER )
+		image = sdDrone.img_drone_alien2;
+
+		if ( this.type === sdDrone.DRONE_SARRORIAN_DETONATOR )
+		image = sdDrone.img_drone_alien3;
+
+		if ( this.type === sdDrone.DRONE_COUNCIL )
+		image = sdDrone.img_drone_council;
+
+		if ( this.type === sdDrone.DRONE_SETR )
+		image = sdDrone.img_drone_setr;
+
+		if ( this.type === sdDrone.DRONE_TZYRG )
+		image = sdDrone.img_drone_tzyrg;
+
+		if ( this.type === sdDrone.DRONE_TZYRG_WATCHER )
+		{
+			image = sdDrone.img_drone_tzyrg2;
+			xxoffset = 64;
+
+			xyoffset = 32;
+			width = 64;
+			height = 64;
+		}
 		
 		if ( this.death_anim === 0 )
 		{
@@ -1116,10 +1154,10 @@ class sdDrone extends sdEntity
 				if ( this.type === sdDrone.DRONE_SARRORIAN )
 				ctx.drawImageFilterCache( sdDrone.img_drone_alien, - 16, - 16, 32, 32 );
 				if ( this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER )
-				ctx.drawImageFilterCache( sdDrone.img_drone_alien2, - 16, - 16, 32, 32 );*/
+				ctx.drawImageFilterCache( sdDrone.img_drone_alien2, - 16, - 16, 32, 32 );
 				if ( this.type === sdDrone.DRONE_SARRORIAN_DETONATOR )
 				ctx.drawImageFilterCache( sdDrone.img_drone_alien3, - 16, - 16, 32, 32 );
-				/*if ( this.type === sdDrone.DRONE_COUNCIL )
+				if ( this.type === sdDrone.DRONE_COUNCIL )
 				ctx.drawImageFilterCache( sdDrone.img_drone_council, - 16, - 16, 32, 32 );
 				if ( this.type === sdDrone.DRONE_SETR )
 				ctx.drawImageFilterCache( sdDrone.img_drone_setr, - 16, - 16, 32, 32 );
@@ -1138,30 +1176,9 @@ class sdDrone extends sdEntity
 				}
 			}
 		}
-		// Bleh - Molis
-		if ( this.type === sdDrone.DRONE_FALKOK )
-		ctx.drawImageFilterCache( sdDrone.img_drone_falkok, xx * 32, 0, 32,32, -16, -16, 32,32 );
 
-		if ( this.type === sdDrone.DRONE_ERTHAL )
-		ctx.drawImageFilterCache( sdDrone.img_drone_erthal, xx * 32, 0, 32,32, -16, -16, 32,32 );
-
-		if ( this.type === sdDrone.DRONE_SARRORIAN )
-		ctx.drawImageFilterCache( sdDrone.img_drone_alien, xx * 32, 0, 32,32, -16, -16, 32,32 );
-
-		if ( this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER )
-		ctx.drawImageFilterCache( sdDrone.img_drone_alien2, xx * 32, 0, 32,32, -16, -16, 32,32 );
-
-		if ( this.type === sdDrone.DRONE_COUNCIL )
-		ctx.drawImageFilterCache( sdDrone.img_drone_council, xx * 32, 0, 32,32, -16, -16, 32,32 );
-
-		if ( this.type === sdDrone.DRONE_SETR )
-		ctx.drawImageFilterCache( sdDrone.img_drone_setr, xx * 32, 0, 32,32, -16, -16, 32,32 );
-
-		if ( this.type === sdDrone.DRONE_TZYRG )
-		ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg, xx * 32, 0, 32,32, -16, -16, 32,32 );
-
-		if ( this.type === sdDrone.DRONE_TZYRG_WATCHER )
-		ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg2, xx * 64, 0, 64,64, -32, -32, 64,64 );
+		if ( this.type !== -1 )
+		ctx.drawImageFilterCache( image, xx * xxoffset, 0, width,height, -xyoffset, -xyoffset, width,height );
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
