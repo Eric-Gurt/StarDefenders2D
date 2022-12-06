@@ -1577,7 +1577,7 @@ class sdAtlasMaterial
 		{
 			const x = ctx.object_offset[ 0 ];
 			const y = ctx.object_offset[ 1 ];
-			const z = ctx.object_offset[ 2 ];
+			const z = ctx.object_offset[ 2 ] / 64 * ctx.z_depth;
 			
 			a.x += x;
 			b.x += x;
@@ -1691,7 +1691,7 @@ class sdAtlasMaterial
 				let dz = z - ctx.camera.position.z;
 
 				dz *= ctx.camera_relative_world_scale;
-
+				
 				z = dz + ctx.camera.position.z;
 			}
 			
