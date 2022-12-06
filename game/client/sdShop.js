@@ -570,19 +570,6 @@ class sdShop
 				{
 					character._jetpack_power = 1 + ( level_purchased * 0.5 );
 				}
-			},
-			upgrade_drone_health:
-			{
-				max_level: 3,
-				matter_cost: 75,
-				description: 'Increases health of the drone.',
-				action: ( character, level_purchased )=>
-				{
-					if ( character.hmax < 175 )
-					{
-						character.hmax = Math.round( 100 + level_purchased / 2 * 30 );
-					}
-				}
 			}
 		};
 		for ( var i in sdShop.upgrades )
