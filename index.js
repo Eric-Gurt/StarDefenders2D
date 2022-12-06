@@ -1473,6 +1473,9 @@ io.on("connection", (socket) =>
 	
 	socket.character = null;
 	
+	//socket.reaction_to_seen_entities_offset = 0;
+	socket.next_reaction_to_seen_entity_time = 0;
+	
 	socket.sd_events = []; // Mobile devices should work better if they won't be flooded with separate TCP event messages.
 	
 	socket.respawn_block_until = sdWorld.time + 400;
@@ -2948,6 +2951,8 @@ const ServerMainMethod = ()=>
 							//let meet_once2 = new Set();
 							const visited_ent_flag = sdEntity.GetUniqueFlagValue();
 							//this._flag = visited_ent_flag;
+							
+							//socket.reaction_to_seen_entities_offset++;
 
 							const AddEntity = ( ent, forced )=>
 							{
@@ -2998,6 +3003,11 @@ const ServerMainMethod = ()=>
 										if ( ent.SyncedToPlayer !== sdEntity.prototype.SyncedToPlayer )
 										if ( ent._frozen <= 0 )
 										ent.SyncedToPlayer( socket.character );
+								
+										/*if ( socket.reaction_to_seen_entities_offset % 400 === ent._net_id % 400 )
+										{
+											socket.character.onSeesEntity( ent );
+										}*/
 
 										if ( ent.getRequiredEntities !== sdEntity.prototype.getRequiredEntities )
 										{
@@ -3387,6 +3397,18 @@ const ServerMainMethod = ()=>
 							}
 
 							socket.observed_entities = observed_entities;
+							
+							if ( sdWorld.time > socket.next_reaction_to_seen_entity_time )
+							if ( socket.character )
+							{
+								socket.next_reaction_to_seen_entity_time = sdWorld.time + 100;
+								
+								let i = ~~( Math.random() * observed_entities.length );
+								if ( i < observed_entities.length )
+								{
+									socket.character.onSeesEntity( observed_entities[ i ] );
+								}
+							}
 
 							socket.sync_busy = false;
 						}

@@ -427,6 +427,9 @@ let enf_once = true;
 
 		sdWorld.my_entity = null;
 		sdWorld.my_entity_net_id = undefined;
+		
+		//trace( sdTask.tasks );
+		//setTimeout( ()=>{ trace( sdTask.tasks ) }, 1 );
 	}
 	globalThis.ClearWorld = ClearWorld;
 

@@ -341,6 +341,27 @@ class sdTask extends sdEntity
 				return 30;
 			}
 		};
+		sdTask.missions[ sdTask.MISSION_GAMEPLAY_NOTIFICATION = id++ ] = 
+		{
+			appearance: sdTask.APPEARANCE_NOTHING,
+			hide_time_left: true,
+	
+			task_title_color: sdTask.COLOR_NOTIFICATION,
+	
+			completion_condition: ( task )=>
+			{
+				return false;
+			},
+			onTimeOut: ( task )=>
+			{
+				if ( sdWorld.is_server )
+				task.remove();
+			},
+			GetDefaultTimeLeft: ( task )=>
+			{
+				return 30 * 5;
+			}
+		};
 		sdTask.tasks = [];
 	}
 	
@@ -602,7 +623,7 @@ class sdTask extends sdEntity
 			
 			if ( this.time_left > 0 )
 			{
-				let new_v = this.time_left - GSPEED;
+				let new_v = Math.max( 0, this.time_left - GSPEED );
 				this.time_left = new_v;
 				
 				if ( Math.floor( this.time_left / 30 ) !== Math.floor( new_v  / 30 ) )

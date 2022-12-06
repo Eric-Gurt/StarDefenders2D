@@ -480,6 +480,7 @@ class sdCharacter extends sdEntity
 		//if ( prop === '_ai' ) return true; Bad idea, object pointers here
 		if ( prop === '_upgrade_counters' ) return true;
 		if ( prop === '_save_file' ) return true;
+		if ( prop === '_discovered' ) return true;
 		
 		return false;
 	}
@@ -502,7 +503,78 @@ class sdCharacter extends sdEntity
 	{
 		if ( sdWorld.server_config.LinkPlayerMatterCapacityToScore( this ) )
 		{
+			let old_matter_max = this.matter_max;
+			
 			this.matter_max = Math.min( 50 + Math.max( 0, this._score * 20 ), 1850 ) + this._matter_capacity_boosters;
+			
+			// Keep matter multiplied when low score or else it feels like matter gets removed
+			if ( this._score < 100 )
+			this.matter = this.matter / old_matter_max * this.matter_max;
+		}
+	}
+	onSeesEntity( ent ) // Only gets triggered for connected characters that have active socket connection, with delay (each 1000th entity is seen per sync)
+	{
+		if ( !this.is( sdCharacter ) )
+		return;
+		
+		let hash;
+		
+		if ( ent.IsPlayerClass() )
+		hash = ent.biometry + '';
+		else
+		hash = ent.GetClass() + '.' + (ent.type||'') + '.' + (ent.class||'') + '.' + (ent.kind||'') + '.' + (ent.material||'') + '.' + (ent.matter_max||'');
+		
+		if ( typeof this._discovered[ hash ] === 'undefined' )
+		{
+			let off = this.GetBulletSpawnOffset();
+
+			let xx = ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2;
+			let yy = ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2;
+
+			if ( sdWorld.CheckLineOfSight( this.x + off.x, this.y + off.y, xx, yy, ent, null, sdCom.com_vision_blocking_classes ) )
+			{
+				this._discovered[ hash ] = 1;
+				
+				let t = sdWorld.ClassNameToProperName( ent.GetClass(), ent );
+
+				if ( Math.abs( sdWorld.time - this._last_discovery ) > 15000 )
+				if ( this.hea > this.hmax * 0.75 )
+				{
+					this._last_discovery = sdWorld.time;
+					
+					switch ( ~~( Math.random() * 14 ) )
+					{
+						case 0: this.Say( 'Huh, '+t+'? This is something new' ); break;
+						case 1: this.Say( t+' looks interesting' ); break;
+						case 2: this.Say( 'I\'ve never seen '+t+' before' ); break;
+						case 3: this.Say( t+' is new to me' ); break;
+						case 4: this.Say( 'I\'ve discovered '+t ); break;
+						case 5: this.Say( 'That is '+t+' for sure' ); break;
+						case 6: this.Say( t+'? Gonna note that' ); break;
+						case 7: this.Say( t+'? Amazing' ); break;
+						case 8: this.Say( t+'? I\'m shocked' ); break;
+						case 9: this.Say( 'So this is how '+t+' looks like' ); break;
+						case 10: this.Say( 'Wow, real '+t ); break;
+						case 11: this.Say( 'Gotta screenshot '+t ); break;
+						case 12: this.Say( 'Wow, a '+t+'. I\'m literally shaking' ); break;
+						case 13: this.Say( t+' looks cool' ); break;
+					}
+				}
+				
+				this.GiveScore( 1, null, false );
+				
+				if ( this._socket )
+				sdSound.PlaySound({ name:'powerup_or_exp_pickup', x:this.x, y:this.y, volume:0.4, pitch:0.5 }, [ this._socket ] );
+
+				sdTask.MakeSureCharacterHasTask({ 
+					similarity_hash:'DISCOVERY-' + hash, 
+					executer: this,
+					mission: sdTask.MISSION_GAMEPLAY_NOTIFICATION,
+					title: 'You\'ve discovered '+t,
+					description: '+1 score',
+					//time_left: 90
+				});
+			}
 		}
 	}
 	
@@ -591,6 +663,9 @@ class sdCharacter extends sdEntity
 		this.lag = false;
 		
 		this._god = false;
+		
+		this._discovered = {}; // Entity classes with type hashes, makes player gain starter score
+		this._last_discovery = sdWorld.time; // Do not interrupt instructor as much
 		
 		this._can_breathe = true;
 		
