@@ -12,7 +12,7 @@ class sdRoach extends sdEntity
 {
 	static init_class()
 	{
-		sdRoach.img_roach = sdWorld.CreateImageFromFile( 'sdRoach' );
+		sdRoach.img_roach = sdWorld.CreateImageFromFile( 'sdRoach' ); // Sprite by floor
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
