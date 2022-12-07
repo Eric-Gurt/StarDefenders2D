@@ -1650,7 +1650,7 @@ class sdWorld
 				if ( ent.type === sdCrystal.TYPE_CRYSTAL_CORRUPTED )
 				c = 'Corrupted crystal';
 				if ( ent.type === sdCrystal.TYPE_CRYSTAL_ARTIFICIAL )
-				c = 'Artificail crystal';
+				c = 'Artificial crystal';
 				if ( ent.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
 				c = 'Large crystal crab';
 			}
