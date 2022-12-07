@@ -436,7 +436,7 @@ class sdServerConfigFull extends sdServerConfigShort
 				}
 				
 				if ( !instructor_entity._ai || !instructor_entity._ai.target || instructor_entity._ai.target._is_being_removed )
-				if ( intro_offset > intro_to_speak.length || instructor_entity._is_being_removed )
+				if ( /*intro_offset > intro_to_speak.length*/ my_character_entity.build_tool_level > 0 || instructor_entity._is_being_removed )
 				{
 					clearInterval( instructor_interval );
 					

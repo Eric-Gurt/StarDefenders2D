@@ -626,6 +626,8 @@ class sdModeration
 					{
 						socket.character.RemoveArmor();
 						socket.character.DamageWithEffect( socket.character.hea );
+						if ( socket.character.GetClass() === 'sdPlayerOverlord' ) // If player is using overlord, despawns it instantly.
+						socket.character.remove();
 					}
 					
 					if ( socket.character._score < 30 || was_god || !sdRescueTeleport.players_can_build_rtps )
