@@ -48,7 +48,7 @@ class sdPlayerOverlord extends sdCharacter
 		this.hmax = 3000;
 		this.hea = this.hmax;
 
-		this.matter_max = 300;
+		this.matter_max = 40;
 		this.matter = this.matter_max;
 		
 		this._matter_capacity_boosters_max = 0;
@@ -107,7 +107,7 @@ class sdPlayerOverlord extends sdCharacter
 	{
 		if ( sdWorld.server_config.LinkPlayerMatterCapacityToScore( this ) )
 		{
-			this.matter_max = Math.min( 300 + Math.max( 0, this._score * 20 ), 600 );
+			this.matter_max = Math.min( 40 + Math.max( 0, this._score * 20 ), 600 );
 		}
 	}
 	
