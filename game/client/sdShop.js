@@ -316,11 +316,12 @@ class sdShop
 		sdShop.options.push({ _class: 'sdConveyor', filter:'sepia(1) saturate(2) hue-rotate(220deg) brightness(0.7)', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdConveyor', filter:'sepia(1) saturate(1.7) hue-rotate(300deg) brightness(0.7)', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdBeacon', _category:'Base equipment' });
-		sdShop.options.push({ _class: 'sdSteeringWheel', _category:'Base equipment' });
-		sdShop.options.push({ _class: 'sdThruster', _category:'Base equipment' });
-		sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(90deg) saturate(2)', _category:'Base equipment' });
-		sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(180deg) saturate(2)', _category:'Base equipment' });
-		sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(270deg) saturate(2)', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdSteeringWheel', _category:'Base equipment', _min_build_tool_level: 2 });
+		sdShop.options.push({ _class: 'sdThruster', _category:'Base equipment', _min_build_tool_level: 2 });
+		sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(90deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 2 });
+		sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(180deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 2 });
+		sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(270deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 2 });
+		sdShop.options.push({ _class: 'sdCamera', _category:'Base equipment', _min_build_tool_level: 1 });
 		
 		
 		for ( let i = 0; i < sdCaption.colors.length / 3; i++ )

@@ -122,7 +122,7 @@ class sdContextMenu
 				else
 				if ( sdContextMenu.current_target.GetClass() === 'sdCrystalCombiner' )
 				{
-					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdStorage.access_range ) >= 0 )
+					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, 64 ) >= 0 )
 					{
 						sdContextMenu.options.push({ title: 'Combine crystals',
 							action: ()=>
@@ -133,9 +133,9 @@ class sdContextMenu
 					}
 				}
 				else
-				if ( sdContextMenu.current_target.GetClass() === 'sdMatterAmplifier' )
+				/*if ( sdContextMenu.current_target.GetClass() === 'sdMatterAmplifier' )
 				{
-					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdStorage.access_range ) >= 0 )
+					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, 64 ) >= 0 )
 					{
 						sdContextMenu.options.push({ title: 'Toggle shields',
 							action: ()=>
@@ -145,7 +145,7 @@ class sdContextMenu
 						});
 					}
 				}
-				else
+				else*/
 				if ( sdContextMenu.current_target.GetClass() === 'sdStorage' )
 				{
 					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdStorage.access_range ) >= 0 )
@@ -223,6 +223,7 @@ class sdContextMenu
 						sdContextMenu.options.push({ title: 'Subscribe myself to network',
 							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, sdWorld.my_entity._net_id ] ); }
 						});*/
+						
 						if ( sdContextMenu.current_target.subscribers.indexOf( sdWorld.my_entity.biometry ) === -1 )
 						sdContextMenu.options.push({ title: 'Subscribe myself to network',
 							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, sdWorld.my_entity.biometry ] ); }
@@ -359,7 +360,7 @@ class sdContextMenu
 			ctx.translate( sdContextMenu.x, sdContextMenu.y );
 
 			//let width = 180;
-			let width = 260;
+			let width = 400;
 
 			ctx.fillStyle = '#000000';
 			ctx.globalAlpha = 0.7;

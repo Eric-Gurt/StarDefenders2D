@@ -19,6 +19,7 @@ import sdVirus from './sdVirus.js';
 import sdQuickie from './sdQuickie.js';
 import sdCrystal from './sdCrystal.js';
 import sdBlock from './sdBlock.js';
+import sdCamera from './sdCamera.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -84,6 +85,11 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		this.sx = 0;
 		this.sy = 0;
+		
+		this._connected_cameras_cache = [];
+		this._connected_cameras_cache_last_rethink = 0;
+		
+		this._dmg_to_report = 0;
 		
 		this.hmax = 500 * 4; // * 3 when enabled * construction hitpoints upgrades - Just enough so players don't accidentally destroy it when stimpacked and RTP'd
 		this.hea = this.hmax;
@@ -169,6 +175,16 @@ class sdBaseShieldingUnit extends sdEntity
 			this.WakeUpMatterSources();
 		}
 		
+		this._dmg_to_report += dmg;
+		if ( this._dmg_to_report > 500 )
+		{
+			this._dmg_to_report = 0;
+			
+			let cameras = this.GetConnectedCameras();
+			for ( let i = 0; i < cameras.length; i++ )
+			cameras[ i ].Trigger( sdCamera.DETECT_BSU_DAMAGE );
+		}
+		
 		if ( fx )
 		{
 			sdSound.PlaySound({ name:'shield', x:ent.x, y:ent.y, volume:0.2 });
@@ -193,6 +209,16 @@ class sdBaseShieldingUnit extends sdEntity
 		//let old_hea = this.hea;
 		
 		this.hea -= dmg;
+		
+		
+		if ( !this.attack_other_units )
+		if ( this.hea < this.hmax * 0.75 )
+		{
+			let cameras = this.GetConnectedCameras();
+			for ( let i = 0; i < cameras.length; i++ )
+			cameras[ i ].Trigger( sdCamera.DETECT_BSU_DAMAGE );
+		}
+
 
 		if ( this.hea <= 0 )
 		this.remove();
@@ -208,6 +234,13 @@ class sdBaseShieldingUnit extends sdEntity
 		if ( enable === this.enabled )
 		{
 			return;
+		}
+		
+		if ( !enable )
+		{
+			let cameras = this.GetConnectedCameras();
+			for ( let i = 0; i < cameras.length; i++ )
+			cameras[ i ].Trigger( sdCamera.DETECT_BSU_DEACTIVATION );
 		}
 		
 		this.enabled = enable;
@@ -307,6 +340,13 @@ class sdBaseShieldingUnit extends sdEntity
 		if ( this.enabled )
 		{
 			this.attack_other_units = !this.attack_other_units;
+
+			if ( !this.attack_other_units )
+			{
+				let cameras = this.GetConnectedCameras();
+				for ( let i = 0; i < cameras.length; i++ )
+				cameras[ i ].Trigger( sdCamera.DETECT_BSU_DEACTIVATION );
+			}
 			
 			sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:2, pitch:0.5 });
 		}
@@ -319,6 +359,31 @@ class sdBaseShieldingUnit extends sdEntity
 		//this.sx += x * 0.1;
 		//this.sy += y * 0.1;
 	}
+	
+	GetConnectedCameras()
+	{
+		if ( sdWorld.time > this._connected_cameras_cache_last_rethink + 3000 )
+		{
+			let old_cameras = this._connected_cameras_cache.slice();
+			
+				
+			this._connected_cameras_cache_last_rethink = sdWorld.time;
+			this._connected_cameras_cache = this.FindObjectsInACableNetwork( null, sdCamera );
+			
+			if ( old_cameras.length !== this._connected_cameras_cache.length )
+			{
+				for ( let i = 0; i < old_cameras.length; i++ )
+				{
+					let c = old_cameras[ i ];
+					if ( this._connected_cameras_cache.indexOf( c ) === -1 )
+					c.Trigger( sdCamera.DETECT_BSU_DEACTIVATION );
+				}
+			}
+		}
+		
+		return this._connected_cameras_cache;
+	}
+	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this.enabled )
@@ -343,6 +408,7 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		if ( !sdWorld.is_server)
 		return;
+	
 
 		//if ( this._repair_timer > 0 )
 		//this._repair_timer -= GSPEED;
@@ -492,27 +558,38 @@ class sdBaseShieldingUnit extends sdEntity
 			{
 				let unit = units[ i ];
 				
-				if ( ( sdWorld.Dist2D( this.x, this.y, units[ i ].x, units[ i ].y ) < range ) ) // Only attack close range shields can be attacked
-				if ( units[ i ] !== this )
-				if ( units[ i ].enabled === true )
-				if ( friendly_shields.indexOf( units[ i ] ) === -1 ) // Do not attack same base's shields
+				if ( ( sdWorld.Dist2D( this.x, this.y, unit.x, unit.y ) < range ) ) // Only attack close range shields can be attacked
+				if ( unit !== this )
+				if ( unit.enabled === true )
+				if ( friendly_shields.indexOf( unit ) === -1 ) // Do not attack same base's shields
 				{
 					if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 					{
-						if ( units[ i ].matter_crystal > 80 ) // Not really needed since the units turn off below 800 matter
+						if ( unit.matter_crystal > 80 ) // Not really needed since the units turn off below 800 matter
 						{
-							units[ i ].matter_crystal -= 80;
+							unit.matter_crystal -= 80;
 							this.matter_crystal -= 80;
+							
+							{
+								let cameras = this.GetConnectedCameras();
+								for ( let i = 0; i < cameras.length; i++ )
+								cameras[ i ].Trigger( sdCamera.DETECT_BSU_ATTACKS );
+							}
+							{
+								let cameras = unit.GetConnectedCameras();
+								for ( let i = 0; i < cameras.length; i++ )
+								cameras[ i ].Trigger( sdCamera.DETECT_BSU_ATTACKS );
+							}
 
 							if ( false ) // Something does not feel right here, yet (no damage is registered in some cases, possibly due to _matter_drain being 0, though I haven't checked)
 							{
-								if ( units[ i ]._matter_drain - this._matter_drain > 0 )
+								if ( unit._matter_drain - this._matter_drain > 0 )
 								{
-									units[ i ].matter_crystal -= ( units[ i ].matter_crystal > 100000 ? 0.9 : 1 ) * ( units[ i ]._matter_drain - this._matter_drain );
-									this.matter_crystal -= ( units[ i ]._matter_drain - this._matter_drain );
+									unit.matter_crystal -= ( unit.matter_crystal > 100000 ? 0.9 : 1 ) * ( unit._matter_drain - this._matter_drain );
+									this.matter_crystal -= ( unit._matter_drain - this._matter_drain );
 								}
 							}
-							sdWorld.SendEffect({ x:this.x, y:this.y, x2:units[ i ].x, y2:units[ i ].y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
+							sdWorld.SendEffect({ x:this.x, y:this.y, x2:unit.x, y2:unit.y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
 							this._attack_timer = 30;
 							this.attack_anim = 20;
 						}
@@ -534,6 +611,17 @@ class sdBaseShieldingUnit extends sdEntity
 
 							this.matter -= least_matter / my_scale;
 							unit.matter -= least_matter / their_scale;
+							
+							{
+								let cameras = this.GetConnectedCameras();
+								for ( let i = 0; i < cameras.length; i++ )
+								cameras[ i ].Trigger( sdCamera.DETECT_BSU_ATTACKS );
+							}
+							{
+								let cameras = unit.GetConnectedCameras();
+								for ( let i = 0; i < cameras.length; i++ )
+								cameras[ i ].Trigger( sdCamera.DETECT_BSU_ATTACKS );
+							}
 
 							this._attack_timer = 60;
 							unit._attack_timer = 60;
@@ -547,7 +635,7 @@ class sdBaseShieldingUnit extends sdEntity
 							this.WakeUpMatterSources();
 							unit.WakeUpMatterSources();
 
-							sdWorld.SendEffect({ x:this.x, y:this.y, x2:units[ i ].x, y2:units[ i ].y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
+							sdWorld.SendEffect({ x:this.x, y:this.y, x2:unit.x, y2:unit.y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
 
 							sdSound.PlaySound({ name:'zombie_alert2', x:this.x, y:this.y, volume:0.75, pitch:3 });
 						}

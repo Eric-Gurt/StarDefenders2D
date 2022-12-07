@@ -743,6 +743,8 @@ class sdTurret extends sdEntity
 				{
 					let upgrades_to_do = ( command_name === 'UPGRADE_MAX' ) ? 3 : 1;
 					
+					let upgraded = false;
+					
 					while ( upgrades_to_do > 0 )
 					{
 						upgrades_to_do--;
@@ -751,7 +753,7 @@ class sdTurret extends sdEntity
 						{
 							if ( exectuter_character.matter >= 100 )
 							{
-								sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+								upgraded = true;
 
 								this.lvl += 1;
 								exectuter_character.matter -= 100;
@@ -766,10 +768,14 @@ class sdTurret extends sdEntity
 						}
 						else
 						{
-							executer_socket.SDServiceMessage( 'Turret is at maximum level' );
 							break;
 						}
 					}
+					
+					if ( upgraded )
+					sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+					else
+					executer_socket.SDServiceMessage( 'Turret is at maximum level' );
 				}
 			}
 			else

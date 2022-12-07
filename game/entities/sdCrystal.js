@@ -80,7 +80,7 @@ class sdCrystal extends sdEntity
 	
 	get title()
 	{
-		if ( ( this.matter_max === sdCrystal.anticrystal_value && this.type !== 2 && this.type !== 6 ) || ( this.matter_max === sdCrystal.anticrystal_value * 4 && ( this.type === 2 || this.type === 6 ) ) )
+		if ( this.is_anticrystal )
 		{
 			if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
 			return 'Anti-crystal crab';
@@ -119,6 +119,9 @@ class sdCrystal extends sdEntity
 	
 	get is_crab()
 	{ return ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ); }
+	
+	get is_anticrystal()
+	{ return ( this.matter_max === sdCrystal.anticrystal_value && this.type !== 2 && this.type !== 6 ) || ( this.matter_max === sdCrystal.anticrystal_value * 4 && ( this.type === 2 || this.type === 6 ) ); }
 	
 	GetAutoConnectedEntityForMatterFlow()
 	{
@@ -384,7 +387,7 @@ class sdCrystal extends sdEntity
 	}*/
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		if ( ( this.matter_max === sdCrystal.anticrystal_value && this.type !== 2 && this.type !== 6 ) || ( this.matter_max === sdCrystal.anticrystal_value * 4 && ( this.type === 2 || this.type === 6 ) ) )
+		if ( this.is_anticrystal )
 		GSPEED *= 0.25;
 	
 		if ( this.held_by )
@@ -526,7 +529,7 @@ class sdCrystal extends sdEntity
 		
 		//if ( this.held_by === null ) // Don't emit matter if inside a crate
 		{
-			if ( ( this.matter_max === sdCrystal.anticrystal_value && this.type !== 2 && this.type !== 6 ) || ( this.matter_max === sdCrystal.anticrystal_value * 4 && ( this.type === 2 || this.type === 6 ) ) )
+			if ( this.is_anticrystal )
 			{
 				if ( this.held_by === null || !this.held_by.shielded )
 				{
@@ -581,7 +584,7 @@ class sdCrystal extends sdEntity
 		//if ( this.should_draw === 1 )
 		//if ( this.held_by === null )
 		{
-			if ( ( this.matter_max === sdCrystal.anticrystal_value && this.type !== 2 && this.type !== 6 ) || ( this.matter_max === sdCrystal.anticrystal_value * 4 && ( this.type === 2 || this.type === 6 ) ) )
+			if ( this.is_anticrystal )
 			sdEntity.Tooltip( ctx, this.title + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
 			else
 			{

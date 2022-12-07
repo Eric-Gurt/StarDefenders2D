@@ -616,33 +616,41 @@ class sdModeration
 			if ( socket.character )
 			if ( !socket.character._is_being_removed )
 			{
-				let was_god = socket.character._god;
+				let character = socket.character;
+					
+				let was_god = character._god;
 				
-				socket.character._god = false;
+				character._god = false;
 				
-				if ( socket.character.hea > 0 )
+				if ( character.hea > 0 )
 				{
 					function Proceed()
 					{
-						socket.character.RemoveArmor();
-						socket.character.DamageWithEffect( socket.character.hea );
+						if ( character._is_being_removed )
+						return;
+
+						character.RemoveArmor();
+						character.DamageWithEffect( character.hea );
 					}
 					
-					if ( socket.character._score < 30 || was_god || !sdRescueTeleport.players_can_build_rtps )
+					if ( character._score < 30 || was_god || !sdRescueTeleport.players_can_build_rtps )
 					{
 						Proceed();
 					}
 					else
 					{
-						socket.character.Say( [ 'Emergency RTP - activate!' ][ ~~( Math.random() * 0 ) ], false, false, true );
+						character.Say( [ 'Emergency RTP - activate!' ][ ~~( Math.random() * 0 ) ], false, false, true );
 						
 						setTimeout( ()=>
 						{
-							if ( socket.character._has_rtp_in_range )
+							if ( character._is_being_removed )
+							return;
+							
+							if ( character._has_rtp_in_range )
 							Proceed();
 							else
 							{
-								socket.character.Say( [ 'Oh wait!..', 'Uh...', 'Damn.', 'Well...', '...but do I have RTP?', 'RIP', 'Where is my RTP by the way?', '...but did I charge the batteries?' ][ ~~( Math.random() * 8 ) ], false, false, true );
+								character.Say( [ 'Oh wait!..', 'Uh...', 'Damn.', 'Well...', '...but do I have RTP?', 'RIP', 'Where is my RTP by the way?', '...but did I charge the batteries?' ][ ~~( Math.random() * 8 ) ], false, false, true );
 								setTimeout( ()=>
 								{
 									Proceed();
