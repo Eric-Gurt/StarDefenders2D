@@ -628,6 +628,12 @@ class sdModeration
 					{
 						if ( character._is_being_removed )
 						return;
+						
+						if ( character.GetClass() === 'sdPlayerOverlord' ) // If player is using overlord, despawn it instantly.
+						{
+							character.remove();
+							return;
+						}
 
 						character.RemoveArmor();
 						character.DamageWithEffect( character.hea );
