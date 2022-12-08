@@ -8,6 +8,7 @@ import sdEffect from './sdEffect.js';
 import sdBG from './sdBG.js';
 import sdBloodDecal from './sdBloodDecal.js';
 import sdCrystal from './sdCrystal.js';
+import sdStorage from './sdStorage.js';
 
 class sdRoach extends sdEntity
 {
