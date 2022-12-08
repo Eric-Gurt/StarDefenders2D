@@ -50,7 +50,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_POPCORN, _category:'root', _opens_category:'Other' });
 		sdShop.options.push({ _class: null, image: 'com_red', _category:'root', _godmode_only: true, _opens_category:'Admin tools' }); // Cost of Infinity is what actually prevents items here from being accessible to non-in-godmode-admins
 		
-		if ( globalThis.isWin )
+		//if ( globalThis.isWin )
 		sdShop.options.push({ _class: 'sdVirus', _category:'root', _opens_category:'Development tests' });
 	
 		sdShop.options.push({ _class: 'sdBall', _category:'Other' });
@@ -371,7 +371,7 @@ class sdShop
 				});
 			}
 			//else
-			if ( globalThis.isWin )
+			//if ( globalThis.isWin )
 			if ( sdGun.classes[ i ].title !== 'Missing weapon' )
 			{
 				if ( i === sdGun.CLASS_BUILDTOOL_UPG )
@@ -580,7 +580,7 @@ class sdShop
 				_category:'Upgrades', _min_build_tool_level: sdShop.upgrades[ i ].min_build_tool_level || 0 });
 		}
 		
-		if ( globalThis.isWin ) // Lack of this check will probably allow creation of these entities even if category can not be opened in normal way
+		//if ( globalThis.isWin ) // Lack of this check will probably allow creation of these entities even if category can not be opened in normal way
 		{
 			sdShop.options.push({ _class: 'sdOctopus', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdQuickie', _category:'Development tests' });
