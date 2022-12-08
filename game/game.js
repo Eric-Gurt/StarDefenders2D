@@ -698,6 +698,19 @@ let enf_once = true;
 			sdRenderer.service_mesage_until = sdWorld.time + 6500;
 			sdRenderer.service_mesage = v;
 		});
+		
+		socket.on( 'SET_CLIPBOARD', ( v )=>
+		{
+			v = v.split( '{GAME_URL}' ).join( window.location.href );
+			
+			navigator.clipboard.writeText( v ).then( ()=>
+			{
+				sdRenderer.service_mesage_until = sdWorld.time + 15000;
+				sdRenderer.service_mesage = 'URL has been copied to clipboard. Now, go to "Star Defenders 2D notificator" application and press "Add new listener by URL". Copied URL is the URL you should paste there.';
+			} );
+			
+		});
+		
 
 		socket.on( 'SET sdWorld.my_entity._god', ( v )=>
 		{

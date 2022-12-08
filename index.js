@@ -1,5 +1,5 @@
 
-/* global globalThis, process, fs, mime */
+/* global globalThis, process, fs, mime, sdWorld, sdEntity */
 
 let port0 = 3000;
 let CloudFlareSupport = false;
@@ -1132,6 +1132,44 @@ app.get('/*', function cb( req, res, repeated=false )
 	//var path = './game' + req.url;
 	
 	
+	if ( req.url.substring( 0, '/sd_hook'.length ) === '/sd_hook' )
+	{
+		let request = req.url.split( '?' )[ 1 ];
+		let request_parts = request.split( '{' );
+		
+		let _net_id = parseInt( request_parts[ 0 ] );
+		
+		let response = null;
+		
+		let ent = sdEntity.entities_by_net_id_cache_map.get( _net_id );
+		
+		if ( ent !== undefined )
+		if ( typeof ent.HandleHookReply !== 'undefined' )
+		{
+			let json_obj = null;
+			try
+			{
+				json_obj = JSON.parse( '{' + decodeURI( request_parts.slice( 1 ).join( '{' ) ) ); // Won't accept non-JSON objects
+			}
+			catch ( e )
+			{
+				debugger;
+			}
+			
+			if ( json_obj )
+			response = ent.HandleHookReply( json_obj );
+		}
+		
+		if ( !response )
+		{
+			response = { no_response: 1 };
+		}
+		
+		res.send( JSON.stringify( response ) );
+		Finalize();
+		return;
+	}
+	else
 	if ( req.url === '/get_entity_classes.txt' )
 	{
 		res.send( get_entity_classes_page );
@@ -1577,6 +1615,11 @@ io.on("connection", (socket) =>
 		}
 	};
 	
+	socket.SDSetClipboard = ( t )=>
+	{
+		socket.emit( 'SET_CLIPBOARD', t );
+	};
+	
 	/* 
 	// Should work as independent set of commands:
 	socket.respawn_block_until = sdWorld.time - 1;
@@ -1772,6 +1815,14 @@ io.on("connection", (socket) =>
 			player_settings.full_reset = true;
 		}
 		
+		if ( socket.character === null )
+		{
+			const sdCamera = sdWorld.entity_classes.sdCamera;
+			
+			for ( let i = 0; i < sdCamera.cameras.length; i++ )
+			sdCamera.cameras[ i ].Trigger( sdCamera.DETECT_PLAYER_CONNECTIONS, player_settings.hero_name + ' enters the world' );
+		}
+		
 		if ( player_settings.full_reset )
 		{
 			if ( !force_allow && sdWorld.time < socket.respawn_block_until )
@@ -1903,6 +1954,21 @@ io.on("connection", (socket) =>
 		{
 			if ( sdWorld.server_config.onReconnect )
 			sdWorld.server_config.onReconnect( character_entity, player_settings );
+		}
+		
+		if ( sdWorld.GetPlayingPlayersCount() >= 3 )
+		{
+			const sdCamera = sdWorld.entity_classes.sdCamera;
+			
+			for ( let i = 0; i < sdCamera.cameras.length; i++ )
+			sdCamera.cameras[ i ].Trigger( sdCamera.DETECT_PLAYER_CONNECTIONS_3, player_settings.hero_name + ' enters the world' );
+		}
+		if ( sdWorld.GetPlayingPlayersCount() >= 6 )
+		{
+			const sdCamera = sdWorld.entity_classes.sdCamera;
+			
+			for ( let i = 0; i < sdCamera.cameras.length; i++ )
+			sdCamera.cameras[ i ].Trigger( sdCamera.DETECT_PLAYER_CONNECTIONS_6, player_settings.hero_name + ' enters the world' );
 		}
 		
 		UpdateOnlineCount();
@@ -2585,7 +2651,7 @@ io.on("connection", (socket) =>
 			socket.SDServiceMessage( 'Crystal combiner no longer exists' );
 		}
 	});
-	socket.on('AMPLIFIER_SHIELD_TOGGLE', ( arr ) => { 
+	/*socket.on('AMPLIFIER_SHIELD_TOGGLE', ( arr ) => { 
 		
 		if ( !( arr instanceof Array ) )
 		return;
@@ -2607,7 +2673,7 @@ io.on("connection", (socket) =>
 			else
 			socket.SDServiceMessage( 'Matter amplifier no longer exists' );
 		}
-	});
+	});*/
 	
 	socket.CharacterDisconnectLogic = ()=>
 	{

@@ -61,7 +61,8 @@ class sdCable extends sdEntity
 			'sdLongRangeTeleport',
 			'sdBaseShieldingUnit',
 			'sdJunk',
-			'sdCube'
+			'sdCube',
+			'sdCamera'
 		];
 		
 		sdCable.empty_array = [];

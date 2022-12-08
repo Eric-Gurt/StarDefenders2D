@@ -26,7 +26,7 @@ class sdStorage extends sdEntity
 		sdStorage.img_storage3 = sdWorld.CreateImageFromFile( 'storage3' ); // Sprite by LazyRain
 		sdStorage.img_storage4 = sdWorld.CreateImageFromFile( 'storage4' );*/
 		
-		sdStorage.access_range = 64; // Used by sdMatterAmplifier as well
+		sdStorage.access_range = 48;
 		sdStorage.slots_tot = 6;
 		
 		sdStorage.TYPE_GUNS = 0;
