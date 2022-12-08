@@ -73,6 +73,8 @@ class sdRoach extends sdEntity
 		this.nick = '';
 		this.nick_censored = '';
 		
+		this.strength = 1;
+		
 		this.sd_filter = null;
 	}
 	
