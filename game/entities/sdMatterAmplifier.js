@@ -74,7 +74,8 @@ class sdMatterAmplifier extends sdEntity
 		this.crystal = null;
 		
 		this.multiplier = params.multiplier || 1; // Crystal regeneration multiplier, used for higher tier matter amplifiers. Only power of 2 values
-		this._hmax = ( 160 + ( 160 * this.multiplier ) ) * 4; // Regular matter amplifier has 160 + 160 hp which is 320
+		this._hmax = 1;// = ( 160 + ( 160 * this.multiplier ) ) * 4; // Regular matter amplifier has 160 + 160 hp which is 320
+		this.UpdatePropertiesDueToUpgrade();
 		this._hea = this._hmax;
 		
 		this.shielded = false;
@@ -82,6 +83,10 @@ class sdMatterAmplifier extends sdEntity
 		this._ignore_pickup_tim = 0;
 		
 		this._regen_timeout = 0;
+	}
+	UpdatePropertiesDueToUpgrade()
+	{
+		this._hmax = ( 160 + ( 160 * this.multiplier ) ) * 4; // Regular matter amplifier has 160 + 160 hp which is 320
 	}
 	onSnapshotApplied() // To override
 	{
@@ -461,6 +466,103 @@ class sdMatterAmplifier extends sdEntity
 	MeasureMatterCost()
 	{
 		return 200 * this.multiplier + this._hmax * sdWorld.damage_to_matter;
+	}
+	
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( !this._is_being_removed )
+		if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( parameters_array instanceof Array )
+		{
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+			{
+				if ( command_name === 'SHIELD_TOGGLE' )
+				{
+					this.ToggleShields();
+				}
+				else
+				if ( command_name === 'UPGRADE' || command_name === 'UPGRADE_MAX' )
+				{
+					let upgraded = false;
+					let can_upgrade = true;
+					
+					for ( let tr = ( command_name === 'UPGRADE' ) ? 1 : 10; tr > 0; tr-- )
+					{
+						let best_option = null;
+
+						for ( let i = 0; i < sdShop.options.length; i++ )
+						{
+							let option = sdShop.options[ i ];
+							if ( option._class === this.GetClass() )
+							{
+								if ( option.multiplier !== undefined )
+								if ( option.multiplier > this.multiplier && ( !best_option || option.multiplier < best_option.multiplier ) )
+								if ( exectuter_character.build_tool_level >= ( option._min_build_tool_level || 0 ) )
+								best_option = option;
+							}
+						}
+
+						if ( best_option )
+						{
+							let cost_this = this.MeasureMatterCost();
+							let multiplier_old = this.multiplier;
+
+							this.multiplier = best_option.multiplier;
+							this.UpdatePropertiesDueToUpgrade();
+
+							let cost_new = this.MeasureMatterCost();
+
+							let cost = ~~( cost_new - cost_this + 300 );
+
+							if ( exectuter_character.matter >= cost )
+							{
+								exectuter_character.matter -= cost;
+								
+								this._update_version++;
+								this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+								
+								upgraded = true;
+							}
+							else
+							{
+								this.multiplier = multiplier_old;
+								this.UpdatePropertiesDueToUpgrade();
+								
+								can_upgrade = false;
+
+								executer_socket.SDServiceMessage( 'Not enough matter. Upgrade costs ' + cost + ' matter' );
+								break;
+							}
+						}
+						else
+						{
+							break;
+						}
+					}
+					
+					if ( upgraded )
+					sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+					else
+					if ( can_upgrade )
+					executer_socket.SDServiceMessage( 'No upgrades available' );
+				}
+			}
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( !this._is_being_removed )
+		if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+		{
+			this.AddContextOption( 'Toggle shields', 'SHIELD_TOGGLE', [] );
+			this.AddContextOption( 'Upgrade tier', 'UPGRADE', [] );
+			this.AddContextOption( 'Upgrade tier to max', 'UPGRADE_MAX', [] );
+		}
 	}
 }
 //sdMatterAmplifier.init_class();

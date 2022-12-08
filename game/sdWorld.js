@@ -54,6 +54,8 @@ class sdWorld
 		
 		sdWorld.CHUNK_SIZE = CHUNK_SIZE;
 		
+		sdWorld.startup_hash = Math.floor( Math.random() * 9007199254740991 ); // Used to detect server restarts by notifier
+		
 		//sdWorld.max_update_rate = 64;
 		sdWorld.max_update_rate = 75; // For weaker servers (more like bandwidth-limited)
 		
@@ -79,6 +81,7 @@ class sdWorld
 		sdWorld.soft_camera = true;
 		
 		sdWorld.sockets = null; // Becomes array
+		//sdWorld.hook_entities = []; // Entities that implement hook logic, basically for notification system. These must have HandleHookReply( hook_id, password ) and return either JSON-able object or null
 		
 		sdWorld.camera = {
 			x:0,
