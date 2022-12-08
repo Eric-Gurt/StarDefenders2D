@@ -26,7 +26,7 @@ class sdBloodDecal extends sdEntity
 	{
 		//return 5000; // Hack
 		
-		return 1000 * 60 * 60 * ( 4 + Math.random() * 20 ); // Each 4 hours or once a 24 hour, randomly
+		return 1000 * 60 * 60 * ( 4 + Math.random() * 44 ); // Each 4 hours or once a 48 hour, randomly
 	}
 
 	get hitbox_x1() { return 0; }
@@ -158,8 +158,16 @@ class sdBloodDecal extends sdEntity
 					else
 					{
 						let ents = sdWorld.GetAnythingNear( ent.x, ent.y, 128, null, null, sdBloodDecal.IsRoachFilter );
-						if ( ents.length > 22 )
+						if ( ents.length > 11 )
 						{
+							// Make locked up roaches stronger so they can eventually eat out the forgotten bases
+							let random_roach = ents[ ~~( ents.length * Math.random() ) ];
+							
+							if ( random_roach )
+							if ( random_roach.nick.length === 0 )
+							if ( random_roach.strength < 20 )
+							random_roach.strength += 1;
+							
 							ent.remove();
 							ent._broken = false;
 						}

@@ -7,6 +7,7 @@ import sdGun from './sdGun.js';
 import sdEffect from './sdEffect.js';
 import sdBG from './sdBG.js';
 import sdBloodDecal from './sdBloodDecal.js';
+import sdCrystal from './sdCrystal.js';
 
 class sdRoach extends sdEntity
 {
@@ -98,6 +99,8 @@ class sdRoach extends sdEntity
 		this.dx = 0;
 		this.dy = 0;
 		
+		this.strength = 1; // Goes up if roach count is at the limit
+		
 		if ( this._hea <= 0 )
 		{
 			if ( old_hp > 0 )
@@ -180,7 +183,12 @@ class sdRoach extends sdEntity
 				let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
 				let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 				
-				from_entity.DamageWithEffect( this.nick.length > 0 ? 10 : 5, this );
+				let dmg = this.nick.length > 0 ? 10 : ( 5 * this.strength );
+				
+				if ( from_entity.IsPlayerClass() || from_entity.is( sdCrystal ) || from_entity.is( sdStorage ) )
+				dmg = 5;
+				
+				from_entity.DamageWithEffect( dmg, this );
 				from_entity.PlayDamageEffect( xx, yy );
 				
 				sdSound.PlaySound({ name:'popcorn', x:xx, y:yy, volume:0.2, pitch:3 });
