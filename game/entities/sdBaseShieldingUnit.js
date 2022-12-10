@@ -382,6 +382,8 @@ class sdBaseShieldingUnit extends sdEntity
 				for ( let i = 0; i < old_cameras.length; i++ )
 				{
 					let c = old_cameras[ i ];
+					
+					if ( !c._is_being_removed )
 					if ( this._connected_cameras_cache.indexOf( c ) === -1 )
 					c.Trigger( sdCamera.DETECT_BSU_DEACTIVATION );
 				}
