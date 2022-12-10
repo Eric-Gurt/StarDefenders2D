@@ -2778,10 +2778,10 @@ class sdGunClass
 			//sound_pitch: 0.7,
 			sound_pitch: 1.6,
 			//sound_volume: 1.75,
-			title: 'KVT MMG "The Ripper"',
+			title: 'KVT MMG P04 "The Ripper"',
 			slot: 2,
 			reload_time: 4,
-			muzzle_x: 10,
+			muzzle_x: 9,
 			ammo_capacity: 48,
 			spread: 0.03,
 			count: 1,
@@ -2823,10 +2823,10 @@ class sdGunClass
 			//sound_pitch: 1.6,
 			sound_pitch: 0.7,
 			//sound_volume: 1.65,
-			title: 'KVT MMG "The Ripper" Mk.2',
+			title: 'KVT MMG "The Ripper" MK2',
 			slot: 2,
-			reload_time: 4.3,
-			muzzle_x: 10,
+			reload_time: 4.2,
+			muzzle_x: 9,
 			ammo_capacity: 56,
 			spread: 0.02,
 			count: 1,
@@ -2868,17 +2868,17 @@ class sdGunClass
 			image1: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
 			image2: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
 			sound: 'gun_railgun_malicestorm_terrorphaser4',
-			title: 'KVT Phasercannon P03 "Malicestorm"',
+			title: 'KVT Railcannon P03 "Stormbringer"',
 			sound_pitch: 1.6, // re-added cause weapon sounds better with the sound pitch. - Ghost581
 			sound_volume: 1.5,
-            		slot: 8,
-            		reload_time: 60,
-            		muzzle_x: null,
-            		ammo_capacity: -1,
-            		count: 1,
-            		matter_cost: 280,
-            		projectile_properties: { _rail: true, _damage: 98, color: '#62c8f2', explosion_radius: 20 },
-            		min_build_tool_level: 19,
+            slot: 8,
+            reload_time: 60,
+            muzzle_x: null,
+            ammo_capacity: -1,
+            count: 1,
+            matter_cost: 270,
+            projectile_properties: { _rail: true, _damage: 98, color: '#62c8f2', explosion_radius: 20 },
+            min_build_tool_level: 18,
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = {  _rail: true, color: '#62c8f2', explosion_radius: 20 };
@@ -3768,21 +3768,21 @@ class sdGunClass
 			title: 'KVT Missile Launcher P07 "Hydra"',
 			sound_volume: 2.4,
 			slot: 5,
-			reload_time: 8,
+			reload_time: 6,
 			muzzle_x: null,
 			ammo_capacity: 6,
 			spread: 0.06,
-			projectile_velocity: 20,
+			projectile_velocity: 18,
 			count: 1,
 			burst: 2,
-			burst_reload: 28, 
-			min_build_tool_level: 5,
+			burst_reload: 26, 
+			min_build_tool_level: 9,
 			min_workbench_level: 2,
 			matter_cost: 240,
-			projectile_properties: { time_left: 120, explosion_radius: 20, model: 'mini_missile_p241', _damage: 38, color:sdEffect.default_explosion_color, ac:0.01, _homing: true, _homing_mult: 0.3, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 },
+			projectile_properties: { time_left: 180, explosion_radius: 12, model: 'mini_missile_p241', _damage: 34, color:sdEffect.default_explosion_color, ac:0.01, _homing: true, _homing_mult: 0.3, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { time_left: 120, explosion_radius: 20, model: 'mini_missile_p241', color:sdEffect.default_explosion_color, ac:0.01, _homing: true, _homing_mult: 0.3, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 };
+				let obj = { time_left: 180, explosion_radius: 12, model: 'mini_missile_p241', color:sdEffect.default_explosion_color, ac:0.01, _homing: true, _homing_mult: 0.3, _vehicle_mult:sdGun.default_vehicle_mult_bonus, _dirt_mult: 2 };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -4235,14 +4235,14 @@ class sdGunClass
 			image2: [ sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload1' ), sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload2' ) ],
 			sound: 'gun_railgun_malicestorm_terrorphaser4',
 			sound_pitch: 0.7,
-			title: 'KIVORTEC-AVRS P09',
+			title: 'KVT-AVRS P09',
 			slot: 4,
 			reload_time: 30 * 3,//140,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 1,
-			matter_cost: 260,
-			min_build_tool_level: 19,
+			matter_cost: 320,
+			min_build_tool_level: 18,
 			projectile_properties: { explosion_radius: 16, _rail: true, _damage: 125, _vehicle_mult: sdGun.default_vehicle_mult_bonus, color: '#91bfd7' }, // 3x more damage against vehicles
 			projectile_properties_dynamic: ( gun )=>{ 
 				
@@ -5912,19 +5912,90 @@ class sdGunClass
 			image: sdWorld.CreateImageFromFile( 'kvt_ar' ),
 			sound: 'gun_the_ripper2',
 			sound_pitch: 1.3,
-			title: 'KVT Assault Rifle "CER54"',
+			title: 'KVT Assault Rifle P54 "CER54"',
 			slot: 2,
-			reload_time: 1.8,
-			muzzle_x: 10,
-			ammo_capacity: 45,
-			burst: 3,
-			burst_reload: 12,
+			reload_time: 2,
+			muzzle_x: 7,
+			ammo_capacity: 44,
+			burst: 4,
+			burst_reload: 18,
 			count: 1,
-			matter_cost: 186,
-			min_build_tool_level: 9,
-			spawnable: false, // still not done yet, will be spawnable later on
-			projectile_velocity: sdGun.default_projectile_velocity * 1.2,
-			projectile_properties: { _damage: 36, _dirt_mult: -0.5 }
+			matter_cost: 290,
+			min_build_tool_level: 19,
+			spawnable: true,
+			projectile_velocity: sdGun.default_projectile_velocity * 1.1,
+			projectile_properties: { _damage: 34, _dirt_mult: -0.5 },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _dirt_mult: -0.5 }; // Default value for _knock_scale
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 34; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades()
+		};
+
+		sdGun.classes[ sdGun.CLASS_IRON_BULL_HANDCANNON = 105 ] = // sprite made by LordBored
+		{
+			image: sdWorld.CreateImageFromFile( 'handcannon_iron_bull' ),
+			sound: 'gun_the_ripper2',
+			sound_pitch: 0.3,
+			title: 'KVT Handcannon P36 "Iron Bull"',
+			slot: 1,
+			reload_time: 22,
+			muzzle_x: 8,
+			ammo_capacity: 6,
+			spread: 0,
+			count: 1,
+			matter_cost: 140,
+			min_build_tool_level: 6,
+			fire_type: 1,
+			projectile_properties: { _damage: 65, _dirt_mult: -0.5 },
+			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _dirt_mult: -0.5 }; // Default value for _knock_scale
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 65; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades()
 		};
 	}
 }
