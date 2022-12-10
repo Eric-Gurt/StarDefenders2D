@@ -234,7 +234,7 @@ class sdDoor extends sdEntity
 			if ( this._entities_within_sensor_area.indexOf( from_entity ) === -1 )
 			if ( !from_entity.is_static && from_entity._net_id !== undefined )
 			//if ( from_entity.GetClass() === 'sdCharacter' || from_entity.GetClass() === 'sdDrone' ) // universal entities which have _ai_team variable
-			if ( from_entity.is( sdCharacter ) || from_entity.isd( sdDrone ) ) // universal entities which have _ai_team variable
+			if ( from_entity.is( sdCharacter ) || from_entity.is( sdDrone ) ) // universal entities which have _ai_team variable
 			if ( this._sensor_area )
 			if ( from_entity._ai_team === this._ai_team ) // Open only if it's appropriate faction
 			{
