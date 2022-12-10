@@ -526,7 +526,13 @@ class sdCommandCentre extends sdEntity
 		if ( this.hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
+		if ( this.inRealDist2DToEntity_Boolean( exectuter_character, 32 ) )
 		{
+			if ( command_name === 'REQUEST_TASK' )
+			{
+				this.GivePlayerTask( exectuter_character );
+			}
+			else
 			if ( this.owner === exectuter_character )
 			{
 				const AcceptNetID = ( net_id )=>
@@ -633,15 +639,6 @@ class sdCommandCentre extends sdEntity
 					executer_socket.SDServiceMessage( 'Could not find user in list' );
 				}
 				else
-				if ( command_name === 'REQUEST_TASK' )
-				{
-					//let lrtp_near = this.GetComWiredCache( null, sdLongRangeTeleport );
-					//if ( lrtp_near )
-					this.GivePlayerTask( exectuter_character );
-					//else
-					//executer_socket.SDServiceMessage( 'You need to connect a long range teleporter to command centre!' );
-				}
-				else
 				executer_socket.SDServiceMessage( 'Command is not allowed' );
 			}
 			else
@@ -671,7 +668,7 @@ class sdCommandCentre extends sdEntity
 							this._update_version++;
 						}
 					}
-				}
+				}/*
 				else
 				if ( command_name === 'REQUEST_TASK' )
 				{
@@ -680,7 +677,7 @@ class sdCommandCentre extends sdEntity
 					this.GivePlayerTask( exectuter_character );
 					//else
 					//executer_socket.SDServiceMessage( 'You need to connect a long range teleporter to command centre!' );
-				}
+				}*/
 				else
 				executer_socket.SDServiceMessage( 'Command is not allowed' ); // For some reason it displays when you request tasks
 			}
@@ -692,7 +689,8 @@ class sdCommandCentre extends sdEntity
 		if ( this.hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+		//if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+		if ( this.inRealDist2DToEntity_Boolean( exectuter_character, 32 ) )
 		{
 			if ( this.owner === exectuter_character )
 			{
@@ -710,7 +708,7 @@ class sdCommandCentre extends sdEntity
 			{
 				this.AddContextOption( 'Request team join', 'REQUEST', [] );
 			}
-			if ( exectuter_character.cc_id === this._net_id )
+			//if ( exectuter_character.cc_id === this._net_id )
 			this.AddContextOption( 'Request tasks', 'REQUEST_TASK', [] );
 		}
 	}

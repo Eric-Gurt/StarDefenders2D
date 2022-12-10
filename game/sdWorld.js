@@ -1630,7 +1630,7 @@ class sdWorld
 				if ( ent.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 )
 				c = 'Reinforced wall';
 				if ( ent.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
-				c = 'Very reinforced wall';
+				c = 'Reinforced wall level 2';
 				if ( ent.material === sdBlock.MATERIAL_CORRUPTION )
 				c = 'Corruption';
 				if ( ent.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
@@ -1645,17 +1645,32 @@ class sdWorld
 				sdCrystal.TYPE_CRYSTAL_CORRUPTED = 4;
 				sdCrystal.TYPE_CRYSTAL_ARTIFICIAL = 5;
 				sdCrystal.TYPE_CRYSTAL_CRAB_BIG = 6;*/
+									
+				let matter_value = ( ent.is_big ? Math.round( ent.matter_max / 4 ) : ent.matter_max );
 
+				if ( matter_value < 1000 )
+				matter_value = matter_value + ' matter';
+				else
+				matter_value = (~~(matter_value/1000)) + 'k';
+
+				if ( ent.type === sdCrystal.TYPE_CRYSTAL )
+				c = matter_value+' crystal';
 				if ( ent.type === sdCrystal.TYPE_CRYSTAL_BIG )
-				c = 'Large crystal';
+				c = 'Large '+matter_value+' crystal';
 				if ( ent.type === sdCrystal.TYPE_CRYSTAL_CRAB )
-				c = 'Crystal crab';
+				c = ''+matter_value+' Crystal crab';
 				if ( ent.type === sdCrystal.TYPE_CRYSTAL_CORRUPTED )
-				c = 'Corrupted crystal';
+				c = 'Corrupted '+matter_value+' crystal';
 				if ( ent.type === sdCrystal.TYPE_CRYSTAL_ARTIFICIAL )
-				c = 'Artificail crystal';
+				c = 'Artificial '+matter_value+' crystal';
 				if ( ent.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
-				c = 'Large crystal crab';
+				c = 'Large '+matter_value+' crystal crab';
+			
+				if ( ent.is_depleted )
+				c = 'Depleted ' + c;
+				else
+				if ( ent.is_overcharged )
+				c = 'Overcharged ' + c;
 			}
 
 			if ( c === 'Area' )

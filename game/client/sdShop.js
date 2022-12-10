@@ -51,7 +51,7 @@ class sdShop
 		sdShop.options.push({ _class: null, image: 'com_red', _category:'root', _godmode_only: true, _opens_category:'Admin tools' }); // Cost of Infinity is what actually prevents items here from being accessible to non-in-godmode-admins
 		
 		//if ( globalThis.isWin )
-		sdShop.options.push({ _class: 'sdVirus', _category:'root', _opens_category:'Development tests' });
+		sdShop.options.push({ _class: 'sdVirus', _category:'root', _godmode_only: true, _opens_category:'Development tests' });
 	
 		sdShop.options.push({ _class: 'sdBall', _category:'Other' });
 		sdShop.options.push({ _class: 'sdBall', type: 1, _category:'Other' });

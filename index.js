@@ -2432,7 +2432,12 @@ io.on("connection", (socket) =>
 			if ( ent !== null )
 			{
 				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdCom.action_range ) >= 0 )
-				ent.NotifyAboutNewSubscribers( 1, [ new_sub ] );
+				{
+					if ( socket.character.canSeeForUse( ent ) )
+					ent.NotifyAboutNewSubscribers( 1, [ new_sub ] );
+					else
+					socket.SDServiceMessage( 'Communication node is behind wall' );
+				}
 				else
 				socket.SDServiceMessage( 'Communication node is too far' );
 			}
@@ -2502,7 +2507,12 @@ io.on("connection", (socket) =>
 			if ( ent !== null )
 			{
 				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdCom.action_range ) >= 0 )
-				ent.NotifyAboutNewSubscribers( 0, [ net_id_to_kick ] );
+				{
+					if ( socket.character.canSeeForUse( ent ) )
+					ent.NotifyAboutNewSubscribers( 0, [ net_id_to_kick ] );
+					else
+					socket.SDServiceMessage( 'Communication node is behind wall' );
+				}
 				else
 				socket.SDServiceMessage( 'Communication node is too far' );
 			}
@@ -2526,8 +2536,10 @@ io.on("connection", (socket) =>
 			{
 				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdStorage.access_range ) >= 0 )
 				{
-					//ent.ExtractItem( net_id_to_get, socket.character );
+					if ( socket.character.canSeeForUse( ent ) )
 					ent.ExtractItem( slot, socket.character );
+					else
+					socket.SDServiceMessage( 'Can\'t get items through walls' );
 				}
 				else
 				socket.SDServiceMessage( 'Storage is too far' );
@@ -2636,7 +2648,7 @@ io.on("connection", (socket) =>
 			let ent = sdEntity.GetObjectByClassAndNetId( 'sdCrystalCombiner', net_id );
 			if ( ent !== null )
 			{
-				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdStorage.access_range ) >= 0 )
+				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, 64 ) >= 0 )
 				{
 					//if ( ent.crystals === 2 )
 					if ( ent.crystal0 && ent.crystal1 )

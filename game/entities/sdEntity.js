@@ -2047,7 +2047,68 @@ class sdEntity
 	
 		return a;
 	}
-	
+	inRealDist2DToEntity_Boolean( ent, di )
+	{
+		let [ x1, y1, x1b, y1b ] = [ this.x + this._hitbox_x1, this.y + this._hitbox_y1, this.x + this._hitbox_x2, this.y + this._hitbox_y2 ];
+		let [ x2, y2, x2b, y2b ] = [ ent.x + ent._hitbox_x1, ent.y + ent._hitbox_y1, ent.x + ent._hitbox_x2, ent.y + ent._hitbox_y2 ];
+		
+		let left = (x2b < x1);
+		let right = (x1b < x2);
+		let bottom = (y2b < y1);
+		let top = (y1b < y2);
+		
+		const dist = sdWorld.inDist2D_Boolean;
+		
+		if ( top && left )
+		return dist( x1, y1b, x2b, y2, di );
+		else if ( left && bottom )
+		return dist( x1, y1, x2b, y2b, di );
+		else if ( bottom && right )
+		return dist( x1b, y1, x2, y2b, di );
+		else if ( right && top )
+		return dist( x1b, y1b, x2, y2, di );
+		else if ( left )
+		return ( x1 - x2b <= di );
+		else if ( right )
+		return ( x2 - x1b <= di );
+		else if ( bottom )
+		return ( y1 - y2b <= di );
+		else if ( top )
+		return ( y2 - y1b <= di );
+		else
+		return ( 0 <= di );
+	}
+	RealDist2DToEntity( ent )
+	{
+		let [ x1, y1, x1b, y1b ] = [ this.x + this._hitbox_x1, this.y + this._hitbox_y1, this.x + this._hitbox_x2, this.y + this._hitbox_y2 ];
+		let [ x2, y2, x2b, y2b ] = [ ent.x + ent._hitbox_x1, ent.y + ent._hitbox_y1, ent.x + ent._hitbox_x2, ent.y + ent._hitbox_y2 ];
+		
+		let left = (x2b < x1);
+		let right = (x1b < x2);
+		let bottom = (y2b < y1);
+		let top = (y1b < y2);
+		
+		const dist = sdWorld.Dist2D;
+		
+		if ( top && left )
+		return dist( x1, y1b, x2b, y2 );
+		else if ( left && bottom )
+		return dist( x1, y1, x2b, y2b );
+		else if ( bottom && right )
+		return dist( x1b, y1, x2, y2b );
+		else if ( right && top )
+		return dist( x1b, y1b, x2, y2 );
+		else if ( left )
+		return x1 - x2b;
+		else if ( right )
+		return x2 - x1b;
+		else if ( bottom )
+		return y1 - y2b;
+		else if ( top )
+		return y2 - y1b;
+		else
+		return 0;
+	}
 	DoesOverlapWith( ent, extra_space_around=0 ) // Overlaps( // OverlapsWith(
 	{
 		if ( this.x + this._hitbox_x2 < ent.x + ent._hitbox_x1 - extra_space_around ||

@@ -123,6 +123,15 @@ class sdCrystal extends sdEntity
 	get is_anticrystal()
 	{ return ( this.matter_max === sdCrystal.anticrystal_value && this.type !== 2 && this.type !== 6 ) || ( this.matter_max === sdCrystal.anticrystal_value * 4 && ( this.type === 2 || this.type === 6 ) ); }
 	
+	get is_depleted()
+	{ return ( this.matter_regen <= 33 ); }
+	
+	get is_very_depleted()
+	{ return ( this.matter_regen <= 5 ); }
+	
+	get is_overcharged()
+	{ return ( this.matter_regen > 133 ); }
+	
 	GetAutoConnectedEntityForMatterFlow()
 	{
 		return this.held_by;
@@ -595,7 +604,7 @@ class sdCrystal extends sdEntity
 				sdEntity.Tooltip( ctx, this.title + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " ) (matter regeneration rate: " + ~~(this.matter_regen ) + "%)" );
 				else
 				{
-					if ( this.matter_regen <= 33 )
+					if ( this.is_depleted )
 					sdEntity.Tooltip( ctx, this.title + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " ) (depleted)" );
 					else
 					sdEntity.Tooltip( ctx, this.title + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
@@ -635,13 +644,13 @@ class sdCrystal extends sdEntity
 		{
 			let f = crystal_hue_filter;
 
-			if ( this.matter_regen <= 5 )
+			if ( this.is_very_depleted )
 			f += 'saturate(0.15) hue-rotate(-20deg)';
 			else
-			if ( this.matter_regen <= 33 )
+			if ( this.is_depleted )
 			f += 'saturate(0.5) hue-rotate(-20deg)';
 			else
-			if ( this.matter_regen > 133 )
+			if ( this.is_overcharged )
 			f += 'saturate(2) brightness(1.5)';
 
 			ctx.filter = filter_brightness_effect( f );
