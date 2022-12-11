@@ -56,7 +56,7 @@ class sdBloodDecal extends sdEntity
 			 ny >= sdWorld.world_bounds.y2 || ny <= sdWorld.world_bounds.y1 )
 		return null;
 	
-		let arr_under = sdWorld.RequireHashPosition( nx, ny );
+		let arr_under = sdWorld.RequireHashPosition( nx, ny ).arr;
 		
 		for ( var i = 0; i < arr_under.length; i++ )
 		{

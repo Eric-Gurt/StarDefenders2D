@@ -107,7 +107,7 @@ class sdAntigravity extends sdEntity
 				for ( var xx = xx_from; xx < xx_to; xx++ )
 				for ( var yy = yy_from; yy < yy_to; yy++ )
 				{
-					var arr = sdWorld.RequireHashPosition( xx * 32, yy * 32 );
+					var arr = sdWorld.RequireHashPosition( xx * 32, yy * 32 ).arr;
 					
 					for ( var i = 0; i < arr.length; i++ )
 					if ( !arr[ i ]._is_being_removed )
