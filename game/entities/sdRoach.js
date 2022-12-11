@@ -243,7 +243,7 @@ class sdRoach extends sdEntity
 					both:
 					for ( let a = 0; a < this._affected_hash_arrays.length; a++ )
 					{
-						let arr = this._affected_hash_arrays[ a ];
+						let arr = this._affected_hash_arrays[ a ].arr;
 						for ( let i = 0; i < arr.length; i++ )
 						{
 							let e = arr[ i ];
