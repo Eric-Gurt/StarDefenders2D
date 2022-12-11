@@ -208,6 +208,7 @@ class sdCamera extends sdEntity
 							
 							// ------ Past this point new_ent_crystals_only no longer points to non-held crystals ------ 
 							
+							if ( new_ent_crystals_only )
 							if ( new_ent_crystals_only.is( sdCrystal ) )
 							if ( !new_ent_crystals_only.held_by )
 							new_ent_crystals_only = null;
