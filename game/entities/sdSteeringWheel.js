@@ -119,7 +119,7 @@ class sdSteeringWheel extends sdEntity
 			
 			for ( let c = 0; c < cells.length; c++ )
 			{
-				let cell = cells[ c ];
+				let cell = cells[ c ].arr;
 				
 				for ( let i = 0; i < cell.length; i++ )
 				{
