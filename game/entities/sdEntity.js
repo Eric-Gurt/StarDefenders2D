@@ -245,7 +245,7 @@ class sdEntity
 
 			for ( let c = 0; c < cells.length; c++ )
 			{
-				let arr = cells[ c ];
+				let arr = cells[ c ].arr;
 				for ( let i = 0; i < arr.length; i++ )
 				{
 					let ent = arr[ i ];
@@ -485,6 +485,8 @@ class sdEntity
 			this._phys_last_touch_targetable = false;
 			this._phys_last_touch_x = 0;
 			this._phys_last_touch_y = 0;
+			
+			//EnforceChangeLog( this, '_phys_last_touch' );
 		}
 	}
 	PhysWakeUp() // Call this method if entity stuck mid-air
@@ -598,12 +600,31 @@ class sdEntity
 	// Optimized to the point where it is same as old method (sometimes +20% slower on average though), but both methods were optimized by _hard_collision optimization
 	ApplyVelocityAndCollisions( GSPEED, step_size=0, apply_friction=false, impact_scale=1, custom_filtering_method=null ) // step_size can be used by entities that can use stairs
 	{
+		/*
+			Test who is not sleeping (might include held_by crystals that don't really call ApplyVelocityAndCollisions):
+		
+			for ( let i = 0; i < sdWorld.entity_classes.sdEntity.active_entities.length; i++ )
+			{
+				let e = sdWorld.entity_classes.sdEntity.active_entities[ i ];
+				if ( e._phys_sleep > 5 )
+				trace( e );
+			}
+		*/
+		
 		//const debug = ( sdWorld.my_entity === this );
 		//const debug = ( this._class === 'sdBullet' && this._rail ) && sdWorld.is_server;
 		//const debug = ( this._class === 'sdBullet' ) && sdWorld.is_server;
 		//const debug = ( this._class === 'sdSandWorm' ) && sdWorld.is_server;
 		//const debug = ( this._class === 'sdBaseShieldingUnit' ) && sdWorld.is_server;
 		const debug = false;
+		
+		/*if ( this.GetClass() === 'sdCrystal' )
+		if ( this.type !== 3 )
+		if ( this.type !== 6 )
+		{
+			if ( this._phys_sleep > 5 )
+			debugger;
+		}*/
 		
 		if ( !sdBullet )
 		sdBullet = sdWorld.entity_classes.sdBullet;
@@ -618,7 +639,7 @@ class sdEntity
 		
 		///////// Some ancient sleep logic ////////////
 		{
-			this.PhysInitIfNeeded();
+			//this.PhysInitIfNeeded(); Done at constructor now
 
 			let sx_sign = ( this.sx > 0 );
 			let sy_sign = ( this.sy > 0 );
@@ -701,10 +722,19 @@ class sdEntity
 			{
 				if ( this._phys_sleep > 0 )
 				{
-					if ( this._phys_last_touch ) // Do not sleep mid-air
+					/*if ( !this._phys_last_touch )
+					if ( sdWorld.CheckWallExistsBox( this.x + this._hitbox_x1 - 1, this.y + this._hitbox_y1 - 1, this.x + this._hitbox_x2 + 1, this.y + this._hitbox_y2 + 1, this, this.GetIgnoredEntityClasses(), this.GetNonIgnoredEntityClasses() ) )
+					{
+						this._phys_last_touch = sdWorld.last_hit_entity;
+					}*/
+					
+					if ( this._phys_last_touch ) // Do not sleep mid-air. It probably is not consistent?
 					{
 						this._phys_sleep -= Math.min( 1, GSPEED );
-
+					}
+					else
+					{
+						this._phys_sleep -= Math.min( 1, GSPEED ) * 0.1; // Just more time to enter sleeping state?
 					}
 				}
 				else
@@ -728,23 +758,41 @@ class sdEntity
 		}
 		
 		let ignore_entity_classes = this.GetIgnoredEntityClasses();
-		
 		let ignore_entity_classes_classes = null;
 		if ( ignore_entity_classes )
 		{
-			ignore_entity_classes_classes = new WeakSet();
-			for ( let i = 0; i < ignore_entity_classes.length; i++ )
-			ignore_entity_classes_classes.add( sdWorld.entity_classes[ ignore_entity_classes[ i ] ] );
+			ignore_entity_classes_classes = ignore_entity_classes._classes;
+			
+			if ( ignore_entity_classes_classes === undefined )
+			{
+				ignore_entity_classes_classes = new Set();
+				for ( let i = 0; i < ignore_entity_classes.length; i++ )
+				ignore_entity_classes_classes.add( sdWorld.entity_classes[ ignore_entity_classes[ i ] ] );
+
+				ignore_entity_classes._classes = ignore_entity_classes_classes;
+				
+				if ( debug )
+				trace('Possibly inefficient GetIgnoredEntityClasses at ',this.GetIgnoredEntityClasses);
+			}
 		}
 			
 		let include_only_specific_classes = this.GetNonIgnoredEntityClasses();
-		
 		let include_only_specific_classes_classes = null;
 		if ( include_only_specific_classes )
 		{
-			include_only_specific_classes_classes = new WeakSet();
-			for ( let i = 0; i < include_only_specific_classes.length; i++ )
-			include_only_specific_classes_classes.add( sdWorld.entity_classes[ include_only_specific_classes[ i ] ] );
+			include_only_specific_classes_classes = include_only_specific_classes._classes;
+			
+			if ( include_only_specific_classes_classes === undefined )
+			{
+				include_only_specific_classes_classes = new Set();
+				for ( let i = 0; i < include_only_specific_classes.length; i++ )
+				include_only_specific_classes_classes.add( sdWorld.entity_classes[ include_only_specific_classes[ i ] ] );
+
+				include_only_specific_classes._classes = include_only_specific_classes_classes;
+				
+				if ( debug )
+				trace('Possibly inefficient GetNonIgnoredEntityClasses at ',this.GetNonIgnoredEntityClasses);
+			}
 		}
 		
 		if ( this.sx !== this.sx || this.sy !== this.sy ) // NaN check
@@ -782,11 +830,22 @@ class sdEntity
 		let skip_cell_scan = false;
 
 		sdWorld.last_hit_entity = null;
-		this._phys_last_touch = null;
+		//this._phys_last_touch = null; Maybe it is best to just keep it, since movement and removal is tracked above
+		
+		/*if ( this._phys_last_touch )
+		{
+			if ( !this.DoesOverlapWith( this._phys_last_touch, 0.1 ) )
+			this._phys_last_touch = null;
+		}*/
 
 		const is_bg_entity = this.IsBGEntity();
 
-		for ( let iter = 0; iter < 2; iter++ ) // Only 2 iterations of linear movement, enough to allow sliding in box-collisions-world
+		const this_mass = this.mass;
+		
+		const iters_total = ( this.sx === 0 || this.sy === 0 ) ? 1 : 2; // 1 Iteration is enough for one-dimension moving entities
+		
+		for ( let iter = 0; iter < iters_total; iter++ ) // Only 2 iterations of linear movement, enough to allow sliding in box-collisions-world
+		//for ( let iter = 0; iter < 2; iter++ ) // Only 2 iterations of linear movement, enough to allow sliding in box-collisions-world
 		//for ( let iter = 0; iter < 10; iter++ ) // Only 2 iterations of linear movement, enough to allow sliding in box-collisions-world
 		{
 			let sx = this.sx * GSPEED;
@@ -853,14 +912,14 @@ class sdEntity
 			
 			for ( let c = 0; c < affected_cells.length; c++ )
 			{
-				const cell = affected_cells[ c ];
+				const cell = affected_cells[ c ].arr;
 				for ( let e = 0; e < cell.length; e++ )
 				{
 					const arr_i = cell[ e ];
 
 					//if ( !visited_ent.has( arr_i ) )
-					if ( !arr_i._is_being_removed )
 					if ( arr_i._flag !== visited_ent_flag )
+					if ( !arr_i._is_being_removed )
 					{
 						//visited_ent.add( arr_i );
 						arr_i._flag = visited_ent_flag;
@@ -1203,10 +1262,12 @@ class sdEntity
 							}*/
 
 							const smallest = Math.min( on_top, under, on_left, on_right );
+							
+							const best_ent_mass = best_ent.mass;
 
 							const self_effect_scale = 
 									( hard_collision && best_ent._hard_collision ) ?
-										best_ent.mass / ( best_ent.mass + this.mass ) :
+										best_ent_mass / ( best_ent_mass + this_mass ) :
 									( hard_collision ) ?
 										0 :
 										1;
@@ -2236,16 +2297,15 @@ class sdEntity
 		//if ( !sdWorld.mobile )
 		//this._stack_trace = globalThis.getStackTrace();
 		
-		if ( this.PreInit !== sdEntity.prototype.PreInit )
-		this.PreInit();
-		
+		this._flag = 0; // Used to mark entities as visited/added/mentioned just so WeakSet is not needed. Compare it to sdEntity.flag_counter++
+
 		this._class = this.constructor.name;
 		
 		this._class_id = this.__proto__.constructor.class_id;
 		
-		this._flag = 0; // Used to mark entities as visited/added/mentioned just so WeakSet is not needed. Compare it to sdEntity.flag_counter++
-		//this._matter_mode = sdEntity.MATTER_MODE_UNDECIDED;
-		
+		if ( this.PreInit !== sdEntity.prototype.PreInit )
+		this.PreInit();
+			
 		this._connected_ents = null; // Can be array, for slower update rate
 		this._connected_ents_next_rethink = 0;
 		

@@ -589,6 +589,7 @@ class sdPlayerDrone extends sdCharacter
 				}
 			}
 			
+			if ( this.act_x !== 0 || this.act_y !== 0 )
 			this.PhysWakeUp();
 		}
 		

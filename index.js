@@ -2806,11 +2806,13 @@ const RunWorkerService = ( WorkerData )=>
 };
 
 let cpu_cores = os.cpus().length;
-//trace( 'System CPU info: ' + cpu_cores + ' cores' );
+
+//cpu_cores = 0; // Hack
+//console.warn( 'HACK: cpu_cores = 0' );
 
 let worker_services = [];
 
-trace( 'Starting '+(~~(Math.max( 0, Math.min( cpu_cores * 0.8 ) )))+' extra threads for parallel tasks (compression)' );
+trace( 'Starting '+(~~(Math.max( 0, Math.min( cpu_cores * 0.8 ) )))+' extra threads for parallel tasks (compression). Total CPU cores: ' + cpu_cores );
 for ( let i = 0; i < Math.max( 0, Math.min( cpu_cores * 0.8 ) ); i++ ) // Leave some space for GC?
 {
 	// Some Node.js versions seem to be unable to handle await at top-level so wrapping these into function (for a short period of time worker_services will be empty and main thread will handle all snapshot compressions/tasks)
@@ -3099,7 +3101,7 @@ const ServerMainMethod = ()=>
 
 							const VisitCell = ( x, y )=>
 							{
-								let arr = sdWorld.RequireHashPosition( x, y );
+								let arr = sdWorld.RequireHashPosition( x, y ).arr;
 
 								for ( let i2 = 0; i2 < arr.length; i2++ )
 								{

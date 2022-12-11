@@ -235,9 +235,10 @@ class sdBloodDecal extends sdEntity
 			both:
 			for ( let i = 0; i < arr.length; i++ )
 			{
-				for ( let i2 = 0; i2 < arr[ i ].length; i2++ )
+				let arr2 = arr[ i ].arr;
+				for ( let i2 = 0; i2 < arr2.length; i2++ )
 				{
-					let from_entity = arr[ i ][ i2 ];
+					let from_entity = arr2[ i2 ];
 
 					if ( !from_entity._is_being_removed )
 					if ( this.DoesOverlapWith( from_entity, -1 ) )

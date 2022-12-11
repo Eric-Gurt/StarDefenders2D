@@ -49,6 +49,8 @@ class sdCrystal extends sdEntity
 		
 		sdCrystal.lowest_matter_regen = 0; // 20;
 		
+		sdCrystal.ignored_classes_array = [ 'sdLifeBox' ];
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	
@@ -241,7 +243,7 @@ class sdCrystal extends sdEntity
 
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return [ 'sdLifeBox' ];
+		return sdCrystal.ignored_classes_array;
 	}
 
 	Damage( dmg, initiator=null )

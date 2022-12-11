@@ -3953,7 +3953,11 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddRecolorsFromColorAndCost( 
+						AddRecolorsFromColorAndCost( 
+							AddGunDefaultUpgrades(), 
+							'#d3d3d3', 100, 'inner', '' ), 
+						'#ffffff', 100, 'outer', '' )
 		};
 
 		sdGun.classes[ sdGun.CLASS_COUNCIL_PISTOL = 71 ] = 

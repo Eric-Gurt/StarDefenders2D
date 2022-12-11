@@ -345,6 +345,9 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.default_weapon_draw_time = 7;
 		
+		sdCharacter.ignored_classes_when_holding_x = [ 'sdCharacter', 'sdBullet', 'sdWorkbench', 'sdLifeBox' ];
+		sdCharacter.ignored_classes_when_not_holding_x = [ 'sdBullet', 'sdWorkbench', 'sdLifeBox' ];
+		
 		sdCharacter.characters = []; // Used for AI counting, also for team management
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -1280,7 +1283,7 @@ class sdCharacter extends sdEntity
 	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return this._key_states.GetKey('KeyX') ? [ 'sdCharacter', 'sdBullet', 'sdWorkbench', 'sdLifeBox' ] : [ 'sdBullet', 'sdWorkbench', 'sdLifeBox' ];
+		return this._key_states.GetKey('KeyX') ? sdCharacter.ignored_classes_when_holding_x : sdCharacter.ignored_classes_when_not_holding_x;
 	}
 	
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
@@ -3347,7 +3350,7 @@ class sdCharacter extends sdEntity
 			if ( this._stands_on._hard_collision )
 			if ( this.x + this._hitbox_x1 <= this._stands_on.x + this._stands_on._hitbox_x2 )
 			if ( this.x + this._hitbox_x2 >= this._stands_on.x + this._stands_on._hitbox_x1 )
-			if ( this.y + this._hitbox_y1 <= this._stands_on.y + this._stands_on._hitbox_y2 )
+			if ( this.y + this._hitbox_y1 + 0.1 <= this._stands_on.y + this._stands_on._hitbox_y2 )
 			if ( this.y + this._hitbox_y2 + 0.1 >= this._stands_on.y + this._stands_on._hitbox_y1 )
 			{
 				sdWorld.last_hit_entity = this._stands_on;

@@ -580,8 +580,11 @@ class sdRift extends sdEntity
 		
 		ctx.filter = this.GetFilterColor(); // this.filter;
 		
-		ctx.globalAlpha = this.teleport_alpha / 60;
-		ctx.scale( 0.75 * this.scale + ( 0.25 * this.hea / this.hmax ), 0.75 * this.scale + ( 0.25 * this.hea / this.hmax ) );
+		if ( !sdShop.isDrawing )
+		{
+			ctx.globalAlpha = this.teleport_alpha / 60;
+			ctx.scale( 0.75 * this.scale + ( 0.25 * this.hea / this.hmax ), 0.75 * this.scale + ( 0.25 * this.hea / this.hmax ) );
+		}
 		ctx.drawImageFilterCache( sdRift.img_rift_anim, frame * 32, 0, 32, 32, - 16, - 16, 32,32 );
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';

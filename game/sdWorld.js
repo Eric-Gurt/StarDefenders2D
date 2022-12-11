@@ -208,6 +208,10 @@ class sdWorld
 		sdWorld.fake_empty_array = { length:0 };
 		Object.freeze( sdWorld.fake_empty_array );
 
+		sdWorld.fake_empty_cell = new Cell( null );
+		Object.freeze( sdWorld.fake_empty_cell );
+		Object.freeze( sdWorld.fake_empty_cell.arr );
+
 		if ( typeof document !== 'undefined' ) // If server
 		document.ontouchstart = ()=>{ ForMobile(); };
 
@@ -1396,7 +1400,7 @@ class sdWorld
 		for ( x = min_x; x <= max_x; x += CHUNK_SIZE )
 		for ( y = min_y; y <= max_y; y += CHUNK_SIZE )
 		{
-			arr = sdWorld.RequireHashPosition( x, y );
+			arr = sdWorld.RequireHashPosition( x, y ).arr;
 			for ( i = 0; i < arr.length; i++ )
 			//if ( arr[ i ].GetClass() === 'sdCom' ) can take up to 11% of execution time
 			//if ( arr[ i ] instanceof sdCom )
@@ -1439,7 +1443,7 @@ class sdWorld
 		for ( x = min_x; x < max_x; x++ )
 		for ( y = min_y; y < max_y; y++ )
 		{
-			arr = sdWorld.RequireHashPosition( x * CHUNK_SIZE, y * CHUNK_SIZE );
+			arr = sdWorld.RequireHashPosition( x * CHUNK_SIZE, y * CHUNK_SIZE ).arr;
 			for ( i = 0; i < arr.length; i++ )
 			//if ( arr[ i ].GetClass() === 'sdCharacter' )
 			//if ( arr[ i ] instanceof sdCharacter )
@@ -1458,6 +1462,41 @@ class sdWorld
 	static FilterVisionBlocking( ent )
 	{
 		return ( ( ent.is( sdBlock ) && ent.texture_id !== sdBlock.TEXTURE_ID_CAGE && ent.texture_id !== sdBlock.TEXTURE_ID_GLASS && ent.material !== sdBlock.MATERIAL_TRAPSHIELD ) || ent.is( sdDoor ) );
+	}
+	static GetAnythingNearOnlyNonHibernated( _x, _y, range, append_to=null, specific_classes=null, filter_candidates_function=null ) // Kind of faster
+	{
+		let ret = append_to || [];
+		
+		const arr = sdEntity.active_entities;
+		
+		let i, e;
+		let cx,cy;
+		let x1,y1,x2,y2;
+		
+		for ( i = 0; i < arr.length; i++ )
+		{
+			e = arr[ i ];
+
+			if ( !e._is_being_removed )
+			if ( filter_candidates_function === null || filter_candidates_function( e ) )
+			if ( specific_classes === null || specific_classes.indexOf( e.GetClass() ) !== -1 )
+			{
+				x1 = e._hitbox_x1;
+				x2 = e._hitbox_x2;
+				y1 = e._hitbox_y1;
+				y2 = e._hitbox_y2;
+
+				cx = Math.max( e.x + x1, Math.min( _x, e.x + x2 ) );
+				cy = Math.max( e.y + y1, Math.min( _y, e.y + y2 ) );
+
+				//if ( sdWorld.inDist2D( _x, _y, cx, cy, range ) >= 0 )
+				if ( sdWorld.inDist2D_Boolean( _x, _y, cx, cy, range ) )
+				if ( ret.indexOf( e ) === -1 )
+				ret.push( e );
+			}
+		}
+		
+		return ret;
 	}
 	static GetAnythingNear( _x, _y, range, append_to=null, specific_classes=null, filter_candidates_function=null )
 	{
@@ -1480,7 +1519,7 @@ class sdWorld
 		for ( x = min_x; x < max_x; x++ )
 		for ( y = min_y; y < max_y; y++ )
 		{
-			arr = sdWorld.RequireHashPosition( x * CHUNK_SIZE, y * CHUNK_SIZE );
+			arr = sdWorld.RequireHashPosition( x * CHUNK_SIZE, y * CHUNK_SIZE ).arr;
 			for ( i = 0; i < arr.length; i++ )
 			{
 				e = arr[ i ];
@@ -1923,11 +1962,10 @@ class sdWorld
 		{
 			if ( spawn_if_empty )
 			{
-				let arr = [];
-
-				arr.hash = x;
+				//let arr = [];
+				//arr.hash = x;
 				
-				//arr.unlinked = false; // Debugging client-side non-coliding sdBlock-s (they somehow point towards removed hashes
+				let arr = new Cell( x );
 
 				sdWorld.world_hash_positions.set( x, arr );
 
@@ -1936,7 +1974,7 @@ class sdWorld
 			}
 			else
 			{
-				return sdWorld.fake_empty_array;
+				return sdWorld.fake_empty_cell;
 			}
 		}
 		
@@ -2051,13 +2089,14 @@ class sdWorld
 		{
 			for ( var i = 0; i < entity._affected_hash_arrays.length; i++ )
 			{
-				var ind = entity._affected_hash_arrays[ i ].indexOf( entity );
+				var ind = entity._affected_hash_arrays[ i ].arr.indexOf( entity );
 				if ( ind === -1 )
 				throw new Error('Bad hash object - it should contain this entity but it does not');
 			
-				entity._affected_hash_arrays[ i ].splice( ind, 1 );
+				entity._affected_hash_arrays[ i ].arr.splice( ind, 1 );
+				//entity._affected_hash_arrays[ i ].RecreateWithout( ind );
 					
-				if ( entity._affected_hash_arrays[ i ].length === 0 && new_affected_hash_arrays.indexOf( entity._affected_hash_arrays[ i ] ) === -1 ) // Empty and not going to re-add(!)
+				if ( entity._affected_hash_arrays[ i ].arr.length === 0 && new_affected_hash_arrays.indexOf( entity._affected_hash_arrays[ i ].arr ) === -1 ) // Empty and not going to re-add(!)
 				{
 					//entity._affected_hash_arrays[ i ].unlinked = globalThis.getStackTrace();
 					sdWorld.world_hash_positions.delete( entity._affected_hash_arrays[ i ].hash );
@@ -2082,9 +2121,12 @@ class sdWorld
 				//if ( new_affected_hash_arrays[ i ].unlinked )
 				//throw new Error('Adding to unlinked hash');
 				
-				new_affected_hash_arrays[ i ].push( entity );
+				//new_affected_hash_arrays[ i ].push( entity );
+				new_affected_hash_arrays[ i ].arr.push( entity );
+				//new_affected_hash_arrays[ i ].RecreateWith( entity );
 				
-				if ( new_affected_hash_arrays[ i ].length > 1000 ) // Dealing with NaN bounds?
+				//if ( new_affected_hash_arrays[ i ].length > 1000 ) // Dealing with NaN bounds?
+				if ( new_affected_hash_arrays[ i ].arr.length > 100 ) // Dealing with NaN bounds? Or just entity flood?
 				debugger;
 			}
 			
@@ -2119,7 +2161,7 @@ class sdWorld
 			//if ( false ) // Is it still needed? Yes, for cases of overlap that does not involve pushing (players picking up guns, bullets hitting anything)
 			//if ( sdWorld.is_server || entity._net_id !== undefined ) // Not a client-side entity, these (like sdBone) should not react with anything and can simply take up execution time
 			{
-				var map = new Set();
+				let map = new Set();
 
 				let i2, i;
 
@@ -2132,9 +2174,9 @@ class sdWorld
 				const default_movement_in_range_method = sdEntity.prototype.onMovementInRange;
 
 				for ( i2 = 0; i2 < new_affected_hash_arrays.length; i2++ )
-				for ( i = 0; i < new_affected_hash_arrays[ i2 ].length; i++ )
+				for ( i = 0; i < new_affected_hash_arrays[ i2 ].arr.length; i++ )
 				{
-					another_entity = new_affected_hash_arrays[ i2 ][ i ];
+					another_entity = new_affected_hash_arrays[ i2 ].arr[ i ];
 
 					if ( another_entity !== entity )
 					{
@@ -2633,7 +2675,7 @@ class sdWorld
 			let x = sdWorld.world_hash_positions_recheck_keys[ 0 ];
 			
 			if ( sdWorld.world_hash_positions.has( x ) )
-			if ( sdWorld.world_hash_positions.get( x ).length === 0 )
+			if ( sdWorld.world_hash_positions.get( x ).arr.length === 0 )
 			{
 				//sdWorld.world_hash_positions.get( x ).unlinked = globalThis.getStackTrace();
 				sdWorld.world_hash_positions.delete( x );
@@ -2801,7 +2843,7 @@ class sdWorld
 		{
 			//arr = sdWorld.RequireHashPosition( x1 + xx * CHUNK_SIZE, y1 + yy * CHUNK_SIZE );
 			//arr = sdWorld.RequireHashPosition( x2 + xx * CHUNK_SIZE, y2 + yy * CHUNK_SIZE ); // Better player-matter container collisions. Worse for player-block cases
-			arr = sdWorld.RequireHashPosition( xx * CHUNK_SIZE, yy * CHUNK_SIZE );
+			arr = sdWorld.RequireHashPosition( xx * CHUNK_SIZE, yy * CHUNK_SIZE ).arr;
 			
 			//ent_skip: 
 			for ( i = 0; i < arr.length; i++ )
@@ -2974,7 +3016,7 @@ class sdWorld
 		//for ( var yy = -1; yy <= 1; yy++ )
 		{
 			//arr = sdWorld.RequireHashPosition( x + xx * CHUNK_SIZE, y + yy * CHUNK_SIZE );
-			arr = sdWorld.RequireHashPosition( x, y );
+			arr = sdWorld.RequireHashPosition( x, y ).arr;
 			for ( i = 0; i < arr.length; i++ )
 			{
 				arr_i = arr[ i ];
@@ -4213,6 +4255,36 @@ class SeededRandomNumberGenerator
 	}
 
 }
+
+class Cell
+{
+	constructor( hash )
+	{
+		this.arr = [];
+		this.hash = hash;
+		this.length = null;
+		Object.seal( this );
+	}
+	/*get length()
+	{
+		throw new Error('Improper use of Cell, access elements through .arr property now');
+	}*/
+	/*RecreateWith( ent )
+	{
+		let arr = this.arr.slice();
+		arr.push( ent );
+		Object.freeze( arr );
+		this.arr = arr;
+	}
+	RecreateWithout( ind )
+	{
+		let arr = this.arr.slice();
+		arr.splice( ind, 1 );
+		Object.freeze( arr );
+		this.arr = arr;
+	}*/
+}
+
 export default sdWorld;
 	
 	

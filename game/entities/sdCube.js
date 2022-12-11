@@ -791,7 +791,7 @@ class sdCube extends sdEntity
 				{
 					this._attack_timer = 3;
 
-					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdCube.attack_range, null, null, sdCube.FilterCubeTargets );
+					let targets_raw = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, sdCube.attack_range, null, null, sdCube.FilterCubeTargets );
 
 					let targets = [];
 					

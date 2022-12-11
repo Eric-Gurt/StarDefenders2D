@@ -27,6 +27,9 @@ class sdFaceCrab extends sdEntity
 		
 		sdFaceCrab.max_seek_range = 800;
 		
+		sdFaceCrab.ignored_classes_when_stuck = [ 'sdFaceCrab', 'sdCharacter' ];
+		sdFaceCrab.ignored_classes_when_not_stuck = [ 'sdCharacter' ];
+		
 		sdFaceCrab.all_face_crabs = [];
 
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -41,7 +44,7 @@ class sdFaceCrab extends sdEntity
 	
 	GetIgnoredEntityClasses()
 	{
-		return this._physically_stuck_timer > 0 ? [ 'sdFaceCrab', 'sdCharacter' ] : [ 'sdCharacter' ];
+		return this._physically_stuck_timer > 0 ? sdFaceCrab.ignored_classes_when_stuck : sdFaceCrab.ignored_classes_when_not_stuck;
 	}
 	
 	constructor( params )

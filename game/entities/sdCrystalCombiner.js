@@ -558,7 +558,11 @@ class sdCrystalCombiner extends sdEntity
 		if ( this.crystal0 === crystal_to_drop || this.crystal1 === crystal_to_drop )
 		{
 			if ( this.crystal0 === crystal_to_drop )
-			{
+			{				
+				// Reset velocity which crystal had when it was put into amplifier
+				this.crystal0.sx = 0;
+				this.crystal0.sy = 0;
+				
 				this.crystal0.held_by = null;
 				this.crystal0.PhysWakeUp();
 				this.crystal0 = null;
@@ -566,6 +570,10 @@ class sdCrystalCombiner extends sdEntity
 			else
 			//if ( this.crystal0 === crystal_to_drop )
 			{
+				// Reset velocity which crystal had when it was put into amplifier
+				this.crystal1.sx = 0;
+				this.crystal1.sy = 0;
+				
 				this.crystal1.held_by = null;
 				this.crystal1.PhysWakeUp();
 				this.crystal1 = null;
