@@ -659,6 +659,9 @@ class sdBaseShieldingUnit extends sdEntity
 							this.WakeUpMatterSources();
 							unit.WakeUpMatterSources();
 
+							if ( intensity < 1 )
+							sdWorld.SendEffect({ x:this.x, y:this.y, x2:unit.x, y2:unit.y, type:sdEffect.TYPE_BEAM, color:'#f90000' });
+							else
 							sdWorld.SendEffect({ x:this.x, y:this.y, x2:unit.x, y2:unit.y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
 
 							sdSound.PlaySound({ name:'zombie_alert2', x:this.x, y:this.y, volume:0.375 * intensity, pitch:3 });
