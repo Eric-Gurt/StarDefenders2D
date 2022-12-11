@@ -438,39 +438,44 @@ class sdRescueTeleport extends sdEntity
 		{
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 			{
-				if ( command_name === 'RESCUE_HERE' )
+				if ( exectuter_character.character.canSeeForUse( this ) )
 				{
-					//if ( this._owner === null || ( this._owner.hea || this._owner._hea ) <= 0 || this._owner._is_being_removed )
-					//{
-						this._owner = exectuter_character;
-						this.owner_biometry = exectuter_character.biometry;
-						
-						this._update_version++;
+					if ( command_name === 'RESCUE_HERE' )
+					{
+						//if ( this._owner === null || ( this._owner.hea || this._owner._hea ) <= 0 || this._owner._is_being_removed )
+						//{
+							this._owner = exectuter_character;
+							this.owner_biometry = exectuter_character.biometry;
 
-						this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // .owner_net_id won't update without this
-						
-						executer_socket.SDServiceMessage( 'Rescue teleport is now owned by you' );
-					//}
-					//else
-					//executer_socket.SDServiceMessage( 'Rescue teleport is owned by someone else' );
+							this._update_version++;
+
+							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // .owner_net_id won't update without this
+
+							executer_socket.SDServiceMessage( 'Rescue teleport is now owned by you' );
+						//}
+						//else
+						//executer_socket.SDServiceMessage( 'Rescue teleport is owned by someone else' );
+					}
+					else
+					if ( command_name === 'UNRESCUE_HERE' )
+					{
+						//if ( exectuter_character === this._owner )
+						//{
+							this._owner = null;
+							this.owner_biometry = -1;
+
+							this._update_version++;
+
+							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // .owner_net_id won't update without this
+
+							executer_socket.SDServiceMessage( 'Rescue teleport is no longer owned' );
+						//}
+						//else
+						//executer_socket.SDServiceMessage( 'Rescue teleport is owned by someone else' );
+					}
 				}
 				else
-				if ( command_name === 'UNRESCUE_HERE' )
-				{
-					//if ( exectuter_character === this._owner )
-					//{
-						this._owner = null;
-						this.owner_biometry = -1;
-
-						this._update_version++;
-
-						this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // .owner_net_id won't update without this
-						
-						executer_socket.SDServiceMessage( 'Rescue teleport is no longer owned' );
-					//}
-					//else
-					//executer_socket.SDServiceMessage( 'Rescue teleport is owned by someone else' );
-				}
+				executer_socket.SDServiceMessage( 'Rescue teleport is behind wall' );
 			}
 			else
 			executer_socket.SDServiceMessage( 'Rescue teleport is too far' );
@@ -483,6 +488,7 @@ class sdRescueTeleport extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+		if ( exectuter_character.character.canSeeForUse( this ) )
 		{
 			//if ( sdWorld.my_entity && this.owner_net_id === sdWorld.my_entity._net_id )
 			if ( this.owner_biometry !== -1 )

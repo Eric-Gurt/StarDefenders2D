@@ -791,7 +791,7 @@ class sdCube extends sdEntity
 				{
 					this._attack_timer = 3;
 
-					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdCube.attack_range, null, null, sdCube.FilterCubeTargets );
+					let targets_raw = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, sdCube.attack_range, null, null, sdCube.FilterCubeTargets );
 
 					let targets = [];
 					
@@ -1168,7 +1168,8 @@ class sdCube extends sdEntity
 	{
 		//this._last_stand_on = from_entity;
 	}*/
-	onRemove() // Class-specific, if needed
+				
+	onRemoveAsFakeEntity()
 	{
 		sdCube.alive_cube_counter--;
 								
@@ -1180,12 +1181,10 @@ class sdCube extends sdEntity
 
 		if ( this.kind === sdCube.KIND_PINK )
 		sdCube.alive_pink_cube_counter--;
-		//if ( this._broken )
-		//{
-			//if ( this.kind !== sdCube.KIND_PINK ) // Pink cube is too small to be gibbed
-			//sdWorld.SpawnGib( this.x, this.y - ( 3 * this.kind === sdCube.KIND_WHITE ? 3 : this.kind === sdCube.KIND_YELLOW ? 2 : 1 ) , this.sx + Math.random() * 1 - Math.random() * 1, this.sy + Math.random() * 1 - Math.random() * 1, 1, sdGib.CLASS_CUBE_GIB , null, null, this.kind === sdCube.KIND_WHITE ? 300 : this.kind === sdCube.KIND_YELLOW ? 200 : 100, this )
-		//}
-		//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
+	}
+	onRemove() // Class-specific, if needed
+	{
+		this.onRemoveAsFakeEntity();
 	}
 	MeasureMatterCost()
 	{

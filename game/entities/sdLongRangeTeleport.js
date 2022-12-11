@@ -907,7 +907,8 @@ class sdLongRangeTeleport extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		{
-			if ( exectuter_character._god || sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+			//if ( exectuter_character._god || sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+			if ( exectuter_character._god || this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) )
 			{
 				if ( exectuter_character._god && command_name === 'TELEPORT_RESET' )
 				{
@@ -1263,7 +1264,8 @@ class sdLongRangeTeleport extends sdEntity
 		if ( this.hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
-		if ( exectuter_character._god || sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+		//if ( exectuter_character._god || sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+		if ( exectuter_character._god || this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) )
 		{
 			/*if ( sdWorld.my_entity && this.owner_net_id === sdWorld.my_entity._net_id )
 			this.AddContextOption( 'Lose ownership', 'UNRESCUE_HERE', [] );

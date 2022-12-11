@@ -185,10 +185,12 @@ class sdBiter extends sdEntity
 					
 					if ( !this._attacking )
 					{
-							// Bad formula but whatever
-							dx += ( Math.random() * 10 - 5 ) / ( dx / 800 )
-							dy += ( -Math.random() * 50 );
-						}
+						let limited_dx = Math.max( 1, Math.abs( dx ) ); // Because division by 0 causes NaN values and server reboots
+						
+						// Bad formula but whatever
+						dx += ( Math.random() * 10 - 5 ) * 800 / limited_dx;
+						dy += ( -Math.random() * 50 );
+					}
 					
 					let di = sdWorld.Dist2D_Vector( dx / 1.5, dy );
 					if ( di > 2 )

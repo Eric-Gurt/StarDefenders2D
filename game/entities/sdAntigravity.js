@@ -107,7 +107,7 @@ class sdAntigravity extends sdEntity
 				for ( var xx = xx_from; xx < xx_to; xx++ )
 				for ( var yy = yy_from; yy < yy_to; yy++ )
 				{
-					var arr = sdWorld.RequireHashPosition( xx * 32, yy * 32 );
+					var arr = sdWorld.RequireHashPosition( xx * 32, yy * 32 ).arr;
 					
 					for ( var i = 0; i < arr.length; i++ )
 					if ( !arr[ i ]._is_being_removed )
@@ -283,21 +283,26 @@ class sdAntigravity extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		{
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 46 ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
 			{
-				if ( command_name === 'SETPOWER' )
+				if ( exectuter_character.canSeeForUse( this ) )
 				{
-					let velocities = [ -1, 0, 1, 2, 5, 10, 20 ];
-				
-					let i = velocities.indexOf( parameters_array[ 0 ] );
-					
-					if ( i !== -1 )
+					if ( command_name === 'SETPOWER' )
 					{
-						i = velocities[ i ];
-						this.power = i;
-						this._update_version++;
+						let velocities = [ -1, 0, 1, 2, 5, 10, 20 ];
+
+						let i = velocities.indexOf( parameters_array[ 0 ] );
+
+						if ( i !== -1 )
+						{
+							i = velocities[ i ];
+							this.power = i;
+							this._update_version++;
+						}
 					}
 				}
+				else
+				executer_socket.SDServiceMessage( 'Antigravity is behind wall' );
 			}
 			else
 			executer_socket.SDServiceMessage( 'Antigravity is too far' );
@@ -309,12 +314,13 @@ class sdAntigravity extends sdEntity
 		if ( this._hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 46 ) )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+		if ( exectuter_character.canSeeForUse( this ) )
 		{
 			if ( sdWorld.my_entity )
 			{
 				let velocities = [ -1, 0, 1, 2, 5, 10, 20 ];
-				
+
 				for ( let i = 0; i < velocities.length; i++ )
 				this.AddContextOption( 'Set intensity to ' + ( i === 0 ? 'impact prevention' : velocities[ i ] ), 'SETPOWER', [ velocities[ i ] ] );
 			}

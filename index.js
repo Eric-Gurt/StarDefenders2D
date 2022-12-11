@@ -2432,7 +2432,12 @@ io.on("connection", (socket) =>
 			if ( ent !== null )
 			{
 				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdCom.action_range ) >= 0 )
-				ent.NotifyAboutNewSubscribers( 1, [ new_sub ] );
+				{
+					if ( socket.character.canSeeForUse( ent ) )
+					ent.NotifyAboutNewSubscribers( 1, [ new_sub ] );
+					else
+					socket.SDServiceMessage( 'Communication node is behind wall' );
+				}
 				else
 				socket.SDServiceMessage( 'Communication node is too far' );
 			}
@@ -2502,7 +2507,12 @@ io.on("connection", (socket) =>
 			if ( ent !== null )
 			{
 				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdCom.action_range ) >= 0 )
-				ent.NotifyAboutNewSubscribers( 0, [ net_id_to_kick ] );
+				{
+					if ( socket.character.canSeeForUse( ent ) )
+					ent.NotifyAboutNewSubscribers( 0, [ net_id_to_kick ] );
+					else
+					socket.SDServiceMessage( 'Communication node is behind wall' );
+				}
 				else
 				socket.SDServiceMessage( 'Communication node is too far' );
 			}
@@ -2526,8 +2536,10 @@ io.on("connection", (socket) =>
 			{
 				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdStorage.access_range ) >= 0 )
 				{
-					//ent.ExtractItem( net_id_to_get, socket.character );
+					if ( socket.character.canSeeForUse( ent ) )
 					ent.ExtractItem( slot, socket.character );
+					else
+					socket.SDServiceMessage( 'Can\'t get items through walls' );
 				}
 				else
 				socket.SDServiceMessage( 'Storage is too far' );
@@ -2636,7 +2648,7 @@ io.on("connection", (socket) =>
 			let ent = sdEntity.GetObjectByClassAndNetId( 'sdCrystalCombiner', net_id );
 			if ( ent !== null )
 			{
-				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, sdStorage.access_range ) >= 0 )
+				if ( sdWorld.inDist2D( socket.character.x, socket.character.y, ent.x, ent.y, 64 ) >= 0 )
 				{
 					//if ( ent.crystals === 2 )
 					if ( ent.crystal0 && ent.crystal1 )
@@ -2794,11 +2806,13 @@ const RunWorkerService = ( WorkerData )=>
 };
 
 let cpu_cores = os.cpus().length;
-//trace( 'System CPU info: ' + cpu_cores + ' cores' );
+
+//cpu_cores = 0; // Hack
+//console.warn( 'HACK: cpu_cores = 0' );
 
 let worker_services = [];
 
-trace( 'Starting '+(~~(Math.max( 0, Math.min( cpu_cores * 0.8 ) )))+' extra threads for parallel tasks (compression)' );
+trace( 'Starting '+(~~(Math.max( 0, Math.min( cpu_cores * 0.8 ) )))+' extra threads for parallel tasks (compression). Total CPU cores: ' + cpu_cores );
 for ( let i = 0; i < Math.max( 0, Math.min( cpu_cores * 0.8 ) ); i++ ) // Leave some space for GC?
 {
 	// Some Node.js versions seem to be unable to handle await at top-level so wrapping these into function (for a short period of time worker_services will be empty and main thread will handle all snapshot compressions/tasks)
@@ -3087,7 +3101,7 @@ const ServerMainMethod = ()=>
 
 							const VisitCell = ( x, y )=>
 							{
-								let arr = sdWorld.RequireHashPosition( x, y );
+								let arr = sdWorld.RequireHashPosition( x, y ).arr;
 
 								for ( let i2 = 0; i2 < arr.length; i2++ )
 								{

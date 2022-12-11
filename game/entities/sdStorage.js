@@ -26,7 +26,7 @@ class sdStorage extends sdEntity
 		sdStorage.img_storage3 = sdWorld.CreateImageFromFile( 'storage3' ); // Sprite by LazyRain
 		sdStorage.img_storage4 = sdWorld.CreateImageFromFile( 'storage4' );*/
 		
-		sdStorage.access_range = 48;
+		sdStorage.access_range = 64;
 		sdStorage.slots_tot = 6;
 		
 		sdStorage.TYPE_GUNS = 0;
@@ -608,13 +608,65 @@ class sdStorage extends sdEntity
 				return null;
 			}
 			
-			if ( this.type === sdStorage.TYPE_GUNS || this.type === sdStorage.TYPE_PORTAL ) // For this one I don't know if it's needed but it is for the other two
 			if ( initiator_character )
 			{
-				item.x = initiator_character.x;
-				item.y = initiator_character.y;
+				if ( this.type === sdStorage.TYPE_GUNS || this.type === sdStorage.TYPE_PORTAL ) // For this one I don't know if it's needed but it is for the other two
+				{
+					item.x = initiator_character.x;
+					item.y = initiator_character.y;
+				}
+				else
+				{
+					let x0 = initiator_character.x + ( initiator_character._side * 18 );
+					let y0 = initiator_character.y - 4;
+					
+					let off = initiator_character.GetBulletSpawnOffset();
+
+					let placed = false;
+
+					both:
+					for ( let di = 0; di < 32; di += 2 )
+					for ( let a = 0; a < 16; a++ )
+					{
+						let an = a / 16 * Math.PI * 2;
+
+						let xx = x0 + Math.sin( an ) * di;
+						let yy = y0 + Math.cos( an ) * di;// * 0.75; // Less priority for height just so it would rather drop on the other side of a player
+						
+						// Prioritize other side of a player
+						/*if ( xx + item._hitbox_x2 < initiator_character.x + initiator_character._hitbox_x1 )
+						if ( xx + item._hitbox_x1 > initiator_character.x + initiator_character._hitbox_x2 )
+						{
+							if ( initiator_character.side > 0 )
+							xx = initiator_character.x + initiator_character._hitbox_x2 + 1 - item._hitbox_x1;
+							else
+							xx = initiator_character.x + initiator_character._hitbox_x1 - 1 - item._hitbox_x2;
+						}*/
+
+						if ( xx + item._hitbox_x2 < this.x + this._hitbox_x1 || xx + item._hitbox_x1 > this.x + this._hitbox_x2 || yy + item._hitbox_y1 > this.y + this._hitbox_y2 || yy + item._hitbox_y2 < this.y + this._hitbox_y1 - ( this._hitbox_y2 - this._hitbox_y1 ) ) // Place on left, on right, right under and on top but with gap equal to the height of this storage
+						if ( item.CanMoveWithoutOverlap( xx, yy, 0 ) )
+						if ( sdWorld.CheckLineOfSight( initiator_character.x + off.x, initiator_character.y + off.y, xx, yy, null, null, null, sdWorld.FilterOnlyVisionBlocking ) ) // Make sure item can be seen by player
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, null, null, null, sdWorld.FilterOnlyVisionBlocking ) ) // And by storage
+						{
+							placed = true;
+							item.x = xx;
+							item.y = yy;
+							break both;
+						}
+						
+						if ( di === 0 )
+						break; // Skip zero offset with different angles
+					}
+
+					if ( !placed )
+					{
+						initiator_character._socket.SDServiceMessage( 'Not enough space to extract item' );
+						item.x = this.x; // Put it back in crate to prevent glitching
+						item.y = this.y;
+					}
+				}
 			}
-			if ( this.type === sdStorage.TYPE_CRYSTALS )
+			/*if ( this.type === sdStorage.TYPE_CRYSTALS )
 			if ( initiator_character )
 			{
 				if ( item.CanMoveWithoutOverlap( initiator_character.x + ( initiator_character._side * 18 ), initiator_character.y - 4, 0 ) ) // Not ideal, but shouldn't cause a bug since otherwise it just gets put back in the crate I believe - Booraz149
@@ -643,7 +695,7 @@ class sdStorage extends sdEntity
 					item.x = this.x; // Put it back in crate to prevent glitching
 					item.y = this.y;
 				}
-			}
+			}*/
 			
 			item.PhysWakeUp();
 			

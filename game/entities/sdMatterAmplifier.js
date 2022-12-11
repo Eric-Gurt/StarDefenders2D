@@ -317,13 +317,16 @@ class sdMatterAmplifier extends sdEntity
 			{
 				ent = this.crystal;
 				
-				this.crystal.held_by = null;
+				// Reset velocity which crystal had when it was put into amplifier
+				this.crystal.sx = 0;
+				this.crystal.sy = 0;
 				
+				this.crystal.held_by = null;
 				this.crystal.PhysWakeUp();
+				this.crystal = null;
 				
 				this._matter_max = 0;
 				
-				this.crystal = null;
 				
 			}
 			

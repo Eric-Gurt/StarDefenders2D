@@ -56,7 +56,7 @@ class sdBloodDecal extends sdEntity
 			 ny >= sdWorld.world_bounds.y2 || ny <= sdWorld.world_bounds.y1 )
 		return null;
 	
-		let arr_under = sdWorld.RequireHashPosition( nx, ny );
+		let arr_under = sdWorld.RequireHashPosition( nx, ny ).arr;
 		
 		for ( var i = 0; i < arr_under.length; i++ )
 		{
@@ -235,9 +235,10 @@ class sdBloodDecal extends sdEntity
 			both:
 			for ( let i = 0; i < arr.length; i++ )
 			{
-				for ( let i2 = 0; i2 < arr[ i ].length; i2++ )
+				let arr2 = arr[ i ].arr;
+				for ( let i2 = 0; i2 < arr2.length; i2++ )
 				{
-					let from_entity = arr[ i ][ i2 ];
+					let from_entity = arr2[ i2 ];
 
 					if ( !from_entity._is_being_removed )
 					if ( this.DoesOverlapWith( from_entity, -1 ) )

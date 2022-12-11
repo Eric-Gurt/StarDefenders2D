@@ -243,7 +243,7 @@ class sdRoach extends sdEntity
 					both:
 					for ( let a = 0; a < this._affected_hash_arrays.length; a++ )
 					{
-						let arr = this._affected_hash_arrays[ a ];
+						let arr = this._affected_hash_arrays[ a ].arr;
 						for ( let i = 0; i < arr.length; i++ )
 						{
 							let e = arr[ i ];
@@ -435,10 +435,13 @@ class sdRoach extends sdEntity
 	   
 		ctx.sd_filter = this.sd_filter;
 	   
-		if ( this.bgcrawl === 1 )
-		ctx.rotate( -this.an / 100 );
-		else
-		ctx.scale( Math.sin( this.an / 100 ) < 0 ? 1 : -1, 1 );
+		if ( !sdShop.isDrawing )
+		{
+			if ( this.bgcrawl === 1 )
+			ctx.rotate( -this.an / 100 );
+			else
+			ctx.scale( Math.sin( this.an / 100 ) < 0 ? 1 : -1, 1 );
+		}
 		
 		let xx = Math.min( this.fr, 6 );
 		let yy = this.bgcrawl;

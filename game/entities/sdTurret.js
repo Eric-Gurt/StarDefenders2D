@@ -319,7 +319,7 @@ class sdTurret extends sdEntity
 						//for ( var x = from_x; x < to_x; x += 32 )
 						//for ( var y = from_y; y < to_y; y += 32 )
 						{
-							//var arr = sdWorld.RequireHashPosition( x, y );
+							//var arr = sdWorld.RequireHashPosition( x, y ).arr;
 							var arr = sdEntity.active_entities; // In many cases it is faster than running through 3D array, especially if we don't need hibernated targets
 
 							//ents_looked_through += arr.length;
@@ -415,7 +415,7 @@ class sdTurret extends sdEntity
 					   
 
 						{
-							//var arr = sdWorld.RequireHashPosition( x, y );
+							//var arr = sdWorld.RequireHashPosition( x, y ).arr;
 							var arr = sdEntity.active_entities; // In many cases it is faster than running through 3D array, especially if we don't need hibernated targets
 
 							//ents_looked_through += arr.length;

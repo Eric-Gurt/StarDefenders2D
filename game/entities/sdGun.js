@@ -44,19 +44,6 @@ class sdGun extends sdEntity
 		
 		sdGun.tilt_scale = 200;
 		
-		/*let images_loaded = 0;
-		let guess_muzzle = ()=>
-		{
-			images_loaded++;
-			if ( images_loaded === sdGun.classes.length )
-			{
-				for ( var i = 0; i < sdGun.classes.length; i++ )
-				{
-					//stuff
-				}
-			}
-		};*/
-		
 		/*
 		
 			Some basic SD2D weapon ideas:
@@ -68,6 +55,8 @@ class sdGun extends sdEntity
 		*/
 		
 		sdGun.default_vehicle_mult_bonus = 3; // Use this as base value and multiply it just so these can be scaled together
+		
+		sdGun.ignored_entity_classes_arr = [ 'sdCharacter', 'sdGun', 'sdPlayerDrone', 'sdPlayerOverlord' ];
 		
 		sdGun.classes = [];
 		
@@ -1002,10 +991,7 @@ class sdGun extends sdEntity
 	
 	GetIgnoredEntityClasses()
 	{
-		//if ( this._ignored_class )
-		//return [ 'sdCharacter', 'sdGun', this._ignored_class ];
-		//else
-		return [ 'sdCharacter', 'sdGun', 'sdPlayerDrone', 'sdPlayerOverlord' ];
+		return sdGun.ignored_entity_classes_arr;
 	}
 	
 	UpdateHolderClientSide()
@@ -1313,7 +1299,7 @@ class sdGun extends sdEntity
 				if ( has_class.is_sword )
 				{
 					//if ( this._held_by === null || this._held_by.matter < this.GetBulletCost( true ) )
-					if ( this._held_by === null && !this.dangerous )
+					if ( this._held_by === null && !this.dangerous && !sdShop.isDrawing )
 					image = has_class.image_no_matter;
 				}
 				/*
@@ -1490,7 +1476,7 @@ class sdGun extends sdEntity
 			else
 			if ( has_class.image_frames )
 			{
-				let frame = Math.floor( ( sdWorld.time + this._net_id * 2154 ) / has_class.image_duration ) % has_class.image_frames;
+				let frame = Math.floor( ( sdWorld.time + ( this._net_id || 0 ) * 2154 ) / has_class.image_duration ) % has_class.image_frames;
 				ctx.drawImageFilterCache( image, 0 + frame * 32,0,32,32,  - 16, - 16, 32,32 );
 			}
 			else

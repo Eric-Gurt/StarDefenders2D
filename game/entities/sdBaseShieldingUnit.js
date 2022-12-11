@@ -139,10 +139,17 @@ class sdBaseShieldingUnit extends sdEntity
 		if ( initiator._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
 		{
 			initiator._last_damage_upg_complain = sdWorld.time;
-			if ( Math.random() < 0.5 )
-			initiator.Say( 'This entity is protected by a base shielding unit' );
-			else
-			initiator.Say( 'A base shielding unit is protecting this' );
+			
+			switch ( ~~( Math.random() * 7 ) )
+			{
+				case 0: initiator.Say( 'This entity is protected by a base shielding unit' ); break;
+				case 1: initiator.Say( 'A base shielding unit is protecting this' ); break;
+				case 2: initiator.Say( 'Entity can not be damaged until base shielding unit is disabled' ); break;
+				case 3: initiator.Say( 'Can\'t damage due to base shielding unit' ); break;
+				case 4: initiator.Say( 'This entity is within range of base shielding unit' ); break;
+				case 5: initiator.Say( 'Base shielding units can be attacked by other base shielding units' ); break;
+				case 6: initiator.Say( 'Some base shielding units are vulnerable to anti-crystals' ); break;
+			}
 		}
 		
 		if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
@@ -375,6 +382,8 @@ class sdBaseShieldingUnit extends sdEntity
 				for ( let i = 0; i < old_cameras.length; i++ )
 				{
 					let c = old_cameras[ i ];
+					
+					if ( !c._is_being_removed )
 					if ( this._connected_cameras_cache.indexOf( c ) === -1 )
 					c.Trigger( sdCamera.DETECT_BSU_DEACTIVATION );
 				}

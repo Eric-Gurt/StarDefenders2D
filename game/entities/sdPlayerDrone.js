@@ -130,6 +130,11 @@ class sdPlayerDrone extends sdCharacter
 		if ( !sdWorld.is_server )
 		return;
 	
+		if ( this._god )
+		if ( this._socket ) // No disconnected gods
+		if ( dmg > 0 )
+		return;
+	
 		dmg /= this.s / 100;
 	
 		//dmg = Math.abs( dmg );
@@ -209,13 +214,7 @@ class sdPlayerDrone extends sdCharacter
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		if ( this._god )
-		if ( this._socket )
-		{
-			this.hea = this.hmax; // Hack
-			this._nature_damage = 0; // Hack
-			this._player_damage = 0; // Hack
-		}
+		this.ConnecgtedGodLogic( GSPEED );
 		
 		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED );
 		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED );
@@ -589,6 +588,7 @@ class sdPlayerDrone extends sdCharacter
 				}
 			}
 			
+			if ( this.act_x !== 0 || this.act_y !== 0 )
 			this.PhysWakeUp();
 		}
 		

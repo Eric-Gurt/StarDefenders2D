@@ -22,6 +22,8 @@ class sdEffect extends sdEntity
 		
 		console.log('sdEffect class initiated');
 		
+		sdEffect.ignored_entity_classes_arr = [ 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdCrystal', 'sdAsp', 'sdSandWorm', 'sdSlug', 'sdAmphid', 'sdJunk', 'sdTutel', 'sdGrub', 'sdBadDog', 'sdBiter', 'sdAbomination', 'sdMimic' ];
+		
 		sdEffect.TYPE_BLOOD = 0;
 		sdEffect.TYPE_WALL_HIT = 1;
 		sdEffect.TYPE_BEAM = 2;
@@ -642,7 +644,7 @@ class sdEffect extends sdEntity
 
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return [ 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdCrystal', 'sdAsp', 'sdSandWorm', 'sdSlug', 'sdAmphid', 'sdJunk', 'sdTutel', 'sdGrub', 'sdBadDog', 'sdBiter', 'sdAbomination', 'sdMimic' ];
+		return sdEffect.ignored_entity_classes_arr;
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{

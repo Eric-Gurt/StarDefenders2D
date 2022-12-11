@@ -115,7 +115,8 @@ class sdWater extends sdEntity
 		{
 			
 			// Remove existing water, just in case
-			let arr_under = sdWorld.RequireHashPosition( this.x, this.y );
+			let arr_under = sdWorld.RequireHashPosition( this.x, this.y ).arr;
+		
 			for ( var i = 0; i < arr_under.length; i++ )
 			{
 				if ( arr_under[ i ] instanceof sdWater )
@@ -126,6 +127,7 @@ class sdWater extends sdEntity
 					this.remove();
 				}
 			}
+			
 			
 			sdWorld.UpdateHashPosition( this, false ); // Without this, new water objects will only discover each other after one first think event (and by that time multiple water objects will overlap each other). This could be called at sdEntity super constructor but some entities don't know their bounds by that time
 		}
@@ -151,7 +153,7 @@ class sdWater extends sdEntity
 			 ny >= sdWorld.world_bounds.y2 || ny <= sdWorld.world_bounds.y1 )
 		return null;
 	
-		let arr_under = sdWorld.RequireHashPosition( nx, ny );
+		let arr_under = sdWorld.RequireHashPosition( nx, ny ).arr;
 		
 		for ( var i = 0; i < arr_under.length; i++ )
 		{
@@ -401,7 +403,7 @@ class sdWater extends sdEntity
 		else
 		return;
 	
-		var arr = sdWorld.RequireHashPosition( this.x + 8, this.y + 8 + 16 );
+		var arr = sdWorld.RequireHashPosition( this.x + 8, this.y + 8 + 16 ).arr;
 		/*for ( var i = 0; i < arr.length; i++ )
 		{
 			if ( arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) )
@@ -436,8 +438,8 @@ class sdWater extends sdEntity
 				}
 				else
 				{
-					var down_left = sdWorld.RequireHashPosition( this.x + 8 - 16, this.y + 8 + 16 );
-					var down_right = sdWorld.RequireHashPosition( this.x + 8 + 16, this.y + 8 + 16 );
+					var down_left = sdWorld.RequireHashPosition( this.x + 8 - 16, this.y + 8 + 16 ).arr;
+					var down_right = sdWorld.RequireHashPosition( this.x + 8 + 16, this.y + 8 + 16 ).arr;
 
 					for ( var i2 = 0; i2 < down_left.length; i2++ )
 					{

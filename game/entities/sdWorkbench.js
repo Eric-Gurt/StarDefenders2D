@@ -17,6 +17,8 @@ class sdWorkbench extends sdEntity
 	{
 		sdWorkbench.img_wb = sdWorld.CreateImageFromFile( 'workbench2' );
 		
+		sdWorkbench.ignored_classes_arr = [ 'sdGun', 'sdBullet', 'sdCharacter' ];
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -16; }
@@ -73,7 +75,7 @@ class sdWorkbench extends sdEntity
 
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return [ 'sdGun', 'sdBullet', 'sdCharacter' ];
+		return sdWorkbench.ignored_classes_arr;
 	}
 
 	onBuilt()
