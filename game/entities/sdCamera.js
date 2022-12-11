@@ -167,7 +167,7 @@ class sdCamera extends sdEntity
 					let x0 = this.x + ( this._hitbox_x1 + this._hitbox_x2 ) / 2;
 					let y0 = this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2;
 
-					for ( let i = 0; i < 32; i++ )
+					for ( let i = 0; i < 64; i++ )
 					{
 						let old_ent = null;
 
@@ -175,7 +175,7 @@ class sdCamera extends sdEntity
 						old_ent = this._angular_cache[ i ];
 
 
-						let an = i / 32 * Math.PI * 2;
+						let an = i / 64 * Math.PI * 2;
 
 						let xx = x0 + Math.sin( an ) * 800;
 						let yy = y0 + Math.cos( an ) * 800;
