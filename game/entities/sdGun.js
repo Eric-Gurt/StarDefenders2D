@@ -462,7 +462,7 @@ class sdGun extends sdEntity
 	}
 	
 	//onRemove()
-	onBeforeRemove() // Right when .remove() is called for the first time
+	onBeforeRemove() // Right when .remove() is called for the first time. This method won't be altered by build tool spawn logic
 	{
 		if ( sdWorld.is_server )
 		this._remove_stack_trace = getStackTrace();
@@ -745,7 +745,28 @@ class sdGun extends sdEntity
 						this._held_by.Say( 'I need more score in order to have higher matter capacity' );
 						//this._held_by.Say( 'Need matter capacity upgrade and more matter' );
 						else
-						this._held_by.Say( 'Need at least ' + Math.ceil( ammo_cost - this._held_by.matter ) + ' more matter' );
+						{
+							let n = Math.ceil( ammo_cost - this._held_by.matter );
+							
+							this._held_by.Say( [
+								'Need at least '+n+' more matter',
+								'What\'s the MATTER?',
+								'It does not MATTER',
+								''+n+' more matter',
+								'Maybe I could get '+n+' matter from cubes?',
+								'I am thinking about that MATTER',
+								'I\'ll reconsider the MATTER',
+								'No MATTER where I go, I get lost',
+								'No MATTER who says so, I need '+n+' more',
+								'It doesn\'t MATTER to me',
+								'I want to spend more time doing things that MATTER',
+								'I look forward to hearing your thoughts on this MATTER',
+								this._held_by.title+' is not a lazy boy. As a MATTER of fact, '+this._held_by.title+' works hard',
+								'Uh, do I go into debt?',
+								'Where would I get '+n+' more matter?',
+								'Where are my crystals again?'
+							][ ~~( Math.random() * 16 ) ] );
+						}
 					
 						return false;
 					}

@@ -1,6 +1,6 @@
 /*
 
-	TODO: It probably makes no sense to have this as separate entity. Could be mergen with sdHover at some point.
+	TODO: It probably makes no sense to have this as separate entity. Could be merged with sdHover at some point.
 
 */
 import sdWorld from '../sdWorld.js';
@@ -98,6 +98,8 @@ class sdHoverBike extends sdEntity
 		this._regen_timeout = 0;
 		
 		this.filter = params.filter || 'none';
+		
+		this._last_damage = 0; // Sound flood prevention
 		
 		// 1 slot
 		this.driver0 = null; // movement and minigun
@@ -253,7 +255,12 @@ class sdHoverBike extends sdEntity
 	
 		this._regen_timeout = 90;
 		
-		sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
+		
+		if ( sdWorld.time > this._last_damage + 50 )
+		{
+			this._last_damage = sdWorld.time;
+			sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
+		}
 	}
 	
 	get mass() { return 150; }

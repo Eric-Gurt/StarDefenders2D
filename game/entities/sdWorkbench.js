@@ -92,11 +92,14 @@ class sdWorkbench extends sdEntity
 	{
 		if ( this.cube_shards === this.cube_shards_max )
 		{
-		this.cube_shards = 0;
-		this.cube_shards_max += 5;
-		this.level++;
+			this.cube_shards = 0;
+			this.cube_shards_max += 5;
+			this.level++;
+			
+			this._update_version++;
+		
+			sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 		}
-		this._update_version++;
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{

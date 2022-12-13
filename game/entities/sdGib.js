@@ -180,7 +180,7 @@ class sdGib extends sdEntity
 		}
 
 	}
-	onBeforeRemove() // Right when .remove() is called for the first time
+	onBeforeRemove() // Right when .remove() is called for the first time. This method won't be altered by build tool spawn logic
 	{
 		if ( sdWorld.is_server )
 		this._remove_stack_trace = getStackTrace();

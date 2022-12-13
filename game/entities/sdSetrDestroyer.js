@@ -87,6 +87,8 @@ class sdSetrDestroyer extends sdEntity
 		this.matter_max = 5120; // It is much stronger than a basic worm yet it only dropped 1280 matter crystal shards
 		this.matter = this.matter_max;
 		
+		this._last_damage = 0; // Sound flood prevention
+		
 		sdSetrDestroyer.destroyer_counter++;
 		
 		this.lmg_an = 0; // Rotate angle for LMG firing
@@ -260,7 +262,12 @@ class sdSetrDestroyer extends sdEntity
 				//sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:1.25, pitch:0.1 });
 			}
 			
-			sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
+			
+			if ( sdWorld.time > this._last_damage + 50 )
+			{
+				this._last_damage = sdWorld.time;
+				sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
+			}
 			
 			//if ( this.hea <= 400 )
 			//sdSound.PlaySound({ name:'hover_lowhp', x:this.x, y:this.y, volume:1 });

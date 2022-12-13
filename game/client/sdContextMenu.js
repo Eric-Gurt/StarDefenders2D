@@ -264,6 +264,11 @@ class sdContextMenu
 							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdGun' ] ); }
 						});
 					
+						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdBullet' ) === -1 )
+						sdContextMenu.options.push({ title: 'Subscribe projectiles',
+							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdBullet' ] ); }
+						});
+					
 						if ( sdContextMenu.current_target.subscribers.indexOf( '*' ) === -1 )
 						sdContextMenu.options.push({ title: 'Subscribe everything (for doors & teleports only)',
 							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, '*' ] ); }

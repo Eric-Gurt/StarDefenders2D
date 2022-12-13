@@ -10,6 +10,8 @@ import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdCharacter from './sdCharacter.js';
 import sdSandWorm from './sdSandWorm.js';
 import sdTimer from './sdTimer.js';
+import sdCamera from './sdCamera.js';
+
 
 import sdRenderer from '../client/sdRenderer.js';
 import sdBitmap from '../client/sdBitmap.js';
@@ -169,6 +171,14 @@ class sdBlock extends sdEntity
 	DoesRegenerateButDoesntDamage()
 	{
 		return ( this.DoesRegenerate() && this.material !== sdBlock.MATERIAL_CORRUPTION );
+	}
+	IsDefaultGround()
+	{
+		return ( 
+				this.material === sdBlock.MATERIAL_GROUND || 
+				this.material === sdBlock.MATERIAL_ROCK || 
+				this.material === sdBlock.MATERIAL_SAND ||
+				this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS );
 	}
 	
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
@@ -585,7 +595,7 @@ class sdBlock extends sdEntity
 		
 		this.texture_id = params.texture_id || 0; // Only changes texture, but keeps meaning
 		
-		this._natural = params.natural === true;
+		this._natural = ( params.natural === true ); // Strictly to distinguish player-build entities
 		
 		this._hmax = 550 * ( this.width / 32 * this.height / 32 ) * ( this.material === sdBlock.MATERIAL_GROUND ? 0.8 : 1 );
 		
@@ -673,7 +683,18 @@ class sdBlock extends sdEntity
 	}
 	Corrupt( from=null )
 	{
-		let ent2 = new sdBlock({ x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_CORRUPTION, hue:this.hue,br:this.br,filter:this.filter, rank: from ? Math.max( 0, from.p - 1 - Math.floor( Math.random(), 3 ) ) : undefined });
+		let ent2 = new sdBlock({ 
+			x: this.x, 
+			y: this.y,
+			width:this.width, 
+			height:this.height, 
+			material:sdBlock.MATERIAL_CORRUPTION, 
+			hue:this.hue,
+			br:this.br,
+			filter:this.filter, 
+			rank: from ? Math.max( 0, from.p - 1 - Math.floor( Math.random(), 3 ) ) : undefined,
+			natural: true 
+		});
 
 		this.remove();
 		this._broken = false;
@@ -710,7 +731,16 @@ class sdBlock extends sdEntity
 	Fleshify( from=null )
 	{
 		let bri = 100 - ( Math.random() * 100 / 5 );
-		let ent2 = new sdBlock({ x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_FLESH, br:bri, rank: from ? Math.max( 0, from.p - 1 - Math.floor( Math.random(), 2 ) ) : undefined });
+		let ent2 = new sdBlock({ 
+			x: this.x, 
+			y: this.y, 
+			width:this.width, 
+			height:this.height, 
+			material:sdBlock.MATERIAL_FLESH, 
+			br:bri, 
+			rank: from ? Math.max( 0, from.p - 1 - Math.floor( Math.random(), 2 ) ) : undefined,
+			natural: true
+		});
 
 		this.remove();
 		this._broken = false;
@@ -738,6 +768,12 @@ class sdBlock extends sdEntity
 		
 		if ( this._shielded )
 		{
+			let bsu = this._shielded;
+			
+			let cameras = bsu.GetConnectedCameras();
+			for ( let i = 0; i < cameras.length; i++ )
+			cameras[ i ].Trigger( sdCamera.DETECT_BSU_DEACTIVATION, 'Block is losing protection due to corruption spreading nearby' );
+			
 			this._shielded = null;
 			sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:2, pitch:0.5 });
 		}
@@ -892,31 +928,56 @@ class sdBlock extends sdEntity
 				
 				let corrupt_done = false;
 				
+				if ( this.p >= 1 )
 				for ( let d = 0; d < 4; d++, dir = ( dir + 1 ) % 4 )
 				{
 					let ent = null;
 					
+					let xx = 0;
+					let yy = 0;
+					
 					if ( dir === 0 )
-					ent = sdBlock.GetGroundObjectAt( this.x + 16, this.y );
+					xx = 1;
+					//ent = sdBlock.GetGroundObjectAt( this.x + 16, this.y );
 					
 					if ( dir === 1 )
-					ent = sdBlock.GetGroundObjectAt( this.x - 16, this.y );
+					xx = -1;
+					//ent = sdBlock.GetGroundObjectAt( this.x - 16, this.y );
 					
 					if ( dir === 2 )
-					ent = sdBlock.GetGroundObjectAt( this.x, this.y + 16 );
+					yy = 1;
+					//ent = sdBlock.GetGroundObjectAt( this.x, this.y + 16 );
 					
 					if ( dir === 3 )
-					ent = sdBlock.GetGroundObjectAt( this.x, this.y - 16 );
+					yy = -1;
+					//ent = sdBlock.GetGroundObjectAt( this.x, this.y - 16 );
 				
+					sdWorld.last_hit_entity = null;
+					sdWorld.CheckWallExistsBox( 
+							this.x + xx * this.width, 
+							this.y + yy * this.height, 
+							this.x + this._hitbox_x2 + xx * this.width, 
+							this.y + this._hitbox_y2 + yy * this.height, 
+							null, 
+							null, 
+							null, 
+							( e )=>
+							{
+								return ( e.is( sdBlock ) && ( e.IsDefaultGround() || !e._natural ) );
+							}
+					);
+					
+					ent = sdWorld.last_hit_entity;
+					
 					if ( ent )
 					{
-						if ( this.p >= 1 )
-						if ( ent.material !== sdBlock.MATERIAL_FLESH )
-						{
+						//if ( this.p >= 1 )
+						//if ( ent.material !== sdBlock.MATERIAL_FLESH )
+						//{
 							ent.Fleshify( this );
 							corrupt_done = true;
 							break;
-						}
+						//}
 					}
 				}
 				if ( !corrupt_done )

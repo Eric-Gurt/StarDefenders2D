@@ -645,18 +645,24 @@ class sdModeration
 					}
 					else
 					{
-						character.Say( [ 'Emergency RTP - activate!' ][ ~~( Math.random() * 0 ) ], false, false, true );
+						character.Say( [ 'Emergency RTP - activate!' ][ ~~( Math.random() * 1 ) ], false, false, true );
 						
 						setTimeout( ()=>
 						{
 							if ( character._is_being_removed )
 							return;
+						
+							if ( character._frozen >= 1 )
+							{
+								character.Say( [ 'Uh... I\'m frozen', 'Frozen...', 'A bit cold out there' ][ ~~( Math.random() * 3 ) ], false, false, true );
+								return;
+							}
 							
 							if ( character._has_rtp_in_range )
 							Proceed();
 							else
 							{
-								character.Say( [ 'Oh wait!..', 'Uh...', 'Damn.', 'Well...', '...but do I have RTP?', 'RIP', 'Where is my RTP by the way?', '...but did I charge the batteries?' ][ ~~( Math.random() * 8 ) ], false, false, true );
+								character.Say( [ 'Oh wait!..', 'Uh...', 'Damn', 'Well...', '...but do I have RTP?', 'RIP', 'Where is my RTP by the way?', '...but did I charge the batteries?' ][ ~~( Math.random() * 8 ) ], false, false, true );
 								setTimeout( ()=>
 								{
 									Proceed();

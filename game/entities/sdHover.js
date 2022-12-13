@@ -123,6 +123,8 @@ class sdHover extends sdEntity
 		
 		this.filter = params.filter || 'none';
 		
+		this._last_damage = 0; // Sound flood prevention
+		
 		// 6 slots
 		this.driver0 = null; // movement
 		this.driver1 = null; // minigun
@@ -297,7 +299,12 @@ class sdHover extends sdEntity
 
 			this._regen_timeout = 90;
 
-			sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
+			
+			if ( sdWorld.time > this._last_damage + 50 )
+			{
+				this._last_damage = sdWorld.time;
+				sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
+			}
 		}
 	}
 	

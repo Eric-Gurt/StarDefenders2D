@@ -674,8 +674,12 @@ class sdShop
 			//sdShop.options.push({ _class: 'sdSensorArea', _category:'Development tests' });
 			//sdShop.options.push({ _class: 'sdBloodDecal', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBG', width: 16, height: 8, _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SAND, _category:'Development tests' }); // Currently does nothing for now, perhaps for more lore-related stuff in this game?
-			sdShop.options.push({ _class: 'sdGib', class:sdGib.CLASS_VELOX_MECH_HEAD, _category:'Development tests' }); // Currently does nothing for now, perhaps for more lore-related stuff in this game?
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SAND, natural: true, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_GROUND, natural: true, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_ROCK, natural: true, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_CORRUPTION, natural: true, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_FLESH, natural: true, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdGib', class:sdGib.CLASS_VELOX_MECH_HEAD, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdMimic', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdRoach', _category:'Development tests' });
 		}
