@@ -93,6 +93,8 @@ class sdUpgradeStation extends sdEntity
 			this.WakeUpMatterSources();
 			this._update_version++;
 			sdWorld.UpdateHashPosition( this, false );
+			
+			sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 		}
 	}
 	DropBasicEquipment( character )

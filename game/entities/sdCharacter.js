@@ -682,7 +682,9 @@ class sdCharacter extends sdEntity
 	{
 		super( params );
 		
-		//this._is_cable_priority = true;										
+		//this._is_cable_priority = true;		
+		
+		this._debug_last_removed_stack = null;
 		
 		this._local_ragdoll_ever_synced = false; // To track need to precalculate ragdoll logic
 		
@@ -1590,9 +1592,12 @@ class sdCharacter extends sdEntity
 			
 				// Turn white
 				let new_sd_filter_s = '';
-				while ( new_sd_filter_s.length < copy_ent.sd_filter.s.length )
+				
+				let reference_sd_filter = copy_ent.sd_filter || sdWorld.CreateSDFilter();
+				
+				while ( new_sd_filter_s.length < reference_sd_filter.s.length )
 				{
-					new_sd_filter_s += copy_ent.sd_filter.s.substring( new_sd_filter_s.length, new_sd_filter_s.length + 6 );
+					new_sd_filter_s += reference_sd_filter.s.substring( new_sd_filter_s.length, new_sd_filter_s.length + 6 );
 					new_sd_filter_s += 'ffffff';
 				}
 				
@@ -3325,16 +3330,33 @@ class sdCharacter extends sdEntity
 			let still_stands = false;
 
 			if ( old_stands )
-			if ( !this._stands_on._is_being_removed )
-			if ( this._stands_on._hard_collision )
-			if ( this.x + this._hitbox_x1 <= this._stands_on.x + this._stands_on._hitbox_x2 )
-			if ( this.x + this._hitbox_x2 >= this._stands_on.x + this._stands_on._hitbox_x1 )
-			if ( this.y + this._hitbox_y1 + 0.1 <= this._stands_on.y + this._stands_on._hitbox_y2 )
-			if ( this.y + this._hitbox_y2 + 0.1 >= this._stands_on.y + this._stands_on._hitbox_y1 )
 			{
-				sdWorld.last_hit_entity = this._stands_on;
+				if ( !this._stands_on._is_being_removed )
+				if ( this._stands_on._hard_collision )
+				if ( this.x + this._hitbox_x1 <= this._stands_on.x + this._stands_on._hitbox_x2 )
+				if ( this.x + this._hitbox_x2 >= this._stands_on.x + this._stands_on._hitbox_x1 )
+				if ( this.y + this._hitbox_y1 + 0.1 <= this._stands_on.y + this._stands_on._hitbox_y2 )
+				if ( this.y + this._hitbox_y2 + 0.1 >= this._stands_on.y + this._stands_on._hitbox_y1 )
+				{
+					sdWorld.last_hit_entity = this._stands_on;
+
+					still_stands = true;
+				}
 				
-				still_stands = true;
+				if ( !still_stands )
+				if ( Math.abs( this.sx ) > 0.01 ) // Moving left/right, it is only needed for seamless sliding
+				{
+					sdWorld.last_hit_entity = null;
+					if ( sdWorld.CheckWallExistsBox( this.x + this._hitbox_x1, this.y + this._hitbox_y1 + 0.1, this.x + this._hitbox_x2, this.y + this._hitbox_y2 + 0.1, this, this.GetIgnoredEntityClasses(), null, null ) )
+					if ( sdWorld.last_hit_entity )
+					{
+						// Sets sdWorld.last_hit_entity;
+						
+						this._stands_on = sdWorld.last_hit_entity;
+						
+						still_stands = true;
+					}
+				}
 			}
 
 			//if ( still_stands || !this.CanMoveWithoutOverlap( this.x, this.y + 2, 0.0001 ) )
@@ -3514,6 +3536,11 @@ class sdCharacter extends sdEntity
 				}
 			}
 		}
+		
+		/*if ( this._key_states.GetKey( 'KeyA' ) )
+		{
+			trace( { stands:this.stands, stands_on:this._stands_on, sx:this.sx, GSPEED:GSPEED } );
+		}*/
 		
 		if ( in_water )
 		{
@@ -3793,21 +3820,25 @@ class sdCharacter extends sdEntity
 	get friction_remain()
 	{ return ( this.hea <= 0 ) ? 0.7 : 0.8; } // Same 0.7 for ragdoll bones
 
-	onRemoveAsFakeEntity()
+	/*onRemoveAsFakeEntity()
 	{
 		if ( this._ragdoll )
-		this._ragdoll.Delete();
+		this._ragdoll.Delete();*/
 	
+	
+		/*
 		let id = sdCharacter.characters.indexOf( this );
 	
 		if ( id === -1 )
-		throw new Error( 'Removing sdCharacter entity twice? Removed entity is not in a list of sdCharacter.characters' );
+		throw new Error( 'Removing sdCharacter entity twice? Removed entity is not in a list of sdCharacter.characters. Previously it was removed at: ' + this._debug_last_removed_stack );
 		else
 		sdCharacter.characters.splice( id, 1 );
-	}
+	
+		this._debug_last_removed_stack = globalThis.getStackTrace();
+	}*/
 	
 	//onRemove() // Class-specific, if needed
-	onBeforeRemove() // Right when .remove() is called for the first time
+	onBeforeRemove() // Right when .remove() is called for the first time. This method won't be altered by build tool spawn logic
 	{
 		// Release object
 		if ( this._ai )
@@ -3828,8 +3859,14 @@ class sdCharacter extends sdEntity
 		//for ( var i = 0; i < this._listeners.REMOVAL.length; i++ )
 		//this._listeners.REMOVAL[ i ]( this );
 	
-		//console.log( this.title + '['+this._net_id+'] is being removed' );
+		let id = sdCharacter.characters.indexOf( this );
+		
+		if ( id === -1 )
+		throw new Error( 'Removing sdCharacter entity twice? Removed entity is not in a list of sdCharacter.characters. Previously it was removed at: ' + this._debug_last_removed_stack );
+		else
 		sdCharacter.characters.splice( sdCharacter.characters.indexOf( this ), 1 );
+	
+		this._debug_last_removed_stack = globalThis.getStackTrace();
 		
 		if ( this.driver_of )
 		this.driver_of.ExcludeDriver( this );
@@ -4250,7 +4287,18 @@ class sdCharacter extends sdEntity
 						}
 						else
 						{
-							sdCharacter.last_build_deny_reason = 'Can\'t build this type of entity through wall';
+							sdCharacter.last_build_deny_reason = [
+									'Can\'t build this type of entity through wall',
+									'Not through wall',
+									'No',
+									'I refuse',
+									'Can\'t phase through wall',
+									'How I\'d do that?',
+									'It can\'t be built through wall',
+									'Understandable',
+									'Wall is on the way'
+								][ ~~( Math.random() * 9 ) ];
+								
 							return false;
 						}
 					}
@@ -4335,8 +4383,22 @@ class sdCharacter extends sdEntity
 							}
 							else
 							{
-								//sdCharacter.last_build_deny_reason = 'It overlaps with something';
-								sdCharacter.last_build_deny_reason = 'It overlaps with ' + sdWorld.ClassNameToProperName( obstacle.GetClass(), obstacle ); // obstacle.GetClass();
+								let s = sdWorld.ClassNameToProperName( obstacle.GetClass(), obstacle );
+								
+								//sdCharacter.last_build_deny_reason = 'It overlaps with '+s;
+								
+								sdCharacter.last_build_deny_reason = [
+									'It overlaps with '+s,
+									s+' is on the way',
+									'Maybe I should break '+s+' first?',
+									'Ok, but there is '+s,
+									'Can\'t build on top of '+s,
+									'No space',
+									s+', could you move please?',
+									'Out of my way, '+s+'!',
+									'Uh...',
+									'Um...'
+								][ ~~( Math.random() * 10 ) ];
 							}
 						}
 					}

@@ -73,6 +73,8 @@ class sdLifeBox extends sdEntity
 		//this.sx = 0;
 		//this.sy = 0;
 		
+		this._last_damage = 0; // Sound flood prevention
+		
 
 		this.hp_mult = 1;
 		this.damage_mult = 1;
@@ -209,7 +211,12 @@ class sdLifeBox extends sdEntity
 	
 		this._regen_timeout = 10;
 		
-		sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
+		
+		if ( sdWorld.time > this._last_damage + 50 )
+		{
+			this._last_damage = sdWorld.time;
+			sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:0.5, volume:Math.min( 1, dmg / 200 ) });
+		}
 	}
 	
 	get mass() { return 1000; }
@@ -226,22 +233,26 @@ class sdLifeBox extends sdEntity
 		{
 			this.damage_mult += 0.4;
 			this.cube_shards -= 2;
+			sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 		}
 		if ( upgrade_type === 1 && this.hp_mult < 3 )
 		{
 			this.hp_mult += 0.4;
 			this.hmax = this.hmax + ( this.hmax_old * this.hp_mult );
 			this.cube_shards -= 2;
+			sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 		}
 		if ( upgrade_type === 2 && this.rate_of_fire_mult < 3 )
 		{
 			this.rate_of_fire_mult += 0.4;
 			this.cube_shards -= 2;
+			sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 		}
 		if ( upgrade_type === 3 && this.hp_regen_mult < 3 )
 		{
 			this.hp_regen_mult += 0.4;
 			this.cube_shards -= 2;
+			sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

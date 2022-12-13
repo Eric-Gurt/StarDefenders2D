@@ -438,7 +438,7 @@ class sdRescueTeleport extends sdEntity
 		{
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 			{
-				if ( exectuter_character.character.canSeeForUse( this ) )
+				if ( exectuter_character.canSeeForUse( this ) )
 				{
 					if ( command_name === 'RESCUE_HERE' )
 					{
@@ -488,7 +488,7 @@ class sdRescueTeleport extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
-		if ( exectuter_character.character.canSeeForUse( this ) )
+		if ( exectuter_character.canSeeForUse( this ) )
 		{
 			//if ( sdWorld.my_entity && this.owner_net_id === sdWorld.my_entity._net_id )
 			if ( this.owner_biometry !== -1 )
