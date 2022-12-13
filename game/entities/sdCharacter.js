@@ -1900,7 +1900,7 @@ class sdCharacter extends sdEntity
 			{
 				if ( this._voice.variant === 'klatt3' )
 				{
-					this.Say( [ 'Critical damage!', 'Shutting down', 'Structural integrity compromised!' ][ ~~( Math.random() * 2 ) ], false, false, true, true );
+					this.Say( [ 'Critical damage!', 'Shutting down', 'Structural integrity compromised!' ][ ~~( Math.random() * 3 ) ], false, false, true, true );
 				}
 				else
 				if ( this._voice.variant === 'whisperf' )
@@ -1970,7 +1970,7 @@ class sdCharacter extends sdEntity
 						if ( this._voice.variant === 'whisperf' )
 						sdSound.PlaySound({ name:'f_pain' + ~~(2+Math.random() * 3), x:this.x, y:this.y, volume:( ( dmg > 1 )? 1 : 0.5 ) * 0.4 }); // less volume for bleeding
 						else
-						if ( this._voice === 11 && this._voice.variant !== 'm2' && this._voice.variant !== 'silence' )
+						if ( this._voice.variant !== 'm2' && this._voice.variant !== 'silence' )
 						sdSound.PlaySound({ name:'sd_hurt' + ~~(1+Math.random() * 2), x:this.x, y:this.y, pitch:this.GetVoicePitch(), volume:( dmg > 1 )? 1 : 0.5 }); // less volume for bleeding
 					
 						this.pain_anim = 10;
