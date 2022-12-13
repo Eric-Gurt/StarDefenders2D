@@ -308,8 +308,8 @@ class sdCharacter extends sdEntity
 		sdCharacter.AI_MODEL_INSTRUCTOR = 2;
 		sdCharacter.AI_MODEL_DUMMY_UNREVIVABLE_ENEMY = 3;
 		sdCharacter.AI_MODEL_TEAMMATE = 4;
-		sdCharacter.AI_MODEL_AGGRESSIVE = 5;
-		sdCharacter.AI_MODEL_DISTANT = 6;
+		sdCharacter.AI_MODEL_AGGRESSIVE = 5; // Has the AI aggressively charge their target.
+		sdCharacter.AI_MODEL_DISTANT = 6; // // Has the AI try to retreat from their target and maintain distance between them.
 		
 		sdCharacter.ghost_breath_delay = 10 * 30;
 		/*
@@ -347,7 +347,7 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.ignored_classes_when_holding_x = [ 'sdCharacter', 'sdBullet', 'sdWorkbench', 'sdLifeBox' ];
 		sdCharacter.ignored_classes_when_not_holding_x = [ 'sdBullet', 'sdWorkbench', 'sdLifeBox' ];
-		
+
 		sdCharacter.characters = []; // Used for AI counting, also for team management
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -484,7 +484,7 @@ class sdCharacter extends sdEntity
 		if ( prop === '_upgrade_counters' ) return true;
 		if ( prop === '_save_file' ) return true;
 		if ( prop === '_discovered' ) return true;
-		
+
 		return false;
 	}
 	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Guns are not targetable when held, same for sdCharacters that are driving something
@@ -507,7 +507,7 @@ class sdCharacter extends sdEntity
 		if ( sdWorld.server_config.LinkPlayerMatterCapacityToScore( this ) )
 		{
 			let old_matter_max = this.matter_max;
-			
+
 			this.matter_max = Math.min( 50 + Math.max( 0, this._score * 20 ), 1850 ) + this._matter_capacity_boosters;
 			
 			// Keep matter multiplied when low score or else it feels like matter gets removed
@@ -518,16 +518,16 @@ class sdCharacter extends sdEntity
 	canSeeForUse( ent )
 	{
 		let off = this.GetBulletSpawnOffset();
-					
+
 		return ( sdWorld.CheckLineOfSight( this.x + off.x, this.y + off.y, ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2, ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2, null, null, null, sdWorld.FilterOnlyVisionBlocking ) )
 	}
 	onSeesEntity( ent ) // Only gets triggered for connected characters that have active socket connection, with delay (each 1000th entity is seen per sync)
 	{
 		if ( !this.is( sdCharacter ) )
 		return;
-		
+
 		let hash;
-		
+
 		if ( ent.IsPlayerClass() )
 		{
 			if ( ent._ai_enabled )
@@ -537,7 +537,7 @@ class sdCharacter extends sdEntity
 		}
 		else
 		hash = ent.GetClass() + '.' + (ent.type||'') + '.' + (ent.class||'') + '.' + (ent.kind||'') + '.' + (ent.material||'') + '.' + (ent.matter_max||'');
-		
+
 		if ( typeof this._discovered[ hash ] === 'undefined' )
 		{
 			let off = this.GetBulletSpawnOffset();
@@ -548,14 +548,14 @@ class sdCharacter extends sdEntity
 			if ( sdWorld.CheckLineOfSight( this.x + off.x, this.y + off.y, xx, yy, ent, null, sdCom.com_vision_blocking_classes ) )
 			{
 				this._discovered[ hash ] = 1;
-				
+
 				let t = sdWorld.ClassNameToProperName( ent.GetClass(), ent );
 
 				if ( Math.abs( sdWorld.time - this._last_discovery ) > 15000 )
 				if ( this.hea > this.hmax * 0.75 )
 				{
 					this._last_discovery = sdWorld.time;
-					
+
 					switch ( ~~( Math.random() * 38 ) )
 					{
 						case 0: this.Say( 'Huh, '+t+'? This is something new' ); break;
@@ -574,7 +574,7 @@ class sdCharacter extends sdEntity
 						case 13: this.Say( t+' looks cool' ); break;
 						case 14: this.Say( 'We\'ve met again, '+t ); break;
 						case 15: this.Say( 'Ah, the '+t ); break;
-						
+
 						case 16: this.Say( 'They have '+t+' here? Nice' ); break;
 						case 17: this.Say( 'I\'m excited to see you, '+t ); break;
 						case 18: this.Say( 'I\'ve been missing you, '+t ); break;
@@ -599,9 +599,9 @@ class sdCharacter extends sdEntity
 						case 37: this.Say( 'This day can\'t get any better with '+t+', can\'t it?' ); break;
 					}
 				}
-				
+
 				this.GiveScore( 1, null, false );
-				
+
 				if ( this._socket )
 				sdSound.PlaySound({ name:'powerup_or_exp_pickup', x:this.x, y:this.y, volume:0.4, pitch:0.5 }, [ this._socket ] );
 
@@ -683,7 +683,7 @@ class sdCharacter extends sdEntity
 		super( params );
 		
 		//this._is_cable_priority = true;		
-		
+
 		this._debug_last_removed_stack = null;
 		
 		this._local_ragdoll_ever_synced = false; // To track need to precalculate ragdoll logic
@@ -707,7 +707,7 @@ class sdCharacter extends sdEntity
 		
 		this._discovered = {}; // Entity classes with type hashes, makes player gain starter score
 		this._last_discovery = sdWorld.time; // Do not interrupt instructor as much
-		
+
 		this._can_breathe = true;
 		
 		this.helmet = 1;
@@ -942,8 +942,8 @@ class sdCharacter extends sdEntity
 			}*/
 		}
 		
-		this._has_rtp_in_range = false; // Updated only when socket is connected. Also measures matter. Workd only when hints are working
-		
+		this._has_rtp_in_range = false; // Updated only when socket is connected. Also measures matter. Works only when hints are working"
+
 		sdCharacter.characters.push( this );
 	}
 	
@@ -1592,9 +1592,9 @@ class sdCharacter extends sdEntity
 			
 				// Turn white
 				let new_sd_filter_s = '';
-				
+
 				let reference_sd_filter = copy_ent.sd_filter || sdWorld.CreateSDFilter();
-				
+
 				while ( new_sd_filter_s.length < reference_sd_filter.s.length )
 				{
 					new_sd_filter_s += reference_sd_filter.s.substring( new_sd_filter_s.length, new_sd_filter_s.length + 6 );
@@ -1900,7 +1900,7 @@ class sdCharacter extends sdEntity
 			{
 				if ( this._voice.variant === 'klatt3' )
 				{
-					this.Say( [ 'Critical damage!', 'Shutting down' ][ ~~( Math.random() * 2 ) ], false, false, true, true );
+					this.Say( [ 'Critical damage!', 'Shutting down', 'Structural integrity compromised!' ][ ~~( Math.random() * 2 ) ], false, false, true, true );
 				}
 				else
 				if ( this._voice.variant === 'whisperf' )
@@ -1964,13 +1964,13 @@ class sdCharacter extends sdEntity
 					{
 						if ( this._voice.variant === 'klatt3' )
 						{
-							this.Say( [ 'Ouch!', 'Aaa!', 'Uh!' ][ ~~( Math.random() * 3 ) ], false, false, true, true );
+							this.Say( [ 'Ouch!', 'Aaa!', 'Uh!', 'Taking damage!' ][ ~~( Math.random() * 4 ) ], false, false, true, true );
 						}
 						else
 						if ( this._voice.variant === 'whisperf' )
 						sdSound.PlaySound({ name:'f_pain' + ~~(2+Math.random() * 3), x:this.x, y:this.y, volume:( ( dmg > 1 )? 1 : 0.5 ) * 0.4 }); // less volume for bleeding
 						else
-						if ( this._voice.variant !== 'm2' && this._voice.variant !== 'silence' )
+						if ( this._voice === 11 && this._voice.variant !== 'm2' && this._voice.variant !== 'silence' )
 						sdSound.PlaySound({ name:'sd_hurt' + ~~(1+Math.random() * 2), x:this.x, y:this.y, pitch:this.GetVoicePitch(), volume:( dmg > 1 )? 1 : 0.5 }); // less volume for bleeding
 					
 						this.pain_anim = 10;
@@ -2126,11 +2126,11 @@ class sdCharacter extends sdEntity
 				'Your presence makes me mad, but in a good way!', 
 				'I have no other choice but to attack!', 
 				this.title + ' attacks!', 
-				this._inventory[ this.gun_slot ] ? 'I will attack you with by gun because I actually have one!' : 'I will attack with my bare hands if I\'d have to!',
+				this._inventory[ this.gun_slot ] ? 'I will attack you with my gun because I actually have one!' : 'I will attack with my bare hands if I\'d have to!',
 				this._inventory[ this.gun_slot ] ? 'Peow-peow!' : 'Punchy-punchy!',
 				'*wild ' + this.title + ' noises*',
-				sdWorld.ClassNameToProperName( closest.GetClass(), closest ) + ', identify yourself',
-				sdWorld.ClassNameToProperName( closest.GetClass(), closest ) + ' is KOS',
+				sdWorld.ClassNameToProperName( closest.GetClass(), closest ) + ', identify yourself!',
+				sdWorld.ClassNameToProperName( closest.GetClass(), closest ) + ' is attacking me!',
 				'Say hello to my little ' + ( this._inventory[ this.gun_slot ] ? sdWorld.ClassNameToProperName( this._inventory[ this.gun_slot ].GetClass(), this._inventory[ this.gun_slot ] ) : 'fists' )
 			][ ~~( Math.random() * 9 ) ], false, false, false );
 		}
@@ -2749,7 +2749,7 @@ class sdCharacter extends sdEntity
 			this._player_damage = 0; // Hack
 		}
 	}
-	
+
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( sdWorld.is_server )
@@ -3342,7 +3342,7 @@ class sdCharacter extends sdEntity
 
 					still_stands = true;
 				}
-				
+
 				if ( !still_stands )
 				if ( Math.abs( this.sx ) > 0.01 ) // Moving left/right, it is only needed for seamless sliding
 				{
@@ -3351,9 +3351,9 @@ class sdCharacter extends sdEntity
 					if ( sdWorld.last_hit_entity )
 					{
 						// Sets sdWorld.last_hit_entity;
-						
+
 						this._stands_on = sdWorld.last_hit_entity;
-						
+
 						still_stands = true;
 					}
 				}
@@ -3541,7 +3541,7 @@ class sdCharacter extends sdEntity
 		{
 			trace( { stands:this.stands, stands_on:this._stands_on, sx:this.sx, GSPEED:GSPEED } );
 		}*/
-		
+
 		if ( in_water )
 		{
 			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.93, GSPEED );
@@ -3825,10 +3825,10 @@ class sdCharacter extends sdEntity
 		if ( this._ragdoll )
 		this._ragdoll.Delete();*/
 	
-	
+		
 		/*
 		let id = sdCharacter.characters.indexOf( this );
-	
+
 		if ( id === -1 )
 		throw new Error( 'Removing sdCharacter entity twice? Removed entity is not in a list of sdCharacter.characters. Previously it was removed at: ' + this._debug_last_removed_stack );
 		else
@@ -3860,14 +3860,14 @@ class sdCharacter extends sdEntity
 		//this._listeners.REMOVAL[ i ]( this );
 	
 		let id = sdCharacter.characters.indexOf( this );
-		
+
 		if ( id === -1 )
 		throw new Error( 'Removing sdCharacter entity twice? Removed entity is not in a list of sdCharacter.characters. Previously it was removed at: ' + this._debug_last_removed_stack );
 		else
 		sdCharacter.characters.splice( sdCharacter.characters.indexOf( this ), 1 );
-	
-		this._debug_last_removed_stack = globalThis.getStackTrace();
 		
+		this._debug_last_removed_stack = globalThis.getStackTrace();
+
 		if ( this.driver_of )
 		this.driver_of.ExcludeDriver( this );
 		
@@ -4296,9 +4296,9 @@ class sdCharacter extends sdEntity
 									'How I\'d do that?',
 									'It can\'t be built through wall',
 									'Understandable',
-									'Wall is on the way'
+									'Wall is in the way'
 								][ ~~( Math.random() * 9 ) ];
-								
+
 							return false;
 						}
 					}
@@ -4384,12 +4384,12 @@ class sdCharacter extends sdEntity
 							else
 							{
 								let s = sdWorld.ClassNameToProperName( obstacle.GetClass(), obstacle );
-								
+
 								//sdCharacter.last_build_deny_reason = 'It overlaps with '+s;
-								
+
 								sdCharacter.last_build_deny_reason = [
 									'It overlaps with '+s,
-									s+' is on the way',
+									s+' is in the way',
 									'Maybe I should break '+s+' first?',
 									'Ok, but there is '+s,
 									'Can\'t build on top of '+s,
@@ -4428,7 +4428,7 @@ class sdCharacter extends sdEntity
 				case 2: sdCharacter.last_build_deny_reason = 'Can\'t reach'; break;
 				case 3: sdCharacter.last_build_deny_reason = 'Maybe if I was closer'; break;
 			}
-			
+
 		}
 		
 		return false;
