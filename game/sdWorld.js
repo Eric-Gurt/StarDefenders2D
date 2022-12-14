@@ -170,7 +170,11 @@ class sdWorld
 		
 		sdWorld.unresolved_entity_pointers = null; // Temporarily becomes array during backup loading just so cross pointer properties can be set (for example driver and vehicle)
 		
-		
+		sdWorld.OFFSCREEN_BEHAVIOR_SIMULATE_PROPERLY = 0;
+		sdWorld.OFFSCREEN_BEHAVIOR_SIMULATE_X_TIMES_SLOWER = 1;
+		sdWorld.OFFSCREEN_BEHAVIOR_SIMULATE_X_STEPS_AT_ONCE = 2;
+		sdWorld.offscreen_behavior = -3324; // Set later
+		sdWorld.offscreen_behavior_x_value = 30; // Set later
 		
 		
 		sdWorld.lost_images_cache = null; // Object // For sdLost entities
@@ -460,6 +464,11 @@ class sdWorld
 		};
 		
 		setTimeout( sealing_classes, 1000 );
+	}
+	static onAfterConfigLoad()
+	{
+		sdWorld.offscreen_behavior = sdWorld[ sdWorld.server_config.offscreen_behavior ];
+		sdWorld.offscreen_behavior_x_value = sdWorld.server_config.offscreen_behavior_x_value;
 	}
 	static FinalizeClasses() // isC optimization, also needed for sealing
 	{
@@ -1034,36 +1043,27 @@ class sdWorld
 		}
 		return false;
 	}
-	static CanAnySocketSee( ent, is_global_entity=undefined ) // Actually used to lower think rate of some entities
+	static CanAnySocketSee( ent ) // Actually used to lower think rate of some entities
 	{
-		return true; // It causes too many glitches
-		/*
-		//return false; // Hack, forces everything move like it would off-screen
-		
-		if ( is_global_entity === undefined )
-		{
-			if ( ent.IsGlobalEntity() )
-			return true;
-		}
-		else
-		{
-			if ( is_global_entity )
-			return true;
-		}
-	
 		if ( typeof ent._socket === 'object' ) // Is a connected player
+		if ( ent._socket !== null )
 		return true;
 
+		if ( sdWorld.server_config.debug_offscreen_behavior )
+		return false;
+	
 		let x = ent.x;
 		let y = ent.y;
 
-		for ( var i = 0; i < sdWorld.sockets.length; i++ )
+		for ( let i = 0; i < sdWorld.sockets.length; i++ )
 		{
-			var socket = sdWorld.sockets[ i ];
+			let socket = sdWorld.sockets[ i ];
 
 			if ( sdWorld.CanSocketSee( socket, x, y ) )
 			return true;
-		}*/
+		}
+		
+		return false;
 	}
 	static SpawnGib( x, y, sx = Math.random() * 1 - Math.random() * 1, sy = Math.random() * 1 - Math.random() * 1, side = 1, gib_class, gib_filter, blood_filter = null, scale = 100, ignore_collisions_with=null, image = 0 )
 	{
@@ -2377,6 +2377,51 @@ class sdWorld
 					
 					if ( arr_i === 0 ) // Only for real in-world objects that have position
 					{
+						if ( sdWorld.offscreen_behavior === sdWorld.OFFSCREEN_BEHAVIOR_SIMULATE_PROPERLY )
+						{
+						}
+						else
+						if ( sdWorld.offscreen_behavior === sdWorld.OFFSCREEN_BEHAVIOR_SIMULATE_X_TIMES_SLOWER )
+						{
+							if ( e._last_x !== undefined ) // Make sure it is initiated properly
+							if ( !sdWorld.CanAnySocketSee( e ) )
+							{
+								skip_frames = sdWorld.offscreen_behavior_x_value;
+								
+								if ( e._net_id % skip_frames === frame % skip_frames )
+								{
+									// Simulate 1 step
+								}
+								else
+								continue; // Ignore
+							}
+						}
+						else
+						if ( sdWorld.offscreen_behavior === sdWorld.OFFSCREEN_BEHAVIOR_SIMULATE_X_STEPS_AT_ONCE )
+						{
+							if ( sdWorld.server_config.TestIfShouldForceProperSimulation( e ) )
+							{
+							}
+							else
+							if ( e._last_x !== undefined ) // Make sure it is initiated properly
+							if ( !sdWorld.CanAnySocketSee( e ) )
+							{
+								skip_frames = sdWorld.offscreen_behavior_x_value;
+								
+								if ( e._net_id % skip_frames === frame % skip_frames )
+								{
+									// Simulate 30 steps
+									
+									gspeed_mult = sdWorld.offscreen_behavior_x_value;
+									
+									if ( e.onThink.has_ApplyVelocityAndCollisions )
+									substeps = sdWorld.offscreen_behavior_x_value;
+								}
+								else
+								continue; // Ignore
+							}
+						}
+						
 						/*
 						if ( sdWorld.is_server )
 						if ( e._last_x !== undefined ) // sdEntity was never placed properly yet, can cause items to fall into each other after snapshot load
@@ -2432,7 +2477,7 @@ class sdWorld
 								}
 							}
 
-							gspeed_mult = best_warp;
+							gspeed_mult *= best_warp;
 						}
 
 					}
