@@ -327,7 +327,7 @@ class sdGun extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._remove_stack_trace = null;
+		//this._remove_stack_trace = null;
 		
 		this._last_hit_sound = 0;
 		
@@ -464,8 +464,8 @@ class sdGun extends sdEntity
 	//onRemove()
 	onBeforeRemove() // Right when .remove() is called for the first time. This method won't be altered by build tool spawn logic
 	{
-		if ( sdWorld.is_server )
-		this._remove_stack_trace = getStackTrace();
+		//if ( sdWorld.is_server )
+		//this._remove_stack_trace = getStackTrace();
 		
 		if ( this._held_by )
 		{

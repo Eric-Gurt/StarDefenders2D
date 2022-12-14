@@ -2439,6 +2439,8 @@ class sdEntity
 				
 				this.onThink.has_ApplyVelocityAndCollisions = ( onThinkString.indexOf( 'ApplyVelocityAndCollisions' ) !== -1 );
 				
+				this.onThink.has_MatterGlow = ( onThinkString.indexOf( 'MatterGlow' ) !== -1 );
+				
 				this.onThink.has_GetAnythingNearCache = ( onThinkString.indexOf( 'MatterGlow' ) !== -1 || onThinkString.indexOf( 'GetAnythingNearCache' ) !== -1 );
 				
 				this.onThink.has_GetComWiredCache = ( onThinkString.indexOf( 'GetComWiredCache' ) !== -1 || DrawString.indexOf( 'GetComWiredCache' ) !== -1 );
@@ -2899,6 +2901,16 @@ class sdEntity
 							  prop !== '_listeners' && 
 							  prop !== '_last_x' && 
 							  prop !== '_last_y' && 
+							  prop !== '_has_matter_props' && 
+							  prop !== '_is_static' && 
+							  prop !== '_update_version' && 
+							  prop !== '_remove_stack_trace' && 
+							  prop !== '_vis_block_top' && 
+							  prop !== '_vis_block_left' && 
+							  prop !== '_vis_block_right' && 
+							  prop !== '_vis_block_bottom' && 
+							  prop !== '_speak_id' && 
+							  prop !== '_say_allowed_in' && 
 							  ( 
 								typeof this[ prop ] === 'number' || 
 								typeof this[ prop ] === 'string' || 
