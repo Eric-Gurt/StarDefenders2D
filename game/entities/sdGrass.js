@@ -189,7 +189,12 @@ class sdGrass extends sdEntity
 			{
 				let id = this._block._plants.indexOf( this._net_id );
 				if ( id >= 0 )
-				this._block._plants.splice( id, 1 );
+				{
+					this._block._plants.splice( id, 1 );
+					
+					if ( this._block._plants.length === 0 )
+					this._block._plants = null;
+				}
 			}
 			this._block = null;
 		}
