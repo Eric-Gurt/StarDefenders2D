@@ -3163,10 +3163,21 @@ class sdWeather extends sdEntity
 					
 					let xx = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
 
-					if ( !sdWorld.CheckLineOfSight( xx, sdWorld.world_bounds.y1 + 4, xx, sdWorld.world_bounds.y2, null, null, sdCom.com_creature_attack_unignored_classes ) )
+					// CheckLineOfSight( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
+					if ( !sdWorld.CheckLineOfSight( xx, sdWorld.world_bounds.y1 + 4, xx, sdWorld.world_bounds.y2, null, null, sdCom.com_creature_attack_unignored_classes, ( ent )=>
+							{
+								// Ignore cages
+								if ( ent.is( sdBlock ) )
+								if ( ent.texture_id === sdBlock.TEXTURE_ID_CAGE )
+								return false;
+						
+								return true;
+							}
+					) )
 					{
 						if ( sdWorld.last_hit_entity )
 						if ( sdWorld.last_hit_entity.is( sdBlock ) )
+						if ( sdWorld.last_hit_entity.y >= sdWorld.world_bounds.y1 + 16 ) // Do not spawn on top of the world
 						{
 							if ( sdWorld.last_hit_entity.DoesRegenerate() )
 							{
