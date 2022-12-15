@@ -571,6 +571,17 @@ class sdShop
 				{
 					character._jetpack_power = 1 + ( level_purchased * 0.5 );
 				}
+			},
+			upgrade_stability_recovery:
+			{
+				max_level: 3,
+				matter_cost: 125,
+				min_build_tool_level: 3,
+				description: 'Reduces time to recover after falling down.',
+				action: ( character, level_purchased )=>
+				{
+					character._stability_recovery_multiplier = 1 + ( 3 / level_purchased );
+				}
 			}
 		};
 		for ( var i in sdShop.upgrades )

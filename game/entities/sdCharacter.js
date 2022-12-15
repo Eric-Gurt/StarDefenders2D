@@ -845,6 +845,7 @@ class sdCharacter extends sdEntity
 		this.build_tool_level = 0; // Used for some unlockable upgrades in build tool
 		this._jetpack_fuel_multiplier = 1; // Fuel cost reduction upgrade
 		this._matter_regeneration_multiplier = 1; // Matter regen multiplier upgrade
+		this._stability_recovery_multiplier = 1; // How fast does the character recover after stability damage?
 		//this.workbench_level = 0; // Stand near workbench to unlock some workbench build stuff
 		this._task_reward_counter = 0;
 
@@ -3446,7 +3447,7 @@ class sdCharacter extends sdEntity
 				can_uncrouch = this.CanUnCrouch();
 
 				if ( this._crouch_intens <= 1 || can_uncrouch )
-				this.stability = Math.min( 100, this.stability + ( Math.max( 0, this.stability ) * 0.1 + GSPEED * 2.5 ) * GSPEED );
+				this.stability = Math.min( 100, this.stability + ( Math.max( 0, this.stability ) * 0.1 + GSPEED * 2.5 * this._stability_recovery_multiplier ) * GSPEED );
 			}
 		}
 	
