@@ -210,7 +210,7 @@ class sdRift extends sdEntity
 							e.remove();
 						}
 						else
-						//if ( !e.is( sdCrystal ) )
+						if ( !e.is( sdCrystal ) || ( e.matter_max !== sdCrystal.anticrystal_value && e.matter_max !== sdCrystal.anticrystal_value * 4 ) ) // Otherwise anticrystals get removed without touching the rift
 						if ( e._hea !== 'undefined' || e.hea !== 'undefined' )
 						{
 							//if ( e.is( sdBlock ) )
