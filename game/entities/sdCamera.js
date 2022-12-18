@@ -167,7 +167,7 @@ class sdCamera extends sdEntity
 					let x0 = this.x + ( this._hitbox_x1 + this._hitbox_x2 ) / 2;
 					let y0 = this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2;
 
-					for ( let i = 0; i < 32; i++ )
+					for ( let i = 0; i < 64; i++ )
 					{
 						let old_ent = null;
 
@@ -175,7 +175,7 @@ class sdCamera extends sdEntity
 						old_ent = this._angular_cache[ i ];
 
 
-						let an = i / 32 * Math.PI * 2;
+						let an = i / 64 * Math.PI * 2;
 
 						let xx = x0 + Math.sin( an ) * 800;
 						let yy = y0 + Math.cos( an ) * 800;
@@ -186,17 +186,34 @@ class sdCamera extends sdEntity
 						let new_ent = sdWorld.last_hit_entity;
 						
 						let new_ent_crystals_only = null;
-						if ( sdWorld.time < this._hook_last_calls[ sdCamera.DETECT_VISIBLE_CRYSTAL_MOVEMENT_IN_AMPLIFIERS ] + sdCamera.hook_expire_time )
+						if ( sdWorld.time < this._hook_last_calls[ sdCamera.DETECT_VISIBLE_CRYSTAL_MOVEMENT_IN_AMPLIFIERS ] + sdCamera.hook_expire_time ||
+							 sdWorld.time < this._hook_last_calls[ sdCamera.DETECT_VISIBLE_HIGH_TIER_CRYSTALS_WITH_LOW_MATTER ] + sdCamera.hook_expire_time )
 						{
 							let old_ent_crystals_only = this._angular_cache_crystals_only[ i ];
 							sdWorld.last_hit_entity = null;
 							sdWorld.TraceRayPoint( x0, y0, xx, yy, this, null, [ 'sdBlock', 'sdDoor', 'sdCrystal' ] ); // Otherwise it won't see crystals
 							new_ent_crystals_only = sdWorld.last_hit_entity;
 							
+							
+							if ( sdWorld.time < this._hook_last_calls[ sdCamera.DETECT_VISIBLE_HIGH_TIER_CRYSTALS_WITH_LOW_MATTER ] + sdCamera.hook_expire_time )
+							if ( new_ent_crystals_only )
+							if ( new_ent_crystals_only.is( sdCrystal ) )
+							if ( !new_ent_crystals_only.is_anticrystal )
+							if ( new_ent_crystals_only.matter_max >= 5120 )
+							if ( !new_ent_crystals_only.is_anticrystal )
+							if ( new_ent_crystals_only.matter < new_ent_crystals_only.matter_max - 5120 * 0.666 && new_ent_crystals_only.matter < new_ent_crystals_only.matter_max * 0.8 )
+							{
+								this.Trigger( sdCamera.DETECT_VISIBLE_HIGH_TIER_CRYSTALS_WITH_LOW_MATTER, 'Seeing crystal with low matter ( '+(~~new_ent_crystals_only.matter)+' / '+new_ent_crystals_only.matter_max+' )' );
+							}
+							
+							// ------ Past this point new_ent_crystals_only no longer points to non-held crystals ------ 
+							
+							if ( new_ent_crystals_only )
 							if ( new_ent_crystals_only.is( sdCrystal ) )
 							if ( !new_ent_crystals_only.held_by )
 							new_ent_crystals_only = null;
 							
+							if ( sdWorld.time < this._hook_last_calls[ sdCamera.DETECT_VISIBLE_CRYSTAL_MOVEMENT_IN_AMPLIFIERS ] + sdCamera.hook_expire_time )
 							if ( new_ent_crystals_only !== old_ent_crystals_only && old_ent_crystals_only !== undefined )
 							{
 								let t = null;
@@ -250,6 +267,7 @@ class sdCamera extends sdEntity
 									this.Trigger( sdCamera.DETECT_VISIBLE_CRYSTAL_MOVEMENT_IN_AMPLIFIERS, t );
 								}
 							}
+							
 							
 							this._angular_cache_crystals_only[ i ] = new_ent_crystals_only;
 						}
@@ -313,7 +331,7 @@ class sdCamera extends sdEntity
 								}
 							}
 						}
-						
+						/*
 						if ( sdWorld.time < this._hook_last_calls[ sdCamera.DETECT_VISIBLE_HIGH_TIER_CRYSTALS_WITH_LOW_MATTER ] + sdCamera.hook_expire_time )
 						{
 							if ( new_ent )
@@ -321,12 +339,13 @@ class sdCamera extends sdEntity
 							{
 								if ( !new_ent.is_anticrystal )
 								if ( new_ent.matter_max >= 5120 )
+								if ( !new_ent.is_anticrystal )
 								if ( new_ent.matter < new_ent.matter_max - 5120 * 0.666 && new_ent.matter < new_ent.matter_max * 0.8 )
 								{
 									this.Trigger( sdCamera.DETECT_VISIBLE_HIGH_TIER_CRYSTALS_WITH_LOW_MATTER, 'Seeing crystal with low matter ( '+(~~new_ent.matter)+' / '+new_ent.matter_max+' )' );
 								}
 							}
-						}
+						}*/
 						
 
 						this._angular_cache[ i ] = new_ent;

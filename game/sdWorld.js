@@ -2096,7 +2096,7 @@ class sdWorld
 				entity._affected_hash_arrays[ i ].arr.splice( ind, 1 );
 				//entity._affected_hash_arrays[ i ].RecreateWithout( ind );
 					
-				if ( entity._affected_hash_arrays[ i ].arr.length === 0 && new_affected_hash_arrays.indexOf( entity._affected_hash_arrays[ i ].arr ) === -1 ) // Empty and not going to re-add(!)
+				if ( entity._affected_hash_arrays[ i ].arr.length === 0 && new_affected_hash_arrays.indexOf( entity._affected_hash_arrays[ i ] ) === -1 ) // Empty and not going to re-add(!)
 				{
 					//entity._affected_hash_arrays[ i ].unlinked = globalThis.getStackTrace();
 					sdWorld.world_hash_positions.delete( entity._affected_hash_arrays[ i ].hash );

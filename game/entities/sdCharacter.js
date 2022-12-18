@@ -2730,6 +2730,21 @@ class sdCharacter extends sdEntity
 			this.y + this._hitbox_y2 - 1, this, this.GetIgnoredEntityClasses(), this.GetNonIgnoredEntityClasses() );
 	}
 	
+	ConnecgtedGodLogic( GSPEED )
+	{
+		if ( this._socket )	
+		if ( this._god )
+		{
+			this.matter_max = 10000; // Hack
+			this.matter = this.matter_max; // Hack
+			this.hea = this.hmax; // Hack
+			this._dying = false; // Hack
+			this.air = sdCharacter.air_max; // Hack
+			this._nature_damage = 0; // Hack
+			this._player_damage = 0; // Hack
+		}
+	}
+	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( sdWorld.is_server )
@@ -2738,28 +2753,7 @@ class sdCharacter extends sdEntity
 		if ( this._respawn_protection > 0 )
 		this._respawn_protection = Math.max( 0, this._respawn_protection - GSPEED );
 		
-		if ( this._socket )	
-		{
-			/*if ( this._jetpack_allowed )
-			{
-				if ( this._upgrade_counters[ 'upgrade_jetpack' ] !== 1 )
-				{
-					console.warn( 'Player "'+this.title+'" has jetpack allowed but no jetpack upgrade. His upgrade counters: ', this._upgrade_counters );
-					this.InstallUpgrade( 'upgrade_jetpack' );
-				}
-			}*/
-			
-			if ( this._god )
-			{
-				this.matter_max = 10000; // Hack
-				this.matter = this.matter_max; // Hack
-				this.hea = this.hmax; // Hack
-				this._dying = false; // Hack
-				this.air = sdCharacter.air_max; // Hack
-				this._nature_damage = 0; // Hack
-				this._player_damage = 0; // Hack
-			}
-		}
+		this.ConnecgtedGodLogic( GSPEED );
 		
 		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED );
 		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED );

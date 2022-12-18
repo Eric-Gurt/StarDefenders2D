@@ -109,6 +109,9 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		this.charge = 0; // Goes up while shield is activated - makes lose less matter on BSU-BSU attacks (TYPE_MATTER only)
 		this.charge_blocked_until = 0; // Set during attacking
+		
+		this._last_x_for_charge_reset = 0;
+		this._last_y_for_charge_reset = 0;
 
 		this._check_blocks = 30; // Temporary, checks for old pre-rework BSU's protected blocks and applies cost for "this._matter_drain" which is now used when BSU attacks BSU. Will be commented out / removed later.
 		
@@ -294,6 +297,8 @@ class sdBaseShieldingUnit extends sdEntity
 			//this.sx = 0; // Without this, players can "launch/catapult" shield units by running into them and disabling them
 			//this.sy = 0;
 			
+			this.charge_blocked_until = sdWorld.time + 3000;
+			
 			sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:2, pitch:0.5 });
 
 			let blocks = sdWorld.GetAnythingNear( this.x, this.y, sdBaseShieldingUnit.protect_distance, null, [ 'sdBlock', 'sdDoor' ] );
@@ -414,6 +419,11 @@ class sdBaseShieldingUnit extends sdEntity
 			if ( this.charge > 0 )
 			this.charge = Math.max( 0, this.charge - GSPEED * 0.25 );
 		}
+		
+		let delta_pos = sdWorld.Dist2D_Vector( this.x - this._last_x_for_charge_reset, this.y - this._last_y_for_charge_reset );
+		this.charge = Math.max( 0, this.charge - delta_pos / 16 * 100 );
+		this._last_x_for_charge_reset = this.x;
+		this._last_y_for_charge_reset = this.y;
 		
 		if ( !sdWorld.is_server)
 		return;
@@ -567,7 +577,9 @@ class sdBaseShieldingUnit extends sdEntity
 			{
 				let unit = units[ i ];
 				
-				if ( ( sdWorld.Dist2D( this.x, this.y, unit.x, unit.y ) < range ) ) // Only attack close range shields can be attacked
+				let distance = sdWorld.Dist2D( this.x, this.y, unit.x, unit.y )
+				
+				if ( ( distance < range ) ) // Only attack close range shields can be attacked
 				if ( unit !== this )
 				if ( unit.enabled === true )
 				if ( friendly_shields.indexOf( unit ) === -1 ) // Do not attack same base's shields
@@ -609,10 +621,13 @@ class sdBaseShieldingUnit extends sdEntity
 						let my_scale = ( 1 + sdBaseShieldingUnit.longer_time_protected_bsu_priority * this.charge / 100 );
 						let their_scale = ( 1 + sdBaseShieldingUnit.longer_time_protected_bsu_priority * unit.charge / 100 );
 						
-						let my_matter_scaled = this.matter * my_scale; // 6 times more if charged
-						let their_matter_scaled = unit.matter * their_scale; // 6 times more if charged
+						let my_matter_scaled = this.matter * my_scale; // 10 times more if charged
+						let their_matter_scaled = unit.matter * their_scale; // 10 times more if charged
 						
 						let least_matter = Math.min( my_matter_scaled, their_matter_scaled, 500 );
+						
+						let intensity = Math.min( 1, 10 - distance / range * 10 ); // Further sheilds are - less matter is wasted by both, 10% of soft waste
+						least_matter *= intensity;
 						
 						if ( least_matter > 0 )
 						{
@@ -646,7 +661,8 @@ class sdBaseShieldingUnit extends sdEntity
 
 							sdWorld.SendEffect({ x:this.x, y:this.y, x2:unit.x, y2:unit.y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
 
-							sdSound.PlaySound({ name:'zombie_alert2', x:this.x, y:this.y, volume:0.75, pitch:3 });
+							sdSound.PlaySound({ name:'zombie_alert2', x:this.x, y:this.y, volume:0.375 * intensity, pitch:3 });
+							sdSound.PlaySound({ name:'zombie_alert2', x:unit.x, y:unit.y, volume:0.375 * intensity, pitch:3 });
 						}
 					}
 				}
