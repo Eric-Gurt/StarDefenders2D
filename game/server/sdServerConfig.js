@@ -39,6 +39,41 @@ class sdServerConfigFull extends sdServerConfigShort
 	
 	static store_game_files_in_ram = false; // Will make server never use hard drive without need until next reboot, except for cases when backup is being made (more RAM usage, can be suitable for VPS servers that have strange Disk I/O issues)
 	
+	static offscreen_behavior = 'OFFSCREEN_BEHAVIOR_SIMULATE_X_STEPS_AT_ONCE'; // Or 'OFFSCREEN_BEHAVIOR_SIMULATE_PROPERLY' or 'OFFSCREEN_BEHAVIOR_SIMULATE_X_TIMES_SLOWER' or 'OFFSCREEN_BEHAVIOR_SIMULATE_X_STEPS_AT_ONCE'. We cheat a little bit offscreen as huge/dense worlds would have perforamnce issues otherwise
+	static offscreen_behavior_x_value = 30; // By how much slower or how many steps to do at once. Usually 30 can give 2x performance improvement in case of OFFSCREEN_BEHAVIOR_SIMULATE_X_STEPS_AT_ONCE. You can test if anything goes wrong offscreen by enabling debug_offscreen_behavior
+	static debug_offscreen_behavior = false; // If you want to see how everything moves offscreen - set this to true
+	static TestIfShouldForceProperSimulation( ent ) // Some entities must be synced accurately even if they are offscreen, for example crystals in amplifiers, sdSandWorm, sdQuadro
+	{
+		if ( ent.is( sdCrystal ) )
+		{
+			if ( ent.held_by )
+			return true;
+		}
+		else
+		//if ( ent.is( sdCube ) || ent.is( sdHover ) || ent.is( sdMatterContainer ) || ent.is( sdSunPanel ) )
+		if ( ent.onThink.has_MatterGlow )
+		{
+			if ( sdCable.connected_entities_per_entity.has( ent ) )
+			return true;
+		}
+		else
+		if ( ent.is( sdSandWorm ) )
+		{
+			if ( ( ent.towards_tail && !ent.towards_tail._is_being_removed ) || ( ent.towards_head && !ent.towards_head._is_being_removed ) )
+			if ( ent._phys_sleep > 0 )
+			return true;
+		}
+		else
+		if ( ent.is( sdQuadro ) )
+		{
+			if ( ent.w1 || ent.w2 || ent.p )
+			if ( ent._phys_sleep > 0 )
+			return true;
+		}
+		else
+		return false;
+	}
+	
 	static LinkPlayerMatterCapacityToScore( character )
 	{
 		return true;

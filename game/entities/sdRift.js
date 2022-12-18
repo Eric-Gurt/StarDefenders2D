@@ -9,11 +9,13 @@ import sdGun from './sdGun.js';
 import sdQuickie from './sdQuickie.js';
 import sdAsp from './sdAsp.js';
 import sdCrystal from './sdCrystal.js';
+import sdBG from './sdBG.js';
 import sdBlock from './sdBlock.js';
 import sdCube from './sdCube.js';
 import sdJunk from './sdJunk.js';
 import sdLost from './sdLost.js';
 import sdAsteroid from './sdAsteroid.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 import sdTask from './sdTask.js';
 
@@ -66,7 +68,7 @@ class sdRift extends sdEntity
 		this.scale = 1; // Portal scaling when it's about to be destroyed/removed
 		this.teleport_alpha = 0; // Alpha/transparency ( divided by 60 in draw code ) when portal is about to change location
 
-		this._pull_entities = []; // For dimensional tear
+		//this._pull_entities = []; // For dimensional tear
 
 		/*if ( this.type === 1 )
 		this.filter = 'hue-rotate(' + 75 + 'deg)';
@@ -111,78 +113,126 @@ class sdRift extends sdEntity
 			else
 			{
 				this.frame++;
+				
 				if ( this.frame > 6 )
 				this.frame = 0;
+			
 				this._rotate_timer = 10 * this.scale;
+			}
 
-				if ( this.frame % 3 === 0 )
-				if ( this.type === 4 ) // Black portal / Black hole attack
+			if ( this.type === 4 ) // Black portal / Black hole attack
+			{
+				/*this._pull_entities = [];
+				let ents = sdWorld.GetAnythingNear( this.x, this.y, 192 );
+				for ( let i = 0; i < ents.length; i++ )
+				this._pull_entities.push( ents[ i ] );*/
+				
+				let range = 192;
+
+				let pull_entities = this.GetAnythingNearCache( this.x, this.y, 192 );
+
+				//Set task for players to remove the dimensional tear
+				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be closed
 				{
-					this._pull_entities = [];
-					let ents = sdWorld.GetAnythingNear( this.x, this.y, 192 );
-					for ( let i = 0; i < ents.length; i++ )
-					this._pull_entities.push( ents[ i ] );
-
-
-					//Set task for players to remove the dimensional tear
-					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be closed
-					{
-						sdTask.MakeSureCharacterHasTask({ 
-							similarity_hash:'DESTROY-'+this._net_id, 
-							executer: sdWorld.sockets[ i ].character,
-							target: this,
-							mission: sdTask.MISSION_DESTROY_ENTITY,
-							difficulty: 0.167,		
-							title: 'Close the dimensional tear',
-							description: 'A dimensional tear appeared on this planet. It should be closed down before it destroys large chunks of the planet. We can close it using an Anti-crystal.'
-						});
-					}
+					sdTask.MakeSureCharacterHasTask({ 
+						similarity_hash:'DESTROY-'+this._net_id, 
+						executer: sdWorld.sockets[ i ].character,
+						target: this,
+						mission: sdTask.MISSION_DESTROY_ENTITY,
+						difficulty: 0.167,		
+						title: 'Close the dimensional tear',
+						description: 'A dimensional tear appeared on this planet. It should be closed down before it destroys large chunks of the planet. We can close it using an Anti-crystal.'
+					});
 				}
-				if ( this.type === 4 ) // Black portal
+
+				if ( pull_entities.length > 0 )
+				for ( let i = 0; i < pull_entities.length; i++ )
 				{
-					if ( this._pull_entities.length > 0 )
-					for ( let i = 0; i < this._pull_entities.length; i++ )
+					let e = pull_entities[ i ];
+					if ( !e._is_being_removed )
+					if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, e ) )
 					{
-						//if ( this._pull_entities[ i ] )
-						if ( !this._pull_entities[ i ]._is_being_removed )
-						if ( sdWorld.CheckLineOfSight( this.x, this.y, this._pull_entities[ i ].x, this._pull_entities[ i ].y, this._pull_entities[ i ] ) )
+						let dx = ( e.x - this.x );
+						let dy = ( e.y - this.y );
+						
+						let di = sdWorld.Dist2D_Vector( dx, dy );
+						
+						if ( di < 1 )
+						continue;
+					
+						let strength_damage_scale = Math.max( 0, Math.min( 1, 1 - di / range ) ) / 4;
+						
+						let strength = strength_damage_scale * 10 * GSPEED / di;
+						
+						let can_move = false;
+						
+						if ( typeof e.sx !== 'undefined' )
+						if ( typeof e.sy !== 'undefined' )
 						{
-							if ( typeof this._pull_entities[ i ].sx !== 'undefined' )
-							this._pull_entities[ i ].sx -= ( this._pull_entities[ i ].x - this.x ) / 20;
-							if ( typeof this._pull_entities[ i ].sy !== 'undefined' )
-							this._pull_entities[ i ].sy -= ( this._pull_entities[ i ].y - this.y ) / 20;
+							can_move = true;
+							
+							e.sx -= dx * strength;
+							e.sy -= dy * strength;
+						}
+						
+						if ( e.is( sdBaseShieldingUnit ) )
+						if ( e.enabled )
+						{
+							can_move = false;
+						}
 
+						e.PhysWakeUp();
 
-							if ( this._pull_entities[ i ].GetClass() === 'sdCharacter' )
-							if ( !this._pull_entities[ i ]._god )
+						if ( e.is( sdCharacter ) )
+						if ( !e._god )
+						{
+							e.stability = Math.max( -1, e.stability - strength );
+							
+							if ( e.gun_slot !== 9 )
+							if ( sdWorld.Dist2D_Vector( e.sx, e.sy ) > 10 )
+							e.DropWeapon( e.gun_slot );
+						}
+
+						if ( e.IsPlayerClass() )
+						e.ApplyServerSidePositionAndVelocity( true, dx * strength, dy * strength );
+
+						if ( e.is( sdBG ) )
+						{
+							if ( Math.random() < 0.01 )
+							e.DamageWithEffect( 16 * strength_damage_scale );
+						}
+						else
+						if ( e.is( sdGun ) )
+						{
+							if ( di < 20 )
+							if ( !e._held_by )
+							//if ( e.class === sdGun.CLASS_CRYSTAL_SHARD || e.class === sdGun.CLASS_SCORE_SHARD )
+							e.remove();
+						}
+						else
+						if ( !e.is( sdCrystal ) || ( e.matter_max !== sdCrystal.anticrystal_value && e.matter_max !== sdCrystal.anticrystal_value * 4 ) ) // Otherwise anticrystals get removed without touching the rift
+						if ( e._hea !== 'undefined' || e.hea !== 'undefined' )
+						{
+							//if ( e.is( sdBlock ) )
+							
+							if ( di < 20 || !can_move )
 							{
-								this._pull_entities[ i ].stability = Math.min( 0, this._pull_entities[ i ].stability );
-								if ( this._pull_entities[ i ].gun_slot !== 9 )
-								if ( Math.abs( this._pull_entities[ i ].sx + this._pull_entities[ i ].sy ) > 30 );
-								this._pull_entities[ i ].DropWeapon( this._pull_entities[ i ].gun_slot );
-							}
+								e.DamageWithEffect( 8 * strength_damage_scale );
 
-							if ( this._pull_entities[ i ].IsPlayerClass() )
-							this._pull_entities[ i ].ApplyServerSidePositionAndVelocity( true, ( ( this._pull_entities[ i ].x - this.x ) / 20 ), ( ( this._pull_entities[ i ].y - this.y ) / 20 ) );
-
-							if ( this._pull_entities[ i ].GetClass() !== 'sdGun' && this._pull_entities[ i ].GetClass() !== 'sdCrystal' && this._pull_entities[ i ].GetClass() !== 'sdBG' )
-							{
-								if ( this._pull_entities[ i ].GetClass() === 'sdBlock' )
-								this._pull_entities[ i ].DamageWithEffect( 8 );
-								//else
-								//if ( sdWorld.inDist2D( this._pull_entities[ i ].x, this._pull_entities[ i ].y, this.x, this.y ) < 16 )
-								//this._pull_entities[ i ].DamageWithEffect( 16 );
-							}
-							else
-							{
-								if ( this._pull_entities[ i ].GetClass() === 'sdBG' )
-								if ( Math.random() < 0.01 )
-								this._pull_entities[ i ].DamageWithEffect( 16 );
+								if ( !e._is_being_removed )
+								if ( e._hea || e.hea <= 0 )
+								if ( e._hitbox_x2 - e._hitbox_x1 < 32 )
+								if ( e._hitbox_y2 - e._hitbox_y1 < 32 )
+								{
+									e.remove();
+									e._broken = false;
+								}
 							}
 						}
 					}
 				}
 			}
+			
 			if ( this._spawn_timer_cd > 0 ) // Spawn entity timer
 			this._spawn_timer_cd -= GSPEED;
 			if ( this._regen_timeout > 0 )
@@ -490,14 +540,14 @@ class sdRift extends sdEntity
 		if ( this.type === 5 ) // No feeding for council portals
 		return;
 
-		if ( this.type === 4 ) // Black portal deals damage / vacuums stuff inside
+		/*if ( this.type === 4 ) // Black portal deals damage / vacuums stuff inside
 		{
 			from_entity.DamageWithEffect( 0.25 );
 			if ( typeof from_entity.sx !== 'undefined' )
 			from_entity.sx -= ( from_entity.x - this.x ) / 40;
 			if ( typeof from_entity.sy !== 'undefined' )
 			from_entity.sy -= ( from_entity.y - this.y ) / 40;
-		}
+		}*/
 
 		if ( from_entity.is( sdCrystal ) )
 		if ( from_entity.held_by === null ) // Prevent crystals which are stored in a crate

@@ -54,6 +54,9 @@ class sdEntity
 		sdEntity.SCORE_REWARD_ADMIN_CRATE = 100000;
 		sdEntity.SCORE_REWARD_SCORE_SHARD = 1;
 		sdEntity.SCORE_REWARD_SCORE_MOP = 1;
+		sdEntity.SCORE_REWARD_BROKEN_5K_CRYSTAL = 5;
+		sdEntity.SCORE_REWARD_BROKEN_CRAB_CRYSTAL = 1;
+		sdEntity.SCORE_REWARD_BROKEN_BIG_CRAB_CRYSTAL = 3;
 		
 		/*sdEntity.MATTER_MODE_UNDECIDED = 0;
 		sdEntity.MATTER_MODE_NONE = 1;
@@ -844,6 +847,12 @@ class sdEntity
 		
 		const iters_total = ( this.sx === 0 || this.sy === 0 ) ? 1 : 2; // 1 Iteration is enough for one-dimension moving entities
 		
+		//if ( this.GetClass() === 'sdCharacter' )
+		//{
+			//if ( this.sx < -1 )
+			//debugger;
+		//}
+		
 		for ( let iter = 0; iter < iters_total; iter++ ) // Only 2 iterations of linear movement, enough to allow sliding in box-collisions-world
 		//for ( let iter = 0; iter < 2; iter++ ) // Only 2 iterations of linear movement, enough to allow sliding in box-collisions-world
 		//for ( let iter = 0; iter < 10; iter++ ) // Only 2 iterations of linear movement, enough to allow sliding in box-collisions-world
@@ -1193,7 +1202,7 @@ class sdEntity
 					const best_t_original = best_t;
 
 					best_t = Math.max( 0, best_t - 0.00001 / Math.max( old_sx, old_sy ) ); // Because math will betray us and bullet will stuck bouncing in a wall
-
+					
 					this.x += sx * best_t;
 					this.y += sy * best_t;
 
@@ -1301,6 +1310,14 @@ class sdEntity
 									}
 								}*/
 							}
+							
+							
+							/*if ( this.GetClass() === 'sdCharacter' )
+							{
+								if ( this._key_states.GetKey( 'KeyA' ) )
+								trace( 'iter='+iter, best_t, sx, sy, [ smallest === on_top, smallest === under, smallest === on_left, smallest === on_right ] );
+							}*/
+
 
 							switch ( smallest )
 							{
@@ -2422,6 +2439,8 @@ class sdEntity
 				
 				this.onThink.has_ApplyVelocityAndCollisions = ( onThinkString.indexOf( 'ApplyVelocityAndCollisions' ) !== -1 );
 				
+				this.onThink.has_MatterGlow = ( onThinkString.indexOf( 'MatterGlow' ) !== -1 );
+				
 				this.onThink.has_GetAnythingNearCache = ( onThinkString.indexOf( 'MatterGlow' ) !== -1 || onThinkString.indexOf( 'GetAnythingNearCache' ) !== -1 );
 				
 				this.onThink.has_GetComWiredCache = ( onThinkString.indexOf( 'GetComWiredCache' ) !== -1 || DrawString.indexOf( 'GetComWiredCache' ) !== -1 );
@@ -2882,6 +2901,16 @@ class sdEntity
 							  prop !== '_listeners' && 
 							  prop !== '_last_x' && 
 							  prop !== '_last_y' && 
+							  prop !== '_has_matter_props' && 
+							  prop !== '_is_static' && 
+							  prop !== '_update_version' && 
+							  prop !== '_remove_stack_trace' && 
+							  prop !== '_vis_block_top' && 
+							  prop !== '_vis_block_left' && 
+							  prop !== '_vis_block_right' && 
+							  prop !== '_vis_block_bottom' && 
+							  prop !== '_speak_id' && 
+							  prop !== '_say_allowed_in' && 
 							  ( 
 								typeof this[ prop ] === 'number' || 
 								typeof this[ prop ] === 'string' || 
@@ -3886,7 +3915,7 @@ class sdEntity
 
 		return this._is_being_removed;
 	}*/
-	onBeforeRemove() // Right when .remove() is called for the first time
+	onBeforeRemove() // Right when .remove() is called for the first time. This method won't be altered by build tool spawn logic
 	{
 	}
 	remove()

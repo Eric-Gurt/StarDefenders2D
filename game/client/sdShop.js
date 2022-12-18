@@ -571,6 +571,17 @@ class sdShop
 				{
 					character._jetpack_power = 1 + ( level_purchased * 0.5 );
 				}
+			},
+			upgrade_stability_recovery:
+			{
+				max_level: 3,
+				matter_cost: 125,
+				min_build_tool_level: 3,
+				description: 'Reduces time to recover after falling down.',
+				action: ( character, level_purchased )=>
+				{
+					character._stability_recovery_multiplier = 1 + ( 3 / level_purchased );
+				}
 			}
 		};
 		for ( var i in sdShop.upgrades )
@@ -674,8 +685,12 @@ class sdShop
 			//sdShop.options.push({ _class: 'sdSensorArea', _category:'Development tests' });
 			//sdShop.options.push({ _class: 'sdBloodDecal', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBG', width: 16, height: 8, _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SAND, _category:'Development tests' }); // Currently does nothing for now, perhaps for more lore-related stuff in this game?
-			sdShop.options.push({ _class: 'sdGib', class:sdGib.CLASS_VELOX_MECH_HEAD, _category:'Development tests' }); // Currently does nothing for now, perhaps for more lore-related stuff in this game?
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SAND, natural: true, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_GROUND, natural: true, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_ROCK, natural: true, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_CORRUPTION, natural: true, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_FLESH, natural: true, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdGib', class:sdGib.CLASS_VELOX_MECH_HEAD, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdMimic', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdRoach', _category:'Development tests' });
 		}

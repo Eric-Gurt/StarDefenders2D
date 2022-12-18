@@ -91,6 +91,8 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		this._dmg_to_report = 0;
 		
+		this._last_damage = 0; // Sound flood prevention
+		
 		this.hmax = 500 * 4; // * 3 when enabled * construction hitpoints upgrades - Just enough so players don't accidentally destroy it when stimpacked and RTP'd
 		this.hea = this.hmax;
 		//this._hmax_old = this.hmax;
@@ -213,7 +215,12 @@ class sdBaseShieldingUnit extends sdEntity
 		if ( this.enabled )
 		{
 			dmg *= 0.333;
-			sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
+			
+			if ( sdWorld.time > this._last_damage + 50 )
+			{
+				this._last_damage = sdWorld.time;
+				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
+			}
 		}
 		
 		//let old_hea = this.hea;
@@ -228,12 +235,11 @@ class sdBaseShieldingUnit extends sdEntity
 			for ( let i = 0; i < cameras.length; i++ )
 			cameras[ i ].Trigger( sdCamera.DETECT_BSU_DAMAGE );
 		}
-
+	
+		this.regen_timeout = 30;
 
 		if ( this.hea <= 0 )
 		this.remove();
-	
-		this.regen_timeout = 30;
 
 		//console.log( this._protected_entities );
 
@@ -441,6 +447,21 @@ class sdBaseShieldingUnit extends sdEntity
 
 		if ( this.regen_timeout > 0 )
 		this.regen_timeout -= GSPEED;
+		else
+		{
+			if ( this.hea < this.hmax )
+			{
+				//let heal = Math.min( this.hea + 2 * ( GSPEED ), this.hmax ) - this.hea;
+				let heal = Math.min( this.hea + 1.5 * ( GSPEED ), this.hmax ) - this.hea;
+
+				this.hea += heal;
+
+				/*if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
+				{
+					this.matter_crystal -= heal * sdBaseShieldingUnit.regen_matter_cost_per_1_hp * 3; // 3 for shield effect
+				}*/
+			}
+		}
 
 		if ( this._check_blocks > 0 && this.enabled )
 		this._check_blocks -= GSPEED;
@@ -532,27 +553,14 @@ class sdBaseShieldingUnit extends sdEntity
 			}
 			else
 			{
-				if ( this.hea > 0 )
-				{
-					if ( this.hea < this.hmax )
-					{
-						//let heal = Math.min( this.hea + 2 * ( GSPEED ), this.hmax ) - this.hea;
-						let heal = Math.min( this.hea + 1.5 * ( GSPEED ), this.hmax ) - this.hea;
-
-						this.hea += heal;
-
-						if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
-						{
-							this.matter_crystal -= heal * sdBaseShieldingUnit.regen_matter_cost_per_1_hp * 3; // 3 for shield effect
-						}
-					}
-					
+				//if ( this.hea > 0 )
+				//{
 					if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
 					if ( this.timer_to_expect_matter < 30 * 10 )
 					{
 						this.timer_to_expect_matter = 30 * 10;
 					}
-				}
+				//}
 			}
 		}
 
@@ -659,6 +667,9 @@ class sdBaseShieldingUnit extends sdEntity
 							this.WakeUpMatterSources();
 							unit.WakeUpMatterSources();
 
+							if ( intensity < 1 )
+							sdWorld.SendEffect({ x:this.x, y:this.y, x2:unit.x, y2:unit.y, type:sdEffect.TYPE_BEAM, color:'#f90000' });
+							else
 							sdWorld.SendEffect({ x:this.x, y:this.y, x2:unit.x, y2:unit.y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
 
 							sdSound.PlaySound({ name:'zombie_alert2', x:this.x, y:this.y, volume:0.375 * intensity, pitch:3 });
@@ -757,8 +768,8 @@ class sdBaseShieldingUnit extends sdEntity
 
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		if ( this.hea <= 0 )
-		return;
+		//if ( this.hea <= 0 )
+		//return;
 	
 		if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 		sdEntity.Tooltip( ctx,  "Crystal-based base shielding unit ( " + ~~(this.matter_crystal) + " / " + ~~(this.matter_crystal_max) + " )" );
@@ -862,7 +873,7 @@ class sdBaseShieldingUnit extends sdEntity
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
-		if ( this.hea > 0 )
+		//if ( this.hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		{
@@ -938,7 +949,7 @@ class sdBaseShieldingUnit extends sdEntity
 	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
-		if ( this.hea > 0 )
+		//if ( this.hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )

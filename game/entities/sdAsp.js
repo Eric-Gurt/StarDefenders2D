@@ -90,7 +90,7 @@ class sdAsp extends sdEntity
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
 		this.filter = 'saturate(0.5)';
 	}
-	onBeforeRemove() // Right when .remove() is called for the first time
+	onBeforeRemove() // Right when .remove() is called for the first time. This method won't be altered by build tool spawn logic
 	{
 		this._current_target = null;
 	}

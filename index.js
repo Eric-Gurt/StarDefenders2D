@@ -709,6 +709,8 @@ sdWorld.database_data_path_const = database_data_path_const;
 sdWorld.superuser_pass_path = superuser_pass_path;
 sdWorld.censorship_file_path = censorship_file_path;
 
+sdWorld.onAfterConfigLoad();
+
 let strange_position_classes = {};
 
 //let snapshot_path = __dirname + '/star_defenders_snapshot.v';

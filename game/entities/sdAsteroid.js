@@ -16,10 +16,10 @@ class sdAsteroid extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -5; }
-	get hitbox_x2() { return 5; }
-	get hitbox_y1() { return -5; }
-	get hitbox_y2() { return 5; }
+	get hitbox_x1() { return -5 * this.scale; }
+	get hitbox_x2() { return 5 * this.scale; }
+	get hitbox_y1() { return -5 * this.scale; }
+	get hitbox_y2() { return 5 * this.scale; }
 	
 	Impulse( x, y )
 	{
@@ -37,14 +37,16 @@ class sdAsteroid extends sdEntity
 		
 		this._max_build_tool_level_near = 0;
 
+		this.scale = Math.max( 0.8, Math.random() * 2 ); // Scale / size of the asteroid
 		this._type = params._type || Math.random() < 0.2 ? 1 : 0;
 		this.landed = false;
 		
-		this._hmax = 60; // Asteroids that land need more HP to survive the "explosion" when they land
+		this._hmax = 60 * this.scale; // Asteroids that land need more HP to survive the "explosion" when they land
 		this._hea = this._hmax;
 		
 		this.sx = Math.random() * 12 - 6;
 		this.sy = 10;
+
 
 		this._time_to_despawn = 30 * 60 * 5; // 5 minutes to despawn landed asteroids
 		
@@ -104,7 +106,7 @@ class sdAsteroid extends sdEntity
 			this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 			this._time_to_despawn -= GSPEED;
 			
-			this._an += this.sx * GSPEED * 20 / 100;
+			this._an += this.sx * GSPEED * 20 / 100 / this.scale;
 			
 			if ( this._time_to_despawn < 0 )
 			this.remove();
@@ -143,7 +145,7 @@ class sdAsteroid extends sdEntity
 			}
 		}
 	}
-	get mass() { return 80; }
+	get mass() { return 80 * this.scale; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return this.landed; }
@@ -171,6 +173,7 @@ class sdAsteroid extends sdEntity
 		if ( !sdShop.isDrawing )
 		ctx.rotate( this._an );
 
+		ctx.scale( this.scale, this.scale );
 		ctx.drawImageFilterCache( sdAsteroid.img_asteroid, xx * 32, 0, 32,32, -16, -16, 32,32 );
 		//ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
 	}

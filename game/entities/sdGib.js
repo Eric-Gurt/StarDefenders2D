@@ -114,7 +114,7 @@ class sdGib extends sdEntity
 		this._hy1 = -2;
 		this._hy2 = 2;
 		//
-		this._remove_stack_trace = null;
+		//this._remove_stack_trace = null;
 		
 		this._last_hit_sound = 0;
 		
@@ -180,11 +180,10 @@ class sdGib extends sdEntity
 		}
 
 	}
-	onBeforeRemove() // Right when .remove() is called for the first time
+	onBeforeRemove() // Right when .remove() is called for the first time. This method won't be altered by build tool spawn logic
 	{
-		if ( sdWorld.is_server )
-		this._remove_stack_trace = getStackTrace();
-		
+		//if ( sdWorld.is_server )
+		//this._remove_stack_trace = getStackTrace();
 	}
 	
 	get hard_collision() // For world geometry where players can walk

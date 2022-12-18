@@ -375,6 +375,13 @@ class sdCable extends sdEntity
 		sdCable.UpdateConnectedEntities( this.c );
 		this._update_version++;
 	}
+	onMovementInRange( from_entity )
+	{
+		if ( from_entity === this.p || from_entity === this.c )
+		{
+			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE, false );
+		}
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( !this.p || !this.c )
@@ -391,27 +398,34 @@ class sdCable extends sdEntity
 			return;
 		}
 		
-		if ( this.p.is_static && this.c.is_static )
+		//if ( this.p.is_static && this.c.is_static )
 		{
 			if ( sdWorld.is_server )
 			{
-				this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false );
-				
-				// Update taken area right before hibernation
-				this._last_x = undefined;
-				this._last_y = undefined;
-				/*
-				if ( !this.p.hasEventListener( 'REMOVAL', this.Wakeup ) )
+				if ( this.hitbox_x1 === this._hitbox_x1 && this.hitbox_x2 === this._hitbox_x2 &&
+					 this.hitbox_y1 === this._hitbox_y1 && this.hitbox_y2 === this._hitbox_y2 )
 				{
-					this.p.addEventListener( 'REMOVAL', this.Wakeup );
-					this.p.addEventListener( 'MOVES', this.Wakeup );
+					this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false );
 				}
-			
-				if ( !this.c.hasEventListener( 'REMOVAL', this.Wakeup ) )
+				else
 				{
-					this.c.addEventListener( 'REMOVAL', this.Wakeup );
-					this.c.addEventListener( 'MOVES', this.Wakeup );
-				}*/
+
+					// Update taken area right before hibernation
+					this._last_x = undefined;
+					this._last_y = undefined;
+					/*
+					if ( !this.p.hasEventListener( 'REMOVAL', this.Wakeup ) )
+					{
+						this.p.addEventListener( 'REMOVAL', this.Wakeup );
+						this.p.addEventListener( 'MOVES', this.Wakeup );
+					}
+
+					if ( !this.c.hasEventListener( 'REMOVAL', this.Wakeup ) )
+					{
+						this.c.addEventListener( 'REMOVAL', this.Wakeup );
+						this.c.addEventListener( 'MOVES', this.Wakeup );
+					}*/
+				}
 			}
 		}
 		

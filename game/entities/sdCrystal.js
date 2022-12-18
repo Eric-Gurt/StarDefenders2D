@@ -296,16 +296,17 @@ class sdCrystal extends sdEntity
 				sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.5 });
 				
 				if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
-				sdSound.PlaySound({ name:'crystal_crab_death', x:this.x, y:this.y, pitch: this.type === 3 ? 1 : 0.5, volume:0.5 });
+				{
+					sdSound.PlaySound({ name:'crystal_crab_death', x:this.x, y:this.y, pitch: this.type === 3 ? 1 : 0.5, volume:0.5 });
+					
+				}
+				
+				let replacement_entity = null;
+				
+				// DropShards( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9, ignore_collisions_with=null, follow=null )
 				
 				if ( this.type === sdCrystal.TYPE_CRYSTAL_BIG || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ) // Big crystals/big crystal crabs
 				{
-					sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
-						Math.ceil( Math.max( 5, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
-						this.matter_max / 160,
-						8
-					);
-
 					let ent = new sdCrystal({x: this.x, y: this.y + 4, sx: this.sx, sy: this.sy, type:1 });
 
 					ent.matter_max = this.matter_max / 4;
@@ -313,15 +314,55 @@ class sdCrystal extends sdEntity
 
 					sdEntity.entities.push( ent );
 					sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
+					
+					replacement_entity = ent;
+					
+					
+					sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
+						Math.ceil( Math.max( 5, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
+						this.matter_max / 160,
+						8,
+						undefined,
+						undefined,
+						replacement_entity
+					);
 				}
 				else
 				sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
 					Math.ceil( Math.max( 5, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
 					this.matter_max / 40,
-					5
+					5,
+					undefined,
+					undefined,
+					replacement_entity
 				);
 		
+				let reward_amount = sdEntity.SCORE_REWARD_BROKEN_5K_CRYSTAL * this.matter_max / 5120;
+				
+				reward_amount *= this.matter_regen / 100;
+				
+				if ( this.is_crab )
+				{
+					reward_amount = Math.max( reward_amount, sdEntity.SCORE_REWARD_BROKEN_CRAB_CRYSTAL );
+					
+					if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
+					reward_amount = Math.max( reward_amount, sdEntity.SCORE_REWARD_BROKEN_BIG_CRAB_CRYSTAL );
+				}
+				else
+				if ( this.is_anticrystal )
+				{
+					reward_amount = 0;
+				}
+				
+				reward_amount = ~~( reward_amount );
 		
+				if ( reward_amount > 0 )
+				{
+					replacement_entity
+					
+					//this.GiveScoreToLastAttacker( reward_amount );
+					sdWorld.GiveScoreToPlayerEntity( reward_amount, replacement_entity || this, true, null );
+				}
 
 				this.remove();
 			}

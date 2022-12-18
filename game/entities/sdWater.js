@@ -266,6 +266,38 @@ class sdWater extends sdEntity
 		}
 		return false;
 	}
+	
+	TrySleep()
+	{
+		if ( !sdWater.never_sleep_by_type[ this.type ] )
+		{
+			let can_sleep = true;
+			
+			both:
+			for ( const e of this._swimmers )
+			{
+				let arr = sdStatusEffect.entity_to_status_effects.get( e );
+				
+				if ( arr !== undefined )
+				{
+					for ( let i = 0; i < arr.length; i++ )
+					if ( arr[ i ].type === sdStatusEffect.TYPE_TEMPERATURE )
+					{
+						can_sleep = false;
+						break both;
+					}
+				}
+			}
+			/*
+			this._swimmers.forEach( ( e )=>
+			{
+			});*/
+			
+			//if ( this._swimmers.size === 0 )
+			if ( can_sleep )
+			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+		}
+	}
 
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -513,9 +545,10 @@ class sdWater extends sdEntity
 				}
 				else
 				{
-					if ( !sdWater.never_sleep_by_type[ this.type ] )
+					this.TrySleep();
+					/*if ( !sdWater.never_sleep_by_type[ this.type ] )
 					if ( this._swimmers.size === 0 )//|| sdWater.can_sleep_if_has_entities[ this.type ] )
-					this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+					this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );*/
 				
 					this._sy = 0;
 					return;
@@ -525,9 +558,10 @@ class sdWater extends sdEntity
 		
 		if ( this.y + 16 >= sdWorld.world_bounds.y2 )
 		{
-			if ( !sdWater.never_sleep_by_type[ this.type ] )
+			this.TrySleep();
+			/*if ( !sdWater.never_sleep_by_type[ this.type ] )
 			if ( this._swimmers.size === 0 )//|| sdWater.can_sleep_if_has_entities[ this.type ] )
-			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
+			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );*/
 		
 			this._sy = 0;
 			return;

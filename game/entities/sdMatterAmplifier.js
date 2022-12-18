@@ -275,7 +275,7 @@ class sdMatterAmplifier extends sdEntity
 		if ( this.multiplier === 8 )
 		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier4, - 16, - 16, 32, 32 );
 	}
-	onBeforeRemove() // Right when .remove() is called for the first time
+	onBeforeRemove() // Right when .remove() is called for the first time. This method won't be altered by build tool spawn logic
 	{
 		this.DropCrystal();
 	}

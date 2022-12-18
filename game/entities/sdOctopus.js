@@ -357,7 +357,7 @@ class sdOctopus extends sdEntity
 					from_entity = nears_raw[ i ];
 					
 					if ( ( from_entity.GetClass() === 'sdCharacter' && from_entity.IsVisible( this ) ) ||
-						 ( from_entity.GetClass() === 'sdBlock' && !from_entity._natural ) ||
+						 ( from_entity.GetClass() === 'sdBlock' && ( !from_entity._natural || !from_entity.IsDefaultGround() ) ) ||
 						 from_entity.GetClass() === 'sdCom' ||
 						 from_entity.GetClass() === 'sdNode' ||
 						 from_entity.GetClass() === 'sdCrystal' ||
