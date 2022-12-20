@@ -147,33 +147,36 @@ class sdBloodDecal extends sdEntity
 				}
 				else
 				{
-					let ent = new sdRoach({ x: this.x + this._hitbox_x2 / 2, y: this.y + this._hitbox_y2 / 2 });
-					sdEntity.entities.push( ent );
-					
-					if ( !ent.CanMoveWithoutOverlap( ent.x, ent.y ) )
+					if ( Math.random() < 0.5 ) // 50% chance a roach spawns
 					{
-						ent.remove();
-						ent._broken = false;
-					}
-					else
-					{
-						let ents = sdWorld.GetAnythingNear( ent.x, ent.y, 128, null, null, sdBloodDecal.IsRoachFilter );
-						if ( ents.length > 11 )
+						let ent = new sdRoach({ x: this.x + this._hitbox_x2 / 2, y: this.y + this._hitbox_y2 / 2 });
+						sdEntity.entities.push( ent );
+						
+						if ( !ent.CanMoveWithoutOverlap( ent.x, ent.y ) )
 						{
-							// Make locked up roaches stronger so they can eventually eat out the forgotten bases
-							let random_roach = ents[ ~~( ents.length * Math.random() ) ];
-							
-							if ( random_roach )
-							if ( random_roach.nick.length === 0 )
-							if ( random_roach.strength < 20 )
-							random_roach.strength += 1;
-							
 							ent.remove();
 							ent._broken = false;
 						}
 						else
 						{
-							sdWorld.UpdateHashPosition( ent, false ); // Prevent inersection with other ones
+							let ents = sdWorld.GetAnythingNear( ent.x, ent.y, 128, null, null, sdBloodDecal.IsRoachFilter );
+							if ( ents.length > 11 )
+							{
+								// Make locked up roaches stronger so they can eventually eat out the forgotten bases
+								let random_roach = ents[ ~~( ents.length * Math.random() ) ];
+								
+								if ( random_roach )
+								if ( random_roach.nick.length === 0 )
+								if ( random_roach.strength < 20 )
+								random_roach.strength += 1;
+								
+								ent.remove();
+								ent._broken = false;
+							}
+							else
+							{
+								sdWorld.UpdateHashPosition( ent, false ); // Prevent inersection with other ones
+							}
 						}
 					}
 					
