@@ -61,7 +61,7 @@ class sdEnemyMech extends sdEntity
 		
 		this._time_until_full_remove = 30 * 5 + Math.random() * 30 * 5; // 5-10 seconds to get removed
 
-		this.death_anim = 0;
+		//this.death_anim = 0;
 		
 		this._current_target = null; // Now used in case of players engaging without meeting CanAttackEnt conditions
 		this._follow_target = null;
@@ -200,7 +200,7 @@ class sdEnemyMech extends sdEntity
 			sdSound.PlaySound({ name:'enemy_mech_death3', x:this.x, y:this.y, volume:2 });
 			
 			sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:2 });
-			this.death_anim = 1;
+			//this.death_anim = 1;
 			//if ( initiator )
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_BOSS );
 
@@ -270,7 +270,7 @@ class sdEnemyMech extends sdEntity
 			this.tilt = sdWorld.MorphWithTimeScale( this.tilt, 0, 0.93, GSPEED );
 			if ( sdWorld.is_server )
 			{
-				if ( this.death_anim > 0 )
+				if ( this.hea <= 0 )
 				this._time_until_full_remove -= GSPEED;
 
 				if ( this._time_until_full_remove <= 0 )
@@ -748,16 +748,9 @@ class sdEnemyMech extends sdEntity
 		else	
 		ctx.scale( -1, 1 );
 
-		let xx = 0;
-		
-		if ( this.hea > 0 )
-		xx = 0;
-		//ctx.drawImageFilterCache( sdEnemyMech.img_mech_boost, - 32, - 48, 64, 96 );
-		else
-		xx = 1;
-		//ctx.drawImageFilterCache( sdEnemyMech.img_mech_broken, - 32, - 48, 64, 96 );
+		let xx = this.hea <= 0;
 
-		ctx.drawImageFilterCache( sdEnemyMech.img_mech, xx * 64, 0, 64,96, - 32, - 48, 64,96 );
+		ctx.drawImageFilterCache( sdEnemyMech.img_mech, xx * 64, 0, 64,96, - 32, - 48, 64, 96 );
 
 		ctx.filter = 'none';
 		if ( this.side === 1 )
