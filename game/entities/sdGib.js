@@ -220,12 +220,6 @@ class sdGib extends sdEntity
 		{
 			//this.sy += sdWorld.gravity * GSPEED;
 			
-			{
-				//if ( sdWorld.last_hit_entity )
-				//this.tilt += -Math.sin( this.tilt / sdGib.tilt_scale * 2 ) * 0.4 * sdGib.tilt_scale;
-				//else
-				this.tilt += this.sx * 20 * GSPEED;
-			}
 
 			if ( this._iframes > 0 )
 			this._iframes -= GSPEED;
@@ -234,6 +228,13 @@ class sdGib extends sdEntity
 			if ( this.ttl <= 0 )
 			this.remove();
 			
+		}
+
+		{
+			//if ( sdWorld.last_hit_entity )
+			//this.tilt += -Math.sin( this.tilt / sdGib.tilt_scale * 2 ) * 0.4 * sdGib.tilt_scale;
+			//else
+			this.tilt += this.sx * 20 * GSPEED;
 		}
 
 		if ( in_water )

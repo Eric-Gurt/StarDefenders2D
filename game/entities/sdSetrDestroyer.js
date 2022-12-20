@@ -255,6 +255,13 @@ class sdSetrDestroyer extends sdEntity
 
 				drone.sx = ( Math.random() - Math.random() ) * 10;
 				drone.sy = ( Math.random() - Math.random() ) * 10;
+
+				// Make sure drone has any speed when deployed so drones don't get stuck into each other
+				if ( Math.abs( drone.sx ) < 0.5 )
+				drone.sx *= 10;
+				if ( Math.abs( drone.sy ) < 0.5 )
+				drone.sy *= 10;
+
 				drone._ignore_collisions_with = this; // Make sure it can pass through the destroyer 
 
 				sdEntity.entities.push( drone );
