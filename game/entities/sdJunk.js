@@ -504,8 +504,8 @@ class sdJunk extends sdEntity
 						di_mult = 1;
 
 						if ( sdWorld.sockets[ i ].character !== null )
-						if ( sdWorld.sockets[ i ].character.hea > 0 )
 						if ( !sdWorld.sockets[ i ].character._is_being_removed )
+						if ( sdWorld.sockets[ i ].character.hea > 0 )
 						{
 							//if ( sdWorld.sockets[ i ].character.build_tool_level > 0 )
 							{
@@ -531,7 +531,7 @@ class sdJunk extends sdEntity
 										executer: sdWorld.sockets[ i ].character,
 										target: this,
 										mission: sdTask.MISSION_DESTROY_ENTITY,
-										difficulty: 0.125,
+										difficulty: 0.125 * sdTask.GetTaskDifficultyScaler(),
 										title: 'Destroy planetary matter drainer',
 										description: 'There is a planetary matter drainer spotted nearby. Destroy it before it drains all our matter!'
 									});
@@ -603,7 +603,7 @@ class sdJunk extends sdEntity
 								executer: sdWorld.sockets[ i ].character,
 								target: this,
 								mission: sdTask.MISSION_DESTROY_ENTITY,
-								difficulty: 0.334,
+								difficulty: 0.334 * sdTask.GetTaskDifficultyScaler(),
 								time_left: ( this.detonation_in - 30 * 2 ),
 								title: 'Disarm Council bomb',
 								description: 'Looks like Council paid us a visit and decided to bomb some parts of the planet. Stop them!'
@@ -966,7 +966,7 @@ class sdJunk extends sdEntity
 							executer: sdWorld.sockets[ i ].character,
 							target: this,
 							mission: sdTask.MISSION_DESTROY_ENTITY,
-							difficulty: 0.167,
+							difficulty: 0.167 * sdTask.GetTaskDifficultyScaler(),
 							title: 'Destroy Erthal distress beacon',
 							description: 'The Erthals have placed a distress beacon nearby and are rallying their troops! Destroy the beacon before they overflow the land!'
 						});

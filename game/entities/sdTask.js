@@ -7,6 +7,7 @@
 */
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
+import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -96,9 +97,22 @@ class sdTask extends sdEntity
 			{
 				task._executer._task_reward_counter += task._difficulty; // Only workaround I can see since I can't make it put onComplete and work in task parameters - Booraz149
 			},
+			failure_condition: ( task )=>
+			{
+				if ( !task._target )
+				return true;
+			
+				if ( task._target._is_being_removed && sdLongRangeTeleport.teleported_items.has( task._target ) ) // Detects LRTP abuse
+				return true;
+			
+				return false;
+			},
 			completion_condition: ( task )=>
 			{
-				if ( !task._target || task._target._is_being_removed )
+				if ( !task._target )
+				return true;
+			
+				if ( task._target._is_being_removed && !sdLongRangeTeleport.teleported_items.has( task._target ) ) // Detects LRTP abuse
 				return true;
 			
 				return false;
@@ -375,6 +389,16 @@ class sdTask extends sdEntity
 		}
 	}
 	
+	static GetTaskDifficultyScaler() // Prevent players connecting all of their accounts to give claim reward per each socket
+	{
+		let players = sdWorld.GetPlayingPlayersCount();
+		
+		if ( players <= 1 )
+		return 1;
+		
+		return 1 / players;
+	}
+	
 	static MakeSureCharacterHasTask( params )
 	{
 		if ( params.similarity_hash === undefined )
@@ -383,47 +407,52 @@ class sdTask extends sdEntity
 		let tasks = 0;
 	
 		for ( let i = 0; i < sdTask.tasks.length; i++ )
-		if ( sdTask.tasks[ i ]._executer === params.executer )
-		if ( !sdTask.tasks[ i ]._is_being_removed )
 		{
-			if ( sdTask.tasks[ i ]._similarity_hash === params.similarity_hash )
+			let task = sdTask.tasks[ i ];
+			if ( task._executer === params.executer )
+			if ( !task._is_being_removed )
 			{
-				if ( typeof params.time_left === 'undefined' )
-				if ( sdTask.missions[ params.mission ].GetDefaultTimeLeft )
-				params.time_left = sdTask.missions[ params.mission ].GetDefaultTimeLeft( params );
-		
-				if ( typeof params.title !== 'undefined' )
-				if ( sdTask.tasks[ i ].title !== params.title )
+				if ( task._similarity_hash === params.similarity_hash )
 				{
-					sdTask.tasks[ i ].title = params.title;
-					sdTask.tasks[ i ]._update_version++;
-					sdTask.tasks[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-				}
-			
-				if ( typeof params.description !== 'undefined' )
-				if ( sdTask.tasks[ i ].description !== params.description )
-				{
-					sdTask.tasks[ i ].description = params.description;
-					sdTask.tasks[ i ]._update_version++;
-					sdTask.tasks[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					if ( typeof params.time_left === 'undefined' )
+					if ( sdTask.missions[ params.mission ].GetDefaultTimeLeft )
+					params.time_left = sdTask.missions[ params.mission ].GetDefaultTimeLeft( params );
+
+					if ( typeof params.title !== 'undefined' )
+					if ( task.title !== params.title )
+					{
+						task.title = params.title;
+						task._update_version++;
+						task.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					}
+
+					if ( typeof params.description !== 'undefined' )
+					if ( task.description !== params.description )
+					{
+						task.description = params.description;
+						task._update_version++;
+						task.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					}
+
+					if ( typeof params.time_left !== 'undefined' )
+					{
+						task.time_left = Math.max( task.time_left, params.time_left );
+						task.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					}
+
+					if ( typeof params.difficulty !== 'undefined' )
+					{
+						task._difficulty = params.difficulty;
+					}
+
+					return false;
 				}
 
-				if ( typeof params.time_left !== 'undefined' )
-				{
-					sdTask.tasks[ i ].time_left = Math.max( sdTask.tasks[ i ].time_left, params.time_left );
-					sdTask.tasks[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-					
-					//if ( sdTask.tasks[ i ].time_left === -1 )
-					//debugger;
-				}
+				tasks++;
 
-				return false;
+				if ( tasks > 32 )
+				return false; // Too many tasks - prevent server issues this way
 			}
-			
-			tasks++;
-			
-			if ( tasks > 32 )
-			return false; // Too many tasks - prevent server issues this way
 		}
 	
 		let task = new sdTask( params );
@@ -602,13 +631,22 @@ class sdTask extends sdEntity
 		if ( mission )
 		{
 			if ( sdWorld.is_server )
-			if ( mission.completion_condition( this ) )
 			{
-				if ( mission.onCompletion )
-				mission.onCompletion( this );
+				if ( mission.failure_condition )
+				if ( mission.failure_condition( this ) )
+				{
+					this.remove();
+					return;
+				}
 				
-				this.remove();
-				return;
+				if ( mission.completion_condition( this ) )
+				{
+					if ( mission.onCompletion )
+					mission.onCompletion( this );
+
+					this.remove();
+					return;
+				}
 			}
 
 			if ( this._target )

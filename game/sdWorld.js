@@ -2191,6 +2191,12 @@ class sdWorld
 						map.add( another_entity );
 					}
 				}
+				
+				
+				// Always call onMovementInRange with last interacted water as it might not receive onMovementInRange as it is only called whenever something enters water, not when it leaves it
+				let water = sdWater.all_swimmers.get( this );
+				if ( water )
+				map.add( water );
 
 				// Make entities reach to each other in both directions
 				map.forEach( ( another_entity )=>

@@ -45,6 +45,8 @@ class sdLongRangeTeleport extends sdEntity
 		//sdLongRangeTeleport.redirect_codes = {}; // { code: _net_id }
 		sdLongRangeTeleport.one_time_keys = []; // for redirections
 		
+		sdLongRangeTeleport.teleported_items = new WeakSet(); // Will be used to prevent rewards for teleporting beacons to other servers rather than destroying them
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -48; }
@@ -135,6 +137,9 @@ class sdLongRangeTeleport extends sdEntity
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
 		
+		this._cc_near = null;
+		this.has_cc_near = false; // Store boolean because client does not know if cc exists
+		
 		this._local_supported_entity_classes = null;
 		this._remote_supported_entity_classes = null;
 		
@@ -195,6 +200,9 @@ class sdLongRangeTeleport extends sdEntity
 	
 		let can_hibernateA = false;
 		let can_hibernateB = false;
+		
+		this._cc_near = this.GetComWiredCache( null, sdCommandCentre );
+		this.has_cc_near = !!this._cc_near; // Object to boolean conversion
 		
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
@@ -275,7 +283,7 @@ class sdLongRangeTeleport extends sdEntity
 			}
 			else
 			{
-				let cc_near = this.GetComWiredCache( null, sdCommandCentre );
+				let cc_near = this.has_cc_near;//GetComWiredCache( null, sdCommandCentre );
 				
 				if ( cc_near && this.matter >= this._matter_max )
 				{
@@ -635,10 +643,11 @@ class sdLongRangeTeleport extends sdEntity
 		return ents_final;
 	}
 
-	GiveRewards( reward_type = 1 )
+	//GiveRewards( reward_type = 1 )
+	GiveRewards( reward_type='CLAIM_REWARD_SHARDS' )
 	{
-		let rewards = reward_type || 1;
-		if ( rewards === 1 )
+		let rewards = reward_type;// || 1;
+		if ( rewards === 'CLAIM_REWARD_SHARDS' )
 		{
 			let shard, shard2, shard3, shard4, shard5, shard6, shard7;
 			shard = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_CUBE_SHARD });
@@ -657,7 +666,7 @@ class sdLongRangeTeleport extends sdEntity
 			sdEntity.entities.push( shard7 );
 		}
 		else
-		if ( rewards === 2 )
+		if ( rewards === 'CLAIM_REWARD_WEAPON' )
 		{
 			let gun, rng;
 			rng = Math.random() * 1.4;
@@ -683,7 +692,7 @@ class sdLongRangeTeleport extends sdEntity
 			sdEntity.entities.push( gun );
 		}
 		else
-		if ( rewards === 3 )
+		if ( rewards === 'CLAIM_REWARD_CRYSTALS' )
 		{
 			let crystal, crystal2, crystal3;
 			crystal = new sdCrystal({ x:this.x - 24, y:this.y - 24, matter_max: 5120, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
@@ -694,21 +703,24 @@ class sdLongRangeTeleport extends sdEntity
 			sdEntity.entities.push( crystal3 );
 		}
 		else
-		if ( rewards === 4 )
+		if ( rewards === 'CLAIM_REWARD_CONTAINER' )
 		{
 			let container;
 			container = new sdJunk({ x:this.x, y:this.y - 32, type: 6 });
 			sdEntity.entities.push( container );
 		}
 		else
-		if ( rewards === 5 )
+		if ( rewards === 'CLAIM_SCANNER' )
 		{
 			let scanner;
 			scanner = new sdLandScanner({ x:this.x, y:this.y - 32});
 			sdEntity.entities.push( scanner );
 		}
+		
 		sdWorld.SendEffect({ x:this.x, y:this.y - 24, type:sdEffect.TYPE_TELEPORT });
 		sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
+		
+		this.matter = 0;
 	}
 
 	ExtractEntitiesOnTop( collected_entities_array=null, use_task_filter=false, initiator=null )
@@ -731,6 +743,7 @@ class sdLongRangeTeleport extends sdEntity
 			
 			e.remove();
 			e._broken = false;
+			sdLongRangeTeleport.teleported_items.add( e );
 			
 			if ( collected_entities_array )
 			collected_entities_array.push( e );
@@ -910,48 +923,30 @@ class sdLongRangeTeleport extends sdEntity
 			//if ( exectuter_character._god || sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
 			if ( exectuter_character._god || this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) )
 			{
+				let can_reset_teleport = !( this.is_charging || sdWorld.time < this._is_busy_since + 60 * 1000 );
+				
 				if ( exectuter_character._god && command_name === 'TELEPORT_RESET' )
 				{
 					this.Deactivation();
 					this._is_busy_since = 0;
 				}
 				else
-				if ( command_name === 'CLAIM_REWARD_SHARDS' )
+				if ( !can_reset_teleport )
 				{
-					if ( !this.is_server_teleport )
-					{
-						let cc_near = this.GetComWiredCache( null, sdCommandCentre );
-						if ( cc_near )
-						{
-							if ( this.matter >= this._matter_max )
-							{
-								if ( this.delay === 0 && exectuter_character._task_reward_counter >= sdTask.reward_claim_task_amount )
-								{
-									this.Activation();
-									
-									this._charge_complete_method = ()=>
-									{
-										this.Deactivation();
-										this.GiveRewards( 1 );
-										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - sdTask.reward_claim_task_amount );
-									};
-								}
-								else
-								executer_socket.SDServiceMessage( 'Not activated yet - possibly due to damage' );
-							}
-							else
-							executer_socket.SDServiceMessage( 'Not enough matter' );
-						}
-						else
-						executer_socket.SDServiceMessage( 'Long-range teleport requires Command Centre connected' );
-					}
+					executer_socket.SDServiceMessage( 'Long-range teleport is busy' );
 				}
 				else
-				if ( command_name === 'CLAIM_REWARD_WEAPON' )
+				if (	
+						// All possible reward claims - maybe no need to copy same code multiple times
+						command_name === 'CLAIM_REWARD_SHARDS' ||
+						command_name === 'CLAIM_REWARD_WEAPON' ||
+						command_name === 'CLAIM_REWARD_CRYSTALS' ||
+						command_name === 'CLAIM_REWARD_CONTAINER'
+					)
 				{
 					if ( !this.is_server_teleport )
 					{
-						let cc_near = this.GetComWiredCache( null, sdCommandCentre );
+						let cc_near = this.has_cc_near;//GetComWiredCache( null, sdCommandCentre );
 						if ( cc_near )
 						{
 							if ( this.matter >= this._matter_max )
@@ -962,70 +957,21 @@ class sdLongRangeTeleport extends sdEntity
 									
 									this._charge_complete_method = ()=>
 									{
-										this.Deactivation();
-										this.GiveRewards( 2 );
-										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - sdTask.reward_claim_task_amount );
-									};
-								}
-								else
-								executer_socket.SDServiceMessage( 'Not activated yet - possibly due to damage' );
-							}
-							else
-							executer_socket.SDServiceMessage( 'Not enough matter' );
-						}
-						else
-						executer_socket.SDServiceMessage( 'Long-range teleport requires Command Centre connected' );
-					}
-				}
-				else
-				if ( command_name === 'CLAIM_REWARD_CRYSTALS' )
-				{
-					if ( !this.is_server_teleport )
-					{
-						let cc_near = this.GetComWiredCache( null, sdCommandCentre );
-						if ( cc_near )
-						{
-							if ( this.matter >= this._matter_max )
-							{
-								if ( this.delay === 0 && exectuter_character._task_reward_counter >= sdTask.reward_claim_task_amount )
-								{
-									this.Activation();
+										if ( exectuter_character._task_reward_counter < sdTask.reward_claim_task_amount ) // Prevent claiming reward on multiple long-range teleports
+										{
+											executer_socket.SDServiceMessage( 'Reward claim was rejected - reward was claimed somewhere else' );
+											return;
+										}
+										
+										if ( this.matter < this._matter_max )
+										{
+											executer_socket.SDServiceMessage( 'Reward claim was rejected - not enough matter' );
+											return;
+										}
 									
-									this._charge_complete_method = ()=>
-									{
 										this.Deactivation();
-										this.GiveRewards( 3 );
-										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - sdTask.reward_claim_task_amount );
-									};
-								}
-								else
-								executer_socket.SDServiceMessage( 'Not activated yet - possibly due to damage' );
-							}
-							else
-							executer_socket.SDServiceMessage( 'Not enough matter' );
-						}
-						else
-						executer_socket.SDServiceMessage( 'Long-range teleport requires Command Centre connected' );
-					}
-				}
-				else
-				if ( command_name === 'CLAIM_REWARD_CONTAINER' )
-				{
-					if ( !this.is_server_teleport )
-					{
-						let cc_near = this.GetComWiredCache( null, sdCommandCentre );
-						if ( cc_near )
-						{
-							if ( this.matter >= this._matter_max )
-							{
-								if ( this.delay === 0 && exectuter_character._task_reward_counter >= sdTask.reward_claim_task_amount )
-								{
-									this.Activation();
-									
-									this._charge_complete_method = ()=>
-									{
-										this.Deactivation();
-										this.GiveRewards( 4 );
+										//this.GiveRewards( 1 );
+										this.GiveRewards( command_name );
 										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - sdTask.reward_claim_task_amount );
 									};
 								}
@@ -1044,20 +990,24 @@ class sdLongRangeTeleport extends sdEntity
 				{
 					if ( !this.is_server_teleport )
 					{
-						let cc_near = this.GetComWiredCache( null, sdCommandCentre );
+						let cc_near = this.has_cc_near;//GetComWiredCache( null, sdCommandCentre );
 						if ( cc_near )
 						{
 							if ( this.matter >= this._matter_max )
 							{
+								this.Activation();
+
+								this._charge_complete_method = ()=>
 								{
-									this.Activation();
-									
-									this._charge_complete_method = ()=>
+									if ( this.matter < this._matter_max )
 									{
-										this.Deactivation();
-										this.GiveRewards( 5 );
-									};
-								}
+										executer_socket.SDServiceMessage( 'Scanner claim was rejected - not enough matter' );
+										return;
+									}
+
+									this.Deactivation();
+									this.GiveRewards( command_name );
+								};
 							}
 							else
 							executer_socket.SDServiceMessage( 'Not enough matter' );
@@ -1071,7 +1021,7 @@ class sdLongRangeTeleport extends sdEntity
 				{
 					if ( !this.is_server_teleport )
 					{
-						let cc_near = this.GetComWiredCache( null, sdCommandCentre );
+						let cc_near = this.has_cc_near;//GetComWiredCache( null, sdCommandCentre );
 						if ( cc_near )
 						{
 							if ( this.matter >= this._matter_max )
@@ -1111,7 +1061,7 @@ class sdLongRangeTeleport extends sdEntity
 					}
 					else
 					{
-						if ( this.is_charging || sdWorld.time < this._is_busy_since + 60 * 1000 )
+						if ( !can_reset_teleport )
 						{
 							executer_socket.SDServiceMessage( 'Busy - previous sequence is not finished yet (will be forcefully canceled if old enough)' );
 							

@@ -35,7 +35,7 @@ class sdWater extends sdEntity
 		//sdWater.img_water_flow = sdWorld.CreateImageFromFile( 'water_flow' );
 		sdWater.img_lava = sdWorld.CreateImageFromFile( 'lava2' );
 		
-		sdWater.all_swimmers = new Set(); // Prevent multiple damage water objects from applying damage onto same entity. Also handles more efficient is_in_water checks for entities
+		sdWater.all_swimmers = new Map(); // swimming sdEntity -> sdWater where it swims // Prevent multiple damage water objects from applying damage onto same entity. Also handles more efficient is_in_water checks for entities
 		sdWater.all_swimmers_previous_frame_exit = new Set();
 		sdWater.all_swimmers_previous_frame_exit_swap = new Set();
 		
@@ -695,7 +695,8 @@ class sdWater extends sdEntity
 					
 					if ( this.type !== sdWater.TYPE_TOXIC_GAS )
 					{
-						sdWater.all_swimmers.add( from_entity );
+						//sdWater.all_swimmers.add( from_entity );
+						sdWater.all_swimmers.set( from_entity, this );
 						
 						if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 						if ( sdWorld.time > this._spawn_time + 2000 )

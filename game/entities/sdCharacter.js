@@ -3092,18 +3092,6 @@ class sdCharacter extends sdEntity
 				this.act_x = this._key_states.GetKey( 'KeyD' ) - this._key_states.GetKey( 'KeyA' );
 				this.act_y = this._key_states.GetKey( 'KeyS' ) - ( ( this._key_states.GetKey( 'KeyW' ) || this._key_states.GetKey( 'Space' ) ) ? 1 : 0 );
 				
-				if ( this.stability < 50 )
-				////this.act_y = 1;
-				
-				/*if ( sdWorld.time < this._pos_corr_until )
-				{
-					//this._pos_corr_x = this.x;
-					//this._pos_corr_y = this.y;
-					//this._pos_corr_until = 0;
-					this.act_x = Math.sign( this._pos_corr_x - this.x );
-					this.act_y = Math.sign( this._pos_corr_y - this.y );
-				}*/
-
 				if ( this._socket || this._ai || sdWorld.my_entity === this )
 				if ( this.act_x !== 0 || this.act_y !== 0 )
 				this.PhysWakeUp();

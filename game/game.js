@@ -1,6 +1,9 @@
 
-    /* global globalThis */
+/* global globalThis, sdTranslationManager */
 
+import sdTranslationManager from './client/sdTranslationManager.js';
+sdTranslationManager.init_class();
+	
 meSpeak.loadVoice("voices/en/en.json");
 meSpeak.loadVoice("voices/pl.json");
 
@@ -79,6 +82,9 @@ socket.on("connect_error", (err) =>
 };
 
 let socket = geckos( geckos_start_options );*/
+
+	    
+sdTranslationManager.TranslateHTMLPage();
 
 // This is to automatically load what is needed
 let entity_class_names = ( await ( await fetch( '/get_entity_classes.txt' ) ).text() ).split(','); // Almost same as entity_files on server-side but without .js

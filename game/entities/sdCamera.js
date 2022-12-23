@@ -42,7 +42,7 @@ class sdCamera extends sdEntity
 		sdCamera.default_triggered_messages[ sdCamera.DETECT_VISIBLE_UNSUBSCRIBED_PLAYERS ] = [ 'No unsubscribed players seen', 'Unsubscribed player is seen', 'idle' ];
 		sdCamera.default_triggered_messages[ sdCamera.DETECT_BSU_ATTACKS ] = [ 'BSU is not attacked by other BSUs', 'BSU is attacked by other BSU', 'bsu' ];
 		sdCamera.default_triggered_messages[ sdCamera.DETECT_BSU_DAMAGE ] = [ 'BSU is not taking damage', 'BSU is taking damage', 'bsu' ];
-		sdCamera.default_triggered_messages[ sdCamera.DETECT_BSU_DEACTIVATION ] = [ 'BSU is deactivated', 'BSU is active', 'bsu' ];
+		sdCamera.default_triggered_messages[ sdCamera.DETECT_BSU_DEACTIVATION ] = [ 'BSU is active', 'BSU is deactivated', 'bsu' ];
 		sdCamera.default_triggered_messages[ sdCamera.DETECT_PLAYER_CONNECTIONS ] = [ 'Server has no players', 'Player enters the world', 'idle' ];
 		sdCamera.default_triggered_messages[ sdCamera.DETECT_PLAYER_CONNECTIONS_3 ] = [ 'Server has less than 3 players', '3+ players entered the world', 'idle' ];
 		sdCamera.default_triggered_messages[ sdCamera.DETECT_VISIBLE_HIGH_TIER_CRYSTALS_WITH_LOW_MATTER ] = [ 'No low matter high tier crystals', 'Seeing low matter high tier crystals', 'crystal' ];
@@ -201,7 +201,8 @@ class sdCamera extends sdEntity
 							if ( !new_ent_crystals_only.is_anticrystal )
 							if ( new_ent_crystals_only.matter_max >= 5120 )
 							if ( !new_ent_crystals_only.is_anticrystal )
-							if ( new_ent_crystals_only.matter < new_ent_crystals_only.matter_max - 5120 * 0.666 && new_ent_crystals_only.matter < new_ent_crystals_only.matter_max * 0.8 )
+							//if ( new_ent_crystals_only.matter < new_ent_crystals_only.matter_max - 5120 * 0.666 && new_ent_crystals_only.matter < new_ent_crystals_only.matter_max * 0.8 )
+							if ( new_ent_crystals_only.matter < new_ent_crystals_only.matter_max * 0.5 )
 							{
 								this.Trigger( sdCamera.DETECT_VISIBLE_HIGH_TIER_CRYSTALS_WITH_LOW_MATTER, 'Seeing crystal with low matter ( '+(~~new_ent_crystals_only.matter)+' / '+new_ent_crystals_only.matter_max+' )' );
 							}

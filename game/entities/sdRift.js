@@ -14,6 +14,7 @@ import sdBlock from './sdBlock.js';
 import sdCube from './sdCube.js';
 import sdJunk from './sdJunk.js';
 import sdLost from './sdLost.js';
+import sdStorage from './sdStorage.js';
 import sdAsteroid from './sdAsteroid.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
@@ -139,7 +140,7 @@ class sdRift extends sdEntity
 						executer: sdWorld.sockets[ i ].character,
 						target: this,
 						mission: sdTask.MISSION_DESTROY_ENTITY,
-						difficulty: 0.167,		
+						difficulty: 0.167 * sdTask.GetTaskDifficultyScaler(),		
 						title: 'Close the dimensional tear',
 						description: 'A dimensional tear appeared on this planet. It should be closed down before it destroys large chunks of the planet. We can close it using an Anti-crystal.'
 					});
@@ -211,7 +212,7 @@ class sdRift extends sdEntity
 						}
 						else
 						//if ( !e.is( sdCrystal ) )
-						if ( e._hea !== 'undefined' || e.hea !== 'undefined' )
+						if ( typeof e._hea !== 'undefined' || typeof e.hea !== 'undefined' )
 						{
 							//if ( e.is( sdBlock ) )
 							
@@ -225,6 +226,12 @@ class sdRift extends sdEntity
 								if ( e._hitbox_y2 - e._hitbox_y1 < 32 )
 								{
 									e.remove();
+									
+									if ( e.is( sdStorage ) )
+									{
+										// Make it drop crystals
+									}
+									else
 									e._broken = false;
 								}
 							}

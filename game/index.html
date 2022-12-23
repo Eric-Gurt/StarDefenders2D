@@ -446,6 +446,7 @@
 	<script type="text/javascript" src="mespeak/mespeak.js"></script>
 	<script src="libs/howler.js.min.js"></script>
 	<!--<script src="libs/hqx.js"></script>-->
+	<script src="client/sdTranslationManager.js" type="module"></script>
 	<script src="game.js" type="module"></script>
 	<div id="mobile_ui" style="display:none;z-index:100;position:fixed;left:0;top:0">
 	    
@@ -2266,6 +2267,8 @@
 		    delete ret.save_file;
 		    delete ret.my_hash;
 		}
+		
+		sdTranslationManager.TranslateHTMLPage();
 		
 		return ret;
 	    };
