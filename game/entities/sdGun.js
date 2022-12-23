@@ -1304,7 +1304,7 @@ class sdGun extends sdEntity
 				ctx.rotate( this.tilt / sdGun.tilt_scale );
 
 				//if ( this.class === sdGun.CLASS_SNIPER || this.class === sdGun.CLASS_RAYGUN || this.class === sdGun.CLASS_PHASERCANNON_P03 || this.class === sdGun.CLASS_ERTHAL_BURST_RIFLE || this.class === sdGun.CLASS_BURST_PISTOL || this.class === sdGun.CLASS_GAUSS_RIFLE || this.class === sdGun.CLASS_ZAPPER || this.class === sdGun.CLASS_KIVORTEC_AVRS_P09 ) // It could probably be separated as a variable declared in sdGunClass to determine if it has reloading animation or not
-				if ( has_class.has_animation )
+				if ( has_class.has_images )
 				{
 					let odd = ( this.reload_time_left % 10 ) < 5 ? 0 : 1;
 
