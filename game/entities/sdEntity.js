@@ -71,8 +71,7 @@ class sdEntity
 		
 		sdEntity.matter_discretion_frames = 5; // Matter transfer happens once per this many frames, this value also scales GSPEED applied for matter transfer
 		
-		sdEntity.phys_stand_on_map = new WeakMap(); // Key is an object on which something lies on, value is an array of objects that are currently hibernated (such as sdStorage)
-		//this._phys_last_touch
+		//sdEntity.phys_stand_on_map = new WeakMap(); // Key is an object on which something lies on, value is an array of objects that are currently hibernated (such as sdStorage)
 		
 		sdEntity.COLLISION_MODE_BOUNCE_AND_FRICTION = 1;
 		sdEntity.COLLISION_MODE_ONLY_CALL_TOUCH_EVENTS = 2;
@@ -103,48 +102,90 @@ class sdEntity
 		return sdEntity.COLLISION_MODE_BOUNCE_AND_FRICTION;
 	}
 	
-	static TrackPhysWakeup( sleeping_ent, hibernated_ent )
+	static TrackPhysWakeup( bottom_ent, top_ent )
 	{
-		var arr = sdEntity.phys_stand_on_map.get( sleeping_ent );
-		if ( !arr )
+		//var arr = sdEntity.phys_stand_on_map.get( bottom_ent );
+		let arr = bottom_ent._phys_entities_on_top;
+		
+		if ( arr === null )
 		{
-			arr = [ hibernated_ent ];
+			arr = [ top_ent ];
 			
-			sdEntity.phys_stand_on_map.set( sleeping_ent, arr );
+			//sdEntity.phys_stand_on_map.set( bottom_ent, arr );
+			bottom_ent._phys_entities_on_top = arr;
 		}
 		else
 		{
-			// Slow partial cleanup
-			if ( arr.length > 5 )
-			for ( let i2 = 0; i2 < 2; i2++ )
+			let id = arr.indexOf( top_ent );
+			
+			if ( id === -1 )
 			{
-				let i = ~~( arr.length * Math.random() );
-				if ( arr[ i ]._is_being_removed || arr[ i ]._hiberstate !== sdEntity.HIBERSTATE_HIBERNATED )
+				// Slow partial cleanup
+				if ( arr.length > 5 )
+				for ( let i2 = 0; i2 < 2; i2++ )
 				{
-					arr.splice( i, 1 );
+					let i = ~~( arr.length * Math.random() );
+					
+					let e = arr[ i ];
+					
+					if ( 
+							e._is_being_removed 
+							|| 
+							( 
+								e._hiberstate !== sdEntity.HIBERSTATE_HIBERNATED 
+								&& 
+								e._phys_sleep > 0
+							)
+							||
+							e._phys_last_rest_on !== bottom_ent
+						)
+					{
+						arr.splice( i, 1 );
+					}
+				}
+
+				arr.push( top_ent );
+
+				if ( arr.length > 100 )
+				{
+					console.warn( 'Too many objets lie on top of ',bottom_ent,'objects list:',arr );
+					debugger;
 				}
 			}
-			
-			arr.push( hibernated_ent );
 		}
 	}
 	ManageTrackedPhysWakeup() // Can make sense to call this on entity deletion too
 	{
-		var arr = sdEntity.phys_stand_on_map.get( this );
+		//var arr = sdEntity.phys_stand_on_map.get( this );
+		
+		let arr = this._phys_entities_on_top;
 		if ( arr )
 		{
 			for ( let i = 0; i < arr.length; i++ )
 			{
-				if ( arr[ i ]._is_being_removed || arr[ i ]._hiberstate !== sdEntity.HIBERSTATE_HIBERNATED )
+				let e = arr[ i ];
+				if ( 
+						e._is_being_removed 
+						|| 
+						( 
+							e._hiberstate !== sdEntity.HIBERSTATE_HIBERNATED 
+							&& 
+							e._phys_sleep > 0
+						)
+						||
+						e._phys_last_rest_on !== this
+					)
 				{
 					continue;
 				}
 				else
 				{
-					arr[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					e.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					e.PhysWakeUp();
 				}
 			}
-			sdEntity.phys_stand_on_map.delete( this );
+			//sdEntity.phys_stand_on_map.delete( this );
+			this._phys_entities_on_top = null;
 		}
 	}
 	
@@ -478,6 +519,7 @@ class sdEntity
 		{
 			this._phys_sleep = 10; // Time until full sleep
 			this._phys_last_touch = null;
+			this._phys_last_rest_on = null;
 			this._phys_last_w = 0;
 			this._phys_last_h = 0;
 			
@@ -485,9 +527,9 @@ class sdEntity
 			this._phys_last_sx = false;
 			this._phys_last_sy = false;
 			
-			this._phys_last_touch_targetable = false;
-			this._phys_last_touch_x = 0;
-			this._phys_last_touch_y = 0;
+			this._phys_last_rest_on_targetable = false;
+			this._phys_last_rest_on_x = 0;
+			this._phys_last_rest_on_y = 0;
 			
 			//EnforceChangeLog( this, '_phys_last_touch' );
 		}
@@ -657,12 +699,12 @@ class sdEntity
 							) > ( sdWorld.gravity + 0.2 ) * GSPEED );
 						  //!sdWorld.inDist2D_Boolean( this.sx, this.sy, 0, 0, sdWorld.gravity + 0.1 ) );
 
-			if ( !moves )
-			if ( this._phys_last_touch )
+			/*if ( !moves )
+			if ( this._phys_last_rest_on )
 			{
-				if ( this._phys_last_touch._is_being_removed )
+				if ( this._phys_last_rest_on._is_being_removed )
 				{
-					this._phys_last_touch = null;
+					this._phys_last_rest_on = null;
 					moves = true;
 
 					//if ( this.GetClass() === 'sdHover' )
@@ -670,28 +712,21 @@ class sdEntity
 				}
 				else
 				{
-					if ( this._phys_last_touch_targetable !== this._phys_last_touch.IsTargetable( null, true ) )
+					if ( this._phys_last_rest_on_targetable !== this._phys_last_rest_on.IsTargetable( null, true ) )
 					{
-
-						//if ( this.GetClass() === 'sdHover' )
-						//console.log( this.GetClass() + ' moves due to IsTargetable change of this._phys_last_touch' );
-
-						this._phys_last_touch_targetable = this._phys_last_touch.IsTargetable( null, true );
+						this._phys_last_rest_on_targetable = this._phys_last_rest_on.IsTargetable( null, true );
 						moves = true;
 					}
 					else
-					if ( !sdWorld.inDist2D_Boolean( this._phys_last_touch_x, this._phys_last_touch_y, this._phys_last_touch.x, this._phys_last_touch.y, sdWorld.gravity + 0.1 ) )
+					if ( !sdWorld.inDist2D_Boolean( this._phys_last_rest_on_x, this._phys_last_rest_on_y, this._phys_last_rest_on.x, this._phys_last_rest_on.y, sdWorld.gravity + 0.1 ) )
 					{
-						this._phys_last_touch_x = this._phys_last_touch.x;
-						this._phys_last_touch_y = this._phys_last_touch.y;
-
-						//if ( this.GetClass() === 'sdHover' )
-						//console.log( this.GetClass() + ' moves due to slight move of this._phys_last_touch' );
+						this._phys_last_rest_on_x = this._phys_last_rest_on.x;
+						this._phys_last_rest_on_y = this._phys_last_rest_on.y;
 
 						moves = true;
 					}
 				}
-			}
+			}*/
 
 			if ( !moves )
 			{
@@ -731,7 +766,8 @@ class sdEntity
 						this._phys_last_touch = sdWorld.last_hit_entity;
 					}*/
 					
-					if ( this._phys_last_touch ) // Do not sleep mid-air. It probably is not consistent?
+					//if ( this._phys_last_touch ) // Do not sleep mid-air. It probably is not consistent?
+					if ( this._phys_last_rest_on ) // Do not sleep mid-air. It probably is not consistent?
 					{
 						this._phys_sleep -= Math.min( 1, GSPEED );
 					}
@@ -739,13 +775,19 @@ class sdEntity
 					{
 						this._phys_sleep -= Math.min( 1, GSPEED ) * 0.1; // Just more time to enter sleeping state?
 					}
+					
+					if ( this._phys_sleep <= 0 )
+					if ( this._phys_last_rest_on )
+					sdEntity.TrackPhysWakeup( this._phys_last_rest_on, this );
+					//sdEntity.TrackPhysWakeup( this,  );
 				}
 				else
 				{
 					this.sx = 0;
 					this.sy = 0;
 
-					sdWorld.last_hit_entity = this._phys_last_touch;
+					//sdWorld.last_hit_entity = this._phys_last_touch;
+					sdWorld.last_hit_entity = this._phys_last_rest_on;
 					return;
 				}
 			}
@@ -754,7 +796,8 @@ class sdEntity
 		
 		if ( this.sx === 0 && this.sy === 0 )
 		{
-			sdWorld.last_hit_entity = this._phys_last_touch;
+			sdWorld.last_hit_entity = this._phys_last_rest_on;
+			//sdWorld.last_hit_entity = this._phys_last_touch;
 			//this._phys_last_touch = this._phys_last_touch;
 				
 			return;
@@ -833,12 +876,13 @@ class sdEntity
 		let skip_cell_scan = false;
 
 		sdWorld.last_hit_entity = null;
+		//this._phys_last_rest_on = null;
 		//this._phys_last_touch = null; Maybe it is best to just keep it, since movement and removal is tracked above
 		
-		/*if ( this._phys_last_touch )
+		/*if ( this._phys_last_rest_on )
 		{
-			if ( !this.DoesOverlapWith( this._phys_last_touch, 0.1 ) )
-			this._phys_last_touch = null;
+			if ( !this.DoesOverlapWith( this._phys_last_rest_on, 0.1 ) )
+			this._phys_last_rest_on = null;
 		}*/
 
 		const is_bg_entity = this.IsBGEntity();
@@ -1208,21 +1252,28 @@ class sdEntity
 
 					if ( best_ent )
 					{
-						const x_not_teleported = this.x;
-						const y_not_teleported = this.y;
+						let x_not_teleported = this.x;
+						let y_not_teleported = this.y;
 
 						const old_sx_real = this.sx;
 						const old_sy_real = this.sy;
 
 						this.Touches( best_ent );
+						
+
+						// After touch (character was teleported?)
+						if ( x_not_teleported !== this.x || y_not_teleported !== this.y || this._is_being_removed )
+						{
+							return;
+						}
 
 						if ( best_ent._hard_collision )
 						{
 							// After touch reaction (teleporting?)
-							if ( x_not_teleported !== this.x || y_not_teleported !== this.y )
+							/*if ( x_not_teleported !== this.x || y_not_teleported !== this.y )
 							{
 								return;
-							}
+							}*/
 							
 							let do_unstuck = false;
 
@@ -1411,6 +1462,10 @@ class sdEntity
 								}
 								break;
 							}
+							
+
+							x_not_teleported = this.x;
+							y_not_teleported = this.y;
 
 							if ( smallest === on_top || smallest === under )
 							{
@@ -1462,13 +1517,10 @@ class sdEntity
 							}
 							
 							// After impact (character rescued via RTP?)
-							if ( x_not_teleported !== this.x || y_not_teleported !== this.y )
+							if ( x_not_teleported !== this.x || y_not_teleported !== this.y || this._is_being_removed )
 							{
 								return;
 							}
-
-							if ( this._is_being_removed )
-							return;
 						}
 					}
 					else
@@ -1509,10 +1561,24 @@ class sdEntity
 					}
 
 					// Keep first collision
-					if ( !this._phys_last_touch )
+					//if ( !this._phys_last_touch )
+					if ( !sdWorld.last_hit_entity )
 					{
 						sdWorld.last_hit_entity = best_ent;
+						
+						
 						this._phys_last_touch = best_ent;
+						
+						this._phys_last_rest_on = best_ent;
+						
+						// If lies on top
+						if ( best_ent )
+						if ( this.y + this._hitbox_y2 <= best_ent.y + best_ent._hitbox_y1 )
+						if ( this.x + this._hitbox_x1 <= best_ent.x + best_ent._hitbox_x2 )
+						if ( this.x + this._hitbox_x2 >= best_ent.x + best_ent._hitbox_x1 )
+						{
+							this._phys_last_rest_on = best_ent;
+						}
 					}
 
 					GSPEED = GSPEED * ( 1 - best_t );
@@ -1784,20 +1850,20 @@ class sdEntity
 			}
 			else
 			{
-				if ( this._phys_last_touch_targetable !== this._phys_last_touch.IsTargetable( null, true ) )
+				if ( this._phys_last_rest_on_targetable !== this._phys_last_touch.IsTargetable( null, true ) )
 				{
 					
 					//if ( this.GetClass() === 'sdHover' )
 					//console.log( this.GetClass() + ' moves due to IsTargetable change of this._phys_last_touch' );
 				
-					this._phys_last_touch_targetable = this._phys_last_touch.IsTargetable( null, true );
+					this._phys_last_rest_on_targetable = this._phys_last_touch.IsTargetable( null, true );
 					moves = true;
 				}
 				else
-				if ( !sdWorld.inDist2D_Boolean( this._phys_last_touch_x, this._phys_last_touch_y, this._phys_last_touch.x, this._phys_last_touch.y, sdWorld.gravity + 0.1 ) )
+				if ( !sdWorld.inDist2D_Boolean( this._phys_last_rest_on_x, this._phys_last_rest_on_y, this._phys_last_touch.x, this._phys_last_touch.y, sdWorld.gravity + 0.1 ) )
 				{
-					this._phys_last_touch_x = this._phys_last_touch.x;
-					this._phys_last_touch_y = this._phys_last_touch.y;
+					this._phys_last_rest_on_x = this._phys_last_touch.x;
+					this._phys_last_rest_on_y = this._phys_last_touch.y;
 							
 					//if ( this.GetClass() === 'sdHover' )
 					//console.log( this.GetClass() + ' moves due to slight move of this._phys_last_touch' );
@@ -2409,7 +2475,10 @@ class sdEntity
 			//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false );
 		}
 		else
-		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		{
+			this._phys_entities_on_top = null; // Becomes array
+			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		}
 		
 		this._snapshot_cache_frame = -1;
 		this._snapshot_cache = null;
@@ -2430,7 +2499,7 @@ class sdEntity
 		
 		this._has_matter_props = false; // Becomes true on seal in cases where it is needed
 		
-		// Premade all needed variables so sealing would work best
+		// Premake all needed variables so sealing would work best
 		{
 			if ( this.onThink.has_ApplyVelocityAndCollisions === undefined )
 			{
@@ -2763,11 +2832,11 @@ class sdEntity
 						sdEntity.active_entities.splice( id, 1 );
 					}
 					
-					if ( v === sdEntity.HIBERSTATE_HIBERNATED )
+					/*if ( v === sdEntity.HIBERSTATE_HIBERNATED )
 					{
 						if ( this._phys_last_touch )
 						sdEntity.TrackPhysWakeup( this._phys_last_touch, this );
-					}
+					}*/
 					
 					this._hiberstate = v;
 				}

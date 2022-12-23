@@ -275,7 +275,7 @@ class sdCouncilMachine extends sdEntity
 							executer: sdWorld.sockets[ i ].character,
 							target: this,
 							mission: sdTask.MISSION_DESTROY_ENTITY,
-							difficulty: diff,
+							difficulty: diff * sdTask.GetTaskDifficultyScaler(),
 							time_left: ( this.detonation_in - 30 * 2 ),
 							title: 'Destroy Council portal machine',
 							description: desc

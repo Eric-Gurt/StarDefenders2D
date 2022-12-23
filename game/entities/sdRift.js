@@ -14,6 +14,7 @@ import sdBlock from './sdBlock.js';
 import sdCube from './sdCube.js';
 import sdJunk from './sdJunk.js';
 import sdLost from './sdLost.js';
+import sdStorage from './sdStorage.js';
 import sdAsteroid from './sdAsteroid.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
@@ -139,7 +140,7 @@ class sdRift extends sdEntity
 						executer: sdWorld.sockets[ i ].character,
 						target: this,
 						mission: sdTask.MISSION_DESTROY_ENTITY,
-						difficulty: 0.167,		
+						difficulty: 0.167 * sdTask.GetTaskDifficultyScaler(),		
 						title: 'Close the dimensional tear',
 						description: 'A dimensional tear appeared on this planet. It should be closed down before it destroys large chunks of the planet. We can close it using an Anti-crystal.'
 					});
@@ -150,82 +151,92 @@ class sdRift extends sdEntity
 				{
 					let e = pull_entities[ i ];
 					if ( !e._is_being_removed )
-					if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, e ) )
 					{
-						let dx = ( e.x - this.x );
-						let dy = ( e.y - this.y );
-						
-						let di = sdWorld.Dist2D_Vector( dx, dy );
-						
-						if ( di < 1 )
-						continue;
-					
-						let strength_damage_scale = Math.max( 0, Math.min( 1, 1 - di / range ) ) / 4;
-						
-						let strength = strength_damage_scale * 10 * GSPEED / di;
-						
-						let can_move = false;
-						
-						if ( typeof e.sx !== 'undefined' )
-						if ( typeof e.sy !== 'undefined' )
+						let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
+						let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, e.IsBGEntity() !== 0 ? this : e ) ) // Ignored entity has effect on which layer raycast would be happening, so as fallback it will ignore portal
 						{
-							can_move = true;
-							
-							e.sx -= dx * strength;
-							e.sy -= dy * strength;
-						}
-						
-						if ( e.is( sdBaseShieldingUnit ) )
-						if ( e.enabled )
-						{
-							can_move = false;
-						}
+							let dx = ( xx - this.x );
+							let dy = ( yy - this.y );
 
-						e.PhysWakeUp();
+							let di = sdWorld.Dist2D_Vector( dx, dy );
 
-						if ( e.is( sdCharacter ) )
-						if ( !e._god )
-						{
-							e.stability = Math.max( -1, e.stability - strength );
-							
-							if ( e.gun_slot !== 9 )
-							if ( sdWorld.Dist2D_Vector( e.sx, e.sy ) > 10 )
-							e.DropWeapon( e.gun_slot );
-						}
+							if ( di < 1 )
+							continue;
 
-						if ( e.IsPlayerClass() )
-						e.ApplyServerSidePositionAndVelocity( true, dx * strength, dy * strength );
+							let strength_damage_scale = Math.max( 0, Math.min( 1, 1 - di / range ) ) / 4;
 
-						if ( e.is( sdBG ) )
-						{
-							if ( Math.random() < 0.01 )
-							e.DamageWithEffect( 16 * strength_damage_scale );
-						}
-						else
-						if ( e.is( sdGun ) )
-						{
-							if ( di < 20 )
-							if ( !e._held_by )
-							//if ( e.class === sdGun.CLASS_CRYSTAL_SHARD || e.class === sdGun.CLASS_SCORE_SHARD )
-							e.remove();
-						}
-						else
-						if ( !e.is( sdCrystal ) || ( e.matter_max !== sdCrystal.anticrystal_value && e.matter_max !== sdCrystal.anticrystal_value * 4 ) ) // Otherwise anticrystals get removed without touching the rift
-						if ( e._hea !== 'undefined' || e.hea !== 'undefined' )
-						{
-							//if ( e.is( sdBlock ) )
-							
-							if ( di < 20 || !can_move )
+							let strength = strength_damage_scale * 10 * GSPEED / di;
+
+							let can_move = false;
+
+							if ( typeof e.sx !== 'undefined' )
+							if ( typeof e.sy !== 'undefined' )
 							{
-								e.DamageWithEffect( 8 * strength_damage_scale );
+								can_move = true;
 
-								if ( !e._is_being_removed )
-								if ( e._hea || e.hea <= 0 )
-								if ( e._hitbox_x2 - e._hitbox_x1 < 32 )
-								if ( e._hitbox_y2 - e._hitbox_y1 < 32 )
+								e.sx -= dx * strength;
+								e.sy -= dy * strength;
+							}
+
+							if ( e.is( sdBaseShieldingUnit ) )
+							if ( e.enabled )
+							{
+								can_move = false;
+							}
+
+							e.PhysWakeUp();
+
+							if ( e.is( sdCharacter ) )
+							if ( !e._god )
+							{
+								e.stability = Math.max( -1, e.stability - strength );
+
+								if ( e.gun_slot !== 9 )
+								if ( sdWorld.Dist2D_Vector( e.sx, e.sy ) > 10 )
+								e.DropWeapon( e.gun_slot );
+							}
+
+							if ( e.IsPlayerClass() )
+							e.ApplyServerSidePositionAndVelocity( true, dx * strength, dy * strength );
+
+							if ( e.is( sdBG ) )
+							{
+								if ( Math.random() < 0.01 )
+								e.DamageWithEffect( 16 * strength_damage_scale );
+							}
+							else
+							if ( e.is( sdGun ) )
+							{
+								if ( di < 20 )
+								if ( !e._held_by )
+								//if ( e.class === sdGun.CLASS_CRYSTAL_SHARD || e.class === sdGun.CLASS_SCORE_SHARD )
+								e.remove();
+							}
+							else
+							if ( !e.is( sdCrystal ) || !e.is_anticrystal ) // Otherwise anticrystals get removed without touching the rift // EG: Not sure if we want to damage other kinds of crystals though
+							if ( typeof e._hea !== 'undefined' || typeof e.hea !== 'undefined' )
+							{
+								//if ( e.is( sdBlock ) )
+
+								if ( di < 20 || !can_move )
 								{
-									e.remove();
-									e._broken = false;
+									e.DamageWithEffect( 8 * strength_damage_scale );
+
+									if ( !e._is_being_removed )
+									if ( e._hea || e.hea <= 0 )
+									if ( e._hitbox_x2 - e._hitbox_x1 < 32 )
+									if ( e._hitbox_y2 - e._hitbox_y1 < 32 )
+									{
+										e.remove();
+
+										if ( e.is( sdStorage ) )
+										{
+											// Make it drop crystals
+										}
+										else
+										e._broken = false;
+									}
 								}
 							}
 						}

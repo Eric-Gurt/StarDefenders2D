@@ -244,7 +244,7 @@ class sdCommandCentre extends sdEntity
 					template.lrtp_class_proprty_value_array = [ 'sdVirus' ];
 				}
 				
-				template.similarity_hash = 'EXTRACT-' + template.lrtp_class_proprty_value_array[ 0 ];
+				template.similarity_hash = 'EXTRACT-' + template.lrtp_class_proprty_value_array.join('-'); // Prevent overriding - it will cause lrtp_class_proprty_value_array and title/desciption mismatch
 				template.difficulty = difficulty_per_entity * num_ents;
 				template.lrtp_ents_needed = num_ents;
 
