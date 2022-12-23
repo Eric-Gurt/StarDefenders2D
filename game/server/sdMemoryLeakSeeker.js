@@ -403,7 +403,9 @@ class sdMemoryLeakSeeker
 		sdMemoryLeakSeeker.is_currently_executed = true;
 		{
 			//const many_steps = ( sdMemoryLeakSeeker.always_do_full_cycle || sdMemoryLeakSeeker.steps_total_previously === 0 || !IsGameActive() );
-			const many_steps = ( sdMemoryLeakSeeker.always_do_full_cycle || !IsGameActive() );
+			//const many_steps = ( sdMemoryLeakSeeker.always_do_full_cycle || !IsGameActive() );
+			
+			const many_steps = false; // No, because it might delay player's connection to an empty server
 			
 			const steps = many_steps ? 10000 : 5; // Will work quite slowly, like 1% percent per 10-20 seconds depending on world size. Unless all players left - then it will finish remaining cycle and won't start any new ones
 
