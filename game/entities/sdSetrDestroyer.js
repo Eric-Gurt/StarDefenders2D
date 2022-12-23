@@ -11,13 +11,13 @@ import sdBlock from './sdBlock.js';
 import sdCharacter from './sdCharacter.js';
 import sdCube from './sdCube.js';
 import sdDrone from './sdDrone.js';
+import sdGib from './sdGib.js';
 
 class sdSetrDestroyer extends sdEntity
 {
 	static init_class()
 	{
-		sdSetrDestroyer.img_destroyer = sdWorld.CreateImageFromFile( 'setr_destroyer' );
-		sdSetrDestroyer.img_destroyer_broken = sdWorld.CreateImageFromFile( 'setr_destroyer_broken' );
+		sdSetrDestroyer.img_destroyer = sdWorld.CreateImageFromFile( 'sdSetrDestroyer' );
 
 		sdSetrDestroyer.img_destroyer_drone = sdWorld.CreateImageFromFile( 'setr_drone' );
 		sdSetrDestroyer.img_destroyer_drone_broken = sdWorld.CreateImageFromFile( 'setr_drone_destroyed' );
@@ -32,8 +32,8 @@ class sdSetrDestroyer extends sdEntity
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -44; }
-	get hitbox_x2() { return 44; }
+	get hitbox_x1() { return this.hea > 0 ? -44 : -22; }
+	get hitbox_x2() { return this.hea > 0 ? 44 : 22; }
 	get hitbox_y1() { return -24; }
 	get hitbox_y2() { return 24; }
 	
@@ -57,7 +57,7 @@ class sdSetrDestroyer extends sdEntity
 		
 		this._time_until_full_remove = 30 * 5 + Math.random() * 30 * 5; // 5-10 seconds to get removed
 
-		this.death_anim = 0;
+		//this.death_anim = 0;
 		
 		this._current_target = null; // Now used in case of players engaging without meeting CanAttackEnt conditions
 		this._follow_target = null;
@@ -255,6 +255,13 @@ class sdSetrDestroyer extends sdEntity
 
 				drone.sx = ( Math.random() - Math.random() ) * 10;
 				drone.sy = ( Math.random() - Math.random() ) * 10;
+
+				// Make sure drone has any speed when deployed so drones don't get stuck into each other
+				if ( Math.abs( drone.sx ) < 0.5 )
+				drone.sx *= 10;
+				if ( Math.abs( drone.sy ) < 0.5 )
+				drone.sy *= 10;
+
 				drone._ignore_collisions_with = this; // Make sure it can pass through the destroyer 
 
 				sdEntity.entities.push( drone );
@@ -280,9 +287,14 @@ class sdSetrDestroyer extends sdEntity
 			sdSound.PlaySound({ name:'enemy_mech_death3', x:this.x, y:this.y, volume:2 , pitch:2 });
 			
 			sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:2 });
-			this.death_anim = 1;
+			//this.death_anim = 1;
 			
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_BOSS );
+
+			sdWorld.SpawnGib( this.x - 30, this.y + 11, this.sx  - Math.random() * 1, this.sy + Math.random() * 1 , this.side, sdGib.CLASS_SETR_DESTROYER_PARTS , null, null, 100, this, 0 );
+			sdWorld.SpawnGib( this.x - 30, this.y - 11, this.sx  - Math.random() * 1, this.sy - Math.random() * 1 , this.side, sdGib.CLASS_SETR_DESTROYER_PARTS , null, null, 100, this, 1 );
+			sdWorld.SpawnGib( this.x + 30, this.y + 11, this.sx  + Math.random() * 1, this.sy + Math.random() * 1 , this.side, sdGib.CLASS_SETR_DESTROYER_PARTS , null, null, 100, this, 2 );
+			sdWorld.SpawnGib( this.x + 30, this.y - 11, this.sx  + Math.random() * 1, this.sy - Math.random() * 1 , this.side, sdGib.CLASS_SETR_DESTROYER_PARTS , null, null, 100, this, 3 );
 		
 			let that = this;
 			for ( var i = 0; i < 20; i++ )
@@ -348,7 +360,7 @@ class sdSetrDestroyer extends sdEntity
 			this.tilt = sdWorld.MorphWithTimeScale( this.tilt, 0, 0.93, GSPEED );
 			if ( sdWorld.is_server )
 			{
-				if ( this.death_anim > 0 )
+				if ( this.hea <= 0 )
 				this._time_until_full_remove -= GSPEED;
 
 				if ( this._time_until_full_remove <= 0 )
@@ -764,34 +776,11 @@ class sdSetrDestroyer extends sdEntity
 	{
 	
 		ctx.rotate( this.tilt / 100 );
-		//ctx.filter = this.filter;
-		/*if ( this.side === 1 )
-		ctx.scale( 1, 1 );
-		else	
-		ctx.scale( -1, 1 );*/
-		
-		if ( this.hea > 0 )
-		{
-			ctx.drawImageFilterCache( sdSetrDestroyer.img_destroyer, - 48, -32, 96, 64 );
-		}
-		else
-		{
-			ctx.drawImageFilterCache( sdSetrDestroyer.img_destroyer_broken, - 48, -32, 96, 64 );
-		}
+		let xx = this.hea <= 0;
+		ctx.drawImageFilterCache( sdSetrDestroyer.img_destroyer, xx * 96, 0, 96, 64, - 48, - 32, 96, 64);
 
 		ctx.filter = 'none';
-		/*if ( this.side === 1 )
-		{
-			ctx.rotate( this.lmg_an / 100 );
-			ctx.scale( 1, -1 );
-		}
-		else
-		{
-			ctx.rotate( -this.lmg_an / 100 );
-			ctx.scale( -1, 1 );
-		}*/
 		ctx.globalAlpha = 1;
-		ctx.filter = 'none';
 		ctx.sd_filter = null;
 	}
 	/*onMovementInRange( from_entity )

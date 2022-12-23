@@ -95,9 +95,9 @@ class sdJunk extends sdEntity
 		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ) // Task reward matter container
 		this.hmax = 4000;
 		if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ) // Erthal distress beacon
-		this.hmax = 40000;
+		this.hmax = 25000;
 		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB ) // Council bomb
-		this.hmax = 60000;
+		this.hmax = 50000;
 		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ) // Large anti-crystal
 		this.hmax = 10000;
 		else
@@ -113,7 +113,6 @@ class sdJunk extends sdEntity
 		this._time_to_drain_more = 30 * 60 * 40; // 40 minutes, every 10 minutes it increases matter drain percentage
 		//this._time_to_drain_rtps = 30 * 60 * 30; // 30 minutes until it also starts draining matter from rescue teleporters
 		this._last_damage = 0; // Sound flood prevention
-		//
 
 		// Variables for Council bomb
 		this.glow_animation = 0; // Glow animation for the bomb
@@ -376,7 +375,7 @@ class sdJunk extends sdEntity
 				}, 500 );
 			}
 
-			if ( this.type === sdJunk.TYPE_FREEZE_BARREL  ) // Freeze "barrels" freeze stuff
+			if ( this.type === sdJunk.TYPE_FREEZE_BARREL ) // Freeze "barrels" freeze stuff
 			{
 				let bullet = new sdBullet({ x: this.x, y: this.y });
 				bullet.model = 'ball_charged';
@@ -671,7 +670,7 @@ class sdJunk extends sdEntity
 
 			if ( this._spawn_ent_in <= 0 && this.detonation_in > 30 * 60 )
 			{
-				this._spawn_ent_in = 330 - Math.min( 180, 30 * sdWorld.GetPlayingPlayersCount() );
+				this._spawn_ent_in = 660 - Math.min( 180, 30 * sdWorld.GetPlayingPlayersCount() ); // Was 330 but made council a bit too annoying since they spawned too frequently and could not be killed as fast
 				let ais = 0;
 				//let percent = 0;
 				for ( var i = 0; i < sdCharacter.characters.length; i++ )

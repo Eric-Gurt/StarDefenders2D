@@ -153,6 +153,18 @@ class sdGibClass
 			blood: 2 // 2 = red blood
 			
 		};
+		sdGib.classes[ sdGib.CLASS_SETR_DESTROYER_PARTS = 9 ] = 
+		{	// This one is a spritesheet. Make sure spritesheets are horizontal only.
+			image: sdWorld.CreateImageFromFile( 'gibs/setr_destroyer_parts' ), // Make sure your gib image is in /gibs folder
+			hitbox_x1: -10,
+			hitbox_x2: 10,
+			hitbox_y1: -1,
+			hitbox_y2: 10,
+			mass: 100,
+			health: 300,
+			blood: 0 // 0 = wall_hit effect
+			
+		};
 		// Add new gib classes above this line //
 		
 		let index_to_const = [];
