@@ -3954,10 +3954,10 @@ class sdGunClass
 				}
 			},
 			upgrades: AddRecolorsFromColorAndCost( 
-						AddRecolorsFromColorAndCost( 
-							AddGunDefaultUpgrades(), 
-							'#d3d3d3', 100, 'inner', '' ), 
-						'#ffffff', 100, 'outer', '' )
+				AddRecolorsFromColorAndCost( 
+					AddGunDefaultUpgrades(), 
+					'#d3d3d3', 100, 'inner', '' ), 
+				'#ffffff', 100, 'outer', '' )
 		};
 
 		sdGun.classes[ sdGun.CLASS_COUNCIL_PISTOL = 71 ] = 
@@ -5925,7 +5925,7 @@ class sdGunClass
 			burst_reload: 18,
 			count: 1,
 			matter_cost: 290,
-			min_build_tool_level: 19,
+			min_build_tool_level: 22,
 			spawnable: true,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.1,
 			projectile_properties: { _damage: 34, _dirt_mult: -0.5 },
@@ -5970,7 +5970,7 @@ class sdGunClass
 			spread: 0,
 			count: 1,
 			matter_cost: 140,
-			min_build_tool_level: 6,
+			min_build_tool_level: 8,
 			fire_type: 1,
 			projectile_properties: { _damage: 65, _dirt_mult: -0.5 },
 			projectile_velocity: sdGun.default_projectile_velocity * 1.5,

@@ -240,7 +240,7 @@ class sdServerConfigFull extends sdServerConfigShort
 		{
 			let intro_offset = 0;
 			let intro_to_speak = [];
-			
+
 			switch ( ~~( Math.random() * 4 ) )
 			{
 				case 0: intro_to_speak.push( 'Welcome to Star Defenders!' ); break;
@@ -249,31 +249,29 @@ class sdServerConfigFull extends sdServerConfigShort
 				case 3: intro_to_speak.push( 'Hello.' ); break;
 			}
 			
-			switch ( ~~( Math.random() * 18 ) )
+			switch ( ~~( Math.random() * 14 ) ) // There should eventually be an sdContextMenu option for instructors and move the messages titled 'guides' there as options so players can learn about game mechanics and have the instructor mention that they can open ContextMenu on him to acccess the guides here instead along with basic quotes. - Ghost581
 			{
-				case 0: intro_to_speak.push( ...[ 
-					'Try not to die, lol.' 
-				] ); break;
 				
-				case 1: intro_to_speak.push( ...[ 
+				case 0: intro_to_speak.push( ...[
 					'Everything wants to kill us here.',
 					'You will probably not survive.',
 					(~~(1 + Math.random() * 100)) + ' expeditors before you did not survive.',
-					'If I was you I\'d go back to Mothership before it is too late.'
+					'If I was you I\'d go back to Mothership before it is too late.',
+					'If you really want to try your luck however, I guess I could explain the basics to you along the way.',
 				] ); break;
 				
-				case 2: intro_to_speak.push( ...[ 
+				case 1: intro_to_speak.push( ...[ // Basic introduction.
 					'This is a sandbox-type of game where you can play and interact with other players.',
 					'You can move around by pressing W, S, A and D keys.',
 					'You can look around and aim by moving your mouse.',
 					'You can press Left Mouse button to fire.',
-					'Attacks require a resource called Matter.',
-					'Matter can be found in underground crystals.',
-					'You can try digging ground in order to find crystals, but finding them is not guaranteed.',
+					'Weapons require a resource called Matter.',
+					'Matter can be found in underground crystals and some dead corpses.',
+					'You can try digging in order to find crystals, but finding them is not guaranteed.',
 					'Sometimes you might encounter enemies and other players.',
 					'You can interact with other players by sending proximity chat messages.',
 					'Press Enter key to start typing chat messages. Press Enter key again to send them.',
-					'You can switch active device by pressing keys from 1 to 9.',
+					'You can switch active device by pressing keys from 0 to 9.',
 					'Each device uses its\' own slot represented with number.',
 					'Slot 9 is a Build tool. Press 9 Key in order to activate build mode.',
 					'Once you have selected slot 9, you can press Right Mouse button in order to enter build selection menu.',
@@ -282,104 +280,117 @@ class sdServerConfigFull extends sdServerConfigShort
 					'On respawn you will lose all your upgrades.',
 					'Jetpack ability can be activated by pressing W or Space mid-air.',
 					'Grappling hook ability can be activated with Mouse Wheel click or C key.',
-					'Ghosting ability can be activated by pressing E key.',
-					'Defibrillator can revive passed out players.',
+					'Cloaking ability can be activated by pressing E key.', // 'Ghosting' sounds weird imo - Ghost581
+					'Defibrillator can revive dead players and stop bleeding.',
 					'You can throw held items by pressing V key.',
 					'You can aim at background-level walls by holding Shift key.',
-					'And finally, you can disable these hints at start screen.',	
+					'And finally, you can disable these hints at start screen.',
 					'Good luck!'
 				] ); break;
 				
-				case 3: intro_to_speak.push( ...[  
-					'Read some manual on how to survive here.',
-					'I\'m sick of all this.'
+				case 2: intro_to_speak.push( ...[  // Base building guide.
+					'You will need a base to survive - put a Base Shielding Unit inside once you\'ve built the foundation.',
+					'You can pick one out of two Base Shielding Unit types.',
+					'The Green one consumes crystals and the Blue one uses matter, don\'t forget to activate them.',
+					'Also, put at least 3 big blocks for the walls.',
+					'It will take more time for things to break through and anti-crystals won\'t drain your matter from outside.',
+					'You also might want to put a Steering Wheel in order to prevent the base being moveable from outside.',
+					'Also, get crystals and put them into Matter Amplifiers.',
+					'You can make better artificial crystals by merging two of the same kind using a Crystal Combiner.',
+					'Get score for doing tasks and discovering new things to unlock better Matter Amplifiers.',
+					'Good luck with building a base!'
 				] ); break;
 				
-				case 4: intro_to_speak.push( ...[  
-					'Ask someone for help, I\'m not payed high enough to instruct newbies and risk my life.'
-				] ); break;
-				
-				case 5: intro_to_speak.push( ...[  
-					'...and so I tell to that previous guy: "We are under the acid rain, let\'s hide!"',
-					'And then he starts digging me with his shovel!',
+				case 3: intro_to_speak.push( ...[  // Acid rain guide ? Maybe advices the player to also not hit instructor so he stays friendly ?
+					'...and so I tell the previous guy: "We are under the acid rain, let\'s hide!"',
+					'And then he starts hitting me with his shovel!',
 					'I did not like it.',
-					'So, smash random keys on keyboard and you\'ll figure this out.',
-					'I believe in you!'
 				] ); break;
 				
-				case 6: intro_to_speak.push( ...[  
-					'Damn, so much as changed.',
-					'Have you tried patting slugs?',
-					'I\'ve never felt anything as dissapointing.',
-					'I\'ll wait for you on Mothership.',
-					'You know, where people actually survive.'
+				case 4: intro_to_speak.push( ...[ // Underground spawn/basing guide ?
+					'You will die here unless you know what you\'re doing.',
+					'You should hide underground and establish a base, be aware of the dangers that lurk in the depths though.',
 				] ); break;
 				
-				case 7: intro_to_speak.push( ...[  
-					'Lol you will die here.'
-				] ); break;
-				
-				case 8: intro_to_speak.push( ...[  
-					'So you should build long-range teleport and then do some tasks.',
-					'Good luck!'
-				] ); break;
-				
-				case 9: intro_to_speak.push( ...[  
-					'Be smarter than dozen of previous guys and build Rescue Teleport.',
+				case 5: intro_to_speak.push( ...[  // Rescue Teleport guide.
+					'Be smarter than dozen of previous guys and build a Rescue Teleporter.',
 					'We also call them RTPs.',
+					'They save you from death, but they won\'t save you from being crystallized by Cubes.',
+					'You have to connect them to Matter Amplifiers so they can charge.',
+					'Don\'t use them too much in a short time period though, they can overheat!',
 					'Good luck!'
 				] ); break;
 				
-				case 10: intro_to_speak.push( ...[  
-					'Watch out for raiders.',
-					'Build base 3 big blocks wide and install some Base Shielding Unit.',
-					'Also add some doors, connect them via Cable Management Tool to Communication Node.',
-					'It will prevent other people from getting into your base.',
-					'Also get glowing crystals and put them into Matter Amplifiers.',
-					'Get score for doing tasks and then upgrade Matter Amplifiers.',
+				case 6: intro_to_speak.push( ...[  // Communication Node guide
+					'You probably don\'t want strangers or creatures inside your base.',
+					'Once you have built your base foundation and installed a Base Shielding Unit,',
+					'add some Doors and connect them with a Cable Management Tool to Communication Nodes to enable them.',
+					'It will prevent unwanted guests from entering your base.',
+					'Communication Nodes manage what can open Doors and what Turrets target.',
+					'Communication Nodes are also needed for some Base Equipment to work.',
+					'For example, you will need to attach a cable to a Matter Amplifier to charge Turrets connected to the Comm Node.',
+					'You can subscribe to Comm Nodes by Right Clicking them, the owners are automatically subscribed.',
+					'We also call them Comms or Comm Nodes.',
+					'You can extend the range of Comm Nodes by connecting them to Nodes.',
+					'That\'s all I know about Communication Nodes.'
+				] ); break;
+				
+				case 7: intro_to_speak.push( ...[ // Command Centre and teams guide
+					'You should meet up with your friends if you have any around here, it\'ll be easier to survive.',
+					'You should build a Command Centre and accept their team join requests.',
+					'If they\'re not on your task team you can hurt them. Watch out for friendly fire!',
+					'Command Centres are also used to receive tasks from the Mothership.',
+					'It is worth to do tasks as you will be able to claim rewards once you\'ve done enough of them.',
+					'These rewards will be useful to help you survive and deal with threats.',
+					'We also call them CCs.',
+					'That is all I know about Command Centres.',
 					'Good luck!'
 				] ); break;
 				
-				case 11: intro_to_speak.push( ...[  
-					'Sorry, this is my last day at this job.',
-					'I won\'t give you any advice today.',
-					'You are a big guy.',
+				case 8: intro_to_speak.push( ...[ // Long Range Teleporter guide
+					'You should build a Long Range Teleporter when you\'ve established a base.',
+					'Connect them to a Communication Node which is connected to a Matter Amplifier to charge it.',
+					'You will also need to connect it to a Command Centre.',
+					'Long Range Teleporters are used to complete various tasks issued by the Mothership.',
+					'You can receive tasks from interacting with Command Centres, and earn rewards from them.',
+					'You should build them somewhere safe as creatures and aliens will try to destroy them.',
+					'We also call them LRTPs.',
+					'Though don\'t confuse the red ones with the blue ones; They teleport you somewhere else off-planet.',
+					'On the other side you can usually just teleport back, though beware,',
+					'you will have to build new Rescue Teleporters on the other side as they only have local planetary range.',
+					'That is all I know about Long Range Teleporters.'
+				] ); break;
+
+				case 9: intro_to_speak.push( ...[  // Octopus guide
+					'Octopuses are tough and can eat your weapons and tools if you\'re close.',
+					'A grenade launcher\'s bouncy explosives can kill them while you\'re hiding behind a wall.',
+					'You can also take them out safely if you\'re outside their range with snipers.',
+					'Though it\'s harder to do unless you have the high ground, they like getting close to you.'
+				] ); break;
+				
+				case 10: intro_to_speak.push( ...[  // Crystal Crabs guide
+					'Crystal crabs can eat plants to recover their regeneration rate.',
+					'You should watch out for the big ones, if you hurt them, they will try to eat you instead.'
+				] ); break;
+				
+				case 11: intro_to_speak.push( ...[  // Cube faction guides
+					'Watch out for Cubes, they protect this land and are dangerous if you anger them.',
+					'They are very protective about crystals, so try to not break them.',
+					'The Cubes don\'t seem to mind us taking matter they store however, so don\'t worry about that.'
+				] ); break;
+				
+				case 12: intro_to_speak.push( ...[  // Alien factions guide
+					'Some creatures really want our matter.',
+					'You should watch out for alien lifeforms, since most will try to attack you.'
+				] ); break;
+				
+				case 13: intro_to_speak.push( ...[  // Levelling up guide
+					'Score is needed to level up. You gain it from defeating enemies, discovering new things and completing tasks.',
+					'When you have enough score you level up and unlock new things to build.',
+					'You will also unlock new upgrades and weapons. Your matter capacity can increase up to 1850 by gaining score.',
+					'You will need Cube Shards to increase your matter capacity past 1850 once you\'ve reached the threshold.',
 					'Good luck!'
 				] ); break;
-				
-				case 12: intro_to_speak.push( ...[  
-					'Just hire somebody to do job for you, lol, you are not going to make it.',
-					'You\'ll probably die just like that Rescue Teleport-less noob.'
-				] ); break;
-				
-				case 13: intro_to_speak.push( ...[  
-					'Octopuses can eat your guns including your build tool.'
-				] ); break;
-				
-				case 14: intro_to_speak.push( ...[  
-					'Crystal crabs can eat plants to recover their regeneration rate.'
-				] ); break;
-				
-				case 15: intro_to_speak.push( ...[  
-					'Watch out for Cubes, they protect this land.',
-					'They even protect crystals. Luckily, not the matter.',
-					'Good luck!'
-				] ); break;
-				
-				case 16: intro_to_speak.push( ...[  
-					'Some creatures really want our matter.'
-				] ); break;
-				
-				case 17: intro_to_speak.push( ...[  
-					'When you will build your base - put Base Shielding Unit inside.',
-					'You can pick one out of two avaialable Base Shielding Units.',
-					'Green one consumes crystals and Blue one uses their matter.',
-					'Also put at least 3 big blocks for a walls.',
-					'It works better because of anti-crystals and plenty of other nasty things that could help someone in base raiding.',
-					'You also might want to put a Steering Wheel in order to prevent base moving from outside.',
-					'Good luck with a base!'
-				] ); break;
-				
 			}
 				
 			let my_character_entity = character_entity;
