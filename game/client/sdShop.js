@@ -624,6 +624,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdJunk', type: 3, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdJunk', type: 4, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdJunk', type: 5, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdJunk', type: 7, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdJunk', type: 8, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCouncilMachine', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBadDog', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdShark', _category:'Development tests' });
@@ -676,6 +678,9 @@ class sdShop
 			sdShop.options.push({ _class: 'sdObelisk', type: 2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdObelisk', type: 3, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdObelisk', type: 4, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdObelisk', type: 5, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdObelisk', type: 6, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdObelisk', type: 7, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdQuadro', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdOverlord', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdTutel', _category:'Development tests' });
