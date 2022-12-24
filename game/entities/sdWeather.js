@@ -1342,7 +1342,7 @@ class sdWeather extends sdEntity
 			{
 
 				let obelisk = new sdObelisk({ x:0, y:0 });
-				obelisk.type = Math.round( 1 + Math.random() * 6 );
+				obelisk.type = Math.round( 1 + Math.random() * 7 );
 
 				sdEntity.entities.push( obelisk );
 
