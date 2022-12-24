@@ -119,6 +119,9 @@ let entity_class_names = ( await ( await fetch( '/get_entity_classes.txt' ) ).te
 	import sdSound from './sdSound.js';
 	import sdKeyStates from './sdKeyStates.js';
 	import sdEntity from './entities/sdEntity.js';
+	import sdElement from './interfaces/sdElement.js';
+	import sdDatabaseEditor from './interfaces/sdDatabaseEditor.js';
+	
 	
 	let entity_classes_directory_relative = './entities/';
 	
@@ -212,6 +215,9 @@ let entity_class_names = ( await ( await fetch( '/get_entity_classes.txt' ) ).te
 	
 	sdSound.init_class();
 	sdContextMenu.init_class();
+	
+	sdElement.init_class();
+	sdDatabaseEditor.init_class();
 
 
 	for ( let i = 0; i < imported_entity_classes.length; i++ )
@@ -305,6 +311,8 @@ let entity_class_names = ( await ( await fetch( '/get_entity_classes.txt' ) ).te
 	globalThis.LZW = LZW;
 	globalThis.sdPathFinding = sdPathFinding;
 	
+	globalThis.sdDatabaseEditor = sdDatabaseEditor;
+	
 	sdWorld.FinalizeClasses();
 
 let enf_once = true;
@@ -390,7 +398,7 @@ let enf_once = true;
 		}
 	};
 	
-	let sd_events = [];
+	globalThis.sd_events = [];
 
 	
 	const SOCKET_IO_MODE = ( typeof geckos === 'undefined' ); // In else case geckos.io
@@ -755,6 +763,16 @@ let enf_once = true;
 			document.getElementById( 'game_title_text' ).textContent = obj.game_title;
 			document.body.style.backgroundColor = obj.backgroundColor;
 		});
+		socket.on( 'OPEN_INTERFACE', ( obj )=> // Such as sdDatabaseEditor
+		{
+			globalThis[ obj ].Open();
+		});
+		socket.on( 'DB_SCAN_RESULT', ( obj )=> // Such as sdDatabaseEditor
+		{
+			sdDatabaseEditor.OnScanResult( obj[ 0 ], obj[ 1 ] );
+		});
+		
+		
 		socket.on( 'UPGRADE_SET', ( arr )=>
 		{
 			if ( sdWorld.my_entity )
@@ -945,6 +963,9 @@ let enf_once = true;
 		if ( await sdChat.KeyDown( e ) )
 		return;
 	
+		if ( sdElement.current_hover )
+		return;
+	
 		let code = e.code;
 		
 		if ( KeyCodeRemap[ code ] )
@@ -1028,6 +1049,9 @@ let enf_once = true;
 			// Let release keys when chatting
 		}
 	
+		if ( sdElement.current_hover )
+		return;
+	
 		let code = e.code;
 		
 		if ( KeyCodeRemap[ code ] )
@@ -1047,6 +1071,9 @@ let enf_once = true;
 		if ( sdWorld.mobile )
 		return;
 	
+		if ( sdElement.current_hover )
+		return;
+	
 		//if ( sdWorld.my_entity )
 		//{
 			sdWorld.mouse_screen_x = e.clientX * sdRenderer.resolution_quality;
@@ -1060,6 +1087,9 @@ let enf_once = true;
 			sdSound.AllowSound();
 			sdWorld.GoFullscreen();
 		}
+	
+		if ( sdElement.current_hover )
+		return;
 		
 		if ( sdRenderer.canvas.style.display !== 'block' )
 		return;
@@ -1092,6 +1122,9 @@ let enf_once = true;
 		if ( sdRenderer.canvas.style.display !== 'block' )
 		return;
 	
+		if ( sdElement.current_hover )
+		return;
+	
 		if ( sdWorld.mobile )
 		{
 			e.preventDefault();
@@ -1111,11 +1144,17 @@ let enf_once = true;
 		if ( sdRenderer.canvas.style.display !== 'block' )
 		return;
 	
+		if ( sdElement.current_hover )
+		return;
+	
 		e.preventDefault();
 	};
 	window.onmousewheel = (e)=>
 	{
 		if ( sdRenderer.canvas.style.display !== 'block' )
+		return;
+	
+		if ( sdElement.current_hover )
 		return;
 	
 		if ( !sdShop.open )

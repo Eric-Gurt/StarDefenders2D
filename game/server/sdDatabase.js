@@ -40,6 +40,7 @@ class sdDatabase
 		// Must be JSON-able. Following is an example of use + some basic structure
 		sdDatabase.data = 
 		{
+			// Top-level properties will be saved to separate files. For example to allow translations to be copied from server to server
 			players: 
 			{
 				length: 0, // Auto-increment
@@ -77,7 +78,7 @@ class sdDatabase
 					
 					mob_kills: {
 						sdOverlord: 1,
-						sdVirust: 5
+						sdVirus: 5
 					},
 					
 					friends: [ 0, 1, 2 ], // UIDs
@@ -160,6 +161,48 @@ class sdDatabase
 					
 					is_permanent: true // Admins could edit these to build SD universe. is_permanent should be false in case of preset being related to player - in this case it would be removed together with player who made it
 				}
+			},
+			
+			translations:
+			{
+				unapproved_uids: [], // Limit count of suggestions
+				
+				'TRANSLATION_SAMPLE_1': // UID is either string hash or English line itself, whatever is shorter
+				{
+					first_use: 0, // When translation was added
+					last_use: 0, // When translation was used last time
+					use_count: 0, // How many times translation was used
+					approved: 0, // Approved translations are permanent. Unapproved translations expire. Game does not really know which lines are to be translated so all translations are approved manually
+					
+					// Same languages as in sdWorld.server_config.supported_languages
+					en: 'Welcome to Star Defenders!',
+					ua: 'Ласкаво прошу до Зоряних Захисників!'
+				},
+				'TRANSLATION_SAMPLE_2': // String contains HTML tags, in this case it is not just strings but arrays of strings (HTML elements are inserted in between)
+				{
+					first_use: 0, // When translation was added
+					last_use: 0, // When translation was used last time
+					use_count: 0, // How many times translation was used
+					approved: 0, // Approved translations are permanent. Unapproved translations expire. Game does not really know which lines are to be translated so all translations are approved manually
+					
+					// Same languages as in sdWorld.server_config.supported_languages
+					en: 
+					[
+						"",
+						"Open update &amp; patch log on github",
+						"",
+						"",
+						"21 January 2021: First public release!"
+					],
+					ua: 
+					[
+						"",
+						"Історія оновлень на github",
+						"",
+						"",
+						"21 Січня 2021: Перший публічний реліз!"
+					]
+				}
 			}
 		};
 		
@@ -167,17 +210,25 @@ class sdDatabase
 		
 		if ( sdDatabase.is_local )
 		{
-			if ( globalThis.file_exists( sdWorld.database_data_path_const ) )
+			let keys = Object.keys( sdDatabase.data );
+			
+			for ( let i = 0; i < keys.length; i++ )
 			{
-				let potential = JSON.parse( fs.readFileSync( sdWorld.database_data_path_const ) );
+				let key = keys[ i ];
+				
+				let sub_database_file_path = sdWorld.database_data_path_const.split( '<KEY>' ).join( key );
+				
+				if ( globalThis.file_exists( sub_database_file_path ) )
+				{
+					let potential = JSON.parse( fs.readFileSync( sub_database_file_path ) );
 
-				sdDatabase.data = Object.assign( sdDatabase.data, potential );
-
-			}
-			else
-			{
-				trace( 'Database is set to be stored on this server but did not exist before. Creating new database file.' );
-				sdDatabase.Save();
+					sdDatabase.data[ key ] = Object.assign( sdDatabase.data[ key ], potential );
+				}
+				else
+				{
+					trace( 'Database (key: '+key+') is set to be stored on this server but did not exist before. Creating new file in order to store sdDatabase.data.' + key + ' property value.' );
+					sdDatabase.Save( key );
+				}
 			}
 		}
 		else
@@ -185,22 +236,41 @@ class sdDatabase
 			sdDatabase.data = null;
 		}
 	}
-	static Save()
+	static Save( key='*' )
 	{
+		if ( key === '*' )
+		{
+			let keys = Object.keys( sdDatabase.data );
+			
+			for ( let i = 0; i < keys.length; i++ )
+			{
+				let key = keys[ i ];
+				
+				sdDatabase.Save( key );
+			}
+			
+			return;
+		}
+		
+		if ( sdDatabase.data[ key ] === undefined )
+		throw new Error( 'sdDatabase.data.' + key + ' does not exist - unable to perform saving (it won\'t be loaded anyway unless this property exists on example structure at sdDatabase.js file)');
+	
 		if ( sdDatabase.is_local )
 		{
-			fs.writeFile( sdWorld.database_data_path_const + 'bac.v', JSON.stringify( sdDatabase.data ), ( err )=>{
+			let sub_database_file_path = sdWorld.database_data_path_const.split( '<KEY>' ).join( key );
+				
+			fs.writeFile( sub_database_file_path + 'bac.v', JSON.stringify( sdDatabase.data[ key ] ), ( err )=>{
 				
 				if ( err )
 				{
-					console.warn( 'Unable to save database to a backup file' );
+					console.warn( 'Unable to save database to a backup file ' + sub_database_file_path + 'bac.v' );
 				}
 				else
-				fs.rename( sdWorld.database_data_path_const + 'bac.v', sdWorld.database_data_path_const, ( err )=>
+				fs.rename( sub_database_file_path + 'bac.v', sub_database_file_path, ( err )=>
 				{
 					if ( err )
 					{
-						console.warn( 'Unable to move saved database from a backup file to sdWorld.database_data_path_const' );
+						console.warn( 'Unable to move saved database from a backup file to ' + sub_database_file_path );
 					}
 				});
 

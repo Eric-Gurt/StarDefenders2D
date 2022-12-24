@@ -150,6 +150,21 @@ class sdModeration
 		return 0;
 	}
 	
+	static GetAdminRow( socket )
+	{
+		let my_admin_row = null;
+		
+		if ( socket.my_hash !== null )
+		for ( var a = 0; a < sdModeration.data.admins.length; a++ )
+		if ( sdModeration.data.admins[ a ].my_hash === socket.my_hash )
+		{
+			my_admin_row = sdModeration.data.admins[ a ];
+			break;
+		}
+		
+		return my_admin_row;
+	}
+	
 	static CommandReceived( socket, text )
 	{
 		text = text.substring( 1 ); // Skip /
@@ -174,7 +189,9 @@ class sdModeration
 				socket.SDServiceMessage( 'Server: No permissions for unknown user.' );
 				return;
 			}
-
+			
+			my_admin_row = sdModeration.GetAdminRow( socket );
+			/*
 			for ( var a = 0; a < sdModeration.data.admins.length; a++ )
 			{
 				if ( sdModeration.data.admins[ a ].my_hash === socket.my_hash )
@@ -182,7 +199,7 @@ class sdModeration
 					my_admin_row = sdModeration.data.admins[ a ];
 					break;
 				}
-			}
+			}*/
 
 			if ( !my_admin_row )
 			{
@@ -746,6 +763,11 @@ class sdModeration
 		{
 			globalThis.DisableFileCache();
 			socket.SDServiceMessage( 'Done' );
+		}
+		else
+		if ( parts[ 0 ] === 'database' || parts[ 0 ] === 'db' )
+		{
+			socket.emit( 'OPEN_INTERFACE', 'sdDatabaseEditor' );
 		}
 		else
 		socket.SDServiceMessage( 'Server: Unknown command "' + parts[ 0 ] + '"' );
