@@ -681,6 +681,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdObelisk', type: 5, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdObelisk', type: 6, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdObelisk', type: 7, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdObelisk', type: 8, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdQuadro', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdOverlord', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdTutel', _category:'Development tests' });
