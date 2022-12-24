@@ -29,6 +29,10 @@ class sdHover extends sdEntity
 		sdHover.img_tank_with_turret = sdWorld.CreateImageFromFile( 'tank_with_turret' ); // image by lazyrain
 		sdHover.img_tank_hover_driver2= sdWorld.CreateImageFromFile( 'tank_hover_driver2' ); // image by lazyrain
 
+		sdHover.img_hoverbike = sdWorld.CreateImageFromFile( 'hoverbike' );
+		sdHover.img_hoverbike_boost = sdWorld.CreateImageFromFile( 'hoverbike_boost' );
+		sdHover.img_hoverbike_broken = sdWorld.CreateImageFromFile( 'hoverbike_broken' );
+
 		sdHover.img_hover_mg = sdWorld.CreateImageFromFile( 'hover_mg' );
 		sdHover.img_hover_rl = sdWorld.CreateImageFromFile( 'hover_rl' );
 
@@ -53,13 +57,14 @@ class sdHover extends sdEntity
 		sdHover.TYPE_HOVER = 0;
 		sdHover.TYPE_FIGHTER_HOVER = 1;
 		sdHover.TYPE_TANK = 2;
+		sdHover.TYPE_BIKE = 3;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.type === 2 ? -27 : -26; }
-	get hitbox_x2() { return this.type === 2 ? 27 : 26; }
-	get hitbox_y1() { return this.type === 2 ? -12 : -9; }
-	get hitbox_y2() { return this.type === 2 ? 12 : 10; }
+	get hitbox_x1() { return this.type === 3 ? -10 : this.type === 2 ? -27 : -26 }
+	get hitbox_x2() { return this.type === 3 ? 10 : this.type === 2 ? 27 : 26 }
+	get hitbox_y1() { return this.type === 3 ? -4 : this.type === 2 ? -12 : -9 }
+	get hitbox_y2() { return this.type === 3 ? 6 : this.type === 2 ? 12 : 10 }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -141,6 +146,9 @@ class sdHover extends sdEntity
 		
 		if ( sdHover.TYPE_TANK )
 		this.matter_max = 12000;
+
+		if ( sdHover.TYPE_BIKE )
+		this.matter_max = 1000000; // Hack
 	}
 	AddDriver( c )
 	{
@@ -308,7 +316,7 @@ class sdHover extends sdEntity
 		}
 	}
 	
-	get mass() { return this.type === 2 ? 2000 : this.type === 1 ? 1200 : 500; }
+	get mass() { return this.type === 3 ? 150 : this.type === 2 ? 2000 : this.type === 1 ? 1200 : 500 }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -646,7 +654,7 @@ class sdHover extends sdEntity
 	}
 	
 	get friction_remain()
-	{ return this.driver0 ? 0.95 : 0.8; }
+	{ return /*this.type === 3 ? 0.6 :*/ this.driver0 ? 0.95 : 0.8; } // I don't know if Hoverbike is needed in this case
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
@@ -659,9 +667,12 @@ class sdHover extends sdEntity
 		if ( this.type === 2 )
 		sdEntity.Tooltip( ctx, "Tank SD-7" );
 		else
+		if ( this.type === 3 )
+		sdEntity.Tooltip( ctx, "Hoverbike" );
+		else
 		sdEntity.Tooltip( ctx, "Hover" );
 		
-		let w = 40;
+		let w = this.type === 3 ? 20 : 40;
 	
 		ctx.fillStyle = '#000000';
 		ctx.fillRect( 0 - w / 2, 0 - 20, w, 5 );
@@ -679,6 +690,7 @@ class sdHover extends sdEntity
 		
 		if ( sdShop.isDrawing )
 		{
+			if ( this.type !== 3 )
 			ctx.scale( 0.5, 0.5 );
 		}
 		
@@ -707,6 +719,8 @@ class sdHover extends sdEntity
 					this[ 'driver' + i ].look_y = this[ 'driver' + i ].y;
 					
 					ctx.scale( -0.8, 0.8 );
+					if ( this.type === 3 )
+					ctx.translate( -16, -8 );
 					ctx.translate( ( -32 + ( 1 - i / ( sdHover.driver_slots - 1 ) ) * 64 ) * 0.5, 3 );
 					//this[ 'driver' + i ].Draw( ctx, true );
 					this[ 'driver' + i ].Draw( ctx, true ); // Hack
@@ -738,6 +752,9 @@ class sdHover extends sdEntity
 			else
 			if ( this.type === 2 )
 			ctx.drawImageFilterCache( this.driver2 ? sdHover.img_tank_hover_driver2 : can_boost ? sdHover.img_tank_hover_boost : sdHover.img_tank_hover, - 32, - 16, 64,32 );
+			else
+			if ( this.type === 3 )
+			ctx.drawImageFilterCache( can_boost ? sdHover.img_hoverbike_boost : sdHover.img_hoverbike, - 16, - 16, 32, 32 );
 			else
 			//xx = Math.min( ( this.driver0 ) ? 1 : 0 );
 			ctx.drawImageFilterCache( can_boost ? sdHover.img_hover_boost : sdHover.img_hover, - 32, - 16, 64,32 );
@@ -792,6 +809,9 @@ class sdHover extends sdEntity
 		else
 		if ( this.type === 2 )
 		ctx.drawImageFilterCache( sdHover.img_tank_hover_broken, - 32, - 16, 64,32 );
+		else
+		if ( this.type === 3 )
+		ctx.drawImageFilterCache( sdHover.img_hoverbike_broken, - 16, - 16, 32, 32 );
 		else
 		//xx = 2;
 		ctx.drawImageFilterCache( sdHover.img_hover_broken, - 32, - 16, 64,32 );
