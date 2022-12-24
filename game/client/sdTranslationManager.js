@@ -67,7 +67,7 @@ class sdTranslationManager
 			
 			if ( new_pos === -1 )
 			{
-				parts.push( str.substring( pos ) );
+				parts.push( str.substring( pos ).trim() );
 				break;
 			}
 			else

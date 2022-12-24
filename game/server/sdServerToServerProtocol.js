@@ -3,6 +3,8 @@
 	Used to make server pairs talk to each other, because sometimes nobody is online and they feel very lonely.
 
 */
+/* global sdDatabase */
+
 import sdLongRangeTeleport from '../entities/sdLongRangeTeleport.js';
 import sdWorld from '../sdWorld.js';
 
@@ -29,7 +31,7 @@ class sdServerToServerProtocol
 				sdServerToServerProtocol.SendData( 
 					remote_server_url, 
 					{
-						action: 'Get leaders',
+						action: 'Get leaders'
 					}, 
 					( response=null )=>
 					{
@@ -52,7 +54,7 @@ class sdServerToServerProtocol
 			}
 			
 			setTimeout( ask_for_leaders, 15000 );
-		}
+		};
 		
 		setTimeout( ask_for_leaders, 5000 );
 	}

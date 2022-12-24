@@ -28,6 +28,8 @@ class sdServerConfigShort
 	static apply_censorship = true; // Censorship file is not included
 		
 	// Check file sdServerConfig.js for more stuff to alter in server logic
+	
+	static supported_languages = [ 'en', 'ua' ];
 }
 
 

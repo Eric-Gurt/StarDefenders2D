@@ -1,5 +1,5 @@
 
-/* global globalThis, process, fs, mime, sdWorld, sdEntity */
+/* global globalThis, process, fs, mime, sdWorld, sdEntity, sdModeration, sdShop, sdSnapPack, sdPathFinding, sdDatabase */
 
 let port0 = 3000;
 let CloudFlareSupport = false;
@@ -611,7 +611,7 @@ const timewarp_path_const = __dirname + '/star_defenders_timewarp' + ( world_slo
 const moderation_data_path_const = __dirname + '/moderation_data' + ( world_slot || '' ) + '.v';
 const superuser_pass_path = __dirname + '/superuser_pass' + ( world_slot || '' ) + '.txt'; // Used to be .v
 const sync_debug_path = __dirname + '/sync_debug' + ( world_slot || '' ) + '.v';
-const database_data_path_const = __dirname + '/database_data' + ( world_slot || '' ) + '.v';
+const database_data_path_const = __dirname + '/database_data' + ( world_slot || '' ) + '_<KEY>.v';
 
 const censorship_file_path = __dirname + '/star_defenders_censorship.v'; 
 /* Each line is a new word/phrase, separated with " // " where right part is a baddness of word/phrase. 
@@ -2033,6 +2033,77 @@ io.on("connection", (socket) =>
 				else
 				if ( type === 'K0' )
 				socket.character._key_states.SetKey( key, 0 );
+			}
+			
+			/*if ( type === 'SET_HASH' )
+			{
+				socket.my_hash = key;
+			}
+			else*/
+			if ( type === 'DB_SCAN' )
+			if ( sdModeration.GetAdminRow( socket ) ) // Needs socket.my_hash to be set, it is done after player enters the game
+			{
+				let ptr = sdDatabase;
+				
+				let parts = key.split( '.' );
+				
+				for ( let i = 1; i < parts.length; i++ )
+				{
+					let prop = parts[ i ];
+					
+					if ( ptr.hasOwnProperty( prop ) )
+					ptr = ptr[ prop ];
+				}
+				
+				if ( ptr === null || typeof ptr === 'number' || typeof ptr === 'string' )
+				socket.emit( 'DB_SCAN_RESULT', [ key, ptr ] );
+				else
+				{
+					let keys = Object.keys( ptr );
+					
+					if ( ptr instanceof Array )
+					socket.emit( 'DB_SCAN_RESULT', [ key, keys ] );
+					else
+					{
+						let obj = {};
+						
+						let partial = false;
+						
+						for ( let i = 0; i < keys.length; i++ )
+						{
+							let key_of_cur = keys[ i ];
+							
+							let value = ptr[ key_of_cur ];
+							
+							if ( i < 10 && i >= keys.length - 10 )
+							{
+								if ( value === null || typeof value === 'number' || typeof value === 'string' )
+								obj[ key_of_cur ] = value;
+								else
+								obj[ key_of_cur ] = {
+									_path: key + '.' + key_of_cur,
+									_synced: false,
+									_pending: false,
+									_expanded: false
+								};
+							}
+							else
+							{
+								partial = true;
+							}
+						}
+						
+						if ( partial )
+						obj._partial = 1;
+					
+						//obj._path = key + '.' + key_of_cur;
+						obj._synced = true;
+						//obj._pending = false;
+						//obj._expanded = true;
+					
+						socket.emit( 'DB_SCAN_RESULT', [ key, obj ] );
+					}
+				}
 			}
 		}
 	});
