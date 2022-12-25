@@ -11,6 +11,7 @@ import sdCharacter from './sdCharacter.js';
 import sdSandWorm from './sdSandWorm.js';
 import sdTimer from './sdTimer.js';
 import sdCamera from './sdCamera.js';
+import sdFleshGrabber from './sdFleshGrabber.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -747,6 +748,36 @@ class sdBlock extends sdEntity
 
 		if ( this._contains_class === 'sdOctopus' || Math.random() < 0.05 ) // Octopus spawn gets replaced by abomination, or RNG puts abomination inside the flesh
 		ent2._contains_class = 'sdAbomination'; // Turn it into an abomination
+
+		if ( Math.random() < 0.4 ) // It usually doesn't hit a proper side so it removes the grabber anyway, making it sort of rare enough.
+		{
+			let side = Math.round( Math.random() * 3 );
+			let spawn_x = this.x + ( this.width / 2 );
+			let spawn_y = this.y + ( this.height / 2 );
+			if ( side === 0 )
+			spawn_y -= 1 + this.height / 2;
+			if ( side === 1 )
+			spawn_x -= 1 + this.width / 2;
+			if ( side === 2 )
+			spawn_y += 1 + this.height / 2;
+			if ( side === 3 )
+			spawn_x += 1 + this.width / 2;
+			let grabber = new sdFleshGrabber({ 
+				x: spawn_x, 
+				y: spawn_y, 
+				_attached_to: ent2,
+				side: side
+			});
+			sdEntity.entities.push( grabber );
+
+			if ( !grabber.CanMoveWithoutOverlap( grabber.x, grabber.y, 0 ) )
+			{
+				grabber.remove();
+			}
+			else
+			sdWorld.UpdateHashPosition( grabber, false ); // Prevent inersection with other ones
+		}
+
 
 		if ( this._contains_class === 'sdSlug' || Math.random() < 0.05 ) // Octopus spawn gets replaced with mimic, or RNG puts abomination inside the flesh
 		{
