@@ -1419,6 +1419,7 @@ class sdGunClass
 			image0: [ sdWorld.CreateImageFromFile( 'raygun_c01y0' ), sdWorld.CreateImageFromFile( 'raygun_c01y0b' ) ],
 			image1: [ sdWorld.CreateImageFromFile( 'raygun_c01y1' ), sdWorld.CreateImageFromFile( 'raygun_c01y1b' ) ],
 			image2: [ sdWorld.CreateImageFromFile( 'raygun_c01y2' ), sdWorld.CreateImageFromFile( 'raygun_c01y2b' ) ],
+			has_images: true,
 			sound: 'gun_raygun',
 			title: 'Raygun C01y',
 			slot: 3,
@@ -2867,6 +2868,7 @@ class sdGunClass
 			image0: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
 			image1: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
 			image2: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
+			has_images: true,
 			sound: 'gun_railgun_malicestorm_terrorphaser4',
 			title: 'KVT Railcannon P03 "Stormbringer"',
 			sound_pitch: 1.6, // re-added cause weapon sounds better with the sound pitch. - Ghost581
@@ -3331,6 +3333,7 @@ class sdGunClass
 			image0: [ sdWorld.CreateImageFromFile( 'erthal_burst_rifle0' ), sdWorld.CreateImageFromFile( 'erthal_burst_rifle0b' ) ],
 			image1: [ sdWorld.CreateImageFromFile( 'erthal_burst_rifle1' ), sdWorld.CreateImageFromFile( 'erthal_burst_rifle1b' ) ],
 			image2: [ sdWorld.CreateImageFromFile( 'erthal_burst_rifle2' ), sdWorld.CreateImageFromFile( 'erthal_burst_rifle2b' ) ],
+			has_images: true,
 			sound: 'spider_attackC',
 			sound_pitch: 6,
 			title: 'Erthal Burst Rifle',
@@ -3509,6 +3512,7 @@ class sdGunClass
 			image0: [ sdWorld.CreateImageFromFile( 'sniper0' ), sdWorld.CreateImageFromFile( 'sniper0b' ) ],
 			image1: [ sdWorld.CreateImageFromFile( 'sniper1' ), sdWorld.CreateImageFromFile( 'sniper1b' ) ],
 			image2: [ sdWorld.CreateImageFromFile( 'sniper2' ), sdWorld.CreateImageFromFile( 'sniper2b' ) ],
+			has_images: true,
 			sound: 'gun_sniper',
 			title: 'Sniper rifle',
 			slot: 4,
@@ -3647,6 +3651,7 @@ class sdGunClass
 			image0: [ sdWorld.CreateImageFromFile( 'gauss_rifle0' ), sdWorld.CreateImageFromFile( 'gauss_rifle1' ) ],
 			image1: [ sdWorld.CreateImageFromFile( 'gauss_rifle2' ), sdWorld.CreateImageFromFile( 'gauss_rifle3' ) ],
 			image2: [ sdWorld.CreateImageFromFile( 'gauss_rifle4' ), sdWorld.CreateImageFromFile( 'gauss_rifle5' ) ],
+			has_images: true,
 			title: 'Sarronian Gauss Cannon',
 			slot: 8,
 			reload_time: 30 * 3, // 225,
@@ -3892,6 +3897,7 @@ class sdGunClass
 			image0: [ sdWorld.CreateImageFromFile( 'zapper0' ), sdWorld.CreateImageFromFile( 'zapper1' ) ],
 			image1: [ sdWorld.CreateImageFromFile( 'zapper2' ), sdWorld.CreateImageFromFile( 'zapper2' ) ],
 			image2: [ sdWorld.CreateImageFromFile( 'zapper0' ), sdWorld.CreateImageFromFile( 'zapper1' ) ],
+			has_images: true,
 			title: 'Zapper',
 			sound: 'cube_attack',
 			sound_volume: 0.5,
@@ -3954,10 +3960,10 @@ class sdGunClass
 				}
 			},
 			upgrades: AddRecolorsFromColorAndCost( 
-						AddRecolorsFromColorAndCost( 
-							AddGunDefaultUpgrades(), 
-							'#d3d3d3', 100, 'inner', '' ), 
-						'#ffffff', 100, 'outer', '' )
+				AddRecolorsFromColorAndCost( 
+					AddGunDefaultUpgrades(), 
+					'#d3d3d3', 100, 'inner', '' ), 
+				'#ffffff', 100, 'outer', '' )
 		};
 
 		sdGun.classes[ sdGun.CLASS_COUNCIL_PISTOL = 71 ] = 
@@ -4237,6 +4243,7 @@ class sdGunClass
 			image0: [ sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload1' ), sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload2' ) ],
 			image1: [ sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload1' ), sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload2' ) ],
 			image2: [ sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload1' ), sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload2' ) ],
+			has_images: true,
 			sound: 'gun_railgun_malicestorm_terrorphaser4',
 			sound_pitch: 0.7,
 			title: 'KVT-AVRS P09',
@@ -5925,7 +5932,7 @@ class sdGunClass
 			burst_reload: 18,
 			count: 1,
 			matter_cost: 290,
-			min_build_tool_level: 19,
+			min_build_tool_level: 22,
 			spawnable: true,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.1,
 			projectile_properties: { _damage: 34, _dirt_mult: -0.5 },
@@ -5970,7 +5977,7 @@ class sdGunClass
 			spread: 0,
 			count: 1,
 			matter_cost: 140,
-			min_build_tool_level: 6,
+			min_build_tool_level: 8,
 			fire_type: 1,
 			projectile_properties: { _damage: 65, _dirt_mult: -0.5 },
 			projectile_velocity: sdGun.default_projectile_velocity * 1.5,

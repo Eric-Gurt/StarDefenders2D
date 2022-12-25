@@ -78,6 +78,8 @@ class sdShop
 		sdShop.options.push({ _class: 'sdQuadro', filter: 'hue-rotate(140deg)', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdQuadro', filter: 'saturate(0) brightness(1.5)', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdQuadro', filter: 'saturate(0) brightness(0.5)', _category:'Vehicles' });
+		//sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'saturate(0) brightness(1.5)', _category:'Vehicles' });
+		//sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'saturate(0) brightness(0.5)', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdHoverBike', filter: 'saturate(0) brightness(1.5)', _category:'Vehicles' });
 		sdShop.options.push({ _class: 'sdHoverBike', filter: 'saturate(0) brightness(0.5)', _category:'Vehicles' });
 
@@ -624,6 +626,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdJunk', type: 3, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdJunk', type: 4, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdJunk', type: 5, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdJunk', type: 7, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdJunk', type: 8, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCouncilMachine', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBadDog', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdShark', _category:'Development tests' });
@@ -676,6 +680,10 @@ class sdShop
 			sdShop.options.push({ _class: 'sdObelisk', type: 2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdObelisk', type: 3, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdObelisk', type: 4, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdObelisk', type: 5, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdObelisk', type: 6, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdObelisk', type: 7, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdObelisk', type: 8, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdQuadro', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdOverlord', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdTutel', _category:'Development tests' });
@@ -693,6 +701,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdGib', class:sdGib.CLASS_VELOX_MECH_HEAD, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdMimic', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdRoach', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'saturate(0) brightness(1.5)', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'saturate(0) brightness(0.5)', _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });

@@ -812,8 +812,8 @@ class sdWeather extends sdEntity
 								character_entity.matter = 85;
 								character_entity.matter_max = 85;
 
-								character_entity.hea = 130; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
-								character_entity.hmax = 130;
+								character_entity.hea = 125; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
+								character_entity.hmax = 125;
 
 								//character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
 							}
@@ -1338,11 +1338,11 @@ class sdWeather extends sdEntity
 		if ( r === 12 ) // Spawn an obelisk near ground where players don't see them
 		{
 			let instances = 1;
-			while ( instances > 0 && sdObelisk.obelisks_counter < 5 )
+			while ( instances > 0 && sdObelisk.obelisks_counter < 17 )
 			{
 
 				let obelisk = new sdObelisk({ x:0, y:0 });
-				obelisk.type = Math.round( 1 + Math.random() * 5 );
+				obelisk.type = Math.round( 1 + Math.random() * 7 );
 
 				sdEntity.entities.push( obelisk );
 
@@ -1975,7 +1975,7 @@ class sdWeather extends sdEntity
 								velox_settings = {"hero_name":"Velox Soldier","color_bright":"#c0c0c0","color_dark":"#a0a0a0","color_bright3":"#00ff44","color_dark3":"#202020","color_visor":"#00ff44","color_suit":"#c0c0c0","color_suit2":"#080808","color_dark2":"#000000","color_shoes":"#000000","color_skin":"#000000","helmet1":false,"helmet86":true,"voice1":false,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice7":true,"body59":true, "legs59":true};
 
 								if ( character_entity._ai_gun_slot === 4 )
-								velox_settings = {"hero_name":"Velox Assassin","color_bright":"#c0c0c0","color_dark":"#a0a0a0","color_bright3":"#ff0000","color_dark3":"#202020","color_visor":"#ff0000","color_suit":"#c0c0c0","color_suit2":"#080808","color_dark2":"#000000","color_shoes":"#000000","color_skin":"#000000","helmet1":false,"helmet86":true,"voice1":false,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice7":true,"body59":true, "legs59":true};
+								velox_settings = {"hero_name":"Velox Devastator","color_bright":"#c0c0c0","color_dark":"#a0a0a0","color_bright3":"#ff0000","color_dark3":"#202020","color_visor":"#ff0000","color_suit":"#c0c0c0","color_suit2":"#080808","color_dark2":"#000000","color_shoes":"#000000","color_skin":"#000000","helmet1":false,"helmet86":true,"voice1":false,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice7":true,"body59":true, "legs59":true};
 
 								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( velox_settings );
 								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( velox_settings );
@@ -1983,10 +1983,10 @@ class sdWeather extends sdEntity
 								character_entity.title = velox_settings.hero_name;
 								character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( velox_settings );
 								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( velox_settings );
-								if ( character_entity._ai_gun_slot === 1 ) // If a regular Velox soldier
+								if ( character_entity._ai_gun_slot === 1 || 2 ) // If a regular Velox soldier
 								{
-									character_entity.matter = 150;
-									character_entity.matter_max = 150;
+									character_entity.matter = 200;
+									character_entity.matter_max = 200;
 
 									character_entity.hea = 750;
 									character_entity.hmax = 750;
@@ -1998,29 +1998,14 @@ class sdWeather extends sdEntity
 									//character_entity._damage_mult = 0.8;
 								}
 
-								if ( character_entity._ai_gun_slot === 2 ) // Combat rifle Velox
-								{
-									character_entity.matter = 150;
-									character_entity.matter_max = 150;
-
-									character_entity.hea = 1250;
-									character_entity.hmax = 1250;
-
-									//character_entity.armor = 1000;
-									//character_entity.armor_max = 1000;
-									//character_entity._armor_absorb_perc = 0.93; // 93% damage absorption, since armor will run out before health, they effectively have 1250 health
-
-									//character_entity._damage_mult = 1;
-								}
-
 								if ( character_entity._ai_gun_slot === 4 ) // Rail cannon Velox, harder to kill
 								{
-									character_entity.matter = 250;
-									character_entity.matter_max = 250;
+									character_entity.matter = 400;
+									character_entity.matter_max = 400;
 
-									character_entity.hea = 2000;
-									character_entity.hmax = 2000;
-
+									character_entity.hea = 1200;
+									character_entity.hmax = 1200;
+									character_entity.s = 110; // tougher so bigger target
 									//character_entity.armor = 1750;
 									//character_entity.armor_max = 1750;
 									//character_entity._armor_absorb_perc = 0.97; // 97% damage absorption, since armor will run out before health, they effectively have 2000 health
@@ -2199,7 +2184,6 @@ class sdWeather extends sdEntity
 							character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( sd_settings );
 							character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( sd_settings );
 							character_entity.title = sd_settings.hero_name;
-
 							character_entity.matter = 185;
 							character_entity.matter_max = 185;
 
@@ -2805,7 +2789,7 @@ class sdWeather extends sdEntity
 								let char_settings;
 
 								if ( character_entity._ai_gun_slot === 3 )
-								char_settings = {"hero_name":"Tzyrg","color_bright":"#404040","color_dark":"#202020","color_bright3":"#303030","color_dark3":"#202020","color_visor":"#FF0000","color_suit":"#404040","color_suit2":"#383838","color_dark2":"#202020","color_shoes":"#000000","color_skin":"#101010","color_extra1":"#000000","helmet1":false,"helmet69":true,"voice1":false,"voice10":true,"body34":true, "legs36":true};
+								char_settings = {"hero_name":"Tzyrg","color_bright":"#404040","color_dark":"#202020","color_bright3":"#303030","color_dark3":"#202020","color_visor":"#FF0000","color_suit":"#404040","color_suit2":"#383838","color_dark2":"#202020","color_shoes":"#000000","color_skin":"#101010","color_extra1":"#000000","helmet1":false,"helmet69":true,"voice1":false,"voice10":true,"body34":true,"legs36":true};
 
 								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( char_settings );
 								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( char_settings );

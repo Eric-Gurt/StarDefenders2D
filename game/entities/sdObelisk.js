@@ -7,6 +7,7 @@ import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdCharacter from './sdCharacter.js';
 import sdGun from './sdGun.js';
+import sdJunk from './sdJunk.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -23,16 +24,18 @@ class sdObelisk extends sdEntity
 		sdObelisk.img_obelisk4 = sdWorld.CreateImageFromFile( 'obelisk4' );
 		sdObelisk.img_obelisk5 = sdWorld.CreateImageFromFile( 'obelisk5' ); // Sprite by PeacyQuack
 		sdObelisk.img_obelisk6 = sdWorld.CreateImageFromFile( 'obelisk6' );
+		sdObelisk.img_obelisk7 = sdWorld.CreateImageFromFile( 'obelisk7' );
+		sdObelisk.img_obelisk8 = sdWorld.CreateImageFromFile( 'obelisk8' ); // Sprite by LordBored
 
 
 		sdObelisk.obelisks_counter = 0;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.type === 6 ? -9 : this.type === 5 ? -9 : this.type === 4 ? -8 : -5; }
-	get hitbox_x2() { return this.type === 6 ? 9 : this.type === 5 ? 9 : this.type === 4 ? 8 : 5; }
-	get hitbox_y1() { return this.type === 6 ? -19 : this.type === 5 ? -16 : this.type === 4 ? - 24 : -12; }
-	get hitbox_y2() { return this.type === 6 ? 31 : this.type === 5 ? 21 : this.type === 4 ? 32 : 16; }
+	get hitbox_x1() { return this.type === 8 ? -9 : this.type === 7 ? -9 : this.type === 6 ? -9 : this.type === 5 ? -9 : this.type === 4 ? -8 : -5; }
+	get hitbox_x2() { return this.type === 8 ? 9 : this.type === 7 ? 9 : this.type === 6 ? 9 : this.type === 5 ? 9 : this.type === 4 ? 8 : 5; }
+	get hitbox_y1() { return this.type === 8 ? -19 : this.type === 7 ? -19 : this.type === 6 ? -19 : this.type === 5 ? -16 : this.type === 4 ? - 24 : -12; }
+	get hitbox_y2() { return this.type === 8 ? 31 : this.type === 7 ? 31 : this.type === 6 ? 31 : this.type === 5 ? 21 : this.type === 4 ? 32 : 16; }
 	
 	get hard_collision()
 	{ return true; }
@@ -119,6 +122,20 @@ class sdObelisk extends sdEntity
 				sdWeather.only_instance.ExecuteEvent( j );
 			}
 		}
+		if ( this.type === 7 ) // Obelisk which holds artifact, is destroyed and artifact can be extracted to mothership as a task.
+		{
+			let artifact = new sdJunk({ x: this.x, y: this.y + 4, type: sdJunk.TYPE_ALIEN_ARTIFACT });
+			sdEntity.entities.push( artifact );
+		}
+		if ( this.type === 8 ) // A larger obelisk which summons 10 events of same type. ( 10 x cubes, 10x asp event, for example )
+		{
+			let j;
+			j = ~~( Math.random() * sdWeather.supported_events.length );
+			for( let i = 0; i < 10; i++ )
+			{
+				sdWeather.only_instance.ExecuteEvent( j );
+			}
+		}
 
 		this.remove();
 	}
@@ -179,50 +196,66 @@ class sdObelisk extends sdEntity
 		
 		if ( this.type === 1 )
 		{
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk, 0, 0, 32, 64, - 16, - 32, 32, 64 ); // Regular obelisk sprite
-		ctx.globalAlpha = this.glow_animation / 60;
-		ctx.filter = ' drop-shadow(0px 0px 6px #FFFFFF)';
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk, 32, 0, 32, 64, - 16, - 32, 32, 64 ); // Obelisk glow
+			ctx.drawImageFilterCache( sdObelisk.img_obelisk, 0, 0, 32, 64, - 16, - 32, 32, 64 ); // Regular obelisk sprite
+			ctx.globalAlpha = this.glow_animation / 60;
+			ctx.filter = ' drop-shadow(0px 0px 6px #FFFFFF)';
+			ctx.drawImageFilterCache( sdObelisk.img_obelisk, 32, 0, 32, 64, - 16, - 32, 32, 64 ); // Obelisk glow
 		}
 
 		if ( this.type === 2 )
 		{
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk, 0, 0, 32, 64, - 16, - 32, 32, 64 ); // Regular obelisk sprite
-		ctx.globalAlpha = this.glow_animation / 60;
-		ctx.filter = ' drop-shadow(0px 0px 6px #FFFFFF)';
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk, 64, 0, 32, 64, - 16, - 32, 32, 64 ); // Obelisk glow
+			ctx.drawImageFilterCache( sdObelisk.img_obelisk, 0, 0, 32, 64, - 16, - 32, 32, 64 ); // Regular obelisk sprite
+			ctx.globalAlpha = this.glow_animation / 60;
+			ctx.filter = ' drop-shadow(0px 0px 6px #FFFFFF)';
+			ctx.drawImageFilterCache( sdObelisk.img_obelisk, 64, 0, 32, 64, - 16, - 32, 32, 64 ); // Obelisk glow
 		}
 
 		if ( this.type === 3 )
 		{
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk, 0, 0, 32, 64, - 16, - 32, 32, 64 ); // Regular obelisk sprite
-		ctx.globalAlpha = this.glow_animation / 60;
-		ctx.filter = ' drop-shadow(0px 0px 6px #FFFFFF)';
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk, 96, 0, 32, 64, - 16, - 32, 32, 64 );
+			ctx.drawImageFilterCache( sdObelisk.img_obelisk, 0, 0, 32, 64, - 16, - 32, 32, 64 ); // Regular obelisk sprite
+			ctx.globalAlpha = this.glow_animation / 60;
+			ctx.filter = ' drop-shadow(0px 0px 6px #FFFFFF)';
+			ctx.drawImageFilterCache( sdObelisk.img_obelisk, 96, 0, 32, 64, - 16, - 32, 32, 64 );
 		}
 
 		if ( this.type === 4 )
 		{
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk4, 0, 0, 64, 128, - 32, - 64, 64, 128 );
-		ctx.globalAlpha = this.glow_animation / 60;
-		ctx.filter = ' drop-shadow(0px 0px 12px #FFFFFF)';
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk4, 64, 0, 64, 128, - 32, - 64, 64, 128 );
+			ctx.drawImageFilterCache( sdObelisk.img_obelisk4, 0, 0, 64, 128, - 32, - 64, 64, 128 );
+			ctx.globalAlpha = this.glow_animation / 60;
+			ctx.filter = ' drop-shadow(0px 0px 12px #FFFFFF)';
+			ctx.drawImageFilterCache( sdObelisk.img_obelisk4, 64, 0, 64, 128, - 32, - 64, 64, 128 );
 		}
 
 		if ( this.type === 5 )
 		{
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk5, 0, 0, 64, 128, - 32, - 64, 64, 128 );
-		ctx.globalAlpha = this.glow_animation / 60;
-		ctx.filter = ' drop-shadow(0px 0px 6px #0000C8)';
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk5, 64, 0, 64, 128, - 32, - 64, 64, 128 );
+			ctx.drawImageFilterCache( sdObelisk.img_obelisk5, 0, 0, 64, 128, - 32, - 64, 64, 128 );
+			ctx.globalAlpha = this.glow_animation / 60;
+			ctx.filter = ' drop-shadow(0px 0px 6px #0000C8)';
+			ctx.drawImageFilterCache( sdObelisk.img_obelisk5, 64, 0, 64, 128, - 32, - 64, 64, 128 );
 		}
 
 		if ( this.type === 6 )
 		{
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk6, 0, 0, 64, 128, - 32, - 64, 64, 128 );
-		ctx.globalAlpha = this.glow_animation / 60;
-		ctx.filter = ' drop-shadow(0px 0px 6px #C80000)';
-		ctx.drawImageFilterCache( sdObelisk.img_obelisk6, 64, 0, 64, 128, - 32, - 64, 64, 128 );
+			ctx.drawImageFilterCache( sdObelisk.img_obelisk6, 0, 0, 64, 128, - 32, - 64, 64, 128 );
+			ctx.globalAlpha = this.glow_animation / 60;
+			ctx.filter = ' drop-shadow(0px 0px 12px #C80000)';
+			ctx.drawImageFilterCache( sdObelisk.img_obelisk6, 64, 0, 64, 128, - 32, - 64, 64, 128 );
+		}
+
+		if ( this.type === 7 )
+		{
+			ctx.drawImageFilterCache( sdObelisk.img_obelisk7, 0, 0, 64, 128, - 32, - 64, 64, 128 );
+			ctx.globalAlpha = this.glow_animation / 60;
+			ctx.filter = ' drop-shadow(0px 0px 6px #5a7254)';
+			ctx.drawImageFilterCache( sdObelisk.img_obelisk7, 64, 0, 64, 128, - 32, - 64, 64, 128 );
+		}
+
+		if ( this.type === 8 )
+		{
+			ctx.drawImageFilterCache( sdObelisk.img_obelisk8, 0, 0, 64, 128, - 32, - 64, 64, 128 );
+			ctx.globalAlpha = this.glow_animation / 60;
+			ctx.filter = ' drop-shadow(0px 0px 12px #ff8c00)';
+			ctx.drawImageFilterCache( sdObelisk.img_obelisk8, 64, 0, 64, 128, - 32, - 64, 64, 128 );
 		}
 
 		ctx.filter = 'none';

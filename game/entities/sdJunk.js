@@ -43,6 +43,8 @@ class sdJunk extends sdEntity
 
 		sdJunk.img_freeze_barrel = sdWorld.CreateImageFromFile( 'barrel_freeze' );
 
+		sdJunk.img_alien_artifact = sdWorld.CreateImageFromFile( 'artifact1' );
+
 		sdJunk.anti_crystals = 0;
 		sdJunk.council_bombs = 0;
 		sdJunk.erthal_beacons = 0;
@@ -55,14 +57,15 @@ class sdJunk extends sdEntity
 		sdJunk.TYPE_ERTHAL_DISTRESS_BEACON = 5;
 		sdJunk.TYPE_ADVANCED_MATTER_CONTAINER = 6;
 		sdJunk.TYPE_FREEZE_BARREL = 7;
+		sdJunk.TYPE_ALIEN_ARTIFACT = 8;
 
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.type === sdJunk.TYPE_FREEZE_BARREL ? -8 : this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? -11 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? - 11 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? -11 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? -28 : -5; }
-	get hitbox_x2() { return this.type === sdJunk.TYPE_FREEZE_BARREL ? 8 : this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? 11 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? 11 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? 11 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? 28 : 5; }
-	get hitbox_y1() { return this.type === sdJunk.TYPE_FREEZE_BARREL ? -8 : this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? -15 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? - 21 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? -30 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? 0 : -5; }
-	get hitbox_y2() { return this.type === sdJunk.TYPE_FREEZE_BARREL ? 8 : this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? 17 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? 29 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? 31 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? 23 : 5; }
+	get hitbox_x1() { return this.type === sdJunk.TYPE_ALIEN_ARTIFACT ? -3 : this.type === sdJunk.TYPE_FREEZE_BARREL ? -8 : this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? -11 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? - 11 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? -11 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? -28 : -5; }
+	get hitbox_x2() { return this.type === sdJunk.TYPE_ALIEN_ARTIFACT ? 3 : this.type === sdJunk.TYPE_FREEZE_BARREL ? 8 : this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? 11 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? 11 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? 11 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? 28 : 5; }
+	get hitbox_y1() { return this.type === sdJunk.TYPE_ALIEN_ARTIFACT ? -3 : this.type === sdJunk.TYPE_FREEZE_BARREL ? -8 : this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? -15 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? - 21 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? -30 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? 0 : -5; }
+	get hitbox_y2() { return this.type === sdJunk.TYPE_ALIEN_ARTIFACT ? 3 : this.type === sdJunk.TYPE_FREEZE_BARREL ? 8 : this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? 17 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? 29 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? 31 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? 23 : 5; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -104,7 +107,7 @@ class sdJunk extends sdEntity
 		if ( this.type === sdJunk.TYPE_ALIEN_BATTERY || this.type === sdJunk.TYPE_LOST_CONTAINER || this.type === sdJunk.TYPE_FREEZE_BARREL ) // Current barrels ( 1 = Alien battery, 2 = Lost Particle Container, 7 = Freeze barrel )
 		this.hmax = 150;
 		else
-		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE )
+		if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE || this.type === sdJunk.TYPE_ALIEN_ARTIFACT )
 		this.hmax = 500;
 
 		// Variables for large anti-crystal
@@ -986,6 +989,35 @@ class sdJunk extends sdEntity
 					}
 				}
 			}
+			if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT )
+			{
+				this._time_to_drain -= GSPEED; // Just so it doesn't spam sdTask.MakeSureCharacterHasTask
+
+				if ( this._time_to_drain <= 0 )
+				{
+					this._time_to_drain = 30 * 1;
+
+					for ( let i = 0; i < sdWorld.sockets.length; i++ )
+					{
+
+						if ( sdWorld.sockets[ i ].character !== null )
+						if ( !sdWorld.sockets[ i ].character._is_being_removed )
+						if ( sdWorld.sockets[ i ].character.hea > 0 )
+						{
+									
+								sdTask.MakeSureCharacterHasTask({ 
+									similarity_hash:'EXTRACT-'+this._net_id, 
+									executer: sdWorld.sockets[ i ].character,
+									target: this,
+									mission: sdTask.MISSION_LRTP_EXTRACTION,
+									difficulty: 0.075 * sdTask.GetTaskDifficultyScaler(),
+									title: 'Extract alien artifact',
+									description: 'We would like to investigate this artifact you have found. Can you deliver it to the mothership using a long range teleporter?'
+								});
+						}
+					}
+				}
+			}
 		}
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
@@ -1024,6 +1056,9 @@ class sdJunk extends sdEntity
 
 		if ( this.type === sdJunk.TYPE_FREEZE_BARREL )
 		sdEntity.Tooltip( ctx, "Cryo-substance barrel" );
+
+		if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT )
+		sdEntity.Tooltip( ctx, "Strange artifact" );
 	}
 	Draw( ctx, attached )
 	{
@@ -1109,6 +1144,10 @@ class sdJunk extends sdEntity
 				//ctx.drawImageFilterCache( sdJunk.img_cube_unstable3, - 16, - 18, 32,32 );
 				//else
 				ctx.drawImageFilterCache( sdJunk.img_freeze_barrel, 0 + ( this.hea < this.hmax / 2 ? 32 : 0 ) , 0, 32, 32, - 16, - 16, 32, 32 );
+			}
+			if ( this.type === sdJunk.TYPE_ALIEN_ARTIFACT ) // Alien / strange artifact from obelisk
+			{
+				ctx.drawImageFilterCache( sdJunk.img_alien_artifact, - 16, - 18, 32,32 );
 			}
 
 		}
