@@ -43,7 +43,7 @@ class sdHover extends sdEntity
 		sdHover.img_tank_turret = sdWorld.CreateImageFromFile( 'tank_turret' );
 		sdHover.img_tank_rl = sdWorld.CreateImageFromFile( 'tank_railgun' );
 		
-		sdHover.driver_slots = 6;
+		sdHover.driver_slots = ( sdHover.TYPE_BIKE ? 1 : 6 );
 		
 		sdHover.slot_hints = [
 			'Entered slot 1: Driver',
@@ -165,9 +165,6 @@ class sdHover extends sdEntity
 		return;
 	
 		var best_slot = -1;
-
-		if ( this.type === 3 )
-		sdHover.driver_slots = 1; // Prevent players from getting in and making it more weird for other players
 		
 		for ( var i = 0; i < sdHover.driver_slots; i++ )
 		//for ( var i = 2; i < sdHover.driver_slots; i++ ) // Hack
@@ -217,7 +214,13 @@ class sdHover extends sdEntity
 			{
 				this[ 'driver' + i ] = null;
 				c.driver_of = null;
+
+				// To prevent the teleport exploit
+				if ( this.type === 3 )
+				c.x = this.x; //+ ( i / ( sdHover.driver_slots - 1 ) ) * ( this._hitbox_x2 - this._hitbox_x1 );
 				
+				else
+				if ( this.type !== 3 )
 				c.x = this.x + ( i / ( sdHover.driver_slots - 1 ) ) * ( this._hitbox_x2 - this._hitbox_x1 );
 				
 				if ( c.CanMoveWithoutOverlap( c.x, this.y + this._hitbox_y1 - c._hitbox_y2, 1 ) )
