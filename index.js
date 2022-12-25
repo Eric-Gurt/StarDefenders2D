@@ -2045,7 +2045,17 @@ io.on("connection", (socket) =>
 			{
 				let ptr = sdDatabase;
 				
-				let parts = key.split( '.' );
+				if ( key instanceof Array )
+				//if ( typeof key === 'string' )
+				{
+				}
+				else
+				{
+					debugger;
+					return;
+				}
+				
+				let parts = key;/*.split( '.' );*/
 				
 				for ( let i = 1; i < parts.length; i++ )
 				{
@@ -2053,17 +2063,21 @@ io.on("connection", (socket) =>
 					
 					if ( ptr.hasOwnProperty( prop ) )
 					ptr = ptr[ prop ];
+					else
+					{
+						debugger; // Tell about non existent property?
+					}
 				}
 				
-				if ( ptr === null || typeof ptr === 'number' || typeof ptr === 'string' )
+				if ( ptr === null || typeof ptr === 'number' || typeof ptr === 'string' || typeof ptr === 'boolean' )
 				socket.emit( 'DB_SCAN_RESULT', [ key, ptr ] );
 				else
 				{
 					let keys = Object.keys( ptr );
 					
-					if ( ptr instanceof Array )
+					/*if ( ptr instanceof Array )
 					socket.emit( 'DB_SCAN_RESULT', [ key, keys ] );
-					else
+					else*/
 					{
 						let obj = {};
 						
@@ -2077,15 +2091,23 @@ io.on("connection", (socket) =>
 							
 							if ( i < 10 && i >= keys.length - 10 )
 							{
-								if ( value === null || typeof value === 'number' || typeof value === 'string' )
+								if ( value === null || typeof value === 'number' || typeof value === 'string' || typeof value === 'boolean' )
 								obj[ key_of_cur ] = value;
 								else
-								obj[ key_of_cur ] = {
-									_path: key + '.' + key_of_cur,
-									_synced: false,
-									_pending: false,
-									_expanded: false
-								};
+								{
+									obj[ key_of_cur ] = {};
+								
+									obj[ key_of_cur ] = Object.assign( obj[ key_of_cur ], {
+										
+										_is_array: ( value instanceof Array ), // JSON arrays won't store extra keys
+										//_path: key + '.' + key_of_cur,
+										_path: parts.concat( key_of_cur ),
+										_synced: false,
+										_pending: false,
+										_expanded: false,
+										_properties_change_pending: {}
+									} );
+								}
 							}
 							else
 							{

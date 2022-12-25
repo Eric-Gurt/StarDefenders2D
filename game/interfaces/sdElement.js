@@ -28,6 +28,14 @@ class sdElement
 			'this.element.textContent',
 			'this.element.value'
 		];
+		sdElement.children_container = [
+			'this.element',
+			'this.element',
+			'this.element_inner_container',
+			'this.element',
+			'this.element',
+			null
+		];
 		
 		sdElement.root_element = new sdElement({ type: sdElement.ROOT_ELEMENT });
 		
@@ -77,6 +85,8 @@ class sdElement
 		this.children = [];
 		this.parent = params.parent;
 		this.type = params.type;
+		
+		this.elements = []; // Array of independent arrays, used for removal. No need to add nexted elements here - just top level one(s) that contain all other elements
 
 		// and give it some content
 		//const newContent = document.createTextNode("Hi there and greetings!");
@@ -92,15 +102,20 @@ class sdElement
 
 			element.className = sdElement.css_classnames[ this.type ];
 			
-			this.parent.element.append( element );
+			this.parent.GetChildrenContainer().append( element );
+			//this.parent.element.append( element );
 			
 			if ( this.type === sdElement.WINDOW )
 			{
 				let caption = document.createElement( 'div' );
 				caption.className = 'sd_window_caption';
 				element.append( caption );
-				
 				this.element_caption = caption;
+				
+				let inner_container = document.createElement( 'div' );
+				inner_container.className = 'sd_window_inner_container';
+				element.append( inner_container );
+				this.element_inner_container = inner_container;
 			}
 			
 			element.onmouseover = ( e )=>{ if ( e.target === this.element ) this.nativeSetHover( e, 1 ) };
@@ -109,8 +124,80 @@ class sdElement
 			element.onmouseup = ( e )=>{ if ( e.target === this.element ) this.nativeSetHover( e, 1 ) };
 		}
 		
+		this.elements.push( this.element );
+		
 		for ( let p in params )
 		this[ p ] = params[ p ];
+	}
+	
+	GetChildrenContainer()
+	{
+		let v;
+		eval( 'v = ' + sdElement.children_container[ this.type ] );
+		return v;
+	}
+	
+	setEditableStatus( v, callback=null, params={} /*edit_once=false*/ )
+	{
+		let element = this.element;
+		
+		// Removed
+		if ( !element )
+		return;
+	
+		let action = null;
+		
+		if ( v )
+		action = ()=>
+		{
+			let new_value = element.textContent;
+			
+			if ( params.edit_once )
+			{
+				action = ()=>{};
+				
+				this.setEditableStatus( false ); // Causes blur action
+			}
+		
+			if ( old_value !== new_value )
+			{
+				callback();
+			}
+		};
+		
+		let old_value = element.textContent;
+		
+		element.setAttribute( 'spellcheck', params.spellcheck ? 'true' : 'false' );
+		
+		element.contentEditable = v ? 'true' : 'false';
+		/*element.onblur = callback;
+		element.onkeyup = callback;
+		element.onpaste = callback;
+		element.oncopy = callback;
+		element.oncut = callback;
+		element.ondelete = callback;
+		element.onmouseup = callback;*/
+		
+		element.onblur = v ? ()=>
+		{
+			window.getSelection().removeAllRanges();
+			
+			action();
+		} : null;
+		
+		element.onkeydown = v ? ( e )=>
+		{
+			if ( e.key === 'Enter' )
+			{
+				e.preventDefault();
+				e.stopImmediatePropagation();
+				
+				action();
+			}
+		} : null;
+		
+		//if ( v )
+		//element.focus();
 	}
 	
 	nativeSetHover( e=null, value )
@@ -156,6 +243,12 @@ class sdElement
 		}
 	}
 	
+	set color( v )
+	{ this.element.style.color = v; }
+	
+	get color()
+	{ return this.element.style.color; }
+	
 	set text( v )
 	{
 		//this.element.textContent = v;
@@ -187,9 +280,15 @@ class sdElement
 	}
 	
 	set marginLeft( v )
-	{
-		this.element.style.marginLeft = v + 'px';
-	}
+	{ this.element.style.marginLeft = v + 'px'; }
+	set marginTop( v )
+	{ this.element.style.marginTop = v + 'px'; }
+	set marginBottom( v )
+	{ this.element.style.marginBottom = v + 'px'; }
+	set paddingTop( v )
+	{ this.element.style.paddingTop = v + 'px'; }
+	set paddingBottom( v )
+	{ this.element.style.paddingBottom = v + 'px'; }
 	
 	removeChildren()
 	{
@@ -213,13 +312,13 @@ class sdElement
 		this.parent.children.splice( id, 1 );
 		
 		this.removeChildren();
-		//for ( let i = this.children.length - 1; i >= 0; i-- )
-		//this.children[ i ].remove();
 	
 		this.children = null;
 		
-		this.element.remove();
-		//this.element.parentNode.remove( this.element );
+		while ( this.elements.length > 0 )
+		this.elements.shift().remove();
+	
+		//this.element.remove();
 		this.element = null;
 	}
 }

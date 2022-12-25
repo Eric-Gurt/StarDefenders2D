@@ -43,7 +43,7 @@ class sdDatabase
 			// Top-level properties will be saved to separate files. For example to allow translations to be copied from server to server
 			players: 
 			{
-				length: 0, // Auto-increment
+				next_uid: 0, // Auto-increment
 		
 				'PLAYER_SAMPLE': // UID
 				{
@@ -89,7 +89,7 @@ class sdDatabase
 			
 			world:
 			{
-				length: 0, // Auto-increment
+				next_uid: 0, // Auto-increment
 				
 				'WORLD_SAMPLE':
 				{
@@ -149,7 +149,7 @@ class sdDatabase
 			// These can be used in singpleplayer as well as by construction drones in shape of blueprints
 			presets:
 			{
-				length: 0, // Auto-increment
+				next_uid: 0, // Auto-increment
 				
 				mothership:
 				{

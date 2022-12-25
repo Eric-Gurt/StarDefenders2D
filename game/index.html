@@ -161,6 +161,7 @@
 		
 		
 	    }
+	    
 	    .set_block:focus-within::-webkit-scrollbar
 	    {
 		width: 12px;
@@ -297,10 +298,29 @@
 		padding: 10px;
 		background-color: rgba(0,0,200,0.85);
 	    }
+	    div.sd_window_inner_container
+	    {
+		display: block;
+		width: 100%;
+		height: calc( 100% - 33px - 10px );
+	    }
 	    div.sd_text
 	    {
 		display: inline;
 		color: white;
+	    }
+	    div.sd_text:focus-visible
+	    {
+		outline: none;
+		border-radius: 1px;
+		background-color: #4b4b4b;
+		box-shadow: 0px 0px 0px 3px #4b4b4b;
+		color: #ffffff !important;
+		transform: scale(2,2) translate(7px, 0px);
+		position: absolute;
+		padding-left: 5px;
+		padding-right: 5px;
+		opacity: 1 !important; /* Prevent sync blinking */
 	    }
 	    div.sd_text_block
 	    {
@@ -314,6 +334,26 @@
 		width: 250px;
 		height: 30px;
 		background-color: green;
+	    }
+	    div.pending_blinking
+	    {
+		animation: 0.3s linear infinite alternate blinking_anim;
+	    }
+	    @keyframes blinking_anim {
+		from { opacity: 0.25; }
+		to { opacity: 0.5; }
+	    }
+	    .sd_scrollbar::-webkit-scrollbar
+	    {
+		width: 12px;
+		height: 12px;
+		background-color: #000000;
+		border-radius: 6px;
+	    }
+	    .sd_scrollbar::-webkit-scrollbar-thumb
+	    {
+		background-color: white;
+		box-shadow: inset 0 0 0px 5px #000000;
 	    }
 	</style>
     </head>
