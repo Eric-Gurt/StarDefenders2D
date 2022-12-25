@@ -43,7 +43,7 @@ class sdHover extends sdEntity
 		sdHover.img_tank_turret = sdWorld.CreateImageFromFile( 'tank_turret' );
 		sdHover.img_tank_rl = sdWorld.CreateImageFromFile( 'tank_railgun' );
 		
-		sdHover.driver_slots = ( sdHover.TYPE_BIKE ? 1 : 6 );
+		sdHover.driver_slots = ( sdHover.TYPE_BIKE ? 1 : 6 ); // sdHover doesn't update sdHover.TYPE_BIKE and thus makes it think it's 6 when it's 1
 		
 		sdHover.slot_hints = [
 			'Entered slot 1: Driver',
