@@ -1106,11 +1106,11 @@ class sdStatusEffect extends sdEntity
 	}
 	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Guns are not targetable when held, same for sdCharacters that are driving something
 	{
-		if ( by_entity )
+		/*if ( by_entity )
 		if ( by_entity.IsPlayerClass() )
 		if ( by_entity._god )
 		return true;
-		
+		*/
 		return false;
 	}
 	CameraDistanceScale3D( layer ) // so far layer is only FG (1), usually only used by chat messages
