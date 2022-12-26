@@ -13,14 +13,17 @@
 	 - Base movement between servers (with steering wheel)
 	 - Assist player and help him/her find server where his/her character is
 
+	 Note: /db command currently does not edit remote databases, nor does it introduce permission levels
+
 */
 
-/* global sdServerToServerProtocol */
+/* global sdServerToServerProtocol, globalThis */
 
 import fs from 'fs';
 
 import sdWorld from '../sdWorld.js';
 import sdWeather from '../entities/sdWeather.js';
+import sdBlock from '../entities/sdBlock.js';
 
 class sdDatabase
 {
@@ -43,9 +46,11 @@ class sdDatabase
 			// Top-level properties will be saved to separate files. For example to allow translations to be copied from server to server
 			players: 
 			{
+				database_key_wipe_version: 1, // If this changes - whole database is getting cleared on startup. In this case it is referred to "players" object
+				
 				next_uid: 0, // Auto-increment
 		
-				'PLAYER_SAMPLE': // UID
+				sample_row:
 				{
 					uid: 'PLAYER_SAMPLE',
 					password: sdDatabase.GenerateHash( 64 ),
@@ -84,25 +89,30 @@ class sdDatabase
 					friends: [ 0, 1, 2 ], // UIDs
 					
 					owned_presets: [ 0, 1, 2 ] // Will be used to delete non-permanent presets (such as base presets for reference or construction drones)
+				},
+				
+				table: 
+				{
+					// Keys are UIDs
 				}
 			},
 			
 			world:
 			{
+				database_key_wipe_version: 1, // If this changes - whole database is getting cleared on startup. In this case it is referred to "world" object
+				
 				next_uid: 0, // Auto-increment
 				
-				'WORLD_SAMPLE':
+				sample_row:
 				{
 					uid: 'WORLD_SAMPLE',
 					name: 'Expedition on Mars', // It is possible to generate random planet names
 					
-					current_server: 'https://www.gevanni.com:3000', // Where this world is currently bound to? If it is unbound - current_server should be null
+					current_server: null,// 'https://www.gevanni.com:3000', // Where this world is currently bound to? If it is unbound - current_server should be null
 					
 					last_active: Date.now(), // If inactive for too long - gets removed
 					
-					world_snapshot: {}, // Just so servers can go into hibernation mode whenever everyone disconnects. Perhaps this can be a zip string? Zip strings are ~1 mb in side
-					
-					
+					world_snapshot: {}, // Just so servers can go into hibernation mode whenever everyone disconnects. Perhaps this can be a zip string? Zip strings are ~1 mb in size
 					
 					seed_properties:
 					{
@@ -110,80 +120,122 @@ class sdDatabase
 						mobs_count_factor: 1,
 						crystals_count_factor: 1,
 						crystals_value_factor: 1,
-						allowed_events: [ sdWeather.EVENT_ERTHALS ]
+						allowed_events: 
+						[ 
+							sdWeather.EVENT_ERTHALS 
+						],
+						terrain_kinds: 
+						[  
+							{ 
+								material: sdBlock.MATERIAL_GROUND,
+								hp_mult: 1
+							},
+							{ 
+								material: sdBlock.MATERIAL_ROCK,
+								hp_mult: 1
+							},
+							{ 
+								material: sdBlock.MATERIAL_SAND,
+								hp_mult: 1
+							}
+						],
+						terrain_contents:
+						[
+							{
+								class: 'sdVirus',
+								hp_mult: 1,
+								spawn_chance: 0.1
+							},
+							{
+								class: 'sdCrystal',
+								spawn_chance: 0.1
+							}
+						]
 					}
+				},
+				
+				table: 
+				{
+					// Keys are UIDs
 				}
 			},
 			
 			servers:
 			{
-				'https://www.gevanni.com:3000': 
+				database_key_wipe_version: 1, // If this changes - whole database is getting cleared on startup. In this case it is referred to "servers" object
+				
+				// next_uid not used because keys are server URLs, perhaps
+				
+				sample: 
 				{
+					url: 'https://www.gevanni.com:3000',
 					current_world: 'WORLD_SAMPLE',
 					type: 'permanent',
 					player_can_join: true
 				},
-		
-				'https://www.gevanni.com:3001': 
+
+				table: 
 				{
-					current_world: 'WORLD_SAMPLE2',
-					type: 'expedition_worker',
-					player_can_join: false // It just means only database request can make them join
-				},
-		
-				'https://www.gevanni.com:3002': 
-				{
-					current_world: 'WORLD_SAMPLE3',
-					type: 'expedition_worker',
-					player_can_join: false // It just means only database request can make them join
-				},
-		
-				'https://www.gevanni.com:3003': 
-				{
-					current_world: 'WORLD_SAMPLE4',
-					type: 'expedition_worker',
-					player_can_join: false // It just means only database request can make them join
+					// Keys are URLs, perhaps
 				}
 			},
 
 			// These can be used in singpleplayer as well as by construction drones in shape of blueprints
 			presets:
 			{
-				next_uid: 0, // Auto-increment
+				database_key_wipe_version: 1, // If this changes - whole database is getting cleared on startup. In this case it is referred to "presets" object
 				
-				mothership:
+				next_uid: 0, // Auto-increment
+		
+				sample_row:
 				{
 					origin_x: 0,
 					origin_y: 0,
-					entities: [],
-					
+					snapshot_entities: [],
+
 					owned_by_uid: 'PLAYER_SAMPLE',
-					
+
 					is_permanent: true // Admins could edit these to build SD universe. is_permanent should be false in case of preset being related to player - in this case it would be removed together with player who made it
+				},
+		
+				table: 
+				{
+					/*mothership:
+					{
+						origin_x: 0,
+						origin_y: 0,
+						snapshot_entities: [],
+
+						owned_by_uid: 'PLAYER_SAMPLE',
+
+						is_permanent: true // Admins could edit these to build SD universe. is_permanent should be false in case of preset being related to player - in this case it would be removed together with player who made it
+					}*/
 				}
 			},
 			
 			translations:
 			{
-				unapproved_uids: [], // Limit count of suggestions
+				database_key_wipe_version: 1, // If this changes - whole database is getting cleared on startup. In this case it is referred to "translations" object
 				
-				'TRANSLATION_SAMPLE_1': // UID is either string hash or English line itself, whatever is shorter
+				unapproved_uids: [], // Limit count of suggestions
+		
+				sample_row_1:
 				{
-					first_use: 0, // When translation was added
-					last_use: 0, // When translation was used last time
+					first_use: Date.now(), // When translation was added
+					last_use: Date.now(), // When translation was used last time
 					use_count: 0, // How many times translation was used
-					approved: 0, // Approved translations are permanent. Unapproved translations expire. Game does not really know which lines are to be translated so all translations are approved manually
+					approved: false, // Approved translations are permanent. Unapproved translations expire. Game does not really know which lines are to be translated so all translations are approved manually
 					
 					// Same languages as in sdWorld.server_config.supported_languages
 					en: 'Welcome to Star Defenders!',
 					ua: 'Ласкаво прошу до Зоряних Захисників!'
 				},
-				'TRANSLATION_SAMPLE_2': // String contains HTML tags, in this case it is not just strings but arrays of strings (HTML elements are inserted in between)
+				sample_row_2: // String contains HTML tags, in this case it is not just strings but arrays of strings (HTML elements are inserted in between)
 				{
-					first_use: 0, // When translation was added
-					last_use: 0, // When translation was used last time
+					first_use: Date.now(), // When translation was added
+					last_use: Date.now(), // When translation was used last time
 					use_count: 0, // How many times translation was used
-					approved: 0, // Approved translations are permanent. Unapproved translations expire. Game does not really know which lines are to be translated so all translations are approved manually
+					approved: false, // Approved translations are permanent. Unapproved translations expire. Game does not really know which lines are to be translated so all translations are approved manually
 					
 					// Same languages as in sdWorld.server_config.supported_languages
 					en: 
@@ -202,9 +254,27 @@ class sdDatabase
 						"",
 						"21 Січня 2021: Перший публічний реліз!"
 					]
+				},
+
+				table: {
+					// UID is English text basically, string in case of translations being strings, array.join('/') in case of translations being array of strings
 				}
 			}
+				
 		};
+		
+		// Test
+		for ( let i = 0; i < 1000; i++ )
+		{
+			let sample_player = sdDatabase.data.players.sample_row;
+			let TRANSLATION_SAMPLE = sdDatabase.data.translations.sample_row_1;
+			
+			if ( Object.keys( sdDatabase.data.players.table ).length < 1000 )
+			sdDatabase.data.players.table[ sdDatabase.data.players.next_uid++ ] = JSON.parse( JSON.stringify( sample_player ) );
+		
+			if ( Object.keys( sdDatabase.data.translations.table ).length < 1000 )
+			sdDatabase.data.translations.table[ 'TRANSLATION_SAMPLE_AUTO_' + i ] = JSON.parse( JSON.stringify( TRANSLATION_SAMPLE ) );
+		}
 		
 		sdDatabase.is_local = ( sdWorld.server_config.database_server === null );
 		
@@ -221,8 +291,25 @@ class sdDatabase
 				if ( globalThis.file_exists( sub_database_file_path ) )
 				{
 					let potential = JSON.parse( fs.readFileSync( sub_database_file_path ) );
-
-					sdDatabase.data[ key ] = Object.assign( sdDatabase.data[ key ], potential );
+					
+					if ( potential.database_key_wipe_version === sdDatabase.data[ key ].database_key_wipe_version )
+					{
+						sdDatabase.data[ key ] = Object.assign( sdDatabase.data[ key ], potential );
+					}
+					else
+					{
+						let new_path = sub_database_file_path.split( '.v' ).join( '_OLD_' + potential.database_key_wipe_version + '.v' );
+						
+						trace( 'Warning: Re-creating new database file in order to store sdDatabase.data.' + key + ' property value due to .database_key_wipe_version mismatch! Old database will be moved to ' + new_path );
+						
+						fs.rename( sub_database_file_path, new_path, ( err )=>
+						{
+							if ( err )
+							throw new Error( 'Error: Unable to rename old database!' );
+							
+							sdDatabase.Save( key );
+						});
+					}
 				}
 				else
 				{
@@ -311,6 +398,217 @@ class sdDatabase
 					callback( response );
 				}
 			);
+		}
+	}
+	
+	
+
+	static AdminDatabaseCommand( socket, type, path_parts, new_value=undefined )
+	{
+		let previous_ptr = null;
+		let ptr = sdDatabase;
+		
+		if ( path_parts instanceof Array )
+		{
+		}
+		else
+		{
+			debugger;
+			return;
+		}
+
+		for ( let i = 1; i < path_parts.length; i++ )
+		{
+			let prop = path_parts[ i ];
+
+			if ( ptr.hasOwnProperty( prop ) || prop === '' )
+			{
+				previous_ptr = ptr;
+				
+				ptr = ptr[ prop ];
+			}
+			else
+			{
+				//debugger;
+				
+				// Tell about non existent property?
+				socket.emit( 'DB_SCAN_RESULT', [ path_parts, '#PROP_DELETED' ] );
+				return;
+			}
+		}
+		
+		if ( type === 'DB_SCAN' || type === 'DB_SEARCH' )
+		{
+			if ( ptr === null || typeof ptr === 'number' || typeof ptr === 'string' || typeof ptr === 'boolean' )
+			{
+				socket.emit( 'DB_SCAN_RESULT', [ path_parts, ptr ] );
+				//debugger; // Never happens
+			}
+			else
+			{
+				let keys = Object.keys( ptr );
+				let obj = {};
+				//let partial = false;
+				let results = 0;
+				
+				let is_searching = ( type === 'DB_SEARCH' );
+				
+				let search_key;
+				let search_key_regexp = null;
+				let search_json_substring;
+				let max_results;
+				
+				if ( is_searching )
+				{
+					search_key = new_value[ 0 ];
+					search_json_substring = new_value[ 1 ];
+					max_results = new_value[ 2 ];
+					
+					if ( search_key.indexOf( '*' ) !== -1 )
+					search_key_regexp = (new RegExp('^' + search_key.replace(/([.+?^=!:${}()|\[\]\/\\])/g, "\\$1").split('*').join('(.*)') + '$'));
+					//search_key_regexp = (new RegExp('^' + search_key.replaceAll(/([.+?^=!:${}()|\[\]\/\\])/g, "\\$1").replaceAll('*', '(.*)') + '$'));
+				}
+
+				for ( let i = 0; i < keys.length; i++ )
+				{
+					let key_of_cur = keys[ i ];
+					let value = ptr[ key_of_cur ];
+
+					if ( 
+							(
+								is_searching 
+								&&
+								(
+									search_key === '' 
+									|| 
+									( 
+										key_of_cur === search_key ||
+										( search_key_regexp && search_key_regexp.test( key_of_cur ) )
+									) 
+								)
+								&&
+								(
+									search_json_substring === ''
+									||
+									(
+										JSON.stringify( value ).indexOf( search_json_substring ) !== -1
+									)
+								)
+								&&
+								results < max_results
+							)
+							||
+							(
+								!is_searching 
+								&&
+								( i < 4 || i >= keys.length - 4 || keys.length < 64 )
+							)
+						)
+					{
+						if ( value === null || typeof value === 'number' || typeof value === 'string' || typeof value === 'boolean' )
+						obj[ key_of_cur ] = value;
+						else
+						{
+							if ( key_of_cur.charAt( 0 ) === '_' )
+							throw new Error();
+
+							obj[ key_of_cur ] = 
+							{
+								_is_array: ( value instanceof Array ), // JSON arrays won't store extra keys
+								_path: path_parts.concat( key_of_cur ),
+								_synced: false,
+								_pending: false,
+								_expanded: false,
+								_properties_change_pending: {}
+							};
+						}
+						
+						results++;
+					}
+					else
+					if ( !is_searching )
+					{
+						if ( i < keys.length - 4 - 1 )
+						i = keys.length - 4 - 1;
+					}
+				}
+
+				if ( results < keys.length )
+				{
+					obj._partial = 1;
+				}
+				
+				obj._rows_count = keys.length;
+				obj._results_count = results;
+				
+				if ( is_searching )
+				obj._clear_old_properties = 1;
+
+				obj._synced = true;
+
+				socket.emit( 'DB_SCAN_RESULT', [ path_parts, obj ] );
+			}
+		}
+		else
+		if ( type === 'DB_RENAME_PROP' )
+		{
+			let prop = path_parts[ path_parts.length - 1 ];
+			let value = ( prop === '' ) ? null : previous_ptr[ prop ];
+			
+			if ( prop !== '' )
+			delete previous_ptr[ prop ];
+			
+			if ( new_value !== '' )
+			previous_ptr[ new_value ] = value;
+			
+			//sdDatabase.AdminDatabaseCommand( socket, 'DB_SCAN', path_parts.slice( 0, -1 ) );
+			
+			if ( prop !== '' )
+			sdDatabase.AdminDatabaseCommand( socket, 'DB_SCAN', path_parts.slice( 0, -1 ).concat( prop ) );
+			
+			if ( new_value !== '' )
+			sdDatabase.AdminDatabaseCommand( socket, 'DB_SCAN', path_parts.slice( 0, -1 ).concat( new_value ) );
+		}
+		else
+		if ( type === 'DB_SET_VALUE' )
+		{
+			let prop = path_parts[ path_parts.length - 1 ];
+			
+			function ReconvertSomeObjectsToArrays( new_value )
+			{
+				for ( let p in new_value )
+				if ( p.charAt( 0 ) !== '_' )
+				{
+					if ( new_value[ p ] instanceof Object )
+					new_value[ p ] = ReconvertSomeObjectsToArrays( new_value[ p ] );
+				}
+				
+				if ( new_value instanceof Object )
+				{
+					if ( new_value._is_array )
+					{
+						let new_array = [];
+						
+						for ( let p in new_value )
+						if ( p.charAt( 0 ) !== '_' )
+						new_array[ parseInt( p ) ] = new_value[ p ];
+						
+						new_value = new_array;
+					}
+				}
+				
+				return new_value;
+			}
+			
+			new_value = ReconvertSomeObjectsToArrays( new_value );
+			
+			for ( let p in new_value )
+			if ( p.charAt( 0 ) === '_' )
+			delete new_value[ p ];
+			
+			previous_ptr[ prop ] = new_value;
+			
+			sdDatabase.AdminDatabaseCommand( socket, 'DB_SCAN', path_parts );
 		}
 	}
 }

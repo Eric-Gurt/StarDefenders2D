@@ -1,5 +1,5 @@
 
-/* global globalThis, sdTranslationManager */
+/* global globalThis, sdTranslationManager, sdWorld, sdRenderer, sd_events, sdShop, sdGun */
 
 import sdTranslationManager from './client/sdTranslationManager.js';
 sdTranslationManager.init_class();
@@ -735,16 +735,18 @@ let enf_once = true;
 		{
 			sdWorld.my_entity_net_id = _net_id;
 
-			try 
+			/*try 
 			{
 				localStorage.setItem( 'my_net_id', _net_id );
-			} catch(e){}
+			} catch(e){}*/
 
 			sdWorld.ResolveMyEntityByNetId();
 		});
 		
 		socket.on( 'REMOVE sdWorld.my_entity', ( _net_id )=>
 		{
+			sdWorld.my_entity_net_id = -101;
+			
 			if ( sdWorld.my_entity )
 			if ( sdWorld.my_entity._net_id === _net_id )
 			sdWorld.my_entity.remove();
@@ -950,6 +952,9 @@ let enf_once = true;
 	
 	window.onkeydown = async ( e )=>
 	{
+		if ( document.activeElement !== sdRenderer.canvas && document.activeElement !== document.body )
+		return true;
+	
 		if ( sdShop.open )
 		{
 			if ( e.key === 'BrowserBack' )
@@ -1021,7 +1026,8 @@ let enf_once = true;
 		else
 		if ( code === 'Escape' || code === 'Space' || ( code === 'KeyR' && sdWorld.mobile ) )
 		{
-			if ( sdWorld.my_entity === null || sdWorld.my_entity.hea <= 0 || sdWorld.my_entity._is_being_removed )
+			//if ( sdWorld.my_entity === null || sdWorld.my_entity.hea <= 0 || sdWorld.my_entity._is_being_removed )
+			if ( sdWorld.my_entity_net_id === -101 || ( sdWorld.my_entity && sdWorld.my_entity.hea <= 0 ) )
 			if ( sdRenderer.canvas.style.display === 'block' )
 			{
 				if ( code === 'Escape' )
@@ -1040,10 +1046,16 @@ let enf_once = true;
 	};
 	window.onkeypress = ( e )=>
 	{
+		if ( document.activeElement !== sdRenderer.canvas && document.activeElement !== document.body )
+		return true;
+	
 		sdChat.KeyPress( e );
 	};
 	window.onkeyup = ( e )=>
 	{
+		if ( document.activeElement !== sdRenderer.canvas && document.activeElement !== document.body )
+		return true;
+		
 		if ( sdChat.KeyUp( e ) )
 		{
 			// Let release keys when chatting
@@ -1068,6 +1080,9 @@ let enf_once = true;
 	};
 	window.onmousemove = ( e )=>
 	{
+		if ( e.target !== sdRenderer.canvas )
+		return;
+	
 		if ( sdWorld.mobile )
 		return;
 	
@@ -1082,6 +1097,9 @@ let enf_once = true;
 	};
 	window.onmousedown = ( e )=>
 	{
+		if ( e.target !== sdRenderer.canvas )
+		return;
+	
 		if ( sdWorld.mobile )
 		{
 			sdSound.AllowSound();
@@ -1119,6 +1137,9 @@ let enf_once = true;
 	};
 	window.onmouseup = ( e )=>
 	{
+		if ( e.target !== sdRenderer.canvas )
+		return;
+	
 		if ( sdRenderer.canvas.style.display !== 'block' )
 		return;
 	
@@ -1141,6 +1162,9 @@ let enf_once = true;
 	};
 	window.oncontextmenu = (e)=>{
 		
+		if ( e.target !== sdRenderer.canvas )
+		return;
+	
 		if ( sdRenderer.canvas.style.display !== 'block' )
 		return;
 	
@@ -1151,6 +1175,9 @@ let enf_once = true;
 	};
 	window.onmousewheel = (e)=>
 	{
+		if ( e.target !== sdRenderer.canvas )
+		return;
+	
 		if ( sdRenderer.canvas.style.display !== 'block' )
 		return;
 	

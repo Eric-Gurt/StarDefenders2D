@@ -78,7 +78,7 @@ class sdEffect extends sdEntity
 			random_rotation90: true,
 			random_flip: true
 		};
-		sdEffect.types[ sdEffect.TYPE_WALL_HIT ] = {
+		/*sdEffect.types[ sdEffect.TYPE_WALL_HIT ] = {
 			images: [ 
 				sdWorld.CreateImageFromFile( 'hit1' ), 
 				sdWorld.CreateImageFromFile( 'hit2' ), 
@@ -91,7 +91,22 @@ class sdEffect extends sdEntity
 			sound_to_play: 'world_hit',
 			sound_to_play_volume: 0.25,
 			apply_shading: false
+		};*/
+		
+		sdEffect.types[ sdEffect.TYPE_WALL_HIT ] = {
+			images: [ sdWorld.CreateImageFromFile( 'effect_wall_hit' ) ],
+			duration: 5,
+			random_flip: true,
+			random_rotation: true,
+			speed: 0.6, // 0.2
+			random_speed_percentage: 0.1,
+			spritesheet: true,
+			apply_shading: false,
+			
+			sound_to_play: 'world_hit',
+			sound_to_play_volume: 0.25,
 		};
+		
 		sdEffect.types[ sdEffect.TYPE_BEAM ] = {
 			images: [ 2, 1, 0.5, 0.25 ],
 			speed: 0.4,
@@ -215,7 +230,13 @@ class sdEffect extends sdEntity
 			random_rotation: false,
 			speed: 1 / 30,
 			spritesheet: true,
-			apply_shading: false
+			apply_shading: false,
+			
+			onBeforeRemove: ( effect_entity )=>
+			{
+				if ( Math.random() < 0.5 )
+				sdSound.PlaySound({ name:'pop', x:effect_entity.x, y:effect_entity.y, volume:0.05 + Math.random() * 0.05, pitch:0.9 + Math.random() * 0.2, _server_allowed:true });
+			}
 		};
 		sdEffect.types[ sdEffect.TYPE_FIRE ] = {
 			images: [ sdWorld.CreateImageFromFile( 'effect_fire' ) ],
@@ -397,7 +418,8 @@ class sdEffect extends sdEntity
 		this._duration = sdEffect.types[ this._type ].duration || sdEffect.types[ this._type ].images.length;
 		
 		this._xscale = ( sdEffect.types[ this._type ].random_flip && Math.random() < 0.5 ) ? -1 : 1;
-		this._rotation = ( sdEffect.types[ this._type ].random_rotation * sdEffect.types[ this._type ].random_rotation90 ) ? Math.random() * Math.PI * 2 : 0;
+		//this._rotation = ( sdEffect.types[ this._type ].random_rotation * sdEffect.types[ this._type ].random_rotation90 ) ? Math.random() * Math.PI * 2 : 0;
+		this._rotation = ( sdEffect.types[ this._type ].random_rotation ) ? Math.random() * Math.PI * 2 : 0;
 		
 		if ( sdEffect.types[ this._type ].random_rotation90 )
 		this._rotation = Math.round( this._rotation / ( Math.PI / 2 ) ) * ( Math.PI / 2 );
@@ -689,7 +711,12 @@ class sdEffect extends sdEntity
 		}
 		
 		if ( this._ani >= this._duration )
-		this.remove();
+		{
+			if ( sdEffect.types[ this._type ].onBeforeRemove )
+			sdEffect.types[ this._type ].onBeforeRemove( this );
+		
+			this.remove();
+		}
 	}
 	Draw( ctx, attached )
 	{
@@ -937,6 +964,12 @@ class sdEffect extends sdEntity
 		if ( sdEffect.types[ this._type ].spritesheet )
 		//if ( this._type === sdEffect.TYPE_HEARTS || this._type === sdEffect.TYPE_FIRE || this._type === sdEffect.TYPE_FROZEN )
 		{
+			if ( this._scale !== 1 )
+			ctx.scale( this._scale, this._scale );
+
+			if ( this._rotation !== 0 )
+			ctx.rotate( this._rotation );
+
 			if ( this._sd_tint_filter === null )
 			{
 				this._sd_tint_filter = sdWorld.hexToRgb( this._color );
@@ -954,10 +987,14 @@ class sdEffect extends sdEntity
 			
 			if ( sdEffect.types[ this._type ].opacity !== undefined )
 			ctx.globalAlpha = sdEffect.types[ this._type ].opacity;
+		
+			let img = sdEffect.types[ this._type ].images[ 0 ];
+			let frame_size = img.height;
 			
 			let frame = ~~( this._ani );
 			ctx.filter = this._filter;
-			ctx.drawImageFilterCache( sdEffect.types[ this._type ].images[ 0 ], 0 + frame*16, 0, 16,16, -8,-8,16,16 );
+			//ctx.drawImageFilterCache( img, 0 + frame*16, 0, 16,16, -8,-8,16,16 );
+			ctx.drawImageFilterCache( img, 0 + frame*frame_size, 0, frame_size,frame_size, -frame_size/2,-frame_size/2,frame_size,frame_size );
 			ctx.filter = 'none';
 			
 			ctx.sd_color_mult_r = 1;

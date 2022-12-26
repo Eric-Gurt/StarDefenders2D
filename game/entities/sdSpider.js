@@ -38,12 +38,20 @@ class sdSpider extends sdEntity
 		
 		sdSpider.spider_counter = 0;
 		
+		sdSpider.ignored_classes_alive = [];
+		sdSpider.ignored_classes_dead = [ 'sdDrone', 'sdSpider' ];
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return this.type === 1 ? -8 : -13; }
 	get hitbox_x2() { return this.type === 1 ? 8 : 13; }
 	get hitbox_y1() { return this.type === 1 ? ( this.death_anim === 0 ? -10 : -6 ) : ( this.death_anim === 0 ? -6 : -2 ); }
 	get hitbox_y2() { return 4; }
+	
+	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
+	{
+		return ( this.death_anim === 0 ) ? sdSpider.ignored_classes_alive : sdSpider.ignored_classes_dead;
+	}
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return this.death_anim === 0; }

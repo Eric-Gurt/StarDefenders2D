@@ -990,6 +990,10 @@ class sdStatusEffect extends sdEntity
 	
 	IsVisible( observer_entity )
 	{
+		if ( !sdWorld.is_server )
+		if ( !sdWorld.is_singleplayer )
+		return true; // If it was synced in first place - means it is visible. Otherwise observer map for damage won't be transferred and players won't see damage numbers
+		
 		let type = sdStatusEffect.types[ this.type ];
 		
 		if ( type )

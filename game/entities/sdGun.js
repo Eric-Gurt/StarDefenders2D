@@ -183,7 +183,8 @@ class sdGun extends sdEntity
 				return;
 			}
 			
-			if ( !sdArea.CheckPointDamageAllowed( from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2, from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2 ) )
+			if ( !from_entity.IsDamageAllowedByAdmins() )
+			//if ( !sdArea.CheckPointDamageAllowed( from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2, from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2 ) )
 			{
 				this.dangerous = false;
 				this._dangerous_from = null;

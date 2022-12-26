@@ -38,7 +38,7 @@ class sdChat
 	{
 		let do_not_allow_other_keys = false;
 		
-		if ( e.key === 'Escape' )
+		if ( e.key === 'Escape' && sdChat.open )
 		{
 			sdChat.open = false;
 			
@@ -78,12 +78,12 @@ class sdChat
 			}
 		}
 		else
-		if ( e.key === 'Backspace' )
+		if ( e.key === 'Backspace' && sdChat.open )
 		{
 			sdChat.text = sdChat.text.slice( 0, sdChat.text.length - 1 );
 		}
 		else
-		if ( e.code === 'KeyV' && e.ctrlKey )
+		if ( e.code === 'KeyV' && e.ctrlKey && sdChat.open )
 		{
 			//console.log( e.key );
 
@@ -95,7 +95,7 @@ class sdChat
 			}
 		}
 		else
-		if ( ( e.code === 'KeyX' || e.code === 'KeyC' ) && e.ctrlKey )
+		if ( ( e.code === 'KeyX' || e.code === 'KeyC' ) && e.ctrlKey && sdChat.open )
 		{
 			if ( sdChat.text.length > 0 )
 			navigator.clipboard.writeText( sdChat.text );
@@ -110,21 +110,23 @@ class sdChat
 	}
 	static async KeyPress( e )
 	{
-		if ( sdChat.open )
+		if ( !sdChat.open )
+		return false;
+	
+		if ( e.key.length === 1 )
 		{
-			if ( e.key.length === 1 )
+			let insert = ( e.key.length === 1 ) ? e.key : '';
+
+			if ( sdChat.text.length + insert.length < sdChat.max_characters )
 			{
-				let insert = ( e.key.length === 1 ) ? e.key : '';
-				
-				if ( sdChat.text.length + insert.length < sdChat.max_characters )
-				{
-					sdChat.text += insert;
-				}
+				sdChat.text += insert;
 			}
 		}
 	}
 	static KeyUp( e )
 	{
+		if ( !sdChat.open )
+		return false;
 	}
 	static Draw( ctx )
 	{

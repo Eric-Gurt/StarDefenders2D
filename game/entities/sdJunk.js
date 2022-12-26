@@ -810,7 +810,7 @@ class sdJunk extends sdEntity
 									character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 									character_entity._ai_team = 3; // AI team 3 is for the Council
 									character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
-									sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, pitch: 1, volume:1 });
+									sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y, pitch: 1, volume:1 });
 									character_entity._ai.next_action = 5;
 
 									sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
@@ -835,7 +835,7 @@ class sdJunk extends sdEntity
 										if ( character_entity.hea <= 0 )
 										if ( !character_entity._is_being_removed )
 										{
-											sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
+											sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
 											sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 											character_entity.remove();
 										}
@@ -851,7 +851,7 @@ class sdJunk extends sdEntity
 							
 										if ( !character_entity._is_being_removed )
 										{
-											sdSound.PlaySound({ name:'teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
+											sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
 											sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 											character_entity.remove();
 
@@ -927,7 +927,7 @@ class sdJunk extends sdEntity
 									drone.x = x;
 									drone.y = y;
 
-									sdSound.PlaySound({ name:'teleport', x:drone.x, y:drone.y, volume:0.5 });
+									sdSound.PlaySound({ name:'council_teleport', x:drone.x, y:drone.y, volume:0.5 });
 									sdWorld.SendEffect({ x:drone.x, y:drone.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 
 									drone.SetTarget( this );

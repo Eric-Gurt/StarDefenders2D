@@ -244,6 +244,10 @@ class sdDoor extends sdEntity
 			}
 		}
 	}
+	Fleshify( from=null ) // Fleshify is reused in sdDoor, using pointer
+	{
+		sdBlock.prototype.Fleshify.call( this, from );
+	}
 	Open()
 	{
 		if ( this.opening_tim === 0 )

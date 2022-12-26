@@ -1356,6 +1356,14 @@ class sdWorld
 		
 		if ( typeof params.y2 !== 'undefined' )
 		params.y2 = Math.round( params.y2 );
+	
+		if ( command === 'S' )
+		{
+			if ( params.channel )
+			{
+				params.channel = [ params.channel.entity._net_id, params.channel.uid ]; // Only send _net_id of entity and local uid if a channel
+			}
+		}
 
 		for ( var i = 0; i < socket_arr.length; i++ )
 		{
@@ -2194,7 +2202,7 @@ class sdWorld
 				
 				
 				// Always call onMovementInRange with last interacted water as it might not receive onMovementInRange as it is only called whenever something enters water, not when it leaves it
-				let water = sdWater.all_swimmers.get( this );
+				let water = sdWater.all_swimmers.get( entity );
 				if ( water )
 				map.add( water );
 
@@ -2559,6 +2567,8 @@ class sdWorld
 								if ( !e._is_being_removed )
 								{
 									sdWorld.UpdateHashPosition( e, false );
+									
+									e.ManageTrackedPhysWakeup();
 
 									if ( e._listeners ) // Should be faster than passing string
 									e.callEventListener( 'MOVES' );
@@ -3760,8 +3770,15 @@ class sdWorld
 		globalThis.sd_events = {
 			push: ( command, obj )=>
 			{
-				debugger;
-				offline_socket.character._key_states.SetKey( key, 1 );
+				if ( command[ 0 ] !== 'K1' )
+				if ( command[ 0 ] !== 'K0' )
+				{
+					debugger;
+				}
+				else
+				{
+					offline_socket.character._key_states.SetKey( command[ 1 ], ( command[ 0 ] === 'K1' ) ? 1 : 0 );
+				}
 			}
 		};
 		
@@ -3887,6 +3904,8 @@ class sdWorld
 	static Start( player_settings, full_reset=false, retry=0 )
 	{
 		sdSound.AllowSound();
+		
+		sdWorld.my_entity_net_id = undefined; // Reset...
 			
 		if ( !globalThis.connection_established && !sdWorld.is_singleplayer )
 		{

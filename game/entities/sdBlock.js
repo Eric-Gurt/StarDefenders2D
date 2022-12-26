@@ -11,6 +11,7 @@ import sdCharacter from './sdCharacter.js';
 import sdSandWorm from './sdSandWorm.js';
 import sdTimer from './sdTimer.js';
 import sdCamera from './sdCamera.js';
+import sdDoor from './sdDoor.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -586,7 +587,7 @@ class sdBlock extends sdEntity
 			this._stack_trace = globalThis.getStackTrace();
 		}*/
 		
-		this._client_side_bg = null;
+		//this._client_side_bg = null;
 		
 		this.width = params.width || 32;
 		this.height = params.height || 32;
@@ -683,6 +684,9 @@ class sdBlock extends sdEntity
 	}
 	Corrupt( from=null )
 	{
+		if ( !this.IsDamageAllowedByAdmins() )
+		return null;
+	
 		let ent2 = new sdBlock({ 
 			x: this.x, 
 			y: this.y,
@@ -709,12 +713,17 @@ class sdBlock extends sdEntity
 		ent2._contains_class = 'sdCrystal.deep_corrupted'; // Corrupt the worm aswell
 
 		sdEntity.entities.push( ent2 );
-		
+
 		ent2._hmax = this._hmax * 1.5;
 		ent2._hea = this._hea * 1.5;
+		
+		return ent2;
 	}
 	Crystalize( from=null )
 	{
+		if ( !this.IsDamageAllowedByAdmins() )
+		return null;
+	
 		let ent2 = new sdBlock({ x: this.x, y: this.y, width:this.width, height:this.height, material:sdBlock.MATERIAL_CRYSTAL_SHARDS, natural:true, hue:this.hue,br:this.br,filter:this.filter, rank: Math.round( Math.random() * 6 ) }); // Don't allow orange and anticrystal shards due to their glow effect overriding the block.
 
 		this.remove();
@@ -727,15 +736,24 @@ class sdBlock extends sdEntity
 		
 		ent2._hmax = this._hmax * 0.5;
 		ent2._hea = this._hea * 0.5;
+		
+		return ent2;
 	}
-	Fleshify( from=null )
+	Fleshify( from=null ) // Fleshify is reused in sdDoor, using pointer
 	{
+		if ( !this.IsDamageAllowedByAdmins() )
+		return null;
+	
 		let bri = 100 - ( Math.random() * 100 / 5 );
 		let ent2 = new sdBlock({ 
-			x: this.x, 
+			/*x: this.x, 
 			y: this.y, 
 			width:this.width, 
-			height:this.height, 
+			height:this.height, */
+			x: this.x + this._hitbox_x1, 
+			y: this.y + this._hitbox_y1, 
+			width: this._hitbox_x2 - this._hitbox_x1, 
+			height: this._hitbox_y2 - this._hitbox_y1, 
 			material:sdBlock.MATERIAL_FLESH, 
 			br:bri, 
 			rank: from ? Math.max( 0, from.p - 1 - Math.floor( Math.random(), 2 ) ) : undefined,
@@ -777,6 +795,8 @@ class sdBlock extends sdEntity
 			this._shielded = null;
 			sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:2, pitch:0.5 });
 		}
+		
+		return ent2;
 	}
 	GetBleedEffect()
 	{
@@ -954,16 +974,19 @@ class sdBlock extends sdEntity
 				
 					sdWorld.last_hit_entity = null;
 					sdWorld.CheckWallExistsBox( 
-							this.x + xx * this.width, 
-							this.y + yy * this.height, 
-							this.x + this._hitbox_x2 + xx * this.width, 
-							this.y + this._hitbox_y2 + yy * this.height, 
+							this.x + xx * 16, 
+							this.y + yy * 16, 
+							this.x + this._hitbox_x2 + xx * 16, 
+							this.y + this._hitbox_y2 + yy * 16, 
 							null, 
 							null, 
 							null, 
 							( e )=>
 							{
-								return ( e.is( sdBlock ) && ( e.IsDefaultGround() || !e._natural ) );
+								return (
+										( e.is( sdBlock ) && ( e.IsDefaultGround() || !e._natural ) ) ||
+										e.is( sdDoor )
+								);
 							}
 					);
 					

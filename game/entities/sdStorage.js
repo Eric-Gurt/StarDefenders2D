@@ -82,6 +82,8 @@ class sdStorage extends sdEntity
 		this.awake = 1;
 		
 		this.filter = params.filter || 'saturate(0)';
+		
+		//console.warn(1);
 	}
 	onBuilt()
 	{

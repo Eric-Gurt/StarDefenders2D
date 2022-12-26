@@ -19,6 +19,8 @@ let sdBullet = null;
 let skipper = 0;
 
 let GetAnythingNear = null;
+let sdArea = null;
+//let sdSound = null;
 			
 class sdEntity
 {
@@ -146,6 +148,7 @@ class sdEntity
 
 				arr.push( top_ent );
 
+				if ( sdWorld.is_server )
 				if ( arr.length > 100 )
 				{
 					console.warn( 'Too many objets lie on top of ',bottom_ent,'objects list:',arr );
@@ -2980,6 +2983,25 @@ class sdEntity
 							  prop !== '_vis_block_bottom' && 
 							  prop !== '_speak_id' && 
 							  prop !== '_say_allowed_in' && 
+							  
+							  prop !== '_phys_sleep' && 
+							  prop !== '_phys_last_touch' && 
+							  prop !== '_phys_last_rest_on' && 
+							  prop !== '_phys_last_w' && 
+							  prop !== '_phys_last_h' && 
+							  prop !== '_phys_last_sx' && 
+							  prop !== '_phys_last_sy' && 
+							  prop !== '_phys_last_rest_on_targetable' && 
+							  prop !== '_phys_last_rest_on_x' && 
+							  prop !== '_phys_last_rest_on_y' && 
+							  prop !== '_phys_entities_on_top' && 
+							  prop !== '_client_side_bg' && 
+							  
+							  prop !== '_frozen' && 
+							  
+							  prop !== '_anything_near_range' && 
+							  prop !== '_next_anything_near_rethink' &&
+							  
 							  ( 
 								typeof this[ prop ] === 'number' || 
 								typeof this[ prop ] === 'string' || 
@@ -3157,6 +3179,7 @@ class sdEntity
 			if ( prop !== '_class' )
 			if ( prop !== '_is_being_removed' )
 			if ( prop !== '_class_id' )
+			if ( prop !== '_hiberstate' )
 			{
 				if ( snapshot[ prop ] !== null && typeof snapshot[ prop ] === 'object' && snapshot[ prop ]._net_id && snapshot[ prop ]._class )
 				{
@@ -3211,7 +3234,7 @@ class sdEntity
 						this[ prop ] = snapshot[ prop ];
 						else
 						{
-							trace('[1]Rejecting creaton of ',prop,'on',this.GetClass(),'(probably an old version property)');
+							traceOnce('[1]Rejecting creaton of ',prop,'on',this.GetClass(),'(probably an old version property)');
 							//trace( this );
 							//throw new Error();
 						}
@@ -3244,7 +3267,7 @@ class sdEntity
 							this[ prop ] = snapshot[ prop ];
 							else
 							{
-								trace('[2]Rejecting creaton of ',prop,'on',this.GetClass(),'(probably an old version property)');
+								traceOnce('[2]Rejecting creaton of ',prop,'on',this.GetClass(),'(probably an old version property)');
 								//trace( this );
 								//throw new Error();
 							}
@@ -3256,8 +3279,16 @@ class sdEntity
 		
 		if ( sdWorld.is_server )
 		{
+			/*
+			// Maybe it should be better to let hibernated sdStorage objects re-detect what are they are lying on?
 			if ( typeof snapshot._hiberstate !== 'undefined' )
 			this.SetHiberState( snapshot._hiberstate );
+			*/
+			if ( typeof this._phys_sleep !== 'undefined' )
+			{
+				this.PhysWakeUp(); // Reset phys sleep
+			}
+		   
 		
 			// Guns still use old pointer method
 			if ( this.GetClass() === 'sdGun' )
@@ -4032,6 +4063,8 @@ class sdEntity
 		
 		this.onRemove();
 		
+		this.ManageTrackedPhysWakeup();
+		
 		this.SetHiberState( sdEntity.HIBERSTATE_REMOVED );
 		
 		sdWorld.UpdateHashPosition( this, false );
@@ -4169,6 +4202,8 @@ class sdEntity
 				}
 			}
 		}
+		
+		sdSound.DestroyAllSoundChannels( this );
 	}
 	isWaterDamageResistant()
 	{
@@ -4226,6 +4261,15 @@ class sdEntity
 		params.for = this;
 		sdStatusEffect.ApplyStatusEffectForEntity( params );
 	}
+	
+	IsDamageAllowedByAdmins()
+	{
+		if ( !sdArea )
+		sdArea = sdWorld.entity_classes.sdArea;
+
+		return sdArea.CheckPointDamageAllowed( this.x + ( this._hitbox_x2 + this._hitbox_x1 ) / 2, this.y + ( this._hitbox_y2 + this._hitbox_y1 ) / 2 );
+	}
+	
 	DamageWithEffect( dmg, initiator=null, headshot=false, affects_armor=true )
 	{
 		// Some extra check so old code works without changes and occasional crashes
@@ -4235,12 +4279,21 @@ class sdEntity
 		
 		if ( sdWorld.is_server || sdWorld.is_singleplayer )
 		{
+			if ( !this.IsDamageAllowedByAdmins() )
+			{
+				if ( initiator && initiator._god )
+				{
+				}
+				else
+				return false;
+			}
+			
 			if ( initiator )
 			{
 				if ( dmg > 0 )
 				{
-						this._last_attacker_net_id = initiator._net_id;
-						this._last_attacker_until = sdWorld.time + 7000;
+					this._last_attacker_net_id = initiator._net_id;
+					this._last_attacker_until = sdWorld.time + 7000;
 				}
 				else
 				{
@@ -4265,6 +4318,8 @@ class sdEntity
 		{
 			this.Damage( dmg, initiator, headshot, affects_armor );
 		}
+		
+		return true;
 	}
 	Damage( dmg, initiator=null, headshot=false, affects_armor=true )
 	{
@@ -4351,6 +4406,10 @@ class sdEntity
 	{
 	}
 	
+	AllowContextCommandsInRestirectedAreas( exectuter_character, executer_socket ) // exectuter_character can be null
+	{
+		return false;
+	}
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
 	{
 		/*

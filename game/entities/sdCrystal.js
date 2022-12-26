@@ -8,6 +8,7 @@ import sdPlayerDrone from './sdPlayerDrone.js';
 import sdMatterAmplifier from './sdMatterAmplifier.js';
 import sdCube from './sdCube.js';
 import sdCom from './sdCom.js';
+import sdEffect from './sdEffect.js';
 
 
 class sdCrystal extends sdEntity

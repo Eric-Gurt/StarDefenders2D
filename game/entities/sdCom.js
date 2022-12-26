@@ -223,6 +223,125 @@ class sdCom extends sdEntity
 	}
 	RequireSpawnAlign()
 	{ return false; }
+	
+	
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdCom.action_range ) ||
+			 ( command_name === 'COM_KICK' && parameters_array[ 0 ] === exectuter_character.biometry ) )
+		{
+			if ( command_name === 'COM_SUB' )
+			{
+				//if ( !( parameters_array instanceof Array ) )
+				//return;
+
+				//let net_id = parameters_array[ 0 ];
+				let new_sub = parameters_array[ 0 ];
+
+				if ( typeof new_sub === 'number' || ( typeof new_sub === 'string' && ( new_sub === '*' || typeof sdWorld.entity_classes[ new_sub ] !== 'undefined' ) ) )
+				//if ( executer_socket.character ) 
+				//if ( executer_socket.character.hea > 0 ) 
+				{
+					//let ent = sdEntity.GetObjectByClassAndNetId( 'sdCom', net_id );
+					//if ( ent !== null )
+					//{
+						//if ( sdWorld.inDist2D( executer_socket.character.x, executer_socket.character.y, ent.x, ent.y, sdCom.action_range ) >= 0 )
+						//{
+							if ( executer_socket.character.canSeeForUse( this ) )
+							this.NotifyAboutNewSubscribers( 1, [ new_sub ] );
+							else
+							executer_socket.SDServiceMessage( 'Communication node is behind wall' );
+						//}
+						//else
+						//executer_socket.SDServiceMessage( 'Communication node is too far' );
+					//}
+					//else
+					//executer_socket.SDServiceMessage( 'Communication node no longer exists' );
+				}
+			}
+			else
+			if ( command_name === 'COM_KICK' )
+			{
+				//if ( !( parameters_array instanceof Array ) )
+				//return;
+
+				//if ( executer_socket.character ) 
+				//if ( executer_socket.character.hea > 0 ) 
+				//{
+					//let net_id = parameters_array[ 0 ];
+					let net_id_to_kick = parameters_array[ 0 ];
+					//let ent = sdEntity.GetObjectByClassAndNetId( 'sdCom', net_id );
+					//if ( ent !== null )
+					//{
+						//if ( sdWorld.inDist2D( executer_socket.character.x, executer_socket.character.y, ent.x, ent.y, sdCom.action_range ) >= 0 )
+						//{
+							if ( executer_socket.character.canSeeForUse( this ) )
+							this.NotifyAboutNewSubscribers( 0, [ net_id_to_kick ] );
+							else
+							executer_socket.SDServiceMessage( 'Communication node is behind wall' );
+						//}
+						//else
+						//executer_socket.SDServiceMessage( 'Communication node is too far' );
+					//}
+					//else
+					//executer_socket.SDServiceMessage( 'Communication node no longer exists' );
+				//}
+			}
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		{
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdCom.action_range ) )
+			{
+				//this.AddContextOption( 'Get ', 'GET', [ undefined ], 'Enter caption text', ( sdWorld.client_side_censorship && this.text_censored ) ? sdWorld.CensoredText( this.text ) : this.text, 100 );
+
+				if ( this.subscribers.indexOf( sdWorld.my_entity.biometry ) === -1 )
+				this.AddContextOption( 'Subscribe myself to network', 'COM_SUB', [ sdWorld.my_entity.biometry ] );
+
+				if ( this.subscribers.indexOf( 'sdCharacter' ) === -1 )
+				this.AddContextOption( 'Subscribe all players', 'COM_SUB', [ 'sdCharacter' ] );
+
+				if ( this.subscribers.indexOf( 'sdPlayerDrone' ) === -1 )
+				this.AddContextOption( 'Subscribe all player drones', 'COM_SUB', [ 'sdPlayerDrone' ] );
+
+				if ( this.subscribers.indexOf( 'sdCrystal' ) === -1 )
+				this.AddContextOption( 'Subscribe all crystals', 'COM_SUB', [ 'sdCrystal' ] );
+
+				if ( this.subscribers.indexOf( 'sdCube' ) === -1 )
+				this.AddContextOption( 'Subscribe all Cubes', 'COM_SUB', [ 'sdCube' ] );
+
+				if ( this.subscribers.indexOf( 'sdStorage' ) === -1 )
+				this.AddContextOption( 'Subscribe all Storage crates', 'COM_SUB', [ 'sdStorage' ] );
+
+				if ( this.subscribers.indexOf( 'sdHover' ) === -1 )
+				this.AddContextOption( 'Subscribe all Hovers', 'COM_SUB', [ 'sdHover' ] );
+
+				if ( this.subscribers.indexOf( 'sdGun' ) === -1 )
+				this.AddContextOption( 'Subscribe all items', 'COM_SUB', [ 'sdGun' ] );
+
+				if ( this.subscribers.indexOf( 'sdBullet' ) === -1 )
+				this.AddContextOption( 'Subscribe projectiles', 'COM_SUB', [ 'sdBullet' ] );
+
+				if ( this.subscribers.indexOf( '*' ) === -1 )
+				this.AddContextOption( 'Subscribe everything (for doors & teleports only)', 'COM_SUB', [ '*' ] );
+
+				for ( var i = 0; i < this.subscribers.length; i++ )
+				{
+					let net_id_or_biometry = this.subscribers[ i ];
+					this.AddContextOption( 'Kick ' + sdEntity.GuessEntityName( net_id_or_biometry ), 'COM_KICK', [ net_id_or_biometry ] );
+				}
+			}
+			else
+			{
+				this.AddContextOption( 'Unsubscribe from network', 'COM_KICK', [ sdWorld.my_entity.biometry ] );
+			}
+		}
+	}
 }
 //sdCom.init_class();
 

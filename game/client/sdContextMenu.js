@@ -28,281 +28,142 @@ class sdContextMenu
 			
 			sdContextMenu.options = [];
 				
-			/*if ( sdContextMenu.current_target === sdWorld.my_entity )
+			if ( sdContextMenu.current_target.GetClass() === 'sdUpgradeStation' )
 			{
-				sdContextMenu.options.push({ title: 'Quit and forget this character',
-					action: ()=>
-					{
-						//globalThis.socket.emit( 'SELF_EXTRACT' );
-						
-						if ( sdWorld.my_score < 50 || confirm( 'Are you sure you want to forget this character?' ) )
-						{
-							sdWorld.Stop();
-						}
-					}
-				});
-				sdContextMenu.options.push({ title: 'Copy character hash ID',
-					action: ()=>
-					{
-						//globalThis.socket.emit( 'SELF_EXTRACT' );
-
-						if(confirm( 'Sharing this with others, or not knowing how to use this properly can make you lose your character and progress. Are you sure?' ) )
-						{
-							prompt('This is your hash, keep it private and remember it to recover your character.', localStorage.my_hash + "|" + localStorage.my_net_id);
-						}
-					}
-				});
-				
-				if ( sdContextMenu.current_target.cc_id )
+				if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdCom.action_range_command_centre ) >= 0 )
 				{
-					sdContextMenu.options.push({ title: 'Leave team',
+					sdContextMenu.options.push({ title: 'Upgrade character (5000 matter cost)',
 						action: ()=>
 						{
-							globalThis.socket.emit( 'CC_SET_SPAWN', [ sdContextMenu.current_target._net_id ] );
+							globalThis.socket.emit( 'UPGRADE_CHAR', [ sdContextMenu.current_target._net_id ] );
+						}
+					});
+					sdContextMenu.options.push({ title: 'Get basic equipment (500 matter cost)',
+						action: ()=>
+						{
+							globalThis.socket.emit( 'UPGRADE_GET_EQUIP', [ sdContextMenu.current_target._net_id ] );
+						}
+					});
+					if ( sdWorld.my_entity.build_tool_level > 1 && sdContextMenu.current_target.level < 3 )
+					sdContextMenu.options.push({ title: 'Upgrade the station (5000 matter cost)',
+						action: ()=>
+						{
+							globalThis.socket.emit( 'UPGRADE_STAT', [ sdContextMenu.current_target._net_id ] );
 						}
 					});
 				}
-				
-				if ( sdContextMenu.current_target.armor > 0 )
-				sdContextMenu.options.push({ title: 'Remove armor',
-					action: ()=>
+			}
+			else
+			if ( sdContextMenu.current_target.GetClass() === 'sdCrystalCombiner' )
+			{
+				if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, 64 ) >= 0 )
+				{
+					sdContextMenu.options.push({ title: 'Combine crystals',
+						action: ()=>
+						{
+							globalThis.socket.emit( 'CRYSTAL_COMBINE', [ sdContextMenu.current_target._net_id ] );
+						}
+					});
+				}
+			}
+			else
+			if ( sdContextMenu.current_target.GetClass() === 'sdStorage' )
+			{
+				if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdStorage.access_range ) >= 0 )
+				if ( sdContextMenu.current_target.held_by === null )
+				{
+					let items = sdContextMenu.current_target.GetItems();
+
+					for ( var i = 0; i < items.length; i++ )
 					{
-						globalThis.socket.emit( 'REMOVE_ARMOR', [ -1 ] );
+						let item = items[ i ]; // Name of the item
+						let it_c = i; // For some reason I need this since otherwise setting "i" value on socket emit array below results always in last value - Booraz // It is because by the time action function is executed - this loop is already finished and i points to items.length, it is perfectly fine to create "let" variables inside of such loops -- Eric Gurt
+						sdContextMenu.options.push({ title: 'Get ' + item,
+							action: ()=>
+							{
+								globalThis.socket.emit( 'STORAGE_GET', [ sdContextMenu.current_target._net_id, it_c ] );
+							}
+						});
 					}
-				});
-				
-				if ( sdContextMenu.current_target.stim_ef > 0 || sdContextMenu.current_target.power_ef > 0 || sdContextMenu.current_target.time_ef > 0 )
-				sdContextMenu.options.push({ title: 'Remove effects',
+				}
+			}
+			else
+			/*if ( sdContextMenu.current_target.GetClass() === 'sdCom' )
+			{
+				if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdCom.action_range ) >= 0 )
+				{
+					if ( sdContextMenu.current_target.subscribers.indexOf( sdWorld.my_entity.biometry ) === -1 )
+					sdContextMenu.options.push({ title: 'Subscribe myself to network',
+						action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, sdWorld.my_entity.biometry ] ); }
+					});
+
+					if ( sdContextMenu.current_target.subscribers.indexOf( 'sdCharacter' ) === -1 )
+					sdContextMenu.options.push({ title: 'Subscribe all players',
+						action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdCharacter' ] ); }
+					});
+
+					if ( sdContextMenu.current_target.subscribers.indexOf( 'sdPlayerDrone' ) === -1 )
+					sdContextMenu.options.push({ title: 'Subscribe all player drones',
+						action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdPlayerDrone' ] ); }
+					});
+
+					if ( sdContextMenu.current_target.subscribers.indexOf( 'sdCrystal' ) === -1 )
+					sdContextMenu.options.push({ title: 'Subscribe all crystals',
+						action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdCrystal' ] ); }
+					});
+
+					if ( sdContextMenu.current_target.subscribers.indexOf( 'sdCube' ) === -1 )
+					sdContextMenu.options.push({ title: 'Subscribe all Cubes',
+						action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdCube' ] ); }
+					});
+
+					if ( sdContextMenu.current_target.subscribers.indexOf( 'sdStorage' ) === -1 )
+					sdContextMenu.options.push({ title: 'Subscribe all Storage crates',
+						action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdStorage' ] ); }
+					});
+
+					if ( sdContextMenu.current_target.subscribers.indexOf( 'sdHover' ) === -1 )
+					sdContextMenu.options.push({ title: 'Subscribe all Hovers',
+						action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdHover' ] ); }
+					});
+
+					if ( sdContextMenu.current_target.subscribers.indexOf( 'sdGun' ) === -1 )
+					sdContextMenu.options.push({ title: 'Subscribe all items',
+						action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdGun' ] ); }
+					});
+
+					if ( sdContextMenu.current_target.subscribers.indexOf( 'sdBullet' ) === -1 )
+					sdContextMenu.options.push({ title: 'Subscribe projectiles',
+						action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdBullet' ] ); }
+					});
+
+					if ( sdContextMenu.current_target.subscribers.indexOf( '*' ) === -1 )
+					sdContextMenu.options.push({ title: 'Subscribe everything (for doors & teleports only)',
+						action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, '*' ] ); }
+					});
+
+					for ( var i = 0; i < sdContextMenu.current_target.subscribers.length; i++ )
+					{
+						let net_id_or_biometry = sdContextMenu.current_target.subscribers[ i ];
+						sdContextMenu.options.push({ title: 'Kick ' + sdEntity.GuessEntityName( net_id_or_biometry ),
+							action: ()=>
+							{
+								globalThis.socket.emit( 'COM_KICK', [ sdContextMenu.current_target._net_id, net_id_or_biometry ] );
+							}
+						});
+					}
+				}
+
+				if ( sdContextMenu.current_target.subscribers.indexOf( sdWorld.my_entity.biometry ) !== -1 )
+				sdContextMenu.options.push({ title: 'Unsubscribe from network',
 					action: ()=>
 					{
-						globalThis.socket.emit( 'REMOVE_EFFECTS', [ -1 ] );
+						globalThis.socket.emit( 'COM_UNSUB', sdContextMenu.current_target._net_id );
 					}
 				});
 			}
 			else*/
-			{
-				/*if ( sdContextMenu.current_target.GetClass() === 'sdCharacter' )
-				{
-					if ( sdContextMenu.current_target.cc_id )
-					{
-						sdContextMenu.options.push({ title: 'Kick from team',
-							action: ()=>
-							{
-								globalThis.socket.emit( 'CC_SET_SPAWN', [ sdContextMenu.current_target._net_id ] );
-							}
-						});
-					}
-				}
-				else*/
-				if ( sdContextMenu.current_target.GetClass() === 'sdUpgradeStation' )
-				{
-					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdCom.action_range_command_centre ) >= 0 )
-					{
-						sdContextMenu.options.push({ title: 'Upgrade character (5000 matter cost)',
-							action: ()=>
-							{
-								globalThis.socket.emit( 'UPGRADE_CHAR', [ sdContextMenu.current_target._net_id ] );
-							}
-						});
-						sdContextMenu.options.push({ title: 'Get basic equipment (500 matter cost)',
-							action: ()=>
-							{
-								globalThis.socket.emit( 'UPGRADE_GET_EQUIP', [ sdContextMenu.current_target._net_id ] );
-							}
-						});
-						if ( sdWorld.my_entity.build_tool_level > 1 && sdContextMenu.current_target.level < 3 )
-						sdContextMenu.options.push({ title: 'Upgrade the station (5000 matter cost)',
-							action: ()=>
-							{
-								globalThis.socket.emit( 'UPGRADE_STAT', [ sdContextMenu.current_target._net_id ] );
-							}
-						});
-					}
-				}
-				else
-				if ( sdContextMenu.current_target.GetClass() === 'sdCrystalCombiner' )
-				{
-					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, 64 ) >= 0 )
-					{
-						sdContextMenu.options.push({ title: 'Combine crystals',
-							action: ()=>
-							{
-								globalThis.socket.emit( 'CRYSTAL_COMBINE', [ sdContextMenu.current_target._net_id ] );
-							}
-						});
-					}
-				}
-				else
-				/*if ( sdContextMenu.current_target.GetClass() === 'sdMatterAmplifier' )
-				{
-					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, 64 ) >= 0 )
-					{
-						sdContextMenu.options.push({ title: 'Toggle shields',
-							action: ()=>
-							{
-								globalThis.socket.emit( 'AMPLIFIER_SHIELD_TOGGLE', [ sdContextMenu.current_target._net_id ] );
-							}
-						});
-					}
-				}
-				else*/
-				if ( sdContextMenu.current_target.GetClass() === 'sdStorage' )
-				{
-					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdStorage.access_range ) >= 0 )
-					if ( sdContextMenu.current_target.held_by === null )
-					{
-						let items = sdContextMenu.current_target.GetItems();
-						
-						for ( var i = 0; i < items.length; i++ )
-						{
-							//if ( sdContextMenu.current_target.type === 0 || sdContextMenu.current_target.type === 1 )
-							{
-								let item = items[ i ]; // Name of the item
-								let it_c = i; // For some reason I need this since otherwise setting "i" value on socket emit array below results always in last value - Booraz
-								sdContextMenu.options.push({ title: 'Get ' + item,
-									action: ()=>
-									{
-										globalThis.socket.emit( 'STORAGE_GET', [ sdContextMenu.current_target._net_id, it_c ] );
-									}
-								});
-							}
-							/*if ( sdContextMenu.current_target.type === 2 )
-							{
-								let net_id = items[ i ]._net_id;
-								sdContextMenu.options.push({ title: 'Get '+items[ i ].title+' ( ' + items[ i ].matter_max + ' max matter )',
-									action: ()=>
-									{
-										globalThis.socket.emit( 'STORAGE_GET', [ sdContextMenu.current_target._net_id, net_id ] );
-									}
-								});
-							}
-							if ( sdContextMenu.current_target.type === 3 )
-							{
-								let net_id = items[ i ]._net_id;
-								sdContextMenu.options.push({ title: 'Get '+items[ i ].title,
-									action: ()=>
-									{
-										globalThis.socket.emit( 'STORAGE_GET', [ sdContextMenu.current_target._net_id, net_id ] );
-									}
-								});
-							}
-							*/
-						}
-					}
-				}
-				/*else
-				if ( sdContextMenu.current_target.GetClass() === 'sdCharacter' )
-				{
-					if ( sdContextMenu.current_target.hea > 0 )
-					{
-					}
-				}
-				else
-				if ( sdContextMenu.current_target.GetClass() === 'sdCommandCentre' )
-				{
-					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdCom.action_range_command_centre ) >= 0 )
-					{
-						sdContextMenu.options.push({ title: 'Set as respawn point',
-							action: ()=> { globalThis.socket.emit( 'CC_SET_SPAWN', [ sdContextMenu.current_target._net_id ] ); }
-						});
-					}
-				
-					sdContextMenu.options.push({ title: 'Reset respawn point',
-						action: ()=>
-						{
-							globalThis.socket.emit( 'CC_SET_SPAWN', [ -1 ] );
-						}
-					});
-				}*/
-				else
-				if ( sdContextMenu.current_target.GetClass() === 'sdCom' )
-				{
-					if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdCom.action_range ) >= 0 )
-					{
-						/*if ( sdContextMenu.current_target.subscribers.indexOf( sdWorld.my_entity._net_id ) === -1 )
-						sdContextMenu.options.push({ title: 'Subscribe myself to network',
-							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, sdWorld.my_entity._net_id ] ); }
-						});*/
-						
-						if ( sdContextMenu.current_target.subscribers.indexOf( sdWorld.my_entity.biometry ) === -1 )
-						sdContextMenu.options.push({ title: 'Subscribe myself to network',
-							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, sdWorld.my_entity.biometry ] ); }
-						});
-					
-						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdCharacter' ) === -1 )
-						sdContextMenu.options.push({ title: 'Subscribe all players',
-							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdCharacter' ] ); }
-						});
-					
-						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdPlayerDrone' ) === -1 )
-						sdContextMenu.options.push({ title: 'Subscribe all player drones',
-							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdPlayerDrone' ] ); }
-						});
-					
-						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdCrystal' ) === -1 )
-						sdContextMenu.options.push({ title: 'Subscribe all crystals',
-							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdCrystal' ] ); }
-						});
-					
-						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdCube' ) === -1 )
-						sdContextMenu.options.push({ title: 'Subscribe all Cubes',
-							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdCube' ] ); }
-						});
-					
-						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdStorage' ) === -1 )
-						sdContextMenu.options.push({ title: 'Subscribe all Storage crates',
-							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdStorage' ] ); }
-						});
-					
-						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdHover' ) === -1 )
-						sdContextMenu.options.push({ title: 'Subscribe all Hovers',
-							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdHover' ] ); }
-						});
-					
-						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdGun' ) === -1 )
-						sdContextMenu.options.push({ title: 'Subscribe all items',
-							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdGun' ] ); }
-						});
-					
-						if ( sdContextMenu.current_target.subscribers.indexOf( 'sdBullet' ) === -1 )
-						sdContextMenu.options.push({ title: 'Subscribe projectiles',
-							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, 'sdBullet' ] ); }
-						});
-					
-						if ( sdContextMenu.current_target.subscribers.indexOf( '*' ) === -1 )
-						sdContextMenu.options.push({ title: 'Subscribe everything (for doors & teleports only)',
-							action: ()=> { globalThis.socket.emit( 'COM_SUB', [ sdContextMenu.current_target._net_id, '*' ] ); }
-						});
-						
-						for ( var i = 0; i < sdContextMenu.current_target.subscribers.length; i++ )
-						{
-							let net_id_or_biometry = sdContextMenu.current_target.subscribers[ i ];
-							sdContextMenu.options.push({ title: 'Kick ' + sdEntity.GuessEntityName( net_id_or_biometry )/*user ' + net_id*/,
-								action: ()=>
-								{
-									globalThis.socket.emit( 'COM_KICK', [ sdContextMenu.current_target._net_id, net_id_or_biometry ] );
-								}
-							});
-						}
-					}
-					/*if ( sdContextMenu.current_target.subscribers.indexOf( sdWorld.my_entity._net_id ) !== -1 )
-					sdContextMenu.options.push({ title: 'Unsubscribe from network',
-						action: ()=>
-						{
-							globalThis.socket.emit( 'COM_UNSUB', sdContextMenu.current_target._net_id );
-						}
-					});*/
-					if ( sdContextMenu.current_target.subscribers.indexOf( sdWorld.my_entity.biometry ) !== -1 )
-					sdContextMenu.options.push({ title: 'Unsubscribe from network',
-						action: ()=>
-						{
-							globalThis.socket.emit( 'COM_UNSUB', sdContextMenu.current_target._net_id );
-						}
-					});
-				}
-				else
-				sdContextMenu.current_target.PopulateContextOptions( sdWorld.my_entity );
-			}
+			sdContextMenu.current_target.PopulateContextOptions( sdWorld.my_entity );
 			
 			if ( sdContextMenu.options.length > 0 )
 			{

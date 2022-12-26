@@ -1,3 +1,8 @@
+/*
+
+	Edit database
+
+*/
 
 /* global sd_events, sdElement */
 
@@ -33,13 +38,13 @@ class sdDatabaseEditor
 	{
 		this.overlay = sdElement.createElement({ 
 			type: sdElement.OVERLAY,
-			onClick: ()=>{ this.remove(); } 
+			onClick: ()=>{ sdDatabaseEditor.Close(); } 
 		});
 		
 		this.window = this.overlay.createElement({ 
 			type: sdElement.WINDOW,
 			text: 'Database Editor',
-			onCloseButton: ()=>{ this.remove(); } 
+			onCloseButton: ()=>{ sdDatabaseEditor.Close(); } 
 		});
 		
 		/*
@@ -56,8 +61,10 @@ class sdDatabaseEditor
 			text: ''
 		});
 		this.structure_element.element.style.height = '100%';
+		this.structure_element.element.style.overflowX = 'auto';
 		this.structure_element.element.style.overflowY = 'auto';
 		this.structure_element.element.style.width = '100%';
+		this.structure_element.element.style.fontSize = '16px';
 		this.structure_element.element.classList.add( 'sd_scrollbar' );
 		
 		this.known_data = 
@@ -75,6 +82,12 @@ class sdDatabaseEditor
 				_properties_change_pending: {},
 				_auto_expand: true,
 				_prevent_new_properties: true,
+				_partial: false,
+				_rows_count: undefined,
+				_results_count: undefined,
+				_last_search_by_key: '',
+				_last_search_by_substring: '',
+				_last_search_count_to_return: 30,
 
 				data: 
 				{
@@ -85,17 +98,26 @@ class sdDatabaseEditor
 					_expanded: false,
 					_properties_change_pending: {},
 					_auto_expand: true,
-					_prevent_new_properties: true
+					_prevent_new_properties: true,
+					_partial: false,
+					_rows_count: undefined,
+					_results_count: undefined,
+					_last_search_by_key: '',
+					_last_search_by_substring: '',
+					_last_search_count_to_return: 30,
 				}
 			}
 		};
+		
+		this.structure_update_cheduled = true;
 		
 		this.UpdateStructure();
 	}
 	
 	MakeDefaultObjectProperties( obj, path, manually_made )
 	{
-		if ( typeof obj === 'object' )
+		//if ( typeof obj === 'object' )
+		if ( obj instanceof Object )
 		{
 			let template = 
 			{
@@ -104,16 +126,31 @@ class sdDatabaseEditor
 				_synced: manually_made ? true : false,
 				_pending: false,
 				_expanded: manually_made ? true : false,
-				_properties_change_pending: {}
+				_properties_change_pending: {},
+				_last_search_by_key: '',
+				_last_search_by_substring: '',
 			};
 
 			//let keys = Object.keys( obj );
 			//for ( let i = 0; i < keys.length; i++ )
 			for ( let p in obj )
-			this.MakeDefaultObjectProperties( obj[ p ], path+'.'+p, manually_made );
+			{
+				//this.MakeDefaultObjectProperties( obj[ p ], path+'.'+p, manually_made );
+				this.MakeDefaultObjectProperties( obj[ p ], path.concat( p ), manually_made );
+			}
 			
 			for ( let p in template )
-			obj[ p ] = template[ p ];
+			{
+				if ( obj.hasOwnProperty( p ) )
+				if ( p === '_is_array' || // Do not lose _is_array type whenever pasting objects
+					 p === '_expanded' ||
+					 p === '_synced' )
+				{
+					continue;
+				}
+				
+				obj[ p ] = template[ p ];
+			}
 		}
 	}
 	
@@ -131,19 +168,77 @@ class sdDatabaseEditor
 			//ptr = ptr[ parts[ i ] ];
 			
 			let property_access = '';
+			let property_access_parent = '';
 			
 			for ( let i = 0; i < key.length; i++ )
-			property_access += '['+JSON.stringify( key[ i ] )+']';
+			{
+				property_access += '['+JSON.stringify( key[ i ] )+']';
+				
+				if ( i < key.length - 1 )
+				property_access_parent += '['+JSON.stringify( key[ i ] )+']';
+			}
 			
-			eval( 'sdDatabaseEditor.only_instance.known_data' + property_access + ' = Object.assign( sdDatabaseEditor.only_instance.known_data' + property_access + ', value );' );
+			if ( value instanceof Object )
+			{
+				if ( value._clear_old_properties )
+				{
+					let obj;
+					
+					eval( 'obj = sdDatabaseEditor.only_instance.known_data' + property_access + ';' );
+					
+					for ( let p in obj )
+					if ( p.charAt( 0 ) !== '_' )
+					delete obj[ p ];
+				}
+				
+				eval( 'sdDatabaseEditor.only_instance.known_data' + property_access + ' = Object.assign( sdDatabaseEditor.only_instance.known_data' + property_access + ', value );' );
+			}
+			else
+			if ( value === '#PROP_DELETED' )
+			eval( 'delete sdDatabaseEditor.only_instance.known_data' + property_access + ';' );
+			else
+			eval( 'sdDatabaseEditor.only_instance.known_data' + property_access + ' = value;' );
+			
+			let last_prop = key[ key.length - 1 ];
+			
+			eval( 'delete sdDatabaseEditor.only_instance.known_data' + property_access_parent + '._properties_change_pending[ last_prop ];' );
 			
 			sdDatabaseEditor.only_instance.UpdateStructure();
 		}
 	}
 	
+	AskIfObjectCanBeRemoved( obj, what_it_will_do='delete both property and value permanently' )
+	{
+		if ( obj instanceof Object )
+		{
+			for ( let p in obj )
+			if ( p.charAt( 0 ) !== '_' )
+			{
+				return confirm( 'Are you sure? This action will ' + what_it_will_do + '.' );
+			}
+			
+			return true;
+		}
+		return true;
+	}
+	
 	UpdateStructure()
 	{
+		this.structure_update_cheduled = true;
+		setTimeout( ()=>{ 
+			
+			if ( this.structure_update_cheduled )
+			{
+				this.structure_update_cheduled = false;
+				this._UpdateStructure();
+			}
+		}, 1 );
+	}
+	_UpdateStructure()
+	{
 		this.structure_element.removeChildren();
+		
+		let indent_step = 20;
 		
 		const ShowObject = ( obj, name, indent, parent_obj )=>
 		{
@@ -165,24 +260,61 @@ class sdDatabaseEditor
 				
 			if ( change_sync_pending === 1 )
 			key.element.classList.add( 'pending_blinking' );
+		
+			//key.element.style.transformOrigin = 'right center';
 			
 			if ( !parent_obj._prevent_new_properties )
 			if ( change_sync_pending === 0 || change_sync_pending === 1 )
 			key.setEditableStatus( true, ()=>{
-				parent_obj._properties_change_pending[ name ] = 1;
 
-				if ( parent_obj[ name ] )
+				//if ( parent_obj[ name ] !== undefined )
+				if ( parent_obj.hasOwnProperty( name ) )
 				if ( key.text !== name )
 				{
-					let v = parent_obj[ name ];
+					if ( key.text === '' )
+					{
+						if ( this.AskIfObjectCanBeRemoved( obj ) )
+						{
+							parent_obj._properties_change_pending[ name ] = 1;
 
-					parent_obj[ key.text ] = v;
+							// Delete
+							delete parent_obj[ name ];
 
-					delete parent_obj[ name ];
+							this.UpdateStructure();
 
-					this.UpdateStructure();
-									
-					debugger; // Sync is not implemented
+							sd_events.push([ 'DB_RENAME_PROP', parent_obj._path.concat( name ), '' ]);
+						}
+						else
+						{
+							key.text = name;
+							this.UpdateStructure();
+						}
+					}
+					else
+					{
+						let new_key_name = parent_obj._is_array ? parseInt( key.text ) : key.text;
+						
+						if ( new_key_name + '' === key.text )
+						{
+							//parent_obj._properties_change_pending[ name ] = 1;
+							parent_obj._properties_change_pending[ new_key_name ] = 1;
+							
+							let v = parent_obj[ name ];
+
+							parent_obj[ new_key_name ] = v;
+
+							delete parent_obj[ name ];
+
+							this.UpdateStructure();
+
+							sd_events.push([ 'DB_RENAME_PROP', parent_obj._path.concat( name ), new_key_name ]);
+						}
+						else
+						{
+							alert( 'Key must be integer number since it is a key of array. Key won\'t be saved' );
+							return;
+						}
+					}
 				}
 			});
 
@@ -207,6 +339,93 @@ class sdDatabaseEditor
 					}
 				});
 				
+				// Check if it is likely a timestemp
+				if ( typeof obj === 'number' && obj >= 1671998741285 )
+				{
+					line.createElement({ 
+						type: sdElement.TEXT, 
+						text: new Date( obj ).toLocaleDateString( "en-US", { year: 'numeric', month: 'long', day: 'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' } ),
+						color: '#aaaaaa',
+						marginLeft: 20
+					});
+				}
+				else
+				if ( typeof obj === 'boolean' )
+				{
+					line.createElement({ 
+						type: sdElement.TEXT, 
+						text: '[ Toggle ]',
+						color: '#aaaaaa',
+						marginLeft: 20,
+						onClick: ()=>
+						{
+							value.text = !obj;
+							value.element.onblur();
+						}
+					});
+				}
+				else
+				if ( obj === null )
+				{
+					line.createElement({ 
+						type: sdElement.TEXT, 
+						text: '[ object ]',
+						color: '#aaaaaa',
+						marginLeft: 20,
+						onClick: ()=>
+						{
+							value.text = '{}';
+							value.element.onblur();
+						}
+					});
+					line.createElement({ 
+						type: sdElement.TEXT, 
+						text: '[ array ]',
+						color: '#aaaaaa',
+						marginLeft: 20,
+						onClick: ()=>
+						{
+							value.text = '[]';
+							value.element.onblur();
+						}
+					});
+					line.createElement({ 
+						type: sdElement.TEXT, 
+						text: '[ string ]',
+						color: '#aaaaaa',
+						marginLeft: 20,
+						onClick: ()=>
+						{
+							value.text = '""';
+							value.element.onblur();
+						}
+					});
+					line.createElement({ 
+						type: sdElement.TEXT, 
+						text: '[ number ]',
+						color: '#aaaaaa',
+						marginLeft: 20,
+						onClick: ()=>
+						{
+							value.text = '0';
+							value.element.onblur();
+						}
+					});
+					line.createElement({ 
+						type: sdElement.TEXT, 
+						text: '[ boolean ]',
+						color: '#aaaaaa',
+						marginLeft: 20,
+						onClick: ()=>
+						{
+							value.text = 'false';
+							value.element.onblur();
+						}
+					});
+				}
+				
+				//value.element.style.transformOrigin = 'left center';
+				
 				if ( change_sync_pending === 2 )
 				value.element.classList.add( 'pending_blinking' );
 				
@@ -223,13 +442,30 @@ class sdDatabaseEditor
 						{
 							v = JSON.parse( value.text );
 
-							//this.MakeDefaultObjectProperties( v, parent_obj._path+'.'+name, true );
 							this.MakeDefaultObjectProperties( v, parent_obj._path.concat( name ), true );
 						}
 						catch ( e )
 						{
-							alert( 'Value must be proper JSON value. Value won\'t be saved' );
-							return;
+							try
+							{
+								eval('v = ' + value.text + ';');
+
+								this.MakeDefaultObjectProperties( v, parent_obj._path.concat( name ), true );
+							}
+							catch ( e )
+							{
+								if ( value.text === '' )
+								{
+									v = null;
+									alert( 'Value must be proper JSON or JavaScript value. Erase property name if are trying to delete whole property.\n\nNote: Never insert unknown code here.' );
+									
+								}
+								else
+								{
+									alert( 'Value must be proper JSON or JavaScript value. Value won\'t be saved.\n\nNote: Never insert unknown code here.' );
+									return;
+								}
+							}
 						}
 
 						parent_obj._properties_change_pending[ name ] = 2;
@@ -238,7 +474,9 @@ class sdDatabaseEditor
 
 						this.UpdateStructure();
 									
-						debugger; // Sync is not implemented
+						//debugger; // Sync is not implemented
+						
+						sd_events.push([ 'DB_SET_VALUE', parent_obj._path.concat( name ), v ]);
 					}, 
 					
 					{
@@ -269,8 +507,213 @@ class sdDatabaseEditor
 							obj._expanded = false;
 							this.UpdateStructure();
 						},
-						marginLeft: indent
+						marginLeft: indent,
+						paddingRight: 10
 					});
+					
+					
+					if ( obj._partial )
+					{
+						// Another line
+						let line = this.structure_element.createElement({ 
+							type: sdElement.TEXT_BLOCK, 
+							text: '',
+							marginLeft: indent + indent_step
+						});
+						
+						const RequestSeachResults = ()=>
+						{
+							obj._last_search_by_key = search_by_key_box.text;
+							obj._last_search_by_substring = search_by_substring.text;
+							obj._last_search_count_to_return = parseInt( search_count_to_return.text ) || 30;
+							
+							if ( obj._last_search_by_key === 'By key, use * for partial match' )
+							obj._last_search_by_key = '';
+						
+							if ( obj._last_search_by_substring === 'By substring in JSON' )
+							obj._last_search_by_substring = '';
+								
+							sd_events.push([ 'DB_SEARCH', obj._path, [  
+								obj._last_search_by_key,
+								obj._last_search_by_substring,
+								obj._last_search_count_to_return
+							] ]);
+						};
+						
+						let START = '<span style="color:#ffffff">';
+						let END = '</span>';
+
+						line.createElement({ 
+							type: sdElement.TEXT, 
+							innerHTML: 'Showing ' + START + obj._results_count + END + ( obj._results_count === 1 ? ' row' : ' rows' ) + ' out of ' + START + obj._rows_count + END + ( obj._rows_count === 1 ? ' row' : ' rows' ),
+							color: '#aaaaaa',
+							paddingRight: 10,
+						});
+						
+						// New line
+						line = this.structure_element.createElement({ 
+							type: sdElement.TEXT_BLOCK, 
+							text: '\u00A0',
+							marginLeft: indent + indent_step
+						});
+						// New line
+						line = this.structure_element.createElement({ 
+							type: sdElement.TEXT_BLOCK, 
+							text: '',
+							marginLeft: indent + indent_step
+						});
+						
+						line.createElement({ 
+							type: sdElement.TEXT, 
+							text: 'Search [',
+							color: '#aaaaaa',
+							paddingRight: 10,
+						});
+						
+						let search_by_key_box = line.createElement({ 
+							type: sdElement.TEXT, 
+							text: obj._last_search_by_key || 'By key, use * for partial match',
+							color: '#aaffaa',
+							onClick: ()=>
+							{
+								if ( search_by_key_box.text === 'By key, use * for partial match' )
+								search_by_key_box.text = '';
+							}
+						});
+						line.createElement({ 
+							type: sdElement.TEXT, 
+							text: 'x',
+							color: '#ffaaaa',
+							marginLeft: 10,
+							onClick: ()=>
+							{
+								search_by_key_box.text = 'By key, use * for partial match';
+								RequestSeachResults();
+							}
+						});
+						
+						line.createElement({ 
+							type: sdElement.TEXT, 
+							text: '] [',
+							color: '#aaaaaa',
+							paddingLeft: 10,
+							paddingRight: 10,
+						});
+						
+						
+						
+						let search_by_substring = line.createElement({ 
+							type: sdElement.TEXT, 
+							text: obj._last_search_by_substring || 'By substring in JSON',
+							color: '#aaffaa',
+							onClick: ()=>
+							{
+								if ( search_by_substring.text === 'By substring in JSON' )
+								search_by_substring.text = '';
+							}
+						});
+						line.createElement({ 
+							type: sdElement.TEXT, 
+							text: 'x',
+							color: '#ffaaaa',
+							marginLeft: 10,
+							onClick: ()=>
+							{
+								search_by_substring.text = 'By substring in JSON';
+								RequestSeachResults();
+							}
+						});
+						
+						
+						line.createElement({ 
+							type: sdElement.TEXT, 
+							text: '], show',
+							color: '#aaaaaa',
+							paddingLeft: 10,
+							paddingRight: 10,
+						});
+						
+						
+						
+						
+						let search_count_to_return = line.createElement({ 
+							type: sdElement.TEXT, 
+							text: obj._last_search_count_to_return || 30,
+							color: '#aaffaa',
+							onClick: ()=>
+							{
+							}
+						});
+						line.createElement({ 
+							type: sdElement.TEXT, 
+							text: 'rows',
+							color: '#aaaaaa',
+							paddingLeft: 10,
+							paddingRight: 10,
+						});
+						
+						search_by_key_box.setEditableStatus( 
+								
+							true,
+					
+							()=>
+							{
+								if ( search_by_key_box.text === 'By key, use * for partial match' || search_by_key_box.text === '' )
+								{
+									search_by_key_box.text = 'By key, use * for partial match';
+								}
+								else
+								{
+									RequestSeachResults();
+								}
+							}, 
+
+							{
+								spellcheck: false
+							}
+						);
+						search_by_substring.setEditableStatus( 
+								
+							true,
+					
+							()=>
+							{
+								if ( search_by_substring.text === 'By key, use * for partial match' || search_by_substring.text === '' )
+								{
+									search_by_substring.text = 'By key, use * for partial match';
+								}
+								else
+								{
+									RequestSeachResults();
+								}
+							}, 
+
+							{
+								spellcheck: false
+							}
+						);
+						search_count_to_return.setEditableStatus( 
+								
+							true,
+					
+							()=>
+							{
+								RequestSeachResults();
+							}, 
+
+							{
+								spellcheck: false
+							}
+						);
+				
+						// Line break
+						this.structure_element.createElement({ 
+							type: sdElement.TEXT_BLOCK, 
+							text: '\u00A0',
+							marginLeft: indent + indent_step
+						});
+					}
+
 
 					let any_property_listed = false;
 					
@@ -279,7 +722,7 @@ class sdDatabaseEditor
 					{
 						any_property_listed = true;
 						
-						ShowObject( obj[ p ], p, indent + 20, obj );
+						ShowObject( obj[ p ], p, indent + indent_step, obj );
 					}
 
 					if ( !obj._prevent_new_properties )
@@ -299,20 +742,32 @@ class sdDatabaseEditor
 						});
 						let once = true;
 						add_prop.setEditableStatus( true, ()=>{
+							
+							let new_key_name = obj._is_array ? parseInt( add_prop.text ) : add_prop.text;
+							
+							if ( add_prop.text !== add_prop_text )
+							if ( new_key_name + '' !== add_prop.text + '' )
+							{
+								alert( 'Key must be integer number since it is a key of array. Key won\'t be added' );
+								new_key_name = '';
+							}
 
-							if ( add_prop.text !== '' && add_prop.text !== add_prop_text && once )
+							if ( new_key_name !== '' && add_prop.text !== add_prop_text && once )
 							{
 								once = false;
 								
-								obj._properties_change_pending[ add_prop.text ] = 1;
+								obj._properties_change_pending[ new_key_name ] = 1;
 
 								let v = null;
 
-								obj[ add_prop.text ] = v;
+								obj[ new_key_name ] = v;
 
 								this.UpdateStructure();
 									
-								debugger; // Sync is not implemented
+								//debugger; // Sync is not implemented
+								
+								//sd_events.push([ 'DB_RENAME_PROP', parent_obj._path.concat( '' ), new_key_name ]);
+								sd_events.push([ 'DB_RENAME_PROP', obj._path.concat( '' ), new_key_name ]);
 							}
 							else
 							{
@@ -321,18 +776,93 @@ class sdDatabaseEditor
 							}
 						});
 						
-						if ( !parent_obj._prevent_new_properties )
+						/*if ( !parent_obj._prevent_new_properties )
 						this.structure_element.createElement({ 
 							type: sdElement.TEXT_BLOCK, 
 							text: 'x Delete whole ' + ( ( obj instanceof Array ) ? 'array' : 'object' ),
 							color: '#ff8383',
 							onClick: ()=>{
-								if ( confirm( 'Are you sure? This operation can not be undone.' ) )
+								//if ( confirm( 'Are you sure? This operation can not be undone.' ) )
+								if ( this.AskIfObjectCanBeRemoved( obj ) )
 								{
 									delete parent_obj[ name ];
 									this.UpdateStructure();
 									
-									debugger; // Sync is not implemented
+									//debugger; // Sync is not implemented
+									
+									sd_events.push([ 'DB_RENAME_PROP', obj._path, '' ]);
+								}
+							},
+							marginLeft: indent + 20,
+							marginTop: 10
+						});*/
+						
+						if ( !parent_obj._prevent_new_properties )
+						this.structure_element.createElement({ 
+							type: sdElement.TEXT_BLOCK, 
+							text: 'x Replace '+( ( obj instanceof Array ) ? 'array' : 'object' )+' with null',
+							color: '#ff8383',
+							onClick: ()=>{
+								if ( this.AskIfObjectCanBeRemoved( obj, 'replace old value' ) )
+								{
+									parent_obj[ name ] = null;
+									this.UpdateStructure();
+									
+									sd_events.push([ 'DB_SET_VALUE', obj._path, null ]);
+								}
+							},
+							marginLeft: indent + 20,
+							marginTop: 10
+						});
+					
+						this.structure_element.createElement({ 
+							type: sdElement.TEXT_BLOCK, 
+							text: 'Copy ' + ( ( obj instanceof Array ) ? 'array' : 'object' ),
+							color: '#83ff83',
+							onClick: ()=>{
+								
+								let str = JSON.stringify( obj );
+								navigator.clipboard.writeText( str );
+								
+								if ( str.indexOf( `"_partial":true` ) !== -1 ||
+									 str.indexOf( `"_synced":false` ) !== -1 )
+								alert( 'Copied data might be partial (object is not synced fully)' );
+							},
+							marginLeft: indent + 20,
+							marginTop: 10
+						});
+						this.structure_element.createElement({ 
+							type: sdElement.TEXT_BLOCK, 
+							text: 'Paste copied value instead of this ' + ( ( obj instanceof Array ) ? 'array' : 'object' ),
+							color: '#8383ff',
+							onClick: async ()=>{
+								
+								if ( this.AskIfObjectCanBeRemoved( obj, 'replace old value' ) )
+								{
+									let insert = await navigator.clipboard.readText();
+									
+									try
+									{
+										insert = JSON.parse( insert );
+									}
+									catch( e )
+									{
+										try
+										{
+											eval( 'insert = ' + insert );
+										}
+										catch( e )
+										{
+											alert( 'Unparsable value. Value must be JSON or JavaScript.\n\nNote: Never insert unknown code here.' );
+										}
+									}
+									
+									this.MakeDefaultObjectProperties( insert, obj._path, true );
+									
+									parent_obj[ name ] = insert;
+									this.UpdateStructure();
+									
+									sd_events.push([ 'DB_SET_VALUE', obj._path, insert ]);
 								}
 							},
 							marginLeft: indent + 20,
@@ -351,7 +881,8 @@ class sdDatabaseEditor
 							obj._expanded = false;
 							this.UpdateStructure();
 						},
-						marginLeft: indent
+						marginLeft: indent,
+						paddingRight: 10
 					});
 				}
 				else

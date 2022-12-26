@@ -62,6 +62,18 @@ var isWin = process.platform === "win32";
 globalThis.isWin = isWin;
 
 globalThis.trace = console.log;
+{
+	let spoken = new Set();
+	globalThis.traceOnce = ( ...args )=>
+	{
+		let str = args.join(' ');
+		if ( !spoken.has( str ) )
+		{
+			spoken.add( str );
+			trace( ...args );
+		}
+	};
+}
 
 if ( !isWin )
 {
@@ -545,6 +557,7 @@ ent_modules[ i ].init_class();
 */
 sdShop.init_class(); // requires plenty of classes due to consts usage
 LZW.init_class();
+sdSound.init_class();
 
 globalThis.sdWorld = sdWorld;
 globalThis.sdShop = sdShop;
@@ -552,6 +565,7 @@ globalThis.sdModeration = sdModeration;
 globalThis.sdDatabase = sdDatabase;
 globalThis.sdSnapPack = sdSnapPack;
 globalThis.sdPathFinding = sdPathFinding;
+globalThis.sdSound = sdSound;
 
 sdWorld.FinalizeClasses();
 
@@ -1305,13 +1319,17 @@ if ( directory_to_save_player_count !== null )
 };
 
 let game_ttl = 0; // Prevent frozen state
+function ResetGameTTL()
+{
+	game_ttl = 1500;
+}
 function IsGameActive()
 {
 	let c = GetPlayingPlayersCount();
 	
 	if ( c > 0 )
 	{
-		game_ttl = 150;
+		ResetGameTTL();
 	}
 	
 	return ( game_ttl > 0 );
@@ -1885,6 +1903,7 @@ io.on("connection", (socket) =>
 
 
 		socket.emit('SET sdWorld.my_entity', character_entity._net_id, { reliable: true, runs: 100 } );
+		ResetGameTTL();
 
 		if ( shop_pending )
 		{
@@ -2020,7 +2039,10 @@ io.on("connection", (socket) =>
 		if ( sd_events.length < 32 )
 		for ( var i = 0; i < sd_events.length; i++ )
 		{
-			if ( sd_events[ i ].length !== 2 )
+			//if ( sd_events[ i ].length !== 2 )
+			//return;
+		
+			if ( sd_events[ i ].length < 2 )
 			return;
 		
 			var type = sd_events[ i ][ 0 ];
@@ -2035,98 +2057,9 @@ io.on("connection", (socket) =>
 				socket.character._key_states.SetKey( key, 0 );
 			}
 			
-			/*if ( type === 'SET_HASH' )
-			{
-				socket.my_hash = key;
-			}
-			else*/
-			if ( type === 'DB_SCAN' )
+			if ( type.substring( 0, 3 ) === 'DB_' )
 			if ( sdModeration.GetAdminRow( socket ) ) // Needs socket.my_hash to be set, it is done after player enters the game
-			{
-				let ptr = sdDatabase;
-				
-				if ( key instanceof Array )
-				//if ( typeof key === 'string' )
-				{
-				}
-				else
-				{
-					debugger;
-					return;
-				}
-				
-				let parts = key;/*.split( '.' );*/
-				
-				for ( let i = 1; i < parts.length; i++ )
-				{
-					let prop = parts[ i ];
-					
-					if ( ptr.hasOwnProperty( prop ) )
-					ptr = ptr[ prop ];
-					else
-					{
-						debugger; // Tell about non existent property?
-					}
-				}
-				
-				if ( ptr === null || typeof ptr === 'number' || typeof ptr === 'string' || typeof ptr === 'boolean' )
-				socket.emit( 'DB_SCAN_RESULT', [ key, ptr ] );
-				else
-				{
-					let keys = Object.keys( ptr );
-					
-					/*if ( ptr instanceof Array )
-					socket.emit( 'DB_SCAN_RESULT', [ key, keys ] );
-					else*/
-					{
-						let obj = {};
-						
-						let partial = false;
-						
-						for ( let i = 0; i < keys.length; i++ )
-						{
-							let key_of_cur = keys[ i ];
-							
-							let value = ptr[ key_of_cur ];
-							
-							if ( i < 10 && i >= keys.length - 10 )
-							{
-								if ( value === null || typeof value === 'number' || typeof value === 'string' || typeof value === 'boolean' )
-								obj[ key_of_cur ] = value;
-								else
-								{
-									obj[ key_of_cur ] = {};
-								
-									obj[ key_of_cur ] = Object.assign( obj[ key_of_cur ], {
-										
-										_is_array: ( value instanceof Array ), // JSON arrays won't store extra keys
-										//_path: key + '.' + key_of_cur,
-										_path: parts.concat( key_of_cur ),
-										_synced: false,
-										_pending: false,
-										_expanded: false,
-										_properties_change_pending: {}
-									} );
-								}
-							}
-							else
-							{
-								partial = true;
-							}
-						}
-						
-						if ( partial )
-						obj._partial = 1;
-					
-						//obj._path = key + '.' + key_of_cur;
-						obj._synced = true;
-						//obj._pending = false;
-						//obj._expanded = true;
-					
-						socket.emit( 'DB_SCAN_RESULT', [ key, obj ] );
-					}
-				}
-			}
+			sdDatabase.AdminDatabaseCommand( socket, type, key, sd_events[ i ][ 2 ] );
 		}
 	});
 	
@@ -2511,7 +2444,7 @@ io.on("connection", (socket) =>
 		
 	});
 	
-	socket.on('COM_SUB', ( arr ) => { 
+	/*socket.on('COM_SUB', ( arr ) => { 
 		
 		if ( !( arr instanceof Array ) )
 		return;
@@ -2539,7 +2472,7 @@ io.on("connection", (socket) =>
 			else
 			socket.SDServiceMessage( 'Communication node no longer exists' );
 		}
-	});
+	});*/
 	socket.on('ENTITY_CONTEXT_ACTION', ( params )=>
 	{
 		if ( typeof params !== 'object' )
@@ -2562,6 +2495,19 @@ io.on("connection", (socket) =>
 			let ent = sdEntity.GetObjectByClassAndNetId( _class, net_id );
 			if ( ent !== null && !ent._is_being_removed )
 			{
+				if ( !ent.AllowContextCommandsInRestirectedAreas( socket.character, socket ) )
+				{
+					if ( socket.character && socket.character._god )
+					{
+					}
+					else
+					if ( !ent.IsDamageAllowedByAdmins() )
+					{
+						socket.SDServiceMessage( 'Entity is in restricted area' );
+						return;
+					}
+				}
+					
 				ent.ExecuteContextCommand( params[ 2 ], params[ 3 ], socket.character, socket );
 			}
 			else
@@ -2570,7 +2516,7 @@ io.on("connection", (socket) =>
 			}
 		}
 	});
-	socket.on('COM_UNSUB', ( net_id ) => { 
+	/*socket.on('COM_UNSUB', ( net_id ) => { 
 		
 		if ( typeof net_id !== 'number' )
 		return;
@@ -2614,7 +2560,7 @@ io.on("connection", (socket) =>
 			else
 			socket.SDServiceMessage( 'Communication node no longer exists' );
 		}
-	});
+	});*/
 	socket.on('STORAGE_GET', ( arr ) => { 
 		
 		if ( !( arr instanceof Array ) )
@@ -3213,6 +3159,9 @@ const ServerMainMethod = ()=>
 								
 								if ( socket.character.driver_of )
 								AddEntity( socket.character.driver_of, false );
+								
+								if ( socket.character.hook_relative_to )
+								AddEntity( socket.character.hook_relative_to, false );
 							}
 						
 							// Add player's tasks

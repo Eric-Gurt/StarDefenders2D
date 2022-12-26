@@ -328,12 +328,17 @@ class sdDrone extends sdEntity
 				color:sdEffect.default_explosion_color
 				});
 
-			if ( dmg >= this._hmax * 0.5 && this.type === sdDrone.DRONE_FALKOK ) // Instagib, splits drone into 2 parts ( if you weapon deals enough damage )
-			{
-				sdWorld.SpawnGib( this.x, this.y + 5, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_FALKOK_DRONE_PARTS , '', '', 100, this );
-				sdWorld.SpawnGib( this.x, this.y - 5, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_FALKOK_DRONE_PARTS , '', '', 100, this, 1 );
-				this.remove();
-			}
+				if ( dmg >= this._hmax * 0.5 && this.type === sdDrone.DRONE_FALKOK ) // Instagib, splits drone into 2 parts ( if you weapon deals enough damage )
+				{
+					sdWorld.SpawnGib( this.x, this.y + 5, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_FALKOK_DRONE_PARTS , '', '', 100, this );
+					sdWorld.SpawnGib( this.x, this.y - 5, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_FALKOK_DRONE_PARTS , '', '', 100, this, 1 );
+					this.remove();
+				}
+				
+				if ( this.type === sdDrone.DRONE_TZYRG || this.type === sdDrone.DRONE_TZYRG_WATCHER )
+				{
+					sdSound.PlaySound({ name:'tzyrg_death', x:this.x, y:this.y, volume:1, pitch: this.type === sdDrone.DRONE_TZYRG_WATCHER ? 0.8 : 1 });
+				}
 			}
 			if ( this.type === sdDrone.DRONE_ERTHAL )
 			{
@@ -390,12 +395,15 @@ class sdDrone extends sdEntity
 		}
 		else
 		{
-			if ( this.type === sdDrone.DRONE_ERTHAL )
 			if ( this._hea > 0 )
 			{
 				if ( this.hurt_timer <= 0 )
 				{
+					if ( this.type === sdDrone.DRONE_ERTHAL )
 					sdSound.PlaySound({ name:'spider_hurtC', x:this.x, y:this.y, volume: 1, pitch:1 });
+					
+					if ( this.type === sdDrone.DRONE_TZYRG || this.type === sdDrone.DRONE_TZYRG_WATCHER )
+					sdSound.PlaySound({ name:'tzyrg_hurt', x:this.x, y:this.y, volume: 1, pitch: ( this.type === sdDrone.DRONE_TZYRG_WATCHER ? 0.8 : 1 ) * 1.5 });
 					
 					this.hurt_timer = 5;
 				}
@@ -436,7 +444,11 @@ class sdDrone extends sdEntity
 			if ( this.death_anim < sdDrone.death_duration + sdDrone.post_death_ttl )
 			this.death_anim += GSPEED;
 			else
-			this.remove();
+			{
+				this.remove();
+				this._broken = false; // Just vanish - no need to explode
+				return;
+			}
 		}
 		else
 		{
@@ -970,7 +982,11 @@ class sdDrone extends sdEntity
 								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
 								this._attack_timer = 14;
 
-								sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.5, pitch:4 });
+								//sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.5, pitch:4 });
+								
+								
+								sdSound.PlaySound({ name:'tzyrg_fire', x:this.x, y:this.y, volume: this.type === sdDrone.DRONE_TZYRG_WATCHER ? 2 : 1, pitch: this.type === sdDrone.DRONE_TZYRG_WATCHER ? 0.8 : 1 });
+
 							}
 							if ( this.type === sdDrone.DRONE_TZYRG_WATCHER ) // Tzyrg watcher
 							{
@@ -998,7 +1014,9 @@ class sdDrone extends sdEntity
 								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
 								this._attack_timer = 24;
 
-								sdSound.PlaySound({ name:'gun_shotgun', x:this.x, y:this.y, pitch:1.25 });
+								//sdSound.PlaySound({ name:'gun_shotgun', x:this.x, y:this.y, pitch:1.25 });
+								
+								sdSound.PlaySound({ name:'tzyrg_fire', x:this.x, y:this.y, volume: this.type === sdDrone.DRONE_TZYRG_WATCHER ? 2 : 1, pitch: this.type === sdDrone.DRONE_TZYRG_WATCHER ? 0.8 : 1 });
 							}
 							break;
 						}
@@ -1127,8 +1145,12 @@ class sdDrone extends sdEntity
 		{
 			if ( this.attack_frame >= 1 )
 			{
-				if ( this.type !== -1 )
-				xx = 1;
+				if ( this.type !== -1 ) // Is this even possible?
+				{
+					xx = 1;
+					
+					ctx.apply_shading = false;
+				}
 				/*if ( this.type === sdDrone.DRONE_FALKOK )
 				ctx.drawImageFilterCache( sdDrone.img_drone_falkok_attack, - 16, - 16, 32, 32 );
 				if ( this.type === sdDrone.DRONE_ERTHAL )

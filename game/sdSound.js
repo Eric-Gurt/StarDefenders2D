@@ -19,107 +19,114 @@ class sdSound
 {
 	static init_class()
 	{
-		sdSound.volume = 0.1; // non-relative
-		sdSound.volume_speech = 0.1; // non-relative // amplitude below 1 (out of 100) is silence in mespeak
-		sdSound.volume_ambient = 0.075; // non-relative
+		sdSound.entity_to_channels_list = new Map();
 		
-		sdSound.SetVolumeScale = ( v )=>{
-			
-			sdSound.volume = v * 1; // non-relative
-			sdSound.volume_speech = v * 1; // non-relative // amplitude below 1 (out of 100) is silence in mespeak
-			sdSound.volume_ambient = v * 0.75; // non-relative
-			
-		};
-		
-		//sdSound.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-			
-		sdSound.sounds = {};
-		
-		sdSound.sounds_played_at_frame = 0; // Prevent massive flood
-				
-		/*sdSound.matter_charge_loop = new Audio( './audio/matter_charge_loop2.wav' );
-		sdSound.matter_charge_loop.volume = 0;
-		sdSound.matter_charge_loop.loop = true;
-		sdSound.matter_charge_loop.preservesPitch = false;*/
-		
-		const MakeLoopAmbient = ( var_name, source )=>
+		if ( !sdWorld.is_server )
 		{
-			sdSound[ var_name + '_volume_last' ] = 0;
-			sdSound[ var_name + '_howl' ] = new Howl({ src: [ source ], loop: true, autoplay: true, volume: 0 });
-			sdSound[ var_name + '_sound_id' ] = sdSound[ var_name + '_howl' ].play();
-			
-			sdSound[ var_name ] = {};
-			
-			
-			Object.defineProperty( sdSound[ var_name ], 'volume', 
-			{ 
-				set: function ( x ) 
+
+			sdSound.volume = 0.1; // non-relative
+			sdSound.volume_speech = 0.1; // non-relative // amplitude below 1 (out of 100) is silence in mespeak
+			sdSound.volume_ambient = 0.075; // non-relative
+
+			sdSound.SetVolumeScale = ( v )=>{
+
+				sdSound.volume = v * 1; // non-relative
+				sdSound.volume_speech = v * 1; // non-relative // amplitude below 1 (out of 100) is silence in mespeak
+				sdSound.volume_ambient = v * 0.75; // non-relative
+
+			};
+
+			//sdSound.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+			sdSound.sounds = {};
+
+			sdSound.sounds_played_at_frame = 0; // Prevent massive flood
+
+			/*sdSound.matter_charge_loop = new Audio( './audio/matter_charge_loop2.wav' );
+			sdSound.matter_charge_loop.volume = 0;
+			sdSound.matter_charge_loop.loop = true;
+			sdSound.matter_charge_loop.preservesPitch = false;*/
+
+			const MakeLoopAmbient = ( var_name, source )=>
+			{
+				sdSound[ var_name + '_volume_last' ] = 0;
+				sdSound[ var_name + '_howl' ] = new Howl({ src: [ source ], loop: true, autoplay: true, volume: 0 });
+				sdSound[ var_name + '_sound_id' ] = sdSound[ var_name + '_howl' ].play();
+
+				sdSound[ var_name ] = {};
+
+
+				Object.defineProperty( sdSound[ var_name ], 'volume', 
 				{ 
-					sdSound[ var_name + '_howl' ].volume( x, sdSound[ var_name + '_sound_id' ] );
-				},
-				get: function()
-				{
-					debugger; // Won't work
-					return 0;
-				}
-			});
-			
-			Object.defineProperty( sdSound[ var_name ], 'pitch', 
-			{ 
-				set: function ( x ) 
+					set: function ( x ) 
+					{ 
+						sdSound[ var_name + '_howl' ].volume( x, sdSound[ var_name + '_sound_id' ] );
+					},
+					get: function()
+					{
+						debugger; // Won't work
+						return 0;
+					}
+				});
+
+				Object.defineProperty( sdSound[ var_name ], 'pitch', 
 				{ 
-					sdSound[ var_name + '_howl' ].rate( x, sdSound[ var_name + '_sound_id' ] );
-				},
-				get: function()
-				{
-					debugger; // Won't work
-					return 0;
-				}
-			});
-		};
-		
-		MakeLoopAmbient( 'matter_charge_loop', './audio/matter_charge_loop2.wav' );
-		MakeLoopAmbient( 'ambient1', './audio/ambient1_looped3.wav' );
-		MakeLoopAmbient( 'ambient3', './audio/ambient3.wav' );
-		MakeLoopAmbient( 'ambient4_short', './audio/ambient4_short.wav' );
-		MakeLoopAmbient( 'scary_monster_spawned3', './audio/scary_monster_spawned3.wav' );
-		MakeLoopAmbient( 'scary_monster_spawned2', './audio/scary_monster_spawned2.wav' );
-		MakeLoopAmbient( 'scary_monsters_in_the_dark', './audio/scary_monsters_in_the_dark.wav' );
-		//MakeLoopAmbient( 'rain_low_res', './audio/rain_low_res.wav' );
-		MakeLoopAmbient( 'rain_low_res', './audio/rain_clean.wav' );
-		MakeLoopAmbient( 'earthquake', './audio/earthquake.wav' );
-		//MakeLoopAmbient( 'jetpack', './audio/jetpack.wav' );
-		MakeLoopAmbient( 'jetpack', './audio/jetpack_hd2.wav' );
-		MakeLoopAmbient( 'hover_loop', './audio/hover_loop.wav' );
-		MakeLoopAmbient( 'amplifier_loop', './audio/amplifier_loop2.wav' );
-		MakeLoopAmbient( 'lava_loop', './audio/lava_loop4.wav' );
-		MakeLoopAmbient( 'lava_burn', './audio/lava_burn2.wav' );
-		MakeLoopAmbient( 'rift_loop', './audio/rift_loop.wav' );
-		MakeLoopAmbient( 'anti_crystal_ambient', './audio/anti_crystal_ambient.wav' );
-		MakeLoopAmbient( 'water_loop', './audio/water.wav' );
-		MakeLoopAmbient( 'antigravity', './audio/antigravity.wav' );
-		
-		
-		sdSound.ambient_seeker = { x:Math.random()*2-1, y:Math.random()*2-1, tx:Math.random()*2-1, ty:Math.random()*2-1 };
-		/*
-			Ambient 2D map:
-		
-			3 2 6
-			1 - 4
-			- - 5
-		*/
-		sdSound.ambients = [
-			{ x: -1, y: 0, audio: sdSound.ambient1 },
-			{ x: 0, y: -1, audio: sdSound.ambient3 },
-			{ x: -1, y: -1, audio: sdSound.ambient4_short }, // Short ones in corners so they are more rare
-			{ x: 1, y: 0, audio: sdSound.scary_monsters_in_the_dark },
-			{ x: 1, y: 1, audio: sdSound.scary_monster_spawned3 }, // Short ones in corners so they are more rare,
-			{ x: 1, y: -1, audio: sdSound.scary_monster_spawned2 } // Short ones in corners so they are more rare
-		];
-		
-		sdSound.allowed = false; // Gesture await
-		
-		sdSound.server_mute = false; // Becomes true during silent removals
+					set: function ( x ) 
+					{ 
+						sdSound[ var_name + '_howl' ].rate( x, sdSound[ var_name + '_sound_id' ] );
+					},
+					get: function()
+					{
+						debugger; // Won't work
+						return 0;
+					}
+				});
+			};
+
+			MakeLoopAmbient( 'matter_charge_loop', './audio/matter_charge_loop2.wav' );
+			MakeLoopAmbient( 'ambient1', './audio/ambient1_looped3.wav' );
+			MakeLoopAmbient( 'ambient3', './audio/ambient3.wav' );
+			MakeLoopAmbient( 'ambient4_short', './audio/ambient4_short.wav' );
+			MakeLoopAmbient( 'scary_monster_spawned3', './audio/scary_monster_spawned3.wav' );
+			MakeLoopAmbient( 'scary_monster_spawned2', './audio/scary_monster_spawned2.wav' );
+			MakeLoopAmbient( 'scary_monsters_in_the_dark', './audio/scary_monsters_in_the_dark.wav' );
+			//MakeLoopAmbient( 'rain_low_res', './audio/rain_low_res.wav' );
+			MakeLoopAmbient( 'rain_low_res', './audio/rain_clean.wav' );
+			MakeLoopAmbient( 'earthquake', './audio/earthquake.wav' );
+			//MakeLoopAmbient( 'jetpack', './audio/jetpack.wav' );
+			MakeLoopAmbient( 'jetpack', './audio/jetpack_hd2.wav' );
+			MakeLoopAmbient( 'hover_loop', './audio/hover_loop.wav' );
+			MakeLoopAmbient( 'amplifier_loop', './audio/amplifier_loop2.wav' );
+			MakeLoopAmbient( 'lava_loop', './audio/lava_loop4.wav' );
+			MakeLoopAmbient( 'lava_burn', './audio/lava_burn2.wav' );
+			MakeLoopAmbient( 'rift_loop', './audio/rift_loop.wav' );
+			MakeLoopAmbient( 'anti_crystal_ambient', './audio/anti_crystal_ambient.wav' );
+			MakeLoopAmbient( 'water_loop', './audio/water.wav' );
+			MakeLoopAmbient( 'antigravity', './audio/antigravity.wav' );
+
+
+			sdSound.ambient_seeker = { x:Math.random()*2-1, y:Math.random()*2-1, tx:Math.random()*2-1, ty:Math.random()*2-1 };
+			/*
+				Ambient 2D map:
+
+				3 2 6
+				1 - 4
+				- - 5
+			*/
+			sdSound.ambients = [
+				{ x: -1, y: 0, audio: sdSound.ambient1 },
+				{ x: 0, y: -1, audio: sdSound.ambient3 },
+				{ x: -1, y: -1, audio: sdSound.ambient4_short }, // Short ones in corners so they are more rare
+				{ x: 1, y: 0, audio: sdSound.scary_monsters_in_the_dark },
+				{ x: 1, y: 1, audio: sdSound.scary_monster_spawned3 }, // Short ones in corners so they are more rare,
+				{ x: 1, y: -1, audio: sdSound.scary_monster_spawned2 } // Short ones in corners so they are more rare
+			];
+
+			sdSound.allowed = false; // Gesture await
+
+			sdSound.server_mute = false; // Becomes true during silent removals
+
+		}
 	}
 	static AllowSound()
 	{
@@ -373,6 +380,31 @@ class sdSound
 		
 		return Math.max( 0.2, Math.pow( Math.max( 0, 400 - di ) / 400, 0.5 ) );
 	}
+	static CreateSoundChannel( for_entity )
+	{
+		let arr = sdSound.entity_to_channels_list.get( for_entity );
+		if ( arr === undefined )
+		{
+			arr = [];
+			sdSound.entity_to_channels_list.set( for_entity, arr );
+		}
+
+		let obj = {
+			entity: for_entity,
+			uid: arr.length, // Multiple sound channels per entity is an option
+			current_played_howl: null,
+			current_played_playback_id: null
+		};
+
+		arr.push( obj );
+
+		return obj;
+	}
+	static DestroyAllSoundChannels( for_entity )
+	{
+		// There could be logic to cancel all currently played sounds
+		sdSound.entity_to_channels_list.delete( for_entity );
+	}
 	static PlaySound( params, exclusive_to_sockets_arr=null )// name, x,y, volume=1, server_allowed=true )
 	{
 		if ( sdWorld.is_singleplayer )
@@ -396,6 +428,42 @@ class sdSound
 		let name = params.name;
 		let volume = params.volume || 1;
 		let rate = params.pitch || 1;
+		
+		let sound_channel = null;
+		
+		if ( params.channel )
+		{
+			if ( params.channel instanceof Array )
+			{
+				// Array, synced sound from remote
+				
+				let entity = sdEntity.entities_by_net_id_cache_map.get( params.channel[ 0 ] );
+				
+				if ( entity )
+				{
+					sound_channel = sdSound.entity_to_channels_list.get( entity );
+					
+					if ( sound_channel )
+					{
+						sound_channel = sound_channel[ params.channel[ 1 ] ];
+						
+						if ( !sound_channel )
+						{
+							throw new Error( 'Number of sound channels created per entity class "'+entity.GetClass()+'" on server and client does not match' );
+						}
+					}
+					else
+					return;
+				}
+				else
+				return;
+			}
+			else
+			{
+				sound_channel = params.channel;
+			}
+			
+		}
 		
 		let v;
 		
@@ -452,10 +520,20 @@ class sdSound
 				clone.preservesPitch = false;
 				clone.play();*/
 				
+				let howl = sdSound.sounds[ name ];
 				
-				sdSound.sounds[ name ].volume( v );
-				sdSound.sounds[ name ].rate( rate );
-				sdSound.sounds[ name ].play();
+				howl.volume( v );
+				howl.rate( rate );
+				let playback_id = howl.play();
+				
+				if ( sound_channel )
+				{
+					if ( sound_channel.current_played_playback_id !== null )
+					sound_channel.current_played_howl.stop( sound_channel.current_played_playback_id );
+				
+					sound_channel.current_played_howl = howl;
+					sound_channel.current_played_playback_id = playback_id;
+				}
 				
 			}
 		}

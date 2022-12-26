@@ -1080,6 +1080,11 @@ class sdRenderer
 					}*/
 
 					//e._flag = 0; // Visibility detection
+					
+					/*if ( e.is( sdStatusEffect ) )
+					{
+						debugger;
+					}*/
 
 					if ( !e.IsVisible( sdWorld.my_entity ) )
 					{
@@ -1817,10 +1822,23 @@ class sdRenderer
 			ctx.textAlign = 'center';
 			ctx.fillStyle = '#ffffff';
 			
-			if ( !sdWorld.my_entity || sdWorld.my_entity._is_being_removed )
-			ctx.fillText( 'Your character has died. Press Space to restart or press Esc to return to main menu', sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 );
+			if ( sdWorld.my_entity_net_id === undefined )
+			{
+				ctx.fillText( 'Waiting for server to assign character...', sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 );
+			}
 			else
-			ctx.fillText( 'Your character has died but still can be revived. Press Space to restart or press Esc to return to main menu', sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 );
+			if ( sdWorld.my_entity_net_id === -101 )
+			{
+				ctx.fillText( 'Your character has died. Press Space to restart or press Esc to return to main menu', sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 );
+			}
+			else
+			if ( !sdWorld.my_entity || sdWorld.my_entity._is_being_removed )
+			{
+				//trace( 'sdWorld.my_entity_net_id whenever death message is visible is ',sdWorld.my_entity_net_id  );
+				ctx.fillText( 'Waiting for character sync...', sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 );
+			}
+			else
+			ctx.fillText( 'Your character has died but still can be revived (' + Math.floor( ( sdCharacter.disowned_body_ttl - sdWorld.my_entity.death_anim )/30 ) + ' seconds left). Press Space to restart or press Esc to return to main menu', sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 );
 		}
 		
 		if ( sdWorld.time < sdRenderer.service_mesage_until )

@@ -5759,8 +5759,14 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_TZYRG_SHOTGUN = 102 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'tzyrg_shotgun' ),
-			sound: 'gun_shotgun',
-			sound_pitch: 1.25,
+	
+			//sound: 'gun_shotgun',
+			//sound_pitch: 1.25,
+			
+			sound: 'tzyrg_fire',
+			sound_pitch: 0.8,
+			sound_volume: 2,
+			
 			title: 'Tzyrg Shotgun',
 			slot: 3,
 			reload_time: 18,

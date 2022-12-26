@@ -116,6 +116,16 @@ class sdElement
 				inner_container.className = 'sd_window_inner_container';
 				element.append( inner_container );
 				this.element_inner_container = inner_container;
+				
+				if ( params.onCloseButton )
+				{
+					let close_btn = document.createElement( 'div' );
+					close_btn.className = 'sd_window_close_btn';
+					element.append( close_btn );
+					this.close_btn = close_btn;
+					close_btn.onclick = params.onCloseButton;
+					close_btn.textContent = 'x';
+				}
 			}
 			
 			element.onmouseover = ( e )=>{ if ( e.target === this.element ) this.nativeSetHover( e, 1 ) };
@@ -162,6 +172,8 @@ class sdElement
 			if ( old_value !== new_value )
 			{
 				callback();
+				
+				old_value = new_value;
 			}
 		};
 		
@@ -219,7 +231,7 @@ class sdElement
 				sdElement.hover_element.style.top = b.y - overlap + 'px';
 				sdElement.hover_element.style.width = b.width + overlap*2 + 'px';
 				sdElement.hover_element.style.height = b.height + overlap*2 + 'px';
-				sdElement.hover_element.style.visibility = 'visible';
+				sdElement.hover_element.style.visibility = ( !sdElement.current_hover.element.contentEditable || sdElement.current_hover.element !== document.activeElement ) ? 'visible' : 'hidden';
 				
 				if ( value === 2 ) // Hold
 				{
@@ -251,7 +263,6 @@ class sdElement
 	
 	set text( v )
 	{
-		//this.element.textContent = v;
 		eval( sdElement.text_path[ this.type ] + ' = v;' );
 	}
 	get text()
@@ -259,10 +270,24 @@ class sdElement
 		let v;
 		
 		eval( 'v = ' + sdElement.text_path[ this.type ] + ';' );
-		//return this.element.textContent;
 		
 		return v;
 	}
+	set innerHTML( v )
+	{
+		let ptr_str = sdElement.text_path[ this.type ].split( 'textContent' ).join( 'innerHTML' );
+		eval( ptr_str + ' = v;' );
+	}
+	get innerHTML()
+	{
+		let v;
+		
+		let ptr_str = sdElement.text_path[ this.type ].split( 'textContent' ).join( 'innerHTML' );
+		eval( 'v = ' + ptr_str + ';' );
+		
+		return v;
+	}
+	
 	
 	set onClick( v )
 	{
@@ -285,10 +310,17 @@ class sdElement
 	{ this.element.style.marginTop = v + 'px'; }
 	set marginBottom( v )
 	{ this.element.style.marginBottom = v + 'px'; }
+	set marginRight( v )
+	{ this.element.style.marginRight = v + 'px'; }
+	
 	set paddingTop( v )
 	{ this.element.style.paddingTop = v + 'px'; }
 	set paddingBottom( v )
 	{ this.element.style.paddingBottom = v + 'px'; }
+	set paddingRight( v )
+	{ this.element.style.paddingRight = v + 'px'; }
+	set paddingLeft( v )
+	{ this.element.style.paddingLeft = v + 'px'; }
 	
 	removeChildren()
 	{

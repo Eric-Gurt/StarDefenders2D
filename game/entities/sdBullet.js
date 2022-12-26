@@ -391,7 +391,7 @@ class sdBullet extends sdEntity
 
 
 			this._first_frame = false;
-			if ( !this._hook && !this._admin_picker )
+			/*if ( !this._hook && !this._admin_picker )
 			if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
 			{
 				if ( this._owner && this._owner._god )
@@ -406,7 +406,7 @@ class sdBullet extends sdEntity
 					this.remove();
 					return;
 				}
-			}
+			}*/
 		}
 		
 		let GSPEED_to_solve = GSPEED;
@@ -597,7 +597,7 @@ class sdBullet extends sdEntity
 		{
 			if ( from_entity.is( sdGun ) )
 			return;
-		
+			/*
 			if ( this._owner && this._owner._god )
 			{
 			}
@@ -623,7 +623,7 @@ class sdBullet extends sdEntity
 						return;
 					}
 				}
-			}
+			}*/
 		}
 
 		if ( !this.RegularCollisionFiltering( from_entity ) )
@@ -645,10 +645,17 @@ class sdBullet extends sdEntity
 				{
 					if ( sdWorld.is_server ) // Or else fake self-knock
 					{
+						let damaged = true;
+						
 						if ( this._damage !== 0 )
 						{
 							let limb_mult = from_entity.GetHitDamageMultiplier( this.x, this.y );
 
+							let dmg = limb_mult * this._damage;
+
+							let old_hea = ( from_entity.hea || from_entity._hea || 0 );
+
+							// Play effects no matter if target was damaged - it would look better this way
 							if ( !this._wave )
 							{
 								//if ( this.explosion_radius <= 0 )
@@ -669,40 +676,41 @@ class sdBullet extends sdEntity
 								}
 							}
 
-							let dmg = limb_mult * this._damage;
-
-							let old_hea = ( from_entity.hea || from_entity._hea || 0 );
-
-							// Some entities need to inherit impact velocity on damage so it is higher now
-							if ( from_entity._god && from_entity._socket )
+							damaged = from_entity.DamageWithEffect( dmg, this._owner, limb_mult !== 1 );
+							
+							if ( damaged )
 							{
-								// Do not throw arround developers who are testing something
-							}
-							else
-							from_entity.Impulse( this.sx * Math.abs( this._damage ) * this._knock_scale, 
-												 this.sy * Math.abs( this._damage ) * this._knock_scale );
 
-							if ( typeof from_entity.sx !== 'undefined' )
-							from_entity.SafeAddVelocity( 0, 0 ); // Will only verify, without adding anything
-						
-							from_entity.DamageWithEffect( dmg, this._owner, limb_mult !== 1 );
-
-							if ( this._temperature_addition !== 0 ) // Is this an incediary bullet?
-							from_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t:this._temperature_addition, initiator: this._owner }); // Set enemy on fire
-							if ( this._owner )
-							if ( old_hea > 0 )
-							if ( old_hea !== ( from_entity.hea || from_entity._hea || 0 ) ) // Any damage actually dealt
-							{
-								if ( from_entity.IsPlayerClass() && !sdCube.IsTargetFriendly( from_entity ) )
+								// Some entities need to inherit impact velocity on damage so it is higher now
+								if ( from_entity._god && from_entity._socket )
 								{
-									if ( typeof this._owner._player_damage !== 'undefined' )
-									this._owner._player_damage += dmg;
+									// Do not throw arround developers who are testing something
 								}
 								else
+								from_entity.Impulse( this.sx * Math.abs( this._damage ) * this._knock_scale, 
+													 this.sy * Math.abs( this._damage ) * this._knock_scale );
+
+								if ( typeof from_entity.sx !== 'undefined' )
+								from_entity.SafeAddVelocity( 0, 0 ); // Will only verify, without adding anything
+
+								if ( this._temperature_addition !== 0 ) // Is this an incediary bullet?
+								from_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t:this._temperature_addition, initiator: this._owner }); // Set enemy on fire
+								if ( this._owner )
+								if ( old_hea > 0 )
+								if ( old_hea !== ( from_entity.hea || from_entity._hea || 0 ) ) // Any damage actually dealt
 								{
-									if ( typeof this._owner._nature_damage !== 'undefined' )
-									this._owner._nature_damage += dmg;
+									if ( from_entity.IsPlayerClass() && !sdCube.IsTargetFriendly( from_entity ) )
+									{
+										if ( typeof this._owner._player_damage !== 'undefined' )
+										this._owner._player_damage += dmg;
+									}
+									else
+									{
+										if ( typeof this._owner._nature_damage !== 'undefined' )
+										this._owner._nature_damage += dmg;
+									}
 								}
+							
 							}
 
 							if ( this._bouncy )
@@ -711,6 +719,7 @@ class sdBullet extends sdEntity
 							this._damage = 0; // for healguns
 						}
 
+						if ( damaged ) // It is false if target is in safe zone
 						if ( this._custom_target_reaction )
 						this._custom_target_reaction( this, from_entity );
 					}

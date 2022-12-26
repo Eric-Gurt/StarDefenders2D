@@ -945,6 +945,8 @@ class sdCharacter extends sdEntity
 		
 		this._has_rtp_in_range = false; // Updated only when socket is connected. Also measures matter. Works only when hints are working"
 
+		this._voice_channel = sdSound.CreateSoundChannel( this );
+		
 		sdCharacter.characters.push( this );
 	}
 	
@@ -1039,7 +1041,7 @@ class sdCharacter extends sdEntity
 					}
 				}
 
-				if ( will_fire )
+				/*if ( will_fire )
 				{
 					if ( !this._inventory[ this.gun_slot ] || !sdGun.classes[ this._inventory[ this.gun_slot ].class ].is_build_gun )
 					if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
@@ -1057,7 +1059,7 @@ class sdCharacter extends sdEntity
 						}
 					}
 				}
-				else
+				else*/
 				this._last_fire_state = 0;
 
 				if ( this._inventory[ this.gun_slot ] )
@@ -1286,7 +1288,7 @@ class sdCharacter extends sdEntity
 	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
-		return this._key_states.GetKey('KeyX') ? sdCharacter.ignored_classes_when_holding_x : sdCharacter.ignored_classes_when_not_holding_x;
+		return ( this._key_states.GetKey('KeyX') || !this.IsDamageAllowedByAdmins() ) ? sdCharacter.ignored_classes_when_holding_x : sdCharacter.ignored_classes_when_not_holding_x;
 	}
 	
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
@@ -1715,7 +1717,18 @@ class sdCharacter extends sdEntity
 					'I\'d need more of these', 
 					'I wasn\'t welcomed there very well', 
 					'I\'m not saying farewell',
-					from_ent ? 'Not today, '+from_ent.GetClass()+'!' : 'Not today, Death!' ][ ~~( Math.random() * 9 ) ] );
+					from_ent ? 'Not today, '+from_ent.GetClass()+'!' : 'Not today, Death!',
+					'Well',
+					'I\'m out',
+					'Saved',
+					'I have too much to lose!',
+					'Not the last time',
+					'Still kicking',
+					from_ent ? 'I won\'t miss you, '+from_ent.GetClass() : 'I won\'t miss that',
+					'Imagine dying',
+					'Thanks, but I\'d like to die another day!',
+					'Dying is cringe'
+				][ ~~( Math.random() * 19 ) ] );
 			}, 2000 );
 
 			return true;
@@ -1899,6 +1912,11 @@ class sdCharacter extends sdEntity
 			
 			if ( this.hea <= 0 && was_alive )
 			{
+				if ( this._voice.variant === 'croak' )
+				{
+					sdSound.PlaySound({ name:'council_death', x:this.x, y:this.y, volume:1, pitch:this.GetVoicePitch(), channel:this._voice_channel });
+				}
+				else
 				if ( this._voice.variant === 'klatt3' )
 				{
 					this.Say( [ 'Critical damage!', 'Shutting down', 'Structural integrity compromised!' ][ ~~( Math.random() * 3 ) ], false, false, true, true );
@@ -1906,15 +1924,15 @@ class sdCharacter extends sdEntity
 				else
 				if ( this._voice.variant === 'whisperf' )
 				{
-					sdSound.PlaySound({ name:'f_death' + ~~(1+Math.random() * 3), x:this.x, y:this.y, volume:0.4 });
+					sdSound.PlaySound({ name:'f_death' + ~~(1+Math.random() * 3), x:this.x, y:this.y, volume:0.4, channel:this._voice_channel });
 				}
 				else
 				if ( this._voice.variant !== 'm2' && this._voice.variant !== 'silence' )
 				{
 					if ( this.hea < -100 )
-					sdSound.PlaySound({ name:'sd_death2', x:this.x, y:this.y, volume:1, pitch:this.GetVoicePitch() });
+					sdSound.PlaySound({ name:'sd_death2', x:this.x, y:this.y, volume:1, pitch:this.GetVoicePitch(), channel:this._voice_channel });
 					else
-					sdSound.PlaySound({ name:'sd_death', x:this.x, y:this.y, volume:1, pitch:this.GetVoicePitch() });
+					sdSound.PlaySound({ name:'sd_death', x:this.x, y:this.y, volume:1, pitch:this.GetVoicePitch(), channel:this._voice_channel });
 				}
 			
 				this._sickness /= 4;
@@ -1963,16 +1981,21 @@ class sdCharacter extends sdEntity
 				{
 					if ( this.pain_anim <= 0 )
 					{
+						if ( this._voice.variant === 'croak' )
+						{
+							sdSound.PlaySound({ name: ( Math.random() < 0.5 ) ? 'council_hurtA' : 'council_hurtB', x:this.x, y:this.y, pitch:this.GetVoicePitch(), volume:( dmg > 1 )? 1 : 0.5, channel:this._voice_channel }); // less volume for bleeding
+						}
+						else
 						if ( this._voice.variant === 'klatt3' )
 						{
-							this.Say( [ 'Ouch!', 'Aaa!', 'Uh!', 'Taking damage!' ][ ~~( Math.random() * 4 ) ], false, false, true, true );
+							this.Say( [ 'Ouch!', 'Aaa!', 'Uh!' ][ ~~( Math.random() * 3 ) ], false, false, true, true );
 						}
 						else
 						if ( this._voice.variant === 'whisperf' )
-						sdSound.PlaySound({ name:'f_pain' + ~~(2+Math.random() * 3), x:this.x, y:this.y, volume:( ( dmg > 1 )? 1 : 0.5 ) * 0.4 }); // less volume for bleeding
+						sdSound.PlaySound({ name:'f_pain' + ~~(2+Math.random() * 3), x:this.x, y:this.y, volume:( ( dmg > 1 )? 1 : 0.5 ) * 0.4, channel:this._voice_channel }); // less volume for bleeding
 						else
 						if ( this._voice.variant !== 'm2' && this._voice.variant !== 'silence' )
-						sdSound.PlaySound({ name:'sd_hurt' + ~~(1+Math.random() * 2), x:this.x, y:this.y, pitch:this.GetVoicePitch(), volume:( dmg > 1 )? 1 : 0.5 }); // less volume for bleeding
+						sdSound.PlaySound({ name:'sd_hurt' + ~~(1+Math.random() * 2), x:this.x, y:this.y, pitch:this.GetVoicePitch(), volume:( dmg > 1 )? 1 : 0.5, channel:this._voice_channel }); // less volume for bleeding
 					
 						this.pain_anim = 10;
 						
@@ -4838,7 +4861,10 @@ class sdCharacter extends sdEntity
 		}
 	}
 	
-	
+	AllowContextCommandsInRestirectedAreas( exectuter_character, executer_socket ) // exectuter_character can be null
+	{
+		return true;
+	}
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
