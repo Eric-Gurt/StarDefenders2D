@@ -1004,16 +1004,19 @@ class sdJunk extends sdEntity
 						if ( !sdWorld.sockets[ i ].character._is_being_removed )
 						if ( sdWorld.sockets[ i ].character.hea > 0 )
 						{
-									
-								sdTask.MakeSureCharacterHasTask({ 
-									similarity_hash:'EXTRACT-'+this._net_id, 
-									executer: sdWorld.sockets[ i ].character,
-									target: this,
-									mission: sdTask.MISSION_LRTP_EXTRACTION,
-									difficulty: 0.075 * sdTask.GetTaskDifficultyScaler(),
-									title: 'Extract alien artifact',
-									description: 'We would like to investigate this artifact you have found. Can you deliver it to the mothership using a long range teleporter?'
-								});
+								let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, this.x, this.y );
+								if ( di < 400 ) // If someone decides to keep the artifact rather than delivering, it used to display task regardless of distance.
+								{
+									sdTask.MakeSureCharacterHasTask({ 
+										similarity_hash:'EXTRACT-'+this._net_id, 
+										executer: sdWorld.sockets[ i ].character,
+										target: this,
+										mission: sdTask.MISSION_LRTP_EXTRACTION,
+										difficulty: 0.075 * sdTask.GetTaskDifficultyScaler(),
+										title: 'Extract alien artifact',
+										description: 'We would like to investigate this artifact you have found. Can you deliver it to the mothership using a long range teleporter?'
+									});
+								}
 						}
 					}
 				}
