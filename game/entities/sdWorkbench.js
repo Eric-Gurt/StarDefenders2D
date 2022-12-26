@@ -30,7 +30,7 @@ class sdWorkbench extends sdEntity
 	{ return true; }
 	
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these
-	{ return true; }
+	{ return false; }
 	
 	Damage( dmg, initiator=null )
 	{
@@ -43,7 +43,7 @@ class sdWorkbench extends sdEntity
 		{
 			this.hea -= dmg;
 			
-			this._update_version++;
+			//this._update_version++;
 
 			if ( this.hea <= 0 )
 			{
@@ -58,6 +58,8 @@ class sdWorkbench extends sdEntity
 	constructor( params )
 	{
 		super( params );
+		this.sx = 0;
+		this.sy = 0;
 		
 		this.hmax = 5000 * 4;
 		this.hea = this.hmax;
@@ -65,14 +67,17 @@ class sdWorkbench extends sdEntity
 		this._cooldown = 0;
 		//this.matter_max = 5500;
 		//this.matter = 100;
-		this.delay = 0;
+		//this.delay = 0;
 		this.level = 1;
 		this.cube_shards = 0;
 		this.cube_shards_max = 10;
 		
 		this._armor_protection_level = 0;
 	}
-
+	get mass()
+	{
+		return 60;
+	}
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
 		return sdWorkbench.ignored_classes_arr;
@@ -96,7 +101,7 @@ class sdWorkbench extends sdEntity
 			this.cube_shards_max += 5;
 			this.level++;
 			
-			this._update_version++;
+			//this._update_version++;
 		
 			sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 		}
@@ -116,16 +121,19 @@ class sdWorkbench extends sdEntity
 				//if ( sdWorld.is_server )
 				//this.hea = this.hmax; // Hack
 				
-				this._update_version++;
+				//this._update_version++;
 			}
-			else
+			/*else
 			{
 				this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED, false );
-			}
+			}*/
 			
-			if ( this.level > 1 )
-			this._armor_protection_level = 4; // If upgraded at least once - it can be only destroyed with big explosions
+			//if ( this.level > 1 )
+			//this._armor_protection_level = 4; // If upgraded at least once - it can be only destroyed with big explosions
 		}
+
+		this.sy += sdWorld.gravity * GSPEED;
+		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
 	IsVehicle()
 	{
@@ -143,7 +151,7 @@ class sdWorkbench extends sdEntity
 		if ( this.cube_shards < this.cube_shards_max )
 		{
 			this.cube_shards++;
-			this._update_version++;
+			//this._update_version++;
 			from_entity.remove();
 		}
 	}
