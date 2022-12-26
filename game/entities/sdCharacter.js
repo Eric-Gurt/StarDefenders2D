@@ -2731,6 +2731,9 @@ class sdCharacter extends sdEntity
 				if ( this._potential_vehicle && ( this._potential_vehicle.hea || this._potential_vehicle._hea ) > 0 && !this._potential_vehicle._is_being_removed && sdWorld.inDist2D_Boolean( this.x, this.y, this._potential_vehicle.x, this._potential_vehicle.y, sdCom.vehicle_entrance_radius ) )
 				{
 					this._potential_vehicle.AddDriver( this );
+					
+					if ( this.driver_of === null ) // Vehicles did not allow entrance. Doing it like this because sdWorkBench is also a vehicle now which is why it is able to give extra build options. It had issue with preventing ghost mode near work benches
+					this.TogglePlayerGhosting();
 				}
 				else
 				this.TogglePlayerGhosting();

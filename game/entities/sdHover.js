@@ -43,8 +43,6 @@ class sdHover extends sdEntity
 		sdHover.img_tank_turret = sdWorld.CreateImageFromFile( 'tank_turret' );
 		sdHover.img_tank_rl = sdWorld.CreateImageFromFile( 'tank_railgun' );
 		
-		sdHover.driver_slots = 6;
-		
 		sdHover.slot_hints = [
 			'Entered slot 1: Driver',
 			'Entered slot 2: Minigun operator',
@@ -62,6 +60,15 @@ class sdHover extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
+	
+	GetDriverSlotsCount()
+	{
+		if ( this.type === sdHover.TYPE_BIKE )
+		return 1;
+	
+		return 6;
+	}
+	
 	get hitbox_x1() { return this.type === 3 ? -10 : this.type === 2 ? -27 : -26 }
 	get hitbox_x2() { return this.type === 3 ? 10 : this.type === 2 ? 27 : 26 }
 	get hitbox_y1() { return this.type === 3 ? -4 : this.type === 2 ? -12 : -9 }
@@ -166,8 +173,7 @@ class sdHover extends sdEntity
 	
 		var best_slot = -1;
 		
-		for ( var i = 0; i < sdHover.driver_slots; i++ )
-		//for ( var i = 2; i < sdHover.driver_slots; i++ ) // Hack
+		for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
 		{
 			if ( this[ 'driver' + i ] === null )
 			{
@@ -208,7 +214,7 @@ class sdHover extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 		
-		for ( var i = 0; i < sdHover.driver_slots; i++ )
+		for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
 		{
 			if ( this[ 'driver' + i ] === c )
 			{
@@ -217,20 +223,21 @@ class sdHover extends sdEntity
 
 				// To prevent the teleport exploit
 				if ( this.type === 3 )
-				c.x = this.x; //+ ( i / ( sdHover.driver_slots - 1 ) ) * ( this._hitbox_x2 - this._hitbox_x1 );
-				
+				c.x = this.x;
 				else
-				if ( this.type !== 3 )
-				c.x = this.x + ( i / ( sdHover.driver_slots - 1 ) ) * ( this._hitbox_x2 - this._hitbox_x1 );
+				c.x = this.x + ( i / ( this.GetDriverSlotsCount() - 1 ) ) * ( this._hitbox_x2 - this._hitbox_x1 );
 				
-				if ( c.CanMoveWithoutOverlap( c.x, this.y + this._hitbox_y1 - c._hitbox_y2, 1 ) )
+				if ( c.CanMoveWithoutOverlap( c.x, this.y + this._hitbox_y1 - c._hitbox_y2, 0 ) )
 				c.y = this.y + this._hitbox_y1 - c._hitbox_y2;
 				else
-				if ( c.CanMoveWithoutOverlap( this.x + this._hitbox_x1 - c._hitbox_x2, c.y, 1 ) )
+				if ( c.CanMoveWithoutOverlap( this.x + this._hitbox_x1 - c._hitbox_x2, c.y, 0 ) )
 				c.x = this.x + this._hitbox_x1 - c._hitbox_x2;
 				else
-				if ( c.CanMoveWithoutOverlap( this.x + this._hitbox_x2 - c._hitbox_x1, c.y, 1 ) )
+				if ( c.CanMoveWithoutOverlap( this.x + this._hitbox_x2 - c._hitbox_x1, c.y, 0 ) )
 				c.x = this.x + this._hitbox_x2 - c._hitbox_x1;
+				else
+				if ( c.CanMoveWithoutOverlap( this.x, c.y + this._hitbox_y2 - c._hitbox_y1, 0 ) )
+				c.y = this.y + this._hitbox_y2 - c._hitbox_y1;
 		
 				c.PhysWakeUp();
 				
@@ -270,7 +277,7 @@ class sdHover extends sdEntity
 				{
 					sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:2 });
 
-					for ( var i = 0; i < sdHover.driver_slots; i++ )
+					for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
 					if ( this[ 'driver' + i ] )
 					{
 						let driver = this[ 'driver' + i ];
@@ -805,33 +812,45 @@ class sdHover extends sdEntity
 			ctx.scale( -1, 1 );
 		}
 		
-		for ( var i = 0; i < sdHover.driver_slots; i++ )
+		const DrawDrivers = ()=>
 		{
-			if ( this[ 'driver' + i ] )
+			for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
 			{
-				ctx.save();
+				if ( this[ 'driver' + i ] )
 				{
-					let old_x = this[ 'driver' + i ].look_x;
-					let old_y = this[ 'driver' + i ].look_y;
-					//this[ 'driver' + i ].tilt = 0;
-					//this[ 'driver' + i ]._an = 0; // Hack
-					this[ 'driver' + i ]._side = 1;
-					this[ 'driver' + i ].look_x = this[ 'driver' + i ].x + 100;
-					this[ 'driver' + i ].look_y = this[ 'driver' + i ].y;
-					
-					ctx.scale( -0.8, 0.8 );
-					if ( this.type === 3 )
-					ctx.translate( -16, -8 );
-					ctx.translate( ( -32 + ( 1 - i / ( sdHover.driver_slots - 1 ) ) * 64 ) * 0.5, 3 );
-					//this[ 'driver' + i ].Draw( ctx, true );
-					this[ 'driver' + i ].Draw( ctx, true ); // Hack
+					ctx.save();
+					{
+						let old_x = this[ 'driver' + i ].look_x;
+						let old_y = this[ 'driver' + i ].look_y;
+						//this[ 'driver' + i ].tilt = 0;
+						//this[ 'driver' + i ]._an = 0; // Hack
+						this[ 'driver' + i ]._side = 1;
+						this[ 'driver' + i ].look_x = this[ 'driver' + i ].x + 100;
+						this[ 'driver' + i ].look_y = this[ 'driver' + i ].y;
 
-					this[ 'driver' + i ].look_x = old_x;
-					this[ 'driver' + i ].look_y = old_y;
+						ctx.scale( -0.8, 0.8 );
+
+						if ( this.type === 3 )
+						{
+							//ctx.translate( -16, -8 );
+							ctx.translate( 1, -4 );
+						}
+						else
+						ctx.translate( ( -32 + ( 1 - i / ( this.GetDriverSlotsCount() - 1 ) ) * 64 ) * 0.5, 3 );
+
+						//this[ 'driver' + i ].Draw( ctx, true );
+						this[ 'driver' + i ].Draw( ctx, true ); // Hack
+
+						this[ 'driver' + i ].look_x = old_x;
+						this[ 'driver' + i ].look_y = old_y;
+					}
+					ctx.restore();
 				}
-				ctx.restore();
 			}
-		}
+		};
+		
+		if ( this.type !== 3 )
+		DrawDrivers();
 		
 		ctx.filter = this.filter;
 		
@@ -844,6 +863,10 @@ class sdHover extends sdEntity
 			ctx.filter += 'brightness(0.1)';
 			can_boost = false;
 		}
+		
+		let DelayedDrawGun = ()=>
+		{
+		};
 		
 		if ( this.hea > 0 )
 		{
@@ -860,21 +883,25 @@ class sdHover extends sdEntity
 			//xx = Math.min( ( this.driver0 ) ? 1 : 0 );
 			ctx.drawImageFilterCache( can_boost ? sdHover.img_hover_boost : sdHover.img_hover, - 32, - 16, 64,32 );
 	
-	        var i = 0;
-
-			if ( this[ 'driver' + i ] && this.type === 3 )
+			var i;
+			
+			DelayedDrawGun = ()=>
 			{
-				ctx.save();
+				let i = 0;
+				if ( this[ 'driver' + i ] && this.type === 3 )
+				{
+					ctx.save();
 
-				ctx.translate( -1, 7 );
-				ctx.scale( 1, -1 );
+					ctx.translate( -1, 7 );
+					ctx.scale( 1, -1 );
 
-				ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
+					ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
 
-				ctx.drawImageFilterCache( sdHover.img_hover_mg, - 16, - 16, 32,32 );
+					ctx.drawImageFilterCache( sdHover.img_hover_mg, - 16, - 16, 32,32 );
 
-				ctx.restore();
-			}
+					ctx.restore();
+				}
+			};
 
             i = 1;
 			if ( this[ 'driver' + i ] )
@@ -936,6 +963,14 @@ class sdHover extends sdEntity
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
+		
+		if ( this.type === 3 )
+		DrawDrivers();
+		
+		DelayedDrawGun();
+	
+		ctx.globalAlpha = 1;
+		ctx.filter = 'none';
 	}
 	onRemove() // Class-specific, if needed
 	{
@@ -943,13 +978,13 @@ class sdHover extends sdEntity
 		{
 			sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
 			
-			for ( var i = 0; i < sdHover.driver_slots; i++ )
+			for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
 			if ( this[ 'driver' + i ] )
 			this.ExcludeDriver( this[ 'driver' + i ] );
 		}
 		else
 		{
-			for ( var i = 0; i < sdHover.driver_slots; i++ )
+			for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
 			if ( this[ 'driver' + i ] )
 			{
 				this[ 'driver' + i ].remove();
