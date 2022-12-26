@@ -166,7 +166,7 @@ class sdHover extends sdEntity
 	
 		var best_slot = -1;
 
-		// !IMPORTANT: If you don't put the maximum limit on the types, and forget about "if this.type !== 3 || if this.type !== 4 || ...", you may end up with an Hover Teleport Assist (HTA for short) exploit - Molis
+		// !IMPORTANT: If you don't put the maximum limit on the types, and forget about "if this.type !== 3 || if this.type !== 4 || ...", you may end up with Hover Teleport Assist (HTA for short) exploit - Molis
 		// WARNING: This is experimental, expect crashes and weird glitches from your server
 		/*if ( this.type === 3 )
 		sdHover.driver_slots = 1;
