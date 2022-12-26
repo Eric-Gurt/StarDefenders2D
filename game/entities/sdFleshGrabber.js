@@ -83,8 +83,9 @@ class sdFleshGrabber extends sdEntity
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
 			if ( di < sdFleshGrabber.max_seek_range )
 			if ( this._current_target === null || 
+				 this._current_target._is_being_removed ||
 				 this._current_target.hea <= 0 || 
-				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
+				 di < sdWorld.Dist2D( this._current_target.x,this._current_target.y,this.x,this.y ) )
 			{
 				//if ( !this._current_target )
 				//sdSound.PlaySound({ name:'abomination_alert', x:this.x, y:this.y });
@@ -185,52 +186,57 @@ class sdFleshGrabber extends sdEntity
 			this._pull_timer = Math.max( 0, this._pull_timer - GSPEED );
 			
 			if ( this._current_target )
-			if ( this._pull_timer <= 0 )
 			{
-						
-				//let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 170 );
-				let from_entity;
-				let dist_att = sdWorld.Dist2D_Vector( this._current_target.x - this.x, this._current_target.y - this.y );
-				if ( dist_att < 150 )
+				if ( this._current_target._is_being_removed )
+				this._current_target = null;
+				else
+				if ( this._pull_timer <= 0 )
 				{
-					from_entity = this._current_target;
-					this._pull_timer = 50;
 
-					let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
-					let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
-
-					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
+					//let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 170 );
+					let from_entity;
+					let dist_att = sdWorld.Dist2D_Vector( this._current_target.x - this.x, this._current_target.y - this.y );
+					if ( dist_att < 150 )
 					{
-						from_entity.DamageWithEffect( 10, this );
-						this._hea = Math.min( this._hmax, this._hea + 25 );
+						from_entity = this._current_target;
+						this._pull_timer = 50;
+
+						let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
+						let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
+
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, from_entity, null, sdCom.com_creature_attack_unignored_classes ) )
+						{
+							from_entity.DamageWithEffect( 10, this );
+							this._hea = Math.min( this._hmax, this._hea + 25 );
 
 
-						from_entity.PlayDamageEffect( xx, yy ); // Should pulling entities display this effect?
+							from_entity.PlayDamageEffect( xx, yy ); // Should pulling entities display this effect?
 
-						this.tenta_x = xx - this.x;
-						this.tenta_y = yy - this.y;
-						this.tenta_tim = 100;
-						this._tenta_target = from_entity;
-						
-						sdSound.PlaySound({ name:'tentacle_start', x:this.x, y:this.y, volume: 0.5 });
+							this.tenta_x = xx - this.x;
+							this.tenta_y = yy - this.y;
+							this.tenta_tim = 100;
+							this._tenta_target = from_entity;
+
+							sdSound.PlaySound({ name:'tentacle_start', x:this.x, y:this.y, volume: 0.5 });
 
 
-						if ( typeof from_entity.sx !== 'undefined' ) // Is it an entity
-						from_entity.sx += - this.tenta_x / 100; // Pull it in
-						else
-						this.sx += this.tenta_x / 100; // Pull itself towards the static entity
+							if ( typeof from_entity.sx !== 'undefined' ) // Is it an entity
+							from_entity.sx += - this.tenta_x / 100; // Pull it in
+							else
+							this.sx += this.tenta_x / 100; // Pull itself towards the static entity
 
-						if ( typeof from_entity.sy !== 'undefined' )
-						from_entity.sy += - this.tenta_y / 100;
-						else
-						this.sy += this.tenta_y / 100; // Pull itself towards the entity
-						
-						if ( from_entity.IsPlayerClass() )
-						from_entity.ApplyServerSidePositionAndVelocity( true, - this.tenta_x / 100, - this.tenta_y / 100 );
-						
-						let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y );
-						if ( di > 0 )
-						from_entity.Impulse( this.tenta_x / di * 20, this.tenta_y / di * 20 );
+							if ( typeof from_entity.sy !== 'undefined' )
+							from_entity.sy += - this.tenta_y / 100;
+							else
+							this.sy += this.tenta_y / 100; // Pull itself towards the entity
+
+							if ( from_entity.IsPlayerClass() )
+							from_entity.ApplyServerSidePositionAndVelocity( true, - this.tenta_x / 100, - this.tenta_y / 100 );
+
+							let di = sdWorld.Dist2D_Vector( this.tenta_x, this.tenta_y );
+							if ( di > 0 )
+							from_entity.Impulse( this.tenta_x / di * 20, this.tenta_y / di * 20 );
+						}
 					}
 				}
 			}

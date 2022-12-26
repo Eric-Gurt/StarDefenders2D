@@ -89,7 +89,7 @@ class sdHover extends sdEntity
 
 	VehicleHidesLegs()
 	{
-		if ( this.type === 3 )
+		if ( this.type === sdHover.TYPE_BIKE )
 		return false;
 
 		return true;
@@ -150,14 +150,14 @@ class sdHover extends sdEntity
 		this.matter = 300; // Should be less that Hover cost
 		this.matter_max = 1000;
 		
-		if ( sdHover.TYPE_FIGHTER_HOVER )
+		if ( this.type === sdHover.TYPE_FIGHTER_HOVER )
 		this.matter_max = 2000;
 		
-		if ( sdHover.TYPE_TANK )
+		if ( this.type === sdHover.TYPE_TANK )
 		this.matter_max = 12000;
 
-		if ( sdHover.TYPE_BIKE )
-		this.matter_max = 800;
+		if ( this.type === sdHover.TYPE_BIKE )
+		this.matter_max = 400;
 	}
 	AddDriver( c )
 	{
@@ -266,6 +266,7 @@ class sdHover extends sdEntity
 				const break_at_hp = -400;
 
 				if ( old_hea > 0 )
+				if ( this.matter > 25 )
 				{
 					sdSound.PlaySound({ name:'hover_explosion', x:this.x, y:this.y, volume:2 });
 
@@ -340,7 +341,12 @@ class sdHover extends sdEntity
 		}
 	}
 	
-	get mass() { return this.type === 3 ? 150 : this.type === 2 ? 2000 : this.type === 1 ? 1200 : 500 }
+	get mass() { 
+		return this.type === sdHover.TYPE_BIKE ? 150 : 
+			   this.type === sdHover.TYPE_TANK ? 2000 : 
+			   this.type === sdHover.TYPE_FIGHTER_HOVER ? 1200 : 
+			   500; 
+	}
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -374,7 +380,7 @@ class sdHover extends sdEntity
 		
 		if ( this.driver0 && this.hea > 0 )
 		{
-			let cost = ( ( sdWorld.Dist2D_Vector_pow2( this.driver0.act_x, this.driver0.act_y ) > 0 ) ? GSPEED : GSPEED * 0.01 ) * this.mass / 500;
+			let cost = ( ( sdWorld.Dist2D_Vector_pow2( this.driver0.act_x, this.driver0.act_y ) > 0 ) ? GSPEED : GSPEED * 0.01 ) * this.mass / 1000;
 			
 			if ( this.matter >= cost )
 			{
@@ -468,11 +474,29 @@ class sdHover extends sdEntity
 					else
 					bullet_obj._armor_penetration_level = 0;
 
-					sdEntity.entities.push( bullet_obj );
+					let cost = sdGun.GetProjectileCost( bullet_obj, 1, 0 );
+					
+					if ( this.matter >= cost )
+					{
+						this.matter -= cost;
 
-					this._bullets_reload = 1.5;
+						sdEntity.entities.push( bullet_obj );
 
-					this._bullets--;
+						this._bullets_reload = 1.5;
+
+						this._bullets--;
+					}
+					else
+					{
+						bullet_obj.onRemoveAsFakeEntity();
+						bullet_obj._remove();
+						
+						if ( this.driver0._socket )
+						this.driver0._socket.SDServiceMessage( 'Out of matter' );
+					
+						sdSound.PlaySound({ name:'hover_lowhp', x:this.x, y:this.y, volume:1 });
+						this._bullets_reload = 30;
+					}
 				}
 
 				if ( this._bullets <= 0 || ( this._bullets < 300 && this.driver0._key_states.GetKey( 'KeyR' ) ) )

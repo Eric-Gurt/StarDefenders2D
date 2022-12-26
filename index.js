@@ -1652,7 +1652,7 @@ io.on("connection", (socket) =>
 		if ( one_time_key !== undefined )
 		new_url += '#one_time_key=' + one_time_key;
 	
-		socket.emit('redirect', new_url, { reliable: true, runs: 100 } );
+		socket.emit('redirect', new_url );//, { reliable: true, runs: 100 } );
 	};
 	
 	socket.last_player_settings = null;
@@ -1902,8 +1902,18 @@ io.on("connection", (socket) =>
 		
 
 
-		socket.emit('SET sdWorld.my_entity', character_entity._net_id, { reliable: true, runs: 100 } );
+		socket.emit('SET sdWorld.my_entity', character_entity._net_id );//, { reliable: true, runs: 100 } );
 		ResetGameTTL();
+		
+		// A little hack for admins that are in godmode
+		if ( character_entity._god )
+		{
+			setTimeout( ()=>
+			{
+				socket.emit('SET sdWorld.my_entity._god', true );//, { reliable: true, runs: 100 } );
+				
+			}, 2000 );
+		}
 
 		if ( shop_pending )
 		{
@@ -1914,7 +1924,7 @@ io.on("connection", (socket) =>
 				sdShop.options_snappack = LZW.lzw_encode( JSON.stringify( sdShop.options ) );
 			}
 			
-			socket.emit('SET sdShop.options', sdShop.options_snappack, { reliable: true, runs: 100 } );
+			socket.emit('SET sdShop.options', sdShop.options_snappack );//, { reliable: true, runs: 100 } );
 		}
 		
 		

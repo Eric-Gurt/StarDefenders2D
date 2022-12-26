@@ -94,6 +94,7 @@ class sdAbomination extends sdEntity
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
 			if ( di < sdAbomination.max_seek_range )
 			if ( this._current_target === null || 
+				 this._current_target._is_being_removed || 
 				 this._current_target.hea <= 0 || 
 				 di < sdWorld.Dist2D(this._current_target.x,this._current_target.y,this.x,this.y) )
 			{

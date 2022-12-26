@@ -362,8 +362,8 @@ class sdJunk extends sdEntity
 			{
 				let x = this.x;
 				let y = this.y;
-				let sx = this.sx;
-				let sy = this.sy;
+				//let sx = this.sx;
+				//let sy = this.sy;
 
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
@@ -387,25 +387,23 @@ class sdJunk extends sdEntity
 				bullet.time_left = 0; 
 				bullet._custom_detonation_logic = ( bullet )=>
 				{
+					sdWorld.SendEffect({ 
+						x:bullet.x, 
+						y:bullet.y, 
+						radius:30,
+						damage_scale: 0, // Just a decoration effect
+						type:sdEffect.TYPE_EXPLOSION, 
+						owner:this,
+						color:'#33FFFF' 
+					});
+
+					let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 40 );
+
+					for ( let i = 0; i < nears.length; i++ )
 					{
-						sdWorld.SendEffect({ 
-							x:bullet.x, 
-							y:bullet.y, 
-							radius:30,
-							damage_scale: 0, // Just a decoration effect
-							type:sdEffect.TYPE_EXPLOSION, 
-							owner:this,
-							color:'#33FFFF' 
-						});
-
-						let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 40 );
-
-						for ( let i = 0; i < nears.length; i++ )
-						{
-							//if ( nears[ i ].GetClass() !== 'sdGrass' && nears[ i ].GetClass() !== 'sdRift' && nears[ i ].GetClass() !== 'sdWater' && nears[ i ].GetClass() !== 'sdTask' ) // Seeing frozen lava and task arrows was cursed
-							if ( nears[ i ].IsTargetable( this ) )
-							nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: -250, initiator: this._owner }); // Freeze nearby objects
-						}
+						if ( nears[ i ].IsTargetable( this ) )
+						if ( nears[ i ].IsBGEntity() === this.IsBGEntity() )
+						nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: -250, initiator: this._owner }); // Freeze nearby objects
 					}
 				};
 				sdEntity.entities.push( bullet );
@@ -430,7 +428,7 @@ class sdJunk extends sdEntity
 					gun.sy = sy;
 					sdEntity.entities.push( gun );
 
-					}, 500 );
+				}, 500 );
 			}
 
 			this.remove();
