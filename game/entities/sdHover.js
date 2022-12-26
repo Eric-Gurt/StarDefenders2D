@@ -171,6 +171,7 @@ class sdHover extends sdEntity
 		/*if ( this.type === 3 )
 		sdHover.driver_slots = 1;
 		else
+		if ( this.type !== 3 )
 		sdHover.driver_slots = 6;*/
 
 		for ( var i = 0; i < sdHover.driver_slots; i++ )
@@ -225,7 +226,8 @@ class sdHover extends sdEntity
 				// WARNING: This is experimental, expect crashes and weird glitches from your server
 				/*if ( this.type === 3 )
 				c.x = this.x; //+ ( i / ( sdHover.driver_slots - 1 ) ) * ( this._hitbox_x2 - this._hitbox_x1 );
-				else*/
+				else
+				if ( this.type !== 3 )*/
 				c.x = this.x + ( i / ( sdHover.driver_slots - 1 ) ) * ( this._hitbox_x2 - this._hitbox_x1 );
 				
 				if ( c.CanMoveWithoutOverlap( c.x, this.y + this._hitbox_y1 - c._hitbox_y2, 1 ) )
