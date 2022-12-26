@@ -749,7 +749,7 @@ class sdBlock extends sdEntity
 		if ( this._contains_class === 'sdOctopus' || Math.random() < 0.05 ) // Octopus spawn gets replaced by abomination, or RNG puts abomination inside the flesh
 		ent2._contains_class = 'sdAbomination'; // Turn it into an abomination
 
-		if ( Math.random() < 0.4 ) // It usually doesn't hit a proper side so it removes the grabber anyway, making it sort of rare enough.
+		if ( Math.random() < 0.5 ) // It usually doesn't hit a proper side so it removes the grabber anyway, making it sort of rare enough.
 		{
 			let side = Math.round( Math.random() * 3 );
 			let spawn_x = this.x + ( this.width / 2 );
@@ -770,11 +770,13 @@ class sdBlock extends sdEntity
 			});
 			sdEntity.entities.push( grabber );
 
-			if ( !grabber.CanMoveWithoutOverlap( grabber.x, grabber.y, 0 ) )
+			/*if ( !grabber.CanMoveWithoutOverlap( grabber.x, grabber.y, 0 ) )
 			{
 				grabber.remove();
 			}
-			else
+			else*/
+			// Maybe it should spawn regardless if it has space or not, so players sort of "dig it out"
+			// Just not sure if updating hash position breaks something in this case - Booraz149
 			sdWorld.UpdateHashPosition( grabber, false ); // Prevent inersection with other ones
 		}
 
