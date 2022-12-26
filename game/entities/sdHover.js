@@ -51,7 +51,8 @@ class sdHover extends sdEntity
 			'Entered slot 3: Rocket launcher operator',
 			'Entered slot 4: Passenger',
 			'Entered slot 5: Passenger',
-			'Entered slot 6: Passenger'
+			'Entered slot 6: Passenger',
+			'Entered slot 1: Driver, minigun operator' // sdHoverBike
 		];
 		
 		sdHover.TYPE_HOVER = 0;
@@ -85,6 +86,14 @@ class sdHover extends sdEntity
 	{
 		return true;
 	}
+
+	VehicleHidesLegs()
+	{
+		if ( this.type === 3 )
+		return false;
+
+		return true;
+	}
 	
 	Impact( vel ) // fall damage basically
 	{
@@ -105,15 +114,15 @@ class sdHover extends sdEntity
 
 		this.type = params.type || 0;
 		
-		this.hmax = ( this.type === 1 ? 1200 : this.type === 2 ? 2400 : 600 ) * 4;
+		this.hmax = ( this.type === 1 ? 1200 : this.type === 2 ? 2400 : this.type === 3 ? 1200 : 600 ) * 4;
 		this.hea = this.hmax;
 		
 		this._tilt = 0;
 		
-		if ( this.type === 2 )
+		/*if ( this.type === 2 )
 		this._bullets = 200;
-		else
-		this._bullets = 300;
+		else*/
+		this._bullets = ( this.type === 3 ? 100 : this.type === 2 ? 200 : 300 );
 
 		this._bullets_reload = 0;
 		
@@ -131,7 +140,7 @@ class sdHover extends sdEntity
 		this._last_damage = 0; // Sound flood prevention
 		
 		// 6 slots
-		this.driver0 = null; // movement
+		this.driver0 = null; // movement and minigun if this type equals to 3
 		this.driver1 = null; // minigun
 		this.driver2 = null; // rockets
 		this.driver3 = null; // passenger
@@ -148,7 +157,7 @@ class sdHover extends sdEntity
 		this.matter_max = 12000;
 
 		if ( sdHover.TYPE_BIKE )
-		this.matter_max = 1000000; // Hack
+		this.matter_max = 800;
 	}
 	AddDriver( c )
 	{
@@ -172,10 +181,19 @@ class sdHover extends sdEntity
 			this[ 'driver' + best_slot ] = c;
 			
 			c.driver_of = this;
+
+			if ( c._socket && this.type === 3 )
+			c._socket.SDServiceMessage( sdHover.slot_hints[ 6 ] );
+			
+			else
 			
 			if ( c._socket )
 			c._socket.SDServiceMessage( sdHover.slot_hints[ best_slot ] );
+
+			if ( this.type === 3 && best_slot === 0 )
+			sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1, pitch:2 });
 		
+			else
 			if ( best_slot === 0 )
 			sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1 });
 		}
@@ -196,7 +214,13 @@ class sdHover extends sdEntity
 			{
 				this[ 'driver' + i ] = null;
 				c.driver_of = null;
+
+				// To prevent the teleport exploit
+				if ( this.type === 3 )
+				c.x = this.x; //+ ( i / ( sdHover.driver_slots - 1 ) ) * ( this._hitbox_x2 - this._hitbox_x1 );
 				
+				else
+				if ( this.type !== 3 )
 				c.x = this.x + ( i / ( sdHover.driver_slots - 1 ) ) * ( this._hitbox_x2 - this._hitbox_x1 );
 				
 				if ( c.CanMoveWithoutOverlap( c.x, this.y + this._hitbox_y1 - c._hitbox_y2, 1 ) )
@@ -405,6 +429,59 @@ class sdHover extends sdEntity
 		
 			if ( this._rockets_reload > 0 )
 			this._rockets_reload -= GSPEED;
+
+			if ( this.driver0 && this.type === 3 && this._bullets_reload <= 0 )
+			{
+				if ( this.driver0._key_states.GetKey( 'Mouse1' ) )
+				{
+					sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.33, pitch:1.5 });
+
+					let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+
+					bullet_obj._owner = this.driver0;
+					bullet_obj._owner2 = this;
+
+					let an = this.driver0.GetLookAngle() + ( Math.random() * 2 - 1 ) * 0.05;
+
+					bullet_obj.sx = Math.cos( Math.PI / 2 - an );
+					bullet_obj.sy = Math.sin( Math.PI / 2 - an );
+					bullet_obj.x += bullet_obj.sx * 5;
+					bullet_obj.y += 5 + bullet_obj.sy * 5;
+
+					bullet_obj.sx *= 15;
+					bullet_obj.sy *= 15;
+					
+					bullet_obj.sx += this.sx;
+					bullet_obj.sy += this.sy;
+
+					bullet_obj._damage = 13.5 * 2;
+
+					bullet_obj.color = '#ffaa00';
+
+					bullet_obj._rail = false;
+					
+
+					//bullet_obj._damage *= bullet_obj._owner._damage_mult;
+
+					if ( bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ] )
+					bullet_obj._armor_penetration_level = bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ];
+					else
+					bullet_obj._armor_penetration_level = 0;
+
+					sdEntity.entities.push( bullet_obj );
+
+					this._bullets_reload = 1.5;
+
+					this._bullets--;
+				}
+
+				if ( this._bullets <= 0 || ( this._bullets < 300 && this.driver0._key_states.GetKey( 'KeyR' ) ) )
+				{
+					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:1, pitch:0.6 });
+					this._bullets = 100;
+					this._bullets_reload = 60;
+				}
+			}
 		
 			if ( this.driver1 )
 			if ( this._bullets_reload <= 0 )
@@ -760,6 +837,20 @@ class sdHover extends sdEntity
 			ctx.drawImageFilterCache( can_boost ? sdHover.img_hover_boost : sdHover.img_hover, - 32, - 16, 64,32 );
 	
 	        var i = 0;
+
+			if ( this[ 'driver' + i ] && this.type === 3 )
+			{
+				ctx.save();
+
+				ctx.translate( -1, 7 );
+				ctx.scale( 1, -1 );
+
+				ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
+
+				ctx.drawImageFilterCache( sdHover.img_hover_mg, - 16, - 16, 32,32 );
+
+				ctx.restore();
+			}
 
             i = 1;
 			if ( this[ 'driver' + i ] )
