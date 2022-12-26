@@ -15,6 +15,9 @@ class sdSunPanel extends sdEntity
 	static init_class()
 	{
 		sdSunPanel.img_sun_panel = sdWorld.CreateImageFromFile( 'sunpanel' );
+		sdSunPanel.img_sun_panel2 = sdWorld.CreateImageFromFile( 'sunpanel2' );
+		sdSunPanel.img_sun_panel3 = sdWorld.CreateImageFromFile( 'sunpanel3' );
+		sdSunPanel.img_sun_panel4 = sdWorld.CreateImageFromFile( 'sunpanel4' );
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -73,8 +76,10 @@ class sdSunPanel extends sdEntity
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 
+		this.multiplier = params.multiplier || 1; // New solar panels, yay!
+
 		this._matter = 0;
-		this._matter_max = 20;
+		this._matter_max = 20 * this.multiplier; // Higher tiers store more matter inside it
 		
 		this.dirt = 0;
 		
@@ -108,7 +113,7 @@ class sdSunPanel extends sdEntity
 
 			if ( this.dirt <= 1 )
 			{
-				this.dirt += GSPEED * 0.00001;
+				this.dirt += GSPEED * ( 0.00001 / this.multiplier ); // Higher tiers should recieve dirt slower?
 
 				if ( this.dirt >= 1 )
 				this._update_version++;
@@ -129,7 +134,7 @@ class sdSunPanel extends sdEntity
 
 			if ( sun_intensity > 0.2 )
 			{
-				this._matter = Math.min( this._matter_max, this._matter + GSPEED * 0.001 * 1000 / 80 * sun_intensity );
+				this._matter = Math.min( this._matter_max, this._matter + GSPEED * 0.001 * 1000 / 80 * sun_intensity * this.multiplier );
 				this.MatterGlow( 0.01, 50, GSPEED );
 			}
 
@@ -154,14 +159,27 @@ class sdSunPanel extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		if ( this.dirt >= 1 )
-		ctx.drawImageFilterCache( sdSunPanel.img_sun_panel, 32, 0, 32, 32, - 16, - 16, 32, 32 );
-		else
-		ctx.drawImageFilterCache( sdSunPanel.img_sun_panel, 0, 0, 32, 32, - 16, - 16, 32, 32 );
+		let xx = this.dirt > 1 ? 1 : 0;
+		if ( this.multiplier === 1 )
+		{
+			ctx.drawImageFilterCache( sdSunPanel.img_sun_panel, xx * 32, 0, 32, 32, - 16, - 16, 32, 32 );
+		}
+		if ( this.multiplier === 2 )
+		{
+			ctx.drawImageFilterCache( sdSunPanel.img_sun_panel2, xx * 32, 0, 32, 32, - 16, - 16, 32, 32 );
+		}
+		if ( this.multiplier === 4 )
+		{
+			ctx.drawImageFilterCache( sdSunPanel.img_sun_panel3, xx * 32, 0, 32, 32, - 16, - 16, 32, 32 );
+		}
+		if ( this.multiplier === 8 )
+		{
+			ctx.drawImageFilterCache( sdSunPanel.img_sun_panel4, xx * 32, 0, 32, 32, - 16, - 16, 32, 32 );
+		}
 	}
 	MeasureMatterCost()
 	{
-		return 100;
+		return 100 * this.multiplier;
 	}
 	RequireSpawnAlign()
 	{ return true; }
