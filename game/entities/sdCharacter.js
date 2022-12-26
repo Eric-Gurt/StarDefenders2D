@@ -329,8 +329,8 @@ class sdCharacter extends sdEntity
 		sdCharacter.img_death4 = sdWorld.CreateImageFromFile( 'death4' );
 		//sdCharacter.img_death4_visor_tint = sdWorld.CreateImageFromFile( 'death4_visor_tint' );
 		*/
-		sdCharacter.img_jetpack = sdWorld.CreateImageFromFile( 'jetpack' );
-		
+		sdCharacter.img_jetpack = sdWorld.CreateImageFromFile( 'jetpack_sheet' ); // Sprite sheet by Molis
+
 		sdCharacter.air_max = 30 * 30; // 30 sec
 		
 		//sdCharacter.bullet_y_spawn_offset = -2; // Not only used for sword attacks
@@ -4840,7 +4840,8 @@ class sdCharacter extends sdEntity
 				ctx.sd_filter = null;
 				if ( this.flying )
 				{
-					ctx.drawImageFilterCache( sdCharacter.img_jetpack, - 16, - 16, 32,32 );
+					let frame = ( sdWorld.time % 600 > 400 ) ? 2 : ( sdWorld.time % 600 > 200 ) ? 1 : 0;
+					ctx.drawImageFilterCache( sdCharacter.img_jetpack, frame * 32, 0, 32, 32, - 16, - 16, 32, 32 );
 				}
 				//ctx.filter = char_filter;
 			}
