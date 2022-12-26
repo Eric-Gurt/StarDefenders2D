@@ -179,7 +179,7 @@ class sdSunPanel extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		return 100;
+		return 100 * this.multiplier;
 	}
 	RequireSpawnAlign()
 	{ return true; }
