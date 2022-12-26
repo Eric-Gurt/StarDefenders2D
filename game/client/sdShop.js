@@ -285,6 +285,9 @@ class sdShop
 		sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'hue-rotate(135deg)', _category:'Base equipment', _min_build_tool_level: 2 });
 		sdShop.options.push({ _class: 'sdNode', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdSunPanel', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdSunPanel', multiplier: 2, _min_build_tool_level: 3, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdSunPanel', multiplier: 4, _min_build_tool_level: 9, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdSunPanel', multiplier: 8, _min_build_tool_level: 18, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdWeaponBench', _category:'Base equipment' });
 		
 
