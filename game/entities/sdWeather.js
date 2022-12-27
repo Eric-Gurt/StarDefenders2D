@@ -3470,7 +3470,7 @@ class sdWeather extends sdEntity
 						difficulty: 0.1,
 						title: 'Low oxygen concentration in air',
 						time_left: this._no_air_duration,
-						description: 'Oxygen concentraion in atmosphere is getting low - we advice you to stay near oxygen sources, base shielding units or inside vehicles.',
+						description: 'Oxygen concentration in atmosphere is getting low - we advice you to stay near oxygen sources, base shielding units or inside vehicles.',
 					});
 				}
 			}
