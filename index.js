@@ -2069,7 +2069,7 @@ io.on("connection", (socket) =>
 			
 			if ( type.substring( 0, 3 ) === 'DB_' )
 			if ( sdModeration.GetAdminRow( socket ) ) // Needs socket.my_hash to be set, it is done after player enters the game
-			sdDatabase.AdminDatabaseCommand( socket, type, key, sd_events[ i ][ 2 ] );
+			sdDatabase.HandleCommandFromAdmin( socket, type, key, sd_events[ i ][ 2 ] );
 		}
 	});
 	

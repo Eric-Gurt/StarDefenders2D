@@ -700,6 +700,8 @@ class sdCharacter extends sdEntity
 		/*this._pos_corr_x = this.x;
 		this._pos_corr_y = this.y;
 		this._pos_corr_until = 0;*/
+			
+		this._global_user_uid = null; // Multiple sdCharacter-s can have same _global_user_uid because it points to user, not a character - user can have multiple characters. This can be null is sandbox modes that chose not to use global accounts yet might use presets and translations
 		
 		this.lag = false;
 		
