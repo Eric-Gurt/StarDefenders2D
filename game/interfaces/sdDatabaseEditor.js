@@ -287,6 +287,8 @@ class sdDatabaseEditor
 		{
 			// Note: obj can easily point to outdated/removed object if table search is happening - update obj pointer
 			
+			let value;
+			
 			function UpdateOBJPointer()
 			{
 				/*let property_access = '';
@@ -299,6 +301,8 @@ class sdDatabaseEditor
 
 				eval( 'obj = ' );*/
 				obj = parent_obj[ name ];
+				
+				//value = element_reuse_keys[ 'value.' + name ];
 			}
 			
 			let is_basic_value = sdDatabaseEditor.IsBasicValue( obj );
@@ -405,14 +409,17 @@ class sdDatabaseEditor
 				
 			if ( is_basic_value )
 			{	
-				let value = line.createElement({ 
+				value = line.createElement({ 
 					type: sdElement.TEXT, 
 					text: JSON.stringify( obj ),
 					color: ( obj ? '#aaffaa' : '#ff8383' ),
 					onClick: ()=>
 					{
-					}
+					},
+				
+					//element_reuse_key: element_reuse_keys[ 'value.' + name ]
 				});
+				//element_reuse_keys[ 'value.' + name ] = value;
 				
 				// Check if it is likely a timestemp
 				if ( typeof obj === 'number' && obj >= 1671998741285 )
@@ -435,6 +442,10 @@ class sdDatabaseEditor
 						onClick: ()=>
 						{
 							UpdateOBJPointer();
+							
+							// Wake up if pending setEditableStatus state
+							if ( !value.element.onblur )
+							value.element.onmousedown();
 				
 							value.text = !obj;
 							value.element.onblur();
@@ -462,6 +473,12 @@ class sdDatabaseEditor
 						marginLeft: 20,
 						onClick: ()=>
 						{
+							UpdateOBJPointer();
+							
+							// Wake up if pending setEditableStatus state
+							if ( !value.element.onblur )
+							value.element.onmousedown();
+						
 							value.text = '[]';
 							value.element.onblur();
 						}
@@ -473,6 +490,12 @@ class sdDatabaseEditor
 						marginLeft: 20,
 						onClick: ()=>
 						{
+							UpdateOBJPointer();
+							
+							// Wake up if pending setEditableStatus state
+							if ( !value.element.onblur )
+							value.element.onmousedown();
+						
 							value.text = '""';
 							value.element.onblur();
 						}
@@ -484,6 +507,12 @@ class sdDatabaseEditor
 						marginLeft: 20,
 						onClick: ()=>
 						{
+							UpdateOBJPointer();
+							
+							// Wake up if pending setEditableStatus state
+							if ( !value.element.onblur )
+							value.element.onmousedown();
+						
 							value.text = '0';
 							value.element.onblur();
 						}
@@ -495,6 +524,12 @@ class sdDatabaseEditor
 						marginLeft: 20,
 						onClick: ()=>
 						{
+							UpdateOBJPointer();
+							
+							// Wake up if pending setEditableStatus state
+							if ( !value.element.onblur )
+							value.element.onmousedown();
+						
 							value.text = 'false';
 							value.element.onblur();
 						}

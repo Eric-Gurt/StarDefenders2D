@@ -141,6 +141,8 @@ class sdElement
 		
 		this.translate = params.translate;
 		
+		this.last_textContent = null; // Used to track textContent altering on editable elements
+		
 		this.elements = []; // Array of independent arrays, used for removal. No need to add nexted elements here - just top level one(s) that contain all other elements
 
 		// and give it some content
@@ -273,6 +275,8 @@ class sdElement
 		if ( !element )
 		return;
 
+		this.last_textContent = element.textContent;
+
 		let activate_once = ()=>
 		{
 			activate_once = ()=>{};
@@ -291,15 +295,13 @@ class sdElement
 					this.setEditableStatus( false ); // Causes blur action
 				}
 
-				if ( old_value !== new_value )
+				if ( this.last_textContent !== new_value )
 				{
 					callback();
 
-					old_value = new_value;
+					this.last_textContent = new_value;
 				}
 			};
-
-			let old_value = element.textContent;
 
 			element.setAttribute( 'spellcheck', params.spellcheck ? 'true' : 'false' );
 
@@ -335,7 +337,14 @@ class sdElement
 		element.onmousedown = ()=>
 		{
 			activate_once();
-		}
+		};
+		/*
+		element.onblur = ( e )=>
+		{
+			activate_once();
+			
+			element.onblur( e );
+		};*/
 	}
 	
 	nativeSetHover( e=null, value )
@@ -393,6 +402,8 @@ class sdElement
 		v = T(v);
 		
 		eval( sdElement.text_path[ this.type ] + ' = v;' );
+		
+		//this.last_textContent = this.element.textContent;
 	}
 	get text()
 	{
