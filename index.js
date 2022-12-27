@@ -2168,7 +2168,7 @@ io.on("connection", (socket) =>
 				socket.emit( 'censored_chat', [ ( sdWorld.server_config.censorship_mute_duration !== undefined ? sdWorld.server_config.censorship_mute_duration : 5000 ) ] );
 			}
 			else*/
-			socket.character.Say( t, false );
+			socket.character.Say( t, false, false, false, false, false );
 		}
 	});
 	socket.muted_until = 0;

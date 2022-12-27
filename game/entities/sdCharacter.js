@@ -5128,7 +5128,7 @@ class sdCharacter extends sdEntity
 		return 200; // Hack
 	}
 	
-	Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false, simulate_sound=false )
+	Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false, simulate_sound=false, translate=true )
 	{
 		let params = { 
 			x:this.x, 
@@ -5142,6 +5142,9 @@ class sdCharacter extends sdEntity
 			voice:this._voice,
 			no_ef:simulate_sound
 		};
+		
+		if ( translate )
+		params.t = 1;
 
 		if ( sdWorld.is_server )
 		{

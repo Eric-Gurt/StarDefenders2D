@@ -793,7 +793,7 @@ let enf_once = true;
 		UpdateLanguageBar();
 		socket.on( 'INIT', ( obj )=>
 		{
-			document.getElementById( 'game_title_text' ).textContent = obj.game_title;
+			document.getElementById( 'game_title_text' ).textContent = T(obj.game_title);
 			document.body.style.backgroundColor = obj.backgroundColor;
 			
 			if ( obj.supported_languages )

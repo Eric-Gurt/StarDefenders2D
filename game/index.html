@@ -1722,8 +1722,14 @@
 	    
 		if ( globalThis.socket_io_crashed && !socket.connected )
 		start_btn.value = globalThis.socket_io_crashed;
-		else    
-		start_btn.value = 'Play with ' + format( globalThis.players_playing ) + ' other players (' + format( globalThis.players_online ) + ' online)';
+		else
+		{
+		    let str = T('Play with {1} other players ({2} online)');
+		    //start_btn.value = 'Play with ' + format( globalThis.players_playing ) + ' other players (' + format( globalThis.players_online ) + ' online)';
+		    str = str.split('{1}').join( format( globalThis.players_playing ) );
+		    str = str.split('{2}').join( format( globalThis.players_online ) );
+		    start_btn.value = str;
+		}
 	    
 		ctx.fillStyle = '#7b3219';
 		//ctx.fillStyle = '#111111';

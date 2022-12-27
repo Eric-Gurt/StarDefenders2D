@@ -961,10 +961,10 @@ class sdDatabase
 							{
 								_is_array: ( value instanceof Array ), // JSON arrays won't store extra keys
 								_path: path_parts.concat( key_of_cur ),
-								_synced: false,
+								//_synced: false,
 								_pending: false,
-								_expanded: false,
-								_properties_change_pending: {}
+								//_expanded: false,
+								//_properties_change_pending: {}
 							};
 						}
 						

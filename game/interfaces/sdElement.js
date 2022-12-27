@@ -67,11 +67,62 @@ class sdElement
 	
 		params.parent = this;
 		
-		let e = new sdElement( params );
+		let e;
 		
-		this.children.push( e );
+		if ( params.element_reuse_key && params.element_reuse_key && !params.element_reuse_key._is_being_removed )
+		{
+			e = params.element_reuse_key;
+			
+			if ( e.type === sdElement.ROOT_ELEMENT )
+			throw new Error( 'element_reuse_key is not supported for this type of sdElement' );
+		
+			if ( e.type === sdElement.WINDOW )
+			throw new Error( 'element_reuse_key is not supported for this type of sdElement' );
+			
+			if ( e.parent !== params.parent )
+			{
+				if ( e.parent )
+				e.detachFromParent();
+
+				e.parent = params.parent;
+				e.parent.GetChildrenContainer().append( e.element );
+				
+				/*if ( e._is_being_removed )
+				throw new Error();
+			
+				if ( e.parent._is_being_removed )
+				throw new Error();*/
+				
+				this.children.push( e );
+			}
+		}
+		else
+		{
+			e = new sdElement( params );
+			this.children.push( e );
+		}
+	
+		e.is_new = true; // For tacking partial structural updates - you can remove elements that aren't new
 		
 		return e;
+	}
+	MarkAsOldRecursively()
+	{
+		this.is_new = false;
+		for ( let i = 0; i < this.children.length; i++ )
+		this.children[ i ].MarkAsOldRecursively();
+	}
+	RemoveOldRecursively()
+	{
+		if ( !this.is_new )
+		this.remove();
+		else
+		{
+			let children_copy = this.children.slice();
+			
+			for ( let i = 0; i < children_copy.length; i++ )
+			children_copy[ i ].RemoveOldRecursively();
+		}
 	}
 	
 	constructor( params )
@@ -81,6 +132,8 @@ class sdElement
 	
 		if ( params.type === undefined )
 		throw new Error( 'No type specified for sdElement' );
+	
+		this._is_being_removed = false;
 	
 		this.children = [];
 		this.parent = params.parent;
@@ -99,98 +152,104 @@ class sdElement
 		}
 		else
 		{
-			let element = document.createElement( 'div' );
-			this.element = element;
-
-			element.className = sdElement.css_classnames[ this.type ];
-			
-			this.parent.GetChildrenContainer().append( element );
-			//this.parent.element.append( element );
-			
-			if ( this.type === sdElement.WINDOW )
+			/*if ( params.element_reuse_key && params.element_reuse_key.element )
 			{
-				if ( params.draggable || params.onCloseButton )
+				this.element = params.element_reuse_key.element;
+			}
+			else*/
+			{
+				let element = document.createElement( 'div' );
+				this.element = element;
+
+				element.className = sdElement.css_classnames[ this.type ];
+
+				this.parent.GetChildrenContainer().append( element );
+
+				if ( this.type === sdElement.WINDOW )
 				{
-					let caption = document.createElement( 'div' );
-					caption.className = 'sd_window_caption';
-					element.append( caption );
-					this.element_caption = caption;
-					
-					let dragging = false;
-					caption.onmousedown = ( e )=>
+					if ( params.draggable || params.onCloseButton )
 					{
-						if ( dragging )
-						return;
-					
-						dragging = true;
-						
-						let bounds = element.getBoundingClientRect();
-						
-						let dx = bounds.x - e.pageX;
-						let dy = bounds.y - e.pageY;
-					
-						let up = ( e )=>
-						{
-							document.removeEventListener( 'mouseup', up );
-							document.removeEventListener( 'mousemove', move );
-							
-							dragging = false;
-						};
-						let move = ( e )=>
-						{
-							let mx = e.pageX;
-							let my = e.pageY;
-							
-							if ( mx + dx > document.body.scrollWidth - 30 )
-							mx = document.body.scrollWidth - 30 - dx;
-						
-							if ( mx + dx + bounds.width < 30 )
-							mx = 30 - dx - bounds.width;
-							
-							if ( my + dy > document.body.scrollHeight - 30 )
-							my = document.body.scrollHeight - 30 - dy;
-							
-							if ( my + dy < 0 )
-							my = 0 - dy;
-							
-							element.style.position = 'fixed';
-							element.style.left = mx + dx + 'px';
-							element.style.top = my + dy + 'px';
-						};
-						document.addEventListener( 'mouseup', up );
-						document.addEventListener( 'mousemove', move );
-					};
+						let caption = document.createElement( 'div' );
+						caption.className = 'sd_window_caption';
+						element.append( caption );
+						this.element_caption = caption;
 
-					let inner_container = document.createElement( 'div' );
-					inner_container.className = 'sd_window_inner_container';
-					element.append( inner_container );
-					this.element_inner_container = inner_container;
+						let dragging = false;
+						caption.onmousedown = ( e )=>
+						{
+							if ( dragging )
+							return;
 
-					if ( params.onCloseButton )
+							dragging = true;
+
+							let bounds = element.getBoundingClientRect();
+
+							let dx = bounds.x - e.pageX;
+							let dy = bounds.y - e.pageY;
+
+							let up = ( e )=>
+							{
+								document.removeEventListener( 'mouseup', up );
+								document.removeEventListener( 'mousemove', move );
+
+								dragging = false;
+							};
+							let move = ( e )=>
+							{
+								let mx = e.pageX;
+								let my = e.pageY;
+
+								if ( mx + dx > document.body.scrollWidth - 30 )
+								mx = document.body.scrollWidth - 30 - dx;
+
+								if ( mx + dx + bounds.width < 30 )
+								mx = 30 - dx - bounds.width;
+
+								if ( my + dy > document.body.scrollHeight - 30 )
+								my = document.body.scrollHeight - 30 - dy;
+
+								if ( my + dy < 0 )
+								my = 0 - dy;
+
+								element.style.position = 'fixed';
+								element.style.left = mx + dx + 'px';
+								element.style.top = my + dy + 'px';
+							};
+							document.addEventListener( 'mouseup', up );
+							document.addEventListener( 'mousemove', move );
+						};
+
+						let inner_container = document.createElement( 'div' );
+						inner_container.className = 'sd_window_inner_container';
+						element.append( inner_container );
+						this.element_inner_container = inner_container;
+
+						if ( params.onCloseButton )
+						{
+							let close_btn = document.createElement( 'div' );
+							close_btn.className = 'sd_window_close_btn';
+							element.append( close_btn );
+							this.close_btn = close_btn;
+							close_btn.onclick = params.onCloseButton;
+							close_btn.textContent = 'x';
+						}
+					}
+					else
 					{
-						let close_btn = document.createElement( 'div' );
-						close_btn.className = 'sd_window_close_btn';
-						element.append( close_btn );
-						this.close_btn = close_btn;
-						close_btn.onclick = params.onCloseButton;
-						close_btn.textContent = 'x';
+						let inner_container = document.createElement( 'div' );
+						inner_container.className = 'sd_window_inner_container';
+						element.append( inner_container );
+						this.element_inner_container = inner_container;
+
+						inner_container.style.height = '100%';
 					}
 				}
-				else
-				{
-					let inner_container = document.createElement( 'div' );
-					inner_container.className = 'sd_window_inner_container';
-					element.append( inner_container );
-					this.element_inner_container = inner_container;
-					
-					inner_container.style.height = '100%';
-				}
+
+				element.onmouseover = ( e )=>{ if ( e.target === this.element ) this.nativeSetHover( e, 1 ) };
+				element.onmouseout = ( e )=>{ if ( e.target === this.element ) this.nativeSetHover( e, 0 ) };
+				element.onmousedown = ( e )=>{ if ( e.target === this.element ) this.nativeSetHover( e, 2 ) };
+				element.onmouseup = ( e )=>{ if ( e.target === this.element ) this.nativeSetHover( e, 1 ) };
 			}
-			
-			element.onmouseover = ( e )=>{ if ( e.target === this.element ) this.nativeSetHover( e, 1 ) };
-			element.onmouseout = ( e )=>{ if ( e.target === this.element ) this.nativeSetHover( e, 0 ) };
-			element.onmousedown = ( e )=>{ if ( e.target === this.element ) this.nativeSetHover( e, 2 ) };
-			element.onmouseup = ( e )=>{ if ( e.target === this.element ) this.nativeSetHover( e, 1 ) };
 		}
 		
 		this.elements.push( this.element );
@@ -209,66 +268,74 @@ class sdElement
 	setEditableStatus( v, callback=null, params={} /*edit_once=false*/ )
 	{
 		let element = this.element;
-		
+
 		// Removed
 		if ( !element )
 		return;
-	
-		let action = null;
-		
-		if ( v )
-		action = ()=>
+
+		let activate_once = ()=>
 		{
-			let new_value = element.textContent;
-			
-			if ( params.edit_once )
+			activate_once = ()=>{};
+
+			let action = null;
+
+			if ( v )
+			action = ()=>
 			{
-				action = ()=>{};
-				
-				this.setEditableStatus( false ); // Causes blur action
-			}
-		
-			if ( old_value !== new_value )
+				let new_value = element.textContent;
+
+				if ( params.edit_once )
+				{
+					action = ()=>{};
+
+					this.setEditableStatus( false ); // Causes blur action
+				}
+
+				if ( old_value !== new_value )
+				{
+					callback();
+
+					old_value = new_value;
+				}
+			};
+
+			let old_value = element.textContent;
+
+			element.setAttribute( 'spellcheck', params.spellcheck ? 'true' : 'false' );
+
+			let v_str = v ? 'true' : 'false';
+
+			if ( v_str !== element.contentEditable )
 			{
-				callback();
-				
-				old_value = new_value;
+				element.contentEditable = v ? 'true' : 'false';
 			}
+
+			element.onblur = v ? ()=>
+			{
+				window.getSelection().removeAllRanges();
+
+				action();
+			} : null;
+
+			element.onkeydown = v ? ( e )=>
+			{
+				if ( e.key === 'Enter' )
+				{
+					e.preventDefault();
+					e.stopImmediatePropagation();
+
+					action();
+				}
+			} : null;
+
+			//if ( v )
+			//element.focus();
 		};
 		
-		let old_value = element.textContent;
-		
-		element.setAttribute( 'spellcheck', params.spellcheck ? 'true' : 'false' );
-		
-		element.contentEditable = v ? 'true' : 'false';
-		/*element.onblur = callback;
-		element.onkeyup = callback;
-		element.onpaste = callback;
-		element.oncopy = callback;
-		element.oncut = callback;
-		element.ondelete = callback;
-		element.onmouseup = callback;*/
-		
-		element.onblur = v ? ()=>
+		element.onmousedown = ()=>
 		{
-			window.getSelection().removeAllRanges();
-			
-			action();
-		} : null;
-		
-		element.onkeydown = v ? ( e )=>
-		{
-			if ( e.key === 'Enter' )
-			{
-				e.preventDefault();
-				e.stopImmediatePropagation();
-				
-				action();
-			}
-		} : null;
-		
-		//if ( v )
-		//element.focus();
+			activate_once();
+		}
 	}
 	
 	nativeSetHover( e=null, value )
@@ -386,8 +453,29 @@ class sdElement
 	
 	removeChildren()
 	{
+		//if ( this.children )
 		for ( let i = this.children.length - 1; i >= 0; i-- )
 		this.children[ i ].remove();
+	}
+	
+	detachFromParent()
+	{
+		if ( this.parent )
+		{
+			let id = this.parent.children.indexOf( this );
+			if ( id === -1 )
+			throw new Error();
+
+			this.parent.children.splice( id, 1 );
+			
+			/*for ( let i = 0; i < this.parent.children.length; i++ )
+			if ( this.parent.children[ i ]._is_being_removed )
+			throw new Error( 'bug already happened' );*/
+			
+			this.parent = null;
+		}
+		else
+		throw new Error();
 	}
 	
 	remove() // Recursively removes children as well
@@ -398,12 +486,8 @@ class sdElement
 		if ( sdElement.current_hover === this )
 		this.nativeSetHover( null, 0 );
 		
-		
-		let id = this.parent.children.indexOf( this );
-		if ( id === -1 )
-		throw new Error();
-		
-		this.parent.children.splice( id, 1 );
+		this.detachFromParent();
+		//this.parent.children.splice( id, 1 );
 		
 		this.removeChildren();
 	
@@ -414,6 +498,9 @@ class sdElement
 	
 		//this.element.remove();
 		this.element = null;
+		
+		this._is_being_removed = true;
+		this._removed_at = getStackTrace();
 	}
 }
 

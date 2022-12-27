@@ -431,6 +431,11 @@ class sdEffect extends sdEntity
 		
 		if ( sdWorld.client_side_censorship && this._text_censored )
 		this._text = sdWorld.CensoredText( this._text );
+		else
+		if ( params.t )
+		{
+			this._text = T( this._text );
+		}
 		
 		if ( params.attachment instanceof Array )
 		this._attachment = params.attachment ? sdEntity.GetObjectByClassAndNetId( params.attachment[ 0 ], params.attachment[ 1 ] ) : null;
@@ -494,103 +499,103 @@ class sdEffect extends sdEntity
 			{
 				this.remove();
 			}
-			
+
 			let spoken = this._text;
-			
+
 			if ( spoken === 'ty' )
 			spoken = 'thank you';
-			
+
 			if ( spoken === 'ikr' )
 			spoken = 'i know right';
-			
+
 			if ( spoken === 'ily' )
 			spoken = 'i love you';
-			
+
 			if ( spoken === 'np' )
 			spoken = 'no problems';
-			
+
 			if ( spoken === 'smh' )
 			spoken = 'shaking my head';
-			
+
 			if ( spoken === 'ngl' )
 			spoken = 'not gonna lie';
-			
+
 			if ( spoken === 'afk' )
 			spoken = 'away from keyboard';
-			
+
 			if ( spoken === 'ig' )
 			spoken = 'I guess';
-			
+
 			if ( spoken === 'brb' )
 			spoken = 'be right back';
-			
+
 			if ( spoken === 'idk' )
 			spoken = 'i don\'t know';
-			
+
 			if ( spoken === 'jk' )
 			spoken = 'just kidding';
-			
+
 			if ( spoken === 'wdym' || spoken === 'wdym?' )
 			spoken = 'what do you mean?';
-			
+
 			if ( spoken === 'kys' )
 			spoken = 'please commit no live';
-			
+
 			if ( spoken === 'btw' )
 			spoken = 'by the way';
-			
+
 			if ( spoken === 'tf' )
 			spoken = 'the fuck';
-			
+
 			if ( spoken === 'gj' )
 			spoken = 'good job';
-			
+
 			if ( spoken === 'ffs' )
 			spoken = 'for the fuck\'s sake';
-			
+
 			if ( spoken === 'fk' )
 			spoken = 'fuck';
-			
+
 			if ( spoken === 'nvm' )
 			spoken = 'nevermind';
-			
+
 			spoken = spoken.split('-').join('');
-			
+
 			spoken = spoken.split(':)').join('smileyface');
 			spoken = spoken.split(':)').join('smileyface');
 			spoken = spoken.split(':]').join('smileyface');
 			spoken = spoken.split(':}').join('smileyface');
-			
+
 			spoken = spoken.split('>:(').join('madface');
 			spoken = spoken.split('>:D').join('madhappyface');
 			spoken = spoken.split(':(').join('sadface');
 			spoken = spoken.split(':<').join('sadface');
 			spoken = spoken.split(':[').join('sadface');
-			
+
 			spoken = spoken.split('^').join(' caret ');
-			
+
 			spoken = ( ' ' + spoken ).split(' im ').join(' i am ').slice( 1 );
-			
+
 			spoken = spoken.split(':D').join('happy face');
-			
+
 			spoken = spoken.split('Z').join('z'); // pronounce bug
-			
+
 			let voice = params.voice.voice; // Language
-			
+
 			spoken = sdEffect.Transliterate( spoken );
-			
+
 			if ( voice === 'en' )
 			voice = 'en/en';
-			
+
 			if ( sdEffect.translit_result_assumed_language )
 			voice = sdEffect.translit_result_assumed_language;
-			
+
 			let that = this;
-			
+
 			let since = sdWorld.time;
-			
+
 			let t = -1;
-			
+
 			if ( sdWorld.client_side_censorship && this._text_censored )
 			{
 				sdSound.PlaySound({ name:'sd_beacon', x:this.x, y:this.y, volume:0.35, pitch:0.4, _server_allowed: true });
@@ -621,16 +626,17 @@ class sdEffect extends sdEntity
 					setTimeout(()=>{ that.remove();}, spoken.length * 120 + 100);
 				}
 			}
-	
+
 			if ( this._attachment )
 			{
 				if ( this._attachment._speak_id !== -1 )
 				meSpeak.stop( this._attachment._speak_id );
-				
+
 				this._attachment._speak_id = t;
 			}
 			  //debugger;
 		}
+
 		
 		if ( typeof params.rotation !== 'undefined' )
 		{
