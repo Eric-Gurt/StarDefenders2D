@@ -122,7 +122,7 @@ class sdTheatre extends sdEntity
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, 'Theatre ( channel: "'+this.service + ' > ' + ( this.channel || this.video ) + '", volume: '+this.volume+'% )', 0, -10 );
+		sdEntity.TooltipUntranslated( ctx, T('Theatre ( channel: "')+this.service + ' > ' + ( this.channel || this.video ) + T('", volume: ')+this.volume+'% )', 0, -10 );
 	}
 	
 	DrawBG( ctx, attached )

@@ -955,6 +955,19 @@ class sdDatabaseEditor
 								},
 								marginLeft: 20,
 							});
+							line.createElement({ 
+								type: sdElement.TEXT, 
+								text: 'Refresh contents', translate: true,
+								color: '#838383',
+								onClick: ()=>{
+									
+									UpdateOBJPointer();
+									
+									obj._synced = false;
+									sd_events.push([ 'DB_SCAN', obj._path ]);
+								},
+								marginLeft: 20,
+							});
 						}
 					}
 

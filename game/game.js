@@ -707,10 +707,11 @@ let enf_once = true;
 		});
 
 
-		socket.on( 'SERVICE_MESSAGE', ( v )=>
+		socket.on( 'SERVICE_MESSAGE', ( arr )=>
 		{
 			sdRenderer.service_mesage_until = sdWorld.time + 6500;
-			sdRenderer.service_mesage = v;
+			sdRenderer.service_mesage = arr[ 0 ];
+			sdRenderer.service_mesage_untranslateables = arr[ 1 ];
 		});
 		
 		socket.on( 'SET_CLIPBOARD', ( v )=>

@@ -772,16 +772,16 @@ class sdBaseShieldingUnit extends sdEntity
 		//return;
 	
 		if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
-		sdEntity.Tooltip( ctx,  "Crystal-based base shielding unit ( " + ~~(this.matter_crystal) + " / " + ~~(this.matter_crystal_max) + " )" );
+		sdEntity.TooltipUntranslated( ctx, T("Crystal-based base shielding unit") + " ( " + ~~(this.matter_crystal) + " / " + ~~(this.matter_crystal_max) + " )" );
 		if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
 		{
-			sdEntity.Tooltip( ctx,  "Matter-based base shielding unit ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )", 0, -8 );
+			sdEntity.TooltipUntranslated( ctx, T("Matter-based base shielding unit") + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )", 0, -8 );
 			
 			
 			if ( this.attack_other_units )
-			sdEntity.Tooltip( ctx, 'Anti-raid protection: ' + ~~(this.charge) + '% (active)', 0, 0, this.charge < 50 ? '#ff6666' : '#66ff66' );
+			sdEntity.TooltipUntranslated( ctx, T('Anti-raid protection') + ': ' + ~~(this.charge) + '% ('+T('active')+')', 0, 0, this.charge < 50 ? '#ff6666' : '#66ff66' );
 			else
-			sdEntity.Tooltip( ctx, 'Anti-raid protection: ' + ~~(this.charge) + '% (passive)', 0, 0, this.charge < 50 ? '#ff6666' : '#66ff66' );
+			sdEntity.TooltipUntranslated( ctx, T('Anti-raid protection') + ': ' + ~~(this.charge) + '% ('+T('passive')+')', 0, 0, this.charge < 50 ? '#ff6666' : '#66ff66' );
 		}
 
 		let w = 30;

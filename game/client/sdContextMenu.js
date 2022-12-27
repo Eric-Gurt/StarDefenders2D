@@ -247,6 +247,9 @@ class sdContextMenu
 					t = sdContextMenu.options[ i ].title;
 				}
 				
+				if ( sdContextMenu.options[ i ].translate )
+				t = T( t );
+				
 				if ( i >= 0 )
 				{
 					if ( sdWorld.mouse_screen_x >= sdContextMenu.x )

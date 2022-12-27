@@ -4439,7 +4439,7 @@ class sdEntity
 		}
 		*/
 	}
-	AddContextOption( title, command_name, parameters_array, close_on_click=true, extra={} ) // Do not override. extra goes straight to context menu properties
+	AddContextOptionNoTranslation( title, command_name, parameters_array, close_on_click=true, extra={} ) // Do not override. extra goes straight to context menu properties
 	{
 		sdContextMenu.options.push( Object.assign( extra, { 
 			title: title,
@@ -4449,6 +4449,11 @@ class sdEntity
 				globalThis.socket.emit( 'ENTITY_CONTEXT_ACTION', [ this.GetClass(), this._net_id, command_name, parameters_array ] );
 			}
 		}) );
+	}
+	AddContextOption( title, command_name, parameters_array, close_on_click=true, extra={} ) // Do not override. extra goes straight to context menu properties
+	{
+		extra.translate = true;
+		this.AddContextOptionNoTranslation( title, command_name, parameters_array, close_on_click, extra );
 	}
 	AddPromptContextOption( title, command_name, parameters_array, hint, default_text, max_characters=100 ) // Do not override. Sets entered text to parameters_array[ 0 ]
 	{

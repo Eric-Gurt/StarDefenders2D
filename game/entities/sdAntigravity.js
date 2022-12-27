@@ -322,7 +322,7 @@ class sdAntigravity extends sdEntity
 				let velocities = [ -1, 0, 1, 2, 5, 10, 20 ];
 
 				for ( let i = 0; i < velocities.length; i++ )
-				this.AddContextOption( 'Set intensity to ' + ( i === 0 ? 'impact prevention' : velocities[ i ] ), 'SETPOWER', [ velocities[ i ] ] );
+				this.AddContextOptionNoTranslation( T('Set intensity to ') + ( i === 0 ? T('impact prevention') : velocities[ i ] ), 'SETPOWER', [ velocities[ i ] ] );
 			}
 		}
 	}
