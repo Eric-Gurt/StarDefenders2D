@@ -796,6 +796,7 @@ let enf_once = true;
 			document.getElementById( 'game_title_text' ).textContent = obj.game_title;
 			document.body.style.backgroundColor = obj.backgroundColor;
 			
+			if ( obj.supported_languages )
 			supported_languages = obj.supported_languages;
 			
 			UpdateLanguageBar();
