@@ -259,7 +259,10 @@ class sdModeration
 		if ( parts[ 0 ] === 'myid' || parts[ 0 ] === 'id' )
 		{
 			if ( socket.character )
-			socket.character.Say( 'My _net_id is ' + socket.character._net_id );
+			{
+				socket.character.Say( 'My _net_id is ' + socket.character._net_id );
+				
+			}
 		}
 		else
 		if ( parts[ 0 ] === 'promote' || parts[ 0 ] === 'demote' )
@@ -767,7 +770,10 @@ class sdModeration
 		else
 		if ( parts[ 0 ] === 'database' || parts[ 0 ] === 'db' )
 		{
+			//if ( my_admin_row.access_level === 0 )
 			socket.emit( 'OPEN_INTERFACE', 'sdDatabaseEditor' );
+			//else
+			//socket.SDServiceMessage( 'Server: Only first admin can access database. Your access level isn\'t low enough: ' + my_admin_row.access_level );
 		}
 		else
 		socket.SDServiceMessage( 'Server: Unknown command "' + parts[ 0 ] + '"' );

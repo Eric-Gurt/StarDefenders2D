@@ -4363,6 +4363,10 @@ class sdEntity
 	}
 	static Tooltip( ctx, t, x=0, y=0, color='#ffffff' )
 	{
+		sdEntity.TooltipUntranslated( ctx, T( t ), x, y, color );
+	}
+	static TooltipUntranslated( ctx, t, x=0, y=0, color='#ffffff' )
+	{
 		ctx.font = "5.5px Verdana";
 		ctx.textAlign = 'center';
 		ctx.fillStyle = '#000000';

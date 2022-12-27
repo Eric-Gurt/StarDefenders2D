@@ -122,9 +122,13 @@ class sdServerToServerProtocol
 								else
 								if ( data_object.action === 'db' )
 								{
-									sdDatabase.Exec( data_object.request, ( result )=>{
-										socket.emit( 'S2SProtocolMessage', [ route, result ] );
-									});
+									sdDatabase.Exec( 
+										data_object.request, 
+										( result )=>{
+											socket.emit( 'S2SProtocolMessage', [ route, result ] );
+										},
+										ip
+									);
 									return;
 								}
 							}

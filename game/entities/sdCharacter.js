@@ -4192,7 +4192,7 @@ class sdCharacter extends sdEntity
 			let t = this.title;
 			
 			if ( sdWorld.client_side_censorship && this.title_censored )
-			t = 'Censored Defender';//sdWorld.CensoredText( t );
+			t = T('Censored Defender');//sdWorld.CensoredText( t );
 			
 			ctx.fillStyle = '#000000';
 			ctx.fillText( t, 0, -raise - 4.5, 50 ); 

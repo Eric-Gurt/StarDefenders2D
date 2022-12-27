@@ -134,9 +134,9 @@ class sdBomb extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.hea > 0 )
-		sdEntity.Tooltip( ctx, "Bomb ( " + Math.ceil( this.detonation_in / 30 ) + "s )" );
+		sdEntity.TooltipUntranslated( ctx, T("Bomb") + " ( " + Math.ceil( this.detonation_in / 30 ) + "s )" );
 		else
-		sdEntity.Tooltip( ctx, "Bomb ( disarmed )" );
+		sdEntity.TooltipUntranslated( ctx, T("Bomb") + " ( " + T("disarmed") + " )" );
 	}
 	Draw( ctx, attached )
 	{

@@ -583,7 +583,7 @@ class sdCouncilMachine extends sdEntity
 	{
 
 		{
-			sdEntity.Tooltip( ctx, "Council portal machine (" + ~~( this.detonation_in / ( 30 * 60 ) ) + " minutes, "+  ~~ ~~( this.detonation_in % ( 30 * 60 ) / 30 ) + " seconds)", 0, -8 );
+			sdEntity.TooltipUntranslated( ctx, T("Council portal machine") + " (" + ~~( this.detonation_in / ( 30 * 60 ) ) + " minutes, "+  ~~ ~~( this.detonation_in % ( 30 * 60 ) / 30 ) + " seconds)", 0, -8 );
 			this.DrawHealthBar( ctx );
 		}
 	}

@@ -645,7 +645,7 @@ class sdBadDog extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, this.owned ? ( this.master ? sdEntity.GuessEntityName( this.master._net_id ) : 'Someone') + "'s Bad Dog ( "+( 12 + this.turret_level )+" damage )" : "Bad Dog" );
+		sdEntity.TooltipUntranslated( ctx, this.owned ? ( this.master ? sdEntity.GuessEntityName( this.master._net_id ) : 'Someone') + "'s Bad Dog ( "+( 12 + this.turret_level )+" damage )" : T("Bad Dog") );
 	
 		if ( this.death_anim < 20 )
 		if ( this.owned )

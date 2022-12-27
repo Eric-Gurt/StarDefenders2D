@@ -165,9 +165,9 @@ class sdWorkbench extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, "Workbench ( " + ~~(this.cube_shards) + " / " + ~~(this.cube_shards_max) + " )", 0, -10 );
+		sdEntity.TooltipUntranslated( ctx, T("Workbench") + " ( " + ~~(this.cube_shards) + " / " + ~~(this.cube_shards_max) + " )", 0, -10 );
 
-		sdEntity.Tooltip( ctx, "Level " + this.level, 0, -3, '#66ff66' );
+		sdEntity.Tooltip( ctx, T("Level") + " " + this.level, 0, -3, '#66ff66' );
 		let w = 40;
 	
 		ctx.fillStyle = '#000000';

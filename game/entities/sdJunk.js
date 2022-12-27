@@ -1041,7 +1041,7 @@ class sdJunk extends sdEntity
 		}
 		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB )
 		{
-			sdEntity.Tooltip( ctx, "Council bomb (" + ~~( this.detonation_in / ( 30 * 60 ) ) + " minutes, "+  ~~ ~~( this.detonation_in % ( 30 * 60 ) / 30 ) + " seconds)", 0, -8 );
+			sdEntity.TooltipUntranslated( ctx, T("Council bomb")+" (" + ~~( this.detonation_in / ( 30 * 60 ) ) + " minutes, "+  ~~ ~~( this.detonation_in % ( 30 * 60 ) / 30 ) + " seconds)", 0, -8 );
 			this.DrawHealthBar( ctx );
 		}
 		if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON )
@@ -1052,7 +1052,7 @@ class sdJunk extends sdEntity
 
 		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER )
 		{
-			sdEntity.Tooltip( ctx, "Advanced matter container ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
+			sdEntity.TooltipUntranslated( ctx, T("Advanced matter container") + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
 		}
 
 		if ( this.type === sdJunk.TYPE_FREEZE_BARREL )

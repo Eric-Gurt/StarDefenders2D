@@ -86,6 +86,8 @@ class sdElement
 		this.parent = params.parent;
 		this.type = params.type;
 		
+		this.translate = params.translate;
+		
 		this.elements = []; // Array of independent arrays, used for removal. No need to add nexted elements here - just top level one(s) that contain all other elements
 
 		// and give it some content
@@ -107,24 +109,81 @@ class sdElement
 			
 			if ( this.type === sdElement.WINDOW )
 			{
-				let caption = document.createElement( 'div' );
-				caption.className = 'sd_window_caption';
-				element.append( caption );
-				this.element_caption = caption;
-				
-				let inner_container = document.createElement( 'div' );
-				inner_container.className = 'sd_window_inner_container';
-				element.append( inner_container );
-				this.element_inner_container = inner_container;
-				
-				if ( params.onCloseButton )
+				if ( params.draggable || params.onCloseButton )
 				{
-					let close_btn = document.createElement( 'div' );
-					close_btn.className = 'sd_window_close_btn';
-					element.append( close_btn );
-					this.close_btn = close_btn;
-					close_btn.onclick = params.onCloseButton;
-					close_btn.textContent = 'x';
+					let caption = document.createElement( 'div' );
+					caption.className = 'sd_window_caption';
+					element.append( caption );
+					this.element_caption = caption;
+					
+					let dragging = false;
+					caption.onmousedown = ( e )=>
+					{
+						if ( dragging )
+						return;
+					
+						dragging = true;
+						
+						let bounds = element.getBoundingClientRect();
+						
+						let dx = bounds.x - e.pageX;
+						let dy = bounds.y - e.pageY;
+					
+						let up = ( e )=>
+						{
+							document.removeEventListener( 'mouseup', up );
+							document.removeEventListener( 'mousemove', move );
+							
+							dragging = false;
+						};
+						let move = ( e )=>
+						{
+							let mx = e.pageX;
+							let my = e.pageY;
+							
+							if ( mx + dx > document.body.scrollWidth - 30 )
+							mx = document.body.scrollWidth - 30 - dx;
+						
+							if ( mx + dx + bounds.width < 30 )
+							mx = 30 - dx - bounds.width;
+							
+							if ( my + dy > document.body.scrollHeight - 30 )
+							my = document.body.scrollHeight - 30 - dy;
+							
+							if ( my + dy < 0 )
+							my = 0 - dy;
+							
+							element.style.position = 'fixed';
+							element.style.left = mx + dx + 'px';
+							element.style.top = my + dy + 'px';
+						};
+						document.addEventListener( 'mouseup', up );
+						document.addEventListener( 'mousemove', move );
+					};
+
+					let inner_container = document.createElement( 'div' );
+					inner_container.className = 'sd_window_inner_container';
+					element.append( inner_container );
+					this.element_inner_container = inner_container;
+
+					if ( params.onCloseButton )
+					{
+						let close_btn = document.createElement( 'div' );
+						close_btn.className = 'sd_window_close_btn';
+						element.append( close_btn );
+						this.close_btn = close_btn;
+						close_btn.onclick = params.onCloseButton;
+						close_btn.textContent = 'x';
+					}
+				}
+				else
+				{
+					let inner_container = document.createElement( 'div' );
+					inner_container.className = 'sd_window_inner_container';
+					element.append( inner_container );
+					this.element_inner_container = inner_container;
+					
+					inner_container.style.height = '100%';
 				}
 			}
 			
@@ -263,6 +322,9 @@ class sdElement
 	
 	set text( v )
 	{
+		if ( this.translate )
+		v = T(v);
+		
 		eval( sdElement.text_path[ this.type ] + ' = v;' );
 	}
 	get text()

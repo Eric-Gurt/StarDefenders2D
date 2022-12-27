@@ -760,10 +760,45 @@ let enf_once = true;
 			globalThis.players_online = arr[ 0 ];
 			globalThis.players_playing = arr[ 1 ];
 		});
+		
+		let supported_languages = [ 'en' ];
+		function UpdateLanguageBar()
+		{
+			let langs_container = document.getElementById( 'langs_container' );
+			langs_container.innerHTML = '';
+			
+			for ( let i = 0; i < supported_languages.length; i++ )
+			{
+				let lang = supported_languages[ i ];
+				let a = document.createElement('a');
+				
+				a.onclick = ()=>
+				{
+					sdTranslationManager.language = lang;
+					sdTranslationManager.RequireSync();
+					
+					localStorage.setItem( 'language', lang );
+					
+					UpdateLanguageBar();
+				};
+				a.textContent = lang;
+				a.style.marginLeft = '10px';
+				
+				if ( lang === sdTranslationManager.language )
+				a.style.color = '#ffffff';
+				
+				langs_container.append( a );
+			}
+		}
+		UpdateLanguageBar();
 		socket.on( 'INIT', ( obj )=>
 		{
 			document.getElementById( 'game_title_text' ).textContent = obj.game_title;
 			document.body.style.backgroundColor = obj.backgroundColor;
+			
+			supported_languages = obj.supported_languages;
+			
+			UpdateLanguageBar();
 		});
 		socket.on( 'OPEN_INTERFACE', ( obj )=> // Such as sdDatabaseEditor
 		{
@@ -772,6 +807,14 @@ let enf_once = true;
 		socket.on( 'DB_SCAN_RESULT', ( obj )=> // Such as sdDatabaseEditor
 		{
 			sdDatabaseEditor.OnScanResult( obj[ 0 ], obj[ 1 ] );
+		});
+		socket.on( 'T', ( arr )=> // Translations arrived
+		{
+			let lang = arr.shift();
+			for ( let i = 0; i < arr.length; i++ )
+			{
+				sdTranslationManager.TranslationArrived( lang, arr[ i ][ 0 ], arr[ i ][ 1 ] );
+			}
 		});
 		
 		
@@ -910,6 +953,7 @@ let enf_once = true;
 					{
 						socket.emit( 'Kv2', sd_events.slice( 0, 32 ) );
 						sd_events = sd_events.slice( 32 );
+						globalThis.sd_events = sd_events; // Just in case?
 						console.log('Too many events to server are being sent (' + sd_events.length + ') - this might cause input delay on server-side');
 					}
 					else
@@ -1053,16 +1097,16 @@ let enf_once = true;
 	};
 	window.onkeyup = ( e )=>
 	{
-		if ( document.activeElement !== sdRenderer.canvas && document.activeElement !== document.body )
-		return true;
+		//if ( document.activeElement !== sdRenderer.canvas && document.activeElement !== document.body )
+		//return true;
 		
 		if ( sdChat.KeyUp( e ) )
 		{
 			// Let release keys when chatting
 		}
 	
-		if ( sdElement.current_hover )
-		return;
+		//if ( sdElement.current_hover )
+		//return;
 	
 		let code = e.code;
 		

@@ -883,11 +883,11 @@ class sdTask extends sdEntity
 		
 		ctx.globalAlpha = 1;
 		ctx.fillStyle = task_title_color; // '#aaffaa';
-		PutMultilineText( this.title );
+		PutMultilineText( T( this.title ) );
 		
 		ctx.globalAlpha = 0.5;
 		ctx.fillStyle = '#ffffff';
-		PutMultilineText( this.description, true );
+		PutMultilineText( T( this.description ), true );
 		
 		if ( this.progress !== '' )
 		{

@@ -288,7 +288,7 @@ class sdCrystalCombiner extends sdEntity
 		if ( this.prog === 0 )
 		sdEntity.Tooltip( ctx, "Crystal combiner" );
 		else
-		sdEntity.Tooltip( ctx, "Crystal combiner ( combining "+(~~Math.min( 100, this.prog / this.GetBaseAnimDuration() * 100 ))+"% )" );
+		sdEntity.TooltipUntranslated( ctx, T("Crystal combiner") + " ( " + T("combining") + " "+(~~Math.min( 100, this.prog / this.GetBaseAnimDuration() * 100 ))+"% )" );
 	}
 	Draw( ctx, attached )
 	{

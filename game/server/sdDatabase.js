@@ -27,6 +27,7 @@ import fs from 'fs';
 import sdWorld from '../sdWorld.js';
 import sdWeather from '../entities/sdWeather.js';
 import sdBlock from '../entities/sdBlock.js';
+import sdModeration from './sdModeration.js';
 
 class sdDatabase
 {
@@ -256,9 +257,13 @@ class sdDatabase
 			{
 				database_key_wipe_version: 2, // If this changes - whole database is getting cleared on startup. In this case it is referred to "translations" object
 				
-				unapproved_uids: [], // Limit count of suggestions
+				unapproved_uids: null, // Limit count of suggestions
+				
+				time_to_live: 1000 * 60 * 60 * 24 * 4, // 4 days
+				
+				outdated_translations: null, // Those are asking to be disapproved so onThink will delete them
 		
-				sample_row_1:
+				sample_row:
 				{
 					first_use: Date.now(), // When translation was added
 					last_use: Date.now(), // When translation was used last time
@@ -266,33 +271,8 @@ class sdDatabase
 					approved: false, // Approved translations are permanent. Unapproved translations expire. Game does not really know which lines are to be translated so all translations are approved manually
 					
 					// Same languages as in sdWorld.server_config.supported_languages
-					en: 'Welcome to Star Defenders!',
-					ua: 'Ласкаво прошу до Зоряних Захисників!'
-				},
-				sample_row_2: // String contains HTML tags, in this case it is not just strings but arrays of strings (HTML elements are inserted in between)
-				{
-					first_use: Date.now(), // When translation was added
-					last_use: Date.now(), // When translation was used last time
-					use_count: 0, // How many times translation was used
-					approved: false, // Approved translations are permanent. Unapproved translations expire. Game does not really know which lines are to be translated so all translations are approved manually
-					
-					// Same languages as in sdWorld.server_config.supported_languages
-					en: 
-					[
-						"",
-						"Open update &amp; patch log on github",
-						"",
-						"",
-						"21 January 2021: First public release!"
-					],
-					ua: 
-					[
-						"",
-						"Історія оновлень на github",
-						"",
-						"",
-						"21 Січня 2021: Перший публічний реліз!"
-					]
+					en: '?',//'Welcome to Star Defenders!',
+					//ua: 'Ласкаво прошу до Зоряних Захисників!'
 				},
 
 				table: {
@@ -308,10 +288,15 @@ class sdDatabase
 				{
 					next_uid: 0, // Auto-increment
 			
+					time_to_live: 1000 * 60 * 60 * 24 * 4, // 4 days
+			
 					sample_row: 
 					{
-						initiator: 'user#123',
-						action: 'user#123 modifies sdDatabase.data.translations.Welcome to star defenders!.ua = "Ласкаво прошу до Зоряних Захисників!"'
+						initiator: 'user#123', // Hash or user_uid
+						initiator_server: 'local', // Or remote secondary server
+						action: 'user#123 modifies sdDatabase.data.translations.Welcome to star defenders!.ua = "Ласкаво прошу до Зоряних Захисників!"',
+						
+						time: Date.now() // Used to auto-remove
 					},
 		
 					table:
@@ -319,36 +304,39 @@ class sdDatabase
 					}
 				},
 				
-				database_permissions: // Only non-superuser
+				database_permissions: // Only for non-superusers
 				{
 					sample_row: // Or maybe hash? Or maybe 'user#123' which will auto-evalute into nickname? Probably user pointer is much better approach.
 					{
-						read: [ 'players', 'translations', 'moderation.activity_logs' ],
-						write: [ 'translations.table' ],
-						execute: [ 'players', 'translations' ] // We might build-in command eval macros at some point? For example to let admins ban certain players, remove some kind of spam
+						read: [ 'translations' ], // Or '*' instead of array
+						write: [ 'translations.table' ], // Or '*' instead of array
+						execute: [ 'translations' ] // Or '*' instead of array // We might build-in command eval macros at some point? For example to let admins ban certain players, remove some kind of spam
 					},
 					
 					table:
 					{
+						// For now, keys are hashes. But only because we don't have registration implemented
 					}
 				},
 				
 				failed_logins: // If login attempt fails and IP of user does not match as well - that is getting logged there
 				{
+					time_to_live: 1000 * 60 * 60 * 12 * 2, // 2 days
+					
 					sample_row:
 					{
 						tries: 1, // Tries should only count unique password attempts
-						tried_passwords: {}, // If there is too many different passwords - it is a sign of bruteforcing
-						expite_on: Date.now() + 1000 * 60 * 60 * 12 * 2, // 2 days
-						attempts_from_ips: {} // Used in table2 only - if there is too many failed attempts from unknown IPs we just ban all of them
+						tried_passwords: {}, // If there is too many different passwords - it is a sign of bruteforcing. Same passwords won't count
+						attempts_from_ips: {}, // Used in table_by_player_uid only - if there is too many failed attempts from unknown IPs we just ban all of them
+						time: Date.now(), // 2 days
 					},
 			
-					table:
+					table_by_ip:
 					{
 						// Key is IP
 					},
 			
-					table2:
+					table_by_player_uid:
 					{
 						// Key is player UID - can be useful to detect distributed bruteforce attacks
 					}
@@ -358,6 +346,7 @@ class sdDatabase
 		
 		sdDatabase.is_local = ( !sdWorld.server_config.database_server );
 		
+		sdDatabase.permissions_cache = new Map();
 		// Test
 		/*if ( sdDatabase.is_local )
 		{
@@ -374,6 +363,8 @@ class sdDatabase
 				sdDatabase.data.translations.table[ 'TRANSLATION_SAMPLE_AUTO_' + i ] = JSON.parse( JSON.stringify( TRANSLATION_SAMPLE ) );
 			}
 		}*/
+		
+		sdDatabase.think_delay = 1000 * 60;
 		
 		// Load/recreate
 		if ( sdDatabase.is_local )
@@ -392,7 +383,8 @@ class sdDatabase
 					
 					if ( potential.database_key_wipe_version === sdDatabase.data[ key ].database_key_wipe_version )
 					{
-						sdDatabase.data[ key ] = Object.assign( sdDatabase.data[ key ], potential );
+						//sdDatabase.data[ key ] = Object.assign( sdDatabase.data[ key ], potential );
+						sdDatabase.data[ key ] = sdDatabase.RecursiveObjectAssign( sdDatabase.data[ key ], potential );
 					}
 					else
 					{
@@ -415,33 +407,172 @@ class sdDatabase
 					sdDatabase.Save( key );
 				}
 			}
+			
+			setTimeout( sdDatabase.onThink, 0 ); // Do first one instantly just to check if there is nothing that will crash server
 		}
 		else
 		{
 			sdDatabase.data = null;
 		}
 	}
-	static Save( key='*' )
+	static RecursiveObjectAssign( missing_values, current_values )
 	{
-		if ( key === '*' )
+		//missing_values = Object.assign( missing_values, current_values );
+		
+		//for ( let p in missing_values )
+		for ( let p in current_values )
 		{
-			let keys = Object.keys( sdDatabase.data );
-			
-			for ( let i = 0; i < keys.length; i++ )
+			if ( missing_values[ p ] instanceof Object && current_values[ p ] instanceof Object )
 			{
-				let key = keys[ i ];
-				
-				sdDatabase.Save( key );
+				missing_values[ p ] = sdDatabase.RecursiveObjectAssign( missing_values[ p ], current_values[ p ] );
 			}
-			
-			return;
+			else
+			{
+				missing_values[ p ] = current_values[ p ];
+			}
 		}
 		
-		if ( sdDatabase.data[ key ] === undefined )
-		throw new Error( 'sdDatabase.data.' + key + ' does not exist - unable to perform saving (it won\'t be loaded anyway unless this property exists on example structure at sdDatabase.js file)');
-	
+		return missing_values;
+	}
+	static onThink()
+	{
+		let time = Date.now();
+		
+		// Translations cleanup + reporting outdated translations
+		{
+			let outdated_translations = [];
+			
+			let unapproved_uids = [];
+			
+			let table = sdDatabase.data.translations.table;
+			let time_to_live = sdDatabase.data.translations.time_to_live;
+			
+			if ( typeof time_to_live !== 'number' )
+			throw new Error();
+		
+			if ( table.__proto__ !== Object.prototype )
+			throw new Error();
+			
+			for ( let p in table )
+			{
+				let row = table[ p ];
+				
+				if ( row instanceof Object ) // In case someone would try to make property there
+				{
+					if ( !row.approved )
+					{
+						if ( time > row.last_use + time_to_live )
+						delete table[ p ];
+						else
+						unapproved_uids.push( p );
+					}
+					else
+					{
+						if ( time > row.last_use + 1000 * 60 * 60 * 24 * 30 ) // Never used for a month
+						outdated_translations.push( p );
+					}
+				}
+				else
+				delete table[ p ];
+			}
+			if ( outdated_translations.length > 0 )
+			sdDatabase.data.translations.outdated_translations = outdated_translations;
+			else
+			sdDatabase.data.translations.outdated_translations = null;
+		
+			if ( unapproved_uids.length > 0 )
+			sdDatabase.data.translations.unapproved_uids = unapproved_uids;
+			else
+			sdDatabase.data.translations.unapproved_uids = null;
+		}
+		
+		// Moderation logs cleanup
+		{
+			let table = sdDatabase.data.moderation.activity_logs.table;
+			let time_to_live = sdDatabase.data.moderation.activity_logs.time_to_live;
+			
+			if ( typeof time_to_live !== 'number' )
+			throw new Error();
+		
+			if ( table.__proto__ !== Object.prototype )
+			throw new Error();
+			
+			for ( let p in table )
+			{
+				let row = table[ p ];
+
+				if ( row instanceof Object ) // In case someone would try to make property there
+				{
+					if ( time > row.time + time_to_live )
+					delete table[ p ];
+				}
+				else
+				delete table[ p ];
+			}
+		}
+		
+		// Failed logins cleanup
+		{
+			let time_to_live = sdDatabase.data.moderation.failed_logins.time_to_live;
+			
+			if ( typeof time_to_live !== 'number' )
+			throw new Error();
+			
+			for ( let t = 0; t < 2; t++ )
+			{
+				let table = ( t === 0 ) ? 
+						sdDatabase.data.moderation.failed_logins.table_by_ip : 
+						sdDatabase.data.moderation.failed_logins.table_by_player_uid;
+		
+				if ( table.__proto__ !== Object.prototype )
+				throw new Error();
+
+				for ( let p in table )
+				{
+					let row = table[ p ];
+
+					if ( row instanceof Object ) // In case someone would try to make property there
+					{
+						if ( time > row.time + time_to_live )
+						delete table[ p ];
+					}
+					else
+					delete table[ p ];
+				}
+			}
+		}
+		
+		let delta = Date.now() - time;
+		
+		if ( delta > 50 )
+		{
+			console.warn( 'Warning: Slow database onThink! Took ' + delta + 'ms' );
+		}
+		
+		setTimeout( sdDatabase.onThink, sdDatabase.think_delay );
+	}
+	static Save( key='*' )
+	{
 		if ( sdDatabase.is_local )
 		{
+			if ( key === '*' )
+			{
+				let keys = Object.keys( sdDatabase.data );
+
+				for ( let i = 0; i < keys.length; i++ )
+				{
+					let key = keys[ i ];
+
+					sdDatabase.Save( key );
+				}
+
+				return;
+			}
+
+			if ( sdDatabase.data[ key ] === undefined )
+			throw new Error( 'sdDatabase.data.' + key + ' does not exist - unable to perform saving (it won\'t be loaded anyway unless this property exists on example structure at sdDatabase.js file)');
+
+	
 			let sub_database_file_path = sdWorld.database_data_path_const.split( '<KEY>' ).join( key );
 				
 			fs.writeFile( sub_database_file_path + 'bac.v', JSON.stringify( sdDatabase.data[ key ] ), ( err )=>{
@@ -463,19 +594,20 @@ class sdDatabase
 			
 		}
 	}
-	static Exec( array_of_request_objects, callback=null ) // In order to stack requests it receives arrays of objects instead of just object for array_of_request_objects
+	static Exec( array_of_request_objects, callback=null, initiator_server='?' ) // In order to stack requests it receives arrays of objects instead of just object for array_of_request_objects
 	{
 		if ( sdDatabase.is_local )
 		{
 			const allowed_methods = new Set();
 			allowed_methods.add( 'DBEditorCommand' );
+			allowed_methods.add( 'DBTranslate' );
 			
 			for ( let i = 0; i < array_of_request_objects.length; i++ )
 			{
 				let request_object = array_of_request_objects[ i ];
 				
 				let method_arguments = request_object;
-				let method = method_arguments.shift(); // Gets first value
+				let method = method_arguments.shift(); // Gets first value and removes it from method_arguments
 				
 				if ( allowed_methods.has( method ) )
 				{
@@ -483,7 +615,7 @@ class sdDatabase
 
 					let responses = [];
 
-					sdDatabase[ method ]( responses, ...method_arguments.slice( 1 ) );
+					sdDatabase[ method ]( responses, initiator_server, ...method_arguments );
 
 					if ( callback )
 					{
@@ -517,11 +649,11 @@ class sdDatabase
 	}
 	
 	
-	static HandleCommandFromAdmin( socket, type, path_parts, new_value=null )
+	/*static HandleCommandFromAdmin( socket, initiator_hash_or_user_uid, type, path_parts, new_value=null )
 	{
 		sdDatabase.Exec( 
 			[ 
-				[ 'DBEditorCommand', type, path_parts, new_value ] 
+				[ 'DBEditorCommand', initiator_hash_or_user_uid, type, path_parts, new_value ] 
 			], 
 			( responses )=>
 			{
@@ -533,11 +665,100 @@ class sdDatabase
 
 					socket.emit( response[ 0 ], response[ 1 ] );
 				}
-			}
+			},
+			'localhost'
 		);
+	}*/
+	
+	static GetDatabasePermissionsFor( initiator_hash_or_user_uid )
+	{
+		let permissions = sdDatabase.data.moderation.database_permissions.table[ initiator_hash_or_user_uid ];
+		
+		// Old way (still relevant?)
+		if ( !permissions )
+		{
+			let my_admin_row = null;
+			
+			if ( initiator_hash_or_user_uid !== null )
+			for ( let a = 0; a < sdModeration.data.admins.length; a++ )
+			if ( sdModeration.data.admins[ a ].my_hash === initiator_hash_or_user_uid )
+			//if ( sdModeration.data.admins[ a ].access_level === 0 )
+			{
+				my_admin_row = sdModeration.data.admins[ a ];
+				break;
+			}
+			
+			if ( my_admin_row )
+			{
+				permissions = {};
+				
+				for ( let p in sdDatabase.data.moderation.database_permissions.sample_row )
+				{
+					if ( sdDatabase.data.moderation.database_permissions.sample_row[ p ] instanceof Array )
+					permissions[ p ] = '*';
+					else
+					permissions[ p ] = sdDatabase.data.moderation.database_permissions.sample_row[ p ];
+				}
+			}
+		}
+	
+		return permissions || null;
 	}
 
-	static DBEditorCommand( responses=[], type, path_parts, new_value=null ) // All command handler's arguments should start with responses array they will return, everything else is optional and specific to case
+	static DBTranslate( responses=[], initiator_server, initiator_hash_or_user_uid, lang, str_array )
+	{
+		let table = sdDatabase.data.translations.table;
+		
+		for ( let i = 0; i < str_array.length; i++ )
+		{
+			let en = str_array[ i ];
+			
+			let row = table[ en ];
+			
+			if ( row )
+			{
+				if ( row.approved )
+				{
+					let translated = row[ lang ];
+					if ( translated !== undefined )
+					responses.push( [ en, translated ] );
+				}
+			
+				row.last_use = Date.now();
+				row.use_count++;
+			}
+			else
+			{
+				let unapproved_uids = sdDatabase.data.translations.unapproved_uids || [];
+				
+				if ( unapproved_uids.length < 1000 )
+				{
+					row = Object.assign( {}, sdDatabase.data.translations.sample_row );
+					row.first_use = Date.now();
+					row.last_use = Date.now();
+					row.use_count = 1;
+
+					for ( let i2 = 0; i2 < sdWorld.server_config.supported_languages.length; i2++ )
+					row[ sdWorld.server_config.supported_languages[ i2 ] ] = 'SPECIFY';
+
+					row.en = en;
+
+					table[ en ] = row;
+					
+					if ( sdDatabase.data.translations.unapproved_uids === null )
+					sdDatabase.data.translations.unapproved_uids = [ en ];
+					else
+					sdDatabase.data.translations.unapproved_uids.push( en );
+				}
+			}
+		}
+		
+		if ( responses.length > 0 )
+		responses.unshift( lang );
+
+		return responses;
+	}
+	static DBEditorCommand( responses=[], initiator_server, initiator_hash_or_user_uid, type, path_parts, new_value=null ) // All command handler's arguments should start with "responses" array they will return, then "initiator_server", then "initiator_hash_or_user_uid", everything else is optional and specific to case
 	{
 		let previous_ptr = null;
 		let ptr = sdDatabase;
@@ -550,6 +771,95 @@ class sdDatabase
 			debugger;
 			return responses;
 		}
+		
+		let permissions = sdDatabase.GetDatabasePermissionsFor( initiator_hash_or_user_uid );
+		if ( !permissions )
+		{
+			responses.push([ 'SERVICE_MESSAGE', 'Access Error: No permissions according to sdDatabase.GetDatabasePermissionsFor' ]);
+			return responses;
+		}
+		
+		let path_str = path_parts.join( '.' );
+		
+		if ( type === 'DB_SCAN' || type === 'DB_SEARCH' )
+		{
+			// Read
+			if ( permissions.read === '*' )
+			{
+			}
+			else
+			{
+				let denied = true;
+				
+				if ( path_str === 'sdDatabase.data' )
+				{
+					denied = false;
+				}
+				else
+				for ( let i = 0; i < permissions.read.length; i++ )
+				{
+					let allowed = 'sdDatabase.data.' + permissions.read[ i ];
+					
+					if ( path_str.indexOf( allowed ) === 0 )
+					{
+						denied = false;
+						break;
+					}
+				}
+				
+				if ( denied )
+				{
+					responses.push([ 'SERVICE_MESSAGE', 'Access Error: You have no read permissions at this location' ]);
+					responses.push([ 'DB_SCAN_RESULT', [ path_parts, { _access_denied: 1 } ] ]);
+					return responses;
+				}
+			}
+		}
+		else
+		if ( type === 'DB_RENAME_PROP' || type === 'DB_SET_VALUE' )
+		{
+			// Write
+			if ( permissions.write === '*' )
+			{
+			}
+			else
+			{
+				let denied = true;
+				
+				for ( let i = 0; i < permissions.write.length; i++ )
+				{
+					let allowed = 'sdDatabase.data.' + permissions.write[ i ];
+					
+					if ( path_str.indexOf( allowed ) === 0 )
+					{
+						denied = false;
+						break;
+					}
+				}
+				
+				if ( denied )
+				{
+					responses.push([ 'SERVICE_MESSAGE', 'Access Error: You have no write permissions at this location' ]);
+					return responses;
+				}
+			}
+			
+			let activity_logs = sdDatabase.data.moderation.activity_logs;
+			
+			let row = Object.assign( {}, activity_logs.sample_row );
+			
+			row.initiator = initiator_hash_or_user_uid;
+			row.initiator_server = initiator_server;
+			row.action = 'Write operation ' + type + ' at ' + path_parts.join('.') + ' with value ' + JSON.stringify( new_value );
+			
+			activity_logs.table[ activity_logs.next_uid++ ] = row;
+		}
+		else
+		{
+			responses.push([ 'SERVICE_MESSAGE', 'Server Error: Unable to understand whether operation "'+type+'" is read-related or write-related' ]);
+			return responses;
+		}
+		
 
 		for ( let i = 1; i < path_parts.length; i++ )
 		{
@@ -697,10 +1007,10 @@ class sdDatabase
 			previous_ptr[ new_value ] = value;
 			
 			if ( prop !== '' )
-			sdDatabase.DBEditorCommand( responses, 'DB_SCAN', path_parts.slice( 0, -1 ).concat( prop ) );
+			sdDatabase.DBEditorCommand( responses, initiator_server, initiator_hash_or_user_uid, 'DB_SCAN', path_parts.slice( 0, -1 ).concat( prop ) );
 			
 			if ( new_value !== '' )
-			sdDatabase.DBEditorCommand( responses, 'DB_SCAN', path_parts.slice( 0, -1 ).concat( new_value ) );
+			sdDatabase.DBEditorCommand( responses, initiator_server, initiator_hash_or_user_uid, 'DB_SCAN', path_parts.slice( 0, -1 ).concat( new_value ) );
 		}
 		else
 		if ( type === 'DB_SET_VALUE' )
@@ -741,7 +1051,7 @@ class sdDatabase
 			
 			previous_ptr[ prop ] = new_value;
 			
-			sdDatabase.DBEditorCommand( responses, 'DB_SCAN', path_parts );
+			sdDatabase.DBEditorCommand( responses, initiator_server, initiator_hash_or_user_uid, 'DB_SCAN', path_parts );
 		}
 		
 		return responses;

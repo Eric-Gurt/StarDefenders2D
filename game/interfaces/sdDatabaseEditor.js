@@ -36,26 +36,25 @@ class sdDatabaseEditor
 	
 	constructor()
 	{
-		this.overlay = sdElement.createElement({ 
+		/*this.overlay = sdElement.createElement({ 
 			type: sdElement.OVERLAY,
 			onClick: ()=>{ sdDatabaseEditor.Close(); } 
 		});
 		
-		this.window = this.overlay.createElement({ 
+		this.window = this.overlay.createElement({ */
+		this.window = sdElement.createElement({ 
 			type: sdElement.WINDOW,
-			text: 'Database Editor',
-			onCloseButton: ()=>{ sdDatabaseEditor.Close(); } 
+			text: 'Database Editor', translate: true,
+			onCloseButton: ()=>{ sdDatabaseEditor.Close(); },
+			draggable: true
 		});
-		
-		/*
-		this.object_scout = this.window.createElement({ 
-			type: sdElement.TEXT, 
-			text: 'sdDatabase.data',
-			onClick: ()=>{ 
-				
-			} 
-		});*/
-		
+		this.window.element.style.cssText = `
+			width: 800px;
+			left: 20px;
+			top: 20px;
+			height: calc( 100% - 40px );
+		`;
+	
 		this.structure_element = this.window.createElement({ 
 			type: sdElement.TEXT_BLOCK, 
 			text: ''
@@ -64,7 +63,7 @@ class sdDatabaseEditor
 		this.structure_element.element.style.overflowX = 'auto';
 		this.structure_element.element.style.overflowY = 'auto';
 		this.structure_element.element.style.width = '100%';
-		this.structure_element.element.style.fontSize = '16px';
+		this.structure_element.element.style.fontSize = '12px';
 		this.structure_element.element.classList.add( 'sd_scrollbar' );
 		
 		this.known_data = 
@@ -214,7 +213,7 @@ class sdDatabaseEditor
 			for ( let p in obj )
 			if ( p.charAt( 0 ) !== '_' )
 			{
-				return confirm( 'Are you sure? This action will ' + what_it_will_do + '.' );
+				return confirm( T('Are you sure? This action will ' + what_it_will_do + '.') );
 			}
 			
 			return true;
@@ -311,7 +310,7 @@ class sdDatabaseEditor
 						}
 						else
 						{
-							alert( 'Key must be integer number since it is a key of array. Key won\'t be saved' );
+							alert( T('Key must be integer number since it is a key of array. Key won\'t be saved') );
 							return;
 						}
 					}
@@ -354,7 +353,7 @@ class sdDatabaseEditor
 				{
 					line.createElement({ 
 						type: sdElement.TEXT, 
-						text: '[ Toggle ]',
+						text: '[ Toggle ]', translate: true,
 						color: '#aaaaaa',
 						marginLeft: 20,
 						onClick: ()=>
@@ -369,7 +368,7 @@ class sdDatabaseEditor
 				{
 					line.createElement({ 
 						type: sdElement.TEXT, 
-						text: '[ object ]',
+						text: '[ object ]', translate: true,
 						color: '#aaaaaa',
 						marginLeft: 20,
 						onClick: ()=>
@@ -380,7 +379,7 @@ class sdDatabaseEditor
 					});
 					line.createElement({ 
 						type: sdElement.TEXT, 
-						text: '[ array ]',
+						text: '[ array ]', translate: true,
 						color: '#aaaaaa',
 						marginLeft: 20,
 						onClick: ()=>
@@ -391,7 +390,7 @@ class sdDatabaseEditor
 					});
 					line.createElement({ 
 						type: sdElement.TEXT, 
-						text: '[ string ]',
+						text: '[ string ]', translate: true,
 						color: '#aaaaaa',
 						marginLeft: 20,
 						onClick: ()=>
@@ -402,7 +401,7 @@ class sdDatabaseEditor
 					});
 					line.createElement({ 
 						type: sdElement.TEXT, 
-						text: '[ number ]',
+						text: '[ number ]', translate: true,
 						color: '#aaaaaa',
 						marginLeft: 20,
 						onClick: ()=>
@@ -413,7 +412,7 @@ class sdDatabaseEditor
 					});
 					line.createElement({ 
 						type: sdElement.TEXT, 
-						text: '[ boolean ]',
+						text: '[ boolean ]', translate: true,
 						color: '#aaaaaa',
 						marginLeft: 20,
 						onClick: ()=>
@@ -457,12 +456,12 @@ class sdDatabaseEditor
 								if ( value.text === '' )
 								{
 									v = null;
-									alert( 'Value must be proper JSON or JavaScript value. Erase property name if are trying to delete whole property.\n\nNote: Never insert unknown code here.' );
+									alert( T('Value must be proper JSON or JavaScript value. Erase property name if are trying to delete whole property.\n\nNote: Never insert unknown code here.') );
 									
 								}
 								else
 								{
-									alert( 'Value must be proper JSON or JavaScript value. Value won\'t be saved.\n\nNote: Never insert unknown code here.' );
+									alert( T('Value must be proper JSON or JavaScript value. Value won\'t be saved.\n\nNote: Never insert unknown code here.') );
 									return;
 								}
 							}
@@ -493,7 +492,7 @@ class sdDatabaseEditor
 				});
 */
 				let brackets = obj._is_array ? [ '[', ']' ] : [ '{', '}' ];
-					
+				
 				if ( obj._expanded )
 				{
 					this.structure_element.createElement({ 
@@ -512,233 +511,250 @@ class sdDatabaseEditor
 					});
 					
 					
-					if ( obj._partial )
+					if ( obj._access_denied )
 					{
-						// Another line
+						this.structure_element.createElement({ 
+							type: sdElement.TEXT_BLOCK, 
+							text: 'Access denied. Contact first admin of a server with database and ask him to give you "read" permissions to access this part of database. This will require knowing your "hash ID", you can get it by right clicking your character.', translate: true,
+							color: '#ffaaaa',
+							marginLeft: indent + indent_step,
+						});
+					}
+					else
+					{
+						if ( obj._partial )
+						{
+							// Another line
+							let line = this.structure_element.createElement({ 
+								type: sdElement.TEXT_BLOCK, 
+								text: '',
+								marginLeft: indent + indent_step
+							});
+
+							const RequestSeachResults = ()=>
+							{
+								obj._last_search_by_key = search_by_key_box.text;
+								obj._last_search_by_substring = search_by_substring.text;
+								obj._last_search_count_to_return = parseInt( search_count_to_return.text ) || 30;
+
+								if ( obj._last_search_by_key === 'By key, use * for partial match' )
+								obj._last_search_by_key = '';
+
+								if ( obj._last_search_by_substring === 'By substring in JSON' )
+								obj._last_search_by_substring = '';
+
+								sd_events.push([ 'DB_SEARCH', obj._path, [  
+									obj._last_search_by_key,
+									obj._last_search_by_substring,
+									obj._last_search_count_to_return
+								] ]);
+							};
+
+							let START = '<span style="color:#ffffff">';
+							let END = '</span>';
+
+							line.createElement({ 
+								type: sdElement.TEXT, 
+								innerHTML: T('Showing ') + START + obj._results_count + END + ( obj._results_count === 1 ? T(' row') : T(' rows') ) + T(' out of ') + START + obj._rows_count + END + ( obj._rows_count === 1 ? T(' row') : T(' rows') ),
+								color: '#aaaaaa',
+								paddingRight: 10,
+							});
+
+							// New line
+							line = this.structure_element.createElement({ 
+								type: sdElement.TEXT_BLOCK, 
+								text: '\u00A0',
+								marginLeft: indent + indent_step
+							});
+							// New line
+							line = this.structure_element.createElement({ 
+								type: sdElement.TEXT_BLOCK, 
+								text: '',
+								marginLeft: indent + indent_step
+							});
+
+							line.createElement({ 
+								type: sdElement.TEXT, 
+								text: 'Search [', translate: true,
+								color: '#aaaaaa',
+								paddingRight: 10,
+							});
+
+							let search_by_key_box = line.createElement({ 
+								type: sdElement.TEXT, 
+								text: obj._last_search_by_key || 'By key, use * for partial match',
+								color: '#aaffaa',
+								onClick: ()=>
+								{
+									if ( search_by_key_box.text === 'By key, use * for partial match' )
+									search_by_key_box.text = '';
+								}
+							});
+							line.createElement({ 
+								type: sdElement.TEXT, 
+								text: 'x',
+								color: '#ffaaaa',
+								marginLeft: 10,
+								onClick: ()=>
+								{
+									search_by_key_box.text = 'By key, use * for partial match';
+									RequestSeachResults();
+								}
+							});
+
+							line.createElement({ 
+								type: sdElement.TEXT, 
+								text: '] [',
+								color: '#aaaaaa',
+								paddingLeft: 10,
+								paddingRight: 10,
+							});
+
+
+
+							let search_by_substring = line.createElement({ 
+								type: sdElement.TEXT, 
+								text: obj._last_search_by_substring || 'By substring in JSON',
+								color: '#aaffaa',
+								onClick: ()=>
+								{
+									if ( search_by_substring.text === 'By substring in JSON' )
+									search_by_substring.text = '';
+								}
+							});
+							line.createElement({ 
+								type: sdElement.TEXT, 
+								text: 'x',
+								color: '#ffaaaa',
+								marginLeft: 10,
+								onClick: ()=>
+								{
+									search_by_substring.text = 'By substring in JSON';
+									RequestSeachResults();
+								}
+							});
+
+
+							line.createElement({ 
+								type: sdElement.TEXT, 
+								text: '], show', translate: true,
+								color: '#aaaaaa',
+								paddingLeft: 10,
+								paddingRight: 10,
+							});
+
+
+
+
+							let search_count_to_return = line.createElement({ 
+								type: sdElement.TEXT, 
+								text: obj._last_search_count_to_return || 30,
+								color: '#aaffaa',
+								onClick: ()=>
+								{
+								}
+							});
+							line.createElement({ 
+								type: sdElement.TEXT, 
+								text: 'rows', translate: true,
+								color: '#aaaaaa',
+								paddingLeft: 10,
+								paddingRight: 10,
+							});
+
+							search_by_key_box.setEditableStatus( 
+
+								true,
+
+								()=>
+								{
+									if ( search_by_key_box.text === 'By key, use * for partial match' || search_by_key_box.text === '' )
+									{
+										search_by_key_box.text = 'By key, use * for partial match';
+									}
+									else
+									{
+										RequestSeachResults();
+									}
+								}, 
+
+								{
+									spellcheck: false
+								}
+							);
+							search_by_substring.setEditableStatus( 
+
+								true,
+
+								()=>
+								{
+									if ( search_by_substring.text === 'By key, use * for partial match' || search_by_substring.text === '' )
+									{
+										search_by_substring.text = 'By key, use * for partial match';
+									}
+									else
+									{
+										RequestSeachResults();
+									}
+								}, 
+
+								{
+									spellcheck: false
+								}
+							);
+							search_count_to_return.setEditableStatus( 
+
+								true,
+
+								()=>
+								{
+									RequestSeachResults();
+								}, 
+
+								{
+									spellcheck: false
+								}
+							);
+
+							// Line break
+							this.structure_element.createElement({ 
+								type: sdElement.TEXT_BLOCK, 
+								text: '\u00A0',
+								marginLeft: indent + indent_step
+							});
+						}
+
+
+						let any_property_listed = false;
+
+						for ( let p in obj )
+						if ( p.charAt( 0 ) !== '_' )
+						{
+							any_property_listed = true;
+
+							ShowObject( obj[ p ], p, indent + indent_step, obj );
+						}
+
+						if ( !obj._prevent_new_properties )
+						{
 						let line = this.structure_element.createElement({ 
 							type: sdElement.TEXT_BLOCK, 
 							text: '',
-							marginLeft: indent + indent_step
+							marginLeft: indent,
+							marginTop: any_property_listed ? 10 : 0
 						});
 						
-						const RequestSeachResults = ()=>
-						{
-							obj._last_search_by_key = search_by_key_box.text;
-							obj._last_search_by_substring = search_by_substring.text;
-							obj._last_search_count_to_return = parseInt( search_count_to_return.text ) || 30;
-							
-							if ( obj._last_search_by_key === 'By key, use * for partial match' )
-							obj._last_search_by_key = '';
-						
-							if ( obj._last_search_by_substring === 'By substring in JSON' )
-							obj._last_search_by_substring = '';
-								
-							sd_events.push([ 'DB_SEARCH', obj._path, [  
-								obj._last_search_by_key,
-								obj._last_search_by_substring,
-								obj._last_search_count_to_return
-							] ]);
-						};
-						
-						let START = '<span style="color:#ffffff">';
-						let END = '</span>';
-
-						line.createElement({ 
-							type: sdElement.TEXT, 
-							innerHTML: 'Showing ' + START + obj._results_count + END + ( obj._results_count === 1 ? ' row' : ' rows' ) + ' out of ' + START + obj._rows_count + END + ( obj._rows_count === 1 ? ' row' : ' rows' ),
-							color: '#aaaaaa',
-							paddingRight: 10,
-						});
-						
-						// New line
-						line = this.structure_element.createElement({ 
-							type: sdElement.TEXT_BLOCK, 
-							text: '\u00A0',
-							marginLeft: indent + indent_step
-						});
-						// New line
-						line = this.structure_element.createElement({ 
-							type: sdElement.TEXT_BLOCK, 
-							text: '',
-							marginLeft: indent + indent_step
-						});
-						
-						line.createElement({ 
-							type: sdElement.TEXT, 
-							text: 'Search [',
-							color: '#aaaaaa',
-							paddingRight: 10,
-						});
-						
-						let search_by_key_box = line.createElement({ 
-							type: sdElement.TEXT, 
-							text: obj._last_search_by_key || 'By key, use * for partial match',
-							color: '#aaffaa',
-							onClick: ()=>
-							{
-								if ( search_by_key_box.text === 'By key, use * for partial match' )
-								search_by_key_box.text = '';
-							}
-						});
-						line.createElement({ 
-							type: sdElement.TEXT, 
-							text: 'x',
-							color: '#ffaaaa',
-							marginLeft: 10,
-							onClick: ()=>
-							{
-								search_by_key_box.text = 'By key, use * for partial match';
-								RequestSeachResults();
-							}
-						});
-						
-						line.createElement({ 
-							type: sdElement.TEXT, 
-							text: '] [',
-							color: '#aaaaaa',
-							paddingLeft: 10,
-							paddingRight: 10,
-						});
-						
-						
-						
-						let search_by_substring = line.createElement({ 
-							type: sdElement.TEXT, 
-							text: obj._last_search_by_substring || 'By substring in JSON',
-							color: '#aaffaa',
-							onClick: ()=>
-							{
-								if ( search_by_substring.text === 'By substring in JSON' )
-								search_by_substring.text = '';
-							}
-						});
-						line.createElement({ 
-							type: sdElement.TEXT, 
-							text: 'x',
-							color: '#ffaaaa',
-							marginLeft: 10,
-							onClick: ()=>
-							{
-								search_by_substring.text = 'By substring in JSON';
-								RequestSeachResults();
-							}
-						});
-						
-						
-						line.createElement({ 
-							type: sdElement.TEXT, 
-							text: '], show',
-							color: '#aaaaaa',
-							paddingLeft: 10,
-							paddingRight: 10,
-						});
-						
-						
-						
-						
-						let search_count_to_return = line.createElement({ 
-							type: sdElement.TEXT, 
-							text: obj._last_search_count_to_return || 30,
-							color: '#aaffaa',
-							onClick: ()=>
-							{
-							}
-						});
-						line.createElement({ 
-							type: sdElement.TEXT, 
-							text: 'rows',
-							color: '#aaaaaa',
-							paddingLeft: 10,
-							paddingRight: 10,
-						});
-						
-						search_by_key_box.setEditableStatus( 
-								
-							true,
-					
-							()=>
-							{
-								if ( search_by_key_box.text === 'By key, use * for partial match' || search_by_key_box.text === '' )
-								{
-									search_by_key_box.text = 'By key, use * for partial match';
-								}
-								else
-								{
-									RequestSeachResults();
-								}
-							}, 
-
-							{
-								spellcheck: false
-							}
-						);
-						search_by_substring.setEditableStatus( 
-								
-							true,
-					
-							()=>
-							{
-								if ( search_by_substring.text === 'By key, use * for partial match' || search_by_substring.text === '' )
-								{
-									search_by_substring.text = 'By key, use * for partial match';
-								}
-								else
-								{
-									RequestSeachResults();
-								}
-							}, 
-
-							{
-								spellcheck: false
-							}
-						);
-						search_count_to_return.setEditableStatus( 
-								
-							true,
-					
-							()=>
-							{
-								RequestSeachResults();
-							}, 
-
-							{
-								spellcheck: false
-							}
-						);
-				
-						// Line break
-						this.structure_element.createElement({ 
-							type: sdElement.TEXT_BLOCK, 
-							text: '\u00A0',
-							marginLeft: indent + indent_step
-						});
-					}
-
-
-					let any_property_listed = false;
-					
-					for ( let p in obj )
-					if ( p.charAt( 0 ) !== '_' )
-					{
-						any_property_listed = true;
-						
-						ShowObject( obj[ p ], p, indent + indent_step, obj );
-					}
-
-					if ( !obj._prevent_new_properties )
-					{
-						let add_prop_text = '+ Add property';
+						let add_prop_text = T('+ Add property');
 						let add_prop_color = '#4c984c';
-						let add_prop = this.structure_element.createElement({ 
-							type: sdElement.TEXT_BLOCK, 
+						let add_prop = line.createElement({ 
+							type: sdElement.TEXT, 
 							text: add_prop_text,
 							color: add_prop_color,
 							onClick: ()=>{
 								add_prop.text = '';
 								add_prop.color = '#ffffff';
 							},
-							marginLeft: indent + 20,
-							marginTop: any_property_listed ? 10 : 0
+							marginLeft: 20
 						});
 						let once = true;
 						add_prop.setEditableStatus( true, ()=>{
@@ -748,7 +764,7 @@ class sdDatabaseEditor
 							if ( add_prop.text !== add_prop_text )
 							if ( new_key_name + '' !== add_prop.text + '' )
 							{
-								alert( 'Key must be integer number since it is a key of array. Key won\'t be added' );
+								alert( T('Key must be integer number since it is a key of array. Key won\'t be added') );
 								new_key_name = '';
 							}
 
@@ -777,7 +793,7 @@ class sdDatabaseEditor
 						});
 						
 						/*if ( !parent_obj._prevent_new_properties )
-						this.structure_element.createElement({ 
+						line.createElement({ 
 							type: sdElement.TEXT_BLOCK, 
 							text: 'x Delete whole ' + ( ( obj instanceof Array ) ? 'array' : 'object' ),
 							color: '#ff8383',
@@ -798,9 +814,9 @@ class sdDatabaseEditor
 						});*/
 						
 						if ( !parent_obj._prevent_new_properties )
-						this.structure_element.createElement({ 
-							type: sdElement.TEXT_BLOCK, 
-							text: 'x Replace '+( ( obj instanceof Array ) ? 'array' : 'object' )+' with null',
+						line.createElement({ 
+							type: sdElement.TEXT, 
+							text: 'x Replace '+( ( obj instanceof Array ) ? 'array' : 'object' )+' with null', translate: true,
 							color: '#ff8383',
 							onClick: ()=>{
 								if ( this.AskIfObjectCanBeRemoved( obj, 'replace old value' ) )
@@ -811,13 +827,12 @@ class sdDatabaseEditor
 									sd_events.push([ 'DB_SET_VALUE', obj._path, null ]);
 								}
 							},
-							marginLeft: indent + 20,
-							marginTop: 10
+							marginLeft: 20,
 						});
 					
-						this.structure_element.createElement({ 
-							type: sdElement.TEXT_BLOCK, 
-							text: 'Copy ' + ( ( obj instanceof Array ) ? 'array' : 'object' ),
+						line.createElement({ 
+							type: sdElement.TEXT, 
+							text: 'Copy ' + ( ( obj instanceof Array ) ? 'array' : 'object' ), translate: true,
 							color: '#83ff83',
 							onClick: ()=>{
 								
@@ -826,20 +841,20 @@ class sdDatabaseEditor
 								
 								if ( str.indexOf( `"_partial":true` ) !== -1 ||
 									 str.indexOf( `"_synced":false` ) !== -1 )
-								alert( 'Copied data might be partial (object is not synced fully)' );
+								alert( T('Copied data might be partial (object is not synced fully)') );
 							},
-							marginLeft: indent + 20,
-							marginTop: 10
+							marginLeft: 20,
 						});
-						this.structure_element.createElement({ 
-							type: sdElement.TEXT_BLOCK, 
-							text: 'Paste copied value instead of this ' + ( ( obj instanceof Array ) ? 'array' : 'object' ),
+						line.createElement({ 
+							type: sdElement.TEXT, 
+							text: 'Paste copied value instead of this ' + ( ( obj instanceof Array ) ? 'array' : 'object' ), translate: true,
 							color: '#8383ff',
 							onClick: async ()=>{
 								
+								let insert = await navigator.clipboard.readText();
+									
 								if ( this.AskIfObjectCanBeRemoved( obj, 'replace old value' ) )
 								{
-									let insert = await navigator.clipboard.readText();
 									
 									try
 									{
@@ -853,7 +868,7 @@ class sdDatabaseEditor
 										}
 										catch( e )
 										{
-											alert( 'Unparsable value. Value must be JSON or JavaScript.\n\nNote: Never insert unknown code here.' );
+											alert( T('Unparsable value. Value must be JSON or JavaScript.\n\nNote: Never insert unknown code here.') );
 										}
 									}
 									
@@ -865,9 +880,9 @@ class sdDatabaseEditor
 									sd_events.push([ 'DB_SET_VALUE', obj._path, insert ]);
 								}
 							},
-							marginLeft: indent + 20,
-							marginTop: 10
+							marginLeft: 20,
 						});
+					}
 					}
 
 					this.structure_element.createElement({ 
@@ -916,7 +931,8 @@ class sdDatabaseEditor
 	
 	remove()
 	{
-		this.overlay.remove();
+		this.window.remove();
+		//this.overlay.remove();
 	}
 }
 

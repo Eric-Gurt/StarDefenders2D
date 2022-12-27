@@ -1711,19 +1711,19 @@ class sdRenderer
 			
 			ctx.textAlign = 'left';
 			ctx.fillStyle = '#ff0000';
-			ctx.fillText("Health: " + Math.ceil( sdWorld.my_entity.hea ), 5 + 5 * scale, 17 );
+			ctx.fillText( T("Health") + ": " + Math.ceil( sdWorld.my_entity.hea ), 5 + 5 * scale, 17 );
 
 			ctx.fillStyle = '#77aaff';
-			ctx.fillText("Armor: " + Math.ceil( sdWorld.my_entity.armor ), 5 + 95 * scale, 17 );			
+			ctx.fillText( T("Armor") + ": " + Math.ceil( sdWorld.my_entity.armor ), 5 + 95 * scale, 17 );			
 
 			ctx.fillStyle = '#00ffff';
-			ctx.fillText("Matter: " + Math.floor( sdWorld.my_entity.matter ), 5 + 185 * scale, 17 );
+			ctx.fillText( T("Matter") + ": " + Math.floor( sdWorld.my_entity.matter ), 5 + 185 * scale, 17 );
 			
 			ctx.fillStyle = '#ffff00';
-			ctx.fillText("Score: " + Math.floor( sdWorld.my_score ), 5 + 275 * scale, 17 );
+			ctx.fillText( T("Score") + ": " + Math.floor( sdWorld.my_score ), 5 + 275 * scale, 17 );
 
 			ctx.fillStyle = '#ffff00';
-			ctx.fillText("Level: " + Math.floor( sdWorld.my_entity.build_tool_level ), 5 + 370 * scale, 17 );
+			ctx.fillText( T("Level") + ": " + Math.floor( sdWorld.my_entity.build_tool_level ), 5 + 370 * scale, 17 );
 
 			if ( globalThis.enable_debug_info )
 			{
@@ -1751,7 +1751,7 @@ class sdRenderer
 			if ( sdRenderer.show_leader_board === 1 || sdRenderer.show_leader_board === 2 )
 			{
 				ctx.fillStyle = '#AAAAAA';
-				ctx.fillText("Leaderboard:", sdRenderer.screen_width - 200 * scale - 5 + 5, 20 );
+				ctx.fillText( T("Leaderboard") + ":", sdRenderer.screen_width - 200 * scale - 5 + 5, 20 );
 
 				ctx.textAlign = 'right';
 				ctx.fillStyle = '#AAAAAA';
@@ -1824,21 +1824,21 @@ class sdRenderer
 			
 			if ( sdWorld.my_entity_net_id === undefined )
 			{
-				ctx.fillText( 'Waiting for server to assign character...', sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 );
+				ctx.fillText( T('Waiting for server to assign character...'), sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 );
 			}
 			else
 			if ( sdWorld.my_entity_net_id === -101 )
 			{
-				ctx.fillText( 'Your character has died. Press Space to restart or press Esc to return to main menu', sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 );
+				ctx.fillText( T('Your character has died. Press Space to restart or press Esc to return to main menu'), sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 );
 			}
 			else
 			if ( !sdWorld.my_entity || sdWorld.my_entity._is_being_removed )
 			{
 				//trace( 'sdWorld.my_entity_net_id whenever death message is visible is ',sdWorld.my_entity_net_id  );
-				ctx.fillText( 'Waiting for character sync...', sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 );
+				ctx.fillText( T('Waiting for character sync...'), sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 );
 			}
 			else
-			ctx.fillText( 'Your character has died but still can be revived (' + Math.floor( ( sdCharacter.disowned_body_ttl - sdWorld.my_entity.death_anim )/30 ) + ' seconds left). Press Space to restart or press Esc to return to main menu', sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 );
+			ctx.fillText( T('Your character has died but still can be revived (it will vanish within a minute if you disconnect). Press Space to restart or press Esc to return to main menu'), sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 );
 		}
 		
 		if ( sdWorld.time < sdRenderer.service_mesage_until )

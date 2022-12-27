@@ -86,15 +86,15 @@ class sdCrystal extends sdEntity
 		if ( this.is_anticrystal )
 		{
 			if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
-			return 'Anti-crystal crab';
+			return T('Anti-crystal crab');
 			else
-			return 'Anti-crystal';
+			return T('Anti-crystal');
 		}
 		
 		if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
-		return 'Crystal crab';
+		return T('Crystal crab');
 		else
-		return 'Crystal';
+		return T('Crystal');
 	}
 	
 	/*get should_draw()
@@ -182,13 +182,13 @@ class sdCrystal extends sdEntity
 		
 		
 		if ( r < 0.00390625 / 8 && is_deep ) // matter consuming crystal
-		this.matter_max *= 256;
+		this.matter_max *= 2048;
 		else
 		if ( r < 0.00390625 / 4 && is_deep ) // new 2022
-		this.matter_max *= 256;
+		this.matter_max *= 1024;
 		else
 		if ( r < 0.00390625 / 2 && is_deep ) // new 2022
-		this.matter_max *= 256;
+		this.matter_max *= 512;
 		else
 		if ( r < 0.00390625 && is_deep ) // new 2022
 		this.matter_max *= 256;
@@ -638,20 +638,20 @@ class sdCrystal extends sdEntity
 		//if ( this.held_by === null )
 		{
 			if ( this.is_anticrystal )
-			sdEntity.Tooltip( ctx, this.title + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
+			sdEntity.TooltipUntranslated( ctx, this.title + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
 			else
 			{
 				// Limit vision to cable managment owner
 				if ( sdWorld.my_entity.is( sdPlayerDrone ) ||
 					( sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ] && 
 					  sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ].class === sdGun.CLASS_CABLE_TOOL ) )
-				sdEntity.Tooltip( ctx, this.title + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " ) (matter regeneration rate: " + ~~(this.matter_regen ) + "%)" );
+				sdEntity.TooltipUntranslated( ctx, this.title + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " ) (matter regeneration rate: " + ~~(this.matter_regen ) + "%)" );
 				else
 				{
 					if ( this.is_depleted )
-					sdEntity.Tooltip( ctx, this.title + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " ) (depleted)" );
+					sdEntity.TooltipUntranslated( ctx, this.title + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " ) (depleted)" );
 					else
-					sdEntity.Tooltip( ctx, this.title + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
+					sdEntity.TooltipUntranslated( ctx, this.title + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
 				}
 			}
 		}

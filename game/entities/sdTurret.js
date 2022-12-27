@@ -105,28 +105,28 @@ class sdTurret extends sdEntity
 		if ( this.type === 0 )
 		{
 			if ( this.kind === sdTurret.KIND_LASER )
-			return 'Automatic laser turret' + prefix;
+			return T('Automatic laser turret') + prefix;
 			if ( this.kind === sdTurret.KIND_ROCKET )
-			return 'Automatic missile turret' + prefix;
+			return T('Automatic missile turret') + prefix;
 			if ( this.kind === sdTurret.KIND_RAPID_LASER )
-			return 'Automatic rapid laser turret' + prefix;
+			return T('Automatic rapid laser turret') + prefix;
 			if ( this.kind === sdTurret.KIND_SNIPER )
-			return 'Automatic sniper turret' + prefix;
+			return T('Automatic sniper turret') + prefix;
 			if ( this.kind === sdTurret.KIND_FREEZER )
-			return 'Automatic freezing turret' + prefix;
+			return T('Automatic freezing turret') + prefix;
 		}
 		if ( this.type === 1 ) // AI faction base / outpost turrets.
 		{
 			if ( this.kind === sdTurret.KIND_LASER )
-			return 'Automatic laser turret';
+			return T('Automatic laser turret');
 			if ( this.kind === sdTurret.KIND_ROCKET )
-			return 'Automatic missile turret';
+			return T('Automatic missile turret');
 			if ( this.kind === sdTurret.KIND_RAPID_LASER )
-			return 'Automatic rapid laser turret';
+			return T('Automatic rapid laser turret');
 			if ( this.kind === sdTurret.KIND_SNIPER )
-			return 'Automatic sniper turret';
+			return T('Automatic sniper turret');
 			if ( this.kind === sdTurret.KIND_FREEZER )
-			return 'Automatic freezing turret';
+			return T('Automatic freezing turret');
 		}
 	
 		return 'Automatic turret' + prefix;
@@ -637,7 +637,7 @@ class sdTurret extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, this.title );
+		sdEntity.TooltipUntranslated( ctx, this.title );
 
 		//this.DrawConnections( ctx );
 	}

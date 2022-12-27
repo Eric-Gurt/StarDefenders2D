@@ -23,16 +23,131 @@
 
 */
 
-/* global globalThis */
+/* global globalThis, sd_events */
 
 class sdTranslationManager
 {
 	static init_class()
 	{
-		globalThis.T = sdTranslationManager.Translate;
+		globalThis.T = sdTranslationManager.GetTranslationOrScheduleWithCalback;
+		
+		sdTranslationManager.language = 'en';
+		
+		try
+		{
+			sdTranslationManager.language = localStorage.getItem( 'language' ) || 'en';
+		}
+		catch(e)
+		{
+		}
+		
+		sdTranslationManager.translations = new Map(); // English string -> { requested_languages:new Set(), en:string, ua:string, callbacks } // These are requested in bulk manner, whenever language changes - it re-requests translations for new language
+		
+		sdTranslationManager.bulk_collector_timeout = null;
 	}
 	
-	static Translate( str )
+	static GetMakeTranslationObject( str )
+	{
+		let translation_obj = sdTranslationManager.translations.get( str );
+		
+		if ( translation_obj === undefined )
+		{
+			translation_obj = {
+				requested_languages: new Set(),
+				en: str,
+				callbacks: [] // Callbacks are actually stacked indefinitely
+			};
+			sdTranslationManager.translations.set( str, translation_obj );
+		}
+		
+		return translation_obj;
+	}
+	
+	static GetTranslationOrScheduleWithCalback( str, callback=null )
+	{
+		if ( sdTranslationManager.language === 'en' )
+		return str;
+	
+		//if ( str === 'Eric Gurt' )
+		//debugger;
+		
+		let translation_obj = sdTranslationManager.GetMakeTranslationObject( str );
+		
+		if ( callback )
+		{
+			if ( translation_obj.callbacks.indexOf( callback ) === -1 )
+			translation_obj.callbacks.push( callback );
+		}
+
+		if ( translation_obj[ sdTranslationManager.language ] !== undefined )
+		{
+			if ( callback )
+			callback( translation_obj[ sdTranslationManager.language ] );
+		
+			return translation_obj[ sdTranslationManager.language ];
+		}
+		else
+		{
+			sdTranslationManager.RequireSync();
+		
+			return str;
+		}
+	}
+	
+	static RequireSync()
+	{
+		if ( sdTranslationManager.bulk_collector_timeout === null )
+		sdTranslationManager.bulk_collector_timeout = setTimeout( sdTranslationManager.ReqeustTranslations, 50 );
+	}
+	
+	static TranslationArrived( lang, en, translated )
+	{
+		let translation_obj = sdTranslationManager.GetMakeTranslationObject( en );
+		
+		if ( translation_obj[ lang ] !== translated )
+		{
+			translation_obj[ lang ] = translated;
+			
+			translation_obj.requested_languages.add( lang ); // Prevent further requesting
+
+			if ( lang === sdTranslationManager.language )
+			for ( let i = 0; i < translation_obj.callbacks.length; i++ )
+			{
+				try
+				{
+					translation_obj.callbacks[ i ]( translated );
+				}
+				catch( e )
+				{
+					translation_obj.callbacks.splice( i, 1 );
+					i--;
+					continue;
+				}
+			}
+		}
+	}
+	
+	static ReqeustTranslations()
+	{
+		let arr = [];
+		
+		sdTranslationManager.translations.forEach( ( translation_obj, en )=>
+		{
+			if ( !translation_obj.requested_languages.has( sdTranslationManager.language ) )
+			{
+				translation_obj.requested_languages.add( sdTranslationManager.language );
+				
+				arr.push( en );
+			}
+		});
+		
+		if ( arr.length > 0 )
+		sd_events.push( [ 'T', sdTranslationManager.language, arr ] );
+	
+		sdTranslationManager.bulk_collector_timeout = null;
+	}
+	
+	/*static Translate( str )
 	{
 		let r = '';
 		for ( let i = 0; i < str.length; i++ )
@@ -46,9 +161,9 @@ class sdTranslationManager
 			r += 'X';
 		}
 		return r;
-	}
+	}*/
 	
-	static ConvertToTagPattern( str )
+	/*static ConvertToTagPattern( str )
 	{
 		str = str.trim();
 		
@@ -90,10 +205,14 @@ class sdTranslationManager
 		return str;
 		
 		return parts;
-	}
+	}*/
 	
 	static TranslateHTMLPage() // Will be called multiple times for same data
 	{
+		if ( globalThis.sd_events === undefined )
+		return;
+		
+		
 		let elements = [];
 		
 		function AddBySelector( selector )
@@ -109,19 +228,55 @@ class sdTranslationManager
 		AddBySelector( 'label' );
 		
 		for ( let i = 0; i < elements.length; i++ )
-		if ( !elements[ i ].translated )
+		if ( !elements[ i ].dont_translate )
 		{
-			elements[ i ].translated = true;
+			elements[ i ].dont_translate = true;
 			
-			let obj = {};
+			function Scan( e )
+			{
+				if ( e.nodeType === e.TEXT_NODE )
+				{
+					let str = e.textContent;
+					str = str.replace(/\s\s+/g, ' ');
+					
+					if ( str.length > 0 && str !== ' ' )
+					{
+						sdTranslationManager.GetTranslationOrScheduleWithCalback( str, ( translated )=>
+						{
+							e.textContent = translated;
+						});
+					}
+				}
+				else
+				if ( e.value )
+				{
+					let old_value = e.value;
+					sdTranslationManager.GetTranslationOrScheduleWithCalback( e.value, ( translated )=>
+					{
+						// Check whether button was renamed from outside
+						if ( e.value === old_value )
+						{
+							e.value = translated;
+							old_value = e.value;
+						}
+						else
+						{
+							throw 'Remove callback';
+						}
+					});
+				}
+				else
+				{
+					let nodes = e.childNodes;
+
+					for ( let i = 0; i < nodes.length; i++ )
+					{
+						Scan( nodes[ i ] );
+					}
+				}
+			}
 			
-			if ( elements[ i ].innerHTML !== undefined )
-			obj.innerHTML = sdTranslationManager.ConvertToTagPattern( elements[ i ].innerHTML );
-			
-			if ( elements[ i ].value !== undefined )
-			obj.value = sdTranslationManager.ConvertToTagPattern( elements[ i ].value );
-			
-			//trace( obj );
+			Scan( elements[ i ] );
 		}
 	}
 }
