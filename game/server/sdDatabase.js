@@ -721,6 +721,7 @@ class sdDatabase
 				{
 					let translated = row[ lang ];
 					if ( translated !== undefined )
+					if ( translated !== 'SPECIFY' )
 					responses.push( [ en, translated ] );
 				}
 			

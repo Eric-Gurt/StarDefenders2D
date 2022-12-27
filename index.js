@@ -74,6 +74,7 @@ globalThis.trace = console.log;
 		}
 	};
 }
+globalThis.T = ( s )=>s; // Server won't translate anything
 
 if ( !isWin )
 {
@@ -1544,7 +1545,8 @@ io.on("connection", (socket) =>
 	socket.emit( 'INIT', 
 	{
 		game_title: sdWorld.server_config.game_title || 'Star Defenders',
-		backgroundColor: sdWorld.server_config.backgroundColor || ''
+		backgroundColor: sdWorld.server_config.backgroundColor || '',
+		supported_languages: sdWorld.server_config.supported_languages || []
 	});
 	
 	//globalThis.EnforceChangeLog( sockets, sockets.indexOf( socket ) );
@@ -2067,9 +2069,68 @@ io.on("connection", (socket) =>
 				socket.character._key_states.SetKey( key, 0 );
 			}
 			
+			if ( type === 'T' ) // Translations
+			{
+				let lang = key;
+				let str_array = sd_events[ i ][ 2 ];
+				
+				if ( typeof lang === 'string' )
+				if ( str_array instanceof Array )
+				if ( lang !== 'en' )
+				if ( lang.length === 2 )
+				//if ( sdWorld.server_config.supported_languages.indexOf( lang ) !== -1 )
+				{
+					let initiator_hash_or_user_uid = socket.my_hash;
+					
+					sdDatabase.Exec( 
+						[ 
+							[ 'DBTranslate', initiator_hash_or_user_uid, lang, str_array ] 
+						], 
+						( responses )=>
+						{
+							// What if responses is null? Might happen if there is no connection to database server or database server refuses to accept connection from current server
+							//for ( let i = 0; i < responses.length; i++ )
+							//{
+								//let response = responses[ i ];
+								//socket.emit( response[ 0 ], response[ 1 ] );
+								if ( responses.length > 0 )
+								socket.emit( 'T', responses );
+							//}
+						},
+						'localhost'
+					);
+				}
+			}
+			else
 			if ( type.substring( 0, 3 ) === 'DB_' )
-			if ( sdModeration.GetAdminRow( socket ) ) // Needs socket.my_hash to be set, it is done after player enters the game
-			sdDatabase.HandleCommandFromAdmin( socket, type, key, sd_events[ i ][ 2 ] );
+			{
+				let admin_row = sdModeration.GetAdminRow( socket );
+				if ( admin_row )
+				{
+					let initiator_hash_or_user_uid = socket.my_hash;
+					//sdDatabase.HandleCommandFromAdmin( socket, initiator_hash_or_user_uid, type, key, sd_events[ i ][ 2 ] );
+					let path_parts = key;
+					let new_value = sd_events[ i ][ 2 ];
+					
+					sdDatabase.Exec( 
+						[ 
+							[ 'DBEditorCommand', initiator_hash_or_user_uid, type, path_parts, new_value ] 
+						], 
+						( responses )=>
+						{
+							// What if responses is null? Might happen if there is no connection to database server or database server refuses to accept connection from current server
+							for ( let i = 0; i < responses.length; i++ )
+							{
+								let response = responses[ i ];
+								socket.emit( response[ 0 ], response[ 1 ] );
+							}
+						},
+						'localhost'
+					);
+				}
+				else
+				socket.SDServiceMessage( 'Server: Only first admin can access database' );
+			}
 		}
 	});
 	
