@@ -227,9 +227,12 @@ class sdShop
 			sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED, _reinforced_level: 1, _category:'Doors', _min_build_tool_level: 7 });
 			sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _reinforced_level: 2, _category:'Doors', _min_build_tool_level: 16 });
 		}
-		//AddBuildPack( 'hue-rotate(-90deg) contrast(0.5) brightness(1.5) saturate(0)' );
-		//AddBuildPack( 'hue-rotate(-90deg) brightness(1.5) saturate(0)' );
-		//AddBuildPack( 'saturate(0) brightness(8)' );
+
+		AddBuildPack( 'hue-rotate( 105deg) brightness(0.7)' );
+        	AddBuildPack( 'hue-rotate(-90deg) brightness(1.5) saturate(0)' );
+        	AddBuildPack( 'saturate(0) brightness(8)' );
+        	AddBuildPack( 'hue-rotate(-90deg) contrast(0.5) brightness(1.5) saturate(0)' );
+		// People seemed to ask for those 4 ^ - Booraz149
 		
 		for ( let br = 50; br <= 150; br += 50 )
 		for ( let i = sdBlock.TEXTURE_ID_PORTAL; i <= sdBlock.TEXTURE_ID_GREY; i++ )
