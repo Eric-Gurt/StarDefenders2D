@@ -856,7 +856,8 @@ let enf_once = true;
 
 			const isTransportWritable = socket.io.engine &&
 										socket.io.engine.transport &&
-										socket.io.engine.transport.writable;
+										socket.io.engine.transport.writable &&
+										socket.connected;
 
 			if ( sdWorld.time > socket.last_sync + socket.max_update_rate )
 			if ( isTransportWritable )
