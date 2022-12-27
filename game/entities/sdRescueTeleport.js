@@ -325,24 +325,20 @@ class sdRescueTeleport extends sdEntity
 	}
 	get title()
 	{
-		let postfix = "  ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + " )";
-		
 		if ( this.type === sdRescueTeleport.TYPE_INFINITE_RANGE )
 		{
-			//if ( this.owner_title === '' )
-			if ( this.owner_biometry === -1 )
-			return 'Rescue teleport' + postfix;
-			else
-			return this.owner_title + '\'s rescue teleport' + postfix;
+			//if ( this.owner_biometry === -1 )
+			return 'Rescue teleport';
+			//else
+			//return this.owner_title + '\'s rescue teleport';
 		}
 
 		if ( this.type === sdRescueTeleport.TYPE_SHORT_RANGE )
 		{
-			//if ( this.owner_title === '' )
-			if ( this.owner_biometry === -1 )
-			return 'Short-range rescue teleport' + postfix;
-			else
-			return this.owner_title + '\'s short-range rescue teleport' + postfix;
+			//if ( this.owner_biometry === -1 )
+			return 'Short-range rescue teleport';
+			//else
+			//return this.owner_title + '\'s short-range rescue teleport';
 		}
 
 	}
@@ -388,7 +384,12 @@ class sdRescueTeleport extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, this.title );
+		let postfix = "  ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + " )";
+		
+		if ( this.owner_biometry === -1 )
+		sdEntity.TooltipUntranslated( ctx, T( this.title ) + postfix );
+		else
+		sdEntity.TooltipUntranslated( ctx, this.owner_title + T( '\'s ' + this.title.toLowerCase() ) + postfix );
 	}
 	
 	onRemove() // Class-specific, if needed

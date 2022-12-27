@@ -280,7 +280,6 @@ class sdTranslationManager
 		}
 	}
 }
-sdTranslationManager.init_class();
 
 globalThis.sdTranslationManager = sdTranslationManager;
 

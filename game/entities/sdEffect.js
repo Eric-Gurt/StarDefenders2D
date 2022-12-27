@@ -428,13 +428,37 @@ class sdEffect extends sdEntity
 		this._text_censored = ( params.text_censored !== undefined ) ? params.text_censored : null;
 		//this._attachment = params.attachment || null;
 		
+		this._unstranslateables = null;
 		
 		if ( sdWorld.client_side_censorship && this._text_censored )
 		this._text = sdWorld.CensoredText( this._text );
 		else
 		if ( params.t )
 		{
-			this._text = T( this._text );
+			if ( sdTranslationManager.language !== 'en' )
+			{
+				let untranslateables = [];
+
+				while ( true )
+				{
+					let ptr = this._text.indexOf( '<' );
+					if ( ptr === -1 )
+					break;
+
+					let ptr2 = this._text.indexOf( '>', ptr );
+					if ( ptr2 === -1 )
+					break;
+
+					untranslateables.push( this._text.substring( ptr + 1, ptr2 ) );
+
+					this._text = this._text.substring( 0, ptr ) + '{'+(untranslateables.length)+'}' + this._text.substring( ptr2 + 1 );
+				}
+				
+				if ( untranslateables.length > 0 )
+				this._unstranslateables = untranslateables;
+
+				//this._text = T( this._text );
+			}
 		}
 		
 		if ( params.attachment instanceof Array )
@@ -850,7 +874,17 @@ class sdEffect extends sdEntity
 			ctx.font = "6px Verdana";
 			ctx.textAlign = 'center';
 			
-			let details = ctx.measureText( this._text );
+			let t = this._text;
+			
+			if ( this._unstranslateables )
+			{
+				t = T( t );
+				
+				for ( let i = 0 ; i < this._unstranslateables.length; i++ )
+				t = t.split( '{'+(i+1)+'}' ).join( this._unstranslateables[ i ] );
+			}
+			
+			let details = ctx.measureText( t );
 			
 			//if ( !this._attachment )
             {
@@ -895,7 +929,7 @@ class sdEffect extends sdEntity
 			}
 			
 			ctx.fillStyle = '#ffffff';
-			ctx.fillText( this._text, 0, 0 );
+			ctx.fillText( t, 0, 0 );
 		}
 		else
 		if ( this._type === sdEffect.TYPE_EXPLOSION )

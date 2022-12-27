@@ -3,6 +3,8 @@
 
 import sdTranslationManager from './client/sdTranslationManager.js';
 sdTranslationManager.init_class();
+
+globalThis.sdTranslationManager;
 	
 meSpeak.loadVoice("voices/en/en.json");
 meSpeak.loadVoice("voices/pl.json");
