@@ -1651,6 +1651,8 @@ class sdWorld
 	
 	static ClassNameToProperName( _class, ent=null )
 	{
+		let translate = true;
+		
 		let c = _class.slice( 2 );
 
 		if ( c === 'BG' )
@@ -1742,8 +1744,14 @@ class sdWorld
 			c = sdGun.classes[ ent.class ].title;
 
 			if ( c === 'Character' )
-			c = ent.title;
+			{
+				c = ent.title;
+				translate = false;
+			}
 		}
+		
+		if ( translate )
+		c = T(c);
 
 		return c;
 	}
@@ -3753,10 +3761,11 @@ class sdWorld
 			{
 			},
 			
-			SDServiceMessage: ( v )=>
+			SDServiceMessage: ( v, untranslateables )=>
 			{
 				sdRenderer.service_mesage_until = sdWorld.time + 6500;
 				sdRenderer.service_mesage = v;
+				sdRenderer.service_mesage_untranslateables = untranslateables;
 			}
 		};
 		

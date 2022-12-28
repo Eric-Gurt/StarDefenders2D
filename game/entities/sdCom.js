@@ -333,7 +333,7 @@ class sdCom extends sdEntity
 				for ( var i = 0; i < this.subscribers.length; i++ )
 				{
 					let net_id_or_biometry = this.subscribers[ i ];
-					this.AddContextOption( 'Kick ' + sdEntity.GuessEntityName( net_id_or_biometry ), 'COM_KICK', [ net_id_or_biometry ] );
+					this.AddContextOptionNoTranslation( T('Kick ') + sdEntity.GuessEntityName( net_id_or_biometry ), 'COM_KICK', [ net_id_or_biometry ] );
 				}
 			}
 			else

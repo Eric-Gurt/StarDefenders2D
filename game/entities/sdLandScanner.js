@@ -214,8 +214,8 @@ class sdLandScanner extends sdEntity
 		if ( this.hea <= 0 )
 		return;
 	
-		sdEntity.Tooltip( ctx,  "Land scanner ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )", 0, -6 );
-		sdEntity.Tooltip( ctx,  "Scan data capacity: " + ~~( this.scanned_ents * 100 / 350 ) +"%",0, 2 );
+		sdEntity.TooltipUntranslated( ctx, T("Land scanner") + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )", 0, -6 );
+		sdEntity.TooltipUntranslated( ctx, T("Scan data capacity") + ": " + ~~( this.scanned_ents * 100 / 350 ) +"%",0, 2 );
 
 		let w = 30;
 	

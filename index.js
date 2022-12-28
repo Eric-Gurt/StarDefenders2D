@@ -1605,10 +1605,10 @@ io.on("connection", (socket) =>
 	const stacked_service_messages = [];
 	let service_message_interval_exists = null;
 	let service_message_allow_next_in = sdWorld.time + 500;
-	socket.SDServiceMessage = ( m=null )=>
+	socket.SDServiceMessage = ( m=null, untranslateables_array=null )=>
 	{
 		if ( typeof m === 'string' )
-		stacked_service_messages.push( m );
+		stacked_service_messages.push( [ m, untranslateables_array ] );
 	
 		if ( stacked_service_messages.length > 0 )
 		{
@@ -2168,7 +2168,7 @@ io.on("connection", (socket) =>
 				socket.emit( 'censored_chat', [ ( sdWorld.server_config.censorship_mute_duration !== undefined ? sdWorld.server_config.censorship_mute_duration : 5000 ) ] );
 			}
 			else*/
-			socket.character.Say( t, false );
+			socket.character.Say( t, false, false, false, false, false );
 		}
 	});
 	socket.muted_until = 0;

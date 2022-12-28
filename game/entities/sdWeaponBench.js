@@ -125,23 +125,23 @@ class sdWeaponBench extends sdEntity
 				let ID_SLOT = 14;
 
 				//Tooltip( ctx, t, x=0, y=0, color='#ffffff' )
-				sdEntity.Tooltip( ctx, 'Damage: ' + Math.round( 25 * this.item0.extra[ ID_DAMAGE_MULT ] ), 0, -50, '#ffaaaa' );
-				sdEntity.Tooltip( ctx, 'Recoil: ' + Math.round( 100 * this.item0.extra[ ID_DAMAGE_MULT ] * this.item0.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -40, '#ffffaa' );
+				sdEntity.TooltipUntranslated( ctx, T('Damage')+': ' + Math.round( 25 * this.item0.extra[ ID_DAMAGE_MULT ] ), 0, -50, '#ffaaaa' );
+				sdEntity.TooltipUntranslated( ctx, T('Recoil')+': ' + Math.round( 100 * this.item0.extra[ ID_DAMAGE_MULT ] * this.item0.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -40, '#ffffaa' );
 				
 				let reload_time = ( gun.extra[ ID_HAS_RAIL_EFFECT ] ? 2 : 1 ) * ( gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1 ) * ( sdGun.classes[ gun.class ].reload_time / sdGun.classes[ gun.class ].parts_magazine[ gun.extra[ ID_MAGAZINE ] ].rate ) * gun.extra[ ID_FIRE_RATE ];
 				
 				if ( Math.round( reload_time / 30 * 1000 ) < 16 )
-				sdEntity.Tooltip( ctx, 'Cooldown: 16ms (capped)', 0, -30, '#aaffaa' );
+				sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + T('16ms (capped)'), 0, -30, '#aaffaa' );
 				else
-				sdEntity.Tooltip( ctx, 'Cooldown: ' + Math.round( reload_time / 30 * 1000 ) + 'ms', 0, -30, '#aaffaa' );
+				sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + Math.round( reload_time / 30 * 1000 ) + 'ms', 0, -30, '#aaffaa' );
 			
-				sdEntity.Tooltip( ctx, 'Temperature: ' + Math.round( this.item0.extra[ ID_TEMPERATURE_APPLIED ] ) + '°C', 0, -20, '#aaffff' );
+				sdEntity.TooltipUntranslated( ctx, T('Temperature') + ': ' + Math.round( this.item0.extra[ ID_TEMPERATURE_APPLIED ] ) + '°C', 0, -20, '#aaffff' );
 				
-				sdEntity.Tooltip( ctx, 'Magazine capacity: ' + this.item0.GetAmmoCapacity(), 0, -10, '#ffffff' );
+				sdEntity.TooltipUntranslated( ctx, T('Magazine capacity') + ': ' + this.item0.GetAmmoCapacity(), 0, -10, '#ffffff' );
 				
-				sdEntity.Tooltip( ctx, 'Ammo cost: ' + Math.round( this.item0.GetBulletCost( false, false ) * 1000 ) / 1000, 0, 0, '#aaaaaa' );
+				sdEntity.TooltipUntranslated( ctx, T('Ammo cost') + ': ' + Math.round( this.item0.GetBulletCost( false, false ) * 1000 ) / 1000, 0, 0, '#aaaaaa' );
 				
-				sdEntity.Tooltip( ctx, 'Biometry lock: ' + ( ( this.item0.biometry_lock !== -1 ) ? 'YES' : 'NO' ), 0, 10, '#333333' );
+				sdEntity.TooltipUntranslated( ctx, T('Biometry lock') + ': ' + ( ( this.item0.biometry_lock !== -1 ) ? 'YES' : 'NO' ), 0, 10, '#333333' );
 			}
 			else // Regular guns
 			{
@@ -154,26 +154,22 @@ class sdWeaponBench extends sdEntity
 				let ID_RECOIL_SCALE = 9;
 				let ID_DAMAGE_VALUE = 17;
 
-				//Tooltip( ctx, t, x=0, y=0, color='#ffffff' )
 				if ( this.item0.extra[ ID_DAMAGE_VALUE ] )
-				sdEntity.Tooltip( ctx, 'Damage: ' + Math.round( this.item0.extra[ ID_DAMAGE_VALUE ] * this.item0.extra[ ID_DAMAGE_MULT ] ), 0, -40, '#ffaaaa' );
+				sdEntity.TooltipUntranslated( ctx, T('Damage') + ': ' + Math.round( this.item0.extra[ ID_DAMAGE_VALUE ] * this.item0.extra[ ID_DAMAGE_MULT ] ), 0, -40, '#ffaaaa' );
 				if ( this.item0.extra[ ID_RECOIL_SCALE ] )
-				sdEntity.Tooltip( ctx, 'Recoil: ' + Math.round( 100 * this.item0.extra[ ID_DAMAGE_MULT ] * this.item0.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -30, '#ffffaa' );
+				sdEntity.TooltipUntranslated( ctx, T('Recoil') + ': ' + Math.round( 100 * this.item0.extra[ ID_DAMAGE_MULT ] * this.item0.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -30, '#ffffaa' );
 				
 				let reload_time = sdGun.classes[ gun.class ].reload_time; // Best to keep it simple.
 				
 				if ( Math.round( reload_time / 30 * 1000 ) < 16 )
-				sdEntity.Tooltip( ctx, 'Cooldown: 16ms (capped)', 0, -20, '#aaffaa' );
+				sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + T('16ms (capped)'), 0, -20, '#aaffaa' );
 				else
-				sdEntity.Tooltip( ctx, 'Cooldown: ' + Math.round( reload_time / 30 * 1000 ) + 'ms', 0, -20, '#aaffaa' );
+				sdEntity.TooltipUntranslated( ctx, T('Cooldown') + ': ' + Math.round( reload_time / 30 * 1000 ) + 'ms', 0, -20, '#aaffaa' );
 			
-				//sdEntity.Tooltip( ctx, 'Temperature: ' + Math.round( this.item0.extra[ ID_TEMPERATURE_APPLIED ] ) + '°C', 0, -20, '#aaffff' );
 				if ( this.item0.GetAmmoCapacity() !== -1 )
-				sdEntity.Tooltip( ctx, 'Magazine capacity: ' + this.item0.GetAmmoCapacity(), 0, -10, '#ffffff' );
+				sdEntity.TooltipUntranslated( ctx, T('Magazine capacity') + ': ' + this.item0.GetAmmoCapacity(), 0, -10, '#ffffff' );
 				
-				sdEntity.Tooltip( ctx, 'Ammo cost: ' + Math.round( this.item0.GetBulletCost( false, false ) * 1000 ) / 1000, 0, 0, '#aaaaaa' );
-				
-				//sdEntity.Tooltip( ctx, 'Biometry lock: ' + ( ( this.item0.biometry_lock !== -1 ) ? 'YES' : 'NO' ), 0, 10, '#333333' );
+				sdEntity.TooltipUntranslated( ctx, T('Ammo cost') + ': ' + Math.round( this.item0.GetBulletCost( false, false ) * 1000 ) / 1000, 0, 0, '#aaaaaa' );
 			}
 		}
 	}

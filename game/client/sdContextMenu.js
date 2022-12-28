@@ -240,12 +240,16 @@ class sdContextMenu
 				var t = '';
 				if ( i === -1 )
 				{
-					t = sdContextMenu.current_target.title || sdContextMenu.current_target.GetClass().slice( 2 );
+					t = T( sdContextMenu.current_target.title || sdContextMenu.current_target.GetClass().slice( 2 ) );
 				}
 				else
 				{
 					t = sdContextMenu.options[ i ].title;
+					
+					if ( sdContextMenu.options[ i ].translate )
+					t = T( t );
 				}
+				
 				
 				if ( i >= 0 )
 				{

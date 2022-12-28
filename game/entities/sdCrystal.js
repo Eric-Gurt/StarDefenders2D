@@ -820,45 +820,6 @@ class sdCrystal extends sdEntity
 		//return this._hmax * sdWorld.damage_to_matter + this.matter;
 	}
 	
-	/*ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
-	{
-		if ( !this._is_being_removed )
-		if ( this._hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		{
-			if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB )
-			{
-				if ( command_name === 'POKE' )
-				{
-					if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
-					{
-						this.type = sdCrystal.TYPE_CRYSTAL;
-						sdSound.PlaySound({ name:'crystal_crab_death', x:this.x, y:this.y, volume:0.5 });
-					}
-					else
-					{
-						executer_socket.SDServiceMessage( this.title + ' is too far' );
-						return;
-					}
-				}
-			}
-		}
-	}
-	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
-	{
-		if ( !this._is_being_removed )
-		if ( this._hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
-		{
-			if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB )
-			{
-				this.AddContextOption( 'Melt into regular crytal', 'POKE', [] );
-			}
-		}
-	}*/
 }
 //sdCrystal.init_class();
 

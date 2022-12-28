@@ -67,6 +67,7 @@ class sdRenderer
 		
 		sdRenderer.service_mesage_until = 0;
 		sdRenderer.service_mesage = '';
+		sdRenderer.service_mesage_untranslateables = null;
 		
 		sdRenderer.last_source_change = sdWorld.time;
 		sdRenderer.last_source_entity = null;
@@ -1538,9 +1539,9 @@ class sdRenderer
 					ctx.textAlign = 'left';
 					ctx.fillStyle = '#ffff00';
 					let cost = sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ].GetBulletCost( false );
-					ctx.fillText("Matter cost: " + ( cost === Infinity ? '-' : Math.ceil( cost ) ), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y - 2 );
+					ctx.fillText( T("Matter cost") + ": " + ( cost === Infinity ? '-' : Math.ceil( cost ) ), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y - 2 );
 					ctx.fillStyle = '#00ffff';
-					ctx.fillText("Matter carried: " + Math.floor( sdWorld.my_entity.matter ), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y + 5 );
+					ctx.fillText( T("Matter carried") + ": " + Math.floor( sdWorld.my_entity.matter ), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y + 5 );
 				}
 				else
 				{
@@ -1673,7 +1674,7 @@ class sdRenderer
 				if ( sdWorld.my_entity._inventory[ 9 ] )
 				keySuggestions.push({ title: 'Select build item', key: 'B' });
 				else
-				keySuggestions.push({ title: 'Select build item', key: '- no build tool -' });
+				keySuggestions.push({ title: 'Select build item', key: T('- no build tool -') });
 			
 				keySuggestions.push({ title: 'Zoom in/out', key: 'Z' });
 			
@@ -1694,7 +1695,7 @@ class sdRenderer
 
 					ctx.fillStyle = '#ffffff';
 					ctx.textAlign = 'center';
-					ctx.fillText( s.title, sdRenderer.screen_width - ( i * 100 + 50 ) * scale, sdRenderer.screen_height - 15 );
+					ctx.fillText( T( s.title ), sdRenderer.screen_width - ( i * 100 + 50 ) * scale, sdRenderer.screen_height - 15 );
 
 					if ( s.key.charAt( 0 ) === '-' )
 					ctx.fillStyle = '#ff6666';
@@ -1776,7 +1777,7 @@ class sdRenderer
 					ctx.fillStyle = '#666666';
 				
 					if ( sdWorld.client_side_censorship && sdWorld.leaders[ i ].name_censored )
-					ctx.fillText( (i+1)+". " + ( ( i < sdWorld.leaders.length ) ? 'Censored Defender' : '' ), sdRenderer.screen_width - 200 * scale - 5 + 5, 20 + ( i + 1 ) * 20 * scale );
+					ctx.fillText( (i+1)+". " + ( ( i < sdWorld.leaders.length ) ? T('Censored Defender') : '' ), sdRenderer.screen_width - 200 * scale - 5 + 5, 20 + ( i + 1 ) * 20 * scale );
 					else
 					ctx.fillText( (i+1)+". " + ( ( i < sdWorld.leaders.length ) ? sdWorld.leaders[ i ].name : '' ), sdRenderer.screen_width - 200 * scale - 5 + 5, 20 + ( i + 1 ) * 20 * scale );
 
@@ -1847,6 +1848,16 @@ class sdRenderer
 			ctx.textAlign = 'center';
 			ctx.fillStyle = '#ffff00';
 			
+			if ( sdRenderer.service_mesage_untranslateables )
+			{
+				let str = T( sdRenderer.service_mesage );
+				
+				for ( let i = 0; i < sdRenderer.service_mesage_untranslateables.length; i++ )
+				str = str.split( '{'+(i+1)+'}' ).join( sdRenderer.service_mesage_untranslateables[ i ] );
+				
+				ctx.fillText( str, sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 - 30 );
+			}
+			else
 			ctx.fillText( sdRenderer.service_mesage, sdRenderer.screen_width / 2, sdRenderer.screen_height - 30 - 30 );
 		}
 		

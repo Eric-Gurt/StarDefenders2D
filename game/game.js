@@ -3,6 +3,8 @@
 
 import sdTranslationManager from './client/sdTranslationManager.js';
 sdTranslationManager.init_class();
+
+globalThis.sdTranslationManager;
 	
 meSpeak.loadVoice("voices/en/en.json");
 meSpeak.loadVoice("voices/pl.json");
@@ -707,10 +709,11 @@ let enf_once = true;
 		});
 
 
-		socket.on( 'SERVICE_MESSAGE', ( v )=>
+		socket.on( 'SERVICE_MESSAGE', ( arr )=>
 		{
 			sdRenderer.service_mesage_until = sdWorld.time + 6500;
-			sdRenderer.service_mesage = v;
+			sdRenderer.service_mesage = arr[ 0 ];
+			sdRenderer.service_mesage_untranslateables = arr[ 1 ];
 		});
 		
 		socket.on( 'SET_CLIPBOARD', ( v )=>
@@ -793,7 +796,7 @@ let enf_once = true;
 		UpdateLanguageBar();
 		socket.on( 'INIT', ( obj )=>
 		{
-			document.getElementById( 'game_title_text' ).textContent = obj.game_title;
+			document.getElementById( 'game_title_text' ).textContent = T(obj.game_title);
 			document.body.style.backgroundColor = obj.backgroundColor;
 			
 			if ( obj.supported_languages )

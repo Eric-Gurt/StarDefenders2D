@@ -746,7 +746,7 @@ class sdTask extends sdEntity
 			*/
 
 			let far_dist_horiz = 200;
-			let far_dist_vert = far_dist_horiz / document.body.clientWidth * document.body.clientHeight;
+			let far_dist_vert = far_dist_horiz / sdRenderer.screen_width * sdRenderer.screen_height;
 
 			let far_dist_default = Math.sqrt( far_dist_horiz * far_dist_horiz + far_dist_vert * far_dist_vert );
 

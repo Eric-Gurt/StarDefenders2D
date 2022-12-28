@@ -1090,15 +1090,15 @@ class sdShop
 			delete simple_obj._cache;
 			delete simple_obj.image_obj;
 			
-			let t = 'No description for ' + JSON.stringify( simple_obj );
+			let t = T('No description for ') + JSON.stringify( simple_obj );
 			let desc = null; // Secondary description, used for upgrades
 			
 			if ( sdShop.options[ sdShop.potential_selection ]._opens_category )
 			{
 				if ( sdShop.options[ sdShop.potential_selection ]._opens_category === 'root' )
-				t = 'Click to leave this category';
+				t = T('Click to leave this category');
 				else
-				t = 'Click to enter category "' + sdShop.options[ sdShop.potential_selection ]._opens_category + '"';
+				t = T('Click to enter category')+' "' + sdShop.options[ sdShop.potential_selection ]._opens_category + '"';
 			}
 			else
 			{
@@ -1106,12 +1106,12 @@ class sdShop
 				{
 					let c = sdWorld.ClassNameToProperName( sdShop.options[ sdShop.potential_selection ]._class, sdShop.options[ sdShop.potential_selection ] );
 					
-					t = 'Click to select "' + c + '" as a build object. Then click to place this object in world.';
+					t = T('Click to select')+' "' + c + '" '+T('as a build object. Then click to place this object in world.');
 				}
 				else
 				if ( sdShop.options[ sdShop.potential_selection ].upgrade_name )
 				{
-					t = 'Click to select "' + capitalize( sdShop.options[ sdShop.potential_selection ].upgrade_name.split('_').join(' ') ) + '" as an upgrade. Then click anywhere to upgrade.';
+					t = T('Click to select')+' "' + T(capitalize( sdShop.options[ sdShop.potential_selection ].upgrade_name.split('_').join(' ') )) + '" '+T('as an upgrade. Then click anywhere to upgrade.');
 					desc = capitalize( sdShop.options[ sdShop.potential_selection ].description );
 				}
 				

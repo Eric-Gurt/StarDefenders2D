@@ -549,7 +549,7 @@ class sdCharacter extends sdEntity
 			{
 				this._discovered[ hash ] = 1;
 
-				let t = sdWorld.ClassNameToProperName( ent.GetClass(), ent );
+				let t = '<' + sdWorld.ClassNameToProperName( ent.GetClass(), ent ) + '>';
 
 				if ( Math.abs( sdWorld.time - this._last_discovery ) > 15000 )
 				if ( this.hea > this.hmax * 0.75 )
@@ -591,8 +591,8 @@ class sdCharacter extends sdEntity
 						case 29: this.Say( 'I don\'t know nothing about '+t+', don\'t I?' ); break;
 						case 30: this.Say( 'Gotta spend some time with '+t ); break;
 						case 31: this.Say( 'Nice, a '+t+'. But can I exchange '+t+' for more matter?' ); break;
-						case 32: this.Say( 'Huh, a '+t+' is '+Math.round(ent._hitbox_x2 - ent._hitbox_x1)+' units wide' ); break;
-						case 33: this.Say( 'Huh, a '+t+' is '+Math.round(ent._hitbox_y2 - ent._hitbox_y1)+' units in height' ); break;
+						case 32: this.Say( 'Huh, a '+t+' is <'+Math.round(ent._hitbox_x2 - ent._hitbox_x1)+'> units wide' ); break;
+						case 33: this.Say( 'Huh, a '+t+' is <'+Math.round(ent._hitbox_y2 - ent._hitbox_y1)+'> units in height' ); break;
 						case 34: this.Say( 'This '+t+' '+( ent._current_target === this ? 'looks threatening to me' : 'seems chill' ) ); break;
 						case 35: this.Say( 'This '+t+' '+( ( ent._hea || ent.hea || 0 ) <= 0 ? 'looks rather dead' : 'looks rather healthy' ) ); break;
 						case 36: this.Say( t+' is right there' ); break;
@@ -5128,7 +5128,7 @@ class sdCharacter extends sdEntity
 		return 200; // Hack
 	}
 	
-	Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false, simulate_sound=false )
+	Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false, simulate_sound=false, translate=true )
 	{
 		let params = { 
 			x:this.x, 
@@ -5142,6 +5142,9 @@ class sdCharacter extends sdEntity
 			voice:this._voice,
 			no_ef:simulate_sound
 		};
+		
+		if ( translate )
+		params.t = 1;
 
 		if ( sdWorld.is_server )
 		{

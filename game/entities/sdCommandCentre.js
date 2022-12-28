@@ -366,9 +366,9 @@ class sdCommandCentre extends sdEntity
 						if ( this.owner )
 						{
 							if ( this._is_being_removed )
-							ent._socket.SDServiceMessage( 'You have been excluded from ' + this.owner.title + '\'s team (Command Centre has been destroyed)' );
+							ent._socket.SDServiceMessage( 'You have been excluded from {1}\'s team (Command Centre has been destroyed)', [ this.owner.title ] );
 							else
-							ent._socket.SDServiceMessage( 'You have been excluded from ' + this.owner.title + '\'s team' );
+							ent._socket.SDServiceMessage( 'You have been excluded from {1}\'s team', [ this.owner.title ] );
 						}
 						else
 						ent._socket.SDServiceMessage( 'You have been excluded from team (team has no owner)' );
@@ -405,7 +405,7 @@ class sdCommandCentre extends sdEntity
 						ent._cc_rank = 1;
 
 						if ( ent._socket )
-						ent._socket.SDServiceMessage( 'You have been accepted to ' + exectuter_character.title + '\'s team!' );
+						ent._socket.SDServiceMessage( 'You have been accepted to {1}\'s team!', [ exectuter_character.title ] );
 					}
 				};
 				const RejectNetID = ( net_id )=>
@@ -417,7 +417,7 @@ class sdCommandCentre extends sdEntity
 						//ent.cc_id = this._net_id;
 
 						if ( ent._socket )
-						ent._socket.SDServiceMessage( 'You have been rejected from joining ' + exectuter_character.title + '\'s team' );
+						ent._socket.SDServiceMessage( 'You have been rejected from joining {1}\'s team', [ exectuter_character.title ] );
 					}
 				};
 				
@@ -466,7 +466,7 @@ class sdCommandCentre extends sdEntity
 						else
 						{
 							AcceptNetID( parameters_array[ 0 ] );
-							executer_socket.SDServiceMessage( sdEntity.entities_by_net_id_cache_map.get( parameters_array[ 0 ] ).title + ' has been accepted' );
+							executer_socket.SDServiceMessage( '{1} has been accepted', [ sdEntity.entities_by_net_id_cache_map.get( parameters_array[ 0 ] ).title ] );
 						}
 						
 						this.pending_team_joins.splice( id, 1 );
@@ -489,7 +489,7 @@ class sdCommandCentre extends sdEntity
 						else
 						{
 							RejectNetID( parameters_array[ 0 ] );
-							executer_socket.SDServiceMessage( sdEntity.entities_by_net_id_cache_map.get( parameters_array[ 0 ] ).title + ' has been rejected' );
+							executer_socket.SDServiceMessage( '{1} has been rejected', [ sdEntity.entities_by_net_id_cache_map.get( parameters_array[ 0 ] ).title ] );
 						}
 						this.pending_team_joins.splice( id, 1 );
 					
