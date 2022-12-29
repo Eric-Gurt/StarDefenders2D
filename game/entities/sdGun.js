@@ -1503,6 +1503,13 @@ class sdGun extends sdEntity
 				ctx.drawImageFilterCache( image, 0 + frame * 32,0,32,32,  - 16, - 16, 32,32 );
 			}
 			else
+			if ( has_class.is_sprite )
+			{
+				// Works but needs another variable which will take care of frames
+				let odd = ( this.reload_time_left % 10 ) < 5 ? 0 : 1;
+				ctx.drawImageFilterCache( image, odd * 32,0,32,32, - 16, - 16, 32,32 );
+			}
+			else
 			{
 				ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
 			}

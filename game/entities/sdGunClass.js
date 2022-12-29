@@ -3508,6 +3508,8 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_SNIPER = 63 ] = 
 		{
+			/*image: sdWorld.CreateImageFromFile( 'gun/sniper' ),
+			is_sprite: true,*/
 			image: sdWorld.CreateImageFromFile( 'sniper' ),
 			image0: [ sdWorld.CreateImageFromFile( 'sniper0' ), sdWorld.CreateImageFromFile( 'sniper0b' ) ],
 			image1: [ sdWorld.CreateImageFromFile( 'sniper1' ), sdWorld.CreateImageFromFile( 'sniper1b' ) ],
