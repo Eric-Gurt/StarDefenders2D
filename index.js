@@ -1732,6 +1732,10 @@ io.on("connection", (socket) =>
 			character_entity = new sdCharacter({ x:0, y:0 });
 			else
 			character_entity = new sdWorld.entity_classes[ preferred_entity ]({ x:0, y:0 });
+
+			if ( preferred_entity === 'sdPlayerOverlord' )
+			socket.respawn_block_until = sdWorld.time + ( 1000 * 60 * 2 ); // 2 minutes respawn wait time
+			// Not sure if this is ideal solution. - Booraz149
 			
 			if ( sdWorld.server_config.PlayerSpawnPointSeeker )
 			sdWorld.server_config.PlayerSpawnPointSeeker( character_entity, socket );
