@@ -1,6 +1,7 @@
 /*
 
 	TODO: It probably makes no sense to have this as separate entity. Could be merged with sdHover at some point.
+	Deprecated, this file might get deleted in the future - Molis
 
 */
 import sdWorld from '../sdWorld.js';
