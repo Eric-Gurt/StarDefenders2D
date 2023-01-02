@@ -29,7 +29,7 @@ class sdServerConfigShort
 		
 	// Check file sdServerConfig.js for more stuff to alter in server logic
 	
-	static supported_languages = [ 'en', 'ua' ];
+	static supported_languages = [ 'en', 'ua', 'hr' ];
 }
 
 
