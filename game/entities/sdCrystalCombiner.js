@@ -11,9 +11,13 @@ class sdCrystalCombiner extends sdEntity
 {
 	static init_class()
 	{
-		sdCrystalCombiner.img_crystal_combiner = sdWorld.CreateImageFromFile( 'crystal_combiner' );
+		sdCrystalCombiner.img_crystal_combiner = sdWorld.CreateImageFromFile( 'crystal_combiner' ); // Image by LazyRain
+		sdCrystalCombiner.img_crystal_combiner2 = sdWorld.CreateImageFromFile( 'crystal_combiner2' );
 		sdCrystalCombiner.img_crystal = sdWorld.CreateImageFromFile( 'crystal' );
 		sdCrystalCombiner.img_crystal_empty = sdWorld.CreateImageFromFile( 'crystal_empty' );
+
+		sdCrystalCombiner.TYPE_DEFAULT = 0; // Regular crystal combiner
+		sdCrystalCombiner.TYPE_IMPROVED = 1; // Improved version, from workbench
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -18; }
@@ -70,6 +74,8 @@ class sdCrystalCombiner extends sdEntity
 		this.crystal1_matter_regen = 0; // Matter regen, taken from crystals when they are inserted
 		this.crystal2_matter_regen = 0; // For 2nd crystal
 		*/
+
+		this.type = params.type || 0; // Type of crystal combiner
 	   
 		this.crystal0 = null;
 		this.crystal1 = null;
@@ -209,7 +215,7 @@ class sdCrystalCombiner extends sdEntity
 			//if ( this.prog > X )
 			//GSPEED *= 0.2;
 			
-			this.prog += GSPEED;
+			this.prog += GSPEED * ( 1 + this.type );
 			
 			if ( sdWorld.is_server )
 			this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: 27 * GSPEED, initiator: null }); // Overheat
@@ -285,10 +291,16 @@ class sdCrystalCombiner extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
+		let t;
+		if ( this.type === sdCrystalCombiner.TYPE_DEFAULT )
+		t = "Crystal combiner";
+		if ( this.type === sdCrystalCombiner.TYPE_IMPROVED )
+		t = "Improved crystal combiner";
+		
 		if ( this.prog === 0 )
-		sdEntity.Tooltip( ctx, "Crystal combiner" );
+		sdEntity.Tooltip( ctx, t );
 		else
-		sdEntity.TooltipUntranslated( ctx, T("Crystal combiner") + " ( " + T("combining") + " "+(~~Math.min( 100, this.prog / this.GetBaseAnimDuration() * 100 ))+"% )" );
+		sdEntity.TooltipUntranslated( ctx, T( t ) + " ( " + T("combining") + " "+(~~Math.min( 100, this.prog / this.GetBaseAnimDuration() * 100 ))+"% )" );
 	}
 	Draw( ctx, attached )
 	{
@@ -301,7 +313,11 @@ class sdCrystalCombiner extends sdEntity
 //			ctx.filter = 'none';
 
 		//ctx.globalAlpha = 0.75 + Math.sin( sdWorld.time / 300 ) * 0.25;
+		if ( this.type === sdCrystalCombiner.TYPE_DEFAULT )
 		ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal_combiner, - 32, - 16, 64,32 );
+
+		if ( this.type === sdCrystalCombiner.TYPE_IMPROVED )
+		ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal_combiner2, - 32, - 16, 64,32 );
 
 		//if ( this.crystals > 0 )
 		if ( this.crystal0 || this.crystal1 )
@@ -374,7 +390,11 @@ class sdCrystalCombiner extends sdEntity
 		ctx.sd_color_mult_r = 1;
 		ctx.sd_color_mult_g = 1;
 		ctx.sd_color_mult_b = 1;
+		if ( this.type === sdCrystalCombiner.TYPE_DEFAULT )
 		ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal_combiner, - 32, - 16, 64,32 );
+
+		if ( this.type === sdCrystalCombiner.TYPE_IMPROVED )
+		ctx.drawImageFilterCache( sdCrystalCombiner.img_crystal_combiner2, - 32, - 16, 64,32 );
 	}
 	ModifyHeldCrystalFilter( old_filter )
 	{
@@ -741,7 +761,7 @@ class sdCrystalCombiner extends sdEntity
 	MeasureMatterCost()
 	{
 	//	return 0; // Hack
-		return 500 + this._hmax * sdWorld.damage_to_matter;
+		return 500 + ( 150 * this.type ) + this._hmax * sdWorld.damage_to_matter;
 	}
 }
 //sdCrystalCombiner.init_class();
