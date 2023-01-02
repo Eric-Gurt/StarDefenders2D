@@ -911,7 +911,7 @@ class sdEffect extends sdEntity
 			if ( this._translation_object )
 			{
 				//t = sdTranslationManager.TranslateConsideringTags( t, this._nested_translateables, this._untranslateables );
-				t = t.GetTranslated();
+				t = this._translation_object.GetTranslated();
 				/*
 				t = T( t );
 				
