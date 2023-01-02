@@ -2088,14 +2088,8 @@ io.on("connection", (socket) =>
 						], 
 						( responses )=>
 						{
-							// What if responses is null? Might happen if there is no connection to database server or database server refuses to accept connection from current server
-							//for ( let i = 0; i < responses.length; i++ )
-							//{
-								//let response = responses[ i ];
-								//socket.emit( response[ 0 ], response[ 1 ] );
-								if ( responses.length > 0 )
-								socket.emit( 'T', responses );
-							//}
+							if ( responses.length > 0 )
+							socket.emit( 'T', responses );
 						},
 						'localhost'
 					);
