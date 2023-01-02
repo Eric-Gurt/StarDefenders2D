@@ -10,6 +10,18 @@ meSpeak.loadVoice("voices/en/en.json");
 meSpeak.loadVoice("voices/pl.json");
 
 globalThis.trace = console.log;
+{
+	let spoken = new Set();
+	globalThis.traceOnce = ( ...args )=>
+	{
+		let str = args.join(' ');
+		if ( !spoken.has( str ) )
+		{
+			spoken.add( str );
+			trace( ...args );
+		}
+	};
+}
 
 globalThis.isWin = true; // For singleplayer shop
 
