@@ -151,7 +151,7 @@ class sdEntity
 				if ( sdWorld.is_server )
 				if ( arr.length > 100 )
 				{
-					console.warn( 'Too many objets lie on top of ',bottom_ent,'objects list:',arr );
+					//console.warn( 'Too many objets lie on top of ',bottom_ent,'objects list:', arr );
 					debugger;
 				}
 			}
