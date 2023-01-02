@@ -246,7 +246,7 @@ class sdServerConfigFull extends sdServerConfigShort
 			switch ( ~~( Math.random() * 4 ) )
 			{
 				case 0: intro_to_speak.push( 'Welcome to Star Defenders!' ); break;
-				case 1: intro_to_speak.push( 'Welcome to Star Defenders, ' + character_entity.title + '!' ); break;
+				case 1: intro_to_speak.push( 'Welcome to Star Defenders, [' + character_entity.title + ']!' ); break;
 				case 2: intro_to_speak.push( 'Hi.' ); break;
 				case 3: intro_to_speak.push( 'Hello.' ); break;
 			}
