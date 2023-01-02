@@ -34,7 +34,7 @@ class sdDatabaseEditor
 		sdDatabaseEditor.only_instance = null;
 	}
 	
-	Replacer( key, value ) 
+	static Replacer( key, value ) 
 	{
 		// Filtering out properties
 		/*if ( typeof value === "string" )
