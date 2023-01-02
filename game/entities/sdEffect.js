@@ -428,22 +428,28 @@ class sdEffect extends sdEntity
 		this._text_censored = ( params.text_censored !== undefined ) ? params.text_censored : null;
 		//this._attachment = params.attachment || null;
 		
-		this._nested_translateables = null;
-		this._untranslateables = null;
+		//this._nested_translateables = null;
+		//this._untranslateables = null;
 		
-		this._will_translate = false;
+		//this._will_translate = false;
+		
+		this._translation_object = null; 
 		
 		if ( sdWorld.client_side_censorship && this._text_censored )
 		this._text = sdWorld.CensoredText( this._text );
 		else
 		if ( params.t )
 		{
-			if ( sdTranslationManager.language !== 'en' )
-			{
-				this._will_translate = true;
+			this._translation_object = sdTranslationManager.GetTranslationObjectFor( this._text );
+			
+			this._text = this._translation_object.stripped_tags;
+			
+			//if ( sdTranslationManager.language !== 'en' )
+			//{
+				//this._will_translate = true;
 				
-				[ this._text, this._nested_translateables, this._untranslateables ] = 
-						sdTranslationManager.DecodeAndReplaceTagsFromPhrase( this._text );
+				//[ this._text, this._nested_translateables, this._untranslateables ] = 
+				//		sdTranslationManager.DecodeAndReplaceTagsFromPhrase( this._text );
 				
 				/*let nested_translateables = [];
 				let untranslateables = [];
@@ -483,7 +489,7 @@ class sdEffect extends sdEntity
 				
 				if ( untranslateables.length > 0 )
 				this._untranslateables = untranslateables;*/
-			}
+			//}
 		}
 		
 		if ( params.attachment instanceof Array )
@@ -901,9 +907,11 @@ class sdEffect extends sdEntity
 			
 			let t = this._text;
 			
-			if ( this._will_translate )
+			//if ( this._will_translate )
+			if ( this._translation_object )
 			{
-				t = sdTranslationManager.TranslateConsideringTags( t, this._nested_translateables, this._untranslateables );
+				//t = sdTranslationManager.TranslateConsideringTags( t, this._nested_translateables, this._untranslateables );
+				t = t.GetTranslated();
 				/*
 				t = T( t );
 				

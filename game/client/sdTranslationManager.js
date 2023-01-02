@@ -54,7 +54,7 @@ class sdTranslationManager
 	static GetTranslationObjectFor( text, old_version=null )
 	{
 		if ( !old_version )
-		old_version = { text:'', preformatted:null, nested_translateables:null, untranslateables:null };
+		old_version = { text:'', preformatted:null, nested_translateables:null, untranslateables:null, stripped_tags:'' };
 		
 		if ( old_version.text !== text ) // Retranslate needed?
 		{
@@ -63,7 +63,8 @@ class sdTranslationManager
 			[
 				old_version.preformatted,
 				old_version.nested_translateables,
-				old_version.untranslateables 
+				old_version.untranslateables,
+				old_version.stripped_tags
 			] = sdTranslationManager.DecodeAndReplaceTagsFromPhrase( text );
 			
 			old_version.GetTranslated = ()=>
@@ -78,6 +79,8 @@ class sdTranslationManager
 	{
 		let nested_translateables = [];
 		let untranslateables = [];
+		
+		let stripped_tags = text.split('<').join('').split('>').join('').split('[').join('').split(']').join('');
 
 		while ( true )
 		{
@@ -109,7 +112,7 @@ class sdTranslationManager
 			text = text.substring( 0, ptr ) + '{'+(-untranslateables.length)+'}' + text.substring( ptr2 + 1 );
 		}
 
-		return [ text, nested_translateables, untranslateables ];
+		return [ text, nested_translateables, untranslateables, stripped_tags ];
 	}
 	static TranslateConsideringTags( t, nested_translateables, untranslateables )
 	{
