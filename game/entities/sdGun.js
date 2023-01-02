@@ -1505,8 +1505,9 @@ class sdGun extends sdEntity
 			else
 			if ( has_class.is_sprite_sheet )
 			{
-				let frame = Math.floor( ( this.reload_time_left % 10 ) / 2 ); // Not quite sure if it works like "has_images" boolean property
-				ctx.drawImageFilterCache( image, frame * 32,0,32,32, - 16, - 16, 32,32 );
+				let odd = Math.floor( 6 % ( has_class.reload_time / 3 * 2 ) ); // So it kind of works? I don't know how to do it frame by frame
+				let frame = Math.floor( ( this.reload_time_left % 10 ) < 5 ? 0 : odd );
+				ctx.drawImageFilterCache( image, 0 + frame * 32,0,32,32, - 16, - 16, 32,32 );
 			}
 			else
 			{

@@ -4,10 +4,6 @@
 import sdTranslationManager from './client/sdTranslationManager.js';
 sdTranslationManager.init_class();
 
-//import sdAdvertisement from './client/sdAdvertisement.js';
-
-//globalThis.sdAdvertisement = sdAdvertisement;
-
 globalThis.sdTranslationManager;
 	
 meSpeak.loadVoice("voices/en/en.json");
