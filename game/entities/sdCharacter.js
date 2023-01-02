@@ -549,7 +549,7 @@ class sdCharacter extends sdEntity
 			{
 				this._discovered[ hash ] = 1;
 
-				let t = '<' + sdWorld.ClassNameToProperName( ent.GetClass(), ent ) + '>';
+				let t = /*'<' + */sdWorld.ClassNameToProperName( ent.GetClass(), ent, true );// + '>';
 
 				if ( Math.abs( sdWorld.time - this._last_discovery ) > 15000 )
 				if ( this.hea > this.hmax * 0.75 )
@@ -591,8 +591,8 @@ class sdCharacter extends sdEntity
 						case 29: this.Say( 'I don\'t know nothing about '+t+', don\'t I?' ); break;
 						case 30: this.Say( 'Gotta spend some time with '+t ); break;
 						case 31: this.Say( 'Nice, a '+t+'. But can I exchange '+t+' for more matter?' ); break;
-						case 32: this.Say( 'Huh, a '+t+' is <'+Math.round(ent._hitbox_x2 - ent._hitbox_x1)+'> units wide' ); break;
-						case 33: this.Say( 'Huh, a '+t+' is <'+Math.round(ent._hitbox_y2 - ent._hitbox_y1)+'> units in height' ); break;
+						case 32: this.Say( 'Huh, a '+t+' is ['+Math.round(ent._hitbox_x2 - ent._hitbox_x1)+'] units wide' ); break;
+						case 33: this.Say( 'Huh, a '+t+' is ['+Math.round(ent._hitbox_y2 - ent._hitbox_y1)+'] units in height' ); break;
 						case 34: this.Say( 'This '+t+' '+( ent._current_target === this ? 'looks threatening to me' : 'seems chill' ) ); break;
 						case 35: this.Say( 'This '+t+' '+( ( ent._hea || ent.hea || 0 ) <= 0 ? 'looks rather dead' : 'looks rather healthy' ) ); break;
 						case 36: this.Say( t+' is right there' ); break;
@@ -2155,9 +2155,9 @@ class sdCharacter extends sdEntity
 				this._inventory[ this.gun_slot ] ? 'I will attack you with my gun because I actually have one!' : 'I will attack with my bare hands if I\'d have to!',
 				this._inventory[ this.gun_slot ] ? 'Peow-peow!' : 'Punchy-punchy!',
 				'*wild ' + this.title + ' noises*',
-				sdWorld.ClassNameToProperName( closest.GetClass(), closest ) + ', identify yourself!',
-				sdWorld.ClassNameToProperName( closest.GetClass(), closest ) + ' is attacking me!',
-				'Say hello to my little ' + ( this._inventory[ this.gun_slot ] ? sdWorld.ClassNameToProperName( this._inventory[ this.gun_slot ].GetClass(), this._inventory[ this.gun_slot ] ) : 'fists' )
+				sdWorld.ClassNameToProperName( closest.GetClass(), closest, true ) + ', identify yourself!',
+				sdWorld.ClassNameToProperName( closest.GetClass(), closest, true ) + ' is attacking me!',
+				'Say hello to my little ' + ( this._inventory[ this.gun_slot ] ? sdWorld.ClassNameToProperName( this._inventory[ this.gun_slot ].GetClass(), this._inventory[ this.gun_slot ], true ) : 'fists' )
 			][ ~~( Math.random() * 9 ) ], false, false, false );
 		}
 		if ( this._ai_team === 3 )
@@ -4400,7 +4400,7 @@ class sdCharacter extends sdEntity
 							}
 							else
 							{
-								let s = sdWorld.ClassNameToProperName( obstacle.GetClass(), obstacle );
+								let s = sdWorld.ClassNameToProperName( obstacle.GetClass(), obstacle, true );
 
 								//sdCharacter.last_build_deny_reason = 'It overlaps with '+s;
 

@@ -747,7 +747,7 @@ class sdGun extends sdEntity
 						//this._held_by.Say( 'Need matter capacity upgrade and more matter' );
 						else
 						{
-							let n = Math.ceil( ammo_cost - this._held_by.matter );
+							let n = '[' + Math.ceil( ammo_cost - this._held_by.matter ) + ']';
 							
 							this._held_by.Say( [
 								'Need at least '+n+' more matter',

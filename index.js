@@ -1605,7 +1605,7 @@ io.on("connection", (socket) =>
 	const stacked_service_messages = [];
 	let service_message_interval_exists = null;
 	let service_message_allow_next_in = sdWorld.time + 500;
-	socket.SDServiceMessage = ( m=null, untranslateables_array=null )=>
+	socket.SDServiceMessage = ( m=null, untranslateables_array=null )=> // Example usage: character_entity._socket.SDServiceMessage( 'You have been excluded from {1}\'s team (Command Centre has been destroyed)', [ this.owner.title ] ); OR character_entity._socket.SDServiceMessage( 'Text' );
 	{
 		if ( typeof m === 'string' )
 		stacked_service_messages.push( [ m, untranslateables_array ] );
@@ -2092,14 +2092,8 @@ io.on("connection", (socket) =>
 						], 
 						( responses )=>
 						{
-							// What if responses is null? Might happen if there is no connection to database server or database server refuses to accept connection from current server
-							//for ( let i = 0; i < responses.length; i++ )
-							//{
-								//let response = responses[ i ];
-								//socket.emit( response[ 0 ], response[ 1 ] );
-								if ( responses.length > 0 )
-								socket.emit( 'T', responses );
-							//}
+							if ( responses.length > 0 )
+							socket.emit( 'T', responses );
 						},
 						'localhost'
 					);
@@ -2683,16 +2677,16 @@ io.on("connection", (socket) =>
 						if ( ent.matter >= 5000 )
 						ent.UpgradeStation( socket.character );
 						else
-						socket.emit('SERVICE_MESSAGE', 'Upgrade station needs at least 5000 matter!' );
+						socket.SDServiceMessage( 'Upgrade station needs at least 5000 matter!' );
 					}
 					else
-					socket.emit('SERVICE_MESSAGE', 'You need a bigger build tool level!' );
+					socket.SDServiceMessage( 'You need a bigger build tool level!' );
 				}
 				else
-				socket.emit('SERVICE_MESSAGE', 'Upgrade station is too far' );
+				socket.SDServiceMessage( 'Upgrade station is too far' );
 			}
 			else
-			socket.emit('SERVICE_MESSAGE', 'Upgrade station no longer exists' );
+			socket.SDServiceMessage( 'Upgrade station no longer exists' );
 		}
 	});
 	socket.on('UPGRADE_GET_EQUIP', ( arr ) => { 

@@ -428,17 +428,32 @@ class sdEffect extends sdEntity
 		this._text_censored = ( params.text_censored !== undefined ) ? params.text_censored : null;
 		//this._attachment = params.attachment || null;
 		
-		this._unstranslateables = null;
+		//this._nested_translateables = null;
+		//this._untranslateables = null;
+		
+		//this._will_translate = false;
+		
+		this._translation_object = null; 
 		
 		if ( sdWorld.client_side_censorship && this._text_censored )
 		this._text = sdWorld.CensoredText( this._text );
 		else
 		if ( params.t )
 		{
-			if ( sdTranslationManager.language !== 'en' )
-			{
+			this._translation_object = sdTranslationManager.GetTranslationObjectFor( this._text );
+			
+			this._text = this._translation_object.stripped_tags;
+			
+			//if ( sdTranslationManager.language !== 'en' )
+			//{
+				//this._will_translate = true;
+				
+				//[ this._text, this._nested_translateables, this._untranslateables ] = 
+				//		sdTranslationManager.DecodeAndReplaceTagsFromPhrase( this._text );
+				
+				/*let nested_translateables = [];
 				let untranslateables = [];
-
+				
 				while ( true )
 				{
 					let ptr = this._text.indexOf( '<' );
@@ -449,16 +464,32 @@ class sdEffect extends sdEntity
 					if ( ptr2 === -1 )
 					break;
 
-					untranslateables.push( this._text.substring( ptr + 1, ptr2 ) );
+					nested_translateables.push( this._text.substring( ptr + 1, ptr2 ) );
 
-					this._text = this._text.substring( 0, ptr ) + '{'+(untranslateables.length)+'}' + this._text.substring( ptr2 + 1 );
+					this._text = this._text.substring( 0, ptr ) + '{'+(nested_translateables.length)+'}' + this._text.substring( ptr2 + 1 );
 				}
 				
-				if ( untranslateables.length > 0 )
-				this._unstranslateables = untranslateables;
+				while ( true )
+				{
+					let ptr = this._text.indexOf( '[' );
+					if ( ptr === -1 )
+					break;
 
-				//this._text = T( this._text );
-			}
+					let ptr2 = this._text.indexOf( ']', ptr );
+					if ( ptr2 === -1 )
+					break;
+
+					untranslateables.push( this._text.substring( ptr + 1, ptr2 ) );
+
+					this._text = this._text.substring( 0, ptr ) + '{'+(-untranslateables.length)+'}' + this._text.substring( ptr2 + 1 );
+				}
+				
+				if ( nested_translateables.length > 0 )
+				this._nested_translateables = nested_translateables;
+				
+				if ( untranslateables.length > 0 )
+				this._untranslateables = untranslateables;*/
+			//}
 		}
 		
 		if ( params.attachment instanceof Array )
@@ -876,12 +907,24 @@ class sdEffect extends sdEntity
 			
 			let t = this._text;
 			
-			if ( this._unstranslateables )
+			//if ( this._will_translate )
+			if ( this._translation_object )
 			{
+				//t = sdTranslationManager.TranslateConsideringTags( t, this._nested_translateables, this._untranslateables );
+				t = this._translation_object.GetTranslated();
+				/*
 				t = T( t );
 				
-				for ( let i = 0 ; i < this._unstranslateables.length; i++ )
-				t = t.split( '{'+(i+1)+'}' ).join( this._unstranslateables[ i ] );
+				if ( this._nested_translateables )
+				{
+					for ( let i = 0 ; i < this._nested_translateables.length; i++ )
+					t = t.split( '{'+(i+1)+'}' ).join( T( this._nested_translateables[ i ] ) );
+				}
+				if ( this._untranslateables )
+				{
+					for ( let i = 0 ; i < this._untranslateables.length; i++ )
+					t = t.split( '{'+(-(i+1))+'}' ).join( this._untranslateables[ i ] );
+				}*/
 			}
 			
 			let details = ctx.measureText( t );

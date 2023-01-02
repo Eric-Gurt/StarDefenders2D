@@ -641,6 +641,12 @@ class sdDatabase
 				}, 
 				( response=null )=>
 				{
+					if ( response === null )
+					{
+						trace( 'Error with database request (might be a connection issue or an unsupported method call)', array_of_request_objects );
+						return;
+					}
+
 					if ( callback )
 					callback( response );
 				}

@@ -1649,7 +1649,7 @@ class sdWorld
 	}
 	
 	
-	static ClassNameToProperName( _class, ent=null )
+	static ClassNameToProperName( _class, ent=null, add_translation_tags=false )
 	{
 		let translate = true;
 		
@@ -1750,8 +1750,18 @@ class sdWorld
 			}
 		}
 		
-		if ( translate )
-		c = T(c);
+		if ( add_translation_tags )
+		{
+			if ( translate )
+			c = '<' + c + '>';
+			else
+			c = '[' + c + ']';
+		}
+		else
+		{
+			if ( translate )
+			c = T(c);
+		}
 
 		return c;
 	}

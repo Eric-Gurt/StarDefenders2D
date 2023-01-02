@@ -34,6 +34,26 @@ class sdDatabaseEditor
 		sdDatabaseEditor.only_instance = null;
 	}
 	
+	static Replacer( key, value ) 
+	{
+		// Filtering out properties
+		/*if ( typeof value === "string" )
+		{
+			return undefined;
+		}*/
+		
+		if ( key )
+		{
+			if ( key !== '_is_array' && key.charAt( 0 ) === '_' )
+			{
+				return undefined;
+			}
+		}
+		
+		return value;
+	}
+
+	
 	constructor()
 	{
 		/*this.overlay = sdElement.createElement({ 
@@ -942,7 +962,7 @@ class sdDatabaseEditor
 									
 									UpdateOBJPointer();
 									
-									let str = JSON.stringify( obj );
+									let str = JSON.stringify( obj, sdDatabaseEditor.Replacer );
 									navigator.clipboard.writeText( str );
 
 									if ( str.indexOf( `"_partial":true` ) !== -1 ||

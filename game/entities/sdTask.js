@@ -543,6 +543,9 @@ class sdTask extends sdEntity
 		if ( params.description !== undefined )
 		this.description = params.description;
 	
+		this.title_translation_info = null;
+		this.description_translation_info = null;
+	
 		if ( params.time_left !== undefined )
 		this.time_left = params.time_left;
 	
@@ -881,13 +884,16 @@ class sdTask extends sdEntity
 			PutMultilineText( later_text, subtext );
 		};
 		
+		this.title_translation_info = sdTranslationManager.GetTranslationObjectFor( this.title, this.title_translation_info );
+		this.description_translation_info = sdTranslationManager.GetTranslationObjectFor( this.description, this.description_translation_info );
+		
 		ctx.globalAlpha = 1;
 		ctx.fillStyle = task_title_color; // '#aaffaa';
-		PutMultilineText( T( this.title ) );
+		PutMultilineText( this.title_translation_info.GetTranslated() );
 		
 		ctx.globalAlpha = 0.5;
 		ctx.fillStyle = '#ffffff';
-		PutMultilineText( T( this.description ), true );
+		PutMultilineText( this.description_translation_info.GetTranslated(), true );
 		
 		if ( this.progress !== '' )
 		{

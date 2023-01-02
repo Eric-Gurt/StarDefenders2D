@@ -21,6 +21,11 @@
 
 		sdTranslationManager.TranslateHTMLPage();
 
+
+	Usually < and > means substring which should also be translated
+
+	[ and ] means substrings that should not be translated, for example nicknames and matter amount
+
 */
 
 /* global globalThis, sd_events */
@@ -44,6 +49,87 @@ class sdTranslationManager
 		sdTranslationManager.translations = new Map(); // English string -> { requested_languages:new Set(), en:string, ua:string, callbacks } // These are requested in bulk manner, whenever language changes - it re-requests translations for new language
 		
 		sdTranslationManager.bulk_collector_timeout = null;
+	}
+	
+	static GetTranslationObjectFor( text, old_version=null )
+	{
+		if ( !old_version )
+		old_version = { text:'', preformatted:null, nested_translateables:null, untranslateables:null, stripped_tags:'' };
+		
+		if ( old_version.text !== text ) // Retranslate needed?
+		{
+			old_version.text = text;
+			
+			[
+				old_version.preformatted,
+				old_version.nested_translateables,
+				old_version.untranslateables,
+				old_version.stripped_tags
+			] = sdTranslationManager.DecodeAndReplaceTagsFromPhrase( text );
+			
+			old_version.GetTranslated = ()=>
+			{
+				return sdTranslationManager.TranslateConsideringTags( T( old_version.preformatted ), old_version.nested_translateables, old_version.untranslateables );
+			};
+		}
+		
+		return old_version;
+	}
+	static DecodeAndReplaceTagsFromPhrase( text )
+	{
+		let nested_translateables = [];
+		let untranslateables = [];
+		
+		let stripped_tags = text.split('<').join('').split('>').join('').split('[').join('').split(']').join('');
+
+		while ( true )
+		{
+			let ptr = text.indexOf( '<' );
+			if ( ptr === -1 )
+			break;
+
+			let ptr2 = text.indexOf( '>', ptr );
+			if ( ptr2 === -1 )
+			break;
+
+			nested_translateables.push( text.substring( ptr + 1, ptr2 ) );
+
+			text = text.substring( 0, ptr ) + '{'+(nested_translateables.length)+'}' + text.substring( ptr2 + 1 );
+		}
+
+		while ( true )
+		{
+			let ptr = text.indexOf( '[' );
+			if ( ptr === -1 )
+			break;
+
+			let ptr2 = text.indexOf( ']', ptr );
+			if ( ptr2 === -1 )
+			break;
+
+			untranslateables.push( text.substring( ptr + 1, ptr2 ) );
+
+			text = text.substring( 0, ptr ) + '{'+(-untranslateables.length)+'}' + text.substring( ptr2 + 1 );
+		}
+
+		return [ text, nested_translateables, untranslateables, stripped_tags ];
+	}
+	static TranslateConsideringTags( t, nested_translateables, untranslateables )
+	{
+		t = T( t );
+				
+		if ( nested_translateables )
+		{
+			for ( let i = 0 ; i < nested_translateables.length; i++ )
+			t = t.split( '{'+(i+1)+'}' ).join( T( nested_translateables[ i ] ) );
+		}
+		if ( untranslateables )
+		{
+			for ( let i = 0 ; i < untranslateables.length; i++ )
+			t = t.split( '{'+(-(i+1))+'}' ).join( untranslateables[ i ] );
+		}
+		
+		return t;
 	}
 	
 	static GetMakeTranslationObject( str )
