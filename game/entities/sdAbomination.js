@@ -176,39 +176,55 @@ class sdAbomination extends sdEntity
 		{
 			this.time_since_jump = Math.min( 1000 / 1000 * 30, this.time_since_jump + GSPEED );
 
-			if ( this.tenta_tim > 0 )
+			//if ( this._tenta_target )
+			//if ( this._tenta_target._is_being_removed )
+			//this._tenta_target = null;
+
+			if ( this.tenta_tim > 0 && this._tenta_target )
 			{
-				let old_tenta_tim = this.tenta_tim;
-				
-				this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 5 );
-				
-				if ( this._tenta_target )
-				if ( this._tenta_target._is_being_removed )
+				let dist_att = sdWorld.Dist2D_Vector( this._current_target.x - this.x, this._current_target.y - this.y );
+				let has_sight = false;
+				if ( sdWorld.CheckLineOfSight( this.x, this.y, this._current_target.x, this._current_target.y, this._current_target, null, sdCom.com_creature_attack_unignored_classes ) )
+				has_sight = true;
+				else
 				this._tenta_target = null;
-				
-				if ( this._tenta_target )
-				if ( this.tenta_tim < 90 && old_tenta_tim >= 90 )
-				sdSound.PlaySound({ name:'tentacle_end', x:this._tenta_target.x, y:this._tenta_target.y });
-				
-				if ( this._tenta_target && this.tenta_tim > 10 && this.tenta_tim < 90 )
+				if ( dist_att < 150 && has_sight )
 				{
-					if ( typeof this._tenta_target.sx !== 'undefined' ) // Is it an entity
-					this._tenta_target.sx += - this.tenta_x / 100; // Pull it in
-					else
-					this.sx += this.tenta_x / 100; // Pull itself towards the static entity
+					let old_tenta_tim = this.tenta_tim;
+					
+					this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 2 );
+					
+					if ( this._tenta_target )
+					if ( this._tenta_target._is_being_removed )
+					this._tenta_target = null;
+					
+					if ( this._tenta_target )
+					if ( this.tenta_tim < 90 && old_tenta_tim >= 90 )
+					sdSound.PlaySound({ name:'tentacle_end', x:this._tenta_target.x, y:this._tenta_target.y });
+					
+					if ( this._tenta_target && this.tenta_tim > 10 && this.tenta_tim < 90 )
+					{
+						if ( typeof this._tenta_target.sx !== 'undefined' ) // Is it an entity
+						this._tenta_target.sx += - this.tenta_x / 100; // Pull it in
+						//else
+						//this.sx += this.tenta_x / 100; // Pull itself towards the static entity
 
-					if ( typeof this._tenta_target.sy !== 'undefined' )
-					this._tenta_target.sy += - this.tenta_y / 100;
-					else
-					this.sy += this.tenta_y / 100; // Pull itself towards the entity
+						if ( typeof this._tenta_target.sy !== 'undefined' )
+						this._tenta_target.sy += - this.tenta_y / 100;
+						//else
+						//this.sy += this.tenta_y / 100; // Pull itself towards the entity
 
-					if ( this._tenta_target.IsPlayerClass() )
-					this._tenta_target.ApplyServerSidePositionAndVelocity( true, - this.tenta_x / 100, - this.tenta_y / 100 );
+						if ( this._tenta_target.IsPlayerClass() )
+						this._tenta_target.ApplyServerSidePositionAndVelocity( true, - this.tenta_x / 100, - this.tenta_y / 100 );
 
-					this.tenta_x = this._tenta_target.x - this.x;
-					this.tenta_y = this._tenta_target.y - this.y;
+						this.tenta_x = this._tenta_target.x - this.x;
+						this.tenta_y = this._tenta_target.y - this.y;
+					}
 				}
 			}
+			else
+			if ( this.tenta_tim > 0 )
+			this.tenta_tim = Math.max( 0, this.tenta_tim - GSPEED * 2 );
 
 			if ( this._hea < this._hmax )
 			this._hea = Math.min( this._hmax, this._hea + GSPEED / 10 );
