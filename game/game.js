@@ -1141,7 +1141,7 @@ let enf_once = true;
 	};
 	window.onmousemove = ( e )=>
 	{
-		if ( e.target !== sdRenderer.canvas )
+		if ( e.target !== sdRenderer.canvas && e.target !==	document.firstChild )
 		return;
 	
 		if ( sdWorld.mobile )
@@ -1158,7 +1158,7 @@ let enf_once = true;
 	};
 	window.onmousedown = ( e )=>
 	{
-		if ( e.target !== sdRenderer.canvas )
+		if ( e.target !== sdRenderer.canvas && e.target !==	document.firstChild )
 		return;
 	
 		if ( sdWorld.mobile )
@@ -1198,7 +1198,7 @@ let enf_once = true;
 	};
 	window.onmouseup = ( e )=>
 	{
-		if ( e.target !== sdRenderer.canvas )
+		if ( e.target !== sdRenderer.canvas && e.target !==	document.firstChild )
 		return;
 	
 		if ( sdRenderer.canvas.style.display !== 'block' )
@@ -1223,7 +1223,7 @@ let enf_once = true;
 	};
 	window.oncontextmenu = (e)=>{
 		
-		if ( e.target !== sdRenderer.canvas )
+		if ( e.target !== sdRenderer.canvas && e.target !==	document.firstChild )
 		return;
 	
 		if ( sdRenderer.canvas.style.display !== 'block' )
@@ -1236,7 +1236,7 @@ let enf_once = true;
 	};
 	window.onmousewheel = (e)=>
 	{
-		if ( e.target !== sdRenderer.canvas )
+		if ( e.target !== sdRenderer.canvas && e.target !==	document.firstChild )
 		return;
 	
 		if ( sdRenderer.canvas.style.display !== 'block' )
