@@ -12,6 +12,7 @@ import sdDoor from './sdDoor.js';
 import sdVirus from './sdVirus.js';
 import sdAsp from './sdAsp.js';
 import sdAbomination from './sdAbomination.js';
+import sdFleshGrabber from './sdFleshGrabber.js';
 import sdCharacter from './sdCharacter.js';
 import sdCrystal from './sdCrystal.js';
 import sdGrass from './sdGrass.js';
@@ -380,6 +381,7 @@ class sdMimic extends sdEntity
 							//if ( ent.is( sdCharacter ) )
 							if ( !ent.is( sdMimic ) )
 							if ( !ent.is( sdAbomination ) )
+							if ( !ent.is( sdFleshGrabber ) )
 							if ( !ent.is( sdEffect ) )
 							if ( !ent.is( sdBullet ) )
 							if ( !ent.is( sdCharacter ) || !ent.flying )
@@ -551,6 +553,7 @@ class sdMimic extends sdEntity
 						 from_entity.GetClass() === 'sdTurret' ||*/
 						 ( !from_entity.is( sdMimic ) && 
 						   !from_entity.is( sdAbomination ) && 
+						   !from_entity.is( sdFleshGrabber ) && 
 						   ( !from_entity.is( sdBlock ) || !from_entity._natural ) && 
 						   from_entity.IsBGEntity() === this.IsBGEntity() && 
 						   from_entity.IsTargetable( this ) 
