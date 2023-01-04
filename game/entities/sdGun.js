@@ -502,6 +502,9 @@ class sdGun extends sdEntity
 	{
 		if ( sdGun.classes[ this.class ].is_build_gun )
 		{
+			if ( !this._held_by.IsPlayerClass() )
+			return Infinity; // Held by Weapon bench
+			
 			if ( this._held_by._build_params === null )
 			return Infinity; // Unable to place anyway
 			
