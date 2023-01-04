@@ -101,46 +101,67 @@ class sdUpgradeStation extends sdEntity
 	{
 		setTimeout(()=>{ // Just in case, unsure if needed
 
-			let gun, gun2, gun3, gun4, gun5, gun6;
+			let gun, gun2, gun3, gun4, gun5, gun6; // Note: Same variable could have been used too -- Eric Gurt
 			
 			if ( this.level === 1 )
 			gun = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_PISTOL });
+			else
 			if ( this.level === 2 )
 			gun = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_PISTOL_MK2 });
-			if ( this.level === 3 )
+			else
+			//if ( this.level === 3 )
 			gun = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SMG });
+		
+			// Note: Missing level have caused gun to be undefined. Keep last level under else condition to avoid that.
+		
 			gun.sx = character.sx;
 			gun.sy = character.sy;
 			sdEntity.entities.push( gun );
+			
+			// --
 
 			if ( this.level === 1 )
 			gun2 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_RIFLE });
-			if ( this.level >= 2 )
+			else
+			//if ( this.level >= 2 )
 			gun2 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_LMG });
+		
 			gun2.sx = character.sx;
 			gun2.sy = character.sy;
 			sdEntity.entities.push( gun2 );
 			
+			// --
+			
 			if ( this.level < 3 )
 			gun3 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SHOTGUN });
-			if ( this.level >= 3 )
+			//if ( this.level >= 3 )
+			else
 			gun3 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SHOTGUN_MK2 });
+		
 			gun3.sx = character.sx;
 			gun3.sy = character.sy;
 			sdEntity.entities.push( gun3 );
+			
+			// --
 
 			if ( this.level === 1 )
 			gun4 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SWORD });
-			if ( this.level >= 2 )
+			//if ( this.level >= 2 )
+			else
 			gun4 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_SABER });
+		
 			gun4.sx = character.sx;
 			gun4.sy = character.sy;
 			sdEntity.entities.push( gun4 );
+			
+			// --
 
 			gun5 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_MEDIKIT });
 			gun5.sx = character.sx;
 			gun5.sy = character.sy;
 			sdEntity.entities.push( gun5 );
+			
+			// --
 
 			gun6 = new sdGun({ x:character.x, y:character.y, class:sdGun.CLASS_BUILD_TOOL });
 			gun6.sx = character.sx;
