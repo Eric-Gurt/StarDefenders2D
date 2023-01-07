@@ -126,7 +126,7 @@ class sdHover extends sdEntity
 
 		this.type = params.type || 0;
 		
-		this.hmax = ( this.type === 1 ? 1200 : this.type === 2 ? 2400 : this.type === 3 ? 1200 : 600 ) * 4;
+		this.hmax = ( this.type === 1 ? 1200 : this.type === 2 ? 2400 : this.type === 3 ? 300 : 600 ) * 4;
 		this.hea = this.hmax;
 		
 		this._tilt = 0;
@@ -1021,6 +1021,9 @@ class sdHover extends sdEntity
 		else
 		if ( this.type === 2 )
 		return this.hmax * sdWorld.damage_to_matter + 2000;
+		else
+		if ( this.type === 3 )
+		return this.hmax * sdWorld.damage_to_matter + 550;
 		else
 		return this.hmax * sdWorld.damage_to_matter + 800;
 	}
