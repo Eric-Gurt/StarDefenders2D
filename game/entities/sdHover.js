@@ -160,16 +160,11 @@ class sdHover extends sdEntity
 		this.driver5 = null; // passenger
 		
 		this.matter = 300; // Should be less that Hover cost
-		this.matter_max = 1000;
-		
-		if ( this.type === sdHover.TYPE_FIGHTER_HOVER )
-		this.matter_max = 2000;
-		
-		if ( this.type === sdHover.TYPE_TANK )
-		this.matter_max = 12000;
-
-		if ( this.type === sdHover.TYPE_BIKE )
-		this.matter_max = 400;
+		this.matter_max = ( this.type === sdHover.TYPE_FIGHTER_HOVER ? 2000 :
+			this.type === sdHover.TYPE_TANK ? 12000 :
+			this.type === sdHover.TYPE_BIKE ? 400 :
+			1000
+		);
 	}
 	AddDriver( c )
 	{
