@@ -470,11 +470,14 @@ class sdStorage extends sdEntity
 						{
 							is_armable = 1;
 						
-							if ( from_entity.type === 1 )
+							if ( from_entity.type === sdJunk.TYPE_ALIEN_BATTERY )
 							name = ( 'Alien battery' );
 							else
-							if ( from_entity.type === 2 )
+							if ( from_entity.type === sdJunk.TYPE_LOST_CONTAINER )
 							name = ( 'Lost particle container' );
+							else
+							if ( from_entity.type === sdJunk.TYPE_FREEZE_BARREL )
+							name = ( 'Cryo-substance barrel' );
 					
 						}
 						else
