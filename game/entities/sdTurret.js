@@ -1,3 +1,8 @@
+/*
+
+	TODO: Turrets could change their behavior whenever they are connected to lost particle containers? Maube even freezing barrels too
+
+*/
 
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
@@ -171,6 +176,8 @@ class sdTurret extends sdEntity
 		this._seek_timer = Math.random() * 15;
 		this.fire_timer = 0;
 		this._target = null;
+		
+		this._considered_target = null; // What target is being considered. Used for filtering to allow attacking through unknown walls
 
 		this.disabled = false; // If hit by EMP, set the turret in sleep mode but allow hp regen
 		this._disabled_timeout = 0; // Countdown timer when disabled
@@ -364,7 +371,9 @@ class sdTurret extends sdEntity
 									//if ( ( is_char && e.IsHostileAI() ) || ( ( !is_char || RuleAllowedByNodes( e._net_id ) ) && RuleAllowedByNodes( e.GetClass() ) ) )
 									if ( ( is_char && e.IsHostileAI() ) || ( ( !is_char || ( RuleAllowedByNodes( e._net_id ) && RuleAllowedByNodes( e.biometry ) ) ) && RuleAllowedByNodes( e.GetClass() ) ) )
 									{
-										if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier', 'sdCommandCentre', 'sdCrystalCombiner', 'sdTurret', 'sdCrystal' ], this.ShootPossibilityFilter ) )
+										this._considered_target = e;
+										
+										if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier', 'sdCommandCentre', 'sdCrystalCombiner', 'sdTurret', 'sdCrystal', 'sdRescueTeleport' ], this.ShootPossibilityFilter ) )
 										{
 											this._target = e;
 											break;
@@ -598,6 +607,12 @@ class sdTurret extends sdEntity
 	}
 	ShootPossibilityFilter( ent )
 	{
+		if ( this._com_near_cache )
+		if ( this._com_near_cache.through_walls )
+		if ( this._considered_target.IsPlayerClass() )
+		if ( !ent._shielded || ent._shielded._is_being_removed )
+		return false;
+		
 		if ( ent.is( sdBlock ) )
 		if ( ent.material === sdBlock.MATERIAL_TRAPSHIELD )
 		if ( sdBullet.IsTrapShieldIgonred( this, ent ) )

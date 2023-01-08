@@ -93,7 +93,7 @@ class sdJunk extends sdEntity
 		else
 		t_s = sdJunk.TYPE_UNSTABLE_CUBE_CORPSE;
 
-		this.type = params.type || t_s;
+		this.type = ( params.type !== undefined ) ? params.type : t_s;
 
 		if ( this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ) // Task reward matter container
 		this.hmax = 4000;
@@ -141,6 +141,8 @@ class sdJunk extends sdEntity
 		if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON )
 		sdJunk.erthal_beacons++;
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
+		
+		this._storage_trap_mode_for = null; // Trap activating sdCharacter
 	}
 	/*GetBleedEffect()
 	{
@@ -211,8 +213,7 @@ class sdJunk extends sdEntity
 		{
 			if ( this.type === sdJunk.TYPE_UNSTABLE_CUBE_CORPSE ) // Actual cube corpses explode into rails.
 			{
-
-				if (Math.random() < 0.1 ) // 10% chance to stabilize/revive the cube instead, idea by Bandit
+				if ( Math.random() < 0.1 ) // 10% chance to stabilize/revive the cube instead, idea by Bandit
 				{
 					let cube = new sdCube({ x: this.x, y: this.y });
 					sdEntity.entities.push( cube );
@@ -332,6 +333,9 @@ class sdJunk extends sdEntity
 
 						for ( let i = 0; i < nears.length; i++ )
 						{
+							if ( this._storage_trap_mode_for === nears[ i ] )
+							sdLost.ApplyAffection( nears[ i ], 110 * 3, bullet );
+							else
 							sdLost.ApplyAffection( nears[ i ], 110, bullet );
 						}
 					}

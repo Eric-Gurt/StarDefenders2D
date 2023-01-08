@@ -275,16 +275,23 @@ class sdGun extends sdEntity
 				let projectile_properties = this.GetProjectileProperties();
 				
 				r = ( 
-						( by_entity.is( sdOctopus ) && 
-						  this._held_by && 
-						  !this._held_by._god && 
-						  this._held_by.IsVisible( by_entity ) && 
-						  this._held_by.gun_slot === this.GetSlot() && 
-						  //this.class !== sdGun.CLASS_BUILD_TOOL && 
-						  //projectile_properties._damage >= 0 && // no healing guns
-						  projectile_properties._admin_picker !== true // no admin tools
-						  ) || // sdOctopus rule
-						this._held_by === null 
+						(
+							// sdOctopus rule
+							by_entity.is( sdOctopus ) && 
+							this._held_by && 
+							!this._held_by._god && 
+							this._held_by.IsVisible( by_entity ) && 
+							this._held_by.gun_slot === this.GetSlot() && 
+							//this.class !== sdGun.CLASS_BUILD_TOOL && 
+							//projectile_properties._damage >= 0 && // no healing guns
+							projectile_properties._admin_picker !== true // no admin tools
+						) 
+						||
+						(
+							// This will let players pick-up guns but will prevent random vehicles lose 100% of their velocity whenever they are hitting them
+							this._held_by === null &&
+							by_entity.IsPlayerClass()
+						)
 					);
 			}
 		}
@@ -839,6 +846,8 @@ class sdGun extends sdEntity
 							}
 						
 							ent.onBuilt();
+							
+							//sdEntity.recently_build.set( ent, { by: this._held_by } );
 
 							sdEntity.entities.push( ent );
 							

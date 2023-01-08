@@ -285,9 +285,9 @@ class sdLongRangeTeleport extends sdEntity
 			{
 				let cc_near = this.has_cc_near;//GetComWiredCache( null, sdCommandCentre );
 				
-				if ( cc_near && this.matter >= this._matter_max )
+				if ( cc_near && this.matter >= this._matter_max || sdShop.isDrawing )
 				{
-					if ( this.delay <= 0 )
+					if ( this.delay <= 0 || sdShop.isDrawing )
 					version_offset = 32;
 					else
 					version_offset = 64;

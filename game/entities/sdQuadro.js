@@ -447,8 +447,15 @@ class sdQuadro extends sdEntity
 						
 						if ( a.CanMoveWithoutOverlap( a.x + addx, a.y + addy, 0, a.CustomFiltering ) )
 						{
-							a.x += addx * mass_balance_inv;
-							a.y += addy * mass_balance_inv;
+							if ( sdWorld.CheckLineOfSight( a.x, a.y, a.x + addx, a.y + addy, a, null, null, a.CustomFiltering ) )
+							{
+								a.x += addx * mass_balance_inv;
+								a.y += addy * mass_balance_inv;
+							}
+							else
+							{
+								debugger;
+							}
 						}
 
 						b.sx -= addx * mass_balance;
@@ -456,8 +463,15 @@ class sdQuadro extends sdEntity
 						
 						if ( b.CanMoveWithoutOverlap( b.x - addx, b.y - addy, 0, b.CustomFiltering ) )
 						{
-							b.x -= addx * mass_balance;
-							b.y -= addy * mass_balance;
+							if ( sdWorld.CheckLineOfSight( b.x, b.y, b.x - addx, b.y - addy, b, null, null, b.CustomFiltering ) )
+							{
+								b.x -= addx * mass_balance;
+								b.y -= addy * mass_balance;
+							}
+							else
+							{
+								debugger;
+							}
 						}
 					}
 				}
@@ -675,6 +689,17 @@ class sdQuadro extends sdEntity
 		}
 		return r;
 	}*/
+	getTeleportGroup() // List of entities that will be teleproted together with this entity. For sdSandWorm and sdQuadro-like entities. You might want to use sdWorld.ExcludeNullsAndRemovedEntitiesForArray on returned array to filter out null pointers and removed entities
+	{
+		if ( this.p )
+		{
+			return sdWorld.ExcludeNullsAndRemovedEntitiesForArray( [ this.p, this.p.w1, this.p.w2 ] );
+		}
+		else
+		{
+			return sdWorld.ExcludeNullsAndRemovedEntitiesForArray( [ this, this.w1, this.w2 ] );
+		}
+	}
 	onRemove() // Class-specific, if needed
 	{
 		if ( this.p )

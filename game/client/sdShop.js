@@ -293,11 +293,15 @@ class sdShop
 		sdShop.options.push({ _class: 'sdSunPanel', multiplier: 8, _min_build_tool_level: 18, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdWeaponBench', _category:'Base equipment' });
 		
-
-		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, _category:'Base equipment' });
-		sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, material:sdBlock.MATERIAL_SHARP, _category:'Base equipment' });
-		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, material:sdBlock.MATERIAL_SHARP, _category:'Base equipment' });
-		sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, material:sdBlock.MATERIAL_SHARP, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, material:sdBlock.MATERIAL_SHARP, texture_id:0, _category:'Base equipment' });
+		
+		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:1, _category:'Base equipment', _min_build_tool_level: 5 });
+		sdShop.options.push({ _class: 'sdBlock', width: 32, height: 16, material:sdBlock.MATERIAL_SHARP, texture_id:1, _category:'Base equipment', _min_build_tool_level: 5 });
+		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 32, material:sdBlock.MATERIAL_SHARP, texture_id:1, _category:'Base equipment', _min_build_tool_level: 5 });
+		sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, material:sdBlock.MATERIAL_SHARP, texture_id:1, _category:'Base equipment', _min_build_tool_level: 5 });
 		
 		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_TRAPSHIELD, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdBlock', width: 16, height: 8, material:sdBlock.MATERIAL_TRAPSHIELD, _category:'Base equipment' });
@@ -635,7 +639,10 @@ class sdShop
 			sdShop.options.push({ _class: 'sdEnemyMech', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdSetrDestroyer', _category:'Development tests' });
 			//sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdJunk', _category:'Development tests' });
+			//sdShop.options.push({ _class: 'sdJunk', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdJunk', type: 0, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdJunk', type: 1, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdJunk', type: 2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdJunk', type: 3, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdJunk', type: 4, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdJunk', type: 5, _category:'Development tests' });

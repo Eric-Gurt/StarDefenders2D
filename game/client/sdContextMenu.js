@@ -67,7 +67,7 @@ class sdContextMenu
 				}
 			}
 			else
-			if ( sdContextMenu.current_target.GetClass() === 'sdStorage' )
+			/*if ( sdContextMenu.current_target.GetClass() === 'sdStorage' )
 			{
 				if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdStorage.access_range ) >= 0 )
 				if ( sdContextMenu.current_target.held_by === null )
@@ -88,7 +88,7 @@ class sdContextMenu
 				}
 			}
 			else
-			/*if ( sdContextMenu.current_target.GetClass() === 'sdCom' )
+			if ( sdContextMenu.current_target.GetClass() === 'sdCom' )
 			{
 				if ( sdWorld.inDist2D( sdWorld.my_entity.x, sdWorld.my_entity.y, sdContextMenu.current_target.x, sdContextMenu.current_target.y, sdCom.action_range ) >= 0 )
 				{
@@ -281,7 +281,13 @@ class sdContextMenu
 				if ( i === -1 )
 				ctx.fillStyle = '#66aaff';
 				else
-				ctx.fillStyle = '#ffffff';
+				{
+					ctx.fillStyle = '#ffffff';
+					
+					if ( sdContextMenu.options[ i ].color )
+					ctx.fillStyle = sdContextMenu.options[ i ].color;
+				}
+			
 				
 				ctx.font = "12px Verdana";
 				ctx.textAlign = 'left';

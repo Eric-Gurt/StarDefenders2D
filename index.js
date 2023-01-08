@@ -2629,7 +2629,7 @@ io.on("connection", (socket) =>
 			else
 			socket.SDServiceMessage( 'Communication node no longer exists' );
 		}
-	});*/
+	});
 	socket.on('STORAGE_GET', ( arr ) => { 
 		
 		if ( !( arr instanceof Array ) )
@@ -2657,7 +2657,7 @@ io.on("connection", (socket) =>
 			else
 			socket.SDServiceMessage( 'Storage no longer exists' );
 		}
-	});
+	});*/
 	socket.on('UPGRADE_STAT', ( arr ) => { 
 		
 		if ( !( arr instanceof Array ) )

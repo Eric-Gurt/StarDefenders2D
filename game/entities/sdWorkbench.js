@@ -21,8 +21,8 @@ class sdWorkbench extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -16; }
-	get hitbox_x2() { return 16; }
+	get hitbox_x1() { return -15; }
+	get hitbox_x2() { return 15; }
 	get hitbox_y1() { return 3; }
 	get hitbox_y2() { return 16; }
 	

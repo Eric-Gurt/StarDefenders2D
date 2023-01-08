@@ -655,8 +655,9 @@ class sdModeration
 							return;
 						}
 
-						character.RemoveArmor();
-						character.DamageWithEffect( character.hea );
+						//character.RemoveArmor();
+						//character.DamageWithEffect( character.hea, null, false, false ); // dmg, initiator=null, headshot=false, affects_armor=true
+						character.Damage( character.hea, null, false, false ); // dmg, initiator=null, headshot=false, affects_armor=true
 					}
 					
 					if ( character._score < 30 || was_god || !sdRescueTeleport.players_can_build_rtps )

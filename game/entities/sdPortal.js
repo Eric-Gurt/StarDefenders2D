@@ -154,18 +154,36 @@ class sdPortal extends sdEntity
 		//if ( from_entity.hard_collision )
 		if ( typeof from_entity.sx !== 'undefined' )
 		{
+			let from_entity_group = from_entity.getTeleportGroup();
+			
+			let x1 = from_entity_group[ 0 ]._hitbox_x1 + from_entity_group[ 0 ].x;
+			let x2 = from_entity_group[ 0 ]._hitbox_x2 + from_entity_group[ 0 ].x;
+			let y1 = from_entity_group[ 0 ]._hitbox_y1 + from_entity_group[ 0 ].y;
+			let y2 = from_entity_group[ 0 ]._hitbox_y2 + from_entity_group[ 0 ].y;
+			
+			for ( let i = 1; i < from_entity_group.length; i++ )
+			{
+				x1 = Math.min( x1, from_entity_group[ i ]._hitbox_x1 + from_entity_group[ i ].x );
+				x2 = Math.max( x2, from_entity_group[ i ]._hitbox_x2 + from_entity_group[ i ].x );
+				y1 = Math.min( y1, from_entity_group[ i ]._hitbox_y1 + from_entity_group[ i ].y );
+				y2 = Math.max( y2, from_entity_group[ i ]._hitbox_y2 + from_entity_group[ i ].y );
+			}
+					
 			if ( this.orientation === 0 )
 			{
-				if ( from_entity._hitbox_x2 - from_entity._hitbox_x1 > 16 )
+				//if ( from_entity._hitbox_x2 - from_entity._hitbox_x1 > 16 )
+				if ( x2 - x1 > 16 )
 				return;
 			}
 			else
 			{
-				if ( from_entity._hitbox_y2 - from_entity._hitbox_y1 > 32 )
+				//if ( from_entity._hitbox_y2 - from_entity._hitbox_y1 > 32 )
+				if ( y2 - y1 > 32 )
 				return;
 			}
 			
 			let velocity = 0;//( this.orientation === 0 ) ? Math.abs( from_entity.sy ) : Math.abs( from_entity.sx );
+			let velocity_hor = 0;
 			
 			if ( this.orientation === 0 )
 			{
@@ -173,6 +191,8 @@ class sdPortal extends sdEntity
 				velocity = from_entity.sy;
 				else
 				velocity = -from_entity.sy;
+			
+				velocity_hor = from_entity.sx;
 			}
 			else
 			{
@@ -180,55 +200,137 @@ class sdPortal extends sdEntity
 				velocity = from_entity.sx;
 				else
 				velocity = -from_entity.sx;
+			
+				velocity_hor = from_entity.sy;
 			}
 			
 			if ( velocity > 0 )
 			{
-
-				const Try = ( x, y )=>
+				/*const Try = ( x, y )=>
 				{
-					if ( from_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+					for ( let i = 0; i < from_entity_group.length; i++ )
 					{
-						from_entity.x = x;
-						from_entity.y = y;
-
-						if ( this._output.orientation === 0 )
+						let e = from_entity_group[ i ];
+						
+						if ( from_entity.CanMoveWithoutOverlap( x, y, 0 ) )
 						{
-							if ( this._output.y > y )
-							from_entity.sy = -velocity;
-							else
-							from_entity.sy = velocity;
-						}
-						else
-						{
-							if ( this._output.x > x )
-							from_entity.sx = -velocity;
-							else
-							from_entity.sx = velocity;
-						}
+							from_entity.x = x;
+							from_entity.y = y;
 
-						return false;
+							if ( this._output.orientation === 0 )
+							{
+								if ( this._output.y > y )
+								from_entity.sy = -velocity;
+								else
+								from_entity.sy = velocity;
+							}
+							else
+							{
+								if ( this._output.x > x )
+								from_entity.sx = -velocity;
+								else
+								from_entity.sx = velocity;
+							}
+
+							return false;
+						}
 					}
 					return true;
+				};*/
+					
+				let best_dx = 0;
+				let best_dy = 0;
+				
+				const Try = ( dx, dy )=>
+				{
+					for ( let i = 0; i < from_entity_group.length; i++ )
+					{
+						let e = from_entity_group[ i ];
+						
+						if ( !e.CanMoveWithoutOverlap( e.x + dx, e.y + dy, 0 ) )
+						return true; // Fail
+					}
+					
+					best_dx = dx;
+					best_dy = dy;
+					
+					return false;
 				};
 
-				if ( Try( this._output.x - from_entity._hitbox_x1 + 0.1, this._output.y ) )
+				/*if ( Try( this._output.x - from_entity._hitbox_x1 + 0.1, this._output.y ) )
 				if ( Try( this._output.x - from_entity._hitbox_x2 - 0.1, this._output.y ) )
 				if ( Try( this._output.x, this._output.y - from_entity._hitbox_y1 + 0.1 ) )
 				if ( Try( this._output.x, this._output.y - from_entity._hitbox_y2 - 0.1 ) )
 				{
 					// Nothing worked = not teleported
-
 					return;
+				}*/
+				
+				if ( this._output.orientation === 0 )
+				{
+					if ( Try( this._output.x - this.x, this._output.y - ( y2 - y1 ) - 0.1 - y1 ) )
+					if ( Try( this._output.x - this.x, this._output.y + 0.1 - y1 ) )
+					{
+						// Nothing worked = not teleported
+						return;
+					}
+				}
+				else
+				{
+					if ( Try( this._output.x - ( x2 - x1 ) - 0.1 - x1, this._output.y - this.y ) )
+					if ( Try( this._output.x + 0.1 - x1, this._output.y - this.y ) )
+					{
+						// Nothing worked = not teleported
+						return;
+					}
 				}
 				
-				if ( from_entity.IsPlayerClass() )
+				for ( let i = 0; i < from_entity_group.length; i++ )
 				{
-					from_entity.ApplyServerSidePositionAndVelocity( true, 0, 0 );
+					let e = from_entity_group[ i ];
+					
+					e.x += best_dx;
+					e.y += best_dy;
+
+					if ( this._output.orientation === 0 )
+					{
+						/*if ( this._output.y > y )
+						e.sy = -velocity;
+						else
+						e.sy = velocity;*/
+					
+						//e.sy *= -1;
+						
+						if ( this._output.attachment_y < this._output.attachment._hitbox_y2 / 2 )
+						e.sy = -velocity;
+						else
+						e.sy = velocity;
+					
+						e.sx = velocity_hor;
+					}
+					else
+					{
+						/*if ( this._output.x > x )
+						e.sx = -velocity;
+						else
+						e.sx = velocity;*/
+					
+						//e.sx *= -1;
+						
+						if ( this._output.attachment_x < this._output.attachment._hitbox_x2 / 2 )
+						e.sx = -velocity;
+						else
+						e.sx = velocity;
+					
+						e.sy = velocity_hor;
+					}
+					
+					if ( e.IsPlayerClass() )
+					e.ApplyServerSidePositionAndVelocity( true, 0, 0 );
 				}
 
 				sdSound.PlaySound({ name:'portal_through', x:from_entity.x, y:from_entity.y, volume:1 });
-				this._teleport_delay = 5;
+				this._teleport_delay = 2;
 				this._output._teleport_delay = 5;
 			}
 		}

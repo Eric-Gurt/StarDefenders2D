@@ -594,11 +594,13 @@ class sdSandWorm extends sdEntity
 					another_ent.sy += dy * G;
 
 					if ( this.CanMoveWithoutOverlap( this.x - dx * G, this.y - dy * G, 0, ( this.death_anim === 0 ) ? this.CustomGroundFiltering : null ) )
+					if ( sdWorld.CheckLineOfSight( this.x, this.y, this.x - dx * G, this.y - dy * G, this, null, null, ( this.death_anim === 0 ) ? this.CustomGroundFiltering : null ) )
 					{
 						this.x -= dx * G;
 						this.y -= dy * G;
 					}
 					if ( another_ent.CanMoveWithoutOverlap( another_ent.x + dx * G, another_ent.y + dy * G, 0, ( this.death_anim === 0 ) ? this.CustomGroundFiltering : null ) )
+					if ( sdWorld.CheckLineOfSight( another_ent.x, another_ent.y, another_ent.x + dx * G, another_ent.y + dy * G, another_ent, null, null, ( this.death_anim === 0 ) ? this.CustomGroundFiltering : null ) )
 					{
 						another_ent.x += dx * G;
 						another_ent.y += dy * G;
@@ -1020,6 +1022,30 @@ class sdSandWorm extends sdEntity
 			}
 		}
 	}
+	
+	getTeleportGroup() // List of entities that will be teleproted together with this entity. For sdSandWorm and sdQuadro-like entities. You might want to use sdWorld.ExcludeNullsAndRemovedEntitiesForArray on returned array to filter out null pointers and removed entities
+	{
+		let arr = [ this ];
+		
+		let ptr = this.towards_head;
+		
+		while ( ptr && !ptr._is_being_removed )
+		{
+			arr.push( ptr );
+			ptr = ptr.towards_head;
+		}
+		
+		ptr = this.towards_tail;
+		
+		while ( ptr && !ptr._is_being_removed )
+		{
+			arr.push( ptr );
+			ptr = ptr.towards_tail;
+		}
+		
+		return arr;
+	}
+	
 	onRemove() // Class-specific, if needed
 	{
 		sdSandWorm.worms_tot--;

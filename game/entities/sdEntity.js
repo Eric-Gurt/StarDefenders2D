@@ -514,6 +514,11 @@ class sdEntity
 	{
 		return []; 
 	}
+	getTeleportGroup() // List of entities that will be teleproted together with this entity. For sdSandWorm and sdQuadro-like entities. You might want to use sdWorld.ExcludeNullsAndRemovedEntitiesForArray on returned array to filter out null pointers and removed entities
+	{
+		// OR return sdWorld.ExcludeNullsAndRemovedEntitiesForArray( [ this ] ); // Which is slower
+		return [ this ];
+	}
 	
 	PhysInitIfNeeded() // Method can have problems with entities that are not initially physical, it can make sense to call this method somewhere on spawn to init physical cache properties
 	{
@@ -992,7 +997,7 @@ class sdEntity
 						/*if ( debug )
 						if ( arr_i._class === 'sdGun' )
 						debugger;*/
-
+						
 		//CheckWallExistsBox( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
 						if ( arr_i.IsBGEntity() === is_bg_entity )
 						//if ( include_only_specific_classes_classes || arr_i.hard_collision )
@@ -1079,6 +1084,13 @@ class sdEntity
 								if ( t <= 1 )
 								if ( arr_i.IsTargetable( this, true ) ) // So guns are ignored
 								{
+									/*if ( this.GetClass() === 'sdQuadro' )
+									if ( arr_i.GetClass() === 'sdGun' )
+									if ( !arr_i._held_by )
+									{
+										debugger;
+									}*/
+									
 									if ( GetCollisionMode === sdEntity.COLLISION_MODE_BOUNCE_AND_FRICTION )
 									{
 										if ( t === best_t )
@@ -4447,6 +4459,9 @@ class sdEntity
 			action: ()=>
 			{
 				globalThis.socket.emit( 'ENTITY_CONTEXT_ACTION', [ this.GetClass(), this._net_id, command_name, parameters_array ] );
+				
+				//if ( extra.extra_action )
+				//extra.extra_action();
 			}
 		}) );
 	}

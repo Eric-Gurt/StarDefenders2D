@@ -98,6 +98,8 @@ class sdCom extends sdEntity
 
 		this.subscribers = []; // works with _net_ids but should use biometry now
 		
+		this.through_walls = 0;
+		
 		this._owner = null; // Only used to add creator to subscribers list on spawn
 		
 		/*if ( sdWorld.is_server )
@@ -229,65 +231,34 @@ class sdCom extends sdEntity
 	{
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdCom.action_range ) ||
-			 ( command_name === 'COM_KICK' && parameters_array[ 0 ] === exectuter_character.biometry ) )
+		if ( 
+				(
+					sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdCom.action_range ) 
+					&&
+					executer_socket.character.canSeeForUse( this )
+				)
+				||
+				( command_name === 'COM_KICK' && parameters_array[ 0 ] === exectuter_character.biometry ) 
+			)
 		{
 			if ( command_name === 'COM_SUB' )
 			{
-				//if ( !( parameters_array instanceof Array ) )
-				//return;
-
-				//let net_id = parameters_array[ 0 ];
 				let new_sub = parameters_array[ 0 ];
 
 				if ( typeof new_sub === 'number' || ( typeof new_sub === 'string' && ( new_sub === '*' || typeof sdWorld.entity_classes[ new_sub ] !== 'undefined' ) ) )
-				//if ( executer_socket.character ) 
-				//if ( executer_socket.character.hea > 0 ) 
-				{
-					//let ent = sdEntity.GetObjectByClassAndNetId( 'sdCom', net_id );
-					//if ( ent !== null )
-					//{
-						//if ( sdWorld.inDist2D( executer_socket.character.x, executer_socket.character.y, ent.x, ent.y, sdCom.action_range ) >= 0 )
-						//{
-							if ( executer_socket.character.canSeeForUse( this ) )
-							this.NotifyAboutNewSubscribers( 1, [ new_sub ] );
-							else
-							executer_socket.SDServiceMessage( 'Communication node is behind wall' );
-						//}
-						//else
-						//executer_socket.SDServiceMessage( 'Communication node is too far' );
-					//}
-					//else
-					//executer_socket.SDServiceMessage( 'Communication node no longer exists' );
-				}
+				this.NotifyAboutNewSubscribers( 1, [ new_sub ] );
 			}
 			else
 			if ( command_name === 'COM_KICK' )
 			{
-				//if ( !( parameters_array instanceof Array ) )
-				//return;
-
-				//if ( executer_socket.character ) 
-				//if ( executer_socket.character.hea > 0 ) 
-				//{
-					//let net_id = parameters_array[ 0 ];
-					let net_id_to_kick = parameters_array[ 0 ];
-					//let ent = sdEntity.GetObjectByClassAndNetId( 'sdCom', net_id );
-					//if ( ent !== null )
-					//{
-						//if ( sdWorld.inDist2D( executer_socket.character.x, executer_socket.character.y, ent.x, ent.y, sdCom.action_range ) >= 0 )
-						//{
-							if ( executer_socket.character.canSeeForUse( this ) )
-							this.NotifyAboutNewSubscribers( 0, [ net_id_to_kick ] );
-							else
-							executer_socket.SDServiceMessage( 'Communication node is behind wall' );
-						//}
-						//else
-						//executer_socket.SDServiceMessage( 'Communication node is too far' );
-					//}
-					//else
-					//executer_socket.SDServiceMessage( 'Communication node no longer exists' );
-				//}
+				let net_id_to_kick = parameters_array[ 0 ];
+				this.NotifyAboutNewSubscribers( 0, [ net_id_to_kick ] );
+			}
+			else
+			if ( command_name === 'ATTACK_THROUGH_WALLS' )
+			{
+				this.through_walls = ( parameters_array[ 0 ] === 1 );
+				this._update_version++;
 			}
 		}
 	}
@@ -333,11 +304,17 @@ class sdCom extends sdEntity
 				for ( var i = 0; i < this.subscribers.length; i++ )
 				{
 					let net_id_or_biometry = this.subscribers[ i ];
-					this.AddContextOptionNoTranslation( T('Kick ') + sdEntity.GuessEntityName( net_id_or_biometry ), 'COM_KICK', [ net_id_or_biometry ] );
+					this.AddContextOptionNoTranslation( T('Kick ') + sdEntity.GuessEntityName( net_id_or_biometry ), 'COM_KICK', [ net_id_or_biometry ], true, { color:'#ffff00' } );
 				}
+				
+				if ( this.through_walls )
+				this.AddContextOption( 'Attack players through unprotected walls: Yes', 'ATTACK_THROUGH_WALLS', [ 0 ], true, { color:'#00ff00' } );
+				else
+				this.AddContextOption( 'Attack players through unprotected walls: No', 'ATTACK_THROUGH_WALLS', [ 1 ], true, { color:'#ff0000' } );
 			}
 			else
 			{
+				if ( this.subscribers.indexOf( sdWorld.my_entity.biometry ) !== -1 )
 				this.AddContextOption( 'Unsubscribe from network', 'COM_KICK', [ sdWorld.my_entity.biometry ] );
 			}
 		}

@@ -258,14 +258,28 @@ class sdTeleport extends sdEntity
 							}
 						}
 					}*/
+						
+					let from_entity_group = from_entity.getTeleportGroup();
 
 					let best_tele = this.GetComWiredCache( ( tele )=>
 					{
 						if ( tele.is( sdTeleport ) )
 						if ( tele.delay === 0 ) // is active
-						if ( from_entity.CanMoveWithoutOverlap( from_entity.x + tele.x - this.x, 
-																from_entity.y + tele.y - this.y, 0 ) )
-						return true;
+						{
+							/*if ( from_entity.CanMoveWithoutOverlap( from_entity.x + tele.x - this.x, 
+																	from_entity.y + tele.y - this.y, 0 ) )*/
+								
+							for ( let i = 0; i < from_entity_group.length; i++ )
+							{
+								let e = from_entity_group[ i ];
+
+								if ( !e.CanMoveWithoutOverlap( e.x + tele.x - this.x, 
+															  e.y + tele.y - this.y, 0 ) )
+								return false;
+							}
+								
+							return true;
+						}
 						return false;
 					});
 
@@ -276,26 +290,31 @@ class sdTeleport extends sdEntity
 
 						this.SetDelay( 90 );
 						best_tele.SetDelay( 90 );
-						
-						sdWorld.SendEffect({ x:from_entity.x + (from_entity.hitbox_x1+from_entity.hitbox_x2)/2, y:from_entity.y + (from_entity.hitbox_y1+from_entity.hitbox_y2)/2, type:sdEffect.TYPE_TELEPORT });
-
-						from_entity.x += best_tele.x - this.x;
-						from_entity.y += best_tele.y - this.y;
-
-						if ( from_entity.IsPlayerClass() )
-						{
-							from_entity.ApplyServerSidePositionAndVelocity( true, 0, 0 );
-						}
-						
-						if ( from_entity.is( sdBaseShieldingUnit ) )
-						{
-							from_entity.charge = 0;
-						}
 
 						sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 						sdSound.PlaySound({ name:'teleport', x:best_tele.x, y:best_tele.y, volume:0.5 });
 						
-						sdWorld.SendEffect({ x:from_entity.x + (from_entity.hitbox_x1+from_entity.hitbox_x2)/2, y:from_entity.y + (from_entity.hitbox_y1+from_entity.hitbox_y2)/2, type:sdEffect.TYPE_TELEPORT });
+						for ( let i = 0; i < from_entity_group.length; i++ )
+						{
+							let e = from_entity_group[ i ];
+							
+							sdWorld.SendEffect({ x:e.x + (e.hitbox_x1+e.hitbox_x2)/2, y:e.y + (e.hitbox_y1+e.hitbox_y2)/2, type:sdEffect.TYPE_TELEPORT });
+
+							from_entity.x += best_tele.x - this.x;
+							from_entity.y += best_tele.y - this.y;
+
+							if ( e.IsPlayerClass() )
+							{
+								from_entity.ApplyServerSidePositionAndVelocity( true, 0, 0 );
+							}
+
+							if ( e.is( sdBaseShieldingUnit ) )
+							{
+								from_entity.charge = 0;
+							}
+
+							sdWorld.SendEffect({ x:e.x + (e.hitbox_x1+e.hitbox_x2)/2, y:e.y + (e.hitbox_y1+e.hitbox_y2)/2, type:sdEffect.TYPE_TELEPORT });
+						}
 					}
 				}
 				/*else

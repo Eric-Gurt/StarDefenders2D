@@ -11,6 +11,7 @@ import sdEntity from './sdEntity.js';
 import sdNode from './sdNode.js';
 import sdBullet from './sdBullet.js';
 import sdPortal from './sdPortal.js';
+import sdJunk from './sdJunk.js';
 import sdOverlord from './sdOverlord.js';
 import sdCom from './sdCom.js';
 import sdWater from './sdWater.js';
@@ -2534,6 +2535,11 @@ class sdGunClass
 						sdEntity.entities.push( ent );
 					}
 				}
+				
+				// Allow connection to sdJunk barrels/containers and insta-repair them as they will likely start losing health
+				if ( target_entity.is( sdJunk ) )
+				if ( target_entity.hea > target_entity.hmax - 5 )
+				target_entity.hea = target_entity.hmax;
 			}
 			else
 			{
@@ -4433,9 +4439,13 @@ class sdGunClass
 			slot: 7,
 			reload_time: 15,
 			muzzle_x: 7,
-			ammo_capacity: 16,
+			ammo_capacity: -1,//16,
 			count: 1,
-			matter_cost: 60,
+			matter_cost: 500,
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				return 30;
+			},
 			projectile_velocity: 16,
 			projectile_properties: { model: 'ball', _damage: 0, color:'#00ffff',
 				_custom_target_reaction_protected: ( bullet, target_entity )=>

@@ -2,8 +2,6 @@
 
 	Stores other entities, depending on type
 
-	TODO: Cargo storages? Would maybe need a code check if crashes happen.
-
 	TODO: Optimize snapshot data in a way where only string representation of contents item title will be given to players nearby?
 
 */
@@ -14,6 +12,8 @@ import sdGun from './sdGun.js';
 import sdCrystal from './sdCrystal.js';
 import sdJunk from './sdJunk.js';
 import sdBarrel from './sdBarrel.js';
+import sdFaceCrab from './sdFaceCrab.js';
+
 
 class sdStorage extends sdEntity
 {
@@ -21,11 +21,6 @@ class sdStorage extends sdEntity
 	{
 		sdStorage.img_storage = sdWorld.CreateImageFromFile( 'storage_sheet' );
 
-		/*sdStorage.img_storage = sdWorld.CreateImageFromFile( 'storage2' );
-		sdStorage.img_storage2 = sdWorld.CreateImageFromFile( 'portal_storage' );
-		sdStorage.img_storage3 = sdWorld.CreateImageFromFile( 'storage3' ); // Sprite by LazyRain
-		sdStorage.img_storage4 = sdWorld.CreateImageFromFile( 'storage4' );*/
-		
 		sdStorage.access_range = 64;
 		sdStorage.slots_tot = 6;
 		
@@ -67,11 +62,9 @@ class sdStorage extends sdEntity
 		this.held_by = null; // Might still remain for cargo ships?
 		
 		this._regen_timeout = 0;
-		
-		//this._held_items = [];
-		//this.held_net_ids = [];
 
 		this.stored_names = [];
+		this.is_armable = [];
 		this._stored_items = [];
 		
 		for ( var i = 0; i < sdStorage.slots_tot; i++ )
@@ -81,13 +74,30 @@ class sdStorage extends sdEntity
 		
 		this.awake = 1;
 		
-		this.filter = params.filter || 'saturate(0)';
+		// If these two match - storage is armed with explosive, usually sdJunk but can be sdBarrel too
+		//this.armed_pass = Math.floor( Math.random() * 9007199254740991 );
+		//this._real_armed_pass = -1;
+		this._armed_with = []; // Always 1 item at most. Array is used for easier snapshot saving // Snapshot of entity it is armed with. Usually it is sdJunk but can be sdBarrel too. Can not be overriden
 		
-		//console.warn(1);
+		this._owner = params.owner || null;
+		//this.owner_net_id = null;
+		//this.owner_title = '';
+		this.owner_biometry = -1;
+		this.disarm_until = 0;
+		
+		this.filter = params.filter || 'saturate(0)';
+	}
+	onSnapshotApplied() // To override
+	{
+		while ( this.is_armable.length < this._stored_items.length )
+		this.is_armable.push( 0 );
 	}
 	onBuilt()
 	{
 		this._allow_pickup = true;
+		
+		if ( this._owner )
+		this.owner_biometry = this._owner.biometry;
 	}
 	
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
@@ -125,8 +135,6 @@ class sdStorage extends sdEntity
 		
 		this.sx += x / this.mass;
 		this.sy += y / this.mass;
-		//this.sx += x * 0.1;
-		//this.sy += y * 0.1;
 		
 		if ( isNaN( this.sx ) )
 		throw new Error('sdStorage got x impulse '+x+' which caused NaN at stStorage.prototype.sx' );
@@ -144,20 +152,6 @@ class sdStorage extends sdEntity
 				if ( sdWorld.inDist2D_Boolean( observer_character.x, observer_character.y, this.x, this.y, sdStorage.access_range ) )
 				return true;
 			}
-			/*else
-			if ( this.held_by.is( sdCharacter ) )
-			{
-				// Because in else case B key won't work
-				//if ( sdGun.classes[ this.class ].is_build_gun ) Maybe it should always work better if player will know info about all of his guns. Probably that will be later used in interface anyway
-				if ( this.held_by === observer_character )
-				return true;
-		
-				if ( !this.held_by.ghosting || this.held_by.IsVisible( observer_character ) )
-				if ( !this.held_by.driver_of )
-				{
-					return ( this.held_by.gun_slot === sdGun.classes[ this.class ].slot );
-				}
-			}*/
 		}
 		
 		return false;
@@ -199,25 +193,6 @@ class sdStorage extends sdEntity
 				this._hea = Math.min( this._hea + GSPEED, this._hmax );
 			}
 		}
-		/*
-		for ( var i = 0; i < sdStorage.slots_tot; i++ )
-		if ( this[ 'item' + i ] )
-		this[ 'item' + i ].UpdateHeldPosition();
-		*/
-		// Same but without string operations, it is faster but stould be reverted in case of more/less max items
-		
-		/*if ( this.item0 )
-		this.item0.UpdateHeldPosition();
-		if ( this.item1 )
-		this.item1.UpdateHeldPosition();
-		if ( this.item2 )
-		this.item2.UpdateHeldPosition();
-		if ( this.item3 )
-		this.item3.UpdateHeldPosition();
-		if ( this.item4 )
-		this.item4.UpdateHeldPosition();
-		if ( this.item5 )
-		this.item5.UpdateHeldPosition();*/
 		
 		if ( sdWorld.is_server || this.awake )
 		{
@@ -288,19 +263,15 @@ class sdStorage extends sdEntity
 			ctx.filter = this.filter;
 			if ( this.type === sdStorage.TYPE_GUNS )
 			xx = 0;
-			//ctx.drawImageFilterCache( sdStorage.img_storage, - 16, - 16, 32,32 );
 
 			if ( this.type === sdStorage.TYPE_PORTAL )
 			xx = 3;
-			//ctx.drawImageFilterCache( sdStorage.img_storage2, - 16, - 16, 32,32 );
 
 			if ( this.type === sdStorage.TYPE_CRYSTALS )
 			xx = 1;
-			//ctx.drawImageFilterCache( sdStorage.img_storage3, - 16, - 16, 32,32 );
 
 			if ( this.type === sdStorage.TYPE_CARGO )
 			xx = 2;
-			//ctx.drawImageFilterCache( sdStorage.img_storage4, - 16, - 16, 32,32 );
 			ctx.drawImageFilterCache( sdStorage.img_storage, xx * 32, 0, 32, 32, - 16, - 16, 32,32 );
 		}
 		
@@ -317,12 +288,9 @@ class sdStorage extends sdEntity
 			
 			let dropped_items = [];
 			
-			//for ( var i = 0; i < sdStorage.slots_tot; i++ )
 			for ( var i = this._stored_items.length - 1; i >= 0; i-- )
 			{
-				//let ent = this.ExtractEntityFromSnapshotAtSlot( 0 ); // "this.ExtractEntityFromSnapshotAtSlot( i );" stops working halfway since ExtractEntityFromSnapshotAtSlot checks length of this._stored_items, which results in "i" being larger than stored items length - Booraz149
 				let ent = this.ExtractItem( i );
-				//this.ExtractEntityFromSnapshotAtSlot( i );
 				if ( ent )
 				{
 					// We need to make sure items have restored their collisions before we could try placing them
@@ -330,16 +298,6 @@ class sdStorage extends sdEntity
 
 					dropped_items.push( ent );
 				}
-				
-				/*if ( ( this.type !== 2 ) || save_item > 0 )
-				if ( this.type !== 3 ) // Crates can't save crates since items would get stuck inside last remaining crate which has no space, so players need to build new ones when the large one gets destroyed
-				this.ExtractEntityFromSnapshotAtSlot( i );
-				else
-				{
-					if ( this[ 'item' + i ] )
-					this[ 'item' + i ].remove();
-				}*/
-				//save_item--;
 			}
 			
 			if ( this.type === sdStorage.TYPE_GUNS || this.type === sdStorage.TYPE_PORTAL ) // Weapon storages
@@ -378,6 +336,8 @@ class sdStorage extends sdEntity
 			}
 
 			sdWorld.BasicEntityBreakEffect( this, 5 );
+			
+			this.ActivateTrap();
 		}
 		else
 		{
@@ -388,7 +348,7 @@ class sdStorage extends sdEntity
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
-		return ( prop === '_stored_items' );
+		return ( prop === '_stored_items' || prop === '_armed_with' );
 	}
 	MeasureMatterCost()
 	{
@@ -418,8 +378,13 @@ class sdStorage extends sdEntity
 		}
 		if ( 
 				( 
-					( this.type === sdStorage.TYPE_GUNS || this.type === sdStorage.TYPE_PORTAL ) && 
-					from_entity.is( sdGun ) && !from_entity._held_by // Guns can still be held by sdCharacter
+					( this.type === sdStorage.TYPE_GUNS || this.type === sdStorage.TYPE_PORTAL ) 
+					&& 
+					from_entity.is( sdGun ) 
+					&& 
+					!from_entity._held_by // Guns can still be held by sdCharacter
+					&&
+					from_entity.class !== sdGun.CLASS_SCORE_SHARD
 				) 
 		
 				|| 
@@ -436,10 +401,29 @@ class sdStorage extends sdEntity
 				||
 
 				( 
-					this.type === sdStorage.TYPE_CRYSTALS && 
+					this.type === sdStorage.TYPE_CRYSTALS 
+					&& 
 					from_entity.is( sdJunk )
 					&& 
-					( from_entity.type === 1 || from_entity.type === 2 )
+					( 
+						from_entity.type === sdJunk.TYPE_ALIEN_BATTERY || 
+						from_entity.type === sdJunk.TYPE_LOST_CONTAINER || 
+						from_entity.type === sdJunk.TYPE_FREEZE_BARREL 
+					)
+				) 
+
+				||
+
+				( 
+					( 
+						this.type === sdStorage.TYPE_CRYSTALS 
+						||
+						this.type === sdStorage.TYPE_GUNS 
+					) 
+					&& 
+					from_entity.is( sdFaceCrab )
+					&&
+					from_entity._hea > 0
 				) 
 
 				||
@@ -472,27 +456,49 @@ class sdStorage extends sdEntity
 						this._stored_items.push( from_entity.GetSnapshot( GetFrame(), true ) );
 						
 						//console.log( this._stored_items );
+						let name = '?';
+						
+						let is_armable = 0;
 						
 						if ( from_entity.is( sdGun ) )
-						this.stored_names.push( sdEntity.GuessEntityName( from_entity._net_id ) );
-						
+						name = ( sdEntity.GuessEntityName( from_entity._net_id ) );
+						else
 						if ( from_entity.is( sdCrystal ) )
-						this.stored_names.push( from_entity.title+' ( ' + from_entity.matter_max + ' max matter )' );
-
+						name = ( from_entity.title+' ( ' + from_entity.matter_max + ' max matter, ' + from_entity.matter_regen + '% regen rate )' );
+						else
 						if ( from_entity.is( sdJunk ) )
 						{
-							if ( from_entity.type === 1 )
-							this.stored_names.push( 'Alien battery' );
-
-							if ( from_entity.type === 2 )
-							this.stored_names.push( 'Lost particle container' );
-						}
-
-						if ( from_entity.is( sdBarrel ) )
-						this.stored_names.push( 'Barrel' );
+							is_armable = 1;
 						
+							if ( from_entity.type === 1 )
+							name = ( 'Alien battery' );
+							else
+							if ( from_entity.type === 2 )
+							name = ( 'Lost particle container' );
+					
+						}
+						else
+						if ( from_entity.is( sdBarrel ) )
+						{
+							is_armable = 1;
+							
+							name = ( 'Barrel' );
+						}
+						else
 						if ( from_entity.is( sdStorage ) )
-						this.stored_names.push( from_entity.title );
+						name = ( from_entity.title );
+						else
+						if ( from_entity.is( sdFaceCrab ) )
+						{
+							is_armable = 1;
+							
+							name = 'Face crab';
+						}
+						
+						
+						this.stored_names.push( name );
+						
+						this.is_armable.push( is_armable );
 						
 						//console.log( this.stored_names );
 						from_entity.remove();
@@ -532,190 +538,18 @@ class sdStorage extends sdEntity
 	DropSpecificWeapon( ent ) // Outdated method for guns
 	{
 	}
-	/*DropSpecificWeapon( ent ) // sdGun keepers need this method for case of sdGun removal
-	{
-		this.ExtractItem( ent._net_id, null, sdWorld.is_server ); // Only throw for server's case. Clients will have guns locally disappearing when players move away from sdStorage
-	}
-	*/
-	//ExtractItem( item_net_id, initiator_character=null, throw_on_not_found=false )
 	ExtractItem( slot, initiator_character=null )
 	{
-			
-		//console.log( item_net_id )
-		/*let slot = -1;
-		for ( var i = 0; i < sdStorage.slots_tot; i++ )
-		if ( i === item_net_id )
-		{
-			slot = i;
-			break;
-		}
-		
-		if ( slot === -1 )
-		{
-			if ( initiator_character )
-			if ( initiator_character._socket )
-			initiator_character._socket.SDServiceMessage( 'Item is already taken' );
-	
-			if ( throw_on_not_found )
-			throw new Error('Should not happen');
-		}
-		else*/
-		//{
-			//let item = this._stored_items[ i ];
-			let ent = null;
-		
-			if ( slot >= 0 && slot < this._stored_items.length )
-			{
-				ent = sdEntity.GetObjectFromSnapshot( this._stored_items[ slot ] );
-
-				this._stored_items.splice( slot, 1 );
-
-				this.stored_names.splice( slot, 1 );
-
-				if ( !initiator_character )
-				{
-					ent.x = this.x;
-					ent.y = this.y;
-					ent.sx = this.sx;
-					ent.sy = this.sy;
-				}
-				if ( initiator_character )
-				{
-					ent.x = initiator_character.x;
-					ent.y = initiator_character.y;
-					ent.sx = initiator_character.sx;
-					ent.sy = initiator_character.sy;
-				}
-
-				if ( typeof ent.held_by !== 'undefined' )
-				ent.held_by = null;
-
-				if ( typeof ent._held_by !== 'undefined' ) // For sdGun? - Booraz149
-				ent._held_by = null;
-
-			}
-			
-			//let item = this.ExtractEntityFromSnapshotAtSlot( slot, initiator_character );
-			let item = ent;
-			
-			if ( item )
-			{
-			}
-			else
-			{
-				if ( initiator_character )
-				if ( initiator_character._socket )
-				initiator_character._socket.SDServiceMessage( 'Item is already taken' );
-		
-				return null;
-			}
-			
-			if ( initiator_character )
-			{
-				if ( this.type === sdStorage.TYPE_GUNS || this.type === sdStorage.TYPE_PORTAL ) // For this one I don't know if it's needed but it is for the other two
-				{
-					item.x = initiator_character.x;
-					item.y = initiator_character.y;
-				}
-				else
-				{
-					let x0 = initiator_character.x + ( initiator_character._side * 18 );
-					let y0 = initiator_character.y - 4;
-					
-					let off = initiator_character.GetBulletSpawnOffset();
-
-					let placed = false;
-
-					both:
-					for ( let di = 0; di < 32; di += 2 )
-					for ( let a = 0; a < 16; a++ )
-					{
-						let an = a / 16 * Math.PI * 2;
-
-						let xx = x0 + Math.sin( an ) * di;
-						let yy = y0 + Math.cos( an ) * di;// * 0.75; // Less priority for height just so it would rather drop on the other side of a player
-						
-						// Prioritize other side of a player
-						/*if ( xx + item._hitbox_x2 < initiator_character.x + initiator_character._hitbox_x1 )
-						if ( xx + item._hitbox_x1 > initiator_character.x + initiator_character._hitbox_x2 )
-						{
-							if ( initiator_character.side > 0 )
-							xx = initiator_character.x + initiator_character._hitbox_x2 + 1 - item._hitbox_x1;
-							else
-							xx = initiator_character.x + initiator_character._hitbox_x1 - 1 - item._hitbox_x2;
-						}*/
-
-						if ( xx + item._hitbox_x2 < this.x + this._hitbox_x1 || xx + item._hitbox_x1 > this.x + this._hitbox_x2 || yy + item._hitbox_y1 > this.y + this._hitbox_y2 || yy + item._hitbox_y2 < this.y + this._hitbox_y1 - ( this._hitbox_y2 - this._hitbox_y1 ) ) // Place on left, on right, right under and on top but with gap equal to the height of this storage
-						if ( item.CanMoveWithoutOverlap( xx, yy, 0 ) )
-						if ( sdWorld.CheckLineOfSight( initiator_character.x + off.x, initiator_character.y + off.y, xx, yy, null, null, null, sdWorld.FilterOnlyVisionBlocking ) ) // Make sure item can be seen by player
-						if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, null, null, null, sdWorld.FilterOnlyVisionBlocking ) ) // And by storage
-						{
-							placed = true;
-							item.x = xx;
-							item.y = yy;
-							break both;
-						}
-						
-						if ( di === 0 )
-						break; // Skip zero offset with different angles
-					}
-
-					if ( !placed )
-					{
-						initiator_character._socket.SDServiceMessage( 'Not enough space to extract item' );
-						item.x = this.x; // Put it back in crate to prevent glitching
-						item.y = this.y;
-					}
-				}
-			}
-			/*if ( this.type === sdStorage.TYPE_CRYSTALS )
-			if ( initiator_character )
-			{
-				if ( item.CanMoveWithoutOverlap( initiator_character.x + ( initiator_character._side * 18 ), initiator_character.y - 4, 0 ) ) // Not ideal, but shouldn't cause a bug since otherwise it just gets put back in the crate I believe - Booraz149
-				{
-					item.x = initiator_character.x + ( initiator_character._side * 18 );
-					item.y = initiator_character.y - 4;
-				}
-				else
-				{
-					initiator_character._socket.SDServiceMessage( 'Not enough space to extract item' );
-					item.x = this.x; // Put it back in crate to prevent glitching
-					item.y = this.y;
-				}
-			}
-			if ( this.type === sdStorage.TYPE_CARGO )
-			if ( initiator_character )
-			{
-				if ( item.CanMoveWithoutOverlap( initiator_character.x + ( initiator_character._side * 18 ), initiator_character.y - 4, 0 ) ) // Not ideal, but shouldn't cause a bug since otherwise it just gets put back in the crate I believe - Booraz149
-				{
-					item.x = initiator_character.x + ( initiator_character._side * 18 );
-					item.y = initiator_character.y - 4;
-				}
-				else
-				{
-					initiator_character._socket.SDServiceMessage( 'Not enough space to extract item' );
-					item.x = this.x; // Put it back in crate to prevent glitching
-					item.y = this.y;
-				}
-			}*/
-			
-			item.PhysWakeUp();
-			
-			return item;
-		//}
-	}
-	/*ExtractEntityFromSnapshotAtSlot( slot, initiator_character=null )
-	{
 		let ent = null;
-		
+
 		if ( slot >= 0 && slot < this._stored_items.length )
 		{
 			ent = sdEntity.GetObjectFromSnapshot( this._stored_items[ slot ] );
-			
+
 			this._stored_items.splice( slot, 1 );
-			//console.log(this._stored_items);
+			this.is_armable.splice( slot, 1 );
 			this.stored_names.splice( slot, 1 );
-			
+
 			if ( !initiator_character )
 			{
 				ent.x = this.x;
@@ -730,13 +564,236 @@ class sdStorage extends sdEntity
 				ent.sx = initiator_character.sx;
 				ent.sy = initiator_character.sy;
 			}
-			
+
 			if ( typeof ent.held_by !== 'undefined' )
 			ent.held_by = null;
+
+			if ( typeof ent._held_by !== 'undefined' ) // For sdGun? - Booraz149
+			ent._held_by = null;
+
 		}
 
-		return ent;
-	}*/
+		//let item = this.ExtractEntityFromSnapshotAtSlot( slot, initiator_character );
+		let item = ent;
+
+		if ( item )
+		{
+		}
+		else
+		{
+			if ( initiator_character )
+			if ( initiator_character._socket )
+			initiator_character._socket.SDServiceMessage( 'Item is already taken' );
+
+			return null;
+		}
+
+		if ( initiator_character )
+		{
+			if ( this.type === sdStorage.TYPE_GUNS || this.type === sdStorage.TYPE_PORTAL ) // For this one I don't know if it's needed but it is for the other two
+			{
+				item.x = initiator_character.x;
+				item.y = initiator_character.y;
+			}
+			else
+			{
+				let x0 = initiator_character.x + ( initiator_character._side * 18 );
+				let y0 = initiator_character.y - 4;
+
+				let off = initiator_character.GetBulletSpawnOffset();
+
+				let placed = false;
+
+				both:
+				for ( let di = 0; di < 32; di += 2 )
+				for ( let a = 0; a < 16; a++ )
+				{
+					let an = a / 16 * Math.PI * 2;
+
+					let xx = x0 + Math.sin( an ) * di;
+					let yy = y0 + Math.cos( an ) * di;// * 0.75; // Less priority for height just so it would rather drop on the other side of a player
+
+					if ( xx + item._hitbox_x2 < this.x + this._hitbox_x1 || xx + item._hitbox_x1 > this.x + this._hitbox_x2 || yy + item._hitbox_y1 > this.y + this._hitbox_y2 || yy + item._hitbox_y2 < this.y + this._hitbox_y1 - ( this._hitbox_y2 - this._hitbox_y1 ) ) // Place on left, on right, right under and on top but with gap equal to the height of this storage
+					if ( item.CanMoveWithoutOverlap( xx, yy, 0 ) )
+					if ( sdWorld.CheckLineOfSight( initiator_character.x + off.x, initiator_character.y + off.y, xx, yy, null, null, null, sdWorld.FilterOnlyVisionBlocking ) ) // Make sure item can be seen by player
+					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, null, null, null, sdWorld.FilterOnlyVisionBlocking ) ) // And by storage
+					{
+						placed = true;
+						item.x = xx;
+						item.y = yy;
+						break both;
+					}
+
+					if ( di === 0 )
+					break; // Skip zero offset with different angles
+				}
+
+				if ( !placed )
+				{
+					initiator_character._socket.SDServiceMessage( 'Not enough space to extract item' );
+					item.x = this.x; // Put it back in crate to prevent glitching
+					item.y = this.y;
+				}
+			}
+		}
+
+		item.PhysWakeUp();
+
+		return item;
+
+	}
+	
+	ActivateTrap( at=null, disarm_mode=false )
+	{
+		// Fix for testing bug, can be removed later
+		if ( this._armed_with instanceof Array )
+		{
+		}
+		else
+		this._armed_with = [];
+		
+		if ( this._armed_with.length > 0 )
+		{
+			if ( !at )
+			at = this;
+			
+			let ent = sdEntity.GetObjectFromSnapshot( this._armed_with[ 0 ] );
+
+			ent.x = at.x;
+			ent.y = at.y;
+			ent.sx = 0;
+			ent.sy = 0;
+
+			if ( disarm_mode )
+			{
+			}
+			else
+			{
+				if ( typeof ent._storage_trap_mode_for !== 'undefined' )
+				ent._storage_trap_mode_for = at;
+
+				if ( ent.is( sdFaceCrab ) )
+				{
+					ent.attached_to = null;
+				}
+				else
+				ent.DamageWithEffect( ent.hea || ent._hea || 0 );
+			}
+
+			this._armed_with.length = 0;
+		}
+	}
+	
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdStorage.access_range ) )
+		{
+			if ( exectuter_character.canSeeForUse( this ) )
+			{
+				if ( this._armed_with.length > 0 )
+				{
+					if ( exectuter_character.biometry === this.owner_biometry )
+					{
+						if ( command_name === 'DISARM' )
+						{
+							// Extract last entity if full
+							if ( this._stored_items.length === sdStorage.slots_tot )
+							{
+								let ent = this.ExtractItem( sdStorage.slots_tot - 1, exectuter_character );
+								
+								if ( !ent )
+								{
+									executer_socket.SDServiceMessage( 'No space to extract last item. Disarm failed' );
+									return;
+								}
+							}
+					
+							this.ActivateTrap( null, true );
+							executer_socket.SDServiceMessage( 'Disarmed' );
+						}
+						else
+						{
+							executer_socket.SDServiceMessage( 'Storage has not been disarmed' );
+							this.disarm_until = sdWorld.time + 5000;
+						}
+						
+						return;
+					}
+					else
+					{
+						this.ActivateTrap( exectuter_character );
+						executer_socket.SDServiceMessage( 'Storage had a trap' );
+						return;
+					}
+				}
+
+				if ( command_name === 'STORAGE_GET' )
+				{
+					let slot = parameters_array[ 0 ];
+
+					this.ExtractItem( slot, exectuter_character );
+				}
+				else
+				if ( command_name === 'STORAGE_TRAP' )
+				{
+					let slot = parameters_array[ 0 ];
+
+					if ( slot >= 0 && slot < this._stored_items.length && this.is_armable[ slot ] )
+					{
+						this._armed_with[ 0 ] = this._stored_items[ slot ];
+
+						this._stored_items.splice( slot, 1 );
+						this.is_armable.splice( slot, 1 );
+						this.stored_names.splice( slot, 1 );
+						
+						sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
+						
+						executer_socket.SDServiceMessage( 'Storage is trapped now. Anyone but you will trigger the trap' );
+						//this.disarm_until = sdWorld.time + 5000;
+					}
+					else
+					executer_socket.SDServiceMessage( 'Item can not be found' );
+				}
+
+			}
+			else
+			executer_socket.SDServiceMessage( 'Can\'t access storage through walls' );
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdStorage.access_range ) )
+		{
+			if ( this.held_by === null )
+			{
+				let items = this.GetItems();
+
+				for ( let i = 0; i < items.length; i++ )
+				{
+					let item = items[ i ]; // Name of the item
+					
+					this.AddContextOption( 'Get ' + item, 'STORAGE_GET', [ i ] );
+				}
+				for ( let i = 0; i < items.length; i++ )
+				{
+					let item = items[ i ]; // Name of the item
+					
+					if ( this.is_armable[ i ] )
+					this.AddContextOption( 'Use ' + item + ' as access trap', 'STORAGE_TRAP', [ i ], true, { color: '#ff0000' } );
+				}
+				
+				if ( sdWorld.time < this.disarm_until )
+				if ( exectuter_character.biometry === this.owner_biometry )
+				{
+					this.AddContextOption( 'Disarm', 'DISARM', [ ], true, { color: '#ffff00' } );
+				}
+			}
+		}
+	}
 }
 //sdStorage.init_class();
 

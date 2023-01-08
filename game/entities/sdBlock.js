@@ -108,8 +108,10 @@ class sdBlock extends sdEntity
 		sdBlock.trapshield_block_health_ratio = 1 / 2;
 		sdBlock.trapshield_block_regen_ratio = 3;
 		
-		sdBlock.img_sharp = sdWorld.CreateImageFromFile( 'sharp2' );
-		sdBlock.img_sharp_inactive = sdWorld.CreateImageFromFile( 'sharp2_inactive' );
+		sdBlock.img_sharp2 = sdWorld.CreateImageFromFile( 'sharp2' );
+		sdBlock.img_sharp2_inactive = sdWorld.CreateImageFromFile( 'sharp2_inactive' );
+		sdBlock.img_sharp3 = sdWorld.CreateImageFromFile( 'sharp3' );
+		sdBlock.img_sharp3_inactive = sdWorld.CreateImageFromFile( 'sharp3_inactive' );
 		
 		// Better to keep these same as in sdBG, so 3D effects will work as intended
 		sdBlock.MATERIAL_WALL = 0;
@@ -641,6 +643,12 @@ class sdBlock extends sdEntity
 		{
 			this._owner = params.owner || null; // Useful in case of sharp trap
 			this.p = 0; // 30 when somebody near, 15...30 - visible spikes, 0...15 - not visible spikes
+			
+			if ( this.texture_id > 0 )
+			{
+				this._hmax *= 2;
+				this._hea *= 2;
+			}
 		}
 		
 		if ( this.material === sdBlock.MATERIAL_CORRUPTION )
@@ -682,7 +690,7 @@ class sdBlock extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		return this._hmax * sdWorld.damage_to_matter * (1 + ( 2 * this._reinforced_level ) ) * ( this.material === sdBlock.MATERIAL_TRAPSHIELD ? 4.5 : 1 ) + ( this.material === sdBlock.MATERIAL_SHARP ? 30 : 0 );
+		return this._hmax * sdWorld.damage_to_matter * (1 + ( 2 * this._reinforced_level ) ) * ( this.material === sdBlock.MATERIAL_TRAPSHIELD ? 4.5 : 1 ) + ( this.material === sdBlock.MATERIAL_SHARP ? ( this.texture_id > 0 ? 30 * 4 : 30 ) : 0 );
 	}
 	Corrupt( from=null )
 	{
@@ -897,6 +905,9 @@ class sdBlock extends sdEntity
 				if ( this.material === sdBlock.MATERIAL_TRAPSHIELD )
 				this._hea = Math.min( this._hea + GSPEED * sdBlock.trapshield_block_regen_ratio, this._hmax );
 				else
+				if ( this.material === sdBlock.MATERIAL_SHARP )
+				this._hea = Math.min( this._hea + GSPEED * 0.005 * this._hmax, this._hmax );
+				else
 				this._hea = Math.min( this._hea + GSPEED, this._hmax );
 				
 				this.HandleDestructionUpdate();
@@ -1087,7 +1098,12 @@ class sdBlock extends sdEntity
 						//sdWorld.SendEffect({ x:from_entity.x, y:from_entity.y, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 
 						if ( ( from_entity._reinforced_level || 0 ) === 0 )
-						from_entity.DamageWithEffect( 100, this._owner );
+						{
+							if ( this.texture_id > 0 )
+							from_entity.DamageWithEffect( 200, this._owner );
+							else
+							from_entity.DamageWithEffect( 100, this._owner );
+						}
 
 						this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 					}
@@ -1335,7 +1351,11 @@ class sdBlock extends sdEntity
 		else
 		if ( this.material === sdBlock.MATERIAL_SHARP )
 		{
-			ctx.drawImageFilterCache( ( this.p < 15 ) ? sdBlock.img_sharp_inactive : sdBlock.img_sharp, 0, 0, w,h, 0,0, w,h );
+			if ( this.texture_id === 0 )
+			ctx.drawImageFilterCache( ( this.p < 15 ) ? sdBlock.img_sharp2_inactive : sdBlock.img_sharp2, 0, 0, w,h, 0,0, w,h );
+			else
+			//if ( this.texture_id === 1 )
+			ctx.drawImageFilterCache( ( this.p < 15 ) ? sdBlock.img_sharp3_inactive : sdBlock.img_sharp3, 0, 0, w,h, 0,0, w,h );
 		}
 		else
 		{

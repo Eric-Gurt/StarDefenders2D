@@ -497,6 +497,17 @@ class sdWorld
 
 		return p2;
 	}
+	static ExcludeNullsAndRemovedEntitiesForArray( arr )
+	{
+		for ( let i = 0; i < arr.length; i++ )
+		if ( arr[ i ] === null || arr[ i ]._is_being_removed )
+		{
+			arr.splice( i, 1 );
+			i--;
+			continue;
+		}
+		return arr;
+	}
 	static GoFullscreen()
 	{
 		
