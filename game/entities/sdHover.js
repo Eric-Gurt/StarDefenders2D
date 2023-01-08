@@ -13,9 +13,14 @@ class sdHover extends sdEntity
 {
 	static init_class()
 	{
-		//sdHover.img_hover = sdWorld.CreateImageFromFile( 'hover_sheet' );
+		sdHover.img_hover = sdWorld.CreateImageFromFile( 'hover_sprite' );
 
-		sdHover.img_hover = sdWorld.CreateImageFromFile( 'hover' );
+		sdHover.img_f_hover = sdWorld.CreateImageFromFile( 'f_hover_sprite' ); // image by lazyrain
+		sdHover.img_tank_hover = sdWorld.CreateImageFromFile( 'tank_sprite' ); // image by lazyrain
+
+		sdHover.img_hoverbike = sdWorld.CreateImageFromFile( 'sdHoverBike' );
+
+		/*sdHover.img_hover = sdWorld.CreateImageFromFile( 'hover' );
 		sdHover.img_hover_boost = sdWorld.CreateImageFromFile( 'hover_boost' );
 		sdHover.img_hover_broken = sdWorld.CreateImageFromFile( 'hover_broken' );
 
@@ -31,7 +36,7 @@ class sdHover extends sdEntity
 
 		sdHover.img_hoverbike = sdWorld.CreateImageFromFile( 'hoverbike' );
 		sdHover.img_hoverbike_boost = sdWorld.CreateImageFromFile( 'hoverbike_boost' );
-		sdHover.img_hoverbike_broken = sdWorld.CreateImageFromFile( 'hoverbike_broken' );
+		sdHover.img_hoverbike_broken = sdWorld.CreateImageFromFile( 'hoverbike_broken' );*/
 
 		sdHover.img_hover_mg = sdWorld.CreateImageFromFile( 'hover_mg' );
 		sdHover.img_hover_rl = sdWorld.CreateImageFromFile( 'hover_rl' );
@@ -104,6 +109,12 @@ class sdHover extends sdEntity
 	
 	Impact( vel ) // fall damage basically
 	{
+		if ( this.type === sdHover.TYPE_BIKE && vel > 10 )
+		{
+			//this.DamageWithEffect( ( vel - 3 ) * 15 ); // Too much damage
+			this.DamageWithEffect( ( vel - 3 ) * 5 ); // Less impact damage than other types of hover
+		}
+		else
 		if ( vel > 5 )
 		{
 			this.DamageWithEffect( ( vel - 3 ) * 45 );
@@ -121,7 +132,7 @@ class sdHover extends sdEntity
 
 		this.type = params.type || 0;
 		
-		this.hmax = ( this.type === 1 ? 1200 : this.type === 2 ? 2400 : this.type === 3 ? 1200 : 600 ) * 4;
+		this.hmax = ( this.type === 1 ? 1200 : this.type === 2 ? 2400 : this.type === 3 ? 300 : 600 ) * 4;
 		this.hea = this.hmax;
 		
 		this._tilt = 0;
@@ -155,16 +166,11 @@ class sdHover extends sdEntity
 		this.driver5 = null; // passenger
 		
 		this.matter = 300; // Should be less that Hover cost
-		this.matter_max = 1000;
-		
-		if ( this.type === sdHover.TYPE_FIGHTER_HOVER )
-		this.matter_max = 2000;
-		
-		if ( this.type === sdHover.TYPE_TANK )
-		this.matter_max = 12000;
-
-		if ( this.type === sdHover.TYPE_BIKE )
-		this.matter_max = 400;
+		this.matter_max = ( this.type === sdHover.TYPE_FIGHTER_HOVER ? 2000 :
+			this.type === sdHover.TYPE_TANK ? 12000 :
+			this.type === sdHover.TYPE_BIKE ? 400 :
+			1000
+		);
 	}
 	AddDriver( c )
 	{
@@ -804,8 +810,29 @@ class sdHover extends sdEntity
 		
 		ctx.rotate( this._tilt / 100 );
 
-		//let xx = 0;
+		let xx; // Let it be undefined first
 		//let yy = 0;
+
+		let xxoffset = 64;
+		let xyoffset = 32;
+		let image = sdHover.img_hover;
+
+		let width = 64;
+
+		if ( this.type === sdHover.TYPE_FIGHTER_HOVER )
+		image = sdHover.img_f_hover;
+
+		if ( this.type === sdHover.TYPE_TANK )
+		image = sdHover.img_tank_hover;
+
+		if ( this.type === sdHover.TYPE_BIKE )
+		{
+			xxoffset = 32;
+			xyoffset = 16;
+			width = 32;
+			
+			image = sdHover.img_hoverbike;
+		}
 		
 		if ( this._tilt > 0 )
 		{
@@ -870,8 +897,11 @@ class sdHover extends sdEntity
 		
 		if ( this.hea > 0 )
 		{
-			if ( this.type === 1 )
-			//xx = Math.min( ( this.driver0 ) ? 1 : 0 ),yy = 1;
+			if ( this.type === 2 )
+			xx = this.driver2 ? 3 : can_boost ? 1 : 0;
+			else
+			xx = can_boost ? 1 : 0;
+			/*if ( this.type === 1 )
 			ctx.drawImageFilterCache( can_boost ? sdHover.img_f_hover_boost : sdHover.img_f_hover, - 32, - 16, 64,32 );
 			else
 			if ( this.type === 2 )
@@ -880,8 +910,7 @@ class sdHover extends sdEntity
 			if ( this.type === 3 )
 			ctx.drawImageFilterCache( can_boost ? sdHover.img_hoverbike_boost : sdHover.img_hoverbike, - 16, - 16, 32, 32 );
 			else
-			//xx = Math.min( ( this.driver0 ) ? 1 : 0 );
-			ctx.drawImageFilterCache( can_boost ? sdHover.img_hover_boost : sdHover.img_hover, - 32, - 16, 64,32 );
+			ctx.drawImageFilterCache( can_boost ? sdHover.img_hover_boost : sdHover.img_hover, - 32, - 16, 64,32 );*/
 	
 			var i;
 			
@@ -945,8 +974,9 @@ class sdHover extends sdEntity
 			}
 		}
 		else
-		if ( this.type === 1 )
-		//xx = 2,yy = 1;
+		if ( this.type !== -1 )
+		xx = 2;
+		/*if ( this.type === 1 )
 		ctx.drawImageFilterCache( sdHover.img_f_hover_broken, - 32, - 16, 64,32 );
 		else
 		if ( this.type === 2 )
@@ -955,10 +985,9 @@ class sdHover extends sdEntity
 		if ( this.type === 3 )
 		ctx.drawImageFilterCache( sdHover.img_hoverbike_broken, - 16, - 16, 32, 32 );
 		else
-		//xx = 2;
-		ctx.drawImageFilterCache( sdHover.img_hover_broken, - 32, - 16, 64,32 );
+		ctx.drawImageFilterCache( sdHover.img_hover_broken, - 32, - 16, 64,32 );*/
 
-		//ctx.drawImageFilterCache( sdHover.img_hover, xx * 64, yy * 32, 64,32, -32, -16, 64,32 );
+		ctx.drawImageFilterCache( image, xx * xxoffset, 0, width,32, - xyoffset, -16, width,32 );
 		
 		
 		ctx.globalAlpha = 1;
@@ -993,13 +1022,23 @@ class sdHover extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		if ( this.type === 1 )
+		// Old method
+		/*if ( this.type === 1 )
 		return this.hmax * sdWorld.damage_to_matter + 1300;
 		else
 		if ( this.type === 2 )
 		return this.hmax * sdWorld.damage_to_matter + 2000;
 		else
-		return this.hmax * sdWorld.damage_to_matter + 800;
+		if ( this.type === 3 )
+		return this.hmax * sdWorld.damage_to_matter + 550;
+		else
+		return this.hmax * sdWorld.damage_to_matter + 800;*/
+		
+		// New method, same as the old one but better
+		return ( this.type === 1 ? this.hmax * sdWorld.damage_to_matter + 1300 :
+			this.type === 2 ? this.hmax * sdWorld.damage_to_matter + 2000 :
+			this.type === 3 ? this.hmax * sdWorld.damage_to_matter + 550 :
+			this.hmax * sdWorld.damage_to_matter + 800 );
 	}
 }
 //sdHover.init_class();
