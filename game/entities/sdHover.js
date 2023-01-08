@@ -109,6 +109,12 @@ class sdHover extends sdEntity
 	
 	Impact( vel ) // fall damage basically
 	{
+		if ( this.type === sdHover.TYPE_BIKE && vel > 10 )
+		{
+			//this.DamageWithEffect( ( vel - 3 ) * 15 ); // Too much damage
+			this.DamageWithEffect( ( vel - 3 ) * 5 ); // Less impact damage than other types of hover
+		}
+		else
 		if ( vel > 5 )
 		{
 			this.DamageWithEffect( ( vel - 3 ) * 45 );
