@@ -1027,7 +1027,7 @@ class sdHover extends sdEntity
 		return this.hmax * sdWorld.damage_to_matter + 550;
 		else
 		return this.hmax * sdWorld.damage_to_matter + 800;*/
-
+		
 		// New method, same as the old one but better
 		return ( this.type === 1 ? this.hmax * sdWorld.damage_to_matter + 1300 :
 			this.type === 2 ? this.hmax * sdWorld.damage_to_matter + 2000 :
