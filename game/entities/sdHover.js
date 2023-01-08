@@ -1016,7 +1016,8 @@ class sdHover extends sdEntity
 	}
 	MeasureMatterCost()
 	{
-		if ( this.type === 1 )
+		// Old method
+		/*if ( this.type === 1 )
 		return this.hmax * sdWorld.damage_to_matter + 1300;
 		else
 		if ( this.type === 2 )
@@ -1025,7 +1026,13 @@ class sdHover extends sdEntity
 		if ( this.type === 3 )
 		return this.hmax * sdWorld.damage_to_matter + 550;
 		else
-		return this.hmax * sdWorld.damage_to_matter + 800;
+		return this.hmax * sdWorld.damage_to_matter + 800;*/
+
+		// New method, same as the old one but better
+		return ( this.type === 1 ? this.hmax * sdWorld.damage_to_matter + 1300 :
+			this.type === 2 ? this.hmax * sdWorld.damage_to_matter + 2000 :
+			this.type === 3 ? this.hmax * sdWorld.damage_to_matter + 550 :
+			this.hmax * sdWorld.damage_to_matter + 800 );
 	}
 }
 //sdHover.init_class();
