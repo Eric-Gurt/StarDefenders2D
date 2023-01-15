@@ -15,7 +15,7 @@ class sdHover extends sdEntity
 	{
 		sdHover.img_hover = sdWorld.CreateImageFromFile( 'hover_sprite' );
 
-		sdHover.img_f_hover = sdWorld.CreateImageFromFile( 'f_hover_sprite' ); // image by lazyrain
+		sdHover.img_f_hover = sdWorld.CreateImageFromFile( 'f_hover_sprite' );
 		sdHover.img_tank_hover = sdWorld.CreateImageFromFile( 'tank_sprite' ); // image by lazyrain
 
 		sdHover.img_hoverbike = sdWorld.CreateImageFromFile( 'sdHoverBike' );
