@@ -439,7 +439,16 @@ class sdDoor extends sdEntity
 						else
 						{
 							let interrupter1 = sdWorld.last_hit_entity;
-
+							
+							if ( interrupter1.is( sdDoor ) )
+							{
+								this.openness = old_openness;
+								
+								this.DamageWithEffect( 5 * GSPEED, this );
+								
+								interrupter1.DamageWithEffect( 5 * GSPEED, this );
+							}
+							else
 							//if ( interrupter1 !== null && sdWorld.last_hit_entity.CanMoveWithoutOverlap( sdWorld.last_hit_entity.x + ( new_x - this.x ), sdWorld.last_hit_entity.y + ( new_y - this.y ), 0.1 ) )  // Small gap for doors that are placed too close (?)
 							if ( interrupter1 !== null && sdWorld.last_hit_entity.CanMoveWithoutOverlap( sdWorld.last_hit_entity.x + ( new_x - this.x ), sdWorld.last_hit_entity.y + ( new_y - this.y ), 0 ) )  // Small gap for doors that are placed too close (?)
 							{
@@ -455,14 +464,14 @@ class sdDoor extends sdEntity
 								let interrupter2 = sdWorld.last_hit_entity;
 
 								this.openness = old_openness;
+								
+								this.DamageWithEffect( 5 * GSPEED, this );
 
 								if ( interrupter1 !== null )
-								//if ( ( interrupter1._reinforced_level || 0 ) === 0 )
-								interrupter1.Damage( 5 * GSPEED );
+								interrupter1.DamageWithEffect( 5 * GSPEED, this );
 
 								if ( interrupter2 !== null )
-								//if ( ( interrupter2._reinforced_level || 0 ) === 0 )
-								interrupter2.Damage( 5 * GSPEED );
+								interrupter2.DamageWithEffect( 5 * GSPEED, this );
 							}
 						}
 

@@ -468,11 +468,23 @@ class sdStatusEffect extends sdEntity
 			onMade: ( status_entity, params )=>
 			{
 				status_entity._ttl = 30 * 5;
-				
+				status_entity.c = params.c || [ 1, 2, 2 ];
 				status_entity._observers = new WeakSet(); // Damage initiators
 				
 				if ( params.observer )
 				status_entity._observers.add( params.observer );
+			},
+			
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				status_entity._ttl = 30 * 5;
+				status_entity.c = params.c || [ 1, 2, 2 ];
+				status_entity._update_version++;
+				
+				if ( params.observer )
+				status_entity._observers.add( params.observer );
+				
+				return true; // Cancel merge
 			},
 			
 			IsVisible: ( status_entity, observer_entity )=>
@@ -491,7 +503,7 @@ class sdStatusEffect extends sdEntity
 				return;
 				
 				if ( sdWorld.time % 1000 < 500 )
-				ctx.sd_status_effect_tint_filter = [ 1, 2, 2 ];
+				ctx.sd_status_effect_tint_filter = status_entity.c;
 			},
 			onAfterEntityRender: ( status_entity, ctx, attached )=>
 			{
