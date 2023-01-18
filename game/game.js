@@ -3,6 +3,7 @@
 
 import sdTranslationManager from './client/sdTranslationManager.js';
 sdTranslationManager.init_class();
+sdMobileKeyboard.init_class();
 
 globalThis.sdTranslationManager;
 	
@@ -1144,8 +1145,14 @@ let enf_once = true;
 		if ( e.target !== sdRenderer.canvas && e.target !==	document.firstChild )
 		return;
 	
-		if ( sdWorld.mobile )
-		return;
+		if ( e.mobile_bypass )
+		{
+		}
+		else
+		{
+			if ( sdWorld.mobile )
+			return;
+		}
 	
 		if ( sdElement.current_hover )
 		return;
@@ -1161,11 +1168,11 @@ let enf_once = true;
 		if ( e.target !== sdRenderer.canvas && e.target !==	document.firstChild )
 		return;
 	
-		if ( sdWorld.mobile )
+		/*if ( sdWorld.mobile )
 		{
 			sdSound.AllowSound();
 			sdWorld.GoFullscreen();
-		}
+		}*/
 	
 		if ( sdElement.current_hover )
 		return;

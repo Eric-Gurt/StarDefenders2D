@@ -10,6 +10,18 @@
     cursor: url(/assets/cursor_2x.png), auto;
 }
 
+html, body
+{
+    touch-action: none;
+}
+
+canvas
+{
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+}
+
 body
 {
     user-select: none;
@@ -227,16 +239,24 @@ a:active
     opacity: 0.3;
 }
 
-.r_conteiner
+.r_container
 {
-    display:block;
-    padding:1vh;
-    background-color:rgba(0,0,0,0.35); /* 0.2 */
-    border-radius:1vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    background-color:rgba(0,0,0,0);
+    
+    border-radius: 0.2cm;
+    border: 2px inset #ffffff05;
+    
     vertical-align: middle;
-    border:0px;
+    
+    box-sizing: border-box;
 
     pointer-events: none;
+    color: #ffffff22;
+    font-size: 0.5cm;
 
     -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari */
@@ -245,6 +265,30 @@ a:active
     -ms-user-select: none; /* Internet Explorer/Edge */
     user-select: none; /* Non-prefixed version, currently
 		    supported by Chrome, Edge, Opera and Firefox */
+}
+.r_wsad
+{
+    border: 2px inset #ffffff20;
+    color: #ffffff73;
+}
+.r_dimmed_bg
+{
+    background-color:rgba(0,0,0,0.8);
+    color: #ffffff;
+}
+.r_held
+{
+    border: 2px inset #aaffaaaa;
+    animation: held_ping 2s normal forwards ease-in-out;
+
+}
+@keyframes held_ping {
+    from {
+	border: 2px inset #aaffaaaa;
+    }
+    to {
+	border: 2px inset #aaffaa10;
+    }
 }
 #twitch_player_div, #youtube_player_div
 {

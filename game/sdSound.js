@@ -498,7 +498,6 @@ class sdSound
 		
 		if ( sdSound.allowed )
 		{
-			
 			if ( isNaN( v ) || v === Infinity || v === -Infinity )
 			{
 				console.warn( 'Sound won\'t be played due to error: ', params );
