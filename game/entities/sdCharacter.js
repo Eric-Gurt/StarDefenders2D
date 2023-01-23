@@ -3860,6 +3860,8 @@ class sdCharacter extends sdEntity
 		// Release object
 		if ( this._ai )
 		this._ai.target = null;
+		//else
+		//debugger;
 		
 		if ( this._ragdoll )
 		this._ragdoll.Delete();

@@ -364,19 +364,25 @@ class sdMobileKeyboard
 		if ( !sdMobileKeyboard.allowed )
 		return;
 	
-		if ( !sdMobileKeyboard.initialized )
-		sdMobileKeyboard.Init();
-	
-		sdMobileKeyboard.container.style.display = 'block';
-		
-		sdMobileKeyboard.open = true;
+		if ( !sdMobileKeyboard.open )
+		{
+			if ( !sdMobileKeyboard.initialized )
+			sdMobileKeyboard.Init();
+
+			sdMobileKeyboard.container.style.display = 'block';
+
+			sdMobileKeyboard.open = true;
+		}
 	}
 	
 	static Close()
 	{
-		sdMobileKeyboard.container.style.display = 'none';
-		
-		sdMobileKeyboard.open = false;
+		if ( sdMobileKeyboard.open )
+		{
+			sdMobileKeyboard.container.style.display = 'none';
+
+			sdMobileKeyboard.open = false;
+		}
 	}
 	
 	static ThinkNow()

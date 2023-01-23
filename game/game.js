@@ -136,6 +136,7 @@ let entity_class_names = ( await ( await fetch( '/get_entity_classes.txt' ) ).te
 	import sdEntity from './entities/sdEntity.js';
 	import sdElement from './interfaces/sdElement.js';
 	import sdDatabaseEditor from './interfaces/sdDatabaseEditor.js';
+	import sdMotherShipStorageManager from './interfaces/sdMotherShipStorageManager.js';
 	
 	
 	let entity_classes_directory_relative = './entities/';
@@ -233,6 +234,7 @@ let entity_class_names = ( await ( await fetch( '/get_entity_classes.txt' ) ).te
 	
 	sdElement.init_class();
 	sdDatabaseEditor.init_class();
+	sdMotherShipStorageManager.init_class();
 
 
 	for ( let i = 0; i < imported_entity_classes.length; i++ )
@@ -327,6 +329,7 @@ let entity_class_names = ( await ( await fetch( '/get_entity_classes.txt' ) ).te
 	globalThis.sdPathFinding = sdPathFinding;
 	
 	globalThis.sdDatabaseEditor = sdDatabaseEditor;
+	globalThis.sdMotherShipStorageManager = sdMotherShipStorageManager;
 	
 	sdWorld.FinalizeClasses();
 
@@ -727,6 +730,11 @@ let enf_once = true;
 			sdRenderer.service_mesage_until = sdWorld.time + 6500;
 			sdRenderer.service_mesage = arr[ 0 ];
 			sdRenderer.service_mesage_untranslateables = arr[ 1 ];
+		});
+		
+		socket.on( 'CLASS_CMD', ( class_object_name, command_name, parameters_array )=>
+		{
+			sdWorld.entity_classes[ class_object_name ].ReceivedCommandFromEntityClass( command_name, parameters_array );
 		});
 		
 		socket.on( 'SET_CLIPBOARD', ( v )=>

@@ -7,6 +7,7 @@ import sdBullet from './sdBullet.js';
 import sdEffect from './sdEffect.js';
 
 import sdCharacter from './sdCharacter.js';
+import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 
 class sdQuadro extends sdEntity
 {
@@ -158,8 +159,9 @@ class sdQuadro extends sdEntity
 			c._socket.SDServiceMessage( 'All slots are occupied' );
 		}
 	}
-	ExcludeDriver( c )
+	ExcludeDriver( c, force=false )
 	{
+		if ( !force )
 		if ( !sdWorld.is_server )
 		return;
 		
@@ -452,10 +454,10 @@ class sdQuadro extends sdEntity
 								a.x += addx * mass_balance_inv;
 								a.y += addy * mass_balance_inv;
 							}
-							else
+							/*else
 							{
 								debugger;
-							}
+							}*/
 						}
 
 						b.sx -= addx * mass_balance;
@@ -468,10 +470,10 @@ class sdQuadro extends sdEntity
 								b.x -= addx * mass_balance;
 								b.y -= addy * mass_balance;
 							}
-							else
+							/*else
 							{
 								debugger;
-							}
+							}*/
 						}
 					}
 				}
@@ -719,14 +721,17 @@ class sdQuadro extends sdEntity
 			this.w2.p = null;
 		}
 		
+		if ( this._broken || sdLongRangeTeleport.teleported_items.has( this ) || !sdWorld.is_server )
+		{
+			for ( var i = 0; i < sdQuadro.driver_slots; i++ )
+			if ( this[ 'driver' + i ] )
+			this.ExcludeDriver( this[ 'driver' + i ], true );
+		}
+		
 		if ( this._broken )
 		{
 			if ( this.part === 0 )
 			sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
-			
-			for ( var i = 0; i < sdQuadro.driver_slots; i++ )
-			if ( this[ 'driver' + i ] )
-			this.ExcludeDriver( this[ 'driver' + i ] );
 		}
 		else
 		{

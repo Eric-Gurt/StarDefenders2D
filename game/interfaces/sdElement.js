@@ -10,6 +10,7 @@ class sdElement
 		sdElement.TEXT = 3; // Just a text, maybe clickable
 		sdElement.TEXT_BLOCK = 4; // Just a text, maybe clickable
 		sdElement.BUTTON = 5; // Just a button, possibly with a caption
+		sdElement.ROW = 6; // Vertical alignment block
 		// Drop lists, radio buttons, shop options, item previews etc will be there. Ideally we will redo all interfaces to work in this way
 		
 		sdElement.css_classnames = [
@@ -18,7 +19,8 @@ class sdElement
 			'sd_window',
 			'sd_text',
 			'sd_text_block',
-			'sd_button'
+			'sd_button',
+			'sd_row'
 		];
 		sdElement.text_path = [
 			null,
@@ -26,7 +28,8 @@ class sdElement
 			'this.element_caption.textContent',
 			'this.element.textContent',
 			'this.element.textContent',
-			'this.element.value'
+			'this.element.textContent', // 'this.element.value'
+			'this.element.textContent'
 		];
 		sdElement.children_container = [
 			'this.element',
@@ -34,7 +37,8 @@ class sdElement
 			'this.element_inner_container',
 			'this.element',
 			'this.element',
-			null
+			'this.element',
+			'this.element'
 		];
 		
 		sdElement.root_element = new sdElement({ type: sdElement.ROOT_ELEMENT });
@@ -53,6 +57,8 @@ class sdElement
 			z-index: 1000;
 		`;
 		document.body.append( sdElement.hover_element );
+		
+		sdElement.current_hold = null;
 	}
 	
 	static createElement( params )
@@ -249,8 +255,30 @@ class sdElement
 
 				element.onmouseover = ( e )=>{ if ( e.target === this.element ) this.nativeSetHover( e, 1 ) };
 				element.onmouseout = ( e )=>{ if ( e.target === this.element ) this.nativeSetHover( e, 0 ) };
-				element.onmousedown = ( e )=>{ if ( e.target === this.element ) this.nativeSetHover( e, 2 ) };
-				element.onmouseup = ( e )=>{ if ( e.target === this.element ) this.nativeSetHover( e, 1 ) };
+				element.onmousedown = ( e )=>
+				{ 
+					if ( e.target === this.element ) 
+					{
+						this.nativeSetHover( e, 2 );
+						
+						sdElement.current_hold = this;
+					}
+				};
+				element.onmouseup = ( e )=>
+				{ 
+					if ( e.target === this.element )
+					{
+						this.nativeSetHover( e, 1 );
+						
+						if ( sdElement.current_hold === this )
+						{
+							if ( this._onClick )
+							{
+								this._onClick( e );
+							}
+						}
+					}
+				};
 			}
 		}
 		
@@ -433,11 +461,27 @@ class sdElement
 	{
 		this._onClick = v;
 		
+		/*this.element.onmousedown = ( e )=>
+		{
+			if ( e.target === this.element )
+			{
+				sdElement.current_hold = this;
+			}
+		};
+		this.element.onmouseup = ( e )=>
+		{
+			if ( e.target === this.element )
+			{
+				if ( sdElement.current_hold === this )
+				v( e );
+			}
+		};*/
+		/*
 		this.element.onclick = ( e )=>{
 			
 			if ( e.target === this.element )
 			v( e );
-		};
+		};*/
 	}
 	get onClick()
 	{
@@ -461,6 +505,11 @@ class sdElement
 	{ this.element.style.paddingRight = v + 'px'; }
 	set paddingLeft( v )
 	{ this.element.style.paddingLeft = v + 'px'; }
+	
+	set width( v )
+	{ this.element.style.width = v + 'px'; }
+	set height( v )
+	{ this.element.style.height = v + 'px'; }
 	
 	removeChildren()
 	{

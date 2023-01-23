@@ -402,11 +402,27 @@ div.sd_text_block
 }
 div.sd_button
 {
-    display: inline-block;
-    width: 250px;
+    width: 150px;
     height: 30px;
-    background-color: green;
+    background-color: #004e00;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
+div.sd_row
+{
+    display: flex;
+    align-items: center;
+}
+/*div.sd_button:hover
+{
+    background-color: #0e7e0e;
+}
+div.sd_button:active
+{
+    background-color: #042d04;
+}*/
+
 div.pending_blinking
 {
     animation: 0.3s linear infinite alternate blinking_anim;

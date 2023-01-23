@@ -132,11 +132,75 @@ class sdBaseShieldingUnit extends sdEntity
 		this._last_sheild_sound_played = 0;
 		// 1 slot
 		
+		this._last_value_share = 0;
+		
 		sdBaseShieldingUnit.all_shield_units.push( this );
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
 		return ( prop === '_protected_entities' );
+	}
+	
+	ShareValueIfHadntRecently( destroy=false )
+	{
+		if ( this.type !== sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
+		return false;
+	
+		if ( this._is_being_removed )
+		return false;
+		
+		if ( sdWorld.time > this._last_value_share + 2000 || destroy )
+		{
+			let friendly_shields = this.FindObjectsInACableNetwork( null, sdBaseShieldingUnit );
+			
+			let id = friendly_shields.indexOf( this );
+			if ( id === -1 )
+			friendly_shields.push( this );
+		
+			for ( let i = 0; i < friendly_shields.length; i++ )
+			{
+				if ( friendly_shields[ i ].type !== this.type || friendly_shields[ i ]._is_being_removed )
+				{
+					friendly_shields.splice( i, 1 );
+					i--;
+					continue;
+				}
+			}
+			
+			let sum_matter = 0;
+			
+			for ( let i = 0; i < friendly_shields.length; i++ )
+			sum_matter += friendly_shields[ i ].matter_crystal;
+		
+		
+			if ( friendly_shields.length <= 1 )
+			return false;
+			
+			if ( destroy )
+			{
+				id = friendly_shields.indexOf( this );
+				
+				if ( id !== -1 )
+				friendly_shields.splice( id, 1 );
+			
+				this.remove();
+			}
+			
+			
+				
+			sum_matter /= friendly_shields.length;
+			
+			for ( let i = 0; i < friendly_shields.length; i++ )
+			{
+				friendly_shields[ i ].matter_crystal = sum_matter;
+				
+				friendly_shields[ i ]._last_value_share = sdWorld.time;
+			}
+			
+			return true;
+		}
+		
+		return false;
 	}
 				
 	ProtectedEntityAttacked( ent, dmg, initiator )
@@ -430,6 +494,8 @@ class sdBaseShieldingUnit extends sdEntity
 				observer_character._socket.SDServiceMessage( '{1} entities are disputable and were not protected. Try connecting base shielding units with a cable tool.', [ tell_about_disputable_entities ] );
 			}
 		}
+		
+		this.ShareValueIfHadntRecently();
 	}
 	SetAttackState()
 	{
@@ -699,6 +765,12 @@ class sdBaseShieldingUnit extends sdEntity
 							sdWorld.SendEffect({ x:this.x, y:this.y, x2:unit.x, y2:unit.y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
 							this._attack_timer = 30;
 							this.attack_anim = 20;
+							
+							if ( unit.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
+							unit.ShareValueIfHadntRecently();
+							
+							if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
+							this.ShareValueIfHadntRecently();
 						}
 					}
 					else
@@ -948,6 +1020,11 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		return sdWorld.damage_to_matter + 600;
 	}
+	onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
+	{
+		//this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		this.ShareValueIfHadntRecently();
+	}
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
@@ -996,18 +1073,32 @@ class sdBaseShieldingUnit extends sdEntity
 				}
 				
 				if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
-				if ( command_name === 'CAPACITY' )
 				{
-					let cap = parseInt( parameters_array[ 0 ] );
-					
-					if ( cap === 1000 || cap === 10000 )
+					if ( command_name === 'CAPACITY' )
 					{
-						if ( this.matter > cap )
-						executer_socket.SDServiceMessage( 'Base shielding unit still has matter capacity over target capacity' );
-						
-						this.matter_max = Math.max( cap, this.matter );
-						
-						sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:1, pitch:0.25 });
+						let cap = parseInt( parameters_array[ 0 ] );
+
+						if ( cap === 1000 || cap === 10000 )
+						{
+							if ( this.matter > cap )
+							executer_socket.SDServiceMessage( 'Base shielding unit still has matter capacity over target capacity' );
+
+							this.matter_max = Math.max( cap, this.matter );
+
+							sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:1, pitch:0.25 });
+						}
+					}
+				}
+				else
+				{
+					if ( command_name === 'DESTROY_AND_GIVE_MATTER_OUT' )
+					{
+						if ( this.ShareValueIfHadntRecently( true ) )
+						{
+							sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:1, pitch:0.25 });
+						}
+						else
+						executer_socket.SDServiceMessage( 'Shield must be connected to other shields of a same type with a cable' );
 					}
 				}
 				/*if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
@@ -1067,6 +1158,10 @@ class sdBaseShieldingUnit extends sdEntity
 					
 					if ( this.matter_max !== 1000 )
 					this.AddContextOption( 'Decrease matter capacity to 1k', 'CAPACITY', [ 1000 ] );
+				}
+				else
+				{
+					this.AddContextOption( 'Destroy and give matter out', 'DESTROY_AND_GIVE_MATTER_OUT', [] );
 				}
 			}
 		}
