@@ -3967,8 +3967,6 @@ class sdWorld
 			//sdRenderer.visual_settings = BoolToInt( player_settings['visuals1'] ) * 1 + BoolToInt( player_settings['visuals2'] ) * 2 + BoolToInt( player_settings['visuals3'] ) * 3 + BoolToInt( player_settings['visuals4'] ) * 4;
 			sdRenderer.InitVisuals();
 			
-			//sdRenderer.dirt_settings = BoolToInt( player_settings['dirts1'] ) * 1 + BoolToInt( player_settings['dirts2'] ) * 2 + BoolToInt( player_settings['dirts3'] ) * 3;
-			
 			sdRenderer.resolution_quality = BoolToInt( player_settings['density1'] ) * 1 + BoolToInt( player_settings['density2'] ) * 0.5 + BoolToInt( player_settings['density3'] ) * 0.25;
 			window.onresize();
 			

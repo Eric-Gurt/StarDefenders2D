@@ -87,8 +87,6 @@ class sdRenderer
 		//sdRenderer._visual_settings = 0;
 		sdRenderer.visual_settings = 0; // Still used at some parts of code
 	
-
-		//sdRenderer._dirt_settings = 0; // No longer needed due to new rendering optimizations
 		
 		sdRenderer.show_leader_board = 1; // Used for displaying tasks too
 		
@@ -658,23 +656,6 @@ class sdRenderer
 	static get visual_settings()
 	{
 		return sdRenderer._visual_settings;
-	}*/
-
-	/*static set dirt_settings( v )
-	{
-		if ( v === sdRenderer._dirt_settings )
-		return sdBlock.MATERIAL_GROUND;
-		
-		if  ( sdRenderer._dirt_settings === 0 )
-		{
-			sdRenderer._dirt_settings = v;
-		}
-		else
-		alert('Application restart required for dirt settings to change once again');
-	}
-	static get dirt_settings()
-	{
-		return sdRenderer._dirt_settings;
 	}*/
 	
 	static UseCrosshair()

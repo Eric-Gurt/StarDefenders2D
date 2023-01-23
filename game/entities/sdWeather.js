@@ -111,6 +111,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_SWORD_BOT =				event_counter++; // 34
 		sdWeather.EVENT_TZYRG =					event_counter++; // 35
 		sdWeather.EVENT_FALKOK_OUTPOST =			event_counter++; // 36
+		sdWeather.EVENT_SDLOST_EXTRACTION =			event_counter++; // 37
 
 		
 		sdWeather.supported_events = [];
@@ -2931,6 +2932,25 @@ class sdWeather extends sdEntity
 			}
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
+		if ( r === sdWeather.EVENT_SDLOST_EXTRACTION )
+		{
+			let player_count = sdWorld.GetPlayingPlayersCount();
+			for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Create the tasks
+			{
+				sdTask.MakeSureCharacterHasTask({ 
+					similarity_hash:'EXTRACT-'+this._net_id, 
+					executer: sdWorld.sockets[ i ].character,
+					lrtp_class_proprty_value_array: [ 'sdLost' ],
+					mission: sdTask.MISSION_LRTP_EXTRACTION,
+					difficulty: 0.4,
+					lrtp_matter_capacity_needed: 0 + ( 4 * player_count ),
+					title: 'The Fallen one',
+					time_left: 30 * 30 * 10, // 5 minutes, more than enough for players to contribute to it's completion, unless if it isn't
+					for_all_players: true, // This task lets everyone contribute towards it's completion
+					description: 'Our citizens really like statues of lost and emptied creatures/players. Deliver the fallen creatures/players to the mothership within 5 minutes',
+				});
+			}
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed

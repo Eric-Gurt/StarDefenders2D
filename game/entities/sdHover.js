@@ -110,14 +110,11 @@ class sdHover extends sdEntity
 	
 	Impact( vel ) // fall damage basically
 	{
-		if ( this.type === sdHover.TYPE_BIKE && vel > 10 )
-		{
-			//this.DamageWithEffect( ( vel - 3 ) * 15 ); // Too much damage
-			this.DamageWithEffect( ( vel - 3 ) * 5 ); // Less impact damage than other types of hover
-		}
-		else
 		if ( vel > 5 )
 		{
+			if ( this.type === sdHover.TYPE_BIKE )
+			this.DamageWithEffect( ( vel - 3 ) * 15 ); // Less impact damage than other types of hover
+			else
 			this.DamageWithEffect( ( vel - 3 ) * 45 );
 		}
 	}
@@ -1040,10 +1037,10 @@ class sdHover extends sdEntity
 		return this.hmax * sdWorld.damage_to_matter + 800;*/
 		
 		// New method, same as the old one but better
-		return ( this.type === 1 ? this.hmax * sdWorld.damage_to_matter + 1300 :
+		return this.type === 1 ? this.hmax * sdWorld.damage_to_matter + 1300 :
 			this.type === 2 ? this.hmax * sdWorld.damage_to_matter + 2000 :
 			this.type === 3 ? this.hmax * sdWorld.damage_to_matter + 550 :
-			this.hmax * sdWorld.damage_to_matter + 800 );
+			this.hmax * sdWorld.damage_to_matter + 800;
 	}
 }
 //sdHover.init_class();
