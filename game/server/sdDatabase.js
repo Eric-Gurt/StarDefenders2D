@@ -542,6 +542,31 @@ class sdDatabase
 			}
 		}
 		
+		// Outdated users cleanup
+		{
+			let table = sdDatabase.data.moderation.activity_logs.table;
+			let time_to_live_empty = 1000 * 60 * 60; // 1 hour
+			let time_to_live_important = 1000 * 60 * 60 * 24 * 30 * 6; // 6 months
+			
+			for ( let p in table )
+			{
+				let row = table[ p ];
+
+				if ( row instanceof Object ) // In case someone would try to make property there
+				{
+					let is_empty = ( 
+						row.mothership_storage_per_game_mode.expedition.length === 0 && 
+						row.mothership_storage_per_game_mode.sandbox.length === 0
+					);
+					
+					if ( time > row.last_activity_time + ( is_empty ? time_to_live_empty : time_to_live_important ) )
+					delete table[ p ];
+				}
+				else
+				delete table[ p ];
+			}
+		}
+		
 		let delta = Date.now() - time;
 		
 		if ( delta > 50 )
@@ -601,6 +626,7 @@ class sdDatabase
 			const allowed_methods = new Set();
 			allowed_methods.add( 'DBEditorCommand' );
 			allowed_methods.add( 'DBTranslate' );
+			allowed_methods.add( 'DBManageSavedItems' );
 			
 			for ( let i = 0; i < array_of_request_objects.length; i++ )
 			{
@@ -710,7 +736,154 @@ class sdDatabase
 	
 		return permissions || null;
 	}
+	static MakeSureUserExists( uid )
+	{
+		let user = sdDatabase.data.players.table[ uid ];
+		
+		if ( !user )
+		{
+			user = JSON.parse( JSON.stringify( sdDatabase.data.players.sample_row ) );
+			
+			sdDatabase.data.players.table[ uid ] = user;
+			
+			user.uid = '?';
+			user.password = '?';
+			user.current_server = '?';
+			user.current_access_token = '?';
+			
+			user.registration_time = Date.now();
+			user.last_activity_time = Date.now();
+			user.last_character_creation_time = Date.now();
+		}
+		else
+		{
+			user.last_activity_time = Date.now();
+		}
+		
+		return user;
+	}
+	static SanitizeUnderscores( obj ) // _hea -> !hea
+	{
+		if ( typeof obj === 'object' && obj !== null )
+		{
+			if ( obj instanceof Array )
+			{
+				obj = obj.slice();
+			}
+			else
+			{
+				obj = Object.assign( {}, obj );
 
+				let props = Object.keys( obj );
+
+				for ( let i = 0; i < props.length; i++ )
+				{
+					let prop = props[ i ];
+
+					if ( prop.charAt( 0 ) === '_' )
+					{
+						obj[ '!' + prop.substring( 1 ) ] = sdDatabase.SanitizeUnderscores( obj[ prop ] );
+						delete obj[ prop ];
+					}
+					else
+					obj[ prop ] = sdDatabase.SanitizeUnderscores( obj[ prop ] );
+				}
+			}
+		}
+		
+		return obj;
+	}
+	static DesanitizeUnderscores( obj ) // !hea -> _hea
+	{
+		if ( typeof obj === 'object' && obj !== null )
+		{
+			if ( obj instanceof Array )
+			{
+				obj = obj.slice();
+			}
+			else
+			{
+				obj = Object.assign( {}, obj );
+
+				let props = Object.keys( obj );
+
+				for ( let i = 0; i < props.length; i++ )
+				{
+					let prop = props[ i ];
+
+					if ( prop.charAt( 0 ) === '!' )
+					{
+						obj[ '_' + prop.substring( 1 ) ] = sdDatabase.SanitizeUnderscores( obj[ prop ] );
+						delete obj[ prop ];
+					}
+					else
+					obj[ prop ] = sdDatabase.SanitizeUnderscores( obj[ prop ] );
+				}
+			}
+		}
+		
+		return obj;
+	}
+	static DBManageSavedItems( responses=[], initiator_server, initiator_hash_or_user_uid, operation, group_title, snapshots=[], relative_x=0, relative_y=0 )
+	{
+		let user = sdDatabase.MakeSureUserExists( initiator_hash_or_user_uid );
+		
+		if ( !user )
+		{
+			responses.push([ 'DENY_WITH_SERVICE_MESSAGE', 'Access Error: User could not be made or found' ]);
+			return responses;
+		}
+		
+		let items = user.mothership_storage_per_game_mode.sandbox;
+		
+		if ( operation === 'SAVE' )
+		{
+			if ( items.length >= 10 )
+			{
+				responses.push([ 'DENY_WITH_SERVICE_MESSAGE', 'Too many item groups' ]);
+				return responses;
+			}
+			
+			for ( let i = 0; i < items.length; i++ )
+			if ( items[ i ].title === group_title )
+			{
+				responses.push([ 'DENY_WITH_SERVICE_MESSAGE', 'Item group with same name already exists' ]);
+				return responses;
+			}
+			
+			items.push({
+				title: group_title,
+				snapshots: sdDatabase.SanitizeUnderscores( snapshots ),
+				relative_x: relative_x,
+				relative_y: relative_y,
+				available_after: sdWorld.time + 1000 * 60 * 60
+			});
+			
+			responses.push([ 'SUCCESS' ]);
+		}
+		else
+		if ( operation === 'GET' )
+		{
+			for ( let i = 0; i < items.length; i++ )
+			if ( items[ i ].title === group_title )
+			{
+				if ( sdWorld.time >= items[ i ].available_after )
+				{
+					responses.push([ 'GET_RESULT', sdDatabase.DesanitizeUnderscores( items[ i ].snapshots ), items[ i ].relative_x, items[ i ].relative_y ]);
+					items.splice( i, 1 );
+				}
+				return responses;
+			}
+		}
+		else
+		if ( operation === 'LIST' )
+		{
+			for ( let i = 0; i < items.length; i++ )
+			responses.push([ 'LIST_RESULT', { title: items[ i ].title, available_after: ( items[ i ].available_after - sdWorld.time ), items: items[ i ].snapshots.length } ]);
+		}
+		
+		return responses;
+	}
 	static DBTranslate( responses=[], initiator_server, initiator_hash_or_user_uid, lang, str_array )
 	{
 		let table = sdDatabase.data.translations.table;

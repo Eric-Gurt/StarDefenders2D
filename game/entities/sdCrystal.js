@@ -449,6 +449,9 @@ class sdCrystal extends sdEntity
 			
 			if ( this._hea < this._hmax )
 			this._hea = Math.min( this._hmax, this._hea + GSPEED * 0.01 ); // Quite slow
+		
+			if ( this.held_by.is( sdMatterAmplifier ) )
+			this.matter_regen = sdWorld.MorphWithTimeScale( this.matter_regen, 0, 0.8, GSPEED * this.held_by.multiplier/8 / ( 30 * 60 * 60 * 24 * 7 ) ); // 20% per week on highest tier
 		}
 		else
 		{

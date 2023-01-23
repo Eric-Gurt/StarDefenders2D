@@ -281,8 +281,9 @@ class sdSteeringWheel extends sdEntity
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 	}
 	
-	ExcludeDriver( c )
+	ExcludeDriver( c, force=false )
 	{
+		if ( !force )
 		if ( !sdWorld.is_server )
 		return;
 		
@@ -791,6 +792,9 @@ class sdSteeringWheel extends sdEntity
 	}
 	onRemove() // Class-specific, if needed
 	{
+		if ( this.driver )
+		this.ExcludeDriver( this.driver, true );
+			
 		if ( this._broken )
 		{
 			sdWorld.BasicEntityBreakEffect( this, 5 );

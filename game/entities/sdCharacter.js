@@ -558,45 +558,45 @@ class sdCharacter extends sdEntity
 
 					switch ( ~~( Math.random() * 38 ) )
 					{
-						case 0: this.Say( 'Huh, '+t+'? This is something new' ); break;
-						case 1: this.Say( t+' looks interesting' ); break;
-						case 2: this.Say( 'I\'ve never seen '+t+' before' ); break;
-						case 3: this.Say( t+' is new to me' ); break;
+						case 0: this.Say( 'Huh, '+t+'? This is something new', true, false, true ); break;
+						case 1: this.Say( t+' looks interesting', true, false, true ); break;
+						case 2: this.Say( 'I\'ve never seen '+t+' before', true, false, true ); break;
+						case 3: this.Say( t+' is new to me', true, false, true ); break;
 						case 4: this.Say( 'I\'ve discovered '+t ); break;
-						case 5: this.Say( 'That is '+t+' for sure' ); break;
-						case 6: this.Say( t+'? Gonna note that' ); break;
-						case 7: this.Say( t+'? Amazing' ); break;
-						case 8: this.Say( t+'? I\'m shocked' ); break;
-						case 9: this.Say( 'So this is how '+t+' looks like' ); break;
-						case 10: this.Say( 'Wow, a real '+t ); break;
-						case 11: this.Say( 'Gotta screenshot '+t ); break;
-						case 12: this.Say( 'Wow, a '+t+'. I\'m literally shaking' ); break;
-						case 13: this.Say( t+' looks cool' ); break;
-						case 14: this.Say( 'We\'ve met again, '+t ); break;
-						case 15: this.Say( 'Ah, the '+t ); break;
+						case 5: this.Say( 'That is '+t+' for sure', true, false, true ); break;
+						case 6: this.Say( t+'? Gonna note that', true, false, true ); break;
+						case 7: this.Say( t+'? Amazing', true, false, true ); break;
+						case 8: this.Say( t+'? I\'m shocked', true, false, true ); break;
+						case 9: this.Say( 'So this is how '+t+' looks like', true, false, true ); break;
+						case 10: this.Say( 'Wow, a real '+t, true, false, true ); break;
+						case 11: this.Say( 'Gotta screenshot '+t, true, false, true ); break;
+						case 12: this.Say( 'Wow, a '+t+'. I\'m literally shaking', true, false, true ); break;
+						case 13: this.Say( t+' looks cool', true, false, true ); break;
+						case 14: this.Say( 'We\'ve met again, '+t, true, false, true ); break;
+						case 15: this.Say( 'Ah, the '+t, true, false, true ); break;
 
-						case 16: this.Say( 'They have '+t+' here? Nice' ); break;
-						case 17: this.Say( 'I\'m excited to see you, '+t ); break;
-						case 18: this.Say( 'I\'ve been missing you, '+t ); break;
-						case 19: this.Say( 'It wasn\'t the same without you, '+t ); break;
-						case 20: this.Say( 'Wow, the opportunity to see '+t ); break;
-						case 21: this.Say( 'I wonder what are you good for, '+t ); break;
-						case 22: this.Say( 'I\'m all ecstatic for '+t ); break;
-						case 23: this.Say( t+'? This is getting me upbeat' ); break;
-						case 24: this.Say( 'What are you doing there, little '+t+'?' ); break;
-						case 25: this.Say( 'Aha! I found '+t ); break;
-						case 26: this.Say( 'Contact on '+t ); break;
-						case 27: this.Say( 'Discovering '+t ); break;
-						case 28: this.Say( 'Nice, a chance to experience '+t ); break;
-						case 29: this.Say( 'I don\'t know nothing about '+t+', don\'t I?' ); break;
-						case 30: this.Say( 'Gotta spend some time with '+t ); break;
-						case 31: this.Say( 'Nice, a '+t+'. But can I exchange '+t+' for more matter?' ); break;
-						case 32: this.Say( 'Huh, a '+t+' is ['+Math.round(ent._hitbox_x2 - ent._hitbox_x1)+'] units wide' ); break;
-						case 33: this.Say( 'Huh, a '+t+' is ['+Math.round(ent._hitbox_y2 - ent._hitbox_y1)+'] units in height' ); break;
+						case 16: this.Say( 'They have '+t+' here? Nice', true, false, true ); break;
+						case 17: this.Say( 'I\'m excited to see you, '+t, true, false, true ); break;
+						case 18: this.Say( 'I\'ve been missing you, '+t, true, false, true ); break;
+						case 19: this.Say( 'It wasn\'t the same without you, '+t, true, false, true ); break;
+						case 20: this.Say( 'Wow, the opportunity to see '+t, true, false, true ); break;
+						case 21: this.Say( 'I wonder what are you good for, '+t, true, false, true ); break;
+						case 22: this.Say( 'I\'m all ecstatic for '+t, true, false, true ); break;
+						case 23: this.Say( t+'? This is getting me upbeat', true, false, true ); break;
+						case 24: this.Say( 'What are you doing there, little '+t+'?', true, false, true ); break;
+						case 25: this.Say( 'Aha! I found '+t, true, false, true ); break;
+						case 26: this.Say( 'Contact on '+t, true, false, true ); break;
+						case 27: this.Say( 'Discovering '+t, true, false, true ); break;
+						case 28: this.Say( 'Nice, a chance to experience '+t, true, false, true ); break;
+						case 29: this.Say( 'I don\'t know nothing about '+t+', don\'t I?', true, false, true ); break;
+						case 30: this.Say( 'Gotta spend some time with '+t, true, false, true ); break;
+						case 31: this.Say( 'Nice, a '+t+'. But can I exchange '+t+' for more matter?', true, false, true ); break;
+						case 32: this.Say( 'Huh, a '+t+' is ['+Math.round(ent._hitbox_x2 - ent._hitbox_x1)+'] units wide', true, false, true ); break;
+						case 33: this.Say( 'Huh, a '+t+' is ['+Math.round(ent._hitbox_y2 - ent._hitbox_y1)+'] units in height', true, false, true ); break;
 						case 34: this.Say( 'This '+t+' '+( ent._current_target === this ? 'looks threatening to me' : 'seems chill' ) ); break;
 						case 35: this.Say( 'This '+t+' '+( ( ent._hea || ent.hea || 0 ) <= 0 ? 'looks rather dead' : 'looks rather healthy' ) ); break;
-						case 36: this.Say( t+' is right there' ); break;
-						case 37: this.Say( 'This day can\'t get any better with '+t+', can\'t it?' ); break;
+						case 36: this.Say( t+' is right there', true, false, true ); break;
+						case 37: this.Say( 'This day can\'t get any better with '+t+', can\'t it?', true, false, true ); break;
 					}
 				}
 
@@ -3860,6 +3860,8 @@ class sdCharacter extends sdEntity
 		// Release object
 		if ( this._ai )
 		this._ai.target = null;
+		//else
+		//debugger;
 		
 		if ( this._ragdoll )
 		this._ragdoll.Delete();

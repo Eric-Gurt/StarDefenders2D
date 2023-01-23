@@ -1,4 +1,6 @@
 
+/* global sdMobileKeyboard */
+
 import sdRenderer from './sdRenderer.js';
 
 class sdChat
@@ -20,6 +22,8 @@ class sdChat
 		
 		sdChat.hint = '';
 		
+		sdChat.extra_mobile_buttons = [];
+		
 		sdChat.custom_destination_callback = null; // For prompt cases, like password-based locks or something similar
 	}
 	static StartPrompt( hint='Enter string', default_text='', callback=null, max_characters=100 )
@@ -33,7 +37,56 @@ class sdChat
 		sdChat.last_message = '';
 		
 		sdChat.custom_destination_callback = callback;
+		
+		sdChat.ShowMobileHints();
 	}
+	static ShowMobileHints()
+	{
+		if ( sdMobileKeyboard.open )
+		{
+			const KEY_SIZE = sdMobileKeyboard.KEY_SIZE;
+			const KEY_SPACE = sdMobileKeyboard.KEY_SPACE;
+
+			const KEY_SIZE_MICE = sdMobileKeyboard.KEY_SIZE_MICE;
+			const KEY_SPACE_MICE = sdMobileKeyboard.KEY_SPACE_MICE;
+
+			let options = [ 'Hi', 'Ok', 'No', 'I\'m sorry', 'Help!', 'Thank you', 'Follow me', '/kill', 'Mobile gaming', 'I need build tool', ':D', 'Let me in', 'I need items for tasks', 'Let\'s do task', 'Nevermind', 'Stop, it is dangerous', 'Well...', 'Good bye' ];
+
+			for ( let i = 0; i < options.length; i++ )
+			{
+				let line = options[ i ];
+
+				let yy = i % 6;
+				let xx = Math.floor( i / 6 );
+
+				sdChat.extra_mobile_buttons.push( sdMobileKeyboard.MakeButton({
+
+					key:'?',//'Digit'+(i%10), 
+					caption: line,// + ' ('+xx+', '+yy+')',
+					x: 1 + ( KEY_SIZE * 3.5 + KEY_SPACE ) * xx, 
+					y: -1 - ( KEY_SIZE + KEY_SPACE ) * 3 - KEY_SIZE*0.5 - KEY_SPACE - ( KEY_SIZE*0.5 + KEY_SPACE ) * yy, 
+					w:KEY_SIZE*3.5, 
+					h:KEY_SIZE*0.5,
+					bold: true,
+					dimmed_background: true,
+					onPress:()=>
+					{
+						sdChat.text = line;
+
+						sdChat.KeyDown({ key: 'Enter' });
+					}
+				}) );
+			}
+		}
+	}
+	static HideMobileHints()
+	{
+		for ( let i = 0; i < sdChat.extra_mobile_buttons.length; i++ )
+		sdChat.extra_mobile_buttons[ i ].sdRemove();
+
+		sdChat.extra_mobile_buttons.length = 0;
+	}
+			
 	static async KeyDown( e )
 	{
 		let do_not_allow_other_keys = false;
@@ -41,6 +94,7 @@ class sdChat
 		if ( e.key === 'Escape' && sdChat.open )
 		{
 			sdChat.open = false;
+			sdChat.HideMobileHints();
 			
 			do_not_allow_other_keys = true;
 		}
@@ -67,6 +121,7 @@ class sdChat
 					}
 				}
 				sdChat.open = false;
+				sdChat.HideMobileHints();
 			}
 			else
 			{
@@ -75,6 +130,8 @@ class sdChat
 				sdChat.text = '';
 				sdChat.max_characters = 100;
 				sdChat.custom_destination_callback = null;
+				
+				sdChat.ShowMobileHints();
 			}
 		}
 		else

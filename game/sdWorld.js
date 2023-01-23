@@ -215,7 +215,7 @@ class sdWorld
 		sdWorld.fake_empty_cell = new Cell( null );
 		Object.freeze( sdWorld.fake_empty_cell );
 		Object.freeze( sdWorld.fake_empty_cell.arr );
-
+		/*
 		if ( typeof document !== 'undefined' ) // If server
 		document.ontouchstart = ()=>{ ForMobile(); };
 
@@ -294,10 +294,7 @@ class sdWorld
 			{
 				window.onkeydown({ code:key });
 				window.onkeyup({ code:key });
-				/*setTimeout(()=> Should no longer be needed
-				{
-					window.onkeyup({ code:key });
-				},100 );*/
+				
 			}
 			
 			setTimeout( function()
@@ -436,7 +433,7 @@ class sdWorld
 				if ( e.target && e.target.tagName === 'CANVAS' )
 				e.preventDefault();
 			}
-		};
+		};*/
 		
 		let say_delay = true;
 		let sealing_classes = ()=>
@@ -4036,9 +4033,13 @@ class sdWorld
 			sdSound.AllowSound();
 			sdWorld.GoFullscreen();
 		}
+		
+		sdMobileKeyboard.Open();
 	}
 	static Stop()
 	{
+		sdMobileKeyboard.Close();
+		
 		globalThis.ClearWorld();
 		
 		sdRenderer.canvas.style.display = 'none';

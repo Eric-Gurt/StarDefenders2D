@@ -17,7 +17,7 @@ class sdGrass extends sdEntity
 		sdGrass.img_grass2 = sdWorld.CreateImageFromFile( 'grass2' ); // sprite by LazyRain
 		sdGrass.img_grass3 = sdWorld.CreateImageFromFile( 'grass3' ); // sprite by LazyRain
 		
-		sdGrass.heights = [ 8, 14, 27 ];
+		sdGrass.heights = [ 8, 14, 27 ]; // by variation. Also determines how much regen it will give
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -206,11 +206,14 @@ class sdGrass extends sdEntity
 		if ( !this._is_being_removed )
 		if ( from_entity.is( sdCrystal ) )
 		if ( from_entity.type === sdCrystal.TYPE_CRYSTAL_CRAB || from_entity.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
+		if ( this.variation < sdGrass.heights.length )
 		{
+			let coefficient = ( sdGrass.heights[ this.variation ] / 27 );
+			
 			if ( from_entity.matter_regen < 400 )
-			from_entity.matter_regen = Math.min( from_entity.matter_regen + 10, 400 );
+			from_entity.matter_regen = Math.min( from_entity.matter_regen + 8 * coefficient, 400 );
 		
-			from_entity._hea = Math.min( from_entity._hea + 10, from_entity._hmax );
+			from_entity._hea = Math.min( from_entity._hea + 10 * coefficient, from_entity._hmax );
 			
 			sdSound.PlaySound({ name:'popcorn', x:from_entity.x, y:from_entity.y, volume:0.3, pitch:1.5 });
 			

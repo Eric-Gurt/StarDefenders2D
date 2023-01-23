@@ -4209,6 +4209,12 @@ class sdEntity
 				if ( !sdWorld.is_singleplayer )
 				if ( this.onRemove.has_broken_property_check )
 				{
+					/*if ( this.GetClass() === 'sdCharacter' )
+					if ( !this._ai )
+					{
+						debugger;
+					}*/
+					
 					sdEntity.removed_entities_info.set( this._net_id, { entity: this, ttl: sdWorld.time + 10000 } );
 					//trace( 'deleting ' + this.GetClass() );
 				}

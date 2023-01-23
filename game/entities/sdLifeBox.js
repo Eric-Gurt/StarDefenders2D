@@ -11,6 +11,7 @@ import sdVirus from './sdVirus.js';
 import sdQuickie from './sdQuickie.js';
 import sdCrystal from './sdCrystal.js';
 import sdBlock from './sdBlock.js';
+import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 
 class sdLifeBox extends sdEntity
 {
@@ -137,8 +138,9 @@ class sdLifeBox extends sdEntity
 			c._socket.SDServiceMessage( 'All slots are occupied' );
 		}
 	}
-	ExcludeDriver( c )
+	ExcludeDriver( c, force=false )
 	{
+		if ( !force )
 		if ( !sdWorld.is_server )
 		return;
 		
@@ -407,13 +409,16 @@ class sdLifeBox extends sdEntity
 	}
 	onRemove() // Class-specific, if needed
 	{
+		if ( this._broken || sdLongRangeTeleport.teleported_items.has( this ) || !sdWorld.is_server )
+		{
+			for ( var i = 0; i < sdLifeBox.driver_slots; i++ )
+			if ( this[ 'driver' + i ] )
+			this.ExcludeDriver( this[ 'driver' + i ], true );
+		}
+		
 		if ( this._broken )
 		{
 			sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
-
-			for ( var i = 0; i < sdLifeBox.driver_slots; i++ )
-			if ( this[ 'driver' + i ] )
-			this.ExcludeDriver( this[ 'driver' + i ] );
 		}
 		else
 		{

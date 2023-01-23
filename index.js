@@ -1637,6 +1637,11 @@ io.on("connection", (socket) =>
 		}
 	};
 	
+	socket.CommandFromEntityClass = ( class_object, command_name, parameters_array )=>
+	{
+		socket.emit( 'CLASS_CMD', class_object.name, command_name, parameters_array );
+	};
+	
 	socket.SDSetClipboard = ( t )=>
 	{
 		socket.emit( 'SET_CLIPBOARD', t );
@@ -1660,7 +1665,7 @@ io.on("connection", (socket) =>
 	socket.last_player_settings = null;
 	socket.Respawn = ( player_settings, force_allow=false ) => { 
 		
-		if ( typeof player_settings !== 'object' )
+		if ( typeof player_settings !== 'object' || player_settings === null )
 		return;
 		
 		socket.last_ping = sdWorld.time;
@@ -3303,6 +3308,11 @@ const ServerMainMethod = ()=>
 
 									if ( key )
 									{
+										/*if ( key.GetClass() === 'sdCharacter' )
+										{
+											debugger;
+										}*/
+										
 										snapshot_of_deletion = { 
 											_class: key.GetClass(), 
 											_net_id: net_id,

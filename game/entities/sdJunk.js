@@ -130,6 +130,7 @@ class sdJunk extends sdEntity
 		this.matter = this.matter_max;
 		this._damagable_in = sdWorld.time + 1500; // Copied from sdCrystal to prevent high ping players injure themselves, will only work for sdCharacter damage
 		this._spawn_ent_in = 60; // Used in Council Bomb, although could be used in other things
+		this._spawn_ent_in_delay = 30 * 30; // 30 seconds but grows evert time spawn happens to avoid too much flood
 		this._regen_timeout = 0; // Regen timeout for task reward matter container, although could be used in other things in future
 
 		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER )
@@ -665,293 +666,293 @@ class sdJunk extends sdEntity
 							sdWeather.only_instance.ExecuteEvent( 2 );
 							sdWeather.only_instance.ExecuteEvent( 2 );
 						}
-			}
+					}
 					
 
 					this.remove();
 				}
-			if ( this._spawn_ent_in > 0 )
-			this._spawn_ent_in -= GSPEED;
+				if ( this._spawn_ent_in > 0 )
+				this._spawn_ent_in -= GSPEED;
 
-			if ( this._spawn_ent_in <= 0 && this.detonation_in > 30 * 60 )
-			{
-				this._spawn_ent_in = 660 - Math.min( 180, 30 * sdWorld.GetPlayingPlayersCount() ); // Was 330 but made council a bit too annoying since they spawned too frequently and could not be killed as fast
-				let ais = 0;
-				//let percent = 0;
-				for ( var i = 0; i < sdCharacter.characters.length; i++ )
+				if ( this._spawn_ent_in <= 0 && this.detonation_in > 30 * 60 )
 				{
-					if ( sdCharacter.characters[ i ].hea > 0 )
-					if ( !sdCharacter.characters[ i ]._is_being_removed )
-					if ( sdCharacter.characters[ i ]._ai_team === 3 )
+					this._spawn_ent_in = 660 - Math.min( 180, 30 * sdWorld.GetPlayingPlayersCount() ); // Was 330 but made council a bit too annoying since they spawned too frequently and could not be killed as fast
+					let ais = 0;
+					//let percent = 0;
+					for ( var i = 0; i < sdCharacter.characters.length; i++ )
 					{
-						ais++;
-						//console.log(ais);
-					}
-				}
-				{
-
-					let councils = 0;
-					let councils_tot = Math.min( 4, Math.max( 2, 1 + sdWorld.GetPlayingPlayersCount() ) );
-
-					let left_side = ( Math.random() < 0.5 );
-
-					while ( councils < councils_tot ) // No need for capping spawns since they despawn after 30 seconds anyway
-					{
-
-						let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
-
-						sdEntity.entities.push( character_entity );
-						character_entity.s = 110;
-
+						if ( sdCharacter.characters[ i ].hea > 0 )
+						if ( !sdCharacter.characters[ i ]._is_being_removed )
+						if ( sdCharacter.characters[ i ]._ai_team === 3 )
 						{
-							let x,y;
-							let tr = 1000;
-							do
-							{
-								if ( left_side )
-								{
-									x = this.x + 16 + 16 * councils + ( Math.random() * 192 );
-
-									if (x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 * councils + ( Math.random() * 192 );
-
-									if (x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 * councils - ( Math.random() * 192 );
-								}
-								else
-								{
-									x = this.x - 16 - 16 * councils - ( Math.random() * 192 );
-
-									if (x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 * councils + ( Math.random() * 192 );
-
-									if (x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 * councils - ( Math.random() * 192 );
-								}
-
-								y = this.y + 192 - ( Math.random() * ( 384 ) );
-								if ( y < sdWorld.world_bounds.y1 + 32 )
-								y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
-
-								if ( y > sdWorld.world_bounds.y2 - 32 )
-								y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
-
-								if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-								if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, character_entity, sdCom.com_visibility_ignored_classes, null ) )
-								//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
-								{
-									character_entity.x = x;
-									character_entity.y = y;
-									//sdWorld.UpdateHashPosition( ent, false );
-									if ( Math.random() < 0.075 )
-									{
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_SHOTGUN }) );
-										character_entity._ai_gun_slot = 3;
-									}
-									else
-									if ( Math.random() > ( 0.1 + ( ( this.hea / this.hmax )* 0.4 ) ) ) // Chances change as the portal machine has less health
-									{
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_BURST_RAIL }) );
-										character_entity._ai_gun_slot = 4;
-									}
-									else
-									{
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_PISTOL }) );
-										character_entity._ai_gun_slot = 1;
-									}
-									let robot_settings;
-									if ( character_entity._ai_gun_slot === 1 || character_entity._ai_gun_slot === 4 )
-									robot_settings = {"hero_name":"Council Acolyte","color_bright":"#e1e100","color_dark":"#ffffff","color_bright3":"#ffff00","color_dark3":"#e1e1e1","color_visor":"#ffff00","color_suit":"#ffffff","color_suit2":"#e1e1e1","color_dark2":"#ffe100","color_shoes":"#e1e1e1","color_skin":"#ffffff","color_extra1":"#ffff00","helmet1":false,"helmet23":true,"body11":true,"legs8":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":false,"voice7":false,"voice8":true};
-
-									if ( character_entity._ai_gun_slot === 3 )
-									robot_settings = {"hero_name":"Council Vanguard","color_bright":"#e1e100","color_dark":"#ffffff","color_bright3":"#ffff00","color_dark3":"#e1e1e1","color_visor":"#ffff00","color_suit":"#ffffff","color_suit2":"#e1e1e1","color_dark2":"#ffe100","color_shoes":"#e1e1e1","color_skin":"#ffffff","color_extra1":"#ffff00","helmet1":false,"helmet96":true,"body68":true,"legs68":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":false,"voice7":false,"voice8":true};
-
-									character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( robot_settings );
-									character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( robot_settings );
-									character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( robot_settings );
-									character_entity.title = robot_settings.hero_name;
-									character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( robot_settings );
-									character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( robot_settings );
-									if ( character_entity._ai_gun_slot === 4 || character_entity._ai_gun_slot === 1 )
-									{
-										character_entity.matter = 300;
-										character_entity.matter_max = 300; // Let player leech matter off the bodies
-
-										character_entity.hea = 1400;
-										character_entity.hmax = 1400;
-
-										//character_entity.armor = 1500;
-										//character_entity.armor_max = 1500;
-										//character_entity._armor_absorb_perc = 0.87; // 87% damage absorption, since armor will run out before just a little before health
-
-										//character_entity._damage_mult = 1; // Supposed to put up a challenge
-									}
-									if ( character_entity._ai_gun_slot === 3 )
-									{
-										character_entity.matter = 300;
-										character_entity.matter_max = 300; // Let player leech matter off the bodies
-
-										character_entity.hea = 1750;
-										character_entity.hmax = 1750;
-
-										//character_entity.armor = 1500;
-										//character_entity.armor_max = 1500;
-										//character_entity._armor_absorb_perc = 0.87; // 87% damage absorption, since armor will run out before just a little before health
-
-										//character_entity._damage_mult = 1; // Supposed to put up a challenge
-									}
-									character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-									//character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
-										
-									character_entity._ai_level = 10;
-										
-									character_entity._matter_regeneration = 10 + character_entity._ai_level; // At least some ammo regen
-									character_entity._jetpack_allowed = true; // Jetpack
-									//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
-									character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-									character_entity._ai_team = 3; // AI team 3 is for the Council
-									character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
-									sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y, pitch: 1, volume:1 });
-									character_entity._ai.next_action = 5;
-
-									sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
-
-									const logic = ()=>
-									{
-										if ( character_entity._ai ) // AI moving so it stays close to the Beam projector
-										{
-
-											if ( character_entity.x > this.x + 32 )
-											character_entity._ai.direction = -1;
-							
-											if ( character_entity.x < this.x - 32 )
-											character_entity._ai.direction = 1;
-
-											if ( character_entity.y < this.y - 32 )
-											character_entity._key_states.SetKey( 'KeyW', 1 );
-
-											//if ( character_entity._ai.target === null )
-											//character_entity._ai.target = this;
-										}
-										if ( character_entity.hea <= 0 )
-										if ( !character_entity._is_being_removed )
-										{
-											sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
-											sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
-											character_entity.remove();
-										}
-							
-									};
-						
-							
-									setInterval( logic, 1000 );
-									setTimeout(()=>
-									{
-										clearInterval( logic );
-							
-							
-										if ( !character_entity._is_being_removed )
-										{
-											sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
-											sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
-											character_entity.remove();
-
-											character_entity._broken = false;
-										}
-									}, 20000 ); // Despawn the Council Vanquishers if they are in world longer than intended
-
-									break;
-							}
-
-
-							tr--;
-							if ( tr < 0 )
-							{
-								character_entity.remove();
-								character_entity._broken = false;
-								break;
-							}
-						} while( true );
+							ais++;
+							//console.log(ais);
+						}
 					}
-					councils++;
-					ais++;
-					}
-				}
-				{
-					// Spawn a council support drone
-					if ( this.hea < ( this.hmax * 0.75 ) )
 					{
-						
+
+						let councils = 0;
+						let councils_tot = Math.min( 4, Math.max( 2, 1 + sdWorld.GetPlayingPlayersCount() ) );
+
 						let left_side = ( Math.random() < 0.5 );
 
-						let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: 6});
-
-						sdEntity.entities.push( drone );
-
+						while ( councils < councils_tot ) // No need for capping spawns since they despawn after 30 seconds anyway
 						{
-							let x,y;
-							let tr = 1000;
-							do
+
+							let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
+
+							sdEntity.entities.push( character_entity );
+							character_entity.s = 110;
+
 							{
-								if ( left_side )
+								let x,y;
+								let tr = 1000;
+								do
 								{
-									x = this.x + 16 + 16 + ( Math.random() * 192 );
+									if ( left_side )
+									{
+										x = this.x + 16 + 16 * councils + ( Math.random() * 192 );
 
-									if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 + ( Math.random() * 192 );
+										if (x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+										x = sdWorld.world_bounds.x1 + 32 + 16 + 16 * councils + ( Math.random() * 192 );
 
-									if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 - ( Math.random() * 192 );
-								}
-								else
-								{
-									x = this.x - 16 - 16 - ( Math.random() * 192 );
+										if (x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+										x = sdWorld.world_bounds.x2 - 32 - 16 - 16 * councils - ( Math.random() * 192 );
+									}
+									else
+									{
+										x = this.x - 16 - 16 * councils - ( Math.random() * 192 );
 
-									if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x1 + 32 + 16 + 16 + ( Math.random() * 192 );
+										if (x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+										x = sdWorld.world_bounds.x1 + 32 + 16 + 16 * councils + ( Math.random() * 192 );
 
-									if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
-									x = sdWorld.world_bounds.x2 - 32 - 16 - 16 - ( Math.random() * 192 );
-								}
+										if (x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+										x = sdWorld.world_bounds.x2 - 32 - 16 - 16 * councils - ( Math.random() * 192 );
+									}
 
-								y = this.y + 192 - ( Math.random() * ( 384 ) );
-								if ( y < sdWorld.world_bounds.y1 + 32 )
-								y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+									y = this.y + 192 - ( Math.random() * ( 384 ) );
+									if ( y < sdWorld.world_bounds.y1 + 32 )
+									y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 
-								if ( y > sdWorld.world_bounds.y2 - 32 )
-								y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+									if ( y > sdWorld.world_bounds.y2 - 32 )
+									y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
 
-								if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
-								//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
-								{
-									drone.x = x;
-									drone.y = y;
+									if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+									if ( sdWorld.CheckLineOfSight( x, y, this.x, this.y, character_entity, sdCom.com_visibility_ignored_classes, null ) )
+									//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+									//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) ) // Only spawn on ground
+									{
+										character_entity.x = x;
+										character_entity.y = y;
+										//sdWorld.UpdateHashPosition( ent, false );
+										if ( Math.random() < 0.075 )
+										{
+											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_SHOTGUN }) );
+											character_entity._ai_gun_slot = 3;
+										}
+										else
+										if ( Math.random() > ( 0.1 + ( ( this.hea / this.hmax )* 0.4 ) ) ) // Chances change as the portal machine has less health
+										{
+											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_BURST_RAIL }) );
+											character_entity._ai_gun_slot = 4;
+										}
+										else
+										{
+											sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_COUNCIL_PISTOL }) );
+											character_entity._ai_gun_slot = 1;
+										}
+										let robot_settings;
+										if ( character_entity._ai_gun_slot === 1 || character_entity._ai_gun_slot === 4 )
+										robot_settings = {"hero_name":"Council Acolyte","color_bright":"#e1e100","color_dark":"#ffffff","color_bright3":"#ffff00","color_dark3":"#e1e1e1","color_visor":"#ffff00","color_suit":"#ffffff","color_suit2":"#e1e1e1","color_dark2":"#ffe100","color_shoes":"#e1e1e1","color_skin":"#ffffff","color_extra1":"#ffff00","helmet1":false,"helmet23":true,"body11":true,"legs8":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":false,"voice7":false,"voice8":true};
 
-									sdSound.PlaySound({ name:'council_teleport', x:drone.x, y:drone.y, volume:0.5 });
-									sdWorld.SendEffect({ x:drone.x, y:drone.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+										if ( character_entity._ai_gun_slot === 3 )
+										robot_settings = {"hero_name":"Council Vanguard","color_bright":"#e1e100","color_dark":"#ffffff","color_bright3":"#ffff00","color_dark3":"#e1e1e1","color_visor":"#ffff00","color_suit":"#ffffff","color_suit2":"#e1e1e1","color_dark2":"#ffe100","color_shoes":"#e1e1e1","color_skin":"#ffffff","color_extra1":"#ffff00","helmet1":false,"helmet96":true,"body68":true,"legs68":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":false,"voice7":false,"voice8":true};
 
-									drone.SetTarget( this );
+										character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( robot_settings );
+										character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( robot_settings );
+										character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( robot_settings );
+										character_entity.title = robot_settings.hero_name;
+										character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( robot_settings );
+										character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( robot_settings );
+										if ( character_entity._ai_gun_slot === 4 || character_entity._ai_gun_slot === 1 )
+										{
+											character_entity.matter = 300;
+											character_entity.matter_max = 300; // Let player leech matter off the bodies
 
-									sdWorld.UpdateHashPosition( drone, false );
-									//console.log('Drone spawned!');
-									break;
+											character_entity.hea = 1400;
+											character_entity.hmax = 1400;
+
+											//character_entity.armor = 1500;
+											//character_entity.armor_max = 1500;
+											//character_entity._armor_absorb_perc = 0.87; // 87% damage absorption, since armor will run out before just a little before health
+
+											//character_entity._damage_mult = 1; // Supposed to put up a challenge
+										}
+										if ( character_entity._ai_gun_slot === 3 )
+										{
+											character_entity.matter = 300;
+											character_entity.matter_max = 300; // Let player leech matter off the bodies
+
+											character_entity.hea = 1750;
+											character_entity.hmax = 1750;
+
+											//character_entity.armor = 1500;
+											//character_entity.armor_max = 1500;
+											//character_entity._armor_absorb_perc = 0.87; // 87% damage absorption, since armor will run out before just a little before health
+
+											//character_entity._damage_mult = 1; // Supposed to put up a challenge
+										}
+										character_entity._ai = { direction: ( x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+										//character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
+
+										character_entity._ai_level = 10;
+
+										character_entity._matter_regeneration = 10 + character_entity._ai_level; // At least some ammo regen
+										character_entity._jetpack_allowed = true; // Jetpack
+										//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
+										character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+										character_entity._ai_team = 3; // AI team 3 is for the Council
+										character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
+										sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y, pitch: 1, volume:1 });
+										character_entity._ai.next_action = 5;
+
+										sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+
+										const logic = ()=>
+										{
+											if ( character_entity._ai ) // AI moving so it stays close to the Beam projector
+											{
+
+												if ( character_entity.x > this.x + 32 )
+												character_entity._ai.direction = -1;
+
+												if ( character_entity.x < this.x - 32 )
+												character_entity._ai.direction = 1;
+
+												if ( character_entity.y < this.y - 32 )
+												character_entity._key_states.SetKey( 'KeyW', 1 );
+
+												//if ( character_entity._ai.target === null )
+												//character_entity._ai.target = this;
+											}
+											if ( character_entity.hea <= 0 )
+											if ( !character_entity._is_being_removed )
+											{
+												sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
+												sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+												character_entity.remove();
+											}
+
+										};
+
+
+										setInterval( logic, 1000 );
+										setTimeout(()=>
+										{
+											clearInterval( logic );
+
+
+											if ( !character_entity._is_being_removed )
+											{
+												sdSound.PlaySound({ name:'council_teleport', x:character_entity.x, y:character_entity.y, volume:0.5 });
+												sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+												character_entity.remove();
+
+												character_entity._broken = false;
+											}
+										}, 20000 ); // Despawn the Council Vanquishers if they are in world longer than intended
+
+										break;
 								}
 
 
 								tr--;
 								if ( tr < 0 )
 								{
-									drone.remove();
-									drone._broken = false;
+									character_entity.remove();
+									character_entity._broken = false;
 									break;
 								}
 							} while( true );
 						}
+						councils++;
+						ais++;
+						}
+					}
+					{
+						// Spawn a council support drone
+						if ( this.hea < ( this.hmax * 0.75 ) )
+						{
+
+							let left_side = ( Math.random() < 0.5 );
+
+							let drone = new sdDrone({ x:0, y:0 , _ai_team: 3, type: 6});
+
+							sdEntity.entities.push( drone );
+
+							{
+								let x,y;
+								let tr = 1000;
+								do
+								{
+									if ( left_side )
+									{
+										x = this.x + 16 + 16 + ( Math.random() * 192 );
+
+										if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+										x = sdWorld.world_bounds.x1 + 32 + 16 + 16 + ( Math.random() * 192 );
+
+										if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+										x = sdWorld.world_bounds.x2 - 32 - 16 - 16 - ( Math.random() * 192 );
+									}
+									else
+									{
+										x = this.x - 16 - 16 - ( Math.random() * 192 );
+
+										if ( x < sdWorld.world_bounds.x1 + 32 ) // Prevent out of bound spawns
+										x = sdWorld.world_bounds.x1 + 32 + 16 + 16 + ( Math.random() * 192 );
+
+										if ( x > sdWorld.world_bounds.x2 - 32 ) // Prevent out of bound spawns
+										x = sdWorld.world_bounds.x2 - 32 - 16 - 16 - ( Math.random() * 192 );
+									}
+
+									y = this.y + 192 - ( Math.random() * ( 384 ) );
+									if ( y < sdWorld.world_bounds.y1 + 32 )
+									y = sdWorld.world_bounds.y1 + 32 + 192 - ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+									if ( y > sdWorld.world_bounds.y2 - 32 )
+									y = sdWorld.world_bounds.y1 - 32 - 192 + ( Math.random() * ( 192 ) ); // Prevent out of bound spawns
+
+									if ( drone.CanMoveWithoutOverlap( x, y, 0 ) )
+									//if ( !mech_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+									//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND ) )
+									{
+										drone.x = x;
+										drone.y = y;
+
+										sdSound.PlaySound({ name:'council_teleport', x:drone.x, y:drone.y, volume:0.5 });
+										sdWorld.SendEffect({ x:drone.x, y:drone.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
+
+										drone.SetTarget( this );
+
+										sdWorld.UpdateHashPosition( drone, false );
+										//console.log('Drone spawned!');
+										break;
+									}
+
+
+									tr--;
+									if ( tr < 0 )
+									{
+										drone.remove();
+										drone._broken = false;
+										break;
+									}
+								} while( true );
+							}
+						}
 					}
 				}
-			}
 			}
 
 			if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ) // Erthal distress beacon
@@ -960,7 +961,8 @@ class sdJunk extends sdEntity
 				this._spawn_ent_in -= GSPEED;
 				else
 				{
-					this._spawn_ent_in = 30 * 30; // 30 seconds
+					this._spawn_ent_in = this._spawn_ent_in_delay; // 30 seconds
+					this._spawn_ent_in_delay *= 1.25;
 					sdWeather.only_instance.ExecuteEvent( 11 ); // Execute Erthal spawn event
 
 					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be destroyed
@@ -974,6 +976,11 @@ class sdJunk extends sdEntity
 							title: 'Destroy Erthal distress beacon',
 							description: 'The Erthals have placed a distress beacon nearby and are rallying their troops! Destroy the beacon before they overflow the land!'
 						});
+					}
+					
+					if ( this._spawn_ent_in_delay > 60 * 60 * 24 )
+					{
+						this.remove(); // Remove and maybe give task reward
 					}
 				}
 			}

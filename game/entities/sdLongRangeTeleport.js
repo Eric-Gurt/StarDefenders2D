@@ -23,6 +23,7 @@ import sdJunk from './sdJunk.js';
 import sdLandScanner from './sdLandScanner.js';
 
 import sdTask from './sdTask.js';
+import sdCharacter from './sdCharacter.js';
 
 //import sdServerToServerProtocol from '../server/sdServerToServerProtocol.js';
 
@@ -739,6 +740,9 @@ class sdLongRangeTeleport extends sdEntity
 		{
 			let e = ents_to_push[ i ];
 			
+			//if ( e.is( sdCharacter ) )
+			//debugger;
+			
 			sdWorld.SendEffect({ x:e.x + (e.hitbox_x1+e.hitbox_x2)/2, y:e.y + (e.hitbox_y1+e.hitbox_y2)/2, type:sdEffect.TYPE_TELEPORT });
 			
 			e.remove();
@@ -917,6 +921,10 @@ class sdLongRangeTeleport extends sdEntity
 	{
 		return true;
 	}
+	static ReceivedCommandFromEntityClass( command_name, parameters_array )
+	{
+		sdMotherShipStorageManager.HandleServerCommand( command_name, parameters_array );
+	}
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
@@ -924,6 +932,42 @@ class sdLongRangeTeleport extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		{
+			if ( command_name === 'LIST_PRIVATE_STORAGE' )
+			{
+				let initiator_hash_or_user_uid = exectuter_character._my_hash;
+												
+				sdDatabase.Exec( 
+					[ 
+						[ 'DBManageSavedItems', initiator_hash_or_user_uid, 'LIST' ] 
+					], 
+					( responses )=>
+					{
+						// What if responses is null? Might happen if there is no connection to database server or database server refuses to accept connection from current server
+						
+						executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_RESET', [] ); // class command_name, parameters_array
+						
+						for ( let i = 0; i < responses.length; i++ )
+						{
+							let response = responses[ i ];
+
+							if ( response[ 0 ] === 'DENY_WITH_SERVICE_MESSAGE' )
+							{
+								executer_socket.SDServiceMessage( response[ 1 ] );
+							}
+							else
+							if ( response[ 0 ] === 'LIST_RESULT' )
+							{
+								executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_ADD', [ response[ 1 ] ] ); // class command_name, parameters_array
+							}
+							else
+							debugger;
+						}
+					},
+					'localhost'
+				);
+				return;
+			}
+			
 			//if ( exectuter_character._god || sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
 			if ( exectuter_character._god || this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) )
 			{
@@ -974,7 +1018,7 @@ class sdLongRangeTeleport extends sdEntity
 										}
 									
 										this.Deactivation();
-										//this.GiveRewards( 1 );
+										
 										this.GiveRewards( command_name );
 										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - sdTask.reward_claim_task_amount );
 									};
@@ -1021,7 +1065,7 @@ class sdLongRangeTeleport extends sdEntity
 					}
 				}
 				else
-				if ( command_name === 'TELEPORT_STUFF' )
+				if ( command_name === 'TELEPORT_STUFF' || command_name === 'SAVE_STUFF' || command_name === 'GET_PRIVATE_STORAGE' )
 				{
 					if ( !this.is_server_teleport )
 					{
@@ -1039,18 +1083,122 @@ class sdLongRangeTeleport extends sdEntity
 										this.Deactivation();
 										
 										let collected_entities_array = [];
-										
-										this.ExtractEntitiesOnTop( collected_entities_array, true, exectuter_character );
-										
-										if ( collected_entities_array.length === 0 )
-										executer_socket.SDServiceMessage( 'You need to assign yourself a task using a Command Centre!' );
-										else
+
+										if ( command_name === 'TELEPORT_STUFF' )
 										{
-											for ( let i = 0; i < collected_entities_array.length; i++ )
-											exectuter_character.GiveScore( sdEntity.SCORE_REWARD_COMMON_TASK, collected_entities_array[ i ] );
+											this.ExtractEntitiesOnTop( collected_entities_array, true, exectuter_character );
 										
-											//exectuter_character._score += collected_entities_array.length * 20;
-											this.matter = 0;
+											if ( collected_entities_array.length === 0 )
+											executer_socket.SDServiceMessage( 'You need to assign yourself a task using a Command Centre!' );
+											else
+											{
+												for ( let i = 0; i < collected_entities_array.length; i++ )
+												exectuter_character.GiveScore( sdEntity.SCORE_REWARD_COMMON_TASK, collected_entities_array[ i ] );
+
+												this.matter = 0;
+											}
+										}
+										else
+										if ( command_name === 'SAVE_STUFF' )
+										{
+											let classes = Object.keys( sdWorld.entity_classes );
+											
+											// Never save players here
+											for ( let i = 0; i < classes.length; i++ )
+											{
+												let c = sdWorld.entity_classes[ classes[ i ] ];
+												
+												try
+												{
+													if ( !c.prototype || !c.prototype.IsPlayerClass || c.prototype.IsPlayerClass() )
+													{
+														classes.splice( i, 1 );
+														i--;
+														continue;
+													}
+												}
+												catch ( e )
+												{
+													classes.splice( i, 1 );
+													i--;
+													continue;
+												}
+											}
+											
+											this._remote_supported_entity_classes = classes;
+											let snapshots = this.ExtractEntitiesOnTop( collected_entities_array, false, exectuter_character );
+										
+											if ( collected_entities_array.length === 0 )
+											executer_socket.SDServiceMessage( 'Nothing was saved' );
+											else
+											{
+												let initiator_hash_or_user_uid = exectuter_character._my_hash;
+												let this_x = this.x;
+												let this_y = this.y;
+
+												sdDatabase.Exec( 
+													[ 
+														[ 'DBManageSavedItems', initiator_hash_or_user_uid, 'SAVE', parameters_array[ 0 ], snapshots, this_x, this_y ] 
+													], 
+													( responses )=>
+													{
+														// What if responses is null? Might happen if there is no connection to database server or database server refuses to accept connection from current server
+														for ( let i = 0; i < responses.length; i++ )
+														{
+															let response = responses[ i ];
+															
+															if ( response[ 0 ] === 'DENY_WITH_SERVICE_MESSAGE' )
+															{
+																executer_socket.SDServiceMessage( response[ 1 ] );
+																this.InsertEntitiesOnTop( snapshots, this_x, this_y );
+															}
+															else
+															if ( response[ 0 ] === 'SUCCESS' )
+															{
+																//executer_socket.SDServiceMessage( 'Success!' );
+																executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_UPDATE_IF_TRACKING', [] ); // class command_name, parameters_array
+															}
+														}
+													},
+													'localhost'
+												);
+											}
+										}
+										else
+										if ( command_name === 'GET_PRIVATE_STORAGE' )
+										{
+											let initiator_hash_or_user_uid = exectuter_character._my_hash;
+											//let this_x = this.x;
+											//let this_y = this.y;
+
+											sdDatabase.Exec( 
+												[ 
+													[ 'DBManageSavedItems', initiator_hash_or_user_uid, 'GET', parameters_array[ 0 ] ] 
+												], 
+												( responses )=>
+												{
+													// What if responses is null? Might happen if there is no connection to database server or database server refuses to accept connection from current server
+													for ( let i = 0; i < responses.length; i++ )
+													{
+														let response = responses[ i ];
+
+														if ( response[ 0 ] === 'DENY_WITH_SERVICE_MESSAGE' )
+														{
+															executer_socket.SDServiceMessage( response[ 1 ] );
+														}
+														else
+														if ( response[ 0 ] === 'GET_RESULT' )
+														{
+															this.InsertEntitiesOnTop( response[ 1 ], response[ 2 ], response[ 3 ] );
+															
+															executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_UPDATE_IF_TRACKING', [] ); // class command_name, parameters_array
+														}
+														else
+														debugger;
+													}
+												},
+												'localhost'
+											);
 										}
 									};
 								}
@@ -1236,8 +1384,9 @@ class sdLongRangeTeleport extends sdEntity
 			
 			if ( !this.is_server_teleport )
 			{
-				this.AddContextOption( 'Initiate teleportation (300 mater)', 'TELEPORT_STUFF', [] );
-				for( let i = 0; i < sdTask.tasks.length; i++ )
+				this.AddContextOption( 'Send items for task completion (300 mater)', 'TELEPORT_STUFF', [] );
+				
+				for ( let i = 0; i < sdTask.tasks.length; i++ )
 				{
 					if ( sdTask.tasks[ i ].mission )
 					{
@@ -1261,6 +1410,16 @@ class sdLongRangeTeleport extends sdEntity
 						}
 					}
 				}
+				
+				this.AddPromptContextOption( 'Send items to private storage on Mothership', 'SAVE_STUFF', [ undefined ], 'Enter name for item group', '', 100 );
+				
+				//sdMotherShipStorageManager.Open()
+				
+				this.AddClientSideActionContextOption( 'Manage private storage on Mothership', ()=>
+				{
+					sdMotherShipStorageManager.Close();
+					sdMotherShipStorageManager.Open({ lrtp: this });
+				}, true );
 			}
 			else
 			this.AddContextOption( 'Initiate teleportation', 'TELEPORT_STUFF', [] );
