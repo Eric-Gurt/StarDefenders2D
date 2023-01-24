@@ -307,6 +307,12 @@ import sdLongRangeTeleport from './game/entities/sdLongRangeTeleport.js';
 import sdTask from './game/entities/sdTask.js';
 import sdPortal from './game/entities/sdPortal.js';
 
+import { createRequire } from 'module';
+const require = createRequire( import.meta.url );
+globalThis.acorn = require('./game/libs/acorn.cjs');
+
+
+
 let entity_classes_directory_physical = __dirname + 'game/entities/'; // For scanning
 let entity_classes_directory_relative = './game/entities/'; // For importing
 
