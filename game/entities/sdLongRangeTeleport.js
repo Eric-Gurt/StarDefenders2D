@@ -1384,7 +1384,7 @@ class sdLongRangeTeleport extends sdEntity
 			
 			if ( !this.is_server_teleport )
 			{
-				this.AddContextOption( 'Send items for task completion (300 matter)', 'TELEPORT_STUFF', [] );
+				this.AddContextOption( 'Send items for task completion (300 mater)', 'TELEPORT_STUFF', [] );
 				
 				for ( let i = 0; i < sdTask.tasks.length; i++ )
 				{
