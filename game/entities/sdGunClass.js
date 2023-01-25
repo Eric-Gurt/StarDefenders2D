@@ -2403,7 +2403,7 @@ class sdGunClass
 				if ( gun._held_by._auto_shoot_in > 0 )
 				return 0;
 				
-				return 100;
+				return 900;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
@@ -2426,11 +2426,11 @@ class sdGunClass
 				{
 					sdSound.PlaySound({ name: 'supercharge_combined2_part2', x:gun.x, y:gun.y, volume: 1.5 });
 					
-					if ( gun._held_by.matter >= 100 )
+					if ( gun._held_by.matter >= 900 )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
 						gun._held_by._auto_shoot_in = 15;
-						gun._held_by.matter -= 100;
+						gun._held_by.matter -= 900;
 					}
 				}
 				return true;
@@ -4738,13 +4738,13 @@ class sdGunClass
 				if ( gun._held_by._auto_shoot_in > 0 )
 				return 0;
 			
-				let dmg_scale = 1;
+				/*let dmg_scale = 1;
 
 				if ( gun._held_by )
 				if ( gun._held_by.power_ef > 0 )
-				dmg_scale *= 2.5;
+				dmg_scale *= 2.5;*/
 				
-				return 33 * dmg_scale;
+				return 250;// * dmg_scale;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
@@ -4765,22 +4765,22 @@ class sdGunClass
 				{
 					sdSound.PlaySound({ name: 'supercharge_combined2_part2', x:gun.x, y:gun.y, volume: 1.5, pitch: 2 });
 					
-					if ( gun._held_by.matter >= 33 )
+					if ( gun._held_by.matter >= 250 )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						if ( gun._held_by.stim_ef > 0 )
+						//if ( gun._held_by.stim_ef > 0 )
 						gun._held_by._auto_shoot_in = 7.5;
-						else
-						gun._held_by._auto_shoot_in = 15;
+						//else
+						//gun._held_by._auto_shoot_in = 15;
 
 
-						let dmg_scale = 1;
+						/*let dmg_scale = 1;
 
 						if ( gun._held_by )
 						if ( gun._held_by.power_ef > 0 )
-						dmg_scale *= 2.5;
+						dmg_scale *= 2.5;*/
 
-						gun._held_by.matter -= 33 * dmg_scale;
+						gun._held_by.matter -= 250;// * dmg_scale;
 					}
 				}
 				return true;

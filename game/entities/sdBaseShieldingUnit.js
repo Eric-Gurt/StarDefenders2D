@@ -100,7 +100,7 @@ class sdBaseShieldingUnit extends sdEntity
 		//this._hmax_old = this.hmax;
 		this.regen_timeout = 0;
 		//this._last_sync_matter = 0;
-		this.matter_crystal_max = 2000000;
+		//this.matter_crystal_max = 2000000;
 		this.matter_crystal = 0; // Named differently to prevent matter absorption from entities that emit matter
 		this._protected_entities = [];
 		this.enabled = false;
@@ -889,11 +889,14 @@ class sdBaseShieldingUnit extends sdEntity
 		if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 		if ( from_entity.is( sdCrystal ) )
 		if ( from_entity.held_by === null && from_entity.type !== 2 && from_entity.type !== 6 ) // Prevent crystals which are stored in a crate
-		if ( this.matter_crystal < this.matter_crystal_max )
+		//if ( this.matter_crystal < this.matter_crystal_max )
 		{
 			if ( !from_entity._is_being_removed ) // One per sdRift, also prevent occasional sound flood
 			{
 				sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume:2, pitch:2 });
+				
+				let matter_to_feed = from_entity.matter_max;
+				/* Likely won't work properly with value sharing green BSUs have now
 				let matter_to_feed = ( this.matter_crystal < 50000 ? 1.2 : this.matter_crystal < 100000 ? 1.1 : 1 ) * from_entity.matter_max;
 				let old_matter = this.matter_crystal;
 				if ( this.matter_crystal < 50000 )
@@ -907,9 +910,10 @@ class sdBaseShieldingUnit extends sdEntity
 				{
 					this.matter_crystal = 100000;
 					matter_to_feed = ( matter_to_feed - ( this.matter_crystal - old_matter ) ) / 1.1;
-				}
+				}*/
 
-				this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + matter_to_feed); // Drain the crystal for it's max value and destroy it
+				//this.matter_crystal = Math.min( this.matter_crystal_max, this.matter_crystal + matter_to_feed); // Drain the crystal for it's max value and destroy it
+				this.matter_crystal = Math.min( Number.MAX_SAFE_INTEGER, this.matter_crystal + matter_to_feed ); // Drain the crystal for it's max value and destroy it
 				//this._update_version++;
 				from_entity.remove();
 			}
@@ -922,7 +926,7 @@ class sdBaseShieldingUnit extends sdEntity
 		//return;
 	
 		if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
-		sdEntity.TooltipUntranslated( ctx, T("Crystal-based base shielding unit") + " ( " + ~~(this.matter_crystal) + " / " + ~~(this.matter_crystal_max) + " )" );
+		sdEntity.TooltipUntranslated( ctx, T("Crystal-based base shielding unit") + " ( " + ~~(this.matter_crystal) + " )" );
 		if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
 		{
 			sdEntity.TooltipUntranslated( ctx, T("Matter-based base shielding unit") + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )", 0, -8 );
@@ -1133,7 +1137,12 @@ class sdBaseShieldingUnit extends sdEntity
 			if ( sdWorld.my_entity )
 			{
 				if ( this.enabled === false )
-				this.AddContextOption( 'Scan nearby unprotected entities ( 800 matter )', 'SHIELD_ON', [] );
+				{
+					if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
+					this.AddContextOption( 'Scan nearby unprotected entities ( 800 matter )', 'SHIELD_ON', [] );
+					else
+					this.AddContextOption( 'Scan nearby unprotected entities ( 320 matter )', 'SHIELD_ON', [] );
+				}
 				else
 				{
 					this.AddContextOption( 'Turn the shields off', 'SHIELD_OFF', [] );

@@ -672,7 +672,20 @@ class sdWeather extends sdEntity
 	}
 	TraceDamagePossibleHere( x,y, steps_max=Infinity, sun_light_tracer=false )
 	{
-		for ( var yy = y; yy > sdWorld.world_bounds.y1 && steps_max > 0; yy -= 8, steps_max-- )
+		const consider_sky_open_height = 200;
+		let space_until_premature_true = consider_sky_open_height;
+		
+		for ( 
+				var yy = y; 
+		
+				yy > sdWorld.world_bounds.y1 && 
+				steps_max > 0 && 
+				space_until_premature_true > 0; 
+				
+				yy -= 8, 
+				space_until_premature_true -= 8, 
+				steps_max-- 
+			)
 		{
 			if ( sdWorld.CheckWallExists( x, yy, null, null, [ 'sdBlock', 'sdDoor', 'sdWater' ] ) )
 			{
@@ -686,6 +699,11 @@ class sdWeather extends sdEntity
 					}
 				}
 				return false;
+			}
+			
+			if ( sdWorld.CheckWallExists( x, yy, null, null, [ 'sdBG', 'sdTheatre' ] ) )
+			{
+				space_until_premature_true = consider_sky_open_height;
 			}
 		}
 

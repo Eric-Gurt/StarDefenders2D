@@ -89,6 +89,7 @@ class sdLongRangeTeleport extends sdEntity
 	}
 	Activation()
 	{
+		this._is_busy_since = sdWorld.time;
 		this.is_charging = 1;
 		this.charge_timer = 0;
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
@@ -97,6 +98,7 @@ class sdLongRangeTeleport extends sdEntity
 	}
 	Deactivation()
 	{
+		this._is_busy_since = 0;
 		this.is_charging = 0;
 		this._update_version++;
 		sdSound.PlaySound({ name:'crystal_combiner_end', x:this.x, y:this.y, volume:3, pitch:0.5 });
@@ -848,15 +850,15 @@ class sdLongRangeTeleport extends sdEntity
 					else
 					possible_ent._remote_supported_entity_classes = null; // Old version probably
 					
-					if ( possible_ent.is_charging || sdWorld.time < possible_ent._is_busy_since + 60 * 1000 )
+					if ( possible_ent.is_charging || sdWorld.time < possible_ent._is_busy_since + 15 * 1000 )
 					{
 						ret = {
 							message: 'Started sequence is not finished yet (will be forcefully canceled if old enough)',
 							is_charing: possible_ent.is_charging,
-							is_busy: ( sdWorld.time < possible_ent._is_busy_since + 60 * 1000 )
+							is_busy: ( sdWorld.time < possible_ent._is_busy_since + 15 * 1000 )
 						};
 						
-						if ( sdWorld.time < possible_ent._is_busy_since + 60 * 1000 )
+						if ( sdWorld.time < possible_ent._is_busy_since + 15 * 1000 )
 						{
 							possible_ent.Deactivation();
 						}
@@ -971,12 +973,13 @@ class sdLongRangeTeleport extends sdEntity
 			//if ( exectuter_character._god || sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
 			if ( exectuter_character._god || this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) )
 			{
-				let can_reset_teleport = !( this.is_charging || sdWorld.time < this._is_busy_since + 60 * 1000 );
+				//let can_reset_teleport = !( this.is_charging || sdWorld.time < this._is_busy_since + 15 * 1000 );
+				let can_reset_teleport = !this.is_charging || ( this.is_charging && sdWorld.time > this._is_busy_since + 15 * 1000 );
 				
-				if ( exectuter_character._god && command_name === 'TELEPORT_RESET' )
+				if ( ( exectuter_character._god && command_name === 'TELEPORT_RESET' ) || ( this.is_charging && can_reset_teleport ) )
 				{
 					this.Deactivation();
-					this._is_busy_since = 0;
+					//this._is_busy_since = 0;
 				}
 				else
 				if ( !can_reset_teleport )
@@ -1217,7 +1220,7 @@ class sdLongRangeTeleport extends sdEntity
 						{
 							executer_socket.SDServiceMessage( 'Busy - previous sequence is not finished yet (will be forcefully canceled if old enough)' );
 							
-							if ( sdWorld.time > this._is_busy_since + 60 * 1000 )
+							if ( sdWorld.time > this._is_busy_since + 15 * 1000 )
 							{
 								this.Deactivation();
 							}
@@ -1242,7 +1245,7 @@ class sdLongRangeTeleport extends sdEntity
 								},
 								( response=null )=>
 								{
-									this._is_busy_since = 0;
+									//this._is_busy_since = 0;
 
 									if ( response )
 									{
@@ -1384,7 +1387,7 @@ class sdLongRangeTeleport extends sdEntity
 			
 			if ( !this.is_server_teleport )
 			{
-				this.AddContextOption( 'Send items for task completion (300 mater)', 'TELEPORT_STUFF', [] );
+				this.AddContextOption( 'Send items for task completion (300 matter)', 'TELEPORT_STUFF', [] );
 				
 				for ( let i = 0; i < sdTask.tasks.length; i++ )
 				{
