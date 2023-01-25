@@ -349,6 +349,52 @@ class sdElement
 
 			element.onkeydown = v ? ( e )=>
 			{
+				if ( params.code && e.key === 'Tab' )
+				{
+					let t = element.textContent;
+					let pos = window.getSelection().anchorOffset;
+					
+					function MoveCaret( pos )
+					{
+						let range = document.createRange();
+						let sel = window.getSelection();
+
+						range.setStart(element.childNodes[0], pos );
+						range.collapse(true);
+
+						sel.removeAllRanges();
+						sel.addRange(range);
+					}
+					
+					if ( e.shiftKey )
+					{
+						let last_tab = t.lastIndexOf( '\t', pos - 1 );
+						let last_br = t.lastIndexOf( '\n', pos - 1 );
+						
+						if ( last_tab > last_br )
+						{
+							element.textContent = t.slice( 0, last_tab ) + t.slice( last_tab + 1 );
+							MoveCaret( pos - 1 );
+						}
+					}
+					else
+					{
+						element.textContent = t.slice( 0, pos ) + '\t' + t.slice( pos );
+						MoveCaret( pos + 1 );
+					}
+					
+
+					
+					
+					
+					e.preventDefault();
+					e.stopImmediatePropagation();
+				}
+				else
+				if ( params.code && e.key === 'Enter' )
+				{
+				}
+				else
 				if ( e.key === 'Enter' )
 				{
 					e.preventDefault();

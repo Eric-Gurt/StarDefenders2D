@@ -946,7 +946,7 @@ class sdLongRangeTeleport extends sdEntity
 					{
 						// What if responses is null? Might happen if there is no connection to database server or database server refuses to accept connection from current server
 						
-						executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_RESET', [] ); // class command_name, parameters_array
+						executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_RESET', [] ); // class, command_name, parameters_array
 						
 						for ( let i = 0; i < responses.length; i++ )
 						{
@@ -959,7 +959,7 @@ class sdLongRangeTeleport extends sdEntity
 							else
 							if ( response[ 0 ] === 'LIST_RESULT' )
 							{
-								executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_ADD', [ response[ 1 ] ] ); // class command_name, parameters_array
+								executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_ADD', [ response[ 1 ] ] ); // class, command_name, parameters_array
 							}
 							else
 							debugger;
@@ -1159,7 +1159,7 @@ class sdLongRangeTeleport extends sdEntity
 															if ( response[ 0 ] === 'SUCCESS' )
 															{
 																//executer_socket.SDServiceMessage( 'Success!' );
-																executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_UPDATE_IF_TRACKING', [] ); // class command_name, parameters_array
+																executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_UPDATE_IF_TRACKING', [] ); // class, command_name, parameters_array
 															}
 														}
 													},
@@ -1194,7 +1194,7 @@ class sdLongRangeTeleport extends sdEntity
 														{
 															this.InsertEntitiesOnTop( response[ 1 ], response[ 2 ], response[ 3 ] );
 															
-															executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_UPDATE_IF_TRACKING', [] ); // class command_name, parameters_array
+															executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_UPDATE_IF_TRACKING', [] ); // class, command_name, parameters_array
 														}
 														else
 														debugger;

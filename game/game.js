@@ -137,6 +137,8 @@ let entity_class_names = ( await ( await fetch( '/get_entity_classes.txt' ) ).te
 	import sdElement from './interfaces/sdElement.js';
 	import sdDatabaseEditor from './interfaces/sdDatabaseEditor.js';
 	import sdMotherShipStorageManager from './interfaces/sdMotherShipStorageManager.js';
+	import sdCodeEditor from './interfaces/sdCodeEditor.js';
+	
 	
 	
 	let entity_classes_directory_relative = './entities/';
@@ -235,6 +237,7 @@ let entity_class_names = ( await ( await fetch( '/get_entity_classes.txt' ) ).te
 	sdElement.init_class();
 	sdDatabaseEditor.init_class();
 	sdMotherShipStorageManager.init_class();
+	sdCodeEditor.init_class();
 
 
 	for ( let i = 0; i < imported_entity_classes.length; i++ )
@@ -330,6 +333,7 @@ let entity_class_names = ( await ( await fetch( '/get_entity_classes.txt' ) ).te
 	
 	globalThis.sdDatabaseEditor = sdDatabaseEditor;
 	globalThis.sdMotherShipStorageManager = sdMotherShipStorageManager;
+	globalThis.sdCodeEditor = sdCodeEditor;
 	
 	sdWorld.FinalizeClasses();
 
