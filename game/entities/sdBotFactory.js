@@ -563,6 +563,7 @@ function BrainModelB()
 					}
 				}
 
+				if ( this._program )
 				this._program.Think( GSPEED );
 			}
 
