@@ -255,7 +255,7 @@ k.prototype.getStateStack=k.prototype.ub;k.prototype.setStateStack=k.prototype.y
 		if ( obj === null || obj === undefined )
 		return null;
 	
-		return sdEntity.GetObjectByClassAndNetId( obj.class, obj._net_id );
+		return sdEntity.GetObjectByClassAndNetId( obj.entity_class, obj._net_id );
 	}
 	
 	static StartProgram( code, method_interface={} )
