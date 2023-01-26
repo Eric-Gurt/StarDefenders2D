@@ -13,6 +13,7 @@ import sdTimer from './sdTimer.js';
 import sdCamera from './sdCamera.js';
 import sdDoor from './sdDoor.js';
 import sdFleshGrabber from './sdFleshGrabber.js';
+import sdBot from './sdBot.js';
 
 
 
@@ -379,6 +380,8 @@ class sdBlock extends sdEntity
 					{
 						//this._contains_class = 'sdSandWorm'; // Hack
 					
+						let ent;
+					
 						if ( this._contains_class === 'sdSandWorm' || this._contains_class === 'sdSandWorm.corrupted' )
 						{
 							let map = {};
@@ -409,7 +412,7 @@ class sdBlock extends sdEntity
 										for ( let i in this._contains_class_params )
 										params[ i ] = this._contains_class_params[ i ];
 									}
-									let ent = new sdWorld.entity_classes[ this._contains_class ]( params );
+									ent = new sdWorld.entity_classes[ this._contains_class ]( params );
 									if ( parts.length < 2 ) // If worm is not corrupted, etc, spawn regular worm types
 									ent.kind = Math.random() < 0.15 ? 1 : 0; // 15% chance for the worm to be spiky
 									sdEntity.entities.push( ent );
@@ -463,7 +466,7 @@ class sdBlock extends sdEntity
 										params[ i ] = this._contains_class_params[ i ];
 									}
 
-									let ent = new sdWorld.entity_classes[ this._contains_class ]( params );
+									ent = new sdWorld.entity_classes[ this._contains_class ]( params );
 									sdEntity.entities.push( ent );
 									sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
 
@@ -491,7 +494,7 @@ class sdBlock extends sdEntity
 							let blocks_near = sdWorld.GetAnythingNear( this.x + this.width / 2, this.y + this.height / 2, 16, null, [ 'sdBlock' ] );
 
 							for ( let i = 0; i < blocks_near.length; i++ )
-							if ( blocks_near[ i ].material = sdBlock.MATERIAL_FLESH )
+							if ( blocks_near[ i ].material === sdBlock.MATERIAL_FLESH )
 							if ( !blocks_near[ i ]._is_being_removed )
 							map[ ( blocks_near[ i ].x - this.x ) / 16 + ':' + ( blocks_near[ i ].y - this.y ) / 16 ] = blocks_near[ i ];
 
@@ -515,7 +518,7 @@ class sdBlock extends sdEntity
 										params[ i ] = this._contains_class_params[ i ];
 									}
 
-									let ent = new sdWorld.entity_classes[ this._contains_class ]( params );
+									ent = new sdWorld.entity_classes[ this._contains_class ]( params );
 									sdEntity.entities.push( ent );
 									sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
 
@@ -554,11 +557,18 @@ class sdBlock extends sdEntity
 									params[ i ] = this._contains_class_params[ i ];
 								}
 
-								let ent = new sdWorld.entity_classes[ this._contains_class ]( params );
+								ent = new sdWorld.entity_classes[ this._contains_class ]( params );
 								sdEntity.entities.push( ent );
 
 								sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
 							}
+						}
+						
+						if ( ent && !ent._is_being_removed )
+						if ( initiator )
+						if ( initiator.is( sdBot ) )
+						{
+							ent.SyncedToPlayer( initiator ); // Attempt attacking digging bots
 						}
 					}
 					

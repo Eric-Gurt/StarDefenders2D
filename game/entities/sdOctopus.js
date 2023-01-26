@@ -360,6 +360,7 @@ class sdOctopus extends sdEntity
 						 ( from_entity.GetClass() === 'sdBlock' && ( !from_entity._natural || !from_entity.IsDefaultGround() ) ) ||
 						 from_entity.GetClass() === 'sdCom' ||
 						 from_entity.GetClass() === 'sdNode' ||
+						 from_entity.GetClass() === 'sdBot' ||
 						 from_entity.GetClass() === 'sdCrystal' ||
 						 from_entity.GetClass() === 'sdTurret' ||
 						 from_entity.GetClass() === 'sdDoor' ||

@@ -17,6 +17,7 @@ import sdCom from './sdCom.js';
 import sdWater from './sdWater.js';
 import sdBloodDecal from './sdBloodDecal.js';
 import sdBG from './sdBG.js';
+import sdCube from './sdCube.js';
 
 /*
 
@@ -2459,6 +2460,11 @@ class sdGunClass
 
 						for ( let i = 0; i < nears.length; i++ )
 						{
+							// Prevent yellow cubes from commiting not living
+							if ( nears[ i ].is( sdCube ) && bullet._owner === nears[ i ] )
+							{
+							}
+							else
 							sdLost.ApplyAffection( nears[ i ], 300, bullet );
 						}
 					}

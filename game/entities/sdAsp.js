@@ -309,7 +309,7 @@ class sdAsp extends sdEntity
 				{
 					from_entity = nears_raw[ i ];
 					
-					if ( ( ( from_entity.GetClass() === 'sdCharacter' || this._current_target === from_entity ) && from_entity.IsVisible( this ) && ( from_entity.hea || from_entity._hea ) > 0 ) )
+					if ( ( ( from_entity.IsPlayerClass() || from_entity.GetClass() === 'sdBot' || this._current_target === from_entity ) && from_entity.IsVisible( this ) && ( from_entity.hea || from_entity._hea ) > 0 ) )
 					{
 						let rank = Math.random() * 0.1;
 						

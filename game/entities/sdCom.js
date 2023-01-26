@@ -298,6 +298,9 @@ class sdCom extends sdEntity
 				if ( this.subscribers.indexOf( 'sdBullet' ) === -1 )
 				this.AddContextOption( 'Subscribe projectiles', 'COM_SUB', [ 'sdBullet' ] );
 
+				if ( this.subscribers.indexOf( 'sdBot' ) === -1 )
+				this.AddContextOption( 'Subscribe bots', 'COM_SUB', [ 'sdBot' ] );
+
 				if ( this.subscribers.indexOf( '*' ) === -1 )
 				this.AddContextOption( 'Subscribe everything (for doors & teleports only)', 'COM_SUB', [ '*' ] );
 

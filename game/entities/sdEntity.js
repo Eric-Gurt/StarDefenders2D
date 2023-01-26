@@ -97,6 +97,10 @@ class sdEntity
 		sdWorld.entity_classes_array = Object.values( sdWorld.entity_classes );
 		for ( let i = 0; i < sdWorld.entity_classes_array.length; i++ )
 		sdWorld.entity_classes_array[ i ].class_id = i;
+	
+		for ( let i = 0; i < sdWorld.entity_classes_array.length; i++ )
+		if ( sdWorld.entity_classes_array[ i ].init )
+		sdWorld.entity_classes_array[ i ].init();
 	}
 	
 	GetCollisionMode()

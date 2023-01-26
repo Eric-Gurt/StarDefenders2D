@@ -6,6 +6,7 @@
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
+import sdBot from './sdBot.js';
 
 
 class sdBotCharger extends sdEntity
@@ -13,6 +14,8 @@ class sdBotCharger extends sdEntity
 	static init_class()
 	{
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
+		
+		sdBotCharger.chargers = [];
 	}
 	get hitbox_x1() { return -15; }
 	get hitbox_x2() { return 14; }
@@ -62,6 +65,10 @@ class sdBotCharger extends sdEntity
 		
 		this._matter_max = 300;
 		this.matter = 0;
+		
+		this._charge_target = null;
+		
+		sdBotCharger.chargers.push( this );
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -73,14 +80,45 @@ class sdBotCharger extends sdEntity
 		else
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 	}
+	
+	onMovementInRange( from_entity )
+	{
+		if ( from_entity.is( sdBot ) )
+		if ( from_entity.hea > 0 )
+		{
+			this.TransferMatter( from_entity, this.matter, 1 );
+			
+			if ( this.matter > 0 )
+			{
+				let delta = Math.min( ( from_entity.hmax - from_entity.hea ) * sdWorld.damage_to_matter, this.matter );
+				
+				from_entity.hea += delta / sdWorld.damage_to_matter;
+				
+				this.matter -= delta;
+				
+				if ( this.matter < -1 )
+				throw new Error();
+				
+				if ( from_entity.hea > from_entity.hmax + 1 )
+				throw new Error();
+			}
+		}
+	}
+	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, this.title );
+		sdEntity.TooltipUntranslated( ctx, T( this.title ) + ' ( '+(~~this.matter)+' / '+this._matter_max+' )' );
 	}
 	onRemove()
 	{
 		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 3 );
+	}
+	onBeforeRemove() // Right when .remove() is called for the first time. This method won't be altered by build tool spawn logic
+	{
+		let id = sdBotCharger.chargers.indexOf( this );
+		if ( id !== -1 )
+		sdBotCharger.chargers.splice( id, 1 );
 	}
 	Draw( ctx, attached )
 	{

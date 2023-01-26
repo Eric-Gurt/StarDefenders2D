@@ -42,11 +42,11 @@ class sdCodeEditor
 			draggable: true
 		});
 		this.window.element.style.cssText = `
-			left: calc( 100% - 20px - 400px );
-			top: calc( 100% - 20px - 600px );
+			left: calc( 100% - 20px - 600px );
+			top: 0px;
 		
-			width: 400px;
-			height: 600px;
+			width: 600px;
+			height: 100%;
 		`;
 		
 		this.info_block = this.window.createElement({ 
@@ -93,7 +93,7 @@ class sdCodeEditor
 		this.code_element.element.style.width = '100%';
 		this.code_element.element.style.fontSize = '12px';
 		this.code_element.element.style.outline = 'none';
-		this.code_element.element.style.backgroundColor = '#00008b';
+		this.code_element.element.style.backgroundColor = '#000066';
 		this.code_element.element.style.padding = '10px';
 		this.code_element.element.style.boxSizing = 'border-box';
 		this.code_element.element.style.whiteSpace = 'pre';

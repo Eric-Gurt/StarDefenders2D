@@ -410,7 +410,7 @@ class sdDrone extends sdEntity
 			}
 		}
 		
-		if ( this._hea < -600 || this._hea < 0 && this.type === sdDrone.DRONE_SARRORIAN_DETONATOR )
+		if ( this._hea < -600 || ( this._hea < 0 && this.type === sdDrone.DRONE_SARRORIAN_DETONATOR ) )
 		this.remove();
 	}
 	get mass() { return 500; }
@@ -1215,7 +1215,7 @@ class sdDrone extends sdEntity
 		sdDrone.drones_tot--;
 		
 		if ( this._broken )
-		sdWorld.BasicEntityBreakEffect( this, 15, 3, 0.75, 0.75 );
+		sdWorld.BasicEntityBreakEffect( this, 10, 3, 0.75, 0.75 );
 		//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
 
 	}

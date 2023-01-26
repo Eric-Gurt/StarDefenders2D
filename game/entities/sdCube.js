@@ -849,6 +849,7 @@ class sdCube extends sdEntity
 							if ( ( target.IsPlayerClass() && target.hea > 0 && !sdCube.IsTargetFriendly( target ) ) ||
 								 ( target.GetClass() === 'sdTurret' && !sdCube.IsTargetFriendly( target ) ) || 
 								 ( target.GetClass() === 'sdEnemyMech' && target.hea > 0  && !sdCube.IsTargetFriendly( target ) ) ||
+								 ( target.GetClass() === 'sdBot' && target.hea > 0  && !sdCube.IsTargetFriendly( target ) ) ||
 								 ( target.GetClass() === 'sdSpider' && target._hea > 0  && !sdCube.IsTargetFriendly( target ) ) ||
 								 ( target.GetClass() === 'sdDrone' && target._hea > 0  && !sdCube.IsTargetFriendly( target ) ) ||
 								 ( target.GetClass() === 'sdOverlord' && target.hea > 0  && !sdCube.IsTargetFriendly( target ) ) ||
@@ -1043,7 +1044,11 @@ class sdCube extends sdEntity
 		if ( ent._target.GetClass() === 'sdCube' )
 		//if ( sdWorld.GetComsNear( ent.x, ent.y, null, 'sdCube', true ).length === 0 )
 		return false;
+		
 		if ( ent.GetClass() === 'sdEnemyMech' ) // Flying mechs are targetable by cubes now
+		return false;
+		
+		if ( ent.GetClass() === 'sdBot' ) // Flying mechs are targetable by cubes now
 		return false;
 
 		if ( ent.GetClass() === 'sdSetrDestroyer' ) // Flying mechs are targetable by cubes now

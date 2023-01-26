@@ -12,6 +12,8 @@ class sdBeacon extends sdEntity
 	{
 		sdBeacon.img_beacon = sdWorld.CreateImageFromFile( 'beacon' );
 		
+		sdBeacon.beacons = [];
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -3; }
@@ -34,6 +36,8 @@ class sdBeacon extends sdEntity
 		this.biometry = 1000 + Math.floor( Math.random() * 8999 );
 		
 		this._owner = null;
+		
+		sdBeacon.beacons.push( this );
 	}
 	Impact( vel ) // fall damage basically
 	{
@@ -74,7 +78,8 @@ class sdBeacon extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, "Beacon" );
+		sdEntity.Tooltip( ctx, "Beacon", 0, -8 );
+		sdEntity.TooltipUntranslated( ctx, "ID: " + this.biometry, 0, 0, '#666666' );
 	}
 	Draw( ctx, attached )
 	{
@@ -86,6 +91,12 @@ class sdBeacon extends sdEntity
 	{
 		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 3 );
+	}
+	onBeforeRemove() // Right when .remove() is called for the first time. This method won't be altered by build tool spawn logic
+	{
+		let id = sdBeacon.beacons.indexOf( this );
+		if ( id !== -1 )
+		sdBeacon.beacons.splice( id, 1 );
 	}
 	MeasureMatterCost()
 	{
@@ -136,7 +147,7 @@ class sdBeacon extends sdEntity
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 		{
-			this.AddContextOption( 'Track this beacon ('+this.biometry+')', 'TRACK', [] );
+			this.AddContextOption( 'Track this beacon', 'TRACK', [] );
 			this.AddContextOption( 'Stop tracking this beacon', 'STOP', [] );
 		}
 	}

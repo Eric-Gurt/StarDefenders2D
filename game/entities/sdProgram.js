@@ -8,13 +8,20 @@
 
 */
 
-import sdTimer from '../entities/sdTimer.js';
+import sdEntity from './sdEntity.js';
+import sdTimer from './sdTimer.js';
+import sdBeacon from './sdBeacon.js';
+import sdBot from './sdBot.js';
+import sdWorld from '../sdWorld.js';
 
 class sdProgram
 {
 	static init_class()
 	{
 		sdProgram.AsyncFunction = ( async ()=>{} ).__proto__;
+		
+		sdProgram.last_frame = sdWorld.frame;
+		sdProgram.shell_object_by_program = new Map(); // [ program ][ entity ] // cleared on each frame
 		
 		{
 			// JS-Interpreter: Copyright 2013 Google LLC, Apache 2.0
@@ -143,7 +150,7 @@ k.prototype.getStateStack=k.prototype.ub;k.prototype.setStateStack=k.prototype.y
 			sdProgram.Interpreter = Interpreter;
 		}
 
-		function CompileDemo()
+		/*function CompileDemo()
 		{
 			trace( 'Starting CompileDemo for sdProgram class...' );
 			
@@ -173,7 +180,7 @@ k.prototype.getStateStack=k.prototype.ub;k.prototype.setStateStack=k.prototype.y
 			}, 16 );
 		}
 
-		setTimeout( CompileDemo, 5000 );
+		setTimeout( CompileDemo, 5000 );*/
 		
 	}
 	
@@ -184,6 +191,71 @@ k.prototype.getStateStack=k.prototype.ub;k.prototype.setStateStack=k.prototype.y
 			callback();
 
 		}, ms );
+	}
+	
+	static GetShellObjectByEntity( ent, program ) // Entity -> Shell object
+	{
+		if ( ent === null )
+		return null;
+		
+		if ( sdProgram.last_frame !== sdWorld.frame )
+		{
+			sdProgram.last_frame = sdWorld.frame;
+			//sdProgram.shell_object_by_program = new Map();
+			sdProgram.shell_object_by_program.clear();
+		}
+		
+		let program_map = sdProgram.shell_object_by_program.get( program );
+		
+		if ( !program_map )
+		{
+			program_map = new Map();
+			sdProgram.shell_object_by_program.set( program, program_map );
+		}
+		
+		let obj = program_map.get( ent );
+		
+		if ( !obj )
+		{
+			obj = { _net_id: ent._net_id, x: ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2, y: ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2 };
+			
+			program_map.set( ent, obj );
+			
+			if ( ent.is( sdBeacon ) )
+			obj.id = ent.biometry;
+
+			if ( ent.is( sdBot ) )
+			obj.carrying = sdProgram.GetShellObjectByEntity( ent.carrying, program );
+
+			obj.entity_class = ent.GetClass();
+			
+			obj.class = ent.clss;
+			obj.kind = ent.kind;
+			obj.material = ent.material;
+			obj.type = ent.type;
+
+			obj.is_player = ( ent.IsPlayerClass() && ent._socket ) ? true : false;
+
+			if ( obj.is_player )
+			obj.title = ent.title;
+
+			obj.hitpoints = ( ent._hea || ent.hea || 0 );
+			obj.hitpoints_max = ( ent._hmax || ent.hmax || 0 );
+
+			obj.matter = ( ent._matter || ent.matter || 0 );
+			obj.matter_max = ( ent._matter_max || ent.matter_max || 0 );
+		}
+		
+		//obj = program.interpreter.nativeToPseudo( obj );
+		
+		return obj;
+	}
+	static GetEntityByShellObject( obj )
+	{
+		if ( obj === null || obj === undefined )
+		return null;
+	
+		return sdEntity.GetObjectByClassAndNetId( obj.class, obj._net_id );
 	}
 	
 	static StartProgram( code, method_interface={} )
@@ -215,9 +287,11 @@ k.prototype.getStateStack=k.prototype.ub;k.prototype.setStateStack=k.prototype.y
 			step_timer: 0,
 			crashed: false,
 			ended: false,
+			report_exec_position_to: null,
+			calculations_speed: 20, // 1 is quite slow when it comes to 30 item loops and simple actions
 			Think: ( GSPEED )=>
 			{
-				obj.step_timer -= GSPEED;
+				obj.step_timer -= GSPEED * obj.calculations_speed;
 				
 				while ( obj.step_timer <= 0 )
 				{
@@ -235,6 +309,12 @@ k.prototype.getStateStack=k.prototype.ub;k.prototype.setStateStack=k.prototype.y
 							if ( interpreter.step() ) 
 							{
 								next_memory_check++;
+								
+								if ( obj.report_exec_position_to )
+								{
+									let stack = interpreter.getStateStack();
+									obj.report_exec_position_to( 'line ' + stack[ stack.length - 1 ].node.loc.start.line + ', column ' + stack[ stack.length - 1 ].node.loc.start.column );
+								}
 								
 								if ( next_memory_check > 1000 )
 								{

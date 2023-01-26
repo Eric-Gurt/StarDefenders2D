@@ -201,8 +201,7 @@ class sdPathFinding
 
 		let version_at_traveler = this.rect_space_map.bitmap_dataView.getUint32( BYTES_PER_VALUE * ( offset_current + OFFSET_VERSION ) );
 		
-		//if ( Math.max( Math.abs( this.traveler._hitbox_x2 ), Math.abs( this.traveler._hitbox_x1 ), Math.abs( this.traveler._hitbox_y2 ), Math.abs( this.traveler._hitbox_y1 ) ) > 8 )
-		let hitbox_radius = Math.max( Math.abs( this.traveler._hitbox_x2 ), Math.abs( this.traveler._hitbox_x1 ), Math.abs( this.traveler._hitbox_y2 ), Math.abs( this.traveler._hitbox_y1 ) );
+		//let hitbox_radius = Math.max( Math.abs( this.traveler._hitbox_x2 ), Math.abs( this.traveler._hitbox_x1 ), Math.abs( this.traveler._hitbox_y2 ), Math.abs( this.traveler._hitbox_y1 ) );
 		
 		//trace( hitbox_radius, test_positions_scale );
 		
@@ -220,8 +219,8 @@ class sdPathFinding
 				best_dx = dx;
 				best_dy = dy;
 				
-				let x = Math.floor( this.traveler.x / 16 + dx ) * 16;
-				let y = Math.floor( this.traveler.y / 16 + dy ) * 16;
+				//let x = Math.floor( this.traveler.x / 16 + dx ) * 16;
+				//let y = Math.floor( this.traveler.y / 16 + dy ) * 16;
 				
 				best_is_wall = null;
 				//if ( sdWorld.CheckWallExistsBox( x + 1, y + 1, x + 15, y + 15, null, null, sdCom.com_visibility_unignored_classes, null ) )
@@ -281,7 +280,10 @@ class sdPathFinding
 			this.control_pattern.look_x = this.traveler.x + best_dx * 32;
 			this.control_pattern.look_y = this.traveler.y + best_dy * 32;
 			
+			if ( this.rect_space_map.can_dig )
 			this.control_pattern.attack_target = best_is_wall;
+			else
+			this.control_pattern.attack_target = null;
 			
 			return this.control_pattern;
 		}
@@ -481,6 +483,16 @@ class RectSpaceMap
 		}
 	}
 	
+	MarkAsDistanceToTarget( offset, x, y, distance )
+	{
+		this.ScheduleCellUpdate( offset, x, y );
+		
+		// uint16 max value is 65535
+		this.bitmap_dataView.setUint16( BYTES_PER_VALUE * ( offset + OFFSET_DISTANCE_TO_TARGET ), distance ); // Distance limit is 65535 cells * 16 px = 1048560 px
+		this.bitmap_dataView.setUint32( BYTES_PER_VALUE * ( offset + OFFSET_VERSION ), this.version );
+		this.bitmap_dataView.setUint8( BYTES_PER_VALUE * ( offset + OFFSET_IS_FULLY_SOLVED ), 0 );
+	}
+	
 	UpdateTargetPosition()
 	{
 		let x = Math.floor( ( this.target.x + ( this.target._hitbox_x1 + this.target._hitbox_x2 ) / 2 ) / 16 ) * 16;
@@ -488,17 +500,30 @@ class RectSpaceMap
 		let offset = this.GetBitOffsetFromXY( x, y );
 		
 		if ( this.last_player_offset !== offset )
+		//if ( this.last_player_offset !== offset || this.active_bits_arr.length === 0 ) // Keep pinging?
 		{
-			this.ScheduleCellUpdate( offset, x, y );
-		
 			this.last_player_offset = offset;
 			
 			this.version = this.version + 1;//( this.version + 1 ) % 65535; // Likely to never loop
 			
+			
+			//this.ScheduleCellUpdate( offset, x, y );
+			// Extra because entity might be too close to something like aplifier
+			/*this.ScheduleCellUpdate( offset, x-16, y );
+			this.ScheduleCellUpdate( offset, x+16, y );
+			this.ScheduleCellUpdate( offset, x, y-16 );
+			this.ScheduleCellUpdate( offset, x, y+16 );*/
+		
 			// uint16 max value is 65535
-			this.bitmap_dataView.setUint16( BYTES_PER_VALUE * ( offset + OFFSET_DISTANCE_TO_TARGET ), 1 ); // Distance limit is 65535 cells * 16 px = 1048560 px
-			this.bitmap_dataView.setUint32( BYTES_PER_VALUE * ( offset + OFFSET_VERSION ), this.version );
-			this.bitmap_dataView.setUint8( BYTES_PER_VALUE * ( offset + OFFSET_IS_FULLY_SOLVED ), 0 );
+			//this.bitmap_dataView.setUint16( BYTES_PER_VALUE * ( offset + OFFSET_DISTANCE_TO_TARGET ), 1 ); // Distance limit is 65535 cells * 16 px = 1048560 px
+			//this.bitmap_dataView.setUint32( BYTES_PER_VALUE * ( offset + OFFSET_VERSION ), this.version );
+			//this.bitmap_dataView.setUint8( BYTES_PER_VALUE * ( offset + OFFSET_IS_FULLY_SOLVED ), 0 );
+			
+			this.MarkAsDistanceToTarget( offset, x, y, 1 );
+			this.MarkAsDistanceToTarget( this.GetBitOffsetFromXY( x-16, y ), x-16, y, 2 );
+			this.MarkAsDistanceToTarget( this.GetBitOffsetFromXY( x+16, y ), x+16, y, 2 );
+			this.MarkAsDistanceToTarget( this.GetBitOffsetFromXY( x, y-16 ), x, y-16, 2 );
+			this.MarkAsDistanceToTarget( this.GetBitOffsetFromXY( x, y+16 ), x, y+16, 2 );
 		}
 	}
 	
@@ -639,6 +664,7 @@ class RectSpaceMap
 					let offset_nearby = this.GetBitOffsetFromXY( x, y );
 					let nearby_is_wall = sdWorld.CheckWallExistsBox( x + 1, y + 1, x + 15, y + 15, null, null, sdCom.com_visibility_unignored_classes, null );
 
+					//sdWorld.SendEffect({ x: x + 8, y: y + 8, type:sdWorld.entity_classes.sdEffect.TYPE_WALL_HIT });
 					
 					let nearby_is_water = sdWater.GetWaterObjectAt( x, y );
 					nearby_is_water = nearby_is_water ? nearby_is_water.type === sdWater.TYPE_WATER : false;
