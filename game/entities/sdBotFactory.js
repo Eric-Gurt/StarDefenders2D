@@ -19,7 +19,7 @@ class sdBotFactory extends sdEntity
 	{
 		sdBotFactory.img_bot_stuff = sdWorld.CreateImageFromFile( 'sdRepairBot' );
 		
-		sdBotFactory.debug = 1;
+		sdBotFactory.debug = 0;
 		
 		sdBotFactory.default_program = 
 `// This block is executed on bot factory
