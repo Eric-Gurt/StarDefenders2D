@@ -1024,10 +1024,21 @@ let enf_once = true;
 		ArrowRight: 'KeyD'
 	};
 	
-	window.onkeydown = async ( e )=>
+	function IsGameFocused()
 	{
 		if ( document.activeElement !== sdRenderer.canvas && document.activeElement !== document.body )
+		{
+			if ( document.activeElement.contentEditable || ( document.activeElement.tagName === 'INPUT' && document.activeElement.type === 'text' ) || document.activeElement.tagName === 'TEXTAREA' )
+			return false;
+		}
 		return true;
+	}
+	
+	window.onkeydown = async ( e )=>
+	{
+		if ( !IsGameFocused() )
+		return true;
+	
 	
 		if ( sdShop.open )
 		{
@@ -1042,8 +1053,8 @@ let enf_once = true;
 		if ( await sdChat.KeyDown( e ) )
 		return;
 	
-		if ( sdElement.current_hover )
-		return;
+		//if ( sdElement.current_hover )
+		//return;
 	
 		let code = e.code;
 		
@@ -1120,7 +1131,7 @@ let enf_once = true;
 	};
 	window.onkeypress = ( e )=>
 	{
-		if ( document.activeElement !== sdRenderer.canvas && document.activeElement !== document.body )
+		if ( !IsGameFocused() )
 		return true;
 	
 		sdChat.KeyPress( e );
@@ -1154,8 +1165,10 @@ let enf_once = true;
 	};
 	window.onmousemove = ( e )=>
 	{
-		if ( e.target !== sdRenderer.canvas && e.target !==	document.firstChild )
-		return;
+		//if ( e.target !== sdRenderer.canvas && e.target !==	document.firstChild )
+		//return;
+		
+		
 	
 		if ( e.mobile_bypass )
 		{
@@ -1165,9 +1178,18 @@ let enf_once = true;
 			if ( sdWorld.mobile )
 			return;
 		}
+		
+		if ( held_mouse_buttons[ e.which ] )
+		{
+		}
+		else
+		{
+			if ( e.target !== sdRenderer.canvas && e.target !==	document.firstChild )
+			return;
+		}
 	
-		if ( sdElement.current_hover )
-		return;
+		//if ( sdElement.current_hover )
+		//return;
 	
 		//if ( sdWorld.my_entity )
 		//{
@@ -1175,6 +1197,9 @@ let enf_once = true;
 			sdWorld.mouse_screen_y = e.clientY * sdRenderer.resolution_quality;
 		//}
 	};
+	
+	let held_mouse_buttons = [ false, false, false ];
+	
 	window.onmousedown = ( e )=>
 	{
 		if ( e.target !== sdRenderer.canvas && e.target !==	document.firstChild )
@@ -1213,17 +1238,26 @@ let enf_once = true;
 		//socket.emit( 'K1', code );
 		sd_events.push( [ 'K1', code ] );
 		
+		held_mouse_buttons[ e.which ] = true;
+		
 		e.preventDefault();
 	};
 	window.onmouseup = ( e )=>
 	{
-		if ( e.target !== sdRenderer.canvas && e.target !==	document.firstChild )
+		/*if ( e.target !== sdRenderer.canvas && e.target !==	document.firstChild )
 		return;
 	
 		if ( sdRenderer.canvas.style.display !== 'block' )
 		return;
 	
 		if ( sdElement.current_hover )
+		return;*/
+		
+		if ( held_mouse_buttons[ e.which ] )
+		{
+			held_mouse_buttons[ e.which ] = false;
+		}
+		else
 		return;
 	
 		if ( sdWorld.mobile )

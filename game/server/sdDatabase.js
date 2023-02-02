@@ -822,11 +822,11 @@ class sdDatabase
 
 					if ( prop.charAt( 0 ) === '!' )
 					{
-						obj[ '_' + prop.substring( 1 ) ] = sdDatabase.SanitizeUnderscores( obj[ prop ] );
+						obj[ '_' + prop.substring( 1 ) ] = sdDatabase.DesanitizeUnderscores( obj[ prop ] );
 						delete obj[ prop ];
 					}
 					else
-					obj[ prop ] = sdDatabase.SanitizeUnderscores( obj[ prop ] );
+					obj[ prop ] = sdDatabase.DesanitizeUnderscores( obj[ prop ] );
 				}
 			}
 		}
