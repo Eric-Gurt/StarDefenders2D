@@ -448,9 +448,9 @@ class sdCrystal extends sdEntity
 			if ( this._hea < this._hmax )
 			this._hea = Math.min( this._hmax, this._hea + GSPEED * 0.01 ); // Quite slow
 		
-			if ( sdWorld.server_config.base_shielding_units_passive_drain_per_week > 0 )
+			if ( sdWorld.server_config.base_shielding_units_passive_drain_per_week_blue > 0 )
 			if ( this.held_by.is( sdMatterAmplifier ) )
-			this.matter_regen = sdWorld.MorphWithTimeScale( this.matter_regen, 0, 1 - sdWorld.server_config.base_shielding_units_passive_drain_per_week, GSPEED * this.held_by.multiplier/8 / ( 30 * 60 * 60 * 24 * 7 ) ); // 20% per week on highest tier
+			this.matter_regen = sdWorld.MorphWithTimeScale( this.matter_regen, 0, 1 - sdWorld.server_config.base_shielding_units_passive_drain_per_week_blue, GSPEED * this.held_by.multiplier/8 / ( 30 * 60 * 60 * 24 * 7 ) ); // 20% per week on highest tier
 		}
 		else
 		{

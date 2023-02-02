@@ -78,7 +78,8 @@ class sdServerConfigFull extends sdServerConfigShort
 		return false;
 	}
 	
-	static base_shielding_units_passive_drain_per_week = 0; // 0.2 // Percentage. Also applied to matter amplifiers so green BSUs drain as fast as blue BSUs
+	static base_shielding_units_passive_drain_per_week_green = 0.01; // 0.2 // Percentage. Also applied to matter amplifiers so green BSUs drain as fast as blue BSUs
+	static base_shielding_units_passive_drain_per_week_blue = 0.2; // 0.2 // Percentage. Also applied to matter amplifiers so green BSUs drain as fast as blue BSUs
 	
 	static LinkPlayerMatterCapacityToScore( character )
 	{
