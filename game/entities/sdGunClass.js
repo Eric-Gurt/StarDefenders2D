@@ -5659,6 +5659,7 @@ class sdGunClass
 				if ( gun._held_by )
 				if ( gun._held_by.IsPlayerClass() )
 				if ( gun._held_by.matter >= 25 )
+				if ( sdWorld.inDist2D_Boolean( gun._held_by.x, gun._held_by.y, gun._held_by.look_x, gun._held_by.look_y, 400 ) )
 				{
 					let damage_value = 100 + Math.min( 200, 10 * gun._combo ); // Damage increases with combo so it can be efficient against higher health enemies
 					let dx = gun._held_by.look_x - gun._held_by.x;
