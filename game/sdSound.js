@@ -133,6 +133,10 @@ class sdSound
 		if ( !sdSound.allowed )
 		{
 			sdSound.allowed = true;
+			
+			adConfig({
+				sound: 'on',
+			});
 		}
 	}
 	static HandleMatterChargeLoop( GSPEED )

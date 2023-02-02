@@ -1756,6 +1756,13 @@ class sdWorld
 				c = ent.title;
 				translate = false;
 			}
+
+			if ( c === 'Base Shielding Unit' )
+			{
+				//c = ent.title;
+				if ( ent )
+				c = Object.getOwnPropertyDescriptor( sdWorld.entity_classes[ _class ].prototype, 'title' ).get.call( ent );
+			}
 		}
 		
 		if ( add_translation_tags )

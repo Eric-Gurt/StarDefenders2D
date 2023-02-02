@@ -14,6 +14,22 @@
     </head>
     <body>
 	<script src="client/sdErrorReporter.js"></script>
+	<!--
+ 
+	    To learn how to install your ads go there https://developers.google.com/ad-placement/docs/beta
+	
+	-->
+	<script async
+	    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7381466440820611"
+	    crossorigin="anonymous">
+	</script>
+	<!--data-adbreak-test="on"-->
+	<!--data-ad-frequency-hint="900s"-->
+	<script>
+	    window.adsbygoogle = window.adsbygoogle || [];
+	    const adBreak = adConfig = function(o) {adsbygoogle.push(o);}
+	    adConfig({preloadAdBreaks: 'on'});
+	</script>
 	<script src="https://player.twitch.tv/js/embed/v1.js"></script>
 	<div id="twitch_player_div"></div>
 	<div id="youtube_player_div"></div>
@@ -69,8 +85,10 @@
 				muted: true
 			    });
 
-			    twitch_player.addEventListener( Twitch.Player.READY, ()=>
+			    let next = ()=>
 			    {
+				next = ()=>{};
+				
 				twitch_player.disableCaptions();
 				twitch_player.setVolume( player_volume );
 				twitch_player.setMuted( false );
@@ -83,7 +101,9 @@
 				    twitch_player_load_callback( twitch_player );
 				    twitch_player_load_callback = null;
 				}
-			    });
+			    };
+			    twitch_player.addEventListener( Twitch.Player.READY, next );
+			    twitch_player.addEventListener( Twitch.Player.ERROR, error );
 			}
 		    }
 		};

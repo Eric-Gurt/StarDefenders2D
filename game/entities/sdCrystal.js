@@ -359,8 +359,6 @@ class sdCrystal extends sdEntity
 		
 				if ( reward_amount > 0 )
 				{
-					replacement_entity
-					
 					//this.GiveScoreToLastAttacker( reward_amount );
 					sdWorld.GiveScoreToPlayerEntity( reward_amount, replacement_entity || this, true, null );
 				}

@@ -1381,7 +1381,7 @@ const VoidArray = {
 };
 
 let next_drop_log = 0;
-io.on("connection", (socket) => 
+io.on( 'connection', ( socket )=> 
 //io.onConnection( socket =>
 {
 	socket.likely_a_real_player = true; // Can be a sign of webcrawler too, though these are likely to disconnect quickly
@@ -1486,6 +1486,14 @@ io.on("connection", (socket) =>
 	
 	//let my_command_centre = null;
 	socket.command_centre = null; // Obsolete
+	
+	socket.next_ad_time = 0;
+	socket.ad_reward_pending = false;
+	socket.ResetAdCooldown = ()=>
+	{
+		socket.next_ad_time = sdWorld.time + 1000 * 60 * 5; // Update data-ad-frequency-hint in html too
+	};
+	socket.ResetAdCooldown();
 	
 	socket.max_update_rate = sdWorld.max_update_rate;
 	

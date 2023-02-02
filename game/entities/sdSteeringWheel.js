@@ -681,6 +681,25 @@ class sdSteeringWheel extends sdEntity
 		{
 			will_move = false;
 		}
+		
+		if ( will_move || forceful )
+		for ( let i = 0; i < stuff_to_push.length; i++ )
+		{
+			let item = stuff_to_push[ i ];
+			
+			if ( item.is( sdBaseShieldingUnit ) )
+			{
+				if ( item.pushable )
+				{
+					item.charge = 0;
+				}
+				else
+				{
+					will_move = false;
+				}
+			}
+		}
+		
 
 		if ( will_move || forceful )
 		{
@@ -720,11 +739,6 @@ class sdSteeringWheel extends sdEntity
 				
 				item.x += xx;
 				item.y += yy;
-				
-				if ( item.is( sdBaseShieldingUnit ) )
-				{
-					item.charge = 0;
-				}
 
 				if ( xx < 0 )
 				{

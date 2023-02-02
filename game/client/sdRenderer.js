@@ -33,6 +33,8 @@ class sdRenderer
 		return;
 	
 		sdRenderer.img_sun = sdWorld.CreateImageFromFile( 'sun' );
+		
+		sdRenderer.ad_happens = false;
 	
 		sdRenderer.distance_scale_background = 1.4; // 1.2
 		sdRenderer.distance_scale_in_world = 1; // Can be altered with .CameraDistanceScale3D

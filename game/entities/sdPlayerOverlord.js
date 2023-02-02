@@ -45,7 +45,7 @@ class sdPlayerOverlord extends sdCharacter
 		
 		this._speak_id = -1;
 		
-		this.hmax = 3000;
+		this.hmax = 400;
 		this.hea = this.hmax;
 
 		this.matter_max = 40;
@@ -108,6 +108,9 @@ class sdPlayerOverlord extends sdCharacter
 		if ( sdWorld.server_config.LinkPlayerMatterCapacityToScore( this ) )
 		{
 			this.matter_max = Math.min( 40 + Math.max( 0, this._score * 20 ), 600 );
+			
+			
+			this.hmax = Math.min( 400 + Math.max( 0, this._score * 10 ), 3000 );
 		}
 	}
 	
@@ -251,6 +254,11 @@ class sdPlayerOverlord extends sdCharacter
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		this.ConnecgtedGodLogic( GSPEED );
+		
+		this._nature_damage = sdWorld.MorphWithTimeScale( this._nature_damage, 0, 0.9983, GSPEED );
+		this._player_damage = sdWorld.MorphWithTimeScale( this._player_damage, 0, 0.9983, GSPEED );
+		
 		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
 
 		if ( sdWorld.is_server )

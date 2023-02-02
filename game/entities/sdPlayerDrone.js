@@ -226,7 +226,7 @@ class sdPlayerDrone extends sdCharacter
 		
 		let scale = this.s / 100;
 		
-		if ( this.matter >= matter_cost_5 && this.gun_slot === 5 && !this._inventory[ this.gun_slot ] )
+		if ( this.matter >= matter_cost_5 && this.gun_slot === 5 && !this._inventory[ this.gun_slot ] && this.build_tool_level >= 1 )
 		{
 			if ( this._beep_charge < 90 )
 			this._beep_charge += GSPEED;
@@ -372,13 +372,13 @@ class sdPlayerDrone extends sdCharacter
 					{	
 						let mode = 1;
 
-						if ( ( this.gun_slot === 2 ) && this.matter >= matter_cost_2 )
+						if ( ( this.gun_slot === 2 ) && this.matter >= matter_cost_2 && this.build_tool_level >= 1 )
 						mode = 2;
 						else
-						if ( ( this.gun_slot === 4 ) && this.matter >= matter_cost_4 )
+						if ( ( this.gun_slot === 4 ) && this.matter >= matter_cost_4 && this.build_tool_level >= 1 )
 						mode = 4;
 						else
-						if ( ( this.gun_slot === 5 ) && this.matter >= matter_cost_5 )
+						if ( ( this.gun_slot === 5 ) && this.matter >= matter_cost_5 && this.build_tool_level >= 1 )
 						mode = 5;
 						else
 						if ( ( this.gun_slot === 7 ) && this.matter >= matter_cost_7 )
@@ -704,7 +704,7 @@ class sdPlayerDrone extends sdCharacter
 					if ( this.fire_anim > 2 )
 					ctx.filter = 'brightness(1.5)';
 					else
-					if ( this.gun_slot === 5 && !this._inventory[ this.gun_slot ] )
+					if ( this.gun_slot === 5 && !this._inventory[ this.gun_slot ] && this.build_tool_level >= 1 )
 					{
 						ctx.filter = 'sepia(1) hue-rotate(-40deg) saturate(5) brightness(' + ((sdWorld.time%1000<500)?1.5:0.5) + ')';
 					}

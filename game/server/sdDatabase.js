@@ -385,6 +385,9 @@ class sdDatabase
 					{
 						//sdDatabase.data[ key ] = Object.assign( sdDatabase.data[ key ], potential );
 						sdDatabase.data[ key ] = sdDatabase.RecursiveObjectAssign( sdDatabase.data[ key ], potential );
+						
+						// Remove next line after July 2023 - it patches old object snapshots for them to be observable in /db editor
+						sdDatabase.data[ key ] = sdDatabase.SanitizeUnderscores( sdDatabase.data[ key ] );
 					}
 					else
 					{
@@ -769,6 +772,9 @@ class sdDatabase
 			if ( obj instanceof Array )
 			{
 				obj = obj.slice();
+				
+				for ( let i = 0; i < obj.length; i++ )
+				obj[ i ] = sdDatabase.SanitizeUnderscores( obj[ i ] );
 			}
 			else
 			{
@@ -800,6 +806,9 @@ class sdDatabase
 			if ( obj instanceof Array )
 			{
 				obj = obj.slice();
+				
+				for ( let i = 0; i < obj.length; i++ )
+				obj[ i ] = sdDatabase.DesanitizeUnderscores( obj[ i ] );
 			}
 			else
 			{
@@ -824,7 +833,7 @@ class sdDatabase
 		
 		return obj;
 	}
-	static DBManageSavedItems( responses=[], initiator_server, initiator_hash_or_user_uid, operation, group_title, snapshots=[], relative_x=0, relative_y=0 )
+	static DBManageSavedItems( responses=[], initiator_server, initiator_hash_or_user_uid, operation, group_title, snapshots=[], relative_x=0, relative_y=0, issue_long_timeout=true )
 	{
 		let user = sdDatabase.MakeSureUserExists( initiator_hash_or_user_uid );
 		
@@ -856,7 +865,7 @@ class sdDatabase
 				snapshots: sdDatabase.SanitizeUnderscores( snapshots ),
 				relative_x: relative_x,
 				relative_y: relative_y,
-				available_after: sdWorld.time + 1000 * 60 * 60
+				available_after: sdWorld.time + ( issue_long_timeout ? ( 1000 * 60 * 60 ) : ( 1000 * 2 ) )
 			});
 			
 			responses.push([ 'SUCCESS' ]);
@@ -942,6 +951,9 @@ class sdDatabase
 	{
 		let previous_ptr = null;
 		let ptr = sdDatabase;
+		
+		//path_parts = sdDatabase.DesanitizeUnderscores( path_parts );
+		//new_value = sdDatabase.DesanitizeUnderscores( new_value );
 		
 		if ( path_parts instanceof Array )
 		{

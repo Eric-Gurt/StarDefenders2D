@@ -329,6 +329,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_SHORT_RANGE, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:0, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:1, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:2, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdConveyor', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdConveyor', filter:'sepia(1) saturate(2) hue-rotate(30deg) brightness(0.8)', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdConveyor', filter:'sepia(1) saturate(1.5) hue-rotate(170deg) brightness(0.7)', _category:'Base equipment' });
@@ -603,6 +604,16 @@ class sdShop
 				{
 					character._stability_recovery_multiplier = 1 + ( 3 / level_purchased );
 				}
+			},
+			upgrade_grenades:
+			{
+				max_level: 1,
+				matter_cost: 150,
+				min_build_tool_level: 5,
+				description: 'Your suit will be able to throw grenades on demand, each will cost 150 matter.',
+				action: ( character, level_purchased )=>
+				{
+				}
 			}
 		};
 		for ( var i in sdShop.upgrades )
@@ -708,6 +719,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdObelisk', type: 8, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdQuadro', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdOverlord', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdPlayerOverlord', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdTutel', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGrub', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAbomination', _category:'Development tests' });

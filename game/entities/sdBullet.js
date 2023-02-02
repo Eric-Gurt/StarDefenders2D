@@ -26,6 +26,10 @@ class sdBullet extends sdEntity
 	static init_class()
 	{
 		sdBullet.images = {
+			'bullet': sdWorld.CreateImageFromFile( 'bullet' )
+			 // Auto-appended now
+		};
+		/*
 			'ball': sdWorld.CreateImageFromFile( 'ball' ),
 			'ball_g': sdWorld.CreateImageFromFile( 'ball_g' ),
 			'blaster_proj': sdWorld.CreateImageFromFile( 'blaster_proj' ),
@@ -43,7 +47,7 @@ class sdBullet extends sdEntity
 			'ball_orange':  sdWorld.CreateImageFromFile( 'ball_orange' ),
 			'ab_tooth':  sdWorld.CreateImageFromFile( 'ab_tooth' ),
 			'bullet':  sdWorld.CreateImageFromFile( 'bullet' )
-		};
+		};*/
 		
 		sdBullet.images_with_smoke = 
 		{
@@ -990,7 +994,9 @@ class sdBullet extends sdEntity
 		{
 			ctx.rotate( Math.atan2( this.sy, this.sx ) );
 		
-			//ctx.drawImage( sdBullet.images[ this.model ], - 16, - 16, 32,32 );
+			if ( !sdBullet.images[ this.model ] )
+			sdBullet.images[ this.model ] = sdWorld.CreateImageFromFile( this.model );
+		
 			ctx.drawImageFilterCache( sdBullet.images[ this.model ], - 16, - 16, 32,32 );
 		}
 		else

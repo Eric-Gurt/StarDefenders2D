@@ -170,6 +170,9 @@ class sdCamera extends sdEntity
 					for ( let i = 0; i < 64; i++ )
 					{
 						let old_ent = null;
+						
+						if ( this._angular_cache[ i ] && this._angular_cache[ i ]._is_being_removed )
+						this._angular_cache[ i ] = null;
 
 						//if ( sdWorld.time < this._hook_last_calls[ sdCamera.DETECT_VISIBLE_MOVEMENT ] + sdCamera.hook_expire_time )
 						old_ent = this._angular_cache[ i ];
@@ -189,6 +192,9 @@ class sdCamera extends sdEntity
 						if ( sdWorld.time < this._hook_last_calls[ sdCamera.DETECT_VISIBLE_CRYSTAL_MOVEMENT_IN_AMPLIFIERS ] + sdCamera.hook_expire_time ||
 							 sdWorld.time < this._hook_last_calls[ sdCamera.DETECT_VISIBLE_HIGH_TIER_CRYSTALS_WITH_LOW_MATTER ] + sdCamera.hook_expire_time )
 						{
+							if ( this._angular_cache_crystals_only[ i ] && this._angular_cache_crystals_only[ i ]._is_being_removed )
+							this._angular_cache_crystals_only[ i ] = null;
+							
 							let old_ent_crystals_only = this._angular_cache_crystals_only[ i ];
 							sdWorld.last_hit_entity = null;
 							sdWorld.TraceRayPoint( x0, y0, xx, yy, this, null, [ 'sdBlock', 'sdDoor', 'sdCrystal' ] ); // Otherwise it won't see crystals
@@ -215,7 +221,7 @@ class sdCamera extends sdEntity
 							new_ent_crystals_only = null;
 							
 							if ( sdWorld.time < this._hook_last_calls[ sdCamera.DETECT_VISIBLE_CRYSTAL_MOVEMENT_IN_AMPLIFIERS ] + sdCamera.hook_expire_time )
-							if ( new_ent_crystals_only !== old_ent_crystals_only && old_ent_crystals_only !== undefined )
+							if ( new_ent_crystals_only !== old_ent_crystals_only && old_ent_crystals_only !== undefined && old_ent_crystals_only !== null )
 							{
 								let t = null;
 								
@@ -274,7 +280,7 @@ class sdCamera extends sdEntity
 						}
 
 						if ( sdWorld.time < this._hook_last_calls[ sdCamera.DETECT_VISIBLE_MOVEMENT ] + sdCamera.hook_expire_time )
-						if ( new_ent !== old_ent && old_ent !== undefined )
+						if ( new_ent !== old_ent && old_ent !== undefined && old_ent !== null )
 						{
 							let t = '?';
 							

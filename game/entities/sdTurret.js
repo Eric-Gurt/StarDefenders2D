@@ -224,6 +224,11 @@ class sdTurret extends sdEntity
 				( is_rail ? 30 : 0 ) + 
 				( explosion_radius > 0 ? 20 : 0 ) ) * sdWorld.damage_to_matter;
 	}
+	
+	onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
+	{
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		let can_hibernate = false;
@@ -696,6 +701,9 @@ class sdTurret extends sdEntity
 		}
 		
 		ctx.rotate( this.an / 100 );
+		
+		if ( !not_firing_now )
+		ctx.apply_shading = false;
 		
 		if ( this.kind === sdTurret.KIND_LASER )
 		ctx.drawImageFilterCache( not_firing_now ? sdTurret.img_turret : sdTurret.img_turret_fire, -16, -16, 32,32 );

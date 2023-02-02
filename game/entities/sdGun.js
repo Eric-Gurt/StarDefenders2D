@@ -128,128 +128,149 @@ class sdGun extends sdEntity
 			return;
 		}
 
-		if ( this.dangerous )
 		if ( sdWorld.is_server )
 		{
+			/*if ( this.class === sdGun.CLASS_SCORE_SHARD )
+			if ( Math.random() < 0.1 )
+			if ( !this._is_being_removed )
+			if ( !from_entity._is_being_removed )
 			if ( from_entity.is( sdGun ) )
-			return;
-		
-			if ( from_entity.is( sdBG ) )
-			return;
-		
-			if ( from_entity.is( sdBullet ) )
-			return;
-		
-			if ( from_entity.is( sdRift ) ) // Ignore portals
-			return;
-		
-			const is_unknown = ( sdGun.classes[ this.class ] === undefined ); // Detect unknown weapons from LRT teleports
-		
-			if ( from_entity.IsBGEntity() === 0 || from_entity.IsBGEntity() === 1 )
+			if ( from_entity.class === sdGun.CLASS_SCORE_SHARD )
+			if ( this.extra === from_entity.extra )
 			{
-			}
-			else
-			if ( from_entity.IsBGEntity() === 2 )
+				let new_extra = ~~Math.sqrt( this.extra + from_entity.extra );
+				
+				if ( new_extra < sdGun.score_shard_recolor_tiers.length )
+				{
+					from_entity.extra = new_extra;
+					from_entity.sd_filter = sdGun.score_shard_recolor_tiers[ new_extra ];
+					this.remove();
+					return;
+				}
+			}*/
+			
+			if ( this.dangerous )
 			{
-				if ( from_entity.is( sdArea ) )
-				if ( from_entity.type === sdArea.TYPE_PREVENT_DAMAGE )
+				if ( from_entity.is( sdGun ) )
+				return;
+
+				if ( from_entity.is( sdBG ) )
+				return;
+
+				if ( from_entity.is( sdBullet ) )
+				return;
+
+				if ( from_entity.is( sdRift ) ) // Ignore portals
+				return;
+
+				const is_unknown = ( sdGun.classes[ this.class ] === undefined ); // Detect unknown weapons from LRT teleports
+
+				if ( from_entity.IsBGEntity() === 0 || from_entity.IsBGEntity() === 1 )
+				{
+				}
+				else
+				if ( from_entity.IsBGEntity() === 2 )
+				{
+					if ( from_entity.is( sdArea ) )
+					if ( from_entity.type === sdArea.TYPE_PREVENT_DAMAGE )
+					{
+						this.dangerous = false;
+						this._dangerous_from = null;
+						return;
+					}
+				}
+				else
+				{
+					return;
+				}
+
+
+				let from_entity_ignored_classes = from_entity.GetIgnoredEntityClasses();
+				if ( from_entity_ignored_classes )
+				if ( from_entity_ignored_classes.indexOf( 'sdGun' ) !== -1 ) // Mostly it is here to prevent sword-sdArea reaction
+				return;
+
+				let from_entity_nonignored_classes = from_entity.GetNonIgnoredEntityClasses();
+				if ( from_entity_nonignored_classes )
+				if ( from_entity_nonignored_classes.indexOf( 'sdGun' ) === -1 ) // Mostly it is here to prevent sword-sdArea reaction
+				return;
+
+				//if ( from_entity.is( sdCharacter ) )
+				if ( from_entity.IsPlayerClass() )
+				{
+					//if ( from_entity._ignored_guns.indexOf( this ) !== -1 || from_entity.driver_of !== null )
+					if ( from_entity.IsGunIgnored( this, true ) || from_entity.driver_of !== null )
+					return;
+				}
+
+				if ( !from_entity.IsDamageAllowedByAdmins() )
+				//if ( !sdArea.CheckPointDamageAllowed( from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2, from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2 ) )
 				{
 					this.dangerous = false;
 					this._dangerous_from = null;
 					return;
 				}
-			}
-			else
-			{
-				return;
-			}
-		
-			
-			let from_entity_ignored_classes = from_entity.GetIgnoredEntityClasses();
-			if ( from_entity_ignored_classes )
-			if ( from_entity_ignored_classes.indexOf( 'sdGun' ) !== -1 ) // Mostly it is here to prevent sword-sdArea reaction
-			return;
-	
-			let from_entity_nonignored_classes = from_entity.GetNonIgnoredEntityClasses();
-			if ( from_entity_nonignored_classes )
-			if ( from_entity_nonignored_classes.indexOf( 'sdGun' ) === -1 ) // Mostly it is here to prevent sword-sdArea reaction
-			return;
-			
-			//if ( from_entity.is( sdCharacter ) )
-			if ( from_entity.IsPlayerClass() )
-			{
-				//if ( from_entity._ignored_guns.indexOf( this ) !== -1 || from_entity.driver_of !== null )
-				if ( from_entity.IsGunIgnored( this, true ) || from_entity.driver_of !== null )
-				return;
-			}
-			
-			if ( !from_entity.IsDamageAllowedByAdmins() )
-			//if ( !sdArea.CheckPointDamageAllowed( from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2, from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2 ) )
-			{
-				this.dangerous = false;
-				this._dangerous_from = null;
-				return;
-			}
-			
-			if ( !is_unknown )
-			if ( !sdWorld.server_config.GetHitAllowed || sdWorld.server_config.GetHitAllowed( this, from_entity ) )
-			if ( !this._dangerous_from || !from_entity.IsPlayerClass() || !this._dangerous_from.IsPlayerClass() || from_entity.cc_id === 0 || from_entity.cc_id !== this._dangerous_from.cc_id )
-			{
-				let projectile_properties = this.GetProjectileProperties();
 
-				if ( ( typeof from_entity._armor_protection_level === 'undefined' || 
-					   this._dangerous_from === null || 
-					   ( this._dangerous_from._upgrade_counters[ 'upgrade_damage' ] || 0 ) >= from_entity._armor_protection_level )
-					   /*&&
-					   ( typeof from_entity._reinforced_level === 'undefined' || from_entity._reinforced_level <= 0 )*/ // Throwable swords can never damage entities with _reinforced_level
-					)
+				if ( !is_unknown )
+				if ( !sdWorld.server_config.GetHitAllowed || sdWorld.server_config.GetHitAllowed( this, from_entity ) )
+				if ( !this._dangerous_from || !from_entity.IsPlayerClass() || !this._dangerous_from.IsPlayerClass() || from_entity.cc_id === 0 || from_entity.cc_id !== this._dangerous_from.cc_id )
 				{
-					if ( projectile_properties._custom_target_reaction )
-					projectile_properties._custom_target_reaction( this, from_entity );
+					let projectile_properties = this.GetProjectileProperties();
 
-					if ( projectile_properties._damage !== 0 )
+					if ( ( typeof from_entity._armor_protection_level === 'undefined' || 
+						   this._dangerous_from === null || 
+						   ( this._dangerous_from._upgrade_counters[ 'upgrade_damage' ] || 0 ) >= from_entity._armor_protection_level )
+						   /*&&
+						   ( typeof from_entity._reinforced_level === 'undefined' || from_entity._reinforced_level <= 0 )*/ // Throwable swords can never damage entities with _reinforced_level
+						)
 					{
-						if ( from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
+						if ( projectile_properties._custom_target_reaction )
+						projectile_properties._custom_target_reaction( this, from_entity );
+
+						if ( projectile_properties._damage !== 0 )
 						{
-							sdSound.PlaySound({ name:'player_hit', x:this.x, y:this.y, volume:0.5 });
+							if ( from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD || from_entity.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
+							{
+								sdSound.PlaySound({ name:'player_hit', x:this.x, y:this.y, volume:0.5 });
+							}
+
+							sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect() });
 						}
 
-						sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect() });
+						let mult = 1;
+
+						if ( from_entity.IsPlayerClass() )
+						{
+							mult = 1.5;
+
+							mult *= from_entity.GetHitDamageMultiplier( this.x, this.y );
+						}
+
+						//if ( this._dangerous_from && this._dangerous_from.is( sdCharacter ) )
+						//from_entity.DamageWithEffect( projectile_properties._damage * this._dangerous_from._damage_mult, this._dangerous_from );
+						//else
+						from_entity.DamageWithEffect( projectile_properties._damage, this._dangerous_from );
+
+						this.DamageWithEffect( 1 );
+
+						if ( sdGun.classes[ this.class ].onThrownSwordReaction )
+						sdGun.classes[ this.class ].onThrownSwordReaction( this, from_entity, false );
 					}
-					
-					let mult = 1;
-					
-					if ( from_entity.IsPlayerClass() )
+					else
 					{
-						mult = 1.5;
+						if ( projectile_properties._custom_target_reaction_protected )
+						projectile_properties._custom_target_reaction_protected( this, from_entity );
 
-						mult *= from_entity.GetHitDamageMultiplier( this.x, this.y );
+						sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
+
+						if ( sdGun.classes[ this.class ].onThrownSwordReaction )
+						sdGun.classes[ this.class ].onThrownSwordReaction( this, from_entity, true );
 					}
-
-					//if ( this._dangerous_from && this._dangerous_from.is( sdCharacter ) )
-					//from_entity.DamageWithEffect( projectile_properties._damage * this._dangerous_from._damage_mult, this._dangerous_from );
-					//else
-					from_entity.DamageWithEffect( projectile_properties._damage, this._dangerous_from );
-
-					this.DamageWithEffect( 1 );
-					
-					if ( sdGun.classes[ this.class ].onThrownSwordReaction )
-					sdGun.classes[ this.class ].onThrownSwordReaction( this, from_entity, false );
 				}
-				else
-				{
-					if ( projectile_properties._custom_target_reaction_protected )
-					projectile_properties._custom_target_reaction_protected( this, from_entity );
 
-					sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, pitch: 0.75 });
-					
-					if ( sdGun.classes[ this.class ].onThrownSwordReaction )
-					sdGun.classes[ this.class ].onThrownSwordReaction( this, from_entity, true );
-				}
+				this.dangerous = false;
+				this._dangerous_from = null;
 			}
-			
-			this.dangerous = false;
-			this._dangerous_from = null;
 		}
 	}
 	

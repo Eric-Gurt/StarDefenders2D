@@ -48,6 +48,7 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER = 0;
 		sdBaseShieldingUnit.TYPE_MATTER = 1;
+		sdBaseShieldingUnit.TYPE_SCORE_TIMED = 2; // Similar to crystal consumer but players charge it with score, it expires overtime and can not be attacked
 		
 		sdBaseShieldingUnit.longer_time_protected_bsu_priority = 9; // 5 // It is added to 1
 		
@@ -101,11 +102,13 @@ class sdBaseShieldingUnit extends sdEntity
 		this.regen_timeout = 0;
 		//this._last_sync_matter = 0;
 		//this.matter_crystal_max = 2000000;
-		this.matter_crystal = 0; // Named differently to prevent matter absorption from entities that emit matter
+		this.matter_crystal = 0; // Named differently to prevent matter absorption from entities that emit matter // Also score for score type is stored here
 		this._protected_entities = [];
 		this.enabled = false;
 		this.attack_other_units = true;
 		this._matter_drain = 0;
+		
+		this.pushable = false; // By thrusters
 		
 		this.prevent_hostile_shielding = true; // Prevent bases from being "sealed forever", at least at zero range
 		
@@ -120,6 +123,8 @@ class sdBaseShieldingUnit extends sdEntity
 		this._last_y_for_charge_reset = 0;
 
 		this._check_blocks = 30; // Temporary, checks for old pre-rework BSU's protected blocks and applies cost for "this._matter_drain" which is now used when BSU attacks BSU. Will be commented out / removed later.
+		
+		this._enabled_shields_in_network_count = 1; // Used to scale score/time-based shield decrease to scale appropriately
 		
 		//this.filter = params.filter || 'none';
 
@@ -143,7 +148,10 @@ class sdBaseShieldingUnit extends sdEntity
 	
 	ShareValueIfHadntRecently( destroy=false )
 	{
-		if ( this.type !== sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
+		this._enabled_shields_in_network_count = 1;
+		
+		if ( this.type !== sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER &&
+			 this.type !== sdBaseShieldingUnit.TYPE_SCORE_TIMED )
 		return false;
 	
 		if ( this._is_being_removed )
@@ -186,15 +194,26 @@ class sdBaseShieldingUnit extends sdEntity
 				this.remove();
 			}
 			
-			
-				
 			sum_matter /= friendly_shields.length;
 			
+			// Hard cap
+			if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+			{
+				if ( sum_matter > 2100 )
+				sum_matter = 2100;
+			}
+
 			for ( let i = 0; i < friendly_shields.length; i++ )
 			{
 				friendly_shields[ i ].matter_crystal = sum_matter;
 				
 				friendly_shields[ i ]._last_value_share = sdWorld.time;
+				
+				if ( friendly_shields[ i ].enabled )
+				if ( friendly_shields[ i ] !== this ) // Already counted, also it will make it ignore enabled status and prevent division by zero
+				{
+					this._enabled_shields_in_network_count++;
+				}
 			}
 			
 			return true;
@@ -221,8 +240,8 @@ class sdBaseShieldingUnit extends sdEntity
 					case 2: initiator.Say( 'Entity can not be damaged until base shielding unit is disabled', true, false, true ); break;
 					case 3: initiator.Say( 'Can\'t damage due to base shielding unit', true, false, true ); break;
 					case 4: initiator.Say( 'This entity is within range of base shielding unit', true, false, true ); break;
-					case 5: initiator.Say( 'Base shielding units can be attacked by other base shielding units', true, false, true ); break;
-					case 6: initiator.Say( 'Some base shielding units are vulnerable to anti-crystals', true, false, true ); break;
+					case 5: initiator.Say( 'Some base shielding units can be attacked by other base shielding units', true, false, true ); break;
+					case 6: initiator.Say( 'Some base shielding units are vulnerable to anti-crystals, some are timed', true, false, true ); break;
 				}
 			}
 
@@ -233,6 +252,11 @@ class sdBaseShieldingUnit extends sdEntity
 			}
 		}
 		
+		if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+		{
+			// These ignore any damage
+		}
+		else
 		if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 		{
 			this.matter_crystal = Math.max( 0, this.matter_crystal - dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp );
@@ -256,6 +280,7 @@ class sdBaseShieldingUnit extends sdEntity
 			}
 		}
 		else
+		if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
 		{
 			//trace( 'BSU matter wasted per damage: ', dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp_matter_type );
 			
@@ -263,14 +288,21 @@ class sdBaseShieldingUnit extends sdEntity
 			this.WakeUpMatterSources();
 		}
 		
-		this._dmg_to_report += dmg;
-		if ( this._dmg_to_report > 500 )
+		if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
 		{
-			this._dmg_to_report = 0;
-			
-			let cameras = this.GetConnectedCameras();
-			for ( let i = 0; i < cameras.length; i++ )
-			cameras[ i ].Trigger( sdCamera.DETECT_BSU_DAMAGE );
+			// No damage reporting
+		}
+		else
+		{
+			this._dmg_to_report += dmg;
+			if ( this._dmg_to_report > 500 )
+			{
+				this._dmg_to_report = 0;
+
+				let cameras = this.GetConnectedCameras();
+				for ( let i = 0; i < cameras.length; i++ )
+				cameras[ i ].Trigger( sdCamera.DETECT_BSU_DAMAGE );
+			}
 		}
 		
 		if ( fx )
@@ -556,7 +588,7 @@ class sdBaseShieldingUnit extends sdEntity
 			this.sy = 0;
 			
 			if ( sdWorld.time > this.charge_blocked_until )
-			if ( this.matter >= 320 )
+			//if ( this.matter >= 320 )
 			if ( this.charge < 100 )
 			this.charge = Math.min( 100, this.charge + GSPEED * 0.25 );
 		}
@@ -574,6 +606,62 @@ class sdBaseShieldingUnit extends sdEntity
 		this.charge = Math.max( 0, this.charge - delta_pos / 16 * 100 );
 		this._last_x_for_charge_reset = this.x;
 		this._last_y_for_charge_reset = this.y;
+		if ( delta_pos > 0 )
+		if ( this.enabled )
+		{
+			// Moves - clear protected blocks if they enter other BSU area
+			
+			let friendly_shields = this.FindObjectsInACableNetwork( null, sdBaseShieldingUnit );
+			let unfriendly_shields = []; // These will prevent protecting walls nearby other shields
+			
+			for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
+			{
+				let s = sdBaseShieldingUnit.all_shield_units[ i ];
+				
+				if ( s.prevent_hostile_shielding )
+				if ( s !== this )
+				if ( ( s.charge >= this.charge && s.charge > 0 ) || ( s.type !== this.type && s.enabled ) )
+				if ( friendly_shields.indexOf( s ) === -1 )
+				unfriendly_shields.push( s );
+			}
+			
+			let CheckIfNearUnfriendly = ( e )=>
+			{
+				for ( let i = 0; i < unfriendly_shields.length; i++ )
+				{
+					let s = unfriendly_shields[ i ];
+					if ( e.inRealDist2DToEntity_Boolean( s, sdBaseShieldingUnit.protect_distance + 32 ) )
+					return true;
+				}
+
+				return false;
+			};
+			
+			let sound_once = true;
+			
+			for ( let i = 0; i < this._protected_entities.length; i++ )
+			{
+				let e = sdEntity.GetObjectByClassAndNetId( 'auto', this._protected_entities[ i ] );
+				
+				if ( CheckIfNearUnfriendly( e ) )
+				{
+					if ( sound_once )
+					{
+						sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:2, pitch:0.25 });
+						sound_once = false;
+					}
+			
+					let b = e;
+
+					sdWorld.SendEffect({ x:this.x, y:this.y, x2:b.x + ( b.hitbox_x2 / 2 ), y2:b.y + ( b.hitbox_y2 / 2 ), type:sdEffect.TYPE_BEAM, color:'#855805' });
+
+					e._shielded = null;
+					this._protected_entities.splice( i, 1 );
+					i--;
+					continue;
+				}
+			}
+		}
 		
 		if ( !sdWorld.is_server)
 		return;
@@ -624,8 +712,15 @@ class sdBaseShieldingUnit extends sdEntity
 			if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER && this.matter_crystal < 800 )
 			{
 				this.SetShieldState( false ); // Shut down if no matter
-				if ( this.attack_other_units )
-				this.attack_other_units = false;
+				//if ( this.attack_other_units )
+				//this.attack_other_units = false;
+			}
+			else
+			if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED && this.matter_crystal < 1 )
+			{
+				this.SetShieldState( false ); // Shut down if no matter
+				//if ( this.attack_other_units )
+				//this.attack_other_units = false;
 			}
 			else
 			if ( this.type === sdBaseShieldingUnit.TYPE_MATTER && this.matter < 320 )
@@ -691,8 +786,8 @@ class sdBaseShieldingUnit extends sdEntity
 
 
 					this.SetShieldState( false ); // Shut down if no matter
-					if ( this.attack_other_units )
-					this.attack_other_units = false;
+					//if ( this.attack_other_units )
+					//this.attack_other_units = false;
 				}
 			}
 			else
@@ -707,7 +802,24 @@ class sdBaseShieldingUnit extends sdEntity
 				//}
 			}
 		}
+		
+		
+		if ( this.enabled )
+		{
+			if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
+			this.matter_crystal = sdWorld.MorphWithTimeScale( this.matter_crystal, 0, 0.8, GSPEED / ( 30 * 60 * 60 * 24 * 7 ) ); // 20% per week
+			else
+			if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+			{
+				this.matter_crystal = Math.max( 0, this.matter_crystal - GSPEED / this._enabled_shields_in_network_count * 100 / ( 30 * 60 * 60 * 24 ) ); // 100 per day
+			}
+		}
 
+		if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+		{
+			// No attack logic
+		}
+		else
 		if ( this.attack_other_units )
 		if ( this.enabled )
 		if ( this._attack_timer <= 0 )
@@ -920,16 +1032,41 @@ class sdBaseShieldingUnit extends sdEntity
 		}
 	}
 
+	get title()
+	{
+		if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+		return T('Timed base shielding unit');
+	
+		if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
+		return T('Crystal consumption-based base shielding unit');
+	
+		if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
+		return T('Matter-based base shielding unit');
+	
+		return T('Base shielding unit');
+	}
+	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		//if ( this.hea <= 0 )
 		//return;
 	
+		if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+		{
+			sdEntity.TooltipUntranslated( ctx, this.title + " ( " + ~~(this.matter_crystal) + " / 2100 )", 0, -8 );
+			
+			let days = ~~( this.matter_crystal / 300 );
+			let hours = ~~( ( this.matter_crystal - days * 300 ) / 300 * 24 );
+			
+			sdEntity.TooltipUntranslated( ctx, T('Protection expires in') + ': ' + days + ' ' + T('days') + ', ' + hours + ' ' + T('hours'), 0, 0, ( days < 1 ) ? '#ff6666' : '#66ff66' );
+		}
+		else
 		if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
-		sdEntity.TooltipUntranslated( ctx, T("Crystal-based base shielding unit") + " ( " + ~~(this.matter_crystal) + " )" );
+		sdEntity.TooltipUntranslated( ctx, this.title + " ( " + ~~(this.matter_crystal) + " )" );
+		else
 		if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
 		{
-			sdEntity.TooltipUntranslated( ctx, T("Matter-based base shielding unit") + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )", 0, -8 );
+			sdEntity.TooltipUntranslated( ctx, this.title + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )", 0, -8 );
 			
 			let allow_protection_claim_str = ', ' + T( ( this.prevent_hostile_shielding ) ? 'nearby claiming disallowed' : 'nearby claiming allowed' );
 			
@@ -983,20 +1120,29 @@ class sdBaseShieldingUnit extends sdEntity
 		let xx = 0;
 		let yy = 0;
 		
-		if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
-		xx = Math.min( ( this.enabled ) ? 1 : 0 );
-		//ctx.drawImageFilterCache( ( this.enabled ) ? sdBaseShieldingUnit.img_unit_repair : sdBaseShieldingUnit.img_unit, - 16, -16, 32, 32 );
-		else
-		if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
+		xx = ( this.enabled ) ? 1 : 0;
+		yy = this.type;
+		
+		if ( this.enabled )
 		{
-			if ( this.enabled && this.timer_to_expect_matter < 30 * 9 )
+			if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
 			{
+				if ( this.matter_crystal < 10 )
+				ctx.filter = ( sdWorld.time % 200 < 100 ) ? 'brightness(0.5)' : 'brightness(1.5)';
+				else
+				if ( this.matter_crystal < 100 )
+				ctx.filter = ( sdWorld.time % 2000 < 1000 ) ? 'brightness(0.5)' : 'brightness(1.5)';
+			}
+			else
+			if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
+			{
+				if ( this.timer_to_expect_matter < 30 * 9 )
 				ctx.filter = ( sdWorld.time % 200 < 100 ) ? 'brightness(0.5)' : 'brightness(1.5)';
 			}
-			xx = Math.min( ( this.enabled ) ? 1 : 0 );
-			yy = 1;
-			//ctx.drawImageFilterCache( ( this.enabled ) ? sdBaseShieldingUnit.img_unit2_repair : sdBaseShieldingUnit.img_unit2, - 16, -16, 32, 32 );
+		
+			ctx.apply_shading = false;
 		}
+
 		ctx.drawImageFilterCache( sdBaseShieldingUnit.img_unit, xx * 32, yy * 32, 32,32, -16, -16, 32,32 );
 		//ctx.globalAlpha = 1;
 		ctx.filter = 'none';
@@ -1040,19 +1186,29 @@ class sdBaseShieldingUnit extends sdEntity
 			{
 				if ( command_name === 'SHIELD_ON' )
 				{
+					this.ShareValueIfHadntRecently(); // Try taking value from connected shields if this one has 0
+						
+					if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+					{
+						if ( this.matter_crystal >= 1 )
+						this.SetShieldState( true, exectuter_character );
+						else
+						executer_socket.SDServiceMessage( 'Base shield unit needs at least some score being put into it' );
+					}
+					else
 					if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 					{
 						if ( this.matter_crystal >= 800 )
 						this.SetShieldState( true, exectuter_character );
 						else
-						executer_socket.SDServiceMessage( 'Base shield unit needs at least 800 matter' );
+						executer_socket.SDServiceMessage( 'Base shield unit needs at least 800 in total matter capacity crystals to be put into it' );
 					}
 					else
 					{
 						if ( this.matter >= 320 )
 						this.SetShieldState( true, exectuter_character );
 						else
-						executer_socket.SDServiceMessage( 'Base shield unit needs at least 320 matter' );
+						executer_socket.SDServiceMessage( 'Base shield unit needs at least 320 matter. Use cable management tool and matter amplifiers with crystals to keep it charged' );
 					}
 				}
 				if ( command_name === 'SHIELD_OFF' )
@@ -1076,6 +1232,37 @@ class sdBaseShieldingUnit extends sdEntity
 					sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:2, pitch:0.5 });
 				}
 				
+				if ( command_name === 'PREVENT_PUSH' )
+				{
+					this.pushable = !this.pushable;
+					sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:2, pitch:0.5 });
+				}
+				
+				
+				
+				
+				if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+				{
+					if ( command_name === 'PROLONG_BY_DAY' )
+					{
+						let mult = parameters_array[ 0 ];
+						
+						if ( mult === 1 || mult === 7 )
+						if ( exectuter_character._score >= 300 * mult )
+						{
+							let increase = ~~Math.min( 2100 - this.matter_crystal, 300 * mult );
+							
+							if ( increase > 1 )
+							{
+								this.matter_crystal += increase;
+								exectuter_character._score -= increase;
+
+								sdSound.PlaySound({ name:'level_up', x:this.x, y:this.y, volume:2, pitch:0.4 });
+							}
+						}
+					}
+				}
+				else
 				if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
 				{
 					if ( command_name === 'CAPACITY' )
@@ -1093,18 +1280,19 @@ class sdBaseShieldingUnit extends sdEntity
 						}
 					}
 				}
-				else
+				
+				if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED ||
+					 this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
+				if ( command_name === 'DESTROY_AND_GIVE_MATTER_OUT' )
 				{
-					if ( command_name === 'DESTROY_AND_GIVE_MATTER_OUT' )
+					if ( this.ShareValueIfHadntRecently( true ) )
 					{
-						if ( this.ShareValueIfHadntRecently( true ) )
-						{
-							sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:1, pitch:0.25 });
-						}
-						else
-						executer_socket.SDServiceMessage( 'Shield must be connected to other shields of a same type with a cable' );
+						sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:1, pitch:0.25 });
 					}
+					else
+					executer_socket.SDServiceMessage( 'Shield must be connected to other shields of a same type with a cable' );
 				}
+
 				/*if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 				if ( command_name === 'CAPACITY_CONSUMER' )
 				{
@@ -1138,28 +1326,56 @@ class sdBaseShieldingUnit extends sdEntity
 			{
 				if ( this.enabled === false )
 				{
+					if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+					this.AddContextOption( 'Scan nearby unprotected entities', 'SHIELD_ON', [] );
+					else
 					if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 					this.AddContextOption( 'Scan nearby unprotected entities ( 800 matter )', 'SHIELD_ON', [] );
 					else
+					if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
 					this.AddContextOption( 'Scan nearby unprotected entities ( 320 matter )', 'SHIELD_ON', [] );
 				}
 				else
 				{
 					this.AddContextOption( 'Turn the shields off', 'SHIELD_OFF', [] );
-					
+				}
+				
+
+
+
+				if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+				{
+				}
+				else
+				{
 					if ( !this.attack_other_units )
 					this.AddContextOption( 'Attack nearby shield units', 'ATTACK', [] );
 					else
 					this.AddContextOption( 'Stop attacking nearby shield units', 'ATTACK', [] );
-				
-				
-					
-					if ( this.prevent_hostile_shielding )
-					this.AddContextOption( 'Allow nearby shielding claim by disconnected shields', 'PREVENT_HOSTILE_SHIELDING', [] );
-					else
-					this.AddContextOption( 'Disallow nearby shielding claim by disconnected shields', 'PREVENT_HOSTILE_SHIELDING', [] );
 				}
+
+				if ( this.prevent_hostile_shielding )
+				this.AddContextOption( 'Allow nearby shielding claim by disconnected shields', 'PREVENT_HOSTILE_SHIELDING', [] );
+				else
+				this.AddContextOption( 'Disallow nearby shielding claim by disconnected shields', 'PREVENT_HOSTILE_SHIELDING', [] );
 				
+
+				if ( this.pushable )
+				this.AddContextOption( 'Prevent being moved with steering wheel', 'PREVENT_PUSH', [] );
+				else
+				this.AddContextOption( 'Allow being moved with steering wheel', 'PREVENT_PUSH', [] );
+				
+				
+				
+				
+				if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+				{
+					this.AddContextOption( 'Charge for 1 more day ( 300 score )', 'PROLONG_BY_DAY', [ 1 ] );
+					this.AddContextOption( 'Charge for 7 more days ( 2100 score )', 'PROLONG_BY_DAY', [ 7 ] );
+					
+					this.AddContextOption( 'Destroy and score to connected base shield units', 'DESTROY_AND_GIVE_MATTER_OUT', [] );
+				}
+				else
 				if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
 				{
 					if ( this.matter_max !== 10000 )
@@ -1169,8 +1385,9 @@ class sdBaseShieldingUnit extends sdEntity
 					this.AddContextOption( 'Decrease matter capacity to 1k', 'CAPACITY', [ 1000 ] );
 				}
 				else
+				if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 				{
-					this.AddContextOption( 'Destroy and give matter out', 'DESTROY_AND_GIVE_MATTER_OUT', [] );
+					this.AddContextOption( 'Destroy and give matter to connected base shield units', 'DESTROY_AND_GIVE_MATTER_OUT', [] );
 				}
 			}
 		}

@@ -167,7 +167,7 @@ class sdTheatre extends sdEntity
 			for ( let i = 0; i < 2; i++ )
 			{
 				let div = divs[ i ];
-				if ( this.service !== services[ i ] )
+				if ( this.service !== services[ i ] || sdRenderer.ad_happens )
 				{
 					div.style.display = 'none';
 				}

@@ -1008,7 +1008,9 @@ class sdCharacter extends sdEntity
 		{
 			if ( !this.driver_of )
 			{
-				let will_fire = this._key_states.GetKey( 'Mouse1' );
+				let will_throw_grenade = this._key_states.GetKey( 'KeyG' ) && ( this._upgrade_counters[ 'upgrade_grenades' ] );
+				let will_fire = will_throw_grenade || this._key_states.GetKey( 'Mouse1' );
+				
 				let shoot_from_scenario = false;
 
 				if ( will_fire )
@@ -1028,6 +1030,7 @@ class sdCharacter extends sdEntity
 				}
 
 				if ( will_fire )
+				if ( !will_throw_grenade )
 				if ( this._inventory[ this.gun_slot ] )
 				if ( !sdGun.classes[ this._inventory[ this.gun_slot ].class ] )
 				{
@@ -1064,6 +1067,53 @@ class sdCharacter extends sdEntity
 				else*/
 				this._last_fire_state = 0;
 
+				if ( will_throw_grenade )
+				{
+					if ( sdWorld.is_server )
+					if ( this.fire_anim <= 0 )
+					{
+						if ( this.matter >= 150 ) // Just like mine
+						{
+							this.fire_anim = 15;
+
+							this.matter -= 150;
+
+							let _class = sdGun.CLASS_THROWABLE_GRENADE;
+
+							if ( !offset )
+							offset = this.GetBulletSpawnOffset();
+
+							let bullet_obj = new sdBullet({ x: this.x + offset.x, y: this.y + offset.y });
+							bullet_obj._owner = this;
+
+							let an = bullet_obj._owner.GetLookAngle();// + ( Math.random() * 2 - 1 ) * spread;
+
+							let vel = 2.5;
+							if ( sdGun.classes[ _class ].projectile_velocity )
+							vel = sdGun.classes[ _class ].projectile_velocity;
+
+							bullet_obj.sx = this.sx + Math.sin( an ) * vel;
+							bullet_obj.sy = this.sy + Math.cos( an ) * vel;
+
+							for ( var p in sdGun.classes[ _class ].projectile_properties )
+							bullet_obj[ p ] = sdGun.classes[ _class ].projectile_properties[ p ];
+
+							bullet_obj._armor_penetration_level = 0;
+
+							sdEntity.entities.push( bullet_obj );
+							
+							sdSound.PlaySound({ name:'sword_attack2', x:this.x, y:this.y, volume: 0.5, pitch: 1 });
+						}
+						else
+						{
+							this.Say( sdWorld.GetAny([
+								'Grenade costs 150 matter',
+								'Out of matter'
+							]));
+						}
+					}
+				}
+				else
 				if ( this._inventory[ this.gun_slot ] )
 				{
 					if ( this._key_states.GetKey( 'KeyN' ) )
@@ -1131,43 +1181,13 @@ class sdCharacter extends sdEntity
 								if ( sdGun.classes[ _class ].projectile_velocity )
 								vel = sdGun.classes[ _class ].projectile_velocity;
 
-								/*if ( spread > 0 && count > 0 )
-								{
-									vel *= ( 1 - Math.random() * 0.15 );
-								}*/
-
 								bullet_obj.sx = Math.sin( an ) * vel;
 								bullet_obj.sy = Math.cos( an ) * vel;
 
 								for ( var p in sdGun.classes[ _class ].projectile_properties )
 								bullet_obj[ p ] = sdGun.classes[ _class ].projectile_properties[ p ];
 
-								//if ( bullet_obj.color !== 'transparent' )
-								//debugger;
-
-								//if ( bullet_obj.is_grenade )
-								/*if ( !bullet_obj._rail )
-								{
-									bullet_obj.sx += bullet_obj._owner.sx;
-									bullet_obj.sy += bullet_obj._owner.sy;
-								}
-
-								if ( bullet_obj.ac > 0 )
-								{
-									bullet_obj.acx = Math.sin( an );
-									bullet_obj.acy = Math.cos( an );
-								}*/
-
-								//bullet_obj._damage *= bullet_obj._owner._damage_mult;
-
-								//if ( bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ] )
-								//bullet_obj._armor_penetration_level = bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ];
-								//else
 								bullet_obj._armor_penetration_level = 0;
-
-								//bullet_obj._owner.Impulse( -bullet_obj.sx * 0.3 * bullet_obj._knock_scale, -bullet_obj.sy * 0.3 * bullet_obj._knock_scale );
-
-								//bullet_obj._bg_shooter = background_shoot ? true : false;
 
 								bullet_obj.time_left *= ( this.s / 100 );
 

@@ -1021,6 +1021,11 @@ class sdGunClass
 			}
 		};
 		
+		
+		
+		
+		
+		
 		sdGun.classes[ sdGun.CLASS_GRENADE_LAUNCHER = 9 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'grenade_launcher' ),
@@ -5379,7 +5384,24 @@ class sdGunClass
 		};
 		
 		
-		
+		/*let color_score_shard = '#0042ff';
+		sdGun.score_shard_recolor_tiers = [
+			null,
+			null,//sdWorld.CreateSDFilter(),
+			sdWorld.CreateSDFilter(),
+			sdWorld.CreateSDFilter(),
+			sdWorld.CreateSDFilter(),
+			sdWorld.CreateSDFilter(),
+			sdWorld.CreateSDFilter(),
+			sdWorld.CreateSDFilter()
+		];
+		sdWorld.ReplaceColorInSDFilter_v2( sdGun.score_shard_recolor_tiers[ 2 ], color_score_shard, '#00bcff' );
+		sdWorld.ReplaceColorInSDFilter_v2( sdGun.score_shard_recolor_tiers[ 3 ], color_score_shard, '#00ff20' );
+		sdWorld.ReplaceColorInSDFilter_v2( sdGun.score_shard_recolor_tiers[ 4 ], color_score_shard, '#ff00d1' );
+		sdWorld.ReplaceColorInSDFilter_v2( sdGun.score_shard_recolor_tiers[ 5 ], color_score_shard, '#ff3100' );
+		sdWorld.ReplaceColorInSDFilter_v2( sdGun.score_shard_recolor_tiers[ 6 ], color_score_shard, '#fcff00' );
+		sdWorld.ReplaceColorInSDFilter_v2( sdGun.score_shard_recolor_tiers[ 7 ], color_score_shard, '#00ffe2' );
+		*/
 		sdGun.classes[ sdGun.CLASS_SCORE_SHARD = 97 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'score' ),
@@ -5402,7 +5424,7 @@ class sdGunClass
 				if ( !gun._is_being_removed )
 				if ( character._socket ) // Prevent AI from picking these up
 				{
-					character.GiveScore( sdEntity.SCORE_REWARD_SCORE_SHARD, gun, false );
+					character.GiveScore( sdEntity.SCORE_REWARD_SCORE_SHARD * gun.extra, gun, false );
 
 					if ( character._socket )
 					sdSound.PlaySound({ name:'powerup_or_exp_pickup', x:character.x, y:character.y, volume:0.4, pitch:0.5 }, [ character._socket ] );
@@ -5415,6 +5437,8 @@ class sdGunClass
 			onMade: ( gun )=> // Should not make new entities, assume gun might be instantly removed once made
 			{
 				gun.ttl = 30 * 60 * 1; // 1 minute
+				
+				gun.extra = 1;
 			},
 			onThinkOwnerless: ( gun, GSPEED )=>
 			{
@@ -6029,6 +6053,40 @@ class sdGunClass
 				}
 			},
 			upgrades: AddGunDefaultUpgrades()
+		};
+		
+		sdGun.classes[ sdGun.CLASS_THROWABLE_GRENADE = 106 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'grenade_launcher' ),
+			sound: 'gun_grenade_launcher',
+			title: 'Hand grenade',
+			slot: 5,
+			reload_time: 20,
+			muzzle_x: 7,
+			ammo_capacity: -1,
+			spread: 0.05,
+			count: 1,
+			projectile_velocity: 5,
+			matter_cost: 60,
+			projectile_properties: { 
+				damage:1, 
+				time_left: 30 * 3, 
+				model: 'grenade2', 
+				is_grenade: true,
+				_custom_detonation_logic: ( bullet )=>
+				{
+					sdWorld.SendEffect({ 
+						x:bullet.x, 
+						y:bullet.y, 
+						radius:30, // 70 was too much?
+						damage_scale: 7, // 5 was too deadly on relatively far range
+						type:sdEffect.TYPE_EXPLOSION, 
+						owner:bullet._owner,
+						can_hit_owner: true,
+						color: sdEffect.default_explosion_color 
+					});
+				}
+			},
 		};
 	}
 }

@@ -147,6 +147,8 @@ class sdLongRangeTeleport extends sdEntity
 		this._remote_supported_entity_classes = null;
 		
 		this._last_collected_entities_array = [];
+		this._last_inserted_entities_array = [];
+		this._last_overlap_issue_entities = [];
 		
 		this.delay = sdLongRangeTeleport.delay_simple;
 		//this._update_version++
@@ -566,6 +568,7 @@ class sdLongRangeTeleport extends sdEntity
 					if ( ent.x + ent.hitbox_x2 >= x1 )
 					if ( ent.y + ent.hitbox_y1 <= y2 )
 					if ( ent.y + ent.hitbox_y2 >= y1 )
+					if ( sdWorld.CheckLineOfSight( this.x, this.y, ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2, ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2, null, null, [ 'sdBlock', 'sdDoor' ] ) )
 					ents_final.push( ent );
 				/*}
 				else
@@ -647,7 +650,7 @@ class sdLongRangeTeleport extends sdEntity
 	}
 
 	//GiveRewards( reward_type = 1 )
-	GiveRewards( reward_type='CLAIM_REWARD_SHARDS' )
+	GiveRewards( reward_type='CLAIM_REWARD_SHARDS', socket=null )
 	{
 		let rewards = reward_type;// || 1;
 		if ( rewards === 'CLAIM_REWARD_SHARDS' )
@@ -719,6 +722,18 @@ class sdLongRangeTeleport extends sdEntity
 			scanner = new sdLandScanner({ x:this.x, y:this.y - 32});
 			sdEntity.entities.push( scanner );
 		}
+		else
+		if ( rewards === 'CLAIM_REWARD_AD' )
+		{
+			if ( socket && socket.ad_reward_pending )
+			{
+				socket.ad_reward_pending = false;
+				
+				let r = [ 640, 1280, 2560, 5120 ][ ~~( Math.pow( Math.random(), 2 ) * 4 ) ];
+				let crystal = new sdCrystal({ x:this.x, y:this.y - 24, matter_max: r, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL });
+				sdEntity.entities.push( crystal );
+			}
+		}
 		
 		sdWorld.SendEffect({ x:this.x, y:this.y - 24, type:sdEffect.TYPE_TELEPORT });
 		sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
@@ -768,6 +783,22 @@ class sdLongRangeTeleport extends sdEntity
 	
 		if ( snapshots.length > 0 )
 		sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
+	
+		let new_entities = [];
+		this._last_inserted_entities_array = new_entities;
+		
+		const custom_filtering_method = ( e )=>
+		{
+			if ( e === this )
+			return false;
+			
+			if ( new_entities.indexOf( e ) === -1 )
+			return true;
+		
+			return false;
+		};
+		
+		this._last_overlap_issue_entities = [];
 						
 		for ( let i = 0; i < snapshots.length; i++ )
 		{
@@ -794,6 +825,12 @@ class sdLongRangeTeleport extends sdEntity
 					ent._respawn_protection = 30 * 10; // 10 seconds of protection once teleported
 					ent._god = false;
 				}
+				
+				if ( !ent.CanMoveWithoutOverlap( ent.x, ent.y, 0, custom_filtering_method ) || 
+					 !sdWorld.CheckLineOfSight( this.x, this.y, ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2, ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2, null, null, [ 'sdBlock', 'sdDoor' ] ) )
+				this._last_overlap_issue_entities.push( sdWorld.last_hit_entity );
+				
+				new_entities.push( ent );
 			}
 			
 			let key = {
@@ -805,6 +842,7 @@ class sdLongRangeTeleport extends sdEntity
 			sdLongRangeTeleport.one_time_keys.push( key );
 			
 			one_time_keys[ i ] = key.hash;
+			
 		}
 		for ( let i = 0; i < sdWorld.unresolved_entity_pointers.length; i++ )
 		{
@@ -925,6 +963,68 @@ class sdLongRangeTeleport extends sdEntity
 	}
 	static ReceivedCommandFromEntityClass( command_name, parameters_array )
 	{
+		if ( command_name === 'AD_START_ALLOWED' )
+		{
+			let old_volume = sdSound.volume;
+			
+			let started = false;
+
+			adBreak({
+				type: 'reward',  // ad shows at start of next level
+				name: 'begging-for-crystals',
+				beforeReward: ( showAdFn )=>
+				{
+					showAdFn();
+					started = true;
+				},  
+				adDismissed: ()=>
+				{
+				},
+				adViewed: ()=>
+				{
+					let lrtp = sdEntity.GetObjectByClassAndNetId( 'auto', parameters_array[ 0 ] );
+					
+					globalThis.socket.emit( 'ENTITY_CONTEXT_ACTION', [ lrtp.GetClass(), lrtp._net_id, 'CLAIM_REWARD_AD', [] ] );
+				},
+				beforeAd: () => { sdSound.SetVolumeScale( 0 ); }, // Prepare for the ad. Mute and pause the game flow
+				afterAd: () => { sdSound.SetVolumeScale( old_volume ); } // Resume the game and un-mute the sound
+			});
+			
+			setTimeout( ()=>
+			{
+				if ( !started )
+				{
+					sdRenderer.service_mesage_until = sdWorld.time + 12500;
+					sdRenderer.service_mesage = sdWorld.GetAny([ 
+						'Mothership: Sorry, we don\'t have any left over crystals for now. But you can ask later.',
+						'Mothership: Maybe later. We are all kind of busy right now.',
+						'Mothership: Still nothing. Try in 5 minutes?',
+						'Mothership: No luck. Try later.',
+						'Mothership: We are pretty much out of crystals right now. Maybe a bit later?',
+						'Mothership: Ask again in 5 minutes.',
+						'Mothership: Could not find anything for you yet, sorry.',
+						'Mothership: I\'m so sorry.',
+						'Mothership: They don\'t grow on trees, you know.',
+						'Mothership: We had one but it got broken midway...',
+						'Mothership: Sure, just ask in 5 minutes.',
+						'Mothership: We had plenty in a storage but someone teleported Quickie which broke all our stuff including crystals.',
+						'Mothership: We don\'t have any right now.',
+						'Mothership: Message me in 5 minutes. We are in the middle of something.',
+						'Mothership: We really are not picking who gets the crystals. Please don\'t be jelous if somebody gets crystals when you don\'t.',
+						'Mothership: I have a note "Don\'t give crystals to this person" next to your name. I\'m really sorry...',
+						'Mothership: We don\'t have any stunning ads for you to see at this moment. Oops.',
+						'Mothership: Well... Does\'t planet you are on has them?!',
+						'Mothership: There is a note that says "torture this person with 5 minute delay promises".',
+						'Mothership: There is a note that says "There is a note that says "torture this person with 5 minute delay promises"".',
+						'Mothership: I hope you can wait for when it is a time.',
+						'Mothership: One day we will have spare crystals.',
+						'Mothership: No ads for you now. Sorry :('
+					]);
+				}
+				
+			}, 1500 );
+		}
+		else
 		sdMotherShipStorageManager.HandleServerCommand( command_name, parameters_array );
 	}
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
@@ -992,7 +1092,8 @@ class sdLongRangeTeleport extends sdEntity
 						command_name === 'CLAIM_REWARD_SHARDS' ||
 						command_name === 'CLAIM_REWARD_WEAPON' ||
 						command_name === 'CLAIM_REWARD_CRYSTALS' ||
-						command_name === 'CLAIM_REWARD_CONTAINER'
+						command_name === 'CLAIM_REWARD_CONTAINER' || 
+						command_name === 'CLAIM_REWARD_AD'
 					)
 				{
 					if ( !this.is_server_teleport )
@@ -1002,13 +1103,15 @@ class sdLongRangeTeleport extends sdEntity
 						{
 							if ( this.matter >= this._matter_max )
 							{
-								if ( this.delay === 0 && exectuter_character._task_reward_counter >= sdTask.reward_claim_task_amount )
+								let claim_cost = ( command_name === 'CLAIM_REWARD_AD' ) ? 0 : sdTask.reward_claim_task_amount;
+								
+								if ( this.delay === 0 && exectuter_character._task_reward_counter >= claim_cost )
 								{
 									this.Activation();
 									
 									this._charge_complete_method = ()=>
 									{
-										if ( exectuter_character._task_reward_counter < sdTask.reward_claim_task_amount ) // Prevent claiming reward on multiple long-range teleports
+										if ( exectuter_character._task_reward_counter < claim_cost ) // Prevent claiming reward on multiple long-range teleports
 										{
 											executer_socket.SDServiceMessage( 'Reward claim was rejected - reward was claimed somewhere else' );
 											return;
@@ -1022,8 +1125,8 @@ class sdLongRangeTeleport extends sdEntity
 									
 										this.Deactivation();
 										
-										this.GiveRewards( command_name );
-										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - sdTask.reward_claim_task_amount );
+										this.GiveRewards( command_name, executer_socket );
+										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - claim_cost );
 									};
 								}
 								else
@@ -1035,6 +1138,19 @@ class sdLongRangeTeleport extends sdEntity
 						else
 						executer_socket.SDServiceMessage( 'Long-range teleport requires Command Centre connected' );
 					}
+				}
+				else
+				if ( command_name === 'AD_REWARD_START' )
+				{
+					if ( sdWorld.time > executer_socket.next_ad_time )
+					{
+						executer_socket.ResetAdCooldown();
+						executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'AD_START_ALLOWED', [ this._net_id ] );
+						
+						executer_socket.ad_reward_pending = true;
+					}
+					else
+					executer_socket.SDServiceMessage( 'Not so soon. Try in 5 minutes' );
 				}
 				else
 				if ( command_name === 'CLAIM_SCANNER' )
@@ -1068,7 +1184,9 @@ class sdLongRangeTeleport extends sdEntity
 					}
 				}
 				else
-				if ( command_name === 'TELEPORT_STUFF' || command_name === 'SAVE_STUFF' || command_name === 'GET_PRIVATE_STORAGE' )
+				if ( command_name === 'TELEPORT_STUFF' || 
+					 command_name === 'SAVE_STUFF' || 
+					 command_name === 'GET_PRIVATE_STORAGE' )
 				{
 					if ( !this.is_server_teleport )
 					{
@@ -1084,6 +1202,12 @@ class sdLongRangeTeleport extends sdEntity
 									this._charge_complete_method = ()=>
 									{
 										this.Deactivation();
+										
+										if ( this.matter < this._matter_max )
+										{
+											executer_socket.SDServiceMessage( 'Not enough matter' );
+											return;
+										}
 										
 										let collected_entities_array = [];
 
@@ -1141,7 +1265,7 @@ class sdLongRangeTeleport extends sdEntity
 
 												sdDatabase.Exec( 
 													[ 
-														[ 'DBManageSavedItems', initiator_hash_or_user_uid, 'SAVE', parameters_array[ 0 ], snapshots, this_x, this_y ] 
+														[ 'DBManageSavedItems', initiator_hash_or_user_uid, 'SAVE', parameters_array[ 0 ], snapshots, this_x, this_y, true ] 
 													], 
 													( responses )=>
 													{
@@ -1171,8 +1295,8 @@ class sdLongRangeTeleport extends sdEntity
 										if ( command_name === 'GET_PRIVATE_STORAGE' )
 										{
 											let initiator_hash_or_user_uid = exectuter_character._my_hash;
-											//let this_x = this.x;
-											//let this_y = this.y;
+											let this_x = this.x;
+											let this_y = this.y;
 
 											sdDatabase.Exec( 
 												[ 
@@ -1192,9 +1316,59 @@ class sdLongRangeTeleport extends sdEntity
 														else
 														if ( response[ 0 ] === 'GET_RESULT' )
 														{
-															this.InsertEntitiesOnTop( response[ 1 ], response[ 2 ], response[ 3 ] );
+															let snapshots = response[ 1 ];
+															let relative_x = response[ 2 ];
+															let relative_y = response[ 3 ];
 															
-															executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_UPDATE_IF_TRACKING', [] ); // class, command_name, parameters_array
+															this.InsertEntitiesOnTop( snapshots, relative_x, relative_y );
+															
+															if ( this._last_overlap_issue_entities.length > 0 )
+															{
+																for ( let i = 0; i < this._last_overlap_issue_entities.length; i++ )
+																if ( this._last_overlap_issue_entities[ i ] ) // Not null, which is a world bounds
+																this._last_overlap_issue_entities[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_STEERING_WHEEL_PING, c: [ 6, 0.5, 0.5 ], observer: exectuter_character });
+																
+																while ( this._last_inserted_entities_array.length > 0 )
+																{
+																	let e = this._last_inserted_entities_array.pop();
+																	e.remove();
+																	e._broken = false;
+																	
+																	sdLongRangeTeleport.teleported_items.add( e );
+																}
+																
+																// Return back...
+																sdDatabase.Exec( 
+																	[ 
+																		[ 'DBManageSavedItems', initiator_hash_or_user_uid, 'SAVE', parameters_array[ 0 ], snapshots, this_x, this_y, false ] 
+																	], 
+																	( responses )=>
+																	{
+																		// What if responses is null? Might happen if there is no connection to database server or database server refuses to accept connection from current server
+																		for ( let i = 0; i < responses.length; i++ )
+																		{
+																			let response = responses[ i ];
+
+																			if ( response[ 0 ] === 'DENY_WITH_SERVICE_MESSAGE' )
+																			{
+																				executer_socket.SDServiceMessage( response[ 1 ] + ' (items were permanently deleted due to overlap and sudden connection issue with database...)' );
+																				//this.InsertEntitiesOnTop( snapshots, this_x, this_y );
+																			}
+																			else
+																			if ( response[ 0 ] === 'SUCCESS' )
+																			{
+																				executer_socket.SDServiceMessage( 'Items can not be placed here due to overlap' );
+																				//executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_UPDATE_IF_TRACKING', [] ); // class, command_name, parameters_array
+																			}
+																		}
+																	},
+																	'localhost'
+																);
+															}
+															else
+															{
+																executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_UPDATE_IF_TRACKING', [] ); // class, command_name, parameters_array
+															}
 														}
 														else
 														debugger;
@@ -1387,7 +1561,7 @@ class sdLongRangeTeleport extends sdEntity
 			
 			if ( !this.is_server_teleport )
 			{
-				this.AddContextOption( 'Send items for task completion (300 matter)', 'TELEPORT_STUFF', [] );
+				this.AddContextOption( 'Send items for task completion ( 300 matter )', 'TELEPORT_STUFF', [] );
 				
 				for ( let i = 0; i < sdTask.tasks.length; i++ )
 				{
@@ -1395,10 +1569,10 @@ class sdLongRangeTeleport extends sdEntity
 					{
 						if ( sdTask.tasks[ i ].mission === sdTask.MISSION_TASK_CLAIM_REWARD )
 						{
-							this.AddContextOption( 'Claim rewards (Cube shards)', 'CLAIM_REWARD_SHARDS', [] );
-							this.AddContextOption( 'Claim rewards (Weapon)', 'CLAIM_REWARD_WEAPON', [] );
-							this.AddContextOption( 'Claim rewards (Crystals)', 'CLAIM_REWARD_CRYSTALS', [] );
-							this.AddContextOption( 'Claim rewards (Advanced matter container)', 'CLAIM_REWARD_CONTAINER', [] );
+							this.AddContextOption( 'Claim rewards ( cube shards )', 'CLAIM_REWARD_SHARDS', [] );
+							this.AddContextOption( 'Claim rewards ( weapon )', 'CLAIM_REWARD_WEAPON', [] );
+							this.AddContextOption( 'Claim rewards ( crystals )', 'CLAIM_REWARD_CRYSTALS', [] );
+							this.AddContextOption( 'Claim rewards ( advanced matter container )', 'CLAIM_REWARD_CONTAINER', [] );
 						}
 
 						if ( sdTask.tasks[ i ].mission === sdTask.MISSION_LRTP_EXTRACTION )
@@ -1423,6 +1597,9 @@ class sdLongRangeTeleport extends sdEntity
 					sdMotherShipStorageManager.Close();
 					sdMotherShipStorageManager.Open({ lrtp: this });
 				}, true );
+				
+				
+				this.AddContextOption( 'Ask Mothership for crystals ( watch ad )', 'AD_REWARD_START', [] );
 			}
 			else
 			this.AddContextOption( 'Initiate teleportation', 'TELEPORT_STUFF', [] );
