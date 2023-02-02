@@ -124,7 +124,7 @@ class sdBaseShieldingUnit extends sdEntity
 
 		this._check_blocks = 30; // Temporary, checks for old pre-rework BSU's protected blocks and applies cost for "this._matter_drain" which is now used when BSU attacks BSU. Will be commented out / removed later.
 		
-		this._enabled_shields_in_network_count = 1; // Used to scale score/time-based shield decrease to scale appropriately
+		this._enabled_shields_in_network_count = 0; // Used to scale score/time-based shield decrease to scale appropriately
 		
 		//this.filter = params.filter || 'none';
 
@@ -148,7 +148,7 @@ class sdBaseShieldingUnit extends sdEntity
 	
 	ShareValueIfHadntRecently( destroy=false )
 	{
-		this._enabled_shields_in_network_count = 1;
+		this._enabled_shields_in_network_count = this.enabled ? 1 : 0;
 		
 		if ( this.type !== sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER &&
 			 this.type !== sdBaseShieldingUnit.TYPE_SCORE_TIMED )
@@ -803,14 +803,23 @@ class sdBaseShieldingUnit extends sdEntity
 			}
 		}
 		
-		
+		if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
+		{
+			if ( this._enabled_shields_in_network_count > 0 ) // If connected to enabled - still drain them
+			if ( sdWorld.server_config.base_shielding_units_passive_drain_per_week > 0 )
+			this.matter_crystal = sdWorld.MorphWithTimeScale( this.matter_crystal, 0, 1 - sdWorld.server_config.base_shielding_units_passive_drain_per_week, GSPEED / ( 30 * 60 * 60 * 24 * 7 ) ); // 20% per week
+		}
+
 		if ( this.enabled )
 		{
-			if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
-			this.matter_crystal = sdWorld.MorphWithTimeScale( this.matter_crystal, 0, 0.8, GSPEED / ( 30 * 60 * 60 * 24 * 7 ) ); // 20% per week
-			else
+			/*if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
+			{
+				this.matter_crystal = sdWorld.MorphWithTimeScale( this.matter_crystal, 0, 0.8, GSPEED / ( 30 * 60 * 60 * 24 * 7 ) ); // 20% per week
+			}
+			else*/
 			if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
 			{
+				if ( this._enabled_shields_in_network_count > 0 )
 				this.matter_crystal = Math.max( 0, this.matter_crystal - GSPEED / this._enabled_shields_in_network_count * 100 / ( 30 * 60 * 60 * 24 ) ); // 100 per day
 			}
 		}
