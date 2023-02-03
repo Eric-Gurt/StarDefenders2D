@@ -364,7 +364,10 @@ function BrainModelB()
 					
 					this._message_timer = setTimeout( ()=>
 					{
+						if ( this._developer )
+						if ( this._developer._socket )
 						this._developer._socket.CommandFromEntityClass( sdBotFactory, 'MESSAGE', [ this._net_id, this.program_message ] ); // class, command_name, parameters_array
+				
 						this._message_timer = null;
 					}, 500 );
 				}
