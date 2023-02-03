@@ -347,6 +347,7 @@ function BrainModelB()
 			{
 				let responsible_socket = null;
 				if ( this._developer )
+				if ( !this._developer._is_being_removed )
 				if ( this._developer._socket )
 				responsible_socket = this._developer._socket;
 				
@@ -355,6 +356,7 @@ function BrainModelB()
 				this.program_message_censored = sdModeration.IsPhraseBad( this.program_message, responsible_socket );
 				
 				if ( this._developer )
+				if ( !this._developer._is_being_removed )
 				if ( this._developer._socket )
 				{
 					if ( this._message_timer )
@@ -365,6 +367,7 @@ function BrainModelB()
 					this._message_timer = setTimeout( ()=>
 					{
 						if ( this._developer )
+						if ( !this._developer._is_being_removed )
 						if ( this._developer._socket )
 						this._developer._socket.CommandFromEntityClass( sdBotFactory, 'MESSAGE', [ this._net_id, this.program_message ] ); // class, command_name, parameters_array
 				
