@@ -7,6 +7,7 @@ import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
 import sdBot from './sdBot.js';
+import sdBotFactory from './sdBotFactory.js';
 
 
 class sdBotCharger extends sdEntity
