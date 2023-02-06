@@ -173,7 +173,7 @@ class sdCube extends sdEntity
 		//this.is_white = ( this.kind === sdCube.KIND_WHITE ) ? true : false;
 		//this.is_pink = ( this.kind === sdCube.KIND_PINK ) ? true : false;
 		
-		this.hmax = this.kind === sdCube.KIND_WHITE ? 1600 : this.kind === sdCube.KIND_YELLOW ? 800 : 200;
+		this.hmax = this.kind === sdCube.KIND_WHITE ? 1600 : this.kind === sdCube.KIND_YELLOW ? 800 : this.kind === sdCube.KIND_PINK ? 100 : 200;
 		this.hea = this.hmax;
 		
 		this._boss_death_ping_timer = 0;
