@@ -6090,6 +6090,52 @@ class sdGunClass
 				}
 			},
 		};
+
+		sdGun.classes[ sdGun.CLASS_MINING_FOCUS_CUTTER = 107 ] = { // Sprite by Glek, edited by Ghost581
+			image: sdWorld.CreateImageFromFile( 'mining_focus_cutter' ),
+			sound: 'gun_psicutter_bounce',
+			sound_pitch: 0.4,
+			sound_volume: 1,
+			title: 'Mining Focus Cutter',
+			slot: 0,
+			reload_time: 3.8,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			is_sword: false,
+			matter_cost: 360,
+			projectile_velocity: 1 * 3,
+			min_workbench_level: 2,
+			min_build_tool_level: 12,
+			projectile_properties: { _rail: true, _damage: 14, color: '#73ff57', _knock_scale:0.1, _dirt_mult: 3 },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _rail: true, color: '#73ff57', _dirt_mult: 3 };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 14; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades()
+		};
 	}
 }
 
