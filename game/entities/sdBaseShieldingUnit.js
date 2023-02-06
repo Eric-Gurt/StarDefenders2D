@@ -643,6 +643,7 @@ class sdBaseShieldingUnit extends sdEntity
 			{
 				let e = sdEntity.GetObjectByClassAndNetId( 'auto', this._protected_entities[ i ] );
 				
+				if ( e )
 				if ( CheckIfNearUnfriendly( e ) )
 				{
 					if ( sound_once )
