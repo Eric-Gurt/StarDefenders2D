@@ -322,7 +322,7 @@ div.sd_window
     box-sizing: border-box;
     padding: 10px;
     background-color: rgba(0,0,0,0.85);
-    position: relative;
+    position: fixed;
 }
 div.sd_window_caption
 {

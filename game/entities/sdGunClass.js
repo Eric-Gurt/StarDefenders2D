@@ -6070,6 +6070,7 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: 5,
 			matter_cost: 60,
+			spawnable: false,
 			projectile_properties: { 
 				damage:1, 
 				time_left: 30 * 3, 

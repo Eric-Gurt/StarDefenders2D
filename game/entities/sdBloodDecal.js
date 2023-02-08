@@ -167,7 +167,7 @@ class sdBloodDecal extends sdEntity
 								
 								if ( random_roach )
 								if ( random_roach.nick.length === 0 )
-								if ( random_roach.strength < 20 )
+								if ( random_roach.strength < 40 )
 								random_roach.strength += 1;
 								
 								ent.remove();

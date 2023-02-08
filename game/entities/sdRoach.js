@@ -227,6 +227,18 @@ class sdRoach extends sdEntity
 					{
 						this._hunger -= GSPEED * 0.1;
 						this._hea = Math.min( this._hmax, this._hea + GSPEED );
+						
+						let blood_decal_ent = this._decal_to_feed_from;
+						
+						blood_decal_ent.intensity -= 0.1 * GSPEED; // Rather slowly
+						if ( blood_decal_ent.intensity < 33 )
+						{
+							blood_decal_ent.remove();
+						}
+						else
+						{
+							blood_decal_ent._update_version++;
+						}
 					}
 				}
 				else
@@ -448,6 +460,22 @@ class sdRoach extends sdEntity
 		
 		if ( this.fr > 20 )
 		ctx.globalAlpha = 0.5;
+	
+		if ( this.nick.length === 0 )
+		if ( this.strength > 0 )
+		{
+			let f = sdWorld.CreateSDFilter();
+
+			let rgb4 = [ 
+				( 255 ),
+				( 255 * ( 1 - ( this.strength - 1 ) / 39 ) ),
+				( 255 * ( 1 - ( this.strength - 1 ) / 39 ) )
+			];
+
+			sdWorld.ReplaceColorInSDFilter_v2( f, '#ffffff', sdWorld.ColorArrayToHex( rgb4 ), false );
+			
+			ctx.sd_filter = f;
+		}
 		
 		ctx.drawImageFilterCache( sdRoach.img_roach, xx*16,yy*16,16,16, - 8, - 8, 16,16 );
 	
