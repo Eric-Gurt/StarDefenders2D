@@ -1301,38 +1301,43 @@ class sdWorld
 						
 						let x = Math.floor( ( params.x + dx ) / 16 ) * 16;
 						let y = Math.floor( ( params.y + dy ) / 16 ) * 16;
+						let w = 16; // Ignored so far
 						let h = 16;
 						
-						/*if ( y < bg.y )
+						if ( sdArea.CheckPointDamageAllowed( x + w / 2, y + h / 2 ) )
 						{
-							trace( 'y', y, '->', bg.y );
-							y = bg.y;
-						}
-					
-						if ( y + h > bg.y + bg.height )
-						{
-							trace( 'h', h, '->', bg.y + bg.height - y );
-							h = bg.y + bg.height - y;
-						}*/
 						
-						let ent = new sdBloodDecal({
-							x: x,
-							y: y,
-							h: h,
-							//bg: bg,
-							//bg_relative_x: x - bg.x,
-							//bg_relative_y: y - bg.y,
-							effect_type: params.type,
-							filter: params.filter,
-							hue: params.hue
-						});
-						sdEntity.entities.push( ent );
-						//sdWorld.UpdateHashPosition( ent, false ); // Prevent inersection with other ones
+							/*if ( y < bg.y )
+							{
+								trace( 'y', y, '->', bg.y );
+								y = bg.y;
+							}
 
-						/*if ( bg._decals === null )
-						bg._decals = [ ent._net_id ];
-						else
-						bg._decals.push( ent._net_id );*/
+							if ( y + h > bg.y + bg.height )
+							{
+								trace( 'h', h, '->', bg.y + bg.height - y );
+								h = bg.y + bg.height - y;
+							}*/
+
+							let ent = new sdBloodDecal({
+								x: x,
+								y: y,
+								h: h,
+								//bg: bg,
+								//bg_relative_x: x - bg.x,
+								//bg_relative_y: y - bg.y,
+								effect_type: params.type,
+								filter: params.filter,
+								hue: params.hue
+							});
+							sdEntity.entities.push( ent );
+							//sdWorld.UpdateHashPosition( ent, false ); // Prevent inersection with other ones
+
+							/*if ( bg._decals === null )
+							bg._decals = [ ent._net_id ];
+							else
+							bg._decals.push( ent._net_id );*/
+						}
 					}
 				}
 			}
