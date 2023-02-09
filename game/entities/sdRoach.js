@@ -228,16 +228,19 @@ class sdRoach extends sdEntity
 						this._hunger -= GSPEED * 0.1;
 						this._hea = Math.min( this._hmax, this._hea + GSPEED );
 						
-						let blood_decal_ent = this._decal_to_feed_from;
-						
-						blood_decal_ent.intensity -= 0.1 * GSPEED; // Rather slowly
-						if ( blood_decal_ent.intensity < 33 )
+						if ( this._decal_to_feed_from.is( sdBloodDecal ) )
 						{
-							blood_decal_ent.remove();
-						}
-						else
-						{
-							blood_decal_ent._update_version++;
+							let blood_decal_ent = this._decal_to_feed_from;
+
+							blood_decal_ent.intensity -= 0.1 * GSPEED; // Rather slowly
+							if ( blood_decal_ent.intensity < 33 )
+							{
+								blood_decal_ent.remove();
+							}
+							else
+							{
+								blood_decal_ent._update_version++;
+							}
 						}
 					}
 				}
