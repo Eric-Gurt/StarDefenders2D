@@ -3390,7 +3390,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#37a3ff', 15, 'energy color' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_ERTHAL_PLASMA_PISTOL = 61 ] = 
@@ -3433,7 +3433,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#37a3ff', 15, 'energy color' ) )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_FMECH_MINIGUN = 62 ] = 
@@ -3736,7 +3736,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades ( AddRecolorsFromColorAndCost( [], '#00ff00', 15, 'main energy color' ) )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_VELOX_COMBAT_RIFLE = 67 ] = 
@@ -4338,7 +4338,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades ( AddRecolorsFromColorAndCost( [], '#00ff00', 15, 'main energy color' ) )
 		};
 
 
@@ -6136,6 +6136,92 @@ class sdGunClass
 				}
 			},
 			upgrades: AddGunDefaultUpgrades()
+		};
+
+		sdGun.classes[ sdGun.CLASS_SARRONIAN_FOCUS_BEAM = 108 ] = // Sprite by Ghost581
+		{
+			image: sdWorld.CreateImageFromFile( 'sarronian_focus_beam' ),
+			image_charging: sdWorld.CreateImageFromFile( 'sarronian_focus_beam2' ),
+			//sound: 'supercharge_combined2',
+			title: 'Sarronian Focus Beam',
+			//sound_pitch: 0.5,
+			slot: 8,
+			reload_time: 0.3,
+			muzzle_x: 7,
+			ammo_capacity: -1,
+			count: 1,
+			spawnable: false,
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				if ( gun._held_by._auto_shoot_in > 0 )
+				return 0;
+				
+				return 6;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( !shoot_from_scenario )
+				{
+					if ( gun._held_by )
+					if ( gun._held_by._auto_shoot_in <= 0 )
+					{
+						//gun._held_by._auto_shoot_in = 15;
+						//return; // hack
+						gun._held_by._auto_shoot_in = 2000 / 1000 * 30 / ( 1 + gun._combo / 60 );
+
+
+						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
+						sdSound.PlaySound({ name: 'enemy_mech_charge', x:gun.x, y:gun.y, volume: 1.5, pitch: 0.3 });
+					}
+					return false;
+				}
+				else
+				{
+					//sdSound.PlaySound({ name: 'gun_pistol', x:gun.x, y:gun.y });
+					sdSound.PlaySound({ name:'red_railgun', x:gun.x, y:gun.y, volume:1.2, pitch: 0.6 });
+					
+					if ( gun._held_by.matter >= 6 )
+					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					{
+						gun._held_by._auto_shoot_in = ( gun._held_by.stim_ef > 0 ) ? ( 1 / ( 1 + gun._combo / 60 ) ) : ( 2 / ( 1 + gun._combo / 60 ) ); // Faster rate of fire when shooting more
+						gun._held_by.matter -= 6;
+						gun._combo_timer = 90;
+						if ( gun._combo < 45 )
+						gun._combo++; // Speed up rate of fire, the longer it shoots
+					}
+				}
+				return true;
+			},
+			projectile_properties: { _rail: true, _damage: 22, color: '#eb9d28', _dirt_mult: -0.2 }, // Combined with fire rate
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _rail: true, color: '#eb9d28', _dirt_mult: -0.2 };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 22; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#00ff00', 15, 'main energy color' ) )
 		};
 	}
 }
