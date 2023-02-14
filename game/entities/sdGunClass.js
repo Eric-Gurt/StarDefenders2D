@@ -5662,20 +5662,27 @@ class sdGunClass
 				if ( sdWorld.inDist2D_Boolean( gun._held_by.x, gun._held_by.y, gun._held_by.look_x, gun._held_by.look_y, 400 ) )
 				{
 					let damage_value = 100 + Math.min( 200, 10 * gun._combo ); // Damage increases with combo so it can be efficient against higher health enemies
+					//let dx = gun._held_by.look_x - gun._held_by.x;
+
+					//if (dx === 0 ) // Could result in endless for loop
+					//dx = gun._held_by._side;
+
 					let dx = gun._held_by.look_x - gun._held_by.x;
-
-					if (dx === 0 ) // Could result in endless for loop
-					dx = gun._held_by._side;
-
 					let dy = gun._held_by.look_y - gun._held_by.y;
 
 					let landed_hit = false; // If char damages something, it costs less matter and can be used faster again
 
-					let last_x = gun._held_by.x; // Last location player can teleport to
+					/*let last_x = gun._held_by.x; // Last location player can teleport to
 					let last_y = gun._held_by.y; // Last location player can teleport to
 
 					let rail_x = gun._held_by.x; // Rail visual effect location
-					let rail_y = gun._held_by.y;
+					let rail_y = gun._held_by.y;*/
+							
+					let from_x = gun._held_by.x;
+					let from_y = gun._held_by.y;
+							
+					let to_x = from_x;
+					let to_y = from_y;
 
 					let di = sdWorld.Dist2D_Vector( dx, dy );
 
@@ -5684,12 +5691,108 @@ class sdGunClass
 						dx /= di;
 						dy /= di;
 					}
+					else
+					{
+						return true;
+					}
+					
 					let j = gun._held_by.y;
 
 
-					let hit_entities = []; // Array for entities that have been hit so they can't be hit multiple times
+					//let hit_entities = []; // Array for entities that have been hit so they can't be hit multiple times
+					let hit_entities = new Set(); // Array for entities that have been hit so they can't be hit multiple times
+					
+					let pending_solid_wall_hit = null;
+					
+					let Damage = ( e )=>
+					{
+						if ( !hit_entities.has( e ) )
+						{
+							hit_entities.add( e );
+							
+							if ( e.IsTargetable( gun._held_by ) )
+							{
+								e.DamageWithEffect( damage_value, gun._held_by );
+								
+								if ( !landed_hit )
+								{
+									landed_hit = true;
+									sdSound.PlaySound({ name:'cube_teleport', x:e.x, y:e.y, volume:2, pitch: 1.5 });
+								}
+							}
+						}
+						
+						return false;
+					};
+					
+					let custom_filtering_method = ( e )=>
+					{
+						if ( sdCom.com_visibility_unignored_classes.indexOf( e.GetClass() ) !== -1 )
+						pending_solid_wall_hit = e;
+						//return true; Make sure it collects all other possible hits before stopping completely
+					
+						return false;
+					};
+					
+					let step_size = 8;
+					let i = 0;
+					let max_i = 0;
+					// First cycle - we find position where player will stop
+					while ( i <= di )
+					{
+						pending_solid_wall_hit = null;
+						
+						let xx = from_x + dx * i;
+						let yy = from_y + dy * i;
+						gun._held_by.CanMoveWithoutOverlap( xx, yy, 2, custom_filtering_method );
+						
+						if ( gun._held_by.CanMoveWithoutOverlap( xx, yy, 2 ) )
+						{
+							to_x = xx;
+							to_y = yy;
+							max_i = i;
+						}
+						else
+						{
+							if ( sdWorld.last_hit_entity )
+							Damage( sdWorld.last_hit_entity );
+						}
+						
+						if ( pending_solid_wall_hit )
+						{
+							//Damage( pending_solid_wall_hit );
+							break;
+						}
+						
+						if ( i < di )
+						{
+							i += step_size;
+							if ( i >= di )
+							i = di;
+						}
+						else
+						break;
+					}
+					// Second loop - we deal damage until that point
+					i = 0;
+					while ( i <= max_i )
+					{
+						let xx = from_x + dx * i;
+						let yy = from_y + dy * i;
+						
+						gun._held_by.CanMoveWithoutOverlap( xx, yy, 2, Damage );
+						
+						if ( i < max_i )
+						{
+							i += step_size;
+							if ( i >= max_i )
+							i = max_i;
+						}
+						else
+						break;
+					}
 
-					if ( gun._held_by.x < gun._held_by.look_x )
+					/*if ( gun._held_by.x < gun._held_by.look_x )
 					for ( let i = gun._held_by.x; i < gun._held_by.look_x; i += dx * 4 )
 					{
 						if ( gun._held_by.CanMoveWithoutOverlap( i, j , -4 ) )
@@ -5772,10 +5875,13 @@ class sdGunClass
 						}
 
 						j += dy * 4;
-					}
-					sdWorld.SendEffect({ x:gun._held_by.x, y:gun._held_by.y, x2:rail_x, y2:rail_y, type:sdEffect.TYPE_BEAM, color:'#CCCCCC' });
-					gun._held_by.x = last_x;
-					gun._held_by.y = last_y;
+					}*/
+					//sdWorld.SendEffect({ x:gun._held_by.x, y:gun._held_by.y, x2:rail_x, y2:rail_y, type:sdEffect.TYPE_BEAM, color:'#CCCCCC' });
+					//gun._held_by.x = last_x;
+					//gun._held_by.y = last_y;
+					sdWorld.SendEffect({ x:gun._held_by.x, y:gun._held_by.y, x2:to_x, y2:to_y, type:sdEffect.TYPE_BEAM, color:'#CCCCCC' });
+					gun._held_by.x = to_x;
+					gun._held_by.y = to_y;
 					gun._held_by.sx = dx * 2;
 					gun._held_by.sy = dy * 2;
 					gun._held_by.ApplyServerSidePositionAndVelocity( true, 0, 0 );
