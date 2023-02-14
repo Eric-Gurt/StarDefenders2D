@@ -722,6 +722,11 @@ class sdSteeringWheel extends sdEntity
 					if ( current.y0 !== null )
 					current.y0 += yy;
 				}
+				
+				if ( current._shielded )
+				{
+					current._shielded.ProtectedEntityMoved( current );
+				}
 
 				if ( current.is_static )
 				{

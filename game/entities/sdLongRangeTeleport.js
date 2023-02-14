@@ -412,16 +412,25 @@ class sdLongRangeTeleport extends sdEntity
 		
 		let IsTeleportable = ( ent )=>
 		{
-
 			if ( ent.y > this.y ) // I have no clue but for some reason blue LRTP teleports counts stuff placed under it but doesn't teleport it? - Booraz149
 			return false; // I just know that this fixes that, so I guess this is a bandaid fix.
+		
+			// Moving it here to prevent crystals being teleported through blocks
+			if ( ent.x + ent.hitbox_x1 <= x2 &&
+			     ent.x + ent.hitbox_x2 >= x1 &&
+			     ent.y + ent.hitbox_y1 <= y2 &&
+			     ent.y + ent.hitbox_y2 >= y1 &&
+			     sdWorld.CheckLineOfSight( this.x, this.y, ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2, ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2, null, null, [ 'sdBlock', 'sdDoor' ] ) )
+			{
+			}
+			else
+			{
+				return false;
+			}
+
 
 			if ( use_task_filter )
 			{
-				/*if ( ent.is( sdCrystal ) )
-				if ( ent.type === sdCrystal.TYPE_CRYSTAL_CRAB )
-				return true;*/
-
 				for ( let i = 0; i < sdTask.tasks.length; i++ )
 				{
 					let task = sdTask.tasks[ i ];
@@ -561,25 +570,13 @@ class sdLongRangeTeleport extends sdEntity
 			
 			if ( IsTeleportable( ent ) )
 			{
-				//if ( partial_colision_too )
-				//{
-					//if ( ent.hard_collision ) // Do not count non-hard collision entities when trying to teleport on top of them
-					if ( ent.x + ent.hitbox_x1 <= x2 )
-					if ( ent.x + ent.hitbox_x2 >= x1 )
-					if ( ent.y + ent.hitbox_y1 <= y2 )
-					if ( ent.y + ent.hitbox_y2 >= y1 )
-					if ( sdWorld.CheckLineOfSight( this.x, this.y, ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2, ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2, null, null, [ 'sdBlock', 'sdDoor' ] ) )
-					ents_final.push( ent );
-				/*}
-				else
-				{
-					if ( ent.x + ent.hitbox_x1 >= x1 )
-					if ( ent.x + ent.hitbox_x2 <= x2 )
-					if ( ent.y + ent.hitbox_y1 >= y1 )
-					if ( ent.y + ent.hitbox_y2 <= y2 )
-					ents_final.push( ent );
-				}
-				*/
+				// Moving it to IsTeleportable to prevent crystals being teleported through blocks
+				//if ( ent.x + ent.hitbox_x1 <= x2 )
+				//if ( ent.x + ent.hitbox_x2 >= x1 )
+				//if ( ent.y + ent.hitbox_y1 <= y2 )
+				//if ( ent.y + ent.hitbox_y2 >= y1 )
+				//if ( sdWorld.CheckLineOfSight( this.x, this.y, ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2, ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2, null, null, [ 'sdBlock', 'sdDoor' ] ) )
+				ents_final.push( ent );
 			}
 		}
 		
@@ -1071,7 +1068,7 @@ class sdLongRangeTeleport extends sdEntity
 			}
 			
 			//if ( exectuter_character._god || sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
-			if ( exectuter_character._god || this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) )
+			if ( exectuter_character._god || ( this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) && executer_socket.character.canSeeForUse( this ) ) )
 			{
 				//let can_reset_teleport = !( this.is_charging || sdWorld.time < this._is_busy_since + 15 * 1000 );
 				let can_reset_teleport = !this.is_charging || ( this.is_charging && sdWorld.time > this._is_busy_since + 15 * 1000 );
