@@ -80,6 +80,10 @@ class sdOctopus extends sdEntity
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
 		this.filter = 'saturate(0.5)';
 	}
+	ExtraSerialzableFieldTest( prop )
+	{
+		return ( prop === '_consumed_guns_snapshots' );
+	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( character.driver_of )
@@ -374,6 +378,7 @@ class sdOctopus extends sdEntity
 						 ( from_entity.GetClass() === 'sdGun' /*&& from_entity.class !== sdGun.CLASS_BUILD_TOOL && from_entity.class !== sdGun.CLASS_MEDIKIT && ( from_entity._held_by === null || from_entity._held_by.gun_slot === sdGun.classes[ from_entity.class ].slot )*/ ) || // Yes, held guns too, but only currently held guns. Except for build tool and medikit
 						 from_entity.GetClass() === 'sdTeleport' ||
 						 from_entity.GetClass() === 'sdVirus' ||
+						 from_entity.GetClass() === 'sdGuanako' ||
 						 ( typeof from_entity.hea !== 'undefined' && from_entity.hea <= 0 ) ||
 						 ( typeof from_entity._hea !== 'undefined' && from_entity._hea <= 0 ) ||
 						 from_entity === this._current_target )

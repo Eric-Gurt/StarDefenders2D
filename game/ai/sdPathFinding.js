@@ -663,7 +663,7 @@ class RectSpaceMap
 
 					let offset_nearby = this.GetBitOffsetFromXY( x, y );
 					let nearby_is_wall = sdWorld.CheckWallExistsBox( x + 1, y + 1, x + 15, y + 15, null, null, sdCom.com_visibility_unignored_classes, null );
-
+					let nearby_wall = sdWorld.last_hit_entity;
 					//sdWorld.SendEffect({ x: x + 8, y: y + 8, type:sdWorld.entity_classes.sdEffect.TYPE_WALL_HIT });
 					
 					let nearby_is_water = sdWater.GetWaterObjectAt( x, y );
@@ -678,7 +678,9 @@ class RectSpaceMap
 					
 					if ( nearby_is_wall )
 					{
-						if ( !this.can_dig )
+						if ( !this.can_dig || 
+							 ( nearby_wall && typeof nearby_wall._shielded !== 'undefined' && nearby_wall._shielded && !nearby_wall._shielded._is_being_removed && nearby_wall._shielded.enabled ) // Digging mobs should not try to dig through base shielding units it seems like
+							)
 						{
 							continue;
 						}

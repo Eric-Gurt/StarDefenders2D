@@ -7,6 +7,7 @@ import sdGun from './sdGun.js';
 import sdWater from './sdWater.js';
 import sdCharacter from './sdCharacter.js';
 import sdCom from './sdCom.js';
+import sdGuanako from './sdGuanako.js';
 
 
 class sdTutel extends sdEntity
@@ -359,7 +360,7 @@ class sdTutel extends sdEntity
 				let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
 				let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 				
-				if ( from_entity.IsPlayerClass() || from_entity === this._current_target )
+				if ( from_entity.IsPlayerClass() || from_entity.is( sdGuanako ) || from_entity === this._current_target )
 				if ( from_entity.IsTargetable() )
 				if ( sdWorld.CheckLineOfSight( this.x, this.y, from_entity.x, from_entity.y, null, null, sdCom.com_creature_attack_unignored_classes ) )
 				{
