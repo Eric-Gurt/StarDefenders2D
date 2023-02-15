@@ -888,7 +888,7 @@ class sdEntity
 		let skip_cell_scan = false;
 
 		sdWorld.last_hit_entity = null;
-		//this._phys_last_rest_on = null;
+		this._phys_last_rest_on = null; // Uncommented since it does not make much sense if it is never reset
 		//this._phys_last_touch = null; Maybe it is best to just keep it, since movement and removal is tracked above
 		
 		/*if ( this._phys_last_rest_on )
@@ -1588,7 +1588,7 @@ class sdEntity
 						
 						this._phys_last_touch = best_ent;
 						
-						this._phys_last_rest_on = best_ent;
+						//this._phys_last_rest_on = best_ent; // Physics worked fine but it makes not much sense if we want to track whether entity stands on top of something for being able to walk
 						
 						// If lies on top
 						if ( best_ent )

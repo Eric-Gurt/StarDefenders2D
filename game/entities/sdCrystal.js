@@ -9,6 +9,7 @@ import sdMatterAmplifier from './sdMatterAmplifier.js';
 import sdCube from './sdCube.js';
 import sdCom from './sdCom.js';
 import sdEffect from './sdEffect.js';
+import sdGuanako from './sdGuanako.js';
 
 
 class sdCrystal extends sdEntity
@@ -255,6 +256,10 @@ class sdCrystal extends sdEntity
 		if ( initiator )
 		if ( initiator._is_being_removed )
 		initiator = null;
+
+		if ( initiator )
+		if ( initiator.is( sdGuanako ) )
+		return;
 
 		//if ( this.held_by !== null )
 		//return;

@@ -22,6 +22,7 @@ import sdEffect from './sdEffect.js';
 import sdAsp from './sdAsp.js';
 import sdSandWorm from './sdSandWorm.js';
 import sdSlug from './sdSlug.js';
+import sdGrub from './sdGrub.js';
 import sdEnemyMech from './sdEnemyMech.js';
 import sdDrone from './sdDrone.js';
 import sdBlock from './sdBlock.js';
@@ -34,6 +35,7 @@ import sdSetrDestroyer from './sdSetrDestroyer.js';
 import sdBiter from './sdBiter.js';
 import sdAbomination from './sdAbomination.js';
 import sdMimic from './sdMimic.js';
+import sdGuanako from './sdGuanako.js';
 
 
 class sdTurret extends sdEntity
@@ -67,6 +69,8 @@ class sdTurret extends sdEntity
 			sdAsp, 
 			sdSandWorm, 
 			sdSlug, 
+			sdGrub, 
+			sdGuanako, 
 			sdShark, 
 			sdEnemyMech, 
 			sdDrone, 

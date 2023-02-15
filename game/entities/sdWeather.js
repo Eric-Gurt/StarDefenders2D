@@ -39,6 +39,7 @@ import sdVirus from './sdVirus.js';
 import sdBG from './sdBG.js';
 import sdEnemyMech from './sdEnemyMech.js';
 import sdBadDog from './sdBadDog.js';
+import sdGuanako from './sdGuanako.js';
 import sdRift from './sdRift.js';
 import sdCrystal from './sdCrystal.js';
 import sdDrone from './sdDrone.js';
@@ -111,6 +112,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_SWORD_BOT =				event_counter++; // 34
 		sdWeather.EVENT_TZYRG =					event_counter++; // 35
 		sdWeather.EVENT_FALKOK_OUTPOST =			event_counter++; // 36
+		sdWeather.EVENT_GUANAKO =				event_counter++; // 37
 
 		
 		sdWeather.supported_events = [];
@@ -1032,71 +1034,12 @@ class sdWeather extends sdEntity
 					
 		if ( r === 9 ) // Spawn few sdBadDog-s somewhere on ground where players don't see them
 		{
-			//let instances = Math.floor( 3 + Math.random() * 6 );
-			let instances = Math.floor( 1 + Math.random() * 2 );
-			//while ( instances > 0 && sdBadDog.dogs_counter < 16 )
-			while ( instances > 0 )
-			{
-
-				let dog = new sdBadDog({ x:0, y:0 });
-
-				sdEntity.entities.push( dog );
-
-				{
-					let x,y,i;
-					let tr = 1000;
-					do
-					{
-						x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
-						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-						if ( dog.CanMoveWithoutOverlap( x, y, 0 ) )
-						if ( !dog.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-						if ( sdWorld.last_hit_entity )
-						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
-						if ( !sdWorld.CheckWallExistsBox( 
-								x + dog._hitbox_x1 - 16, 
-								y + dog._hitbox_y1 - 16, 
-								x + dog._hitbox_x2 + 16, 
-								y + dog._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
-						{
-							let di_allowed = true;
-										
-							for ( i = 0; i < sdWorld.sockets.length; i++ )
-							if ( sdWorld.sockets[ i ].character )
-							{
-								let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
-											
-								if ( di < 500 )
-								{
-									di_allowed = false;
-									break;
-								}
-							}
-										
-							if ( di_allowed )
-							{
-								dog.x = x;
-								dog.y = y;
-
-								break;
-							}
-						}
-									
-
-
-						tr--;
-						if ( tr < 0 )
-						{
-							dog.remove();
-							dog._broken = false;
-							break;
-						}
-					} while( true );
-				}
-
-				instances--;
-			}
+			sdWeather.SimpleSpawner({
+				
+				count: [ 1, 3 ],
+				class: sdBadDog
+				
+			});
 		}
 
 		if ( r === 10 ) // Portal event
@@ -2950,6 +2893,16 @@ class sdWeather extends sdEntity
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
+		if ( r === sdWeather.EVENT_GUANAKO )
+		{
+			// TODO: Spawn their houses instead, later houses will spawn new guanakos
+			sdWeather.SimpleSpawner({
+				
+				count: [ 1, 2 ],
+				class: sdGuanako
+				
+			});
+		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -3552,6 +3505,76 @@ class sdWeather extends sdEntity
 		}
 		
 		return true;
+	}
+	static SimpleSpawner( params ) // { count: [min,max], class:sdBadDog }
+	{
+		if ( !params.count )
+		params.count = [ 1, 1 ];
+		
+		let instances = params.count[ 0 ] + ~~( Math.random() * ( params.count[ 1 ] - params.count[ 0 ] ) );
+		
+		while ( instances > 0 )
+		{
+
+			let dog = new ( params.class )({ x:0, y:0 });
+
+			sdEntity.entities.push( dog );
+
+			{
+				let x,y,i;
+				let tr = 1000;
+				do
+				{
+					x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+					y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+					if ( dog.CanMoveWithoutOverlap( x, y, 0 ) )
+					if ( !dog.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+					if ( sdWorld.last_hit_entity )
+					if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
+					if ( !sdWorld.CheckWallExistsBox( 
+							x + dog._hitbox_x1 - 16, 
+							y + dog._hitbox_y1 - 16, 
+							x + dog._hitbox_x2 + 16, 
+							y + dog._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+					{
+						let di_allowed = true;
+
+						for ( i = 0; i < sdWorld.sockets.length; i++ )
+						if ( sdWorld.sockets[ i ].character )
+						{
+							let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
+
+							if ( di < 500 )
+							{
+								di_allowed = false;
+								break;
+							}
+						}
+
+						if ( di_allowed )
+						{
+							dog.x = x;
+							dog.y = y;
+
+							break;
+						}
+					}
+
+
+
+					tr--;
+					if ( tr < 0 )
+					{
+						dog.remove();
+						dog._broken = false;
+						break;
+					}
+				} while( true );
+			}
+
+			instances--;
+		}
 	}
 	Draw( ctx, attached )
 	{

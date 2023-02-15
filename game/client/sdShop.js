@@ -737,6 +737,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdRoach', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBot', kind:0, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBot', kind:1, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdGuanako', _category:'Development tests' });
 			//sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'saturate(0) brightness(1.5)', _category:'Development tests' });
 			//sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'saturate(0) brightness(0.5)', _category:'Development tests' });
 		}

@@ -29,7 +29,7 @@ class sdRoach extends sdEntity
 	}
 	
 	get hard_collision() // For world geometry where players can walk
-	{ return true; }
+	{ return this.fr < 5; }
 	
 	GetIgnoredEntityClasses()
 	{
@@ -77,9 +77,6 @@ class sdRoach extends sdEntity
 		
 		this.sd_filter = null;
 	}
-	
-	get hard_collision() // For world geometry where players can walk
-	{ return this.fr < 5; }
 	
 	/*Impact( vel ) // fall damage basically
 	{

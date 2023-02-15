@@ -286,6 +286,9 @@ class sdCom extends sdEntity
 				if ( this.subscribers.indexOf( 'sdCube' ) === -1 )
 				this.AddContextOption( 'Subscribe all Cubes', 'COM_SUB', [ 'sdCube' ] );
 
+				if ( this.subscribers.indexOf( 'sdGuanako' ) === -1 )
+				this.AddContextOption( 'Subscribe all Guanako', 'COM_SUB', [ 'sdGuanako' ] );
+
 				if ( this.subscribers.indexOf( 'sdStorage' ) === -1 )
 				this.AddContextOption( 'Subscribe all Storage crates', 'COM_SUB', [ 'sdStorage' ] );
 
