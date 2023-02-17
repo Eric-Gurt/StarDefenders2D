@@ -15,13 +15,13 @@ class sdUpgradeStation extends sdEntity
 {
 	static init_class()
 	{
-		sdUpgradeStation.img_us = sdWorld.CreateImageFromFile( 'upgrade_station' );
+		sdUpgradeStation.img_us = sdWorld.CreateImageFromFile( 'upgrade_station' ); // Re-skin by Flora
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -10; }
 	get hitbox_x2() { return 15; }
-	get hitbox_y1() { return -26; }
+	get hitbox_y1() { return -2; }
 	get hitbox_y2() { return 16; }
 	
 	get hard_collision()
