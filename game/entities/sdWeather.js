@@ -111,7 +111,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_SWORD_BOT =				event_counter++; // 34
 		sdWeather.EVENT_TZYRG =					event_counter++; // 35
 		sdWeather.EVENT_FALKOK_OUTPOST =			event_counter++; // 36
-		sdWeather.EVENT_GUANKO =			event_counter++; // 37
+		
 		sdWeather.EVENT_SDLOST_EXTRACTION =			event_counter++; // 38
 
 		
