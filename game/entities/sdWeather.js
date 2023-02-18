@@ -2964,8 +2964,8 @@ class sdWeather extends sdEntity
 					difficulty: 0.4,
 					lrtp_matter_capacity_needed: 0 + ( 4 * player_count ),
 					title: 'The Fallen one',
-					time_left: 30 * 60 * 5, // 5 minutes, more than enough for players to contribute to it's completion, unless if it isn't
-					for_all_players: true, // This task lets everyone contribute towards it's completion
+					time_left: 30 * 60 * 5, // 5 minutes, more than enough for players to contribute to its completion, unless if it isn't
+					for_all_players: true, // This task lets everyone contribute towards its completion
 					description: 'Our citizens really like statues of lost and emptied creatures/players. Deliver the fallen creatures/players to the mothership within 5 minutes',
 				});
 			}
