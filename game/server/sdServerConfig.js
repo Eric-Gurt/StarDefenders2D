@@ -254,7 +254,7 @@ class sdServerConfigFull extends sdServerConfigShort
 				case 3: intro_to_speak.push( 'Hello.' ); break;
 			}
 			
-			switch ( ~~( Math.random() * 14 ) ) // There should eventually be an sdContextMenu option for instructors and move the messages titled 'guides' there as options so players can learn about game mechanics and have the instructor mention that they can open ContextMenu on him to acccess the guides here instead along with basic quotes. - Ghost581
+			switch ( ~~( Math.random() * 16 ) ) // There should eventually be an sdContextMenu option for instructors and move the messages titled 'guides' there as options so players can learn about game mechanics and have the instructor mention that they can open ContextMenu on him to acccess the guides here instead along with basic quotes. - Ghost581
 			{
 				
 				case 0: intro_to_speak.push( ...[
@@ -265,24 +265,26 @@ class sdServerConfigFull extends sdServerConfigShort
 					'If you really want to try your luck however, I guess I could explain the basics to you along the way.',
 				] ); break;
 				
-				case 1: intro_to_speak.push( ...[ // Basic introduction.
-					'This is a sandbox-type of game where you can play and interact with other players.',
-					'You can move around by pressing W, S, A and D keys.',
-					'You can look around and aim by moving your mouse.',
-					'You can press Left Mouse button to fire.',
-					'Weapons require a resource called Matter.',
-					'Matter can be found in underground crystals and some dead corpses.',
-					'You can try digging in order to find crystals, but finding them is not guaranteed.',
-					'Sometimes you might encounter enemies and other players.',
+				case 1: intro_to_speak.push( ...[ // Basic introduction, edited by Flora
+					'Move around by using the W A S D keys, or the arrow keys.',
+					'Move your mouse to aim, and press the Left Mouse button to attack.',
+					'When you attack, you\'ll often use something called "Matter".',
+					'This Matter resource is used for practically everything!',
+					'Including everything in the Building Menu, press B to access it...',
+					'or press the 9 key, and press right click.',
+					'Matter can be gained through killing things, discovering things, or finding Crystals.',
+					'Crystals can be found underground, so lets try digging for some.',
+					'Try buying some weapons first though, those might help you fight, and dig better.',
+					'Buying the Jetpack and Grappling Hook can also come in handy.',
+					'I\'ll keep an eye on you, so that you don\'t get as \*horribly eviscerated\* as you would without me!',
+					'Just be sure to keep an eye on me, too? Sometimes I get stuck, and I don\'t have a Jetpack.',
+					'After you hit "Level 1" though, I\'ll consider your initiation course complete and wish you good luck!',
+					'Then I\'ll head off to "instruct" the next guy we dragged into this mess.',
 					'You can interact with other players by sending proximity chat messages.',
 					'Press Enter key to start typing chat messages. Press Enter key again to send them.',
-					'You can switch active device by pressing keys from 0 to 9.',
-					'Each device uses its\' own slot represented with number.',
-					'Slot 9 is a Build tool. Press 9 Key in order to activate build mode.',
-					'Once you have selected slot 9, you can press Right Mouse button in order to enter build selection menu.',
-					'You can also press B key to open build selection menu directly.',
-					'In that menu you will find placeable entities such as walls and weapons as well as upgrades.',
-					'On respawn you will lose all your upgrades.',
+					'You can switch active weapon by pressing keys from 0 to 9.',
+					'Each weapon uses it\'s own slot represented with number.',
+					'On respawning you will lose all your upgrades.',
 					'Jetpack ability can be activated by pressing W or Space mid-air.',
 					'Grappling hook ability can be activated with Mouse Wheel click or C key.',
 					'Cloaking ability can be activated by pressing E key.', // 'Ghosting' sounds weird imo - Ghost581
@@ -295,8 +297,9 @@ class sdServerConfigFull extends sdServerConfigShort
 				
 				case 2: intro_to_speak.push( ...[  // Base building guide.
 					'You will need a base to survive - put a Base Shielding Unit inside once you\'ve built the foundation.',
-					'You can pick one out of two Base Shielding Unit types.',
-					'The Green one consumes crystals and the Blue one uses matter, don\'t forget to activate them.',
+					'You can pick one out of three Base Shielding Unit types.',
+					'The Green one consumes crystals and the Blue one uses matter.',
+					'There is also a red one that uses your score. Don\'t forget to activate them!',
 					'Also, put at least 3 big blocks for the walls.',
 					'It will take more time for things to break through and anti-crystals won\'t drain your matter from outside.',
 					'You also might want to put a Steering Wheel in order to prevent the base being moveable from outside.',
@@ -306,10 +309,17 @@ class sdServerConfigFull extends sdServerConfigShort
 					'Good luck with building a base!'
 				] ); break;
 				
-				case 3: intro_to_speak.push( ...[  // Acid rain guide ? Maybe advices the player to also not hit instructor so he stays friendly ?
-					'...and so I tell the previous guy: "We are under the acid rain, let\'s hide!"',
-					'And then he starts hitting me with his shovel!',
-					'I did not like it.',
+				case 3: intro_to_speak.push( ...[  // Acid rain + instructor aggression guide ? edited by Flora
+					'...and so I tell the previous guy: "We\'re under the acid rain, let\'s hide underground!"',
+					'And then he starts hitting me with his Shovel!',
+					'So then after that, I killed him with my bare hands!',
+					'Get it? I was operating purely off of my instincts, haha!',
+					'...',
+					'If you don\'t want me around, go to the menu...',
+					'and set "Assign instructor on start" to "No", got it?',
+					'...',
+					'Oh, and don\'t attack me.',
+					'I\'ll also go away when you hit "Level 1" anyways, so get to it!'
 				] ); break;
 				
 				case 4: intro_to_speak.push( ...[ // Underground spawn/basing guide ?
@@ -392,9 +402,38 @@ class sdServerConfigFull extends sdServerConfigShort
 				case 13: intro_to_speak.push( ...[  // Levelling up guide
 					'Score is needed to level up. You gain it from defeating enemies, discovering new things and completing tasks.',
 					'When you have enough score you level up and unlock new things to build.',
-					'You will also unlock new upgrades and weapons. Your matter capacity can increase up to 1850 by gaining score.',
+					'You will also unlock new upgrades and equipment. Your matter capacity can increase up to 1850 by gaining score.',
 					'You will need Cube Shards to increase your matter capacity past 1850 once you\'ve reached the threshold.',
 					'Good luck!'
+				] ); break;
+
+				case 14: intro_to_speak.push( ...[  // Friendly fire by Flora
+					'Sorry If I shot you in your past life.',
+					'My aim isn\'t the best, that\'s why I took this job.',
+					'I also get pretty scared when people shoot at me.',
+					'So I return the favor, and then some! Haha!',
+					'Sometimes other Star Defenders will do that, too.',
+					'If you shoot them, they shoot back.',
+					'Sometimes they kill you over a small wound, and sometimes they don\'t do that.',
+					'...',
+					'I mean, sometimes they \*will* just kill you for no reason.',
+					'But don\'t worry about that.',
+					'Just remember to have fun, okay?'
+				] ); break;
+
+				case 15: intro_to_speak.push( ...[  // Drone guide by Flora
+					'You know you operate a Drone, right?',
+					'In the menu, you have the option to "Play as" a Humanoid, a Drone, or an Overlord.',
+					'Drones can\'t use a Build Tool, but they\'re pretty good at mining.',
+					'Drones can also Right Click and hold to telekinetically grab Crystals, and other objects.',
+					'They can also pick up Crates, Players -- and even Monsters, too.',
+					'If a Drone gets to Level 1, they get a few more tools as well.',
+					'Slot 2 is a Mining Beam, 4 is a Power Beam, and 5 is a Self-Destruct.',
+					'They also have a Cable Tool in Slot 7 too, but you don\'t need Level 1 for that one.',
+					'Drones can be awfully helpful to us Star Defenders.',
+					'...',
+					'Oh, and they can also press and hold V to give their own matter to Players and Objects.',
+					'Cool, huh?',
 				] ); break;
 			}
 				
