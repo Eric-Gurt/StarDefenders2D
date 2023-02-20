@@ -265,34 +265,39 @@ class sdServerConfigFull extends sdServerConfigShort
 					'If you really want to try your luck however, I guess I could explain the basics to you along the way.',
 				] ); break;
 				
-				case 1: intro_to_speak.push( ...[ // Basic introduction, edited by Flora
-					'Move around by using the W A S D keys, or the arrow keys.',
+				case 1: intro_to_speak.push( ...[ // Basic introduction, edited to be more concise and relevant, though it would probably be better to divide some of this into other dialogs, too - floor
+					'Use the W A S D keys to move around, or the arrow buttons.',
 					'Move your mouse to aim, and press the Left Mouse button to attack.',
+					'Sometimes you can use the Right Mouse button to interact with stuff, too.',
 					'When you attack, you\'ll often use something called "Matter".',
-					'This Matter resource is used for practically everything!',
-					'Including everything in the Building Menu, press B to access it...',
-					'or press the 9 key, and press right click.',
-					'Matter can be gained through killing things, discovering things, or finding Crystals.',
-					'Crystals can be found underground, so lets try digging for some.',
+					'"Matter" is used for practically everything!',
+					'Including everything in the Building Menu, press B to access it now.',
+					// 'or press the 9 key, and press right click.', 
+					'Matter can be gained by killing and discovering things, or finding Crystals.',
+					'Crystals can be found underground, so lets try digging for some!',
 					'Try buying some weapons first though, those might help you fight, and dig better.',
-					'Buying the Jetpack and Grappling Hook can also come in handy.',
-					'I\'ll keep an eye on you, so that you don\'t get as \*horribly eviscerated\* as you would without me!',
+					'...', // adding extra pauses in between so that instructor doesn't infodump on you
+					'Every weapon and tool is assigned a slot number, press keys 0 from 9 to equip them.',
+					'The Defibrillator can revive dead Players, recover health, and stop bleeding.',
+					'Buying the ability upgrades can also come in handy.',
+					'When you die, and respawn, you\'ll lose all of your stuff.',
+					'So check your Tasks in the upper-left corner for important things.',
+					'...',
+					'Hold down the jump key to use the Jetpack, once you\'ve bought it.',
+					'Press the C key, or click in your mouse wheel to use the Grappling Hook.',
+					'You also can buy, and use Invisiblity with the E key, too',
+					'Don\'t worry, I\'ll keep an eye on you.',
 					'Just be sure to keep an eye on me, too? Sometimes I get stuck, and I don\'t have a Jetpack.',
-					'After you hit "Level 1" though, I\'ll consider your initiation course complete and wish you good luck!',
-					'Then I\'ll head off to "instruct" the next guy we dragged into this mess.',
-					'You can interact with other players by sending proximity chat messages.',
-					'Press Enter key to start typing chat messages. Press Enter key again to send them.',
-					'You can switch active weapon by pressing keys from 0 to 9.',
-					'Each weapon uses it\'s own slot represented with number.',
-					'On respawning you will lose all your upgrades.',
-					'Jetpack ability can be activated by pressing W or Space mid-air.',
-					'Grappling hook ability can be activated with Mouse Wheel click or C key.',
-					'Cloaking ability can be activated by pressing E key.', // 'Ghosting' sounds weird imo - Ghost581
-					'Defibrillator can revive dead players and stop bleeding.',
-					'You can throw held items by pressing V key.',
-					'You can aim at background-level walls by holding Shift key.',
-					'And finally, you can disable these hints at start screen.',
-					'Good luck!'
+					'Once you hit "Level 1", I\'ll consider your initiation course complete...',
+					'then I\'ll head off to "instruct" the next guy we dragged into this mess.',
+					'When I\'m gone though, try asking other Players here for help.',
+					'Type out messages by pressing the Enter key. Press Enter again to send them.',
+					'Sometimes they\'ll help you out a lot more than me.',
+					'They won\'t hear you if you\'re too far away though.',
+					'That\'s all the basics covered, let\'s get started!',
+					// 'You can throw held items by pressing V key.', - covered in the game UI
+					// 'You can aim at background-level walls by holding Shift key.', - not relevant to a new player
+					// 'And finally, you can disable these hints at start screen.', - mention in other dialogs?
 				] ); break;
 				
 				case 2: intro_to_speak.push( ...[  // Base building guide.
@@ -309,7 +314,7 @@ class sdServerConfigFull extends sdServerConfigShort
 					'Good luck with building a base!'
 				] ); break;
 				
-				case 3: intro_to_speak.push( ...[  // Acid rain + instructor aggression guide ? edited by Flora
+				case 3: intro_to_speak.push( ...[  // Acid rain + instructor aggression guide ? edited by floor
 					'...and so I tell the previous guy: "We\'re under the acid rain, let\'s hide underground!"',
 					'And then he starts hitting me with his Shovel!',
 					'So then after that, I killed him with my bare hands!',
@@ -407,7 +412,7 @@ class sdServerConfigFull extends sdServerConfigShort
 					'Good luck!'
 				] ); break;
 
-				case 14: intro_to_speak.push( ...[  // Friendly fire by Flora
+				case 14: intro_to_speak.push( ...[  // Friendly fire by floor
 					'Sorry If I shot you in your past life.',
 					'My aim isn\'t the best, that\'s why I took this job.',
 					'I also get pretty scared when people shoot at me.',
@@ -421,8 +426,8 @@ class sdServerConfigFull extends sdServerConfigShort
 					'Just remember to have fun, okay?'
 				] ); break;
 
-				case 15: intro_to_speak.push( ...[  // Drone guide by Flora
-					'You know you operate a Drone, right?',
+				case 15: intro_to_speak.push( ...[  // Drone guide by floor
+					'You know you how to operate a Drone, right?',
 					'In the menu, you have the option to "Play as" a Humanoid, a Drone, or an Overlord.',
 					'Drones can\'t use a Build Tool, but they\'re pretty good at mining.',
 					'Drones can also Right Click and hold to telekinetically grab Crystals, and other objects.',
