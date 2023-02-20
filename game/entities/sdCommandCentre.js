@@ -15,7 +15,7 @@ class sdCommandCentre extends sdEntity
 {
 	static init_class()
 	{
-		sdCommandCentre.img_cc = sdWorld.CreateImageFromFile( 'command_centre' );
+		sdCommandCentre.img_cc = sdWorld.CreateImageFromFile( 'command_centre' ); // New sprite by Flora
 		
 		sdCommandCentre.centres = [];
 		
@@ -23,10 +23,10 @@ class sdCommandCentre extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -10; }
-	get hitbox_x2() { return 15; }
-	get hitbox_y1() { return -26; }
-	get hitbox_y2() { return 16; }
+	get hitbox_x1() { return 2; }
+	get hitbox_x2() { return 30; }
+	get hitbox_y1() { return -15; }
+	get hitbox_y2() { return 15; }
 	
 	get hard_collision()
 	{ return true; }
@@ -283,7 +283,7 @@ class sdCommandCentre extends sdEntity
 		if ( sdShop.isDrawing )
 		ctx.scale( 0.5,0.5 );
 	
-		ctx.drawImageFilterCache( sdCommandCentre.img_cc, -16, -16 - 32, 32,64 );
+		ctx.drawImageFilterCache( sdCommandCentre.img_cc, -16, -16 - 32, 64,64 );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
