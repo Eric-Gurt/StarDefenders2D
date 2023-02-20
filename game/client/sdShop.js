@@ -229,9 +229,9 @@ class sdShop
 		}
 
 		AddBuildPack( 'hue-rotate( 105deg) brightness(0.7)' );
-        	AddBuildPack( 'hue-rotate(-90deg) brightness(1.5) saturate(0)' );
-        	AddBuildPack( 'saturate(0) brightness(8)' );
-        	AddBuildPack( 'hue-rotate(-90deg) contrast(0.5) brightness(1.5) saturate(0)' );
+		AddBuildPack( 'hue-rotate(-90deg) brightness(1.5) saturate(0)' );
+		AddBuildPack( 'saturate(0) brightness(8)' );
+		AddBuildPack( 'hue-rotate(-90deg) contrast(0.5) brightness(1.5) saturate(0)' );
 		// People seemed to ask for those 4 ^ - Booraz149
 		
 		for ( let br = 50; br <= 150; br += 50 )
@@ -740,6 +740,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdGuanako', _category:'Development tests' });
 			//sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'saturate(0) brightness(1.5)', _category:'Development tests' });
 			//sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'saturate(0) brightness(0.5)', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdButton', _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });
