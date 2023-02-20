@@ -69,8 +69,8 @@ class sdWorkbench extends sdEntity
 		//this.matter = 100;
 		//this.delay = 0;
 		this.level = 1;
-		this.cube_shards = 0;
-		this.cube_shards_max = 10;
+		this.metal_shards = 0;
+		this.metal_shards_max = 10;
 		
 		this._armor_protection_level = 0;
 	}
@@ -95,10 +95,10 @@ class sdWorkbench extends sdEntity
 	}
 	UpgradeWorkbench()
 	{
-		if ( this.cube_shards === this.cube_shards_max )
+		if ( this.metal_shards === this.metal_shards_max )
 		{
-			this.cube_shards = 0;
-			this.cube_shards_max += 5;
+			this.metal_shards = 0;
+			this.metal_shards_max += 5;
 			this.level++;
 			
 			//this._update_version++;
@@ -147,10 +147,10 @@ class sdWorkbench extends sdEntity
 	onMovementInRange( from_entity )
 	{
 		if ( from_entity.is( sdGun ) )
-		if ( from_entity.class === sdGun.CLASS_CUBE_SHARD )
-		if ( this.cube_shards < this.cube_shards_max )
+		if ( from_entity.class === sdGun.CLASS_METAL_SHARD )
+		if ( this.metal_shards < this.metal_shards_max )
 		{
-			this.cube_shards++;
+			this.metal_shards++;
 			//this._update_version++;
 			from_entity.remove();
 		}
@@ -165,7 +165,7 @@ class sdWorkbench extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.TooltipUntranslated( ctx, T("Workbench") + " ( " + ~~(this.cube_shards) + " / " + ~~(this.cube_shards_max) + " )", 0, -10 );
+		sdEntity.TooltipUntranslated( ctx, T("Workbench") + " ( " + ~~(this.metal_shards) + " / " + ~~(this.metal_shards_max) + " )", 0, -10 );
 
 		sdEntity.Tooltip( ctx, T("Level") + " " + this.level, 0, -3, '#66ff66' );
 		let w = 40;
@@ -206,12 +206,12 @@ class sdWorkbench extends sdEntity
 			
 			if ( command_name === 'UPG_WB' )
 			{
-				if ( this.cube_shards === this.cube_shards_max )
+				if ( this.metal_shards === this.metal_shards_max )
 				{
 					this.UpgradeWorkbench();
 				}
 				else
-				executer_socket.SDServiceMessage( 'Not enough cube shards are stored inside' );
+				executer_socket.SDServiceMessage( 'Not enough metal shards are stored inside' );
 			}
 		}
 	}
@@ -224,7 +224,7 @@ class sdWorkbench extends sdEntity
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 		{
 			if ( this.level < 7 )
-			this.AddContextOption( 'Upgrade workbench (Max Cube shards)', 'UPG_WB', [] );
+			this.AddContextOption( 'Upgrade workbench (Max Metal shards)', 'UPG_WB', [] );
 		}
 	}
 }
