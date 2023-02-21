@@ -23,8 +23,8 @@ class sdCommandCentre extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return 2; }
-	get hitbox_x2() { return 30; }
+	get hitbox_x1() { return -16; }
+	get hitbox_x2() { return 20; }
 	get hitbox_y1() { return -15; }
 	get hitbox_y2() { return 15; }
 	
@@ -283,11 +283,11 @@ class sdCommandCentre extends sdEntity
 		if ( sdShop.isDrawing )
 		ctx.scale( 0.5,0.5 );
 	
-		ctx.drawImageFilterCache( sdCommandCentre.img_cc, -16, -16 - 32, 64,64 );
+		ctx.drawImageFilterCache( sdCommandCentre.img_cc, -32, -16 - 32, 64,64 );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, this.title, 16, -16 );
+		sdEntity.Tooltip( ctx, this.title, 0, -10 );
 		
 		/*if ( this.self_destruct_on > sdWorld.time + sdCommandCentre.time_to_live_without_matter_keepers_near - 10 * 1000 )
 		sdEntity.Tooltip( ctx, 'No expiration', 0, -3, '#66ff66' );
@@ -297,10 +297,10 @@ class sdCommandCentre extends sdEntity
 		let w = 40;
 	
 		ctx.fillStyle = '#000000';
-		ctx.fillRect( 0 - w / 8, 0 - 32, w, 3 );
+		ctx.fillRect( 0 - w / 2, 0 - 32, w, 3 );
 
 		ctx.fillStyle = '#FF0000';
-		ctx.fillRect( 1 - w / 8, 1 - 32, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
+		ctx.fillRect( 1 - w / 2, 1 - 32, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
 	}
 	
 	onRemove() // Class-specific, if needed
