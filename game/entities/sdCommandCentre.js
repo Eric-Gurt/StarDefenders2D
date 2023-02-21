@@ -23,8 +23,8 @@ class sdCommandCentre extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return 2; }
-	get hitbox_x2() { return 30; }
+	get hitbox_x1() { return -14; }
+	get hitbox_x2() { return 14; }
 	get hitbox_y1() { return -15; }
 	get hitbox_y2() { return 15; }
 	
@@ -283,7 +283,7 @@ class sdCommandCentre extends sdEntity
 		if ( sdShop.isDrawing )
 		ctx.scale( 0.5,0.5 );
 	
-		ctx.drawImageFilterCache( sdCommandCentre.img_cc, -16, -16 - 32, 64,64 );
+		ctx.drawImageFilterCache( sdCommandCentre.img_cc, -32, -16 - 32, 64,64 );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
