@@ -287,7 +287,7 @@ class sdCommandCentre extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, this.title, 0, -10 );
+		sdEntity.Tooltip( ctx, this.title, 16, -16 );
 		
 		/*if ( this.self_destruct_on > sdWorld.time + sdCommandCentre.time_to_live_without_matter_keepers_near - 10 * 1000 )
 		sdEntity.Tooltip( ctx, 'No expiration', 0, -3, '#66ff66' );
@@ -297,10 +297,10 @@ class sdCommandCentre extends sdEntity
 		let w = 40;
 	
 		ctx.fillStyle = '#000000';
-		ctx.fillRect( 0 - w / 2, 0 - 26, w, 3 );
+		ctx.fillRect( 0 - w / 8, 0 - 32, w, 3 );
 
 		ctx.fillStyle = '#FF0000';
-		ctx.fillRect( 1 - w / 2, 1 - 26, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
+		ctx.fillRect( 1 - w / 8, 1 - 32, ( w - 2 ) * Math.max( 0, this.hea / this.hmax ), 1 );
 	}
 	
 	onRemove() // Class-specific, if needed
