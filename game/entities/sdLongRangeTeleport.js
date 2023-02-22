@@ -1121,9 +1121,12 @@ class sdLongRangeTeleport extends sdEntity
 										}
 									
 										this.Deactivation();
-										
-										this.GiveRewards( command_name, executer_socket );
-										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - claim_cost );
+										if ( !exectuter_character._is_being_removed )
+										if ( exectuter_character )
+										{
+											this.GiveRewards( command_name, executer_socket );
+											exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - claim_cost );
+										}
 									};
 								}
 								else
