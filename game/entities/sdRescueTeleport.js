@@ -403,7 +403,7 @@ class sdRescueTeleport extends sdEntity
 		sdRescueTeleport.rescue_teleports.splice( i, 1 );
 	
 		if ( !sdWorld.is_server )
-		if ( this._net_id !== undefined ) // Was ever synced rather than just temporarily object for shop
+		if ( this._net_id !== undefined ) // Was ever synced rather than just temporarily object for shope
 		if ( this._broken )
 		{
 			sdWorld.BasicEntityBreakEffect( this, 3 );

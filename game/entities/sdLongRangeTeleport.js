@@ -1108,6 +1108,13 @@ class sdLongRangeTeleport extends sdEntity
 									
 									this._charge_complete_method = ()=>
 									{
+										this.Deactivation();
+										
+										if ( exectuter_character._is_being_removed ) // LRTP duping prevention
+										{
+											return;
+										}
+										
 										if ( exectuter_character._task_reward_counter < claim_cost ) // Prevent claiming reward on multiple long-range teleports
 										{
 											executer_socket.SDServiceMessage( 'Reward claim was rejected - reward was claimed somewhere else' );
@@ -1119,14 +1126,9 @@ class sdLongRangeTeleport extends sdEntity
 											executer_socket.SDServiceMessage( 'Reward claim was rejected - not enough matter' );
 											return;
 										}
-									
-										this.Deactivation();
-										if ( !exectuter_character._is_being_removed )
-										if ( exectuter_character )
-										{
-											this.GiveRewards( command_name, executer_socket );
-											exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - claim_cost );
-										}
+										
+										this.GiveRewards( command_name, executer_socket );
+										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - claim_cost );
 									};
 								}
 								else

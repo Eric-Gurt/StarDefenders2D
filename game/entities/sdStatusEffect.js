@@ -1175,7 +1175,7 @@ class sdStatusEffect extends sdEntity
 		else
 		{
 			this.x = this.for.x + ( this.for._hitbox_x1 + this.for._hitbox_x2 ) / 2;
-			this.y = this.for.y + ( this.for._hitbox_x2 + this.for._hitbox_x2 ) / 2;
+			this.y = this.for.y + ( this.for._hitbox_y1 + this.for._hitbox_y2 ) / 2;
 		}
 		
 		let status_type = sdStatusEffect.types[ this.type ];
