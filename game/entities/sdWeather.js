@@ -281,7 +281,7 @@ class sdWeather extends sdEntity
 				{
 					let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
 											
-					if ( di < 700 )
+					if ( di < 500 )
 					{
 						di_allowed = false;
 						break;
@@ -322,7 +322,7 @@ class sdWeather extends sdEntity
 				{
 					let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
 											
-					if ( di < 700 )
+					if ( di < 500 )
 					{
 						di_allowed = false;
 						break;
@@ -1151,7 +1151,7 @@ class sdWeather extends sdEntity
 							{
 								let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
 											
-								if ( di < 700 )
+								if ( di < 500 )
 								{
 									di_allowed = false;
 									break;
@@ -2855,7 +2855,7 @@ class sdWeather extends sdEntity
 								{
 									let di = sdWorld.Dist2D( sdWorld.sockets[ k ].character.x, sdWorld.sockets[ k ].character.y, x, y );
 													
-									if ( di < 700 )
+									if ( di < 500 )
 									{
 										di_allowed = false; // Too close to players
 										//break;
