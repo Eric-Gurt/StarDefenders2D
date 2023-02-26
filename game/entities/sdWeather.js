@@ -1737,39 +1737,11 @@ class sdWeather extends sdEntity
 
 				sdEntity.entities.push( ent );
 
+				if ( !this.GetHumanoidSpawnLocation( ent ) )
 				{
-					let x,y;
-					let tr = 1000;
-					do
-					{
-						if ( left_side )
-						x = sdWorld.world_bounds.x1 + 64;
-						else
-						x = sdWorld.world_bounds.x2 - 64;
-
-						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-						if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
-						//if ( !ent.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-						//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() ) )
-						{
-							ent.x = x;
-							ent.y = y;
-
-							//sdWorld.UpdateHashPosition( ent, false );
-							//console.log('Flying mech spawned!');
-							break;
-						}
-
-
-						tr--;
-						if ( tr < 0 )
-						{
-							ent.remove();
-							ent._broken = false;
-							break;
-						}
-					} while( true );
+					ent.remove();
+					ent._broken = false;
+					break;
 				}
 
 				instances++;
