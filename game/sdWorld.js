@@ -1753,8 +1753,13 @@ class sdWorld
 			}
 
 			if ( c === 'Gun' )
-			if ( sdGun.classes[ ent.class ].title )
-			c = sdGun.classes[ ent.class ].title;
+			{
+				if ( sdGun.classes[ ent.class ] )
+				{
+					if ( sdGun.classes[ ent.class ].title )
+					c = sdGun.classes[ ent.class ].title;
+				}
+			}
 
 			if ( c === 'Character' )
 			{
