@@ -22,6 +22,8 @@ import sdBlock from './sdBlock.js';
 import sdDoor from './sdDoor.js';
 import sdCamera from './sdCamera.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdLongRangeTeleport from './sdLongRangeTeleport.js';
+
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -48,7 +50,7 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER = 0;
 		sdBaseShieldingUnit.TYPE_MATTER = 1;
-		sdBaseShieldingUnit.TYPE_SCORE_TIMED = 2; // Similar to crystal consumer but players charge it with score, it expires overtime and can not be attacked
+		sdBaseShieldingUnit.TYPE_SCORE_TIMED = 2; // Similar to crystal consumer but players charge it with score, it expires overtime and can not be attacked. Can't be near red LRTPs though
 		
 		sdBaseShieldingUnit.longer_time_protected_bsu_priority = 9; // 5 // It is added to 1
 		
@@ -419,7 +421,7 @@ class sdBaseShieldingUnit extends sdEntity
 			
 			let effect_for = [];
 			
-			let friendly_shields = this.FindObjectsInACableNetwork( null, sdBaseShieldingUnit );
+			/*let friendly_shields = this.FindObjectsInACableNetwork( null, sdBaseShieldingUnit );
 			let unfriendly_shields = []; // These will prevent protecting walls nearby other shields
 			
 			for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
@@ -443,7 +445,9 @@ class sdBaseShieldingUnit extends sdEntity
 				}
 
 				return false;
-			}
+			}*/
+			
+			let CheckIfNearUnfriendly = this.GetCheckIfNearUnfriendlyMethod();
 			
 			let tell_about_disputable_entities = false;
 
@@ -523,6 +527,9 @@ class sdBaseShieldingUnit extends sdEntity
 			if ( observer_character )
 			if ( observer_character._socket )
 			{
+				if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+				observer_character._socket.SDServiceMessage( '{1} entities are disputable and were not protected. Try connecting base shielding units with a cable tool. This kind can\'t be near red long-range teleports.', [ tell_about_disputable_entities ] );
+				else
 				observer_character._socket.SDServiceMessage( '{1} entities are disputable and were not protected. Try connecting base shielding units with a cable tool.', [ tell_about_disputable_entities ] );
 			}
 		}
@@ -595,12 +602,25 @@ class sdBaseShieldingUnit extends sdEntity
 			if ( friendly_shields.indexOf( s ) === -1 )
 			unfriendly_shields.push( s );
 		}
+		
+		if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+		{
+			//unfriendly_shields.push();
+			for ( let i = 0; i < sdLongRangeTeleport.long_range_teleports.length; i++ )
+			{
+				let s = sdLongRangeTeleport.long_range_teleports[ i ];
+				
+				if ( s.is_server_teleport )
+				unfriendly_shields.push( s );
+			}
+		}
 
 		let CheckIfNearUnfriendly = ( e )=>
 		{
 			for ( let i = 0; i < unfriendly_shields.length; i++ )
 			{
 				let s = unfriendly_shields[ i ];
+				
 				if ( e.inRealDist2DToEntity_Boolean( s, sdBaseShieldingUnit.protect_distance + 32 ) )
 				return true;
 			}
@@ -917,7 +937,7 @@ class sdBaseShieldingUnit extends sdEntity
 			{
 				let unit = units[ i ];
 				
-				let distance = sdWorld.Dist2D( this.x, this.y, unit.x, unit.y )
+				let distance = sdWorld.Dist2D( this.x, this.y, unit.x, unit.y );
 				
 				if ( ( distance < range ) ) // Only attack close range shields can be attacked
 				if ( unit !== this )
