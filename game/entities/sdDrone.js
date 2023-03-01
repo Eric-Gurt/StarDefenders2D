@@ -436,10 +436,12 @@ class sdDrone extends sdEntity
 		
 		let pathfinding_result = null;
 			
+
+		if ( this.death_anim !== 0 )
+		this.attack_an += -this.sx * 10 * GSPEED * this.side; // Looks smoother
+
 		if ( this._hea <= 0 )
 		{
-			//this.attack_an += this.sx / 6;
-			this.attack_an += -this.sx * 20 * GSPEED * this.side;
 
 			if ( this.death_anim < sdDrone.death_duration + sdDrone.post_death_ttl )
 			this.death_anim += GSPEED;
