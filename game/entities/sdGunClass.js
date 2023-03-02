@@ -6379,6 +6379,45 @@ class sdGunClass
 			},
 			upgrades: AddGunDefaultUpgrades( AppendBasicCubeGunRecolorUpgrades( [] ) )
 		};
+		
+		sdGun.classes[ sdGun.CLASS_LMG_P04 = 110 ] = { // Old weapon lmg p04, restyled.
+			image: sdWorld.CreateImageFromFile( 'lmg_p04' ),
+			sound: 'turret',
+			sound_pitch: 0.6,
+			sound_volume: 2.5,
+			title: 'KVT LMG-P04 "Snake Man"', // New name for lmg p04
+			slot: 2,
+			reload_time: 2,
+			muzzle_x: 12,
+			ammo_capacity: 100, // Not stronger than flying mech minigun or falkonian heavy rifle
+			spread: 0.01,
+			count: 1,
+			spawnable: false, // LRTP only.
+			projectile_properties: { _damage: 36, color: '00FFFF', _dirt_mult: -0.5 },
+			projectile_properties_dynamic: ( gun )=>{ 
+
+				let obj = { _dirt_mult: -0.5, color: '00FFFF' };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ];
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				return obj;
+			},
+
+			onMade: ( gun, params )=>
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 36;
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#8feafb', 15 ) ) // Nothing, you could delete this recolor upgrade.
+		};
 	}
 }
 
