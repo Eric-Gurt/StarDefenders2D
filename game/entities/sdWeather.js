@@ -56,6 +56,7 @@ import sdLamp from './sdLamp.js';
 import sdDoor from './sdDoor.js';
 import sdTurret from './sdTurret.js';
 import sdFactionSpawner from './sdFactionSpawner.js';
+import sdFactions from './sdFactions.js';
 
 import sdTask from './sdTask.js';
 
@@ -92,7 +93,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_WATER_RAIN =				event_counter++; // 14
 		sdWeather.EVENT_SNOW =					event_counter++; // 15
 		sdWeather.EVENT_LARGE_ANTICRYSTAL =			event_counter++; // 16
-		sdWeather.EVENT_SARRORNIANS =				event_counter++; // 17
+		sdWeather.EVENT_SARRORIANS =				event_counter++; // 17
 		sdWeather.EVENT_COUNCIL_BOMB =				event_counter++; // 18
 		sdWeather.EVENT_MATTER_RAIN =				event_counter++; // 19
 		sdWeather.EVENT_OVERLORD =				event_counter++; // 20
@@ -786,82 +787,8 @@ class sdWeather extends sdEntity
 					}
 					else
 					{
-						{
-
-							//sdWorld.UpdateHashPosition( ent, false );
-							if ( Math.random() < 0.07 )
-							{
-								if ( Math.random() < 0.2 )
-								{
-									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_PSI_CUTTER }) );
-									character_entity._ai_gun_slot = 4;
-								}
-								else
-								{
-									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAYGUN }) );
-									character_entity._ai_gun_slot = 3;
-								}
-							}
-							else
-							{ 
-								if ( Math.random() < 0.1 )
-								{
-									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_F_MARKSMAN }) );
-									character_entity._ai_gun_slot = 2;
-								}
-								else
-								{
-									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_FALKOK_RIFLE }) );
-									character_entity._ai_gun_slot = 2;
-								}
-							}
-							let falkok_settings;
-							if ( character_entity._ai_gun_slot === 2 )
-							falkok_settings = {"hero_name":"Falkok","color_bright":"#6b0000","color_dark":"#420000","color_bright3":"#6b0000","color_dark3":"#420000","color_visor":"#5577b9","color_suit":"#240000","color_suit2":"#2e0000","color_dark2":"#560101","color_shoes":"#000000","color_skin":"#240000","color_extra1":"#240000","helmet1":false,"helmet2":true,"body60":true,"legs60":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
-							if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If Falkok spawns with Raygun or PSI-Cutter, change their looks Phoenix Falkok
-							falkok_settings = {"hero_name":"Phoenix Falkok","color_bright":"#ffc800","color_dark":"#a37000","color_bright3":"#ffc800","color_dark3":"#a37000","color_visor":"#000000","color_suit":"#ffc800","color_suit2":"#ffc800","color_dark2":"#000000","color_shoes":"#a37000","color_skin":"#a37000","helmet1":false,"helmet12":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":true};
-
-							character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( falkok_settings );
-							character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( falkok_settings );
-							character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( falkok_settings );
-							character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( falkok_settings );
-							character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( falkok_settings );
-							character_entity.title = falkok_settings.hero_name;
-							if ( character_entity._ai_gun_slot === 2 ) // If a regular falkok spawns
-							{
-								character_entity.matter = 85;
-								character_entity.matter_max = 85;
-
-								character_entity.hea = 125; // 105 so railgun requires at least headshot to kill and body shot won't cause bleeding
-								character_entity.hmax = 125;
-
-								//character_entity._damage_mult = 1 / 2.5; // 1 / 4 was too weak
-							}
-
-							if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // If a Phoenix Falkok spawns
-							{
-								character_entity.matter = 125;
-								character_entity.matter_max = 125;
-
-								character_entity.hea = 250; // It is a stronger falkok after all, although revert changes if you want
-								character_entity.hmax = 250;
-
-								//character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
-							}	
-							character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-							//character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
-										
-							character_entity._ai_level = Math.floor( Math.random() * 2 ); // Either 0 or 1
-										
-							character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
-							character_entity._jetpack_allowed = true; // Jetpack
-							//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
-							character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-							character_entity._ai_team = 1; // AI team 1 is for Falkoks, preparation for future AI factions
-							character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
-
-							break;
-						}
+						sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_FALKOK );
+						break;
 					}
 				}
 
@@ -1214,82 +1141,26 @@ class sdWeather extends sdEntity
 
 				let left_side = ( Math.random() < 0.5 );
 
-				while ( robots < robots_tot && ais < this._max_ai_count )
-				{
-
-				let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-
-				sdEntity.entities.push( character_entity );
-
-				{
-					if ( !this.GetHumanoidSpawnLocation( character_entity ) )
+					while ( robots < robots_tot && ais < this._max_ai_count )
 					{
-						character_entity.remove();
-						character_entity._broken = false;
-						break;
-					}
-					else
+
+					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+
+					sdEntity.entities.push( character_entity );
+
 					{
-						if ( Math.random() < 0.3 )
+						if ( !this.GetHumanoidSpawnLocation( character_entity ) )
 						{
-							sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_BURST_RIFLE }) );
-							character_entity._ai_gun_slot = 2;
+							character_entity.remove();
+							character_entity._broken = false;
+							break;
 						}
 						else
 						{
-							sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ERTHAL_PLASMA_PISTOL }) );
-							character_entity._ai_gun_slot = 1;
+							sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_ERTHAL );
+							break;
 						}
-						let robot_settings;
-						//if ( character_entity._ai_gun_slot === 2 )
-						robot_settings = {"hero_name":"Erthal","color_bright":"#37a2ff","color_dark":"#000000","color_bright3":"#464646","color_dark3":"#000000","color_visor":"#1664a8","color_suit":"#464646","color_suit2":"#000000","color_dark2":"#464646","color_shoes":"#000000","color_skin":"#1665a8","color_extra1":"#464646","helmet1":false,"helmet4":true,"body3":true,"legs3":true,"voice1":false,"voice2":false,"voice3":true,"voice4":false,"voice5":false,"voice6":false,"voice7":true};
-
-						character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( robot_settings );
-						character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( robot_settings );
-						character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( robot_settings );
-						character_entity.title = robot_settings.hero_name;
-						character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( robot_settings );
-						character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( robot_settings );
-						if ( character_entity._ai_gun_slot === 2 || character_entity._ai_gun_slot === 1 )
-						{
-							character_entity.matter = 150;
-							character_entity.matter_max = 150;
-
-							character_entity.hea = 750;
-							character_entity.hmax = 750;
-
-							//character_entity.armor = 500;
-							//character_entity.armor_max = 500;
-							//character_entity._armor_absorb_perc = 0.75; // 75% damage absorption, since armor will run out before health, they effectively have 750 health
-
-							//character_entity._damage_mult = 1; // Supposed to put up a challenge
-						}
-
-						/*if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 4 ) // Nothing here so far
-						{
-							character_entity.matter = 100;
-							character_entity.matter_max = 100;
-
-							character_entity.hea = 750;
-							character_entity.hmax = 750;
-
-							character_entity._damage_mult = 1 / 1.5; // Rarer enemy therefore more of a threat?
-						}*/	
-						character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-						//character_entity._ai_enabled = sdCharacter.AI_MODEL_FALKOK;
-										
-						character_entity._ai_level = 4;
-										
-						character_entity._matter_regeneration = 1 + character_entity._ai_level; // At least some ammo regen
-						character_entity._jetpack_allowed = true; // Jetpack
-						//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ) ; // Small recoil reduction based on AI level
-						character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-						character_entity._ai_team = 2; // AI team 2 is for Erthal
-						character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
-
-					break;
-				}
-			}
+					}
 			robots++;
 			ais++;
 			//console.log('Erthal spawned!');
@@ -1505,7 +1376,7 @@ class sdWeather extends sdEntity
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
-		if ( r === sdWeather.EVENT_SARRORNIANS ) // Sarrornian(?) faction spawn. Spawns humanoids and drones.
+		if ( r === sdWeather.EVENT_SARRORIANS ) // Sarrorian(?) faction spawn. Spawns humanoids and drones.
 		{
 			let ais = 0;
 			let percent = 0;
@@ -1535,75 +1406,24 @@ class sdWeather extends sdEntity
 				let left_side = ( Math.random() < 0.5 );
 
 
-			while ( instances < instances_tot && ais < this._max_ai_count )
-			{
-
-				let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-
-				sdEntity.entities.push( character_entity );
-
+				while ( instances < instances_tot && ais < this._max_ai_count )
 				{
-					if ( !this.GetHumanoidSpawnLocation( character_entity ) )
+
+					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+
+					sdEntity.entities.push( character_entity );
+
 					{
-						character_entity.remove();
-						character_entity._broken = false;
-						break;
-					}
-					else
-					{
+						if ( !this.GetHumanoidSpawnLocation( character_entity ) )
 						{
-
-							//sdWorld.UpdateHashPosition( ent, false );
-								if ( Math.random() < 0.3 )
-								{
-									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_GAUSS_RIFLE }) );
-									character_entity._ai_gun_slot = 8;
-								}
-								else
-								{
-									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ALIEN_ENERGY_RIFLE }) );
-									character_entity._ai_gun_slot = 8;
-								}
-
-								let char_settings;
-
-								if ( character_entity._ai_gun_slot === 8 )
-								char_settings = {"hero_name":"Sarronian E2 Unit","color_bright":"#202020","color_dark":"#101010","color_bright3":"#000000","color_dark3":"#101010","color_visor":"#FFA000","color_suit":"#202020","color_suit2":"#101010","color_dark2":"#101010","color_shoes":"#000000","color_skin":"#FFFF00","color_extra1":"#00FF00","helmet1":false,"helmet77":true,"voice1":false,"voice2":false,"voice3":false,"voice4":false,"voice10":true,"body18":true, "legs36":true};
-
-								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( char_settings );
-								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( char_settings );
-								character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( char_settings );
-								character_entity.title = char_settings.hero_name;
-								character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( char_settings );
-								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( char_settings );
-								if ( character_entity._ai_gun_slot === 8 ) // If a regular Sarronian soldier
-								{
-									character_entity.matter = 250;
-									character_entity.matter_max = 250;
-
-									character_entity.hea = 350;
-									character_entity.hmax = 350;
-
-									//character_entity.armor = 150;
-									//character_entity.armor_max = 150;
-									//character_entity._armor_absorb_perc = 0.7; // 70% damage absorption
-
-									//character_entity._damage_mult = 1;
-								}
-
-								character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-								//character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
-								character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
-
-								character_entity._matter_regeneration = 10; // increased alongside matter regen multiplier to allow them to efficiently use the Gauss cannon.
-								character_entity._jetpack_allowed = true; // Jetpack
-								//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
-								character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-								character_entity._ai_team = 4; // AI team 4 is for Sarronian faction
-								character_entity._matter_regeneration_multiplier = 25; // Their matter regenerates 25 times faster than normal, unupgraded players
-
-								break;
-							}
+							character_entity.remove();
+							character_entity._broken = false;
+							break;
+						}
+						else
+						{
+							sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_SARRORIAN );
+							break;
 						}
 					}
 
@@ -1880,84 +1700,8 @@ class sdWeather extends sdEntity
 						}
 						else
 						{
-							{
-								if ( Math.random() < 0.35 )
-								{
-									if ( Math.random() < 0.25 )
-									{
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RAIL_CANNON }) );
-										character_entity._ai_gun_slot = 4;
-									}
-									else
-									{
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_VELOX_COMBAT_RIFLE }) );
-										character_entity._ai_gun_slot = 2;
-									}
-								}
-								else
-								{ 
-									{
-										sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_VELOX_PISTOL }) );
-										character_entity._ai_gun_slot = 1;
-									}
-								}
-								let velox_settings;
-								if ( character_entity._ai_gun_slot === 1 )
-								velox_settings = {"hero_name":"Velox Soldier","color_bright":"#c0c0c0","color_dark":"#a0a0a0","color_bright3":"#00ffff","color_dark3":"#202020","color_visor":"#00ffff","color_suit":"#c0c0c0","color_suit2":"#080808","color_dark2":"#000000","color_shoes":"#000000","color_skin":"#000000","helmet1":false,"helmet86":true,"voice1":false,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice7":true,"body59":true, "legs59":true};
-								if ( character_entity._ai_gun_slot === 2 )
-								velox_settings = {"hero_name":"Velox Soldier","color_bright":"#c0c0c0","color_dark":"#a0a0a0","color_bright3":"#00ff44","color_dark3":"#202020","color_visor":"#00ff44","color_suit":"#c0c0c0","color_suit2":"#080808","color_dark2":"#000000","color_shoes":"#000000","color_skin":"#000000","helmet1":false,"helmet86":true,"voice1":false,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice7":true,"body59":true, "legs59":true};
-
-								if ( character_entity._ai_gun_slot === 4 )
-								velox_settings = {"hero_name":"Velox Devastator","color_bright":"#c0c0c0","color_dark":"#a0a0a0","color_bright3":"#ff0000","color_dark3":"#202020","color_visor":"#ff0000","color_suit":"#c0c0c0","color_suit2":"#080808","color_dark2":"#000000","color_shoes":"#000000","color_skin":"#000000","helmet1":false,"helmet86":true,"voice1":false,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice7":true,"body59":true, "legs59":true};
-
-								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( velox_settings );
-								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( velox_settings );
-								character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( velox_settings );
-								character_entity.title = velox_settings.hero_name;
-								character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( velox_settings );
-								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( velox_settings );
-								if ( character_entity._ai_gun_slot === 1 || 2 ) // If a regular Velox soldier
-								{
-									character_entity.matter = 200;
-									character_entity.matter_max = 200;
-
-									character_entity.hea = 750;
-									character_entity.hmax = 750;
-
-									//character_entity.armor = 500;
-									//character_entity.armor_max = 500;
-									//character_entity._armor_absorb_perc = 0.75; // 75% damage absorption, since armor will run out before health, they effectively have 750 health
-
-									//character_entity._damage_mult = 0.8;
-								}
-
-								if ( character_entity._ai_gun_slot === 4 ) // Rail cannon Velox, harder to kill
-								{
-									character_entity.matter = 400;
-									character_entity.matter_max = 400;
-
-									character_entity.hea = 1200;
-									character_entity.hmax = 1200;
-									character_entity.s = 110; // tougher so bigger target
-									//character_entity.armor = 1750;
-									//character_entity.armor_max = 1750;
-									//character_entity._armor_absorb_perc = 0.97; // 97% damage absorption, since armor will run out before health, they effectively have 2000 health
-
-									//character_entity._damage_mult = 1 + ( 1 / 3 );
-								}
-								character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-								//character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
-								character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
-
-								character_entity._matter_regeneration = 5; // At least some ammo regen
-								character_entity._jetpack_allowed = true; // Jetpack
-								//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
-								character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-								character_entity._ai_team = 5; // AI team 5 is for Velox faction
-								character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
-
-								break;
-							}
+							sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_VELOX );
+							break;
 
 						}
 					}
@@ -2219,68 +1963,24 @@ class sdWeather extends sdEntity
 				let left_side = ( Math.random() < 0.5 );
 
 
-			while ( instances < instances_tot && ais < this._max_ai_count )
-			{
-
-				let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-
-				sdEntity.entities.push( character_entity );
-
+				while ( instances < instances_tot && ais < this._max_ai_count )
 				{
-					if ( !this.GetHumanoidSpawnLocation( character_entity ) )
+
+					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+
+					sdEntity.entities.push( character_entity );
+
 					{
-						character_entity.remove();
-						character_entity._broken = false;
-						break;
-					}
-					else
-					{
+						if ( !this.GetHumanoidSpawnLocation( character_entity ) )
 						{
-
-							//sdWorld.UpdateHashPosition( ent, false );
-								{ 
-									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SETR_PLASMA_SHOTGUN }) );
-									character_entity._ai_gun_slot = 3;
-								}
-								let setr_settings;
-
-								if ( character_entity._ai_gun_slot === 3 )
-								setr_settings = {"hero_name":"Setr Soldier","color_bright":"#0000c0","color_dark":"#404040","color_bright3":"#404040","color_dark3":"#202020","color_visor":"#c8c800","color_suit":"#000080","color_suit2":"#000080","color_dark2":"#404040","color_shoes":"#000000","color_skin":"#000000","helmet1":false,"helmet3":true,"voice1":false,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice9":true,"body18":true, "legs22":true};
-
-								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( setr_settings );
-								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( setr_settings );
-								character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( setr_settings );
-								character_entity.title = setr_settings.hero_name;
-								character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( setr_settings );
-								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( setr_settings );
-								if ( character_entity._ai_gun_slot === 3 ) // If a regular Setr soldier
-								{
-									character_entity.matter = 150;
-									character_entity.matter_max = 150;
-
-									character_entity.hea = 560;
-									character_entity.hmax = 560;
-
-									//character_entity.armor = 350;
-									//character_entity.armor_max = 350;
-									//character_entity._armor_absorb_perc = 0.7; // 70% damage absorption
-
-									//character_entity._damage_mult = 1;
-								}
-
-								character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-								//character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
-								character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
-
-								character_entity._matter_regeneration = 5; // At least some ammo regen
-								character_entity._jetpack_allowed = true; // Jetpack
-								//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
-								character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-								character_entity._ai_team = 7; // AI team 7 is for Setr faction
-								character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
-
-								break;
-							}
+							character_entity.remove();
+							character_entity._broken = false;
+							break;
+						}
+						else
+						{
+							sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_SETR );
+							break;
 						}
 					}
 
@@ -2696,68 +2396,24 @@ class sdWeather extends sdEntity
 				let left_side = ( Math.random() < 0.5 );
 
 
-			while ( instances < instances_tot && ais < this._max_ai_count )
-			{
-
-				let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
-
-				sdEntity.entities.push( character_entity );
-
+				while ( instances < instances_tot && ais < this._max_ai_count )
 				{
-					if ( !this.GetHumanoidSpawnLocation( character_entity ) )
+
+					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
+
+					sdEntity.entities.push( character_entity );
+
 					{
-						character_entity.remove();
-						character_entity._broken = false;
-						break;
-					}
-					else
-					{
+						if ( !this.GetHumanoidSpawnLocation( character_entity ) )
 						{
-
-							//sdWorld.UpdateHashPosition( ent, false );
-								{ 
-									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TZYRG_SHOTGUN }) );
-									character_entity._ai_gun_slot = 3;
-								}
-								let char_settings;
-
-								if ( character_entity._ai_gun_slot === 3 )
-								char_settings = {"hero_name":"Tzyrg","color_bright":"#404040","color_dark":"#202020","color_bright3":"#303030","color_dark3":"#202020","color_visor":"#FF0000","color_suit":"#404040","color_suit2":"#383838","color_dark2":"#202020","color_shoes":"#000000","color_skin":"#101010","color_extra1":"#000000","helmet1":false,"helmet69":true,"voice1":false,"voice10":true,"body34":true,"legs36":true};
-
-								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( char_settings );
-								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( char_settings );
-								character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( char_settings );
-								character_entity.title = char_settings.hero_name;
-								character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( char_settings );
-								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( char_settings );
-								if ( character_entity._ai_gun_slot === 3 ) // If a regular Tzyrg
-								{
-									character_entity.matter = 100;
-									character_entity.matter_max = 100;
-
-									character_entity.hea = 200;
-									character_entity.hmax = 200;
-
-									//character_entity.armor = 150;
-									//character_entity.armor_max = 150;
-									//character_entity._armor_absorb_perc = 0.7; // 70% damage absorption
-
-									//character_entity._damage_mult = 1;
-								}
-
-								character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
-								//character_entity._ai_enabled = sdCharacter.AI_MODEL_AGGRESSIVE;
-								character_entity._ai_level = Math.floor( 1 + Math.random() * 2 ); // AI Levels
-
-								character_entity._matter_regeneration = 5; // At least some ammo regen
-								character_entity._jetpack_allowed = true; // Jetpack
-								//character_entity._recoil_mult = 1 - ( 0.0055 * character_entity._ai_level ); // Small recoil reduction based on AI level
-								character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-								character_entity._ai_team = 8; // AI team 8 is for Tzyrg faction
-								character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
-
-								break;
-							}
+							character_entity.remove();
+							character_entity._broken = false;
+							break;
+						}
+						else
+						{
+							sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_TZYRG );
+							break;
 						}
 					}
 
