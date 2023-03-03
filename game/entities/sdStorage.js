@@ -547,33 +547,51 @@ class sdStorage extends sdEntity
 
 		if ( slot >= 0 && slot < this._stored_items.length )
 		{
-			ent = sdEntity.GetObjectFromSnapshot( this._stored_items[ slot ] );
+			if ( this._stored_items[ slot ] )
+			{
+				ent = sdEntity.GetObjectFromSnapshot( this._stored_items[ slot ] );
+			}
 
+			if ( this._stored_items[ slot ] !== null && this._stored_items[ slot ] !== undefined ) // Holey array recovery test
 			this._stored_items.splice( slot, 1 );
+		
+			if ( this.is_armable[ slot ] !== null && this.is_armable[ slot ] !== undefined ) // Holey array recovery test
 			this.is_armable.splice( slot, 1 );
+		
+			if ( this.stored_names[ slot ] !== null && this.stored_names[ slot ] !== undefined ) // Holey array recovery test
 			this.stored_names.splice( slot, 1 );
 
-			if ( !initiator_character )
+			if ( ent )
 			{
-				ent.x = this.x;
-				ent.y = this.y;
-				ent.sx = this.sx;
-				ent.sy = this.sy;
+				if ( !initiator_character )
+				{
+					ent.x = this.x;
+					ent.y = this.y;
+					ent.sx = this.sx;
+					ent.sy = this.sy;
+				}
+				if ( initiator_character )
+				{
+					ent.x = initiator_character.x;
+					ent.y = initiator_character.y;
+					ent.sx = initiator_character.sx;
+					ent.sy = initiator_character.sy;
+				}
+
+				if ( typeof ent.held_by !== 'undefined' )
+				ent.held_by = null;
+
+				if ( typeof ent._held_by !== 'undefined' ) // For sdGun? - Booraz149
+				ent._held_by = null;
 			}
-			if ( initiator_character )
+			else
 			{
-				ent.x = initiator_character.x;
-				ent.y = initiator_character.y;
-				ent.sx = initiator_character.sx;
-				ent.sy = initiator_character.sy;
+				console.warn( 'Entity snapshot does not exist in storage: ', slot, this.is_armable, this.stored_names, this._stored_items );
+
+				if ( initiator_character )
+				if ( initiator_character._socket )
+				initiator_character._socket.SDServiceMessage( 'Storage slot mismatch or holey array - extracted item ID does not exist' );
 			}
-
-			if ( typeof ent.held_by !== 'undefined' )
-			ent.held_by = null;
-
-			if ( typeof ent._held_by !== 'undefined' ) // For sdGun? - Booraz149
-			ent._held_by = null;
-
 		}
 
 		//let item = this.ExtractEntityFromSnapshotAtSlot( slot, initiator_character );
