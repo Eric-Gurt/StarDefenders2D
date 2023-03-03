@@ -205,9 +205,9 @@ class sdCom extends sdEntity
 		if ( this.variation === 0 )
 		ctx.drawImageFilterCache( sdCom.img_com, -16, -16, 32,32 );
 		if ( this.variation === 1 )
-		ctx.drawImageFilterCache( sdCom.img_com_darkblue, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdCom.img_com_cyan, -16, -16, 32,32 );
 		if ( this.variation === 2 )
-		ctx.drawImageFilterCache( sdCom.img_com_purple, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdCom.img_com_darkblue, -16, -16, 32,32 );
 		if ( this.variation === 3 )
 		ctx.drawImageFilterCache( sdCom.img_com_green, -16, -16, 32,32 );
 		if ( this.variation === 4 )
