@@ -16,13 +16,17 @@ class sdCom extends sdEntity
 	static init_class()
 	{
 		sdCom.img_com = sdWorld.CreateImageFromFile( 'com' );
-		sdCom.img_com_darkblue = sdWorld.CreateImageFromFile( 'com_darkblue' ); // Level 2
-		sdCom.img_com_purple = sdWorld.CreateImageFromFile( 'com_purple' ); // Level 3
-		sdCom.img_com_green = sdWorld.CreateImageFromFile( 'com_green' ); // Level 4
-		sdCom.img_com_yellow = sdWorld.CreateImageFromFile( 'com_yellow' ); // Level 5
-		sdCom.img_com_pink = sdWorld.CreateImageFromFile( 'com_pink' ); // Level 6
-		sdCom.img_com_red = sdWorld.CreateImageFromFile( 'com_red' ); // Level 7
-		sdCom.img_com_orange = sdWorld.CreateImageFromFile( 'com_orange' ); // Level 8
+		sdCom.img_com_grey = sdWorld.CreateImageFromFile( 'com_grey' ); // Level 2, These 2 coms are added with different colors, the first one is white.
+		sdCom.img_com_cyan = sdWorld.CreateImageFromFile( 'com_cyan' ); // Level 3
+		sdCom.img_com_darkblue = sdWorld.CreateImageFromFile( 'com_darkblue' ); // Level 4
+		sdCom.img_com_purple = sdWorld.CreateImageFromFile( 'com_purple' ); // Level 5
+		sdCom.img_com_green = sdWorld.CreateImageFromFile( 'com_green' ); // Level 6
+		sdCom.img_com_yellow = sdWorld.CreateImageFromFile( 'com_yellow' ); // Level 7
+		sdCom.img_com_pink = sdWorld.CreateImageFromFile( 'com_pink' ); // Level 8
+		sdCom.img_com_red = sdWorld.CreateImageFromFile( 'com_red' ); // Level 9
+		sdCom.img_com_orange = sdWorld.CreateImageFromFile( 'com_orange' ); // Level 10
+		sdCom.img_com_blood = sdWorld.CreateImageFromFile( 'com_blood' ); // Level 11
+		sdCom.img_com_rainbow = sdWorld.CreateImageFromFile( 'com_rainbow' ); // Level 12, Kidding party.
 		
 		sdCom.action_range = 32; // How far character needs to stand in order to manipualte it
 		sdCom.action_range_command_centre = 64; // How far character needs to stand in order to manipualte it
@@ -205,23 +209,31 @@ class sdCom extends sdEntity
 		if ( this.variation === 0 )
 		ctx.drawImageFilterCache( sdCom.img_com, -16, -16, 32,32 );
 		if ( this.variation === 1 )
-		ctx.drawImageFilterCache( sdCom.img_com_darkblue, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdCom.img_com_grey, -16, -16, 32,32 );
 		if ( this.variation === 2 )
-		ctx.drawImageFilterCache( sdCom.img_com_purple, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdCom.img_com_cyan, -16, -16, 32,32 );
 		if ( this.variation === 3 )
-		ctx.drawImageFilterCache( sdCom.img_com_green, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdCom.img_com_darkblue, -16, -16, 32,32 );
 		if ( this.variation === 4 )
-		ctx.drawImageFilterCache( sdCom.img_com_yellow, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdCom.img_com_purple, -16, -16, 32,32 );
 		if ( this.variation === 5 )
-		ctx.drawImageFilterCache( sdCom.img_com_pink, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdCom.img_com_green, -16, -16, 32,32 );
 		if ( this.variation === 6 )
-		ctx.drawImageFilterCache( sdCom.img_com_red, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdCom.img_com_yellow, -16, -16, 32,32 );
 		if ( this.variation === 7 )
+		ctx.drawImageFilterCache( sdCom.img_com_pink, -16, -16, 32,32 );
+		if ( this.variation === 8 )
+		ctx.drawImageFilterCache( sdCom.img_com_red, -16, -16, 32,32 );
+		if ( this.variation === 9 )
 		ctx.drawImageFilterCache( sdCom.img_com_orange, -16, -16, 32,32 );
+		if ( this.variation === 10 )
+		ctx.drawImageFilterCache( sdCom.img_com_blood, -16, -16, 32,32 );
+		if ( this.variation === 11 )
+		ctx.drawImageFilterCache( sdCom.img_com_rainbow, -16, -16, 32,32 );
 	}
 	MeasureMatterCost()
 	{
-		return 60;
+		return 60 * ( this.variation + 1 ); // Cause of the hmax could be improved by its variation, I have added this, it doesn't matter.
 	}
 	RequireSpawnAlign()
 	{ return false; }
