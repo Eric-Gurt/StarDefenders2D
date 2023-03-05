@@ -147,6 +147,10 @@ class sdServerConfigFull extends sdServerConfigShort
 	static GetEventSpeed()
 	{
 		return 30 * 60 * 3 * ( 3 / 2 ); // Return max possible time until next event rolls
+	}
+	static GetBSUDamageMultiplier()
+	{
+		return 1; // Damage multiplier from damaging blocks proteced by BSU.
 	}		
 	static onExtraWorldLogic( GSPEED )
 	{
