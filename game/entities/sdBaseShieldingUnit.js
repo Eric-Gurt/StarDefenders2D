@@ -261,7 +261,7 @@ class sdBaseShieldingUnit extends sdEntity
 		else
 		if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 		{
-			this.matter_crystal = Math.max( 0, this.matter_crystal - dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp );
+			this.matter_crystal = Math.max( 0, this.matter_crystal - dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp * sdWorld.server_config.GetBSUDamageMultiplier() );
 
 			if ( this.matter_crystal >= 50000 )
 			{
@@ -284,9 +284,9 @@ class sdBaseShieldingUnit extends sdEntity
 		else
 		if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
 		{
-			//trace( 'BSU matter wasted per damage: ', dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp_matter_type );
+			//trace( 'BSU matter wasted per damage: ', dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp_matter_type * sdWorld.server_config.GetBSUDamageMultiplier() );
 			
-			this.matter = Math.max( 0, this.matter - dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp_matter_type );
+			this.matter = Math.max( 0, this.matter - dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp_matter_type * sdWorld.server_config.GetBSUDamageMultiplier() );
 			this.WakeUpMatterSources();
 		}
 		
