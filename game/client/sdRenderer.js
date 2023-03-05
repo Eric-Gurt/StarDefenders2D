@@ -155,8 +155,8 @@ class sdRenderer
 					}
 
 					sdRenderer.sky_gradient = sdRenderer.ctx.createLinearGradient( 0, 0, 0, sdRenderer.screen_height );
-					sdRenderer.sky_gradient.addColorStop( 0, '#7b3219' );
-					sdRenderer.sky_gradient.addColorStop( 1, '#b75455' );
+					sdRenderer.sky_gradient.addColorStop( 0, '#cccccc' );
+					sdRenderer.sky_gradient.addColorStop( 1, '#FFFFFF' );
 				}
 			};
 			//window.onresize();
@@ -433,14 +433,14 @@ class sdRenderer
 		sdRenderer.dark_lands_canvases = [];
 		sdRenderer.dark_lands_canvases_fill = [];
 		sdRenderer.dark_lands_colors = [
-			'#050203',
-			'#0b0507',
-			'#12070a',
-			'#1a090d',
-			'#250c12',
-			'#2d0e14',
-			'#40131c',
-			'#5a1b27'
+			'#111111',
+			'#222222',
+			'#333333',
+			'#444444',
+			'#555555',
+			'#666666',
+			'#777777',
+			'#888888'
 		];
 		sdRenderer.dark_lands_width = 800;
 		
