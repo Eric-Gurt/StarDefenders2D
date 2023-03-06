@@ -1806,24 +1806,26 @@ class sdWeather extends sdEntity
 
 				{
 					let x,y;
-					let tr = 1000;
+					let tr = 1;
 					do
 					{
-						if ( left_side )
-						x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
-						else
-						x = sdWorld.world_bounds.x2 - 16 - 16 * instances;
+						//if ( left_side )
+						//x = sdWorld.world_bounds.x1 + 16 + 16 * instances;
+						//else
+						//x = sdWorld.world_bounds.x2 - 16 - 16 * instances;
 
-						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+						//y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
 
 
-						if ( character_entity.CanMoveWithoutOverlap( x, y - 64, 0 ) ) // Make them spawn on surface more often when possible
-						if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
-						if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-						if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() ) ) // Only spawn on ground
+						//if ( character_entity.CanMoveWithoutOverlap( x, y - 64, 0 ) ) // Make them spawn on surface more often when possible
+						//if ( character_entity.CanMoveWithoutOverlap( x, y, 0 ) )
+						//if ( !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+						//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() ) ) // Only spawn on ground
+
+						if ( this.GetHumanoidSpawnLocation( character_entity ) )
 						{
-							character_entity.x = x;
-							character_entity.y = y;
+							//character_entity.x = x;
+							//character_entity.y = y;
 
 							//sdWorld.UpdateHashPosition( ent, false );
 							if ( Math.random() < 0.5 ) // Random gun given to Star Defender
