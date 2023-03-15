@@ -71,6 +71,9 @@ class sdGun extends sdEntity
 	get hitbox_y2() { return ( this.class === sdGun.CLASS_CRYSTAL_SHARD ) ? 4  : ( this.class === sdGun.CLASS_BUILDTOOL_UPG ) ? 5  : 3; }
 	get mass()
 	{
+		if ( has_class.is_giant )
+		return 60;
+		
 		return 30;
 	}
 	get bounce_intensity()
@@ -1533,11 +1536,25 @@ class sdGun extends sdEntity
 			if ( has_class.image_frames )
 			{
 				let frame = Math.floor( ( sdWorld.time + ( this._net_id || 0 ) * 2154 ) / has_class.image_duration ) % has_class.image_frames;
+				if ( has_class.is_giant )
+				{
+				ctx.drawImageFilterCache( image, 0 + frame * 64,0,64,64,  - 32, - 32, 64,64 );
+				}
+				else
+				{
 				ctx.drawImageFilterCache( image, 0 + frame * 32,0,32,32,  - 16, - 16, 32,32 );
+				}
 			}
 			else
 			{
+				if ( has_class.is_giant )
+				{
+				ctx.drawImageFilterCache( image, - 32, - 32, 64,64 );
+				}
+				else
+				{
 				ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
+				}
 			}
 			
 			ctx.filter = 'none';
@@ -1574,7 +1591,14 @@ class sdGun extends sdEntity
 						ctx.sd_tint_filter = [ 255 / 255, 216 / 255, 33 / 255 ];
 					}
 				
+					if ( has_class.is_giant )
+					{
+					ctx.drawImageFilterCache( sdGun.img_muzzle_sheet, xx*64,yy*64,64,64, muzzle_x - 32, muzzle_y - 32, 64,64 );
+					}
+					else
+					{
 					ctx.drawImageFilterCache( sdGun.img_muzzle_sheet, xx*32,yy*32,32,32, muzzle_x - 16, muzzle_y - 16, 32,32 );
+					}
 					
 					ctx.sd_tint_filter = null;
 				}
