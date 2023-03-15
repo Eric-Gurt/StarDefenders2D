@@ -213,7 +213,7 @@ class sdWorld
 		Object.freeze( sdWorld.fake_empty_array );
 
 		sdWorld.fake_empty_cell = new Cell( null );
-		Object.freeze( sdWorld.fake_empty_cell );
+		//Object.freeze( sdWorld.fake_empty_cell ); Bad because fake cell will be returned during snapshot generation for client - server has to mark empty cell as visited
 		Object.freeze( sdWorld.fake_empty_cell.arr );
 		/*
 		if ( typeof document !== 'undefined' ) // If server
@@ -2009,14 +2009,17 @@ class sdWorld
 		
 		x = ( sdWorld.FastFloor( y / CHUNK_SIZE ) ) * 4098 + sdWorld.FastFloor( x / CHUNK_SIZE );
 		
-		if ( !sdWorld.world_hash_positions.has( x ) )
+		let arr = sdWorld.world_hash_positions.get( x );
+		
+		//if ( !sdWorld.world_hash_positions.has( x ) )
+		if ( arr === undefined )
 		{
 			if ( spawn_if_empty )
 			{
 				//let arr = [];
 				//arr.hash = x;
 				
-				let arr = new Cell( x );
+				arr = new Cell( x );
 
 				sdWorld.world_hash_positions.set( x, arr );
 
@@ -2029,7 +2032,7 @@ class sdWorld
 			}
 		}
 		
-		return sdWorld.world_hash_positions.get( x );
+		return arr;// sdWorld.world_hash_positions.get( x );
 		
 	}
 	static ArraysEqualIgnoringOrder( a, b )
@@ -3945,90 +3948,125 @@ class sdWorld
 		
 		sdWorld.Start( player_settings, full_reset, retry );
 	}
+	static PlayAdAndStart( player_settings, button )
+	{
+		button.disabled = true; // Prevent double clicks while it might be loading ad
+		
+		adBreak({
+			type: 'preroll',  // ad shows at start of next level
+			name: 'game-started-ad',
+			adBreakDone: ()=>
+			{
+				ForceProceedOnce();
+			}
+		});
+		
+		setTimeout( ()=>
+		{
+			if ( document.querySelectorAll('.adsbygoogle').length > 1 )
+			{
+				// AdSense works and ad is currently shown
+			}
+			else
+			ForceProceedOnce(); // Fallback
+			
+		}, 300 );
+		
+		let once = true;
+		function ForceProceedOnce()
+		{
+			if ( once )
+			{
+				once = false;
+				button.disabled = false;
+				sdWorld.Start( player_settings );
+			}
+		}
+	}
 	static Start( player_settings, full_reset=false, retry=0 )
 	{
 		sdSound.AllowSound();
-		
+
 		sdWorld.my_entity_net_id = undefined; // Reset...
-			
+
 		if ( !globalThis.connection_established && !sdWorld.is_singleplayer )
 		{
 			//alert('Connection is not open yet, for some reason...');
 			//console.log('Connection is not open yet, for some reason...');
-			
+
 			if ( retry < 3 )
 			setTimeout( ()=>{
-				
+
 				sdWorld.Start( player_settings, full_reset, retry+1 );
-				
+
 			}, 1000 );
 			else
 			{
 				alert('Connection is not open yet, for some reason...');
 				console.log('Connection is not open yet, for some reason...');
 			}
-			
+
 			return;
 		}
 		else
 		{
-			let socket = globalThis.socket;
-			
-			globalThis.enable_debug_info = player_settings['bugs2'];
-			
-			const BoolToInt = ( v )=>
-			{
-				return v?1:0;
-			};
-			
-			//sdRenderer.visual_settings = BoolToInt( player_settings['visuals1'] ) * 1 + BoolToInt( player_settings['visuals2'] ) * 2 + BoolToInt( player_settings['visuals3'] ) * 3 + BoolToInt( player_settings['visuals4'] ) * 4;
-			sdRenderer.InitVisuals();
-			
-			sdRenderer.resolution_quality = BoolToInt( player_settings['density1'] ) * 1 + BoolToInt( player_settings['density2'] ) * 0.5 + BoolToInt( player_settings['density3'] ) * 0.25;
-			window.onresize();
-			
-			sdSound.SetVolumeScale( BoolToInt( player_settings['volume1'] ) * 0.4 + BoolToInt( player_settings['volume2'] ) * 0.25 + BoolToInt( player_settings['volume3'] ) * 0.1 );
-			
-			sdWorld.client_side_censorship = player_settings['censorship1'] ? true : false;
-			
-			sdWorld.soft_camera = player_settings['camera1'] ? true : false;
-			
-			player_settings.full_reset = full_reset;
-			//player_settings.my_hash = [ Math.random(), Math.random(), Math.random(), Math.random(), Math.random() ].join(''); // Sort of password
-			//player_settings.my_net_id = undefined;
-			/*
-			try 
-			{
-				let v;
-				
-			    v = localStorage.getItem( 'my_hash' );
-			    if ( v !== null )
-				player_settings.my_hash = v;
-				else
-				localStorage.setItem( 'my_hash', player_settings.my_hash );
-			
-			    //v = localStorage.getItem( 'my_net_id' );
-			    //if ( v !== null )
-				//player_settings.my_net_id = v;
-			
-			} catch(e){}*/
-						
-			//if ( sdWorld.time > player_settings['last_local_time_start'] + 1000 * 60 * 60 * 8 )
-			if ( globalThis.will_play_startup_tune )
-			{
-				globalThis.will_play_startup_tune = false;
-				
-				setTimeout( ()=>
-				{
-					sdSound.PlaySound({ name:'sci_fi_world_start', volume:0.3, _server_allowed:true });
-					//sdSound.PlaySound({ name:'piano_world_startB2_cutA', volume:0.3, _server_allowed:true });
-				}, 0 );//2500 );
-			}
+				let socket = globalThis.socket;
 
-			socket.emit( 'RESPAWN', player_settings );
-			
-			sdWorld.GotoGame();
-		}
+				globalThis.enable_debug_info = player_settings['bugs2'];
+
+				const BoolToInt = ( v )=>
+				{
+					return v?1:0;
+				};
+
+				//sdRenderer.visual_settings = BoolToInt( player_settings['visuals1'] ) * 1 + BoolToInt( player_settings['visuals2'] ) * 2 + BoolToInt( player_settings['visuals3'] ) * 3 + BoolToInt( player_settings['visuals4'] ) * 4;
+				sdRenderer.InitVisuals();
+
+				sdRenderer.resolution_quality = BoolToInt( player_settings['density1'] ) * 1 + BoolToInt( player_settings['density2'] ) * 0.5 + BoolToInt( player_settings['density3'] ) * 0.25;
+				window.onresize();
+
+				sdSound.SetVolumeScale( BoolToInt( player_settings['volume1'] ) * 0.4 + BoolToInt( player_settings['volume2'] ) * 0.25 + BoolToInt( player_settings['volume3'] ) * 0.1 );
+
+				sdWorld.client_side_censorship = player_settings['censorship1'] ? true : false;
+
+				sdWorld.soft_camera = player_settings['camera1'] ? true : false;
+
+				player_settings.full_reset = full_reset;
+				//player_settings.my_hash = [ Math.random(), Math.random(), Math.random(), Math.random(), Math.random() ].join(''); // Sort of password
+				//player_settings.my_net_id = undefined;
+				/*
+				try 
+				{
+					let v;
+
+					v = localStorage.getItem( 'my_hash' );
+					if ( v !== null )
+					player_settings.my_hash = v;
+					else
+					localStorage.setItem( 'my_hash', player_settings.my_hash );
+
+					//v = localStorage.getItem( 'my_net_id' );
+					//if ( v !== null )
+					//player_settings.my_net_id = v;
+
+				} catch(e){}*/
+
+				//if ( sdWorld.time > player_settings['last_local_time_start'] + 1000 * 60 * 60 * 8 )
+				if ( globalThis.will_play_startup_tune )
+				{
+					globalThis.will_play_startup_tune = false;
+
+					setTimeout( ()=>
+					{
+						sdSound.PlaySound({ name:'sci_fi_world_start', volume:0.3, _server_allowed:true });
+						//sdSound.PlaySound({ name:'piano_world_startB2_cutA', volume:0.3, _server_allowed:true });
+					}, 0 );//2500 );
+				}
+
+				socket.emit( 'RESPAWN', player_settings );
+
+				sdWorld.GotoGame();
+			}
 	}
 	static GotoGame()
 	{
@@ -4378,7 +4416,10 @@ class Cell
 	{
 		this.arr = [];
 		this.hash = hash;
-		this.length = null;
+		
+		//this.snapshot_scan_id = 0; // Used during snapshot scan to keep track of visited cells
+		
+		//this.length = null;
 		Object.seal( this );
 	}
 	/*get length()

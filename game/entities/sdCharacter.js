@@ -4954,6 +4954,8 @@ class sdCharacter extends sdEntity
 						this._god = true;
 							
 						executer_socket.emit('SET sdWorld.my_entity', this._net_id, { reliable: true, runs: 100 } );
+						
+						this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 					}
 				}
 			}

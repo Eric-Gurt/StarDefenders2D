@@ -1144,15 +1144,29 @@ class sdLongRangeTeleport extends sdEntity
 				else
 				if ( command_name === 'AD_REWARD_START' )
 				{
-					if ( sdWorld.time > executer_socket.next_ad_time )
+					if ( !this.is_server_teleport )
 					{
-						executer_socket.ResetAdCooldown();
-						executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'AD_START_ALLOWED', [ this._net_id ] );
-						
-						executer_socket.ad_reward_pending = true;
+						let cc_near = this.has_cc_near;//GetComWiredCache( null, sdCommandCentre );
+						if ( cc_near )
+						{
+							if ( this.matter >= this._matter_max )
+							{
+								if ( sdWorld.time > executer_socket.next_ad_time )
+								{
+									executer_socket.ResetAdCooldown();
+									executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'AD_START_ALLOWED', [ this._net_id ] );
+
+									executer_socket.ad_reward_pending = true;
+								}
+								else
+								executer_socket.SDServiceMessage( 'Not so soon. Try in 5 minutes' );
+							}
+							else
+							executer_socket.SDServiceMessage( 'Not enough matter' );
+						}
+						else
+						executer_socket.SDServiceMessage( 'Long-range teleport requires Command Centre connected' );
 					}
-					else
-					executer_socket.SDServiceMessage( 'Not so soon. Try in 5 minutes' );
 				}
 				else
 				if ( command_name === 'CLAIM_SCANNER' )
@@ -1264,6 +1278,8 @@ class sdLongRangeTeleport extends sdEntity
 												let initiator_hash_or_user_uid = exectuter_character._my_hash;
 												let this_x = this.x;
 												let this_y = this.y;
+												
+												this.matter = 0;
 
 												sdDatabase.Exec( 
 													[ 
@@ -1299,6 +1315,8 @@ class sdLongRangeTeleport extends sdEntity
 											let initiator_hash_or_user_uid = exectuter_character._my_hash;
 											let this_x = this.x;
 											let this_y = this.y;
+												
+											this.matter = 0;
 
 											sdDatabase.Exec( 
 												[ 

@@ -52,7 +52,9 @@ class sdBaseShieldingUnit extends sdEntity
 		sdBaseShieldingUnit.TYPE_MATTER = 1;
 		sdBaseShieldingUnit.TYPE_SCORE_TIMED = 2; // Similar to crystal consumer but players charge it with score, it expires overtime and can not be attacked. Can't be near red LRTPs though
 		
-		sdBaseShieldingUnit.longer_time_protected_bsu_priority = 9; // 5 // It is added to 1
+		sdBaseShieldingUnit.longer_time_protected_bsu_priority = 5; // Returning old ratio since it was likely ineffective due to raid bugs // 9 // 5 // It is added to 1
+		
+		sdBaseShieldingUnit.score_timed_max_capacity = 1000; // 1000 = 2 days // 3500 = 7 days
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -143,6 +145,16 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		sdBaseShieldingUnit.all_shield_units.push( this );
 	}
+	onSnapshotApplied()
+	{
+		if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+		{
+			if ( this.matter_crystal > sdBaseShieldingUnit.score_timed_max_capacity )
+			{
+				this.matter_crystal = sdBaseShieldingUnit.score_timed_max_capacity;
+			}
+		}
+	}
 	ExtraSerialzableFieldTest( prop )
 	{
 		return ( prop === '_protected_entities' );
@@ -201,8 +213,8 @@ class sdBaseShieldingUnit extends sdEntity
 			// Hard cap
 			if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
 			{
-				if ( sum_matter > 3500 )
-				sum_matter = 3500;
+				if ( sum_matter > sdBaseShieldingUnit.score_timed_max_capacity )
+				sum_matter = sdBaseShieldingUnit.score_timed_max_capacity;
 			}
 
 			for ( let i = 0; i < friendly_shields.length; i++ )
@@ -1149,7 +1161,7 @@ class sdBaseShieldingUnit extends sdEntity
 	
 		if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
 		{
-			sdEntity.TooltipUntranslated( ctx, this.title + " ( " + ~~(this.matter_crystal) + " / 3500 )", 0, -8 );
+			sdEntity.TooltipUntranslated( ctx, this.title + " ( " + ~~(this.matter_crystal) + " / "+sdBaseShieldingUnit.score_timed_max_capacity+" )", 0, -8 );
 			
 			let days = ~~( this.matter_crystal / 500 );
 			let hours = ~~( ( this.matter_crystal - days * 500 ) / 500 * 24 );
@@ -1346,7 +1358,7 @@ class sdBaseShieldingUnit extends sdEntity
 						if ( mult === 1 || mult === 7 )
 						if ( exectuter_character._score >= 500 * mult )
 						{
-							let increase = ~~Math.min( 3500 - this.matter_crystal, 500 * mult );
+							let increase = ~~Math.min( sdBaseShieldingUnit.score_timed_max_capacity - this.matter_crystal, 500 * mult );
 							
 							if ( increase > 1 )
 							{
@@ -1467,7 +1479,7 @@ class sdBaseShieldingUnit extends sdEntity
 				if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
 				{
 					this.AddContextOption( 'Charge for 1 more day ( 500 score )', 'PROLONG_BY_DAY', [ 1 ] );
-					this.AddContextOption( 'Charge for 7 more days ( 3500 score )', 'PROLONG_BY_DAY', [ 7 ] );
+					this.AddContextOption( 'Charge for 2 more days ( '+sdBaseShieldingUnit.score_timed_max_capacity+' score )', 'PROLONG_BY_DAY', [ 7 ] );
 					
 					this.AddContextOption( 'Destroy and score to connected base shield units', 'DESTROY_AND_GIVE_MATTER_OUT', [] );
 				}

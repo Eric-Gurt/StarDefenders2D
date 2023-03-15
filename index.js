@@ -1230,32 +1230,94 @@ app.get('/*', function cb( req, res, repeated=false )
 		Finalize();
 	}
 	else
-	fs.access(path.split('?')[0], fs.F_OK, (err) => 
 	{
-		//let t3 = Date.now();
-		
-		if ( !file_exists( path ) ) // Silent
+		let path2 = path.split('?')[0];
+
+		fs.access( path2, fs.F_OK, (err) => 
 		{
-			res.end();
-			
+			//let t3 = Date.now();
+
+			if ( !file_exists( path ) ) // Silent
+			{
+				res.end();
+
+				Finalize();
+				return;
+			}
+
+			if ( err ) // Access errors usually
+			{
+				//res.send( '404' );//console.error(err)
+				res.status( 404 ).end();
+
+				Finalize();
+				return;
+			}
+
+			//res.sendFile( path );
+			//file exists
+
+			if ( path2[ path2.length - 1 ] === '/' )
+			path2 += 'index.html';
+		
+			if ( path2.slice( -5 ) === '.html' )
+			{
+				fs.readFile( path2, function(err, data) {
+					if (err) {
+						res.send(404);
+					} else {
+						res.contentType('text/html'); // Or some other more appropriate value
+						//transform(data); // use imagination please, replace with custom code
+						
+						let _parts_all = [];
+						
+						let parts = data.toString().split( '<?' );
+						for ( let i = 0; i < parts.length; i++ )
+						{
+							parts[ i ] = parts[ i ].split( '?>' );
+							_parts_all.push( ...parts[ i ] );
+						}
+						
+						let code = '';
+						let out = '';
+						
+						let print_html = true; // Can be disabled via <? print_html = false; ?>
+						
+						function print( str )
+						{
+							out += str;
+						}
+						function printOrReturn( str )
+						{
+							if ( print_html )
+							out += str;
+						
+							return str;
+						}
+						
+						for ( let _i = 0; _i < _parts_all.length; _i++ )
+						{
+							if ( _i % 2 === 0 )
+							{
+								code += 'printOrReturn(`' + _parts_all[ _i ] + '`);';
+							}
+							else
+							code += '\n' + _parts_all[ _i ] + '\n';
+						}
+						
+						eval( code );
+						
+						res.send( out );
+					}
+				});
+			}
+			else
+			res.sendFile( path );
+
+
 			Finalize();
-			return;
-		}
-		
-		if ( err ) // Access errors usually
-		{
-			//res.send( '404' );//console.error(err)
-			res.status( 404 ).end();
-			
-			Finalize();
-			return;
-		}
-		
-		res.sendFile( path );
-		//file exists
-		
-		Finalize();
-	});
+		});
+	}
 });
 
 
@@ -2317,16 +2379,15 @@ io.on( 'connection', ( socket )=>
 
 					const correction_scale = 3; // 1 should be most cheat-proof, but can be not enough for laggy servers
 					const debug_correction = false;
-
-
+					
 					//if ( socket.character.hea > 0 )
 					if ( socket.character.AllowClientSideState() ) // Health and hook change
 					{
-						var dx = arr[ 5 ] - socket.character.x;
-						var dy = arr[ 6 ] - socket.character.y;
-						
-						var allowed = true;
-						
+						let dx = arr[ 5 ] - socket.character.x;
+						let dy = arr[ 6 ] - socket.character.y;
+
+						let allowed = true;
+
 						if ( socket.character.stands || socket.character._in_air_timer < 500 / 1000 * 30 * correction_scale ) // Allow late jump
 						{
 							if ( dy < -27 )
@@ -2336,7 +2397,7 @@ io.on( 'connection', ( socket )=>
 								console.log( 'dy', dy );
 								dy = -27 * correction_scale;
 							}
-							
+
 							if ( dx > 30 )
 							{
 								if ( debug_correction )
@@ -2361,13 +2422,13 @@ io.on( 'connection', ( socket )=>
 								else
 								if ( dx < -20 )
 								dx = -20;
-						
+
 								if ( dy > 20 )
 								dy = 20;
 								else
 								if ( dy < -20 )
 								dy = -20;
-						
+
 								if ( debug_correction )
 								console.log( 'flying', dx, dy );
 							}
@@ -2388,17 +2449,17 @@ io.on( 'connection', ( socket )=>
 							if ( allowed )
 							if ( debug_correction )
 							console.log( 'too far', dx, dy );
-						
+
 							dx = 0;
 							dy = 0;
 						}
 						else
 						{
 							let di = sdWorld.Dist2D_Vector( dx, dy );
-							
+
 							//let di = sdWorld.Dist2D_Vector( arr[ 5 ] - ( socket.character.x + socket.character.sx / 30 * 100 ), 
 							//								arr[ 6 ] - ( socket.character.y + socket.character.sy / 30 * 100 ) );
-							
+
 							//if ( di > 128 )
 							if ( di > 64 )
 							{
@@ -2414,7 +2475,7 @@ io.on( 'connection', ( socket )=>
 							let steps = Math.ceil( jump_di / 8 );
 
 							corrected = true;
-							
+
 							const overlap = 0.001; // 1
 
 							for ( let i = 1; i > 0; i -= 1 / steps )
@@ -2475,16 +2536,16 @@ io.on( 'connection', ( socket )=>
 								socket.next_position_correction_allowed = sdWorld.time + 100;
 								socket.character.x += dx;
 								socket.character.y += dy;
-								
-                                /*dx -= socket.character.sx * 2;
-                                dy -= socket.character.sy * 2;
+
+								/*dx -= socket.character.sx * 2;
+								dy -= socket.character.sy * 2;
 
 								socket.character._key_states.SetKey( 'KeyD', ( dx > 13 ) ? 1 : 0 );
 								socket.character._key_states.SetKey( 'KeyA', ( dx < -13 ) ? 1 : 0 );
 
 								socket.character._key_states.SetKey( 'KeyS', ( dy > 13 ) ? 1 : 0 );
 								socket.character._key_states.SetKey( 'KeyW', ( dy < -13 ) ? 1 : 0 );*/
-								
+
 								/*socket.character._pos_corr_x = socket.character.x + dx;
 								socket.character._pos_corr_y = socket.character.y + dy;
 								socket.character._pos_corr_until = sdWorld.time + 50;*/
@@ -2996,7 +3057,15 @@ globalThis.ExecuteParallelPromise = ( command )=>
 let only_do_nth_connection_per_frame = 1;
 let nth_connection_shift = 0;
 
+//let current_snapshot_scan_id = 0;
+
 let vision_cells_cache = {};
+
+/*let perf_test_scan_method = 0;
+let perf_test_scan_method_iters_left = 15;
+let perf_test_scan_method_results = [ 0, 0 ];
+
+globalThis.perf_test_scan_method_results = perf_test_scan_method_results;*/
 
 // This will prevent stacking of interal calls, letting server to actually handle all received data from clients
 const ServerMainMethod = ()=>
@@ -3163,6 +3232,58 @@ const ServerMainMethod = ()=>
 							
 							//socket.reaction_to_seen_entities_offset++;
 
+							/*let cell_direct_visibility = new Map();
+							
+							const CanBeDirectlySeen = ( x, y )=>
+							{
+								x = Math.round( ( x - 8 ) / 16 ) * 16 + 8;
+								y = Math.round( ( y - 8 ) / 16 ) * 16 + 8;
+								
+								let dx = x - socket.character.x;
+								let dy = y - socket.character.y;
+								
+								if ( Math.abs( dx ) < 8 || Math.abs( dy ) < 8 )
+								return true;
+								
+								if ( Math.abs( dx ) > Math.abs( dy ) )
+								{
+									dy = dy / dx * 16;
+									dx = dx / dx * 16;
+								}
+								else
+								{
+									dx = dx / dy * 16;
+									dy = dy / dy * 16;
+								}
+								
+								function SolveFor( x, y )
+								{
+									let result;
+									
+									if ( Math.abs( socket.character.x - x ) < 32 && Math.abs( socket.character.y - y ) < 32 )
+									{
+										result = true;
+									}
+									else
+									{
+										let hash = x * 5000 + y;
+
+										result = cell_direct_visibility.get( hash );
+
+										if ( result === undefined )
+										{
+											result = SolveFor( x - dx, y - dy ) && sdWorld.CheckWallExists( x - dx, y - dy, null, null, sdCom.com_vision_blocking_classes );
+
+											cell_direct_visibility.set( hash, result );
+										}
+									}
+									
+									return result;
+								}
+								
+								return SolveFor( x, y );
+							};*/
+
 							const AddEntity = ( ent, forced )=>
 							{
 								/*
@@ -3182,6 +3303,10 @@ const ServerMainMethod = ()=>
 
 									if ( ent.IsVisible === sdEntity.prototype.IsVisible || 
 										 ent.IsVisible( socket.character ) )
+									/*if ( CanBeDirectlySeen( 
+											ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2,
+											ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2 )
+										)*/
 									{
 
 										if ( ent.is_static ) // 5.8
@@ -3246,10 +3371,10 @@ const ServerMainMethod = ()=>
 								AddEntity( socket.character, false );
 								
 								if ( socket.character.driver_of )
-								AddEntity( socket.character.driver_of, false );
+								AddEntity( socket.character.driver_of, true );
 								
 								if ( socket.character.hook_relative_to )
-								AddEntity( socket.character.hook_relative_to, false );
+								AddEntity( socket.character.hook_relative_to, true );
 							}
 						
 							// Add player's tasks
@@ -3259,10 +3384,6 @@ const ServerMainMethod = ()=>
 							if ( observed_entities.indexOf( sdTask.tasks[ t ] ) === -1 )
 							//observed_entities.push( sdTask.tasks[ t ] );
 							AddEntity( sdTask.tasks[ t ], false );
-
-							/*for ( let x = min_x; x < max_x; x += 32 )
-							for ( let y = min_y; y < max_y; y += 32 )
-							VisitCell( x, y );*/
 
 							let cells = vision_cells_cache[ socket.camera.scale ];
 
@@ -3281,7 +3402,13 @@ const ServerMainMethod = ()=>
 								for ( let x = min_x; x < max_x; x += CHUNK_SIZE )
 								for ( let y = min_y; y < max_y; y += CHUNK_SIZE )
 								{
-									cells.push({ x: x - min_x, y: y - min_y, dist: sdWorld.Dist2D( (min_x+max_x)/2, (min_y+max_y)/2, x, y ) });
+									cells.push({ 
+										x: x - min_x, 
+										y: y - min_y, 
+										dist: sdWorld.Dist2D( (min_x+max_x)/2, (min_y+max_y)/2, x, y ),
+										//last_trace: 0,
+										//last_trace_result: false
+									});
 								}
 								cells.sort((a,b)=>{
 									return a.dist-b.dist;
@@ -3290,9 +3417,145 @@ const ServerMainMethod = ()=>
 								for ( let c = 0; c < cells.length; c++ )
 								delete cells[ c ].dist;
 							}
+							
+							//const USE_SCAN_EVERYTHING_ON_SCREEN_METHOD = false;
+							
+							//let t0 = Date.now();
+							
+							//if ( perf_test_scan_method === 0 )
+							if ( socket.character._god ) // Faster for god mode players as they see everything anyway
+							{
+								for ( let c = 0; c < cells.length; c++ )
+								VisitCell( cells[ c ].x + min_x, cells[ c ].y + min_y );
+							}
+							else
+							{
+								// Cast vision beams? Better anti-cheat and perhaps better performance? // Works same and sometimes faster
+								//const visited_cells = new Set();
+								//current_snapshot_scan_id++;
+								
+								// At the end of a beam
+								const extra_xy_spread = 64;
+								const extra_xy_spread_step = 64;
+								
+								// Around beam while it travels
+								const extra_xy_spread_middle = 64;
+								const extra_xy_spread_middle_step = 64;
+								
+								if ( extra_xy_spread_step > CHUNK_SIZE )
+								throw new Error('Might jump over chunk here...');
+							
+								const hitmap = new Map();
+								
+								function CheckRect( x, y )
+								{
+									x = sdWorld.FastFloor( x / 16 );
+									y = sdWorld.FastFloor( y / 16 );
+									
+									let hash = x * 5000 + y;
+									
+									let r = hitmap.get( hash );
+									
+									if ( r === undefined )
+									{
+										r = sdWorld.CheckWallExists( x * 16 + 8, y * 16 + 8, null, null, null, sdWorld.FilterVisionBlocking );
+										hitmap.set( hash, r );
+									}
+									
+									return r;
+								}
+								
+								
+								const visited_hashes = new Set();
+								
+								for ( let b = 0; b < 32; b++ )
+								{
+									// TODO: Make beams at least casted down at first - it tends to discover cells clockwise and due to static entity limit per snapshot it will do this slowly
+									
+									let x = sdWorld.limit( min_x, socket.character.x, max_x );
+									let y = sdWorld.limit( min_y, socket.character.y, max_y );
 
-							for ( let c = 0; c < cells.length; c++ )
-							VisitCell( cells[ c ].x + min_x, cells[ c ].y + min_y );
+									const dx = Math.sin( b / 32 * Math.PI * 2 ) * 16;
+									const dy = Math.cos( b / 32 * Math.PI * 2 ) * 16;
+
+									//const dx = Math.sin( b / 64 * Math.PI * 2 ) * 31;
+									//const dy = Math.cos( b / 64 * Math.PI * 2 ) * 31;
+									
+									let ttl = -1;
+
+									while ( x >= min_x && x <= max_x && y >= min_y && y <= max_y )
+									{
+										if ( ttl === -1 )
+										{
+											if ( CheckRect( x, y ) )
+											ttl = 0; // 10 seems enough in no xy-spread but this is not how clients see world
+										}
+										else
+										if ( --ttl < 0 )
+										break;
+									
+										//if ( Math.random() < 0.01 )
+										//sdWorld.SendEffect({ x:x, y:y, type:sdEffect.TYPE_WALL_HIT });
+										
+										const extra_xy_spread_this = ( ttl === 0 ) ? extra_xy_spread : extra_xy_spread_middle;
+										const extra_xy_spread_step_this = ( ttl === 0 ) ? extra_xy_spread_step : extra_xy_spread_middle_step;
+										
+										for ( let xx = -extra_xy_spread_this; xx <= extra_xy_spread_this; xx += extra_xy_spread_step_this )
+										for ( let yy = -extra_xy_spread_this; yy <= extra_xy_spread_this; yy += extra_xy_spread_step_this )
+										//let xx = 0;
+										//let yy = 0;
+										{
+											const hash = ( sdWorld.FastFloor( (y+yy) / CHUNK_SIZE ) ) * 4098 + sdWorld.FastFloor( (x+xx) / CHUNK_SIZE );
+											
+											if ( visited_hashes.has( hash ) )
+											{
+											}
+											else
+											{
+												visited_hashes.add( hash );
+												
+												const cell = sdWorld.RequireHashPosition( x+xx, y+yy );
+
+												//if ( !visited_cells.has( cell ) ) // [ 48, 203 ] with this enabled
+												//if ( cell.snapshot_scan_id !== current_snapshot_scan_id )
+												{
+													//visited_cells.add( cell );
+													//cell.snapshot_scan_id = current_snapshot_scan_id;
+
+													const arr = cell.arr;
+
+													for ( let i2 = 0; i2 < arr.length; i2++ )
+													AddEntity( arr[ i2 ], false );
+												}
+											}
+										}
+
+										x += dx;
+										y += dy;
+									}
+								}
+							}
+							
+							
+							/*let t1 = Date.now();
+							
+							perf_test_scan_method_results[ perf_test_scan_method ] += t1 - t0;
+							
+							if ( perf_test_scan_method_iters_left < 0 )
+							{
+								perf_test_scan_method = ( perf_test_scan_method + 1 ) % 2;
+								perf_test_scan_method_iters_left = 15;
+							}
+							else
+							perf_test_scan_method_iters_left--;
+							
+							if ( perf_test_scan_method_results[ 0 ] > 10000 || perf_test_scan_method_results[ 1 ] > 10000 )
+							{
+								perf_test_scan_method_results[ 0 ] = Math.round( perf_test_scan_method_results[ 0 ] * 0.01 );
+								perf_test_scan_method_results[ 1 ] = Math.round( perf_test_scan_method_results[ 1 ] * 0.01 );
+							}
+							
+							trace( perf_test_scan_method_results );*/
 
 
 							// Forget offscreen statics (and removed ones)

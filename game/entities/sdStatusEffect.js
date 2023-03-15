@@ -636,6 +636,8 @@ class sdStatusEffect extends sdEntity
 				status_entity._fell = false;
 				
 				status_entity._lying_for = 0;
+				
+				status_entity._ignored_classes_cache = null;
 			},
 			onThink: ( status_entity, GSPEED )=>
 			{
@@ -656,8 +658,41 @@ class sdStatusEffect extends sdEntity
 				{
 					if ( yy > 8 )
 					yy = 8;
-
-					if ( current.CanMoveWithoutOverlap( current.x, current.y + yy ) )
+				
+					// new_x, new_y, safe_bound=0, custom_filtering_method=null, alter_ignored_classes=null
+					
+					if ( !status_entity._ignored_classes_cache )
+					{
+						status_entity._ignored_classes_cache = current.GetIgnoredEntityClasses();
+						
+						let unique = false;
+						
+						// Some entities like sdDoor do fall through walls since they ignore them... It is bad as it can lead to bug raiding when door is being dropped and is being conntrolled with another steering wheel from outside of a base
+						
+						let id = status_entity._ignored_classes_cache.indexOf( 'sdBlock' );
+						if ( id !== -1 )
+						{
+							if ( !unique )
+							{
+								status_entity._ignored_classes_cache = status_entity._ignored_classes_cache.slice();
+								unique = true;
+							}
+							status_entity._ignored_classes_cache.splice( id, 1 );
+						}
+						
+						id = status_entity._ignored_classes_cache.indexOf( 'sdDoor' );
+						if ( id !== -1 )
+						{
+							if ( !unique )
+							{
+								status_entity._ignored_classes_cache = status_entity._ignored_classes_cache.slice();
+								unique = true;
+							}
+							status_entity._ignored_classes_cache.splice( id, 1 );
+						}
+					}
+					
+					if ( current.CanMoveWithoutOverlap( current.x, current.y + yy, 0, null, status_entity._ignored_classes_cache ) )
 					{
 						current.y += yy;
 						

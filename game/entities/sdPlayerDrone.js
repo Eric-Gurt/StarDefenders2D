@@ -599,6 +599,11 @@ class sdPlayerDrone extends sdCharacter
 		this.PositionUpdateAsDriver();
 		else
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+	
+		if ( sdWorld.is_server && !this._socket && this._phys_sleep <= 0 && !this.driver_of && this.hea > 0 && !this._dying && this.pain_anim <= 0 && this.death_anim <= 0 )
+		{
+			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+		}
 	}
 	DropWeapon( i ) // by slot
 	{
