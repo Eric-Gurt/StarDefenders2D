@@ -6379,6 +6379,83 @@ class sdGunClass
 			},
 			upgrades: AddGunDefaultUpgrades( AppendBasicCubeGunRecolorUpgrades( [] ) )
 		};
+		sdGun.classes[ sdGun.CLASS_GIANT_ZAPPER = 125 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'gzapper' ),
+			image0: [ sdWorld.CreateImageFromFile( 'gzapper0' ), sdWorld.CreateImageFromFile( 'gzapper1' ) ],
+			image1: [ sdWorld.CreateImageFromFile( 'gzapper2' ), sdWorld.CreateImageFromFile( 'gzapper2' ) ],
+			image2: [ sdWorld.CreateImageFromFile( 'gzapper0' ), sdWorld.CreateImageFromFile( 'gzapper1' ) ],
+			has_images: true,
+			title: 'Giant Zapper',
+			sound: 'cube_attack',
+			sound_volume: 1.5,
+			sound_pitch: 0.25,
+			image_no_matter: sdWorld.CreateImageFromFile( 'gzapper_disabled' ),
+			slot: 0,
+			reload_time: 15,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			is_giant: true,
+			is_sword: true,
+			min_build_tool_level: 30,
+			matter_cost: 12920,
+			min_workbench_level: 20,
+			projectile_velocity: 37,
+			GetAmmoCost: ()=>
+			{
+				return 32;
+			},
+			projectile_properties: { model:'transparent_proj', time_left: 1.5, _damage: 135, color: '#ffffff', _knock_scale:0.025 * 8, 
+				_custom_target_reaction:( bullet, target_entity )=>
+				{
+					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:1.5, pitch: 0.75 });
+				},
+				_custom_target_reaction_protected:( bullet, target_entity )=>
+				{
+					sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:1.5, pitch: 0.75 });
+				}
+			},
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { model:'transparent_proj', time_left: 1.5, color: '#ffffff', _knock_scale:0.025 * 8, 
+					_custom_target_reaction:( bullet, target_entity )=>
+					{
+						sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:1.5, pitch: 0.75 });
+					},
+					_custom_target_reaction_protected:( bullet, target_entity )=>
+					{
+						sdSound.PlaySound({ name:'cube_attack', x:bullet.x, y:bullet.y, volume:1.5, pitch: 0.75 });
+					}
+				};
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 120; // 135 or more damage is impossible
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddRecolorsFromColorAndCost( 
+				AddRecolorsFromColorAndCost( 
+					AddGunDefaultUpgrades(), 
+					'#d3d3d3', 100, 'Inner', '' ), 
+				'#ffffff', 100, 'Outer', '' )
+		};
 	}
 }
 
