@@ -16,8 +16,8 @@ class sdCom extends sdEntity
 	static init_class()
 	{
 		sdCom.img_com = sdWorld.CreateImageFromFile( 'com' );
-		sdCom.img_com_darkblue = sdWorld.CreateImageFromFile( 'com_darkblue' ); // Level 2
-		sdCom.img_com_purple = sdWorld.CreateImageFromFile( 'com_purple' ); // Level 3
+		sdCom.img_com_cyan = sdWorld.CreateImageFromFile( 'com_cyan' ); // Level 2
+		sdCom.img_com_darkblue = sdWorld.CreateImageFromFile( 'com_darkblue' ); // Level 3
 		sdCom.img_com_green = sdWorld.CreateImageFromFile( 'com_green' ); // Level 4
 		sdCom.img_com_yellow = sdWorld.CreateImageFromFile( 'com_yellow' ); // Level 5
 		sdCom.img_com_pink = sdWorld.CreateImageFromFile( 'com_pink' ); // Level 6
@@ -205,9 +205,9 @@ class sdCom extends sdEntity
 		if ( this.variation === 0 )
 		ctx.drawImageFilterCache( sdCom.img_com, -16, -16, 32,32 );
 		if ( this.variation === 1 )
-		ctx.drawImageFilterCache( sdCom.img_com_darkblue, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdCom.img_com_cyan, -16, -16, 32,32 );
 		if ( this.variation === 2 )
-		ctx.drawImageFilterCache( sdCom.img_com_purple, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdCom.img_com_darkblue, -16, -16, 32,32 );
 		if ( this.variation === 3 )
 		ctx.drawImageFilterCache( sdCom.img_com_green, -16, -16, 32,32 );
 		if ( this.variation === 4 )
