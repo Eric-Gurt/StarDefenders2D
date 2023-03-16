@@ -95,6 +95,16 @@ class sdPlayerSpectator extends sdCharacter
 		
 		if ( sdWorld.is_server )
 		{
+			// Test if player disconnected - stop looking at him for minutes
+			if ( this._following )
+			if ( !this._following._is_being_removed )
+			if ( this._following.IsPlayerClass() )
+			if ( !this._following._socket || this._following.hea <= 0 )
+			{
+				if ( this._following_timer > 30 * 5 )
+				this._following_timer = 30 * 5;
+			}
+			
 			if ( !this._following || this._following._is_being_removed || sdWorld.inDist2D_Boolean( this.x, this.y, this._following.x, this._following.y, 300 ) )
 			{
 				this._following_timer -= GSPEED;
@@ -108,7 +118,7 @@ class sdPlayerSpectator extends sdCharacter
 			{
 				let e = null;
 				
-				if ( Math.random() > 0.15 )
+				if ( Math.random() > 0.2 )
 				{
 					let i = Math.floor( Math.random() * sdEntity.active_entities.length );
 
@@ -150,7 +160,7 @@ class sdPlayerSpectator extends sdCharacter
 								this._boring_net_ids.splice( 0, 2 );
 							}
 
-							if ( e.IsPlayerClass() && e._socket )
+							if ( e.IsPlayerClass() && e._socket && e.hea > 0 )
 							this._following_timer = 60 * 30 * ( 1 + Math.random() * 4 ); // 1-5 minutes
 							else
 							this._following_timer = 30 * ( 1 + Math.random() * 4 ); // 1-5 seconds
