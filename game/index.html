@@ -292,7 +292,7 @@
 	    <br>
 	    
 	    <input type="color" id="color_dark" value="#808080" mycondition="entity1">
-	    <label for="color_dark" mycondition="entity1" mycondition="entity1">Helmet (dark shade)</label>
+	    <label for="color_dark" mycondition="entity1">Helmet (dark shade)</label>
 	    <br mycondition="entity1">
 	    
 	    <input type="color" id="color_visor" value="#ff0000">
@@ -349,18 +349,21 @@
 		<br>
 		<input type="checkbox" id="entity3" value="1">
 		<label for="entity3">Overlord</label>
+		<br>
+		<input type="checkbox" id="entity4" value="1">
+		<label for="entity4">StreamLogger(?)</label>
 	    </div>
 	    
 	    <div class="set_block" tabindex="1" mycondition="entity1">
-		<span class="sdtitle">Start with</span><br>
-		<input type="checkbox" id="start_with1" value="pistol_and_buildtool">
+		<span class="sdtitle">Melee weapon</span><br>
+		<!--<input type="checkbox" id="start_with1" value="pistol_and_buildtool">
 		<label for="start_with1">Pistol and build tool</label>
+		<br>-->
+		<input type="checkbox" id="start_with1" value="sword_and_buildtool" checked>
+		<label for="start_with1">Sword</label>
 		<br>
-		<input type="checkbox" id="start_with2" value="sword_and_buildtool" checked>
-		<label for="start_with2">Sword and build tool</label>
-		<br>
-		<input type="checkbox" id="start_with3" value="shovel_and_buildtool">
-		<label for="start_with3">Shovel and build tool</label>
+		<input type="checkbox" id="start_with2" value="shovel_and_buildtool">
+		<label for="start_with2">Shovel</label>
 	    </div>
 	    
 	    <!--
@@ -374,7 +377,7 @@
 	    </div>
 	    -->
 	    
-	    <div class="set_block" tabindex="1">
+	    <div class="set_block" tabindex="1" mycondition="entity1">
 		<span class="sdtitle">Assign instructor on start</span><br>
 		<input type="checkbox" id="hints1" value="no">
 		<label for="hints1">No</label>
@@ -1402,7 +1405,7 @@
 		<label for="bugs2">Yes</label>
 	    </div>
 	    
-	    <div class="set_block" tabindex="1">
+	    <div class="set_block" tabindex="1" mycondition="entity1 || entity2">
 		<span class="sdtitle">Character's voice (eSpeak)</span><br>
 		<input type="checkbox" id="voice1" value="low" onclick="globalThis.TestVoice(this)">
 		<label for="voice1">Lowest pitch</label>
@@ -1569,22 +1572,28 @@
 		
 		
 		let ent2;
-			
-		if ( inputs_hash[ 'start_with2' ].el.checked )
+		let ent3;
+		{
+		    ent3 = new sdGun({ x:0, y:0, class: sdGun.CLASS_PISTOL });
+		    ent._inventory[ 1 ] = ent3;
+		    ent3._held_by = ent;
+		}
+		
+		if ( inputs_hash[ 'start_with1' ].el.checked )
 		{
 		    ent2 = new sdGun({ x:0, y:0, class: sdGun.CLASS_SWORD });
 		    ent._inventory[ 0 ] = ent2;
 		    ent2._held_by = ent;
 		}
 		else
-		if ( inputs_hash[ 'start_with1' ].el.checked )
+		/*if ( inputs_hash[ 'start_with1' ].el.checked )
 		{
 		    ent2 = new sdGun({ x:0, y:0, class: sdGun.CLASS_PISTOL });
 		    ent._inventory[ 1 ] = ent2;
 		    ent2._held_by = ent;
 	        }
-		else
-		if ( inputs_hash[ 'start_with3' ].el.checked )
+		else*/
+		if ( inputs_hash[ 'start_with2' ].el.checked )
 		{
 		    ent2 = new sdGun({ x:0, y:0, class: sdGun.CLASS_SHOVEL });
 		    ent._inventory[ 0 ] = ent2;
@@ -1592,7 +1601,7 @@
 	        }	
 		
 		
-		if ( !inputs_hash[ 'start_with2' ].el.checked && !inputs_hash[ 'start_with3' ].el.checked )
+		//if ( !inputs_hash[ 'start_with2' ].el.checked && !inputs_hash[ 'start_with3' ].el.checked )
 		ent.gun_slot = ( sdWorld.time % 4000 ) < 2000 ? 0 : 1;
 		
 		//ent._an = Math.PI / 2;
@@ -1614,8 +1623,10 @@
 		{
 		    ent.fire_anim = 5 / ( ( sdWorld.time + 500 ) % 2000 ) / 250;
 		    
-		    if ( !inputs_hash[ 'start_with2' ].el.checked && !inputs_hash[ 'start_with3' ].el.checked )
-		    ent2.muzzle = 5 / ( ( sdWorld.time + 500 ) % 2000 ) / 250;
+		    /*
+		    //if ( !inputs_hash[ 'start_with2' ].el.checked && !inputs_hash[ 'start_with3' ].el.checked )
+		    if ( ent.gun_slot === 1 )
+		    ent2.muzzle = 5 / ( ( sdWorld.time + 500 ) % 2000 ) / 250;*/
 		}
 
 		ctx.scale( 4,4 );
@@ -1635,6 +1646,9 @@
 
 		ent2.remove();
 		ent2._remove();
+
+		ent3.remove();
+		ent3._remove();
 
 		ctx.restore();
 		
@@ -1792,7 +1806,17 @@
 		{
 		    let cond = conditional_elements[ i ].getAttribute( 'mycondition' );
 		    
-		    conditional_elements[ i ].style.display = ( inputs_hash[ cond ].el.checked ) ? '' : 'none';
+		    let cond_parts = cond.split('||');
+		    
+		    let vis = false;
+		    
+		    for ( let i2 = 0; i2 < cond_parts.length; i2++ )
+		    {
+			if ( inputs_hash[ cond_parts[ i2 ].trim() ].el.checked )
+			vis = true;
+		    }
+		    
+		    conditional_elements[ i ].style.display = vis ? '' : 'none';
 		}
 		
 		for ( let i = 0; i < inputs.length; i++ )

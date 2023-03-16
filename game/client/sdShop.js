@@ -43,7 +43,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, _category:'root', _opens_category:'Walls' });
 		sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, material: sdBG.MATERIAL_PLATFORMS, _category:'root', _opens_category:'Background walls' });
 		sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, _category:'root', _opens_category:'Doors' });
-		sdShop.options.push({ _class: 'sdCom', _category:'root', _opens_category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdCom', variation:1, _category:'root', _opens_category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_RIFLE, _category:'root', _opens_category:'Equipment' });
 		sdShop.options.push({ _class: null, image: 'vehicle', _category:'root', _opens_category:'Vehicles' });
 		sdShop.options.push({ _class: null, image: 'upgrade', _category:'root', _opens_category:'Upgrades' });

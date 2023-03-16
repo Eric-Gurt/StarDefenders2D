@@ -20,6 +20,7 @@ import sdLamp from '../entities/sdLamp.js';
 import sdFaceCrab from '../entities/sdFaceCrab.js';
 import sdStatusEffect from '../entities/sdStatusEffect.js';
 import sdCharacter from '../entities/sdCharacter.js';
+import sdPlayerSpectator from '../entities/sdPlayerSpectator.js';
 
 import sdAtlasMaterial from './sdAtlasMaterial.js';
 
@@ -679,6 +680,8 @@ class sdRenderer
 		/*if ( !document.hasFocus() ) Can be inaccurate
 		if ( Math.random() > 0.1 )
 		return;*/
+			
+		const show_hud = ( !sdWorld.my_entity || !sdWorld.my_entity.is( sdPlayerSpectator ) || sdChat.open || sdContextMenu.open );
 			
 		let ms_since_last_render = sdRenderer.last_render - sdWorld.time;
 		sdRenderer.last_render = sdWorld.time;
@@ -1416,6 +1419,7 @@ class sdRenderer
 					var best_ent = null;
 					var best_di = -1;
 
+					if ( show_hud )
 					for ( var i = 0; i < sdEntity.entities.length; i++ )
 					if ( sdEntity.entities[ i ]._flag === frame_flag_reference )
 					if ( sdEntity.entities[ i ].DrawHUD !== sdEntity.prototype.DrawHUD )
@@ -1511,6 +1515,7 @@ class sdRenderer
 			ctx.camera_relative_world_scale = sdRenderer.distance_scale_in_game_hud;
 			
 			// Ingame hud
+			if ( show_hud )
 			if ( sdWorld.my_entity )
 			if ( sdRenderer.UseCrosshair() )
 			{
@@ -1568,7 +1573,7 @@ class sdRenderer
 		
 		
 		// On-screen foregroud
-		if ( sdWorld.my_entity )
+		if ( sdWorld.my_entity && show_hud )
 		{
 			let scale = ( 0.3 + 0.7 * sdRenderer.resolution_quality );
 			

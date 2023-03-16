@@ -306,6 +306,7 @@ import sdWeaponBench from './game/entities/sdWeaponBench.js';
 import sdLongRangeTeleport from './game/entities/sdLongRangeTeleport.js';
 import sdTask from './game/entities/sdTask.js';
 import sdPortal from './game/entities/sdPortal.js';
+import sdPlayerSpectator from './game/entities/sdPlayerSpectator.js';
 
 import { createRequire } from 'module';
 const require = createRequire( import.meta.url );
@@ -1394,7 +1395,7 @@ function ResetGameTTL()
 }
 function IsGameActive()
 {
-	let c = GetPlayingPlayersCount();
+	let c = sdWorld.GetPlayingPlayersCountForGameLogicTest();
 	
 	if ( c > 0 )
 	{
@@ -1936,6 +1937,8 @@ io.on( 'connection', ( socket )=>
 			{
 				//socket.SDServiceMessage( 'Respawn rejected - too quickly (wait ' + ( socket.respawn_block_until - sdWorld.time ) + 'ms)' );
 				socket.SDServiceMessage( 'Respawn rejected - too quickly (wait ' + Math.ceil( ( socket.respawn_block_until - sdWorld.time ) / 100 ) / 10 + ' seconds)' );
+				
+				socket.emit('REMOVE sdWorld.my_entity');
 				return;
 			}
 			socket.respawn_block_until = sdWorld.time + 2000; // Will be overriden if player respawned near his command centre
@@ -1984,7 +1987,6 @@ io.on( 'connection', ( socket )=>
 		debugger;
 		
 		//playing_players++;
-		
 		
 		
 
@@ -2288,6 +2290,7 @@ io.on( 'connection', ( socket )=>
 			socket.waiting_on_M_event_until = 0;
 			
 			if ( socket.character ) 
+			if ( !socket.character.is( sdPlayerSpectator ) ) 
 			{ 
 				/*let test_ent = sdEntity.entities_by_net_id_cache_map.get( 40580166 ); // Hack. Testing what is wrong here - possibly compression fails
 				socket.character.x = test_ent.x;
@@ -2636,6 +2639,12 @@ io.on( 'connection', ( socket )=>
 		if ( typeof params[ 2 ] !== 'string' )
 		return;
 	
+		if ( !socket.character )
+		return;
+	
+		if ( socket.character.is( sdPlayerSpectator ) && !socket.character._god )
+		return;
+	
 		let _class = params[ 0 ];
 		let net_id = params[ 1 ];
 		
@@ -2743,7 +2752,12 @@ io.on( 'connection', ( socket )=>
 		if ( !( arr instanceof Array ) )
 		return;
 	
-		if ( socket.character ) 
+		if ( !socket.character )
+		return;
+	
+		if ( socket.character.is( sdPlayerSpectator ) && !socket.character._god )
+		return;
+	
 		if ( socket.character.hea > 0 ) 
 		{
 			let net_id = arr[ 0 ];
@@ -2774,7 +2788,12 @@ io.on( 'connection', ( socket )=>
 		if ( !( arr instanceof Array ) )
 		return;
 	
-		if ( socket.character ) 
+		if ( !socket.character )
+		return;
+	
+		if ( socket.character.is( sdPlayerSpectator ) && !socket.character._god )
+		return;
+	
 		if ( socket.character.hea > 0 ) 
 		{
 			let net_id = arr[ 0 ];
@@ -2805,7 +2824,12 @@ io.on( 'connection', ( socket )=>
 		if ( !( arr instanceof Array ) )
 		return;
 	
-		if ( socket.character ) 
+		if ( !socket.character )
+		return;
+	
+		if ( socket.character.is( sdPlayerSpectator ) && !socket.character._god )
+		return;
+	
 		if ( socket.character.hea > 0 ) 
 		{
 			let net_id = arr[ 0 ];
@@ -2831,7 +2855,12 @@ io.on( 'connection', ( socket )=>
 		if ( !( arr instanceof Array ) )
 		return;
 	
-		if ( socket.character ) 
+		if ( !socket.character )
+		return;
+	
+		if ( socket.character.is( sdPlayerSpectator ) && !socket.character._god )
+		return;
+	
 		if ( socket.character.hea > 0 ) 
 		{
 			let net_id = arr[ 0 ];
@@ -2893,6 +2922,9 @@ io.on( 'connection', ( socket )=>
 			trace( 'characters['+socket.character._net_id + ']._socket = null');
 
 			socket.character._socket = null;
+			
+			if ( socket.character.is( sdPlayerSpectator ) )
+			socket.character.remove();
 
 			socket.character = null;
 
@@ -3283,6 +3315,8 @@ const ServerMainMethod = ()=>
 								
 								return SolveFor( x, y );
 							};*/
+							
+							const triggers_sync = !socket.character.is( sdPlayerSpectator ); // Also used for task sync
 
 							const AddEntity = ( ent, forced )=>
 							{
@@ -3336,6 +3370,7 @@ const ServerMainMethod = ()=>
 
 										if ( ent.SyncedToPlayer !== sdEntity.prototype.SyncedToPlayer )
 										if ( ent._frozen <= 0 )
+										if ( triggers_sync )
 										ent.SyncedToPlayer( socket.character );
 								
 										/*if ( socket.reaction_to_seen_entities_offset % 400 === ent._net_id % 400 )
@@ -3379,6 +3414,7 @@ const ServerMainMethod = ()=>
 						
 							// Add player's tasks
 							if ( socket.character )
+							if ( triggers_sync )
 							for ( let t = 0; t < sdTask.tasks.length; t++ )
 							if ( sdTask.tasks[ t ]._executer === socket.character )
 							if ( observed_entities.indexOf( sdTask.tasks[ t ] ) === -1 )
@@ -3423,7 +3459,7 @@ const ServerMainMethod = ()=>
 							//let t0 = Date.now();
 							
 							//if ( perf_test_scan_method === 0 )
-							if ( socket.character._god ) // Faster for god mode players as they see everything anyway
+							if ( socket.character._god || socket.character.is( sdPlayerSpectator ) ) // Faster for god mode players as they see everything anyway
 							{
 								for ( let c = 0; c < cells.length; c++ )
 								VisitCell( cells[ c ].x + min_x, cells[ c ].y + min_y );
@@ -3695,7 +3731,13 @@ const ServerMainMethod = ()=>
 							let leftovers_tot = Object.keys( socket.left_overs ).length;
 							if ( leftovers_tot > 5000 )
 							{
+								if ( socket.character && socket.character.is( sdPlayerSpectator ) )
+								{
+									// Seems to happen more frequently for these, yet we probably should not care
+								}
+								else
 								console.log('socket.left_overs.length = ' + leftovers_tot + '... giving up with resends' );
+							
 								socket.left_overs = {};
 							}
 
@@ -3878,6 +3920,7 @@ const ServerMainMethod = ()=>
 
 							socket.observed_entities = observed_entities;
 							
+							if ( triggers_sync )
 							if ( sdWorld.time > socket.next_reaction_to_seen_entity_time )
 							if ( socket.character )
 							{

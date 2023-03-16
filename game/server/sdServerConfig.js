@@ -181,14 +181,12 @@ class sdServerConfigFull extends sdServerConfigShort
 		let instructor_entity = null;
 		
 		// Spawn starter items based off what player wants to spawn with
-		let guns = [ sdGun.CLASS_BUILD_TOOL ];
+		let guns = [ sdGun.CLASS_BUILD_TOOL, sdGun.CLASS_PISTOL, sdGun.CLASS_MEDIKIT ];
+		
 		if ( player_settings.start_with1 )
-		guns.push( sdGun.CLASS_PISTOL );
-		else
-		if ( player_settings.start_with2 )
 		guns.push( sdGun.CLASS_SWORD );
 		else
-		if ( player_settings.start_with3 )
+		if ( player_settings.start_with2 )
 		guns.push( sdGun.CLASS_SHOVEL );
 
 		if ( character_entity.is( sdCharacter ) )
@@ -247,7 +245,7 @@ class sdServerConfigFull extends sdServerConfigShort
 		}, 5000 );
 		
 		// Instructor, obviously
-		if ( player_settings.hints2 )
+		if ( player_settings.hints2 && character_entity.is( sdCharacter ) )
 		{
 			let intro_offset = 0;
 			let intro_to_speak = [];

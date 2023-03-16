@@ -35,6 +35,7 @@ import sdTimer from './entities/sdTimer.js';
 import sdCrystal from './entities/sdCrystal.js';
 import sdRescueTeleport from './entities/sdRescueTeleport.js';
 import sdCharacterRagdoll from './entities/sdCharacterRagdoll.js';
+import sdPlayerSpectator from './entities/sdPlayerSpectator.js';
 
 
 import sdRenderer from './client/sdRenderer.js';
@@ -59,7 +60,7 @@ class sdWorld
 		//sdWorld.max_update_rate = 64;
 		sdWorld.max_update_rate = 75; // For weaker servers (more like bandwidth-limited)
 		
-		sdWorld.allowed_player_classes = [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord' ]; // Options to spawn as
+		sdWorld.allowed_player_classes = [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdPlayerSpectator' ]; // Options to spawn as
 		
 		sdWorld.server_config = {};
 		
@@ -583,9 +584,20 @@ class sdWorld
 		if ( sdWorld.sockets[ i ].character !== null )
 		if ( count_dead || sdWorld.sockets[ i ].character.hea > 0 )
 		if ( count_dead || !sdWorld.sockets[ i ].character._is_being_removed )
+		if ( !sdWorld.sockets[ i ].character.is( sdPlayerSpectator ) )
 		{
 			c++;
 		}
+
+		return c;
+	}
+	static GetPlayingPlayersCountForGameLogicTest()
+	{
+		let c = 0;
+
+		for ( let i = 0; i < sdWorld.sockets.length; i++ )
+		if ( sdWorld.sockets[ i ].character !== null )
+		c++;
 
 		return c;
 	}
@@ -1615,6 +1627,7 @@ class sdWorld
 					
 					sdWorld.my_entity.look_x = sdWorld.camera.x;
 					sdWorld.my_entity.look_y = sdWorld.camera.y;
+
 					
 					if ( sdWorld.my_entity_upgrades_later_set_obj )
 					{
@@ -2706,6 +2719,12 @@ class sdWorld
 						sdRenderer.ctx.camera.position.z = -811 / sdWorld.camera.scale;
 					}*/
 
+					if ( sdWorld.my_entity.is( sdPlayerSpectator ) )
+					{
+						sdWorld.my_entity.look_x = sdWorld.my_entity.x;
+						sdWorld.my_entity.look_y = sdWorld.my_entity.y;
+					}
+					else
 					if ( sdWorld.my_entity._frozen <= 0 )
 					//if ( sdWorld.my_entity.AllowClientSideState() )
 					{
