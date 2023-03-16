@@ -106,12 +106,26 @@ class sdPlayerSpectator extends sdCharacter
 		
 			if ( this._following_timer <= 0 )
 			{
-				let i = Math.floor( Math.random() * sdEntity.active_entities.length );
-
-				if ( i < sdEntity.active_entities.length )
+				let e = null;
+				
+				if ( Math.random() > 0.15 )
 				{
-					let e = sdEntity.active_entities[ i ];
+					let i = Math.floor( Math.random() * sdEntity.active_entities.length );
 
+					if ( i < sdEntity.active_entities.length )
+					e = sdEntity.active_entities[ i ];
+				}
+				else
+				{
+					let i = Math.floor( Math.random() * sdWorld.sockets.length );
+
+					if ( i < sdWorld.sockets.length )
+					if ( sdWorld.sockets[ i ].character )
+					e = sdWorld.sockets[ i ].character;
+				}
+			
+				if ( e )
+				{
 					if ( e.IsVisible() )
 					if ( this._boring_net_ids.indexOf( e._class ) === -1 )
 					if ( this._boring_net_ids.indexOf( e._net_id ) === -1 )
