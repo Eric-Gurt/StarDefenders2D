@@ -41,10 +41,12 @@ class sdBlock extends sdEntity
 		sdBlock.img_lvl2_wall12 = sdWorld.CreateImageFromFile( 'wall_lvl2_1x2' );
 		sdBlock.img_lvl2_wall11 = sdWorld.CreateImageFromFile( 'wall_lvl2_1x1' );
 		sdBlock.img_lvl2_wall05 = sdWorld.CreateImageFromFile( 'wall_lvl2_half' );		
-		sdBlock.img_rock = sdWorld.CreateImageFromFile( 'wall_rock' );		
+		sdBlock.img_rock = sdWorld.CreateImageFromFile( 'wall_rock' );
 
 		//sdBlock.img_sand = sdWorld.CreateImageFromFile( 'snow_wall' ); // Molis
 		sdBlock.img_sand = sdWorld.CreateImageFromFile( 'wall_sand' ); // EG
+		
+		
 		
 		// Version 2, here we will create walls automatically, from Grid-9 sliceable sources (so we could make nearly infinite variety of walls that meet our needs)
 		//sdBlock.img_wall = sdWorld.CreateImageFromFile( 'wall' );
@@ -96,13 +98,18 @@ class sdBlock extends sdEntity
 		sdBlock.textures = [];
 		
 		let tc = 0;
-		SpawnSizes( sdBlock.TEXTURE_ID_WALL = tc++,					'wall',				4 );
-		SpawnSizes( sdBlock.TEXTURE_ID_PORTAL = tc++,				'wall_portal',		5 );
-		SpawnSizes( sdBlock.TEXTURE_ID_CAGE = tc++,					'wall_cage',		0 );
-		SpawnSizes( sdBlock.TEXTURE_ID_GLASS = tc++,				'wall_glass',		1 );
-		SpawnSizes( sdBlock.TEXTURE_ID_GREY = tc++,					'wall_grey',		2 );
-		SpawnSizes( sdBlock.TEXTURE_ID_REINFORCED_LVL1 = tc++,		'wall_lvl1_2x2',	3 );
-		SpawnSizes( sdBlock.TEXTURE_ID_REINFORCED_LVL2 = tc++,		'wall_lvl2_2x2',	3 );
+		SpawnSizes( sdBlock.TEXTURE_ID_WALL = tc++,					'wall',						4 );
+		SpawnSizes( sdBlock.TEXTURE_ID_PORTAL = tc++,				'wall_portal',				5 );
+		SpawnSizes( sdBlock.TEXTURE_ID_CAGE = tc++,					'wall_cage',				0 );
+		SpawnSizes( sdBlock.TEXTURE_ID_GLASS = tc++,				'wall_glass',				1 );
+		SpawnSizes( sdBlock.TEXTURE_ID_GREY = tc++,					'wall_grey',				2 );
+		SpawnSizes( sdBlock.TEXTURE_ID_REINFORCED_LVL1 = tc++,		'wall_lvl1_2x2',			3 );
+		SpawnSizes( sdBlock.TEXTURE_ID_REINFORCED_LVL2 = tc++,		'wall_lvl2_2x2',			3 );
+		SpawnSizes( sdBlock.TEXTURE_ID_WHITE_BRICK = tc++,			'wall_white_brick',			0 );
+		SpawnSizes( sdBlock.TEXTURE_ID_DARK_BRICK = tc++,			'wall_dark_brick',			0 );
+		SpawnSizes( sdBlock.TEXTURE_ID_FULL_WHITE_BRICK = tc++,		'wall_full_bright_brick',	0 );
+		
+		
 		// TODO: Rework other walls like this. Also - important to standartise all reinforced blocks as well as extra reinforcements through items
 		
 

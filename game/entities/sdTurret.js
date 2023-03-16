@@ -252,6 +252,9 @@ class sdTurret extends sdEntity
 			can_hibernate = true;
 		}
 		
+		if ( this.fire_timer > 0 )
+		this.fire_timer = Math.max( 0, this.fire_timer - GSPEED );
+		
 		if ( sdWorld.is_server )
 		{
 			if ( this.matter > this.GetShootCost() || this.type === 1 )
@@ -592,8 +595,6 @@ class sdTurret extends sdEntity
 
 						sdEntity.entities.push( bullet_obj );
 					}
-					else
-					this.fire_timer = Math.max( 0, this.fire_timer - GSPEED );
 
 					this._update_version++;
 				}
@@ -611,7 +612,7 @@ class sdTurret extends sdEntity
 		}
 		
 		if ( sdWorld.is_server )
-		if ( can_hibernate )
+		if ( can_hibernate && this.fire_timer <= 0 )
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 	}
 	ShootPossibilityFilter( ent )

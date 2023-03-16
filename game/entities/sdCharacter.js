@@ -1492,7 +1492,7 @@ class sdCharacter extends sdEntity
 
 	get hard_collision() // For world geometry where players can walk
 	{
-		return ( !this.driver_of && this.death_anim < 10 ); 
+		return ( ( !this.driver_of || !this.driver_of.VehicleHidesDrivers() ) && this.death_anim < 10 ); 
 	}
 	//{ return ( this.death_anim < 20 && !this.driver_of ); }
 	
@@ -1749,8 +1749,10 @@ class sdCharacter extends sdEntity
 					from_ent ? 'I won\'t miss you, '+from_ent.GetClass() : 'I won\'t miss that',
 					'Imagine dying',
 					'Thanks, but I\'d like to die another day!',
-					'Dying is cringe'
-				][ ~~( Math.random() * 19 ) ] );
+					'Dying is cringe',
+					'How about not?',
+					'Not like this!'
+				][ ~~( Math.random() * 21 ) ] );
 			}, 2000 );
 
 			return true;
@@ -1761,6 +1763,7 @@ class sdCharacter extends sdEntity
 	RemoveArmor()
 	{
 		this.armor = 0;
+		this.armor_max = 0;
 		//this._armor_absorb_perc = 0;
 		//this.armor_speed_reduction = 0; 
 		//this._armor_repair_amount = 0; // Completely broken armor cannot be repaired
@@ -1771,6 +1774,10 @@ class sdCharacter extends sdEntity
 		params._armor_absorb_perc = params._armor_absorb_perc || 0;
 		params.armor_speed_reduction = params.armor_speed_reduction || 0;
 		
+		// Make sure it is better by all stats only
+		if ( params.armor >= this.armor_max )
+		if ( params._armor_absorb_perc >= this._armor_absorb_perc || this.armor_max === 0 )
+		//if ( params.armor_speed_reduction <= this.armor_speed_reduction * 2 || this.armor_max === 0 )
 		if ( ( 1 - this._armor_absorb_perc ) * this.armor < ( 1 - params._armor_absorb_perc ) * params.armor )
 		{
 			this.armor = params.armor;
@@ -3609,7 +3616,7 @@ class sdCharacter extends sdEntity
 		}
 		else
 		{
-			if ( this.stands && !this.driver_of && ( this._stands_on !== this.hook_relative_to || ( this.hook_x === 0 && this.hook_y === 0 ) ) )
+			if ( this.stands && ( !this.driver_of || !this.driver_of.VehicleHidesDrivers() ) && ( this._stands_on !== this.hook_relative_to || ( this.hook_x === 0 && this.hook_y === 0 ) ) )
 			{
 				if ( this.sy > -0.1 )
 				{
@@ -3692,7 +3699,7 @@ class sdCharacter extends sdEntity
 				}
 				else*/
 				
-				if ( !this.driver_of )
+				if ( !this.driver_of || !this.driver_of.VehicleHidesDrivers() )
 				{
 					if ( act_y_or_unstable === -1 )
 					{
@@ -3704,6 +3711,8 @@ class sdCharacter extends sdEntity
 					else
 					{
 						this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.8, GSPEED );
+						
+						if ( !this.driver_of )
 						this.sx += this.act_x * 1.25 * GSPEED * walk_speed_scale;
 
 						let old_walk = this._anim_walk;

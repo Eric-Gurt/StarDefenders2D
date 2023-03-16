@@ -2588,6 +2588,10 @@ class sdEntity
 	{
 		return true;
 	}
+	DrawsHUDForDriver()
+	{
+		return true;
+	}
 
 	
 	FindObjectsInACableNetwork( accept_test_method=null, alternate_class_to_search=sdWorld.entity_classes.sdBaseShieldingUnit ) // No cache, so far

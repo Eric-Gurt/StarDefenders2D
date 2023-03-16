@@ -15,6 +15,7 @@ import sdDrone from './sdDrone.js';
 import sdSetrDestroyer from './sdSetrDestroyer.js';
 import sdSpider from './sdSpider.js';
 import sdOverlord from './sdOverlord.js';
+import sdBlock from './sdBlock.js';
 
 import sdPathFinding from '../ai/sdPathFinding.js';
 
@@ -855,7 +856,20 @@ class sdCube extends sdEntity
 								 ( target.GetClass() === 'sdOverlord' && target.hea > 0  && !sdCube.IsTargetFriendly( target ) ) ||
 								 ( target.GetClass() === 'sdSetrDestroyer' && target.hea > 0  && !sdCube.IsTargetFriendly( target ) ) )
 							{
-								if ( sdWorld.CheckLineOfSight( this.x, this.y, target.x, target.y, target, [ 'sdCube' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ] ) )
+								if ( 
+										sdWorld.CheckLineOfSight( this.x, this.y, target.x, target.y, target, [ 'sdCube' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ] ) 
+										||
+										(
+											sdWorld.last_hit_entity 
+											&& 
+											sdWorld.last_hit_entity.is( sdBlock ) 
+											&& 
+											( 
+												sdWorld.last_hit_entity.material === sdBlock.MATERIAL_TRAPSHIELD || 
+												sdWorld.last_hit_entity.material === sdBlock.MATERIAL_SHARP 
+											)
+										)
+									)
 								targets.push( target );
 								else
 								{
@@ -1048,7 +1062,7 @@ class sdCube extends sdEntity
 		if ( ent.GetClass() === 'sdEnemyMech' ) // Flying mechs are targetable by cubes now
 		return false;
 		
-		if ( ent.GetClass() === 'sdBot' ) // Flying mechs are targetable by cubes now
+		if ( ent.GetClass() === 'sdBot' )
 		return false;
 
 		if ( ent.GetClass() === 'sdSetrDestroyer' ) // Flying mechs are targetable by cubes now

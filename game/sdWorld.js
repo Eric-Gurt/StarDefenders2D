@@ -79,6 +79,7 @@ class sdWorld
 		sdWorld.mobile = false;
 		
 		sdWorld.soft_camera = true;
+		sdWorld.show_videos = true;
 		
 		sdWorld.sockets = null; // Becomes array
 		//sdWorld.hook_entities = []; // Entities that implement hook logic, basically for notification system. These must have HandleHookReply( hook_id, password ) and return either JSON-able object or null
@@ -4030,6 +4031,8 @@ class sdWorld
 				sdWorld.client_side_censorship = player_settings['censorship1'] ? true : false;
 
 				sdWorld.soft_camera = player_settings['camera1'] ? true : false;
+				
+				sdWorld.show_videos = player_settings['censorship3'] ? false : true;
 
 				player_settings.full_reset = full_reset;
 				//player_settings.my_hash = [ Math.random(), Math.random(), Math.random(), Math.random(), Math.random() ].join(''); // Sort of password

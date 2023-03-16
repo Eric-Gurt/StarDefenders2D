@@ -12,6 +12,7 @@ import sdBG from './sdBG.js';
 import sdCharacter from './sdCharacter.js';
 import sdBullet from './sdBullet.js';
 import sdCom from './sdCom.js';
+import sdRift from './sdRift.js';
 
 class sdSandWorm extends sdEntity
 {
@@ -139,6 +140,8 @@ class sdSandWorm extends sdEntity
 			this._regen_timeout = 0; // For HP regen
 			this.scale = 1;
 		}
+		
+		this._can_spawn_more = true;
 	}
 	onBeforeRemove()
 	{
@@ -492,47 +495,69 @@ class sdSandWorm extends sdEntity
 		if ( this.model !== 2 ) // For snapshot loading case
 		if ( this._hp_main > 0 ) // For snapshot loading case
 		{
-			let arr = [ this ];
-			
-			let offset = 0;// this.scale * sdSandWorm.segment_dist
-
-			let wyrmhide_chance = 0.25;
-
-			for ( let i = 1; i < 7; i++ )
+			if ( this._can_spawn_more )
 			{
-				let ent_scale = ( 1 - Math.pow( i / 7, 2 ) * 0.5 ) * this.scale;
-				
-				offset += ( this.scale + ent_scale ) * sdSandWorm.segment_dist / 2;
-				
-				//let ent = new sdSandWorm({ x: this.x + offset, y: this.y });
-				let ent = new sdSandWorm({ x: this.x + Math.random() - 0.5, y: this.y + Math.random() - 0.5 });
-				
-				ent.hue = this.hue;
-				ent.filter = this.filter;
-				
-				if ( ( Math.random() < wyrmhide_chance ) || ( i === 5 && wyrmhide_chance > 0 ) ) // Should this part spawn wymrhide when it dies? Should spawn one per worm though.
-				{
-					ent._spawn_wyrmhide_on_death = true;
-					wyrmhide_chance = -1;
-				}
-				else
-				if ( wyrmhide_chance > 0 )
-				wyrmhide_chance += 0.1; // Increase the chance
+				let arr = [ this ];
 
-				ent.scale = ent_scale;
-				ent.kind = this.kind;
-				
-				ent.model = 2;
-				
-				ent.towards_head = arr[ i - 1 ];
-				arr[ i - 1 ].towards_tail = ent;
-				sdEntity.entities.push( ent );
-				
-				arr[ i ] = ent;
+				let offset = 0;// this.scale * sdSandWorm.segment_dist
+
+				let wyrmhide_chance = 0.25;
+
+				for ( let i = 1; i < 7; i++ )
+				{
+					let ent_scale = ( 1 - Math.pow( i / 7, 2 ) * 0.5 ) * this.scale;
+
+					offset += ( this.scale + ent_scale ) * sdSandWorm.segment_dist / 2;
+
+					//let ent = new sdSandWorm({ x: this.x + offset, y: this.y });
+					let ent = new sdSandWorm({ x: this.x + Math.random() - 0.5, y: this.y + Math.random() - 0.5 });
+
+					ent.hue = this.hue;
+					ent.filter = this.filter;
+					ent._can_spawn_more = false;
+
+					if ( ( Math.random() < wyrmhide_chance ) || ( i === 5 && wyrmhide_chance > 0 ) ) // Should this part spawn wymrhide when it dies? Should spawn one per worm though.
+					{
+						ent._spawn_wyrmhide_on_death = true;
+						wyrmhide_chance = -1;
+					}
+					else
+					if ( wyrmhide_chance > 0 )
+					wyrmhide_chance += 0.1; // Increase the chance
+
+					ent.scale = ent_scale;
+					ent.kind = this.kind;
+
+					ent.model = 2;
+
+					ent.towards_head = arr[ i - 1 ];
+					arr[ i - 1 ].towards_tail = ent;
+					sdEntity.entities.push( ent );
+
+					arr[ i ] = ent;
+				}
+
+				this._hea += sdSandWorm.head_bounds_health;
+				this._hmax += sdSandWorm.head_bounds_health;
+				this._can_spawn_more = false;
 			}
-			
-			this._hea += sdSandWorm.head_bounds_health;
-			this._hmax += sdSandWorm.head_bounds_health;
+			else
+			{
+				let head_entity = this.GetHeadEntity();
+		
+				if ( head_entity._hp_main > 0 )
+				{
+					head_entity._hp_main = Math.min( head_entity._hp_main, 0 ); // Part of the worm was likely removed somehow and pointer cleared
+					
+					let ptr = head_entity;
+					while ( ptr )
+					{
+						ptr.death_anim = 1;
+
+						ptr = ptr.towards_tail;
+					}
+				}
+			}
 		}
 		
 		let an_x = 0;
@@ -837,6 +862,13 @@ class sdSandWorm extends sdEntity
 
 			return false;
 		}
+		
+		if ( !hit_entity.hard_collision )
+		{
+			if ( hit_entity.is( sdRift ) )
+			return false;
+		}
+		
 		return true;
 
 	}

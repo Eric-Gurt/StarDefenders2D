@@ -96,7 +96,7 @@ class sdShop
 		//ctx.filter = '' // white
 		//ctx.filter = '' // black
 		
-		function AddBuildPack( filter, i )
+		function AddBuildPack( filter )
 		{
 			for ( let i2 = 0; i2 < 3; i2++ )
 			{
@@ -250,6 +250,36 @@ class sdShop
 				sdShop.options.push({ _class: 'sdBlock', br:br, width: 8, height: 32, texture_id: i, _category:'Walls' });
 			}
 		}
+		
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 16, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 32, height: 16, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 32, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 32, height: 32, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 8, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 8, height: 16, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		
+		sdShop.options.push({ _class: 'sdBlock', br:100, hue:34, width: 16, height: 16, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, hue:34, width: 32, height: 16, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, hue:34, width: 16, height: 32, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, hue:34, width: 32, height: 32, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, hue:34, width: 16, height: 8, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, hue:34, width: 8, height: 16, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 16, texture_id: sdBlock.TEXTURE_ID_DARK_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 32, height: 16, texture_id: sdBlock.TEXTURE_ID_DARK_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 32, texture_id: sdBlock.TEXTURE_ID_DARK_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 32, height: 32, texture_id: sdBlock.TEXTURE_ID_DARK_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 8, texture_id: sdBlock.TEXTURE_ID_DARK_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 8, height: 16, texture_id: sdBlock.TEXTURE_ID_DARK_BRICK, _category:'Walls' });
+		
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 16, texture_id: sdBlock.TEXTURE_ID_FULL_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 32, height: 16, texture_id: sdBlock.TEXTURE_ID_FULL_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 32, texture_id: sdBlock.TEXTURE_ID_FULL_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 32, height: 32, texture_id: sdBlock.TEXTURE_ID_FULL_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 8, texture_id: sdBlock.TEXTURE_ID_FULL_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 8, height: 16, texture_id: sdBlock.TEXTURE_ID_FULL_WHITE_BRICK, _category:'Walls' });
+		
+		
 		
 		sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: 'saturate(0)', _category:'Doors' });
 

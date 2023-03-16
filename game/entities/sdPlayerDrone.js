@@ -656,7 +656,7 @@ class sdPlayerDrone extends sdCharacter
 			ctx.restore();
 		}
 		
-		if ( this.driver_of && !attached )
+		if ( this.driver_of && this.driver_of.VehicleHidesDrivers() && !attached )
 		return;
 	
 		//ctx.save();

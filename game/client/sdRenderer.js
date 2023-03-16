@@ -903,6 +903,7 @@ class sdRenderer
 				ctx.sd_hue_rotation = 0;
 			}
 			
+			if ( sdWorld.show_videos )
 			if ( sdWorld.time > sdRenderer.last_source_change + 5000 )
 			{
 				let best_source = null;
@@ -1397,7 +1398,10 @@ class sdRenderer
 					// TODO: Add bounds check, though that is maybe pointless if server won't tell offscreen info
 					
 					if ( sdWorld.my_entity.driver_of )
-					sdWorld.my_entity.driver_of.DrawHUD( ctx, false );
+					{
+						if ( sdWorld.my_entity.driver_of.DrawsHUDForDriver() )
+						sdWorld.my_entity.driver_of.DrawHUD( ctx, false );
+					}
 					else
 					sdWorld.my_entity.DrawHUD( ctx, false );
 				}
