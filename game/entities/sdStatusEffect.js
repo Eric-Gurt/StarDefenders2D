@@ -665,30 +665,33 @@ class sdStatusEffect extends sdEntity
 					{
 						status_entity._ignored_classes_cache = current.GetIgnoredEntityClasses();
 						
-						let unique = false;
-						
-						// Some entities like sdDoor do fall through walls since they ignore them... It is bad as it can lead to bug raiding when door is being dropped and is being conntrolled with another steering wheel from outside of a base
-						
-						let id = status_entity._ignored_classes_cache.indexOf( 'sdBlock' );
-						if ( id !== -1 )
+						if ( status_entity._ignored_classes_cache )
 						{
-							if ( !unique )
+							let unique = false;
+
+							// Some entities like sdDoor do fall through walls since they ignore them... It is bad as it can lead to bug raiding when door is being dropped and is being conntrolled with another steering wheel from outside of a base
+
+							let id = status_entity._ignored_classes_cache.indexOf( 'sdBlock' );
+							if ( id !== -1 )
 							{
-								status_entity._ignored_classes_cache = status_entity._ignored_classes_cache.slice();
-								unique = true;
+								if ( !unique )
+								{
+									status_entity._ignored_classes_cache = status_entity._ignored_classes_cache.slice();
+									unique = true;
+								}
+								status_entity._ignored_classes_cache.splice( id, 1 );
 							}
-							status_entity._ignored_classes_cache.splice( id, 1 );
-						}
-						
-						id = status_entity._ignored_classes_cache.indexOf( 'sdDoor' );
-						if ( id !== -1 )
-						{
-							if ( !unique )
+
+							id = status_entity._ignored_classes_cache.indexOf( 'sdDoor' );
+							if ( id !== -1 )
 							{
-								status_entity._ignored_classes_cache = status_entity._ignored_classes_cache.slice();
-								unique = true;
+								if ( !unique )
+								{
+									status_entity._ignored_classes_cache = status_entity._ignored_classes_cache.slice();
+									unique = true;
+								}
+								status_entity._ignored_classes_cache.splice( id, 1 );
 							}
-							status_entity._ignored_classes_cache.splice( id, 1 );
 						}
 					}
 					
