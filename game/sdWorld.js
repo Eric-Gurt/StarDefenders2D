@@ -474,6 +474,9 @@ class sdWorld
 		for ( let i in sdWorld.entity_classes )
 		{
 			let c = sdWorld.entity_classes[ i ];
+			
+			//trace( '_class === "'+c.prototype.constructor.name+'" for ',c );
+			
 			c._class = c.prototype.constructor.name;
 		}
 	}
@@ -1244,7 +1247,7 @@ class sdWorld
 			targets[ i ].DamageWithEffect( params.radius * 2 );*/
 			
 			if ( params.color === undefined )
-			throw new Error('Should not happen');
+			throw new Error('Attempted to create explosion without a color - this should not happen and params.color must be a HEX value');
 			
 			let initial_rand = Math.random() * Math.PI * 2;
 			let steps = Math.min( 50, Math.max( 16, params.radius / 70 * 50 ) );
