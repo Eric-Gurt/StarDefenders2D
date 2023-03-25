@@ -57,6 +57,7 @@ import sdDoor from './sdDoor.js';
 import sdTurret from './sdTurret.js';
 import sdFactionSpawner from './sdFactionSpawner.js';
 import sdFactions from './sdFactions.js';
+import sdTzyrgAbsorber from './sdTzyrgAbsorber.js';
 
 import sdTask from './sdTask.js';
 
@@ -114,6 +115,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_TZYRG =					event_counter++; // 35
 		sdWeather.EVENT_FALKOK_OUTPOST =			event_counter++; // 36
 		sdWeather.EVENT_GUANAKO =				event_counter++; // 37
+		sdWeather.EVENT_TZYRG_DEVICE =				event_counter++; // 38
 
 		
 		sdWeather.supported_events = [];
@@ -2533,6 +2535,78 @@ class sdWeather extends sdEntity
 				
 			});
 		}
+		if ( r === sdWeather.EVENT_TZYRG_DEVICE ) // Spawn a Tzyrg device. When players find it they should destroy it ( Since they do stop earthquakes when they exist on the map )
+		{
+			if ( Math.random() < 0.8 )
+			{
+				let instances = 0;
+				let instances_tot = 1;
+
+				while ( instances < instances_tot && sdTzyrgAbsorber.absorbers.length < 1 )
+				{
+					let ent = new sdTzyrgAbsorber({ x:0, y:0});
+
+					sdEntity.entities.push( ent );
+
+					let x,y,i;
+					let tr = 1000;
+					do
+					{
+						x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
+
+
+						if ( ent.CanMoveWithoutOverlap( x, y - 64, 0 ) )
+						if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
+						if ( !ent.CanMoveWithoutOverlap( x, y + 32, 0 ) )
+						if ( sdWorld.last_hit_entity )
+						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
+						if ( !sdWorld.CheckWallExistsBox( 
+								x + ent._hitbox_x1 - 16, 
+								y + ent._hitbox_y1 - 16, 
+								x + ent._hitbox_x2 + 16, 
+								y + ent._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
+						{
+							let di_allowed = true;
+									
+							for ( i = 0; i < sdWorld.sockets.length; i++ )
+							if ( sdWorld.sockets[ i ].character )
+							{
+								let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
+										
+								if ( di < 500 )
+								{
+									di_allowed = false;
+									break;
+								}
+							}
+									
+							if ( di_allowed )
+							{
+								ent.x = x;
+								ent.y = y;
+								break;
+							}
+						}
+								
+
+
+						tr--;
+						if ( tr < 0 )
+							{
+							ent.remove();
+							ent._broken = false;
+							break;
+						}
+					} while( true );
+
+					instances++;
+				}
+
+			}
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -2887,7 +2961,7 @@ class sdWeather extends sdEntity
 					
 					//let tr = 1000;
 					
-					let tr = 35;
+					let tr = 1035;
 					
 					do
 					{
@@ -2902,7 +2976,18 @@ class sdWeather extends sdEntity
 						
 						x = Math.floor( x / 16 ) * 16;
 						y = Math.floor( y / 16 ) * 16;
-						
+
+						let should_break = false;
+
+						for ( let num = 0; num < sdTzyrgAbsorber.absorbers.length; num++ )
+						{
+							let di_absorbers = sdWorld.Dist2D( x, y, sdTzyrgAbsorber.absorbers[ num ].x, sdTzyrgAbsorber.absorbers[ num ].y );
+							if ( di_absorbers < 800 ) // if it's too close to an absorber
+							should_break = true;
+						}
+						if ( should_break === true )
+						break; // It can't place blocks next to an absorber since it's absorbing the earthquake
+
 						sdWeather.last_crystal_near_quake = null;
 						
 						if ( ent.CanMoveWithoutOverlap( x, y, 0.0001, sdWeather.CrystalRemovalByEearthquakeFilter ) )

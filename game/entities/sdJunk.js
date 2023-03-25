@@ -981,12 +981,12 @@ class sdJunk extends sdEntity
 		}
 		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB )
 		{
-			sdEntity.TooltipUntranslated( ctx, T("Council bomb")+" (" + ~~( this.detonation_in / ( 30 * 60 ) ) + " minutes, "+  ~~ ~~( this.detonation_in % ( 30 * 60 ) / 30 ) + " seconds)", 0, -8 );
+			sdEntity.TooltipUntranslated( ctx, T("Council bomb")+" (" + ~~( this.detonation_in / ( 30 * 60 ) ) + " minutes, "+  ~~ ~~( this.detonation_in % ( 30 * 60 ) / 30 ) + " seconds)", 0, -32 );
 			this.DrawHealthBar( ctx );
 		}
 		if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON )
 		{
-			sdEntity.Tooltip( ctx, "Erthal distress beacon" );
+			sdEntity.Tooltip( ctx, "Erthal distress beacon", 0, -24 );
 			this.DrawHealthBar( ctx );
 		}
 
