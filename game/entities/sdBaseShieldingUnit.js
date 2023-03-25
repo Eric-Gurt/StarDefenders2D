@@ -689,14 +689,12 @@ class sdBaseShieldingUnit extends sdEntity
 			return;
 		}
 	}
-	static EnableNoScoreBSUArea( bsu )
+	static EnableNoScoreBSUArea( bsu, spawn_new_area=true )
 	{
 		let r = sdBaseShieldingUnit.no_score_bsu_area_radius;
 		
 		let x = bsu.x;
 		let y = bsu.y;
-		
-		let spawn_new_area = true;
 		
 		let allowed = true;
 		
@@ -732,6 +730,7 @@ class sdBaseShieldingUnit extends sdEntity
 			}
 		}
 		
+		if ( allowed )
 		if ( spawn_new_area )
 		sdBaseShieldingUnit.no_score_bsu_areas.push({
 			x: x,
@@ -1350,7 +1349,16 @@ class sdBaseShieldingUnit extends sdEntity
 	{
 		//return 0; // Hack
 		
-		return sdWorld.damage_to_matter + 600;
+		if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
+		return 600;
+	
+		if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
+		return 600;
+	
+		//if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+		return 300;
+	
+		//return this.hmax * sdWorld.damage_to_matter + 600;
 	}
 	onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
 	{
@@ -1374,7 +1382,7 @@ class sdBaseShieldingUnit extends sdEntity
 					{	
 						if ( this.matter_crystal >= 1 )
 						{
-							if ( sdBaseShieldingUnit.EnableNoScoreBSUArea() )
+							if ( sdBaseShieldingUnit.EnableNoScoreBSUArea( this ) )
 							this.SetShieldState( true, exectuter_character );
 							else
 							executer_socket.SDServiceMessage( 'This kind of Base shield unit can be no longer used here. Try crystal consumption-based base shielding unit or matter-based base shielding unit instead' );
@@ -1433,21 +1441,26 @@ class sdBaseShieldingUnit extends sdEntity
 				{
 					if ( command_name === 'PROLONG_BY_DAY' )
 					{
-						let mult = parameters_array[ 0 ];
-						
-						if ( mult === 1 || mult === 7 )
-						if ( exectuter_character._score >= 500 * mult )
+						if ( sdBaseShieldingUnit.EnableNoScoreBSUArea( this, false ) )
 						{
-							let increase = ~~Math.min( sdBaseShieldingUnit.score_timed_max_capacity - this.matter_crystal, 500 * mult );
-							
-							if ( increase > 1 )
-							{
-								this.matter_crystal += increase;
-								exectuter_character._score -= increase;
+							let mult = parameters_array[ 0 ];
 
-								sdSound.PlaySound({ name:'level_up', x:this.x, y:this.y, volume:2, pitch:0.4 });
+							if ( mult === 1 || mult === 7 )
+							if ( exectuter_character._score >= 500 * mult )
+							{
+								let increase = ~~Math.min( sdBaseShieldingUnit.score_timed_max_capacity - this.matter_crystal, 500 * mult );
+
+								if ( increase > 1 )
+								{
+									this.matter_crystal += increase;
+									exectuter_character._score -= increase;
+
+									sdSound.PlaySound({ name:'level_up', x:this.x, y:this.y, volume:2, pitch:0.4 });
+								}
 							}
 						}
+						else
+						executer_socket.SDServiceMessage( 'This kind of Base shield unit can be no longer used here. Try crystal consumption-based base shielding unit or matter-based base shielding unit instead' );
 					}
 				}
 				else
