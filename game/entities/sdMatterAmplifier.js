@@ -1,4 +1,6 @@
 
+/* global sdShop */
+
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
@@ -241,7 +243,7 @@ class sdMatterAmplifier extends sdEntity
 			
 			ctx.globalAlpha = 0.75 + Math.sin( sdWorld.time / 300 ) * 0.25;
 			if ( this.multiplier === 1 )
-			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam, - 16, - 16, 32,32 )
+			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam, - 16, - 16, 32,32 );
 			if ( this.multiplier === 2 )
 			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam2, - 16, - 16, 32,32 );
 			if ( this.multiplier === 4 )

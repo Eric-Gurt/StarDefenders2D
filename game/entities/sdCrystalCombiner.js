@@ -6,6 +6,7 @@ import sdCharacter from './sdCharacter.js';
 import sdCrystal from './sdCrystal.js';
 import sdBullet from './sdBullet.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdGun from './sdGun.js';
 
 class sdCrystalCombiner extends sdEntity
 {
