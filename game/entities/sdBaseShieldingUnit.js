@@ -158,6 +158,8 @@ class sdBaseShieldingUnit extends sdEntity
 			{
 				this.matter_crystal = sdBaseShieldingUnit.score_timed_max_capacity;
 			}
+			
+			sdBaseShieldingUnit.EnableNoScoreBSUArea( this ); // Re-occupy area
 		}
 	}
 	ExtraSerialzableFieldTest( prop )
