@@ -56,6 +56,11 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		sdBaseShieldingUnit.score_timed_max_capacity = 1000; // 1000 = 2 days // 3500 = 7 days
 		
+		// Prevent peopel use score BSUs forever - they are for new players only
+		sdBaseShieldingUnit.no_score_bsu_areas = []; // Array of { x, y, allowed_for:BSU, allowed_is_allowed_until:time+1000*60*60, anything_is_disallowed_until:time+60*60*24*4 }
+		sdBaseShieldingUnit.no_score_bsu_area_radius = sdBaseShieldingUnit.protect_distance_stretch;
+		sdBaseShieldingUnit.no_score_bsu_area_loopie = 0;
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -8; }
@@ -668,7 +673,76 @@ class sdBaseShieldingUnit extends sdEntity
 		}
 		return false;
 	}
+	static GlobalThink( GSPEED )
+	{
+		if ( sdBaseShieldingUnit.no_score_bsu_areas.length <= 0 )
+		return;
 	
+		sdBaseShieldingUnit.no_score_bsu_area_loopie = ( sdBaseShieldingUnit.no_score_bsu_area_loopie + 1 ) % sdBaseShieldingUnit.no_score_bsu_areas.length;
+		
+		let i = sdBaseShieldingUnit.no_score_bsu_area_loopie;
+	
+		if ( sdWorld.time > sdBaseShieldingUnit.no_score_bsu_areas[ i ].anything_is_disallowed_until )
+		{
+			sdBaseShieldingUnit.no_score_bsu_areas.splice( i, 1 );
+			sdBaseShieldingUnit.no_score_bsu_area_loopie--;
+			return;
+		}
+	}
+	static EnableNoScoreBSUArea( bsu )
+	{
+		let r = sdBaseShieldingUnit.no_score_bsu_area_radius;
+		
+		let x = bsu.x;
+		let y = bsu.y;
+		
+		let spawn_new_area = true;
+		
+		let allowed = true;
+		
+		for ( let i = 0; i < sdBaseShieldingUnit.no_score_bsu_areas.length; i++ )
+		{
+			let a = sdBaseShieldingUnit.no_score_bsu_areas[ i ];
+			
+			if ( sdWorld.time < a.anything_is_disallowed_until )
+			{
+				if ( sdWorld.inDist2D_Boolean( x, y, a.x, a.y, r * 0.5 ) )
+				if ( a.allowed_for === bsu )
+				{
+					spawn_new_area = false;
+				}
+
+				if ( sdWorld.inDist2D_Boolean( x, y, a.x, a.y, r ) )
+				{
+					if ( a.allowed_for === bsu && sdWorld.time < a.allowed_is_allowed_until )
+					{
+						// Allow
+						if ( sdWorld.inDist2D_Boolean( x, y, a.x, a.y, 32 ) )
+						{
+							return true; // Insta-allow if it is in same place
+						}
+						
+						// Otherwise simply allow until there is some else area
+					}
+					else
+					{
+						allowed = false;
+					}
+				}
+			}
+		}
+		
+		if ( spawn_new_area )
+		sdBaseShieldingUnit.no_score_bsu_areas.push({
+			x: x,
+			y: y,
+			allowed_for: bsu,
+			allowed_is_allowed_until: sdWorld.time + 1000*60*60*8,
+			anything_is_disallowed_until: sdWorld.time + 1000*60*60*24*4,
+		});
+	
+		return allowed;
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this.enabled )
@@ -1143,7 +1217,7 @@ class sdBaseShieldingUnit extends sdEntity
 	get title()
 	{
 		if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
-		return T('Timed base shielding unit');
+		return T('Timed base shielding unit for new Star Defenders');
 	
 		if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 		return T('Crystal consumption-based base shielding unit');
@@ -1293,13 +1367,18 @@ class sdBaseShieldingUnit extends sdEntity
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 			{
 				if ( command_name === 'SHIELD_ON' )
-				{
+				{	
 					this.ShareValueIfHadntRecently(); // Try taking value from connected shields if this one has 0
 						
 					if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
-					{
+					{	
 						if ( this.matter_crystal >= 1 )
-						this.SetShieldState( true, exectuter_character );
+						{
+							if ( sdBaseShieldingUnit.EnableNoScoreBSUArea() )
+							this.SetShieldState( true, exectuter_character );
+							else
+							executer_socket.SDServiceMessage( 'This kind of Base shield unit can be no longer used here. Try crystal consumption-based base shielding unit or matter-based base shielding unit instead' );
+						}
 						else
 						executer_socket.SDServiceMessage( 'Base shield unit needs at least some score being put into it' );
 					}
@@ -1326,12 +1405,12 @@ class sdBaseShieldingUnit extends sdEntity
 				}
 				if ( command_name === 'ATTACK' )
 				{
-					if ( this.enabled )
-					{
+					//if ( this.enabled )
+					//{
 						this.SetAttackState();
-					}
-					else
-					executer_socket.SDServiceMessage( 'Base shield unit needs to be enabled' );
+					//}
+					//else
+					//executer_socket.SDServiceMessage( 'Base shield unit needs to be enabled' );
 				}
 				
 				if ( command_name === 'PREVENT_HOSTILE_SHIELDING' )
@@ -1340,6 +1419,7 @@ class sdBaseShieldingUnit extends sdEntity
 					sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:2, pitch:0.5 });
 				}
 				
+				if ( this.type !== sdBaseShieldingUnit.TYPE_SCORE_TIMED )
 				if ( command_name === 'PREVENT_PUSH' )
 				{
 					this.pushable = !this.pushable;
@@ -1468,10 +1548,13 @@ class sdBaseShieldingUnit extends sdEntity
 				this.AddContextOption( 'Disallow nearby shielding claim by disconnected shields', 'PREVENT_HOSTILE_SHIELDING', [] );
 				
 
-				if ( this.pushable )
-				this.AddContextOption( 'Prevent being moved with steering wheel', 'PREVENT_PUSH', [] );
-				else
-				this.AddContextOption( 'Allow being moved with steering wheel', 'PREVENT_PUSH', [] );
+				if ( this.type !== sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+				{
+					if ( this.pushable )
+					this.AddContextOption( 'Prevent being moved with steering wheel', 'PREVENT_PUSH', [] );
+					else
+					this.AddContextOption( 'Allow being moved with steering wheel', 'PREVENT_PUSH', [] );
+				}
 				
 				
 				

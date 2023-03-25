@@ -1443,6 +1443,8 @@ const VoidArray = {
 	delete: ()=>{}
 };
 
+const cached_bans = {};
+
 let next_drop_log = 0;
 io.on( 'connection', ( socket )=> 
 //io.onConnection( socket =>
@@ -1763,7 +1765,70 @@ io.on( 'connection', ( socket )=>
 		socket.post_death_spectate_ttl = 30;
 		
 		*/
-		socket.my_hash = player_settings.my_hash;
+	   
+		if ( player_settings.my_hash !== socket.my_hash )
+		{
+			socket.my_hash = player_settings.my_hash;
+			
+			let ban = cached_bans[ ip_accurate ] || cached_bans[ socket.my_hash ];
+			
+			const options = {
+				//weekday: "long",
+				year: "numeric",
+				month: "long",
+				day: "numeric"
+			};
+			
+			if ( ban )
+			{
+				if ( Date.now() > ban.until )
+				{
+					delete cached_bans[ ip_accurate ];
+					delete cached_bans[ socket.my_hash ];
+				}
+				else
+				{
+					socket.SDServiceMessage( 'Access denied: {1} (until {2})', [ ban.reason, ban.until_real === 0 ? 'forever' : new Date( ban.until_real ).toLocaleDateString( "en-US", options ) ] );
+					return;
+				}
+			}
+		
+			sdDatabase.Exec( 
+				[ 
+					[ 'DBLogIP', socket.my_hash, ip_accurate ] 
+				], 
+				( responses )=>
+				{
+					while ( responses.length > 0 )
+					{
+						let r = responses.shift();
+						
+						if ( r[ 0 ] === 'BANNED' )
+						{
+							let ban = { 
+								reason: r[ 1 ],
+								until: Date.now() + 1000 * 15,
+								until_real: r[ 2 ]
+							};
+							
+							cached_bans[ ip_accurate ] = ban;
+							cached_bans[ socket.my_hash ] = ban;
+							
+							// Server with local database would execute it instantly otherwise
+							setTimeout( ()=>
+							{
+								if ( socket.character )
+								socket.CharacterDisconnectLogic();
+
+								socket.SDServiceMessage( 'Access denied: {1} (until {2})', [ r[ 1 ], ban.until_real === 0 ? 'forever' : new Date( ban.until_real ).toLocaleDateString( "en-US", options ) ] );
+
+							}, 0 );
+						}
+					}
+				},
+				'localhost'
+			);
+		}
 		
 		socket.sd_events = []; // Just in case? There was some source of 600+ events stacked, possibly during start screen waiting or maybe even during player being removed. Lots of 'C' events too
 		

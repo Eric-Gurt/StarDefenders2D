@@ -108,7 +108,7 @@ class sdDatabase
 					},
 					last_character_creation_time: Date.now(), // Some rate limiting because biometry can overlap in theory, with very small chance though
 					
-					known_ips: {}, // Maybe will be used for banning
+					known_ips: {}, // Maybe will be used for banning. { IP: time }
 					
 					credits: 0,
 					
@@ -339,6 +339,28 @@ class sdDatabase
 					table_by_player_uid:
 					{
 						// Key is player UID - can be useful to detect distributed bruteforce attacks
+					}
+				},
+				
+				bans:
+				{
+					next_uid: 0,
+			
+					sample_row:
+					{
+						uid: 0, // Will be same in both tables
+						reason: 'Killing new players',
+						until: Date.now() + 1000 * 60 * 60 * 24 * 7
+					},
+			
+					table_by_ip:
+					{
+						// Key is IP
+					},
+			
+					table_by_user_uid:
+					{
+						// Key is user_uid/hash
 					}
 				}
 			}
@@ -630,6 +652,7 @@ class sdDatabase
 			allowed_methods.add( 'DBEditorCommand' );
 			allowed_methods.add( 'DBTranslate' );
 			allowed_methods.add( 'DBManageSavedItems' );
+			allowed_methods.add( 'DBLogIP' );
 			
 			for ( let i = 0; i < array_of_request_objects.length; i++ )
 			{
@@ -832,6 +855,49 @@ class sdDatabase
 		}
 		
 		return obj;
+	}
+	
+	static DBLogIP( responses=[], initiator_server, _my_hash, ip )
+	{
+		let user = sdDatabase.MakeSureUserExists( _my_hash );
+		
+		let t = Date.now();
+		
+		user.known_ips[ ip ] = t;
+		
+		for ( let ip in user.known_ips )
+		{
+			if ( user.known_ips[ ip ] < 1000 * 60 * 60 * 24 * 30 )
+			{
+				delete user.known_ips[ ip ];
+			}
+			
+			// TODO: Apply IP-range merging here if too many subnet hits (at lest 3?)
+		}
+		
+		let ban = null;
+		
+		if ( sdDatabase.data.moderation.bans.table_by_ip[ ip ] )
+		ban = sdDatabase.data.moderation.bans.table_by_ip[ ip ];
+		else
+		if ( sdDatabase.data.moderation.bans.table_by_user_uid[ ip ] )
+		ban = sdDatabase.data.moderation.bans.table_by_user_uid[ ip ];
+		
+		if ( ban )
+		{
+			if ( ban.until === undefined  )
+			ban.until = 0;
+		
+			if ( ban.until !== 0 && t > ban.until )
+			{
+				delete sdDatabase.data.moderation.bans.table_by_ip[ ip ];
+				delete sdDatabase.data.moderation.bans.table_by_user_uid[ ip ];
+			}
+			else
+			responses.push([ 'BANNED', ban.reason, ban.until ]);
+		}
+		
+		return responses;
 	}
 	static DBManageSavedItems( responses=[], initiator_server, initiator_hash_or_user_uid, operation, group_title, snapshots=[], relative_x=0, relative_y=0, issue_long_timeout=true )
 	{

@@ -36,6 +36,8 @@ import sdCrystal from './entities/sdCrystal.js';
 import sdRescueTeleport from './entities/sdRescueTeleport.js';
 import sdCharacterRagdoll from './entities/sdCharacterRagdoll.js';
 import sdPlayerSpectator from './entities/sdPlayerSpectator.js';
+import sdBaseShieldingUnit from './entities/sdBaseShieldingUnit.js';
+//import sdSteeringWheel from './entities/sdSteeringWheel.js';
 
 
 import sdRenderer from './client/sdRenderer.js';
@@ -2846,6 +2848,8 @@ class sdWorld
 		
 		sdWater.GlobalThink( GSPEED );
 		sdRescueTeleport.GlobalThink( GSPEED );
+		sdBaseShieldingUnit.GlobalThink( GSPEED );
+		//sdSteeringWheel.GlobalThink( GSPEED );
 		
 		// Keep it last:
 		sdWorld.frame++;

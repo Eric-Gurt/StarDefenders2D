@@ -568,8 +568,7 @@ class sdModeration
 			socket.SDServiceMessage( 'Server: No active character.' );
 		}
 		else
-		//if ( parts[ 0 ] === 'removewater' )
-		if ( parts[ 0 ] === 'remove' )
+		if ( parts[ 0 ] === 'remove' || parts[ 0 ] === 'break' )
 		{
 			if ( !sdWorld.entity_classes[ parts[ 1 ] ] && parts[ 1 ] !== '*' )
 			{
@@ -581,36 +580,10 @@ class sdModeration
 			if ( sdEntity.entities[ i ].GetClass() === parts[ 1 ] || parts[ 1 ] === '*' )
 			{
 				sdEntity.entities[ i ].remove();
+				
+				if ( parts[ 0 ] === 'remove' )
 				sdEntity.entities[ i ]._broken = false;
 			}
-			/*if ( socket.character )
-			{
-				if ( socket.character._god ) Godmode is already checked earlier
-				{
-					{
-						for ( let i = 0; i < sdWorld.sockets.length; i++ )
-						sdWorld.sockets[ i ].SDServiceMessage( 'Removed all planet water, lava and acid.' );
-					}
-	
-					for( let j = sdWorld.world_bounds.y1; j <= sdWorld.world_bounds.y2; j += 32 )
-					{
-						for( let i = sdWorld.world_bounds.x1; i <= sdWorld.world_bounds.x2; i += 32 )
-						{
-							let targets = sdWorld.GetAnythingNear( i, j, 64, null, [ 'sdWater' ] );
-							for ( let i = 0; i < targets.length; i++ )
-							{
-								{
-									targets[ i ].remove();
-								}
-							}
-						}
-					}
-				}
-				else
-				socket.SDServiceMessage( 'Server: Unknown command "removewater" ' );
-			}
-			else
-			socket.SDServiceMessage( 'Server: No active character.' );*/
 		}
 		else
 		if ( parts[ 0 ] === 'scale' )

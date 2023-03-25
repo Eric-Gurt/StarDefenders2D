@@ -19,6 +19,7 @@ import sdThruster from './sdThruster.js';
 import sdArea from './sdArea.js';
 import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdTimer from './sdTimer.js';
 
 
 class sdSteeringWheel extends sdEntity
@@ -33,6 +34,112 @@ class sdSteeringWheel extends sdEntity
 		
 		sdSteeringWheel.overlap = 8;
 		
+		/*
+		const drop_rate = 100; // 30000
+		
+		let next_drop = 0;
+		
+		// Let's make flying bases fall occasionally, probably not in the best way though.
+		sdTimer.ExecuteWithDelay( ( timer )=>{
+			
+			if ( sdWorld.is_server || sdWorld.is_singleplayer )
+			if ( sdWorld.time > next_drop )
+			if ( sdEntity.entities.length > 0 )
+			{
+				let e = sdEntity.entities[ Math.floor( Math.random() * sdEntity.entities.length ) ];
+				
+				//if ( e.is_static ) // Anything that is static part of a base may fall down
+				if ( !e.onThink.has_ApplyVelocityAndCollisions )
+				if ( e.IsBGEntity() === 0 || e.IsBGEntity() === 1 )
+				if ( sdArea.CheckPointDamageAllowed( e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2, e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2 ) )
+				{
+					while ( sdWorld.CheckWallExistsBox( e.x + e._hitbox_x1, e.y + e._hitbox_y2, e.x + e._hitbox_x2, e.y + e._hitbox_y2 + 16, e ) &&
+							sdWorld.last_hit_entity &&
+							!sdWorld.last_hit_entity.onThink.has_ApplyVelocityAndCollisions &&
+							( sdWorld.last_hit_entity.IsBGEntity() === 0 || sdWorld.last_hit_entity.IsBGEntity() === 1 &&
+							sdArea.CheckPointDamageAllowed( sdWorld.last_hit_entity.x + ( sdWorld.last_hit_entity._hitbox_x1 + sdWorld.last_hit_entity._hitbox_x2 ) / 2, sdWorld.last_hit_entity.y + ( sdWorld.last_hit_entity._hitbox_y1 + sdWorld.last_hit_entity._hitbox_y2 ) / 2 ) )
+					)
+					{
+						e = sdWorld.last_hit_entity;
+					}
+					
+					//if ( e.y > sdWorld.GetGroundElevation( Math.round( e.x / 16 ) * 16 ) ) 
+					if ( e.y + e._hitbox_y2 > sdWorld.world_bounds.y2 - 16 )
+					{
+					}
+					else
+					{
+						//const LIMIT = 400; // Was 100
+
+						let visited = new Set();
+
+						let active = [ e ];
+						visited.add( e );
+
+						let collected = [ e ];
+
+						const overlap = sdSteeringWheel.overlap;
+
+						out:
+						while ( active.length > 0 )
+						{
+							let current = active.shift();
+
+							let cells = sdWorld.GetCellsInRect( current.x + current._hitbox_x1 - overlap, current.y + current._hitbox_y1 - overlap, current.x + current._hitbox_x2 + overlap, current.y + current._hitbox_y2 + overlap );
+
+							for ( let c = 0; c < cells.length; c++ )
+							{
+								let cell = cells[ c ].arr;
+
+								for ( let i = 0; i < cell.length; i++ )
+								{
+									let ent2 = cell[ i ];
+
+									if ( !visited.has( ent2 ) )
+									{
+										if ( current.DoesOverlapWith( ent2, overlap ) )
+										{
+											visited.add( ent2 );
+
+											if ( !ent2.onThink.has_ApplyVelocityAndCollisions && ( ent2.IsBGEntity() === 0 || ent2.IsBGEntity() === 1 ) ) // Ignore physical entities that will be pushed
+											{
+												active.push( ent2 );
+												collected.push( ent2 );
+
+												if ( ( ent2.is( sdLongRangeTeleport ) && ent2.is_server_teleport ) ||
+													 !sdArea.CheckPointDamageAllowed( ent2.x + ( ent2._hitbox_x1 + ent2._hitbox_x2 ) / 2, ent2.y + ( ent2._hitbox_y1 + ent2._hitbox_y2 ) / 2 ) )
+												{
+													collected = null;
+													break out;
+												}
+
+												//if ( ent2.y > sdWorld.GetGroundElevation( Math.round( ent2.x / 16 ) * 16 ) ) 
+												if ( ent2.y + ent2._hitbox_y2 > sdWorld.world_bounds.y2 - 16 )
+												{
+													collected = null;
+													break out;
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+
+						if ( collected )
+						{
+							//e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_FALLING_STATIC_BLOCK });
+							next_drop = sdWorld.time + 3000;
+							
+							sdSteeringWheel.ComplexElevatorLikeMove( collected, undefined, 0, 16, false, 1, true );
+						}
+					}
+				}
+			}
+			
+			timer.ScheduleAgain( drop_rate );
+
+		}, drop_rate );*/
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -198,7 +305,7 @@ class sdSteeringWheel extends sdEntity
 		if ( reason === null )
 		if ( speed === 0 )
 		{
-			reason = 'Skybase requires at least 1 thruster'
+			reason = 'Skybase requires at least 1 thruster';
 			collected = null;
 		}
 		
@@ -332,6 +439,9 @@ class sdSteeringWheel extends sdEntity
 		
 		return false;
 	}
+	/*static GlobalThink( GSPEED )
+	{
+	}*/
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this._regen_timeout > 0 )
@@ -397,7 +507,7 @@ class sdSteeringWheel extends sdEntity
 				yy = 1;
 
 				if ( xx !== 0 || yy !== 0 )
-				this.ComplexElevatorLikeMove( this._scan, this._scan_net_ids, xx, yy, true, GSPEED );
+				sdSteeringWheel.ComplexElevatorLikeMove( this._scan, this._scan_net_ids, xx, yy, true, GSPEED );
 				else
 				this._schedule_rounding_task = false;
 				
@@ -441,7 +551,7 @@ class sdSteeringWheel extends sdEntity
 						this.VerifyMissingParts();
 
 						if ( this.driver.CanMoveWithoutOverlap( this.driver.x, this.driver.y ) &&
-							 this.ComplexElevatorLikeMove( this._scan, this._scan_net_ids, xx, yy, false, GSPEED ) )
+							 sdSteeringWheel.ComplexElevatorLikeMove( this._scan, this._scan_net_ids, xx, yy, false, GSPEED ) )
 						{
 							if ( this.driver.CanMoveWithoutOverlap( this.driver.x + xx, this.driver.y + yy ) )
 							{
@@ -583,7 +693,7 @@ class sdSteeringWheel extends sdEntity
 		}
 	}
 	
-	ComplexElevatorLikeMove( scan, _scan_net_ids, xx, yy, forceful, GSPEED ) // GSPEED only used for damage scaling
+	static ComplexElevatorLikeMove( scan, _scan_net_ids, xx, yy, forceful, GSPEED, force_push_bsus=false ) // GSPEED only used for damage scaling
 	{
 		let stuff_to_push = [];
 		let stopping_entities = [];
@@ -682,14 +792,14 @@ class sdSteeringWheel extends sdEntity
 			will_move = false;
 		}
 		
-		if ( will_move || forceful )
+		if ( will_move || forceful || force_push_bsus )
 		for ( let i = 0; i < stuff_to_push.length; i++ )
 		{
 			let item = stuff_to_push[ i ];
 			
 			if ( item.is( sdBaseShieldingUnit ) )
 			{
-				if ( item.pushable )
+				if ( item.pushable || force_push_bsus )
 				{
 					item.charge = 0;
 				}
