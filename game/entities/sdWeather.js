@@ -2961,7 +2961,7 @@ class sdWeather extends sdEntity
 					
 					//let tr = 1000;
 					
-					let tr = 1035;
+					let tr = 35;
 					
 					do
 					{
