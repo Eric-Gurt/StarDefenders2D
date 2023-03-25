@@ -193,6 +193,8 @@ class sdTurret extends sdEntity
 		
 		this.lvl = 0;
 		
+		this._time_amplification = 0;
+		
 		this.SetMethod( 'ShootPossibilityFilter', this.ShootPossibilityFilter ); // Here it used for "this" binding so method can be passed to collision logic
 	}
 	GetShootCost()
@@ -235,6 +237,8 @@ class sdTurret extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		GSPEED = sdGun.HandleTimeAmplification( this, GSPEED );
+		
 		let can_hibernate = false;
 		
 		if ( this._disabled_timeout > 0 )

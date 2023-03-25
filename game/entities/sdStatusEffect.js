@@ -9,6 +9,7 @@ import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdBullet from './sdBullet.js';
+import sdGun from './sdGun.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -802,6 +803,87 @@ class sdStatusEffect extends sdEntity
 				}
 				
 				ctx.globalAlpha = 1;
+			}
+		};
+		
+		sdStatusEffect.types[ sdStatusEffect.TYPE_TIME_AMPLIFICATION = 7 ] = 
+		{
+			remove_if_for_removed: true,
+	
+			is_emote: false,
+			
+			is_static: true,
+	
+			onMade: ( status_entity, params )=>
+			{
+				status_entity.t = params.t;
+				status_entity._next_spawn = 0;
+			},
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				status_entity.t = params.t;
+				status_entity._update_version++;
+
+				return true; // Cancel merge process
+			},
+			onStatusOfDifferentTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			IsVisible: ( status_entity, observer_entity )=>
+			{
+				return status_entity.for.IsVisible( observer_entity );
+			},
+			onThink: ( status_entity, GSPEED )=>
+			{
+				status_entity.t -= GSPEED;
+				
+				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+				{
+					status_entity._next_spawn -= GSPEED;
+
+					if ( status_entity._next_spawn <= 0 )
+					{
+						status_entity._next_spawn = 15;
+
+						const range = Math.max( status_entity.for._hitbox_x2 - status_entity.for._hitbox_x1, status_entity.for._hitbox_y2 - status_entity.for._hitbox_y1 ) / 2;
+						const y_offset = 0;
+
+						let a = Math.random() * Math.PI * 2;
+
+						let r = Math.pow( Math.random(), 0.5 ) * range;
+
+						let xx = status_entity.for.x + ( status_entity.for._hitbox_x1 + status_entity.for._hitbox_x2 ) / 2 + Math.sin( a ) * r;
+						let yy = status_entity.for.y + ( status_entity.for._hitbox_y1 + status_entity.for._hitbox_y2 ) / 2 + Math.cos( a ) * r;
+
+						let ent = new sdEffect({ x: xx, y: yy, type:sdEffect.TYPE_SPEED, sx: 0, sy: -0.5 });
+						sdEntity.entities.push( ent );
+					}
+				}
+				
+				if ( typeof status_entity.for._time_amplification !== 'undefined' )
+				status_entity.for._time_amplification = Math.max( 0, status_entity.t );
+				else
+				return true;
+			
+				return ( status_entity.t <= 0 ); // return true = delete
+			},
+			onBeforeRemove: ( status_entity )=>
+			{
+			},
+			onBeforeEntityRender: ( status_entity, ctx, attached )=>
+			{
+				if ( !status_entity.for )
+				return;
+			
+				//ctx.sd_status_effect_tint_filter = [ sdGun.time_amplification_gspeed_scale, sdGun.time_amplification_gspeed_scale, sdGun.time_amplification_gspeed_scale ];
+			},
+			onAfterEntityRender: ( status_entity, ctx, attached )=>
+			{
+				//ctx.sd_status_effect_tint_filter = null;
+			},
+			DrawFG: ( status_entity, ctx, attached )=>
+			{
 			}
 		};
 		

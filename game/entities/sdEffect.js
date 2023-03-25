@@ -44,6 +44,7 @@ class sdEffect extends sdEntity
 		sdEffect.TYPE_RAIL_TRAIL = 17;
 		sdEffect.TYPE_RAIL_HIT = 18;
 		sdEffect.TYPE_BEAM_CIRCLED = 19;
+		sdEffect.TYPE_SPEED = 20;
 		
 		
 		sdEffect.default_explosion_color = '#ffca9e';
@@ -238,6 +239,17 @@ class sdEffect extends sdEntity
 				sdSound.PlaySound({ name:'pop', x:effect_entity.x, y:effect_entity.y, volume:0.05 + Math.random() * 0.05, pitch:0.9 + Math.random() * 0.2, _server_allowed:true });
 			}
 		};
+		
+		sdEffect.types[ sdEffect.TYPE_SPEED ] = {
+			images: [ sdWorld.CreateImageFromFile( 'effect_speed' ) ],
+			duration: 3,
+			random_flip: false,
+			random_rotation: false,
+			speed: 1 / 15,
+			spritesheet: true,
+			apply_shading: false
+		};
+		
 		sdEffect.types[ sdEffect.TYPE_FIRE ] = {
 			images: [ sdWorld.CreateImageFromFile( 'effect_fire' ) ],
 			duration: 8,

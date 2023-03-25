@@ -1224,7 +1224,8 @@ class sdBaseShieldingUnit extends sdEntity
 		if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
 		return T('Matter-based base shielding unit');
 	
-		return T('Base shielding unit');
+		//return T('Base shielding unit');
+		return 'undefined';
 	}
 	
 	DrawHUD( ctx, attached ) // foreground layer

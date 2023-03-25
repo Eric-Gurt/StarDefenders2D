@@ -28,7 +28,7 @@ class sdCamera extends sdEntity
 		sdCamera.DETECT_BSU_ATTACKS = i++; // 3
 		sdCamera.DETECT_BSU_DAMAGE = i++; // 4
 		sdCamera.DETECT_BSU_DEACTIVATION = i++; // 5
-		sdCamera.DETECT_PLAYER_CONNECTIONS = i++; // 6
+		sdCamera.DETECT_PLAYER_CONNECTIONS = i++; // 6 Disabled
 		sdCamera.DETECT_PLAYER_CONNECTIONS_3 = i++; // 7
 		sdCamera.DETECT_VISIBLE_HIGH_TIER_CRYSTALS_WITH_LOW_MATTER = i++; // 8
 		sdCamera.DETECT_SERVER_STARTS_AND_SHUTDOWNS = i++; // 9
@@ -43,7 +43,7 @@ class sdCamera extends sdEntity
 		sdCamera.default_triggered_messages[ sdCamera.DETECT_BSU_ATTACKS ] = [ 'BSU is not attacked by other BSUs', 'BSU is attacked by other BSU', 'bsu' ];
 		sdCamera.default_triggered_messages[ sdCamera.DETECT_BSU_DAMAGE ] = [ 'BSU is not taking damage', 'BSU is taking damage', 'bsu' ];
 		sdCamera.default_triggered_messages[ sdCamera.DETECT_BSU_DEACTIVATION ] = [ 'BSU is active', 'BSU is deactivated', 'bsu' ];
-		sdCamera.default_triggered_messages[ sdCamera.DETECT_PLAYER_CONNECTIONS ] = [ 'Server has no players', 'Player enters the world', 'idle' ];
+		sdCamera.default_triggered_messages[ sdCamera.DETECT_PLAYER_CONNECTIONS ] = [ 'Server has no players', 'Player enters the world', 'idle' ]; // Disabled
 		sdCamera.default_triggered_messages[ sdCamera.DETECT_PLAYER_CONNECTIONS_3 ] = [ 'Server has less than 3 players', '3+ players entered the world', 'idle' ];
 		sdCamera.default_triggered_messages[ sdCamera.DETECT_VISIBLE_HIGH_TIER_CRYSTALS_WITH_LOW_MATTER ] = [ 'No low matter high tier crystals', 'Seeing low matter high tier crystals', 'crystal' ];
 		sdCamera.default_triggered_messages[ sdCamera.DETECT_SERVER_STARTS_AND_SHUTDOWNS ] = [ 'Server is running same instance', 'Server has been restarted', 'com16' ];
@@ -440,7 +440,7 @@ class sdCamera extends sdEntity
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 46 ) )
 		{
-			this.AddContextOption( 'Detect players connecting to world', 'GET_HOOK_URL', [ sdCamera.DETECT_PLAYER_CONNECTIONS ] );
+			//this.AddContextOption( 'Detect players connecting to world', 'GET_HOOK_URL', [ sdCamera.DETECT_PLAYER_CONNECTIONS ] );
 			this.AddContextOption( 'Detect 3+ players connecting to world', 'GET_HOOK_URL', [ sdCamera.DETECT_PLAYER_CONNECTIONS_3 ] );
 			this.AddContextOption( 'Detect 6+ players connecting to world', 'GET_HOOK_URL', [ sdCamera.DETECT_PLAYER_CONNECTIONS_6 ] );
 			

@@ -132,8 +132,6 @@ class sdMatterAmplifier extends sdEntity
 		if ( typeof snapshot.matter_max !== 'undefined' )
 		if ( snapshot.matter_max > 0 )
 		{
-			trace( 'upgrading amplifier',snapshot );
-			
 			let ent = new sdCrystal({  });
 
 			ent.x = this.x;

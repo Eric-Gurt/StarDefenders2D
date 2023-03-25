@@ -216,6 +216,8 @@ class sdCube extends sdEntity
 		this.matter_max = (this.kind === sdCube.KIND_WHITE ? 6 : this.kind === sdCube.KIND_YELLOW ? 4 : 1 ) * 160;
 		this.matter = this.matter_max;
 		
+		this._time_amplification = 0;
+		
 		sdCube.alive_cube_counter++;
 		
 		if ( this.kind === sdCube.KIND_YELLOW )
@@ -632,6 +634,8 @@ class sdCube extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		GSPEED = sdGun.HandleTimeAmplification( this, GSPEED );
+		
 		if ( this.regen_timeout <= 0 )
 		{
 			if ( this.hea < this.hmax )

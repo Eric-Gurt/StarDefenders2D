@@ -89,6 +89,8 @@ class sdCrystalCombiner extends sdEntity
 		
 		this.prog = 0; // progress
 		
+		this._time_amplification = 0;
+		
 		this.SetMethod( 'MergeCollisionTest', this.MergeCollisionTest ); // Here it used for "this" binding so method can be passed to collision logic
 	}
 	Damage( dmg, initiator=null )
@@ -169,6 +171,8 @@ class sdCrystalCombiner extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		GSPEED = sdGun.HandleTimeAmplification( this, GSPEED );
+		
 		//this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 ); // Commented to not deal with matter regen, which is probably a bad approach. Keep crystals as real entities instead?
 		
 		/*if ( this._last_matter_max !== this.matter_max )

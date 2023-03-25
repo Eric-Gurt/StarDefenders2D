@@ -1988,13 +1988,13 @@ io.on( 'connection', ( socket )=>
 			player_settings.full_reset = true;
 		}
 		
-		if ( socket.character === null )
+		/*if ( socket.character === null )
 		{
 			const sdCamera = sdWorld.entity_classes.sdCamera;
 			
 			for ( let i = 0; i < sdCamera.cameras.length; i++ )
 			sdCamera.cameras[ i ].Trigger( sdCamera.DETECT_PLAYER_CONNECTIONS, player_settings.hero_name + ' enters the world' );
-		}
+		}*/
 		
 		if ( player_settings.full_reset )
 		{

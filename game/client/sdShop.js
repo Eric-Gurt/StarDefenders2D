@@ -1163,6 +1163,15 @@ class sdShop
 				{
 					let c = sdWorld.ClassNameToProperName( sdShop.options[ sdShop.potential_selection ]._class, sdShop.options[ sdShop.potential_selection ] );
 					
+					try
+					{
+						let title = sdWorld.entity_classes[ sdShop.options[ sdShop.potential_selection ]._class ].prototype.title;
+						
+						if ( typeof title === 'string' && title.indexOf( 'undefined' ) === -1 )
+						c = title;
+					}
+					catch(e){};
+					
 					t = T('Click to select')+' "' + c + '" '+T('as a build object. Then click to place this object in world.');
 				}
 				else

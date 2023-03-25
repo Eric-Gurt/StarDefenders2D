@@ -1748,7 +1748,7 @@ class sdRenderer
 
 				ctx.textAlign = 'right';
 				ctx.fillStyle = '#AAAAAA';
-				ctx.fillText( globalThis.players_playing+ " alive", sdRenderer.screen_width - 5 - 5, 20 );
+				ctx.fillText( globalThis.players_playing+ T(" alive"), sdRenderer.screen_width - 5 - 5, 20 );
 
 				//for ( var i = 0; i < sdWorld.leaders.length; i++ )
 				for ( var i = 0; i < sdWorld.leaders.length; i++ )
