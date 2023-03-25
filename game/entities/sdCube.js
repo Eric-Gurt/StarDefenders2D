@@ -496,6 +496,30 @@ class sdCube extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 
+		let spear_targer_reaction = ( bullet, target_entity )=>
+		{
+			
+			if ( target_entity.is( sdLost ) )
+			{
+				target_entity.DamageWithEffect( 10, bullet._owner );
+			}
+			else
+			{
+				sdWorld.SendEffect({ 
+					x: bullet.x, 
+					y: bullet.y, 
+					radius: 16,
+					damage_scale: 0, // Just a decoration effect
+					type: sdEffect.TYPE_EXPLOSION, 
+					owner: this,
+					color: '#aaaaaa'
+				});
+
+				sdLost.ApplyAffection( target_entity, 10, bullet, sdLost.FILTER_WHITE );
+			}
+		};
+
+
 		let bullet_obj1 = new sdBullet({ x: this.x, y: this.y });
 					bullet_obj1._owner = this;
 					bullet_obj1.sx = -1;
@@ -509,9 +533,11 @@ class sdCube extends sdEntity
 					bullet_obj1.time_left = 30;
 
 					bullet_obj1._rail = true;
-					bullet_obj1.color = '#FFFFFF';
+					bullet_obj1.color = '#888888';
 
-					bullet_obj1._damage = 15;
+					bullet_obj1._damage = 1;
+
+					bullet_obj1._custom_target_reaction = spear_targer_reaction;
 
 					sdEntity.entities.push( bullet_obj1 );
 
@@ -528,9 +554,12 @@ class sdCube extends sdEntity
 					bullet_obj2.time_left = 30;
 
 					bullet_obj2._rail = true;
-					bullet_obj2.color = '#FFFFFF';
+					bullet_obj2.color = '#888888';
 
-					bullet_obj2._damage = 15;
+					bullet_obj2._damage = 1;
+
+					bullet_obj2._custom_target_reaction = spear_targer_reaction;
+
 					sdEntity.entities.push( bullet_obj2 );
 
 		let bullet_obj3 = new sdBullet({ x: this.x, y: this.y });
@@ -546,9 +575,11 @@ class sdCube extends sdEntity
 					bullet_obj3.time_left = 30;
 
 					bullet_obj3._rail = true;
-					bullet_obj3.color = '#FFFFFF';
+					bullet_obj3.color = '#888888';
 
-					bullet_obj3._damage = 15;
+					bullet_obj3._damage = 1;
+
+					bullet_obj3._custom_target_reaction = spear_targer_reaction;
 
 					sdEntity.entities.push( bullet_obj3 );
 
@@ -565,9 +596,12 @@ class sdCube extends sdEntity
 					bullet_obj4.time_left = 30;
 
 					bullet_obj4._rail = true;
-					bullet_obj4.color = '#FFFFFF';	
+					bullet_obj4.color = '#888888';	
 
-					bullet_obj4._damage = 15;
+					bullet_obj4._damage = 1;
+
+					bullet_obj4._custom_target_reaction = spear_targer_reaction;
+
 					sdEntity.entities.push( bullet_obj4 );
 	}
 	TeleportSomewhere(dist = 1, add_x = 0, add_y = 0) // Dist = distance multiplier in direction it's going, add_x is additional X, add_y is additional Y
