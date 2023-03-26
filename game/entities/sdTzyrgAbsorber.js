@@ -125,6 +125,7 @@ class sdTzyrgAbsorber extends sdEntity
 			else
 			{
 				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be destroyed
+				if ( sdWorld.sockets[ i ].character )
 				{
 					let di = sdWorld.Dist2D( this.x, this.y, sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y );
 					if ( di < 600 )
