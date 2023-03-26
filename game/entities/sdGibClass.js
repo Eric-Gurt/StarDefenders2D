@@ -165,6 +165,18 @@ class sdGibClass
 			blood: 0 // 0 = wall_hit effect
 			
 		};
+		sdGib.classes[ sdGib.CLASS_FALKOK_RAIL_DRONE_PARTS = 10 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'gibs/drone_falkok_parts3' ), // Make sure your gib image is in /gibs folder
+			hitbox_x1: -5,
+			hitbox_x2: 5,
+			hitbox_y1: -5,
+			hitbox_y2: 5,
+			mass: 25,
+			health: 100,
+			blood: 0 // 0 = wall_hit effect
+			
+		};
 		// Add new gib classes above this line //
 		
 		let index_to_const = [];
