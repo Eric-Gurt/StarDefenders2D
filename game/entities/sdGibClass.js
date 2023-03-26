@@ -107,7 +107,7 @@ class sdGibClass
 		};
 		sdGib.classes[ sdGib.CLASS_FALKOK_DRONE_PARTS = 5 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'gibs/drone_falkok_parts' ), // Make sure your gib image is in /gibs folder
+			image: sdWorld.CreateImageFromFile( 'gibs/drone_falkok_parts2' ), // Make sure your gib image is in /gibs folder
 			hitbox_x1: -4,
 			hitbox_x2: 4,
 			hitbox_y1: -4,

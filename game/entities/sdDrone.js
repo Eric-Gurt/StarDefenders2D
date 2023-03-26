@@ -20,7 +20,7 @@ class sdDrone extends sdEntity
 {
 	static init_class()
 	{
-		sdDrone.img_drone_falkok = sdWorld.CreateImageFromFile( 'drone_falkok_sprite' );
+		sdDrone.img_drone_falkok = sdWorld.CreateImageFromFile( 'drone_falkok_sprite2' ); // Sprite by gravel/flora/floor
 		sdDrone.img_drone_erthal = sdWorld.CreateImageFromFile( 'drone_erthal' );
 
 		/*
@@ -762,7 +762,7 @@ class sdDrone extends sdEntity
 								bullet_obj.sy *= 12;
 
 								bullet_obj._damage = 15;
-								bullet_obj.color = '#ff0000';
+								bullet_obj.color = '#afdfff';
 
 
 								sdEntity.entities.push( bullet_obj );
