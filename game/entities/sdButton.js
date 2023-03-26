@@ -96,8 +96,14 @@ class sdButton extends sdEntity
 		if ( this._hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
+		if (
+				(
+					sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 46 )
+					&&
+					executer_socket.character.canSeeForUse( this )
+				)
+			)
 		{
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 46 ) )
 			{
 				if ( command_name === 'PRESS_BUTTON' )
 				{
@@ -114,11 +120,6 @@ class sdButton extends sdEntity
 
 					sdSound.PlaySound({ name:'hover_start', pitch: 0.5, x:this.x, y:this.y, volume:1 }); // Placeholder sound
 				}
-			}
-			else
-			{
-				executer_socket.SDServiceMessage( 'Button is too far' );
-				return;
 			}
 		}
 	}
