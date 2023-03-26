@@ -803,8 +803,8 @@ class sdWeather extends sdEntity
 
 				while ( instances < instances_tot && sdDrone.drones_tot < this._max_drone_count )
 				{
-
-					let drone = new sdDrone({ x:0, y:0 , _ai_team: 1});
+					let drone_type = Math.random() < 0.2 ? 10 : 1;
+					let drone = new sdDrone({ x:0, y:0, type: drone_type, _ai_team: 1});
 					//drone.type = ( Math.random() < 0.15 ) ? 3 : 1;
 
 					sdEntity.entities.push( drone );
@@ -860,7 +860,8 @@ class sdWeather extends sdEntity
 					while ( instances < instances_tot && sdDrone.drones_tot < this._max_drone_count )
 					{
 
-						let drone = new sdDrone({ x:0, y:0 , _ai_team: 1});
+						let drone_type = Math.random() < 0.2 ? 10 : 1;
+						let drone = new sdDrone({ x:0, y:0, type: drone_type, _ai_team: 1});
 						//drone.type = ( Math.random() < 0.15 ) ? 3 : 1;
 
 						sdEntity.entities.push( drone );
