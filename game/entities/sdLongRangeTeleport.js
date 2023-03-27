@@ -1014,7 +1014,7 @@ class sdLongRangeTeleport extends sdEntity
 						'Mothership: We had plenty in a storage but someone teleported Quickie which broke all our stuff including crystals.',
 						'Mothership: We don\'t have any right now.',
 						'Mothership: Message me in 5 minutes. We are in the middle of something.',
-						'Mothership: We really are not picking who gets the crystals. Please don\'t be jelous if somebody gets crystals when you don\'t.',
+						'Mothership: We really are not picking who gets the crystals. Please don\'t be jealous if somebody gets crystals when you don\'t.',
 						'Mothership: I have a note "Don\'t give crystals to this person" next to your name. I\'m really sorry...',
 						'Mothership: We don\'t have any stunning ads for you to see at this moment. Oops.',
 						'Mothership: Well... Doesn\'t the planet you are on has them?!',
