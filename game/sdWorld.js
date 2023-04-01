@@ -3979,27 +3979,37 @@ class sdWorld
 	{
 		button.disabled = true; // Prevent double clicks while it might be loading ad
 		
-		adBreak({
-			type: 'preroll',  // ad shows at start of next level
-			name: 'game-started-ad',
-			adBreakDone: ()=>
-			{
-				ForceProceedOnce();
-			}
-		});
-		
-		setTimeout( ()=>
-		{
-			if ( document.querySelectorAll('.adsbygoogle').length > 1 )
-			{
-				// AdSense works and ad is currently shown
-			}
-			else
-			ForceProceedOnce(); // Fallback
-			
-		}, 300 );
 		
 		let once = true;
+		
+		if ( player_settings.entity4 )
+		{
+			// Do not show ads in stream logger
+			ForceProceedOnce();
+		}
+		else
+		{
+			adBreak({
+				type: 'preroll',  // ad shows at start of next level
+				name: 'game-started-ad',
+				adBreakDone: ()=>
+				{
+					ForceProceedOnce();
+				}
+			});
+
+			setTimeout( ()=>
+			{
+				if ( document.querySelectorAll('.adsbygoogle').length > 1 )
+				{
+					// AdSense works and ad is currently shown
+				}
+				else
+				ForceProceedOnce(); // Fallback
+
+			}, 300 );
+		}
+		
 		function ForceProceedOnce()
 		{
 			if ( once )
