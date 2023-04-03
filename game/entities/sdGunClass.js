@@ -6451,15 +6451,20 @@ class sdGunClass
 		{
 			if ( target_entity )
 			if ( bullet._owner )
+			if ( !bullet._is_being_removed )
 			{
+				let owner = bullet._owner;
+				
+				bullet.remove();
+				
 				let ent2 = sdLost.CreateLostCopy( target_entity, target_entity.title || null, sdLost.FILTER_NONE );
 
-				if ( bullet._owner.side < 0 )
-				ent2.x = bullet._owner.x + bullet._owner._hitbox_x1 - ent2._hitbox_x2;
+				if ( owner._side < 0 )
+				ent2.x = owner.x + owner._hitbox_x1 - ent2._hitbox_x2;
 				else
-				ent2.x = bullet._owner.x + bullet._owner._hitbox_x2 - ent2._hitbox_x1;
+				ent2.x = owner.x + owner._hitbox_x2 - ent2._hitbox_x1;
 
-				ent2.y = bullet._owner.y + bullet._owner._hitbox_y2 - ent2._hitbox_y2;
+				ent2.y = owner.y + owner._hitbox_y2 - ent2._hitbox_y2;
 				
 				ent2.s = false;
 				ent2.m = 30;
