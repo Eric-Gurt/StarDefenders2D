@@ -20,8 +20,10 @@ class sdDrone extends sdEntity
 {
 	static init_class()
 	{
-		sdDrone.img_drone_falkok = sdWorld.CreateImageFromFile( 'drone_falkok_sprite' );
+		sdDrone.img_drone_falkok = sdWorld.CreateImageFromFile( 'drone_falkok_sprite2' ); // Sprite by gravel/flora/floor
 		sdDrone.img_drone_erthal = sdWorld.CreateImageFromFile( 'drone_erthal' );
+
+		sdDrone.img_drone_falkok2 = sdWorld.CreateImageFromFile( 'drone_falkok_sprite3' ); // Sprite by gravel/flora/floor
 
 		/*
 		sdDrone.img_drone_falkok = sdWorld.CreateImageFromFile( 'drone_falkok' );
@@ -94,13 +96,14 @@ class sdDrone extends sdEntity
 		sdDrone.DRONE_SETR = 7;
 		sdDrone.DRONE_TZYRG = 8;
 		sdDrone.DRONE_TZYRG_WATCHER = 9;
+		sdDrone.DRONE_FALKOK_RAIL = 10;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return ( this.type === sdDrone.DRONE_SARRORIAN || this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER || this.type === sdDrone.DRONE_TZYRG_WATCHER ) ? -11 : this.type === sdDrone.DRONE_FALKOK ? -10 : -6; }
-	get hitbox_x2() { return ( this.type === sdDrone.DRONE_SARRORIAN || this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER || this.type === sdDrone.DRONE_TZYRG_WATCHER ) ? 11 : this.type === sdDrone.DRONE_FALKOK ? 10 : 6; }
-	get hitbox_y1() { return ( this.type === sdDrone.DRONE_SARRORIAN || this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER || this.type === sdDrone.DRONE_TZYRG_WATCHER ) ? -11 : this.type === sdDrone.DRONE_FALKOK ? -10 : -6; }
-	get hitbox_y2() { return ( this.type === sdDrone.DRONE_SARRORIAN || this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER || this.type === sdDrone.DRONE_TZYRG_WATCHER ) ? 11 : this.type === sdDrone.DRONE_FALKOK ? 10 : 6; }
+	get hitbox_x1() { return ( this.type === sdDrone.DRONE_SARRORIAN || this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER || this.type === sdDrone.DRONE_TZYRG_WATCHER ) ? -11 : ( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_FALKOK_RAIL ) ? -10 : -6; }
+	get hitbox_x2() { return ( this.type === sdDrone.DRONE_SARRORIAN || this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER || this.type === sdDrone.DRONE_TZYRG_WATCHER ) ? 11 : ( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_FALKOK_RAIL ) ? 10 : 6; }
+	get hitbox_y1() { return ( this.type === sdDrone.DRONE_SARRORIAN || this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER || this.type === sdDrone.DRONE_TZYRG_WATCHER ) ? -11 : ( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_FALKOK_RAIL ) ? -10 : -6; }
+	get hitbox_y2() { return ( this.type === sdDrone.DRONE_SARRORIAN || this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER || this.type === sdDrone.DRONE_TZYRG_WATCHER ) ? 11 : ( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_FALKOK_RAIL ) ? 10 : 6; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return ( this.death_anim === 0 ); }
@@ -116,7 +119,7 @@ class sdDrone extends sdEntity
 		
 		this.type = params.type || 1;
 		
-		this._hmax =  this.type === sdDrone.DRONE_SETR ? 150 : this.type === sdDrone.DRONE_COUNCIL ? 200 : this.type === sdDrone.DRONE_SARRORIAN_DETONATOR ? 100 : this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER ? 850 : this.type === sdDrone.DRONE_SARRORIAN ? 600 : this.type === sdDrone.DRONE_TZYRG_WATCHER ? 500 : this.type === sdDrone.DRONE_FALKOK ? 130 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
+		this._hmax =  this.type === sdDrone.DRONE_SETR ? 150 : this.type === sdDrone.DRONE_COUNCIL ? 200 : this.type === sdDrone.DRONE_SARRORIAN_DETONATOR ? 100 : this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER ? 850 : this.type === sdDrone.DRONE_SARRORIAN ? 600 : this.type === sdDrone.DRONE_TZYRG_WATCHER ? 500 : this.type === sdDrone.DRONE_FALKOK ? 130 : this.type === sdDrone.DRONE_FALKOK_RAIL ? 175 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
 		this._hea = this._hmax;
 		this._ai_team = params._ai_team || 1;
 
@@ -315,7 +318,7 @@ class sdDrone extends sdEntity
 				this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_AVERAGE_MOB );
 			}
 	
-			if ( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_COUNCIL || this.type === sdDrone.DRONE_SETR || this.type === sdDrone.DRONE_TZYRG || this.type === sdDrone.DRONE_TZYRG_WATCHER )
+			if ( this.type === sdDrone.DRONE_FALKOK || this.type === sdDrone.DRONE_COUNCIL || this.type === sdDrone.DRONE_SETR || this.type === sdDrone.DRONE_TZYRG || this.type === sdDrone.DRONE_TZYRG_WATCHER || this.type === sdDrone.DRONE_FALKOK_RAIL )
 			{
 				sdWorld.SendEffect({ 
 					x:this.x, 
@@ -332,6 +335,13 @@ class sdDrone extends sdEntity
 				{
 					sdWorld.SpawnGib( this.x, this.y + 5, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_FALKOK_DRONE_PARTS , '', '', 100, this );
 					sdWorld.SpawnGib( this.x, this.y - 5, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_FALKOK_DRONE_PARTS , '', '', 100, this, 1 );
+					this.remove();
+				}
+
+				if ( dmg >= this._hmax * 0.5 && this.type === sdDrone.DRONE_FALKOK_RAIL ) // Instagib, splits drone into 2 parts ( if you weapon deals enough damage )
+				{
+					sdWorld.SpawnGib( this.x, this.y + 6, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_FALKOK_RAIL_DRONE_PARTS , '', '', 100, this );
+					sdWorld.SpawnGib( this.x, this.y - 6, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_FALKOK_RAIL_DRONE_PARTS , '', '', 100, this, 1 );
 					this.remove();
 				}
 				
@@ -436,10 +446,12 @@ class sdDrone extends sdEntity
 		
 		let pathfinding_result = null;
 			
+
+		if ( this.death_anim !== 0 )
+		this.attack_an += -this.sx * 10 * GSPEED * this.side; // Looks smoother
+
 		if ( this._hea <= 0 )
 		{
-			//this.attack_an += this.sx / 6;
-			this.attack_an += -this.sx * 20 * GSPEED * this.side;
 
 			if ( this.death_anim < sdDrone.death_duration + sdDrone.post_death_ttl )
 			this.death_anim += GSPEED;
@@ -760,7 +772,7 @@ class sdDrone extends sdEntity
 								bullet_obj.sy *= 12;
 
 								bullet_obj._damage = 15;
-								bullet_obj.color = '#ff0000';
+								bullet_obj.color = '#afdfff';
 
 
 								sdEntity.entities.push( bullet_obj );
@@ -1016,6 +1028,34 @@ class sdDrone extends sdEntity
 								
 								sdSound.PlaySound({ name:'tzyrg_fire', x:this.x, y:this.y, volume: this.type === sdDrone.DRONE_TZYRG_WATCHER ? 2 : 1, pitch: this.type === sdDrone.DRONE_TZYRG_WATCHER ? 0.8 : 1 });
 							}
+							if ( this.type === sdDrone.DRONE_FALKOK_RAIL ) // Falkok rail drones
+							{
+								let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+
+								bullet_obj._owner = this;
+
+								bullet_obj.sx = dx;
+								bullet_obj.sy = dy;
+								bullet_obj.x += bullet_obj.sx * 3;
+								bullet_obj.y += bullet_obj.sy * 3;
+
+								bullet_obj.sx *= 12;
+								bullet_obj.sy *= 12;
+
+								bullet_obj._damage = 20;
+								bullet_obj.color = '#ff0000';
+								bullet_obj._rail = true;
+								bullet_obj._rail_circled = true;
+;
+
+								sdEntity.entities.push( bullet_obj );
+
+								this.attack_frame = 2;
+								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
+								this._attack_timer = 13;
+
+								sdSound.PlaySound({ name:'gun_railgun', x:this.x, y:this.y, volume:0.5, pitch:4 });
+							}
 							break;
 						}
 					}
@@ -1055,6 +1095,8 @@ class sdDrone extends sdEntity
 			sdEntity.Tooltip( ctx, "Tzyrg Drone" );
 			if ( this.type === sdDrone.DRONE_TZYRG_WATCHER )
 			sdEntity.Tooltip( ctx, "Tzyrg Watcher" );
+			if ( this.type === sdDrone.DRONE_FALKOK_RAIL )
+			sdEntity.Tooltip( ctx, "Falkok Rail Drone" );
 		}
 	}
 	Draw( ctx, attached )
@@ -1097,6 +1139,9 @@ class sdDrone extends sdEntity
 
 		if ( this.type === sdDrone.DRONE_TZYRG )
 		image = sdDrone.img_drone_tzyrg;
+
+		if ( this.type === sdDrone.DRONE_FALKOK_RAIL )
+		image = sdDrone.img_drone_falkok2;
 
 		if ( this.type === sdDrone.DRONE_TZYRG_WATCHER )
 		{

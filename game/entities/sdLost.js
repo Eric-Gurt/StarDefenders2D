@@ -30,11 +30,13 @@ class sdLost extends sdEntity
 		
 		sdLost.filters = [
 			'contrast(0.8) sepia(1) hue-rotate(10deg) saturate(16)',
-			'saturate(0) brightness(2.5)'
+			'saturate(0) brightness(2.5)',
+			'none'
 		];
 		
 		sdLost.FILTER_GOLDEN = 0;
 		sdLost.FILTER_WHITE = 1;
+		sdLost.FILTER_NONE = 2;
 		
 		sdWorld.static_think_methods.push( sdLost.StaticThink );
 		
@@ -126,26 +128,7 @@ class sdLost extends sdEntity
 					}
 				}
 				
-				let ent2 = new sdLost({
-					x: ent.x,
-					y: ent.y,
-					sx: ent.sx,
-					sy: ent.sy,
-					x1: ent.hitbox_x1,
-					y1: ent.hitbox_y1,
-					x2: ent.hitbox_x2,
-					y2: ent.hitbox_y2,
-					hea: ent.hea || ent._hea,
-					d3d: ent.DrawIn3D(),
-					mass: ent.mass,
-					d: sdWorld.GetDrawOperations( ent ),
-					matter_max: ent.matter || ent._matter || 1,
-					s: ent.is_static,
-					t: title,
-					f: f
-				});
-				sdEntity.entities.push( ent2 );
-				sdWorld.UpdateHashPosition( ent2, false ); // Optional, but will make it visible as early as possible
+				let ent2 = sdLost.CreateLostCopy( ent, title, f );
 				
 				if ( ent.is( sdCharacter ) )
 				{
@@ -193,6 +176,32 @@ class sdLost extends sdEntity
 				sdLost.entities_and_affection.set( ent, cur_amount );
 			}
 		}
+	}
+	
+	static CreateLostCopy( ent, title='', f=sdLost.FILTER_GOLDEN )
+	{
+		let ent2 = new sdLost({
+			x: ent.x,
+			y: ent.y,
+			sx: ent.sx,
+			sy: ent.sy,
+			x1: ent.hitbox_x1,
+			y1: ent.hitbox_y1,
+			x2: ent.hitbox_x2,
+			y2: ent.hitbox_y2,
+			hea: ent.hea || ent._hea,
+			d3d: ent.DrawIn3D(),
+			mass: ent.mass,
+			d: sdWorld.GetDrawOperations( ent ),
+			matter_max: ent.matter || ent._matter || 1,
+			s: ent.is_static,
+			t: title,
+			f: f
+		});
+		sdEntity.entities.push( ent2 );
+		sdWorld.UpdateHashPosition( ent2, false ); // Optional, but will make it visible as early as possible
+
+		return ent2;
 	}
 	
 	static StaticThink( GSPEED )

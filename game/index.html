@@ -16,11 +16,23 @@
 	<script src="client/sdErrorReporter.js"></script>
 	<!--
  
-	    To learn how to install your ads go there https://developers.google.com/ad-placement/docs/beta
-	
+	    This is a test of new in-line code for HTML files (these still could end up being cached by browsers when it is not needed though):
+ 
+	    <? 
+		print_html = false; // Prevent following HTML snippet to be printed right away - we will use it as a variable for a string
+		let piece_of_text = ?>:: 1 2 3 4 5 6 7 8 9 10 ::
+:: 11 12 13 14 15 16 17 ::
+
+<?
+		// Print string value 3 times
+		for ( let i = 0; i < 3; i++ )
+		print( piece_of_text );
+ 
+		print_html = true;
+	    ?>
 	-->
 	<script async
-	    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7381466440820611"
+	    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<? print( sdWorld.server_config.adsense_client ) ?>"
 	    crossorigin="anonymous">
 	</script>
 	<!--data-adbreak-test="on"-->
@@ -34,6 +46,8 @@
 	<div id="twitch_player_div"></div>
 	<div id="youtube_player_div"></div>
 	<script>
+
+
 	    
 	    globalThis.twitch_player_div = document.getElementById( 'twitch_player_div' );
 	    globalThis.youtube_player_div = document.getElementById( 'youtube_player_div' );
@@ -101,6 +115,9 @@
 				    twitch_player_load_callback( twitch_player );
 				    twitch_player_load_callback = null;
 				}
+			    };
+			    let error = ()=>
+			    {
 			    };
 			    twitch_player.addEventListener( Twitch.Player.READY, next );
 			    twitch_player.addEventListener( Twitch.Player.ERROR, error );
@@ -175,166 +192,6 @@
 	<script src="client/sdMobileKeyboard.js" type="module"></script>
 	<script src="game.js" type="module"></script>
 	<div id="mobile_ui" style="display:none;z-index:100;position:fixed;left:0;top:0">
-	    <!--
-        	<span id="mobile_move_button" class="r_conteiner" style="
-                position: fixed;
-                left: 5vh;
-                width: 30vh;
-                height: 30vh;
-                background-color: #ffffff0d;
-                bottom: 5vh;
-                border-radius: 20vh;
-                text-align: center;
-                line-height: 30vh;
-                margin: 0px;
-                padding: 0px;
-                font-size: 3vh;
-                color: #ffffff24;
-            ">Move</span>
-
-<span id="mobile_reload_button" class="r_conteiner" style="
-                position: fixed;
-                right: 40%;
-                width: 14vh;
-                height: 14vh;
-                background-color: #ffffff0d;
-                bottom: 6vh;
-                border-radius: 20vh;
-                text-align: center;
-                line-height: 14vh;
-                margin: 0px;
-                padding: 0px;
-                font-size: 3vh;
-                color: #ffffff24;
-            ">Reload</span>
-
-<span id="mobile_1_button" class="r_conteiner" style="
-                position: fixed;
-                right: 49vh;
-                width: 14vh;
-                height: 14vh;
-                background-color: #ffffff0d;
-                bottom: 6vh;
-                border-radius: 20vh;
-                text-align: center;
-                line-height: 14vh;
-                margin: 0px;
-                padding: 0px;
-                font-size: 3vh;
-                color: #ffffff24;
-            ">Pistol</span>
-<span id="mobile_2_button" class="r_conteiner" style="
-                position: fixed;
-                right: 49vh;
-                width: 14vh;
-                height: 14vh;
-                background-color: #ffffff0d;
-                bottom: 24vh;
-                border-radius: 20vh;
-                text-align: center;
-                line-height: 14vh;
-                margin: 0px;
-                padding: 0px;
-                font-size: 3vh;
-                color: #ffffff24;
-            ">Rifle</span>
-
-<span id="mobile_3_button" class="r_conteiner" style="
-                position: fixed;
-                right: 41vh;
-                width: 14vh;
-                height: 14vh;
-                background-color: #ffffff0d;
-                bottom: 40vh;
-                border-radius: 20vh;
-                text-align: center;
-                line-height: 14vh;
-                margin: 0px;
-                padding: 0px;
-                font-size: 3vh;
-                color: #ffffff24;
-            ">Shotgun</span>
-
-<span id="mobile_4_button" class="r_conteiner" style="
-                position: fixed;
-                right: 24vh;
-                width: 14vh;
-                height: 14vh;
-                background-color: #ffffff0d;
-                bottom: 49vh;
-                border-radius: 20vh;
-                text-align: center;
-                line-height: 14vh;
-                margin: 0px;
-                padding: 0px;
-                font-size: 3vh;
-                color: #ffffff24;
-            ">Sniper</span>
-
-<span id="mobile_5_button" class="r_conteiner" style="
-                position: fixed;
-                right: 5vh;
-                width: 14vh;
-                height: 14vh;
-                background-color: #ffffff0d;
-                bottom: 48vh;
-                border-radius: 20vh;
-                text-align: center;
-                line-height: 14vh;
-                margin: 0px;
-                padding: 0px;
-                font-size: 3vh;
-                color: #ffffff24;
-            ">RL</span>
-
-            <span id="mobile_shoot_button" class="r_conteiner" style="
-                position: fixed;
-                right: 5vh;
-                width: 40vh;
-                height: 40vh;
-                background-color: #ffffff0d;
-                bottom: 5vh;
-                border-radius: 20vh;
-                text-align: center;
-                line-height: 40vh;
-                margin: 0px;
-                padding: 0px;
-                font-size: 3vh;
-                color: #ffffff24;
-            ">Shoot</span>
-            
-            <span id="mobile_x_button" class="r_conteiner" style="
-                position: fixed;
-                right: 5vh;
-                width: 14vh;
-                height: 14vh;
-                background-color: #ffffff0d;
-                bottom: 70vh;
-                border-radius: 20vh;
-                text-align: center;
-                line-height: 14vh;
-                margin: 0px;
-                padding: 0px;
-                font-size: 3vh;
-                color: #ffffff24;
-            ">Build</span>
-	    
-	    <span id="mobile_s_button" class="r_conteiner" style="
-                position: fixed;
-                right: 25vh;
-                width: 14vh;
-                height: 14vh;
-                background-color: #ffffff0d;
-                bottom: 70vh;
-                border-radius: 20vh;
-                text-align: center;
-                line-height: 14vh;
-                margin: 0px;
-                padding: 0px;
-                font-size: 3vh;
-                color: #ffffff24;
-            ">Sword</span>
-	    -->
 	</div>
 	<div id="settings_container" style="
 		position: fixed;
@@ -373,8 +230,6 @@
 		    <a class="server serverA" href="http://localhost:3000">localhost:3000<div>your local server will be here<br>(contact us to appear in list)</div></a>
 		    
 		    <a class="server serverB" href="https://www.gevanni.com:3000">gevanni.com:3000<div>Europe, Ukraine<br>Main test server, core game in its' raw unchanged state</div></a>
-		    <!--<a class="server serverB" href="https://www.gevanni.com:3001">gevanni.com:3001<div>Europe, Ukraine<br>Main server, combat allowed, no rules</div></a>-->
-		    <!--<a class="server serverB" href="https://www.gevanni.com:3004">gevanni.com:3004<div>Europe, Ukraine<br>Combat arena</div></a>-->
 		    <a class="server serverB" href="https://www.plazmaburst2.com:8443">plazmaburst2.com:8443<div>USA, California<br>Secondary server, no rules, only blue base shielding units<br>Hosted by Coolbuddy.com<br>since July 31, 2021</div></a>
 		    
 		    
@@ -383,8 +238,6 @@
 		    <a class="server serverC" href="https://stardefenders.io:3001">stardefenders.io:3001<div>Canada, Quebec<br>Active development<br>Hosted by mrmcshroom -- EASY<br>since March 27, 2021</div></a>
 		    <a class="server serverC" href="https://stardefenders.io:3002">stardefenders.io:3002<div>Canada, Quebec<br>Active development<br>Hosted by mrmcshroom -- PEACEFUL<br>since March 27, 2021</div></a>
 		    <a class="server serverC" href="https://stardefenders.io:4000">stardefenders.io:4000<div>Canada, Quebec<br>Active development<br>Hosted by mrmcshroom, managed by Booraz.<br>since September, 2022</div></a>
-		    
-		    <!--<a class="server serverC" href="#" onclick="confirm('This server is hosted by one of Star Defenders 2D players and thus we can not be fully responsible for any custom content you might find there.\n\nAdditonally your current IP address and thus approximate location might be known to server owner unless you have VPN enabled before proceeding.\n\nFeel free to report any abuse to https://twitter.com/Eric_Gurt \n\nPress OK to proceed')?window.location='https://darkclan.xyz:3000':null;">darkclan.xyz:3000<div>Canada, Quebec<br>Rare updates<br>Hosted by mrmcshroom<br>since March 27, 2021</div></a>-->
 		</div>
 	    </div>
 	    
@@ -439,7 +292,7 @@
 	    <br>
 	    
 	    <input type="color" id="color_dark" value="#808080" mycondition="entity1">
-	    <label for="color_dark" mycondition="entity1" mycondition="entity1">Helmet (dark shade)</label>
+	    <label for="color_dark" mycondition="entity1">Helmet (dark shade)</label>
 	    <br mycondition="entity1">
 	    
 	    <input type="color" id="color_visor" value="#ff0000">
@@ -496,18 +349,21 @@
 		<br>
 		<input type="checkbox" id="entity3" value="1">
 		<label for="entity3">Overlord</label>
+		<br>
+		<input type="checkbox" id="entity4" value="1">
+		<label for="entity4">StreamLogger(?)</label>
 	    </div>
 	    
 	    <div class="set_block" tabindex="1" mycondition="entity1">
-		<span class="sdtitle">Start with</span><br>
-		<input type="checkbox" id="start_with1" value="pistol_and_buildtool">
+		<span class="sdtitle">Melee weapon</span><br>
+		<!--<input type="checkbox" id="start_with1" value="pistol_and_buildtool">
 		<label for="start_with1">Pistol and build tool</label>
+		<br>-->
+		<input type="checkbox" id="start_with1" value="sword_and_buildtool" checked>
+		<label for="start_with1">Sword</label>
 		<br>
-		<input type="checkbox" id="start_with2" value="sword_and_buildtool" checked>
-		<label for="start_with2">Sword and build tool</label>
-		<br>
-		<input type="checkbox" id="start_with3" value="shovel_and_buildtool">
-		<label for="start_with3">Shovel and build tool</label>
+		<input type="checkbox" id="start_with2" value="shovel_and_buildtool">
+		<label for="start_with2">Shovel</label>
 	    </div>
 	    
 	    <!--
@@ -521,7 +377,7 @@
 	    </div>
 	    -->
 	    
-	    <div class="set_block" tabindex="1">
+	    <div class="set_block" tabindex="1" mycondition="entity1">
 		<span class="sdtitle">Assign instructor on start</span><br>
 		<input type="checkbox" id="hints1" value="no">
 		<label for="hints1">No</label>
@@ -1549,7 +1405,7 @@
 		<label for="bugs2">Yes</label>
 	    </div>
 	    
-	    <div class="set_block" tabindex="1">
+	    <div class="set_block" tabindex="1" mycondition="entity1 || entity2">
 		<span class="sdtitle">Character's voice (eSpeak)</span><br>
 		<input type="checkbox" id="voice1" value="low" onclick="globalThis.TestVoice(this)">
 		<label for="voice1">Lowest pitch</label>
@@ -1602,6 +1458,9 @@
 	    
 	    <div class="set_block" tabindex="1">
 		<span class="sdtitle">Censorship</span><br>
+		<input type="checkbox" id="censorship3" value="2">
+		<label for="censorship3">Yes and hide videos</label>
+		<br>
 		<input type="checkbox" id="censorship1" value="1" checked>
 		<label for="censorship1">Yes</label>
 		<br>
@@ -1619,7 +1478,7 @@
 	    <input id="last_local_time_start" type="hidden">
 	    
 	    
-	    <input type="button" style="background-color:#2b7939; width: 300px;" id="start_btn" onclick="sdWorld.Start( globalThis.GetPlayerSettings() );" value="Play with other players"> 
+	    <input type="button" style="background-color:#2b7939; width: 300px;" id="start_btn" onclick="sdWorld.PlayAdAndStart( globalThis.GetPlayerSettings(), this );" value="Play with other players"> 
 	    <input type="button" style="background-color:#333333; width: 300px;" id="start_offline_btn" onclick="sdWorld.StartOffline( globalThis.GetPlayerSettings() );" value="Play offline (does not work)"> 
 	    <input type="button" onclick="globalThis.ResetSkin();" value="Reset skin to default">
 	    
@@ -1713,22 +1572,28 @@
 		
 		
 		let ent2;
-			
-		if ( inputs_hash[ 'start_with2' ].el.checked )
+		let ent3;
+		{
+		    ent3 = new sdGun({ x:0, y:0, class: sdGun.CLASS_PISTOL });
+		    ent._inventory[ 1 ] = ent3;
+		    ent3._held_by = ent;
+		}
+		
+		if ( inputs_hash[ 'start_with1' ].el.checked )
 		{
 		    ent2 = new sdGun({ x:0, y:0, class: sdGun.CLASS_SWORD });
 		    ent._inventory[ 0 ] = ent2;
 		    ent2._held_by = ent;
 		}
 		else
-		if ( inputs_hash[ 'start_with1' ].el.checked )
+		/*if ( inputs_hash[ 'start_with1' ].el.checked )
 		{
 		    ent2 = new sdGun({ x:0, y:0, class: sdGun.CLASS_PISTOL });
 		    ent._inventory[ 1 ] = ent2;
 		    ent2._held_by = ent;
 	        }
-		else
-		if ( inputs_hash[ 'start_with3' ].el.checked )
+		else*/
+		if ( inputs_hash[ 'start_with2' ].el.checked )
 		{
 		    ent2 = new sdGun({ x:0, y:0, class: sdGun.CLASS_SHOVEL });
 		    ent._inventory[ 0 ] = ent2;
@@ -1736,7 +1601,7 @@
 	        }	
 		
 		
-		if ( !inputs_hash[ 'start_with2' ].el.checked && !inputs_hash[ 'start_with3' ].el.checked )
+		//if ( !inputs_hash[ 'start_with2' ].el.checked && !inputs_hash[ 'start_with3' ].el.checked )
 		ent.gun_slot = ( sdWorld.time % 4000 ) < 2000 ? 0 : 1;
 		
 		//ent._an = Math.PI / 2;
@@ -1758,8 +1623,10 @@
 		{
 		    ent.fire_anim = 5 / ( ( sdWorld.time + 500 ) % 2000 ) / 250;
 		    
-		    if ( !inputs_hash[ 'start_with2' ].el.checked && !inputs_hash[ 'start_with3' ].el.checked )
-		    ent2.muzzle = 5 / ( ( sdWorld.time + 500 ) % 2000 ) / 250;
+		    /*
+		    //if ( !inputs_hash[ 'start_with2' ].el.checked && !inputs_hash[ 'start_with3' ].el.checked )
+		    if ( ent.gun_slot === 1 )
+		    ent2.muzzle = 5 / ( ( sdWorld.time + 500 ) % 2000 ) / 250;*/
 		}
 
 		ctx.scale( 4,4 );
@@ -1779,6 +1646,9 @@
 
 		ent2.remove();
 		ent2._remove();
+
+		ent3.remove();
+		ent3._remove();
 
 		ctx.restore();
 		
@@ -1936,7 +1806,17 @@
 		{
 		    let cond = conditional_elements[ i ].getAttribute( 'mycondition' );
 		    
-		    conditional_elements[ i ].style.display = ( inputs_hash[ cond ].el.checked ) ? '' : 'none';
+		    let cond_parts = cond.split('||');
+		    
+		    let vis = false;
+		    
+		    for ( let i2 = 0; i2 < cond_parts.length; i2++ )
+		    {
+			if ( inputs_hash[ cond_parts[ i2 ].trim() ].el.checked )
+			vis = true;
+		    }
+		    
+		    conditional_elements[ i ].style.display = vis ? '' : 'none';
 		}
 		
 		for ( let i = 0; i < inputs.length; i++ )
@@ -1955,6 +1835,7 @@
 		    delete ret.my_hash;
 		}
 		
+		if ( typeof sdTranslationManager !== 'undefined' )
 		sdTranslationManager.TranslateHTMLPage();
 		
 		return ret;
@@ -2071,6 +1952,46 @@
 		  console.log( 'Error occurred in recognition: ' + event.error );
 		  crashed = true;
 		};
+	    }
+	    
+	    if ( document.location.hash === '#stream_logger' )
+	    {
+		
+		let once = true;
+		
+		function StreamLoggerAuto()
+		{
+		    if ( once )
+		    if ( typeof sdWorld !== 'undefined' )
+		    {
+			once = false;
+			globalThis.TestVoice( null, 'Hash tag detected - initiating stream logger mode. Have a nice day!' );
+		    }
+		    
+		    if ( typeof sdRenderer !== 'undefined' && sdRenderer.canvas.style.display === 'none' )
+		    {
+			if ( document.getElementById( 'entity4' ) )
+			{
+			    if ( document.getElementById( 'entity4' ).checked )
+			    {
+				if ( document.getElementById( 'volume1' ).checked )
+				{
+				    if ( socket.connected )
+				    {
+					document.getElementById( 'start_btn' ).click();
+				    }
+				}
+				else
+				document.getElementById( 'volume1' ).click();
+			    }
+			    else
+			    document.getElementById( 'entity4' ).click();
+			}
+		    }
+		    setTimeout( StreamLoggerAuto, 100 );
+		}
+		
+		StreamLoggerAuto();
 	    }
 	}
 	</script>

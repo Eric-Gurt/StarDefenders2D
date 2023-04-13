@@ -672,7 +672,7 @@ class sdLongRangeTeleport extends sdEntity
 		if ( rewards === 'CLAIM_REWARD_WEAPON' )
 		{
 			let gun, rng;
-			rng = Math.random() * 1.4;
+			rng = Math.random() * 1.8; // With more gun rewards, these values will change
 			if ( rng < 0.2 )
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_DMR });
 			else
@@ -688,10 +688,17 @@ class sdLongRangeTeleport extends sdEntity
 			if ( rng < 1 )
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_RAYRIFLE });
 			else
-			if ( rng < 1.2 ) // With more gun rewards, these values will change
+			if ( rng < 1.2 )
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_MMG_THE_RIPPER_T3 });
 			else
+			if ( rng < 1.4 )
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_AREA_AMPLIFIER });
+			else
+			if ( rng < 1.6 )
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_ILLUSION_MAKER });
+			else
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_LVL4_ARMOR_REGEN });
+		
 			sdEntity.entities.push( gun );
 		}
 		else
@@ -1007,10 +1014,10 @@ class sdLongRangeTeleport extends sdEntity
 						'Mothership: We had plenty in a storage but someone teleported Quickie which broke all our stuff including crystals.',
 						'Mothership: We don\'t have any right now.',
 						'Mothership: Message me in 5 minutes. We are in the middle of something.',
-						'Mothership: We really are not picking who gets the crystals. Please don\'t be jelous if somebody gets crystals when you don\'t.',
+						'Mothership: We really are not picking who gets the crystals. Please don\'t be jealous if somebody gets crystals when you don\'t.',
 						'Mothership: I have a note "Don\'t give crystals to this person" next to your name. I\'m really sorry...',
 						'Mothership: We don\'t have any stunning ads for you to see at this moment. Oops.',
-						'Mothership: Well... Does\'t planet you are on has them?!',
+						'Mothership: Well... Doesn\'t the planet you are on has them?!',
 						'Mothership: There is a note that says "torture this person with 5 minute delay promises".',
 						'Mothership: There is a note that says "There is a note that says "torture this person with 5 minute delay promises"".',
 						'Mothership: I hope you can wait for when it is a time.',
@@ -1108,6 +1115,13 @@ class sdLongRangeTeleport extends sdEntity
 									
 									this._charge_complete_method = ()=>
 									{
+										this.Deactivation();
+										
+										if ( exectuter_character._is_being_removed ) // LRTP duping prevention
+										{
+											return;
+										}
+										
 										if ( exectuter_character._task_reward_counter < claim_cost ) // Prevent claiming reward on multiple long-range teleports
 										{
 											executer_socket.SDServiceMessage( 'Reward claim was rejected - reward was claimed somewhere else' );
@@ -1119,14 +1133,9 @@ class sdLongRangeTeleport extends sdEntity
 											executer_socket.SDServiceMessage( 'Reward claim was rejected - not enough matter' );
 											return;
 										}
-									
-										this.Deactivation();
-										if ( !exectuter_character._is_being_removed )
-										if ( exectuter_character )
-										{
-											this.GiveRewards( command_name, executer_socket );
-											exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - claim_cost );
-										}
+										
+										this.GiveRewards( command_name, executer_socket );
+										exectuter_character._task_reward_counter = Math.max( 0, exectuter_character._task_reward_counter - claim_cost );
 									};
 								}
 								else
@@ -1142,15 +1151,29 @@ class sdLongRangeTeleport extends sdEntity
 				else
 				if ( command_name === 'AD_REWARD_START' )
 				{
-					if ( sdWorld.time > executer_socket.next_ad_time )
+					if ( !this.is_server_teleport )
 					{
-						executer_socket.ResetAdCooldown();
-						executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'AD_START_ALLOWED', [ this._net_id ] );
-						
-						executer_socket.ad_reward_pending = true;
+						let cc_near = this.has_cc_near;//GetComWiredCache( null, sdCommandCentre );
+						if ( cc_near )
+						{
+							if ( this.matter >= this._matter_max )
+							{
+								if ( sdWorld.time > executer_socket.next_ad_time )
+								{
+									executer_socket.ResetAdCooldown();
+									executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'AD_START_ALLOWED', [ this._net_id ] );
+
+									executer_socket.ad_reward_pending = true;
+								}
+								else
+								executer_socket.SDServiceMessage( 'Not so soon. Try in 5 minutes' );
+							}
+							else
+							executer_socket.SDServiceMessage( 'Not enough matter' );
+						}
+						else
+						executer_socket.SDServiceMessage( 'Long-range teleport requires Command Centre connected' );
 					}
-					else
-					executer_socket.SDServiceMessage( 'Not so soon. Try in 5 minutes' );
 				}
 				else
 				if ( command_name === 'CLAIM_SCANNER' )
@@ -1262,6 +1285,8 @@ class sdLongRangeTeleport extends sdEntity
 												let initiator_hash_or_user_uid = exectuter_character._my_hash;
 												let this_x = this.x;
 												let this_y = this.y;
+												
+												this.matter = 0;
 
 												sdDatabase.Exec( 
 													[ 
@@ -1297,6 +1322,8 @@ class sdLongRangeTeleport extends sdEntity
 											let initiator_hash_or_user_uid = exectuter_character._my_hash;
 											let this_x = this.x;
 											let this_y = this.y;
+												
+											this.matter = 0;
 
 											sdDatabase.Exec( 
 												[ 

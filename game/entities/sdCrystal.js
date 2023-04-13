@@ -159,6 +159,8 @@ class sdCrystal extends sdEntity
 		this.sy = 0;
 		this.type = params.type || 1;
 		this.matter_max = ( this.type === sdCrystal.TYPE_CRYSTAL_BIG || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ) ? 160 : 40;
+		
+		this._time_amplification = 0;
 
 		this.held_by = null; // For amplifiers
 		//this.should_draw = 1; // For storage crates, guns have ttl which can make them dissapear // EG: I think I'm missing something, but ttl is for deletion rather than being drawn? Revert to .should_draw if my changes break anything
@@ -446,6 +448,8 @@ class sdCrystal extends sdEntity
 		if ( this.is_anticrystal )
 		GSPEED *= 0.25;
 	
+		let GSPEED_scaled = sdGun.HandleTimeAmplification( this, GSPEED );
+		
 		if ( this.held_by )
 		{
 			// Usually all crystals can regenerate when they are in some amplifiers
@@ -593,25 +597,25 @@ class sdCrystal extends sdEntity
 			{
 				if ( this.held_by === null || !this.held_by.shielded )
 				{
-					this.HungryMatterGlow( 0.01, 100, GSPEED );
-					this.matter = Math.max( 0, this.matter - GSPEED * 0.01 * this.matter );
+					this.HungryMatterGlow( 0.01, 100, GSPEED_scaled );
+					this.matter = Math.max( 0, this.matter - GSPEED_scaled * 0.01 * this.matter );
 				}
 			}
 			else
 			{
-				//let matter_to_transfer = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( this.matter_regen / 100 ) ) - this.matter;
+				//let matter_to_transfer = Math.min( this.matter_max, this.matter + GSPEED_scaled * 0.001 * this.matter_max / 80 * ( this.matter_regen / 100 ) ) - this.matter;
 				//this.matter_regen = Math.max( 20, this.matter_regen - ( ( matter_to_transfer / this.matter_max ) ) );
 				
 				let matter_before_regen = this.matter;
 				
 				if ( this.held_by && this.held_by.is( sdMatterAmplifier ) )
-				this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( this.matter_regen / 100 ) * ( sdMatterAmplifier.relative_regen_amplification_to_crystals * ( this.held_by.multiplier ) ) );
+				this.matter = Math.min( this.matter_max, this.matter + GSPEED_scaled * 0.001 * this.matter_max / 80 * ( this.matter_regen / 100 ) * ( sdMatterAmplifier.relative_regen_amplification_to_crystals * ( this.held_by.multiplier ) ) );
 				else
-				this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 * ( this.matter_regen / 100 ) );
+				this.matter = Math.min( this.matter_max, this.matter + GSPEED_scaled * 0.001 * this.matter_max / 80 * ( this.matter_regen / 100 ) );
 				
 				this.matter_regen = Math.max( sdCrystal.lowest_matter_regen, this.matter_regen - ( this.matter - matter_before_regen ) / this.matter_max * 100 / sdCrystal.recharges_until_depleated ); // 30 full recharges
 				
-				this.MatterGlow( 0.01, 30, GSPEED );
+				this.MatterGlow( 0.01, 30, GSPEED_scaled );
 			}
 		}
 		

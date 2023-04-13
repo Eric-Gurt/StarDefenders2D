@@ -43,7 +43,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, _category:'root', _opens_category:'Walls' });
 		sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, material: sdBG.MATERIAL_PLATFORMS, _category:'root', _opens_category:'Background walls' });
 		sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, _category:'root', _opens_category:'Doors' });
-		sdShop.options.push({ _class: 'sdCom', _category:'root', _opens_category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdCom', variation:1, _category:'root', _opens_category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_RIFLE, _category:'root', _opens_category:'Equipment' });
 		sdShop.options.push({ _class: null, image: 'vehicle', _category:'root', _opens_category:'Vehicles' });
 		sdShop.options.push({ _class: null, image: 'upgrade', _category:'root', _opens_category:'Upgrades' });
@@ -96,7 +96,7 @@ class sdShop
 		//ctx.filter = '' // white
 		//ctx.filter = '' // black
 		
-		function AddBuildPack( filter, i )
+		function AddBuildPack( filter )
 		{
 			for ( let i2 = 0; i2 < 3; i2++ )
 			{
@@ -250,6 +250,36 @@ class sdShop
 				sdShop.options.push({ _class: 'sdBlock', br:br, width: 8, height: 32, texture_id: i, _category:'Walls' });
 			}
 		}
+		
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 16, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 32, height: 16, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 32, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 32, height: 32, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 8, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 8, height: 16, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		
+		sdShop.options.push({ _class: 'sdBlock', br:100, hue:34, width: 16, height: 16, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, hue:34, width: 32, height: 16, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, hue:34, width: 16, height: 32, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, hue:34, width: 32, height: 32, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, hue:34, width: 16, height: 8, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, hue:34, width: 8, height: 16, texture_id: sdBlock.TEXTURE_ID_WHITE_BRICK, _category:'Walls' });
+		
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 16, texture_id: sdBlock.TEXTURE_ID_DARK_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 32, height: 16, texture_id: sdBlock.TEXTURE_ID_DARK_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 32, texture_id: sdBlock.TEXTURE_ID_DARK_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 32, height: 32, texture_id: sdBlock.TEXTURE_ID_DARK_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 8, texture_id: sdBlock.TEXTURE_ID_DARK_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 8, height: 16, texture_id: sdBlock.TEXTURE_ID_DARK_BRICK, _category:'Walls' });
+		
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 16, texture_id: sdBlock.TEXTURE_ID_FULL_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 32, height: 16, texture_id: sdBlock.TEXTURE_ID_FULL_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 32, texture_id: sdBlock.TEXTURE_ID_FULL_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 32, height: 32, texture_id: sdBlock.TEXTURE_ID_FULL_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 16, height: 8, texture_id: sdBlock.TEXTURE_ID_FULL_WHITE_BRICK, _category:'Walls' });
+		sdShop.options.push({ _class: 'sdBlock', br:100, width: 8, height: 16, texture_id: sdBlock.TEXTURE_ID_FULL_WHITE_BRICK, _category:'Walls' });
+		
+		
 		
 		sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: 'saturate(0)', _category:'Doors' });
 
@@ -662,6 +692,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdJunk', type: 7, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdJunk', type: 8, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCouncilMachine', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdTzyrgAbsorber', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBadDog', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdShark', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWorkbench', _category:'Development tests' });
@@ -701,6 +732,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdDrone', type: 3, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdDrone', type: 4,_ai_team: 4, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdDrone', type: 5,_ai_team: 4, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdDrone', type: 10, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdLost', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_LOST_CONVERTER, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_CABLE_TOOL, _category:'Development tests' });
@@ -1131,6 +1163,15 @@ class sdShop
 				if ( sdShop.options[ sdShop.potential_selection ]._class !== null )
 				{
 					let c = sdWorld.ClassNameToProperName( sdShop.options[ sdShop.potential_selection ]._class, sdShop.options[ sdShop.potential_selection ] );
+					
+					try
+					{
+						let title = sdWorld.entity_classes[ sdShop.options[ sdShop.potential_selection ]._class ].prototype.title;
+						
+						if ( typeof title === 'string' && title.indexOf( 'undefined' ) === -1 )
+						c = title;
+					}
+					catch(e){};
 					
 					t = T('Click to select')+' "' + c + '" '+T('as a build object. Then click to place this object in world.');
 				}

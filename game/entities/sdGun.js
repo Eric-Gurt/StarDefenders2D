@@ -58,11 +58,12 @@ class sdGun extends sdEntity
 		
 		sdGun.ignored_entity_classes_arr = [ 'sdCharacter', 'sdGun', 'sdPlayerDrone', 'sdPlayerOverlord' ];
 		
+		sdGun.time_amplification_gspeed_scale = 4;
+		
 		sdGun.classes = [];
 		
 		sdGunClass.init_class(); // Will populate sdGun.classes array
 
-		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return ( this.class === sdGun.CLASS_CRYSTAL_SHARD ) ? -2 : ( this.class === sdGun.CLASS_BUILDTOOL_UPG ) ? -7 : -4; }
@@ -115,6 +116,17 @@ class sdGun extends sdEntity
 			sdSound.PlaySound({ name:'crystal2_short', x:this.x, y:this.y, volume:1 });
 			this.remove();
 		}
+	}
+	
+	static HandleTimeAmplification( ent, GSPEED )
+	{
+		if ( ent._time_amplification > 0 )
+		{
+			ent._time_amplification -= GSPEED;
+			return GSPEED * sdGun.time_amplification_gspeed_scale;
+		}
+		
+		return GSPEED;
 	}
 	
 	onMovementInRange( from_entity )
@@ -355,6 +367,8 @@ class sdGun extends sdEntity
 		
 		this.sx = 0;
 		this.sy = 0;
+		
+		this._time_amplification = 0;
 		
 		//this._remove_stack_trace = null;
 		
@@ -1085,6 +1099,10 @@ class sdGun extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		let GSPEED_unscaled = GSPEED;
+		
+		GSPEED = sdGun.HandleTimeAmplification( this, GSPEED );
+		
 		if ( !sdWorld.is_server )
 		{
 			this.UpdateHolderClientSide();
@@ -1197,14 +1215,14 @@ class sdGun extends sdEntity
 
 			}
 			
-			this.sy += sdWorld.gravity * GSPEED;
+			this.sy += sdWorld.gravity * GSPEED_unscaled;
 			
 			sdWorld.last_hit_entity = null;
 			
 			if ( this._ignore_collisions_with === null )
-			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1 );
+			this.ApplyVelocityAndCollisions( GSPEED_unscaled, 0, true, 1 );
 			else
-			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, this.CollisionFiltering );
+			this.ApplyVelocityAndCollisions( GSPEED_unscaled, 0, true, 1, this.CollisionFiltering );
 			
 			let known_class = sdGun.classes[ this.class ];
 			
@@ -1227,7 +1245,7 @@ class sdGun extends sdEntity
 				if ( sdWorld.last_hit_entity )
 				this.tilt += -Math.sin( this.tilt / sdGun.tilt_scale * 2 ) * 0.4 * sdGun.tilt_scale;
 				else
-				this.tilt += this.sx * 20 * GSPEED;
+				this.tilt += this.sx * 20 * GSPEED_unscaled;
 			}
 			
 		}

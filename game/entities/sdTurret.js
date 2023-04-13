@@ -193,6 +193,8 @@ class sdTurret extends sdEntity
 		
 		this.lvl = 0;
 		
+		this._time_amplification = 0;
+		
 		this.SetMethod( 'ShootPossibilityFilter', this.ShootPossibilityFilter ); // Here it used for "this" binding so method can be passed to collision logic
 	}
 	GetShootCost()
@@ -235,6 +237,8 @@ class sdTurret extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		GSPEED = sdGun.HandleTimeAmplification( this, GSPEED );
+		
 		let can_hibernate = false;
 		
 		if ( this._disabled_timeout > 0 )
@@ -251,6 +255,9 @@ class sdTurret extends sdEntity
 		{
 			can_hibernate = true;
 		}
+		
+		if ( this.fire_timer > 0 )
+		this.fire_timer = Math.max( 0, this.fire_timer - GSPEED );
 		
 		if ( sdWorld.is_server )
 		{
@@ -592,8 +599,6 @@ class sdTurret extends sdEntity
 
 						sdEntity.entities.push( bullet_obj );
 					}
-					else
-					this.fire_timer = Math.max( 0, this.fire_timer - GSPEED );
 
 					this._update_version++;
 				}
@@ -611,7 +616,7 @@ class sdTurret extends sdEntity
 		}
 		
 		if ( sdWorld.is_server )
-		if ( can_hibernate )
+		if ( can_hibernate && this.fire_timer <= 0 )
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 	}
 	ShootPossibilityFilter( ent )

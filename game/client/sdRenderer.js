@@ -20,6 +20,7 @@ import sdLamp from '../entities/sdLamp.js';
 import sdFaceCrab from '../entities/sdFaceCrab.js';
 import sdStatusEffect from '../entities/sdStatusEffect.js';
 import sdCharacter from '../entities/sdCharacter.js';
+import sdPlayerSpectator from '../entities/sdPlayerSpectator.js';
 
 import sdAtlasMaterial from './sdAtlasMaterial.js';
 
@@ -680,6 +681,8 @@ class sdRenderer
 		if ( Math.random() > 0.1 )
 		return;*/
 			
+		const show_hud = ( !sdWorld.my_entity || !sdWorld.my_entity.is( sdPlayerSpectator ) || sdChat.open || sdContextMenu.open );
+			
 		let ms_since_last_render = sdRenderer.last_render - sdWorld.time;
 		sdRenderer.last_render = sdWorld.time;
 		
@@ -903,6 +906,7 @@ class sdRenderer
 				ctx.sd_hue_rotation = 0;
 			}
 			
+			if ( sdWorld.show_videos )
 			if ( sdWorld.time > sdRenderer.last_source_change + 5000 )
 			{
 				let best_source = null;
@@ -1397,7 +1401,10 @@ class sdRenderer
 					// TODO: Add bounds check, though that is maybe pointless if server won't tell offscreen info
 					
 					if ( sdWorld.my_entity.driver_of )
-					sdWorld.my_entity.driver_of.DrawHUD( ctx, false );
+					{
+						if ( sdWorld.my_entity.driver_of.DrawsHUDForDriver() )
+						sdWorld.my_entity.driver_of.DrawHUD( ctx, false );
+					}
 					else
 					sdWorld.my_entity.DrawHUD( ctx, false );
 				}
@@ -1412,6 +1419,7 @@ class sdRenderer
 					var best_ent = null;
 					var best_di = -1;
 
+					if ( show_hud )
 					for ( var i = 0; i < sdEntity.entities.length; i++ )
 					if ( sdEntity.entities[ i ]._flag === frame_flag_reference )
 					if ( sdEntity.entities[ i ].DrawHUD !== sdEntity.prototype.DrawHUD )
@@ -1507,6 +1515,7 @@ class sdRenderer
 			ctx.camera_relative_world_scale = sdRenderer.distance_scale_in_game_hud;
 			
 			// Ingame hud
+			if ( show_hud )
 			if ( sdWorld.my_entity )
 			if ( sdRenderer.UseCrosshair() )
 			{
@@ -1564,7 +1573,7 @@ class sdRenderer
 		
 		
 		// On-screen foregroud
-		if ( sdWorld.my_entity )
+		if ( sdWorld.my_entity && show_hud )
 		{
 			let scale = ( 0.3 + 0.7 * sdRenderer.resolution_quality );
 			
@@ -1739,7 +1748,7 @@ class sdRenderer
 
 				ctx.textAlign = 'right';
 				ctx.fillStyle = '#AAAAAA';
-				ctx.fillText( globalThis.players_playing+ " alive", sdRenderer.screen_width - 5 - 5, 20 );
+				ctx.fillText( globalThis.players_playing+ T(" alive"), sdRenderer.screen_width - 5 - 5, 20 );
 
 				//for ( var i = 0; i < sdWorld.leaders.length; i++ )
 				for ( var i = 0; i < sdWorld.leaders.length; i++ )

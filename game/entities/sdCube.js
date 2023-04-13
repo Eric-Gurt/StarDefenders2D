@@ -15,6 +15,7 @@ import sdDrone from './sdDrone.js';
 import sdSetrDestroyer from './sdSetrDestroyer.js';
 import sdSpider from './sdSpider.js';
 import sdOverlord from './sdOverlord.js';
+import sdBlock from './sdBlock.js';
 
 import sdPathFinding from '../ai/sdPathFinding.js';
 
@@ -214,6 +215,8 @@ class sdCube extends sdEntity
 		
 		this.matter_max = (this.kind === sdCube.KIND_WHITE ? 6 : this.kind === sdCube.KIND_YELLOW ? 4 : 1 ) * 160;
 		this.matter = this.matter_max;
+		
+		this._time_amplification = 0;
 		
 		sdCube.alive_cube_counter++;
 		
@@ -495,6 +498,30 @@ class sdCube extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 
+		let spear_targer_reaction = ( bullet, target_entity )=>
+		{
+			
+			if ( target_entity.is( sdLost ) )
+			{
+				target_entity.DamageWithEffect( 10, bullet._owner );
+			}
+			else
+			{
+				sdWorld.SendEffect({ 
+					x: bullet.x, 
+					y: bullet.y, 
+					radius: 16,
+					damage_scale: 0, // Just a decoration effect
+					type: sdEffect.TYPE_EXPLOSION, 
+					owner: this,
+					color: '#aaaaaa'
+				});
+
+				sdLost.ApplyAffection( target_entity, 10, bullet, sdLost.FILTER_WHITE );
+			}
+		};
+
+
 		let bullet_obj1 = new sdBullet({ x: this.x, y: this.y });
 					bullet_obj1._owner = this;
 					bullet_obj1.sx = -1;
@@ -508,9 +535,11 @@ class sdCube extends sdEntity
 					bullet_obj1.time_left = 30;
 
 					bullet_obj1._rail = true;
-					bullet_obj1.color = '#FFFFFF';
+					bullet_obj1.color = '#888888';
 
-					bullet_obj1._damage = 15;
+					bullet_obj1._damage = 1;
+
+					bullet_obj1._custom_target_reaction = spear_targer_reaction;
 
 					sdEntity.entities.push( bullet_obj1 );
 
@@ -527,9 +556,12 @@ class sdCube extends sdEntity
 					bullet_obj2.time_left = 30;
 
 					bullet_obj2._rail = true;
-					bullet_obj2.color = '#FFFFFF';
+					bullet_obj2.color = '#888888';
 
-					bullet_obj2._damage = 15;
+					bullet_obj2._damage = 1;
+
+					bullet_obj2._custom_target_reaction = spear_targer_reaction;
+
 					sdEntity.entities.push( bullet_obj2 );
 
 		let bullet_obj3 = new sdBullet({ x: this.x, y: this.y });
@@ -545,9 +577,11 @@ class sdCube extends sdEntity
 					bullet_obj3.time_left = 30;
 
 					bullet_obj3._rail = true;
-					bullet_obj3.color = '#FFFFFF';
+					bullet_obj3.color = '#888888';
 
-					bullet_obj3._damage = 15;
+					bullet_obj3._damage = 1;
+
+					bullet_obj3._custom_target_reaction = spear_targer_reaction;
 
 					sdEntity.entities.push( bullet_obj3 );
 
@@ -564,9 +598,12 @@ class sdCube extends sdEntity
 					bullet_obj4.time_left = 30;
 
 					bullet_obj4._rail = true;
-					bullet_obj4.color = '#FFFFFF';	
+					bullet_obj4.color = '#888888';	
 
-					bullet_obj4._damage = 15;
+					bullet_obj4._damage = 1;
+
+					bullet_obj4._custom_target_reaction = spear_targer_reaction;
+
 					sdEntity.entities.push( bullet_obj4 );
 	}
 	TeleportSomewhere(dist = 1, add_x = 0, add_y = 0) // Dist = distance multiplier in direction it's going, add_x is additional X, add_y is additional Y
@@ -597,6 +634,8 @@ class sdCube extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		GSPEED = sdGun.HandleTimeAmplification( this, GSPEED );
+		
 		if ( this.regen_timeout <= 0 )
 		{
 			if ( this.hea < this.hmax )
@@ -855,7 +894,20 @@ class sdCube extends sdEntity
 								 ( target.GetClass() === 'sdOverlord' && target.hea > 0  && !sdCube.IsTargetFriendly( target ) ) ||
 								 ( target.GetClass() === 'sdSetrDestroyer' && target.hea > 0  && !sdCube.IsTargetFriendly( target ) ) )
 							{
-								if ( sdWorld.CheckLineOfSight( this.x, this.y, target.x, target.y, target, [ 'sdCube' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ] ) )
+								if ( 
+										sdWorld.CheckLineOfSight( this.x, this.y, target.x, target.y, target, [ 'sdCube' ], [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier' ] ) 
+										||
+										(
+											sdWorld.last_hit_entity 
+											&& 
+											sdWorld.last_hit_entity.is( sdBlock ) 
+											&& 
+											( 
+												sdWorld.last_hit_entity.material === sdBlock.MATERIAL_TRAPSHIELD || 
+												sdWorld.last_hit_entity.material === sdBlock.MATERIAL_SHARP 
+											)
+										)
+									)
 								targets.push( target );
 								else
 								{
@@ -1048,7 +1100,7 @@ class sdCube extends sdEntity
 		if ( ent.GetClass() === 'sdEnemyMech' ) // Flying mechs are targetable by cubes now
 		return false;
 		
-		if ( ent.GetClass() === 'sdBot' ) // Flying mechs are targetable by cubes now
+		if ( ent.GetClass() === 'sdBot' )
 		return false;
 
 		if ( ent.GetClass() === 'sdSetrDestroyer' ) // Flying mechs are targetable by cubes now

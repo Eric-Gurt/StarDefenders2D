@@ -281,11 +281,11 @@ class sdQuickie extends sdEntity
 					this._last_bite = sdWorld.time;
 					if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )
 					{
-						if ( from_entity._reinforced_level > 0 ) // Quickies should not damage reinforced blocks to prevent raiders using them
+						/*if ( from_entity._reinforced_level > 0 ) // Quickies should not damage reinforced blocks to prevent raiders using them
 						{
 							// No damage
 						}
-						else
+						else*/
 						from_entity.DamageWithEffect( 15 * this._tier, this );
 					}
 					else

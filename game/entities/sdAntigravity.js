@@ -196,10 +196,7 @@ class sdAntigravity extends sdEntity
 	}
 	get title()
 	{
-		if ( this.matter > 0 )
 		return 'Antigravity field';
-	
-		return 'Antigravity field ( no matter )';
 	}
 	Draw( ctx, attached )
 	{
@@ -245,7 +242,10 @@ class sdAntigravity extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
+		if ( this.matter > 0 )
 		sdEntity.Tooltip( ctx, this.title );
+		else
+		sdEntity.Tooltip( ctx, this.title + ' ( no matter )' );
 	}
 	onRemove() // Class-specific, if needed
 	{

@@ -739,6 +739,8 @@ class sdBullet extends sdEntity
 			}
 			else
 			{
+				if ( sdWorld.server_config.GetHitAllowed && !sdWorld.server_config.GetHitAllowed( this, from_entity ) )
+				this._damage = 0;
 				if ( this.is_grenade )
 				{
 					// Maybe more filtering logic had to be here

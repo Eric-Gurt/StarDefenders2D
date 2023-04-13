@@ -15,8 +15,221 @@ class sdTheatre extends sdEntity
 		
 		sdTheatre.theatres = [];
 		
+		sdTheatre.programs = {
+			'PONG':
+			{
+				PLAYER1_Y: 0,
+				PLAYER2_Y: 1,
+				PLAYER1_SY: 2,
+				PLAYER2_SY: 3,
+				BALL_X: 4,
+				BALL_Y: 5,
+				BALL_SX: 6,
+				BALL_SY: 7,
+				BALL_HELD: 8,
+				SCORE1: 9,
+				SCORE2: 10,
+				
+				player_height: 10,
+				player_width: 2,
+				ball_radius: 2,
+				margin: 2,
+				
+				ProgramStarted: ( theatre, program )=>
+				{
+					const data = [];
+					
+					data[ program.PLAYER1_Y ] = - program.player_height / 2;
+					data[ program.PLAYER2_Y ] = - program.player_height / 2;
+					data[ program.PLAYER1_SY ] = 0;
+					data[ program.PLAYER2_SY ] = 0;
+					data[ program.BALL_X ] = theatre._hitbox_x1 + program.margin + program.player_width + program.ball_radius;
+					data[ program.BALL_Y ] = 0;
+					data[ program.BALL_SX ] = 0;
+					data[ program.BALL_SY ] = 0;
+					data[ program.BALL_HELD ] = 1;
+					data[ program.SCORE1 ] = 0;
+					data[ program.SCORE2 ] = 0;
+					
+					theatre.program_data = data;
+				},
+				ProgramThink: ( theatre, program, GSPEED )=>
+				{
+					const data = theatre.program_data;
+					
+					// Prevent overshooting
+					if ( GSPEED > 1 )
+					GSPEED = 1;
+					
+					for ( let i = 0; i < 2; i++ )
+					{
+						const position_offset = 0 + i;
+						const velocity_offset = 2 + i;
+						
+						const c = theatre[ 'driver' + i ];
+						if ( c )
+						{
+							data[ velocity_offset ] += c.act_y * GSPEED * 0.5;
+						}
+						
+						data[ velocity_offset ] = sdWorld.MorphWithTimeScale( data[ velocity_offset ], 0, 0.9, GSPEED );
+						
+						data[ position_offset ] += data[ velocity_offset ] * GSPEED;
+						
+						if ( data[ position_offset ] < theatre._hitbox_y1 + program.margin )
+						{
+							data[ position_offset ] = theatre._hitbox_y1 + program.margin;
+							data[ velocity_offset ] = 0;
+						}
+						
+						if ( data[ position_offset ] > theatre._hitbox_y2 - program.player_height - program.margin )
+						{
+							data[ position_offset ] = theatre._hitbox_y2 - program.player_height - program.margin;
+							data[ velocity_offset ] = 0;
+						}
+						
+						if ( data[ program.BALL_HELD ] && ( ( data[ program.BALL_X ] < 0 ) === ( i === 0 ) ) )
+						{
+							data[ program.BALL_SX ] = 0;
+							data[ program.BALL_SY ] = data[ velocity_offset ];
+							
+							data[ program.BALL_X ] = ( i === 0 ) ? theatre._hitbox_x1 + program.margin + program.player_width + program.ball_radius : theatre._hitbox_x2 - program.player_width - program.margin - program.ball_radius;
+							data[ program.BALL_Y ] = data[ position_offset ] + program.player_height / 2;
+							
+							if ( c && ( c._key_states.GetKey( 'Mouse1' ) || c.act_x !== 0 ) )
+							{
+								data[ program.BALL_HELD ] = 0;
+								data[ program.BALL_SX ] = -Math.sign( data[ program.BALL_X ] ) * 1.5;
+							}
+						}
+						
+						if ( !data[ program.BALL_HELD ] )
+						if ( ( data[ program.BALL_SX ] < 0 ) === ( i === 0 ) )
+						{
+							let x = ( i === 0 ) ? theatre._hitbox_x1 + program.margin : theatre._hitbox_x2 - program.margin;
+							let y1 = data[ position_offset ];
+							let y2 = data[ position_offset ] + program.player_height;
+							
+							let y = sdWorld.limit( y1, data[ program.BALL_Y ], y2 );
+							
+							//let t = 1;//100;
+							//while ( t-- > 0 )
+							//{
+								let di = sdWorld.inDist2D( x,y, data[ program.BALL_X ], data[ program.BALL_Y ], program.ball_radius + program.player_width );
+								if ( di > 0 )
+								{
+									/*let dx = data[ program.BALL_X ] - x;
+									let dy = data[ program.BALL_Y ] - y;
+
+									dx /= di;
+									dy /= di;
+									
+									dx *= 0.1;
+									dy *= 0.1;
+									
+									//data[ program.BALL_X ] += dx;
+									//data[ program.BALL_Y ] += dy;
+									
+									data[ program.BALL_SX ] += dx;
+									data[ program.BALL_SY ] += dy;*/
+								
+									data[ program.BALL_SX ] = -data[ program.BALL_SX ];
+									data[ program.BALL_SY ] += data[ velocity_offset ];
+									
+									sdSound.PlaySound({ name:'player_step', x:theatre.x, y:theatre.y, volume:0.5, pitch: data[ program.BALL_X ] < 0 ? 3 : 4 });
+									
+									if ( Math.abs( data[ program.BALL_SX ] ) < ( program.ball_radius + program.player_width ) )
+									{
+										data[ program.BALL_SX ] *= 1.05;
+										data[ program.BALL_SY ] *= 1.05;
+									}
+								}
+								//else
+								//break;
+							//}
+							//if ( Math.abs( data[ program.BALL_SX ] ) < 0.5 )
+							//data[ program.BALL_SX ] = ( data[ program.BALL_SX ] < 0 ) ? -0.5 : 0.5;
+						}
+					}
+					
+					if ( !data[ program.BALL_HELD ] )
+					{
+						data[ program.BALL_X ] += data[ program.BALL_SX ] * GSPEED;
+						data[ program.BALL_Y ] += data[ program.BALL_SY ] * GSPEED;
+
+						if ( data[ program.BALL_Y ] < theatre._hitbox_y1 + program.margin + program.ball_radius )
+						{
+							data[ program.BALL_Y ] = theatre._hitbox_y1 + program.margin + program.ball_radius;
+							data[ program.BALL_SY ] = Math.abs( data[ program.BALL_SY ] );
+							
+							sdSound.PlaySound({ name:'player_step', x:theatre.x, y:theatre.y, volume:0.5, pitch: 2 });
+						}
+
+						if ( data[ program.BALL_Y ] > theatre._hitbox_y2 - program.margin - program.ball_radius )
+						{
+							data[ program.BALL_Y ] = theatre._hitbox_y2 - program.margin - program.ball_radius;
+							data[ program.BALL_SY ] = -Math.abs( data[ program.BALL_SY ] );
+							
+							sdSound.PlaySound({ name:'player_step', x:theatre.x, y:theatre.y, volume:0.5, pitch: 2 });
+						}
+
+						if ( Math.abs( data[ program.BALL_X ] ) > theatre._hitbox_x2 )
+						{
+							data[ program.BALL_HELD ] = 1;
+							
+							if ( data[ program.BALL_X ] < 0 )
+							data[ program.SCORE2 ]++;
+							else
+							data[ program.SCORE1 ]++;
+							
+							sdSound.PlaySound({ name:'pop', x:theatre.x, y:theatre.y, volume:1, pitch: 0.25 });
+						}
+					}
+				},
+				ProgramRender: ( theatre, program, ctx )=>
+				{
+					const data = theatre.program_data;
+					
+					sdTheatre.ProgramPartialBackgroundFill( theatre, ctx, '#000000' );
+					
+					ctx.globalAlpha = 1;
+					ctx.fillStyle = '#ffffff';
+					ctx.fillRect( theatre._hitbox_x1 + program.margin, data[ program.PLAYER1_Y ], program.player_width, program.player_height );
+					ctx.fillRect( theatre._hitbox_x2 - program.player_width - program.margin, data[ program.PLAYER2_Y ], program.player_width, program.player_height );
+					
+					let clip_left = 0;
+					let clip_right = 0;
+					
+					if ( data[ program.BALL_X ] - program.ball_radius < theatre._hitbox_x1 )
+					clip_left = theatre._hitbox_x1 - ( data[ program.BALL_X ] - program.ball_radius );
+					
+					if ( data[ program.BALL_X ] + program.ball_radius > theatre._hitbox_x2 )
+					clip_right = ( data[ program.BALL_X ] + program.ball_radius ) - theatre._hitbox_x2;
+					
+					ctx.fillRect( data[ program.BALL_X ] - program.ball_radius + clip_left, data[ program.BALL_Y ] - program.ball_radius, program.ball_radius*2 - clip_left - clip_right, program.ball_radius*2 );
+					
+					ctx.font = "5.5px Verdana";
+					
+					ctx.textAlign = 'right';
+					ctx.fillText( data[ program.SCORE1 ], -2, theatre._hitbox_y2 - 5 ); 
+					
+					ctx.textAlign = 'left';
+					ctx.fillText( data[ program.SCORE2 ], 2, theatre._hitbox_y2 - 5 ); 
+				}
+			}
+		};
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
+					
+	static ProgramPartialBackgroundFill( theatre, ctx, color )
+	{
+		ctx.globalAlpha = 0.6;
+		ctx.fillStyle = color;
+		ctx.fillRect( theatre._hitbox_x1, theatre._hitbox_y1, theatre._hitbox_x2 - theatre._hitbox_x1, theatre._hitbox_y2 - theatre._hitbox_y1 );
+		ctx.globalAlpha = 1;
+	}
+
 	get hitbox_x1() { return - 128 / 2; }
 	get hitbox_x2() { return 128 / 2; }
 	get hitbox_y1() { return - 64 / 2; }
@@ -65,9 +278,19 @@ class sdTheatre extends sdEntity
 		
 		//this.source = 'twitch.video.1031472157';
 		
-		this.service = 'twitch';
+		this.service = 'none';
 		
-		this.video = '1031472157';
+		this.driver0 = null;
+		this.driver1 = null;
+		this.driver2 = null;
+		this.driver3 = null;
+		
+		this.program_data = null; // Synced part, might use some internal variables
+		this.program_name = '';
+		//this._program = null; // Internal part, pointer towards global program. Has methods and in theory can have properties that are not saved with server snapshots (for now)
+		
+		//this.video = '1031472157';
+		this.video = '';
 		this.channel = null;
 		
 		this.volume = 50;
@@ -87,14 +310,101 @@ class sdTheatre extends sdEntity
 	{
 		this;
 	}*/
+	IsVehicle()
+	{
+		return true;
+	}
+	VehicleHidesDrivers()
+	{
+		return false;
+	}
+	VehicleHidesLegs()
+	{
+		return false;
+	}
+	DrawsHUDForDriver()
+	{
+		return false;
+	}
+	
+	GetDriverSlotsCount()
+	{
+		return 4;
+	}
+	
+	AddDriver( c )
+	{
+		if ( !sdWorld.is_server )
+		return;
+	
+		if ( this.program_name === '' || !this.program_data )
+		return;
+	
+		var best_slot = -1;
+		
+		for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
+		{
+			if ( this[ 'driver' + i ] === null )
+			{
+				best_slot = i;
+				break;
+			}
+		}
+		
+		if ( best_slot >= 0 )
+		{
+			this[ 'driver' + best_slot ] = c;
+			
+			c.driver_of = this;
+
+			c._socket.SDServiceMessage( 'Picking gamepad up' );
+
+			if ( this.type === 3 && best_slot === 0 )
+			sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1, pitch:2 });
+		
+			else
+			if ( best_slot === 0 )
+			sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1 });
+		}
+		else
+		{
+			if ( c._socket )
+			c._socket.SDServiceMessage( 'No gamepads left' );
+		}
+	}
+	ExcludeDriver( c, force=false )
+	{
+		if ( !force )
+		if ( !sdWorld.is_server )
+		return;
+		
+		for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
+		{
+			if ( this[ 'driver' + i ] === c )
+			{
+				this[ 'driver' + i ] = null;
+				c.driver_of = null;
+
+				c.PhysWakeUp();
+				
+				if ( c._socket )
+				c._socket.SDServiceMessage( 'Putting gamepad down' );
+		
+				return;
+			}
+		}
+		
+		if ( c._socket )
+		c._socket.SDServiceMessage( 'Error: Attempted leaving vehicle in which character is not located.' );
+	}
 
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		if ( !sdWorld.is_server )
+		/*if ( !sdWorld.is_server )
 		{
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 			return;
-		}
+		}*/
 		
 		this.playing_offset = sdWorld.time - this._playing_since;
 	
@@ -106,6 +416,17 @@ class sdTheatre extends sdEntity
 			this.hea = Math.min( this.hea + GSPEED, this.hmax );
 			//this._update_version++;
 		}
+		
+		if ( this.program_name !== '' )
+		if ( this.program_data )
+		{
+			let program = sdTheatre.programs[ this.program_name ];
+
+			if ( program.ProgramThink )
+			program.ProgramThink( this, program, GSPEED );
+		}
+		
+		
 		//else
 		//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
 	}
@@ -122,6 +443,9 @@ class sdTheatre extends sdEntity
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
+		if ( this.program_name )
+		sdEntity.TooltipUntranslated( ctx, T('Computer ( application: "')+ this.program_name+'.sd" )', 0, -10 );
+		else
 		sdEntity.TooltipUntranslated( ctx, T('Theatre ( channel: "')+this.service + ' > ' + ( this.channel || this.video ) + T('", volume: ')+this.volume+'% )', 0, -10 );
 	}
 	
@@ -213,6 +537,15 @@ class sdTheatre extends sdEntity
 			
 			this.UpdateVolume();
 		}
+		
+		if ( this.program_name !== '' )
+		if ( this.program_data )
+		{
+			let program = sdTheatre.programs[ this.program_name ];
+
+			if ( program.ProgramThink )
+			program.ProgramRender( this, program, ctx );
+		}
 	}
 	UpdateVolume() // Called by theatre's render and on unmute by sdRenderer.js
 	{
@@ -292,6 +625,9 @@ class sdTheatre extends sdEntity
 					//this._update_version++;
 					executer_socket.SDServiceMessage( 'Source updated' );
 					
+					this.program_data = null;
+					this.program_name = '';
+					
 					this._playing_since = sdWorld.time;
 				}
 				else
@@ -339,6 +675,30 @@ class sdTheatre extends sdEntity
 				if ( isNaN( this._playing_since ) )
 				this._playing_since = sdWorld.time;
 			}
+			
+			if ( command_name === 'SET_PROGRAM' )
+			if ( typeof parameters_array[ 0 ] === 'string' )
+			{
+				if ( sdTheatre.programs.hasOwnProperty( parameters_array[ 0 ] ) )
+				{
+					//this._program = sdTheatre.programs[ parameters_array[ 0 ] ];
+					
+					this.service = 'none';
+					this.video = '';
+					this.channel = null;
+					
+					this.program_name = parameters_array[ 0 ];
+					
+					let program = sdTheatre.programs[ this.program_name ];
+					
+					if ( program.ProgramStarted )
+					program.ProgramStarted( this, program );
+				
+					sdSound.PlaySound({ name:'powerup_or_exp_pickup', x:this.x, y:this.y, volume:1, pitch: 0.25 });
+				}
+				else
+				executer_socket.SDServiceMessage( 'Program not found' );
+			}
 		}
 	}
 	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
@@ -365,6 +725,8 @@ class sdTheatre extends sdEntity
 			this.AddContextOption( 'Go to 30 seconds in past', 'SHIFT', [ 1000 * 30 ] );
 			this.AddContextOption( 'Go to 30 seconds in future', 'SHIFT', [ -1000 * 10 ] );
 			this.AddPromptContextOption( 'Go to time', 'GO_TO_TIME', [ undefined ], 'Enter time, in number of minutes', '', 32 );
+			
+			this.AddContextOption( 'Run PONG.sd', 'SET_PROGRAM', [ 'PONG' ] );
 		}
 	}
 }

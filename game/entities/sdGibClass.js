@@ -107,7 +107,7 @@ class sdGibClass
 		};
 		sdGib.classes[ sdGib.CLASS_FALKOK_DRONE_PARTS = 5 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'gibs/drone_falkok_parts' ), // Make sure your gib image is in /gibs folder
+			image: sdWorld.CreateImageFromFile( 'gibs/drone_falkok_parts2' ), // Make sure your gib image is in /gibs folder
 			hitbox_x1: -4,
 			hitbox_x2: 4,
 			hitbox_y1: -4,
@@ -162,6 +162,18 @@ class sdGibClass
 			hitbox_y2: 10,
 			mass: 100,
 			health: 300,
+			blood: 0 // 0 = wall_hit effect
+			
+		};
+		sdGib.classes[ sdGib.CLASS_FALKOK_RAIL_DRONE_PARTS = 10 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'gibs/drone_falkok_parts3' ), // Make sure your gib image is in /gibs folder
+			hitbox_x1: -5,
+			hitbox_x2: 5,
+			hitbox_y1: -5,
+			hitbox_y2: 5,
+			mass: 25,
+			health: 100,
 			blood: 0 // 0 = wall_hit effect
 			
 		};

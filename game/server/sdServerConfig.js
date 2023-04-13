@@ -38,7 +38,9 @@ class sdServerConfigFull extends sdServerConfigShort
 	// ...
 	
 	static database_server = null; // Example: 'https://www.gevanni.com:3000'; // Remote database_server must allow current server's IP in list above. Set as null if this server should have its' own database
-		
+	
+	static adsense_client = 'ca-pub-7381466440820611'; // To learn how to install your ads go there https://developers.google.com/ad-placement/docs/beta . This adsense_client comes from HTML code for AdSense. You'll additionally be requested to allow ads on your domain via ads.txt file. Your server will not show ads designed for other servers and vice versa
+	
 	static save_raw_version_of_snapshot = true; // One that can be easily viewed in Notepad-like applications. It is never used within server logic. "true" can slow-down snapshot generation.
 	
 	static store_game_files_in_ram = false; // Will make server never use hard drive without need until next reboot, except for cases when backup is being made (more RAM usage, can be suitable for VPS servers that have strange Disk I/O issues)
@@ -147,6 +149,10 @@ class sdServerConfigFull extends sdServerConfigShort
 	static GetEventSpeed()
 	{
 		return 30 * 60 * 3 * ( 3 / 2 ); // Return max possible time until next event rolls
+	}
+	static GetBSUDamageMultiplier()
+	{
+		return 1; // Damage multiplier from damaging blocks proteced by BSU.
 	}		
 	static onExtraWorldLogic( GSPEED )
 	{
@@ -175,14 +181,12 @@ class sdServerConfigFull extends sdServerConfigShort
 		let instructor_entity = null;
 		
 		// Spawn starter items based off what player wants to spawn with
-		let guns = [ sdGun.CLASS_BUILD_TOOL ];
+		let guns = [ sdGun.CLASS_BUILD_TOOL, sdGun.CLASS_PISTOL, sdGun.CLASS_MEDIKIT ];
+		
 		if ( player_settings.start_with1 )
-		guns.push( sdGun.CLASS_PISTOL );
-		else
-		if ( player_settings.start_with2 )
 		guns.push( sdGun.CLASS_SWORD );
 		else
-		if ( player_settings.start_with3 )
+		if ( player_settings.start_with2 )
 		guns.push( sdGun.CLASS_SHOVEL );
 
 		if ( character_entity.is( sdCharacter ) )
@@ -241,7 +245,7 @@ class sdServerConfigFull extends sdServerConfigShort
 		}, 5000 );
 		
 		// Instructor, obviously
-		if ( player_settings.hints2 )
+		if ( player_settings.hints2 && character_entity.is( sdCharacter ) )
 		{
 			let intro_offset = 0;
 			let intro_to_speak = [];

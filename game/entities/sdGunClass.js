@@ -18,6 +18,8 @@ import sdWater from './sdWater.js';
 import sdBloodDecal from './sdBloodDecal.js';
 import sdBG from './sdBG.js';
 import sdCube from './sdCube.js';
+import sdStatusEffect from './sdStatusEffect.js';
+
 
 /*
 
@@ -1418,7 +1420,16 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades( AppendBasicCubeGunRecolorUpgrades( [] ) )
+			upgrades: AddGunDefaultUpgrades( AppendBasicCubeGunRecolorUpgrades( 
+				[
+					{ 
+						title: 'Upgrade to v2',
+						cost: 300,
+						action: ( gun, initiator=null )=>{ gun.class = sdGun.CLASS_RAIL_PISTOL2;
+										gun.extra[ ID_DAMAGE_VALUE ] = 25 * 1.2 }
+					}
+				]
+			) )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_RAYGUN = 18 ] = { // Original sprite and weapon balancing by The_Commander 
@@ -5067,9 +5078,9 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_RAYRIFLE = 94 ] =
 		{
 			image: sdWorld.CreateImageFromFile( 'rayrifle_tcorr' ),
-			sound: 'gun_rifle',
-			sound_volume: 1.2,
-			sound_pitch: 0.2,
+			sound: 'gun_rayrifle',
+			//sound_volume: 1.2,
+			//sound_pitch: 0.2,
 			title: 'Ray Rifle TCoRR',
 			slot: 2,
 			reload_time: 2.8,
@@ -6328,6 +6339,170 @@ class sdGunClass
 				}
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#00ff00', 15, 'main energy color' ) )
+		};
+
+		sdGun.classes[ sdGun.CLASS_RAIL_PISTOL2 = 109 ] = { // Original weapon idea, image & pull request by Booraz149 ( https://github.com/Booraz149 )
+			image: sdWorld.CreateImageFromFile( 'rail_pistol2' ),
+			sound: 'cube_attack',
+			sound_pitch: 0.9,
+			title: 'Cube-pistol v2',
+			slot: 1,
+			reload_time: 6,
+			muzzle_x: 4,
+			ammo_capacity: -1,
+			count: 1,
+			fire_type: 2,
+			projectile_properties: { _rail: true, _damage: 25, color: '#62c8f2'/*, _knock_scale:0.01 * 8*/ },
+			spawnable: false,
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _rail: true, color: '#62c8f2', _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 25 * 1.2; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AppendBasicCubeGunRecolorUpgrades( [] ) )
+		};
+		
+		sdGun.classes[ sdGun.CLASS_AREA_AMPLIFIER = 110 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'area_amplifier' ),
+			sound_pitch: 4,
+			sound: 'supercharge_combined2_part2',
+			
+			title: 'Area amplifier',
+			slot: 7,
+			reload_time: 15,
+			muzzle_x: 8,
+			ammo_capacity: -1,
+			count: 1,
+			matter_cost: 1000,
+			projectile_velocity: 10,
+			spawnable: false,
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				return 300;
+			},
+			
+			projectile_properties: { 
+				//explosion_radius: 10, 
+				model: 'ball_circle', 
+				_damage: 0, color:'#ffffff',
+				time_left: 30, 
+				_hittable_by_bullets: false,
+				_custom_detonation_logic:( bullet )=>
+				{
+					if ( bullet._owner )
+					{
+						sdWorld.SendEffect({ 
+							x:bullet.x, 
+							y:bullet.y, 
+							radius:30,
+							damage_scale: 0, // Just a decoration effect
+							type:sdEffect.TYPE_EXPLOSION, 
+							owner:this,
+							color:'#ffffff' 
+						});
+
+						let nears = sdWorld.GetAnythingNear( bullet.x, bullet.y, 32 );
+
+						for ( let i = 0; i < nears.length; i++ )
+						{
+							let e = nears[ i ];
+							
+							if ( e !== bullet._gun )
+							if ( typeof e._time_amplification !== 'undefined' )
+							{
+								let t = 0;
+								
+								if ( e.is( sdGun ) )
+								t = 30 * 2;
+								else
+								t = 30 * 60;
+							
+								e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIME_AMPLIFICATION, t: t });
+							}
+						}
+					}
+				}
+			},
+			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
+		};
+		
+		const illusion_reaction = ( bullet, target_entity )=>
+		{
+			if ( target_entity )
+			if ( bullet._owner )
+			if ( !bullet._is_being_removed )
+			{
+				let owner = bullet._owner;
+				
+				bullet.remove();
+				
+				let ent2 = sdLost.CreateLostCopy( target_entity, target_entity.title || null, sdLost.FILTER_NONE );
+
+				if ( owner._side < 0 )
+				ent2.x = owner.x + owner._hitbox_x1 - ent2._hitbox_x2;
+				else
+				ent2.x = owner.x + owner._hitbox_x2 - ent2._hitbox_x1;
+
+				ent2.y = owner.y + owner._hitbox_y2 - ent2._hitbox_y2;
+				
+				ent2.s = false;
+				ent2.m = 30;
+			}
+		};
+		
+		sdGun.classes[ sdGun.CLASS_ILLUSION_MAKER = 111 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'illusion_maker' ),
+			sound_pitch: 6,
+			sound: 'supercharge_combined2_part2',
+			
+			title: 'Illusion maker',
+			slot: 7,
+			reload_time: 90,
+			muzzle_x: 8,
+			ammo_capacity: -1,
+			count: 1,
+			matter_cost: 1000,
+			projectile_velocity: 10,
+			spawnable: false,
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				return 600;
+			},
+			
+			projectile_properties: { 
+				//explosion_radius: 10, 
+				model: 'ball_circle', 
+				_damage: 0, 
+				color:'#ffffff',
+				time_left: 10, 
+				_hittable_by_bullets: false,
+				//_return_damage_to_owner:true,
+				_custom_target_reaction: illusion_reaction,
+				_custom_target_reaction_protected: illusion_reaction
+			},
+			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
 		};
 	}
 }

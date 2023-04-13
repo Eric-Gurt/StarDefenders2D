@@ -40,6 +40,8 @@ class sdBomb extends sdEntity
 		this._rate = 60;
 		
 		this._owner = null;
+		
+		this._time_amplification = 0;
 	}
 	Impact( vel ) // fall damage basically
 	{
@@ -81,11 +83,13 @@ class sdBomb extends sdEntity
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 		
+		let GSPEED_scaled = sdGun.HandleTimeAmplification( this, GSPEED );
+		
 		if ( this.hea > 0 )
 		{
 			let old = this.detonation_in;
 
-			this.detonation_in -= GSPEED;
+			this.detonation_in -= GSPEED_scaled;
 
 			let rate = 60;
 
