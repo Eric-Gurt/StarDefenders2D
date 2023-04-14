@@ -3,11 +3,21 @@
     src: url("/assets/fonts/CozetteVector.ttf") format("truetype");
 }
 
-*
+/* * */
+*:not(.ace_editor > *)
 {
     font-family: ui_font, Verdana;
 
     cursor: url(/assets/cursor_2x.png), auto;
+}
+.ace_print-margin
+{
+    display: none !important;
+}
+.ace_selection
+{
+    background: #000000 !important;
+    border-radius: 0 !important;
 }
 
 html, body
@@ -431,14 +441,14 @@ div.pending_blinking
     from { opacity: 0.25; }
     to { opacity: 0.5; }
 }
-.sd_scrollbar::-webkit-scrollbar
+.sd_scrollbar::-webkit-scrollbar, .ace_scrollbar::-webkit-scrollbar
 {
     width: 12px;
     height: 12px;
     background-color: #000000;
     border-radius: 6px;
 }
-.sd_scrollbar::-webkit-scrollbar-thumb
+.sd_scrollbar::-webkit-scrollbar-thumb, .ace_scrollbar::-webkit-scrollbar-thumb
 {
     background-color: white;
     box-shadow: inset 0 0 0px 5px #000000;

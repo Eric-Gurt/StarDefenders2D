@@ -2582,9 +2582,9 @@ class sdWorld
 							else
 							{
 								//if ( skipper++ % 2 === 0 )
-								//e.onThink( GSPEED / substeps * gspeed_mult );
+								e.onThink( GSPEED / substeps * gspeed_mult );
 								//else
-								e._onThinkPtr( GSPEED / substeps * gspeed_mult ); // Actually faster in v8... Has something to do with different objects having same property
+								//e._onThinkPtr( GSPEED / substeps * gspeed_mult ); // Actually faster in v8... Has something to do with different objects having same property // UPD: Let's rollback it, maybe this was causing Booraz's server to lag?
 							}
 						}
 						

@@ -18,6 +18,7 @@ import sdWater from './sdWater.js';
 import sdBloodDecal from './sdBloodDecal.js';
 import sdBG from './sdBG.js';
 import sdCube from './sdCube.js';
+import sdCrystal from './sdCrystal.js';
 import sdStatusEffect from './sdStatusEffect.js';
 
 
@@ -6458,7 +6459,17 @@ class sdGunClass
 				bullet.remove();
 				
 				let ent2 = sdLost.CreateLostCopy( target_entity, target_entity.title || null, sdLost.FILTER_NONE );
+				
+				if ( target_entity.is( sdCrystal ) )
+				{
+					if ( target_entity.is_big )
+					ent2.f = sdWorld.GetCrystalHue( target_entity.matter_max / 4 );
+					else
+					ent2.f = sdWorld.GetCrystalHue( target_entity.matter_max );
 
+					ent2.t += ' ( ' + (~~(target_entity.matter)) + ' / ' + target_entity.matter_max + ' )';
+				}
+				
 				if ( owner._side < 0 )
 				ent2.x = owner.x + owner._hitbox_x1 - ent2._hitbox_x2;
 				else

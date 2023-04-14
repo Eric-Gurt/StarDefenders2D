@@ -36,6 +36,8 @@ class sdRenderer
 		sdRenderer.img_sun = sdWorld.CreateImageFromFile( 'sun' );
 		
 		sdRenderer.ad_happens = false;
+		
+		sdRenderer.line_of_sight_mode = true;
 	
 		sdRenderer.distance_scale_background = 1.4; // 1.2
 		sdRenderer.distance_scale_in_world = 1; // Can be altered with .CameraDistanceScale3D
@@ -1087,7 +1089,8 @@ class sdRenderer
 								( 
 									sdWorld.my_entity === e || 
 									sdWorld.my_entity.driver_of === e || 
-									sdWorld.my_entity._god 
+									//sdWorld.my_entity._god ||
+									!sdRenderer.line_of_sight_mode
 								) 
 							) 
 						)
@@ -1251,13 +1254,14 @@ class sdRenderer
 				}
 			}
 			
-			
-			ctx.apply_shading = false;
-			// Line of sight take 2
-			sdRenderer.DrawLineOfSightShading( ctx, ms_since_last_render );
-			
-			ctx.apply_shading = true;
-			
+			if ( sdRenderer.line_of_sight_mode )
+			{
+				ctx.apply_shading = false;
+				// Line of sight take 2
+				sdRenderer.DrawLineOfSightShading( ctx, ms_since_last_render );
+
+				ctx.apply_shading = true;
+			}
 			
 			
 			
@@ -2015,7 +2019,8 @@ class sdRenderer
 				xx = sdWorld.my_entity.x;
 				yy = sdWorld.my_entity.y + ( sdWorld.my_entity._hitbox_y1 + sdWorld.my_entity._hitbox_y2 ) / 2;
 				
-				if ( sdWorld.my_entity._god )
+				//if ( sdWorld.my_entity._god || !sdRenderer.line_of_sight_mode )
+				if ( !sdRenderer.line_of_sight_mode )
 				{
 					darkest_alpha = 0.6;
 				}

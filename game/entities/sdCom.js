@@ -16,6 +16,8 @@ class sdCom extends sdEntity
 {
 	static init_class()
 	{
+		sdCom.debug_hacking = false;
+		
 		sdCom.img_com = sdWorld.CreateImageFromFile( 'com' );
 		sdCom.img_com_cyan = sdWorld.CreateImageFromFile( 'com_cyan' ); // Level 2
 		sdCom.img_com_darkblue = sdWorld.CreateImageFromFile( 'com_darkblue' ); // Level 3
@@ -206,6 +208,9 @@ class sdCom extends sdEntity
 				
 				this.hacking_left -= GSPEED;
 				
+				if ( sdCom.debug_hacking )
+				this.hacking_left -= GSPEED * 20;
+				
 				this._hacking_timer_total += GSPEED;
 				
 				if ( this.hacking_left <= 0 )
@@ -214,9 +219,9 @@ class sdCom extends sdEntity
 					{
 						let near = this.GetHackablesNearby();
 							
-						let r = Math.random();	
+						let r = Math.random();
 						
-						if ( r > 0.0015 ) // 0.15 % chance
+						if ( r > 0.0015 && !sdCom.debug_hacking ) // 0.15 % chance
 						{
 							sdSound.PlaySound({ name:'ghost_stop', pitch: 0.5, x:this.x, y:this.y, volume:1 });
 							this.hacking_left = sdCom.hacking_duration;
@@ -244,6 +249,16 @@ class sdCom extends sdEntity
 							if ( near.length > 0 )
 							{
 								let e = near[ Math.floor( Math.random() * near.length ) ];
+								
+								let old_cables_set = sdCable.cables_per_entity.get( e );
+								if ( old_cables_set )
+								{
+									for ( let cable of old_cables_set )
+									{
+										if ( cable.p.is( sdCom ) || cable.c.is( sdCom ) )
+										cable.remove();
+									}
+								}
 
 								let cable = new sdCable({ 
 									x: this.x, 

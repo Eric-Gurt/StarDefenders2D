@@ -612,6 +612,8 @@ let enf_once = true;
 			
 			let message_id_to_report = ( stuff_arr[ 9 ] === undefined ) ? -1 : stuff_arr[ 9 ];
 			
+			sdRenderer.line_of_sight_mode = stuff_arr[ 10 ] || 0;
+			
 			if ( message_id_to_report !== -1 )
 			messages_to_report_arrival.push( message_id_to_report );
 

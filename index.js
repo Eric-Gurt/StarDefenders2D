@@ -3523,8 +3523,11 @@ const ServerMainMethod = ()=>
 							
 							//let t0 = Date.now();
 							
+							const line_of_sight_mode = sdWorld.server_config.GetLineOfSightMode( socket.character );
+							
 							//if ( perf_test_scan_method === 0 )
-							if ( socket.character._god || socket.character.is( sdPlayerSpectator ) ) // Faster for god mode players as they see everything anyway
+							//if ( socket.character._god || socket.character.is( sdPlayerSpectator ) ) // Faster for god mode players as they see everything anyway
+							if ( !line_of_sight_mode )
 							{
 								for ( let c = 0; c < cells.length; c++ )
 								VisitCell( cells[ c ].x + min_x, cells[ c ].y + min_y );
@@ -3934,7 +3937,8 @@ const ServerMainMethod = ()=>
 								socket.character ? Math.max( -1, socket.character._position_velocity_forced_until - sdWorld.time ) : 0, // 6
 								sdWorld.last_frame_time, // 7
 								sdWorld.last_slowest_class, // 8
-								socket.sent_messages_last // 9
+								socket.sent_messages_last, // 9
+								line_of_sight_mode ? 1 : 0 // 10
 							];
 							
 							// Await can happen after disconnection and full GC removal of any pointer on socket
@@ -3952,7 +3956,8 @@ const ServerMainMethod = ()=>
 								null, // 6
 								null, // 7
 								null, // 8
-								socket.sent_messages_last // 8
+								socket.sent_messages_last, // 9
+								null // 10
 							];
 
 

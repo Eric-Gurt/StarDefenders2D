@@ -162,6 +162,14 @@ class sdBaseShieldingUnit extends sdEntity
 			if ( this.enabled )
 			sdBaseShieldingUnit.EnableNoScoreBSUArea( this ); // Re-occupy area
 		}
+		
+		if ( this.enabled )
+		if ( sdWorld.is_server )
+		if ( sdWorld.server_config.allowed_base_shielding_unit_types !== null )
+		if ( sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( this.type ) === -1 )
+		{
+			this.SetShieldState( false );
+		}
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
@@ -1382,7 +1390,7 @@ class sdBaseShieldingUnit extends sdEntity
 				{	
 					this.ShareValueIfHadntRecently(); // Try taking value from connected shields if this one has 0
 						
-					if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+					if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED && ( sdWorld.is_singleplayer || sdWorld.server_config.allowed_base_shielding_unit_types === null || sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( sdBaseShieldingUnit.TYPE_SCORE_TIMED ) !== -1 ) )
 					{	
 						if ( this.matter_crystal >= 1 )
 						{
@@ -1395,7 +1403,7 @@ class sdBaseShieldingUnit extends sdEntity
 						executer_socket.SDServiceMessage( 'Base shield unit needs at least some score being put into it' );
 					}
 					else
-					if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
+					if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER && ( sdWorld.is_singleplayer || sdWorld.server_config.allowed_base_shielding_unit_types === null || sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER ) !== -1 ) )
 					{
 						if ( this.matter_crystal >= 800 )
 						this.SetShieldState( true, exectuter_character );
@@ -1403,11 +1411,16 @@ class sdBaseShieldingUnit extends sdEntity
 						executer_socket.SDServiceMessage( 'Base shield unit needs at least 800 in total matter capacity crystals to be put into it' );
 					}
 					else
+					if ( this.type === sdBaseShieldingUnit.TYPE_MATTER && ( sdWorld.is_singleplayer || sdWorld.server_config.allowed_base_shielding_unit_types === null || sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( sdBaseShieldingUnit.TYPE_MATTER ) !== -1 ) )
 					{
 						if ( this.matter >= 320 )
 						this.SetShieldState( true, exectuter_character );
 						else
 						executer_socket.SDServiceMessage( 'Base shield unit needs at least 320 matter. Use cable management tool and matter amplifiers with crystals to keep it charged' );
+					}
+					else
+					{
+						executer_socket.SDServiceMessage( 'Base shild unit of this kind does not work in this environment' );
 					}
 				}
 				if ( command_name === 'SHIELD_OFF' )

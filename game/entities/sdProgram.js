@@ -354,6 +354,21 @@ k.prototype.getStateStack=k.prototype.ub;k.prototype.setStateStack=k.prototype.y
 		return obj;
 	}
 	
+	static PrepareFunctionDescriptions( obj )
+	{
+		if ( sdWorld.is_server && !sdWorld.is_singleplayer )
+		return 'Not applicable';
+		
+		let parts = [];
+		for ( let prop in obj )
+		{
+			let s = obj[ prop ].toString();
+			
+			parts.push( prop + s.substring( s.indexOf( '(' ), s.indexOf( ')' ) + 1 ) );
+		}
+		return parts.join( '\n' );
+	}
+	
 	/*
 	static CreateNewProgram( test=false )
 	{

@@ -21,6 +21,8 @@ class sdBotFactory extends sdEntity
 		
 		sdBotFactory.debug = 0;
 		
+		sdBotFactory.function_descriptions = null; // Used for code editor
+		
 		sdBotFactory.default_program = 
 `// This block is executed on bot factory
 while ( true )
@@ -490,6 +492,10 @@ function BrainModelB()
 				}
 			}
 		};
+		if ( sdBotFactory.function_descriptions === null )
+		{
+			sdBotFactory.function_descriptions = sdProgram.PrepareFunctionDescriptions( this._program_globals );
+		}
 		this._scheduled_broadcasts = [];
 	}
 	

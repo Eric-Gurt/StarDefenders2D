@@ -2514,7 +2514,7 @@ class sdEntity
 			this._vertex_cache = null;
 		}
 		
-		this._onThinkPtr = this.onThink; // Trying to make v8 optimize stuff better... It actually and unfortunately works.
+		//this._onThinkPtr = this.onThink; // Trying to make v8 optimize stuff better... It actually and unfortunately works.
 		
 		this._has_matter_props = false; // Becomes true on seal in cases where it is needed
 		

@@ -474,7 +474,7 @@ class sdElement
 	{
 		if ( this.translate )
 		v = T(v);
-		
+	
 		eval( sdElement.text_path[ this.type ] + ' = v;' );
 		
 		//this.last_textContent = this.element.textContent;
