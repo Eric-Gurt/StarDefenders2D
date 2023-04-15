@@ -7,7 +7,7 @@ Reason for that is a usual "I must go, my planet needs me". But once I'm done af
 
 https://twitter.com/Eric_Gurt
 
-As for my part of code, art and sound effects - this project can be used commercially (you are allowed to get revenue from it - be it ads, donations, subscriptions or purchases of game access or in-game items). Once you are over $1000 (USD) in total - just support me via my Patreon (https://www.patreon.com/Eric_Gurt).
+As for my part of code, art and sound effects - this project can be used commercially (you are allowed to get revenue from it - be it ads, donations, subscriptions or purchases of game access or in-game items). Once you are over $1 000 (USD) in total revenue - just support me via my Patreon (https://www.patreon.com/Eric_Gurt). Project uses GPL v3 so you can use it as a base for your other projects, without need to open source.
 
 As for other contributors - feel free to ask at our Discord server. If you are contributor - you can specify your requirements here as well.
 
