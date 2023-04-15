@@ -355,13 +355,18 @@ class sdJunk extends sdEntity
 					8
 				);
 
-				let ent = new sdCrystal({x: this.x, y: this.y + ( this._hitbox_y2 / 2 ), sx: this.sx, sy: this.sy, type:2 });
+				let ent = new sdCrystal({x: this.x, y: this.y, sx: this.sx, sy: this.sy, type:2 });
+				ent.y = this.y + this._hitbox_y2 - ent.hitbox_y2;
 
 				ent.matter_max = sdCrystal.anticrystal_value * 4;
 				ent.matter = 0;
 
 				sdEntity.entities.push( ent );
 				sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
+				
+				let ent2 = new sdCube({ x: this.x, y: ent.y + ent.hitbox_y1 - 5, sx: this.sx, sy: this.sy, kind: sdCube.KIND_MATTER_STEALER });
+				sdEntity.entities.push( ent2 );
+				sdWorld.UpdateHashPosition( ent2, false ); // Optional, but will make it visible as early as possible
 			}
 
 			if ( this.type === sdJunk.TYPE_COUNCIL_BOMB || this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON )

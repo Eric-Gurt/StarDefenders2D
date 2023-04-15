@@ -324,7 +324,11 @@ class sdBlock extends sdEntity
 		{
 			if ( this.material === sdBlock.MATERIAL_TRAPSHIELD )
 			{
-				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
+				if ( sdWorld.time > this._last_damage + 150 )
+				{
+					this._last_damage = sdWorld.time;
+					sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
+				}
 			}
 			
 			if ( this._shielded === null || dmg === Infinity || this._shielded._is_being_removed || !this._shielded.enabled || !sdWorld.inDist2D_Boolean( this.x, this.y, this._shielded.x, this._shielded.y, sdBaseShieldingUnit.protect_distance_stretch ) )
@@ -593,6 +597,10 @@ class sdBlock extends sdEntity
 		{
 			[ this.hue, this.br, this.filter ] = sdWorld.ExtractHueRotate( this.hue, this.br, this.filter );
 		}
+		
+		if ( this.material === sdBlock.MATERIAL_TRAPSHIELD )
+		if ( !this._last_damage )
+		this._last_damage = 0;
 	}
 	onBuilt()
 	{
@@ -627,6 +635,7 @@ class sdBlock extends sdEntity
 		if ( this.material === sdBlock.MATERIAL_TRAPSHIELD ) // Less health, but regeneration will have no delay
 		{
 			this._hmax *= sdBlock.trapshield_block_health_ratio;
+			this._last_damage = 0;
 		}
 		
 		this._hea = this._hmax;

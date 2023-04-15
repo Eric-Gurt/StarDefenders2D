@@ -506,24 +506,11 @@ class RectSpaceMap
 			
 			this.version = this.version + 1;//( this.version + 1 ) % 65535; // Likely to never loop
 			
-			
-			//this.ScheduleCellUpdate( offset, x, y );
-			// Extra because entity might be too close to something like aplifier
-			/*this.ScheduleCellUpdate( offset, x-16, y );
-			this.ScheduleCellUpdate( offset, x+16, y );
-			this.ScheduleCellUpdate( offset, x, y-16 );
-			this.ScheduleCellUpdate( offset, x, y+16 );*/
-		
-			// uint16 max value is 65535
-			//this.bitmap_dataView.setUint16( BYTES_PER_VALUE * ( offset + OFFSET_DISTANCE_TO_TARGET ), 1 ); // Distance limit is 65535 cells * 16 px = 1048560 px
-			//this.bitmap_dataView.setUint32( BYTES_PER_VALUE * ( offset + OFFSET_VERSION ), this.version );
-			//this.bitmap_dataView.setUint8( BYTES_PER_VALUE * ( offset + OFFSET_IS_FULLY_SOLVED ), 0 );
-			
 			this.MarkAsDistanceToTarget( offset, x, y, 1 );
-			this.MarkAsDistanceToTarget( this.GetBitOffsetFromXY( x-16, y ), x-16, y, 2 );
+			/*this.MarkAsDistanceToTarget( this.GetBitOffsetFromXY( x-16, y ), x-16, y, 2 ); Kind of bad as it paints unreachable walls as accessible, then it makes drones to stuck at this place
 			this.MarkAsDistanceToTarget( this.GetBitOffsetFromXY( x+16, y ), x+16, y, 2 );
 			this.MarkAsDistanceToTarget( this.GetBitOffsetFromXY( x, y-16 ), x, y-16, 2 );
-			this.MarkAsDistanceToTarget( this.GetBitOffsetFromXY( x, y+16 ), x, y+16, 2 );
+			this.MarkAsDistanceToTarget( this.GetBitOffsetFromXY( x, y+16 ), x, y+16, 2 );*/
 		}
 	}
 	

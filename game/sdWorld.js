@@ -770,7 +770,8 @@ class sdWorld
 						'sdTutel', 1.5,
 						'sdWater.toxic', 1.0,
 						'sdWater.lava', 0.5,
-						'sdWater.acid', 1.0
+						'sdWater.acid', 1.0,
+						'sdDrone.DRONE_CUT_DROID', 0.35
 					]
 				;
 				
@@ -1694,6 +1695,8 @@ class sdWorld
 
 		if ( ent )
 		{
+			
+			
 			if ( c === 'Block' )
 			{
 				if ( ent.material === sdBlock.MATERIAL_WALL )
@@ -1785,12 +1788,16 @@ class sdWorld
 				c = ent.title;
 				translate = false;
 			}
-
-			if ( c === 'Base Shielding Unit' )
+			else
 			{
-				//c = ent.title;
+				//if ( c === 'Base Shielding Unit' )
 				if ( ent )
-				c = Object.getOwnPropertyDescriptor( sdWorld.entity_classes[ _class ].prototype, 'title' ).get.call( ent );
+				if ( ent.title !== undefined )
+				{
+					//c = ent.title;
+					if ( ent )
+					c = Object.getOwnPropertyDescriptor( sdWorld.entity_classes[ _class ].prototype, 'title' ).get.call( ent );
+				}
 			}
 		}
 		

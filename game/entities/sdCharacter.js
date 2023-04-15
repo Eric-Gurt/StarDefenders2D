@@ -3238,9 +3238,7 @@ class sdCharacter extends sdEntity
 				hook_y = this.hook_relative_to.y + this.hook_relative_y;
 
 				if ( this.hook_relative_to.is( sdCube ) )
-				{
-					this._nature_damage += GSPEED;
-				}
+				this.hook_relative_to.PlayerIsHooked( this, GSPEED );
 			}
 
 			let from_y = this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2;
@@ -3332,7 +3330,7 @@ class sdCharacter extends sdEntity
 						}
 					}
 
-					if ( this.hook_relative_to._is_being_removed || this.hook_relative_to === this.driver_of )
+					if ( this.hook_relative_to._is_being_removed || this.hook_relative_to === this.driver_of || ( this.hook_relative_to.IsCuttingHook() ) )
 					{
 						//this.hook_x = 0;
 						//this.hook_y = 0;

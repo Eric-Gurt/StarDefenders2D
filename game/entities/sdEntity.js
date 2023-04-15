@@ -398,6 +398,13 @@ class sdEntity
 								Math.min( Math.max( this.x + this._hitbox_x1, xx ), this.x + this._hitbox_x2 ), 
 								Math.min( Math.max( this.y + this._hitbox_y1, yy ), this.y + this._hitbox_y2 ) );
 	}
+	GetClosestPointWithinCollision( xx, yy )
+	{
+		return [
+			Math.min( Math.max( this.x + this._hitbox_x1, xx ), this.x + this._hitbox_x2 ), 
+			Math.min( Math.max( this.y + this._hitbox_y1, yy ), this.y + this._hitbox_y2 )
+		];
+	}
 	
 	IsAdminEntity() // Influences remover gun hit test
 	{ return false; }
@@ -417,6 +424,11 @@ class sdEntity
 	
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
 	{ return false; }
+	
+	IsCuttingHook()
+	{
+		return false;
+	}
 	
 	ImpactWithDamageEffect( vel )
 	{
