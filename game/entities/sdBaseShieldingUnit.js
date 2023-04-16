@@ -31,6 +31,16 @@ class sdBaseShieldingUnit extends sdEntity
 {
 	static init_class()
 	{
+		sdBaseShieldingUnit.enable_nearby_claiming = false; // 
+		sdBaseShieldingUnit.longer_time_protected_bsu_priority = 0; // 5 // It is added to 1
+		
+		sdBaseShieldingUnit.all_shield_units = [];
+		
+		sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER = 0;
+		sdBaseShieldingUnit.TYPE_MATTER = 1;
+		sdBaseShieldingUnit.TYPE_SCORE_TIMED = 2; // Similar to crystal consumer but players charge it with score, it expires overtime and can not be attacked. Can't be near red LRTPs though
+		
+		
 		sdBaseShieldingUnit.img_unit = sdWorld.CreateImageFromFile( 'shield_unit_sheet' );
 		/*
 		sdBaseShieldingUnit.img_unit = sdWorld.CreateImageFromFile( 'shield_unit' );
@@ -45,14 +55,6 @@ class sdBaseShieldingUnit extends sdEntity
 				
 		sdBaseShieldingUnit.regen_matter_cost_per_1_hp = 0.002; // Much less than player's automatic regeneration
 		sdBaseShieldingUnit.regen_matter_cost_per_1_hp_matter_type = 0.075; // 0.15 / 1.32 * 0.66; // Was 0.15 but ( / 1.32 * 0.66 ) makes it equal to average matter cost of a weapon. It is slightly less effective for non-sword weapons such as bullets or rails
-		
-		sdBaseShieldingUnit.all_shield_units = [];
-		
-		sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER = 0;
-		sdBaseShieldingUnit.TYPE_MATTER = 1;
-		sdBaseShieldingUnit.TYPE_SCORE_TIMED = 2; // Similar to crystal consumer but players charge it with score, it expires overtime and can not be attacked. Can't be near red LRTPs though
-		
-		sdBaseShieldingUnit.longer_time_protected_bsu_priority = 5; // Returning old ratio since it was likely ineffective due to raid bugs // 9 // 5 // It is added to 1
 		
 		sdBaseShieldingUnit.score_timed_max_capacity = 1000; // 1000 = 2 days // 3500 = 7 days
 		
@@ -103,6 +105,8 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		this._dmg_to_report = 0;
 		
+		this._speed_boost = 1;
+		
 		this._last_damage = 0; // Sound flood prevention
 		
 		this.hmax = 500 * 4; // * 3 when enabled * construction hitpoints upgrades - Just enough so players don't accidentally destroy it when stimpacked and RTP'd
@@ -113,13 +117,15 @@ class sdBaseShieldingUnit extends sdEntity
 		//this.matter_crystal_max = 2000000;
 		this.matter_crystal = 0; // Named differently to prevent matter absorption from entities that emit matter // Also score for score type is stored here
 		this._protected_entities = [];
+		this._protected_entities_when_disabled = null; // Becomes new Set() of _net_id-s // this._protected_entities are moved there for ~5 minutes so raiders can not claim your whole base...
+		this._protected_entities_when_disabled_until = 0;
 		this.enabled = false;
 		this.attack_other_units = true;
 		this._matter_drain = 0;
 		
 		this.pushable = false; // By thrusters
 		
-		this.prevent_hostile_shielding = true; // Prevent bases from being "sealed forever", at least at zero range
+		this.prevent_hostile_shielding = true; // Prevent bases from being "sealed forever", at least at zero range. Disabled globally by sdBaseShieldingUnit.enable_nearby_claiming constant
 		
 		this.matter_max = ( this.type === sdBaseShieldingUnit.TYPE_MATTER ) ? 1000 : 0;
 		this.matter = 0;
@@ -390,11 +396,26 @@ class sdBaseShieldingUnit extends sdEntity
 			return;
 		}
 		
-		if ( !enable )
+		if ( enable )
+		{
+			this._protected_entities_when_disabled = null;
+			this._protected_entities_when_disabled_until = 1;
+		}
+		else
 		{
 			let cameras = this.GetConnectedCameras();
 			for ( let i = 0; i < cameras.length; i++ )
 			cameras[ i ].Trigger( sdCamera.DETECT_BSU_DEACTIVATION );
+		
+			this._protected_entities_when_disabled = new Set();
+			for ( let j = 0; j < this._protected_entities.length; j++ )
+			{
+				if ( this._protected_entities[ j ] )
+				this._protected_entities_when_disabled.add(
+					this._protected_entities[ j ]
+				);
+			}
+			this._protected_entities_when_disabled_until = sdWorld.time + 1000 * 60 * 5; // 5 minutes
 		}
 		
 		this.enabled = enable;
@@ -556,9 +577,9 @@ class sdBaseShieldingUnit extends sdEntity
 			if ( observer_character._socket )
 			{
 				if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
-				observer_character._socket.SDServiceMessage( '{1} entities are disputable and were not protected. Try connecting base shielding units with a cable tool. This kind can\'t be near red long-range teleports.', [ tell_about_disputable_entities ] );
+				observer_character._socket.SDServiceMessage( '{1} entities are disputable and were not protected. Try connecting base shielding units with a cable tool or reset previous claims. This kind can\'t be near red long-range teleports.', [ tell_about_disputable_entities ] );
 				else
-				observer_character._socket.SDServiceMessage( '{1} entities are disputable and were not protected. Try connecting base shielding units with a cable tool.', [ tell_about_disputable_entities ] );
+				observer_character._socket.SDServiceMessage( '{1} entities are disputable and were not protected. Try connecting base shielding units with a cable tool or reset previous claims.', [ tell_about_disputable_entities ] );
 			}
 		}
 		
@@ -619,12 +640,13 @@ class sdBaseShieldingUnit extends sdEntity
 	{
 		let friendly_shields = this.FindObjectsInACableNetwork( null, sdBaseShieldingUnit );
 		let unfriendly_shields = []; // These will prevent protecting walls nearby other shields
+		let disallowed_net_ids = new Set();
 
 		for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
 		{
 			let s = sdBaseShieldingUnit.all_shield_units[ i ];
 
-			if ( s.prevent_hostile_shielding )
+			if ( s.prevent_hostile_shielding && sdBaseShieldingUnit.enable_nearby_claiming )
 			if ( s !== this )
 			if ( ( s.charge >= this.charge && s.charge > 0 ) || ( s.type !== this.type && s.enabled ) )
 			if ( friendly_shields.indexOf( s ) === -1 )
@@ -632,19 +654,33 @@ class sdBaseShieldingUnit extends sdEntity
 		}
 		
 		if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+		for ( let i = 0; i < sdLongRangeTeleport.long_range_teleports.length; i++ )
 		{
-			//unfriendly_shields.push();
-			for ( let i = 0; i < sdLongRangeTeleport.long_range_teleports.length; i++ )
+			let s = sdLongRangeTeleport.long_range_teleports[ i ];
+
+			if ( s.is_server_teleport )
+			unfriendly_shields.push( s );
+		}
+		
+		for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
+		{
+			let s = sdBaseShieldingUnit.all_shield_units[ i ];
+			
+			if ( s._protected_entities_when_disabled )
+			if ( friendly_shields.indexOf( s ) === -1 )
 			{
-				let s = sdLongRangeTeleport.long_range_teleports[ i ];
-				
-				if ( s.is_server_teleport )
-				unfriendly_shields.push( s );
+				s._protected_entities_when_disabled.forEach( ( _net_id )=>
+				{
+					disallowed_net_ids.add( _net_id );
+				});
 			}
 		}
 
 		let CheckIfNearUnfriendly = ( e )=>
 		{
+			if ( disallowed_net_ids.has( e._net_id ) )
+			return true;
+			
 			for ( let i = 0; i < unfriendly_shields.length; i++ )
 			{
 				let s = unfriendly_shields[ i ];
@@ -775,6 +811,20 @@ class sdBaseShieldingUnit extends sdEntity
 			this.charge = Math.max( 0, this.charge - GSPEED * 0.25 );
 		}
 		
+		if ( sdWorld.time > this.charge_blocked_until )
+		if ( this._speed_boost > 1 )
+		{
+			this._speed_boost = Math.max( 1, this._speed_boost - GSPEED / 30 );
+		}
+		
+		// Forget previous claim-protection
+		if ( this._protected_entities_when_disabled )
+		if ( sdWorld.time > this._protected_entities_when_disabled_until )
+		{
+			this._protected_entities_when_disabled = null;
+			this._protected_entities_when_disabled_until = 2;
+		}
+		
 		let delta_pos = sdWorld.Dist2D_Vector( this.x - this._last_x_for_charge_reset, this.y - this._last_y_for_charge_reset );
 		this.charge = Math.max( 0, this.charge - delta_pos / 16 * 100 );
 		this._last_x_for_charge_reset = this.x;
@@ -791,7 +841,7 @@ class sdBaseShieldingUnit extends sdEntity
 			{
 				let s = sdBaseShieldingUnit.all_shield_units[ i ];
 				
-				if ( s.prevent_hostile_shielding )
+				if ( s.prevent_hostile_shielding && sdBaseShieldingUnit.enable_nearby_claiming )
 				if ( s !== this )
 				if ( ( s.charge >= this.charge && s.charge > 0 ) || ( s.type !== this.type && s.enabled ) )
 				if ( friendly_shields.indexOf( s ) === -1 )
@@ -891,8 +941,57 @@ class sdBaseShieldingUnit extends sdEntity
 
 		if ( this.enabled )
 		{
+			const StartExplosionSequence = ()=>
+			{
+				sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:2, pitch:0.5 });
+				sdSound.PlaySound({ name:'gun_needle', x:this.x, y:this.y, volume:4, pitch: 0.2 });
+
+				let that = this;
+				for ( var i = 0; i < 20; i++ )
+				{
+					let an = Math.random() * Math.PI * 2;
+					let d = ( i === 0 ) ? 0 : Math.random() * 20;
+					let r = ( i === 0 ) ? 50 : ( 10 + Math.random() * 20 );
+
+					setTimeout( ()=>
+					{
+						if ( !that._is_being_removed || i === 0 )
+						if ( !that.enabled )
+						{
+							var a = Math.random() * 2 * Math.PI;
+							var s = Math.random() * 10;
+
+							var k = 1;
+
+							var x = that.x + that._hitbox_x1 + Math.random() * ( that._hitbox_x2 - that._hitbox_x1 );
+							var y = that.y + that._hitbox_y1 + Math.random() * ( that._hitbox_y2 - that._hitbox_y1 );
+
+							that.sx -= Math.sin( an ) * d * r * 0.005;
+							that.sy -= Math.cos( an ) * d * r * 0.005;
+
+							sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: that.sx*k + Math.sin(a)*s, sy: that.sy*k + Math.cos(a)*s, filter:'hue-rotate(-90deg) saturate(1.5)' });
+
+							sdWorld.SendEffect({ 
+								x: that.x + Math.sin( an ) * d, 
+								y: that.y + Math.cos( an ) * d, 
+								radius: r, 
+								damage_scale: 1, 
+								type: sdEffect.TYPE_EXPLOSION,
+								owner: that,
+								can_hit_owner: false,
+								color: '#55aaff'
+							});
+
+							that.DamageWithEffect( this.hmax / 20 * 0.95 ); // Leave with 5 hitpoints
+						}
+					}, i * 150 );
+				}
+			};
+			
 			if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER && this.matter_crystal < 800 )
 			{
+				StartExplosionSequence();
+					
 				this.SetShieldState( false ); // Shut down if no matter
 				//if ( this.attack_other_units )
 				//this.attack_other_units = false;
@@ -922,50 +1021,7 @@ class sdBaseShieldingUnit extends sdEntity
 				}
 				else
 				{
-					sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:2, pitch:0.5 });
-					sdSound.PlaySound({ name:'gun_needle', x:this.x, y:this.y, volume:4, pitch: 0.2 });
-					
-					let that = this;
-					for ( var i = 0; i < 20; i++ )
-					{
-						let an = Math.random() * Math.PI * 2;
-						let d = ( i === 0 ) ? 0 : Math.random() * 20;
-						let r = ( i === 0 ) ? 50 : ( 10 + Math.random() * 20 );
-
-						setTimeout( ()=>
-						{
-							if ( !that._is_being_removed || i === 0 )
-							if ( !that.enabled )
-							{
-								var a = Math.random() * 2 * Math.PI;
-								var s = Math.random() * 10;
-
-								var k = 1;
-
-								var x = that.x + that._hitbox_x1 + Math.random() * ( that._hitbox_x2 - that._hitbox_x1 );
-								var y = that.y + that._hitbox_y1 + Math.random() * ( that._hitbox_y2 - that._hitbox_y1 );
-
-								that.sx -= Math.sin( an ) * d * r * 0.005;
-								that.sy -= Math.cos( an ) * d * r * 0.005;
-
-								sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: that.sx*k + Math.sin(a)*s, sy: that.sy*k + Math.cos(a)*s, filter:'hue-rotate(-90deg) saturate(1.5)' });
-
-								sdWorld.SendEffect({ 
-									x: that.x + Math.sin( an ) * d, 
-									y: that.y + Math.cos( an ) * d, 
-									radius: r, 
-									damage_scale: 1, 
-									type: sdEffect.TYPE_EXPLOSION,
-									owner: that,
-									can_hit_owner: false,
-									color: '#55aaff'
-								});
-								
-								that.DamageWithEffect( this.hmax / 20 * 0.95 ); // Leave with 5 hitpoints
-							}
-						}, i * 150 );
-					}
-
+					StartExplosionSequence();
 
 					this.SetShieldState( false ); // Shut down if no matter
 					//if ( this.attack_other_units )
@@ -1048,6 +1104,12 @@ class sdBaseShieldingUnit extends sdEntity
 							unit.matter_crystal -= 80;
 							this.matter_crystal -= 80;
 							
+							//this._speed_boost = Math.min( 100, this._speed_boost + 0.002 );
+							//unit._speed_boost = Math.min( 100, unit._speed_boost + 0.002 );
+
+							this.charge_blocked_until = sdWorld.time + 3000;
+							unit.charge_blocked_until = sdWorld.time + 3000;
+							
 							{
 								let cameras = this.GetConnectedCameras();
 								for ( let i = 0; i < cameras.length; i++ )
@@ -1068,8 +1130,11 @@ class sdBaseShieldingUnit extends sdEntity
 								}
 							}
 							sdWorld.SendEffect({ x:this.x, y:this.y, x2:unit.x, y2:unit.y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
-							this._attack_timer = 30;
+							this._attack_timer = 30 / this._speed_boost;
 							this.attack_anim = 20;
+								
+							sdSound.PlaySound({ name:'zombie_alert2', x:this.x, y:this.y, volume:0.375 * 1, pitch:3 + ( this._speed_boost - 1 ) / 100 * 6 });
+							sdSound.PlaySound({ name:'zombie_alert2', x:unit.x, y:unit.y, volume:0.375 * 1, pitch:3 + ( unit._speed_boost - 1 ) / 100 * 6 });
 							
 							if ( unit.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 							unit.ShareValueIfHadntRecently();
@@ -1099,6 +1164,9 @@ class sdBaseShieldingUnit extends sdEntity
 							this.matter -= least_matter / my_scale;
 							unit.matter -= least_matter / their_scale;
 							
+							//this._speed_boost = Math.min( 100, this._speed_boost + 0.002 );
+							//unit._speed_boost = Math.min( 100, unit._speed_boost + 0.002 );
+							
 							{
 								let cameras = this.GetConnectedCameras();
 								for ( let i = 0; i < cameras.length; i++ )
@@ -1110,7 +1178,7 @@ class sdBaseShieldingUnit extends sdEntity
 								cameras[ i ].Trigger( sdCamera.DETECT_BSU_ATTACKS );
 							}
 
-							this._attack_timer = 60;
+							this._attack_timer = 60 / this._speed_boost;
 							//unit._attack_timer = 60;
 
 							this.attack_anim = 20;
@@ -1127,8 +1195,8 @@ class sdBaseShieldingUnit extends sdEntity
 							else
 							sdWorld.SendEffect({ x:this.x, y:this.y, x2:unit.x, y2:unit.y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
 
-							sdSound.PlaySound({ name:'zombie_alert2', x:this.x, y:this.y, volume:0.375 * intensity, pitch:3 });
-							sdSound.PlaySound({ name:'zombie_alert2', x:unit.x, y:unit.y, volume:0.375 * intensity, pitch:3 });
+							sdSound.PlaySound({ name:'zombie_alert2', x:this.x, y:this.y, volume:0.375 * intensity, pitch:3 + ( this._speed_boost - 1 ) / 100 * 6 });
+							sdSound.PlaySound({ name:'zombie_alert2', x:unit.x, y:unit.y, volume:0.375 * intensity, pitch:3 + ( unit._speed_boost - 1 ) / 100 * 6 });
 						}
 					}
 				}
@@ -1262,11 +1330,17 @@ class sdBaseShieldingUnit extends sdEntity
 		{
 			sdEntity.TooltipUntranslated( ctx, this.title + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )", 0, -8 );
 			
-			let allow_protection_claim_str = ', ' + T( ( this.prevent_hostile_shielding ) ? 'nearby claiming disallowed' : 'nearby claiming allowed' );
+			let allow_protection_claim_str = 
+				sdBaseShieldingUnit.enable_nearby_claiming ? 
+					', ' + T( ( this.prevent_hostile_shielding ) ? 'nearby claiming disallowed' : 'nearby claiming allowed' ) :
+					'';
 			
 			let active_str = T( ( this.attack_other_units ) ? 'active' : 'passive' );
-				
-			sdEntity.TooltipUntranslated( ctx, T('Anti-raid protection') + ': ' + ~~(this.charge) + '% (' + active_str + allow_protection_claim_str + ')', 0, 0, ( this.charge < 50 || !this.prevent_hostile_shielding || !this.attack_other_units ) ? '#ff6666' : '#66ff66' );
+			
+			if ( sdBaseShieldingUnit.longer_time_protected_bsu_priority > 0 )
+			sdEntity.TooltipUntranslated( ctx, T('Anti-raid protection') + ': ' + ~~(this.charge) + '% (' + active_str + allow_protection_claim_str + ')', 0, 0, ( this.charge < 50 || ( !this.prevent_hostile_shielding && sdBaseShieldingUnit.enable_nearby_claiming ) || !this.attack_other_units ) ? '#ff6666' : '#66ff66' );
+			else
+			sdEntity.TooltipUntranslated( ctx, T('Anti-raid protection') + ': ' + active_str + allow_protection_claim_str + '', 0, 0, ( ( !this.prevent_hostile_shielding && sdBaseShieldingUnit.enable_nearby_claiming ) || !this.attack_other_units ) ? '#ff6666' : '#66ff66' );
 		}
 
 		let w = 30;
@@ -1424,6 +1498,20 @@ class sdBaseShieldingUnit extends sdEntity
 						executer_socket.SDServiceMessage( 'Base shild unit of this kind does not work in this environment' );
 					}
 				}
+				if ( command_name === 'CLAIMS_RESET' )
+				{
+					if ( this._protected_entities_when_disabled )
+					{
+						this._protected_entities_when_disabled = null;
+						this._protected_entities_when_disabled_until = 3;
+						sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:2, pitch:0.5 });
+						executer_socket.SDServiceMessage( 'Previous claims were reset' );
+					}
+					else
+					{
+						executer_socket.SDServiceMessage( 'Previous claims were not found' );
+					}
+				}
 				if ( command_name === 'SHIELD_OFF' )
 				{
 					if ( this.enabled === true )
@@ -1439,6 +1527,7 @@ class sdBaseShieldingUnit extends sdEntity
 					//executer_socket.SDServiceMessage( 'Base shield unit needs to be enabled' );
 				}
 				
+				if ( sdBaseShieldingUnit.enable_nearby_claiming )
 				if ( command_name === 'PREVENT_HOSTILE_SHIELDING' )
 				{
 					this.prevent_hostile_shielding = !this.prevent_hostile_shielding;
@@ -1553,6 +1642,8 @@ class sdBaseShieldingUnit extends sdEntity
 					else
 					if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
 					this.AddContextOption( 'Scan nearby unprotected entities ( 320 matter )', 'SHIELD_ON', [] );
+					
+					this.AddContextOption( 'Reset previous temporary claims', 'CLAIMS_RESET', [] );
 				}
 				else
 				{
@@ -1573,11 +1664,13 @@ class sdBaseShieldingUnit extends sdEntity
 					this.AddContextOption( 'Stop attacking nearby shield units', 'ATTACK', [] );
 				}
 
-				if ( this.prevent_hostile_shielding )
-				this.AddContextOption( 'Allow nearby shielding claim by disconnected shields', 'PREVENT_HOSTILE_SHIELDING', [] );
-				else
-				this.AddContextOption( 'Disallow nearby shielding claim by disconnected shields', 'PREVENT_HOSTILE_SHIELDING', [] );
-				
+				if ( sdBaseShieldingUnit.enable_nearby_claiming )
+				{
+					if ( this.prevent_hostile_shielding )
+					this.AddContextOption( 'Allow nearby shielding claim by disconnected shields', 'PREVENT_HOSTILE_SHIELDING', [] );
+					else
+					this.AddContextOption( 'Disallow nearby shielding claim by disconnected shields', 'PREVENT_HOSTILE_SHIELDING', [] );
+				}
 
 				if ( this.type !== sdBaseShieldingUnit.TYPE_SCORE_TIMED )
 				{
