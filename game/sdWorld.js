@@ -1796,6 +1796,8 @@ class sdWorld
 				{
 					//c = ent.title;
 					if ( ent )
+					if ( Object.getOwnPropertyDescriptor( sdWorld.entity_classes[ _class ].prototype, 'title' ) )
+					if ( Object.getOwnPropertyDescriptor( sdWorld.entity_classes[ _class ].prototype, 'title' ).get )
 					c = Object.getOwnPropertyDescriptor( sdWorld.entity_classes[ _class ].prototype, 'title' ).get.call( ent );
 				}
 			}
