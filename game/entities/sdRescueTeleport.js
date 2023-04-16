@@ -506,7 +506,7 @@ class sdRescueTeleport extends sdEntity
 	{
 		let postfix;
 		if ( this.driver0 )
-		postfix = " ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + ", " + T("clonning") + " "+(~~Math.min( 100, this.cloning_progress / sdRescueTeleport.clonning_time * 100 ))+"% )";
+		postfix = " ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + ", " + T("cloning") + " "+(~~Math.min( 100, this.cloning_progress / sdRescueTeleport.clonning_time * 100 ))+"% )";
 		else
 		postfix = "  ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + " )";
 		
@@ -647,7 +647,7 @@ class sdRescueTeleport extends sdEntity
 			if ( this.type === sdRescueTeleport.TYPE_CLONER && this.driver0 )
 			{
 				if ( this.driver0 !== exectuter_character )
-				this.AddContextOption( 'Sabotage clonning', 'SABOTAGE', [] );
+				this.AddContextOption( 'Sabotage cloning', 'SABOTAGE', [] );
 				else
 				this.AddContextOption( 'Continue at rescue teleport instead', 'CANCEL', [] );
 			}
