@@ -5192,7 +5192,7 @@ class sdCharacter extends sdEntity
 							sdWorld.Stop();
 						}
 					});
-					this.AddContextOption( 'Teleport to closest/cheapest claimed rescure teleport', 'RTP', [] );
+					this.AddContextOption( 'Teleport to closest/cheapest claimed rescue teleport', 'RTP', [] );
 					
 					this.AddClientSideActionContextOption( 'Copy character hash ID', ()=>
 					{

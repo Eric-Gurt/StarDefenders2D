@@ -649,7 +649,7 @@ class sdRescueTeleport extends sdEntity
 				if ( this.driver0 !== exectuter_character )
 				this.AddContextOption( 'Sabotage clonning', 'SABOTAGE', [] );
 				else
-				this.AddContextOption( 'Continue at rescure teleport instead', 'CANCEL', [] );
+				this.AddContextOption( 'Continue at rescue teleport instead', 'CANCEL', [] );
 			}
 			
 			//if ( sdWorld.my_entity && this.owner_net_id === sdWorld.my_entity._net_id )
