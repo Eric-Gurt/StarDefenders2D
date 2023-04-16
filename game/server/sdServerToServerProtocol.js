@@ -18,6 +18,8 @@ class sdServerToServerProtocol
 		sdServerToServerProtocol.outgoing_connections = {};
 		sdServerToServerProtocol.routes = 0;
 		
+		sdServerToServerProtocol.message_once_log = new Map(); // Message => do not repeat until
+		
 		sdWorld.outgoing_server_connections_obj = sdServerToServerProtocol.outgoing_connections;
 		
 		sdServerToServerProtocol.last_global_leaderboard_ask = 0;
@@ -165,16 +167,33 @@ class sdServerToServerProtocol
 		{
 			if ( sdWorld.server_config.log_s2s_messages || ( rejection && sdWorld.server_config.notify_about_failed_s2s_attempts ) )
 			{
-				trace( 'Error at IncomingData: ', e, ' :: route_and_data_object: ', route_and_data_object );
-
-				for ( var i = 0; i < sdWorld.sockets.length; i++ )
+				let message = e.toString();
+				
+				if ( sdServerToServerProtocol.message_once_log.has( message ) )
 				{
-					var socket = sdWorld.sockets[ i ]; // can disappear from array in the middle of loop
-
-					if ( socket.character )
-					if ( socket.character._god )
-					socket.SDServiceMessage( 'Notice: Remote server sent message that caused error - view server output for details' );
+					sdServerToServerProtocol.message_once_log.set( message, sdWorld.time + 1000 * 60 * 60 );
 				}
+				else
+				{
+					trace( 'Error at IncomingData: ', e, ' :: route_and_data_object: ', route_and_data_object );
+
+					for ( var i = 0; i < sdWorld.sockets.length; i++ )
+					{
+						var socket = sdWorld.sockets[ i ]; // can disappear from array in the middle of loop
+
+						if ( socket.character )
+						if ( socket.character._god )
+						socket.SDServiceMessage( 'Notice: Remote server sent message that caused error - view server output for details' );
+					}
+				}
+				
+				sdServerToServerProtocol.message_once_log.forEach( ( value, key )=>
+				{
+					if ( sdWorld.time > value )
+					{
+						sdServerToServerProtocol.message_once_log.delete( key );
+					}
+				});
 			}
 		}
 	}
