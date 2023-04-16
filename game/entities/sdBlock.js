@@ -780,6 +780,12 @@ class sdBlock extends sdEntity
 		if ( !this.IsDamageAllowedByAdmins() )
 		return null;
 	
+		if ( !sdWorld.server_config.base_degradation )
+		{
+			if ( this._shielded && !this._shielded._is_being_removed )
+			return null;
+		}
+	
 		let bri = 100 - ( Math.random() * 100 / 5 );
 		let ent2 = new sdBlock({ 
 			/*x: this.x, 

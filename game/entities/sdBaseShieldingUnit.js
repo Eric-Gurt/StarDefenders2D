@@ -988,6 +988,7 @@ class sdBaseShieldingUnit extends sdEntity
 		if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
 		{
 			if ( this._enabled_shields_in_network_count > 0 ) // If connected to enabled - still drain them
+			if ( sdWorld.server_config.base_degradation )
 			if ( sdWorld.server_config.base_shielding_units_passive_drain_per_week_green > 0 )
 			this.matter_crystal = sdWorld.MorphWithTimeScale( this.matter_crystal, 0, 1 - sdWorld.server_config.base_shielding_units_passive_drain_per_week_green, GSPEED / ( 30 * 60 * 60 * 24 * 7 ) ); // 20% per week
 		}

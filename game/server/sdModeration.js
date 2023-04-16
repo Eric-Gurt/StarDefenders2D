@@ -610,68 +610,8 @@ class sdModeration
 			if ( !socket.character._is_being_removed )
 			{
 				let character = socket.character;
-					
-				let was_god = character._god;
 				
-				character._god = false;
-				
-				if ( character.hea > 0 )
-				{
-					function Proceed()
-					{
-						if ( character._is_being_removed )
-						return;
-						
-						if ( character.GetClass() === 'sdPlayerSpectator' ) // If player is using overlord, despawn it instantly.
-						{
-							character.remove();
-							return;
-						}
-						
-						if ( character.GetClass() === 'sdPlayerOverlord' ) // If player is using overlord, despawn it instantly.
-						{
-							character.remove();
-							return;
-						}
-
-						//character.RemoveArmor();
-						//character.DamageWithEffect( character.hea, null, false, false ); // dmg, initiator=null, headshot=false, affects_armor=true
-						character.Damage( character.hea, null, false, false ); // dmg, initiator=null, headshot=false, affects_armor=true
-					}
-					
-					if ( character._score < 30 || was_god || !sdRescueTeleport.players_can_build_rtps )
-					{
-						Proceed();
-					}
-					else
-					{
-						character.Say( [ 'Emergency RTP - activate!' ][ ~~( Math.random() * 1 ) ], false, false, true );
-						
-						setTimeout( ()=>
-						{
-							if ( character._is_being_removed )
-							return;
-						
-							if ( character._frozen >= 1 )
-							{
-								character.Say( [ 'Uh... I\'m frozen', 'Frozen...', 'A bit cold out there' ][ ~~( Math.random() * 3 ) ], false, false, true );
-								return;
-							}
-							
-							if ( character._has_rtp_in_range )
-							Proceed();
-							else
-							{
-								character.Say( [ 'Oh wait!..', 'Uh...', 'Damn', 'Well...', '...but do I have RTP?', 'RIP', 'Where is my RTP by the way?', '...but did I charge the batteries?' ][ ~~( Math.random() * 8 ) ], false, false, true );
-								setTimeout( ()=>
-								{
-									Proceed();
-								}, 2000 );
-							}
-							
-						}, 2000 );
-					}
-				}
+				character.ManualRTPSequence( true );
 			}
 		}
 		else

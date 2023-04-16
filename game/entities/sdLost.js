@@ -167,8 +167,18 @@ class sdLost extends sdEntity
 				}
 				else
 				{
-					ent.remove();
-					ent._broken = false; // No debris
+					let remove = true;
+					
+					if ( ent.is( sdCharacter ) )
+					if ( ent.AttemptTeleportOut( null, true ) )
+					remove = false;
+					
+					
+					if ( remove )
+					{
+						ent.remove();
+						ent._broken = false; // No debris
+					}
 				}
 			}
 			else

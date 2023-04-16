@@ -848,8 +848,7 @@ class sdHover extends sdEntity
 					{
 						let old_x = this[ 'driver' + i ].look_x;
 						let old_y = this[ 'driver' + i ].look_y;
-						//this[ 'driver' + i ].tilt = 0;
-						//this[ 'driver' + i ]._an = 0; // Hack
+						
 						this[ 'driver' + i ]._side = 1;
 						this[ 'driver' + i ].look_x = this[ 'driver' + i ].x + 100;
 						this[ 'driver' + i ].look_y = this[ 'driver' + i ].y;
@@ -857,15 +856,11 @@ class sdHover extends sdEntity
 						ctx.scale( -0.8, 0.8 );
 
 						if ( this.type === 3 )
-						{
-							//ctx.translate( -16, -8 );
-							ctx.translate( 1, -4 );
-						}
+						ctx.translate( 1, -4 );
 						else
 						ctx.translate( ( -32 + ( 1 - i / ( this.GetDriverSlotsCount() - 1 ) ) * 64 ) * 0.5, 3 );
 
-						//this[ 'driver' + i ].Draw( ctx, true );
-						this[ 'driver' + i ].Draw( ctx, true ); // Hack
+						this[ 'driver' + i ].Draw( ctx, true );
 
 						this[ 'driver' + i ].look_x = old_x;
 						this[ 'driver' + i ].look_y = old_y;

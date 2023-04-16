@@ -1765,14 +1765,14 @@ class sdWorld
 				c = 'Area eraser';
 			}
 
-			if ( c === 'Rescue Teleport' )
+			/*if ( c === 'Rescue Teleport' )
 			{
 				if ( ent.type === sdRescueTeleport.TYPE_INFINITE_RANGE )
 				c = 'Rescue teleport';
 				else
 				if ( ent.type === sdRescueTeleport.TYPE_SHORT_RANGE )
 				c = 'Short-range rescue teleport';
-			}
+			}*/
 
 			if ( c === 'Gun' )
 			{
@@ -2550,6 +2550,10 @@ class sdWorld
 							{
 								if ( sdWorld.inDist2D_Boolean( timewarps[ i2 ].x, timewarps[ i2 ].y, e.x, e.y, timewarps[ i2 ].r ) )
 								{
+									if ( !sdWorld.server_config.base_degradation )
+									if ( !sdWorld.CheckLineOfSight( timewarps[ i2 ].x, timewarps[ i2 ].y, ...e.GetClosestPointWithinCollision( timewarps[ i2 ].x, timewarps[ i2 ].y ), null, null, null, sdWorld.FilterShieldedWallsAndDoors ) )
+									continue;
+									
 									if ( e === timewarps[ i2 ].e || e === timewarps[ i2 ].e.driver_of || ( e.is( sdGun ) && e._held_by === timewarps[ i2 ].e ) )
 									{
 										best_warp = 0.5;
@@ -3096,6 +3100,10 @@ class sdWorld
 	static FilterOnlyVisionBlocking( e )
 	{
 		return e.is( sdBlock ) || e.is( sdDoor );
+	}
+	static FilterShieldedWallsAndDoors( e )
+	{
+		return ( e.is( sdBlock ) || e.is( sdDoor ) && e._shielded && !e._shielded._is_being_removed );
 	}
 	static CheckLineOfSight( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null ) // sdWorld.last_hit_entity will be set if false, but not if world edge was met
 	{

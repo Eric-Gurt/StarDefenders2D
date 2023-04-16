@@ -3835,16 +3835,25 @@ class sdEntity
 
 			for ( var i = 0; i < arr.length; i++ )
 			{
-				if ( ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' ) && arr[ i ] !== this && !arr[ i ]._is_being_removed )
+				const e = arr[ i ];
+				
+				if ( ( typeof e.matter !== 'undefined' || typeof e._matter !== 'undefined' ) && e !== this && !e._is_being_removed )
 				{
 					if ( sdWorld.is_server )
 					{
-						arr[ i ].TransferMatter( this, how_much, GSPEED * 4, true ); // Mult by X because targets no longer take 4 cells
-						arr[ i ].WakeUpMatterSources();
+						if ( radius > 32 )
+						{
+							if ( !sdWorld.server_config.base_degradation )
+							if ( !sdWorld.CheckLineOfSight( this.x, this.y, ...e.GetClosestPointWithinCollision( this.x, this.y ), null, null, null, sdWorld.FilterShieldedWallsAndDoors ) )
+							continue;
+						}
+						
+						e.TransferMatter( this, how_much, GSPEED * 4, true ); // Mult by X because targets no longer take 4 cells
+						e.WakeUpMatterSources();
 					}
 					else
 					{
-						if ( arr[ i ] === sdWorld.my_entity )
+						if ( e === sdWorld.my_entity )
 						{
 							sdSound.allow_matter_drain_loop = true;
 							break;

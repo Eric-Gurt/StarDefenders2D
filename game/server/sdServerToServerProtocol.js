@@ -171,7 +171,6 @@ class sdServerToServerProtocol
 				
 				if ( sdServerToServerProtocol.message_once_log.has( message ) )
 				{
-					sdServerToServerProtocol.message_once_log.set( message, sdWorld.time + 1000 * 60 * 60 );
 				}
 				else
 				{
@@ -186,6 +185,8 @@ class sdServerToServerProtocol
 						socket.SDServiceMessage( 'Notice: Remote server sent message that caused error - view server output for details' );
 					}
 				}
+				
+				sdServerToServerProtocol.message_once_log.set( message, sdWorld.time + 1000 * 60 * 60 );
 				
 				sdServerToServerProtocol.message_once_log.forEach( ( value, key )=>
 				{

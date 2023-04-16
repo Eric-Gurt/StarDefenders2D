@@ -171,6 +171,7 @@ class sdRoach extends sdEntity
 	onMovementInRange( from_entity )
 	{
 		if ( sdWorld.is_server )
+		if ( sdWorld.server_config.base_degradation )
 		if ( this.fr < 2 )
 		{
 			if ( this._random_bite_timeout <= 0 )

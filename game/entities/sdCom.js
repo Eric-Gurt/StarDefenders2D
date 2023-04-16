@@ -27,7 +27,7 @@ class sdCom extends sdEntity
 		sdCom.img_com_red = sdWorld.CreateImageFromFile( 'com_red' ); // Level 7
 		sdCom.img_com_orange = sdWorld.CreateImageFromFile( 'com_orange' ); // Level 8
 		
-		sdCom.action_range = 32; // How far character needs to stand in order to manipualte it
+		sdCom.action_range = 64; // How far character needs to stand in order to manipualte it
 		sdCom.action_range_command_centre = 64; // How far character needs to stand in order to manipualte it
 		sdCom.vehicle_entrance_radius = 64;
 		
@@ -490,6 +490,15 @@ class sdCom extends sdEntity
 			else
 			if ( command_name === 'HACKING' )
 			{
+				if ( !sdWorld.server_config.base_degradation )
+				{
+					exectuter_character.Say( sdWorld.GetAny([
+						'Hacking is illegal, ez',
+						'I know nothing about hacking. It is almost like this planet made me forget it was even possible to do in first place',
+						'Let\'s challenge them with pong isntead'
+					]));
+				}
+				else
 				if ( this.variation >= 7 )
 				if ( this.hacking_left <= 0 )
 				if ( exectuter_character.build_tool_level >= 14 )

@@ -267,6 +267,8 @@ class sdCharacterRagdoll
 		const offset_discretion = 2;
 		const movement_discretion = 10;
 		
+		let act_x = this.character.driver_of ? 0 : this.character.act_x;
+		
 		let gun_offset_x = 0;
 		let gun_offset_y = 0;
 		let gun_offset_body_x = 0;
@@ -322,7 +324,7 @@ class sdCharacterRagdoll
 			dx /= di;
 			dy /= di;
 		}
-		dx += gun_offset_body_x * this.character._side + this.character.act_x;
+		dx += gun_offset_body_x * this.character._side + act_x;
 		dy -= 3;
 		if ( this.character.pain_anim > 0 )
 		{
@@ -429,8 +431,8 @@ class sdCharacterRagdoll
 				legs_x -= 1;
 				legs_y -= 4;
 				
-				if ( this.character.act_x !== 0 )
-				walk_amplitude_x = this.character.act_x * this.character._side * Math.sin( _anim_walk ) * 2 + 4;
+				if ( act_x !== 0 )
+				walk_amplitude_x = act_x * this.character._side * Math.sin( _anim_walk ) * 2 + 4;
 				else
 				walk_amplitude_x = 4;
 			
@@ -438,9 +440,9 @@ class sdCharacterRagdoll
 			}
 			else
 			{
-				if ( this.character.act_x !== 0 )
+				if ( act_x !== 0 )
 				{
-					walk_amplitude_x = this.character.act_x * this.character._side * Math.sin( _anim_walk ) * 5;
+					walk_amplitude_x = act_x * this.character._side * Math.sin( _anim_walk ) * 5;
 					walk_amplitude_y = Math.cos( _anim_walk ) * 4;
 					legs_x -= 2.5;
 					
@@ -459,7 +461,7 @@ class sdCharacterRagdoll
 		this.RespectLength( this.torso, this.ankle1, 1, leg_len );
 		this.RespectLength( this.torso, this.ankle2, 1, leg_len );
 
-		if ( !this.character.stands || this.character.act_x !== 0 )
+		if ( !this.character.stands || act_x !== 0 )
 		{
 			this.RespectLength( this.torso, this.toes1, 1, leg_len );
 			this.RespectLength( this.torso, this.toes2, 1, leg_len );

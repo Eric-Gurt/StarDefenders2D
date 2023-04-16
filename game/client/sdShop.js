@@ -357,6 +357,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdCrystalCombiner', type: 1, _min_workbench_level: 3, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdRescueTeleport', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_SHORT_RANGE, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_CLONER, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:0, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:1, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:2, _category:'Base equipment' });
@@ -464,10 +465,10 @@ class sdShop
 			}
 		}
 		sdShop.options.push({ _class: 'sdBomb', _category:'Equipment' });
-		sdShop.options.push({ _class: 'sdBarrel', _category:'Equipment', _min_workbench_level: 1 });
-		sdShop.options.push({ _class: 'sdBarrel', color: '#33FFFF', filter: 'hue-rotate(130deg) saturate(10)', variation: 1, _category:'Equipment', _min_build_tool_level:2, _min_workbench_level: 1 });
-		sdShop.options.push({ _class: 'sdBarrel', color: '#ff6633', filter: 'hue-rotate(300deg) saturate(20)', variation: 2, _category:'Equipment', _min_build_tool_level:5, _min_workbench_level: 1 });
-		sdShop.options.push({ _class: 'sdBarrel', color: '#ffffff', filter: 'saturate(0)', variation: 3, _category:'Equipment', _min_build_tool_level:8, _min_workbench_level: 1 });
+		sdShop.options.push({ _class: 'sdBarrel', _category:'Equipment', _min_build_tool_level:5 });
+		sdShop.options.push({ _class: 'sdBarrel', color: '#33FFFF', filter: 'hue-rotate(130deg) saturate(10)', variation: 1, _category:'Equipment', _min_build_tool_level:10 });
+		sdShop.options.push({ _class: 'sdBarrel', color: '#ff6633', filter: 'hue-rotate(300deg) saturate(20)', variation: 2, _category:'Equipment', _min_build_tool_level:15 });
+		sdShop.options.push({ _class: 'sdBarrel', color: '#ffffff', filter: 'saturate(0)', variation: 3, _category:'Equipment', _min_build_tool_level:20 });
 		sdShop.options.push({ _class: 'sdLandMine', _category:'Equipment' });
 
 		sdShop.upgrades = {

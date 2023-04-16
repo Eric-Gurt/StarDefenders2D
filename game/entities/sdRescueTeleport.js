@@ -18,28 +18,36 @@ class sdRescueTeleport extends sdEntity
 {
 	static init_class()
 	{
-		sdRescueTeleport.img_teleport = sdWorld.CreateImageFromFile( 'rescue_portal' );
+		sdRescueTeleport.img_rescue_teleport_sheet = sdWorld.CreateImageFromFile( 'sdRescueTeleport' );
+		
+		/*sdRescueTeleport.img_teleport = sdWorld.CreateImageFromFile( 'rescue_portal' );
 		sdRescueTeleport.img_teleport_offline = sdWorld.CreateImageFromFile( 'rescue_portal_offline' );
 		sdRescueTeleport.img_teleport_no_matter = sdWorld.CreateImageFromFile( 'rescue_portal_no_matter' ); // 2 imgs
 
 		sdRescueTeleport.img_teleport_short = sdWorld.CreateImageFromFile( 'rescue_portal_short' ); // Short range rescue teleporter, rescues up to 1200 untis in distance ( approx 3 screen widths I think )
 		sdRescueTeleport.img_teleport_short_offline = sdWorld.CreateImageFromFile( 'rescue_portal_short_offline' );
 		sdRescueTeleport.img_teleport_short_no_matter = sdWorld.CreateImageFromFile( 'rescue_portal_short_no_matter' ); // 2 imgs
-		
+		*/
 		sdRescueTeleport.max_matter = 1700;
 		sdRescueTeleport.max_matter_short = 500;
+		sdRescueTeleport.max_matter_cloner = 40000;
+		
+		sdRescueTeleport.clonning_time = 30 * 60 * 20; // 20 minutes
 
 		sdRescueTeleport.max_short_range_distance = 1200;
 		
 		sdRescueTeleport.rescue_teleports = [];
 		
-		sdRescueTeleport.delay_1st = 30 * 60 * 3; // 3 minutes
-		sdRescueTeleport.delay_2nd = 30 * 60 * 5; // 5 minutes
+		//sdRescueTeleport.delay_1st = 30 * 60 * 3; // 3 minutes
+		//sdRescueTeleport.delay_2nd = 30 * 60 * 5; // 5 minutes
 		
 		sdRescueTeleport.delay_simple = 3 * 10; // 3 seconds
+		
+		//sdRescueTeleport.delay_cloner = 30 * 60 * 30; // 30 minutes
 
 		sdRescueTeleport.TYPE_INFINITE_RANGE = 0; // Infinite range rescue teleporter
 		sdRescueTeleport.TYPE_SHORT_RANGE = 1; // Short range teleporter
+		sdRescueTeleport.TYPE_CLONER = 2; // Long recharge, high cost, but can respawn in case player was lost
 		
 		sdRescueTeleport.players_can_build_rtps = undefined;
 		
@@ -149,11 +157,70 @@ class sdRescueTeleport extends sdEntity
 		}
 	}
 	
+	IsCloner()
+	{
+		return ( this.type === sdRescueTeleport.TYPE_CLONER );
+	}
 	
+	IsVehicle()
+	{
+		return ( this.type === sdRescueTeleport.TYPE_CLONER );
+	}
+	AddDriver( c, force=false )
+	{
+		if ( !sdWorld.is_server )
+		return;
 	
-	get hitbox_x1() { return -11; }
-	get hitbox_x2() { return 11; }
-	get hitbox_y1() { return 10; }
+		if ( force )
+		if ( !this[ 'driver' + 0 ] )
+		{
+			this[ 'driver' + 0 ] = c;
+
+			c.driver_of = this;
+			
+			this.cloning_progress = 0;
+			
+			this.SetDelay( 90 );
+		}
+	}
+	
+	ExcludeDriver( c, force=false )
+	{
+		if ( !sdWorld.is_server )
+		return;
+
+		if ( force )
+		if ( this[ 'driver' + 0 ] === c )
+		{
+			this[ 'driver' + 0 ] = null;
+			c.driver_of = null;
+			
+			this.SetDelay( 90 );
+
+			c.x = this.x;
+			c.y = this.y;
+			
+			if ( this.cloning_progress >= sdRescueTeleport.clonning_time )
+			{
+				if ( c.CanMoveWithoutOverlap( this.x + this.hitbox_x1 - c.hitbox_x2, c.y, 1 ) )
+				c.x = this.x + this.hitbox_x1 - c.hitbox_x2;
+				else
+				if ( c.CanMoveWithoutOverlap( this.x + this.hitbox_x2 - c.hitbox_x1, c.y, 1 ) )
+				c.x = this.x + this.hitbox_x2 - c.hitbox_x1;
+			}
+			else
+			{
+				if ( this._rescuing_from_lost_effect )
+				c.remove();
+				else
+				c.Damage( c.hea + 1, null, false, false ); // Send player to some else RTP
+			}
+		}
+	}
+	
+	get hitbox_x1() { return ( this.type === sdRescueTeleport.TYPE_CLONER ) ? -8 : -11; }
+	get hitbox_x2() { return ( this.type === sdRescueTeleport.TYPE_CLONER ) ? 8 : 11; }
+	get hitbox_y1() { return ( this.type === sdRescueTeleport.TYPE_CLONER ) ? -15 : 10; }
 	get hitbox_y2() { return 16; }
 	
 	get spawn_align_x(){ return 8; };
@@ -215,12 +282,17 @@ class sdRescueTeleport extends sdEntity
 	constructor( params )
 	{
 		super( params );
-		
-		this._hmax = 500 * 4;
-		this._hea = this._hmax;
-		this._regen_timeout = 0;
 
 		this.type = params.type || sdRescueTeleport.TYPE_INFINITE_RANGE;
+		
+		this._hmax = 500 * 4;
+		
+		if ( this.type === sdRescueTeleport.TYPE_CLONER )
+		this._hmax = 500;
+		
+		this._hea = this._hmax;
+		this._regen_timeout = 0;
+		
 		
 		//this._is_cable_priority = true;
 		
@@ -228,12 +300,20 @@ class sdRescueTeleport extends sdEntity
 		this.delay = sdRescueTeleport.delay_simple;
 		//this._update_version++
 		
+		this.driver0 = null;
+		this.cloning_progress = 0;
+		this._rescuing_from_lost_effect = false;
+		
 		this._owner = params.owner || null;
 		//this.owner_net_id = null;
 		this.owner_title = '';
 		this.owner_biometry = -1;
 		
-		this._matter_max = this.type === sdRescueTeleport.TYPE_INFINITE_RANGE ? sdRescueTeleport.max_matter : sdRescueTeleport.max_matter_short;
+		this._matter_max = 
+			this.type === sdRescueTeleport.TYPE_INFINITE_RANGE ? sdRescueTeleport.max_matter : 
+			this.type === sdRescueTeleport.TYPE_CLONER ? sdRescueTeleport.max_matter_cloner : 
+			sdRescueTeleport.max_matter_short;
+	
 		this.matter = 0;
 		
 		//this.owner_net_id = this._owner ? this._owner._net_id : null;
@@ -245,11 +325,17 @@ class sdRescueTeleport extends sdEntity
 		if ( this.type === sdRescueTeleport.TYPE_INFINITE_RANGE )
 		return Infinity;
 	
+		if ( this.type === sdRescueTeleport.TYPE_CLONER )
+		return Infinity;
+	
 		return sdRescueTeleport.max_short_range_distance;
 	}
 	GetRTPMatterCost( character )
 	{
-		let tele_cost = this.type === sdRescueTeleport.TYPE_INFINITE_RANGE ? sdRescueTeleport.max_matter : sdRescueTeleport.max_matter_short; // Needed so short range RTPs work
+		let tele_cost = 
+			this.type === sdRescueTeleport.TYPE_INFINITE_RANGE ? sdRescueTeleport.max_matter : 
+			this.type === sdRescueTeleport.TYPE_CLONER ? sdRescueTeleport.max_matter_cloner : 
+			sdRescueTeleport.max_matter_short; // Needed so short range RTPs work
 
 		if ( !character.is( sdCharacter ) )
 		tele_cost = 100;
@@ -271,7 +357,7 @@ class sdRescueTeleport extends sdEntity
 	
 	MeasureMatterCost()
 	{
-		if ( this.type === sdRescueTeleport.TYPE_INFINITE_RANGE )
+		if ( this.type === sdRescueTeleport.TYPE_INFINITE_RANGE || this.type === sdRescueTeleport.TYPE_CLONER )
 		return this._hmax * sdWorld.damage_to_matter + 2000;
 		else
 		return this._hmax * sdWorld.damage_to_matter + 200; // 1700
@@ -308,10 +394,36 @@ class sdRescueTeleport extends sdEntity
 			can_hibernateA = true;
 		}
 		
-		if ( this.matter >= this._matter_max )
+		let cloner_sequence_active = this.IsCloner() && this[ 'driver' + 0 ];
+		
+		if ( this.matter >= this._matter_max || cloner_sequence_active )
 		{
 			if ( this.delay > 0 )
-			this.SetDelay( this.delay - GSPEED );
+			{
+				//if ( this.type === sdRescueTeleport.TYPE_CLONER && this[ 'driver' + 0 ] )
+				if ( cloner_sequence_active )
+				{
+					// Pause delay when someone's in
+					
+					let delta = GSPEED * this._matter_max / sdRescueTeleport.clonning_time * 0.9; // Consider accuracy error
+					
+					if ( this.matter - delta >= 0 )
+					{
+						this.matter -= delta;
+						
+						this.cloning_progress = this.cloning_progress + GSPEED;
+
+						if ( this.cloning_progress >= sdRescueTeleport.clonning_time )
+						{
+							this.ExcludeDriver( this[ 'driver' + 0 ], true );
+						}
+						
+						this._update_version++;
+					}
+				}
+				else
+				this.SetDelay( this.delay - GSPEED );
+			}
 			else
 			can_hibernateB = true;
 		}
@@ -326,70 +438,85 @@ class sdRescueTeleport extends sdEntity
 	get title()
 	{
 		if ( this.type === sdRescueTeleport.TYPE_INFINITE_RANGE )
-		{
-			//if ( this.owner_biometry === -1 )
-			return 'Rescue teleport';
-			//else
-			//return this.owner_title + '\'s rescue teleport';
-		}
+		return 'Rescue teleport';
 
 		if ( this.type === sdRescueTeleport.TYPE_SHORT_RANGE )
-		{
-			//if ( this.owner_biometry === -1 )
-			return 'Short-range rescue teleport';
-			//else
-			//return this.owner_title + '\'s short-range rescue teleport';
-		}
+		return 'Short-range rescue teleport';
 
+		if ( this.type === sdRescueTeleport.TYPE_CLONER )
+		return 'Rescue cloner';
 	}
 	
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
 	{ return true; }
 	
+	VehicleHidesLegs()
+	{
+		return false;
+	}
+	
 	Draw( ctx, attached )
 	{
-		if ( this.matter >= this._matter_max )
-		ctx.apply_shading = false;
+		let xx = 0;
+		let yy = this.type;
 		
-		if ( this.type === sdRescueTeleport.TYPE_INFINITE_RANGE )
+		if ( this.matter >= this._matter_max || sdShop.isDrawing || ( this[ 'driver' + 0 ] && this.matter > this._matter_max * 0.05 ) )
 		{
-			if ( this.matter >= this._matter_max || sdShop.isDrawing )
-			{
-				if ( this.delay === 0 || sdShop.isDrawing )
-				ctx.drawImageFilterCache( sdRescueTeleport.img_teleport, -16, -16, 32,32 );
-				else
-				ctx.drawImageFilterCache( sdRescueTeleport.img_teleport_offline, -16, -16, 32,32 );
-			}
+			ctx.apply_shading = false;
+			
+			if ( this.delay === 0 || sdShop.isDrawing )
+			xx = 0;
 			else
+			xx = 1;
+		}
+		else
+		xx = ( sdWorld.time % 4000 < 2000 ? 2 : 3 );
+	
+		for ( var i = 0; i < 1; i++ )
+		{
+			if ( this[ 'driver' + i ] )
 			{
-				//ctx.drawImageFilterCache( sdRescueTeleport.img_teleport_no_matter, -16, -16, 32,32 );
-				ctx.drawImageFilterCache( sdRescueTeleport.img_teleport_no_matter, ( sdWorld.time % 4000 < 2000 ? 1 : 0 )*32,0,32,32, - 16, - 16, 32,32 );
+				ctx.save();
+				{
+					ctx.globalAlpha = this.cloning_progress / sdRescueTeleport.clonning_time;
+					//let old_x = this[ 'driver' + i ].look_x;
+					//let old_y = this[ 'driver' + i ].look_y;
+
+					//this[ 'driver' + i ]._side = 1;
+					//this[ 'driver' + i ].look_x = this[ 'driver' + i ].x + 100;
+					//this[ 'driver' + i ].look_y = this[ 'driver' + i ].y;
+
+					ctx.scale( 0.7, 0.7 );
+
+					//ctx.translate( 0, 0 );
+
+					this[ 'driver' + i ].Draw( ctx, true );
+
+					//this[ 'driver' + i ].look_x = old_x;
+					//this[ 'driver' + i ].look_y = old_y;
+				}
+				ctx.restore();
 			}
 		}
-		if ( this.type === sdRescueTeleport.TYPE_SHORT_RANGE )
-		{
-			if ( this.matter >= this._matter_max || sdShop.isDrawing )
-			{
-				if ( this.delay === 0 || sdShop.isDrawing )
-				ctx.drawImageFilterCache( sdRescueTeleport.img_teleport_short, -16, -16, 32,32 );
-				else
-				ctx.drawImageFilterCache( sdRescueTeleport.img_teleport_short_offline, -16, -16, 32,32 );
-			}
-			else
-			{
-				//ctx.drawImageFilterCache( sdRescueTeleport.img_teleport_short_no_matter, -16, -16, 32,32 );
-				ctx.drawImageFilterCache( sdRescueTeleport.img_teleport_short_no_matter, ( sdWorld.time % 4000 < 2000 ? 1 : 0 )*32,0,32,32, - 16, - 16, 32,32 );
-			}
-		}
+	
+		ctx.drawImageFilterCache( sdRescueTeleport.img_rescue_teleport_sheet, xx*32,yy*32,32,32, -16,-16,32,32 );
+		
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		let postfix = "  ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + " )";
+		let postfix;
+		if ( this.driver0 )
+		postfix = " ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + ", " + T("clonning") + " "+(~~Math.min( 100, this.cloning_progress / sdRescueTeleport.clonning_time * 100 ))+"% )";
+		else
+		postfix = "  ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + " )";
+		
 		
 		if ( this.owner_biometry === -1 )
 		sdEntity.TooltipUntranslated( ctx, T( this.title ) + postfix );
 		else
 		sdEntity.TooltipUntranslated( ctx, this.owner_title + T( '\'s ' + this.title.toLowerCase() ) + postfix );
+	
+	
 	}
 	
 	onRemove() // Class-specific, if needed
@@ -401,6 +528,9 @@ class sdRescueTeleport extends sdEntity
 		let i = sdRescueTeleport.rescue_teleports.indexOf( this );
 		if ( i !== -1 )
 		sdRescueTeleport.rescue_teleports.splice( i, 1 );
+	
+		if ( this[ 'driver' + 0 ] )
+		this.ExcludeDriver( this[ 'driver' + 0 ], true );
 	
 		if ( !sdWorld.is_server )
 		if ( this._net_id !== undefined ) // Was ever synced rather than just temporarily object for shope
@@ -437,10 +567,33 @@ class sdRescueTeleport extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		{
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
 			{
 				if ( exectuter_character.canSeeForUse( this ) )
 				{
+					if ( this.type === sdRescueTeleport.TYPE_CLONER && this.driver0 )
+					{
+						if ( this.driver0 !== exectuter_character )
+						{
+							if ( command_name === 'SABOTAGE' )
+							{
+								this.ExcludeDriver( this.driver0, true );
+							}
+						}
+						else
+						{
+							if ( command_name === 'CANCEL' )
+							{
+								if ( this._rescuing_from_lost_effect )
+								{
+									executer_socket.SDServiceMessage( 'Your previous body does no longer exist. Clonning procedure needs to be compelted' );
+								}
+								else
+								this.ExcludeDriver( this.driver0, true );
+							}
+						}
+					}
+					
 					if ( command_name === 'RESCUE_HERE' )
 					{
 						//if ( this._owner === null || ( this._owner.hea || this._owner._hea ) <= 0 || this._owner._is_being_removed )
@@ -452,7 +605,7 @@ class sdRescueTeleport extends sdEntity
 
 							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // .owner_net_id won't update without this
 
-							executer_socket.SDServiceMessage( 'Rescue teleport is now owned by you' );
+							executer_socket.SDServiceMessage( this.title+' is now owned by you' );
 						//}
 						//else
 						//executer_socket.SDServiceMessage( 'Rescue teleport is owned by someone else' );
@@ -469,17 +622,17 @@ class sdRescueTeleport extends sdEntity
 
 							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // .owner_net_id won't update without this
 
-							executer_socket.SDServiceMessage( 'Rescue teleport is no longer owned' );
+							executer_socket.SDServiceMessage( this.title+' is no longer owned' );
 						//}
 						//else
 						//executer_socket.SDServiceMessage( 'Rescue teleport is owned by someone else' );
 					}
 				}
 				else
-				executer_socket.SDServiceMessage( 'Rescue teleport is behind wall' );
+				executer_socket.SDServiceMessage( this.title+' is behind wall' );
 			}
 			else
-			executer_socket.SDServiceMessage( 'Rescue teleport is too far' );
+			executer_socket.SDServiceMessage( this.title+' is too far' );
 		}
 	}
 	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
@@ -491,6 +644,14 @@ class sdRescueTeleport extends sdEntity
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 		if ( exectuter_character.canSeeForUse( this ) )
 		{
+			if ( this.type === sdRescueTeleport.TYPE_CLONER && this.driver0 )
+			{
+				if ( this.driver0 !== exectuter_character )
+				this.AddContextOption( 'Sabotage clonning', 'SABOTAGE', [] );
+				else
+				this.AddContextOption( 'Continue at rescure teleport instead', 'CANCEL', [] );
+			}
+			
 			//if ( sdWorld.my_entity && this.owner_net_id === sdWorld.my_entity._net_id )
 			if ( this.owner_biometry !== -1 )
 			{
@@ -500,7 +661,7 @@ class sdRescueTeleport extends sdEntity
 				this.AddContextOption( 'Reset ownership', 'UNRESCUE_HERE', [] );
 			}
 			else
-			this.AddContextOption( 'Set as personal rescue teleport', 'RESCUE_HERE', [] );
+			this.AddContextOption( 'Set as personal '+this.title, 'RESCUE_HERE', [] );
 		}
 	}
 }

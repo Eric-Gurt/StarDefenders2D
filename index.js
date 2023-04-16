@@ -1298,9 +1298,19 @@ app.get('/*', function cb( req, res, repeated=false )
 						
 						for ( let _i = 0; _i < _parts_all.length; _i++ )
 						{
+							/*if ( _parts_all[ _i ].indexOf( '`' ) !== -1 )
+							{
+								trace('!!!');
+								debugger;
+							}*/
+
 							if ( _i % 2 === 0 )
 							{
-								code += 'printOrReturn(`' + _parts_all[ _i ] + '`);';
+								let s = _parts_all[ _i ];
+								
+								//code += 'printOrReturn(`' + s + '`);';
+								
+								code += 'printOrReturn(' + JSON.stringify( s ) + ');';
 							}
 							else
 							code += '\n' + _parts_all[ _i ] + '\n';

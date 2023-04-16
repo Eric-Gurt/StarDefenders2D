@@ -1,4 +1,6 @@
 
+/* global sdModeration, sdShop, THREE */
+
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
@@ -116,7 +118,7 @@ class sdBot extends sdEntity
 			this._attack_entity = attack_followed_entity;
 
 			if ( ent )
-			this._pathfinding = new sdPathFinding({ target: ent, traveler: this, attack_range: range, options: dig_through ? [ sdPathFinding.OPTION_CAN_FLY, sdPathFinding.OPTION_CAN_GO_THROUGH_WALLS, sdPathFinding.OPTION_CAN_SWIM ] : [ sdPathFinding.OPTION_CAN_FLY, sdPathFinding.OPTION_CAN_SWIM ] })
+			this._pathfinding = new sdPathFinding({ target: ent, traveler: this, attack_range: range, options: dig_through ? [ sdPathFinding.OPTION_CAN_FLY, sdPathFinding.OPTION_CAN_GO_THROUGH_WALLS, sdPathFinding.OPTION_CAN_SWIM ] : [ sdPathFinding.OPTION_CAN_FLY, sdPathFinding.OPTION_CAN_SWIM ] });
 			else
 			this._pathfinding = null;
 		}
