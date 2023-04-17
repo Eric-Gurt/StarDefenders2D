@@ -9,7 +9,7 @@ import sdCom from './sdCom.js';
 import sdArea from './sdArea.js';
 import sdTask from './sdTask.js';
 import sdCharacter from './sdCharacter.js';
-
+import sdGun from './sdGun.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -172,9 +172,9 @@ class sdRescueTeleport extends sdEntity
 		return;
 	
 		if ( force )
-		if ( !this[ 'driver' + 0 ] )
+		if ( !this.driver0 )
 		{
-			this[ 'driver' + 0 ] = c;
+			this.driver0 = c;
 
 			c.driver_of = this;
 			
@@ -190,32 +190,48 @@ class sdRescueTeleport extends sdEntity
 		return;
 
 		if ( force )
-		if ( this[ 'driver' + 0 ] === c )
+		if ( this.driver0 === c )
 		{
-			this[ 'driver' + 0 ] = null;
-			c.driver_of = null;
-			
 			this.SetDelay( 90 );
-
-			c.x = this.x;
-			c.y = this.y;
 			
-			if ( this.cloning_progress >= sdRescueTeleport.clonning_time )
+			this.driver0 = null;
+			
+			if ( !c._is_being_removed )
 			{
-				if ( c.CanMoveWithoutOverlap( this.x + this.hitbox_x1 - c.hitbox_x2, c.y, 1 ) )
-				c.x = this.x + this.hitbox_x1 - c.hitbox_x2;
+				c.driver_of = null;
+			
+				c.x = this.x;
+				c.y = this.y;
+
+				if ( this.cloning_progress >= sdRescueTeleport.clonning_time )
+				{
+					if ( c.CanMoveWithoutOverlap( this.x + this.hitbox_x1 - c.hitbox_x2, c.y, 1 ) )
+					c.x = this.x + this.hitbox_x1 - c.hitbox_x2;
+					else
+					if ( c.CanMoveWithoutOverlap( this.x + this.hitbox_x2 - c.hitbox_x1, c.y, 1 ) )
+					c.x = this.x + this.hitbox_x2 - c.hitbox_x1;
+				}
 				else
-				if ( c.CanMoveWithoutOverlap( this.x + this.hitbox_x2 - c.hitbox_x1, c.y, 1 ) )
-				c.x = this.x + this.hitbox_x2 - c.hitbox_x1;
+				{
+					if ( this._rescuing_from_lost_effect )
+					{
+						c.remove();
+					}
+					else
+					{
+						if ( !c.AttemptTeleportOut( null, false ) )
+						{
+							this.AddDriver( c, true );
+							return false;
+						}
+						//c.Damage( c.hea + 1, null, false, false ); // Send player to some else RTP
+					}
+				}
 			}
-			else
-			{
-				if ( this._rescuing_from_lost_effect )
-				c.remove();
-				else
-				c.Damage( c.hea + 1, null, false, false ); // Send player to some else RTP
-			}
+			return false;
 		}
+		
+		return false;
 	}
 	
 	get hitbox_x1() { return ( this.type === sdRescueTeleport.TYPE_CLONER ) ? -8 : -11; }
@@ -283,6 +299,8 @@ class sdRescueTeleport extends sdEntity
 	{
 		super( params );
 
+		this._time_amplification = 0;
+		
 		this.type = params.type || sdRescueTeleport.TYPE_INFINITE_RANGE;
 		
 		this._hmax = 500 * 4;
@@ -367,6 +385,8 @@ class sdRescueTeleport extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
+		GSPEED = sdGun.HandleTimeAmplification( this, GSPEED );
+	
 		if ( this._owner )
 		if ( this._owner._is_being_removed )
 		this._owner = null;
@@ -394,13 +414,16 @@ class sdRescueTeleport extends sdEntity
 			can_hibernateA = true;
 		}
 		
-		let cloner_sequence_active = this.IsCloner() && this[ 'driver' + 0 ];
+		if ( this.driver0 && this.driver0._is_being_removed )
+		this.ExcludeDriver( this.driver0, true );
+		
+		let cloner_sequence_active = this.IsCloner() && this.driver0;
 		
 		if ( this.matter >= this._matter_max || cloner_sequence_active )
 		{
 			if ( this.delay > 0 )
 			{
-				//if ( this.type === sdRescueTeleport.TYPE_CLONER && this[ 'driver' + 0 ] )
+				//if ( this.type === sdRescueTeleport.TYPE_CLONER && this.driver0 )
 				if ( cloner_sequence_active )
 				{
 					// Pause delay when someone's in
@@ -415,7 +438,7 @@ class sdRescueTeleport extends sdEntity
 
 						if ( this.cloning_progress >= sdRescueTeleport.clonning_time )
 						{
-							this.ExcludeDriver( this[ 'driver' + 0 ], true );
+							this.ExcludeDriver( this.driver0, true );
 						}
 						
 						this._update_version++;
@@ -460,7 +483,7 @@ class sdRescueTeleport extends sdEntity
 		let xx = 0;
 		let yy = this.type;
 		
-		if ( this.matter >= this._matter_max || sdShop.isDrawing || ( this[ 'driver' + 0 ] && this.matter > this._matter_max * 0.05 ) )
+		if ( this.matter >= this._matter_max || sdShop.isDrawing || ( this.driver0 && this.matter > this._matter_max * 0.05 ) )
 		{
 			ctx.apply_shading = false;
 			
@@ -529,8 +552,8 @@ class sdRescueTeleport extends sdEntity
 		if ( i !== -1 )
 		sdRescueTeleport.rescue_teleports.splice( i, 1 );
 	
-		if ( this[ 'driver' + 0 ] )
-		this.ExcludeDriver( this[ 'driver' + 0 ], true );
+		if ( this.driver0 )
+		this.ExcludeDriver( this.driver0, true );
 	
 		if ( !sdWorld.is_server )
 		if ( this._net_id !== undefined ) // Was ever synced rather than just temporarily object for shope
@@ -589,7 +612,10 @@ class sdRescueTeleport extends sdEntity
 									executer_socket.SDServiceMessage( 'Your previous body does no longer exist. Clonning procedure needs to be compelted' );
 								}
 								else
-								this.ExcludeDriver( this.driver0, true );
+								{
+									if ( !this.ExcludeDriver( this.driver0, true ) )
+									executer_socket.SDServiceMessage( 'No other rescue devices were found' );
+								}
 							}
 						}
 					}

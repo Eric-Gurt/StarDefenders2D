@@ -248,18 +248,14 @@ class sdRift extends sdEntity
 			
 			if ( this._spawn_timer_cd > 0 ) // Spawn entity timer
 			this._spawn_timer_cd -= GSPEED;
+		
 			if ( this._regen_timeout > 0 )
 			this._regen_timeout -= GSPEED;
 			else
 			{
-				if ( this.hea < this.hmax && this.type !== 5 )
+				if ( this.hea < this.hmax && this.type !== 5 && this.type !== 4 ) // Council portal fades away on it's own, dimensional tear too // Almost Copy [ 1 / 2 ]
 				{
 					this.hea = Math.min( this.hea + GSPEED, this.hmax );
-				
-					//if ( sdWorld.is_server )
-					//this.hea = this.hmax; // Hack
-				
-					//this._update_version++;
 				}
 			}
 			if ( this._spawn_timer_cd <= 0 ) // Spawn an entity
@@ -471,10 +467,11 @@ class sdRift extends sdEntity
 			{
 				this.hea = Math.max( this.hea - 1, 0 );
 				this.matter_crystal--;
-				//this._update_version++;
 			}
-			if ( this.type === 5 ) // Council portal fades away on it's own
+			
+			if ( this.type === 5 || this.type === 4 ) // Council portal fades away on it's own, dimensional tear too // Almost Copy [ 2 / 2 ]
 			this.hea = Math.max( this.hea - GSPEED, 0 );
+		
 			if ( this._time_until_teleport > 0 )
 			{
 				this._time_until_teleport -= GSPEED;
@@ -483,6 +480,7 @@ class sdRift extends sdEntity
 			else
 			if ( this._time_until_teleport <= 0 )
 			this.teleport_alpha = Math.max( this.teleport_alpha - GSPEED, 0 );
+	
 			if ( this.teleport_alpha <= 0 && this._time_until_teleport <= 0 ) // Relocate the portal
 			{
 				let x,y,i;

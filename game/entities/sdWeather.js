@@ -3074,8 +3074,14 @@ class sdWeather extends sdEntity
 												ent_below._plants = null;
 											}
 										}
+										
+										if ( sdWorld.AttemptWorldBlockSpawn( x, y ) )
+										{
+											ClearPlants();
+											break;
+										}
 
-										let xx = Math.floor( x / 16 );
+										/*let xx = Math.floor( x / 16 );
 										let from_y = sdWorld.GetGroundElevation( xx );
 
 										if ( y >= from_y )
@@ -3085,8 +3091,6 @@ class sdWeather extends sdEntity
 											if ( r )
 											ClearPlants();
 
-											// Delete temp block on success
-											//ent.remove();
 											break;
 										}
 										else
@@ -3098,14 +3102,11 @@ class sdWeather extends sdEntity
 											if ( r )
 											ClearPlants();
 
-											// Delete temp block on success
-											//ent.remove();
 											break;
 										}
 										else
 										{
-											//debugger;
-										}
+										}*/
 
 
 									}
