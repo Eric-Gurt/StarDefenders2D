@@ -37,7 +37,7 @@ import sdRescueTeleport from './entities/sdRescueTeleport.js';
 import sdCharacterRagdoll from './entities/sdCharacterRagdoll.js';
 import sdPlayerSpectator from './entities/sdPlayerSpectator.js';
 import sdBaseShieldingUnit from './entities/sdBaseShieldingUnit.js';
-//import sdSteeringWheel from './entities/sdSteeringWheel.js';
+import sdDeepSleep from './entities/sdDeepSleep.js';
 
 
 import sdRenderer from './client/sdRenderer.js';
@@ -647,6 +647,37 @@ class sdWorld
 
 		) / 8 ) * 8;
 	}*/
+	static AttemptWorldBlockSpawn( x, y )
+	{
+		let xx = Math.floor( x / 16 );
+		let from_y = sdWorld.GetGroundElevation( xx );
+
+		if ( y >= from_y )
+		{
+			let r = sdWorld.FillGroundQuad( x, y, from_y, false, true );
+
+			//if ( r )
+			//ClearPlants();
+
+			return r;
+		}
+		else
+		if ( y === from_y - 8 )
+		{
+			y += 8;
+			let r = sdWorld.FillGroundQuad( x, y, from_y, true, true );
+
+			//if ( r )
+			//ClearPlants();
+
+			return r;
+		}
+		else
+		{
+		}
+		
+		return null;
+	}
 	static FillGroundQuad( x, y, from_y, half=false, only_plantless_block=false )
 	{
 		var ent = null;
@@ -2858,6 +2889,8 @@ class sdWorld
 			else
 			sdEntity.snapshot_clear_crawler_i = 0;
 		}
+		
+		sdDeepSleep.GlobalThink( GSPEED );
 		
 		sdWater.GlobalThink( GSPEED );
 		sdRescueTeleport.GlobalThink( GSPEED );
