@@ -157,6 +157,11 @@ class sdWater extends sdEntity
 		
 		for ( var i = 0; i < arr_under.length; i++ )
 		{
+			if ( arr_under[ i ].IsBGEntity() === 10 )
+			{
+				arr_under[ i ].WakeUpArea();
+			}
+			else
 			if ( arr_under[ i ] instanceof sdWater )
 			//if ( arr_under[ i ].x === nx && arr_under[ i ].y === ny )
 			if ( nx >= arr_under[ i ].x && nx < arr_under[ i ].x + 16 && 

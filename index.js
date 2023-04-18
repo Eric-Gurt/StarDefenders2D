@@ -236,6 +236,7 @@ globalThis.sdRenderer = { visual_settings: 4 }; // Fake object
 
 
 import sdEntity from './game/entities/sdEntity.js';
+import sdDeepSleep from './game/entities/sdDeepSleep.js';
 import sdCharacter from './game/entities/sdCharacter.js';
 import sdPlayerDrone from './game/entities/sdPlayerDrone.js';
 import sdGun from './game/entities/sdGun.js';
@@ -1899,73 +1900,25 @@ io.on( 'connection', ( socket )=>
 		}
 		function TryToAssignDisconnectedPlayerEntity()
 		{
-			//player_settings.full_reset = full_reset;
-			//player_settings.my_hash = Math.random() + '';
-			//player_settings.my_net_id = undefined;
-			
 			let best_ent = null;
+			
+			// Expand any deep sleep cells that might keep the player
+			sdDeepSleep.WakeUpByArrayAndValue( '_my_hash_list', player_settings.my_hash );
 			
 			for ( let i = 0; i < sdCharacter.characters.length; i++ )
 			{
-				//let ent = sdEntity.entities_by_net_id_cache_map.get( parseInt( player_settings.my_net_id ) );
 				let ent = sdCharacter.characters[ i ];
 
 				if ( ent )
 				if ( !ent._is_being_removed )
-				{
-					if ( ent._my_hash === player_settings.my_hash )
-					{
-						//trace('hash_match');
-						/*if ( ent._socket )
-						{
-							if ( sockets_by_ip[ ip ].indexOf( ent._socket ) !== -1 )
-							{
-								//await ent._socket.close(); // Try to disconnect old connection, can happen in geckos case if player reconnects too quickly
-								ent._socket.CharacterDisconnectLogic();
-							}
-						}*/
-
-						if ( !ent._socket )
-						{
-							if ( best_ent === null || ( best_ent.hea || best_ent._hea || 0 ) <= 0 )
-							{
-								//if ( best_ent )
-								//trace('found better option', ent.hea, ent._hea, best_ent.hea, best_ent._hea );
-								//else
-								//trace('found first option', ent.hea, ent._hea );
-							
-								best_ent = ent;
-							}
-							//else
-							//trace('not a better option?', best_ent === null, ( best_ent.hea || best_ent._hea || 0 ), ( best_ent.hea || best_ent._hea || 0 ) <= 0 );
-						}
-						//else
-						//trace('has socket...?');
-					}
-				}
+				if ( ent._my_hash === player_settings.my_hash )
+				if ( !ent._socket )
+				if ( best_ent === null || ( best_ent.hea || best_ent._hea || 0 ) <= 0 )
+				best_ent = ent;
 			}
-			
+		
 			if ( best_ent )
-			{
-				let ent = best_ent;
-				
-				//if ( DEBUG_SOCKET_CHANGES )
-				//trace( 'characters['+ent._net_id + ']._socket = socket');
-
-				//ent._socket = socket;
-				//ent._save_file = player_settings.save_file;
-				//socket.character = ent;
-
-				//socket.character.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-
-				character_entity = ent;
-
-				//sdTask.WakeUpTasksFor( ent );
-			}
-			
-			// Probably not a good thing to do since non-full reset will not can bypass respawn timeout
-			//if ( character_entity === null )
-			//player_settings.full_reset = true; // Full reset if no player can be found
+			character_entity = best_ent;
 		}
 		
 		if ( typeof player_settings.hero_name === 'string' )

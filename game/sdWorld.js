@@ -647,14 +647,14 @@ class sdWorld
 
 		) / 8 ) * 8;
 	}*/
-	static AttemptWorldBlockSpawn( x, y )
+	static AttemptWorldBlockSpawn( x, y, only_plantless_block=true )
 	{
 		let xx = Math.floor( x / 16 );
 		let from_y = sdWorld.GetGroundElevation( xx );
 
 		if ( y >= from_y )
 		{
-			let r = sdWorld.FillGroundQuad( x, y, from_y, false, true );
+			let r = sdWorld.FillGroundQuad( x, y, from_y, false, only_plantless_block );
 
 			//if ( r )
 			//ClearPlants();
@@ -665,7 +665,7 @@ class sdWorld
 		if ( y === from_y - 8 )
 		{
 			y += 8;
-			let r = sdWorld.FillGroundQuad( x, y, from_y, true, true );
+			let r = sdWorld.FillGroundQuad( x, y, from_y, true, only_plantless_block );
 
 			//if ( r )
 			//ClearPlants();
@@ -730,7 +730,7 @@ class sdWorld
 			allow_block = false;
 			allow_water = false;
 			
-			if ( y > 500 )
+			//if ( y > 500 ) // What is it?
 			{
 				if ( s < 0.485 - ( 1 + Math.sin( y / 100 ) ) * 0.001 )
 				{
@@ -923,6 +923,7 @@ class sdWorld
 
 			if ( allow_water )
 			if ( y > sdWorld.base_ground_level )
+			if ( y % 16 === 0 )
 			{
 				let ent2 = new sdWater({ x:x, y:y, volume:1, type:allow_lava ? sdWater.TYPE_LAVA : sdWater.TYPE_WATER });
 				sdEntity.entities.push( ent2 );
@@ -949,22 +950,113 @@ class sdWorld
 	
 	static ChangeWorldBounds( x1, y1, x2, y2 )
 	{
-		//var ent;
-		
-		const GetGroundElevation = sdWorld.GetGroundElevation;
-		
-		const FillGroundQuad = sdWorld.FillGroundQuad;
-
-		// Extension down, using same base ground levels
-		for ( var x = sdWorld.world_bounds.x1; x < sdWorld.world_bounds.x2; x += 16 )
+		if ( sdWorld.server_config.aggressive_hibernation )
 		{
-			var xx = Math.floor( x / 16 );
-			var from_y = GetGroundElevation( xx );
+			const step = sdDeepSleep.normal_cell_size; // Most likely all sizes will be dividable by this
 			
-			//for ( var y = Math.max( from_y, sdWorld.world_bounds.y2 ); y < y2; y += 16 ) // Only append
-			for ( var y = Math.max( Math.min( from_y, sdWorld.base_ground_level ), Math.min( y1, sdWorld.world_bounds.y1 ) ); y < y2; y += 16 ) // Only append
+			// Prevent shrinking in this mode...
+			if ( x1 > sdWorld.world_bounds.x1 )
+			x1 = sdWorld.world_bounds.x1;
+		
+			if ( y1 > sdWorld.world_bounds.y1 )
+			y1 = sdWorld.world_bounds.y1;
+		
+			if ( x2 < sdWorld.world_bounds.x2 )
+			x2 = sdWorld.world_bounds.x2;
+		
+			if ( y2 < sdWorld.world_bounds.y2 )
+			y2 = sdWorld.world_bounds.y2;
+			
+			// Extend to left
+			for ( let x = x1; x < sdWorld.world_bounds.x1; x += step )
+			for ( let y = sdWorld.world_bounds.y1; y < sdWorld.world_bounds.y2; y += step )
 			{
-				if ( y < sdWorld.world_bounds.y1 || y >= sdWorld.world_bounds.y2 )
+				sdEntity.entities.push( new sdDeepSleep({
+					x:x, y:y, w:step, h:step, type: sdDeepSleep.TYPE_UNSPAWNED_WORLD
+				}) );
+			}
+			sdWorld.world_bounds.x1 = x1;
+			
+			// Extend to right
+			for ( let x = sdWorld.world_bounds.x2; x < x2; x += step )
+			for ( let y = sdWorld.world_bounds.y1; y < sdWorld.world_bounds.y2; y += step )
+			{
+				sdEntity.entities.push( new sdDeepSleep({
+					x:x, y:y, w:step, h:step, type: sdDeepSleep.TYPE_UNSPAWNED_WORLD
+				}) );
+			}
+			sdWorld.world_bounds.x2 = x2;
+			
+			// Extend up
+			for ( let y = y1; y < sdWorld.world_bounds.y1; y += step )
+			for ( let x = sdWorld.world_bounds.x1; x < sdWorld.world_bounds.x2; x += step )
+			{
+				sdEntity.entities.push( new sdDeepSleep({
+					x:x, y:y, w:step, h:step, type: sdDeepSleep.TYPE_UNSPAWNED_WORLD
+				}) );
+			}
+			sdWorld.world_bounds.y1 = y1;
+			
+			// Extend down
+			for ( let y = sdWorld.world_bounds.y2; y < y2; y += step )
+			for ( let x = sdWorld.world_bounds.x1; x < sdWorld.world_bounds.x2; x += step )
+			{
+				sdEntity.entities.push( new sdDeepSleep({
+					x:x, y:y, w:step, h:step, type: sdDeepSleep.TYPE_UNSPAWNED_WORLD
+				}) );
+			}
+			sdWorld.world_bounds.y2 = y2;
+			
+			// No deletions in this mode
+		}
+		else
+		{
+			const GetGroundElevation = sdWorld.GetGroundElevation;
+
+			const FillGroundQuad = sdWorld.FillGroundQuad;
+
+			// Extension down, using same base ground levels
+			for ( var x = sdWorld.world_bounds.x1; x < sdWorld.world_bounds.x2; x += 16 )
+			{
+				var xx = Math.floor( x / 16 );
+				var from_y = GetGroundElevation( xx );
+
+				//for ( var y = Math.max( from_y, sdWorld.world_bounds.y2 ); y < y2; y += 16 ) // Only append
+				for ( var y = Math.max( Math.min( from_y, sdWorld.base_ground_level ), Math.min( y1, sdWorld.world_bounds.y1 ) ); y < y2; y += 16 ) // Only append
+				{
+					if ( y < sdWorld.world_bounds.y1 || y >= sdWorld.world_bounds.y2 )
+					{
+						if ( Math.abs( y ) % 16 === 8 )
+						{
+							FillGroundQuad( x, y, from_y, true );
+							y -= 8;
+						}
+						else
+						FillGroundQuad( x, y, from_y );
+					}
+					else
+					{
+						if ( Math.abs( y ) % 16 === 8 )
+						y -= 8;
+					}
+				}
+			}
+
+			// Extension to right
+			for ( var x = sdWorld.world_bounds.x2; x < x2; x += 16 )
+			{
+				var xx = Math.floor( x / 16 );
+				sdWorld.base_ground_level1[ xx ] = sdWorld.base_ground_level1[ xx - 1 ] || 0;
+				sdWorld.base_ground_level2[ xx ] = sdWorld.base_ground_level2[ xx - 1 ] || 0;
+				sdWorld.base_grass_level[ xx ] = sdWorld.base_grass_level[ xx - 1 ] || 0;
+
+				sdWorld.base_ground_level1[ xx ] += ( Math.random() - 0.5 ) * 0.2;
+				sdWorld.base_ground_level2[ xx ] += ( Math.random() - 0.25 ) * 0.1;
+				sdWorld.base_grass_level[ xx ] += ( Math.random() - 0.5 ) * 0.1;
+
+				var from_y = GetGroundElevation( xx );
+
+				for ( var y = Math.max( Math.min( from_y, sdWorld.base_ground_level ), y1 ); y < y2; y += 16 ) // Whole relevant height
 				{
 					if ( Math.abs( y ) % 16 === 8 )
 					{
@@ -974,120 +1066,89 @@ class sdWorld
 					else
 					FillGroundQuad( x, y, from_y );
 				}
-				else
+			}
+
+			// Extension to left
+			for ( var x = sdWorld.world_bounds.x1 - 16; x >= x1; x -= 16 )
+			{
+				var xx = Math.floor( x / 16 );
+				sdWorld.base_ground_level1[ xx ] = sdWorld.base_ground_level1[ xx + 1 ] || 0;
+				sdWorld.base_ground_level2[ xx ] = sdWorld.base_ground_level2[ xx + 1 ] || 0;
+				sdWorld.base_grass_level[ xx ] = sdWorld.base_grass_level[ xx + 1 ] || 0;
+
+				sdWorld.base_ground_level1[ xx ] -= ( Math.random() - 0.5 ) * 0.2;
+				sdWorld.base_ground_level2[ xx ] -= ( Math.random() - 0.25 ) * 0.1;
+				sdWorld.base_grass_level[ xx ] -= ( Math.random() - 0.5 ) * 0.1;
+
+				var from_y = GetGroundElevation( xx );
+
+				for ( var y = Math.max( Math.min( from_y, sdWorld.base_ground_level ), y1 ); y < y2; y += 16 ) // Whole relevant height
 				{
 					if ( Math.abs( y ) % 16 === 8 )
-					y -= 8;
-				}
-			}
-		}
-		
-		// Extension to right
-		for ( var x = sdWorld.world_bounds.x2; x < x2; x += 16 )
-		{
-			var xx = Math.floor( x / 16 );
-			sdWorld.base_ground_level1[ xx ] = sdWorld.base_ground_level1[ xx - 1 ] || 0;
-			sdWorld.base_ground_level2[ xx ] = sdWorld.base_ground_level2[ xx - 1 ] || 0;
-			sdWorld.base_grass_level[ xx ] = sdWorld.base_grass_level[ xx - 1 ] || 0;
-			
-			sdWorld.base_ground_level1[ xx ] += ( Math.random() - 0.5 ) * 0.2;
-			sdWorld.base_ground_level2[ xx ] += ( Math.random() - 0.25 ) * 0.1;
-			sdWorld.base_grass_level[ xx ] += ( Math.random() - 0.5 ) * 0.1;
-
-			var from_y = GetGroundElevation( xx );
-			
-			for ( var y = Math.max( Math.min( from_y, sdWorld.base_ground_level ), y1 ); y < y2; y += 16 ) // Whole relevant height
-			{
-				if ( Math.abs( y ) % 16 === 8 )
-				{
-					FillGroundQuad( x, y, from_y, true );
-					y -= 8;
-				}
-				else
-				FillGroundQuad( x, y, from_y );
-			}
-		}
-		
-		// Extension to left
-		for ( var x = sdWorld.world_bounds.x1 - 16; x >= x1; x -= 16 )
-		{
-			var xx = Math.floor( x / 16 );
-			sdWorld.base_ground_level1[ xx ] = sdWorld.base_ground_level1[ xx + 1 ] || 0;
-			sdWorld.base_ground_level2[ xx ] = sdWorld.base_ground_level2[ xx + 1 ] || 0;
-			sdWorld.base_grass_level[ xx ] = sdWorld.base_grass_level[ xx + 1 ] || 0;
-			
-			sdWorld.base_ground_level1[ xx ] -= ( Math.random() - 0.5 ) * 0.2;
-			sdWorld.base_ground_level2[ xx ] -= ( Math.random() - 0.25 ) * 0.1;
-			sdWorld.base_grass_level[ xx ] -= ( Math.random() - 0.5 ) * 0.1;
-
-			var from_y = GetGroundElevation( xx );
-			
-			for ( var y = Math.max( Math.min( from_y, sdWorld.base_ground_level ), y1 ); y < y2; y += 16 ) // Whole relevant height
-			{
-				if ( Math.abs( y ) % 16 === 8 )
-				{
-					FillGroundQuad( x, y, from_y, true );
-					y -= 8;
-				}
-				else
-				FillGroundQuad( x, y, from_y );
-			}
-		}
-		
-		// Delete outbound items
-		if ( sdWeather.only_instance )
-		{
-			sdWeather.only_instance.x = x1;
-			sdWeather.only_instance.y = y1;
-		}
-		
-		sdSound.server_mute = true;
-		for ( let i = 0; i < sdEntity.entities.length; i++ )
-		{
-			var e = sdEntity.entities[ i ];
-			//if ( e.x + e._hitbox_x2 < x1 || e.x + e._hitbox_x1 > x2 || e.y + e._hitbox_y2 < y1 || e.y + e._hitbox_y1 > y2 ) Ground overlap problem
-			if ( e.x < x1 || e.x >= x2 || e.y < y1 || e.y >= y2 )
-			{
-				if ( e._is_being_removed )
-				{
-				}
-				else
-				{
-					// Should be pointless now
-					if ( e.is( sdBlock ) )
-					if ( e._contains_class !== null )
-					e._contains_class = null;
-
-					e.remove();
-					e._remove();
-					
-					e._broken = false;
-					
-					
-					
-					let id_in_active = sdEntity.active_entities.indexOf( e );
-					if ( id_in_active !== -1 )
 					{
-						debugger; // Doesn't _remove handles it by changing hiberstate?
-						
-						sdEntity.active_entities.splice( id_in_active, 1 );
+						FillGroundQuad( x, y, from_y, true );
+						y -= 8;
 					}
-					
-					
-					
-					
-					sdEntity.entities.splice( i, 1 );
-					i--;
-					continue;
+					else
+					FillGroundQuad( x, y, from_y );
 				}
 			}
+
+			// Delete outbound items
+			if ( sdWeather.only_instance )
+			{
+				sdWeather.only_instance.x = x1;
+				sdWeather.only_instance.y = y1;
+			}
+
+			sdSound.server_mute = true;
+			for ( let i = 0; i < sdEntity.entities.length; i++ )
+			{
+				var e = sdEntity.entities[ i ];
+				//if ( e.x + e._hitbox_x2 < x1 || e.x + e._hitbox_x1 > x2 || e.y + e._hitbox_y2 < y1 || e.y + e._hitbox_y1 > y2 ) Ground overlap problem
+				if ( e.x < x1 || e.x >= x2 || e.y < y1 || e.y >= y2 )
+				{
+					if ( e._is_being_removed )
+					{
+					}
+					else
+					{
+						// Should be pointless now
+						if ( e.is( sdBlock ) )
+						if ( e._contains_class !== null )
+						e._contains_class = null;
+
+						e.remove();
+						e._remove();
+
+						e._broken = false;
+
+
+
+						let id_in_active = sdEntity.active_entities.indexOf( e );
+						if ( id_in_active !== -1 )
+						{
+							debugger; // Doesn't _remove handles it by changing hiberstate?
+
+							sdEntity.active_entities.splice( id_in_active, 1 );
+						}
+
+
+
+
+						sdEntity.entities.splice( i, 1 );
+						i--;
+						continue;
+					}
+				}
+			}
+			sdSound.server_mute = false;
+
+			sdWorld.world_bounds.x1 = x1;
+			sdWorld.world_bounds.y1 = y1;
+			sdWorld.world_bounds.x2 = x2;
+			sdWorld.world_bounds.y2 = y2;
 		}
-		sdSound.server_mute = false;
-		
-		sdWorld.world_bounds.x1 = x1;
-		sdWorld.world_bounds.y1 = y1;
-		sdWorld.world_bounds.x2 = x2;
-		sdWorld.world_bounds.y2 = y2;
 	}
 	static CanSocketSee( socket, x, y )
 	{
@@ -1596,21 +1657,30 @@ class sdWorld
 				e = arr[ i ];
 				
 				if ( !e._is_being_removed )
-				if ( filter_candidates_function === null || filter_candidates_function( e ) )
-				if ( specific_classes === null || specific_classes.indexOf( e.GetClass() ) !== -1 )
 				{
-					x1 = e._hitbox_x1;
-					x2 = e._hitbox_x2;
-					y1 = e._hitbox_y1;
-					y2 = e._hitbox_y2;
-					
-					cx = Math.max( e.x + x1, Math.min( _x, e.x + x2 ) );
-					cy = Math.max( e.y + y1, Math.min( _y, e.y + y2 ) );
+					const e_is_bg_entity = e.IsBGEntity();
 
-					//if ( sdWorld.inDist2D( _x, _y, cx, cy, range ) >= 0 )
-					if ( sdWorld.inDist2D_Boolean( _x, _y, cx, cy, range ) )
-					if ( ret.indexOf( e ) === -1 )
-					ret.push( e );
+					if ( e_is_bg_entity === 10 ) // sdDeepSleep
+					{
+						e.WakeUpArea();
+					}
+					else
+					if ( filter_candidates_function === null || filter_candidates_function( e ) )
+					if ( specific_classes === null || specific_classes.indexOf( e.GetClass() ) !== -1 )
+					{
+						x1 = e._hitbox_x1;
+						x2 = e._hitbox_x2;
+						y1 = e._hitbox_y1;
+						y2 = e._hitbox_y2;
+
+						cx = Math.max( e.x + x1, Math.min( _x, e.x + x2 ) );
+						cy = Math.max( e.y + y1, Math.min( _y, e.y + y2 ) );
+
+						//if ( sdWorld.inDist2D( _x, _y, cx, cy, range ) >= 0 )
+						if ( sdWorld.inDist2D_Boolean( _x, _y, cx, cy, range ) )
+						if ( ret.indexOf( e ) === -1 )
+						ret.push( e );
+					}
 				}
 			}
 		}
@@ -2193,6 +2263,7 @@ class sdWorld
 					}*/
 				}
 				else
+				if ( !entity.is( sdDeepSleep ) )
 				debugger; // ~~ operation overflow is taking place? Or object is just too huge?
 			}
 		}
@@ -3045,26 +3116,35 @@ class sdWorld
 						//if ( y1 <= arr_i_y + arr_i._hitbox_y2 )
 						if ( y2 > arr_i_y + arr_i._hitbox_y1 )
 						if ( y1 < arr_i_y + arr_i._hitbox_y2 )
-						if ( ignore_entity === null || arr_i.IsBGEntity() === ignore_entity.IsBGEntity() )
-						//if ( arr_i._hard_collision || include_only_specific_classes )
-						if ( include_only_specific_classes || arr_i._hard_collision )
-						if ( !arr_i._is_being_removed )
 						{
-							if ( include_only_specific_classes || ignore_entity_classes )
-							class_str = arr_i.GetClass();
+							const arr_i_is_bg_entity = arr_i.IsBGEntity();
+							
+							if ( arr_i_is_bg_entity === 10 ) // sdDeepSleep
+							{
+								arr_i.WakeUpArea();
+							}
+							else
+							if ( ignore_entity === null || arr_i_is_bg_entity === ignore_entity.IsBGEntity() )
+							//if ( arr_i._hard_collision || include_only_specific_classes )
+							if ( include_only_specific_classes || arr_i._hard_collision )
+							if ( !arr_i._is_being_removed )
+							{
+								if ( include_only_specific_classes || ignore_entity_classes )
+								class_str = arr_i.GetClass();
 
-							if ( include_only_specific_classes && include_only_specific_classes.indexOf( class_str ) === -1 )
-							{
-							}
-							else
-							if ( ignore_entity_classes && ignore_entity_classes.indexOf( class_str ) !== -1 )
-							{
-							}
-							else
-							if ( custom_filtering_method === null || custom_filtering_method( arr_i ) )
-							{
-								sdWorld.last_hit_entity = arr_i;
-								return true;
+								if ( include_only_specific_classes && include_only_specific_classes.indexOf( class_str ) === -1 )
+								{
+								}
+								else
+								if ( ignore_entity_classes && ignore_entity_classes.indexOf( class_str ) !== -1 )
+								{
+								}
+								else
+								if ( custom_filtering_method === null || custom_filtering_method( arr_i ) )
+								{
+									sdWorld.last_hit_entity = arr_i;
+									return true;
+								}
 							}
 						}
 					}
@@ -3217,24 +3297,33 @@ class sdWorld
 						
 						if ( y >= arr_i_y + arr_i._hitbox_y1 )
 						if ( y <= arr_i_y + arr_i._hitbox_y2 )
-						if ( ignore_entity === null || arr_i.IsBGEntity() === ignore_entity.IsBGEntity() )
-						if ( include_only_specific_classes || arr_i._hard_collision )
 						{
-							if ( include_only_specific_classes || ignore_entity_classes )
-							class_str = arr_i.GetClass();
+							const arr_i_is_bg_entity = arr_i.IsBGEntity();
+							
+							if ( arr_i_is_bg_entity === 10 ) // sdDeepSleep
+							{
+								arr_i.WakeUpArea();
+							}
+							else
+							if ( ignore_entity === null || arr_i_is_bg_entity === ignore_entity.IsBGEntity() )
+							if ( include_only_specific_classes || arr_i._hard_collision )
+							{
+								if ( include_only_specific_classes || ignore_entity_classes )
+								class_str = arr_i.GetClass();
 
-							if ( include_only_specific_classes && include_only_specific_classes.indexOf( class_str ) === -1 )
-							{
-							}
-							else
-							if ( ignore_entity_classes && ignore_entity_classes.indexOf( class_str ) !== -1 )
-							{
-							}
-							else
-							if ( custom_filtering_method === null || custom_filtering_method( arr_i ) )
-							{
-								sdWorld.last_hit_entity = arr_i;
-								return true;
+								if ( include_only_specific_classes && include_only_specific_classes.indexOf( class_str ) === -1 )
+								{
+								}
+								else
+								if ( ignore_entity_classes && ignore_entity_classes.indexOf( class_str ) !== -1 )
+								{
+								}
+								else
+								if ( custom_filtering_method === null || custom_filtering_method( arr_i ) )
+								{
+									sdWorld.last_hit_entity = arr_i;
+									return true;
+								}
 							}
 						}
 					}

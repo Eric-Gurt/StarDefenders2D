@@ -7,15 +7,21 @@
 	Most likely it would merge whole big bases into one big chunk, which is perfectly fine I guess.
 
 
-	TODO: this._my_hash_list is generated but not yet used outside of this class
+	TODO: _will_be_written_to_disk is not used yet
 
-	TODO: Add SyncedToPlayer logic
+	TODO: Make sure "unspawned" state removes file from the disk as well
 
-	TODO: Greatly increase range over entities that have some sort of radius-based scans, such as turrets and crystals
+	//TODO: this._my_hash_list is generated but not yet used outside of this class
 
-	TODO: Add some sort of global chunk manager
+	//TODO: Add SyncedToPlayer logic
 
-	TODO: Make point and rect testers wake-up sdDeepSleep areas?
+	//TODO: Greatly increase range over entities that have some sort of radius-based scans, such as turrets and crystals
+
+	//TODO: Add some sort of global chunk manager
+
+	//TODO: Make point and rect testers wake-up sdDeepSleep areas?
+
+	//TODO: Keep in mind pathfinding can accidentally wake up sdDeepSleep areas it does not really needs. Make pathfinding more directed by default somehow? Limit its' range?
 
 */
 import sdWorld from '../sdWorld.js';
@@ -23,6 +29,19 @@ import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
 import sdCharacter from './sdCharacter.js';
 import sdLongRangeTeleport from './sdLongRangeTeleport.js';
+import sdWeather from './sdWeather.js';
+import sdGrass from './sdGrass.js';
+import sdTurret from './sdTurret.js';
+import sdCrystal from './sdCrystal.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdAntigravity from './sdAntigravity.js';
+import sdDoor from './sdDoor.js';
+import sdBG from './sdBG.js';
+import sdSteeringWheel from './sdSteeringWheel.js';
+import sdThruster from './sdThruster.js';
+import sdRescueTeleport from './sdRescueTeleport.js';
+import sdBeacon from './sdBeacon.js';
+import sdHover from './sdHover.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -33,9 +52,139 @@ class sdDeepSleep extends sdEntity
 	{
 		sdDeepSleep.TYPE_UNSPAWNED_WORLD = 0; // Whenever something touches it or some player sees it - spawns fresh world at the area
 		sdDeepSleep.TYPE_HIBERNATED_WORLD = 1; // Whenever something touches it or some player sees it - spawns previously hibernated entities
-		//sdDeepSleep.TYPE_SCHEDULED_SLEEP = 2; // These will be created at areas that will be scheduled to sleep soon unless nobody interacts with them
+		sdDeepSleep.TYPE_SCHEDULED_SLEEP = 2; // These will be created at areas that will be scheduled to sleep soon unless nobody interacts with them
+		
+		sdDeepSleep.cells = [];
+		sdDeepSleep.loopie = 0;
+		
+		//sdDeepSleep.normal_cell_size = 2048; // Half a second lags can happen
+		sdDeepSleep.normal_cell_size = 256; // Maybe this is actually more optimal
+		
+		sdDeepSleep.inception_catcher = 0;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
+	}
+	
+	static WakeUpByArrayAndValue( array_name, value )
+	{
+		for ( let i = 0; i < sdDeepSleep.cells.length; i++ )
+		{
+			let cell = sdDeepSleep.cells[ i ];
+
+			if ( cell.type === sdDeepSleep.TYPE_HIBERNATED_WORLD )
+			if ( cell[ array_name ].indexOf( value ) !== -1 )
+			{
+				cell.WakeUpArea(); // Results into removal
+
+				if ( cell._is_being_removed )
+				{
+					i--;
+					continue;
+				}
+			}
+		}
+	}
+	static GlobalThink( GSPEED )
+	{
+		if ( sdWorld.is_server )
+		{
+			sdDeepSleep.inception_catcher = 0;
+		
+			if ( sdWorld.server_config.aggressive_hibernation )
+			{
+				if ( sdEntity.entities.length > 0 )
+				{
+					let i = Math.floor( Math.random() * sdEntity.entities.length );
+
+					let e = sdEntity.entities[ i ];
+
+					if ( !e.is( sdDeepSleep ) )
+					{
+						let x = Math.floor( ( e.x + e._hitbox_x1 ) / sdDeepSleep.normal_cell_size ) * sdDeepSleep.normal_cell_size;
+						let y = Math.floor( ( e.y + e._hitbox_y1 ) / sdDeepSleep.normal_cell_size ) * sdDeepSleep.normal_cell_size;
+						let w = sdDeepSleep.normal_cell_size;
+						let h = sdDeepSleep.normal_cell_size;
+
+						let cell = new sdDeepSleep({
+							x: x,
+							y: y,
+							w: w,
+							h: h,
+							type: sdDeepSleep.TYPE_SCHEDULED_SLEEP
+						});
+
+						sdEntity.entities.push( cell );
+
+						let ok = true;
+						for ( let i2 = 0; i2 < sdDeepSleep.cells.length; i2++ )
+						if ( cell !== sdDeepSleep.cells[ i2 ] )
+						if ( cell.DoesOverlapWith( sdDeepSleep.cells[ i2 ] ) )
+						{
+							ok = false;
+							break;
+						}
+
+						if ( ok )
+						{
+						}
+						else
+						{
+							cell.remove();
+						}
+					}
+				}
+
+				if ( sdDeepSleep.cells.length > 0 )
+				{
+					sdDeepSleep.loopie = ( sdDeepSleep.loopie + 1 ) % sdDeepSleep.cells.length;
+
+					let cell = sdDeepSleep.cells[ sdDeepSleep.loopie ];
+
+					if ( cell.type === sdDeepSleep.TYPE_UNSPAWNED_WORLD )
+					{
+					}
+					else
+					if ( cell.type === sdDeepSleep.TYPE_HIBERNATED_WORLD )
+					{
+						if ( sdWorld.time > cell._will_become_unspawned )
+						{
+							cell._snapshots_str = '';
+							cell.type = sdDeepSleep.TYPE_UNSPAWNED_WORLD;
+						}
+					}
+					else
+					if ( cell.type === sdDeepSleep.TYPE_SCHEDULED_SLEEP )
+					{
+						if ( sdWorld.time > cell._will_hibernate_on )
+						{
+							cell.type = sdDeepSleep.TYPE_HIBERNATED_WORLD;
+							cell.onBuilt();
+						}
+					}
+					else
+					{
+					}
+				}
+			}
+			else
+			{
+				for ( let i = 0; i < sdDeepSleep.cells.length; i++ )
+				{
+					let cell = sdDeepSleep.cells[ i ];
+					
+					if ( cell.type === sdDeepSleep.TYPE_UNSPAWNED_WORLD )
+					cell.WakeUpArea();
+					else
+					if ( cell.type === sdDeepSleep.TYPE_HIBERNATED_WORLD )
+					cell.WakeUpArea();
+					else
+					if ( cell.type === sdDeepSleep.TYPE_SCHEDULED_SLEEP )
+					cell.remove();
+					else
+					debugger;
+				}
+			}
+		}
 	}
 
 	get hitbox_x1() { return 0; }
@@ -51,17 +200,15 @@ class sdDeepSleep extends sdEntity
 	
 	IsVisible( observer_entity )
 	{
-		return true;
+		return ( !this._is_being_removed );
 	}
 	
-	static GlobalThink( GSPEED )
-	{
-		if ( sdWorld.is_server )
-		{
-		}
-	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
+		// TODO
+		
+		//if ( 0 )
+		this.WakeUpArea( true, character );
 	}
 	onMovementInRange( from_entity )
 	{
@@ -69,25 +216,48 @@ class sdDeepSleep extends sdEntity
 		return;
 	
 		if ( this._to_remove_temp_set )
-		if ( this._to_remove_temp_set.has( from_entity ) )
+		//if ( this._to_remove_temp_set.has( from_entity ) )
+		if ( this._to_remove_temp_set.indexOf( from_entity ) !== -1 )
 		{
 			return;
 		}
 		
-		this.ping_time = sdWorld.time;
+		if ( from_entity.is( sdDeepSleep ) )
+		return;
 		
-		trace( 'Movement from ', from_entity );
-		debugger;
+		//this.ping_time = sdWorld.time;
 		
-		this.WakeUpArea();
+		//trace( 'Movement from ', from_entity );
+		//debugger;
+		
+		this.WakeUpArea( true, from_entity );
 	}
-	WakeUpArea()
+	WakeUpArea( from_movement_or_vision=false, initiator=null )
 	{
 		if ( !sdWorld.is_server )
 		return;
 	
+		if ( this.type === sdDeepSleep.TYPE_SCHEDULED_SLEEP )
+		{
+			if ( from_movement_or_vision && initiator && initiator.IsPlayerClass() )
+			{
+				this.remove();
+			}
+			
+			return; // These can't be waken up nor should be removed unless playe sees or interacts with them
+		}
+	
 		if ( this._is_being_removed )
 		return;
+	
+		sdDeepSleep.inception_catcher++;
+		
+		if ( sdDeepSleep.inception_catcher > 128 )
+		{
+			//debugger;
+			console.warn( 'Some crazy deep sleep inception has happened' );
+			return;
+		}
 
 		if ( this.type === sdDeepSleep.TYPE_UNSPAWNED_WORLD )
 		{
@@ -99,7 +269,7 @@ class sdDeepSleep extends sdEntity
 			for ( let x = this.x; x < x2; x += 16 )
 			for ( let y = this.y; y < y2; y += 16 )
 			{
-				let block = sdWorld.AttemptWorldBlockSpawn( x, y );
+				let block = sdWorld.AttemptWorldBlockSpawn( x, y, false );
 				
 				if ( block )
 				{
@@ -112,7 +282,7 @@ class sdDeepSleep extends sdEntity
 		{
 			if ( this._snapshots_str === '' ) // onBuild was not called yet..?
 			{
-				debugger;
+				console.warn( 'Empty snapshot being decoded' );
 				return;
 			}
 		
@@ -126,27 +296,74 @@ class sdDeepSleep extends sdEntity
 			
 			sdWorld.unresolved_entity_pointers = [];
 			
+			//globalThis.EnforceChangeLog( sdWorld, 'unresolved_entity_pointers' );
+			
 			let ents = [];
 		
 			for ( let i = 0; i < snapshots.length; i++ )
 			{
 				let snapshot = snapshots[ i ];
 				
+				/*if ( snapshot._class === 'sdGrass' )
+				{
+					debugger;
+				}*/
+				
 				let ent = sdEntity.GetObjectFromSnapshot( snapshot );
 				
-				if ( !ent._is_being_removed )
+				/*if ( ent.is( sdGrass ) )
+				{
+					debugger;
+				}*/
+				
+				/*if ( !ent._is_being_removed ) Move below as it might auto-activate deep sleep areas inisde of this deep sleep area
 				{
 					//if ( ent._affected_hash_arrays.length > 0 ) // Easier than checking for hiberstates
 					sdWorld.UpdateHashPosition( ent, false, true ); // Last must be true or else bullets will miss new entities for a frame
 				
 					//sdWorld.UpdateHashPosition( ent, false, false ); // Won't call onMovementInRange
-				}
+				}*/
 				
 				ents.push( ent );
 			}
 			
+			//sdWorld.unresolved_entity_pointers_unenforce();
+			
 			sdWorld.SolveUnresolvedEntityPointers();
 			sdWorld.unresolved_entity_pointers = null;
+			
+			for ( let i = 0; i < ents.length; i++ )
+			{
+				let ent = ents[ i ];
+				
+				if ( !ent._is_being_removed )
+				{
+					/*if ( ent.is( sdHover ) )
+					{
+						if ( !ent.driver0 )
+						{
+							trace( 'Error?' );
+							debugger;
+						}
+					}*/
+					
+					if ( ent.is( sdGrass ) )
+					{
+						if ( ent._block )
+						ent._block.ValidatePlants( ent );
+						else
+						{
+							ent.remove();
+						}
+						//debugger;
+					}
+					
+					//if ( ent._affected_hash_arrays.length > 0 ) // Easier than checking for hiberstates
+					sdWorld.UpdateHashPosition( ent, false, true ); // Last must be true or else bullets will miss new entities for a frame
+				
+					//sdWorld.UpdateHashPosition( ent, false, false ); // Won't call onMovementInRange
+				}
+			}
 		}
 	}
 	
@@ -160,16 +377,35 @@ class sdDeepSleep extends sdEntity
 		this.w = params.w || 512;
 		this.h = params.h || 512;
 		
+		if ( this.w <= 0 || isNaN( this.w ) )
+		throw new Error();
+		
+		if ( this.h <= 0 || isNaN( this.h ) )
+		throw new Error();
+		
 		this.type = params.type || sdDeepSleep.TYPE_UNSPAWNED_WORLD;
 		
-		this.ping_time = 0;
+		this._will_hibernate_on = sdWorld.time + 5000; // For sdDeepSleep.TYPE_SCHEDULED_SLEEP only
+		this._will_be_written_to_disk = sdWorld.time + 1000 * 60 * 60 * 24; // In a day
+		this._will_become_unspawned = sdWorld.time + 1000 * 60 * 60 * 24 * 30 * 12 * 5; // Full removal in 5 years?
 		
-		this._snapshots_str = '';// [];
+		this._snapshots_str = '';
 		this._to_remove_temp_set = null;
 		
 		this._my_hash_list = []; // Disconnected player hashes are stored here
+		this._rtp_biometries = [];
+		this._beacon_net_ids = [];
+		
+		sdDeepSleep.cells.push( this );
 		
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false );
+	}
+	ExtraSerialzableFieldTest( prop )
+	{
+		if ( prop === '_my_hash_list' ) return true;
+		if ( prop === '_snapshots_str' ) return true;
+		
+		return false;
 	}
 	onBuilt()
 	{
@@ -178,9 +414,14 @@ class sdDeepSleep extends sdEntity
 		{
 			//trace( 'Generating hibernated area...' );
 			
-			let entity_once = new Set();
+			//let entity_once = new Set();
 			
-			entity_once.add( this ); // Ignore itself
+			//entity_once.add( this ); // Ignore itself
+			
+			const visited_ent_flag = sdEntity.GetUniqueFlagValue();
+			const all_entities = [];
+			
+			this._flag = visited_ent_flag;
 			
 			let bounds_moved = true;
 			
@@ -191,34 +432,108 @@ class sdDeepSleep extends sdEntity
 				
 			let dependences = [];
 			
+			//let scheduled_sleep_areas_to_cancel = [];
+			
 			const HandleEntity = ( e )=>
 			{
-				if ( entity_once.has( e ) )
+				//if ( entity_once.has( e ) )
+				if ( e._flag === visited_ent_flag )
 				{
 				}
 				else
 				if ( this.DoesOverlapWith( e ) )
 				{
-					if ( e === this )
-					throw new Error();
+					//if ( e === this )
+					//return false;
+					//throw new Error();
+				
+					if ( e.is( sdWeather ) )
+					return false;
+					//throw new Error();
+					
+					if ( e._is_being_removed )
+					return false;
 
-					if ( e.IsPlayerClass() )
-					if ( e._socket )
+					if ( 
+							( e.IsPlayerClass() && e._socket ) || // No online players
+							( e.is( sdLongRangeTeleport ) && e.is_server_teleport ) || // No server teleports (unless regular telepors will be available for in-world teleportation at some point?)
+							e.is( sdRescueTeleport ) || // It looks like there is no solution at all for these...
+							e.is( sdBeacon ) || // It looks like there is no solution at all for these...
+							!sdWorld.server_config.AllowAggressiveHibernationFor( e )
+						)
 					{
-						// We probably will experience a lot of issues trying to wake up playable characters, unless...
 						this.remove();
 						return true;
 					}
+					
+					// Sleep cells do not matter
+					if ( e.is( sdDeepSleep ) )
+					if ( e.type === sdDeepSleep.TYPE_SCHEDULED_SLEEP )
+					{
+						//scheduled_sleep_areas_to_cancel.push( e );
+						return false;
+					}
 
-					entity_once.add( e );
+					//entity_once.add( e );
+					e._flag = visited_ent_flag;
+					all_entities.push( e );
+					
+					let ext_x1 = e._hitbox_x1;
+					let ext_x2 = e._hitbox_x2;
+					let ext_y1 = e._hitbox_y1;
+					let ext_y2 = e._hitbox_y2;
+					
+					// Radius extensions for entities that have reaction range
+					let r = 0;
+					
+					if ( e.is( sdTurret ) )
+					{
+						r = e.GetTurretRange();
+					}
+					else
+					if ( e.is( sdCrystal ) )
+					{
+						if ( e.is_anticrystal )
+						r = 100;
+						else
+						r = 30;
+					}
+					else
+					if ( e.is( sdBaseShieldingUnit ) )
+					{
+						if ( e.enabled )
+						r = sdBaseShieldingUnit.protect_distance_stretch;
+					}
+					else
+					if ( e.is( sdAntigravity ) )
+					{
+						if ( e.power > 0 )
+						ext_y1 = -16 * 16;
+						else
+						if ( e.power === -1 )
+						ext_y1 = -3 * 16;
+					}
+					else
+					if ( e.is( sdDoor ) )
+					{
+						r = 16 + 32;
+					}
+					
+					if ( r !== 0 )
+					{
+						ext_x1 = e.x - r;
+						ext_x2 = e.x + r;
+						ext_y1 = e.y - r;
+						ext_y2 = e.y + r;
+					}
 
-					_x = Math.floor( Math.min( _x, e.x + e._hitbox_x1 ) / 16 ) * 16;
-					_x2 = Math.ceil( Math.max( _x2, e.x + e._hitbox_x2 ) / 16 ) * 16;
-					_y = Math.floor( Math.min( _y, e.y + e._hitbox_y1 ) / 16 ) * 16;
-					_y2 = Math.ceil( Math.max( _y2, e.y + e._hitbox_y2 ) / 16 ) * 16;
+					_x = Math.floor( Math.min( _x, e.x + ext_x1 ) / 16 ) * 16;
+					_x2 = Math.ceil( Math.max( _x2, e.x + ext_x2 ) / 16 ) * 16;
+					_y = Math.floor( Math.min( _y, e.y + ext_y1 ) / 16 ) * 16;
+					_y2 = Math.ceil( Math.max( _y2, e.y + ext_y2 ) / 16 ) * 16;
 
-					if ( _y > this.y )
-					throw new Error();
+					//if ( _y > this.y )
+					//throw new Error();
 
 					this.x = _x;
 					this.w = _x2 - _x;
@@ -227,13 +542,55 @@ class sdDeepSleep extends sdEntity
 					this._hitbox_x2 = this.w;
 					this._hitbox_y2 = this.h;
 					
-					for ( let prop in e )
+					// Add any pointer entities as dependences?
+					if ( e.is( sdBlock ) )
 					{
-						if ( e[ prop ] instanceof sdEntity )
+						if ( e._shielded )
+						dependences.push( e._shielded );
+						
+						if ( e._plants )
+						for ( let i = 0; i < e._plants.length; i++ )
 						{
-							dependences.push( e[ prop ] );
+							let possible_ent = sdEntity.entities_by_net_id_cache_map.get( e._plants[ i ] );
+
+							if ( possible_ent )
+							if ( !possible_ent._is_being_removed )
+							dependences.push( possible_ent );
 						}
 					}
+					else
+					if ( e.is( sdBG ) )
+					{
+					}
+					else
+					{
+						for ( let prop in e )
+						//if ( typeof e[ prop ] === 'object' )
+						if ( e[ prop ] instanceof sdEntity )
+						if ( !e[ prop ]._is_being_removed )
+						dependences.push( e[ prop ] );
+					}
+			
+					/*if ( e.is( sdBlock ) )
+					if ( e._plants )
+					for ( let i = 0; i < e._plants.length; i++ )
+					{
+						let possible_ent = sdEntity.entities_by_net_id_cache_map.get( e._plants[ i ] );
+
+						if ( possible_ent )
+						if ( !possible_ent._is_being_removed )
+						dependences.push( possible_ent );
+					}*/
+					
+					if ( e.is( sdDoor ) || e.is( sdBlock ) || e.is( sdBG ) || e.is( sdThruster ) )
+					for ( let i = 0; i < sdSteeringWheel.steering_wheels.length; i++ )
+					if ( sdSteeringWheel.steering_wheels[ i ]._scan_net_ids.indexOf( e._net_id ) !== -1 )
+					{
+						dependences.push( sdSteeringWheel.steering_wheels[ i ] );
+						break;
+					}
+					if ( e.is( sdSteeringWheel ) )
+					dependences.push( ...e._scan );
 
 					// TODO: Lookup pointers in properties as well as try to include crystal/turret ranges
 
@@ -261,7 +618,10 @@ class sdDeepSleep extends sdEntity
 				
 				while ( dependences.length > 0 )
 				{
-					if ( HandleEntity( dependences.pop() ) )
+					let e = dependences.pop();
+					
+					if ( !e._is_being_removed )
+					if ( HandleEntity( e ) )
 					return;
 				}
 			}
@@ -269,27 +629,54 @@ class sdDeepSleep extends sdEntity
 			let snapshots = [];
 			let current_frame = globalThis.GetFrame();
 			
-			this._to_remove_temp_set = entity_once;
+			//this._to_remove_temp_set = entity_once;
+			this._to_remove_temp_set = all_entities;
 
-			entity_once.forEach( ( e )=>
+			//entity_once.forEach( ( e )=>
+			for ( let i = 0; i < all_entities.length; i++ )
 			{
-				if ( e !== this )
-				{
+				let e = all_entities[ i ];
+				
+				//if ( e !== this )
+				//{
 					snapshots.push( e.GetSnapshot( current_frame, true ) );
 					
 					if ( e.is( sdDeepSleep ) )
 					{
 						this._my_hash_list.push( ...e._my_hash_list );
+						this._rtp_biometries.push( ...e._rtp_biometries );
+						this._beacon_net_ids.push( ...e._beacon_net_ids );
 					}
 					else
 					if ( e.IsPlayerClass() && e._my_hash !== undefined )
 					{
 						this._my_hash_list.push( e._my_hash );
 					}
-				}
-			});
-			entity_once.forEach( ( e )=>
+					else
+					if ( e.is( sdRescueTeleport ) )
+					{
+						this._rtp_biometries.push( e.owner_biometry );
+					}
+					else
+					if ( e.is( sdBeacon ) )
+					{
+						this._beacon_net_ids.push( e._net_id );
+					}
+				//}
+			}
+			
+			if ( snapshots.length === 0 )
 			{
+				this.remove();
+				return;
+			}
+			
+			//entity_once.forEach( ( e )=>
+			//{
+			for ( let i = 0; i < all_entities.length; i++ )
+			{
+				let e = all_entities[ i ];
+				
 				if ( e !== this )
 				{
 					e.remove();
@@ -299,7 +686,10 @@ class sdDeepSleep extends sdEntity
 					
 					sdLongRangeTeleport.teleported_items.add( e );
 				}
-			});
+			}
+			
+			//for ( let i = 0; i < scheduled_sleep_areas_to_cancel.length; i++ )
+			//scheduled_sleep_areas_to_cancel[ i ].remove();
 			
 			this._to_remove_temp_set = null;
 			
@@ -322,6 +712,16 @@ class sdDeepSleep extends sdEntity
 	IsBGEntity() // 1 for BG entities, should handle collisions separately
 	{ return 10; }
 	
+	onBeforeRemove()
+	{
+		let id = sdDeepSleep.cells.indexOf( this );
+		
+		if ( id !== -1 )
+		sdDeepSleep.cells.splice( id, 1 );
+		else
+		debugger;
+	}
+	
 	get spawn_align_x(){ return 16; };
 	get spawn_align_y(){ return 16; };
 	
@@ -330,42 +730,41 @@ class sdDeepSleep extends sdEntity
 	
 	Draw( ctx, attached )
 	{
-		ctx.filter = this.filter;
-		
-		if ( sdWorld.time % 1000 < 500 )
+		if ( sdWorld.my_entity && sdWorld.my_entity._god )
 		{
-			ctx.globalAlpha = 0.4;
+			ctx.filter = this.filter;
+
+			if ( sdWorld.time % 1000 < 500 )
+			{
+				ctx.globalAlpha = 0.4;
+			}
+			else
+			{
+				ctx.globalAlpha = 0.38;
+			}
+
+			ctx.fillStyle = '#000000';
+			ctx.fillRect( 1, 1, this._hitbox_x2-2, this._hitbox_y2-2 );
+
+			ctx.fillStyle = '#aaaaff';
+
+			ctx.fillRect( 0, 0, this._hitbox_x2, this._hitbox_y2 );
+
+			ctx.globalAlpha = 1;
+			ctx.filter = 'none';
+
+			ctx.font = "7px Verdana";
+			ctx.textAlign = 'left';
+
+			let t = 
+				( this.type === sdDeepSleep.TYPE_UNSPAWNED_WORLD ) ? 'Unspawned' :
+				( this.type === sdDeepSleep.TYPE_HIBERNATED_WORLD ) ? 'Hibernated' :
+				( this.type === sdDeepSleep.TYPE_SCHEDULED_SLEEP ) ? 'Scheduled sleep' :
+				'type ' + this.type;
+
+			ctx.fillStyle = '#ffffff';
+			ctx.fillText( t, 2, 8 );
 		}
-		else
-		{
-			ctx.globalAlpha = 0.38;
-		}
-		
-		ctx.fillStyle = '#000000';
-		ctx.fillRect( 1, 1, this._hitbox_x2-2, this._hitbox_y2-2 );
-		
-		ctx.fillStyle = '#aaaaff';
-		
-		if ( sdWorld.time < this.ping_time + 200 )
-		{
-			ctx.fillStyle = '#0000ff';
-		}
-		
-		ctx.fillRect( 0, 0, this._hitbox_x2, this._hitbox_y2 );
-		
-		ctx.globalAlpha = 1;
-		ctx.filter = 'none';
-		
-		ctx.font = "7px Verdana";
-		ctx.textAlign = 'left';
-		
-		let t = 
-			( this.type === sdDeepSleep.TYPE_UNSPAWNED_WORLD ) ? 'Unspawned' :
-			( this.type === sdDeepSleep.TYPE_HIBERNATED_WORLD ) ? 'Hibernated' :
-			'type ' + this.type;
-		
-		ctx.fillStyle = '#ffffff';
-		ctx.fillText( t, 2, 8 );
 	}
 	DrawFG( ctx, attached )
 	{

@@ -5196,9 +5196,9 @@ class sdCharacter extends sdEntity
 					
 					this.AddClientSideActionContextOption( 'Copy character hash ID', ()=>
 					{
-						if(confirm( 'Sharing this with others, or not knowing how to use this properly can make you lose your character and progress. Are you sure?' ) )
+						if( confirm( 'Sharing this with others, or not knowing how to use this properly can make you lose your character and progress. Are you sure?' ) )
 						{
-							prompt('This is your hash, keep it private and remember it to recover your character.', localStorage.my_hash + "|" + localStorage.my_net_id);
+							prompt('This is your hash, keep it private and remember it to recover your character.', localStorage.my_hash /*+ "|" + localStorage.my_net_id*/ );
 						}
 					});
 

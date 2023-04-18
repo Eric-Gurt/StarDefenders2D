@@ -714,6 +714,33 @@ class sdBlock extends sdEntity
 	{
 		return ( prop === '_plants' || prop === '_contains_class_params' || prop === '_shielded' );
 	}
+	ValidatePlants( must_include=null )
+	{
+		if ( !this._plants )
+		{
+			if ( must_include )
+			this._plants = [ must_include._net_id ];
+		}
+		else
+		{
+			for ( let i = 0; i < this._plants.length; i++ )
+			{
+				let plant = sdEntity.entities_by_net_id_cache_map.get( this._plants[ i ] );
+				if ( !plant )
+				{
+					this._plants.splice( i, 1 );
+					i--;
+					continue;
+				}
+			}
+			
+			if ( must_include )
+			{
+				if ( this._plants.indexOf( must_include._net_id ) === -1 )
+				this._plants.push( must_include._net_id );
+			}
+		}
+	}
 	MeasureMatterCost()
 	{
 		return this._hmax * sdWorld.damage_to_matter * (1 + ( 2 * this._reinforced_level ) ) * ( this.material === sdBlock.MATERIAL_TRAPSHIELD ? 4.5 : 1 ) + ( this.material === sdBlock.MATERIAL_SHARP ? ( this.texture_id > 0 ? 30 * 4 : 30 ) : 0 );
@@ -1437,23 +1464,24 @@ class sdBlock extends sdEntity
 					nears[ i ].AwakeSelfAndNear();
 					//nears[ i ]._sleep_tim = sdWater.sleep_tim_max;
 				}
+
+				//if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_CORRUPTION || this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+				if ( this._natural )
+				{
+					//let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, hue:this.hue, br:this.br, filter:this.filter + ' brightness(0.5)' });
+					let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, hue:this.hue, br:this.br * 0.5, filter:this.filter });
+					if ( new_bg.CanMoveWithoutOverlap( this.x, this.y, 1 ) )
+					{
+						sdEntity.entities.push( new_bg );
+					}
+					else
+					{
+						new_bg.remove();
+						new_bg._remove();
+					}
+				}
 			}
 
-			//if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_CORRUPTION || this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
-			if ( this._natural )
-			{
-				//let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, hue:this.hue, br:this.br, filter:this.filter + ' brightness(0.5)' });
-				let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, hue:this.hue, br:this.br * 0.5, filter:this.filter });
-				if ( new_bg.CanMoveWithoutOverlap( this.x, this.y, 1 ) )
-				{
-					sdEntity.entities.push( new_bg );
-				}
-				else
-				{
-					new_bg.remove();
-					new_bg._remove();
-				}
-			}
 			
 			if ( this._plants )
 			{

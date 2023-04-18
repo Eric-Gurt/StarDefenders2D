@@ -1041,6 +1041,20 @@ let enf_once = true;
 		if ( !IsGameFocused() )
 		return true;
 	
+		if ( e.key === 'Escape' )
+		{
+			if ( sdContextMenu.open )
+			{
+				sdContextMenu.open = false;
+			}
+			else
+			{
+				sdWorld.hovered_entity = sdWorld.my_entity;
+				sdContextMenu.Open();
+			}
+			
+			e.preventDefault();
+		}
 	
 		if ( sdShop.open )
 		{

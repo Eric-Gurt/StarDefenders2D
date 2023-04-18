@@ -1160,7 +1160,7 @@ class sdEntity
 						if ( arr_i_is_bg_entity === 10 ) // Check if this is a sdDeepSleep
 						{
 							// If so - wake it up as soon as possible!
-							debugger;
+							//debugger;
 							arr_i.WakeUpArea();
 						}
 					}

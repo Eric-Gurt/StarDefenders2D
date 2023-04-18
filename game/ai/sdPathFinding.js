@@ -542,7 +542,7 @@ class RectSpaceMap
 			if ( _y >= sdWorld.world_bounds.y1 )
 			if ( _y < sdWorld.world_bounds.y2 )
 			{
-				trace( 'Pathfinding issue - bit offset detection outside of rect space map is not yet implemented. So far it will happen when target moves out of playable are or world bounds shift. Whole RectSpaceMap will be simply reinitialized when this happens. Coordinates: '+_x+', '+_y );
+				trace( 'Pathfinding issue - bit offset detection outside of rect space map is not yet implemented. So far it will happen when target moves out of playable area or world bounds shift. Whole RectSpaceMap will be simply reinitialized when this happens. Coordinates: '+_x+', '+_y );
 				//throw new Error( 'Pathfinding issue - bit offset detection outside of rect space map is not yet implemented. So far it will happen when target moves out of playable are or world bounds shift. Whole RectSpaceMap can be simply reinitialized when this happens probably. Coordinates: '+_x+', '+_y );
 
 				this.Reinit();
@@ -570,6 +570,8 @@ class RectSpaceMap
 		// Removal logic for case when nobody is looking for target for few seconds
 		if ( sdWorld.time > this.exist_until )
 		return true;
+	
+		//let v = { x:0, y:0 };
 		
 		// Disable any iteration logic if all travelers have cell with path AND travelers are on cells that have same version as this whole RectSpaceMap
 		if ( sdWorld.time < this.solve_until )
@@ -581,10 +583,22 @@ class RectSpaceMap
 
 			for ( let b = 0; b < this.active_bits_arr.length; b++ )
 			{
+				let obj = this.active_bits_arr[ b ];
+				
+				if ( !sdWorld.inDist2D_Boolean( obj.x, obj.y, this.target.x, this.target.y, 2048 ) ) // Segment distance is impossible because traveler is unknown here
+				{
+					//trace( 'Trying to reach target that is way too far' );
+					debugger;
+					continue;
+				}
+				
 				if ( active_bits_to_handle-- <= 0 )
 				break;
 
-				let obj = this.active_bits_arr.shift();
+				this.active_bits_arr.splice( b, 1 );
+				b--;
+				//let obj = this.active_bits_arr.shift();
+				
 				this.active_bits_set.delete( obj.offset );
 
 				let offset = obj.offset;

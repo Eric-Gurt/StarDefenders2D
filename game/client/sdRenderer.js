@@ -447,8 +447,8 @@ class sdRenderer
 		];
 		sdRenderer.dark_lands_width = 800;
 		
-		sdRenderer.visibility_falloff = 64; // 32
-		sdRenderer.visibility_extra = 32; // 32
+		sdRenderer.visibility_falloff = 64; // 
+		sdRenderer.visibility_extra = 0; // 32 - occasionaly unsynced blocks are visible
 		
 		sdRenderer.last_render = sdWorld.time;
 		
