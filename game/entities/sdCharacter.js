@@ -951,6 +951,8 @@ class sdCharacter extends sdEntity
 			}*/
 		}
 		
+		this._allow_self_talk = true;
+		
 		this._has_rtp_in_range = false; // Updated only when socket is connected. Also measures matter. Works only when hints are working"
 
 		this._voice_channel = sdSound.CreateSoundChannel( this );
@@ -3584,6 +3586,14 @@ class sdCharacter extends sdEntity
 			}
 		}
 		
+		let out_of_bounds = false;
+		
+		if ( !sdWorld.inDist2D_Boolean( 0,0, this.x, this.y, sdWorld.server_config.open_world_max_distance_from_zero_coordinates ) )
+		{
+			can_breathe = false;
+			out_of_bounds = true;
+		}
+		
 		/*if ( this._key_states.GetKey( 'KeyA' ) )
 		{
 			trace( { stands:this.stands, stands_on:this._stands_on, sx:this.sx, GSPEED:GSPEED } );
@@ -3784,13 +3794,41 @@ class sdCharacter extends sdEntity
 				
 				//if ( this.air < 0.5 )
 				if ( !in_water )
-				sdTask.MakeSureCharacterHasTask({ 
-						similarity_hash:'NO-AIR-HINT', 
-						executer: this,
-						mission: sdTask.MISSION_GAMEPLAY_HINT,
-						title: 'No oxygen',
-						description: 'Enter vehicle or stay near charged and activated Base Shielding Unit.'
+				{
+					if ( out_of_bounds )
+					sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'NO-AIR-HINT', 
+							executer: this,
+							mission: sdTask.MISSION_GAMEPLAY_HINT,
+							title: 'Out of playable area',
+							description: 'You have left the allowed playable area - there is no oxygen here (even near base shielding units or in vehicles).'
 					});
+					else
+					sdTask.MakeSureCharacterHasTask({ 
+							similarity_hash:'NO-AIR-HINT', 
+							executer: this,
+							mission: sdTask.MISSION_GAMEPLAY_HINT,
+							title: 'No oxygen',
+							description: 'Enter vehicle or stay near charged and activated Base Shielding Unit.'
+					});
+					
+					if ( this.air < sdCharacter.air_max * 0.666 || out_of_bounds )
+					if ( this._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
+					{
+						this._last_damage_upg_complain = sdWorld.time;
+
+						switch ( ~~( Math.random() * 7 ) )
+						{
+							case 0: this.Say( 'I can\'t breathe here', true, false, true ); break;
+							case 1: this.Say( 'Running low on oxygen', true, false, true ); break;
+							case 2: this.Say( 'No oxygen', true, false, true ); break;
+							case 3: this.Say( 'Watch out for oxygen', true, false, true ); break;
+							case 4: this.Say( 'I really should not be out there', true, false, true ); break;
+							case 5: this.Say( 'Can\'t... breathe...', true, false, true ); break;
+							case 6: this.Say( 'There is no air', true, false, true ); break;
+						}
+					}
+				}
 			}
 			else
 			{
@@ -5246,6 +5284,12 @@ class sdCharacter extends sdEntity
 	
 	Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false, simulate_sound=false, translate=true )
 	{
+		if ( to_self )
+		{
+			if ( !this._allow_self_talk )
+			return;
+		}
+		
 		let params = { 
 			x:this.x, 
 			y:this.y - 36, 

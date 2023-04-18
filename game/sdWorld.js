@@ -3822,6 +3822,8 @@ class sdWorld
 
 		character_entity.title = player_settings.hero_name;
 		character_entity.title_censored = ( typeof sdModeration !== 'undefined' && socket ) ? sdModeration.IsPhraseBad( character_entity.title, socket ) : false;
+		
+		character_entity._allow_self_talk = ( player_settings.selftalk1 ) || false;
 	}
 	
 	static CreateImageFromFile( filename, cb=null ) // In cases when processing calls are added to filename - expect correct image to be returned as part of return_value.canvas_override

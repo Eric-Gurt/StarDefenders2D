@@ -35,6 +35,7 @@ class sdRescueTeleport extends sdEntity
 		sdRescueTeleport.clonning_time = 30 * 60 * 20; // 20 minutes
 
 		sdRescueTeleport.max_short_range_distance = 1200;
+		sdRescueTeleport.max_default_range_distance = 10000;
 		
 		sdRescueTeleport.rescue_teleports = [];
 		
@@ -341,7 +342,7 @@ class sdRescueTeleport extends sdEntity
 	GetRTPRange( character )
 	{
 		if ( this.type === sdRescueTeleport.TYPE_INFINITE_RANGE )
-		return Infinity;
+		return sdRescueTeleport.max_default_range_distance;
 	
 		if ( this.type === sdRescueTeleport.TYPE_CLONER )
 		return Infinity;

@@ -136,6 +136,7 @@ class sdBlock extends sdEntity
 		//sdBlock.MATERIAL_SAND = 11;
 		sdBlock.MATERIAL_ROCK = 10;
 		sdBlock.MATERIAL_SAND = 11;
+		sdBlock.MATERIAL_BUGGED_CHUNK = 12;
 		
 		//sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
 		//sdBlock.img_ground44 = sdWorld.CreateImageFromFile( 'ground_4x4' );
@@ -1415,6 +1416,18 @@ class sdBlock extends sdEntity
 			else
 			//if ( this.texture_id === 1 )
 			ctx.drawImageFilterCache( ( this.p < 15 ) ? sdBlock.img_sharp3_inactive : sdBlock.img_sharp3, 0, 0, w,h, 0,0, w,h );
+		}
+		else
+		if ( this.material === sdBlock.MATERIAL_BUGGED_CHUNK )
+		{
+			ctx.apply_shading = false;
+			
+			if ( sdWorld.time % 2000 < 1000 )
+			ctx.fillStyle = ( ( this.x + this.y ) % 32 === 0 ) ? '#ff0000' : '#aa0000';
+			else
+			ctx.fillStyle = ( ( this.x + this.y ) % 32 === 0 ) ? '#aa0000' : '#660000';
+		
+			ctx.fillRect( 0,0,w,h );
 		}
 		else
 		{

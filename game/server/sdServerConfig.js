@@ -23,6 +23,8 @@ class sdServerConfigShort
 	
 	static log_s2s_messages = false;
 	
+	static skip_arrival_sequence = false; // Skipping it will prevent players from spawning together pretty much. It is useful during tests though.
+	
 	// Setting both 'enable_bounds_move' and 'aggressive_hibernation' will enable open world support
 	static enable_bounds_move = false;
 	static aggressive_hibernation = false; // Offscreen groups of entities (sometimes whole bases) will be put to sleep until something tries to access these areas
@@ -90,6 +92,7 @@ class sdServerConfigFull extends sdServerConfigShort
 	
 	static allowed_base_shielding_unit_types = null; // [ sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER, sdBaseShieldingUnit.TYPE_MATTER, sdBaseShieldingUnit.TYPE_SCORE_TIMED ] to allow specific ones or null to allow all
 	
+	static open_world_max_distance_from_zero_coordinates = 40000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
 	
 	static LinkPlayerMatterCapacityToScore( character )
 	{
@@ -190,6 +193,7 @@ class sdServerConfigFull extends sdServerConfigShort
 		// Player was reconnected. Alternatively onRespawn can be called
 		
 	}
+	
 	static AllowAggressiveHibernationFor( entity )
 	{
 		if ( entity === sdWorld.server_config.new_player_delivery_hover )
@@ -321,6 +325,7 @@ class sdServerConfigFull extends sdServerConfigShort
 		}, 15000 );
 		
 		if ( !hover )
+		if ( !sdWorld.server_config.skip_arrival_sequence )
 		{
 			fresh_hover = true;
 			
@@ -346,10 +351,18 @@ class sdServerConfigFull extends sdServerConfigShort
 				pilot = new sdCharacter({ x:character_entity.x - 32, y:character_entity.y - 32 });
 				pilot._ai_enabled = sdCharacter.AI_MODEL_NONE;
 
-				let pilot_settings = {"hero_name":"Extraction Pilot","color_bright":"#7aadff","color_dark":"#25668e","color_bright3":"#7aadff","color_dark3":"#25668e","color_visor":"#ffffff","color_suit":"#000000","color_shoes":"#303954","color_skin":"#51709a","voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"color_suit2":"#000000","color_dark2":"#25668e"};
-
-				pilot.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( pilot_settings );
+				//let pilot_settings = {"hero_name":"Extraction Pilot","color_bright":"#7aadff","color_dark":"#25668e","color_bright3":"#7aadff","color_dark3":"#25668e","color_visor":"#ffffff","color_suit":"#000000","color_shoes":"#303954","color_skin":"#51709a","voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"color_suit2":"#000000","color_dark2":"#25668e"};
+				let pilot_settings = {"hero_name":"Extraction Pilot","color_bright":"#feeee1","color_dark":"#a38e7b","color_visor":"#58feb0","color_bright3":"#21180d","color_dark3":"#2d2824","color_suit":"#43382d","color_suit2":"#3c280b","color_dark2":"#000000","color_shoes":"#000000","color_skin":"#4c4224","color_extra1":"#000000","entity1":true,"entity2":false,"entity3":false,"entity4":false,"start_with1":true,"start_with2":false,"hints1":true,"hints2":false,"density1":true,"density2":false,"density3":false,"drone_helmet1":true,"drone_helmet2":false,"drone_helmet3":false,"drone_helmet4":false,"drone_helmet5":false,"drone_helmet6":false,"drone_helmet7":false,"drone_helmet8":false,"drone_helmet9":false,"drone_helmet10":false,"drone_helmet11":false,"drone_helmet12":false,"drone_helmet13":false,"drone_helmet14":false,"drone_helmet15":false,"drone_helmet16":false,"drone_helmet17":false,"drone_helmet18":false,"drone_helmet19":false,"drone_helmet20":false,"drone_helmet21":false,"drone_helmet22":false,"drone_helmet23":false,"drone_helmet24":false,"drone_helmet25":false,"drone_helmet26":false,"drone_helmet27":false,"drone_helmet28":false,"drone_helmet29":false,"drone_helmet30":false,"drone_helmet31":false,"drone_helmet32":false,"drone_helmet33":false,"drone_helmet34":false,"helmet28":false,"helmet47":false,"helmet88":false,"helmet13":false,"helmet32":false,"helmet29":false,"helmet97":false,"helmet98":false,"helmet79":false,"helmet87":false,"helmet18":false,"helmet48":false,"helmet25":false,"helmet99":false,"helmet106":false,"helmet49":false,"helmet100":false,"helmet101":false,"helmet71":false,"helmet50":false,"helmet33":false,"helmet102":false,"helmet34":false,"helmet94":false,"helmet51":false,"helmet96":false,"helmet9":false,"helmet11":false,"helmet7":false,"helmet52":false,"helmet53":false,"helmet4":false,"helmet31":false,"helmet54":false,"helmet103":false,"helmet95":false,"helmet35":false,"helmet3":false,"helmet2":false,"helmet115":false,"helmet116":false,"helmet55":false,"helmet36":false,"helmet22":false,"helmet8":false,"helmet20":false,"helmet37":false,"helmet56":false,"helmet15":false,"helmet57":false,"helmet27":false,"helmet58":false,"helmet38":false,"helmet91":false,"helmet39":false,"helmet59":false,"helmet60":false,"helmet83":false,"helmet104":false,"helmet77":false,"helmet26":false,"helmet40":false,"helmet6":false,"helmet78":false,"helmet61":false,"helmet76":false,"helmet89":false,"helmet84":false,"helmet12":false,"helmet19":true,"helmet17":false,"helmet41":false,"helmet42":false,"helmet105":false,"helmet43":false,"helmet70":false,"helmet85":false,"helmet23":false,"helmet10":false,"helmet14":false,"helmet92":false,"helmet68":false,"helmet16":false,"helmet62":false,"helmet69":false,"helmet81":false,"helmet75":false,"helmet72":false,"helmet107":false,"helmet108":false,"helmet45":false,"helmet80":false,"helmet1":false,"helmet63":false,"helmet109":false,"helmet64":false,"helmet44":false,"helmet110":false,"helmet90":false,"helmet65":false,"helmet73":false,"helmet30":false,"helmet111":false,"helmet113":false,"helmet112":false,"helmet5":false,"helmet21":false,"helmet24":false,"helmet86":false,"helmet74":false,"helmet93":false,"helmet114":false,"helmet46":false,"helmet66":false,"helmet67":false,"helmet82":false,"body62":false,"body8":false,"body17":false,"body16":false,"body52":false,"body69":false,"body70":false,"body53":false,"body61":false,"body46":false,"body13":false,"body71":false,"body72":false,"body73":false,"body42":false,"body18":false,"body74":false,"body19":false,"body67":false,"body32":false,"body68":false,"body75":false,"body33":false,"body20":false,"body60":false,"body87":false,"body21":false,"body10":false,"body22":false,"body2":false,"body15":false,"body5":false,"body34":false,"body6":false,"body23":true,"body55":false,"body24":false,"body35":false,"body58":false,"body76":false,"body50":false,"body14":false,"body25":false,"body51":false,"body48":false,"body63":false,"body26":false,"body47":false,"body27":false,"body28":false,"body41":false,"body36":false,"body11":false,"body65":false,"body39":false,"body7":false,"body40":false,"body56":false,"body37":false,"body43":false,"body77":false,"body78":false,"body29":false,"body54":false,"body1":false,"body79":false,"body80":false,"body30":false,"body49":false,"body81":false,"body64":false,"body3":false,"body4":false,"body82":false,"body83":false,"body44":false,"body9":false,"body12":false,"body59":false,"body45":false,"body66":false,"body84":false,"body85":false,"body31":false,"body86":false,"body57":false,"body38":false,"legs62":false,"legs8":false,"legs17":false,"legs16":false,"legs52":false,"legs69":false,"legs70":false,"legs53":false,"legs61":false,"legs46":false,"legs13":false,"legs71":false,"legs72":false,"legs73":false,"legs42":false,"legs18":false,"legs74":false,"legs19":false,"legs67":false,"legs32":false,"legs68":false,"legs75":false,"legs33":false,"legs20":false,"legs60":false,"legs87":false,"legs21":false,"legs10":false,"legs22":false,"legs2":false,"legs15":false,"legs5":false,"legs34":false,"legs6":false,"legs23":false,"legs55":false,"legs24":false,"legs35":false,"legs58":false,"legs76":false,"legs50":false,"legs14":false,"legs25":false,"legs51":false,"legs48":false,"legs63":false,"legs26":false,"legs47":false,"legs27":false,"legs28":false,"legs41":false,"legs36":false,"legs11":false,"legs65":false,"legs39":false,"legs7":false,"legs40":false,"legs56":false,"legs37":true,"legs43":false,"legs77":false,"legs78":false,"legs29":false,"legs54":false,"legs1":false,"legs79":false,"legs80":false,"legs30":false,"legs49":false,"legs81":false,"legs64":false,"legs3":false,"legs4":false,"legs82":false,"legs83":false,"legs44":false,"legs9":false,"legs12":false,"legs59":false,"legs45":false,"legs66":false,"legs84":false,"legs85":false,"legs31":false,"legs86":false,"legs57":false,"legs38":false,"bugs1":true,"bugs2":false,"voice1":true,"voice2":false,"voice3":false,"voice4":false,"voice5":false,"voice6":false,"voice7":false,"voice8":false,"voice9":false,"camera1":true,"camera2":false,"volume1":true,"volume2":false,"volume3":false,"censorship3":false,"censorship1":true,"censorship2":false}
+				
+				/*pilot.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( pilot_settings );
 				pilot._voice = sdWorld.ConvertPlayerDescriptionToVoice( pilot_settings );
+				
+				ConvertPlayerDescriptionToHelmet
+				ConvertPlayerDescriptionToBody
+				ConvertPlayerDescriptionToLegs*/
+				
+				sdWorld.ApplyPlayerSettingsToPlayer( pilot, pilot_settings, null );
+				
 				pilot.title = pilot_settings.hero_name;
 				
 				pilot.hmax = pilot.hea = 31;
@@ -693,15 +706,15 @@ class sdServerConfigFull extends sdServerConfigShort
 			}
 		}
 		
-		hover.AddDriver( character_entity, true );
-		
-		if ( instructor_entity )
-		hover.AddDriver( instructor_entity, true );
-	
-		setTimeout( ()=>
+		if ( hover )
 		{
-			//if ( hover.hea > 0 )
-			//{
+			hover.AddDriver( character_entity, true );
+
+			if ( instructor_entity )
+			hover.AddDriver( instructor_entity, true );
+
+			setTimeout( ()=>
+			{
 				if ( character_entity.driver_of )
 				character_entity.driver_of.ExcludeDriver( character_entity, true );
 
@@ -709,9 +722,9 @@ class sdServerConfigFull extends sdServerConfigShort
 				if ( !instructor_entity._is_being_removed )
 				if ( instructor_entity.driver_of )
 				instructor_entity.driver_of.ExcludeDriver( instructor_entity, true );
-			//}
-			
-		}, fresh_hover ? 5000 : 1000 );
+
+			}, fresh_hover ? 5000 : 1000 );
+		}
 		
 	}
 	static EntitySaveAllowedTest( entity )

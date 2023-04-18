@@ -38,6 +38,8 @@ const app = _app();
 import path from 'path';
 import fs from 'fs';
 
+globalThis.fs = fs;
+
 //import { createServer } from "http";
 import http from "http";
 import https from "https";
@@ -592,6 +594,7 @@ for ( let i = 0; i < process.argv.length; i++ )
 	}
 }
 console.log('world_slot = ' + world_slot + ' (defines server instance file prefixes, can be added to run command arguments in form of world_slot=1)' );
+globalThis.world_slot = world_slot;
 
 let frame = 0;
 
@@ -625,7 +628,8 @@ sdWorld.sockets = sockets;
 
 
 
-
+const chunks_folder = __dirname + '/chunks' + ( world_slot || '' );
+globalThis.chunks_folder = chunks_folder;
 
 const server_config_path_const = __dirname + '/server_config' + ( world_slot || '' ) + '.js';
 
@@ -751,6 +755,8 @@ let is_terminating = false;
 		snapshot_save_busy = true;
 		
 		sdDatabase.Save();
+		
+		sdDeepSleep.SaveScheduledChunks();
 
 		let entities = [];
 		
@@ -1075,6 +1081,7 @@ if ( sdEntity.global_entities.length === 0 )
 if ( sdWorld.server_config.onAfterSnapshotLoad )
 sdWorld.server_config.onAfterSnapshotLoad();
 
+sdDeepSleep.init();
 
 
 

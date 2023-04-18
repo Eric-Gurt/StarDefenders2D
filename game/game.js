@@ -625,6 +625,15 @@ let enf_once = true;
 				{
 					let ent = sdEntity.GetObjectFromSnapshot( snapshot[ i ] );
 					
+					/*if ( ent )
+					if ( ent._is_being_removed )
+					{
+						if ( ent._hiberstate !== sdEntity.HIBERSTATE_REMOVED )
+						{
+							ent._is_being_removed = false; // Nothing bad will happen? Trying to prevent missing blocks bug // It probably can't be solved here
+						}
+					}*/
+					
 					if ( ent )
 					new_snapshot_entities.push( ent );
 				}

@@ -183,7 +183,7 @@ class sdHover extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
-		if ( !force )
+		if ( !force )// && !c._god )
 		if ( this._doors_locked )
 		{
 			if ( c._socket )
@@ -236,7 +236,7 @@ class sdHover extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 
-		if ( !force )
+		if ( !force )//&& !c._god )
 		if ( this._doors_locked )
 		{
 			if ( c._socket )

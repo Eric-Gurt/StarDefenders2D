@@ -516,6 +516,9 @@ class sdTask extends sdEntity
 	
 		this.progress = '';
 		
+		this.target_biometry = '';
+		this.target_biometry_censored = false;
+		
 		if ( mission )
 		{
 			try
@@ -557,6 +560,8 @@ class sdTask extends sdEntity
 		{
 			this.target_x = this._target.x;
 			this.target_y = this._target.y;
+			this.target_biometry = this._target.biometry || '';
+			this.target_biometry_censored = this._target.biometry_censored;
 		}
 		else
 		{
@@ -658,6 +663,9 @@ class sdTask extends sdEntity
 				{
 					this.target_x = this._target.x;
 					this.target_y = this._target.y;
+					this.target_biometry = this._target.biometry || '';
+					this.target_biometry_censored = this._target.biometry_censored || false;
+					
 					this._update_version++;
 				}
 			}
@@ -813,12 +821,11 @@ class sdTask extends sdEntity
 			let mission = sdTask.missions[ this.mission ];
 
 			if ( mission )
+			if ( mission.appearance === sdTask.APPEARANCE_HINT_POINT )
 			{
-				if ( mission.appearance === sdTask.APPEARANCE_HINT_POINT )
-				{
-					ctx.filter = 'hue-rotate(71deg) saturate(20)';
-				}
+				ctx.filter = 'hue-rotate(71deg) saturate(20)';
 			}
+			
 
 
 			if ( mission.appearance !== sdTask.APPEARANCE_NOTHING )//|| this.extract_target === 1 )
@@ -828,6 +835,24 @@ class sdTask extends sdEntity
 				32,32 
 			);
 
+			let di_from_player = sdWorld.Dist2D_Vector( sdWorld.my_entity.x - this.target_x, sdWorld.my_entity.y - this.target_y );
+			if ( di > 200 )
+			{
+				ctx.translate( 16, 0 );
+				ctx.rotate( -an );
+				ctx.font = "3px Verdana";
+				ctx.textAlign = 'center';
+				ctx.fillStyle = '#ffffff';
+				ctx.fillText( Math.floor( di_from_player ) + 'px', 0, 1 + 2 );
+				
+				let t = this.target_biometry;
+
+				if ( sdWorld.client_side_censorship && this.target_biometry_censored )
+				t = sdWorld.CensoredText( t );
+
+				ctx.fillStyle = '#aaaaaa';
+				ctx.fillText( t + '', 0, 1 - 2 );
+			}
 		}
 		
 

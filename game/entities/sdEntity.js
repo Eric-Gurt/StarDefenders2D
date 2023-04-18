@@ -3488,6 +3488,13 @@ class sdEntity
 			return null;
 		}
 		
+		/* Normal thing for client-side case...
+		if ( possible_ent._is_being_removed )
+		{
+			//debugger; // That is a weird case. Is this is a reason client-side blocks might not appear at times?
+		
+		}*/
+		
 		return possible_ent;
 	
 		/*

@@ -7,9 +7,11 @@
 	Most likely it would merge whole big bases into one big chunk, which is perfectly fine I guess.
 
 
-	TODO: _will_be_written_to_disk is not used yet
+	//TODO: Try to restore _net_id-s of hibernated entities exactly what they were - it will help with de-hibernation of nested sdDeepSleep. It probably is already like this.
 
-	TODO: Make sure "unspawned" state removes file from the disk as well
+	//TODO: _will_be_written_to_disk is not used yet. Save to disk under _net_id names?
+
+	//TODO: Make sure "unspawned" state removes file from the disk as well
 
 	//TODO: this._my_hash_list is generated but not yet used outside of this class
 
@@ -45,11 +47,21 @@ import sdHover from './sdHover.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
+let fs = null;
 
 class sdDeepSleep extends sdEntity
 {
 	static init_class()
 	{
+		sdDeepSleep.debug = false;
+		
+		fs = globalThis.fs;
+		
+		if ( sdDeepSleep.debug )
+		{
+			trace( 'WARNING: Running server with sdDeepSleep.debug === 1' );
+		}
+		
 		sdDeepSleep.TYPE_UNSPAWNED_WORLD = 0; // Whenever something touches it or some player sees it - spawns fresh world at the area
 		sdDeepSleep.TYPE_HIBERNATED_WORLD = 1; // Whenever something touches it or some player sees it - spawns previously hibernated entities
 		sdDeepSleep.TYPE_SCHEDULED_SLEEP = 2; // These will be created at areas that will be scheduled to sleep soon unless nobody interacts with them
@@ -63,6 +75,21 @@ class sdDeepSleep extends sdEntity
 		sdDeepSleep.inception_catcher = 0;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
+	}
+	
+	static init()
+	{
+		if ( sdWorld.server_config.aggressive_hibernation )
+		if ( sdWorld.is_server && !sdWorld.is_singleplayer )
+		if ( !fs.existsSync( globalThis.chunks_folder ) )
+		{
+			trace( 'Making directory: ' + globalThis.chunks_folder );
+			fs.mkdirSync( globalThis.chunks_folder );
+		}
+		
+		/*if ( sdWorld.server_config.remove_irrelevant_aggressive_hibernation_files ) This does not make sense because it will not include deep sleeps within deep sleeps.
+		{
+		}*/
 	}
 	
 	static WakeUpByArrayAndValue( array_name, value )
@@ -146,11 +173,23 @@ class sdDeepSleep extends sdEntity
 					else
 					if ( cell.type === sdDeepSleep.TYPE_HIBERNATED_WORLD )
 					{
-						if ( sdWorld.time > cell._will_become_unspawned )
+						/*if ( sdWorld.time > cell._will_be_written_to_disk ) Better to do it in sync with world snapshot saves...
+						{
+							if ( cell._snapshots_filename === null )
+							if ( sdWorld.is_server && !sdWorld.is_singleplayer )
+							cell.SaveToFile();
+						}*/
+						
+						/*if ( sdWorld.time > cell._will_become_unspawned ) Moved for consistency as well
 						{
 							cell._snapshots_str = '';
+							
+							if ( sdWorld.is_server && !sdWorld.is_singleplayer )
+							cell.DeleteFile();
+							
 							cell.type = sdDeepSleep.TYPE_UNSPAWNED_WORLD;
-						}
+							cell._update_version++;
+						}*/
 					}
 					else
 					if ( cell.type === sdDeepSleep.TYPE_SCHEDULED_SLEEP )
@@ -159,6 +198,7 @@ class sdDeepSleep extends sdEntity
 						{
 							cell.type = sdDeepSleep.TYPE_HIBERNATED_WORLD;
 							cell.onBuilt();
+							cell._update_version++;
 						}
 					}
 					else
@@ -186,6 +226,34 @@ class sdDeepSleep extends sdEntity
 			}
 		}
 	}
+	static SaveScheduledChunks()
+	{
+		for ( let i = 0; i < sdDeepSleep.cells.length; i++ )
+		{
+			let cell = sdDeepSleep.cells[ i ];
+			
+			if ( cell.type === sdDeepSleep.TYPE_HIBERNATED_WORLD )
+			{
+				if ( sdWorld.time > cell._will_be_written_to_disk )
+				{
+					if ( cell._snapshots_filename === null )
+					if ( sdWorld.is_server && !sdWorld.is_singleplayer )
+					cell.SaveToFile();
+				}
+				
+				if ( sdWorld.time > cell._will_become_unspawned )
+				{
+					cell._snapshots_str = '';
+
+					if ( sdWorld.is_server && !sdWorld.is_singleplayer )
+					cell.DeleteFile();
+
+					cell.type = sdDeepSleep.TYPE_UNSPAWNED_WORLD;
+					cell._update_version++;
+				}
+			}
+		}
+	}
 
 	get hitbox_x1() { return 0; }
 	get hitbox_x2() { return this.w; }
@@ -205,14 +273,22 @@ class sdDeepSleep extends sdEntity
 	
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
-		// TODO
+		// Ignore god-mode player who is in debug mode
+		if ( sdDeepSleep.debug )
+		if ( character._god )
+		return;
 		
-		//if ( 0 )
 		this.WakeUpArea( true, character );
 	}
 	onMovementInRange( from_entity )
 	{
 		if ( !sdWorld.is_server )
+		return;
+	
+		// Ignore god-mode player who is in debug mode
+		if ( sdDeepSleep.debug )
+		if ( from_entity.IsPlayerClass() )
+		if ( from_entity._god )
 		return;
 	
 		if ( this._to_remove_temp_set )
@@ -280,13 +356,38 @@ class sdDeepSleep extends sdEntity
 		else
 		if ( this.type === sdDeepSleep.TYPE_HIBERNATED_WORLD )
 		{
-			if ( this._snapshots_str === '' ) // onBuild was not called yet..?
+			let load_attempted = false;
+			if ( this._saving || this._file_exists )
 			{
-				console.warn( 'Empty snapshot being decoded' );
-				return;
+				load_attempted = true;
+				this.LoadFromFile();
 			}
 		
 			this.remove();
+			
+			if ( this._snapshots_str === '' ) // onBuild was not called yet..?
+			{
+				console.warn( 'Empty snapshot being decoded ( file load attempted: '+load_attempted+' )' );
+				
+				for ( let x = 0; x < this.w; x += 16 )
+				for ( let y = 0; y < this.h; y += 16 )
+				{
+					let e = new sdBlock({
+						x: this.x + x,
+						y: this.y + y,
+						width: 16,
+						height: 16,
+						material: sdBlock.MATERIAL_BUGGED_CHUNK,
+						texture_id: 0
+					});
+					sdEntity.entities.push( e );
+
+					e._hmax = 1;
+					e._hea = 1;
+				}
+				
+				return;
+			}
 			
 			//trace( 'Restoring hibernated area' );
 			
@@ -370,6 +471,100 @@ class sdDeepSleep extends sdEntity
 	IsAdminEntity() // Influences remover gun hit test
 	{ return true; }
 	
+	static DeleteAllFiles()
+	{
+		let directory = globalThis.chunks_folder + '/';
+		
+		fs.rmdirSync( directory, { recursive: true, maxRetries: 10, retryDelay: 100 } );
+	}
+	
+	DeleteFile( forced=false )
+	{
+		if ( this._snapshots_filename === null )
+		return;
+	
+		if ( this._loaded_or_deleted && !forced )
+		return;
+	
+		this._loaded_or_deleted = true;
+	
+		/*if ( this._saving )
+		{
+			setTimeout( ()=>
+			{
+				trace( 'Delaying chunk deletion due to unfinished save ('+this._snapshots_filename+')...' );
+				this.DeleteFile();
+			}, 1000 );
+			return;
+		}*/
+		
+		if ( !this._saving )
+		if ( this._file_exists )
+		fs.unlink( globalThis.chunks_folder + '/' + this._snapshots_filename, ( err )=>
+		{
+			//if ( err )
+			//throw err;
+		
+			this._file_exists = false;
+		});
+	}
+	
+	SaveToFile()
+	{
+		if ( this._saving )
+		throw new Error( 'This should not happen' );
+		
+		this._saving = true;
+		this._snapshots_filename = this._net_id + '.v';
+		
+		fs.writeFile( globalThis.chunks_folder + '/' + this._snapshots_filename, this._snapshots_str, ( err )=> 
+		{
+			if ( err )
+			throw err;
+		
+			this._saving = false;
+			this._file_exists = true;
+			
+			if ( this._loaded_or_deleted )
+			{
+				this.DeleteFile( true );
+			}
+			else
+			{
+				this._snapshots_str = '';
+			}
+		});
+	}
+	
+	LoadFromFile()
+	{
+		this._loaded_or_deleted = true;
+		
+		if ( this._saving )
+		{
+			// this._snapshots_str is available at this moment
+		}
+		else
+		{
+			if ( this._file_exists )
+			{
+				try
+				{
+					this._snapshots_str = fs.readFileSync( globalThis.chunks_folder + '/' + this._snapshots_filename, 'utf8' );
+					this.DeleteFile( true );
+				}
+				catch ( e )
+				{
+					trace( 'Chunk file was not found! You\'ll see big breakable red block where it happened. Expected path: ' + globalThis.chunks_folder + '/' + this._snapshots_filename + '\nError: ' + e );
+				}
+			}
+			else
+			{
+				// Won't happen
+			}
+		}
+	}
+	
 	constructor( params )
 	{
 		super( params );
@@ -385,11 +580,26 @@ class sdDeepSleep extends sdEntity
 		
 		this.type = params.type || sdDeepSleep.TYPE_UNSPAWNED_WORLD;
 		
-		this._will_hibernate_on = sdWorld.time + 5000; // For sdDeepSleep.TYPE_SCHEDULED_SLEEP only
-		this._will_be_written_to_disk = sdWorld.time + 1000 * 60 * 60 * 24; // In a day
-		this._will_become_unspawned = sdWorld.time + 1000 * 60 * 60 * 24 * 30 * 12 * 5; // Full removal in 5 years?
-		
+		if ( sdDeepSleep.debug )
+		{
+			// Test values
+			this._will_hibernate_on = sdWorld.time + 5000; // For sdDeepSleep.TYPE_SCHEDULED_SLEEP only
+			this._will_be_written_to_disk = sdWorld.time + 10000; // In a day
+			this._will_become_unspawned = sdWorld.time + 1000 * 60 * 60 * 24 * 30 * 12 * 5; // Full removal in 5 years?
+		}
+		else
+		{
+			// Proper values for live server
+			this._will_hibernate_on = sdWorld.time + 1000 * 60 * 5; // For sdDeepSleep.TYPE_SCHEDULED_SLEEP only
+			this._will_be_written_to_disk = sdWorld.time + 1000 * 60 * 60 * 3; // 3 hours
+			this._will_become_unspawned = sdWorld.time + 1000 * 60 * 60 * 24 * 30 * 12 * 5; // Full removal in 5 years?
+		}
 		this._snapshots_str = '';
+		this._snapshots_filename = null; // null means it was never saved to disk yet
+		this._saving = false;
+		this._loaded_or_deleted = false;
+		this._file_exists = false;
+		
 		this._to_remove_temp_set = null;
 		
 		this._my_hash_list = []; // Disconnected player hashes are stored here
@@ -720,6 +930,8 @@ class sdDeepSleep extends sdEntity
 		sdDeepSleep.cells.splice( id, 1 );
 		else
 		debugger;
+	
+		this.DeleteFile();
 	}
 	
 	get spawn_align_x(){ return 16; };
@@ -730,7 +942,7 @@ class sdDeepSleep extends sdEntity
 	
 	Draw( ctx, attached )
 	{
-		if ( sdWorld.my_entity && sdWorld.my_entity._god )
+		if ( sdWorld.my_entity && sdWorld.my_entity._god && sdDeepSleep.debug )
 		{
 			ctx.filter = this.filter;
 

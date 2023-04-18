@@ -604,6 +604,15 @@
 		<input type="checkbox" id="censorship2" value="0">
 		<label for="censorship2">No</label>
 	    </div>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Allow self-talk</span><br>
+		<input type="checkbox" id="selftalk1" value="1" checked>
+		<label for="selftalk1">Yes (these includes hints)</label>
+		<br>
+		<input type="checkbox" id="selftalk2" value="0">
+		<label for="selftalk2">No (important hints will be compeltely disabled)</label>
+	    </div>
 	    <!--
 	    <div class="set_block" tabindex="1" style="width: 485px">
 		<span class="sdtitle">Other Star Defenders servers</span><br>
@@ -1006,6 +1015,7 @@
 		JustOne( 'legs', last_changed_el );
 		JustOne( 'entity', last_changed_el );
 		JustOne( 'censorship', last_changed_el );
+		JustOne( 'selftalk', last_changed_el );
 		
 		for ( let i = 0; i < conditional_elements.length; i++ )
 		{
