@@ -838,20 +838,37 @@ class sdTask extends sdEntity
 			let di_from_player = sdWorld.Dist2D_Vector( sdWorld.my_entity.x - this.target_x, sdWorld.my_entity.y - this.target_y );
 			if ( di > 200 )
 			{
+				let shift = ( this.target_biometry === '' ) ? 0 : 2;
+				
 				ctx.translate( 16, 0 );
 				ctx.rotate( -an );
 				ctx.font = "3px Verdana";
 				ctx.textAlign = 'center';
 				ctx.fillStyle = '#ffffff';
-				ctx.fillText( Math.floor( di_from_player ) + 'px', 0, 1 + 2 );
+				
+				di_from_player = Math.floor( di_from_player );
+				
+				let units = 'px';
+				
+				if ( di_from_player >= 1000 )
+				{
+					di_from_player = Math.round( di_from_player / 1000 * 10 ) / 10;
+					
+					units = 'k' + units;
+				}
+				
+				ctx.fillText( di_from_player + ' ' + units, 0, 1 + shift );
 				
 				let t = this.target_biometry;
+				
+				if ( shift !== 0 )
+				{
+					if ( sdWorld.client_side_censorship && this.target_biometry_censored )
+					t = sdWorld.CensoredText( t );
 
-				if ( sdWorld.client_side_censorship && this.target_biometry_censored )
-				t = sdWorld.CensoredText( t );
-
-				ctx.fillStyle = '#aaaaaa';
-				ctx.fillText( t + '', 0, 1 - 2 );
+					ctx.fillStyle = '#aaaaaa';
+					ctx.fillText( t + '', 0, 1 - shift );
+				}
 			}
 		}
 		

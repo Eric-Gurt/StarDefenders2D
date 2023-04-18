@@ -6,6 +6,7 @@
 
 	Most likely it would merge whole big bases into one big chunk, which is perfectly fine I guess.
 
+	TODO: Make sure current worlds can be ported to open world format. Maybe it should just add extra space around bounds to make coordinates be dividable by sdDeepSleep.normal_cell_size
 
 	//TODO: Try to restore _net_id-s of hibernated entities exactly what they were - it will help with de-hibernation of nested sdDeepSleep. It probably is already like this.
 
