@@ -745,7 +745,7 @@ let is_terminating = false;
 {
 	// World save test
 	let snapshot_save_busy = false;
-	function SaveSnapshot( snapshot_path, callback )
+	async function SaveSnapshot( snapshot_path, callback )
 	{
 		if ( snapshot_save_busy || is_terminating )
 		return;
@@ -754,9 +754,14 @@ let is_terminating = false;
 
 		snapshot_save_busy = true;
 		
-		sdDatabase.Save();
+		let promises = [];
+		promises.push( ...sdDatabase.Save() );
+		promises.push( ...sdDeepSleep.SaveScheduledChunks() ); // Should really wait - saving updates properties responsible for file location & existence
 		
-		sdDeepSleep.SaveScheduledChunks();
+		if ( promises.length > 0 )
+		{
+			await Promise.all( promises );
+		}
 
 		let entities = [];
 		
@@ -2688,7 +2693,14 @@ io.on( 'connection', ( socket )=>
 			let ent = sdEntity.GetObjectByClassAndNetId( _class, net_id );
 			if ( ent !== null && !ent._is_being_removed )
 			{
-				if ( !ent.AllowContextCommandsInRestirectedAreas( socket.character, socket ) )
+				let allow = ent.AllowContextCommandsInRestirectedAreas( socket.character, socket );
+				
+				if ( allow instanceof Array )
+				{
+					allow = ( allow.indexOf( params[ 2 ] ) !== -1 );
+				}
+				
+				if ( !allow )
 				{
 					if ( socket.character && socket.character._god )
 					{

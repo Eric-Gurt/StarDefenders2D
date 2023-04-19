@@ -376,6 +376,7 @@ class sdTask extends sdEntity
 				return 30 * 5;
 			}
 		};
+		
 		sdTask.tasks = [];
 	}
 	
@@ -386,6 +387,15 @@ class sdTask extends sdEntity
 			if ( sdTask.tasks[ i ]._executer === character )
 			if ( !sdTask.tasks[ i ]._is_being_removed )
 			sdTask.tasks[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		}
+	}
+	static PerformActionOnTasksOf( character, callback )
+	{
+		for ( let i = 0; i < sdTask.tasks.length; i++ )
+		{
+			if ( sdTask.tasks[ i ]._executer === character )
+			if ( !sdTask.tasks[ i ]._is_being_removed )
+			callback( sdTask.tasks[ i ] );
 		}
 	}
 	
@@ -560,8 +570,8 @@ class sdTask extends sdEntity
 		{
 			this.target_x = this._target.x;
 			this.target_y = this._target.y;
-			this.target_biometry = this._target.biometry || '';
-			this.target_biometry_censored = this._target.biometry_censored;
+			this.target_biometry = this._target.title || this._target.biometry || '';
+			this.target_biometry_censored = this._target.title_censored || this._target.biometry_censored || false;
 		}
 		else
 		{
@@ -663,8 +673,8 @@ class sdTask extends sdEntity
 				{
 					this.target_x = this._target.x;
 					this.target_y = this._target.y;
-					this.target_biometry = this._target.biometry || '';
-					this.target_biometry_censored = this._target.biometry_censored || false;
+					this.target_biometry = this._target.title || this._target.biometry || '';
+					this.target_biometry_censored = this._target.title_censored || this._target.biometry_censored || false;
 					
 					this._update_version++;
 				}

@@ -51,6 +51,8 @@ class sdPathFinding
 		
 		sdPathFinding.exist_until_extra_time = 7000; // 5000 was not enough by something like 860 ms, 1326 ms
 		
+		sdPathFinding.max_range_from_target = 2048; // Could be too small?
+		
 		//sdPathFinding.STRATEGY_FOLLOW = 1;
 		
 		sdPathFinding.rect_space_maps_by_entity = new WeakMap(); // entity => [ RectSpaceMap, RectSpaceMap, RectSpaceMap... ]
@@ -442,10 +444,20 @@ class RectSpaceMap
 	{
 		// TODO: Somehow prioritize rect Iterating for those that are closest to known travelers
 		
-		this.x1 = sdWorld.world_bounds.x1;
-		this.y1 = sdWorld.world_bounds.y1;
-		this.x2 = sdWorld.world_bounds.x2;
-		this.y2 = sdWorld.world_bounds.y2;
+		if ( sdWorld.server_config.enable_bounds_move )
+		{
+			this.x1 = Math.floor( ( this.target.x - sdPathFinding.max_range_from_target ) / 16 ) * 16;
+			this.y1 = Math.floor( ( this.target.y - sdPathFinding.max_range_from_target ) / 16 ) * 16;
+			this.x2 = Math.floor( ( this.target.x + sdPathFinding.max_range_from_target ) / 16 ) * 16;
+			this.y2 = Math.floor( ( this.target.y + sdPathFinding.max_range_from_target ) / 16 ) * 16;
+		}
+		else
+		{
+			this.x1 = sdWorld.world_bounds.x1;
+			this.y1 = sdWorld.world_bounds.y1;
+			this.x2 = sdWorld.world_bounds.x2;
+			this.y2 = sdWorld.world_bounds.y2;
+		}
 		
 		this.w = Math.floor( ( this.x2 - this.x1 ) / 16 );
 		this.h = Math.floor( ( this.y2 - this.y1 ) / 16 );
@@ -537,6 +549,16 @@ class RectSpaceMap
 				y = 0;
 			}
 		
+			if ( sdWorld.server_config.enable_bounds_move )
+			{
+				if ( Math.abs( this.target.x - ( this.x1 + this.x2 ) / 2 ) > sdPathFinding.max_range_from_target * 0.25 ||
+					 Math.abs( this.target.y - ( this.y1 + this.y2 ) / 2 ) > sdPathFinding.max_range_from_target * 0.25 )
+				{
+					this.Reinit();
+					return this.GetBitOffsetFromXY( _x, _y );
+				}
+			}
+			else
 			if ( _x >= sdWorld.world_bounds.x1 )
 			if ( _x < sdWorld.world_bounds.x2 )
 			if ( _y >= sdWorld.world_bounds.y1 )
@@ -546,7 +568,7 @@ class RectSpaceMap
 				//throw new Error( 'Pathfinding issue - bit offset detection outside of rect space map is not yet implemented. So far it will happen when target moves out of playable are or world bounds shift. Whole RectSpaceMap can be simply reinitialized when this happens probably. Coordinates: '+_x+', '+_y );
 
 				this.Reinit();
-				return GetBitOffsetFromXY( _x, _y );
+				return this.GetBitOffsetFromXY( _x, _y );
 			}
 			
 			//debugger;
@@ -585,10 +607,10 @@ class RectSpaceMap
 			{
 				let obj = this.active_bits_arr[ b ];
 				
-				if ( !sdWorld.inDist2D_Boolean( obj.x, obj.y, this.target.x, this.target.y, 2048 ) ) // Segment distance is impossible because traveler is unknown here
+				if ( !sdWorld.inDist2D_Boolean( obj.x, obj.y, this.target.x, this.target.y, sdPathFinding.max_range_from_target ) ) // Segment distance is impossible because traveler is unknown here
 				{
 					//trace( 'Trying to reach target that is way too far' );
-					debugger;
+					//debugger;
 					continue;
 				}
 				

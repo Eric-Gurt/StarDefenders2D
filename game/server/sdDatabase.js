@@ -603,6 +603,8 @@ class sdDatabase
 	}
 	static Save( key='*' )
 	{
+		let promises = [];
+		
 		if ( sdDatabase.is_local )
 		{
 			if ( key === '*' )
@@ -613,10 +615,10 @@ class sdDatabase
 				{
 					let key = keys[ i ];
 
-					sdDatabase.Save( key );
+					promises.push( ...sdDatabase.Save( key ) );
 				}
 
-				return;
+				return promises;
 			}
 
 			if ( sdDatabase.data[ key ] === undefined )
@@ -624,25 +626,34 @@ class sdDatabase
 
 	
 			let sub_database_file_path = sdWorld.database_data_path_const.split( '<KEY>' ).join( key );
+			
+			let promise = new Promise( ( resolve, reject )=>{ 
 				
-			fs.writeFile( sub_database_file_path + 'bac.v', JSON.stringify( sdDatabase.data[ key ] ), ( err )=>{
-				
-				if ( err )
-				{
-					console.warn( 'Unable to save database to a backup file ' + sub_database_file_path + 'bac.v' );
-				}
-				else
-				fs.rename( sub_database_file_path + 'bac.v', sub_database_file_path, ( err )=>
-				{
+				fs.writeFile( sub_database_file_path + 'bac.v', JSON.stringify( sdDatabase.data[ key ] ), ( err )=>{
+
 					if ( err )
 					{
-						console.warn( 'Unable to move saved database from a backup file to ' + sub_database_file_path );
+						console.warn( 'Unable to save database to a backup file ' + sub_database_file_path + 'bac.v' );
 					}
-				});
+					else
+					fs.rename( sub_database_file_path + 'bac.v', sub_database_file_path, ( err )=>
+					{
+						if ( err )
+						{
+							console.warn( 'Unable to move saved database from a backup file to ' + sub_database_file_path );
+						}
+						else
+						resolve();
+					});
 
+				});
 			});
 			
+			promises.push( promise );
+			
 		}
+		
+		return promises;
 	}
 	static Exec( array_of_request_objects, callback=null, initiator_server='?' ) // In order to stack requests it receives arrays of objects instead of just object for array_of_request_objects
 	{

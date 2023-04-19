@@ -480,6 +480,7 @@ class sdWorld
 			//trace( '_class === "'+c.prototype.constructor.name+'" for ',c );
 			
 			c._class = c.prototype.constructor.name;
+			
 		}
 	}
 	
@@ -927,6 +928,7 @@ class sdWorld
 			{
 				let ent2 = new sdWater({ x:x, y:y, volume:1, type:allow_lava ? sdWater.TYPE_LAVA : sdWater.TYPE_WATER });
 				sdEntity.entities.push( ent2 );
+				sdWorld.UpdateHashPosition( ent2, false ); // Without this, new water objects will only discover each other after one first think event (and by that time multiple water objects will overlap each other). This could be called at sdEntity super constructor but some entities don't know their bounds by that time
 				
 				if ( !allow_lava )
 				if ( Math.random() < 0.01 )
@@ -948,11 +950,57 @@ class sdWorld
 		return ent;
 	}
 	
-	static ChangeWorldBounds( x1, y1, x2, y2 )
+	static ChangeWorldBounds( x1, y1, x2, y2 ) // BoundsMove // MoveBounds
 	{
 		if ( sdWorld.server_config.aggressive_hibernation )
 		{
 			const step = sdDeepSleep.normal_cell_size; // Most likely all sizes will be dividable by this
+			
+			function CreateUnspawned( x, y, w, h, extension_x, extension_y )
+			{
+				let x2 = x + w;
+				let y2 = y + h;
+				
+				if ( extension_x < 0 )
+				if ( x2 > sdWorld.world_bounds.x1 )
+				{
+					x2 = sdWorld.world_bounds.x1;
+					w = x2 - x;
+				}
+				
+				if ( extension_y < 0 )
+				if ( y2 > sdWorld.world_bounds.y1 )
+				{
+					y2 = sdWorld.world_bounds.y1;
+					h = y2 - y;
+				}
+				
+				if ( extension_x > 0 )
+				if ( x < sdWorld.world_bounds.x2 )
+				{
+					x = sdWorld.world_bounds.x2;
+					w = x2 - x;
+				}
+				if ( extension_y > 0 )
+				if ( y < sdWorld.world_bounds.y2 )
+				{
+					y = sdWorld.world_bounds.y2;
+					h = y2 - y;
+				}
+				
+				if ( w < 0 || h < 0 )
+				{
+					trace({
+						x:x, y:y, w:w, h:h, type: sdDeepSleep.TYPE_UNSPAWNED_WORLD
+					});
+
+					throw new Error( 'ChangeWorldBounds: Bad sdDeepSleep size' );
+				}
+				
+				sdEntity.entities.push( new sdDeepSleep({
+					x:x, y:y, w:w, h:h, type: sdDeepSleep.TYPE_UNSPAWNED_WORLD
+				}) );
+			}
 			
 			// Prevent shrinking in this mode...
 			if ( x1 > sdWorld.world_bounds.x1 )
@@ -971,9 +1019,7 @@ class sdWorld
 			for ( let x = x1; x < sdWorld.world_bounds.x1; x += step )
 			for ( let y = sdWorld.world_bounds.y1; y < sdWorld.world_bounds.y2; y += step )
 			{
-				sdEntity.entities.push( new sdDeepSleep({
-					x:x, y:y, w:step, h:step, type: sdDeepSleep.TYPE_UNSPAWNED_WORLD
-				}) );
+				CreateUnspawned( x, y, step, step, -1,0 );
 			}
 			sdWorld.world_bounds.x1 = x1;
 			
@@ -981,9 +1027,7 @@ class sdWorld
 			for ( let x = sdWorld.world_bounds.x2; x < x2; x += step )
 			for ( let y = sdWorld.world_bounds.y1; y < sdWorld.world_bounds.y2; y += step )
 			{
-				sdEntity.entities.push( new sdDeepSleep({
-					x:x, y:y, w:step, h:step, type: sdDeepSleep.TYPE_UNSPAWNED_WORLD
-				}) );
+				CreateUnspawned( x, y, step, step, 1,0 );
 			}
 			sdWorld.world_bounds.x2 = x2;
 			
@@ -991,9 +1035,7 @@ class sdWorld
 			for ( let y = y1; y < sdWorld.world_bounds.y1; y += step )
 			for ( let x = sdWorld.world_bounds.x1; x < sdWorld.world_bounds.x2; x += step )
 			{
-				sdEntity.entities.push( new sdDeepSleep({
-					x:x, y:y, w:step, h:step, type: sdDeepSleep.TYPE_UNSPAWNED_WORLD
-				}) );
+				CreateUnspawned( x, y, step, step, 0,-1 );
 			}
 			sdWorld.world_bounds.y1 = y1;
 			
@@ -1001,9 +1043,7 @@ class sdWorld
 			for ( let y = sdWorld.world_bounds.y2; y < y2; y += step )
 			for ( let x = sdWorld.world_bounds.x1; x < sdWorld.world_bounds.x2; x += step )
 			{
-				sdEntity.entities.push( new sdDeepSleep({
-					x:x, y:y, w:step, h:step, type: sdDeepSleep.TYPE_UNSPAWNED_WORLD
-				}) );
+				CreateUnspawned( x, y, step, step, 0,1 );
 			}
 			sdWorld.world_bounds.y2 = y2;
 			
@@ -2239,7 +2279,7 @@ class sdWorld
 				if ( to_y === from_y )
 				to_y++;
 
-				if ( to_x - from_x < CHUNK_SIZE && to_y - from_y < CHUNK_SIZE )
+				if ( ( to_x - from_x < CHUNK_SIZE && to_y - from_y < CHUNK_SIZE ) || entity.is( sdDeepSleep ) )
 				{
 					var xx, yy;
 
@@ -2263,7 +2303,6 @@ class sdWorld
 					}*/
 				}
 				else
-				if ( !entity.is( sdDeepSleep ) )
 				debugger; // ~~ operation overflow is taking place? Or object is just too huge?
 			}
 		}

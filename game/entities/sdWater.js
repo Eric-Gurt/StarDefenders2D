@@ -129,7 +129,8 @@ class sdWater extends sdEntity
 			}
 			
 			
-			sdWorld.UpdateHashPosition( this, false ); // Without this, new water objects will only discover each other after one first think event (and by that time multiple water objects will overlap each other). This could be called at sdEntity super constructor but some entities don't know their bounds by that time
+			// Do this manually instead - it interferes with sdDeepSleep
+			//sdWorld.UpdateHashPosition( this, false ); // Without this, new water objects will only discover each other after one first think event (and by that time multiple water objects will overlap each other). This could be called at sdEntity super constructor but some entities don't know their bounds by that time
 		}
 		
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )

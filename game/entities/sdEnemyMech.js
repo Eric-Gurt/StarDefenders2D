@@ -136,7 +136,7 @@ class sdEnemyMech extends sdEntity
 		if ( this._follow_target ) 
 		return this._follow_target;
 
-		let x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+		/*let x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
 		let y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
 		
 		let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 256, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret' , 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdSetrDestroyer', 'sdOverlord', 'sdSpider' ] );
@@ -144,7 +144,17 @@ class sdEnemyMech extends sdEntity
 		{
 			i = Math.round( Math.random() * targets_raw.length ); // Randomize it
 			return targets_raw[ i ];
+		}*/
+		
+		let e = sdEntity.GetRandomEntity();
+		
+		if ( [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret' , 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdSetrDestroyer', 'sdOverlord', 'sdSpider' ].indexOf( e.GetClass() ) !== -1 )
+		if ( e.IsVisible( this ) )
+		if ( e.IsTargetable( this ) )
+		{
+			return e;
 		}
+		
 		return null;
 	}
 	Damage( dmg, initiator=null )

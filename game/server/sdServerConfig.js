@@ -92,7 +92,9 @@ class sdServerConfigFull extends sdServerConfigShort
 	
 	static allowed_base_shielding_unit_types = null; // [ sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER, sdBaseShieldingUnit.TYPE_MATTER, sdBaseShieldingUnit.TYPE_SCORE_TIMED ] to allow specific ones or null to allow all
 	
-	static open_world_max_distance_from_zero_coordinates = 40000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
+	static open_world_max_distance_from_zero_coordinates_x = 40000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
+	static open_world_max_distance_from_zero_coordinates_y_min = -3000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
+	static open_world_max_distance_from_zero_coordinates_y_max = 40000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
 	
 	static LinkPlayerMatterCapacityToScore( character )
 	{
@@ -717,11 +719,16 @@ class sdServerConfigFull extends sdServerConfigShort
 			{
 				if ( character_entity.driver_of )
 				character_entity.driver_of.ExcludeDriver( character_entity, true );
-
-				if ( instructor_entity )
-				if ( !instructor_entity._is_being_removed )
-				if ( instructor_entity.driver_of )
-				instructor_entity.driver_of.ExcludeDriver( instructor_entity, true );
+	
+	
+				setTimeout( ()=>
+				{
+					if ( instructor_entity )
+					if ( !instructor_entity._is_being_removed )
+					if ( instructor_entity.driver_of )
+					instructor_entity.driver_of.ExcludeDriver( instructor_entity, true );
+		
+				}, 2500 );
 
 			}, fresh_hover ? 5000 : 1000 );
 		}
@@ -1084,13 +1091,20 @@ class sdServerConfigFull extends sdServerConfigShort
 	}
 	static PlayerSpawnPointSeeker( character_entity, socket )
 	{
+		// This method wakes up sdDeepSleep areas beacause all of them might be hibernated. It should damage perfrormance in long term, paying attention to player spawn lags needs to be done
+		
 		//const sdBaseShieldingUnit = sdWorld.entity_classes.sdBaseShieldingUnit;
 		//const sdBlock = sdWorld.entity_classes.sdBlock;
 		
-		let x1 = sdWorld.world_bounds.x1;
-		let y1 = sdWorld.world_bounds.y1;
-		let x2 = sdWorld.world_bounds.x2;
-		let y2 = sdWorld.world_bounds.y2;
+		let x1 = Math.max( sdWorld.world_bounds.x1, -sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x );
+		let x2 = Math.min( sdWorld.world_bounds.x2, sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x );
+		
+		let y1 = Math.max( sdWorld.world_bounds.y1, sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_min );
+		let y2 = Math.min( sdWorld.world_bounds.y2, sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_max );
+		
+		/*sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x
+		sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_min
+		sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_max*/
 		
 		// Limit by zero coords somewhat
 		x1 = Math.max( x1, -10000 );

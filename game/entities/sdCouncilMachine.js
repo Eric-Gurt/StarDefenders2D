@@ -90,8 +90,17 @@ class sdCouncilMachine extends sdEntity
 
 				while ( instances < instances_tot && sdCouncilMachine.ents < 2 ) // Spawn another council machine until last one
 				{
-					let points = sdCouncilMachine.ents_left === 0 ? 0.25: 0;
-					let council_mach = new sdCouncilMachine({ x:0, y:0, detonation_in:this.detonation_in });
+					//let points = sdCouncilMachine.ents_left === 0 ? 0.25: 0;
+					
+					sdWeather.SimpleSpawner({
+						
+						count: [ 1, 1 ],
+						class: sdCouncilMachine,
+						params: { detonation_in:this.detonation_in }
+						
+					});
+					
+					/*let council_mach = new sdCouncilMachine({ x:0, y:0, detonation_in:this.detonation_in });
 
 					sdEntity.entities.push( council_mach );
 
@@ -146,7 +155,7 @@ class sdCouncilMachine extends sdEntity
 							council_mach._broken = false;
 							break;
 						}
-					} while( true );
+					} while( true );*/
 
 					instances++;
 				}

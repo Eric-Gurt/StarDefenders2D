@@ -17,6 +17,7 @@ import sdLost from './sdLost.js';
 import sdStorage from './sdStorage.js';
 import sdAsteroid from './sdAsteroid.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdWeather from './sdWeather.js';
 
 import sdTask from './sdTask.js';
 
@@ -483,6 +484,8 @@ class sdRift extends sdEntity
 	
 			if ( this.teleport_alpha <= 0 && this._time_until_teleport <= 0 ) // Relocate the portal
 			{
+				sdWeather.SetRandomSpawnLocation( this );
+				/*
 				let x,y,i;
 				let tr = 1000;
 				do
@@ -504,7 +507,9 @@ class sdRift extends sdEntity
 						this.x = x;
 						this.y = y;
 					}
-				}  while( tr > 0 );
+				}  while( tr > 0 );*/
+				
+				
 				this._time_until_teleport = this._teleport_timer;
 			}
 

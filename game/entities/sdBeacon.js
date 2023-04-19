@@ -112,6 +112,10 @@ class sdBeacon extends sdEntity
 	
 	
 	
+	AllowContextCommandsInRestirectedAreas( exectuter_character, executer_socket ) // exectuter_character can be null
+	{
+		return [ 'TRACK', 'STOP' ];
+	}
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
@@ -119,20 +123,24 @@ class sdBeacon extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		{
-			if ( command_name === 'SET_TEXT' )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+			if ( exectuter_character.canSeeForUse( this ) )
 			{
-				if ( parameters_array.length === 1 )
-				if ( typeof parameters_array[ 0 ] === 'string' )
+				if ( command_name === 'SET_TEXT' )
 				{
-					if ( parameters_array[ 0 ].length < 100 )
+					if ( parameters_array.length === 1 )
+					if ( typeof parameters_array[ 0 ] === 'string' )
 					{
-						this.biometry = parameters_array[ 0 ];
-						this.biometry_censored = sdModeration.IsPhraseBad( parameters_array[ 0 ], executer_socket );
+						if ( parameters_array[ 0 ].length < 100 )
+						{
+							this.biometry = parameters_array[ 0 ];
+							this.biometry_censored = sdModeration.IsPhraseBad( parameters_array[ 0 ], executer_socket );
 
-						executer_socket.SDServiceMessage( 'ID updated' );
+							executer_socket.SDServiceMessage( 'ID updated' );
+						}
+						else
+						executer_socket.SDServiceMessage( 'Text appears to be too long' );
 					}
-					else
-					executer_socket.SDServiceMessage( 'Text appears to be too long' );
 				}
 			}
 			
@@ -168,12 +176,15 @@ class sdBeacon extends sdEntity
 		if ( this.hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
 		{
 			this.AddContextOption( 'Track this beacon', 'TRACK', [] );
 			this.AddContextOption( 'Stop tracking this beacon', 'STOP', [] );
 			
-			this.AddPromptContextOption( 'Set an ID', 'SET_TEXT', [ undefined ], 'Enter new ID', ( sdWorld.client_side_censorship && this.biometry_censored ) ? sdWorld.CensoredText( this.biometry ) : this.biometry, 100 );
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+			if ( exectuter_character.canSeeForUse( this ) )
+			{
+				this.AddPromptContextOption( 'Set an ID', 'SET_TEXT', [ undefined ], 'Enter new ID', ( sdWorld.client_side_censorship && this.biometry_censored ) ? sdWorld.CensoredText( this.biometry ) : this.biometry, 100 );
+			}
 		}
 	}
 }

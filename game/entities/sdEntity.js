@@ -103,6 +103,14 @@ class sdEntity
 		sdWorld.entity_classes_array[ i ].init();
 	}
 	
+	static GetRandomEntity()
+	{
+		if ( sdEntity.entities.length > 0 )
+		return sdEntity.entities[ Math.floor( Math.random() * sdEntity.entities.length ) ];
+	
+		return null;
+	}
+	
 	GetCollisionMode()
 	{
 		return sdEntity.COLLISION_MODE_BOUNCE_AND_FRICTION;

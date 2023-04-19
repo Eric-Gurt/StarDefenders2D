@@ -118,15 +118,15 @@ class sdLandScanner extends sdEntity
 		this.enabled = enable;
 		if ( !this.enabled ) // Disabled protected blocks and doors
 		{
-			sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:2, pitch:1.5 });
-			
+			sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:1, pitch:1.5 });
 		}
 
 		if ( this.enabled ) // Scan unprotected blocks and fortify them
 		{
+			//sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:2, pitch:1.75 });
+			sdSound.PlaySound({ name:'tzyrg_fire', x:this.x, y:this.y, volume:0.5, pitch:3 });
 			
-			sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:2, pitch:1.75 });
-			
+			this._next_beep = 0;
 		}
 		//this.matter = 0;
 	}
@@ -155,7 +155,8 @@ class sdLandScanner extends sdEntity
 			if ( this._next_beep < 0 )
 			{
 				this._next_beep = 20;
-				sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:1, pitch:5 });
+				//sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:1, pitch:5 });
+				sdSound.PlaySound({ name:'council_teleport', x:this.x, y:this.y, volume:0.2, pitch:6 * ( 1 + this.charge / 100 ) });
 			}
 
 			if ( this.charge >= 100 )
@@ -202,11 +203,10 @@ class sdLandScanner extends sdEntity
 		{
 			this.charge = 0;
 		}
-		
 
-			this.sy += sdWorld.gravity * GSPEED;
-		
-			this.ApplyVelocityAndCollisions( GSPEED, 0, true );	
+		this.sy += sdWorld.gravity * GSPEED;
+
+		this.ApplyVelocityAndCollisions( GSPEED, 0, true );	
 	}
 
 	DrawHUD( ctx, attached ) // foreground layer

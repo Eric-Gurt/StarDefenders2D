@@ -30,6 +30,8 @@ import sdStatusEffect from './sdStatusEffect.js';
 import sdCharacterRagdoll from './sdCharacterRagdoll.js';
 import sdTimer from './sdTimer.js';
 import sdMimic from './sdMimic.js';
+//import sdLongRangeTeleport from './sdLongRangeTeleport.js';
+
 import sdShop from '../client/sdShop.js';
 
 class sdCharacter extends sdEntity
@@ -873,7 +875,7 @@ class sdCharacter extends sdEntity
 		this._last_e_state = 0; // For E key taps to activate ghosting
 		this._last_fire_state = 0; // For semi auto weaponry
 		
-		this._respawn_protection = 0; // Given after long-range teleported. Also on resque teleporting
+		this._respawn_protection = 0; // Given after long-range teleported. Also on resque teleporting // Also prevents player from shooting
 		
 		this._upgrade_counters = {}; // key = upgrade
 		
@@ -1021,8 +1023,8 @@ class sdCharacter extends sdEntity
 				
 				let shoot_from_scenario = false;
 
-				if ( will_fire )
-				this._respawn_protection = 0;
+				//if ( will_fire )
+				//this._respawn_protection = 0;
 
 				if ( this._weapon_draw_timer > 0 )
 				will_fire = false;
@@ -1035,6 +1037,13 @@ class sdCharacter extends sdEntity
 						will_fire = true;
 						shoot_from_scenario = true;
 					}
+				}
+				
+				if ( this._respawn_protection > 0 )
+				{
+					will_throw_grenade = false;
+					will_fire = false;
+					shoot_from_scenario = false;
 				}
 
 				if ( will_fire )
@@ -1578,7 +1587,8 @@ class sdCharacter extends sdEntity
 			if ( t.matter >= tele_cost ) // Has enough matter for this kind of teleport out
 			if ( !t._is_being_removed )
 			//if ( this.CanMoveWithoutOverlap( t.x, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, 0 ) && sdWorld.CheckLineOfSight( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 12, this ) ) // Make sure it isn't blocked by anything
-			if ( sdWorld.CheckLineOfSight( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 12, t, null, sdCom.com_vision_blocking_classes ) ) // Could be better. Should allow cases of storages and crystals on top of RTP
+			//if ( sdWorld.CheckLineOfSight( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 12, t, null, sdCom.com_vision_blocking_classes ) ) // Could be better. Should allow cases of storages and crystals on top of RTP
+			if ( t.GetRTPPotentialPlayerPlacementTestResult( this ) )
 			{
 				let di = sdWorld.Dist2D( this.x, this.y, t.x, t.y );
 				if ( 
@@ -1698,7 +1708,7 @@ class sdCharacter extends sdEntity
 			
 			best_t.WakeUpMatterSources();
 			
-			best_t._rescuing_from_lost_effect = lost_effect;
+			//best_t._rescuing_from_lost_effect = lost_effect; Always true now
 			
 			if ( lost_effect )
 			{
@@ -3179,7 +3189,7 @@ class sdCharacter extends sdEntity
 				this.act_y = 0;
 			}*/
 
-			if ( this.hea > 0 && !this.driver_of && ( this._key_states.GetKey( 'Mouse2' ) || this._key_states.GetKey( 'KeyC' ) ) && this._hook_allowed )
+			if ( this.hea > 0 && ( !this.driver_of || this.hook_relative_to ) && ( this._key_states.GetKey( 'Mouse2' ) || this._key_states.GetKey( 'KeyC' ) ) && this._hook_allowed )
 			{
 				if ( this._hook_once )
 				{
@@ -3588,7 +3598,10 @@ class sdCharacter extends sdEntity
 		
 		let out_of_bounds = false;
 		
-		if ( !sdWorld.inDist2D_Boolean( 0,0, this.x, this.y, sdWorld.server_config.open_world_max_distance_from_zero_coordinates ) )
+		//if ( !sdWorld.inDist2D_Boolean( 0,0, this.x, this.y, sdWorld.server_config.open_world_max_distance_from_zero_coordinates ) )
+		if ( Math.abs( this.x ) > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x ||
+			 this.y < sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_min ||
+			 this.y > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_max )
 		{
 			can_breathe = false;
 			out_of_bounds = true;
@@ -4995,6 +5008,23 @@ class sdCharacter extends sdEntity
 						character.Say( [ 'Uh... I\'m frozen', 'Frozen...', 'A bit cold out there' ][ ~~( Math.random() * 3 ) ], false, false, true );
 						return;
 					}
+					
+					if ( character.driver_of )
+					if ( character.driver_of.is( sdRescueTeleport ) )
+					{
+						// Likely a cloner... RTP-int out of it will move player outside of a vehicle and call the remove() on him... Bad
+						character.Say( [ 
+							'Yeah, I\'m kind of already here', 
+							'I\'m literally disassembled', 
+							'I should wait until this thing prints me my skin first - should be more comformatable wearing suit then',
+							'Does anyone have area amplifier by any chance?',
+							'I used to think that I hate waiting. But can I hate anything if my brain is still being printed?',
+							'Time flies by when don\'t have anything to feel it',
+							'Wait... How can I talk?',
+							'"Weep-woop-weep-woop... Weep"'
+						][ ~~( Math.random() * 8 ) ], false, false, true );
+						return;
+					}
 
 					if ( character._has_rtp_in_range || !kill )
 					Proceed();
@@ -5085,6 +5115,8 @@ class sdCharacter extends sdEntity
 			
 			//if ( exectuter_character ) 
 			//if ( exectuter_character.hea > 0 ) 
+			
+			if ( exectuter_character === this )
 			{
 				if ( command_name === 'RTP' )
 				{
@@ -5121,22 +5153,70 @@ class sdCharacter extends sdEntity
 					exectuter_character.power_ef = 0;
 					exectuter_character.time_ef = 0;
 				}
-			}
-
-			if ( command_name === 'CC_SET_SPAWN' )
-			{
-				if ( exectuter_character )
-				if ( exectuter_character.cc )
-				if ( this.cc === exectuter_character.cc )
+				
+				if ( command_name === 'CC_SET_SPAWN' )
 				{
-					if ( exectuter_character._cc_rank < this._cc_rank || exectuter_character === this )
+					if ( exectuter_character )
+					if ( exectuter_character.cc )
+					if ( this.cc === exectuter_character.cc )
 					{
-						exectuter_character.cc.KickNetID( this, true );
+						if ( exectuter_character._cc_rank < this._cc_rank || exectuter_character === this )
+						{
+							exectuter_character.cc.KickNetID( this, true );
+						}
+						else
+						executer_socket.SDServiceMessage( 'Not enough rights to kick user' );
 					}
-					else
-					executer_socket.SDServiceMessage( 'Not enough rights to kick user' );
+				}
+				
+				if ( command_name === 'TOGGLE_LRTP_NAV' )
+				{
+					const sdLongRangeTeleport = sdWorld.entity_classes.sdLongRangeTeleport;
+					
+					let had_tasks = false;
+					sdTask.PerformActionOnTasksOf( this, ( task )=>
+					{
+						if ( task.mission === sdTask.MISSION_TRACK_ENTITY )
+						if ( task._target.is( sdLongRangeTeleport ) )
+						if ( task._target.is_server_teleport )
+						{
+							had_tasks = true;
+							task.remove();
+						}
+					});
+					if ( !had_tasks )
+					{
+						for ( let i = 0; i < sdLongRangeTeleport.long_range_teleports.length; i++ )
+						if ( sdLongRangeTeleport.long_range_teleports[ i ].is_server_teleport )
+						{
+							let e = sdLongRangeTeleport.long_range_teleports[ i ];
+							
+							sdTask.MakeSureCharacterHasTask({ 
+								similarity_hash:'TRACK-LRTP'+e.biometry, 
+								executer: exectuter_character,
+								target: e,
+								mission: sdTask.MISSION_TRACK_ENTITY,
+
+								title: 'Long-range teleport navigation is enabled',
+								description: 'You can toggle it in your character\'s context menu (or press Esc).'
+							});
+						}
+					}
+				}
+				
+				if ( command_name === 'STOP_TRACKING' )
+				{
+					let id = parameters_array[ 0 ];
+					
+					sdTask.PerformActionOnTasksOf( this, ( task )=>
+					{
+						if ( task.mission === sdTask.MISSION_TRACK_ENTITY )
+						if ( task._net_id === id )
+						task.remove();
+					});
 				}
 			}
+
 			
 			if ( command_name === 'INSTALL_DRONE_GUN' )
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
@@ -5253,6 +5333,24 @@ class sdCharacter extends sdEntity
 
 					this.AddContextOption( 'Emote: Hearts', 'EMOTE', [ 'HEARTS' ] );
 					this.AddContextOption( 'Stop emotes', 'EMOTE', [ 'NOTHING' ] );
+					
+					this.AddContextOption( 'Toggle server long-range teleport navigation', 'TOGGLE_LRTP_NAV', [] );
+					
+					for ( let i = 0; i < sdTask.tasks.length; i++ )
+					if ( sdWorld.is_singleplayer || sdTask.tasks[ i ]._executer === this )
+					{
+						let task = sdTask.tasks[ i ];
+						
+						if ( task.mission === sdTask.MISSION_TRACK_ENTITY )
+						{
+							let t = task.target_biometry;
+
+							if ( sdWorld.client_side_censorship && task.biometry_censored )
+							t = sdWorld.CensoredText( t );
+
+							this.AddContextOptionNoTranslation( T( 'Stop tracking' ) + ' "' + t + '"', 'STOP_TRACKING', [ sdTask.tasks[ i ]._net_id ] );
+						}
+					}
 				}
 				else
 				{

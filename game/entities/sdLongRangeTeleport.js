@@ -172,6 +172,10 @@ class sdLongRangeTeleport extends sdEntity
 		
 		sdLongRangeTeleport.long_range_teleports.push( this );
 	}
+	get biometry()
+	{
+		return 'Long-range teleport';
+	}
 	onServerSideSnapshotLoaded() // Something like LRT will use this to reset phase on load
 	{
 		this.charge_timer = 0;
@@ -961,10 +965,6 @@ class sdLongRangeTeleport extends sdEntity
 		callback( ret );
 	}
 	
-	AllowContextCommandsInRestirectedAreas( exectuter_character, executer_socket ) // exectuter_character can be null
-	{
-		return true;
-	}
 	static ReceivedCommandFromEntityClass( command_name, parameters_array )
 	{
 		if ( command_name === 'AD_START_ALLOWED' )
@@ -1030,6 +1030,11 @@ class sdLongRangeTeleport extends sdEntity
 		}
 		else
 		sdMotherShipStorageManager.HandleServerCommand( command_name, parameters_array );
+	}
+	
+	AllowContextCommandsInRestirectedAreas( exectuter_character, executer_socket ) // exectuter_character can be null
+	{
+		return true;
 	}
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
 	{

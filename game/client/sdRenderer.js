@@ -486,7 +486,7 @@ class sdRenderer
 					
 						ctx2.scale( image_scale, image_scale );
 						ctx2.filter = 'saturate(0) brightness(3)';
-						ctx2.fillStyle = ctx2.createPattern( sdBlock.img_ground88, "repeat" );
+						ctx2.fillStyle = ctx2.createPattern( img_ground88, "repeat" );
 						ctx2.fillRect( 0, 0, sdRenderer.dark_lands_width / image_scale, 400 / image_scale );
 
 						ctx2.filter = 'none';

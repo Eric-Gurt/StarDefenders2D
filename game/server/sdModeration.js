@@ -572,6 +572,15 @@ class sdModeration
 					socket.character.InstallUpgrade( 'upgrade_jetpack' );
 					socket.character.InstallUpgrade( 'upgrade_hook' );
 					socket.character.InstallUpgrade( 'upgrade_invisibility' );
+					socket.character.InstallUpgrade( 'upgrade_grenades' );
+					
+					socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
+					socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
+					socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
+					
+					socket.character.InstallUpgrade( 'upgrade_stability_recovery' );
+					socket.character.InstallUpgrade( 'upgrade_stability_recovery' );
+					socket.character.InstallUpgrade( 'upgrade_stability_recovery' );
 					
 					socket.emit('SET sdWorld.my_entity._god', true );
 				}
