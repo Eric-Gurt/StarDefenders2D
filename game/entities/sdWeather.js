@@ -64,6 +64,7 @@ import sdTurret from './sdTurret.js';
 import sdFactionSpawner from './sdFactionSpawner.js';
 import sdFactions from './sdFactions.js';
 import sdTzyrgAbsorber from './sdTzyrgAbsorber.js';
+import sdShurgConverter from './sdShurgConverter.js';
 
 import sdTask from './sdTask.js';
 
@@ -125,6 +126,8 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_FALKOK_OUTPOST =			event_counter++; // 36
 		sdWeather.EVENT_GUANAKO =				event_counter++; // 37
 		sdWeather.EVENT_TZYRG_DEVICE =				event_counter++; // 38
+		sdWeather.EVENT_SHURG =					event_counter++; // 39
+		sdWeather.EVENT_SHURG_CONVERTER =			event_counter++; // 40
 
 		
 		sdWeather.supported_events = [];
@@ -2915,6 +2918,104 @@ class sdWeather extends sdEntity
 					instances++;
 				}
 				*/
+			}
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
+		if ( r === sdWeather.EVENT_SHURG ) // Shurg faction spawn. Spawns humanoids.
+		{
+			let ais = 0;
+			for ( var i = 0; i < sdCharacter.characters.length; i++ )
+			{
+				if ( sdCharacter.characters[ i ].hea > 0 )
+				if ( !sdCharacter.characters[ i ]._is_being_removed )
+				if ( sdCharacter.characters[ i ]._ai )
+				if ( sdCharacter.characters[ i ]._ai_team === 8 )
+				{
+					ais++;
+				}
+
+			}
+
+			{
+				let instances = 0;
+				let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
+
+				//let left_side = ( Math.random() < 0.5 );
+
+
+				while ( instances < instances_tot && ais < this._max_ai_count )
+				{
+
+					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
+
+					sdEntity.entities.push( character_entity );
+
+					{
+						if ( !sdWeather.SetRandomSpawnLocation( character_entity ) )
+						{
+							character_entity.remove();
+							character_entity._broken = false;
+							break;
+						}
+						else
+						{
+							sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_SHURG );
+							break;
+						}
+					}
+
+					instances++;
+					ais++;
+				}
+
+				//let drones = 0;
+				//let drones_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
+
+
+				/*while ( drones < drones_tot && sdDrone.drones_tot < this._max_drone_count )
+				{
+
+					let drone = new sdDrone({ x:0, y:0 , _ai_team: 8, type: ( Math.random() < 0.1 ) ? sdDrone.DRONE_TZYRG_WATCHER : sdDrone.DRONE_TZYRG });
+
+					sdEntity.entities.push( drone );
+
+					if ( !sdWeather.SetRandomSpawnLocation( drone ) )
+					{
+						drone.remove();
+						drone._broken = false;
+						break;
+					}
+					drones++;
+				}*/
+			}
+		}
+		if ( r === sdWeather.EVENT_SHURG_CONVERTER ) // Spawn a Shurg oxygen-to-matter anywhere on the map outside player views.
+		{
+			if ( Math.random() < 0.8 ) // 80% chance
+			{
+				let instances = 0;
+				let instances_tot = 1;
+
+				while ( instances < instances_tot && sdShurgConverter.converters.length < 1 )
+				{
+					let converter = new sdShurgConverter({ x:0, y:0});
+
+					sdEntity.entities.push( converter );
+					
+					if ( sdWeather.SetRandomSpawnLocation( converter ) )
+					{
+						sdShurgConverter.ents_left = 2; // 3 converters to destroy
+					}
+					else
+					{
+						converter.remove();
+						converter._broken = false;
+					}
+
+					instances++;
+				}
+
 			}
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event

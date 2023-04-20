@@ -30,6 +30,7 @@ import sdStatusEffect from './sdStatusEffect.js';
 import sdCharacterRagdoll from './sdCharacterRagdoll.js';
 import sdTimer from './sdTimer.js';
 import sdMimic from './sdMimic.js';
+import sdShurgConverter from './sdShurgConverter.js';
 //import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 
 import sdShop from '../client/sdShop.js';
@@ -3598,7 +3599,29 @@ class sdCharacter extends sdEntity
 			//this._last_act_y = this.act_y;
 		}
 		
-		let can_breathe = ( sdWeather.only_instance.air > 0 ) || ( this.driver_of && this.driver_of.VehicleHidesDrivers() ) || ( this._score < 100 );
+		let can_breathe;
+		if ( ( sdWeather.only_instance.air > 0 ) || ( this.driver_of && this.driver_of.VehicleHidesDrivers() ) || ( this._score < 100 ) )
+		{
+			if ( sdShurgConverter.converters.length <= 0 )
+			can_breathe = true;
+			else
+			{
+				let near_converter = false;
+				for ( let i = 0; i < sdShurgConverter.converters.length; i++ )
+				{
+					let e = sdShurgConverter.converters[ i ];
+					if ( sdWorld.inDist2D_Boolean( this.x, this.y, e.x, e.y, 400 ) )
+					{
+						near_converter = true;
+						break;
+					}
+				}
+				if ( near_converter )
+				can_breathe = false; // I've gone rusty with my coding again - Booraz149
+				else
+				can_breathe = true;
+			}
+		}
 		
 		if ( !can_breathe )
 		{
@@ -3828,22 +3851,25 @@ class sdCharacter extends sdEntity
 				//if ( this.air < 0.5 )
 				if ( !in_water )
 				{
-					if ( out_of_bounds )
-					sdTask.MakeSureCharacterHasTask({ 
-							similarity_hash:'NO-AIR-HINT', 
-							executer: this,
-							mission: sdTask.MISSION_GAMEPLAY_HINT,
-							title: 'Out of playable area',
-							description: 'You have left the allowed playable area - there is no oxygen here (even near base shielding units or in vehicles).'
-					});
-					else
-					sdTask.MakeSureCharacterHasTask({ 
-							similarity_hash:'NO-AIR-HINT', 
-							executer: this,
-							mission: sdTask.MISSION_GAMEPLAY_HINT,
-							title: 'No oxygen',
-							description: 'Enter vehicle or stay near charged and activated Base Shielding Unit.'
-					});
+					if ( sdWorld.is_server )
+					{
+						if ( out_of_bounds )
+						sdTask.MakeSureCharacterHasTask({ 
+								similarity_hash:'NO-AIR-HINT', 
+								executer: this,
+								mission: sdTask.MISSION_GAMEPLAY_HINT,
+								title: 'Out of playable area',
+								description: 'You have left the allowed playable area - there is no oxygen here (even near base shielding units or in vehicles).'
+						});
+						else
+						sdTask.MakeSureCharacterHasTask({ 
+								similarity_hash:'NO-AIR-HINT', 
+								executer: this,
+								mission: sdTask.MISSION_GAMEPLAY_HINT,
+								title: 'No oxygen',
+								description: 'Enter vehicle or stay near charged and activated Base Shielding Unit.'
+						});
+					}
 					
 					if ( this.air < sdCharacter.air_max * 0.666 || out_of_bounds )
 					if ( this._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
