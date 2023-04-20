@@ -54,7 +54,8 @@ class sdShurgConverter extends sdEntity
 		this.matter_max = 300;
 		this._notify_in = 30; // Notify players of the task every second, also drains player oxygen if they're nearby
 
-		this._drain_entities = []; // Array which stores which players to drain oxygen from when they are close enough
+		//this._drain_entities = []; // Array which stores which players to drain oxygen from when they are close enough
+		//Not needed
 
 		sdShurgConverter.converters.push( this );
 
@@ -89,12 +90,20 @@ class sdShurgConverter extends sdEntity
 
 				while ( instances < instances_tot && sdShurgConverter.converters.length < 2 ) // Spawn another Shurg converter until last one
 				{
-					let points = sdShurgConverter.ents_left === 0 ? 0.25: 0;
-					let converter = new sdShurgConverter({ x:0, y:0 });
+					//let points = sdShurgConverter.ents_left === 0 ? 0.25: 0;
+					//let converter = new sdShurgConverter({ x:0, y:0 });
 
-					sdEntity.entities.push( converter );
+					sdWeather.SimpleSpawner({
+						
+						count: [ 1, 1 ],
+						class: sdShurgConverter,
+						params: {}
+						
+					});
 
-					let x,y,i;
+					//sdEntity.entities.push( converter );
+
+					/*let x,y,i;
 					let tr = 1000;
 					do
 					{
@@ -145,7 +154,7 @@ class sdShurgConverter extends sdEntity
 							converter._broken = false;
 							break;
 						}
-					} while( true );
+					} while( true );*/
 
 					instances++;
 				}
@@ -153,7 +162,8 @@ class sdShurgConverter extends sdEntity
 
 			}
 
-			if ( spawned_ent === true )
+			//if ( spawned_ent === true )
+			if ( sdShurgConverter.converters.length > 1 )
 			{
 				for ( let i = 0; i < sdTask.tasks.length; i++ ) // All tasks related to this entity will set reward to 0 since it's not the last machine of the event.
 				{
@@ -224,7 +234,7 @@ class sdShurgConverter extends sdEntity
 				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be destroyed
 				{
 					let desc;
-					if ( sdShurgConverter.ents_left >= 3 )
+					if ( sdShurgConverter.ents_left >= 2 )
 					desc = 'The Shurgs deployed a device which drains nearby oxygen. Destroy them before the planet gets drained off of oxygen!';
 					else
 					if ( sdShurgConverter.ents_left !== 0 )
@@ -248,8 +258,8 @@ class sdShurgConverter extends sdEntity
 						description: desc
 					});
 				}
-					this._drain_entities = [];
-					let di = 2000;
+					//this._drain_entities = [];
+					//let di = 2000;
 
 					/*for ( let i = 0; i < sdWorld.sockets.length; i++ )
 					{

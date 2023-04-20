@@ -163,7 +163,8 @@ class sdCouncilMachine extends sdEntity
 
 			}
 
-			if ( spawned_ent === true )
+			//if ( spawned_ent === true )
+			if ( sdCouncilMachine.ents > 1 )
 			{
 				for ( let i = 0; i < sdTask.tasks.length; i++ ) // All tasks related to this entity will set reward to 0 since it's not the last machine of the event.
 				{
@@ -268,7 +269,7 @@ class sdCouncilMachine extends sdEntity
 					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be destroyed
 					{
 						let desc;
-						if ( sdCouncilMachine.ents_left >= 3 )
+						if ( sdCouncilMachine.ents_left >= 2 )
 						desc = 'Council plans to invade this planet. We detected a few of their portal machines, destroy them before it is too late!';
 						else
 						if ( sdCouncilMachine.ents_left !== 0 )

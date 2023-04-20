@@ -129,7 +129,7 @@ class sdCommandCentre extends sdEntity
 			{
 				let task = Math.round( Math.random() * 9 );
 				let num_ents;
-				let difficulty_per_entity = 0.167;
+				let difficulty_per_entity = 0.275;
 				
 				let template = { 
 					similarity_hash:'EXTRACT-X', 
