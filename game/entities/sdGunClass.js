@@ -897,7 +897,8 @@ class sdGunClass
 			projectile_velocity_dynamic: ( gun )=> { return Math.min( 64, sdGun.default_projectile_velocity ) },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { time_left: 2, color: 'transparent', _return_damage_to_owner:true };
+				//let obj = { time_left: 2, color: 'transparent', _return_damage_to_owner:true };
+				let obj = { time_left: 2, color: 'transparent' };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -906,6 +907,16 @@ class sdGunClass
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
 				return obj;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( gun._held_by )
+				if ( gun._held_by.IsPlayerClass() )
+				if ( gun._held_by.hea < gun._held_by.hmax )
+				{
+					gun._held_by.DamageWithEffect( gun.extra[ ID_DAMAGE_VALUE ] * gun.extra[ ID_DAMAGE_MULT ], null ); // Heal self if HP isn't max. However this healing is unaffected by damage mult and power pack
+				}
+				return true;
 			},
 
 			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
@@ -2191,10 +2202,11 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: 1 * 3.5,
 			spawnable: false,
-			projectile_properties: { _rail: true, _damage: -15, color: '#ff00ff',  _return_damage_to_owner:true },
+			projectile_properties: { _rail: true, _damage: -15, color: '#ff00ff' },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _rail: true, color: '#ff00ff',  _return_damage_to_owner:true };
+				//let obj = { _rail: true, color: '#ff00ff',  _return_damage_to_owner:true };
+				let obj = { _rail: true, color: '#ff00ff' };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -2224,7 +2236,7 @@ class sdGunClass
 				if ( gun._held_by.IsPlayerClass() )
 				if ( gun._held_by.hea < gun._held_by.hmax )
 				{
-					gun._held_by.DamageWithEffect( -15, null ); // Heal self if HP isn't max. However this healing is unaffected by damage mult and power pack
+					gun._held_by.DamageWithEffect( gun.extra[ ID_DAMAGE_VALUE ] * gun.extra[ ID_DAMAGE_MULT ], null ); // Heal self if HP isn't max. However this healing is unaffected by damage mult and power pack
 				}
 				return true;
 			},
@@ -2574,7 +2586,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'cable_tool' ),
 			sound: 'gun_defibrillator',
-			title: 'Cable tool',
+			title: 'Cable management tool',
 			sound_pitch: 0.25,
 			slot: 7,
 			reload_time: 15,
@@ -2586,6 +2598,35 @@ class sdGunClass
 			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', 
 				_custom_target_reaction_protected: cable_reaction_method,
 				_custom_target_reaction: cable_reaction_method
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				setTimeout( ()=>
+				{
+					if ( sdWorld.is_server )
+					if ( gun._held_by )
+					if ( ( gun._held_by._discovered[ 'first-cable' ] || 0 ) < 3 )
+					{
+						let line_id = ( gun._held_by._discovered[ 'first-cable' ] || 0 );
+						
+						let lines = [
+							'This is a cable management tool',
+							'Cable management tool can be used on some of base equipment',
+							'Cables can be cut with a right click'
+						];
+						
+						//if ( line_id < 3 )
+						if ( sdCable.GetConnectedEntities( gun._held_by ).length === 0 )
+						{
+							gun._held_by.Say( lines[ line_id ] );
+							
+							line_id++;
+							gun._held_by._discovered[ 'first-cable' ] = line_id;
+						}
+						
+					}
+					
+				}, 50 );
 			}
 		};
 		
@@ -4099,7 +4140,7 @@ class sdGunClass
 			{
 				return 100;
 			},*/
-			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', _return_damage_to_owner: false, _custom_target_reaction:( bullet, target_entity )=>
+			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', _custom_target_reaction:( bullet, target_entity )=>
 				{
 					if ( target_entity.GetClass() === 'sdBlock' || target_entity.GetClass() === 'sdDoor' )
 					{
@@ -6079,7 +6120,7 @@ class sdGunClass
 				count: 0,
 				spawnable: false,
 				//ignore_slot: true,
-				projectile_properties: { time_left: 0, _damage: 0, color: 'transparent', _return_damage_to_owner:true }
+				projectile_properties: { time_left: 0, _damage: 0, color: 'transparent' }
 			};
 			//throw new Error( 'Check sdGunClass for a place where index values are assigned - there seems to be an ID number '+i+' skipped (assuming sdGun.classes.length is '+sdGun.classes.length+' and thus highest ID should be '+(sdGun.classes.length-1)+', with IDs starting at 0). Holes in ID list will cause server to crash when some parts of logic will try to loop through all classes. Currently defined IDs are following: ', index_to_const );
 		}
@@ -6509,7 +6550,6 @@ class sdGunClass
 				color:'#ffffff',
 				time_left: 10, 
 				_hittable_by_bullets: false,
-				//_return_damage_to_owner:true,
 				_custom_target_reaction: illusion_reaction,
 				_custom_target_reaction_protected: illusion_reaction
 			},

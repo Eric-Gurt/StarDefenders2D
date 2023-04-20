@@ -374,6 +374,10 @@ class sdShop
 		sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(270deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 2 });
 		sdShop.options.push({ _class: 'sdCamera', _category:'Base equipment', _min_build_tool_level: 1 });
 		
+		sdShop.options.push({ _class: 'sdButton', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdButton', type:1, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdButton', type:2, _category:'Base equipment' });
+		
 		
 		for ( let i = 0; i < sdCaption.colors.length / 3; i++ )
 		sdShop.options.push({ _class: 'sdCaption', type: i, _category:'Base equipment' });
@@ -662,7 +666,19 @@ class sdShop
 			sdShop.options.push({ _class: 'sdVirus', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdFaceCrab', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAmphid', _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdCharacter', _category:'Development tests' });
+			
+			let sd_filter = sdWorld.CreateSDFilter();
+			sdWorld.ReplaceColorInSDFilter_v2( sd_filter, '#ff00ff', '#007f00', false );
+			sdWorld.ReplaceColorInSDFilter_v2( sd_filter, '#800080', '#007f00', false );
+			
+			sdShop.options.push({ _class: 'sdCharacter', title: 'Player from the shop', sd_filter:sd_filter, _category:'Development tests' });
+			
+			let sd_filter2 = sdWorld.CreateSDFilter();
+			sdWorld.ReplaceColorInSDFilter_v2( sd_filter2, '#ff00ff', '#000000', false );
+			sdWorld.ReplaceColorInSDFilter_v2( sd_filter2, '#800080', '#000000', false );
+			
+			
+			sdShop.options.push({ _class: 'sdCharacter', title: 'Idling AI from the shop', sd_filter:sd_filter2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAsteroid', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', kind:1, _category:'Development tests' });
@@ -777,7 +793,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdLandScanner', _category:'Development tests' });
 			//sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'saturate(0) brightness(1.5)', _category:'Development tests' });
 			//sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'saturate(0) brightness(0.5)', _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdButton', _category:'Development tests' });
+			//sdShop.options.push({ _class: 'sdButton', _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });

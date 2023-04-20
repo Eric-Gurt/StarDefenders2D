@@ -38,6 +38,7 @@ import sdCharacterRagdoll from './entities/sdCharacterRagdoll.js';
 import sdPlayerSpectator from './entities/sdPlayerSpectator.js';
 import sdBaseShieldingUnit from './entities/sdBaseShieldingUnit.js';
 import sdDeepSleep from './entities/sdDeepSleep.js';
+import sdCommandCentre from './entities/sdCommandCentre.js';
 
 
 import sdRenderer from './client/sdRenderer.js';
@@ -1340,34 +1341,30 @@ class sdWorld
 			if ( params.type === sdEffect.TYPE_CHAT )
 			//if ( params.attachment._coms_allowed )
 			{
-				let coms_near = [];
 				
-				sdWorld.GetComsNear( params.x, params.y, coms_near, params.attachment._net_id );
-				//console.log('[zero hop]coms_near = ', coms_near.length);
-				
-				let tot_before = 0;
-				let tot_after;
-				let i = 0;
-				do
+				if ( params.attachment.driver_of )
+				if ( params.attachment.driver_of.is( sdCommandCentre ) )
 				{
-					tot_before = coms_near.length;
+					params.text = 'CC-' + params.attachment.driver_of.biometry + ': ' + params.text;
 					
-					while ( i < tot_before )
+					//sdCommandCentre.centres
+					for ( let i = 0; i < sdCommandCentre.centres.length; i++ )
 					{
-						sdWorld.GetComsNear( coms_near[ i ].x, coms_near[ i ].y, coms_near, params.attachment._net_id );
-						//console.log('[hop]coms_near = ', coms_near.length);
+						const cc = sdCommandCentre.centres[ i ];
 						
-						i++;
+						//sdWorld.GetCharactersNear( sdCommandCentre.centres[ i ].x, sdCommandCentre.centres[ i ].y, extra_affected_chars, coms_near[ i ].subscribers ); Slow
+						
+						for ( let i2 = 0; i2 < sdCharacter.characters.length; i2++ )
+						{
+							const c = sdCharacter.characters[ i2 ];
+							
+							if ( c._socket )
+							if ( sdWorld.inDist2D_Boolean( cc.x, cc.y, c.x, c.y, 5000 ) )
+							{
+								extra_affected_chars.push( c );
+							}
+						}
 					}
-					
-					tot_after = coms_near.length;
-					
-				} while( tot_after !== tot_before );
-				
-				for ( i = 0; i < coms_near.length; i++ )
-				{
-					sdWorld.GetCharactersNear( coms_near[ i ].x, coms_near[ i ].y, extra_affected_chars, coms_near[ i ].subscribers );
-					//console.log('[hop]extra_affected_chars = ', extra_affected_chars.length);
 				}
 			}
 			
@@ -1559,7 +1556,7 @@ class sdWorld
 	{
 		sdWorld.SendEffect( params, 'S', exclusive_to_sockets_arr );
 	}
-	static GetComsNear( _x, _y, append_to=null, require_auth_for_net_id=null, return_arr_of_one_with_lowest_net_id=false )
+	static GetComsNear( _x, _y, append_to=null, require_auth_for_net_id=null, return_arr_of_one_with_lowest_net_id=false ) // Only used by GetComsNearCache
 	{
 		let ret = append_to || [];
 		
@@ -1595,7 +1592,7 @@ class sdWorld
 		}
 		return ret;
 	}
-	static GetCharactersNear( _x, _y, append_to=null, require_auth_for_net_id_by_list=null, range=sdCom.retransmit_range )
+	/*static GetCharactersNear( _x, _y, append_to=null, require_auth_for_net_id_by_list=null, range=sdCom.retransmit_range ) Inefficient method
 	{
 		let ret = append_to || [];
 		
@@ -1621,12 +1618,12 @@ class sdWorld
 			//if ( arr[ i ] instanceof sdCharacter )
 			if ( !arr[ i ]._is_being_removed )
 			if ( arr[ i ].is( sdCharacter ) )
-			if ( require_auth_for_net_id_by_list === null /*|| ( arr[ i ]._coms_allowed && require_auth_for_net_id_by_list.indexOf( arr[ i ]._net_id ) !== -1 )*/ )
+			if ( require_auth_for_net_id_by_list === null )
 			if ( ret.indexOf( arr[ i ] ) === -1 )
 			ret.push( arr[ i ] );
 		}
 		return ret;
-	}
+	}*/
 	static FilterHasMatterProperties( ent )
 	{
 		return ent._has_matter_props;// ( typeof ent.matter !== 'undefined' || typeof ent._matter !== 'undefined' );
@@ -3158,14 +3155,17 @@ class sdWorld
 						{
 							const arr_i_is_bg_entity = arr_i.IsBGEntity();
 							
+							//if ( arr_i.GetClass() === 'sdButton' )
+							//debugger;
+							
 							if ( arr_i_is_bg_entity === 10 ) // sdDeepSleep
 							{
 								arr_i.WakeUpArea();
 							}
 							else
 							if ( ignore_entity === null || arr_i_is_bg_entity === ignore_entity.IsBGEntity() )
-							//if ( arr_i._hard_collision || include_only_specific_classes )
-							if ( include_only_specific_classes || arr_i._hard_collision )
+							//if ( include_only_specific_classes || arr_i._hard_collision )
+							if ( include_only_specific_classes || custom_filtering_method || arr_i._hard_collision ) // custom_filtering_method is needed here to prevent sdButton overlap during building
 							if ( !arr_i._is_being_removed )
 							{
 								if ( include_only_specific_classes || ignore_entity_classes )
@@ -3265,6 +3265,14 @@ class sdWorld
 		//var step = 16;
 		var step = 8;
 		
+		if ( di > 2000 )
+		if ( sdDeepSleep.debug_really_long_line_traces )
+		if ( sdWorld.is_server )
+		{
+			debugger;
+			console.warn( 'This CheckLineOfSight is really long and can cause extreme number of sdDeepSleep wakes, thus lags (di: '+di+')' );
+		}
+		
 		for ( var s = step / 2; s < di - step / 2; s += step )
 		{
 			var x = x1 + ( x2 - x1 ) / di * s;
@@ -3279,6 +3287,14 @@ class sdWorld
 		var di = sdWorld.Dist2D( x1,y1,x2,y2 );
 		//var step = 16;
 		var step = 8;
+		
+		if ( di > 2000 )
+		if ( sdDeepSleep.debug_really_long_line_traces )
+		if ( sdWorld.is_server )
+		{
+			debugger;
+			console.warn( 'This TraceRayPoint is really long and can cause extreme number of sdDeepSleep wakes, thus lags (di: '+di+')' );
+		}
 		
 		for ( var s = step / 2; s < di - step / 2; s += step )
 		{
@@ -4242,7 +4258,7 @@ class sdWorld
 				sdRenderer.resolution_quality = BoolToInt( player_settings['density1'] ) * 1 + BoolToInt( player_settings['density2'] ) * 0.5 + BoolToInt( player_settings['density3'] ) * 0.25;
 				window.onresize();
 
-				sdSound.SetVolumeScale( BoolToInt( player_settings['volume1'] ) * 0.4 + BoolToInt( player_settings['volume2'] ) * 0.25 + BoolToInt( player_settings['volume3'] ) * 0.1 );
+				sdSound.SetVolumeScale( parseFloat( player_settings['volume'] ) / 100 ); // BoolToInt( player_settings['volume1'] ) * 0.4 + BoolToInt( player_settings['volume2'] ) * 0.25 + BoolToInt( player_settings['volume3'] ) * 0.1 );
 
 				sdWorld.client_side_censorship = player_settings['censorship1'] ? true : false;
 

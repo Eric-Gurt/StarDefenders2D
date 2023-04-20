@@ -12,7 +12,7 @@ import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 //import sdWater from './sdWater.js';
 //import sdBG from './sdBG.js';
-//import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdBlock from './sdBlock.js';
 import sdCharacter from './sdCharacter.js';
 
@@ -64,15 +64,18 @@ class sdConveyor extends sdEntity
 
 		if ( this._hea > 0 )
 		{
-			this._hea -= dmg;
-
-			this.HandleDestructionUpdate();
-			
-			this._regen_timeout = 60;
-
-			if ( this._hea <= 0 )
+			if ( sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
 			{
-				this.remove();
+				this._hea -= dmg;
+
+				this.HandleDestructionUpdate();
+
+				this._regen_timeout = 60;
+
+				if ( this._hea <= 0 )
+				{
+					this.remove();
+				}
 			}
 		}
 		
@@ -86,6 +89,8 @@ class sdConveyor extends sdEntity
 		
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
+		
+		this._shielded = null; // Is this entity protected by a base defense unit?
 		
 		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
 		

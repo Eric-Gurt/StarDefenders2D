@@ -82,6 +82,9 @@ class sdWeather extends sdEntity
 		
 		sdWeather.only_instance = null;
 		
+		sdWeather.min_distance_from_online_players_for_entity_events = 500;
+		sdWeather.max_distance_from_online_players_for_entity_events = 3000;
+		
 		let event_counter = 0;
 		sdWeather.EVENT_ACID_RAIN =				event_counter++; // 0
 		sdWeather.EVENT_ASTEROIDS =				event_counter++; // 1
@@ -348,21 +351,20 @@ class sdWeather extends sdEntity
 								x + dog._hitbox_x2 + 16, 
 								y + dog._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
 						{
-							let di_allowed = true;
+							let proper_distnace = true;
 
 							for ( i = 0; i < sdWorld.sockets.length; i++ )
 							if ( sdWorld.sockets[ i ].character )
 							{
-								//let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
-								//if ( di < 500 )
-								if ( sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y, 500 ) )
+								if ( sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y, sdWeather.min_distance_from_online_players_for_entity_events ) ||
+									 !sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y, sdWeather.max_distance_from_online_players_for_entity_events ) )
 								{
-									di_allowed = false;
+									proper_distnace = false;
 									break;
 								}
 							}
 
-							if ( di_allowed )
+							if ( proper_distnace )
 							{
 								dog.x = x;
 								dog.y = y;
@@ -436,21 +438,23 @@ class sdWeather extends sdEntity
 						x + ent._hitbox_x2 + 16, 
 						y + ent._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
 				{
-					let di_allowed = true;
+					let proper_distnace = true;
 
 					for ( i = 0; i < sdWorld.sockets.length; i++ )
 					if ( sdWorld.sockets[ i ].character )
 					{
-						let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
+						//let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
 
-						if ( di < 500 )
+						//if ( di < 500 )
+						if ( sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y, sdWeather.min_distance_from_online_players_for_entity_events ) ||
+							 !sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y, sdWeather.max_distance_from_online_players_for_entity_events ) )
 						{
-							di_allowed = false;
+							proper_distnace = false;
 							break;
 						}
 					}
 
-					if ( di_allowed )
+					if ( proper_distnace )
 					{
 						ent.x = x;
 						ent.y = y;
@@ -484,7 +488,7 @@ class sdWeather extends sdEntity
 					x + ent._hitbox_x2 + 16, 
 					y + ent._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
 			{
-				let di_allowed = true;
+				let proper_distnace = true;
 										
 				for ( i = 0; i < sdWorld.sockets.length; i++ )
 				if ( sdWorld.sockets[ i ].character )
@@ -493,12 +497,12 @@ class sdWeather extends sdEntity
 											
 					if ( di < 500 )
 					{
-						di_allowed = false;
+						proper_distnace = false;
 						break;
 					}
 				}
 							
-				if ( di_allowed )
+				if ( proper_distnace )
 				{
 					ent.x = x;
 					ent.y = y;
@@ -843,7 +847,7 @@ class sdWeather extends sdEntity
 			}
 		}
 	}
-	TraceDamagePossibleHere( x,y, steps_max=Infinity, sun_light_tracer=false )
+	TraceDamagePossibleHere( x,y, steps_max=Infinity, sun_light_tracer=false, rain_tracer=false )
 	{
 		const consider_sky_open_height = 200;
 		let space_until_premature_true = consider_sky_open_height;
@@ -868,6 +872,16 @@ class sdWeather extends sdEntity
 					if ( sdWorld.last_hit_entity.is( sdBlock ) )
 					{
 						if ( sdWorld.last_hit_entity.IsPartiallyTransparent() )
+						continue;
+					}
+				}
+				else
+				if ( rain_tracer )
+				{
+					if ( sdWorld.last_hit_entity )
+					if ( sdWorld.last_hit_entity.is( sdBlock ) )
+					{
+						if ( sdWorld.last_hit_entity.IsLetsLiquidsThrough() )
 						continue;
 					}
 				}
@@ -1281,7 +1295,7 @@ class sdWeather extends sdEntity
 								x + ent._hitbox_x2 + 16, 
 								y + ent._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
 						{
-							let di_allowed = true;
+							let proper_distnace = true;
 										
 							for ( i = 0; i < sdWorld.sockets.length; i++ )
 							if ( sdWorld.sockets[ i ].character )
@@ -1290,12 +1304,12 @@ class sdWeather extends sdEntity
 											
 								if ( di < 500 )
 								{
-									di_allowed = false;
+									proper_distnace = false;
 									break;
 								}
 							}
 										
-							if ( di_allowed )
+							if ( proper_distnace )
 							{
 								ent.x = x;
 								ent.y = y;
@@ -1414,7 +1428,7 @@ class sdWeather extends sdEntity
 								x + obelisk._hitbox_x2 + 16, 
 								y + obelisk._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
 						{
-							let di_allowed = true;
+							let proper_distnace = true;
 										
 							for ( i = 0; i < sdWorld.sockets.length; i++ )
 							if ( sdWorld.sockets[ i ].character )
@@ -1423,12 +1437,12 @@ class sdWeather extends sdEntity
 											
 								if ( di < 500 )
 								{
-									di_allowed = false;
+									proper_distnace = false;
 									break;
 								}
 							}
 										
-							if ( di_allowed )
+							if ( proper_distnace )
 							{
 								obelisk.x = x;
 								obelisk.y = y;
@@ -1563,7 +1577,7 @@ class sdWeather extends sdEntity
 								x + anticrystal._hitbox_x2 + 16, 
 								y + anticrystal._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
 						{
-							let di_allowed = true;
+							let proper_distnace = true;
 									
 							for ( i = 0; i < sdWorld.sockets.length; i++ )
 							if ( sdWorld.sockets[ i ].character )
@@ -1572,12 +1586,12 @@ class sdWeather extends sdEntity
 										
 								if ( di < 500 )
 								{
-									di_allowed = false;
+									proper_distnace = false;
 									break;
 								}
 							}
 									
-							if ( di_allowed )
+							if ( proper_distnace )
 							{
 								anticrystal.x = x;
 								anticrystal.y = y;
@@ -1739,7 +1753,7 @@ class sdWeather extends sdEntity
 								x + council_bomb._hitbox_x2 + 16, 
 								y + council_bomb._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
 						{
-							let di_allowed = true;
+							let proper_distnace = true;
 									
 							for ( i = 0; i < sdWorld.sockets.length; i++ )
 							if ( sdWorld.sockets[ i ].character )
@@ -1748,12 +1762,12 @@ class sdWeather extends sdEntity
 										
 								if ( di < 500 )
 								{
-									di_allowed = false;
+									proper_distnace = false;
 									break;
 								}
 							}
 									
-							if ( di_allowed )
+							if ( proper_distnace )
 							{
 								council_bomb.x = x;
 								council_bomb.y = y;
@@ -1861,7 +1875,7 @@ class sdWeather extends sdEntity
 								x + erthal_beacon._hitbox_x2 + 16, 
 								y + erthal_beacon._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
 						{
-							let di_allowed = true;
+							let proper_distnace = true;
 									
 							for ( i = 0; i < sdWorld.sockets.length; i++ )
 							if ( sdWorld.sockets[ i ].character )
@@ -1870,12 +1884,12 @@ class sdWeather extends sdEntity
 										
 								if ( di < 500 )
 								{
-									di_allowed = false;
+									proper_distnace = false;
 									break;
 								}
 							}
 									
-							if ( di_allowed )
+							if ( proper_distnace )
 							{
 								erthal_beacon.x = x;
 								erthal_beacon.y = y;
@@ -2372,7 +2386,7 @@ class sdWeather extends sdEntity
 							x + amphid._hitbox_x2 + 16, 
 							y + amphid._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
 						{
-							let di_allowed = true;
+							let proper_distnace = true;
 							
 							for ( i = 0; i < sdWorld.sockets.length; i++ )
 							if ( sdWorld.sockets[ i ].character )
@@ -2381,12 +2395,12 @@ class sdWeather extends sdEntity
 								
 								if ( di < 500 )
 								{
-									di_allowed = false;
+									proper_distnace = false;
 									break;
 								}
 							}
 							
-							if ( di_allowed )
+							if ( proper_distnace )
 							{
 								amphid.x = x;
 								amphid.y = y;
@@ -2540,7 +2554,7 @@ class sdWeather extends sdEntity
 								x + council_mach._hitbox_x2 + 16, 
 								y + council_mach._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
 						{
-							let di_allowed = true;
+							let proper_distnace = true;
 									
 							for ( i = 0; i < sdWorld.sockets.length; i++ )
 							if ( sdWorld.sockets[ i ].character )
@@ -2549,12 +2563,12 @@ class sdWeather extends sdEntity
 										
 								if ( di < 500 )
 								{
-									di_allowed = false;
+									proper_distnace = false;
 									break;
 								}
 							}
 									
-							if ( di_allowed )
+							if ( proper_distnace )
 							{
 								council_mach.x = x;
 								council_mach.y = y;
@@ -2770,7 +2784,7 @@ class sdWeather extends sdEntity
 										x + 32, 
 										y + 32, null, null, null, null ) ) // Make sure nothing "blocks" ( pun intended ) outpost spawns
 								{
-									let di_allowed = true;
+									let proper_distnace = true;
 
 									for ( let k = 0; k < sdWorld.sockets.length; k++ )
 									if ( sdWorld.sockets[ k ].character )
@@ -2779,12 +2793,12 @@ class sdWeather extends sdEntity
 
 										if ( di < 500 )
 										{
-											di_allowed = false; // Too close to players
+											proper_distnace = false; // Too close to players
 											//break;
 										}
 									}
 
-									if ( di_allowed === false ) // Look for new location
+									if ( proper_distnace === false ) // Look for new location
 									{
 										i = 10;
 										j = 10;
@@ -2865,7 +2879,7 @@ class sdWeather extends sdEntity
 								x + ent._hitbox_x2 + 16, 
 								y + ent._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
 						{
-							let di_allowed = true;
+							let proper_distnace = true;
 									
 							for ( i = 0; i < sdWorld.sockets.length; i++ )
 							if ( sdWorld.sockets[ i ].character )
@@ -2874,12 +2888,12 @@ class sdWeather extends sdEntity
 										
 								if ( di < 500 )
 								{
-									di_allowed = false;
+									proper_distnace = false;
 									break;
 								}
 							}
 									
-							if ( di_allowed )
+							if ( proper_distnace )
 							{
 								ent.x = x;
 								ent.y = y;
@@ -3220,7 +3234,71 @@ class sdWeather extends sdEntity
 				{
 					this._next_grass_seed = sdWorld.time + 100;
 					
-					let xx = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+					let e = sdEntity.GetRandomEntity();
+					
+					if ( e.is( sdBlock ) )
+					if ( e.y >= sdWorld.world_bounds.y1 + 16 ) // Do not spawn on top of the world
+					{
+						if ( e.DoesRegenerate() )
+						if ( this.TraceDamagePossibleHere( e.x - 8, e.y + e.width / 2, Infinity, false, true ) )
+						{
+							if ( e._plants === null )
+							{
+								let grass = new sdGrass({ x:e.x, y:e.y - 16, hue:e.hue, br:e.br, filter: e.filter, block:e  });
+								sdEntity.entities.push( grass );
+
+								//grass.snowed = this.snow;
+								grass.SetSnowed( this.snow );
+
+								e._plants = [ grass._net_id ];
+							}
+							else
+							{
+								for ( let i = 0; i < e._plants.length; i++ )
+								{
+									//let ent = sdEntity.entities_by_net_id_cache[ e._plants[ i ] ];
+									let ent = sdEntity.entities_by_net_id_cache_map.get( e._plants[ i ] );
+
+									if ( ent )
+									{
+										if ( ent.is( sdGrass ) )
+										{
+											// Old version problem fix:
+											if ( ent._block !== e )
+											ent._block = e;
+
+											ent.SetSnowed( this.snow );
+											//ent.snowed = this.snow;
+
+											if ( ent.variation < sdWorld.GetFinalGrassHeight( ent.x ) )
+											{
+												ent.Grow();
+												break; // Skip rest plants on this block
+											}
+										}
+									}
+									else
+									{
+										// Old version problem fix:
+										e._plants.splice( i, 1 );
+										i--;
+										continue;
+									}
+								}
+							}
+						}
+
+						if ( !this.snow && !this.matter_rain )
+						if ( Math.random() < 0.01 )
+						{
+							let water = new sdWater({ x:Math.floor(e.x/16)*16, y:Math.floor(e.y/16)*16 - 16, type: this.acid_rain ? sdWater.TYPE_ACID : sdWater.TYPE_WATER });
+							sdEntity.entities.push( water );
+							sdWorld.UpdateHashPosition( water, false ); // Without this, new water objects will only discover each other after one first think event (and by that time multiple water objects will overlap each other). This could be called at sdEntity super constructor but some entities don't know their bounds by that time
+						}
+					}
+					
+					/*let xx = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+
 
 					// CheckLineOfSight( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
 					if ( !sdWorld.CheckLineOfSight( xx, sdWorld.world_bounds.y1 + 4, xx, sdWorld.world_bounds.y2, null, null, sdCom.com_creature_attack_unignored_classes, ( ent )=>
@@ -3294,7 +3372,7 @@ class sdWeather extends sdEntity
 								sdWorld.UpdateHashPosition( water, false ); // Without this, new water objects will only discover each other after one first think event (and by that time multiple water objects will overlap each other). This could be called at sdEntity super constructor but some entities don't know their bounds by that time
 							}
 						}
-					}
+					}*/
 				}
 
 				if ( this.matter_rain )

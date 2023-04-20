@@ -32,7 +32,7 @@ class sdTeleport extends sdEntity
 	get hitbox_y1() { return -16; }
 	get hitbox_y2() { return 16; }
 	
-	PrecieseHitDetection( x, y ) // Teleports use this to prevent bullets from hitting them like they do. Only ever used by bullets, as a second rule after box-like hit detection. It can make hitting entities past outer bounding box very inaccurate
+	PrecieseHitDetection( x, y, bullet=null ) // Teleports use this to prevent bullets from hitting them like they do. Only ever used by bullets, as a second rule after box-like hit detection. It can make hitting entities past outer bounding box very inaccurate
 	{
 		return ( Math.abs( this.x - x ) > 8 && Math.abs( this.y - y ) > 8 );
 	}
@@ -61,16 +61,19 @@ class sdTeleport extends sdEntity
 		
 		if ( this._hea > 0 )
 		{
-			this._hea -= dmg;
-			
-			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-			
-			this.SetDelay( 90 );
-			
-			this._regen_timeout = 60;
+			if ( sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
+			{
+				this._hea -= dmg;
 
-			if ( this._hea <= 0 )
-			this.remove();
+				this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+				this.SetDelay( 90 );
+
+				this._regen_timeout = 60;
+
+				if ( this._hea <= 0 )
+				this.remove();
+			}
 		}
 	}
 	SetDelay( v )
@@ -96,6 +99,8 @@ class sdTeleport extends sdEntity
 		this._hmax = 500 * 4;
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
+		
+		this._shielded = null; // Is this entity protected by a base defense unit?
 		
 		this.delay = 0;
 		//this._update_version++
@@ -165,32 +170,7 @@ class sdTeleport extends sdEntity
 		
 		//this.DrawConnections( ctx );
 	}
-	/*DrawConnections( ctx )
-	{
-		ctx.lineWidth = 1;
-		ctx.strokeStyle = '#ffffff';
-		ctx.setLineDash([2, 2]);
-		ctx.lineDashOffset = ( sdWorld.time % 1000 ) / 250 * 2;
 
-		for ( var i = 0; i < sdEntity.entities.length; i++ )
-		if ( ( sdEntity.entities[ i ].GetClass() === 'sdCom' && sdWorld.Dist2D( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this.x, this.y ) < sdCom.retransmit_range ) || 
-			 ( sdEntity.entities[ i ].GetClass() === 'sdTeleport' && sdWorld.Dist2D( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this.x, this.y ) < sdTeleport.connection_range ) )
-		if ( sdWorld.CheckLineOfSight( this.x, this.y, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
-		if ( sdWorld.CheckLineOfSight( this.x, this.y, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, null, sdCom.com_visibility_unignored_classes ) )
-		{
-			ctx.beginPath();
-			ctx.moveTo( sdEntity.entities[ i ].x - this.x, sdEntity.entities[ i ].y - this.y );
-			ctx.lineTo( 0,0 );
-			ctx.stroke();
-		}
-
-		ctx.beginPath();
-		ctx.arc( 0,0, sdTeleport.connection_range, 0, Math.PI*2 );
-		ctx.stroke();
-		
-		ctx.lineDashOffset = 0;
-		ctx.setLineDash([]);
-	}*/
 	onMovementInRange( from_entity )
 	{
 		if ( sdWorld.is_server )
@@ -200,25 +180,12 @@ class sdTeleport extends sdEntity
 		if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null )
 		if ( this.DoesOverlapWith( from_entity ) ) // Prevent bug that causes overlapping 2 telerpots make player teleports twice as further and raid some bases
 		{
-			//let coms_near = sdWorld.GetComsNear( this.x, this.y, null, null, true );
 			let com_near = this.GetComWiredCache();
 
-			/*let allowed = ( coms_near.length === 0 );
-
-			for ( let i = 0; i < coms_near.length; i++ )
-			if ( coms_near[ i ].subscribers.indexOf( from_entity._net_id ) !== -1 || coms_near[ i ].subscribers.indexOf( from_entity.GetClass() ) !== -1 )
-			{
-				allowed = true;
-				break;
-			}*/
-
-			//if ( allowed )
 			if ( com_near )
 			{
 				let allowed = false;
 
-				//for ( let i = 0; i < coms_near.length; i++ )
-				//if ( com_near.subscribers.indexOf( from_entity._net_id ) !== -1 || com_near.subscribers.indexOf( from_entity.GetClass() ) !== -1 || com_near.subscribers.indexOf( '*' ) !== -1 )
 				if ( 
 						com_near.subscribers.indexOf( from_entity._net_id ) !== -1 || 
 						com_near.subscribers.indexOf( from_entity.biometry ) !== -1 || 
@@ -226,39 +193,12 @@ class sdTeleport extends sdEntity
 						com_near.subscribers.indexOf( '*' ) !== -1 )
 				{
 					allowed = true;
-					//break;
 				}
 
 
 				if ( allowed )
 				{
-					//let nearbies = sdWorld.GetAnythingNear( this.x, this.y, sdTeleport.connection_range );
-					/*let nearbies = sdCable.GetConnectedEntities( this, sdCable.TYPE_ANY );
-
-					let best_tele = null;
-					let best_di = -1;
-					for ( var i = 0; i < nearbies.length; i++ )
-					{
-						if ( nearbies[ i ].GetClass() === 'sdTeleport' )
-						{
-							let tele = nearbies[ i ];
-							if ( tele.delay === 0 ) // is active
-							if ( tele !== this )
-							{
-								let di = sdWorld.Dist2D( this.x, this.y, tele.x, tele.y );
-								if ( di < best_di || best_tele === null )
-								{
-									if ( from_entity.CanMoveWithoutOverlap( from_entity.x + tele.x - this.x, 
-																			from_entity.y + tele.y - this.y, 0 ) )
-									{
-										best_tele = tele;
-										best_di = di;
-									}
-								}
-							}
-						}
-					}*/
-						
+				
 					let from_entity_group = from_entity.getTeleportGroup();
 
 					let best_tele = this.GetComWiredCache( ( tele )=>
@@ -266,8 +206,6 @@ class sdTeleport extends sdEntity
 						if ( tele.is( sdTeleport ) )
 						if ( tele.delay === 0 ) // is active
 						{
-							/*if ( from_entity.CanMoveWithoutOverlap( from_entity.x + tele.x - this.x, 
-																	from_entity.y + tele.y - this.y, 0 ) )*/
 								
 							for ( let i = 0; i < from_entity_group.length; i++ )
 							{
@@ -317,13 +255,6 @@ class sdTeleport extends sdEntity
 						}
 					}
 				}
-				/*else
-				{
-					this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-
-					// Unauthorized access
-					this.SetDelay( 90 );
-				}*/
 			}
 		}
 	}

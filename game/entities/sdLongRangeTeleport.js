@@ -21,6 +21,7 @@ import sdGun from './sdGun.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdJunk from './sdJunk.js';
 import sdLandScanner from './sdLandScanner.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 import sdTask from './sdTask.js';
 import sdCharacter from './sdCharacter.js';
@@ -73,18 +74,21 @@ class sdLongRangeTeleport extends sdEntity
 		
 		if ( this.hea > 0 )
 		{
-			if ( !this.is_server_teleport )
-			this.hea -= dmg;
-			
-			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-			
-			if ( this.delay < 90 )
-			this.SetDelay( 90 );
-			
-			this._regen_timeout = 60;
+			if ( sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
+			{
+				if ( !this.is_server_teleport )
+				this.hea -= dmg;
 
-			if ( this.hea <= 0 )
-			this.remove();
+				this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+				if ( this.delay < 90 )
+				this.SetDelay( 90 );
+
+				this._regen_timeout = 60;
+
+				if ( this.hea <= 0 )
+				this.remove();
+			}
 		}
 	}
 	Activation()
@@ -139,6 +143,8 @@ class sdLongRangeTeleport extends sdEntity
 		this.hmax = 1500 * 4;
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
+		
+		this._shielded = null; // Is this entity protected by a base defense unit?
 		
 		this._cc_near = null;
 		this.has_cc_near = false; // Store boolean because client does not know if cc exists

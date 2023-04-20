@@ -461,7 +461,8 @@ class sdWater extends sdEntity
 			if ( arr[ i ].y + arr[ i ]._hitbox_y1 < this.y + 16 + 16 )
 			if ( arr[ i ].y + arr[ i ]._hitbox_y2 > this.y + 16 )
 			if ( this !== arr[ i ] )
-			if ( arr[ i ].is( sdWater ) || ( arr[ i ].is( sdBlock ) && arr[ i ].texture_id !== sdBlock.TEXTURE_ID_CAGE ) || arr[ i ].is( sdDoor ) )
+			if ( arr[ i ].is( sdWater ) || ( arr[ i ].is( sdBlock ) && !arr[ i ].IsLetsLiquidsThrough() ) || arr[ i ].is( sdDoor ) )
+			//if ( arr[ i ].is( sdWater ) || ( arr[ i ].is( sdBlock ) && arr[ i ].texture_id !== sdBlock.TEXTURE_ID_CAGE ) || arr[ i ].is( sdDoor ) )
 			{
 				if ( this.BlendWith( arr[ i ] ) )
 				return;
@@ -481,7 +482,8 @@ class sdWater extends sdEntity
 
 					for ( var i2 = 0; i2 < down_left.length; i2++ )
 					{
-						if ( down_left[ i2 ].is( sdWater ) || ( down_left[ i2 ].is( sdBlock ) && down_left[ i2 ].texture_id !== sdBlock.TEXTURE_ID_CAGE ) || down_left[ i2 ].is( sdDoor ) )
+						if ( down_left[ i2 ].is( sdWater ) || ( down_left[ i2 ].is( sdBlock ) && down_left[ i2 ].IsLetsLiquidsThrough() ) || down_left[ i2 ].is( sdDoor ) )
+						//if ( down_left[ i2 ].is( sdWater ) || ( down_left[ i2 ].is( sdBlock ) && down_left[ i2 ].texture_id !== sdBlock.TEXTURE_ID_CAGE ) || down_left[ i2 ].is( sdDoor ) )
 						if ( down_left[ i2 ].x + down_left[ i2 ]._hitbox_x1 < this.x + 16 - 16 )
 						if ( down_left[ i2 ].x + down_left[ i2 ]._hitbox_x2 > this.x - 16 )
 						if ( down_left[ i2 ].y + down_left[ i2 ]._hitbox_y1 < this.y + 16 + 16 )
@@ -497,7 +499,8 @@ class sdWater extends sdEntity
 
 					for ( var i2 = 0; i2 < down_right.length; i2++ )
 					{
-						if ( down_right[ i2 ].is( sdWater ) || ( down_right[ i2 ].is( sdBlock ) && down_right[ i2 ].texture_id !== sdBlock.TEXTURE_ID_CAGE ) || down_right[ i2 ].is( sdDoor ) )
+						if ( down_right[ i2 ].is( sdWater ) || ( down_right[ i2 ].is( sdBlock ) && down_right[ i2 ].IsLetsLiquidsThrough() ) || down_right[ i2 ].is( sdDoor ) )
+						//if ( down_right[ i2 ].is( sdWater ) || ( down_right[ i2 ].is( sdBlock ) && down_right[ i2 ].texture_id !== sdBlock.TEXTURE_ID_CAGE ) || down_right[ i2 ].is( sdDoor ) )
 						if ( down_right[ i2 ].x + down_right[ i2 ]._hitbox_x1 < this.x + 16 + 16 )
 						if ( down_right[ i2 ].x + down_right[ i2 ]._hitbox_x2 > this.x + 16 )
 						if ( down_right[ i2 ].y + down_right[ i2 ]._hitbox_y1 < this.y + 16 + 16 )

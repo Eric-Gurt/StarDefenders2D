@@ -96,6 +96,8 @@ class sdServerConfigFull extends sdServerConfigShort
 	static open_world_max_distance_from_zero_coordinates_y_min = -3000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
 	static open_world_max_distance_from_zero_coordinates_y_max = 40000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
 	
+	static player_vs_player_damage_scale = 3;
+	
 	static LinkPlayerMatterCapacityToScore( character )
 	{
 		return true;
@@ -212,15 +214,19 @@ class sdServerConfigFull extends sdServerConfigShort
 			
 			sdWorld.server_config.new_player_delivery_hover = null;
 			
-			hover.driver0._key_states.SetKey( 'KeyW', 1 );
-			
-			hover.driver0.Say( [
-				'Yeah... I\'m out of here',
-				'Welp, bad landing',
-				'I\'ll be somewhere else thank you very much',
-				'This place is too much fun',
-				'Yeah, good luck it is'
-			][ ~~( Math.random() * 5 ) ], false );
+			if ( hover.driver0 )
+			if ( !hover.driver0._is_being_removed )
+			{
+				hover.driver0._key_states.SetKey( 'KeyW', 1 );
+
+				hover.driver0.Say( [
+					'Yeah... I\'m out of here',
+					'Welp, bad landing',
+					'I\'ll be somewhere else thank you very much',
+					'This place is too much fun',
+					'Yeah, good luck it is'
+				][ ~~( Math.random() * 5 ) ], false );
+			}
 			
 			setTimeout( ()=>{
 				
@@ -259,13 +265,13 @@ class sdServerConfigFull extends sdServerConfigShort
 		
 		
 		// Spawn starter items based off what player wants to spawn with
-		let guns = [ sdGun.CLASS_BUILD_TOOL, sdGun.CLASS_PISTOL, sdGun.CLASS_MEDIKIT ];
+		let guns = [ sdGun.CLASS_BUILD_TOOL, sdGun.CLASS_MEDIKIT, sdGun.CLASS_CABLE_TOOL, sdGun.CLASS_PISTOL ];
 		
 		if ( player_settings.start_with1 )
-		guns.push( sdGun.CLASS_SWORD );
+		guns.unshift( sdGun.CLASS_SWORD );
 		else
 		if ( player_settings.start_with2 )
-		guns.push( sdGun.CLASS_SHOVEL );
+		guns.unshift( sdGun.CLASS_SHOVEL );
 
 		if ( character_entity.is( sdCharacter ) )
 		for ( var i = 0; i < sdGun.classes.length; i++ )
@@ -274,11 +280,13 @@ class sdServerConfigFull extends sdServerConfigShort
 			let gun = new sdGun({ x:character_entity.x, y:character_entity.y, class: i });
 			sdEntity.entities.push( gun );
 
-			if ( i !== sdGun.CLASS_BUILD_TOOL )
-			character_entity.gun_slot = sdGun.classes[ i ].slot;
+			//if ( i !== sdGun.CLASS_BUILD_TOOL )
+			//character_entity.gun_slot = sdGun.classes[ i ].slot;
 		
 			character_entity.onMovementInRange( gun );
 		}
+		
+		character_entity.gun_slot = 1;
 			
 		// Track early damage and save this kind of info for later
 		const EarlyDamageTaken = ( character_entity, dmg, initiator )=>

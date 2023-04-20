@@ -270,6 +270,7 @@ import sdHover from './game/entities/sdHover.js';
 import sdStorage from './game/entities/sdStorage.js';
 import sdAsp from './game/entities/sdAsp.js';
 import sdModeration from './game/server/sdModeration.js';
+import sdWords from './game/server/sdWords.js';
 import sdDatabase from './game/server/sdDatabase.js';
 import sdMemoryLeakSeeker from './game/server/sdMemoryLeakSeeker.js';
 import { sdServerConfigShort, sdServerConfigFull } from './game/server/sdServerConfig.js';
@@ -569,10 +570,12 @@ ent_modules[ i ].init_class();
 sdShop.init_class(); // requires plenty of classes due to consts usage
 LZW.init_class();
 sdSound.init_class();
+sdWords.init_class();
 
 globalThis.sdWorld = sdWorld;
 globalThis.sdShop = sdShop;
 globalThis.sdModeration = sdModeration;
+globalThis.sdWords = sdWords;
 globalThis.sdDatabase = sdDatabase;
 globalThis.sdSnapPack = sdSnapPack;
 globalThis.sdPathFinding = sdPathFinding;

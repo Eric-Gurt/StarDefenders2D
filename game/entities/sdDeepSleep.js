@@ -11,6 +11,14 @@
 
 	TODO: Consider some shrink-down logic, especially for chunks that do not contain user-created entities? Somehow... Probably impossible - chunks might have rare items or even genearated alien bases in them
 
+	//TODO: Typeing "/god 1" caues installation of more jetpack upgrades there is available
+
+	//TODO: Adding shielding to more stuff, buttons. Should try adding to trap shields and traps?
+
+	//TODO: PvP multiplier? For non-healing bullets only?
+
+	//TODO: What happens if sdFaceCrab is on the character that is in the rescue cloner?
+
 	//TODO: Blocks are missing after call:
 	//	for ( let i = 0; i < sdWorld.entity_classes.sdDeepSleep.cells.length; i++ )
 	//	{
@@ -108,13 +116,15 @@ class sdDeepSleep extends sdEntity
 		
 		sdDeepSleep.debug_times = true;
 		
+		sdDeepSleep.debug_really_long_line_traces = true;
+		
 		sdDeepSleep.debug_cell = false;
 		sdDeepSleep.debug_cell_x = -7936;
 		sdDeepSleep.debug_cell_y = 768;
 		
 		fs = globalThis.fs;
 		
-		if ( sdDeepSleep.debug || sdDeepSleep.debug_cell | sdDeepSleep.debug_dependences || sdDeepSleep.debug_big_area_increments || sdDeepSleep.debug_times || sdDeepSleep.debug_entity_count )
+		if ( sdDeepSleep.debug || sdDeepSleep.debug_cell || sdDeepSleep.debug_dependences || sdDeepSleep.debug_big_area_increments || sdDeepSleep.debug_times || sdDeepSleep.debug_entity_count || sdDeepSleep.debug_really_long_line_traces )
 		{
 			trace( 'WARNING: Running server with sdDeepSleep\'s debug values enabled' );
 		}
@@ -750,10 +760,10 @@ class sdDeepSleep extends sdEntity
 			const ProvidePerformanceReport = sdDeepSleep.debug_times ? ( aborted )=>
 			{
 				let t2 = Date.now();
-				trace( 'onBuilt time: ' + ( t2 - t ) + ( aborted ? ' (aborted)' : '' ) );
 				
 				if ( t2 - t > 50 )
 				{
+					trace( 'sdDeepSleep.onBuilt time: ' + ( t2 - t ) + ( aborted ? ' (aborted)' : '' ) );
 					trace( 'Serialization times by class:', serialization_per_class_times );
 					debugger;
 				}

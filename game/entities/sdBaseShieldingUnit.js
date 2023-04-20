@@ -23,6 +23,7 @@ import sdDoor from './sdDoor.js';
 import sdCamera from './sdCamera.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdLongRangeTeleport from './sdLongRangeTeleport.js';
+import sdBG from './sdBG.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -127,6 +128,8 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		this.prevent_hostile_shielding = true; // Prevent bases from being "sealed forever", at least at zero range. Disabled globally by sdBaseShieldingUnit.enable_nearby_claiming constant
 		
+		this.protect_cables = true;
+		
 		this.matter_max = ( this.type === sdBaseShieldingUnit.TYPE_MATTER ) ? 1000 : 0;
 		this.matter = 0;
 		this.timer_to_expect_matter = 30 * 10; // Goes down when out of matter so big explosions could not destroy BSU if there is more matter
@@ -180,6 +183,19 @@ class sdBaseShieldingUnit extends sdEntity
 	ExtraSerialzableFieldTest( prop )
 	{
 		return ( prop === '_protected_entities' );
+	}
+	
+	static TestIfDamageShouldPass( entity, dmg, initiator=null )
+	{
+		if ( entity._shielded === null || dmg === Infinity || entity._shielded._is_being_removed || !entity._shielded.enabled || !sdWorld.inDist2D_Boolean( entity.x + ( entity._hitbox_x1 + entity._hitbox_x2 ) / 2, entity.y + ( entity._hitbox_y1 + entity._hitbox_y2 ) / 2, entity._shielded.x, entity._shielded.y, sdBaseShieldingUnit.protect_distance_stretch ) )
+		{
+			return true;
+		}
+		else
+		{
+			entity._shielded.ProtectedEntityAttacked( entity, dmg, initiator );
+			return false;
+		}
 	}
 	
 	ShareValueIfHadntRecently( destroy=false )
@@ -389,6 +405,43 @@ class sdBaseShieldingUnit extends sdEntity
 
 		//this._update_version++; // Just in case
 	}
+	static IsShieldableFilter( e )
+	{
+		if ( typeof e._shielded !== 'undefined' ) // _shielded is now a magic property
+		{
+			const is_block = e.is( sdBlock );
+			
+			const is_bg = !is_block && e.is( sdBG );
+			
+			if (
+					( 
+						is_block && 
+						( 
+							e.material === sdBlock.MATERIAL_WALL || 
+							e.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 || 
+							e.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 || 
+							e.material === sdBlock.MATERIAL_SHARP || 
+							e.material === sdBlock.MATERIAL_TRAPSHIELD 
+						)
+					)
+					||
+					( 
+						is_bg && e.material !== sdBG.MATERIAL_GROUND
+					)
+					||
+					(
+						!is_block 
+						&&
+						!is_bg
+					)
+				)
+			{
+				return true;
+			}	
+		}
+		
+		return false;
+	}
 	SetShieldState( enable=false, observer_character=null )
 	{
 		if ( enable === this.enabled )
@@ -437,8 +490,6 @@ class sdBaseShieldingUnit extends sdEntity
 					obj._shielded = null;
 						
 					effect_for.push( obj );
-						
-					//sdWorld.SendEffect({ x:this.x, y:this.y, x2:obj.x + ( obj._hitbox_x2 / 2 ), y2:obj.y + ( obj._hitbox_y2 / 2 ) , type:sdEffect.TYPE_BEAM, color:'#855805' });
 				}
 			}
 			
@@ -459,42 +510,15 @@ class sdBaseShieldingUnit extends sdEntity
 
 		if ( this.enabled ) // Scan unprotected blocks and fortify them
 		{
-			//this.sx = 0; // Without this, players can "launch/catapult" shield units by running into them and disabling them
-			//this.sy = 0;
-			
 			this.charge_blocked_until = sdWorld.time + 3000;
 			
 			sdSound.PlaySound({ name:'overlord_cannon3', x:this.x, y:this.y, volume:2, pitch:0.5 });
 
-			let blocks = sdWorld.GetAnythingNear( this.x, this.y, sdBaseShieldingUnit.protect_distance, null, [ 'sdBlock', 'sdDoor' ] );
+			//let blocks = sdWorld.GetAnythingNear( this.x, this.y, sdBaseShieldingUnit.protect_distance, null, [ 'sdBlock', 'sdDoor' ] );
+			let blocks = sdWorld.GetAnythingNear( this.x, this.y, sdBaseShieldingUnit.protect_distance, null, null, sdBaseShieldingUnit.IsShieldableFilter );
+			//_x, _y, range, append_to=null, specific_classes=null, filter_candidates_function=null
 			
 			let effect_for = [];
-			
-			/*let friendly_shields = this.FindObjectsInACableNetwork( null, sdBaseShieldingUnit );
-			let unfriendly_shields = []; // These will prevent protecting walls nearby other shields
-			
-			for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
-			{
-				let s = sdBaseShieldingUnit.all_shield_units[ i ];
-				
-				if ( s.prevent_hostile_shielding )
-				if ( s !== this )
-				if ( ( s.charge >= this.charge && s.charge > 0 ) || ( s.type !== this.type && s.enabled ) )
-				if ( friendly_shields.indexOf( s ) === -1 )
-				unfriendly_shields.push( s );
-			}
-			
-			function CheckIfNearUnfriendly( e )
-			{
-				for ( let i = 0; i < unfriendly_shields.length; i++ )
-				{
-					let s = unfriendly_shields[ i ];
-					if ( e.inRealDist2DToEntity_Boolean( s, sdBaseShieldingUnit.protect_distance + 32 ) )
-					return true;
-				}
-
-				return false;
-			}*/
 			
 			let CheckIfNearUnfriendly = this.GetCheckIfNearUnfriendlyMethod();
 			
@@ -504,7 +528,26 @@ class sdBaseShieldingUnit extends sdEntity
 			{
 				let e = blocks[ i ];
 				
-				if ( e.is( sdBlock ) )
+				if ( e._shielded === null || e._shielded._is_being_removed )
+				{
+					if ( CheckIfNearUnfriendly( e ) )
+					{
+						tell_about_disputable_entities++;
+						continue;
+					}
+
+					e._shielded = this;
+
+					effect_for.push( e );
+
+					this._protected_entities.push( e._net_id ); // Since for some reason arrays don't save _net_id's in this entity, this is obsolete
+					this._matter_drain += ( e.height + e.width ) / 32;
+
+					if ( observer_character )
+					e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_STEERING_WHEEL_PING, c: [ 1, 2, 1 ], observer: observer_character });
+				}
+
+				/*if ( e.is( sdBlock ) )
 				{
 					if ( e.material === sdBlock.MATERIAL_WALL || 
 						 e.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 || 
@@ -513,11 +556,7 @@ class sdBaseShieldingUnit extends sdEntity
 					{
 						if ( CheckIfNearUnfriendly( e ) )
 						{
-							//if ( observer_character )
-							//e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_STEERING_WHEEL_PING, c: [ 0, 0, 0 ], observer: observer_character });
-						
 							tell_about_disputable_entities++;
-						
 							continue;
 						}
 						
@@ -527,7 +566,6 @@ class sdBaseShieldingUnit extends sdEntity
 						
 						this._protected_entities.push( e._net_id ); // Since for some reason arrays don't save _net_id's in this entity, this is obsolete
 						this._matter_drain += ( e.height + e.width ) / 32;
-						
 
 						if ( observer_character )
 						e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_STEERING_WHEEL_PING, c: [ 1, 2, 1 ], observer: observer_character });
@@ -540,11 +578,7 @@ class sdBaseShieldingUnit extends sdEntity
 					{
 						if ( CheckIfNearUnfriendly( e ) )
 						{
-							//if ( observer_character )
-							//e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_STEERING_WHEEL_PING, c: [ 0, 0, 0 ], observer: observer_character });
-						
 							tell_about_disputable_entities++;
-						
 							continue;
 						}
 					
@@ -558,7 +592,7 @@ class sdBaseShieldingUnit extends sdEntity
 						if ( observer_character )
 						e.ApplyStatusEffect({ type: sdStatusEffect.TYPE_STEERING_WHEEL_PING, c: [ 1, 2, 1 ], observer: observer_character });
 					}
-				}
+				}*/
 			}
 			
 			for ( let t = 0; t < 30 && effect_for.length > 0; t++ )
@@ -1360,19 +1394,7 @@ class sdBaseShieldingUnit extends sdEntity
 		ctx.strokeStyle = '#ffffff';
 		ctx.setLineDash([2, 2]);
 		ctx.lineDashOffset = ( sdWorld.time % 1000 ) / 250 * 2;
-/*
-		for ( var i = 0; i < sdEntity.entities.length; i++ )
-		if ( sdEntity.entities[ i ].GetClass() === 'sdCom' )
-		if ( sdWorld.Dist2D( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this.x, this.y ) < sdCom.retransmit_range )
-		//if ( sdWorld.CheckLineOfSight( this.x, this.y, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
-		if ( sdWorld.CheckLineOfSight( this.x, this.y, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, null, sdCom.com_visibility_unignored_classes ) )
-		{
-			ctx.beginPath();
-			ctx.moveTo( sdEntity.entities[ i ].x - this.x, sdEntity.entities[ i ].y - this.y );
-			ctx.lineTo( 0,0 );
-			ctx.stroke();
-		}
-*/
+
 		ctx.beginPath();
 		ctx.arc( 0,0, sdBaseShieldingUnit.protect_distance, 0, Math.PI*2 );
 		ctx.stroke();
@@ -1515,7 +1537,15 @@ class sdBaseShieldingUnit extends sdEntity
 				if ( command_name === 'SHIELD_OFF' )
 				{
 					if ( this.enabled === true )
-					this.SetShieldState();
+					this.SetShieldState( false, exectuter_character );
+				}
+				if ( command_name === 'SHIELD_RESCAN' )
+				{
+					if ( this.enabled === true )
+					{
+						this.SetShieldState( false, exectuter_character );
+						this.SetShieldState( true, exectuter_character );
+					}
 				}
 				if ( command_name === 'ATTACK' )
 				{
@@ -1531,6 +1561,12 @@ class sdBaseShieldingUnit extends sdEntity
 				if ( command_name === 'PREVENT_HOSTILE_SHIELDING' )
 				{
 					this.prevent_hostile_shielding = !this.prevent_hostile_shielding;
+					sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:2, pitch:0.5 });
+				}
+				
+				if ( command_name === 'TOGGLE_CABLE_PROTECTION' )
+				{
+					this.protect_cables = !this.protect_cables;
 					sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:2, pitch:0.5 });
 				}
 				
@@ -1648,6 +1684,8 @@ class sdBaseShieldingUnit extends sdEntity
 				else
 				{
 					this.AddContextOption( 'Turn the shields off', 'SHIELD_OFF', [] );
+					
+					this.AddContextOption( 'Rescan entities', 'SHIELD_RESCAN', [] );
 				}
 				
 
@@ -1671,6 +1709,12 @@ class sdBaseShieldingUnit extends sdEntity
 					else
 					this.AddContextOption( 'Disallow nearby shielding claim by disconnected shields', 'PREVENT_HOSTILE_SHIELDING', [] );
 				}
+				
+				
+				if ( this.protect_cables )
+				this.AddContextOption( 'Disable cable protection', 'TOGGLE_CABLE_PROTECTION', [] );
+				else
+				this.AddContextOption( 'Enable cable protection', 'TOGGLE_CABLE_PROTECTION', [] );
 
 				if ( this.type !== sdBaseShieldingUnit.TYPE_SCORE_TIMED )
 				{

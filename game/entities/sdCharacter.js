@@ -1332,9 +1332,7 @@ class sdCharacter extends sdEntity
 	
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
 	{
-		if ( observer_character )
-		if ( observer_character.IsPlayerClass() )
-		if ( observer_character._god )
+		if ( !this.ghosting )
 		return true;
 		
 		if ( this.driver_of )
@@ -1342,14 +1340,16 @@ class sdCharacter extends sdEntity
 		if ( this.driver_of.VehicleHidesDrivers() )
 		if ( !this.driver_of.IsVisible( observer_character ) )
 		return false;
+	
+		if ( observer_character )
+		if ( observer_character.IsPlayerClass() )
+		if ( observer_character._god )
+		return true;
 		
 		//if ( !observer_character || !observer_character.is( sdCharacter ) )
 		if ( !observer_character || typeof observer_character._socket === 'undefined' ) // Let player-controlled drones see players in NCZ
 		if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
 		return false;
-		
-		if ( !this.ghosting )
-		return true;
 	
 		if ( this.flying || this.hea <= 0 || ( this.fire_anim > 0 && this.gun_slot !== 0 ) || this.pain_anim > 0 || this._auto_shoot_in > 0 || this.time_ef > 0 )
 		return true;
@@ -1362,13 +1362,13 @@ class sdCharacter extends sdEntity
 			if ( sdWorld.Dist2D( px, py, this.x, this.y ) < 16 )
 			return true;
 		}
-		
+		/*
 		if ( observer_character )
 		if ( sdWorld.GetComsNear( this.x, this.y, null, observer_character._net_id ).length > 0 )
 		{
 			return true;
 		}
-		
+		*/
 		return false;
 	}
 	
@@ -1485,6 +1485,14 @@ class sdCharacter extends sdEntity
 
 	InstallUpgrade( upgrade_name ) // Ignores upper limit condition. Upgrades better be revertable and resistent to multiple calls within same level as new level
 	{
+		if ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_level )
+		{
+			return;
+		}
+		
+		
+		
+		
 		var upgrade_obj = sdShop.upgrades[ upgrade_name ];
 		
 		if ( typeof this._upgrade_counters[ upgrade_name ] === 'undefined' )
@@ -1828,6 +1836,14 @@ class sdCharacter extends sdEntity
 	
 		if ( initiator === this )
 		initiator = null;
+	
+		if ( dmg > 0 )
+		if ( initiator && initiator !== this && ( initiator.cc_id !== this.cc_id || this.cc_id === 0 ) ) // Allow PvP damage scale for non-teammates only
+		if ( ( this._my_hash !== undefined || this._socket || this.title === 'Player from the shop' ) && 
+		     ( initiator._my_hash !== undefined || initiator._socket || initiator.title === 'Player from the shop' ) ) // Both are real players or at least test dummie from the shop
+		{
+			dmg *= sdWorld.server_config.player_vs_player_damage_scale;
+		}
 			
 		let was_alive = ( this.hea > 0 );
 	
@@ -2778,6 +2794,10 @@ class sdCharacter extends sdEntity
 				{
 					this._potential_vehicle.AddDriver( this );
 					
+					if ( this._potential_vehicle.IsFakeVehicleForEKeyUsage() )
+					{
+					}
+					else
 					if ( this.driver_of === null ) // Vehicles did not allow entrance. Doing it like this because sdWorkBench is also a vehicle now which is why it is able to give extra build options. It had issue with preventing ghost mode near work benches
 					this.TogglePlayerGhosting();
 				}
@@ -4375,10 +4395,22 @@ class sdCharacter extends sdEntity
 		
 		if ( sdWorld.Dist2D( this.x, this.y, this._build_params.x, this._build_params.y ) < 64 || this._god )
 		{
-			if ( this.stands || this._in_water || this.flying || ( this.hook_relative_to && sdWorld.Dist2D_Vector( this.sx, this.sy ) < 2 ) || this._god )
+			//if ( this.stands || this._in_water || this.flying || ( this.hook_relative_to && sdWorld.Dist2D_Vector( this.sx, this.sy ) < 2 ) || this._god )
 			{
+				// This is used to make it include sdButton-s when putting new sdButtons on top
+				const custom_filtering_method = ( e )=>
+				{
+					if ( !fake_ent._hard_collision ) 
+					{
+						return true;
+					}
+					
+					return e._hard_collision;
+				};
+				
 				//if ( fake_ent.CanMoveWithoutOverlap( fake_ent.x, fake_ent.y, 0.00001 ) ) // Very small so entity's velocity can be enough to escape this overlap
-				if ( fake_ent.CanMoveWithoutOverlap( fake_ent.x, fake_ent.y, 0 ) )
+				//new_x, new_y, safe_bound=0, custom_filtering_method=null, alter_ignored_classes=null
+				if ( fake_ent.CanMoveWithoutOverlap( fake_ent.x, fake_ent.y, 0, custom_filtering_method ) )
 				{
 					if ( fake_ent.IsEarlyThreat() )
 					//if ( fake_ent.is( sdTurret ) || fake_ent.is( sdCom ) || fake_ent.is( sdBarrel ) || fake_ent.is( sdBomb ) || ( fake_ent.is( sdBlock ) && fake_ent.material === sdBlock.MATERIAL_SHARP ) )
@@ -4507,7 +4539,7 @@ class sdCharacter extends sdEntity
 					
 				}
 			}
-			else
+			/*else
 			{
 				switch ( ~~( Math.random() * 6 ) )
 				{
@@ -4519,7 +4551,7 @@ class sdCharacter extends sdEntity
 					case 5: sdCharacter.last_build_deny_reason = 'Maybe if I was swimming right now'; break;
 					case 5: sdCharacter.last_build_deny_reason = 'Maybe if I was able to stand'; break;
 				}
-			}
+			}*/
 		}
 		else
 		{
@@ -5030,7 +5062,7 @@ class sdCharacter extends sdEntity
 					Proceed();
 					else
 					{
-						character.Say( [ 'Oh wait!..', 'Uh...', 'Damn', 'Well...', '...but do I have RTP?', 'RIP', 'Where is my RTP by the way?', '...but did I charge the batteries?' ][ ~~( Math.random() * 8 ) ], false, false, true );
+						character.Say( [ 'Oh wait!..', 'Uh...', 'Damn', 'Well...', '...but do I have RTP?', 'RIP', 'Where is my RTP by the way?', '...but have I charged the batteries?' ][ ~~( Math.random() * 8 ) ], false, false, true );
 						setTimeout( ()=>
 						{
 							Proceed();
@@ -5388,13 +5420,18 @@ class sdCharacter extends sdEntity
 			return;
 		}
 		
+		let raise = 36;
+		
+		if ( this.driver_of )
+		raise += 10;
+		
 		let params = { 
 			x:this.x, 
-			y:this.y - 36, 
+			y:this.y - raise, 
 			type:sdEffect.TYPE_CHAT, 
 			attachment:this, 
 			attachment_x: 0,
-			attachment_y: -36,
+			attachment_y: -raise,
 			text:t,
 			text_censored: ( typeof sdModeration === 'undefined' ) ? 0 : sdModeration.IsPhraseBad( t, this._socket ),
 			voice:this._voice,

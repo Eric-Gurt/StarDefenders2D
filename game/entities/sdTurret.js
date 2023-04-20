@@ -151,6 +151,17 @@ class sdTurret extends sdEntity
 	
 		if ( this._hea > 0 )
 		{
+			dmg = Math.abs( dmg );
+			
+			if ( initiator )
+			if ( initiator.is( sdTurret ) )
+			{
+				if ( this.GetComWiredCache() === initiator.GetComWiredCache() )
+				{
+					dmg *= 0.1; // Make same base turrets less probably to break each other
+				}
+			}
+			
 			this._hea -= dmg;
 			
 			this._regen_timeout = 60;
@@ -271,43 +282,17 @@ class sdTurret extends sdEntity
 
 					this._target = null;
 
-					//const that = this;
-
-					/*let coms_near = this._coms_near_cache;
-
-					if ( coms_near.length === 0 || coms_near[ 0 ]._is_being_removed || !sdWorld.CheckLineOfSight( this.x, this.y, coms_near[ 0 ].x, coms_near[ 0 ].y, null, null, sdCom.com_visibility_unignored_classes ) )
-					{
-						this._coms_near_cache = coms_near = sdWorld.GetComsNear( this.x, this.y, null, null, true );
-					}*/
-					//let coms_near = this.GetComsNearCache( this.x, this.y, null, null, true );
 					let com_near = this.GetComWiredCache();
 
 					if ( ( com_near && this.type === 0 ) )
 					{
-
-						//let class_cache = {};
 						function RuleAllowedByNodes( c )
 						{
-							//for ( var i = 0; i < com_near.length; i++ )
-							//{
-								//if ( com_near[ i ].subscribers.indexOf( c ) !== -1 )
-								if ( com_near.subscribers.indexOf( c ) !== -1 )
-								return false;
-							//}
+							if ( com_near.subscribers.indexOf( c ) !== -1 )
+							return false;
+						
 							return true;
 						}
-
-						//let net_id_cache = {};
-						/*function NetIDSearch( _net_id )
-						{
-							//if ( !net_id_cache[ _net_id ] )
-							//net_id_cache[ _net_id ] = sdWorld.GetComsNear( that.x, that.y, null, _net_id, true ).length;
-
-							return net_id_cache[ _net_id ];
-						}*/
-
-						//let coms_near_len = sdWorld.GetComsNear( this.x, this.y, null, null, true ).length;
-						//let coms_near_len = com_near.length;
 
 						const targetable_classes = sdTurret.targetable_classes;
 						
@@ -318,55 +303,16 @@ class sdTurret extends sdEntity
 						const from_y = this.y - range;
 						const to_y = this.y + range;
 						
-						//let ents_looked_through = 0;
-						
-						/*
-						
-							Console code to measure stuff
-
-							var counters = [];
-							for ( var i = 0; i < sdWorld.entity_classes.sdEntity.active_entities.length; i++ )
-							if ( sdWorld.entity_classes.sdEntity.active_entities[ i ].GetClass() === 'sdTurret' )
-							{
-								var e = sdWorld.entity_classes.sdEntity.active_entities[ i ];
-								counters.push( [ e.kind, e.lvl, e._debug1 ] );
-							}
-							counters;
-
-						*/
-					   
-						//let counterA = 0;
-						//let counterB = 0;
-						//let counterC = 0;
-
-						//for ( var x = from_x; x < to_x; x += 32 )
-						//for ( var y = from_y; y < to_y; y += 32 )
 						{
 							//var arr = sdWorld.RequireHashPosition( x, y ).arr;
 							var arr = sdEntity.active_entities; // In many cases it is faster than running through 3D array, especially if we don't need hibernated targets
 
-							//ents_looked_through += arr.length;
-								
 							for ( var i2 = 0; i2 < arr.length; i2++ )
 							{
 								var e = arr[ i2 ];
 								
-								/*if ( targetable_classes.has( e.constructor ) )
-								counterA++;
-							
-								if ( e._hiberstate === sdEntity.HIBERSTATE_ACTIVE )
-								counterB++;*/
-								
-								/*if ( targetable_classes.has( e.constructor ) )
-								counterA++;
-							
-								if ( sdWorld.inDist2D_Boolean( e.x, e.y, this.x, this.y, range ) )
-								counterB++;*/
-								
 								if ( sdWorld.inDist2D_Boolean( e.x, e.y, this.x, this.y, range ) ) // Faster than class check
-								//if ( e._hiberstate === sdEntity.HIBERSTATE_ACTIVE ) // Don't target dead bodies or anything else that is hibernated, actually a big optimization and is faster than class constructor checking for some reason by a lot
 								if ( targetable_classes.has( e.constructor ) )
-								//if ( e.is( sdCharacter ) || e.is( sdVirus ) || e.is( sdQuickie ) || e.is( sdOctopus ) || e.is( sdCube ) || e.is( sdBomb ) )
 								if ( 
 										( e.hea || e._hea ) > 0 && 
 										( !e.is( sdSandWorm ) || e.death_anim === 0 ) && 
@@ -374,17 +320,10 @@ class sdTurret extends sdEntity
 										( e._frozen < 10 || this.kind !== sdTurret.KIND_FREEZER ) 
 									)
 								if ( !e.is( sdBadDog ) || !e.owned )
-								//if ( e.IsVisible( this._owner ) || ( e.driver_of && !e.driver_of._is_being_removed && e.driver_of.IsVisible( this._owner ) ) )
 								if ( e.IsPlayerClass() || e.IsVisible( this ) || ( e.driver_of && !e.driver_of._is_being_removed && e.driver_of.IsVisible( this ) ) )
 								{
-									//var is_char = e.is( sdCharacter );
 									var is_char = e.IsPlayerClass();
 									
-									//if ( e !== this._owner || coms_near_len > 0 )
-									//if ( e.GetClass() === 'sdCharacter' || e.GetClass() === 'sdVirus' || e.GetClass() === 'sdQuickie' || e.GetClass() === 'sdOctopus' || e.GetClass() === 'sdCube' )
-									//if ( e instanceof sdCharacter || e instanceof sdVirus || e instanceof sdQuickie || e instanceof sdOctopus || e instanceof sdCube )
-									//if ( NetIDSearch( e._net_id ) === 0 && ClassSearch( e.GetClass() ) === 0 )
-									//if ( ( is_char && e.IsHostileAI() ) || ( ( !is_char || RuleAllowedByNodes( e._net_id ) ) && RuleAllowedByNodes( e.GetClass() ) ) )
 									if ( ( is_char && e.IsHostileAI() ) || ( ( !is_char || ( RuleAllowedByNodes( e._net_id ) && RuleAllowedByNodes( e.biometry ) ) ) && RuleAllowedByNodes( e.GetClass() ) ) )
 									{
 										this._considered_target = e;
@@ -670,32 +609,7 @@ class sdTurret extends sdEntity
 
 		//this.DrawConnections( ctx );
 	}
-	/*DrawConnections( ctx )
-	{
-		ctx.lineWidth = 1;
-		ctx.strokeStyle = '#ffffff';
-		ctx.setLineDash([2, 2]);
-		ctx.lineDashOffset = ( sdWorld.time % 1000 ) / 250 * 2;
 
-		for ( var i = 0; i < sdEntity.entities.length; i++ )
-		if ( sdEntity.entities[ i ].GetClass() === 'sdCom' )
-		if ( sdWorld.Dist2D( sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this.x, this.y ) < sdCom.retransmit_range )
-		//if ( sdWorld.CheckLineOfSight( this.x, this.y, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, sdCom.com_visibility_ignored_classes, null ) )
-		if ( sdWorld.CheckLineOfSight( this.x, this.y, sdEntity.entities[ i ].x, sdEntity.entities[ i ].y, this, null, sdCom.com_visibility_unignored_classes ) )
-		{
-			ctx.beginPath();
-			ctx.moveTo( sdEntity.entities[ i ].x - this.x, sdEntity.entities[ i ].y - this.y );
-			ctx.lineTo( 0,0 );
-			ctx.stroke();
-		}
-
-		ctx.beginPath();
-		ctx.arc( 0,0, sdCom.retransmit_range, 0, Math.PI*2 );
-		ctx.stroke();
-		
-		ctx.lineDashOffset = 0;
-		ctx.setLineDash([]);
-	}*/
 	Draw( ctx, attached )
 	{
 		var not_firing_now = ( this.fire_timer < this.GetReloadTime() - 2.5 );

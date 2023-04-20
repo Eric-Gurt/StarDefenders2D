@@ -281,62 +281,76 @@
 		</div>
 	    </div>
 		
+	    <div style="height:100px"></div>
+	    
 	    <span class="sdtitle">Your name:</span><br>
 	    <input type="text" id="hero_name" size="30" maxlength="30" value="Star Defender">
 	    <br>
 	    <br>
-	     
 	    <span class="sdtitle">Appearance:</span><br>
-	    <input type="color" id="color_bright" value="#c0c0c0">
-	    <label for="color_bright" mycondition="entity1">Helmet (bright shade)</label>
-	    <label for="color_bright" mycondition="entity2">Body</label>
-	    <br>
+	    <div style="    
+		    display: flex;
+		    width: 100%;">
+		<div style=" width: 50%;">
+		    <input type="color" id="color_bright" value="#c0c0c0">
+		    <label for="color_bright" mycondition="entity1">Helmet (bright)</label>
+		    <label for="color_bright" mycondition="entity2">Body</label>
+		    <br>
+
+		    <input type="color" id="color_dark" value="#808080" mycondition="entity1">
+		    <label for="color_dark" mycondition="entity1">Helmet (dark)</label>
+		    <br mycondition="entity1">
+
+		    <input type="color" id="color_visor" value="#ff0000">
+		    <label for="color_visor" mycondition="entity1">Visor</label>
+		    <label for="color_visor" mycondition="entity2">Glowing parts</label>
+		    <br>
+
+		    <!--<input type="color" id="color_splashy" value="#800000">
+		    <label for="color_splashy">Splashy stuff</label>
+		    <br>-->
+
+		    <input type="color" id="color_bright3" value="#c0c0c0" mycondition="entity1">
+		    <label for="color_bright3" mycondition="entity1">Jetpack (bright)</label>
+		    <br mycondition="entity1">
+
+		    <input type="color" id="color_dark3" value="#808080" mycondition="entity1">
+		    <label for="color_dark3" mycondition="entity1">Jetpack/armor plates (dark)</label>
+		    <br mycondition="entity1">
+
+		    <input type="color" id="color_suit" value="#000080" mycondition="entity1">
+		    <label for="color_suit" mycondition="entity1">Upper suit color</label>
+		    <br mycondition="entity1">
+
+		</div>
+		<div style=" width: 50%;">
+		
+		    <input type="color" id="color_suit2" value="#000080">
+		    <label for="color_suit2" mycondition="entity1">Lower suit color</label>
+		    <label for="color_suit2" mycondition="entity2">Details</label>
+		    <br>
+
+		    <input type="color" id="color_dark2" value="#808080" mycondition="entity1">
+		    <label for="color_dark2" mycondition="entity1">Lower suit armor plates</label>
+		    <br mycondition="entity1">
+
+		    <input type="color" id="color_shoes" value="#000000" mycondition="entity1">
+		    <label for="color_shoes" mycondition="entity1">Shoes</label>
+		    <br mycondition="entity1">
+
+		    <input type="color" id="color_skin" value="#808000" mycondition="entity1">
+		    <label for="color_skin" mycondition="entity1">Gloves &amp; neck color</label>
+		    <br mycondition="entity1">
+
+		    <input type="color" id="color_extra1" value="#0000ff" mycondition="entity1">
+		    <label for="color_extra1" mycondition="entity1">Extra 1</label>
+		    <br mycondition="entity1">
+
+		</div>
+	    </div>
 	    
-	    <input type="color" id="color_dark" value="#808080" mycondition="entity1">
-	    <label for="color_dark" mycondition="entity1">Helmet (dark shade)</label>
-	    <br mycondition="entity1">
 	    
-	    <input type="color" id="color_visor" value="#ff0000">
-	    <label for="color_visor" mycondition="entity1">Visor</label>
-	    <label for="color_visor" mycondition="entity2">Glowing parts</label>
-	    <br>
 	    
-	    <!--<input type="color" id="color_splashy" value="#800000">
-	    <label for="color_splashy">Splashy stuff</label>
-	    <br>-->
-	    
-	    <input type="color" id="color_bright3" value="#c0c0c0" mycondition="entity1">
-	    <label for="color_bright3" mycondition="entity1">Jetpack (bright shade)</label>
-	    <br mycondition="entity1">
-	    
-	    <input type="color" id="color_dark3" value="#808080" mycondition="entity1">
-	    <label for="color_dark3" mycondition="entity1">Jetpack and armor plates (dark shade)</label>
-	    <br mycondition="entity1">
-	    
-	    <input type="color" id="color_suit" value="#000080" mycondition="entity1">
-	    <label for="color_suit" mycondition="entity1">Upper suit color</label>
-	    <br mycondition="entity1">
-	    
-	    <input type="color" id="color_suit2" value="#000080">
-	    <label for="color_suit2" mycondition="entity1">Lower suit color</label>
-	    <label for="color_suit2" mycondition="entity2">Details</label>
-	    <br>
-	    
-	    <input type="color" id="color_dark2" value="#808080" mycondition="entity1">
-	    <label for="color_dark2" mycondition="entity1">Lower suit armor plates</label>
-	    <br mycondition="entity1">
-	    
-	    <input type="color" id="color_shoes" value="#000000" mycondition="entity1">
-	    <label for="color_shoes" mycondition="entity1">Shoes</label>
-	    <br mycondition="entity1">
-	    
-	    <input type="color" id="color_skin" value="#808000" mycondition="entity1">
-	    <label for="color_skin" mycondition="entity1">Gloves &amp; neck color</label>
-	    <br mycondition="entity1">
-	    
-	    <input type="color" id="color_extra1" value="#0000ff" mycondition="entity1">
-	    <label for="color_extra1" mycondition="entity1">Extra 1</label>
-	    <br mycondition="entity1">
 	    
 	    <br>
 	    
@@ -583,14 +597,15 @@
 	    
 	    <div class="set_block" tabindex="1">
 		<span class="sdtitle">Volume</span><br>
-		<input type="checkbox" id="volume1" value="1">
+		<input id="volume" type="range" min="0" max="100" step="0.1">
+		<!--<input type="checkbox" id="volume1" value="1">
 		<label for="volume1">40%</label>
 		<br>
 		<input type="checkbox" id="volume2" value="1">
 		<label for="volume2">25%</label>
 		<br>
 		<input type="checkbox" id="volume3" value="1" checked>
-		<label for="volume3">10%</label>
+		<label for="volume3">10%</label>-->
 	    </div>
 	    
 	    <div class="set_block" tabindex="1">
@@ -652,6 +667,7 @@
 	    let start_offline_btn = document.getElementById( 'start_offline_btn' );
 	    
 	    let my_hash_input = document.getElementById( 'my_hash' );
+	    let volume_input = document.getElementById( 'volume' );
 	    
 	    let inputs = [];
 	    let inputs_hash = {};
@@ -843,6 +859,7 @@
 	    
 	    AcceptField( 'my_hash', [ Math.random(), Math.random(), Math.random(), Math.random(), Math.random() ].join('') );
 	    AcceptField( 'last_local_time_start', 0 );
+	    AcceptField( 'volume', 70 );
 	    
 	    if ( Date.now() > parseInt( document.getElementById( 'last_local_time_start' ).value ) + 1000 * 60 * 60 * 8 )
 	    {
@@ -1010,7 +1027,7 @@
 		JustOne( 'helmet', last_changed_el );
 		JustOne( 'drone_helmet', last_changed_el );
 		JustOne( 'camera', last_changed_el );
-		JustOne( 'volume', last_changed_el );
+		//JustOne( 'volume', last_changed_el );
 		JustOne( 'body', last_changed_el );
 		JustOne( 'legs', last_changed_el );
 		JustOne( 'entity', last_changed_el );

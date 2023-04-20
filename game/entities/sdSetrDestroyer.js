@@ -66,8 +66,10 @@ class sdSetrDestroyer extends sdEntity
 		//this._last_jump = sdWorld.time;
 		//this._last_bite = sdWorld.time;
 		
-		this._move_dir_x = 0;
+		this._move_dir_x = 0; // Keep these from 0 to 1 in order to have line of sight checks not scale with speed
 		this._move_dir_y = 0;
+		this._move_dir_speed_scale = 1;
+		
 		this._move_dir_timer = 0;
 		
 		this._attack_timer = 0;
@@ -509,8 +511,9 @@ class sdSetrDestroyer extends sdEntity
 						else
 						this.side = -1;
 
-						this._move_dir_x = Math.cos( an_desired ) * 10;
-						this._move_dir_y = Math.sin( an_desired ) * 10;
+						this._move_dir_x = Math.cos( an_desired );
+						this._move_dir_y = Math.sin( an_desired );
+						this._move_dir_speed_scale = 10;
 						
 						if ( closest_di_real < sdSetrDestroyer.attack_range ) // close enough to dodge obstacles
 						{
@@ -518,6 +521,7 @@ class sdSetrDestroyer extends sdEntity
 
 							this._move_dir_x = Math.cos( an );
 							this._move_dir_y = Math.sin( an );
+							this._move_dir_speed_scale = 1;
 
 							if ( !sdWorld.CheckLineOfSight( this.x, this.y, closest.x, closest.y, this, sdCom.com_visibility_ignored_classes, null ) )
 							{
@@ -535,8 +539,9 @@ class sdSetrDestroyer extends sdEntity
 										{
 											// Can attack from position 1
 
-											this._move_dir_x = Math.cos( a1 ) * 8;
-											this._move_dir_y = Math.sin( a1 ) * 8;
+											this._move_dir_x = Math.cos( a1 );
+											this._move_dir_y = Math.sin( a1 );
+											this._move_dir_speed_scale = 8;
 
 											this._move_dir_timer = r1 * 5;
 
@@ -556,8 +561,9 @@ class sdSetrDestroyer extends sdEntity
 												{
 													// Can attack from position 2, but will move to position 1 still
 
-													this._move_dir_x = Math.cos( a1 ) * 8;
-													this._move_dir_y = Math.sin( a1 ) * 8;
+													this._move_dir_x = Math.cos( a1 );
+													this._move_dir_y = Math.sin( a1 );
+													this._move_dir_speed_scale = 8;
 
 													this._move_dir_timer = r1 * 5;
 													
@@ -582,6 +588,7 @@ class sdSetrDestroyer extends sdEntity
 
 						this._move_dir_x = Math.cos( an );
 						this._move_dir_y = Math.sin( an );
+						this._move_dir_speed_scale = 1;
 					}
 				}
 				else
@@ -601,9 +608,9 @@ class sdSetrDestroyer extends sdEntity
 				   ) )
 			{
 				
-				this.sx += this._move_dir_x * ( v ) * GSPEED;
-				this.sy += this._move_dir_y * ( v ) * GSPEED;
-				this.tilt = sdWorld.MorphWithTimeScale( this.tilt, this._move_dir_x * 2, 0.93, GSPEED );
+				this.sx += this._move_dir_x * this._move_dir_speed_scale * ( v ) * GSPEED;
+				this.sy += this._move_dir_y * this._move_dir_speed_scale * ( v ) * GSPEED;
+				this.tilt = sdWorld.MorphWithTimeScale( this.tilt, this._move_dir_x * this._move_dir_speed_scale * 2, 0.93, GSPEED );
 			}
 			else
 			{
@@ -743,14 +750,15 @@ class sdSetrDestroyer extends sdEntity
 						if ( !this._follow_target )
 						{
 							an_desired = Math.random() * Math.PI * 2;
-							this._move_dir_x = Math.cos( an_desired ) * 10;
-							this._move_dir_y = Math.sin( an_desired ) * 10;
+							this._move_dir_x = Math.cos( an_desired );
+							this._move_dir_y = Math.sin( an_desired );
+							this._move_dir_speed_scale = 10;
 						}
 
 						let v = 0.035;
 				
-						this.sx += this._move_dir_x * ( v ) * GSPEED;
-						this.sy += this._move_dir_y * ( v ) * GSPEED;
+						this.sx += this._move_dir_x * this._move_dir_speed_scale * ( v ) * GSPEED;
+						this.sy += this._move_dir_y * this._move_dir_speed_scale * ( v ) * GSPEED;
 					}
 				}
 			}
