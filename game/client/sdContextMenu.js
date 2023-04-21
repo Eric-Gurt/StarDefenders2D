@@ -170,6 +170,7 @@ class sdContextMenu
 				if ( !sdContextMenu.open ) // Will be open in case of going through context menu categories
 				{
 					sdContextMenu.open = true;
+					sdContextMenu.potential_option = null; // Needed to prevent it clicking onto color picker when it tries to be closed
 					sdContextMenu.x = sdWorld.mouse_screen_x;
 					sdContextMenu.y = sdWorld.mouse_screen_y;
 				}
@@ -218,15 +219,19 @@ class sdContextMenu
 	{
 		ctx.save();
 		{
+			//let width = 180;
+			let width = 400;
+			
 			if ( sdContextMenu.y + sdContextMenu.options.length * 30 + 60 > sdRenderer.screen_height )
 			{
 				sdContextMenu.y = sdRenderer.screen_height - sdContextMenu.options.length * 30 - 60;
 			}
+			if ( sdContextMenu.x + width > sdRenderer.screen_width )
+			{
+				sdContextMenu.x = sdRenderer.screen_width - width;
+			}
 			
 			ctx.translate( sdContextMenu.x, sdContextMenu.y );
-
-			//let width = 180;
-			let width = 400;
 
 			ctx.fillStyle = '#000000';
 			ctx.globalAlpha = 0.7;

@@ -14,6 +14,7 @@ import sdGun from './sdGun.js';
 import sdDoor from './sdDoor.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdAntigravity from './sdAntigravity.js';
+import sdNode from './sdNode.js';
 
 import sdSound from '../sdSound.js';
 
@@ -129,6 +130,8 @@ class sdButton extends sdEntity
 		this._regen_timeout = 0;
 		this.activated = false;
 		
+		//this.owner_biometry = -1;
+		
 		this._shielded = null; // Is this entity protected by a base defense unit?
 		
 		this._overlapped_net_ids = [];
@@ -212,18 +215,93 @@ class sdButton extends sdEntity
 			this.activated = v;
 			this._update_version++;
 			
-			let doors = this.FindObjectsInACableNetwork( null, sdDoor );
-			let antigravities = this.FindObjectsInACableNetwork( null, sdAntigravity );
+			let nodes_to_switch_off = [];
+			
+			const GetFlipLogic = ( path )=>
+			{
+				let vv = v;
+				
+				for ( let i = 0; i < path.length; i++ )
+				{
+					let node = path[ i ];
+					if ( node.is( sdNode ) )
+					{
+						if ( node.type === sdNode.TYPE_SIGNAL_ONCE )
+						{
+							if ( nodes_to_switch_off.indexOf( node ) === -1 )
+							nodes_to_switch_off.push( node );
+						}
+						else
+						if ( node.type === sdNode.TYPE_SIGNAL_ONCE_OFF )
+						{
+							return undefined;
+						}
+						else
+						if ( node.type === sdNode.TYPE_SIGNAL_FLIPPER )
+						vv = !vv;
+					}
+				}
+		
+				return vv;
+			};
+			
+			let doors = this.FindObjectsInACableNetwork( null, sdDoor, true ); // { entity: sdEntity, path: [] }
+			let antigravities = this.FindObjectsInACableNetwork( null, sdAntigravity, true ); // { entity: sdEntity, path: [] }
+			let nodes = this.FindObjectsInACableNetwork( null, sdNode, true );
+			
+			for ( let i = 0; i < nodes.length; i++ )
+			{
+				let node = nodes[ i ].entity;
+				let path = nodes[ i ].path;
+				
+				let found_switch_off = false;
+				
+				for ( let i2 = 0; i2 < path.length; i2++ )
+				//for ( let i2 = path.length - 1; i2 >= 0; i2-- )
+				{
+					let earlier_node = path[ i2 ];
+					
+					if ( earlier_node.is( sdNode ) )
+					{
+						if ( earlier_node.type === sdNode.TYPE_SIGNAL_ONCE )
+						{
+							found_switch_off = true;
+
+							if ( nodes_to_switch_off.indexOf( earlier_node ) === -1 )
+							nodes_to_switch_off.push( earlier_node );
+
+							break;
+						}
+						
+						if ( earlier_node.type === sdNode.TYPE_SIGNAL_ONCE_OFF )
+						{
+							found_switch_off = true;
+							break;
+						}
+					}
+				}
+				
+				if ( !found_switch_off )
+				if ( node.type === sdNode.TYPE_SIGNAL_ONCE )
+				{
+					if ( nodes_to_switch_off.indexOf( node ) === -1 )
+					nodes_to_switch_off.push( node );
+				}
+			}
 			
 			for ( let i = 0; i < doors.length; i++ )
 			{
-				let door = doors[ i ];
+				let door = doors[ i ].entity;
+				let vv = GetFlipLogic( doors[ i ].path );
+				
+				if ( vv === undefined )
+				continue;
 				
 				door.open_type = sdDoor.OPEN_TYPE_BUTTON;
 				
 				let id = door._entities_within_sensor_area.indexOf( this._net_id );
 				
-				if ( v )
+				if ( vv )
 				{
 					if ( id === -1 )
 					{
@@ -240,10 +318,26 @@ class sdButton extends sdEntity
 			}
 			for ( let i = 0; i < antigravities.length; i++ )
 			{
-				antigravities[ i ]._update_version++;
-				antigravities[ i ].toggle_enabled = v;
-				if ( v )
-				antigravities[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+				let antigravity = antigravities[ i ].entity;
+				let vv = GetFlipLogic( doors[ i ].path );
+				
+				if ( vv === undefined )
+				continue;
+				
+				antigravity._update_version++;
+				antigravity.toggle_enabled = vv;
+				if ( vv )
+				antigravity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+			}
+			
+			
+			// Then burn all the one-time nodes
+			for ( let i = 0; i < nodes_to_switch_off.length; i++ )
+			{
+				let node = nodes_to_switch_off[ i ];
+				
+				node.type = sdNode.TYPE_SIGNAL_ONCE_OFF;
+				node._update_version++;
 			}
 			
 			if ( this.type === sdButton.TYPE_WALL_SWITCH )

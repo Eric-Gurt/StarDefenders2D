@@ -530,7 +530,8 @@ class sdSteeringWheel extends sdEntity
 					if ( GSPEED > 1 )
 					GSPEED = 1;
 				
-					let speed = Math.min( 1, this._speed / 4 );
+					//let speed = Math.min( 1, this._speed / 4 );
+					let speed = Math.min( 2, this._speed / 4 );
 
 					this.vx += this.driver.act_x * GSPEED * 0.25 * speed;
 					this.vy += this.driver.act_y * GSPEED * 0.25 * speed;

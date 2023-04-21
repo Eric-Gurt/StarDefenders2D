@@ -290,6 +290,10 @@ class sdGun extends sdEntity
 	{
 		if ( !super.IsTargetable( by_entity, ignore_safe_areas ) )
 		return false;
+	
+		if ( this._held_by )
+		if ( !this._held_by.IsTargetable( by_entity, ignore_safe_areas ) )
+		return false;
 		
 		
 		let r = false;

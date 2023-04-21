@@ -1651,7 +1651,8 @@ io.on( 'connection', ( socket )=>
 	{
 		game_title: sdWorld.server_config.game_title || 'Star Defenders',
 		backgroundColor: sdWorld.server_config.backgroundColor || '',
-		supported_languages: sdWorld.server_config.supported_languages || []
+		supported_languages: sdWorld.server_config.supported_languages || [],
+		//password_required: !!( sdWorld.server_config.password )
 	});
 	
 	//globalThis.EnforceChangeLog( sockets, sockets.indexOf( socket ) );
@@ -1772,6 +1773,24 @@ io.on( 'connection', ( socket )=>
 		
 		if ( typeof player_settings !== 'object' || player_settings === null )
 		return;
+	
+		if ( sdWorld.server_config.password !== '' )
+		if ( typeof sdWorld.server_config.password === 'string' )
+		if ( sdWorld.server_config.password !== player_settings.password )
+		{
+			/*socket.SDServiceMessage( 'Wrong password' );
+			setTimeout(()=>
+			{
+				socket.emit( 'REQUIRE_PASSWORD' );
+			}, 3000 );*/
+			
+			if ( player_settings.password === '' )
+			socket.emit( 'REQUIRE_PASSWORD', [ 'Password is required', '' ] );
+			else
+			socket.emit( 'REQUIRE_PASSWORD', [ 'Password does not match', '#ff0000' ] );
+		
+			return;
+		}
 		
 		socket.last_ping = sdWorld.time;
 		socket.waiting_on_M_event_until = 0;
@@ -2139,6 +2158,18 @@ io.on( 'connection', ( socket )=>
 	
 	socket.on('RESPAWN', socket.Respawn );
 	
+	socket.on('my_url', ( url )=>
+	{
+		if ( sdWorld.server_config.make_server_public )
+		{
+			if ( sdWorld.server_url === null )
+			{
+				if ( url.indexOf( 'localhost' ) === -1 ) // No point in these as they can't be accessed from outside anyway
+				if ( url.indexOf( '127.0.0.1' ) === -1 ) // No point in these as they can't be accessed from outside anyway
+				sdWorld.server_url = url;
+			}
+		}
+	});
 	socket.on('one_time_key', ( v )=>
 	{
 		for ( let i = 0; i < sdLongRangeTeleport.one_time_keys.length; i++ )
@@ -2376,6 +2407,7 @@ io.on( 'connection', ( socket )=>
 						//if ( ( look_at_entity.is_static && socket.known_statics_versions_map.has( look_at_entity ) ) ||
 						if ( ( look_at_entity.is_static && socket.known_statics_versions_map2.has( look_at_entity._net_id ) ) ||
 							 ( !look_at_entity.is_static && socket.observed_entities.indexOf( look_at_entity ) !== -1 ) ) // Is entity actually visible (anti-cheat measure)
+						if ( sdWorld.inDist2D_Boolean( look_at_entity.x, look_at_entity.y, socket.character.x, socket.character.y, 1000 ) ) // Prevent player from tracking RTP-ing characters (anti-base detection measure)
 						{
 							// Bad! Apply offset
 							//socket.character.look_x = look_at_entity.x;
@@ -4026,3 +4058,38 @@ process.on('exit', (code) => {
 	heapdump.writeSnapshot( 'crashed.heapsnapshot' );
   
 });*/
+			
+if ( sdWorld.server_config.make_server_public )
+setInterval(
+	()=>
+	{
+		if ( sdWorld.server_url )
+		{
+			let names = [];
+			
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			if ( sdWorld.sockets[ i ].character !== null )
+			if ( sdWorld.sockets[ i ].character.hea > 0 )
+			names.push( sdWorld.sockets[ i ].character.title );
+			
+			sdServerToServerProtocol.SendData(
+				'https://www.gevanni.com:3000',
+				{
+					action: 'I exist!',
+					url: sdWorld.server_url,
+					online: sdWorld.sockets.length,
+					playing: sdWorld.GetPlayingPlayersCount(),
+					players: names
+				},
+				( response=null )=>
+				{
+					if ( response )
+					{
+						trace( 'make_server_public response: ', response );
+					}
+				}
+			);
+		}
+	}, 
+	1000 * 60 * 1 // Every hour
+);

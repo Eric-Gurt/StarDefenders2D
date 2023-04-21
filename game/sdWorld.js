@@ -440,6 +440,10 @@ class sdWorld
 			}
 		};*/
 		
+		sdWorld.server_url = null; // Will be guessed when first connected player tells it
+		sdWorld.server_url_pending = null;
+		sdWorld.server_url_pending_code = null;
+		
 		let say_delay = true;
 		let sealing_classes = ()=>
 		{
@@ -3879,6 +3883,14 @@ class sdWorld
 		character_entity.title_censored = ( typeof sdModeration !== 'undefined' && socket ) ? sdModeration.IsPhraseBad( character_entity.title, socket ) : false;
 		
 		character_entity._allow_self_talk = ( player_settings.selftalk1 ) || false;
+	}
+	
+	static RequirePassword( message_and_color )
+	{
+		document.querySelector('.password_screen').style.display = 'block';
+		
+		document.getElementById('password_screen_message').textContent = message_and_color[ 0 ];
+		document.getElementById('password_screen_message').style.color = message_and_color[ 1 ];
 	}
 	
 	static CreateImageFromFile( filename, cb=null ) // In cases when processing calls are added to filename - expect correct image to be returned as part of return_value.canvas_override

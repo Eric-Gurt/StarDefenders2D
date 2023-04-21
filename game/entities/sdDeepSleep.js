@@ -6,6 +6,10 @@
 
 	Most likely it would merge whole big bases into one big chunk, which is perfectly fine I guess.
 
+	
+	TODO: Add timewarp saves
+
+	TODO: Add save/rename for chunks too?
 
 	TODO: Keep testing snapshot 3 for a while
 
