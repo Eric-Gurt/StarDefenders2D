@@ -4091,5 +4091,5 @@ setInterval(
 			);
 		}
 	}, 
-	1000 * 60 * 1 // Every hour
+	1000 * 60 * 60 // Every hour
 );
