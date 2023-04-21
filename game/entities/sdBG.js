@@ -2,6 +2,7 @@
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -55,7 +56,10 @@ class sdBG extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 		
-		this.remove();
+		if ( sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
+		{
+			this.remove();
+		}
 	}
 	onSnapshotApplied() // To override
 	{
@@ -83,6 +87,8 @@ class sdBG extends sdEntity
 		this.hue = params.hue || 0;
 		this.br = params.br || 100;
 		this.filter = params.filter || '';
+		
+		this._shielded = null; // Is this entity protected by a base defense unit?
 		
 		this._decals = null; // array of _net_id-s of sdBloodDecal-s
 		

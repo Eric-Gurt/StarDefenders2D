@@ -136,6 +136,7 @@ class sdBlock extends sdEntity
 		//sdBlock.MATERIAL_SAND = 11;
 		sdBlock.MATERIAL_ROCK = 10;
 		sdBlock.MATERIAL_SAND = 11;
+		sdBlock.MATERIAL_BUGGED_CHUNK = 12;
 		
 		//sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
 		//sdBlock.img_ground44 = sdWorld.CreateImageFromFile( 'ground_4x4' );
@@ -203,6 +204,16 @@ class sdBlock extends sdEntity
 		return true;
 	
 		if ( this.DrawIn3D() === FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT )
+		return true;
+	
+		if ( this.texture_id === sdBlock.TEXTURE_ID_CAGE )
+		return true;
+
+		return false;
+	}
+	IsLetsLiquidsThrough()
+	{
+		if ( this.material === sdBlock.MATERIAL_SHARP )
 		return true;
 	
 		if ( this.texture_id === sdBlock.TEXTURE_ID_CAGE )
@@ -309,7 +320,17 @@ class sdBlock extends sdEntity
 			this.DamageWithEffect( ( vel - 3 ) * 15 );
 		}
 	}
-	
+	PrecieseHitDetection( x, y, bullet=null ) // Teleports use this to prevent bullets from hitting them like they do. Only ever used by bullets, as a second rule after box-like hit detection. It can make hitting entities past outer bounding box very inaccurate
+	{
+		if ( this.texture_id === sdBlock.TEXTURE_ID_CAGE )
+		{
+			let xx = ( x - this.x ) % 8;
+			let yy = ( y - this.y ) % 8;
+			return ( ( xx <= 1 + bullet._hitbox_x2 || xx >= 7 + bullet._hitbox_x1 ) && ( yy <= 1 + bullet._hitbox_y2 || yy >= 7 + bullet._hitbox_y1 ) );
+		}
+		
+		return true;
+	}
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )
@@ -331,25 +352,15 @@ class sdBlock extends sdEntity
 				}
 			}
 			
-			if ( this._shielded === null || dmg === Infinity || this._shielded._is_being_removed || !this._shielded.enabled || !sdWorld.inDist2D_Boolean( this.x, this.y, this._shielded.x, this._shielded.y, sdBaseShieldingUnit.protect_distance_stretch ) )
+			//if ( this._shielded === null || dmg === Infinity || this._shielded._is_being_removed || !this._shielded.enabled || !sdWorld.inDist2D_Boolean( this.x, this.y, this._shielded.x, this._shielded.y, sdBaseShieldingUnit.protect_distance_stretch ) )
+			if ( sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
 			{
 				this._hea -= dmg;
 			}
-			else
+			/*else
 			{
-				/*if ( initiator )
-				if ( initiator._socket )
-				if ( initiator._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
-				{
-					initiator._last_damage_upg_complain = sdWorld.time;
-					if ( Math.random() < 0.5 )
-					initiator.Say( 'This entity is protected by a base shielding unit' );
-					else
-					initiator.Say( 'A base shielding unit is protecting this' );
-				}*/
-				
 				this._shielded.ProtectedEntityAttacked( this, dmg, initiator );
-			}
+			}*/
 
 			this.HandleDestructionUpdate();
 			
@@ -713,6 +724,33 @@ class sdBlock extends sdEntity
 	ExtraSerialzableFieldTest( prop )
 	{
 		return ( prop === '_plants' || prop === '_contains_class_params' || prop === '_shielded' );
+	}
+	ValidatePlants( must_include=null )
+	{
+		if ( !this._plants )
+		{
+			if ( must_include )
+			this._plants = [ must_include._net_id ];
+		}
+		else
+		{
+			for ( let i = 0; i < this._plants.length; i++ )
+			{
+				let plant = sdEntity.entities_by_net_id_cache_map.get( this._plants[ i ] );
+				if ( !plant )
+				{
+					this._plants.splice( i, 1 );
+					i--;
+					continue;
+				}
+			}
+			
+			if ( must_include )
+			{
+				if ( this._plants.indexOf( must_include._net_id ) === -1 )
+				this._plants.push( must_include._net_id );
+			}
+		}
 	}
 	MeasureMatterCost()
 	{
@@ -1121,7 +1159,6 @@ class sdBlock extends sdEntity
 				if ( this.material === sdBlock.MATERIAL_SHARP )
 				{
 					if ( this.p === 0 )
-					//if ( sdWorld.GetComsNear( this.x + this.width / 2, this.y + this.height / 2, null, from_entity._net_id, true ).length === 0 && sdWorld.GetComsNear( this.x + this.width / 2, this.y + this.height / 2, null, from_entity.GetClass(), true ).length === 0 )
 					{
 						this.p = 30;
 						this._update_version++;
@@ -1390,6 +1427,18 @@ class sdBlock extends sdEntity
 			ctx.drawImageFilterCache( ( this.p < 15 ) ? sdBlock.img_sharp3_inactive : sdBlock.img_sharp3, 0, 0, w,h, 0,0, w,h );
 		}
 		else
+		if ( this.material === sdBlock.MATERIAL_BUGGED_CHUNK )
+		{
+			ctx.apply_shading = false;
+			
+			if ( sdWorld.time % 2000 < 1000 )
+			ctx.fillStyle = ( ( this.x + this.y ) % 32 === 0 ) ? '#ff0000' : '#aa0000';
+			else
+			ctx.fillStyle = ( ( this.x + this.y ) % 32 === 0 ) ? '#aa0000' : '#660000';
+		
+			ctx.fillRect( 0,0,w,h );
+		}
+		else
 		{
 			if ( w === 16 && h === 16 )
 			ctx.drawImageFilterCache( sdBlock.img_trapshield11, 0, 0, w,h, 0,0, w,h );
@@ -1437,23 +1486,24 @@ class sdBlock extends sdEntity
 					nears[ i ].AwakeSelfAndNear();
 					//nears[ i ]._sleep_tim = sdWater.sleep_tim_max;
 				}
+
+				//if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_CORRUPTION || this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+				if ( this._natural )
+				{
+					//let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, hue:this.hue, br:this.br, filter:this.filter + ' brightness(0.5)' });
+					let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, hue:this.hue, br:this.br * 0.5, filter:this.filter });
+					if ( new_bg.CanMoveWithoutOverlap( this.x, this.y, 1 ) )
+					{
+						sdEntity.entities.push( new_bg );
+					}
+					else
+					{
+						new_bg.remove();
+						new_bg._remove();
+					}
+				}
 			}
 
-			//if ( this.material === sdBlock.MATERIAL_GROUND || this.material === sdBlock.MATERIAL_CORRUPTION || this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
-			if ( this._natural )
-			{
-				//let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, hue:this.hue, br:this.br, filter:this.filter + ' brightness(0.5)' });
-				let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, hue:this.hue, br:this.br * 0.5, filter:this.filter });
-				if ( new_bg.CanMoveWithoutOverlap( this.x, this.y, 1 ) )
-				{
-					sdEntity.entities.push( new_bg );
-				}
-				else
-				{
-					new_bg.remove();
-					new_bg._remove();
-				}
-			}
 			
 			if ( this._plants )
 			{

@@ -30,6 +30,9 @@ import sdStatusEffect from './sdStatusEffect.js';
 import sdCharacterRagdoll from './sdCharacterRagdoll.js';
 import sdTimer from './sdTimer.js';
 import sdMimic from './sdMimic.js';
+import sdShurgConverter from './sdShurgConverter.js';
+//import sdLongRangeTeleport from './sdLongRangeTeleport.js';
+
 import sdShop from '../client/sdShop.js';
 
 class sdCharacter extends sdEntity
@@ -873,7 +876,7 @@ class sdCharacter extends sdEntity
 		this._last_e_state = 0; // For E key taps to activate ghosting
 		this._last_fire_state = 0; // For semi auto weaponry
 		
-		this._respawn_protection = 0; // Given after long-range teleported. Also on resque teleporting
+		this._respawn_protection = 0; // Given after long-range teleported. Also on resque teleporting // Also prevents player from shooting
 		
 		this._upgrade_counters = {}; // key = upgrade
 		
@@ -951,6 +954,8 @@ class sdCharacter extends sdEntity
 			}*/
 		}
 		
+		this._allow_self_talk = true;
+		
 		this._has_rtp_in_range = false; // Updated only when socket is connected. Also measures matter. Works only when hints are working"
 
 		this._voice_channel = sdSound.CreateSoundChannel( this );
@@ -1019,8 +1024,8 @@ class sdCharacter extends sdEntity
 				
 				let shoot_from_scenario = false;
 
-				if ( will_fire )
-				this._respawn_protection = 0;
+				//if ( will_fire )
+				//this._respawn_protection = 0;
 
 				if ( this._weapon_draw_timer > 0 )
 				will_fire = false;
@@ -1033,6 +1038,13 @@ class sdCharacter extends sdEntity
 						will_fire = true;
 						shoot_from_scenario = true;
 					}
+				}
+				
+				if ( this._respawn_protection > 0 )
+				{
+					will_throw_grenade = false;
+					will_fire = false;
+					shoot_from_scenario = false;
 				}
 
 				if ( will_fire )
@@ -1321,9 +1333,7 @@ class sdCharacter extends sdEntity
 	
 	IsVisible( observer_character ) // Can be used to hide guns that are held, they will not be synced this way
 	{
-		if ( observer_character )
-		if ( observer_character.IsPlayerClass() )
-		if ( observer_character._god )
+		if ( !this.ghosting )
 		return true;
 		
 		if ( this.driver_of )
@@ -1331,14 +1341,16 @@ class sdCharacter extends sdEntity
 		if ( this.driver_of.VehicleHidesDrivers() )
 		if ( !this.driver_of.IsVisible( observer_character ) )
 		return false;
+	
+		if ( observer_character )
+		if ( observer_character.IsPlayerClass() )
+		if ( observer_character._god )
+		return true;
 		
 		//if ( !observer_character || !observer_character.is( sdCharacter ) )
 		if ( !observer_character || typeof observer_character._socket === 'undefined' ) // Let player-controlled drones see players in NCZ
 		if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
 		return false;
-		
-		if ( !this.ghosting )
-		return true;
 	
 		if ( this.flying || this.hea <= 0 || ( this.fire_anim > 0 && this.gun_slot !== 0 ) || this.pain_anim > 0 || this._auto_shoot_in > 0 || this.time_ef > 0 )
 		return true;
@@ -1351,13 +1363,13 @@ class sdCharacter extends sdEntity
 			if ( sdWorld.Dist2D( px, py, this.x, this.y ) < 16 )
 			return true;
 		}
-		
+		/*
 		if ( observer_character )
 		if ( sdWorld.GetComsNear( this.x, this.y, null, observer_character._net_id ).length > 0 )
 		{
 			return true;
 		}
-		
+		*/
 		return false;
 	}
 	
@@ -1474,6 +1486,14 @@ class sdCharacter extends sdEntity
 
 	InstallUpgrade( upgrade_name ) // Ignores upper limit condition. Upgrades better be revertable and resistent to multiple calls within same level as new level
 	{
+		if ( ( this._upgrade_counters[ upgrade_name ] || 0 ) + 1 > sdShop.upgrades[ upgrade_name ].max_level )
+		{
+			return;
+		}
+		
+		
+		
+		
 		var upgrade_obj = sdShop.upgrades[ upgrade_name ];
 		
 		if ( typeof this._upgrade_counters[ upgrade_name ] === 'undefined' )
@@ -1576,7 +1596,8 @@ class sdCharacter extends sdEntity
 			if ( t.matter >= tele_cost ) // Has enough matter for this kind of teleport out
 			if ( !t._is_being_removed )
 			//if ( this.CanMoveWithoutOverlap( t.x, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, 0 ) && sdWorld.CheckLineOfSight( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 12, this ) ) // Make sure it isn't blocked by anything
-			if ( sdWorld.CheckLineOfSight( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 12, t, null, sdCom.com_vision_blocking_classes ) ) // Could be better. Should allow cases of storages and crystals on top of RTP
+			//if ( sdWorld.CheckLineOfSight( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - this._hitbox_y2 - 12, t, null, sdCom.com_vision_blocking_classes ) ) // Could be better. Should allow cases of storages and crystals on top of RTP
+			if ( t.GetRTPPotentialPlayerPlacementTestResult( this ) )
 			{
 				let di = sdWorld.Dist2D( this.x, this.y, t.x, t.y );
 				if ( 
@@ -1696,7 +1717,7 @@ class sdCharacter extends sdEntity
 			
 			best_t.WakeUpMatterSources();
 			
-			best_t._rescuing_from_lost_effect = lost_effect;
+			//best_t._rescuing_from_lost_effect = lost_effect; Always true now
 			
 			if ( lost_effect )
 			{
@@ -1816,6 +1837,14 @@ class sdCharacter extends sdEntity
 	
 		if ( initiator === this )
 		initiator = null;
+	
+		if ( dmg > 0 )
+		if ( initiator && initiator !== this && ( initiator.cc_id !== this.cc_id || this.cc_id === 0 ) ) // Allow PvP damage scale for non-teammates only
+		if ( ( this._my_hash !== undefined || this._socket || this.title === 'Player from the shop' ) && 
+		     ( initiator._my_hash !== undefined || initiator._socket || initiator.title === 'Player from the shop' ) ) // Both are real players or at least test dummie from the shop
+		{
+			dmg *= sdWorld.server_config.player_vs_player_damage_scale;
+		}
 			
 		let was_alive = ( this.hea > 0 );
 	
@@ -2766,6 +2795,10 @@ class sdCharacter extends sdEntity
 				{
 					this._potential_vehicle.AddDriver( this );
 					
+					if ( this._potential_vehicle.IsFakeVehicleForEKeyUsage() )
+					{
+					}
+					else
 					if ( this.driver_of === null ) // Vehicles did not allow entrance. Doing it like this because sdWorkBench is also a vehicle now which is why it is able to give extra build options. It had issue with preventing ghost mode near work benches
 					this.TogglePlayerGhosting();
 				}
@@ -3177,7 +3210,7 @@ class sdCharacter extends sdEntity
 				this.act_y = 0;
 			}*/
 
-			if ( this.hea > 0 && !this.driver_of && ( this._key_states.GetKey( 'Mouse2' ) || this._key_states.GetKey( 'KeyC' ) ) && this._hook_allowed )
+			if ( this.hea > 0 && ( !this.driver_of || this.hook_relative_to ) && ( this._key_states.GetKey( 'Mouse2' ) || this._key_states.GetKey( 'KeyC' ) ) && this._hook_allowed )
 			{
 				if ( this._hook_once )
 				{
@@ -3566,7 +3599,29 @@ class sdCharacter extends sdEntity
 			//this._last_act_y = this.act_y;
 		}
 		
-		let can_breathe = ( sdWeather.only_instance.air > 0 ) || ( this.driver_of && this.driver_of.VehicleHidesDrivers() ) || ( this._score < 100 );
+		let can_breathe;
+		if ( ( sdWeather.only_instance.air > 0 ) || ( this.driver_of && this.driver_of.VehicleHidesDrivers() ) || ( this._score < 100 ) )
+		{
+			if ( sdShurgConverter.converters.length <= 0 )
+			can_breathe = true;
+			else
+			{
+				let near_converter = false;
+				for ( let i = 0; i < sdShurgConverter.converters.length; i++ )
+				{
+					let e = sdShurgConverter.converters[ i ];
+					if ( sdWorld.inDist2D_Boolean( this.x, this.y, e.x, e.y, 400 ) )
+					{
+						near_converter = true;
+						break;
+					}
+				}
+				if ( near_converter )
+				can_breathe = false; // I've gone rusty with my coding again - Booraz149
+				else
+				can_breathe = true;
+			}
+		}
 		
 		if ( !can_breathe )
 		{
@@ -3582,6 +3637,17 @@ class sdCharacter extends sdEntity
 					}
 				}
 			}
+		}
+		
+		let out_of_bounds = false;
+		
+		//if ( !sdWorld.inDist2D_Boolean( 0,0, this.x, this.y, sdWorld.server_config.open_world_max_distance_from_zero_coordinates ) )
+		if ( Math.abs( this.x ) > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x ||
+			 this.y < sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_min ||
+			 this.y > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_max )
+		{
+			can_breathe = false;
+			out_of_bounds = true;
 		}
 		
 		/*if ( this._key_states.GetKey( 'KeyA' ) )
@@ -3784,13 +3850,44 @@ class sdCharacter extends sdEntity
 				
 				//if ( this.air < 0.5 )
 				if ( !in_water )
-				sdTask.MakeSureCharacterHasTask({ 
-						similarity_hash:'NO-AIR-HINT', 
-						executer: this,
-						mission: sdTask.MISSION_GAMEPLAY_HINT,
-						title: 'No oxygen',
-						description: 'Enter vehicle or stay near charged and activated Base Shielding Unit.'
-					});
+				{
+					if ( sdWorld.is_server )
+					{
+						if ( out_of_bounds )
+						sdTask.MakeSureCharacterHasTask({ 
+								similarity_hash:'NO-AIR-HINT', 
+								executer: this,
+								mission: sdTask.MISSION_GAMEPLAY_HINT,
+								title: 'Out of playable area',
+								description: 'You have left the allowed playable area - there is no oxygen here (even near base shielding units or in vehicles).'
+						});
+						else
+						sdTask.MakeSureCharacterHasTask({ 
+								similarity_hash:'NO-AIR-HINT', 
+								executer: this,
+								mission: sdTask.MISSION_GAMEPLAY_HINT,
+								title: 'No oxygen',
+								description: 'Enter vehicle or stay near charged and activated Base Shielding Unit.'
+						});
+					}
+					
+					if ( this.air < sdCharacter.air_max * 0.666 || out_of_bounds )
+					if ( this._last_damage_upg_complain < sdWorld.time - 1000 * 10 )
+					{
+						this._last_damage_upg_complain = sdWorld.time;
+
+						switch ( ~~( Math.random() * 7 ) )
+						{
+							case 0: this.Say( 'I can\'t breathe here', true, false, true ); break;
+							case 1: this.Say( 'Running low on oxygen', true, false, true ); break;
+							case 2: this.Say( 'No oxygen', true, false, true ); break;
+							case 3: this.Say( 'Watch out for oxygen', true, false, true ); break;
+							case 4: this.Say( 'I really should not be out there', true, false, true ); break;
+							case 5: this.Say( 'Can\'t... breathe...', true, false, true ); break;
+							case 6: this.Say( 'There is no air', true, false, true ); break;
+						}
+					}
+				}
 			}
 			else
 			{
@@ -4324,10 +4421,22 @@ class sdCharacter extends sdEntity
 		
 		if ( sdWorld.Dist2D( this.x, this.y, this._build_params.x, this._build_params.y ) < 64 || this._god )
 		{
-			if ( this.stands || this._in_water || this.flying || ( this.hook_relative_to && sdWorld.Dist2D_Vector( this.sx, this.sy ) < 2 ) || this._god )
+			//if ( this.stands || this._in_water || this.flying || ( this.hook_relative_to && sdWorld.Dist2D_Vector( this.sx, this.sy ) < 2 ) || this._god )
 			{
+				// This is used to make it include sdButton-s when putting new sdButtons on top
+				const custom_filtering_method = ( e )=>
+				{
+					if ( !fake_ent._hard_collision ) 
+					{
+						return true;
+					}
+					
+					return e._hard_collision;
+				};
+				
 				//if ( fake_ent.CanMoveWithoutOverlap( fake_ent.x, fake_ent.y, 0.00001 ) ) // Very small so entity's velocity can be enough to escape this overlap
-				if ( fake_ent.CanMoveWithoutOverlap( fake_ent.x, fake_ent.y, 0 ) )
+				//new_x, new_y, safe_bound=0, custom_filtering_method=null, alter_ignored_classes=null
+				if ( fake_ent.CanMoveWithoutOverlap( fake_ent.x, fake_ent.y, 0, custom_filtering_method ) )
 				{
 					if ( fake_ent.IsEarlyThreat() )
 					//if ( fake_ent.is( sdTurret ) || fake_ent.is( sdCom ) || fake_ent.is( sdBarrel ) || fake_ent.is( sdBomb ) || ( fake_ent.is( sdBlock ) && fake_ent.material === sdBlock.MATERIAL_SHARP ) )
@@ -4456,7 +4565,7 @@ class sdCharacter extends sdEntity
 					
 				}
 			}
-			else
+			/*else
 			{
 				switch ( ~~( Math.random() * 6 ) )
 				{
@@ -4468,7 +4577,7 @@ class sdCharacter extends sdEntity
 					case 5: sdCharacter.last_build_deny_reason = 'Maybe if I was swimming right now'; break;
 					case 5: sdCharacter.last_build_deny_reason = 'Maybe if I was able to stand'; break;
 				}
-			}
+			}*/
 		}
 		else
 		{
@@ -4957,12 +5066,29 @@ class sdCharacter extends sdEntity
 						character.Say( [ 'Uh... I\'m frozen', 'Frozen...', 'A bit cold out there' ][ ~~( Math.random() * 3 ) ], false, false, true );
 						return;
 					}
+					
+					if ( character.driver_of )
+					if ( character.driver_of.is( sdRescueTeleport ) )
+					{
+						// Likely a cloner... RTP-int out of it will move player outside of a vehicle and call the remove() on him... Bad
+						character.Say( [ 
+							'Yeah, I\'m kind of already here', 
+							'I\'m literally disassembled', 
+							'I should wait until this thing prints me my skin first - should be more comformatable wearing suit then',
+							'Does anyone have area amplifier by any chance?',
+							'I used to think that I hate waiting. But can I hate anything if my brain is still being printed?',
+							'Time flies by when don\'t have anything to feel it',
+							'Wait... How can I talk?',
+							'"Weep-woop-weep-woop... Weep"'
+						][ ~~( Math.random() * 8 ) ], false, false, true );
+						return;
+					}
 
 					if ( character._has_rtp_in_range || !kill )
 					Proceed();
 					else
 					{
-						character.Say( [ 'Oh wait!..', 'Uh...', 'Damn', 'Well...', '...but do I have RTP?', 'RIP', 'Where is my RTP by the way?', '...but did I charge the batteries?' ][ ~~( Math.random() * 8 ) ], false, false, true );
+						character.Say( [ 'Oh wait!..', 'Uh...', 'Damn', 'Well...', '...but do I have RTP?', 'RIP', 'Where is my RTP by the way?', '...but have I charged the batteries?' ][ ~~( Math.random() * 8 ) ], false, false, true );
 						setTimeout( ()=>
 						{
 							Proceed();
@@ -5047,6 +5173,8 @@ class sdCharacter extends sdEntity
 			
 			//if ( exectuter_character ) 
 			//if ( exectuter_character.hea > 0 ) 
+			
+			if ( exectuter_character === this )
 			{
 				if ( command_name === 'RTP' )
 				{
@@ -5083,22 +5211,70 @@ class sdCharacter extends sdEntity
 					exectuter_character.power_ef = 0;
 					exectuter_character.time_ef = 0;
 				}
-			}
-
-			if ( command_name === 'CC_SET_SPAWN' )
-			{
-				if ( exectuter_character )
-				if ( exectuter_character.cc )
-				if ( this.cc === exectuter_character.cc )
+				
+				if ( command_name === 'CC_SET_SPAWN' )
 				{
-					if ( exectuter_character._cc_rank < this._cc_rank || exectuter_character === this )
+					if ( exectuter_character )
+					if ( exectuter_character.cc )
+					if ( this.cc === exectuter_character.cc )
 					{
-						exectuter_character.cc.KickNetID( this, true );
+						if ( exectuter_character._cc_rank < this._cc_rank || exectuter_character === this )
+						{
+							exectuter_character.cc.KickNetID( this, true );
+						}
+						else
+						executer_socket.SDServiceMessage( 'Not enough rights to kick user' );
 					}
-					else
-					executer_socket.SDServiceMessage( 'Not enough rights to kick user' );
+				}
+				
+				if ( command_name === 'TOGGLE_LRTP_NAV' )
+				{
+					const sdLongRangeTeleport = sdWorld.entity_classes.sdLongRangeTeleport;
+					
+					let had_tasks = false;
+					sdTask.PerformActionOnTasksOf( this, ( task )=>
+					{
+						if ( task.mission === sdTask.MISSION_TRACK_ENTITY )
+						if ( task._target.is( sdLongRangeTeleport ) )
+						if ( task._target.is_server_teleport )
+						{
+							had_tasks = true;
+							task.remove();
+						}
+					});
+					if ( !had_tasks )
+					{
+						for ( let i = 0; i < sdLongRangeTeleport.long_range_teleports.length; i++ )
+						if ( sdLongRangeTeleport.long_range_teleports[ i ].is_server_teleport )
+						{
+							let e = sdLongRangeTeleport.long_range_teleports[ i ];
+							
+							sdTask.MakeSureCharacterHasTask({ 
+								similarity_hash:'TRACK-LRTP'+e.biometry, 
+								executer: exectuter_character,
+								target: e,
+								mission: sdTask.MISSION_TRACK_ENTITY,
+
+								title: 'Long-range teleport navigation is enabled',
+								description: 'You can toggle it in your character\'s context menu (or press Esc).'
+							});
+						}
+					}
+				}
+				
+				if ( command_name === 'STOP_TRACKING' )
+				{
+					let id = parameters_array[ 0 ];
+					
+					sdTask.PerformActionOnTasksOf( this, ( task )=>
+					{
+						if ( task.mission === sdTask.MISSION_TRACK_ENTITY )
+						if ( task._net_id === id )
+						task.remove();
+					});
 				}
 			}
+
 			
 			if ( command_name === 'INSTALL_DRONE_GUN' )
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
@@ -5196,9 +5372,9 @@ class sdCharacter extends sdEntity
 					
 					this.AddClientSideActionContextOption( 'Copy character hash ID', ()=>
 					{
-						if(confirm( 'Sharing this with others, or not knowing how to use this properly can make you lose your character and progress. Are you sure?' ) )
+						if( confirm( 'Sharing this with others, or not knowing how to use this properly can make you lose your character and progress. Are you sure?' ) )
 						{
-							prompt('This is your hash, keep it private and remember it to recover your character.', localStorage.my_hash + "|" + localStorage.my_net_id);
+							prompt('This is your hash, keep it private and remember it to recover your character.', localStorage.my_hash /*+ "|" + localStorage.my_net_id*/ );
 						}
 					});
 
@@ -5215,6 +5391,24 @@ class sdCharacter extends sdEntity
 
 					this.AddContextOption( 'Emote: Hearts', 'EMOTE', [ 'HEARTS' ] );
 					this.AddContextOption( 'Stop emotes', 'EMOTE', [ 'NOTHING' ] );
+					
+					this.AddContextOption( 'Toggle server long-range teleport navigation', 'TOGGLE_LRTP_NAV', [] );
+					
+					for ( let i = 0; i < sdTask.tasks.length; i++ )
+					if ( sdWorld.is_singleplayer || sdTask.tasks[ i ]._executer === this )
+					{
+						let task = sdTask.tasks[ i ];
+						
+						if ( task.mission === sdTask.MISSION_TRACK_ENTITY )
+						{
+							let t = task.target_biometry;
+
+							if ( sdWorld.client_side_censorship && task.biometry_censored )
+							t = sdWorld.CensoredText( t );
+
+							this.AddContextOptionNoTranslation( T( 'Stop tracking' ) + ' "' + t + '"', 'STOP_TRACKING', [ sdTask.tasks[ i ]._net_id ] );
+						}
+					}
 				}
 				else
 				{
@@ -5246,13 +5440,24 @@ class sdCharacter extends sdEntity
 	
 	Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false, simulate_sound=false, translate=true )
 	{
+		if ( to_self )
+		{
+			if ( !this._allow_self_talk )
+			return;
+		}
+		
+		let raise = 36;
+		
+		if ( this.driver_of )
+		raise += 10;
+		
 		let params = { 
 			x:this.x, 
-			y:this.y - 36, 
+			y:this.y - raise, 
 			type:sdEffect.TYPE_CHAT, 
 			attachment:this, 
 			attachment_x: 0,
-			attachment_y: -36,
+			attachment_y: -raise,
 			text:t,
 			text_censored: ( typeof sdModeration === 'undefined' ) ? 0 : sdModeration.IsPhraseBad( t, this._socket ),
 			voice:this._voice,

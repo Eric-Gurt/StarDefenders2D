@@ -365,6 +365,7 @@ class sdVirus extends sdEntity
 			{
 				this._last_grow = sdWorld.time;
 				
+				if ( sdWorld.is_server )
 				if ( this.Grow( 15 ) )
 				{
 					water_ent.AwakeSelfAndNear();

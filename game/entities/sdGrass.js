@@ -92,6 +92,26 @@ class sdGrass extends sdEntity
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false ); // 2nd parameter is important as it will prevent temporary entities from reacting to world entities around it (which can happen for example during item price measure - something like sdBlock can kill player-initiator and cause server crash)
 		
 		this.onSnapshotApplied();
+		
+		//if ( this._block )
+		//this._block.ValidatePlants( this );
+		
+		/*if ( this._block )
+		{
+			if ( !this._block._plants )
+			{
+				this._block._plants.push( this._net_id );
+			}
+			else
+			if ( this._block._plants.indexOf( this._net_id ) === -1 )
+			{
+				this._block._plants.push( this._net_id );
+			}
+		}*/
+	}
+	ExtraSerialzableFieldTest( prop )
+	{
+		return ( prop === '_block' );
 	}
 	MeasureMatterCost()
 	{

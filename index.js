@@ -38,6 +38,8 @@ const app = _app();
 import path from 'path';
 import fs from 'fs';
 
+globalThis.fs = fs;
+
 //import { createServer } from "http";
 import http from "http";
 import https from "https";
@@ -236,6 +238,7 @@ globalThis.sdRenderer = { visual_settings: 4 }; // Fake object
 
 
 import sdEntity from './game/entities/sdEntity.js';
+import sdDeepSleep from './game/entities/sdDeepSleep.js';
 import sdCharacter from './game/entities/sdCharacter.js';
 import sdPlayerDrone from './game/entities/sdPlayerDrone.js';
 import sdGun from './game/entities/sdGun.js';
@@ -267,6 +270,7 @@ import sdHover from './game/entities/sdHover.js';
 import sdStorage from './game/entities/sdStorage.js';
 import sdAsp from './game/entities/sdAsp.js';
 import sdModeration from './game/server/sdModeration.js';
+import sdWords from './game/server/sdWords.js';
 import sdDatabase from './game/server/sdDatabase.js';
 import sdMemoryLeakSeeker from './game/server/sdMemoryLeakSeeker.js';
 import { sdServerConfigShort, sdServerConfigFull } from './game/server/sdServerConfig.js';
@@ -566,10 +570,12 @@ ent_modules[ i ].init_class();
 sdShop.init_class(); // requires plenty of classes due to consts usage
 LZW.init_class();
 sdSound.init_class();
+sdWords.init_class();
 
 globalThis.sdWorld = sdWorld;
 globalThis.sdShop = sdShop;
 globalThis.sdModeration = sdModeration;
+globalThis.sdWords = sdWords;
 globalThis.sdDatabase = sdDatabase;
 globalThis.sdSnapPack = sdSnapPack;
 globalThis.sdPathFinding = sdPathFinding;
@@ -591,6 +597,7 @@ for ( let i = 0; i < process.argv.length; i++ )
 	}
 }
 console.log('world_slot = ' + world_slot + ' (defines server instance file prefixes, can be added to run command arguments in form of world_slot=1)' );
+globalThis.world_slot = world_slot;
 
 let frame = 0;
 
@@ -624,7 +631,8 @@ sdWorld.sockets = sockets;
 
 
 
-
+const chunks_folder = __dirname + '/chunks' + ( world_slot || '' );
+globalThis.chunks_folder = chunks_folder;
 
 const server_config_path_const = __dirname + '/server_config' + ( world_slot || '' ) + '.js';
 
@@ -740,7 +748,7 @@ let is_terminating = false;
 {
 	// World save test
 	let snapshot_save_busy = false;
-	function SaveSnapshot( snapshot_path, callback )
+	async function SaveSnapshot( snapshot_path, callback )
 	{
 		if ( snapshot_save_busy || is_terminating )
 		return;
@@ -749,7 +757,14 @@ let is_terminating = false;
 
 		snapshot_save_busy = true;
 		
-		sdDatabase.Save();
+		let promises = [];
+		promises.push( ...sdDatabase.Save() );
+		promises.push( ...sdDeepSleep.SaveScheduledChunks() ); // Should really wait - saving updates properties responsible for file location & existence
+		
+		if ( promises.length > 0 )
+		{
+			await Promise.all( promises );
+		}
 
 		let entities = [];
 		
@@ -1074,6 +1089,7 @@ if ( sdEntity.global_entities.length === 0 )
 if ( sdWorld.server_config.onAfterSnapshotLoad )
 sdWorld.server_config.onAfterSnapshotLoad();
 
+sdDeepSleep.init();
 
 
 
@@ -1899,73 +1915,25 @@ io.on( 'connection', ( socket )=>
 		}
 		function TryToAssignDisconnectedPlayerEntity()
 		{
-			//player_settings.full_reset = full_reset;
-			//player_settings.my_hash = Math.random() + '';
-			//player_settings.my_net_id = undefined;
-			
 			let best_ent = null;
+			
+			// Expand any deep sleep cells that might keep the player
+			sdDeepSleep.WakeUpByArrayAndValue( '_my_hash_list', player_settings.my_hash );
 			
 			for ( let i = 0; i < sdCharacter.characters.length; i++ )
 			{
-				//let ent = sdEntity.entities_by_net_id_cache_map.get( parseInt( player_settings.my_net_id ) );
 				let ent = sdCharacter.characters[ i ];
 
 				if ( ent )
 				if ( !ent._is_being_removed )
-				{
-					if ( ent._my_hash === player_settings.my_hash )
-					{
-						//trace('hash_match');
-						/*if ( ent._socket )
-						{
-							if ( sockets_by_ip[ ip ].indexOf( ent._socket ) !== -1 )
-							{
-								//await ent._socket.close(); // Try to disconnect old connection, can happen in geckos case if player reconnects too quickly
-								ent._socket.CharacterDisconnectLogic();
-							}
-						}*/
-
-						if ( !ent._socket )
-						{
-							if ( best_ent === null || ( best_ent.hea || best_ent._hea || 0 ) <= 0 )
-							{
-								//if ( best_ent )
-								//trace('found better option', ent.hea, ent._hea, best_ent.hea, best_ent._hea );
-								//else
-								//trace('found first option', ent.hea, ent._hea );
-							
-								best_ent = ent;
-							}
-							//else
-							//trace('not a better option?', best_ent === null, ( best_ent.hea || best_ent._hea || 0 ), ( best_ent.hea || best_ent._hea || 0 ) <= 0 );
-						}
-						//else
-						//trace('has socket...?');
-					}
-				}
+				if ( ent._my_hash === player_settings.my_hash )
+				if ( !ent._socket )
+				if ( best_ent === null || ( best_ent.hea || best_ent._hea || 0 ) <= 0 )
+				best_ent = ent;
 			}
-			
+		
 			if ( best_ent )
-			{
-				let ent = best_ent;
-				
-				//if ( DEBUG_SOCKET_CHANGES )
-				//trace( 'characters['+ent._net_id + ']._socket = socket');
-
-				//ent._socket = socket;
-				//ent._save_file = player_settings.save_file;
-				//socket.character = ent;
-
-				//socket.character.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-
-				character_entity = ent;
-
-				//sdTask.WakeUpTasksFor( ent );
-			}
-			
-			// Probably not a good thing to do since non-full reset will not can bypass respawn timeout
-			//if ( character_entity === null )
-			//player_settings.full_reset = true; // Full reset if no player can be found
+			character_entity = best_ent;
 		}
 		
 		if ( typeof player_settings.hero_name === 'string' )
@@ -2728,7 +2696,14 @@ io.on( 'connection', ( socket )=>
 			let ent = sdEntity.GetObjectByClassAndNetId( _class, net_id );
 			if ( ent !== null && !ent._is_being_removed )
 			{
-				if ( !ent.AllowContextCommandsInRestirectedAreas( socket.character, socket ) )
+				let allow = ent.AllowContextCommandsInRestirectedAreas( socket.character, socket );
+				
+				if ( allow instanceof Array )
+				{
+					allow = ( allow.indexOf( params[ 2 ] ) !== -1 );
+				}
+				
+				if ( !allow )
 				{
 					if ( socket.character && socket.character._god )
 					{

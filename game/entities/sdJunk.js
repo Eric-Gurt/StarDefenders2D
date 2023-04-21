@@ -60,14 +60,29 @@ class sdJunk extends sdEntity
 		sdJunk.TYPE_FREEZE_BARREL = 7;
 		sdJunk.TYPE_ALIEN_ARTIFACT = 8;
 
+		sdJunk.bounds_by_type = [];
+		sdJunk.bounds_by_type[ sdJunk.TYPE_UNSTABLE_CUBE_CORPSE ] = { x1: -5, x2: 5, y1: -5, y2: 5 };
+		sdJunk.bounds_by_type[ sdJunk.TYPE_ALIEN_BATTERY ] = { x1: -6, x2: 5, y1: -8, y2: 8 };
+		sdJunk.bounds_by_type[ sdJunk.TYPE_LOST_CONTAINER ] = { x1: -6, x2: 5, y1: -8, y2: 8 };
+		sdJunk.bounds_by_type[ sdJunk.TYPE_PLANETARY_MATTER_DRAINER ] = { x1: -28, x2: 28, y1: 0, y2: 23 };
+		sdJunk.bounds_by_type[ sdJunk.TYPE_COUNCIL_BOMB ] = { x1: -11, x2: 11, y1: -30, y2: 31 };
+		sdJunk.bounds_by_type[ sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ] = { x1: -11, x2: 11, y1: -21, y2: 29 };
+		sdJunk.bounds_by_type[ sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ] = { x1: -11, x2: 11, y1: -15, y2: 17 };
+		sdJunk.bounds_by_type[ sdJunk.TYPE_FREEZE_BARREL ] = { x1: -8, x2: 8, y1: -8, y2: 8 };
+		sdJunk.bounds_by_type[ sdJunk.TYPE_ALIEN_ARTIFACT ] = { x1: -3, x2: 3, y1: -3, y2: 3 };
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
+	get hitbox_x1() { return sdJunk.bounds_by_type[ this.type ] ? sdJunk.bounds_by_type[ this.type ].x1 : -8; }
+	get hitbox_x2() { return sdJunk.bounds_by_type[ this.type ] ? sdJunk.bounds_by_type[ this.type ].x2 : 8; }
+	get hitbox_y1() { return sdJunk.bounds_by_type[ this.type ] ? sdJunk.bounds_by_type[ this.type ].y1 : -8; }
+	get hitbox_y2() { return sdJunk.bounds_by_type[ this.type ] ? sdJunk.bounds_by_type[ this.type ].y2 : 8; }
+	/*
 	get hitbox_x1() { return this.type === sdJunk.TYPE_ALIEN_ARTIFACT ? -3 : this.type === sdJunk.TYPE_FREEZE_BARREL ? -8 : this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? -11 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? - 11 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? -11 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? -28 : -5; }
 	get hitbox_x2() { return this.type === sdJunk.TYPE_ALIEN_ARTIFACT ? 3 : this.type === sdJunk.TYPE_FREEZE_BARREL ? 8 : this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? 11 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? 11 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? 11 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? 28 : 5; }
 	get hitbox_y1() { return this.type === sdJunk.TYPE_ALIEN_ARTIFACT ? -3 : this.type === sdJunk.TYPE_FREEZE_BARREL ? -8 : this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? -15 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? - 21 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? -30 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? 0 : -5; }
 	get hitbox_y2() { return this.type === sdJunk.TYPE_ALIEN_ARTIFACT ? 3 : this.type === sdJunk.TYPE_FREEZE_BARREL ? 8 : this.type === sdJunk.TYPE_ADVANCED_MATTER_CONTAINER ? 17 : this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ? 29 : this.type === sdJunk.TYPE_COUNCIL_BOMB ? 31 : this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ? 23 : 5; }
-	
+	*/
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
 	
@@ -103,7 +118,7 @@ class sdJunk extends sdEntity
 		if ( this.type === sdJunk.TYPE_COUNCIL_BOMB ) // Council bomb
 		this.hmax = 50000;
 		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ) // Large anti-crystal
-		this.hmax = 10000;
+		this.hmax = 1000;
 		else
 		if ( this.type === sdJunk.TYPE_ALIEN_BATTERY || this.type === sdJunk.TYPE_LOST_CONTAINER || this.type === sdJunk.TYPE_FREEZE_BARREL ) // Current barrels ( 1 = Alien battery, 2 = Lost Particle Container, 7 = Freeze barrel )
 		this.hmax = 150;

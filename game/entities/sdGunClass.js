@@ -897,7 +897,8 @@ class sdGunClass
 			projectile_velocity_dynamic: ( gun )=> { return Math.min( 64, sdGun.default_projectile_velocity ) },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { time_left: 2, color: 'transparent', _return_damage_to_owner:true };
+				//let obj = { time_left: 2, color: 'transparent', _return_damage_to_owner:true };
+				let obj = { time_left: 2, color: 'transparent' };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -906,6 +907,16 @@ class sdGunClass
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
 				
 				return obj;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( gun._held_by )
+				if ( gun._held_by.IsPlayerClass() )
+				if ( gun._held_by.hea < gun._held_by.hmax )
+				{
+					gun._held_by.DamageWithEffect( gun.extra[ ID_DAMAGE_VALUE ] * gun.extra[ ID_DAMAGE_MULT ], null ); // Heal self if HP isn't max. However this healing is unaffected by damage mult and power pack
+				}
+				return true;
 			},
 
 			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
@@ -2191,10 +2202,11 @@ class sdGunClass
 			count: 1,
 			projectile_velocity: 1 * 3.5,
 			spawnable: false,
-			projectile_properties: { _rail: true, _damage: -15, color: '#ff00ff',  _return_damage_to_owner:true },
+			projectile_properties: { _rail: true, _damage: -15, color: '#ff00ff' },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _rail: true, color: '#ff00ff',  _return_damage_to_owner:true };
+				//let obj = { _rail: true, color: '#ff00ff',  _return_damage_to_owner:true };
+				let obj = { _rail: true, color: '#ff00ff' };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -2224,7 +2236,7 @@ class sdGunClass
 				if ( gun._held_by.IsPlayerClass() )
 				if ( gun._held_by.hea < gun._held_by.hmax )
 				{
-					gun._held_by.DamageWithEffect( -15, null ); // Heal self if HP isn't max. However this healing is unaffected by damage mult and power pack
+					gun._held_by.DamageWithEffect( gun.extra[ ID_DAMAGE_VALUE ] * gun.extra[ ID_DAMAGE_MULT ], null ); // Heal self if HP isn't max. However this healing is unaffected by damage mult and power pack
 				}
 				return true;
 			},
@@ -2574,7 +2586,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'cable_tool' ),
 			sound: 'gun_defibrillator',
-			title: 'Cable tool',
+			title: 'Cable management tool',
 			sound_pitch: 0.25,
 			slot: 7,
 			reload_time: 15,
@@ -2586,6 +2598,35 @@ class sdGunClass
 			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', 
 				_custom_target_reaction_protected: cable_reaction_method,
 				_custom_target_reaction: cable_reaction_method
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				setTimeout( ()=>
+				{
+					if ( sdWorld.is_server )
+					if ( gun._held_by )
+					if ( ( gun._held_by._discovered[ 'first-cable' ] || 0 ) < 3 )
+					{
+						let line_id = ( gun._held_by._discovered[ 'first-cable' ] || 0 );
+						
+						let lines = [
+							'This is a cable management tool',
+							'Cable management tool can be used on some of base equipment',
+							'Cables can be cut with a right click'
+						];
+						
+						//if ( line_id < 3 )
+						if ( sdCable.GetConnectedEntities( gun._held_by ).length === 0 )
+						{
+							gun._held_by.Say( lines[ line_id ] );
+							
+							line_id++;
+							gun._held_by._discovered[ 'first-cable' ] = line_id;
+						}
+						
+					}
+					
+				}, 50 );
 			}
 		};
 		
@@ -4099,7 +4140,7 @@ class sdGunClass
 			{
 				return 100;
 			},*/
-			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', _return_damage_to_owner: false, _custom_target_reaction:( bullet, target_entity )=>
+			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', _custom_target_reaction:( bullet, target_entity )=>
 				{
 					if ( target_entity.GetClass() === 'sdBlock' || target_entity.GetClass() === 'sdDoor' )
 					{
@@ -6050,40 +6091,6 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades()
 		};
 
-		// Add new gun classes above this line //
-		
-		let index_to_const = [];
-		for ( let s in sdGun )
-		if ( s.indexOf( 'CLASS_' ) === 0 )
-		{
-			if ( typeof sdGun[ s ] !== 'number' )
-			throw new Error( 'Check sdGunClass for a place where gun class index '+s+' is set - it has value '+sdGun[ s ]+' but should be a number in order to things work correctly' );
-			if ( typeof sdGun.classes[ sdGun[ s ] ] !== 'object' )
-			throw new Error( 'Check sdGunClass for a place where class '+s+' is defined. It looks like there is a non-object in sdGun.classes array at this slot' );
-			if ( index_to_const[ sdGun[ s ] ] === undefined )
-			index_to_const[ sdGun[ s ] ] = s;
-			else
-			throw new Error( 'Check sdGunClass for a place where index value is assigned - it looks like there is ID conflict for ID '+sdGun[ s ]+'. Both: '+s+' and '+index_to_const[ sdGun[ s ] ]+' point at the exact same ID. Not keeping IDs of different gun classes as unique will cause replacement of one class with another when it comes to spawning by ID.' );
-		}
-		for ( let i = 0; i < sdGun.classes.length; i++ )
-		if ( typeof index_to_const[ i ] === 'undefined' )
-		{
-			sdGun.classes[ i ] = {
-				image: sdWorld.CreateImageFromFile( 'present' ),
-				sound: 'gun_defibrillator',
-				title: 'Missing weapon',
-				//slot: -1,
-				reload_time: 25,
-				muzzle_x: null,
-				ammo_capacity: -1,
-				count: 0,
-				spawnable: false,
-				//ignore_slot: true,
-				projectile_properties: { time_left: 0, _damage: 0, color: 'transparent', _return_damage_to_owner:true }
-			};
-			//throw new Error( 'Check sdGunClass for a place where index values are assigned - there seems to be an ID number '+i+' skipped (assuming sdGun.classes.length is '+sdGun.classes.length+' and thus highest ID should be '+(sdGun.classes.length-1)+', with IDs starting at 0). Holes in ID list will cause server to crash when some parts of logic will try to loop through all classes. Currently defined IDs are following: ', index_to_const );
-		}
-
 		sdGun.classes[ sdGun.CLASS_KVT_ASSAULT_RIFLE = 104 ] = // sprite made by Ghost581
 		{
 			image: sdWorld.CreateImageFromFile( 'kvt_ar' ),
@@ -6509,12 +6516,88 @@ class sdGunClass
 				color:'#ffffff',
 				time_left: 10, 
 				_hittable_by_bullets: false,
-				//_return_damage_to_owner:true,
 				_custom_target_reaction: illusion_reaction,
 				_custom_target_reaction_protected: illusion_reaction
 			},
 			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
 		};
+
+		sdGun.classes[ sdGun.CLASS_SHURG_PISTOL = 112 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'shurg_pistol' ),
+			sound: 'tzyrg_fire',
+			sound_pitch: 2,
+			title: 'Shurg Pistol',
+			slot: 1,
+			reload_time: 7,
+			muzzle_x: 6,
+			ammo_capacity: 10,
+			spread: 0.03,
+			count: 2,
+			fire_type: 1,
+			projectile_velocity_dynamic: ( gun )=> { return Math.min( 64, sdGun.default_projectile_velocity ) },
+			projectile_properties: { _damage: 1 }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _dirt_mult: -0.5, _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				obj.color = '#004400';
+				
+				return obj;
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 24; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades()
+		};
+
+		// Add new gun classes above this line //
+		
+		let index_to_const = [];
+		for ( let s in sdGun )
+		if ( s.indexOf( 'CLASS_' ) === 0 )
+		{
+			if ( typeof sdGun[ s ] !== 'number' )
+			throw new Error( 'Check sdGunClass for a place where gun class index '+s+' is set - it has value '+sdGun[ s ]+' but should be a number in order to things work correctly' );
+			if ( typeof sdGun.classes[ sdGun[ s ] ] !== 'object' )
+			throw new Error( 'Check sdGunClass for a place where class '+s+' is defined. It looks like there is a non-object in sdGun.classes array at this slot' );
+			if ( index_to_const[ sdGun[ s ] ] === undefined )
+			index_to_const[ sdGun[ s ] ] = s;
+			else
+			throw new Error( 'Check sdGunClass for a place where index value is assigned - it looks like there is ID conflict for ID '+sdGun[ s ]+'. Both: '+s+' and '+index_to_const[ sdGun[ s ] ]+' point at the exact same ID. Not keeping IDs of different gun classes as unique will cause replacement of one class with another when it comes to spawning by ID.' );
+		}
+		for ( let i = 0; i < sdGun.classes.length; i++ )
+		if ( typeof index_to_const[ i ] === 'undefined' )
+		{
+			sdGun.classes[ i ] = {
+				image: sdWorld.CreateImageFromFile( 'present' ),
+				sound: 'gun_defibrillator',
+				title: 'Missing weapon',
+				//slot: -1,
+				reload_time: 25,
+				muzzle_x: null,
+				ammo_capacity: -1,
+				count: 0,
+				spawnable: false,
+				//ignore_slot: true,
+				projectile_properties: { time_left: 0, _damage: 0, color: 'transparent', _return_damage_to_owner:true }
+			};
+			//throw new Error( 'Check sdGunClass for a place where index values are assigned - there seems to be an ID number '+i+' skipped (assuming sdGun.classes.length is '+sdGun.classes.length+' and thus highest ID should be '+(sdGun.classes.length-1)+', with IDs starting at 0). Holes in ID list will cause server to crash when some parts of logic will try to loop through all classes. Currently defined IDs are following: ', index_to_const );
+		}
 	}
 }
 

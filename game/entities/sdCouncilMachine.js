@@ -90,8 +90,17 @@ class sdCouncilMachine extends sdEntity
 
 				while ( instances < instances_tot && sdCouncilMachine.ents < 2 ) // Spawn another council machine until last one
 				{
-					let points = sdCouncilMachine.ents_left === 0 ? 0.25: 0;
-					let council_mach = new sdCouncilMachine({ x:0, y:0, detonation_in:this.detonation_in });
+					//let points = sdCouncilMachine.ents_left === 0 ? 0.25: 0;
+					
+					sdWeather.SimpleSpawner({
+						
+						count: [ 1, 1 ],
+						class: sdCouncilMachine,
+						params: { detonation_in:this.detonation_in }
+						
+					});
+					
+					/*let council_mach = new sdCouncilMachine({ x:0, y:0, detonation_in:this.detonation_in });
 
 					sdEntity.entities.push( council_mach );
 
@@ -146,7 +155,7 @@ class sdCouncilMachine extends sdEntity
 							council_mach._broken = false;
 							break;
 						}
-					} while( true );
+					} while( true );*/
 
 					instances++;
 				}
@@ -154,7 +163,8 @@ class sdCouncilMachine extends sdEntity
 
 			}
 
-			if ( spawned_ent === true )
+			//if ( spawned_ent === true )
+			if ( sdCouncilMachine.ents > 1 )
 			{
 				for ( let i = 0; i < sdTask.tasks.length; i++ ) // All tasks related to this entity will set reward to 0 since it's not the last machine of the event.
 				{
@@ -259,7 +269,7 @@ class sdCouncilMachine extends sdEntity
 					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be destroyed
 					{
 						let desc;
-						if ( sdCouncilMachine.ents_left >= 3 )
+						if ( sdCouncilMachine.ents_left >= 2 )
 						desc = 'Council plans to invade this planet. We detected a few of their portal machines, destroy them before it is too late!';
 						else
 						if ( sdCouncilMachine.ents_left !== 0 )

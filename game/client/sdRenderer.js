@@ -447,8 +447,8 @@ class sdRenderer
 		];
 		sdRenderer.dark_lands_width = 800;
 		
-		sdRenderer.visibility_falloff = 64; // 32
-		sdRenderer.visibility_extra = 32; // 32
+		sdRenderer.visibility_falloff = 64; // 
+		sdRenderer.visibility_extra = 0; // 32 - occasionaly unsynced blocks are visible
 		
 		sdRenderer.last_render = sdWorld.time;
 		
@@ -486,7 +486,7 @@ class sdRenderer
 					
 						ctx2.scale( image_scale, image_scale );
 						ctx2.filter = 'saturate(0) brightness(3)';
-						ctx2.fillStyle = ctx2.createPattern( sdBlock.img_ground88, "repeat" );
+						ctx2.fillStyle = ctx2.createPattern( img_ground88, "repeat" );
 						ctx2.fillRect( 0, 0, sdRenderer.dark_lands_width / image_scale, 400 / image_scale );
 
 						ctx2.filter = 'none';

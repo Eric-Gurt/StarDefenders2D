@@ -31,7 +31,7 @@ class sdCom extends sdEntity
 		sdCom.action_range_command_centre = 64; // How far character needs to stand in order to manipualte it
 		sdCom.vehicle_entrance_radius = 64;
 		
-		sdCom.retransmit_range = 200; // Messages within this range are retransmitted to other coms
+		sdCom.retransmit_range = 200; // Only used by GetComsNear/GetComsNearCache
 		sdCom.max_subscribers = 32;
 		
 		//sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdMatterContainer', 'sdTeleport', 'sdCrystal', 'sdLamp', 'sdCube' ];
@@ -462,7 +462,7 @@ class sdCom extends sdEntity
 				(
 					sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdCom.action_range ) 
 					&&
-					executer_socket.character.canSeeForUse( this )
+					exectuter_character.canSeeForUse( this )
 				)
 				||
 				( command_name === 'COM_KICK' && parameters_array[ 0 ] === exectuter_character.biometry ) 
@@ -546,59 +546,62 @@ class sdCom extends sdEntity
 		{
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, sdCom.action_range ) )
 			{
-				//this.AddContextOption( 'Get ', 'GET', [ undefined ], 'Enter caption text', ( sdWorld.client_side_censorship && this.text_censored ) ? sdWorld.CensoredText( this.text ) : this.text, 100 );
-
-				if ( this.subscribers.indexOf( sdWorld.my_entity.biometry ) === -1 )
-				this.AddContextOption( 'Subscribe myself to network', 'COM_SUB', [ sdWorld.my_entity.biometry ] );
-
-				if ( this.subscribers.indexOf( 'sdCharacter' ) === -1 )
-				this.AddContextOption( 'Subscribe all players', 'COM_SUB', [ 'sdCharacter' ] );
-
-				if ( this.subscribers.indexOf( 'sdPlayerDrone' ) === -1 )
-				this.AddContextOption( 'Subscribe all player drones', 'COM_SUB', [ 'sdPlayerDrone' ] );
-
-				if ( this.subscribers.indexOf( 'sdCrystal' ) === -1 )
-				this.AddContextOption( 'Subscribe all crystals', 'COM_SUB', [ 'sdCrystal' ] );
-
-				if ( this.subscribers.indexOf( 'sdCube' ) === -1 )
-				this.AddContextOption( 'Subscribe all Cubes', 'COM_SUB', [ 'sdCube' ] );
-
-				if ( this.subscribers.indexOf( 'sdGuanako' ) === -1 )
-				this.AddContextOption( 'Subscribe all Guanako', 'COM_SUB', [ 'sdGuanako' ] );
-
-				if ( this.subscribers.indexOf( 'sdStorage' ) === -1 )
-				this.AddContextOption( 'Subscribe all Storage crates', 'COM_SUB', [ 'sdStorage' ] );
-
-				if ( this.subscribers.indexOf( 'sdHover' ) === -1 )
-				this.AddContextOption( 'Subscribe all Hovers', 'COM_SUB', [ 'sdHover' ] );
-
-				if ( this.subscribers.indexOf( 'sdGun' ) === -1 )
-				this.AddContextOption( 'Subscribe all items', 'COM_SUB', [ 'sdGun' ] );
-
-				if ( this.subscribers.indexOf( 'sdBullet' ) === -1 )
-				this.AddContextOption( 'Subscribe projectiles', 'COM_SUB', [ 'sdBullet' ] );
-
-				if ( this.subscribers.indexOf( 'sdBot' ) === -1 )
-				this.AddContextOption( 'Subscribe bots', 'COM_SUB', [ 'sdBot' ] );
-
-				if ( this.subscribers.indexOf( '*' ) === -1 )
-				this.AddContextOption( 'Subscribe everything (for doors & teleports only)', 'COM_SUB', [ '*' ] );
-
-				for ( var i = 0; i < this.subscribers.length; i++ )
+				if ( exectuter_character.canSeeForUse( this ) )
 				{
-					let net_id_or_biometry = this.subscribers[ i ];
-					this.AddContextOptionNoTranslation( T('Kick ') + sdEntity.GuessEntityName( net_id_or_biometry ), 'COM_KICK', [ net_id_or_biometry ], true, { color:'#ffff00' } );
+					//this.AddContextOption( 'Get ', 'GET', [ undefined ], 'Enter caption text', ( sdWorld.client_side_censorship && this.text_censored ) ? sdWorld.CensoredText( this.text ) : this.text, 100 );
+
+					if ( this.subscribers.indexOf( sdWorld.my_entity.biometry ) === -1 )
+					this.AddContextOption( 'Subscribe myself to network', 'COM_SUB', [ sdWorld.my_entity.biometry ] );
+
+					if ( this.subscribers.indexOf( 'sdCharacter' ) === -1 )
+					this.AddContextOption( 'Subscribe all players', 'COM_SUB', [ 'sdCharacter' ] );
+
+					if ( this.subscribers.indexOf( 'sdPlayerDrone' ) === -1 )
+					this.AddContextOption( 'Subscribe all player drones', 'COM_SUB', [ 'sdPlayerDrone' ] );
+
+					if ( this.subscribers.indexOf( 'sdCrystal' ) === -1 )
+					this.AddContextOption( 'Subscribe all crystals', 'COM_SUB', [ 'sdCrystal' ] );
+
+					if ( this.subscribers.indexOf( 'sdCube' ) === -1 )
+					this.AddContextOption( 'Subscribe all Cubes', 'COM_SUB', [ 'sdCube' ] );
+
+					if ( this.subscribers.indexOf( 'sdGuanako' ) === -1 )
+					this.AddContextOption( 'Subscribe all Guanako', 'COM_SUB', [ 'sdGuanako' ] );
+
+					if ( this.subscribers.indexOf( 'sdStorage' ) === -1 )
+					this.AddContextOption( 'Subscribe all Storage crates', 'COM_SUB', [ 'sdStorage' ] );
+
+					if ( this.subscribers.indexOf( 'sdHover' ) === -1 )
+					this.AddContextOption( 'Subscribe all Hovers', 'COM_SUB', [ 'sdHover' ] );
+
+					if ( this.subscribers.indexOf( 'sdGun' ) === -1 )
+					this.AddContextOption( 'Subscribe all items', 'COM_SUB', [ 'sdGun' ] );
+
+					if ( this.subscribers.indexOf( 'sdBullet' ) === -1 )
+					this.AddContextOption( 'Subscribe projectiles', 'COM_SUB', [ 'sdBullet' ] );
+
+					if ( this.subscribers.indexOf( 'sdBot' ) === -1 )
+					this.AddContextOption( 'Subscribe bots', 'COM_SUB', [ 'sdBot' ] );
+
+					if ( this.subscribers.indexOf( '*' ) === -1 )
+					this.AddContextOption( 'Subscribe everything (for doors & teleports only)', 'COM_SUB', [ '*' ] );
+
+					for ( var i = 0; i < this.subscribers.length; i++ )
+					{
+						let net_id_or_biometry = this.subscribers[ i ];
+						this.AddContextOptionNoTranslation( T('Kick ') + sdEntity.GuessEntityName( net_id_or_biometry ), 'COM_KICK', [ net_id_or_biometry ], true, { color:'#ffff00' } );
+					}
+
+					if ( this.through_walls )
+					this.AddContextOption( 'Attack players through unprotected walls: Yes', 'ATTACK_THROUGH_WALLS', [ 0 ], true, { color:'#00ff00' } );
+					else
+					this.AddContextOption( 'Attack players through unprotected walls: No', 'ATTACK_THROUGH_WALLS', [ 1 ], true, { color:'#ff0000' } );
+
+					if ( this.variation >= 7 )
+					if ( this.hacking_left <= 0 )
+					if ( exectuter_character.build_tool_level >= 14 )
+					this.AddContextOption( 'Initiate hacking', 'HACKING', [ 1 ], true, { color:'#006600' } );
 				}
-				
-				if ( this.through_walls )
-				this.AddContextOption( 'Attack players through unprotected walls: Yes', 'ATTACK_THROUGH_WALLS', [ 0 ], true, { color:'#00ff00' } );
-				else
-				this.AddContextOption( 'Attack players through unprotected walls: No', 'ATTACK_THROUGH_WALLS', [ 1 ], true, { color:'#ff0000' } );
-			
-				if ( this.variation >= 7 )
-				if ( this.hacking_left <= 0 )
-				if ( exectuter_character.build_tool_level >= 14 )
-				this.AddContextOption( 'Initiate hacking', 'HACKING', [ 1 ], true, { color:'#006600' } );
 			}
 			else
 			{

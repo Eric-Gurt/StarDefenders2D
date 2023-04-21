@@ -6,6 +6,7 @@ import sdEffect from './sdEffect.js';
 import sdBlock from './sdBlock.js';
 import sdCharacter from './sdCharacter.js';
 import sdDoor from './sdDoor.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -41,11 +42,14 @@ class sdAntigravity extends sdEntity
 		
 		if ( this._hea > 0 )
 		{
-			this._hea -= dmg;
-			this._regen_timeout = 60;
+			if ( sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
+			{
+				this._hea -= dmg;
+				this._regen_timeout = 60;
 
-			if ( this._hea <= 0 )
-			this.remove();
+				if ( this._hea <= 0 )
+				this.remove();
+			}
 		}
 	}
 	constructor( params )
@@ -59,6 +63,10 @@ class sdAntigravity extends sdEntity
 		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
 		
 		this.power = 1;
+		
+		this.toggle_enabled = 1; // Sets to 0 if sdButton is being pressed
+		
+		this._shielded = null; // Is this entity protected by a base defense unit?
 		
 		//this.matter = 0;
 		//this._matter_max = 20;
@@ -85,7 +93,7 @@ class sdAntigravity extends sdEntity
 		
 		var non_recursive = new WeakSet();
 		
-		if ( this.power !== 0 )
+		if ( this.power !== 0 && this.toggle_enabled )
 		//if ( this.matter > 0 )
 		for ( var t = 0; t < 2; t++ )
 		{
@@ -187,7 +195,7 @@ class sdAntigravity extends sdEntity
 				
 		if ( this._hea >= this._hmax )
 		//if ( this.matter <= 0 || this.power === 0 )
-		if ( this.power === 0 )
+		if ( this.power === 0 || !this.toggle_enabled )
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 	}
 	
@@ -215,6 +223,7 @@ class sdAntigravity extends sdEntity
 	
 		ctx.drawImageFilterCache( sdAntigravity.img_antigravity, 0,frame*32,32,32, -16, -16, 32,32 );
 		
+		if ( this.power !== 0 && this.toggle_enabled )
 		if ( frame === 0 )
 		{
 			let repeat = 400;
@@ -223,7 +232,7 @@ class sdAntigravity extends sdEntity
 			{
 				let prog;
 
-				if ( this.power >= 0 )
+				if ( this.power >= 0 && this.toggle_enabled )
 				prog = ( ( sdWorld.time * this.power + i * repeat / 3 ) % repeat ) / repeat;
 				else
 				prog = 1 - ( ( sdWorld.time * 0.1 + i * repeat / 3 ) % repeat ) / repeat;
@@ -243,7 +252,6 @@ class sdAntigravity extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		//if ( this.matter > 0 )
 		sdEntity.Tooltip( ctx, this.title );
 		//else
 		//sdEntity.Tooltip( ctx, this.title + ' ( no matter )' );
@@ -299,6 +307,8 @@ class sdAntigravity extends sdEntity
 							i = velocities[ i ];
 							this.power = i;
 							this._update_version++;
+							
+							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 						}
 					}
 				}

@@ -56,7 +56,7 @@ class sdStorage extends sdEntity
 
 		this.type = params.type || 0;
 		
-		this._hmax = ( this.type === sdStorage.TYPE_CARGO ? 600 : this.type === sdStorage.TYPE_CRYSTALS ? 400 : 100 ) * 4;
+		this._hmax = ( this.type === sdStorage.TYPE_CARGO ? 800 : this.type === sdStorage.TYPE_CRYSTALS ? 500 : 300 );
 		this._hea = this._hmax;
 
 		this.held_by = null; // Might still remain for cargo ships?

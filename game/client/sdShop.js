@@ -374,6 +374,10 @@ class sdShop
 		sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(270deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 2 });
 		sdShop.options.push({ _class: 'sdCamera', _category:'Base equipment', _min_build_tool_level: 1 });
 		
+		sdShop.options.push({ _class: 'sdButton', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdButton', type:1, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdButton', type:2, _category:'Base equipment' });
+		
 		
 		for ( let i = 0; i < sdCaption.colors.length / 3; i++ )
 		sdShop.options.push({ _class: 'sdCaption', type: i, _category:'Base equipment' });
@@ -550,6 +554,7 @@ class sdShop
 				action: ( character, level_purchased )=>
 				{
 					character.has_flashlight = 1;
+					character.flashlight = 1;
 				}
 			},
 			/*upgrade_coms:
@@ -661,7 +666,19 @@ class sdShop
 			sdShop.options.push({ _class: 'sdVirus', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdFaceCrab', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAmphid', _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdCharacter', _category:'Development tests' });
+			
+			let sd_filter = sdWorld.CreateSDFilter();
+			sdWorld.ReplaceColorInSDFilter_v2( sd_filter, '#ff00ff', '#007f00', false );
+			sdWorld.ReplaceColorInSDFilter_v2( sd_filter, '#800080', '#007f00', false );
+			
+			sdShop.options.push({ _class: 'sdCharacter', title: 'Player from the shop', sd_filter:sd_filter, _category:'Development tests' });
+			
+			let sd_filter2 = sdWorld.CreateSDFilter();
+			sdWorld.ReplaceColorInSDFilter_v2( sd_filter2, '#ff00ff', '#000000', false );
+			sdWorld.ReplaceColorInSDFilter_v2( sd_filter2, '#800080', '#000000', false );
+			
+			
+			sdShop.options.push({ _class: 'sdCharacter', title: 'Idling AI from the shop', sd_filter:sd_filter2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAsteroid', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', kind:1, _category:'Development tests' });
@@ -773,9 +790,10 @@ class sdShop
 			sdShop.options.push({ _class: 'sdBot', kind:0, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBot', kind:1, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGuanako', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdLandScanner', _category:'Development tests' });
 			//sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'saturate(0) brightness(1.5)', _category:'Development tests' });
 			//sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'saturate(0) brightness(0.5)', _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdButton', _category:'Development tests' });
+			//sdShop.options.push({ _class: 'sdButton', _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });
@@ -1165,13 +1183,25 @@ class sdShop
 			}
 			else
 			{
-				if ( sdShop.options[ sdShop.potential_selection ]._class !== null )
+				let pseudo_entity = sdShop.options[ sdShop.potential_selection ];
+					
+				if ( pseudo_entity._class !== null )
 				{
-					let c = sdWorld.ClassNameToProperName( sdShop.options[ sdShop.potential_selection ]._class, sdShop.options[ sdShop.potential_selection ] );
+					
+					let c = sdWorld.ClassNameToProperName( pseudo_entity._class, pseudo_entity );
 					
 					try
 					{
-						let title = sdWorld.entity_classes[ sdShop.options[ sdShop.potential_selection ]._class ].prototype.title;
+						let title = sdWorld.entity_classes[ pseudo_entity._class ].prototype.title;
+						
+						if ( typeof title === 'string' && title.indexOf( 'undefined' ) === -1 )
+						c = title;
+					}
+					catch(e){};
+					
+					try
+					{
+						let title = Object.getOwnPropertyDescriptor( sdWorld.entity_classes[ pseudo_entity._class ].prototype, 'title' ).get.call( pseudo_entity );
 						
 						if ( typeof title === 'string' && title.indexOf( 'undefined' ) === -1 )
 						c = title;
@@ -1181,10 +1211,10 @@ class sdShop
 					t = T('Click to select')+' "' + c + '" '+T('as a build object. Then click to place this object in world.');
 				}
 				else
-				if ( sdShop.options[ sdShop.potential_selection ].upgrade_name )
+				if ( pseudo_entity.upgrade_name )
 				{
-					t = T('Click to select')+' "' + T(capitalize( sdShop.options[ sdShop.potential_selection ].upgrade_name.split('_').join(' ') )) + '" '+T('as an upgrade. Then click anywhere to upgrade.');
-					desc = capitalize( sdShop.options[ sdShop.potential_selection ].description );
+					t = T('Click to select')+' "' + T(capitalize( pseudo_entity.upgrade_name.split('_').join(' ') )) + '" '+T('as an upgrade. Then click anywhere to upgrade.');
+					desc = capitalize( pseudo_entity.description );
 				}
 				
 			}

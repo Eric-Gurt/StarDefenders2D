@@ -14,6 +14,8 @@ import sdEntity from '../entities/sdEntity.js';
 import sdGun from '../entities/sdGun.js';
 import sdWater from '../entities/sdWater.js';
 import sdRescueTeleport from '../entities/sdRescueTeleport.js';
+import sdDeepSleep from '../entities/sdDeepSleep.js';
+
 
 import { spawn } from 'child_process';
 
@@ -460,6 +462,11 @@ class sdModeration
 		else
 		if ( parts[ 0 ] === 'save' )
 		{
+			if ( sdWorld.server_config.aggressive_hibernation )
+			{
+				socket.SDServiceMessage( 'This feature does not work when aggressive_hibernation is enabled in config file' );
+			}
+			else
 			sdWorld.SaveSnapshot( sdWorld.timewarp_path_const, ( err )=>
 			{
 				for ( let i = 0; i < sdWorld.sockets.length; i++ )
@@ -469,35 +476,42 @@ class sdModeration
 		else
 		if ( parts[ 0 ] === 'restore' || parts[ 0 ] === 'load' )
 		{
-			for ( let i = 0; i < sdWorld.sockets.length; i++ )
-			sdWorld.sockets[ i ].SDServiceMessage( 'Server: Timewarp initiated.' );
-
-			sdWorld.PreventSnapshotSaving();
-			
-			let ok = 0;
-			let tot = 0;
-			
-			const fin = ( err )=>
+			if ( sdWorld.server_config.aggressive_hibernation )
 			{
-				tot++;
-				if ( !err )
-				ok++;
-			
-				socket.SDServiceMessage( 'Server: Copying files... tot: ' + tot + ', ok: ' + ok  );
-			
-				if ( tot === 2 )
+				socket.SDServiceMessage( 'This feature does not work when aggressive_hibernation is enabled in config file' );
+			}
+			else
+			{
+				for ( let i = 0; i < sdWorld.sockets.length; i++ )
+				sdWorld.sockets[ i ].SDServiceMessage( 'Server: Timewarp initiated.' );
+
+				sdWorld.PreventSnapshotSaving();
+
+				let ok = 0;
+				let tot = 0;
+
+				const fin = ( err )=>
 				{
-					if ( ok === 2 )
-					sdModeration.CommandReceived( socket, '/restart nosave' );
-					else
+					tot++;
+					if ( !err )
+					ok++;
+
+					socket.SDServiceMessage( 'Server: Copying files... tot: ' + tot + ', ok: ' + ok  );
+
+					if ( tot === 2 )
 					{
-						socket.SDServiceMessage( 'Server: Unable to manage backup files. /load command execution canceled.' );
+						if ( ok === 2 )
+						sdModeration.CommandReceived( socket, '/restart nosave' );
+						else
+						{
+							socket.SDServiceMessage( 'Server: Unable to manage backup files. /load command execution canceled.' );
+						}
 					}
-				}
-			};
-			
-			fs.copyFile( sdWorld.timewarp_path_const, sdWorld.snapshot_path_const, fs.constants.COPYFILE_FICLONE, fin );
-			fs.copyFile( sdWorld.timewarp_path_const+'.raw.v', sdWorld.snapshot_path_const+'.raw.v', fs.constants.COPYFILE_FICLONE, fin );
+				};
+
+				fs.copyFile( sdWorld.timewarp_path_const, sdWorld.snapshot_path_const, fs.constants.COPYFILE_FICLONE, fin );
+				fs.copyFile( sdWorld.timewarp_path_const+'.raw.v', sdWorld.snapshot_path_const+'.raw.v', fs.constants.COPYFILE_FICLONE, fin );
+			}
 		}
 		else
 		if ( parts[ 0 ] === 'fullreset' || parts[ 0 ] === 'wipe' )
@@ -509,6 +523,8 @@ class sdModeration
 			try
 			{
 				fs.unlinkSync( sdWorld.snapshot_path_const );
+				sdDeepSleep.DeleteAllFiles();
+				
 			}catch(e){}
 			
 			sdModeration.CommandReceived( socket, '/restart nosave' );
@@ -536,6 +552,13 @@ class sdModeration
 			{
 				if ( parts[ 1 ] === '1' )
 				{
+					// Skip arrival sequence
+					if ( socket.character.driver_of )
+					if ( socket.character.driver_of._doors_locked )
+					{
+						socket.character.driver_of.ExcludeDriver( socket.character, true );
+					}
+					
 					for ( let i = 0; i < sdWorld.sockets.length; i++ )
 					sdWorld.sockets[ i ].SDServiceMessage( socket.character.title + ' has entered "godmode".' );
 		
@@ -549,6 +572,15 @@ class sdModeration
 					socket.character.InstallUpgrade( 'upgrade_jetpack' );
 					socket.character.InstallUpgrade( 'upgrade_hook' );
 					socket.character.InstallUpgrade( 'upgrade_invisibility' );
+					socket.character.InstallUpgrade( 'upgrade_grenades' );
+					
+					socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
+					socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
+					socket.character.InstallUpgrade( 'upgrade_jetpack_power' );
+					
+					socket.character.InstallUpgrade( 'upgrade_stability_recovery' );
+					socket.character.InstallUpgrade( 'upgrade_stability_recovery' );
+					socket.character.InstallUpgrade( 'upgrade_stability_recovery' );
 					
 					socket.emit('SET sdWorld.my_entity._god', true );
 				}
@@ -674,6 +706,15 @@ class sdModeration
 					socket.SDServiceMessage( 'Most active entitites by count: ' + strings.join(', ') );
 				}, t * 1000 );
 			}
+		}
+		else
+		if ( parts[ 0 ] === 'deepsleepinfo' || parts[ 0 ] === 'cells' || parts[ 0 ] === 'deepsleep' || parts[ 0 ] === 'ds' )
+		{
+			let counts = [ 0,0,0 ];
+			for ( let i = 0; i < sdDeepSleep.cells.length; i++ )
+			counts[ sdDeepSleep.cells[ i ].type ]++;
+		
+			socket.SDServiceMessage( 'Cells total: ' + sdDeepSleep.cells.length + ', unspawned: ' + counts[ sdDeepSleep.TYPE_UNSPAWNED_WORLD ] + ', hibernated: ' + counts[ sdDeepSleep.TYPE_HIBERNATED_WORLD ] + ', potentially-to-hibernate: ' + counts[ sdDeepSleep.TYPE_SCHEDULED_SLEEP ] );
 		}
 		else
 		if ( parts[ 0 ] === 'updatecache' )

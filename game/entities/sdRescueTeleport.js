@@ -35,6 +35,7 @@ class sdRescueTeleport extends sdEntity
 		sdRescueTeleport.clonning_time = 30 * 60 * 20; // 20 minutes
 
 		sdRescueTeleport.max_short_range_distance = 1200;
+		sdRescueTeleport.max_default_range_distance = 10000;
 		
 		sdRescueTeleport.rescue_teleports = [];
 		
@@ -106,8 +107,9 @@ class sdRescueTeleport extends sdEntity
 							
 							if ( suits )
 							{
-								let t = rtp;
-								if ( sdWorld.CheckLineOfSight( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - character._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - character._hitbox_y2 - 12, t, null, sdCom.com_vision_blocking_classes ) )
+								//let t = rtp;
+								if ( rtp.GetRTPPotentialPlayerPlacementTestResult( character ) )
+								//if ( sdWorld.CheckLineOfSight( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - character._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - character._hitbox_y2 - 12, t, null, sdCom.com_vision_blocking_classes ) )
 								{
 									is_suitable[ i2 ] = suits;
 									any_is_suitable = true;
@@ -213,11 +215,11 @@ class sdRescueTeleport extends sdEntity
 				}
 				else
 				{
-					if ( this._rescuing_from_lost_effect )
-					{
+					//if ( this._rescuing_from_lost_effect )
+					//{
 						c.remove();
-					}
-					else
+					//}
+					/*else No because it causes abuse of cloner in a way where player could get into cloner and then to short range teleports - effectively RTP-ing for free after dying far from the base
 					{
 						if ( !c.AttemptTeleportOut( null, false ) )
 						{
@@ -225,7 +227,7 @@ class sdRescueTeleport extends sdEntity
 							return false;
 						}
 						//c.Damage( c.hea + 1, null, false, false ); // Send player to some else RTP
-					}
+					}*/
 				}
 			}
 			return false;
@@ -320,7 +322,7 @@ class sdRescueTeleport extends sdEntity
 		
 		this.driver0 = null;
 		this.cloning_progress = 0;
-		this._rescuing_from_lost_effect = false;
+		//this._rescuing_from_lost_effect = false; Always true
 		
 		this._owner = params.owner || null;
 		//this.owner_net_id = null;
@@ -341,7 +343,7 @@ class sdRescueTeleport extends sdEntity
 	GetRTPRange( character )
 	{
 		if ( this.type === sdRescueTeleport.TYPE_INFINITE_RANGE )
-		return Infinity;
+		return sdRescueTeleport.max_default_range_distance;
 	
 		if ( this.type === sdRescueTeleport.TYPE_CLONER )
 		return Infinity;
@@ -359,6 +361,15 @@ class sdRescueTeleport extends sdEntity
 		tele_cost = 100;
 	
 		return tele_cost;
+	}
+	GetRTPPotentialPlayerPlacementTestResult( character )
+	{
+		if ( this.IsCloner() )
+		return true;
+	
+		const t = this;
+		
+		return ( sdWorld.CheckLineOfSight( t.x - t._hitbox_x1, t.y + t._hitbox_y1 - character._hitbox_y2 - 1, t.x + t._hitbox_x1, t.y + t._hitbox_y1 - character._hitbox_y2 - 12, t, null, sdCom.com_vision_blocking_classes ) );
 	}
 	onBuilt()
 	{
@@ -607,15 +618,15 @@ class sdRescueTeleport extends sdEntity
 						{
 							if ( command_name === 'CANCEL' )
 							{
-								if ( this._rescuing_from_lost_effect )
-								{
-									executer_socket.SDServiceMessage( 'Your previous body does no longer exist. Clonning procedure needs to be compelted' );
-								}
+								//if ( this._rescuing_from_lost_effect )
+								//{
+									executer_socket.SDServiceMessage( 'Your previous body does no longer exist. Clonning procedure needs to be compelted. Does anyone have "Area amplifier" device?' );
+								/*}
 								else
 								{
 									if ( !this.ExcludeDriver( this.driver0, true ) )
 									executer_socket.SDServiceMessage( 'No other rescue devices were found' );
-								}
+								}*/
 							}
 						}
 					}

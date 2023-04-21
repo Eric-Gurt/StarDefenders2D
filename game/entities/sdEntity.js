@@ -103,6 +103,14 @@ class sdEntity
 		sdWorld.entity_classes_array[ i ].init();
 	}
 	
+	static GetRandomEntity()
+	{
+		if ( sdEntity.entities.length > 0 )
+		return sdEntity.entities[ Math.floor( Math.random() * sdEntity.entities.length ) ];
+	
+		return null;
+	}
+	
 	GetCollisionMode()
 	{
 		return sdEntity.COLLISION_MODE_BOUNCE_AND_FRICTION;
@@ -204,7 +212,7 @@ class sdEntity
 	get hitbox_y1() { return -5; }
 	get hitbox_y2() { return 5; }
 	
-	PrecieseHitDetection( x, y ) // Teleports use this to prevent bullets from hitting them like they do. Only ever used by bullets, as a second rule after box-like hit detection. It can make hitting entities past outer bounding box very inaccurate
+	PrecieseHitDetection( x, y, bullet=null ) // Teleports use this to prevent bullets from hitting them like they do. Only ever used by bullets, as a second rule after box-like hit detection. It can make hitting entities past outer bounding box very inaccurate. Can be also used to make it ignore certain bullet kinds altogether
 	{
 		return true;
 	}
@@ -413,7 +421,11 @@ class sdEntity
 	{
 		return 1;
 	}*/
-	IsVehicle()
+	IsVehicle() // Workbench, sdButton and sdRescueTeleport are all "vehicles" but they won't add player on .AddDriver call. If you wan to prevent ghost mode though - override .IsFakeVehicleForEKeyUsage() just like sdButton does
+	{
+		return false;
+	}
+	IsFakeVehicleForEKeyUsage()
 	{
 		return false;
 	}
@@ -1160,7 +1172,7 @@ class sdEntity
 						if ( arr_i_is_bg_entity === 10 ) // Check if this is a sdDeepSleep
 						{
 							// If so - wake it up as soon as possible!
-							debugger;
+							//debugger;
 							arr_i.WakeUpArea();
 						}
 					}
@@ -2652,7 +2664,7 @@ class sdEntity
 						}
 					}
 					else
-					if ( connected_ents[ i ].is( SearchedClass ) )
+					if ( SearchedClass === sdEntity || connected_ents[ i ].is( SearchedClass ) )
 					{
 						ret.push( connected_ents[ i ] );
 					}
@@ -3487,6 +3499,13 @@ class sdEntity
 			debugger; // Should not happen
 			return null;
 		}
+		
+		/* Normal thing for client-side case...
+		if ( possible_ent._is_being_removed )
+		{
+			//debugger; // That is a weird case. Is this is a reason client-side blocks might not appear at times?
+		
+		}*/
 		
 		return possible_ent;
 	
