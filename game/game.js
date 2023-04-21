@@ -612,6 +612,8 @@ let enf_once = true;
 			
 			let message_id_to_report = ( stuff_arr[ 9 ] === undefined ) ? -1 : stuff_arr[ 9 ];
 			
+			sdRenderer.line_of_sight_mode = stuff_arr[ 10 ] || 0;
+			
 			if ( message_id_to_report !== -1 )
 			messages_to_report_arrival.push( message_id_to_report );
 
@@ -622,6 +624,15 @@ let enf_once = true;
 				for ( var i = 0; i < snapshot.length; i++ )
 				{
 					let ent = sdEntity.GetObjectFromSnapshot( snapshot[ i ] );
+					
+					/*if ( ent )
+					if ( ent._is_being_removed )
+					{
+						if ( ent._hiberstate !== sdEntity.HIBERSTATE_REMOVED )
+						{
+							ent._is_being_removed = false; // Nothing bad will happen? Trying to prevent missing blocks bug // It probably can't be solved here
+						}
+					}*/
 					
 					if ( ent )
 					new_snapshot_entities.push( ent );
@@ -1039,6 +1050,20 @@ let enf_once = true;
 		if ( !IsGameFocused() )
 		return true;
 	
+		if ( e.key === 'Escape' )
+		{
+			if ( sdContextMenu.open )
+			{
+				sdContextMenu.open = false;
+			}
+			else
+			{
+				sdWorld.hovered_entity = sdWorld.my_entity;
+				sdContextMenu.Open();
+			}
+			
+			e.preventDefault();
+		}
 	
 		if ( sdShop.open )
 		{

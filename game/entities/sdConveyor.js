@@ -12,7 +12,7 @@ import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 //import sdWater from './sdWater.js';
 //import sdBG from './sdBG.js';
-//import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdBlock from './sdBlock.js';
 import sdCharacter from './sdCharacter.js';
 
@@ -64,15 +64,18 @@ class sdConveyor extends sdEntity
 
 		if ( this._hea > 0 )
 		{
-			this._hea -= dmg;
-
-			this.HandleDestructionUpdate();
-			
-			this._regen_timeout = 60;
-
-			if ( this._hea <= 0 )
+			if ( sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
 			{
-				this.remove();
+				this._hea -= dmg;
+
+				this.HandleDestructionUpdate();
+
+				this._regen_timeout = 60;
+
+				if ( this._hea <= 0 )
+				{
+					this.remove();
+				}
 			}
 		}
 		
@@ -86,6 +89,8 @@ class sdConveyor extends sdEntity
 		
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
+		
+		this._shielded = null; // Is this entity protected by a base defense unit?
 		
 		this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
 		
@@ -473,42 +478,47 @@ class sdConveyor extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		{
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
 			{
-				if ( command_name === 'SET_DIR' )
+				if ( exectuter_character.canSeeForUse( this ) )
 				{
-					let velocities = [ -20, -10, -5, -2, -1, 0, 1, 2, 5, 10, 20 ];
-				
-					let i = velocities.indexOf( parameters_array[ 0 ] );
-					
-					if ( i !== -1 )
+					if ( command_name === 'SET_DIR' )
 					{
-						i = velocities[ i ];
-						
-						let arr = [];
-						let next = [ this ];
-						while ( next.length > 0 )
+						let velocities = [ -20, -10, -5, -2, -1, 0, 1, 2, 5, 10, 20 ];
+
+						let i = velocities.indexOf( parameters_array[ 0 ] );
+
+						if ( i !== -1 )
 						{
-							next[ 0 ].dir = i;
-							next[ 0 ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-							
-							arr.push( next[ 0 ] );
-							
-							next[ 0 ].RequireBelt( -1 );
-							next[ 0 ].RequireBelt( 1 );
-							
-							if ( next[ 0 ]._right_belt )
-							if ( arr.indexOf( next[ 0 ]._right_belt ) === -1 )
-							next.push( next[ 0 ]._right_belt );
-						
-							if ( next[ 0 ]._left_belt )
-							if ( arr.indexOf( next[ 0 ]._left_belt ) === -1 )
-							next.push( next[ 0 ]._left_belt );
-						
-							next.shift();
+							i = velocities[ i ];
+
+							let arr = [];
+							let next = [ this ];
+							while ( next.length > 0 )
+							{
+								next[ 0 ].dir = i;
+								next[ 0 ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+								arr.push( next[ 0 ] );
+
+								next[ 0 ].RequireBelt( -1 );
+								next[ 0 ].RequireBelt( 1 );
+
+								if ( next[ 0 ]._right_belt )
+								if ( arr.indexOf( next[ 0 ]._right_belt ) === -1 )
+								next.push( next[ 0 ]._right_belt );
+
+								if ( next[ 0 ]._left_belt )
+								if ( arr.indexOf( next[ 0 ]._left_belt ) === -1 )
+								next.push( next[ 0 ]._left_belt );
+
+								next.shift();
+							}
 						}
 					}
 				}
+				else
+				executer_socket.SDServiceMessage( 'Conveyor is behind wall' );
 			}
 			else
 			executer_socket.SDServiceMessage( 'Conveyor is too far' );
@@ -520,7 +530,8 @@ class sdConveyor extends sdEntity
 		if ( this._hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
-		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 64 ) )
+		if ( exectuter_character.canSeeForUse( this ) )
 		{
 			if ( sdWorld.my_entity )
 			{

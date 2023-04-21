@@ -10,6 +10,7 @@ import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdSensorArea from './sdSensorArea.js';
 import sdCharacter from './sdCharacter.js';
 import sdDrone from './sdDrone.js';
+import sdButton from './sdButton.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -42,6 +43,10 @@ class sdDoor extends sdEntity
 		sdDoor.MODEL_BASIC = 1;
 		sdDoor.MODEL_ARMORED = 2;
 		sdDoor.MODEL_ARMORED_LVL2 = 3;
+		
+		sdDoor.OPEN_TYPE_COM_NODE = 0;
+		sdDoor.OPEN_TYPE_AI_TEAM = 1;
+		sdDoor.OPEN_TYPE_BUTTON = 2;
 
 		sdDoor.metal_reinforces = [ 
 			null,
@@ -99,54 +104,16 @@ class sdDoor extends sdEntity
 		{
 			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 			
-			if ( this._shielded === null || dmg === Infinity || this._shielded._is_being_removed || !this._shielded.enabled || !sdWorld.inDist2D_Boolean( this.x, this.y, this._shielded.x, this._shielded.y, sdBaseShieldingUnit.protect_distance_stretch ) )
+			//if ( this._shielded === null || dmg === Infinity || this._shielded._is_being_removed || !this._shielded.enabled || !sdWorld.inDist2D_Boolean( this.x, this.y, this._shielded.x, this._shielded.y, sdBaseShieldingUnit.protect_distance_stretch ) )
+			if ( sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
 			{
 				this._hea -= dmg;
 			}
-			else
+			/*else
 			{
 				this._shielded.ProtectedEntityAttacked( this, dmg, initiator );
-				
-				/*sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:0.2 });
-				this._shielded.matter_crystal = Math.max( 0, this._shielded.matter_crystal - dmg * sdBaseShieldingUnit.regen_matter_cost_per_1_hp );
-
-				if ( this._shielded.matter_crystal >= 50000 )
-				{
-					if ( initiator )
-					if ( !initiator._is_being_removed )
-					{
-						if ( !sdWorld.inDist2D_Boolean( initiator.x, initiator.y, this._shielded.x, this._shielded.y, sdBaseShieldingUnit.protect_distance - 64 ) ) // Check if it is far enough from the shield to prevent players in base take damage
-						{
-							initiator.DamageWithEffect( 5 );
-							sdWorld.SendEffect({ x:this._shielded.x, y:this._shielded.y, x2:this.x + ( this._hitbox_x2 / 2 ), y2:this.y + ( this._hitbox_y2 / 2 ), type:sdEffect.TYPE_BEAM, color:'#f9e853' });
-							sdWorld.SendEffect({ x:this.x + ( this._hitbox_x2 / 2 ), y:this.y + ( this._hitbox_y2 / 2 ), x2:initiator.x, y2:initiator.y, type:sdEffect.TYPE_BEAM, color:'#f9e853' });
-						}
-					}
-				}*/
-			}
-
-			/*if ( this._shielded === null || dmg === Infinity )
-			this._hea -= dmg;
-			else
-			{
-				let shield = sdEntity.entities_by_net_id_cache_map.get( this._shielded );
-				//console.log( shield );
-				if ( shield === undefined ) // If the shielding unit doesn't exist, act as a default entity
-				{
-					this._hea -= dmg;
-					this._shielded = null;
-				}
-				else
-				if ( shield.enabled && !shield._is_being_removed )
-				if ( sdWorld.Dist2D( this.x, this.y, shield.x, shield.y ) < sdBaseShieldingUnit.protect_distance )
-				{
-				}
-				else
-				{
-					this._hea -= dmg;
-					this._shielded = null;
-				}
 			}*/
+
 			this.HandleDestructionUpdate();
 			
 			this._regen_timeout = 60;
@@ -186,16 +153,16 @@ class sdDoor extends sdEntity
 		this.model = params.model || 1;
 		
 		this._sensor_area = null;
-		this._entities_within_sensor_area = [];
+		this._entities_within_sensor_area = []; // _net_ids
 
-		this.open_type = params.open_type || 0; // 0 = normal doors, 1 = opens for specific AI team entities ( no communication node needed) , used in faction outpost generation
+		this.open_type = params.open_type || sdDoor.OPEN_TYPE_COM_NODE; // 0 = normal doors, 1 = opens for specific AI team entities ( no communication node needed) , used in faction outpost generation
 		this._ai_team = params._ai_team || 0; // Used so AI humanoids don't attack their own base
 		
 		this.filter = params.filter;
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
-		return ( prop === '_shielded' || prop === '_sensor_area' );
+		return ( prop === '_shielded' || prop === '_sensor_area' || prop === '_entities_within_sensor_area' );
 	}
 	MeasureMatterCost()
 	{
@@ -209,9 +176,9 @@ class sdDoor extends sdEntity
 	}
 	SensorAreaMovementCallback( from_entity )
 	{
-		if ( this.open_type === 0 ) // Normal doors
+		if ( this.open_type === sdDoor.OPEN_TYPE_COM_NODE ) // Normal doors
 		{
-			if ( this._entities_within_sensor_area.indexOf( from_entity ) === -1 )
+			if ( this._entities_within_sensor_area.indexOf( from_entity._net_id ) === -1 )
 			{
 				let com_near = this.GetComWiredCache();
 				
@@ -223,22 +190,22 @@ class sdDoor extends sdEntity
 					( com_near.subscribers.indexOf( '*' ) !== -1 && !from_entity.is_static && from_entity._net_id !== undefined )
 				)
 				{
-					this._entities_within_sensor_area.push( from_entity );
+					this._entities_within_sensor_area.push( from_entity._net_id );
 						
 					this.Open();
 				}
 			}
 		}
-		if ( this.open_type === 1 )
+		if ( this.open_type === sdDoor.OPEN_TYPE_AI_TEAM )
 		{
-			if ( this._entities_within_sensor_area.indexOf( from_entity ) === -1 )
+			if ( this._entities_within_sensor_area.indexOf( from_entity._net_id ) === -1 )
 			if ( !from_entity.is_static && from_entity._net_id !== undefined )
 			//if ( from_entity.GetClass() === 'sdCharacter' || from_entity.GetClass() === 'sdDrone' ) // universal entities which have _ai_team variable
 			if ( from_entity.is( sdCharacter ) || from_entity.is( sdDrone ) ) // universal entities which have _ai_team variable
 			if ( this._sensor_area )
 			if ( from_entity._ai_team === this._ai_team ) // Open only if it's appropriate faction
 			{
-				this._entities_within_sensor_area.push( from_entity );
+				this._entities_within_sensor_area.push( from_entity._net_id );
 				
 				this.Open();
 			}
@@ -278,10 +245,15 @@ class sdDoor extends sdEntity
 		}
 		
 		let com_near = this.GetComWiredCache();
+		
+		let uses_sensor = !( this.open_type === sdDoor.OPEN_TYPE_BUTTON );
 				
-		if ( ( com_near && this.open_type === 0 ) || this.open_type === 1 )
+		if ( ( com_near && this.open_type === sdDoor.OPEN_TYPE_COM_NODE ) || 
+			 this.open_type === sdDoor.OPEN_TYPE_AI_TEAM || 
+			 this.open_type === sdDoor.OPEN_TYPE_BUTTON )
 		{
 			if ( sdWorld.is_server )
+			if ( uses_sensor )
 			{
 				if ( this._sensor_area && !this._sensor_area._is_being_removed )
 				{
@@ -373,13 +345,19 @@ class sdDoor extends sdEntity
 				}*/
 				for ( let i2 = 0; i2 < this._entities_within_sensor_area.length; i2++ )
 				{
-					let e = this._entities_within_sensor_area[ i2 ];
+					let e = sdEntity.entities_by_net_id_cache_map.get( this._entities_within_sensor_area[ i2 ] );
 					
-					if ( !e._is_being_removed &&
-						 e.x + e._hitbox_x2 >= this._sensor_area.x + this._sensor_area._hitbox_x1 &&
-						 e.x + e._hitbox_x1 <= this._sensor_area.x + this._sensor_area._hitbox_x2 &&
-						 e.y + e._hitbox_y2 >= this._sensor_area.y + this._sensor_area._hitbox_y1 &&
-						 e.y + e._hitbox_y1 <= this._sensor_area.y + this._sensor_area._hitbox_y2
+					if ( e && !e._is_being_removed &&
+							(
+								!uses_sensor // Buttons can add themselves
+								||
+								(
+									e.x + e._hitbox_x2 >= this._sensor_area.x + this._sensor_area._hitbox_x1 &&
+									e.x + e._hitbox_x1 <= this._sensor_area.x + this._sensor_area._hitbox_x2 &&
+									e.y + e._hitbox_y2 >= this._sensor_area.y + this._sensor_area._hitbox_y1 &&
+									e.y + e._hitbox_y1 <= this._sensor_area.y + this._sensor_area._hitbox_y2
+								)
+							)
 						)
 					{
 					}
@@ -390,10 +368,13 @@ class sdDoor extends sdEntity
 						continue;
 					}
 				}
+				
+				let allow_decrease = true; // Prevent high GSPEED causing doors to constantly open/close offscreeb
 
 				if ( this._entities_within_sensor_area.length > 0 )
 				{
 					this.Open();
+					allow_decrease = false;
 				}
 
 
@@ -410,6 +391,8 @@ class sdDoor extends sdEntity
 						this.Sound( 'door_stop' );
 						//sdSound.PlaySound({ name:( ( this.model === sdDoor.MODEL_ARMORED || this.model === sdDoor.MODEL_ARMORED_LVL2 ) ? 'a' : '' ) + 'door_stop', x:this.x, y:this.y, volume:0.5 });
 					}
+					
+					if ( allow_decrease )
 					this.opening_tim = Math.max( 0, this.opening_tim - GSPEED );
 
 					if ( this.opening_tim === 0 )
@@ -547,7 +530,7 @@ class sdDoor extends sdEntity
 		}
 		else
 		{
-			if ( this._sensor_area && this.open_type === 0 )
+			if ( this._sensor_area && this.open_type === sdDoor.OPEN_TYPE_COM_NODE )
 			{
 				this._sensor_area.remove();
 				this._sensor_area = null;
@@ -600,7 +583,7 @@ class sdDoor extends sdEntity
 		
 		if ( this.x0 === null && this._net_id !== undefined && !sdShop.isDrawing ) // undefined // Client-side doors won't not have any _net_id
 		{
-			if ( !com_near && this.open_type === 0 )
+			if ( !com_near && this.open_type === sdDoor.OPEN_TYPE_COM_NODE )
 			{
 				ctx.drawImageFilterCache( img_no_matter, -16, -16, 32,32 );
 			}
@@ -629,7 +612,7 @@ class sdDoor extends sdEntity
 					ctx.rect(  -16 - this.x + this.x0, -16 - this.y + this.y0, 32,32 );
 					ctx.clip();
 					
-					if ( !com_near && this.open_type === 0 )
+					if ( !com_near && this.open_type === sdDoor.OPEN_TYPE_COM_NODE )
 					{
 						ctx.drawImageFilterCache( img_no_matter, -16, -16, 32,32 );
 					}
@@ -649,7 +632,7 @@ class sdDoor extends sdEntity
 			}
 			else
 			{
-				if ( !com_near && this.open_type === 0 )
+				if ( !com_near && this.open_type === sdDoor.OPEN_TYPE_COM_NODE )
 				{
 					ctx.drawImageFilterCache( img_no_matter, -16, -16, 32,32 );
 				}
@@ -719,46 +702,6 @@ class sdDoor extends sdEntity
 	onMovementInRange( from_entity )
 	{
 		//from_entity._net_id
-		
-		/*
-		if ( !from_entity.is_static )
-		if ( from_entity.GetClass() !== 'sdEffect' )
-		if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null )
-		{	
-			let nearbies = sdWorld.GetAnythingNear( this.x, this.y, sdCom.retransmit_range );
-			
-			let best_tele = null;
-			let best_di = -1;
-			for ( var i = 0; i < nearbies.length; i++ )
-			{
-				if ( nearbies[ i ].GetClass() === 'sdDoor' )
-				{
-					let tele = nearbies[ i ];
-					if ( tele.delay === 0 ) // is active
-					if ( tele !== this )
-					{
-						let di = sdWorld.Dist2D( this.x, this.y, tele.x, tele.y );
-						if ( di < best_di || best_tele === null )
-						{
-							if ( from_entity.CanMoveWithoutOverlap( from_entity.x + best_tele.x - this.x, from_entity.x + best_tele.y - this.y, 1 ) )
-							{
-								best_tele = tele;
-								best_di = di;
-							}
-						}
-					}
-				}
-			}
-			
-			if ( best_tele )
-			{
-				this.SetDelay( 90 );
-				best_tele.SetDelay( 90 );
-				
-				from_entity.x += best_tele.x - this.x;
-				from_entity.y += best_tele.y - this.y;
-			}
-		}*/
 	}
 	onRemove()
 	{

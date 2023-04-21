@@ -133,7 +133,13 @@ class sdHover extends sdEntity
 		this.hmax = ( this.type === 1 ? 1200 : this.type === 2 ? 2400 : this.type === 3 ? 300 : 600 ) * 4;
 		this.hea = this.hmax;
 		
+		this.guns = 1;
+		this._doors_locked = false;
+		
 		this._tilt = 0;
+		
+		this.nick = '';
+		this.nick_censored = '';
 		
 		/*if ( this.type === 2 )
 		this._bullets = 200;
@@ -163,6 +169,8 @@ class sdHover extends sdEntity
 		this.driver4 = null; // passenger
 		this.driver5 = null; // passenger
 		
+		//EnforceChangeLog( this, 'driver0' );
+		
 		this.matter = 300; // Should be less that Hover cost
 		this.matter_max = ( this.type === sdHover.TYPE_FIGHTER_HOVER ? 2000 :
 			this.type === sdHover.TYPE_TANK ? 12000 :
@@ -170,10 +178,19 @@ class sdHover extends sdEntity
 			1000
 		);
 	}
-	AddDriver( c )
+	AddDriver( c, force=false )
 	{
 		if ( !sdWorld.is_server )
 		return;
+	
+		if ( !force )// && !c._god )
+		if ( this._doors_locked )
+		{
+			if ( c._socket )
+			c._socket.SDServiceMessage( 'Doors are locked' );
+		
+			return;
+		}
 	
 		var best_slot = -1;
 		
@@ -193,12 +210,12 @@ class sdHover extends sdEntity
 			c.driver_of = this;
 
 			if ( c._socket && this.type === 3 )
-			c._socket.SDServiceMessage( sdHover.slot_hints[ 6 ] );
+			c._socket.SDServiceMessage( ( this.guns ) ? sdHover.slot_hints[ 6 ] : 'Entered slot 1' );
 			
 			else
 			
 			if ( c._socket )
-			c._socket.SDServiceMessage( sdHover.slot_hints[ best_slot ] );
+			c._socket.SDServiceMessage( ( this.guns ) ? sdHover.slot_hints[ best_slot ] : 'Entered slot ' + ( best_slot + 1 ) );
 
 			if ( this.type === 3 && best_slot === 0 )
 			sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1, pitch:2 });
@@ -218,6 +235,15 @@ class sdHover extends sdEntity
 		if ( !force )
 		if ( !sdWorld.is_server )
 		return;
+
+		if ( !force )//&& !c._god )
+		if ( this._doors_locked )
+		{
+			if ( c._socket )
+			c._socket.SDServiceMessage( 'Doors are locked' );
+		
+			return;
+		}
 		
 		for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
 		{
@@ -287,7 +313,7 @@ class sdHover extends sdEntity
 					{
 						let driver = this[ 'driver' + i ];
 
-						this.ExcludeDriver( this[ 'driver' + i ] );
+						this.ExcludeDriver( this[ 'driver' + i ], true );
 
 						if ( this.hea <= break_at_hp )
 						{
@@ -440,6 +466,7 @@ class sdHover extends sdEntity
 			this._tilt = ( this._tilt > 0 ? 1 : -1 );
 		}
 		
+		if ( this.guns )
 		if ( sdWorld.is_server && this.hea > 0 )
 		{
 			if ( this._bullets_reload > 0 )
@@ -774,6 +801,9 @@ class sdHover extends sdEntity
 		if ( this.hea <= 0 )
 		return;
 	
+		if ( this.nick !== '' )
+		sdEntity.Tooltip( ctx, this.nick );
+		else
 		if ( this.type === 1 )
 		sdEntity.Tooltip( ctx, "Fighter Hover" );
 		else
@@ -848,8 +878,7 @@ class sdHover extends sdEntity
 					{
 						let old_x = this[ 'driver' + i ].look_x;
 						let old_y = this[ 'driver' + i ].look_y;
-						//this[ 'driver' + i ].tilt = 0;
-						//this[ 'driver' + i ]._an = 0; // Hack
+						
 						this[ 'driver' + i ]._side = 1;
 						this[ 'driver' + i ].look_x = this[ 'driver' + i ].x + 100;
 						this[ 'driver' + i ].look_y = this[ 'driver' + i ].y;
@@ -857,15 +886,11 @@ class sdHover extends sdEntity
 						ctx.scale( -0.8, 0.8 );
 
 						if ( this.type === 3 )
-						{
-							//ctx.translate( -16, -8 );
-							ctx.translate( 1, -4 );
-						}
+						ctx.translate( 1, -4 );
 						else
 						ctx.translate( ( -32 + ( 1 - i / ( this.GetDriverSlotsCount() - 1 ) ) * 64 ) * 0.5, 3 );
 
-						//this[ 'driver' + i ].Draw( ctx, true );
-						this[ 'driver' + i ].Draw( ctx, true ); // Hack
+						this[ 'driver' + i ].Draw( ctx, true );
 
 						this[ 'driver' + i ].look_x = old_x;
 						this[ 'driver' + i ].look_y = old_y;
@@ -910,66 +935,69 @@ class sdHover extends sdEntity
 			ctx.drawImageFilterCache( can_boost ? sdHover.img_hoverbike_boost : sdHover.img_hoverbike, - 16, - 16, 32, 32 );
 			else
 			ctx.drawImageFilterCache( can_boost ? sdHover.img_hover_boost : sdHover.img_hover, - 32, - 16, 64,32 );*/
-	
-			var i;
 			
-			DelayedDrawGun = ()=>
+			if ( this.guns )
 			{
-				let i = 0;
-				if ( this[ 'driver' + i ] && this.type === 3 )
+				var i;
+
+				DelayedDrawGun = ()=>
+				{
+					let i = 0;
+					if ( this[ 'driver' + i ] && this.type === 3 )
+					{
+						ctx.save();
+
+						ctx.translate( -1, 7 );
+						ctx.scale( 1, -1 );
+
+						ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
+
+						ctx.drawImageFilterCache( sdHover.img_hover_mg, - 16, - 16, 32,32 );
+
+						ctx.restore();
+					}
+				};
+
+				i = 1;
+				if ( this[ 'driver' + i ] )
 				{
 					ctx.save();
 
-					ctx.translate( -1, 7 );
+					ctx.translate( -1, 10 );
 					ctx.scale( 1, -1 );
 
 					ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
 
+					if ( this.type === 1 )
+					ctx.drawImageFilterCache( sdHover.img_f_hover_mg, - 16, - 16, 32,32 );
+					else
+					if ( this.type === 2 )
+					ctx.drawImageFilterCache( sdHover.img_tank_rl, - 16, - 16, 32,32 );
+					else
 					ctx.drawImageFilterCache( sdHover.img_hover_mg, - 16, - 16, 32,32 );
 
 					ctx.restore();
 				}
-			};
+				i = 2;
+				if ( this[ 'driver' + i ] )
+				{
+					ctx.save();
 
-            i = 1;
-			if ( this[ 'driver' + i ] )
-			{
-				ctx.save();
+					ctx.translate( 9, -11 );
+					ctx.scale( 1, -1 );
 
-				ctx.translate( -1, 10 );
-				ctx.scale( 1, -1 );
+					ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
 
-                ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
+					if ( this.type === 1 )
+					ctx.drawImageFilterCache( sdHover.img_f_hover_rl, - 16, - 16, 32,32 );
+					else
+					if ( this.type === 2 )
+					ctx.drawImageFilterCache( sdHover.img_tank_turret, - 16, - 16, 64,32 );
+					else
+					ctx.drawImageFilterCache( sdHover.img_hover_rl, - 16, - 16, 32,32 );
 
-				if ( this.type === 1 )
-				ctx.drawImageFilterCache( sdHover.img_f_hover_mg, - 16, - 16, 32,32 );
-				else
-				if ( this.type === 2 )
-				ctx.drawImageFilterCache( sdHover.img_tank_rl, - 16, - 16, 32,32 );
-				else
-				ctx.drawImageFilterCache( sdHover.img_hover_mg, - 16, - 16, 32,32 );
-
-				ctx.restore();
-			}
-			i = 2;
-			if ( this[ 'driver' + i ] )
-			{
-				ctx.save();
-
-				ctx.translate( 9, -11 );
-				ctx.scale( 1, -1 );
-
-                ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
-
-				if ( this.type === 1 )
-				ctx.drawImageFilterCache( sdHover.img_f_hover_rl, - 16, - 16, 32,32 );
-				else
-				if ( this.type === 2 )
-				ctx.drawImageFilterCache( sdHover.img_tank_turret, - 16, - 16, 64,32 );
-				else
-				ctx.drawImageFilterCache( sdHover.img_hover_rl, - 16, - 16, 32,32 );
-
-				ctx.restore();
+					ctx.restore();
+				}
 			}
 		}
 		else
@@ -1000,6 +1028,11 @@ class sdHover extends sdEntity
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
+	/*onBeforeRemove()
+	{
+		if ( sdWorld.is_server )
+		debugger;
+	}*/
 	onRemove() // Class-specific, if needed
 	{
 		if ( this._broken || sdLongRangeTeleport.teleported_items.has( this ) || !sdWorld.is_server )

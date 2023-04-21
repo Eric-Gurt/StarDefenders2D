@@ -1,4 +1,6 @@
 
+/* global sdModeration, sdShop, THREE */
+
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
@@ -23,6 +25,13 @@ class sdBot extends sdEntity
 		// Additionally hardcoded into sdBotFactory's ._program_globals
 		sdBot.BOT_KIND_REPAIR = 0;
 		sdBot.BOT_KIND_ATTACK = 1;
+		
+		sdBot.function_descriptions = null; // Used for code editor
+		let s = sdBot.toString();
+		s = s.substring( s.indexOf( '/*HINT_'+'START*/' ), s.indexOf( '/*HINT_'+'END*/' ) );
+		let obj;
+		eval( 'obj = '+s );
+		sdBot.function_descriptions = sdProgram.PrepareFunctionDescriptions( obj );
 		
 		sdBot.ignored_classes = [ 'sdBotFactory', 'sdBotCharger' ];
 		
@@ -109,7 +118,7 @@ class sdBot extends sdEntity
 			this._attack_entity = attack_followed_entity;
 
 			if ( ent )
-			this._pathfinding = new sdPathFinding({ target: ent, traveler: this, attack_range: range, options: dig_through ? [ sdPathFinding.OPTION_CAN_FLY, sdPathFinding.OPTION_CAN_GO_THROUGH_WALLS, sdPathFinding.OPTION_CAN_SWIM ] : [ sdPathFinding.OPTION_CAN_FLY, sdPathFinding.OPTION_CAN_SWIM ] })
+			this._pathfinding = new sdPathFinding({ target: ent, traveler: this, attack_range: range, options: dig_through ? [ sdPathFinding.OPTION_CAN_FLY, sdPathFinding.OPTION_CAN_GO_THROUGH_WALLS, sdPathFinding.OPTION_CAN_SWIM ] : [ sdPathFinding.OPTION_CAN_FLY, sdPathFinding.OPTION_CAN_SWIM ] });
 			else
 			this._pathfinding = null;
 		}
@@ -168,10 +177,13 @@ class sdBot extends sdEntity
 		this._program = null;
 		this.program_message = null;
 		this.program_message_censored = 0;
-		this._program_globals = {
+		this._program_globals = /*HINT_START*/{
 			
 			trace: ( ...m )=>
 			{
+				if ( !sdWorld.is_server )
+				return;
+				
 				let responsible_socket = null;
 				if ( this._owner )
 				if ( this._owner._developer )
@@ -467,7 +479,13 @@ class sdBot extends sdEntity
 			{
 				this.StartDisassemblyTask();
 			}
-		};
+		}/*HINT_END*/;
+		
+		/*if ( sdBot.function_descriptions === null )
+		{
+			sdBot.function_descriptions = sdProgram.PrepareFunctionDescriptions( this._program_globals );
+		}*/
+		
 		this._scheduled_broadcasts = [];
 		
 		//this._known_beacon_ids = params.known_beacon_ids.slice() || [];
@@ -651,7 +669,7 @@ class sdBot extends sdEntity
 			bullet_obj._damage = 30;
 			bullet_obj.color = '#00ffff';
 
-			this._owner = this.master; // To make bullets pass through master
+			//this._owner = this.master; // To make bullets pass through master
 
 			sdEntity.entities.push( bullet_obj );
 		}
@@ -659,8 +677,7 @@ class sdBot extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		if ( this._owner )
-		if ( this._owner._is_being_removed )
+		if ( !this._owner || this._owner._is_being_removed )
 		{
 			this._owner = null;
 			this.LostSignalSequence();

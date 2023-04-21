@@ -14,6 +14,8 @@ import sdCharacter from './sdCharacter.js';
 import sdGun from './sdGun.js';
 import sdArea from './sdArea.js';
 import sdPlayerDrone from './sdPlayerDrone.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -64,7 +66,8 @@ class sdCable extends sdEntity
 			'sdCube',
 			'sdCamera',
 			'sdBotFactory',
-			'sdBotCharger'
+			'sdBotCharger',
+			'sdButton'
 		];
 		
 		sdCable.empty_array = [];
@@ -167,6 +170,9 @@ class sdCable extends sdEntity
 		
 		this._p = null;
 		this._c = null;
+		
+		this._shielded = null; // Is this entity protected by a base defense unit?
+		
 		Object.defineProperty( this, '_p', { enumerable: false });
 		Object.defineProperty( this, '_c', { enumerable: false });
 		
@@ -917,7 +923,12 @@ class sdCable extends sdEntity
 							   exectuter_character._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ].class === sdGun.CLASS_CABLE_TOOL ) )
 						{
 							if ( command_name === 'CUT_CABLE' )
-							this.remove();
+							{
+								if ( this._shielded && !this._shielded._is_being_removed && this._shielded.protect_cables )
+								exectuter_character.Say( 'Protected by the base shielding unit... Really?' );
+								else
+								this.remove();
+							}
 							else
 							if ( command_name === 'SET_TYPE' )
 							{

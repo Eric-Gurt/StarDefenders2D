@@ -21,6 +21,7 @@ import sdGun from './sdGun.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdJunk from './sdJunk.js';
 import sdLandScanner from './sdLandScanner.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 import sdTask from './sdTask.js';
 import sdCharacter from './sdCharacter.js';
@@ -73,18 +74,21 @@ class sdLongRangeTeleport extends sdEntity
 		
 		if ( this.hea > 0 )
 		{
-			if ( !this.is_server_teleport )
-			this.hea -= dmg;
-			
-			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-			
-			if ( this.delay < 90 )
-			this.SetDelay( 90 );
-			
-			this._regen_timeout = 60;
+			if ( sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
+			{
+				if ( !this.is_server_teleport )
+				this.hea -= dmg;
 
-			if ( this.hea <= 0 )
-			this.remove();
+				this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+				if ( this.delay < 90 )
+				this.SetDelay( 90 );
+
+				this._regen_timeout = 60;
+
+				if ( this.hea <= 0 )
+				this.remove();
+			}
 		}
 	}
 	Activation()
@@ -140,6 +144,8 @@ class sdLongRangeTeleport extends sdEntity
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
 		
+		this._shielded = null; // Is this entity protected by a base defense unit?
+		
 		this._cc_near = null;
 		this.has_cc_near = false; // Store boolean because client does not know if cc exists
 		
@@ -171,6 +177,10 @@ class sdLongRangeTeleport extends sdEntity
 		//this.owner_net_id = this._owner ? this._owner._net_id : null;
 		
 		sdLongRangeTeleport.long_range_teleports.push( this );
+	}
+	get biometry()
+	{
+		return 'Long-range teleport';
 	}
 	onServerSideSnapshotLoaded() // Something like LRT will use this to reset phase on load
 	{
@@ -961,10 +971,6 @@ class sdLongRangeTeleport extends sdEntity
 		callback( ret );
 	}
 	
-	AllowContextCommandsInRestirectedAreas( exectuter_character, executer_socket ) // exectuter_character can be null
-	{
-		return true;
-	}
 	static ReceivedCommandFromEntityClass( command_name, parameters_array )
 	{
 		if ( command_name === 'AD_START_ALLOWED' )
@@ -1030,6 +1036,11 @@ class sdLongRangeTeleport extends sdEntity
 		}
 		else
 		sdMotherShipStorageManager.HandleServerCommand( command_name, parameters_array );
+	}
+	
+	AllowContextCommandsInRestirectedAreas( exectuter_character, executer_socket ) // exectuter_character can be null
+	{
+		return true;
 	}
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
 	{

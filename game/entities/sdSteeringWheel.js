@@ -34,6 +34,8 @@ class sdSteeringWheel extends sdEntity
 		
 		sdSteeringWheel.overlap = 8;
 		
+		sdSteeringWheel.steering_wheels = [];
+		
 		/*
 		const drop_rate = 100; // 30000
 		
@@ -182,6 +184,8 @@ class sdSteeringWheel extends sdEntity
 		this._last_scan = 0;
 		
 		this._schedule_rounding_task = false;
+		
+		sdSteeringWheel.steering_wheels.push( this );
 	}
 	
 	Scan( character_to_tell_result_to )
@@ -919,6 +923,17 @@ class sdSteeringWheel extends sdEntity
 	{
 		ctx.drawImageFilterCache( sdSteeringWheel.img_steering_wheel, - 16, - 16, 32,32 );
 	}
+	
+	onBeforeRemove()
+	{
+		let id = sdSteeringWheel.steering_wheels.indexOf( this );
+		
+		if ( id !== -1 )
+		sdSteeringWheel.steering_wheels.splice( id, 1 );
+		else
+		debugger;
+	}
+	
 	onRemove() // Class-specific, if needed
 	{
 		if ( this.driver )

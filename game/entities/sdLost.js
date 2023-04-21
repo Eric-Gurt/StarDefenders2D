@@ -167,8 +167,18 @@ class sdLost extends sdEntity
 				}
 				else
 				{
-					ent.remove();
-					ent._broken = false; // No debris
+					let remove = true;
+					
+					if ( ent.is( sdCharacter ) )
+					if ( ent.AttemptTeleportOut( null, true ) )
+					remove = false;
+					
+					
+					if ( remove )
+					{
+						ent.remove();
+						ent._broken = false; // No debris
+					}
 				}
 			}
 			else
@@ -389,9 +399,11 @@ class sdLost extends sdEntity
 		{
 			if ( this.f === 0 )
 			sdEntity.Tooltip( ctx, 'Lost ' + this.t );
-		
+			else
 			if ( this.f === 1 )
 			sdEntity.Tooltip( ctx, 'Empty ' + this.t );
+			else
+			sdEntity.Tooltip( ctx, this.t );
 		}
 	}
 	Draw( ctx, attached )
@@ -415,8 +427,15 @@ class sdLost extends sdEntity
 		//ctx.filter = 'contrast(0.8) sepia(1) hue-rotate(10deg) saturate(16)';
 		//ctx.globalAlpha = 0.8;
 		
+		if ( typeof this.f === 'number' )
 		ctx.filter = sdLost.filters[ this.f ];
+		else
+		ctx.filter = this.f;
+	
+		if ( this.f === 0 )
 		ctx.globalAlpha = 0.8;
+		else
+		ctx.globalAlpha = 1;
 		
 		sdWorld.ApplyDrawOperations( ctx, this.d );
 		

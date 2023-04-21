@@ -180,7 +180,8 @@
 		};
 	    }
 	</script>
-
+	
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.17.0/ace.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="socketio/socketio.js"></script>
 	<script src="libs/three.js"></script>
 	<script src="libs/three-examples/BufferGeometryUtils.js"></script>
@@ -280,62 +281,76 @@
 		</div>
 	    </div>
 		
+	    <div style="height:100px"></div>
+	    
 	    <span class="sdtitle">Your name:</span><br>
 	    <input type="text" id="hero_name" size="30" maxlength="30" value="Star Defender">
 	    <br>
 	    <br>
-	     
 	    <span class="sdtitle">Appearance:</span><br>
-	    <input type="color" id="color_bright" value="#c0c0c0">
-	    <label for="color_bright" mycondition="entity1">Helmet (bright shade)</label>
-	    <label for="color_bright" mycondition="entity2">Body</label>
-	    <br>
+	    <div style="    
+		    display: flex;
+		    width: 100%;">
+		<div style=" width: 50%;">
+		    <input type="color" id="color_bright" value="#c0c0c0">
+		    <label for="color_bright" mycondition="entity1">Helmet (bright)</label>
+		    <label for="color_bright" mycondition="entity2">Body</label>
+		    <br>
+
+		    <input type="color" id="color_dark" value="#808080" mycondition="entity1">
+		    <label for="color_dark" mycondition="entity1">Helmet (dark)</label>
+		    <br mycondition="entity1">
+
+		    <input type="color" id="color_visor" value="#ff0000">
+		    <label for="color_visor" mycondition="entity1">Visor</label>
+		    <label for="color_visor" mycondition="entity2">Glowing parts</label>
+		    <br>
+
+		    <!--<input type="color" id="color_splashy" value="#800000">
+		    <label for="color_splashy">Splashy stuff</label>
+		    <br>-->
+
+		    <input type="color" id="color_bright3" value="#c0c0c0" mycondition="entity1">
+		    <label for="color_bright3" mycondition="entity1">Jetpack (bright)</label>
+		    <br mycondition="entity1">
+
+		    <input type="color" id="color_dark3" value="#808080" mycondition="entity1">
+		    <label for="color_dark3" mycondition="entity1">Jetpack/armor plates (dark)</label>
+		    <br mycondition="entity1">
+
+		    <input type="color" id="color_suit" value="#000080" mycondition="entity1">
+		    <label for="color_suit" mycondition="entity1">Upper suit color</label>
+		    <br mycondition="entity1">
+
+		</div>
+		<div style=" width: 50%;">
+		
+		    <input type="color" id="color_suit2" value="#000080">
+		    <label for="color_suit2" mycondition="entity1">Lower suit color</label>
+		    <label for="color_suit2" mycondition="entity2">Details</label>
+		    <br>
+
+		    <input type="color" id="color_dark2" value="#808080" mycondition="entity1">
+		    <label for="color_dark2" mycondition="entity1">Lower suit armor plates</label>
+		    <br mycondition="entity1">
+
+		    <input type="color" id="color_shoes" value="#000000" mycondition="entity1">
+		    <label for="color_shoes" mycondition="entity1">Shoes</label>
+		    <br mycondition="entity1">
+
+		    <input type="color" id="color_skin" value="#808000" mycondition="entity1">
+		    <label for="color_skin" mycondition="entity1">Gloves &amp; neck color</label>
+		    <br mycondition="entity1">
+
+		    <input type="color" id="color_extra1" value="#0000ff" mycondition="entity1">
+		    <label for="color_extra1" mycondition="entity1">Extra 1</label>
+		    <br mycondition="entity1">
+
+		</div>
+	    </div>
 	    
-	    <input type="color" id="color_dark" value="#808080" mycondition="entity1">
-	    <label for="color_dark" mycondition="entity1">Helmet (dark shade)</label>
-	    <br mycondition="entity1">
 	    
-	    <input type="color" id="color_visor" value="#ff0000">
-	    <label for="color_visor" mycondition="entity1">Visor</label>
-	    <label for="color_visor" mycondition="entity2">Glowing parts</label>
-	    <br>
 	    
-	    <!--<input type="color" id="color_splashy" value="#800000">
-	    <label for="color_splashy">Splashy stuff</label>
-	    <br>-->
-	    
-	    <input type="color" id="color_bright3" value="#c0c0c0" mycondition="entity1">
-	    <label for="color_bright3" mycondition="entity1">Jetpack (bright shade)</label>
-	    <br mycondition="entity1">
-	    
-	    <input type="color" id="color_dark3" value="#808080" mycondition="entity1">
-	    <label for="color_dark3" mycondition="entity1">Jetpack and armor plates (dark shade)</label>
-	    <br mycondition="entity1">
-	    
-	    <input type="color" id="color_suit" value="#000080" mycondition="entity1">
-	    <label for="color_suit" mycondition="entity1">Upper suit color</label>
-	    <br mycondition="entity1">
-	    
-	    <input type="color" id="color_suit2" value="#000080">
-	    <label for="color_suit2" mycondition="entity1">Lower suit color</label>
-	    <label for="color_suit2" mycondition="entity2">Details</label>
-	    <br>
-	    
-	    <input type="color" id="color_dark2" value="#808080" mycondition="entity1">
-	    <label for="color_dark2" mycondition="entity1">Lower suit armor plates</label>
-	    <br mycondition="entity1">
-	    
-	    <input type="color" id="color_shoes" value="#000000" mycondition="entity1">
-	    <label for="color_shoes" mycondition="entity1">Shoes</label>
-	    <br mycondition="entity1">
-	    
-	    <input type="color" id="color_skin" value="#808000" mycondition="entity1">
-	    <label for="color_skin" mycondition="entity1">Gloves &amp; neck color</label>
-	    <br mycondition="entity1">
-	    
-	    <input type="color" id="color_extra1" value="#0000ff" mycondition="entity1">
-	    <label for="color_extra1" mycondition="entity1">Extra 1</label>
-	    <br mycondition="entity1">
 	    
 	    <br>
 	    
@@ -517,883 +532,19 @@
 		<label for="drone_helmet34">Constellation</label><!-- by LordBored, re-added on request, originally named Raven -->
 	    </div>
 	    
-	    <div class="set_block" tabindex="1" mycondition="entity1">
+	    <div class="set_block" tabindex="1" mycondition="entity1" id="place_helmets_here">
 		<span class="sdtitle">Helmet</span><br>
-		<input type="checkbox" id="helmet1" value="1">
-		<label for="helmet1">Star Defender</label>
-		<br>
-		<input type="checkbox" id="helmet2" value="2">
-		<label for="helmet2">Falkok</label>
-		<br>
-		<input type="checkbox" id="helmet3" value="3">
-		<label for="helmet3">Eyes</label>
-		<br>
-		<input type="checkbox" id="helmet4" value="4">
-		<label for="helmet4">Dino</label>
-		<br>
-		<input type="checkbox" id="helmet5" value="5">
-		<label for="helmet5">V</label>
-		<br>
-		<input type="checkbox" id="helmet6" value="6">
-		<label for="helmet6">Open</label>
-		<br>
-		<input type="checkbox" id="helmet7" value="7">
-		<label for="helmet7">CS</label>
-		<br>
-		<input type="checkbox" id="helmet8" value="8">
-		<label for="helmet8">Grub</label>
-		<br>
-		<input type="checkbox" id="helmet9" value="9">
-		<label for="helmet9">Crow</label>
-		<br>
-		<input type="checkbox" id="helmet10" value="10">
-		<label for="helmet10">Scope</label>
-		<br>
-		<input type="checkbox" id="helmet11" value="11">
-		<label for="helmet11">Crusader</label>
-		<br>
-		<input type="checkbox" id="helmet12" value="12">
-		<label for="helmet12">Phoenix Falkok</label>
-		<br>
-		<input type="checkbox" id="helmet13" value="13">
-		<label for="helmet13">Aero</label>
-		<br>
-		<input type="checkbox" id="helmet14" value="14">
-		<label for="helmet14">Scout</label>
-		<br>
-		<input type="checkbox" id="helmet15" value="15">
-		<label for="helmet15">Heavy</label>
-		<br>
-		<input type="checkbox" id="helmet16" value="16">
-		<label for="helmet16">Shade</label>
-		<br>
-		<input type="checkbox" id="helmet17" value="17">
-		<label for="helmet17">Plasmator</label>
-		<br>
-		<input type="checkbox" id="helmet18" value="18">
-		<label for="helmet18">Arbiter</label>
-		<br>
-		<input type="checkbox" id="helmet19" value="19">
-		<label for="helmet19">Pilot</label>
-		<br>
-		<input type="checkbox" id="helmet20" value="20">
-		<label for="helmet20">Guardian</label>
-		<br>
-		<input type="checkbox" id="helmet21" value="21">
-		<label for="helmet21">Vanquisher</label>
-		<br>
-		<input type="checkbox" id="helmet22" value="22">
-		<label for="helmet22">Glory</label>
-		<br>
-		<input type="checkbox" id="helmet23" value="23">
-		<label for="helmet23">Scion</label>
-       		<br>
-		<input type="checkbox" id="helmet24" value="24">
-		<label for="helmet24">Varia</label>
-        	<br>
-		<input type="checkbox" id="helmet25" value="25">
-		<label for="helmet25">Array</label>
-        	<br>
-		<input type="checkbox" id="helmet26" value="26">
-		<label for="helmet26">Nova</label>
-		<br>
-		<input type="checkbox" id="helmet27" value="27">
-		<label for="helmet27">Igris</label>
-		<br>
-		<input type="checkbox" id="helmet28" value="28">
-		<label for="helmet28">Ace</label>
-		<br>
-		<input type="checkbox" id="helmet29" value="29">
-		<label for="helmet29">Alpha</label>
-		<br>
-		<input type="checkbox" id="helmet30" value="30">
-		<label for="helmet30">Templar</label>
-		<br>
-		<input type="checkbox" id="helmet31" value="31">
-		<label for="helmet31">Dragon</label>
-		<br>
-		<input type="checkbox" id="helmet32" value="32">
-		<label for="helmet32">Agilus</label>
-		<br>
-		<input type="checkbox" id="helmet33" value="33">
-		<label for="helmet33">Biohazard</label>
-		<br>
-		<input type="checkbox" id="helmet34" value="34">
-		<label for="helmet34">Bulwark</label>
-		<br>
-		<input type="checkbox" id="helmet35" value="35">
-		<label for="helmet35">Engineer</label>
-		<br>
-		<input type="checkbox" id="helmet36" value="36">
-		<label for="helmet36">Forge</label>
-		<br>
-		<input type="checkbox" id="helmet37" value="37">
-		<label for="helmet37">Harbinger</label>
-		<br>
-		<input type="checkbox" id="helmet38" value="38">
-		<label for="helmet38">Legate</label>
-		<br>
-		<input type="checkbox" id="helmet39" value="39">
-		<label for="helmet39">Lifter</label>
-		<br>
-		<input type="checkbox" id="helmet40" value="40">
-		<label for="helmet40">Omega</label>
-		<br>
-		<input type="checkbox" id="helmet41" value="41">
-		<label for="helmet41">Protector</label>
-		<br>
-		<input type="checkbox" id="helmet42" value="42">
-		<label for="helmet42">Reaper</label>
-		<br>
-		<input type="checkbox" id="helmet43" value="43">
-		<label for="helmet43">Researcher</label>
-		<br>
-		<input type="checkbox" id="helmet44" value="44">
-		<label for="helmet44">Supreme</label>
-		<br>
-		<input type="checkbox" id="helmet45" value="45">
-		<label for="helmet45">Spire</label>
-		<br>
-		<input type="checkbox" id="helmet46" value="46">
-		<label for="helmet46">Walker</label>
-		<br>
-		<input type="checkbox" id="helmet47" value="47">
-		<label for="helmet47">Acolyte</label>
-		<br>
-		<input type="checkbox" id="helmet48" value="48">
-		<label for="helmet48">Archangel</label>
-		<br>
-		<input type="checkbox" id="helmet49" value="49">
-		<label for="helmet49">Assault</label>
-		<br>
-		<input type="checkbox" id="helmet50" value="50">
-		<label for="helmet50">Beast</label>
-		<br>
-		<input type="checkbox" id="helmet51" value="51">
-		<label for="helmet51">Colonel</label>
-		<br>
-		<input type="checkbox" id="helmet52" value="52">
-		<label for="helmet52">Cyber</label>
-		<br>
-		<input type="checkbox" id="helmet53" value="53">
-		<label for="helmet53">Destiny</label>
-		<br>
-		<input type="checkbox" id="helmet54" value="54">
-		<label for="helmet54">Duality</label>
-		<br>
-		<input type="checkbox" id="helmet55" value="55">
-		<label for="helmet55">Flame</label>
-		<br>
-		<input type="checkbox" id="helmet56" value="56">
-		<label for="helmet56">Hatred</label>
-		<br>
-		<input type="checkbox" id="helmet57" value="57">
-		<label for="helmet57">Hunter</label>
-		<br>
-		<input type="checkbox" id="helmet58" value="58">
-		<label for="helmet58">Judicator</label>
-		<br>
-		<input type="checkbox" id="helmet59" value="59">
-		<label for="helmet59">Marauder</label>
-		<br>
-		<input type="checkbox" id="helmet60" value="60">
-		<label for="helmet60">Medic</label>
-		<br>
-		<input type="checkbox" id="helmet61" value="61">
-		<label for="helmet61">Overseer</label>
-		<br>
-		<input type="checkbox" id="helmet62" value="62">
-		<label for="helmet62">Shocktrooper</label>
-		<br>
-		<input type="checkbox" id="helmet63" value="63">
-		<label for="helmet63">Starfarer</label>
-		<br>
-		<input type="checkbox" id="helmet64" value="64">
-		<label for="helmet64">Stream</label>
-		<br>
-		<input type="checkbox" id="helmet65" value="65">
-		<label for="helmet65">Synth</label>
-		<br>
-		<input type="checkbox" id="helmet66" value="66">
-		<label for="helmet66">Warden</label>
-		<br>
-		<input type="checkbox" id="helmet67" value="67">
-		<label for="helmet67">Warlord</label>
-		<br>
-		<input type="checkbox" id="helmet68" value="68">
-		<label for="helmet68">Sentinel</label>
-		<br>
-		<input type="checkbox" id="helmet69" value="69">
-		<label for="helmet69">Skeleton</label>
-		<br>
-		<input type="checkbox" id="helmet70" value="70">
-		<label for="helmet70">Rose</label>
-		<br>
-		<input type="checkbox" id="helmet71" value="71">
-		<label for="helmet71">Avre</label>
-		<br>
-		<input type="checkbox" id="helmet72" value="72">
-		<label for="helmet72">Spaghetti</label>
-		<br>
-		<input type="checkbox" id="helmet73" value="73">
-		<label for="helmet73">Tactical Star Defender</label>
-        	<br>
-		<input type="checkbox" id="helmet74" value="74">
-		<label for="helmet74">Vengeance</label>
-        	<br>
-		<input type="checkbox" id="helmet75" value="75">
-		<label for="helmet75">Sovereign</label>
-        	<br>
-		<input type="checkbox" id="helmet76" value="76">
-		<label for="helmet76">Oxide</label>
-        	<br>
-		<input type="checkbox" id="helmet77" value="77">
-		<label for="helmet77">Mythic</label>
-        	<br>
-		<input type="checkbox" id="helmet78" value="78">
-		<label for="helmet78">Outcast</label>
-		<br>
-		<input type="checkbox" id="helmet79" value="79">
-		<label for="helmet79">Angel</label>
-		<br>
-		<input type="checkbox" id="helmet80" value="80">
-		<label for="helmet80">Split visor</label>
-		<br>
-		<input type="checkbox" id="helmet81" value="81">
-		<label for="helmet81">Soldier RIG</label>
-		<br>
-		<input type="checkbox" id="helmet82" value="82">
-		<label for="helmet82">Witch</label>
-		<br>
-		<input type="checkbox" id="helmet83" value="83">
-		<label for="helmet83">Modeus</label>
-		<br>
-		<input type="checkbox" id="helmet84" value="84">
-		<label for="helmet84">Pepe</label>
-		<br>
-		<input type="checkbox" id="helmet85" value="85">
-		<label for="helmet85">Santa</label>
-		<br>
-		<input type="checkbox" id="helmet86" value="86">
-		<label for="helmet86">Velox</label>
-		<br>
-		<input type="checkbox" id="helmet87" value="87">
-		<label for="helmet87">Apex</label>
-		<br>
-		<input type="checkbox" id="helmet88" value="88">
-		<label for="helmet88">Advisor</label>
-		<br>
-		<input type="checkbox" id="helmet89" value="89">
-		<label for="helmet89">Paradigm</label>
-		<br>
-		<input type="checkbox" id="helmet90" value="90">
-		<label for="helmet90">Sync</label>
-		<br>
-		<input type="checkbox" id="helmet91" value="91">
-		<label for="helmet91">Legend</label>
-		<br>
-		<input type="checkbox" id="helmet92" value="92">
-		<label for="helmet92">SD Duster</label>
-		<br>
-		<input type="checkbox" id="helmet93" value="93">
-		<label for="helmet93">Vengeance Alt</label>
-		<br>
-		<input type="checkbox" id="helmet94" value="94">
-		<label for="helmet94">Bulwark Alt</label>
-		<br>
-		<input type="checkbox" id="helmet95" value="95">
-		<label for="helmet95">Empyrean</label>
-		<br>
-		<input type="checkbox" id="helmet96" value="96">
-		<label for="helmet96">Council</label>
-                <br>
-		<input type="checkbox" id="helmet97" value="97">
-		<label for="helmet97">Android</label>
-                <br>
-		<input type="checkbox" id="helmet98" value="98">
-		<label for="helmet98">Android Alt</label>
-                <br>
-		<input type="checkbox" id="helmet99" value="99">
-		<label for="helmet99">Assassin</label>
-                <br>
-		<input type="checkbox" id="helmet100" value="100">
-		<label for="helmet100">Automata</label>
-                <br>
-		<input type="checkbox" id="helmet101" value="101">
-		<label for="helmet101">Automata Alt</label>
-                <br>
-		<input type="checkbox" id="helmet102" value="102">
-		<label for="helmet102">Blackguard</label>
-                <br>
-		<input type="checkbox" id="helmet103" value="103">
-		<label for="helmet103">Duelist</label>
-                <br>
-		<input type="checkbox" id="helmet104" value="104">
-		<label for="helmet104">Monolith</label>
-                <br>
-		<input type="checkbox" id="helmet105" value="105">
-		<label for="helmet105">Reaper Alt</label>
-                <br>
-		<input type="checkbox" id="helmet106" value="106">
-		<label for="helmet106">Assassin Alt</label>
-                <br>
-		<input type="checkbox" id="helmet107" value="107">
-		<label for="helmet107">Specialist</label>
-                <br>
-		<input type="checkbox" id="helmet108" value="108">
-		<label for="helmet108">Spectre</label>
-                <br>
-		<input type="checkbox" id="helmet109" value="109">
-		<label for="helmet109">Storm</label>
-                <br>
-		<input type="checkbox" id="helmet110" value="110">
-		<label for="helmet110">Swole</label>
-                <br>
-		<input type="checkbox" id="helmet111" value="111">
-		<label for="helmet111">Terminus</label>
-                <br>
-		<input type="checkbox" id="helmet112" value="112">
-		<label for="helmet112">Titan</label>
-                <br>
-		<input type="checkbox" id="helmet113" value="113">
-		<label for="helmet113">Terminus Alt</label>
-                <br>
-		<input type="checkbox" id="helmet114" value="114">
-		<label for="helmet114">Versatile</label>
-                <br>
-		<input type="checkbox" id="helmet115" value="115">
-		<label for="helmet115">Fixer</label>
-                <br>
-		<input type="checkbox" id="helmet116" value="116">
-		<label for="helmet116">Fixer Alt</label>
+		<!-- Helmets list is now stored at sdCharacter -->
 	    </div>
 	    
-	    <div class="set_block" tabindex="1" mycondition="entity1">
+	    <div class="set_block" tabindex="1" mycondition="entity1" id="place_bodies_here">
 		<span class="sdtitle">Body model</span><br>
-		<input type="checkbox" id="body1" value="1">
-		<label for="body1">Star Defender</label>
-		<br>
-		<input type="checkbox" id="body2" value="1">
-		<label for="body2">Heavy</label>
-		<br>
-		<input type="checkbox" id="body3" value="1">
-		<label for="body3">Tech</label>
-		<br>
-		<input type="checkbox" id="body4" value="1">
-		<label for="body4">Templar</label>
-		<br>
-		<input type="checkbox" id="body5" value="1">
-		<label for="body5">Inferno</label>
-		<br>
-		<input type="checkbox" id="body6" value="1">
-		<label for="body6">Kevlar</label>
-		<br>
-		<input type="checkbox" id="body7" value="1">
-		<label for="body7">Shade</label>
-		<br>
-		<input type="checkbox" id="body8" value="1">
-		<label for="body8">Afterburn</label>
-		<br>
-		<input type="checkbox" id="body9" value="1">
-		<label for="body9">Vanquisher</label>
-		<br>
-		<input type="checkbox" id="body10" value="1">
-		<label for="body10">Glory</label>
-		<br>
-		<input type="checkbox" id="body11" value="1">
-		<label for="body11">Scion</label>
-        	<br>
-		<input type="checkbox" id="body12" value="1">
-		<label for="body12">Varia</label>
-        	<br>
-		<input type="checkbox" id="body13" value="1">
-		<label for="body13">Array</label>
-        	<br>
-		<input type="checkbox" id="body14" value="1">
-		<label for="body14">Nova</label>
-        	<br>
-		<input type="checkbox" id="body15" value="1">
-		<label for="body15">Igris</label>
-		<br>
-		<input type="checkbox" id="body16" value="1">
-		<label for="body16">Alpha</label>
-		<br>
-		<input type="checkbox" id="body17" value="1">
-		<label for="body17">Agilus</label>
-		<br>
-		<input type="checkbox" id="body18" value="1">
-		<label for="body18">Biohazard</label>
-		<br>
-		<input type="checkbox" id="body19" value="19">
-		<label for="body19">Bulwark</label>
-		<br>
-		<input type="checkbox" id="body20" value="1">
-		<label for="body20">Engineer</label>
-		<br>
-		<input type="checkbox" id="body21" value="1">
-		<label for="body21">Forge</label>
-		<br>
-		<input type="checkbox" id="body22" value="1">
-		<label for="body22">Harbinger</label>
-		<br>
-		<input type="checkbox" id="body23" value="1">
-		<label for="body23">Legate</label>
-		<br>
-		<input type="checkbox" id="body24" value="1">
-		<label for="body24">Lifter</label>
-		<br>
-		<input type="checkbox" id="body25" value="1">
-		<label for="body25">Omega</label>
-		<br>
-		<input type="checkbox" id="body26" value="1">
-		<label for="body26">Protector</label>
-		<br>
-		<input type="checkbox" id="body27" value="1">
-		<label for="body27">Reaper</label>
-		<br>
-		<input type="checkbox" id="body28" value="1">
-		<label for="body28">Researcher</label>
-		<br>
-		<input type="checkbox" id="body29" value="1">
-		<label for="body29">Spire</label>
-		<br>
-		<input type="checkbox" id="body30" value="1">
-		<label for="body30">Supreme</label>
-		<br>
-		<input type="checkbox" id="body31" value="1">
-		<label for="body31">Walker</label>
-		<br>
-		<input type="checkbox" id="body32" value="1">
-		<label for="body32">Castellan</label>
-		<br>
-		<input type="checkbox" id="body33" value="1">
-		<label for="body33">Empyrean</label>
-		<br>
-		<input type="checkbox" id="body34" value="1">
-		<label for="body34">Jumper</label>
-		<br>
-		<input type="checkbox" id="body35" value="1">
-		<label for="body35">Matrix</label>
-		<br>
-		<input type="checkbox" id="body36" value="1">
-		<label for="body36">Runner</label>
-		<br>
-		<input type="checkbox" id="body37" value="1">
-		<label for="body37">Sovereign</label>
-		<br>
-		<input type="checkbox" id="body38" value="1">
-		<label for="body38">Wyvern</label>
-		<br>
-		<input type="checkbox" id="body39" value="1">
-		<label for="body39">Sentinel</label>
-		<br>
-		<input type="checkbox" id="body40" value="1">
-		<label for="body40">Skeleton</label>
-		<br>
-		<input type="checkbox" id="body41" value="1">
-		<label for="body41">Rose</label>
-		<br>
-		<input type="checkbox" id="body42" value="1">
-		<label for="body42">Avre</label>
-		<br>
-		<input type="checkbox" id="body43" value="1">
-		<label for="body43">Spaghetti</label>
-     		<br>
-		<input type="checkbox" id="body44" value="1">
-		<label for="body44">Trooper</label>
-        	<br>
-		<input type="checkbox" id="body45" value="1">
-		<label for="body45">Vengeance</label>
-        	<br>
-		<input type="checkbox" id="body46" value="1">
-		<label for="body46">Arbiter</label>
-        	<br>
-		<input type="checkbox" id="body47" value="1">
-		<label for="body47">Ranger</label>
-        	<br>
-		<input type="checkbox" id="body48" value="1">
-		<label for="body48">Oxide</label>
-        	<br>
-		<input type="checkbox" id="body49" value="1">
-		<label for="body49">Survivor</label>
-        	<br>
-		<input type="checkbox" id="body50" value="1">
-		<label for="body50">Mythic</label>
-        	<br>
-		<input type="checkbox" id="body51" value="1">
-		<label for="body51">Outcast</label>
-		<br>
-		<input type="checkbox" id="body52" value="1">
-		<label for="body52">Amogus</label>
-		<br>
-		<input type="checkbox" id="body53" value="1">
-		<label for="body53">Angel</label>
-		<br>
-		<input type="checkbox" id="body54" value="1">
-		<label for="body54">Split visor</label>
-		<br>
-		<input type="checkbox" id="body55" value="1">
-		<label for="body55">Legless</label>
-		<br>
-		<input type="checkbox" id="body56" value="1">
-		<label for="body56">Soldier RIG</label>
-		<br>
-		<input type="checkbox" id="body57" value="1">
-		<label for="body57">Witch</label>
-		<br>
-		<input type="checkbox" id="body58" value="1">
-		<label for="body58">Modeus</label>
-		<br>
-		<input type="checkbox" id="body59" value="1">
-		<label for="body59">Velox</label>
-		<br>
-		<input type="checkbox" id="body60" value="1">
-		<label for="body60">Falkok</label>
-		<br>
-		<input type="checkbox" id="body61" value="1">
-		<label for="body61">Apex</label>
-		<br>
-		<input type="checkbox" id="body62" value="1">
-		<label for="body62">Advisor</label>
-		<br>
-		<input type="checkbox" id="body63" value="1">
-		<label for="body63">Paradigm</label>
-		<br>
-		<input type="checkbox" id="body64" value="1">
-		<label for="body64">Sync</label>
-		<br>
-		<input type="checkbox" id="body65" value="1">
-		<label for="body65">SD Duster</label>
-		<br>
-		<input type="checkbox" id="body66" value="1">
-		<label for="body66">Vengeance Alt</label>
-		<br>
-		<input type="checkbox" id="body67" value="1">
-		<label for="body67">Bulwark Alt</label>
-		<br>
-		<input type="checkbox" id="body68" value="1">
-		<label for="body68">Council</label>
-		<br>
-		<input type="checkbox" id="body69" value="1">
-		<label for="body69">Android</label>
-		<br>
-		<input type="checkbox" id="body70" value="1">
-		<label for="body70">Android Alt</label>
-		<br>
-		<input type="checkbox" id="body71" value="1">
-		<label for="body71">Assassin</label>
-		<br>
-		<input type="checkbox" id="body72" value="1">
-		<label for="body72">Automata</label>
-		<br>
-		<input type="checkbox" id="body73" value="1">
-		<label for="body73">Automata Alt</label>
-		<br>
-		<input type="checkbox" id="body74" value="1">
-		<label for="body74">Blackguard</label>
-		<br>
-		<input type="checkbox" id="body75" value="1">
-		<label for="body75">Duelist</label>
-		<br>
-		<input type="checkbox" id="body76" value="1">
-		<label for="body76">Monolith</label>
-		<br>
-		<input type="checkbox" id="body77" value="1">
-		<label for="body77">Specialist</label>
-		<br>
-		<input type="checkbox" id="body78" value="1">
-		<label for="body78">Spectre</label>
-		<br>
-		<input type="checkbox" id="body79" value="1">
-		<label for="body79">Storm</label>
-		<br>
-		<input type="checkbox" id="body80" value="1">
-		<label for="body80">Stream</label>
-		<br>
-		<input type="checkbox" id="body81" value="1">
-		<label for="body81">Swole</label>
-		<br>
-		<input type="checkbox" id="body82" value="1">
-		<label for="body82">Terminus</label>
-		<br>
-		<input type="checkbox" id="body83" value="1">
-		<label for="body83">Titan</label>
-		<br>
-		<input type="checkbox" id="body84" value="1">
-		<label for="body84">Versatile</label>
-		<br>
-		<input type="checkbox" id="body85" value="1">
-		<label for="body85">Versatile Alt</label>
-		<br>
-		<input type="checkbox" id="body86" value="1">
-		<label for="body86">Warlord</label>
-		<br>
-		<input type="checkbox" id="body87" value="1">
-		<label for="body87">Fixer</label>
+		<!-- Skin list (same for bodies, argms and legs) is now stored at sdCharacter -->
 	    </div>
 	    
-	    <div class="set_block" tabindex="1" mycondition="entity1">
+	    <div class="set_block" tabindex="1" mycondition="entity1" id="place_legs_here">
 		<span class="sdtitle">Legs model</span><br>
-		<input type="checkbox" id="legs1" value="1">
-		<label for="legs1">Star Defender</label>
-		<br>
-		<input type="checkbox" id="legs2" value="1">
-		<label for="legs2">Heavy</label>
-		<br>
-		<input type="checkbox" id="legs3" value="1">
-		<label for="legs3">Tech</label>
-		<br>
-		<input type="checkbox" id="legs4" value="1">
-		<label for="legs4">Templar</label>
-		<br>
-		<input type="checkbox" id="legs5" value="1">
-		<label for="legs5">Inferno</label>
-		<br>
-		<input type="checkbox" id="legs6" value="1">
-		<label for="legs6">Kevlar</label>
-		<br>
-		<input type="checkbox" id="legs7" value="1">
-		<label for="legs7">Shade</label>
-		<br>
-		<input type="checkbox" id="legs8" value="1">
-		<label for="legs8">Afterburn</label>
-		<br>
-		<input type="checkbox" id="legs9" value="1">
-		<label for="legs9">Vanquisher</label>
-		<br>
-		<input type="checkbox" id="legs10" value="1">
-		<label for="legs10">Glory</label>
-		<br>
-		<input type="checkbox" id="legs11" value="1">
-		<label for="legs11">Scion</label>
-       		<br>
-		<input type="checkbox" id="legs12" value="1">
-		<label for="legs12">Varia</label>
-        	<br>
-		<input type="checkbox" id="legs13" value="1">
-		<label for="legs13">Array</label>
-        	<br>
-		<input type="checkbox" id="legs14" value="1">
-		<label for="legs14">Nova</label>
-        	<br>
-		<input type="checkbox" id="legs15" value="1">
-		<label for="legs15">Igris</label>
-		<br>
-		<input type="checkbox" id="legs16" value="1">
-		<label for="legs16">Alpha</label>
-		<br>
-		<input type="checkbox" id="legs17" value="1">
-		<label for="legs17">Agilus</label>
-		<br>
-		<input type="checkbox" id="legs18" value="1">
-		<label for="legs18">Biohazard</label>
-		<br>
-		<input type="checkbox" id="legs19" value="19">
-		<label for="legs19">Bulwark</label>
-		<br>
-		<input type="checkbox" id="legs20" value="1">
-		<label for="legs20">Engineer</label>
-		<br>
-		<input type="checkbox" id="legs21" value="1">
-		<label for="legs21">Forge</label>
-		<br>
-		<input type="checkbox" id="legs22" value="1">
-		<label for="legs22">Harbinger</label>
-		<br>
-		<input type="checkbox" id="legs23" value="1">
-		<label for="legs23">Legate</label>
-		<br>
-		<input type="checkbox" id="legs24" value="1">
-		<label for="legs24">Lifter</label>
-		<br>
-		<input type="checkbox" id="legs25" value="1">
-		<label for="legs25">Omega</label>
-		<br>
-		<input type="checkbox" id="legs26" value="1">
-		<label for="legs26">Protector</label>
-		<br>
-		<input type="checkbox" id="legs27" value="1">
-		<label for="legs27">Reaper</label>
-		<br>
-		<input type="checkbox" id="legs28" value="1">
-		<label for="legs28">Researcher</label>
-		<br>
-		<input type="checkbox" id="legs29" value="1">
-		<label for="legs29">Spire</label>
-		<br>
-		<input type="checkbox" id="legs30" value="1">
-		<label for="legs30">Supreme</label>
-		<br>
-		<input type="checkbox" id="legs31" value="1">
-		<label for="legs31">Walker</label>
-		<br>
-		<input type="checkbox" id="legs32" value="1">
-		<label for="legs32">Castellan</label>
-		<br>
-		<input type="checkbox" id="legs33" value="1">
-		<label for="legs33">Empyrean</label>
-		<br>
-		<input type="checkbox" id="legs34" value="1">
-		<label for="legs34">Jumper</label>
-		<br>
-		<input type="checkbox" id="legs35" value="1">
-		<label for="legs35">Matrix</label>
-		<br>
-		<input type="checkbox" id="legs36" value="1">
-		<label for="legs36">Runner</label>
-		<br>
-		<input type="checkbox" id="legs37" value="1">
-		<label for="legs37">Sovereign</label>
-		<br>
-		<input type="checkbox" id="legs38" value="1">
-		<label for="legs38">Wyvern</label>
-		<br>
-		<input type="checkbox" id="legs39" value="1">
-		<label for="legs39">Sentinel</label>
-		<br>
-		<input type="checkbox" id="legs40" value="1">
-		<label for="legs40">Skeleton</label>
-		<br>
-		<input type="checkbox" id="legs41" value="1">
-		<label for="legs41">Rose</label>
-		<br>
-		<input type="checkbox" id="legs42" value="1">
-		<label for="legs42">Avre</label>
-		<br>
-		<input type="checkbox" id="legs43" value="1">
-		<label for="legs43">Spaghetti</label>
-        	<br>
-		<input type="checkbox" id="legs44" value="1">
-		<label for="legs44">Trooper</label>
-        	<br>
-		<input type="checkbox" id="legs45" value="1">
-		<label for="legs45">Vengeance</label>
-        	<br>
-		<input type="checkbox" id="legs46" value="1">
-		<label for="legs46">Arbiter</label>
-        	<br>
-		<input type="checkbox" id="legs47" value="1">
-		<label for="legs47">Ranger</label>
-        	<br>
-		<input type="checkbox" id="legs48" value="1">
-		<label for="legs48">Oxide</label>
-        	<br>
-		<input type="checkbox" id="legs49" value="1">
-		<label for="legs49">Survivor</label>
-        	<br>
-		<input type="checkbox" id="legs50" value="1">
-		<label for="legs50">Mythic</label>
-        	<br>
-		<input type="checkbox" id="legs51" value="1">
-		<label for="legs51">Outcast</label>
-		<br>
-		<input type="checkbox" id="legs52" value="1">
-		<label for="legs52">Amogus</label>
-		<br>
-		<input type="checkbox" id="legs53" value="1">
-		<label for="legs53">Angel</label>
-		<br>
-		<input type="checkbox" id="legs54" value="1">
-		<label for="legs54">Split visor</label>
-		<br>
-		<input type="checkbox" id="legs55" value="1">
-		<label for="legs55">Legless</label>
-		<br>
-		<input type="checkbox" id="legs56" value="1">
-		<label for="legs56">Soldier RIG</label>
-		<br>
-		<input type="checkbox" id="legs57" value="1">
-		<label for="legs57">Witch</label>
-		<br>
-		<input type="checkbox" id="legs58" value="1">
-		<label for="legs58">Modeus</label>
-		<br>
-		<input type="checkbox" id="legs59" value="1">
-		<label for="legs59">Velox</label>
-		<br>
-		<input type="checkbox" id="legs60" value="1">
-		<label for="legs60">Falkok</label>
-		<br>
-		<input type="checkbox" id="legs61" value="1">
-		<label for="legs61">Apex</label>
-		<br>
-		<input type="checkbox" id="legs62" value="1">
-		<label for="legs62">Advisor</label>
-		<br>
-		<input type="checkbox" id="legs63" value="1">
-		<label for="legs63">Paradigm</label>
-		<br>
-		<input type="checkbox" id="legs64" value="1">
-		<label for="legs64">Sync</label>
-		<br>
-		<input type="checkbox" id="legs65" value="1">
-		<label for="legs65">SD Duster</label>
-		<br>
-		<input type="checkbox" id="legs66" value="1">
-		<label for="legs66">Vengeance Alt</label>
-		<br>
-		<input type="checkbox" id="legs67" value="1">
-		<label for="legs67">Bulwark Alt</label>
-		<br>
-		<input type="checkbox" id="legs68" value="1">
-		<label for="legs68">Council</label>
-		<br>
-		<input type="checkbox" id="legs69" value="1">
-		<label for="legs69">Android</label>
-		<br>
-		<input type="checkbox" id="legs70" value="1">
-		<label for="legs70">Android Alt</label>
-		<br>
-		<input type="checkbox" id="legs71" value="1">
-		<label for="leg71">Assassin</label>
-		<br>
-		<input type="checkbox" id="legs72" value="1">
-		<label for="legs72">Automata</label>
-		<br>
-		<input type="checkbox" id="legs73" value="1">
-		<label for="legs73">Automata Alt</label>
-		<br>
-		<input type="checkbox" id="legs74" value="1">
-		<label for="legs74">Blackguard</label>
-		<br>
-		<input type="checkbox" id="legs75" value="1">
-		<label for="legs75">Duelist</label>
-		<br>
-		<input type="checkbox" id="legs76" value="1">
-		<label for="legs76">Monolith</label>
-		<br>
-		<input type="checkbox" id="legs77" value="1">
-		<label for="legs77">Specialist</label>
-		<br>
-		<input type="checkbox" id="legs78" value="1">
-		<label for="legs78">Spectre</label>
-		<br>
-		<input type="checkbox" id="legs79" value="1">
-		<label for="legs79">Storm</label>
-		<br>
-		<input type="checkbox" id="legs80" value="1">
-		<label for="legs80">Stream</label>
-		<br>
-		<input type="checkbox" id="legs81" value="1">
-		<label for="legs81">Swole</label>
-		<br>
-		<input type="checkbox" id="legs82" value="1">
-		<label for="legs82">Terminus</label>
-		<br>
-		<input type="checkbox" id="legs83" value="1">
-		<label for="legs83">Titan</label>
-		<br>
-		<input type="checkbox" id="legs84" value="1">
-		<label for="legs84">Versatile</label>
-		<br>
-		<input type="checkbox" id="legs85" value="1">
-		<label for="legs85">Versatile Alt</label>
-		<br>
-		<input type="checkbox" id="legs86" value="1">
-		<label for="legs86">Warlord</label>
-		<br>
-		<input type="checkbox" id="legs87" value="1">
-		<label for="legs87">Fixer</label>
+		<!-- Skin list (same for bodies, argms and legs) is now stored at sdCharacter -->
 	    </div>
 	    
 	    <div class="set_block" tabindex="1">
@@ -1446,14 +597,15 @@
 	    
 	    <div class="set_block" tabindex="1">
 		<span class="sdtitle">Volume</span><br>
-		<input type="checkbox" id="volume1" value="1">
+		<input id="volume" type="range" min="0" max="100" step="0.1">
+		<!--<input type="checkbox" id="volume1" value="1">
 		<label for="volume1">40%</label>
 		<br>
 		<input type="checkbox" id="volume2" value="1">
 		<label for="volume2">25%</label>
 		<br>
 		<input type="checkbox" id="volume3" value="1" checked>
-		<label for="volume3">10%</label>
+		<label for="volume3">10%</label>-->
 	    </div>
 	    
 	    <div class="set_block" tabindex="1">
@@ -1466,6 +618,15 @@
 		<br>
 		<input type="checkbox" id="censorship2" value="0">
 		<label for="censorship2">No</label>
+	    </div>
+	    
+	    <div class="set_block" tabindex="1">
+		<span class="sdtitle">Allow self-talk</span><br>
+		<input type="checkbox" id="selftalk1" value="1" checked>
+		<label for="selftalk1">Yes (these includes hints)</label>
+		<br>
+		<input type="checkbox" id="selftalk2" value="0">
+		<label for="selftalk2">No (important hints will be compeltely disabled)</label>
 	    </div>
 	    <!--
 	    <div class="set_block" tabindex="1" style="width: 485px">
@@ -1488,7 +649,17 @@
 	</div>
 
 	<script>
+	Run();
+	
+	function Run()
 	{
+	    if ( typeof sdCharacter === 'undefined' ||
+		 sdCharacter.helmet_file_names_with_actual_names === undefined )
+	    {
+		setTimeout( Run, 50 );
+		return;
+	    }
+		
 	    globalThis.connection_established = false;
 	    
 	    let settings_container = document.getElementById( 'settings_container' );
@@ -1496,6 +667,7 @@
 	    let start_offline_btn = document.getElementById( 'start_offline_btn' );
 	    
 	    let my_hash_input = document.getElementById( 'my_hash' );
+	    let volume_input = document.getElementById( 'volume' );
 	    
 	    let inputs = [];
 	    let inputs_hash = {};
@@ -1687,10 +859,69 @@
 	    
 	    AcceptField( 'my_hash', [ Math.random(), Math.random(), Math.random(), Math.random(), Math.random() ].join('') );
 	    AcceptField( 'last_local_time_start', 0 );
+	    AcceptField( 'volume', 70 );
 	    
 	    if ( Date.now() > parseInt( document.getElementById( 'last_local_time_start' ).value ) + 1000 * 60 * 60 * 8 )
 	    {
 		globalThis.will_play_startup_tune = true;
+	    }
+	    
+	    // Create helmet/body/legs options
+	    {
+		let place_helmets_here = document.getElementById( 'place_helmets_here' );
+		let place_bodies_here = document.getElementById( 'place_bodies_here' );
+		let place_legs_here = document.getElementById( 'place_legs_here' );
+
+		let compiled_helmets = '';
+		let compiled_bodies = '';
+		let compiled_legs = '';
+
+		function ItemSorter( a, b )
+		{
+		    var textA = a.name.toUpperCase();
+		    var textB = b.name.toUpperCase();
+		    return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
+		}
+
+		let sorted_helmet_info = sdCharacter.helmet_file_names_with_actual_names.slice().sort( ItemSorter );
+		let sorted_skin_info = sdCharacter.skin_file_names_with_actual_names.slice().sort( ItemSorter );
+
+		for ( let i = 0; i < sorted_helmet_info.length; i++ )
+		if ( sorted_helmet_info[ i ].file !== '' )
+		{
+		    let item = sorted_helmet_info[ i ];
+
+		    if ( compiled_helmets.length > 0 )
+		    compiled_helmets += `<br>`;
+
+		    compiled_helmets += 
+		    `<input type="checkbox" id="helmet${ item.id }" value="${ item.id }">
+		    <label for="helmet${ i }">${ item.name }</label>`;
+		}
+
+		for ( let i = 0; i < sorted_skin_info.length; i++ )
+		if ( sorted_skin_info[ i ].file !== '' )
+		{
+		    let item = sorted_skin_info[ i ];
+
+		    if ( compiled_bodies.length > 0 )
+		    {
+			compiled_bodies += `<br>`;
+			compiled_legs += `<br>`;
+		    }
+
+		    compiled_bodies += 
+		    `<input type="checkbox" id="body${ item.id }" value="${ item.id }">
+		    <label for="body${ i }">${ item.name }</label>`;
+
+		    compiled_legs += 
+		    `<input type="checkbox" id="legs${ item.id }" value="${ item.id }">
+		    <label for="legs{ i }">${ item.name }</label>`;
+		}
+
+		place_helmets_here.innerHTML += compiled_helmets;
+		place_bodies_here.innerHTML += compiled_bodies;
+		place_legs_here.innerHTML += compiled_legs;
 	    }
 			
 	    //function LoopThrough( settings_container )
@@ -1796,11 +1027,12 @@
 		JustOne( 'helmet', last_changed_el );
 		JustOne( 'drone_helmet', last_changed_el );
 		JustOne( 'camera', last_changed_el );
-		JustOne( 'volume', last_changed_el );
+		//JustOne( 'volume', last_changed_el );
 		JustOne( 'body', last_changed_el );
 		JustOne( 'legs', last_changed_el );
 		JustOne( 'entity', last_changed_el );
 		JustOne( 'censorship', last_changed_el );
+		JustOne( 'selftalk', last_changed_el );
 		
 		for ( let i = 0; i < conditional_elements.length; i++ )
 		{

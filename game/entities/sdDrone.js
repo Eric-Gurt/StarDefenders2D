@@ -25,12 +25,6 @@ class sdDrone extends sdEntity
 
 		sdDrone.img_drone_falkok2 = sdWorld.CreateImageFromFile( 'drone_falkok_sprite3' ); // Sprite by gravel/flora/floor
 
-		/*
-		sdDrone.img_drone_falkok = sdWorld.CreateImageFromFile( 'drone_falkok' );
-		sdDrone.img_drone_falkok_attack = sdWorld.CreateImageFromFile( 'drone_falkok_attack' );
-		sdDrone.img_drone_falkok_destroyed = sdWorld.CreateImageFromFile( 'drone_falkok_destroyed' );
-		*/
-
 		// Maybe we should make sprite sheets too for "sdPlayerDrone"s? - Molis
 		sdDrone.img_drone_robot = sdWorld.CreateImageFromFile( 'drone_robot2' );
 		sdDrone.img_drone_robot_attack = sdWorld.CreateImageFromFile( 'drone_robot_attack2' );
@@ -40,45 +34,15 @@ class sdDrone extends sdEntity
 		sdDrone.img_drone_alien = sdWorld.CreateImageFromFile( 'drone_alien_sprite' );
 		sdDrone.img_drone_alien2 = sdWorld.CreateImageFromFile( 'drone_alien2_sprite' );
 
-		/*
-		sdDrone.img_drone_alien = sdWorld.CreateImageFromFile( 'drone_alien' );
-		sdDrone.img_drone_alien_attack = sdWorld.CreateImageFromFile( 'drone_alien_attack' );
-		sdDrone.img_drone_alien_destroyed = sdWorld.CreateImageFromFile( 'drone_alien_destroyed' );
-
-
-		sdDrone.img_drone_alien2 = sdWorld.CreateImageFromFile( 'drone_alien2' );
-		sdDrone.img_drone_alien2_attack = sdWorld.CreateImageFromFile( 'drone_alien2_attack' );
-		sdDrone.img_drone_alien2_destroyed = sdWorld.CreateImageFromFile( 'drone_alien2_destroyed' );
-		*/
-
 		sdDrone.img_drone_alien3 = sdWorld.CreateImageFromFile( 'drone_alien3' );
-		//sdDrone.img_drone_alien3_attack = sdWorld.CreateImageFromFile( 'drone_alien3_attack' );
-		//sdDrone.img_drone_alien3_destroyed = sdWorld.CreateImageFromFile( 'drone_alien3_destroyed' );
 
 		sdDrone.img_drone_council = sdWorld.CreateImageFromFile( 'drone_council_sprite' );
 		sdDrone.img_drone_setr = sdWorld.CreateImageFromFile( 'drone_setr_sprite' );
 
 		sdDrone.img_drone_tzyrg = sdWorld.CreateImageFromFile( 'drone_tzyrg_sprite' ); // By floor/flora
 		sdDrone.img_drone_tzyrg2 = sdWorld.CreateImageFromFile( 'drone_tzyrg2_sprite' ); // By floor/flora
-
-		/*
-		sdDrone.img_drone_council = sdWorld.CreateImageFromFile( 'drone_council' );
-		sdDrone.img_drone_council_attack = sdWorld.CreateImageFromFile( 'drone_council_attack' );
-		sdDrone.img_drone_council_destroyed = sdWorld.CreateImageFromFile( 'drone_council_destroyed' );
-
-		sdDrone.img_drone_setr = sdWorld.CreateImageFromFile( 'drone_setr' );
-		sdDrone.img_drone_setr_attack = sdWorld.CreateImageFromFile( 'drone_setr_attack' );
-		sdDrone.img_drone_setr_destroyed = sdWorld.CreateImageFromFile( 'drone_setr_destroyed' );
-
-		sdDrone.img_drone_tzyrg = sdWorld.CreateImageFromFile( 'drone_tzyrg' ); // By floor/flora
-		sdDrone.img_drone_tzyrg_attack = sdWorld.CreateImageFromFile( 'drone_tzyrg_attack' ); // By floor/flora
-		sdDrone.img_drone_tzyrg_destroyed = sdWorld.CreateImageFromFile( 'drone_tzyrg_destroyed' ); // By floor/flora
-
-
-		sdDrone.img_drone_tzyrg2 = sdWorld.CreateImageFromFile( 'drone_tzyrg2' ); // By floor / flora
-		sdDrone.img_drone_tzyrg2_attack = sdWorld.CreateImageFromFile( 'drone_tzyrg2_attack' ); // By floor / flora
-		sdDrone.img_drone_tzyrg2_destroyed = sdWorld.CreateImageFromFile( 'drone_tzyrg2_destroyed' ); // By floor / flora
-		*/
+		
+		sdDrone.img_cut_droid = sdWorld.CreateImageFromFile( 'sdCutDroid' );
 		
 		sdDrone.death_duration = 15;
 		sdDrone.post_death_ttl = 30 * 10;
@@ -97,6 +61,7 @@ class sdDrone extends sdEntity
 		sdDrone.DRONE_TZYRG = 8;
 		sdDrone.DRONE_TZYRG_WATCHER = 9;
 		sdDrone.DRONE_FALKOK_RAIL = 10;
+		sdDrone.DRONE_CUT_DROID = 11;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -112,6 +77,14 @@ class sdDrone extends sdEntity
 	{
 		super( params );
 		
+		if ( params.tag )
+		{
+			if ( sdDrone[ params.tag ] !== undefined )
+			params.type = sdDrone[ params.tag ];
+			else
+			debugger;
+		}
+		
 		this.sx = 0;
 		this.sy = 0;
 
@@ -119,7 +92,18 @@ class sdDrone extends sdEntity
 		
 		this.type = params.type || 1;
 		
-		this._hmax =  this.type === sdDrone.DRONE_SETR ? 150 : this.type === sdDrone.DRONE_COUNCIL ? 200 : this.type === sdDrone.DRONE_SARRORIAN_DETONATOR ? 100 : this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER ? 850 : this.type === sdDrone.DRONE_SARRORIAN ? 600 : this.type === sdDrone.DRONE_TZYRG_WATCHER ? 500 : this.type === sdDrone.DRONE_FALKOK ? 130 : this.type === sdDrone.DRONE_FALKOK_RAIL ? 175 : 100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
+		this._hmax = 
+			this.type === sdDrone.DRONE_SETR ? 150 : 
+			this.type === sdDrone.DRONE_COUNCIL ? 200 : 
+			this.type === sdDrone.DRONE_SARRORIAN_DETONATOR ? 100 : 
+			this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER ? 850 : 
+			this.type === sdDrone.DRONE_SARRORIAN ? 600 : 
+			this.type === sdDrone.DRONE_TZYRG_WATCHER ? 500 : 
+			this.type === sdDrone.DRONE_FALKOK ? 130 : 
+			this.type === sdDrone.DRONE_FALKOK_RAIL ? 175 : 
+			this.type === sdDrone.DRONE_CUT_DROID ? 2000 : 
+			100; // TYPE=1: 1 shot for regular railgun but 2 for mech one, TYPE=2: 1 shot from any railgun
+	
 		this._hea = this._hmax;
 		this._ai_team = params._ai_team || 1;
 
@@ -148,11 +132,18 @@ class sdDrone extends sdEntity
 		this.side = 1;
 		
 		this.attack_frame = 0;
+		this._anim_flap = 0; // Client-side controlled, for sdDrone.DRONE_CUT_DROID
 		
 		this._anim_shift = ~~( Math.random() * 10000 );
 
 		this._ignore_collisions_with = null; // Used by Sarrorian Detonators to pass through Detonator Containers.
 
+		// These are for DRONE_CUT_DROID, but could be used for others too
+		this._anim_flap = 0;
+		this._anim_twist = 0;
+		this._anim_last_effect_time = 0;
+		
+		this._voice_channel = sdSound.CreateSoundChannel( this );
 		
 		if ( this.type !== sdDrone.DRONE_SARRORIAN_DETONATOR ) // Detonators don't count towards drone count
 		sdDrone.drones_tot++;
@@ -175,7 +166,7 @@ class sdDrone extends sdEntity
 			this._current_target = ent;
 
 			if ( ent )
-			this._pathfinding = new sdPathFinding({ target: ent, traveler: this, attack_range: 240, options: [ sdPathFinding.OPTION_CAN_FLY, sdPathFinding.OPTION_CAN_GO_THROUGH_WALLS, sdPathFinding.OPTION_CAN_SWIM ] });
+			this._pathfinding = new sdPathFinding({ target: ent, traveler: this, attack_range: ( this.type === sdDrone.DRONE_CUT_DROID ) ? 32 : 240, options: [ sdPathFinding.OPTION_CAN_FLY, sdPathFinding.OPTION_CAN_GO_THROUGH_WALLS, sdPathFinding.OPTION_CAN_SWIM ] });
 			else
 			this._pathfinding = null;
 		}
@@ -225,7 +216,7 @@ class sdDrone extends sdEntity
 		character = character.driver_of;
 		
 		if ( this._hea > 0 )
-		if ( character.IsTargetable() && character.IsVisible() )
+		if ( character.IsTargetable( this ) && character.IsVisible( this ) )
 		if ( ( character.hea || character._hea ) > 0 )
 		{
 			let di = sdWorld.Dist2D( this.x, this.y, character.x, character.y ); 
@@ -241,6 +232,9 @@ class sdDrone extends sdEntity
 				
 					if ( this.type === sdDrone.DRONE_ERTHAL )
 					sdSound.PlaySound({ name:'spider_welcomeC', x:this.x, y:this.y, volume: 1, pitch:2 });
+					else
+					if ( this.type === sdDrone.DRONE_CUT_DROID )
+					sdSound.PlaySound({ name:'cut_droid_alert', x:this.x, y:this.y, volume: 1, pitch:1 });
 				}
 			}
 		}
@@ -315,6 +309,9 @@ class sdDrone extends sdEntity
 		{
 			//if ( initiator )
 			{
+				if ( this._hmax > 550 )
+				this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_FREQUENTLY_LETHAL_MOB );
+				else
 				this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_AVERAGE_MOB );
 			}
 	
@@ -324,11 +321,11 @@ class sdDrone extends sdEntity
 					x:this.x, 
 					y:this.y, 
 					radius: 25, 
-				damage_scale: 2 , 
-				type:sdEffect.TYPE_EXPLOSION,
-				armor_penetration_level: 0,
-				owner:this,
-				color:sdEffect.default_explosion_color
+					damage_scale: 2 , 
+					type:sdEffect.TYPE_EXPLOSION,
+					armor_penetration_level: 0,
+					owner:this,
+					color:sdEffect.default_explosion_color
 				});
 
 				if ( dmg >= this._hmax * 0.5 && this.type === sdDrone.DRONE_FALKOK ) // Instagib, splits drone into 2 parts ( if you weapon deals enough damage )
@@ -350,6 +347,7 @@ class sdDrone extends sdEntity
 					sdSound.PlaySound({ name:'tzyrg_death', x:this.x, y:this.y, volume:1, pitch: this.type === sdDrone.DRONE_TZYRG_WATCHER ? 0.8 : 1 });
 				}
 			}
+			else
 			if ( this.type === sdDrone.DRONE_ERTHAL )
 			{
 				this.sx -= this.side * 2;
@@ -366,26 +364,44 @@ class sdDrone extends sdEntity
 					x:this.x, 
 					y:this.y, 
 					radius: 50, 
-				damage_scale: 1,
-				type:sdEffect.TYPE_EXPLOSION,
-				armor_penetration_level: 0,
-				owner:this,
-				color:sdEffect.default_explosion_color
+					damage_scale: 1,
+					type:sdEffect.TYPE_EXPLOSION,
+					armor_penetration_level: 0,
+					owner:this,
+					color:sdEffect.default_explosion_color
 				});
 			}
+			else
 			if ( this.type === sdDrone.DRONE_SARRORIAN_DETONATOR ) // These are suicide bomber drones basically, lethal drones
 			{
 				sdWorld.SendEffect({ 
 					x:this.x, 
 					y:this.y, 
 					radius: 15, 
-				damage_scale: 15,
-				type:sdEffect.TYPE_EXPLOSION,
-				armor_penetration_level: 0,
-				owner:this,
-				color:sdEffect.default_explosion_color
+					damage_scale: 15,
+					type:sdEffect.TYPE_EXPLOSION,
+					armor_penetration_level: 0,
+					owner:this,
+					color:sdEffect.default_explosion_color
 				});
 			}
+			else
+			if ( this.type === sdDrone.DRONE_CUT_DROID )
+			{
+				sdWorld.SendEffect({ 
+					x:this.x, 
+					y:this.y, 
+					radius: 64, 
+					damage_scale: 0.1, 
+					type:sdEffect.TYPE_EXPLOSION,
+					armor_penetration_level: 0,
+					owner:this,
+					color:'#aaffdd'
+				});
+				
+				sdSound.PlaySound({ name:'cut_droid_death', x:this.x, y:this.y, volume:1, pitch:1, channel:this._voice_channel });
+			}
+			
 			if ( Math.random() < 0.2 ) // 20% chance to drop a metal shard on destruction
 			{
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
@@ -445,10 +461,78 @@ class sdDrone extends sdEntity
 		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
 		
 		let pathfinding_result = null;
-			
+		
+
+		if ( this.type === sdDrone.DRONE_CUT_DROID )
+		{
+			let timer = this.attack_frame * 10;
+			let morph = Math.min( 1, timer / 30, ( 2.3 * 30 - timer ) / 30 );
+
+			if ( this.death_anim !== 0 )
+			morph = 0;
+
+			this._anim_flap = sdWorld.MorphWithTimeScale( this._anim_flap, morph, 0.9, GSPEED );
+
+			if ( !sdWorld.is_server )
+			{
+				this._anim_twist += this._anim_flap * GSPEED;
+				this._anim_twist -= Math.sin( this._anim_twist ) * ( 1 - this._anim_flap ) * 0.1;
+			}
+			else
+			if ( this._anim_flap > 0.5 )
+			{
+				let nears = this.GetAnythingNearCache( this.x, this.y, 15 + 64 );
+				
+				let candidates = [];
+
+				for ( let i = 0; i < nears.length; i++ )
+				{
+					let e = nears[ i ];
+					
+					if ( e._is_being_removed )
+					continue;
+
+					let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
+					let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
+
+					if ( e !== this )
+					//if ( this._anim_flap > 0.9 || sdWorld.inDist2D_Boolean( xx, yy, this.x, this.y, 15 + 64 * this._anim_flap ) )
+					if ( this._anim_flap > 0.9 || e.GetAccurateDistance( this.x, this.y ) < 15 + 64 * this._anim_flap )
+					if ( e.IsTargetable( this ) )
+					if ( e.IsBGEntity() === this.IsBGEntity() )
+					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, e, null, sdCom.com_creature_attack_unignored_classes ) )
+					{
+						e.DamageWithEffect( 5 * GSPEED, this );
+						
+						candidates.push( e );
+					}
+				}
+				
+				if ( candidates.length > 0 )
+				if ( sdWorld.time > this._anim_last_effect_time + 50 )
+				{
+					this._anim_last_effect_time = sdWorld.time;
+					
+					let e = candidates[ Math.floor( Math.random() * candidates.length ) ];
+					
+					//let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
+					//let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
+					
+					let [ xx, yy ] = e.GetClosestPointWithinCollision( this.x, this.y );
+					
+					e.PlayDamageEffect( xx, yy );
+				}
+			}
+		}
+
 
 		if ( this.death_anim !== 0 )
-		this.attack_an += -this.sx * 10 * GSPEED * this.side; // Looks smoother
+		{
+			if ( this.type === sdDrone.DRONE_CUT_DROID && this._phys_last_rest_on )
+			this.attack_an = 0;
+			else
+			this.attack_an += -this.sx * 100 * GSPEED * this.side; // Looks smoother
+		}
 
 		if ( this._hea <= 0 )
 		{
@@ -500,6 +584,12 @@ class sdDrone extends sdEntity
 							dy = ( this._current_target.y + ( this._current_target.sy || 0 ) * 10 - this.y - this.sy * 10 );
 						}
 						else
+						/*if ( pathfinding_result && pathfinding_result.attack_target )
+						{
+							dx = ( pathfinding_result.attack_target.x + ( pathfinding_result.attack_target._hitbox_x1 + pathfinding_result.attack_target._hitbox_x2 ) / 2 + ( pathfinding_result.attack_target.sx || 0 ) * 10 - this.x - this.sx * 10 );
+							dy = ( pathfinding_result.attack_target.y + ( pathfinding_result.attack_target._hitbox_y1 + pathfinding_result.attack_target._hitbox_y2 ) / 2 + ( pathfinding_result.attack_target.sy || 0 ) * 10 - this.y - this.sy * 10 );
+						}
+						else*/
 						if ( pathfinding_result )
 						{
 							dx = pathfinding_result.act_x;
@@ -541,7 +631,7 @@ class sdDrone extends sdEntity
 								}
 							}
 
-							if ( this.type !== 5 )
+							if ( this.type !== sdDrone.DRONE_SARRORIAN_DETONATOR )
 							if ( di < 100 + Math.random() * 100 )
 							{
 								dx *= -0.2;
@@ -624,7 +714,7 @@ class sdDrone extends sdEntity
 				let dx = this._current_target.x - this.x;
 				let dy = this._current_target.y - this.y;
 				if ( this.type !== 6 )
-				this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
+				this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 1000;
 			}
 
 			
@@ -752,7 +842,7 @@ class sdDrone extends sdEntity
 
 							this.side = ( dx > 0 ) ? 1 : -1;
 							if ( this.type !== 6 )
-							this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
+							this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 1000;
 
 							//this.an = Math.atan2( this._target.y + this._target.sy * di / vel - this.y, this._target.x + this._target.sx * di / vel - this.x ) * 100;
 
@@ -778,11 +868,12 @@ class sdDrone extends sdEntity
 								sdEntity.entities.push( bullet_obj );
 
 								this.attack_frame = 2;
-								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
+								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 1000;
 								this._attack_timer = 7;
 
 								sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.33, pitch:5 });
 							}
+							else
 							if ( this.type === sdDrone.DRONE_ERTHAL  ) // Erthal drones
 							{
 								let bullet_obj = new sdBullet({ x: this.x, y: this.y });
@@ -815,6 +906,7 @@ class sdDrone extends sdEntity
 
 								sdSound.PlaySound({ name:'spider_attackC', x:this.x, y:this.y, volume:0.33, pitch:6 });
 							}
+							else
 							if ( this.type === sdDrone.DRONE_SARRORIAN )
 							{
 								let bullet_obj = new sdBullet({ x: this.x, y: this.y });
@@ -842,6 +934,7 @@ class sdDrone extends sdEntity
 
 								sdSound.PlaySound({ name:'gun_spark', x:this.x, y:this.y, volume:1.25, pitch:0.5 });
 							}
+							else
 							if ( this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER )
 							{
 								let drone = new sdDrone({ x: this.x, y: this.y, type: sdDrone.DRONE_SARRORIAN_DETONATOR, _ai_team: this._ai_team });
@@ -863,11 +956,13 @@ class sdDrone extends sdEntity
 								//this._summon_ent_count--;
 							
 							}
+							else
 							if ( this.type === sdDrone.DRONE_SARRORIAN_DETONATOR ) // Detonate if in proximity
 							{
 								if ( di < 32 )
 								this.DamageWithEffect( 1000 );
 							}
+							else
 							if ( this.type === sdDrone.DRONE_COUNCIL ) // Council support drones, heal and repair the council + council bomb which makes them a priority target
 							{
 								this._attack_timer = 60;
@@ -921,8 +1016,9 @@ class sdDrone extends sdEntity
 									this.attack_frame = 2;
 								}
 							}
-							if ( this.type === sdDrone.DRONE_SETR ) // Setr drones
-							if ( sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) < 128 )
+							else
+							if ( this.type === sdDrone.DRONE_SETR && // Setr drones
+								 sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) < 128 )
 							{
 								let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 
@@ -947,14 +1043,15 @@ class sdDrone extends sdEntity
 								sdEntity.entities.push( bullet_obj );
 
 								this.attack_frame = 2;
-								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
+								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 1000;
 								this._attack_timer = 37;
 
 								sdSound.PlaySound({ name:'gun_railgun', x:this.x, y:this.y, volume:0.33, pitch:5 });
 							}
+							else
 							if ( this.type === sdDrone.DRONE_TZYRG ) // Tzyrg drones
 							{
-								let bullet_obj = new sdBullet({ x: this.x - ( Math.sin( this.attack_an ) * 3 ) , y: this.y + ( Math.cos( this.attack_an ) * 3 ) });
+								let bullet_obj = new sdBullet({ x: this.x - ( Math.sin( this.attack_an / 1000 ) * 3 ) , y: this.y + ( Math.cos( this.attack_an / 1000 ) * 3 ) });
 
 								bullet_obj._owner = this;
 
@@ -971,7 +1068,7 @@ class sdDrone extends sdEntity
 
 								sdEntity.entities.push( bullet_obj );
 
-								let bullet_obj2 = new sdBullet({ x: this.x + ( Math.sin( this.attack_an ) * 3 ) , y: this.y - ( Math.cos( this.attack_an ) * 3 ) });
+								let bullet_obj2 = new sdBullet({ x: this.x + ( Math.sin( this.attack_an / 1000 ) * 3 ) , y: this.y - ( Math.cos( this.attack_an / 1000 ) * 3 ) });
 
 								bullet_obj2._owner = this;
 
@@ -989,7 +1086,7 @@ class sdDrone extends sdEntity
 								sdEntity.entities.push( bullet_obj2 );
 
 								this.attack_frame = 2;
-								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
+								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 1000;
 								this._attack_timer = 14;
 
 								//sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.5, pitch:4 });
@@ -998,6 +1095,7 @@ class sdDrone extends sdEntity
 								sdSound.PlaySound({ name:'tzyrg_fire', x:this.x, y:this.y, volume: this.type === sdDrone.DRONE_TZYRG_WATCHER ? 2 : 1, pitch: this.type === sdDrone.DRONE_TZYRG_WATCHER ? 0.8 : 1 });
 
 							}
+							else
 							if ( this.type === sdDrone.DRONE_TZYRG_WATCHER ) // Tzyrg watcher
 							{
 								for ( let i = 0; i < 5; i++ )
@@ -1021,13 +1119,14 @@ class sdDrone extends sdEntity
 								}
 
 								this.attack_frame = 2;
-								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
+								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 1000;
 								this._attack_timer = 24;
 
 								//sdSound.PlaySound({ name:'gun_shotgun', x:this.x, y:this.y, pitch:1.25 });
 								
 								sdSound.PlaySound({ name:'tzyrg_fire', x:this.x, y:this.y, volume: this.type === sdDrone.DRONE_TZYRG_WATCHER ? 2 : 1, pitch: this.type === sdDrone.DRONE_TZYRG_WATCHER ? 0.8 : 1 });
 							}
+							else
 							if ( this.type === sdDrone.DRONE_FALKOK_RAIL ) // Falkok rail drones
 							{
 								let bullet_obj = new sdBullet({ x: this.x, y: this.y });
@@ -1046,17 +1145,33 @@ class sdDrone extends sdEntity
 								bullet_obj.color = '#ff0000';
 								bullet_obj._rail = true;
 								bullet_obj._rail_circled = true;
-;
+
 
 								sdEntity.entities.push( bullet_obj );
 
 								this.attack_frame = 2;
-								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
+								//this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 1000;
 								this._attack_timer = 13;
 
 								sdSound.PlaySound({ name:'gun_railgun', x:this.x, y:this.y, volume:0.5, pitch:4 });
 							}
-							break;
+							else
+							if ( this.type === sdDrone.DRONE_CUT_DROID &&
+								 ( nears[ i ].ignore_line_of_sight || sdWorld.Dist2D( this.x, this.y, this._current_target.x, this._current_target.y ) < 64 ) || ( this._current_target.is( sdCharacter ) && this._current_target.hook_relative_to === this ) )
+							{
+								this._attack_timer = 4 * 30;
+								this.attack_frame = 2.3 * 30 / 10;
+								
+								sdSound.PlaySound({ name:'cut_droid_attack', x:this.x, y:this.y, volume: 1, pitch:1, channel:this._voice_channel });
+								
+								//IsCuttingHook() cuts the hook
+							}
+							else
+							{
+								// Drone type has undefined behavior or too far from one of targets. We should skip the target as it can not be damaged
+								continue
+							}
+							break; // Drone attacked something
 						}
 					}
 				}
@@ -1073,6 +1188,17 @@ class sdDrone extends sdEntity
 		else
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, this.CollisionFiltering );
 	}
+	IsCuttingHook()
+	{
+		if ( this.type === sdDrone.DRONE_CUT_DROID )
+		{
+			if ( this.attack_frame > 2 && this.attack_frame < 2.3 * 30 / 10 - 2 )
+			return true;
+		}
+		
+		return false;
+	}
+	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
@@ -1097,6 +1223,8 @@ class sdDrone extends sdEntity
 			sdEntity.Tooltip( ctx, "Tzyrg Watcher" );
 			if ( this.type === sdDrone.DRONE_FALKOK_RAIL )
 			sdEntity.Tooltip( ctx, "Falkok Rail Drone" );
+			if ( this.type === sdDrone.DRONE_CUT_DROID )
+			sdEntity.Tooltip( ctx, "Cut droid" );
 		}
 	}
 	Draw( ctx, attached )
@@ -1109,18 +1237,24 @@ class sdDrone extends sdEntity
 
 		let xx = 0;
 
-		let xxoffset = 32;
-		let xyoffset = 16;
 		let image = sdDrone.img_drone_falkok;
 
 		let width  = 32;
 		let height = 32;
 		
-		ctx.scale( -this.side, 1 );
-		ctx.rotate( this.attack_an / 100 );
+		let attack_frame = 1;
+		
+		let hurt_frame = -1;
+		
+		let death_anim_frames_from = 2;
+		let death_anim_frames_to = 2;
+		let death_anim_speed = 5 / 30;
 
 		if ( this.type === sdDrone.DRONE_ERTHAL )
-		image = sdDrone.img_drone_erthal;
+		{
+			image = sdDrone.img_drone_erthal;
+			hurt_frame = 3;
+		}
 
 		if ( this.type === sdDrone.DRONE_SARRORIAN )
 		image = sdDrone.img_drone_alien;
@@ -1146,11 +1280,55 @@ class sdDrone extends sdEntity
 		if ( this.type === sdDrone.DRONE_TZYRG_WATCHER )
 		{
 			image = sdDrone.img_drone_tzyrg2;
-			xxoffset = 64;
 
-			xyoffset = 32;
 			width = 64;
 			height = 64;
+		}
+
+		if ( this.type === sdDrone.DRONE_CUT_DROID )
+		{
+			image = sdDrone.img_cut_droid;
+			
+			death_anim_frames_from = 2;
+			death_anim_frames_to = 6;
+			
+			attack_frame = 0;
+		
+			if ( this.death_anim === 0 )
+			for ( let i = 0; i < 3; i++ )
+			{
+				let x0;
+				let y0;
+			
+				let r = 15 + Math.sin( (sdWorld.time+this._anim_shift) / 1000 * Math.PI * 2 ) * 2;
+				
+				let morph = this._anim_flap;//Math.min( 1, timer / 30, ( 2.3 * 30 - timer ) / 30 );
+				r = 64 * morph + r * ( 1 - morph );
+				
+				let ang = i / 3 * Math.PI * 2 + this.side * ( this.attack_an / 1000 + 1.2 );
+				
+				ang += this._anim_twist;
+				
+				x0 = -this.side * Math.sin( ang ) * r;
+				y0 = -this.side * Math.cos( ang ) * r;
+				
+				if ( morph > 0.1 )
+				{
+					let hit = sdWorld.TraceRayPoint( this.x, this.y, this.x+x0, this.y+y0, this, null, sdCom.com_creature_attack_unignored_classes );
+					
+					if ( hit )
+					{
+						x0 = hit.x - this.x;
+						y0 = hit.y - this.y;
+					}
+				}
+
+				if ( this.death_anim === 0 )
+				if ( !sdShop.isDrawing )
+				y0 += Math.sin( (sdWorld.time+this._anim_shift) / 1000 * Math.PI ) * 2;
+			
+				ctx.drawImageFilterCache( image, 0, 32, 16,16, x0 - 8, y0 - 8, 16,16 );
+			}
 		}
 		
 		if ( this.death_anim === 0 )
@@ -1159,99 +1337,41 @@ class sdDrone extends sdEntity
 			ctx.translate( 0, Math.sin( (sdWorld.time+this._anim_shift) / 1000 * Math.PI ) * 2 );
 		}
 		
+		ctx.scale( -this.side, 1 );
+		ctx.rotate( this.attack_an / 1000 );
+		
 		if ( this.death_anim > 0 )
 		{
 			if ( this.death_anim > sdDrone.death_duration + sdDrone.post_death_ttl - 30 )
-			{
-				ctx.globalAlpha = 0.5;
-			}
-			if ( this.type !== -1 )
-			xx = 2;
-			/*if ( this.type === sdDrone.DRONE_FALKOK )
-			ctx.drawImageFilterCache( sdDrone.img_drone_falkok_destroyed, - 16, - 16, 32, 32 );
-			if ( this.type === sdDrone.DRONE_ERTHAL )
-			ctx.drawImageFilterCache( sdDrone.img_drone_robot_destroyed, - 16, - 16, 32, 32 );
-			if ( this.type === sdDrone.DRONE_SARRORIAN )
-			ctx.drawImageFilterCache( sdDrone.img_drone_alien_destroyed, - 16, - 16, 32, 32 );
-			if ( this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER )
-			ctx.drawImageFilterCache( sdDrone.img_drone_alien2_destroyed, - 16, - 16, 32, 32 );
-			if ( this.type === sdDrone.DRONE_COUNCIL )
-			ctx.drawImageFilterCache( sdDrone.img_drone_council_destroyed, - 16, - 16, 32, 32 );
-			if ( this.type === sdDrone.DRONE_SETR )
-			ctx.drawImageFilterCache( sdDrone.img_drone_setr_destroyed, - 16, - 16, 32, 32 );
-			if ( this.type === sdDrone.DRONE_TZYRG )
-			ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg_destroyed, - 16, - 16, 32, 32 );
-			if ( this.type === sdDrone.DRONE_TZYRG_WATCHER )
-			ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg2_destroyed, - 32, - 32, 64, 64 );*/
+			ctx.globalAlpha = 0.5;
+
+			xx = ~~Math.min( death_anim_frames_from + this.death_anim * death_anim_speed, death_anim_frames_to );
 		}
 		else
 		{
+			xx = 0;
+			
 			if ( this.attack_frame >= 1 )
 			{
-				if ( this.type !== -1 ) // Is this even possible?
+				if ( attack_frame !== -1 )
 				{
-					xx = 1;
-					
+					xx = attack_frame;
 					ctx.apply_shading = false;
 				}
-				/*if ( this.type === sdDrone.DRONE_FALKOK )
-				ctx.drawImageFilterCache( sdDrone.img_drone_falkok_attack, - 16, - 16, 32, 32 );
-				if ( this.type === sdDrone.DRONE_ERTHAL )
-				ctx.drawImageFilterCache( sdDrone.img_drone_robot_attack, - 16, - 16, 32, 32 );
-				if ( this.type === sdDrone.DRONE_SARRORIAN )
-				ctx.drawImageFilterCache( sdDrone.img_drone_alien_attack, - 16, - 16, 32, 32 );
-				if ( this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER )
-				ctx.drawImageFilterCache( sdDrone.img_drone_alien2_attack, - 16, - 16, 32, 32 );
-				if ( this.type === sdDrone.DRONE_COUNCIL )
-				ctx.drawImageFilterCache( sdDrone.img_drone_council_attack, - 16, - 16, 32, 32 );
-				if ( this.type === sdDrone.DRONE_SETR )
-				ctx.drawImageFilterCache( sdDrone.img_drone_setr_attack, - 16, - 16, 32, 32 );
-				if ( this.type === sdDrone.DRONE_TZYRG )
-				ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg_attack, - 16, - 16, 32, 32 );
-				if ( this.type === sdDrone.DRONE_TZYRG_WATCHER )
-				ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg2_attack, - 32, - 32, 64, 64 );*/
 			}
 			else
 			{
-				if ( this.type !== 0 )
-				xx = 0;
-				/*ctx.drawImageFilterCache( sdDrone.img_drone_falkok, - 16, - 16, 32, 32 );
-				if ( this.type === sdDrone.DRONE_SARRORIAN )
-				ctx.drawImageFilterCache( sdDrone.img_drone_alien, - 16, - 16, 32, 32 );
-				if ( this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER )
-				ctx.drawImageFilterCache( sdDrone.img_drone_alien2, - 16, - 16, 32, 32 );
-				if ( this.type === sdDrone.DRONE_SARRORIAN_DETONATOR )
-				ctx.drawImageFilterCache( sdDrone.img_drone_alien3, - 16, - 16, 32, 32 );
-				if ( this.type === sdDrone.DRONE_COUNCIL )
-				ctx.drawImageFilterCache( sdDrone.img_drone_council, - 16, - 16, 32, 32 );
-				if ( this.type === sdDrone.DRONE_SETR )
-				ctx.drawImageFilterCache( sdDrone.img_drone_setr, - 16, - 16, 32, 32 );
-				if ( this.type === sdDrone.DRONE_TZYRG )
-				ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg, - 16, - 16, 32, 32 );
-				if ( this.type === sdDrone.DRONE_TZYRG_WATCHER )
-				ctx.drawImageFilterCache( sdDrone.img_drone_tzyrg2, - 32, - 32, 64, 64 );*/
-				if ( this.type === sdDrone.DRONE_ERTHAL )
-				{
-					if ( this.hurt_timer > 0 )
-					xx = 3;
-					//ctx.drawImageFilterCache( sdDrone.img_drone_robot_hurt, - 16, - 16, 32, 32 );
-					else
-					xx = 0;
-					//ctx.drawImageFilterCache( sdDrone.img_drone_robot, - 16, - 16, 32, 32 );
-				}
+				if ( this.hurt_timer > 0 )
+				if ( hurt_frame !== -1 )
+				xx = hurt_frame;
 			}
 		}
-
-		if ( this.type !== -1 )
-		ctx.drawImageFilterCache( image, xx * xxoffset, 0, width,height, -xyoffset, -xyoffset, width,height );
+		
+		ctx.drawImageFilterCache( image, xx * width, 0, width,height, -width/2, -height/2, width,height );
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
-	/*onMovementInRange( from_entity )
-	{
-		//this._last_stand_on = from_entity;
-	}*/
 	onRemove() // Class-specific, if needed
 	{
 		if ( this.type !== sdDrone.DRONE_SARRORIAN_DETONATOR )

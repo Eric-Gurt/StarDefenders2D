@@ -357,6 +357,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdCrystalCombiner', type: 1, _min_workbench_level: 3, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdRescueTeleport', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_SHORT_RANGE, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_CLONER, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:0, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:1, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:2, _category:'Base equipment' });
@@ -372,6 +373,10 @@ class sdShop
 		sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(180deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 2 });
 		sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(270deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 2 });
 		sdShop.options.push({ _class: 'sdCamera', _category:'Base equipment', _min_build_tool_level: 1 });
+		
+		sdShop.options.push({ _class: 'sdButton', _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdButton', type:1, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdButton', type:2, _category:'Base equipment' });
 		
 		
 		for ( let i = 0; i < sdCaption.colors.length / 3; i++ )
@@ -464,10 +469,10 @@ class sdShop
 			}
 		}
 		sdShop.options.push({ _class: 'sdBomb', _category:'Equipment' });
-		sdShop.options.push({ _class: 'sdBarrel', _category:'Equipment', _min_workbench_level: 1 });
-		sdShop.options.push({ _class: 'sdBarrel', color: '#33FFFF', filter: 'hue-rotate(130deg) saturate(10)', variation: 1, _category:'Equipment', _min_build_tool_level:2, _min_workbench_level: 1 });
-		sdShop.options.push({ _class: 'sdBarrel', color: '#ff6633', filter: 'hue-rotate(300deg) saturate(20)', variation: 2, _category:'Equipment', _min_build_tool_level:5, _min_workbench_level: 1 });
-		sdShop.options.push({ _class: 'sdBarrel', color: '#ffffff', filter: 'saturate(0)', variation: 3, _category:'Equipment', _min_build_tool_level:8, _min_workbench_level: 1 });
+		sdShop.options.push({ _class: 'sdBarrel', _category:'Equipment', _min_build_tool_level:5 });
+		sdShop.options.push({ _class: 'sdBarrel', color: '#33FFFF', filter: 'hue-rotate(130deg) saturate(10)', variation: 1, _category:'Equipment', _min_build_tool_level:10 });
+		sdShop.options.push({ _class: 'sdBarrel', color: '#ff6633', filter: 'hue-rotate(300deg) saturate(20)', variation: 2, _category:'Equipment', _min_build_tool_level:15 });
+		sdShop.options.push({ _class: 'sdBarrel', color: '#ffffff', filter: 'saturate(0)', variation: 3, _category:'Equipment', _min_build_tool_level:20 });
 		sdShop.options.push({ _class: 'sdLandMine', _category:'Equipment' });
 
 		sdShop.upgrades = {
@@ -549,6 +554,7 @@ class sdShop
 				action: ( character, level_purchased )=>
 				{
 					character.has_flashlight = 1;
+					character.flashlight = 1;
 				}
 			},
 			/*upgrade_coms:
@@ -660,7 +666,19 @@ class sdShop
 			sdShop.options.push({ _class: 'sdVirus', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdFaceCrab', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAmphid', _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdCharacter', _category:'Development tests' });
+			
+			let sd_filter = sdWorld.CreateSDFilter();
+			sdWorld.ReplaceColorInSDFilter_v2( sd_filter, '#ff00ff', '#007f00', false );
+			sdWorld.ReplaceColorInSDFilter_v2( sd_filter, '#800080', '#007f00', false );
+			
+			sdShop.options.push({ _class: 'sdCharacter', title: 'Player from the shop', sd_filter:sd_filter, _category:'Development tests' });
+			
+			let sd_filter2 = sdWorld.CreateSDFilter();
+			sdWorld.ReplaceColorInSDFilter_v2( sd_filter2, '#ff00ff', '#000000', false );
+			sdWorld.ReplaceColorInSDFilter_v2( sd_filter2, '#800080', '#000000', false );
+			
+			
+			sdShop.options.push({ _class: 'sdCharacter', title: 'Idling AI from the shop', sd_filter:sd_filter2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAsteroid', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', kind:1, _category:'Development tests' });
@@ -668,6 +686,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCube', kind:3, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', kind:4, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCube', kind:5, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdCube', kind:6, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_LAVA, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_WATER, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_ACID, _category:'Development tests' });
@@ -729,16 +748,17 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: sdCrystal.anticrystal_value * 4, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CORRUPTED, tag: 'deep', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdDrone', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdDrone', _ai_team: 2, type: 2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdDrone', type: 3, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdDrone', type: 4,_ai_team: 4, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdDrone', type: 5,_ai_team: 4, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdDrone', type: 10, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdDrone', type: 11, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdLost', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_LOST_CONVERTER, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_CABLE_TOOL, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdSpider', _ai_team: 2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdSpider', type: 1, _ai_team: 2, _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdDrone', _ai_team: 2, type: 2, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdPlayerDrone', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBeamProjector', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdObelisk', _category:'Development tests' });
@@ -770,9 +790,10 @@ class sdShop
 			sdShop.options.push({ _class: 'sdBot', kind:0, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdBot', kind:1, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGuanako', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdLandScanner', _category:'Development tests' });
 			//sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'saturate(0) brightness(1.5)', _category:'Development tests' });
 			//sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'saturate(0) brightness(0.5)', _category:'Development tests' });
-			sdShop.options.push({ _class: 'sdButton', _category:'Development tests' });
+			//sdShop.options.push({ _class: 'sdButton', _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });
@@ -782,6 +803,8 @@ class sdShop
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:16, _category:'Admin tools' });
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_ERASER_AREA, size:16, _category:'Admin tools' });
 		sdShop.options.push({ _class: 'sdRegion', w:16, h:16, _category:'Admin tools' });
+		sdShop.options.push({ _class: 'sdDeepSleep', w:64, h:64, type:0, _category:'Admin tools' });
+		sdShop.options.push({ _class: 'sdDeepSleep', w:64, h:64, type:1, _category:'Admin tools' });
 		
 		//let remover_sd_filter = sdWorld.CreateSDFilter();
 		//sdWorld.ReplaceColorInSDFilter_v2( remover_sd_filter, '#abcbf4', '#ff9292' );
@@ -1160,13 +1183,25 @@ class sdShop
 			}
 			else
 			{
-				if ( sdShop.options[ sdShop.potential_selection ]._class !== null )
+				let pseudo_entity = sdShop.options[ sdShop.potential_selection ];
+					
+				if ( pseudo_entity._class !== null )
 				{
-					let c = sdWorld.ClassNameToProperName( sdShop.options[ sdShop.potential_selection ]._class, sdShop.options[ sdShop.potential_selection ] );
+					
+					let c = sdWorld.ClassNameToProperName( pseudo_entity._class, pseudo_entity );
 					
 					try
 					{
-						let title = sdWorld.entity_classes[ sdShop.options[ sdShop.potential_selection ]._class ].prototype.title;
+						let title = sdWorld.entity_classes[ pseudo_entity._class ].prototype.title;
+						
+						if ( typeof title === 'string' && title.indexOf( 'undefined' ) === -1 )
+						c = title;
+					}
+					catch(e){};
+					
+					try
+					{
+						let title = Object.getOwnPropertyDescriptor( sdWorld.entity_classes[ pseudo_entity._class ].prototype, 'title' ).get.call( pseudo_entity );
 						
 						if ( typeof title === 'string' && title.indexOf( 'undefined' ) === -1 )
 						c = title;
@@ -1176,10 +1211,10 @@ class sdShop
 					t = T('Click to select')+' "' + c + '" '+T('as a build object. Then click to place this object in world.');
 				}
 				else
-				if ( sdShop.options[ sdShop.potential_selection ].upgrade_name )
+				if ( pseudo_entity.upgrade_name )
 				{
-					t = T('Click to select')+' "' + T(capitalize( sdShop.options[ sdShop.potential_selection ].upgrade_name.split('_').join(' ') )) + '" '+T('as an upgrade. Then click anywhere to upgrade.');
-					desc = capitalize( sdShop.options[ sdShop.potential_selection ].description );
+					t = T('Click to select')+' "' + T(capitalize( pseudo_entity.upgrade_name.split('_').join(' ') )) + '" '+T('as an upgrade. Then click anywhere to upgrade.');
+					desc = capitalize( pseudo_entity.description );
 				}
 				
 			}

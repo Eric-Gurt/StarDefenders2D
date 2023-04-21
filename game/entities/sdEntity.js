@@ -103,6 +103,14 @@ class sdEntity
 		sdWorld.entity_classes_array[ i ].init();
 	}
 	
+	static GetRandomEntity()
+	{
+		if ( sdEntity.entities.length > 0 )
+		return sdEntity.entities[ Math.floor( Math.random() * sdEntity.entities.length ) ];
+	
+		return null;
+	}
+	
 	GetCollisionMode()
 	{
 		return sdEntity.COLLISION_MODE_BOUNCE_AND_FRICTION;
@@ -204,7 +212,7 @@ class sdEntity
 	get hitbox_y1() { return -5; }
 	get hitbox_y2() { return 5; }
 	
-	PrecieseHitDetection( x, y ) // Teleports use this to prevent bullets from hitting them like they do. Only ever used by bullets, as a second rule after box-like hit detection. It can make hitting entities past outer bounding box very inaccurate
+	PrecieseHitDetection( x, y, bullet=null ) // Teleports use this to prevent bullets from hitting them like they do. Only ever used by bullets, as a second rule after box-like hit detection. It can make hitting entities past outer bounding box very inaccurate. Can be also used to make it ignore certain bullet kinds altogether
 	{
 		return true;
 	}
@@ -398,6 +406,13 @@ class sdEntity
 								Math.min( Math.max( this.x + this._hitbox_x1, xx ), this.x + this._hitbox_x2 ), 
 								Math.min( Math.max( this.y + this._hitbox_y1, yy ), this.y + this._hitbox_y2 ) );
 	}
+	GetClosestPointWithinCollision( xx, yy )
+	{
+		return [
+			Math.min( Math.max( this.x + this._hitbox_x1, xx ), this.x + this._hitbox_x2 ), 
+			Math.min( Math.max( this.y + this._hitbox_y1, yy ), this.y + this._hitbox_y2 )
+		];
+	}
 	
 	IsAdminEntity() // Influences remover gun hit test
 	{ return false; }
@@ -406,7 +421,11 @@ class sdEntity
 	{
 		return 1;
 	}*/
-	IsVehicle()
+	IsVehicle() // Workbench, sdButton and sdRescueTeleport are all "vehicles" but they won't add player on .AddDriver call. If you wan to prevent ghost mode though - override .IsFakeVehicleForEKeyUsage() just like sdButton does
+	{
+		return false;
+	}
+	IsFakeVehicleForEKeyUsage()
 	{
 		return false;
 	}
@@ -417,6 +436,11 @@ class sdEntity
 	
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
 	{ return false; }
+	
+	IsCuttingHook()
+	{
+		return false;
+	}
 	
 	ImpactWithDamageEffect( vel )
 	{
@@ -1003,141 +1027,153 @@ class sdEntity
 						debugger;*/
 						
 		//CheckWallExistsBox( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
-						if ( arr_i.IsBGEntity() === is_bg_entity )
-						//if ( include_only_specific_classes_classes || arr_i.hard_collision )
-						if ( force_hit_non_hard_collision_entities || include_only_specific_classes_classes || arr_i._hard_collision || custom_filtering_method )
+		
+						const arr_i_is_bg_entity = arr_i.IsBGEntity();
+		
+						if ( arr_i_is_bg_entity === is_bg_entity )
 						{
-							//class_str = arr_i.GetClass();
-
-							if ( include_only_specific_classes_classes && !include_only_specific_classes_classes.has( arr_i.__proto__.constructor ) )
+							//if ( include_only_specific_classes_classes || arr_i.hard_collision )
+							if ( force_hit_non_hard_collision_entities || include_only_specific_classes_classes || arr_i._hard_collision || custom_filtering_method )
 							{
-							}
-							else
-							//if ( ignore_entity_classes && ignore_entity_classes.indexOf( class_str ) !== -1 )
-							//if ( ignore_entity_classes_classes && ignore_entity_classes_classes.has( arr_i.__proto__.constructor ) )
-							if ( ignore_entity_classes_classes && ignore_entity_classes_classes.has( arr_i.constructor ) )
-							{
-							}
-							else
-							if ( custom_filtering_method === null || custom_filtering_method( arr_i ) )
-							if ( !arr_i._is_being_removed )
-							{
-								let t = sdEntity.MovingRectIntersectionCheck(
-									hitbox_x1,
-									hitbox_y1,
-									hitbox_x2,
-									hitbox_y2,
+								//class_str = arr_i.GetClass();
 
-									sx,
-									sy,
-
-									arr_i.x + arr_i._hitbox_x1,
-									arr_i.y + arr_i._hitbox_y1,
-									arr_i.x + arr_i._hitbox_x2,
-									arr_i.y + arr_i._hitbox_y2
-								);
-
-								if ( debug )
+								if ( include_only_specific_classes_classes && !include_only_specific_classes_classes.has( arr_i.__proto__.constructor ) )
 								{
-									if ( t === 0 )
-									if ( arr_i._class === 'sdBlock' )
-									if ( 
-										 !(
-											( this.x + this._hitbox_x1 <= arr_i.x + arr_i._hitbox_x2 ) &&
-											( this.x + this._hitbox_x2 >= arr_i.x + arr_i._hitbox_x1 ) &&
-											( this.y + this._hitbox_y1 <= arr_i.y + arr_i._hitbox_y2 ) &&
-											( this.y + this._hitbox_y2 >= arr_i.y + arr_i._hitbox_y1 ) 
-										 )
-									)
-									{
-										debugger;
-										
-										trace(
-												'Hitting sdBlock but no real overlap: ',
-											hitbox_x1,
-											hitbox_y1,
-											hitbox_x2,
-											hitbox_y2,
-
-											sx,
-											sy,
-
-											arr_i.x + arr_i._hitbox_x1,
-											arr_i.y + arr_i._hitbox_y1,
-											arr_i.x + arr_i._hitbox_x2,
-											arr_i.y + arr_i._hitbox_y2, ' :: t = '+t
-										);
-
-										t = sdEntity.MovingRectIntersectionCheck(
-											hitbox_x1,
-											hitbox_y1,
-											hitbox_x2,
-											hitbox_y2,
-
-											sx,
-											sy,
-
-											arr_i.x + arr_i._hitbox_x1,
-											arr_i.y + arr_i._hitbox_y1,
-											arr_i.x + arr_i._hitbox_x2,
-											arr_i.y + arr_i._hitbox_y2
-										);
-									}
 								}
-								
-								if ( t <= 1 )
-								if ( arr_i.IsTargetable( this, true ) ) // So guns are ignored
+								else
+								//if ( ignore_entity_classes && ignore_entity_classes.indexOf( class_str ) !== -1 )
+								//if ( ignore_entity_classes_classes && ignore_entity_classes_classes.has( arr_i.__proto__.constructor ) )
+								if ( ignore_entity_classes_classes && ignore_entity_classes_classes.has( arr_i.constructor ) )
 								{
-									/*if ( this.GetClass() === 'sdQuadro' )
-									if ( arr_i.GetClass() === 'sdGun' )
-									if ( !arr_i._held_by )
+								}
+								else
+								if ( custom_filtering_method === null || custom_filtering_method( arr_i ) )
+								if ( !arr_i._is_being_removed )
+								{
+									let t = sdEntity.MovingRectIntersectionCheck(
+										hitbox_x1,
+										hitbox_y1,
+										hitbox_x2,
+										hitbox_y2,
+
+										sx,
+										sy,
+
+										arr_i.x + arr_i._hitbox_x1,
+										arr_i.y + arr_i._hitbox_y1,
+										arr_i.x + arr_i._hitbox_x2,
+										arr_i.y + arr_i._hitbox_y2
+									);
+
+									if ( debug )
 									{
-										debugger;
-									}*/
-									
-									if ( GetCollisionMode === sdEntity.COLLISION_MODE_BOUNCE_AND_FRICTION )
-									{
-										if ( t === best_t )
+										if ( t === 0 )
+										if ( arr_i._class === 'sdBlock' )
+										if ( 
+											 !(
+												( this.x + this._hitbox_x1 <= arr_i.x + arr_i._hitbox_x2 ) &&
+												( this.x + this._hitbox_x2 >= arr_i.x + arr_i._hitbox_x1 ) &&
+												( this.y + this._hitbox_y1 <= arr_i.y + arr_i._hitbox_y2 ) &&
+												( this.y + this._hitbox_y2 >= arr_i.y + arr_i._hitbox_y1 ) 
+											 )
+										)
 										{
-											//trace( 'it happens' );
-											
-											min_xy = Math.min(
+											debugger;
 
-												Math.abs( ( hitbox_x1 + hitbox_x2 ) - ( arr_i.x + arr_i._hitbox_x1 ) + ( arr_i.x + arr_i._hitbox_x2 ) ),
-												Math.abs( ( hitbox_y1 + hitbox_y2 ) - ( arr_i.y + arr_i._hitbox_y1 ) + ( arr_i.y + arr_i._hitbox_y2 ) )
+											trace(
+													'Hitting sdBlock but no real overlap: ',
+												hitbox_x1,
+												hitbox_y1,
+												hitbox_x2,
+												hitbox_y2,
 
+												sx,
+												sy,
+
+												arr_i.x + arr_i._hitbox_x1,
+												arr_i.y + arr_i._hitbox_y1,
+												arr_i.x + arr_i._hitbox_x2,
+												arr_i.y + arr_i._hitbox_y2, ' :: t = '+t
+											);
+
+											t = sdEntity.MovingRectIntersectionCheck(
+												hitbox_x1,
+												hitbox_y1,
+												hitbox_x2,
+												hitbox_y2,
+
+												sx,
+												sy,
+
+												arr_i.x + arr_i._hitbox_x1,
+												arr_i.y + arr_i._hitbox_y1,
+												arr_i.x + arr_i._hitbox_x2,
+												arr_i.y + arr_i._hitbox_y2
 											);
 										}
-										
-										if ( t < best_t || ( t === best_t && min_xy < best_min_xy ) )
-										{
-											//if ( arr_i._hard_collision )
-											//{
-
-												best_t = t;
-												best_ent = arr_i;
-												
-												if ( t === best_t )
-												{
-													//trace( 'it happens and improvements happens too' );
-													best_min_xy = min_xy;
-												}
-
-												if ( best_t === 0 )
-												break;
-										
-											//}
-											//else
-											//hits.push({ ent:arr_i, t:t });
-										}
 									}
-									else
-									if ( GetCollisionMode === sdEntity.COLLISION_MODE_ONLY_CALL_TOUCH_EVENTS )
+
+									if ( t <= 1 )
+									if ( arr_i.IsTargetable( this, true ) ) // So guns are ignored
 									{
-										hits.push({ ent:arr_i, t:t });
+										/*if ( this.GetClass() === 'sdQuadro' )
+										if ( arr_i.GetClass() === 'sdGun' )
+										if ( !arr_i._held_by )
+										{
+											debugger;
+										}*/
+
+										if ( GetCollisionMode === sdEntity.COLLISION_MODE_BOUNCE_AND_FRICTION )
+										{
+											if ( t === best_t )
+											{
+												//trace( 'it happens' );
+
+												min_xy = Math.min(
+
+													Math.abs( ( hitbox_x1 + hitbox_x2 ) - ( arr_i.x + arr_i._hitbox_x1 ) + ( arr_i.x + arr_i._hitbox_x2 ) ),
+													Math.abs( ( hitbox_y1 + hitbox_y2 ) - ( arr_i.y + arr_i._hitbox_y1 ) + ( arr_i.y + arr_i._hitbox_y2 ) )
+
+												);
+											}
+
+											if ( t < best_t || ( t === best_t && min_xy < best_min_xy ) )
+											{
+												//if ( arr_i._hard_collision )
+												//{
+
+													best_t = t;
+													best_ent = arr_i;
+
+													if ( t === best_t )
+													{
+														//trace( 'it happens and improvements happens too' );
+														best_min_xy = min_xy;
+													}
+
+													if ( best_t === 0 )
+													break;
+
+												//}
+												//else
+												//hits.push({ ent:arr_i, t:t });
+											}
+										}
+										else
+										if ( GetCollisionMode === sdEntity.COLLISION_MODE_ONLY_CALL_TOUCH_EVENTS )
+										{
+											hits.push({ ent:arr_i, t:t });
+										}
 									}
 								}
 							}
+						}
+						else
+						if ( arr_i_is_bg_entity === 10 ) // Check if this is a sdDeepSleep
+						{
+							// If so - wake it up as soon as possible!
+							//debugger;
+							arr_i.WakeUpArea();
 						}
 					}
 				}
@@ -2151,7 +2187,7 @@ class sdEntity
 	{
 		return null;
 	}
-	IsBGEntity() // 0 for in-game entities, 1 for background entities, 2 is for moderator areas, 3 is for cables/sensor areas, 4 for task in-world interfaces, 5 for wandering around background entities, 6 for status effects, 7 for player-defined regions, 8 for decals. 9 for player spectators Should handle collisions separately
+	IsBGEntity() // 0 for in-game entities, 1 for background entities, 2 is for moderator areas, 3 is for cables/sensor areas, 4 for task in-world interfaces, 5 for wandering around background entities, 6 for status effects, 7 for player-defined regions, 8 for decals, 9 for player spectators, 10 for deep sleep areas. Should handle collisions separately
 	{ return 0; }
 	CanMoveWithoutOverlap( new_x, new_y, safe_bound=0, custom_filtering_method=null, alter_ignored_classes=null ) // Safe bound used to check if sdCharacter can stand and not just collides with walls nearby. Also due to number rounding clients should better have it (or else they will teleport while sliding on vertical wall)
 	{
@@ -2274,10 +2310,10 @@ class sdEntity
 	}
 	DoesOverlapWith( ent, extra_space_around=0 ) // Overlaps( // OverlapsWith(
 	{
-		if ( this.x + this._hitbox_x2 < ent.x + ent._hitbox_x1 - extra_space_around ||
-			 this.x + this._hitbox_x1 > ent.x + ent._hitbox_x2 + extra_space_around ||
-			 this.y + this._hitbox_y2 < ent.y + ent._hitbox_y1 - extra_space_around ||
-			 this.y + this._hitbox_y1 > ent.y + ent._hitbox_y2 + extra_space_around )
+		if ( this.x + this._hitbox_x2 <= ent.x + ent._hitbox_x1 - extra_space_around ||
+			 this.x + this._hitbox_x1 >= ent.x + ent._hitbox_x2 + extra_space_around ||
+			 this.y + this._hitbox_y2 <= ent.y + ent._hitbox_y1 - extra_space_around ||
+			 this.y + this._hitbox_y1 >= ent.y + ent._hitbox_y2 + extra_space_around )
 		return false;
 	
 		return true;
@@ -2514,7 +2550,7 @@ class sdEntity
 			this._vertex_cache = null;
 		}
 		
-		this._onThinkPtr = this.onThink; // Trying to make v8 optimize stuff better... It actually and unfortunately works.
+		//this._onThinkPtr = this.onThink; // Trying to make v8 optimize stuff better... It actually and unfortunately works.
 		
 		this._has_matter_props = false; // Becomes true on seal in cases where it is needed
 		
@@ -2628,7 +2664,7 @@ class sdEntity
 						}
 					}
 					else
-					if ( connected_ents[ i ].is( SearchedClass ) )
+					if ( SearchedClass === sdEntity || connected_ents[ i ].is( SearchedClass ) )
 					{
 						ret.push( connected_ents[ i ] );
 					}
@@ -3464,6 +3500,13 @@ class sdEntity
 			return null;
 		}
 		
+		/* Normal thing for client-side case...
+		if ( possible_ent._is_being_removed )
+		{
+			//debugger; // That is a weird case. Is this is a reason client-side blocks might not appear at times?
+		
+		}*/
+		
 		return possible_ent;
 	
 		/*
@@ -3823,16 +3866,25 @@ class sdEntity
 
 			for ( var i = 0; i < arr.length; i++ )
 			{
-				if ( ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' ) && arr[ i ] !== this && !arr[ i ]._is_being_removed )
+				const e = arr[ i ];
+				
+				if ( ( typeof e.matter !== 'undefined' || typeof e._matter !== 'undefined' ) && e !== this && !e._is_being_removed )
 				{
 					if ( sdWorld.is_server )
 					{
-						arr[ i ].TransferMatter( this, how_much, GSPEED * 4, true ); // Mult by X because targets no longer take 4 cells
-						arr[ i ].WakeUpMatterSources();
+						if ( radius > 32 )
+						{
+							if ( !sdWorld.server_config.base_degradation )
+							if ( !sdWorld.CheckLineOfSight( this.x, this.y, ...e.GetClosestPointWithinCollision( this.x, this.y ), null, null, null, sdWorld.FilterShieldedWallsAndDoors ) )
+							continue;
+						}
+						
+						e.TransferMatter( this, how_much, GSPEED * 4, true ); // Mult by X because targets no longer take 4 cells
+						e.WakeUpMatterSources();
 					}
 					else
 					{
-						if ( arr[ i ] === sdWorld.my_entity )
+						if ( e === sdWorld.my_entity )
 						{
 							sdSound.allow_matter_drain_loop = true;
 							break;

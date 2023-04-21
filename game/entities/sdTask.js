@@ -376,6 +376,7 @@ class sdTask extends sdEntity
 				return 30 * 5;
 			}
 		};
+		
 		sdTask.tasks = [];
 	}
 	
@@ -386,6 +387,15 @@ class sdTask extends sdEntity
 			if ( sdTask.tasks[ i ]._executer === character )
 			if ( !sdTask.tasks[ i ]._is_being_removed )
 			sdTask.tasks[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		}
+	}
+	static PerformActionOnTasksOf( character, callback )
+	{
+		for ( let i = 0; i < sdTask.tasks.length; i++ )
+		{
+			if ( sdTask.tasks[ i ]._executer === character )
+			if ( !sdTask.tasks[ i ]._is_being_removed )
+			callback( sdTask.tasks[ i ] );
 		}
 	}
 	
@@ -516,6 +526,9 @@ class sdTask extends sdEntity
 	
 		this.progress = '';
 		
+		this.target_biometry = '';
+		this.target_biometry_censored = false;
+		
 		if ( mission )
 		{
 			try
@@ -557,6 +570,8 @@ class sdTask extends sdEntity
 		{
 			this.target_x = this._target.x;
 			this.target_y = this._target.y;
+			this.target_biometry = this._target.title || this._target.biometry || '';
+			this.target_biometry_censored = this._target.title_censored || this._target.biometry_censored || false;
 		}
 		else
 		{
@@ -658,6 +673,9 @@ class sdTask extends sdEntity
 				{
 					this.target_x = this._target.x;
 					this.target_y = this._target.y;
+					this.target_biometry = this._target.title || this._target.biometry || '';
+					this.target_biometry_censored = this._target.title_censored || this._target.biometry_censored || false;
+					
 					this._update_version++;
 				}
 			}
@@ -813,12 +831,11 @@ class sdTask extends sdEntity
 			let mission = sdTask.missions[ this.mission ];
 
 			if ( mission )
+			if ( mission.appearance === sdTask.APPEARANCE_HINT_POINT )
 			{
-				if ( mission.appearance === sdTask.APPEARANCE_HINT_POINT )
-				{
-					ctx.filter = 'hue-rotate(71deg) saturate(20)';
-				}
+				ctx.filter = 'hue-rotate(71deg) saturate(20)';
 			}
+			
 
 
 			if ( mission.appearance !== sdTask.APPEARANCE_NOTHING )//|| this.extract_target === 1 )
@@ -828,6 +845,41 @@ class sdTask extends sdEntity
 				32,32 
 			);
 
+			let di_from_player = sdWorld.Dist2D_Vector( sdWorld.my_entity.x - this.target_x, sdWorld.my_entity.y - this.target_y );
+			if ( di > 200 )
+			{
+				let shift = ( this.target_biometry === '' ) ? 0 : 2;
+				
+				ctx.translate( 16, 0 );
+				ctx.rotate( -an );
+				ctx.font = "3px Verdana";
+				ctx.textAlign = 'center';
+				ctx.fillStyle = '#ffffff';
+				
+				di_from_player = Math.floor( di_from_player );
+				
+				let units = 'px';
+				
+				if ( di_from_player >= 1000 )
+				{
+					di_from_player = Math.round( di_from_player / 1000 * 10 ) / 10;
+					
+					units = 'k' + units;
+				}
+				
+				ctx.fillText( di_from_player + ' ' + units, 0, 1 + shift );
+				
+				let t = this.target_biometry;
+				
+				if ( shift !== 0 )
+				{
+					if ( sdWorld.client_side_censorship && this.target_biometry_censored )
+					t = sdWorld.CensoredText( t );
+
+					ctx.fillStyle = '#aaaaaa';
+					ctx.fillText( t + '', 0, 1 - shift );
+				}
+			}
 		}
 		
 

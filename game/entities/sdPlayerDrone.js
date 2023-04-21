@@ -574,9 +574,7 @@ class sdPlayerDrone extends sdCharacter
 
 
 						if ( this.grabbed.is( sdCube ) )
-						{
-							this._nature_damage += GSPEED;
-						}
+						this.grabbed.PlayerIsHooked( this, GSPEED );
 					}
 				}
 				else

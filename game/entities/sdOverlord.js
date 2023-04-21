@@ -894,7 +894,7 @@ class sdOverlord extends sdEntity
 		if ( !e )
 		return 0;
 	
-		if ( e.is( sdBlock ) && e._natural && e.material === sdBlock.MATERIAL_GROUND && Math.random() < 0.995 )
+		if ( e.is( sdBlock ) && e._natural && e.IsDefaultGround() && Math.random() < 0.995 )
 		return 0;
 		
 		if ( e.IsPlayerClass() && e._score <= 30 )

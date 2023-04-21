@@ -7,6 +7,7 @@ import sdCharacter from './sdCharacter.js';
 import sdTask from './sdTask.js';
 import sdGun from './sdGun.js';
 import sdLongRangeTeleport from './sdLongRangeTeleport.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -41,35 +42,38 @@ class sdCommandCentre extends sdEntity
 	
 		dmg = Math.abs( dmg );
 		
-		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-		
 		if ( this.hea > 0 )
 		{
-			this.hea -= dmg;
-			
-			this._update_version++;
-
-			if ( this.hea <= 0 )
+			if ( sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
 			{
-				for ( var i = 0; i < sdWorld.sockets.length; i++ )
-				//if ( sdWorld.sockets[ i ].command_centre === this )
-				if ( sdWorld.sockets[ i ].character === this )
-				if ( sdWorld.sockets[ i ].character.cc_id === this._net_id )
-				sdWorld.sockets[ i ].SDServiceMessage( 'Your Command Centre has been destroyed!' );
+				this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		
+				this.hea -= dmg;
 
-				this.remove();
-			}
-			else
-			{
-				if ( this._regen_timeout <= 0 )
+				this._update_version++;
+
+				if ( this.hea <= 0 )
 				{
 					for ( var i = 0; i < sdWorld.sockets.length; i++ )
 					//if ( sdWorld.sockets[ i ].command_centre === this )
 					if ( sdWorld.sockets[ i ].character === this )
 					if ( sdWorld.sockets[ i ].character.cc_id === this._net_id )
-					sdWorld.sockets[ i ].SDServiceMessage( 'Your Command Centre is under attack!' );
+					sdWorld.sockets[ i ].SDServiceMessage( 'Your Command Centre has been destroyed!' );
+
+					this.remove();
 				}
-				this._regen_timeout = 30 * 10;
+				else
+				{
+					if ( this._regen_timeout <= 0 )
+					{
+						for ( var i = 0; i < sdWorld.sockets.length; i++ )
+						//if ( sdWorld.sockets[ i ].command_centre === this )
+						if ( sdWorld.sockets[ i ].character === this )
+						if ( sdWorld.sockets[ i ].character.cc_id === this._net_id )
+						sdWorld.sockets[ i ].SDServiceMessage( 'Your Command Centre is under attack!' );
+					}
+					this._regen_timeout = 30 * 10;
+				}
 			}
 		}
 	}
@@ -93,7 +97,13 @@ class sdCommandCentre extends sdEntity
 		this.delay = 0;
 		//this._update_version++
 		
+		this.driver0 = null;
+		
 		this.owner = params.owner || null;
+		
+		this.biometry = globalThis.sdWords ? sdWords.GetRandomWord().toUpperCase() : '';
+		
+		this._shielded = null; // Is this entity protected by a base defense unit?
 		
 		//this.self_destruct_on = sdWorld.time + sdCommandCentre.time_to_live_without_matter_keepers_near; // Exists for 24 hours by default
 		
@@ -103,6 +113,73 @@ class sdCommandCentre extends sdEntity
 		
 		sdCommandCentre.centres.push( this );
 	}
+	IsVehicle()
+	{
+		return true;
+	}
+	AddDriver( c, force=false )
+	{
+		if ( !sdWorld.is_server )
+		return;
+	
+		if ( !this[ 'driver' + 0 ] )
+		{
+			this[ 'driver' + 0 ] = c;
+			
+			c.driver_of = this;
+
+			if ( c._socket )
+			c._socket.SDServiceMessage( 'Entered command centre - now your messages can be heard at long distances' );
+
+			sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1 });
+		}
+		else
+		{
+			if ( c._socket )
+			c._socket.SDServiceMessage( 'Command centre is occupied' );
+		}
+	}
+	ExcludeDriver( c, force=false )
+	{
+		if ( !force )
+		if ( !sdWorld.is_server )
+		return;
+
+		for ( var i = 0; i < 1; i++ )
+		{
+			if ( this[ 'driver' + i ] === c )
+			{
+				this[ 'driver' + i ] = null;
+				c.driver_of = null;
+
+				c.x = this.x;
+				
+				if ( c.CanMoveWithoutOverlap( c.x, this.y + this._hitbox_y1 - c._hitbox_y2, 0 ) )
+				c.y = this.y + this._hitbox_y1 - c._hitbox_y2;
+				else
+				if ( c.CanMoveWithoutOverlap( this.x + this._hitbox_x1 - c._hitbox_x2, c.y, 0 ) )
+				c.x = this.x + this._hitbox_x1 - c._hitbox_x2;
+				else
+				if ( c.CanMoveWithoutOverlap( this.x + this._hitbox_x2 - c._hitbox_x1, c.y, 0 ) )
+				c.x = this.x + this._hitbox_x2 - c._hitbox_x1;
+				else
+				if ( c.CanMoveWithoutOverlap( this.x, c.y + this._hitbox_y2 - c._hitbox_y1, 0 ) )
+				c.y = this.y + this._hitbox_y2 - c._hitbox_y1;
+		
+				c.PhysWakeUp();
+				
+				if ( c._socket )
+				c._socket.SDServiceMessage( 'Leaving command centre' );
+		
+				return;
+			}
+		}
+		
+		if ( c._socket )
+		c._socket.SDServiceMessage( 'Error: Attempted leaving command centre in which character is not located.' );
+	}
+	
+	
 	onBuilt()
 	{
 		sdSound.PlaySound({ name:'command_centre', x:this.x, y:this.y, volume:1 });
@@ -129,7 +206,7 @@ class sdCommandCentre extends sdEntity
 			{
 				let task = Math.round( Math.random() * 9 );
 				let num_ents;
-				let difficulty_per_entity = 0.167;
+				let difficulty_per_entity = 0.275;
 				
 				let template = { 
 					similarity_hash:'EXTRACT-X', 
@@ -287,7 +364,7 @@ class sdCommandCentre extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, this.title, 0, -10 );
+		sdEntity.TooltipUntranslated( ctx, T( this.title ) + ' (CC-'+this.biometry+')', 0, -10 );
 		
 		/*if ( this.self_destruct_on > sdWorld.time + sdCommandCentre.time_to_live_without_matter_keepers_near - 10 * 1000 )
 		sdEntity.Tooltip( ctx, 'No expiration', 0, -3, '#66ff66' );
@@ -550,7 +627,8 @@ class sdCommandCentre extends sdEntity
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		//if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
-		if ( this.inRealDist2DToEntity_Boolean( exectuter_character, 32 ) )
+		if ( this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) )
+		if ( exectuter_character.canSeeForUse( this ) )
 		{
 			if ( this.owner === exectuter_character )
 			{

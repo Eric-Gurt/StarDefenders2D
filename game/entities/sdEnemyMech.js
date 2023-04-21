@@ -72,6 +72,7 @@ class sdEnemyMech extends sdEntity
 		
 		this._move_dir_x = 0;
 		this._move_dir_y = 0;
+		this._move_dir_speed_scale = 1;
 		this._move_dir_timer = 0;
 		
 		this._attack_timer = 0;
@@ -136,7 +137,7 @@ class sdEnemyMech extends sdEntity
 		if ( this._follow_target ) 
 		return this._follow_target;
 
-		let x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+		/*let x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
 		let y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
 		
 		let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 256, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret' , 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdSetrDestroyer', 'sdOverlord', 'sdSpider' ] );
@@ -144,7 +145,17 @@ class sdEnemyMech extends sdEntity
 		{
 			i = Math.round( Math.random() * targets_raw.length ); // Randomize it
 			return targets_raw[ i ];
+		}*/
+		
+		let e = sdEntity.GetRandomEntity();
+		
+		if ( [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret' , 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdSetrDestroyer', 'sdOverlord', 'sdSpider' ].indexOf( e.GetClass() ) !== -1 )
+		if ( e.IsVisible( this ) )
+		if ( e.IsTargetable( this ) )
+		{
+			return e;
 		}
+		
 		return null;
 	}
 	Damage( dmg, initiator=null )
@@ -408,8 +419,9 @@ class sdEnemyMech extends sdEntity
 						else
 						this.side = -1;
 
-						this._move_dir_x = Math.cos( an_desired ) * 10;
-						this._move_dir_y = Math.sin( an_desired ) * 10;
+						this._move_dir_x = Math.cos( an_desired );
+						this._move_dir_y = Math.sin( an_desired );
+						this._move_dir_speed_scale = 10;
 						
 						if ( closest_di_real < sdEnemyMech.attack_range ) // close enough to dodge obstacles
 						{
@@ -417,6 +429,7 @@ class sdEnemyMech extends sdEntity
 
 							this._move_dir_x = Math.cos( an );
 							this._move_dir_y = Math.sin( an );
+							this._move_dir_speed_scale = 1;
 
 							if ( !sdWorld.CheckLineOfSight( this.x, this.y, closest.x, closest.y, this, sdCom.com_visibility_ignored_classes, null ) )
 							{
@@ -434,8 +447,9 @@ class sdEnemyMech extends sdEntity
 										{
 											// Can attack from position 1
 
-											this._move_dir_x = Math.cos( a1 ) * 8;
-											this._move_dir_y = Math.sin( a1 ) * 8;
+											this._move_dir_x = Math.cos( a1 );
+											this._move_dir_y = Math.sin( a1 );
+											this._move_dir_speed_scale = 8;
 
 											this._move_dir_timer = r1 * 5;
 
@@ -455,8 +469,9 @@ class sdEnemyMech extends sdEntity
 												{
 													// Can attack from position 2, but will move to position 1 still
 
-													this._move_dir_x = Math.cos( a1 ) * 8;
-													this._move_dir_y = Math.sin( a1 ) * 8;
+													this._move_dir_x = Math.cos( a1 );
+													this._move_dir_y = Math.sin( a1 );
+													this._move_dir_speed_scale = 8;
 
 													this._move_dir_timer = r1 * 5;
 													
@@ -481,6 +496,7 @@ class sdEnemyMech extends sdEntity
 
 						this._move_dir_x = Math.cos( an );
 						this._move_dir_y = Math.sin( an );
+						this._move_dir_speed_scale = 1;
 					}
 				}
 				else
@@ -500,9 +516,9 @@ class sdEnemyMech extends sdEntity
 				   ) )
 			{
 				
-				this.sx += this._move_dir_x * ( v ) * GSPEED;
-				this.sy += this._move_dir_y * ( v ) * GSPEED;
-				this.tilt = sdWorld.MorphWithTimeScale( this.tilt, this._move_dir_x * 2, 0.93, GSPEED );
+				this.sx += this._move_dir_x * this._move_dir_speed_scale * ( v ) * GSPEED;
+				this.sy += this._move_dir_y * this._move_dir_speed_scale * ( v ) * GSPEED;
+				this.tilt = sdWorld.MorphWithTimeScale( this.tilt, this._move_dir_x * this._move_dir_speed_scale * 2, 0.93, GSPEED );
 			}
 			else
 			{
@@ -698,14 +714,15 @@ class sdEnemyMech extends sdEntity
 						if ( !this._follow_target )
 						{
 							an_desired = Math.random() * Math.PI * 2;
-							this._move_dir_x = Math.cos( an_desired ) * 10;
-							this._move_dir_y = Math.sin( an_desired ) * 10;
+							this._move_dir_x = Math.cos( an_desired );
+							this._move_dir_y = Math.sin( an_desired );
+							this._move_dir_speed_scale = 10;
 						}
 
 						let v = this.hea < this._hmax / 2 ? 0.10 : 0.045;
 				
-						this.sx += this._move_dir_x * ( v ) * GSPEED;
-						this.sy += this._move_dir_y * ( v ) * GSPEED;
+						this.sx += this._move_dir_x * this._move_dir_speed_scale * ( v ) * GSPEED;
+						this.sy += this._move_dir_y * this._move_dir_speed_scale * ( v ) * GSPEED;
 					}
 				}
 			}

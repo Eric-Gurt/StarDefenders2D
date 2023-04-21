@@ -6,6 +6,7 @@ import sdEffect from './sdEffect.js';
 import sdBlock from './sdBlock.js';
 import sdCharacter from './sdCharacter.js';
 import sdDoor from './sdDoor.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -41,11 +42,14 @@ class sdAntigravity extends sdEntity
 		
 		if ( this._hea > 0 )
 		{
-			this._hea -= dmg;
-			this._regen_timeout = 60;
+			if ( sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
+			{
+				this._hea -= dmg;
+				this._regen_timeout = 60;
 
-			if ( this._hea <= 0 )
-			this.remove();
+				if ( this._hea <= 0 )
+				this.remove();
+			}
 		}
 	}
 	constructor( params )
@@ -60,8 +64,12 @@ class sdAntigravity extends sdEntity
 		
 		this.power = 1;
 		
-		this.matter = 0;
-		this._matter_max = 20;
+		this.toggle_enabled = 1; // Sets to 0 if sdButton is being pressed
+		
+		this._shielded = null; // Is this entity protected by a base defense unit?
+		
+		//this.matter = 0;
+		//this._matter_max = 20;
 		
 		//this._update_version++
 	}
@@ -85,8 +93,8 @@ class sdAntigravity extends sdEntity
 		
 		var non_recursive = new WeakSet();
 		
-		if ( this.power !== 0 )
-		if ( this.matter > 0 )
+		if ( this.power !== 0 && this.toggle_enabled )
+		//if ( this.matter > 0 )
 		for ( var t = 0; t < 2; t++ )
 		{
 			var x1 = this.x + this._hitbox_x1 + ( this._hitbox_x2 - this._hitbox_x1 ) / 2 * t;
@@ -132,11 +140,11 @@ class sdAntigravity extends sdEntity
 
 								let mass_capped = Math.min( arr[ i ].mass, 80 ); // Anti-tank raiding (tank would damage walls its' being pushed into, without any damage to tank itself)
 
-								let matter_cost = mass_capped * 0.0001 * Math.max( 1, this.power ) * GSPEED;
+								//let matter_cost = mass_capped * 0.0001 * Math.max( 1, this.power ) * GSPEED;
 								
-								if ( this.matter > matter_cost )
-								{
-									this.matter -= matter_cost;
+								//if ( this.matter > matter_cost )
+								//{
+									//this.matter -= matter_cost;
 
 									if ( Math.abs( arr[ i ].x - this.x ) < 16 )
 									{
@@ -170,11 +178,11 @@ class sdAntigravity extends sdEntity
 											}
 										}
 									}
-								}
+								/*}
 								else
 								{
 									this.matter = 0;
-								}
+								}*/
 							}
 						}
 					}
@@ -186,14 +194,15 @@ class sdAntigravity extends sdEntity
 		}
 				
 		if ( this._hea >= this._hmax )
-		if ( this.matter <= 0 || this.power === 0 )
+		//if ( this.matter <= 0 || this.power === 0 )
+		if ( this.power === 0 || !this.toggle_enabled )
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 	}
 	
-	onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
+	/*onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
 	{
 		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-	}
+	}*/
 	get title()
 	{
 		return 'Antigravity field';
@@ -204,16 +213,17 @@ class sdAntigravity extends sdEntity
 		
 		let frame = 0;
 		
-		if ( this.matter > 0 || sdShop.isDrawing )
+		/*if ( this.matter > 0 || sdShop.isDrawing )
 		frame = 0;
 		else
 		if ( sdWorld.time % 4000 < 2000 )
 		frame = 1;
 		else
-		frame = 2;
+		frame = 2;*/
 	
 		ctx.drawImageFilterCache( sdAntigravity.img_antigravity, 0,frame*32,32,32, -16, -16, 32,32 );
 		
+		if ( this.power !== 0 && this.toggle_enabled )
 		if ( frame === 0 )
 		{
 			let repeat = 400;
@@ -222,7 +232,7 @@ class sdAntigravity extends sdEntity
 			{
 				let prog;
 
-				if ( this.power >= 0 )
+				if ( this.power >= 0 && this.toggle_enabled )
 				prog = ( ( sdWorld.time * this.power + i * repeat / 3 ) % repeat ) / repeat;
 				else
 				prog = 1 - ( ( sdWorld.time * 0.1 + i * repeat / 3 ) % repeat ) / repeat;
@@ -242,10 +252,9 @@ class sdAntigravity extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		if ( this.matter > 0 )
 		sdEntity.Tooltip( ctx, this.title );
-		else
-		sdEntity.Tooltip( ctx, this.title + ' ( no matter )' );
+		//else
+		//sdEntity.Tooltip( ctx, this.title + ' ( no matter )' );
 	}
 	onRemove() // Class-specific, if needed
 	{
@@ -298,6 +307,8 @@ class sdAntigravity extends sdEntity
 							i = velocities[ i ];
 							this.power = i;
 							this._update_version++;
+							
+							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 						}
 					}
 				}

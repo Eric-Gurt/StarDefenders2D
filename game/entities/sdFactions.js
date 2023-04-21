@@ -20,6 +20,7 @@ class sdFactions extends sdEntity
 		sdFactions.FACTION_VELOX = 5; // Velox
 		sdFactions.FACTION_SETR = 6; // Setr
 		sdFactions.FACTION_TZYRG = 7; // Tzyrg
+		sdFactions.FACTION_SHURG = 8; // Shurg
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 
@@ -329,6 +330,49 @@ class sdFactions extends sdEntity
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 			character_entity._ai_team = 8; // AI team 8 is for Tzyrg faction
 			character_entity._matter_regeneration_multiplier = 10; // Their matter regenerates 10 times faster than normal, unupgraded players
+		}
+
+		if ( faction === sdFactions.FACTION_SHURG ) // Shurg
+		{
+			{ 
+				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHURG_PISTOL }) );
+				character_entity._ai_gun_slot = 1;
+			}
+
+			if ( character_entity._ai_gun_slot === 1 )
+			character_settings = {	"hero_name":"Shurg", // Name
+						"color_bright":"#203020", // Helmet bright color
+						"color_dark":"#102010", // Helmet dark color
+						"color_bright3":"#004000", // Jetpack (bright shade) color
+						"color_dark3":"#002000", // Jetpack and armor plates (dark shade) color
+						"color_visor":"#306000", // Visor color
+						"color_suit":"#003000", // Upper suit color
+						"color_suit2":"#001000", // Lower suit color
+						"color_dark2":"#083008", // Lower suit plates color
+						"color_shoes":"#000000", // Shoes color
+						"color_skin":"#080808", // Gloves and neck color
+						"color_extra1":"#003000", // Extra 1 color
+						"helmet76":true,
+						"voice10":true,
+						"body48":true,
+						"legs17":true };
+
+			if ( character_entity._ai_gun_slot === 1 ) // If a regular Tzyrg
+			{
+				character_entity.matter = 100;
+				character_entity.matter_max = 100;
+
+				character_entity.hea = 200;
+				character_entity.hmax = 200;
+			}
+
+			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+			character_entity._ai_level = Math.floor( 1 + Math.random() * 2 ); // AI Levels
+
+			character_entity._matter_regeneration = 5; // At least some ammo regen
+			character_entity._jetpack_allowed = false; // No jetpack
+			character_entity._ai_team = 9; // AI team 9 is for Shurg faction
+			character_entity._matter_regeneration_multiplier = 5; // Their matter regenerates 10 times faster than normal, unupgraded players
 		}
 
 		character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( character_settings );

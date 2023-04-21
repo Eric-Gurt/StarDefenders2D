@@ -171,6 +171,7 @@ class sdRoach extends sdEntity
 	onMovementInRange( from_entity )
 	{
 		if ( sdWorld.is_server )
+		if ( sdWorld.server_config.base_degradation )
 		if ( this.fr < 2 )
 		{
 			if ( this._random_bite_timeout <= 0 )
@@ -432,7 +433,14 @@ class sdRoach extends sdEntity
 	{
 		if ( this.nick.length > 0 )
 		if ( this.fr <= 2 )
-		sdEntity.Tooltip( ctx, '"' + this.nick + '"' );
+		{
+			let t = this.nick;
+			
+			if ( sdWorld.client_side_censorship && this.nick_censored )
+			t = sdWorld.CensoredText( t );
+		
+			sdEntity.Tooltip( ctx, '"' + this.nick + '"' );
+		}
 	}
 	Draw( ctx, attached )
 	{
