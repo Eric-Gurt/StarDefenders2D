@@ -7,9 +7,23 @@
 	Most likely it would merge whole big bases into one big chunk, which is perfectly fine I guess.
 
 
-	TODO: Keep testing snapshot 3 for a while
+	TODO: Most probably sdRescueTeleport and sdBeacon will have to be taught to hibernate as well... Player connection might wake them up, onShapshotDecoded might wake them up, but should be aware of cases when sdTask tracking sdBeacon will get removed
+
+	TODO: GetAnythingNear - crystals can wake up sleeping sdDeepSleep but they probably won't cancel about to sleep sdDeepSleep. Or will they?
+	
+	TODO: Add timewarp saves
+
+	TODO: Add save/rename for chunks too?
 
 	TODO: Consider some shrink-down logic, especially for chunks that do not contain user-created entities? Somehow... Probably impossible - chunks might have rare items or even genearated alien bases in them
+
+	//TODO: Spawners should enable modes that do not allow waking up of sdDeepSleep areas? And thus threat them as solid walls/no-spawn areas instead
+	
+	//TODO: Water keeps waking up sdDeepSleep areas
+
+	//TODO: (!) Make sdSteeringWheel pointers for all movable entities?
+
+	//TODO: Keep testing snapshot 3 for a while
 
 	//TODO: Typeing "/god 1" caues installation of more jetpack upgrades there is available
 
@@ -108,15 +122,17 @@ class sdDeepSleep extends sdEntity
 	{
 		sdDeepSleep.debug = false; // Alters timings
 		
+		sdDeepSleep.debug_wake_up_sleep_refuse_reasons = false;
+		
 		sdDeepSleep.debug_dependences = false;
 		
 		sdDeepSleep.debug_entity_count = false;
 		
 		sdDeepSleep.debug_big_area_increments = false;
 		
-		sdDeepSleep.debug_times = true;
+		sdDeepSleep.debug_times = false;
 		
-		sdDeepSleep.debug_really_long_line_traces = true;
+		sdDeepSleep.debug_really_long_line_traces = false;
 		
 		sdDeepSleep.debug_cell = false;
 		sdDeepSleep.debug_cell_x = -7936;
@@ -124,7 +140,7 @@ class sdDeepSleep extends sdEntity
 		
 		fs = globalThis.fs;
 		
-		if ( sdDeepSleep.debug || sdDeepSleep.debug_cell || sdDeepSleep.debug_dependences || sdDeepSleep.debug_big_area_increments || sdDeepSleep.debug_times || sdDeepSleep.debug_entity_count || sdDeepSleep.debug_really_long_line_traces )
+		if ( sdDeepSleep.debug || sdDeepSleep.debug_cell || sdDeepSleep.debug_dependences || sdDeepSleep.debug_big_area_increments || sdDeepSleep.debug_times || sdDeepSleep.debug_entity_count || sdDeepSleep.debug_really_long_line_traces || sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
 		{
 			trace( 'WARNING: Running server with sdDeepSleep\'s debug values enabled' );
 		}
@@ -150,6 +166,11 @@ class sdDeepSleep extends sdEntity
 		sdDeepSleep.dependence_distance_max = 1000; // Anti-dependence hell measure
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
+	}
+	
+	ThreatAsSolid() // Test done by some entities, solid possibility might prevent water from flowing through hibernated/not/spawned sdSleepAreas
+	{
+		return ( this.type !== sdDeepSleep.TYPE_SCHEDULED_SLEEP );
 	}
 	
 	static init()
@@ -442,6 +463,9 @@ class sdDeepSleep extends sdEntity
 
 		if ( this.type === sdDeepSleep.TYPE_UNSPAWNED_WORLD )
 		{
+			if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
+			trace( 'sdDeepSleep generates world: TYPE_UNSPAWNED_WORLD generated due to (from_movement_or_vision='+from_movement_or_vision+', initiator=', initiator, ', potential_initiator=', sdWorld.last_simulated_entity, ')', this.x, this.y, this.x+this.w, this.y+this.h );
+		
 			this.remove();
 		
 			let x2 = this.x + this.w;
@@ -461,6 +485,9 @@ class sdDeepSleep extends sdEntity
 		else
 		if ( this.type === sdDeepSleep.TYPE_HIBERNATED_WORLD )
 		{
+			if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
+			trace( 'sdDeepSleep[ '+this._net_id+' ] woken up: TYPE_HIBERNATED_WORLD wakes up due to (from_movement_or_vision='+from_movement_or_vision+', initiator=', initiator, ', potential_initiator=', sdWorld.last_simulated_entity ,')', this.x, this.y, this.x+this.w, this.y+this.h );
+			
 			let load_attempted = false;
 			if ( this._file_exists )
 			{
@@ -722,6 +749,8 @@ class sdDeepSleep extends sdEntity
 		this._snapshots_objects = null; // Sometimes can be there instead of _snapshots_str - these are faster to use than to stringify/parse
 		
 		this._last_obj_str_reset_reason = -1;
+		
+		if ( sdDeepSleep.debug_dependences )
 		this._made_at = globalThis.getStackTrace();
 		
 		this._snapshots_filename = null; // null means it was never saved to disk yet
@@ -822,11 +851,31 @@ class sdDeepSleep extends sdEntity
 					if ( 
 							( e.IsPlayerClass() && e._socket ) || // No online players
 							( e.is( sdLongRangeTeleport ) && e.is_server_teleport ) || // No server teleports (unless regular telepors will be available for in-world teleportation at some point?)
-							e.is( sdRescueTeleport ) || // It looks like there is no solution at all for these...
-							e.is( sdBeacon ) || // It looks like there is no solution at all for these...
+							e.is( sdRescueTeleport ) || // It looks like there is no simple solution at all for these...
+							e.is( sdBeacon ) || // It looks like there is no simple solution at all for these...
 							!sdWorld.server_config.AllowAggressiveHibernationFor( e )
 						)
 					{
+						if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
+						{
+							if ( ( e.IsPlayerClass() && e._socket ) )
+							trace( 'sdDeepSleep hibernation refused: Cell contains connected player ('+e._net_id+')', _x, _y, _x2, _y2 );
+							else
+							if ( ( e.is( sdLongRangeTeleport ) && e.is_server_teleport ) )
+							trace( 'sdDeepSleep hibernation refused: Cell contains sdLongRangeTeleport that is also .is_server_teleport ('+e._net_id+')', _x, _y, _x2, _y2 );
+							else
+							if ( e.is( sdRescueTeleport ) )
+							trace( 'sdDeepSleep hibernation refused: Cell contains sdRescueTeleport ('+e._net_id+')', _x, _y, _x2, _y2 );
+							else
+							if ( e.is( sdBeacon ) )
+							trace( 'sdDeepSleep hibernation refused: Cell contains sdBeacon ('+e._net_id+')', _x, _y, _x2, _y2 );
+							else
+							if ( !sdWorld.server_config.AllowAggressiveHibernationFor( e ) )
+							trace( 'sdDeepSleep hibernation refused: Cell contains entity filtered by AllowAggressiveHibernationFor ('+e.GetClass()+', '+e._net_id+')', _x, _y, _x2, _y2 );
+							else
+							trace( 'sdDeepSleep hibernation refused: - Unspecified -', _x, _y, _x2, _y2 );
+						}
+						
 						this.remove();
 						return true;
 					}
@@ -917,6 +966,7 @@ class sdDeepSleep extends sdEntity
 						let area2 = ( _x2 - _x ) * ( _y2 - _y );
 						
 						if ( area2 > area * 2 )
+						if ( area !== 0 )
 						{
 							trace( 'sdDeepSleep large area increment after adding ( '+area+' -> '+area2+' )', e );
 						}
@@ -957,10 +1007,12 @@ class sdDeepSleep extends sdEntity
 					else
 					{
 						for ( let prop in e )
-						//if ( typeof e[ prop ] === 'object' )
-						if ( prop !== '_phys_last_touch' )
-						if ( e[ prop ] instanceof sdEntity )
-						if ( !e[ prop ]._is_being_removed )
+						if ( typeof e[ prop ] === 'object' )
+						//if ( e[ prop ] instanceof sdEntity ) // 102.7 ms - Too slow
+						if ( e[ prop ] !== null )
+						if ( typeof e[ prop ]._is_being_removed !== 'undefined' )
+						if ( !e[ prop ]._is_being_removed ) // 0.8 ms
+						if ( prop !== '_phys_last_touch' ) // 1.3 ms
 						{
 							if ( sdWorld.inDist2D_Boolean( e.x, e.y, e[ prop ].x, e[ prop ].y, sdDeepSleep.dependence_distance_max ) )
 							{
@@ -988,13 +1040,21 @@ class sdDeepSleep extends sdEntity
 						dependences.push( possible_ent );
 					}*/
 					
-					if ( e.is( sdDoor ) || e.is( sdBlock ) || e.is( sdBG ) || e.is( sdThruster ) )
+					if ( e._steering_wheel_net_id !== -1 )
+					{
+						let steer = e.GetSteeringWheel();
+						if ( steer )
+						dependences.push( steer );
+					}
+				
+					/*if ( e.is( sdDoor ) || e.is( sdBlock ) || e.is( sdBG ) || e.is( sdThruster ) )
 					for ( let i = 0; i < sdSteeringWheel.steering_wheels.length; i++ )
 					if ( sdSteeringWheel.steering_wheels[ i ]._scan_net_ids.indexOf( e._net_id ) !== -1 )
 					{
 						dependences.push( sdSteeringWheel.steering_wheels[ i ] );
 						break;
-					}
+					}*/
+								
 					if ( e.is( sdSteeringWheel ) )
 					dependences.push( ...e._scan );
 
@@ -1041,6 +1101,9 @@ class sdDeepSleep extends sdEntity
 			//if ( all_entities.length === 0 || ( all_entities.length === 1 && all_entities[ 0 ].is( sdDeepSleep ) ) )
 			if ( all_entities.length === 0 || ( all_entities.length === 1 && all_entities[ 0 ]._hiberstate !== sdEntity.HIBERSTATE_ACTIVE ) )
 			{
+				if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
+				trace( 'sdDeepSleep hibernation refused: Too few entities ('+all_entities.length+')', _x, _y, _x2, _y2 );
+			
 				this.remove();
 				ProvidePerformanceReport( true );
 				return;
@@ -1095,13 +1158,6 @@ class sdDeepSleep extends sdEntity
 					}
 				//}
 			}
-			
-			/*if ( snapshots.length === 0 )
-			{
-				this.remove();
-				ProvidePerformanceReport( true );
-				return;
-			}*/
 			
 			if ( sdDeepSleep.debug_entity_count )
 			if ( all_entities.length > 4000 ) // It can easily reach 3000 if for example crystals happen to be lying at edges of cells
@@ -1163,6 +1219,13 @@ class sdDeepSleep extends sdEntity
 			
 			this._update_version++;
 			
+			
+			if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
+			{
+				trace( 'sdDeepSleep[ '+this._net_id+' ] hibernated', _x, _y, _x2, _y2 );
+
+			}
+			
 			ProvidePerformanceReport( false );
 		}
 	}
@@ -1181,6 +1244,9 @@ class sdDeepSleep extends sdEntity
 			console.warn( 'onBeforeRemove()', { _net_id:this._net_id, w:this.w, h:this.h, type:this.type, _file_exists:this._file_exists, _snapshots_str:this._snapshots_str.length } );
 			debugger;
 		}
+		
+		this._snapshots_str = null;
+		this._snapshots_objects = null;
 		
 		//if ( this.type === sdDeepSleep.TYPE_HIBERNATED_WORLD )
 		//console.warn( 'Hibernated world cell is being removed', { _net_id:this._net_id, "_snapshots_str":this._snapshots_str.length+' bytes', file_exists:this._file_exists, _snapshots_filename:this._snapshots_filename } );

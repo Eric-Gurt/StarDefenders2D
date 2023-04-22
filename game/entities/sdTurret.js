@@ -567,8 +567,7 @@ class sdTurret extends sdEntity
 		return false;
 		
 		if ( ent.is( sdBlock ) )
-		if ( ent.material === sdBlock.MATERIAL_TRAPSHIELD )
-		if ( sdBullet.IsTrapShieldIgonred( this, ent ) )
+		if ( ( ent.material === sdBlock.MATERIAL_TRAPSHIELD && sdBullet.IsTrapShieldIgonred( this, ent ) ) || ent.texture_id === sdBlock.TEXTURE_ID_CAGE )
 		return false;
 		
 		return true;

@@ -1,7 +1,7 @@
 
 
 
-/* global sdSound */
+/* global sdSound, sdContextMenu, sdRenderer, globalThis, sdChat */
 
 import sdWorld from '../sdWorld.js';
 //import sdSound from '../sdSound.js';
@@ -21,6 +21,7 @@ let skipper = 0;
 let GetAnythingNear = null;
 let sdArea = null;
 //let sdSound = null;
+let sdDeepSleep = null;
 			
 class sdEntity
 {
@@ -2204,6 +2205,32 @@ class sdEntity
 		
 		return true;
 	}
+	CanMoveWithoutDeepSleepTriggering( new_x, new_y, safe_bound=0 )
+	{
+		if ( !sdDeepSleep )
+		sdDeepSleep = sdWorld.entity_classes.sdDeepSleep;
+	
+		const extra_space_around = -safe_bound;
+		
+		for ( let i = 0; i < sdDeepSleep.cells.length; i++ )
+		{
+			const cell = sdDeepSleep.cells[ i ];
+			
+			if ( cell.ThreatAsSolid() )
+			{
+				if ( new_x + this._hitbox_x2 <= cell.x + cell._hitbox_x1 - extra_space_around ||
+					 new_x + this._hitbox_x1 >= cell.x + cell._hitbox_x2 + extra_space_around ||
+					 new_y + this._hitbox_y2 <= cell.y + cell._hitbox_y1 - extra_space_around ||
+					 new_y + this._hitbox_y1 >= cell.y + cell._hitbox_y2 + extra_space_around )
+				{
+				}
+				else
+				return false;
+			}
+		}
+
+		return true;
+	}
 	
 	GetHitDamageMultiplier( x, y ) // Multiplier for damage
 	{
@@ -2443,9 +2470,6 @@ class sdEntity
 		
 		if ( this.PreInit !== sdEntity.prototype.PreInit )
 		this.PreInit();
-			
-		this._connected_ents = null; // Can be array, for slower update rate
-		this._connected_ents_next_rethink = 0;
 		
 		this._frozen = 0; // This value is changed by sdStatusEffect. Result of this value is an alternate ThinkNow function calls. It shows how many degrees temperature is below freezing point, it is always positive value. Value like 1 means it is about to unfreeze - used by turrets to keep targets frozen
 		
@@ -2477,6 +2501,8 @@ class sdEntity
 	
 		this._last_attacker_net_id = -1;
 		this._last_attacker_until = 0;
+		
+		this._steering_wheel_net_id = -1;
 		
 		if ( this.is_static )
 		this._update_version = 0;
@@ -2571,6 +2597,11 @@ class sdEntity
 				
 				this.onThink.has_sdBlock_extras = false;
 				
+				if ( !sdCable )
+				sdCable = sdWorld.entity_classes.sdCable;
+				
+				this.onThink.has_cable_support = ( sdCable.attacheable_entities.indexOf( this.GetClass() ) !== -1 ) || this.GetClass() === 'sdCrystal'; // Crystals can send matter over amplifiers' cables
+				
 				// Hacks
 				const c = this.GetClass();
 				if ( c === 'sdBone' )
@@ -2583,6 +2614,13 @@ class sdEntity
 					this.onThink.has_sdBlock_extras = true;
 				}
 			}
+			
+			if ( this.onThink.has_cable_support )
+			{
+				this._connected_ents = null; // Can be array, for slower update rate
+				this._connected_ents_next_rethink = 0;
+			}
+			
 			if ( this.onRemove.has_broken_property_check === undefined )
 			{
 				let onRemoveString = this.onRemove.toString();
@@ -2620,6 +2658,20 @@ class sdEntity
 		}
 	}
 	
+	GetSteeringWheel()
+	{
+		if ( this._steering_wheel_net_id === -1 )
+		return null;
+		
+		const e = sdEntity.entities_by_net_id_cache_map.get( this._steering_wheel_net_id );
+		
+		if ( e )
+		return e;
+		
+		this._steering_wheel_net_id = -1;
+		return null;
+	}
+	
 	VehicleHidesDrivers()
 	{
 		return true;
@@ -2630,12 +2682,34 @@ class sdEntity
 	}
 
 	
-	FindObjectsInACableNetwork( accept_test_method=null, alternate_class_to_search=sdWorld.entity_classes.sdBaseShieldingUnit ) // No cache, so far
+	FindObjectsInACableNetwork( accept_test_method=null, alternate_class_to_search=sdWorld.entity_classes.sdBaseShieldingUnit, return_full_paths=false ) // No cache, so far. return_full_paths makes it return arrays of entities on a way to searched entities
 	{
 		const sdCable = sdWorld.entity_classes.sdCable;
 		const SearchedClass = alternate_class_to_search;
 		
-		let ret = [];
+		const ret = [];
+		
+		const back_track = return_full_paths ? new Map() : null;
+		const GetBackTrackArray = return_full_paths ? ( e )=>
+		{
+			let e0 = e;
+			
+			let arr = [];
+			
+			while ( e )
+			{
+				e = back_track.get( e );
+				
+				if ( e )
+				arr.unshift( e );
+			}
+			
+			return {
+				entity: e0,
+				path: arr
+			};
+			
+		} : null;
 
 		//let worked_out_ents = [];
 		const visited_ent_flag = sdEntity.GetUniqueFlagValue();
@@ -2643,34 +2717,44 @@ class sdEntity
 		let active_ents = [ this ];
 		while ( active_ents.length > 0 )
 		{
-			let connected_ents = sdCable.GetConnectedEntities( active_ents[ 0 ], sdCable.TYPE_ANY );
+			let current_ent = active_ents[ 0 ];
+			
+			let connected_ents = sdCable.GetConnectedEntities( current_ent, sdCable.TYPE_ANY );
 
-			//worked_out_ents.push( active_ents[ 0 ] );
-			active_ents[ 0 ]._flag = visited_ent_flag;
+			current_ent._flag = visited_ent_flag;
 			
 			active_ents.shift();
 
 			for ( let i = 0; i < connected_ents.length; i++ )
 			{
-				//if ( worked_out_ents.indexOf( connected_ents[ i ] ) === -1 )
-				if ( connected_ents[ i ]._flag !== visited_ent_flag )
+				let connected_ent = connected_ents[ i ];
+				
+				if ( connected_ent._flag !== visited_ent_flag )
 				{
+					if ( back_track )
+					back_track.set( connected_ent, current_ent );
+					
 					if ( accept_test_method )
 					{
-						if ( accept_test_method( connected_ents[ i ] ) )
+						if ( accept_test_method( connected_ent ) )
 						{
-							//return connected_ents[ i ];
-							ret.push( connected_ents[ i ] );
+							if ( back_track )
+							ret.push( GetBackTrackArray( connected_ent ) );
+							else
+							ret.push( connected_ent );
 						}
 					}
 					else
-					if ( SearchedClass === sdEntity || connected_ents[ i ].is( SearchedClass ) )
+					if ( SearchedClass === sdEntity || connected_ent.is( SearchedClass ) )
 					{
-						ret.push( connected_ents[ i ] );
+						if ( back_track )
+						ret.push( GetBackTrackArray( connected_ent ) );
+						else
+						ret.push( connected_ent );
 					}
 
-					if ( active_ents.indexOf( connected_ents[ i ] ) === -1 )
-					active_ents.push( connected_ents[ i ] );
+					if ( active_ents.indexOf( connected_ent ) === -1 )
+					active_ents.push( connected_ent );
 				}
 			}
 		}
@@ -4161,6 +4245,7 @@ class sdEntity
 				this._phys_last_touch = null;
 			}
 			
+			if ( typeof this._connected_ents !== 'undefined' )
 			this._connected_ents = null;
 			
 			/* It is handled by memory leak seeker now instead
@@ -4543,19 +4628,55 @@ class sdEntity
 			{
 				sdChat.StartPrompt( hint, default_text, ( v )=>
 				{
-					parameters_array[ 0 ] = v;
+					let id = parameters_array.indexOf( undefined );
+					if ( id === -1 )
+					throw new Error( 'parameters_array of AddPromptContextOption is missing undefined value - without it AddPromptContextOption does now know where to put string which player has provided' );
+					else
+					parameters_array[ id ] = v;
+						
 					globalThis.socket.emit( 'ENTITY_CONTEXT_ACTION', [ this.GetClass(), this._net_id, command_name, parameters_array ] );
 				});
 			}
 		});
 	}
-	AddClientSideActionContextOption( title, action, close_on_click=true )
+	AddColorPickerContextOption( title, command_name, parameters_array, close_on_click=true, default_color='#ff0000' )
 	{
-		sdContextMenu.options.push({ 
+		//sdContextMenu.options.push({ title: title,
+		//	action: ()=>
+		//	{
+				this.AddClientSideActionContextOption( 
+					title, 
+					()=>
+					{
+						sdRenderer.GetColorPickerValue( default_color, ( new_color )=>
+						{
+							let id = parameters_array.indexOf( undefined );
+							if ( id === -1 )
+							throw new Error( 'parameters_array of AddColorPickerContextOption is missing undefined value - without it AddColorPickerContextOption does now know where to put color which player has picked' );
+							else
+							parameters_array[ id ] = new_color;
+
+							globalThis.socket.emit( 'ENTITY_CONTEXT_ACTION', [ this.GetClass(), this._net_id, command_name, parameters_array ] );
+
+							if ( !close_on_click )
+							this.RebuildContextMenu();
+						});
+					}, 
+					true,
+					{ 
+						 hint_color: default_color
+					}
+				);
+		//	}
+		//});
+	}
+	AddClientSideActionContextOption( title, action, close_on_click=true, extra={} )
+	{
+		sdContextMenu.options.push( Object.assign( extra, {
 			title: title,
 			close_on_click: close_on_click,
 			action: action
-		});
+		} ) );
 	}
 	RebuildContextMenu()
 	{

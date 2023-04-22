@@ -187,7 +187,24 @@ class sdSteeringWheel extends sdEntity
 		
 		sdSteeringWheel.steering_wheels.push( this );
 	}
-	
+	RemovePointersToThisSteeringWheel()
+	{
+		if ( this._scan && this._scan.length > 0 )
+		{
+			for ( let i = 0; i < this._scan.length; i++ )
+			if ( this._scan[ i ]._steering_wheel_net_id === this._net_id )
+			this._scan[ i ]._steering_wheel_net_id = -1;
+		}
+		else
+		{
+			for ( let i = 0; i < this._scan_net_ids.length; i++ )
+			{
+				let e = sdEntity.entities_by_net_id_cache_map.get( this._scan_net_ids[ i ] );
+				if ( e._steering_wheel_net_id === this._net_id )
+				e._steering_wheel_net_id = -1;
+			}
+		}
+	}
 	Scan( character_to_tell_result_to )
 	{
 		let socket_to_tell_result_to = character_to_tell_result_to._socket;
@@ -315,12 +332,16 @@ class sdSteeringWheel extends sdEntity
 		
 		if ( collected )
 		{
+			this.RemovePointersToThisSteeringWheel();
+			
 			let net_ids = [];
 			for ( let i = 0; i < collected.length; i++ )
 			{
 				net_ids.push( collected[ i ]._net_id );
 				
 				collected[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_STEERING_WHEEL_PING, observer: character_to_tell_result_to });
+				
+				collected[ i ]._steering_wheel_net_id = this._net_id;
 			}
 			
 			this._scan = collected;
@@ -530,7 +551,8 @@ class sdSteeringWheel extends sdEntity
 					if ( GSPEED > 1 )
 					GSPEED = 1;
 				
-					let speed = Math.min( 1, this._speed / 4 );
+					//let speed = Math.min( 1, this._speed / 4 );
+					let speed = Math.min( 2, this._speed / 4 );
 
 					this.vx += this.driver.act_x * GSPEED * 0.25 * speed;
 					this.vy += this.driver.act_y * GSPEED * 0.25 * speed;
@@ -588,6 +610,8 @@ class sdSteeringWheel extends sdEntity
 	{
 		if ( current.is ) // Check if it is not a fake removed object
 		{
+			current._steering_wheel_net_id = -1;
+		
 			if ( current.is( sdThruster ) )
 			{
 				this._speed--;
@@ -599,6 +623,7 @@ class sdSteeringWheel extends sdEntity
 			if ( meltdown )
 			current.ApplyStatusEffect({ type: sdStatusEffect.TYPE_FALLING_STATIC_BLOCK }); // Very cursed thing - can cause bases to be melted
 		}
+		
 
 		this._scan.splice( i, 1 );
 
@@ -938,6 +963,8 @@ class sdSteeringWheel extends sdEntity
 	{
 		if ( this.driver )
 		this.ExcludeDriver( this.driver, true );
+	
+		this.RemovePointersToThisSteeringWheel();
 			
 		if ( this._broken )
 		{

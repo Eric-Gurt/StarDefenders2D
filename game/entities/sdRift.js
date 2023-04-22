@@ -227,7 +227,7 @@ class sdRift extends sdEntity
 									e.DamageWithEffect( 8 * strength_damage_scale );
 
 									if ( !e._is_being_removed )
-									if ( e._hea || e.hea <= 0 )
+									if ( ( e._hea || e.hea ) <= 0 )
 									if ( e._hitbox_x2 - e._hitbox_x1 < 32 )
 									if ( e._hitbox_y2 - e._hitbox_y1 < 32 )
 									{

@@ -2086,6 +2086,134 @@ class sdRenderer
 		}
 		ctx.z_offset = z_offset_old;
 	}
+	
+	static _ColorUpdate( color_hex )
+	{
+		let p = document.getElementById( 'ingame_color_picker' );
+		p.value = color_hex;
+	}
+	static _SetupColorPickerSettings()
+	{
+		let p = document.getElementById( 'ingame_color_picker' );
+		
+		Coloris({ 
+			alpha: false, 
+			wrap: false,
+			themeMode: 'dark', 
+			el: '.ingame_color_picker', 
+			swatches: p.swatches, 
+			onChange: sdRenderer._ColorUpdate,
+			closeButton: true
+		});
+	}
+	static GetColorPickerValue( current_css_color='#ff0000', callback=null ) // Test: document.onmousedown = ( e )=>{ if ( e.which === 1 ) sdRenderer.GetColorPickerValue(); }
+	{
+		let p = document.getElementById( 'ingame_color_picker' );
+		
+		function PushColor( color_hex )
+		{
+			if ( !p.swatches )
+			{
+				p.swatches = [
+					'#00fff6',
+					'#ffff00',
+					'#dddddd',
+					'#ff00ff',
+
+					'#fb6464',
+					'#31ff6b',
+					'#213eec',
+					'#434447',
+					'#ffa2e1'
+				];
+			}
+
+			if ( p.swatches.indexOf( color_hex ) === -1 )
+			{
+				p.swatches.push( color_hex );
+
+				if ( p.swatches.length > 32 )
+				p.swatches.shift();
+			}
+		}
+		
+		p.value = current_css_color;
+		PushColor( current_css_color );
+		
+		p.style.left = sdWorld.mouse_screen_x + 'px';
+		p.style.top = sdWorld.mouse_screen_y + 'px';
+		
+		sdRenderer._SetupColorPickerSettings();
+		
+		p.click();
+		
+		let picker = document.getElementById( 'clr-picker' );
+		
+		function CancelPicker()
+		{
+			p.removeEventListener( 'close', CancelPicker );
+			window.removeEventListener( 'mousedown', WindowClose );
+			sdRenderer.canvas.removeEventListener( 'mousedown', WindowClose );
+			
+			p.blur();
+			
+			//trace( 'p.value = ' + p.value );
+			
+			if ( callback )
+			{
+				PushColor( p.value );
+				callback( p.value );
+			}
+		}
+		
+		function WindowClose( e )
+		{
+			if ( picker.contains( e.target ) )
+			return;
+		
+			e.preventDefault();
+			e.stopPropagation();
+			
+			Coloris.close();
+		}
+		
+		setTimeout( ()=>
+		{
+			p.addEventListener( 'close', CancelPicker );
+			window.addEventListener( 'mousedown', WindowClose );
+			sdRenderer.canvas.addEventListener( 'mousedown', WindowClose );
+		}, 0 );
+		
+		/*let p = document.getElementById( 'ingame_color_picker' );
+		//p.onchange = 
+		//p.onblur = null;
+		
+		p.style.left = sdWorld.mouse_screen_x + 'px';
+		p.style.top = sdWorld.mouse_screen_y + 'px';
+		
+		p.focus();
+		p.value = current_css_color;
+		p.click();
+		
+		p.value = '#00ff00';
+
+		p.onchange = ( e )=>
+		{
+			p.onchange = null;
+			//p.onblur = null;
+	
+			trace( e, p.value );
+			
+			if ( callback )
+			callback( p.value );
+		};*/
+
+		/*setTimeout(()=>{
+			
+			p.onblur = p.onchange;
+			
+		},0);*/
+	}
 }
 //sdRenderer.init_class();
 

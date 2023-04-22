@@ -500,6 +500,8 @@ let enf_once = true;
 		{
 			if ( sdWorld.is_singleplayer )
 			return;
+		
+			socket.emit( 'my_url', window.location.href );
 			
 			window.onhashchange({ newURL: window.location.href });
 			
@@ -837,8 +839,18 @@ let enf_once = true;
 			
 			if ( obj.supported_languages )
 			supported_languages = obj.supported_languages;
+		
+			/*if ( obj.password_required )
+			{
+				sdWorld.RequirePassword();
+			}*/
 			
 			UpdateLanguageBar();
+		});
+		socket.on( 'REQUIRE_PASSWORD', ( message_and_color )=>
+		{
+			sdWorld.Stop();
+			sdWorld.RequirePassword( message_and_color );
 		});
 		socket.on( 'OPEN_INTERFACE', ( obj )=> // Such as sdDatabaseEditor
 		{

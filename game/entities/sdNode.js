@@ -14,6 +14,11 @@ class sdNode extends sdEntity
 	{
 		sdNode.img_node = sdWorld.CreateImageFromFile( 'cable_node' );
 		
+		sdNode.TYPE_NODE = 0;
+		sdNode.TYPE_SIGNAL_FLIPPER = 1; // Inverts sdButton signals
+		sdNode.TYPE_SIGNAL_ONCE = 2; // Stops working after any signal was transmitted once
+		sdNode.TYPE_SIGNAL_ONCE_OFF = 3; // Stops working after any signal was transmitted once
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -3; }
@@ -29,6 +34,15 @@ class sdNode extends sdEntity
 	
 	get title()
 	{
+		if ( this.type === sdNode.TYPE_SIGNAL_FLIPPER )
+		return 'Signal flipping cable connection node';
+	
+		if ( this.type === sdNode.TYPE_SIGNAL_ONCE )
+		return 'One-time cable connection node';
+	
+		if ( this.type === sdNode.TYPE_SIGNAL_ONCE_OFF )
+		return 'One-time cable connection node (needs reactivation)';
+	
 		return 'Cable connection node';
 	}
 	
@@ -57,6 +71,8 @@ class sdNode extends sdEntity
 	constructor( params )
 	{
 		super( params );
+		
+		this.type = params.type || sdNode.TYPE_NODE;
 		
 		this._hmax = 100 * 4; // Stronger variations have more health
 		this._hea = this._hmax;
@@ -97,17 +113,81 @@ class sdNode extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.drawImageFilterCache( sdNode.img_node, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdNode.img_node, 0,this.type * 16,16,16, -8, -8, 16,16 );
 	}
 	MeasureMatterCost()
 	{
-		return 5;
+		return 10;
 	}
 	RequireSpawnAlign()
 	{ return true; }
 	
 	get spawn_align_x(){ return 8; };
 	get spawn_align_y(){ return 8; };
+	
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( !this._is_being_removed )
+		if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if (
+				(
+					sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 46 )
+					&&
+					executer_socket.character.canSeeForUse( this )
+				)
+			)
+		{
+			if ( this.type === sdNode.TYPE_SIGNAL_ONCE_OFF || this.type === sdNode.TYPE_SIGNAL_ONCE )
+			{
+				if ( command_name === 'REACTIVATE' || command_name === 'REACTIVATE_ALL' )
+				{
+					if ( this.type === sdNode.TYPE_SIGNAL_ONCE_OFF )
+					{
+						this.type = sdNode.TYPE_SIGNAL_ONCE;
+						this._update_version++;
+					}
+				}
+				
+				if ( command_name === 'REACTIVATE_ALL' )
+				{
+					let nodes = this.FindObjectsInACableNetwork( null, sdNode );
+					
+					for ( let i = 0; i < nodes.length; i++ )
+					{
+						const node = nodes[ i ];
+						
+						if ( node.type === sdNode.TYPE_SIGNAL_ONCE_OFF )
+						{
+							node.type = sdNode.TYPE_SIGNAL_ONCE;
+							node._update_version++;
+						}
+					}
+				}
+			}
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( !this._is_being_removed )
+		if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 46 ) )
+		if ( exectuter_character.canSeeForUse( this ) )
+		{
+			if ( this.type === sdNode.TYPE_SIGNAL_ONCE_OFF || this.type === sdNode.TYPE_SIGNAL_ONCE )
+			{
+				this.AddContextOption( 'Reactivate', 'REACTIVATE', [] );
+				this.AddContextOption( 'Reactivate all connected', 'REACTIVATE_ALL', [] );
+
+				// Unused stuff that I can't do yet
+
+				//this.AddContextOption( 'Register Keycard', 'REGISTER_KEYCARD', [ undefined ] )
+			}
+		}
+	}
 }
 //sdNode.init_class();
 

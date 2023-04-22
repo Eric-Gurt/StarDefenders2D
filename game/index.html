@@ -180,6 +180,28 @@
 		};
 	    }
 	</script>
+	<!--<input type="color" id="ingame_color_picker" tabindex=-1 style="
+	    position: fixed;
+	    left: 0;
+	    top: 0;
+	    overflow: hidden;
+	    width: 0;
+	    height: 0;
+	    padding: 0;
+	    margin: 0;
+	">-->
+	<input id="ingame_color_picker" tabindex=-1 type="text" data-coloris style="
+	    position: fixed;
+	    left: 0;
+	    top: 0;
+	    overflow: hidden;
+	    width: 0;
+	    height: 0;
+	    padding: 0;
+	    margin: 0;
+	">
+	<link rel="stylesheet" href="libs/coloris/coloris.min.css"/>
+	<script src="libs/coloris/coloris.min.js"></script>
 	
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.17.0/ace.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="socketio/socketio.js"></script>
@@ -646,6 +668,22 @@
 	    </div>
 	    
 	    <canvas style="position: absolute;right: 40px;top: 40px;/*border-radius: 20px;box-shadow: 0 0 0px 5px #7b321963;*/" id="skin_preview" width="128" height="128"></canvas>
+
+	</div>
+	    
+	<div class="password_screen" style="display:none">
+	    <div class="prompt_box">
+		<div id="password_screen_message">Password is required</div>
+		<input type="password" id="password" size="90" maxlength="90" value="">
+		<input type="button" style="width: 100px;" onclick="
+			document.querySelector('.password_screen').style.display = 'none';
+			document.getElementById('start_btn').click();
+		" value="Accept">
+
+		<input type="button" style="width: 100px;" onclick="
+			document.querySelector('.password_screen').style.display = 'none';
+		" value="Cancel">
+	    </div>
 	</div>
 
 	<script>
@@ -697,8 +735,53 @@
 	    
 	    let draw_once = true;
 	    
+	    let cursor_x = 0;
+	    let cursor_y = 0;
+	    
+	    let hovered_preview = false;
+	    let forced_time = 0;
+	    let hovered_color = null;
+	    
+	    skin_preview.onmouseover = ( e )=>
+	    {
+		hovered_preview = true;
+		forced_time = sdWorld.time;
+	    };
+	    skin_preview.onmouseout = ( e )=>
+	    {
+		hovered_preview = false;
+		hovered_color = null;
+	    };
+	    skin_preview.onmousemove = ( e )=>
+	    {
+		cursor_x = e.offsetX;
+		cursor_y = e.offsetY;
+	    };
+	    skin_preview.onmousedown = ( e )=>
+	    {
+		cursor_x = e.offsetX;
+		cursor_y = e.offsetY;
+		
+		var p = ctx.getImageData( cursor_x, cursor_y, 1, 1 ).data; 
+		var hex = "#" + ( "000000" + sdWorld.ColorArrayToHex( [ p[0], p[1], p[2] ] ) ).slice( -6 );
+		
+		for ( let i = 0; i < inputs.length; i++ )
+		if ( inputs[ i ].el.type === 'color' )
+		{
+		    if ( inputs[ i ].el.value === hex )
+		    {
+			inputs[ i ].el.focus();
+			inputs[ i ].el.click();
+			break;
+		    }
+		}
+	    };
+	    
 	    let DrawPreview = function()
 	    {
+		if ( hovered_preview )
+	        sdWorld.time = forced_time;
+	       
 		//if ( !draw_once )
 		//return;
 	    
@@ -824,6 +907,82 @@
 
 		ctx.restore();
 		
+		
+		if ( hovered_preview )
+		{
+		    var p = ctx.getImageData( cursor_x, cursor_y, 1, 1 ).data; 
+		    var hex = "#" + ( "000000" + sdWorld.ColorArrayToHex( [ p[0], p[1], p[2] ] ) ).slice( -6 );
+		    
+		    hovered_color = [ p[0], p[1], p[2] ];
+		    
+		    let reset = true;
+		    
+		    for ( let i = 0; i < inputs.length; i++ )
+		    if ( inputs[ i ].el.type === 'color' )
+		    {
+			if ( inputs[ i ].el.value === hex )
+			{
+			    reset = false;
+			    break;
+			}
+		    }
+		    
+		    if ( reset )
+		    hovered_color = null;
+		}
+		
+		if ( hovered_color )
+		{
+		    let image_data = ctx.getImageData( 0, 0, 128, 128 );
+		    let image_data_new = ctx.getImageData( 0, 0, 128, 128 );
+		    
+		    let left = -1 * 4;
+		    let right = 1 * 4;
+		    let up = -128 * 4;
+		    let down = 128 * 4;
+		    
+		    function ColorMatches( i )
+		    {
+			if ( image_data.data[ i   ] === hovered_color[ 0 ] )
+			if ( image_data.data[ i+1 ] === hovered_color[ 1 ] )
+			if ( image_data.data[ i+2 ] === hovered_color[ 2 ] )
+			return true;
+	    
+			return false;
+		    }
+		    
+		    let t = Date.now();
+		    
+		    let br = ~~( 127 + Math.sin( t / 100 ) * 127 );
+		    
+		    function Fill( i )
+		    {
+			//if ( ( t / 100 + i / 4 ) % 10 < 5 )
+			{
+			    image_data_new.data[ i   ] = br;
+			    image_data_new.data[ i+1 ] = br;
+			    image_data_new.data[ i+2 ] = br;
+			}
+		    }
+		    
+		    for ( let i = 0; i < image_data.data.length; i += 4 )
+		    {
+			if ( ColorMatches( i ) )
+			{
+			    if ( !ColorMatches( i + right ) )
+			    Fill( i + right );
+			    if ( !ColorMatches( i + left ) )
+			    Fill( i + left );
+			    if ( !ColorMatches( i + up ) )
+			    Fill( i + up );
+			    if ( !ColorMatches( i + down ) )
+			    Fill( i + down );
+			}
+		    }
+		    
+		    ctx.putImageData( image_data_new, 0, 0, 0, 0, 128, 128 );
+		}
+		
 		draw_once = false;
 	    };
 	    globalThis.preview_fnc = DrawPreview;
@@ -860,6 +1019,7 @@
 	    AcceptField( 'my_hash', [ Math.random(), Math.random(), Math.random(), Math.random(), Math.random() ].join('') );
 	    AcceptField( 'last_local_time_start', 0 );
 	    AcceptField( 'volume', 70 );
+	    AcceptField( 'password', '' );
 	    
 	    if ( Date.now() > parseInt( document.getElementById( 'last_local_time_start' ).value ) + 1000 * 60 * 60 * 8 )
 	    {
