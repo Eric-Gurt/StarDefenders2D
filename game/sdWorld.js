@@ -1705,6 +1705,8 @@ class sdWorld
 
 					if ( e_is_bg_entity === 10 ) // sdDeepSleep
 					{
+						/* Fighting the case when area would be instantly woken up by random sdDrone from nearby area... Let's wake them up by physically colliding only and whenever players see these
+						
 						x1 = e._hitbox_x1;
 						x2 = e._hitbox_x2;
 						y1 = e._hitbox_y1;
@@ -1717,7 +1719,7 @@ class sdWorld
 						if ( sdWorld.inDist2D_Boolean( _x, _y, cx, cy, range ) )
 						{
 							e.WakeUpArea();
-						}
+						}*/
 					}
 					else
 					if ( filter_candidates_function === null || filter_candidates_function( e ) )

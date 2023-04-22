@@ -1581,14 +1581,21 @@ class sdRenderer
 		{
 			let scale = ( 0.3 + 0.7 * sdRenderer.resolution_quality );
 			
+			let leaderboard_width = 200 * scale;
+			if ( sdWorld.mouse_screen_x > sdRenderer.screen_width - leaderboard_width && sdWorld.mouse_screen_y < 20 + 20 * sdWorld.leaders.length * scale + 5 + 5 )
+			leaderboard_width = 400;
+				
+				
+			
 			ctx.font = 11*scale + "px Verdana";
 			
 			ctx.globalAlpha = 0.5;
 			ctx.fillStyle = '#000000';
 			ctx.fillRect( 5, 5, 445 * scale, 17 );
 			
+			
 			if ( sdRenderer.show_leader_board === 1 || sdRenderer.show_leader_board === 2 )
-			ctx.fillRect( sdRenderer.screen_width - 200 * scale - 5, 5, 200 * scale, 20 + 20 * sdWorld.leaders.length * scale + 5 );
+			ctx.fillRect( sdRenderer.screen_width - leaderboard_width - 5, 5, leaderboard_width, 20 + 20 * sdWorld.leaders.length * scale + 5 );
 			
 			{
 				let i = 0;
@@ -1748,11 +1755,11 @@ class sdRenderer
 			if ( sdRenderer.show_leader_board === 1 || sdRenderer.show_leader_board === 2 )
 			{
 				ctx.fillStyle = '#AAAAAA';
-				ctx.fillText( T("Leaderboard") + ":", sdRenderer.screen_width - 200 * scale - 5 + 5, 20 );
+				ctx.fillText( T("Leaderboard") + ":", sdRenderer.screen_width - leaderboard_width - 5 + 5, 20 );
 
 				ctx.textAlign = 'right';
 				ctx.fillStyle = '#AAAAAA';
-				ctx.fillText( globalThis.players_playing+ T(" alive"), sdRenderer.screen_width - 5 - 5, 20 );
+				ctx.fillText( globalThis.players_playing + T(" alive"), sdRenderer.screen_width - 5 - 5, 20 );
 
 				//for ( var i = 0; i < sdWorld.leaders.length; i++ )
 				for ( var i = 0; i < sdWorld.leaders.length; i++ )
@@ -1773,9 +1780,9 @@ class sdRenderer
 					ctx.fillStyle = '#666666';
 				
 					if ( sdWorld.client_side_censorship && sdWorld.leaders[ i ].name_censored )
-					ctx.fillText( (i+1)+". " + ( ( i < sdWorld.leaders.length ) ? T('Censored Defender') : '' ), sdRenderer.screen_width - 200 * scale - 5 + 5, 20 + ( i + 1 ) * 20 * scale );
+					ctx.fillText( (i+1)+". " + ( ( i < sdWorld.leaders.length ) ? T('Censored Defender') : '' ), sdRenderer.screen_width - leaderboard_width - 5 + 5, 20 + ( i + 1 ) * 20 * scale );
 					else
-					ctx.fillText( (i+1)+". " + ( ( i < sdWorld.leaders.length ) ? sdWorld.leaders[ i ].name : '' ), sdRenderer.screen_width - 200 * scale - 5 + 5, 20 + ( i + 1 ) * 20 * scale );
+					ctx.fillText( (i+1)+". " + ( ( i < sdWorld.leaders.length ) ? sdWorld.leaders[ i ].name : '' ), sdRenderer.screen_width - leaderboard_width - 5 + 5, 20 + ( i + 1 ) * 20 * scale );
 
 					ctx.fillStyle = main_color;
 

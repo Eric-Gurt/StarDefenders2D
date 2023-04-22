@@ -1570,6 +1570,7 @@ class sdBaseShieldingUnit extends sdEntity
 					sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:2, pitch:0.5 });
 				}
 				
+				if ( sdBaseShieldingUnit.enable_nearby_claiming )
 				if ( this.type !== sdBaseShieldingUnit.TYPE_SCORE_TIMED )
 				if ( command_name === 'PREVENT_PUSH' )
 				{
@@ -1716,6 +1717,7 @@ class sdBaseShieldingUnit extends sdEntity
 				else
 				this.AddContextOption( 'Enable cable protection', 'TOGGLE_CABLE_PROTECTION', [] );
 
+				if ( sdBaseShieldingUnit.enable_nearby_claiming )
 				if ( this.type !== sdBaseShieldingUnit.TYPE_SCORE_TIMED )
 				{
 					if ( this.pushable )

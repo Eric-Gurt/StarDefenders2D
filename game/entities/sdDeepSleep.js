@@ -7,6 +7,8 @@
 	Most likely it would merge whole big bases into one big chunk, which is perfectly fine I guess.
 
 
+	TODO: Make sure sdDeepSleep.cells count does not grow indefinitely
+
 	TODO: Most probably sdRescueTeleport and sdBeacon will have to be taught to hibernate as well... Player connection might wake them up, onShapshotDecoded might wake them up, but should be aware of cases when sdTask tracking sdBeacon will get removed
 
 	TODO: GetAnythingNear - crystals can wake up sleeping sdDeepSleep but they probably won't cancel about to sleep sdDeepSleep. Or will they?
@@ -464,7 +466,9 @@ class sdDeepSleep extends sdEntity
 		if ( this.type === sdDeepSleep.TYPE_UNSPAWNED_WORLD )
 		{
 			if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
-			trace( 'sdDeepSleep generates world: TYPE_UNSPAWNED_WORLD generated due to (from_movement_or_vision='+from_movement_or_vision+', initiator=', initiator, ', potential_initiator=', sdWorld.last_simulated_entity, ')', this.x, this.y, this.x+this.w, this.y+this.h );
+			{
+				trace( 'sdDeepSleep generates world: TYPE_UNSPAWNED_WORLD generated due to (from_movement_or_vision='+from_movement_or_vision+', initiator=', initiator, ', potential_initiator=', sdWorld.last_simulated_entity, ')', this.x, this.y, this.x+this.w, this.y+this.h );
+			}
 		
 			this.remove();
 		
@@ -611,6 +615,33 @@ class sdDeepSleep extends sdEntity
 				
 					//sdWorld.UpdateHashPosition( ent, false, false ); // Won't call onMovementInRange
 				}
+			}
+		}
+		
+		
+		if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
+		{
+			if ( sdWorld.last_simulated_entity )
+			{
+				/*if ( sdWorld.last_simulated_entity.GetClass() === 'sdAsteroid' )
+				debugger;*/
+			
+				if ( initiator )
+				{
+					/*if ( initiator.GetClass() === 'sdBG' )
+					if ( sdWorld.last_simulated_entity.GetClass() === 'sdGun' )
+					debugger;
+
+					if ( initiator.GetClass() === 'sdBG' )
+					if ( sdWorld.last_simulated_entity.GetClass() === 'sdDrone' )
+					debugger;*/
+				}
+			}
+			
+			if ( initiator )
+			{
+				/*if ( initiator.GetClass() === 'sdBG' )
+				debugger;*/
 			}
 		}
 	}
