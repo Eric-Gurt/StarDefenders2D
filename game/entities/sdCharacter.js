@@ -5256,7 +5256,7 @@ class sdCharacter extends sdEntity
 							let e = sdLongRangeTeleport.long_range_teleports[ i ];
 							
 							sdTask.MakeSureCharacterHasTask({ 
-								similarity_hash:'TRACK-LRTP'+e.biometry, 
+								similarity_hash:'TRACK-LRTP'+e._net_id, 
 								executer: exectuter_character,
 								target: e,
 								mission: sdTask.MISSION_TRACK_ENTITY,

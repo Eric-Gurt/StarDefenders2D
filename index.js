@@ -904,6 +904,15 @@ let is_terminating = false;
 		snapshot_save_busy = true;
 	};
 	
+	sdWorld.SaveSnapshotAuthoPath = ()=>
+	{
+		SaveSnapshot( snapshot_path_const, ( err )=>
+		{
+			for ( var i = 0; i < sockets.length; i++ )
+			sockets[ i ].SDServiceMessage( 'Server: Manual backup is complete ('+(err?'Error!':'successfully')+')!' );
+		});
+	};
+	
 	setInterval( ()=>{
 		
 		for ( var i = 0; i < sockets.length; i++ )

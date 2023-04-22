@@ -2787,14 +2787,7 @@ class sdWorld
 							
 							if ( arr_i === 0 )
 							{
-								let id = sdEntity.entities.indexOf( e );
-								if ( id === -1 )
-								{
-									console.log('Removing unlisted entity ' + e.GetClass() + ', hiberstate was ' + hiber_state + '. Entity was made at: ' + e._stack_trace );
-									debugger;	
-								}
-								else
-								sdEntity.entities.splice( id, 1 );
+								e._remove_from_entities_array( hiber_state );
 							}
 							
 							if ( arr[ i ] === e ) // Removal did not happen?
@@ -2835,6 +2828,19 @@ class sdWorld
 					}
 				}
 			}
+			
+			// Check for improperly removed entities. It fill falsely react to chained removals, for example in case of sdBG -> sdBloodDecal
+			/*if ( sdWorld.is_server || sdWorld.is_singleplayer )
+			{
+				let e = sdEntity.GetRandomEntity();
+				if ( e )
+				if ( e._is_being_removed )
+				{
+					trace( 'Entity was not removed properly. .remove() was likely called, _remove() was likely called too, but entity is still in sdEntity.entities array. Make sure to call ._remove_from_entities_array() at the time of removal too...', e );
+					
+					e._remove_from_entities_array();
+				}
+			}*/
 			
 			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 			{
@@ -3203,7 +3209,16 @@ class sdWorld
 							
 							if ( arr_i_is_bg_entity === 10 ) // sdDeepSleep
 							{
+								/* Fighting the case when area would be instantly woken up by random sdDrone from nearby area... Let's wake them up by physically colliding only and whenever players see these
+						
 								arr_i.WakeUpArea();
+									
+								*/
+								if ( arr_i.ThreatAsSolid() )
+								{
+									sdWorld.last_hit_entity = null;
+									return true;
+								}
 							}
 							else
 							if ( ignore_entity === null || arr_i_is_bg_entity === ignore_entity.IsBGEntity() )
@@ -3400,7 +3415,16 @@ class sdWorld
 							
 							if ( arr_i_is_bg_entity === 10 ) // sdDeepSleep
 							{
+								/* Fighting the case when area would be instantly woken up by random sdDrone from nearby area... Let's wake them up by physically colliding only and whenever players see these
+						
 								arr_i.WakeUpArea();
+									
+								*/
+								if ( arr_i.ThreatAsSolid() )
+								{
+									sdWorld.last_hit_entity = null;
+									return true;
+								}
 							}
 							else
 							if ( ignore_entity === null || arr_i_is_bg_entity === ignore_entity.IsBGEntity() )

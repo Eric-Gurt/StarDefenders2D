@@ -625,19 +625,31 @@ let enf_once = true;
 				let new_snapshot_entities = [];
 				for ( var i = 0; i < snapshot.length; i++ )
 				{
-					let ent = sdEntity.GetObjectFromSnapshot( snapshot[ i ] );
-					
-					/*if ( ent )
-					if ( ent._is_being_removed )
+					/*if ( snapshot[ i ]._is_being_removed )
 					{
-						if ( ent._hiberstate !== sdEntity.HIBERSTATE_REMOVED )
-						{
-							ent._is_being_removed = false; // Nothing bad will happen? Trying to prevent missing blocks bug // It probably can't be solved here
-						}
-					}*/
+						if ( snapshot[ i ]._class === undefined )
+						trace( snapshot[ i ]._class + ' is being removed', snapshot[ i ] )
+					}
+					else*/
+					{
+						if ( snapshot[ i ]._class === undefined )
+						snapshot[ i ]._class = 'auto';
+ 
 					
-					if ( ent )
-					new_snapshot_entities.push( ent );
+						let ent = sdEntity.GetObjectFromSnapshot( snapshot[ i ] );
+
+						/*if ( ent )
+						if ( ent._is_being_removed )
+						{
+							if ( ent._hiberstate !== sdEntity.HIBERSTATE_REMOVED )
+							{
+								ent._is_being_removed = false; // Nothing bad will happen? Trying to prevent missing blocks bug // It probably can't be solved here
+							}
+						}*/
+
+						if ( ent )
+						new_snapshot_entities.push( ent );
+					}
 				}
 
 				for ( var i = 0; i < old_snapshot_entities.length; i++ )

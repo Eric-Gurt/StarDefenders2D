@@ -6,6 +6,30 @@
 
 	Most likely it would merge whole big bases into one big chunk, which is perfectly fine I guess.
 
+	Command to track memory (for watch):
+
+		if ( sdWorld.time > (globalThis.log_time||0) ) { globalThis.log_time=sdWorld.time + 1000 * 10; trace( 'entities: ' + sdWorld.entity_classes.sdEntity.entities.length + ' / active: ' + sdWorld.entity_classes.sdEntity.active_entities.length + ' / cells: ' + sdWorld.entity_classes.sdDeepSleep.cells.length ) }
+
+
+	Command to trigger all cell saving to disk:
+
+		for ( let i = 0; i < sdWorld.entity_classes.sdDeepSleep.cells.length; i++ )
+		{
+			sdWorld.entity_classes.sdDeepSleep.cells[ i ]._will_hibernate_on = 0;
+			sdWorld.entity_classes.sdDeepSleep.cells[ i ]._will_be_written_to_disk = 0;
+		}
+		for ( let i = 0; i < sdWorld.entity_classes.sdDeepSleep.cells.length; i++ )
+		sdWorld.entity_classes.sdDeepSleep.GlobalThink( 1 );
+
+		sdWorld.SaveSnapshotAuthoPath();
+
+
+
+	TODO: Client-side sdDeepSleep-s are not removed
+
+	TODO: Memory leak at sdWorld.entity_classes.sdLongRangeTeleport.teleported_items
+
+	TODO: Entities cound keeps increasing by 2000 every few minutes or so
 
 	TODO: Make sure sdDeepSleep.cells count does not grow indefinitely
 
@@ -347,7 +371,10 @@ class sdDeepSleep extends sdEntity
 					cell._last_obj_str_reset_reason = 11;
 
 					if ( sdWorld.is_server && !sdWorld.is_singleplayer )
-					sdDeepSleep.scheduled_deletions.add( cell );
+					{
+						sdDeepSleep.scheduled_deletions.add( cell );
+						sdDeepSleep.scheduled_saves.delete( cell );
+					}
 
 					cell.type = sdDeepSleep.TYPE_UNSPAWNED_WORLD;
 					cell._update_version++;
@@ -432,12 +459,18 @@ class sdDeepSleep extends sdEntity
 		if ( sdDeepSleep.debug_cell && this.x === sdDeepSleep.debug_cell_x && this.y === sdDeepSleep.debug_cell_y )
 		trace( 'WakeUpArea()', from_movement_or_vision, initiator, { _net_id:this._net_id, w:this.w, h:this.h, type:this.type, _file_exists:this._file_exists, _snapshots_str:this._snapshots_str.length, _is_being_removed:this._is_being_removed } );
 	
+		if ( from_movement_or_vision && initiator && initiator.IsPlayerClass() && initiator._socket )
+		{
+		}
+		else
+		return;
+	
 		if ( this.type === sdDeepSleep.TYPE_SCHEDULED_SLEEP )
 		{
-			if ( from_movement_or_vision && initiator && initiator.IsPlayerClass() )
-			{
+			//if ( from_movement_or_vision && initiator && initiator.IsPlayerClass() && initiator._socket )
+			//{
 				this.remove();
-			}
+			//}
 			
 			return; // These can't be waken up nor should be removed unless playe sees or interacts with them
 		}
@@ -505,6 +538,7 @@ class sdDeepSleep extends sdEntity
 			this.remove();
 			
 			sdDeepSleep.scheduled_deletions.add( this );
+			sdDeepSleep.scheduled_saves.delete( this );
 			
 
 			if ( sdDeepSleep.debug_cell && this.x === sdDeepSleep.debug_cell_x && this.y === sdDeepSleep.debug_cell_y )
@@ -698,21 +732,26 @@ class sdDeepSleep extends sdEntity
 				this._snapshots_str = JSON.stringify( this._snapshots_objects );
 			}
 			
-			fs.writeFile( globalThis.chunks_folder + '/' + this._snapshots_filename, this._snapshots_str, ( err )=> 
+			fs.writeFile( globalThis.chunks_folder + '/' + 'TEMP_' + this._snapshots_filename, this._snapshots_str, ( err )=> 
 			{
 				if ( err )
-				throw err;
-
-				this._file_exists = true;
-
-				this._snapshots_str = '';
-				this._snapshots_objects = null;
-				this._last_obj_str_reset_reason = 33;
-				
-				resolve();
-				
-			});
+				throw 'Unable to save chunk data to temp file: ' + err;
 			
+				fs.rename( globalThis.chunks_folder + '/' + 'TEMP_' + this._snapshots_filename, globalThis.chunks_folder + '/' + this._snapshots_filename, ( err )=>
+				{
+					if ( err )
+					throw( 'Unable to rename TEMP chunk data file into proper snapshot file: ' + err );
+
+
+					this._file_exists = true;
+
+					this._snapshots_str = '';
+					this._snapshots_objects = null;
+					this._last_obj_str_reset_reason = 33;
+
+					resolve();
+				});
+			});
 		});
 		
 		return promise;
@@ -732,6 +771,7 @@ class sdDeepSleep extends sdEntity
 				this._last_obj_str_reset_reason = 44;
 				
 				sdDeepSleep.scheduled_deletions.add( this );
+				sdDeepSleep.scheduled_saves.delete( this );
 			}
 			catch ( e )
 			{
@@ -744,6 +784,10 @@ class sdDeepSleep extends sdEntity
 		}
 	}
 	
+	ClearAllPropertiesOnRemove() // Deletion won't work with this
+	{
+		return false;
+	}
 	constructor( params )
 	{
 		super( params );
@@ -992,6 +1036,23 @@ class sdDeepSleep extends sdEntity
 					_y = Math.floor( Math.min( _y, e.y + ext_y1 ) / 16 ) * 16;
 					_y2 = Math.ceil( Math.max( _y2, e.y + ext_y2 ) / 16 ) * 16;
 					
+					// Try to catch moving objects and merge them all together
+					if ( typeof e.sx !== 'undefined' )
+					if ( typeof e.sy !== 'undefined' )
+					{
+						if ( sdWorld.inDist2D_Boolean( e.sx, e.sy, 0,0, 1 ) )
+						{
+							
+						}
+						else
+						{
+							_x -= 64;
+							_x2 += 64;
+							_y -= 64;
+							_y2 += 64;
+						}
+					}
+					
 					if ( sdDeepSleep.debug_big_area_increments )
 					{
 						let area2 = ( _x2 - _x ) * ( _y2 - _y );
@@ -1233,6 +1294,8 @@ class sdDeepSleep extends sdEntity
 					e._broken = false;
 					
 					e._remove(); // Instant remove is required or else it won't be able to spawn same entities from snapshot?
+					
+					e._remove_from_entities_array();
 					
 					sdLongRangeTeleport.teleported_items.add( e );
 				}
