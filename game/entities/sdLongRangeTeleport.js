@@ -950,7 +950,8 @@ class sdLongRangeTeleport extends sdEntity
 					
 					trace( '--AuthorizedIncomingS2SProtocolMessageHandler--');
 					trace( 'Executing: ', data_object.action );
-					trace( 'collected_entities_array: ', collected_entities_array );
+					trace( 'collected_entities_array: ', collected_entities_array.length );
+					//trace( 'collected_entities_array: ', collected_entities_array );
 					
 					for ( let i = 0; i < collected_entities_array.length; i++ )
 					if ( collected_entities_array[ i ].IsPlayerClass() )
