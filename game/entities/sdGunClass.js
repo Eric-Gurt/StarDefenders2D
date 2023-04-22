@@ -6575,6 +6575,7 @@ class sdGunClass
 			spread: 0.03,
 			count: 2,
 			fire_type: 1,
+			spawnable: false,
 			projectile_velocity_dynamic: ( gun )=> { return Math.min( 64, sdGun.default_projectile_velocity ) },
 			projectile_properties: { _damage: 1 }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
 			projectile_properties_dynamic: ( gun )=>{ 
