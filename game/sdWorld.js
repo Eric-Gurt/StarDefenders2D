@@ -3323,14 +3323,6 @@ class sdWorld
 		//var step = 16;
 		var step = 8;
 		
-		if ( di > 2000 )
-		if ( sdDeepSleep.debug_really_long_line_traces )
-		if ( sdWorld.is_server )
-		{
-			debugger;
-			console.warn( 'This CheckLineOfSight is really long and can cause extreme number of sdDeepSleep wakes, thus lags (di: '+di+')' );
-		}
-		
 		for ( var s = step / 2; s < di - step / 2; s += step )
 		{
 			var x = x1 + ( x2 - x1 ) / di * s;
@@ -3345,14 +3337,6 @@ class sdWorld
 		var di = sdWorld.Dist2D( x1,y1,x2,y2 );
 		//var step = 16;
 		var step = 8;
-		
-		if ( di > 2000 )
-		if ( sdDeepSleep.debug_really_long_line_traces )
-		if ( sdWorld.is_server )
-		{
-			debugger;
-			console.warn( 'This TraceRayPoint is really long and can cause extreme number of sdDeepSleep wakes, thus lags (di: '+di+')' );
-		}
 		
 		for ( var s = step / 2; s < di - step / 2; s += step )
 		{

@@ -1127,6 +1127,12 @@ class sdEntity
 											);
 										}
 									}
+									
+									/*if ( t <= 1 )
+									if ( arr_i.GetClass() === 'sdDeepSleep' )
+									if ( !arr_i.IsTargetable( this, true ) )
+									debugger;*/
+									
 
 									if ( t <= 1 )
 									if ( arr_i.IsTargetable( this, true ) ) // So guns are ignored

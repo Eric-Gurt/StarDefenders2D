@@ -3442,12 +3442,6 @@ const ServerMainMethod = ()=>
 										}
 										else
 										{
-											/*if ( sdDeepSleep.debug_really_long_line_traces )
-											if ( sdWorld.Dist2D( ent.x, ent.y, socket.character.x, socket.character.y ) > 2000 )
-											{
-												debugger;
-											}*/
-											
 											observed_entities.push( ent );
 											observed_entities_map.add( ent );
 										}
