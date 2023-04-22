@@ -9,6 +9,7 @@ import sdGun from './sdGun.js';
 import sdCharacter from './sdCharacter.js';
 import sdBullet from './sdBullet.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdDeepSleep from './sdDeepSleep.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -160,10 +161,12 @@ class sdWater extends sdEntity
 		{
 			if ( arr_under[ i ].IsBGEntity() === 10 )
 			{
-				arr_under[ i ].WakeUpArea();
+				//arr_under[ i ].WakeUpArea();
+				return null; // Let's not wake up water from hibernated/no-existing cells...
 			}
 			else
-			if ( arr_under[ i ] instanceof sdWater )
+			//if ( arr_under[ i ] instanceof sdWater )
+			if ( arr_under[ i ].is( sdWater ) )// instanceof sdWater )
 			//if ( arr_under[ i ].x === nx && arr_under[ i ].y === ny )
 			if ( nx >= arr_under[ i ].x && nx < arr_under[ i ].x + 16 && 
 				 ny >= arr_under[ i ].y && ny < arr_under[ i ].y + 16 )
@@ -461,7 +464,7 @@ class sdWater extends sdEntity
 			if ( arr[ i ].y + arr[ i ]._hitbox_y1 < this.y + 16 + 16 )
 			if ( arr[ i ].y + arr[ i ]._hitbox_y2 > this.y + 16 )
 			if ( this !== arr[ i ] )
-			if ( arr[ i ].is( sdWater ) || ( arr[ i ].is( sdBlock ) && !arr[ i ].IsLetsLiquidsThrough() ) || arr[ i ].is( sdDoor ) )
+			if ( arr[ i ].is( sdWater ) || ( arr[ i ].is( sdBlock ) && !arr[ i ].IsLetsLiquidsThrough() ) || arr[ i ].is( sdDoor ) || ( arr[ i ].is( sdDeepSleep ) && arr[ i ].ThreatAsSolid() ) )
 			//if ( arr[ i ].is( sdWater ) || ( arr[ i ].is( sdBlock ) && arr[ i ].texture_id !== sdBlock.TEXTURE_ID_CAGE ) || arr[ i ].is( sdDoor ) )
 			{
 				if ( this.BlendWith( arr[ i ] ) )
@@ -482,7 +485,7 @@ class sdWater extends sdEntity
 
 					for ( var i2 = 0; i2 < down_left.length; i2++ )
 					{
-						if ( down_left[ i2 ].is( sdWater ) || ( down_left[ i2 ].is( sdBlock ) && down_left[ i2 ].IsLetsLiquidsThrough() ) || down_left[ i2 ].is( sdDoor ) )
+						if ( down_left[ i2 ].is( sdWater ) || ( down_left[ i2 ].is( sdBlock ) && !down_left[ i2 ].IsLetsLiquidsThrough() ) || down_left[ i2 ].is( sdDoor ) || ( down_left[ i2 ].is( sdDeepSleep ) && down_left[ i2 ].ThreatAsSolid() ) )
 						//if ( down_left[ i2 ].is( sdWater ) || ( down_left[ i2 ].is( sdBlock ) && down_left[ i2 ].texture_id !== sdBlock.TEXTURE_ID_CAGE ) || down_left[ i2 ].is( sdDoor ) )
 						if ( down_left[ i2 ].x + down_left[ i2 ]._hitbox_x1 < this.x + 16 - 16 )
 						if ( down_left[ i2 ].x + down_left[ i2 ]._hitbox_x2 > this.x - 16 )
@@ -499,7 +502,7 @@ class sdWater extends sdEntity
 
 					for ( var i2 = 0; i2 < down_right.length; i2++ )
 					{
-						if ( down_right[ i2 ].is( sdWater ) || ( down_right[ i2 ].is( sdBlock ) && down_right[ i2 ].IsLetsLiquidsThrough() ) || down_right[ i2 ].is( sdDoor ) )
+						if ( down_right[ i2 ].is( sdWater ) || ( down_right[ i2 ].is( sdBlock ) && !down_right[ i2 ].IsLetsLiquidsThrough() ) || down_right[ i2 ].is( sdDoor ) || ( down_right[ i2 ].is( sdDeepSleep ) && down_right[ i2 ].ThreatAsSolid() ) )
 						//if ( down_right[ i2 ].is( sdWater ) || ( down_right[ i2 ].is( sdBlock ) && down_right[ i2 ].texture_id !== sdBlock.TEXTURE_ID_CAGE ) || down_right[ i2 ].is( sdDoor ) )
 						if ( down_right[ i2 ].x + down_right[ i2 ]._hitbox_x1 < this.x + 16 + 16 )
 						if ( down_right[ i2 ].x + down_right[ i2 ]._hitbox_x2 > this.x + 16 )

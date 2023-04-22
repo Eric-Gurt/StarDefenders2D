@@ -2039,6 +2039,8 @@ io.on( 'connection', ( socket )=>
 		character_entity._save_file = player_settings.save_file;
 		
 		socket.character = character_entity;
+		socket.camera.x = socket.character.x;
+		socket.camera.y = socket.character.y;
 		
 		character_entity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		character_entity._frozen = 0; // Preventing results of a bug where status effects were removed but _frozen property wasn't reset. Still not sure why this happens
@@ -2089,23 +2091,8 @@ io.on( 'connection', ( socket )=>
 
 		sdEntity.entities.push( character_entity );
 		
-		/*const EarlyDamageTaken = ( character_entity, dmg, initiator )=>
-		{
-			if ( character_entity.hea - dmg <= 30 )
-			{
-				BadSpawn( character_entity.x, character_entity.y, initiator );
-				character_entity.removeEventListener( 'DAMAGE', EarlyDamageTaken );
-			}
-		};
-		
-		character_entity.addEventListener( 'DAMAGE', EarlyDamageTaken );
-		
-		setTimeout( ()=>
-		{
-			character_entity.removeEventListener( 'DAMAGE', EarlyDamageTaken );
-		}, 5000 );*/
 
-		socket.character = character_entity;
+		//socket.character = character_entity; // Twice?
 		
 		if ( player_settings.full_reset )
 		{
@@ -3446,6 +3433,12 @@ const ServerMainMethod = ()=>
 										}
 										else
 										{
+											/*if ( sdDeepSleep.debug_really_long_line_traces )
+											if ( sdWorld.Dist2D( ent.x, ent.y, socket.character.x, socket.character.y ) > 2000 )
+											{
+												debugger;
+											}*/
+											
 											observed_entities.push( ent );
 											observed_entities_map.add( ent );
 										}

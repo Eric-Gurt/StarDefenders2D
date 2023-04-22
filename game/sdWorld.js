@@ -130,6 +130,7 @@ class sdWorld
 		};*/
 		sdWorld.base_ground_level = 0;//-256;
 		
+		sdWorld.last_simulated_entity = null; // Used by sdDeepSleep debugging so far
 		
 		
 		sdWorld.mouse_screen_x = 0;
@@ -147,7 +148,8 @@ class sdWorld
 		
 		//sdWorld.world_hash_positions = {};
 		sdWorld.world_hash_positions = new Map();
-		sdWorld.world_hash_positions_recheck_keys = []; // Array for keys to slowly check and delete if they are empty (can happen as a result of requiring cells by world logic)
+		//sdWorld.world_hash_positions_recheck_keys = []; // Array for keys to slowly check and delete if they are empty (can happen as a result of requiring cells by world logic)
+		sdWorld.world_hash_positions_recheck_keys = new Set(); // Set of keys to slowly check and delete if they are empty (can happen as a result of requiring cells by world logic)
 		
 		sdWorld.last_hit_entity = null;
 		
@@ -1703,7 +1705,19 @@ class sdWorld
 
 					if ( e_is_bg_entity === 10 ) // sdDeepSleep
 					{
-						e.WakeUpArea();
+						x1 = e._hitbox_x1;
+						x2 = e._hitbox_x2;
+						y1 = e._hitbox_y1;
+						y2 = e._hitbox_y2;
+
+						cx = Math.max( e.x + x1, Math.min( _x, e.x + x2 ) );
+						cy = Math.max( e.y + y1, Math.min( _y, e.y + y2 ) );
+
+						// Make sure it actually collides with sdDeepSleep area
+						if ( sdWorld.inDist2D_Boolean( _x, _y, cx, cy, range ) )
+						{
+							e.WakeUpArea();
+						}
 					}
 					else
 					if ( filter_candidates_function === null || filter_candidates_function( e ) )
@@ -1717,7 +1731,6 @@ class sdWorld
 						cx = Math.max( e.x + x1, Math.min( _x, e.x + x2 ) );
 						cy = Math.max( e.y + y1, Math.min( _y, e.y + y2 ) );
 
-						//if ( sdWorld.inDist2D( _x, _y, cx, cy, range ) >= 0 )
 						if ( sdWorld.inDist2D_Boolean( _x, _y, cx, cy, range ) )
 						if ( ret.indexOf( e ) === -1 )
 						ret.push( e );
@@ -2193,8 +2206,9 @@ class sdWorld
 
 				sdWorld.world_hash_positions.set( x, arr );
 
-				if ( sdWorld.world_hash_positions_recheck_keys.indexOf( x ) === -1 )
-				sdWorld.world_hash_positions_recheck_keys.push( x );
+				sdWorld.world_hash_positions_recheck_keys.add( x );
+				//if ( sdWorld.world_hash_positions_recheck_keys.indexOf( x ) === -1 )
+				//sdWorld.world_hash_positions_recheck_keys.push( x );
 			}
 			else
 			{
@@ -2593,6 +2607,8 @@ class sdWorld
 			
 			//let skipper = 0;
 			
+			const debug_wake_up_sleep_refuse_reasons = sdDeepSleep.debug_wake_up_sleep_refuse_reasons;
+			
 			for ( arr_i = 0; arr_i < 2; arr_i++ )
 			{
 				arr = ( arr_i === 0 ) ? sdEntity.active_entities : sdEntity.global_entities;
@@ -2732,6 +2748,11 @@ class sdWorld
 					{
 						if ( !e._is_being_removed )
 						{
+							if ( debug_wake_up_sleep_refuse_reasons )
+							{
+								sdWorld.last_simulated_entity = e;
+							}
+							
 							if ( e._frozen >= 1 )
 							e.onThinkFrozen( GSPEED / substeps * gspeed_mult );
 							else
@@ -2740,6 +2761,11 @@ class sdWorld
 								e.onThink( GSPEED / substeps * gspeed_mult );
 								//else
 								//e._onThinkPtr( GSPEED / substeps * gspeed_mult ); // Actually faster in v8... Has something to do with different objects having same property // UPD: Let's rollback it, maybe this was causing Booraz's server to lag?
+							}
+							
+							if ( debug_wake_up_sleep_refuse_reasons )
+							{
+								sdWorld.last_simulated_entity = null;
 							}
 						}
 						
@@ -2956,19 +2982,30 @@ class sdWorld
 		let t4 = Date.now();
 		IncludeTimeCost( 'leaders_and_warnings', t4 - t3 );
 		
-		if ( sdWorld.world_hash_positions_recheck_keys.length > 0 )
-		for ( var s = Math.max( 32, sdWorld.world_hash_positions_recheck_keys.length * 0.1 ); s >= 0; s-- )
+		//if ( sdWorld.world_hash_positions_recheck_keys.length > 0 )
+		if ( sdWorld.world_hash_positions_recheck_keys.size > 0 )
 		{
-			let x = sdWorld.world_hash_positions_recheck_keys[ 0 ];
+			let s = Math.max( 32, sdWorld.world_hash_positions_recheck_keys.size * 0.1 );
 			
-			if ( sdWorld.world_hash_positions.has( x ) )
-			if ( sdWorld.world_hash_positions.get( x ).arr.length === 0 )
+			//for ( var s = Math.max( 32, sdWorld.world_hash_positions_recheck_keys.size * 0.1 ); s >= 0; s-- )
+			for ( const x of sdWorld.world_hash_positions_recheck_keys )
 			{
-				//sdWorld.world_hash_positions.get( x ).unlinked = globalThis.getStackTrace();
-				sdWorld.world_hash_positions.delete( x );
+				//let x = sdWorld.world_hash_positions_recheck_keys[ 0 ];
+
+				if ( sdWorld.world_hash_positions.has( x ) )
+				if ( sdWorld.world_hash_positions.get( x ).arr.length === 0 )
+				{
+					//sdWorld.world_hash_positions.get( x ).unlinked = globalThis.getStackTrace();
+					sdWorld.world_hash_positions.delete( x );
+				}
+
+				//sdWorld.world_hash_positions_recheck_keys.shift();
+				sdWorld.world_hash_positions_recheck_keys.delete( x );
+				
+				s--;
+				if ( s < 0 )
+				break;
 			}
-	
-			sdWorld.world_hash_positions_recheck_keys.shift();
 		}
 		
 		let t5 = Date.now();

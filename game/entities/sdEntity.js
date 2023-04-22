@@ -21,6 +21,7 @@ let skipper = 0;
 let GetAnythingNear = null;
 let sdArea = null;
 //let sdSound = null;
+let sdDeepSleep = null;
 			
 class sdEntity
 {
@@ -2204,6 +2205,32 @@ class sdEntity
 		
 		return true;
 	}
+	CanMoveWithoutDeepSleepTriggering( new_x, new_y, safe_bound=0 )
+	{
+		if ( !sdDeepSleep )
+		sdDeepSleep = sdWorld.entity_classes.sdDeepSleep;
+	
+		const extra_space_around = -safe_bound;
+		
+		for ( let i = 0; i < sdDeepSleep.cells.length; i++ )
+		{
+			const cell = sdDeepSleep.cells[ i ];
+			
+			if ( cell.ThreatAsSolid() )
+			{
+				if ( new_x + this._hitbox_x2 <= cell.x + cell._hitbox_x1 - extra_space_around ||
+					 new_x + this._hitbox_x1 >= cell.x + cell._hitbox_x2 + extra_space_around ||
+					 new_y + this._hitbox_y2 <= cell.y + cell._hitbox_y1 - extra_space_around ||
+					 new_y + this._hitbox_y1 >= cell.y + cell._hitbox_y2 + extra_space_around )
+				{
+				}
+				else
+				return false;
+			}
+		}
+
+		return true;
+	}
 	
 	GetHitDamageMultiplier( x, y ) // Multiplier for damage
 	{
@@ -2443,9 +2470,6 @@ class sdEntity
 		
 		if ( this.PreInit !== sdEntity.prototype.PreInit )
 		this.PreInit();
-			
-		this._connected_ents = null; // Can be array, for slower update rate
-		this._connected_ents_next_rethink = 0;
 		
 		this._frozen = 0; // This value is changed by sdStatusEffect. Result of this value is an alternate ThinkNow function calls. It shows how many degrees temperature is below freezing point, it is always positive value. Value like 1 means it is about to unfreeze - used by turrets to keep targets frozen
 		
@@ -2477,6 +2501,8 @@ class sdEntity
 	
 		this._last_attacker_net_id = -1;
 		this._last_attacker_until = 0;
+		
+		this._steering_wheel_net_id = -1;
 		
 		if ( this.is_static )
 		this._update_version = 0;
@@ -2571,6 +2597,11 @@ class sdEntity
 				
 				this.onThink.has_sdBlock_extras = false;
 				
+				if ( !sdCable )
+				sdCable = sdWorld.entity_classes.sdCable;
+				
+				this.onThink.has_cable_support = ( sdCable.attacheable_entities.indexOf( this.GetClass() ) !== -1 ) || this.GetClass() === 'sdCrystal'; // Crystals can send matter over amplifiers' cables
+				
 				// Hacks
 				const c = this.GetClass();
 				if ( c === 'sdBone' )
@@ -2583,6 +2614,13 @@ class sdEntity
 					this.onThink.has_sdBlock_extras = true;
 				}
 			}
+			
+			if ( this.onThink.has_cable_support )
+			{
+				this._connected_ents = null; // Can be array, for slower update rate
+				this._connected_ents_next_rethink = 0;
+			}
+			
 			if ( this.onRemove.has_broken_property_check === undefined )
 			{
 				let onRemoveString = this.onRemove.toString();
@@ -2618,6 +2656,20 @@ class sdEntity
 		
 			sdEntity.to_seal_list.push( this );
 		}
+	}
+	
+	GetSteeringWheel()
+	{
+		if ( this._steering_wheel_net_id === -1 )
+		return null;
+		
+		const e = sdEntity.entities_by_net_id_cache_map.get( this._steering_wheel_net_id );
+		
+		if ( e )
+		return e;
+		
+		this._steering_wheel_net_id = -1;
+		return null;
 	}
 	
 	VehicleHidesDrivers()
@@ -4193,6 +4245,7 @@ class sdEntity
 				this._phys_last_touch = null;
 			}
 			
+			if ( typeof this._connected_ents !== 'undefined' )
 			this._connected_ents = null;
 			
 			/* It is handled by memory leak seeker now instead
