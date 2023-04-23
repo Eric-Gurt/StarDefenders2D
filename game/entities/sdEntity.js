@@ -4293,7 +4293,7 @@ class sdEntity
 					}
 					else
 					if ( typeof value === 'string' )
-					this[ prop ] = undefined;
+					this[ prop ] = '';
 				}
 			}
 			
