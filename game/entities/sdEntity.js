@@ -4,6 +4,7 @@
 /* global sdSound, sdContextMenu, sdRenderer, globalThis, sdChat */
 
 import sdWorld from '../sdWorld.js';
+//import sdKeyStates from '../sdKeyStates.js';
 //import sdSound from '../sdSound.js';
 //import sdEffect from './sdEffect.js';
 
@@ -22,6 +23,7 @@ let GetAnythingNear = null;
 let sdArea = null;
 //let sdSound = null;
 let sdDeepSleep = null;
+//let sdKeyStates = null;
 			
 class sdEntity
 {
@@ -4272,6 +4274,7 @@ class sdEntity
 		
 			if ( this.ClearAllPropertiesOnRemove() )
 			{
+				
 				let props = Object.getOwnPropertyNames( this );
 				for ( let i = 0; i < props.length; i++ )
 				{
@@ -4285,10 +4288,20 @@ class sdEntity
 					else
 					if ( typeof value === 'object' )
 					{
-						if ( this[ prop ] instanceof WeakSet || this[ prop ] instanceof WeakMap )
+						if ( this[ prop ] instanceof sdEntity )
+						this[ prop ] = null;
+						else
+						/*if ( this[ prop ] instanceof WeakSet || this[ prop ] instanceof WeakMap || this[ prop ] instanceof sdKeyStates )
 						{
 						}
+						else*/
+						if ( this[ prop ] instanceof Array && this[ prop ].length > 0 && this[ prop ][ 0 ] instanceof sdEntity )
+						this[ prop ] = null;
 						else
+						if ( ( this[ prop ] instanceof Map || this[ prop ] instanceof Set ) && this[ prop ].values().length > 0 && this[ prop ].values()[ 0 ] instanceof sdEntity )
+						this[ prop ] = null;
+						else
+						if ( this[ prop ] instanceof Map && this[ prop ].keys().length > 0 && this[ prop ].keys()[ 0 ] instanceof sdEntity )
 						this[ prop ] = null;
 					}
 					else
