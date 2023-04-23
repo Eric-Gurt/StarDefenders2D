@@ -632,7 +632,7 @@ class sdRescueTeleport extends sdEntity
 							{
 								//if ( this._rescuing_from_lost_effect )
 								//{
-									executer_socket.SDServiceMessage( 'Your previous body does no longer exist. Clonning procedure needs to be compelted. Does anyone have "Area amplifier" device?' );
+									executer_socket.SDServiceMessage( 'Your previous body does no longer exist. Cloning procedure needs to be completed. Does anyone have "Area amplifier" device?' );
 								/*}
 								else
 								{
