@@ -2218,6 +2218,7 @@ io.on( 'connection', ( socket )=>
 			var key = sd_events[ i ][ 1 ];
 			
 			if ( socket.character )
+			if ( !socket.character._is_being_removed )
 			{
 				if ( type === 'K1' )
 				socket.character._key_states.SetKey( key, 1 );
