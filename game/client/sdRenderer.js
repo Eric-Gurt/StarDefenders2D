@@ -1523,7 +1523,8 @@ class sdRenderer
 			if ( sdWorld.my_entity )
 			if ( sdRenderer.UseCrosshair() )
 			{
-				if ( sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ] &&
+				if ( !sdWorld.my_entity._is_being_removed && 
+					 sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ] &&
 					 sdGun.classes[ sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ].class ] &&
 					 sdGun.classes[ sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ].class ].is_build_gun )
 				{

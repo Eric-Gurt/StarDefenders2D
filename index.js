@@ -1901,11 +1901,14 @@ io.on( 'connection', ( socket )=>
 			{
 				if ( sdWorld.server_config.onDisconnect )
 				sdWorld.server_config.onDisconnect( socket.character, 'manual' );
-
-				if ( socket.character.title.indexOf( 'Disconnected ' ) !== 0 )
-				socket.character.title = 'Disconnected ' + socket.character.title;
 			
-				socket.character._key_states.Reset();
+				if ( !socket.character._is_being_removed )
+				{
+					if ( socket.character.title.indexOf( 'Disconnected ' ) !== 0 )
+					socket.character.title = 'Disconnected ' + socket.character.title;
+
+					socket.character._key_states.Reset();
+				}
 
 				if ( !socket.character._is_being_removed )
 				if ( socket.character.hea > 0 )
