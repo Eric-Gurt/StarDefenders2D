@@ -4284,7 +4284,13 @@ class sdEntity
 					}
 					else
 					if ( typeof value === 'object' )
-					this[ prop ] = null;
+					{
+						if ( this[ prop ] instanceof WeakSet || this[ prop ] instanceof WeakMap )
+						{
+						}
+						else
+						this[ prop ] = null;
+					}
 					else
 					if ( typeof value === 'string' )
 					this[ prop ] = undefined;

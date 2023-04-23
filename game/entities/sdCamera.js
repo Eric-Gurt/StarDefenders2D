@@ -136,6 +136,9 @@ class sdCamera extends sdEntity
 	
 	Trigger( hook_id, message='' )
 	{
+		if ( this._is_being_removed )
+		return;
+		
 		if ( !this._hook_trigger_counters[ hook_id ] )
 		this._hook_trigger_counters[ hook_id ] = 1;
 		else

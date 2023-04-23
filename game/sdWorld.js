@@ -4239,6 +4239,11 @@ class sdWorld
 		
 		if ( player_settings.entity4 )
 		{
+			navigator.wakeLock.request("screen").then(()=>{
+			}).catch(()=>{
+				trace( 'Wake lock request failed' );
+			});
+			
 			// Do not show ads in stream logger
 			ForceProceedOnce();
 		}
