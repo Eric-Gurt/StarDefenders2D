@@ -44,7 +44,7 @@ class sdGunClass
 	{
 		function AddRecolorsFromColorAndCost( arr, from_color, cost, prefix='', category='' )
 		{
-			let colors = [
+			/*let colors = [
 				'cyan', '#00fff6',
 				'yellow', '#ffff00',
 				'white', '#dddddd',
@@ -60,7 +60,7 @@ class sdGunClass
 			for ( let i = 0; i < colors.length; i += 2 )
 			arr.push(
 			{ 
-				title: 'Make ' + ( prefix?prefix+' ':'' ) + colors[ i ],
+				title: 'Make ' + ( prefix ? prefix + ' ' : '' ) + colors[ i ],
 				cost: cost,
 				category: category,
 				hint_color: colors[ i + 1 ],
@@ -71,7 +71,38 @@ class sdGunClass
 				
 					sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, from_color, colors[ i + 1 ] );
 				}
+			});*/
+			
+			arr.push(
+			{ 
+				title: 'Customize ' + ( prefix ? prefix + ' ' : '' ) + 'color',
+				cost: cost,
+				category: category,
+				//hint_color: '#ff0000', // Should be guessed from gun
+				color_picker_for: from_color,
+				action: ( gun, initiator=null, hex_color=null )=> // action method is called with 3rd parameter only because .color_picker_for is causing sdWeaponBench to send extra parameters at .AddColorPickerContextOption . It does not send first parameter from "parameters_array" which is passed to .ExecuteContextCommand as it contains just upgrade ID, which is pointless here (yes, it converts array into function arguments)
+				{ 
+					if ( typeof hex_color === 'string' && hex_color.length === 7 ) // ReplaceColorInSDFilter_v2 does the type check but just in case
+					{
+						if ( !gun.sd_filter )
+						gun.sd_filter = sdWorld.CreateSDFilter();
+
+						// Pass custom hex colors to this function
+
+						sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, from_color, hex_color );
+						//sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, from_color, '#00ff00' );
+					}
+				}
 			});
+			
+			for ( let i = 0; i < arr.length; i++ )
+			if ( arr[ i ].title === 'Remove colors' )
+			if ( arr[ i ].category === category )
+			{
+				arr.splice( i, 1 );
+				i--;
+				continue;
+			}
 			
 			arr.push(
 			{ 
@@ -237,7 +268,7 @@ class sdGunClass
 			);
 	
 			//
-			custom_rifle_upgrades.push(
+			/*custom_rifle_upgrades.push(
 				{
 					title: 'Customize main color...', 
 					represents_category: 'customize_colors_main',
@@ -278,7 +309,7 @@ class sdGunClass
 					represents_category: 'customize_colors_bullets',
 					category: 'customize_colors'
 				} 
-			);
+			);*/
 	
 			custom_rifle_upgrades.push(
 				{
@@ -319,12 +350,19 @@ class sdGunClass
 					} 
 				} 
 			);
-			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#000000', 0, '', 'customize_colors_main' );
+			/*AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#000000', 0, '', 'customize_colors_main' );
 			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#404040', 0, '', 'customize_colors_dark' );
 			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#808080', 0, '', 'customize_colors_bright' );
 			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#6ca2d0', 0, '', 'customize_colors_energy' );
 			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#ff0000', 0, '', 'customize_colors_laser' );
-			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#9d822f', 0, '', 'customize_colors_bullets' );
+			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#9d822f', 0, '', 'customize_colors_bullets' );*/
+			
+			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#000000', 0, 'main', 'customize_colors' );
+			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#404040', 0, 'dark', 'customize_colors' );
+			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#808080', 0, 'bright', 'customize_colors' );
+			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#6ca2d0', 0, 'energy', 'customize_colors' );
+			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#ff0000', 0, 'laset', 'customize_colors' );
+			AddRecolorsFromColorAndCost( custom_rifle_upgrades, '#9d822f', 0, 'magazine', 'customize_colors' );
 			
 			custom_rifle_upgrades.push(
 				{
@@ -1391,7 +1429,9 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#0000ff', 30 ) )
+			upgrades: AddGunDefaultUpgrades( 
+						AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( [], '#ffffff', 30 ), '#0000ff', 30 )
+					)
 		};
 		
 		sdGun.classes[ sdGun.CLASS_RAIL_PISTOL = 17 ] = { // Original weapon idea, image & pull request by Booraz149 ( https://github.com/Booraz149 )
@@ -2387,8 +2427,15 @@ class sdGunClass
 					{
 						if ( bullet._owner._god )
 						{
-							target_entity.DamageWithEffect( Infinity, bullet._owner, false, false );
-							target_entity.remove();
+							if ( target_entity.GetClass() === 'sdDeepSleep' )
+							{
+								// Never remove these
+							}
+							else
+							{
+								target_entity.DamageWithEffect( Infinity, bullet._owner, false, false );
+								target_entity.remove();
+							}
 						}
 						else
 						if ( bullet._owner.IsPlayerClass() )
@@ -6535,6 +6582,7 @@ class sdGunClass
 			spread: 0.03,
 			count: 2,
 			fire_type: 1,
+			spawnable: false,
 			projectile_velocity_dynamic: ( gun )=> { return Math.min( 64, sdGun.default_projectile_velocity ) },
 			projectile_properties: { _damage: 1 }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
 			projectile_properties_dynamic: ( gun )=>{ 

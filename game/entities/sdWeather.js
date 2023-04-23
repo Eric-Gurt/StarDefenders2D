@@ -343,7 +343,8 @@ class sdWeather extends sdEntity
 							continue;
 						}
 						
-
+						
+						if ( dog.CanMoveWithoutDeepSleepTriggering( x, y, -32 ) )
 						if ( dog.CanMoveWithoutOverlap( x, y, 0 ) )
 						if ( params.aerial || !dog.CanMoveWithoutOverlap( x, y + 5, 0 ) )
 						if ( params.aerial || sdWorld.last_hit_entity )
@@ -429,12 +430,13 @@ class sdWeather extends sdEntity
 
 				x = place_onto.x + place_onto._hitbox_x1 * morph + place_onto._hitbox_x2 * ( 1 - morph );
 				y = place_onto.y - ent._hitbox_y2 - 1;
-
+				
+				if ( ent.CanMoveWithoutDeepSleepTriggering( x, y, -32 ) )
 				if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
 				if ( !ent.CanMoveWithoutOverlap( x, y + 32, 0 ) )
 				if ( tr < 1000 || ent.CanMoveWithoutOverlap( x, y - 64, 0 ) ) // Ignore caves after first 500 iterations
 				if ( sdWorld.last_hit_entity )
-				if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
+				if ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
 				if ( !sdWorld.CheckWallExistsBox( 
 						x + ent._hitbox_x1 - 16, 
 						y + ent._hitbox_y1 - 116, 

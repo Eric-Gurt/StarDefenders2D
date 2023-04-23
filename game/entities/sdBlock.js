@@ -646,8 +646,8 @@ class sdBlock extends sdEntity
 		if ( this.material === sdBlock.MATERIAL_TRAPSHIELD ) // Less health, but regeneration will have no delay
 		{
 			this._hmax *= sdBlock.trapshield_block_health_ratio;
-			this._last_damage = 0;
 		}
+		this._last_damage = 0; // Used by MATERIAL_TRAPSHIELD so far only
 		
 		this._hea = this._hmax;
 		this._regen_timeout = 0;

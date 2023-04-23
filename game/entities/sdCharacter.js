@@ -4642,6 +4642,12 @@ class sdCharacter extends sdEntity
 			if ( fake_ent.owner !== undefined )
 			fake_ent.owner = this;
 
+			if ( fake_ent.owner_biometry !== undefined )
+			fake_ent.owner_biometry = this.biometry;
+
+			if ( fake_ent._owner_biometry !== undefined )
+			fake_ent._owner_biometry = this.biometry;
+
 			/*if ( fake_ent._hmax !== undefined )
 			fake_ent._hmax *= this._build_hp_mult; // Source of price to go up
 
@@ -5250,7 +5256,7 @@ class sdCharacter extends sdEntity
 							let e = sdLongRangeTeleport.long_range_teleports[ i ];
 							
 							sdTask.MakeSureCharacterHasTask({ 
-								similarity_hash:'TRACK-LRTP'+e.biometry, 
+								similarity_hash:'TRACK-LRTP'+e._net_id, 
 								executer: exectuter_character,
 								target: e,
 								mission: sdTask.MISSION_TRACK_ENTITY,

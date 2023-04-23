@@ -113,8 +113,8 @@ class sdAsteroid extends sdEntity
 		}
 		else
 		{
-			this.x += this.sx * GSPEED;
-			this.y += this.sy * GSPEED;
+			let new_x = this.x + this.sx * GSPEED;
+			let new_y = this.y + this.sy * GSPEED;
 			
 			if ( sdWorld.Dist2D_Vector( this.sx, this.sy ) < 10 )
 			{
@@ -125,7 +125,14 @@ class sdAsteroid extends sdEntity
 			this._an = Math.atan2( this.sy, this.sx ) - Math.PI / 2;
 		
 			//if ( sdWorld.CheckWallExists( this.x, this.y + this._hitbox_y2, this ) )
-			if ( !this.CanMoveWithoutOverlap( this.x, this.y, 0 ) )
+			if ( !this.CanMoveWithoutDeepSleepTriggering( new_x, new_y, 0 ) )
+			{
+				// Despawn asteroids flying into sdDeepSleep
+				this.remove();
+				this._broken = false;
+			}
+			else
+			if ( !this.CanMoveWithoutOverlap( new_x, new_y, 0 ) )
 			{
 				if ( this._type === 0 )
 				this.DamageWithEffect( 1000 );
@@ -135,13 +142,18 @@ class sdAsteroid extends sdEntity
 					sdWorld.SendEffect({ x:this.x, y:this.y, radius:12, type:sdEffect.TYPE_EXPLOSION, color:sdEffect.default_explosion_color, can_hit_owner:false, owner:this });
 					this.landed = true;
 					
-					this.x -= this.sx * GSPEED;
-					this.y -= this.sy * GSPEED; // Revert overlapping position
+					//this.x -= this.sx * GSPEED;
+					//this.y -= this.sy * GSPEED; // Revert overlapping position
 					
 					this.sx *= 0.02;
 					this.sy *= 0.02;
 				}
 				//this.remove();
+			}
+			else
+			{
+				this.x = new_x;
+				this.y = new_y;
 			}
 		}
 	}

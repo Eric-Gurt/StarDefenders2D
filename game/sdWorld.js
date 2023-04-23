@@ -130,6 +130,7 @@ class sdWorld
 		};*/
 		sdWorld.base_ground_level = 0;//-256;
 		
+		sdWorld.last_simulated_entity = null; // Used by sdDeepSleep debugging so far
 		
 		
 		sdWorld.mouse_screen_x = 0;
@@ -147,7 +148,8 @@ class sdWorld
 		
 		//sdWorld.world_hash_positions = {};
 		sdWorld.world_hash_positions = new Map();
-		sdWorld.world_hash_positions_recheck_keys = []; // Array for keys to slowly check and delete if they are empty (can happen as a result of requiring cells by world logic)
+		//sdWorld.world_hash_positions_recheck_keys = []; // Array for keys to slowly check and delete if they are empty (can happen as a result of requiring cells by world logic)
+		sdWorld.world_hash_positions_recheck_keys = new Set(); // Set of keys to slowly check and delete if they are empty (can happen as a result of requiring cells by world logic)
 		
 		sdWorld.last_hit_entity = null;
 		
@@ -439,6 +441,10 @@ class sdWorld
 				e.preventDefault();
 			}
 		};*/
+		
+		sdWorld.server_url = null; // Will be guessed when first connected player tells it
+		sdWorld.server_url_pending = null;
+		sdWorld.server_url_pending_code = null;
 		
 		let say_delay = true;
 		let sealing_classes = ()=>
@@ -1699,7 +1705,21 @@ class sdWorld
 
 					if ( e_is_bg_entity === 10 ) // sdDeepSleep
 					{
-						e.WakeUpArea();
+						/* Fighting the case when area would be instantly woken up by random sdDrone from nearby area... Let's wake them up by physically colliding only and whenever players see these
+						
+						x1 = e._hitbox_x1;
+						x2 = e._hitbox_x2;
+						y1 = e._hitbox_y1;
+						y2 = e._hitbox_y2;
+
+						cx = Math.max( e.x + x1, Math.min( _x, e.x + x2 ) );
+						cy = Math.max( e.y + y1, Math.min( _y, e.y + y2 ) );
+
+						// Make sure it actually collides with sdDeepSleep area
+						if ( sdWorld.inDist2D_Boolean( _x, _y, cx, cy, range ) )
+						{
+							e.WakeUpArea();
+						}*/
 					}
 					else
 					if ( filter_candidates_function === null || filter_candidates_function( e ) )
@@ -1713,7 +1733,6 @@ class sdWorld
 						cx = Math.max( e.x + x1, Math.min( _x, e.x + x2 ) );
 						cy = Math.max( e.y + y1, Math.min( _y, e.y + y2 ) );
 
-						//if ( sdWorld.inDist2D( _x, _y, cx, cy, range ) >= 0 )
 						if ( sdWorld.inDist2D_Boolean( _x, _y, cx, cy, range ) )
 						if ( ret.indexOf( e ) === -1 )
 						ret.push( e );
@@ -2189,8 +2208,9 @@ class sdWorld
 
 				sdWorld.world_hash_positions.set( x, arr );
 
-				if ( sdWorld.world_hash_positions_recheck_keys.indexOf( x ) === -1 )
-				sdWorld.world_hash_positions_recheck_keys.push( x );
+				sdWorld.world_hash_positions_recheck_keys.add( x );
+				//if ( sdWorld.world_hash_positions_recheck_keys.indexOf( x ) === -1 )
+				//sdWorld.world_hash_positions_recheck_keys.push( x );
 			}
 			else
 			{
@@ -2589,6 +2609,8 @@ class sdWorld
 			
 			//let skipper = 0;
 			
+			const debug_wake_up_sleep_refuse_reasons = sdDeepSleep.debug_wake_up_sleep_refuse_reasons;
+			
 			for ( arr_i = 0; arr_i < 2; arr_i++ )
 			{
 				arr = ( arr_i === 0 ) ? sdEntity.active_entities : sdEntity.global_entities;
@@ -2728,6 +2750,11 @@ class sdWorld
 					{
 						if ( !e._is_being_removed )
 						{
+							if ( debug_wake_up_sleep_refuse_reasons )
+							{
+								sdWorld.last_simulated_entity = e;
+							}
+							
 							if ( e._frozen >= 1 )
 							e.onThinkFrozen( GSPEED / substeps * gspeed_mult );
 							else
@@ -2736,6 +2763,11 @@ class sdWorld
 								e.onThink( GSPEED / substeps * gspeed_mult );
 								//else
 								//e._onThinkPtr( GSPEED / substeps * gspeed_mult ); // Actually faster in v8... Has something to do with different objects having same property // UPD: Let's rollback it, maybe this was causing Booraz's server to lag?
+							}
+							
+							if ( debug_wake_up_sleep_refuse_reasons )
+							{
+								sdWorld.last_simulated_entity = null;
 							}
 						}
 						
@@ -2755,14 +2787,7 @@ class sdWorld
 							
 							if ( arr_i === 0 )
 							{
-								let id = sdEntity.entities.indexOf( e );
-								if ( id === -1 )
-								{
-									console.log('Removing unlisted entity ' + e.GetClass() + ', hiberstate was ' + hiber_state + '. Entity was made at: ' + e._stack_trace );
-									debugger;	
-								}
-								else
-								sdEntity.entities.splice( id, 1 );
+								e._remove_from_entities_array( hiber_state );
 							}
 							
 							if ( arr[ i ] === e ) // Removal did not happen?
@@ -2803,6 +2828,19 @@ class sdWorld
 					}
 				}
 			}
+			
+			// Check for improperly removed entities. It fill falsely react to chained removals, for example in case of sdBG -> sdBloodDecal
+			/*if ( sdWorld.is_server || sdWorld.is_singleplayer )
+			{
+				let e = sdEntity.GetRandomEntity();
+				if ( e )
+				if ( e._is_being_removed )
+				{
+					trace( 'Entity was not removed properly. .remove() was likely called, _remove() was likely called too, but entity is still in sdEntity.entities array. Make sure to call ._remove_from_entities_array() at the time of removal too...', e );
+					
+					e._remove_from_entities_array();
+				}
+			}*/
 			
 			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 			{
@@ -2952,19 +2990,30 @@ class sdWorld
 		let t4 = Date.now();
 		IncludeTimeCost( 'leaders_and_warnings', t4 - t3 );
 		
-		if ( sdWorld.world_hash_positions_recheck_keys.length > 0 )
-		for ( var s = Math.max( 32, sdWorld.world_hash_positions_recheck_keys.length * 0.1 ); s >= 0; s-- )
+		//if ( sdWorld.world_hash_positions_recheck_keys.length > 0 )
+		if ( sdWorld.world_hash_positions_recheck_keys.size > 0 )
 		{
-			let x = sdWorld.world_hash_positions_recheck_keys[ 0 ];
+			let s = Math.max( 32, sdWorld.world_hash_positions_recheck_keys.size * 0.1 );
 			
-			if ( sdWorld.world_hash_positions.has( x ) )
-			if ( sdWorld.world_hash_positions.get( x ).arr.length === 0 )
+			//for ( var s = Math.max( 32, sdWorld.world_hash_positions_recheck_keys.size * 0.1 ); s >= 0; s-- )
+			for ( const x of sdWorld.world_hash_positions_recheck_keys )
 			{
-				//sdWorld.world_hash_positions.get( x ).unlinked = globalThis.getStackTrace();
-				sdWorld.world_hash_positions.delete( x );
+				//let x = sdWorld.world_hash_positions_recheck_keys[ 0 ];
+
+				if ( sdWorld.world_hash_positions.has( x ) )
+				if ( sdWorld.world_hash_positions.get( x ).arr.length === 0 )
+				{
+					//sdWorld.world_hash_positions.get( x ).unlinked = globalThis.getStackTrace();
+					sdWorld.world_hash_positions.delete( x );
+				}
+
+				//sdWorld.world_hash_positions_recheck_keys.shift();
+				sdWorld.world_hash_positions_recheck_keys.delete( x );
+				
+				s--;
+				if ( s < 0 )
+				break;
 			}
-	
-			sdWorld.world_hash_positions_recheck_keys.shift();
 		}
 		
 		let t5 = Date.now();
@@ -3160,7 +3209,16 @@ class sdWorld
 							
 							if ( arr_i_is_bg_entity === 10 ) // sdDeepSleep
 							{
+								/* Fighting the case when area would be instantly woken up by random sdDrone from nearby area... Let's wake them up by physically colliding only and whenever players see these
+						
 								arr_i.WakeUpArea();
+									
+								*/
+								if ( arr_i.ThreatAsSolid() )
+								{
+									sdWorld.last_hit_entity = null;
+									return true;
+								}
 							}
 							else
 							if ( ignore_entity === null || arr_i_is_bg_entity === ignore_entity.IsBGEntity() )
@@ -3265,14 +3323,6 @@ class sdWorld
 		//var step = 16;
 		var step = 8;
 		
-		if ( di > 2000 )
-		if ( sdDeepSleep.debug_really_long_line_traces )
-		if ( sdWorld.is_server )
-		{
-			debugger;
-			console.warn( 'This CheckLineOfSight is really long and can cause extreme number of sdDeepSleep wakes, thus lags (di: '+di+')' );
-		}
-		
 		for ( var s = step / 2; s < di - step / 2; s += step )
 		{
 			var x = x1 + ( x2 - x1 ) / di * s;
@@ -3287,14 +3337,6 @@ class sdWorld
 		var di = sdWorld.Dist2D( x1,y1,x2,y2 );
 		//var step = 16;
 		var step = 8;
-		
-		if ( di > 2000 )
-		if ( sdDeepSleep.debug_really_long_line_traces )
-		if ( sdWorld.is_server )
-		{
-			debugger;
-			console.warn( 'This TraceRayPoint is really long and can cause extreme number of sdDeepSleep wakes, thus lags (di: '+di+')' );
-		}
 		
 		for ( var s = step / 2; s < di - step / 2; s += step )
 		{
@@ -3357,7 +3399,16 @@ class sdWorld
 							
 							if ( arr_i_is_bg_entity === 10 ) // sdDeepSleep
 							{
+								/* Fighting the case when area would be instantly woken up by random sdDrone from nearby area... Let's wake them up by physically colliding only and whenever players see these
+						
 								arr_i.WakeUpArea();
+									
+								*/
+								if ( arr_i.ThreatAsSolid() )
+								{
+									sdWorld.last_hit_entity = null;
+									return true;
+								}
 							}
 							else
 							if ( ignore_entity === null || arr_i_is_bg_entity === ignore_entity.IsBGEntity() )
@@ -3881,6 +3932,14 @@ class sdWorld
 		character_entity._allow_self_talk = ( player_settings.selftalk1 ) || false;
 	}
 	
+	static RequirePassword( message_and_color )
+	{
+		document.querySelector('.password_screen').style.display = 'block';
+		
+		document.getElementById('password_screen_message').textContent = message_and_color[ 0 ];
+		document.getElementById('password_screen_message').style.color = message_and_color[ 1 ];
+	}
+	
 	static CreateImageFromFile( filename, cb=null ) // In cases when processing calls are added to filename - expect correct image to be returned as part of return_value.canvas_override
 	{
 		// For singleplayer lost effect
@@ -4180,6 +4239,11 @@ class sdWorld
 		
 		if ( player_settings.entity4 )
 		{
+			navigator.wakeLock.request("screen").then(()=>{
+			}).catch(()=>{
+				trace( 'Wake lock request failed' );
+			});
+			
 			// Do not show ads in stream logger
 			ForceProceedOnce();
 		}

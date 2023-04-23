@@ -6,10 +6,57 @@
 
 	Most likely it would merge whole big bases into one big chunk, which is perfectly fine I guess.
 
+	Command to track memory (for watch):
 
-	TODO: Keep testing snapshot 3 for a while
+		if ( sdWorld.time > (globalThis.log_time||0) ) { globalThis.log_time=sdWorld.time + 1000 * 10; trace( 'entities: ' + sdWorld.entity_classes.sdEntity.entities.length + ' / active: ' + sdWorld.entity_classes.sdEntity.active_entities.length + ' / cells: ' + sdWorld.entity_classes.sdDeepSleep.cells.length ) }
+
+
+	Command to trigger all cell saving to disk:
+
+		for ( let i = 0; i < sdWorld.entity_classes.sdDeepSleep.cells.length; i++ )
+		{
+			sdWorld.entity_classes.sdDeepSleep.cells[ i ]._will_hibernate_on = 0;
+			sdWorld.entity_classes.sdDeepSleep.cells[ i ]._will_be_written_to_disk = 0;
+		}
+		for ( let i = 0; i < sdWorld.entity_classes.sdDeepSleep.cells.length; i++ )
+		sdWorld.entity_classes.sdDeepSleep.GlobalThink( 1 );
+
+		sdWorld.SaveSnapshotAuthoPath();
+
+
+	TODO: Maybe apply compression to chunk files? Though it would slow-down their loading
+
+	TODO: Make renaming from temp to actual directories synced - just in case if world snapshot saving will cause crash
+
+	TODO: Make sure sdDeepSleep.cells count does not grow indefinitely
+
+	TODO: Most probably sdRescueTeleport and sdBeacon will have to be taught to hibernate as well... Player connection might wake them up, onShapshotDecoded might wake them up, but should be aware of cases when sdTask tracking sdBeacon will get removed
+
+	TODO: Add timewarp saves
 
 	TODO: Consider some shrink-down logic, especially for chunks that do not contain user-created entities? Somehow... Probably impossible - chunks might have rare items or even genearated alien bases in them
+
+	//TODO: Player gets lost/dies somewhere?
+
+	//TODO: Entities can move in hibernated areas...
+
+	//TODO: Client-side sdDeepSleep-s are not removed
+
+	//TODO: Memory leak at sdWorld.entity_classes.sdLongRangeTeleport.teleported_items
+
+	//TODO: Entities cound keeps increasing by 2000 every few minutes or so
+
+	//TODO: GetAnythingNear - crystals can wake up sleeping sdDeepSleep but they probably won't cancel about to sleep sdDeepSleep. Or will they?
+	
+	//TODO: Add save/rename for chunks too?
+
+	//TODO: Spawners should enable modes that do not allow waking up of sdDeepSleep areas? And thus threat them as solid walls/no-spawn areas instead
+	
+	//TODO: Water keeps waking up sdDeepSleep areas
+
+	//TODO: (!) Make sdSteeringWheel pointers for all movable entities?
+
+	//TODO: Keep testing snapshot 3 for a while
 
 	//TODO: Typeing "/god 1" caues installation of more jetpack upgrades there is available
 
@@ -108,15 +155,15 @@ class sdDeepSleep extends sdEntity
 	{
 		sdDeepSleep.debug = false; // Alters timings
 		
+		sdDeepSleep.debug_wake_up_sleep_refuse_reasons = false;
+		
 		sdDeepSleep.debug_dependences = false;
 		
 		sdDeepSleep.debug_entity_count = false;
 		
 		sdDeepSleep.debug_big_area_increments = false;
 		
-		sdDeepSleep.debug_times = true;
-		
-		sdDeepSleep.debug_really_long_line_traces = true;
+		sdDeepSleep.debug_times = false;
 		
 		sdDeepSleep.debug_cell = false;
 		sdDeepSleep.debug_cell_x = -7936;
@@ -124,7 +171,7 @@ class sdDeepSleep extends sdEntity
 		
 		fs = globalThis.fs;
 		
-		if ( sdDeepSleep.debug || sdDeepSleep.debug_cell || sdDeepSleep.debug_dependences || sdDeepSleep.debug_big_area_increments || sdDeepSleep.debug_times || sdDeepSleep.debug_entity_count || sdDeepSleep.debug_really_long_line_traces )
+		if ( sdDeepSleep.debug || sdDeepSleep.debug_cell || sdDeepSleep.debug_dependences || sdDeepSleep.debug_big_area_increments || sdDeepSleep.debug_times || sdDeepSleep.debug_entity_count || sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
 		{
 			trace( 'WARNING: Running server with sdDeepSleep\'s debug values enabled' );
 		}
@@ -152,6 +199,11 @@ class sdDeepSleep extends sdEntity
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	
+	ThreatAsSolid() // Test done by some entities, solid possibility might prevent water from flowing through hibernated/not/spawned sdSleepAreas
+	{
+		return ( this.type !== sdDeepSleep.TYPE_SCHEDULED_SLEEP );
+	}
+	
 	static init()
 	{
 		if ( sdWorld.server_config.aggressive_hibernation )
@@ -176,7 +228,7 @@ class sdDeepSleep extends sdEntity
 			if ( cell.type === sdDeepSleep.TYPE_HIBERNATED_WORLD )
 			if ( cell[ array_name ].indexOf( value ) !== -1 )
 			{
-				cell.WakeUpArea(); // Results into removal
+				cell.WakeUpArea( false, null, true ); // Results into removal
 
 				if ( cell._is_being_removed )
 				{
@@ -189,8 +241,10 @@ class sdDeepSleep extends sdEntity
 	static GlobalThink( GSPEED )
 	{
 		//return; // Hack
+		let iters = sdDeepSleep.debug ? sdDeepSleep.cells.length * 0.01 : 1;
 		
 		if ( sdWorld.is_server )
+		while ( iters-- > 0 )
 		{
 			sdDeepSleep.inception_catcher = 0;
 		
@@ -282,10 +336,10 @@ class sdDeepSleep extends sdEntity
 					trace( 'Waking up/removing sdDeepSleep[ '+i+' ] object due to aggressive_hibernation being switched off' );
 					
 					if ( cell.type === sdDeepSleep.TYPE_UNSPAWNED_WORLD )
-					cell.WakeUpArea();
+					cell.WakeUpArea( false, null, true );
 					else
 					if ( cell.type === sdDeepSleep.TYPE_HIBERNATED_WORLD )
-					cell.WakeUpArea();
+					cell.WakeUpArea( false, null, true );
 					else
 					if ( cell.type === sdDeepSleep.TYPE_SCHEDULED_SLEEP )
 					cell.remove();
@@ -324,7 +378,10 @@ class sdDeepSleep extends sdEntity
 					cell._last_obj_str_reset_reason = 11;
 
 					if ( sdWorld.is_server && !sdWorld.is_singleplayer )
-					sdDeepSleep.scheduled_deletions.add( cell );
+					{
+						sdDeepSleep.scheduled_deletions.add( cell );
+						sdDeepSleep.scheduled_saves.delete( cell );
+					}
 
 					cell.type = sdDeepSleep.TYPE_UNSPAWNED_WORLD;
 					cell._update_version++;
@@ -401,7 +458,7 @@ class sdDeepSleep extends sdEntity
 		
 		this.WakeUpArea( true, from_entity );
 	}
-	WakeUpArea( from_movement_or_vision=false, initiator=null )
+	WakeUpArea( from_movement_or_vision=false, initiator=null, forced=false )
 	{
 		if ( !sdWorld.is_server )
 		return;
@@ -409,12 +466,18 @@ class sdDeepSleep extends sdEntity
 		if ( sdDeepSleep.debug_cell && this.x === sdDeepSleep.debug_cell_x && this.y === sdDeepSleep.debug_cell_y )
 		trace( 'WakeUpArea()', from_movement_or_vision, initiator, { _net_id:this._net_id, w:this.w, h:this.h, type:this.type, _file_exists:this._file_exists, _snapshots_str:this._snapshots_str.length, _is_being_removed:this._is_being_removed } );
 	
+		if ( forced || ( from_movement_or_vision && initiator && initiator.IsPlayerClass() && initiator._socket ) )
+		{
+		}
+		else
+		return;
+	
 		if ( this.type === sdDeepSleep.TYPE_SCHEDULED_SLEEP )
 		{
-			if ( from_movement_or_vision && initiator && initiator.IsPlayerClass() )
-			{
+			//if ( from_movement_or_vision && initiator && initiator.IsPlayerClass() && initiator._socket )
+			//{
 				this.remove();
-			}
+			//}
 			
 			return; // These can't be waken up nor should be removed unless playe sees or interacts with them
 		}
@@ -442,6 +505,11 @@ class sdDeepSleep extends sdEntity
 
 		if ( this.type === sdDeepSleep.TYPE_UNSPAWNED_WORLD )
 		{
+			if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
+			{
+				trace( 'sdDeepSleep generates world: TYPE_UNSPAWNED_WORLD generated due to (from_movement_or_vision='+from_movement_or_vision+', initiator=', initiator, ', potential_initiator=', sdWorld.last_simulated_entity, ')', this.x, this.y, this.x+this.w, this.y+this.h );
+			}
+		
 			this.remove();
 		
 			let x2 = this.x + this.w;
@@ -461,6 +529,9 @@ class sdDeepSleep extends sdEntity
 		else
 		if ( this.type === sdDeepSleep.TYPE_HIBERNATED_WORLD )
 		{
+			if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
+			trace( 'sdDeepSleep[ '+this._net_id+' ] woken up: TYPE_HIBERNATED_WORLD wakes up due to (from_movement_or_vision='+from_movement_or_vision+', initiator=', initiator, ', potential_initiator=', sdWorld.last_simulated_entity ,')', this.x, this.y, this.x+this.w, this.y+this.h );
+			
 			let load_attempted = false;
 			if ( this._file_exists )
 			{
@@ -474,6 +545,7 @@ class sdDeepSleep extends sdEntity
 			this.remove();
 			
 			sdDeepSleep.scheduled_deletions.add( this );
+			sdDeepSleep.scheduled_saves.delete( this );
 			
 
 			if ( sdDeepSleep.debug_cell && this.x === sdDeepSleep.debug_cell_x && this.y === sdDeepSleep.debug_cell_y )
@@ -586,10 +658,43 @@ class sdDeepSleep extends sdEntity
 				}
 			}
 		}
+		
+		
+		if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
+		{
+			if ( sdWorld.last_simulated_entity )
+			{
+				/*if ( sdWorld.last_simulated_entity.GetClass() === 'sdAsteroid' )
+				debugger;*/
+			
+				if ( initiator )
+				{
+					/*if ( initiator.GetClass() === 'sdBG' )
+					if ( sdWorld.last_simulated_entity.GetClass() === 'sdGun' )
+					debugger;
+
+					if ( initiator.GetClass() === 'sdBG' )
+					if ( sdWorld.last_simulated_entity.GetClass() === 'sdDrone' )
+					debugger;*/
+				}
+			}
+			
+			if ( initiator )
+			{
+				/*if ( initiator.GetClass() === 'sdBG' )
+				debugger;*/
+			}
+		}
 	}
 	
 	IsAdminEntity() // Influences remover gun hit test
 	{ return true; }
+	
+	
+	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Override default IsTargetable because it will return false in case of .IsAdminEntity
+	{
+		return true;
+	}
 	
 	static DeleteAllFiles()
 	{
@@ -615,7 +720,7 @@ class sdDeepSleep extends sdEntity
 				fs.unlink( globalThis.chunks_folder + '/' + this._snapshots_filename, ( err )=>
 				{
 					if ( err )
-					throw err;
+					trace( 'Tried deleting chunk file but it does not exist' + err );
 
 					this._file_exists = false;
 					
@@ -640,21 +745,26 @@ class sdDeepSleep extends sdEntity
 				this._snapshots_str = JSON.stringify( this._snapshots_objects );
 			}
 			
-			fs.writeFile( globalThis.chunks_folder + '/' + this._snapshots_filename, this._snapshots_str, ( err )=> 
+			fs.writeFile( globalThis.chunks_folder + '/' + 'TEMP_' + this._snapshots_filename, this._snapshots_str, ( err )=> 
 			{
 				if ( err )
-				throw err;
-
-				this._file_exists = true;
-
-				this._snapshots_str = '';
-				this._snapshots_objects = null;
-				this._last_obj_str_reset_reason = 33;
-				
-				resolve();
-				
-			});
+				trace( 'Unable to save chunk data to temp file: ' + err );
 			
+				fs.rename( globalThis.chunks_folder + '/' + 'TEMP_' + this._snapshots_filename, globalThis.chunks_folder + '/' + this._snapshots_filename, ( err )=>
+				{
+					if ( err )
+					trace( 'Unable to rename TEMP chunk data file into proper snapshot file: ' + err );
+
+
+					this._file_exists = true;
+
+					this._snapshots_str = '';
+					this._snapshots_objects = null;
+					this._last_obj_str_reset_reason = 33;
+
+					resolve();
+				});
+			});
 		});
 		
 		return promise;
@@ -674,6 +784,7 @@ class sdDeepSleep extends sdEntity
 				this._last_obj_str_reset_reason = 44;
 				
 				sdDeepSleep.scheduled_deletions.add( this );
+				sdDeepSleep.scheduled_saves.delete( this );
 			}
 			catch ( e )
 			{
@@ -686,6 +797,10 @@ class sdDeepSleep extends sdEntity
 		}
 	}
 	
+	ClearAllPropertiesOnRemove() // Deletion won't work with this
+	{
+		return false;
+	}
 	constructor( params )
 	{
 		super( params );
@@ -722,6 +837,8 @@ class sdDeepSleep extends sdEntity
 		this._snapshots_objects = null; // Sometimes can be there instead of _snapshots_str - these are faster to use than to stringify/parse
 		
 		this._last_obj_str_reset_reason = -1;
+		
+		if ( sdDeepSleep.debug_dependences )
 		this._made_at = globalThis.getStackTrace();
 		
 		this._snapshots_filename = null; // null means it was never saved to disk yet
@@ -822,11 +939,31 @@ class sdDeepSleep extends sdEntity
 					if ( 
 							( e.IsPlayerClass() && e._socket ) || // No online players
 							( e.is( sdLongRangeTeleport ) && e.is_server_teleport ) || // No server teleports (unless regular telepors will be available for in-world teleportation at some point?)
-							e.is( sdRescueTeleport ) || // It looks like there is no solution at all for these...
-							e.is( sdBeacon ) || // It looks like there is no solution at all for these...
+							e.is( sdRescueTeleport ) || // It looks like there is no simple solution at all for these...
+							e.is( sdBeacon ) || // It looks like there is no simple solution at all for these...
 							!sdWorld.server_config.AllowAggressiveHibernationFor( e )
 						)
 					{
+						if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
+						{
+							if ( ( e.IsPlayerClass() && e._socket ) )
+							trace( 'sdDeepSleep hibernation refused: Cell contains connected player ('+e._net_id+')', _x, _y, _x2, _y2 );
+							else
+							if ( ( e.is( sdLongRangeTeleport ) && e.is_server_teleport ) )
+							trace( 'sdDeepSleep hibernation refused: Cell contains sdLongRangeTeleport that is also .is_server_teleport ('+e._net_id+')', _x, _y, _x2, _y2 );
+							else
+							if ( e.is( sdRescueTeleport ) )
+							trace( 'sdDeepSleep hibernation refused: Cell contains sdRescueTeleport ('+e._net_id+')', _x, _y, _x2, _y2 );
+							else
+							if ( e.is( sdBeacon ) )
+							trace( 'sdDeepSleep hibernation refused: Cell contains sdBeacon ('+e._net_id+')', _x, _y, _x2, _y2 );
+							else
+							if ( !sdWorld.server_config.AllowAggressiveHibernationFor( e ) )
+							trace( 'sdDeepSleep hibernation refused: Cell contains entity filtered by AllowAggressiveHibernationFor ('+e.GetClass()+', '+e._net_id+')', _x, _y, _x2, _y2 );
+							else
+							trace( 'sdDeepSleep hibernation refused: - Unspecified -', _x, _y, _x2, _y2 );
+						}
+						
 						this.remove();
 						return true;
 					}
@@ -912,11 +1049,29 @@ class sdDeepSleep extends sdEntity
 					_y = Math.floor( Math.min( _y, e.y + ext_y1 ) / 16 ) * 16;
 					_y2 = Math.ceil( Math.max( _y2, e.y + ext_y2 ) / 16 ) * 16;
 					
+					// Try to catch moving objects and merge them all together
+					if ( typeof e.sx !== 'undefined' )
+					if ( typeof e.sy !== 'undefined' )
+					{
+						if ( sdWorld.inDist2D_Boolean( e.sx, e.sy, 0,0, 1 ) )
+						{
+							
+						}
+						else
+						{
+							_x -= 64;
+							_x2 += 64;
+							_y -= 64;
+							_y2 += 64;
+						}
+					}
+					
 					if ( sdDeepSleep.debug_big_area_increments )
 					{
 						let area2 = ( _x2 - _x ) * ( _y2 - _y );
 						
 						if ( area2 > area * 2 )
+						if ( area !== 0 )
 						{
 							trace( 'sdDeepSleep large area increment after adding ( '+area+' -> '+area2+' )', e );
 						}
@@ -957,10 +1112,12 @@ class sdDeepSleep extends sdEntity
 					else
 					{
 						for ( let prop in e )
-						//if ( typeof e[ prop ] === 'object' )
-						if ( prop !== '_phys_last_touch' )
-						if ( e[ prop ] instanceof sdEntity )
-						if ( !e[ prop ]._is_being_removed )
+						if ( typeof e[ prop ] === 'object' )
+						//if ( e[ prop ] instanceof sdEntity ) // 102.7 ms - Too slow
+						if ( e[ prop ] !== null )
+						if ( typeof e[ prop ]._is_being_removed !== 'undefined' )
+						if ( !e[ prop ]._is_being_removed ) // 0.8 ms
+						if ( prop !== '_phys_last_touch' ) // 1.3 ms
 						{
 							if ( sdWorld.inDist2D_Boolean( e.x, e.y, e[ prop ].x, e[ prop ].y, sdDeepSleep.dependence_distance_max ) )
 							{
@@ -988,13 +1145,21 @@ class sdDeepSleep extends sdEntity
 						dependences.push( possible_ent );
 					}*/
 					
-					if ( e.is( sdDoor ) || e.is( sdBlock ) || e.is( sdBG ) || e.is( sdThruster ) )
+					if ( e._steering_wheel_net_id !== -1 )
+					{
+						let steer = e.GetSteeringWheel();
+						if ( steer )
+						dependences.push( steer );
+					}
+				
+					/*if ( e.is( sdDoor ) || e.is( sdBlock ) || e.is( sdBG ) || e.is( sdThruster ) )
 					for ( let i = 0; i < sdSteeringWheel.steering_wheels.length; i++ )
 					if ( sdSteeringWheel.steering_wheels[ i ]._scan_net_ids.indexOf( e._net_id ) !== -1 )
 					{
 						dependences.push( sdSteeringWheel.steering_wheels[ i ] );
 						break;
-					}
+					}*/
+								
 					if ( e.is( sdSteeringWheel ) )
 					dependences.push( ...e._scan );
 
@@ -1041,6 +1206,9 @@ class sdDeepSleep extends sdEntity
 			//if ( all_entities.length === 0 || ( all_entities.length === 1 && all_entities[ 0 ].is( sdDeepSleep ) ) )
 			if ( all_entities.length === 0 || ( all_entities.length === 1 && all_entities[ 0 ]._hiberstate !== sdEntity.HIBERSTATE_ACTIVE ) )
 			{
+				if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
+				trace( 'sdDeepSleep hibernation refused: Too few entities ('+all_entities.length+')', _x, _y, _x2, _y2 );
+			
 				this.remove();
 				ProvidePerformanceReport( true );
 				return;
@@ -1082,6 +1250,8 @@ class sdDeepSleep extends sdEntity
 					if ( e.IsPlayerClass() && e._my_hash !== undefined )
 					{
 						this._my_hash_list.push( e._my_hash );
+						
+						trace( 'Saving player\'s hash ' + e._my_hash + ' to '+this._net_id );
 					}
 					else
 					if ( e.is( sdRescueTeleport ) )
@@ -1095,13 +1265,6 @@ class sdDeepSleep extends sdEntity
 					}
 				//}
 			}
-			
-			/*if ( snapshots.length === 0 )
-			{
-				this.remove();
-				ProvidePerformanceReport( true );
-				return;
-			}*/
 			
 			if ( sdDeepSleep.debug_entity_count )
 			if ( all_entities.length > 4000 ) // It can easily reach 3000 if for example crystals happen to be lying at edges of cells
@@ -1147,6 +1310,8 @@ class sdDeepSleep extends sdEntity
 					
 					e._remove(); // Instant remove is required or else it won't be able to spawn same entities from snapshot?
 					
+					e._remove_from_entities_array();
+					
 					sdLongRangeTeleport.teleported_items.add( e );
 				}
 			}
@@ -1162,6 +1327,13 @@ class sdDeepSleep extends sdEntity
 			sdWorld.UpdateHashPosition( this, false, false ); // Prevent inersection with other ones // Won't call onMovementInRange
 			
 			this._update_version++;
+			
+			
+			if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
+			{
+				trace( 'sdDeepSleep[ '+this._net_id+' ] hibernated', _x, _y, _x2, _y2 );
+
+			}
 			
 			ProvidePerformanceReport( false );
 		}
@@ -1181,6 +1353,9 @@ class sdDeepSleep extends sdEntity
 			console.warn( 'onBeforeRemove()', { _net_id:this._net_id, w:this.w, h:this.h, type:this.type, _file_exists:this._file_exists, _snapshots_str:this._snapshots_str.length } );
 			debugger;
 		}
+		
+		this._snapshots_str = null;
+		this._snapshots_objects = null;
 		
 		//if ( this.type === sdDeepSleep.TYPE_HIBERNATED_WORLD )
 		//console.warn( 'Hibernated world cell is being removed', { _net_id:this._net_id, "_snapshots_str":this._snapshots_str.length+' bytes', file_exists:this._file_exists, _snapshots_filename:this._snapshots_filename } );

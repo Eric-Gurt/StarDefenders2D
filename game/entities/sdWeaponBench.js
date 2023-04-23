@@ -341,7 +341,9 @@ class sdWeaponBench extends sdEntity
 							if ( exectuter_character.matter >= ( upgrades[ i ].cost || 0 ) )
 							{
 								if ( upgrades[ i ].action )
-								upgrades[ i ].action( this.item0, exectuter_character );
+								{
+									upgrades[ i ].action( this.item0, exectuter_character, ...parameters_array.slice( 1 ) );
+								}
 
 								sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
 
@@ -430,7 +432,22 @@ class sdWeaponBench extends sdEntity
 							}, false );
 						}
 						else
-						this.AddContextOption( upgrade.title + ( ( upgrade.cost || 0 ) > 0 ? ' (' + ( upgrade.cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color } );
+						if ( upgrade.color_picker_for )
+						{
+							if ( upgrade.color_picker_for.length === 7 )
+							upgrade.color_picker_for = upgrade.color_picker_for.substring( 1 ); // Skip #
+							
+							let color = upgrade.color_picker_for;
+							
+							if ( this.item0.sd_filter ) // Replace with whatever is currently picked
+							color = sdWorld.GetColorOfSDFilter( this.item0.sd_filter, color );
+						
+							this.AddColorPickerContextOption( upgrade.title + ( ( upgrade.cost || 0 ) > 0 ? ' (' + ( upgrade.cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i, undefined ], false, '#' + color );
+						}
+						else
+						{
+							this.AddContextOption( upgrade.title + ( ( upgrade.cost || 0 ) > 0 ? ' (' + ( upgrade.cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color } );
+						}
 					}
 				}
 			}

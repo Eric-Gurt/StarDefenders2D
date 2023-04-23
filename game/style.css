@@ -32,7 +32,7 @@ canvas
     -moz-user-select: none;
 }
 
-body
+body, .password_screen
 {
     user-select: none;
 
@@ -41,7 +41,7 @@ body
     height: 100%;
     overflow: hidden;
     background-blend-mode: overlay;
-    transition: background-color 1s ease;
+    /*transition: background-color 1s ease;*/
 
     position:fixed;
     left:0;
@@ -51,6 +51,28 @@ body
     height: 100%;
     margin: 0;
 }
+.password_screen
+{
+    color: #ffffff;
+}
+.password_screen .prompt_box
+{
+    background: #000000;
+    padding: 30px;
+    width: 500px;
+
+    position:relative;
+    left: 50%;
+    top: 50%;
+    transform: translate( -50%, -50% );
+}
+.password_screen .prompt_box input
+{
+    margin-top: 20px;
+    width: 100%;
+}
+
+
 *::-moz-selection { background-color: #ffffff; color: #000000; }
 *::selection { background-color: #ffffff; color: #000000; }
 input
@@ -452,4 +474,11 @@ div.pending_blinking
 {
     background-color: white;
     box-shadow: inset 0 0 0px 5px #000000;
+}
+
+.clr-field
+{
+    /*display: none !important;*/
+    visibility: hidden;
+    pointer-events: none;
 }

@@ -904,6 +904,15 @@ let is_terminating = false;
 		snapshot_save_busy = true;
 	};
 	
+	sdWorld.SaveSnapshotAuthoPath = ()=>
+	{
+		SaveSnapshot( snapshot_path_const, ( err )=>
+		{
+			for ( var i = 0; i < sockets.length; i++ )
+			sockets[ i ].SDServiceMessage( 'Server: Manual backup is complete ('+(err?'Error!':'successfully')+')!' );
+		});
+	};
+	
 	setInterval( ()=>{
 		
 		for ( var i = 0; i < sockets.length; i++ )
@@ -1651,7 +1660,8 @@ io.on( 'connection', ( socket )=>
 	{
 		game_title: sdWorld.server_config.game_title || 'Star Defenders',
 		backgroundColor: sdWorld.server_config.backgroundColor || '',
-		supported_languages: sdWorld.server_config.supported_languages || []
+		supported_languages: sdWorld.server_config.supported_languages || [],
+		//password_required: !!( sdWorld.server_config.password )
 	});
 	
 	//globalThis.EnforceChangeLog( sockets, sockets.indexOf( socket ) );
@@ -1772,6 +1782,24 @@ io.on( 'connection', ( socket )=>
 		
 		if ( typeof player_settings !== 'object' || player_settings === null )
 		return;
+	
+		if ( sdWorld.server_config.password !== '' )
+		if ( typeof sdWorld.server_config.password === 'string' )
+		if ( sdWorld.server_config.password !== player_settings.password )
+		{
+			/*socket.SDServiceMessage( 'Wrong password' );
+			setTimeout(()=>
+			{
+				socket.emit( 'REQUIRE_PASSWORD' );
+			}, 3000 );*/
+			
+			if ( player_settings.password === '' )
+			socket.emit( 'REQUIRE_PASSWORD', [ 'Password is required', '' ] );
+			else
+			socket.emit( 'REQUIRE_PASSWORD', [ 'Password does not match', '#ff0000' ] );
+		
+			return;
+		}
 		
 		socket.last_ping = sdWorld.time;
 		socket.waiting_on_M_event_until = 0;
@@ -1873,11 +1901,14 @@ io.on( 'connection', ( socket )=>
 			{
 				if ( sdWorld.server_config.onDisconnect )
 				sdWorld.server_config.onDisconnect( socket.character, 'manual' );
-
-				if ( socket.character.title.indexOf( 'Disconnected ' ) !== 0 )
-				socket.character.title = 'Disconnected ' + socket.character.title;
 			
-				socket.character._key_states.Reset();
+				if ( !socket.character._is_being_removed )
+				{
+					if ( socket.character.title.indexOf( 'Disconnected ' ) !== 0 )
+					socket.character.title = 'Disconnected ' + socket.character.title;
+
+					socket.character._key_states.Reset();
+				}
 
 				if ( !socket.character._is_being_removed )
 				if ( socket.character.hea > 0 )
@@ -2020,6 +2051,8 @@ io.on( 'connection', ( socket )=>
 		character_entity._save_file = player_settings.save_file;
 		
 		socket.character = character_entity;
+		socket.camera.x = socket.character.x;
+		socket.camera.y = socket.character.y;
 		
 		character_entity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		character_entity._frozen = 0; // Preventing results of a bug where status effects were removed but _frozen property wasn't reset. Still not sure why this happens
@@ -2070,23 +2103,8 @@ io.on( 'connection', ( socket )=>
 
 		sdEntity.entities.push( character_entity );
 		
-		/*const EarlyDamageTaken = ( character_entity, dmg, initiator )=>
-		{
-			if ( character_entity.hea - dmg <= 30 )
-			{
-				BadSpawn( character_entity.x, character_entity.y, initiator );
-				character_entity.removeEventListener( 'DAMAGE', EarlyDamageTaken );
-			}
-		};
-		
-		character_entity.addEventListener( 'DAMAGE', EarlyDamageTaken );
-		
-		setTimeout( ()=>
-		{
-			character_entity.removeEventListener( 'DAMAGE', EarlyDamageTaken );
-		}, 5000 );*/
 
-		socket.character = character_entity;
+		//socket.character = character_entity; // Twice?
 		
 		if ( player_settings.full_reset )
 		{
@@ -2139,6 +2157,18 @@ io.on( 'connection', ( socket )=>
 	
 	socket.on('RESPAWN', socket.Respawn );
 	
+	socket.on('my_url', ( url )=>
+	{
+		if ( sdWorld.server_config.make_server_public )
+		{
+			if ( sdWorld.server_url === null )
+			{
+				if ( url.indexOf( 'localhost' ) === -1 ) // No point in these as they can't be accessed from outside anyway
+				if ( url.indexOf( '127.0.0.1' ) === -1 ) // No point in these as they can't be accessed from outside anyway
+				sdWorld.server_url = url;
+			}
+		}
+	});
 	socket.on('one_time_key', ( v )=>
 	{
 		for ( let i = 0; i < sdLongRangeTeleport.one_time_keys.length; i++ )
@@ -2191,6 +2221,7 @@ io.on( 'connection', ( socket )=>
 			var key = sd_events[ i ][ 1 ];
 			
 			if ( socket.character )
+			if ( !socket.character._is_being_removed )
 			{
 				if ( type === 'K1' )
 				socket.character._key_states.SetKey( key, 1 );
@@ -2376,6 +2407,7 @@ io.on( 'connection', ( socket )=>
 						//if ( ( look_at_entity.is_static && socket.known_statics_versions_map.has( look_at_entity ) ) ||
 						if ( ( look_at_entity.is_static && socket.known_statics_versions_map2.has( look_at_entity._net_id ) ) ||
 							 ( !look_at_entity.is_static && socket.observed_entities.indexOf( look_at_entity ) !== -1 ) ) // Is entity actually visible (anti-cheat measure)
+						if ( sdWorld.inDist2D_Boolean( look_at_entity.x, look_at_entity.y, socket.character.x, socket.character.y, 1000 ) ) // Prevent player from tracking RTP-ing characters (anti-base detection measure)
 						{
 							// Bad! Apply offset
 							//socket.character.look_x = look_at_entity.x;
@@ -4026,3 +4058,38 @@ process.on('exit', (code) => {
 	heapdump.writeSnapshot( 'crashed.heapsnapshot' );
   
 });*/
+			
+if ( sdWorld.server_config.make_server_public )
+setInterval(
+	()=>
+	{
+		if ( sdWorld.server_url )
+		{
+			let names = [];
+			
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			if ( sdWorld.sockets[ i ].character !== null )
+			if ( sdWorld.sockets[ i ].character.hea > 0 )
+			names.push( sdWorld.sockets[ i ].character.title );
+			
+			sdServerToServerProtocol.SendData(
+				'https://www.gevanni.com:3000',
+				{
+					action: 'I exist!',
+					url: sdWorld.server_url,
+					online: sdWorld.sockets.length,
+					playing: sdWorld.GetPlayingPlayersCount(),
+					players: names
+				},
+				( response=null )=>
+				{
+					if ( response )
+					{
+						trace( 'make_server_public response: ', response );
+					}
+				}
+			);
+		}
+	}, 
+	1000 * 60 * 60 // Every hour
+);

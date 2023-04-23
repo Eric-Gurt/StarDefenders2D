@@ -30,7 +30,7 @@ class sdRescueTeleport extends sdEntity
 		*/
 		sdRescueTeleport.max_matter = 1700;
 		sdRescueTeleport.max_matter_short = 500;
-		sdRescueTeleport.max_matter_cloner = 40000;
+		sdRescueTeleport.max_matter_cloner = 40000 * 3; // 40k can be charged rather quickly. It is a last resort escape thing after all.
 		
 		sdRescueTeleport.clonning_time = 30 * 60 * 20; // 20 minutes
 
@@ -329,16 +329,28 @@ class sdRescueTeleport extends sdEntity
 		this.owner_title = '';
 		this.owner_biometry = -1;
 		
-		this._matter_max = 
+		this.UpdateMaxMatter(); // Update max matter so old snapshots are updated
+		/*this._matter_max = 
 			this.type === sdRescueTeleport.TYPE_INFINITE_RANGE ? sdRescueTeleport.max_matter : 
 			this.type === sdRescueTeleport.TYPE_CLONER ? sdRescueTeleport.max_matter_cloner : 
-			sdRescueTeleport.max_matter_short;
+			sdRescueTeleport.max_matter_short;*/
 	
 		this.matter = 0;
 		
 		//this.owner_net_id = this._owner ? this._owner._net_id : null;
 		
 		sdRescueTeleport.rescue_teleports.push( this );
+	}
+	UpdateMaxMatter()
+	{
+		this._matter_max = 
+			this.type === sdRescueTeleport.TYPE_INFINITE_RANGE ? sdRescueTeleport.max_matter : 
+			this.type === sdRescueTeleport.TYPE_CLONER ? sdRescueTeleport.max_matter_cloner : 
+			sdRescueTeleport.max_matter_short;
+	}
+	onSnapshotApplied() // To override
+	{
+		this.UpdateMaxMatter();
 	}
 	GetRTPRange( character )
 	{
