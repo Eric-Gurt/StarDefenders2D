@@ -632,8 +632,8 @@ let enf_once = true;
 					}
 					else*/
 					{
-						if ( snapshot[ i ]._class === undefined )
-						snapshot[ i ]._class = 'auto';
+						//if ( snapshot[ i ]._class === undefined )
+						//snapshot[ i ]._class = 'auto';
  
 					
 						let ent = sdEntity.GetObjectFromSnapshot( snapshot[ i ] );

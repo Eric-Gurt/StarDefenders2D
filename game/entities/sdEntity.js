@@ -4306,7 +4306,10 @@ class sdEntity
 					}
 					else
 					if ( typeof value === 'string' )
-					this[ prop ] = '';
+					{
+						if ( prop !== '_class' ) // Keep the class name as it is required for deletion data sync
+						this[ prop ] = '';
+					}
 				}
 			}
 			
