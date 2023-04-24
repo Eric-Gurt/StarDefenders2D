@@ -1842,6 +1842,7 @@ class sdCharacter extends sdEntity
 		if ( initiator && initiator !== this && ( initiator.cc_id !== this.cc_id || this.cc_id === 0 ) ) // Allow PvP damage scale for non-teammates only
 		if ( ( this._my_hash !== undefined || this._socket || this.title === 'Player from the shop' ) && 
 		     ( initiator._my_hash !== undefined || initiator._socket || initiator.title === 'Player from the shop' ) ) // Both are real players or at least test dummie from the shop
+		if ( this.is( sdCharacter ) && initiator.is( sdCharacter ) ) // Only for characters... So it won't make drones/Overlords overpowered
 		{
 			dmg *= sdWorld.server_config.player_vs_player_damage_scale;
 		}
@@ -5256,7 +5257,7 @@ class sdCharacter extends sdEntity
 							let e = sdLongRangeTeleport.long_range_teleports[ i ];
 							
 							sdTask.MakeSureCharacterHasTask({ 
-								similarity_hash:'TRACK-LRTP'+e.biometry, 
+								similarity_hash:'TRACK-LRTP'+e._net_id, 
 								executer: exectuter_character,
 								target: e,
 								mission: sdTask.MISSION_TRACK_ENTITY,

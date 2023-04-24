@@ -828,7 +828,7 @@ class sdSteeringWheel extends sdEntity
 			
 			if ( item.is( sdBaseShieldingUnit ) )
 			{
-				if ( item.pushable || force_push_bsus )
+				if ( item.pushable || force_push_bsus || !sdBaseShieldingUnit.enable_nearby_claiming )
 				{
 					item.charge = 0;
 				}

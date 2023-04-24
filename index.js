@@ -904,6 +904,15 @@ let is_terminating = false;
 		snapshot_save_busy = true;
 	};
 	
+	sdWorld.SaveSnapshotAuthoPath = ()=>
+	{
+		SaveSnapshot( snapshot_path_const, ( err )=>
+		{
+			for ( var i = 0; i < sockets.length; i++ )
+			sockets[ i ].SDServiceMessage( 'Server: Manual backup is complete ('+(err?'Error!':'successfully')+')!' );
+		});
+	};
+	
 	setInterval( ()=>{
 		
 		for ( var i = 0; i < sockets.length; i++ )
@@ -1892,11 +1901,14 @@ io.on( 'connection', ( socket )=>
 			{
 				if ( sdWorld.server_config.onDisconnect )
 				sdWorld.server_config.onDisconnect( socket.character, 'manual' );
-
-				if ( socket.character.title.indexOf( 'Disconnected ' ) !== 0 )
-				socket.character.title = 'Disconnected ' + socket.character.title;
 			
-				socket.character._key_states.Reset();
+				if ( !socket.character._is_being_removed )
+				{
+					if ( socket.character.title.indexOf( 'Disconnected ' ) !== 0 )
+					socket.character.title = 'Disconnected ' + socket.character.title;
+
+					socket.character._key_states.Reset();
+				}
 
 				if ( !socket.character._is_being_removed )
 				if ( socket.character.hea > 0 )
@@ -2209,6 +2221,7 @@ io.on( 'connection', ( socket )=>
 			var key = sd_events[ i ][ 1 ];
 			
 			if ( socket.character )
+			if ( !socket.character._is_being_removed )
 			{
 				if ( type === 'K1' )
 				socket.character._key_states.SetKey( key, 1 );
@@ -3433,12 +3446,6 @@ const ServerMainMethod = ()=>
 										}
 										else
 										{
-											/*if ( sdDeepSleep.debug_really_long_line_traces )
-											if ( sdWorld.Dist2D( ent.x, ent.y, socket.character.x, socket.character.y ) > 2000 )
-											{
-												debugger;
-											}*/
-											
 											observed_entities.push( ent );
 											observed_entities_map.add( ent );
 										}

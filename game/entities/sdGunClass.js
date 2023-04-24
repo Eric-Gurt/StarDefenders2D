@@ -2427,8 +2427,15 @@ class sdGunClass
 					{
 						if ( bullet._owner._god )
 						{
-							target_entity.DamageWithEffect( Infinity, bullet._owner, false, false );
-							target_entity.remove();
+							if ( target_entity.GetClass() === 'sdDeepSleep' )
+							{
+								// Never remove these
+							}
+							else
+							{
+								target_entity.DamageWithEffect( Infinity, bullet._owner, false, false );
+								target_entity.remove();
+							}
 						}
 						else
 						if ( bullet._owner.IsPlayerClass() )

@@ -4,6 +4,7 @@
 /* global sdSound, sdContextMenu, sdRenderer, globalThis, sdChat */
 
 import sdWorld from '../sdWorld.js';
+//import sdKeyStates from '../sdKeyStates.js';
 //import sdSound from '../sdSound.js';
 //import sdEffect from './sdEffect.js';
 
@@ -22,6 +23,7 @@ let GetAnythingNear = null;
 let sdArea = null;
 //let sdSound = null;
 let sdDeepSleep = null;
+//let sdKeyStates = null;
 			
 class sdEntity
 {
@@ -1029,7 +1031,21 @@ class sdEntity
 						
 		//CheckWallExistsBox( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
 		
-						const arr_i_is_bg_entity = arr_i.IsBGEntity();
+						let arr_i_is_bg_entity = arr_i.IsBGEntity();
+						
+						if ( arr_i_is_bg_entity === 10 ) // Check if this is a sdDeepSleep
+						{
+							// If so - wake it up as soon as possible!
+							//debugger;
+							arr_i.WakeUpArea( true, this );
+							
+							// Make it collide if it was not removed and it is meant to be threated as solid
+							if ( !arr_i._is_being_removed )
+							if ( arr_i.ThreatAsSolid() )
+							{
+								arr_i_is_bg_entity = is_bg_entity;
+							}
+						}
 		
 						if ( arr_i_is_bg_entity === is_bg_entity )
 						{
@@ -1113,6 +1129,12 @@ class sdEntity
 											);
 										}
 									}
+									
+									/*if ( t <= 1 )
+									if ( arr_i.GetClass() === 'sdDeepSleep' )
+									if ( !arr_i.IsTargetable( this, true ) )
+									debugger;*/
+									
 
 									if ( t <= 1 )
 									if ( arr_i.IsTargetable( this, true ) ) // So guns are ignored
@@ -1169,13 +1191,9 @@ class sdEntity
 								}
 							}
 						}
-						else
-						if ( arr_i_is_bg_entity === 10 ) // Check if this is a sdDeepSleep
-						{
-							// If so - wake it up as soon as possible!
-							//debugger;
-							arr_i.WakeUpArea();
-						}
+						
+						
+						
 					}
 				}
 			}
@@ -3574,7 +3592,7 @@ class sdEntity
 	
 		if ( possible_ent.GetClass() !== _class && _class !== 'auto' )
 		{
-			debugger; // Should not happen
+			//debugger; // Should not happen // Can happen when server sends remove entity command - it has no class
 			return null;
 		}
 	
@@ -3620,6 +3638,8 @@ class sdEntity
 				return sdEntity.entities[ i ];
 			}
 		}*/
+												
+		//let existing = sdEntity.GetObjectByClassAndNetId( snapshot._class ? snapshot._class : 'auto', snapshot._net_id );
 		let existing = sdEntity.GetObjectByClassAndNetId( snapshot._class, snapshot._net_id );
 		if ( existing )
 		{
@@ -4197,7 +4217,11 @@ class sdEntity
 			this._broken = true; // By default, you can override it after removal was called for entity // Copy [ 1 / 2 ]
 		}
 	}
-	_remove()
+	ClearAllPropertiesOnRemove()
+	{
+		return true;
+	}
+	_remove() // If you are willing to use this method - make sure to removed to do _remove_from_entities_array()
 	{
 		//if ( this.GetClass() === 'sdTask' )
 		//debugger;
@@ -4247,6 +4271,47 @@ class sdEntity
 			
 			if ( typeof this._connected_ents !== 'undefined' )
 			this._connected_ents = null;
+		
+			if ( this.ClearAllPropertiesOnRemove() )
+			{
+				
+				let props = Object.getOwnPropertyNames( this );
+				for ( let i = 0; i < props.length; i++ )
+				{
+					let prop = props[ i ];
+					let value = this[ prop ];
+
+					if ( typeof value === 'number' )
+					{
+						// Ignore
+					}
+					else
+					if ( typeof value === 'object' )
+					{
+						if ( this[ prop ] instanceof sdEntity )
+						this[ prop ] = null;
+						else
+						/*if ( this[ prop ] instanceof WeakSet || this[ prop ] instanceof WeakMap || this[ prop ] instanceof sdKeyStates )
+						{
+						}
+						else*/
+						if ( this[ prop ] instanceof Array && this[ prop ].length > 0 && this[ prop ][ 0 ] instanceof sdEntity )
+						this[ prop ] = null;
+						else
+						if ( ( this[ prop ] instanceof Map || this[ prop ] instanceof Set ) && this[ prop ].values().length > 0 && this[ prop ].values()[ 0 ] instanceof sdEntity )
+						this[ prop ] = null;
+						else
+						if ( this[ prop ] instanceof Map && this[ prop ].keys().length > 0 && this[ prop ].keys()[ 0 ] instanceof sdEntity )
+						this[ prop ] = null;
+					}
+					else
+					if ( typeof value === 'string' )
+					{
+						if ( prop !== '_class' ) // Keep the class name as it is required for deletion data sync
+						this[ prop ] = '';
+					}
+				}
+			}
 			
 			/* It is handled by memory leak seeker now instead
 			const is_vehicle = this.IsVehicle();
@@ -4367,6 +4432,17 @@ class sdEntity
 		}
 		
 		sdSound.DestroyAllSoundChannels( this );
+	}
+	_remove_from_entities_array( old_hiber_state=-2 )
+	{
+		let id = sdEntity.entities.indexOf( this );
+		if ( id === -1 )
+		{
+			console.log('Removing unlisted entity ' + this.GetClass() + ', hiberstate was ' + ( old_hiber_state === -2 ) ? '(unspecified)' : old_hiber_state + '. Entity was made at: ' + this._stack_trace );
+			debugger;	
+		}
+		else
+		sdEntity.entities.splice( id, 1 );
 	}
 	isWaterDamageResistant()
 	{

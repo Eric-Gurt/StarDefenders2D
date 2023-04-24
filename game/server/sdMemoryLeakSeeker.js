@@ -26,7 +26,7 @@ class sdMemoryLeakSeeker
 {
 	static init_class()
 	{
-		sdMemoryLeakSeeker.enabled = true; // Can be used to disabled at any time
+		sdMemoryLeakSeeker.enabled = false; // Can be used to disabled at any time
 		
 		sdMemoryLeakSeeker.is_currently_executed = false; // You can use this property to prevent it from causing certain logic whenever getters are called
 		

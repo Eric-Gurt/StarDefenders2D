@@ -516,13 +516,10 @@ class sdGun extends sdEntity
 		
 		if ( this._held_by )
 		{
+			if ( !this._held_by._is_being_removed )
 			this._held_by.DropSpecificWeapon( this );
-			/*
-			if ( this._held_by._inventory[ this.GetSlot() ] === this )
-			this._held_by._inventory[ this.GetSlot() ] = null;
-			else
-			console.warn('Warning: Held sdGun is removed but different entity is at same exact slot!...');
-			*/
+			
+			
 			this._held_by = null;
 		}
 	}
@@ -1092,6 +1089,7 @@ class sdGun extends sdEntity
 			}
 
 			if ( this._held_by )
+			if ( !this._held_by._is_being_removed )
 			if ( this._held_by.IsPlayerClass() )
 			{
 				this._held_by._inventory[ this.GetSlot() ] = this;

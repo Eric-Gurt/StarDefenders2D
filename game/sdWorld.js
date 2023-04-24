@@ -1705,6 +1705,8 @@ class sdWorld
 
 					if ( e_is_bg_entity === 10 ) // sdDeepSleep
 					{
+						/* Fighting the case when area would be instantly woken up by random sdDrone from nearby area... Let's wake them up by physically colliding only and whenever players see these
+						
 						x1 = e._hitbox_x1;
 						x2 = e._hitbox_x2;
 						y1 = e._hitbox_y1;
@@ -1717,7 +1719,7 @@ class sdWorld
 						if ( sdWorld.inDist2D_Boolean( _x, _y, cx, cy, range ) )
 						{
 							e.WakeUpArea();
-						}
+						}*/
 					}
 					else
 					if ( filter_candidates_function === null || filter_candidates_function( e ) )
@@ -2785,14 +2787,7 @@ class sdWorld
 							
 							if ( arr_i === 0 )
 							{
-								let id = sdEntity.entities.indexOf( e );
-								if ( id === -1 )
-								{
-									console.log('Removing unlisted entity ' + e.GetClass() + ', hiberstate was ' + hiber_state + '. Entity was made at: ' + e._stack_trace );
-									debugger;	
-								}
-								else
-								sdEntity.entities.splice( id, 1 );
+								e._remove_from_entities_array( hiber_state );
 							}
 							
 							if ( arr[ i ] === e ) // Removal did not happen?
@@ -2833,6 +2828,19 @@ class sdWorld
 					}
 				}
 			}
+			
+			// Check for improperly removed entities. It fill falsely react to chained removals, for example in case of sdBG -> sdBloodDecal
+			/*if ( sdWorld.is_server || sdWorld.is_singleplayer )
+			{
+				let e = sdEntity.GetRandomEntity();
+				if ( e )
+				if ( e._is_being_removed )
+				{
+					trace( 'Entity was not removed properly. .remove() was likely called, _remove() was likely called too, but entity is still in sdEntity.entities array. Make sure to call ._remove_from_entities_array() at the time of removal too...', e );
+					
+					e._remove_from_entities_array();
+				}
+			}*/
 			
 			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 			{
@@ -3201,7 +3209,16 @@ class sdWorld
 							
 							if ( arr_i_is_bg_entity === 10 ) // sdDeepSleep
 							{
+								/* Fighting the case when area would be instantly woken up by random sdDrone from nearby area... Let's wake them up by physically colliding only and whenever players see these
+						
 								arr_i.WakeUpArea();
+									
+								*/
+								if ( arr_i.ThreatAsSolid() )
+								{
+									sdWorld.last_hit_entity = null;
+									return true;
+								}
 							}
 							else
 							if ( ignore_entity === null || arr_i_is_bg_entity === ignore_entity.IsBGEntity() )
@@ -3306,14 +3323,6 @@ class sdWorld
 		//var step = 16;
 		var step = 8;
 		
-		if ( di > 2000 )
-		if ( sdDeepSleep.debug_really_long_line_traces )
-		if ( sdWorld.is_server )
-		{
-			debugger;
-			console.warn( 'This CheckLineOfSight is really long and can cause extreme number of sdDeepSleep wakes, thus lags (di: '+di+')' );
-		}
-		
 		for ( var s = step / 2; s < di - step / 2; s += step )
 		{
 			var x = x1 + ( x2 - x1 ) / di * s;
@@ -3328,14 +3337,6 @@ class sdWorld
 		var di = sdWorld.Dist2D( x1,y1,x2,y2 );
 		//var step = 16;
 		var step = 8;
-		
-		if ( di > 2000 )
-		if ( sdDeepSleep.debug_really_long_line_traces )
-		if ( sdWorld.is_server )
-		{
-			debugger;
-			console.warn( 'This TraceRayPoint is really long and can cause extreme number of sdDeepSleep wakes, thus lags (di: '+di+')' );
-		}
 		
 		for ( var s = step / 2; s < di - step / 2; s += step )
 		{
@@ -3398,7 +3399,16 @@ class sdWorld
 							
 							if ( arr_i_is_bg_entity === 10 ) // sdDeepSleep
 							{
+								/* Fighting the case when area would be instantly woken up by random sdDrone from nearby area... Let's wake them up by physically colliding only and whenever players see these
+						
 								arr_i.WakeUpArea();
+									
+								*/
+								if ( arr_i.ThreatAsSolid() )
+								{
+									sdWorld.last_hit_entity = null;
+									return true;
+								}
 							}
 							else
 							if ( ignore_entity === null || arr_i_is_bg_entity === ignore_entity.IsBGEntity() )
@@ -4229,6 +4239,11 @@ class sdWorld
 		
 		if ( player_settings.entity4 )
 		{
+			navigator.wakeLock.request("screen").then(()=>{
+			}).catch(()=>{
+				trace( 'Wake lock request failed' );
+			});
+			
 			// Do not show ads in stream logger
 			ForceProceedOnce();
 		}
