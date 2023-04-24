@@ -1251,7 +1251,7 @@ class sdDeepSleep extends sdEntity
 					{
 						this._my_hash_list.push( e._my_hash );
 						
-						trace( 'Saving player\'s hash ' + e._my_hash + ' to '+this._net_id );
+						//trace( 'Saving player\'s hash ' + e._my_hash + ' to '+this._net_id );
 					}
 					else
 					if ( e.is( sdRescueTeleport ) )
