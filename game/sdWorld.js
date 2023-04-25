@@ -882,7 +882,7 @@ class sdWorld
 			}
 			
 			let contains_class = ( !half && Math.random() > 0.85 / hp_mult ) ? 
-									( ( Math.random() < 0.3 * ( 1*0.75 + hp_mult*0.25 ) ) ? random_enemy : potential_crystal ) : 
+									( ( Math.random() < Math.min( 0.75, 0.3 * ( 1*0.75 + hp_mult*0.25 ) ) ) ? random_enemy : potential_crystal ) : 
 									( 
 										( Math.random() < 0.1 ) ? 'weak_ground' : null 
 									);
