@@ -295,6 +295,18 @@ class sdCube extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
+		if ( this.kind !== sdCube.KIND_MATTER_STEALER )
+		if ( initiator )
+		{
+			if ( !initiator.IsPlayerClass() )
+			if ( ( initiator.owner || initiator._owner ) )
+			initiator = ( initiator.owner || initiator._owner );
+			
+			if ( initiator.IsPlayerClass() )
+			{
+				initiator._nature_damage += dmg;
+			}
+		}
 	
 		//dmg = Math.abs( dmg );
 		
@@ -408,7 +420,26 @@ class sdCube extends sdEntity
 				}
 
 				if ( this.kind !== sdCube.KIND_PINK ) // Pink cube is too small to be gibbed
-				sdWorld.SpawnGib( this.x, this.y - ( 6 * this.kind === sdCube.KIND_WHITE ? 3 : this.kind === sdCube.KIND_YELLOW ? 2 : 1 ) , this.sx + Math.random() * 1 - Math.random() * 1, this.sy + Math.random() * 1 - Math.random() * 1, 1, sdGib.CLASS_CUBE_GIB , null, null, this.kind === sdCube.KIND_WHITE ? 300 : this.kind === sdCube.KIND_YELLOW ? 200 : 100, this )
+				{
+					//sdWorld.SpawnGib( this.x, this.y - ( 6 * this.kind === sdCube.KIND_WHITE ? 3 : this.kind === sdCube.KIND_YELLOW ? 2 : 1 ) , this.sx + Math.random() * 1 - Math.random() * 1, this.sy + Math.random() * 1 - Math.random() * 1, 1, sdGib.CLASS_CUBE_GIB , null, null, this.kind === sdCube.KIND_WHITE ? 300 : this.kind === sdCube.KIND_YELLOW ? 200 : 100, this )
+					
+					// ( x, y, 
+					// sx = Math.random() * 1 - Math.random() * 1, sy = Math.random() * 1 - Math.random() * 1, 
+					// side = 1, gib_class, gib_filter, blood_filter = null, scale = 100, ignore_collisions_with=null, image = 0 )
+					
+					let scale = this.kind === sdCube.KIND_WHITE ? 300 : this.kind === sdCube.KIND_YELLOW ? 200 : 100;
+					let image_id = 0;
+					
+					let offset = 3 * scale / 100;
+					
+					let image_id_remap = [ 3, 0, 1, 2 ];
+			
+					for ( let xx = -1; xx <= 1; xx += 2 )
+					for ( let yy = -1; yy <= 1; yy += 2 )
+					sdWorld.SpawnGib( this.x + xx * offset, this.y + yy * offset, 
+						this.sx + Math.random() * 1 - 0.5, this.sy + Math.random() * 1 - 0.5,
+						1, sdGib.CLASS_CUBE_GIB, null, null, scale, this, image_id_remap[ image_id++ ] );
+				}
 
 				let r = Math.random();
 

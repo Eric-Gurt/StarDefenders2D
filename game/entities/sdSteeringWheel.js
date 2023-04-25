@@ -221,7 +221,7 @@ class sdSteeringWheel extends sdEntity
 		
 		this._last_scan = sdWorld.time;
 		
-		const LIMIT = 400; // Was 100
+		const LIMIT = 650; // Was 100, then 400
 		
 		let speed = 0;
 		

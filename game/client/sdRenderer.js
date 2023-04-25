@@ -1418,38 +1418,45 @@ class sdRenderer
 				}
 				ctx.restore();
 				
-				if ( !sdContextMenu.open )
+				//if ( !sdContextMenu.open )
 				{
 					var best_ent = null;
 					var best_di = -1;
-
-					if ( show_hud )
-					for ( var i = 0; i < sdEntity.entities.length; i++ )
-					if ( sdEntity.entities[ i ]._flag === frame_flag_reference )
-					if ( sdEntity.entities[ i ].DrawHUD !== sdEntity.prototype.DrawHUD )
+					
+					if ( sdContextMenu.open )
 					{
-						//let cache = sdStatusEffect.line_of_sight_visibility_cache.get( sdEntity.entities[ i ] );
-						
-						//if ( cache && ( cache.result > 0 || cache.result_soft > 0 ) ) // If client-side visible
+						best_ent = sdContextMenu.current_target;
+					}
+					else
+					{
+						if ( show_hud )
+						for ( var i = 0; i < sdEntity.entities.length; i++ )
+						if ( sdEntity.entities[ i ]._flag === frame_flag_reference )
+						if ( sdEntity.entities[ i ].DrawHUD !== sdEntity.prototype.DrawHUD )
 						{
-							// If cursor overlaps
-							var di = sdEntity.entities[ i ].GetAccurateDistance( sdWorld.mouse_world_x, sdWorld.mouse_world_y );
+							//let cache = sdStatusEffect.line_of_sight_visibility_cache.get( sdEntity.entities[ i ] );
 
-							if ( di < 12 )
+							//if ( cache && ( cache.result > 0 || cache.result_soft > 0 ) ) // If client-side visible
 							{
-								if ( di <= 0 )
-								di -= 1;
+								// If cursor overlaps
+								var di = sdEntity.entities[ i ].GetAccurateDistance( sdWorld.mouse_world_x, sdWorld.mouse_world_y );
 
-								// Prioritize physical center
-								di += sdWorld.Dist2D( sdWorld.mouse_world_x, 
-													  sdWorld.mouse_world_y,
-													  sdEntity.entities[ i ].x + ( sdEntity.entities[ i ]._hitbox_x1 + sdEntity.entities[ i ]._hitbox_x2 ) / 2,
-													  sdEntity.entities[ i ].y + ( sdEntity.entities[ i ]._hitbox_y1 + sdEntity.entities[ i ]._hitbox_y2 ) / 2 ) * 0.001;
-
-								if ( di < best_di || best_ent === null )
+								if ( di < 12 )
 								{
-									best_ent = sdEntity.entities[ i ];
-									best_di = di;
+									if ( di <= 0 )
+									di -= 1;
+
+									// Prioritize physical center
+									di += sdWorld.Dist2D( sdWorld.mouse_world_x, 
+														  sdWorld.mouse_world_y,
+														  sdEntity.entities[ i ].x + ( sdEntity.entities[ i ]._hitbox_x1 + sdEntity.entities[ i ]._hitbox_x2 ) / 2,
+														  sdEntity.entities[ i ].y + ( sdEntity.entities[ i ]._hitbox_y1 + sdEntity.entities[ i ]._hitbox_y2 ) / 2 ) * 0.001;
+
+									if ( di < best_di || best_ent === null )
+									{
+										best_ent = sdEntity.entities[ i ];
+										best_di = di;
+									}
 								}
 							}
 						}

@@ -65,8 +65,8 @@ import sdFactionSpawner from './sdFactionSpawner.js';
 import sdFactions from './sdFactions.js';
 import sdTzyrgAbsorber from './sdTzyrgAbsorber.js';
 import sdShurgConverter from './sdShurgConverter.js';
-
 import sdTask from './sdTask.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -267,7 +267,7 @@ class sdWeather extends sdEntity
 		//console.log( this._daily_events );
 	}
 	
-	static SimpleSpawner( params ) // { count: [min,max], class:sdBadDog, aerial:boolean, group_radius:number, near_entity:ent, params:{ kind:()=>rand }, evalute_params:['kind'] }
+	static SimpleSpawner( params ) // SimpleEntityS[awner // { count: [min,max], class:sdBadDog, aerial:boolean, group_radius:number, near_entity:ent, params:{ kind:()=>rand }, evalute_params:['kind'] }
 	{
 		// Note: SimpleSpawner is similar to SetRandomSpawnLocation, but has more features
 		
@@ -337,13 +337,14 @@ class sdWeather extends sdEntity
 							y = place_onto.y - dog._hitbox_y2 - 1;
 						}
 						
+						let ok = true;
+						
 						if ( near_entity )
-						{
-							if ( !sdWorld.inDist2D_Boolean( near_entity.x, near_entity.y, x, y, params.group_radius ) )
-							continue;
-						}
-						
-						
+						if ( !sdWorld.inDist2D_Boolean( near_entity.x, near_entity.y, x, y, params.group_radius ) )
+						ok = false;
+				
+						if ( ok )
+						if ( sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( x, y ) )
 						if ( dog.CanMoveWithoutDeepSleepTriggering( x, y, -32 ) )
 						if ( dog.CanMoveWithoutOverlap( x, y, 0 ) )
 						if ( params.aerial || !dog.CanMoveWithoutOverlap( x, y + 5, 0 ) )
@@ -398,7 +399,7 @@ class sdWeather extends sdEntity
 			instances--;
 		}
 	}
-	static SetRandomSpawnLocation( ent ) // Locate spawn location for humanoids. First it uses same method as for Erthal spider bots / bad dogs, and if it doesn't find a position it uses old humanoid method.
+	static SetRandomSpawnLocation( ent ) // GetSpawnPosition // GetRandom // Locate spawn location for humanoids. First it uses same method as for Erthal spider bots / bad dogs, and if it doesn't find a position it uses old humanoid method.
 	{
 		// Note: SimpleSpawner supports some more features, but other than that these 2 methods are kind of same
 		
@@ -431,40 +432,45 @@ class sdWeather extends sdEntity
 				x = place_onto.x + place_onto._hitbox_x1 * morph + place_onto._hitbox_x2 * ( 1 - morph );
 				y = place_onto.y - ent._hitbox_y2 - 1;
 				
+				if ( sdBaseShieldingUnit.TestIfPointIsOutsideOfBSURanges( x, y ) )
 				if ( ent.CanMoveWithoutDeepSleepTriggering( x, y, -32 ) )
 				if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
 				if ( !ent.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-				if ( tr < 1000 || ent.CanMoveWithoutOverlap( x, y - 64, 0 ) ) // Ignore caves after first 500 iterations
-				if ( sdWorld.last_hit_entity )
-				if ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
-				if ( !sdWorld.CheckWallExistsBox( 
-						x + ent._hitbox_x1 - 16, 
-						y + ent._hitbox_y1 - 116, 
-						x + ent._hitbox_x2 + 16, 
-						y + ent._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
 				{
-					let proper_distnace = true;
-
-					for ( i = 0; i < sdWorld.sockets.length; i++ )
-					if ( sdWorld.sockets[ i ].character )
+					let ground_entity = sdWorld.last_hit_entity;
+					
+					if ( ground_entity )
+					if ( tr < 1000 || ent.CanMoveWithoutOverlap( x, y - 64, 0 ) ) // Ignore caves after first 500 iterations
+					if ( ground_entity.is( sdBlock ) && ground_entity.DoesRegenerate() && ground_entity._natural )
+					if ( !sdWorld.CheckWallExistsBox( 
+							x + ent._hitbox_x1 - 16, 
+							y + ent._hitbox_y1 - 116, 
+							x + ent._hitbox_x2 + 16, 
+							y + ent._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
 					{
-						//let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
+						let proper_distnace = true;
 
-						//if ( di < 500 )
-						if ( sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y, sdWeather.min_distance_from_online_players_for_entity_events ) ||
-							 !sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y, sdWeather.max_distance_from_online_players_for_entity_events ) )
+						for ( i = 0; i < sdWorld.sockets.length; i++ )
+						if ( sdWorld.sockets[ i ].character )
 						{
-							proper_distnace = false;
-							break;
-						}
-					}
+							//let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
 
-					if ( proper_distnace )
-					{
-						ent.x = x;
-						ent.y = y;
-						//located_spawn = true;
-						return true;
+							//if ( di < 500 )
+							if ( sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y, sdWeather.min_distance_from_online_players_for_entity_events ) ||
+								 !sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y, sdWeather.max_distance_from_online_players_for_entity_events ) )
+							{
+								proper_distnace = false;
+								break;
+							}
+						}
+
+						if ( proper_distnace )
+						{
+							ent.x = x;
+							ent.y = y;
+							//located_spawn = true;
+							return true;
+						}
 					}
 				}
 			}
@@ -3527,7 +3533,7 @@ class sdWeather extends sdEntity
 					
 					//let tr = 1000;
 					
-					let tr = sdWorld.server_config.aggressive_hibernation ? 5 : 35;
+					let tr = sdWorld.server_config.aggressive_hibernation ? 15 : 35;
 					
 					do
 					{

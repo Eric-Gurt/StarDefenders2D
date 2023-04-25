@@ -6,6 +6,7 @@
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 
 class sdNode extends sdEntity
@@ -60,9 +61,12 @@ class sdNode extends sdEntity
 			
 		if ( this._hea > 0 )
 		{
-			this._hea -= dmg;
-			
-			this._regen_timeout = 60;
+			if ( sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
+			{
+				this._hea -= dmg;
+
+				this._regen_timeout = 60;
+			}
 
 			if ( this._hea <= 0 )
 			this.remove();
@@ -73,6 +77,8 @@ class sdNode extends sdEntity
 		super( params );
 		
 		this.type = params.type || sdNode.TYPE_NODE;
+		
+		this._shielded = null; // Is this entity protected by a base defense unit?
 		
 		this._hmax = 100 * 4; // Stronger variations have more health
 		this._hea = this._hmax;

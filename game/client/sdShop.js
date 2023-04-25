@@ -15,6 +15,7 @@ import sdDoor from '../entities/sdDoor.js';
 import sdCaption from '../entities/sdCaption.js';
 import sdGib from '../entities/sdGib.js'
 import sdRescueTeleport from '../entities/sdRescueTeleport.js';
+import sdFactionSpawner from '../entities/sdFactionSpawner.js';
 
 import sdRenderer from './sdRenderer.js';
 import sdContextMenu from './sdContextMenu.js';
@@ -379,6 +380,7 @@ class sdShop
 		sdShop.options.push({ _class: 'sdButton', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdButton', type:1, _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdButton', type:2, _category:'Base equipment' });
+		sdShop.options.push({ _class: 'sdButton', type:3, _category:'Base equipment' });
 		
 		
 		for ( let i = 0; i < sdCaption.colors.length / 3; i++ )
@@ -793,9 +795,10 @@ class sdShop
 			sdShop.options.push({ _class: 'sdBot', kind:1, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdGuanako', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdLandScanner', _category:'Development tests' });
-			//sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'saturate(0) brightness(1.5)', _category:'Development tests' });
-			//sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'saturate(0) brightness(0.5)', _category:'Development tests' });
-			//sdShop.options.push({ _class: 'sdButton', _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.FALKOK_SPAWNER, _category:'Development tests' });
+			//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.SARRORIAN_SPAWNER, _category:'Development tests' });
+			//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.COUNCIL_SPAWNER, _category:'Development tests' });
+			//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.TZYRG_SPAWNER, _category:'Development tests' });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });

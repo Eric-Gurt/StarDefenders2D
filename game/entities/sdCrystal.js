@@ -144,6 +144,8 @@ class sdCrystal extends sdEntity
 	{
 		super( params );
 		
+		let is_really_deep = params.tag && params.tag.indexOf( 'really_deep' ) !== -1; // params.tag === 'deep' || params.tag === 'deep_crab';
+		
 		let is_deep = params.tag && params.tag.indexOf( 'deep' ) !== -1; // params.tag === 'deep' || params.tag === 'deep_crab';
 		
 		if ( params.tag )
@@ -182,7 +184,8 @@ class sdCrystal extends sdEntity
 			this.attack_anim = 0; // For big crystal crabs
 		}
 		
-		
+		if ( is_really_deep )
+		r *= 0.25;
 		
 		if ( r < 0.00390625 / 8 && is_deep ) // matter consuming crystal
 		this.matter_max *= 2048;

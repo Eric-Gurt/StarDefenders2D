@@ -29,6 +29,13 @@ class sdButton extends sdEntity
 		sdButton.TYPE_WALL_BUTTON = 0;
 		sdButton.TYPE_FLOOR_SENSOR = 1;
 		sdButton.TYPE_WALL_SENSOR = 2;
+		sdButton.TYPE_WALL_MATTER_SENSOR = 3;
+		
+		// These are indices in array
+		sdButton.FILTER_OPTION_CURRENT = 0; // Can be mass or matter
+		sdButton.FILTER_OPTION_CONDITION = 1;
+		sdButton.FILTER_OPTION_REFERENCE = 2;
+		
 
 		sdButton.buttons = []; // For global detections
 
@@ -64,6 +71,9 @@ class sdButton extends sdEntity
 	
 		if ( this.type === sdButton.TYPE_WALL_SENSOR )
 		return 'Wall sensor';
+	
+		if ( this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
+		return 'Matter capacity sensor';
 	
 		return 'Button';
 	}
@@ -136,33 +146,118 @@ class sdButton extends sdEntity
 		
 		this._overlapped_net_ids = [];
 		
+		this.filter = null; // Becomes array [ current value, condition, reference value ], if type is a floor sensor
+		
+		if ( this.type === sdButton.TYPE_FLOOR_SENSOR )
+		this.filter = [ 0, '>', 0 ]; // Measures mass
+	
+		if ( this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
+		this.filter = [ 0, '>', 0 ]; // Measures max_matter
+		
 		sdButton.buttons.push( this );
 	}
 	onMovementInRange( from_entity )
 	{
-		if ( this.type === sdButton.TYPE_FLOOR_SENSOR || this.type === sdButton.TYPE_WALL_SENSOR )
+		if ( this.type === sdButton.TYPE_FLOOR_SENSOR || this.type === sdButton.TYPE_WALL_SENSOR || this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
 		if ( from_entity.IsBGEntity() === 0 )
-		if ( this._overlapped_net_ids.indexOf( from_entity._net_id ) === -1 )
 		{
-			if ( this._overlapped_net_ids.length === 0 )
-			this.SetActivated( true );
-		
-			this._overlapped_net_ids.push( from_entity._net_id );
-			
+			if ( this._overlapped_net_ids.indexOf( from_entity._net_id ) === -1 )
+			{
+				//if ( this._overlapped_net_ids.length === 0 )
+				//this.SetActivated( true );
+
+				this._overlapped_net_ids.push( from_entity._net_id );
+			}
+
 			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		}
+	}
+	IsFilterConditionsMet()
+	{
+		if ( this.filter )
+		{
+			let condition = this.filter[ sdButton.FILTER_OPTION_CONDITION ];
+			
+			let v = 0;
+			
+			if ( this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
+			{
+				if ( condition === '>' )
+				v = 0;
+				else
+				if ( condition === '<' )
+				v = Infinity;
+			}
+			
+			let any_found = false;
+			let best_found = false;
+			
+			for ( let i = 0; i < this._overlapped_net_ids.length; i++ )
+			{
+				let e = sdEntity.entities_by_net_id_cache_map.get( this._overlapped_net_ids[ i ] );
+
+				if ( !e._is_being_removed )
+				{
+					any_found = true;
+					
+					if ( this.type === sdButton.TYPE_FLOOR_SENSOR )
+					v += e.mass;
+					else
+					if ( this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
+					{
+						if ( condition === '>' )
+						v = Math.max( v, ( e.matter_max || e._matter_max || 0 ) );
+						else
+						if ( condition === '<' )
+						v = Math.min( v, ( e.matter_max || e._matter_max || 0 ) );
+						else
+						if ( condition === '=' )
+						{
+							if ( !best_found )
+							{
+								v = ( e.matter_max || e._matter_max || 0 );
+
+								if ( v === this.filter[ sdButton.FILTER_OPTION_REFERENCE ] )
+								best_found = true;
+							}
+						}
+					}
+				}
+			}
+			
+			if ( !any_found )
+			v = 0;
+			
+			////if ( any_found )
+			//{
+				if ( this.filter[ sdButton.FILTER_OPTION_CURRENT ] !== v )
+				{
+					this.filter[ sdButton.FILTER_OPTION_CURRENT ] = v;
+
+					this._update_version++;
+				}
+			//}
+			
+			if ( condition === '>' )
+			return this.filter[ sdButton.FILTER_OPTION_CURRENT ] > this.filter[ sdButton.FILTER_OPTION_REFERENCE ];
+			if ( condition === '<' )
+			return this.filter[ sdButton.FILTER_OPTION_CURRENT ] < this.filter[ sdButton.FILTER_OPTION_REFERENCE ];
+			if ( condition === '=' )
+			return this.filter[ sdButton.FILTER_OPTION_CURRENT ] === this.filter[ sdButton.FILTER_OPTION_REFERENCE ];
+		
+			return false;
+		}
+		
+		return ( this._overlapped_net_ids.length > 0 );
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else
-		{
-			if ( this._hea < this._hmax )
-			{
-				this._hea = Math.min( this._hea + GSPEED, this._hmax );
-			}
-		}
+		if ( this._hea < this._hmax )
+		this._hea = Math.min( this._hea + GSPEED, this._hmax );
+
 		
 		for ( let i = 0; i < this._overlapped_net_ids.length; i++ )
 		{
@@ -180,16 +275,13 @@ class sdButton extends sdEntity
 			}
 			else
 			{
-				if ( this._overlapped_net_ids.length === 1 )
-				{
-					this.SetActivated( false );
-				}
-				
 				this._overlapped_net_ids.splice( i, 1 );
 				i--;
 				continue;
 			}
 		}
+		
+		this.SetActivated( this.IsFilterConditionsMet() );
 		
 		if ( this._overlapped_net_ids.length === 0 && this._hea >= this._hmax )
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
@@ -249,10 +341,27 @@ class sdButton extends sdEntity
 			let antigravities = this.FindObjectsInACableNetwork( null, sdAntigravity, true ); // { entity: sdEntity, path: [] }
 			let nodes = this.FindObjectsInACableNetwork( null, sdNode, true );
 			
+			// Prevents path building through BSUs, LRTPs etc. Only nodes are allowed
+			const IsPathTraversable = ( path )=>
+			{
+				for ( let i2 = 1; i2 < path.length; i2++ ) // 0 is button/sensor
+				if ( !path[ i2 ].is( sdNode ) )
+				return false;
+				
+				return true;
+			};
+			
 			for ( let i = 0; i < nodes.length; i++ )
 			{
 				let node = nodes[ i ].entity;
+				
+				if ( node._is_being_removed )
+				continue;
+			
 				let path = nodes[ i ].path;
+				
+				if ( !IsPathTraversable( path ) )
+				continue;
 				
 				let found_switch_off = false;
 				
@@ -292,20 +401,29 @@ class sdButton extends sdEntity
 			for ( let i = 0; i < doors.length; i++ )
 			{
 				let door = doors[ i ].entity;
-				let vv = GetFlipLogic( doors[ i ].path );
+				
+				if ( door._is_being_removed )
+				continue;
+			
+				let path = doors[ i ].path;
+				
+				let vv = GetFlipLogic( path );
 				
 				if ( vv === undefined )
 				continue;
 				
+				if ( !IsPathTraversable( path ) )
+				continue;
+				
 				door.open_type = sdDoor.OPEN_TYPE_BUTTON;
 				
-				let id = door._entities_within_sensor_area.indexOf( this._net_id );
+				let id = door._entities_within_sensor_area.indexOf( door._net_id ); // Add itself so multiple sensors/buttons could be used
 				
 				if ( vv )
 				{
 					if ( id === -1 )
 					{
-						door._entities_within_sensor_area.push( this._net_id );
+						door._entities_within_sensor_area.push( door._net_id );
 						door.Open();
 					}
 				}
@@ -319,9 +437,18 @@ class sdButton extends sdEntity
 			for ( let i = 0; i < antigravities.length; i++ )
 			{
 				let antigravity = antigravities[ i ].entity;
-				let vv = GetFlipLogic( doors[ i ].path );
+				
+				if ( antigravity._is_being_removed )
+				continue;
+			
+				let path = antigravities[ i ].path;
+				
+				let vv = GetFlipLogic( path );
 				
 				if ( vv === undefined )
+				continue;
+				
+				if ( !IsPathTraversable( path ) )
 				continue;
 				
 				antigravity._update_version++;
@@ -384,6 +511,29 @@ class sdButton extends sdEntity
 				if ( command_name === 'UNPRESS_BUTTON' )
 				this.SetActivated( false );
 			}
+			
+			if ( this.filter )
+			{
+				if ( command_name === 'SET_FILTER_CONDITION' )
+				{
+					let arr = [ '>', '=', '<' ];
+					this.filter[ sdButton.FILTER_OPTION_CONDITION ] = arr[ ( arr.indexOf( this.filter[ sdButton.FILTER_OPTION_CONDITION ] ) + 1 ) % arr.length ];
+					
+					this._update_version++;
+					this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+				}
+				if ( command_name === 'SET_FILTER_REFERENCE' )
+				{
+					let v = parseFloat( parameters_array[ 0 ] );
+					if ( !isNaN( v ) )
+					{
+						this.filter[ sdButton.FILTER_OPTION_REFERENCE ] = v;
+						
+						this._update_version++;
+						this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					}
+				}
+			}
 		}
 	}
 	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
@@ -406,12 +556,26 @@ class sdButton extends sdEntity
 
 				//this.AddContextOption( 'Register Keycard', 'REGISTER_KEYCARD', [ undefined ] )
 			}
+			
+			if ( this.filter )
+			{
+				this.AddContextOption( 'Toggle filter condition', 'SET_FILTER_CONDITION', [], false );
+				this.AddPromptContextOption( 'Set filter reference', 'SET_FILTER_REFERENCE', [ undefined ], 'Enter reference value', this.filter[ sdButton.FILTER_OPTION_REFERENCE ], 100 );
+			}
 		}
 	}
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, this.title );
+		if ( this.filter )
+		{
+			sdEntity.Tooltip( ctx, this.title, 0, -8 );
+			sdEntity.TooltipUntranslated( ctx, this.filter.join(' '), 0, 0, this.IsFilterConditionsMet() ? '#66ff66' : '#ff6666' );
+		}
+		else
+		{
+			sdEntity.Tooltip( ctx, this.title );
+		}
 	}
 	Draw( ctx, attached )
 	{

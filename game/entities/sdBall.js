@@ -33,7 +33,7 @@ class sdBall extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		this.type = params.type || 0; // Ball types, small or large.
-		this.hea = this.type === 1 ? 20 : 10;
+		this.hea = this.type === 1 ? 120 : 60;
 		
 		this._vulnerable_to = null;
 		this._vulnerable_until = 0;

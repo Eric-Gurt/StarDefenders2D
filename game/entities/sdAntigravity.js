@@ -56,7 +56,7 @@ class sdAntigravity extends sdEntity
 	{
 		super( params );
 		
-		this._hmax = 200 * 4;
+		this._hmax = 300;
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 		

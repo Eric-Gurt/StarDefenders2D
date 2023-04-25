@@ -67,7 +67,7 @@ class sdCaption extends sdEntity
 	{
 		super( params );
 		
-		this._hmax = 100 * 4; // Stronger variations have more health
+		this._hmax = 250; // Stronger variations have more health
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 		

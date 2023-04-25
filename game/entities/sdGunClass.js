@@ -2553,6 +2553,11 @@ class sdGunClass
 		{
 			if ( sdCable.attacheable_entities.indexOf( target_entity.GetClass() ) !== -1 )
 			{
+				if ( target_entity._shielded && !target_entity._shielded._is_being_removed && target_entity._shielded.protect_cables )
+				{
+					bullet._owner.Say( 'Protected by the base shielding unit' );
+				}
+				else
 				if ( sdCable.one_cable_entities.indexOf( target_entity.GetClass() ) !== -1 && sdCable.GetConnectedEntities( target_entity, sdCable.TYPE_ANY ).length > 0 )
 				{
 					//bullet._owner.Say( ( target_entity.title || target_entity.GetClass() ) + ' has only one socket' );
@@ -3033,7 +3038,7 @@ class sdGunClass
 			title: 'Admin tool for teleporting',
 			sound_pitch: 2,
 			slot: 8,
-			reload_time: 10,
+			reload_time: 5,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 1,
@@ -3048,6 +3053,8 @@ class sdGunClass
 				if ( gun._held_by.IsPlayerClass() )
 				if ( gun._held_by._god )
 				{
+					let dx = gun._held_by.look_x - gun._held_by.x;
+					let dy = gun._held_by.look_y - gun._held_by.y;
 					gun._held_by.x = gun._held_by.look_x;
 					gun._held_by.y = gun._held_by.look_y;
 					gun._held_by.sx = 0;

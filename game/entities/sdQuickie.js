@@ -139,7 +139,7 @@ class sdQuickie extends sdEntity
 			sdWorld.SpawnGib( this.x - ( 8 * this.side ), this.y, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_QUICKIE_LIMB , 1, this.GetBleedEffectFilter(), 100, this );
 			this.gibbed = true;
 		}
-		if ( this._hea < -this._hmax / 40 * 100 || ( this._hea < 0 && this._tier === 2 ) ) // used to be only " ||this._tier === 2 " which resulted in instant death for Crystal Quickies, unintentional - Booraz
+		if ( this._hea < -this._hmax / 40 * 100 || ( this._hea <= 0 && this._tier === 2 ) ) // used to be only " ||this._tier === 2 " which resulted in instant death for Crystal Quickies, unintentional - Booraz
 		this.remove();
 	}
 	

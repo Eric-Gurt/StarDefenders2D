@@ -4288,6 +4288,10 @@ class sdEntity
 					else
 					if ( typeof value === 'object' )
 					{
+						/*if ( prop === '_phys_entities_on_top' )
+						{
+						}
+						else*/
 						if ( this[ prop ] instanceof sdEntity )
 						this[ prop ] = null;
 						else

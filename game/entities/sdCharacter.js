@@ -1420,7 +1420,10 @@ class sdCharacter extends sdEntity
 					sdWorld.last_hit_entity.GetClass() === 'sdTutel' || 
 					sdWorld.last_hit_entity.GetClass() === 'sdFaceCrab' || 
 					sdWorld.last_hit_entity.GetClass() === 'sdBiter'  ||
-					sdWorld.last_hit_entity.GetClass() === 'sdAbomination' ) 
+					sdWorld.last_hit_entity.GetClass() === 'sdAbomination' ||
+					( sdWorld.last_hit_entity.GetClass() === 'sdBomb' && sdWorld.inDist2D_Boolean( sdWorld.last_hit_entity.x, sdWorld.last_hit_entity.y, this.x, this.y, 150 ) ) ||
+					( sdWorld.last_hit_entity.GetClass() === 'sdBarrel' && sdWorld.inDist2D_Boolean( sdWorld.last_hit_entity.x, sdWorld.last_hit_entity.y, this.x, this.y, 150 ) && sdWorld.last_hit_entity.armed < 100 ) // Attack not yet armed barrels (for Councils?)
+			) 
 			found_enemy = true;
 
 			if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && this._ai_team !== 0 )
@@ -1447,7 +1450,9 @@ class sdCharacter extends sdEntity
 		if ( this.title === 'Falkonian Sword Bot' ) // Is it the falkonian sword bot?
 		return sdCharacter.AI_MODEL_AGGRESSIVE; // It is a robot and it is large, it does not fear.
 
-		if ( this._ai.target.GetClass() === 'sdOctopus' || this._ai.target.GetClass() === 'sdAmphid' || this._ai.target.GetClass() === 'sdSandWorm' || this._ai.target.GetClass() === 'sdQuickie' || this._ai.target.GetClass() === 'sdVirus' || this._ai.target.GetClass() === 'sdTutel' || this._ai.target.GetClass() === 'sdBiter' || this._ai.target.GetClass() === 'sdAbomination' )
+		if ( this._ai.target.GetClass() === 'sdOctopus' || this._ai.target.GetClass() === 'sdAmphid' || this._ai.target.GetClass() === 'sdSandWorm' || this._ai.target.GetClass() === 'sdQuickie' || 
+			 this._ai.target.GetClass() === 'sdVirus' || this._ai.target.GetClass() === 'sdTutel' || this._ai.target.GetClass() === 'sdBiter' || this._ai.target.GetClass() === 'sdAbomination' || 
+			 this._ai.target.GetClass() === 'sdBomb' || this._ai.target.GetClass() === 'sdBarrel' )
 		return sdCharacter.AI_MODEL_DISTANT;
 
 

@@ -38,8 +38,8 @@ class sdWeaponBench extends sdEntity
 		//this.sx = 0;
 		//this.sy = 0;
 
-		this._hea = 800 * 4;
-		this._hmax = 800 * 4;
+		this._hea = 800;
+		this._hmax = 800;
 		
 		this._regen_timeout = 0;
 

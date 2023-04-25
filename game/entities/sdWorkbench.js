@@ -61,7 +61,7 @@ class sdWorkbench extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this.hmax = 5000 * 4;
+		this.hmax = 5000;
 		this.hea = this.hmax;
 		this._regen_timeout = 0;
 		this._cooldown = 0;

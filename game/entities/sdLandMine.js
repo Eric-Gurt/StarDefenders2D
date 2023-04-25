@@ -63,9 +63,12 @@ class sdLandMine extends sdEntity
 		if ( observer_character === this._owner )
 		return true;
 
-		let di = sdWorld.Dist2D( observer_character.x, observer_character.y, this.x, this.y )
-		if ( di < 64 )
-		return true;
+		if ( observer_character )
+		{
+			let di = sdWorld.Dist2D( observer_character.x, observer_character.y, this.x, this.y )
+			if ( di < 64 )
+			return true;
+		}
 
 		return false;
 	}

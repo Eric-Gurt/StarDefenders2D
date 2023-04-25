@@ -700,6 +700,9 @@ class sdDeepSleep extends sdEntity
 	{
 		let directory = globalThis.chunks_folder + '/';
 		
+		if ( fs.rmSync )
+		fs.rmSync( directory, { recursive: true, maxRetries: 10, retryDelay: 100 } );
+		else
 		fs.rmdirSync( directory, { recursive: true, maxRetries: 10, retryDelay: 100 } );
 	}
 	
@@ -831,7 +834,7 @@ class sdDeepSleep extends sdEntity
 			// Proper values for live server
 			this._will_hibernate_on = sdWorld.time + 1000 * 60 * 5; // For sdDeepSleep.TYPE_SCHEDULED_SLEEP only
 			this._will_be_written_to_disk = sdWorld.time + 1000 * 60 * 30; // 30 minutes. Makes sense to do it frequently as it happens on snapshot save now only
-			this._will_become_unspawned = sdWorld.time + 1000 * 60 * 60 * 24 * 30 * 12 * 5; // Full removal in 5 years?
+			this._will_become_unspawned = sdWorld.time + 1000 * 60 * 60 * 24 * 30;// * 12 * 5; // Full removal in 5 years? UPD: 1 month now
 		}
 		this._snapshots_str = '';
 		this._snapshots_objects = null; // Sometimes can be there instead of _snapshots_str - these are faster to use than to stringify/parse
@@ -1099,7 +1102,7 @@ class sdDeepSleep extends sdEntity
 						for ( let i = 0; i < e._plants.length; i++ )
 						{
 							let possible_ent = sdEntity.entities_by_net_id_cache_map.get( e._plants[ i ] );
-
+							
 							if ( possible_ent )
 							if ( !possible_ent._is_being_removed )
 							dependences.push( possible_ent );
