@@ -345,7 +345,8 @@ class sdServerConfigFull extends sdServerConfigShort
 			
 			hover = new sdHover({ x:character_entity.x, y:character_entity.y });
 			hover.guns = 0;
-			hover._doors_locked = true;
+			//hover._doors_locked = true;
+			hover.doors_locked = true;
 			hover.nick = 'Extraction Hover';
 			
 			sdEntity.entities.push( hover );

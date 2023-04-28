@@ -67,14 +67,6 @@ class sdHover extends sdEntity
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	
-	GetDriverSlotsCount()
-	{
-		if ( this.type === sdHover.TYPE_BIKE )
-		return 1;
-	
-		return 6;
-	}
-	
 	get hitbox_x1() { return this.type === 3 ? -10 : this.type === 2 ? -27 : -26 }
 	get hitbox_x2() { return this.type === 3 ? 10 : this.type === 2 ? 27 : 26 }
 	get hitbox_y1() { return this.type === 3 ? -4 : this.type === 2 ? -12 : -9 }
@@ -95,10 +87,6 @@ class sdHover extends sdEntity
 	{
 		return 3;
 	}*/
-	IsVehicle()
-	{
-		return true;
-	}
 
 	VehicleHidesLegs()
 	{
@@ -134,7 +122,7 @@ class sdHover extends sdEntity
 		this.hea = this.hmax;
 		
 		this.guns = 1;
-		this._doors_locked = false;
+		this.doors_locked = false; // Magic property which vehicles use
 		
 		this._tilt = 0;
 		
@@ -178,13 +166,41 @@ class sdHover extends sdEntity
 			1000
 		);
 	}
-	AddDriver( c, force=false )
+	
+	
+	IsVehicle()
+	{
+		return true;
+	}
+	GetDriverSlotsCount()
+	{
+		if ( this.type === sdHover.TYPE_BIKE )
+		return 1;
+	
+		return 6;
+	}
+	GetDriverSlotHint( best_slot )
+	{
+		if ( this.type === 3 )
+		return ( this.guns ) ? sdHover.slot_hints[ 6 ] : 'Entered slot 1';
+		else
+		return ( this.guns ) ? sdHover.slot_hints[ best_slot ] : 'Entered slot ' + ( best_slot + 1 );
+	}
+	onAfterDriverAdded( best_slot )
+	{
+		if ( this.type === 3 && best_slot === 0 )
+		sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1, pitch:2 });
+		else
+		if ( best_slot === 0 )
+		sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1 });
+	}
+	/*AddDriver( c, force=false )
 	{
 		if ( !sdWorld.is_server )
 		return;
 	
 		if ( !force )// && !c._god )
-		if ( this._doors_locked )
+		if ( this.doors_locked )
 		{
 			if ( c._socket )
 			c._socket.SDServiceMessage( 'Doors are locked' );
@@ -194,13 +210,13 @@ class sdHover extends sdEntity
 	
 		var best_slot = -1;
 		
-		for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
+		let driver_slots_total = this.GetDriverSlotsCount();
+		
+		for ( var i = 0; i < driver_slots_total; i++ )
+		if ( this[ 'driver' + i ] === null )
 		{
-			if ( this[ 'driver' + i ] === null )
-			{
-				best_slot = i;
-				break;
-			}
+			best_slot = i;
+			break;
 		}
 		
 		if ( best_slot >= 0 )
@@ -210,16 +226,17 @@ class sdHover extends sdEntity
 			c.driver_of = this;
 
 			if ( c._socket && this.type === 3 )
-			c._socket.SDServiceMessage( ( this.guns ) ? sdHover.slot_hints[ 6 ] : 'Entered slot 1' );
-			
+			{
+				c._socket.SDServiceMessage( ( this.guns ) ? sdHover.slot_hints[ 6 ] : 'Entered slot 1' );
+			}
 			else
+			{
+				if ( c._socket )
+				c._socket.SDServiceMessage( ( this.guns ) ? sdHover.slot_hints[ best_slot ] : 'Entered slot ' + ( best_slot + 1 ) );
+			}
 			
-			if ( c._socket )
-			c._socket.SDServiceMessage( ( this.guns ) ? sdHover.slot_hints[ best_slot ] : 'Entered slot ' + ( best_slot + 1 ) );
-
 			if ( this.type === 3 && best_slot === 0 )
 			sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1, pitch:2 });
-		
 			else
 			if ( best_slot === 0 )
 			sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1 });
@@ -237,7 +254,7 @@ class sdHover extends sdEntity
 		return;
 
 		if ( !force )//&& !c._god )
-		if ( this._doors_locked )
+		if ( this.doors_locked )
 		{
 			if ( c._socket )
 			c._socket.SDServiceMessage( 'Doors are locked' );
@@ -281,7 +298,7 @@ class sdHover extends sdEntity
 		
 		if ( c._socket )
 		c._socket.SDServiceMessage( 'Error: Attempted leaving vehicle in which character is not located.' );
-	}
+	}*/
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )
@@ -1037,9 +1054,7 @@ class sdHover extends sdEntity
 	{
 		if ( this._broken || sdLongRangeTeleport.teleported_items.has( this ) || !sdWorld.is_server )
 		{
-			for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
-			if ( this[ 'driver' + i ] )
-			this.ExcludeDriver( this[ 'driver' + i ], true );
+			this.ExcludeAllDrivers();
 		}
 		
 		if ( this._broken )
@@ -1048,11 +1063,7 @@ class sdHover extends sdEntity
 		}
 		else
 		{
-			for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
-			if ( this[ 'driver' + i ] )
-			{
-				this[ 'driver' + i ].remove();
-			}
+			this.RemoveAllDrivers();
 		}
 	}
 	MeasureMatterCost()
@@ -1074,6 +1085,46 @@ class sdHover extends sdEntity
 			this.type === 2 ? this.hmax * sdWorld.damage_to_matter + 2000 :
 			this.type === 3 ? this.hmax * sdWorld.damage_to_matter + 550 :
 			this.hmax * sdWorld.damage_to_matter + 800;
+	}
+	
+	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
+	{
+		if ( !this._is_being_removed )
+		if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		//if ( exectuter_character._god || this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) )
+		//if ( exectuter_character.canSeeForUse( this ) )
+		if ( exectuter_character._god || exectuter_character.driver_of === this )
+		{
+			let v = this.doors_locked;
+			
+			if ( command_name === 'UNLOCK' )
+			v = false;
+			if ( command_name === 'LOCK' )
+			v = true;
+		
+			if ( v !== this.doors_locked )
+			{
+				sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.5, pitch:1.5 });
+			}
+		}
+	}
+	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( !this._is_being_removed )
+		if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		//if ( exectuter_character._god || this.inRealDist2DToEntity_Boolean( exectuter_character, 64 ) )
+		//if ( exectuter_character.canSeeForUse( this ) )
+		if ( exectuter_character._god || exectuter_character.driver_of === this )
+		{
+			if ( this.doors_locked )
+			this.AddContextOption( 'Unlock doors', 'UNLOCK', [] );
+			else
+			this.AddContextOption( 'Lock doors', 'LOCK', [] );
+		}
 	}
 }
 //sdHover.init_class();

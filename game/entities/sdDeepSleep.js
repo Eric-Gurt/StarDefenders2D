@@ -257,7 +257,8 @@ class sdDeepSleep extends sdEntity
 
 					let e = sdEntity.entities[ i ];
 
-					if ( !e.is( sdDeepSleep ) )
+					//if ( !e.is( sdDeepSleep ) )
+					if ( e.IsBGEntity() !== 10 )
 					{
 						let x = Math.floor( ( e.x + e._hitbox_x1 ) / sdDeepSleep.normal_cell_size ) * sdDeepSleep.normal_cell_size;
 						let y = Math.floor( ( e.y + e._hitbox_y1 ) / sdDeepSleep.normal_cell_size ) * sdDeepSleep.normal_cell_size;
@@ -274,14 +275,22 @@ class sdDeepSleep extends sdEntity
 
 						sdEntity.entities.push( cell );
 
-						let ok = true;
+						/*let ok = true;
 						for ( let i2 = 0; i2 < sdDeepSleep.cells.length; i2++ )
 						if ( cell !== sdDeepSleep.cells[ i2 ] )
 						if ( cell.DoesOverlapWith( sdDeepSleep.cells[ i2 ] ) )
 						{
 							ok = false;
 							break;
-						}
+						}*/
+						let ok = !sdWorld.CheckSolidDeepSleepExistsAtBox(
+							x,
+							y,
+							x + w,
+							y + h,
+							cell,
+							true
+						);
 
 						if ( ok )
 						{

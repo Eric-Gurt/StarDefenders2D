@@ -22,7 +22,7 @@ let skipper = 0;
 let GetAnythingNear = null;
 let sdArea = null;
 //let sdSound = null;
-let sdDeepSleep = null;
+//let sdDeepSleep = null;
 //let sdKeyStates = null;
 			
 class sdEntity
@@ -435,6 +435,137 @@ class sdEntity
 	VehicleHidesLegs()
 	{
 		return true;
+	}
+	GetDriverSlotsCount()
+	{
+		if ( this.IsVehicle() )
+		{
+			console.warn( 'Vehicle sdEntity has no .GetDriverSlotsCount() method overriden in extended class ' + this.GetClass() );
+			debugger;
+		}
+		
+		return 0;
+	}
+	GetDriverSlotHint( best_slot )
+	{
+		return 'Entered slot ' + ( best_slot + 1 );
+	}
+	onAfterDriverAdded( best_slot )
+	{
+	}
+	ExcludeAllDrivers()
+	{
+		for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
+		if ( this[ 'driver' + i ] )
+		this.ExcludeDriver( this[ 'driver' + i ], true );
+	}
+	RemoveAllDrivers() // Will be called if vehicle gets removed by default
+	{
+		for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
+		if ( this[ 'driver' + i ] )
+		this[ 'driver' + i ].remove();
+	}
+	AddDriver( c, force=false ) // Uses magic property _doors_locked or doors_locked
+	{
+		if ( !sdWorld.is_server )
+		return;
+	
+		if ( !force )// && !c._god )
+		if ( ( this._doors_locked || this.doors_locked || false ) )
+		{
+			if ( c._socket )
+			c._socket.SDServiceMessage( 'Doors are locked' );
+		
+			return;
+		}
+	
+		var best_slot = -1;
+		
+		let driver_slots_total = this.GetDriverSlotsCount();
+		
+		for ( var i = 0; i < driver_slots_total; i++ )
+		if ( this[ 'driver' + i ] === null )
+		{
+			best_slot = i;
+			break;
+		}
+		
+		if ( best_slot >= 0 )
+		{
+			this[ 'driver' + best_slot ] = c;
+			
+			c.driver_of = this;
+
+			if ( c._socket )
+			{
+				c._socket.SDServiceMessage( GetDriverSlotHint( best_slot ) );
+			}
+			
+			onAfterDriverAdded( best_slot );
+			/*
+			if ( this.type === 3 && best_slot === 0 )
+			sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1, pitch:2 });
+			else
+			if ( best_slot === 0 )
+			sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1 });*/
+		}
+		else
+		{
+			if ( c._socket )
+			c._socket.SDServiceMessage( 'All slots are occupied' );
+		}
+	}
+	ExcludeDriver( c, force=false )
+	{
+		if ( !force )
+		if ( !sdWorld.is_server )
+		return;
+
+		if ( !force )//&& !c._god )
+		if ( ( this._doors_locked || this.doors_locked || false ) )
+		{
+			if ( c._socket )
+			c._socket.SDServiceMessage( 'Doors are locked' );
+		
+			return;
+		}
+		
+		for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
+		{
+			if ( this[ 'driver' + i ] === c )
+			{
+				this[ 'driver' + i ] = null;
+				c.driver_of = null;
+
+				// To prevent the teleport exploit
+				if ( this.GetDriverSlotsCount() <= 1 )
+				c.x = this.x;
+				else
+				c.x = this.x + ( i / ( this.GetDriverSlotsCount() - 1 ) ) * ( this._hitbox_x2 - this._hitbox_x1 );
+				
+				if ( c.CanMoveWithoutOverlap( c.x, this.y + this._hitbox_y1 - c._hitbox_y2, 0 ) )
+				c.y = this.y + this._hitbox_y1 - c._hitbox_y2;
+				else
+				if ( c.CanMoveWithoutOverlap( this.x + this._hitbox_x1 - c._hitbox_x2, c.y, 0 ) )
+				c.x = this.x + this._hitbox_x1 - c._hitbox_x2;
+				else
+				if ( c.CanMoveWithoutOverlap( this.x + this._hitbox_x2 - c._hitbox_x1, c.y, 0 ) )
+				c.x = this.x + this._hitbox_x2 - c._hitbox_x1;
+				else
+				if ( c.CanMoveWithoutOverlap( this.x, c.y + this._hitbox_y2 - c._hitbox_y1, 0 ) )
+				c.y = this.y + this._hitbox_y2 - c._hitbox_y1;
+		
+				c.PhysWakeUp();
+				
+				if ( c._socket )
+				c._socket.SDServiceMessage( 'Leaving vehicle' );
+		
+				return;
+			}
+		}
+		
+		if ( c._socket )
+		c._socket.SDServiceMessage( 'Error: Attempted leaving vehicle in which character is not located.' );
 	}
 	
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
@@ -2225,11 +2356,15 @@ class sdEntity
 	}
 	CanMoveWithoutDeepSleepTriggering( new_x, new_y, safe_bound=0 )
 	{
-		if ( !sdDeepSleep )
-		sdDeepSleep = sdWorld.entity_classes.sdDeepSleep;
-	
-		const extra_space_around = -safe_bound;
+		this.UpdateHitbox();
 		
+		//if ( !sdDeepSleep )
+		//sdDeepSleep = sdWorld.entity_classes.sdDeepSleep;
+	
+		//const extra_space_around = -safe_bound;
+		
+		return !( sdWorld.CheckSolidDeepSleepExistsAtBox( new_x + this._hitbox_x1 + safe_bound, new_y + this._hitbox_y1 + safe_bound, new_x + this._hitbox_x2 - safe_bound, new_y + this._hitbox_y2 - safe_bound, this ) );
+		/*
 		for ( let i = 0; i < sdDeepSleep.cells.length; i++ )
 		{
 			const cell = sdDeepSleep.cells[ i ];
@@ -2247,7 +2382,7 @@ class sdEntity
 			}
 		}
 
-		return true;
+		return true;*/
 	}
 	
 	GetHitDamageMultiplier( x, y ) // Multiplier for damage
@@ -4242,6 +4377,8 @@ class sdEntity
 		this.callEventListener( 'REMOVAL', this );
 		
 		this.onRemove();
+		
+		this.RemoveAllDrivers();
 		
 		this.ManageTrackedPhysWakeup();
 		
