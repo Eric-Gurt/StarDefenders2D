@@ -498,10 +498,10 @@ class sdEntity
 
 			if ( c._socket )
 			{
-				c._socket.SDServiceMessage( GetDriverSlotHint( best_slot ) );
+				c._socket.SDServiceMessage( this.GetDriverSlotHint( best_slot ) );
 			}
 			
-			onAfterDriverAdded( best_slot );
+			this.onAfterDriverAdded( best_slot );
 			/*
 			if ( this.type === 3 && best_slot === 0 )
 			sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1, pitch:2 });
