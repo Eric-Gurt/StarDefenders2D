@@ -93,6 +93,20 @@ class sdCodeEditor
 		
 		this.ace_editor.setValue( params.code, -1 );
 		
+		let old_value = editor.getSession().getValue();
+		
+		this.ace_editor.getSession().on( 'change', ()=>
+		{
+			let new_value = editor.getSession().getValue();
+			
+			if ( new_value !== old_value )
+			{
+				globalThis.socket.emit( 'ENTITY_CONTEXT_ACTION', [ this.code_container.GetClass(), this.code_container_net_id, 'SET_CODE', [ new_value ] ] );
+				
+				old_value = new_value;
+			}
+		});
+		
 		
 		this.hints = this.window.createElement({ 
 			type: sdElement.TEXT_BLOCK, 
