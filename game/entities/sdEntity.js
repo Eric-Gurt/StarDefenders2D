@@ -4580,6 +4580,8 @@ class sdEntity
 	}
 	_remove_from_entities_array( old_hiber_state=-2 )
 	{
+		// Use BulkRemoveEntitiesFromEntitiesArray instead when possible
+		
 		let id = sdEntity.entities.indexOf( this );
 		if ( id === -1 )
 		{
@@ -4588,6 +4590,32 @@ class sdEntity
 		}
 		else
 		sdEntity.entities.splice( id, 1 );
+	}
+	static BulkRemoveEntitiesFromEntitiesArray( set ) // Entities should be already _is_being_removed
+	{
+		if ( set.size === 0 )
+		return;
+
+		for ( let i = 0; i < sdEntity.entities.length; i++ )
+		{
+			const e = sdEntity.entities[ i ];
+			
+			if ( e._is_being_removed )
+			{
+				if ( set.has( e ) )
+				{
+					sdEntity.entities.splice( i, 1 );
+					
+					if ( set.size <= 1 )
+					return;
+					
+					set.delete( e );
+					
+					i--;
+					continue;
+				}
+			}
+		}
 	}
 	
 	isWaterDamageResistant()

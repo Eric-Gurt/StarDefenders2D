@@ -2615,6 +2615,8 @@ class sdWorld
 			
 			const debug_wake_up_sleep_refuse_reasons = sdDeepSleep.debug_wake_up_sleep_refuse_reasons;
 			
+			const bulk_exclude = new Set();
+			
 			for ( arr_i = 0; arr_i < 2; arr_i++ )
 			{
 				arr = ( arr_i === 0 ) ? sdEntity.active_entities : sdEntity.global_entities;
@@ -2791,7 +2793,8 @@ class sdWorld
 							
 							if ( arr_i === 0 )
 							{
-								e._remove_from_entities_array( hiber_state );
+								//e._remove_from_entities_array( hiber_state );
+								bulk_exclude.add( e );
 							}
 							
 							if ( arr[ i ] === e ) // Removal did not happen?
@@ -2832,6 +2835,8 @@ class sdWorld
 					}
 				}
 			}
+			
+			sdEntity.BulkRemoveEntitiesFromEntitiesArray( bulk_exclude );
 			
 			// Check for improperly removed entities. It fill falsely react to chained removals, for example in case of sdBG -> sdBloodDecal
 			/*if ( sdWorld.is_server || sdWorld.is_singleplayer )

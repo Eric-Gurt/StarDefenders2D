@@ -1289,6 +1289,8 @@ class sdDeepSleep extends sdEntity
 				debugger;
 			}
 			
+			const bulk_exclude = new Set();
+			
 			//entity_once.forEach( ( e )=>
 			//{
 			for ( let i = 0; i < all_entities.length; i++ )
@@ -1322,11 +1324,13 @@ class sdDeepSleep extends sdEntity
 					
 					e._remove(); // Instant remove is required or else it won't be able to spawn same entities from snapshot?
 					
-					e._remove_from_entities_array();
+					bulk_exclude.add( e );
+					//e._remove_from_entities_array();
 					
 					sdLongRangeTeleport.teleported_items.add( e );
 				}
 			}
+			sdEntity.BulkRemoveEntitiesFromEntitiesArray( bulk_exclude );
 			
 			//for ( let i = 0; i < scheduled_sleep_areas_to_cancel.length; i++ )
 			//scheduled_sleep_areas_to_cancel[ i ].remove();
