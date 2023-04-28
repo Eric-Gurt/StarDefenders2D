@@ -455,13 +455,17 @@ class sdEntity
 	}
 	ExcludeAllDrivers()
 	{
-		for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
+		const driver_slots_total = this.GetDriverSlotsCount();
+		
+		for ( var i = 0; i < driver_slots_total; i++ )
 		if ( this[ 'driver' + i ] )
 		this.ExcludeDriver( this[ 'driver' + i ], true );
 	}
 	RemoveAllDrivers() // Will be called if vehicle gets removed by default
 	{
-		for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
+		const driver_slots_total = this.GetDriverSlotsCount();
+		
+		for ( var i = 0; i < driver_slots_total; i++ )
 		if ( this[ 'driver' + i ] )
 		this[ 'driver' + i ].remove();
 	}
@@ -4585,6 +4589,7 @@ class sdEntity
 		else
 		sdEntity.entities.splice( id, 1 );
 	}
+	
 	isWaterDamageResistant()
 	{
 		return false;

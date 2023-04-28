@@ -4,6 +4,9 @@
 	https://samplefocus.com/users/first-name-last-name-af33092b-2f17-46f3-b312-a66932926d0a/samples (Chill Piano Chords)
 	Currently used btw ^ I still have more cuts out of it - EG
 
+
+	HandleWorldLogic
+
 */
 /* global sdShop */
 
@@ -1977,12 +1980,22 @@ class sdWorld
 	}
 	
 
-	static shuffleArray(array) {
+	/*static shuffleArray(array) {
 		for (let i = array.length - 1; i > 0; i--) {
 		const j = Math.floor(Math.random() * (i + 1));
 		[array[i], array[j]] = [array[j], array[i]];
 		}
+	}*/
+	static shuffleArray( array ) 
+	{
+		for (var i = array.length - 1; i > 0; i--) {
+			var j = Math.floor(Math.random() * (i + 1));
+			var temp = array[i];
+			array[i] = array[j];
+			array[j] = temp;
+		}
 	}
+	
 	static Dist2D_Vector_pow2( tox, toy )
 	{
 		return ( tox*tox + toy*toy );
@@ -2038,15 +2051,6 @@ class sdWorld
 		return true;
 	}
 	
-	static shuffleArray( array ) 
-	{
-		for (var i = array.length - 1; i > 0; i--) {
-			var j = Math.floor(Math.random() * (i + 1));
-			var temp = array[i];
-			array[i] = array[j];
-			array[j] = temp;
-		}
-	}
 	
 	static sqr( x )
 	{ return x * x; }

@@ -265,15 +265,6 @@ class sdDeepSleep extends sdEntity
 						let w = sdDeepSleep.normal_cell_size;
 						let h = sdDeepSleep.normal_cell_size;
 
-						let cell = new sdDeepSleep({
-							x: x,
-							y: y,
-							w: w,
-							h: h,
-							type: sdDeepSleep.TYPE_SCHEDULED_SLEEP
-						});
-
-						sdEntity.entities.push( cell );
 
 						/*let ok = true;
 						for ( let i2 = 0; i2 < sdDeepSleep.cells.length; i2++ )
@@ -288,16 +279,25 @@ class sdDeepSleep extends sdEntity
 							y,
 							x + w,
 							y + h,
-							cell,
+							null,
 							true
 						);
 
 						if ( ok )
 						{
+							let cell = new sdDeepSleep({
+								x: x,
+								y: y,
+								w: w,
+								h: h,
+								type: sdDeepSleep.TYPE_SCHEDULED_SLEEP
+							});
+
+							sdEntity.entities.push( cell );
 						}
 						else
 						{
-							cell.remove();
+							//cell.remove();
 						}
 					}
 				}

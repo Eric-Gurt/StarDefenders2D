@@ -340,6 +340,7 @@ class sdServerConfigFull extends sdServerConfigShort
 		
 		if ( !hover )
 		if ( !sdWorld.server_config.skip_arrival_sequence )
+		if ( character_entity.is( sdCharacter ) || character_entity.is( sdPlayerDrone ) )
 		{
 			fresh_hover = true;
 			
