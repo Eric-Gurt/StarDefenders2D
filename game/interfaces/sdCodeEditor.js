@@ -93,19 +93,21 @@ class sdCodeEditor
 		
 		this.ace_editor.setValue( params.code, -1 );
 		
-		let old_value = editor.getSession().getValue();
+		let old_value = params.code;
 		
-		this.ace_editor.getSession().on( 'change', ()=>
+		/*this.ace_editor.getSession().on( 'blur', ()=>
 		{
 			let new_value = editor.getSession().getValue();
 			
 			if ( new_value !== old_value )
+			if ( new_value !== '' )
 			{
+				//if ( old_value === undefined )
 				globalThis.socket.emit( 'ENTITY_CONTEXT_ACTION', [ this.code_container.GetClass(), this.code_container_net_id, 'SET_CODE', [ new_value ] ] );
 				
 				old_value = new_value;
 			}
-		});
+		});*/
 		
 		
 		this.hints = this.window.createElement({ 
@@ -254,6 +256,19 @@ ${ sdBot.function_descriptions }
 	
 	remove()
 	{
+		let e = this.ace_editor;
+		if ( e )
+		{
+			let s = e.getSession();
+			if ( s )
+			{
+				let v = s.getValue();
+
+				if ( v !== '' && typeof v === 'string' )
+				globalThis.socket.emit( 'ENTITY_CONTEXT_ACTION', [ this.code_container.GetClass(), this.code_container_net_id, 'SET_CODE', [ v ] ] );
+			}
+		}
+		
 		this.window.remove();
 		
 		this.ace_editor.destroy();
