@@ -1106,6 +1106,7 @@ class sdHover extends sdEntity
 		
 			if ( v !== this.doors_locked )
 			{
+				this.doors_locked = v;
 				sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.5, pitch:1.5 });
 			}
 		}
