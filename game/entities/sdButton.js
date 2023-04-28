@@ -281,6 +281,7 @@ class sdButton extends sdEntity
 			}
 		}
 		
+		if ( sdWorld.is_server )
 		this.SetActivated( this.IsFilterConditionsMet() );
 		
 		if ( this._overlapped_net_ids.length === 0 && this._hea >= this._hmax )
