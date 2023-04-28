@@ -438,11 +438,11 @@ class sdEntity
 	}
 	GetDriverSlotsCount()
 	{
-		if ( this.IsVehicle() )
+		/*if ( this.IsVehicle() )
 		{
 			console.warn( 'Vehicle sdEntity has no .GetDriverSlotsCount() method overriden in extended class ' + this.GetClass() );
 			debugger;
-		}
+		}*/
 		
 		return 0;
 	}
