@@ -3294,11 +3294,28 @@ class sdWeather extends sdEntity
 			this._asteroid_timer += GSPEED;
 			if ( this._asteroid_timer > 60 * 30 / ( ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) / 800 ) )
 			{
-				let ent = new sdAsteroid({ 
-					x:sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ), 
-					y:sdWorld.world_bounds.y1 + 1
-				});
-				sdEntity.entities.push( ent );
+				let xx = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
+				
+				let proper_distnace = false;
+
+				for ( let i = 0; i < sdWorld.sockets.length; i++ )
+				if ( sdWorld.sockets[ i ].character )
+				{
+					if ( Math.abs( sdWorld.sockets[ i ].character.x, xx ) < sdWeather.min_distance_from_online_players_for_entity_events )
+					{
+						proper_distnace = true;
+						break;
+					}
+				}
+				
+				if ( proper_distnace )
+				{
+					let ent = new sdAsteroid({ 
+						x:xx, 
+						y:sdWorld.world_bounds.y1 + 1
+					});
+					sdEntity.entities.push( ent );
+				}
 
 				this._asteroid_timer = 0;
 				this._asteroid_timer_scale_next = Math.random();

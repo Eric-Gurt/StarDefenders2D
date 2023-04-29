@@ -48,7 +48,8 @@ class sdAsteroid extends sdEntity
 		this.sy = 10;
 
 
-		this._time_to_despawn = 30 * 60 * 5; // 5 minutes to despawn landed asteroids
+		//this._time_to_despawn = 30 * 60 * 5; // 5 minutes to despawn landed asteroids
+		this._time_to_despawn = 30 * 60 * 2; // 2 minutes to despawn landed asteroids
 		
 		//this._an = 0;
 		this._an = Math.atan2( this.sy, this.sx ) - Math.PI / 2;
@@ -109,7 +110,10 @@ class sdAsteroid extends sdEntity
 			this._an += this.sx * GSPEED * 20 / 100 / this.scale;
 			
 			if ( this._time_to_despawn < 0 )
-			this.remove();
+			{
+				this.remove();
+				this._broken = false;
+			}
 		}
 		else
 		{
@@ -127,9 +131,14 @@ class sdAsteroid extends sdEntity
 			//if ( sdWorld.CheckWallExists( this.x, this.y + this._hitbox_y2, this ) )
 			if ( !this.CanMoveWithoutDeepSleepTriggering( new_x, new_y, 0 ) )
 			{
+				// Fly past them as if nothing is here?
+				this.x = new_x;
+				this.y = new_y;
+				/*
+				
 				// Despawn asteroids flying into sdDeepSleep
 				this.remove();
-				this._broken = false;
+				this._broken = false;*/
 			}
 			else
 			if ( !this.CanMoveWithoutOverlap( new_x, new_y, 0 ) )

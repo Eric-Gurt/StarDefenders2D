@@ -42,8 +42,8 @@ class sdFleshGrabber extends sdEntity
 	{
 		super( params );
 		
-		this.sx = 0;
-		this.sy = 0;
+		//this.sx = 0;
+		//this.sy = 0;
 		
 		this._hmax = 200;
 		this._hea = this._hmax;
@@ -58,10 +58,10 @@ class sdFleshGrabber extends sdEntity
 		this._attached_to = params._attached_to || null; // To what flesh block is this attached to? It should die only when it's
 		
 		//this._last_stand_on = null;
-		this.time_since_jump = 0;
+		//this.time_since_jump = 0;
 		//this.last_jump = sdWorld.time;
-		this._last_bite = sdWorld.time;
-		this._last_stand_when = 0;
+		//this._last_bite = sdWorld.time;
+		//this._last_stand_when = 0;
 		
 		this.side = params.side || 0; // 0-3. Random 90 degree directions it should be attached to flesh.
 		
@@ -93,6 +93,8 @@ class sdFleshGrabber extends sdEntity
 				this._current_target = character;
 			}
 		}
+		
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 	}
 	GetBleedEffect()
 	{
@@ -143,8 +145,9 @@ class sdFleshGrabber extends sdEntity
 			this.remove();
 		}
 		{
-			this.sx = 0;
-			this.sy = 0;
+			//this.sx = 0;
+			//this.sy = 0;
+			
 			//if ( this._tenta_target )
 			//if ( this._tenta_target._is_being_removed )
 			//this._tenta_target = null;
@@ -218,8 +221,9 @@ class sdFleshGrabber extends sdEntity
 
 					//let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 170 );
 					let from_entity;
-					let dist_att = sdWorld.Dist2D_Vector( this._current_target.x - this.x, this._current_target.y - this.y );
-					if ( dist_att < 150 )
+					//let dist_att = sdWorld.Dist2D_Vector( this._current_target.x - this.x, this._current_target.y - this.y );
+					//if ( dist_att < 150 )
+					if ( sdWorld.inDist2D_Boolean( this._current_target.x, this._current_target.y, this.x, this.y, 150 ) )
 					{
 						from_entity = this._current_target;
 						this._pull_timer = 50;
@@ -261,6 +265,8 @@ class sdFleshGrabber extends sdEntity
 							from_entity.Impulse( this.tenta_x / di * 20, this.tenta_y / di * 20 );
 						}
 					}
+					else
+					this._current_target = null;
 				}
 			}
 		}
@@ -269,11 +275,13 @@ class sdFleshGrabber extends sdEntity
 		
 		//sdWorld.last_hit_entity = null;
 		
-		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+		//this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 		
 		//if ( sdWorld.last_hit_entity ) // ApplyVelocityAndCollisions sets value to sdWorld.last_hit_entity which can be reused to figure out if Slug collides with something. It can also set nothing if it entity physically sleeps, which is another sign of collision 
 		//this._last_stand_when = sdWorld.time;
-		
+
+		if ( !this._current_target && !this._tenta_target && this._hea >= this._hmax )
+		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{

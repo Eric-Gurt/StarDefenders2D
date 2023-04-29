@@ -4595,6 +4595,17 @@ class sdEntity
 	{
 		if ( set.size === 0 )
 		return;
+	
+		if ( set.size === 1 )
+		{
+			for ( const e of set )
+			{
+				let id = sdEntity.entities.indexOf( e );
+				if ( id !== -1 )
+				sdEntity.entities.splice( id, 1 );
+			}
+			return;
+		}
 
 		for ( let i = 0; i < sdEntity.entities.length; i++ )
 		{
@@ -4624,6 +4635,7 @@ class sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP ); // Likely no logic is added to entity - no reason to keep it awake at all. Something like sdSensorArea can happen to be non-hiberanted occasionally, possibly due to being loaded from snapshots. This would solve that
 	}
 	onThinkFrozen( GSPEED )
 	{
@@ -4632,6 +4644,11 @@ class sdEntity
 			this.sy += sdWorld.gravity * GSPEED;
 			
 			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1 ); // Extra fragility is buggy
+		}
+		else
+		{
+			// No hibernation logic is really needed here - it barely happens if happens at all
+			//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP ); // Likely no logic is added to entity - no reason to keep it awake at all. Something like sdSensorArea can happen to be non-hiberanted occasionally, possibly due to being loaded from snapshots. This would solve that
 		}
 			
 		//if ( this._ragdoll )
