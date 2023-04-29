@@ -236,11 +236,13 @@ class sdServerConfigFull extends sdServerConfigShort
 				
 				if ( !hover._is_being_removed )
 				{
-					if ( hover.driver0 )
-					if ( !hover.driver0._is_being_removed )
+					let driver = hover.driver0;
+						
+					if ( driver )
+					if ( !driver._is_being_removed )
 					{
-						hover.driver0.remove();
-						hover.driver0._broken = false;
+						driver.remove();
+						driver._broken = false;
 					}
 
 					hover.remove();
