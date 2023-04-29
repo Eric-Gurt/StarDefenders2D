@@ -340,8 +340,13 @@ class sdWeaponBench extends sdEntity
 						{
 							if ( upgrades[ i ].title = "Increase damage" && upgrades[ i ].cost === 2 ) // Normal gun damage upgrade price
 							{
+								let slot_mult = 1;
+								if ( sdGun.classes[ this.item0.class ].slot === 0 || sdGun.classes[ this.item0.class ].slot === 1 )
+								slot_mult = 0.7;
+								if ( sdGun.classes[ this.item0.class ].slot === 2 )
+								slot_mult = 1.5;
 								let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost * 2 || 60 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
-								let normal_cost = Math.min( 500, 30 + matter_cost_durability );
+								let normal_cost = Math.min( 500, 30 + matter_cost_durability * slot_mult );
 								if ( exectuter_character.matter >= ( normal_cost || 0 ) )
 								{
 									if ( upgrades[ i ].action )
@@ -361,8 +366,13 @@ class sdWeaponBench extends sdEntity
 							else
 							if ( upgrades[ i ].title = "Improve recoil control" && upgrades[ i ].cost === 1 ) // Normal gun recoil upgrade price
 							{
+								let slot_mult = 1;
+								if ( sdGun.classes[ this.item0.class ].slot === 0 || sdGun.classes[ this.item0.class ].slot === 1 )
+								slot_mult = 0.7;
+								if ( sdGun.classes[ this.item0.class ].slot === 2 )
+								slot_mult = 1.5;
 								let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost * 2 || 60 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
-								let normal_cost = Math.min( 250, ( 30 + matter_cost_durability ) / 2 );
+								let normal_cost = Math.min( 250, ( 30 + matter_cost_durability * slot_mult ) / 2 );
 								if ( exectuter_character.matter >= ( normal_cost || 0 ) )
 								{
 									if ( upgrades[ i ].action )
@@ -489,15 +499,25 @@ class sdWeaponBench extends sdEntity
 						else
 						if ( upgrade.title === "Increase damage" && upgrade.cost === 2 ) // Non "custom" gun damage
 						{
+							let slot_mult = 1;
+							if ( sdGun.classes[ this.item0.class ].slot === 0 || sdGun.classes[ this.item0.class ].slot === 1 )
+							slot_mult = 0.7;
+							if ( sdGun.classes[ this.item0.class ].slot === 2 )
+							slot_mult = 1.5;
 							let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost * 2 || 60 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
-							let normal_cost = Math.min( 500, 30 + matter_cost_durability );
+							let normal_cost = Math.min( 500, 30 + matter_cost_durability * slot_mult );
 							this.AddContextOption( upgrade.title + ( ( normal_cost || 0 ) > 0 ? ' (' + ( normal_cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color } );
 						}
 						else
 						if ( upgrade.title === "Improve recoil control" && upgrade.cost === 1 ) // Non "custom" gun recoil
 						{
+							let slot_mult = 1;
+							if ( sdGun.classes[ this.item0.class ].slot === 0 || sdGun.classes[ this.item0.class ].slot === 1 )
+							slot_mult = 0.7;
+							if ( sdGun.classes[ this.item0.class ].slot === 2 )
+							slot_mult = 1.5;
 							let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost * 2 || 60 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
-							let normal_cost = Math.min( 250, ( 30 + matter_cost_durability ) / 2 );
+							let normal_cost = Math.min( 250, ( 30 + matter_cost_durability * slot_mult ) / 2 );
 							this.AddContextOption( upgrade.title + ( ( normal_cost || 0 ) > 0 ? ' (' + ( normal_cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color } );
 						}
 						else
