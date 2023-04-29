@@ -18,6 +18,8 @@ Development-related discussions so far happen here: https://discord.gg/rX4xEc2Y9
 
 # Installation
 
+Upload files somewhere, remove node_modules as it might appear outdated (yet should be fine as long as server is not accessible from Internet, even if your server config has password)
+
 In command line (linux, CentOS):
 ```
 apt update
@@ -32,7 +34,9 @@ npm init
 
 npm install express --save
 
-npm install jade --save
+npm install socket.io --save
+
+npm install socket.io-client --save
 ```
 PS: You'll probably need latest Node.JS version. If something does not work - you can contact me or discuss it at #sd-discussion at PB2's discord server.
 
