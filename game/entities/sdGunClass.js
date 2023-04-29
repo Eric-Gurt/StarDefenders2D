@@ -563,19 +563,19 @@ class sdGunClass
 
 		// Function below for regular non custom guns
 
-		function AddGunDefaultUpgrades( custom_rifle_upgrades=[] )
+		function AddGunDefaultUpgrades( normal_rifle_upgrades=[] )
 		{
-			custom_rifle_upgrades.push(
+			normal_rifle_upgrades.push(
 				{
 					title: 'Customize properties...', 
 					represents_category: 'customize_properties'
 				} 
 			);
 
-			custom_rifle_upgrades.push(
+			normal_rifle_upgrades.push(
 				{
 					title: 'Increase damage', 
-					cost: 500, 
+					cost: 2, 
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
@@ -594,7 +594,7 @@ class sdGunClass
 					} 
 				} 
 			);
-			custom_rifle_upgrades.push(
+			normal_rifle_upgrades.push(
 				{
 					title: 'Decrease damage', 
 					cost: 0, 
@@ -616,7 +616,7 @@ class sdGunClass
 					} 
 				} 
 			);
-			/*custom_rifle_upgrades.push(
+			/*normal_rifle_upgrades.push(
 				{
 					title: 'Increase fire rate', 
 					cost: 0, 
@@ -628,7 +628,7 @@ class sdGunClass
 					} 
 				} 
 			);
-			custom_rifle_upgrades.push(
+			normal_rifle_upgrades.push(
 				{
 					title: 'Decrease fire rate', 
 					cost: 0, 
@@ -640,10 +640,10 @@ class sdGunClass
 					} 
 				} 
 			);*/
-			custom_rifle_upgrades.push(
+			normal_rifle_upgrades.push(
 				{
 					title: 'Improve recoil control', 
-					cost: 250, 
+					cost: 1, 
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
@@ -652,7 +652,7 @@ class sdGunClass
 					} 
 				} 
 			);
-			custom_rifle_upgrades.push(
+			normal_rifle_upgrades.push(
 				{
 					title: 'Worsen recoil control', 
 					cost: 0, 
@@ -664,7 +664,7 @@ class sdGunClass
 					} 
 				} 
 			);
-			/*custom_rifle_upgrades.push(
+			/*normal_rifle_upgrades.push(
 				{
 					title: 'Toggle biometry lock', 
 					cost: 500, 
@@ -684,7 +684,7 @@ class sdGunClass
 			);*/
 			// Not sure if biometry lock is needed, since we can just turn it off in bench anyway
 	
-			return custom_rifle_upgrades;
+			return normal_rifle_upgrades;
 		}
 		/*
 		

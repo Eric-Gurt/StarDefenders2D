@@ -338,6 +338,48 @@ class sdWeaponBench extends sdEntity
 
 						if ( i >= 0 & i < upgrades.length )
 						{
+							if ( upgrades[ i ].title = "Increase damage" && upgrades[ i ].cost === 2 ) // Normal gun damage upgrade price
+							{
+								let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost * 2 || 60 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
+								let normal_cost = Math.min( 500, 30 + matter_cost_durability );
+								if ( exectuter_character.matter >= ( normal_cost || 0 ) )
+								{
+									if ( upgrades[ i ].action )
+									{
+										upgrades[ i ].action( this.item0, exectuter_character, ...parameters_array.slice( 1 ) );
+									}
+
+									sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+
+									exectuter_character.matter -= ( normal_cost || 0 );	
+
+									this._update_version++;
+								}
+								else
+								executer_socket.SDServiceMessage( 'Not enough matter' );
+							}
+							else
+							if ( upgrades[ i ].title = "Improve recoil control" && upgrades[ i ].cost === 1 ) // Normal gun recoil upgrade price
+							{
+								let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost * 2 || 60 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
+								let normal_cost = Math.min( 250, ( 30 + matter_cost_durability ) / 2 );
+								if ( exectuter_character.matter >= ( normal_cost || 0 ) )
+								{
+									if ( upgrades[ i ].action )
+									{
+										upgrades[ i ].action( this.item0, exectuter_character, ...parameters_array.slice( 1 ) );
+									}
+
+									sdSound.PlaySound({ name:'gun_buildtool', x:this.x, y:this.y, volume:0.5 });
+
+									exectuter_character.matter -= ( normal_cost || 0 );	
+
+									this._update_version++;
+								}
+								else
+								executer_socket.SDServiceMessage( 'Not enough matter' );
+							}
+							else
 							if ( exectuter_character.matter >= ( upgrades[ i ].cost || 0 ) )
 							{
 								if ( upgrades[ i ].action )
@@ -443,6 +485,20 @@ class sdWeaponBench extends sdEntity
 							color = sdWorld.GetColorOfSDFilter( this.item0.sd_filter, color );
 						
 							this.AddColorPickerContextOption( upgrade.title + ( ( upgrade.cost || 0 ) > 0 ? ' (' + ( upgrade.cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i, undefined ], false, '#' + color );
+						}
+						else
+						if ( upgrade.title === "Increase damage" && upgrade.cost === 2 ) // Non "custom" gun damage
+						{
+							let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost * 2 || 60 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
+							let normal_cost = Math.min( 500, 30 + matter_cost_durability );
+							this.AddContextOption( upgrade.title + ( ( normal_cost || 0 ) > 0 ? ' (' + ( normal_cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color } );
+						}
+						else
+						if ( upgrade.title === "Improve recoil control" && upgrade.cost === 1 ) // Non "custom" gun recoil
+						{
+							let matter_cost_durability = sdGun.classes[ this.item0.class ].spawnable !== false ? ( sdGun.classes[ this.item0.class ].matter_cost * 2 || 60 ) : 300; // Matter cost for durability is either equal to cost to build or 300 for non-buildable items
+							let normal_cost = Math.min( 250, ( 30 + matter_cost_durability ) / 2 );
+							this.AddContextOption( upgrade.title + ( ( normal_cost || 0 ) > 0 ? ' (' + ( normal_cost || 0 ) + ' matter)' : '' ), 'UPGRADE', [ i ], false, { hint_color: upgrade.hint_color } );
 						}
 						else
 						{
