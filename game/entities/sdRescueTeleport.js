@@ -103,7 +103,10 @@ class sdRescueTeleport extends sdEntity
 							let range = rtp.GetRTPRange( character );
 							let cost = rtp.GetRTPMatterCost( character );
 							
-							let suits = ( range === Infinity || sdWorld.inDist2D_Boolean( rtp.x, rtp.y, character.x, character.y, range ) ) && ( rtp.matter >= cost );
+							//let suits = ( range === Infinity || sdWorld.inDist2D_Boolean( rtp.x, rtp.y, character.x, character.y, range ) ) && ( rtp.matter >= cost );
+							let suits = !rtp.IsCloner() && ( range === Infinity || sdWorld.inDist2D_Boolean( rtp.x, rtp.y, character.x, character.y, range ) ) && ( rtp.matter >= cost );
+							
+							// Warn about cloner-only RTPs being available
 							
 							if ( suits )
 							{

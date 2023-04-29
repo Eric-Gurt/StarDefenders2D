@@ -249,13 +249,13 @@ class sdFleshGrabber extends sdEntity
 
 							if ( typeof from_entity.sx !== 'undefined' ) // Is it an entity
 							from_entity.sx += - this.tenta_x / 100; // Pull it in
-							else
-							this.sx += this.tenta_x / 100; // Pull itself towards the static entity
+							//else
+							//this.sx += this.tenta_x / 100; // Pull itself towards the static entity
 
 							if ( typeof from_entity.sy !== 'undefined' )
 							from_entity.sy += - this.tenta_y / 100;
-							else
-							this.sy += this.tenta_y / 100; // Pull itself towards the entity
+							//else
+							//this.sy += this.tenta_y / 100; // Pull itself towards the entity
 
 							if ( from_entity.IsPlayerClass() )
 							from_entity.ApplyServerSidePositionAndVelocity( true, - this.tenta_x / 100, - this.tenta_y / 100 );

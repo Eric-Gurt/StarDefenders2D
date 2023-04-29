@@ -332,7 +332,7 @@ class sdCable extends sdEntity
 	{
 		let old = this.p;
 		
-		debugger;
+		//debugger;
 		
 		if ( this.p )
 		{
@@ -362,7 +362,7 @@ class sdCable extends sdEntity
 	{
 		let old = this.c;
 		
-		debugger;
+		//debugger;
 		
 		if ( this.c )
 		{
