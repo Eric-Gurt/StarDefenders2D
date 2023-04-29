@@ -555,7 +555,7 @@ class sdRescueTeleport extends sdEntity
 	{
 		let postfix;
 		if ( this.driver0 )
-		postfix = " ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + ", " + T("clonning") + " "+(~~Math.min( 100, this.cloning_progress / sdRescueTeleport.clonning_time * 100 ))+"% )";
+		postfix = " ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + ", " + T("cloning") + " "+(~~Math.min( 100, this.cloning_progress / sdRescueTeleport.clonning_time * 100 ))+"% )";
 		else
 		postfix = "  ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + " )";
 		
@@ -635,7 +635,7 @@ class sdRescueTeleport extends sdEntity
 							{
 								//if ( this._rescuing_from_lost_effect )
 								//{
-									executer_socket.SDServiceMessage( 'Your previous body does no longer exist. Clonning procedure needs to be compelted. Does anyone have "Area amplifier" device?' );
+									executer_socket.SDServiceMessage( 'Your previous body does no longer exist. Cloning procedure needs to be completed. Does anyone have "Area amplifier" device?' );
 								/*}
 								else
 								{
@@ -699,9 +699,9 @@ class sdRescueTeleport extends sdEntity
 			if ( this.type === sdRescueTeleport.TYPE_CLONER && this.driver0 )
 			{
 				if ( this.driver0 !== exectuter_character )
-				this.AddContextOption( 'Sabotage clonning', 'SABOTAGE', [] );
+				this.AddContextOption( 'Sabotage cloning', 'SABOTAGE', [] );
 				else
-				this.AddContextOption( 'Continue at rescure teleport instead', 'CANCEL', [] );
+				this.AddContextOption( 'Continue at rescue teleport instead', 'CANCEL', [] );
 			}
 			
 			//if ( sdWorld.my_entity && this.owner_net_id === sdWorld.my_entity._net_id )
