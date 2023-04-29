@@ -42,8 +42,6 @@ class sdFleshGrabber extends sdEntity
 	{
 		super( params );
 		
-		//this.sx = 0;
-		//this.sy = 0;
 		
 		this._hmax = 200;
 		this._hea = this._hmax;
@@ -56,12 +54,6 @@ class sdFleshGrabber extends sdEntity
 		this._current_target = null;
 
 		this._attached_to = params._attached_to || null; // To what flesh block is this attached to? It should die only when it's
-		
-		//this._last_stand_on = null;
-		//this.time_since_jump = 0;
-		//this.last_jump = sdWorld.time;
-		//this._last_bite = sdWorld.time;
-		//this._last_stand_when = 0;
 		
 		this.side = params.side || 0; // 0-3. Random 90 degree directions it should be attached to flesh.
 		
@@ -145,8 +137,6 @@ class sdFleshGrabber extends sdEntity
 			this.remove();
 		}
 		{
-			//this.sx = 0;
-			//this.sy = 0;
 			
 			//if ( this._tenta_target )
 			//if ( this._tenta_target._is_being_removed )
@@ -249,13 +239,9 @@ class sdFleshGrabber extends sdEntity
 
 							if ( typeof from_entity.sx !== 'undefined' ) // Is it an entity
 							from_entity.sx += - this.tenta_x / 100; // Pull it in
-							//else
-							//this.sx += this.tenta_x / 100; // Pull itself towards the static entity
 
 							if ( typeof from_entity.sy !== 'undefined' )
 							from_entity.sy += - this.tenta_y / 100;
-							//else
-							//this.sy += this.tenta_y / 100; // Pull itself towards the entity
 
 							if ( from_entity.IsPlayerClass() )
 							from_entity.ApplyServerSidePositionAndVelocity( true, - this.tenta_x / 100, - this.tenta_y / 100 );
@@ -271,15 +257,6 @@ class sdFleshGrabber extends sdEntity
 			}
 		}
 		
-		//this.sy += sdWorld.gravity * GSPEED;
-		
-		//sdWorld.last_hit_entity = null;
-		
-		//this.ApplyVelocityAndCollisions( GSPEED, 0, true );
-		
-		//if ( sdWorld.last_hit_entity ) // ApplyVelocityAndCollisions sets value to sdWorld.last_hit_entity which can be reused to figure out if Slug collides with something. It can also set nothing if it entity physically sleeps, which is another sign of collision 
-		//this._last_stand_when = sdWorld.time;
-
 		if ( !this._current_target && !this._tenta_target && this._hea >= this._hmax )
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 	}
