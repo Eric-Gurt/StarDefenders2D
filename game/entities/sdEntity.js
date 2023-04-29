@@ -436,7 +436,7 @@ class sdEntity
 	{
 		return true;
 	}
-	GetDriverSlotsCount()
+	GetDriverSlotsCount() // Not specfiying this will cause phantom effect on drivers after entity was destroyed
 	{
 		/*if ( this.IsVehicle() )
 		{
@@ -4620,43 +4620,17 @@ class sdEntity
 		else
 		sdEntity.entities.splice( id, 1 );
 	}
-	static BulkRemoveEntitiesFromEntitiesArray( set ) // Entities should be already _is_being_removed
+	static BulkRemoveEntitiesFromEntitiesArray( arr ) // Entities should be already _is_being_removed
 	{
-		if ( set.size === 0 )
-		return;
-	
-		if ( set.size === 1 )
+		for ( let i = 0; i < arr.length; i++ )
 		{
-			for ( const e of set )
-			{
-				let id = sdEntity.entities.indexOf( e );
-				if ( id !== -1 )
-				sdEntity.entities.splice( id, 1 );
-			}
-			return;
-		}
-
-		for ( let i = 0; i < sdEntity.entities.length; i++ )
-		{
-			const e = sdEntity.entities[ i ];
-			
-			if ( e._is_being_removed )
-			{
-				if ( set.has( e ) )
-				{
-					sdEntity.entities.splice( i, 1 );
-					
-					if ( set.size <= 1 )
-					return;
-					
-					set.delete( e );
-					
-					i--;
-					continue;
-				}
-			}
+			let id = sdEntity.entities.lastIndexOf( arr[ i ] );
+			if ( id !== -1 )
+			sdEntity.entities.splice( id, 1 );
 		}
 	}
+	
+	
 	
 	isWaterDamageResistant()
 	{

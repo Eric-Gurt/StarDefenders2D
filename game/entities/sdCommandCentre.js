@@ -117,6 +117,10 @@ class sdCommandCentre extends sdEntity
 	{
 		return true;
 	}
+	GetDriverSlotsCount()
+	{
+		return 1;
+	}
 	AddDriver( c, force=false )
 	{
 		if ( !sdWorld.is_server )

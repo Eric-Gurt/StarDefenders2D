@@ -103,6 +103,10 @@ class sdLifeBox extends sdEntity
 		// 1 slot
 		this.driver0 = null; // movement
 	}
+	GetDriverSlotsCount()
+	{
+		return sdLifeBox.driver_slots;
+	}
 	AddDriver( c )
 	{
 		if ( !sdWorld.is_server )
