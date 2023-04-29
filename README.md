@@ -18,9 +18,9 @@ Development-related discussions so far happen here: https://discord.gg/rX4xEc2Y9
 
 # Installation
 
-Upload files somewhere, remove node_modules as it might appear outdated (yet should be fine as long as server is not accessible from Internet, even if your server config has password)
+Upload files to your server, remove node_modules folder as it might appear outdated (yet should be fine as long as server is not accessible from Internet, even if your server config has password).
 
-In command line (linux, CentOS):
+Then, in command line (linux, CentOS):
 ```
 apt update
 
@@ -28,7 +28,7 @@ apt install nodejs
 
 apt install npm
 ```
-*pick directory*
+*pick directory where your Star Defenders 2D files are, index.js file specifically*
 ```
 npm init
 
