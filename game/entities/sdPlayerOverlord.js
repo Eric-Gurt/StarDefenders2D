@@ -274,6 +274,9 @@ class sdPlayerOverlord extends sdCharacter
 			this.hea = Math.min( this.hea + GSPEED, this.hmax );
 		}
 		
+		if ( this.IsOutOfBounds() )
+		this.Damage( this.hmax * GSPEED / ( 30 * 5 ) );
+		
 
 		let v = 0.1;
 				

@@ -2849,6 +2849,19 @@ class sdCharacter extends sdEntity
 			this._player_damage = 0; // Hack
 		}
 	}
+	
+	IsOutOfBounds()
+	{
+		//if ( !sdWorld.inDist2D_Boolean( 0,0, this.x, this.y, sdWorld.server_config.open_world_max_distance_from_zero_coordinates ) )
+		if ( Math.abs( this.x ) > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x ||
+			 this.y < sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_min ||
+			 this.y > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_max )
+		{
+			return true;
+		}
+		
+		return false;
+	}
 
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -3647,14 +3660,19 @@ class sdCharacter extends sdEntity
 		
 		let out_of_bounds = false;
 		
-		//if ( !sdWorld.inDist2D_Boolean( 0,0, this.x, this.y, sdWorld.server_config.open_world_max_distance_from_zero_coordinates ) )
-		if ( Math.abs( this.x ) > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x ||
+		if ( this.IsOutOfBounds() )
+		{
+			can_breathe = false;
+			out_of_bounds = true;
+		}
+		
+		/*if ( Math.abs( this.x ) > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x ||
 			 this.y < sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_min ||
 			 this.y > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_max )
 		{
 			can_breathe = false;
 			out_of_bounds = true;
-		}
+		}*/
 		
 		/*if ( this._key_states.GetKey( 'KeyA' ) )
 		{
