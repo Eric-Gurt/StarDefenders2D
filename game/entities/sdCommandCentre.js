@@ -101,7 +101,7 @@ class sdCommandCentre extends sdEntity
 		
 		this.owner = params.owner || null;
 		
-		this.biometry = globalThis.sdWords ? sdWords.GetRandomWord().toUpperCase() : '';
+		this.biometry = globalThis.sdDictionaryWords ? sdDictionaryWords.GetRandomWord().toUpperCase() : '';
 		
 		this._shielded = null; // Is this entity protected by a base defense unit?
 		

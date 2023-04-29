@@ -2838,7 +2838,18 @@ class sdEntity
 		return true;
 	}
 
+	static CableCacheFlushMethod( e )
+	{
+		if ( e._connected_ents )
+		e._connected_ents = null;
 	
+		let auto_entity = e.GetAutoConnectedEntityForMatterFlow();
+		if ( auto_entity )
+		if ( auto_entity._connected_ents )
+		auto_entity._connected_ents = null;
+	
+		return false;
+	}
 	FindObjectsInACableNetwork( accept_test_method=null, alternate_class_to_search=sdWorld.entity_classes.sdBaseShieldingUnit, return_full_paths=false ) // No cache, so far. return_full_paths makes it return arrays of entities on a way to searched entities
 	{
 		const sdCable = sdWorld.entity_classes.sdCable;
@@ -4006,6 +4017,8 @@ class sdEntity
 				
 				for ( i = 0; i < connected_ents.length; i++ )
 				{
+					const e = connected_ents[ i ];
+					
 					/*globalThis.max_connected_ents_length = globalThis.max_connected_ents_length || null;
 
 					// Top: 257
@@ -4018,15 +4031,15 @@ class sdEntity
 						};
 					}*/
 
-					//if ( ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' ) && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
-					if ( connected_ents[ i ]._has_matter_props && !connected_ents[ i ]._is_being_removed )
+					//if ( ( typeof e.matter !== 'undefined' || typeof e._matter !== 'undefined' ) && !e._is_being_removed ) // Can appear as being removed as well...
+					if ( e._has_matter_props && !e._is_being_removed )
 					{
-						//this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+						//this.TransferMatter( e, how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
 
-						//visited_ents.add( connected_ents[ i ] );
-						connected_ents[ i ]._flag = visited_ent_flag;
+						//visited_ents.add( e );
+						e._flag = visited_ent_flag;
 
-						if ( connected_ents[ i ].PrioritizeGivingMatterAway() )
+						if ( e.PrioritizeGivingMatterAway() )
 						{
 							if ( array_is_not_cloned )
 							{
@@ -4034,7 +4047,7 @@ class sdEntity
 								connected_ents = connected_ents.slice(); // Clone
 							}
 
-							let recursively_connected = sdCable.GetConnectedEntities( connected_ents[ i ], sdCable.TYPE_MATTER );
+							let recursively_connected = sdCable.GetConnectedEntities( e, sdCable.TYPE_MATTER );
 
 							if ( recursively_connected )
 							for ( let i2 = 0; i2 < recursively_connected.length; i2++ )
@@ -4051,13 +4064,29 @@ class sdEntity
 								connected_ents.push( auto2 );
 							}
 						}
+						
+						
+						if ( ( e.matter_max || e._matter_max || 0 ) <= 20 ) // Exclude sdCom, sdMatterAmplifier, sdNode - they won't receive any matter
+						{
+							connected_ents.splice( i, 1 );
+							i--;
+							continue;
+						}
+					}
+					else
+					{
+						connected_ents.splice( i, 1 );
+						i--;
+						continue;
 					}
 				}
 				//visited_ents = null;
 				
 				
 				this._connected_ents = connected_ents;
-				this._connected_ents_next_rethink = sdWorld.time + 200 + Math.random() * 50;
+				//this._connected_ents_next_rethink = sdWorld.time + 200 + Math.random() * 50;
+				
+				this._connected_ents_next_rethink = sdWorld.time + 1000 * 60 + Math.random() * 1000; // Likely should never expire?
 			}
 			
 			for ( let i = 0; i < connected_ents.length; i++ )

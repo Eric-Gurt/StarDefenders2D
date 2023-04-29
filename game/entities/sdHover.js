@@ -334,6 +334,7 @@ class sdHover extends sdEntity
 
 						if ( this.hea <= break_at_hp )
 						{
+							if ( !driver._is_being_removed )
 							driver.DamageWithEffect( 400 );
 						}
 					}
