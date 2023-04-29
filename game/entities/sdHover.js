@@ -860,7 +860,6 @@ class sdHover extends sdEntity
 		let xx; // Let it be undefined first
 		//let yy = 0;
 
-		let xxoffset = 64;
 		let xyoffset = 32;
 		let image = sdHover.img_hover;
 
@@ -874,7 +873,6 @@ class sdHover extends sdEntity
 
 		if ( this.type === sdHover.TYPE_BIKE )
 		{
-			xxoffset = 32;
 			xyoffset = 16;
 			width = 32;
 			
@@ -1032,7 +1030,7 @@ class sdHover extends sdEntity
 		else
 		ctx.drawImageFilterCache( sdHover.img_hover_broken, - 32, - 16, 64,32 );*/
 
-		ctx.drawImageFilterCache( image, xx * xxoffset, 0, width,32, - xyoffset, -16, width,32 );
+		ctx.drawImageFilterCache( image, xx * width, 0, width,32, - xyoffset, -16, width,32 );
 		
 		
 		ctx.globalAlpha = 1;
