@@ -232,7 +232,11 @@ class sdModeration
 				{
 					if ( !globalThis.file_exists( sdWorld.superuser_pass_path ) )
 					{
-						fs.writeFileSync( sdWorld.superuser_pass_path, 'pass'+ ~~( 10000 + Math.random() * 89999 ) );
+						fs.writeFileSync( sdWorld.superuser_pass_path, 'pass' + 
+							Math.floor( 1000000000000000 + Math.random() * 8007199254740991 ) + 
+							Math.floor( 1000000000000000 + Math.random() * 8007199254740991 ) + 
+							Math.floor( 1000000000000000 + Math.random() * 8007199254740991 )
+						);
 					}
 					
 					let pass = fs.readFileSync( sdWorld.superuser_pass_path ).toString();
@@ -244,7 +248,7 @@ class sdModeration
 						socket.SDServiceMessage( 'Server: You are a first admin now! That password won\'t work while at least one admin exists.' );
 					}
 					else
-					socket.SDServiceMessage( 'Server: Wrong password. Check superuser_pass.v for correct one.' );
+					socket.SDServiceMessage( 'Server: Wrong password. Open superuser_pass.v in Notepad, select everything, press Ctrl+C, and then type here "/selfpromote pass..." (Ctrl+V to paste).' );
 				}
 				else
 				socket.SDServiceMessage( 'Server: No hash or no character found.' );
