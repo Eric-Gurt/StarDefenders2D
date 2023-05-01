@@ -1054,6 +1054,8 @@ class sdEntity
 		let hitbox_y2_first;
 		
 		let skip_cell_scan = false;
+		
+		let first_collision = true;
 
 		sdWorld.last_hit_entity = null;
 		this._phys_last_rest_on = null; // Uncommented since it does not make much sense if it is never reset
@@ -1519,16 +1521,16 @@ class sdEntity
 
 							if ( step_size > 0 )
 							{
-							    if ( this.CanMoveWithoutOverlap( this.x, best_ent.y + best_ent._hitbox_y1 - this._hitbox_y2 - 0.001, -0.0005 ) ) // Prevent standing on vertical walls
-							    {
+								if ( this.CanMoveWithoutOverlap( this.x, best_ent.y + best_ent._hitbox_y1 - this._hitbox_y2 - 0.001, -0.0005, custom_filtering_method ) ) // Prevent standing on vertical walls
+								{
 									if ( step_size > on_top )
 									{
 										step_size = on_top;
 									}
 									on_top -= step_size;
-							    }
-							    else
-							    step_size = 0;
+								}
+								else
+								step_size = 0;
 							}
 
 							/*if ( step_size > 0 )
@@ -1602,7 +1604,7 @@ class sdEntity
 										//const y_risen = best_ent.y + best_ent._hitbox_y1 - this._hitbox_y2;
 										const y_risen = best_ent.y + best_ent._hitbox_y1 - this._hitbox_y2 - 0.00001; // There was a case where standing on a turret would instantly stuck player to it
 
-										if ( this.CanMoveWithoutOverlap( this.x, y_risen, 0.001 ) )
+										if ( this.CanMoveWithoutOverlap( this.x, y_risen, 0.001, custom_filtering_method ) )
 										this.y = y_risen;
 									}
 								}
@@ -1623,7 +1625,7 @@ class sdEntity
 									{
 										const y_risen = best_ent.y + best_ent._hitbox_y2 - this._hitbox_y1;
 
-										if ( this.CanMoveWithoutOverlap( this.x, y_risen, 0.001 ) )
+										if ( this.CanMoveWithoutOverlap( this.x, y_risen, 0.001, custom_filtering_method ) )
 										this.y = y_risen;
 									}
 								}	
@@ -1647,7 +1649,7 @@ class sdEntity
 									{
 										const x_risen = best_ent.x + best_ent._hitbox_x1 - this._hitbox_x2;
 
-										if ( this.CanMoveWithoutOverlap( x_risen, this.y, 0.001 ) )
+										if ( this.CanMoveWithoutOverlap( x_risen, this.y, 0.001, custom_filtering_method ) )
 										this.x = x_risen;
 									}
 								}
@@ -1671,7 +1673,7 @@ class sdEntity
 									{
 										const x_risen = best_ent.x + best_ent._hitbox_x2 - this._hitbox_x1;
 
-										if ( this.CanMoveWithoutOverlap( x_risen, this.y, 0.001 ) )
+										if ( this.CanMoveWithoutOverlap( x_risen, this.y, 0.001, custom_filtering_method ) )
 										this.x = x_risen;
 									}
 								}
@@ -1747,21 +1749,21 @@ class sdEntity
 							{
 								const x_risen = sdWorld.world_bounds.x1 - this._hitbox_x1;
 
-								if ( this.CanMoveWithoutOverlap( x_risen, this.y, 0.001 ) )
+								if ( this.CanMoveWithoutOverlap( x_risen, this.y, 0.001, custom_filtering_method ) )
 								this.x = x_risen;
 							}
 							if ( hitbox_x2 > sdWorld.world_bounds.x2 )
 							{
 								const x_risen = sdWorld.world_bounds.x2 - this._hitbox_x2;
 
-								if ( this.CanMoveWithoutOverlap( x_risen, this.y, 0.001 ) )
+								if ( this.CanMoveWithoutOverlap( x_risen, this.y, 0.001, custom_filtering_method ) )
 								this.x = x_risen;
 							}
 							if ( hitbox_y1 < sdWorld.world_bounds.y1 )
 							{
 								const y_risen = sdWorld.world_bounds.y1 - this._hitbox_y1;
 
-								if ( this.CanMoveWithoutOverlap( this.x, y_risen, 0.001 ) )
+								if ( this.CanMoveWithoutOverlap( this.x, y_risen, 0.001, custom_filtering_method ) )
 								this.y = y_risen;
 							}
 							if ( hitbox_y2 > sdWorld.world_bounds.y2 )
@@ -1769,18 +1771,23 @@ class sdEntity
 							{
 								const y_risen = sdWorld.world_bounds.y2 - this._hitbox_y2;
 
-								if ( this.CanMoveWithoutOverlap( this.x, y_risen, 0.001 ) )
+								if ( this.CanMoveWithoutOverlap( this.x, y_risen, 0.001, custom_filtering_method ) )
 								this.y = y_risen;
 							}
 						}
 					}
 
 					// Keep first collision
-					//if ( !this._phys_last_touch )
-					if ( !sdWorld.last_hit_entity )
+					//if ( !sdWorld.last_hit_entity ) // What is even this for? It seems to be overriden by step-up logic all the time
+					if ( first_collision )
 					{
+						first_collision = false;
+						
 						sdWorld.last_hit_entity = best_ent;
 						
+						//if ( best_ent )
+						//if ( this.GetClass() === 'sdQuadro' )
+						//sdWorld.SendEffect({ x: best_ent.x, y: best_ent.y - 8, type: 1 });
 						
 						this._phys_last_touch = best_ent;
 						

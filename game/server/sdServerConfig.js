@@ -86,13 +86,13 @@ class sdServerConfigFull extends sdServerConfigShort
 			if ( ent._phys_sleep > 0 )
 			return true;
 		}
-		else
+		/*else
 		if ( ent.is( sdQuadro ) )
 		{
 			if ( ent.w1 || ent.w2 || ent.p )
 			if ( ent._phys_sleep > 0 )
 			return true;
-		}
+		}*/
 		else
 		return false;
 	}

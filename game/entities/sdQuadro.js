@@ -15,6 +15,9 @@ class sdQuadro extends sdEntity
 	{
 		sdQuadro.img_quadro = sdWorld.CreateImageFromFile( 'sdQuadro' );
 		
+		sdQuadro.PART_BODY = 0;
+		sdQuadro.PART_WHEEL = 1;
+		
 		sdQuadro.driver_slots = 1;
 		
 		sdQuadro.slot_hints = [
@@ -281,6 +284,18 @@ class sdQuadro extends sdEntity
 						}
 					}, i * 150 );
 				}
+				
+				setTimeout( ()=>
+				{
+					if ( this.w1 )
+					this.w1.p = null;
+				
+					if ( this.w2 )
+					this.w2.p = null;
+
+					this.w1 = null;
+					this.w2 = null;
+				}, 2000 );
 			}
 			
 			if ( this.hea <= break_at_hp )
@@ -310,49 +325,65 @@ class sdQuadro extends sdEntity
 
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		let driver = null;
-		
-		if ( GSPEED > 1 )
-		GSPEED = 1;
-	
-		if ( this.driver0 )
-		driver = this.driver0;
-	
-		/*
-		if ( this.driver0 )
-		driver = this.driver0;
-		else
-		if ( this.p )
-		driver = this.p.driver0;*/
-
-		if ( this.part === 0 )
+		if ( this.part === sdQuadro.PART_WHEEL )
 		{
+			if ( this.p )
+			if ( this.p._is_being_removed )
+			this.p = null;
+	
+			if ( this.p )
+			{
+				// Logic handled by parent
+			}
+			else
+			{
+				this.Damage( GSPEED * 0.1 );
+				
+				this.sy += sdWorld.gravity * GSPEED;
+				this.ApplyVelocityAndCollisions( GSPEED, 0, true, 0.25, this.CustomFiltering );
+				
+				if ( this._phys_sleep <= 0 )
+				this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+			}
+			return;
+		}
+		else
+		{
+			let driver = null;
+
+			if ( GSPEED > 1 )
+			GSPEED = 1;
+
+			if ( this.driver0 )
+			driver = this.driver0;
+		
+			let any_awake = false;
+
 			if ( this._spawn_wheels )
 			{
 				this._spawn_wheels = 0;
-				
+
 				if ( sdWorld.is_server )
 				for ( let s = -1; s <= 1; s += 2 )
 				{
 					let wheel = new sdQuadro({ x: this.x + s * 7, y: this.y + 6, part: 1 });
 					sdEntity.entities.push( wheel );
-					
+
 					wheel.p = this;
-					
+
 					if ( s === -1 )
 					this.w1 = wheel;
 					else
 					this.w2 = wheel;
 				}
 			}
-			
 
 			if ( this.hea > 0 )
 			{
 				if ( this.w1 && !this.w1._is_being_removed )
 				if ( this.w2 && !this.w2._is_being_removed )
 				this._angle = Math.atan2( this.w1.x - this.w2.x, this.w1.y - this.w2.y );
-				
+
 				if ( driver )
 				{
 					//let di = Math.max( 1, sdWorld.Dist2D_Vector( driver.act_x, driver.act_y ) );
@@ -362,48 +393,139 @@ class sdQuadro extends sdEntity
 
 					let x_force = -Math.sin( this._angle ) * driver.act_x * 0.6;
 					let y_force = -Math.cos( this._angle ) * driver.act_x * 0.6;
+
+					//let fly_force_x = driver.act_x * 0.05;
+					//let fly_force_y = driver.act_y * 0.2;
 					
 					let fly_force_x = driver.act_x * 0.05;
-					let fly_force_y = driver.act_y * 0.2;
+					let fly_force_y = driver.act_y * 0.18;
+					
+					if ( driver.act_x !== 0 && driver.act_y !== 0 )
+					{
+						fly_force_x *= 0.71;
+						fly_force_y *= 0.71;
+					}
 
 					if ( x_force !== 0 || y_force !== 0 || fly_force_x !== 0 || fly_force_y !== 0 )
 					{
 						if ( driver.act_x !== 0 )
 						this.side = ( driver.act_x > 0 ) ? 1 : -1;
-						
-                        this.sx += fly_force_x * GSPEED;
-                        this.sy += fly_force_y * GSPEED;
-						this.PhysWakeUp();
+
+						let fly_force_scale = 1;
 
 						if ( this.w1 && !this.w1._is_being_removed )
 						{
-							if ( this.w1._phys_last_touch )
+							if ( this.w1._phys_last_touch && !this.w1._phys_last_touch._is_being_removed && this.w1.DoesOverlapWith( this.w1._phys_last_touch, 8 ) )
 							{
 								this.w1.sx += x_force * GSPEED * ( this.w1.hea > 0 ? 1 : 0.3 );
 								this.w1.sy += y_force * GSPEED * ( this.w1.hea > 0 ? 1 : 0.3 );
+								
+								fly_force_scale = 2;
 							}
-                            this.w1.PhysWakeUp();
+							this.w1.PhysWakeUp();
 						}
 
 						if ( this.w2 && !this.w2._is_being_removed )
 						{
-							if ( this.w2._phys_last_touch )
+							//if ( this.w2._phys_last_touch )
+							//sdWorld.SendEffect({ x: this.w2._phys_last_touch.x, y: this.w2._phys_last_touch.y - 8, type:sdEffect.TYPE_WALL_HIT });
+							
+							//if ( this.w2._phys_last_touch )
+							if ( this.w2._phys_last_touch && !this.w2._phys_last_touch._is_being_removed && this.w2.DoesOverlapWith( this.w2._phys_last_touch, 8 ) )
 							{
 								this.w2.sx += x_force * GSPEED * ( this.w2.hea > 0 ? 1 : 0.3 );
 								this.w2.sy += y_force * GSPEED * ( this.w2.hea > 0 ? 1 : 0.3 );
+								
+								fly_force_scale = 2;
 							}
-                            this.w2.PhysWakeUp();
+							this.w2.PhysWakeUp();
 						}
+						
+						this.sx += fly_force_x * GSPEED * fly_force_scale;
+						this.sy += fly_force_y * GSPEED * fly_force_scale;
+						
+						if ( this.w1 && !this.w1._is_being_removed )
+						if ( this.w1._phys_last_touch && !this.w1._phys_last_touch._is_being_removed && this.w1.DoesOverlapWith( this.w1._phys_last_touch, 2 ) )
+						{
+							this.w1.sx += fly_force_x * GSPEED * fly_force_scale;
+							this.w1.sy += fly_force_y * GSPEED * fly_force_scale;
+						}
+						
+						if ( this.w2 && !this.w2._is_being_removed )
+						if ( this.w2._phys_last_touch && !this.w2._phys_last_touch._is_being_removed && this.w2.DoesOverlapWith( this.w2._phys_last_touch, 2 ) )
+						{
+							this.w2.sx += fly_force_x * GSPEED * fly_force_scale;
+							this.w2.sy += fly_force_y * GSPEED * fly_force_scale;
+						}
+						
+						this.PhysWakeUp();
+					}
+					else
+					{
+						/*let parts_down = [];
+						
+						if ( this.w1 && !this.w1._is_being_removed )
+						parts_down.push( this.w1 );
+						
+						if ( this.w2 && !this.w2._is_being_removed )
+						parts_down.push( this.w2 );
+					
+						if ( parts_down.length > 0 )
+						{
+							let cx = 0;
+							let cy = 0;
+							let avsx = 0;
+							
+							//this.sy -= 0.1 * GSPEED * parts_down.length;
+							for ( let i = 0; i < parts_down.length; i++ )
+							{
+								//parts_down[ i ].sy += 0.1 * GSPEED;
+								cx += parts_down[ i ].x;
+								cy += parts_down[ i ].y;
+								avsx += parts_down[ i ].sx;
+							}
+							
+							cx /= parts_down.length;
+							cy /= parts_down.length;
+							avsx /= parts_down.length;
+							
+							if ( cy < this.y )
+							{
+								let speed_scale = 10;
+								let dx = ( ( cx + avsx * speed_scale ) - ( this.x + this.sx * speed_scale ) ) * 0.1 * GSPEED;
+								
+								this.sx += dx;
+								this.sy -= Math.abs( dx );
+								
+								for ( let i = 0; i < parts_down.length; i++ )
+								{
+									parts_down[ i ].sx -= dx;
+									parts_down[ i ].sy += Math.abs( dx );
+								}
+							}
+						}*/
 					}
 				}
+			}
 
-				for ( let q = driver ? 4 : 2; q >= 0; q-- )
+
+			let substeps = 1;
+
+			if ( this.hea > 0 )
+			substeps = 4;
+
+			let GSPEED_scaled = GSPEED / substeps;
+
+			//for ( let q = driver ? 4 : 2; q >= 0; q-- )
+			for ( let q = 0; q < substeps; q++ )
+			{
+				if ( this.hea > 0 )
 				for ( let i = 0; i < 3; i++ )
 				{
 					let a;
 					let b;
 					let target_di;
-					
+
 					if ( i === 0 )
 					{
 						a = this.w1;
@@ -423,72 +545,113 @@ class sdQuadro extends sdEntity
 						b = this.w2;
 						target_di = Math.sqrt( 7*7 + 6*6 );
 					}
-					
+
 					if ( !a || a._is_being_removed )
 					continue;
-					
+
 					if ( !b || b._is_being_removed )
 					continue;
-					
+
 					let di = sdWorld.Dist2D( a.x, a.y, b.x, b.y );
-					
+
 					if ( di > 1 )
 					{
-						//let dx = a.x - b.x;
-						//let dy = a.y - b.y;
+						const power = - 8 * ( target_di - di ) * GSPEED_scaled; // -1 allowed due to mass_balance
 
-						//let cx = ( a.x + b.x ) / 2;
-						//let cy = ( a.y + b.y ) / 2;
-						
-						const power = - 1 * ( target_di - di ) * GSPEED; // -1 allowed due to mass_balance
-						
 						const mass_balance = a.mass / ( a.mass + b.mass );
 						const mass_balance_inv = 1 - mass_balance;
-						
+
 						let addx = ( b.x - a.x ) / di * power;
 						let addy = ( b.y - a.y ) / di * power;
 
 						a.sx += addx * mass_balance_inv;
 						a.sy += addy * mass_balance_inv;
-						
+
 						if ( a.CanMoveWithoutOverlap( a.x + addx, a.y + addy, 0, a.CustomFiltering ) )
+						if ( sdWorld.CheckLineOfSight( a.x, a.y, a.x + addx, a.y + addy, a, null, null, a.CustomFiltering ) )
 						{
-							if ( sdWorld.CheckLineOfSight( a.x, a.y, a.x + addx, a.y + addy, a, null, null, a.CustomFiltering ) )
-							{
-								a.x += addx * mass_balance_inv;
-								a.y += addy * mass_balance_inv;
-							}
-							/*else
-							{
-								debugger;
-							}*/
+							a.x += addx * mass_balance_inv;
+							a.y += addy * mass_balance_inv;
 						}
 
 						b.sx -= addx * mass_balance;
 						b.sy -= addy * mass_balance;
-						
+
 						if ( b.CanMoveWithoutOverlap( b.x - addx, b.y - addy, 0, b.CustomFiltering ) )
+						if ( sdWorld.CheckLineOfSight( b.x, b.y, b.x - addx, b.y - addy, b, null, null, b.CustomFiltering ) )
 						{
-							if ( sdWorld.CheckLineOfSight( b.x, b.y, b.x - addx, b.y - addy, b, null, null, b.CustomFiltering ) )
-							{
-								b.x -= addx * mass_balance;
-								b.y -= addy * mass_balance;
-							}
-							/*else
-							{
-								debugger;
-							}*/
+							b.x -= addx * mass_balance;
+							b.y -= addy * mass_balance;
 						}
 					}
 				}
-			}
-			
-			
 
-			if ( sdWorld.is_server )
-			if ( ( this._phys_sleep <= 0 && ( this._hea >= this._hmax || this._hea <= 0 ) ) )
-			if ( ( !this.w1 || this.w1._is_being_removed ) || ( this.w1._phys_sleep <= 0 && ( this.w1._hea >= this.w1._hmax || this.w1._hea <= 0 ) ) )
-			if ( ( !this.w2 || this.w2._is_being_removed ) || ( this.w2._phys_sleep <= 0 && ( this.w2._hea >= this.w2._hmax || this.w2._hea <= 0 ) ) )
+
+				for ( let i = 0; i < 3; i ++ )
+				{
+					let e;
+
+					if ( i === 0 )
+					e = this;
+					else
+					if ( i === 1 )
+					e = this.w1;
+					else
+					if ( i === 2 )
+					e = this.w2;
+
+					if ( e && !e._is_being_removed )
+					{
+						e.sy += sdWorld.gravity * GSPEED_scaled;
+						
+						let step_size = 0;
+						/*
+						//if ( false ) // Testing why collision does not remember wall under wheels as last collision when friction happens
+						if ( e !== this )
+						//if ( Math.abs( e.sx ) > 0.5 )
+						step_size = 4;
+					
+						*/
+
+						e.ApplyVelocityAndCollisions( GSPEED_scaled, step_size, true, ( e === this ) ? 1 : 0.25, e.CustomFiltering );
+
+						if ( e._phys_sleep > 0 )
+						any_awake = true;
+					}
+				}
+			}
+
+
+			const HandleRegenAndPhysics = ( e )=>
+			{
+				if ( e === null || e._is_being_removed )
+				return;
+				
+				if ( e._regen_timeout > 0 )
+				{
+					e._regen_timeout -= GSPEED;
+					
+					any_awake = true;
+				}
+				else
+				{
+					if ( e.hea > 0 )
+					if ( e.hea < e.hmax )
+					{
+						if ( driver )
+						e.hea = Math.min( e.hea + GSPEED / 3, e.hmax );
+						else
+						e.hea = Math.min( e.hea + GSPEED, e.hmax );
+					
+						any_awake = true;
+					}
+				}
+			};
+			HandleRegenAndPhysics( this );
+			HandleRegenAndPhysics( this.w1 );
+			HandleRegenAndPhysics( this.w2 );
+			
+			if ( !any_awake )
 			{
 				this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 				
@@ -497,56 +660,16 @@ class sdQuadro extends sdEntity
 			
 				if ( this.w2 && !this.w2._is_being_removed )
 				this.w2.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+			}
+			else
+			{
+				this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+				
+				if ( this.w1 && !this.w1._is_being_removed )
+				this.w1.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 			
-				return;
-			}
-		}
-		
-		if ( this._regen_timeout > 0 )
-		this._regen_timeout -= GSPEED;
-		else
-		{
-			if ( this.hea > 0 )
-			if ( this.hea < this.hmax )
-			{
-				if ( driver )
-				this.hea = Math.min( this.hea + GSPEED / 3, this.hmax );
-				else
-				this.hea = Math.min( this.hea + GSPEED, this.hmax );
-			}
-		}
-		
-		this.sy += sdWorld.gravity * GSPEED;
-		
-		//sdWorld.last_hit_entity = null;
-		
-		
-		// Prevent directional movement registration so sleep is possible
-		/*let sx_sign = ( this.sx > 0 );
-		let sy_sign = ( this.sy > 0 );
-		this._phys_last_sx = sx_sign;
-		this._phys_last_sy = sy_sign;*/
-		
-		let step_size = 0;
-		
-		if ( this.part > 0 )
-		if ( Math.abs( this.sx ) > 0.5 )
-		step_size = 10;
-		
-		this.ApplyVelocityAndCollisions( GSPEED, step_size, true, ( this.part === 0 ) ? 1 : 0.25, this.CustomFiltering );
-		
-		//this._last_hit_entity = sdWorld.last_hit_entity;
-		
-		if ( this.part === 0 )
-		{
-			// Dont earlier
-		}
-		else
-		{
-			if ( !this.p || this.p.hea <= 0 || this.p._is_being_removed )
-			{
-				if ( this._phys_sleep <= 0 )
-				this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+				if ( this.w2 && !this.w2._is_being_removed )
+				this.w2.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 			}
 		}
 	}
@@ -563,13 +686,26 @@ class sdQuadro extends sdEntity
 	{
 		if ( this.part === 0 )
 		{
-			if ( ent === this.w1 || ent === this.w2 )
+			if ( ent.IsBGEntity() !== this.IsBGEntity() )
+			return false;
+			
+			if ( !ent._hard_collision )
+			return false;
+		
+			if ( ent === this || ent === this.w1 || ent === this.w2 )
+			return false;
+		
+			for ( var i = 0; i < sdQuadro.driver_slots; i++ )
+			if ( this[ 'driver' + i ] === ent )
 			return false;
 
 			return true;
 		}
 		else
 		{
+			if ( this.p )
+			return this.p.CustomFiltering( ent );
+			/*
 			if ( ent === this.p )
 			return false;
 
@@ -577,6 +713,8 @@ class sdQuadro extends sdEntity
 			if ( ent === this.p.w1 || ent === this.p.w2 )
 			return false;
 
+			return true;*/
+			
 			return true;
 		}
 	}
@@ -609,78 +747,80 @@ class sdQuadro extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		if ( this.part === 0 )
+		const alive_offset = ( this.hea > 0 ) ? 0 : 32;
+		const body_wheel_offset = ( this.part === sdQuadro.PART_BODY ) ? 0 : 32;
+
+		ctx.save();
 		{
-			if ( this.w1 )
-			if ( this.w2 )
+			if ( this.part === sdQuadro.PART_BODY )
 			{
+				if ( this.w1 )
+				if ( this.w2 )
 				ctx.rotate( - Math.PI / 2 - this._angle );
+
+				ctx.scale( -this.side, 1 );
+
+				for ( var i = 0; i < sdQuadro.driver_slots; i++ )
+				{
+					if ( this[ 'driver' + i ] )
+					{
+						ctx.save();
+						{
+							let old_x = this[ 'driver' + i ].look_x;
+							let old_y = this[ 'driver' + i ].look_y;
+							this[ 'driver' + i ]._side = 1;
+							this[ 'driver' + i ].look_x = this[ 'driver' + i ].x + 50;
+
+							ctx.scale( -0.8, 0.8 );
+							ctx.translate( 0, -8 );
+
+							this[ 'driver' + i ].Draw( ctx, true ); // Hack
+
+							this[ 'driver' + i ].look_x = old_x;
+							this[ 'driver' + i ].look_y = old_y;
+						}
+						ctx.restore();
+					}
+				}
+
+				ctx.filter = this.filter;
 			}
 			
-			ctx.scale( -this.side, 1 );
 			
-			/*ctx.rotate( this._tilt / 100 );
-
-			if ( this._tilt > 0 )
+		
+			if ( this.part === sdQuadro.PART_BODY || ( !this.p || this.p._is_being_removed ) || attached )
 			{
-				ctx.scale( -1, 1 );
-			}*/
+				ctx.drawImageFilterCache( sdQuadro.img_quadro, alive_offset,body_wheel_offset,32,32, - 16, - 16, 32,32 );
+			}
 
-			for ( var i = 0; i < sdQuadro.driver_slots; i++ )
+			ctx.globalAlpha = 1;
+			ctx.filter = 'none';
+		}
+		ctx.restore();
+		
+		if ( this.part === sdQuadro.PART_BODY )
+		{
+			if ( this.w1 && !this.w1._is_being_removed )
 			{
-				if ( this[ 'driver' + i ] )
-				{
-					ctx.save();
-					{
-						let old_x = this[ 'driver' + i ].look_x;
-						let old_y = this[ 'driver' + i ].look_y;
-						//this[ 'driver' + i ].tilt = 0;
-						//this[ 'driver' + i ]._an = 0; // Hack
-						this[ 'driver' + i ]._side = 1;
-						this[ 'driver' + i ].look_x = this[ 'driver' + i ].x + 50;
-						//this[ 'driver' + i ].look_y = this[ 'driver' + i ].y;
-
-						ctx.scale( -0.8, 0.8 );
-						ctx.translate( 0, -8 );
-						//this[ 'driver' + i ].Draw( ctx, true );
-						this[ 'driver' + i ].Draw( ctx, true ); // Hack
-
-						this[ 'driver' + i ].look_x = old_x;
-						this[ 'driver' + i ].look_y = old_y;
-					}
-					ctx.restore();
-				}
+				ctx.save();
+				ctx.translate( -this.x + this.w1.x, -this.y + this.w1.y );
+				this.w1.Draw( ctx, true );
+				ctx.restore();
+			}
+			if ( this.w2 && !this.w2._is_being_removed )
+			{
+				ctx.save();
+				ctx.translate( -this.x + this.w2.x, -this.y + this.w2.y );
+				this.w2.Draw( ctx, true );
+				ctx.restore();
 			}
 		}
-		
-		if ( this.part === 0 )
-		ctx.filter = this.filter;
-		
-		const alive_offset = ( this.hea > 0 ) ? 0 : 32;
-		const body_wheel_offset = ( this.part === 0 ) ? 0 : 32;
-		
-		ctx.drawImageFilterCache( sdQuadro.img_quadro, alive_offset,body_wheel_offset,32,32, - 16, - 16, 32,32 );
-		
-		ctx.globalAlpha = 1;
-		ctx.filter = 'none';
 		
 		if ( sdShop.isDrawing )
 		{
 			ctx.drawImageFilterCache( sdQuadro.img_quadro, alive_offset,32,32,32, - 16-7, - 16+6, 32,32 );
 			ctx.drawImageFilterCache( sdQuadro.img_quadro, alive_offset,32,32,32, - 16+7, - 16+6, 32,32 );
 		}
-		
-		/*if ( this.part === 0 )
-		{
-			if ( this.w1 )
-			{
-				this.w1.Draw( ctx, false );
-			}
-		}
-		else
-		{
-			
-		}*/
 	}
 	/*getRequiredEntities()
 	{
