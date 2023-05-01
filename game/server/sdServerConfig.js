@@ -15,6 +15,7 @@ class sdServerConfigShort
 	// If this all looks scary and you are using NetBeans - use "Ctrl + -" and "Ctrl + *" to hide big methods.
 	
 	static password = ''; // Restrict connection access?
+	static only_admins_can_spectate = true;
 	
 	static make_server_public = ( this.password === '' ); // By default it is public if password was not set. Public means server will send its' URL to www.gevanni.com to be potentially listed in servers list in future. Sent URL is told by first browser that has successfully connected to this server.
 	
@@ -57,6 +58,9 @@ class sdServerConfigFull extends sdServerConfigShort
 	static save_raw_version_of_snapshot = true; // One that can be easily viewed in Notepad-like applications. It is never used within server logic. "true" can slow-down snapshot generation.
 	
 	static store_game_files_in_ram = false; // Will make server never use hard drive without need until next reboot, except for cases when backup is being made (more RAM usage, can be suitable for VPS servers that have strange Disk I/O issues)
+	
+	static allowed_non_full_access_level_admin_commands = [ 'commands', 'listadmins', 'announce', 'restart', 'save', 'restore', 'god', 'admin', 'a', 'adm', 'db', 'database' ];
+	static let_non_full_access_level_admin_setup_long_range_teleports = false; // Can potentially cause connecting server to some local LRTPs with admin shop-made items. Also can leak server IP if you are using Cloudflare.
 	
 	static offscreen_behavior = 'OFFSCREEN_BEHAVIOR_SIMULATE_X_STEPS_AT_ONCE'; // Or 'OFFSCREEN_BEHAVIOR_SIMULATE_PROPERLY' or 'OFFSCREEN_BEHAVIOR_SIMULATE_X_TIMES_SLOWER' or 'OFFSCREEN_BEHAVIOR_SIMULATE_X_STEPS_AT_ONCE'. We cheat a little bit offscreen as huge/dense worlds would have perforamnce issues otherwise
 	static offscreen_behavior_x_value = 30; // By how much slower or how many steps to do at once. Usually 30 can give 2x performance improvement in case of OFFSCREEN_BEHAVIOR_SIMULATE_X_STEPS_AT_ONCE. You can test if anything goes wrong offscreen by enabling debug_offscreen_behavior

@@ -335,12 +335,18 @@ class sdTurret extends sdEntity
 									
 									if ( ( is_char && e.IsHostileAI() ) || ( ( !is_char || ( RuleAllowedByNodes( e._net_id ) && RuleAllowedByNodes( e.biometry ) ) ) && RuleAllowedByNodes( e.GetClass() ) ) )
 									{
-										this._considered_target = e;
-										
-										if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier', 'sdCommandCentre', 'sdCrystalCombiner', 'sdTurret', 'sdCrystal', 'sdRescueTeleport' ], this.ShootPossibilityFilter ) )
+										if ( is_char && is_char._god && !e.IsVisible() )
 										{
-											this._target = e;
-											break;
+										}
+										else
+										{
+											this._considered_target = e;
+
+											if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier', 'sdCommandCentre', 'sdCrystalCombiner', 'sdTurret', 'sdCrystal', 'sdRescueTeleport' ], this.ShootPossibilityFilter ) )
+											{
+												this._target = e;
+												break;
+											}
 										}
 									}
 								}

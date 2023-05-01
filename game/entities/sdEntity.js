@@ -469,6 +469,10 @@ class sdEntity
 		if ( this[ 'driver' + i ] )
 		this[ 'driver' + i ].remove();
 	}
+	GetDriverZoom()
+	{
+		return sdWorld.default_zoom * 0.75;
+	}
 	AddDriver( c, force=false ) // Uses magic property _doors_locked or doors_locked
 	{
 		if ( !sdWorld.is_server )
@@ -499,6 +503,7 @@ class sdEntity
 			this[ 'driver' + best_slot ] = c;
 			
 			c.driver_of = this;
+			c.SetCameraZoom( this.GetDriverZoom() );
 
 			if ( c._socket )
 			{
@@ -540,6 +545,7 @@ class sdEntity
 			{
 				this[ 'driver' + i ] = null;
 				c.driver_of = null;
+				c.SetCameraZoom( sdWorld.default_zoom );
 
 				// To prevent the teleport exploit
 				if ( this.GetDriverSlotsCount() <= 1 )

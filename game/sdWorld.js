@@ -89,6 +89,7 @@ class sdWorld
 		sdWorld.show_videos = true;
 		
 		sdWorld.sockets = null; // Becomes array
+		sdWorld.recent_players = []; // { pseudonym, last_known_net_id, my_hash, time, ban }, up to 100 connections or so
 		//sdWorld.hook_entities = []; // Entities that implement hook logic, basically for notification system. These must have HandleHookReply( hook_id, password ) and return either JSON-able object or null
 		
 		sdWorld.camera = {
@@ -102,7 +103,10 @@ class sdWorld
 		sdWorld.last_frame_time = 0; // For lag reporting
 		sdWorld.last_slowest_class = 'nothing';
 		
-		sdWorld.target_scale = 2;
+		sdWorld.target_scale = 2; // Current one, this one depends on screen size
+		sdWorld.default_zoom = 2;
+		sdWorld.current_zoom = sdWorld.default_zoom; // Synced from server, for example when player is in vehicle or steering wheel
+		
 		
 		sdWorld.my_key_states = null; // Will be assigned to active entity to allow client-side movement
 		
@@ -2615,7 +2619,7 @@ class sdWorld
 			
 			const debug_wake_up_sleep_refuse_reasons = sdDeepSleep.debug_wake_up_sleep_refuse_reasons;
 			
-			const bulk_exclude = new Set();
+			const bulk_exclude = [];
 			
 			for ( arr_i = 0; arr_i < 2; arr_i++ )
 			{
@@ -2794,7 +2798,7 @@ class sdWorld
 							if ( arr_i === 0 )
 							{
 								//e._remove_from_entities_array( hiber_state );
-								bulk_exclude.add( e );
+								bulk_exclude.push( e );
 							}
 							
 							if ( arr[ i ] === e ) // Removal did not happen?
@@ -2948,7 +2952,11 @@ class sdWorld
 			sdWorld.leaders.length = 0;
 			for ( let i2 = 0; i2 < sockets.length; i2++ )
 			{
-				if ( sockets[ i2 ].character && !sockets[ i2 ].character._is_being_removed )
+				if ( 
+						sockets[ i2 ].character && 
+						( !sdWorld.server_config.only_admins_can_spectate || !sockets[ i2 ].character.is( sdPlayerSpectator ) ) && 
+						!sockets[ i2 ].character._is_being_removed 
+				)
 				sdWorld.leaders.push({ name:sockets[ i2 ].character.title, name_censored:sockets[ i2 ].character.title_censored, score:sockets[ i2 ].GetScore(), here:1 });
 			
 				if ( sockets[ i2 ].ffa_warning > 0 )

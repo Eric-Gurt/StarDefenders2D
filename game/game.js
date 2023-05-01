@@ -102,12 +102,13 @@ let socket = geckos( geckos_start_options );*/
 sdTranslationManager.TranslateHTMLPage();
 
 // This is to automatically load what is needed
-let entity_class_names = ( await ( await fetch( '/get_entity_classes.txt' ) ).text() ).split(','); // Almost same as entity_files on server-side but without .js
+//let class_names = ( await ( await fetch( '/get_entity_classes.txt' ) ).text() ).split(','); // Almost same as entity_files on server-side but without .js
+let class_names = ( await ( await fetch( '/get_classes.txt' ) ).text() ).split(','); // Almost same as entity_files on server-side but without .js
 
 /*fetch( '/get_entity_classes.txt' ).then( ( result )=>{
 	result.text().then( ( result )=>
 	{
-		entity_class_names = result;
+		class_names = result;
 		EntityClassesLoaded();
 	});
 });*/
@@ -135,22 +136,25 @@ let entity_class_names = ( await ( await fetch( '/get_entity_classes.txt' ) ).te
 	import sdKeyStates from './sdKeyStates.js';
 	import sdEntity from './entities/sdEntity.js';
 	import sdElement from './interfaces/sdElement.js';
+	import sdAdminPanel from './interfaces/sdAdminPanel.js';
 	import sdDatabaseEditor from './interfaces/sdDatabaseEditor.js';
 	import sdMotherShipStorageManager from './interfaces/sdMotherShipStorageManager.js';
 	import sdCodeEditor from './interfaces/sdCodeEditor.js';
 	
 	
 	
-	let entity_classes_directory_relative = './entities/';
+	//let entity_classes_directory_relative = './entities/';
 	
-	entity_class_names.forEach( ( file )=>
+	class_names.forEach( ( file )=>
 	{
 		import_entity_class_promises.push( ( async ()=>
 		{ 
-			let imported = await import( entity_classes_directory_relative + file + '.js' );
+			//let imported = await import( entity_classes_directory_relative + file + '.js' );
+			let imported = await import( file + '.js' );
 			imported_entity_classes.push( imported.default );
 			
-			globalThis[ file ] = imported.default; // For ease of access through devtools
+			
+			globalThis[ file.split('/').pop() ] = imported.default; // For ease of access through devtools
 
 		})() );
 	});
@@ -235,12 +239,14 @@ let entity_class_names = ( await ( await fetch( '/get_entity_classes.txt' ) ).te
 	sdContextMenu.init_class();
 	
 	sdElement.init_class();
-	sdDatabaseEditor.init_class();
-	sdMotherShipStorageManager.init_class();
-	sdCodeEditor.init_class();
+	//sdAdminPanel.init_class();
+	//sdDatabaseEditor.init_class();
+	//sdMotherShipStorageManager.init_class();
+	//sdCodeEditor.init_class();
 
 
 	for ( let i = 0; i < imported_entity_classes.length; i++ )
+	if ( imported_entity_classes[ i ].init_class )
 	imported_entity_classes[ i ].init_class();
 
 	sdEntity.AllEntityClassesLoadedAndInitiated();
@@ -331,6 +337,7 @@ let entity_class_names = ( await ( await fetch( '/get_entity_classes.txt' ) ).te
 	globalThis.LZW = LZW;
 	globalThis.sdPathFinding = sdPathFinding;
 	
+	globalThis.sdAdminPanel = sdAdminPanel;
 	globalThis.sdDatabaseEditor = sdDatabaseEditor;
 	globalThis.sdMotherShipStorageManager = sdMotherShipStorageManager;
 	globalThis.sdCodeEditor = sdCodeEditor;
@@ -724,6 +731,11 @@ let enf_once = true;
 					globalThis.players_playing = params[ 1 ];
 				}
 				else
+				if ( type === 'UI_REPLY' ) // update online stats (in-game only)
+				{
+					sdInterface.UI_REPLY_Handle( params[ 0 ], params[ 1 ] );
+				}
+				else
 				if ( type === 'C' ) // position correction failed
 				{
 					if ( sdWorld.my_entity )
@@ -754,6 +766,12 @@ let enf_once = true;
 		});
 
 
+		socket.on( 'ZOOM', ( v )=>
+		{
+			sdWorld.current_zoom = v;
+			window.onresize();
+		});
+		
 		socket.on( 'SERVICE_MESSAGE', ( arr )=>
 		{
 			sdRenderer.service_mesage_until = sdWorld.time + 6500;
@@ -812,6 +830,10 @@ let enf_once = true;
 		{
 			globalThis.players_online = arr[ 0 ];
 			globalThis.players_playing = arr[ 1 ];
+		});
+		socket.on( 'UI_REPLY', ( params )=>
+		{
+			sdInterface.UI_REPLY_Handle( params[ 0 ], params[ 1 ] );
 		});
 		
 		let supported_languages = [ 'en' ];

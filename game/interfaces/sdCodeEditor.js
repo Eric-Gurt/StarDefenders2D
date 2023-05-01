@@ -9,12 +9,15 @@
 import sdElement from './sdElement.js';
 import sdBotFactory from '../entities/sdBotFactory.js';
 import sdBot from '../entities/sdBot.js';
+import sdInterface from './sdInterface.js';
 
-class sdCodeEditor
+class sdCodeEditor extends sdInterface
 {
 	static init_class()
 	{
 		sdCodeEditor.window_instances = [];
+
+		sdInterface.interface_classes[ this.name ] = this; // Register for callbacks
 	}
 	
 	static Open( params )
@@ -34,6 +37,8 @@ class sdCodeEditor
 	
 	constructor( params )
 	{
+		super( params );
+		
 		this.code_container = params.code_container;
 		this.code_container_net_id = params.code_container_net_id;
 		

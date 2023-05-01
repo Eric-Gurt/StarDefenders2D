@@ -1,5 +1,7 @@
 
 
+/* global sdWorld */
+
 class sdElement
 {
 	static init_class()
@@ -41,22 +43,31 @@ class sdElement
 			'this.element'
 		];
 		
-		sdElement.root_element = new sdElement({ type: sdElement.ROOT_ELEMENT });
-		
-		sdElement.current_hover = null;
-		sdElement.hover_element = document.createElement( 'div' );
-		sdElement.hover_element.style.cssText = `
-			position: fixed;
-			left: 0;
-			top: 0;
-			width: 0;
-			height: 0;
-			pointer-events: none;
-			background-color: rgba(255,255,255,0.3);
-			visibility: visible;
-			z-index: 1000;
-		`;
-		document.body.append( sdElement.hover_element );
+		if ( typeof window === 'undefined' )
+		{
+			sdElement.root_element = null;
+			sdElement.current_hover = null;
+			sdElement.hover_element = null;
+		}
+		else
+		{
+			sdElement.root_element = new sdElement({ type: sdElement.ROOT_ELEMENT });
+
+			sdElement.current_hover = null;
+			sdElement.hover_element = document.createElement( 'div' );
+			sdElement.hover_element.style.cssText = `
+				position: fixed;
+				left: 0;
+				top: 0;
+				width: 0;
+				height: 0;
+				pointer-events: none;
+				background-color: rgba(255,255,255,0.3);
+				visibility: visible;
+				z-index: 1000;
+			`;
+			document.body.append( sdElement.hover_element );
+		}
 		
 		sdElement.current_hold = null;
 	}
@@ -551,6 +562,13 @@ class sdElement
 	{ this.element.style.paddingRight = v + 'px'; }
 	set paddingLeft( v )
 	{ this.element.style.paddingLeft = v + 'px'; }
+	set padding( v )
+	{
+		this.paddingTop = v;
+		this.paddingBottom = v;
+		this.paddingRight = v;
+		this.paddingLeft = v;
+	}
 	
 	set width( v )
 	{ this.element.style.width = v + 'px'; }

@@ -1,5 +1,5 @@
 
-/* global globalThis, process, fs, mime, sdWorld, sdEntity, sdModeration, sdShop, sdSnapPack, sdPathFinding, sdDatabase */
+/* global globalThis, process, fs, mime, sdWorld, sdEntity, sdModeration, sdShop, sdSnapPack, sdPathFinding, sdDatabase, Buffer, Infinity, sdServerConfigFull, sdInterface, sdLongRangeTeleport, sdServerToServerProtocol, sdCharacter, sdDeepSleep, sdPlayerSpectator, sdStorage, os, sdGun, sdMemoryLeakSeeker, zlib, Promise, sdDictionaryWords, sdSound, LZW, sdEffect, sdTask, WorkerServiceLogic, await, imported, FakeCanvasContext */
 
 let port0 = 3000;
 let CloudFlareSupport = false;
@@ -238,6 +238,9 @@ globalThis.sdRenderer = { visual_settings: 4 }; // Fake object
 
 
 import sdEntity from './game/entities/sdEntity.js';
+import sdInterface from './game/interfaces/sdInterface.js';
+
+
 import sdDeepSleep from './game/entities/sdDeepSleep.js';
 import sdCharacter from './game/entities/sdCharacter.js';
 import sdPlayerDrone from './game/entities/sdPlayerDrone.js';
@@ -316,49 +319,61 @@ import { createRequire } from 'module';
 const require = createRequire( import.meta.url );
 globalThis.acorn = require('./game/libs/acorn.cjs');
 
-
-
-let entity_classes_directory_physical = __dirname + 'game/entities/'; // For scanning
-let entity_classes_directory_relative = './game/entities/'; // For importing
-
-//if ( isWin )
-//entity_classes_directory_relative = entity_classes_directory_relative.split( '/' ).join( '\\' );
-
-let import_entity_class_promises = [];
-let imported_entity_classes = [];
-let class_name_duplciate_seeker = new Map();
-
-let entity_files = fs.readdirSync( entity_classes_directory_physical );
-
-entity_files.forEach( ( file )=>
+async function LoadScriptsFromFolder( path='game/entities/' )
 {
-	import_entity_class_promises.push( ( async ()=>
-	{ 
-		// Better to import this one manually
-		if ( file === 'sdEntity' )
-		return;
+	//let classes_directory_relative_for_clients = './entities/'; // Prefix for clients
+	let classes_directory_relative_for_clients = path.split( 'game/' ).join( './' ); // Prefix for clients
 	
-		//trace( 'Auto-import: ' + entity_classes_directory_relative + file );
+	let classes_directory_physical = __dirname + path; // For scanning
+	let classes_directory_relative = './' + path; // For importing
 
-		let imported = await import( entity_classes_directory_relative + file );
+	let import_class_promises = [];
+	let imported_classes = [];
+	let class_names_set = new Set();//new Map();
 
-		imported_entity_classes.push( imported.default );
-		
-		if ( class_name_duplciate_seeker.has( imported.default.name ) )
-		throw new Error( 'Class "' + imported.default.name + '" is imported twice from two different files:\n' + class_name_duplciate_seeker.get( imported.default.name ) + '\nand\n' + entity_classes_directory_relative + file );
+	let entity_files = fs.readdirSync( classes_directory_physical );
+
+	entity_files.forEach( ( file )=>
+	{
+		import_class_promises.push( ( async ()=>
+		{ 
+			// Better to import this one manually
+			if ( file === 'sdEntity' || file === 'sdInterface' )
+			return;
+
+			//trace( 'Auto-import: ' + classes_directory_relative + file );
+
+			let imported = await import( classes_directory_relative + file );
+
+			imported_classes.push( imported.default );
+			
+			let name_for_client = classes_directory_relative_for_clients + imported.default.name;
+
+			if ( class_names_set.has( name_for_client ) )
+			throw new Error( 'Class "' + name_for_client + '" is imported twice from two different files:\n' + name_for_client + '\nand\n' + classes_directory_relative + file );
+
+			//class_names_set.set( name_for_client, classes_directory_relative + file );
+			class_names_set.add( name_for_client );
+
+		})() );
+	});
+
+	if ( import_class_promises.length < 4 )
+	console.warn( 'Too few classes ('+import_class_promises.length+') to load. Is folder being read properly?' );
+
+	await Promise.all( import_class_promises );
 	
-		class_name_duplciate_seeker.set( imported.default.name, entity_classes_directory_relative + file );
+	return { class_names_set, imported_classes };
+}
 
-	})() );
-});
+let entity_info = await LoadScriptsFromFolder( 'game/entities/' );
+let interface_info = await LoadScriptsFromFolder( 'game/interfaces/' );
 
-if ( import_entity_class_promises.length < 5 )
-trace( 'Too few entities modules ('+import_entity_class_promises.length+') to load. Is entities folder being read properly?' );
+let get_classes_page = Array.from( entity_info.class_names_set.keys() ).concat( Array.from( interface_info.class_names_set.keys() ) ).join(',');
+let all_imported_classes = entity_info.imported_classes.concat( interface_info.imported_classes );
+entity_info = null;
 
-await Promise.all( import_entity_class_promises );
 
-let get_entity_classes_page = Array.from( class_name_duplciate_seeker.keys() ).join(',');
-class_name_duplciate_seeker = null;
 
 import sdServerToServerProtocol from './game/server/sdServerToServerProtocol.js';
 
@@ -467,13 +482,15 @@ globalThis.getStackTrace = ()=>
 
 sdWorld.init_class();
 sdEntity.init_class();
+sdInterface.init_class();
 
-for ( let i = 0; i < imported_entity_classes.length; i++ )
-imported_entity_classes[ i ].init_class();
+for ( let i = 0; i < all_imported_classes.length; i++ )
+if ( all_imported_classes[ i ].init_class )
+all_imported_classes[ i ].init_class();
 
 sdEntity.AllEntityClassesLoadedAndInitiated();
 
-//throw 'TEST done: ' + entity_classes_directory_relative;
+//throw 'TEST done: ' + classes_directory_relative;
 
 /*sdCharacter.init_class();
 sdEffect.init_class();
@@ -858,7 +875,7 @@ let is_terminating = false;
 				//const file = await fs.readFile('filename.txt', 'utf8');
 				
 				let snapshot_path_temp = snapshot_path.split('.');
-				snapshot_path_temp[ snapshot_path_temp.length - 1 ] = 'TEMP.' + snapshot_path_temp[ snapshot_path_temp.length - 1 ]
+				snapshot_path_temp[ snapshot_path_temp.length - 1 ] = 'TEMP.' + snapshot_path_temp[ snapshot_path_temp.length - 1 ];
 				snapshot_path_temp = snapshot_path_temp.join('.');
 				
 				fs.writeFile( snapshot_path_temp, buffer, ( err )=>
@@ -1219,9 +1236,10 @@ app.get('/*', function cb( req, res, repeated=false )
 		return;
 	}
 	else
-	if ( req.url === '/get_entity_classes.txt' )
+	if ( req.url === '/get_classes.txt' )
+	//if ( req.url === '/get_entity_classes.txt' )
 	{
-		res.send( get_entity_classes_page );
+		res.send( get_classes_page );
 		Finalize();
 		return;
 	}
@@ -1467,12 +1485,12 @@ const DEBUG_SOCKET_CHANGES = false;
 
 const VoidArray = {
 	push: ()=>{},
-	has: ()=>{ return false },
+	has: ()=>{ return false; },
 	set: ()=>{},
-	get: ()=>{ return undefined },
+	get: ()=>{ return undefined; },
 	add: ()=>{},
 	push: ()=>{},
-	indexOf: ()=>{ return -1 },
+	indexOf: ()=>{ return -1; },
 	length: 0,
 	clear: ()=>{},
 	delete: ()=>{}
@@ -1660,7 +1678,7 @@ io.on( 'connection', ( socket )=>
 	{
 		game_title: sdWorld.server_config.game_title || 'Star Defenders',
 		backgroundColor: sdWorld.server_config.backgroundColor || '',
-		supported_languages: sdWorld.server_config.supported_languages || [],
+		supported_languages: sdWorld.server_config.supported_languages || []
 		//password_required: !!( sdWorld.server_config.password )
 	});
 	
@@ -1671,7 +1689,16 @@ io.on( 'connection', ( socket )=>
 	
 	socket.sync_busy = false; // Will be busy if separate threads will be still preparing snapshot
 	
-	socket.camera = { x:0,y:0,scale:1 };
+	socket.camera = { x:0,y:0,scale:2 };
+	
+	socket._SetCameraZoom = ( v )=> // Call .SetCameraZoom on character instead so it will be saved
+	{
+		if ( socket.camera.scale !== v )
+		{
+			socket.camera.scale = v;
+			socket.emit( 'ZOOM', v );
+		}
+	};
 	
 	socket.observed_entities = [];
 	
@@ -1833,6 +1860,11 @@ io.on( 'connection', ( socket )=>
 				day: "numeric"
 			};
 			
+			let bypass = false;
+			
+			if ( sdModeration.GetAdminRow( socket ) )
+			bypass = true;
+			
 			if ( ban )
 			{
 				if ( Date.now() > ban.until )
@@ -1842,8 +1874,15 @@ io.on( 'connection', ( socket )=>
 				}
 				else
 				{
-					socket.SDServiceMessage( 'Access denied: {1} (until {2})', [ ban.reason, ban.until_real === 0 ? 'forever' : new Date( ban.until_real ).toLocaleDateString( "en-US", options ) ] );
-					return;
+					if ( bypass )
+					{
+						socket.SDServiceMessage( 'Ignoring global ban (UID: {1}) due to admin permissions on a server (according to 15 seconds cache)', [ ban.uid ] );
+					}
+					else
+					{
+						socket.SDServiceMessage( 'Access denied: {1} (until {2})', [ ban.reason_public, ban.until_real === 0 ? 'forever' : new Date( ban.until_real ).toLocaleDateString( "en-US", options ) ] );
+						return;
+					}
 				}
 			}
 		
@@ -1860,9 +1899,10 @@ io.on( 'connection', ( socket )=>
 						if ( r[ 0 ] === 'BANNED' )
 						{
 							let ban = { 
-								reason: r[ 1 ],
+								reason_public: r[ 1 ],
 								until: Date.now() + 1000 * 15,
-								until_real: r[ 2 ]
+								until_real: r[ 2 ],
+								uid: r[ 3 ]
 							};
 							
 							cached_bans[ ip_accurate ] = ban;
@@ -1871,10 +1911,17 @@ io.on( 'connection', ( socket )=>
 							// Server with local database would execute it instantly otherwise
 							setTimeout( ()=>
 							{
-								if ( socket.character )
-								socket.CharacterDisconnectLogic();
+								if ( bypass )
+								{
+									socket.SDServiceMessage( 'Ignoring global ban (UID: {1}) due to admin permissions on a server', [ ban.uid ] );
+								}
+								else
+								{
+									if ( socket.character )
+									socket.CharacterDisconnectLogic();
 
-								socket.SDServiceMessage( 'Access denied: {1} (until {2})', [ r[ 1 ], ban.until_real === 0 ? 'forever' : new Date( ban.until_real ).toLocaleDateString( "en-US", options ) ] );
+									socket.SDServiceMessage( 'Access denied: {1} (until {2})', [ r[ 1 ], ban.until_real === 0 ? 'forever' : new Date( ban.until_real ).toLocaleDateString( "en-US", options ) ] );
+								}	
 
 							}, 0 );
 						}
@@ -1931,6 +1978,14 @@ io.on( 'connection', ( socket )=>
 			const allowed_classes = sdWorld.allowed_player_classes;
 			
 			let preferred_entity = sdWorld.ConvertPlayerDescriptionToEntity( player_settings );
+						
+			if ( preferred_entity === 'sdPlayerSpectator' && sdWorld.server_config.only_admins_can_spectate )
+			{
+				let admin_row = sdModeration.GetAdminRow( socket );
+				
+				if ( !admin_row )
+				preferred_entity = 'sdCharacter';
+			}
 		
 			if ( allowed_classes.indexOf( preferred_entity ) === -1 )
 			character_entity = new sdCharacter({ x:0, y:0 });
@@ -2050,12 +2105,41 @@ io.on( 'connection', ( socket )=>
 		character_entity._socket = socket; // prevent json appearence
 		character_entity._save_file = player_settings.save_file;
 		
+		socket._SetCameraZoom( character_entity._camera_zoom );
+		
 		socket.character = character_entity;
 		socket.camera.x = socket.character.x;
 		socket.camera.y = socket.character.y;
 		
 		character_entity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		character_entity._frozen = 0; // Preventing results of a bug where status effects were removed but _frozen property wasn't reset. Still not sure why this happens
+		
+		let pseudonym_list = [ character_entity.title ];
+		for ( let i = 0; i < sdWorld.recent_players.length; i++ )
+		{
+			if ( sdWorld.recent_players[ i ].my_hash === socket.my_hash )
+			{
+				if ( sdWorld.recent_players[ i ].pseudonym_list.indexOf( character_entity.title ) === -1 )
+				pseudonym_list = pseudonym_list.concat( sdWorld.recent_players[ i ].pseudonym_list );
+			
+				if ( pseudonym_list.length > 32 )
+				pseudonym_list = pseudonym_list.slice( 0, 32 );
+			
+				sdWorld.recent_players.splice( i, 1 );
+				i--;
+				continue;
+			}
+		}
+		sdWorld.recent_players.unshift({ 
+			pseudonym: pseudonym_list.join(' aka '),
+			pseudonym_list: pseudonym_list,
+			last_known_net_id: character_entity._net_id,
+			my_hash: socket.my_hash,
+			time: Date.now(),
+			ban: ''
+		});
+		if ( sdWorld.recent_players.length > 100 )
+		sdWorld.recent_players.pop();
 
 		sdTask.WakeUpTasksFor( character_entity );
 		
@@ -2230,6 +2314,11 @@ io.on( 'connection', ( socket )=>
 				socket.character._key_states.SetKey( key, 0 );
 			}
 			
+			if ( type === 'UI' )
+			{
+				sdInterface.HandleCommandOnServer( sd_events[ i ][ 1 ], sd_events[ i ][ 2 ], sd_events[ i ][ 3 ], sd_events[ i ][ 4 ], socket );
+			}
+			
 			if ( type === 'T' ) // Translations
 			{
 				let lang = key;
@@ -2352,7 +2441,7 @@ io.on( 'connection', ( socket )=>
 		if ( typeof arr[ 1 ] === 'number' )
 		if ( typeof arr[ 2 ] === 'number' )
 		if ( typeof arr[ 3 ] === 'number' )
-		if ( typeof arr[ 4 ] === 'number' )
+		if ( typeof arr[ 4 ] === 'number' ) // Not used right now
 		if ( typeof arr[ 5 ] === 'number' )
 		if ( typeof arr[ 6 ] === 'number' )
 		if ( typeof arr[ 7 ] === 'number' )
@@ -2378,7 +2467,7 @@ io.on( 'connection', ( socket )=>
 
 				socket.camera.x = arr[ 2 ];
 				socket.camera.y = arr[ 3 ];
-				socket.camera.scale = arr[ 4 ];
+				//socket.camera.scale = arr[ 4 ]; // Why?
 
 				let messages_to_report_arrival = arr[ 8 ];
 
@@ -3092,7 +3181,7 @@ const RunWorkerService = ( WorkerData )=>
 		worker.next_callback = ( data )=>
 		{ 
 			resolve( worker ); 
-		}
+		};
 		
 		worker.Execute = ( command, callback=null )=>
 		{
@@ -3104,7 +3193,7 @@ const RunWorkerService = ( WorkerData )=>
 				worker.next_callback = callback;
 			}
 			else
-			throw new Error('Worker is busy')
+			throw new Error('Worker is busy');
 		};
     });
 };
@@ -3323,7 +3412,7 @@ const ServerMainMethod = ()=>
 							var observed_statics_map2 = new Set();
 
 
-							socket.camera.scale = 2;
+							//socket.camera.scale = 2;
 
 							let min_x = socket.camera.x - 800/2 / socket.camera.scale;
 							let max_x = socket.camera.x + 800/2 / socket.camera.scale;
@@ -3424,6 +3513,9 @@ const ServerMainMethod = ()=>
 											ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2 )
 										)*/
 									{
+										/*if ( socket.character.GetClass() !== 'sdPlayerSpectator' )
+										if ( ent.GetClass() === 'sdPlayerSpectator' )
+										debugger;*/
 
 										if ( ent.is_static ) // 5.8
 										{
@@ -3507,8 +3599,8 @@ const ServerMainMethod = ()=>
 
 							if ( !cells )
 							{
-								if ( socket.camera.scale !== 2 )
-								debugger; // Watch out for too many versions of ordered cells here... Round scale that is used there?
+								//if ( socket.camera.scale !== 2 )
+								//debugger; // Watch out for too many versions of ordered cells here... Round scale that is used there?
 
 								vision_cells_cache[ socket.camera.scale ] = 
 									cells = 
@@ -3523,7 +3615,7 @@ const ServerMainMethod = ()=>
 									cells.push({ 
 										x: x - min_x, 
 										y: y - min_y, 
-										dist: sdWorld.Dist2D( (min_x+max_x)/2, (min_y+max_y)/2, x, y ),
+										dist: sdWorld.Dist2D( (min_x+max_x)/2, (min_y+max_y)/2, x, y )
 										//last_trace: 0,
 										//last_trace_result: false
 									});
@@ -4021,7 +4113,7 @@ const ServerMainMethod = ()=>
 							}
 
 							socket.sync_busy = false;
-						}
+						};
 
 						SyncDataToPlayer();
 					}

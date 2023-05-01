@@ -1553,20 +1553,27 @@ class sdLongRangeTeleport extends sdEntity
 				else
 				if ( exectuter_character._god )
 				{
-					if ( command_name === 'SET_REMOTE_SERVER_URL' )
-					if ( parameters_array.length === 1 && typeof parameters_array[ 0 ] === 'string' && parameters_array[ 0 ].length < 300 )
-					{
-						this.remote_server_url = parameters_array[ 0 ];
-						this._update_version++;
-						executer_socket.SDServiceMessage( 'Remote server URL set' );
-					}
+					let admin_row = sdModeration.GetAdminRow( executer_socket );
 					
-					if ( command_name === 'SET_REMOTE_TARGET_NET_ID' )
-					if ( parameters_array.length === 1 && typeof parameters_array[ 0 ] === 'string' && parameters_array[ 0 ].length < 64 )
+					if ( admin_row )
+					if ( admin_row.access_level === 0 || sdWorld.server_config.let_non_full_access_level_admin_setup_long_range_teleports )
 					{
-						this.remote_server_target_net_id = parameters_array[ 0 ];
-						this._update_version++;
-						executer_socket.SDServiceMessage( 'Remote _net_id set' );
+						if ( command_name === 'SET_REMOTE_SERVER_URL' )
+						if ( parameters_array.length === 1 && typeof parameters_array[ 0 ] === 'string' && parameters_array[ 0 ].length < 300 )
+						{
+							this.remote_server_url = parameters_array[ 0 ];
+							this._update_version++;
+							executer_socket.SDServiceMessage( 'Remote server URL set' );
+						}
+
+						if ( command_name === 'SET_REMOTE_TARGET_NET_ID' )
+						if ( parameters_array.length === 1 && typeof parameters_array[ 0 ] === 'string' && parameters_array[ 0 ].length < 64 )
+						{
+							this.remote_server_target_net_id = parameters_array[ 0 ];
+							this._update_version++;
+							executer_socket.SDServiceMessage( 'Remote _net_id set' );
+						}
+
 					}
 				}
 				else

@@ -128,7 +128,7 @@ class sdRenderer
 				sdRenderer.screen_width = Math.round( canvas.width / 2 ) * 2;
 				sdRenderer.screen_height = Math.round( canvas.height / 2 ) * 2;
 				
-				sdWorld.target_scale = 2 / 800 * sdRenderer.screen_width;
+				sdWorld.target_scale = sdWorld.current_zoom / 800 * sdRenderer.screen_width;
 				sdWorld.target_scale = Math.round( sdWorld.target_scale * 8 ) / 8; // Should be rounded too
 				
 				if ( sdRenderer.ctx )
@@ -1590,8 +1590,8 @@ class sdRenderer
 			let scale = ( 0.3 + 0.7 * sdRenderer.resolution_quality );
 			
 			let leaderboard_width = 200 * scale;
-			if ( sdWorld.mouse_screen_x > sdRenderer.screen_width - leaderboard_width && sdWorld.mouse_screen_y < 20 + 20 * sdWorld.leaders.length * scale + 5 + 5 )
-			leaderboard_width = 400;
+			if ( sdWorld.mouse_screen_x > sdRenderer.screen_width - 400 * scale && sdWorld.mouse_screen_y < 20 + 20 * sdWorld.leaders.length * scale + 5 + 5 )
+			leaderboard_width = 400 * scale;
 				
 				
 			

@@ -955,12 +955,31 @@ class sdCharacter extends sdEntity
 		}
 		
 		this._allow_self_talk = true;
+		this._camera_zoom = sdWorld.default_zoom;
 		
 		this._has_rtp_in_range = false; // Updated only when socket is connected. Also measures matter. Works only when hints are working"
 
 		this._voice_channel = sdSound.CreateSoundChannel( this );
 		
 		sdCharacter.characters.push( this );
+	}
+	SetCameraZoom( v )
+	{
+		this._camera_zoom = v;
+		
+		if ( sdWorld.my_entity === this )
+		{
+			sdWorld.current_zoom = v;
+			window.onresize();
+		}
+		
+		if ( sdWorld.is_server )
+		{
+			if ( this._socket )
+			{
+				this._socket._SetCameraZoom( v );
+			}
+		}
 	}
 	
 	/*get _an()

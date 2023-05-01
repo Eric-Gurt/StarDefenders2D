@@ -393,6 +393,7 @@ class sdSteeringWheel extends sdEntity
 		this.driver0 = c;
 		
 		c.driver_of = this;
+		c.SetCameraZoom( 1 );
 		
 		sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1, pitch:0.5 });
 		
@@ -424,6 +425,7 @@ class sdSteeringWheel extends sdEntity
 		return;
 		
 		this.driver0 = null;
+		c.SetCameraZoom( sdWorld.default_zoom );
 		
 		if ( !c._is_being_removed )
 		{

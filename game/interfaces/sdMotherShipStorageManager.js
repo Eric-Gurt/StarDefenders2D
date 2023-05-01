@@ -7,14 +7,15 @@
 /* global sd_events, sdElement */
 
 import sdElement from './sdElement.js';
+import sdInterface from './sdInterface.js';
 
-class sdMotherShipStorageManager
+class sdMotherShipStorageManager extends sdInterface
 {
 	static init_class()
 	{
 		sdMotherShipStorageManager.only_instance = null;
-		
-		//sdMotherShipStorageManager.Open(); // Test
+
+		sdInterface.interface_classes[ this.name ] = this; // Register for callbacks
 	}
 	
 	static Open( params ) // { lrtp }
@@ -36,6 +37,8 @@ class sdMotherShipStorageManager
 	
 	constructor( params )
 	{
+		super( params );
+		
 		this.lrtp = params.lrtp;
 		
 		this.window = sdElement.createElement({ 
