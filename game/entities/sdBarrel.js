@@ -1,4 +1,8 @@
+/*
 
+	Why fight anything? Just put a barrel on it.
+
+*/
 import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
@@ -28,6 +32,8 @@ class sdBarrel extends sdEntity
 		
 		this.sx = 0;
 		this.sy = 0;
+		
+		this.arming = 0;
 		
 		this.hea = 40;
 		this.filter = params.filter || 'none';
@@ -69,6 +75,8 @@ class sdBarrel extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		this.arming = Math.min( 100, this.arming + GSPEED * 0.85 );
+		
 		this.sy += sdWorld.gravity * GSPEED;
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
@@ -76,15 +84,22 @@ class sdBarrel extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		if ( this.hea > 0 )
+		if ( this.arming < 100 )
+		sdEntity.TooltipUntranslated( ctx, T( "Barrel" ) + ' ( ' + T('building') + ': ' + (~~this.arming) + '% )' );
+		else
 		sdEntity.Tooltip( ctx, "Barrel" );
 	}
 	Draw( ctx, attached )
 	{
 		ctx.apply_shading = false;
 		
+		if ( this.arming < 100 && !sdShop.isDrawing )
+		ctx.globalAlpha = 0.5;
+		
 		ctx.filter = this.filter;
 		ctx.drawImageFilterCache( sdBarrel.img_barrel, -16, -16 );
+		
+		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
 	onRemove() // Class-specific, if needed
@@ -95,18 +110,23 @@ class sdBarrel extends sdEntity
 		
 		// Explosion
 		if ( this._broken )
-		sdWorld.SendEffect({ 
-			x:this.x, 
-			y:this.y, 
-			radius:30 + 5 * ( this.variation ) , // 70 was too much?
-			damage_scale: 9 * ( 1 + this.variation ) * 2, // 5 was too deadly on relatively far range
-			//damage_scale: 9 * ( 1 + this.variation ) * ( this._owner ? this._owner._damage_mult : 1 ), // 5 was too deadly on relatively far range
-			type:sdEffect.TYPE_EXPLOSION, 
-			owner:this._owner,
-			can_hit_owner: true,
-			armor_penetration_level: ( this._owner && this.variation >= 3 ) ? this._owner._upgrade_counters[ 'upgrade_damage' ] : undefined, // No-owner barrels can damage workbenches, also white barrels can too
-			color: this._color 
-		});
+		{
+			if ( this.arming >= 100 )
+			sdWorld.SendEffect({ 
+				x:this.x, 
+				y:this.y, 
+				radius:30 + 5 * ( this.variation ) , // 70 was too much?
+				damage_scale: ( 9 * ( 1 + this.variation ) * 2 ), // 5 was too deadly on relatively far range
+				//damage_scale: 9 * ( 1 + this.variation ) * ( this._owner ? this._owner._damage_mult : 1 ), // 5 was too deadly on relatively far range
+				type:sdEffect.TYPE_EXPLOSION, 
+				owner:this._owner,
+				can_hit_owner: true,
+				armor_penetration_level: ( this._owner && this.variation >= 3 ) ? this._owner._upgrade_counters[ 'upgrade_damage' ] : undefined, // No-owner barrels can damage workbenches, also white barrels can too
+				color: this._color 
+			});
+			else
+			sdWorld.BasicEntityBreakEffect( this, 5, 3, 0.75, 0.75 );
+		}
 	}
 	MeasureMatterCost()
 	{

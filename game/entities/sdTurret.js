@@ -95,6 +95,8 @@ class sdTurret extends sdEntity
 		sdTurret.KIND_SNIPER = 3;
 		sdTurret.KIND_FREEZER = 4;
 		
+		sdTurret.matter_capacity = 40; // Was 20, but new cable logic makes entities with 20 or less matter to be ignored
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	get hitbox_x1() { return -this.GetSize(); }
@@ -199,14 +201,21 @@ class sdTurret extends sdEntity
 		
 		//this._coms_near_cache = [];
 		
-		this.matter = params.matter || 0;
-		this._matter_max = params.matter_max || 20;
+		//this.matter = params.matter || 0;
+		//this._matter_max = params.matter_max || 20;
+		
+		this.matter = 0;
+		this._matter_max = sdTurret.matter_capacity;
 		
 		this.lvl = 0;
 		
 		this._time_amplification = 0;
 		
 		this.SetMethod( 'ShootPossibilityFilter', this.ShootPossibilityFilter ); // Here it used for "this" binding so method can be passed to collision logic
+	}
+	onSnapshotApplied() // To override
+	{
+		this._matter_max = sdTurret.matter_capacity;
 	}
 	GetShootCost()
 	{
@@ -326,12 +335,18 @@ class sdTurret extends sdEntity
 									
 									if ( ( is_char && e.IsHostileAI() ) || ( ( !is_char || ( RuleAllowedByNodes( e._net_id ) && RuleAllowedByNodes( e.biometry ) ) ) && RuleAllowedByNodes( e.GetClass() ) ) )
 									{
-										this._considered_target = e;
-										
-										if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier', 'sdCommandCentre', 'sdCrystalCombiner', 'sdTurret', 'sdCrystal', 'sdRescueTeleport' ], this.ShootPossibilityFilter ) )
+										if ( is_char && is_char._god && !e.IsVisible() )
 										{
-											this._target = e;
-											break;
+										}
+										else
+										{
+											this._considered_target = e;
+
+											if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier', 'sdCommandCentre', 'sdCrystalCombiner', 'sdTurret', 'sdCrystal', 'sdRescueTeleport' ], this.ShootPossibilityFilter ) )
+											{
+												this._target = e;
+												break;
+											}
 										}
 									}
 								}

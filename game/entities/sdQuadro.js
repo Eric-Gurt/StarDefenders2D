@@ -124,6 +124,10 @@ class sdQuadro extends sdEntity
 		return ( this.part === 0 ) ? sdQuadro.ignoring_body : sdQuadro.ignoring_wheels;
 	}
 	*/
+	GetDriverSlotsCount()
+	{
+		return sdQuadro.driver_slots;
+	}
 	AddDriver( c )
 	{
 		if ( !sdWorld.is_server )

@@ -563,19 +563,19 @@ class sdGunClass
 
 		// Function below for regular non custom guns
 
-		function AddGunDefaultUpgrades( custom_rifle_upgrades=[] )
+		function AddGunDefaultUpgrades( normal_rifle_upgrades=[] )
 		{
-			custom_rifle_upgrades.push(
+			normal_rifle_upgrades.push(
 				{
 					title: 'Customize properties...', 
 					represents_category: 'customize_properties'
 				} 
 			);
 
-			custom_rifle_upgrades.push(
+			normal_rifle_upgrades.push(
 				{
 					title: 'Increase damage', 
-					cost: 500, 
+					cost: 2, 
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
@@ -594,7 +594,7 @@ class sdGunClass
 					} 
 				} 
 			);
-			custom_rifle_upgrades.push(
+			normal_rifle_upgrades.push(
 				{
 					title: 'Decrease damage', 
 					cost: 0, 
@@ -616,7 +616,7 @@ class sdGunClass
 					} 
 				} 
 			);
-			/*custom_rifle_upgrades.push(
+			/*normal_rifle_upgrades.push(
 				{
 					title: 'Increase fire rate', 
 					cost: 0, 
@@ -628,7 +628,7 @@ class sdGunClass
 					} 
 				} 
 			);
-			custom_rifle_upgrades.push(
+			normal_rifle_upgrades.push(
 				{
 					title: 'Decrease fire rate', 
 					cost: 0, 
@@ -640,10 +640,10 @@ class sdGunClass
 					} 
 				} 
 			);*/
-			custom_rifle_upgrades.push(
+			normal_rifle_upgrades.push(
 				{
 					title: 'Improve recoil control', 
-					cost: 250, 
+					cost: 1, 
 					category: 'customize_properties',
 					action: ( gun, initiator=null )=> 
 					{ 
@@ -652,7 +652,7 @@ class sdGunClass
 					} 
 				} 
 			);
-			custom_rifle_upgrades.push(
+			normal_rifle_upgrades.push(
 				{
 					title: 'Worsen recoil control', 
 					cost: 0, 
@@ -664,7 +664,7 @@ class sdGunClass
 					} 
 				} 
 			);
-			/*custom_rifle_upgrades.push(
+			/*normal_rifle_upgrades.push(
 				{
 					title: 'Toggle biometry lock', 
 					cost: 500, 
@@ -684,7 +684,7 @@ class sdGunClass
 			);*/
 			// Not sure if biometry lock is needed, since we can just turn it off in bench anyway
 	
-			return custom_rifle_upgrades;
+			return normal_rifle_upgrades;
 		}
 		/*
 		
@@ -2553,6 +2553,11 @@ class sdGunClass
 		{
 			if ( sdCable.attacheable_entities.indexOf( target_entity.GetClass() ) !== -1 )
 			{
+				if ( target_entity._shielded && !target_entity._shielded._is_being_removed && target_entity._shielded.protect_cables )
+				{
+					bullet._owner.Say( 'Protected by the base shielding unit' );
+				}
+				else
 				if ( sdCable.one_cable_entities.indexOf( target_entity.GetClass() ) !== -1 && sdCable.GetConnectedEntities( target_entity, sdCable.TYPE_ANY ).length > 0 )
 				{
 					//bullet._owner.Say( ( target_entity.title || target_entity.GetClass() ) + ' has only one socket' );
@@ -3033,7 +3038,7 @@ class sdGunClass
 			title: 'Admin tool for teleporting',
 			sound_pitch: 2,
 			slot: 8,
-			reload_time: 10,
+			reload_time: 5,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 1,
@@ -3048,6 +3053,8 @@ class sdGunClass
 				if ( gun._held_by.IsPlayerClass() )
 				if ( gun._held_by._god )
 				{
+					let dx = gun._held_by.look_x - gun._held_by.x;
+					let dy = gun._held_by.look_y - gun._held_by.y;
 					gun._held_by.x = gun._held_by.look_x;
 					gun._held_by.y = gun._held_by.look_y;
 					gun._held_by.sx = 0;
@@ -5204,7 +5211,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#ff0000', 20 ) )
 		};
 		
 		const liquid_carrier_base_color = '#518ad1';

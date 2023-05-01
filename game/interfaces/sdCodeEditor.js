@@ -9,12 +9,15 @@
 import sdElement from './sdElement.js';
 import sdBotFactory from '../entities/sdBotFactory.js';
 import sdBot from '../entities/sdBot.js';
+import sdInterface from './sdInterface.js';
 
-class sdCodeEditor
+class sdCodeEditor extends sdInterface
 {
 	static init_class()
 	{
 		sdCodeEditor.window_instances = [];
+
+		sdInterface.interface_classes[ this.name ] = this; // Register for callbacks
 	}
 	
 	static Open( params )
@@ -34,6 +37,8 @@ class sdCodeEditor
 	
 	constructor( params )
 	{
+		super( params );
+		
 		this.code_container = params.code_container;
 		this.code_container_net_id = params.code_container_net_id;
 		
@@ -92,6 +97,22 @@ class sdCodeEditor
 		this.ace_editor = editor;
 		
 		this.ace_editor.setValue( params.code, -1 );
+		
+		let old_value = params.code;
+		
+		/*this.ace_editor.getSession().on( 'blur', ()=>
+		{
+			let new_value = editor.getSession().getValue();
+			
+			if ( new_value !== old_value )
+			if ( new_value !== '' )
+			{
+				//if ( old_value === undefined )
+				globalThis.socket.emit( 'ENTITY_CONTEXT_ACTION', [ this.code_container.GetClass(), this.code_container_net_id, 'SET_CODE', [ new_value ] ] );
+				
+				old_value = new_value;
+			}
+		});*/
 		
 		
 		this.hints = this.window.createElement({ 
@@ -240,6 +261,19 @@ ${ sdBot.function_descriptions }
 	
 	remove()
 	{
+		let e = this.ace_editor;
+		if ( e )
+		{
+			let s = e.getSession();
+			if ( s )
+			{
+				let v = s.getValue();
+
+				if ( v !== '' && typeof v === 'string' )
+				globalThis.socket.emit( 'ENTITY_CONTEXT_ACTION', [ this.code_container.GetClass(), this.code_container_net_id, 'SET_CODE', [ v ] ] );
+			}
+		}
+		
 		this.window.remove();
 		
 		this.ace_editor.destroy();

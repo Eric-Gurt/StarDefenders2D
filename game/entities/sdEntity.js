@@ -22,7 +22,7 @@ let skipper = 0;
 let GetAnythingNear = null;
 let sdArea = null;
 //let sdSound = null;
-let sdDeepSleep = null;
+//let sdDeepSleep = null;
 //let sdKeyStates = null;
 			
 class sdEntity
@@ -435,6 +435,147 @@ class sdEntity
 	VehicleHidesLegs()
 	{
 		return true;
+	}
+	GetDriverSlotsCount() // Not specfiying this will cause phantom effect on drivers after entity was destroyed
+	{
+		/*if ( this.IsVehicle() )
+		{
+			console.warn( 'Vehicle sdEntity has no .GetDriverSlotsCount() method overriden in extended class ' + this.GetClass() );
+			debugger;
+		}*/
+		
+		return 0;
+	}
+	GetDriverSlotHint( best_slot )
+	{
+		return 'Entered slot ' + ( best_slot + 1 );
+	}
+	onAfterDriverAdded( best_slot )
+	{
+	}
+	ExcludeAllDrivers()
+	{
+		const driver_slots_total = this.GetDriverSlotsCount();
+		
+		for ( var i = 0; i < driver_slots_total; i++ )
+		if ( this[ 'driver' + i ] )
+		this.ExcludeDriver( this[ 'driver' + i ], true );
+	}
+	RemoveAllDrivers() // Will be called if vehicle gets removed by default
+	{
+		const driver_slots_total = this.GetDriverSlotsCount();
+		
+		for ( var i = 0; i < driver_slots_total; i++ )
+		if ( this[ 'driver' + i ] )
+		this[ 'driver' + i ].remove();
+	}
+	GetDriverZoom()
+	{
+		return sdWorld.default_zoom * 0.75;
+	}
+	AddDriver( c, force=false ) // Uses magic property _doors_locked or doors_locked
+	{
+		if ( !sdWorld.is_server )
+		return;
+	
+		if ( !force )// && !c._god )
+		if ( ( this._doors_locked || this.doors_locked || false ) )
+		{
+			if ( c._socket )
+			c._socket.SDServiceMessage( 'Doors are locked' );
+		
+			return;
+		}
+	
+		var best_slot = -1;
+		
+		let driver_slots_total = this.GetDriverSlotsCount();
+		
+		for ( var i = 0; i < driver_slots_total; i++ )
+		if ( this[ 'driver' + i ] === null )
+		{
+			best_slot = i;
+			break;
+		}
+		
+		if ( best_slot >= 0 )
+		{
+			this[ 'driver' + best_slot ] = c;
+			
+			c.driver_of = this;
+			c.SetCameraZoom( this.GetDriverZoom() );
+
+			if ( c._socket )
+			{
+				c._socket.SDServiceMessage( this.GetDriverSlotHint( best_slot ) );
+			}
+			
+			this.onAfterDriverAdded( best_slot );
+			/*
+			if ( this.type === 3 && best_slot === 0 )
+			sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1, pitch:2 });
+			else
+			if ( best_slot === 0 )
+			sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1 });*/
+		}
+		else
+		{
+			if ( c._socket )
+			c._socket.SDServiceMessage( 'All slots are occupied' );
+		}
+	}
+	ExcludeDriver( c, force=false )
+	{
+		if ( !force )
+		if ( !sdWorld.is_server )
+		return;
+
+		if ( !force )//&& !c._god )
+		if ( ( this._doors_locked || this.doors_locked || false ) )
+		{
+			if ( c._socket )
+			c._socket.SDServiceMessage( 'Doors are locked' );
+		
+			return;
+		}
+		
+		for ( var i = 0; i < this.GetDriverSlotsCount(); i++ )
+		{
+			if ( this[ 'driver' + i ] === c )
+			{
+				this[ 'driver' + i ] = null;
+				c.driver_of = null;
+				c.SetCameraZoom( sdWorld.default_zoom );
+
+				// To prevent the teleport exploit
+				if ( this.GetDriverSlotsCount() <= 1 )
+				c.x = this.x;
+				else
+				c.x = this.x + ( i / ( this.GetDriverSlotsCount() - 1 ) ) * ( this._hitbox_x2 - this._hitbox_x1 );
+				
+				if ( c.CanMoveWithoutOverlap( c.x, this.y + this._hitbox_y1 - c._hitbox_y2, 0 ) )
+				c.y = this.y + this._hitbox_y1 - c._hitbox_y2;
+				else
+				if ( c.CanMoveWithoutOverlap( this.x + this._hitbox_x1 - c._hitbox_x2, c.y, 0 ) )
+				c.x = this.x + this._hitbox_x1 - c._hitbox_x2;
+				else
+				if ( c.CanMoveWithoutOverlap( this.x + this._hitbox_x2 - c._hitbox_x1, c.y, 0 ) )
+				c.x = this.x + this._hitbox_x2 - c._hitbox_x1;
+				else
+				if ( c.CanMoveWithoutOverlap( this.x, c.y + this._hitbox_y2 - c._hitbox_y1, 0 ) )
+				c.y = this.y + this._hitbox_y2 - c._hitbox_y1;
+		
+				c.PhysWakeUp();
+				
+				if ( c._socket )
+				c._socket.SDServiceMessage( 'Leaving vehicle' );
+		
+				return;
+			}
+		}
+		
+		if ( c._socket )
+		c._socket.SDServiceMessage( 'Error: Attempted leaving vehicle in which character is not located.' );
 	}
 	
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
@@ -2225,11 +2366,15 @@ class sdEntity
 	}
 	CanMoveWithoutDeepSleepTriggering( new_x, new_y, safe_bound=0 )
 	{
-		if ( !sdDeepSleep )
-		sdDeepSleep = sdWorld.entity_classes.sdDeepSleep;
-	
-		const extra_space_around = -safe_bound;
+		this.UpdateHitbox();
 		
+		//if ( !sdDeepSleep )
+		//sdDeepSleep = sdWorld.entity_classes.sdDeepSleep;
+	
+		//const extra_space_around = -safe_bound;
+		
+		return !( sdWorld.CheckSolidDeepSleepExistsAtBox( new_x + this._hitbox_x1 + safe_bound, new_y + this._hitbox_y1 + safe_bound, new_x + this._hitbox_x2 - safe_bound, new_y + this._hitbox_y2 - safe_bound, this ) );
+		/*
 		for ( let i = 0; i < sdDeepSleep.cells.length; i++ )
 		{
 			const cell = sdDeepSleep.cells[ i ];
@@ -2247,7 +2392,7 @@ class sdEntity
 			}
 		}
 
-		return true;
+		return true;*/
 	}
 	
 	GetHitDamageMultiplier( x, y ) // Multiplier for damage
@@ -2699,7 +2844,18 @@ class sdEntity
 		return true;
 	}
 
+	static CableCacheFlushMethod( e )
+	{
+		if ( e._connected_ents )
+		e._connected_ents = null;
 	
+		let auto_entity = e.GetAutoConnectedEntityForMatterFlow();
+		if ( auto_entity )
+		if ( auto_entity._connected_ents )
+		auto_entity._connected_ents = null;
+	
+		return false;
+	}
 	FindObjectsInACableNetwork( accept_test_method=null, alternate_class_to_search=sdWorld.entity_classes.sdBaseShieldingUnit, return_full_paths=false ) // No cache, so far. return_full_paths makes it return arrays of entities on a way to searched entities
 	{
 		const sdCable = sdWorld.entity_classes.sdCable;
@@ -3867,6 +4023,8 @@ class sdEntity
 				
 				for ( i = 0; i < connected_ents.length; i++ )
 				{
+					const e = connected_ents[ i ];
+					
 					/*globalThis.max_connected_ents_length = globalThis.max_connected_ents_length || null;
 
 					// Top: 257
@@ -3879,15 +4037,15 @@ class sdEntity
 						};
 					}*/
 
-					//if ( ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' ) && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
-					if ( connected_ents[ i ]._has_matter_props && !connected_ents[ i ]._is_being_removed )
+					//if ( ( typeof e.matter !== 'undefined' || typeof e._matter !== 'undefined' ) && !e._is_being_removed ) // Can appear as being removed as well...
+					if ( e._has_matter_props && !e._is_being_removed )
 					{
-						//this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+						//this.TransferMatter( e, how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
 
-						//visited_ents.add( connected_ents[ i ] );
-						connected_ents[ i ]._flag = visited_ent_flag;
+						//visited_ents.add( e );
+						e._flag = visited_ent_flag;
 
-						if ( connected_ents[ i ].PrioritizeGivingMatterAway() )
+						if ( e.PrioritizeGivingMatterAway() )
 						{
 							if ( array_is_not_cloned )
 							{
@@ -3895,7 +4053,7 @@ class sdEntity
 								connected_ents = connected_ents.slice(); // Clone
 							}
 
-							let recursively_connected = sdCable.GetConnectedEntities( connected_ents[ i ], sdCable.TYPE_MATTER );
+							let recursively_connected = sdCable.GetConnectedEntities( e, sdCable.TYPE_MATTER );
 
 							if ( recursively_connected )
 							for ( let i2 = 0; i2 < recursively_connected.length; i2++ )
@@ -3912,13 +4070,29 @@ class sdEntity
 								connected_ents.push( auto2 );
 							}
 						}
+						
+						
+						if ( ( e.matter_max || e._matter_max || 0 ) <= 20 ) // Exclude sdCom, sdMatterAmplifier, sdNode - they won't receive any matter
+						{
+							connected_ents.splice( i, 1 );
+							i--;
+							continue;
+						}
+					}
+					else
+					{
+						connected_ents.splice( i, 1 );
+						i--;
+						continue;
 					}
 				}
 				//visited_ents = null;
 				
 				
 				this._connected_ents = connected_ents;
-				this._connected_ents_next_rethink = sdWorld.time + 200 + Math.random() * 50;
+				//this._connected_ents_next_rethink = sdWorld.time + 200 + Math.random() * 50;
+				
+				this._connected_ents_next_rethink = sdWorld.time + 1000 * 60 + Math.random() * 1000; // Likely should never expire?
 			}
 			
 			for ( let i = 0; i < connected_ents.length; i++ )
@@ -4243,6 +4417,8 @@ class sdEntity
 		
 		this.onRemove();
 		
+		this.RemoveAllDrivers();
+		
 		this.ManageTrackedPhysWakeup();
 		
 		this.SetHiberState( sdEntity.HIBERSTATE_REMOVED );
@@ -4288,6 +4464,10 @@ class sdEntity
 					else
 					if ( typeof value === 'object' )
 					{
+						/*if ( prop === '_phys_entities_on_top' )
+						{
+						}
+						else*/
 						if ( this[ prop ] instanceof sdEntity )
 						this[ prop ] = null;
 						else
@@ -4306,7 +4486,10 @@ class sdEntity
 					}
 					else
 					if ( typeof value === 'string' )
-					this[ prop ] = '';
+					{
+						if ( prop !== '_class' ) // Keep the class name as it is required for deletion data sync
+						this[ prop ] = '';
+					}
 				}
 			}
 			
@@ -4432,6 +4615,8 @@ class sdEntity
 	}
 	_remove_from_entities_array( old_hiber_state=-2 )
 	{
+		// Use BulkRemoveEntitiesFromEntitiesArray instead when possible
+		
 		let id = sdEntity.entities.indexOf( this );
 		if ( id === -1 )
 		{
@@ -4441,12 +4626,25 @@ class sdEntity
 		else
 		sdEntity.entities.splice( id, 1 );
 	}
+	static BulkRemoveEntitiesFromEntitiesArray( arr ) // Entities should be already _is_being_removed
+	{
+		for ( let i = 0; i < arr.length; i++ )
+		{
+			let id = sdEntity.entities.lastIndexOf( arr[ i ] );
+			if ( id !== -1 )
+			sdEntity.entities.splice( id, 1 );
+		}
+	}
+	
+	
+	
 	isWaterDamageResistant()
 	{
 		return false;
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP ); // Likely no logic is added to entity - no reason to keep it awake at all. Something like sdSensorArea can happen to be non-hiberanted occasionally, possibly due to being loaded from snapshots. This would solve that
 	}
 	onThinkFrozen( GSPEED )
 	{
@@ -4455,6 +4653,11 @@ class sdEntity
 			this.sy += sdWorld.gravity * GSPEED;
 			
 			this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1 ); // Extra fragility is buggy
+		}
+		else
+		{
+			// No hibernation logic is really needed here - it barely happens if happens at all
+			//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP ); // Likely no logic is added to entity - no reason to keep it awake at all. Something like sdSensorArea can happen to be non-hiberanted occasionally, possibly due to being loaded from snapshots. This would solve that
 		}
 			
 		//if ( this._ragdoll )

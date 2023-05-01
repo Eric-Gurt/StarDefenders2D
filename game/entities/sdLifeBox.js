@@ -103,6 +103,10 @@ class sdLifeBox extends sdEntity
 		// 1 slot
 		this.driver0 = null; // movement
 	}
+	GetDriverSlotsCount()
+	{
+		return sdLifeBox.driver_slots;
+	}
 	AddDriver( c )
 	{
 		if ( !sdWorld.is_server )
@@ -281,13 +285,18 @@ class sdLifeBox extends sdEntity
 			if ( this.hea >= this.hmax )
 			this._target = null; // Reset target when HP is full
 		}
+		
+		if ( this._target )
+		if ( this._target._is_being_removed )
+		this._target = null;
 
 		if ( this.attack_timer <= 0 && this.hea < this.hmax )
 		if ( this.driver0 )
 		if ( this._target !== null )
-		if ( !this._target._is_being_removed )
-		if ( ( this._target.hea || this._target._hea || 0 ) > 0 )
 		{
+			if ( !this._target._is_being_removed )
+			if ( ( this._target.hea || this._target._hea || 0 ) > 0 )
+			{
 			let di = sdWorld.Dist2D( this.x, this.y, this._target.x, this._target.y );
 			if ( di <= 450 || this._pending_revenge_hits > 0 )
 			{
@@ -344,6 +353,21 @@ class sdLifeBox extends sdEntity
 				}
 			}
 		}
+		}
+		
+		if ( this.driver0 )
+		{
+			if ( !this._target && this.hea >= this.hmax && this.attack_timer <= 0 )
+			{
+				this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+				
+				if ( !this.driver0._socket )
+				this.driver0.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
+			}
+		}
+		else
+		if ( this.hea >= this.hmax )
+		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 	}
 	
 	onMovementInRange( from_entity )

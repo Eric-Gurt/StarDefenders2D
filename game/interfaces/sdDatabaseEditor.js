@@ -7,14 +7,15 @@
 /* global sd_events, sdElement */
 
 import sdElement from './sdElement.js';
+import sdInterface from './sdInterface.js';
 
-class sdDatabaseEditor
+class sdDatabaseEditor extends sdInterface
 {
 	static init_class()
 	{
 		sdDatabaseEditor.only_instance = null;
 		
-		//sdDatabaseEditor.Open(); // Test
+		sdInterface.interface_classes[ this.name ] = this; // Register for callbacks
 	}
 	
 	static Open()
@@ -54,8 +55,10 @@ class sdDatabaseEditor
 	}
 
 	
-	constructor()
+	constructor( params )
 	{
+		super( params );
+		
 		/*this.overlay = sdElement.createElement({ 
 			type: sdElement.OVERLAY,
 			onClick: ()=>{ sdDatabaseEditor.Close(); } 

@@ -955,12 +955,31 @@ class sdCharacter extends sdEntity
 		}
 		
 		this._allow_self_talk = true;
+		this._camera_zoom = sdWorld.default_zoom;
 		
 		this._has_rtp_in_range = false; // Updated only when socket is connected. Also measures matter. Works only when hints are working"
 
 		this._voice_channel = sdSound.CreateSoundChannel( this );
 		
 		sdCharacter.characters.push( this );
+	}
+	SetCameraZoom( v )
+	{
+		this._camera_zoom = v;
+		
+		if ( sdWorld.my_entity === this )
+		{
+			sdWorld.current_zoom = v;
+			window.onresize();
+		}
+		
+		if ( sdWorld.is_server )
+		{
+			if ( this._socket )
+			{
+				this._socket._SetCameraZoom( v );
+			}
+		}
 	}
 	
 	/*get _an()
@@ -1420,7 +1439,10 @@ class sdCharacter extends sdEntity
 					sdWorld.last_hit_entity.GetClass() === 'sdTutel' || 
 					sdWorld.last_hit_entity.GetClass() === 'sdFaceCrab' || 
 					sdWorld.last_hit_entity.GetClass() === 'sdBiter'  ||
-					sdWorld.last_hit_entity.GetClass() === 'sdAbomination' ) 
+					sdWorld.last_hit_entity.GetClass() === 'sdAbomination' ||
+					( sdWorld.last_hit_entity.GetClass() === 'sdBomb' && sdWorld.inDist2D_Boolean( sdWorld.last_hit_entity.x, sdWorld.last_hit_entity.y, this.x, this.y, 150 ) ) ||
+					( sdWorld.last_hit_entity.GetClass() === 'sdBarrel' && sdWorld.inDist2D_Boolean( sdWorld.last_hit_entity.x, sdWorld.last_hit_entity.y, this.x, this.y, 150 ) && sdWorld.last_hit_entity.armed < 100 ) // Attack not yet armed barrels (for Councils?)
+			) 
 			found_enemy = true;
 
 			if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && this._ai_team !== 0 )
@@ -1447,7 +1469,9 @@ class sdCharacter extends sdEntity
 		if ( this.title === 'Falkonian Sword Bot' ) // Is it the falkonian sword bot?
 		return sdCharacter.AI_MODEL_AGGRESSIVE; // It is a robot and it is large, it does not fear.
 
-		if ( this._ai.target.GetClass() === 'sdOctopus' || this._ai.target.GetClass() === 'sdAmphid' || this._ai.target.GetClass() === 'sdSandWorm' || this._ai.target.GetClass() === 'sdQuickie' || this._ai.target.GetClass() === 'sdVirus' || this._ai.target.GetClass() === 'sdTutel' || this._ai.target.GetClass() === 'sdBiter' || this._ai.target.GetClass() === 'sdAbomination' )
+		if ( this._ai.target.GetClass() === 'sdOctopus' || this._ai.target.GetClass() === 'sdAmphid' || this._ai.target.GetClass() === 'sdSandWorm' || this._ai.target.GetClass() === 'sdQuickie' || 
+			 this._ai.target.GetClass() === 'sdVirus' || this._ai.target.GetClass() === 'sdTutel' || this._ai.target.GetClass() === 'sdBiter' || this._ai.target.GetClass() === 'sdAbomination' || 
+			 this._ai.target.GetClass() === 'sdBomb' || this._ai.target.GetClass() === 'sdBarrel' )
 		return sdCharacter.AI_MODEL_DISTANT;
 
 
@@ -1842,6 +1866,7 @@ class sdCharacter extends sdEntity
 		if ( initiator && initiator !== this && ( initiator.cc_id !== this.cc_id || this.cc_id === 0 ) ) // Allow PvP damage scale for non-teammates only
 		if ( ( this._my_hash !== undefined || this._socket || this.title === 'Player from the shop' ) && 
 		     ( initiator._my_hash !== undefined || initiator._socket || initiator.title === 'Player from the shop' ) ) // Both are real players or at least test dummie from the shop
+		if ( this.is( sdCharacter ) && initiator.is( sdCharacter ) ) // Only for characters... So it won't make drones/Overlords overpowered
 		{
 			dmg *= sdWorld.server_config.player_vs_player_damage_scale;
 		}
@@ -2843,6 +2868,19 @@ class sdCharacter extends sdEntity
 			this._player_damage = 0; // Hack
 		}
 	}
+	
+	IsOutOfBounds()
+	{
+		//if ( !sdWorld.inDist2D_Boolean( 0,0, this.x, this.y, sdWorld.server_config.open_world_max_distance_from_zero_coordinates ) )
+		if ( Math.abs( this.x ) > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x ||
+			 this.y < sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_min ||
+			 this.y > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_max )
+		{
+			return true;
+		}
+		
+		return false;
+	}
 
 	onThink( GSPEED ) // Class-specific, if needed
 	{
@@ -3641,14 +3679,19 @@ class sdCharacter extends sdEntity
 		
 		let out_of_bounds = false;
 		
-		//if ( !sdWorld.inDist2D_Boolean( 0,0, this.x, this.y, sdWorld.server_config.open_world_max_distance_from_zero_coordinates ) )
-		if ( Math.abs( this.x ) > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x ||
+		if ( this.IsOutOfBounds() )
+		{
+			can_breathe = false;
+			out_of_bounds = true;
+		}
+		
+		/*if ( Math.abs( this.x ) > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x ||
 			 this.y < sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_min ||
 			 this.y > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_max )
 		{
 			can_breathe = false;
 			out_of_bounds = true;
-		}
+		}*/
 		
 		/*if ( this._key_states.GetKey( 'KeyA' ) )
 		{
@@ -5374,7 +5417,7 @@ class sdCharacter extends sdEntity
 							sdWorld.Stop();
 						}
 					});
-					this.AddContextOption( 'Teleport to closest/cheapest claimed rescure teleport', 'RTP', [] );
+					this.AddContextOption( 'Teleport to closest/cheapest claimed rescue teleport', 'RTP', [] );
 					
 					this.AddClientSideActionContextOption( 'Copy character hash ID', ()=>
 					{

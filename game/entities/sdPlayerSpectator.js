@@ -203,6 +203,14 @@ class sdPlayerSpectator extends sdCharacter
 
 				this.sx += dx * GSPEED * 0.002;
 				this.sy += dy * GSPEED * 0.002;
+				
+				if ( di > 1000 )
+				{
+					this.x = this._following.x;
+					this.y = this._following.y;
+					this.sx = 0;
+					this.sy = 0;
+				}
 			}
 		}
 

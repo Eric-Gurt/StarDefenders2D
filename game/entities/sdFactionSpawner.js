@@ -224,6 +224,11 @@ class sdFactionSpawner extends sdEntity
 		{
 			ctx.drawImageFilterCache( sdFactionSpawner.img_falkok_spawner, - 24, - 16, 48,32 );
 		}
+		else
+		{
+			ctx.filter = 'saturate(0)';
+			ctx.drawImageFilterCache( sdFactionSpawner.img_falkok_spawner, - 24, - 16, 48,32 );
+		}
 
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';

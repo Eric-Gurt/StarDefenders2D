@@ -295,6 +295,7 @@ class sdDatabase
 						initiator: 'user#123', // Hash or user_uid
 						initiator_server: 'local', // Or remote secondary server
 						action: 'user#123 modifies sdDatabase.data.translations.Welcome to star defenders!.ua = "Ласкаво прошу до Зоряних Захисників!"',
+						category: '?',
 						
 						time: Date.now() // Used to auto-remove
 					},
@@ -349,7 +350,8 @@ class sdDatabase
 					sample_row:
 					{
 						uid: 0, // Will be same in both tables
-						reason: 'Killing new players',
+						reason_public: 'Killing new players',
+						reason_private: 'This user has been given way too many chances, do not unban',
 						until: Date.now() + 1000 * 60 * 60 * 24 * 7
 					},
 			
@@ -433,6 +435,8 @@ class sdDatabase
 				}
 			}
 			
+			delete sdDatabase.data.moderation.bans.sample_row.reason; // No longer used
+			
 			setTimeout( sdDatabase.onThink, 0 ); // Do first one instantly just to check if there is nothing that will crash server
 		}
 		else
@@ -458,6 +462,19 @@ class sdDatabase
 		}
 		
 		return missing_values;
+	}
+	static LogActivity( initiator_hash_or_user_uid, initiator_server, action, category )
+	{
+		let activity_logs = sdDatabase.data.moderation.activity_logs;
+
+		let row = Object.assign( {}, activity_logs.sample_row );
+
+		row.initiator = initiator_hash_or_user_uid;
+		row.initiator_server = initiator_server;
+		row.action = action;
+		row.category = category;
+
+		activity_logs.table[ activity_logs.next_uid++ ] = row;
 	}
 	static onThink()
 	{
@@ -664,6 +681,7 @@ class sdDatabase
 			allowed_methods.add( 'DBTranslate' );
 			allowed_methods.add( 'DBManageSavedItems' );
 			allowed_methods.add( 'DBLogIP' );
+			allowed_methods.add( 'DBBanUnbanByHash' );
 			
 			for ( let i = 0; i < array_of_request_objects.length; i++ )
 			{
@@ -758,6 +776,7 @@ class sdDatabase
 			}
 			
 			if ( my_admin_row )
+			if ( my_admin_row.access_level === 0 )
 			{
 				permissions = {};
 				
@@ -891,21 +910,21 @@ class sdDatabase
 		if ( sdDatabase.data.moderation.bans.table_by_ip[ ip ] )
 		ban = sdDatabase.data.moderation.bans.table_by_ip[ ip ];
 		else
-		if ( sdDatabase.data.moderation.bans.table_by_user_uid[ ip ] )
-		ban = sdDatabase.data.moderation.bans.table_by_user_uid[ ip ];
+		if ( sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] )
+		ban = sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ];
 		
 		if ( ban )
 		{
-			if ( ban.until === undefined  )
+			if ( ban.until === undefined )
 			ban.until = 0;
 		
 			if ( ban.until !== 0 && t > ban.until )
 			{
 				delete sdDatabase.data.moderation.bans.table_by_ip[ ip ];
-				delete sdDatabase.data.moderation.bans.table_by_user_uid[ ip ];
+				delete sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ];
 			}
 			else
-			responses.push([ 'BANNED', ban.reason, ban.until ]);
+			responses.push([ 'BANNED', ban.reason_public, ban.until, ban.uid ]);
 		}
 		
 		return responses;
@@ -1024,6 +1043,120 @@ class sdDatabase
 
 		return responses;
 	}
+	static DBBanUnbanByHash( responses=[], initiator_server, initiator_hash_or_user_uid, operation, target_hash_or_ban_uid, reason_public, reason_private, duration )
+	{
+		// S2S protocol already prevents unauthorized server - perhaps as long as all servers have legitimate admins it will work just fine
+		/*let permissions = sdDatabase.GetDatabasePermissionsFor( initiator_hash_or_user_uid );
+		if ( !permissions )
+		{
+			responses.push([ 'SERVICE_MESSAGE', 'Access Error: No permissions according to sdDatabase.GetDatabasePermissionsFor' ]);
+			return responses;
+		}
+		
+		if ( permissions.execute === '*' || permissions.execute.indexOf( 'moderation' ) !== -1 || permissions.execute.indexOf( 'moderation.bans' ) !== -1 )
+		{
+		}
+		else
+		{
+			responses.push([ 'SERVICE_MESSAGE', 'Access Error: Not enough permissions according to sdDatabase.GetDatabasePermissionsFor result' ]);
+			return responses;
+		}*/
+		
+		if ( operation === 'list_bans' )
+		{
+			for ( let hash in sdDatabase.data.moderation.bans.table_by_user_uid )
+			{
+				let ban_object = sdDatabase.data.moderation.bans.table_by_user_uid[ hash ];
+				
+				//responses.push( ban_object );
+				responses.push({
+					uid: ban_object.uid,
+					reason_private: ban_object.reason_private,
+					until: ban_object.until
+				});
+			}
+		}
+		else
+		{
+			let anything_done = false;
+
+			if ( operation === 'ban' )
+			{
+				let target_hash = target_hash_or_ban_uid;
+
+				if ( sdDatabase.data.moderation.bans.table_by_user_uid[ target_hash ] )
+				{
+					responses.push([ 'SERVICE_MESSAGE', 'Error: Target player has active ban. Try cancelling previous one first?' ]);
+					return responses;
+				}
+
+
+				let player_row = sdDatabase.data.players.table[ target_hash ];
+
+				let ips = [];
+
+				if ( player_row )
+				{
+					let known_ips = player_row.known_ips;
+
+					for ( let ip in known_ips )
+					ips.push( ip );
+				}
+				else
+				{
+					responses.push([ 'SERVICE_MESSAGE', 'Error: Target player row was not found' ]);
+					return responses;
+				}
+
+				let ban_object = JSON.parse( JSON.stringify( sdDatabase.data.moderation.bans.sample_row ) );
+				ban_object.uid = sdDatabase.data.moderation.bans.next_uid++;
+				ban_object.reason_public = reason_public;
+				ban_object.reason_private = reason_private;
+				ban_object.until = Date.now() + duration;
+
+				for ( let i = 0; i < ips.length; i++ )
+				sdDatabase.data.moderation.bans.table_by_ip[ ips[ i ] ] = ban_object;
+
+				sdDatabase.data.moderation.bans.table_by_user_uid[ target_hash ] = ban_object;
+
+				anything_done = true;
+			}
+			else
+			if ( operation === 'unban' )
+			{
+				let ban_uid = target_hash_or_ban_uid;
+
+				for ( let ip in sdDatabase.data.moderation.bans.table_by_ip )
+				{
+					let ban_object = sdDatabase.data.moderation.bans.table_by_ip[ ip ];
+					if ( ban_object.uid === ban_uid )
+					{
+						delete sdDatabase.data.moderation.bans.table_by_ip[ ip ];
+						anything_done = true;
+					}
+				}
+
+				for ( let hash in sdDatabase.data.moderation.bans.table_by_user_uid )
+				{
+					let ban_object = sdDatabase.data.moderation.bans.table_by_user_uid[ hash ];
+					if ( ban_object.uid === ban_uid )
+					{
+						delete sdDatabase.data.moderation.bans.table_by_user_uid[ hash ];
+						anything_done = true;
+					}
+				}
+			}
+
+			if ( anything_done )
+			sdDatabase.LogActivity( initiator_hash_or_user_uid, initiator_server, ( operation === 'ban' ) ? 'Ban (' + duration + ')' : 'Unban' + ' operation issued: ' + reason_private, 'Bans' );
+			else
+			{
+				responses.push([ 'SERVICE_MESSAGE', 'Warning: Nothing was done - likely ban does not exist' ]);
+			}
+		}
+		
+		return responses;
+	}
 	static DBEditorCommand( responses=[], initiator_server, initiator_hash_or_user_uid, type, path_parts, new_value=null ) // All command handler's arguments should start with "responses" array they will return, then "initiator_server", then "initiator_hash_or_user_uid", everything else is optional and specific to case
 	{
 		let previous_ptr = null;
@@ -1113,7 +1246,7 @@ class sdDatabase
 				}
 			}
 			
-			let activity_logs = sdDatabase.data.moderation.activity_logs;
+			/*let activity_logs = sdDatabase.data.moderation.activity_logs;
 			
 			let row = Object.assign( {}, activity_logs.sample_row );
 			
@@ -1121,7 +1254,8 @@ class sdDatabase
 			row.initiator_server = initiator_server;
 			row.action = 'Write operation ' + type + ' at ' + path_parts.join('.') + ' with value ' + JSON.stringify( new_value );
 			
-			activity_logs.table[ activity_logs.next_uid++ ] = row;
+			activity_logs.table[ activity_logs.next_uid++ ] = row;*/
+			sdDatabase.LogActivity( initiator_hash_or_user_uid, initiator_server, 'Write operation ' + type + ' at ' + path_parts.join('.') + ' with value ' + JSON.stringify( new_value ), 'Data base editing' );
 		}
 		else
 		{

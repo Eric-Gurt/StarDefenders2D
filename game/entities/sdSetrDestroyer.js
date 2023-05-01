@@ -49,7 +49,7 @@ class sdSetrDestroyer extends sdEntity
 		
 		this._regen_timeout = 0;
 		
-		this._hmax = 15000;
+		this._hmax = 12000;
 		this.hea = this._hmax;
 
 		this._ai_team = 7;

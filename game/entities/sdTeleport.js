@@ -96,7 +96,7 @@ class sdTeleport extends sdEntity
 		
 		//this._is_cable_priority = true;
 		
-		this._hmax = 500 * 4;
+		this._hmax = 600;
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 		

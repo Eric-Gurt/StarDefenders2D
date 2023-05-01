@@ -58,13 +58,13 @@ class sdGibClass
 
 		sdGib.classes[ sdGib.CLASS_CUBE_GIB = 1 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'gibs/cube_gib' ), // Make sure your gib image is in /gibs folder
-			hitbox_x1: -3,
-			hitbox_x2: 3,
-			hitbox_y1: -3,
-			hitbox_y2: 3,
+			image: sdWorld.CreateImageFromFile( 'gibs/cube_gib2' ), // Make sure your gib image is in /gibs folder
+			hitbox_x1: -2,
+			hitbox_x2: 2,
+			hitbox_y1: -2,
+			hitbox_y2: 2,
 			mass: 15,
-			health: 100,
+			health: 50,
 			blood: 0, // 0 = wall_hit effect
 			effect_when_removed: false // Entity break effect when the gib is removed?
 			

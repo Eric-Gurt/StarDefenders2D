@@ -66,8 +66,8 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -8; }
-	get hitbox_x2() { return 8; }
+	get hitbox_x1() { return -7; }
+	get hitbox_x2() { return 7; }
 	get hitbox_y1() { return -7; }
 	get hitbox_y2() { return 8; }
 	
@@ -183,6 +183,22 @@ class sdBaseShieldingUnit extends sdEntity
 	ExtraSerialzableFieldTest( prop )
 	{
 		return ( prop === '_protected_entities' );
+	}
+	
+	static TestIfPointIsOutsideOfBSURanges( x, y )
+	{
+		for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
+		{
+			let s = sdBaseShieldingUnit.all_shield_units[ i ];
+
+			if ( s.enabled )
+			{
+				if ( sdWorld.inDist2D_Boolean( s.x, s.y, x, y, sdBaseShieldingUnit.protect_distance ) )
+				return false;
+			}
+		}
+		
+		return true;
 	}
 	
 	static TestIfDamageShouldPass( entity, dmg, initiator=null )

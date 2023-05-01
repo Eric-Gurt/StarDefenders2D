@@ -176,7 +176,7 @@ class sdGib extends sdEntity
 		if ( this._broken && this._effect === true )
 		{
 			if ( this._blood_type === 0 )
-			sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
+			sdWorld.BasicEntityBreakEffect( this, 5, 3, 0.75, 0.75 );
 		}
 
 	}
@@ -226,7 +226,11 @@ class sdGib extends sdEntity
 
 			this.ttl -= GSPEED;
 			if ( this.ttl <= 0 )
-			this.remove();
+			{
+				this.remove();
+				this._broken = false;
+				return;
+			}
 			
 		}
 

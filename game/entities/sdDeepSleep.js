@@ -257,38 +257,47 @@ class sdDeepSleep extends sdEntity
 
 					let e = sdEntity.entities[ i ];
 
-					if ( !e.is( sdDeepSleep ) )
+					//if ( !e.is( sdDeepSleep ) )
+					if ( e.IsBGEntity() !== 10 )
 					{
 						let x = Math.floor( ( e.x + e._hitbox_x1 ) / sdDeepSleep.normal_cell_size ) * sdDeepSleep.normal_cell_size;
 						let y = Math.floor( ( e.y + e._hitbox_y1 ) / sdDeepSleep.normal_cell_size ) * sdDeepSleep.normal_cell_size;
 						let w = sdDeepSleep.normal_cell_size;
 						let h = sdDeepSleep.normal_cell_size;
 
-						let cell = new sdDeepSleep({
-							x: x,
-							y: y,
-							w: w,
-							h: h,
-							type: sdDeepSleep.TYPE_SCHEDULED_SLEEP
-						});
 
-						sdEntity.entities.push( cell );
-
-						let ok = true;
+						/*let ok = true;
 						for ( let i2 = 0; i2 < sdDeepSleep.cells.length; i2++ )
 						if ( cell !== sdDeepSleep.cells[ i2 ] )
 						if ( cell.DoesOverlapWith( sdDeepSleep.cells[ i2 ] ) )
 						{
 							ok = false;
 							break;
-						}
+						}*/
+						let ok = !sdWorld.CheckSolidDeepSleepExistsAtBox(
+							x,
+							y,
+							x + w,
+							y + h,
+							null,
+							true
+						);
 
 						if ( ok )
 						{
+							let cell = new sdDeepSleep({
+								x: x,
+								y: y,
+								w: w,
+								h: h,
+								type: sdDeepSleep.TYPE_SCHEDULED_SLEEP
+							});
+
+							sdEntity.entities.push( cell );
 						}
 						else
 						{
-							cell.remove();
+							//cell.remove();
 						}
 					}
 				}
@@ -700,6 +709,9 @@ class sdDeepSleep extends sdEntity
 	{
 		let directory = globalThis.chunks_folder + '/';
 		
+		if ( fs.rmSync )
+		fs.rmSync( directory, { recursive: true, maxRetries: 10, retryDelay: 100 } );
+		else
 		fs.rmdirSync( directory, { recursive: true, maxRetries: 10, retryDelay: 100 } );
 	}
 	
@@ -831,7 +843,7 @@ class sdDeepSleep extends sdEntity
 			// Proper values for live server
 			this._will_hibernate_on = sdWorld.time + 1000 * 60 * 5; // For sdDeepSleep.TYPE_SCHEDULED_SLEEP only
 			this._will_be_written_to_disk = sdWorld.time + 1000 * 60 * 30; // 30 minutes. Makes sense to do it frequently as it happens on snapshot save now only
-			this._will_become_unspawned = sdWorld.time + 1000 * 60 * 60 * 24 * 30 * 12 * 5; // Full removal in 5 years?
+			this._will_become_unspawned = sdWorld.time + 1000 * 60 * 60 * 24 * 30;// * 12 * 5; // Full removal in 5 years? UPD: 1 month now
 		}
 		this._snapshots_str = '';
 		this._snapshots_objects = null; // Sometimes can be there instead of _snapshots_str - these are faster to use than to stringify/parse
@@ -1099,7 +1111,7 @@ class sdDeepSleep extends sdEntity
 						for ( let i = 0; i < e._plants.length; i++ )
 						{
 							let possible_ent = sdEntity.entities_by_net_id_cache_map.get( e._plants[ i ] );
-
+							
 							if ( possible_ent )
 							if ( !possible_ent._is_being_removed )
 							dependences.push( possible_ent );
@@ -1251,7 +1263,7 @@ class sdDeepSleep extends sdEntity
 					{
 						this._my_hash_list.push( e._my_hash );
 						
-						trace( 'Saving player\'s hash ' + e._my_hash + ' to '+this._net_id );
+						//trace( 'Saving player\'s hash ' + e._my_hash + ' to '+this._net_id );
 					}
 					else
 					if ( e.is( sdRescueTeleport ) )
@@ -1276,6 +1288,8 @@ class sdDeepSleep extends sdEntity
 				
 				debugger;
 			}
+			
+			const bulk_exclude = [];
 			
 			//entity_once.forEach( ( e )=>
 			//{
@@ -1310,11 +1324,13 @@ class sdDeepSleep extends sdEntity
 					
 					e._remove(); // Instant remove is required or else it won't be able to spawn same entities from snapshot?
 					
-					e._remove_from_entities_array();
+					bulk_exclude.push( e );
+					//e._remove_from_entities_array();
 					
 					sdLongRangeTeleport.teleported_items.add( e );
 				}
 			}
+			sdEntity.BulkRemoveEntitiesFromEntitiesArray( bulk_exclude );
 			
 			//for ( let i = 0; i < scheduled_sleep_areas_to_cancel.length; i++ )
 			//scheduled_sleep_areas_to_cancel[ i ].remove();

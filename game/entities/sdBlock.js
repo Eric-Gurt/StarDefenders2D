@@ -725,7 +725,7 @@ class sdBlock extends sdEntity
 	{
 		return ( prop === '_plants' || prop === '_contains_class_params' || prop === '_shielded' );
 	}
-	ValidatePlants( must_include=null )
+	ValidatePlants( must_include=null ) // foliage / grass
 	{
 		if ( !this._plants )
 		{

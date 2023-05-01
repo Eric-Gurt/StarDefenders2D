@@ -259,6 +259,10 @@ class sdPlayerDrone extends sdCharacter
 		this._beep_charge = 0;
 
 		
+
+		if ( this.IsOutOfBounds() )
+		this.Damage( this.hmax * GSPEED / ( 30 * 5 ) );
+		
 		
 		if ( this.hea <= 0 )
 		{

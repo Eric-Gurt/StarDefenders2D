@@ -171,7 +171,7 @@ class sdSteeringWheel extends sdEntity
 		
 		this._regen_timeout = 0;
 		
-		this.driver = null;
+		this.driver0 = null;
 		
 		this._scan = [];
 		this._scan_net_ids = [];
@@ -221,7 +221,7 @@ class sdSteeringWheel extends sdEntity
 		
 		this._last_scan = sdWorld.time;
 		
-		const LIMIT = 400; // Was 100
+		const LIMIT = 650; // Was 100, then 400
 		
 		let speed = 0;
 		
@@ -374,21 +374,26 @@ class sdSteeringWheel extends sdEntity
 	{
 		return false;
 	}
+	GetDriverSlotsCount()
+	{
+		return 1;
+	}
 	AddDriver( c )
 	{
 		if ( !sdWorld.is_server )
 		return;
 	
-		if ( this.driver )
+		if ( this.driver0 )
 		{
 			if ( c._socket )
 			c._socket.SDServiceMessage( 'All slots are occupied' );
 		
 			return;
 		}
-		this.driver = c;
+		this.driver0 = c;
 		
 		c.driver_of = this;
+		c.SetCameraZoom( 1 );
 		
 		sdSound.PlaySound({ name:'hover_start', x:this.x, y:this.y, volume:1, pitch:0.5 });
 		
@@ -419,7 +424,8 @@ class sdSteeringWheel extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 		
-		this.driver = null;
+		this.driver0 = null;
+		c.SetCameraZoom( sdWorld.default_zoom );
 		
 		if ( !c._is_being_removed )
 		{
@@ -479,11 +485,11 @@ class sdSteeringWheel extends sdEntity
 			}
 		}
 		
-		if ( this.driver )
-		if ( this.driver._is_being_removed || this.driver.hea <= 0 )
+		if ( this.driver0 )
+		if ( this.driver0._is_being_removed || this.driver0.hea <= 0 )
 		{
-			this.ExcludeDriver( this.driver );
-			//this.driver = null;
+			this.ExcludeDriver( this.driver0 );
+			//this.driver0 = null;
 
 			//this._schedule_rounding_task = true;
 		}
@@ -540,11 +546,11 @@ class sdSteeringWheel extends sdEntity
 				this.vy = 0;
 			}
 			else
-			if ( this.driver )
+			if ( this.driver0 )
 			{
-				if ( this.driver.hea <= 0 || !sdWorld.inDist2D_Boolean( this.x, this.y, this.driver.x, this.driver.y, sdSteeringWheel.lost_control_range ) )
+				if ( this.driver0.hea <= 0 || !sdWorld.inDist2D_Boolean( this.x, this.y, this.driver0.x, this.driver0.y, sdSteeringWheel.lost_control_range ) )
 				{
-					this.ExcludeDriver( this.driver );
+					this.ExcludeDriver( this.driver0 );
 				}
 				else
 				{
@@ -554,8 +560,8 @@ class sdSteeringWheel extends sdEntity
 					//let speed = Math.min( 1, this._speed / 4 );
 					let speed = Math.min( 2, this._speed / 4 );
 
-					this.vx += this.driver.act_x * GSPEED * 0.25 * speed;
-					this.vy += this.driver.act_y * GSPEED * 0.25 * speed;
+					this.vx += this.driver0.act_x * GSPEED * 0.25 * speed;
+					this.vy += this.driver0.act_y * GSPEED * 0.25 * speed;
 
 					this.vx = sdWorld.MorphWithTimeScale( this.vx, 0, 0.95, GSPEED );
 					this.vy = sdWorld.MorphWithTimeScale( this.vy, 0, 0.95, GSPEED );
@@ -576,15 +582,15 @@ class sdSteeringWheel extends sdEntity
 					{
 						this.VerifyMissingParts();
 
-						if ( this.driver.CanMoveWithoutOverlap( this.driver.x, this.driver.y ) &&
+						if ( this.driver0.CanMoveWithoutOverlap( this.driver0.x, this.driver0.y ) &&
 							 sdSteeringWheel.ComplexElevatorLikeMove( this._scan, this._scan_net_ids, xx, yy, false, GSPEED ) )
 						{
-							if ( this.driver.CanMoveWithoutOverlap( this.driver.x + xx, this.driver.y + yy ) )
+							if ( this.driver0.CanMoveWithoutOverlap( this.driver0.x + xx, this.driver0.y + yy ) )
 							{
-								this.driver.x += xx;
-								this.driver.y += yy;
+								this.driver0.x += xx;
+								this.driver0.y += yy;
 								
-								sdWorld.UpdateHashPosition( this.driver, false, false );
+								sdWorld.UpdateHashPosition( this.driver0, false, false );
 							}
 						}
 						else
@@ -751,7 +757,7 @@ class sdSteeringWheel extends sdEntity
 				return false;
 			
 				// Normally, it should igonre all possible drivers
-				/*if ( ent2 === this.driver )
+				/*if ( ent2 === this.driver0 )
 				{
 					return false;
 				}*/
@@ -961,8 +967,8 @@ class sdSteeringWheel extends sdEntity
 	
 	onRemove() // Class-specific, if needed
 	{
-		if ( this.driver )
-		this.ExcludeDriver( this.driver, true );
+		if ( this.driver0 )
+		this.ExcludeDriver( this.driver0, true );
 	
 		this.RemovePointersToThisSteeringWheel();
 			
