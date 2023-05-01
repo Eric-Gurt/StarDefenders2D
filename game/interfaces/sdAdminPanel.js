@@ -61,6 +61,13 @@ class sdAdminPanel extends sdInterface
 			text: ''
 		});
 		
+		this.contents.element.style.cssText = `
+			overflow: auto;
+			height: 100%;
+			width: 100%;
+		`;
+		this.contents.element.classList.add( 'sd_scrollbar' );
+		
 		this.banning_mode = false;
 		this.last_data = null;
 		
