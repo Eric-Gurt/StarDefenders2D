@@ -225,6 +225,7 @@ class sdModeration
 		
 		let allowed_commands = sdModeration.admin_commands;
 		
+		if ( my_admin_row )
 		if ( my_admin_row.access_level > 0 )
 		{
 			allowed_commands = sdWorld.server_config.allowed_non_full_access_level_admin_commands;
