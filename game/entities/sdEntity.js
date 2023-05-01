@@ -2750,6 +2750,8 @@ class sdEntity
 		
 		this._has_matter_props = false; // Becomes true on seal in cases where it is needed
 		
+		this._has_liquid_props = false; // Becomes true on seal in cases where it is needed
+		
 		// Premake all needed variables so sealing would work best
 		{
 			if ( this.onThink.has_ApplyVelocityAndCollisions === undefined )
@@ -2762,6 +2764,8 @@ class sdEntity
 				this.onThink.has_MatterGlow = ( onThinkString.indexOf( 'MatterGlow' ) !== -1 );
 				
 				this.onThink.has_GetAnythingNearCache = ( onThinkString.indexOf( 'MatterGlow' ) !== -1 || onThinkString.indexOf( 'GetAnythingNearCache' ) !== -1 );
+				
+				this.onThink.has_GiveLiquid = ( onThinkString.indexOf( 'GiveLiquid' ) !== -1 );
 				
 				this.onThink.has_GetComWiredCache = ( onThinkString.indexOf( 'GetComWiredCache' ) !== -1 || DrawString.indexOf( 'GetComWiredCache' ) !== -1 );
 				
@@ -3295,6 +3299,7 @@ class sdEntity
 							  prop !== '_last_x' && 
 							  prop !== '_last_y' && 
 							  prop !== '_has_matter_props' && 
+							  prop !== '_has_liquid_props' && 
 							  prop !== '_is_static' && 
 							  prop !== '_update_version' && 
 							  prop !== '_remove_stack_trace' && 
@@ -4366,6 +4371,389 @@ class sdEntity
 	onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
 	{
 	}
+
+	WakeUpLiquidSources( connected_ents=null ) // Call this when entity loses some of its matter and needs hibernated nearby entities to wake up
+	{
+		if ( !connected_ents )
+		{
+			if ( !sdCable )
+			sdCable = sdWorld.entity_classes.sdCable;
+		
+			connected_ents = sdCable.GetConnectedEntities( this, sdCable.TYPE_LIQUID );
+		}
+
+		if ( !this._has_liquid_props )
+		return;
+
+		let this_liquid = ( this.liquid || this._liquid )
+	
+		for ( var i = 0; i < connected_ents.length; i++ )
+		{
+			if ( connected_ents[ i ]._hiberstate !== sdEntity.HIBERSTATE_ACTIVE )
+			//if ( ( typeof connected_ents[ i ].matter !== 'undefined' || typeof connected_ents[ i ]._matter !== 'undefined' ) && !connected_ents[ i ]._is_being_removed ) // Can appear as being removed as well...
+			if ( connected_ents[ i ]._has_liquid_props && !connected_ents[ i ]._is_being_removed )
+			if ( connected_ents[ i ].IsLiquidTypeAllowed( this_liquid.type ) )
+			connected_ents[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		}
+	}
+	onLiquidChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
+	{
+	}
+	LiquidTransferMode() // 0 - balance liquids, 1 - only give liquids, 2 - only take liquids
+	{
+	}
+	IsLiquidTypeAllowed( type )
+	{
+		return false;
+	}
+	GiveLiquid( how_much=0.01, GSPEED, ignore_transfer_mode=false ) // Make sure to call WakeUpMatterSources when matter drops or else some mid-way nodes might end up not being awaken
+	{
+		if ( !sdWorld.is_server )
+		return;
+		
+		if ( !this._has_liquid_props )
+		return;
+		
+		let this_liquid = ( this.liquid || this._liquid );
+
+		if ( this_liquid.amount > 0 && this.LiquidTransferMode() !== 2 )
+		{
+			if ( !sdCable )
+			sdCable = sdWorld.entity_classes.sdCable;
+		
+			const sdBaseShieldingUnit = sdWorld.entity_classes.sdBaseShieldingUnit;
+			
+			let i;
+			
+			//let visited_ents = new Set();
+			//visited_ents.add( this );
+			
+			const visited_ent_flag = sdEntity.GetUniqueFlagValue();
+			this._flag = visited_ent_flag;
+			
+			let array_is_not_cloned = true;
+			
+			
+			let connected_ents;
+			
+			if ( this._connected_ents && sdWorld.time < this._connected_ents_next_rethink ) // This cache probably should not be rethinked at all (since cables erase it anyway)... But just in case...
+			{
+				connected_ents = this._connected_ents;
+			}
+			else
+			{
+				connected_ents = sdCable.GetConnectedEntities( this, sdCable.TYPE_LIQUID );
+				
+				/*if ( !sdCrystal )
+				sdCrystal = sdWorld.entity_classes.sdCrystal;
+				
+				if ( !sdMatterAmplifier )
+				sdMatterAmplifier = sdWorld.entity_classes.sdMatterAmplifier;*/
+				
+				// let auto_entity = this.GetAutoConnectedEntityForMatterFlow();
+				
+				/*if ( auto_entity )
+				if ( array_is_not_cloned )
+				{
+					array_is_not_cloned = false;
+					connected_ents = connected_ents.slice(); // Clone
+					
+					connected_ents.push( auto_entity );
+				}*/
+				
+				
+				for ( i = 0; i < connected_ents.length; i++ )
+				{
+					const e = connected_ents[ i ];
+					
+					/*globalThis.max_connected_ents_length = globalThis.max_connected_ents_length || null;
+
+					// Top: 257
+					if ( globalThis.max_connected_ents_length === null || connected_ents.length > globalThis.max_connected_ents_length.len )
+					{
+						globalThis.max_connected_ents_length = {
+							len: connected_ents.length,
+							arr: connected_ents,
+							that: this
+						};
+					}*/
+
+					//if ( ( typeof e.matter !== 'undefined' || typeof e._matter !== 'undefined' ) && !e._is_being_removed ) // Can appear as being removed as well...
+					if ( e._has_liquid_props && !e._is_being_removed )
+					{
+						//this.TransferMatter( e, how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+
+						//visited_ents.add( e );
+						e._flag = visited_ent_flag;
+
+						if ( e.IsLiquidTypeAllowed( this_liquid.type ) )
+						{
+							if ( array_is_not_cloned )
+							{
+								array_is_not_cloned = false;
+								connected_ents = connected_ents.slice(); // Clone
+							}
+
+							let recursively_connected = sdCable.GetConnectedEntities( e, sdCable.TYPE_LIQUID );
+
+							if ( recursively_connected )
+							for ( let i2 = 0; i2 < recursively_connected.length; i2++ )
+							//if ( !visited_ents.has( recursively_connected[ i2 ] ) )
+							if ( recursively_connected[ i2 ]._flag !== visited_ent_flag )
+							{
+								//visited_ents.add( recursively_connected[ i2 ] );
+								recursively_connected[ i2 ]._flag = visited_ent_flag;
+
+								connected_ents.push( recursively_connected[ i2 ] );
+							}
+						}
+						
+						
+						/*if ( ( e.matter_max || e._matter_max || 0 ) <= 20 ) // Exclude sdCom, sdMatterAmplifier, sdNode - they won't receive any matter
+						{
+							connected_ents.splice( i, 1 );
+							i--;
+							continue;
+						}*/
+					}
+					else
+					if ( !connected_ents[ i ].is( sdBaseShieldingUnit ) )
+					{
+						connected_ents.splice( i, 1 );
+						i--;
+						continue;
+					}
+				}
+				//visited_ents = null;
+				
+				
+				this._connected_ents = connected_ents;
+				this._connected_ents_next_rethink = sdWorld.time + 200 + Math.random() * 50;
+			}
+			
+			for ( let i = 0; i < connected_ents.length; i++ )
+			{
+				if ( !connected_ents[ i ]._is_being_removed )
+				{
+					if ( connected_ents[ i ]._has_liquid_props )
+					if ( connected_ents[ i ].IsLiquidTypeAllowed( this_liquid.type ) && connected_ents[ i ].LiquidTransferMode() !== 1 )
+					this.TransferLiquid( connected_ents[ i ], how_much, GSPEED ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+
+					if ( sdWorld.server_config.do_green_base_shielding_units_consume_essence )
+					if ( this_liquid.type === 4 ) // sdWater.TYPE_ESSENCE
+					if ( connected_ents[ i ].is( sdBaseShieldingUnit ) && connected_ents[ i ].type === 0 )
+					this.TransferEssence( connected_ents[ i ], how_much, GSPEED ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+				}
+			}
+			
+			//this.WakeUpMatterSources( connected_ents );
+			this.WakeUpLiquidSources( null );
+		}
+	}
+	TransferLiquid( to, how_much, GSPEED, optimize_threshold=10 )
+	{
+		if ( !this._has_liquid_props || !to._has_liquid_props )
+		return;
+		
+		let this_liquid = ( this.liquid || this._liquid );
+		let to_liquid = ( to.liquid || to._liquid );
+
+		if ( !to.IsLiquidTypeAllowed( this_liquid.type ) )
+		return;
+
+		if ( this.LiquidTransferMode() === 0 && to.LiquidTransferMode() === 0 && Math.abs( this_liquid.amount - to_liquid.amount ) < optimize_threshold ) // Don't transfer if both liquids are equal
+		return;
+
+		if ( this.LiquidTransferMode() === 1 || to.LiquidTransferMode() === 2 )
+		how_much = this_liquid.max * how_much * GSPEED;
+		else
+		{
+			how_much = this_liquid.amount * how_much * GSPEED;
+
+			if ( Math.random() > how_much ) // For proper balancing
+			return;
+		}
+
+		how_much = Math.ceil( how_much ); // Should only change by integers to avoid floating point errors
+
+		if ( how_much > this_liquid.amount )
+		how_much = this_liquid.amount;
+	
+		if ( how_much > to_liquid.max - to_liquid.amount )
+		how_much = to_liquid.max - to_liquid.amount;
+	
+		if ( isNaN( how_much ) )
+		{
+			debugger;
+			how_much = 0;
+		}
+		
+		if ( how_much <= 0 )
+		return;
+
+		let extra = Math.round( this_liquid.extra / this_liquid.amount * how_much );
+
+		if ( isNaN( extra ) )
+		debugger;
+	
+		if ( typeof this.liquid !== 'undefined' )
+		{
+			if ( isNaN( this.liquid.amount ) )
+			debugger;
+			
+			this.liquid.amount -= how_much;
+
+			if ( isNaN( this.liquid.extra ) )
+			debugger;
+			
+			this.liquid.extra -= extra;
+
+			if ( this.liquid.amount <= 0 )
+			this.liquid.type = -1;
+		}
+		else
+		{
+			if ( isNaN( this._liquid.amount ) )
+			debugger;
+		
+			this._liquid.amount -= how_much;
+
+			if ( isNaN( this._liquid.extra ) )
+			debugger;
+		
+			this._liquid.extra -= extra;
+
+			if ( this._liquid.amount <= 0 )
+			this._liquid.type = -1;
+		}
+	
+		if ( typeof to.liquid !== 'undefined' )
+		{
+			if ( isNaN( to.liquid.amount ) )
+			debugger;
+		
+			to.liquid.amount += how_much;
+
+			if ( isNaN( to.liquid.extra ) )
+			debugger;
+		
+			to.liquid.extra += extra;
+
+			if ( to.liquid.type === -1 )
+			to.liquid.type = this_liquid.type;
+		}
+		else
+		{
+			if ( isNaN( to._liquid.amount ) )
+			debugger;
+		
+			to._liquid.amount += how_much;
+
+			if ( isNaN( to._liquid.extra ) )
+			debugger;
+		
+			to._liquid.extra += extra;
+
+			if ( to._liquid.type === -1 )
+			to._liquid.type = this_liquid.type;
+		}
+		
+		// Update update versions for static entities if matter property is public
+		
+		if ( typeof this.liquid !== 'undefined' )
+		if ( typeof this._update_version !== 'undefined' )
+		this._update_version++;
+	
+		if ( typeof to.liquid !== 'undefined' )
+		if ( typeof to._update_version !== 'undefined' )
+		to._update_version++;
+
+		if ( to.onLiquidChanged !== sdEntity.prototype.onLiquidChanged )
+		to.onLiquidChanged( this );
+	}
+	TransferEssence( to, how_much, GSPEED ) // For entities that do not hold liquid
+	{
+		if ( !this._has_liquid_props )
+		return;
+
+		let is_bsu = ( to.is( sdWorld.entity_classes.sdBaseShieldingUnit ) );
+
+		if ( !is_bsu || to.type !== 0 )
+		return;
+
+		let this_liquid = ( this.liquid || this._liquid );
+
+		how_much = this_liquid.extra * how_much * GSPEED;
+
+		how_much = Math.ceil( how_much ); // Should only change by integers to avoid floating point errors
+
+		if ( how_much > this_liquid.extra )
+		how_much = this_liquid.extra;
+
+		if ( isNaN( how_much ) )
+		{
+			debugger;
+			how_much = 0;
+		}
+		
+		if ( how_much <= 0 )
+		return;
+
+		let liquid_lost = Math.round( this_liquid.amount / this_liquid.extra * 80 ); // Liquid essence is consumed slower the higher its value
+
+		if ( liquid_lost > this_liquid.amount )
+		liquid_lost = this_liquid.amount;
+
+		if ( this_liquid.amount - liquid_lost <= 0 && this_liquid.extra > how_much )
+		liquid_lost = 0;
+
+		if ( this_liquid.extra - how_much <= 0 && this_liquid.amount > liquid_lost )
+		liquid_lost = this_liquid.amount;
+
+		if ( typeof this.liquid !== 'undefined' )
+		{
+			if ( isNaN( this.liquid.amount ) )
+			debugger;
+			
+			this.liquid.amount -= liquid_lost;
+
+			if ( isNaN( this.liquid.extra ) )
+			debugger;
+			
+			this.liquid.extra -= how_much;
+		}
+		else
+		{
+			if ( isNaN( this._liquid.amount ) )
+			debugger;
+		
+			this._liquid.amount -= liquid_lost;
+
+			if ( isNaN( this._liquid.extra ) )
+			debugger;
+		
+			this._liquid.extra -= how_much;
+		}
+
+		if ( is_bsu )
+		{
+			if ( isNaN( to.matter_crystal ) )
+			debugger;
+		
+			to.matter_crystal = Math.min( Number.MAX_SAFE_INTEGER, to.matter_crystal + how_much );
+		}
+		
+		// Update update versions for static entities if matter property is public
+		
+		if ( typeof this.liquid !== 'undefined' )
+		if ( typeof this._update_version !== 'undefined' )
+		this._update_version++;
+	
+		if ( typeof to._update_version !== 'undefined' )
+		if ( typeof to.matter_crystal !== 'undefined' || typeof to.matter_crystal_max !== 'undefined' || typeof to.essence !== 'undefined' || typeof to.essence_max !== 'undefined' )
+		to._update_version++;
+	}
+
 	/*Think( GSPEED )
 	{
 		this.onThink( GSPEED );

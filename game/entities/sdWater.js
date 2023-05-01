@@ -10,6 +10,7 @@ import sdCharacter from './sdCharacter.js';
 import sdBullet from './sdBullet.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdDeepSleep from './sdDeepSleep.js';
+import sdCrystal from './sdCrystal.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -22,10 +23,12 @@ class sdWater extends sdEntity
 		sdWater.TYPE_ACID = 1;
 		sdWater.TYPE_LAVA = 2;
 		sdWater.TYPE_TOXIC_GAS = 3;
-		sdWater.reference_colors = [ '#518ad1', '#00ba01', '#ff8600', '#a277a2' ]; // For liquid carrier recolors
+		sdWater.TYPE_ESSENCE = 4;
+		sdWater.TYPE_ANTIMATTER = 5;
+		sdWater.reference_colors = [ '#518ad1', '#00ba01', '#ff8600', '#a277a2', '#b0ffff', '#040408' ]; // For liquid carrier recolors
 		
-		sdWater.damage_by_type = [ 0, 1, 5, 0 ];
-		sdWater.never_sleep_by_type = [ 0, 0, 0, 1 ];
+		sdWater.damage_by_type = [ 0, 1, 5, 0, 0, 0 ];
+		sdWater.never_sleep_by_type = [ 0, 0, 0, 1, 0, 0 ];
 		//sdWater.can_sleep_if_has_entities = [ 1, 0, 0, 0 ];
 		
 		sdWater.DEBUG = false;
@@ -35,6 +38,7 @@ class sdWater extends sdEntity
 		
 		//sdWater.img_water_flow = sdWorld.CreateImageFromFile( 'water_flow' );
 		sdWater.img_lava = sdWorld.CreateImageFromFile( 'lava2' );
+		sdWater.img_essence = sdWorld.CreateImageFromFile( 'essence' );
 		
 		sdWater.all_swimmers = new Map(); // swimming sdEntity -> sdWater where it swims // Prevent multiple damage water objects from applying damage onto same entity. Also handles more efficient is_in_water checks for entities
 		sdWater.all_swimmers_previous_frame_exit = new Set();
@@ -89,6 +93,12 @@ class sdWater extends sdEntity
 			if ( params.tag === 'toxic' )
 			params.type = sdWater.TYPE_TOXIC_GAS;
 			
+			if ( params.tag === 'essence' )
+			params.type = sdWater.TYPE_ESSENCE;
+			
+			if ( params.tag === 'antimatter' )
+			params.type = sdWater.TYPE_ANTIMATTER;
+			
 			params.x = Math.floor( params.x / 16 ) * 16;
 			params.y = Math.floor( params.y / 16 ) * 16;
 		}
@@ -97,7 +107,15 @@ class sdWater extends sdEntity
 		
 		this.type = params.type || sdWater.TYPE_WATER;
 		
-		this._volume = params.volume || 1;
+		this._volume = params.volume || params._volume || 1;
+		
+		if ( this.type === sdWater.TYPE_ESSENCE )
+		{
+			if ( typeof params.extra === 'undefined' )
+			this.extra = ~~( Math.min( 40 / Math.random(), 40960 ) );
+			else
+			this.extra = params.extra;
+		}
 		
 		this._spawn_time = sdWorld.time;
 		
@@ -272,6 +290,22 @@ class sdWater extends sdEntity
 
 				return true; // Delete both
 			}
+			
+			if ( another.type === sdWater.TYPE_ESSENCE && this.type === sdWater.TYPE_ESSENCE )
+			if ( typeof another.extra !== 'undefined' && typeof this.extra !== 'undefined' )
+			{
+				if ( Math.round( another.extra / 80 ) !== Math.round( this.extra / 80 ) )
+				{
+					let extra = Math.round( ( another.extra + this.extra ) / 2 );
+
+					another.extra = extra;
+					another._update_version++;
+
+					this.extra = extra;
+					this._update_version++;
+				}
+				return false;
+			}
 		}
 		return false;
 	}
@@ -425,6 +459,21 @@ class sdWater extends sdEntity
 					this.v = Math.ceil( this._volume * 100 );
 					this._update_version++;
 				}
+			}
+			else
+			if ( this.type === sdWater.TYPE_ANTIMATTER ) // Explodes if ever placed/spawned
+			{
+				sdWorld.SendEffect({ 
+					x:this.x + this.hitbox_x2 / 2, 
+					y:this.y + this.hitbox_y2 / 2, 
+					radius:this._volume * 100,
+					damage_scale: this._volume * 4,
+					type:sdEffect.TYPE_EXPLOSION, 
+					owner:this,
+					color:sdWater.reference_colors[ sdWater.TYPE_ANTIMATTER ]
+				});
+				
+				this.remove();
 			}
 		}
 	
@@ -747,10 +796,100 @@ class sdWater extends sdEntity
 		}
 	}
 			
+	static DrawLiquidRect( ctx, ent, liquid, border_x1, border_x2, border_y1, border_y2, offset_x=0 ) // Used by storage tank and essence extractor
+	{
+		if ( liquid.type === -1 )
+		return;
+
+		if ( liquid.type === sdWater.TYPE_LAVA || liquid.type === sdWater.TYPE_ESSENCE )
+		ctx.apply_shading = false;
+
+		offset_x = offset_x % 32;
+
+		let w = ( ent.hitbox_x2 - ent.hitbox_x1 ) + border_x1 + border_x2;
+		let h = ent.hitbox_y2 - ent.hitbox_y1 + border_y1 + border_y2;
+		let dx = ent.hitbox_x1 - border_x1;
+		let dy = -h + ent.hitbox_y2 + border_y2;
+
+		let amount_h = liquid.amount / liquid.max * h;
+		let amount_dy = -amount_h + ent.hitbox_y2 + border_y2;
+
+		if ( liquid.type === sdWater.TYPE_ANTIMATTER )
+		{
+			let e = Math.pow( liquid.amount / ent.liquid.max, 0.5 );
+
+			ctx.globalAlpha = e;
+			ctx.filter = 'hue-rotate(60deg) saturate(0.1) brightness(0.66) contrast(10)';
+
+			let xx = Math.floor( offset_x + sdWorld.time / 500 ) % 32;
+
+			ctx.drawImageFilterCache( sdWater.img_essence, xx, 0, w, h, dx, dy, w, h );
+		}
+		else
+		if ( liquid.type === sdWater.TYPE_ESSENCE )
+		{
+			let e = Math.pow( liquid.extra / liquid.amount * 100 / ( sdCrystal.anticrystal_value / 2 ), 0.5 );
+
+			ctx.globalAlpha = 0.4 + e * 0.6;
+			ctx.filter = 'brightness(' + ~~( ( 1 + e * 1.2 ) * 100 ) + '%)';
+
+			let xx = Math.floor( offset_x + sdWorld.time / 500 ) % 32;
+
+			ctx.drawImageFilterCache( sdWater.img_essence, xx, 0, w, amount_h, dx, amount_dy, w, amount_h );
+		}
+		else
+		if ( liquid.type === sdWater.TYPE_LAVA )
+		{
+			ctx.fillStyle = '#FFAA00';
+			
+			let xx = Math.floor( offset_x + sdWorld.time / 500 ) % 32;
+			
+			ctx.drawImageFilterCache( sdWater.img_lava, xx, 0, w, amount_h, dx, amount_dy, w, amount_h );
+		}
+		else
+		if ( liquid.type === sdWater.TYPE_TOXIC_GAS )
+		{
+			ctx.fillStyle = '#ff77ff';
+			ctx.globalAlpha = liquid.amount / liquid.max * 0.6;
+			ctx.fillRect( dx, dy, w, h );
+		}
+		else
+		{
+			if ( liquid.type === sdWater.TYPE_ACID )
+			ctx.fillStyle = '#008000';
+			else
+			ctx.fillStyle = '#0030a0';
+
+			ctx.globalAlpha = 0.6;
+	
+			//if ( ent.v === left_v && ent.v === right_v )
+			//{
+				//ctx.globalAlpha = ent._volume * 0.9 + 0.1;
+				//ctx.fillRect( 0, 16 - ent.v / 100 * 16, 16,16 * ent.v / 100 );
+				ctx.fillRect( dx, amount_dy, w, amount_h );
+				//ctx.globalAlpha = 1;
+			/*}
+			else
+			{
+				ctx.beginPath();
+				ctx.moveTo( 0, 16 - ( left_v ) / 100 * 16 );
+				ctx.lineTo( 8, 16 - ( ent.v ) / 100 * 16 );
+				ctx.lineTo( 16, 16 - ( right_v ) / 100 * 16 );
+				ctx.lineTo( 16, 16 );
+				ctx.lineTo( 0, 16 );
+				ctx.fill();
+			}*/
+								
+			ctx.globalAlpha = 1;
+		}
+		
+		ctx.globalAlpha = 1;
+		ctx.filter = 'none';
+	}
 	//DrawFG( ctx, attached )
 	Draw( ctx, attached )
 	{
-		if ( this.type === sdWater.TYPE_LAVA )
+		if ( this.type === sdWater.TYPE_LAVA || this.type === sdWater.TYPE_ESSENCE )
 		ctx.apply_shading = false;
 		
 		//let wall_below = sdWorld.CheckWallExists( this.x + 8, this.y + 16 + 8, null, null, sdWater.classes_to_interact_with );
@@ -796,6 +935,25 @@ class sdWater extends sdEntity
 
 			//ctx.globalAlpha = 0.2;
 
+			if ( this.type === sdWater.TYPE_ANTIMATTER )
+			{
+				// Just explodes if spawned, only shown in liquid containers
+			}
+			else
+			if ( this.type === sdWater.TYPE_ESSENCE )
+			{
+				let e = this.extra / ( sdCrystal.anticrystal_value / 2 );
+
+				ctx.globalAlpha = 0.6 + e * 2;
+				ctx.filter = 'brightness(' + ~~( ( 1 + e * 1.2 ) * 100 ) + '%)';
+
+				let xx = this.x + ( Math.floor( sdWorld.time / 500 ) % 32 );
+				
+				ctx.drawImageFilterCache( sdWater.img_essence, xx - Math.floor( xx / 32 ) * 32, this.y - Math.floor( this.y / 32 ) * 32, 16,16, 0,0, 16,16 );
+
+				ctx.filter = 'none';
+			}
+			else
 			if ( this.type === sdWater.TYPE_LAVA )
 			{
 				ctx.fillStyle = '#FFAA00';

@@ -16,6 +16,7 @@ import sdCaption from '../entities/sdCaption.js';
 import sdGib from '../entities/sdGib.js'
 import sdRescueTeleport from '../entities/sdRescueTeleport.js';
 import sdFactionSpawner from '../entities/sdFactionSpawner.js';
+import sdStorageTank from '../entities/sdStorageTank.js';
 
 import sdRenderer from './sdRenderer.js';
 import sdContextMenu from './sdContextMenu.js';
@@ -354,6 +355,8 @@ class sdShop
 		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 2, _category:'Base equipment', _min_build_tool_level: 3 });
 		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 4, _category:'Base equipment', _min_build_tool_level: 9 });
 		sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 8, _category:'Base equipment', _min_build_tool_level: 18 });
+		sdShop.options.push({ _class: 'sdStorageTank', _category:'Base equipment', });
+		sdShop.options.push({ _class: 'sdStorageTank', type: sdStorageTank.TYPE_PORTABLE, _category:'Base equipment', });
 		sdShop.options.push({ _class: 'sdCommandCentre', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdLongRangeTeleport', _category:'Base equipment' });
 		sdShop.options.push({ _class: 'sdCrystalCombiner', _category:'Base equipment' });
@@ -695,6 +698,10 @@ class sdShop
 			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_WATER, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_ACID, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_TOXIC_GAS, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_ESSENCE, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_ESSENCE, extra: 40, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_ESSENCE, extra: sdCrystal.anticrystal_value / 2, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_ANTIMATTER, _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdAsp', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdSandWorm', _category:'Development tests' });
 			sdShop.options.push({ _class: 'sdSandWorm', kind: 1, _category:'Development tests' });
@@ -799,6 +806,7 @@ class sdShop
 			//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.SARRORIAN_SPAWNER, _category:'Development tests' });
 			//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.COUNCIL_SPAWNER, _category:'Development tests' });
 			//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.TZYRG_SPAWNER, _category:'Development tests' });
+			sdShop.options.push({ _class: 'sdEssenceExtractor', _category:'Development tests', });
 		}
 		
 		sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });
