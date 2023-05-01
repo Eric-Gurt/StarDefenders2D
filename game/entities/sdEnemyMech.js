@@ -53,7 +53,7 @@ class sdEnemyMech extends sdEntity
 		
 		this._regen_timeout = 0;
 		
-		this._hmax = 15000; // Was 6000 but even 12000 is too easy if you have anything in slot 7
+		this._hmax = 12000; // Was 6000 but even 12000 is easy
 		this.hea = this._hmax;
 
 		this._ai_team = 5;

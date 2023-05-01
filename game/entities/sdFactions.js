@@ -155,8 +155,8 @@ class sdFactions extends sdEntity
 					character_entity.matter = 150;
 					character_entity.matter_max = 150;
 
-					character_entity.hea = 750;
-					character_entity.hmax = 750;
+					character_entity.hea = 650;
+					character_entity.hmax = 650;
 
 				}
 	
@@ -230,16 +230,16 @@ class sdFactions extends sdEntity
 				character_entity.matter = 300;
 				character_entity.matter_max = 300; // Let player leech matter off the bodies
 
-				character_entity.hea = 1400;
-				character_entity.hmax = 1400;
+				character_entity.hea = 850;
+				character_entity.hmax = 850;
 			}
 			if ( character_entity._ai_gun_slot === 3 )
 			{
 				character_entity.matter = 300;
 				character_entity.matter_max = 300; // Let player leech matter off the bodies
 
-				character_entity.hea = 1750;
-				character_entity.hmax = 1750;
+				character_entity.hea = 1000;
+				character_entity.hmax = 1000;
 
 			}
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
@@ -386,8 +386,8 @@ class sdFactions extends sdEntity
 				character_entity.matter = 200;
 				character_entity.matter_max = 200;
 
-				character_entity.hea = 750;
-				character_entity.hmax = 750;
+				character_entity.hea = 650;
+				character_entity.hmax = 650;
 			}
 
 			if ( character_entity._ai_gun_slot === 4 ) // Rail cannon Velox, harder to kill
@@ -395,8 +395,8 @@ class sdFactions extends sdEntity
 				character_entity.matter = 400;
 				character_entity.matter_max = 400;
 
-				character_entity.hea = 1200;
-				character_entity.hmax = 1200;
+				character_entity.hea = 1100;
+				character_entity.hmax = 1100;
 				character_entity.s = 110; // Tougher so bigger target
 			}
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
