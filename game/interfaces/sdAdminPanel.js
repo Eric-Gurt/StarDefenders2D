@@ -172,7 +172,7 @@ class sdAdminPanel extends sdInterface
 				
 				let ent = sdEntity.entities_by_net_id_cache_map.get( sdWorld.recent_players[ i ].last_known_net_id );
 				
-				if ( ent.title )
+				if ( ent && ent.title )
 				target_pseudonym = ent.title.split( 'Disconnected ' ).join('');
 				else
 				target_pseudonym = sdWorld.recent_players[ i ].pseudonym;
@@ -245,7 +245,7 @@ class sdAdminPanel extends sdInterface
 				
 				let ent = sdEntity.entities_by_net_id_cache_map.get( sdWorld.recent_players[ i ].last_known_net_id );
 				
-				if ( ent.title )
+				if ( ent && ent.title )
 				target_pseudonym = ent.title.split( 'Disconnected ' ).join('');
 				else
 				target_pseudonym = sdWorld.recent_players[ i ].pseudonym;

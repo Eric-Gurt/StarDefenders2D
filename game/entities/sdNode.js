@@ -86,6 +86,13 @@ class sdNode extends sdEntity
 
 		this._matter = 0; // Just so it can transfer matter in cable network
 		this._matter_max = 20;
+
+		this._liquid = { // Doesn't hold any, just for detection in cable network
+			max: 0, 
+			amount: 0, 
+			type: -1, 
+			extra: 0 // Used for essence
+		};
 	}
 	/*onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
 	{
@@ -94,6 +101,17 @@ class sdNode extends sdEntity
 	PrioritizeGivingMatterAway() // sdNode, sdCom, sdCommandCentre, sdMaterContainer, sdMatterAmplifier all do that in order to prevent slow matter flow through cables
 	{
 		return true;
+	}
+	LiquidTransferMode() // 0 - balance liquids, 1 - only give liquids, 2 - only take liquids
+	{
+		return 1;
+	}
+	IsLiquidTypeAllowed( type )
+	{
+		if ( type === -1 )
+		return true;
+
+		return ( this._liquid.type === -1 || this._liquid.type === type ); // Accepts all liquid types
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{

@@ -229,13 +229,14 @@ class sdShurgConverter extends sdEntity
 		{
 			if ( this._notify_in > 0 )
 			this._notify_in -= GSPEED;
-			if ( this._notify_in < 0 )
+			else
 			{
+				this._notify_in = 60;
 				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be destroyed
 				{
 					let desc;
 					if ( sdShurgConverter.ents_left >= 2 )
-					desc = 'The Shurgs deployed a device which drains nearby oxygen. Destroy them before the planet gets drained off of oxygen!';
+					desc = 'The Shurgs deployed devices which drain nearby oxygen. Destroy them before the planet gets drained off of oxygen!';
 					else
 					if ( sdShurgConverter.ents_left !== 0 )
 					desc = 'There is not many of them left, be quick now and destroy the remaining converters!';
@@ -258,37 +259,11 @@ class sdShurgConverter extends sdEntity
 						description: desc
 					});
 				}
-					//this._drain_entities = [];
-					//let di = 2000;
-
-					/*for ( let i = 0; i < sdWorld.sockets.length; i++ )
-					{
-						if ( sdWorld.sockets[ i ].character !== null )
-						if ( !sdWorld.sockets[ i ].character._is_being_removed )
-						if ( sdWorld.sockets[ i ].character.hea > 0 )
-						{
-							{
-								di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, this.x, this.y );
-								if ( di < 400 )
-								this._drain_entities.push( sdWorld.sockets[ i ].character );
-							}
-						}
-					}*/
-				}
-
-			/*if ( this._drain_entities.length > 0 )
-			{
-				for( let i = 0; i < this._drain_entities.length; i++ )
-				{
-					//if ( this._drain_entities[ i ]._can_breathe )
-					{
-						this._drain_entities[ i ].air = Math.max( 0, this._drain_entities[ i ].air - ( GSPEED * 7 ) );
-						this._drain_entities[ i ]._can_breathe = false;
-					}
-				}
-			}*/
+			}
 
 			this.matter = Math.min( this.matter_max, this.matter + ( GSPEED / 180 ) );
+
+			this.MatterGlow( 0.01, 30, GSPEED );
 
 		}
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );

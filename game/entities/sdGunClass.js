@@ -20,6 +20,8 @@ import sdBG from './sdBG.js';
 import sdCube from './sdCube.js';
 import sdCrystal from './sdCrystal.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdStorageTank from './sdStorageTank.js';
+import sdEssenceExtractor from './sdEssenceExtractor.js';
 
 
 /*
@@ -2612,7 +2614,7 @@ class sdGunClass
 							parent: target_entity,
 							child: bullet._owner,
 							offsets: target_entity.is( sdNode ) ? [ 0,0, 0,0 ] : [ bullet.x - target_entity.x, bullet.y - target_entity.y, 0,0 ],
-							type: sdCable.TYPE_MATTER
+							type: ( target_entity.is( sdStorageTank ) || target_entity.is( sdEssenceExtractor ) ) ? sdCable.TYPE_LIQUID : sdCable.TYPE_MATTER
 						});
 
 						bullet._owner._current_built_entity = ent;
@@ -5230,7 +5232,7 @@ class sdGunClass
 			matter_cost: 50,
 			projectile_velocity: 16 * 1.5,
 			spawnable: true,
-			category: 'Other',
+			category: 'Equipment',
 			is_sword: false,
 			GetAmmoCost: ()=>
 			{
@@ -5244,6 +5246,68 @@ class sdGunClass
 			},
 			projectile_properties: { time_left: 1, _damage: 1, color: 'transparent', 
 				_knock_scale: 0,
+				_custom_target_reaction: ( bullet, target_entity ) =>
+				{
+					if ( target_entity._has_liquid_props )
+					{
+						let gun = bullet._gun;
+
+						let liquid = ( target_entity.liquid || target_entity._liquid );
+
+						if ( bullet._gun._held_item_snapshot )
+						{
+							let amount = Math.round( gun._held_item_snapshot._volume * 100 );
+							let extra = ( gun._held_item_snapshot.extra || 0 );
+	
+							if ( target_entity.IsLiquidTypeAllowed( gun._held_item_snapshot.type ) )
+							{
+								if ( liquid.max - liquid.amount >= amount )
+								{
+									if ( liquid.type === -1 )
+									liquid.type = gun._held_item_snapshot.type;
+	
+									liquid.amount += amount;
+									liquid.extra += extra;
+	
+									bullet._gun._held_item_snapshot = null;
+									sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, liquid_carrier_base_color, liquid_carrier_empty );
+	
+									sdSound.PlaySound({ name:'water_entrance', x:gun.x, y:gun.y, volume: 0.1, pitch: 1 });
+	
+									bullet._custom_detonation_logic = null; // Prevent picking up water on same use
+								}
+							}
+						}
+						else
+						{
+							if ( liquid.amount >= 100 )
+							{
+								let water_ent = new sdWater({ x:0, y:0, type: liquid.type });
+								sdEntity.entities.push( water_ent );
+	
+								if ( typeof water_ent.extra !== 'undefined' )
+								{
+									water_ent.extra = Math.round( liquid.extra / liquid.amount * 100 );
+									liquid.extra -= water_ent.extra
+								}
+
+								liquid.amount -= 100;
+	
+								bullet._gun._held_item_snapshot = water_ent.GetSnapshot( GetFrame(), true );
+	
+								delete bullet._gun._held_item_snapshot._net_id; // Erase this just so snapshot logic won't think that it is a some kind of object that should exist somewhere
+								
+								sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, liquid_carrier_base_color, sdWater.reference_colors[ water_ent.type ] || '#ffffff' );
+	
+								water_ent.remove();
+								
+								sdSound.PlaySound({ name:'water_entrance', x:gun.x, y:gun.y, volume: 0.1, pitch: 1 });
+	
+								bullet._custom_detonation_logic = null; // Prevent placing water on same use
+							}
+						}
+					}
+				},
 				_custom_detonation_logic:( bullet )=>
 				{
 					let gun = bullet._gun;
@@ -5281,17 +5345,56 @@ class sdGunClass
 
 						if ( water_ent )
 						{
-							bullet._gun._held_item_snapshot = water_ent.GetSnapshot( GetFrame(), true );
-							
-							delete bullet._gun._held_item_snapshot._net_id; // Erase this just so snapshot logic won't think that it is a some kind of object that should exist somewhere
-							
-							sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, liquid_carrier_base_color, sdWater.reference_colors[ water_ent.type ] || '#ffffff' );
+							let held_by = sdEntity.entities_by_net_id_cache_map.get( bullet._gun.held_by_net_id );
 
-							water_ent.AwakeSelfAndNear();
-							
-							water_ent.remove();
-							
-							sdSound.PlaySound({ name:'water_entrance', x:gun.x, y:gun.y, volume: 0.1, pitch: 1 });
+							let connected = null;
+
+							if ( held_by && !held_by._is_being_removed )
+							connected = sdCable.GetConnectedEntities( held_by, sdCable.TYPE_LIQUID );
+
+							let can_transfer = false;
+
+							if ( connected && connected.length > 0 )
+							{
+								for ( let i = 0; i < connected.length; i++ )
+								if ( connected[ i ]._has_liquid_props && !connected[ i ]._is_being_removed )
+								if ( connected[ i ].IsLiquidTypeAllowed( water_ent.type ) )
+								{
+									let liquid = ( connected[ i ].liquid || connected[ i ]._liquid );
+
+									let amount = Math.round( water_ent._volume * 100 )
+									let extra = ( water_ent.extra || 0 );
+
+									if ( liquid.max - liquid.amount >= amount )
+									{
+										if ( liquid.type === -1 )
+										liquid.type = water_ent.type;
+		
+										liquid.amount += amount;
+										liquid.extra += extra;
+
+										water_ent.remove();
+
+										can_transfer = true;
+										break;
+									}
+								}
+							}
+
+							if ( !can_transfer )
+							{
+								bullet._gun._held_item_snapshot = water_ent.GetSnapshot( GetFrame(), true );
+								
+								delete bullet._gun._held_item_snapshot._net_id; // Erase this just so snapshot logic won't think that it is a some kind of object that should exist somewhere
+								
+								sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, liquid_carrier_base_color, sdWater.reference_colors[ water_ent.type ] || '#ffffff' );
+	
+								water_ent.AwakeSelfAndNear();
+								
+								water_ent.remove();
+								
+								sdSound.PlaySound({ name:'water_entrance', x:gun.x, y:gun.y, volume: 0.1, pitch: 1 });
+							}
 						}
 					}
 				}

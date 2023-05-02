@@ -1338,6 +1338,72 @@ class sdWorld
 			}
 		}
 	}
+	static SpawnWaterEntities( x, y, di_x, di_y, tot, type, extra=0, liquid_to_modify=null )
+	{
+		if ( !sdWorld.is_server )
+		return;
+		let spawned = 0;
+
+		for ( var i = 0; i < tot; i++ )
+		{
+			let xx,yy;
+			let tr = 1000;
+			while ( tr > 0 )
+			{
+				xx = Math.floor( ( x - di_x + Math.random() * di_x * 2 ) / 16 ) * 16;
+				yy = Math.floor( ( y - di_y + Math.random() * di_y * 2 ) / 16 ) * 16;
+
+				let safe_bound = 1;
+
+				let water_ent = sdWater.GetWaterObjectAt( xx, yy );
+
+				while ( water_ent && tr > 0 )
+				{
+					yy = water_ent.y - 16;
+					water_ent = sdWater.GetWaterObjectAt( xx, yy );
+
+					tr--;
+				}
+
+				if ( xx >= Math.floor( sdWorld.world_bounds.x1 / 16 ) * 16 && xx < Math.floor( sdWorld.world_bounds.x2 / 16 ) * 16 )
+				if ( yy >= Math.floor( sdWorld.world_bounds.y1 / 16 ) * 16 && yy < Math.floor( sdWorld.world_bounds.y2 / 16 ) * 16 )
+				{
+					if ( !water_ent )
+					if ( !sdWorld.CheckWallExistsBox( 
+						xx + safe_bound, 
+						yy + safe_bound, 
+						xx + 16 - safe_bound, 
+						yy + 16 - safe_bound, null, null, sdWater.classes_to_interact_with ) )
+					{
+						water_ent = new sdWater({ x: xx, y: yy, type:type });
+
+						if ( typeof water_ent.extra !== 'undefined' )
+						water_ent.extra = extra;
+						
+						sdEntity.entities.push( water_ent );
+						sdWorld.UpdateHashPosition( water_ent, false );
+
+						spawned++;
+
+						if ( liquid_to_modify )
+						{
+							liquid_to_modify.amount -= 100;
+							liquid_to_modify.extra -= extra;
+
+							if ( liquid_to_modify.amount <= 0 )
+							liquid_to_modify.type = -1;
+						}
+
+						break;
+					}
+				}
+
+				tr--;
+			}
+		}
+
+		console.log( spawned );
+	}
 	static SendEffect( params, command='EFF', exclusive_to_sockets_arr=null ) // 'S' for sound
 	{
 		if ( !sdWorld.is_server )
@@ -2570,6 +2636,8 @@ class sdWorld
 					{
 						//sdEntity.to_seal_list[ i ].InitMatterMode();
 						e._has_matter_props = ( typeof e.matter !== 'undefined' || typeof e._matter !== 'undefined' );//sdWorld.FilterHasMatterProperties( e );
+				
+						e._has_liquid_props = ( typeof e.liquid !== 'undefined' || typeof e._liquid !== 'undefined' );//sdWorld.FilterHasMatterProperties( e );
 				
 						Object.seal( e );
 					}

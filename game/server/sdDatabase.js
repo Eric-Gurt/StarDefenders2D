@@ -887,6 +887,36 @@ class sdDatabase
 		return obj;
 	}
 	
+	static GetBan( ip=null, _my_hash=null ) // null if no ban
+	{
+		let t = Date.now();
+		
+		let ban = null;
+		
+		if ( ip !== null && sdDatabase.data.moderation.bans.table_by_ip[ ip ] )
+		ban = sdDatabase.data.moderation.bans.table_by_ip[ ip ];
+		else
+		if ( _my_hash !== null && sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] )
+		ban = sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ];
+		
+		if ( ban )
+		{
+			if ( ban.until === undefined )
+			ban.until = 0;
+		
+			if ( ban.until !== 0 && t > ban.until )
+			{
+				if ( sdDatabase.data.moderation.bans.table_by_ip[ ip ] === null )
+				delete sdDatabase.data.moderation.bans.table_by_ip[ ip ];
+			
+				if ( sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] === null )
+				delete sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ];
+			}
+			else
+			return ban;
+		}
+		return null;
+	}
 	static DBLogIP( responses=[], initiator_server, _my_hash, ip )
 	{
 		let user = sdDatabase.MakeSureUserExists( _my_hash );
@@ -905,7 +935,11 @@ class sdDatabase
 			// TODO: Apply IP-range merging here if too many subnet hits (at lest 3?)
 		}
 		
-		let ban = null;
+		let ban = sdDatabase.GetBan( ip, _my_hash );
+		if ( ban )
+		responses.push([ 'BANNED', ban.reason_public, ban.until, ban.uid ]);
+		
+		/*let ban = null;
 		
 		if ( sdDatabase.data.moderation.bans.table_by_ip[ ip ] )
 		ban = sdDatabase.data.moderation.bans.table_by_ip[ ip ];
@@ -925,7 +959,7 @@ class sdDatabase
 			}
 			else
 			responses.push([ 'BANNED', ban.reason_public, ban.until, ban.uid ]);
-		}
+		}*/
 		
 		return responses;
 	}
@@ -936,6 +970,13 @@ class sdDatabase
 		if ( !user )
 		{
 			responses.push([ 'DENY_WITH_SERVICE_MESSAGE', 'Access Error: User could not be made or found' ]);
+			return responses;
+		}
+		
+		let ban = GetBan( null, initiator_hash_or_user_uid );
+		if ( ban )
+		{
+			responses.push([ 'DENY_WITH_SERVICE_MESSAGE', 'Access Error: Banned' ]);
 			return responses;
 		}
 		

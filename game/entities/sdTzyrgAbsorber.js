@@ -24,6 +24,7 @@ class sdTzyrgAbsorber extends sdEntity
 	static init_class()
 	{
 		sdTzyrgAbsorber.img_absorber = sdWorld.CreateImageFromFile( 'tzyrg_quake_absorber' );
+		sdTzyrgAbsorber.img_turret = sdWorld.CreateImageFromFile( 'tzyrg_absorber_turret' );
 		
 		sdTzyrgAbsorber.effect_radius = 800;
 
@@ -46,12 +47,21 @@ class sdTzyrgAbsorber extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 
-		this.hmax = 7500;
+		this.hmax = 6000;
 		this.hea = this.hmax;
-		//this.detonation_in = params.detonation_in || 30 * 60 * 15; // 15 minutes until the bomb explodes
 		this._spawn_timer = 30 * 60 * 5; // Spawn Tzyrgs timer
 		this._regen_timeout = 0; // Regen timeout;
 		this._notify_players = 0;
+
+		this._target = null;
+		this._ai_team = 8; // 8 is AI team for tzyrgs, so the device doesn't target Tzyrgs
+		this._attack_timer = 0;
+		this.attack_frame = 0;
+		this.attack_an = 0;
+		this.side = 1;
+		this._last_seen = 0;
+
+		this._next_scan = 10; // Target scanning so the device doesn't spam GetRandomEntityNearby()
 
 		sdTzyrgAbsorber.absorbers.push( this );
 
@@ -64,10 +74,74 @@ class sdTzyrgAbsorber extends sdEntity
 	{
 		return this.filter;
 	}*/
+
+	GetRandomEntityNearby() // From sdCharacter
+	{
+		let an = Math.random() * Math.PI * 2;
+
+		if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.x + Math.sin( an ) * 900, this.y + Math.cos( an ) * 900, this ) )
+		if ( sdWorld.last_hit_entity )
+		{
+			let found_enemy = false;
+			if ( sdWorld.last_hit_entity.is( sdCharacter ) ||  sdWorld.last_hit_entity.GetClass() === 'sdDrone' || sdWorld.last_hit_entity.GetClass() === 'sdEnemyMech' || sdWorld.last_hit_entity.GetClass() === 'sdSpider' || sdWorld.last_hit_entity.GetClass() === 'sdSetrDestroyer' )
+			if ( sdWorld.last_hit_entity._ai_team !== this._ai_team )
+			found_enemy = true;
+
+			if ( sdWorld.last_hit_entity.GetClass() === 'sdPlayerDrone' || sdWorld.last_hit_entity.GetClass() === 'sdPlayerOverlord' )
+			if ( this._ai_team !== 0 )
+			found_enemy = true;
+
+			if (	sdWorld.last_hit_entity.GetClass() === 'sdAmphid' || 
+					sdWorld.last_hit_entity.GetClass() === 'sdAsp' || 
+					sdWorld.last_hit_entity.GetClass() === 'sdBadDog' || 
+					sdWorld.last_hit_entity.GetClass() === 'sdOctopus' || 
+					sdWorld.last_hit_entity.GetClass() === 'sdQuickie' || 
+					sdWorld.last_hit_entity.GetClass() === 'sdSandWorm' || 
+					sdWorld.last_hit_entity.GetClass() === 'sdVirus' || 
+					sdWorld.last_hit_entity.GetClass() === 'sdTutel' || 
+					sdWorld.last_hit_entity.GetClass() === 'sdFaceCrab' || 
+					sdWorld.last_hit_entity.GetClass() === 'sdBiter'  ||
+					sdWorld.last_hit_entity.GetClass() === 'sdAbomination' ||
+					( sdWorld.last_hit_entity.GetClass() === 'sdBomb' && sdWorld.inDist2D_Boolean( sdWorld.last_hit_entity.x, sdWorld.last_hit_entity.y, this.x, this.y, 150 ) ) ||
+					( sdWorld.last_hit_entity.GetClass() === 'sdBarrel' && sdWorld.inDist2D_Boolean( sdWorld.last_hit_entity.x, sdWorld.last_hit_entity.y, this.x, this.y, 150 ) && sdWorld.last_hit_entity.armed < 100 ) // Attack not yet armed barrels (for Councils?)
+			) 
+			found_enemy = true;
+
+			if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && this._ai_team !== 0 )
+			if ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_WALL || 
+					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 ||
+					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 ||
+					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_SHARP ) // Attack player built walls
+			if ( sdWorld.last_hit_entity._ai_team !== this._ai_team ) // Don't attack if it's own faction outpost walls
+			found_enemy = true;
+
+			if ( sdWorld.last_hit_entity.is( sdCube ) ) // Only confront cubes when they want to attack AI
+			if ( this._nature_damage >= this._player_damage + 60 )
+			found_enemy = true;
+
+			if ( found_enemy === true )
+			return sdWorld.last_hit_entity;
+		}
+		return null;
+	}
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )
 		return;
+
+		if ( initiator )
+		{
+			if ( !initiator.is( sdDrone ) && initiator._ai_team !== this._ai_team )
+			if ( !initiator.IsPlayerClass() && initiator._ai_team !== this._ai_team )
+			{
+				this._target = initiator;
+			}
+			else
+			if ( ( initiator.is( sdDrone ) || initiator.IsPlayerClass() ) && initiator._ai_team !== this._ai_team )
+			{
+				this._target = initiator;
+			}
+		}
 	
 		dmg = Math.abs( dmg );
 		
@@ -87,7 +161,7 @@ class sdTzyrgAbsorber extends sdEntity
 
 					let gun;
 					gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
-					gun.extra = 1;
+					gun.extra = 0;
 
 					//gun.sx = sx;
 					//gun.sy = sy;
@@ -122,6 +196,115 @@ class sdTzyrgAbsorber extends sdEntity
 
 		if ( sdWorld.is_server )
 		{
+
+			if ( this.attack_frame > 0 )
+			this.attack_frame = Math.max( 0, this.attack_frame - GSPEED * 0.1 );
+
+
+			if ( !this._target || this._target._is_being_removed )
+			{
+				this._target = null;
+				
+				if ( this._next_scan <= 0 )
+				{
+					this._target = this.GetRandomEntityNearby();
+					this._next_scan = 3;
+				}
+				else
+				this._next_scan -= GSPEED;
+			}
+			else
+			{
+				let dx = ( this._target.x + ( this._target._hitbox_x1 + this._target._hitbox_x2 ) / 2 ) - this.x;
+				let dy = ( this._target.y + ( this._target._hitbox_y1 + this._target._hitbox_y2 ) / 2 ) - this.y + 16;
+				this.attack_an = ( Math.atan2( dy, Math.abs( dx ) ) ) * 1000;
+				this.side = ( dx > 0 ) ? 1 : -1;
+			}
+
+				if ( this._target )
+				if ( this._attack_timer <= 0 )
+				{
+					let xx = this._target.x + ( this._target._hitbox_x1 + this._target._hitbox_x2 ) / 2;
+					let yy = this._target.y + ( this._target._hitbox_y1 + this._target._hitbox_y2 ) / 2;
+					let consider_attacking = false;
+					if ( this._target.GetClass() !== 'sdBlock' )
+					{
+						if ( sdWorld.CheckLineOfSight( this.x, this.y - 16, xx, yy, this._target, null, sdCom.com_creature_attack_unignored_classes ) )
+						consider_attacking = true;
+					}
+					else
+					if ( this._target.GetClass() === 'sdBlock' )
+					consider_attacking = true;
+
+					if ( consider_attacking )
+					{
+						this._last_seen = 0; // Reset "last seen" timer
+						let dx = xx - this.x;
+						let dy = yy - this.y + 16;
+
+						let di = sdWorld.Dist2D_Vector( dx, dy );
+
+						//dx += ( from_entity.sx || 0 ) * di / 12;
+						//dy += ( from_entity.sy || 0 ) * di / 12;
+
+						di = sdWorld.Dist2D_Vector( dx, dy );
+
+						if ( di > 1 )
+						{
+							dx /= di;
+							dy /= di;
+						}
+						this.side = ( dx > 0 ) ? 1 : -1;
+
+						let should_fire = true;
+						if ( !sdWorld.CheckLineOfSight( this.x, this.y - 16, this._target.x, this._target.y, this, null, ['sdCharacter', 'sdDrone' ] ) )
+						{
+							if ( sdWorld.last_hit_entity && sdWorld.last_hit_entity._ai_team === this._ai_team )
+							should_fire = false;
+						}
+
+						if ( should_fire )
+						{
+							for ( let i = 0; i < 5; i++ )
+							{
+								let bullet_obj = new sdBullet({ x: this.x, y: this.y - 16 });
+
+								bullet_obj._owner = this;
+
+								bullet_obj.sx = dx;
+								bullet_obj.sy = dy;
+								bullet_obj.x += bullet_obj.sx * 6;
+								bullet_obj.y += bullet_obj.sy * 6;
+
+								bullet_obj.sx *= 12 + Math.random() * 8 - Math.random() * 8;
+								bullet_obj.sy *= 12 + Math.random() * 8 - Math.random() * 8;
+
+								bullet_obj._damage = 15;
+
+	
+								sdEntity.entities.push( bullet_obj );
+							}
+
+							this.attack_frame = 1;
+							//this.attack_an = ( Math.atan2( dy, Math.abs( dx ) ) ) * 1000;
+							this._attack_timer = 24;
+
+							//sdSound.PlaySound({ name:'gun_shotgun', x:this.x, y:this.y, pitch:1.25 });
+								
+							sdSound.PlaySound({ name:'tzyrg_fire', x:this.x, y:this.y, volume: this.type === sdDrone.DRONE_TZYRG_WATCHER ? 2 : 1, pitch: this.type === sdDrone.DRONE_TZYRG_WATCHER ? 0.8 : 1 });
+						}
+					}
+					else
+					this._last_seen++;
+					if ( this._last_seen > 180 )
+					{
+						this._target = null;
+						this._last_seen = 0;
+					}
+				}
+				else
+				this._attack_timer = Math.max( 0, this._attack_timer - GSPEED );
+
 			if ( this._notify_players > 0 )
 			this._notify_players -= GSPEED;
 			else
@@ -172,10 +355,15 @@ class sdTzyrgAbsorber extends sdEntity
 		ctx.apply_shading = true;
 
 		//ctx.filter = this.filter;
-		
+		let xx = this.attack_frame > 0 ? 64 : 0;
 		{
 			ctx.drawImageFilterCache( sdTzyrgAbsorber.img_absorber, 0, 0, 64, 64, - 32, - 32, 64, 64 );
-			//ctx.drawImageFilterCache( sdTzyrgAbsorber.img_absorber, - 32, - 32, 64, 64 );
+			ctx.save();
+			ctx.scale( this.side, 1 );
+			ctx.translate( 0, -16 );
+			ctx.rotate( this.attack_an / 1000 );
+			ctx.drawImageFilterCache( sdTzyrgAbsorber.img_turret, xx, 0, 64, 64, -32, - 32, 64, 64 );
+			ctx.restore();
 		}
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';

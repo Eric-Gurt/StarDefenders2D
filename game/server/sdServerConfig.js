@@ -55,7 +55,7 @@ class sdServerConfigFull extends sdServerConfigShort
 	
 	static adsense_client = 'ca-pub-7381466440820611'; // To learn how to install your ads go there https://developers.google.com/ad-placement/docs/beta . This adsense_client comes from HTML code for AdSense. You'll additionally be requested to allow ads on your domain via ads.txt file. Your server will not show ads designed for other servers and vice versa
 	
-	static save_raw_version_of_snapshot = true; // One that can be easily viewed in Notepad-like applications. It is never used within server logic. "true" can slow-down snapshot generation.
+	static save_raw_version_of_snapshot = false; // One that can be easily viewed in Notepad-like applications. It is never used within server logic. "true" can slow-down snapshot generation.
 	
 	static store_game_files_in_ram = false; // Will make server never use hard drive without need until next reboot, except for cases when backup is being made (more RAM usage, can be suitable for VPS servers that have strange Disk I/O issues)
 	
@@ -75,6 +75,12 @@ class sdServerConfigFull extends sdServerConfigShort
 		else
 		//if ( ent.is( sdCube ) || ent.is( sdHover ) || ent.is( sdMatterContainer ) || ent.is( sdSunPanel ) )
 		if ( ent.onThink.has_MatterGlow )
+		{
+			if ( sdCable.connected_entities_per_entity.has( ent ) )
+			return true;
+		}
+		else
+		if ( ent.onThink.has_GiveLiquid )
 		{
 			if ( sdCable.connected_entities_per_entity.has( ent ) )
 			return true;
@@ -101,6 +107,8 @@ class sdServerConfigFull extends sdServerConfigShort
 	
 	static base_shielding_units_passive_drain_per_week_green = 0.01; // 0.2 // Percentage. Also applied to matter amplifiers so green BSUs drain as fast as blue BSUs
 	static base_shielding_units_passive_drain_per_week_blue = 0.01; // 0.2 // Percentage. Also applied to matter amplifiers so green BSUs drain as fast as blue BSUs
+	
+	static do_green_base_shielding_units_consume_essence = false; // Experimental - Enables green BSU essence consumption through cables. Does not disable crystal consumption
 	
 	
 	static allowed_base_shielding_unit_types = null; // [ sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER, sdBaseShieldingUnit.TYPE_MATTER, sdBaseShieldingUnit.TYPE_SCORE_TIMED ] to allow specific ones or null to allow all
