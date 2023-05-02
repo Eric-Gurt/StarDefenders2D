@@ -1,6 +1,6 @@
 /*
 
-	Players can create these to save/load presets, perhaps. Also to program repair drones.
+	Players can create these to save/load presets, perhaps.
 
 	TODO: This is unfinished. Could be used to make presets which later could be used with more meaning. It works but simply does not do anything as of yet
 
@@ -13,11 +13,13 @@ import sdCharacter from './sdCharacter.js';
 import sdRenderer from '../client/sdRenderer.js';
 
 
-class sdRegion extends sdEntity
+class sdPresetEditor extends sdEntity
 {
 	static init_class()
 	{
-		sdRegion.PROGRAM_DO_NOTHING = 0;
+		//sdPresetEditor.PROGRAM_DO_NOTHING = 0;
+		
+		sdPresetEditor.regions = [];
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -35,19 +37,16 @@ class sdRegion extends sdEntity
 	
 	IsVisible( observer_entity )
 	{
-		if ( observer_entity )
-		{
-			if ( observer_entity === this._owner )
-			if ( this._owner.gun_slot === 9 )
-			return true;
-		
-			if ( observer_entity.is( sdCharacter ) )
-			if ( observer_entity._god )
-			return true;
-		}
-
-		return false;
+		return true;
 	}
+	
+	get title()
+	{
+		return T('Preset Editor');
+	}
+	
+	IsHittableWithAdminTools() // Admin tool for removal
+	{ return false; }
 	
 	dragWhenBuilt( builder_entity ) // true = deny animation recovery, false = allow weapon reload animation recovery
 	{
@@ -64,7 +63,14 @@ class sdRegion extends sdEntity
 		
 		this._update_version++;
 		
+		this.UpdateHitboxInitial();
+		
 		return true; // true = deny animation recovery
+	}
+	dragWhenBuiltComplete()
+	{
+		if ( this.w === 0 || this.h === 0 )
+		this.remove();
 	}
 	
 	constructor( params )
@@ -76,30 +82,33 @@ class sdRegion extends sdEntity
 		this._x0 = this.x;
 		this._y0 = this.y;
 		
-		this.r = 50;
-		this.g = 255;
-		this.b = 50;
+		//this.r = 50;
+		//this.g = 255;
+		//this.b = 50;
 		
 		this.w = params.w || 128;
 		this.h = params.h || 128;
 		
-		this.program = sdRegion.PROGRAM_DO_NOTHING;
+		//this.program = sdPresetEditor.PROGRAM_DO_NOTHING;
+		this._program = ''; // Perhaps some logic attached to preset, same as used for sdBotFactory
 		
-		this.preset_name = 'my_preset' + this._net_id;
+		this.preset_name = '';//'untitled_preset' + ( this._net_id === undefined ? '' : '_' + this._net_id );
 		
-		this._expiration = sdWorld.time + 1000 * 60; // Expire in 60 seconds
+		this.associated_button_net_ids = []; // Why not have physical buttons that different admins could press? Just not sure what those buttons would be, possibly context options will be enough
 		
-		this._owner = params.owner || null;
+		this.time_scale = 0; // Percentages
 		
 		//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP, false ); // 2nd parameter is important as it will prevent temporary entities from reacting to world entities around it (which can happen for example during item price measure - something like sdBlock can kill player-initiator and cause server crash)
 		//this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED, false );
+		
+		sdPresetEditor.regions.push( this );
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( sdWorld.is_server )
 		{
-			if ( sdWorld.time > this._expiration )
-			this.remove();
+			//if ( sdWorld.time > this._expiration )
+			//this.remove();
 		}
 	}
 	MeasureMatterCost()
@@ -111,6 +120,15 @@ class sdRegion extends sdEntity
 	{ return 7; }
 	//RequireSpawnAlign() 
 	//{ return true; }
+	
+	onBeforeRemove() // Right when .remove() is called for the first time. This method won't be altered by build tool spawn logic
+	{
+		let id = sdPresetEditor.regions.indexOf( this );
+		if ( id !== -1 )
+		sdPresetEditor.regions.splice( id, 1 );
+		else
+		debugger;
+	}
 	
 	get spawn_align_x(){ return 16; };
 	get spawn_align_y(){ return 16; };
@@ -128,11 +146,11 @@ class sdRegion extends sdEntity
 		ctx.globalAlpha = 0.3 * alpha;
 		
 		ctx.fillStyle = '#ffffff';
-		ctx.sd_color_mult_r = this.r / 255;
-		ctx.sd_color_mult_g = this.g / 255;
-		ctx.sd_color_mult_b = this.b / 255;
+		//ctx.sd_color_mult_r = this.r / 255;
+		//ctx.sd_color_mult_g = this.g / 255;
+		//ctx.sd_color_mult_b = this.b / 255;
 		
-		ctx.fillRect( 0, 0, this._hitbox_x2, this._hitbox_y2 );
+		//ctx.fillRect( 0, 0, this._hitbox_x2, this._hitbox_y2 );
 		
 		ctx.globalAlpha = 0.6 * alpha;
 		ctx.fillRect( 0, 0, 1, this._hitbox_y2 );
@@ -141,35 +159,50 @@ class sdRegion extends sdEntity
 		ctx.fillRect( 0, this._hitbox_y2 - 1, this._hitbox_x2, 1 );
 		
 		ctx.globalAlpha = 1;
+		
+		ctx.font = "7px Verdana";
+		ctx.textAlign = 'left';
+
+		let t = this.preset_name ? this.preset_name : 'Untitled preset';
+		
+		if ( sdShop.isDrawing )
+		{
+			ctx.textAlign = 'center';
+			t = 'Preset Editor';
+		}
+
+		ctx.fillStyle = '#ffffff';
+		ctx.fillText( t, 0, -8 );
 	}
 	
+	DrawHUD( ctx, attached ) // foreground layer
+	{
+		// For hover reaction?
+	}
 	
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
-		if ( this.hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		{
-			this._expiration = sdWorld.time + 1000 * 60; // Expire in 60 seconds
-		
-			if ( command_name === 'OWN' )
-			{
-				if ( exectuter_character._god )
-				{
-					this.owner = exectuter_character;
-				}
-			}
-			
-			if ( this.owner === exectuter_character )
+			if ( exectuter_character._god )
 			{
 				if ( command_name === 'SAVE' )
 				{
-					
+					executer_socket.SDServiceMessage( 'Not implemented yet' );
 				}
-				if ( command_name === 'RESTORE' )
+				if ( command_name === 'LOAD' )
 				{
-					
+					executer_socket.SDServiceMessage( 'Not implemented yet' );
+				}
+				if ( command_name === 'TIMESCALE' )
+				{
+					this.time_scale = parseFloat( parameters_array[ 0 ] ) * 1000;
+					if ( isNaN( this.time_scale ) )
+					this.time_scale = 0;
+				
+					this._update_version++;
 				}
 				if ( command_name === 'CANCEL' )
 				{
@@ -181,34 +214,29 @@ class sdRegion extends sdEntity
 	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
-		if ( this.hea > 0 )
 		if ( exectuter_character )
 		if ( exectuter_character.hea > 0 )
 		{
-			if ( exectuter_character._god )
-			if ( this.owner !== exectuter_character )
-			{
-				this.AddContextOption( 'sudo own', 'OWN', [] );
-			}
+			//if ( exectuter_character._god )
+			//if ( this.owner !== exectuter_character )
+			//{
+			//	this.AddContextOption( 'sudo own', 'OWN', [] );
+			//}
 
-			if ( this.owner )
-			if ( this.owner === exectuter_character )
+			//if ( this.owner )
+			//if ( this.owner === exectuter_character )
+			if ( exectuter_character._god )
 			{
-				this.AddPromptContextOption( 'Save entities...', 'SAVE', [ undefined ], 'Enter preset name', this.preset_name, 300 );
-				this.AddPromptContextOption( 'Restore entities...', 'RESTORE', [ undefined ], 'Enter preset name', this.preset_name, 300 );
+				this.AddPromptContextOption( 'Save preset...', 'SAVE', [ undefined ], 'Enter preset name to save as (will override if exists)', this.preset_name, 300 );
+				this.AddPromptContextOption( 'Load preset...', 'LOAD', [ undefined ], 'Enter preset name to load from', this.preset_name, 300 );
 				
-				//this.AddContextOption( 'Save entities', 'SAVE', [] );
-				this.AddContextOption( 'Cancel selection', 'CANCEL', [] );
+				this.AddPromptContextOption( 'Set timescale', 'TIMESCALE', [ undefined ], 'Enter new timescale', (this.time_scale/1000)+'', 300 );
 				
-				/*this.AddContextOption( 'Copy entities', 'COPY', [] );
-				this.AddContextOption( 'Cut entities', 'CUT', [] );
-				this.AddContextOption( 'Paste entities', 'PASTE', [] );
-				this.AddContextOption( 'Delete entities', 'DELETE', [] );
-				this.AddContextOption( 'Cancel selection', 'CANCEL', [] );*/
+				this.AddContextOption( 'Cancel preset region', 'CANCEL', [] );
 			}
 		}
 	}
 }
-//sdRegion.init_class();
+//sdPresetEditor.init_class();
 
-export default sdRegion;
+export default sdPresetEditor;

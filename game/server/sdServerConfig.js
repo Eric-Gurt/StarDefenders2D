@@ -112,9 +112,12 @@ class sdServerConfigFull extends sdServerConfigShort
 	
 	
 	static allowed_base_shielding_unit_types = null; // [ sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER, sdBaseShieldingUnit.TYPE_MATTER, sdBaseShieldingUnit.TYPE_SCORE_TIMED ] to allow specific ones or null to allow all
+	static allow_private_storage = true; // Accesible via LRTPs
+	static allow_rescue_teleports = true;
 	
-	static open_world_max_distance_from_zero_coordinates_x = 40000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
-	static open_world_max_distance_from_zero_coordinates_y_min = -3000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
+	static open_world_max_distance_from_zero_coordinates_x = 80000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
+	static open_world_max_distance_from_zero_coordinates_y_min_soft = -3000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
+	static open_world_max_distance_from_zero_coordinates_y_min = -6000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
 	static open_world_max_distance_from_zero_coordinates_y_max = 40000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
 	
 	static player_vs_player_damage_scale = 3;

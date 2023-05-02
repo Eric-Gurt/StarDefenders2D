@@ -681,6 +681,9 @@ class sdEntity
 	{
 		return false; // false = allow weapon reload animation recovery
 	}
+	dragWhenBuiltComplete( builder_entity )
+	{
+	}
 	
 	getRequiredEntities() // Some static entities like sdCable do require connected entities to be synced or else pointers will never be resolved due to partial sync
 	{
@@ -2356,6 +2359,8 @@ class sdEntity
 	}
 	IsBGEntity() // 0 for in-game entities, 1 for background entities, 2 is for moderator areas, 3 is for cables/sensor areas, 4 for task in-world interfaces, 5 for wandering around background entities, 6 for status effects, 7 for player-defined regions, 8 for decals, 9 for player spectators, 10 for deep sleep areas. Should handle collisions separately
 	{ return 0; }
+	IsHittableWithAdminTools() // Admin tool for removal
+	{ return true; }
 	CanMoveWithoutOverlap( new_x, new_y, safe_bound=0, custom_filtering_method=null, alter_ignored_classes=null ) // Safe bound used to check if sdCharacter can stand and not just collides with walls nearby. Also due to number rounding clients should better have it (or else they will teleport while sliding on vertical wall)
 	{
 		this.UpdateHitbox();
