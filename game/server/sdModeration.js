@@ -112,7 +112,15 @@ class sdModeration
 	}
 	static SpecialsReplaceWithLatin( s )
 	{
-		return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+		s = s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+		
+		s = s.split('е').join('e');
+		s = s.split('і').join('i');
+		s = s.split('ї').join('i');
+		s = s.split('о').join('o');
+		s = s.split('р').join('p');
+		
+		return s;
 	}
 	static IsPhraseBad( phrase, coming_from_socket=null )
 	{
@@ -124,11 +132,13 @@ class sdModeration
 		{
 			//trace( 'Checking words', sdModeration.bad_words.length );
 			
+			let phrase_raw_lower_case = ' ' + ( phrase.toLowerCase ) + ' ';
 			phrase = ' ' + sdModeration.SpecialsReplaceWithLatin( phrase ) + ' ';
 
 			for ( let i = 0; i < sdModeration.bad_words.length; i++ )
 			{
-				if ( phrase.indexOf( sdModeration.bad_words[ i ][ 0 ] ) !== -1 )
+				if ( phrase.indexOf( sdModeration.bad_words[ i ][ 0 ] ) !== -1 ||
+					 phrase_raw_lower_case.indexOf( sdModeration.bad_words[ i ][ 0 ] ) !== -1 )
 				{
 					// Potentially tracking IPs and lowering reaction level would make sense against some obsessed people, hopefully there won't be any
 					
@@ -136,6 +146,7 @@ class sdModeration
 					{
 						// Low tier phrases should prevent higher tier to react to them
 						phrase = phrase.split( sdModeration.bad_words[ i ][ 1 ] ).join( ' ' );
+						phrase_raw_lower_case = phrase_raw_lower_case.split( sdModeration.bad_words[ i ][ 1 ] ).join( ' ' );
 						//trace( 'Partially found', i, ' -- ', sdModeration.bad_words[ i ][ 0 ], ' -- ', sdModeration.bad_words[ i ][ 1 ] );
 					}
 					else
