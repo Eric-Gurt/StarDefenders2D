@@ -594,8 +594,8 @@ class sdModeration
 					
 					if ( socket.character.GetClass() !== 'sdPlayerSpectator' )
 					{
-						for ( let i = 0; i < sdWorld.sockets.length; i++ )
-						sdWorld.sockets[ i ].SDServiceMessage( socket.character.title + ' has entered "godmode".' );
+						//for ( let i = 0; i < sdWorld.sockets.length; i++ )
+						//sdWorld.sockets[ i ].SDServiceMessage( socket.character.title + ' has entered "godmode".' );
 
 						sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_REMOVER }) );
 						sdEntity.entities.push( new sdGun({ x:socket.character.x, y:socket.character.y, class:sdGun.CLASS_ADMIN_TELEPORTER }) );
@@ -621,9 +621,9 @@ class sdModeration
 				else
 				if ( parts[ 1 ] === '0' )
 				{
-					if ( socket.character.GetClass() !== 'sdPlayerSpectator' )
-					for ( let i = 0; i < sdWorld.sockets.length; i++ )
-					sdWorld.sockets[ i ].SDServiceMessage( socket.character.title + ' is no longer in "godmode".' );
+					//if ( socket.character.GetClass() !== 'sdPlayerSpectator' )
+					//for ( let i = 0; i < sdWorld.sockets.length; i++ )
+					//sdWorld.sockets[ i ].SDServiceMessage( socket.character.title + ' is no longer in "godmode".' );
 				
 					socket.character._god = false;
 					socket.emit('SET sdWorld.my_entity._god', false );
