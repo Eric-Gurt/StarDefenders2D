@@ -973,7 +973,7 @@ class sdDatabase
 			return responses;
 		}
 		
-		let ban = GetBan( null, initiator_hash_or_user_uid );
+		let ban = sdDatabase.GetBan( null, initiator_hash_or_user_uid );
 		if ( ban )
 		{
 			responses.push([ 'DENY_WITH_SERVICE_MESSAGE', 'Access Error: Banned' ]);
