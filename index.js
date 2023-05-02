@@ -584,7 +584,6 @@ for ( let i = 0; i < ent_modules.length; i++ )
 ent_modules[ i ].init_class();
 
 */
-sdShop.init_class(); // requires plenty of classes due to consts usage
 LZW.init_class();
 sdSound.init_class();
 sdDictionaryWords.init_class();
@@ -703,6 +702,8 @@ if ( globalThis.CATCH_HUGE_ARRAYS )
 }
 
 eval( 'sdWorld.server_config = ' + sdServerConfigFull.toString() ); // Execute while exposing same classes
+
+sdShop.init_class(); // requires plenty of classes due to consts usage
 
 {
 	let file_raw = '';

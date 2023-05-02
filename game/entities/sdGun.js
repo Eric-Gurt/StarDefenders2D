@@ -1160,6 +1160,11 @@ class sdGun extends sdEntity
 							{
 								console.warn( 'this._held_by = ', this._held_by );
 							}
+							
+							if ( this._held_by._last_built_entity )
+							{
+								this._held_by._last_built_entity.dragWhenBuiltComplete( this._held_by );
+							}
 
 							this._held_by._last_built_entity = null;
 						}

@@ -118,6 +118,9 @@ class sdDatabase
 					missions_complete: 0,
 					missions_failed: 0,
 					
+					//karma: 0, // Automatic bans from reporting
+					//karma_banned_times: 0, // Increases ban duration
+					
 					recent_mission_results: [], // [ 0, 1, 0, 0, 0, 1, 1, 1 ], // Perhaps to measure skill?
 					
 					mob_kills: {
@@ -682,6 +685,8 @@ class sdDatabase
 			allowed_methods.add( 'DBManageSavedItems' );
 			allowed_methods.add( 'DBLogIP' );
 			allowed_methods.add( 'DBBanUnbanByHash' );
+			//allowed_methods.add( 'DBReportHash' );
+			
 			
 			for ( let i = 0; i < array_of_request_objects.length; i++ )
 			{
@@ -917,6 +922,24 @@ class sdDatabase
 		}
 		return null;
 	}
+	/*static DBReportHash( responses=[], initiator_server, _my_hash, hash_to_report, reason )
+	{
+		let my_user = sdDatabase.MakeSureUserExists( _my_hash );
+		
+		let reported_user = sdDatabase.data.players.table[ hash_to_report ];
+		
+		if ( reported_user )
+		{
+			let reason_public = 'User was reported way too many times';
+			let reason_private = 'User was reported way too many times (' + reason + ')';
+			
+			sdDatabase.DBBanUnbanByHash( responses, initiator_server, _my_hash, 'BAN', hash_to_report, reason_public, reason_private, 1000 * 60 * 60 * 24 * 3 );
+			
+			responses.push([ 'REPORTED', 1 ]);
+		}
+		
+		return responses;
+	}*/
 	static DBLogIP( responses=[], initiator_server, _my_hash, ip )
 	{
 		let user = sdDatabase.MakeSureUserExists( _my_hash );
@@ -965,6 +988,12 @@ class sdDatabase
 	}
 	static DBManageSavedItems( responses=[], initiator_server, initiator_hash_or_user_uid, operation, group_title, snapshots=[], relative_x=0, relative_y=0, issue_long_timeout=true )
 	{
+		if ( !sdWorld.server_config.allow_private_storage )
+		{
+			responses.push([ 'DENY_WITH_SERVICE_MESSAGE', 'Access Error: Feature is disabled on server' ]);
+			return responses;
+		}
+		
 		let user = sdDatabase.MakeSureUserExists( initiator_hash_or_user_uid );
 		
 		if ( !user )

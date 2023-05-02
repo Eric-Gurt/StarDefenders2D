@@ -354,7 +354,7 @@ class sdBullet extends sdEntity
 		}
 		
 		if ( this._admin_picker )
-		return true;
+		return from_entity.IsHittableWithAdminTools();
 
 		if ( from_entity.is( sdRift ) ) // Ignore portals
 		return false;

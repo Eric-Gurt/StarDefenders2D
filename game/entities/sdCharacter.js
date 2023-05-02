@@ -2872,6 +2872,7 @@ class sdCharacter extends sdEntity
 	IsOutOfBounds()
 	{
 		//if ( !sdWorld.inDist2D_Boolean( 0,0, this.x, this.y, sdWorld.server_config.open_world_max_distance_from_zero_coordinates ) )
+		if ( sdWorld.server_config.enable_bounds_move && sdWorld.server_config.aggressive_hibernation )
 		if ( Math.abs( this.x ) > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_x ||
 			 this.y < sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_min ||
 			 this.y > sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_max )
@@ -3637,43 +3638,47 @@ class sdCharacter extends sdEntity
 			//this._last_act_y = this.act_y;
 		}
 		
-		let can_breathe;
-		if ( ( sdWeather.only_instance.air > 0 ) || ( this.driver_of && this.driver_of.VehicleHidesDrivers() ) || ( this._score < 100 ) )
+		let can_breathe = false;
+
+		if ( sdWeather.only_instance.air > 0 )
+		can_breathe = true;
+	
+		// Low score players ignore lack of air but won't ignore sdShurgConverter's
+		if ( this._score < 100 )
+		can_breathe = true;
+	
+		if ( can_breathe )
+		for ( let i = 0; i < sdShurgConverter.converters.length; i++ )
 		{
-			if ( sdShurgConverter.converters.length <= 0 )
-			can_breathe = true;
-			else
+			let e = sdShurgConverter.converters[ i ];
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, e.x, e.y, 400 ) )
 			{
-				let near_converter = false;
-				for ( let i = 0; i < sdShurgConverter.converters.length; i++ )
-				{
-					let e = sdShurgConverter.converters[ i ];
-					if ( sdWorld.inDist2D_Boolean( this.x, this.y, e.x, e.y, 400 ) )
-					{
-						near_converter = true;
-						break;
-					}
-				}
-				if ( near_converter )
 				can_breathe = false; // I've gone rusty with my coding again - Booraz149
-				else
-				can_breathe = true;
+				break;
 			}
 		}
+	
+		// Players can't breathe past soft y limit
+		if ( can_breathe )
+		if ( sdWorld.server_config.enable_bounds_move && sdWorld.server_config.aggressive_hibernation )
+		if ( this.y < sdWorld.server_config.open_world_max_distance_from_zero_coordinates_y_min_soft )
+		can_breathe = false;
 		
+		// But can breathe in vehicles
 		if ( !can_breathe )
+		if ( this.driver_of && this.driver_of.VehicleHidesDrivers() )
+		can_breathe = true;
+	
+		// And near BSUs
+		if ( !can_breathe )
+		for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
 		{
-			for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
+			let e = sdBaseShieldingUnit.all_shield_units[ i ];
+			if ( e.enabled )
+			if ( sdWorld.inDist2D_Boolean( this.x, this.y, e.x, e.y, sdBaseShieldingUnit.protect_distance ) )
 			{
-				let e = sdBaseShieldingUnit.all_shield_units[ i ];
-				if ( e.enabled )
-				{
-					if ( sdWorld.inDist2D_Boolean( this.x, this.y, e.x, e.y, sdBaseShieldingUnit.protect_distance ) )
-					{
-						can_breathe = true;
-						break;
-					}
-				}
+				can_breathe = true;
+				break;
 			}
 		}
 		
@@ -5156,225 +5161,274 @@ class sdCharacter extends sdEntity
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
 	{
 		if ( !this._is_being_removed )
-		if ( this.hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
 		{
-			if ( exectuter_character._god )
+			/*if ( exectuter_character )
+			if ( command_name === 'REPORT' )
 			{
-				if ( command_name === 'ADMIN_TOGGLE' )
+				if ( typeof parameters_array[ 0 ] === 'string' )
 				{
-					let key = parameters_array[ 0 ];
-					let value = 1 - this._key_states.GetKey( key );
-					this._key_states.SetKey( key, value );
-				}
-				if ( command_name === 'ADMIN_PRESS' )
-				{
-					let key = parameters_array[ 0 ];
+					let reason = parameters_array[ 0 ];
 					
-					//let value = 1 - this._key_states.GetKey( key );
-					
-					this._key_states.SetKey( key, 1 );
-					
-					sdTimer.ExecuteWithDelay( ( timer )=>{
-
-						this._key_states.SetKey( key, 0 );
-
-					}, 500 );
-				}
-				if ( command_name === 'ADMIN_KILL' )
-				{
-					this.hea = 1;
-					this.armor = 0;
-					this.Damage( 1 );
-				}
-				if ( command_name === 'ADMIN_REMOVE' )
-				{
-					this.remove();
-				}
-				if ( command_name === 'ADMIN_CONTROL' )
-				{
-					executer_socket;
-					
-					if ( this._socket )
+					if ( reason.length <= 500 )
 					{
-						executer_socket.SDServiceMessage( 'Player has connected socket' );
+						if ( this._my_hash )
+						{
+							sdDatabase.Exec( 
+								[ 
+									[ 'DBReportHash', executer_socket.my_hash, this._my_hash ] 
+								], 
+								( responses )=>
+								{
+									while ( responses.length > 0 )
+									{
+										let r = responses.shift();
+
+										if ( r[ 0 ] === 'REPORTED' )
+										{
+											executer_socket.SDServiceMessage( 'Report was received' );
+											return;
+										}
+									}
+									executer_socket.SDServiceMessage( 'Reporting error - could be that main database is not reachable or you don\'t have permissions' );
+								},
+								'localhost'
+							);
+						}
+						else
+						executer_socket.SDServiceMessage( 'This is not a real player, this is an AI character - report was ignored' );
 					}
 					else
 					{
-						exectuter_character._god = false;
-						exectuter_character._socket = null;
-						
-						this._socket = executer_socket;
-						executer_socket.character = this;
-						
-						this.title = exectuter_character.title;
-						this.title_censored = exectuter_character.title_censored;
-						
-						this._god = true;
-							
-						executer_socket.emit('SET sdWorld.my_entity', this._net_id, { reliable: true, runs: 100 } );
-						
+						executer_socket.SDServiceMessage( 'Report reason is too long' );
+					}
+				}
+				return;
+			}*/
+			
+			if ( this.hea > 0 )
+			if ( exectuter_character )
+			if ( exectuter_character.hea > 0 )
+			{
+				if ( exectuter_character._god )
+				{
+					if ( command_name === 'ADMIN_TOGGLE' )
+					{
+						let key = parameters_array[ 0 ];
+						let value = 1 - this._key_states.GetKey( key );
+						this._key_states.SetKey( key, value );
+
 						this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 					}
-				}
-			}
-			
-			//if ( exectuter_character ) 
-			//if ( exectuter_character.hea > 0 ) 
-			
-			if ( exectuter_character === this )
-			{
-				if ( command_name === 'RTP' )
-				{
-					this.ManualRTPSequence( false );
-				}
-				
-				if ( command_name === 'EMOTE' )
-				{
-					if ( parameters_array[ 0 ] === 'HEARTS' )
+					if ( command_name === 'ADMIN_PRESS' )
 					{
-						exectuter_character.ApplyStatusEffect({ type: sdStatusEffect.TYPE_HEARTS });
+						let key = parameters_array[ 0 ];
+
+						//let value = 1 - this._key_states.GetKey( key );
+
+						this._key_states.SetKey( key, 1 );
+
+						sdTimer.ExecuteWithDelay( ( timer )=>{
+
+							this._key_states.SetKey( key, 0 );
+
+						}, 500 );
+
+						this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 					}
-					if ( parameters_array[ 0 ] === 'NOTHING' )
+					if ( command_name === 'ADMIN_KILL' )
 					{
-						sdStatusEffect.PerformActionOnStatusEffectsOf( this, ( status_effect )=>
+						this.hea = 1;
+						this.armor = 0;
+						this.Damage( 1 );
+					}
+					if ( command_name === 'ADMIN_REMOVE' )
+					{
+						this.remove();
+					}
+					if ( command_name === 'ADMIN_CONTROL' )
+					{
+						executer_socket;
+
+						if ( this._socket )
 						{
-							if ( status_effect.GetStatusType().is_emote )
-							status_effect.remove();
+							executer_socket.SDServiceMessage( 'Player has connected socket' );
+						}
+						else
+						{
+							exectuter_character._god = false;
+							exectuter_character._socket = null;
+
+							this._socket = executer_socket;
+							executer_socket.character = this;
+
+							this.title = exectuter_character.title;
+							this.title_censored = exectuter_character.title_censored;
+
+							this._god = true;
+
+							executer_socket.emit('SET sdWorld.my_entity', this._net_id, { reliable: true, runs: 100 } );
+
+							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+						}
+					}
+				}
+
+				//if ( exectuter_character ) 
+				//if ( exectuter_character.hea > 0 ) 
+
+				if ( exectuter_character === this )
+				{
+					if ( command_name === 'RTP' )
+					{
+						this.ManualRTPSequence( false );
+					}
+
+					if ( command_name === 'EMOTE' )
+					{
+						if ( parameters_array[ 0 ] === 'HEARTS' )
+						{
+							exectuter_character.ApplyStatusEffect({ type: sdStatusEffect.TYPE_HEARTS });
+						}
+						if ( parameters_array[ 0 ] === 'NOTHING' )
+						{
+							sdStatusEffect.PerformActionOnStatusEffectsOf( this, ( status_effect )=>
+							{
+								if ( status_effect.GetStatusType().is_emote )
+								status_effect.remove();
+							});
+						}
+					}
+
+					if ( command_name === 'REMOVE_ARMOR' )
+					{
+						if ( exectuter_character.armor > 0 ) 
+						{
+							exectuter_character.RemoveArmor();
+						}
+					}
+
+					if ( command_name === 'REMOVE_EFFECTS' )
+					{
+						exectuter_character.stim_ef = 0;
+						exectuter_character.power_ef = 0;
+						exectuter_character.time_ef = 0;
+					}
+
+					if ( command_name === 'CC_SET_SPAWN' )
+					{
+						if ( exectuter_character )
+						if ( exectuter_character.cc )
+						if ( this.cc === exectuter_character.cc )
+						{
+							if ( exectuter_character._cc_rank < this._cc_rank || exectuter_character === this )
+							{
+								exectuter_character.cc.KickNetID( this, true );
+							}
+							else
+							executer_socket.SDServiceMessage( 'Not enough rights to kick user' );
+						}
+					}
+
+					if ( command_name === 'TOGGLE_LRTP_NAV' )
+					{
+						const sdLongRangeTeleport = sdWorld.entity_classes.sdLongRangeTeleport;
+
+						let had_tasks = false;
+						sdTask.PerformActionOnTasksOf( this, ( task )=>
+						{
+							if ( task.mission === sdTask.MISSION_TRACK_ENTITY )
+							if ( task._target.is( sdLongRangeTeleport ) )
+							if ( task._target.is_server_teleport )
+							{
+								had_tasks = true;
+								task.remove();
+							}
+						});
+						if ( !had_tasks )
+						{
+							for ( let i = 0; i < sdLongRangeTeleport.long_range_teleports.length; i++ )
+							if ( sdLongRangeTeleport.long_range_teleports[ i ].is_server_teleport )
+							{
+								let e = sdLongRangeTeleport.long_range_teleports[ i ];
+
+								sdTask.MakeSureCharacterHasTask({ 
+									similarity_hash:'TRACK-LRTP'+e._net_id, 
+									executer: exectuter_character,
+									target: e,
+									mission: sdTask.MISSION_TRACK_ENTITY,
+
+									title: 'Long-range teleport navigation is enabled',
+									description: 'You can toggle it in your character\'s context menu (or press Esc).'
+								});
+							}
+						}
+					}
+
+					if ( command_name === 'STOP_TRACKING' )
+					{
+						let id = parameters_array[ 0 ];
+
+						sdTask.PerformActionOnTasksOf( this, ( task )=>
+						{
+							if ( task.mission === sdTask.MISSION_TRACK_ENTITY )
+							if ( task._net_id === id )
+							task.remove();
 						});
 					}
 				}
 
-				if ( command_name === 'REMOVE_ARMOR' )
-				{
-					if ( exectuter_character.armor > 0 ) 
-					{
-						exectuter_character.RemoveArmor();
-					}
-				}
 
-				if ( command_name === 'REMOVE_EFFECTS' )
+				if ( command_name === 'INSTALL_DRONE_GUN' )
+				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+				if ( exectuter_character.matter >= 200 )
+				//if ( this.is( sdPlayerDrone ) )
+				if ( this.GetClass() === 'sdPlayerDrone' )
+				if ( exectuter_character.is( sdCharacter ) )
 				{
-					exectuter_character.stim_ef = 0;
-					exectuter_character.power_ef = 0;
-					exectuter_character.time_ef = 0;
-				}
-				
-				if ( command_name === 'CC_SET_SPAWN' )
-				{
-					if ( exectuter_character )
-					if ( exectuter_character.cc )
-					if ( this.cc === exectuter_character.cc )
+					let ents = sdWorld.GetAnythingNear( this.x, this.y, 32 );
+
+					let ok = false;
+
+					for ( let i = 0; i < ents.length; i++ )
+					if ( ents[ i ].is( sdWeaponBench ) || ents[ i ].is( sdWorkbench ) )
 					{
-						if ( exectuter_character._cc_rank < this._cc_rank || exectuter_character === this )
+						ok = true;
+						break;
+					}
+
+					if ( ok )
+					{
+						let gun = exectuter_character._inventory[ exectuter_character.gun_slot ];
+						if ( gun && !sdGun.classes[ gun.class ].is_build_gun )
 						{
-							exectuter_character.cc.KickNetID( this, true );
+							let guns = 0;
+							for ( let i = 0; i < this._inventory.length; i++ )
+							{
+								if ( this._inventory[ i ] )
+								guns++;
+							}
+
+							if ( guns < 2 )
+							{
+								exectuter_character.matter -= 200;
+								exectuter_character.DropWeapon( exectuter_character.gun_slot );
+								gun._unblocked_for_drones = true;
+								gun.x = this.x;
+								gun.y = this.y;
+								this.onMovementInRange( gun );
+							}
+							else
+							executer_socket.SDServiceMessage( 'Only 2 guns can be installed on a drone' );
 						}
 						else
-						executer_socket.SDServiceMessage( 'Not enough rights to kick user' );
-					}
-				}
-				
-				if ( command_name === 'TOGGLE_LRTP_NAV' )
-				{
-					const sdLongRangeTeleport = sdWorld.entity_classes.sdLongRangeTeleport;
-					
-					let had_tasks = false;
-					sdTask.PerformActionOnTasksOf( this, ( task )=>
-					{
-						if ( task.mission === sdTask.MISSION_TRACK_ENTITY )
-						if ( task._target.is( sdLongRangeTeleport ) )
-						if ( task._target.is_server_teleport )
 						{
-							had_tasks = true;
-							task.remove();
+							executer_socket.SDServiceMessage( 'No gun to install' );
 						}
-					});
-					if ( !had_tasks )
-					{
-						for ( let i = 0; i < sdLongRangeTeleport.long_range_teleports.length; i++ )
-						if ( sdLongRangeTeleport.long_range_teleports[ i ].is_server_teleport )
-						{
-							let e = sdLongRangeTeleport.long_range_teleports[ i ];
-							
-							sdTask.MakeSureCharacterHasTask({ 
-								similarity_hash:'TRACK-LRTP'+e._net_id, 
-								executer: exectuter_character,
-								target: e,
-								mission: sdTask.MISSION_TRACK_ENTITY,
-
-								title: 'Long-range teleport navigation is enabled',
-								description: 'You can toggle it in your character\'s context menu (or press Esc).'
-							});
-						}
-					}
-				}
-				
-				if ( command_name === 'STOP_TRACKING' )
-				{
-					let id = parameters_array[ 0 ];
-					
-					sdTask.PerformActionOnTasksOf( this, ( task )=>
-					{
-						if ( task.mission === sdTask.MISSION_TRACK_ENTITY )
-						if ( task._net_id === id )
-						task.remove();
-					});
-				}
-			}
-
-			
-			if ( command_name === 'INSTALL_DRONE_GUN' )
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
-			if ( exectuter_character.matter >= 200 )
-			//if ( this.is( sdPlayerDrone ) )
-			if ( this.GetClass() === 'sdPlayerDrone' )
-			if ( exectuter_character.is( sdCharacter ) )
-			{
-				let ents = sdWorld.GetAnythingNear( this.x, this.y, 32 );
-				
-				let ok = false;
-				
-				for ( let i = 0; i < ents.length; i++ )
-				if ( ents[ i ].is( sdWeaponBench ) || ents[ i ].is( sdWorkbench ) )
-				{
-					ok = true;
-					break;
-				}
-				
-				if ( ok )
-				{
-					let gun = exectuter_character._inventory[ exectuter_character.gun_slot ];
-					if ( gun && !sdGun.classes[ gun.class ].is_build_gun )
-					{
-						let guns = 0;
-						for ( let i = 0; i < this._inventory.length; i++ )
-						{
-							if ( this._inventory[ i ] )
-							guns++;
-						}
-						
-						if ( guns < 2 )
-						{
-							exectuter_character.matter -= 200;
-							exectuter_character.DropWeapon( exectuter_character.gun_slot );
-							gun._unblocked_for_drones = true;
-							gun.x = this.x;
-							gun.y = this.y;
-							this.onMovementInRange( gun );
-						}
-						else
-						executer_socket.SDServiceMessage( 'Only 2 guns can be installed on a drone' );
 					}
 					else
 					{
-						executer_socket.SDServiceMessage( 'No gun to install' );
+						executer_socket.SDServiceMessage( 'Procedure can be executed only near workbench and weapon bench' );
 					}
-				}
-				else
-				{
-					executer_socket.SDServiceMessage( 'Procedure can be executed only near workbench and weapon bench' );
 				}
 			}
 		}
@@ -5382,102 +5436,112 @@ class sdCharacter extends sdEntity
 	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
 	{
 		if ( !this._is_being_removed )
-		if ( this.hea > 0 )
-		if ( exectuter_character )
-		if ( exectuter_character.hea > 0 )
 		{
-			if ( exectuter_character._god )
-			{
-				this.AddContextOption( 'Press "E"', 'ADMIN_PRESS', [ 'KeyE' ] );
-				this.AddContextOption( 'Press "Mouse1"', 'ADMIN_PRESS', [ 'Mouse1' ] );
-				this.AddContextOption( 'Press "Mouse2"', 'ADMIN_PRESS', [ 'Mouse2' ] );
-				this.AddContextOption( 'Press "1"', 'ADMIN_PRESS', [ 'Digit1' ] );
-				this.AddContextOption( 'Press "2"', 'ADMIN_PRESS', [ 'Digit2' ] );
-				this.AddContextOption( 'Press "5"', 'ADMIN_PRESS', [ 'Digit5' ] );
-				this.AddContextOption( 'Toggle "W"', 'ADMIN_TOGGLE', [ 'KeyW' ] );
-				this.AddContextOption( 'Toggle "S"', 'ADMIN_TOGGLE', [ 'KeyS' ] );
-				this.AddContextOption( 'Toggle "X"', 'ADMIN_TOGGLE', [ 'KeyX' ] );
-				this.AddContextOption( 'Toggle "Mouse1"', 'ADMIN_TOGGLE', [ 'Mouse1' ] );
-				this.AddContextOption( 'Toggle "Mouse2"', 'ADMIN_TOGGLE', [ 'Mouse2' ] );
-				this.AddContextOption( 'Drop current weapon', 'ADMIN_PRESS', [ 'KeyV' ] );
-				this.AddContextOption( 'Kill', 'ADMIN_KILL', [] );
-				this.AddContextOption( 'Remove', 'ADMIN_REMOVE', [] );
-				
-				this.AddContextOption( 'Start controlling', 'ADMIN_CONTROL', [] );
-			}
+			/*if ( exectuter_character )
+			this.AddPromptContextOption( 'Report this player', 'REPORT', [ undefined ], 'Specify report reason in short', '', 500 );*/
 			
-			if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+			if ( this.hea > 0 )
+			if ( exectuter_character )
+			if ( exectuter_character.hea > 0 )
 			{
-				if ( this === exectuter_character )
+				if ( exectuter_character._god )
 				{
-					this.AddClientSideActionContextOption( 'Quit and forget this character', ()=>
-					{
-						if ( sdWorld.my_score < 50 || confirm( 'Are you sure you want to forget this character?' ) )
-						{
-							sdWorld.Stop();
-						}
-					});
-					this.AddContextOption( 'Teleport to closest/cheapest claimed rescue teleport', 'RTP', [] );
-					
-					this.AddClientSideActionContextOption( 'Copy character hash ID', ()=>
-					{
-						if( confirm( 'Sharing this with others, or not knowing how to use this properly can make you lose your character and progress. Are you sure?' ) )
-						{
-							prompt('This is your hash, keep it private and remember it to recover your character.', localStorage.my_hash /*+ "|" + localStorage.my_net_id*/ );
-						}
-					});
+					this.AddContextOption( 'Press "E"', 'ADMIN_PRESS', [ 'KeyE' ], true, { color:'ff0000' } );
+					this.AddContextOption( 'Press "Mouse1"', 'ADMIN_PRESS', [ 'Mouse1' ], true, { color:'ff0000' } );
+					this.AddContextOption( 'Press "Mouse2"', 'ADMIN_PRESS', [ 'Mouse2' ], true, { color:'ff0000' } );
+					this.AddContextOption( 'Press "1"', 'ADMIN_PRESS', [ 'Digit1' ], true, { color:'ff0000' } );
+					this.AddContextOption( 'Press "2"', 'ADMIN_PRESS', [ 'Digit2' ], true, { color:'ff0000' } );
+					this.AddContextOption( 'Press "5"', 'ADMIN_PRESS', [ 'Digit5' ], true, { color:'ff0000' } );
+					this.AddContextOption( 'Toggle "W"', 'ADMIN_TOGGLE', [ 'KeyW' ], true, { color:'ff0000' } );
+					this.AddContextOption( 'Toggle "S"', 'ADMIN_TOGGLE', [ 'KeyS' ], true, { color:'ff0000' } );
+					this.AddContextOption( 'Toggle "X"', 'ADMIN_TOGGLE', [ 'KeyX' ], true, { color:'ff0000' } );
+					this.AddContextOption( 'Toggle "Mouse1"', 'ADMIN_TOGGLE', [ 'Mouse1' ], true, { color:'ff0000' } );
+					this.AddContextOption( 'Toggle "Mouse2"', 'ADMIN_TOGGLE', [ 'Mouse2' ], true, { color:'ff0000' } );
+					this.AddContextOption( 'Drop current weapon', 'ADMIN_PRESS', [ 'KeyV' ], true, { color:'ff0000' } );
+					this.AddContextOption( 'Kill', 'ADMIN_KILL', [], true, { color:'ff0000' } );
+					this.AddContextOption( 'Remove', 'ADMIN_REMOVE', [], true, { color:'ff0000' } );
 
-					if ( this.cc_id )
+					this.AddContextOption( 'Start controlling', 'ADMIN_CONTROL', [], { color:'ff0000' } );
+				}
+
+
+				//this.AddContextOption( 'Report player', 'REPORT', [], { color:'ffff00' } );
+
+
+
+				if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 32 ) )
+				{
+					if ( this === exectuter_character )
 					{
-						this.AddContextOption( 'Leave team', 'CC_SET_SPAWN', [] );
+						this.AddClientSideActionContextOption( 'Quit and forget this character', ()=>
+						{
+							if ( sdWorld.my_score < 50 || confirm( 'Are you sure you want to forget this character?' ) )
+							{
+								sdWorld.Stop();
+							}
+						});
+						this.AddContextOption( 'Teleport to closest/cheapest claimed rescue teleport', 'RTP', [] );
+
+						this.AddClientSideActionContextOption( 'Copy character hash ID', ()=>
+						{
+							if( confirm( 'Sharing this with others, or not knowing how to use this properly can make you lose your character and progress. Are you sure?' ) )
+							{
+								prompt('This is your hash, keep it private and remember it to recover your character.', localStorage.my_hash /*+ "|" + localStorage.my_net_id*/ );
+							}
+						});
+
+						if ( this.cc_id )
+						{
+							this.AddContextOption( 'Leave team', 'CC_SET_SPAWN', [] );
+						}
+
+						if ( this.armor > 0 )
+						this.AddContextOption( 'Lose armor', 'REMOVE_ARMOR', [] );
+
+						if ( this.stim_ef > 0 || this.power_ef > 0 || this.time_ef > 0 )
+						this.AddContextOption( 'Remove pack effects', 'REMOVE_EFFECTS', [] );
+
+						this.AddContextOption( 'Emote: Hearts', 'EMOTE', [ 'HEARTS' ] );
+						this.AddContextOption( 'Stop emotes', 'EMOTE', [ 'NOTHING' ] );
+
+						this.AddContextOption( 'Toggle server long-range teleport navigation', 'TOGGLE_LRTP_NAV', [] );
+
+						for ( let i = 0; i < sdTask.tasks.length; i++ )
+						if ( sdWorld.is_singleplayer || sdTask.tasks[ i ]._executer === this )
+						{
+							let task = sdTask.tasks[ i ];
+
+							if ( task.mission === sdTask.MISSION_TRACK_ENTITY )
+							{
+								let t = task.target_biometry;
+
+								if ( sdWorld.client_side_censorship && task.biometry_censored )
+								t = sdWorld.CensoredText( t );
+
+								this.AddContextOptionNoTranslation( T( 'Stop tracking' ) + ' "' + t + '"', 'STOP_TRACKING', [ sdTask.tasks[ i ]._net_id ] );
+							}
+						}
 					}
-
-					if ( this.armor > 0 )
-					this.AddContextOption( 'Lose armor', 'REMOVE_ARMOR', [] );
-
-					if ( this.stim_ef > 0 || this.power_ef > 0 || this.time_ef > 0 )
-					this.AddContextOption( 'Remove pack effects', 'REMOVE_EFFECTS', [] );
-
-					this.AddContextOption( 'Emote: Hearts', 'EMOTE', [ 'HEARTS' ] );
-					this.AddContextOption( 'Stop emotes', 'EMOTE', [ 'NOTHING' ] );
-					
-					this.AddContextOption( 'Toggle server long-range teleport navigation', 'TOGGLE_LRTP_NAV', [] );
-					
-					for ( let i = 0; i < sdTask.tasks.length; i++ )
-					if ( sdWorld.is_singleplayer || sdTask.tasks[ i ]._executer === this )
+					else
 					{
-						let task = sdTask.tasks[ i ];
-						
-						if ( task.mission === sdTask.MISSION_TRACK_ENTITY )
+						if ( this.GetClass() === 'sdPlayerDrone' )
+						if ( exectuter_character.is( sdCharacter ) )
+						this.AddContextOption( 'Install current weapon (200 matter)', 'INSTALL_DRONE_GUN', [] );
+
+						/*if ( this.cc_id === exectuter_character.cc_id )
 						{
-							let t = task.target_biometry;
 
-							if ( sdWorld.client_side_censorship && task.biometry_censored )
-							t = sdWorld.CensoredText( t );
-
-							this.AddContextOptionNoTranslation( T( 'Stop tracking' ) + ' "' + t + '"', 'STOP_TRACKING', [ sdTask.tasks[ i ]._net_id ] );
-						}
+							this.AddContextOption( 'Kick from team', 'CC_SET_SPAWN', [] );
+						}*/
 					}
 				}
-				else
+
+				if ( this !== exectuter_character )
 				{
-					if ( this.GetClass() === 'sdPlayerDrone' )
-					if ( exectuter_character.is( sdCharacter ) )
-					this.AddContextOption( 'Install current weapon (200 matter)', 'INSTALL_DRONE_GUN', [] );
-						
-					/*if ( this.cc_id === exectuter_character.cc_id )
-					{
-						
-						this.AddContextOption( 'Kick from team', 'CC_SET_SPAWN', [] );
-					}*/
+					if ( this.cc_id !== 0 )
+					if ( this.cc_id === exectuter_character.cc_id )
+					this.AddContextOption( 'Kick from team', 'CC_SET_SPAWN', [] );
 				}
-			}
-			
-			if ( this !== exectuter_character )
-			{
-				if ( this.cc_id !== 0 )
-				if ( this.cc_id === exectuter_character.cc_id )
-				this.AddContextOption( 'Kick from team', 'CC_SET_SPAWN', [] );
 			}
 		}
 	}

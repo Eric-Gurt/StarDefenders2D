@@ -42,6 +42,7 @@ import sdPlayerSpectator from './entities/sdPlayerSpectator.js';
 import sdBaseShieldingUnit from './entities/sdBaseShieldingUnit.js';
 import sdDeepSleep from './entities/sdDeepSleep.js';
 import sdCommandCentre from './entities/sdCommandCentre.js';
+import sdPresetEditor from './entities/sdPresetEditor.js';
 
 
 import sdRenderer from './client/sdRenderer.js';
@@ -2624,6 +2625,7 @@ class sdWorld
 			let skip_frames;
 			
 			let timewarps = null;
+			let stop_motion_regions = null;
 			
 			if ( sdEntity.to_seal_list.length > 0 )
 			{
@@ -2674,6 +2676,15 @@ class sdWorld
 						timewarps.push( { x: sdEntity.active_entities[ i ].x, y: sdEntity.active_entities[ i ].y, e: sdEntity.active_entities[ i ], r: 128 } );
 					}
 				}
+			}
+				
+			for ( i = 0; i < sdPresetEditor.regions.length; i++ )
+			if ( sdPresetEditor.regions[ i ].time_scale !== 1 )
+			{
+				if ( stop_motion_regions === null )
+				stop_motion_regions = [];
+
+				stop_motion_regions.push( sdPresetEditor.regions[ i ] );
 			}
 			
 			//sdCable.GlobalCableThink( GSPEED );
@@ -2808,6 +2819,27 @@ class sdWorld
 							}
 
 							gspeed_mult *= best_warp;
+						}
+						if ( stop_motion_regions )
+						{
+							if ( e.is( sdEffect ) || e.is( sdBullet ) )
+							{
+							}
+							else
+							if ( e.is( sdCharacter ) && ( e._socket || sdWorld.my_entity === e ) )
+							{
+							}
+							else
+							if ( e.is( sdGun ) && e._held_by && ( e._held_by._socket || sdWorld.my_entity === e._held_by._socket ) )
+							{
+							}
+							else
+							for ( i2 = 0; i2 < stop_motion_regions.length; i2++ )
+							if ( e.DoesOverlapWith( stop_motion_regions[ i2 ] ) )
+							{
+								gspeed_mult *= stop_motion_regions[ i2 ].time_scale / 1000;
+								break;
+							}
 						}
 
 					}

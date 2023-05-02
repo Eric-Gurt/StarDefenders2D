@@ -291,24 +291,13 @@ class sdCharacterRagdoll
 		if ( this.character.reload_anim > 0 )
 		{
 			if ( this.character.reload_anim > 30 / 3 * 2 )
-			{
-				//image = sdCharacter.img_body_reload2;
-				//frame = 'img_body_reload2';
-				reload = 1;
-			}
+			reload = 1;
 			else
 			if ( this.character.reload_anim > 30 / 3 * 1 )
-			{
-				//image = sdCharacter.img_body_reload1;
-				//frame = 'img_body_reload1';
-				reload = 2;
-			}
+			reload = 2;
 			else
-			{
-				//image = sdCharacter.img_body_reload2;
-				//frame = 'img_body_reload2';
-				reload = 1;
-			}
+			reload = 1;
+		
 			gun_offset_x -= 1;
 			gun_offset_y += 2 + reload;
 		}
