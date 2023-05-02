@@ -5,6 +5,13 @@ let port0 = 3000;
 let CloudFlareSupport = false;
 let directory_to_save_player_count = null;
 
+/*
+
+	Memory usage tracking:
+	globalThis.inter = setInterval( ()=>{ trace( 'heapTotal: ' + process.memoryUsage().heapTotal ); }, 1000 * 60 );
+
+*/
+
 globalThis.CATCH_HUGE_ARRAYS = false; // Can worsen performance by 2-5%
 
 // http://localhost:3000 + world_slot
@@ -1848,55 +1855,68 @@ io.on( 'connection', ( socket )=>
 		
 		*/
 	   
-		if ( player_settings.my_hash !== socket.my_hash )
+		/*if ( player_settings.my_hash !== socket.my_hash ) Why?
 		{
 			socket.my_hash = player_settings.my_hash;
+		}*/
+		socket.my_hash = player_settings.my_hash;
+		
+		let my_hash = socket.my_hash; // To make sure it won't change
 			
-			let ban = cached_bans[ ip_accurate ] || cached_bans[ socket.my_hash ];
-			
-			const options = {
-				//weekday: "long",
-				year: "numeric",
-				month: "long",
-				day: "numeric"
-			};
-			
-			let bypass = false;
-			
-			if ( sdModeration.GetAdminRow( socket ) )
-			bypass = true;
-			
-			if ( ban )
+		let ban = cached_bans[ ip_accurate ] || cached_bans[ my_hash ];
+
+		const options = {
+			//weekday: "long",
+			year: "numeric",
+			month: "long",
+			day: "numeric"
+		};
+
+		let bypass = false;
+
+		if ( sdModeration.GetAdminRow( socket ) )
+		bypass = true;
+	
+		let will_delete_ban_after_resolved = false;
+
+		if ( ban )
+		{
+			if ( Date.now() > ban.until )
 			{
-				if ( Date.now() > ban.until )
+				will_delete_ban_after_resolved = true;
+			}
+			else
+			{
+				if ( bypass )
 				{
-					delete cached_bans[ ip_accurate ];
-					delete cached_bans[ socket.my_hash ];
+					socket.SDServiceMessage( 'Ignoring global ban (UID: {1}) due to admin permissions on a server (according to 15 seconds cache)', [ ban.uid ] );
 				}
 				else
 				{
-					if ( bypass )
-					{
-						socket.SDServiceMessage( 'Ignoring global ban (UID: {1}) due to admin permissions on a server (according to 15 seconds cache)', [ ban.uid ] );
-					}
-					else
-					{
-						socket.SDServiceMessage( 'Access denied: {1} (until {2})', [ ban.reason_public, ban.until_real === 0 ? 'forever' : new Date( ban.until_real ).toLocaleDateString( "en-US", options ) ] );
-						return;
-					}
+					socket.SDServiceMessage( 'Access denied: {1} (until {2})', [ ban.reason_public, ban.until_real === 0 ? 'forever' : new Date( ban.until_real ).toLocaleDateString( "en-US", options ) ] );
+					return;
 				}
 			}
-		
-			sdDatabase.Exec( 
-				[ 
-					[ 'DBLogIP', socket.my_hash, ip_accurate ] 
-				], 
-				( responses )=>
+		}
+
+		sdDatabase.Exec( 
+			[ 
+				[ 'DBLogIP', my_hash, ip_accurate ] 
+			], 
+			( responses )=>
+			{
+				if ( responses !== null )
 				{
+					if ( will_delete_ban_after_resolved )
+					{
+						delete cached_bans[ ip_accurate ];
+						delete cached_bans[ my_hash ];
+					}
+
 					while ( responses.length > 0 )
 					{
 						let r = responses.shift();
-						
+
 						if ( r[ 0 ] === 'BANNED' )
 						{
 							let ban = { 
@@ -1905,10 +1925,10 @@ io.on( 'connection', ( socket )=>
 								until_real: r[ 2 ],
 								uid: r[ 3 ]
 							};
-							
+
 							cached_bans[ ip_accurate ] = ban;
-							cached_bans[ socket.my_hash ] = ban;
-							
+							cached_bans[ my_hash ] = ban;
+
 							// Server with local database would execute it instantly otherwise
 							setTimeout( ()=>
 							{
@@ -1927,10 +1947,10 @@ io.on( 'connection', ( socket )=>
 							}, 0 );
 						}
 					}
-				},
-				'localhost'
-			);
-		}
+				}
+			},
+			'localhost'
+		);
 		
 		socket.sd_events = []; // Just in case? There was some source of 600+ events stacked, possibly during start screen waiting or maybe even during player being removed. Lots of 'C' events too
 		
