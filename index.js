@@ -90,20 +90,25 @@ if ( !isWin )
 	let ssl_key_path;
 	let ssl_cert_path;
 	
-	if( fs.existsSync(`sslconfig.json`) ) {
-    	try {
-
+	if( fs.existsSync(`sslconfig.json`) ) 
+	{
+    	try 
+		{
         	const data = fs.readFileSync('./sslconfig.json', 'utf8');
     
         	// parse JSON string to JSON object
         	const sslconfig = JSON.parse(data);
         	ssl_cert_path = sslconfig.certpath
         	ssl_key_path = sslconfig.keypath
-    
-	    	} catch (err) {
+	    }
+		catch (err)
+		{
 	        console.log(`Error reading file from disk: ${err}`);
-	    } } else {
-	        if ( fs.existsSync('/usr/') &&
+	    } 
+	} 
+	else 
+	{
+		if ( fs.existsSync('/usr/') &&
 	         fs.existsSync('/usr/local/') &&
 	         fs.existsSync('/usr/local/directadmin/') &&
 	         fs.existsSync('/usr/local/directadmin/data/') &&
@@ -124,7 +129,7 @@ if ( !isWin )
         	
         	directory_to_save_player_count = '/home/plazmaburst2/public_html/pb2/sd2d_online.v';
     	}
-}
+	}
 	
 	const credentials = {
 		key: fs.readFileSync( ssl_key_path ),
@@ -4177,6 +4182,7 @@ setInterval(
 	()=>
 	{
 		if ( sdWorld.server_url )
+		if ( sdWorld.server_url.indexOf( 'gevanni.com:3000' ) === -1 )
 		{
 			let names = [];
 			
@@ -4197,12 +4203,19 @@ setInterval(
 				( response=null )=>
 				{
 					if ( response )
-					{
-						trace( 'make_server_public response: ', response );
-					}
+					trace( 'make_server_public response: ', response );
 				}
 			);
 		}
 	}, 
 	1000 * 60 * 60 // Every hour
 );
+
+/*
+let mem_crash_test = [];
+setInterval(()=>{
+	let len = mem_crash_test.length * 2 + 1;
+	for ( let i = 0; i < len; i++ )
+	mem_crash_test.push( JSON.stringify( sdWorld.toString() ) + i );
+},1);
+globalThis.mem_crash_test = mem_crash_test;*/

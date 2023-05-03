@@ -163,7 +163,7 @@ class sdSunPanel extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		let xx = this.dirt > 1 ? 1 : 0;
+		let xx = this.dirt >= 1 ? 1 : 0;
 		if ( this.multiplier === 1 )
 		{
 			ctx.drawImageFilterCache( sdSunPanel.img_sun_panel, xx * 32, 0, 32, 32, - 16, - 16, 32, 32 );

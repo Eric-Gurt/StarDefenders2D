@@ -903,23 +903,6 @@ class sdDatabase
 		else
 		if ( _my_hash !== null && sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] )
 		ban = sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ];
-
-		// Clone bans
-		if ( ip !== null )
-		if ( _my_hash !== null )
-		{
-			if ( sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] )
-			if ( !sdDatabase.data.moderation.bans.table_by_ip[ ip ] )
-			{
-				sdDatabase.data.moderation.bans.table_by_ip[ ip ] = sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ];
-			}
-			
-			if ( sdDatabase.data.moderation.bans.table_by_ip[ ip ] )
-			if ( !sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] )
-			{
-				sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] = sdDatabase.data.moderation.bans.table_by_ip[ ip ];
-			}
-		}
 		
 		if ( ban )
 		{
@@ -933,9 +916,26 @@ class sdDatabase
 			
 				if ( sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] === null )
 				delete sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ];
+			
+				ban = null;
 			}
 			else
-			return ban;
+			{
+				// Clone bans
+				if ( ip !== null )
+				if ( _my_hash !== null )
+				{
+					if ( sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] )
+					if ( !sdDatabase.data.moderation.bans.table_by_ip[ ip ] )
+					sdDatabase.data.moderation.bans.table_by_ip[ ip ] = ban;
+
+					if ( sdDatabase.data.moderation.bans.table_by_ip[ ip ] )
+					if ( !sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] )
+					sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] = ban;
+				}
+
+				return ban;
+			}
 		}
 		return null;
 	}
@@ -1159,7 +1159,8 @@ class sdDatabase
 				responses.push({
 					uid: ban_object.uid,
 					reason_private: ban_object.reason_private,
-					until: ban_object.until
+					until: ban_object.until,
+					expired: ( Date.now() > ban_object.until ) ? 1 : 0
 				});
 			}
 		}

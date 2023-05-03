@@ -1105,6 +1105,7 @@ class sdDeepSleep extends sdEntity
 					if ( e.is( sdBlock ) )
 					{
 						if ( e._shielded )
+						if ( !e._shielded._is_being_removed )
 						dependences.push( e._shielded );
 						
 						if ( e._plants )
