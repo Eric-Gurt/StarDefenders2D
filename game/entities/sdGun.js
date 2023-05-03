@@ -1558,11 +1558,35 @@ class sdGun extends sdEntity
 			if ( has_class.image_frames )
 			{
 				let frame = Math.floor( ( sdWorld.time + ( this._net_id || 0 ) * 2154 ) / has_class.image_duration ) % has_class.image_frames;
-				ctx.drawImageFilterCache( image, 0 + frame * 32,0,32,32,  - 16, - 16, 32,32 );
+				if ( has_class.is_large ) // add is_large for 64 by 64 image(s)
+				{
+					ctx.drawImageFilterCache( image, 0 + frame * 64,0,64,64,  - 32, - 32, 64,64 );
+				}
+				else
+				if ( has_class.is_long ) // add is_long for 64 by 32 image(s)
+				{
+					ctx.drawImageFilterCache( image, 0 + frame * 64,0,64,32,  - 32, - 16, 64,32 );
+				}
+				else
+				{
+					ctx.drawImageFilterCache( image, 0 + frame * 32,0,32,32,  - 16, - 16, 32,32 );
+				}
 			}
 			else
 			{
-				ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
+				if ( has_class.is_large )
+				{
+					ctx.drawImageFilterCache( image, - 32, - 32, 64,64 );
+				}
+				else
+				if ( has_class.is_long )
+				{
+					ctx.drawImageFilterCache( image, - 32, - 16, 64,32 );
+				}
+				else
+				{
+					ctx.drawImageFilterCache( image, - 16, - 16, 32,32 );
+				}
 			}
 			
 			ctx.filter = 'none';
@@ -1598,8 +1622,20 @@ class sdGun extends sdEntity
 						else
 						ctx.sd_tint_filter = [ 255 / 255, 216 / 255, 33 / 255 ];
 					}
-				
-					ctx.drawImageFilterCache( sdGun.img_muzzle_sheet, xx*32,yy*32,32,32, muzzle_x - 16, muzzle_y - 16, 32,32 );
+					
+					if ( has_class.is_large )
+					{
+						ctx.drawImageFilterCache( sdGun.img_muzzle_sheet, xx*64,yy*64,64,64, muzzle_x - 32, muzzle_y - 32, 64,64 );
+					}
+					else
+					if ( has_class.is_long )
+					{
+						ctx.drawImageFilterCache( sdGun.img_muzzle_sheet, xx*32,yy*32,32,32, muzzle_x - 25, muzzle_y - 32, 64,64 );
+					}
+					else
+					{
+						ctx.drawImageFilterCache( sdGun.img_muzzle_sheet, xx*32,yy*32,32,32, muzzle_x - 16, muzzle_y - 16, 32,32 );
+					}
 					
 					ctx.sd_tint_filter = null;
 				}
