@@ -30,6 +30,7 @@ class sdServerToServerProtocol
 			{
 				let socket = sdServerToServerProtocol.outgoing_connections[ remote_server_url ];
 				
+				if ( socket.allow_leaders_sync )
 				sdServerToServerProtocol.SendData( 
 					remote_server_url, 
 					{
@@ -269,6 +270,13 @@ class sdServerToServerProtocol
 			});
 	
 			socket.leaders = [];
+			
+			socket.allow_leaders_sync = false;
+			
+			if ( data_object.action === 'Require long-range teleportation' )
+			{
+				socket.allow_leaders_sync = true;
+			}
 		}
 		else
 		socket = sdServerToServerProtocol.outgoing_connections[ remote_server_url ];

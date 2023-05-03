@@ -433,14 +433,14 @@ class sdAdminPanel extends sdInterface
 					text: ' (access level: '+admin_row.access_level+')' + ( admin_row.is_you ? ' <--- This is you' : '' )
 				});
 
-				let action_line = admin_line.createElement({ 
-					type: sdElement.TEXT_BLOCK, 
-					paddingTop: 10,
-					text: ''
-				});
-
 				if ( my_admin_row_simple.access_level < admin_row.access_level || my_admin_row_simple === admin_row )
 				{
+					let action_line = admin_line.createElement({ 
+						type: sdElement.TEXT_BLOCK, 
+						paddingTop: 10,
+						text: ''
+					});
+					
 					action_line.createElement({ type: sdElement.TEXT, text: '[ ' });
 					action_line.createElement({ type: sdElement.TEXT, text: 'Demote', color:'#ffaaaa', onClick:()=>
 					{
@@ -454,7 +454,7 @@ class sdAdminPanel extends sdInterface
 		
 		let recent_players_header = this.contents.createElement({ 
 			type: sdElement.TEXT_BLOCK, 
-			text: 'Recent players (current server): ',
+			text: 'Recent players (current server, resets on restart): ',
 			paddingTop: 20,
 			color: '#aabdff'
 		});
@@ -581,6 +581,7 @@ class sdAdminPanel extends sdInterface
 		let bans_header = this.contents.createElement({ 
 			type: sdElement.TEXT_BLOCK, 
 			text: 'Bans (from associated database): ',
+			//text: 'Bans (from associated database, expired bans are removed when banned player connects): ',
 			paddingTop: 20,
 			color: '#aabdff'
 		});
@@ -628,7 +629,8 @@ class sdAdminPanel extends sdInterface
 					
 					prop.createElement({ 
 						type: sdElement.TEXT, 
-						text: ( p === 'until' ) ? new Date( ban_row[ p ] ).toLocaleDateString( "en-US", { year: 'numeric', month: 'long', day: 'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' } ) : ban_row[ p ]
+						color: ( p === 'until' && ban_row.expired ) ? '#666666' : '#ffffff',
+						text: ( p === 'until' ) ? new Date( ban_row[ p ] ).toLocaleDateString( "en-US", { year: 'numeric', month: 'long', day: 'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' } ) + ( ban_row.expired ? ' expired, will disappear next time user connects' : '' ) : ban_row[ p ]
 					});
 					
 					if ( p === 'until' )
