@@ -36,7 +36,7 @@ class sdWater extends sdEntity
 		sdWater.classes_to_interact_with = [ 'sdBlock', 'sdDoor' ];
 		sdWater.water_class_array = [ 'sdWater' ];
 		
-		//sdWater.img_water_flow = sdWorld.CreateImageFromFile( 'water_flow' );
+		sdWater.img_water_flow = sdWorld.CreateImageFromFile( 'water_flow' );
 		sdWater.img_lava = sdWorld.CreateImageFromFile( 'lava2' );
 		sdWater.img_essence = sdWorld.CreateImageFromFile( 'essence' );
 		
@@ -50,7 +50,7 @@ class sdWater extends sdEntity
 	}
 	get hitbox_x1() { return 0; }
 	get hitbox_x2() { return 16; }
-	get hitbox_y1() { return 0; }
+	get hitbox_y1() { return ( this.type === sdWater.TYPE_TOXIC_GAS ) ? 0 : 16 - this.v / 100 * 16; }
 	get hitbox_y2() { return 16; }
 	
 	get hard_collision() // For world geometry where players can walk
@@ -109,10 +109,11 @@ class sdWater extends sdEntity
 		
 		this._volume = params.volume || params._volume || 1;
 		
+		this.extra = 0;
 		if ( this.type === sdWater.TYPE_ESSENCE )
 		{
 			if ( typeof params.extra === 'undefined' )
-			this.extra = ~~( Math.min( 40 / Math.random(), 40960 ) );
+			this.extra = ~~( Math.min( 40 / Math.random(), 40960 ) ); // Should this property be public? Snapshot generation might ignore this property if one sdWater enitites won't have it (value could be reset on world snapshot save/load because of that). Having this property as public (without underscore _ ) will cause extra performance degradation since game will send it for any water object
 			else
 			this.extra = params.extra;
 		}
@@ -120,9 +121,16 @@ class sdWater extends sdEntity
 		this._spawn_time = sdWorld.time;
 		
 		if ( sdWater.DEBUG )
-		this.a = false; // awakeness for client, for debugging
+		{
+			this.a = false; // awakeness for client, for debugging
+			this.d = ''; // Debug info
+		}
 		
 		this.v = 100; // rounded volume for clients
+		
+		this._client_y = 0;
+		this._client_vel = 0; // Client-side velocity as part of reaction to items moving in water
+		this._client_flow_y = this.y;
 		
 		this._sy = 0; // How fast it flows down
 		
@@ -130,7 +138,10 @@ class sdWater extends sdEntity
 		
 		this._think_offset = ~~( Math.random() * 16 );
 		
+		this._stack_trace = globalThis.getStackTrace();
+		
 		if ( sdWorld.is_server )
+		//if ( 0 ) // Hack
 		{
 			
 			// Remove existing water, just in case
@@ -142,7 +153,12 @@ class sdWater extends sdEntity
 				if ( arr_under[ i ].x === this.x && arr_under[ i ].y === this.y )
 				if ( arr_under[ i ] !== this )
 				{
+					//trace( 'Overlapping with existing block, previously made at ', arr_under[ i ]._stack_trace );
+					//debugger;
+					
 					arr_under[ i ]._volume = Math.min( 1, arr_under[ i ]._volume + this._volume );
+					arr_under[ i ].v = Math.ceil( arr_under[ i ]._volume * 100 );
+					
 					this.remove();
 				}
 			}
@@ -167,7 +183,7 @@ class sdWater extends sdEntity
 		return 5;
 	}
 	
-	static GetWaterObjectAt( nx, ny ) // for visuals, also for chain-awake. Also for liquid carrier guns
+	static GetWaterObjectAt( nx, ny, type=-1 ) // for visuals, also for chain-awake. Also for liquid carrier guns
 	{
 		if ( nx >= sdWorld.world_bounds.x2 || nx <= sdWorld.world_bounds.x1 || 
 			 ny >= sdWorld.world_bounds.y2 || ny <= sdWorld.world_bounds.y1 )
@@ -189,6 +205,7 @@ class sdWater extends sdEntity
 			if ( nx >= arr_under[ i ].x && nx < arr_under[ i ].x + 16 && 
 				 ny >= arr_under[ i ].y && ny < arr_under[ i ].y + 16 )
 			if ( !arr_under[ i ]._is_being_removed )
+			if ( type === -1 || arr_under[ i ].type === type )
 			return arr_under[ i ];
 		}
 		
@@ -268,11 +285,13 @@ class sdWater extends sdEntity
 			
 			if ( ( another.type === sdWater.TYPE_LAVA ) !== ( this.type === sdWater.TYPE_LAVA ) )
 			{
+				let v = Math.max( this._volume, another._volume ) * 16;
+				
 				let ent = new sdBlock({ 
 					x: another.x, 
-					y: another.y, 
+					y: another.y + 16 - v, 
 					width: 16, 
-					height: 16,
+					height: v,
 					material: sdBlock.MATERIAL_GROUND,
 					contains_class: null,
 					filter: 'saturate(0) brightness(0.3)',
@@ -305,6 +324,47 @@ class sdWater extends sdEntity
 					this._update_version++;
 				}
 				return false;
+			}
+			
+			if ( another.type === this.type )
+			{
+				if ( this._volume + another._volume <= 1 )
+				{
+					another._volume += this._volume;
+					another.v = Math.ceil( another._volume * 100 );
+					another._update_version++;
+					another.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					
+					//trace( 'Adding whole value of falling block to the block below' );
+					
+					this.AwakeSelfAndNear();
+					this.remove();
+					return true;
+				}
+				else
+				{
+					if ( another._volume < 1 )
+					{
+						let delta = 1 - another._volume;
+						
+						another._volume = 1;
+						another.v = Math.ceil( another._volume * 100 );
+						another._update_version++;
+						another.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+						
+						this._volume -= delta;
+						this.v = Math.ceil( this._volume * 100 );
+						
+						//trace( 'Filling block below by the cost of falling block' );
+						
+						if ( this._volume <= 0 )
+						debugger;
+					}
+					else
+					{
+						//trace( 'Considering block under as solid since it is full' );
+					}
+				}
 			}
 		}
 		return false;
@@ -342,6 +402,17 @@ class sdWater extends sdEntity
 		}
 	}
 
+	// For flow only
+	CanCollideWithEntity( e, this_x, this_y )
+	{
+		return ( !e._is_being_removed && 
+				( e.is( sdWater ) || ( e.is( sdBlock ) && !e.IsLetsLiquidsThrough() ) || e.is( sdDoor ) || ( e.is( sdDeepSleep ) && e.ThreatAsSolid() ) ) &&
+				e.x + e._hitbox_x1 < this_x + 16 &&
+				e.x + e._hitbox_x2 > this_x &&
+				e.y + e._hitbox_y1 < this_y + 16 &&
+				e.y + e._hitbox_y2 > this_y
+				);
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this._swimmers.size > 0 ) // Will be empty for water
@@ -420,6 +491,34 @@ class sdWater extends sdEntity
 		
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 		{
+			if ( this._client_vel > 1 )
+			this._client_vel = 1;
+			else
+			if ( this._client_vel < -1 )
+			this._client_vel = -1;
+	
+			this._client_vel = sdWorld.MorphWithTimeScale( this._client_vel, 0, 0.9, GSPEED );
+			this._client_y += this._client_vel * GSPEED;
+			
+			
+			this._client_vel -= this._client_y * 0.5 * GSPEED;
+			let w2 = sdWater.GetWaterObjectAt( this.x - 16, this.y );
+			if ( w2 )
+			w2._client_vel += this._client_y * 0.1 * GSPEED;
+			let w3 = sdWater.GetWaterObjectAt( this.x + 16, this.y );
+			if ( w3 )
+			w3._client_vel += this._client_y * 0.1 * GSPEED;
+			
+			
+			
+			
+			
+			if ( this._client_y > 8 )
+			this._client_y = 8;
+			else
+			if ( this._client_y < -8 )
+			this._client_y = -8;
+			
 			if ( this.type === sdWater.TYPE_LAVA )
 			if ( Math.random() < 0.05 )
 			{
@@ -443,6 +542,20 @@ class sdWater extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 	
+	
+		if ( sdWater.DEBUG )
+		{
+			let d = this._volume + '';
+
+			if ( d !== this.d )
+			{
+				this.d = d;
+				this._update_version++;
+			}
+		}
+		
+		
+	
 		if ( sdWorld.is_server )
 		{
 			if ( this.type === sdWater.TYPE_TOXIC_GAS )
@@ -452,12 +565,6 @@ class sdWater extends sdEntity
 				{
 					this.remove();
 					return;
-				}
-				
-				if ( this.v !== Math.ceil( this._volume * 100 ) )
-				{
-					this.v = Math.ceil( this._volume * 100 );
-					this._update_version++;
 				}
 			}
 			else
@@ -474,7 +581,14 @@ class sdWater extends sdEntity
 				});
 				
 				this.remove();
+				return;
 			}
+		}
+
+		if ( this.v !== Math.ceil( this._volume * 100 ) )
+		{
+			this.v = Math.ceil( this._volume * 100 );
+			this._update_version++;
 		}
 	
 		if ( this.type === sdWater.TYPE_TOXIC_GAS )
@@ -506,76 +620,73 @@ class sdWater extends sdEntity
 				return;
 			}
 		}*/
+						
 		for ( var i = 0; i < arr.length; i++ )
 		{
-			if ( arr[ i ].x + arr[ i ]._hitbox_x1 < this.x + 16 )
+			/*if ( arr[ i ].x + arr[ i ]._hitbox_x1 < this.x + 16 )
 			if ( arr[ i ].x + arr[ i ]._hitbox_x2 > this.x )
 			if ( arr[ i ].y + arr[ i ]._hitbox_y1 < this.y + 16 + 16 )
-			if ( arr[ i ].y + arr[ i ]._hitbox_y2 > this.y + 16 )
-			if ( this !== arr[ i ] )
-			if ( arr[ i ].is( sdWater ) || ( arr[ i ].is( sdBlock ) && !arr[ i ].IsLetsLiquidsThrough() ) || arr[ i ].is( sdDoor ) || ( arr[ i ].is( sdDeepSleep ) && arr[ i ].ThreatAsSolid() ) )
-			//if ( arr[ i ].is( sdWater ) || ( arr[ i ].is( sdBlock ) && arr[ i ].texture_id !== sdBlock.TEXTURE_ID_CAGE ) || arr[ i ].is( sdDoor ) )
+			if ( arr[ i ].y + arr[ i ]._hitbox_y2 > this.y + 16 )*/
+			//if ( this !== arr[ i ] )
+			//if ( arr[ i ].is( sdWater ) || ( arr[ i ].is( sdBlock ) && !arr[ i ].IsLetsLiquidsThrough() ) || arr[ i ].is( sdDoor ) || ( arr[ i ].is( sdDeepSleep ) && arr[ i ].ThreatAsSolid() ) )
+			if ( this.CanCollideWithEntity( arr[ i ], this.x, this.y + 16 ) )
 			{
 				if ( this.BlendWith( arr[ i ] ) )
 				return;
 				
-				var can_flow_left = true;
-				var can_flow_right = true;
+				let can_flow_down_left = true;
+				let can_flow_down_right = true;
 				
 				if ( this.y + 16 >= sdWorld.world_bounds.y2 )
 				{
-					can_flow_left = false;
-					can_flow_right = false;
+					can_flow_down_left = false;
+					can_flow_down_right = false;
 				}
 				else
 				{
-					var down_left = sdWorld.RequireHashPosition( this.x + 8 - 16, this.y + 8 + 16 ).arr;
-					var down_right = sdWorld.RequireHashPosition( this.x + 8 + 16, this.y + 8 + 16 ).arr;
+					let down_left = sdWorld.RequireHashPosition( this.x + 8 - 16, this.y + 8 + 16 ).arr;
+					let down_right = sdWorld.RequireHashPosition( this.x + 8 + 16, this.y + 8 + 16 ).arr;
 
-					for ( var i2 = 0; i2 < down_left.length; i2++ )
+					for ( let i2 = 0; i2 < down_left.length; i2++ )
+					//if ( down_left[ i2 ].is( sdWater ) || ( down_left[ i2 ].is( sdBlock ) && !down_left[ i2 ].IsLetsLiquidsThrough() ) || down_left[ i2 ].is( sdDoor ) || ( down_left[ i2 ].is( sdDeepSleep ) && down_left[ i2 ].ThreatAsSolid() ) )
+					if ( this.CanCollideWithEntity( down_left[ i2 ], this.x - 16, this.y + 16 ) )
+					//if ( down_left[ i2 ].x + down_left[ i2 ]._hitbox_x1 < this.x + 16 - 16 )
+					//if ( down_left[ i2 ].x + down_left[ i2 ]._hitbox_x2 > this.x - 16 )
+					//if ( down_left[ i2 ].y + down_left[ i2 ]._hitbox_y1 < this.y + 16 + 16 )
+					//if ( down_left[ i2 ].y + down_left[ i2 ]._hitbox_y2 > this.y + 16 )
 					{
-						if ( down_left[ i2 ].is( sdWater ) || ( down_left[ i2 ].is( sdBlock ) && !down_left[ i2 ].IsLetsLiquidsThrough() ) || down_left[ i2 ].is( sdDoor ) || ( down_left[ i2 ].is( sdDeepSleep ) && down_left[ i2 ].ThreatAsSolid() ) )
-						//if ( down_left[ i2 ].is( sdWater ) || ( down_left[ i2 ].is( sdBlock ) && down_left[ i2 ].texture_id !== sdBlock.TEXTURE_ID_CAGE ) || down_left[ i2 ].is( sdDoor ) )
-						if ( down_left[ i2 ].x + down_left[ i2 ]._hitbox_x1 < this.x + 16 - 16 )
-						if ( down_left[ i2 ].x + down_left[ i2 ]._hitbox_x2 > this.x - 16 )
-						if ( down_left[ i2 ].y + down_left[ i2 ]._hitbox_y1 < this.y + 16 + 16 )
-						if ( down_left[ i2 ].y + down_left[ i2 ]._hitbox_y2 > this.y + 16 )
-						{
-							if ( this.BlendWith( down_left[ i2 ] ) )
-							return;
+						if ( this.BlendWith( down_left[ i2 ] ) )
+						return;
 
-							can_flow_left = false;
-							break;
-						}
+						can_flow_down_left = false;
+						break;
 					}
 
-					for ( var i2 = 0; i2 < down_right.length; i2++ )
+					for ( let i2 = 0; i2 < down_right.length; i2++ )
+					//if ( down_right[ i2 ].is( sdWater ) || ( down_right[ i2 ].is( sdBlock ) && !down_right[ i2 ].IsLetsLiquidsThrough() ) || down_right[ i2 ].is( sdDoor ) || ( down_right[ i2 ].is( sdDeepSleep ) && down_right[ i2 ].ThreatAsSolid() ) )
+					if ( this.CanCollideWithEntity( down_right[ i2 ], this.x + 16, this.y + 16 ) )
+					//if ( down_right[ i2 ].x + down_right[ i2 ]._hitbox_x1 < this.x + 16 + 16 )
+					//if ( down_right[ i2 ].x + down_right[ i2 ]._hitbox_x2 > this.x + 16 )
+					//if ( down_right[ i2 ].y + down_right[ i2 ]._hitbox_y1 < this.y + 16 + 16 )
+					//if ( down_right[ i2 ].y + down_right[ i2 ]._hitbox_y2 > this.y + 16 )
 					{
-						if ( down_right[ i2 ].is( sdWater ) || ( down_right[ i2 ].is( sdBlock ) && !down_right[ i2 ].IsLetsLiquidsThrough() ) || down_right[ i2 ].is( sdDoor ) || ( down_right[ i2 ].is( sdDeepSleep ) && down_right[ i2 ].ThreatAsSolid() ) )
-						//if ( down_right[ i2 ].is( sdWater ) || ( down_right[ i2 ].is( sdBlock ) && down_right[ i2 ].texture_id !== sdBlock.TEXTURE_ID_CAGE ) || down_right[ i2 ].is( sdDoor ) )
-						if ( down_right[ i2 ].x + down_right[ i2 ]._hitbox_x1 < this.x + 16 + 16 )
-						if ( down_right[ i2 ].x + down_right[ i2 ]._hitbox_x2 > this.x + 16 )
-						if ( down_right[ i2 ].y + down_right[ i2 ]._hitbox_y1 < this.y + 16 + 16 )
-						if ( down_right[ i2 ].y + down_right[ i2 ]._hitbox_y2 > this.y + 16 )
-						{
-							if ( this.BlendWith( down_right[ i2 ] ) )
-							return;
-					
-							can_flow_right = false;
-							break;
-						}
+						if ( this.BlendWith( down_right[ i2 ] ) )
+						return;
+
+						can_flow_down_right = false;
+						break;
 					}
 
-					if ( can_flow_left )
+					if ( can_flow_down_left )
 					if ( this.x - 16 < sdWorld.world_bounds.x1 )
-					can_flow_left = false;
+					can_flow_down_left = false;
 
-					if ( can_flow_right )
+					if ( can_flow_down_right )
 					if ( this.x + 16 >= sdWorld.world_bounds.x2 )
-					can_flow_right = false;
+					can_flow_down_right = false;
 				}
 					
-				if ( can_flow_left )
+				if ( can_flow_down_left )
 				{
 					let catcher = [];
 					this.AwakeSelfAndNear( catcher );
@@ -590,7 +701,7 @@ class sdWater extends sdEntity
 					return;
 				}
 				else
-				if ( can_flow_right )
+				if ( can_flow_down_right )
 				{
 					let catcher = [];
 					this.AwakeSelfAndNear( catcher );
@@ -606,16 +717,176 @@ class sdWater extends sdEntity
 				}
 				else
 				{
-					this.TrySleep();
-					/*if ( !sdWater.never_sleep_by_type[ this.type ] )
-					if ( this._swimmers.size === 0 )//|| sdWater.can_sleep_if_has_entities[ this.type ] )
-					this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );*/
+					// And now try to flow horizontally
+					
+					//let can_flow_down = true;
+					let can_flow_left = true;
+					let can_flow_right = true;
+					
+					//let down_ent = null;
+					let left_ent = null;
+					let right_ent = null;
+					
+					let subtract = GSPEED * 0.01; // 0.01
+					
+					if ( this._volume - subtract < 0.2 )
+					subtract = this._volume - 0.2;
 				
+					/*let down = sdWorld.RequireHashPosition( this.x + 8, this.y + 8 + 16 ).arr;
+					for ( let i2 = 0; i2 < down.length; i2++ )
+					//if ( left[ i2 ].is( sdWater ) || ( left[ i2 ].is( sdBlock ) && !left[ i2 ].IsLetsLiquidsThrough() ) || left[ i2 ].is( sdDoor ) || ( left[ i2 ].is( sdDeepSleep ) && left[ i2 ].ThreatAsSolid() ) )
+					if ( this.CanCollideWithEntity( down[ i2 ], throw new Error() ) )
+					if ( down[ i2 ].x + down[ i2 ]._hitbox_x1 < this.x + 16 - 16 )
+					if ( down[ i2 ].x + down[ i2 ]._hitbox_x2 > this.x - 16 )
+					if ( down[ i2 ].y + down[ i2 ]._hitbox_y1 < this.y + 16 + 16 )
+					if ( down[ i2 ].y + down[ i2 ]._hitbox_y2 > this.y + 16 )
+					{
+						//if ( this.BlendWith( left[ i2 ] ) )
+						//return;
+
+						down_ent = down[ i2 ];
+
+						can_flow_left = false;
+						break;
+					}*/
+
+					if ( subtract <= 0 || this.type === sdWater.TYPE_ESSENCE ) // Don't go down 10%. Also Essence does not implement BlendWith like other liquids do so far. The .extra property is also could cause some issues
+					{
+						can_flow_left = false;
+						can_flow_right = false;
+					}
+					else
+					{
+						let left = sdWorld.RequireHashPosition( this.x + 8 - 16, this.y + 8 ).arr;
+						let right = sdWorld.RequireHashPosition( this.x + 8 + 16, this.y + 8 ).arr;
+
+						for ( let i2 = 0; i2 < left.length; i2++ )
+						//if ( left[ i2 ].is( sdWater ) || ( left[ i2 ].is( sdBlock ) && !left[ i2 ].IsLetsLiquidsThrough() ) || left[ i2 ].is( sdDoor ) || ( left[ i2 ].is( sdDeepSleep ) && left[ i2 ].ThreatAsSolid() ) )
+						if ( this.CanCollideWithEntity( left[ i2 ], this.x - 16, this.y ) )
+						/*if ( left[ i2 ].x + left[ i2 ]._hitbox_x1 < this.x + 16 - 16 )
+						if ( left[ i2 ].x + left[ i2 ]._hitbox_x2 > this.x - 16 )
+						if ( left[ i2 ].y + left[ i2 ]._hitbox_y1 < this.y + 16 + 16 )
+						if ( left[ i2 ].y + left[ i2 ]._hitbox_y2 > this.y + 16 )*/
+						{
+							//if ( this.BlendWith( left[ i2 ] ) )
+							//return;
+						
+							left_ent = left[ i2 ];
+
+							can_flow_left = false;
+							
+							if ( left_ent._class_id !== this._class_id ) // Try to find newly built walls so they can stop the flow
+							break;
+						}
+
+						for ( let i2 = 0; i2 < right.length; i2++ )
+						//if ( right[ i2 ].is( sdWater ) || ( right[ i2 ].is( sdBlock ) && !right[ i2 ].IsLetsLiquidsThrough() ) || right[ i2 ].is( sdDoor ) || ( right[ i2 ].is( sdDeepSleep ) && right[ i2 ].ThreatAsSolid() ) )
+						if ( this.CanCollideWithEntity( right[ i2 ], this.x + 16, this.y ) )
+						/*if ( right[ i2 ].x + right[ i2 ]._hitbox_x1 < this.x + 16 + 16 )
+						if ( right[ i2 ].x + right[ i2 ]._hitbox_x2 > this.x + 16 )
+						if ( right[ i2 ].y + right[ i2 ]._hitbox_y1 < this.y + 16 + 16 )
+						if ( right[ i2 ].y + right[ i2 ]._hitbox_y2 > this.y + 16 )*/
+						{
+							//if ( this.BlendWith( right[ i2 ] ) )
+							//return;
+						
+							right_ent = right[ i2 ];
+
+							can_flow_right = false;
+							
+							if ( right_ent._class_id !== this._class_id ) // Try to find newly built walls so they can stop the flow
+							break;
+						}
+
+						if ( can_flow_left )
+						if ( this.x - 16 < sdWorld.world_bounds.x1 )
+						can_flow_left = false;
+
+						if ( can_flow_right )
+						if ( this.x + 16 >= sdWorld.world_bounds.x2 )
+						can_flow_right = false;
+					}
+
+					if ( can_flow_left )
+					{
+						//trace( 'Flow new block to left' );
+						this._volume -= subtract;
+						this.v = Math.ceil( this._volume * 100 );
+						this._update_version++;
+						
+						let water_ent = new sdWater({ x:this.x - 16, y:this.y, type: this.type });
+						water_ent._volume = subtract;
+						water_ent.v = Math.ceil( water_ent._volume * 100 );
+						sdEntity.entities.push( water_ent );
+						sdWorld.UpdateHashPosition( water_ent, false );
+						
+						this.AwakeSelfAndNear();
+					}
+					else
+					if ( can_flow_right )
+					{
+						//trace( 'Flow new block to right' );
+						this._volume -= subtract;
+						this.v = Math.ceil( this._volume * 100 );
+						this._update_version++;
+						
+						let water_ent = new sdWater({ x:this.x + 16, y:this.y, type: this.type });
+						water_ent._volume = subtract;
+						water_ent.v = Math.ceil( water_ent._volume * 100 );
+						sdEntity.entities.push( water_ent );
+						sdWorld.UpdateHashPosition( water_ent, false );
+						
+						this.AwakeSelfAndNear();
+					}
+					else
+					if ( subtract > 0 && left_ent && left_ent._class_id === this._class_id && left_ent.type === this.type && left_ent._volume < this._volume - subtract )
+					{
+						//trace( 'Flow portion of self to left existing block' );
+						
+						subtract = Math.min( subtract, 1 - left_ent._volume );
+						
+						left_ent._volume += subtract;
+						this._volume -= subtract;
+						
+						this.v = Math.ceil( this._volume * 100 );
+						left_ent.v = Math.ceil( left_ent._volume * 100 );
+						
+						left_ent._update_version++;
+						this._update_version++;
+						
+						left_ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					}
+					else
+					if ( subtract > 0 && right_ent && right_ent._class_id === this._class_id && right_ent.type === this.type && right_ent._volume < this._volume - subtract )
+					{
+						//trace( 'Flow portion of self to right existing block' );
+						
+						subtract = Math.min( subtract, 1 - right_ent._volume );
+						
+						right_ent._volume += subtract;
+						this._volume -= subtract;
+						
+						this.v = Math.ceil( this._volume * 100 );
+						right_ent.v = Math.ceil( right_ent._volume * 100 );
+						
+						right_ent._update_version++;
+						this._update_version++;
+						
+						right_ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					}
+					else
+					{
+						this.TrySleep();
+					}
+
 					this._sy = 0;
 					return;
 				}
 			}
 		}
+		
+		
+		
 		
 		if ( this.y + 16 >= sdWorld.world_bounds.y2 )
 		{
@@ -639,96 +910,6 @@ class sdWater extends sdEntity
 			this.AwakeSelfAndNear( catcher );
 			return;
 		}
-	
-		/*
-		if ( sdWater.DEBUG )
-		this.a = this._sleep_tim > 0;
-	
-		if ( this._sleep_tim > 0 )
-		{
-			this._sleep_tim = Math.max( 0, this._sleep_tim - GSPEED );
-			
-			if ( this._volume <= 0.05 ) // Some evaporation
-			{
-				this._volume -= 0.0001 * GSPEED;
-
-				if ( this._volume <= 0 || this._sleep_tim <= 0 )
-				{
-					this.remove();
-					return;
-				}
-			}
-
-			let old_v = this.v;
-			this.v = Math.floor( this._volume * 100 );
-			if ( this.v !== old_v )
-			{
-				this._update_version++;
-			}
-
-			//let arr_here = this._hash_position;
-
-			//if ( arr_here !== null )
-			{
-				let wall_under = sdWorld.CheckWallExists( this.x + 8, this.y + 16 + 8, null, null, sdWater.classes_to_interact_with );
-
-				if ( GSPEED > 1 )
-				GSPEED = 1;
-
-				let can_flow_sideways = false;
-
-				if ( wall_under )
-				can_flow_sideways = true;
-				else
-				if ( this.FlowTowards( this.x, this.y + 16, this._volume < 0.01 ? this._volume : ( this._volume * 0.2 * GSPEED ) ) )
-				can_flow_sideways = true;
-		
-				if ( can_flow_sideways )
-				{
-					let volume = this._volume * 0.5 * GSPEED;
-
-					let wall_on_left = sdWorld.CheckWallExists( this.x + 8 - 16, this.y + 8, null, null, sdWater.classes_to_interact_with );
-					let wall_on_right = sdWorld.CheckWallExists( this.x + 8 + 16, this.y + 8, null, null, sdWater.classes_to_interact_with );
-
-					if ( wall_on_left )
-					{
-						if ( wall_on_right )
-						{
-						}
-						else
-						this.FlowTowards( this.x + 16, this.y, this._volume < 0.01 ? this._volume : volume );
-					}
-					else
-					{
-						if ( wall_on_right )
-						this.FlowTowards( this.x - 16, this.y, this._volume < 0.01 ? this._volume : volume );
-						else
-						{
-							if ( this._volume < 0.01 )
-							{
-								if ( Math.random() < 0.5 )
-								this.FlowTowards( this.x - 16, this.y, this._volume );
-								else
-								this.FlowTowards( this.x + 16, this.y, this._volume );
-							}
-							else
-							{
-								this.FlowTowards( this.x - 16, this.y, volume );
-								this.FlowTowards( this.x + 16, this.y, volume );
-							}
-						}
-					}
-				}
-
-				//this.wall_under = wall_under;
-				//this.can_flow_sideways = can_flow_sideways;
-			}
-		}
-		else
-		{
-			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
-		}
-		*/
 	}
 	onMovementInRange( from_entity )
 	{
@@ -764,6 +945,14 @@ class sdWater extends sdEntity
 						if ( !sdWater.all_swimmers_previous_frame_exit.has( from_entity ) )
 						if ( !sdWater.all_swimmers_previous_frame_exit_swap.has( from_entity ) )
 						{
+							if ( typeof from_entity.sy !== 'undefined' )
+							this._client_vel += from_entity.sy * 0.1 * from_entity.mass / 70;
+							/*let w2 = sdWater.GetWaterObjectAt( this.x - 16, this.y );
+							if ( w2 )
+							w2._client_vel += from_entity.sy * 0.05;
+							let w3 = sdWater.GetWaterObjectAt( this.x + 16, this.y );
+							if ( w3 )
+							w3._client_vel += from_entity.sy * 0.05;*/
 						
 							let e = null;
 							
@@ -889,9 +1078,6 @@ class sdWater extends sdEntity
 	//DrawFG( ctx, attached )
 	Draw( ctx, attached )
 	{
-		if ( this.type === sdWater.TYPE_LAVA || this.type === sdWater.TYPE_ESSENCE )
-		ctx.apply_shading = false;
-		
 		//let wall_below = sdWorld.CheckWallExists( this.x + 8, this.y + 16 + 8, null, null, sdWater.classes_to_interact_with );
 		
 		//let below = sdWater.GetWaterObjectAt( this.x, this.y + 16 );
@@ -934,12 +1120,14 @@ class sdWater extends sdEntity
 
 
 			//ctx.globalAlpha = 0.2;
+			
+			let volume = this.v / 100;
 
 			if ( this.type === sdWater.TYPE_ANTIMATTER )
 			{
 				// Just explodes if spawned, only shown in liquid containers
 			}
-			else
+			/*else
 			if ( this.type === sdWater.TYPE_ESSENCE )
 			{
 				let e = this.extra / ( sdCrystal.anticrystal_value / 2 );
@@ -952,21 +1140,38 @@ class sdWater extends sdEntity
 				ctx.drawImageFilterCache( sdWater.img_essence, xx - Math.floor( xx / 32 ) * 32, this.y - Math.floor( this.y / 32 ) * 32, 16,16, 0,0, 16,16 );
 
 				ctx.filter = 'none';
-			}
+			}*/
 			else
-			if ( this.type === sdWater.TYPE_LAVA )
+			if ( this.type === sdWater.TYPE_LAVA || this.type === sdWater.TYPE_ESSENCE )
 			{
-				ctx.fillStyle = '#FFAA00';
-				
 				let xx = this.x + ( Math.floor( sdWorld.time / 500 ) % 32 );
+
+				let yy = this.y + 16 - this.v / 100 * 16;
 				
-				ctx.drawImageFilterCache( sdWater.img_lava, xx - Math.floor( xx / 32 ) * 32, this.y - Math.floor( this.y / 32 ) * 32, 16,16, 0,0, 16,16 );
+				ctx.apply_shading = false;
+				
+				let img = 
+						( this.type === sdWater.TYPE_LAVA ) ? sdWater.img_lava :
+						( this.type === sdWater.TYPE_ESSENCE ) ? sdWater.img_essence : null;
+				
+				//ctx.drawImageFilterCache( sdWater.img_lava, xx - Math.floor( xx / 32 ) * 32, this.y - Math.floor( this.y / 32 ) * 32, 16,16, 0,0, 16,16 );
+				ctx.drawImageFilterCache( img, 
+										 xx - Math.floor( xx / 32 ) * 32, 
+										 yy - Math.floor( yy / 32 ) * 32, 
+										 16,
+										 16 * Math.max( 0.4, this.v / 100 ),  
+										 
+										 0,
+										 16 - this.v / 100 * 16, 
+										 
+										 16,
+										 16 * this.v / 100 );
 			}
 			else
 			if ( this.type === sdWater.TYPE_TOXIC_GAS )
 			{
 				ctx.fillStyle = '#ff77ff';
-				ctx.globalAlpha = 0.3 * this.v / 100;
+				ctx.globalAlpha = 0.3 * volume;
 				ctx.fillRect( 0, 0, 16, 16 );
 				ctx.globalAlpha = 1;
 			}
@@ -982,8 +1187,8 @@ class sdWater extends sdEntity
 				//if ( this.v === left_v && this.v === right_v )
 				//{
 					//ctx.globalAlpha = this._volume * 0.9 + 0.1;
-					//ctx.fillRect( 0, 16 - this.v / 100 * 16, 16,16 * this.v / 100 );
-					ctx.fillRect( 0, 0, 16, 16 );
+					//ctx.fillRect( 0, 16 - volume * 16, 16,16 * volume );
+					//ctx.fillRect( 0, 0, 16, 16 );
 					//ctx.globalAlpha = 1;
 				/*}
 				else
@@ -996,6 +1201,196 @@ class sdWater extends sdEntity
 					ctx.lineTo( 0, 16 );
 					ctx.fill();
 				}*/
+				
+				//let down_ent = null;
+				let can_flow_down = true;
+				let down = sdWorld.RequireHashPosition( this.x + 8, this.y + 8 + 16 ).arr;
+				for ( let i2 = 0; i2 < down.length; i2++ )
+				if ( this.CanCollideWithEntity( down[ i2 ], this.x, this.y + 16 ) )
+				{
+					// Do not stop if about to merge with that one
+					if ( down[ i2 ]._class_id === this._class_id )
+					if ( down[ i2 ].type === this.type )
+					{
+						if ( down[ i2 ].v < 100 )
+						continue;
+					}
+						
+						
+					//down_ent = down[ i2 ];
+
+					can_flow_down = false;
+
+					//if ( down_ent._class_id !== this._class_id ) // Try to find newly built walls so they can stop the flow
+					break;
+				}
+				
+
+				if ( can_flow_down )
+				{
+					if ( Math.abs( this._client_flow_y - this.y ) > 64 )
+					this._client_flow_y = this.y;
+				
+					this._client_flow_y = sdWorld.MorphWithTimeScale( this._client_flow_y, this.y, 0.6, sdWorld.GSPEED );
+					
+					if ( this.type === sdWater.TYPE_ACID )
+					{
+						ctx.sd_color_mult_r = 0.5;
+						ctx.sd_color_mult_g = 1;
+						ctx.sd_color_mult_b = 0.5;
+					}
+					else
+					{
+						ctx.sd_color_mult_r = 1;
+						ctx.sd_color_mult_g = 1;
+						ctx.sd_color_mult_b = 1;
+					}
+					
+					let xx = 0;
+					let yy = 0;
+					for ( let i = 0; i < 3; i++ )
+					{
+						if ( i === 0 )
+						{
+							xx = 8 - 4;
+							yy = 8 + 4;
+						}
+						if ( i === 1 )
+						{
+							xx = 8 + 4;
+							yy = 8;
+						}
+						if ( i === 2 )
+						{
+							xx = 8;
+							yy = 8 - 4;
+						}
+						
+						yy = ( yy + sdWorld.time / 50 ) % 16;
+							
+						ctx.globalAlpha = Math.max( 0.25, this.v / 100 ) * 1;
+				
+						ctx.drawImageFilterCache( sdWater.img_water_flow, xx - 16, yy - 16 + this._client_flow_y - this.y, 32, 32 );
+					}
+					ctx.sd_color_mult_r = 1;
+					ctx.sd_color_mult_g = 1;
+					ctx.sd_color_mult_b = 1;
+				}
+				else
+				{
+
+					let h1 = 16 - volume * 16;
+					let h2 = 16 - volume * 16;
+
+					//if ( 0 )
+					if ( !sdWater.GetWaterObjectAt( this.x, this.y - 16, this.type ) )
+					{
+						let dx;
+						let dy;
+
+						let water_right = sdWater.GetWaterObjectAt( this.x + 16, this.y - 16, this.type );
+						//let water_right = sdWater.GetWaterObjectAt( this.x + 16, this.y, this.type );
+						volume += Math.sin( sdWorld.time / 3000 + this.x / 32 ) / 16 - this._client_y;
+
+						if ( !water_right )
+						water_right = sdWater.GetWaterObjectAt( this.x + 16, this.y, this.type );
+
+						if ( !water_right )
+						water_right = sdWater.GetWaterObjectAt( this.x + 16, this.y + 16, this.type );
+
+						if ( water_right )
+						{
+							let volume2 = water_right.v / 100;
+							volume2 += Math.sin( sdWorld.time / 3000 + water_right.x / 32 ) / 16 - water_right._client_y;
+
+							//if ( volume2 < 0 )
+							//volume2 = 0;
+
+							if ( water_right.y + 16 - volume2 * 16 > this.y + 16 )
+							volume2 = -( this.y + 16 - water_right.y - 16 ) / 16;
+
+							dx = 16;
+							dy = ( water_right.y + 16 - volume2 * 16 ) - ( this.y + 16 - volume * 16 );
+						}
+						else
+						{
+							let volume2 = this.v / 100;
+							volume2 += Math.sin( sdWorld.time / 3000 + (this.x+16) / 32 ) / 16;
+
+							if ( volume2 < 0 )
+							volume2 = 0;
+
+							dx = 16;
+							dy = volume2 - volume;
+						}
+
+						if ( volume < 0 )
+						volume = 0;
+
+						ctx.globalAlpha = 0.3;
+						//ctx.apply_shading = false;
+						
+
+						let old = ctx.volumetric_mode;
+						sdRenderer.ctx.box_caps.bottom = false;
+						sdRenderer.ctx.box_caps.left = false;
+						sdRenderer.ctx.box_caps.right = false;
+						sdRenderer.ctx.box_caps.top = true;
+						sdRenderer.ctx.box_caps.is_rotated = true;
+						ctx.save();
+						{
+
+							if ( this.type === sdWater.TYPE_ACID )
+							{
+								ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX;
+								//ctx.globalAlpha = 0.5;
+								ctx.fillStyle = '#117711';
+							}
+							else
+							{
+								ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX;
+								//ctx.globalAlpha = 1;
+								ctx.fillStyle = '#f6efff';
+								ctx.apply_shading = false;
+							}
+							
+							ctx.translate( 0, 16 - volume * 16 );
+							ctx.rotate( Math.PI / 2 - Math.atan2( dx, dy ) );
+
+							//ctx.fillRect( 0, 16 - volume * 16, 16,1 );
+							ctx.fillRect( 0, -0.5, sdWorld.Dist2D_Vector( dx,dy ),1 );
+						}
+						ctx.restore();
+						ctx.volumetric_mode = old;
+
+
+						h1 = 16 - volume * 16;
+						h2 = 16 - volume * 16 + dy;
+					}
+					let old = sdRenderer.ctx.z_offset;
+					sdRenderer.ctx.z_offset += 32;
+					{
+						let r,g,b;
+						
+						if ( this.type === sdWater.TYPE_ACID )
+						{
+							r = 0;
+							g = 128/255;
+							b = 0/255;
+						}
+						else
+						{
+							r = 0;
+							g = 20/255;
+							b = 60/255;
+						}
+						
+						
+						ctx.drawTriangle( 0,h1, 16,h2, 0,16,  r,g,b, 0.8,0.8,0.8 );
+						ctx.drawTriangle( 16,h2, 16,16, 0,16, r,g,b, 0.8,0.8,0.8 );
+					}
+					sdRenderer.ctx.z_offset = old;
+				}
 									
 				ctx.globalAlpha = 1;
 			}
@@ -1023,8 +1418,8 @@ class sdWater extends sdEntity
 
 			ctx.fillStyle = '#ffffff';
 			ctx.font = "4.5px Verdana";
-			ctx.textAlign = 'right';
-			ctx.fillText( this.v, 0, -50 );
+			ctx.textAlign = 'center';
+			ctx.fillText( this.d, 0, -64 );
 			
 			ctx.globalAlpha = 1;
 		}

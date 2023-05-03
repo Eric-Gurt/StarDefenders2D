@@ -346,6 +346,8 @@ class sdEntity
 		box_caps.right = !this._box_cap_right;
 		box_caps.bottom = !this._box_cap_bottom;
 		box_caps.left = !this._box_cap_left;
+		
+		box_caps.is_rotated = false;
 	}
 	
 	ObjectOffset3D( layer ) // -1 for BG, 0 for normal, 1 for FG, return null or array of [x,y,z] offsets
