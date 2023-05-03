@@ -2147,19 +2147,19 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades()
 		};
 
-		sdGun.classes[ sdGun.CLASS_SMG_MK2 = 32 ] = { // Sprite made by LazyRain
-			image: sdWorld.CreateImageFromFile( 'smg_mk2' ),
+		sdGun.classes[ sdGun.CLASS_KVT_SMG = 32 ] = { // Sprite made by Ghost581
+			image: sdWorld.CreateImageFromFile( 'kvt_smg' ),
 			sound: 'gun_pistol',
-			title: 'SMG MK2',
+			title: 'KVT SMG "The Advocate"',
 			slot: 1,
-			reload_time: 3,
+			reload_time: 3.2,
 			muzzle_x: 6,
-			ammo_capacity: 30,
-			spread: 0.1,
+			ammo_capacity: 28,
+			spread: 0.09,
 			count: 1,
 			min_build_tool_level: 12,
 			matter_cost: 90,
-			projectile_properties: { _damage: 20, _dirt_mult: -0.5 },
+			projectile_properties: { _damage: 22, _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5 };
@@ -2182,13 +2182,12 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 20; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 22; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
+			upgrades: AddGunDefaultUpgrades ( AddRecolorsFromColorAndCost( [], '#0f1937', 15, 'marking' ) )
 		};
-
 		sdGun.classes[ sdGun.CLASS_ROCKET_MK2 = 33 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'rocket_mk2' ),
@@ -2896,7 +2895,7 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades()
 		};
 		
-		sdGun.classes[ sdGun.CLASS_MMG_THE_RIPPER_T2 = 47 ] = // sprite by Ghost581
+		sdGun.classes[ sdGun.CLASS_KVT_MMG_MK1 = 47 ] = // sprite by Ghost581
 		{
 			image: sdWorld.CreateImageFromFile( 'mmg_the_ripper_t2' ),
 			sound: 'gun_the_ripper2',
@@ -2941,7 +2940,7 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades()
 		};
 
-		sdGun.classes[ sdGun.CLASS_MMG_THE_RIPPER_T3 = 48 ] = // sprite by Ghost581
+		sdGun.classes[ sdGun.CLASS_KVT_MMG_MK2 = 48 ] = // sprite by Ghost581
 		{
 			image: sdWorld.CreateImageFromFile( 'mmg_the_ripper_t3' ),
 			sound: 'gun_the_ripper2',
@@ -2986,7 +2985,7 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades()
 		};
 
-		sdGun.classes[ sdGun.CLASS_PHASERCANNON_P03 = 49 ] = // sprite by Ghost581
+		sdGun.classes[ sdGun.CLASS_KVT_RAILCANNON = 49 ] = // sprite by Ghost581
 		{
 			image: sdWorld.CreateImageFromFile( 'phasercannon_p03' ),
 			image0: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
@@ -3892,7 +3891,7 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades()
 		};
 
-		sdGun.classes[ sdGun.CLASS_MISSLE_LAUNCHER_P07 = 68 ] = 
+		sdGun.classes[ sdGun.CLASS_KVT_MISSLE_LAUNCHER = 68 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'missile_launcher_p07' ),
 			sound: 'gun_missile_launcher_p07',
@@ -4363,7 +4362,7 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades( AppendBasicCubeGunRecolorUpgrades( [] ) )
 		};
 
-		sdGun.classes[ sdGun.CLASS_KIVORTEC_AVRS_P09 = 77 ] = 
+		sdGun.classes[ sdGun.CLASS_KVT_AVRS = 77 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'kivortec_avrs_p09' ),
 			image0: [ sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload1' ), sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload2' ) ],
@@ -4372,7 +4371,7 @@ class sdGunClass
 			has_images: true,
 			sound: 'gun_railgun_malicestorm_terrorphaser4',
 			sound_pitch: 0.7,
-			title: 'KVT-AVRS P09',
+			title: 'KVT AVRS P09 "Incapacitator"',
 			slot: 4,
 			reload_time: 30 * 3,//140,
 			muzzle_x: null,
@@ -6294,7 +6293,7 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades()
 		};
 
-		sdGun.classes[ sdGun.CLASS_IRON_BULL_HANDCANNON = 105 ] = // sprite made by LordBored
+		sdGun.classes[ sdGun.CLASS_KVT_HANDCANNON = 105 ] = // sprite made by LordBored
 		{
 			image: sdWorld.CreateImageFromFile( 'handcannon_iron_bull' ),
 			sound: 'gun_the_ripper2',
@@ -6717,6 +6716,49 @@ class sdGunClass
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
 					gun.extra[ ID_DAMAGE_VALUE ] = 24; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades()
+		};
+
+		sdGun.classes[ sdGun.CLASS_SETR_REPULSOR = 113 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'setr_repulsor' ),
+			sound: 'gun_railgun',
+			title: 'Setr Repulsor',
+			sound_pitch: 5, volume: 0.33,
+			slot: 1,
+			reload_time: 38,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			spawnable: false,
+			projectile_properties: { _damage: 1 }, // Set properties inside projectile_properties_dynamic
+			projectile_velocity_dynamic: ( gun )=> { return Math.min( 64, sdGun.default_projectile_velocity ) },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { time_left: 8, _rail: true, color: '#0000c8', _dirt_mult: 2 };
+				obj._knock_scale = 2 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 20;
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},

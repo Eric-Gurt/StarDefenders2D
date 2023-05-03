@@ -165,6 +165,11 @@ class sdCharacter extends sdEntity
 			{ file:'helmets/helmet_versatile', name:'Versatile' }, //  by LordBored
 			{ file:'helmets/helmet_fixer', name:'Fixer' }, //  by LordBored
 			{ file:'helmets/helmet_fixer2', name:'Fixer Alt' }, //  by LordBored
+			{ file:'helmets/helmet_renegade', name:'Renegade' }, //  by LordBored
+            { file:'helmets/helmet_velox_heavy', name:'Velox Heavy' }, //  by LordBored
+            { file:'helmets/helmet_voxel', name:'Voxel' }, //  by LordBored
+			{ file:'helmets/helmet_stickman', name:'Stickman' }, //  by Thj
+			{ file:'helmets/helmet_stickman2', name:'Stickman Alt' }, //  by Thj
 			
 			// Add new values at the end
 			// Note: Commas -> , are important since this is just a big Array: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
@@ -280,6 +285,10 @@ class sdCharacter extends sdEntity
 			{ file:'skins/versatile2', name:'Versatile Alt' }, // by LordBored
 			{ file:'skins/warlord', name:'Warlord' }, // by LordBored
 			{ file:'skins/fixer', name:'Fixer' }, // by LordBored
+			{ file:'skins/renegade', name:'Renegade' }, // by LordBored
+            { file:'skins/velox_lite', name:'Velox Lite' }, // by LordBored
+			{ file:'skins/velox_heavy', name:'Velox Heavy' }, // by LordBored
+			{ file:'skins/stickman', name:'Stickman' }, // by LordBored
 		];
 		sdCharacter.skins = [];
 		for ( let i = 0; i < sdCharacter.skin_file_names_with_actual_names.length; i++ )

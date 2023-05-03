@@ -331,54 +331,57 @@ class sdFactions extends sdEntity
 				}
 			}
 			if ( character_entity._ai_gun_slot === 1 )
-			character_settings = {"hero_name":"Velox Soldier", // Name
-			"color_bright":"#c0c0c0", // Helmet bright color
-			"color_dark":"#a0a0a0", // Helmet dark color
-			"color_bright3":"#00ffff", // Jetpack (bright shade) color
-			"color_dark3":"#202020", // Jetpack (dark shade) color
+			character_settings = {"hero_name":"Velox Soldier", // Name // blue soldier
+			"color_bright":"#bcbcbc", // Helmet bright color
+			"color_dark":"#7a7a7a", // Helmet dark color
+			"color_bright3":"#bcbcbc", // Jetpack (bright shade) color
+			"color_dark3":"#7a7a7a", // Jetpack (dark shade) color
 			"color_visor":"#00ffff", // Visor color
-			"color_suit":"#c0c0c0", // Upper suit color
-			"color_suit2":"#080808", // Lower suit color
-			"color_dark2":"#000000", // Lower suit plates color
-			"color_shoes":"#000000", // Shoes color
-			"color_skin":"#000000", // Gloves and neck color
-			"helmet86":true,
-			"body59":true,
-			"legs59":true,
+			"color_suit":"#1c1c1c", // Upper suit color
+			"color_suit2":"#121212", // Lower suit color
+			"color_dark2":"#a2a2a2", // Lower suit plates color
+			"color_shoes":"#1c1c1c", // Shoes color
+			"color_skin":"#626262", // Gloves and neck color
+			"color_extra1":"#00b9b9", // Extra 1 color
+			"helmet86":true, // Velox helmet
+			"body89":true, // Lite Velox body
+			"legs89":true, // Lite Velox legs
 			"voice7":true };
 
 			if ( character_entity._ai_gun_slot === 2 )
-			character_settings = {"hero_name":"Velox Soldier", // Name
-			"color_bright":"#c0c0c0", // Helmet bright color
-			"color_dark":"#a0a0a0", // Helmet dark color
-			"color_bright3":"#00ff44", // Jetpack (bright shade) color
-			"color_dark3":"#202020", // Jetpack (dark shade) color
-			"color_visor":"#00ff44", // Visor color
-			"color_suit":"#c0c0c0", // Upper suit color
-			"color_suit2":"#080808", // Lower suit color
-			"color_dark2":"#000000", // Lower suit plates color
-			"color_shoes":"#000000", // Shoes color
-			"color_skin":"#000000", // Gloves and neck color
-			"helmet86":true,
-			"body59":true,
-			"legs59":true,
+			character_settings = {"hero_name":"Velox Soldier", // Name // green soldier
+			"color_bright":"#bcbcbc", // Helmet bright color
+			"color_dark":"#7a7a7a", // Helmet dark color
+			"color_bright3":"#bcbcbc", // Jetpack (bright shade) color
+			"color_dark3":"#7a7a7a", // Jetpack (dark shade) color
+			"color_visor":"#00ff00", // Visor color
+			"color_suit":"#1c1c1c", // Upper suit color
+			"color_suit2":"#121212", // Lower suit color
+			"color_dark2":"#a2a2a2", // Lower suit plates color
+			"color_shoes":"#1c1c1c", // Shoes color
+			"color_skin":"#626262", // Gloves and neck color
+			"color_extra1":"#00b900", // Extra 1 color
+			"helmet86":true, // Velox helmet
+			"body59":true, // Velox body
+			"legs59":true, // Velox legs
 			"voice7":true };
 
 			if ( character_entity._ai_gun_slot === 4 )
 			character_settings = {"hero_name":"Velox Devastator", // Name
-			"color_bright":"#c0c0c0", // Helmet bright color
-			"color_dark":"#a0a0a0", // Helmet dark color
-			"color_bright3":"#ff0000", // Jetpack (bright shade) color
-			"color_dark3":"#202020", // Jetpack (dark shade) color
+			"color_bright":"#bcbcbc", // Helmet bright color
+			"color_dark":"#7a7a7a", // Helmet dark color
+			"color_bright3":"#bcbcbc", // Jetpack (bright shade) color
+			"color_dark3":"#7a7a7a", // Jetpack (dark shade) color
 			"color_visor":"#ff0000", // Visor color
-			"color_suit":"#c0c0c0", // Upper suit color
-			"color_suit2":"#080808", // Lower suit color
-			"color_dark2":"#000000", // Lower suit plates color
-			"color_shoes":"#000000", // Shoes color
-			"color_skin":"#000000", // Gloves and neck color
-			"helmet86":true,
-			"body59":true,
-			"legs59":true,
+			"color_suit":"#1c1c1c", // Upper suit color
+			"color_suit2":"#121212", // Lower suit color
+			"color_dark2":"#a2a2a2", // Lower suit plates color
+			"color_shoes":"#1c1c1c", // Shoes color
+			"color_skin":"#626262", // Gloves and neck color
+			"color_extra1":"#b90000", // Extra 1 color
+			"helmet86":true, // Velox helmet
+			"body90":true, // Heavy Velox body
+			"legs90":true, // Heavy Velox legs
 			"voice7":true };
 
 			if ( character_entity._ai_gun_slot === 1 || 2 ) // If a regular Velox soldier
