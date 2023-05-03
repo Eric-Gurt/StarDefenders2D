@@ -109,6 +109,7 @@ class sdDatabase
 					last_character_creation_time: Date.now(), // Some rate limiting because biometry can overlap in theory, with very small chance though
 					
 					known_ips: {}, // Maybe will be used for banning. { IP: time }
+					browser_fingerprints: {}, // Same as IPs
 					
 					credits: 0,
 					
@@ -957,22 +958,31 @@ class sdDatabase
 		
 		return responses;
 	}*/
-	static DBLogIP( responses=[], initiator_server, _my_hash, ip )
+	static DBLogIP( responses=[], initiator_server, _my_hash, ip, browser_finger_print=null )
 	{
 		let user = sdDatabase.MakeSureUserExists( _my_hash );
+		
+		if ( !user.browser_fingerprints )
+		user.browser_fingerprints = {};
 		
 		let t = Date.now();
 		
 		user.known_ips[ ip ] = t;
 		
+		if ( browser_finger_print !== null )
+		user.browser_fingerprints[ browser_finger_print ] = t;
+		
 		for ( let ip in user.known_ips )
 		{
 			if ( user.known_ips[ ip ] < 1000 * 60 * 60 * 24 * 30 )
-			{
-				delete user.known_ips[ ip ];
-			}
+			delete user.known_ips[ ip ];
 			
 			// TODO: Apply IP-range merging here if too many subnet hits (at lest 3?)
+		}
+		for ( let print in user.browser_fingerprints )
+		{
+			if ( user.browser_fingerprints[ print ] < 1000 * 60 * 60 * 24 * 30 )
+			delete user.browser_fingerprints[ print ];
 		}
 		
 		let ban = sdDatabase.GetBan( ip, _my_hash );

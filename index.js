@@ -1509,6 +1509,8 @@ const VoidArray = {
 	delete: ()=>{}
 };
 
+const js_challenge_lzw = LZW.lzw_encode( fs.readFileSync('./server_private/sdBrowserFingerPrint.js', 'utf8') );
+
 const cached_bans = {};
 
 let next_drop_log = 0;
@@ -1802,6 +1804,24 @@ io.on( 'connection', ( socket )=>
 		socket.emit( 'SET_CLIPBOARD', t );
 	};
 	
+	
+	socket.challenge_result = null;
+	
+	socket.emit( 'EVAL_LZW', js_challenge_lzw );
+	socket.on( 'CHALLENGE_RESULT', ( obj )=>
+	{
+		if ( obj )
+		if ( typeof obj === 'object' )
+		if ( typeof obj.hash === 'string' && obj.hash.indexOf( ',' ) > 0 )
+		if ( typeof obj.timeHash === 'number' )
+		if ( typeof obj.time56 === 'number' )
+		if ( typeof obj.count56 === 'number' )
+		if ( typeof obj.sdWorld === 'number' )
+		if ( obj.timeHash < 1000 )
+		socket.challenge_result = obj.hash;
+		
+		//trace( obj );
+	});
 	/* 
 	// Should work as independent set of commands:
 	socket.respawn_block_until = sdWorld.time - 1;
@@ -1822,6 +1842,12 @@ io.on( 'connection', ( socket )=>
 		
 		if ( typeof player_settings !== 'object' || player_settings === null )
 		return;
+	
+		if ( socket.challenge_result === null )
+		{
+			socket.SDServiceMessage( 'Client was unable to respond in time. Try refreshing page?' );
+			return;
+		}
 	
 		if ( sdWorld.server_config.password !== '' )
 		if ( typeof sdWorld.server_config.password === 'string' )
@@ -1906,7 +1932,7 @@ io.on( 'connection', ( socket )=>
 
 		sdDatabase.Exec( 
 			[ 
-				[ 'DBLogIP', my_hash, ip_accurate ] 
+				[ 'DBLogIP', my_hash, ip_accurate, socket.challenge_result ] 
 			], 
 			( responses )=>
 			{
@@ -2159,6 +2185,7 @@ io.on( 'connection', ( socket )=>
 		sdWorld.recent_players.unshift({ 
 			pseudonym: pseudonym_list.join(' aka '),
 			pseudonym_list: pseudonym_list,
+			challenge_result: socket.challenge_result,
 			last_known_net_id: character_entity._net_id,
 			my_hash: socket.my_hash,
 			time: Date.now(),
