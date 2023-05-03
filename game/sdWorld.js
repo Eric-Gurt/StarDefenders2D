@@ -2716,6 +2716,7 @@ class sdWorld
 			//let skipper = 0;
 			
 			sdWorld.online_characters.length = 0;
+			if ( sdWorld.sockets ) // Server-side only thing
 			for ( let i = 0; i < sdWorld.sockets.length; i++ )
 			{
 				let socket = sdWorld.sockets[ i ];
