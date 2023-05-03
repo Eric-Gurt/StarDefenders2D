@@ -95,6 +95,15 @@ class sdThruster extends sdEntity
 				nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t:100 * GSPEED }); // Set target on fire
 			}
 		}
+		
+		if ( this._regen_timeout > 0 )
+		this._regen_timeout -= GSPEED;
+		else
+		if ( this._hea < this._hmax )
+		this._hea = Math.min( this._hea + GSPEED, this._hmax );
+		else
+		if ( !this.enabled )
+		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{

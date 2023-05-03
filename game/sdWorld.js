@@ -93,6 +93,8 @@ class sdWorld
 		sdWorld.recent_players = []; // { pseudonym, last_known_net_id, my_hash, time, ban }, up to 100 connections or so
 		//sdWorld.hook_entities = []; // Entities that implement hook logic, basically for notification system. These must have HandleHookReply( hook_id, password ) and return either JSON-able object or null
 		
+		sdWorld.online_characters = []; // Used for active entities update rate optimizations
+		
 		sdWorld.camera = {
 			x:0,
 			y:0,
@@ -1219,6 +1221,23 @@ class sdWorld
 	}
 	static CanAnySocketSee( ent ) // Actually used to lower think rate of some entities
 	{
+		if ( sdWorld.server_config.debug_offscreen_behavior )
+		return false;
+	
+		const x = ent.x;
+		const y = ent.y;
+		
+		for ( let i = 0; i < sdWorld.online_characters.length; i++ )
+		{
+			const c = sdWorld.online_characters[ i ];
+			if ( x > c.x - 800 )
+			if ( x < c.x + 800 )
+			if ( y > c.y - 400 )
+			if ( y < c.y + 400 )
+			return true;
+		}
+		/*
+		
 		if ( typeof ent._socket === 'object' ) // Is a connected player
 		if ( ent._socket !== null )
 		return true;
@@ -1236,7 +1255,7 @@ class sdWorld
 			if ( sdWorld.CanSocketSee( socket, x, y ) )
 			return true;
 		}
-		
+		*/
 		return false;
 	}
 	static SpawnGib( x, y, sx = Math.random() * 1 - Math.random() * 1, sy = Math.random() * 1 - Math.random() * 1, side = 1, gib_class, gib_filter, blood_filter = null, scale = 100, ignore_collisions_with=null, image = 0 )
@@ -2695,6 +2714,15 @@ class sdWorld
 			//const think_function_ptr_cache = [];
 			
 			//let skipper = 0;
+			
+			sdWorld.online_characters.length = 0;
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			{
+				let socket = sdWorld.sockets[ i ];
+				
+				if ( socket.character && socket.post_death_spectate_ttl > 0 )
+				sdWorld.online_characters.push( socket.character );
+			}
 			
 			const debug_wake_up_sleep_refuse_reasons = sdDeepSleep.debug_wake_up_sleep_refuse_reasons;
 			

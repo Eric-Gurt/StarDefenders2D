@@ -412,6 +412,8 @@ class sdSteeringWheel extends sdEntity
 			{
 				this._scan[ i ].enabled = true;
 				this._scan[ i ]._update_version++;
+				
+				this._scan[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 			}
 		}
 	
