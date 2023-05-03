@@ -344,8 +344,8 @@ class sdFactions extends sdEntity
 			"color_skin":"#626262", // Gloves and neck color
 			"color_extra1":"#00b9b9", // Extra 1 color
 			"helmet86":true, // Velox helmet
-			"body89":true, // Heavy Velox body
-			"legs89":true, // Heavy Velox legs
+			"body89":true, // Lite Velox body
+			"legs89":true, // Lite Velox legs
 			"voice7":true };
 
 			if ( character_entity._ai_gun_slot === 2 )
