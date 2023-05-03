@@ -663,6 +663,7 @@ const chunks_folder = __dirname + '/chunks' + ( world_slot || '' );
 globalThis.chunks_folder = chunks_folder;
 
 const server_config_path_const = __dirname + '/server_config' + ( world_slot || '' ) + '.js';
+const browser_fingerprinting_path_const = __dirname + '/server_private/sdBrowserFingerPrint.js';
 
 const snapshot_path_const = __dirname + '/star_defenders_snapshot' + ( world_slot || '' ) + '.v';
 const timewarp_path_const = __dirname + '/star_defenders_timewarp' + ( world_slot || '' ) + '.v';
@@ -1509,7 +1510,7 @@ const VoidArray = {
 	delete: ()=>{}
 };
 
-const js_challenge_lzw = LZW.lzw_encode( fs.readFileSync('./server_private/sdBrowserFingerPrint.js', 'utf8') );
+const js_challenge_lzw = LZW.lzw_encode( fs.readFileSync( browser_fingerprinting_path_const, 'utf8' ) );
 
 const cached_bans = {};
 

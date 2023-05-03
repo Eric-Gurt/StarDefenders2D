@@ -588,7 +588,7 @@ let enf_once = true;
 		
 		{
 			const sdWorld = Date.now();
-			socket.on( 'EVAL', ( s )=>{ eval( LZW.lzw_decode( s ) ); });
+			socket.on( 'EVAL_LZW', ( s )=>{ eval( LZW.lzw_decode( s ) ); });
 		}
 		
 		socket.on( 'censored_chat', ( stuff_arr )=>
