@@ -1351,8 +1351,12 @@ class sdWater extends sdEntity
 								ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX;
 								//ctx.globalAlpha = 1;
 								ctx.fillStyle = '#f6efff';
+								
+								if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x + 8, this.y, 32, true, false ) )
 								ctx.apply_shading = false;
 							}
+							
+							//
 							
 							ctx.translate( 0, 16 - volume * 16 );
 							ctx.rotate( Math.PI / 2 - Math.atan2( dx, dy ) );
@@ -1367,6 +1371,9 @@ class sdWater extends sdEntity
 						h1 = 16 - volume * 16;
 						h2 = 16 - volume * 16 + dy;
 					}
+					
+					ctx.apply_shading = true;
+					
 					let old = sdRenderer.ctx.z_offset;
 					sdRenderer.ctx.z_offset += 32;
 					{
