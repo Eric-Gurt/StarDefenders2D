@@ -361,6 +361,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 8, _category:'Base equipment', _min_build_tool_level: 18 });
 			sdShop.options.push({ _class: 'sdStorageTank', _category:'Base equipment', });
 			sdShop.options.push({ _class: 'sdStorageTank', type: sdStorageTank.TYPE_PORTABLE, _category:'Base equipment', });
+			sdShop.options.push({ _class: 'sdEssenceExtractor', _category:'Base equipment', });
 			sdShop.options.push({ _class: 'sdCommandCentre', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdLongRangeTeleport', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdCrystalCombiner', _category:'Base equipment' });
@@ -638,7 +639,6 @@ class sdShop
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.SARRORIAN_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.COUNCIL_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.TZYRG_SPAWNER, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdEssenceExtractor', _category:'Development tests', });
 			}
 
 			sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });

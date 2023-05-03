@@ -4009,113 +4009,115 @@ class sdEntity
 			
 			let array_is_not_cloned = true;
 			
-			
-			let connected_ents;
-			
-			if ( this._connected_ents && sdWorld.time < this._connected_ents_next_rethink ) // This cache probably should not be rethinked at all (since cables erase it anyway)... But just in case...
+			if ( this.onThink.has_cable_support )
 			{
-				connected_ents = this._connected_ents;
-			}
-			else
-			{
-				connected_ents = sdCable.GetConnectedEntities( this, sdCable.TYPE_MATTER );
-				
-				/*if ( !sdCrystal )
-				sdCrystal = sdWorld.entity_classes.sdCrystal;
-				
-				if ( !sdMatterAmplifier )
-				sdMatterAmplifier = sdWorld.entity_classes.sdMatterAmplifier;*/
-				
-				let auto_entity = this.GetAutoConnectedEntityForMatterFlow();
-				
-				if ( auto_entity )
-				if ( array_is_not_cloned )
+				let connected_ents;
+
+				if ( this._connected_ents && sdWorld.time < this._connected_ents_next_rethink ) // This cache probably should not be rethinked at all (since cables erase it anyway)... But just in case...
 				{
-					array_is_not_cloned = false;
-					connected_ents = connected_ents.slice(); // Clone
-					
-					connected_ents.push( auto_entity );
+					connected_ents = this._connected_ents;
 				}
-				
-				
-				for ( i = 0; i < connected_ents.length; i++ )
+				else
 				{
-					const e = connected_ents[ i ];
-					
-					/*globalThis.max_connected_ents_length = globalThis.max_connected_ents_length || null;
+					connected_ents = sdCable.GetConnectedEntities( this, sdCable.TYPE_MATTER );
 
-					// Top: 257
-					if ( globalThis.max_connected_ents_length === null || connected_ents.length > globalThis.max_connected_ents_length.len )
+					/*if ( !sdCrystal )
+					sdCrystal = sdWorld.entity_classes.sdCrystal;
+
+					if ( !sdMatterAmplifier )
+					sdMatterAmplifier = sdWorld.entity_classes.sdMatterAmplifier;*/
+
+					let auto_entity = this.GetAutoConnectedEntityForMatterFlow();
+
+					if ( auto_entity )
+					if ( array_is_not_cloned )
 					{
-						globalThis.max_connected_ents_length = {
-							len: connected_ents.length,
-							arr: connected_ents,
-							that: this
-						};
-					}*/
+						array_is_not_cloned = false;
+						connected_ents = connected_ents.slice(); // Clone
 
-					//if ( ( typeof e.matter !== 'undefined' || typeof e._matter !== 'undefined' ) && !e._is_being_removed ) // Can appear as being removed as well...
-					if ( e._has_matter_props && !e._is_being_removed )
+						connected_ents.push( auto_entity );
+					}
+
+
+					for ( i = 0; i < connected_ents.length; i++ )
 					{
-						//this.TransferMatter( e, how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+						const e = connected_ents[ i ];
 
-						//visited_ents.add( e );
-						e._flag = visited_ent_flag;
+						/*globalThis.max_connected_ents_length = globalThis.max_connected_ents_length || null;
 
-						if ( e.PrioritizeGivingMatterAway() )
+						// Top: 257
+						if ( globalThis.max_connected_ents_length === null || connected_ents.length > globalThis.max_connected_ents_length.len )
 						{
-							if ( array_is_not_cloned )
+							globalThis.max_connected_ents_length = {
+								len: connected_ents.length,
+								arr: connected_ents,
+								that: this
+							};
+						}*/
+
+						//if ( ( typeof e.matter !== 'undefined' || typeof e._matter !== 'undefined' ) && !e._is_being_removed ) // Can appear as being removed as well...
+						if ( e._has_matter_props && !e._is_being_removed )
+						{
+							//this.TransferMatter( e, how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+
+							//visited_ents.add( e );
+							e._flag = visited_ent_flag;
+
+							if ( e.PrioritizeGivingMatterAway() )
 							{
-								array_is_not_cloned = false;
-								connected_ents = connected_ents.slice(); // Clone
+								if ( array_is_not_cloned )
+								{
+									array_is_not_cloned = false;
+									connected_ents = connected_ents.slice(); // Clone
+								}
+
+								let recursively_connected = sdCable.GetConnectedEntities( e, sdCable.TYPE_MATTER );
+
+								if ( recursively_connected )
+								for ( let i2 = 0; i2 < recursively_connected.length; i2++ )
+								//if ( !visited_ents.has( recursively_connected[ i2 ] ) )
+								if ( recursively_connected[ i2 ]._flag !== visited_ent_flag )
+								{
+									//visited_ents.add( recursively_connected[ i2 ] );
+									recursively_connected[ i2 ]._flag = visited_ent_flag;
+
+									connected_ents.push( recursively_connected[ i2 ] );
+
+									let auto2 = recursively_connected[ i2 ].GetAutoConnectedEntityForMatterFlow();
+									if ( auto2 )
+									connected_ents.push( auto2 );
+								}
 							}
 
-							let recursively_connected = sdCable.GetConnectedEntities( e, sdCable.TYPE_MATTER );
 
-							if ( recursively_connected )
-							for ( let i2 = 0; i2 < recursively_connected.length; i2++ )
-							//if ( !visited_ents.has( recursively_connected[ i2 ] ) )
-							if ( recursively_connected[ i2 ]._flag !== visited_ent_flag )
+							if ( ( e.matter_max || e._matter_max || 0 ) <= 20 ) // Exclude sdCom, sdMatterAmplifier, sdNode - they won't receive any matter
 							{
-								//visited_ents.add( recursively_connected[ i2 ] );
-								recursively_connected[ i2 ]._flag = visited_ent_flag;
-
-								connected_ents.push( recursively_connected[ i2 ] );
-								
-								let auto2 = recursively_connected[ i2 ].GetAutoConnectedEntityForMatterFlow();
-								if ( auto2 )
-								connected_ents.push( auto2 );
+								connected_ents.splice( i, 1 );
+								i--;
+								continue;
 							}
 						}
-						
-						
-						if ( ( e.matter_max || e._matter_max || 0 ) <= 20 ) // Exclude sdCom, sdMatterAmplifier, sdNode - they won't receive any matter
+						else
 						{
 							connected_ents.splice( i, 1 );
 							i--;
 							continue;
 						}
 					}
-					else
-					{
-						connected_ents.splice( i, 1 );
-						i--;
-						continue;
-					}
+					//visited_ents = null;
+
+
+					this._connected_ents = connected_ents;
+					//this._connected_ents_next_rethink = sdWorld.time + 200 + Math.random() * 50;
+
+					this._connected_ents_next_rethink = sdWorld.time + 1000 * 60 + Math.random() * 1000; // Likely should never expire?
 				}
-				//visited_ents = null;
-				
-				
-				this._connected_ents = connected_ents;
-				//this._connected_ents_next_rethink = sdWorld.time + 200 + Math.random() * 50;
-				
-				this._connected_ents_next_rethink = sdWorld.time + 1000 * 60 + Math.random() * 1000; // Likely should never expire?
-			}
-			
-			for ( let i = 0; i < connected_ents.length; i++ )
-			{
-				if ( !connected_ents[ i ]._is_being_removed )
-				this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+
+				for ( let i = 0; i < connected_ents.length; i++ )
+				{
+					if ( !connected_ents[ i ]._is_being_removed )
+					this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+				}
 			}
 			
 			

@@ -903,6 +903,23 @@ class sdDatabase
 		else
 		if ( _my_hash !== null && sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] )
 		ban = sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ];
+
+		// Clone bans
+		if ( ip !== null )
+		if ( _my_hash !== null )
+		{
+			if ( sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] )
+			if ( !sdDatabase.data.moderation.bans.table_by_ip[ ip ] )
+			{
+				sdDatabase.data.moderation.bans.table_by_ip[ ip ] = sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ];
+			}
+			
+			if ( sdDatabase.data.moderation.bans.table_by_ip[ ip ] )
+			if ( !sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] )
+			{
+				sdDatabase.data.moderation.bans.table_by_user_uid[ _my_hash ] = sdDatabase.data.moderation.bans.table_by_ip[ ip ];
+			}
+		}
 		
 		if ( ban )
 		{

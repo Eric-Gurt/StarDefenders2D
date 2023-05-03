@@ -108,7 +108,7 @@ class sdServerConfigFull extends sdServerConfigShort
 	static base_shielding_units_passive_drain_per_week_green = 0.01; // 0.2 // Percentage. Also applied to matter amplifiers so green BSUs drain as fast as blue BSUs
 	static base_shielding_units_passive_drain_per_week_blue = 0.01; // 0.2 // Percentage. Also applied to matter amplifiers so green BSUs drain as fast as blue BSUs
 	
-	static do_green_base_shielding_units_consume_essence = false; // Experimental - Enables green BSU essence consumption through cables. Does not disable crystal consumption
+	static do_green_base_shielding_units_consume_essence = true; // Allows green BSU essence consumption through cables. Does not disable crystal consumption
 	
 	
 	static allowed_base_shielding_unit_types = null; // [ sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER, sdBaseShieldingUnit.TYPE_MATTER, sdBaseShieldingUnit.TYPE_SCORE_TIMED ] to allow specific ones or null to allow all
