@@ -1901,8 +1901,8 @@ class sdWorld
 				{
 					if ( sdWorld.is_server )
 					{
-						console.warn('Entity pointer could not be resolved even at later stage for ' + arr[ 0 ].GetClass() + '.' + arr[ 1 ] + ' :: ' + arr[ 2 ] + ' :: ' + arr[ 3 ] );
-						debugger;
+						console.warn('Entity pointer could not be resolved even at later stage (can be unimportant but usually is worth attention) for ' + arr[ 0 ].GetClass() + '.' + arr[ 1 ] + ' :: ' + arr[ 2 ] + ' :: ' + arr[ 3 ] );
+						//debugger;
 					}
 				}
 			}
