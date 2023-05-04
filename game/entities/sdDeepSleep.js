@@ -23,6 +23,7 @@
 
 		sdWorld.SaveSnapshotAuthoPath();
 
+	TODO: Had weird bug that caused rift portal overcharge rollback as well as 5k crystal resapwn which I did put into rift... Reboots did not happen. I doubt another 5k would spawn? It could be just GSPEED-unscaled sdRift logic though.
 
 	TODO: Maybe apply compression to chunk files? Though it would slow-down their loading
 

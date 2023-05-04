@@ -27,8 +27,16 @@ globalThis.CATCH_HUGE_ARRAYS = false; // Can worsen performance by 2-5%
 
  
 */
+/*
 
+	What to do:
 
+	Give progression + purpose to the game
+	- Vehicles for deeper digging, make shovels less efficient
+	- Crates? Presets with rare items and entities?
+	
+
+*/
 // Early error catching
 //console.log('Early error catching enabled, waiting 10 seconds before doing anything...');
 //await new Promise(resolve => setTimeout(resolve, 10000)); // Unexpected reserved word

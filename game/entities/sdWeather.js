@@ -3559,7 +3559,7 @@ class sdWeather extends sdEntity
 					
 					//let tr = 1000;
 					
-					let tr = sdWorld.server_config.aggressive_hibernation ? 15 : 35;
+					let tr = sdWorld.server_config.aggressive_hibernation ? 25 : 35;
 					
 					do
 					{
