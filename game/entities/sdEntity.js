@@ -4689,8 +4689,12 @@ class sdEntity
 			
 			this.liquid.extra -= extra;
 
-			if ( this.liquid.amount <= 0 )
-			this.liquid.type = -1;
+			if ( this.liquid.amount <= 0 || this.liquid.extra <= 0 )
+			{
+				this.liquid.amount = 0;
+				this.liquid.type = -1;
+				this.liquid.extra = 0;
+			}
 		}
 		else
 		{
@@ -4704,8 +4708,12 @@ class sdEntity
 		
 			this._liquid.extra -= extra;
 
-			if ( this._liquid.amount <= 0 )
-			this._liquid.type = -1;
+			if ( this._liquid.amount <= 0 || this._liquid.extra <= 0 )
+			{
+				this._liquid.amount = 0;
+				this._liquid.type = -1;
+				this._liquid.extra = 0;
+			}
 		}
 	
 		if ( typeof to.liquid !== 'undefined' )
@@ -4802,6 +4810,13 @@ class sdEntity
 			debugger;
 			
 			this.liquid.extra -= how_much;
+
+			if ( this.liquid.amount <= 0 || this.liquid.extra <= 0 )
+			{
+				this.liquid.amount = 0;
+				this.liquid.type = -1;
+				this.liquid.extra = 0;
+			}
 		}
 		else
 		{
@@ -4814,6 +4829,13 @@ class sdEntity
 			debugger;
 		
 			this._liquid.extra -= how_much;
+
+			if ( this._liquid.amount <= 0 || this._liquid.extra <= 0 )
+			{
+				this._liquid.amount = 0;
+				this._liquid.type = -1;
+				this._liquid.extra = 0;
+			}
 		}
 
 		if ( is_bsu )
@@ -4831,7 +4853,7 @@ class sdEntity
 		this._update_version++;
 	
 		if ( typeof to._update_version !== 'undefined' )
-		if ( typeof to.matter_crystal !== 'undefined' || typeof to.matter_crystal_max !== 'undefined' || typeof to.essence !== 'undefined' || typeof to.essence_max !== 'undefined' )
+		if ( typeof to.matter_crystal !== 'undefined' )
 		to._update_version++;
 	}
 

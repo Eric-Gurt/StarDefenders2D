@@ -253,12 +253,13 @@ class sdEssenceExtractor extends sdEntity
 
 		this.GiveLiquid( 0.05, GSPEED );
 
-		if ( this.liquid.amount <= 0 )
+		if ( this.liquid.amount <= 0 || this.liquid.extra <= 0 )
 		{
+			this.liquid.amount = 0;
 			this.liquid.type = -1;
 			this.liquid.extra = 0;
 		}
-			
+
 		/*if ( can_hibernate1 && can_hibernate2 )
 		if ( sdWorld.is_server ) // Server-only. Clients will have to update hitbox
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );*/
