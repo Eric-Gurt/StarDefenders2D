@@ -5,6 +5,7 @@
 	It would be cool if some combat tank could be made with the cost of some anti-crystal and long construction process though."
 																											- Eric Gurt
 
+	TODO: Green BSU just broke offscreen - conveyors were sending crystals at -5 speed. Could do something with offscreen GSPEED optimizations, maybe it was even "falling"
 
 */
 import sdWorld from '../sdWorld.js';

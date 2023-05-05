@@ -302,7 +302,8 @@ class FakeCanvasContext
 			top: true,
 			left: true,
 			bottom: true,
-			right: true
+			right: true,
+			is_rotated: false // Disables camera-relative optimizations
 		};
 
 		this._gl = this.renderer.getContext();

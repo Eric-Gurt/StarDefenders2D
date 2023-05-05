@@ -61,6 +61,8 @@ class sdBeacon extends sdEntity
 	
 		this.hea -= Math.abs( dmg );
 		
+		this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+		
 		if ( this.hea <= 0 )
 		if ( old_hp > 0 )
 		sdSound.PlaySound({ name:'sd_beacon_disarm', x:this.x, y:this.y, pitch: 2, volume:1 });
@@ -76,6 +78,9 @@ class sdBeacon extends sdEntity
 		this.sy += sdWorld.gravity * GSPEED;
 		
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
+		
+		if ( this._phys_sleep <= 0 )
+		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{

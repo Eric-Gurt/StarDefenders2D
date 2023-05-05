@@ -159,8 +159,9 @@ class sdStorageTank extends sdEntity
 
 		this.GiveLiquid( 0.01, GSPEED );
 
-		if ( this.liquid.amount <= 0 )
+		if ( this.liquid.amount <= 0 || this.liquid.extra <= 0 )
 		{
+			this.liquid.amount = 0;
 			this.liquid.type = -1;
 			this.liquid.extra = 0;
 		}

@@ -4,6 +4,7 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdCharacter from './sdCharacter.js';
+import sdAsteroid from './sdAsteroid.js';
 
 class sdPlayerSpectator extends sdCharacter
 {
@@ -139,6 +140,7 @@ class sdPlayerSpectator extends sdCharacter
 					if ( e.IsVisible() )
 					if ( this._boring_net_ids.indexOf( e._class ) === -1 )
 					if ( this._boring_net_ids.indexOf( e._net_id ) === -1 )
+					if ( !e.is( sdAsteroid ) )
 					{
 						let di = sdWorld.Dist2D( this.x, this.y, e.x, e.y );
 						if ( di < 300 - this._following_timer || Math.random() < 0.05 )

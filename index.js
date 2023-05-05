@@ -27,8 +27,16 @@ globalThis.CATCH_HUGE_ARRAYS = false; // Can worsen performance by 2-5%
 
  
 */
+/*
 
+	What to do:
 
+	Give progression + purpose to the game
+	- Vehicles for deeper digging, make shovels less efficient
+	- Crates? Presets with rare items and entities?
+	
+
+*/
 // Early error catching
 //console.log('Early error catching enabled, waiting 10 seconds before doing anything...');
 //await new Promise(resolve => setTimeout(resolve, 10000)); // Unexpected reserved word
@@ -663,6 +671,7 @@ const chunks_folder = __dirname + '/chunks' + ( world_slot || '' );
 globalThis.chunks_folder = chunks_folder;
 
 const server_config_path_const = __dirname + '/server_config' + ( world_slot || '' ) + '.js';
+const browser_fingerprinting_path_const = __dirname + '/server_private/sdBrowserFingerPrint.js';
 
 const snapshot_path_const = __dirname + '/star_defenders_snapshot' + ( world_slot || '' ) + '.v';
 const timewarp_path_const = __dirname + '/star_defenders_timewarp' + ( world_slot || '' ) + '.v';
@@ -773,6 +782,8 @@ sdWorld.onAfterConfigLoad();
 
 let strange_position_classes = {};
 
+//globalThis.use_parallel_saving = true;
+
 //let snapshot_path = __dirname + '/star_defenders_snapshot.v';
 let is_terminating = false;
 {
@@ -808,49 +819,89 @@ let is_terminating = false;
 			base_ground_level2: sdWorld.base_ground_level2,
 			entities: entities
 		};
-
-		for ( var i = 0; i < sdEntity.entities.length; i++ )
-		if ( !sdEntity.entities[ i ]._is_being_removed )
-		if ( !sdWorld.server_config.EntitySaveAllowedTest || sdWorld.server_config.EntitySaveAllowedTest( sdEntity.entities[ i ] ) )
+		
+		//let times_by_deep_sleep_type = {};
+		
+		let json;
+		
+		let one_by_one = false;
+		let snapshot_made_time;
+		
+		while ( true )
 		{
-			if ( isNaN( sdEntity.entities[ i ].x ) || isNaN( sdEntity.entities[ i ].y ) || sdEntity.entities[ i ].x === null || sdEntity.entities[ i ].y === null )
-			if ( typeof strange_position_classes[ sdEntity.entities[ i ].GetClass() ] === 'undefined' )
+			for ( var i = 0; i < sdEntity.entities.length; i++ )
+			if ( !sdEntity.entities[ i ]._is_being_removed )
+			if ( !sdWorld.server_config.EntitySaveAllowedTest || sdWorld.server_config.EntitySaveAllowedTest( sdEntity.entities[ i ] ) )
 			{
-				console.log( sdEntity.entities[ i ].GetClass() + ' has strange position during saving: ' + sdEntity.entities[ i ].x + ', ' + sdEntity.entities[ i ].y + ' (nulls could mean NaNs) - not reporting this class with same kind of error anymore...' );
-				strange_position_classes[ sdEntity.entities[ i ].GetClass() ] = 1;
+				if ( isNaN( sdEntity.entities[ i ].x ) || isNaN( sdEntity.entities[ i ].y ) || sdEntity.entities[ i ].x === null || sdEntity.entities[ i ].y === null )
+				if ( typeof strange_position_classes[ sdEntity.entities[ i ].GetClass() ] === 'undefined' )
+				{
+					console.log( sdEntity.entities[ i ].GetClass() + ' has strange position during saving: ' + sdEntity.entities[ i ].x + ', ' + sdEntity.entities[ i ].y + ' (nulls could mean NaNs) - not reporting this class with same kind of error anymore...' );
+					strange_position_classes[ sdEntity.entities[ i ].GetClass() ] = 1;
+				}
+
+				//let _class = sdEntity.entities[ i ].GetClass();
+
+				//let t = Date.now();
+				let ent_snapshot = sdEntity.entities[ i ].GetSnapshot( frame, true );
+				//let t2 = Date.now();
+
+				// This is extremely expensive, especially for sdDeepSleep which already take a long time to get snapshot from
+				//if ( _class !== 'sdDeepSleep' )
+				if ( one_by_one )
+				{
+					try
+					{
+						let json_test = JSON.stringify( ent_snapshot );
+					}
+					catch ( e )
+					{
+						console.warn( 'Object can not be json-ed! Snapshot likely contains recursion. Error: ', e );
+
+						console.warn( ent_snapshot );
+						throw new Error( 'Stopping everything because saving is no longer possible...' );
+					}
+				}
+				//else
+				//{
+					//times_by_deep_sleep_type[ sdEntity.entities[ i ].type ] = ( times_by_deep_sleep_type[ sdEntity.entities[ i ].type ] || 0 ) + t2 - t;
+				//}
+
+				entities.push( ent_snapshot );
 			}
+
+			//trace( 'Times by sdDeepSleep.type: ', times_by_deep_sleep_type );
+
+
+			snapshot_made_time = Date.now();
 			
-			let ent_snapshot = sdEntity.entities[ i ].GetSnapshot( frame, true );
-			
-			/*
-			if ( ent_snapshot._affected_hash_arrays !== null )
-			if ( ent_snapshot._affected_hash_arrays instanceof Array )
+			if ( one_by_one )
 			{
-				console.warn( 'Snapshot', ent_snapshot );
-				console.warn( 'Object', sdEntity.entities[ i ] );
-				throw new Error('Strangely, object got non-allowed property.');
+				debugger;
+				throw new Error( '...Did not find?' );
 			}
-			*/
+
 			try
 			{
-				let json_test = JSON.stringify( ent_snapshot );
+				/*if ( globalThis.use_parallel_saving )
+				{
+					let result = await ExecuteParallelPromise({ command:WorkerServiceLogic.ACTION_STRINGIFY, data:save_obj });
+					if ( result )
+					json = result;
+					else
+					throw 'worker error';
+				}
+				else*/
+				json = JSON.stringify( save_obj ); // Backup timings report (ms): 755, 894, 2667, 3
+		
+				break;
 			}
-			catch(e)
+			catch( e )
 			{
-				console.warn( 'Object can not be json-ed! Snapshot likely contains recursion. Error: ', e );
-				
-				console.warn( ent_snapshot );
-				throw new Error( 'Stopping everything because saving is no longer possible...' );
+				console.warn( 'Some object can not be JSON-ed... Redoing every object one by one to figure out which...' );
+				one_by_one = true;
 			}
-		   
-			entities.push( ent_snapshot );
 		}
-
-
-		let snapshot_made_time = Date.now();
-
-
-		let json = JSON.stringify( save_obj );
 
 		let json_made_time = Date.now();
 
@@ -1509,6 +1560,8 @@ const VoidArray = {
 	delete: ()=>{}
 };
 
+const js_challenge_lzw = LZW.lzw_encode( fs.readFileSync( browser_fingerprinting_path_const, 'utf8' ) );
+
 const cached_bans = {};
 
 let next_drop_log = 0;
@@ -1802,6 +1855,24 @@ io.on( 'connection', ( socket )=>
 		socket.emit( 'SET_CLIPBOARD', t );
 	};
 	
+	
+	socket.challenge_result = null;
+	
+	socket.emit( 'EVAL_LZW', js_challenge_lzw );
+	socket.on( 'CHALLENGE_RESULT', ( obj )=>
+	{
+		if ( obj )
+		if ( typeof obj === 'object' )
+		if ( typeof obj.hash === 'string' && obj.hash.indexOf( ',' ) > 0 )
+		if ( typeof obj.timeHash === 'number' )
+		if ( typeof obj.time56 === 'number' )
+		if ( typeof obj.count56 === 'number' )
+		if ( typeof obj.sdWorld === 'number' )
+		if ( obj.timeHash < 1000 )
+		socket.challenge_result = obj.hash;
+		
+		//trace( obj );
+	});
 	/* 
 	// Should work as independent set of commands:
 	socket.respawn_block_until = sdWorld.time - 1;
@@ -1822,6 +1893,12 @@ io.on( 'connection', ( socket )=>
 		
 		if ( typeof player_settings !== 'object' || player_settings === null )
 		return;
+	
+		if ( socket.challenge_result === null )
+		{
+			socket.SDServiceMessage( 'Client was unable to respond in time. Try refreshing page?' );
+			return;
+		}
 	
 		if ( sdWorld.server_config.password !== '' )
 		if ( typeof sdWorld.server_config.password === 'string' )
@@ -1906,7 +1983,7 @@ io.on( 'connection', ( socket )=>
 
 		sdDatabase.Exec( 
 			[ 
-				[ 'DBLogIP', my_hash, ip_accurate ] 
+				[ 'DBLogIP', my_hash, ip_accurate, socket.challenge_result ] 
 			], 
 			( responses )=>
 			{
@@ -2159,6 +2236,7 @@ io.on( 'connection', ( socket )=>
 		sdWorld.recent_players.unshift({ 
 			pseudonym: pseudonym_list.join(' aka '),
 			pseudonym_list: pseudonym_list,
+			challenge_result: socket.challenge_result,
 			last_known_net_id: character_entity._net_id,
 			my_hash: socket.my_hash,
 			time: Date.now(),

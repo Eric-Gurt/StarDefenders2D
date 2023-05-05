@@ -52,6 +52,7 @@ import sdSound from './sdSound.js';
 import sdKeyStates from './sdKeyStates.js';
 
 const CHUNK_SIZE = 64; // 128 causes groups of 111 or so entities, it is probably too much // 32
+const CHUNK_SIZE_INV = 1 / 64;
 
 class sdWorld
 {
@@ -92,6 +93,8 @@ class sdWorld
 		sdWorld.sockets = null; // Becomes array
 		sdWorld.recent_players = []; // { pseudonym, last_known_net_id, my_hash, time, ban }, up to 100 connections or so
 		//sdWorld.hook_entities = []; // Entities that implement hook logic, basically for notification system. These must have HandleHookReply( hook_id, password ) and return either JSON-able object or null
+		
+		sdWorld.online_characters = []; // Used for active entities update rate optimizations
 		
 		sdWorld.camera = {
 			x:0,
@@ -1219,6 +1222,23 @@ class sdWorld
 	}
 	static CanAnySocketSee( ent ) // Actually used to lower think rate of some entities
 	{
+		if ( sdWorld.server_config.debug_offscreen_behavior )
+		return false;
+	
+		const x = ent.x;
+		const y = ent.y;
+		
+		for ( let i = 0; i < sdWorld.online_characters.length; i++ )
+		{
+			const c = sdWorld.online_characters[ i ];
+			if ( x > c.x - 800 )
+			if ( x < c.x + 800 )
+			if ( y > c.y - 400 )
+			if ( y < c.y + 400 )
+			return true;
+		}
+		/*
+		
 		if ( typeof ent._socket === 'object' ) // Is a connected player
 		if ( ent._socket !== null )
 		return true;
@@ -1236,7 +1256,7 @@ class sdWorld
 			if ( sdWorld.CanSocketSee( socket, x, y ) )
 			return true;
 		}
-		
+		*/
 		return false;
 	}
 	static SpawnGib( x, y, sx = Math.random() * 1 - Math.random() * 1, sy = Math.random() * 1 - Math.random() * 1, side = 1, gib_class, gib_filter, blood_filter = null, scale = 100, ignore_collisions_with=null, image = 0 )
@@ -2240,11 +2260,11 @@ class sdWorld
 	static RequireHashPosition( x, y, spawn_if_empty=false )
 	{
 		/*
-		x = sdWorld.FastFloor( x / CHUNK_SIZE );
-		y = sdWorld.FastFloor( y / CHUNK_SIZE );
+		x = sdWorld.FastFloor( x * CHUNK_SIZE_INV );
+		y = sdWorld.FastFloor( y * CHUNK_SIZE_INV );
 		
-		//x = Math.floor( x / CHUNK_SIZE );
-		//y = Math.floor( y / CHUNK_SIZE );
+		//x = Math.floor( x * CHUNK_SIZE_INV );
+		//y = Math.floor( y * CHUNK_SIZE_INV );
 		
 		var a;
 		
@@ -2262,12 +2282,12 @@ class sdWorld
 	
 		return b;*/
 		
-		//x = ~~( x / CHUNK_SIZE );
+		//x = ~~( x * CHUNK_SIZE_INV );
 		//y = ;
 		
-		//x = ( ~~( y / CHUNK_SIZE ) ) * 4098 + ~~( x / CHUNK_SIZE ); // Too many left-over empty arrays when bounds move?
+		//x = ( ~~( y * CHUNK_SIZE_INV ) ) * 4098 + ~~( x * CHUNK_SIZE_INV ); // Too many left-over empty arrays when bounds move?
 		
-		x = ( sdWorld.FastFloor( y / CHUNK_SIZE ) ) * 4098 + sdWorld.FastFloor( x / CHUNK_SIZE );
+		x = ( sdWorld.FastFloor( y * CHUNK_SIZE_INV ) ) * 4098 + sdWorld.FastFloor( x * CHUNK_SIZE_INV );
 		
 		let arr = sdWorld.world_hash_positions.get( x );
 		
@@ -2283,6 +2303,7 @@ class sdWorld
 
 				sdWorld.world_hash_positions.set( x, arr );
 
+				if ( sdWorld.world_hash_positions_recheck_keys.size < 10000 ) // There will be a lot of these on server start, causing 3 second delay at very least
 				sdWorld.world_hash_positions_recheck_keys.add( x );
 				//if ( sdWorld.world_hash_positions_recheck_keys.indexOf( x ) === -1 )
 				//sdWorld.world_hash_positions_recheck_keys.push( x );
@@ -2361,10 +2382,10 @@ class sdWorld
 			}
 			else
 			{
-				let from_x = sdWorld.FastFloor( ( entity.x + entity._hitbox_x1 ) / CHUNK_SIZE );
-				let from_y = sdWorld.FastFloor( ( entity.y + entity._hitbox_y1 ) / CHUNK_SIZE );
-				let to_x = sdWorld.FastCeil( ( entity.x + entity._hitbox_x2 ) / CHUNK_SIZE );
-				let to_y = sdWorld.FastCeil( ( entity.y + entity._hitbox_y2 ) / CHUNK_SIZE );
+				let from_x = sdWorld.FastFloor( ( entity.x + entity._hitbox_x1 ) * CHUNK_SIZE_INV );
+				let from_y = sdWorld.FastFloor( ( entity.y + entity._hitbox_y1 ) * CHUNK_SIZE_INV );
+				let to_x = sdWorld.FastCeil( ( entity.x + entity._hitbox_x2 ) * CHUNK_SIZE_INV );
+				let to_y = sdWorld.FastCeil( ( entity.y + entity._hitbox_y2 ) * CHUNK_SIZE_INV );
 
 				if ( to_x === from_x )
 				to_x++;
@@ -2695,6 +2716,16 @@ class sdWorld
 			//const think_function_ptr_cache = [];
 			
 			//let skipper = 0;
+			
+			sdWorld.online_characters.length = 0;
+			if ( sdWorld.sockets ) // Server-side only thing
+			for ( let i = 0; i < sdWorld.sockets.length; i++ )
+			{
+				let socket = sdWorld.sockets[ i ];
+				
+				if ( socket.character && socket.post_death_spectate_ttl > 0 )
+				sdWorld.online_characters.push( socket.character );
+			}
 			
 			const debug_wake_up_sleep_refuse_reasons = sdDeepSleep.debug_wake_up_sleep_refuse_reasons;
 			
@@ -3199,10 +3230,10 @@ class sdWorld
 		let arr_i_x;
 		let arr_i_y;
 		
-		var xx_from = sdWorld.FastFloor( x1 / CHUNK_SIZE ); // Overshoot no longer needed, due to big entities now taking all needed hash arrays
-		var yy_from = sdWorld.FastFloor( y1 / CHUNK_SIZE );
-		var xx_to = sdWorld.FastCeil( x2 / CHUNK_SIZE );
-		var yy_to = sdWorld.FastCeil( y2 / CHUNK_SIZE );
+		var xx_from = sdWorld.FastFloor( x1 * CHUNK_SIZE_INV ); // Overshoot no longer needed, due to big entities now taking all needed hash arrays
+		var yy_from = sdWorld.FastFloor( y1 * CHUNK_SIZE_INV );
+		var xx_to = sdWorld.FastCeil( x2 * CHUNK_SIZE_INV );
+		var yy_to = sdWorld.FastCeil( y2 * CHUNK_SIZE_INV );
 		
 		if ( xx_to === xx_from )
 		xx_to++;
@@ -3298,10 +3329,10 @@ class sdWorld
 		let arr_i_x;
 		let arr_i_y;
 		
-		var xx_from = sdWorld.FastFloor( x1 / CHUNK_SIZE ); // Overshoot no longer needed, due to big entities now taking all needed hash arrays
-		var yy_from = sdWorld.FastFloor( y1 / CHUNK_SIZE );
-		var xx_to = sdWorld.FastCeil( x2 / CHUNK_SIZE );
-		var yy_to = sdWorld.FastCeil( y2 / CHUNK_SIZE );
+		var xx_from = sdWorld.FastFloor( x1 * CHUNK_SIZE_INV ); // Overshoot no longer needed, due to big entities now taking all needed hash arrays
+		var yy_from = sdWorld.FastFloor( y1 * CHUNK_SIZE_INV );
+		var xx_to = sdWorld.FastCeil( x2 * CHUNK_SIZE_INV );
+		var yy_to = sdWorld.FastCeil( y2 * CHUNK_SIZE_INV );
 		
 		if ( xx_to === xx_from )
 		xx_to++;

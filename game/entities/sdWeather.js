@@ -3501,24 +3501,33 @@ class sdWeather extends sdEntity
 					}*/
 				}
 
-				if ( this.matter_rain )
+				if ( this.matter_rain || this.acid_rain )
 				for ( var i = 0; i < sdWorld.sockets.length; i++ )
 				if ( sdWorld.sockets[ i ].character )
 				if ( !sdWorld.sockets[ i ].character._is_being_removed )
 				{
-					if ( sdWorld.sockets[ i ].character.driver_of === null )
+					//if ( sdWorld.sockets[ i ].character.driver_of === null )
+					if ( sdWorld.sockets[ i ].character.IsTargetable() )
 					if ( this.TraceDamagePossibleHere( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y ) )
 					{
-						//if ( sdWorld.sockets[ i ].character.pain_anim <= 0 && sdWorld.sockets[ i ].character.hea > 0 )
-						//sdWorld.SendEffect({ x:sdWorld.sockets[ i ].character.x, y:sdWorld.sockets[ i ].character.y + sdWorld.sockets[ i ].character._hitbox_y1, type:sdWorld.sockets[ i ].character.GetBleedEffect(), filter:sdWorld.sockets[ i ].character.GetBleedEffectFilter() });
+						if ( this.acid_rain )
+						{
+							if ( sdWorld.sockets[ i ].character.pain_anim <= 0 && sdWorld.sockets[ i ].character.hea > 0 )
+							sdWorld.sockets[ i ].character.PlayDamageEffect( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y + sdWorld.sockets[ i ].character._hitbox_y1 );
 
-						if ( this.matter_rain === 1 )
-						sdWorld.sockets[ i ].character.matter = Math.min( sdWorld.sockets[ i ].character.matter + ( GSPEED * this.raining_intensity / 120 ), sdWorld.sockets[ i ].character.matter_max );
-						if ( this.matter_rain === 2 )
-						sdWorld.sockets[ i ].character.matter = Math.max( sdWorld.sockets[ i ].character.matter - ( GSPEED * this.raining_intensity / 60 ), 0 );
+							sdWorld.sockets[ i ].character.DamageWithEffect( GSPEED * this.raining_intensity / 240 );
+						}
+						
+						if ( this.matter_rain )
+						{
+							if ( this.matter_rain === 1 )
+							sdWorld.sockets[ i ].character.matter = Math.min( sdWorld.sockets[ i ].character.matter + ( GSPEED * this.raining_intensity / 120 ), sdWorld.sockets[ i ].character.matter_max );
+							if ( this.matter_rain === 2 )
+							sdWorld.sockets[ i ].character.matter = Math.max( sdWorld.sockets[ i ].character.matter - ( GSPEED * this.raining_intensity / 60 ), 0 );
+						}
 					}
 				}
-				
+				/*
 				if ( this.acid_rain )
 				for ( var i = 0; i < sdWorld.sockets.length; i++ )
 				if ( sdWorld.sockets[ i ].character )
@@ -3535,7 +3544,7 @@ class sdWeather extends sdEntity
 
 						sdWorld.sockets[ i ].character.DamageWithEffect( GSPEED * this.raining_intensity / 240 );
 					}
-				}
+				}*/
 			}
 			
 			if ( this.quake_intensity >= 100 )
@@ -3550,7 +3559,7 @@ class sdWeather extends sdEntity
 					
 					//let tr = 1000;
 					
-					let tr = sdWorld.server_config.aggressive_hibernation ? 15 : 35;
+					let tr = sdWorld.server_config.aggressive_hibernation ? 25 : 35;
 					
 					do
 					{

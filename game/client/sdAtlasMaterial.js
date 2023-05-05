@@ -1700,7 +1700,7 @@ class sdAtlasMaterial
 				
 				// left ( a + c )
 				if ( ctx.box_caps.left )
-				if ( sdRenderer.screen_width / 2 < a.x )
+				if ( ctx.box_caps.is_rotated || sdRenderer.screen_width / 2 < a.x )
 				{
 					super_texture.DrawQuad( 
 							a.x, a.y, z0,
@@ -1748,7 +1748,7 @@ class sdAtlasMaterial
 		
 				// right ( b + d )
 				if ( ctx.box_caps.right )
-				if ( sdRenderer.screen_width / 2 > b.x )
+				if ( ctx.box_caps.is_rotated || sdRenderer.screen_width / 2 > b.x )
 				{
 					super_texture.DrawQuad( 
 							b.x, b.y, z0,
@@ -1796,7 +1796,7 @@ class sdAtlasMaterial
 		
 				// bottom ( c + d )
 				if ( ctx.box_caps.bottom )
-				if ( sdRenderer.screen_height / 2 > c.y )
+				if ( ctx.box_caps.is_rotated || sdRenderer.screen_height / 2 > c.y )
 				{
 					super_texture.DrawQuad( 
 							c.x, c.y, z0,
@@ -1846,7 +1846,7 @@ class sdAtlasMaterial
 		
 				// top ( a + b )
 				if ( ctx.box_caps.top )
-				if ( sdRenderer.screen_height / 2 < a.y )
+				if ( ctx.box_caps.is_rotated || sdRenderer.screen_height / 2 < a.y )
 				{
 					super_texture.DrawQuad( 
 							a.x, a.y, z,

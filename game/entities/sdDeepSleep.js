@@ -23,6 +23,7 @@
 
 		sdWorld.SaveSnapshotAuthoPath();
 
+	TODO: Had weird bug that caused rift portal overcharge rollback as well as 5k crystal resapwn which I did put into rift... Reboots did not happen. I doubt another 5k would spawn? It could be just GSPEED-unscaled sdRift logic though.
 
 	TODO: Maybe apply compression to chunk files? Though it would slow-down their loading
 
@@ -813,9 +814,65 @@ class sdDeepSleep extends sdEntity
 	{
 		return false;
 	}
+	GetSnapshot( current_frame, save_as_much_as_possible=false, observer_entity=null )
+	{
+		let cache;
+		
+		if ( this.type === sdDeepSleep.TYPE_UNSPAWNED_WORLD ) // These extremely require optimizations as saving can take 2 seconds
+		{
+			if ( !this._snapshot_cache )
+			this._snapshot_cache = { _net_id:this._net_id, _class:this.GetClass(), x:this.x, y:this.y, w:this.w, h:this.h, type:this.type };
+		
+			cache = this._snapshot_cache;
+		}
+		else
+		{
+			if ( save_as_much_as_possible )
+			{
+				if ( !this._snapshot_cache )
+				this._snapshot_cache = { _net_id:this._net_id, _class:this.GetClass(), x:this.x, y:this.y, w:this.w, h:this.h };
+			
+				cache = this._snapshot_cache;
+			
+				cache._will_hibernate_on = this._will_hibernate_on;
+				cache._will_be_written_to_disk = this._will_be_written_to_disk;
+				cache._will_become_unspawned = this._will_become_unspawned;
+
+				cache._snapshots_str = this._snapshots_str;
+
+				cache._snapshots_objects = this._snapshots_objects;
+
+				cache._snapshots_filename = this._snapshots_filename;
+				cache._file_exists = this._file_exists;
+
+				cache._my_hash_list = this._my_hash_list;
+				cache._rtp_biometries = this._rtp_biometries;
+				cache._beacon_net_ids = this._beacon_net_ids;
+			}
+			else
+			{
+				if ( !this._snapshot_cache_public )
+				this._snapshot_cache_public = { _net_id:this._net_id, _class:this.GetClass(), x:this.x, y:this.y, w:this.w, h:this.h };
+			
+				cache = this._snapshot_cache_public;
+			}
+		
+			cache.type = this.type;
+			
+			//return cache;
+			//return sdEntity.prototype.GetSnapshot.call( this, current_frame, save_as_much_as_possible, observer_entity );
+		}
+		
+		if ( this._is_being_removed )
+		cache._is_being_removed = this._is_being_removed;
+
+		return cache;
+	}
 	constructor( params )
 	{
 		super( params );
+		
+		this._snapshot_cache_public = null;
 		
 		this.w = params.w || 512;
 		this.h = params.h || 512;
@@ -854,8 +911,6 @@ class sdDeepSleep extends sdEntity
 		this._made_at = globalThis.getStackTrace();
 		
 		this._snapshots_filename = null; // null means it was never saved to disk yet
-		//this._saving = false;
-		//this._loaded_or_deleted = false;
 		this._file_exists = false;
 		
 		this._to_remove_temp_set = null;
@@ -863,8 +918,6 @@ class sdDeepSleep extends sdEntity
 		this._my_hash_list = []; // Disconnected player hashes are stored here
 		this._rtp_biometries = [];
 		this._beacon_net_ids = [];
-		
-		//this._removed_by_stack = null;
 		
 		sdDeepSleep.cells.push( this );
 		
