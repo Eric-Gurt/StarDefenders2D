@@ -56,7 +56,7 @@ class sdBG extends sdEntity
 		if ( !sdWorld.is_server )
 		return;
 		
-		if ( sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
+		if ( dmg = sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
 		{
 			this.remove();
 		}

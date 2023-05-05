@@ -1582,6 +1582,11 @@ class sdCharacter extends sdEntity
 		if ( from_ent._is_being_removed )
 		from_ent = null;
 
+		if ( !sdWorld.server_config.allow_rescue_teleports )
+		{
+			return false;
+		}
+
 		/*let tele_cost = sdRescueTeleport.max_matter;
 		
 		if ( !this.is( sdCharacter ) )

@@ -1521,6 +1521,12 @@ class sdWorld
 				bullet_obj._can_hit_owner = params.can_hit_owner;
 				else
 				bullet_obj._can_hit_owner = true;
+			
+				if ( params.anti_shield )
+				{
+					bullet_obj._custom_target_reaction = sdBullet.AntiShieldBulletReaction;
+					bullet_obj._anti_shield_damage_bonus = bullet_obj._damage * 10;
+				}
 				
 				sdEntity.entities.push( bullet_obj );
 			}

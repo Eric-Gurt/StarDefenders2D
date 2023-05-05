@@ -14,7 +14,7 @@ class sdServerConfigShort
 			
 	// If this all looks scary and you are using NetBeans - use "Ctrl + -" and "Ctrl + *" to hide big methods.
 	
-	static password = ''; // Restrict connection access?
+	static password = ''; // Restrict connection access by asking players for password?
 	static only_admins_can_spectate = true;
 	
 	static make_server_public = ( this.password === '' ); // By default it is public if password was not set. Public means server will send its' URL to www.gevanni.com to be potentially listed in servers list in future. Sent URL is told by first browser that has successfully connected to this server.
@@ -29,9 +29,8 @@ class sdServerConfigShort
 	
 	static database_server = null; // Example: 'https://www.gevanni.com:3000'; // Remote database_server must allow current server's IP in list above. Set as null if this server should have its' own database
 		
-	static notify_about_failed_s2s_attempts = true;
-	
-	static log_s2s_messages = false;
+	static notify_about_failed_s2s_attempts = true; // Trying to figure out why messages aren't sent from server to server? Set it to true
+	static log_s2s_messages = false; // Trying to figure out why messages aren't sent from server to server? Set it to true
 	
 	static skip_arrival_sequence = false; // Skipping it will prevent players from spawning together pretty much. It is useful during tests though.
 	
@@ -40,10 +39,10 @@ class sdServerConfigShort
 	static aggressive_hibernation = false; // Offscreen groups of entities (sometimes whole bases) will be put to sleep until something tries to access these areas
 	
 	static apply_censorship = true; // Censorship file is not included
-		
-	// Check file sdServerConfig.js for more stuff to alter in server logic
 	
 	static supported_languages = [ 'en', 'ua', 'hr' ];
+		
+	// Check file sdServerConfig.js for more stuff to alter in server logic
 }
 
 
@@ -114,6 +113,8 @@ class sdServerConfigFull extends sdServerConfigShort
 	static allowed_base_shielding_unit_types = null; // [ sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER, sdBaseShieldingUnit.TYPE_MATTER, sdBaseShieldingUnit.TYPE_SCORE_TIMED ] to allow specific ones or null to allow all
 	static allow_private_storage = true; // Accesible via LRTPs
 	static allow_rescue_teleports = true;
+	static allow_private_storage_access = true;
+	static com_node_hack_success_rate = 0.0015; // 0 - never works, 1 - works always
 	
 	static open_world_max_distance_from_zero_coordinates_x = 80000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.
 	static open_world_max_distance_from_zero_coordinates_y_min_soft = -3000; // Greater values work just fine, but do you really want this on your server? It can only cause lags.

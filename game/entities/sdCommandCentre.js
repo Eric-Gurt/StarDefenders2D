@@ -44,7 +44,7 @@ class sdCommandCentre extends sdEntity
 		
 		if ( this.hea > 0 )
 		{
-			if ( sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
+			if ( dmg = sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
 			{
 				this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 		

@@ -74,7 +74,7 @@ class sdLongRangeTeleport extends sdEntity
 		
 		if ( this.hea > 0 )
 		{
-			if ( sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
+			if ( dmg = sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
 			{
 				if ( !this.is_server_teleport )
 				this.hea -= dmg;
@@ -699,7 +699,7 @@ class sdLongRangeTeleport extends sdEntity
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_RAYRIFLE });
 			else
 			if ( rng < 1.2 )
-			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_MMG_THE_RIPPER_T3 });
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_KVT_MMG_MK2 }); // What is sdGun.CLASS_MMG_THE_RIPPER_T3 ? It does not exist
 			else
 			if ( rng < 1.4 )
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_AREA_AMPLIFIER });
@@ -1052,37 +1052,44 @@ class sdLongRangeTeleport extends sdEntity
 		{
 			if ( command_name === 'LIST_PRIVATE_STORAGE' )
 			{
-				let initiator_hash_or_user_uid = exectuter_character._my_hash;
-												
-				sdDatabase.Exec( 
-					[ 
-						[ 'DBManageSavedItems', initiator_hash_or_user_uid, 'LIST' ] 
-					], 
-					( responses )=>
-					{
-						// What if responses is null? Might happen if there is no connection to database server or database server refuses to accept connection from current server
-						
-						executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_RESET', [] ); // class, command_name, parameters_array
-						
-						for ( let i = 0; i < responses.length; i++ )
-						{
-							let response = responses[ i ];
+				if ( sdWorld.server_config.allow_private_storage_access )
+				{
+					let initiator_hash_or_user_uid = exectuter_character._my_hash;
 
-							if ( response[ 0 ] === 'DENY_WITH_SERVICE_MESSAGE' )
+					sdDatabase.Exec( 
+						[ 
+							[ 'DBManageSavedItems', initiator_hash_or_user_uid, 'LIST' ] 
+						], 
+						( responses )=>
+						{
+							// What if responses is null? Might happen if there is no connection to database server or database server refuses to accept connection from current server
+
+							executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_RESET', [] ); // class, command_name, parameters_array
+
+							for ( let i = 0; i < responses.length; i++ )
 							{
-								executer_socket.SDServiceMessage( response[ 1 ] );
+								let response = responses[ i ];
+
+								if ( response[ 0 ] === 'DENY_WITH_SERVICE_MESSAGE' )
+								{
+									executer_socket.SDServiceMessage( response[ 1 ] );
+								}
+								else
+								if ( response[ 0 ] === 'LIST_RESULT' )
+								{
+									executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_ADD', [ response[ 1 ] ] ); // class, command_name, parameters_array
+								}
+								else
+								debugger;
 							}
-							else
-							if ( response[ 0 ] === 'LIST_RESULT' )
-							{
-								executer_socket.CommandFromEntityClass( sdLongRangeTeleport, 'LIST_ADD', [ response[ 1 ] ] ); // class, command_name, parameters_array
-							}
-							else
-							debugger;
-						}
-					},
-					'localhost'
-				);
+						},
+						'localhost'
+					);
+				}
+				else
+				{
+					executer_socket.SDServiceMessage( 'Private storages are not available here' );
+				}
 				return;
 			}
 			
@@ -1223,6 +1230,13 @@ class sdLongRangeTeleport extends sdEntity
 					 command_name === 'SAVE_STUFF' || 
 					 command_name === 'GET_PRIVATE_STORAGE' )
 				{
+					if ( command_name === 'GET_PRIVATE_STORAGE' )
+					if ( !sdWorld.server_config.allow_private_storage_access )
+					{
+						executer_socket.SDServiceMessage( 'Private storages are not available here' );
+						return;
+					}
+
 					if ( !this.is_server_teleport )
 					{
 						let cc_near = this.has_cc_near;//GetComWiredCache( null, sdCommandCentre );
@@ -1331,10 +1345,11 @@ class sdLongRangeTeleport extends sdEntity
 										else
 										if ( command_name === 'GET_PRIVATE_STORAGE' )
 										{
+									
 											let initiator_hash_or_user_uid = exectuter_character._my_hash;
 											let this_x = this.x;
 											let this_y = this.y;
-												
+
 											this.matter = 0;
 
 											sdDatabase.Exec( 
@@ -1358,24 +1373,24 @@ class sdLongRangeTeleport extends sdEntity
 															let snapshots = response[ 1 ];
 															let relative_x = response[ 2 ];
 															let relative_y = response[ 3 ];
-															
+
 															this.InsertEntitiesOnTop( snapshots, relative_x, relative_y );
-															
+
 															if ( this._last_overlap_issue_entities.length > 0 )
 															{
 																for ( let i = 0; i < this._last_overlap_issue_entities.length; i++ )
 																if ( this._last_overlap_issue_entities[ i ] ) // Not null, which is a world bounds
 																this._last_overlap_issue_entities[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_STEERING_WHEEL_PING, c: [ 6, 0.5, 0.5 ], observer: exectuter_character });
-																
+
 																while ( this._last_inserted_entities_array.length > 0 )
 																{
 																	let e = this._last_inserted_entities_array.pop();
 																	e.remove();
 																	e._broken = false;
-																	
+
 																	sdLongRangeTeleport.teleported_items.add( e );
 																}
-																
+
 																// Return back...
 																sdDatabase.Exec( 
 																	[ 
