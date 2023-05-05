@@ -11,6 +11,7 @@ class WorkerServiceLogic
 		WorkerServiceLogic.ACTION_LZW = 0;
 		WorkerServiceLogic.ACTION_ECHO = 1;
 		WorkerServiceLogic.ACTION_EXIT = 2;
+		WorkerServiceLogic.ACTION_STRINGIFY = 3;
 	}
 	static HandleCommand( command, callback )
 	{
@@ -34,6 +35,18 @@ class WorkerServiceLogic
 				process.exit();
 			
 			},1000);
+		}
+		else
+		if ( command.action === WorkerServiceLogic.ACTION_STRINGIFY )
+		{
+			try
+			{
+				callback( JSON.stringify( command.data ) );
+			}
+			catch ( e )
+			{
+				callback( null );
+			}
 		}
 		else
 		throw new Error( 'Unknown worker command: ', command );

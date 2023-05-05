@@ -2628,7 +2628,6 @@ class sdEntity
 	{
 		return sdEntity.flag_counter++;
 	}
-	
 	constructor( params )
 	{
 		// Warning: When adding new properties here - at least make sure you don't save them at GetSnapshot
@@ -3161,7 +3160,8 @@ class sdEntity
 						//if ( this.GetClass() === 'sdBlock' )
 						//	debugger;
 						
-						let id = sdEntity.active_entities.indexOf( this );
+						//let id = sdEntity.active_entities.indexOf( this );
+						let id = sdEntity.active_entities.lastIndexOf( this );
 						if ( id === -1 )
 						debugger;
 						sdEntity.active_entities.splice( id, 1 );
@@ -3278,85 +3278,171 @@ class sdEntity
 					props = [];
 					
 					for ( let prop in this )
-					if ( 
-							prop.charAt( 0 ) !== '_' 
-							|| 
-							( 
-							  save_as_much_as_possible && 
-							  prop !== '_snapshot_cache_frame' && 
-							  prop !== '_snapshot_cache' && 
-							  prop !== '_hiberstate' && 
-							  prop !== '_affected_hash_arrays' && 
-							  prop !== '_class_id' && 
-							  prop !== '_flag' && 
-							  prop !== '_connected_ents' && 
-							  prop !== '_connected_ents_next_rethink' && 
-							  prop !== '_hitbox_x1' && 
-							  prop !== '_hitbox_y1' && 
-							  prop !== '_hitbox_x2' && 
-							  prop !== '_hitbox_y2' && 
-							  prop !== '_hard_collision' && 
-							  prop !== '_hitbox_last_update' && 
-							  prop !== '_last_hit_time' && 
-							  prop !== '_last_attacker_net_id' && 
-							  prop !== '_last_attacker_until' && 
-							  prop !== '_is_being_removed' && 
-							  prop !== '_broken' && 
-							  prop !== '_listeners' && 
-							  prop !== '_last_x' && 
-							  prop !== '_last_y' && 
-							  prop !== '_has_matter_props' && 
-							  prop !== '_has_liquid_props' && 
-							  prop !== '_is_static' && 
-							  prop !== '_update_version' && 
-							  prop !== '_remove_stack_trace' && 
-							  prop !== '_vis_block_top' && 
-							  prop !== '_vis_block_left' && 
-							  prop !== '_vis_block_right' && 
-							  prop !== '_vis_block_bottom' && 
-							  prop !== '_speak_id' && 
-							  prop !== '_say_allowed_in' && 
-							  
-							  prop !== '_phys_sleep' && 
-							  prop !== '_phys_last_touch' && 
-							  prop !== '_phys_last_rest_on' && 
-							  prop !== '_phys_last_w' && 
-							  prop !== '_phys_last_h' && 
-							  prop !== '_phys_last_sx' && 
-							  prop !== '_phys_last_sy' && 
-							  prop !== '_phys_last_rest_on_targetable' && 
-							  prop !== '_phys_last_rest_on_x' && 
-							  prop !== '_phys_last_rest_on_y' && 
-							  prop !== '_phys_entities_on_top' && 
-							  prop !== '_client_side_bg' && 
-							  
-							  prop !== '_frozen' && 
-							  
-							  prop !== '_anything_near_range' && 
-							  prop !== '_next_anything_near_rethink' &&
-							  
-							  ( 
-								typeof this[ prop ] === 'number' || 
-								typeof this[ prop ] === 'string' || 
-								this[ prop ] === null || 
-								typeof this[ prop ] === 'boolean' || 
-								this.ExtraSerialzableFieldTest( prop ) 
-							  ) 
-							) 
-						)
 					{
-						if ( prop === '_affected_hash_arrays' )
-						{
-							console.warn( 'Strange object has property "_affected_hash_arrays", which is typeof "'+(typeof this[ prop ])+'": ', this );
-							throw new Error('How? Bad.');
-						}
+						/*let ok = false;
 						
-						/*if ( prop === '_listeners' )
+						// Optimization of code from below
+						if ( prop.charCodeAt( 0 ) !== 95 )
+						ok = true;
+						else
+						if ( save_as_much_as_possible )
 						{
-							throw new Error('How? Bad.');
+							switch ( prop )
+							{
+								case '_snapshot_cache_frame':
+								case '_snapshot_cache':
+								case '_hiberstate':
+								case '_affected_hash_arrays':
+								case '_class_id':
+								case '_flag':
+								case '_connected_ents':
+								case '_connected_ents_next_rethink':
+								case '_hitbox_x1':
+								case '_hitbox_y1':
+								case '_hitbox_x2':
+								case '_hitbox_y2':
+								case '_hard_collision':
+								case '_hitbox_last_update':
+								case '_last_hit_time':
+								case '_last_attacker_net_id':
+								case '_last_attacker_until':
+								case '_is_being_removed':
+								case '_broken':
+								case '_listeners':
+								case '_last_x':
+								case '_last_y':
+								case '_has_matter_props':
+								case '_has_liquid_props':
+								case '_is_static':
+								case '_update_version':
+								case '_remove_stack_trace':
+								case '_vis_block_top':
+								case '_vis_block_left':
+								case '_vis_block_right':
+								case '_vis_block_bottom':
+								case '_speak_id':
+								case '_say_allowed_in':
+								case '_phys_sleep': 
+								case '_phys_last_touch': 
+								case '_phys_last_rest_on':
+								case '_phys_last_w': 
+								case '_phys_last_h': 
+								case '_phys_last_sx': 
+								case '_phys_last_sy': 
+								case '_phys_last_rest_on_targetable':
+								case '_phys_last_rest_on_x':
+								case '_phys_last_rest_on_y':
+								case '_phys_entities_on_top':
+								case '_client_side_bg':
+								case '_frozen': 
+								case '_anything_near_range':
+								case '_next_anything_near_rethink':
+									
+									//ok = false;
+									
+								break;
+								default:
+									
+									switch ( typeof this[ prop ] )
+									{
+										case 'number':
+										case 'string':
+										case 'boolean':
+
+											ok = true;
+
+										break;
+										default:
+
+											if ( this[ prop ] === null || this.ExtraSerialzableFieldTest( prop ) )
+											ok = true;
+											//else
+											//ok = false;
+
+										break;
+									}
+									
+								break;
+							}
+						}*/
+						
+						if ( 
+								//prop.charAt( 0 ) !== '_' 
+								prop.charCodeAt( 0 ) !== 95 // Same as above but faster
+								|| 
+								( 
+								  save_as_much_as_possible && 
+								  prop !== '_snapshot_cache_frame' && 
+								  prop !== '_snapshot_cache' && 
+								  prop !== '_hiberstate' && 
+								  prop !== '_affected_hash_arrays' && 
+								  prop !== '_class_id' && 
+								  prop !== '_flag' && 
+								  prop !== '_connected_ents' && 
+								  prop !== '_connected_ents_next_rethink' && 
+								  prop !== '_hitbox_x1' && 
+								  prop !== '_hitbox_y1' && 
+								  prop !== '_hitbox_x2' && 
+								  prop !== '_hitbox_y2' && 
+								  prop !== '_hard_collision' && 
+								  prop !== '_hitbox_last_update' && 
+								  prop !== '_last_hit_time' && 
+								  prop !== '_last_attacker_net_id' && 
+								  prop !== '_last_attacker_until' && 
+								  prop !== '_is_being_removed' && 
+								  prop !== '_broken' && 
+								  prop !== '_listeners' && 
+								  prop !== '_last_x' && 
+								  prop !== '_last_y' && 
+								  prop !== '_has_matter_props' && 
+								  prop !== '_has_liquid_props' && 
+								  prop !== '_is_static' && 
+								  prop !== '_update_version' && 
+								  prop !== '_remove_stack_trace' && 
+								  prop !== '_vis_block_top' && 
+								  prop !== '_vis_block_left' && 
+								  prop !== '_vis_block_right' && 
+								  prop !== '_vis_block_bottom' && 
+								  prop !== '_speak_id' && 
+								  prop !== '_say_allowed_in' && 
+
+								  prop !== '_phys_sleep' && 
+								  prop !== '_phys_last_touch' && 
+								  prop !== '_phys_last_rest_on' && 
+								  prop !== '_phys_last_w' && 
+								  prop !== '_phys_last_h' && 
+								  prop !== '_phys_last_sx' && 
+								  prop !== '_phys_last_sy' && 
+								  prop !== '_phys_last_rest_on_targetable' && 
+								  prop !== '_phys_last_rest_on_x' && 
+								  prop !== '_phys_last_rest_on_y' && 
+								  prop !== '_phys_entities_on_top' && 
+								  prop !== '_client_side_bg' && 
+
+								  prop !== '_frozen' && 
+
+								  prop !== '_anything_near_range' && 
+								  prop !== '_next_anything_near_rethink' &&
+
+								  ( 
+									typeof this[ prop ] === 'number' || 
+									typeof this[ prop ] === 'string' || 
+									this[ prop ] === null || 
+									typeof this[ prop ] === 'boolean' || 
+									this.ExtraSerialzableFieldTest( prop ) 
+								  ) 
+								) 
+							)
+						//if ( ok )
+						{
+							if ( prop === '_affected_hash_arrays' )
+							{
+								console.warn( 'Strange object has property "_affected_hash_arrays", which is typeof "'+(typeof this[ prop ])+'": ', this );
+								throw new Error('How? Bad.');
+							}
+
+							props.push( prop );
 						}
-						*/
-						props.push( prop );
 					}
 			
 					/*if ( this.GetClass() === 'sdBlock' )
@@ -3393,18 +3479,6 @@ class sdEntity
 					kinds[ current_kind ] = props;
 				}
 				
-				/*props = sdEntity.properties_by_class_public.get( this.__proto__.constructor );
-				
-				if ( props === undefined )
-				{
-					props = [];
-					
-					for ( var prop in this )
-					if ( prop.charAt( 0 ) !== '_' )
-					props.push( prop );
-					
-					sdEntity.properties_by_class_public.set( this.__proto__.constructor, props );
-				}*/
 			}
 			
 			//for ( var prop in this )
@@ -3412,8 +3486,6 @@ class sdEntity
 			{
 				let prop = props[ i ];
 				
-				//if ( prop.charAt( 0 ) !== '_' || 
-				//	 ( save_as_much_as_possible && prop !== '_snapshot_cache_frame' && prop !== '_snapshot_cache' && prop !== '_hiberstate' && prop !== '_last_x' && prop !== '_last_y' && ( typeof this[ prop ] === 'number' || typeof this[ prop ] === 'string' || typeof this[ prop ] === 'boolean' /*|| ( typeof this[ prop ] === 'object' && typeof this[ prop ]._net_id !== 'undefined' && typeof this[ prop ]._class !== 'undefined' )*/ || this.ExtraSerialzableFieldTest( prop ) ) ) )
 				{
 					let v = this[ prop ];
 					
