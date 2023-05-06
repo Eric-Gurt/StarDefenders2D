@@ -41,7 +41,9 @@ class sdBaseShieldingUnit extends sdEntity
 		sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER = 0;
 		sdBaseShieldingUnit.TYPE_MATTER = 1;
 		sdBaseShieldingUnit.TYPE_SCORE_TIMED = 2; // Similar to crystal consumer but players charge it with score, it expires overtime and can not be attacked. Can't be near red LRTPs though
+		sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE = 3; // Only portion of damage can pass through and damage entities
 		
+		sdBaseShieldingUnit.damage_reduction_shield_max_level = 60;
 		
 		sdBaseShieldingUnit.img_unit = sdWorld.CreateImageFromFile( 'shield_unit_sheet' );
 		/*
@@ -102,6 +104,8 @@ class sdBaseShieldingUnit extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
+		this._time_amplification = 0;
+		
 		this._connected_cameras_cache = [];
 		this._connected_cameras_cache_last_rethink = 0;
 		
@@ -125,13 +129,19 @@ class sdBaseShieldingUnit extends sdEntity
 		this.attack_other_units = true;
 		this._matter_drain = 0;
 		
+		this.level = 0; // For TYPE_DAMAGE_PERCENTAGE
+		this.auto_level_up = true;
+		this._level_up_blocked_until = 0;
+		
 		this.pushable = false; // By thrusters
 		
 		this.prevent_hostile_shielding = true; // Prevent bases from being "sealed forever", at least at zero range. Disabled globally by sdBaseShieldingUnit.enable_nearby_claiming constant
 		
 		this.protect_cables = true;
 		
-		this.matter_max = ( this.type === sdBaseShieldingUnit.TYPE_MATTER ) ? 1000 : 0;
+		this.matter_max = ( this.type === sdBaseShieldingUnit.TYPE_MATTER ) ? 1000 : 
+				( this.type === sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE ) ? 5120 : 
+				0;
 		this.matter = 0;
 		this.timer_to_expect_matter = 30 * 10; // Goes down when out of matter so big explosions could not destroy BSU if there is more matter
 		
@@ -186,6 +196,11 @@ class sdBaseShieldingUnit extends sdEntity
 		return ( prop === '_protected_entities' );
 	}
 	
+	MeasureProtectionPercentage()
+	{
+		return sdWorld.MorphWithTimeScale( 0, 1, 0.9, this.level );
+	}
+	
 	static TestIfPointIsOutsideOfBSURanges( x, y )
 	{
 		for ( let i = 0; i < sdBaseShieldingUnit.all_shield_units.length; i++ )
@@ -204,14 +219,24 @@ class sdBaseShieldingUnit extends sdEntity
 	
 	static TestIfDamageShouldPass( entity, dmg, initiator=null )
 	{
-		if ( entity._shielded === null || dmg === Infinity || entity._shielded._is_being_removed || !entity._shielded.enabled || !sdWorld.inDist2D_Boolean( entity.x + ( entity._hitbox_x1 + entity._hitbox_x2 ) / 2, entity.y + ( entity._hitbox_y1 + entity._hitbox_y2 ) / 2, entity._shielded.x, entity._shielded.y, sdBaseShieldingUnit.protect_distance_stretch ) )
+		if ( dmg !== Infinity && entity._shielded && !entity._shielded._is_being_removed && entity._shielded.enabled && entity._shielded.type === sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE && sdWorld.inDist2D_Boolean( entity.x + ( entity._hitbox_x1 + entity._hitbox_x2 ) / 2, entity.y + ( entity._hitbox_y1 + entity._hitbox_y2 ) / 2, entity._shielded.x, entity._shielded.y, sdBaseShieldingUnit.protect_distance_stretch ) )
 		{
-			return true;
+			entity._shielded.ProtectedEntityAttacked( entity, dmg, initiator );
+			return dmg * ( 1 - entity._shielded.MeasureProtectionPercentage() );
+		}
+		else
+		if ( entity._shielded === null || 
+			 dmg === Infinity || 
+			 entity._shielded._is_being_removed || 
+			 !entity._shielded.enabled || 
+			 !sdWorld.inDist2D_Boolean( entity.x + ( entity._hitbox_x1 + entity._hitbox_x2 ) / 2, entity.y + ( entity._hitbox_y1 + entity._hitbox_y2 ) / 2, entity._shielded.x, entity._shielded.y, sdBaseShieldingUnit.protect_distance_stretch ) )
+		{
+			return dmg;
 		}
 		else
 		{
 			entity._shielded.ProtectedEntityAttacked( entity, dmg, initiator );
-			return false;
+			return 0;
 		}
 	}
 	
@@ -704,7 +729,7 @@ class sdBaseShieldingUnit extends sdEntity
 			unfriendly_shields.push( s );
 		}
 		
-		if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+		//if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
 		for ( let i = 0; i < sdLongRangeTeleport.long_range_teleports.length; i++ )
 		{
 			let s = sdLongRangeTeleport.long_range_teleports[ i ];
@@ -842,6 +867,10 @@ class sdBaseShieldingUnit extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		let time_scale = sdGun.HandleTimeAmplification( this, 1 );
+		
+		GSPEED *= time_scale;
+		
 		if ( this.enabled )
 		{
 			this.sx = 0;
@@ -948,6 +977,27 @@ class sdBaseShieldingUnit extends sdEntity
 		
 		if ( !sdWorld.is_server)
 		return;
+	
+	
+		if ( this.type === sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE )
+		if ( this.auto_level_up )
+		{
+			if ( this.matter >= this.matter_max )
+			if ( sdWorld.time > this._level_up_blocked_until )
+			if ( this.level < sdBaseShieldingUnit.damage_reduction_shield_max_level ) // 2852 is 4 top tier crystals
+			{
+				this.matter = 0;
+				this._level_up_blocked_until = sdWorld.time + 1000 / time_scale;
+				
+				if ( this.level >= sdBaseShieldingUnit.damage_reduction_shield_max_level )
+				{
+					this.matter_max = 0;
+				}
+				
+				this.level++;
+				sdSound.PlaySound({ name:'ghost_start', pitch: 0.5 + 0.2 * ( 1 - Math.min( 1, this.level / 1000 ) ), x:this.x, y:this.y, volume:1 });
+			}
+		}
 	
 
 		//if ( this._repair_timer > 0 )
@@ -1355,6 +1405,9 @@ class sdBaseShieldingUnit extends sdEntity
 		if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
 		return T('Matter-based base shielding unit');
 	
+		if ( this.type === sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE )
+		return T('Damage reduction shield');
+	
 		//return T('Base shielding unit');
 		return 'undefined';
 	}
@@ -1392,6 +1445,21 @@ class sdBaseShieldingUnit extends sdEntity
 			sdEntity.TooltipUntranslated( ctx, T('Anti-raid protection') + ': ' + ~~(this.charge) + '% (' + active_str + allow_protection_claim_str + ')', 0, 0, ( this.charge < 50 || ( !this.prevent_hostile_shielding && sdBaseShieldingUnit.enable_nearby_claiming ) || !this.attack_other_units ) ? '#ff6666' : '#66ff66' );
 			else
 			sdEntity.TooltipUntranslated( ctx, T('Anti-raid protection') + ': ' + active_str + allow_protection_claim_str + '', 0, 0, ( ( !this.prevent_hostile_shielding && sdBaseShieldingUnit.enable_nearby_claiming ) || !this.attack_other_units ) ? '#ff6666' : '#66ff66' );
+		}
+		else
+		if ( this.type === sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE )
+		{
+			if ( this.level >= sdBaseShieldingUnit.damage_reduction_shield_max_level )
+			{
+				sdEntity.TooltipUntranslated( ctx, this.title, 0, -8 );
+				sdEntity.TooltipUntranslated( ctx, T('Damage reduction') + ': ' + Math.round( this.MeasureProtectionPercentage() * 100 * 1000 ) / 1000 + '% ( '+T('level')+' '+this.level+', '+T('maxed out')+' )', 0, 0, '#66ff66' );
+			}
+			else
+			{
+				sdEntity.TooltipUntranslated( ctx, this.title + " ( " + ~~(this.matter) + " / "+ ~~(this.matter_max) +" )", 0, -8 );
+				sdEntity.TooltipUntranslated( ctx, T('Damage reduction') + ': ' + Math.round( this.MeasureProtectionPercentage() * 100 * 1000 ) / 1000 + '% ( '+T('level')+' '+this.level+' )', 0, 0, '#66ff66' );
+			}
+		
 		}
 
 		let w = 30;
@@ -1533,6 +1601,14 @@ class sdBaseShieldingUnit extends sdEntity
 						executer_socket.SDServiceMessage( 'Base shield unit needs at least 320 matter. Use cable management tool and matter amplifiers with crystals to keep it charged' );
 					}
 					else
+					if ( this.type === sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE && ( sdWorld.is_singleplayer || sdWorld.server_config.allowed_base_shielding_unit_types === null || sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE ) !== -1 ) )
+					{
+						//if ( this.matter >= 320 )
+						this.SetShieldState( true, exectuter_character );
+						//else
+						//executer_socket.SDServiceMessage( 'Base shield unit needs at least 320 matter. Use cable management tool and matter amplifiers with crystals to keep it charged' );
+					}
+					else
 					{
 						executer_socket.SDServiceMessage( 'Base shild unit of this kind does not work in this environment' );
 					}
@@ -1595,7 +1671,11 @@ class sdBaseShieldingUnit extends sdEntity
 					sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:2, pitch:0.5 });
 				}
 				
-				
+				if ( command_name === 'AUTO_LEVEL_UP' )
+				{
+					this.auto_level_up = !this.auto_level_up;
+					sdSound.PlaySound({ name:'spider_deathC3', x:this.x, y:this.y, volume:2, pitch:0.5 });
+				}
 				
 				
 				if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
@@ -1696,6 +1776,9 @@ class sdBaseShieldingUnit extends sdEntity
 					else
 					if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
 					this.AddContextOption( 'Scan nearby unprotected entities ( 320 matter )', 'SHIELD_ON', [] );
+					else
+					if ( this.type === sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE )
+					this.AddContextOption( 'Scan nearby unprotected entities', 'SHIELD_ON', [] );
 					
 					this.AddContextOption( 'Reset previous temporary claims', 'CLAIMS_RESET', [] );
 				}
@@ -1705,11 +1788,15 @@ class sdBaseShieldingUnit extends sdEntity
 					
 					this.AddContextOption( 'Rescan entities', 'SHIELD_RESCAN', [] );
 				}
-				
+
+				if ( !this.auto_level_up )
+				this.AddContextOption( 'Enable automatic upgrading', 'AUTO_LEVEL_UP', [] );
+				else
+				this.AddContextOption( 'Stop automatic upgrading', 'AUTO_LEVEL_UP', [] );
 
 
-
-				if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+				if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED || 
+					 this.type === sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE )
 				{
 				}
 				else

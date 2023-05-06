@@ -10,6 +10,7 @@ import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
 import sdCable from './sdCable.js';
+import sdDoor from './sdDoor.js';
 
 
 class sdCom extends sdEntity
@@ -221,7 +222,7 @@ class sdCom extends sdEntity
 							
 						let r = Math.random();
 						
-						if ( r > 0.0015 && !sdCom.debug_hacking ) // 0.15 % chance
+						if ( r > sdWorld.server_config.com_node_hack_success_rate && !sdCom.debug_hacking ) // 0.15 % chance
 						{
 							sdSound.PlaySound({ name:'ghost_stop', pitch: 0.5, x:this.x, y:this.y, volume:1 });
 							this.hacking_left = sdCom.hacking_duration;
@@ -258,6 +259,11 @@ class sdCom extends sdEntity
 										if ( cable.p.is( sdCom ) || cable.c.is( sdCom ) )
 										cable.remove();
 									}
+								}
+								
+								if ( e.is( sdDoor ) )
+								{
+									e.open_type = sdDoor.OPEN_TYPE_COM_NODE;
 								}
 
 								let cable = new sdCable({ 

@@ -15,6 +15,9 @@ class sdBomb extends sdEntity
 		sdBomb.img_beacon2 = sdWorld.CreateImageFromFile( 'strike_beacon2' );
 		sdBomb.img_beacon3 = sdWorld.CreateImageFromFile( 'strike_beacon3' );
 		*/
+	   
+		sdBomb.TYPE_BASIC = 0;
+		sdBomb.TYPE_ANTI_BASE = 1;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -33,7 +36,14 @@ class sdBomb extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
+		this.type = params.type || 0;
+		
 		this.detonation_in = 30 * 25; // 25 seconds, was 45
+		
+		if ( this.type === sdBomb.TYPE_ANTI_BASE )
+		this.detonation_in = 30 * 60;
+	
+		//this.detonation_in = 30; // Hack
 		
 		this.hea = 100 * 2;
 		
@@ -108,6 +118,9 @@ class sdBomb extends sdEntity
 			if ( this.detonation_in % rate < rate / 2 )
 			{
 				// Beep
+				if ( sdBomb.TYPE_ANTI_BASE )
+				sdSound.PlaySound({ name:'sd_beacon', x:this.x, y:this.y, volume:0.25, pitch: 0.8 });
+				else
 				sdSound.PlaySound({ name:'sd_beacon', x:this.x, y:this.y, volume:0.25 });
 			}
 
@@ -118,13 +131,15 @@ class sdBomb extends sdEntity
 				sdWorld.SendEffect({ 
 					x:this.x, 
 					y:this.y, 
-					radius:70, // 80 was too much?
-					//damage_scale: 25 * ( this._owner ? this._owner._damage_mult : 1 ), // 5 was too deadly on relatively far range
-					damage_scale: 25 * ( this._owner ? 2 : 1 ), // 5 was too deadly on relatively far range
+					radius:( this.type === sdBomb.TYPE_ANTI_BASE ) ? 100 : 70, // 80 was too much?
+					//damage_scale: ( ( this.type === sdBomb.TYPE_ANTI_BASE ) ? 600 : 25 ) * 3, // 5 was too deadly on relatively far range
+					damage_scale: 25 * 3, // 5 was too deadly on relatively far range
 					type:sdEffect.TYPE_EXPLOSION, 
-					owner:this._owner,
+					owner: ( this.type === sdBomb.TYPE_ANTI_BASE ) ? null : this._owner,
 					can_hit_owner: true,
-					color:sdEffect.default_explosion_color
+					color:sdEffect.default_explosion_color,
+					
+					anti_shield: ( this.type === sdBomb.TYPE_ANTI_BASE )
 				});
 
 				this.remove();
@@ -135,12 +150,19 @@ class sdBomb extends sdEntity
 			this.DamageWithEffect( GSPEED );
 		}
 	}
+	get title()
+	{
+		if ( this.type === sdBomb.TYPE_ANTI_BASE )
+		return 'Anti-base shield bomb';
+			
+		return 'Bomb';
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.hea > 0 )
-		sdEntity.TooltipUntranslated( ctx, T("Bomb") + " ( " + Math.ceil( this.detonation_in / 30 ) + "s )" );
+		sdEntity.TooltipUntranslated( ctx, T( this.title ) + " ( " + Math.ceil( this.detonation_in / 30 ) + "s )" );
 		else
-		sdEntity.TooltipUntranslated( ctx, T("Bomb") + " ( " + T("disarmed") + " )" );
+		sdEntity.TooltipUntranslated( ctx, T( this.title ) + " ( " + T("disarmed") + " )" );
 	}
 	Draw( ctx, attached )
 	{
@@ -171,13 +193,16 @@ class sdBomb extends sdEntity
 			xx = 1;
 			//ctx.drawImageFilterCache( sdBomb.img_beacon2, - 16, - 16, 32,32 );
 		}
-		ctx.drawImageFilterCache( sdBomb.img_beacon, xx * 32, 0, 32,32, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdBomb.img_beacon, xx * 32, this.type * 32, 32,32, -16, -16, 32,32 );
 	}
 	onRemove() // Class-specific, if needed
 	{
 	}
 	MeasureMatterCost()
 	{
+		if ( this.type === sdBomb.TYPE_ANTI_BASE )
+		return 1850;
+	
 		return 200; // 300
 	}
 }

@@ -27,6 +27,7 @@ class sdTzyrgAbsorber extends sdEntity
 		sdTzyrgAbsorber.img_turret = sdWorld.CreateImageFromFile( 'tzyrg_absorber_turret' );
 		
 		sdTzyrgAbsorber.effect_radius = 800;
+		sdTzyrgAbsorber.attack_distance = 450;
 
 		sdTzyrgAbsorber.absorbers = [];
 	
@@ -222,7 +223,7 @@ class sdTzyrgAbsorber extends sdEntity
 			}
 
 				if ( this._target )
-				if ( this._attack_timer <= 0 )
+				if ( this._attack_timer <= 0 && sdWorld.inDist2D_Boolean( this.x, this.y, this._target.x, this._target.y, sdTzyrgAbsorber.attack_distance ) )
 				{
 					let xx = this._target.x + ( this._target._hitbox_x1 + this._target._hitbox_x2 ) / 2;
 					let yy = this._target.y + ( this._target._hitbox_y1 + this._target._hitbox_y2 ) / 2;
@@ -291,7 +292,7 @@ class sdTzyrgAbsorber extends sdEntity
 
 							//sdSound.PlaySound({ name:'gun_shotgun', x:this.x, y:this.y, pitch:1.25 });
 								
-							sdSound.PlaySound({ name:'tzyrg_fire', x:this.x, y:this.y, volume: this.type === sdDrone.DRONE_TZYRG_WATCHER ? 2 : 1, pitch: this.type === sdDrone.DRONE_TZYRG_WATCHER ? 0.8 : 1 });
+							sdSound.PlaySound({ name:'tzyrg_fire', x:this.x, y:this.y, volume: 1 });
 						}
 					}
 					else

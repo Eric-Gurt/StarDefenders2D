@@ -113,7 +113,7 @@ class sdButton extends sdEntity
 			
 		if ( this._hea > 0 )
 		{
-			if ( sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
+			if ( dmg = sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
 			{
 				this._hea -= dmg;
 
@@ -160,6 +160,8 @@ class sdButton extends sdEntity
 	{
 		if ( this.type === sdButton.TYPE_FLOOR_SENSOR || this.type === sdButton.TYPE_WALL_SENSOR || this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
 		if ( from_entity.IsBGEntity() === 0 )
+		if ( !from_entity.is( sdDoor ) )
+		if ( !from_entity.is( sdBlock ) )
 		{
 			if ( this._overlapped_net_ids.indexOf( from_entity._net_id ) === -1 )
 			{

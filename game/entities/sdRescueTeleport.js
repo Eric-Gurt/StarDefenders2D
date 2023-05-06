@@ -340,6 +340,8 @@ class sdRescueTeleport extends sdEntity
 	
 		this.matter = 0;
 		
+		this.allowed = true;
+		
 		//this.owner_net_id = this._owner ? this._owner._net_id : null;
 		
 		sdRescueTeleport.rescue_teleports.push( this );
@@ -426,7 +428,9 @@ class sdRescueTeleport extends sdEntity
 		}
 		else
 		this.owner_title = '';
-			
+	
+		this.allowed = sdWorld.server_config.allow_rescue_teleports;
+	
 		let can_hibernateA = false;
 		let can_hibernateB = false;
 		
@@ -509,7 +513,7 @@ class sdRescueTeleport extends sdEntity
 		let xx = 0;
 		let yy = this.type;
 		
-		if ( this.matter >= this._matter_max || sdShop.isDrawing || ( this.driver0 && this.matter > this._matter_max * 0.05 ) )
+		if ( this.allowed && ( this.matter >= this._matter_max || sdShop.isDrawing || ( this.driver0 && this.matter > this._matter_max * 0.05 ) ) )
 		{
 			ctx.apply_shading = false;
 			
@@ -553,19 +557,22 @@ class sdRescueTeleport extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		let postfix;
-		if ( this.driver0 )
-		postfix = " ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + ", " + T("cloning") + " "+(~~Math.min( 100, this.cloning_progress / sdRescueTeleport.clonning_time * 100 ))+"% )";
+		if ( this.allowed )
+		{
+			let postfix;
+
+			if ( this.driver0 )
+			postfix = " ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + ", " + T("cloning") + " "+(~~Math.min( 100, this.cloning_progress / sdRescueTeleport.clonning_time * 100 ))+"% )";
+			else
+			postfix = "  ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + " )";
+
+			if ( this.owner_biometry === -1 )
+			sdEntity.TooltipUntranslated( ctx, T( this.title ) + postfix );
+			else
+			sdEntity.TooltipUntranslated( ctx, this.owner_title + T( '\'s ' + this.title.toLowerCase() ) + postfix );
+		}
 		else
-		postfix = "  ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + " )";
-		
-		
-		if ( this.owner_biometry === -1 )
-		sdEntity.TooltipUntranslated( ctx, T( this.title ) + postfix );
-		else
-		sdEntity.TooltipUntranslated( ctx, this.owner_title + T( '\'s ' + this.title.toLowerCase() ) + postfix );
-	
-	
+		sdEntity.Tooltip( ctx, this.title + ' ( disabled on this server )' );
 	}
 	
 	onRemove() // Class-specific, if needed

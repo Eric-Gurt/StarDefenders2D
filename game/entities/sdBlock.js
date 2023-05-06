@@ -353,7 +353,7 @@ class sdBlock extends sdEntity
 			}
 			
 			//if ( this._shielded === null || dmg === Infinity || this._shielded._is_being_removed || !this._shielded.enabled || !sdWorld.inDist2D_Boolean( this.x, this.y, this._shielded.x, this._shielded.y, sdBaseShieldingUnit.protect_distance_stretch ) )
-			if ( sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
+			if ( dmg = sdBaseShieldingUnit.TestIfDamageShouldPass( this, dmg, initiator ) )
 			{
 				this._hea -= dmg;
 			}
@@ -364,7 +364,8 @@ class sdBlock extends sdEntity
 
 			this.HandleDestructionUpdate();
 			
-			if ( this.material === sdBlock.MATERIAL_TRAPSHIELD || this.material === sdBlock.MATERIAL_CORRUPTION ) // Instant regeneration
+			if ( ( this.material === sdBlock.MATERIAL_TRAPSHIELD && ( !this._shielded || this._shielded._is_being_removed || !this._shielded.enabled ) ) || 
+				 this.material === sdBlock.MATERIAL_CORRUPTION ) // Instant regeneration, though shielded shields will have regeneration cooldown
 			{
 				this._regen_timeout = 0;
 			}
