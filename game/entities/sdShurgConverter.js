@@ -54,6 +54,7 @@ class sdShurgConverter extends sdEntity
 		this.matter = 0;
 		this.matter_max = 300;
 		this._notify_in = 30; // Notify players of the task every second, also drains player oxygen if they're nearby
+		this._ai_team = 9;
 
 		//this._drain_entities = []; // Array which stores which players to drain oxygen from when they are close enough
 		//Not needed

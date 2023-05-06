@@ -26,7 +26,7 @@ class sdShurgTurret extends sdEntity
 		sdShurgTurret.img_body = sdWorld.CreateImageFromFile( 'shurg_turret' );
 		sdShurgTurret.img_turret = sdWorld.CreateImageFromFile( 'shurg_turret_gun' );
 		
-		//sdShurgTurret.attack_distance = 400;
+		sdShurgTurret.attack_distance = 450;
 
 		sdShurgTurret.turrets = [];
 	
@@ -257,7 +257,7 @@ class sdShurgTurret extends sdEntity
 						if ( this._target.GetClass() === 'sdBlock' )
 						consider_attacking = true;
 
-						if ( consider_attacking )
+						if ( consider_attacking && sdWorld.inDist2D_Boolean( this.x, this.y, this._target.x, this._target.y, sdShurgTurret.attack_distance ) )
 						{
 							this._last_seen = 0; // Reset "last seen" timer
 							let dx = xx - this.x;
@@ -278,7 +278,7 @@ class sdShurgTurret extends sdEntity
 							this.side = ( dx > 0 ) ? 1 : -1;
 
 							let should_fire = true;
-							if ( !sdWorld.CheckLineOfSight( this.x, this.y - 16, this._target.x, this._target.y, this, null, ['sdCharacter', 'sdDrone' ] ) )
+							if ( !sdWorld.CheckLineOfSight( this.x, this.y - 16, this._target.x, this._target.y, this, null, ['sdCharacter', 'sdDrone', 'sdShurgConverter' ] ) )
 							{
 								if ( sdWorld.last_hit_entity && sdWorld.last_hit_entity._ai_team === this._ai_team )
 								should_fire = false;
