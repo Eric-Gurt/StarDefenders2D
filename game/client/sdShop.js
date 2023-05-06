@@ -378,7 +378,6 @@ class sdShop
 				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:0, _category:'Base equipment' });
 				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:1, _category:'Base equipment' });
 				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:2, _category:'Base equipment' });
-				sdShop.options.push({ _class: 'sdBaseShieldingUnit', type:3, _category:'Base equipment' });
 			}
 			else
 			{
@@ -494,7 +493,6 @@ class sdShop
 				}
 			}
 			sdShop.options.push({ _class: 'sdBomb', _category:'Equipment' });
-			sdShop.options.push({ _class: 'sdBomb', type:1, _category:'Equipment', _min_build_tool_level:25 });
 			sdShop.options.push({ _class: 'sdBarrel', _category:'Equipment', _min_build_tool_level:5 });
 			sdShop.options.push({ _class: 'sdBarrel', color: '#33FFFF', filter: 'hue-rotate(130deg) saturate(10)', variation: 1, _category:'Equipment', _min_build_tool_level:10 });
 			sdShop.options.push({ _class: 'sdBarrel', color: '#ff6633', filter: 'hue-rotate(300deg) saturate(20)', variation: 2, _category:'Equipment', _min_build_tool_level:15 });
@@ -558,6 +556,8 @@ class sdShop
 				sdShop.options.push({ _class: 'sdJunk', type: 8, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCouncilMachine', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdTzyrgAbsorber', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdShurgConverter', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdShurgTurret', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBadDog', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdShark', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdWorkbench', _category:'Development tests' });
