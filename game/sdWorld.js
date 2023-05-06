@@ -1399,7 +1399,6 @@ class sdWorld
 	{
 		if ( !sdWorld.is_server )
 		return;
-		let spawned = 0;
 
 		for ( var i = 0; i < tot; i++ )
 		{
@@ -1434,21 +1433,29 @@ class sdWorld
 					{
 						water_ent = new sdWater({ x: xx, y: yy, type:type });
 
-						if ( typeof water_ent.extra !== 'undefined' )
-						water_ent.extra = extra;
+						//water_ent.extra = extra;
 						
 						sdEntity.entities.push( water_ent );
 						sdWorld.UpdateHashPosition( water_ent, false );
 
-						spawned++;
-
 						if ( liquid_to_modify )
 						{
-							liquid_to_modify.amount -= 100;
-							liquid_to_modify.extra -= extra;
+							if ( liquid_to_modify.amount <= 100 )
+							{
+								water_ent._volume = liquid_to_modify.amount / 100;
+								//water_ent.extra = liquid_to_modify.extra;
 
-							if ( liquid_to_modify.amount <= 0 )
-							liquid_to_modify.type = -1;
+								liquid_to_modify.amount = 0;
+								liquid_to_modify.extra = 0;
+								liquid_to_modify.type = -1;
+
+								tot = 0;
+							}
+							else
+							{
+								liquid_to_modify.amount -= 100;
+								liquid_to_modify.extra -= extra;
+							}
 						}
 
 						break;
@@ -1458,8 +1465,6 @@ class sdWorld
 				tr--;
 			}
 		}
-
-		console.log( spawned );
 	}
 	static SendEffect( params, command='EFF', exclusive_to_sockets_arr=null ) // 'S' for sound
 	{
