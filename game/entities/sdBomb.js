@@ -118,7 +118,7 @@ class sdBomb extends sdEntity
 			if ( this.detonation_in % rate < rate / 2 )
 			{
 				// Beep
-				if ( sdBomb.TYPE_ANTI_BASE )
+				if ( this.type === sdBomb.TYPE_ANTI_BASE )
 				sdSound.PlaySound({ name:'sd_beacon', x:this.x, y:this.y, volume:0.25, pitch: 0.8 });
 				else
 				sdSound.PlaySound({ name:'sd_beacon', x:this.x, y:this.y, volume:0.25 });
