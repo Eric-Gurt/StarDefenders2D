@@ -18,6 +18,7 @@ import sdWeather from './sdWeather.js';
 import sdRift from './sdRift.js';
 import sdBlock from './sdBlock.js';
 import sdFactions from './sdFactions.js';
+import sdShurgTurret from './sdShurgTurret.js';
 
 class sdShurgConverter extends sdEntity
 {
@@ -53,6 +54,7 @@ class sdShurgConverter extends sdEntity
 		this.matter = 0;
 		this.matter_max = 300;
 		this._notify_in = 30; // Notify players of the task every second, also drains player oxygen if they're nearby
+		this._ai_team = 9;
 
 		//this._drain_entities = []; // Array which stores which players to drain oxygen from when they are close enough
 		//Not needed
@@ -91,70 +93,38 @@ class sdShurgConverter extends sdEntity
 				while ( instances < instances_tot && sdShurgConverter.converters.length < 2 ) // Spawn another Shurg converter until last one
 				{
 					//let points = sdShurgConverter.ents_left === 0 ? 0.25: 0;
-					//let converter = new sdShurgConverter({ x:0, y:0 });
+					let converter = new sdShurgConverter({ x:0, y:0 });
 
-					sdWeather.SimpleSpawner({
+					sdEntity.entities.push( converter );
+					
+					if ( sdWeather.SetRandomSpawnLocation( converter ) ) // SimpleSpawner sometimes doesn't spawn the entity if ents are left nor does it drop the BT
+					{
+						spawned_ent = true;
+
+						sdWeather.SimpleSpawner({
+				
+						count: [ 2, 2 ],
+						class: sdShurgTurret,
+				
+						group_radius: 800,
+						near_entity: converter
+				
+						});
+					}
+					else
+					{
+						converter.remove();
+						converter._broken = false;
+					}
+
+
+					/*sdWeather.SimpleSpawner({
 						
 						count: [ 1, 1 ],
 						class: sdShurgConverter,
 						params: {}
 						
-					});
-
-					//sdEntity.entities.push( converter );
-
-					/*let x,y,i;
-					let tr = 1000;
-					do
-					{
-						x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
-						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-
-						if ( converter.CanMoveWithoutOverlap( x, y - 32, 0 ) )
-						if ( converter.CanMoveWithoutOverlap( x, y, 0 ) )
-						if ( !converter.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-						if ( sdWorld.last_hit_entity )
-						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
-						if ( !sdWorld.CheckWallExistsBox( 
-								x + converter._hitbox_x1 - 16, 
-								y + converter._hitbox_y1 - 16, 
-								x + converter._hitbox_x2 + 16, 
-								y + converter._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
-						{
-							let di_allowed = true;
-									
-							for ( i = 0; i < sdWorld.sockets.length; i++ )
-							if ( sdWorld.sockets[ i ].character )
-							{
-								let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
-										
-								if ( di < 500 )
-								{
-									di_allowed = false;
-									break;
-								}
-							}
-									
-							if ( di_allowed )
-							{
-								converter.x = x;
-								converter.y = y;
-								spawned_ent = true; // Successfully has space to spawn new converter, otherwise end the task and give reward points
-								break;
-							}
-						}
-								
-
-
-						tr--;
-						if ( tr < 0 )
-							{
-							converter.remove();
-							converter._broken = false;
-							break;
-						}
-					} while( true );*/
+					});*/
 
 					instances++;
 				}
@@ -162,8 +132,7 @@ class sdShurgConverter extends sdEntity
 
 			}
 
-			//if ( spawned_ent === true )
-			if ( sdShurgConverter.converters.length > 1 )
+			if ( spawned_ent === true )
 			{
 				for ( let i = 0; i < sdTask.tasks.length; i++ ) // All tasks related to this entity will set reward to 0 since it's not the last machine of the event.
 				{
