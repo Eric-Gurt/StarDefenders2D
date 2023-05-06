@@ -91,71 +91,29 @@ class sdCouncilMachine extends sdEntity
 				while ( instances < instances_tot && sdCouncilMachine.ents < 2 ) // Spawn another council machine until last one
 				{
 					//let points = sdCouncilMachine.ents_left === 0 ? 0.25: 0;
+
+					let machine = new sdCouncilMachine({ x:0, y:0 });
+
+					sdEntity.entities.push( machine );
 					
-					sdWeather.SimpleSpawner({
+					if ( sdWeather.SetRandomSpawnLocation( machine ) ) // SimpleSpawner sometimes doesn't spawn the entity if ents are left nor does it drop the BT
+					{
+						spawned_ent = true;
+					}
+					else
+					{
+						machine.remove();
+						machine._broken = false;
+					}
+
+
+					/*sdWeather.SimpleSpawner({
 						
 						count: [ 1, 1 ],
 						class: sdCouncilMachine,
-						params: { detonation_in:this.detonation_in }
+						params: {}
 						
-					});
-					
-					/*let council_mach = new sdCouncilMachine({ x:0, y:0, detonation_in:this.detonation_in });
-
-					sdEntity.entities.push( council_mach );
-
-					let x,y,i;
-					let tr = 1000;
-					do
-					{
-						x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
-						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-
-						if ( council_mach.CanMoveWithoutOverlap( x, y - 32, 0 ) )
-						if ( council_mach.CanMoveWithoutOverlap( x, y, 0 ) )
-						if ( !council_mach.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-						if ( sdWorld.last_hit_entity )
-						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.material === sdBlock.MATERIAL_GROUND && sdWorld.last_hit_entity._natural )
-						if ( !sdWorld.CheckWallExistsBox( 
-								x + council_mach._hitbox_x1 - 16, 
-								y + council_mach._hitbox_y1 - 16, 
-								x + council_mach._hitbox_x2 + 16, 
-								y + council_mach._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
-						{
-							let di_allowed = true;
-									
-							for ( i = 0; i < sdWorld.sockets.length; i++ )
-							if ( sdWorld.sockets[ i ].character )
-							{
-								let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
-										
-								if ( di < 500 )
-								{
-									di_allowed = false;
-									break;
-								}
-							}
-									
-							if ( di_allowed )
-							{
-								council_mach.x = x;
-								council_mach.y = y;
-								spawned_ent = true; // Successfully has space to spawn new machine, otherwise end the task and give reward points
-								break;
-							}
-						}
-								
-
-
-						tr--;
-						if ( tr < 0 )
-							{
-							council_mach.remove();
-							council_mach._broken = false;
-							break;
-						}
-					} while( true );*/
+					});*/
 
 					instances++;
 				}
@@ -163,8 +121,7 @@ class sdCouncilMachine extends sdEntity
 
 			}
 
-			//if ( spawned_ent === true )
-			if ( sdCouncilMachine.ents > 1 )
+			if ( spawned_ent === true )
 			{
 				for ( let i = 0; i < sdTask.tasks.length; i++ ) // All tasks related to this entity will set reward to 0 since it's not the last machine of the event.
 				{

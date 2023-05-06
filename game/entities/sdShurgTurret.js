@@ -19,22 +19,22 @@ import sdRift from './sdRift.js';
 import sdBlock from './sdBlock.js';
 import sdFactions from './sdFactions.js';
 
-class sdTzyrgAbsorber extends sdEntity
+class sdShurgTurret extends sdEntity
 {
 	static init_class()
 	{
-		sdTzyrgAbsorber.img_absorber = sdWorld.CreateImageFromFile( 'tzyrg_quake_absorber' );
-		sdTzyrgAbsorber.img_turret = sdWorld.CreateImageFromFile( 'tzyrg_absorber_turret' );
+		sdShurgTurret.img_body = sdWorld.CreateImageFromFile( 'shurg_turret' );
+		sdShurgTurret.img_turret = sdWorld.CreateImageFromFile( 'shurg_turret_gun' );
 		
-		sdTzyrgAbsorber.effect_radius = 800;
+		//sdShurgTurret.attack_distance = 400;
 
-		sdTzyrgAbsorber.absorbers = [];
+		sdShurgTurret.turrets = [];
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -13; }
-	get hitbox_x2() { return 13; }
-	get hitbox_y1() { return -19; }
+	get hitbox_x1() { return -10; }
+	get hitbox_x2() { return 10; }
+	get hitbox_y1() { return -10; }
 	get hitbox_y2() { return 13; }
 	
 	get hard_collision() // For world geometry where players can walk
@@ -47,23 +47,24 @@ class sdTzyrgAbsorber extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 
-		this.hmax = 6000;
+		this.hmax = 800;
 		this.hea = this.hmax;
-		this._spawn_timer = 30 * 60 * 5; // Spawn Tzyrgs timer
 		this._regen_timeout = 0; // Regen timeout;
 		this._notify_players = 0;
 
 		this._target = null;
-		this._ai_team = 8; // 8 is AI team for tzyrgs, so the device doesn't target Tzyrgs
+		this._ai_team = 9; // 9 is AI team for Shurgs
 		this._attack_timer = 0;
 		this.attack_frame = 0;
 		this.attack_an = 0;
 		this.side = 1;
 		this._last_seen = 0;
 
-		this._next_scan = 10; // Target scanning so the device doesn't spam GetRandomEntityNearby()
+		this._next_scan = 5; // Target scanning so the device doesn't spam GetRandomEntityNearby()
 
-		sdTzyrgAbsorber.absorbers.push( this );
+		this._time_until_full_remove = 30 * 5 + Math.random() * 30 * 5; // 5-10 seconds to get removed
+
+		sdShurgTurret.turrets.push( this );
 
 	}
 	/*GetBleedEffect()
@@ -151,26 +152,44 @@ class sdTzyrgAbsorber extends sdEntity
 		
 		if ( this.hea <= 0 && was_alive )
 		{
+
+			let that = this;
+			for ( var i = 0; i < 6; i++ )
+			{
+				let an = Math.random() * Math.PI * 2;
+				let d = ( i === 0 ) ? 0 : Math.random() * 20;
+				let r = ( i === 0 ) ? 30 : ( 6 + Math.random() * 12 );
+
+				setTimeout( ()=>
 				{
-					let x = this.x;
-					let y = this.y;
-					let sx = this.sx;
-					let sy = this.sy;
+					if ( !that._is_being_removed || i === 0 )
+					{
+						var a = Math.random() * 2 * Math.PI;
+						var s = Math.random() * 10;
 
-					setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+						var k = 1;
 
-					let gun;
-					gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_BUILDTOOL_UPG });
-					gun.extra = 0;
+						var x = that.x + that._hitbox_x1 + Math.random() * ( that._hitbox_x2 - that._hitbox_x1 );
+						var y = that.y + that._hitbox_y1 + Math.random() * ( that._hitbox_y2 - that._hitbox_y1 );
 
-					//gun.sx = sx;
-					//gun.sy = sy;
-					sdEntity.entities.push( gun );
+						that.sx -= Math.sin( an ) * d * r * 0.005;
+						that.sy -= Math.cos( an ) * d * r * 0.005;
 
-					}, 500 );
-				}
-
-			this.remove();
+						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_ROCK, sx: that.sx*k + Math.sin(a)*s, sy: that.sy*k + Math.cos(a)*s });
+						sdWorld.SendEffect({ 
+							x: that.x + Math.sin( an ) * d, 
+							y: that.y + Math.cos( an ) * d, 
+							radius: r, 
+							damage_scale: 1, 
+							type: sdEffect.TYPE_EXPLOSION,
+							owner: that,
+							can_hit_owner: true,
+							color: sdEffect.default_explosion_color 
+						});
+					}
+				}, i * 150 );
+			}
+			//this.remove();
 		}
 		
 	}
@@ -194,80 +213,80 @@ class sdTzyrgAbsorber extends sdEntity
 
 		this.sy += sdWorld.gravity * GSPEED;
 
-		if ( sdWorld.is_server )
+		if ( this.hea > 0 )
 		{
+			if ( sdWorld.is_server )
+			{	
 
-			if ( this.attack_frame > 0 )
-			this.attack_frame = Math.max( 0, this.attack_frame - GSPEED * 0.1 );
+				if ( this.attack_frame > 0 )
+				this.attack_frame = Math.max( 0, this.attack_frame - GSPEED * 0.1 );
+	
 
-
-			if ( !this._target || this._target._is_being_removed )
-			{
-				this._target = null;
-				
-				if ( this._next_scan <= 0 )
+				if ( !this._target || this._target._is_being_removed )
 				{
-					this._target = this.GetRandomEntityNearby();
-					this._next_scan = 3;
-				}
-				else
-				this._next_scan -= GSPEED;
-			}
-			else
-			{
-				let dx = ( this._target.x + ( this._target._hitbox_x1 + this._target._hitbox_x2 ) / 2 ) - this.x;
-				let dy = ( this._target.y + ( this._target._hitbox_y1 + this._target._hitbox_y2 ) / 2 ) - this.y + 16;
-				this.attack_an = ( Math.atan2( dy, Math.abs( dx ) ) ) * 1000;
-				this.side = ( dx > 0 ) ? 1 : -1;
-			}
-
-				if ( this._target )
-				if ( this._attack_timer <= 0 )
-				{
-					let xx = this._target.x + ( this._target._hitbox_x1 + this._target._hitbox_x2 ) / 2;
-					let yy = this._target.y + ( this._target._hitbox_y1 + this._target._hitbox_y2 ) / 2;
-					let consider_attacking = false;
-					if ( this._target.GetClass() !== 'sdBlock' )
+					this._target = null;
+					
+					if ( this._next_scan <= 0 )
 					{
-						if ( sdWorld.CheckLineOfSight( this.x, this.y - 16, xx, yy, this._target, null, sdCom.com_creature_attack_unignored_classes ) )
-						consider_attacking = true;
+						this._target = this.GetRandomEntityNearby();
+						this._next_scan = 3;
 					}
 					else
-					if ( this._target.GetClass() === 'sdBlock' )
-					consider_attacking = true;
-
-					if ( consider_attacking )
+					this._next_scan -= GSPEED;
+				}
+				else
+				{
+					let dx = ( this._target.x + ( this._target._hitbox_x1 + this._target._hitbox_x2 ) / 2 ) - this.x;
+					let dy = ( this._target.y + ( this._target._hitbox_y1 + this._target._hitbox_y2 ) / 2 ) - this.y + 8;
+					this.attack_an = ( Math.atan2( dy, Math.abs( dx ) ) ) * 1000;
+					this.side = ( dx > 0 ) ? 1 : -1;
+				}
+	
+					if ( this._target )
+					if ( this._attack_timer <= 0 )
 					{
-						this._last_seen = 0; // Reset "last seen" timer
-						let dx = xx - this.x;
-						let dy = yy - this.y + 16;
-
-						let di = sdWorld.Dist2D_Vector( dx, dy );
-
-						//dx += ( from_entity.sx || 0 ) * di / 12;
-						//dy += ( from_entity.sy || 0 ) * di / 12;
-
-						di = sdWorld.Dist2D_Vector( dx, dy );
-
-						if ( di > 1 )
+						let xx = this._target.x + ( this._target._hitbox_x1 + this._target._hitbox_x2 ) / 2;
+						let yy = this._target.y + ( this._target._hitbox_y1 + this._target._hitbox_y2 ) / 2;
+						let consider_attacking = false;
+						if ( this._target.GetClass() !== 'sdBlock' )
 						{
-							dx /= di;
-							dy /= di;
+							if ( sdWorld.CheckLineOfSight( this.x, this.y - 8, xx, yy, this._target, null, sdCom.com_creature_attack_unignored_classes ) )
+							consider_attacking = true;
 						}
-						this.side = ( dx > 0 ) ? 1 : -1;
+						else
+						if ( this._target.GetClass() === 'sdBlock' )
+						consider_attacking = true;
 
-						let should_fire = true;
-						if ( !sdWorld.CheckLineOfSight( this.x, this.y - 16, this._target.x, this._target.y, this, null, ['sdCharacter', 'sdDrone' ] ) )
+						if ( consider_attacking )
 						{
-							if ( sdWorld.last_hit_entity && sdWorld.last_hit_entity._ai_team === this._ai_team )
-							should_fire = false;
-						}
+							this._last_seen = 0; // Reset "last seen" timer
+							let dx = xx - this.x;
+							let dy = yy - this.y + 8;
 
-						if ( should_fire )
-						{
-							for ( let i = 0; i < 5; i++ )
+							let di = sdWorld.Dist2D_Vector( dx, dy );
+
+							//dx += ( from_entity.sx || 0 ) * di / 12;
+							//dy += ( from_entity.sy || 0 ) * di / 12;
+
+							di = sdWorld.Dist2D_Vector( dx, dy );
+
+							if ( di > 1 )
 							{
-								let bullet_obj = new sdBullet({ x: this.x, y: this.y - 16 });
+								dx /= di;
+								dy /= di;
+							}
+							this.side = ( dx > 0 ) ? 1 : -1;
+
+							let should_fire = true;
+							if ( !sdWorld.CheckLineOfSight( this.x, this.y - 16, this._target.x, this._target.y, this, null, ['sdCharacter', 'sdDrone' ] ) )
+							{
+								if ( sdWorld.last_hit_entity && sdWorld.last_hit_entity._ai_team === this._ai_team )
+								should_fire = false;
+							}
+
+							if ( should_fire )
+							{
+								let bullet_obj = new sdBullet({ x: this.x, y: this.y - 8 });
 
 								bullet_obj._owner = this;
 
@@ -275,105 +294,78 @@ class sdTzyrgAbsorber extends sdEntity
 								bullet_obj.sy = dy;
 								bullet_obj.x += bullet_obj.sx * 6;
 								bullet_obj.y += bullet_obj.sy * 6;
-
-								bullet_obj.sx *= 12 + Math.random() * 8 - Math.random() * 8;
-								bullet_obj.sy *= 12 + Math.random() * 8 - Math.random() * 8;
-
-								bullet_obj._damage = 15;
-
+								bullet_obj.sx = bullet_obj.sx * 18;
+								bullet_obj.sy = bullet_obj.sy * 18;
+								bullet_obj.color = '#004400';
+								bullet_obj._damage = 35;
+	
 	
 								sdEntity.entities.push( bullet_obj );
-							}
 
-							this.attack_frame = 1;
-							//this.attack_an = ( Math.atan2( dy, Math.abs( dx ) ) ) * 1000;
-							this._attack_timer = 24;
+								this.attack_frame = 1;
+								//this.attack_an = ( Math.atan2( dy, Math.abs( dx ) ) ) * 1000;
+								this._attack_timer = 10;
 
-							//sdSound.PlaySound({ name:'gun_shotgun', x:this.x, y:this.y, pitch:1.25 });
+								//sdSound.PlaySound({ name:'gun_shotgun', x:this.x, y:this.y, pitch:1.25 });
 								
-							sdSound.PlaySound({ name:'tzyrg_fire', x:this.x, y:this.y, volume: 1 });
+								sdSound.PlaySound({ name:'gun_needle', x:this.x, y:this.y, pitch: 2 });
+							}
+						}
+						else
+						this._last_seen++;
+						if ( this._last_seen > 180 )
+						{
+							this._target = null;
+							this._last_seen = 0;
 						}
 					}
 					else
-					this._last_seen++;
-					if ( this._last_seen > 180 )
-					{
-						this._target = null;
-						this._last_seen = 0;
-					}
-				}
-				else
-				this._attack_timer = Math.max( 0, this._attack_timer - GSPEED );
-
-			if ( this._notify_players > 0 )
-			this._notify_players -= GSPEED;
-			else
-			{
-				for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be destroyed
-				if ( sdWorld.sockets[ i ].character )
-				{
-					let di = sdWorld.Dist2D( this.x, this.y, sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y );
-					if ( di < 600 )
-					{
-						let desc;
-						desc = 'You located a strange Tzyrg device. Maybe it is best to destroy it since the Tzyrgs are hostile to us, right?';
-						sdTask.MakeSureCharacterHasTask({ 
-							similarity_hash:'DESTROY-'+this._net_id, 
-							executer: sdWorld.sockets[ i ].character,
-							target: this,
-							mission: sdTask.MISSION_DESTROY_ENTITY,
-							difficulty: 0.07 * sdTask.GetTaskDifficultyScaler(),
-							title: 'Destroy a Tzyrg device',
-							description: desc
-						});
-					}
-				}
-				this._notify_players = 60;
+					this._attack_timer = Math.max( 0, this._attack_timer - GSPEED );
 			}
-
-			if ( this._spawn_timer > 0 )
-			this._spawn_timer -= GSPEED;
-			else
-			{
-				this._spawn_timer = 30 * 60 * 5; // Not too frequent spawns of tzyrg faction when the absorber is present
-				sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 35 ); // Spawn some Tzyrgs in the world
-			}
+		}
+		else
+		if ( sdWorld.is_server )
+		{
+			this._time_until_full_remove -= GSPEED;
+			if ( this._time_until_full_remove <= 0 )
+			this.remove();
 		}
 		this.ApplyVelocityAndCollisions( GSPEED, 0, true );
 	}
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-
-		{
-			sdEntity.TooltipUntranslated( ctx, T("Tzyrg device"), 0, -24 );
-			this.DrawHealthBar( ctx );
-		}
+		sdEntity.TooltipUntranslated( ctx, T("Shurg turret") );
 	}
 	Draw( ctx, attached )
 	{
 		ctx.apply_shading = true;
 
 		//ctx.filter = this.filter;
-		let xx = this.attack_frame > 0 ? 64 : 0;
+		let xx = this.hea > 0 ? 0 : 32;
+		let xx2 = this.attack_frame > 0 ? 32 : 0;
 		{
-			ctx.drawImageFilterCache( sdTzyrgAbsorber.img_absorber, 0, 0, 64, 64, - 32, - 32, 64, 64 );
-			ctx.save();
-			ctx.scale( this.side, 1 );
-			ctx.translate( 0, -16 );
-			ctx.rotate( this.attack_an / 1000 );
-			ctx.drawImageFilterCache( sdTzyrgAbsorber.img_turret, xx, 0, 64, 64, -32, - 32, 64, 64 );
-			ctx.restore();
+			//ctx.scale( this.side, 1 );
+			ctx.drawImageFilterCache( sdShurgTurret.img_body, xx, 0, 32, 32, -16, - 16, 32, 32 );
+			if ( this.hea > 0 )
+			{
+				ctx.save();
+				ctx.scale( this.side, 1 );
+				ctx.translate( 0, -8 );
+				ctx.rotate( this.attack_an / 1000 );
+				ctx.drawImageFilterCache( sdShurgTurret.img_turret, xx2, 0, 32, 32, -16, - 16, 32, 32 );
+				ctx.restore();
+			}
 		}
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
 	onRemove() // Class-specific, if needed
 	{
-		let i = sdTzyrgAbsorber.absorbers.indexOf( this );
+		let i = sdShurgTurret.turrets.indexOf( this );
 		
 		if ( i !== -1 )
-		sdTzyrgAbsorber.absorbers.splice( i, 1 );
+		sdShurgTurret.turrets.splice( i, 1 );
 
 		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 30, 3, 0.75, 0.75 );
@@ -383,6 +375,6 @@ class sdTzyrgAbsorber extends sdEntity
 		return 0; // Hack
 	}
 }
-//sdTzyrgAbsorber.init_class();
+//sdShurgTurret.init_class();
 
-export default sdTzyrgAbsorber;
+export default sdShurgTurret;
