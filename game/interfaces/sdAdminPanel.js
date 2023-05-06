@@ -11,6 +11,8 @@ import sdInterface from './sdInterface.js';
 
 import sdEntity from '../entities/sdEntity.js';
 import sdCharacter from '../entities/sdCharacter.js';
+import sdPlayerSpectator from '../entities/sdPlayerSpectator.js';
+
 //import sdDatabase from '../server/sdDatabase.js';
 import sdWorld from '../sdWorld.js';
 
@@ -143,6 +145,12 @@ class sdAdminPanel extends sdInterface
 					{
 						socket.character.x = ent.x;
 						socket.character.y = ent.y;
+						
+						if ( socket.character.is( sdPlayerSpectator ) )
+						{
+							socket.character._following = ent;
+							socket.character._following_timer = 99999999999;
+						}
 					}
 					else
 					if ( command === 'TELEPORT_HERE' )
@@ -522,7 +530,7 @@ class sdAdminPanel extends sdInterface
 
 
 							action_line.createElement({ type: sdElement.TEXT, text: '[ ' });
-							action_line.createElement({ type: sdElement.TEXT, text: 'Teleport to player', color:'#aaffaa', onClick:()=>
+							action_line.createElement({ type: sdElement.TEXT, text: 'Teleport to this player / spectate', color:'#aaffaa', onClick:()=>
 							{
 								this.CallServerCommand( 'TELEPORT_TO', [ player_row.last_known_net_id ], this.UpdateContentsWrap );
 							}});

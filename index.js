@@ -724,8 +724,6 @@ if ( globalThis.CATCH_HUGE_ARRAYS )
 
 eval( 'sdWorld.server_config = ' + sdServerConfigFull.toString() ); // Execute while exposing same classes
 
-sdShop.init_class(); // requires plenty of classes due to consts usage
-
 {
 	let file_raw = '';
 	if ( globalThis.file_exists( server_config_path_const ) )
@@ -765,6 +763,8 @@ sdShop.init_class(); // requires plenty of classes due to consts usage
 	
 	//trace( '( sdWorld.server_config.onBeforeSnapshotLoad ) === ', ( sdWorld.server_config.onBeforeSnapshotLoad.toString() ) )
 }
+
+sdShop.init_class(); // requires plenty of classes due to consts usage
 
 
 
@@ -1682,6 +1682,7 @@ io.on( 'connection', ( socket )=>
 	socket.max_update_rate = sdWorld.max_update_rate;
 	
 	let ip_accurate = ip;
+	socket.ip_accurate = ip_accurate;
 	
 	ip = ip.split(':');
 	
@@ -1888,6 +1889,9 @@ io.on( 'connection', ( socket )=>
 		socket.emit('redirect', new_url );//, { reliable: true, runs: 100 } );
 	};
 	
+	socket.forced_entity = null;
+	socket.forced_entity_params = {};
+	
 	socket.last_player_settings = null;
 	socket.Respawn = ( player_settings, force_allow=false ) => { 
 		
@@ -2033,6 +2037,11 @@ io.on( 'connection', ( socket )=>
 			},
 			'localhost'
 		);
+
+		if ( !sdWorld.server_config.ModifyReconnectRestartAttempt( player_settings, socket ) )
+		{
+			return;
+		}
 		
 		socket.sd_events = []; // Just in case? There was some source of 600+ events stacked, possibly during start screen waiting or maybe even during player being removed. Lots of 'C' events too
 		
@@ -2080,24 +2089,33 @@ io.on( 'connection', ( socket )=>
 		{
 			const allowed_classes = sdWorld.allowed_player_classes;
 			
-			let preferred_entity = sdWorld.ConvertPlayerDescriptionToEntity( player_settings );
-						
-			if ( preferred_entity === 'sdPlayerSpectator' && sdWorld.server_config.only_admins_can_spectate )
+			if ( socket.forced_entity )
 			{
-				let admin_row = sdModeration.GetAdminRow( socket );
-				
-				if ( !admin_row )
-				preferred_entity = 'sdCharacter';
+				socket.forced_entity_params.x = 0;
+				socket.forced_entity_params.y = 0;
+				character_entity = new sdWorld.entity_classes[ socket.forced_entity ]( socket.forced_entity_params );
 			}
-		
-			if ( allowed_classes.indexOf( preferred_entity ) === -1 )
-			character_entity = new sdCharacter({ x:0, y:0 });
 			else
-			character_entity = new sdWorld.entity_classes[ preferred_entity ]({ x:0, y:0 });
+			{
+				let preferred_entity = sdWorld.ConvertPlayerDescriptionToEntity( player_settings );
 
-			if ( preferred_entity === 'sdPlayerOverlord' )
-			socket.respawn_block_until = sdWorld.time + ( 1000 * 60 * 2 ); // 2 minutes respawn wait time
-			// Not sure if this is ideal solution. - Booraz149
+				if ( preferred_entity === 'sdPlayerSpectator' && sdWorld.server_config.only_admins_can_spectate )
+				{
+					let admin_row = sdModeration.GetAdminRow( socket );
+
+					if ( !admin_row )
+					preferred_entity = 'sdCharacter';
+				}
+
+				if ( allowed_classes.indexOf( preferred_entity ) === -1 )
+				character_entity = new sdCharacter({ x:0, y:0 });
+				else
+				character_entity = new sdWorld.entity_classes[ preferred_entity ]({ x:0, y:0 });
+
+				if ( preferred_entity === 'sdPlayerOverlord' )
+				socket.respawn_block_until = sdWorld.time + ( 1000 * 60 * 2 ); // 2 minutes respawn wait time
+				// Not sure if this is ideal solution. - Booraz149
+			}
 			
 			if ( sdWorld.server_config.PlayerSpawnPointSeeker )
 			sdWorld.server_config.PlayerSpawnPointSeeker( character_entity, socket );
@@ -2155,6 +2173,8 @@ io.on( 'connection', ( socket )=>
 			player_settings.full_reset = true;
 		}
 		
+		
+		
 		/*if ( socket.character === null )
 		{
 			const sdCamera = sdWorld.entity_classes.sdCamera;
@@ -2173,6 +2193,12 @@ io.on( 'connection', ( socket )=>
 				socket.emit('REMOVE sdWorld.my_entity');
 				return;
 			}
+			
+			if ( !sdWorld.server_config.IsEntitySpawnAllowed( player_settings, socket ) )
+			{
+				return;
+			}
+			
 			socket.respawn_block_until = sdWorld.time + 2000; // Will be overriden if player respawned near his command centre
 			socket.post_death_spectate_ttl = 60;
 
@@ -3247,11 +3273,20 @@ io.on("reconnect", (socket) => {
   debugger;
 });
 
-//http.listen(port0 + world_slot, () =>
-( httpsServer ? httpsServer : httpServer ).listen( port0 + world_slot, () =>
+if ( sdWorld.server_config.port )
 {
-	console.log('listening on *:' + ( port0 + world_slot ) );
-});
+	( httpsServer ? httpsServer : httpServer ).listen( sdWorld.server_config.port, () =>
+	{
+		console.log('listening on *:' + ( sdWorld.server_config.port ) + ' (port was set by server_config file)' );
+	});
+}
+else
+{
+	( httpsServer ? httpsServer : httpServer ).listen( port0 + world_slot, () =>
+	{
+		console.log('listening on *:' + ( port0 + world_slot ) );
+	});
+}
 
 import os from 'os';
 

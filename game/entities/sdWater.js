@@ -1350,10 +1350,27 @@ class sdWater extends sdEntity
 							{
 								ctx.volumetric_mode = FakeCanvasContext.DRAW_IN_3D_BOX;
 								//ctx.globalAlpha = 1;
-								ctx.fillStyle = '#f6efff';
 								
 								if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x + 8, this.y, 32, true, false ) )
-								ctx.apply_shading = false;
+								{
+									ctx.apply_shading = false;
+									ctx.fillStyle = '#f6efff';
+									
+									let morph = Math.min( Math.max( 0, this.y - sdWorld.camera.y ) / 32, 1 );
+									
+									ctx.fillStyle = sdWorld.rgbToHex( 0*morph + 246*(1-morph) , 51*morph + 239*(1-morph) , 102*morph + 255*(1-morph) );
+									/*246
+									239
+									255
+									
+									0
+									51
+									102*/
+								}
+								else
+								{
+									ctx.fillStyle = '#003366';
+								}
 							}
 							
 							//

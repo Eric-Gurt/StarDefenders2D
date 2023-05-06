@@ -2865,8 +2865,6 @@ assaulted
 assaulting
 assaults
 assay
-assayed
-assayer
 assays
 assegai
 assegais
@@ -2893,7 +2891,6 @@ assertive
 assertively
 assertiveness
 asserts
-asses
 assess
 assessable
 assessed
@@ -2949,10 +2946,6 @@ assort
 assorted
 assortment
 assortments
-assuage
-assuaged
-assuages
-assuaging
 assume
 assumed
 assumes
