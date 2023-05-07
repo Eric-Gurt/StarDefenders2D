@@ -6738,8 +6738,8 @@ class sdGunClass
 			projectile_velocity_dynamic: ( gun )=> { return Math.min( 64, sdGun.default_projectile_velocity ) },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { time_left: 8, _rail: true, color: '#0000c8', _dirt_mult: 2 };
-				obj._knock_scale = 2 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				let obj = { time_left: 5, _rail: true, color: '#0000c8' };
+				obj._knock_scale = 1.8 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
@@ -6762,7 +6762,6 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
 		};
 
 		// Add new gun classes above this line //
