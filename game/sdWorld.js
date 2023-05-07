@@ -733,7 +733,18 @@ class sdWorld
 				
 				s3 += sdWorld.SeededRandomNumberGenerator.random( x + xx * 8 + 1024 * 2, y + yy * 8 - 1024 * 2 );
 				s3_tot += 1;
-				
+			}
+		}
+		
+		
+		var r2 = 30;
+		var r2_plus = r2 + 1;
+		
+		for ( var xx = -r2; xx <= r2; xx++ )
+		for ( var yy = -r2 * 4; yy <= r2 * 4; yy++ )
+		{
+			if ( sdWorld.inDist2D_Boolean( xx, yy / 4, 0, 0, r2_plus ) )
+			{
 				s4 += sdWorld.SeededRandomNumberGenerator.random( x + xx * 8 + 1024 * 3, y + yy * 8 - 1024 * 3 );
 				s4_tot += 1;
 			}
@@ -788,6 +799,7 @@ class sdWorld
 			//f = 'none';
 			f = 'saturate(0)';
 		}*/
+		
 		f = 'hue-rotate('+( ~~sdWorld.mod( x / 16 + ( s4 - 0.5 ) * 1000, 360 ) )+'deg)';
 
 		if ( y > from_y + 256 )
@@ -796,8 +808,6 @@ class sdWorld
 			//f += 'brightness(' + Math.max( 0.2, 1 / hp_mult ) + ') saturate(' + Math.max( 0.2, 1 / hp_mult ) + ')';
 			f = 'brightness(0.5) saturate(0.2)';
 		}
-		
-		
 		
 
 		if ( y >= from_y && allow_block )
@@ -957,6 +967,32 @@ class sdWorld
 			}
 
 			//sdWater.SpawnWaterHere( x, y, (y===sdWorld.base_ground_level)?0.5:1 );
+		}
+		
+		
+		
+		if ( ent )
+		{
+			if ( s4 < 0.5 - 0.001 )
+			{
+				ent.filter = 'saturate(0.3)';
+				ent.br *= 4;
+				ent.hue = 180;
+
+				if ( ent._plants )
+				for ( let i = 0; i < ent._plants.length; i++ )
+				{
+					let e = sdEntity.entities_by_net_id_cache_map.get( ent._plants[ i ] );
+					if ( e )
+					{
+						e.br *= 4;
+						e.filter = 'saturate(0.3)';
+						e.hue = 180;
+					}
+				}
+			}
+
+			sdWorld.server_config.ModifyTerrainEntity( ent );
 		}
 
 		if ( ent )
@@ -1363,7 +1399,6 @@ class sdWorld
 	{
 		if ( !sdWorld.is_server )
 		return;
-		let spawned = 0;
 
 		for ( var i = 0; i < tot; i++ )
 		{
@@ -1398,21 +1433,29 @@ class sdWorld
 					{
 						water_ent = new sdWater({ x: xx, y: yy, type:type });
 
-						if ( typeof water_ent.extra !== 'undefined' )
-						water_ent.extra = extra;
+						//water_ent.extra = extra;
 						
 						sdEntity.entities.push( water_ent );
 						sdWorld.UpdateHashPosition( water_ent, false );
 
-						spawned++;
-
 						if ( liquid_to_modify )
 						{
-							liquid_to_modify.amount -= 100;
-							liquid_to_modify.extra -= extra;
+							if ( liquid_to_modify.amount <= 100 )
+							{
+								water_ent._volume = liquid_to_modify.amount / 100;
+								//water_ent.extra = liquid_to_modify.extra;
 
-							if ( liquid_to_modify.amount <= 0 )
-							liquid_to_modify.type = -1;
+								liquid_to_modify.amount = 0;
+								liquid_to_modify.extra = 0;
+								liquid_to_modify.type = -1;
+
+								tot = 0;
+							}
+							else
+							{
+								liquid_to_modify.amount -= 100;
+								liquid_to_modify.extra -= extra;
+							}
 						}
 
 						break;
@@ -1422,8 +1465,6 @@ class sdWorld
 				tr--;
 			}
 		}
-
-		console.log( spawned );
 	}
 	static SendEffect( params, command='EFF', exclusive_to_sockets_arr=null ) // 'S' for sound
 	{
@@ -3086,27 +3127,19 @@ class sdWorld
 		if ( sdWorld.is_server )
 		{
 			let sockets = sdWorld.sockets;
-			sdWorld.leaders.length = 0;
 			for ( let i2 = 0; i2 < sockets.length; i2++ )
+			if ( sockets[ i2 ].ffa_warning > 0 )
 			{
-				if ( 
-						sockets[ i2 ].character && 
-						( !sdWorld.server_config.only_admins_can_spectate || !sockets[ i2 ].character.is( sdPlayerSpectator ) ) && 
-						!sockets[ i2 ].character._is_being_removed 
-				)
-				sdWorld.leaders.push({ name:sockets[ i2 ].character.title, name_censored:sockets[ i2 ].character.title_censored, score:sockets[ i2 ].GetScore(), here:1 });
-			
-				if ( sockets[ i2 ].ffa_warning > 0 )
+				sockets[ i2 ].ffa_warning -= GSPEED / ( 30 * 60 * 5 ); // .ffa_warning is decreased by 1 once in 5 minutes
+
+				if ( sockets[ i2 ].ffa_warning <= 0 )
 				{
-					sockets[ i2 ].ffa_warning -= GSPEED / ( 30 * 60 * 5 ); // .ffa_warning is decreased by 1 once in 5 minutes
-					
-					if ( sockets[ i2 ].ffa_warning <= 0 )
-					{
-						sockets[ i2 ].ffa_warning = 0;
-						sockets[ i2 ].SDServiceMessage( 'Your respawn rate has been restored' );
-					}
+					sockets[ i2 ].ffa_warning = 0;
+					sockets[ i2 ].SDServiceMessage( 'Your respawn rate has been restored' );
 				}
 			}
+			
+			sdWorld.server_config.UpdateLeaderBoard();
 
 			sdWorld.leaders_global = sdWorld.leaders.slice();
 			
@@ -3591,7 +3624,24 @@ class sdWorld
 			}
 		}
 	}
-	
+	static rgbToHex(r,g,b)
+	{
+		function componentToHex(c) 
+		{
+			if ( c < 0 )
+			c = 0;
+			else
+			if ( c > 255 )
+			c = 255;
+			else
+			c = ~~( c );
+		
+			var hex = c.toString(16);
+			return hex.length == 1 ? "0" + hex : hex;
+		}
+
+		return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+	}
 	static hexToRgb(hex) 
 	{
 		var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -3918,11 +3968,13 @@ class sdWorld
 	}
 	static ConvertPlayerDescriptionToEntity( player_description )
 	{
-		for ( var i = 0; i < sdWorld.allowed_player_classes.length; i++ )
+		let allowed = sdWorld.server_config.allowed_player_spawn_classes || sdWorld.allowed_player_classes;
+		
+		for ( var i = 0; i < allowed.length; i++ )
 		if ( player_description[ 'entity' + ( i + 1 ) ] )
-		return sdWorld.allowed_player_classes[ i ];
+		return allowed[ i ];
 
-		return 1;
+		return allowed[ 0 ];
 	}
 	static ConvertPlayerDescriptionToVoice( player_description )
 	{

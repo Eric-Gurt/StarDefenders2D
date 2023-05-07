@@ -159,7 +159,7 @@ class sdStorageTank extends sdEntity
 
 		this.GiveLiquid( 0.01, GSPEED );
 
-		if ( this.liquid.amount <= 0 || this.liquid.extra <= 0 )
+		if ( this.liquid.amount <= 0 || ( this.liquid.type === sdWater.TYPE_ESSENCE && this.liquid.extra <= 0 ) )
 		{
 			this.liquid.amount = 0;
 			this.liquid.type = -1;
@@ -203,14 +203,14 @@ class sdStorageTank extends sdEntity
 			t = 'Portable ' + t.toLowerCase();
 		}
 
-		sdEntity.TooltipUntranslated( ctx, T(t + ' tank') + ' ( ' + (this.liquid.amount) + ' / ' + (this.liquid.max) + ' )', 0, ( this.liquid.extra > 0 ? -20 : -10 ) );
+		sdEntity.TooltipUntranslated( ctx, T(t + ' tank') + ' ( ' + Math.round(this.liquid.amount) + ' / ' + (this.liquid.max) + ' )', 0, ( this.liquid.extra > 0 ? -20 : -10 ) );
 
 		if ( this.liquid.extra > 0 )
 		{
 			if ( this.liquid.type === sdWater.TYPE_ESSENCE )
 			{
 				let v = this.liquid.extra / this.liquid.amount * 100 / ( sdCrystal.anticrystal_value / 2 );
-				sdEntity.TooltipUntranslated( ctx, T('Purity') + ': ' + ~~( Math.min( Math.max( 1, v * 100 ), 100 ) ) + '% ( ' + (this.liquid.extra) + ' ' + T('total') + ' )', 0, -10 );
+				sdEntity.TooltipUntranslated( ctx, T('Purity') + ': ' + ~~( Math.max( 1, Math.min( v * 100, 100 ) ) ) + '% ( ' + Math.round(this.liquid.extra) + ' ' + T('total') + ' )', 0, -10 );
 			}
 		}
 	}
@@ -241,18 +241,18 @@ class sdStorageTank extends sdEntity
 	{
 		if ( this._broken )
 		{
-			if ( this.liquid.amount >= 100 )
+			if ( this.liquid.amount > 0 )
 			{
 				let di_x = this.hitbox_x2 - this.hitbox_x1;
 				let di_y = this.hitbox_y2 - this.hitbox_y1;
-				let tot = ~~( this.liquid.amount / 100 );
-				let extra = Math.round( this.liquid.extra / this.liquid.amount * 100 );
+				let tot = Math.ceil( this.liquid.amount / 100 );
+				let extra = this.liquid.extra / this.liquid.amount * 100;
 
 				sdWorld.SpawnWaterEntities( this.x, this.y, di_x, di_y, tot, this.liquid.type, extra, this.liquid );
 			}
 
-			this._transfer_mode = 1;
-			this.GiveLiquid( 1, 1, true ); // Give away liquid less than one water entity
+			//this._transfer_mode = 1;
+			//this.GiveLiquid( 1, 1, true ); // Give away liquid less than one water entity
 
 			/*
 			if ( this.matter_max > 0 )

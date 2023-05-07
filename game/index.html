@@ -239,21 +239,29 @@
     "><span style="color:#ffffff5e" id="game_title_text">...</span><br>
 	    <div style="font-size:12px;color:#355a52;">v0.9</div></div>
 	    
-	    <div style="position: absolute; left: calc( 100% + 20px ); top:0; width: 300px; height: 100%;
-		box-sizing: border-box; background-color: black;
-		padding: 20px; overflow-y: auto;">
+	    <div style="
+		 position: absolute;
+    left: calc( 100% + 20px );
+    top: calc( -75px - 10px );
+    width: 300px;
+    bottom: 0;
+    box-sizing: border-box;
+    background-color: black;
+    padding: 20px;
+    overflow-y: auto;
+    ">
 		<span class="sdtitle">What's new?:</span><br>
 		<div class="sdgroup">
-		    <a href="https://github.com/Eric-Gurt/StarDefenders2D/compare/8cf68ea5d2b18cd11f2f3855fb5e54353d5639fa...main">Open update & patch log on GitHub</a><br><br>
-		    21 January 2021: First public release!
+		    <a href="https://github.com/Eric-Gurt/StarDefenders2D/compare/8cf68ea5d2b18cd11f2f3855fb5e54353d5639fa...main">Open update & patch log on GitHub</a>
 		</div>
 		<br><br>
 		<span class="sdtitle">Other servers:</span>
 		<div class="sdgroup">
 		    <a class="server serverA" href="http://localhost:3000">localhost:3000<div>your local server will be here<br>(contact us to appear in list)</div></a>
 		    
-		    <a class="server serverB" href="https://www.gevanni.com:3000">gevanni.com:3000<div>Europe, Ukraine<br>Main test server, core game in its' raw unchanged state</div></a>
-		    <a class="server serverB" href="https://www.plazmaburst2.com:8443">plazmaburst2.com:8443<div>USA, California<br>Secondary server, no rules, only blue base shielding units<br>Hosted by Coolbuddy.com<br>since July 31, 2021</div></a>
+		    <a class="server serverB" href="https://www.gevanni.com:3000">gevanni.com:3000<div>Europe, Ukraine<br>Main test server, core game in its' raw unchanged state, small world</div></a>
+		    <a class="server serverB" href="https://www.plazmaburst2.com:2053">plazmaburst2.com:2053<div>USA, California<br>New expirimental game mode, fragile bases, no RTPs, no private storage, bans for dying after eliminating someone, open world but narrower<br>Hosted by Coolbuddy.com<br>since May 6, 2023</div></a>
+		    <a class="server serverB" href="https://www.plazmaburst2.com:8443">plazmaburst2.com:8443<div>USA, California<br>Main test server, core game in its' raw unchanged state, open world<br>Hosted by Coolbuddy.com<br>since July 31, 2021</div></a>
 		    
 		    
 		    
@@ -785,7 +793,7 @@
 		//if ( !draw_once )
 		//return;
 	    
-		settings_container.style.transform = 'scale(' + Math.min( document.body.clientWidth / 1260, Math.min( document.body.clientHeight / 760, 1 ) ) + ')';
+		settings_container.style.transform = 'scale(' + Math.min( document.body.clientWidth / 1260, Math.min( document.body.clientHeight / 830, 1 ) ) + ')';
 		
 		if ( !ctx.drawImageFilterCache )
 		{

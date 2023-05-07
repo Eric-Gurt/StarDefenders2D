@@ -891,6 +891,13 @@ let enf_once = true;
 			sdWorld.Stop();
 			sdWorld.RequirePassword( message_and_color );
 		});
+		socket.on( 'BACK_TO_MENU', ( delay )=>
+		{
+			setTimeout( ()=>
+			{
+				sdWorld.Stop();
+			}, delay );
+		});
 		socket.on( 'OPEN_INTERFACE', ( obj )=> // Such as sdDatabaseEditor
 		{
 			globalThis[ obj ].Open();

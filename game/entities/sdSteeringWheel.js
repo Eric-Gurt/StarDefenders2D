@@ -219,6 +219,8 @@ class sdSteeringWheel extends sdEntity
 			return;
 		}
 		
+		let allowed_bsu_list = this.FindObjectsInACableNetwork( null, sdBaseShieldingUnit );
+		
 		this._last_scan = sdWorld.time;
 		
 		const LIMIT = 650; // Was 100, then 400
@@ -287,6 +289,16 @@ class sdSteeringWheel extends sdEntity
 								)
 							//if ( !ent2.onThink.has_ApplyVelocityAndCollisions && ent2.IsBGEntity() === 0 ) // Ignore physical entities that will be pushed
 							{
+								if ( ent2._shielded )
+								if ( !ent2._shielded._is_being_removed )
+								if ( ent2._shielded.enabled )
+								if ( allowed_bsu_list.indexOf( ent2._shielded ) === -1 )
+								{
+									reason = 'Steering wheel can not move entities that are protected by base shielding units that are not wired to this steering wheel';
+									collected = null;
+									break out;
+								}
+								
 								active.push( ent2 );
 								collected.push( ent2 );
 								

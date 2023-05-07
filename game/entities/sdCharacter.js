@@ -502,6 +502,7 @@ class sdCharacter extends sdEntity
 		if ( prop === '_upgrade_counters' ) return true;
 		if ( prop === '_save_file' ) return true;
 		if ( prop === '_discovered' ) return true;
+		if ( prop === '_user_data' ) return true;
 
 		return false;
 	}
@@ -715,6 +716,7 @@ class sdCharacter extends sdEntity
 		this._socket = null; // undefined causes troubles
 		this._my_hash = undefined;
 		this._save_file = null;
+		this._user_data = {}; // Must be JSON-able. Contains random game mode related values
 		/*this._pos_corr_x = this.x;
 		this._pos_corr_y = this.y;
 		this._pos_corr_until = 0;*/

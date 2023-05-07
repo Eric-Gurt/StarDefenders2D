@@ -115,16 +115,16 @@ class sdEssenceExtractor extends sdEntity
 		if ( this.liquid.type === -1 || ( this.liquid.type === sdWater.TYPE_ANTIMATTER ) === this.crystal.is_anticrystal )
 		{
 			let amount = Math.min( 100, this.crystal.matter_regen - sdCrystal.lowest_matter_regen ); // Drain up to 100 matter_regen
-			let amount_rounded = Math.round( amount );
+			//let amount_rounded = Math.round( amount );
 
-			if ( this.liquid.max - this.liquid.amount >= amount_rounded )
+			if ( this.liquid.max - this.liquid.amount >= amount )
 			{
 				this.crystal.matter_regen -= amount;
 	
-				this.liquid.amount += amount_rounded;
+				this.liquid.amount += amount;
 	
 				if ( !this.crystal.is_anticrystal )
-				this.liquid.extra += Math.round( this.crystal.matter_max * amount / 100 );
+				this.liquid.extra += this.crystal.matter_max * amount / 100;
 	
 				if ( this.liquid.type === -1 )
 				this.liquid.type = ( this.crystal.is_anticrystal ? sdWater.TYPE_ANTIMATTER : sdWater.TYPE_ESSENCE );
@@ -235,9 +235,9 @@ class sdEssenceExtractor extends sdEntity
 			{
 				let rate = Math.pow( this.liquid.amount / ( this.liquid.max + this.liquid.extra / this.liquid.amount ), 3 ) * GSPEED; // Using multiple extractors is only more efficient if they can be filled
 
-				if ( Math.random() < rate )
+				//if ( Math.random() < rate )
 				{
-					rate = Math.ceil( rate ); // Should only change by integers to avoid floating point errors
+					//rate = Math.ceil( rate ); // Should only change by integers to avoid floating point errors
 
 					if ( this.liquid.amount - rate > 0 )
 					if ( this.liquid.extra / ( this.liquid.amount - rate ) * 100 <= sdCrystal.anticrystal_value / 2 )
@@ -253,7 +253,7 @@ class sdEssenceExtractor extends sdEntity
 
 		this.GiveLiquid( 0.05, GSPEED );
 
-		if ( this.liquid.amount <= 0 || this.liquid.extra <= 0 )
+		if ( this.liquid.amount <= 0 || ( this.liquid.type === sdWater.TYPE_ESSENCE && this.liquid.extra <= 0 ) )
 		{
 			this.liquid.amount = 0;
 			this.liquid.type = -1;
@@ -267,14 +267,14 @@ class sdEssenceExtractor extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.TooltipUntranslated( ctx, T(this.title) + ' ( ' + (this.liquid.amount) + ' / ' + (this.liquid.max) + ' )', 0, ( this.liquid.amount > 0 ? -10 : -0 ) );
+		sdEntity.TooltipUntranslated( ctx, T(this.title) + ' ( ' + Math.round(this.liquid.amount) + ' / ' + (this.liquid.max) + ' )', 0, ( this.liquid.amount > 0 ? -10 : -0 ) );
 
 		if ( this.liquid.amount > 0 )
 		{
 			if ( this.liquid.type === sdWater.TYPE_ESSENCE )
 			{
 				let v = this.liquid.extra / this.liquid.amount * 100 / ( sdCrystal.anticrystal_value / 2 );
-				sdEntity.TooltipUntranslated( ctx, T('Essence purity') + ': ' + ~~( Math.max( 1, Math.min( v * 100, 100 ) ) ) + '% ( ' + (this.liquid.extra) + ' ' + T('total') + ' )', 0, -0 );
+				sdEntity.TooltipUntranslated( ctx, T('Essence purity') + ': ' + ~~( Math.max( 1, Math.min( v * 100, 100 ) ) ) + '% ( ' + Math.round(this.liquid.extra) + ' ' + T('total') + ' )', 0, -0 );
 			}
 			else
 			sdEntity.TooltipUntranslated( ctx, 'Antimatter', 0, -0 );
@@ -334,18 +334,18 @@ class sdEssenceExtractor extends sdEntity
 	{
 		if ( this._broken )
 		{
-			if ( this.liquid.amount >= 100 )
+			if ( this.liquid.amount > 0 )
 			{
 				let di_x = this.hitbox_x2 - this.hitbox_x1;
 				let di_y = this.hitbox_y2 - this.hitbox_y1;
-				let tot = ~~( this.liquid.amount / 100 );
-				let extra = Math.round( this.liquid.extra / this.liquid.amount * 100 );
+				let tot = Math.ceil( this.liquid.amount / 100 );
+				let extra = this.liquid.extra / this.liquid.amount * 100;
 
 				sdWorld.SpawnWaterEntities( this.x, this.y, di_x, di_y, tot, this.liquid.type, extra, this.liquid );
 			}
 
-			this._transfer_mode = 1;
-			this.GiveLiquid( 1, 1, true ); // Give away liquid less than one water entity
+			//this._transfer_mode = 1;
+			//this.GiveLiquid( 1, 1, true ); // Give away liquid less than one water entity
 
 			/*
 			if ( this.matter_max > 0 )

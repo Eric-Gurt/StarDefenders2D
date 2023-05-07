@@ -4688,13 +4688,6 @@ class sdEntity
 			debugger;
 			
 			this.liquid.extra -= extra;
-
-			if ( this.liquid.amount <= 0 || this.liquid.extra <= 0 )
-			{
-				this.liquid.amount = 0;
-				this.liquid.type = -1;
-				this.liquid.extra = 0;
-			}
 		}
 		else
 		{
@@ -4707,13 +4700,6 @@ class sdEntity
 			debugger;
 		
 			this._liquid.extra -= extra;
-
-			if ( this._liquid.amount <= 0 || this._liquid.extra <= 0 )
-			{
-				this._liquid.amount = 0;
-				this._liquid.type = -1;
-				this._liquid.extra = 0;
-			}
 		}
 	
 		if ( typeof to.liquid !== 'undefined' )
@@ -4788,7 +4774,7 @@ class sdEntity
 		if ( how_much <= 0 )
 		return;
 
-		let liquid_lost = Math.round( this_liquid.amount / this_liquid.extra * 80 ); // Liquid essence is consumed slower the higher its value
+		let liquid_lost = this_liquid.amount / this_liquid.extra; // Liquid essence is consumed slower the higher its value
 
 		if ( liquid_lost > this_liquid.amount )
 		liquid_lost = this_liquid.amount;
@@ -4810,13 +4796,6 @@ class sdEntity
 			debugger;
 			
 			this.liquid.extra -= how_much;
-
-			if ( this.liquid.amount <= 0 || this.liquid.extra <= 0 )
-			{
-				this.liquid.amount = 0;
-				this.liquid.type = -1;
-				this.liquid.extra = 0;
-			}
 		}
 		else
 		{
@@ -4829,13 +4808,6 @@ class sdEntity
 			debugger;
 		
 			this._liquid.extra -= how_much;
-
-			if ( this._liquid.amount <= 0 || this._liquid.extra <= 0 )
-			{
-				this._liquid.amount = 0;
-				this._liquid.type = -1;
-				this._liquid.extra = 0;
-			}
 		}
 
 		if ( is_bsu )
