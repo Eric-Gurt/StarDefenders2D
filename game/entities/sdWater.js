@@ -109,14 +109,14 @@ class sdWater extends sdEntity
 		
 		this._volume = params.volume || params._volume || 1;
 		
-		this.extra = 0;
+		/*this.extra = 0;
 		if ( this.type === sdWater.TYPE_ESSENCE )
 		{
 			if ( typeof params.extra === 'undefined' )
 			this.extra = ~~( Math.min( 40 / Math.random(), 40960 ) ); // Should this property be public? Snapshot generation might ignore this property if one sdWater enitites won't have it (value could be reset on world snapshot save/load because of that). Having this property as public (without underscore _ ) will cause extra performance degradation since game will send it for any water object
 			else
 			this.extra = params.extra;
-		}
+		}*/
 		
 		this._spawn_time = sdWorld.time;
 		
@@ -310,7 +310,7 @@ class sdWater extends sdEntity
 				return true; // Delete both
 			}
 			
-			if ( another.type === sdWater.TYPE_ESSENCE && this.type === sdWater.TYPE_ESSENCE )
+			/*if ( another.type === sdWater.TYPE_ESSENCE && this.type === sdWater.TYPE_ESSENCE )
 			if ( typeof another.extra !== 'undefined' && typeof this.extra !== 'undefined' )
 			{
 				if ( Math.round( another.extra / 80 ) !== Math.round( this.extra / 80 ) )
@@ -324,7 +324,7 @@ class sdWater extends sdEntity
 					this._update_version++;
 				}
 				return false;
-			}
+			}*/
 			
 			if ( another.type === this.type )
 			{
@@ -537,6 +537,18 @@ class sdWater extends sdEntity
 				ent = new sdEffect({ x: this.x + x, y: this.y + y, type:sdEffect.TYPE_BLOOD_GREEN, sx: Math.sin(a)*s, sy: Math.cos(a)*s, filter:'hue-rotate(-90deg) saturate(1.5)' });
 				sdEntity.entities.push( ent );
 			}
+			
+			if ( this.type === sdWater.TYPE_ESSENCE ) // Apparently water entites are removed before this can execute on client most of the time
+			{
+				if ( this._volume > 0 )
+				for ( let i = 0; i < Math.ceil( this._volume * 4 ); i++ )
+				{
+					let ent = new sdEffect({ x: this.x + Math.random() * this.hitbox_x2, y: this.y + Math.random() * ( this.hitbox_y2 - this.hitbox_y1 ), sy:-2, type:sdEffect.TYPE_GLOW_HIT, color:sdWater.reference_colors[ this.type ] });
+					sdEntity.entities.push( ent );
+				}
+
+				this.v = 0;
+			}
 		}
 		
 		if ( !sdWorld.is_server )
@@ -580,6 +592,12 @@ class sdWater extends sdEntity
 					color:sdWater.reference_colors[ sdWater.TYPE_ANTIMATTER ]
 				});
 				
+				this.remove();
+				return;
+			}
+			else
+			if ( this.type === sdWater.TYPE_ESSENCE ) // Will just be removed for now so .extra isn't needed. Players don't really have much reason to place essence outside of liquid containers anyway
+			{
 				this.remove();
 				return;
 			}

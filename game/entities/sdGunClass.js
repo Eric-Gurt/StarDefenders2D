@@ -5256,7 +5256,7 @@ class sdGunClass
 
 						if ( bullet._gun._held_item_snapshot )
 						{
-							let amount = Math.round( gun._held_item_snapshot._volume * 100 );
+							let amount = gun._held_item_snapshot._volume * 100;
 							let extra = ( gun._held_item_snapshot.extra || 0 );
 	
 							if ( target_entity.IsLiquidTypeAllowed( gun._held_item_snapshot.type ) )
@@ -5280,22 +5280,22 @@ class sdGunClass
 						}
 						else
 						{
-							if ( liquid.amount >= 100 )
+							if ( liquid.amount > 0 )
 							{
 								let water_ent = new sdWater({ x:0, y:0, type: liquid.type });
 								sdEntity.entities.push( water_ent );
 	
-								if ( typeof water_ent.extra !== 'undefined' )
-								{
-									water_ent.extra = Math.round( liquid.extra / liquid.amount * 100 );
-									liquid.extra -= water_ent.extra
-								}
+								water_ent._volume = Math.min( 100, liquid.amount ) / 100;
+								let extra = liquid.extra / liquid.amount * water_ent._volume * 100;
 
-								liquid.amount -= 100;
+								liquid.amount -= water_ent._volume * 100;
+								liquid.extra -= extra;
 	
 								bullet._gun._held_item_snapshot = water_ent.GetSnapshot( GetFrame(), true );
 	
 								delete bullet._gun._held_item_snapshot._net_id; // Erase this just so snapshot logic won't think that it is a some kind of object that should exist somewhere
+
+								bullet._gun._held_item_snapshot.extra = extra; // For transfer between containers
 								
 								sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, liquid_carrier_base_color, sdWater.reference_colors[ water_ent.type ] || '#ffffff' );
 	
@@ -5362,8 +5362,8 @@ class sdGunClass
 								{
 									let liquid = ( connected[ i ].liquid || connected[ i ]._liquid );
 
-									let amount = Math.round( water_ent._volume * 100 )
-									let extra = ( water_ent.extra || 0 );
+									let amount = water_ent._volume * 100;
+									//let extra = ( water_ent.extra || 0 );
 
 									if ( liquid.max - liquid.amount >= amount )
 									{
@@ -5371,7 +5371,7 @@ class sdGunClass
 										liquid.type = water_ent.type;
 		
 										liquid.amount += amount;
-										liquid.extra += extra;
+										//liquid.extra += extra;
 
 										water_ent.remove();
 
@@ -6738,8 +6738,8 @@ class sdGunClass
 			projectile_velocity_dynamic: ( gun )=> { return Math.min( 64, sdGun.default_projectile_velocity ) },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { time_left: 8, _rail: true, color: '#0000c8', _dirt_mult: 2 };
-				obj._knock_scale = 2 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				let obj = { time_left: 5, _rail: true, color: '#0000c8' };
+				obj._knock_scale = 1.8 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
@@ -6762,7 +6762,6 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades()
 		};
 
 		// Add new gun classes above this line //

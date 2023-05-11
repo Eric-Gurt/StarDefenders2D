@@ -121,11 +121,11 @@ class sdEnemyMech extends sdEntity
 	}*/
 	CanAttackEnt( ent )
 	{
-		if ( ( ent === this._current_target && ent._ai_team !== this._ai_team ) || ent.build_tool_level > 0 )
+		if ( ( ent === this._current_target && ent._ai_team !== this._ai_team ) || ent.build_tool_level > 9 )
 		return true;
 		else
 		{
-			if ( ( ( ent.matter >= 800 && ent._ai_team === 0 ) && ent._ai_team !== this._ai_team ) || ( ent._ai_enabled !== sdCharacter.AI_MODEL_NONE && ent._ai_team !== this._ai_team ) )
+			if ( ( ( ent.build_tool_level >= 10 && ent._ai_team === 0 ) && ent._ai_team !== this._ai_team ) || ( ent._ai_enabled !== sdCharacter.AI_MODEL_NONE && ent._ai_team !== this._ai_team ) )
 			{
 				this._current_target = ent; // Don't stop targetting if the player has below 800 matter mid fight
 				return true; // Only players have mercy from mechs

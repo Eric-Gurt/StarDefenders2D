@@ -67,7 +67,7 @@ class sdSpider extends sdEntity
 
 		this.type = params.type || 0;
 		
-		this._hmax = this.type === 1 ? 800 : 400;
+		this._hmax = this.type === 1 ? 700 : 300;
 		this._hea = this._hmax;
 		this._ai_team = 2;
 
@@ -129,7 +129,7 @@ class sdSpider extends sdEntity
 				sdSound.PlaySound({ name:'spider_welcomeC', x:this.x, y:this.y, volume: 1 });
 				
 				if ( this._attack_in < 30 )
-				this._attack_in = 30;
+				this._attack_in = 45;
 			}
 		}
 	}
@@ -334,7 +334,7 @@ class sdSpider extends sdEntity
 								{
 									this._high_fire_rate = 150;
 									if ( this._attack_in > 90 )
-									this._attack_in = 30;
+									this._attack_in = 45;
 								}
                             }
 							
@@ -409,12 +409,12 @@ class sdSpider extends sdEntity
 
 					bullet_obj._damage = 0.0001; // To allow ._custom_target_reaction calls
 					bullet_obj._homing = true;
-					bullet_obj._homing_mult = 0.015;
-					bullet_obj.ac = 0.1;
+					bullet_obj._homing_mult = 0.01; // increases missiles travel speed when higher
+					bullet_obj.ac = 0.11; // increases missile travel speed but also offsets tracking accuracy when higher?
 					
 					if ( this.HasMercyFor( from_entity ) )
 					{
-						bullet_obj.explosion_radius = 10; // 16 is hard for new players, but too low damage is not challenging
+						bullet_obj.explosion_radius = 6; // 16 is hard for new players, but too low damage is not challenging
 						
 						if ( this._burst_shots > 1 )
 						this._burst_shots = 1;
@@ -424,7 +424,7 @@ class sdSpider extends sdEntity
 					}
 					else
 					{
-						bullet_obj.explosion_radius = 18; // 16 is hard for new players, but too low damage is not challenging
+						bullet_obj.explosion_radius = 12; // 16 is hard for new players, but too low damage is not challenging
 
 						bullet_obj.model = 'mini_rocket';
 						bullet_obj.color = '#00aaff';
@@ -438,9 +438,9 @@ class sdSpider extends sdEntity
 					{
 						if ( target_entity === from_entity )
 						{
-							this._high_fire_rate = 150;
+							this._high_fire_rate = 180;
 							if ( this._attack_in > 90 )
-							this._attack_in = 30;
+							this._attack_in = 45;
 						
 							
 							if ( sdWorld.time > this._last_celebrate + 60000 )
@@ -465,7 +465,7 @@ class sdSpider extends sdEntity
 					this._attack_in = ( ( this._burst_shots > 0 ) ? 100 : ( 1000 + Math.random() * 2000 ) ) / 1000 * 30;
 					else
 					{
-						this._attack_in = ( 5000 + Math.random() * 10000 ) / 1000 * 30;
+						this._attack_in = ( 5000 + Math.random() * 10000 ) / 1000 * 60;
 					}
 
 					if ( this._burst_shots <= 0 )
