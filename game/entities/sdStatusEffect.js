@@ -56,6 +56,9 @@ class sdStatusEffect extends sdEntity
 
 				status_entity._update_version++;
 
+				if ( params.by )
+				status_entity._observers.add( params.by );
+				
 				return true; // Cancel merge process
 			},
 			onStatusOfDifferentTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity

@@ -70,6 +70,7 @@ class sdWorld
 		
 		sdWorld.allowed_player_classes = [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdPlayerSpectator' ]; // Options to spawn as
 		
+		sdWorld.server_start_values = {}; // All values are JSON.parse results or strings on parse error, world_slot is one of them as long as it is passed in command line (will be missing if default slot is used, check globalThis.world_slot for relevant value of world slot)
 		sdWorld.server_config = {};
 		
 		sdWorld.time = Date.now(); // Can be important because some entities (sdCommandCentre) use sdWorld.time as default destruction time, which will be instantly without setting this value

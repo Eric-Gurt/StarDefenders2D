@@ -875,10 +875,10 @@ class sdGun extends sdEntity
 							{
 
 								if ( typeof ent.hmax !== 'undefined' )
-								ent.Damage( ent.hmax * 0.9 ); // Start with low hp
-
+								ent.Damage( ent.hmax * 0.9, null, false, false ); // Start with low hp
+								else
 								if ( typeof ent._hmax !== 'undefined' )
-								ent.Damage( ent._hmax * 0.9 ); // Start with low hp
+								ent.Damage( ent._hmax * 0.9, null, false, false ); // Start with low hp
 							}
 						
 							ent.onBuilt();

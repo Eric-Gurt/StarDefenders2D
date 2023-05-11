@@ -350,6 +350,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_RAPID_LASER, _category:'Base equipment', _min_build_tool_level: 6 });
 			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_SNIPER, _category:'Base equipment', _min_build_tool_level: 13 });
 			sdShop.options.push({ _class: 'sdTurret', kind:sdTurret.KIND_FREEZER, _category:'Base equipment', _min_build_tool_level: 15 });
+			sdShop.options.push({ _class: 'sdManualTurret', _category:'Base equipment', _min_build_tool_level: 20 });
 			/*sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 / 2, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2, _category:'Base equipment' });*/
@@ -494,7 +495,7 @@ class sdShop
 				}
 			}
 			sdShop.options.push({ _class: 'sdBomb', _category:'Equipment' });
-			sdShop.options.push({ _class: 'sdBomb', type:1, _category:'Equipment', _min_build_tool_level:25 });
+			sdShop.options.push({ _class: 'sdBomb', type:1, _category:'Equipment', _min_build_tool_level:15 });
 			sdShop.options.push({ _class: 'sdBarrel', _category:'Equipment', _min_build_tool_level:5 });
 			sdShop.options.push({ _class: 'sdBarrel', color: '#33FFFF', filter: 'hue-rotate(130deg) saturate(10)', variation: 1, _category:'Equipment', _min_build_tool_level:10 });
 			sdShop.options.push({ _class: 'sdBarrel', color: '#ff6633', filter: 'hue-rotate(300deg) saturate(20)', variation: 2, _category:'Equipment', _min_build_tool_level:15 });

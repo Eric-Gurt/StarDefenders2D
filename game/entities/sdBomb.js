@@ -43,7 +43,7 @@ class sdBomb extends sdEntity
 		if ( this.type === sdBomb.TYPE_ANTI_BASE )
 		this.detonation_in = 30 * 60;
 	
-		//this.detonation_in = 30; // Hack
+		//this.detonation_in = 30 * 5; // Hack
 		
 		this.hea = 100 * 2;
 		
@@ -135,12 +135,15 @@ class sdBomb extends sdEntity
 					//damage_scale: ( ( this.type === sdBomb.TYPE_ANTI_BASE ) ? 600 : 25 ) * 3, // 5 was too deadly on relatively far range
 					damage_scale: 25 * 3, // 5 was too deadly on relatively far range
 					type:sdEffect.TYPE_EXPLOSION, 
-					owner: ( this.type === sdBomb.TYPE_ANTI_BASE ) ? null : this._owner,
+					//owner: ( this.type === sdBomb.TYPE_ANTI_BASE ) ? null : this._owner,
+					owner: this._owner,
 					can_hit_owner: true,
 					color:sdEffect.default_explosion_color,
 					
 					anti_shield: ( this.type === sdBomb.TYPE_ANTI_BASE )
 				});
+				
+				
 
 				this.remove();
 			}
