@@ -149,7 +149,7 @@ class sdEnemyMech extends sdEntity
 		
 		let e = sdEntity.GetRandomEntity();
 		
-		if ( [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret' , 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdSetrDestroyer', 'sdOverlord', 'sdSpider' ].indexOf( e.GetClass() ) !== -1 )
+		if ( [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret', 'sdManualTurret', 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdSetrDestroyer', 'sdOverlord', 'sdSpider' ].indexOf( e.GetClass() ) !== -1 )
 		if ( e.IsVisible( this ) )
 		if ( e.IsTargetable( this ) )
 		{
@@ -534,13 +534,14 @@ class sdEnemyMech extends sdEntity
 
 					//let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 800 );
 					//let targets_raw = sdWorld.GetCharactersNear( this.x, this.y, null, null, 800 );
-					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdEnemyMech.attack_range, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret' , 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdSetrDestroyer', 'sdOverlord', 'sdSpider' ] );
+					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdEnemyMech.attack_range, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret', 'sdManualTurret', 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdSetrDestroyer', 'sdOverlord', 'sdSpider' ] );
 
 					let targets = [];
 
 					for ( let i = 0; i < targets_raw.length; i++ )
 					if ( ( targets_raw[ i ].GetClass() === 'sdCharacter' && targets_raw[ i ]._ai_team !== this._ai_team && targets_raw[ i ].hea > 0 && this.CanAttackEnt( targets_raw[ i ] )  ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdTurret' ) ||
+						 ( targets_raw[ i ].GetClass() === 'sdManualTurret' ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdOverlord' ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdSetrDestroyer' ) ||
 						 ( targets_raw[ i ].GetClass() === 'sdSpider' ) ||

@@ -19,6 +19,7 @@ import sdThruster from './sdThruster.js';
 import sdArea from './sdArea.js';
 import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdManualTurret from './sdManualTurret.js';
 import sdTimer from './sdTimer.js';
 
 
@@ -425,6 +426,11 @@ class sdSteeringWheel extends sdEntity
 				this._scan[ i ].enabled = true;
 				this._scan[ i ]._update_version++;
 				
+				this._scan[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+			}
+			else
+			if ( this._scan[ i ].is( sdManualTurret ) )
+			{
 				this._scan[ i ].SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 			}
 		}

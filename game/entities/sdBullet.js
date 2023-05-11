@@ -109,7 +109,7 @@ class sdBullet extends sdEntity
 		if ( target_entity._shielded.enabled )
 		if ( target_entity._shielded.type === sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE ) // Wasn't tested on any else type
 		{
-			target_entity.Damage( bullet._anti_shield_damage_bonus, bullet._owner || bullet._owner2 || null );
+			target_entity.DamageWithEffect( bullet._anti_shield_damage_bonus, bullet._owner || bullet._owner2 || null );
 		}
 		
 		/*if ( target_entity.is( sdBlock ) )
@@ -718,6 +718,7 @@ class sdBullet extends sdEntity
 
 								if ( this._temperature_addition !== 0 ) // Is this an incediary bullet?
 								from_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t:this._temperature_addition, initiator: this._owner }); // Set enemy on fire
+							
 								if ( this._owner )
 								if ( old_hea > 0 )
 								if ( old_hea !== ( from_entity.hea || from_entity._hea || 0 ) ) // Any damage actually dealt

@@ -17,6 +17,7 @@ import sdSpider from './sdSpider.js';
 import sdOverlord from './sdOverlord.js';
 import sdBlock from './sdBlock.js';
 import sdCrystal from './sdCrystal.js';
+import sdCharacter from './sdCharacter.js';
 
 import sdPathFinding from '../ai/sdPathFinding.js';
 
@@ -863,6 +864,7 @@ class sdCube extends sdEntity
 							di += 1000;
 							
 							if ( di < closest_di )
+							if ( !sdWorld.sockets[ i ].character.is( sdCharacter ) || sdWorld.sockets[ i ].character.build_tool_level >= 5 ) // Do not crowd near new players
 							{
 								closest_di = di;
 								closest_di_real = di_real;

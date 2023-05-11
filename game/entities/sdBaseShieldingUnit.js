@@ -43,7 +43,7 @@ class sdBaseShieldingUnit extends sdEntity
 		sdBaseShieldingUnit.TYPE_SCORE_TIMED = 2; // Similar to crystal consumer but players charge it with score, it expires overtime and can not be attacked. Can't be near red LRTPs though
 		sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE = 3; // Only portion of damage can pass through and damage entities
 		
-		sdBaseShieldingUnit.damage_reduction_shield_max_level = 60;
+		sdBaseShieldingUnit.damage_reduction_shield_max_level = 50;
 		
 		sdBaseShieldingUnit.img_unit = sdWorld.CreateImageFromFile( 'shield_unit_sheet' );
 		/*
@@ -198,7 +198,9 @@ class sdBaseShieldingUnit extends sdEntity
 	
 	MeasureProtectionPercentage()
 	{
-		return sdWorld.MorphWithTimeScale( 0, 1, 0.9, this.level );
+		let level = Math.min( sdBaseShieldingUnit.damage_reduction_shield_max_level, this.level );
+		
+		return sdWorld.MorphWithTimeScale( 0, 1, 0.9, level );
 	}
 	
 	static TestIfPointIsOutsideOfBSURanges( x, y )

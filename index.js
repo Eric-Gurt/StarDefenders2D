@@ -510,100 +510,11 @@ all_imported_classes[ i ].init_class();
 
 sdEntity.AllEntityClassesLoadedAndInitiated();
 
-//throw 'TEST done: ' + classes_directory_relative;
-
-/*sdCharacter.init_class();
-sdEffect.init_class();
-sdGun.init_class(); // must be after sdEffect
-sdBlock.init_class();
-sdCrystal.init_class();
-sdBG.init_class();
-sdBullet.init_class();
-sdCom.init_class();
-sdAsteroid.init_class();
-sdVirus.init_class();
-sdAmphid.init_class();
-sdTeleport.init_class();
-sdDoor.init_class();
-sdWater.init_class();
-sdWeather.init_class();
-sdMatterContainer.init_class();
-sdMatterAmplifier.init_class();
-sdQuickie.init_class();
-sdOctopus.init_class();
-sdAntigravity.init_class();
-sdCube.init_class();
-sdLamp.init_class();
-sdCommandCentre.init_class();
-sdBomb.init_class();
-sdBeacon.init_class();
-sdHover.init_class();
-sdStorage.init_class();
-sdAsp.init_class();
-sdSandWorm.init_class();
-sdGrass.init_class();
-sdSlug.init_class();
-sdBarrel.init_class();
-sdEnemyMech.init_class();
-sdArea.init_class();
-sdCrystalCombiner.init_class();
-sdUpgradeStation.init_class();
-sdJunk.init_class();
-sdBadDog.init_class();
-sdShark.init_class();
-sdWorkbench.init_class();
-sdRescueTeleport.init_class();
-sdRift.init_class();
-sdDrone.init_class();
-sdLifeBox.init_class();
-sdLost.init_class();
-sdCable.init_class();
-sdCharacterRagdoll.init_class();
-sdNode.init_class();
-sdSpider.init_class();
-sdBall.init_class();
-sdTheatre.init_class();
-sdCaption.init_class();
-sdPlayerDrone.init_class();
-sdTurret.init_class();
-sdBaseShieldingUnit.init_class();
-sdConveyor.init_class();
-sdBeamProjector.init_class();
-sdQuadro.init_class();
-sdHoverBike.init_class();
-sdObelisk.init_class();
-sdSunPanel.init_class();
-sdWeaponBench.init_class();
-sdTask.init_class();
-sdPortal.init_class();
-sdLongRangeTeleport.init_class();*/
-
 sdServerToServerProtocol.init_class();
 
 sdPathFinding.init_class();
 
 
-
-/* Do like that later, not sure if I want to deal with path problems yet again... Add awaits where needed too
-
-let ent_modules = [];
-
-fs.readdir('./someDir', (err, files) => {
-	files.forEach(file => {
-	 
-		const module = await import('file')
-
-		globalThis[ MODULE NAME ? ] = await import('file');
-
-		ent_modules.push( globalThis[ MODULE NAME ? ] );
-
-	 });
-});
-
-for ( let i = 0; i < ent_modules.length; i++ )
-ent_modules[ i ].init_class();
-
-*/
 LZW.init_class();
 sdSound.init_class();
 sdDictionaryWords.init_class();
@@ -630,6 +541,16 @@ for ( let i = 0; i < process.argv.length; i++ )
 		if ( parts[ 0 ] === 'world_slot' )
 		world_slot = ~~( parts[ 1 ] );
 		
+		let v = parts.slice( 1 ).join('=');
+		
+		try
+		{
+			sdWorld.server_start_values[ parts[ 0 ] ] = JSON.parse( v );
+		}
+		catch( e )
+		{
+			sdWorld.server_start_values[ parts[ 0 ] ] = v;
+		}
 	}
 }
 console.log('world_slot = ' + world_slot + ' (defines server instance file prefixes, can be added to run command arguments in form of world_slot=1)' );
