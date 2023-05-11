@@ -174,6 +174,7 @@ class sdManualTurret extends sdEntity
 						}
 
 						if ( di < 10 )
+						if ( this.matter >= this.matter_max )
 						if ( steering_wheel.driver0._key_states.GetKey( 'Mouse1' ) )
 						{
 							if ( sdWorld.CheckLineOfSight( this.x, this.y, this.x + this.look_x / 100 * 64, this.y + this.look_y / 100 * 64, this, null, sdCom.com_visibility_unignored_classes ) )
