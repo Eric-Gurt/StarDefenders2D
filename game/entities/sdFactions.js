@@ -62,9 +62,9 @@ class sdFactions extends sdEntity
 			character_settings = {"hero_name":"Falkok", // Name
 			"color_bright":"#6b0000", // Helmet bright color
 			"color_dark":"#420000", // Helmet dark color
+			"color_visor":"#5577b9", // Visor color
 			"color_bright3":"#6b0000", // Jetpack (bright shade) color
 			"color_dark3":"#420000", // Jetpack (dark shade) color
-			"color_visor":"#5577b9", // Visor color
 			"color_suit":"#240000", // Upper suit color
 			"color_suit2":"#2e0000", // Lower suit color
 			"color_dark2":"#560101", // Lower suit plates color
@@ -80,9 +80,9 @@ class sdFactions extends sdEntity
 			character_settings = {"hero_name":"Phoenix Falkok", // Name
 			"color_bright":"#ffc800", // Helmet bright color
 			"color_dark":"#a37000", // Helmet dark color
+			"color_visor":"#000000", // Visor color
 			"color_bright3":"#ffc800", // Jetpack (bright shade) color
 			"color_dark3":"#a37000", // Jetpack (dark shade) color
-			"color_visor":"#000000", // Visor color
 			"color_suit":"#ffc800", // Upper suit color
 			"color_suit2":"#ffc800", // Lower suit color
 			"color_dark2":"#000000", // Lower suit plates color
@@ -137,9 +137,9 @@ class sdFactions extends sdEntity
 				character_settings = {"hero_name":"Erthal", // Name
 				"color_bright":"#37a2ff", // Helmet bright color
 				"color_dark":"#000000", // Helmet dark color
+				"color_visor":"#1664a8", // Visor color
 				"color_bright3":"#464646", // Jetpack (bright shade) color
 				"color_dark3":"#000000", // Jetpack (dark shade) color
-				"color_visor":"#1664a8", // Visor color
 				"color_suit":"#464646", // Upper suit color
 				"color_suit2":"#000000", // Lower suit color
 				"color_dark2":"#464646", // Lower suit plates color
@@ -193,9 +193,9 @@ class sdFactions extends sdEntity
 			character_settings = {"hero_name":"Council Acolyte", // Name
 			"color_bright":"#bca63e", // Helmet bright color
 			"color_dark":"#e3d06d", // Helmet dark color
+			"color_visor":"#00ffdf", // Visor color
 			"color_bright3":"#ffea70", // Jetpack (bright shade) color
 			"color_dark3":"#cbba48", // Jetpack (dark shade) color
-			"color_visor":"#00ffdf", // Visor color
 			"color_suit":"#003e7a", // Upper suit color
 			"color_suit2":"#af963c", // Lower suit color
 			"color_dark2":"#d0b943", // Lower suit plates color
@@ -211,9 +211,9 @@ class sdFactions extends sdEntity
 			character_settings = {"hero_name":"Council Vanguard", // Name
 			"color_bright":"#bca63e", // Helmet bright color
 			"color_dark":"#e3d06d", // Helmet dark color
+			"color_visor":"#00ffdf", // Visor color
 			"color_bright3":"#ffea70", // Jetpack (bright shade) color
 			"color_dark3":"#cbba48", // Jetpack (dark shade) color
-			"color_visor":"#00ffdf", // Visor color
 			"color_suit":"#003e7a", // Upper suit color
 			"color_suit2":"#af963c", // Lower suit color
 			"color_dark2":"#d0b943", // Lower suit plates color
@@ -275,9 +275,9 @@ class sdFactions extends sdEntity
 			character_settings = {"hero_name":"Sarronian E2 Unit", // Name
 			"color_bright":"#202020", // Helmet bright color
 			"color_dark":"#101010", // Helmet dark color
+			"color_visor":"#FFA000", // Visor color
 			"color_bright3":"#000000", // Jetpack (bright shade) color
 			"color_dark3":"#101010", // Jetpack (dark shade) color
-			"color_visor":"#FFA000", // Visor color
 			"color_suit":"#202020", // Upper suit color
 			"color_suit2":"#101010", // Lower suit color
 			"color_dark2":"#101010", // Lower suit plates color
@@ -334,9 +334,9 @@ class sdFactions extends sdEntity
 			character_settings = {"hero_name":"Velox Soldier", // Name // blue soldier
 			"color_bright":"#bcbcbc", // Helmet bright color
 			"color_dark":"#7a7a7a", // Helmet dark color
+			"color_visor":"#00ffff", // Visor color
 			"color_bright3":"#bcbcbc", // Jetpack (bright shade) color
 			"color_dark3":"#7a7a7a", // Jetpack (dark shade) color
-			"color_visor":"#00ffff", // Visor color
 			"color_suit":"#1c1c1c", // Upper suit color
 			"color_suit2":"#121212", // Lower suit color
 			"color_dark2":"#a2a2a2", // Lower suit plates color
@@ -352,9 +352,9 @@ class sdFactions extends sdEntity
 			character_settings = {"hero_name":"Velox Soldier", // Name // green soldier
 			"color_bright":"#bcbcbc", // Helmet bright color
 			"color_dark":"#7a7a7a", // Helmet dark color
+			"color_visor":"#00ff00", // Visor color
 			"color_bright3":"#bcbcbc", // Jetpack (bright shade) color
 			"color_dark3":"#7a7a7a", // Jetpack (dark shade) color
-			"color_visor":"#00ff00", // Visor color
 			"color_suit":"#1c1c1c", // Upper suit color
 			"color_suit2":"#121212", // Lower suit color
 			"color_dark2":"#a2a2a2", // Lower suit plates color
@@ -370,9 +370,9 @@ class sdFactions extends sdEntity
 			character_settings = {"hero_name":"Velox Devastator", // Name
 			"color_bright":"#bcbcbc", // Helmet bright color
 			"color_dark":"#7a7a7a", // Helmet dark color
+			"color_visor":"#ff0000", // Visor color
 			"color_bright3":"#bcbcbc", // Jetpack (bright shade) color
 			"color_dark3":"#7a7a7a", // Jetpack (dark shade) color
-			"color_visor":"#ff0000", // Visor color
 			"color_suit":"#1c1c1c", // Upper suit color
 			"color_suit2":"#121212", // Lower suit color
 			"color_dark2":"#a2a2a2", // Lower suit plates color
@@ -423,9 +423,9 @@ class sdFactions extends sdEntity
 			character_settings = {"hero_name":"Setr Soldier", // Name
 			"color_bright":"#0000c0", // Helmet bright color
 			"color_dark":"#404040", // Helmet dark color
+			"color_visor":"#c8c800", // Visor color
 			"color_bright3":"#404040", // Jetpack (bright shade) color
 			"color_dark3":"#202020", // Jetpack (dark shade) color
-			"color_visor":"#c8c800", // Visor color
 			"color_suit":"#000080", // Upper suit color
 			"color_suit2":"#000080", // Lower suit color
 			"color_dark2":"#404040", // Lower suit plates color
@@ -467,9 +467,9 @@ class sdFactions extends sdEntity
 			character_settings = {"hero_name":"Tzyrg", // Name
 			"color_bright":"#404040", // Helmet bright color
 			"color_dark":"#202020", // Helmet dark color
+			"color_visor":"#FF0000", // Visor color
 			"color_bright3":"#303030", // Jetpack (bright shade) color
 			"color_dark3":"#202020", // Jetpack (dark shade) color
-			"color_visor":"#FF0000", // Visor color
 			"color_suit":"#404040", // Upper suit color
 			"color_suit2":"#383838", // Lower suit color
 			"color_dark2":"#202020", // Lower suit plates color
@@ -511,9 +511,9 @@ class sdFactions extends sdEntity
 			character_settings = {	"hero_name":"Shurg", // Name
 			"color_bright":"#203020", // Helmet bright color
 			"color_dark":"#102010", // Helmet dark color
+			"color_visor":"#306000", // Visor color
 			"color_bright3":"#004000", // Jetpack (bright shade) color
 			"color_dark3":"#002000", // Jetpack and armor plates (dark shade) color
-			"color_visor":"#306000", // Visor color
 			"color_suit":"#003000", // Upper suit color
 			"color_suit2":"#001000", // Lower suit color
 			"color_dark2":"#083008", // Lower suit plates color
