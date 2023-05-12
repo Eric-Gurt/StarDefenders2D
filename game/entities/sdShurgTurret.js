@@ -228,7 +228,7 @@ class sdShurgTurret extends sdEntity
 				if ( this.type === sdShurgTurret.TURRET_FLYING )
 				{
 					if ( this.y > ( this._starting_y - ( Math.random() * 64 ) ) )
-					this.sy -= ( 0.08 + sdWorld.gravity * GSPEED );
+					this.sy = Math.max( -3, this.sy - ( 0.08 + sdWorld.gravity * GSPEED ) );
 
 					
 				}
@@ -383,14 +383,11 @@ class sdShurgTurret extends sdEntity
 	onMovementInRange( from_entity )
 	{
 		if ( sdWorld.is_server )
+		if ( from_entity.GetClass() !== 'sdBullet' )
 		{
-			if ( this.type === sdShurgTurret.TURRET_FLYING )
+			if ( from_entity.y > this.y && this.y < this._starting_y )
 			{
-				//if ( from_entity.GetClass() === 'sdBlock' || from_entity.GetClass() === 'sdDoor' )
-				if ( from_entity.y > this.y )
-				{
-					this._starting_y = this.y - 96;
-				}
+				this._starting_y = this.y - 96;
 			}
 		}
 	}

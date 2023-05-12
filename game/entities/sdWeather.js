@@ -2854,7 +2854,7 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_TZYRG_DEVICE ) // Spawn a Tzyrg device. When players find it they should destroy it ( Since they do stop earthquakes when they exist on the map )
 		{
-			if ( Math.random() < 0.8 )
+			if ( Math.random() < 0.95 ) // 95% chance
 			{
 				sdWeather.SimpleSpawner({
 
@@ -3001,7 +3001,7 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_SHURG_CONVERTER ) // Spawn a Shurg oxygen-to-matter anywhere on the map outside player views.
 		{
-			if ( Math.random() < 0.8 ) // 80% chance
+			if ( Math.random() < 0.95 ) // 95% chance
 			{
 				let instances = 0;
 				let instances_tot = 1;
