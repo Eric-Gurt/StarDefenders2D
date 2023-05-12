@@ -110,6 +110,17 @@ class sdShurgConverter extends sdEntity
 						near_entity: converter
 				
 						});
+
+						sdWeather.SimpleSpawner({
+
+						count: [ 3, 3 ],
+						class: sdShurgTurret,
+						params: { type: sdShurgTurret.TURRET_FLYING }, // 2 flying turrets
+						group_radius: 400,
+						near_entity: converter,
+						aerial: true
+			
+						});
 					}
 					else
 					{
