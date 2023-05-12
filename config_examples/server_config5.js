@@ -110,7 +110,7 @@
 		static allow_private_storage = false;
 		static allow_rescue_teleports = false;
 		static allow_private_storage_access = false;
-		static com_node_hack_success_rate = 0.05; // 0 - never works, 1 - works always
+		static com_node_hack_success_rate = 0; // 0.05; // 0 - never works, 1 - works always // Overriden later
 		static allowed_player_spawn_classes = [ 'sdCharacter' ];
 		
 
@@ -474,6 +474,9 @@
 			}
 			
 			unique_players_online = Math.min( unique_players_online_set1.size, unique_players_online_set2.size, unique_players_online_set3.size );
+
+
+			sdWorld.server_config.com_node_hack_success_rate = ( unique_players_online < 4 ) ? 0 : 0.1;
 
 			/*for ( let i2 = 0; i2 < sockets.length; i2++ )
 			if ( 
