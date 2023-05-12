@@ -160,7 +160,7 @@ class sdShurgTurret extends sdEntity
 		
 		if ( this.hea <= 0 && was_alive )
 		{
-
+			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_AVERAGE_MOB );
 			let that = this;
 			for ( var i = 0; i < 6; i++ )
 			{
