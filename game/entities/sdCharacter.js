@@ -3669,8 +3669,11 @@ class sdCharacter extends sdEntity
 			let e = sdShurgConverter.converters[ i ];
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, e.x, e.y, 400 ) )
 			{
-				can_breathe = false; // I've gone rusty with my coding again - Booraz149
-				break;
+				if ( e.should_drain_timer <= 0 )
+				{
+					can_breathe = false; // I've gone rusty with my coding again - Booraz149
+					break;
+				}
 			}
 		}
 	

@@ -55,7 +55,7 @@ class sdShurgConverter extends sdEntity
 		this.matter_max = 300;
 		this._notify_in = 30; // Notify players of the task every second, also drains player oxygen if they're nearby
 		this._ai_team = 9;
-
+		this.should_drain_timer = 30; // Unless this is 0 or below 0, don't drain player oxyge ( sdShop bug fix )
 		//this._drain_entities = []; // Array which stores which players to drain oxygen from when they are close enough
 		//Not needed
 
@@ -207,6 +207,9 @@ class sdShurgConverter extends sdEntity
 
 		if ( sdWorld.is_server )
 		{
+			if ( this.should_drain_timer > 0 ) // A poor bugfix implementation when admins select the converter in devtools
+			this.should_drain_timer -= GSPEED; 
+
 			if ( this._notify_in > 0 )
 			this._notify_in -= GSPEED;
 			else
