@@ -23,17 +23,17 @@ class sdCouncilMachine extends sdEntity
 {
 	static init_class()
 	{
-		sdCouncilMachine.img_council_pm = sdWorld.CreateImageFromFile( 'council_machine' );
+		sdCouncilMachine.img_council_pm = sdWorld.CreateImageFromFile( 'council_machine' ); // resprite by Flora
 
 		sdCouncilMachine.ents_left = 0; // Entities left to spawn, determined when event rolls in sdWeather.
 		sdCouncilMachine.ents = 0;
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -19; }
-	get hitbox_x2() { return 19; }
-	get hitbox_y1() { return -19; }
-	get hitbox_y2() { return 19; }
+	get hitbox_x1() { return -28; }
+	get hitbox_x2() { return 28; }
+	get hitbox_y1() { return -16; }
+	get hitbox_y2() { return 36; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -489,12 +489,12 @@ class sdCouncilMachine extends sdEntity
 
 		//ctx.filter = this.filter;
 		
-		{
-			ctx.drawImageFilterCache( sdCouncilMachine.img_council_pm, 0, 0, 64, 64, - 32, - 32, 64, 64 );
-			ctx.globalAlpha = Math.min( 1, this.glow_animation / 30 );
-			ctx.filter = ' drop-shadow(0px 0px 8px #FFF000)';
-			ctx.drawImageFilterCache( sdCouncilMachine.img_council_pm, 64, 0, 64, 64, - 32, - 32, 64, 64 );
-		}
+         {
+            ctx.drawImageFilterCache( sdCouncilMachine.img_council_pm, 0, 0, 64, 64, - 64, - 64, 128, 128 );
+            ctx.globalAlpha = Math.min( 1, this.glow_animation / 30 );
+            ctx.filter = ' drop-shadow(0px 0px 8px #FFF000)';
+            ctx.drawImageFilterCache( sdCouncilMachine.img_council_pm, 64, 0, 64, 64, - 64, - 64, 128, 128 );
+        }
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
