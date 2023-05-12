@@ -191,35 +191,35 @@ class sdFactions extends sdEntity
 			}
 			if ( character_entity._ai_gun_slot === 1 || character_entity._ai_gun_slot === 4 )
 			character_settings = {"hero_name":"Council Acolyte", // Name
-			"color_bright":"#e1e100", // Helmet bright color
-			"color_dark":"#ffffff", // Helmet dark color
-			"color_bright3":"#ffff00", // Jetpack (bright shade) color
-			"color_dark3":"#e1e1e1", // Jetpack (dark shade) color
-			"color_visor":"#ffff00", // Visor color
-			"color_suit":"#ffffff", // Upper suit color
-			"color_suit2":"#e1e1e1", // Lower suit color
-			"color_dark2":"#ffe100", // Lower suit plates color
-			"color_shoes":"#e1e1e1", // Shoes color
-			"color_skin":"#ffffff", // Gloves and neck color
-			"color_extra1":"#ffff00", // Extra 1 color
+			"color_bright":"#bca63e", // Helmet bright color
+			"color_dark":"#e3d06d", // Helmet dark color
+			"color_bright3":"#ffea70", // Jetpack (bright shade) color
+			"color_dark3":"#cbba48", // Jetpack (dark shade) color
+			"color_visor":"#00ffdf", // Visor color
+			"color_suit":"#003e7a", // Upper suit color
+			"color_suit2":"#af963c", // Lower suit color
+			"color_dark2":"#d0b943", // Lower suit plates color
+			"color_shoes":"#9b7f31", // Shoes color
+			"color_skin":"#1c1c1c", // Gloves and neck color
+			"color_extra1":"#00ffdf", // Extra 1 color
 			"helmet23":true,
-			"body11":true,
-			"legs8":true,
+			"body66":true,
+			"legs27":true,
 			"voice8":true };
 
 			if ( character_entity._ai_gun_slot === 3 )
 			character_settings = {"hero_name":"Council Vanguard", // Name
-			"color_bright":"#e1e100", // Helmet bright color
-			"color_dark":"#ffffff", // Helmet dark color
-			"color_bright3":"#ffff00", // Jetpack (bright shade) color
-			"color_dark3":"#e1e1e1", // Jetpack (dark shade) color
-			"color_visor":"#ffff00", // Visor color
-			"color_suit":"#ffffff", // Upper suit color
-			"color_suit2":"#e1e1e1", // Lower suit color
-			"color_dark2":"#ffe100", // Lower suit plates color
-			"color_shoes":"#e1e1e1", // Shoes color
-			"color_skin":"#ffffff", // Gloves and neck color
-			"color_extra1":"#ffff00", // Extra 1 color
+			"color_bright":"#bca63e", // Helmet bright color
+			"color_dark":"#e3d06d", // Helmet dark color
+			"color_bright3":"#ffea70", // Jetpack (bright shade) color
+			"color_dark3":"#cbba48", // Jetpack (dark shade) color
+			"color_visor":"#00ffdf", // Visor color
+			"color_suit":"#003e7a", // Upper suit color
+			"color_suit2":"#af963c", // Lower suit color
+			"color_dark2":"#d0b943", // Lower suit plates color
+			"color_shoes":"#9b7f31", // Shoes color
+			"color_skin":"#1c1c1c", // Gloves and neck color
+			"color_extra1":"#00ffdf", // Extra 1 color
 			"helmet96":true,
 			"body68":true,
 			"legs68":true,
