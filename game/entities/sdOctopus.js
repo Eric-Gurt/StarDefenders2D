@@ -359,7 +359,6 @@ class sdOctopus extends sdEntity
 				for ( var i = 0; i < nears_raw.length; i++ )
 				{
 					from_entity = nears_raw[ i ];
-					
 					if ( ( from_entity.GetClass() === 'sdCharacter' && from_entity.IsVisible( this ) ) ||
 						 ( from_entity.GetClass() === 'sdBlock' && ( !from_entity._natural || !from_entity.IsDefaultGround() ) ) ||
 						 from_entity.GetClass() === 'sdCom' ||
@@ -396,6 +395,11 @@ class sdOctopus extends sdEntity
 						if ( from_entity.GetClass() === 'sdCharacter' && from_entity.hea > 0 )
 						rank += 1;
 						
+						if ( from_entity._held_by && from_entity._held_by._ai_team === 10 )
+						{
+						// No cheesing the Time Shifter
+						}
+						else
 						nears.push( { ent: from_entity, rank: rank } );
 					}
 				}
