@@ -116,17 +116,17 @@ class sdShop
 
 					if ( i2 === 1 )
 					{
-						_min_build_tool_level = 7;
-						_reinforced_level = 1;
-						material = sdBlock.MATERIAL_REINFORCED_WALL_LVL1;
+						//_min_build_tool_level = 7;
+						//_reinforced_level = 1;
+						//material = sdBlock.MATERIAL_REINFORCED_WALL_LVL1;
 						texture_id = sdBlock.TEXTURE_ID_REINFORCED_LVL1;
 					}
 
 					if ( i2 === 2 )
 					{
-						_min_build_tool_level = 16;
-						_reinforced_level = 2;
-						material = sdBlock.MATERIAL_REINFORCED_WALL_LVL2; // We probably no longer need 2 kinds of these if we could just switch texture
+						//_min_build_tool_level = 16;
+						//_reinforced_level = 2;
+						//material = sdBlock.MATERIAL_REINFORCED_WALL_LVL2; // We probably no longer need 2 kinds of these if we could just switch texture
 						texture_id = sdBlock.TEXTURE_ID_REINFORCED_LVL2;
 					}
 
@@ -185,8 +185,8 @@ class sdShop
 				{
 					sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, _category:'Doors' });
 					//var filter = ( i === 0 ) ? '' : 'hue-rotate('+(~~(i/12*360))+'deg) contrast(0.75)';
-					sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED, _reinforced_level: 1, _category:'Doors', _min_build_tool_level: 7 });
-					sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _reinforced_level: 2, _category:'Doors', _min_build_tool_level: 16 });
+					sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED, _category:'Doors' });
+					sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _category:'Doors' });
 				}
 			}*/
 			for ( var i = 0; i < 20; i++ )
@@ -230,8 +230,8 @@ class sdShop
 				AddBuildPack( filter, i );
 
 				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, _category:'Doors' });
-				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED, _reinforced_level: 1, _category:'Doors', _min_build_tool_level: 7 });
-				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _reinforced_level: 2, _category:'Doors', _min_build_tool_level: 16 });
+				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED, _category:'Doors' });
+				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _category:'Doors' });
 			}
 
 			AddBuildPack( 'hue-rotate( 105deg) brightness(0.7)' );
