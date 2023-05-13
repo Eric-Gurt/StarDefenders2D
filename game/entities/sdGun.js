@@ -1555,7 +1555,7 @@ class sdGun extends sdEntity
 				}
 			}
 			else
-			if ( has_class.is_sprite_sheet )
+			if ( has_class.spritesheet )
 			{
 				// TODO: make it support 6 images or 8 images if it has extra stuff
 				let odd = ( this.reload_time_left % 10 ) < 5 ? 1 : 2;

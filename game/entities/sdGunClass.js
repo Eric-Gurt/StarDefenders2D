@@ -2988,7 +2988,7 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_KVT_RAILCANNON = 49 ] = // sprite by Ghost581
 		{
 			image: sdWorld.CreateImageFromFile( './guns/phasercannon_p03' ),
-			is_sprite_sheet:true,
+			spritesheet:true,
 			/*image: sdWorld.CreateImageFromFile( 'phasercannon_p03' ),
 			image0: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
 			image1: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
@@ -4367,7 +4367,7 @@ class sdGunClass
 		sdGun.classes[ sdGun.CLASS_KVT_AVRS = 77 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( './guns/kivortec_avrs_p09' ),
-			is_sprite_sheet:true,
+			spritesheet:true,
 			/*image: sdWorld.CreateImageFromFile( 'kivortec_avrs_p09' ),
 			image0: [ sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload1' ), sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload2' ) ],
 			image1: [ sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload1' ), sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload2' ) ],
