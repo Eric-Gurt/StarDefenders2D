@@ -1555,6 +1555,17 @@ class sdGun extends sdEntity
 				}
 			}
 			else
+			if ( has_class.is_sprite_sheet )
+			{
+				// TODO: make it support 6 images or 8 images if it has extra stuff
+				let odd = ( this.reload_time_left % 10 ) < 5 ? 1 : 2;
+				
+				if ( this.reload_time_left > has_class.reload_time / 3 * 2 || this.reload_time_left > has_class.reload_time / 3 * 1 || this.reload_time_left > 0 )
+				ctx.drawImageFilterCache( image, odd * 32,0,32,32, - 16, - 16, 32,32 );
+				else
+				ctx.drawImageFilterCache( image, 0,0,32,32, - 16, - 16, 32,32);
+			}
+			else
 			if ( has_class.image_frames )
 			{
 				let frame = Math.floor( ( sdWorld.time + ( this._net_id || 0 ) * 2154 ) / has_class.image_duration ) % has_class.image_frames;
