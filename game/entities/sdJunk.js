@@ -403,6 +403,18 @@ class sdJunk extends sdEntity
 				sdEntity.entities.push( gun );
 
 				}, 500 );
+
+				if ( this.type === sdJunk.TYPE_COUNCIL_BOMB && Math.random() < 0.05 ) // 5% chance for Council Worm gun
+				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+				let gun2;
+				gun2 = new sdGun({ x:x, y:y, class:sdGun.CLASS_COUNCIL_WORM_GUN });
+
+				//gun.sx = sx;
+				//gun.sy = sy;
+				sdEntity.entities.push( gun2 );
+
+				}, 500 );
 			}
 
 			if ( this.type === sdJunk.TYPE_FREEZE_BARREL ) // Freeze "barrels" freeze stuff
