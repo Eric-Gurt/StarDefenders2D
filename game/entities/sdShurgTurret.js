@@ -24,18 +24,22 @@ class sdShurgTurret extends sdEntity
 	static init_class()
 	{
 		sdShurgTurret.img_body = sdWorld.CreateImageFromFile( 'shurg_turret' );
+		sdShurgTurret.img_body2 = sdWorld.CreateImageFromFile( 'shurg_turret2' );
 		sdShurgTurret.img_turret = sdWorld.CreateImageFromFile( 'shurg_turret_gun' );
 		
 		sdShurgTurret.attack_distance = 450;
 
 		sdShurgTurret.turrets = [];
+
+		sdShurgTurret.TURRET_GROUND = 0;
+		sdShurgTurret.TURRET_FLYING = 1;
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -10; }
-	get hitbox_x2() { return 10; }
-	get hitbox_y1() { return -10; }
-	get hitbox_y2() { return 13; }
+	get hitbox_x1() { return this.type === sdShurgTurret.TURRET_FLYING ? - 9 : -10; }
+	get hitbox_x2() { return this.type === sdShurgTurret.TURRET_FLYING ?  9 : 10; }
+	get hitbox_y1() { return this.type === sdShurgTurret.TURRET_FLYING ? - 8 : -10; }
+	get hitbox_y2() { return this.type === sdShurgTurret.TURRET_FLYING ? 10 : 13; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return true; }
@@ -46,6 +50,8 @@ class sdShurgTurret extends sdEntity
 		
 		this.sx = 0;
 		this.sy = 0;
+
+		this.type = params.type || 0;
 
 		this.hmax = 800;
 		this.hea = this.hmax;
@@ -59,6 +65,8 @@ class sdShurgTurret extends sdEntity
 		this.attack_an = 0;
 		this.side = 1;
 		this._last_seen = 0;
+
+		this._starting_y = this.y - 64; // for flying Shurg turrets to keep their altitude
 
 		this._next_scan = 5; // Target scanning so the device doesn't spam GetRandomEntityNearby()
 
@@ -152,7 +160,7 @@ class sdShurgTurret extends sdEntity
 		
 		if ( this.hea <= 0 && was_alive )
 		{
-
+			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_AVERAGE_MOB );
 			let that = this;
 			for ( var i = 0; i < 6; i++ )
 			{
@@ -217,6 +225,14 @@ class sdShurgTurret extends sdEntity
 		{
 			if ( sdWorld.is_server )
 			{	
+				if ( this.type === sdShurgTurret.TURRET_FLYING )
+				{
+					if ( this.y > ( this._starting_y - ( Math.random() * 64 ) ) )
+					this.sy = Math.max( -3, this.sy - ( 0.08 + sdWorld.gravity * GSPEED ) );
+
+					
+				}
+
 
 				if ( this.attack_frame > 0 )
 				this.attack_frame = Math.max( 0, this.attack_frame - GSPEED * 0.1 );
@@ -309,7 +325,7 @@ class sdShurgTurret extends sdEntity
 								//sdSound.PlaySound({ name:'gun_shotgun', x:this.x, y:this.y, pitch:1.25 });
 								
 								sdSound.PlaySound({ name:'gun_needle', x:this.x, y:this.y, pitch: 2 });
-							}
+							}	
 						}
 						else
 						this._last_seen++;
@@ -344,9 +360,13 @@ class sdShurgTurret extends sdEntity
 		//ctx.filter = this.filter;
 		let xx = this.hea > 0 ? 0 : 32;
 		let xx2 = this.attack_frame > 0 ? 32 : 0;
+		let img;
+		if ( this.type === sdShurgTurret.TURRET_GROUND )
+		img = sdShurgTurret.img_body;
+		if ( this.type === sdShurgTurret.TURRET_FLYING )
+		img = sdShurgTurret.img_body2;
 		{
-			//ctx.scale( this.side, 1 );
-			ctx.drawImageFilterCache( sdShurgTurret.img_body, xx, 0, 32, 32, -16, - 16, 32, 32 );
+			ctx.drawImageFilterCache( img, xx, 0, 32, 32, -16, - 16, 32, 32 );
 			if ( this.hea > 0 )
 			{
 				ctx.save();
@@ -359,6 +379,17 @@ class sdShurgTurret extends sdEntity
 		}
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
+	}
+	onMovementInRange( from_entity )
+	{
+		if ( sdWorld.is_server )
+		if ( from_entity.GetClass() !== 'sdBullet' )
+		{
+			if ( from_entity.y > this.y && this.y < this._starting_y )
+			{
+				this._starting_y = this.y - 96;
+			}
+		}
 	}
 	onRemove() // Class-specific, if needed
 	{

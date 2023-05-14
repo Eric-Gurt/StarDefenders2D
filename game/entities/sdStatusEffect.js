@@ -10,6 +10,7 @@ import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdBullet from './sdBullet.js';
 import sdGun from './sdGun.js';
+import sdWeather from './sdWeather.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -886,6 +887,92 @@ class sdStatusEffect extends sdEntity
 				//ctx.sd_status_effect_tint_filter = null;
 			},
 			DrawFG: ( status_entity, ctx, attached )=>
+			{
+			}
+		};
+
+		sdStatusEffect.types[ sdStatusEffect.TYPE_TIME_SHIFTER_PROPERTIES = 8 ] = 
+		{
+			remove_if_for_removed: true,
+	
+			is_emote: false,
+			
+			is_static: true,
+	
+			onMade: ( status_entity, params )=>
+			{
+				status_entity.charges_left = params.charges_left || 2;
+				status_entity.low_hp = false; // Has Time Shifter reached low HP after losing all "charges"?
+				status_entity.time_to_defeat = 30 * 60 * 10; // 10 minutes per "charge"
+				
+			},
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			onStatusOfDifferentTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			IsVisible: ( status_entity, observer_entity )=>
+			{
+				return true;
+			},
+			onThink: ( status_entity, GSPEED )=>
+			{
+				if ( status_entity.charges < 2 )
+				status_entity.time_to_defeat -= GSPEED;
+				if ( status_entity.for.hea < 500 && status_entity.charges_left > 0 )
+				{
+					status_entity.charges_left--;
+					status_entity.time_to_defeat += 30 * 60 * 5; // Add 5 minutes every time Time Shifter teleports / reaches low HP
+					sdSound.PlaySound({ name:'teleport', x:status_entity.for.x, y:status_entity.for.y, volume:0.5 });
+					sdWorld.SendEffect({ x:status_entity.for.x, y:status_entity.for.y, type:sdEffect.TYPE_TELEPORT/*, hue:170, filter:'hue-rotate(' + ~~( 170 ) + 'deg)'*/ });
+					sdWeather.SetRandomSpawnLocation( status_entity.for );
+					status_entity.for.hea = status_entity.for.hmax;
+				}
+				if ( ( status_entity.for.hea < 800 && status_entity.charges_left <= 0 ) || status_entity.time_to_defeat < 0 )
+				{
+					//status_entity.for.gun_slot = 0; // This way the blade in the inventory does not drop
+					sdSound.PlaySound({ name:'teleport', x:status_entity.for.x, y:status_entity.for.y, volume:0.5 });
+					sdWorld.SendEffect({ x:status_entity.for.x, y:status_entity.for.y, type:sdEffect.TYPE_TELEPORT/*, hue:170, filter:'hue-rotate(' + ~~( 170 ) + 'deg)'*/ });
+					status_entity.for.remove();
+					status_entity.for._broken = false;
+					status_entity.for.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_BOSS );
+					return true;
+				}
+				if ( ( ( status_entity.for.hea < 1250 && status_entity.charges_left <= 0 ) || status_entity.time_to_defeat < 30 * 5 ) && status_entity.low_hp === false )
+				{
+					if ( status_entity.time_to_defeat < 30 * 5 )
+					{
+						status_entity.low_hp = true;
+						status_entity.for.Say( [ 
+							'I have to go, my planet needs me.',
+							'I will deal with you later.',
+							'I do not plan on dying today.',
+							'Until next time!'
+						][ ~~( Math.random() * 4 ) ], false, false, false );
+					}
+					if ( status_entity.for.hea < 1250 && sdWorld.is_server )
+					{
+						status_entity.low_hp = true;
+						status_entity.for.Say( [ 
+							'Well, well. You disarmed me. See you soon.',
+							'No! I lost my blade! I will get you next time!',
+							'I lost my sword, but I do not die today!',
+							'Agh, my blade! You will pay for this in time!'
+						][ ~~( Math.random() * 4 ) ], false, false, false );
+						status_entity.for._ai_gun_slot = -1;
+						status_entity.for.gun_slot = -1; // Hide the equipped weapon
+						sdEntity.entities.push( new sdGun({ x:status_entity.for.x, y:status_entity.for.y, sx: status_entity.for.sx, sy: status_entity.for.sy, class:sdGun.CLASS_TELEPORT_SWORD }) );
+						// Spawn the weapon for players to pick up if they "beat" the Time Shifter
+						status_entity.time_to_defeat = 30 * 5; // Teleport away in 5 seconds
+					}
+				}
+				
+				//return ( status_entity._progress > status_entity._max_progress ); // return true = delete
+			},
+			onBeforeRemove: ( status_entity )=>
 			{
 			}
 		};

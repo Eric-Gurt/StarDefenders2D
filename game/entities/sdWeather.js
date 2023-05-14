@@ -68,6 +68,7 @@ import sdShurgConverter from './sdShurgConverter.js';
 import sdShurgTurret from './sdShurgTurret.js';
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
+import sdStatusEffect from './sdStatusEffect.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -129,6 +130,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_TZYRG_DEVICE =				event_counter++; // 38
 		sdWeather.EVENT_SHURG =					event_counter++; // 39
 		sdWeather.EVENT_SHURG_CONVERTER =			event_counter++; // 40
+		sdWeather.EVENT_TIME_SHIFTER =				event_counter++; // 41
 
 		
 		sdWeather.supported_events = [];
@@ -2854,7 +2856,7 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_TZYRG_DEVICE ) // Spawn a Tzyrg device. When players find it they should destroy it ( Since they do stop earthquakes when they exist on the map )
 		{
-			if ( Math.random() < 0.8 )
+			if ( Math.random() < 0.95 ) // 95% chance
 			{
 				sdWeather.SimpleSpawner({
 
@@ -3001,7 +3003,7 @@ class sdWeather extends sdEntity
 		}
 		if ( r === sdWeather.EVENT_SHURG_CONVERTER ) // Spawn a Shurg oxygen-to-matter anywhere on the map outside player views.
 		{
-			if ( Math.random() < 0.8 ) // 80% chance
+			if ( Math.random() < 0.95 ) // 95% chance
 			{
 				let instances = 0;
 				let instances_tot = 1;
@@ -3025,6 +3027,16 @@ class sdWeather extends sdEntity
 						near_entity: converter
 			
 						});
+						sdWeather.SimpleSpawner({
+
+						count: [ 3, 3 ],
+						class: sdShurgTurret,
+						params: { type: sdShurgTurret.TURRET_FLYING }, // 2 flying turrets
+						group_radius: 400,
+						near_entity: converter,
+						aerial: true
+			
+						});
 					}
 					else
 					{
@@ -3035,6 +3047,113 @@ class sdWeather extends sdEntity
 					instances++;
 				}
 
+			}
+			else
+			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
+		if ( r === sdWeather.EVENT_TIME_SHIFTER ) // Spawn a time shifter, very rarely though
+		{
+			let ais = 0;
+			let percent = 0;
+			for ( var i = 0; i < sdCharacter.characters.length; i++ )
+			{
+				if ( sdCharacter.characters[ i ].hea > 0 )
+				if ( !sdCharacter.characters[ i ]._is_being_removed )
+				if ( sdCharacter.characters[ i ]._ai )
+				if ( sdCharacter.characters[ i ]._ai_team === 10 )
+				{
+					ais++;
+				}
+
+				if ( sdCharacter.characters[ i ].hea > 0 )
+				if ( !sdCharacter.characters[ i ]._is_being_removed )
+				//if ( !sdCharacter.characters[ i ]._ai )
+				if ( sdCharacter.characters[ i ].build_tool_level > 20 )
+				{
+					percent++;
+				}
+			}
+			if ( Math.random() < ( 0.5 * ( percent / sdWorld.GetPlayingPlayersCount() ) ) ) // Spawn chance depends on RNG, chances increase if more players have at least 20 levels
+			{
+				let instances = 0;
+				let instances_tot = 5;
+
+				while ( instances < instances_tot && ais < 1 ) // Capped to 1 on map, but will try to spawn it multiple times if it fails
+				{
+
+					let character_entity = new sdCharacter({ x:0, y:0, _ai_enabled:sdCharacter.AI_MODEL_AGGRESSIVE });
+
+					sdEntity.entities.push( character_entity );
+
+					{
+						if ( !sdWeather.SetRandomSpawnLocation( character_entity ) )
+						{
+							character_entity.remove();
+							character_entity._broken = false;
+							break;
+						}
+						else
+						{
+							let character_settings;
+							{
+								{ 
+									sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TELEPORT_SWORD }) );
+									character_entity._ai_gun_slot = 0;
+								}
+
+								if ( character_entity._ai_gun_slot === 0 )
+								character_settings = {	"hero_name":"Time Shifter", // Name
+								"color_bright":"#202020", // Helmet bright color
+								"color_dark":"#000000", // Helmet dark color
+								"color_visor":"#FFFFFF", // Visor color
+								"color_bright3":"#202020", // Jetpack (bright shade) color
+								"color_dark3":"#202020", // Jetpack and armor plates (dark shade) color
+								"color_suit":"#000000", // Upper suit color
+								"color_suit2":"#000000", // Lower suit color
+								"color_dark2":"#000000", // Lower suit plates color
+								"color_shoes":"#202020", // Shoes color
+								"color_skin":"#202020", // Gloves and neck color
+								"color_extra1":"#202020", // Extra 1 color
+								"helmet36":true,
+								"body1":true,
+								"legs3":true,
+								"voice1":true };
+
+								if ( character_entity._ai_gun_slot === 0 )
+								{
+									character_entity.matter = 1000;
+									character_entity.matter_max = 1000;
+
+									character_entity.hea = 2500;
+									character_entity.hmax = 2500;
+								}
+
+								character_entity._ai = { direction: ( Math.random() < 0.5 ) ? -1 : 1 };
+								character_entity._ai_level =  4; // AI Level
+
+								character_entity._matter_regeneration = 50; // At least some ammo regen
+								character_entity._jetpack_allowed = false; // No jetpack, he can fly with his blade if he needs it after all
+								character_entity._ai_team = 10; // AI team 10 is for the time shifter
+								character_entity._matter_regeneration_multiplier = 50; // Their matter regenerates 50 times faster than normal, unupgraded players	
+
+								character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( character_settings );
+								character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( character_settings );
+								character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( character_settings );
+								character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( character_settings );
+								character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( character_settings );
+								character_entity.title = character_settings.hero_name;	
+
+								character_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_TIME_SHIFTER_PROPERTIES, charges_left: 2 }); // Give him the Time Shifter properties / status effect
+
+								// This is a bossfight.
+								break;
+							}
+						}
+					}
+
+					instances++;
+					ais++;
+				}
 			}
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event

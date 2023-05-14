@@ -2310,6 +2310,20 @@ class sdCharacter extends sdEntity
 				'Smmems iiedyg.'
 				][ ~~( Math.random() * 5 ) ], false, false, false );
 		}
+		if ( this._ai_team === 10 ) // Time Shifter
+		{
+			if ( this.hea > 1250 )
+			{
+				// Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false )
+				this.Say( [ 
+					'I already killed you in the future. Might aswell have fun in the past.',
+					'I know how you die, but I will not tell you.',
+					'Are you ready?',
+					'If I kill you now, it might change future events.',
+					'Time is the most valuable resource. Something you do not have.'
+				][ ~~( Math.random() * 5 ) ], false, false, false );
+			}
+		}
 	}
 	AILogic( GSPEED ) // aithink
 	{
@@ -3669,8 +3683,11 @@ class sdCharacter extends sdEntity
 			let e = sdShurgConverter.converters[ i ];
 			if ( sdWorld.inDist2D_Boolean( this.x, this.y, e.x, e.y, 400 ) )
 			{
-				can_breathe = false; // I've gone rusty with my coding again - Booraz149
-				break;
+				if ( e.should_drain_timer <= 0 )
+				{
+					can_breathe = false; // I've gone rusty with my coding again - Booraz149
+					break;
+				}
 			}
 		}
 	
