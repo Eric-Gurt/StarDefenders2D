@@ -6704,6 +6704,7 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._affected_by_gravity = true;
 				
 				obj.color = '#004400';
 				
@@ -6848,6 +6849,52 @@ class sdGunClass
 				}
 			},
 			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#00ff00', 15, 'main energy color' ) )
+		};
+
+		sdGun.classes[ sdGun.CLASS_SHURG_SNIPER = 115 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'shurg_sniper' ),
+			sound: 'gun_sniper',
+			sound_pitch: 1.7,
+			title: 'Shurg sniper rifle',
+			slot: 4,
+			reload_time: 70,
+			muzzle_x: 11,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_velocity: sdGun.default_projectile_velocity * 2,
+			matter_cost: 120,
+			min_build_tool_level: 9,
+			projectile_properties: { _damage: 115, /*_knock_scale:0.01 * 8, */penetrating:true, _dirt_mult: -0.5 },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { penetrating:true, _dirt_mult: -0.5 };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._affected_by_gravity = true;
+
+				obj.color = '#004400';
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 115; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( [] )
 		};
 
 		// Add new gun classes above this line //
