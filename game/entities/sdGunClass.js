@@ -6800,7 +6800,7 @@ class sdGunClass
 					{
 						//gun._held_by._auto_shoot_in = 15;
 						//return; // hack
-						gun._held_by._auto_shoot_in = 750 / 1000 * 30 / ( 1 + gun._combo / 60 );
+						gun._held_by._auto_shoot_in = 750 / 1000 * 30;
 
 
 						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
@@ -6863,8 +6863,7 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			projectile_velocity: sdGun.default_projectile_velocity * 2,
-			matter_cost: 120,
-			min_build_tool_level: 9,
+			spawnable: false,
 			projectile_properties: { _damage: 115, /*_knock_scale:0.01 * 8, */penetrating:true, _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
@@ -6895,6 +6894,98 @@ class sdGunClass
 				}
 			},
 			upgrades: AddGunDefaultUpgrades( [] )
+		};
+
+		sdGun.classes[ sdGun.CLASS_SETR_LMG = 116 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'setr_lmg' ),
+			//sound: 'supercharge_combined2',
+			title: 'Setr Light Machine Gun',
+			//sound_pitch: 0.5,
+			slot: 2,
+			reload_time: 0,
+			muzzle_x: 11,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
+			spawnable: false,
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				if ( gun._held_by._auto_shoot_in > 0 )
+				return 0;
+				
+				return 4;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				gun._held_by._key_states.SetKey( 'KeyA', 0 );
+				gun._held_by._key_states.SetKey( 'KeyD', 0 );
+				gun._held_by._key_states.SetKey( 'KeyW', 0 );
+				gun._held_by._key_states.SetKey( 'KeyS', 1 ); // Make the user crouch when using this and cripple mobility. It is strong as Ripper after all
+				if ( !shoot_from_scenario )
+				{
+					if ( gun._held_by )
+					if ( gun._held_by._auto_shoot_in <= 0 )
+					{
+						//gun._held_by._auto_shoot_in = 15;
+						//return; // hack
+						gun._held_by._auto_shoot_in = 1200 / 1000 * 30;
+
+						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
+						sdSound.PlaySound({ name: 'enemy_mech_charge', x:gun.x, y:gun.y, volume: 1.5 });
+					}
+					gun._held_by._key_states.SetKey( 'KeyA', 0 );
+					gun._held_by._key_states.SetKey( 'KeyD', 0 );
+					gun._held_by._key_states.SetKey( 'KeyW', 0 );
+					gun._held_by._key_states.SetKey( 'KeyS', 0 ); // Make the user crouch after charge sequence
+					return false;
+				}
+				else
+				{
+					//sdSound.PlaySound({ name: 'gun_pistol', x:gun.x, y:gun.y });
+					sdSound.PlaySound({ name:'enemy_mech_attack4', x:gun.x, y:gun.y, volume:1.5, pitch: 1 });
+					
+					if ( gun._held_by.matter >= 4 )
+					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					{
+						gun._held_by._auto_shoot_in = 4;
+						gun._held_by.matter -= 4;
+					}
+					else
+					gun._held_by._key_states.SetKey( 'KeyS', 0 ); // Reset crouch state
+				}
+				return true;
+			},
+			projectile_properties: { _damage: 50, _dirt_mult: -0.5 }, // Combined with fire rate
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _dirt_mult: -0.5 };
+				obj._knock_scale = 0.02 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 50; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades()
 		};
 
 		// Add new gun classes above this line //
