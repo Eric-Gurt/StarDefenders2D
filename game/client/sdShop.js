@@ -645,6 +645,14 @@ class sdShop
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.SARRORIAN_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.COUNCIL_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.TZYRG_SPAWNER, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdFactionTools', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdFactionTools', type:2, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdFactionTools', type:3, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdFactionTools', type:4, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdFactionTools', type:5, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdFactionTools', type:6, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdFactionTools', type:7, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdFactionTools', type:8, _category:'Development tests' });
 			}
 
 			sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });

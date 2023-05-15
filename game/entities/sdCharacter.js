@@ -2010,7 +2010,12 @@ class sdCharacter extends sdEntity
 				if ( this.AttemptTeleportOut( initiator ) )
 				return;
 			}
-			
+			if ( this._ai_team === 10 && this.hea - damage_to_deal <= 0 ) // Time shifters aren't supposed to die ( prevent barrel/bomb/whatever cheesing )
+			{
+				this.hea = 1;
+				this._dying = false;
+			}
+			else
 			this.hea -= damage_to_deal;
 			this.DamageStability( damage_to_deal * sdCharacter.stability_damage_from_damage_scale );
 			
