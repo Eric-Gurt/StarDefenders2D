@@ -3332,6 +3332,7 @@ class sdGunClass
 						sdEntity.entities.push( ent2 );
 
 						sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
+						sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });
 						
 						let side_set = false;
 						const logic = ()=>
@@ -4920,12 +4921,12 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_COMBAT_INSTRUCTOR = 90 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'emergency_instructor' ),
+			image: sdWorld.CreateImageFromFile( 'emergency_instructor2' ),
 			sound: 'gun_defibrillator',
 			title: 'Combat instructor',
 			sound_pitch: 0.5,
 			slot: 7,
-			reload_time: 30 * 3,
+			reload_time: 30 * 30,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -4933,11 +4934,25 @@ class sdGunClass
 			spawnable: false,
 			GetAmmoCost: ()=>
 			{
-				return 400;
+				return 800;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
 				let owner = gun._held_by;
+
+				for( let i = 0; i < sdCharacter.characters.length; i++ )
+				{
+					let char = sdCharacter.characters[ i ]
+					if ( char.title === 'Combat Instructor' ) // If instructor already exists for this user, remove him and spawn a new one
+					if ( char._ai_stay_near_entity === owner )
+					{
+						sdSound.PlaySound({ name:'teleport', x:char.x, y:char.y, volume:0.5 });
+						sdWorld.SendEffect({ x:char.x, y:char.y, type:sdEffect.TYPE_TELEPORT });
+						char.remove();
+						char._broken = false;
+					}
+
+				}
 				
 				setTimeout(()=> // Out of loop spawn
 				{
@@ -4974,8 +4989,12 @@ class sdGunClass
 						sdEntity.entities.push( ent2 );
 
 						sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
+						sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });
+
+						ent._ai_stay_near_entity = owner;
+						ent._ai_stay_distance = 96;
 						
-						let side_set = false;
+						/*let side_set = false;
 						const logic = ()=>
 						{
 							if ( ent._ai )
@@ -5043,6 +5062,7 @@ class sdGunClass
 							//ent2._broken = false;
 
 						}, 60000 );
+						*/
 					}
 				}, 1 );
 				
