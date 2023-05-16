@@ -779,24 +779,11 @@ class sdJunk extends sdEntity
 										character_entity.x = x;
 										character_entity.y = y;
 										sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_COUNCIL );
+										character_entity._ai_stay_near_entity = this;
+										character_entity._ai_stay_distance = 128; // A little closer than to the portal machine
 
 										const logic = ()=>
 										{
-											if ( character_entity._ai ) // AI moving so it stays close to the Beam projector
-											{
-
-												if ( character_entity.x > this.x + 32 )
-												character_entity._ai.direction = -1;
-
-												if ( character_entity.x < this.x - 32 )
-												character_entity._ai.direction = 1;
-
-												if ( character_entity.y < this.y - 32 )
-												character_entity._key_states.SetKey( 'KeyW', 1 );
-
-												//if ( character_entity._ai.target === null )
-												//character_entity._ai.target = this;
-											}
 											if ( character_entity.hea <= 0 )
 											if ( !character_entity._is_being_removed )
 											{
