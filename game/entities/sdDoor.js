@@ -424,7 +424,7 @@ class sdDoor extends sdEntity
 						{
 							let interrupter1 = sdWorld.last_hit_entity;
 							
-							if ( interrupter1.is( sdDoor ) )
+							if ( interrupter1 !== null && interrupter1.is( sdDoor ) )
 							{
 								this.openness = old_openness;
 								
