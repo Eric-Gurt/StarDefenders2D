@@ -355,6 +355,18 @@ class sdSandWorm extends sdEntity
 					sdEntity.entities.push( shard );
 
 				}, 500 );
+
+				if ( this === head_entity && Math.random() < 0.025 ) // 2.5% chance for Council Worm gun
+				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+				let gun;
+				gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_COUNCIL_WORM_GUN });
+
+				//gun.sx = sx;
+				//gun.sy = sy;
+				sdEntity.entities.push( gun );
+
+				}, 500 );
 			}
 			this.remove();
 		}

@@ -972,10 +972,12 @@ class sdBlock extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		//if ( this._reinforced_level > 0 )
-		//this._reinforced_level = 0;
-		//if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 )
-		//this.material = sdBlock.MATERIAL_WALL;
+		//Reset reinforced levels
+		if ( this._reinforced_level > 0 )
+		this._reinforced_level = 0;
+		if ( this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 || this.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 )
+		this.material = sdBlock.MATERIAL_WALL;
+
 		if ( this._regen_timeout > 0 )
 		this._regen_timeout -= GSPEED;
 		else

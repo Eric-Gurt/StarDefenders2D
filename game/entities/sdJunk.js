@@ -148,6 +148,7 @@ class sdJunk extends sdEntity
 		this._spawn_ent_in = 60; // Used in Council Bomb, although could be used in other things
 		this._spawn_ent_in_delay = 30 * 30; // 30 seconds but grows evert time spawn happens to avoid too much flood
 		this._regen_timeout = 0; // Regen timeout for task reward matter container, although could be used in other things in future
+		this._notify_players_in = 30; // Notify players about tasks ( Erthal beacon )
 
 		if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER )
 		sdJunk.anti_crystals++;
@@ -400,6 +401,18 @@ class sdJunk extends sdEntity
 				//gun.sx = sx;
 				//gun.sy = sy;
 				sdEntity.entities.push( gun );
+
+				}, 500 );
+
+				if ( this.type === sdJunk.TYPE_COUNCIL_BOMB && Math.random() < 0.05 ) // 5% chance for Council Worm gun
+				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+				let gun2;
+				gun2 = new sdGun({ x:x, y:y, class:sdGun.CLASS_COUNCIL_WORM_GUN });
+
+				//gun.sx = sx;
+				//gun.sy = sy;
+				sdEntity.entities.push( gun2 );
 
 				}, 500 );
 			}
@@ -906,14 +919,11 @@ class sdJunk extends sdEntity
 
 			if ( this.type === sdJunk.TYPE_ERTHAL_DISTRESS_BEACON ) // Erthal distress beacon
 			{
-				if ( this._spawn_ent_in > 0 ) // spawn timer
-				this._spawn_ent_in -= GSPEED;
+				if ( this._notify_players_in > 0 ) // task notification timer
+				this._notify_players_in -= GSPEED;
 				else
 				{
-					this._spawn_ent_in = this._spawn_ent_in_delay; // 30 seconds
-					this._spawn_ent_in_delay *= 1.25;
-					sdWeather.only_instance.ExecuteEvent( 11 ); // Execute Erthal spawn event
-
+					this._notify_players_in = 30 * 2;
 					for ( let i = 0; i < sdWorld.sockets.length; i++ ) // Let players know that it needs to be destroyed
 					{
 						sdTask.MakeSureCharacterHasTask({ 
@@ -926,6 +936,14 @@ class sdJunk extends sdEntity
 							description: 'The Erthals have placed a distress beacon nearby and are rallying their troops! Destroy the beacon before they overflow the land!'
 						});
 					}
+				}
+				if ( this._spawn_ent_in > 0 ) // spawn timer
+				this._spawn_ent_in -= GSPEED;
+				else
+				{
+					this._spawn_ent_in = this._spawn_ent_in_delay; // 30 seconds
+					this._spawn_ent_in_delay *= 1.25;
+					sdWeather.only_instance.ExecuteEvent( 11 ); // Execute Erthal spawn event
 					
 					if ( this._spawn_ent_in_delay > 60 * 60 * 24 )
 					{

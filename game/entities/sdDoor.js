@@ -229,8 +229,9 @@ class sdDoor extends sdEntity
 	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
-		//if ( this._reinforced_level > 0 )
-		//this._reinforced_level = 0;
+		//Reset reinforced levels
+		if ( this._reinforced_level > 0 )
+		this._reinforced_level = 0;
 		//if ( this.model === sdDoor.MODEL_ARMORED )
 		//this.model = sdDoor.MODEL_BASIC;
 		if ( this._regen_timeout > 0 )

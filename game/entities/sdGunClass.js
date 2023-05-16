@@ -2987,11 +2987,13 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_KVT_RAILCANNON = 49 ] = // sprite by Ghost581
 		{
-			image: sdWorld.CreateImageFromFile( 'phasercannon_p03' ),
+			image: sdWorld.CreateImageFromFile( './guns/phasercannon_p03' ),
+			spritesheet:true,
+			/*image: sdWorld.CreateImageFromFile( 'phasercannon_p03' ),
 			image0: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
 			image1: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
 			image2: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
-			has_images: true,
+			has_images: true,*/
 			sound: 'gun_railgun_malicestorm_terrorphaser4',
 			title: 'KVT Railcannon P03 "Stormbringer"',
 			sound_pitch: 1.6, // re-added cause weapon sounds better with the sound pitch. - Ghost581
@@ -4093,7 +4095,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_COUNCIL_PISTOL = 71 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'council_pistol2' ),
+			image: sdWorld.CreateImageFromFile( 'council_pistol3' ),
 			sound: 'cube_attack',
 			sound_pitch: 1.5,
 			title: 'Council Pistol',
@@ -4137,7 +4139,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_COUNCIL_BURST_RAIL = 72 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'council_gun' ),
+			image: sdWorld.CreateImageFromFile( 'council_gun2' ),
 			sound: 'cube_attack',
 			sound_pitch: 1.5,
 			title: 'Council Burst Rail',
@@ -4364,11 +4366,13 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_KVT_AVRS = 77 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'kivortec_avrs_p09' ),
+			image: sdWorld.CreateImageFromFile( './guns/kivortec_avrs_p09' ),
+			spritesheet:true,
+			/*image: sdWorld.CreateImageFromFile( 'kivortec_avrs_p09' ),
 			image0: [ sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload1' ), sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload2' ) ],
 			image1: [ sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload1' ), sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload2' ) ],
 			image2: [ sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload1' ), sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload2' ) ],
-			has_images: true,
+			has_images: true,*/
 			sound: 'gun_railgun_malicestorm_terrorphaser4',
 			sound_pitch: 0.7,
 			title: 'KVT AVRS P09 "Incapacitator"',
@@ -6164,7 +6168,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_COUNCIL_SHOTGUN = 103 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'council_shotgun' ),
+			image: sdWorld.CreateImageFromFile( 'council_shotgun2' ),
 			sound: 'cube_attack',
 			sound_pitch: 1.2,
 			sound_volume: 1.5,
@@ -6700,6 +6704,7 @@ class sdGunClass
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._affected_by_gravity = true;
 				
 				obj.color = '#004400';
 				
@@ -6762,6 +6767,225 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
+		};
+
+		sdGun.classes[ sdGun.CLASS_COUNCIL_WORM_GUN = 114 ] = // Sprite by Flora/Gravel
+		{
+			image: sdWorld.CreateImageFromFile( 'council_chargerail' ),
+			//sound: 'supercharge_combined2',
+			title: 'Council Worm Annihilator',
+			//sound_pitch: 0.5,
+			slot: 4,
+			reload_time: 0.3,
+			muzzle_x: 8,
+			ammo_capacity: -1,
+			count: 1,
+			spawnable: false,
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				if ( gun._held_by._auto_shoot_in > 0 )
+				return 0;
+				
+				return 6;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( !shoot_from_scenario )
+				{
+					if ( gun._held_by )
+					if ( gun._held_by._auto_shoot_in <= 0 )
+					{
+						//gun._held_by._auto_shoot_in = 15;
+						//return; // hack
+						gun._held_by._auto_shoot_in = 750 / 1000 * 30;
+
+
+						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
+						sdSound.PlaySound({ name: 'enemy_mech_charge', x:gun.x, y:gun.y, volume: 1.5, pitch: 0.7 });
+					}
+					return false;
+				}
+				else
+				{
+					//sdSound.PlaySound({ name: 'gun_pistol', x:gun.x, y:gun.y });
+					sdSound.PlaySound({ name:'cube_attack', pitch: 4, x:gun.x, y:gun.y, volume:1.2 });
+					
+					if ( gun._held_by.matter >= 6 )
+					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					{
+						gun._held_by._auto_shoot_in = 3;
+						gun._held_by.matter -= 6;
+					}
+				}
+				return true;
+			},
+			projectile_properties: { _rail: true, _damage: 28, color: '#ffff00', _temperature_addition: 200 }, // Combined with fire rate
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _rail: true, _damage: 28, color: '#ffff00', _temperature_addition: 200 };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 28; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#00ff00', 15, 'main energy color' ) )
+		};
+
+		sdGun.classes[ sdGun.CLASS_SHURG_SNIPER = 115 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'shurg_sniper' ),
+			sound: 'gun_sniper',
+			sound_pitch: 1.7,
+			title: 'Shurg sniper rifle',
+			slot: 4,
+			reload_time: 70,
+			muzzle_x: 11,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_velocity: sdGun.default_projectile_velocity * 2,
+			spawnable: false,
+			projectile_properties: { _damage: 115, /*_knock_scale:0.01 * 8, */penetrating:true, _dirt_mult: -0.5 },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { penetrating:true, _dirt_mult: -0.5 };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				obj._affected_by_gravity = true;
+
+				obj.color = '#004400';
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 115; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( [] )
+		};
+
+		sdGun.classes[ sdGun.CLASS_SETR_LMG = 116 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'setr_lmg' ),
+			//sound: 'supercharge_combined2',
+			title: 'Setr Light Machine Gun',
+			//sound_pitch: 0.5,
+			slot: 2,
+			reload_time: 0,
+			muzzle_x: 11,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
+			spawnable: false,
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				if ( gun._held_by._auto_shoot_in > 0 )
+				return 0;
+				
+				return 4;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				gun._held_by._key_states.SetKey( 'KeyA', 0 );
+				gun._held_by._key_states.SetKey( 'KeyD', 0 );
+				gun._held_by._key_states.SetKey( 'KeyW', 0 );
+				gun._held_by._key_states.SetKey( 'KeyS', 1 ); // Make the user crouch when using this and cripple mobility. It is strong as Ripper after all
+				if ( !shoot_from_scenario )
+				{
+					if ( gun._held_by )
+					if ( gun._held_by._auto_shoot_in <= 0 )
+					{
+						//gun._held_by._auto_shoot_in = 15;
+						//return; // hack
+						gun._held_by._auto_shoot_in = 1200 / 1000 * 30;
+
+						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
+						sdSound.PlaySound({ name: 'enemy_mech_charge', x:gun.x, y:gun.y, volume: 1.5 });
+					}
+					gun._held_by._key_states.SetKey( 'KeyA', 0 );
+					gun._held_by._key_states.SetKey( 'KeyD', 0 );
+					gun._held_by._key_states.SetKey( 'KeyW', 0 );
+					gun._held_by._key_states.SetKey( 'KeyS', 0 ); // Make the user crouch after charge sequence
+					return false;
+				}
+				else
+				{
+					//sdSound.PlaySound({ name: 'gun_pistol', x:gun.x, y:gun.y });
+					sdSound.PlaySound({ name:'enemy_mech_attack4', x:gun.x, y:gun.y, volume:1.5, pitch: 1 });
+					
+					if ( gun._held_by.matter >= 4 )
+					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					{
+						gun._held_by._auto_shoot_in = 4;
+						gun._held_by.matter -= 4;
+					}
+					else
+					gun._held_by._key_states.SetKey( 'KeyS', 0 ); // Reset crouch state
+				}
+				return true;
+			},
+			projectile_properties: { _damage: 50, _dirt_mult: -0.5 }, // Combined with fire rate
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _dirt_mult: -0.5 };
+				obj._knock_scale = 0.02 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 50; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades()
 		};
 
 		// Add new gun classes above this line //
