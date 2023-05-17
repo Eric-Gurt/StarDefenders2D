@@ -244,7 +244,7 @@ class sdSound
 				//if ( e.GetClass() === 'sdCharacter' )
 				case 'sdCharacter':
 				{
-					if ( e.flying )
+					if ( e.flying || e.free_flying )
 					count_flying += 1 * sdSound.GetDistanceMultForPosition( e.x, e.y );
 				}
 				break;
