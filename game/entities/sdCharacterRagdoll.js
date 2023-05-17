@@ -305,8 +305,8 @@ class sdCharacterRagdoll
 		
 		// Body & head
 		this.MoveBone( this.torso, 13, 22 );
-		if ( this.character. free_flying )
-		this.MoveBone( this.torso, 13, 21.8 );
+		if ( this.character. free_flying && !this.character.stands )
+		this.MoveBone( this.torso, 13, 21.75 );
 		let dx = -( this.chest._ty - this.character.look_y ) * this.character._side;
 		let dy = ( this.chest._tx - this.character.look_x ) * this.character._side;
 		let di = sdWorld.Dist2D_Vector( dx, dy );
@@ -442,10 +442,10 @@ class sdCharacterRagdoll
 					_anim_walk_arms = Math.sin( _anim_walk + 0.2 ) * 1;
 					}
 					else
-					if ( this.character.free_flying )
 					{
-					walk_amplitude_x = act_x * this.character._side * 1;
-					legs_x -= act_x * this.character._side * 2.5;
+						walk_amplitude_x = act_x * this.character._side * 0.5;
+						walk_amplitude_y = ( act_x === this.character._side ? 4 : -4 ) * act_x * this.character._side;
+						legs_x -= act_x * this.character._side * 3;
 					}
 				}
 			}
