@@ -305,6 +305,8 @@ class sdCharacterRagdoll
 		
 		// Body & head
 		this.MoveBone( this.torso, 13, 22 );
+		if ( this.character. free_flying )
+		this.MoveBone( this.torso, 13, 21.8 );
 		let dx = -( this.chest._ty - this.character.look_y ) * this.character._side;
 		let dy = ( this.chest._tx - this.character.look_x ) * this.character._side;
 		let di = sdWorld.Dist2D_Vector( dx, dy );
@@ -403,7 +405,7 @@ class sdCharacterRagdoll
 		let legs_x = 13;
 		let legs_y = 30;
 		
-		if ( !this.character.stands && this.character._crouch_intens <= 0.25 )
+		if ( !this.character.stands && !this.character.free_flying )
 		{
 			walk_amplitude_x = 4;
         
@@ -415,7 +417,7 @@ class sdCharacterRagdoll
 		}
 		else
 		{
-			if ( this.character._crouch_intens > 0.25 )
+			if ( this.character._crouch_intens > 0.25 && this.character.stands )
 			{
 				legs_x -= 1;
 				legs_y -= 4;
@@ -431,11 +433,20 @@ class sdCharacterRagdoll
 			{
 				if ( act_x !== 0 )
 				{
+					if ( !this.character.free_flying )
+					{
 					walk_amplitude_x = act_x * this.character._side * Math.sin( _anim_walk ) * 5;
 					walk_amplitude_y = Math.cos( _anim_walk ) * 4;
 					legs_x -= 2.5;
 					
 					_anim_walk_arms = Math.sin( _anim_walk + 0.2 ) * 1;
+					}
+					else
+					if ( this.character.free_flying )
+					{
+					walk_amplitude_x = act_x * this.character._side * 1;
+					legs_x -= act_x * this.character._side * 2.5;
+					}
 				}
 			}
 		}
@@ -446,11 +457,13 @@ class sdCharacterRagdoll
 		this.MoveBone( this.toes2, legs_x - walk_amplitude_x + 2, legs_y - Math.max( 0, -walk_amplitude_y ) );
 		
 		let leg_len = 8;
+		if ( this.character.free_flying && !this.character.stands )
+		leg_len = 7.5;
 
 		this.RespectLength( this.torso, this.ankle1, 1, leg_len );
 		this.RespectLength( this.torso, this.ankle2, 1, leg_len );
 
-		if ( !this.character.stands || act_x !== 0 )
+		if ( ( !this.character.stands || act_x !== 0 ) && !this.character.free_flying )
 		{
 			this.RespectLength( this.torso, this.toes1, 1, leg_len );
 			this.RespectLength( this.torso, this.toes2, 1, leg_len );
@@ -1210,7 +1223,7 @@ class sdCharacterRagdoll
 					{
 						ctx.drawImageFilterCache( skin_images_by_subgroup[ spring.subgroup ], spring.image,source_y_offset, 32,32, -16,-16, 32,32 );
 
-						if ( this.character.flying )
+						if ( this.character.flying || this.character.free_flying )
 						{
 							if ( spring.image === 32 ) // Body upper
 							{

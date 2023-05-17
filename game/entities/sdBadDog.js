@@ -631,6 +631,7 @@ class sdBadDog extends sdEntity
 						from_entity.flying = false;*/
 							
 						from_entity.flying = false;
+						from_entity.free_flying = false; // Believe Bad Dog is useful!
 						from_entity.DamageStability( 100 );
 						from_entity._in_air_timer = 0;
 					}

@@ -503,6 +503,7 @@ class sdCharacter extends sdEntity
 		if ( prop === '_save_file' ) return true;
 		if ( prop === '_discovered' ) return true;
 		if ( prop === '_user_data' ) return true;
+		if ( prop === '_ai_stay_near_entity' ) return true;
 
 		return false;
 	}
@@ -762,6 +763,8 @@ class sdCharacter extends sdEntity
 		this._ai_last_y = 0;
 		this._ai_action_counter = 0; // Counter for AI "actions"
 		this._ai_dig = 0; // Amount of blocks for AI to shoot when stuck; given randomly in AILogic when AITargetBlocks is called
+		this._ai_stay_near_entity = null; // Should AI stay near an entity/protect it?
+		this._ai_stay_distance = params._ai_stay_distance || 128; // Max distance AI can stray from entity it follows/protects.
 		this._allow_despawn = true; // Use to prevent despawn of critically important characters once they are downed (task/mission-related)
 		
 		this.title = params.title || ( 'Random Hero #' + this._net_id );
@@ -880,6 +883,7 @@ class sdCharacter extends sdEntity
 		//this._acquired_bt_score = false; // Has the character reached over 5000 score?
 		//this._acquired_bt_projector = false; // Has the character picked up build tool upgrade that the dark matter beam projectors drop?
 		this.flying = false; // Jetpack flying
+		this.free_flying = false; // Flying in mid-air ( water )
 		//this._last_act_y = this.act_y; // For mid-air jump jetpack activation
 		
 		this.ghosting = false;
@@ -1382,7 +1386,7 @@ class sdCharacter extends sdEntity
 		if ( !sdArea.CheckPointDamageAllowed( this.x, this.y ) )
 		return false;
 	
-		if ( this.flying || this.hea <= 0 || ( this.fire_anim > 0 && this.gun_slot !== 0 ) || this.pain_anim > 0 || this._auto_shoot_in > 0 || this.time_ef > 0 )
+		if ( this.flying || this.free_flying || this.hea <= 0 || ( this.fire_anim > 0 && this.gun_slot !== 0 ) || this.pain_anim > 0 || this._auto_shoot_in > 0 || this.time_ef > 0 )
 		return true;
 	
 		if ( observer_character )
@@ -2010,7 +2014,12 @@ class sdCharacter extends sdEntity
 				if ( this.AttemptTeleportOut( initiator ) )
 				return;
 			}
-			
+			if ( this._ai_team === 10 && this.hea - damage_to_deal <= 0 ) // Time shifters aren't supposed to die ( prevent barrel/bomb/whatever cheesing )
+			{
+				this.hea = 1;
+				this._dying = false;
+			}
+			else
 			this.hea -= damage_to_deal;
 			this.DamageStability( damage_to_deal * sdCharacter.stability_damage_from_damage_scale );
 			
@@ -2340,7 +2349,7 @@ class sdCharacter extends sdEntity
 
 			if ( ( this._ai.direction > 0 && this.x > sdWorld.world_bounds.x2 - 24 ) || ( this._ai.direction < 0 && this.x < sdWorld.world_bounds.x1 + 24 ) )
 			{
-				if ( this._ai_team !== 0 && this._ai_team !== 6)// Prevent SD and Instructor from disappearing
+				if ( this._ai_team !== 0 && this._ai_team !== 6 )// Prevent SD and Instructor from disappearing
 				this.remove();
 				return;
 			}
@@ -2532,6 +2541,25 @@ class sdCharacter extends sdEntity
 				this._key_states.SetKey( 'KeyS', 0 );
 
 				this._key_states.SetKey( 'Mouse1', 0 );
+
+				if ( this._ai_stay_near_entity ) // Is there an entity AI should stay near?
+				{
+					if ( !this._ai_stay_near_entity._is_being_removed && !sdWorld.inDist2D_Boolean( this.x, this.y, this._ai_stay_near_entity.x, this._ai_stay_near_entity.y, this._ai_stay_distance ) ) // Is the AI too far away from the entity?
+					{
+						// Move towards entity
+						if ( this.x > this._ai_stay_near_entity.x )
+						this._key_states.SetKey( 'KeyA', 1 );
+
+						if ( this.x < this._ai_stay_near_entity.x )
+						this._key_states.SetKey( 'KeyD', 1 );
+
+						if ( this.y > this._ai_stay_near_entity.y )
+						this._key_states.SetKey( 'KeyW', 1 );
+
+					}
+				}
+				else
+				this._ai_stay_near_entity = null;
 
 				if ( closest )
 				{
@@ -3247,7 +3275,7 @@ class sdCharacter extends sdEntity
 	 
 		let ledge_holding = false;
 		this._ledge_holding = false;
-		
+
 		if ( sdWorld.is_server || sdWorld.my_entity === this )
 		{
 			if ( this.hea > 0 )
@@ -3258,6 +3286,21 @@ class sdCharacter extends sdEntity
 				if ( this._socket || this._ai || sdWorld.my_entity === this )
 				if ( this.act_x !== 0 || this.act_y !== 0 )
 				this.PhysWakeUp();
+
+				if ( this._jetpack_allowed )
+				if ( this._key_states.GetKey( 'KeyW' ) && this._key_states.GetKey( 'Space' ) )
+				{
+					this.free_flying = true;
+				
+					if ( this._socket || this._ai || sdWorld.my_entity === this )
+					if ( this.act_x !== 0 || this.act_y !== 0 )
+					this.PhysWakeUp();
+				}
+				else
+				if ( this._key_states.GetKey( 'KeyS' ) && this._key_states.GetKey( 'Space' ) )
+				{
+					this.free_flying = false;
+				}
 			}
 			else
 			{
@@ -3591,6 +3634,9 @@ class sdCharacter extends sdEntity
 		{
 			if ( this.stability < 100 )
 			{
+				if ( this.stability < 20 )
+				this.free_flying = false;
+
 				if ( can_uncrouch === -1 )
 				can_uncrouch = this.CanUnCrouch();
 
@@ -3629,7 +3675,7 @@ class sdCharacter extends sdEntity
 		
 		//this.flying = true; // Hack
 		
-		if ( this.flying )
+		if ( this.flying && !this.free_flying )
 		{
 			let di = Math.max( 1, sdWorld.Dist2D_Vector( this.act_x, this.act_y ) );
 			
@@ -3638,7 +3684,7 @@ class sdCharacter extends sdEntity
 			
 			let fuel_cost = GSPEED * sdWorld.Dist2D_Vector( x_force, y_force ) * this._jetpack_fuel_multiplier;
 
-			if ( ( this.stands && this.act_y !== -1 ) || this.driver_of || this._in_water || this.act_y !== -1 || this._key_states.GetKey( 'KeyX' ) || this.matter < fuel_cost || this.hea <= 0 )
+			if ( ( this.stands && this.act_y !== -1 ) || this.driver_of || this._in_water || this.free_flying || this.act_y !== -1 || this._key_states.GetKey( 'KeyX' ) || this.matter < fuel_cost || this.hea <= 0 )
 			this.flying = false;
 			else
 			{
@@ -3662,10 +3708,25 @@ class sdCharacter extends sdEntity
 				 this._in_air_timer > 200 / 1000 * 30 && // after 200 ms
 				 //this._last_act_y !== -1 &&
 				 !last_ledge_holding &&
+				 !this.free_flying &&
 				 !this.stands )
 			this.flying = true;
 		
 			//this._last_act_y = this.act_y;
+		}
+
+		if ( this.free_flying )
+		{
+			let di = Math.max( 1, sdWorld.Dist2D_Vector( this.act_x, this.act_y ) );
+			
+			let x_force = ( this.act_x * this._jetpack_power ) / di * 0.1;
+			let y_force = ( this.act_y * this._jetpack_power ) / di * 0.1 - sdWorld.gravity;
+			
+			let fuel_cost = GSPEED * sdWorld.Dist2D_Vector( x_force, y_force ) * this._jetpack_fuel_multiplier;
+			this.matter -= fuel_cost;
+
+			if ( this.driver_of || this._in_water || this.matter < fuel_cost || this.hea <= 0 )
+			this.free_flying = false;
 		}
 		
 		let can_breathe = false;
@@ -3736,7 +3797,7 @@ class sdCharacter extends sdEntity
 			trace( { stands:this.stands, stands_on:this._stands_on, sx:this.sx, GSPEED:GSPEED } );
 		}*/
 
-		if ( in_water )
+		if ( in_water || this.free_flying )
 		{
 			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.93, GSPEED );
 			this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.93, GSPEED );
@@ -3750,8 +3811,17 @@ class sdCharacter extends sdEntity
 				y_force /= di;
 			}
 			
-			this.sx += x_force * 0.2 * GSPEED;
-			this.sy += y_force * 0.2 * GSPEED;
+			if ( this.free_flying )
+			{
+				this.sx += x_force * 0.2 * this._jetpack_power * GSPEED;
+				this.sy += y_force * 0.2 * this._jetpack_power * GSPEED;
+			}
+			else
+			{
+				this.sx += x_force * 0.2 * GSPEED;
+				this.sy += y_force * 0.2 * GSPEED;
+			}
+
 			/*
 			if ( !sdWorld.CheckWallExists( this.x, this.y + this._hitbox_y1, null, null, sdWater.water_class_array ) )
 			{
@@ -3880,7 +3950,7 @@ class sdCharacter extends sdEntity
 			}
 			else
 			{
-				if ( ledge_holding && !this.flying )
+				if ( ledge_holding && ( !this.flying && !this.free_flying ) )
 				{
 					if ( Math.sign( this.sx ) !== this.act_x )
 					this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.65, GSPEED );
@@ -3903,7 +3973,7 @@ class sdCharacter extends sdEntity
 					this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.98, GSPEED );
 					this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.98, GSPEED );
 
-					if ( this.flying )
+					if ( this.flying || this.free_flying )
 					{
 					}
 					else
@@ -4004,7 +4074,7 @@ class sdCharacter extends sdEntity
 			this._ragdoll.Think( GSPEED );
 		}
 									
-		if ( sdWorld.is_server && !this._socket && !this._ai && this._phys_sleep <= 0 && !in_water && !this.driver_of && this.hea > 0 && !this._dying && this.pain_anim <= 0 && this.death_anim <= 0 )
+		if ( sdWorld.is_server && !this._socket && !this._ai && this._phys_sleep <= 0 && !in_water && !this.free_flying && !this.driver_of && this.hea > 0 && !this._dying && this.pain_anim <= 0 && this.death_anim <= 0 )
 		{
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 		}
@@ -4781,7 +4851,7 @@ class sdCharacter extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		if ( ( this._inventory[ this.gun_slot ] && this._inventory[ this.gun_slot ].muzzle > 0 ) || this.flying )
+		if ( ( this._inventory[ this.gun_slot ] && this._inventory[ this.gun_slot ].muzzle > 0 ) || ( this.flying || this.free_flying ) )
 		ctx.apply_shading = false;
 		
 		if ( this.ghosting )
