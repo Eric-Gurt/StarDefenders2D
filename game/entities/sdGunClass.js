@@ -5295,11 +5295,17 @@ class sdGunClass
 	
 									bullet._gun._held_item_snapshot = null;
 									sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, liquid_carrier_base_color, liquid_carrier_empty );
-	
-									sdSound.PlaySound({ name:'water_entrance', x:gun.x, y:gun.y, volume: 0.1, pitch: 1 });
-	
-									bullet._custom_detonation_logic = null; // Prevent picking up water on same use
 								}
+								else
+								{
+									gun._held_item_snapshot._volume -= ( liquid.max - liquid.amount ) / 100;
+
+									liquid.amount = liquid.max;
+								}
+
+								sdSound.PlaySound({ name:'water_entrance', x:gun.x, y:gun.y, volume: 0.1, pitch: 1 });
+
+								bullet._custom_detonation_logic = null; // Prevent picking up water on same use
 							}
 						}
 						else
@@ -5362,6 +5368,34 @@ class sdGunClass
 								sdSound.PlaySound({ name:'water_entrance', x:gun.x, y:gun.y, volume: 0.1, pitch: 1 });
 							}
 						}
+						else
+						{
+							if ( water_ent.type === bullet._gun._held_item_snapshot.type )
+							if ( bullet._gun._held_item_snapshot._volume < 1 )
+							{
+								if ( bullet._gun._held_item_snapshot._volume + water_ent._volume <= 1 )
+								{
+									gun._held_item_snapshot._volume += water_ent._volume;
+								}
+								else
+								{
+									let delta = 1 - bullet._gun._held_item_snapshot._volume;
+
+									gun._held_item_snapshot._volume = 1;
+
+									water_ent._volume -= delta;
+									water_ent.v = Math.ceil( water_ent._volume * 100 );
+									water_ent._update_version++;
+									water_ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+								}
+
+								water_ent.AwakeSelfAndNear();
+								
+								water_ent.remove();
+								
+								sdSound.PlaySound({ name:'water_entrance', x:gun.x, y:gun.y, volume: 0.1, pitch: 1 });
+							}
+						}
 					}
 					else
 					{
@@ -5397,7 +5431,21 @@ class sdGunClass
 										liquid.amount += amount;
 										//liquid.extra += extra;
 
+										water_ent.AwakeSelfAndNear();
+										
 										water_ent.remove();
+
+										can_transfer = true;
+										break;
+									}
+									else
+									{
+										water_ent._volume -= ( liquid.max - liquid.amount ) / 100;
+										water_ent.v = Math.ceil( water_ent._volume * 100 );
+										water_ent._update_version++;
+										water_ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+	
+										liquid.amount = liquid.max;
 
 										can_transfer = true;
 										break;

@@ -362,7 +362,12 @@ class sdShop
 			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 8, _category:'Base equipment', _min_build_tool_level: 18 });
 			sdShop.options.push({ _class: 'sdStorageTank', _category:'Base equipment', });
 			sdShop.options.push({ _class: 'sdStorageTank', type: sdStorageTank.TYPE_PORTABLE, _category:'Base equipment', });
-			sdShop.options.push({ _class: 'sdEssenceExtractor', _category:'Base equipment', });
+
+			if ( sdWorld.server_config.do_green_base_shielding_units_consume_essence )
+			if ( sdWorld.server_config.allowed_base_shielding_unit_types === null || sdWorld.server_config.allowed_base_shielding_unit_types.indexOf( 0 ) !== -1 )
+			{
+				sdShop.options.push({ _class: 'sdEssenceExtractor', _category:'Base equipment', });
+			}
 			sdShop.options.push({ _class: 'sdCommandCentre', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdLongRangeTeleport', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdCrystalCombiner', _category:'Base equipment' });
