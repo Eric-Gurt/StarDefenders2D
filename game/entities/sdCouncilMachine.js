@@ -99,6 +99,7 @@ class sdCouncilMachine extends sdEntity
 					if ( sdWeather.SetRandomSpawnLocation( machine ) ) // SimpleSpawner sometimes doesn't spawn the entity if ents are left nor does it drop the BT
 					{
 						spawned_ent = true;
+						machine.detonation_in = this.detonation_in
 					}
 					else
 					{
@@ -353,6 +354,9 @@ class sdCouncilMachine extends sdEntity
 									character_entity.y = y;
 
 									sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_COUNCIL );
+
+									character_entity._ai_stay_near_entity = this;
+									character_entity._ai_stay_distance = 192;
 
 									const logic = ()=>
 									{

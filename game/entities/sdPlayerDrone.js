@@ -619,7 +619,7 @@ class sdPlayerDrone extends sdCharacter
 	}
 	onMovementInRange( from_entity )
 	{
-		if ( from_entity.is( sdGun ) && ( from_entity._unblocked_for_drones || sdGun.classes[ from_entity.class ].ignore_slot || this._god ) ) // Shards
+		if ( from_entity.is( sdGun ) && ( from_entity._unblocked_for_drones || ( sdGun.classes[ from_entity.class ] && sdGun.classes[ from_entity.class ].ignore_slot ) || this._god ) ) // Shards
 		super.onMovementInRange( from_entity );
 		else
 		if ( from_entity.IsVehicle() )

@@ -81,7 +81,8 @@ class sdCable extends sdEntity
 		sdCable.one_cable_entities = [
 			'sdDoor',
 			'sdTurret',
-			'sdTeleport'
+			'sdTeleport',
+			'sdManualTurret'
 		];
 		// Flow ranks
 		/*sdCable.hungry_entities = new Set([
