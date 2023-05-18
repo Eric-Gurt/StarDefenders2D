@@ -3725,7 +3725,7 @@ class sdCharacter extends sdEntity
 			let fuel_cost = GSPEED * sdWorld.Dist2D_Vector( x_force, y_force ) * this._jetpack_fuel_multiplier;
 			this.matter -= fuel_cost;
 
-			if ( this.driver_of || this._in_water || this.matter < fuel_cost || this.hea <= 0 )
+			if ( this.driver_of || this.stands || this._in_water || this.matter < fuel_cost || this.hea <= 0 )
 			this.free_flying = false;
 		}
 		
