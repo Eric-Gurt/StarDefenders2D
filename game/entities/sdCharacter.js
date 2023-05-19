@@ -892,6 +892,7 @@ class sdCharacter extends sdEntity
 		this._last_fire_state = 0; // For semi auto weaponry
 		
 		this._respawn_protection = 0; // Given after long-range teleported. Also on resque teleporting // Also prevents player from shooting
+		this.skin_allowed = true; // No skin choose for AI controlling
 		
 		this._upgrade_counters = {}; // key = upgrade
 		
@@ -5358,20 +5359,115 @@ class sdCharacter extends sdEntity
 						}
 						else
 						{
-							exectuter_character._god = false;
 							exectuter_character._socket = null;
+
+							this._ai_enabled = 0;
+							this._ai = 0;
 
 							this._socket = executer_socket;
 							executer_socket.character = this;
 
-							this.title = exectuter_character.title;
 							this.title_censored = exectuter_character.title_censored;
 
 							this._god = true;
 
+							sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_BUILD_TOOL }) );
+
 							executer_socket.emit('SET sdWorld.my_entity', this._net_id, { reliable: true, runs: 100 } );
 
+							this.InstallUpgrade( 'upgrade_jetpack' );
+							this.InstallUpgrade( 'upgrade_hook' );
+							this.InstallUpgrade( 'upgrade_invisibility' );
+							this.InstallUpgrade( 'upgrade_grenades' );
+
+							this.InstallUpgrade( 'upgrade_jetpack_power' );
+							this.InstallUpgrade( 'upgrade_jetpack_power' );
+							this.InstallUpgrade( 'upgrade_jetpack_power' );
+
+							this.InstallUpgrade( 'upgrade_stability_recovery' );
+							this.InstallUpgrade( 'upgrade_stability_recovery' );
+							this.InstallUpgrade( 'upgrade_stability_recovery' );
+
 							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+						}
+					}
+					if ( command_name === 'ADMIN_CONTROLB' )
+					{
+						executer_socket;
+
+						if ( this._socket )
+						{
+							executer_socket.SDServiceMessage( 'Player has connected socket' );
+						}
+						else
+						{
+							if ( !this._my_hash )
+							{
+								exectuter_character._socket = null;
+
+								executer_socket.SDServiceMessage( 'Have a new start with other guy! :D' );
+
+								this._ai_team = 0;
+								this._ai_enabled = 0;
+								this._ai = 0;
+
+								this._socket = executer_socket;
+								executer_socket.character = this;
+								this.skin_allowed = false;
+
+								this.title_censored = exectuter_character.title_censored;
+
+								this._god = false;
+
+								sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_BUILD_TOOL }) );
+								sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LVL3_LIGHT_ARMOR }) );
+
+								this._my_hash = exectuter_character._my_hash;
+
+								this.GiveScore( 3000, null, false );
+
+								if ( this._matter_capacity_boosters < 40 )
+								this._matter_capacity_boosters += 900;
+
+								executer_socket.emit('SET sdWorld.my_entity', this._net_id, { reliable: true, runs: 100 } );
+
+								this.InstallUpgrade( 'upgrade_jetpack' );
+								this.InstallUpgrade( 'upgrade_hook' );
+								this.InstallUpgrade( 'upgrade_invisibility' );
+								this.InstallUpgrade( 'upgrade_grenades' );
+
+								this.InstallUpgrade( 'upgrade_matter_regeneration' );
+								this.InstallUpgrade( 'upgrade_matter_regeneration' );
+								this.InstallUpgrade( 'upgrade_matter_regeneration' );
+								this.InstallUpgrade( 'upgrade_matter_regeneration' );
+								this.InstallUpgrade( 'upgrade_matter_regeneration' );
+
+								this.InstallUpgrade( 'upgrade_jetpack_fuel_cost_reduction' );
+								this.InstallUpgrade( 'upgrade_jetpack_fuel_cost_reduction' );
+								this.InstallUpgrade( 'upgrade_jetpack_fuel_cost_reduction' );
+								this.InstallUpgrade( 'upgrade_jetpack_fuel_cost_reduction' );
+								this.InstallUpgrade( 'upgrade_jetpack_fuel_cost_reduction' );
+
+								this.InstallUpgrade( 'upgrade_matter_regeneration_speed' );
+								this.InstallUpgrade( 'upgrade_matter_regeneration_speed' );
+								this.InstallUpgrade( 'upgrade_matter_regeneration_speed' );
+
+								this.InstallUpgrade( 'upgrade_jetpack_power' );
+								this.InstallUpgrade( 'upgrade_jetpack_power' );
+								this.InstallUpgrade( 'upgrade_jetpack_power' );
+
+								this.InstallUpgrade( 'upgrade_stability_recovery' );
+								this.InstallUpgrade( 'upgrade_stability_recovery' );
+								this.InstallUpgrade( 'upgrade_stability_recovery' );
+
+								this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+								exectuter_character.remove();
+							}
+							else
+							{
+								executer_socket.SDServiceMessage( 'Controlling no AI player is not allowed.' );
+							}
 						}
 					}
 				}
@@ -5565,6 +5661,7 @@ class sdCharacter extends sdEntity
 					this.AddContextOption( 'Remove', 'ADMIN_REMOVE', [], true, { color:'ff0000' } );
 
 					this.AddContextOption( 'Start controlling', 'ADMIN_CONTROL', [], { color:'ff0000' } );
+					this.AddContextOption( 'Start controlling ( AI Only )', 'ADMIN_CONTROLB', [], { color:'ff0000' } );
 				}
 
 
