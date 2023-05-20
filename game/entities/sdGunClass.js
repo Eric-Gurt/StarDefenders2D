@@ -5364,7 +5364,7 @@ class sdGunClass
 								
 								bullet._gun._held_item_snapshot = null;
 								sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, liquid_carrier_base_color, liquid_carrier_empty );
-
+								
 								sdSound.PlaySound({ name:'water_entrance', x:gun.x, y:gun.y, volume: 0.1, pitch: 1 });
 							}
 						}
@@ -5390,7 +5390,7 @@ class sdGunClass
 								}
 
 								water_ent.AwakeSelfAndNear();
-
+								
 								water_ent.remove();
 								
 								sdSound.PlaySound({ name:'water_entrance', x:gun.x, y:gun.y, volume: 0.1, pitch: 1 });
@@ -5432,7 +5432,7 @@ class sdGunClass
 										//liquid.extra += extra;
 
 										water_ent.AwakeSelfAndNear();
-
+										
 										water_ent.remove();
 
 										can_transfer = true;
@@ -5444,7 +5444,7 @@ class sdGunClass
 										water_ent.v = Math.ceil( water_ent._volume * 100 );
 										water_ent._update_version++;
 										water_ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
-
+	
 										liquid.amount = liquid.max;
 
 										can_transfer = true;
