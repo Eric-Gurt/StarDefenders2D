@@ -376,6 +376,7 @@ class sdWeather extends sdEntity
 							{
 								dog.x = x;
 								dog.y = y;
+								sdWorld.UpdateHashPosition( dog, false ); // Prevent inersection with other ones
 								
 								if ( params.group_radius > 0 )
 								{

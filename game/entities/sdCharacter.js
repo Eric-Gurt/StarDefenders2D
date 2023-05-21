@@ -2552,13 +2552,27 @@ class sdCharacter extends sdEntity
 						if ( this.x < this._ai_stay_near_entity.x )
 						this._key_states.SetKey( 'KeyD', 1 );
 
-						if ( this.y > this._ai_stay_near_entity.y )
+						if ( this.y > this._ai_stay_near_entity.y + 8 )
 						this._key_states.SetKey( 'KeyW', 1 );
 
 					}
 				}
 				else
 				this._ai_stay_near_entity = null;
+
+				if ( !this._ai_stay_near_entity && this._ai_enabled === sdCharacter.AI_MODEL_TEAMMATE && Math.random() < 0.25 )
+				{
+					for ( let i = 0; i < sdWorld.sockets.length; i++ )
+					if ( sdWorld.sockets[ i ].character )
+					{
+						if ( sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, this.x, this.y, 200 ) ) // Is the player close enough to the teammate?
+						{
+							this._ai_stay_near_entity = sdCharacter.characters[ i ]; // Follow the players ( useful for "Rescue Star Defender" tasks
+							this._ai_stay_distance = 96;
+							break;
+						}
+					}
+				}
 
 				if ( closest )
 				{
