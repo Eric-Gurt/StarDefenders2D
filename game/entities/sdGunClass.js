@@ -2895,9 +2895,9 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades()
 		};
 		
-		sdGun.classes[ sdGun.CLASS_KVT_MMG_MK1 = 47 ] = // sprite by Ghost581
+		sdGun.classes[ sdGun.CLASS_KVT_MMG = 47 ] = // sprite by Ghost581
 		{
-			image: sdWorld.CreateImageFromFile( 'mmg_the_ripper_t2' ),
+			image: sdWorld.CreateImageFromFile( 'kvt_mmg' ),
 			sound: 'gun_the_ripper2',
 			//sound_pitch: 0.7,
 			sound_pitch: 1.6,
@@ -2942,7 +2942,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_KVT_MMG_MK2 = 48 ] = // sprite by Ghost581
 		{
-			image: sdWorld.CreateImageFromFile( 'mmg_the_ripper_t3' ),
+			image: sdWorld.CreateImageFromFile( 'kvt_mmg_mk2' ),
 			sound: 'gun_the_ripper2',
 			//sound_pitch: 1.6,
 			sound_pitch: 0.7,
@@ -2987,7 +2987,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_KVT_RAILCANNON = 49 ] = // sprite by Ghost581
 		{
-			image: sdWorld.CreateImageFromFile( './guns/phasercannon_p03' ),
+			image: sdWorld.CreateImageFromFile( 'kvt_railcannon' ),
 			spritesheet:true,
 			/*image: sdWorld.CreateImageFromFile( 'phasercannon_p03' ),
 			image0: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
@@ -3894,9 +3894,9 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades()
 		};
 
-		sdGun.classes[ sdGun.CLASS_KVT_MISSLE_LAUNCHER = 68 ] = 
+		sdGun.classes[ sdGun.CLASS_KVT_MISSILE_LAUNCHER = 68 ] = // sprite by Ghost581
 		{
-			image: sdWorld.CreateImageFromFile( 'missile_launcher_p07' ),
+			image: sdWorld.CreateImageFromFile( 'kvt_missile_launcher' ),
 			sound: 'gun_missile_launcher_p07',
 			title: 'KVT Missile Launcher P07 "Hydra"',
 			sound_volume: 2.4,
@@ -4365,9 +4365,9 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades( AppendBasicCubeGunRecolorUpgrades( [] ) )
 		};
 
-		sdGun.classes[ sdGun.CLASS_KVT_AVRS = 77 ] = 
+		sdGun.classes[ sdGun.CLASS_KVT_AVRS = 77 ] = // sprite by Ghost581
 		{
-			image: sdWorld.CreateImageFromFile( './guns/kivortec_avrs_p09' ),
+			image: sdWorld.CreateImageFromFile( 'kvt_avrs' ),
 			spritesheet:true,
 			/*image: sdWorld.CreateImageFromFile( 'kivortec_avrs_p09' ),
 			image0: [ sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload1' ), sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload2' ) ],
@@ -6319,9 +6319,9 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades()
 		};
 
-		sdGun.classes[ sdGun.CLASS_KVT_ASSAULT_RIFLE = 104 ] = // sprite made by Ghost581
+		sdGun.classes[ sdGun.CLASS_KVT_RIFLE = 104 ] = // sprite made by Ghost581
 		{
-			image: sdWorld.CreateImageFromFile( 'kvt_ar' ),
+			image: sdWorld.CreateImageFromFile( 'kvt_rifle' ),
 			sound: 'gun_the_ripper2',
 			sound_pitch: 1.3,
 			title: 'KVT Assault Rifle P54 "CER54"',
@@ -6367,7 +6367,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_KVT_HANDCANNON = 105 ] = // sprite made by LordBored
 		{
-			image: sdWorld.CreateImageFromFile( 'handcannon_iron_bull' ),
+			image: sdWorld.CreateImageFromFile( 'kvt_handcannon' ),
 			sound: 'gun_the_ripper2',
 			sound_pitch: 0.3,
 			title: 'KVT Handcannon P36 "Iron Bull"',
