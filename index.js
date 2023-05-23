@@ -714,6 +714,8 @@ let is_terminating = false;
 	{
 		if ( snapshot_save_busy || is_terminating )
 		return;
+	
+		console.log('Snapshot save started...');
 
 		let start_time = Date.now();
 
@@ -727,6 +729,8 @@ let is_terminating = false;
 		{
 			await Promise.all( promises );
 		}
+		
+		console.log('sdDatabase/sdDeepSleep promises fulfilled...');
 
 		let entities = [];
 		
@@ -823,6 +827,8 @@ let is_terminating = false;
 				one_by_one = true;
 			}
 		}
+		
+		console.log('Made snapshots of all objects...');
 
 		let json_made_time = Date.now();
 
@@ -844,7 +850,7 @@ let is_terminating = false;
 
 		// zlib.deflate(buffer
 		zlib.deflate( json, ( err, buffer )=>{
-
+			
 			deflate_done_time = Date.now();
 
 			if ( err )
@@ -856,6 +862,9 @@ let is_terminating = false;
 			}
 			else
 			{
+			
+				console.log('Snapshot compression operation complete...');
+			
 				// This must run inside a function marked `async`:
 				//const file = await fs.readFile('filename.txt', 'utf8');
 				
