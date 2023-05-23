@@ -2895,9 +2895,9 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades()
 		};
 		
-		sdGun.classes[ sdGun.CLASS_KVT_MMG_MK1 = 47 ] = // sprite by Ghost581
+		sdGun.classes[ sdGun.CLASS_KVT_MMG = 47 ] = // sprite by Ghost581
 		{
-			image: sdWorld.CreateImageFromFile( 'mmg_the_ripper_t2' ),
+			image: sdWorld.CreateImageFromFile( 'kvt_mmg' ),
 			sound: 'gun_the_ripper2',
 			//sound_pitch: 0.7,
 			sound_pitch: 1.6,
@@ -2942,7 +2942,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_KVT_MMG_MK2 = 48 ] = // sprite by Ghost581
 		{
-			image: sdWorld.CreateImageFromFile( 'mmg_the_ripper_t3' ),
+			image: sdWorld.CreateImageFromFile( 'kvt_mmg_mk2' ),
 			sound: 'gun_the_ripper2',
 			//sound_pitch: 1.6,
 			sound_pitch: 0.7,
@@ -2987,7 +2987,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_KVT_RAILCANNON = 49 ] = // sprite by Ghost581
 		{
-			image: sdWorld.CreateImageFromFile( './guns/phasercannon_p03' ),
+			image: sdWorld.CreateImageFromFile( 'kvt_railcannon' ),
 			spritesheet:true,
 			/*image: sdWorld.CreateImageFromFile( 'phasercannon_p03' ),
 			image0: [ sdWorld.CreateImageFromFile( 'phasercannon_p03_reload1' ), sdWorld.CreateImageFromFile( 'phasercannon_p03_reload2' ) ],
@@ -3332,6 +3332,7 @@ class sdGunClass
 						sdEntity.entities.push( ent2 );
 
 						sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
+						sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });
 						
 						let side_set = false;
 						const logic = ()=>
@@ -3893,9 +3894,9 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades()
 		};
 
-		sdGun.classes[ sdGun.CLASS_KVT_MISSLE_LAUNCHER = 68 ] = 
+		sdGun.classes[ sdGun.CLASS_KVT_MISSILE_LAUNCHER = 68 ] = // sprite by Ghost581
 		{
-			image: sdWorld.CreateImageFromFile( 'missile_launcher_p07' ),
+			image: sdWorld.CreateImageFromFile( 'kvt_missile_launcher' ),
 			sound: 'gun_missile_launcher_p07',
 			title: 'KVT Missile Launcher P07 "Hydra"',
 			sound_volume: 2.4,
@@ -4364,9 +4365,9 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades( AppendBasicCubeGunRecolorUpgrades( [] ) )
 		};
 
-		sdGun.classes[ sdGun.CLASS_KVT_AVRS = 77 ] = 
+		sdGun.classes[ sdGun.CLASS_KVT_AVRS = 77 ] = // sprite by Ghost581
 		{
-			image: sdWorld.CreateImageFromFile( './guns/kivortec_avrs_p09' ),
+			image: sdWorld.CreateImageFromFile( 'kvt_avrs' ),
 			spritesheet:true,
 			/*image: sdWorld.CreateImageFromFile( 'kivortec_avrs_p09' ),
 			image0: [ sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload1' ), sdWorld.CreateImageFromFile( 'kivortec_avrs_p09_reload2' ) ],
@@ -4920,12 +4921,12 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_COMBAT_INSTRUCTOR = 90 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'emergency_instructor' ),
+			image: sdWorld.CreateImageFromFile( 'emergency_instructor2' ),
 			sound: 'gun_defibrillator',
 			title: 'Combat instructor',
 			sound_pitch: 0.5,
 			slot: 7,
-			reload_time: 30 * 3,
+			reload_time: 30 * 30,
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 0,
@@ -4933,11 +4934,25 @@ class sdGunClass
 			spawnable: false,
 			GetAmmoCost: ()=>
 			{
-				return 400;
+				return 800;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
 				let owner = gun._held_by;
+
+				for( let i = 0; i < sdCharacter.characters.length; i++ )
+				{
+					let char = sdCharacter.characters[ i ]
+					if ( char.title === 'Combat Instructor' ) // If instructor already exists for this user, remove him and spawn a new one
+					if ( char._ai_stay_near_entity === owner )
+					{
+						sdSound.PlaySound({ name:'teleport', x:char.x, y:char.y, volume:0.5 });
+						sdWorld.SendEffect({ x:char.x, y:char.y, type:sdEffect.TYPE_TELEPORT });
+						char.remove();
+						char._broken = false;
+					}
+
+				}
 				
 				setTimeout(()=> // Out of loop spawn
 				{
@@ -4974,8 +4989,12 @@ class sdGunClass
 						sdEntity.entities.push( ent2 );
 
 						sdSound.PlaySound({ name:'teleport', x:ent.x, y:ent.y, volume:0.5 });
+						sdWorld.SendEffect({ x:ent.x, y:ent.y, type:sdEffect.TYPE_TELEPORT });
+
+						ent._ai_stay_near_entity = owner;
+						ent._ai_stay_distance = 96;
 						
-						let side_set = false;
+						/*let side_set = false;
 						const logic = ()=>
 						{
 							if ( ent._ai )
@@ -5043,6 +5062,7 @@ class sdGunClass
 							//ent2._broken = false;
 
 						}, 60000 );
+						*/
 					}
 				}, 1 );
 				
@@ -5275,11 +5295,17 @@ class sdGunClass
 	
 									bullet._gun._held_item_snapshot = null;
 									sdWorld.ReplaceColorInSDFilter_v2( gun.sd_filter, liquid_carrier_base_color, liquid_carrier_empty );
-	
-									sdSound.PlaySound({ name:'water_entrance', x:gun.x, y:gun.y, volume: 0.1, pitch: 1 });
-	
-									bullet._custom_detonation_logic = null; // Prevent picking up water on same use
 								}
+								else
+								{
+									gun._held_item_snapshot._volume -= ( liquid.max - liquid.amount ) / 100;
+
+									liquid.amount = liquid.max;
+								}
+
+								sdSound.PlaySound({ name:'water_entrance', x:gun.x, y:gun.y, volume: 0.1, pitch: 1 });
+
+								bullet._custom_detonation_logic = null; // Prevent picking up water on same use
 							}
 						}
 						else
@@ -5342,6 +5368,34 @@ class sdGunClass
 								sdSound.PlaySound({ name:'water_entrance', x:gun.x, y:gun.y, volume: 0.1, pitch: 1 });
 							}
 						}
+						else
+						{
+							if ( water_ent.type === bullet._gun._held_item_snapshot.type )
+							if ( bullet._gun._held_item_snapshot._volume < 1 )
+							{
+								if ( bullet._gun._held_item_snapshot._volume + water_ent._volume <= 1 )
+								{
+									gun._held_item_snapshot._volume += water_ent._volume;
+								}
+								else
+								{
+									let delta = 1 - bullet._gun._held_item_snapshot._volume;
+
+									gun._held_item_snapshot._volume = 1;
+
+									water_ent._volume -= delta;
+									water_ent.v = Math.ceil( water_ent._volume * 100 );
+									water_ent._update_version++;
+									water_ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+								}
+
+								water_ent.AwakeSelfAndNear();
+								
+								water_ent.remove();
+								
+								sdSound.PlaySound({ name:'water_entrance', x:gun.x, y:gun.y, volume: 0.1, pitch: 1 });
+							}
+						}
 					}
 					else
 					{
@@ -5377,7 +5431,21 @@ class sdGunClass
 										liquid.amount += amount;
 										//liquid.extra += extra;
 
+										water_ent.AwakeSelfAndNear();
+										
 										water_ent.remove();
+
+										can_transfer = true;
+										break;
+									}
+									else
+									{
+										water_ent._volume -= ( liquid.max - liquid.amount ) / 100;
+										water_ent.v = Math.ceil( water_ent._volume * 100 );
+										water_ent._update_version++;
+										water_ent.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+	
+										liquid.amount = liquid.max;
 
 										can_transfer = true;
 										break;
@@ -6251,9 +6319,9 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades()
 		};
 
-		sdGun.classes[ sdGun.CLASS_KVT_ASSAULT_RIFLE = 104 ] = // sprite made by Ghost581
+		sdGun.classes[ sdGun.CLASS_KVT_RIFLE = 104 ] = // sprite made by Ghost581
 		{
-			image: sdWorld.CreateImageFromFile( 'kvt_ar' ),
+			image: sdWorld.CreateImageFromFile( 'kvt_rifle' ),
 			sound: 'gun_the_ripper2',
 			sound_pitch: 1.3,
 			title: 'KVT Assault Rifle P54 "CER54"',
@@ -6299,7 +6367,7 @@ class sdGunClass
 
 		sdGun.classes[ sdGun.CLASS_KVT_HANDCANNON = 105 ] = // sprite made by LordBored
 		{
-			image: sdWorld.CreateImageFromFile( 'handcannon_iron_bull' ),
+			image: sdWorld.CreateImageFromFile( 'kvt_handcannon' ),
 			sound: 'gun_the_ripper2',
 			sound_pitch: 0.3,
 			title: 'KVT Handcannon P36 "Iron Bull"',
