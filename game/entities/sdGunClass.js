@@ -7056,6 +7056,48 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades()
 		};
 
+
+		sdGun.classes[ sdGun.CLASS_CHAINSAW = 117 ] = {
+			image: sdWorld.CreateImageFromFile( 'chainsaw' ),
+			spritesheet: true,
+			sound: 'cut_droid_attack',
+			sound_pitch: 1.2,
+			sound_volume: 0.7,
+			title: 'Chainsaw',
+			slot: 0,
+			reload_time: 7,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			is_sword: false,
+			projectile_velocity: 20,
+			projectile_properties: { time_left: 1, _damage: 64, color: 'transparent', _knock_scale:0.1, _dirt_mult: -2 },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = {  time_left: 1, color: 'transparent', _dirt_mult: -2 };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 64; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+				}
+			},
+			upgrades: AddGunDefaultUpgrades ( AddRecolorsFromColorAndCost( [], '#808080', 15, 'blade' ) )
+		};
+
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
