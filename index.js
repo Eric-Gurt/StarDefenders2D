@@ -1,7 +1,8 @@
 
 /* global globalThis, process, fs, mime, sdWorld, sdEntity, sdModeration, sdShop, sdSnapPack, sdPathFinding, sdDatabase, Buffer, Infinity, sdServerConfigFull, sdInterface, sdLongRangeTeleport, sdServerToServerProtocol, sdCharacter, sdDeepSleep, sdPlayerSpectator, sdStorage, os, sdGun, sdMemoryLeakSeeker, zlib, Promise, sdDictionaryWords, sdSound, LZW, sdEffect, sdTask, WorkerServiceLogic, await, imported, FakeCanvasContext */
 
-let port0 = 3000;
+let port0 = process.env.PORT || 3000;
+let ssl = false;
 let CloudFlareSupport = false;
 let directory_to_save_player_count = null;
 
@@ -93,7 +94,7 @@ globalThis.trace = console.log;
 }
 globalThis.T = ( s )=>s; // Server won't translate anything
 
-if ( !isWin )
+if ( ssl )
 {
 	let ssl_key_path;
 	let ssl_cert_path;
