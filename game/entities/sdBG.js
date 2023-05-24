@@ -17,6 +17,7 @@ class sdBG extends sdEntity
 		sdBG.img_hex = sdWorld.CreateImageFromFile( 'bg_hex' );
 		sdBG.img_hex2 = sdWorld.CreateImageFromFile( 'bg_hex2' );
 		sdBG.img_glowing = sdWorld.CreateImageFromFile( 'bg_glowing' );
+		sdBG.img_window = sdWorld.CreateImageFromFile( 'bg_window' );
 		
 		// Better to keep these same as in sdBlock, so 3D effects will work as intended
 		sdBG.MATERIAL_PLATFORMS = 0;
@@ -31,6 +32,7 @@ class sdBG extends sdEntity
 		sdBG.TEXTURE_PLATFORMS_COLORED = t++;
 		sdBG.TEXTURE_HEX = t++;
 		sdBG.TEXTURE_GLOWING = t++;
+		sdBG.TEXTURE_WINDOW = t++;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -40,7 +42,12 @@ class sdBG extends sdEntity
 	get hitbox_y2() { return this.height; }
 	
 	DrawIn3D()
-	{ return FakeCanvasContext.DRAW_IN_3D_BOX; }
+	{
+		if ( this.texture_id === sdBG.TEXTURE_WINDOW )
+		return FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT; 
+		else
+		return FakeCanvasContext.DRAW_IN_3D_BOX; 
+	}
 	
 	get hard_collision()
 	{ return true; }
@@ -215,6 +222,9 @@ class sdBG extends sdEntity
 				ctx.apply_shading = false;
 				img = sdBG.img_glowing;
 			}
+
+			if ( this.texture_id === sdBG.TEXTURE_WINDOW )
+			img = sdBG.img_window;
 		
 			ctx.drawImageFilterCache( img, 0, 0, w,h, 0,0, w,h );
 		}
