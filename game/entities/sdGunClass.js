@@ -7069,6 +7069,7 @@ class sdGunClass
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 1,
+			spawnable: false,
 			is_sword: false,
 			projectile_velocity: 20,
 			projectile_properties: { time_left: 1, _damage: 64, color: 'transparent', _knock_scale:0.1, _dirt_mult: -2 },
