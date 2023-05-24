@@ -9,7 +9,7 @@
     "socket.io-client": "^4.6.1"
   },
   "scripts": {
-    "start": "node --inspect index.js"
+    "start": "node index.js"
   },
   "main": "index.js",
   "author": "",
