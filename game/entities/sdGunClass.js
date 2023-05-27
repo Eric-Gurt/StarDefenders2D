@@ -7069,9 +7069,9 @@ class sdGunClass
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 1,
-			spawnable: false,
 			is_sword: false,
 			projectile_velocity: 20,
+			spawnable: false,
 			projectile_properties: { time_left: 1, _damage: 64, color: 'transparent', _knock_scale:0.1, _dirt_mult: -2 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
@@ -7099,6 +7099,48 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades ( AddRecolorsFromColorAndCost( [], '#808080', 15, 'blade' ) )
 		};
 
+		sdGun.classes[ sdGun.CLASS_CRYOGUN = 118 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'cryogun' ),
+			sound: 'gun_spark',
+			sound_pitch: 1.5,
+			title: 'Cryogun',
+			slot: 8,
+			reload_time: 20,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			projectile_velocity: 16,
+			spawnable: false,
+			projectile_properties: { _damage: 1, model: 'ball', _temperature_addition: -100 },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { model: 'ball', _temperature_addition: -200 };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 5; // Damage value of the projectile, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades ( AddRecolorsFromColorAndCost( [], '#ff0000', 15, 'lights' ) )
+		};
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
