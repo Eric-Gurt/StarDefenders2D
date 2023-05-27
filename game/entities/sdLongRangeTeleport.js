@@ -682,7 +682,7 @@ class sdLongRangeTeleport extends sdEntity
 		if ( rewards === 'CLAIM_REWARD_WEAPON' )
 		{
 			let gun, rng;
-			rng = Math.random() * 1.8; // With more gun rewards, these values will change
+			rng = Math.random() * 2; // With more gun rewards, these values will change
 			if ( rng < 0.2 )
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_TOPS_DMR });
 			else
@@ -706,6 +706,9 @@ class sdLongRangeTeleport extends sdEntity
 			else
 			if ( rng < 1.6 )
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_ILLUSION_MAKER });
+			else
+			if ( rng < 1.8 )
+			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_CRYOGUN });
 			else
 			gun = new sdGun({ x:this.x, y:this.y - 16, class:sdGun.CLASS_LVL4_ARMOR_REGEN });
 		
