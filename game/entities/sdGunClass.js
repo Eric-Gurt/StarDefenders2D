@@ -7115,7 +7115,7 @@ class sdGunClass
 			projectile_properties: { _damage: 1, model: 'ball', _temperature_addition: -100 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { model: 'ball', _temperature_addition: -200 };
+				let obj = { model: 'ball', _temperature_addition: -100 };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ]; // Make sure guns have _knock_scale otherwise it breaks the game when fired
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -7139,7 +7139,7 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades ( AddRecolorsFromColorAndCost( [], '#ff0000', 15, 'lights' ) )
+			upgrades: AddGunDefaultUpgrades ( AddRecolorsFromColorAndCost( [], '#0000ff', 15, 'lights' ) )
 		};
 		// Add new gun classes above this line //
 		
