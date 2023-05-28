@@ -66,6 +66,7 @@ import sdFactions from './sdFactions.js';
 import sdTzyrgAbsorber from './sdTzyrgAbsorber.js';
 import sdShurgConverter from './sdShurgConverter.js';
 import sdShurgTurret from './sdShurgTurret.js';
+import sdShurgExcavator from './sdShurgExcavator.js';
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdStatusEffect from './sdStatusEffect.js';
@@ -2981,25 +2982,12 @@ class sdWeather extends sdEntity
 					ais++;
 				}
 
-				//let drones = 0;
-				//let drones_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
+				sdWeather.SimpleSpawner({
+				
+					count: [ 2, 4 ],
+					class: sdShurgExcavator
+				});
 
-
-				/*while ( drones < drones_tot && sdDrone.drones_tot < this._max_drone_count )
-				{
-
-					let drone = new sdDrone({ x:0, y:0 , _ai_team: 8, type: ( Math.random() < 0.1 ) ? sdDrone.DRONE_TZYRG_WATCHER : sdDrone.DRONE_TZYRG });
-
-					sdEntity.entities.push( drone );
-
-					if ( !sdWeather.SetRandomSpawnLocation( drone ) )
-					{
-						drone.remove();
-						drone._broken = false;
-						break;
-					}
-					drones++;
-				}*/
 			}
 		}
 		if ( r === sdWeather.EVENT_SHURG_CONVERTER ) // Spawn a Shurg oxygen-to-matter anywhere on the map outside player views.

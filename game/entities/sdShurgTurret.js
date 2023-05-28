@@ -245,7 +245,7 @@ class sdShurgTurret extends sdEntity
 					if ( this._next_scan <= 0 )
 					{
 						this._target = this.GetRandomEntityNearby();
-						this._next_scan = 3;
+						this._next_scan = 2;
 					}
 					else
 					this._next_scan -= GSPEED;
@@ -324,7 +324,7 @@ class sdShurgTurret extends sdEntity
 
 								//sdSound.PlaySound({ name:'gun_shotgun', x:this.x, y:this.y, pitch:1.25 });
 								
-								sdSound.PlaySound({ name:'gun_needle', x:this.x, y:this.y, pitch: 2 });
+								sdSound.PlaySound({ name:'gun_needle', x:this.x, y:this.y, volume: 0.8, pitch: 2 });
 							}	
 						}
 						else
