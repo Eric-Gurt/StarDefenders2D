@@ -8,7 +8,7 @@ import sdWater from './sdWater.js';
 import sdCharacter from './sdCharacter.js';
 import sdCom from './sdCom.js';
 import sdBullet from './sdBullet.js';
-
+import sdDrone from './sdDrone.js';
 import sdPathFinding from '../ai/sdPathFinding.js';
 
 import sdBlock from './sdBlock.js';
