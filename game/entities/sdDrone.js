@@ -413,6 +413,9 @@ class sdDrone extends sdEntity
 					if ( this.type === sdDrone.DRONE_SETR )
 					gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_SETR_REPULSOR });
 					else
+					if ( this.type === sdDrone.DRONE_CUT_DROID )
+					gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_CHAINSAW });
+					else
 					gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_METAL_SHARD });
 
 					gun.sx = this.sx + Math.random() - Math.random();
