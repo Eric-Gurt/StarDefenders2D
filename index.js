@@ -93,7 +93,7 @@ globalThis.trace = console.log;
 }
 globalThis.T = ( s )=>s; // Server won't translate anything
 
-if ( isWin )
+if ( !isWin )
 {
 	let ssl_key_path;
 	let ssl_cert_path;
