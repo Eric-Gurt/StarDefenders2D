@@ -18,7 +18,7 @@ class sdShurgExcavator extends sdEntity
 	static init_class()
 	{
 		sdShurgExcavator.img_excavator = sdWorld.CreateImageFromFile( 'sdShurgExcavator' );
-		sdShurgExcavator.img_turret = sdWorld.CreateImageFromFile( 'shurg_turret_gun2' );
+		//sdShurgExcavator.img_turret = sdWorld.CreateImageFromFile( 'shurg_turret_gun2' );
 		
 
 		
