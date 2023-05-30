@@ -1413,7 +1413,8 @@ class sdWeather extends sdEntity
 			sdWeather.SimpleSpawner({
 
 				count: [ 1, 1 ],
-				class: sdObelisk
+				class: sdObelisk,
+				params: { type: 1 + Math.round( Math.random() * 7 ) }
 
 			});
 
