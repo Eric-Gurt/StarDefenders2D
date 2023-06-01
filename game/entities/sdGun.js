@@ -309,8 +309,9 @@ class sdGun extends sdEntity
 			}
 			else
 			{
-				let projectile_properties = this.GetProjectileProperties();
 				
+				let projectile_properties = sdGun.classes[ this.class ] ? this.GetProjectileProperties() : { _admin_picker: false };
+
 				r = ( 
 						(
 							// sdOctopus rule
@@ -330,6 +331,7 @@ class sdGun extends sdEntity
 							by_entity.IsPlayerClass()
 						)
 					);
+				
 			}
 		}
 		else
