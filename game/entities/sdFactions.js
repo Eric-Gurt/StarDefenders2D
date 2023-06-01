@@ -414,12 +414,18 @@ class sdFactions extends sdEntity
 
 		if ( faction === sdFactions.FACTION_SETR ) // Setr
 		{
+			if ( Math.random() < 0.2 )
+			{ 
+				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SETR_LMG }) );
+				character_entity._ai_gun_slot = 2;
+			}
+			else
 			{ 
 				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SETR_PLASMA_SHOTGUN }) );
 				character_entity._ai_gun_slot = 3;
 			}
 
-			if ( character_entity._ai_gun_slot === 3 )
+			//if ( character_entity._ai_gun_slot === 3 )
 			character_settings = {"hero_name":"Setr Soldier", // Name
 			"color_bright":"#0000c0", // Helmet bright color
 			"color_dark":"#404040", // Helmet dark color
@@ -436,7 +442,7 @@ class sdFactions extends sdEntity
 			"legs22":true,
 			"voice9":true };
 
-			if ( character_entity._ai_gun_slot === 3 ) // If a regular Setr soldier
+			//if ( character_entity._ai_gun_slot === 3 ) // If a regular Setr soldier
 			{
 				character_entity.matter = 150;
 				character_entity.matter_max = 150;

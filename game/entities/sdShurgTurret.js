@@ -228,7 +228,7 @@ class sdShurgTurret extends sdEntity
 				if ( this.type === sdShurgTurret.TURRET_FLYING )
 				{
 					if ( this.y > ( this._starting_y - ( Math.random() * 64 ) ) )
-					this.sy = Math.max( -3, this.sy - ( 0.08 + sdWorld.gravity * GSPEED ) );
+					this.sy = Math.max( -1.5, this.sy - ( 0.08 + sdWorld.gravity * GSPEED ) );
 
 					
 				}
@@ -245,7 +245,7 @@ class sdShurgTurret extends sdEntity
 					if ( this._next_scan <= 0 )
 					{
 						this._target = this.GetRandomEntityNearby();
-						this._next_scan = 3;
+						this._next_scan = 2;
 					}
 					else
 					this._next_scan -= GSPEED;
@@ -324,7 +324,7 @@ class sdShurgTurret extends sdEntity
 
 								//sdSound.PlaySound({ name:'gun_shotgun', x:this.x, y:this.y, pitch:1.25 });
 								
-								sdSound.PlaySound({ name:'gun_needle', x:this.x, y:this.y, pitch: 2 });
+								sdSound.PlaySound({ name:'gun_needle', x:this.x, y:this.y, volume: 0.8, pitch: 2 });
 							}	
 						}
 						else
@@ -351,6 +351,7 @@ class sdShurgTurret extends sdEntity
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
+		if ( this.hea > 0 )
 		sdEntity.TooltipUntranslated( ctx, T("Shurg turret") );
 	}
 	Draw( ctx, attached )
@@ -383,11 +384,16 @@ class sdShurgTurret extends sdEntity
 	onMovementInRange( from_entity )
 	{
 		if ( sdWorld.is_server )
-		if ( from_entity.GetClass() !== 'sdBullet' )
+		if ( !from_entity.GetClass() === 'sdBullet' )
 		{
 			if ( from_entity.y > this.y && this.y < this._starting_y )
 			{
 				this._starting_y = this.y - 96;
+			}
+
+			if ( from_entity.y < this.y && this.y > this._starting_y )
+			{
+				this._starting_y = this.y + 32;
 			}
 		}
 	}
