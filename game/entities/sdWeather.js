@@ -1263,10 +1263,12 @@ class sdWeather extends sdEntity
 					
 		if ( r === 11 ) // Spawn 3-6 sdSpiders, drones somewhere on ground where players don't see them and Erthal humanoids
 		{
+			let spider_type = Math.random() < 0.35 ? 1 : 0; // 35% chance for it to be a mini tank bot
 			sdWeather.SimpleSpawner({
 
 				count: [ 1, 2 ],
-				class: sdSpider
+				class: sdSpider,
+				params: { _ai_team: 2, type: spider_type }
 
 			});
 			sdWeather.SimpleSpawner({
@@ -1278,82 +1280,6 @@ class sdWeather extends sdEntity
 			});
 			
 			
-			/*let instances = Math.floor( 1 + Math.random() * 1 );
-			//while ( instances > 0 && sdSpider.spider_counter < Math.min( 32, sdWorld.GetPlayingPlayersCount() * 10 ) )
-			while ( instances > 0 )
-			{
-
-				let ent = new sdSpider({ x:0, y:0 });
-				sdEntity.entities.push( ent );
-				ent.type = ( Math.random() < 0.05 ) ? 1 : 0;
-
-				//if ( sdDrone.drones_tot < this._max_drone_count ) // Not sure if this is needed to be honest, it also causes error because "let" can't be behind an "if" directly - Booraz149
-				let ent_drone = new sdDrone({ x:0, y:0, _ai_team: 2, type: 2 }); 
-				sdEntity.entities.push( ent_drone );
-
-
-				{
-					let x,y,i;
-					let tr = 1000;
-					do
-					{
-						x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
-						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-						if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
-						if ( !ent.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-						if ( ent_drone.CanMoveWithoutOverlap( x, y - 48, 0 ) ) // Check if drones have enough space to be placed above Erthal spider bots.
-						if ( sdWorld.last_hit_entity )
-						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
-						if ( !sdWorld.CheckWallExistsBox( 
-								x + ent._hitbox_x1 - 16, 
-								y + ent._hitbox_y1 - 116, 
-								x + ent._hitbox_x2 + 16, 
-								y + ent._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
-						{
-							let proper_distnace = true;
-										
-							for ( i = 0; i < sdWorld.sockets.length; i++ )
-							if ( sdWorld.sockets[ i ].character )
-							{
-								let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
-											
-								if ( di < 500 )
-								{
-									proper_distnace = false;
-									break;
-								}
-							}
-										
-							if ( proper_distnace )
-							{
-								ent.x = x;
-								ent.y = y;
-
-								ent_drone.x = x;
-								ent_drone.y = y - 48;
-
-								break;
-							}
-						}
-									
-
-
-						tr--;
-						if ( tr < 0 )
-						{
-							ent.remove();
-							ent._broken = false;
-
-							ent_drone.remove();
-							ent_drone._broken = false;
-							break;
-						}
-					} while( true );
-				}
-
-				instances--;
-			}*/
 			let ais = 0;
 			let percent = 0;
 			for ( var i = 0; i < sdCharacter.characters.length; i++ )
@@ -3063,7 +2989,7 @@ class sdWeather extends sdEntity
 					percent++;
 				}
 			}
-			if ( Math.random() < ( 0.5 * ( percent / sdWorld.GetPlayingPlayersCount() ) ) ) // Spawn chance depends on RNG, chances increase if more players have at least 20 levels
+			if ( Math.random() < ( 0.6 * ( percent / sdWorld.GetPlayingPlayersCount() ) ) ) // Spawn chance depends on RNG, chances increase if more players have at least 20 levels
 			{
 				let instances = 0;
 				let instances_tot = 5;
