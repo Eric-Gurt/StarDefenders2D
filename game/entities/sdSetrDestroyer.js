@@ -91,7 +91,7 @@ class sdSetrDestroyer extends sdEntity
 		
 		this._last_seen_player = 0;
 
-		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
+		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
