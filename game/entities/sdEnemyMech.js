@@ -78,7 +78,7 @@ class sdEnemyMech extends sdEntity
 		this._attack_timer = 0;
 		this._rocket_attack_timer = 0;
 		this._rail_attack_timer = 0; // Rail cannon used when the mech targets a turret to destroy it almost instantly
-		this.attack_anim = 0;
+		//this.attack_anim = 0;
 		//this._aggressive_mode = false; // Causes dodging and faster movement
 		this._bullets = 150;
 		this._rockets = 4;
@@ -87,8 +87,8 @@ class sdEnemyMech extends sdEntity
 		
 		this._alert_intensity = 0; // Grows until some value and only then it will shoot
 		
-		this.matter_max = 5120; // It is much stronger than a basic worm yet it only dropped 1280 matter crystal shards
-		this.matter = this.matter_max;
+		//this.matter_max = 5120; // It is much stronger than a basic worm yet it only dropped 1280 matter crystal shards
+		//this.matter = this.matter_max;
 		
 		this._last_damage = 0; // Sound flood prevention
 		
@@ -350,7 +350,7 @@ class sdEnemyMech extends sdEntity
 			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.88, GSPEED );
 			this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.88, GSPEED );
 			
-			this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
+			//this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
 			
 			if ( sdWorld.is_server )
 			{
@@ -578,7 +578,7 @@ class sdEnemyMech extends sdEntity
 						if ( this._alert_intensity < 45 )// Delay attack
 						break;
 
-						this.attack_anim = 15;
+						//this.attack_anim = 15;
 
 						let an = Math.atan2( targets[ i ].y - this.y, targets[ i ].x - this.x ) + ( Math.random() * 2 - 1 ) * 0.05;
 
@@ -728,8 +728,8 @@ class sdEnemyMech extends sdEntity
 				}
 			}
 		
-			if ( this.attack_anim > 0 )
-			this.attack_anim = Math.max( 0, this.attack_anim - GSPEED );
+			//if ( this.attack_anim > 0 )
+			//this.attack_anim = Math.max( 0, this.attack_anim - GSPEED );
 		
 			this.PhysWakeUp();
 		}
@@ -799,8 +799,8 @@ class sdEnemyMech extends sdEntity
 			sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
 			//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
 			sdWorld.DropShards( this.x, this.y, 0, 0, 
-				Math.floor( Math.max( 0, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
-				this.matter_max / 40
+				Math.floor( Math.max( 0, 40 / sdWorld.crystal_shard_value * 0.5 ) ),
+				5120 / 40
 			);
 		}
 	}

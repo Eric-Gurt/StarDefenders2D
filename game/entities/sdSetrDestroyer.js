@@ -56,15 +56,10 @@ class sdSetrDestroyer extends sdEntity
 		this.tilt = 0;
 		
 		this._time_until_full_remove = 30 * 5 + Math.random() * 30 * 5; // 5-10 seconds to get removed
-
-		//this.death_anim = 0;
 		
 		this._current_target = null; // Now used in case of players engaging without meeting CanAttackEnt conditions
 		this._follow_target = null;
 		
-		//this._last_stand_on = null;
-		//this._last_jump = sdWorld.time;
-		//this._last_bite = sdWorld.time;
 		
 		this._move_dir_x = 0; // Keep these from 0 to 1 in order to have line of sight checks not scale with speed
 		this._move_dir_y = 0;
@@ -74,10 +69,10 @@ class sdSetrDestroyer extends sdEntity
 		
 		this._attack_timer = 0;
 		this._rocket_attack_timer = 0;
-		this._rail_attack_timer = 0; // Rail cannon used when the mech targets a turret to destroy it almost instantly
-		this.attack_anim = 0;
+		this._projectile_attack_timer = 0; // 2nd phase attack timer
+		//this.attack_anim = 0;
 		//this._aggressive_mode = false; // Causes dodging and faster movement
-		this._bullets = 150;
+		//this._bullets = 150;
 		this._rockets = 6;
 		// For homing
 		this.look_x = 0;
@@ -86,14 +81,13 @@ class sdSetrDestroyer extends sdEntity
 		
 		this._alert_intensity = 0; // Grows until some value and only then it will shoot
 		
-		this.matter_max = 5120; // It is much stronger than a basic worm yet it only dropped 1280 matter crystal shards
-		this.matter = this.matter_max;
+		//this.matter_max = 5120; // It is much stronger than a basic worm yet it only dropped 1280 matter crystal shards
+		//this.matter = this.matter_max;
 		
 		this._last_damage = 0; // Sound flood prevention
 		
 		sdSetrDestroyer.destroyer_counter++;
 		
-		this.lmg_an = 0; // Rotate angle for LMG firing
 		
 		this._last_seen_player = 0;
 
@@ -442,7 +436,7 @@ class sdSetrDestroyer extends sdEntity
 			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.88, GSPEED );
 			this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.88, GSPEED );
 			
-			this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
+			//this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
 			
 			if ( sdWorld.is_server )
 			{
@@ -623,12 +617,12 @@ class sdSetrDestroyer extends sdEntity
 				if ( this._attack_timer <= 0 )
 				{
 					this._attack_timer = 3;
-					if ( this._rail_attack_timer <= 0 )
+					if ( this._projectile_attack_timer <= 0 )
 					{
 						if ( this.hea < ( this._hmax / 2 ) )
 						{
 							this.FireDirectionalProjectiles();
-							this._rail_attack_timer = 4.5;
+							this._projectile_attack_timer = 4.5;
 						}
 					}
 					//let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 800 );
@@ -741,8 +735,8 @@ class sdSetrDestroyer extends sdEntity
 					this._attack_timer -= GSPEED;
 					if ( this._rocket_attack_timer > 0)
 					this._rocket_attack_timer -= GSPEED;
-					if ( this._rail_attack_timer > 0)
-					this._rail_attack_timer -= GSPEED;
+					if ( this._projectile_attack_timer > 0)
+					this._projectile_attack_timer -= GSPEED;
 
 					//if ( this.hea < this._hmax / 2 )
 					{
@@ -764,8 +758,6 @@ class sdSetrDestroyer extends sdEntity
 				}
 			}
 		
-			if ( this.attack_anim > 0 )
-			this.attack_anim = Math.max( 0, this.attack_anim - GSPEED );
 		
 			this.PhysWakeUp();
 		}
@@ -816,8 +808,8 @@ class sdSetrDestroyer extends sdEntity
 			sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
 			//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
 			sdWorld.DropShards( this.x, this.y, 0, 0, 
-				Math.floor( Math.max( 0, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
-				this.matter_max / 40
+				Math.floor( Math.max( 0, 40 / sdWorld.crystal_shard_value * 0.5 ) ),
+				5120 / 40
 			);
 		}
 	}
