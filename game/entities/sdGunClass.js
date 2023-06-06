@@ -3865,7 +3865,7 @@ class sdGunClass
 			count: 1,
 			spawnable: false,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.3,
-			projectile_properties: { _damage: 40, _dirt_mult: -0.5 },
+			projectile_properties: { _damage: 54, _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5 };
@@ -3887,7 +3887,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 40; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 54; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -6336,7 +6336,7 @@ class sdGunClass
 			min_build_tool_level: 22,
 			spawnable: true,
 			projectile_velocity: sdGun.default_projectile_velocity * 1.1,
-			projectile_properties: { _damage: 34, _dirt_mult: -0.5 },
+			projectile_properties: { _damage: 35, _dirt_mult: -0.5 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { _dirt_mult: -0.5 }; // Default value for _knock_scale
@@ -6358,7 +6358,7 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 34; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 35; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
@@ -7140,6 +7140,49 @@ class sdGunClass
 				}
 			},
 			upgrades: AddGunDefaultUpgrades ( AddRecolorsFromColorAndCost( [], '#0000ff', 15, 'lights' ) )
+		};
+
+		sdGun.classes[ sdGun.CLASS_TZYRG_RIFLE = 119 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'tzyrg_rifle' ),
+			sound: 'gun_the_ripper2',
+			sound_pitch: 3,
+			title: 'Tzyrg Assault Rifle',
+			slot: 2,
+			reload_time: 1,
+			muzzle_x: 10,
+			ammo_capacity: 36,
+			burst: 3,
+			burst_reload: 10,
+			count: 1,
+			spawnable: false,
+			projectile_properties: { _damage: 32, _dirt_mult: -0.5 },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _dirt_mult: -0.5 };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 32; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades()
 		};
 		// Add new gun classes above this line //
 		
