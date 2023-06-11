@@ -714,8 +714,13 @@ let is_terminating = false;
 	{
 		if ( snapshot_save_busy || is_terminating )
 		return;
+
+		function RoundThousandSpaces( v )
+		{
+			return Math.ceil( v ).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+		}
 	
-		console.log('Snapshot save started...');
+		console.log('Snapshot save started... Memory usage :: Current: ' + RoundThousandSpaces( ( os.totalmem() - os.freemem() ) / (1024 * 1024) ) + ' Mb / Total: ' + RoundThousandSpaces( os.totalmem() / (1024 * 1024) ) + ' Mb / Available: ' + RoundThousandSpaces( os.freemem() / (1024 * 1024) ) + ' Mb / Entities: ' + sdEntity.entities.length + ' / Active entities: ' + sdEntity.active_entities.length + ' / entities_by_net_id_cache_map: ' + sdEntity.entities_by_net_id_cache_map.size + ' / removed_entities_info: ' + sdEntity.removed_entities_info.size + ' / sockets: ' + sockets.length );
 
 		let start_time = Date.now();
 
@@ -1656,6 +1661,11 @@ io.on( 'connection', ( socket )=>
 		sockets_by_ip[ ip ].push( socket ); // Accept [ 2 / 2 ]
 	}
 	sockets.push( socket );
+	
+	if ( sockets.length > 32 )
+	{
+		trace( 'Note: sockets.length is now ' + sockets.length ); // What if this causes out of memory errors?
+	}
 	
 	let shop_pending = true; // Assuming shop is not dynamic
 	
