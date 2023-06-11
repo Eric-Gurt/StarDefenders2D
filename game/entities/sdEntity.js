@@ -1,6 +1,5 @@
 
 
-
 /* global sdSound, sdContextMenu, sdRenderer, globalThis, sdChat */
 
 import sdWorld from '../sdWorld.js';
@@ -4887,7 +4886,8 @@ class sdEntity
 		
 		this.onRemove();
 		
-		this.RemoveAllDrivers();
+		this.ExcludeAllDrivers();
+		//this.RemoveAllDrivers();
 		
 		this.ManageTrackedPhysWakeup();
 		
