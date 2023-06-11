@@ -13,6 +13,7 @@ class sdFactions extends sdEntity
 {
 	static init_class()
 	{
+		sdFactions.FACTION_STAR_DEFENDERS = 0; // Star Defenders
 		sdFactions.FACTION_FALKOK = 1; // Falkoks
 		sdFactions.FACTION_ERTHAL = 2; // Erthals
 		sdFactions.FACTION_COUNCIL = 3; // Council
@@ -30,6 +31,69 @@ class sdFactions extends sdEntity
 	static SetHumanoidProperties( character_entity, faction = -1 ) // This automatically generates a humanoid based off a faction we selected. Must specify character_entity.
 	{
 		let character_settings;
+		if ( faction === sdFactions.FACTION_STAR_DEFENDERS ) // Star Defenders
+		{
+			if ( Math.random() < 0.5 ) // Random gun given to Star Defender
+			{
+				if ( Math.random() < 0.2 )
+				{
+					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SNIPER }) );
+					character_entity._ai_gun_slot = 4;
+				}
+				else
+				{
+					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SHOTGUN }) );
+					character_entity._ai_gun_slot = 3;
+				}
+			}
+			else
+			{ 
+				if ( Math.random() < 0.1 )
+				{
+					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_LMG }) );
+					character_entity._ai_gun_slot = 2;
+				}
+				else
+				{
+					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_RIFLE }) );
+					character_entity._ai_gun_slot = 2;
+				}
+			}
+			character_settings = {"hero_name":"Star Defender Soldier", // Name
+			"color_bright":"#c0c0c0", // Helmet bright color
+			"color_dark":"#808080", // Helmet dark color
+			"color_visor":"#FF0000", // Visor color
+			"color_bright3":"#c0c0c0", // Jetpack (bright shade) color
+			"color_dark3":"#808080", // Jetpack (dark shade) color
+			"color_suit":"#000080", // Upper suit color
+			"color_suit2":"#000080", // Lower suit color
+			"color_dark2":"#808080", // Lower suit plates color
+			"color_shoes":"#000000", // Shoes color
+			"color_skin":"#808000", // Gloves and neck color
+			"color_extra1":"#0000FF",
+			"helmet1":true,
+			"voice1":true };
+
+			character_entity.matter = 185;
+			character_entity.matter_max = 185;
+
+			character_entity.hea = 250; // It is a star defender after all
+			character_entity.hmax = 250;
+
+			character_entity.armor = 500;
+			character_entity.armor_max = 500;
+			character_entity._armor_absorb_perc = 0.6; // 60% damage reduction
+			character_entity.armor_speed_reduction = 10; // Armor speed reduction, 10% for heavy armor
+										
+			character_entity._ai_level = 5;
+										
+			character_entity._matter_regeneration = 5; // At least some ammo regen
+			character_entity._jetpack_allowed = true; // Jetpack
+			//character_entity._recoil_mult = 1 - ( 0.0055 * 5 ) ; // Recoil reduction
+			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+			character_entity._ai_team = 0; // AI team 0 is for normal Star Defenders
+			character_entity._matter_regeneration_multiplier = 4; // Their matter regenerates 4 times faster than normal, unupgraded players
+		}
 		if ( faction === sdFactions.FACTION_FALKOK ) // Falkoks
 		{
 			if ( Math.random() < 0.07 )
@@ -464,12 +528,18 @@ class sdFactions extends sdEntity
 
 		if ( faction === sdFactions.FACTION_TZYRG ) // Tzyrg
 		{
+			if ( Math.random < 0.5 )
 			{ 
 				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TZYRG_SHOTGUN }) );
 				character_entity._ai_gun_slot = 3;
 			}
+			else
+			{ 
+				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TZYRG_RIFLE }) );
+				character_entity._ai_gun_slot = 2;
+			}
 
-			if ( character_entity._ai_gun_slot === 3 )
+			if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 2 )
 			character_settings = {"hero_name":"Tzyrg", // Name
 			"color_bright":"#404040", // Helmet bright color
 			"color_dark":"#202020", // Helmet dark color
@@ -487,7 +557,7 @@ class sdFactions extends sdEntity
 			"legs36":true,
 			"voice10":true };
 
-			if ( character_entity._ai_gun_slot === 3 ) // If a regular Tzyrg
+			if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 2 ) // If a regular Tzyrg
 			{
 				character_entity.matter = 100;
 				character_entity.matter_max = 100;
