@@ -98,20 +98,22 @@ if ( !isWin )
 	let ssl_key_path;
 	let ssl_cert_path;
 	
-	if( fs.existsSync(`sslconfig.json`) ) 
+	let ssl = true;
+	
+	if ( fs.existsSync( 'sslconfig.json' ) ) 
 	{
     	try 
 		{
-        	const data = fs.readFileSync('./sslconfig.json', 'utf8');
+        	const data = fs.readFileSync( './sslconfig.json', 'utf8' );
     
         	// parse JSON string to JSON object
-        	const sslconfig = JSON.parse(data);
-        	ssl_cert_path = sslconfig.certpath
-        	ssl_key_path = sslconfig.keypath
+        	const sslconfig = JSON.parse( data );
+        	ssl_cert_path = sslconfig.certpath;
+        	ssl_key_path = sslconfig.keypath;
 	    }
 		catch (err)
 		{
-	        console.log(`Error reading file from disk: ${err}`);
+	        console.log(`Error reading file from disk: ${ err }`);
 	    } 
 	} 
 	else 
@@ -128,6 +130,11 @@ if ( !isWin )
 	        ssl_cert_path = '/usr/local/directadmin/data/users/admin/domains/gevanni.com.cert';
 	    }
 	    else
+		if ( fs.existsSync('/var/') &&
+	         fs.existsSync('/var/cpanel/') &&
+	         fs.existsSync('/var/cpanel/ssl/') &&
+	         fs.existsSync('/var/cpanel/ssl/apache_tls/') &&
+	         fs.existsSync('/var/cpanel/ssl/apache_tls/plazmaburst2.com/') ) 
 	    {
 	        ssl_key_path = '/var/cpanel/ssl/apache_tls/plazmaburst2.com/combined';
 	        ssl_cert_path = '/var/cpanel/ssl/apache_tls/plazmaburst2.com/combined'; // '/var/cpanel/ssl/apache_tls/plazmaburst2.com/certificates';
@@ -137,22 +144,30 @@ if ( !isWin )
         	
         	directory_to_save_player_count = '/home/plazmaburst2/public_html/pb2/sd2d_online.v';
     	}
+		else
+		{
+			// For replit.com-like hosts, they apparently handle all that by themselves
+			ssl = false;
+		}
 	}
 	
-	const credentials = {
-		key: fs.readFileSync( ssl_key_path ),
-		cert: fs.readFileSync( ssl_cert_path )
-	};
-	httpsServer = https.createServer( credentials, app ); // https version
-	
-	setInterval(()=>{
-		
-			//console.log( httpsServer.key, httpsServer.cert );
-		
-		 httpsServer.key = fs.readFileSync( ssl_key_path );
-		 httpsServer.cert = fs.readFileSync( ssl_cert_path );
+	if ( ssl )
+	{
+		const credentials = {
+			key: fs.readFileSync( ssl_key_path ),
+			cert: fs.readFileSync( ssl_cert_path )
+		};
+		httpsServer = https.createServer( credentials, app ); // https version
 
-	}, 2147483647 );
+		setInterval(()=>{
+
+				//console.log( httpsServer.key, httpsServer.cert );
+
+			 httpsServer.key = fs.readFileSync( ssl_key_path );
+			 httpsServer.cert = fs.readFileSync( ssl_cert_path );
+
+		}, 2147483647 );
+	}
 }
 
 // process.cwd() - current working directory
