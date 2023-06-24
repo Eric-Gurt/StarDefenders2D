@@ -2418,7 +2418,8 @@ class sdEntity
 	}
 	GetBleedEffectDamageMultiplier()
 	{
-		return this.GetBleedEffect();
+		//return this.GetBleedEffect(); // But GetBleedEffect returns sdEffect.TYPE_WALL_HIT ID rather than multiplier. It could break in case if sdEffect.TYPE_WALL_HIT was replaced with newer version
+		return 1;
 	}
 	GetBleedEffectHue()
 	{
