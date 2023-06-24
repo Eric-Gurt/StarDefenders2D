@@ -142,6 +142,8 @@ class sdWorld
 		};*/
 		sdWorld.base_ground_level = 0;//-256;
 		
+		sdWorld.fill_ground_quad_cache = null;//[];
+		
 		sdWorld.last_simulated_entity = null; // Used by sdDeepSleep debugging so far
 		
 		
@@ -741,10 +743,38 @@ class sdWorld
 		var r2 = 30;
 		var r2_plus = r2 + 1;
 		
-		for ( var xx = -r2; xx <= r2; xx++ )
-		for ( var yy = -r2 * 4; yy <= r2 * 4; yy++ )
+		let yy_min = -r2 * 4;
+		let yy_max =  r2 * 4;
+		
+		if ( sdWorld.fill_ground_quad_cache === null )
+		{
+			sdWorld.fill_ground_quad_cache = [];
+			
+			for ( var xx = -r2; xx <= r2; xx++ )
+			for ( var yy = yy_min; yy <= yy_max; yy++ )
+			{
+				sdWorld.fill_ground_quad_cache.push( sdWorld.inDist2D_Boolean( xx, yy / 4, 0, 0, r2_plus ) );
+			}
+		}
+		
+		/*for ( var xx = -r2; xx <= r2; xx++ )
+		for ( var yy = yy_min; yy <= yy_max; yy++ )
 		{
 			if ( sdWorld.inDist2D_Boolean( xx, yy / 4, 0, 0, r2_plus ) )
+			{
+				s4 += sdWorld.SeededRandomNumberGenerator.random( x + xx * 8 + 1024 * 3, y + yy * 8 - 1024 * 3 );
+				s4_tot += 1;
+			}
+		}*/
+		
+		let arr = sdWorld.fill_ground_quad_cache;
+		let hash_id = 0;
+		
+		for ( var xx = -r2; xx <= r2; xx++ )
+		for ( var yy = yy_min; yy <= yy_max; yy++ )
+		{
+			//if ( sdWorld.inDist2D_Boolean( xx, yy / 4, 0, 0, r2_plus ) )
+			if ( arr[ hash_id++ ] )
 			{
 				s4 += sdWorld.SeededRandomNumberGenerator.random( x + xx * 8 + 1024 * 3, y + yy * 8 - 1024 * 3 );
 				s4_tot += 1;
@@ -1052,8 +1082,13 @@ class sdWorld
 					throw new Error( 'ChangeWorldBounds: Bad sdDeepSleep size' );
 				}
 				
+				let xx2 = x + w;
+				let yy2 = y + h;
+				
+				for ( let xx = x; xx < xx2; xx += sdDeepSleep.normal_cell_size )
+				for ( let yy = y; yy < yy2; yy += sdDeepSleep.normal_cell_size )
 				sdEntity.entities.push( new sdDeepSleep({
-					x:x, y:y, w:w, h:h, type: sdDeepSleep.TYPE_UNSPAWNED_WORLD
+					x:xx, y:yy, w:sdDeepSleep.normal_cell_size, h:sdDeepSleep.normal_cell_size, type: sdDeepSleep.TYPE_UNSPAWNED_WORLD
 				}) );
 			}
 			

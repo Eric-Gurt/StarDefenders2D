@@ -22,7 +22,7 @@ class sdEffect extends sdEntity
 		
 		console.log('sdEffect class initiated');
 		
-		sdEffect.ignored_entity_classes_arr = [ 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdCrystal', 'sdAsp', 'sdSandWorm', 'sdSlug', 'sdAmphid', 'sdJunk', 'sdTutel', 'sdGrub', 'sdBadDog', 'sdBiter', 'sdAbomination', 'sdMimic' ];
+		sdEffect.ignored_entity_classes_arr = [ 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdCrystal', 'sdAsp', 'sdSandWorm', 'sdSlug', 'sdAmphid', 'sdJunk', 'sdTutel', 'sdGrub', 'sdBadDog', 'sdBiter', 'sdAbomination', 'sdMimic', 'sdDrone', 'sdBot' ];
 		
 		sdEffect.TYPE_BLOOD = 0;
 		sdEffect.TYPE_WALL_HIT = 1;

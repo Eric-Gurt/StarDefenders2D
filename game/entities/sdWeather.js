@@ -7,7 +7,7 @@
  
 	Test specific event on server (will break any other event):
 
-		sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 18 );
+			sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 18 );
 
 		OR
 
@@ -203,6 +203,7 @@ class sdWeather extends sdEntity
 		
 		this._quake_scheduled_amount = 0;
 		this.quake_intensity = 0;
+		this._quake_temporary_not_regen_near = []; // Prevent too much ground being regenerated in same place during event
 		
 		this._time_until_event = 30 * 30; // 30 seconds since world reset
 		//this._daily_events = [ 8 ];
@@ -1173,6 +1174,7 @@ class sdWeather extends sdEntity
 		if ( r === 8 ) // Earth quake, idea by LazyRain, implementation by Eric Gurt
 		{
 			this._quake_scheduled_amount = 30 * ( 10 + Math.random() * 30 );
+			this._quake_temporary_not_regen_near.length = 0;
 		}
 					
 		if ( r === 9 ) // Spawn few sdBadDog-s somewhere on ground where players don't see them
@@ -3384,17 +3386,6 @@ class sdWeather extends sdEntity
 				this.raining_intensity = Math.max( 0, this.raining_intensity - GSPEED * 0.1 );
 			}
 			
-			if ( this._quake_scheduled_amount > 0 )
-			{
-				this._quake_scheduled_amount -= GSPEED;
-				
-				this.quake_intensity = Math.min( 100, this.quake_intensity + GSPEED * 0.3 );
-			}
-			else
-			{
-				this.quake_intensity = Math.max( 0, this.quake_intensity - GSPEED * 0.3 );
-			}
-			
 			if ( this.raining_intensity > 50 )
 			//if ( sdWorld.is_server ) Done before
 			{
@@ -3593,6 +3584,8 @@ class sdWeather extends sdEntity
 				}*/
 			}
 			
+			let quake_logic_percentage_done = 1; // Gets lower if earthquake can't perform enough of planned iterations (usually due to performance risks)
+			
 			if ( this.quake_intensity >= 100 )
 			//for ( let i = 0; i < 100; i++ ) // Hack
 			{
@@ -3605,10 +3598,29 @@ class sdWeather extends sdEntity
 					
 					//let tr = 1000;
 					
-					let tr = sdWorld.server_config.aggressive_hibernation ? 25 : 35;
+					let world_area_under_ground = ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) / 16 * ( sdWorld.world_bounds.y2 - Math.max( sdWorld.world_bounds.y1, 0 ) ) / 16;
+					
+					//let tr = sdWorld.server_config.aggressive_hibernation ? 25 : 35;
+					//let tr = 35;
+					let tr = Math.ceil( world_area_under_ground * 0.001 );
+					let tr0 = tr;
+					
+					let t = Date.now();
 					
 					do
 					{
+						let t2 = Date.now();
+						
+						if ( t2 > t + 3 )
+						{
+							if ( tr0 > 0 )
+							{
+								quake_logic_percentage_done = ( tr0 - tr ) / tr0;
+							}
+							
+							break;
+						}
+						
 						let should_skip = false;
 						
 						if ( sdWorld.server_config.aggressive_hibernation )
@@ -3655,6 +3667,17 @@ class sdWeather extends sdEntity
 							x = Math.floor( x / 16 ) * 16;
 							y = Math.floor( y / 16 ) * 16;
 						}
+						
+						if ( !should_skip )
+						for ( let i = 0; i < this._quake_temporary_not_regen_near.length; i++ )
+						{
+							let data = this._quake_temporary_not_regen_near[ i ];
+							if ( sdWorld.inDist2D_Boolean( data.x, data.y, x, y, 150 ) )
+							{
+								should_skip = true;
+								break;
+							}
+						}
 
 						if ( !should_skip )
 						for ( let num = 0; num < sdTzyrgAbsorber.absorbers.length; num++ )
@@ -3667,9 +3690,10 @@ class sdWeather extends sdEntity
 								break;
 							}
 						}
+						
 						if ( should_skip === true )
 						{
-							// It can't place blocks next to an absorber since it's absorbing the earthquake
+							// It can't place blocks next to an absorber since it's absorbing the earthquake. Also won't spawn blocks near blocks that spawned during this earthquake
 						}
 						else
 						{
@@ -3762,7 +3786,8 @@ class sdWeather extends sdEntity
 											if ( sdWorld.AttemptWorldBlockSpawn( x, y ) )
 											{
 												ClearPlants();
-												break;
+												this._quake_temporary_not_regen_near.push({ x:x, y:y });
+												//break; Do not skip anymore - spawn as many as there can be
 											}
 
 											/*let xx = Math.floor( x / 16 );
@@ -3825,6 +3850,22 @@ class sdWeather extends sdEntity
 				ent.SetMethod( 'onRemove', ent.onRemoveAsFakeEntity ); // Disable any removal logic BUT without making .onRemove method appearing in network snapshot
 				ent.remove();
 				ent._remove();
+			}
+			
+			if ( this._quake_scheduled_amount > 0 )
+			{
+				this._quake_scheduled_amount -= GSPEED * quake_logic_percentage_done;
+				
+				this.quake_intensity = Math.min( 100, this.quake_intensity + GSPEED * 0.3 );
+			}
+			else
+			if ( this.quake_intensity > 0 )
+			{
+				this.quake_intensity = Math.max( 0, this.quake_intensity - GSPEED * 0.3 );
+				
+				if ( this.quake_intensity <= 0 )
+				if ( this._quake_temporary_not_regen_near.length > 0 )
+				this._quake_temporary_not_regen_near.length = 0;
 			}
 			
 			if ( !this.air )
