@@ -2416,6 +2416,10 @@ class sdEntity
 	{
 		return 1; // sdEffect.TYPE_WALL_HIT; unavailable due to early init
 	}
+	GetBleedEffectDamageMultiplier()
+	{
+		return this.GetBleedEffect();
+	}
 	GetBleedEffectHue()
 	{
 		return 0;
