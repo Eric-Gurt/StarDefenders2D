@@ -826,10 +826,12 @@ class sdBullet extends sdEntity
 								 ( typeof from_entity._reinforced_level === 'undefined' || this._reinforced_level >= from_entity._reinforced_level ) &&
 									 ( typeof from_entity._shielded === 'undefined' || from_entity._shielded === null )*/ )
 							{
+								let limb_mult = from_entity.GetHitDamageMultiplier( this.x, this.y );
+
 								if ( !this._wave )
 								{
 									if ( !this._soft )
-									sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect() });
+									sdWorld.SendEffect({ x:this.x, y:this.y, type:( limb_mult === 1 ? from_entity.GetBleedEffect() : from_entity.GetBleedEffectDamageMultiplier() ) });
 								}
 
 								let dmg = this._damage;// * dmg_mult;
@@ -847,8 +849,6 @@ class sdBullet extends sdEntity
 								from_entity.SafeAddVelocity( 0, 0 ); // Will only verify, without adding anything
 
 								let old_hea = ( from_entity.hea || from_entity._hea || 0 );
-
-								let limb_mult = from_entity.GetHitDamageMultiplier( this.x, this.y );
 
 								dmg *= limb_mult;
 
