@@ -61,10 +61,10 @@ class sdDoor extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -16; }
-	get hitbox_x2() { return 16; }
-	get hitbox_y1() { return -16; }
-	get hitbox_y2() { return 16; }
+	get hitbox_x1() { return -this.w / 2; }
+	get hitbox_x2() { return this.w / 2; }
+	get hitbox_y1() { return -this.h / 2; }
+	get hitbox_y2() { return this.h / 2; }
 	
 	DrawIn3D()
 	{ return FakeCanvasContext.DRAW_IN_3D_BOX; }
@@ -90,6 +90,9 @@ class sdDoor extends sdEntity
 	
 	get spawn_align_x(){ return 16; };
 	get spawn_align_y(){ return 16; };*/
+	
+	get spawn_align_x(){ return ( this.w !== 32 ) ? 8 : 16; };
+	get spawn_align_y(){ return ( this.h !== 32 ) ? 8 : 16; };
 
 	get mass() { return this._reinforced_level > 0 ? 4000 : 100; }
 	
@@ -126,7 +129,10 @@ class sdDoor extends sdEntity
 	{
 		super( params );
 		
-		this._hmax = 550 * 4;
+		this.w = params.w || 32;
+		this.h = params.h || 32;
+		
+		this._hmax = 550 * 4 * ( this.w / 32 ) * ( this.h / 32 );
 		this._hea = this._hmax;
 		this._regen_timeout = 0;
 		
@@ -289,7 +295,13 @@ class sdDoor extends sdEntity
 					for ( var u = -1; u <= 1; u += 2 )
 					for ( var v = -1; v <= 1; v += 2 )
 					{
-						if ( sdWorld.CheckWallExists( this.x + 8 * u + 32 * xx, this.y + 8 * v + 32 * yy, this, null ) && 
+						//if ( sdWorld.CheckWallExists( this.x + 8 * u + 32 * xx, 
+						//							  this.y + 8 * v + 32 * yy, this, null ) && 
+						if ( sdWorld.CheckWallExistsBox( this.x + 8 * u + 32 * xx - 8, 
+														 this.y + 8 * v + 32 * yy - 8,
+														 this.x + 8 * u + 32 * xx + 8,
+														 this.y + 8 * v + 32 * yy + 8,
+														 this, null ) && 
 							 sdWorld.last_hit_entity !== null && sdWorld.last_hit_entity.GetClass() === 'sdBlock' )
 						blocks_found_in_direction++;
 						else
@@ -494,7 +506,13 @@ class sdDoor extends sdEntity
 					for ( var u = -1; u <= 1; u += 2 )
 					for ( var v = -1; v <= 1; v += 2 )
 					{
-						if ( sdWorld.CheckWallExists( this.x0 + 8 * u + 32 * xx, this.y0 + 8 * v + 32 * yy, this, null ) && 
+						//if ( sdWorld.CheckWallExists( this.x0 + 8 * u + 32 * xx, this.y0 + 8 * v + 32 * yy, this, null ) && 
+						if ( sdWorld.CheckWallExistsBox( 
+														this.x0 + 8 * u + 32 * xx - 8, 
+														this.y0 + 8 * v + 32 * yy - 8, 
+														this.x0 + 8 * u + 32 * xx + 8, 
+														this.y0 + 8 * v + 32 * yy + 8, 
+														this, null ) && 
 							 sdWorld.last_hit_entity !== null && sdWorld.last_hit_entity.GetClass() === 'sdBlock' )
 						blocks_found_in_direction++;
 						else
@@ -557,9 +575,9 @@ class sdDoor extends sdEntity
 		if ( this.openness > 0 || typeof ctx.FakeStart !== 'undefined' )
 		{
 			if ( this.x0 === null ) // undefined
-			ctx.drawImageFilterCache( sdDoor.img_door_path, -16, -16, 32,32 );
+			ctx.drawImageFilterCache( sdDoor.img_door_path, 0,0,this.w,this.h, -this.w / 2, -this.h / 2, this.w,this.h );
 			else
-			ctx.drawImageFilterCache( sdDoor.img_door_path, -16 - this.x + this.x0, -16 - this.y + this.y0, 32,32 );
+			ctx.drawImageFilterCache( sdDoor.img_door_path, 0,0,this.w,this.h, -this.w / 2 - this.x + this.x0, -this.h / 2 - this.y + this.y0, this.w,this.h );
 		}
 	}
 	Draw( ctx, attached )
@@ -585,75 +603,79 @@ class sdDoor extends sdEntity
 			img_normal = sdDoor.img_a2door;
 		}
 		
+		let STATE_NO_MATTER = 0;
+		let STATE_CLOSED = 1;
+		let STATE_NORMAL = 2;
+		
+		let texture = img_no_matter;
+		
 		if ( this.x0 === null && this._net_id !== undefined && !sdShop.isDrawing ) // undefined // Client-side doors won't not have any _net_id
 		{
 			if ( !com_near && this.open_type === sdDoor.OPEN_TYPE_COM_NODE )
-			{
-				ctx.drawImageFilterCache( img_no_matter, -16, -16, 32,32 );
-			}
+			texture = img_no_matter;
 			else
-			{
-				ctx.filter = this.filter;
-				ctx.drawImageFilterCache( img_closed, -16, -16, 32,32 );
-				ctx.filter = 'none';
-			}
-		
-			if ( sdBlock.cracks[ this.destruction_frame ] !== null )
-			ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
-			if ( sdDoor.metal_reinforces[ this.reinforced_frame ] !== null )
-			ctx.drawImageFilterCache( sdDoor.metal_reinforces[ this.reinforced_frame ], -16, -16, 32,32 );
+			texture = img_closed;
 		}
 		else
 		{
-			if ( this.openness > 0 )
-			{
-				//ctx.drawImageFilterCache( sdDoor.img_door_path, -16 - this.x + this.x0, -16 - this.y + this.y0, 32,32 );
-
-				ctx.save();
-				
-				ctx.beginPath();
-				{
-					ctx.rect(  -16 - this.x + this.x0, -16 - this.y + this.y0, 32,32 );
-					ctx.clip();
-					
-					if ( !com_near && this.open_type === sdDoor.OPEN_TYPE_COM_NODE )
-					{
-						ctx.drawImageFilterCache( img_no_matter, -16, -16, 32,32 );
-					}
-					else
-					{
-						ctx.filter = this.filter;
-						ctx.drawImageFilterCache( img_normal, -16, -16, 32,32 );
-						ctx.filter = 'none';
-					}
-		
-					if ( sdBlock.cracks[ this.destruction_frame ] !== null )
-					ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
-					if ( sdDoor.metal_reinforces[ this.reinforced_frame ] !== null )
-					ctx.drawImageFilterCache( sdDoor.metal_reinforces[ this.reinforced_frame ], -16, -16, 32,32 );
-				}
-				ctx.restore();
-			}
+			if ( !com_near && this.open_type === sdDoor.OPEN_TYPE_COM_NODE )
+			texture = img_no_matter;
 			else
+			texture = img_normal;
+		}
+		
+		const DrawCap = ()=>
+		{
+			if ( this.w !== 32 || this.h !== 32 )
 			{
-				if ( !com_near && this.open_type === sdDoor.OPEN_TYPE_COM_NODE )
+				if ( this.w < this.h )
 				{
-					ctx.drawImageFilterCache( img_no_matter, -16, -16, 32,32 );
+					ctx.drawImageFilterCache( texture, 0,0,this.w/2,this.h, -this.w / 2+0.1, -this.h / 2+0.1, this.w/2-0.1,this.h-0.2 );
+					ctx.drawImageFilterCache( texture, 32-this.w/2,0,this.w/2,this.h, 0, -this.h / 2+0.1, this.w/2-0.1,this.h-0.2 );
 				}
 				else
 				{
-					ctx.filter = this.filter;
-					ctx.drawImageFilterCache( img_normal, -16, -16, 32,32 );
-					ctx.filter = 'none';
+					ctx.drawImageFilterCache( texture, 0,0,this.w,this.h/2, -this.w / 2+0.1, -this.h / 2+0.1, this.w-0.2,this.h/2-0.1 );
+					ctx.drawImageFilterCache( texture, 0,32-this.h/2,this.w,this.h/2, -this.w / 2+0.1, 0, this.w-0.2,this.h/2-0.1 );
 				}
-		
-				if ( sdBlock.cracks[ this.destruction_frame ] !== null )
-				ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], -16, -16, 32,32 );
-				if ( sdDoor.metal_reinforces[ this.reinforced_frame ] !== null )
-				ctx.drawImageFilterCache( sdDoor.metal_reinforces[ this.reinforced_frame ], -16, -16, 32,32 );
 			}
+		};
+		
+		if ( this.openness > 0 )
+		if ( !sdWorld.is_server )
+		{
+			// Do not completely hide door
+			let dx = -this.dir_x * 0.1;
+			let dy = -this.dir_y * 0.1;
+			
+			// Prevent z-figthing
+			if ( this.dir_y !== 0 )
+			dx += ( sdWorld.camera.x < this.x ) ? 0.1 : -0.1;
+			else
+			dy += ( sdWorld.camera.y < this.y ) ? 0.1 : -0.1;
+			
+			ctx.translate( dx, dy );
 		}
 	
+		if ( texture === img_no_matter )
+		{
+			ctx.drawImageFilterCache( texture, -this.w / 2, -this.h / 2, this.w,this.h );
+			DrawCap();
+		}
+		else
+		{
+			ctx.filter = this.filter;
+			
+			ctx.drawImageFilterCache( texture, -this.w / 2, -this.h / 2, this.w,this.h );
+			DrawCap();
+			
+			ctx.filter = 'none';
+		}
+
+		if ( sdBlock.cracks[ this.destruction_frame ] !== null )
+		ctx.drawImageFilterCache( sdBlock.cracks[ this.destruction_frame ], 0,0,this.w,this.h, -this.w / 2, -this.h / 2, this.w,this.h );
+		if ( sdDoor.metal_reinforces[ this.reinforced_frame ] !== null )
+		ctx.drawImageFilterCache( sdDoor.metal_reinforces[ this.reinforced_frame ], -this.w / 2, -this.h / 2, this.w,this.h );
 	}
 	
 	HandleDestructionUpdate()

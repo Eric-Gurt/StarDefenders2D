@@ -13,7 +13,9 @@ class sdMatterAmplifier extends sdEntity
 {
 	static init_class()
 	{
-		sdMatterAmplifier.img_matter_amplifier = sdWorld.CreateImageFromFile( 'matter_amplifier' );
+		sdMatterAmplifier.img = sdWorld.CreateImageFromFile( 'sdMatterAmplifier' );
+		
+		/*sdMatterAmplifier.img_matter_amplifier = sdWorld.CreateImageFromFile( 'matter_amplifier' );
 		sdMatterAmplifier.img_matter_amplifier2 = sdWorld.CreateImageFromFile( 'matter_amplifier2' ); // 2nd variation
 		sdMatterAmplifier.img_matter_amplifier3 = sdWorld.CreateImageFromFile( 'matter_amplifier3' ); // 3rd variation
 		sdMatterAmplifier.img_matter_amplifier4 = sdWorld.CreateImageFromFile( 'matter_amplifier4' ); // 4th variation
@@ -26,14 +28,14 @@ class sdMatterAmplifier extends sdEntity
 		sdMatterAmplifier.img_matter_amplifier_shield3 = sdWorld.CreateImageFromFile( 'matter_amplifier_shield3' ); // 3rd variation
 		sdMatterAmplifier.img_matter_amplifier_shield4 = sdWorld.CreateImageFromFile( 'matter_amplifier_shield4' ); // 4th variation
 		//sdMatterAmplifier.img_matter_amplifier_empty = sdWorld.CreateImageFromFile( 'matter_amplifier_empty' );
-		
+		*/
 		sdMatterAmplifier.relative_regen_amplification_to_crystals = 5;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -10; }
-	get hitbox_x2() { return 10; }
-	get hitbox_y1() { return ( this.crystal && this.shielded ) ? -10 : 7; }
+	get hitbox_x1() { return -10 * this.width; }
+	get hitbox_x2() { return 10 * this.width; }
+	get hitbox_y1() { return ( this.crystal && this.shielded ) ? ( this.width === 1 ? -10 : ( 7 - 17 * this.width ) ) : 7; }
 	get hitbox_y2() { return 14; }
 	
 	get spawn_align_x(){ return 8; };
@@ -75,6 +77,8 @@ class sdMatterAmplifier extends sdEntity
 		
 		this.crystal = null;
 		
+		this.width = params.width || 1;
+		
 		this.multiplier = params.multiplier || 1; // Crystal regeneration multiplier, used for higher tier matter amplifiers. Only power of 2 values
 		this._hmax = 1;// = ( 160 + ( 160 * this.multiplier ) ) * 4; // Regular matter amplifier has 160 + 160 hp which is 320
 		this.UpdatePropertiesDueToUpgrade();
@@ -88,7 +92,7 @@ class sdMatterAmplifier extends sdEntity
 	}
 	UpdatePropertiesDueToUpgrade()
 	{
-		this._hmax = ( 160 + ( 160 * this.multiplier ) ) * 4; // Regular matter amplifier has 160 + 160 hp which is 320
+		this._hmax = ( 160 + ( 160 * this.multiplier ) ) * 4 * this.width; // Regular matter amplifier has 160 + 160 hp which is 320
 	}
 	onSnapshotApplied() // To override
 	{
@@ -201,9 +205,16 @@ class sdMatterAmplifier extends sdEntity
 		//this.MatterGlow( 0.1, 0, GSPEED ); // 0 radius means only towards cables
 	
 	}
+	get title()
+	{
+		return ( this.width === 1 ) ? "Matter amplifier" : "Wide matter amplifier";
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, "Matter amplifier" );
+		/*if ( this.crystal )
+		this.crystal.DrawHUD( ctx, attached );
+		else*/
+		sdEntity.Tooltip( ctx, this.title );
 		
 		/*if ( this.matter_max === 0 )
 		sdEntity.Tooltip( ctx, "Matter amplifier (no crystal)" );
@@ -216,21 +227,27 @@ class sdMatterAmplifier extends sdEntity
 		if ( this.crystal )
 		ctx.apply_shading = false;
 		
-		/*
-		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_empty, - 16, - 16, 32,32 );
+		let mult_to_tier = [];
+		mult_to_tier[ 1 ] = 0;
+		mult_to_tier[ 2 ] = 1;
+		mult_to_tier[ 4 ] = 2;
+		mult_to_tier[ 8 ] = 3;
 		
-		//if ( this.matter_max > 40 )
-		//ctx.filter = 'hue-rotate('+( this.matter_max - 40 )+'deg)';
-	
-		ctx.filter = sdWorld.GetCrystalHue( this.matter_max );
-	
-		ctx.globalAlpha = this.matter / this.matter_max;
-		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier, - 16, - 16, 32,32 );
-
-		ctx.globalAlpha = 1;
-		ctx.filter = 'none';*/
+		let img_size = 32;
+		let offset_x = 0;
+		let place_offset_y = -16;
+		let place_offset_x = -16;
 		
-		const offset_y = 2;
+		if ( this.width === 2 )
+		{
+			img_size = 64;
+			offset_x = 128;
+			place_offset_y = -48;
+			
+			place_offset_x -= 8;
+		}
+		
+		offset_x += img_size*mult_to_tier[ this.multiplier ];
 			
 		if ( this.crystal )
 		{
@@ -242,38 +259,21 @@ class sdMatterAmplifier extends sdEntity
 			ctx.restore();
 			
 			ctx.globalAlpha = 0.75 + Math.sin( sdWorld.time / 300 ) * 0.25;
-			if ( this.multiplier === 1 )
-			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam, - 16, - 16, 32,32 );
-			if ( this.multiplier === 2 )
-			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam2, - 16, - 16, 32,32 );
-			if ( this.multiplier === 4 )
-			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam3, - 16, - 16, 32,32 );
-			if ( this.multiplier === 8 )
-			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam4, - 16, - 16, 32,32 );
+			
+			
+			ctx.drawImageFilterCache( sdMatterAmplifier.img, offset_x,img_size,img_size,img_size, place_offset_x, place_offset_y, img_size,img_size );
 			
 			if ( this.shielded )
 			{
 				ctx.globalAlpha = 1;
-				if ( this.multiplier === 1 )
-				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield, - 16, - 16, 32,32 );
-				if ( this.multiplier === 2 )
-				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield2, - 16, - 16, 32,32 );
-				if ( this.multiplier === 4 )
-				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield3, - 16, - 16, 32,32 );
-				if ( this.multiplier === 8 )
-				ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_shield4, - 16, - 16, 32,32 );
+				
+				ctx.drawImageFilterCache( sdMatterAmplifier.img, offset_x,img_size*2,img_size,img_size, place_offset_x, place_offset_y, img_size,img_size );
 			}
 		}
 		
 		ctx.globalAlpha = 1;
-		if ( this.multiplier === 1 )
-		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier, - 16, - 16, 32, 32 );
-		if ( this.multiplier === 2 )
-		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier2, - 16, - 16, 32, 32 );
-		if ( this.multiplier === 4 )
-		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier3, - 16, - 16, 32, 32 );
-		if ( this.multiplier === 8 )
-		ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier4, - 16, - 16, 32, 32 );
+		
+		ctx.drawImageFilterCache( sdMatterAmplifier.img, offset_x,0,img_size,img_size, place_offset_x, place_offset_y, img_size,img_size );
 	}
 	onBeforeRemove() // Right when .remove() is called for the first time. This method won't be altered by build tool spawn logic
 	{
@@ -338,39 +338,6 @@ class sdMatterAmplifier extends sdEntity
 			sdWorld.UpdateHashPosition( this, false ); // Hitbox update
 			this._update_version++;
 
-			/*let that = this;
-
-			// Wait for hook target to finalize
-			setTimeout( ()=>
-			{
-				for ( var i = 0; i < sdWorld.sockets.length; i++ )
-				{
-					let s = sdWorld.sockets[ i ];
-					
-					if ( s.character )
-					{
-						if ( s.character.is( sdWorld.entity_classes.sdPlayerDrone ) )
-						{
-							if ( s.character.grabbed === that )
-							{
-								s.character.grabbed = ent;
-							}
-						}
-						else
-						if ( s.character.hook_x !== 0 || s.character.hook_y !== 0 )
-						if ( s.character.hook_relative_to === that )
-						{
-							s.character.hook_relative_to = ent;
-							//s.character.hook_x = ent.x;
-							//s.character.hook_y = ent.y;
-							s.character.hook_relative_x = 0;
-							s.character.hook_relative_y = 0;
-							//debugger;
-						}
-					}
-				}
-			}, 50 );*/
-			
 			return true;
 		}
 		
@@ -403,7 +370,7 @@ class sdMatterAmplifier extends sdEntity
 			if ( from_entity.is( sdCrystal ) )
 			//if ( from_entity._held_by === null && from_entity.type === 1 ) // Prevent crystals which are stored in a crate
 			if ( from_entity.held_by === null ) // Prevent crystals which are stored in a crate/other amplifier
-			if ( from_entity._hitbox_x2 - from_entity._hitbox_x1 <= 16 ) // Only small enough ones
+			if ( from_entity._hitbox_x2 - from_entity._hitbox_x1 <= 16 * this.width ) // Only small enough ones
 			if ( sdWorld.Dist2D_Vector( from_entity.sx, from_entity.sy ) < 1.5 )
 			{
 				//console.log( 'vel ',sdWorld.Dist2D_Vector( from_entity.sx, from_entity.sy ));
@@ -468,7 +435,10 @@ class sdMatterAmplifier extends sdEntity
 	
 	MeasureMatterCost()
 	{
-		return 200 * this.multiplier + this._hmax * sdWorld.damage_to_matter;
+		if ( this.width === 2 )
+		return ( 800 ) * this.multiplier + this._hmax * sdWorld.damage_to_matter;
+		
+		return ( 200 ) * this.multiplier + this._hmax * sdWorld.damage_to_matter;
 	}
 	
 	ExecuteContextCommand( command_name, parameters_array, exectuter_character, executer_socket ) // New way of right click execution. command_name and parameters_array can be anything! Pay attention to typeof checks to avoid cheating & hacking here. Check if current entity still exists as well (this._is_being_removed). exectuter_character can be null, socket can't be null
@@ -518,6 +488,8 @@ class sdMatterAmplifier extends sdEntity
 							let cost_new = this.MeasureMatterCost();
 
 							let cost = ~~( cost_new - cost_this + 300 );
+							
+							cost = Math.min( 1800, cost ); // Keep it available even if wide version has crazy multipliers
 
 							if ( exectuter_character.matter >= cost )
 							{

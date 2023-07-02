@@ -3407,7 +3407,7 @@ class sdWeather extends sdEntity
 						{
 							if ( e._plants === null )
 							{
-								let grass = new sdGrass({ x:e.x, y:e.y - 16, hue:e.hue, br:e.br, filter: e.filter, block:e  });
+								let grass = new sdGrass({ x:e.x, y:e.y - 16, hue:e.hue, br:e.br, filter: e.filter, block:e });
 								sdEntity.entities.push( grass );
 
 								//grass.snowed = this.snow;
@@ -3703,7 +3703,7 @@ class sdWeather extends sdEntity
 							{
 								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() ) )
 								//if ( !sdWorld.CheckWallExistsBox( x, y, x+16, y+16, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava
-								if ( !sdWorld.CheckWallExistsBox( x + 0.0001, y + 0.0001, x+16 - 0.0001, y+16 - 0.0001, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava
+								if ( !sdWorld.CheckWallExistsBox( x + 0.0001, y + 0.0001, x+16 - 0.0001, y+16 - 0.0001, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava (liquids are caught by CrystalRemovalByEearthquakeFilter though now)
 								{
 									let ent_above = null;
 									let ent_above_exists = false;
@@ -3753,6 +3753,14 @@ class sdWeather extends sdEntity
 										{
 											if ( sdWorld.last_hit_entity.material !== sdBG.MATERIAL_GROUND )
 											{
+												if ( Math.random() < 0.1 ) // Chance to damage player-made backgrounds, will only work if they aren't protected
+												{
+													sdWorld.last_hit_entity.DamageWithEffect( 20, null );
+													
+													if ( sdWorld.last_hit_entity._is_being_removed )
+													bg_nature_ent = sdWorld.last_hit_entity;
+												}
+												else
 												bg_nature = false;
 											}
 											else
@@ -3828,11 +3836,25 @@ class sdWeather extends sdEntity
 							if ( sdWeather.last_crystal_near_quake )
 							{
 								sdWorld.last_hit_entity = null;
-								if ( sdWorld.CheckWallExistsBox( x - 4, y + 4, x+16 + 4, y+16 + 4, null, null, [ 'sdBlock' ] ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural ) )  )
+								if ( sdWorld.CheckWallExistsBox( x - 4, y + 4, x+16 + 4, y+16 + 4, null, null, [ 'sdBlock' ] ) && 
+										( sdWorld.last_hit_entity === null || 
+											(	sdWorld.last_hit_entity.is( sdBlock ) && 
+												sdWorld.last_hit_entity.DoesRegenerate() && 
+												sdWorld.last_hit_entity._natural 
+											) 
+										)  
+									)
 								{
-									//sdWeather.last_crystal_near_quake.DamageWithEffect( 15 );
-									if ( sdWeather.last_crystal_near_quake.IsTargetable( this ) )
-									sdWeather.last_crystal_near_quake.DamageWithEffect( 20 );
+									if ( sdWeather.last_crystal_near_quake.is( sdWater ) )
+									{
+										sdWeather.last_crystal_near_quake.remove();
+									}
+									else
+									{
+										//sdWeather.last_crystal_near_quake.DamageWithEffect( 15 );
+										if ( sdWeather.last_crystal_near_quake.IsTargetable( this ) )
+										sdWeather.last_crystal_near_quake.DamageWithEffect( 20 );
+									}
 								}
 							}
 						}
@@ -3941,7 +3963,7 @@ class sdWeather extends sdEntity
 		if ( ent )
 		//if ( ent.is( sdCrystal ) )
 		if ( !ent._natural )
-		if ( ent.IsTargetable() )
+		if ( ent.IsTargetable() || ent.is( sdWater ) )
 		{
 			sdWeather.last_crystal_near_quake = ent;
 			//return false;

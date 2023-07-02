@@ -13,6 +13,7 @@ import sdWorld from '../sdWorld.js';
 import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdGun from './sdGun.js';
+import sdAsp from './sdAsp.js';
 import sdCrystal from './sdCrystal.js';
 import sdJunk from './sdJunk.js';
 import sdCharacter from './sdCharacter.js';
@@ -47,7 +48,7 @@ class sdLost extends sdEntity
 	{
 		let is_dead = ( ( ent.hea || ent._hea || 1 ) <= 0 );
 		
-		if ( ( ent._hard_collision && !ent.is( sdCrystal ) && !ent.is( sdLost ) && ( !ent.is( sdJunk ) || ent.type !== 2 ) ) ||
+		if ( ( ent._hard_collision && !ent.is( sdCrystal ) && !( ent.is( sdAsp ) && ent._tier === 2 ) && !ent.is( sdLost ) && ( !ent.is( sdJunk ) || ent.type !== 2 ) ) ||
 			 ( !ent._hard_collision && ( ent.is( sdFaceCrab ) || ( ent.is( sdGun ) && ent.class !== sdGun.CLASS_CRYSTAL_SHARD && ent.class !== sdGun.CLASS_SCORE_SHARD ) || is_dead ) ) ) // Not for BG entities
 		if ( ent.IsBGEntity() === 0 ) // Not for BG entities
 		if ( ent.IsTargetable() )
@@ -95,6 +96,21 @@ class sdLost extends sdEntity
 
 				if ( ent.is( sdMatterAmplifier ) )
 				ent.DropCrystal();
+			
+				if ( ent.is( sdAsp ) && ent._tier === 1 )
+				{
+					ent.remove();
+					ent._broken = false;
+					let new_asp = new sdAsp({
+						x: ent.x,
+						y: ent.y,
+						_tier: 2,
+						filter: sdLost.filters[ f ],
+						crystal_worth: f === sdLost.FILTER_GOLDEN ? 640 : 0
+					});
+					sdEntity.entities.push( new_asp );
+					return;
+				}
 
 				/*if ( ent.is( sdCharacter ) )
 				{

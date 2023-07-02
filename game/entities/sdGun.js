@@ -791,8 +791,18 @@ class sdGun extends sdEntity
 						}
 						else
 						if ( ammo_cost > this._held_by.matter_max )
-						this._held_by.Say( 'I need more score in order to have higher matter capacity' );
-						//this._held_by.Say( 'Need matter capacity upgrade and more matter' );
+						{
+							if ( this._held_by.build_tool_level >= this._held_by._max_level )
+							{
+								if ( this._held_by._matter_capacity_boosters >= this._held_by._matter_capacity_boosters_max )
+								this._held_by.Say( 'I should try building lower tier version of this entity, then update gradually by right clicking it' );
+								else
+								this._held_by.Say( 'I could need matter capacity boosters, such as cube shards' );
+							}
+							else
+							this._held_by.Say( 'I need more score in order to have higher matter capacity' );
+							//this._held_by.Say( 'Need matter capacity upgrade and more matter' );
+						}
 						else
 						{
 							let n = '[' + Math.ceil( ammo_cost - this._held_by.matter ) + ']';

@@ -736,6 +736,16 @@ class sdEntity
 
 		this._phys_sleep = 10;
 	}
+	/*ForcePhysSleep( on_entity )
+	{
+		if ( typeof this._phys_last_touch === 'undefined' ) // Do not wake up non-physical bodies, such as sdAsteroid
+		return;
+	
+		this.PhysInitIfNeeded();
+
+		this._phys_sleep = 0;
+		this._phys_last_rest_on = on_entity;
+	}*/
 	/*SharePhysAwake( hit_what )
 	{
 		if ( ( typeof this.sx !== 'undefined' && typeof this.sy !== 'undefined' ) || this._is_being_removed )
@@ -3936,6 +3946,9 @@ class sdEntity
 		
 		if ( typeof snapshot.mission !== 'undefined' )
 		params.mission = snapshot.mission;
+		
+		if ( typeof snapshot.variation !== 'undefined' ) // Grass, needs for timers
+		params.variation = snapshot.variation;
 		
 		//var ret = new sdWorld.entity_classes[ snapshot._class ]({ x:snapshot.x, y:snapshot.y });
 		var ret = new sdWorld.entity_classes[ snapshot._class ]( params );

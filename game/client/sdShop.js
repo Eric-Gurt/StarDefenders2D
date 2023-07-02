@@ -63,6 +63,10 @@ class sdShop
 			sdShop.options.push({ _class: 'sdBall', type: 1, _category:'Other' });
 			sdShop.options.push({ _class: 'sdTheatre', _category:'Other' });
 			sdShop.options.push({ _class: 'sdBeamProjector', _category:'Other', _min_build_tool_level: 25 });
+			for ( let hue = 0; hue < 360; hue += 30 )
+			sdShop.options.push({ _class: 'sdGrass', variation: 3, hue:hue, _category:'Other' });
+			for ( let hue = 0; hue < 360; hue += 30 )
+			sdShop.options.push({ _class: 'sdGrass', variation: 4, hue:hue, _category:'Other' });
 
 			sdShop.options.push({ _class: 'sdHover', _category:'Vehicles' });
 			sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles' });
@@ -226,9 +230,18 @@ class sdShop
 				var filter = ( i === 0 ) ? '' : 'hue-rotate('+(~~(i/20*360))+'deg)';
 				AddBuildPack( filter, i );
 
-				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, _category:'Doors' });
-				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED, _category:'Doors' });
-				sdShop.options.push({ _class: 'sdDoor', width: 32, height: 32, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _category:'Doors' });
+				sdShop.options.push({ _class: 'sdDoor', w:32, h:32, filter: filter, _category:'Doors' });
+				sdShop.options.push({ _class: 'sdDoor', w:4, h:32, filter: filter, _category:'Doors' });
+				sdShop.options.push({ _class: 'sdDoor', w:32, h:4, filter: filter, _category:'Doors' });
+				
+				sdShop.options.push({ _class: 'sdDoor', w:32, h:32, filter: filter, model: sdDoor.MODEL_ARMORED, _category:'Doors' });
+				sdShop.options.push({ _class: 'sdDoor', w:4, h:32, filter: filter, model: sdDoor.MODEL_ARMORED, _category:'Doors' });
+				sdShop.options.push({ _class: 'sdDoor', w:32, h:4, filter: filter, model: sdDoor.MODEL_ARMORED, _category:'Doors' });
+				
+				sdShop.options.push({ _class: 'sdDoor', w:32, h:32, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _category:'Doors' });
+				sdShop.options.push({ _class: 'sdDoor', w:4, h:32, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _category:'Doors' });
+				sdShop.options.push({ _class: 'sdDoor', w:32, h:4, filter: filter, model: sdDoor.MODEL_ARMORED_LVL2, _category:'Doors' });
+				
 			}
 
 			AddBuildPack( 'hue-rotate( 105deg) brightness(0.7)' );
@@ -353,10 +366,17 @@ class sdShop
 			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2, _category:'Base equipment' });*/
 			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2 * 2, _category:'Base equipment', _min_build_tool_level: 3 });
-			sdShop.options.push({ _class: 'sdMatterAmplifier', _category:'Base equipment' });
+			
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 1, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 2, _category:'Base equipment', _min_build_tool_level: 3 });
 			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 4, _category:'Base equipment', _min_build_tool_level: 9 });
 			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 8, _category:'Base equipment', _min_build_tool_level: 18 });
+			
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 1, width:2, _category:'Base equipment', _min_build_tool_level: 22 });
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 2, width:2, _category:'Base equipment', _min_build_tool_level: 24 });
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 4, width:2, _category:'Base equipment', _min_build_tool_level: 27 });
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 8, width:2, _category:'Base equipment', _min_build_tool_level: 30 });
+			
 			sdShop.options.push({ _class: 'sdStorageTank', _category:'Base equipment', });
 			sdShop.options.push({ _class: 'sdStorageTank', type: sdStorageTank.TYPE_PORTABLE, _category:'Base equipment', });
 
@@ -546,11 +566,16 @@ class sdShop
 				//sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_ESSENCE, extra: sdCrystal.anticrystal_value / 2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_ANTIMATTER, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdAsp', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdAsp', tier:2, crystal_worth:160, filter: 'invert(1) sepia(1) saturate(100) hue-rotate(270deg) opacity(0.45)', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSandWorm', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSandWorm', kind: 1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSandWorm', kind: 2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSandWorm', kind: 3, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGrass', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdGrass', variation:1, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdGrass', variation:2, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdGrass', variation:3, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdGrass', variation:4, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSlug', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdEnemyMech', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdSetrDestroyer', _category:'Development tests' });
@@ -633,6 +658,20 @@ class sdShop
 				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: sdCrystal.anticrystal_value * 4, _category:'Development tests' });
  				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CORRUPTED, tag: 'deep', _category:'Development tests' });
+				
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 40, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 80, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 160, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 320, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 640, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 1280, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 2560, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 5120, _category:'Development tests' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 5120 * 2, _category:'Development tests' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 5120 * 4, _category:'Development tests' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * 5120 * 8, _category:'Development tests' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * sdCrystal.anticrystal_value, _category:'Development tests' });
+				
 				sdShop.options.push({ _class: 'sdDrone', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', _ai_team: 2, type: 2, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 3, _category:'Development tests' });

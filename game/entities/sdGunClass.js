@@ -1036,6 +1036,10 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'crystal_shard' ),
 			title: 'Crystal shard',
+			title_dynamic: ( gun )=>
+			{
+				return 'Crystal shard ( ' + (~~gun.extra) + ' matter )';
+			},
 			hea: 5,
 			no_tilt: true,
 			slot: 0,

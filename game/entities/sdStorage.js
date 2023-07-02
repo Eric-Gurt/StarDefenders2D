@@ -85,6 +85,8 @@ class sdStorage extends sdEntity
 		this.owner_biometry = -1;
 		this.disarm_until = 0;
 		
+		this._open_anim = 0;
+		
 		this.filter = params.filter || 'saturate(0)';
 	}
 	onSnapshotApplied() // To override
@@ -220,11 +222,31 @@ class sdStorage extends sdEntity
 		}
 		// End of patch
 		
+		if ( !sdWorld.is_server )
+		{
+			let old_open = this._open_anim;
+			
+			if ( sdContextMenu.open && this.stored_names.length > 0 && sdContextMenu.current_target === this && sdWorld.my_entity && sdWorld.inDist2D_Boolean( this.x, this.y, sdWorld.my_entity.x, sdWorld.my_entity.y, sdStorage.access_range ) )
+			this._open_anim = Math.min( 1, this._open_anim + GSPEED * 0.35 );
+			else
+			this._open_anim = Math.max( 0, this._open_anim - GSPEED * 0.1 );
+		
+			if ( this._open_anim !== old_open )
+			{
+				if ( old_open === 0 )
+				sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:10, _server_allowed:true });
+			
+				if ( this._open_anim === 0 )
+				sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:8, _server_allowed:true });
+			}
+		}
+		
 		if ( this._phys_sleep <= 0 && this._hea >= this._hmax )
 		{
 			if ( sdWorld.is_server )
 			this.awake = 0;
 		
+			if ( sdWorld.is_server || this._open_anim <= 0 )
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 		}
 		else
@@ -257,6 +279,8 @@ class sdStorage extends sdEntity
 	Draw( ctx, attached )
 	{
 		let xx = 0;
+		
+		let yy = Math.round( ( 1 - ( Math.cos( this._open_anim * Math.PI ) * 0.5 + 0.5 ) ) * 2 );
 
 		if ( this.held_by === null )
 		{
@@ -272,7 +296,7 @@ class sdStorage extends sdEntity
 
 			if ( this.type === sdStorage.TYPE_CARGO )
 			xx = 2;
-			ctx.drawImageFilterCache( sdStorage.img_storage, xx * 32, 0, 32, 32, - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( sdStorage.img_storage, xx * 32, yy * 32, 32, 32, - 16, - 16, 32,32 );
 		}
 		
 		ctx.globalAlpha = 1;

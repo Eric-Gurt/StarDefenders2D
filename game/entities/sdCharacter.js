@@ -2047,7 +2047,8 @@ class sdCharacter extends sdEntity
 					sdSound.PlaySound({ name:'sd_death', x:this.x, y:this.y, volume:1, pitch:this.GetVoicePitch(), channel:this._voice_channel });
 				}
 			
-				this._sickness /= 4;
+				//this._sickness /= 4;
+				this._sickness = 0;
 				
 				if ( this.driver_of )
 				this.driver_of.ExcludeDriver( this );
@@ -3013,18 +3014,21 @@ class sdCharacter extends sdEntity
 			
 			if ( this._sickness > 0 )
 			{
+				this._sickness -= GSPEED;
+				
 				this._sick_damage_timer += GSPEED;
-				if ( this._sick_damage_timer > 6000 / this._sickness )
+				//if ( this._sick_damage_timer > 6000 / this._sickness )
+				if ( this._sick_damage_timer > 60 )
 				{
 					this._sick_damage_timer = 0;
 					
-					this._sickness = Math.max( 0, this._sickness - 10 );
+					//this._sickness = Math.max( 0, this._sickness - 10 );
 					this.DamageWithEffect( 10, this._last_sickness_from_ent, false, false );
 					sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_BLOOD_GREEN, filter:'none' });
 					
 					// And then it spreads to players near, sounds fun
 					
-					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 50, null, [ 'sdCharacter' ] );
+					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 90, null, [ 'sdCharacter' ] );
 					
 					let itself = targets_raw.indexOf( this );
 					if ( itself !== -1 )
@@ -3035,11 +3039,11 @@ class sdCharacter extends sdEntity
 						if ( targets_raw[ i ].IsTargetable( this ) )
 						targets_raw[ i ]._sickness += 5 / targets_raw.length;
 					}
-					
-					if ( this._sickness === 0 )
-					{
-						this._last_sickness_from_ent = null;
-					}
+				}
+
+				if ( this._sickness <= 0 )
+				{
+					this._last_sickness_from_ent = null;
 				}
 			}
 

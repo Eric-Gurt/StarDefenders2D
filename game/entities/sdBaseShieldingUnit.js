@@ -1791,10 +1791,13 @@ class sdBaseShieldingUnit extends sdEntity
 					this.AddContextOption( 'Rescan entities', 'SHIELD_RESCAN', [] );
 				}
 
-				if ( !this.auto_level_up )
-				this.AddContextOption( 'Enable automatic upgrading', 'AUTO_LEVEL_UP', [] );
-				else
-				this.AddContextOption( 'Stop automatic upgrading', 'AUTO_LEVEL_UP', [] );
+				if ( this.type === sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE )
+				{
+					if ( !this.auto_level_up )
+					this.AddContextOption( 'Enable automatic upgrading', 'AUTO_LEVEL_UP', [] );
+					else
+					this.AddContextOption( 'Stop automatic upgrading', 'AUTO_LEVEL_UP', [] );
+				}
 
 
 				if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED || 

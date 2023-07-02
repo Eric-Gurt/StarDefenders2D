@@ -326,8 +326,32 @@ class sdWater extends sdEntity
 				return false;
 			}*/
 			
-			if ( another.type === this.type )
+			if ( another.type === this.type || 
+				 ( Math.min( another.type, this.type ) === sdWater.TYPE_WATER && Math.max( another.type, this.type ) === sdWater.TYPE_ACID ) // Let acid blend with water
+			)
 			{
+				if ( another.type !== this.type )
+				{
+					// Volume-based blend
+					
+					let morph = this._volume / ( this._volume + another._volume );
+					
+					let new_type = ( morph < 0.4 + Math.random() * 0.2 ) ? this.type : another.type;
+					
+					if ( another.type !== new_type )
+					{
+						another.type = new_type;
+						another._update_version++;
+						another.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					}
+					if ( this.type !== new_type )
+					{
+						this.type = new_type;
+						this._update_version++;
+						//this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					}
+				}
+				
 				if ( this._volume + another._volume <= 1 )
 				{
 					another._volume += this._volume;

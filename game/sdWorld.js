@@ -2330,7 +2330,13 @@ class sdWorld
 			
 			for ( let i = 0; i < ALTERNATIVE_METHODS.length; i++ )
 			{
-				delete prototype[ ALTERNATIVE_METHODS[ i ].name ];
+				try
+				{
+					delete prototype[ ALTERNATIVE_METHODS[ i ].name ];
+				}
+				catch ( e )
+				{
+				}
 			}
 			
 			console.log( 'prototype.' + CURRENT_METHOD.name + ' method replaced with version[' + smallest_i + ']', arr );

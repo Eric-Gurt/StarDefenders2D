@@ -1461,10 +1461,24 @@ class sdRenderer
 							}
 						}
 					}
+					
+					sdWorld.hovered_entity = best_ent;
+					
+					// Context menu prioritizes amplifier
+					if ( best_ent )
+					if ( best_ent.is( sdCrystal ) )
+					if ( best_ent.held_by )
+					sdWorld.hovered_entity = best_ent.held_by;
+					
 					if ( best_ent )
 					if ( best_ent !== sdWorld.my_entity )
 					if ( best_ent !== sdWorld.my_entity.driver_of )
 					{
+						// Tooltip/HUD prioritizes crystal
+						if ( best_ent.is( sdMatterAmplifier ) )
+						if ( best_ent.crystal )
+						best_ent = best_ent.crystal;
+						
 						ctx.save();
 						try
 						{
@@ -1479,7 +1493,6 @@ class sdRenderer
 						}
 						ctx.restore();
 					}
-					sdWorld.hovered_entity = best_ent;
 				}
 				
 
