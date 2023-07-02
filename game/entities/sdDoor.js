@@ -11,6 +11,7 @@ import sdSensorArea from './sdSensorArea.js';
 import sdCharacter from './sdCharacter.js';
 import sdDrone from './sdDrone.js';
 import sdButton from './sdButton.js';
+import sdLongRangeTeleport from './sdLongRangeTeleport.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -448,7 +449,8 @@ class sdDoor extends sdEntity
 							//if ( interrupter1 !== null && sdWorld.last_hit_entity.CanMoveWithoutOverlap( sdWorld.last_hit_entity.x + ( new_x - this.x ), sdWorld.last_hit_entity.y + ( new_y - this.y ), 0.1 ) )  // Small gap for doors that are placed too close (?)
 							if ( interrupter1 !== null && 
 								 sdWorld.last_hit_entity.CanMoveWithoutOverlap( sdWorld.last_hit_entity.x + ( new_x - this.x ), sdWorld.last_hit_entity.y + ( new_y - this.y ), 0 ) && // Small gap for doors that are placed too close (?)
-								 !sdWorld.last_hit_entity.IsInSafeArea() // Do not move entities in safe areas (server LRTP for example)
+								 !sdWorld.last_hit_entity.IsInSafeArea() && // Do not move entities in safe areas (server LRTP for example)
+								 !( sdWorld.last_hit_entity.is( sdLongRangeTeleport ) && sdWorld.last_hit_entity.is_server_teleport )
 								 )
 							{
 								sdWorld.last_hit_entity.x += new_x - this.x;
