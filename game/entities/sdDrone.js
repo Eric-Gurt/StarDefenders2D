@@ -13,6 +13,7 @@ import sdCube from './sdCube.js';
 import sdCharacter from './sdCharacter.js';
 import sdSpider from './sdSpider.js';
 import sdJunk from './sdJunk.js';
+import sdCrystal from './sdCrystal.js';
 
 import sdPathFinding from '../ai/sdPathFinding.js';
 
@@ -508,6 +509,11 @@ class sdDrone extends sdEntity
 					if ( e.IsBGEntity() === this.IsBGEntity() )
 					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, e, null, sdCom.com_creature_attack_unignored_classes ) )
 					{
+						if ( e.is( sdCrystal ) )
+						{
+							e._being_sawed_time = sdWorld.time;
+						}
+						
 						e.DamageWithEffect( 5 * GSPEED, this );
 						
 						candidates.push( e );

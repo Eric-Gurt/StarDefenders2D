@@ -43,8 +43,31 @@ class sdShop
 		
 		sdShop.potential_selection = -1;
 		
+		// Used for image for hidden items
+		sdShop.item_low_level = { 
+			_class: null, 
+			image: 'unavailable_shop_item', 
+			_category: 'nowhere', 
+			description: 'This item requires higher level in order to be built',
+			dummy_item: true,
+			
+			_main_array_index: 0
+		};
+		sdShop.item_low_workbench_level = { 
+			_class: null, 
+			image: 'unavailable_shop_item_blue', 
+			_category: 'nowhere', 
+			description: 'This item requires workbench in order to be built (or higher workbench level)',
+			dummy_item: true,
+			
+			_main_array_index: 1
+		};
+
 		if ( sdWorld.is_server )
 		{
+			sdShop.options.push( sdShop.item_low_level );
+			sdShop.options.push( sdShop.item_low_workbench_level );
+			
 			sdShop.options.push({ _class: null, image: 'return', _category:'!root',  _opens_category:'root' });
 			sdShop.options.push({ _class: 'sdBlock', width: 32, height: 32, _category:'root', _opens_category:'Walls' });
 			sdShop.options.push({ _class: 'sdBG', width: 32, height: 32, material: sdBG.MATERIAL_PLATFORMS, _category:'root', _opens_category:'Background walls' });
@@ -68,18 +91,18 @@ class sdShop
 			for ( let hue = 0; hue < 360; hue += 30 )
 			sdShop.options.push({ _class: 'sdGrass', variation: 4, hue:hue, _category:'Other' });
 
-			sdShop.options.push({ _class: 'sdHover', _category:'Vehicles' });
-			sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles' });
-			sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles' });
-			sdShop.options.push({ _class: 'sdHover', filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles' });
-			sdShop.options.push({ _class: 'sdHover', type: 1, _category:'Vehicles', _min_build_tool_level: 17 });
-			sdShop.options.push({ _class: 'sdHover', type: 1, filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 17 });
-			sdShop.options.push({ _class: 'sdHover', type: 1, filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 17 });
-			sdShop.options.push({ _class: 'sdHover', type: 1, filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 17 });
-			sdShop.options.push({ _class: 'sdHover', type: 2, _category:'Vehicles', _min_build_tool_level: 24 });
-			sdShop.options.push({ _class: 'sdHover', type: 2, filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 24 });
-			sdShop.options.push({ _class: 'sdHover', type: 2, filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 24 });
-			sdShop.options.push({ _class: 'sdHover', type: 2, filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 24 });
+			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, _category:'Vehicles' });
+			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles' });
+			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles' });
+			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles' });
+			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, type: 1, _category:'Vehicles', _min_build_tool_level: 17 });
+			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, type: 1, filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 17 });
+			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, type: 1, filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 17 });
+			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, type: 1, filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 17 });
+			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, type: 2, _category:'Vehicles', _min_build_tool_level: 24 });
+			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, type: 2, filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 24 });
+			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, type: 2, filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 24 });
+			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, type: 2, filter: 'hue-rotate(270deg) saturate(2)', _category:'Vehicles', _min_build_tool_level: 24 });
 			sdShop.options.push({ _class: 'sdLifeBox', _category:'Vehicles', _min_build_tool_level:1 });
 			sdShop.options.push({ _class: 'sdQuadro', _category:'Vehicles' });
 			sdShop.options.push({ _class: 'sdQuadro', filter: 'hue-rotate(300deg)', _category:'Vehicles' });
@@ -92,12 +115,12 @@ class sdShop
 			//sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'saturate(0) brightness(0.5)', _category:'Vehicles' });
 			//sdShop.options.push({ _class: 'sdHoverBike', filter: 'saturate(0) brightness(1.5)', _category:'Vehicles' });
 			//sdShop.options.push({ _class: 'sdHoverBike', filter: 'saturate(0) brightness(0.5)', _category:'Vehicles' });
-			sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'hue-rotate(300deg)', _category:'Vehicles' });
-			sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'hue-rotate(270deg)', _category:'Vehicles' });
-			sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'hue-rotate(210deg)', _category:'Vehicles' });
-			sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'hue-rotate(140deg)', _category:'Vehicles' });
-			sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'saturate(0) brightness(1.5)', _category:'Vehicles' });
-			sdShop.options.push({ _class: 'sdHover', type: 3, filter: 'saturate(0) brightness(0.5)', _category:'Vehicles' });
+			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, type: 3, filter: 'hue-rotate(300deg)', _category:'Vehicles' });
+			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, type: 3, filter: 'hue-rotate(270deg)', _category:'Vehicles' });
+			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, type: 3, filter: 'hue-rotate(210deg)', _category:'Vehicles' });
+			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, type: 3, filter: 'hue-rotate(140deg)', _category:'Vehicles' });
+			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, type: 3, filter: 'saturate(0) brightness(1.5)', _category:'Vehicles' });
+			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, type: 3, filter: 'saturate(0) brightness(0.5)', _category:'Vehicles' });
 
 			//ctx.filter = '' // yellow
 			//ctx.filter = '' // redish
@@ -431,7 +454,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdCaption', type: i, _category:'Base equipment' });
 
 			sdShop.options.push({ _class: 'sdUpgradeStation', _category:'Base equipment', _min_build_tool_level: 3  });
-			sdShop.options.push({ _class: 'sdWorkbench', _category:'Base equipment', _min_build_tool_level: 11  });
+			//sdShop.options.push({ _class: 'sdWorkbench', _category:'Base equipment', _min_build_tool_level: 11  });
+			sdShop.options.push({ _class: 'sdWorkbench', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdBotFactory', _category:'Base equipment', _min_build_tool_level: 7  });
 			sdShop.options.push({ _class: 'sdBotCharger', _category:'Base equipment', _min_build_tool_level: 7  });
 
@@ -697,7 +721,8 @@ class sdShop
 				sdShop.options.push({ _class: 'sdQuadro', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdOverlord', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdPlayerOverlord', _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdTutel', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdTutel', type:0, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdTutel', type:1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGrub', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdAbomination', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBiter', _category:'Development tests' });
@@ -991,36 +1016,49 @@ class sdShop
 				if ( sdShop.options[ i ]._category === sdShop.current_category || 
 					 ( sdShop.options[ i ]._category.charAt( 0 ) === '!' && sdShop.options[ i ]._category.substring( 1 ) !== sdShop.current_category ) ) // !root case
 				{
-					/*
-					if ( sdShop.options[ i ]._category === 'Equipment' ) // Equipment category unlockables go here
-					{
-						if ( ( sdShop.options[ i ].class === sdGun.CLASS_PISTOL_MK2 || sdShop.options[ i ].class === sdGun.CLASS_LMG_P04 ) && sdWorld.my_entity.build_tool_level <= 0 )
-						skip = 1;
-						if ( ( sdShop.options[ i ]._class === 'sdBarrel' && sdShop.options[ i ].variation === 1 ) && sdWorld.my_entity.build_tool_level <= 0 )
-						skip = 1;
-					}
-					if ( sdShop.options[ i ]._category === 'Base equipment' ) // Base equipment category unlockables go here
-					{
-						if ( ( sdShop.options[ i ]._class === 'sdCom' && sdShop.options[ i ].variation === 1 ) && sdWorld.my_entity.build_tool_level <= 0 )
-						skip = 1;
-					}*/
-					
-					/*if ( sdShop.options[ i ]._min_build_tool_level || 0 > sdWorld.my_entity.build_tool_level )
-					skip = 1;
-					
-					if ( skip === 0 )
-					current_shop_options.push( sdShop.options[ i ] );
-				
-					sdShop.options[ i ]._main_array_index = i;
-					skip = 0; // reset
-					*/
-					
 					if ( ( sdShop.options[ i ]._min_build_tool_level || 0 ) > sdWorld.my_entity.build_tool_level )
-					continue;
+					{
+						current_shop_options.push( sdShop.item_low_level );
+						//sdShop.item_low_level._main_array_index = i;
+						continue;
+					}
+					else
+					if ( ( sdShop.options[ i ]._min_workbench_level || 0 ) > sdWorld.my_entity.GetWorkBenchLevel() )
+					{
+						current_shop_options.push( sdShop.item_low_workbench_level );
+						//sdShop.item_low_workbench_level._main_array_index = i;
+						continue;
+					}
+					
+					/*
+					if ( ( sdShop.options[ i ]._min_build_tool_level || 0 ) > sdWorld.my_entity.build_tool_level )
+					{
+						current_shop_options.push({
+							
+							_class: null,
+							image: 'unavailable_shop_item',
+							_category: sdShop.options[ i ]._category,
+							description: 'This item requires higher level in order to be built',
+							_main_array_index: -1,
+							
+						});
+						continue;
+					}
 
 					if ( ( sdShop.options[ i ]._min_workbench_level || 0 ) > sdWorld.my_entity.GetWorkBenchLevel() )
-					continue;
-				
+					{
+						current_shop_options.push({
+							
+							_class: null,
+							image: 'unavailable_shop_item_blue',
+							_category: sdShop.options[ i ]._category,
+							description: 'This item requires workbench in order to be built (or higher workbench level)',
+							_main_array_index: -1,
+							
+						});
+						continue;
+					}
+					*/
 					current_shop_options.push( sdShop.options[ i ] );
 					
 					sdShop.options[ i ]._main_array_index = i;
@@ -1052,26 +1090,48 @@ class sdShop
 					else
 					{
 						matter_cost = sdWorld.my_entity._build_params.matter_cost;
+						
+						if ( typeof sdWorld.my_entity._build_params.upgrade_name !== 'undefined' )
+						{
+							max_level = sdShop.upgrades[ sdWorld.my_entity._build_params.upgrade_name ].max_level;
+							cur_level = ( sdWorld.my_entity._upgrade_counters[ sdWorld.my_entity._build_params.upgrade_name ] || 0 );
 
-						max_level = sdShop.upgrades[ sdWorld.my_entity._build_params.upgrade_name ].max_level;
-						cur_level = ( sdWorld.my_entity._upgrade_counters[ sdWorld.my_entity._build_params.upgrade_name ] || 0 );
-
-						if ( cur_level >= max_level )
-						selectable = false;
+							if ( cur_level >= max_level )
+							selectable = false;
+						}
+						else
+						{
+							// Just an unavailable item?
+							selectable = true;
+						}
 					}
 				}
 				else
 				{
 					ent = sdWorld.my_entity.CreateBuildObject( false );
-					ent.x = 0;//-100;
-					ent.y = 0;
-
-					if ( typeof sdWorld.my_entity._build_params._opens_category !== 'undefined' )
+					
+					if ( ent )
 					{
-						matter_cost = 0;
+						ent.x = 0;//-100;
+						ent.y = 0;
+
+						if ( typeof sdWorld.my_entity._build_params._opens_category !== 'undefined' )
+						{
+							matter_cost = 0;
+						}
+						else
+						matter_cost = ent.MeasureMatterCost();
 					}
 					else
-					matter_cost = ent.MeasureMatterCost();
+					{
+						// Item can not be built
+						
+						/*if ( ( sdShop.options[ i ]._min_build_tool_level || 0 ) > sdWorld.my_entity.build_tool_level )
+						sdWorld.my_entity._build_params.image = 'unavailable_shop_item';
+						else
+						if ( ( sdShop.options[ i ]._min_workbench_level || 0 ) > sdWorld.my_entity.GetWorkBenchLevel() )
+						sdWorld.my_entity._build_params.image = 'unavailable_shop_item_blue';*/
+					}
 				}
 
 				// Overrides
@@ -1305,7 +1365,13 @@ class sdShop
 			else
 			{
 				let pseudo_entity = sdShop.options[ sdShop.potential_selection ];
-					
+				
+				if ( pseudo_entity.dummy_item )
+				{
+					t = T( 'Unavailable item' );
+					desc = capitalize( pseudo_entity.description );
+				}
+				else
 				if ( pseudo_entity._class !== null )
 				{
 					
@@ -1345,8 +1411,8 @@ class sdShop
 			
 			let xx = sdWorld.mouse_screen_x + 16;
 			
-			if ( sdWorld.mouse_screen_x + 16 + d.width > sdRenderer.screen_width )
-			xx = sdRenderer.screen_width - d.width - 16;
+			if ( sdWorld.mouse_screen_x + 16 + Math.max( d.width, d2 ? d2.width : 0 ) > sdRenderer.screen_width )
+			xx = sdRenderer.screen_width - Math.max( d.width, d2 ? d2.width : 0 ) - 16;
 			
 			ctx.fillStyle = '#000000';
 			ctx.globalAlpha = 0.8;

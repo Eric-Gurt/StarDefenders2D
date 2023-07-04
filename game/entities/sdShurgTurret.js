@@ -324,7 +324,7 @@ class sdShurgTurret extends sdEntity
 
 								//sdSound.PlaySound({ name:'gun_shotgun', x:this.x, y:this.y, pitch:1.25 });
 								
-								sdSound.PlaySound({ name:'gun_needle', x:this.x, y:this.y, volume: 0.8, pitch: 2 });
+								sdSound.PlaySound({ name:'gun_needle', x:this.x, y:this.y, volume: 0.4, pitch: 2 });
 							}	
 						}
 						else

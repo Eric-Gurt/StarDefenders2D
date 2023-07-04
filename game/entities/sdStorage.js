@@ -488,7 +488,7 @@ class sdStorage extends sdEntity
 						name = ( sdEntity.GuessEntityName( from_entity._net_id ) );
 						else
 						if ( from_entity.is( sdCrystal ) )
-						name = ( from_entity.title+' ( ' + from_entity.matter_max + ' max matter, ' + (~~from_entity.matter_regen) + '% regen rate )' );
+						name = ( from_entity.title+' ( ' + sdWorld.RoundedThousandsSpaces(from_entity.matter_max) + ' max matter, ' + (~~from_entity.matter_regen) + '% regen rate )' );
 						else
 						if ( from_entity.is( sdJunk ) )
 						{

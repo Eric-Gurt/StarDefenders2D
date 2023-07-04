@@ -302,7 +302,7 @@ class sdCharacterRagdoll
 			gun_offset_y += 2 + reload;
 		}
 		
-		let breathe_rise = ( Math.round( Math.sin( sdWorld.time * ( ( this.character.hea <= this.character.hmax / 2 ) ? 0.024 : 0.003 ) ) * 4 ) / 4 * 0.1 - 0.1 ) * scale;
+		let breathe_rise = ( Math.round( Math.sin( ( sdWorld.time - 1000 * ( this.character._net_id || 0 ) ) * ( ( this.character.hea <= this.character.hmax / 2 ) ? 0.024 : 0.003 ) ) * 4 ) / 4 * 0.1 - 0.1 ) * scale;
 		
 		// Body & head
 		this.MoveBone( this.torso, 13, 22 + breathe_rise );

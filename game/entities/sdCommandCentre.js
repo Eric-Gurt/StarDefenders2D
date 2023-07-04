@@ -105,6 +105,8 @@ class sdCommandCentre extends sdEntity
 		
 		this._shielded = null; // Is this entity protected by a base defense unit?
 		
+		//this.signal_strength = 100000000;
+		
 		//this.self_destruct_on = sdWorld.time + sdCommandCentre.time_to_live_without_matter_keepers_near; // Exists for 24 hours by default
 		
 		this.pending_team_joins = []; // array of net_ids, similar to how coms work. Owner is able to reject and accept these

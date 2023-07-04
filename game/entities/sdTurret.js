@@ -229,6 +229,8 @@ class sdTurret extends sdEntity
 		
 		var explosion_radius = 0;
 		
+		let _temperature_addition = 0;
+		
 		if ( this.kind === sdTurret.KIND_LASER || this.kind === sdTurret.KIND_RAPID_LASER )
 		dmg = 15;
 	
@@ -240,15 +242,29 @@ class sdTurret extends sdEntity
 			dmg = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties._damage;
 			explosion_radius = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.explosion_radius;
 		}
+	
+		if ( this.kind === sdTurret.KIND_FREEZER )
+		{
+			dmg = 1;
+			_temperature_addition = -50;
+		}
 			
 		//return m * 0.1;
 
 		if ( this.type === 1 ) // Faction base / outpost turrets
 		return 0;
-		
+	
+		let projectile_properties = {
+			_damage: dmg,
+			_rail: is_rail,
+			explosion_radius: explosion_radius
+		};
+	
+		return sdGun.GetProjectileCost( projectile_properties, 1, _temperature_addition );
+		/*
 		return ( Math.abs( dmg * dmg_mult ) * count + 
 				( is_rail ? 30 : 0 ) + 
-				( explosion_radius > 0 ? 20 : 0 ) ) * sdWorld.damage_to_matter;
+				( explosion_radius > 0 ? 20 : 0 ) ) * sdWorld.damage_to_matter;*/
 	}
 	
 	onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
@@ -427,7 +443,7 @@ class sdTurret extends sdEntity
 									)
 								{
 									//var is_char = e.is( sdCharacter );
-									var is_char = e.IsPlayerClass();
+									//var is_char = e.IsPlayerClass();
 
 									if ( ( e.is( sdCharacter ) && e._ai_team === this._ai_team ) || ( e.is( sdDrone ) && e._ai_team === this._ai_team ) )
 									{
@@ -536,16 +552,6 @@ class sdTurret extends sdEntity
 							bullet_obj.model = 'ball';
 							
 							bullet_obj._temperature_addition = -50;
-
-							//bullet_obj.color = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.color;
-
-							//bullet_obj.ac = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_properties.ac;
-
-							/*if ( bullet_obj.ac > 0 )
-							{
-								bullet_obj.acx = Math.cos( this.an / 100 );
-								bullet_obj.acy = Math.sin( this.an / 100 );
-							}*/
 						}
 						
 						bullet_obj._damage *= 1 + this.lvl / 3;

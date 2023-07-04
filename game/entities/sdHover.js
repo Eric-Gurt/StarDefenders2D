@@ -121,13 +121,13 @@ class sdHover extends sdEntity
 		this.hmax = ( this.type === 1 ? 1200 : this.type === 2 ? 2400 : this.type === 3 ? 300 : 600 ) * 4;
 		this.hea = this.hmax;
 		
-		this.guns = 1;
+		this.guns = ( params.guns !== undefined ) ? params.guns : 1;
 		this.doors_locked = false; // Magic property which vehicles use
 		
 		this._tilt = 0;
 		
 		this.nick = '';
-		this.nick_censored = '';
+		this.nick_censored = 0;
 		
 		/*if ( this.type === 2 )
 		this._bullets = 200;
@@ -159,7 +159,7 @@ class sdHover extends sdEntity
 		
 		//EnforceChangeLog( this, 'driver0' );
 		
-		this.matter = 300; // Should be less that Hover cost
+		this.matter = 300; // Should be less than Hover cost
 		this.matter_max = ( this.type === sdHover.TYPE_FIGHTER_HOVER ? 2000 :
 			this.type === sdHover.TYPE_TANK ? 12000 :
 			this.type === sdHover.TYPE_BIKE ? 400 :

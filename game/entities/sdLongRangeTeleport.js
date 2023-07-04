@@ -14,6 +14,7 @@ import sdSound from '../sdSound.js';
 import sdEntity from './sdEntity.js';
 import sdEffect from './sdEffect.js';
 import sdCom from './sdCom.js';
+import sdHover from './sdHover.js';
 import sdArea from './sdArea.js';
 import sdCommandCentre from './sdCommandCentre.js';
 import sdCrystal from './sdCrystal.js';
@@ -740,6 +741,31 @@ class sdLongRangeTeleport extends sdEntity
 			sdEntity.entities.push( scanner );
 		}
 		else
+		if ( rewards === 'CLAIM_BUILD_TOOL' )
+		{
+			sdEntity.entities.push( new sdGun({ x:this.x, y:this.y - 32, class:sdGun.CLASS_BUILD_TOOL }) );
+		}
+		else
+		if ( rewards === 'CLAIM_HOVER' )
+		{
+			let e = new sdHover({ x:this.x, y:this.y - 32, guns:0 });
+			if ( e.CanMoveWithoutOverlap( this.x, this.y - 32 ) )
+			{
+				e.nick = 'Emergency Hover';
+				
+				e.filter = 'sepia(1) hue-rotate(180deg) brightness(1.5)';
+				
+				sdEntity.entities.push( e );
+			}
+			else
+			{
+				e.remove();
+				e._broken = false;
+				e._remove();
+				return;
+			}
+		}
+		else
 		if ( rewards === 'CLAIM_REWARD_AD' )
 		{
 			if ( socket && socket.ad_reward_pending )
@@ -1198,7 +1224,7 @@ class sdLongRangeTeleport extends sdEntity
 					}
 				}
 				else
-				if ( command_name === 'CLAIM_SCANNER' )
+				if ( command_name === 'CLAIM_SCANNER' || command_name === 'CLAIM_BUILD_TOOL' || command_name === 'CLAIM_HOVER' )
 				{
 					if ( !this.is_server_teleport )
 					{
@@ -1213,12 +1239,15 @@ class sdLongRangeTeleport extends sdEntity
 								{
 									if ( this.matter < this._matter_max )
 									{
-										executer_socket.SDServiceMessage( 'Scanner claim was rejected - not enough matter' );
+										executer_socket.SDServiceMessage( 'Claim was rejected - not enough matter' );
 										return;
 									}
 
 									this.Deactivation();
 									this.GiveRewards( command_name );
+									
+									if ( this.matter !== 0 )
+									executer_socket.SDServiceMessage( 'Claim was rejected - something is blocking the path' );
 								};
 							}
 							else
@@ -1615,6 +1644,7 @@ class sdLongRangeTeleport extends sdEntity
 			else
 			this.AddContextOption( 'Set as personal rescue teleport', 'RESCUE_HERE', [] );*/
 			
+			if ( this.is_server_teleport )
 			if ( exectuter_character._god )
 			{
 				this.AddPromptContextOption( 'Set remote server URL', 'SET_REMOTE_SERVER_URL', [ undefined ], 'Enter remote server URL (same as for players)', this.remote_server_url, 300 );
@@ -1662,7 +1692,12 @@ class sdLongRangeTeleport extends sdEntity
 					sdMotherShipStorageManager.Open({ lrtp: this });
 				}, true );
 				
-				
+				if ( sdWorld.my_entity )
+				if ( sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_BUILD_TOOL ].slot ] === null )
+				this.AddContextOption( 'Ask Mothership for build tool', 'CLAIM_BUILD_TOOL', [] );
+		
+				this.AddContextOption( 'Ask Mothership for Hover', 'CLAIM_HOVER', [] );
+									
 				this.AddContextOption( 'Ask Mothership for crystals ( watch ad )', 'AD_REWARD_START', [] );
 			}
 			else

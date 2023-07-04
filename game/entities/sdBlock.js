@@ -1233,7 +1233,7 @@ class sdBlock extends sdEntity
 			if ( from_entity.is( sdCharacter ) )
 			{
 				//from_entity._sickness += 30;
-				from_entity._sickness = 30 * 30;
+				from_entity._sickness = Math.max( from_entity._sickness, 30 * 30 );
 				from_entity._last_sickness_from_ent = this;
 			}
 			else

@@ -6,7 +6,9 @@ import sdBlock from './sdBlock.js';
 import sdBullet from './sdBullet.js';
 import sdCrystal from './sdCrystal.js';
 import sdTimer from './sdTimer.js';
+import sdWater from './sdWater.js';
 import sdWeather from './sdWeather.js';
+//import sdPlayerSpectator from './sdPlayerSpectator.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -25,6 +27,7 @@ class sdGrass extends sdEntity
 		sdGrass.VARIATION_HIGH_GRASS = 2;
 		sdGrass.VARIATION_BUSH = 3;
 		sdGrass.VARIATION_TREE = 4;
+		sdGrass.VARIATION_TREE_BARREN = 5;
 		
 		sdGrass.crops = [];
 		sdGrass.crops[ sdGrass.VARIATION_LOW_GRASS ] = { x:1, y:0, w:16, h:31 }; // Same y and h for all grass sprites so wind effect would not tear them apart
@@ -32,15 +35,24 @@ class sdGrass extends sdEntity
 		sdGrass.crops[ sdGrass.VARIATION_HIGH_GRASS ] = { x:35, y:0, w:16, h:31 };
 		sdGrass.crops[ sdGrass.VARIATION_BUSH ] = { x:52, y:19, w:17, h:12, half_width_collision_override:7 };
 		sdGrass.crops[ sdGrass.VARIATION_TREE ] = { x:72, y:4, w:21, h:27, half_width_collision_override:7 };
+		sdGrass.crops[ sdGrass.VARIATION_TREE_BARREN ] = { x:72, y:36, w:21, h:27, half_width_collision_override:7 };
 		
 		sdGrass.heights = [ 8, 14, 27 ]; // by variation. Also determines how much regen it will give
+		
+		sdGrass.max_tree_age = 30;
+		
+		//sdGrass.empty_dirt_brightness = 50; // Out of 100
+		//sdGrass.dirt_brightness_decrease = 5;
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 
 	get title()
 	{
-		return this.variation === sdGrass.VARIATION_BUSH ? "Bush" : this.variation === sdGrass.VARIATION_TREE ? 'Tree' : 'Grass';
+		return	this.variation === sdGrass.VARIATION_BUSH ? "Bush" : 
+				this.variation === sdGrass.VARIATION_TREE ? 'Tree' : 
+				this.variation === sdGrass.VARIATION_TREE_BARREN ? 'Barren tree' : 
+				'Grass';
 	}
 	/*get hitbox_x1() { return 0; }
 	get hitbox_x2() { return 16; }
@@ -74,7 +86,7 @@ class sdGrass extends sdEntity
 	
 	DrawIn3D()
 	{
-		if ( this.variation === sdGrass.VARIATION_TREE )
+		if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_BARREN )
 		return FakeCanvasContext.DRAW_IN_3D_GRASS_SINGLE_LAYER;
 		//return FakeCanvasContext.DRAW_IN_3D_FLAT; 
 	
@@ -122,8 +134,10 @@ class sdGrass extends sdEntity
 	}
 	static GetTreeCrystalSpawnRate()
 	{
+		//return 100; // Hack
+		
 		//return 15000 + Math.random() * 1000 * 60 * 3;
-		return 5000 + Math.random() * 10000;
+		return ( 5000 + Math.random() * 10000 ) * 30;
 	}
 	constructor( params )
 	{
@@ -147,7 +161,8 @@ class sdGrass extends sdEntity
 		this._hea = ( this.variation >= sdGrass.VARIATION_BUSH ) ? 70 : 1;
 		this._hmax = this._hea;
 		
-		this.crystal = null;
+		this._liquid_sip_timer = null;
+		this._liquid_sip_target = null;
 		
 		//this._armor_protection_level = 0; // Armor level defines lowest damage upgrade projectile that is able to damage this entity
 		
@@ -173,70 +188,101 @@ class sdGrass extends sdEntity
 				
 		//trace( 'variation', this.variation, params.variation );
 				
-		if ( sdWorld.is_server )
 		if ( this.variation === sdGrass.VARIATION_TREE )
 		{
-			this._balloon_crystal_spawn_timer = sdTimer.ExecuteWithDelay( ( timer )=>{
+			this.crystal = null;
+			
+			this.age = 0;
+		
+			if ( sdWorld.is_server )
+			{
+				this._balloon_crystal_spawn_timer = sdTimer.ExecuteWithDelay( ( timer )=>{
 
-				if ( this._is_being_removed )
-				{
-					// Done
-					this._balloon_crystal_spawn_timer = null;
-				}
-				else
-				{
-					this._hea = this._hmax;
-					
-					if ( !this.crystal || this.crystal._is_being_removed )
-					//if ( Math.random() < 0.3 ) // 30% chance a crystal spawns
-					if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x, this.y + this.hitbox_y1, Infinity, true ) )
+					if ( this._is_being_removed )
 					{
-						let nears = sdWorld.GetAnythingNear( this.x, this.y, 8, null, null, ( ent )=>
+						// Done
+						this._balloon_crystal_spawn_timer = null;
+					}
+					else
+					{
+						this._hea = Math.min( this._hea + sdGrass.GetTreeCrystalSpawnRate() / 50, this._hmax );
+
+						//let sun_intensity = sdWeather.only_instance.GetSunIntensity();
+
+						if ( this.variation === sdGrass.VARIATION_TREE ) // Prevent barren spawn
+						if ( !this.crystal || this.crystal._is_being_removed )
+						//if ( Math.random() < 0.3 ) // 30% chance a crystal spawns
+						//if ( sun_intensity < 0.5 ) // Only during night
+						if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x, this.y + this.hitbox_y1, Infinity, true ) ) // Only if sky is open above
 						{
-							if ( ent.is( sdBlock ) )
-							if ( ent.IsDefaultGround() )
+							let nears = sdWorld.GetAnythingNear( this.x, this.y, 8, null, null, ( ent )=>
 							{
-								return true;
-							}
-							return false;
-						});
-						
-						if ( nears.length > 0 )
-						{
-							let xx = this.x + ( this._hitbox_x1 + this._hitbox_x2 ) / 2;
-							let yy = this.y + ( this._hitbox_y1 * 0.75 + this._hitbox_y2 * 0.25 );
+								if ( ent.is( sdBlock ) )
+								if ( ent.IsDefaultGround() )
+								//if ( ent.br > sdGrass.empty_dirt_brightness )
+								{
+									return true;
+								}
+								return false;
+							});
 
-							let an = Math.random() * Math.PI * 2;
-
-							xx += Math.sin( an ) * 8;
-							yy += Math.cos( an ) * 4;
-
-							let ent = new sdCrystal({ x: xx, y: yy, tag:'deep', type:sdCrystal.TYPE_CRYSTAL_BALLOON });
-							sdEntity.entities.push( ent );
-
-							if ( !ent.CanMoveWithoutOverlap( ent.x, ent.y ) )
+							if ( nears.length > 0 )
 							{
-								ent.remove();
-								ent._broken = false;
-							}
-							else
-							{
-								// Make sure they can be merged at least
-								if ( ent.matter_max < 20 )
-								ent.matter_max = 20;
-								
-								sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
-								ent.held_by = this;
-								this.crystal = ent;
-								this._update_version++;
+								let xx = this.x + ( this._hitbox_x1 + this._hitbox_x2 ) / 2;
+								let yy = this.y + ( this._hitbox_y1 * 0.75 + this._hitbox_y2 * 0.25 );
+
+								let an = Math.random() * Math.PI * 2;
+
+								xx += Math.sin( an ) * 8;
+								yy += Math.cos( an ) * 4;
+
+								let ent = new sdCrystal({ x: xx, y: yy, tag:'deep', type:sdCrystal.TYPE_CRYSTAL_BALLOON });
+								sdEntity.entities.push( ent );
+
+								if ( !ent.CanMoveWithoutOverlap( ent.x, ent.y ) )
+								{
+									ent.remove();
+									ent._broken = false;
+								}
+								else
+								{
+									// Make sure they can be merged at least
+									if ( ent.matter_max < 20 )
+									ent.matter_max = 20;
+
+									sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
+									ent.held_by = this;
+									this.crystal = ent;
+									this._update_version++;
+
+									//let brightest = null;
+
+									//for ( let i = 0; i < nears.length; i++ )
+									//if ( brightest === null || nears[ i ].br > brightest.br )
+									//brightest = nears[ i ];
+
+									//brightest.br -= sdGrass.dirt_brightness_decrease;
+									//brightest._update_version++;
+									
+									
+
+									this.age++;
+									this._update_version++;
+
+									if ( this.age >= sdGrass.max_tree_age )
+									{
+										this.variation = sdGrass.VARIATION_TREE_BARREN;
+										//return; // Do not reschedule
+									}
+								}
 							}
 						}
-					}
-					
-					this._balloon_crystal_spawn_timer = timer.ScheduleAgain( sdGrass.GetTreeCrystalSpawnRate() );
-				}
 
-			}, sdGrass.GetTreeCrystalSpawnRate() );
+						this._balloon_crystal_spawn_timer = timer.ScheduleAgain( sdGrass.GetTreeCrystalSpawnRate() );
+					}
+
+				}, sdGrass.GetTreeCrystalSpawnRate() );
+			}
 		}
 	}
 	ExtraSerialzableFieldTest( prop )
@@ -245,6 +291,9 @@ class sdGrass extends sdEntity
 	}
 	MeasureMatterCost()
 	{
+		if ( this.variation === sdGrass.VARIATION_TREE )
+		return 500;
+		
 		return 100;
 		//return this.width / 16 * this.height / 16;
 	}
@@ -389,14 +438,91 @@ class sdGrass extends sdEntity
 			this._block = null;
 		}
 	}
-	
+	LookupLiquids( from_entity=null )
+	{
+		if ( !from_entity )
+		{
+			from_entity = sdWater.GetWaterObjectAt( this.x - 4, this.y - 1, sdWater.TYPE_WATER );
+			
+			if ( !from_entity )
+			from_entity = sdWater.GetWaterObjectAt( this.x + 4, this.y - 1, sdWater.TYPE_WATER );
+		}
+		
+		if ( from_entity.type === sdWater.TYPE_WATER )
+		{
+			if ( !this._liquid_sip_timer )
+			{
+				this._liquid_sip_timer = sdTimer.ExecuteWithDelay( ( timer )=>{
+					if ( this._is_being_removed || 
+						 !this._liquid_sip_target || 
+						 this._liquid_sip_target._is_being_removed || 
+						 !this.DoesOverlapWith( this._liquid_sip_target ) )
+					{
+						// Done
+						this._liquid_sip_timer = null;
+					}
+					else
+					{
+						if ( this.age > 5 )
+						{
+							this.age -= 5;
+							this.variation = sdGrass.VARIATION_TREE;
+							this._update_version++;
+							
+							if ( this._liquid_sip_target._volume > 0.2 )
+							{
+								this._liquid_sip_target._volume -= 0.1;
+								this._liquid_sip_target.AwakeSelfAndNear();
+							}
+							else
+							{
+								this._liquid_sip_target.AwakeSelfAndNear();
+								this._liquid_sip_target.remove();
+
+								this._liquid_sip_target = null;
+
+								/*this._liquid_sip_target = sdWater.GetWaterObjectAt( this.x - 4, this.y - 1, sdWater.TYPE_WATER );
+
+								if ( !this._liquid_sip_target )
+								this._liquid_sip_target = sdWater.GetWaterObjectAt( this.x + 4, this.y - 1, sdWater.TYPE_WATER );*/
+												
+								this.LookupLiquids();
+							}
+						}
+
+						this._liquid_sip_timer = timer.ScheduleAgain( 3000 );
+					}
+				}, 3000 );
+			}
+
+			this._liquid_sip_target = from_entity;
+		}
+		else
+		if ( from_entity.type === sdWater.TYPE_LAVA || from_entity.type === sdWater.TYPE_ACID )
+		{
+			this.age = sdGrass.max_tree_age;
+			this.variation = sdGrass.VARIATION_TREE_BARREN;
+			this._update_version++;
+			/*
+			if ( this._balloon_crystal_spawn_timer )
+			{
+				this._balloon_crystal_spawn_timer.Cancel();
+				this._balloon_crystal_spawn_timer = null;
+			}*/
+		}
+	}
 	onMovementInRange( from_entity )
 	{
 		if ( sdWorld.is_server )
 		if ( !this._is_being_removed )
 		{
-			if ( from_entity.IsPlayerClass() )
+			if ( from_entity.IsPlayerClass() && !from_entity.is( sdWorld.entity_classes.sdPlayerSpectator ) )
 			this.DropCrystal();
+			else
+			if ( from_entity.is( sdWater ) )
+			{
+				this.LookupLiquids( from_entity );
+			}
 			else
 			if ( from_entity.is( sdCrystal ) )
 			if ( from_entity.type === sdCrystal.TYPE_CRYSTAL_CRAB || from_entity.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )

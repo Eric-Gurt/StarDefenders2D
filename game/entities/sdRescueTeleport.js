@@ -562,9 +562,9 @@ class sdRescueTeleport extends sdEntity
 			let postfix;
 
 			if ( this.driver0 )
-			postfix = " ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + ", " + T("cloning") + " "+(~~Math.min( 100, this.cloning_progress / sdRescueTeleport.clonning_time * 100 ))+"% )";
+			postfix = " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this._matter_max) + ", " + T("cloning") + " "+(~~Math.min( 100, this.cloning_progress / sdRescueTeleport.clonning_time * 100 ))+"% )";
 			else
-			postfix = "  ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + " )";
+			postfix = "  ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this._matter_max) + " )";
 
 			if ( this.owner_biometry === -1 )
 			sdEntity.TooltipUntranslated( ctx, T( this.title ) + postfix );

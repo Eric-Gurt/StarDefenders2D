@@ -436,7 +436,7 @@ class sdAsp extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, ( this._tier === 2 ) ? "Crystal Asp" : 'Asp' );
+		sdEntity.Tooltip( ctx, ( this._tier === 2 ) ? "Crystal Asp" : 'Asp' ); // This won't work. _tier is not synced
 	}
 	Draw( ctx, attached )
 	{		
@@ -516,6 +516,10 @@ class sdAsp extends sdEntity
 			
 			if ( this._tier === 2 )
 			{
+				if ( this._crystal_worth > 0 )
+				sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.25 });
+				else
+				sdWorld.BasicEntityBreakEffect( this, 3, undefined, undefined, 1.4 );
 			}
 			else
 			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:2 }); // 3 was fine
@@ -540,13 +544,13 @@ class sdAsp extends sdEntity
 				{
 					let value_mult = this._crystal_worth / 40;
 					
-					if ( this._crystal_worth > 0 )
-					{
-						sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.25 });
+					//if ( this._crystal_worth > 0 )
+					//{
+						//sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.25 });
 						sdWorld.DropShards( this.x,this.y,this.sx,this.sy, 3, value_mult, 3 );
-					}
-					else
-					sdWorld.BasicEntityBreakEffect( this, 3, undefined, undefined, 1.4 );
+					//}
+					//else
+					//sdWorld.BasicEntityBreakEffect( this, 3, undefined, undefined, 1.4 );
 				}
 			}
 		}

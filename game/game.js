@@ -718,8 +718,20 @@ let enf_once = true;
 					played_events.unshift( params.UC );
 				}
 
-				if ( type === 'EFF' ) // particles
+				if ( type === 'EFF' ) // particles, chat messages
 				{
+					if ( typeof params.char_di !== 'undefined' )
+					{
+						//let an = Math.random() * Math.PI * 2;
+						//let xx = Math.sin( an ) * params.char_di;
+						//let yy = Math.cos( an ) * params.char_di;
+						//params.x = sdWorld.camera.x + xx;
+						//params.y = sdWorld.camera.y + yy;
+						
+						params.x = sdWorld.camera.x;
+						params.y = sdWorld.camera.y - 400/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width - 64;
+					}
+					
 					var ef = new sdEffect( params );
 					sdEntity.entities.push( ef );
 				}
@@ -727,6 +739,14 @@ let enf_once = true;
 				if ( type === 'S' ) // sound
 				{
 					params._server_allowed = true;
+					
+					if ( typeof params.char_di !== 'undefined' )
+					if ( typeof params.x === 'undefined' || typeof params.y === 'undefined' )
+					{
+						params.x = sdWorld.camera.x;
+						params.y = sdWorld.camera.y - params.char_di;
+					}
+					
 					sdSound.PlaySound( params );
 				}
 				else

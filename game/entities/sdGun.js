@@ -557,6 +557,10 @@ class sdGun extends sdEntity
 			
 			if ( this._held_by._build_params._class === null ) // Upgrades
 			{
+				if ( this._held_by._build_params.dummy_item )
+				return Infinity; // Can't be built
+					
+				if ( typeof this._held_by._build_params.upgrade_name !== 'undefined' )
 				if ( ( this._held_by._upgrade_counters[ this._held_by._build_params.upgrade_name ] || 0 ) >= sdShop.upgrades[ this._held_by._build_params.upgrade_name ].max_level )
 				{
 					//this._held_by_unenforce();
@@ -643,14 +647,20 @@ class sdGun extends sdEntity
 	
 	static GetProjectileCost( projectile_properties, _count=1, _temperature_addition=0 )
 	{
+		let bonus = 0;
+		
 		let temperature_damage = Math.abs( _temperature_addition ) / 500 * 50;
 		
-		if ( _temperature_addition < -50 )
-		temperature_damage = Math.abs( _temperature_addition ) / 100 * 50;
+		if ( _temperature_addition <= -50 )
+		{
+			temperature_damage = Math.abs( _temperature_addition ) / 100 * 50;
+			bonus += 10; // Count-insensitive in this case
+		}
 		
 		return ( Math.abs( projectile_properties._damage + temperature_damage ) * _count + 
 				( projectile_properties._rail ? 30 : 0 ) + 
-				( projectile_properties.explosion_radius > 0 ? 250 : 0 ) ) * sdWorld.damage_to_matter;
+				( projectile_properties.explosion_radius > 0 ? 400 : 0 ) ) * sdWorld.damage_to_matter + bonus;
+				//( projectile_properties.explosion_radius > 0 ? 250 : 0 ) ) * sdWorld.damage_to_matter;
 	}
 	
 	ReloadComplete()
@@ -868,10 +878,11 @@ class sdGun extends sdEntity
 
 				let projectile_properties = this.GetProjectileProperties();
 			
-				if ( sdWorld.is_server )
+				//if ( sdWorld.is_server )
 				{
 					//console.log( this._held_by._net_id );
 					
+					if ( sdWorld.is_server )
 					if ( sdGun.classes[ this.class ].is_build_gun )
 					{
 						if ( this._held_by._build_params._class === null )
@@ -949,7 +960,10 @@ class sdGun extends sdEntity
 						bullet_obj._temperature_addition = temperature_addition;
 
 						for ( var p in projectile_properties )
-						bullet_obj[ p ] = projectile_properties[ p ];
+						{
+							if ( sdWorld.is_server || !( projectile_properties[ p ] instanceof Function ) )
+							bullet_obj[ p ] = projectile_properties[ p ];
+						}
 						
 						//if ( bullet_obj.is_grenade )
 						if ( !bullet_obj._rail )
@@ -971,10 +985,6 @@ class sdGun extends sdEntity
 					
 						bullet_obj._damage *= scale;
 						
-						/*if ( bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ] )
-						bullet_obj._armor_penetration_level = bullet_obj._owner._upgrade_counters[ 'upgrade_damage' ];
-						else
-						bullet_obj._armor_penetration_level = 0;*/
 						bullet_obj._armor_penetration_level = 3;
 					
 						if ( typeof projectile_properties._armor_penetration_level !== 'undefined' )
@@ -1028,7 +1038,18 @@ class sdGun extends sdEntity
 						if ( bullet_obj._owner.IsPlayerClass() )
 						bullet_obj.time_left *= bullet_obj._owner.s / 100;
 
-						sdEntity.entities.push( bullet_obj );
+						if ( sdWorld.is_server )
+						{
+							sdEntity.entities.push( bullet_obj );
+						}
+						else
+						{
+							bullet_obj.explosion_radius = 0;
+							bullet_obj._hook = false;
+							bullet_obj._return_damage_to_owner = false;
+							bullet_obj.remove();
+							bullet_obj._remove();
+						}
 					}
 				}
 				

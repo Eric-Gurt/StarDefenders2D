@@ -18,6 +18,7 @@ import sdOverlord from './sdOverlord.js';
 import sdBlock from './sdBlock.js';
 import sdCrystal from './sdCrystal.js';
 import sdCharacter from './sdCharacter.js';
+//import sdPlayerSpectator from './sdPlayerSpectator.js';
 
 import sdPathFinding from '../ai/sdPathFinding.js';
 
@@ -552,6 +553,24 @@ class sdCube extends sdEntity
 
 					}, 500 );
 				}
+				
+				
+
+				if ( this.kind === sdCube.KIND_WHITE || ( this.kind === sdCube.KIND_YELLOW && Math.random() < 0.5 ) )
+				{
+					setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+						let gun;
+						gun = new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_BUILDTOOL_UPG });
+						gun.extra = 0;
+
+						sdEntity.entities.push( gun );
+						//sdWorld.UpdateHashPosition( gun, false );
+						
+						this._dropped_items.add( gun );
+					
+					}, 500 );
+				}
 			}
 			this.remove();
 		}
@@ -705,6 +724,9 @@ class sdCube extends sdEntity
 	static FilterCubeTargets( e )
 	{
 		//[ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret', 'sdEnemyMech', 'sdCube', 'sdDrone', 'sdSetrDestroyer', 'sdSpider', 'sdOverlord' ]
+		
+		if ( e.is( sdWorld.entity_classes.sdPlayerSpectator ) )
+		return false;
 		
 		return (	e.IsPlayerClass() || 
 					e.is( sdTurret ) || 

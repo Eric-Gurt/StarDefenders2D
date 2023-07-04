@@ -89,6 +89,8 @@ class sdMatterAmplifier extends sdEntity
 		this._ignore_pickup_tim = 0;
 		
 		this._regen_timeout = 0;
+		
+		this._last_damage = 0;
 	}
 	UpdatePropertiesDueToUpgrade()
 	{
@@ -112,7 +114,12 @@ class sdMatterAmplifier extends sdEntity
 		//if ( this.matter_max > 0 )
 		{
 			dmg *= 0.333;
-			sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
+			
+			if ( sdWorld.time > this._last_damage + 50 )
+			{
+				this._last_damage = sdWorld.time;
+				sdSound.PlaySound({ name:'shield', x:this.x, y:this.y, volume:1 });
+			}
 		}
 		
 		this._hea -= dmg;

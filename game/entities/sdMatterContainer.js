@@ -94,7 +94,7 @@ class sdMatterContainer extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.TooltipUntranslated( ctx, T("Matter container") + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
+		sdEntity.TooltipUntranslated( ctx, T("Matter container") + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " )" );
 	}
 	Draw( ctx, attached )
 	{

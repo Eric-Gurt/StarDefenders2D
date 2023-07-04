@@ -1510,7 +1510,7 @@ class sdWorld
 		let extra_affected_chars = [];
 		
 		//console.log('send effect');
-	
+		
 		if ( params.attachment )
 		{
 			//console.log('.attachment found');
@@ -1524,27 +1524,34 @@ class sdWorld
 				{
 					params.text = 'CC-' + params.attachment.driver_of.biometry + ': ' + params.text;
 					
-					//sdCommandCentre.centres
-					for ( let i = 0; i < sdCommandCentre.centres.length; i++ )
-					{
-						const cc = sdCommandCentre.centres[ i ];
+					delete params.x;
+					delete params.y;
+					
+					params.char_di = 1000; // At the top of the screen
+					params.attachment = null; // Discard attachment info
+					
+					
+					//for ( let i = 0; i < sdCommandCentre.centres.length; i++ )
+					//{
+						//const cc = sdCommandCentre.centres[ i ];
 						
-						//sdWorld.GetCharactersNear( sdCommandCentre.centres[ i ].x, sdCommandCentre.centres[ i ].y, extra_affected_chars, coms_near[ i ].subscribers ); Slow
-						
+						//if ( sdWorld.inDist2D_Boolean( cc.x, cc.y, params.attachment.driver_of.x, params.attachment.driver_of.y, params.attachment.driver_of.signal_strength ) )
 						for ( let i2 = 0; i2 < sdCharacter.characters.length; i2++ )
 						{
 							const c = sdCharacter.characters[ i2 ];
 							
 							if ( c._socket )
-							if ( sdWorld.inDist2D_Boolean( cc.x, cc.y, c.x, c.y, 5000 ) )
+							//if ( sdWorld.inDist2D_Boolean( cc.x, cc.y, c.x, c.y, cc.signal_strength ) )
 							{
+								if ( extra_affected_chars.indexOf( c ) === -1 )
 								extra_affected_chars.push( c );
 							}
 						}
-					}
+					//}
 				}
 			}
 			
+			if ( params.attachment ) // If it still wasn't discarded earlier
 			params.attachment = [ params.attachment.GetClass(), params.attachment._net_id ];
 		}
 		
@@ -1707,6 +1714,13 @@ class sdWorld
 			{
 				params.channel = [ params.channel.entity._net_id, params.channel.uid ]; // Only send _net_id of entity and local uid if a channel
 			}
+			
+			//params.CH_DI = 1;
+			
+			//params.CH_DI = sdWorld.Dist2D_Vector( params.x, params.y );
+			
+			//delete params.x;
+			//delete params.y;
 		}
 
 		for ( var i = 0; i < socket_arr.length; i++ )
@@ -1718,7 +1732,7 @@ class sdWorld
 				if ( socket.character && !socket.character._god )
 				continue;
 			}
-
+			
 			if ( 
 				 ( socket.character && socket.character.hea > 0 && 
 				   extra_affected_chars.indexOf( socket.character ) !== -1 ) ||
@@ -1730,6 +1744,23 @@ class sdWorld
 				   sdWorld.CanSocketSee( socket, params.x2, params.y2 ) ) ) // rails
 			{
 				//socket.emit( command, params );
+
+				if ( command === 'S' )
+				{
+					if ( !socket.character )
+					continue;
+				
+					let params_copy = Object.assign( {}, params );
+					
+					delete params_copy.x;
+					delete params_copy.y;
+					
+					params_copy.char_di = sdWorld.Dist2D( socket.camera.x, socket.camera.y, params.x, params.y );
+					
+					params_copy.char_di = Math.max( 0, params_copy.char_di + params_copy.char_di * ( Math.random() - 0.5 ) * 0.25 );
+					
+					arr[ 1 ] = params_copy;
+				}
 				
 				socket.sd_events.push( arr );
 			}
@@ -4581,7 +4612,15 @@ class sdWorld
 		let r = Math.random() * arr.length;
 		return arr[ ~~r ];
 	}
-	
+	static RoundedThousandsSpaces( v )
+	{
+		let s = Math.floor( v ) + '';
+		
+		for ( let i = s.length - 3; i > 0; i -= 3 )
+		s = s.substring( 0, i ) + ' ' + s.substring( i );
+		
+		return s;
+	}
 	
 	static GetDrawOperations( ent ) // Method that is used to collect draw logic for later to be used in sdLost
 	{

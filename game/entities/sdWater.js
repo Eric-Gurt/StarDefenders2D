@@ -515,6 +515,8 @@ class sdWater extends sdEntity
 		
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 		{
+			let capped_GSPEED = Math.min( 1, GSPEED );
+			
 			if ( this._client_vel > 1 )
 			this._client_vel = 1;
 			else
@@ -522,16 +524,16 @@ class sdWater extends sdEntity
 			this._client_vel = -1;
 	
 			this._client_vel = sdWorld.MorphWithTimeScale( this._client_vel, 0, 0.9, GSPEED );
-			this._client_y += this._client_vel * GSPEED;
+			this._client_y += this._client_vel * capped_GSPEED;
 			
 			
-			this._client_vel -= this._client_y * 0.5 * GSPEED;
+			this._client_vel -= this._client_y * 0.5 * capped_GSPEED;
 			let w2 = sdWater.GetWaterObjectAt( this.x - 16, this.y );
 			if ( w2 )
-			w2._client_vel += this._client_y * 0.1 * GSPEED;
+			w2._client_vel += this._client_y * 0.1 * capped_GSPEED;
 			let w3 = sdWater.GetWaterObjectAt( this.x + 16, this.y );
 			if ( w3 )
-			w3._client_vel += this._client_y * 0.1 * GSPEED;
+			w3._client_vel += this._client_y * 0.1 * capped_GSPEED;
 			
 			
 			

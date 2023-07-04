@@ -91,7 +91,7 @@ class sdCrystal extends sdEntity
 	get title()
 	{
 		if ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON )
-		return this.is_anticrystal ? T('Baloon-like anti-crystal') : T('Baloon-like crystal');
+		return this.is_anticrystal ? T('Balloon-like anti-crystal') : T('Balloon-like crystal');
 		
 		if ( this.is_anticrystal )
 		{
@@ -199,6 +199,8 @@ class sdCrystal extends sdEntity
 		this.matter_max	= 10;
 			
 		this._time_amplification = 0;
+		
+		this._being_sawed_time = 0; // By saw. If broken near this time - clusters break into 4 smaller crystals instead
 
 		this.held_by = null; // For amplifiers
 		//this.should_draw = 1; // For storage crates, guns have ttl which can make them dissapear // EG: I think I'm missing something, but ttl is for deletion rather than being drawn? Revert to .should_draw if my changes break anything
@@ -361,21 +363,54 @@ class sdCrystal extends sdEntity
 				sdSound.PlaySound({ name:'crystal_crab_death', x:this.x, y:this.y, pitch: this.type === 3 ? 1 : 0.5, volume:0.5 });
 				
 				let replacement_entity = null;
+				let drop_reward = true;
 				
 				// DropShards( x,y,sx,sy, tot, value_mult, radius=0, shard_class_id=sdGun.CLASS_CRYSTAL_SHARD, normal_ttl_seconds=9, ignore_collisions_with=null, follow=null )
 				
 				if ( this.type === sdCrystal.TYPE_CRYSTAL_BIG || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG ) // Big crystals/big crystal crabs
 				{
-					let ent = new sdCrystal({x: this.x, y: this.y + 4, sx: this.sx, sy: this.sy, type:1 });
-
-					ent.matter_max = this.matter_max / 4;
-					ent.matter = this.matter / 4;
-
-					sdEntity.entities.push( ent );
-					sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
+					let xx_tot = 1;
+					let yy_tot = 1;
 					
-					replacement_entity = ent;
+					if ( Math.abs( sdWorld.time - this._being_sawed_time ) < 1500 )
+					{
+						xx_tot = 2;
+						yy_tot = 2;
+						drop_reward = false;
+					}
 					
+					for ( let xx = 0; xx < xx_tot; xx++ )
+					for ( let yy = 0; yy < yy_tot; yy++ )
+					{
+						let ent = new sdCrystal({ 
+							x: this.x, 
+							y: this.y, 
+							sx: this.sx, 
+							sy: this.sy, 
+							type: 1 
+						});
+						
+						if ( xx_tot === 2 && yy_tot === 2 )
+						{
+							if ( xx === 0 )
+							ent.x -= 5.5;
+							else
+							ent.x += 5.5;
+						
+							if ( yy === 0 )
+							ent.y -= 12;
+						}
+						
+						ent.matter_max = this.matter_max / 4;
+						ent.matter = this.matter / 4;
+						ent.matter_regen = this.matter_regen;
+
+						sdEntity.entities.push( ent );
+						sdWorld.UpdateHashPosition( ent, false ); // Optional, but will make it visible as early as possible
+
+						replacement_entity = ent;
+					}
+
 					
 					sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
 						Math.ceil( Math.max( 5, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
@@ -396,29 +431,32 @@ class sdCrystal extends sdEntity
 					replacement_entity
 				);
 		
-				let reward_amount = sdEntity.SCORE_REWARD_BROKEN_5K_CRYSTAL * this.matter_max / 5120;
-				
-				reward_amount *= this.matter_regen / 100;
-				
-				if ( this.is_crab )
+				if ( drop_reward )
 				{
-					reward_amount = Math.max( reward_amount, sdEntity.SCORE_REWARD_BROKEN_CRAB_CRYSTAL );
-					
-					if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
-					reward_amount = Math.max( reward_amount, sdEntity.SCORE_REWARD_BROKEN_BIG_CRAB_CRYSTAL );
-				}
-				else
-				if ( this.is_anticrystal )
-				{
-					reward_amount = 0;
-				}
-				
-				reward_amount = ~~( reward_amount );
-		
-				if ( reward_amount > 0 )
-				{
-					//this.GiveScoreToLastAttacker( reward_amount );
-					sdWorld.GiveScoreToPlayerEntity( reward_amount, replacement_entity || this, true, null );
+					let reward_amount = sdEntity.SCORE_REWARD_BROKEN_5K_CRYSTAL * this.matter_max / 5120;
+
+					reward_amount *= this.matter_regen / 100;
+
+					if ( this.is_crab )
+					{
+						reward_amount = Math.max( reward_amount, sdEntity.SCORE_REWARD_BROKEN_CRAB_CRYSTAL );
+
+						if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
+						reward_amount = Math.max( reward_amount, sdEntity.SCORE_REWARD_BROKEN_BIG_CRAB_CRYSTAL );
+					}
+					else
+					if ( this.is_anticrystal )
+					{
+						reward_amount = 0;
+					}
+
+					reward_amount = ~~( reward_amount );
+
+					if ( reward_amount > 0 )
+					{
+						//this.GiveScoreToLastAttacker( reward_amount );
+						sdWorld.GiveScoreToPlayerEntity( reward_amount, replacement_entity || this, true, null );
+					}
 				}
 
 				this.remove();
@@ -714,20 +752,20 @@ class sdCrystal extends sdEntity
 		//if ( this.held_by === null )
 		{
 			if ( this.is_anticrystal )
-			sdEntity.TooltipUntranslated( ctx, this.title + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
+			sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " )" );
 			else
 			{
 				// Limit vision to cable managment owner
 				if ( sdWorld.my_entity.is( sdPlayerDrone ) ||
 					( sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ] && 
 					  sdWorld.my_entity._inventory[ sdGun.classes[ sdGun.CLASS_CABLE_TOOL ].slot ].class === sdGun.CLASS_CABLE_TOOL ) )
-				sdEntity.TooltipUntranslated( ctx, this.title + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " ) (matter regeneration rate: " + ~~(this.matter_regen ) + "%)" );
+				sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " ) (matter regeneration rate: " + ~~(this.matter_regen ) + "%)" );
 				else
 				{
 					if ( this.is_depleted )
-					sdEntity.TooltipUntranslated( ctx, this.title + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " ) (depleted)" );
+					sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " ) (depleted)" );
 					else
-					sdEntity.TooltipUntranslated( ctx, this.title + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )" );
+					sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " )" );
 				}
 			}
 		}
@@ -815,9 +853,11 @@ class sdCrystal extends sdEntity
 						visual_matter_mult = 4;
 						alpha_mult = 0.85;
 						
-						let s = ( 1 - ( Math.cos( this._spawn_anim * Math.PI ) * 0.5 + 0.5 ) ) * 0.9 + 0.1;
-						
-						ctx.scale( s, s );
+						if ( !sdShop.isDrawing )
+						{
+							let s = ( 1 - ( Math.cos( this._spawn_anim * Math.PI ) * 0.5 + 0.5 ) ) * 0.9 + 0.1;
+							ctx.scale( s, s );
+						}
 					}
 					
 					let visual_matter_max = this.matter_max * visual_matter_mult;
