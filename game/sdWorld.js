@@ -4311,6 +4311,8 @@ class sdWorld
 			}
 		};
 		
+		sdWorld.server_config.ModifyTerrainEntity = ( v )=>v;
+		
 		sdWorld.is_server = true; 
 		sdWorld.is_singleplayer = true; 
 		globalThis.sockets = sdWorld.sockets = [

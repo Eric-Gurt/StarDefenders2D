@@ -3950,6 +3950,9 @@ class sdEntity
 		if ( typeof snapshot.variation !== 'undefined' ) // Grass, needs for timers
 		params.variation = snapshot.variation;
 		
+		if ( typeof snapshot._natural !== 'undefined' ) // For proper dirt counting
+		params.natural = snapshot._natural;
+		
 		//var ret = new sdWorld.entity_classes[ snapshot._class ]({ x:snapshot.x, y:snapshot.y });
 		var ret = new sdWorld.entity_classes[ snapshot._class ]( params );
 		//ret._net_id = snapshot._net_id;

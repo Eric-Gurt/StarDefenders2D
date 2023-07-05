@@ -168,6 +168,8 @@ class sdBlock extends sdEntity
 		sdBlock.max_corruption_rank = 12; // 12
 		sdBlock.max_flesh_rank = 6; // 6
 		
+		sdBlock.natural_blocks_total = 0; // Inaccurate in open-world case
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	
@@ -640,6 +642,9 @@ class sdBlock extends sdEntity
 		this.texture_id = params.texture_id || 0; // Only changes texture, but keeps meaning
 		
 		this._natural = ( params.natural === true ); // Strictly to distinguish player-build entities
+		
+		if ( this._natural )
+		sdBlock.natural_blocks_total++;
 		
 		this._hmax = 550 * ( this.width / 32 * this.height / 32 ) * ( this.material === sdBlock.MATERIAL_GROUND ? 0.8 : 1 );
 		
@@ -1488,6 +1493,9 @@ class sdBlock extends sdEntity
 	
 	onRemove() // Class-specific, if needed
 	{
+		if ( this._natural )
+		sdBlock.natural_blocks_total--;
+	
 		if ( sdWorld.is_server )
 		{
 			if ( this._broken ) // Prevent this logic in shop
@@ -1504,7 +1512,7 @@ class sdBlock extends sdEntity
 				if ( this._natural )
 				{
 					//let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, hue:this.hue, br:this.br, filter:this.filter + ' brightness(0.5)' });
-					let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, hue:this.hue, br:this.br * 0.5, filter:this.filter });
+					let new_bg = new sdBG({ x:this.x, y:this.y, width:this.width, height:this.height, material:sdBG.MATERIAL_GROUND, hue:this.hue, br:this.br * 0.5, filter:this.filter, natural:this._natural });
 					if ( new_bg.CanMoveWithoutOverlap( this.x, this.y, 1 ) )
 					{
 						sdEntity.entities.push( new_bg );

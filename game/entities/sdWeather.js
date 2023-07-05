@@ -3586,7 +3586,8 @@ class sdWeather extends sdEntity
 			
 			let quake_logic_percentage_done = 1; // Gets lower if earthquake can't perform enough of planned iterations (usually due to performance risks)
 			
-			if ( this.quake_intensity >= 100 )
+			//if ( this.quake_intensity >= 100 )
+			if ( this.quake_intensity >= 30 )
 			//for ( let i = 0; i < 100; i++ ) // Hack
 			{
 				let ent = new sdBlock({ x:0, y:0, width:16, height:16 });
@@ -3623,28 +3624,41 @@ class sdWeather extends sdEntity
 						
 						let should_skip = false;
 						
-						if ( sdWorld.server_config.aggressive_hibernation )
+						//if ( sdWorld.server_config.aggressive_hibernation )
+						if ( tr > 0 )
 						{
 							let place_near = sdEntity.GetRandomEntity();
 
-							if ( place_near && place_near.is( sdBlock ) && place_near.DoesRegenerate() && place_near._natural )
+							if ( place_near )
 							{
-								let r = ~~( Math.random() * 4 );
+								if ( place_near.is( sdBlock ) )
+								{
+									if ( place_near.DoesRegenerate() && place_near._natural )
+									{
+										let r = ~~( Math.random() * 4 );
 
-								x = Math.floor( place_near.x / 16 ) * 16;
-								y = Math.floor( place_near.y / 16 ) * 16;
+										x = Math.floor( place_near.x / 16 ) * 16;
+										y = Math.floor( place_near.y / 16 ) * 16;
 
-								if ( r === 0 )
-								x -= 16;
+										if ( r === 0 )
+										x -= 16;
+										else
+										if ( r === 1 )
+										x += 16;
+										else
+										if ( r === 2 )
+										y -= 16;
+										else
+										if ( r === 3 )
+										y += 16;
+									}
+								}
 								else
-								if ( r === 1 )
-								x += 16;
-								else
-								if ( r === 2 )
-								y -= 16;
-								else
-								if ( r === 3 )
-								y += 16;
+								if ( place_near.is( sdBG ) && place_near._natural )
+								{
+									x = Math.floor( place_near.x / 16 ) * 16;
+									y = Math.floor( place_near.y / 16 ) * 16;
+								}
 							}
 							
 							if ( x < sdWorld.world_bounds.x1 )
@@ -3666,16 +3680,37 @@ class sdWeather extends sdEntity
 
 							x = Math.floor( x / 16 ) * 16;
 							y = Math.floor( y / 16 ) * 16;
+							
+							if ( Math.random() < 0.5 )
+							x = ( Math.random() < 0.5 ) ? sdWorld.world_bounds.x1 : sdWorld.world_bounds.x2 - 16;
+							else
+							y = ( Math.random() < 0.5 ) ? sdWorld.world_bounds.y1 : sdWorld.world_bounds.y2 - 16;
 						}
 						
 						if ( !should_skip )
-						for ( let i = 0; i < this._quake_temporary_not_regen_near.length; i++ )
 						{
-							let data = this._quake_temporary_not_regen_near[ i ];
-							if ( sdWorld.inDist2D_Boolean( data.x, data.y, x, y, 150 ) )
+							//let hits = 0;
+							
+							for ( let i = 0; i < this._quake_temporary_not_regen_near.length; i++ )
 							{
-								should_skip = true;
-								break;
+								let data = this._quake_temporary_not_regen_near[ i ];
+								
+								if ( data.until < sdWorld.time )
+								{
+									this._quake_temporary_not_regen_near.splice( i, 1 );
+									i--;
+									continue;
+								}
+								
+								if ( sdWorld.inDist2D_Boolean( data.x, data.y, x, y, 100 ) )
+								{
+									//hits++;
+									//if ( hits >= 3 )
+									{
+										should_skip = true;
+										break;
+									}
+								}
 							}
 						}
 
@@ -3794,7 +3829,7 @@ class sdWeather extends sdEntity
 											if ( sdWorld.AttemptWorldBlockSpawn( x, y ) )
 											{
 												ClearPlants();
-												this._quake_temporary_not_regen_near.push({ x:x, y:y });
+												this._quake_temporary_not_regen_near.push({ x:x, y:y, until:sdWorld.time + 500 });
 												//break; Do not skip anymore - spawn as many as there can be
 											}
 

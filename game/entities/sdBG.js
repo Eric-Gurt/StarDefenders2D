@@ -91,6 +91,8 @@ class sdBG extends sdEntity
 		
 		this.texture_id = params.texture_id || sdBG.TEXTURE_PLATFORMS;
 		
+		this._natural = ( params.natural === true );
+		
 		this.hue = params.hue || 0;
 		this.br = params.br || 100;
 		this.filter = params.filter || '';
