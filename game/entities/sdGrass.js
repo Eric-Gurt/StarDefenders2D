@@ -133,6 +133,7 @@ class sdGrass extends sdEntity
 		if ( this._hea <= 0 )
 		{
 			if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_BARREN )
+			if ( initiator )
 			if ( initiator.IsPlayerClass() )
 			if ( initiator.build_tool_level === 0 )
 			if ( initiator.gun_slot === 0 ) // Swords/fists
