@@ -803,7 +803,8 @@ class sdWorld
 		}
 		//debugger;
 	
-	
+		let icy = ( s4 < 0.5 - 0.001 );
+		
 	
 		let material = sdBlock.MATERIAL_GROUND;
 		let f;// = 'hue-rotate('+( ~~sdWorld.mod( x / 16, 360 ) )+'deg)';
@@ -898,31 +899,6 @@ class sdWorld
 				}
 			}
 			
-			let plants = null;
-			let plants_objs = null;
-
-			//if ( material === sdBlock.MATERIAL_GROUND )
-			if ( !only_plantless_block )
-			if ( y === from_y )
-			if ( y <= sdWorld.base_ground_level )
-			{
-
-				let grass = new sdGrass({ x:x, y:y - 16, filter:f });
-				
-				grass.variation = sdWorld.GetFinalGrassHeight( x );
-
-				sdEntity.entities.push( grass );
-
-				if ( plants === null )
-				{
-					plants = [];
-					plants_objs = [];
-				}
-
-				plants.push( grass._net_id );
-				plants_objs.push( grass );
-			}
-			
 			let potential_crystal = ( y > 1500 ) ? 'sdCrystal.really_deep' : ( ( y > from_y + 256 ) ? 'sdCrystal.deep' : 'sdCrystal' );
 			
 			if ( Math.random() < 0.1 )
@@ -943,6 +919,52 @@ class sdWorld
 			{
 				if ( contains_class === 'sdWater.lava' )
 				contains_class = 'sdWater.water';
+			}
+			
+			
+			
+			let plants = null;
+			let plants_objs = null;
+			
+			let will_break_on_touch = ( contains_class === 'weak_ground' || contains_class === 'sdVirus' || contains_class === 'sdQuickie' || contains_class === 'sdBiter' || contains_class === 'sdSlug' || contains_class === 'sdFaceCrab' );
+
+			//if ( material === sdBlock.MATERIAL_GROUND )
+			if ( !only_plantless_block )
+			if ( y === from_y )
+			if ( y <= sdWorld.base_ground_level )
+			if ( !icy )
+			{
+				if ( plants === null )
+				{
+					plants = [];
+					plants_objs = [];
+				}
+				
+				if ( Math.random() < 0.2 && !will_break_on_touch )
+				{
+					let bush = new sdGrass({ x:x + 16 / 2, y:y, filter:f, variation:sdGrass.VARIATION_BUSH });
+					sdEntity.entities.push( bush );
+
+					plants.push( bush._net_id );
+					plants_objs.push( bush );
+				}
+				else
+				{
+					let grass = new sdGrass({ x:x, y:y - 16, filter:f, variation:sdWorld.GetFinalGrassHeight( x ) });
+					sdEntity.entities.push( grass );
+
+					plants.push( grass._net_id );
+					plants_objs.push( grass );
+
+					if ( Math.random() < 0.2 && !will_break_on_touch )
+					{
+						let tree = new sdGrass({ x:x + 16 / 2, y:y, filter:f, variation:( Math.random() < 0.2 ) ? sdGrass.VARIATION_TREE_BARREN : sdGrass.VARIATION_TREE });
+						sdEntity.entities.push( tree );
+
+						plants.push( tree._net_id );
+						plants_objs.push( tree );
+					}
+				}
 			}
 							
 			ent = new sdBlock({ 
@@ -1000,11 +1022,9 @@ class sdWorld
 			//sdWater.SpawnWaterHere( x, y, (y===sdWorld.base_ground_level)?0.5:1 );
 		}
 		
-		
-		
 		if ( ent )
 		{
-			if ( s4 < 0.5 - 0.001 )
+			if ( icy )
 			{
 				ent.filter = 'saturate(0.3)';
 				ent.br *= 4;

@@ -477,7 +477,7 @@ class sdSound
 			let x = params.x;
 			let y = params.y;
 
-			if ( x < sdWorld.world_bounds.x1 )
+			/*if ( x < sdWorld.world_bounds.x1 )
 			return;
 			if ( x >= sdWorld.world_bounds.x2 )
 			return;
@@ -485,7 +485,7 @@ class sdSound
 			if ( y < sdWorld.world_bounds.y1 )
 			return;
 			if ( y >= sdWorld.world_bounds.y2 )
-			return;
+			return;*/
 
 			v = sdSound.GetDistanceMultForPosition( x,y ) * sdSound.volume * volume;
 		}

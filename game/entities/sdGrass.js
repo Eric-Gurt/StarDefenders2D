@@ -8,6 +8,7 @@ import sdCrystal from './sdCrystal.js';
 import sdTimer from './sdTimer.js';
 import sdWater from './sdWater.js';
 import sdWeather from './sdWeather.js';
+import sdTurret from './sdTurret.js';
 //import sdPlayerSpectator from './sdPlayerSpectator.js';
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -71,9 +72,18 @@ class sdGrass extends sdEntity
 			if ( by_entity._admin_picker )
 			return true;
 			
+			if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_BARREN )
+			if ( !by_entity._gun )
+			if ( !by_entity.IsPlayerClass() )
+			if ( !by_entity.is( sdTurret ) )
+			{
+				return true;
+			}
+
 			if ( this.variation >= sdGrass.VARIATION_BUSH )
 			if ( by_entity._gun && sdWorld.entity_classes.sdGun.classes[ by_entity._gun.class ] )
 			{
+
 				if ( 
 					sdWorld.entity_classes.sdGun.classes[ by_entity._gun.class ].is_sword ||
 					sdWorld.entity_classes.sdGun.classes[ by_entity._gun.class ].slot === 0 )
@@ -121,7 +131,39 @@ class sdGrass extends sdEntity
 		this._hea -= dmg;
 	
 		if ( this._hea <= 0 )
-		this.remove();
+		{
+			if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_BARREN )
+			if ( initiator.IsPlayerClass() )
+			if ( initiator.build_tool_level === 0 )
+			if ( initiator.gun_slot === 0 ) // Swords/fists
+			{
+				switch ( ~~( Math.random() * 20 ) )
+				{
+					case 0:  initiator.Say( 'Take this, you tree!', true, false, true ); break;
+					case 1:  initiator.Say( 'Can\'t do much fighting back now, huh?!', true, false, true ); break;
+					case 2:  initiator.Say( 'I like grass more anyway', true, false, true ); break;
+					case 3:  initiator.Say( 'Wood should drop anytime now', true, false, true ); break;
+					case 4:  initiator.Say( 'Where is wood?' ); break;
+					case 5:  initiator.Say( 'Maybe I should press B instead', true, false, true ); break;
+					case 6:  initiator.Say( 'Maybe I should look for matter somewhere else', true, false, true ); break;
+					case 7:  initiator.Say( 'That was easy enough. Maybe I should make a business out of tree beating', true, false, true ); break;
+					case 8:  initiator.Say( 'Sorry tree, I could not resist the urge', true, false, true ); break;
+					case 9:  initiator.Say( 'This is what you get for growing on my way!', true, false, true ); break;
+					case 10: initiator.Say( 'This tree was so funny you WOOD not belive it', true, false, true ); break;
+					case 11: initiator.Say( 'What did the tree do when the bank closed? It started its own branch', true, false, true ); break;
+					case 12: initiator.Say( 'How do trees get online? They just log in', true, false, true ); break;
+					case 13: initiator.Say( 'How do you properly identify a dogwood tree? By the bark!', true, false, true ); break;
+					case 14: initiator.Say( 'Why was the tree stumped? It couldn\'t get to the root of the problem', true, false, true ); break;
+					case 15: initiator.Say( 'What type of tree fits in your hand? A palm tree', true, false, true ); break;
+					case 16: initiator.Say( 'Why did the tree need to take a nap? For-rest', true, false, true ); break;
+					case 17: initiator.Say( 'Why was the weeping willow so sad? It watched a sappy movie', true, false, true ); break;
+					case 18: initiator.Say( 'Why do you never want to invite a tree to your party? Because they never leaf when you want them to', true, false, true ); break;
+					case 19: initiator.Say( 'How do you know when a tree doesn\'t know the answer to something? It shrubs', true, false, true ); break;
+				}
+			}
+			
+			this.remove();
+		}
 	}
 	
 	onSnapshotApplied() // To override
@@ -437,9 +479,17 @@ class sdGrass extends sdEntity
 			}
 			this._block = null;
 		}
+		
+		if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_BARREN )
+		{
+			sdWorld.BasicEntityBreakEffect( this, 5 );
+		}
 	}
 	LookupLiquids( from_entity=null )
 	{
+		if ( typeof this.age === 'undefined' )
+		return;
+	
 		if ( !from_entity )
 		{
 			from_entity = sdWater.GetWaterObjectAt( this.x - 4, this.y - 1, sdWater.TYPE_WATER );

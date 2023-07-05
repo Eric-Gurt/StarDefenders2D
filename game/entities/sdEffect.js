@@ -19,6 +19,8 @@ class sdEffect extends sdEntity
 		return;
 		else
 		sdEffect.initiated = true;
+	
+		sdEffect.local_effect_counter = 0;
 		
 		console.log('sdEffect class initiated');
 		
@@ -390,6 +392,8 @@ class sdEffect extends sdEntity
 	{
 		super( params );
 		
+		this._local_uid = sdEffect.local_effect_counter++;
+		
 		if ( sdWorld.is_server && !sdWorld.is_singleplayer )
 		{
 			throw new Error('Server should not spawn these ever - they will at very least be missing proper description');
@@ -514,6 +518,8 @@ class sdEffect extends sdEntity
 
 		this._attachment_x = params.attachment_x;
 		this._attachment_y = params.attachment_y;
+		
+		this._attachment_rise = 0;
 		
 		this.sx = params.sx || 0;
 		this.sy = params.sy || 0;
@@ -710,7 +716,8 @@ class sdEffect extends sdEntity
 			this._rotation = params.rotation;
 		}
 		
-		if ( this.x < sdWorld.world_bounds.x1 )
+		// Kind of pointless. It was originally needed in order to prevent block break effect when world bounds are shifting
+		/*if ( this.x < sdWorld.world_bounds.x1 )
 		this.remove();
 		if ( this.x >= sdWorld.world_bounds.x2 )
 		this.remove();
@@ -718,7 +725,7 @@ class sdEffect extends sdEntity
 		if ( this.y < sdWorld.world_bounds.y1 )
 		this.remove();
 		if ( this.y >= sdWorld.world_bounds.y2 )
-		this.remove();
+		this.remove();*/
 	}
 	static Transliterate( word )
 	{
@@ -741,6 +748,16 @@ class sdEffect extends sdEntity
 	{
 		return sdEffect.ignored_entity_classes_arr;
 	}
+	
+	get _text_target_x()
+	{
+		return this._attachment.x + this._attachment_x;
+	}
+	get _text_target_y()
+	{
+		return this._attachment.y + this._attachment_y - this._attachment_rise * 15;
+	}
+	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		if ( this._type === sdEffect.TYPE_EXPLOSION )
@@ -750,26 +767,46 @@ class sdEffect extends sdEntity
 
 		if ( this._attachment )
 		{
-			let rise = 0;
+			//let rise = 0;
 			
 			for ( let i = sdEntity.entities.length - 1; i >= 0; i-- )
 			{
-				if ( this._attachment === sdEntity.entities[ i ]._attachment )
-				{
-					if ( sdEntity.entities[ i ] === this )
-					break;
+				let e = sdEntity.entities[ i ];
 				
-					rise++;
+				if ( e.is( sdEffect ) )
+				if ( e._attachment )
+				{
+					/*if ( this._attachment === sdEntity.entities[ i ]._attachment )
+					{
+						if ( sdEntity.entities[ i ] === this )
+						break;
+
+						rise++;
+					}*/
+
+					if ( Math.abs( this._text_target_x - e._text_target_x ) < 200 )
+					if ( Math.abs( this._text_target_y - e._text_target_y ) < 15 )
+					if ( e !== this )
+					{
+						let c = ( this._local_uid < e._local_uid );
+						let a = c ? this : e;
+						let b = (!c) ? this : e;
+
+						a._attachment_rise += GSPEED * 0.5;
+						//b._attachment_rise -= GSPEED * 0.5;
+					}
 				}
 			}
 			
-			this.x = sdWorld.MorphWithTimeScale( this.x, this._attachment.x + this._attachment_x, 0.8, GSPEED );
-			this.y = sdWorld.MorphWithTimeScale( this.y, this._attachment.y + this._attachment_y - rise * 15, 0.8, GSPEED );
+			//rise = this._attachment_rise;
+			
+			this.x = sdWorld.MorphWithTimeScale( this.x, this._text_target_x, 0.8, GSPEED );
+			this.y = sdWorld.MorphWithTimeScale( this.y, this._text_target_y, 0.8, GSPEED );
 			
 			//this.x = this._attachment.x + this._attachment_x;
 			//this.y = this._attachment.y + this._attachment_y;
 		}
-		
+
 		if ( sdEffect.types[ this._type ].gravity )
 		this.sy += sdWorld.gravity * GSPEED;
 		
@@ -782,6 +819,11 @@ class sdEffect extends sdEntity
 			this.x += this.sx * GSPEED;
 			this.y += this.sy * GSPEED;
 		}
+		
+		
+		// Keep chan within world bounds
+		if ( this._type === sdEffect.TYPE_CHAT )
+		this.y = Math.max( this.y, sdWorld.world_bounds.y1 + 8 );
 		
 		if ( this._ani >= this._duration )
 		{

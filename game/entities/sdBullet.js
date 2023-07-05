@@ -415,6 +415,8 @@ class sdBullet extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		this.GetAnythingNearCache; // Some projectiles might use this method - mentioning it here just so cache properties will be created and crash would not happen
+		
 		if ( this._first_frame )
 		{
 			if ( this.color )
