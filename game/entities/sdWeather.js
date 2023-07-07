@@ -3888,7 +3888,12 @@ class sdWeather extends sdEntity
 									{
 										//sdWeather.last_crystal_near_quake.DamageWithEffect( 15 );
 										if ( sdWeather.last_crystal_near_quake.IsTargetable( this ) )
-										sdWeather.last_crystal_near_quake.DamageWithEffect( 20 );
+										{
+											sdWeather.last_crystal_near_quake.DamageWithEffect( 20 );
+											
+											// Do not damage something multiple times in a row
+											this._quake_temporary_not_regen_near.push({ x:x, y:y, until:sdWorld.time + 500 });
+										}
 									}
 								}
 							}
