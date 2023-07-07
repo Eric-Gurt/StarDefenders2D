@@ -499,6 +499,9 @@ class sdGrass extends sdEntity
 			from_entity = sdWater.GetWaterObjectAt( this.x + 4, this.y - 1, sdWater.TYPE_WATER );
 		}
 		
+		if ( !from_entity )
+		return;	
+		
 		if ( from_entity.type === sdWater.TYPE_WATER )
 		{
 			if ( !this._liquid_sip_timer )
