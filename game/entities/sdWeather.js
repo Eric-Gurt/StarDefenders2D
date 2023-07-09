@@ -883,6 +883,13 @@ class sdWeather extends sdEntity
 		{
 			if ( sdWorld.CheckWallExists( x, yy, null, null, [ 'sdBlock', 'sdDoor', 'sdWater' ] ) )
 			{
+				if ( !sdWorld.last_hit_entity ) // sdDeepSleep or world edge likely
+				if ( y - yy > 64 ) // Not on edge between 2 sdDeepSleep areas
+				{
+					//debugger;
+					return true;
+				}
+				
 				if ( sun_light_tracer )
 				{
 					if ( sdWorld.last_hit_entity )
@@ -3403,7 +3410,8 @@ class sdWeather extends sdEntity
 					if ( e.y >= sdWorld.world_bounds.y1 + 16 ) // Do not spawn on top of the world
 					{
 						if ( e.DoesRegenerate() )
-						if ( this.TraceDamagePossibleHere( e.x - 8, e.y + e.width / 2, Infinity, false, true ) )
+						//if ( this.TraceDamagePossibleHere( e.x - 8, e.y + e.width / 2, Infinity, false, true ) )
+						if ( this.TraceDamagePossibleHere( e.x + e.width / 2, e.y - 8, Infinity, false, true ) )
 						{
 							if ( e._plants === null )
 							{
@@ -3587,7 +3595,7 @@ class sdWeather extends sdEntity
 			let quake_logic_percentage_done = 1; // Gets lower if earthquake can't perform enough of planned iterations (usually due to performance risks)
 			
 			//if ( this.quake_intensity >= 100 )
-			if ( this.quake_intensity >= 30 )
+			if ( this.quake_intensity >= 60 )
 			//for ( let i = 0; i < 100; i++ ) // Hack
 			{
 				let ent = new sdBlock({ x:0, y:0, width:16, height:16 });
@@ -3603,7 +3611,7 @@ class sdWeather extends sdEntity
 					
 					//let tr = sdWorld.server_config.aggressive_hibernation ? 25 : 35;
 					//let tr = 35;
-					let tr = Math.ceil( world_area_under_ground * 0.001 );
+					let tr = Math.ceil( world_area_under_ground * 0.0001 );
 					let tr0 = tr;
 					
 					let t = Date.now();

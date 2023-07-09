@@ -390,10 +390,10 @@ class sdShop
 			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdMatterContainer', matter_max:640 * 2 * 2 * 2, _category:'Base equipment', _min_build_tool_level: 3 });
 			
-			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 1, _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 2, _category:'Base equipment', _min_build_tool_level: 3 });
-			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 4, _category:'Base equipment', _min_build_tool_level: 9 });
-			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 8, _category:'Base equipment', _min_build_tool_level: 18 });
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 1, width:1, _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 2, width:1, _category:'Base equipment', _min_build_tool_level: 3 });
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 4, width:1, _category:'Base equipment', _min_build_tool_level: 9 });
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 8, width:1, _category:'Base equipment', _min_build_tool_level: 18 });
 			
 			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 1, width:2, _category:'Base equipment', _min_build_tool_level: 22 });
 			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 2, width:2, _category:'Base equipment', _min_build_tool_level: 24 });
