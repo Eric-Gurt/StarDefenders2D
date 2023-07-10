@@ -753,17 +753,7 @@ class sdGun extends sdEntity
 		const is_unknown = ( sdGun.classes[ this.class ] === undefined ); // Detect unknown weapons from LRT teleports
 		
 		if ( this.reload_time_left <= 0 && !is_unknown )
-		{
-			if ( this.ammo_left === -123 )
-			{
-				if ( sdGun.classes[ this.class ].ammo_capacity === undefined )
-				sdGun.classes[ this.class ].ammo_capacity = -1;
-			
-				this.ammo_left = this.GetAmmoCapacity();
-				if ( sdGun.classes[ this.class ].burst )
-				this.burst_ammo = Math.min( this.ammo_left, sdGun.classes[ this.class ].burst );
-			}
-			
+		{	
 			if ( this.ammo_left !== 0 )
 			{
 				if ( this.ammo_left > 0 ) // can be -1
@@ -1137,7 +1127,17 @@ class sdGun extends sdEntity
 		let GSPEED_unscaled = GSPEED;
 		
 		GSPEED = sdGun.HandleTimeAmplification( this, GSPEED );
-		
+
+		if ( this.ammo_left === -123 )
+		{
+			if ( sdGun.classes[ this.class ].ammo_capacity === undefined )
+			sdGun.classes[ this.class ].ammo_capacity = -1;
+			
+			this.ammo_left = this.GetAmmoCapacity();
+			if ( sdGun.classes[ this.class ].burst )
+			this.burst_ammo = Math.min( this.ammo_left, sdGun.classes[ this.class ].burst );
+		}
+
 		if ( !sdWorld.is_server )
 		{
 			this.UpdateHolderClientSide();
@@ -1351,6 +1351,16 @@ class sdGun extends sdEntity
 
 			if ( this.x !== old_x || this.y !== old_y )
 			sdWorld.UpdateHashPosition( this, false, false );
+		}
+	}
+	DrawHUD( ctx, attached ) // foreground layer
+	{
+		if ( !this._held_by )
+		{
+			sdEntity.Tooltip( ctx, this.GetTitle() );
+
+			if ( !sdGun.classes[ this.class ].ignore_slot )
+			sdEntity.Tooltip( ctx, 'Slot ' + this.GetSlot(), 0, 8, '#ffff00' );
 		}
 	}
 	Draw( ctx, attached )
