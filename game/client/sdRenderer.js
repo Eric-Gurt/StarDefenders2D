@@ -1798,6 +1798,10 @@ class sdRenderer
 			ctx.fillStyle = '#ffff00';
 			ctx.fillText( T("Level") + ": " + Math.floor( sdWorld.my_entity.build_tool_level ), 5 + 370 * scale, 17 );
 
+			const gun = sdWorld.my_entity._inventory[sdWorld.my_entity.gun_slot];
+			ctx.fillStyle = '#ffffff';
+			ctx.fillText( T("Ammo") + ": " +  ( !gun || gun.ammo_left === -1 ? "-" : gun.ammo_left + " / " + gun.GetAmmoCapacity() ), 5 + 450 * scale, 17 );
+
 			if ( globalThis.enable_debug_info )
 			{
 				ctx.fillStyle = '#AAAAff';
