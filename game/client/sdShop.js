@@ -668,6 +668,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 5120 * 8, _category:'Development tests' }); // Glowing one
 				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 5120 * 16, _category:'Development tests' }); // Glowing one
 				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: 5120 * 32, _category:'Development tests' }); // Glowing one
+				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_CRAB_BIG, tag: 'deep', matter_max: sdCrystal.anticrystal_value * 4, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 160, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 320, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCrystal', type: sdCrystal.TYPE_CRYSTAL_BIG, tag: 'deep', matter_max: 640, _category:'Development tests' });
