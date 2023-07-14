@@ -26,7 +26,7 @@ class sdBloodDecal extends sdEntity
 	{
 		//return 5000; // Hack
 		
-		return 1000 * 60 * 60 * ( 4 + Math.random() * 44 ); // Each 4 hours or once a 48 hour, randomly
+		return 1000 * 60 * 60 * ( 4 + Math.random() * 44 ); // Each 4 hours or once in 48 hours, randomly
 	}
 
 	get hitbox_x1() { return 0; }
@@ -168,7 +168,7 @@ class sdBloodDecal extends sdEntity
 								if ( random_roach )
 								if ( random_roach.nick.length === 0 )
 								if ( random_roach.strength < 40 )
-								random_roach.strength += 1;
+								random_roach.strength += 3;
 								
 								ent.remove();
 								ent._broken = false;

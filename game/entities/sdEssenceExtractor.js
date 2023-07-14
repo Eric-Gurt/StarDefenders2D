@@ -16,6 +16,7 @@ class sdEssenceExtractor extends sdEntity
 	static init_class()
 	{
 		sdEssenceExtractor.img_essence_extractor = sdWorld.CreateImageFromFile( 'essence_extractor' );
+		sdEssenceExtractor.img_beam = sdWorld.CreateImageFromFile( 'matter_amplifier_beam4' );
 
 		sdEssenceExtractor.liquid_per_crystal = 20;
 		
@@ -315,7 +316,7 @@ class sdEssenceExtractor extends sdEntity
 		
 		if ( this.crystal )
 		{
-			ctx.drawImageFilterCache( sdMatterAmplifier.img_matter_amplifier_beam4, - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( sdEssenceExtractor.img_beam, - 16, - 16, 32,32 );
 		}
 
 		ctx.globalAlpha = 1;

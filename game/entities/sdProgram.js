@@ -186,11 +186,19 @@ k.prototype.getStateStack=k.prototype.ub;k.prototype.setStateStack=k.prototype.y
 	
 	static async Sleep( ms, callback )
 	{
-		sdTimer.ExecuteWithDelay( ( timer )=>{
+		try
+		{
+			sdTimer.ExecuteWithDelay( ( timer )=>{
 
+				callback();
+
+			}, ms );
+		}
+		catch( e ) // Likely NaN passed
+		{
+			this.h.onError.Da( e );
 			callback();
-
-		}, ms );
+		}
 	}
 	
 	static GetShellObjectByEntity( ent, program ) // Entity -> Shell object

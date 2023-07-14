@@ -194,11 +194,11 @@ class sdServerConfigFull extends sdServerConfigShort
 	}
 	static GetAllowedWorldEventCount()
 	{
-		return 6; // Return number of allowed events to happen during planet day
+		return 15; // Return number of allowed events to happen during planet day
 	}
 	static GetEventSpeed()
 	{
-		return 30 * 60 * 3 * ( 3 / 2 ); // Return max possible time until next event rolls
+		return 30 * 60 * 4; //3 * ( 3 / 2 ); // Return max possible time until next event rolls
 	}
 	static GetBSUDamageMultiplier()
 	{

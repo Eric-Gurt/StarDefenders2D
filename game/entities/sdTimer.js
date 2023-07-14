@@ -85,7 +85,7 @@ class sdTimer
 							insert_at = 1;
 						}
 						else
-						throw new Error();
+						throw new Error( 'Delay was scheduled with non-numeric value. Action is cancelled.' );
 					}
 				}
 			}

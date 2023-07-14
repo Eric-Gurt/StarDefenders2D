@@ -14,6 +14,7 @@ class FakeCanvasContext
 		FakeCanvasContext.DRAW_IN_3D_BOX_TRANSPARENT = 4;
 		FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT = 5;
 		FakeCanvasContext.DRAW_IN_3D_BOX_DECAL = 6;
+		FakeCanvasContext.DRAW_IN_3D_GRASS_SINGLE_LAYER = 7;
 		
 		FakeCanvasContext.LIQUID_OPACITY_STEPS = 5;
 		FakeCanvasContext.GRASS_OPACITY_STEPS = 4;
@@ -573,7 +574,7 @@ class FakeCanvasContext
 				r.opacity /= 5;
 			}
 			else
-			if ( volumetric_mode === FakeCanvasContext.DRAW_IN_3D_GRASS )
+			if ( volumetric_mode === FakeCanvasContext.DRAW_IN_3D_GRASS || volumetric_mode === FakeCanvasContext.DRAW_IN_3D_GRASS_SINGLE_LAYER )
 			{
 				if ( r.opacity >= 1 )
 				{
@@ -716,10 +717,7 @@ class FakeCanvasContext
 		{
 			let m = this.reusable_matrix3;
 			m.identity();
-			
-			//x = Math.round( x * 100 ) / 100;
-			//y = Math.round( y * 100 ) / 100;
-			
+		
 			m.scale( x, y );
 			
 			this._matrix3.multiply( m );
@@ -733,8 +731,6 @@ class FakeCanvasContext
 		{
 			let m = this.reusable_matrix3;
 			m.identity();
-			
-			//a = Math.round( a * 10000 ) / 10000;
 			
 			m.rotate( -a );
 			
@@ -1081,7 +1077,7 @@ class FakeCanvasContext
 		
 		if ( this.draw_offset === 0 && this.camera_relative_world_scale === 1 )
 		{
-			if ( this.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_LIQUID || this.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_GRASS )
+			if ( this.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_LIQUID || this.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_GRASS || this.volumetric_mode === FakeCanvasContext.DRAW_IN_3D_GRASS_SINGLE_LAYER )
 			m.castShadow = false;
 			else
 			m.castShadow = true;

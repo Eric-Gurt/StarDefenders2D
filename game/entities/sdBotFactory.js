@@ -499,6 +499,23 @@ function BrainModelB()
 		this._scheduled_broadcasts = [];
 	}
 	
+	onSnapshotApplied()
+	{
+		if ( sdWorld.is_server )
+		{
+			setTimeout(()=>
+			{
+				// Clean-up previously stuck bots as there can be over 100 bots in same place
+				let arr = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, 16, null, [ 'sdBot' ] );
+				for ( let i = 0; i < arr.length; i++ )
+				{
+					arr[ i ]._disassembly_task = true;
+					this.onMovementInRange( arr[ i ] );
+				}
+			},0);
+		}
+	}
+	
 	GetBots( specific_kind=-1 )
 	{
 		let this_kind = [];
@@ -605,18 +622,30 @@ function BrainModelB()
 				{
 					this.progress = 0;
 					
-					this.matter -= 600;
+					let arr = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, 16, null, [ 'sdBot' ] );
+					
+					if ( arr.length > 0 )
+					{
+						this.progress = 90;
+						
+						this.program_message = 'Bot has stuck inside';
+						this.program_message_censored = this.program_message;
+					}
+					else
+					{
+						this.matter -= 600;
+					
+						let ent = new sdBot({ x: this.x, y: this.y, owner: this, kind: this._building_kind, code: '('+this._building_brain_function_code+')()' });
+						sdEntity.entities.push( ent );
 
-					let ent = new sdBot({ x: this.x, y: this.y, owner: this, kind: this._building_kind, code: '('+this._building_brain_function_code+')()' });
-					sdEntity.entities.push( ent );
+						this._bot_net_ids.push( ent._net_id );
 
-					this._bot_net_ids.push( ent._net_id );
+						this._last_build_entity = ent;
 
-					this._last_build_entity = ent;
+						this._building_kind = -1;
 
-					this._building_kind = -1;
-
-					this._building_brain_function_code = null;
+						this._building_brain_function_code = null;
+					}
 				}
 			}
 			

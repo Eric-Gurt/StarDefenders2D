@@ -7,7 +7,7 @@
  
 	Test specific event on server (will break any other event):
 
-		sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 18 );
+			sdWorld.entity_classes.sdWeather.only_instance.ExecuteEvent( 18 );
 
 		OR
 
@@ -66,6 +66,7 @@ import sdFactions from './sdFactions.js';
 import sdTzyrgAbsorber from './sdTzyrgAbsorber.js';
 import sdShurgConverter from './sdShurgConverter.js';
 import sdShurgTurret from './sdShurgTurret.js';
+import sdShurgExcavator from './sdShurgExcavator.js';
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdStatusEffect from './sdStatusEffect.js';
@@ -202,6 +203,7 @@ class sdWeather extends sdEntity
 		
 		this._quake_scheduled_amount = 0;
 		this.quake_intensity = 0;
+		this._quake_temporary_not_regen_near = []; // Prevent too much ground being regenerated in same place during event
 		
 		this._time_until_event = 30 * 30; // 30 seconds since world reset
 		//this._daily_events = [ 8 ];
@@ -376,6 +378,7 @@ class sdWeather extends sdEntity
 							{
 								dog.x = x;
 								dog.y = y;
+								sdWorld.UpdateHashPosition( dog, false ); // Prevent inersection with other ones
 								
 								if ( params.group_radius > 0 )
 								{
@@ -880,6 +883,13 @@ class sdWeather extends sdEntity
 		{
 			if ( sdWorld.CheckWallExists( x, yy, null, null, [ 'sdBlock', 'sdDoor', 'sdWater' ] ) )
 			{
+				if ( !sdWorld.last_hit_entity ) // sdDeepSleep or world edge likely
+				if ( y - yy > 64 ) // Not on edge between 2 sdDeepSleep areas
+				{
+					//debugger;
+					return true;
+				}
+				
 				if ( sun_light_tracer )
 				{
 					if ( sdWorld.last_hit_entity )
@@ -1171,6 +1181,7 @@ class sdWeather extends sdEntity
 		if ( r === 8 ) // Earth quake, idea by LazyRain, implementation by Eric Gurt
 		{
 			this._quake_scheduled_amount = 30 * ( 10 + Math.random() * 30 );
+			this._quake_temporary_not_regen_near.length = 0;
 		}
 					
 		if ( r === 9 ) // Spawn few sdBadDog-s somewhere on ground where players don't see them
@@ -1261,10 +1272,12 @@ class sdWeather extends sdEntity
 					
 		if ( r === 11 ) // Spawn 3-6 sdSpiders, drones somewhere on ground where players don't see them and Erthal humanoids
 		{
+			let spider_type = Math.random() < 0.35 ? 1 : 0; // 35% chance for it to be a mini tank bot
 			sdWeather.SimpleSpawner({
 
 				count: [ 1, 2 ],
-				class: sdSpider
+				class: sdSpider,
+				params: { _ai_team: 2, type: spider_type }
 
 			});
 			sdWeather.SimpleSpawner({
@@ -1276,82 +1289,6 @@ class sdWeather extends sdEntity
 			});
 			
 			
-			/*let instances = Math.floor( 1 + Math.random() * 1 );
-			//while ( instances > 0 && sdSpider.spider_counter < Math.min( 32, sdWorld.GetPlayingPlayersCount() * 10 ) )
-			while ( instances > 0 )
-			{
-
-				let ent = new sdSpider({ x:0, y:0 });
-				sdEntity.entities.push( ent );
-				ent.type = ( Math.random() < 0.05 ) ? 1 : 0;
-
-				//if ( sdDrone.drones_tot < this._max_drone_count ) // Not sure if this is needed to be honest, it also causes error because "let" can't be behind an "if" directly - Booraz149
-				let ent_drone = new sdDrone({ x:0, y:0, _ai_team: 2, type: 2 }); 
-				sdEntity.entities.push( ent_drone );
-
-
-				{
-					let x,y,i;
-					let tr = 1000;
-					do
-					{
-						x = sdWorld.world_bounds.x1 + Math.random() * ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 );
-						y = sdWorld.world_bounds.y1 + Math.random() * ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 );
-
-						if ( ent.CanMoveWithoutOverlap( x, y, 0 ) )
-						if ( !ent.CanMoveWithoutOverlap( x, y + 32, 0 ) )
-						if ( ent_drone.CanMoveWithoutOverlap( x, y - 48, 0 ) ) // Check if drones have enough space to be placed above Erthal spider bots.
-						if ( sdWorld.last_hit_entity )
-						if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural )
-						if ( !sdWorld.CheckWallExistsBox( 
-								x + ent._hitbox_x1 - 16, 
-								y + ent._hitbox_y1 - 116, 
-								x + ent._hitbox_x2 + 16, 
-								y + ent._hitbox_y2 + 16, null, null, [ 'sdWater' ], null ) )
-						{
-							let proper_distnace = true;
-										
-							for ( i = 0; i < sdWorld.sockets.length; i++ )
-							if ( sdWorld.sockets[ i ].character )
-							{
-								let di = sdWorld.Dist2D( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, x, y );
-											
-								if ( di < 500 )
-								{
-									proper_distnace = false;
-									break;
-								}
-							}
-										
-							if ( proper_distnace )
-							{
-								ent.x = x;
-								ent.y = y;
-
-								ent_drone.x = x;
-								ent_drone.y = y - 48;
-
-								break;
-							}
-						}
-									
-
-
-						tr--;
-						if ( tr < 0 )
-						{
-							ent.remove();
-							ent._broken = false;
-
-							ent_drone.remove();
-							ent_drone._broken = false;
-							break;
-						}
-					} while( true );
-				}
-
-				instances--;
-			}*/
 			let ais = 0;
 			let percent = 0;
 			for ( var i = 0; i < sdCharacter.characters.length; i++ )
@@ -1411,7 +1348,8 @@ class sdWeather extends sdEntity
 			sdWeather.SimpleSpawner({
 
 				count: [ 1, 1 ],
-				class: sdObelisk
+				class: sdObelisk,
+				params: { type: 1 + Math.round( Math.random() * 7 ) }
 
 			});
 
@@ -2980,25 +2918,12 @@ class sdWeather extends sdEntity
 					ais++;
 				}
 
-				//let drones = 0;
-				//let drones_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
+				sdWeather.SimpleSpawner({
+				
+					count: [ 2, 4 ],
+					class: sdShurgExcavator
+				});
 
-
-				/*while ( drones < drones_tot && sdDrone.drones_tot < this._max_drone_count )
-				{
-
-					let drone = new sdDrone({ x:0, y:0 , _ai_team: 8, type: ( Math.random() < 0.1 ) ? sdDrone.DRONE_TZYRG_WATCHER : sdDrone.DRONE_TZYRG });
-
-					sdEntity.entities.push( drone );
-
-					if ( !sdWeather.SetRandomSpawnLocation( drone ) )
-					{
-						drone.remove();
-						drone._broken = false;
-						break;
-					}
-					drones++;
-				}*/
 			}
 		}
 		if ( r === sdWeather.EVENT_SHURG_CONVERTER ) // Spawn a Shurg oxygen-to-matter anywhere on the map outside player views.
@@ -3073,7 +2998,7 @@ class sdWeather extends sdEntity
 					percent++;
 				}
 			}
-			if ( Math.random() < ( 0.5 * ( percent / sdWorld.GetPlayingPlayersCount() ) ) ) // Spawn chance depends on RNG, chances increase if more players have at least 20 levels
+			if ( Math.random() < ( 0.6 * ( percent / sdWorld.GetPlayingPlayersCount() ) ) ) // Spawn chance depends on RNG, chances increase if more players have at least 20 levels
 			{
 				let instances = 0;
 				let instances_tot = 5;
@@ -3468,17 +3393,6 @@ class sdWeather extends sdEntity
 				this.raining_intensity = Math.max( 0, this.raining_intensity - GSPEED * 0.1 );
 			}
 			
-			if ( this._quake_scheduled_amount > 0 )
-			{
-				this._quake_scheduled_amount -= GSPEED;
-				
-				this.quake_intensity = Math.min( 100, this.quake_intensity + GSPEED * 0.3 );
-			}
-			else
-			{
-				this.quake_intensity = Math.max( 0, this.quake_intensity - GSPEED * 0.3 );
-			}
-			
 			if ( this.raining_intensity > 50 )
 			//if ( sdWorld.is_server ) Done before
 			{
@@ -3496,11 +3410,12 @@ class sdWeather extends sdEntity
 					if ( e.y >= sdWorld.world_bounds.y1 + 16 ) // Do not spawn on top of the world
 					{
 						if ( e.DoesRegenerate() )
-						if ( this.TraceDamagePossibleHere( e.x - 8, e.y + e.width / 2, Infinity, false, true ) )
+						//if ( this.TraceDamagePossibleHere( e.x - 8, e.y + e.width / 2, Infinity, false, true ) )
+						if ( this.TraceDamagePossibleHere( e.x + e.width / 2, e.y - 8, Infinity, false, true ) )
 						{
 							if ( e._plants === null )
 							{
-								let grass = new sdGrass({ x:e.x, y:e.y - 16, hue:e.hue, br:e.br, filter: e.filter, block:e  });
+								let grass = new sdGrass({ x:e.x, y:e.y - 16, hue:e.hue, br:e.br, filter: e.filter, block:e });
 								sdEntity.entities.push( grass );
 
 								//grass.snowed = this.snow;
@@ -3677,7 +3592,10 @@ class sdWeather extends sdEntity
 				}*/
 			}
 			
-			if ( this.quake_intensity >= 100 )
+			let quake_logic_percentage_done = 1; // Gets lower if earthquake can't perform enough of planned iterations (usually due to performance risks)
+			
+			//if ( this.quake_intensity >= 100 )
+			if ( this.quake_intensity >= 60 )
 			//for ( let i = 0; i < 100; i++ ) // Hack
 			{
 				let ent = new sdBlock({ x:0, y:0, width:16, height:16 });
@@ -3689,34 +3607,66 @@ class sdWeather extends sdEntity
 					
 					//let tr = 1000;
 					
-					let tr = sdWorld.server_config.aggressive_hibernation ? 25 : 35;
+					let world_area_under_ground = ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) / 16 * ( sdWorld.world_bounds.y2 - Math.max( sdWorld.world_bounds.y1, 0 ) ) / 16;
+					
+					//let tr = sdWorld.server_config.aggressive_hibernation ? 25 : 35;
+					//let tr = 35;
+					let tr = Math.ceil( world_area_under_ground * 0.0001 );
+					let tr0 = tr;
+					
+					let t = Date.now();
 					
 					do
 					{
+						let t2 = Date.now();
+						
+						if ( t2 > t + 3 )
+						{
+							if ( tr0 > 0 )
+							{
+								quake_logic_percentage_done = ( tr0 - tr ) / tr0;
+							}
+							
+							break;
+						}
+						
 						let should_skip = false;
 						
-						if ( sdWorld.server_config.aggressive_hibernation )
+						//if ( sdWorld.server_config.aggressive_hibernation )
+						if ( tr > 0 )
 						{
 							let place_near = sdEntity.GetRandomEntity();
 
-							if ( place_near && place_near.is( sdBlock ) && place_near.DoesRegenerate() && place_near._natural )
+							if ( place_near )
 							{
-								let r = ~~( Math.random() * 4 );
+								if ( place_near.is( sdBlock ) )
+								{
+									if ( place_near.DoesRegenerate() && place_near._natural )
+									{
+										let r = ~~( Math.random() * 4 );
 
-								x = Math.floor( place_near.x / 16 ) * 16;
-								y = Math.floor( place_near.y / 16 ) * 16;
+										x = Math.floor( place_near.x / 16 ) * 16;
+										y = Math.floor( place_near.y / 16 ) * 16;
 
-								if ( r === 0 )
-								x -= 16;
+										if ( r === 0 )
+										x -= 16;
+										else
+										if ( r === 1 )
+										x += 16;
+										else
+										if ( r === 2 )
+										y -= 16;
+										else
+										if ( r === 3 )
+										y += 16;
+									}
+								}
 								else
-								if ( r === 1 )
-								x += 16;
-								else
-								if ( r === 2 )
-								y -= 16;
-								else
-								if ( r === 3 )
-								y += 16;
+								if ( place_near.is( sdBG ) && place_near._natural )
+								{
+									x = Math.floor( place_near.x / 16 ) * 16;
+									y = Math.floor( place_near.y / 16 ) * 16;
+								}
 							}
 							
 							if ( x < sdWorld.world_bounds.x1 )
@@ -3738,6 +3688,38 @@ class sdWeather extends sdEntity
 
 							x = Math.floor( x / 16 ) * 16;
 							y = Math.floor( y / 16 ) * 16;
+							
+							if ( Math.random() < 0.5 )
+							x = ( Math.random() < 0.5 ) ? sdWorld.world_bounds.x1 : sdWorld.world_bounds.x2 - 16;
+							else
+							y = ( Math.random() < 0.5 ) ? sdWorld.world_bounds.y1 : sdWorld.world_bounds.y2 - 16;
+						}
+						
+						if ( !should_skip )
+						{
+							//let hits = 0;
+							
+							for ( let i = 0; i < this._quake_temporary_not_regen_near.length; i++ )
+							{
+								let data = this._quake_temporary_not_regen_near[ i ];
+								
+								if ( data.until < sdWorld.time )
+								{
+									this._quake_temporary_not_regen_near.splice( i, 1 );
+									i--;
+									continue;
+								}
+								
+								if ( sdWorld.inDist2D_Boolean( data.x, data.y, x, y, 100 ) )
+								{
+									//hits++;
+									//if ( hits >= 3 )
+									{
+										should_skip = true;
+										break;
+									}
+								}
+							}
 						}
 
 						if ( !should_skip )
@@ -3751,9 +3733,10 @@ class sdWeather extends sdEntity
 								break;
 							}
 						}
+						
 						if ( should_skip === true )
 						{
-							// It can't place blocks next to an absorber since it's absorbing the earthquake
+							// It can't place blocks next to an absorber since it's absorbing the earthquake. Also won't spawn blocks near blocks that spawned during this earthquake
 						}
 						else
 						{
@@ -3763,7 +3746,7 @@ class sdWeather extends sdEntity
 							{
 								//if ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && sdWorld.last_hit_entity.DoesRegenerate() ) )
 								//if ( !sdWorld.CheckWallExistsBox( x, y, x+16, y+16, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava
-								if ( !sdWorld.CheckWallExistsBox( x + 0.0001, y + 0.0001, x+16 - 0.0001, y+16 - 0.0001, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava
+								if ( !sdWorld.CheckWallExistsBox( x + 0.0001, y + 0.0001, x+16 - 0.0001, y+16 - 0.0001, null, null, [ 'sdBlock', 'sdWater' ] ) ) // Extra check for spike blocks and water/lava (liquids are caught by CrystalRemovalByEearthquakeFilter though now)
 								{
 									let ent_above = null;
 									let ent_above_exists = false;
@@ -3813,6 +3796,14 @@ class sdWeather extends sdEntity
 										{
 											if ( sdWorld.last_hit_entity.material !== sdBG.MATERIAL_GROUND )
 											{
+												if ( Math.random() < 0.1 ) // Chance to damage player-made backgrounds, will only work if they aren't protected
+												{
+													sdWorld.last_hit_entity.DamageWithEffect( 20, null );
+													
+													if ( sdWorld.last_hit_entity._is_being_removed )
+													bg_nature_ent = sdWorld.last_hit_entity;
+												}
+												else
 												bg_nature = false;
 											}
 											else
@@ -3846,7 +3837,8 @@ class sdWeather extends sdEntity
 											if ( sdWorld.AttemptWorldBlockSpawn( x, y ) )
 											{
 												ClearPlants();
-												break;
+												this._quake_temporary_not_regen_near.push({ x:x, y:y, until:sdWorld.time + 500 });
+												//break; Do not skip anymore - spawn as many as there can be
 											}
 
 											/*let xx = Math.floor( x / 16 );
@@ -3887,11 +3879,30 @@ class sdWeather extends sdEntity
 							if ( sdWeather.last_crystal_near_quake )
 							{
 								sdWorld.last_hit_entity = null;
-								if ( sdWorld.CheckWallExistsBox( x - 4, y + 4, x+16 + 4, y+16 + 4, null, null, [ 'sdBlock' ] ) && ( sdWorld.last_hit_entity === null || ( sdWorld.last_hit_entity.is( sdBlock ) && sdWorld.last_hit_entity.DoesRegenerate() && sdWorld.last_hit_entity._natural ) )  )
+								if ( sdWorld.CheckWallExistsBox( x - 4, y + 4, x+16 + 4, y+16 + 4, null, null, [ 'sdBlock' ] ) && 
+										( sdWorld.last_hit_entity === null || 
+											(	sdWorld.last_hit_entity.is( sdBlock ) && 
+												sdWorld.last_hit_entity.DoesRegenerate() && 
+												sdWorld.last_hit_entity._natural 
+											) 
+										)  
+									)
 								{
-									//sdWeather.last_crystal_near_quake.DamageWithEffect( 15 );
-									if ( sdWeather.last_crystal_near_quake.IsTargetable( this ) )
-									sdWeather.last_crystal_near_quake.DamageWithEffect( 20 );
+									if ( sdWeather.last_crystal_near_quake.is( sdWater ) )
+									{
+										sdWeather.last_crystal_near_quake.remove();
+									}
+									else
+									{
+										//sdWeather.last_crystal_near_quake.DamageWithEffect( 15 );
+										if ( sdWeather.last_crystal_near_quake.IsTargetable( this ) )
+										{
+											sdWeather.last_crystal_near_quake.DamageWithEffect( 20 );
+											
+											// Do not damage something multiple times in a row
+											this._quake_temporary_not_regen_near.push({ x:x, y:y, until:sdWorld.time + 500 });
+										}
+									}
 								}
 							}
 						}
@@ -3909,6 +3920,22 @@ class sdWeather extends sdEntity
 				ent.SetMethod( 'onRemove', ent.onRemoveAsFakeEntity ); // Disable any removal logic BUT without making .onRemove method appearing in network snapshot
 				ent.remove();
 				ent._remove();
+			}
+			
+			if ( this._quake_scheduled_amount > 0 )
+			{
+				this._quake_scheduled_amount -= GSPEED * quake_logic_percentage_done;
+				
+				this.quake_intensity = Math.min( 100, this.quake_intensity + GSPEED * 0.3 );
+			}
+			else
+			if ( this.quake_intensity > 0 )
+			{
+				this.quake_intensity = Math.max( 0, this.quake_intensity - GSPEED * 0.3 );
+				
+				if ( this.quake_intensity <= 0 )
+				if ( this._quake_temporary_not_regen_near.length > 0 )
+				this._quake_temporary_not_regen_near.length = 0;
 			}
 			
 			if ( !this.air )
@@ -3984,7 +4011,7 @@ class sdWeather extends sdEntity
 		if ( ent )
 		//if ( ent.is( sdCrystal ) )
 		if ( !ent._natural )
-		if ( ent.IsTargetable() )
+		if ( ent.IsTargetable() || ent.is( sdWater ) )
 		{
 			sdWeather.last_crystal_near_quake = ent;
 			//return false;

@@ -43,7 +43,7 @@ class sdAsp extends sdEntity
 	// 8 as max dimension so it can fit into one block
 	get hitbox_x1() { return -7; }
 	get hitbox_x2() { return 7; }
-	get hitbox_y1() { return -7; }
+	get hitbox_y1() { return ( this.death_anim === 0 ) ? -7 : -2; }
 	get hitbox_y2() { return ( this.death_anim === 0 ) ? 7 : 3; }
 	
 	get hard_collision() // For world geometry where players can walk
@@ -56,7 +56,7 @@ class sdAsp extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 
-		this._tier = params._tier || 1; // Used determine it's HP and damage
+		this._tier = params._tier || params.tier || 1; // Used to determine its' HP and damage
 		
 		if ( this._tier === 1 )
 		this._hmax = 80;
@@ -84,11 +84,13 @@ class sdAsp extends sdEntity
 		
 		this.attack_an = 0;
 		
+		this._crystal_worth = params.crystal_worth || 0;
+		
 		sdAsp.asps_tot++;
 		
-		this.hue = ~~( Math.random() * 360 );
+		this.hue = params.filter ? 0 : ~~( Math.random() * 360 );
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg) saturate(0.5)';
-		this.filter = 'saturate(0.5)';
+		this.filter = params.filter || 'saturate(0.5)';
 	}
 	onBeforeRemove() // Right when .remove() is called for the first time. This method won't be altered by build tool spawn logic
 	{
@@ -153,22 +155,35 @@ class sdAsp extends sdEntity
 		
 		if ( this._hea <= 0 && was_alive )
 		{
+			if ( this._tier === 2 )
+			{
+				if ( this._crystal_worth > 0 )
+				sdSound.PlaySound({ name:'crystal_crab_death', x:this.x, y:this.y, pitch: 1.2, volume:0.5 });
+			}
+			else
 			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
 			
 			//sdSound.PlaySound({ name:'asp_death', x:this.x, y:this.y, volume: 0.5 });
 
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_EASY_MOB );
 
-			if ( dmg >= this._hmax * 0.5 && this._tier === 1 ) // Instagib, gibs asp into 2 parts ( if you weapon deals enough damage )
+			if ( dmg >= this._hmax * 0.5 && this._tier === 1 ) // Instagib, gibs asp into 2 parts ( if your weapon deals enough damage )
 			{
 				sdWorld.SpawnGib( this.x + ( 4 * this.side ), this.y, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_ASP_GIBS , 'hue-rotate(' + this.hue + 'deg)' + this.filter, 'hue-rotate(' + this.hue + 'deg)' + this.filter, 100, this );
 				sdWorld.SpawnGib( this.x - ( 4 * this.side ), this.y, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_ASP_GIBS , 'hue-rotate(' + this.hue + 'deg)' + this.filter, 'hue-rotate(' + this.hue + 'deg)' + this.filter, 100, this, 1 );
 				this.remove();
 			}
-	
+		}
+		else
+		{
+			if ( was_alive )
+			if ( this._tier === 2 )
+			if ( this._crystal_worth > 0 )
+			sdSound.PlaySound({ name:'crystal_crab_death', x:this.x, y:this.y, pitch: 1.7, volume:0.3 });
 		}
 		
-		if ( this._hea < -this._hmax / 80 * 100 || ( this._hea < 0 && this._tier === 2 ) ) // used to be only " ||this._tier === 2 " which resulted in instant death for Crystal Asps, unintentional - Booraz
+		//if ( this._hea < -this._hmax / 80 * 100 || ( this._hea <= 0 && this._tier === 2 ) ) // used to be only " ||this._tier === 2 " which resulted in instant death for Crystal Asps, unintentional - Booraz
+		if ( this._hea < -this._hmax / 80 * 100 || ( this._hea <= -10 && this._tier === 2 ) ) // Tier 2 will not break on fall
 		this.remove();
 	}
 	get mass() { return 300; }
@@ -180,14 +195,16 @@ class sdAsp extends sdEntity
 		//this.sx += x * 0.01;
 		//this.sy += y * 0.01;
 	}
-	/*Impact( vel ) // fall damage basically
+	Impact( vel ) // fall damage basically. Values below 5 won't be reported due to no-damage area lookup optimization
 	{
-		// less fall damage
-		if ( vel > 10 )
+		if ( this._tier === 2 && this._hea <= 0 )
+		this.DamageWithEffect( Math.max( 10, vel - 3 ) * 15 );
+		else
+		if ( vel > 6 ) // For new mass-based model
 		{
-			this.DamageWithEffect( ( vel - 4 ) * 15 );
+			this.DamageWithEffect( ( vel - 3 ) * 15 );
 		}
-	}*/
+	}
 	onThink( GSPEED ) // Class-specific, if needed
 	{
 		let in_water = sdWorld.CheckWallExists( this.x, this.y, null, null, sdWater.water_class_array );
@@ -324,6 +341,18 @@ class sdAsp extends sdEntity
 				//sdWorld.shuffleArray( nears );
 
 				//let hits_left = 4;
+				
+				let offset = 0;
+				let projectiles = 1;
+				let spread_per_projectile = 0;
+				
+				if ( this._tier === 2 )
+				if ( this._crystal_worth !== 160 ) // Lost effect ones likely
+				{
+					offset = -0.15;
+					projectiles = 3;
+					spread_per_projectile = 0.15;
+				}
 
 				for ( var i = 0; i < nears.length; i++ )
 				{
@@ -357,24 +386,36 @@ class sdAsp extends sdEntity
 						//sdSound.PlaySound({ name:'gun_pistol', x:this.x, y:this.y, volume:0.33, pitch:5 });
 						sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:0.33, pitch:2.8 });
 
-						let bullet_obj = new sdBullet({ x: this.x, y: this.y });
+						for ( let p = 0; p < projectiles; p++ )
+						{
+							let bullet_obj = new sdBullet({ x: this.x, y: this.y });
 
-						bullet_obj._owner = this;
+							bullet_obj._owner = this;
 
-						bullet_obj.sx = dx;
-						bullet_obj.sy = dy;
-						bullet_obj.x += bullet_obj.sx * 3;
-						bullet_obj.y += bullet_obj.sy * 3;
+							bullet_obj.sx = dx;
+							bullet_obj.sy = dy;
+							
+							let a = offset + p * spread_per_projectile;
+							// Rotate
+							let cos = Math.cos( a );
+							let sin = Math.sin( a );
+							let nx = cos * bullet_obj.sx - sin * bullet_obj.sy;
+							bullet_obj.sy = sin * bullet_obj.sx + cos * bullet_obj.sy;
+							bullet_obj.sx = nx;
+							
+							bullet_obj.x += bullet_obj.sx * 3;
+							bullet_obj.y += bullet_obj.sy * 3;
 
-						bullet_obj.sx *= 12;
-						bullet_obj.sy *= 12;
+							bullet_obj.sx *= 12;
+							bullet_obj.sy *= 12;
 
-						bullet_obj._damage = 15;
-						bullet_obj.color = '#00ff00';
-						
-						bullet_obj.model = 'ball_g';
+							bullet_obj._damage = 15;
+							bullet_obj.color = '#00ff00';
 
-						sdEntity.entities.push( bullet_obj );
+							bullet_obj.model = 'ball_g';
+
+							sdEntity.entities.push( bullet_obj );
+						}
 						
 						this.attack_frame = 3;
 						this.attack_an = ( Math.atan2( -dy, Math.abs( dx ) ) ) * 100;
@@ -395,19 +436,19 @@ class sdAsp extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, "Asp" );
+		sdEntity.Tooltip( ctx, ( this._tier === 2 ) ? "Crystal Asp" : 'Asp' ); // This won't work. _tier is not synced
 	}
 	Draw( ctx, attached )
 	{		
-		if ( !sdShop.isDrawing )
-		{
-			ctx.filter = this.filter;
-			
-			if ( sdRenderer.visual_settings === 4 )
+		ctx.filter = this.filter;
+
+		//if ( sdRenderer.visual_settings === 4 )
+		//{
+			if ( !sdShop.isDrawing )
 			ctx.sd_hue_rotation = this.hue;
-			else
-			ctx.filter = 'hue-rotate(' + this.hue + 'deg)' + ctx.filter;
-		}
+		//}
+		//else
+		//ctx.filter = 'hue-rotate(' + this.hue + 'deg)' + ctx.filter;
 
 		let xx = 0;
 		let yy = 0;
@@ -473,6 +514,14 @@ class sdAsp extends sdEntity
 		{
 			let a,s,x,y,k;
 			
+			if ( this._tier === 2 )
+			{
+				if ( this._crystal_worth > 0 )
+				sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.25 });
+				else
+				sdWorld.BasicEntityBreakEffect( this, 3, undefined, undefined, 1.4 );
+			}
+			else
 			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:2 }); // 3 was fine
 			
 			for ( let i = 0; i < 6; i++ )
@@ -493,9 +542,15 @@ class sdAsp extends sdEntity
 				}
 				else
 				{
-					let value_mult = 4;
+					let value_mult = this._crystal_worth / 40;
 					
-					sdWorld.DropShards( this.x,this.y,this.sx,this.sy, 3, value_mult, 3 );
+					//if ( this._crystal_worth > 0 )
+					//{
+						//sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.25 });
+						sdWorld.DropShards( this.x,this.y,this.sx,this.sy, 3, value_mult, 3 );
+					//}
+					//else
+					//sdWorld.BasicEntityBreakEffect( this, 3, undefined, undefined, 1.4 );
 				}
 			}
 		}

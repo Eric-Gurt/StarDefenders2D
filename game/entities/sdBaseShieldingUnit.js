@@ -1421,7 +1421,7 @@ class sdBaseShieldingUnit extends sdEntity
 	
 		if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
 		{
-			sdEntity.TooltipUntranslated( ctx, this.title + " ( " + ~~(this.matter_crystal) + " / "+sdBaseShieldingUnit.score_timed_max_capacity+" )", 0, -8 );
+			sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter_crystal) + " / "+sdWorld.RoundedThousandsSpaces(sdBaseShieldingUnit.score_timed_max_capacity)+" )", 0, -8 );
 			
 			let days = ~~( this.matter_crystal / 500 );
 			let hours = ~~( ( this.matter_crystal - days * 500 ) / 500 * 24 );
@@ -1430,11 +1430,11 @@ class sdBaseShieldingUnit extends sdEntity
 		}
 		else
 		if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
-		sdEntity.TooltipUntranslated( ctx, this.title + " ( " + ~~(this.matter_crystal) + " )" );
+		sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter_crystal) + " )" );
 		else
 		if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
 		{
-			sdEntity.TooltipUntranslated( ctx, this.title + " ( " + ~~(this.matter) + " / " + ~~(this.matter_max) + " )", 0, -8 );
+			sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " )", 0, -8 );
 			
 			let allow_protection_claim_str = 
 				sdBaseShieldingUnit.enable_nearby_claiming ? 
@@ -1458,7 +1458,7 @@ class sdBaseShieldingUnit extends sdEntity
 			}
 			else
 			{
-				sdEntity.TooltipUntranslated( ctx, this.title + " ( " + ~~(this.matter) + " / "+ ~~(this.matter_max) +" )", 0, -8 );
+				sdEntity.TooltipUntranslated( ctx, this.title + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / "+ sdWorld.RoundedThousandsSpaces(this.matter_max) +" )", 0, -8 );
 				sdEntity.TooltipUntranslated( ctx, T('Damage reduction') + ': ' + Math.round( this.MeasureProtectionPercentage() * 100 * 1000 ) / 1000 + '% ( '+T('level')+' '+this.level+' )', 0, 0, '#66ff66' );
 			}
 		
@@ -1791,10 +1791,13 @@ class sdBaseShieldingUnit extends sdEntity
 					this.AddContextOption( 'Rescan entities', 'SHIELD_RESCAN', [] );
 				}
 
-				if ( !this.auto_level_up )
-				this.AddContextOption( 'Enable automatic upgrading', 'AUTO_LEVEL_UP', [] );
-				else
-				this.AddContextOption( 'Stop automatic upgrading', 'AUTO_LEVEL_UP', [] );
+				if ( this.type === sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE )
+				{
+					if ( !this.auto_level_up )
+					this.AddContextOption( 'Enable automatic upgrading', 'AUTO_LEVEL_UP', [] );
+					else
+					this.AddContextOption( 'Stop automatic upgrading', 'AUTO_LEVEL_UP', [] );
+				}
 
 
 				if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED || 

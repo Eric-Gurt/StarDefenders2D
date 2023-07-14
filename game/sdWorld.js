@@ -142,6 +142,8 @@ class sdWorld
 		};*/
 		sdWorld.base_ground_level = 0;//-256;
 		
+		sdWorld.fill_ground_quad_cache = null;//[];
+		
 		sdWorld.last_simulated_entity = null; // Used by sdDeepSleep debugging so far
 		
 		
@@ -741,10 +743,38 @@ class sdWorld
 		var r2 = 30;
 		var r2_plus = r2 + 1;
 		
-		for ( var xx = -r2; xx <= r2; xx++ )
-		for ( var yy = -r2 * 4; yy <= r2 * 4; yy++ )
+		let yy_min = -r2 * 4;
+		let yy_max =  r2 * 4;
+		
+		if ( sdWorld.fill_ground_quad_cache === null )
+		{
+			sdWorld.fill_ground_quad_cache = [];
+			
+			for ( var xx = -r2; xx <= r2; xx++ )
+			for ( var yy = yy_min; yy <= yy_max; yy++ )
+			{
+				sdWorld.fill_ground_quad_cache.push( sdWorld.inDist2D_Boolean( xx, yy / 4, 0, 0, r2_plus ) );
+			}
+		}
+		
+		/*for ( var xx = -r2; xx <= r2; xx++ )
+		for ( var yy = yy_min; yy <= yy_max; yy++ )
 		{
 			if ( sdWorld.inDist2D_Boolean( xx, yy / 4, 0, 0, r2_plus ) )
+			{
+				s4 += sdWorld.SeededRandomNumberGenerator.random( x + xx * 8 + 1024 * 3, y + yy * 8 - 1024 * 3 );
+				s4_tot += 1;
+			}
+		}*/
+		
+		let arr = sdWorld.fill_ground_quad_cache;
+		let hash_id = 0;
+		
+		for ( var xx = -r2; xx <= r2; xx++ )
+		for ( var yy = yy_min; yy <= yy_max; yy++ )
+		{
+			//if ( sdWorld.inDist2D_Boolean( xx, yy / 4, 0, 0, r2_plus ) )
+			if ( arr[ hash_id++ ] )
 			{
 				s4 += sdWorld.SeededRandomNumberGenerator.random( x + xx * 8 + 1024 * 3, y + yy * 8 - 1024 * 3 );
 				s4_tot += 1;
@@ -773,7 +803,8 @@ class sdWorld
 		}
 		//debugger;
 	
-	
+		let icy = ( s4 < 0.5 - 0.001 );
+		
 	
 		let material = sdBlock.MATERIAL_GROUND;
 		let f;// = 'hue-rotate('+( ~~sdWorld.mod( x / 16, 360 ) )+'deg)';
@@ -868,31 +899,6 @@ class sdWorld
 				}
 			}
 			
-			let plants = null;
-			let plants_objs = null;
-
-			//if ( material === sdBlock.MATERIAL_GROUND )
-			if ( !only_plantless_block )
-			if ( y === from_y )
-			if ( y <= sdWorld.base_ground_level )
-			{
-
-				let grass = new sdGrass({ x:x, y:y - 16, filter:f });
-				
-				grass.variation = sdWorld.GetFinalGrassHeight( x );
-
-				sdEntity.entities.push( grass );
-
-				if ( plants === null )
-				{
-					plants = [];
-					plants_objs = [];
-				}
-
-				plants.push( grass._net_id );
-				plants_objs.push( grass );
-			}
-			
 			let potential_crystal = ( y > 1500 ) ? 'sdCrystal.really_deep' : ( ( y > from_y + 256 ) ? 'sdCrystal.deep' : 'sdCrystal' );
 			
 			if ( Math.random() < 0.1 )
@@ -913,6 +919,52 @@ class sdWorld
 			{
 				if ( contains_class === 'sdWater.lava' )
 				contains_class = 'sdWater.water';
+			}
+			
+			
+			
+			let plants = null;
+			let plants_objs = null;
+			
+			let will_break_on_touch = ( contains_class === 'weak_ground' || contains_class === 'sdVirus' || contains_class === 'sdQuickie' || contains_class === 'sdBiter' || contains_class === 'sdSlug' || contains_class === 'sdFaceCrab' );
+
+			//if ( material === sdBlock.MATERIAL_GROUND )
+			if ( !only_plantless_block )
+			if ( y === from_y )
+			if ( y <= sdWorld.base_ground_level )
+			if ( !icy )
+			{
+				if ( plants === null )
+				{
+					plants = [];
+					plants_objs = [];
+				}
+				
+				if ( Math.random() < 0.2 && !will_break_on_touch )
+				{
+					let bush = new sdGrass({ x:x + 16 / 2, y:y, filter:f, variation:sdGrass.VARIATION_BUSH });
+					sdEntity.entities.push( bush );
+
+					plants.push( bush._net_id );
+					plants_objs.push( bush );
+				}
+				else
+				{
+					let grass = new sdGrass({ x:x, y:y - 16, filter:f, variation:sdWorld.GetFinalGrassHeight( x ) });
+					sdEntity.entities.push( grass );
+
+					plants.push( grass._net_id );
+					plants_objs.push( grass );
+
+					if ( Math.random() < 0.2 && !will_break_on_touch )
+					{
+						let tree = new sdGrass({ x:x + 16 / 2, y:y, filter:f, variation:( Math.random() < 0.2 ) ? sdGrass.VARIATION_TREE_BARREN : sdGrass.VARIATION_TREE });
+						sdEntity.entities.push( tree );
+
+						plants.push( tree._net_id );
+						plants_objs.push( tree );
+					}
+				}
 			}
 							
 			ent = new sdBlock({ 
@@ -970,11 +1022,9 @@ class sdWorld
 			//sdWater.SpawnWaterHere( x, y, (y===sdWorld.base_ground_level)?0.5:1 );
 		}
 		
-		
-		
 		if ( ent )
 		{
-			if ( s4 < 0.5 - 0.001 )
+			if ( icy )
 			{
 				ent.filter = 'saturate(0.3)';
 				ent.br *= 4;
@@ -1052,8 +1102,13 @@ class sdWorld
 					throw new Error( 'ChangeWorldBounds: Bad sdDeepSleep size' );
 				}
 				
+				let xx2 = x + w;
+				let yy2 = y + h;
+				
+				for ( let xx = x; xx < xx2; xx += sdDeepSleep.normal_cell_size )
+				for ( let yy = y; yy < yy2; yy += sdDeepSleep.normal_cell_size )
 				sdEntity.entities.push( new sdDeepSleep({
-					x:x, y:y, w:w, h:h, type: sdDeepSleep.TYPE_UNSPAWNED_WORLD
+					x:xx, y:yy, w:sdDeepSleep.normal_cell_size, h:sdDeepSleep.normal_cell_size, type: sdDeepSleep.TYPE_UNSPAWNED_WORLD
 				}) );
 			}
 			
@@ -1475,7 +1530,7 @@ class sdWorld
 		let extra_affected_chars = [];
 		
 		//console.log('send effect');
-	
+		
 		if ( params.attachment )
 		{
 			//console.log('.attachment found');
@@ -1489,27 +1544,34 @@ class sdWorld
 				{
 					params.text = 'CC-' + params.attachment.driver_of.biometry + ': ' + params.text;
 					
-					//sdCommandCentre.centres
-					for ( let i = 0; i < sdCommandCentre.centres.length; i++ )
-					{
-						const cc = sdCommandCentre.centres[ i ];
+					delete params.x;
+					delete params.y;
+					
+					params.char_di = 1000; // At the top of the screen
+					params.attachment = null; // Discard attachment info
+					
+					
+					//for ( let i = 0; i < sdCommandCentre.centres.length; i++ )
+					//{
+						//const cc = sdCommandCentre.centres[ i ];
 						
-						//sdWorld.GetCharactersNear( sdCommandCentre.centres[ i ].x, sdCommandCentre.centres[ i ].y, extra_affected_chars, coms_near[ i ].subscribers ); Slow
-						
+						//if ( sdWorld.inDist2D_Boolean( cc.x, cc.y, params.attachment.driver_of.x, params.attachment.driver_of.y, params.attachment.driver_of.signal_strength ) )
 						for ( let i2 = 0; i2 < sdCharacter.characters.length; i2++ )
 						{
 							const c = sdCharacter.characters[ i2 ];
 							
 							if ( c._socket )
-							if ( sdWorld.inDist2D_Boolean( cc.x, cc.y, c.x, c.y, 5000 ) )
+							//if ( sdWorld.inDist2D_Boolean( cc.x, cc.y, c.x, c.y, cc.signal_strength ) )
 							{
+								if ( extra_affected_chars.indexOf( c ) === -1 )
 								extra_affected_chars.push( c );
 							}
 						}
-					}
+					//}
 				}
 			}
 			
+			if ( params.attachment ) // If it still wasn't discarded earlier
 			params.attachment = [ params.attachment.GetClass(), params.attachment._net_id ];
 		}
 		
@@ -1672,6 +1734,13 @@ class sdWorld
 			{
 				params.channel = [ params.channel.entity._net_id, params.channel.uid ]; // Only send _net_id of entity and local uid if a channel
 			}
+			
+			//params.CH_DI = 1;
+			
+			//params.CH_DI = sdWorld.Dist2D_Vector( params.x, params.y );
+			
+			//delete params.x;
+			//delete params.y;
 		}
 
 		for ( var i = 0; i < socket_arr.length; i++ )
@@ -1683,7 +1752,7 @@ class sdWorld
 				if ( socket.character && !socket.character._god )
 				continue;
 			}
-
+			
 			if ( 
 				 ( socket.character && socket.character.hea > 0 && 
 				   extra_affected_chars.indexOf( socket.character ) !== -1 ) ||
@@ -1695,6 +1764,23 @@ class sdWorld
 				   sdWorld.CanSocketSee( socket, params.x2, params.y2 ) ) ) // rails
 			{
 				//socket.emit( command, params );
+
+				if ( command === 'S' )
+				{
+					if ( !socket.character )
+					continue;
+				
+					let params_copy = Object.assign( {}, params );
+					
+					delete params_copy.x;
+					delete params_copy.y;
+					
+					params_copy.char_di = sdWorld.Dist2D( socket.camera.x, socket.camera.y, params.x, params.y );
+					
+					params_copy.char_di = Math.max( 0, params_copy.char_di + params_copy.char_di * ( Math.random() - 0.5 ) * 0.25 );
+					
+					arr[ 1 ] = params_copy;
+				}
 				
 				socket.sd_events.push( arr );
 			}
@@ -2295,7 +2381,13 @@ class sdWorld
 			
 			for ( let i = 0; i < ALTERNATIVE_METHODS.length; i++ )
 			{
-				delete prototype[ ALTERNATIVE_METHODS[ i ].name ];
+				try
+				{
+					delete prototype[ ALTERNATIVE_METHODS[ i ].name ];
+				}
+				catch ( e )
+				{
+				}
 			}
 			
 			console.log( 'prototype.' + CURRENT_METHOD.name + ' method replaced with version[' + smallest_i + ']', arr );
@@ -4219,6 +4311,8 @@ class sdWorld
 			}
 		};
 		
+		sdWorld.server_config.ModifyTerrainEntity = ( v )=>v;
+		
 		sdWorld.is_server = true; 
 		sdWorld.is_singleplayer = true; 
 		globalThis.sockets = sdWorld.sockets = [
@@ -4540,7 +4634,15 @@ class sdWorld
 		let r = Math.random() * arr.length;
 		return arr[ ~~r ];
 	}
-	
+	static RoundedThousandsSpaces( v )
+	{
+		let s = Math.floor( v ) + '';
+		
+		for ( let i = s.length - 3; i > 0; i -= 3 )
+		s = s.substring( 0, i ) + ' ' + s.substring( i );
+		
+		return s;
+	}
 	
 	static GetDrawOperations( ent ) // Method that is used to collect draw logic for later to be used in sdLost
 	{

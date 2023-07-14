@@ -170,6 +170,9 @@ class sdSteeringWheel extends sdEntity
 		this._hea = 800 * 4;
 		this._hmax = 800 * 4;
 		
+		this.matter = 500;
+		this.matter_max = 500;
+		
 		this._regen_timeout = 0;
 		
 		this.driver0 = null;
@@ -579,6 +582,22 @@ class sdSteeringWheel extends sdEntity
 				
 					//let speed = Math.min( 1, this._speed / 4 );
 					let speed = Math.min( 2, this._speed / 4 );
+					
+					let matter_cost = sdWorld.Dist2D_Vector( 
+							this.driver0.act_x * GSPEED * 0.25 * speed,
+							this.driver0.act_y * GSPEED * 0.25 * speed );
+							
+					if ( this.matter - matter_cost < 0 )
+					{
+						speed = 0;
+						
+						if ( this.driver0._socket )
+						this.driver0._socket.SDServiceMessage( 'Steering wheel is out of matter. Connect steering wheel to matter sources via cable management tool.' );
+					}
+					else
+					{
+						this.matter -= matter_cost;
+					}
 
 					this.vx += this.driver0.act_x * GSPEED * 0.25 * speed;
 					this.vy += this.driver0.act_y * GSPEED * 0.25 * speed;
@@ -968,7 +987,7 @@ class sdSteeringWheel extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, this.title );
+		sdEntity.Tooltip( ctx, this.title + ' ( '+this.matter+' / '+this.matter_max+' )' );
 	}
 	Draw( ctx, attached )
 	{

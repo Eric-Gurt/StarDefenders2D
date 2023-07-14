@@ -30,6 +30,7 @@ class sdButton extends sdEntity
 		sdButton.TYPE_FLOOR_SENSOR = 1;
 		sdButton.TYPE_WALL_SENSOR = 2;
 		sdButton.TYPE_WALL_MATTER_SENSOR = 3;
+		// If you are going to make new button visual variations - make some kind of texture_id property instead of copying types
 		
 		// These are indices in array
 		sdButton.FILTER_OPTION_CURRENT = 0; // Can be mass or matter
@@ -140,6 +141,8 @@ class sdButton extends sdEntity
 		this._regen_timeout = 0;
 		this.activated = false;
 		
+		this.react_to_doors = false;
+		
 		//this.owner_biometry = -1;
 		
 		this._shielded = null; // Is this entity protected by a base defense unit?
@@ -160,7 +163,7 @@ class sdButton extends sdEntity
 	{
 		if ( this.type === sdButton.TYPE_FLOOR_SENSOR || this.type === sdButton.TYPE_WALL_SENSOR || this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
 		if ( from_entity.IsBGEntity() === 0 )
-		if ( !from_entity.is( sdDoor ) )
+		if ( this.react_to_doors || !from_entity.is( sdDoor ) )
 		if ( !from_entity.is( sdBlock ) )
 		{
 			if ( this._overlapped_net_ids.indexOf( from_entity._net_id ) === -1 )
@@ -284,7 +287,14 @@ class sdButton extends sdEntity
 		}
 		
 		if ( sdWorld.is_server )
-		this.SetActivated( this.IsFilterConditionsMet() );
+		{
+			if ( this.type === sdButton.TYPE_WALL_BUTTON )
+			{
+				// These should not auto-activate
+			}
+			else
+			this.SetActivated( this.IsFilterConditionsMet() );
+		}
 		
 		if ( this._overlapped_net_ids.length === 0 && this._hea >= this._hmax )
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );
@@ -515,6 +525,14 @@ class sdButton extends sdEntity
 				this.SetActivated( false );
 			}
 			
+			if ( command_name === 'TOGGLE_DOOR_REACTION' )
+			{
+				this.react_to_doors = !this.react_to_doors;
+				
+				this._update_version++;
+				this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+			}
+			
 			if ( this.filter )
 			{
 				if ( command_name === 'SET_FILTER_CONDITION' )
@@ -559,6 +577,16 @@ class sdButton extends sdEntity
 
 				//this.AddContextOption( 'Register Keycard', 'REGISTER_KEYCARD', [ undefined ] )
 			}
+			
+
+			if ( this.type === sdButton.TYPE_FLOOR_SENSOR || this.type === sdButton.TYPE_WALL_SENSOR )
+			{
+				if ( this.react_to_doors )
+				this.AddContextOption( 'Disable door reaction', 'TOGGLE_DOOR_REACTION', [] );
+				else
+				this.AddContextOption( 'Enable door reaction', 'TOGGLE_DOOR_REACTION', [] );
+			}
+
 			
 			if ( this.filter )
 			{

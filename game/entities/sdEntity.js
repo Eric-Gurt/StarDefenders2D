@@ -1,6 +1,5 @@
 
 
-
 /* global sdSound, sdContextMenu, sdRenderer, globalThis, sdChat */
 
 import sdWorld from '../sdWorld.js';
@@ -368,11 +367,17 @@ class sdEntity
 	get is_static() // Static world objects like walls, creation and destruction events are handled manually. Do this._update_version++ to update these.
 	{ return false; }
 	
+	IsInSafeArea()
+	{
+		return !sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x + ( this._hitbox_x1 + this._hitbox_x2 ) / 2, this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2 );
+	}
+	
 	IsTargetable( by_entity=null, ignore_safe_areas=false ) // Guns are not targetable when held, same for sdCharacters that are driving something
 	{
 		if ( !ignore_safe_areas )
 		if ( !by_entity || !by_entity._admin_picker )
-		if ( !sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x + ( this._hitbox_x1 + this._hitbox_x2 ) / 2, this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2 ) )
+		//if ( !sdWorld.entity_classes.sdArea.CheckPointDamageAllowed( this.x + ( this._hitbox_x1 + this._hitbox_x2 ) / 2, this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2 ) )
+		if ( this.IsInSafeArea() )
 		return false;
 		
 		if ( this.IsAdminEntity() )
@@ -731,6 +736,16 @@ class sdEntity
 
 		this._phys_sleep = 10;
 	}
+	/*ForcePhysSleep( on_entity )
+	{
+		if ( typeof this._phys_last_touch === 'undefined' ) // Do not wake up non-physical bodies, such as sdAsteroid
+		return;
+	
+		this.PhysInitIfNeeded();
+
+		this._phys_sleep = 0;
+		this._phys_last_rest_on = on_entity;
+	}*/
 	/*SharePhysAwake( hit_what )
 	{
 		if ( ( typeof this.sx !== 'undefined' && typeof this.sy !== 'undefined' ) || this._is_being_removed )
@@ -2417,6 +2432,11 @@ class sdEntity
 	{
 		return 1; // sdEffect.TYPE_WALL_HIT; unavailable due to early init
 	}
+	GetBleedEffectDamageMultiplier()
+	{
+		//return this.GetBleedEffect(); // But GetBleedEffect returns sdEffect.TYPE_WALL_HIT ID rather than multiplier. It could break in case if sdEffect.TYPE_WALL_HIT was replaced with newer version
+		return 1;
+	}
 	GetBleedEffectHue()
 	{
 		return 0;
@@ -3927,6 +3947,12 @@ class sdEntity
 		if ( typeof snapshot.mission !== 'undefined' )
 		params.mission = snapshot.mission;
 		
+		if ( typeof snapshot.variation !== 'undefined' ) // Grass, needs for timers
+		params.variation = snapshot.variation;
+		
+		if ( typeof snapshot._natural !== 'undefined' ) // For proper dirt counting
+		params.natural = snapshot._natural;
+		
 		//var ret = new sdWorld.entity_classes[ snapshot._class ]({ x:snapshot.x, y:snapshot.y });
 		var ret = new sdWorld.entity_classes[ snapshot._class ]( params );
 		//ret._net_id = snapshot._net_id;
@@ -4887,7 +4913,8 @@ class sdEntity
 		
 		this.onRemove();
 		
-		this.RemoveAllDrivers();
+		this.ExcludeAllDrivers();
+		//this.RemoveAllDrivers();
 		
 		this.ManageTrackedPhysWakeup();
 		

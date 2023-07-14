@@ -326,8 +326,32 @@ class sdWater extends sdEntity
 				return false;
 			}*/
 			
-			if ( another.type === this.type )
+			if ( another.type === this.type || 
+				 ( Math.min( another.type, this.type ) === sdWater.TYPE_WATER && Math.max( another.type, this.type ) === sdWater.TYPE_ACID ) // Let acid blend with water
+			)
 			{
+				if ( another.type !== this.type )
+				{
+					// Volume-based blend
+					
+					let morph = this._volume / ( this._volume + another._volume );
+					
+					let new_type = ( morph < 0.4 + Math.random() * 0.2 ) ? this.type : another.type;
+					
+					if ( another.type !== new_type )
+					{
+						another.type = new_type;
+						another._update_version++;
+						another.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					}
+					if ( this.type !== new_type )
+					{
+						this.type = new_type;
+						this._update_version++;
+						//this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+					}
+				}
+				
 				if ( this._volume + another._volume <= 1 )
 				{
 					another._volume += this._volume;
@@ -491,6 +515,8 @@ class sdWater extends sdEntity
 		
 		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 		{
+			let capped_GSPEED = Math.min( 1, GSPEED );
+			
 			if ( this._client_vel > 1 )
 			this._client_vel = 1;
 			else
@@ -498,16 +524,16 @@ class sdWater extends sdEntity
 			this._client_vel = -1;
 	
 			this._client_vel = sdWorld.MorphWithTimeScale( this._client_vel, 0, 0.9, GSPEED );
-			this._client_y += this._client_vel * GSPEED;
+			this._client_y += this._client_vel * capped_GSPEED;
 			
 			
-			this._client_vel -= this._client_y * 0.5 * GSPEED;
+			this._client_vel -= this._client_y * 0.5 * capped_GSPEED;
 			let w2 = sdWater.GetWaterObjectAt( this.x - 16, this.y );
 			if ( w2 )
-			w2._client_vel += this._client_y * 0.1 * GSPEED;
+			w2._client_vel += this._client_y * 0.1 * capped_GSPEED;
 			let w3 = sdWater.GetWaterObjectAt( this.x + 16, this.y );
 			if ( w3 )
-			w3._client_vel += this._client_y * 0.1 * GSPEED;
+			w3._client_vel += this._client_y * 0.1 * capped_GSPEED;
 			
 			
 			

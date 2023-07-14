@@ -934,478 +934,504 @@ class sdDeepSleep extends sdEntity
 	onBuilt()
 	{
 		if ( sdWorld.is_server )
-		if ( this.type === sdDeepSleep.TYPE_HIBERNATED_WORLD )
 		{
-			let t = sdDeepSleep.debug_times ? Date.now() : 0;
-			let serialization_per_class_times = sdDeepSleep.debug_times ? {} : 0;
-			
-			const ProvidePerformanceReport = sdDeepSleep.debug_times ? ( aborted )=>
+			if ( this.type === sdDeepSleep.TYPE_HIBERNATED_WORLD )
 			{
-				let t2 = Date.now();
-				
-				if ( t2 - t > 50 )
+				let t = sdDeepSleep.debug_times ? Date.now() : 0;
+				let serialization_per_class_times = sdDeepSleep.debug_times ? {} : 0;
+
+				const ProvidePerformanceReport = sdDeepSleep.debug_times ? ( aborted )=>
 				{
-					trace( 'sdDeepSleep.onBuilt time: ' + ( t2 - t ) + ( aborted ? ' (aborted)' : '' ) );
-					trace( 'Serialization times by class:', serialization_per_class_times );
-					debugger;
-				}
-				
-			} : ()=>{};
-			
-			if ( sdDeepSleep.debug_cell && this.x === sdDeepSleep.debug_cell_x && this.y === sdDeepSleep.debug_cell_y )
-			trace( 'onBuilt()', { _net_id:this._net_id, w:this.w, h:this.h, type:this.type, _file_exists:this._file_exists, _snapshots_str:this._snapshots_str.length } );
-			
-			//trace( 'Generating hibernated area...' );
-			
-			//let entity_once = new Set();
-			
-			//entity_once.add( this ); // Ignore itself
-			
-			const visited_ent_flag = sdEntity.GetUniqueFlagValue();
-			const all_entities = [];
-			
-			this._flag = visited_ent_flag;
-			
-			let bounds_moved = true;
-			
-			let _x = this.x;
-			let _x2 = this.x + this.w;
-			let _y = this.y;
-			let _y2 = this.y + this.h;
-			
-			let area = 0;
-				
-			let dependences = [];
-			
-			let all_dependences = null;
-			
-			if ( sdDeepSleep.debug_dependences )
-			all_dependences = [];
-			
-			//let scheduled_sleep_areas_to_cancel = [];
-			
-			const HandleEntity = ( e )=>
-			{
-				//if ( entity_once.has( e ) )
-				if ( e._flag === visited_ent_flag )
+					let t2 = Date.now();
+
+					if ( t2 - t > 50 )
+					{
+						trace( 'sdDeepSleep.onBuilt time: ' + ( t2 - t ) + ( aborted ? ' (aborted)' : '' ) );
+						trace( 'Serialization times by class:', serialization_per_class_times );
+						debugger;
+					}
+
+				} : ()=>{};
+
+				if ( sdDeepSleep.debug_cell && this.x === sdDeepSleep.debug_cell_x && this.y === sdDeepSleep.debug_cell_y )
+				trace( 'onBuilt()', { _net_id:this._net_id, w:this.w, h:this.h, type:this.type, _file_exists:this._file_exists, _snapshots_str:this._snapshots_str.length } );
+
+				//trace( 'Generating hibernated area...' );
+
+				//let entity_once = new Set();
+
+				//entity_once.add( this ); // Ignore itself
+
+				const visited_ent_flag = sdEntity.GetUniqueFlagValue();
+				const all_entities = [];
+
+				this._flag = visited_ent_flag;
+
+				let bounds_moved = true;
+
+				let _x = this.x;
+				let _x2 = this.x + this.w;
+				let _y = this.y;
+				let _y2 = this.y + this.h;
+
+				let area = 0;
+
+				let dependences = [];
+
+				let all_dependences = null;
+
+				if ( sdDeepSleep.debug_dependences )
+				all_dependences = [];
+
+				//let scheduled_sleep_areas_to_cancel = [];
+
+				const HandleEntity = ( e )=>
 				{
-				}
-				else
-				if ( this.DoesOverlapWith( e ) )
-				{
-					e._flag = visited_ent_flag;
-				
-					if ( e.is( sdWeather ) )
-					return false;
-					
-					if ( e._is_being_removed )
-					return false;
+					//if ( entity_once.has( e ) )
+					if ( e._flag === visited_ent_flag )
+					{
+					}
+					else
+					if ( this.DoesOverlapWith( e ) )
+					{
+						e._flag = visited_ent_flag;
 
-					if ( 
-							( e.IsPlayerClass() && e._socket ) || // No online players
-							( e.is( sdLongRangeTeleport ) && e.is_server_teleport ) || // No server teleports (unless regular telepors will be available for in-world teleportation at some point?)
-							e.is( sdRescueTeleport ) || // It looks like there is no simple solution at all for these...
-							e.is( sdBeacon ) || // It looks like there is no simple solution at all for these...
-							!sdWorld.server_config.AllowAggressiveHibernationFor( e )
-						)
-					{
-						if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
-						{
-							if ( ( e.IsPlayerClass() && e._socket ) )
-							trace( 'sdDeepSleep hibernation refused: Cell contains connected player ('+e._net_id+')', _x, _y, _x2, _y2 );
-							else
-							if ( ( e.is( sdLongRangeTeleport ) && e.is_server_teleport ) )
-							trace( 'sdDeepSleep hibernation refused: Cell contains sdLongRangeTeleport that is also .is_server_teleport ('+e._net_id+')', _x, _y, _x2, _y2 );
-							else
-							if ( e.is( sdRescueTeleport ) )
-							trace( 'sdDeepSleep hibernation refused: Cell contains sdRescueTeleport ('+e._net_id+')', _x, _y, _x2, _y2 );
-							else
-							if ( e.is( sdBeacon ) )
-							trace( 'sdDeepSleep hibernation refused: Cell contains sdBeacon ('+e._net_id+')', _x, _y, _x2, _y2 );
-							else
-							if ( !sdWorld.server_config.AllowAggressiveHibernationFor( e ) )
-							trace( 'sdDeepSleep hibernation refused: Cell contains entity filtered by AllowAggressiveHibernationFor ('+e.GetClass()+', '+e._net_id+')', _x, _y, _x2, _y2 );
-							else
-							trace( 'sdDeepSleep hibernation refused: - Unspecified -', _x, _y, _x2, _y2 );
-						}
-						
-						this.remove();
-						return true;
-					}
-					
-					// Sleep cells do not matter
-					if ( e.is( sdDeepSleep ) )
-					{
-						if ( e.type === sdDeepSleep.TYPE_SCHEDULED_SLEEP )
-						{
-							return false;
-						}
-						else
-						if ( e._snapshots_str === '' && e._snapshots_objects === null )
-						{
-							// Accept these
-						}
-						else
-						{
-							// Hibernated sdDeepSleep yet it keeps objects/snapshot in memory - we don't want to merge these really
-							return false;
-						}
-					}
-					
-					
-					all_entities.push( e );
-					
-					let ext_x1 = e._hitbox_x1;
-					let ext_x2 = e._hitbox_x2;
-					let ext_y1 = e._hitbox_y1;
-					let ext_y2 = e._hitbox_y2;
-					
-					// Radius extensions for entities that have reaction range
-					let r = 0;
-					
-					if ( e.is( sdTurret ) )
-					{
-						r = e.GetTurretRange();
-					}
-					else
-					if ( e.is( sdCrystal ) )
-					{
-						if ( e.is_anticrystal )
-						r = 100;
-						else
-						r = 30;
-					}
-					else
-					if ( e.is( sdBaseShieldingUnit ) )
-					{
-						if ( e.enabled )
-						r = sdBaseShieldingUnit.protect_distance_stretch;
-					}
-					else
-					if ( e.is( sdAntigravity ) )
-					{
-						if ( e.power > 0 )
-						ext_y1 = -16 * 16;
-						else
-						if ( e.power === -1 )
-						ext_y1 = -3 * 16;
-					}
-					else
-					if ( e.is( sdDoor ) )
-					{
-						r = 16 + 32;
-					}
-					else
-					if ( e.is( sdTzyrgAbsorber ) )
-					{
-						r = sdTzyrgAbsorber.effect_radius;
-					}
-					
-					if ( r !== 0 )
-					{
-						ext_x1 = e.x - r;
-						ext_x2 = e.x + r;
-						ext_y1 = e.y - r;
-						ext_y2 = e.y + r;
-					}
+						if ( e.is( sdWeather ) )
+						return false;
 
-					_x = Math.floor( Math.min( _x, e.x + ext_x1 ) / 16 ) * 16;
-					_x2 = Math.ceil( Math.max( _x2, e.x + ext_x2 ) / 16 ) * 16;
-					_y = Math.floor( Math.min( _y, e.y + ext_y1 ) / 16 ) * 16;
-					_y2 = Math.ceil( Math.max( _y2, e.y + ext_y2 ) / 16 ) * 16;
-					
-					// Try to catch moving objects and merge them all together
-					if ( typeof e.sx !== 'undefined' )
-					if ( typeof e.sy !== 'undefined' )
-					{
-						if ( sdWorld.inDist2D_Boolean( e.sx, e.sy, 0,0, 1 ) )
+						if ( e._is_being_removed )
+						return false;
+
+						if ( 
+								( e.IsPlayerClass() && e._socket ) || // No online players
+								( e.is( sdLongRangeTeleport ) && e.is_server_teleport ) || // No server teleports (unless regular telepors will be available for in-world teleportation at some point?)
+								e.is( sdRescueTeleport ) || // It looks like there is no simple solution at all for these...
+								e.is( sdBeacon ) || // It looks like there is no simple solution at all for these...
+								!sdWorld.server_config.AllowAggressiveHibernationFor( e )
+							)
 						{
-							
+							if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
+							{
+								if ( ( e.IsPlayerClass() && e._socket ) )
+								trace( 'sdDeepSleep hibernation refused: Cell contains connected player ('+e._net_id+')', _x, _y, _x2, _y2 );
+								else
+								if ( ( e.is( sdLongRangeTeleport ) && e.is_server_teleport ) )
+								trace( 'sdDeepSleep hibernation refused: Cell contains sdLongRangeTeleport that is also .is_server_teleport ('+e._net_id+')', _x, _y, _x2, _y2 );
+								else
+								if ( e.is( sdRescueTeleport ) )
+								trace( 'sdDeepSleep hibernation refused: Cell contains sdRescueTeleport ('+e._net_id+')', _x, _y, _x2, _y2 );
+								else
+								if ( e.is( sdBeacon ) )
+								trace( 'sdDeepSleep hibernation refused: Cell contains sdBeacon ('+e._net_id+')', _x, _y, _x2, _y2 );
+								else
+								if ( !sdWorld.server_config.AllowAggressiveHibernationFor( e ) )
+								trace( 'sdDeepSleep hibernation refused: Cell contains entity filtered by AllowAggressiveHibernationFor ('+e.GetClass()+', '+e._net_id+')', _x, _y, _x2, _y2 );
+								else
+								trace( 'sdDeepSleep hibernation refused: - Unspecified -', _x, _y, _x2, _y2 );
+							}
+
+							this.remove();
+							return true;
+						}
+
+						// Sleep cells do not matter
+						if ( e.is( sdDeepSleep ) )
+						{
+							if ( e.type === sdDeepSleep.TYPE_SCHEDULED_SLEEP )
+							{
+								return false;
+							}
+							else
+							if ( e._snapshots_str === '' && e._snapshots_objects === null )
+							{
+								// Accept these
+							}
+							else
+							{
+								// Hibernated sdDeepSleep yet it keeps objects/snapshot in memory - we don't want to merge these really
+								return false;
+							}
+						}
+
+
+						all_entities.push( e );
+
+						let ext_x1 = e._hitbox_x1;
+						let ext_x2 = e._hitbox_x2;
+						let ext_y1 = e._hitbox_y1;
+						let ext_y2 = e._hitbox_y2;
+
+						// Radius extensions for entities that have reaction range
+						let r = 0;
+
+						if ( e.is( sdTurret ) )
+						{
+							r = e.GetTurretRange();
+						}
+						else
+						if ( e.is( sdCrystal ) )
+						{
+							if ( e.is_anticrystal )
+							r = 100;
+							else
+							r = 30;
+						}
+						else
+						if ( e.is( sdBaseShieldingUnit ) )
+						{
+							if ( e.enabled )
+							r = sdBaseShieldingUnit.protect_distance_stretch;
+						}
+						else
+						if ( e.is( sdAntigravity ) )
+						{
+							if ( e.power > 0 )
+							ext_y1 = -16 * 16;
+							else
+							if ( e.power === -1 )
+							ext_y1 = -3 * 16;
+						}
+						else
+						if ( e.is( sdDoor ) )
+						{
+							r = 16 + 32;
+						}
+						else
+						if ( e.is( sdTzyrgAbsorber ) )
+						{
+							r = sdTzyrgAbsorber.effect_radius;
+						}
+
+						if ( r !== 0 )
+						{
+							ext_x1 = e.x - r;
+							ext_x2 = e.x + r;
+							ext_y1 = e.y - r;
+							ext_y2 = e.y + r;
+						}
+
+						_x = Math.floor( Math.min( _x, e.x + ext_x1 ) / 16 ) * 16;
+						_x2 = Math.ceil( Math.max( _x2, e.x + ext_x2 ) / 16 ) * 16;
+						_y = Math.floor( Math.min( _y, e.y + ext_y1 ) / 16 ) * 16;
+						_y2 = Math.ceil( Math.max( _y2, e.y + ext_y2 ) / 16 ) * 16;
+
+						// Try to catch moving objects and merge them all together
+						if ( typeof e.sx !== 'undefined' )
+						if ( typeof e.sy !== 'undefined' )
+						{
+							if ( sdWorld.inDist2D_Boolean( e.sx, e.sy, 0,0, 1 ) )
+							{
+
+							}
+							else
+							{
+								_x -= 64;
+								_x2 += 64;
+								_y -= 64;
+								_y2 += 64;
+							}
+						}
+
+						if ( sdDeepSleep.debug_big_area_increments )
+						{
+							let area2 = ( _x2 - _x ) * ( _y2 - _y );
+
+							if ( area2 > area * 2 )
+							if ( area !== 0 )
+							{
+								trace( 'sdDeepSleep large area increment after adding ( '+area+' -> '+area2+' )', e );
+							}
+
+							area = area2;
+						}
+
+						//if ( _y > this.y )
+						//throw new Error();
+
+						this.x = _x;
+						this.w = _x2 - _x;
+						this.y = _y;
+						this.h = _y2 - _y;
+						this._hitbox_x2 = this.w;
+						this._hitbox_y2 = this.h;
+
+						// Add any pointer entities as dependences?
+						if ( e.is( sdBlock ) )
+						{
+							if ( e._shielded )
+							if ( !e._shielded._is_being_removed )
+							dependences.push( e._shielded );
+
+							if ( e._plants )
+							for ( let i = 0; i < e._plants.length; i++ )
+							{
+								let possible_ent = sdEntity.entities_by_net_id_cache_map.get( e._plants[ i ] );
+
+								if ( possible_ent )
+								if ( !possible_ent._is_being_removed )
+								dependences.push( possible_ent );
+							}
+						}
+						else
+						if ( e.is( sdBG ) )
+						{
 						}
 						else
 						{
-							_x -= 64;
-							_x2 += 64;
-							_y -= 64;
-							_y2 += 64;
-						}
-					}
-					
-					if ( sdDeepSleep.debug_big_area_increments )
-					{
-						let area2 = ( _x2 - _x ) * ( _y2 - _y );
-						
-						if ( area2 > area * 2 )
-						if ( area !== 0 )
-						{
-							trace( 'sdDeepSleep large area increment after adding ( '+area+' -> '+area2+' )', e );
-						}
-						
-						area = area2;
-					}
+							for ( let prop in e )
+							if ( typeof e[ prop ] === 'object' )
+							//if ( e[ prop ] instanceof sdEntity ) // 102.7 ms - Too slow
+							if ( e[ prop ] !== null )
+							if ( typeof e[ prop ]._is_being_removed !== 'undefined' )
+							if ( !e[ prop ]._is_being_removed ) // 0.8 ms
+							if ( prop !== '_phys_last_touch' ) // 1.3 ms
+							{
+								if ( sdWorld.inDist2D_Boolean( e.x, e.y, e[ prop ].x, e[ prop ].y, sdDeepSleep.dependence_distance_max ) )
+								{
+									dependences.push( e[ prop ] );
 
-					//if ( _y > this.y )
-					//throw new Error();
+									if ( all_dependences )
+									all_dependences.push( e.GetClass() + '.' + prop + ' -> ' + e[ prop ].GetClass() );
+								}
+								else
+								{
+									//if ( prop !== 'follow' )
+									//debugger;
+								}
+							}
+						}
 
-					this.x = _x;
-					this.w = _x2 - _x;
-					this.y = _y;
-					this.h = _y2 - _y;
-					this._hitbox_x2 = this.w;
-					this._hitbox_y2 = this.h;
-					
-					// Add any pointer entities as dependences?
-					if ( e.is( sdBlock ) )
-					{
-						if ( e._shielded )
-						if ( !e._shielded._is_being_removed )
-						dependences.push( e._shielded );
-						
+						/*if ( e.is( sdBlock ) )
 						if ( e._plants )
 						for ( let i = 0; i < e._plants.length; i++ )
 						{
 							let possible_ent = sdEntity.entities_by_net_id_cache_map.get( e._plants[ i ] );
-							
+
 							if ( possible_ent )
 							if ( !possible_ent._is_being_removed )
 							dependences.push( possible_ent );
-						}
-					}
-					else
-					if ( e.is( sdBG ) )
-					{
-					}
-					else
-					{
-						for ( let prop in e )
-						if ( typeof e[ prop ] === 'object' )
-						//if ( e[ prop ] instanceof sdEntity ) // 102.7 ms - Too slow
-						if ( e[ prop ] !== null )
-						if ( typeof e[ prop ]._is_being_removed !== 'undefined' )
-						if ( !e[ prop ]._is_being_removed ) // 0.8 ms
-						if ( prop !== '_phys_last_touch' ) // 1.3 ms
+						}*/
+
+						if ( e._steering_wheel_net_id !== -1 )
 						{
-							if ( sdWorld.inDist2D_Boolean( e.x, e.y, e[ prop ].x, e[ prop ].y, sdDeepSleep.dependence_distance_max ) )
+							let steer = e.GetSteeringWheel();
+							if ( steer )
+							dependences.push( steer );
+						}
+
+						/*if ( e.is( sdDoor ) || e.is( sdBlock ) || e.is( sdBG ) || e.is( sdThruster ) )
+						for ( let i = 0; i < sdSteeringWheel.steering_wheels.length; i++ )
+						if ( sdSteeringWheel.steering_wheels[ i ]._scan_net_ids.indexOf( e._net_id ) !== -1 )
+						{
+							dependences.push( sdSteeringWheel.steering_wheels[ i ] );
+							break;
+						}*/
+
+						if ( e.is( sdSteeringWheel ) )
+						dependences.push( ...e._scan );
+
+						// TODO: Lookup pointers in properties as well as try to include crystal/turret ranges
+
+						bounds_moved = true;
+					}
+					return false;
+				};
+
+				while ( bounds_moved )
+				{
+					bounds_moved = false;
+
+					let cells = sdWorld.GetCellsInRect( _x, _y, _x2, _y2 );
+
+					for ( let i = 0; i < cells.length; i++ )
+					{
+						let arr = cells[ i ].arr;
+
+						for ( let i2 = 0; i2 < arr.length; i2++ )
+						{
+							if ( HandleEntity( arr[ i2 ] ) )
 							{
-								dependences.push( e[ prop ] );
-								
-								if ( all_dependences )
-								all_dependences.push( e.GetClass() + '.' + prop + ' -> ' + e[ prop ].GetClass() );
-							}
-							else
-							{
-								//if ( prop !== 'follow' )
-								//debugger;
+								ProvidePerformanceReport( true );
+								return;
 							}
 						}
 					}
-			
-					/*if ( e.is( sdBlock ) )
-					if ( e._plants )
-					for ( let i = 0; i < e._plants.length; i++ )
+
+					while ( dependences.length > 0 )
 					{
-						let possible_ent = sdEntity.entities_by_net_id_cache_map.get( e._plants[ i ] );
+						let e = dependences.pop();
 
-						if ( possible_ent )
-						if ( !possible_ent._is_being_removed )
-						dependences.push( possible_ent );
-					}*/
-					
-					if ( e._steering_wheel_net_id !== -1 )
-					{
-						let steer = e.GetSteeringWheel();
-						if ( steer )
-						dependences.push( steer );
-					}
-				
-					/*if ( e.is( sdDoor ) || e.is( sdBlock ) || e.is( sdBG ) || e.is( sdThruster ) )
-					for ( let i = 0; i < sdSteeringWheel.steering_wheels.length; i++ )
-					if ( sdSteeringWheel.steering_wheels[ i ]._scan_net_ids.indexOf( e._net_id ) !== -1 )
-					{
-						dependences.push( sdSteeringWheel.steering_wheels[ i ] );
-						break;
-					}*/
-								
-					if ( e.is( sdSteeringWheel ) )
-					dependences.push( ...e._scan );
-
-					// TODO: Lookup pointers in properties as well as try to include crystal/turret ranges
-
-					bounds_moved = true;
-				}
-				return false;
-			};
-			
-			while ( bounds_moved )
-			{
-				bounds_moved = false;
-
-				let cells = sdWorld.GetCellsInRect( _x, _y, _x2, _y2 );
-
-				for ( let i = 0; i < cells.length; i++ )
-				{
-					let arr = cells[ i ].arr;
-
-					for ( let i2 = 0; i2 < arr.length; i2++ )
-					{
-						if ( HandleEntity( arr[ i2 ] ) )
+						if ( !e._is_being_removed )
+						if ( HandleEntity( e ) )
 						{
 							ProvidePerformanceReport( true );
 							return;
 						}
 					}
 				}
-				
-				while ( dependences.length > 0 )
-				{
-					let e = dependences.pop();
-					
-					if ( !e._is_being_removed )
-					if ( HandleEntity( e ) )
-					{
-						ProvidePerformanceReport( true );
-						return;
-					}
-				}
-			}
-			
-			//if ( all_entities.length === 0 || ( all_entities.length === 1 && all_entities[ 0 ].is( sdDeepSleep ) ) )
-			if ( all_entities.length === 0 || ( all_entities.length === 1 && all_entities[ 0 ]._hiberstate !== sdEntity.HIBERSTATE_ACTIVE ) )
-			{
-				if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
-				trace( 'sdDeepSleep hibernation refused: Too few entities ('+all_entities.length+')', _x, _y, _x2, _y2 );
-			
-				this.remove();
-				ProvidePerformanceReport( true );
-				return;
-			}
-			
-			let snapshots = [];
-			let current_frame = globalThis.GetFrame();
-			
-			//this._to_remove_temp_set = entity_once;
-			this._to_remove_temp_set = all_entities;
 
-			//entity_once.forEach( ( e )=>
-			for ( let i = 0; i < all_entities.length; i++ )
-			{
-				let e = all_entities[ i ];
-				
-				//if ( e !== this )
+				//if ( all_entities.length === 0 || ( all_entities.length === 1 && all_entities[ 0 ].is( sdDeepSleep ) ) )
+				if ( all_entities.length === 0 || ( all_entities.length === 1 && all_entities[ 0 ]._hiberstate !== sdEntity.HIBERSTATE_ACTIVE ) )
+				{
+					if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
+					trace( 'sdDeepSleep hibernation refused: Too few entities ('+all_entities.length+')', _x, _y, _x2, _y2 );
+
+					this.remove();
+					ProvidePerformanceReport( true );
+					return;
+				}
+
+				let snapshots = [];
+				let current_frame = globalThis.GetFrame();
+
+				//this._to_remove_temp_set = entity_once;
+				this._to_remove_temp_set = all_entities;
+
+				//entity_once.forEach( ( e )=>
+				for ( let i = 0; i < all_entities.length; i++ )
+				{
+					let e = all_entities[ i ];
+
+					//if ( e !== this )
+					//{
+						let t3;
+						if ( sdDeepSleep.debug_times )
+						t3 = Date.now();
+
+						snapshots.push( e.GetSnapshot( current_frame, true ) );
+
+						if ( sdDeepSleep.debug_times )
+						{
+							let t4 = Date.now();
+
+							serialization_per_class_times[ e.GetClass() ] = ( serialization_per_class_times[ e.GetClass() ] || 0 ) + ( t4 - t3 );
+						}
+
+						if ( e.is( sdDeepSleep ) )
+						{
+							this._my_hash_list.push( ...e._my_hash_list );
+							this._rtp_biometries.push( ...e._rtp_biometries );
+							this._beacon_net_ids.push( ...e._beacon_net_ids );
+						}
+						else
+						if ( e.IsPlayerClass() && e._my_hash !== undefined )
+						{
+							this._my_hash_list.push( e._my_hash );
+
+							//trace( 'Saving player\'s hash ' + e._my_hash + ' to '+this._net_id );
+						}
+						else
+						if ( e.is( sdRescueTeleport ) )
+						{
+							this._rtp_biometries.push( e.owner_biometry );
+						}
+						else
+						if ( e.is( sdBeacon ) )
+						{
+							this._beacon_net_ids.push( e._net_id );
+						}
+					//}
+				}
+
+				if ( sdDeepSleep.debug_entity_count )
+				if ( all_entities.length > 4000 ) // It can easily reach 3000 if for example crystals happen to be lying at edges of cells
+				{
+					trace( 'Why are we so big? sdDeepSleep cell wants to include ' + all_entities.length + ' entities - it will lag the server' );
+
+					if ( sdDeepSleep.debug_dependences )
+					trace( 'Dependences (excluding ones that are hardcoded for specific classes):', all_dependences );
+
+					debugger;
+				}
+
+				const bulk_exclude = [];
+
+				//entity_once.forEach( ( e )=>
 				//{
-					let t3;
-					if ( sdDeepSleep.debug_times )
-					t3 = Date.now();
-				
-					snapshots.push( e.GetSnapshot( current_frame, true ) );
-					
-					if ( sdDeepSleep.debug_times )
-					{
-						let t4 = Date.now();
-						
-						serialization_per_class_times[ e.GetClass() ] = ( serialization_per_class_times[ e.GetClass() ] || 0 ) + ( t4 - t3 );
-					}
-				
-					if ( e.is( sdDeepSleep ) )
-					{
-						this._my_hash_list.push( ...e._my_hash_list );
-						this._rtp_biometries.push( ...e._rtp_biometries );
-						this._beacon_net_ids.push( ...e._beacon_net_ids );
-					}
-					else
-					if ( e.IsPlayerClass() && e._my_hash !== undefined )
-					{
-						this._my_hash_list.push( e._my_hash );
-						
-						//trace( 'Saving player\'s hash ' + e._my_hash + ' to '+this._net_id );
-					}
-					else
-					if ( e.is( sdRescueTeleport ) )
-					{
-						this._rtp_biometries.push( e.owner_biometry );
-					}
-					else
-					if ( e.is( sdBeacon ) )
-					{
-						this._beacon_net_ids.push( e._net_id );
-					}
-				//}
-			}
-			
-			if ( sdDeepSleep.debug_entity_count )
-			if ( all_entities.length > 4000 ) // It can easily reach 3000 if for example crystals happen to be lying at edges of cells
-			{
-				trace( 'Why are we so big? sdDeepSleep cell wants to include ' + all_entities.length + ' entities - it will lag the server' );
-				
-				if ( sdDeepSleep.debug_dependences )
-				trace( 'Dependences (excluding ones that are hardcoded for specific classes):', all_dependences );
-				
-				debugger;
-			}
-			
-			const bulk_exclude = [];
-			
-			//entity_once.forEach( ( e )=>
-			//{
-			for ( let i = 0; i < all_entities.length; i++ )
-			{
-				let e = all_entities[ i ];
-				
-				if ( e !== this )
+				for ( let i = 0; i < all_entities.length; i++ )
 				{
-					if ( sdDeepSleep.debug_cell && e.x === sdDeepSleep.debug_cell_x && e.y === sdDeepSleep.debug_cell_y )
+					let e = all_entities[ i ];
+
+					if ( e !== this )
 					{
-						trace( 'Now tracking cell ('+this.x+', '+this.y+') that has consumed previously tracked cell ('+sdDeepSleep.debug_cell_x+', '+sdDeepSleep.debug_cell_y+')...' );
-						sdDeepSleep.debug_cell_x = this.x;
-						sdDeepSleep.debug_cell_y = this.y;
-						trace( 'onBuilt-consumer-cell()', { _net_id:this._net_id, x:this.x, y:this.y, w:this.w, h:this.h, type:this.type, _file_exists:this._file_exists, _snapshots_str:this._snapshots_str.length, _is_being_removed:this._is_being_removed } );
+						if ( sdDeepSleep.debug_cell && e.x === sdDeepSleep.debug_cell_x && e.y === sdDeepSleep.debug_cell_y )
+						{
+							trace( 'Now tracking cell ('+this.x+', '+this.y+') that has consumed previously tracked cell ('+sdDeepSleep.debug_cell_x+', '+sdDeepSleep.debug_cell_y+')...' );
+							sdDeepSleep.debug_cell_x = this.x;
+							sdDeepSleep.debug_cell_y = this.y;
+							trace( 'onBuilt-consumer-cell()', { _net_id:this._net_id, x:this.x, y:this.y, w:this.w, h:this.h, type:this.type, _file_exists:this._file_exists, _snapshots_str:this._snapshots_str.length, _is_being_removed:this._is_being_removed } );
+						}
+
+						/*if ( this.x > e.x + e._hitbox_x1 )
+						throw new Error();
+
+						if ( this.y > e.y + e._hitbox_y1 )
+						throw new Error();
+
+						if ( this.x + this.w < e.x + e._hitbox_x2 )
+						throw new Error();
+
+						if ( this.y + this.h < e.y + e._hitbox_y2 )
+						throw new Error();*/
+
+						e.remove();
+						e._broken = false;
+
+						e._remove(); // Instant remove is required or else it won't be able to spawn same entities from snapshot?
+
+						bulk_exclude.push( e );
+						//e._remove_from_entities_array();
+
+						sdLongRangeTeleport.teleported_items.add( e );
 					}
-					
-					/*if ( this.x > e.x + e._hitbox_x1 )
-					throw new Error();
-				
-					if ( this.y > e.y + e._hitbox_y1 )
-					throw new Error();
-					
-					if ( this.x + this.w < e.x + e._hitbox_x2 )
-					throw new Error();
-				
-					if ( this.y + this.h < e.y + e._hitbox_y2 )
-					throw new Error();*/
-					
-					e.remove();
-					e._broken = false;
-					
-					e._remove(); // Instant remove is required or else it won't be able to spawn same entities from snapshot?
-					
-					bulk_exclude.push( e );
-					//e._remove_from_entities_array();
-					
-					sdLongRangeTeleport.teleported_items.add( e );
+				}
+				sdEntity.BulkRemoveEntitiesFromEntitiesArray( bulk_exclude );
+
+				//for ( let i = 0; i < scheduled_sleep_areas_to_cancel.length; i++ )
+				//scheduled_sleep_areas_to_cancel[ i ].remove();
+
+				this._to_remove_temp_set = null;
+
+				this._snapshots_objects = snapshots;
+				this._snapshots_str = ''; // JSON.stringify( snapshots ); Delay serialization - maybe chunk will be woken up right away. Or we can always serialize during save
+
+				sdWorld.UpdateHashPosition( this, false, false ); // Prevent inersection with other ones // Won't call onMovementInRange
+
+				this._update_version++;
+
+
+				if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
+				{
+					trace( 'sdDeepSleep[ '+this._net_id+' ] hibernated', _x, _y, _x2, _y2 );
+
+				}
+
+				ProvidePerformanceReport( false );
+			}
+		}
+	}
+	onSnapshotApplied()
+	{
+		if ( sdWorld.is_server )
+		{
+			if ( this.type === sdDeepSleep.TYPE_UNSPAWNED_WORLD )
+			{
+				// Patching for extremely big unspawned chunks
+				if ( this.w > sdDeepSleep.normal_cell_size || 
+					 this.h > sdDeepSleep.normal_cell_size )
+				{
+					let xx2 = this.x + this.w;
+					let yy2 = this.y + this.h;
+
+					for ( let xx = this.x; xx < xx2; xx += sdDeepSleep.normal_cell_size )
+					for ( let yy = this.y; yy < yy2; yy += sdDeepSleep.normal_cell_size )
+					sdEntity.entities.push( new sdDeepSleep({
+						x:xx, y:yy, w:sdDeepSleep.normal_cell_size, h:sdDeepSleep.normal_cell_size, type: sdDeepSleep.TYPE_UNSPAWNED_WORLD
+					}) );
+			
+					this.remove();
 				}
 			}
-			sdEntity.BulkRemoveEntitiesFromEntitiesArray( bulk_exclude );
-			
-			//for ( let i = 0; i < scheduled_sleep_areas_to_cancel.length; i++ )
-			//scheduled_sleep_areas_to_cancel[ i ].remove();
-			
-			this._to_remove_temp_set = null;
-			
-			this._snapshots_objects = snapshots;
-			this._snapshots_str = ''; // JSON.stringify( snapshots ); Delay serialization - maybe chunk will be woken up right away. Or we can always serialize during save
-
-			sdWorld.UpdateHashPosition( this, false, false ); // Prevent inersection with other ones // Won't call onMovementInRange
-			
-			this._update_version++;
-			
-			
-			if ( sdDeepSleep.debug_wake_up_sleep_refuse_reasons )
-			{
-				trace( 'sdDeepSleep[ '+this._net_id+' ] hibernated', _x, _y, _x2, _y2 );
-
-			}
-			
-			ProvidePerformanceReport( false );
 		}
 	}
 	MeasureMatterCost()

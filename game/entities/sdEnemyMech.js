@@ -19,6 +19,7 @@ class sdEnemyMech extends sdEntity
 		sdEnemyMech.img_mech_idle = sdWorld.CreateImageFromFile( 'fmech2' );
 
 		sdEnemyMech.img_mech = sdWorld.CreateImageFromFile( 'fmech2_sheet' );
+		sdEnemyMech.img_glow = sdWorld.CreateImageFromFile( 'hit_glow' );
 
 		//sdEnemyMech.img_mech_boost = sdWorld.CreateImageFromFile( 'fmech2_boost' );
 		//sdEnemyMech.img_mech_broken = sdWorld.CreateImageFromFile( 'fmech2_broken' );
@@ -53,7 +54,7 @@ class sdEnemyMech extends sdEntity
 		
 		this._regen_timeout = 0;
 		
-		this._hmax = 12000; // Was 6000 but even 12000 is easy
+		this._hmax = 20000; // Was 6000 but even 12000 is easy
 		this.hea = this._hmax;
 
 		this._ai_team = 5;
@@ -78,17 +79,17 @@ class sdEnemyMech extends sdEntity
 		this._attack_timer = 0;
 		this._rocket_attack_timer = 0;
 		this._rail_attack_timer = 0; // Rail cannon used when the mech targets a turret to destroy it almost instantly
-		this.attack_anim = 0;
+		//this.attack_anim = 0;
 		//this._aggressive_mode = false; // Causes dodging and faster movement
-		this._bullets = 150;
+		this._bullets = 50;
 		this._rockets = 4;
 		
 		this.side = 1;
 		
 		this._alert_intensity = 0; // Grows until some value and only then it will shoot
 		
-		this.matter_max = 5120; // It is much stronger than a basic worm yet it only dropped 1280 matter crystal shards
-		this.matter = this.matter_max;
+		//this.matter_max = 5120; // It is much stronger than a basic worm yet it only dropped 1280 matter crystal shards
+		//this.matter = this.matter_max;
 		
 		this._last_damage = 0; // Sound flood prevention
 		
@@ -115,6 +116,10 @@ class sdEnemyMech extends sdEntity
 	{
 		return sdEffect.TYPE_BLOOD_GREEN;
 	}*/
+	GetBleedEffectDamageMultiplier()
+	{
+		return sdEffect.TYPE_GLOW_HIT;
+	}
 	/*GetBleedEffectFilter()
 	{
 		return this.filter;
@@ -158,7 +163,20 @@ class sdEnemyMech extends sdEntity
 		
 		return null;
 	}
-	Damage( dmg, initiator=null )
+	GetHitDamageMultiplier( x, y )
+	{
+		if ( this.hea > 0 )
+		{
+			let di_to_head = sdWorld.Dist2D( x, y, this.x + this._hitbox_x2 * this.side, this.y + this.hitbox_y1 + 15 );
+			// let di_to_body = sdWorld.Dist2D( x, y, this.x, this.y );
+
+			if ( di_to_head < 16 )
+			return 5;
+		}
+	
+		return 1;
+	}
+	Damage( dmg, initiator=null, headshot=false )
 	{
 		if ( !sdWorld.is_server )
 		return;
@@ -178,6 +196,9 @@ class sdEnemyMech extends sdEntity
 		}
 
 
+
+		if ( headshot )
+		this.Impulse( -dmg * 3 * this.side, 0 );
 
 		dmg = Math.abs( dmg );
 		
@@ -350,7 +371,7 @@ class sdEnemyMech extends sdEntity
 			this.sx = sdWorld.MorphWithTimeScale( this.sx, 0, 0.88, GSPEED );
 			this.sy = sdWorld.MorphWithTimeScale( this.sy, 0, 0.88, GSPEED );
 			
-			this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
+			//this.matter = Math.min( this.matter_max, this.matter + GSPEED * 0.001 * this.matter_max / 80 );
 			
 			if ( sdWorld.is_server )
 			{
@@ -414,10 +435,13 @@ class sdEnemyMech extends sdEntity
 						// Get closer
 						let an_desired = Math.atan2( closest.y - this.y, closest.x - this.x ) - 0.5 + Math.random();
 
-						if ( this.x > closest.x )
-						this.side = 1;
-						else
-						this.side = -1;
+						if ( this._attack_timer <= 3 )
+						{
+							if ( this.x > closest.x )
+							this.side = 1;
+							else
+							this.side = -1;
+						}
 
 						this._move_dir_x = Math.cos( an_desired );
 						this._move_dir_y = Math.sin( an_desired );
@@ -578,7 +602,7 @@ class sdEnemyMech extends sdEntity
 						if ( this._alert_intensity < 45 )// Delay attack
 						break;
 
-						this.attack_anim = 15;
+						//this.attack_anim = 15;
 
 						let an = Math.atan2( targets[ i ].y - this.y, targets[ i ].x - this.x ) + ( Math.random() * 2 - 1 ) * 0.05;
 
@@ -608,8 +632,9 @@ class sdEnemyMech extends sdEntity
 
 						if ( this._bullets <= 0 )
 						{
-							this._bullets = 100;
-							this._attack_timer = 60;
+							this._bullets = 50;
+							this._attack_timer = 30 * 4;
+							this.lmg_an = Math.PI / 2 * 100;
 						}
 
 						//sdSound.PlaySound({ name:'gun_pistol', pitch: 1, x:this.x, y:this.y, volume:0.3 });
@@ -728,8 +753,8 @@ class sdEnemyMech extends sdEntity
 				}
 			}
 		
-			if ( this.attack_anim > 0 )
-			this.attack_anim = Math.max( 0, this.attack_anim - GSPEED );
+			//if ( this.attack_anim > 0 )
+			//this.attack_anim = Math.max( 0, this.attack_anim - GSPEED );
 		
 			this.PhysWakeUp();
 		}
@@ -768,6 +793,13 @@ class sdEnemyMech extends sdEntity
 
 		let xx = this.hea <= 0;
 
+		if ( this.hea > 0 )
+		{
+			ctx.globalAlpha = 0.5;
+			ctx.drawImageFilterCache( sdEnemyMech.img_glow, - 16 + this.hitbox_x2, - 16 + this.hitbox_y1 + 15, 32, 32 );
+			ctx.globalAlpha = 1;
+		}
+
 		ctx.drawImageFilterCache( sdEnemyMech.img_mech, xx * 64, 0, 64,96, - 32, - 48, 64, 96 );
 
 		ctx.filter = 'none';
@@ -799,8 +831,8 @@ class sdEnemyMech extends sdEntity
 			sdWorld.BasicEntityBreakEffect( this, 25, 3, 0.75, 0.75 );
 			//sdSound.PlaySound({ name:'crystal', x:this.x, y:this.y, volume:1 });
 			sdWorld.DropShards( this.x, this.y, 0, 0, 
-				Math.floor( Math.max( 0, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
-				this.matter_max / 40
+				Math.floor( Math.max( 0, 40 / sdWorld.crystal_shard_value * 0.5 ) ),
+				5120 / 40
 			);
 		}
 	}

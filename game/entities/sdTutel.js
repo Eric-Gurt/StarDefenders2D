@@ -16,6 +16,9 @@ class sdTutel extends sdEntity
 	{
 		sdTutel.img_tutel_anim = sdWorld.CreateImageFromFile( 'sdTutel' );
 		
+		sdTutel.TYPE_NORMAL = 0;
+		sdTutel.TYPE_ACIDIC = 1;
+		
 		sdTutel.frame_idle = 0;
 		sdTutel.frame_jump = 1;
 		sdTutel.frame_attack = 2;
@@ -27,15 +30,18 @@ class sdTutel extends sdEntity
 		
 		sdTutel.max_seek_range = 600;
 		
-		sdTutel.normal_max_health = 600;
-		sdTutel.normal_max_health_max = sdTutel.normal_max_health * 4; 
+		sdTutel.normal_max_health = [
+			600,
+			200
+		];
 
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return -7.9 * this.hmax / sdTutel.normal_max_health; }
-	get hitbox_x2() { return 7.9 * this.hmax / sdTutel.normal_max_health; }
-	get hitbox_y1() { return ( ( this.death_anim === 0 ) ? -6 : 0 ) * this.hmax / sdTutel.normal_max_health; }
-	get hitbox_y2() { return 8 * this.hmax / sdTutel.normal_max_health; }
+	
+	get hitbox_x1() { return -7.9; }
+	get hitbox_x2() { return 7.9; }
+	get hitbox_y1() { return ( ( this.death_anim === 0 ) ? -6 : 0 ); }
+	get hitbox_y2() { return 8; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return this.death_anim === 0; }
@@ -47,7 +53,9 @@ class sdTutel extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this.hmax = sdTutel.normal_max_health;
+		this.type = ( params.type === undefined ) ? ~~( Math.random() * 2 ) : params.type;
+		
+		this.hmax = sdTutel.normal_max_health[ this.type ] || sdTutel.normal_max_health[ 0 ];
 		this._hea = this.hmax;
 		
 		this.death_anim = 0;
@@ -61,7 +69,7 @@ class sdTutel extends sdEntity
 		//this._last_stand_on = null;
 		this._last_jump = sdWorld.time;
 		this._last_bite = sdWorld.time;
-		this._last_grow = sdWorld.time;
+		//this._last_grow = sdWorld.time;
 		this._last_target_change = 0;
 		
 		this._next_alert_allowed = 0;
@@ -70,65 +78,7 @@ class sdTutel extends sdEntity
 		
 		//this.hurt_timer = 0;
 	}
-	Grow( delta )
-	{
-		let old = this.hmax;
-		
-		this.hmax += delta;
-		if ( this.hmax > sdTutel.normal_max_health_max )
-		this.hmax = sdTutel.normal_max_health_max;
 	
-		// Forced hitbox update, needed because they can grow offscreen, which means they will fire many updates at once while hitbox updates rely on actual frames count increase
-		this._hitbox_last_update = 0;
-		this.UpdateHitbox();
-		
-		for ( var r = 0; r < 2; r++ )
-		{
-			var dist = 0;
-			
-			if ( r === 1 )
-			dist = 2;
-			
-			if ( r === 1 )
-			dist = 8;
-		
-			for ( var x = 0; x < 3; x++ )
-			for ( var y = 0; y < 3; y++ )
-			{
-				var xx = ( ( x + 1 ) % 3 ) - 1;
-				var yy = ( ( y + 1 ) % 3 ) - 1;
-				
-				if ( this.CanMoveWithoutOverlap( this.x + xx * dist, this.y + yy * dist, 0 ) )
-				{
-					this.x += xx * dist;
-					this.y += yy * dist;
-					
-					this._hea = this._hea / old * this.hmax;
-
-					return true;
-				}
-				
-				if ( r === 0 )
-				{
-					x = 10;
-					y = 10;
-					break;
-				}
-			}
-		}
-	
-		/*if ( this.CanMoveWithoutOverlap( this.x, this.y, 0 ) )
-		{
-			this._hea = this._hea / old * this.hmax;
-
-			return true;
-		}
-		else*/
-		{
-			this.hmax = old;
-			return false;
-		}
-	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
 		if ( this._hea > 0 )
@@ -158,7 +108,7 @@ class sdTutel extends sdEntity
 	GetBleedEffect()
 	{
 		if ( this.death_anim > 0 )
-		return sdEffect.TYPE_BLOOD;
+		return ( this.type === sdTutel.TYPE_NORMAL ) ? sdEffect.TYPE_BLOOD : sdEffect.TYPE_ACIDIC;
 		else
 		return sdEffect.TYPE_WALL_HIT;
 	}
@@ -179,17 +129,25 @@ class sdTutel extends sdEntity
 		
 		if ( this._hea <= 0 && was_alive )
 		{
-			// If not broken into pieces
-			//if ( this._hea >= -this.hmax / 80 * 100 )
-			//sdSound.PlaySound({ name:'virus_damage2', x:this.x, y:this.y, volume: 1.25, pitch: 1 * sdTutel.normal_max_health / this.hmax });
-			
-			
 			sdSound.PlaySound({ name:'overlord_welcomeB', x:this.x, y:this.y, volume:0.75, pitch: 1.5 });
 				
 			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:6 });
 
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_AVERAGE_MOB );
 	
+			if ( this.type === sdTutel.TYPE_ACIDIC )
+			{
+				sdWorld.SendEffect({ 
+					x:this.x, 
+					y:this.y, 
+					radius:65,
+					damage_scale: 1,
+					type:sdEffect.TYPE_EXPLOSION, 
+					owner:this,
+					can_hit_owner: false,
+					color:'#51b5ad' 
+				});
+			}
 		}
 		else
 		{
@@ -197,34 +155,19 @@ class sdTutel extends sdEntity
 			{
 				this._current_target = initiator;
 			}
-			/*
-			if ( this._hea > 0 )
-			if ( this.hurt_timer === 0 )
-			if ( Math.floor( ( this._hea ) / this._hmax * 5 ) !== Math.floor( ( this._hea + dmg ) / this._hmax * 5 ) )
-			{
-				sdSound.PlaySound({ name:'virus_damage2', x:this.x, y:this.y, volume: 1, pitch: 1.5 * sdTutel.normal_max_health / this.hmax });
-				this.hurt_timer = 1;
-			}*/
 		}
 		
 		if ( this._hea < -this.hmax / 80 * 100 )
 		this.remove();
 	}
 	
-	get mass() { return 150 * this.hmax / sdTutel.normal_max_health; }
+	get mass() { return 150; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
 		this.sy += y / this.mass;
 	}
-	/*Impact( vel ) // fall damage basically
-	{
-		// less fall damage
-		if ( vel > 10 )
-		{
-			this.DamageWithEffect( ( vel - 4 ) * 15 );
-		}
-	}*/
+	
 	Impact( vel ) // fall damage basically
 	{
 		if ( vel > 8 ) // less fall damage
@@ -247,7 +190,7 @@ class sdTutel extends sdEntity
 		if ( this._hea <= 0 )
 		{
 			if ( this.death_anim < sdTutel.death_duration + sdTutel.post_death_ttl )
-			this.death_anim += GSPEED * sdTutel.normal_max_health / this.hmax;
+			this.death_anim += GSPEED;
 			else
 			this.remove();
 		}
@@ -264,15 +207,16 @@ class sdTutel extends sdEntity
 				{
 					this.side = ( this._current_target.x > this.x ) ? 1 : -1;
 			
-					//if ( this.hurt_timer <= 0.5 )
-					if ( this._last_jump < sdWorld.time - 200 * this.hmax / sdTutel.normal_max_health )
-					//if ( this._last_stand_on )
-					if ( in_water || !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) )
+					let dx = ( this._current_target.x - this.x );
+					let dy = ( this._current_target.y - this.y );
+
+					if ( this._last_jump < sdWorld.time - 200 && 
+						 ( in_water || !this.CanMoveWithoutOverlap( this.x, this.y, -3 ) ) )
 					{
 						this._last_jump = sdWorld.time;
 					
-						let dx = ( this._current_target.x - this.x ) * 0.1;
-						let dy = ( this._current_target.y - this.y ) * 0.1;
+						dx *= 0.1;
+						dy *= 0.1;
 					
 						dy -= Math.abs( dx ) * 0.85;
 					
@@ -286,6 +230,12 @@ class sdTutel extends sdEntity
 							dy *= 4;
 						}
 						
+						if ( this.type === sdTutel.TYPE_ACIDIC )
+						{
+							dx *= 1.25;
+							dy *= 1.25;
+						}
+
 						this.sx = dx;
 						this.sy = dy;
 						
@@ -293,6 +243,14 @@ class sdTutel extends sdEntity
 
 					
 						//this._last_stand_on = null; // wait for next collision
+					}
+					else
+					{
+						dx *= 0.001 * GSPEED;
+						dy *= 0.001 * GSPEED;
+
+						this.sx += dx;
+						this.sy += dy;
 					}
 				}
 			}
@@ -364,14 +322,24 @@ class sdTutel extends sdEntity
 				if ( from_entity.IsTargetable() )
 				if ( sdWorld.CheckLineOfSight( this.x, this.y, from_entity.x, from_entity.y, null, null, sdCom.com_creature_attack_unignored_classes ) )
 				{
-					from_entity.DamageWithEffect( 40 * this.hmax / sdTutel.normal_max_health, this );
+					let bite_strength = 1;
 					
-					this.Grow( 15 );
+					if ( this.type === sdTutel.TYPE_ACIDIC )
+					{
+						bite_strength = 2;
+						
+						if ( from_entity.IsPlayerClass() )
+						{
+							from_entity._sickness = Math.max( from_entity._sickness, 30 * 30 );
+							from_entity._last_sickness_from_ent = this;
+						}
+					}
 					
-					this._hea = Math.min( this.hmax, this._hea + 15 * this.hmax / sdTutel.normal_max_health );
+					from_entity.DamageWithEffect( 40 * bite_strength, this );
+					
+					this._hea = Math.min( this.hmax, this._hea + 15 * bite_strength );
 
 					from_entity.PlayDamageEffect( xx, yy );
-					//sdWorld.SendEffect({ x:xx, y:yy, type:from_entity.GetBleedEffect(), filter:from_entity.GetBleedEffectFilter() });
 					
 					this.attack_anim = 10;
 					
@@ -382,14 +350,20 @@ class sdTutel extends sdEntity
 			}
 		}
 	}
+	get title()
+	{
+		return this.type === sdTutel.TYPE_NORMAL ? 'Tutel' : 'Acidic tutel';
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, "Tutel" );
+		sdEntity.Tooltip( ctx, this.title );
 	}
 	Draw( ctx, attached )
 	{
-		ctx.scale( -this.side * this.hmax / sdTutel.normal_max_health, 1 * this.hmax / sdTutel.normal_max_health );
+		ctx.scale( -this.side, 1 );
+		
+		let yy = this.type * 32;
 		
 		if ( this.death_anim > 0 )
 		{
@@ -400,20 +374,20 @@ class sdTutel extends sdEntity
 			
 			let frame = Math.min( sdTutel.frame_death_frames - 1, ~~( ( this.death_anim / sdTutel.death_duration ) * sdTutel.frame_death_frames ) );
 			
-			ctx.drawImageFilterCache( sdTutel.img_tutel_anim, ( sdTutel.frame_death + frame )*32,0,32,32, - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( sdTutel.img_tutel_anim, ( sdTutel.frame_death + frame )*32,yy,32,32, - 16, - 16, 32,32 );
 		}
 		else
 		if ( this.attack_anim > 0 )
-		ctx.drawImageFilterCache( sdTutel.img_tutel_anim, ( sdTutel.frame_attack )*32,0,32,32, - 16, - 16, 32,32 );
+		ctx.drawImageFilterCache( sdTutel.img_tutel_anim, ( sdTutel.frame_attack )*32,yy,32,32, - 16, - 16, 32,32 );
 		else
 		//if ( this.hurt_timer > 0 )
 		//ctx.drawImageFilterCache( sdTutel.img_tutel_anim, ( sdTutel.frame_death + 0 )*32,0,32,32, - 16, - 16, 32,32 );
 		//else
 		//ctx.drawImageFilterCache( ( sdWorld.time % 400 < 200 ) ? sdTutel.img_virus : sdTutel.img_virus_walk, - 16, - 16, 32,32 );
 		if ( this.jump_anim > 0 ) //Math.abs( this.sx ) < 1 )
-		ctx.drawImageFilterCache( sdTutel.img_tutel_anim, ( sdTutel.frame_idle )*32,0,32,32, - 16, - 16, 32,32 );
+		ctx.drawImageFilterCache( sdTutel.img_tutel_anim, ( sdTutel.frame_idle )*32,yy,32,32, - 16, - 16, 32,32 );
 		else
-		ctx.drawImageFilterCache( sdTutel.img_tutel_anim, ( sdTutel.frame_jump )*32,0,32,32, - 16, - 16, 32,32 );
+		ctx.drawImageFilterCache( sdTutel.img_tutel_anim, ( sdTutel.frame_jump )*32,yy,32,32, - 16, - 16, 32,32 );
 		
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';

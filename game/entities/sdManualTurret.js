@@ -258,7 +258,7 @@ class sdManualTurret extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.TooltipUntranslated( ctx, T( this.title ) + " ( " + this.matter + " / " + this.matter_max + " )" );
+		sdEntity.TooltipUntranslated( ctx, T( this.title ) + " ( " + sdWorld.RoundedThousandsSpaces(this.matter) + " / " + sdWorld.RoundedThousandsSpaces(this.matter_max) + " )" );
 		
 		this.DrawHealthBar( ctx, undefined, 10 );
 	}

@@ -302,9 +302,10 @@ class sdCharacterRagdoll
 			gun_offset_y += 2 + reload;
 		}
 		
+		let breathe_rise = ( Math.round( Math.sin( ( sdWorld.time - 1000 * ( this.character._net_id || 0 ) ) * ( ( this.character.hea <= this.character.hmax / 2 ) ? 0.024 : 0.003 ) ) * 4 ) / 4 * 0.1 - 0.1 ) * scale;
 		
 		// Body & head
-		this.MoveBone( this.torso, 13, 22 );
+		this.MoveBone( this.torso, 13, 22 + breathe_rise );
 		let dx = -( this.chest._ty - this.character.look_y ) * this.character._side;
 		let dy = ( this.chest._tx - this.character.look_x ) * this.character._side;
 		let di = sdWorld.Dist2D_Vector( dx, dy );
@@ -326,9 +327,9 @@ class sdCharacterRagdoll
 			dx /= di;
 			dy /= di;
 		}
-		this.MoveBoneRelative( this.spine, this.torso._tx + dx * 6 * scale, this.torso._ty + dy * 6 * scale );
-		this.MoveBoneRelative( this.chest, this.torso._tx + dx * 8 * scale, this.torso._ty + dy * 8 * scale );
-		this.MoveBoneRelative( this.neck, this.torso._tx + dx * 11 * scale, this.torso._ty + dy * 11 * scale );
+		this.MoveBoneRelative( this.spine, this.torso._tx + dx * 6 * scale, this.torso._ty + dy * 6 * scale + breathe_rise );
+		this.MoveBoneRelative( this.chest, this.torso._tx + dx * 8 * scale, this.torso._ty + dy * 8 * scale + breathe_rise );
+		this.MoveBoneRelative( this.neck, this.torso._tx + dx * 11 * scale, this.torso._ty + dy * 11 * scale + breathe_rise );
 		
 		if ( reload <= 0 )
 		{
@@ -387,7 +388,7 @@ class sdCharacterRagdoll
 			}
 		}
 		this.MoveBoneRelative( this.head, 
-			this.neck._tx - dy * 4 * this.character._side * scale, 
+			this.neck._tx - dy * 4 * this.character._side * scale + breathe_rise*this.character._side, 
 			this.neck._ty + dx * 4 * this.character._side * scale );
 		
 		
@@ -504,11 +505,11 @@ class sdCharacterRagdoll
 		
 			this.MoveBoneRelative( this.hand1, 
 			this.chest._tx + dx * ( 9 + gun_offset_x - reload ) * scale, 
-			this.chest._ty + dy * ( 9 + gun_offset_x - reload ) * scale );
+			this.chest._ty + dy * ( 9 + gun_offset_x - reload ) * scale - breathe_rise );
 
 			this.MoveBoneRelative( this.hand2, 
 			this.chest._tx + dx * ( 9 + gun_offset_x - 3 + reload ) * scale, 
-			this.chest._ty + dy * ( 9 + gun_offset_x - 3 + reload ) * scale + 2 * scale );
+			this.chest._ty + dy * ( 9 + gun_offset_x - 3 + reload ) * scale + 2 * scale - breathe_rise );
 		}
 		else
 		{

@@ -13,6 +13,7 @@ import sdCube from './sdCube.js';
 import sdCharacter from './sdCharacter.js';
 import sdSpider from './sdSpider.js';
 import sdJunk from './sdJunk.js';
+import sdCrystal from './sdCrystal.js';
 
 import sdPathFinding from '../ai/sdPathFinding.js';
 
@@ -413,6 +414,9 @@ class sdDrone extends sdEntity
 					if ( this.type === sdDrone.DRONE_SETR )
 					gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_SETR_REPULSOR });
 					else
+					if ( this.type === sdDrone.DRONE_CUT_DROID )
+					gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_CHAINSAW });
+					else
 					gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_METAL_SHARD });
 
 					gun.sx = this.sx + Math.random() - Math.random();
@@ -505,6 +509,11 @@ class sdDrone extends sdEntity
 					if ( e.IsBGEntity() === this.IsBGEntity() )
 					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, e, null, sdCom.com_creature_attack_unignored_classes ) )
 					{
+						if ( e.is( sdCrystal ) )
+						{
+							e._being_sawed_time = sdWorld.time;
+						}
+						
 						e.DamageWithEffect( 5 * GSPEED, this );
 						
 						candidates.push( e );

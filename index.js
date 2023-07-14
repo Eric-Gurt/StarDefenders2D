@@ -98,20 +98,22 @@ if ( !isWin )
 	let ssl_key_path;
 	let ssl_cert_path;
 	
-	if( fs.existsSync(`sslconfig.json`) ) 
+	let ssl = true;
+	
+	if ( fs.existsSync( 'sslconfig.json' ) ) 
 	{
     	try 
 		{
-        	const data = fs.readFileSync('./sslconfig.json', 'utf8');
+        	const data = fs.readFileSync( './sslconfig.json', 'utf8' );
     
         	// parse JSON string to JSON object
-        	const sslconfig = JSON.parse(data);
-        	ssl_cert_path = sslconfig.certpath
-        	ssl_key_path = sslconfig.keypath
+        	const sslconfig = JSON.parse( data );
+        	ssl_cert_path = sslconfig.certpath;
+        	ssl_key_path = sslconfig.keypath;
 	    }
 		catch (err)
 		{
-	        console.log(`Error reading file from disk: ${err}`);
+	        console.log(`Error reading file from disk: ${ err }`);
 	    } 
 	} 
 	else 
@@ -128,6 +130,11 @@ if ( !isWin )
 	        ssl_cert_path = '/usr/local/directadmin/data/users/admin/domains/gevanni.com.cert';
 	    }
 	    else
+		if ( fs.existsSync('/var/') &&
+	         fs.existsSync('/var/cpanel/') &&
+	         fs.existsSync('/var/cpanel/ssl/') &&
+	         fs.existsSync('/var/cpanel/ssl/apache_tls/') &&
+	         fs.existsSync('/var/cpanel/ssl/apache_tls/plazmaburst2.com/') ) 
 	    {
 	        ssl_key_path = '/var/cpanel/ssl/apache_tls/plazmaburst2.com/combined';
 	        ssl_cert_path = '/var/cpanel/ssl/apache_tls/plazmaburst2.com/combined'; // '/var/cpanel/ssl/apache_tls/plazmaburst2.com/certificates';
@@ -137,22 +144,30 @@ if ( !isWin )
         	
         	directory_to_save_player_count = '/home/plazmaburst2/public_html/pb2/sd2d_online.v';
     	}
+		else
+		{
+			// For replit.com-like hosts, they apparently handle all that by themselves
+			ssl = false;
+		}
 	}
 	
-	const credentials = {
-		key: fs.readFileSync( ssl_key_path ),
-		cert: fs.readFileSync( ssl_cert_path )
-	};
-	httpsServer = https.createServer( credentials, app ); // https version
-	
-	setInterval(()=>{
-		
-			//console.log( httpsServer.key, httpsServer.cert );
-		
-		 httpsServer.key = fs.readFileSync( ssl_key_path );
-		 httpsServer.cert = fs.readFileSync( ssl_cert_path );
+	if ( ssl )
+	{
+		const credentials = {
+			key: fs.readFileSync( ssl_key_path ),
+			cert: fs.readFileSync( ssl_cert_path )
+		};
+		httpsServer = https.createServer( credentials, app ); // https version
 
-	}, 2147483647 );
+		setInterval(()=>{
+
+				//console.log( httpsServer.key, httpsServer.cert );
+
+			 httpsServer.key = fs.readFileSync( ssl_key_path );
+			 httpsServer.cert = fs.readFileSync( ssl_cert_path );
+
+		}, 2147483647 );
+	}
 }
 
 // process.cwd() - current working directory
@@ -715,6 +730,13 @@ let is_terminating = false;
 		if ( snapshot_save_busy || is_terminating )
 		return;
 
+		function RoundThousandSpaces( v )
+		{
+			return Math.ceil( v ).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+		}
+	
+		console.log('Snapshot save started... Memory usage :: Current: ' + RoundThousandSpaces( ( os.totalmem() - os.freemem() ) / (1024 * 1024) ) + ' Mb / Total: ' + RoundThousandSpaces( os.totalmem() / (1024 * 1024) ) + ' Mb / Available: ' + RoundThousandSpaces( os.freemem() / (1024 * 1024) ) + ' Mb / Entities: ' + sdEntity.entities.length + ' / Active entities: ' + sdEntity.active_entities.length + ' / entities_by_net_id_cache_map: ' + sdEntity.entities_by_net_id_cache_map.size + ' / removed_entities_info: ' + sdEntity.removed_entities_info.size + ' / sockets: ' + sockets.length );
+
 		let start_time = Date.now();
 
 		snapshot_save_busy = true;
@@ -727,6 +749,8 @@ let is_terminating = false;
 		{
 			await Promise.all( promises );
 		}
+		
+		console.log('sdDatabase/sdDeepSleep promises fulfilled...');
 
 		let entities = [];
 		
@@ -823,6 +847,8 @@ let is_terminating = false;
 				one_by_one = true;
 			}
 		}
+		
+		console.log('Made snapshots of all objects...');
 
 		let json_made_time = Date.now();
 
@@ -844,7 +870,7 @@ let is_terminating = false;
 
 		// zlib.deflate(buffer
 		zlib.deflate( json, ( err, buffer )=>{
-
+			
 			deflate_done_time = Date.now();
 
 			if ( err )
@@ -856,6 +882,9 @@ let is_terminating = false;
 			}
 			else
 			{
+			
+				console.log('Snapshot compression operation complete...');
+			
 				// This must run inside a function marked `async`:
 				//const file = await fs.readFile('filename.txt', 'utf8');
 				
@@ -1647,6 +1676,11 @@ io.on( 'connection', ( socket )=>
 		sockets_by_ip[ ip ].push( socket ); // Accept [ 2 / 2 ]
 	}
 	sockets.push( socket );
+	
+	if ( sockets.length > 32 )
+	{
+		trace( 'Note: sockets.length is now ' + sockets.length ); // What if this causes out of memory errors?
+	}
 	
 	let shop_pending = true; // Assuming shop is not dynamic
 	

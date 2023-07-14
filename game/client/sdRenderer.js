@@ -1461,10 +1461,24 @@ class sdRenderer
 							}
 						}
 					}
+					
+					sdWorld.hovered_entity = best_ent;
+					
+					// Context menu prioritizes amplifier
+					if ( best_ent )
+					if ( best_ent.is( sdCrystal ) )
+					if ( best_ent.held_by )
+					sdWorld.hovered_entity = best_ent.held_by;
+					
 					if ( best_ent )
 					if ( best_ent !== sdWorld.my_entity )
 					if ( best_ent !== sdWorld.my_entity.driver_of )
 					{
+						// Tooltip/HUD prioritizes crystal
+						if ( best_ent.is( sdMatterAmplifier ) )
+						if ( best_ent.crystal )
+						best_ent = best_ent.crystal;
+						
 						ctx.save();
 						try
 						{
@@ -1479,7 +1493,6 @@ class sdRenderer
 						}
 						ctx.restore();
 					}
-					sdWorld.hovered_entity = best_ent;
 				}
 				
 
@@ -1541,17 +1554,65 @@ class sdRenderer
 						
 					ctx.font = "5.5px Verdana";
 					ctx.textAlign = 'left';
-					ctx.fillStyle = '#ffff00';
-					let cost = sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ].GetBulletCost( false );
-					ctx.fillText( T("Matter cost") + ": " + ( cost === Infinity ? '-' : Math.ceil( cost ) ), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y - 2 );
-					ctx.fillStyle = '#00ffff';
-					ctx.fillText( T("Matter carried") + ": " + Math.floor( sdWorld.my_entity.matter ), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y + 5 );
+					
+					let item_selected = false; // Will be false for dummy objects
+					
+					if ( sdWorld.my_entity._build_params )
+					{
+						let cost = sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ].GetBulletCost( false );
+							
+						if ( cost === Infinity )
+						{
+						}
+						else
+						{
+							item_selected = true;
+							
+							ctx.fillStyle = '#ffff00';
+							ctx.fillText( T("Matter cost") + ": " + ( cost === Infinity ? '-' : sdWorld.RoundedThousandsSpaces( Math.ceil( cost ) ) ), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y - 2 );
+							ctx.fillStyle = '#00ffff';
+							ctx.fillText( T("Matter carried") + ": " + sdWorld.RoundedThousandsSpaces( sdWorld.my_entity.matter ), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y + 5 );
+
+							if ( sdWorld.my_entity.matter >= cost )
+							{
+								ctx.fillStyle = '#00ff00';
+
+								if ( sdWorld.my_entity._build_params )
+								{
+									if ( sdWorld.my_entity._build_params.upgrade_name )
+									ctx.fillText( T("Click to install upgrade"), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y + 5 + 7 );
+									else
+									ctx.fillText( T("Click to build"), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y + 5 + 7 );
+								}
+							}
+							else
+							{
+								ctx.fillStyle = '#ff0000';
+								ctx.fillText( T("Not enough matter"), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y + 5 + 7 );
+							}
+						}
+					}
+					
+					if ( !item_selected )
+					{
+						ctx.fillStyle = '#ffff00';
+						ctx.fillText( T("Press B to pick item to build"), sdWorld.mouse_world_x + 20, sdWorld.mouse_world_y + 5 + 7 );
+					}
 				}
 				else
 				{
-					ctx.drawImageFilterCache( sdWorld.img_crosshair, 
-						sdWorld.mouse_world_x - 16, 
-						sdWorld.mouse_world_y - 16, 32,32 );
+					ctx.save();
+					{
+						ctx.translate( sdWorld.mouse_world_x, sdWorld.mouse_world_y );
+						
+						//let s = 1 + ( sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ] && sdWorld.my_entity._inventory[ sdWorld.my_entity.gun_slot ].muzzle > 0 ? 0.3 : 0 );
+						//ctx.scale( s, s );
+						
+						ctx.drawImageFilterCache( sdWorld.img_crosshair, 
+							- 16, 
+							- 16, 32,32 );
+					}
+					ctx.restore();
 				}
 			}
 		}

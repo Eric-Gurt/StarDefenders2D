@@ -9,9 +9,9 @@ import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdBlock from './sdBlock.js';
 import sdCharacter from './sdCharacter.js';
+import sdStatusEffect from './sdStatusEffect.js';
 
 import sdRenderer from '../client/sdRenderer.js';
-
 
 class sdPresetEditor extends sdEntity
 {
@@ -22,7 +22,10 @@ class sdPresetEditor extends sdEntity
 		sdPresetEditor.regions = [];
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
+		
+		
 	}
+	
 
 	get hitbox_x1() { return 0; }
 	get hitbox_x2() { return this.w; }
@@ -135,6 +138,124 @@ class sdPresetEditor extends sdEntity
 	
 	CameraDistanceScale3D( layer ) // so far layer is only FG (1), usually only used by chat messages
 	{ return 0.85; }
+
+	GetEntitiesInside( initiator = null )
+	{
+		let x1 = this.x;
+		let x2 = this.x + this.hitbox_x2;
+		let y1 = this.y;
+		let y2 = this.y + this.hitbox_y2;
+		
+		let ents = sdWorld.GetAnythingNear( (x1+x2)/2, (y1+y2)/2, Math.sqrt( Math.pow(x1-x2,2) + Math.pow(y1-y2,2) ) / 2 );
+		
+		let ents_final = [];
+		
+		let IsClassSupported = ( ent )=>
+		{
+					if ( ent.x + ent.hitbox_x1 < x2 &&
+			     ent.x + ent.hitbox_x2 > x1 &&
+			     ent.y + ent.hitbox_y1 < y2 &&
+			     ent.y + ent.hitbox_y2 > y1 )
+				 return true;
+		
+			return false;
+		};
+		
+		let IsSaveable = ( ent )=>
+		{
+		
+			{
+				if ( !IsClassSupported( ent ) )
+				return false;
+
+				if ( ent.IsPlayerClass() /*&& !ent._socket*/ && ent._ai_enabled <= 0 )
+				{
+					// Do not save players? I don't know, up to Eric - Booraz149
+					return false;
+				}
+				//else
+				//if ( ent.is_static || ent.IsBGEntity() !== 0 || ent._is_being_removed || ( ent.hea || ent._hea ) === undefined )
+				/*if ( typeof ent.sx === 'undefined' || typeof ent.sy === 'undefined' || ent.IsBGEntity() !== 0 || ent._is_being_removed || ( ent.hea || ent._hea ) === undefined ) // This will prevent tasks and status effects, but these will be caught later
+				{
+					return false;
+				}*/
+
+				if ( ent._held_by || ent.held_by )
+				{
+					return IsSaveable( ent._held_by || ent.held_by );
+				}
+			}
+			return true;
+		};
+		
+		for ( let i = 0; i < ents.length; i++ )
+		{
+			let ent = ents[ i ];
+			
+			if ( IsSaveable( ent ) )
+			{
+				ents_final.push( ent );
+			}
+		}
+		
+		const Append = ( ent2 )=>
+		{
+			if ( IsSaveable( ent2 ) ) // Still check if targetable just in case so sdLifeBox won't be teleported for example
+			if ( ents_final.indexOf( ent2 ) === -1 )
+			ents_final.push( ent2 );
+		};
+		
+		// Attempt to catch drivers, held guns, held items and driven vehicles - because they might not have accurate positions and might have them delayed for the sake of low-rate cache update when held/transported. Will prevent cases of death due to sdHover teleportation but not players who are in it
+		for ( let i = 0; i < ents_final.length; i++ )
+		{
+			let ent = ents_final[ i ];
+			
+			// Append status-effects, without extra checks
+			let status_effects = sdStatusEffect.entity_to_status_effects.get( ent );
+			if ( status_effects )
+			for ( let i2 = 0; i2 < status_effects.length; i2++ )
+			if ( IsClassSupported( status_effects[ i2 ] ) )
+			ents_final.push( status_effects[ i2 ] );
+			
+			for ( let prop in ent )
+			{
+				if ( ent[ prop ] instanceof sdEntity )
+				{
+					if ( 
+							prop.indexOf( 'driver' ) === 0 // drivers of vehicle
+							||
+							prop.indexOf( 'item' ) === 0 // contents of sdStorage
+							||
+							prop === 'driver_of' // driven vehicle
+							||
+							prop === '_held_by' // keeper of weapon
+						)
+					Append( ent[ prop ] );
+				}
+				else
+				if ( ent[ prop ] instanceof Array )
+				if ( prop === '_inventory' ) // Held guns by player
+				{
+					let arr = ent[ prop ];
+					
+					for ( let i2 = 0; i2 < arr.length; i2++ )
+					if ( arr[ i2 ] )
+					Append( arr[ i2 ] );
+				}
+			}
+		}
+		
+		for ( let i = 0; i < ents_final.length; i++ )
+		{
+			let net_ids = [];
+			net_ids.push( ents_final[ i ]._net_id );
+				
+			ents_final[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_STEERING_WHEEL_PING, observer: initiator });
+				
+			ents_final[ i ]._steering_wheel_net_id = this._net_id;
+		}
+		return ents_final;
+	}
 	
 	Draw( ctx, attached )
 	{
@@ -188,8 +309,13 @@ class sdPresetEditor extends sdEntity
 		{
 			if ( exectuter_character._god )
 			{
+				if ( command_name === 'CHECK' )
+				{
+					this.GetEntitiesInside( exectuter_character );
+				}
 				if ( command_name === 'SAVE' )
 				{
+					//this.GetEntitiesInside( exectuter_character );
 					executer_socket.SDServiceMessage( 'Not implemented yet' );
 				}
 				if ( command_name === 'LOAD' )
@@ -227,6 +353,7 @@ class sdPresetEditor extends sdEntity
 			//if ( this.owner === exectuter_character )
 			if ( exectuter_character._god )
 			{
+				this.AddContextOption( 'Check saveable content', 'CHECK', [] );
 				this.AddPromptContextOption( 'Save preset...', 'SAVE', [ undefined ], 'Enter preset name to save as (will override if exists)', this.preset_name, 300 );
 				this.AddPromptContextOption( 'Load preset...', 'LOAD', [ undefined ], 'Enter preset name to load from', this.preset_name, 300 );
 				

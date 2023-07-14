@@ -100,6 +100,9 @@ class sdBullet extends sdEntity
 			if ( !sdWorld.is_server )
 			sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:5, volume: Math.min( 0.25, 0.1 * vel ), _server_allowed:true });
 		}
+		
+		if ( this._custom_post_bounce_reaction )
+		this._custom_post_bounce_reaction( this, vel, null );
 	}
 	
 	static AntiShieldBulletReaction( bullet, target_entity )
@@ -146,6 +149,8 @@ class sdBullet extends sdEntity
 		this._custom_target_reaction = null;
 		this._custom_target_reaction_protected = null;
 		this._custom_detonation_logic = null;
+		this._custom_post_bounce_reaction = null;
+		this._custom_extra_think_logic = null;
 		
 		this._armor_penetration_level = 10; // Defines damage that is compared to target's ._armor_level in order to potentially be able or unable to deal any damage
 		this._reinforced_level = 0; // For "reinforced" blocks which are unlocked from shop / build tool upgrades
@@ -154,6 +159,7 @@ class sdBullet extends sdEntity
 		this._rail_circled = false;
 
 		this._affected_by_gravity = false; // Bullet drop?
+		this.gravity_scale = 1;
 		
 		this.explosion_radius = 0;
 		this.model = null; // Custom image model
@@ -167,6 +173,7 @@ class sdBullet extends sdEntity
 		this._last_target = null; // what bullet did hit
 		
 		this.is_grenade = false;
+		this._detonate_on_impact = true;
 		
 		this._bg_shooter = false;
 		
@@ -408,6 +415,8 @@ class sdBullet extends sdEntity
 	
 	onThink( GSPEED ) // Class-specific, if needed
 	{
+		this.GetAnythingNearCache; // Some projectiles might use this method - mentioning it here just so cache properties will be created and crash would not happen
+		
 		if ( this._first_frame )
 		{
 			if ( this.color )
@@ -473,7 +482,7 @@ class sdBullet extends sdEntity
 
 			if ( this.is_grenade || this._affected_by_gravity )
 			{
-				this.sy += sdWorld.gravity * GSPEED;
+				this.sy += sdWorld.gravity * GSPEED * this.gravity_scale;
 
 				this.ApplyVelocityAndCollisions( GSPEED, 0, true, 1, this.RegularCollisionFiltering );
 			}
@@ -535,6 +544,13 @@ class sdBullet extends sdEntity
 					this.remove();
 					return;
 				}
+			}
+			
+			if ( this._custom_extra_think_logic )
+			if ( this._custom_extra_think_logic( this, GSPEED ) )
+			{
+				this.remove();
+				return;
 			}
 
 			this.time_left -= GSPEED;
@@ -650,6 +666,9 @@ class sdBullet extends sdEntity
 				}
 			}*/
 		}
+		
+		if ( this._custom_post_bounce_reaction )
+		this._custom_post_bounce_reaction( this, 0, from_entity );
 
 		if ( !this.RegularCollisionFiltering( from_entity ) )
 		return;
@@ -752,6 +771,7 @@ class sdBullet extends sdEntity
 
 					this._last_target = from_entity;
 
+					if ( this._detonate_on_impact )
 					if ( this._damage === 0 || !sdWorld.is_server )
 					{
 						this.remove();
@@ -826,10 +846,12 @@ class sdBullet extends sdEntity
 								 ( typeof from_entity._reinforced_level === 'undefined' || this._reinforced_level >= from_entity._reinforced_level ) &&
 									 ( typeof from_entity._shielded === 'undefined' || from_entity._shielded === null )*/ )
 							{
+								let limb_mult = from_entity.GetHitDamageMultiplier( this.x, this.y );
+
 								if ( !this._wave )
 								{
 									if ( !this._soft )
-									sdWorld.SendEffect({ x:this.x, y:this.y, type:from_entity.GetBleedEffect() });
+									sdWorld.SendEffect({ x:this.x, y:this.y, type:( limb_mult === 1 ? from_entity.GetBleedEffect() : from_entity.GetBleedEffectDamageMultiplier() ) });
 								}
 
 								let dmg = this._damage;// * dmg_mult;
@@ -847,8 +869,6 @@ class sdBullet extends sdEntity
 								from_entity.SafeAddVelocity( 0, 0 ); // Will only verify, without adding anything
 
 								let old_hea = ( from_entity.hea || from_entity._hea || 0 );
-
-								let limb_mult = from_entity.GetHitDamageMultiplier( this.x, this.y );
 
 								dmg *= limb_mult;
 
@@ -870,6 +890,7 @@ class sdBullet extends sdEntity
 								}
 
 								//if ( from_entity.GetClass() === 'sdLifeBox' )
+								if ( this._detonate_on_impact )
 								if ( from_entity.is( sdLifeBox ) )
 								if ( this._bouncy && !this.is_grenade )
 								this.remove(); // Prevent falkonian PSI cutter oneshotting lifebox
@@ -1000,6 +1021,7 @@ class sdBullet extends sdEntity
 
 					this._last_target = from_entity;
 
+					if ( this._detonate_on_impact )
 					if ( this._damage === 0 )
 					{
 						//this._last_target = from_entity;

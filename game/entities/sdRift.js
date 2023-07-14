@@ -279,9 +279,10 @@ class sdRift extends sdEntity
 								let asp = new sdAsp({ 
 									x:this.x,
 									y:this.y,
-									_tier: 2
+									_tier: 2,
+									filter: 'invert(1) sepia(1) saturate(100) hue-rotate(270deg) opacity(0.45)',
+									crystal_worth: 160
 								});
-								asp.filter = 'invert(1) sepia(1) saturate(100) hue-rotate(270deg) opacity(0.45)';
 								sdEntity.entities.push( asp );
 								sdWorld.UpdateHashPosition( asp, false ); // Prevent intersection with other ones
 							}
