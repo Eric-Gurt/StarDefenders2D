@@ -318,8 +318,32 @@ class sdPresetEditor extends sdEntity
 		
 		//return snapshots;
 	}
+	CanLoadPreset( force_load = false ){ // Force load means if it should override BSU protected entities, since loading a preset deletes everything inside the region of loaded preset before the preset spawns objects.
+		let ents_to_delete = this.GetEntitiesInside();
+			if ( force_load )
+			{
+				for ( let i = 0; i < ents_to_delete.length; i++ )
+				{
+					ents_to_delete[i].remove();
+					ents_to_delete[i]._broken = false;
+				}
+				return true;
+			}
+			else
+			{
+				let delete_ents = true;
+				for ( let i = 0; i < ents_to_delete.length; i++ )
+				{
+					if ( typeof ents_to_delete[ i ]._shielded !== 'undefined' )
+					if ( ents_to_delete[ i ]._shielded ) // If it's not null, then it is protected by a BSU, therefore it can't soft load preset
+					delete_ents = false;
+				}
+				if ( delete_ents )
+				return( this.CanLoadPreset( delete_ents ) ); // Delete all entities and return true so it can place preset
+			}
+	}
 	
-	LoadPreset( initiator = null, preset_name = '', delete_preset = false )
+	LoadPreset( initiator = null, preset_name = '', delete_preset = false, force_load = true )
 	{
 		if ( preset_name === '' )
 		return;
@@ -340,6 +364,7 @@ class sdPresetEditor extends sdEntity
 				
 				let snapshots = loaded_arr.snapshots;
 				
+				if ( this.CanLoadPreset( force_load ) )
 				this.InsertEntities( snapshots, loaded_arr.relative_x, loaded_arr.relative_y );
 				
 				if ( delete_preset ) 
@@ -665,13 +690,25 @@ class sdPresetEditor extends sdEntity
 				if ( command_name === 'LOAD' )
 				{
 					if ( parameters_array[ 0 ] !== '' )
-					this.LoadPreset( exectuter_character, parameters_array[ 0 ] );
+					this.LoadPreset( exectuter_character, parameters_array[ 0 ], false, true );
 					//executer_socket.SDServiceMessage( 'Not implemented yet' );
 				}
 				if ( command_name === 'LOAD_DEL' )
 				{
 					if ( parameters_array[ 0 ] !== '' )
 					this.LoadPreset( exectuter_character, parameters_array[ 0 ], true );
+					//executer_socket.SDServiceMessage( 'Not implemented yet' );
+				}
+				if ( command_name === 'SOFT_LOAD' )
+				{
+					if ( parameters_array[ 0 ] !== '' )
+					this.LoadPreset( exectuter_character, parameters_array[ 0 ], false, false );
+					//executer_socket.SDServiceMessage( 'Not implemented yet' );
+				}
+				if ( command_name === 'SOFT_LOAD_DEL' )
+				{
+					if ( parameters_array[ 0 ] !== '' )
+					this.LoadPreset( exectuter_character, parameters_array[ 0 ], true, false );
 					//executer_socket.SDServiceMessage( 'Not implemented yet' );
 				}
 				if ( command_name === 'TIMESCALE' )
@@ -708,8 +745,9 @@ class sdPresetEditor extends sdEntity
 				this.AddContextOption( 'Check saveable content', 'CHECK', [] );
 				this.AddPromptContextOption( 'Save preset...', 'SAVE', [ undefined ], 'Enter preset name to save as (will override if exists)', this.preset_name, 300 );
 				this.AddPromptContextOption( 'Load preset...', 'LOAD', [ undefined ], 'Enter preset name to load from', this.preset_name, 300 );
-				
 				this.AddPromptContextOption( 'Load preset without editor', 'LOAD_DEL', [ undefined ], 'Enter preset name to load from', this.preset_name, 300 );
+				this.AddPromptContextOption( 'Soft load preset...', 'SOFT_LOAD', [ undefined ], 'Enter preset name to load from', this.preset_name, 300 );
+				this.AddPromptContextOption( 'Soft load preset without editor', 'SOFT_LOAD_DEL', [ undefined ], 'Enter preset name to load from', this.preset_name, 300 );
 				
 				this.AddPromptContextOption( 'Add tags', 'ADDTAG', [ undefined ], 'Enter tag name', this.tags, 300 );
 				this.AddPromptContextOption( 'Remove tags', 'REMOVETAG', [ undefined ], 'Enter tag name', this.tags, 300 );
