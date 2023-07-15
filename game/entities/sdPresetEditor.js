@@ -285,6 +285,9 @@ class sdPresetEditor extends sdEntity
 			if ( ents_array[ i ].is( sdStatusEffect ) )
 			if ( ents_array[ i ].type === sdStatusEffect.TYPE_STEERING_WHEEL_PING )
 			ignore_entity = true; // Don't save steering wheel ping effects
+		
+			//if ( ents_array[ i ].GetClass() == "sdGrass" )
+			//ignore_entity = true;
 			
 			if ( !ignore_entity )
 			snapshots.push( ents_array[ i ].GetSnapshot( current_frame, true ) );
@@ -323,7 +326,7 @@ class sdPresetEditor extends sdEntity
 	
 			try
 			{
-				console.log( preset_name );
+				//console.log( preset_name );
 				let preset_str = fs.readFileSync( globalThis.presets_folder + '/' + preset_name + '.json', 'utf8' ); // Try to load file for parsing
 				const loaded_arr = JSON.parse( preset_str );
 				//console.log( loaded_arr.name );
@@ -374,13 +377,14 @@ class sdPresetEditor extends sdEntity
 		};
 		
 		//this._last_overlap_issue_entities = [];
+		
 						
 		for ( let i = 0; i < snapshots.length; i++ )
 		{
 			let snapshot = snapshots[ i ];
-			
 			net_id_remap.set( snapshot._net_id, sdEntity.entity_net_ids );
 			snapshot._net_id = sdEntity.entity_net_ids++;
+			
 			
 			snapshot.x = snapshot.x - relative_x + this.x;
 			snapshot.y = snapshot.y - relative_y + this.y;
@@ -405,9 +409,12 @@ class sdPresetEditor extends sdEntity
 					 !sdWorld.CheckLineOfSight( this.x, this.y, ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2, ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2, null, null, [ 'sdBlock', 'sdDoor' ] ) )
 				
 				this._last_overlap_issue_entities.push( sdWorld.last_hit_entity );*/
-				
+				if ( ent.is( sdBlock ) )
+				ent._plants = null; // We reassign the _plants from sdGrass since they have entity pointers
 				new_entities.push( ent );
 			}
+			
+			
 			
 			/*let key = {
 				hash: Math.random()+''+Math.random()+''+Math.random()+''+Math.random(),
@@ -436,6 +443,24 @@ class sdPresetEditor extends sdEntity
 		
 		sdWorld.SolveUnresolvedEntityPointers();
 		sdWorld.unresolved_entity_pointers = null;
+		
+		// Grass compability
+		for ( let i = 0; i < new_entities.length; i++ )
+		{
+			if ( new_entities[ i ].GetClass() === 'sdBlock' )
+				for ( let j = 0; j < new_entities.length; j++ )
+				{
+					if ( new_entities[ j ].GetClass() === 'sdGrass' )
+					if ( new_entities[ j ]._block._net_id === new_entities[ i ]._net_id )
+					{
+						if ( !new_entities[ i ]._plants )
+						new_entities[ i ]._plants = [ new_entities[ j ]._net_id ];
+						else
+						new_entities[ i ]._plants.push( new_entities[ j ]._net_id );
+					}
+				}
+					
+		}
 		
 		return one_time_keys;
 	}
