@@ -170,6 +170,10 @@ class sdCharacter extends sdEntity
             { file:'helmets/helmet_voxel', name:'Voxel' }, //  by LordBored, index = 119
 			{ file:'helmets/helmet_stickman', name:'Stickman' }, //  by Thj, index = 120
 			{ file:'helmets/helmet_stickman2', name:'Stickman Alt' }, //  by Thj, index = 121
+			{ file:'helmets/helmet_animus', name:'Animus' }, //  by LordBored, index = 122
+			{ file:'helmets/helmet_architect', name:'Architect' }, //  by LordBored, index = 123
+			{ file:'helmets/helmet_architect2', name:'Architect Alt1' }, //  by LordBored, index = 124
+			{ file:'helmets/helmet_architect3', name:'Architect Alt2' }, //  by LordBored, index = 125
 			
 			// Add new values at the end
 			// Note: Commas -> , are important since this is just a big Array: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
@@ -289,6 +293,10 @@ class sdCharacter extends sdEntity
             { file:'skins/velox_lite', name:'Velox Lite' }, // by LordBored, index = 89
 			{ file:'skins/velox_heavy', name:'Velox Heavy' }, // by LordBored, index = 90
 			{ file:'skins/stickman', name:'Stickman' }, // by LordBored, index = 91
+			{ file:'skins/animus', name:'Animus' }, // by LordBored, index = 92
+			{ file:'skins/architect', name:'Architect' }, // by LordBored, index = 93
+			{ file:'skins/architect2', name:'Architect Alt1' }, // by LordBored, index = 94
+			{ file:'skins/architect3', name:'Architect Alt2' }, // by LordBored, index = 95
 		];
 		sdCharacter.skins = [];
 		for ( let i = 0; i < sdCharacter.skin_file_names_with_actual_names.length; i++ )
@@ -503,6 +511,7 @@ class sdCharacter extends sdEntity
 		if ( prop === '_save_file' ) return true;
 		if ( prop === '_discovered' ) return true;
 		if ( prop === '_user_data' ) return true;
+		if ( prop === '_ai_stay_near_entity' ) return true;
 
 		return false;
 	}
@@ -762,6 +771,8 @@ class sdCharacter extends sdEntity
 		this._ai_last_y = 0;
 		this._ai_action_counter = 0; // Counter for AI "actions"
 		this._ai_dig = 0; // Amount of blocks for AI to shoot when stuck; given randomly in AILogic when AITargetBlocks is called
+		this._ai_stay_near_entity = null; // Should AI stay near an entity/protect it?
+		this._ai_stay_distance = params._ai_stay_distance || 128; // Max distance AI can stray from entity it follows/protects.
 		this._allow_despawn = true; // Use to prevent despawn of critically important characters once they are downed (task/mission-related)
 		
 		this.title = params.title || ( 'Random Hero #' + this._net_id );
@@ -2044,7 +2055,8 @@ class sdCharacter extends sdEntity
 					sdSound.PlaySound({ name:'sd_death', x:this.x, y:this.y, volume:1, pitch:this.GetVoicePitch(), channel:this._voice_channel });
 				}
 			
-				this._sickness /= 4;
+				//this._sickness /= 4;
+				this._sickness = 0;
 				
 				if ( this.driver_of )
 				this.driver_of.ExcludeDriver( this );
@@ -2345,7 +2357,7 @@ class sdCharacter extends sdEntity
 
 			if ( ( this._ai.direction > 0 && this.x > sdWorld.world_bounds.x2 - 24 ) || ( this._ai.direction < 0 && this.x < sdWorld.world_bounds.x1 + 24 ) )
 			{
-				if ( this._ai_team !== 0 && this._ai_team !== 6)// Prevent SD and Instructor from disappearing
+				if ( this._ai_team !== 0 && this._ai_team !== 6 )// Prevent SD and Instructor from disappearing
 				this.remove();
 				return;
 			}
@@ -2537,6 +2549,39 @@ class sdCharacter extends sdEntity
 				this._key_states.SetKey( 'KeyS', 0 );
 
 				this._key_states.SetKey( 'Mouse1', 0 );
+
+				if ( this._ai_stay_near_entity ) // Is there an entity AI should stay near?
+				{
+					if ( !this._ai_stay_near_entity._is_being_removed && !sdWorld.inDist2D_Boolean( this.x, this.y, this._ai_stay_near_entity.x, this._ai_stay_near_entity.y, this._ai_stay_distance ) ) // Is the AI too far away from the entity?
+					{
+						// Move towards entity
+						if ( this.x > this._ai_stay_near_entity.x )
+						this._key_states.SetKey( 'KeyA', 1 );
+
+						if ( this.x < this._ai_stay_near_entity.x )
+						this._key_states.SetKey( 'KeyD', 1 );
+
+						if ( this.y > this._ai_stay_near_entity.y + 8 )
+						this._key_states.SetKey( 'KeyW', 1 );
+
+					}
+				}
+				else
+				this._ai_stay_near_entity = null;
+
+				if ( !this._ai_stay_near_entity && this._ai_enabled === sdCharacter.AI_MODEL_TEAMMATE && Math.random() < 0.25 )
+				{
+					for ( let i = 0; i < sdWorld.sockets.length; i++ )
+					if ( sdWorld.sockets[ i ].character )
+					{
+						if ( sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, this.x, this.y, 200 ) ) // Is the player close enough to the teammate?
+						{
+							this._ai_stay_near_entity = sdCharacter.characters[ i ]; // Follow the players ( useful for "Rescue Star Defender" tasks
+							this._ai_stay_distance = 96;
+							break;
+						}
+					}
+				}
 
 				if ( closest )
 				{
@@ -2977,18 +3022,21 @@ class sdCharacter extends sdEntity
 			
 			if ( this._sickness > 0 )
 			{
+				this._sickness -= GSPEED;
+				
 				this._sick_damage_timer += GSPEED;
-				if ( this._sick_damage_timer > 6000 / this._sickness )
+				//if ( this._sick_damage_timer > 6000 / this._sickness )
+				if ( this._sick_damage_timer > 60 )
 				{
 					this._sick_damage_timer = 0;
 					
-					this._sickness = Math.max( 0, this._sickness - 10 );
+					//this._sickness = Math.max( 0, this._sickness - 10 );
 					this.DamageWithEffect( 10, this._last_sickness_from_ent, false, false );
 					sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_BLOOD_GREEN, filter:'none' });
 					
 					// And then it spreads to players near, sounds fun
 					
-					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 50, null, [ 'sdCharacter' ] );
+					let targets_raw = sdWorld.GetAnythingNear( this.x, this.y, 90, null, [ 'sdCharacter' ] );
 					
 					let itself = targets_raw.indexOf( this );
 					if ( itself !== -1 )
@@ -2999,11 +3047,11 @@ class sdCharacter extends sdEntity
 						if ( targets_raw[ i ].IsTargetable( this ) )
 						targets_raw[ i ]._sickness += 5 / targets_raw.length;
 					}
-					
-					if ( this._sickness === 0 )
-					{
-						this._last_sickness_from_ent = null;
-					}
+				}
+
+				if ( this._sickness <= 0 )
+				{
+					this._last_sickness_from_ent = null;
 				}
 			}
 
