@@ -414,6 +414,13 @@ class sdPresetEditor extends sdEntity
 			snapshot.x = snapshot.x - relative_x + this.x;
 			snapshot.y = snapshot.y - relative_y + this.y;
 			
+			if ( snapshot._class ==='sdDoor' )
+			{
+			snapshot.x0 = snapshot.x0 - relative_x + this.x;
+			snapshot.y0 = snapshot.y0 - relative_y + this.y;
+			}
+				
+			
 			let ent = sdEntity.GetObjectFromSnapshot( snapshot );
 			
 			if ( ent )
