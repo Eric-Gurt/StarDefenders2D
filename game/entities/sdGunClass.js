@@ -5494,6 +5494,7 @@ class sdGunClass
 			
 			reload_time: 3,
 			muzzle_x: 7,
+			min_workbench_level: 5,
 			
 			ammo_capacity: 30,
 			ammo_capacity_dynamic: ( gun )=>
