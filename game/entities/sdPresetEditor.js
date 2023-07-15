@@ -103,6 +103,8 @@ class sdPresetEditor extends sdEntity
 		
 		this.tags = []; // Tags which preset creator can define to simplify search / preset loading
 		
+		this._last_inserted_entities_array = [];
+		
 		this.associated_button_net_ids = []; // Why not have physical buttons that different admins could press? Just not sure what those buttons would be, possibly context options will be enough
 		
 		this.time_scale = 0; // Percentages
@@ -314,7 +316,7 @@ class sdPresetEditor extends sdEntity
 		//return snapshots;
 	}
 	
-	LoadPreset( initiator = null, preset_name = '' )
+	LoadPreset( initiator = null, preset_name = '', delete_preset = false )
 	{
 		if ( preset_name === '' )
 		return;
@@ -333,6 +335,12 @@ class sdPresetEditor extends sdEntity
 				this.h = loaded_arr.height;
 				this._update_version++;
 				
+				let snapshots = loaded_arr.snapshots;
+				
+				this.InsertEntities( snapshots, loaded_arr.relative_x, loaded_arr.relative_y );
+				
+				if ( delete_preset ) 
+				this.remove();
 			}
 			catch ( e )
 			{
@@ -340,7 +348,7 @@ class sdPresetEditor extends sdEntity
 			}
 	}
 	
-	/*InsertEntitiesOnTop( snapshots, relative_x, relative_y )
+	InsertEntities( snapshots, relative_x, relative_y )
 	{
 		let one_time_keys = [];
 		
@@ -348,8 +356,8 @@ class sdPresetEditor extends sdEntity
 		
 		sdWorld.unresolved_entity_pointers = [];
 	
-		if ( snapshots.length > 0 )
-		sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
+		//if ( snapshots.length > 0 )
+		//sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, volume:0.5 });
 	
 		let new_entities = [];
 		this._last_inserted_entities_array = new_entities;
@@ -365,7 +373,7 @@ class sdPresetEditor extends sdEntity
 			return false;
 		};
 		
-		this._last_overlap_issue_entities = [];
+		//this._last_overlap_issue_entities = [];
 						
 		for ( let i = 0; i < snapshots.length; i++ )
 		{
@@ -385,9 +393,9 @@ class sdPresetEditor extends sdEntity
 				if ( ent._affected_hash_arrays.length > 0 ) // Easier than checking for hiberstates
 				sdWorld.UpdateHashPosition( ent, false, false );
 			
-				sdWorld.SendEffect({ x:ent.x + (ent.hitbox_x1+ent.hitbox_x2)/2, y:ent.y + (ent.hitbox_y1+ent.hitbox_y2)/2, type:sdEffect.TYPE_TELEPORT });
+				//sdWorld.SendEffect({ x:ent.x + (ent.hitbox_x1+ent.hitbox_x2)/2, y:ent.y + (ent.hitbox_y1+ent.hitbox_y2)/2, type:sdEffect.TYPE_TELEPORT });
 				
-				if ( ent.IsPlayerClass() )
+				/*if ( ent.IsPlayerClass() )
 				{
 					ent._respawn_protection = 30 * 10; // 10 seconds of protection once teleported
 					ent._god = false;
@@ -395,12 +403,13 @@ class sdPresetEditor extends sdEntity
 				
 				if ( !ent.CanMoveWithoutOverlap( ent.x, ent.y, 0, custom_filtering_method ) || 
 					 !sdWorld.CheckLineOfSight( this.x, this.y, ent.x + ( ent._hitbox_x1 + ent._hitbox_x2 ) / 2, ent.y + ( ent._hitbox_y1 + ent._hitbox_y2 ) / 2, null, null, [ 'sdBlock', 'sdDoor' ] ) )
-				this._last_overlap_issue_entities.push( sdWorld.last_hit_entity );
+				
+				this._last_overlap_issue_entities.push( sdWorld.last_hit_entity );*/
 				
 				new_entities.push( ent );
 			}
 			
-			let key = {
+			/*let key = {
 				hash: Math.random()+''+Math.random()+''+Math.random()+''+Math.random(),
 				ent: ent,
 				until: sdWorld.time + 30 * 1000
@@ -409,6 +418,7 @@ class sdPresetEditor extends sdEntity
 			sdLongRangeTeleport.one_time_keys.push( key );
 			
 			one_time_keys[ i ] = key.hash;
+			*/
 			
 		}
 		for ( let i = 0; i < sdWorld.unresolved_entity_pointers.length; i++ )
@@ -428,7 +438,7 @@ class sdPresetEditor extends sdEntity
 		sdWorld.unresolved_entity_pointers = null;
 		
 		return one_time_keys;
-	}*/
+	}
 	
 	Draw( ctx, attached )
 	{
@@ -633,6 +643,12 @@ class sdPresetEditor extends sdEntity
 					this.LoadPreset( exectuter_character, parameters_array[ 0 ] );
 					//executer_socket.SDServiceMessage( 'Not implemented yet' );
 				}
+				if ( command_name === 'LOAD_DEL' )
+				{
+					if ( parameters_array[ 0 ] !== '' )
+					this.LoadPreset( exectuter_character, parameters_array[ 0 ], true );
+					//executer_socket.SDServiceMessage( 'Not implemented yet' );
+				}
 				if ( command_name === 'TIMESCALE' )
 				{
 					this.time_scale = parseFloat( parameters_array[ 0 ] ) * 1000;
@@ -667,6 +683,8 @@ class sdPresetEditor extends sdEntity
 				this.AddContextOption( 'Check saveable content', 'CHECK', [] );
 				this.AddPromptContextOption( 'Save preset...', 'SAVE', [ undefined ], 'Enter preset name to save as (will override if exists)', this.preset_name, 300 );
 				this.AddPromptContextOption( 'Load preset...', 'LOAD', [ undefined ], 'Enter preset name to load from', this.preset_name, 300 );
+				
+				this.AddPromptContextOption( 'Load preset without editor', 'LOAD_DEL', [ undefined ], 'Enter preset name to load from', this.preset_name, 300 );
 				
 				this.AddPromptContextOption( 'Add tags', 'ADDTAG', [ undefined ], 'Enter tag name', this.tags, 300 );
 				this.AddPromptContextOption( 'Remove tags', 'REMOVETAG', [ undefined ], 'Enter tag name', this.tags, 300 );
