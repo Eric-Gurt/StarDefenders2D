@@ -958,7 +958,8 @@ class sdWorld
 
 					if ( Math.random() < 0.2 && !will_break_on_touch )
 					{
-						let tree = new sdGrass({ x:x + 16 / 2, y:y, filter:f, variation:( Math.random() < 0.2 ) ? sdGrass.VARIATION_TREE_BARREN : sdGrass.VARIATION_TREE });
+						let tree_variation = ( Math.random() < 0.35 ) ? ( ( Math.random() < 0.2 ) ? sdGrass.VARIATION_TREE_LARGE_BARREN : sdGrass.VARIATION_TREE_LARGE ) : ( ( Math.random() < 0.2 ) ? sdGrass.VARIATION_TREE_BARREN : sdGrass.VARIATION_TREE );
+						let tree = new sdGrass({ x:x + 16 / 2, y:y, filter:f, variation: tree_variation });
 						sdEntity.entities.push( tree );
 
 						plants.push( tree._net_id );
