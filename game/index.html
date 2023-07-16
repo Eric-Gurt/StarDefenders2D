@@ -11,6 +11,7 @@
 	<meta name="language" content="English">
 	<meta name="revisit-after" content="30 days">
 	<link rel="stylesheet" href="style.css">
+	<script src="client/sdUserAgent.js"></script>
     </head>
     <body>
 	<script src="client/sdErrorReporter.js"></script>
@@ -695,6 +696,12 @@
 	</div>
 
 	<script>
+	let input_elements = document.body.querySelectorAll("input[type=color]");
+	if ( userAgent[0] == "Gecko" && userAgent[1] == 2 )
+	for( let i = 0; i < input_elements.length; i++ )
+	{
+		input_elements[i].className = "gecko";
+	}
 	Run();
 	
 	function Run()
