@@ -104,7 +104,11 @@ input[type=color].gecko
 {
     padding: 5px;
 }
-input::-webkit-color-swatch, input::-moz-color-swatch
+input::-moz-color-swatch
+{
+    border: 1px solid black;
+}
+input::-webkit-color-swatch
 {
     border: 1px solid black;
 }
