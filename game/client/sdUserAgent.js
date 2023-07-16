@@ -14,7 +14,7 @@ function getBrowser()
 
 	/*const listedItems = [ canvas.mozOpaque,
 	window.BeforeInstallPrompt,
-	window.onwebkitforcechanged ];
+	window.ongesturechanged ];
 
 	const clearItems = function()
 	{
@@ -36,7 +36,7 @@ function getBrowser()
 	}
 		
 	// WebKit
-	if ( window.onwebkitforcechanged !== undefined )
+	if ( window.ongesturechange !== undefined )
 	{
 		browser = "WebKit";
 		browserID = BROWSER_WEBKIT;
