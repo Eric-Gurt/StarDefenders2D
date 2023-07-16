@@ -37,7 +37,7 @@ function getBrowser()
 	}
 		
 	// WebKit
-	if ( window.ongesturechange !== undefined )
+	if ( window.ongesturechange !== undefined || window.onwebkitmouseforcechanged !== undefined )
 	{
 		browser = "WebKit";
 		browserID = BROWSER_WEBKIT;
