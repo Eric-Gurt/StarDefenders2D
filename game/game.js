@@ -1434,5 +1434,6 @@ let enf_once = true;
 	
 		sdShop.MouseWheel( e );
 	};
+	window.onwheel = (e)=> window.onmousewheel(e);
 	
 	socket.open();
