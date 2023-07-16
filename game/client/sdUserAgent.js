@@ -30,7 +30,7 @@ function getBrowser()
 	}
 		
 	// Blink
-	if ( window.BeforeInstallPrompt !== undefined )
+	if ( window.BeforeInstallPromptEvent !== undefined )
 	{
 		browser = "Blink";
 		browserID = BROWSER_BLINK;
