@@ -3402,7 +3402,7 @@ class sdWeather extends sdEntity
 				//if ( Math.random() < 100 / ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) )
 				if ( sdWorld.time > this._next_grass_seed )
 				{
-					this._next_grass_seed = sdWorld.time;
+					this._next_grass_seed = sdWorld.time + 100;
 					
 					let e = sdEntity.GetRandomEntity();
 					
