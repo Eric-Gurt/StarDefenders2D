@@ -2698,7 +2698,7 @@ class sdWeather extends sdEntity
 		{
 			// TODO: These will be reworked with presets at some point. Also spawn is inefficient in terms of how many sdDeepSleep it would awake
 			
-			if ( Math.random() < 0.2 ) // Don't want these to flood maps since they're very basic
+			if ( Math.random() < 1 ) // Don't want these to flood maps since they're very basic
 			{
 				if ( sdWorld.server_config.aggressive_hibernation )
 				{
@@ -3402,7 +3402,7 @@ class sdWeather extends sdEntity
 				//if ( Math.random() < 100 / ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) )
 				if ( sdWorld.time > this._next_grass_seed )
 				{
-					this._next_grass_seed = sdWorld.time + 100;
+					this._next_grass_seed = sdWorld.time;
 					
 					let e = sdEntity.GetRandomEntity();
 					
@@ -3415,7 +3415,27 @@ class sdWeather extends sdEntity
 						{
 							if ( e._plants === null )
 							{
-								let grass = new sdGrass({ x:e.x, y:e.y - 16, hue:e.hue, br:e.br, filter: e.filter, block:e });
+								let grass;
+								if ( Math.random() < 0.2 ) // 20% Chance
+								{
+									let proper_distance = true;
+
+									for ( i = 0; i < sdWorld.sockets.length; i++ )
+									if ( sdWorld.sockets[ i ].character )
+									{
+										if ( sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, e.x, e.y, sdWeather.min_distance_from_online_players_for_entity_events ) ) // If players are too close, don't spawn a tree so they don't see it pop in
+										{
+											proper_distance = false;
+											break;
+										}
+									}
+									if ( proper_distance )
+									grass = new sdGrass({ x:e.x + 8, y:e.y, hue:e.hue, br:e.br, filter: e.filter, block:e, variation: sdGrass.VARIATION_TREE_LARGE });
+								}
+								else
+								grass = new sdGrass({ x:e.x, y:e.y - 16, hue:e.hue, br:e.br, filter: e.filter, block:e });
+								
+								//let grass = new sdGrass({ x:e.x, y:e.y - 16, hue:e.hue, br:e.br, filter: e.filter, block:e });
 								sdEntity.entities.push( grass );
 
 								//grass.snowed = this.snow;
