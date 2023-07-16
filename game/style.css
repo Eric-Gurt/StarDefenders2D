@@ -102,7 +102,7 @@ input[type=color]
 }
 input[type=color].gecko
 {
-    padding: 5px;
+    padding: 5px 3px 5px 3px;
 }
 input::-moz-color-swatch
 {
