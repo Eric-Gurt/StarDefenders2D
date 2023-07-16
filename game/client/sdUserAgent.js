@@ -13,7 +13,7 @@ function getBrowser()
 	// maybe listedItems will come back one day - Molis
 
 	/*const listedItems = [ canvas.mozOpaque,
-	window.CSSPositionValue,
+	window.BeforeInstallPrompt,
 	window.onwebkitforcechanged ];
 
 	const clearItems = function()
@@ -29,7 +29,7 @@ function getBrowser()
 	}
 		
 	// Blink
-	if ( window.CSSPositionValue !== undefined )
+	if ( window.BeforeInstallPrompt !== undefined )
 	{
 		browser = "Blink";
 		browserID = BROWSER_BLINK;
