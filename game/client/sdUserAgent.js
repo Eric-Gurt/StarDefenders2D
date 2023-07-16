@@ -1,9 +1,9 @@
+globalThis.BROWSER_WEBKIT = 0;
+globalThis.BROWSER_BLINK = 1;
+globalThis.BROWSER_GECKO = 2;
+
 function getBrowser()
 {
-	const BROWSER_WEBKIT = 0;
-	const BROWSER_BLINK = 1;
-	const BROWSER_GECKO = 2;
-
 	const canvas = document.createElement("canvas");
 
 	let browser = "Unknown";

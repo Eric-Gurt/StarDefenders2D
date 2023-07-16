@@ -1434,7 +1434,7 @@ let enf_once = true;
 	
 		sdShop.MouseWheel( e );
 	};
-	if( userAgent[0] === "Gecko" && userAgent[1] === 2 )
+	if( userAgent[0] === "Gecko" && userAgent[1] === globalThis.BROWSER_GECKO )
 	window.onwheel = window.onmousewheel;
 	
 	socket.open();
