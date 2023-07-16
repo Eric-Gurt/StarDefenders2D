@@ -26,21 +26,21 @@ function getBrowser()
 	if ( canvas.mozOpaque !== undefined || window.mozInnerScreenX !== undefined )
 	{
 		browser = "Gecko";
-		browserID = BROWSER_GECKO;
+		browserID = globalThis.BROWSER_GECKO;
 	}
 		
 	// Blink
 	if ( window.BeforeInstallPromptEvent !== undefined )
 	{
 		browser = "Blink";
-		browserID = BROWSER_BLINK;
+		browserID = globalThis.BROWSER_BLINK;
 	}
 		
 	// WebKit
 	if ( window.ongesturechange !== undefined || window.onwebkitmouseforcechanged !== undefined )
 	{
 		browser = "WebKit";
-		browserID = BROWSER_WEBKIT;
+		browserID = globalThis.BROWSER_WEBKIT;
 	}
 
 	return Object.freeze([browser, browserID]);
