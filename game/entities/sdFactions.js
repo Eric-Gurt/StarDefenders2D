@@ -528,7 +528,7 @@ class sdFactions extends sdEntity
 
 		if ( faction === sdFactions.FACTION_TZYRG ) // Tzyrg
 		{
-			if ( Math.random < 0.5 )
+			if ( Math.random() < 0.5 )
 			{ 
 				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_TZYRG_SHOTGUN }) );
 				character_entity._ai_gun_slot = 3;
