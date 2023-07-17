@@ -2698,7 +2698,7 @@ class sdWeather extends sdEntity
 		{
 			// TODO: These will be reworked with presets at some point. Also spawn is inefficient in terms of how many sdDeepSleep it would awake
 			
-			if ( Math.random() < 1 ) // Don't want these to flood maps since they're very basic
+			if ( Math.random() < 0.2 ) // Don't want these to flood maps since they're very basic
 			{
 				if ( sdWorld.server_config.aggressive_hibernation )
 				{
@@ -3415,8 +3415,10 @@ class sdWeather extends sdEntity
 						{
 							if ( e._plants === null )
 							{
-								let grass;
-								if ( Math.random() < 0.2 ) // 20% Chance
+								let tree_variation = sdGrass.VARIATION_LOW_GRASS; // Initial grass
+								let x_off = 0; // X and Y offsets for proper aligment of bushes/trees
+								let y_off = 0; //
+								if ( Math.random() < 0.4 ) // 40% chance for it to check if a tree or bush spawn is possible
 								{
 									let proper_distance = true;
 
@@ -3429,11 +3431,23 @@ class sdWeather extends sdEntity
 											break;
 										}
 									}
-									if ( proper_distance )
-									grass = new sdGrass({ x:e.x + 8, y:e.y, hue:e.hue, br:e.br, filter: e.filter, block:e, variation: sdGrass.VARIATION_TREE_LARGE });
+									if ( proper_distance ) // Can spawn a tree?
+									{
+										let chance = Math.random();
+										if ( chance < 0.175 ) // 35% of trees have a chance to be large, just like in fresh world generation
+										tree_variation = sdGrass.VARIATION_TREE_LARGE;
+										else
+										if ( chance < 0.5 )
+										tree_variation = sdGrass.VARIATION_TREE;
+										else
+										tree_variation = sdGrass.VARIATION_BUSH;
+									
+										x_off = 8;
+										y_off = 16;
+										// Without these offsets trees and bushes will spawn in air and on the left of the dirt blocks.
+									}
 								}
-								else
-								grass = new sdGrass({ x:e.x, y:e.y - 16, hue:e.hue, br:e.br, filter: e.filter, block:e });
+								let grass = new sdGrass({ x:e.x + x_off, y:e.y + y_off - 16, hue:e.hue, br:e.br, filter: e.filter, block:e, variation:tree_variation });
 								
 								//let grass = new sdGrass({ x:e.x, y:e.y - 16, hue:e.hue, br:e.br, filter: e.filter, block:e });
 								sdEntity.entities.push( grass );
