@@ -325,7 +325,7 @@ class sdRenderer
 							let nextByte = 0;
 							let nextByte2 = 0;
 
-							if ( userAgent[0] === "Gecko" && userAgent[1] === globalThis.BROWSER_GECKO )
+							if ( userAgent[0] === "Gecko" && userAgent[1] === BROWSER_GECKO )
 							for ( let i = 1; i < data.length; i++ ) // Recolor. Firefox supports the wrong numbers instead of the right ones on Chromium
 							{
 								previousByte = data[ i - 1 ];

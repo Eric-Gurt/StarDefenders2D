@@ -1,6 +1,6 @@
-globalThis.BROWSER_WEBKIT = 0;
-globalThis.BROWSER_BLINK = 1;
-globalThis.BROWSER_GECKO = 2;
+const BROWSER_WEBKIT = 0;
+const BROWSER_BLINK = 1;
+const BROWSER_GECKO = 2;
 
 function getBrowser()
 {
@@ -26,21 +26,21 @@ function getBrowser()
 	if ( canvas.mozOpaque !== undefined || window.mozInnerScreenX !== undefined )
 	{
 		browser = "Gecko";
-		browserID = globalThis.BROWSER_GECKO;
+		browserID = BROWSER_GECKO;
 	}
 		
 	// Blink
 	if ( window.BeforeInstallPromptEvent !== undefined )
 	{
 		browser = "Blink";
-		browserID = globalThis.BROWSER_BLINK;
+		browserID = BROWSER_BLINK;
 	}
 		
 	// WebKit
 	if ( window.ongesturechange !== undefined || window.onwebkitmouseforcechanged !== undefined )
 	{
 		browser = "WebKit";
-		browserID = globalThis.BROWSER_WEBKIT;
+		browserID = BROWSER_WEBKIT;
 	}
 
 	return Object.freeze([browser, browserID]);
