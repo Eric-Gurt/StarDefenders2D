@@ -159,6 +159,8 @@ input:hover, input:focus
     background-color: transparent;
     position: relative;
     user-select: none;
+
+    scrollbar-color: white transparent;
 }
 .set_block *
 {
