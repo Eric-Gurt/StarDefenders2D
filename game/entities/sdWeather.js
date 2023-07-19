@@ -2998,7 +2998,7 @@ class sdWeather extends sdEntity
 					percent++;
 				}
 			}
-			if ( Math.random() < ( 1.45 * ( percent / sdWorld.GetPlayingPlayersCount() ) ) ) // Spawn chance depends on RNG, chances increase if more players have at least 20 levels
+			if ( Math.random() < ( 0.45 * ( percent / sdWorld.GetPlayingPlayersCount() ) ) ) // Spawn chance depends on RNG, chances increase if more players have at least 20 levels
 			{
 				let instances = 0;
 				let instances_tot = 5;

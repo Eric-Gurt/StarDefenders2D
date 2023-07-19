@@ -14,6 +14,7 @@ import sdCamera from './sdCamera.js';
 import sdDoor from './sdDoor.js';
 import sdFleshGrabber from './sdFleshGrabber.js';
 import sdBot from './sdBot.js';
+import sdStatusEffect from './sdStatusEffect.js';
 
 
 
@@ -739,6 +740,11 @@ class sdBlock extends sdEntity
 			this._next_attack = 0;
 			this._next_spread = sdWorld.time + 5000; // + Math.random() * 10000;
 			this.p = ( params.rank === undefined ) ? sdBlock.max_flesh_rank : params.rank;
+		}
+		
+		if ( this.material === sdBlock.MATERIAL_ANCIENT_WALL )
+		{
+			this.ApplyStatusEffect({ type: sdStatusEffect.TYPE_ANCIENT_WALL_PROPERTIES }); // Give ancient blocks matter emmission
 		}
 		
 		this.destruction_frame = 0;
