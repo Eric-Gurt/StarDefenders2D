@@ -37,7 +37,8 @@ body, .password_screen
     user-select: none;
 
     font-size: 12px;
-    background: repeating-linear-gradient( -45deg, black 0px, black 5.1px, #0b0b0b 5.1px, #0b0b0b 10.2px );
+    /* Firefox needs "fixed" keyword here otherwise the background will go white - Molis */
+    background: fixed repeating-linear-gradient( -45deg, black 0px, black 5.1px, #0b0b0b 5.1px, #0b0b0b 10.2px );
     height: 100%;
     overflow: hidden;
     background-blend-mode: overlay;
@@ -96,7 +97,16 @@ input[type=color]
 {
     background-color: #111111;
     padding: 1px;
+    width: 50px;
     height: 20px;
+}
+input[type=color].gecko
+{
+    padding: 5px 3px 5px 3px;
+}
+input::-moz-color-swatch
+{
+    border: 1px solid black;
 }
 input::-webkit-color-swatch
 {
@@ -149,6 +159,8 @@ input:hover, input:focus
     background-color: transparent;
     position: relative;
     user-select: none;
+
+    scrollbar-color: white transparent;
 }
 .set_block *
 {
