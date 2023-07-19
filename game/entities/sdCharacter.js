@@ -2357,9 +2357,11 @@ class sdCharacter extends sdEntity
 
 			if ( ( this._ai.direction > 0 && this.x > sdWorld.world_bounds.x2 - 24 ) || ( this._ai.direction < 0 && this.x < sdWorld.world_bounds.x1 + 24 ) )
 			{
-				if ( this._ai_team !== 0 && this._ai_team !== 6 )// Prevent SD and Instructor from disappearing
-				this.remove();
-				return;
+				if ( this._ai_team !== 0 && this._ai_team !== 6 && this._ai_team !== 10 )// Prevent SD, Instructor and Time Shifter from disappearing
+				{
+					this.remove();
+					return;
+				}
 			}
 
 			if ( !this._ai.target || this._ai.target._is_being_removed )

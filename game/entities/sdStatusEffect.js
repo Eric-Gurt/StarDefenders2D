@@ -969,6 +969,15 @@ class sdStatusEffect extends sdEntity
 						status_entity.time_to_defeat = 30 * 5; // Teleport away in 5 seconds
 					}
 				}
+				else
+				{
+					if (status_entity.for._in_water ) // If Time shifter is in a liquid, he will teleport away
+					{
+						sdSound.PlaySound({ name:'teleport', x:status_entity.for.x, y:status_entity.for.y, volume:0.5 });
+						sdWorld.SendEffect({ x:status_entity.for.x, y:status_entity.for.y, type:sdEffect.TYPE_TELEPORT/*, hue:170, filter:'hue-rotate(' + ~~( 170 ) + 'deg)'*/ });
+						sdWeather.SetRandomSpawnLocation( status_entity.for );
+					}
+				}
 				
 				//return ( status_entity._progress > status_entity._max_progress ); // return true = delete
 			},

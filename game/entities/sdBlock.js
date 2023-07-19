@@ -137,6 +137,7 @@ class sdBlock extends sdEntity
 		sdBlock.MATERIAL_ROCK = 10;
 		sdBlock.MATERIAL_SAND = 11;
 		sdBlock.MATERIAL_BUGGED_CHUNK = 12;
+		sdBlock.MATERIAL_ANCIENT_WALL = 13;
 		
 		//sdBlock.img_ground11 = sdWorld.CreateImageFromFile( 'ground_1x1' );
 		//sdBlock.img_ground44 = sdWorld.CreateImageFromFile( 'ground_4x4' );
@@ -145,6 +146,7 @@ class sdBlock extends sdEntity
 		sdBlock.img_corruption = sdWorld.CreateImageFromFile( 'corruption' );
 		sdBlock.img_crystal_shards = sdWorld.CreateImageFromFile( 'crystal_shards' );
 		sdBlock.img_flesh = sdWorld.CreateImageFromFile( 'flesh5' );
+		sdBlock.img_ancient_wall = sdWorld.CreateImageFromFile( 'wall_ancient' ); // These behave like dirt/flesh/etc... rather than a wall.
 		
 		sdBlock.img_trapshield11 = sdWorld.CreateImageFromFile( 'trapshield_1x1' );
 		sdBlock.img_trapshield05 = sdWorld.CreateImageFromFile( 'trapshield_half' );
@@ -401,6 +403,18 @@ class sdBlock extends sdEntity
 						8
 					); // Spawn some shards
 				}
+				if ( this.material === sdBlock.MATERIAL_ANCIENT_WALL ) // Ancient walls chain explode, they explode for more than 200 damage
+				{
+					sdWorld.SendEffect({ 
+					x:this.x + 8, 
+					y:this.y + 8, 
+					radius:16, // 80 was too much?
+					damage_scale: 12,
+					type:sdEffect.TYPE_EXPLOSION, 
+					owner:this,
+					color:'#3BD930' 
+				});
+				}
 				
 				{
 					if ( this._contains_class )
@@ -654,6 +668,11 @@ class sdBlock extends sdEntity
 		if ( this.material === sdBlock.MATERIAL_TRAPSHIELD ) // Less health, but regeneration will have no delay
 		{
 			this._hmax *= sdBlock.trapshield_block_health_ratio;
+		}
+		
+		if ( this.material === sdBlock.MATERIAL_ANCIENT_WALL ) // Less health, explodes when destroyed, but emits matter
+		{
+			this._hmax = 200;
 		}
 		this._last_damage = 0; // Used by MATERIAL_TRAPSHIELD so far only
 		
@@ -1300,7 +1319,8 @@ class sdBlock extends sdEntity
 			 this.material === sdBlock.MATERIAL_ROCK ||
 			 this.material === sdBlock.MATERIAL_SAND ||
 			 this.material === sdBlock.MATERIAL_CORRUPTION || 
-			 this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS )
+			 this.material === sdBlock.MATERIAL_CRYSTAL_SHARDS ||
+			 this.material === sdBlock.MATERIAL_ANCIENT_WALL )
 		{
 			let texture = sdBlock.img_ground88;
 			let texture_size = 256;
@@ -1314,6 +1334,11 @@ class sdBlock extends sdEntity
 			if ( this.material === sdBlock.MATERIAL_SAND )
 			{
 				texture = sdBlock.img_sand;
+				texture_size = 128;
+			}
+			if ( this.material === sdBlock.MATERIAL_ANCIENT_WALL )
+			{
+				texture = sdBlock.img_ancient_wall;
 				texture_size = 128;
 			}
 			
