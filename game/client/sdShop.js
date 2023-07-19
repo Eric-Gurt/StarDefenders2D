@@ -91,6 +91,9 @@ class sdShop
 			for ( let hue = 0; hue < 360; hue += 30 )
 			sdShop.options.push({ _class: 'sdGrass', variation: 4, hue:hue, _category:'Other' });
 
+			for ( let hue = 0; hue < 360; hue += 30 )
+			sdShop.options.push({ _class: 'sdGrass', variation: 6, hue:hue, _category:'Other' });
+
 			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, _category:'Vehicles' });
 			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles' });
 			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles' });
@@ -734,6 +737,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_ROCK, natural: true, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_CORRUPTION, natural: true, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_FLESH, natural: true, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_ANCIENT_WALL, natural: false, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGib', class:sdGib.CLASS_VELOX_MECH_HEAD, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdMimic', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdRoach', _category:'Development tests' });
