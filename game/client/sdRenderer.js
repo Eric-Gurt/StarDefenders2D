@@ -318,6 +318,37 @@ class sdRenderer
 						{
 							let image_data = ctx.getImageData( 0, 0, ctx.canvas.width, ctx.canvas.height );
 							let data = image_data.data; // Uint8ClampedArray
+
+
+							// Firefox related variables
+							/*let previousByte = 0;
+							let nextByte = 0;
+							let nextByte2 = 0;
+
+							if ( userAgent[0] === "Gecko" && userAgent[1] === BROWSER_GECKO )
+							for ( let i = 1; i < data.length; i++ ) // Recolor. Firefox supports the wrong numbers instead of the right ones on Chromium
+							{
+								previousByte = data[ i - 1 ];
+								nextByte = data[ i + 1 ];
+								nextByte2 = data[ i + 2 ];
+
+								if ( data[ i ] === 0 )
+								continue;
+
+								// Helmet (Dark) and Lower suit armor plates
+								if ( data[ i ] === 127 )
+								data[ i ] = 128;
+
+								// Helmet (Bright)
+								if ( data[ i ] === 190 )
+								data[ i ] = 192;
+
+								if ( data[ i ] === 254 )
+								data[ i ] = 255;
+
+								console.log( previousByte, nextByte, nextByte2 );
+							}*/
+
 							/*
 							let array_buffer = data.buffer;
 							let data_view = new DataView( array_buffer );
