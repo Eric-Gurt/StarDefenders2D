@@ -320,13 +320,13 @@ class sdRenderer
 							let data = image_data.data; // Uint8ClampedArray
 
 
-							let roundBGRA8 = ( number = 127 ) => {
+							let roundBGRA8 = ( number = 127, check = 127 ) => {
 								switch( number )
 								{
 									case 127:
 									case 191:
 									case 254:
-									if ( data.length !== 81920 || number === ( 191 || 254 ) )
+									if ( data.length !== 81920 || number === 191 || number === 254 )
 									number++;
 									break;
 
@@ -341,6 +341,7 @@ class sdRenderer
 
 									case 132:
 									number -= 4;
+									break;
 
 									case 193:
 									case 129:
@@ -378,7 +379,7 @@ class sdRenderer
 							if ( userAgent[0] === "Gecko" && userAgent[1] === BROWSER_GECKO )
 							for ( let i = 1; i < data.length; i++ ) // Recolor. Firefox supports the wrong numbers instead of the right ones on Chromium
 							if ( data[ i ] !== 0 )
-							data[ i ] = roundBGRA8( data[ i ] );
+							data[ i ] = roundBGRA8( data[ i ], data[ i + 1 ] );
 
 							/*
 							let array_buffer = data.buffer;
