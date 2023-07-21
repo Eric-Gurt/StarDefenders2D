@@ -319,35 +319,75 @@ class sdRenderer
 							let image_data = ctx.getImageData( 0, 0, ctx.canvas.width, ctx.canvas.height );
 							let data = image_data.data; // Uint8ClampedArray
 
+							//console.log( "before: ", data );
 
-							// Firefox related variables
-							/*let previousByte = 0;
-							let nextByte = 0;
-							let nextByte2 = 0;
+
+							let roundBGRA8 = ( number = 127 ) => {
+								switch( number )
+								{
+									case 127:
+									case 191:
+									case 254:
+									if ( data.length !== 81920 || number === 191 || number === 254 )
+									number++;
+									break;
+
+									case 126:
+									case 190:
+									number += 2;
+									break;
+
+									case 124:
+									number += 4;
+									break;
+
+									case 132:
+									number -= 4;
+
+									case 193:
+									case 129:
+									number--;
+									break;
+
+									case 130:
+									number -= 2;
+									break;
+
+									case 189:
+									case 125:
+									number += 3;
+									break;
+
+									case 195:
+									case 131:
+									number -= 3;
+									break;
+
+									case 52:
+									case 27:
+									case 18:
+									case 15:
+									case 11:
+									case 2:
+									case 1:
+									number = 0;
+									break;
+								}
+
+								return number;
+							};
 
 							if ( userAgent[0] === "Gecko" && userAgent[1] === BROWSER_GECKO )
 							for ( let i = 1; i < data.length; i++ ) // Recolor. Firefox supports the wrong numbers instead of the right ones on Chromium
+							if ( data[ i ] !== 0 )
 							{
-								previousByte = data[ i - 1 ];
-								nextByte = data[ i + 1 ];
-								nextByte2 = data[ i + 2 ];
+								data[ i ] = roundBGRA8( data[ i ] );
+								console.log( data[ i ] );
+							}
 
-								if ( data[ i ] === 0 )
-								continue;
+							console.log( data.length );
 
-								// Helmet (Dark) and Lower suit armor plates
-								if ( data[ i ] === 127 )
-								data[ i ] = 128;
-
-								// Helmet (Bright)
-								if ( data[ i ] === 190 )
-								data[ i ] = 192;
-
-								if ( data[ i ] === 254 )
-								data[ i ] = 255;
-
-								console.log( previousByte, nextByte, nextByte2 );
-							}*/
+							//console.log( "after: ", data );
 
 							/*
 							let array_buffer = data.buffer;
