@@ -362,6 +362,7 @@ class sdRenderer
 									number -= 3;
 									break;
 
+									case 54:
 									case 52:
 									case 27:
 									case 18:
