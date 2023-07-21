@@ -319,8 +319,6 @@ class sdRenderer
 							let image_data = ctx.getImageData( 0, 0, ctx.canvas.width, ctx.canvas.height );
 							let data = image_data.data; // Uint8ClampedArray
 
-							//console.log( "before: ", data );
-
 
 							let roundBGRA8 = ( number = 127 ) => {
 								switch( number )
@@ -380,14 +378,7 @@ class sdRenderer
 							if ( userAgent[0] === "Gecko" && userAgent[1] === BROWSER_GECKO )
 							for ( let i = 1; i < data.length; i++ ) // Recolor. Firefox supports the wrong numbers instead of the right ones on Chromium
 							if ( data[ i ] !== 0 )
-							{
-								data[ i ] = roundBGRA8( data[ i ] );
-								console.log( data[ i ] );
-							}
-
-							console.log( data.length );
-
-							//console.log( "after: ", data );
+							data[ i ] = roundBGRA8( data[ i ] );
 
 							/*
 							let array_buffer = data.buffer;
