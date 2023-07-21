@@ -326,7 +326,7 @@ class sdRenderer
 									case 127:
 									case 191:
 									case 254:
-									if ( data.length !== 81920 || number === 191 || number === 254 )
+									if ( data.length !== 81920 || number === ( 191 || 254 ) )
 									number++;
 									break;
 
