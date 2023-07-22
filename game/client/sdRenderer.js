@@ -271,7 +271,10 @@ class sdRenderer
 					//if ( typeof image_obj_cache[ complex_filter_name ] === 'undefined' )
 					if ( !image_obj_cache_named_item )
 					{
-						const ctx_check = new OffscreenCanvas( 32, 32 ).getContext("2d").filter;
+						if ( typeof OffscreenCanvas !== 'undefined' )
+						var ctx_check = new OffscreenCanvas( 32, 32 ).getContext("2d").filter;
+						else
+						var ctx_check = undefined;
 
 						if ( typeof OffscreenCanvas !== 'undefined' && ctx_check !== undefined )
 						{
