@@ -320,7 +320,7 @@ class sdRenderer
 							let data = image_data.data; // Uint8ClampedArray
 
 
-							let roundBGRA8 = ( number = 127 ) => {
+							let roundBGRA8 = ( number = 127, is_gun = false ) => {
 								switch( number )
 								{
 									case 127:
@@ -370,6 +370,7 @@ class sdRenderer
 									case 11:
 									case 2:
 									case 1:
+									if ( !is_gun )
 									number = 0;
 									break;
 								}
@@ -380,7 +381,7 @@ class sdRenderer
 							if ( userAgent[0] === "Gecko" && userAgent[1] === BROWSER_GECKO )
 							for ( let i = 1; i < data.length; i++ ) // Recolor. Firefox supports the wrong numbers instead of the right ones on Chromium
 							if ( data[ i ] !== 0 )
-							data[ i ] = roundBGRA8( data[ i ] );
+							data[ i ] = roundBGRA8( data[ i ], sd_filter.is_gun );
 
 							/*
 							let array_buffer = data.buffer;

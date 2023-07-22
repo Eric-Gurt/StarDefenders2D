@@ -87,7 +87,7 @@ class sdGunClass
 					if ( typeof hex_color === 'string' && hex_color.length === 7 ) // ReplaceColorInSDFilter_v2 does the type check but just in case
 					{
 						if ( !gun.sd_filter )
-						gun.sd_filter = sdWorld.CreateSDFilter();
+						gun.sd_filter = sdWorld.CreateSDFilter( true );
 
 						// Pass custom hex colors to this function
 
