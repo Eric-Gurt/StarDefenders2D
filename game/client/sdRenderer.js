@@ -271,7 +271,7 @@ class sdRenderer
 					//if ( typeof image_obj_cache[ complex_filter_name ] === 'undefined' )
 					if ( !image_obj_cache_named_item )
 					{
-						if ( typeof OffscreenCanvas !== 'undefined' )
+						if ( typeof OffscreenCanvas !== 'undefined' && userAgent[0] !== "Gecko" && userAgent[1] !== BROWSER_GECKO )
 						{
 							//image_obj_cache[ complex_filter_name ] = new OffscreenCanvas( image_obj.width, image_obj.height );
 							image_obj_cache_named_item = new OffscreenCanvas( image_obj.width, image_obj.height );
