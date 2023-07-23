@@ -3567,6 +3567,15 @@ class sdEntity
 		//if ( this.GetClass() === 'sdBullet' )
 		//console.log( JSON.stringify( returned_object ) );
 		
+		/*if ( !save_as_much_as_possible )
+		{
+			if ( returned_object._class === 'sdGrass' )
+			if ( returned_object.variation === 4 || returned_object.variation === 6 )
+			{
+				trace( 'GetSnapshot returns', returned_object );
+			}
+		}*/
+		
 		return returned_object;
 	}
 	ExtraSerialzableFieldTest( prop ) // Some object properties testing might go here, for snapshots only. Should never be dynamic
@@ -3587,6 +3596,12 @@ class sdEntity
 		if ( snapshot._class !== this.GetClass() )
 		if ( snapshot._class !== 'auto' )
 		debugger;
+
+		/*if ( snapshot._class === 'sdGrass' )
+		if ( snapshot.variation === 4 || snapshot.variation === 6 )
+		{
+			trace( 'ApplySnapshot called for', snapshot );
+		}*/
 	
 		//let my_entity_protected_vars = null;
 			

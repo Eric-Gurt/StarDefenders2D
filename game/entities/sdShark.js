@@ -42,7 +42,7 @@ class sdShark extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 50;
+		this._hmax = 600;
 		this._hea = this._hmax;
 		
 		this.death_anim = 0;
@@ -59,7 +59,8 @@ class sdShark extends sdEntity
 		
 		this.side = ( Math.random() < 0.5 ) ? 1 : -1;
 		
-		this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
+		this.hue = ~~( Math.random() * 360 );
+		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
@@ -76,7 +77,7 @@ class sdShark extends sdEntity
 			{
 				this._current_target = character;
 
-				//sdSound.PlaySound({ name:'quickie_alert', x:this.x, y:this.y, volume: 0.5 });
+				sdSound.PlaySound({ name:'overlord_welcomeB', x:this.x, y:this.y, volume: 0.5, pitch: 0.5 });
 			}
 		}
 	}
@@ -84,9 +85,13 @@ class sdShark extends sdEntity
 	{
 		return sdEffect.TYPE_BLOOD_GREEN;
 	}
-	GetBleedEffectFilter()
+	/*GetBleedEffectFilter()
 	{
 		return 'hue-rotate(-56deg)'; // Yellow
+	}*/
+	GetBleedEffectHue()
+	{
+		return this.hue - 56;
 	}
 	Damage( dmg, initiator=null )
 	{
@@ -102,15 +107,17 @@ class sdShark extends sdEntity
 		if ( this._hea <= 0 && was_alive )
 		{
 			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
+			
+			sdSound.PlaySound({ name:'abomination_alert', x:this.x, y:this.y, volume: 1, pitch:0.5 });
 
-			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_EASY_MOB );
+			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_AVERAGE_MOB );
 		}
 		
 		if ( this._hea < -this._hmax / 80 * 100 )
 		this.remove();
 	}
 	
-	get mass() { return 30; }
+	get mass() { return 120; }
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -183,8 +190,8 @@ class sdShark extends sdEntity
 							dy /= di;
 						}
 
-						this.sx += dx * 0.3 * GSPEED;
-						this.sy += dy * 0.3 * GSPEED;
+						this.sx += dx * 0.5 * GSPEED;
+						this.sy += dy * 0.5 * GSPEED;
 
 
 						//this._last_stand_on = null; // wait for next collision
@@ -236,7 +243,7 @@ class sdShark extends sdEntity
 				
 			sdWorld.shuffleArray( nears );
 			
-			let max_targets = 3;
+			let max_targets = 1;
 			
 			for ( var i = 0; i < nears.length; i++ )
 			{
@@ -245,11 +252,14 @@ class sdShark extends sdEntity
 				let xx = from_entity.x + ( from_entity._hitbox_x1 + from_entity._hitbox_x2 ) / 2;
 				let yy = from_entity.y + ( from_entity._hitbox_y1 + from_entity._hitbox_y2 ) / 2;
 
-				if ( from_entity.GetClass() === 'sdCharacter' )
+				//if ( from_entity.GetClass() === 'sdCharacter' )
+				if ( from_entity.IsPlayerClass() )
 				if ( from_entity.IsTargetable() )
 				{
 					this._last_bite = sdWorld.time;
-					from_entity.DamageWithEffect( 40, this );
+					from_entity.DamageWithEffect( 200, this );
+					
+					sdSound.PlaySound({ name:'popcorn', x:this.x, y:this.y, volume:0.5, pitch:0.4 });
 					
 					this._hea = Math.min( this._hmax, this._hea + 20 );
 
@@ -271,14 +281,15 @@ class sdShark extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, "Shark" );
+		sdEntity.Tooltip( ctx, "Devil shark" );
 	}
 	Draw( ctx, attached )
 	{
-		ctx.filter = this.filter;
+		//ctx.filter = this.filter;
+		ctx.sd_hue_rotation = this.hue;
 		
 		if ( !sdShop.isDrawing )
-		ctx.scale( this.side, ( this.death_anim === 0 ) ? 1 : -1 );
+		ctx.scale( this.side, 1 );// ( this.death_anim === 0 ) ? 1 : -1 );
 
 		let xx = 0;
 		
@@ -298,7 +309,7 @@ class sdShark extends sdEntity
 			//ctx.drawImageFilterCache( this.chomp ? sdShark.img_shark_chomp : sdShark.img_shark, - 16, - 16, 32,32 );
 		}
 
-		ctx.drawImageFilterCache( sdShark.img_shark, xx * 32, 0, 32,32, -16, -16, 32,32 );
+		ctx.drawImageFilterCache( sdShark.img_shark, 32, xx * 32, 32,32, -16, -16, 32,32 );
 		
 		
 		ctx.globalAlpha = 1;

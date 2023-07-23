@@ -11,6 +11,9 @@ import sdBullet from './sdBullet.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdDeepSleep from './sdDeepSleep.js';
 import sdCrystal from './sdCrystal.js';
+import sdGib from './sdGib.js';
+import sdTimer from './sdTimer.js';
+import sdShark from './sdShark.js';
 
 import sdRenderer from '../client/sdRenderer.js';
 
@@ -1023,6 +1026,41 @@ class sdWater extends sdEntity
 								sdEntity.entities.push( e );
 							}
 						}
+					}
+				}
+				
+				if ( from_entity.is( sdGib ) )
+				if ( from_entity._can_infect_water )
+				{
+					from_entity._can_infect_water = false;
+					
+					if ( sdWorld.is_server )
+					if ( this.type === sdWater.TYPE_WATER || this.type === sdWater.TYPE_ACID )
+					if ( from_entity._blood_type !== 0 )
+					if ( Math.random() < 0.3 )
+					{
+						sdTimer.ExecuteWithDelay( ( timer )=>{
+
+							if ( !this._is_being_removed )
+							{
+								let xx = this.x + 8;
+								let yy = this.y + 8;
+								
+								let ent = new sdShark({ x: xx, y: yy });
+								sdEntity.entities.push( ent );
+
+								if ( !ent.CanMoveWithoutOverlap( ent.x, ent.y ) )
+								{
+									ent.remove();
+									ent._broken = false;
+								}
+								else
+								{
+									sdWorld.UpdateHashPosition( ent, false ); // Important! Prevents memory leaks and hash tree bugs
+								}
+							}
+						
+						}, 1000 * 30 + Math.random() * 1000 * 60 * 5 ); // Spawns in 0:30 ... 5:30
 					}
 				}
 			}

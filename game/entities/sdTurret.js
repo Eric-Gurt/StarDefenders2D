@@ -4,6 +4,8 @@
 
 */
 
+/* global sdShop */
+
 import sdWorld from '../sdWorld.js';
 import sdEntity from './sdEntity.js';
 import sdCom from './sdCom.js';
@@ -190,6 +192,9 @@ class sdTurret extends sdEntity
 		
 		this.an = 0;
 		
+		this.auto_attack = -1; // Angle ID according to sdNode
+		this._auto_attack_reference = null;
+		
 		this._seek_timer = Math.random() * 15;
 		this.fire_timer = 0;
 		this._target = null;
@@ -216,6 +221,12 @@ class sdTurret extends sdEntity
 	onSnapshotApplied() // To override
 	{
 		this._matter_max = sdTurret.matter_capacity;
+	}
+	ExtraSerialzableFieldTest( prop )
+	{
+		if ( prop === '_auto_attack_reference' ) return true;
+
+		return false;
 	}
 	GetShootCost()
 	{
@@ -309,6 +320,10 @@ class sdTurret extends sdEntity
 
 					let com_near = this.GetComWiredCache();
 
+					if ( this.auto_attack >= 0 )
+					{
+					}
+					else
 					if ( ( com_near && this.type === 0 ) )
 					{
 						function RuleAllowedByNodes( c )
@@ -471,16 +486,35 @@ class sdTurret extends sdEntity
 				else
 				this._seek_timer -= GSPEED;
 
-				if ( this._target !== null && this.disabled === false )
+				if ( ( this._target !== null || this.auto_attack >= 0 ) && this.disabled === false )
 				{
-					let di = sdWorld.Dist2D( this.x, this.y, this._target.x, this._target.y );
-
 					let vel = ( this.kind === sdTurret.KIND_SNIPER ) ? 30 : 15;
 
-					if ( this.kind === sdTurret.KIND_ROCKET )
-					vel = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_velocity;
+					if ( this.auto_attack >= 0 )
+					{
+						if ( this._auto_attack_reference )
+						{
+							if ( this._auto_attack_reference._is_being_removed )
+							{
+								this._auto_attack_reference = null;
+								this.auto_attack = -1;
+							}
+							else
+							{
+								this.auto_attack = this._auto_attack_reference.variation;
+							}
+						}
+						this.an = ( -Math.PI / 2 + this.auto_attack / 8 * Math.PI * 2 ) * 100;
+					}
+					else
+					{
+						let di = sdWorld.Dist2D( this.x, this.y, this._target.x, this._target.y );
 
-					this.an = Math.atan2( this._target.y + this._target.sy * di / vel - this.y, this._target.x + this._target.sx * di / vel - this.x ) * 100;
+						if ( this.kind === sdTurret.KIND_ROCKET )
+						vel = sdGun.classes[ sdGun.CLASS_ROCKET ].projectile_velocity;
+
+						this.an = Math.atan2( this._target.y + this._target.sy * di / vel - this.y, this._target.x + this._target.sx * di / vel - this.x ) * 100;
+					}
 
 					if ( this.fire_timer <= 0 )
 					{
@@ -637,7 +671,7 @@ class sdTurret extends sdEntity
 		let com_near = this.GetComWiredCache();
 		
 		if ( !sdShop.isDrawing )
-		if ( this.disabled || this.matter < this.GetShootCost() || ( !com_near && this.type === 0 ) )
+		if ( this.disabled || this.matter < this.GetShootCost() || ( !com_near && this.type === 0 && this.auto_attack === -1 ) )
 		{
 			ctx.filter = 'brightness(0.1)';
 			not_firing_now = true;

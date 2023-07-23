@@ -143,6 +143,8 @@ class sdGib extends sdEntity
 		this._blood_type = 0;
 
 		this.filter = ( params.filter === undefined ) ? null : params.filter;
+		
+		this._can_infect_water = true; // Can do this just once, with some low probability too. Infected water can spawn sdShark
 
 
 		this.blood_filter = ( params.blood_filter === undefined ) ? '' : params.blood_filter;

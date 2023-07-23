@@ -11,7 +11,7 @@ import sdCrystal from './entities/sdCrystal.js';
 
 	Test sound console command:
 
-		sdSound.PlaySound({ name:'player_step', x:sdWorld.my_entity.x, y:sdWorld.my_entity.y, volume:1, _server_allowed:true });
+		sdSound.PlaySound({ name:'player_step', x:sdWorld.camera.x, y:sdWorld.camera.y, volume:1, _server_allowed:true });
 
 */
 

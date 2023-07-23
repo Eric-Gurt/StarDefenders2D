@@ -19,6 +19,7 @@ class sdNode extends sdEntity
 		sdNode.TYPE_SIGNAL_FLIPPER = 1; // Inverts sdButton signals
 		sdNode.TYPE_SIGNAL_ONCE = 2; // Stops working after any signal was transmitted once
 		sdNode.TYPE_SIGNAL_ONCE_OFF = 3; // Stops working after any signal was transmitted once
+		sdNode.TYPE_SIGNAL_TURRET_ENABLER = 4; // Makes turret shoot in specified direction
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -43,6 +44,9 @@ class sdNode extends sdEntity
 	
 		if ( this.type === sdNode.TYPE_SIGNAL_ONCE_OFF )
 		return 'One-time cable connection node (needs reactivation)';
+	
+		if ( this.type === sdNode.TYPE_SIGNAL_TURRET_ENABLER )
+		return 'Turret-enabling cable connection node';
 	
 		return 'Cable connection node';
 	}
@@ -77,6 +81,8 @@ class sdNode extends sdEntity
 		super( params );
 		
 		this.type = params.type || sdNode.TYPE_NODE;
+		
+		this.variation = params.variation || 0; // In case of sdNode.TYPE_SIGNAL_TURRET_ENABLER it is an angle
 		
 		this._shielded = null; // Is this entity protected by a base defense unit?
 		
@@ -137,7 +143,12 @@ class sdNode extends sdEntity
 	}
 	Draw( ctx, attached )
 	{
-		ctx.drawImageFilterCache( sdNode.img_node, 0,this.type * 16,16,16, -8, -8, 16,16 );
+		let xx = 0;
+		
+		if ( this.type === sdNode.TYPE_SIGNAL_TURRET_ENABLER )
+		xx = this.variation * 16;
+		
+		ctx.drawImageFilterCache( sdNode.img_node, xx,this.type * 16,16,16, -8, -8, 16,16 );
 	}
 	MeasureMatterCost()
 	{
@@ -190,6 +201,20 @@ class sdNode extends sdEntity
 					}
 				}
 			}
+			
+			if ( this.type === sdNode.TYPE_SIGNAL_TURRET_ENABLER )
+			{
+				if ( command_name === 'VARIATION' )
+				{
+					if ( typeof parameters_array[ 0 ] === 'number' )
+					if ( !isNaN( parameters_array[ 0 ] ) )
+					if ( parameters_array[ 0 ] >= 0 && parameters_array[ 0 ] <= 7 )
+					{
+						this.variation = ~~( parameters_array[ 0 ] );
+						this._update_version++;
+					}
+				}
+			}
 		}
 	}
 	PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
@@ -209,6 +234,20 @@ class sdNode extends sdEntity
 				// Unused stuff that I can't do yet
 
 				//this.AddContextOption( 'Register Keycard', 'REGISTER_KEYCARD', [ undefined ] )
+			}
+			if ( this.type === sdNode.TYPE_SIGNAL_TURRET_ENABLER )
+			{
+				for ( let i = 0; i < 8; i++ )
+				{
+					let a = Math.round( i / 8 * 360 );
+					
+					if ( a > 180 )
+					{
+						a -= 360;
+					}
+					
+					this.AddContextOption( 'Set angle to ' + a + ' degrees', 'VARIATION', [ i ] );
+				}
 			}
 		}
 	}
