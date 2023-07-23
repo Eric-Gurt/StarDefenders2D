@@ -272,6 +272,11 @@ class sdRenderer
 					if ( !image_obj_cache_named_item )
 					{
 						if ( typeof OffscreenCanvas !== 'undefined' )
+						var ctx_check = new OffscreenCanvas( 32, 32 ).getContext("2d").filter;
+						else
+						var ctx_check = undefined;
+
+						if ( typeof OffscreenCanvas !== 'undefined' && ctx_check !== undefined )
 						{
 							//image_obj_cache[ complex_filter_name ] = new OffscreenCanvas( image_obj.width, image_obj.height );
 							image_obj_cache_named_item = new OffscreenCanvas( image_obj.width, image_obj.height );
@@ -320,34 +325,68 @@ class sdRenderer
 							let data = image_data.data; // Uint8ClampedArray
 
 
-							// Firefox related variables
-							/*let previousByte = 0;
-							let nextByte = 0;
-							let nextByte2 = 0;
+							let roundBGRA8 = ( number = 127, is_gun = false ) => {
+								switch( number )
+								{
+									case 127:
+									case 191:
+									case 254:
+									if ( data.length !== 81920 || number === 191 || number === 254 )
+									number++;
+									break;
+
+									case 126:
+									case 190:
+									number += 2;
+									break;
+
+									case 124:
+									number += 4;
+									break;
+
+									case 132:
+									number -= 4;
+									break;
+
+									case 193:
+									case 129:
+									number--;
+									break;
+
+									case 130:
+									number -= 2;
+									break;
+
+									case 189:
+									case 125:
+									number += 3;
+									break;
+
+									case 195:
+									case 131:
+									number -= 3;
+									break;
+
+									case 54:
+									case 52:
+									case 27:
+									case 18:
+									case 15:
+									case 11:
+									case 2:
+									case 1:
+									if ( !is_gun )
+									number = 0;
+									break;
+								}
+
+								return number;
+							};
 
 							if ( userAgent[0] === "Gecko" && userAgent[1] === BROWSER_GECKO )
 							for ( let i = 1; i < data.length; i++ ) // Recolor. Firefox supports the wrong numbers instead of the right ones on Chromium
-							{
-								previousByte = data[ i - 1 ];
-								nextByte = data[ i + 1 ];
-								nextByte2 = data[ i + 2 ];
-
-								if ( data[ i ] === 0 )
-								continue;
-
-								// Helmet (Dark) and Lower suit armor plates
-								if ( data[ i ] === 127 )
-								data[ i ] = 128;
-
-								// Helmet (Bright)
-								if ( data[ i ] === 190 )
-								data[ i ] = 192;
-
-								if ( data[ i ] === 254 )
-								data[ i ] = 255;
-
-								console.log( previousByte, nextByte, nextByte2 );
-							}*/
+							if ( data[ i ] !== 0 )
+							data[ i ] = roundBGRA8( data[ i ], sd_filter.is_gun );
 
 							/*
 							let array_buffer = data.buffer;
