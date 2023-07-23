@@ -286,10 +286,12 @@ class sdShark extends sdEntity
 	Draw( ctx, attached )
 	{
 		//ctx.filter = this.filter;
-		ctx.sd_hue_rotation = this.hue;
 		
 		if ( !sdShop.isDrawing )
-		ctx.scale( this.side, 1 );// ( this.death_anim === 0 ) ? 1 : -1 );
+		{
+			ctx.sd_hue_rotation = this.hue;
+			ctx.scale( this.side, 1 );// ( this.death_anim === 0 ) ? 1 : -1 );
+		}
 
 		let xx = 0;
 		
@@ -311,7 +313,7 @@ class sdShark extends sdEntity
 
 		ctx.drawImageFilterCache( sdShark.img_shark, 32, xx * 32, 32,32, -16, -16, 32,32 );
 		
-		
+		ctx.sd_hue_rotation = 0;
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
 	}
