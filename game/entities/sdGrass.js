@@ -29,6 +29,8 @@ class sdGrass extends sdEntity
 		sdGrass.VARIATION_BUSH = 3;
 		sdGrass.VARIATION_TREE = 4;
 		sdGrass.VARIATION_TREE_BARREN = 5;
+		sdGrass.VARIATION_TREE_LARGE = 6;
+		sdGrass.VARIATION_TREE_LARGE_BARREN = 7;
 		
 		sdGrass.crops = [];
 		sdGrass.crops[ sdGrass.VARIATION_LOW_GRASS ] = { x:1, y:0, w:16, h:31 }; // Same y and h for all grass sprites so wind effect would not tear them apart
@@ -37,6 +39,8 @@ class sdGrass extends sdEntity
 		sdGrass.crops[ sdGrass.VARIATION_BUSH ] = { x:52, y:19, w:17, h:12, half_width_collision_override:7 };
 		sdGrass.crops[ sdGrass.VARIATION_TREE ] = { x:72, y:4, w:21, h:27, half_width_collision_override:7 };
 		sdGrass.crops[ sdGrass.VARIATION_TREE_BARREN ] = { x:72, y:36, w:21, h:27, half_width_collision_override:7 };
+		sdGrass.crops[ sdGrass.VARIATION_TREE_LARGE ] = { x:96, y:0, w:46, h:54, half_width_collision_override:10 };
+		sdGrass.crops[ sdGrass.VARIATION_TREE_LARGE_BARREN ] = { x:96, y:63, w:46, h:54, half_width_collision_override:10 };
 		
 		sdGrass.heights = [ 8, 14, 27 ]; // by variation. Also determines how much regen it will give
 		
@@ -53,6 +57,8 @@ class sdGrass extends sdEntity
 		return	this.variation === sdGrass.VARIATION_BUSH ? "Bush" : 
 				this.variation === sdGrass.VARIATION_TREE ? 'Tree' : 
 				this.variation === sdGrass.VARIATION_TREE_BARREN ? 'Barren tree' : 
+				this.variation === sdGrass.VARIATION_TREE_LARGE ? 'Tree' :
+				this.variation === sdGrass.VARIATION_TREE_LARGE_BARREN ? 'Barren tree' :
 				'Grass';
 	}
 	/*get hitbox_x1() { return 0; }
@@ -72,7 +78,7 @@ class sdGrass extends sdEntity
 			if ( by_entity._admin_picker )
 			return true;
 			
-			if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_BARREN )
+			if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_BARREN || this.variation === sdGrass.VARIATION_TREE_LARGE || this.variation === sdGrass.VARIATION_TREE_LARGE_BARREN )
 			if ( !by_entity._gun )
 			if ( !by_entity.IsPlayerClass() )
 			if ( !by_entity.is( sdTurret ) )
@@ -96,7 +102,7 @@ class sdGrass extends sdEntity
 	
 	DrawIn3D()
 	{
-		if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_BARREN )
+		if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_BARREN || this.variation === sdGrass.VARIATION_TREE_LARGE || this.variation === sdGrass.VARIATION_TREE_LARGE_BARREN )
 		return FakeCanvasContext.DRAW_IN_3D_GRASS_SINGLE_LAYER;
 		//return FakeCanvasContext.DRAW_IN_3D_FLAT; 
 	
@@ -132,7 +138,7 @@ class sdGrass extends sdEntity
 	
 		if ( this._hea <= 0 )
 		{
-			if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_BARREN )
+			if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_BARREN || this.variation === sdGrass.VARIATION_TREE_LARGE ||this.variation === sdGrass.VARIATION_TREE_LARGE_BARREN )
 			if ( initiator )
 			if ( initiator.IsPlayerClass() )
 			if ( initiator.build_tool_level === 0 )
@@ -201,7 +207,7 @@ class sdGrass extends sdEntity
 		
 		this.snowed = false;
 		
-		this._hea = ( this.variation >= sdGrass.VARIATION_BUSH ) ? 70 : 1;
+		this._hea = ( this.variation >= sdGrass.VARIATION_BUSH ) ? ( ( this.variation === sdGrass.VARIATION_TREE_LARGE || this.variation === sdGrass.VARIATION_TREE_LARGE_BARREN ) ? 140 : 70 ) : 1;
 		this._hmax = this._hea;
 		
 		this._liquid_sip_timer = null;
@@ -231,7 +237,7 @@ class sdGrass extends sdEntity
 				
 		//trace( 'variation', this.variation, params.variation );
 				
-		if ( this.variation === sdGrass.VARIATION_TREE )
+		if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_LARGE )
 		{
 			this.crystal = null;
 			
@@ -239,6 +245,7 @@ class sdGrass extends sdEntity
 		
 			if ( sdWorld.is_server )
 			{
+				let mult = this.variation === sdGrass.VARIATION_TREE_LARGE ? 0.7 : 1; // Large trees spawn crystals faster?
 				this._balloon_crystal_spawn_timer = sdTimer.ExecuteWithDelay( ( timer )=>{
 
 					if ( this._is_being_removed )
@@ -252,7 +259,7 @@ class sdGrass extends sdEntity
 
 						//let sun_intensity = sdWeather.only_instance.GetSunIntensity();
 
-						if ( this.variation === sdGrass.VARIATION_TREE ) // Prevent barren spawn
+						if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_LARGE ) // Prevent barren spawn
 						if ( !this.crystal || this.crystal._is_being_removed )
 						//if ( Math.random() < 0.3 ) // 30% chance a crystal spawns
 						//if ( sun_intensity < 0.5 ) // Only during night
@@ -314,17 +321,19 @@ class sdGrass extends sdEntity
 
 									if ( this.age >= sdGrass.max_tree_age )
 									{
+										if ( this.variation === sdGrass.VARIATION_TREE )
 										this.variation = sdGrass.VARIATION_TREE_BARREN;
+										if ( this.variation === sdGrass.VARIATION_TREE_LARGE )
+										this.variation = sdGrass.VARIATION_TREE_LARGE_BARREN;
 										//return; // Do not reschedule
 									}
 								}
 							}
 						}
-
-						this._balloon_crystal_spawn_timer = timer.ScheduleAgain( sdGrass.GetTreeCrystalSpawnRate() );
+						this._balloon_crystal_spawn_timer = timer.ScheduleAgain( sdGrass.GetTreeCrystalSpawnRate() * mult );
 					}
 
-				}, sdGrass.GetTreeCrystalSpawnRate() );
+				}, sdGrass.GetTreeCrystalSpawnRate() * mult );
 			}
 		}
 	}
@@ -481,7 +490,7 @@ class sdGrass extends sdEntity
 			this._block = null;
 		}
 		
-		if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_BARREN )
+		if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_BARREN || this.variation === sdGrass.VARIATION_TREE_LARGE || this.variation === sdGrass.VARIATION_TREE_LARGE_BARREN )
 		{
 			sdWorld.BasicEntityBreakEffect( this, 5 );
 		}
@@ -520,7 +529,10 @@ class sdGrass extends sdEntity
 						if ( this.age > 5 )
 						{
 							this.age -= 5;
+							if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_BARREN )
 							this.variation = sdGrass.VARIATION_TREE;
+							if ( this.variation === sdGrass.VARIATION_TREE_LARGE || this.variation === sdGrass.VARIATION_TREE_LARGE_BARREN )
+							this.variation = sdGrass.VARIATION_TREE_LARGE;
 							this._update_version++;
 							
 							if ( this._liquid_sip_target._volume > 0.2 )
@@ -555,7 +567,10 @@ class sdGrass extends sdEntity
 		if ( from_entity.type === sdWater.TYPE_LAVA || from_entity.type === sdWater.TYPE_ACID )
 		{
 			this.age = sdGrass.max_tree_age;
+			if ( this.variation === sdGrass.VARIATION_TREE )
 			this.variation = sdGrass.VARIATION_TREE_BARREN;
+			if ( this.variation === sdGrass.VARIATION_TREE_LARGE )
+			this.variation = sdGrass.VARIATION_TREE_LARGE_BARREN;
 			this._update_version++;
 			/*
 			if ( this._balloon_crystal_spawn_timer )

@@ -606,6 +606,16 @@ sdWorld.sockets = sockets;
 const chunks_folder = __dirname + '/chunks' + ( world_slot || '' );
 globalThis.chunks_folder = chunks_folder;
 
+const presets_folder = __dirname + '/presets'; // + ( world_slot || '' );
+globalThis.presets_folder = presets_folder;
+
+if ( !fs.existsSync( globalThis.presets_folder ) )
+{
+	trace( 'Making directory: ' + globalThis.presets_folder );
+	fs.mkdirSync( globalThis.presets_folder );
+}
+
+
 const server_config_path_const = __dirname + '/server_config' + ( world_slot || '' ) + '.js';
 const browser_fingerprinting_path_const = __dirname + '/server_private/sdBrowserFingerPrint.js';
 

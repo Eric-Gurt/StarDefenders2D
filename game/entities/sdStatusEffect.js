@@ -969,8 +969,60 @@ class sdStatusEffect extends sdEntity
 						status_entity.time_to_defeat = 30 * 5; // Teleport away in 5 seconds
 					}
 				}
+				else
+				{
+					if (status_entity.for._in_water ) // If Time shifter is in a liquid, he will teleport away
+					{
+						sdSound.PlaySound({ name:'teleport', x:status_entity.for.x, y:status_entity.for.y, volume:0.5 });
+						sdWorld.SendEffect({ x:status_entity.for.x, y:status_entity.for.y, type:sdEffect.TYPE_TELEPORT/*, hue:170, filter:'hue-rotate(' + ~~( 170 ) + 'deg)'*/ });
+						sdWeather.SetRandomSpawnLocation( status_entity.for );
+					}
+				}
 				
 				//return ( status_entity._progress > status_entity._max_progress ); // return true = delete
+			},
+			onBeforeRemove: ( status_entity )=>
+			{
+			}
+		};
+		
+		sdStatusEffect.types[ sdStatusEffect.TYPE_ANCIENT_WALL_PROPERTIES = 9 ] = 
+		{
+			remove_if_for_removed: true,
+			// This effect grants matter emission to ancient walls.
+			is_emote: false,
+			
+			is_static: false,
+	
+			onMade: ( status_entity, params )=>
+			{
+				status_entity._matter_max = params.matter_max || 30;
+				status_entity.matter = status_entity._matter_max;
+				status_entity._next_anything_near_rethink = 0;
+				status_entity._anything_near = null;
+				status_entity._anything_near_range = null;
+				// Without these variables, status effect causes crash when loaded from preset editor
+				
+			},
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			onStatusOfDifferentTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			IsVisible: ( status_entity, observer_entity )=>
+			{
+				return true;
+			},
+			onThink: ( status_entity, GSPEED )=>
+			{
+				status_entity.x = status_entity.for.x + ( status_entity.for.hitbox_x2 / 2 );
+				status_entity.y = status_entity.for.y + ( status_entity.for.hitbox_y2 / 2 );
+				status_entity.matter = Math.min( status_entity._matter_max, status_entity.matter + ( GSPEED / 180 ) ); // Regenerate about 1 matter every 6 seconds
+				status_entity.for.br = 10 + ( status_entity.matter / status_entity._matter_max ) * 90;
+				status_entity.MatterGlow( 0.01, 30, GSPEED ); // Emit matter
 			},
 			onBeforeRemove: ( status_entity )=>
 			{

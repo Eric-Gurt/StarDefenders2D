@@ -2998,7 +2998,7 @@ class sdWeather extends sdEntity
 					percent++;
 				}
 			}
-			if ( Math.random() < ( 0.6 * ( percent / sdWorld.GetPlayingPlayersCount() ) ) ) // Spawn chance depends on RNG, chances increase if more players have at least 20 levels
+			if ( Math.random() < ( 0.45 * ( percent / sdWorld.GetPlayingPlayersCount() ) ) ) // Spawn chance depends on RNG, chances increase if more players have at least 20 levels
 			{
 				let instances = 0;
 				let instances_tot = 5;
@@ -3415,7 +3415,41 @@ class sdWeather extends sdEntity
 						{
 							if ( e._plants === null )
 							{
-								let grass = new sdGrass({ x:e.x, y:e.y - 16, hue:e.hue, br:e.br, filter: e.filter, block:e });
+								let tree_variation = sdGrass.VARIATION_LOW_GRASS; // Initial grass
+								let x_off = 0; // X and Y offsets for proper aligment of bushes/trees
+								let y_off = 0; //
+								if ( Math.random() < 0.4 ) // 40% chance for it to check if a tree or bush spawn is possible
+								{
+									let proper_distance = true;
+
+									for ( i = 0; i < sdWorld.sockets.length; i++ )
+									if ( sdWorld.sockets[ i ].character )
+									{
+										if ( sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, e.x, e.y, sdWeather.min_distance_from_online_players_for_entity_events ) ) // If players are too close, don't spawn a tree so they don't see it pop in
+										{
+											proper_distance = false;
+											break;
+										}
+									}
+									if ( proper_distance ) // Can spawn a tree?
+									{
+										let chance = Math.random();
+										if ( chance < 0.175 ) // 35% of trees have a chance to be large, just like in fresh world generation
+										tree_variation = sdGrass.VARIATION_TREE_LARGE;
+										else
+										if ( chance < 0.5 )
+										tree_variation = sdGrass.VARIATION_TREE;
+										else
+										tree_variation = sdGrass.VARIATION_BUSH;
+									
+										x_off = 8;
+										y_off = 16;
+										// Without these offsets trees and bushes will spawn in air and on the left of the dirt blocks.
+									}
+								}
+								let grass = new sdGrass({ x:e.x + x_off, y:e.y + y_off - 16, hue:e.hue, br:e.br, filter: e.filter, block:e, variation:tree_variation });
+								
+								//let grass = new sdGrass({ x:e.x, y:e.y - 16, hue:e.hue, br:e.br, filter: e.filter, block:e });
 								sdEntity.entities.push( grass );
 
 								//grass.snowed = this.snow;

@@ -91,6 +91,9 @@ class sdShop
 			/*for ( let hue = 0; hue < 360; hue += 30 )
 			sdShop.options.push({ _class: 'sdGrass', variation: 4, hue:hue, _category:'Other' });*/
 
+			//for ( let hue = 0; hue < 360; hue += 30 )
+			//sdShop.options.push({ _class: 'sdGrass', variation: 6, hue:hue, _category:'Other' });
+
 			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, _category:'Vehicles' });
 			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles' });
 			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, filter: 'hue-rotate(180deg) saturate(2)', _category:'Vehicles' });
@@ -395,10 +398,10 @@ class sdShop
 			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 4, width:1, _category:'Base equipment', _min_build_tool_level: 9 });
 			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 8, width:1, _category:'Base equipment', _min_build_tool_level: 18 });
 			
-			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 1, width:2, _category:'Base equipment', _min_build_tool_level: 22 });
-			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 2, width:2, _category:'Base equipment', _min_build_tool_level: 24 });
-			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 4, width:2, _category:'Base equipment', _min_build_tool_level: 27 });
-			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 8, width:2, _category:'Base equipment', _min_build_tool_level: 30 });
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 1, width:2, _category:'Base equipment', _min_build_tool_level: 22, _min_workbench_level: 1 });
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 2, width:2, _category:'Base equipment', _min_build_tool_level: 24, _min_workbench_level: 2 });
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 4, width:2, _category:'Base equipment', _min_build_tool_level: 27, _min_workbench_level: 3 });
+			sdShop.options.push({ _class: 'sdMatterAmplifier', multiplier: 8, width:2, _category:'Base equipment', _min_build_tool_level: 30, _min_workbench_level: 4 });
 			
 			sdShop.options.push({ _class: 'sdStorageTank', _category:'Base equipment', });
 			sdShop.options.push({ _class: 'sdStorageTank', type: sdStorageTank.TYPE_PORTABLE, _category:'Base equipment', });
@@ -734,6 +737,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_ROCK, natural: true, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_CORRUPTION, natural: true, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_FLESH, natural: true, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdBlock', width: 16, height: 16, material:sdBlock.MATERIAL_ANCIENT_WALL, natural: false, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGib', class:sdGib.CLASS_VELOX_MECH_HEAD, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdMimic', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdRoach', _category:'Development tests' });
