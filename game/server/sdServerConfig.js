@@ -69,7 +69,7 @@ class sdServerConfigFull extends sdServerConfigShort
 	{
 		if ( ent.is( sdCrystal ) )
 		{
-			if ( ent.held_by )
+			if ( ent.held_by && ent.held_by.is( sdMatterAmplifier ) )
 			return true;
 		}
 		else

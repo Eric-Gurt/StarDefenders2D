@@ -88,8 +88,8 @@ class sdShop
 			sdShop.options.push({ _class: 'sdBeamProjector', _category:'Other', _min_build_tool_level: 25 });
 			for ( let hue = 0; hue < 360; hue += 30 )
 			sdShop.options.push({ _class: 'sdGrass', variation: 3, hue:hue, _category:'Other' });
-			for ( let hue = 0; hue < 360; hue += 30 )
-			sdShop.options.push({ _class: 'sdGrass', variation: 4, hue:hue, _category:'Other' });
+			/*for ( let hue = 0; hue < 360; hue += 30 )
+			sdShop.options.push({ _class: 'sdGrass', variation: 4, hue:hue, _category:'Other' });*/
 
 			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, _category:'Vehicles' });
 			sdShop.options.push({ _class: 'sdHover', _min_workbench_level:1, filter: 'hue-rotate(90deg) saturate(2)', _category:'Vehicles' });

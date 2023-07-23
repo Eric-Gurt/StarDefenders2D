@@ -1130,6 +1130,11 @@ let enf_once = true;
 	
 		if ( e.key === 'Escape' )
 		{
+			if ( sdShop.open )
+			{
+				sdShop.open = false;
+			}
+			else
 			if ( sdContextMenu.open )
 			{
 				sdContextMenu.open = false;
@@ -1141,6 +1146,7 @@ let enf_once = true;
 			}
 			
 			e.preventDefault();
+			return;
 		}
 	
 		if ( sdShop.open )
