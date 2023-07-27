@@ -69,9 +69,8 @@ class sdChatInterface extends sdInterface
 
 			this.outer_chat.element_caption.style.cssText = `
 				background-color: transparent;
-				padding: 0px;
+				padding: 4px;
 				margin-bottom: 24px;
-				padding-right:4px;
 			`;
 
 			this.chat = sdElement.createElement({
