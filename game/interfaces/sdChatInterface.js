@@ -80,8 +80,7 @@ class sdChatInterface extends sdInterface
 
 			this.chat.element.style.cssText = `
 				background-color: #ffffff80;
-				position: sticky;
-				bottom: auto;
+				position: static;
 			`;
 
 			this.chat.element_inner_container.style.color = "black";
