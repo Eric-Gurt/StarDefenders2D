@@ -120,7 +120,7 @@ class sdChat
 				else
 				{
 					//if ( sdChatInterface.only_instance.chat.element_inner_container.value.length > 0 )
-					if ( sdChat.text.length < 0 )
+					if ( sdChat.text.length > 0 )
 					{
 						//sdChat.text = sdChatInterface.only_instance.chat.element_inner_container.value;
 						globalThis.socket.emit( 'CHAT', sdChat.text );
