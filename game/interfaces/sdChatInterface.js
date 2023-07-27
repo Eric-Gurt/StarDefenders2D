@@ -71,6 +71,7 @@ class sdChatInterface extends sdInterface
 				background-color: transparent;
 				padding: 0px;
 				margin-bottom: 24px;
+				padding-right:4px;
 			`;
 
 			this.chat = sdElement.createElement({
