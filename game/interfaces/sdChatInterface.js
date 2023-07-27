@@ -73,6 +73,9 @@ class sdChatInterface extends sdInterface
 				margin-bottom: 24px;
 			`;
 
+			if ( this.outer_chat.element_caption.textContent !== '' )
+			this.outer_chat.element_caption.style.padding = "0px";
+
 			this.chat = sdElement.createElement({
 				type: sdElement.INPUT_TEXT,
 				placeholder: sdChat.hint, translate: false
