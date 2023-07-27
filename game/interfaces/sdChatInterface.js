@@ -90,6 +90,7 @@ class sdChatInterface extends sdInterface
 			this.chat.element_inner_container.value = sdChat.text;
 
 			this.outer_chat.element_inner_container.append( this.chat.element );
+			this.chat.element_inner_container.focus();
 		}
 	}
 
