@@ -7920,6 +7920,15 @@ class sdGunClass
 				}
 				return true;
 			},
+			onPickupAttempt: ( character, gun )=> // Hints at being able to switch firemodes.
+			{ 
+				if ( Math.random() > 0.7 )
+				character.Say( "This weapon emits great power. Perhaps I can turn use it somehow ?" );
+				else
+				character.Say( "I think there's a switch somewhere to change firemodes..." );
+
+				return false; 
+			},
 			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
 			{
 				if ( !gun.extra )
@@ -8249,6 +8258,15 @@ class sdGunClass
 					}
 				}
 				return true;
+			},
+			onPickupAttempt: ( character, gun )=> // Hints at being able to switch firemodes.
+			{ 
+				if ( Math.random() > 0.7 )
+				character.Say( "This weapon emits great power. Perhaps I can turn use it somehow ?" );
+				else
+				character.Say( "I think there's a switch somewhere to change firemodes..." );
+
+				return false; 
 			},
 			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
 			{
