@@ -35,7 +35,10 @@ class sdManualTurret extends sdEntity
 	
 	get title()
 	{
+		if ( this.anti_base_mode )
 		return 'Manual anti-shield turret';
+		else
+		return 'Manual turret';
 	}
 	
 	//IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
@@ -80,6 +83,8 @@ class sdManualTurret extends sdEntity
 		
 		this.matter = 0;
 		this.matter_max = 5120;
+		
+		this.anti_base_mode = params.anti_base_mode || 0;
 		
 		this.look_x = 100; // Relative
 		this.look_y = 0; // Relative
@@ -172,9 +177,11 @@ class sdManualTurret extends sdEntity
 
 							this._update_version++;
 						}
+						
+						let shot_cost = this.GetShotCost();
 
 						if ( di < 10 )
-						if ( this.matter >= this.matter_max )
+						if ( this.matter >= shot_cost )
 						if ( steering_wheel.driver0._key_states.GetKey( 'Mouse1' ) )
 						{
 							if ( sdWorld.CheckLineOfSight( this.x, this.y, this.x + this.look_x / 100 * 64, this.y + this.look_y / 100 * 64, this, null, sdCom.com_visibility_unignored_classes ) )
@@ -204,7 +211,7 @@ class sdManualTurret extends sdEntity
 
 									this.attack_tim = 7;
 									this.reload_tim = 30 * 5;
-									this.matter = 0;
+									this.matter -= shot_cost;
 
 									sdSound.PlaySound({ name:'gun_psicutter', x:this.x, y:this.y, volume:3, pitch:0.25 });
 
@@ -229,10 +236,11 @@ class sdManualTurret extends sdEntity
 									bullet_obj.color = '#80ffff';
 									bullet_obj._rail = true;
 
-
-									bullet_obj._custom_target_reaction = sdBullet.AntiShieldBulletReaction;
-
-									bullet_obj._anti_shield_damage_bonus = 200000;
+									if ( this.anti_base_mode )
+									{
+										bullet_obj._custom_target_reaction = sdBullet.AntiShieldBulletReaction;
+										bullet_obj._anti_shield_damage_bonus = 200000;
+									}
 
 									sdEntity.entities.push( bullet_obj );
 								}
@@ -267,12 +275,16 @@ class sdManualTurret extends sdEntity
 		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 6 );
 	}
+	GetShotCost()
+	{
+		return this.anti_base_mode ? this.matter_max : 200;
+	}
 	Draw( ctx, attached )
 	{
 		let frame = 0;
 		
-		if ( this.matter >= this.matter_max && this.reload_tim <= 0 )
-		frame = 2;
+		if ( sdShop.isDrawing || ( this.matter >= this.GetShotCost() && this.reload_tim <= 0 ) )
+		frame = this.anti_base_mode ? 2 : 3;
 		
 		if ( this.attack_tim > 0 )
 		frame = 1;
@@ -284,6 +296,12 @@ class sdManualTurret extends sdEntity
 		
 		ctx.rotate( Math.atan2( this.look_y, this.look_x ) );
 		
+		if ( sdShop.isDrawing )
+		{
+			ctx.scale( 0.5, 0.5 );
+			ctx.translate( -22, 0 );
+		}
+		
 		ctx.drawImageFilterCache( sdManualTurret.img_turret_sheet, 0, frame * 32, 96, 32, - 16, - 16, 96, 32 );
 		
 		ctx.filter = 'none';
@@ -294,6 +312,19 @@ class sdManualTurret extends sdEntity
 	}
 	RequireSpawnAlign()
 	{ return true; }
+	
+	/*PopulateContextOptions( exectuter_character ) // This method only executed on client-side and should tell game what should be sent to server + show some captions. Use sdWorld.my_entity to reference current player
+	{
+		if ( !this._is_being_removed )
+		//if ( this._hea > 0 )
+		if ( exectuter_character )
+		if ( exectuter_character.hea > 0 )
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 512 ) )
+		{
+			this.AddContextOption( 'Set to anti-base mode', 'MODE', [] );
+			this.AddContextOption( 'Set to anti-base mode', 'MODE', [] );
+		}
+	}*/
 	
 	get spawn_align_x(){ return 8; };
 	get spawn_align_y(){ return 8; };

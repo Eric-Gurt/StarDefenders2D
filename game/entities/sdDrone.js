@@ -403,11 +403,12 @@ class sdDrone extends sdEntity
 				sdSound.PlaySound({ name:'cut_droid_death', x:this.x, y:this.y, volume:1, pitch:1, channel:this._voice_channel });
 			}
 			
-			if ( Math.random() < 0.2 ) // 20% chance to drop a metal shard on destruction
+			if ( Math.random() < 0.2 ) // 20% chance to drop a faction-specific drop on destruction
 			{
 				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
 
-					let gun;
+					let gun = null;
+					
 					if ( this.type === sdDrone.DRONE_SARRORIAN || this.type === sdDrone.DRONE_SARRORIAN_DETONATOR_CONTAINER )
 					gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_ALIEN_ENERGY_RIFLE });
 					else
@@ -416,14 +417,32 @@ class sdDrone extends sdEntity
 					else
 					if ( this.type === sdDrone.DRONE_CUT_DROID )
 					gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_CHAINSAW });
-					else
+					//else
+					//gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_METAL_SHARD });
+
+					if ( gun )
+					{
+						gun.sx = this.sx + Math.random() * 2 - 1;
+						gun.sy = this.sy + Math.random() * 2 - 1;
+						sdEntity.entities.push( gun );
+					}
+
+				}, 100 );
+			}
+			
+			if ( Math.random() < 0.3 ) // 30% chance to drop a metal shard on destruction
+			{
+				setTimeout(()=>{ // Hacky, without this gun does not appear to be pickable or interactable...
+
+					let gun;
+					
 					gun = new sdGun({ x: this.x, y:this.y, class:sdGun.CLASS_METAL_SHARD });
 
-					gun.sx = this.sx + Math.random() - Math.random();
-					gun.sy = this.sy + Math.random() - Math.random();
+					gun.sx = this.sx + Math.random() * 2 - 1;
+					gun.sy = this.sy + Math.random() * 2 - 1;
 					sdEntity.entities.push( gun );
 
-				}, 500 );
+				}, 100 );
 			}
 		}
 		else

@@ -15,6 +15,7 @@ import sdDoor from './sdDoor.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdAntigravity from './sdAntigravity.js';
 import sdNode from './sdNode.js';
+import sdTurret from './sdTurret.js';
 
 import sdSound from '../sdSound.js';
 
@@ -353,6 +354,7 @@ class sdButton extends sdEntity
 			let doors = this.FindObjectsInACableNetwork( null, sdDoor, true ); // { entity: sdEntity, path: [] }
 			let antigravities = this.FindObjectsInACableNetwork( null, sdAntigravity, true ); // { entity: sdEntity, path: [] }
 			let nodes = this.FindObjectsInACableNetwork( null, sdNode, true );
+			let turrets = this.FindObjectsInACableNetwork( null, sdTurret, true );
 			
 			// Prevents path building through BSUs, LRTPs etc. Only nodes are allowed
 			const IsPathTraversable = ( path )=>
@@ -468,6 +470,51 @@ class sdButton extends sdEntity
 				antigravity.toggle_enabled = vv;
 				if ( vv )
 				antigravity.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+			}
+			for ( let i = 0; i < turrets.length; i++ )
+			{
+				let turret = turrets[ i ].entity;
+				
+				if ( turret._is_being_removed )
+				continue;
+			
+				let path = turrets[ i ].path;
+				
+				let vv = GetFlipLogic( path );
+				
+				if ( vv === undefined )
+				continue;
+				
+				if ( !IsPathTraversable( path ) )
+				continue;
+				
+				turret._update_version++;
+				//turret.toggle_enabled = vv;
+				
+				//turret
+				
+				if ( vv )
+				{
+					// Find last node and use its' direction
+					for ( let i = path.length - 1; i >= 0; i-- )
+					{
+						let node = path[ i ];
+						if ( node.is( sdNode ) )
+						if ( node.type === sdNode.TYPE_SIGNAL_TURRET_ENABLER )
+						{
+							turret.auto_attack = node.variation;
+							turret._auto_attack_reference = node;
+							break;
+						}
+					}
+					
+					turret.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+				}
+				else
+				{
+					turret.auto_attack = -1;
+					turret._auto_attack_reference = null;
+				}
 			}
 			
 			

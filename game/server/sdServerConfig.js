@@ -37,8 +37,8 @@ class sdServerConfigShort
 	static skip_arrival_sequence = false; // Skipping it will prevent players from spawning together pretty much. It is useful during tests though.
 	
 	// Setting both 'enable_bounds_move' and 'aggressive_hibernation' will enable open world support
-	static enable_bounds_move = false;
-	static aggressive_hibernation = false; // Offscreen groups of entities (sometimes whole bases) will be put to sleep until something tries to access these areas
+	static enable_bounds_move = true;
+	static aggressive_hibernation = true; // Offscreen groups of entities (sometimes whole bases) will be put to sleep until something tries to access these areas
 	
 	static apply_censorship = true; // Censorship file is not included
 	
@@ -69,7 +69,7 @@ class sdServerConfigFull extends sdServerConfigShort
 	{
 		if ( ent.is( sdCrystal ) )
 		{
-			if ( ent.held_by )
+			if ( ent.held_by && ent.held_by.is( sdMatterAmplifier ) )
 			return true;
 		}
 		else

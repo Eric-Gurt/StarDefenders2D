@@ -685,6 +685,12 @@ class sdCrystal extends sdEntity
 		
 		
 		//if ( this.held_by === null ) // Don't emit matter if inside a crate
+
+		if ( this.held_by && this.held_by.is( sdGrass ) )
+		{
+			// Don't emit matter on trees
+		}
+		else
 		{
 			if ( this.is_anticrystal )
 			{
@@ -696,19 +702,16 @@ class sdCrystal extends sdEntity
 			}
 			else
 			{
-				//let matter_to_transfer = Math.min( this.matter_max, this.matter + GSPEED_scaled * 0.001 * this.matter_max / 80 * ( this.matter_regen / 100 ) ) - this.matter;
-				//this.matter_regen = Math.max( 20, this.matter_regen - ( ( matter_to_transfer / this.matter_max ) ) );
-				
 				let matter_before_regen = this.matter;
-				
+
 				if ( this.held_by && this.held_by.is( sdMatterAmplifier ) )
 				this.matter = Math.min( this.matter_max, this.matter + GSPEED_scaled * 0.001 * this.matter_max / 80 * ( this.matter_regen / 100 ) * ( sdMatterAmplifier.relative_regen_amplification_to_crystals * ( this.held_by.multiplier ) ) );
 				else
 				this.matter = Math.min( this.matter_max, this.matter + GSPEED_scaled * 0.001 * this.matter_max / 80 * ( this.matter_regen / 100 ) );
-				
+
 				if ( sdWorld.server_config.base_degradation )
 				this.matter_regen = Math.max( sdCrystal.lowest_matter_regen, this.matter_regen - ( this.matter - matter_before_regen ) / this.matter_max * 100 / sdCrystal.recharges_until_depleated ); // 30 full recharges
-				
+
 				this.MatterGlow( 0.01, 30, GSPEED_scaled );
 			}
 		}

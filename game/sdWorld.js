@@ -3928,9 +3928,9 @@ class sdWorld
 	
 	
 	
-	static CreateSDFilter()
+	static CreateSDFilter( is_gun = false )
 	{
-		return { s: '' };
+		return { s: '', is_gun: is_gun };
 	}
 	
 	static ConvertPlayerDescriptionToSDFilter_v2( player_description )

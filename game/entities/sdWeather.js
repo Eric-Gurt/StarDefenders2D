@@ -3400,105 +3400,110 @@ class sdWeather extends sdEntity
 				
 				//for ( var i = 0; i < 40; i++ )
 				//if ( Math.random() < 100 / ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) )
+				if ( !this.matter_rain )
 				if ( sdWorld.time > this._next_grass_seed )
 				{
 					this._next_grass_seed = sdWorld.time + 100;
 					
-					let e = sdEntity.GetRandomEntity();
 					
-					if ( e.is( sdBlock ) )
-					if ( e.y >= sdWorld.world_bounds.y1 + 16 ) // Do not spawn on top of the world
+					for ( let i = sdBlock.natural_blocks_total / 1000 * 1.5; i > 0; i-- )
 					{
-						if ( e.DoesRegenerate() )
-						//if ( this.TraceDamagePossibleHere( e.x - 8, e.y + e.width / 2, Infinity, false, true ) )
-						if ( this.TraceDamagePossibleHere( e.x + e.width / 2, e.y - 8, Infinity, false, true ) )
+						let e = sdEntity.GetRandomEntity();
+
+						if ( e.is( sdBlock ) )
+						if ( e.y >= sdWorld.world_bounds.y1 + 16 ) // Do not spawn on top of the world
 						{
-							if ( e._plants === null )
+							if ( e.DoesRegenerate() )
+							//if ( this.TraceDamagePossibleHere( e.x - 8, e.y + e.width / 2, Infinity, false, true ) )
+							if ( this.TraceDamagePossibleHere( e.x + e.width / 2, e.y - 8, Infinity, false, true ) )
 							{
-								let tree_variation = sdGrass.VARIATION_LOW_GRASS; // Initial grass
-								let x_off = 0; // X and Y offsets for proper aligment of bushes/trees
-								let y_off = 0; //
-								if ( Math.random() < 0.4 ) // 40% chance for it to check if a tree or bush spawn is possible
+								if ( e._plants === null )
 								{
-									let proper_distance = true;
-
-									for ( i = 0; i < sdWorld.sockets.length; i++ )
-									if ( sdWorld.sockets[ i ].character )
+									let tree_variation = sdGrass.VARIATION_LOW_GRASS; // Initial grass
+									let x_off = 0; // X and Y offsets for proper aligment of bushes/trees
+									let y_off = 0; //
+									if ( Math.random() < 0.4 ) // 40% chance for it to check if a tree or bush spawn is possible
 									{
-										if ( sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, e.x, e.y, sdWeather.min_distance_from_online_players_for_entity_events ) ) // If players are too close, don't spawn a tree so they don't see it pop in
+										let proper_distance = true;
+
+										for ( i = 0; i < sdWorld.sockets.length; i++ )
+										if ( sdWorld.sockets[ i ].character )
 										{
-											proper_distance = false;
-											break;
-										}
-									}
-									if ( proper_distance ) // Can spawn a tree?
-									{
-										let chance = Math.random();
-										if ( chance < 0.175 ) // 35% of trees have a chance to be large, just like in fresh world generation
-										tree_variation = sdGrass.VARIATION_TREE_LARGE;
-										else
-										if ( chance < 0.5 )
-										tree_variation = sdGrass.VARIATION_TREE;
-										else
-										tree_variation = sdGrass.VARIATION_BUSH;
-									
-										x_off = 8;
-										y_off = 16;
-										// Without these offsets trees and bushes will spawn in air and on the left of the dirt blocks.
-									}
-								}
-								let grass = new sdGrass({ x:e.x + x_off, y:e.y + y_off - 16, hue:e.hue, br:e.br, filter: e.filter, block:e, variation:tree_variation });
-								
-								//let grass = new sdGrass({ x:e.x, y:e.y - 16, hue:e.hue, br:e.br, filter: e.filter, block:e });
-								sdEntity.entities.push( grass );
-
-								//grass.snowed = this.snow;
-								grass.SetSnowed( this.snow );
-
-								e._plants = [ grass._net_id ];
-							}
-							else
-							{
-								for ( let i = 0; i < e._plants.length; i++ )
-								{
-									//let ent = sdEntity.entities_by_net_id_cache[ e._plants[ i ] ];
-									let ent = sdEntity.entities_by_net_id_cache_map.get( e._plants[ i ] );
-
-									if ( ent )
-									{
-										if ( ent.is( sdGrass ) )
-										{
-											// Old version problem fix:
-											if ( ent._block !== e )
-											ent._block = e;
-
-											ent.SetSnowed( this.snow );
-											//ent.snowed = this.snow;
-
-											if ( ent.variation < sdWorld.GetFinalGrassHeight( ent.x ) )
+											if ( sdWorld.inDist2D_Boolean( sdWorld.sockets[ i ].character.x, sdWorld.sockets[ i ].character.y, e.x, e.y, sdWeather.min_distance_from_online_players_for_entity_events ) ) // If players are too close, don't spawn a tree so they don't see it pop in
 											{
-												ent.Grow();
-												break; // Skip rest plants on this block
+												proper_distance = false;
+												break;
 											}
 										}
+										if ( proper_distance ) // Can spawn a tree?
+										{
+											let chance = Math.random();
+											if ( chance < 0.175 ) // 35% of trees have a chance to be large, just like in fresh world generation
+											tree_variation = sdGrass.VARIATION_TREE_LARGE;
+											else
+											if ( chance < 0.5 )
+											tree_variation = sdGrass.VARIATION_TREE;
+											else
+											tree_variation = sdGrass.VARIATION_BUSH;
+
+											x_off = 8;
+											y_off = 16;
+											// Without these offsets trees and bushes will spawn in air and on the left of the dirt blocks.
+										}
 									}
-									else
+									let grass = new sdGrass({ x:e.x + x_off, y:e.y + y_off - 16, hue:e.hue, br:e.br, filter: e.filter, block:e, variation:tree_variation });
+
+									//let grass = new sdGrass({ x:e.x, y:e.y - 16, hue:e.hue, br:e.br, filter: e.filter, block:e });
+									sdEntity.entities.push( grass );
+
+									//grass.snowed = this.snow;
+									grass.SetSnowed( this.snow );
+
+									e._plants = [ grass._net_id ];
+								}
+								else
+								{
+									for ( let i = 0; i < e._plants.length; i++ )
 									{
-										// Old version problem fix:
-										e._plants.splice( i, 1 );
-										i--;
-										continue;
+										//let ent = sdEntity.entities_by_net_id_cache[ e._plants[ i ] ];
+										let ent = sdEntity.entities_by_net_id_cache_map.get( e._plants[ i ] );
+
+										if ( ent )
+										{
+											if ( ent.is( sdGrass ) )
+											{
+												// Old version problem fix:
+												if ( ent._block !== e )
+												ent._block = e;
+
+												ent.SetSnowed( this.snow );
+												//ent.snowed = this.snow;
+
+												if ( ent.variation < sdWorld.GetFinalGrassHeight( ent.x ) )
+												{
+													ent.Grow();
+													break; // Skip rest plants on this block
+												}
+											}
+										}
+										else
+										{
+											// Old version problem fix:
+											e._plants.splice( i, 1 );
+											i--;
+											continue;
+										}
 									}
 								}
 							}
-						}
 
-						if ( !this.snow && !this.matter_rain )
-						if ( Math.random() < 0.01 )
-						{
-							let water = new sdWater({ x:Math.floor(e.x/16)*16, y:Math.floor(e.y/16)*16 - 16, type: this.acid_rain ? sdWater.TYPE_ACID : sdWater.TYPE_WATER });
-							sdEntity.entities.push( water );
-							sdWorld.UpdateHashPosition( water, false ); // Without this, new water objects will only discover each other after one first think event (and by that time multiple water objects will overlap each other). This could be called at sdEntity super constructor but some entities don't know their bounds by that time
+							if ( !this.snow && !this.matter_rain )
+							if ( Math.random() < 0.01 )
+							{
+								let water = new sdWater({ x:Math.floor(e.x/16)*16, y:Math.floor(e.y/16)*16 - 16, type: this.acid_rain ? sdWater.TYPE_ACID : sdWater.TYPE_WATER });
+								sdEntity.entities.push( water );
+								sdWorld.UpdateHashPosition( water, false ); // Without this, new water objects will only discover each other after one first think event (and by that time multiple water objects will overlap each other). This could be called at sdEntity super constructor but some entities don't know their bounds by that time
+							}
 						}
 					}
 					
