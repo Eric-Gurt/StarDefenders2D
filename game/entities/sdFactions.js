@@ -17,7 +17,7 @@ class sdFactions extends sdEntity
 		sdFactions.FACTION_FALKOK = 1; // Falkoks
 		sdFactions.FACTION_ERTHAL = 2; // Erthals
 		sdFactions.FACTION_COUNCIL = 3; // Council
-		sdFactions.FACTION_SARRORIAN = 4; // Sarrorian
+		sdFactions.FACTION_SARRONIAN = 4; // Sarronians
 		sdFactions.FACTION_VELOX = 5; // Velox
 		sdFactions.FACTION_SETR = 6; // Setr
 		sdFactions.FACTION_TZYRG = 7; // Tzyrg
@@ -322,41 +322,58 @@ class sdFactions extends sdEntity
 			sdWorld.SendEffect({ x:character_entity.x, y:character_entity.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(' + ~~( 170 ) + 'deg)' });
 		}
 
-		if ( faction === sdFactions.FACTION_SARRORIAN ) // Sarrorians
+		if ( faction === sdFactions.FACTION_SARRONIAN ) // Sarronians
 		{
 			if ( Math.random() < 0.3 )
 			{
-				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_GAUSS_RIFLE }) );
-				character_entity._ai_gun_slot = 8;
+				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SARRONIAN_ENERGY_DISPLACER }) );
+				character_entity._ai_gun_slot = 5;
 			}
 			else
 			{
-				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ALIEN_ENERGY_RIFLE }) );
-				character_entity._ai_gun_slot = 8;
+				sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SARRONIAN_SMG }) );
+				character_entity._ai_gun_slot = 1;
 			}
 
-			if ( character_entity._ai_gun_slot === 8 )
-			character_settings = {"hero_name":"Sarronian E2 Unit", // Name
-			"color_bright":"#202020", // Helmet bright color
-			"color_dark":"#101010", // Helmet dark color
-			"color_visor":"#FFA000", // Visor color
-			"color_bright3":"#000000", // Jetpack (bright shade) color
-			"color_dark3":"#101010", // Jetpack (dark shade) color
-			"color_suit":"#202020", // Upper suit color
-			"color_suit2":"#101010", // Lower suit color
-			"color_dark2":"#101010", // Lower suit plates color
-			"color_shoes":"#000000", // Shoes color
-			"color_skin":"#FFFF00", // Gloves and neck color
-			"color_extra1":"#00FF00", // Extra 1 color
-			"helmet77":true,
-			"body18":true,
-			"legs36":true,
+			if ( character_entity._ai_gun_slot === 1 )
+			character_settings = { "hero_name":"Sarronian E3 Unit", // Name
+			"color_bright":"#2a2a2a", // Helmet bright color
+			"color_dark":"#0c0c0c", // Helmet dark color
+			"color_visor":"#00ff32", // Visor color
+			"color_bright3":"#0c0c0c", // Jetpack (bright shade) color
+			"color_dark3":"#2a2a2a", // Jetpack (dark shade) color
+			"color_suit":"#1c1c1c", // Upper suit color
+			"color_suit2":"#262626", // Lower suit color
+			"color_dark2":"#0c0c0c", // Lower suit plates color
+			"color_shoes":"#0c0c0c", // Shoes color
+			"color_skin":"#0c0c0c", // Gloves and neck color
+			"color_extra1":"#00d719", // Extra 1 color
+			"helmet33":true,
+			"body90":true,
+			"legs51":true,
+			"voice10":true };
+			else
+			character_settings = { "hero_name":"Sarronian E6 Unit", // Name
+			"color_bright":"#2a2a2a", // Helmet bright color
+			"color_dark":"#0c0c0c", // Helmet dark color
+			"color_visor":"#00ff32", // Visor color
+			"color_bright3":"#0c0c0c", // Jetpack (bright shade) color
+			"color_dark3":"#2a2a2a", // Jetpack (dark shade) color
+			"color_suit":"#1c1c1c", // Upper suit color
+			"color_suit2":"#262626", // Lower suit color
+			"color_dark2":"#0c0c0c", // Lower suit plates color
+			"color_shoes":"#0c0c0c", // Shoes color
+			"color_skin":"#0c0c0c", // Gloves and neck color
+			"color_extra1":"#00d719", // Extra 1 color
+			"helmet33":true,
+			"body90":true,
+			"legs51":true,
 			"voice10":true };
 
-			if ( character_entity._ai_gun_slot === 8 ) // If a regular Sarronian soldier
+			if ( character_entity._ai_gun_slot === 5 || 1 ) // If a regular Sarronian soldier
 			{
-				character_entity.matter = 250;
-				character_entity.matter_max = 250;
+				character_entity.matter = 350;
+				character_entity.matter_max = 350;
 
 				character_entity.hea = 350;
 				character_entity.hmax = 350;
@@ -365,7 +382,7 @@ class sdFactions extends sdEntity
 			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
 			character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
 
-			character_entity._matter_regeneration = 10; // increased alongside matter regen multiplier to allow them to efficiently use the Gauss cannon.
+			character_entity._matter_regeneration = 10; // increased alongside matter regen multiplier to allow them to use the SMG.
 			character_entity._jetpack_allowed = true; // Jetpack
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
 			character_entity._ai_team = 4; // AI team 4 is for Sarronian faction
@@ -395,7 +412,7 @@ class sdFactions extends sdEntity
 				}
 			}
 			if ( character_entity._ai_gun_slot === 1 )
-			character_settings = {"hero_name":"Velox Soldier", // Name // blue soldier
+			character_settings = { "hero_name":"Velox Soldier", // Name // blue soldier
 			"color_bright":"#bcbcbc", // Helmet bright color
 			"color_dark":"#7a7a7a", // Helmet dark color
 			"color_visor":"#00ffff", // Visor color
@@ -413,7 +430,7 @@ class sdFactions extends sdEntity
 			"voice7":true };
 
 			if ( character_entity._ai_gun_slot === 2 )
-			character_settings = {"hero_name":"Velox Soldier", // Name // green soldier
+			character_settings = { "hero_name":"Velox Soldier", // Name // green soldier
 			"color_bright":"#bcbcbc", // Helmet bright color
 			"color_dark":"#7a7a7a", // Helmet dark color
 			"color_visor":"#00ff00", // Visor color
@@ -431,7 +448,7 @@ class sdFactions extends sdEntity
 			"voice7":true };
 
 			if ( character_entity._ai_gun_slot === 4 )
-			character_settings = {"hero_name":"Velox Devastator", // Name
+			character_settings = { "hero_name":"Velox Devastator", // Name
 			"color_bright":"#bcbcbc", // Helmet bright color
 			"color_dark":"#7a7a7a", // Helmet dark color
 			"color_visor":"#ff0000", // Visor color
@@ -490,7 +507,7 @@ class sdFactions extends sdEntity
 			}
 
 			//if ( character_entity._ai_gun_slot === 3 )
-			character_settings = {"hero_name":"Setr Soldier", // Name
+			character_settings = { "hero_name":"Setr Soldier", // Name
 			"color_bright":"#0000c0", // Helmet bright color
 			"color_dark":"#404040", // Helmet dark color
 			"color_visor":"#c8c800", // Visor color
@@ -540,7 +557,7 @@ class sdFactions extends sdEntity
 			}
 
 			if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 2 )
-			character_settings = {"hero_name":"Tzyrg", // Name
+			character_settings = { "hero_name":"Tzyrg", // Name
 			"color_bright":"#404040", // Helmet bright color
 			"color_dark":"#202020", // Helmet dark color
 			"color_visor":"#FF0000", // Visor color
@@ -590,7 +607,7 @@ class sdFactions extends sdEntity
 			}
 
 			if ( character_entity._ai_gun_slot === 1 )
-			character_settings = {	"hero_name":"Shurg", // Name
+			character_settings = { "hero_name":"Shurg", // Name
 			"color_bright":"#203020", // Helmet bright color
 			"color_dark":"#102010", // Helmet dark color
 			"color_visor":"#109000", // Visor color

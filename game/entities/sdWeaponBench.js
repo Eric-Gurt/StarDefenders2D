@@ -153,9 +153,12 @@ class sdWeaponBench extends sdEntity
 				//let ID_FIRE_RATE = 8;
 				let ID_RECOIL_SCALE = 9;
 				let ID_DAMAGE_VALUE = 17;
+				let ID_ALT_DAMAGE_VALUE = 18;
 
 				if ( this.item0.extra[ ID_DAMAGE_VALUE ] )
 				sdEntity.TooltipUntranslated( ctx, T('Damage') + ': ' + Math.round( this.item0.extra[ ID_DAMAGE_VALUE ] * this.item0.extra[ ID_DAMAGE_MULT ] ), 0, -40, '#ffaaaa' );
+				if ( this.item0.extra[ ID_ALT_DAMAGE_VALUE ] )
+				sdEntity.TooltipUntranslated( ctx, T('Alt mode damage') + ': ' + Math.round( this.item0.extra[ ID_ALT_DAMAGE_VALUE ] * this.item0.extra[ ID_DAMAGE_MULT ] ), 0, -50, '#ffaaaa' );
 				if ( this.item0.extra[ ID_RECOIL_SCALE ] )
 				sdEntity.TooltipUntranslated( ctx, T('Recoil') + ': ' + Math.round( 100 * this.item0.extra[ ID_DAMAGE_MULT ] * this.item0.extra[ ID_RECOIL_SCALE ] ) + '%', 0, -30, '#ffffaa' );
 				

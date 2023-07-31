@@ -22,12 +22,12 @@ class sdFactionSpawner extends sdEntity
 		sdFactionSpawner.img_falkok_spawner = sdWorld.CreateImageFromFile( 'falkok_teleporter' );
 
 		sdFactionSpawner.falkok_spawners = 0;
-		sdFactionSpawner.sarrorian_spawners = 0;
+		sdFactionSpawner.sarronian_spawners = 0;
 		sdFactionSpawner.council_spawners = 0;
 		sdFactionSpawner.tzyrg_spawners = 0;
 
 		sdFactionSpawner.FALKOK_SPAWNER = 1;
-		sdFactionSpawner.SARRORIAN_SPAWNER = 2;
+		sdFactionSpawner.SARRONIAN_SPAWNER = 2;
 		sdFactionSpawner.COUNCIL_SPAWNER = 3;
 		sdFactionSpawner.TZYRG_SPAWNER = 4;
 	

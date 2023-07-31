@@ -22,6 +22,8 @@ import sdCrystal from './sdCrystal.js';
 import sdStatusEffect from './sdStatusEffect.js';
 import sdStorageTank from './sdStorageTank.js';
 import sdEssenceExtractor from './sdEssenceExtractor.js';
+import sdDoor from './sdDoor.js';
+import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 
 
 /*
@@ -87,7 +89,7 @@ class sdGunClass
 					if ( typeof hex_color === 'string' && hex_color.length === 7 ) // ReplaceColorInSDFilter_v2 does the type check but just in case
 					{
 						if ( !gun.sd_filter )
-						gun.sd_filter = sdWorld.CreateSDFilter( true );
+						gun.sd_filter = sdWorld.CreateSDFilter();
 
 						// Pass custom hex colors to this function
 
@@ -189,7 +191,7 @@ class sdGunClass
 		let ID_TITLE = 15;
 		let ID_PROJECTILE_COLOR = 16;
 		let ID_DAMAGE_VALUE = 17; // For non custom-guns so it can display damage properly.
-		
+		let ID_ALT_DAMAGE_VALUE = 18;
 		function UpdateCusomizableGunProperties( gun )
 		{
 			gun._count = gun.extra[ ID_HAS_SHOTGUN_EFFECT ] ? 5 : 1;
@@ -3776,23 +3778,23 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades()
 		};
     
-		sdGun.classes[ sdGun.CLASS_GAUSS_RIFLE = 66 ] = 
+		sdGun.classes[ sdGun.CLASS_SARRONIAN_GAUSS_RIFLE = 66 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'gauss_rifle' ),
-			image_charging: sdWorld.CreateImageFromFile( 'gauss_rifle_charging' ),
-			image0: [ sdWorld.CreateImageFromFile( 'gauss_rifle0' ), sdWorld.CreateImageFromFile( 'gauss_rifle1' ) ],
-			image1: [ sdWorld.CreateImageFromFile( 'gauss_rifle2' ), sdWorld.CreateImageFromFile( 'gauss_rifle3' ) ],
-			image2: [ sdWorld.CreateImageFromFile( 'gauss_rifle4' ), sdWorld.CreateImageFromFile( 'gauss_rifle5' ) ],
-			has_images: true,
-			title: 'Sarronian Gauss Cannon',
+			image: sdWorld.CreateImageFromFile( 'sarronian_gauss_rifle' ),  // sprite by Gravel
+			// image_charging: sdWorld.CreateImageFromFile( 'gauss_rifle_charging' ), // no charging animation for now
+			// image0: [ sdWorld.CreateImageFromFile( 'gauss_rifle0' ), sdWorld.CreateImageFromFile( 'gauss_rifle1' ) ],
+			// image1: [ sdWorld.CreateImageFromFile( 'gauss_rifle2' ), sdWorld.CreateImageFromFile( 'gauss_rifle3' ) ],
+			// image2: [ sdWorld.CreateImageFromFile( 'gauss_rifle4' ), sdWorld.CreateImageFromFile( 'gauss_rifle5' ) ],
+			// has_images: true,
+			title: 'Sarronian Gauss Rifle',
 			slot: 8,
-			reload_time: 30 * 3, // 225,
+			reload_time: 90, // 225,
 			muzzle_x: 9,
 			ammo_capacity: -1,
 			count: 1,
 			// matter_cost: 1000,
 			spawnable: false,
-			projectile_velocity: sdGun.default_projectile_velocity * 2,
+			projectile_velocity: sdGun.default_projectile_velocity * 1.7,
 			// min_workbench_level: 6,
 			// min_build_tool_level: 5,
 			GetAmmoCost: ( gun, shoot_from_scenario )=>
@@ -3803,7 +3805,7 @@ class sdGunClass
 				if ( gun._held_by._auto_shoot_in > 0 )
 				return 0;
 				
-				return 50;
+				return 35;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
@@ -3813,7 +3815,7 @@ class sdGunClass
 					if ( gun._held_by._auto_shoot_in <= 0 )
 					{
 						
-						gun._held_by._auto_shoot_in = 1500 / 1000 * 30;
+						gun._held_by._auto_shoot_in = 75;
 
 						sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 0.5 });
 					}
@@ -3825,10 +3827,10 @@ class sdGunClass
 					
 				}
 			},
-			projectile_properties: { explosion_radius: 24, model: 'gauss_rifle_proj', _damage: 128, color:sdEffect.default_explosion_color },
+			projectile_properties: { explosion_radius: 24, model: 'sarronian_bolt', _damage: 128, color: '#00c600' },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { explosion_radius: 24, model: 'gauss_rifle_proj', color:sdEffect.default_explosion_color };
+				let obj = { explosion_radius: 24, model: 'sarronian_bolt', color: '#00c600' };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -3851,7 +3853,10 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades ( AddRecolorsFromColorAndCost( [], '#00ff00', 15, 'main energy color' ) )
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#00ff00', 15, 'main energy' ),
+				'#00c600', 15, 'secondary energy' ),
+				'#008700', 15, 'tertiary energy' ) )
 		};
 		
 		sdGun.classes[ sdGun.CLASS_VELOX_COMBAT_RIFLE = 67 ] = 
@@ -4417,9 +4422,9 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades()
 		};
 		
-		sdGun.classes[ sdGun.CLASS_ALIEN_ENERGY_RIFLE = 78 ] = 
+		sdGun.classes[ sdGun.CLASS_SARRONIAN_ENERGY_RIFLE = 78 ] = 
 		{
-			image: sdWorld.CreateImageFromFile ( 'alien_energygun' ),
+			image: sdWorld.CreateImageFromFile ( 'sarronian_energy_rifle' ),
 			sound: 'gun_spark',
 			sound_pitch: 0.5,
 			title: 'Sarronian Energy Rifle',
@@ -4429,10 +4434,10 @@ class sdGunClass
 			ammo_capacity: -1,
 			count: 1,
 			spawnable: false,
-			projectile_properties: { model: 'ball_orange', color: '#ffc080', _damage: 32, explosion_radius: 12 },
+			projectile_properties: { model: 'sarronian_ball', color: '#00c600', explosion_radius: 12 },
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { model: 'ball_orange', color: '#ffc080', explosion_radius: 12 };
+				let obj = { _damage: 32, model: 'sarronian_ball', color: '#00c600', explosion_radius: 12 };
 				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
@@ -4455,7 +4460,10 @@ class sdGunClass
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades ( AddRecolorsFromColorAndCost( [], '#00ff00', 15, 'main energy color' ) )
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#00ff00', 15, 'main energy' ),
+				'#00c600', 15, 'secondary energy' ),
+				'#008700', 15, 'tertiary energy' ) )
 		};
 
 
@@ -6384,7 +6392,7 @@ class sdGunClass
 			count: 1,
 			matter_cost: 140,
 			min_build_tool_level: 8,
-			fire_type: 1,
+			fire_type: 2,
 			projectile_properties: { _damage: 65, _dirt_mult: -0.5 },
 			projectile_velocity: sdGun.default_projectile_velocity * 1.5,
 			projectile_properties_dynamic: ( gun )=>{ 
@@ -6496,16 +6504,17 @@ class sdGunClass
 			upgrades: AddGunDefaultUpgrades()
 		};
 
-		sdGun.classes[ sdGun.CLASS_SARRONIAN_FOCUS_BEAM = 108 ] = // Sprite by Ghost581
+		sdGun.classes[ sdGun.CLASS_ZEKTA_FOCUS_BEAM = 108 ] =
 		{
-			image: sdWorld.CreateImageFromFile( 'sarronian_focus_beam' ),
-			image_charging: sdWorld.CreateImageFromFile( 'sarronian_focus_beam2' ),
+			image: sdWorld.CreateImageFromFile( 'zekta_focus_beam' ), // sprite by Gravel
+			// image_charging: sdWorld.CreateImageFromFile( 'zekta_focus_beam' ), // no animation for now
 			//sound: 'supercharge_combined2',
-			title: 'Sarronian Focus Beam',
+			title: 'Zekta Focus Beam',
 			//sound_pitch: 0.5,
 			slot: 8,
-			reload_time: 0.3,
-			muzzle_x: 7,
+			is_long: true,
+			reload_time: 0.8,
+			muzzle_x: 13,
 			ammo_capacity: -1,
 			count: 1,
 			spawnable: false,
@@ -6517,7 +6526,7 @@ class sdGunClass
 				if ( gun._held_by._auto_shoot_in > 0 )
 				return 0;
 				
-				return 6;
+				return 4;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
@@ -6528,42 +6537,41 @@ class sdGunClass
 					{
 						//gun._held_by._auto_shoot_in = 15;
 						//return; // hack
-						gun._held_by._auto_shoot_in = 2000 / 1000 * 30 / ( 1 + gun._combo / 60 );
+						gun._held_by._auto_shoot_in = 2200 / 1000 * 30 / ( 1 + gun._combo / 60 );
 
 
 						//sdSound.PlaySound({ name: 'supercharge_combined2', x:gun.x, y:gun.y, volume: 1.5 });
-						sdSound.PlaySound({ name: 'enemy_mech_charge', x:gun.x, y:gun.y, volume: 1.5, pitch: 0.3 });
+						sdSound.PlaySound({ name: 'enemy_mech_charge', x:gun.x, y:gun.y, volume: 0.9, pitch: 0.7 });
 					}
 					return false;
 				}
 				else
 				{
 					//sdSound.PlaySound({ name: 'gun_pistol', x:gun.x, y:gun.y });
-					sdSound.PlaySound({ name:'red_railgun', x:gun.x, y:gun.y, volume:1.2, pitch: 0.6 });
+					sdSound.PlaySound({ name: 'alien_laser1', x:gun.x, y:gun.y, volume: 0.7, pitch: 1.2 });
 					
-					if ( gun._held_by.matter >= 6 )
+					if ( gun._held_by.matter >= 4 )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
-						gun._held_by._auto_shoot_in = ( gun._held_by.stim_ef > 0 ) ? ( 1 / ( 1 + gun._combo / 60 ) ) : ( 2 / ( 1 + gun._combo / 60 ) ); // Faster rate of fire when shooting more
-						gun._held_by.matter -= 6;
-						gun._combo_timer = 90;
-						if ( gun._combo < 45 )
+						gun._held_by._auto_shoot_in = ( gun._held_by.stim_ef > 0 ) ? ( 2 / ( 1 + gun._combo / 40 ) ) : ( 5 / ( 1 + gun._combo / 40 ) ); // Faster rate of fire when shooting more
+						gun._held_by.matter -= 3;
+						gun._combo_timer = 75;
+						if ( gun._combo < 75 )
 						gun._combo++; // Speed up rate of fire, the longer it shoots
 					}
 				}
 				return true;
 			},
-			projectile_properties: { _rail: true, _damage: 22, color: '#eb9d28', _dirt_mult: -0.2 }, // Combined with fire rate
+			projectile_properties: { _rail: true, _damage: 20, color: '#cd1e1e', _dirt_mult: -0.2, _temperature_addition: 80 }, // Combined with fire rate
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _rail: true, color: '#eb9d28', _dirt_mult: -0.2 };
-				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				let obj = { _rail: true, color: '#cd1e1e', _dirt_mult: -0.2, _temperature_addition: 80 };
+				obj._knock_scale = 0.01 * 4 * gun.extra[ ID_DAMAGE_MULT ];
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
-				
 				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
-				
+				obj._temperature_addition = gun.extra[ ID_TEMPERATURE_APPLIED ];
 				return obj;
 			},
 			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
@@ -6575,11 +6583,15 @@ class sdGunClass
 					//gun.extra[ ID_FIRE_RATE ] = 1;
 					gun.extra[ ID_RECOIL_SCALE ] = 1;
 					//gun.extra[ ID_SLOT ] = 1;
-					gun.extra[ ID_DAMAGE_VALUE ] = 22; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_DAMAGE_VALUE ] = 20; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_TEMPERATURE_APPLIED ] = 90;
 					//UpdateCusomizableGunProperties( gun );
 				}
 			},
-			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( [], '#00ff00', 15, 'main energy color' ) )
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#ff0000', 15, 'main energy' ),
+				'#900000', 15, 'secondary energy' ),
+				'#620000', 15, 'tertiary energy' ) )
 		};
 
 		sdGun.classes[ sdGun.CLASS_RAIL_PISTOL2 = 109 ] = { // Original weapon idea, image & pull request by Booraz149 ( https://github.com/Booraz149 )
@@ -7353,7 +7365,911 @@ class sdGunClass
 			
 			upgrades: AddGunDefaultUpgrades( [] )
 		};
-    
+
+		sdGun.classes[ sdGun.CLASS_SARRONIAN_SMG = 121 ] = {
+			image: sdWorld.CreateImageFromFile( 'sarronian_smg' ), // sprite by Gravel
+			sound: 'gun_spark',
+			sound_pitch: 1.6,
+			sound_volume: 0.6, // too loud
+			title: 'Sarronian SMG',
+			slot: 1,
+			reload_time: 2.1,
+			muzzle_x: 7,
+			ammo_capacity: -1,
+			spread: 0.08,
+			count: 1,
+			spawnable: false,
+			projectile_properties: { _damage: 9, _dirt_mult: -0.5, color: '#00c600' },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _dirt_mult: -0.5, color: '#00c600' };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 9; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#00ff00', 15, 'main energy' ),
+				'#00c600', 15, 'secondary energy' ),
+				'#008700', 15, 'tertiary energy' ) )
+		};
+
+		sdGun.classes[ sdGun.CLASS_SARRONIAN_RAY = 122 ] = {
+			image: sdWorld.CreateImageFromFile( 'sarronian_ray' ), // Sprite and gun concept by Gravel
+			sound: 'gun_spark',
+			sound_pitch: 3.2,
+			sound_volume: 0.6, // too loud
+			title: 'Sarronian Ray', // TODO: Add on-hit vampirism and on-kill armor, currently it's on shooting temporarily. - Ghost581
+			slot: 1,
+			reload_time: 2.3,
+			muzzle_x: null,
+			ammo_capacity: 42,
+			spread: 0.01,
+			count: 1,
+			spawnable: false,
+			projectile_properties: { _damage: 13, _dirt_mult: -0.5, _rail: true, color: '#00c600' },
+			projectile_properties_dynamic: ( gun )=>{ 
+				let obj = { _dirt_mult: -0.5, time_left: 30, _rail: true, color: '#00c600' };
+
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+
+				return obj;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( gun._held_by )
+				if ( gun._held_by.IsPlayerClass() )
+				if ( gun._held_by.hea < gun._held_by.hmax )
+				{
+					gun._held_by.DamageWithEffect( -4, null ); // Heal self if HP isn't max.
+				}
+				return true;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 13; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#ff9300', 15, 'main energy' ),
+				'#e16b00', 15, 'secondary energy' ),
+				'#974800', 15, 'tertiary energy' ) )
+		};
+
+		sdGun.classes[ sdGun.CLASS_SARRONIAN_ENERGY_DISPLACER = 123 ] = {
+			image: sdWorld.CreateImageFromFile( 'sarronian_energy_displacer' ), // Sprite and gun concept by Gravel
+			sound: 'gun_spark',
+			sound_pitch: 3.1,
+			sound_volume: 1,
+			title: 'Sarronian Energy Displacer',
+			slot: 5,
+			count: 2,
+			reload_time: 16.8,
+			burst_reload: 48,
+			burst: 2,
+			muzzle_x: 8,
+			ammo_capacity: 12,
+			spread: 0.12,
+			spawnable: false,
+			projectile_properties: { _dirt_mult: 1.25, model: 'sarronian_ball', color: '#00c600' },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _dirt_mult: 1.25, model: 'sarronian_ball', color: '#00c600', explosion_radius: 10,
+				_custom_detonation_logic:( bullet )=>
+				{
+					sdSound.PlaySound({ name:'gun_anti_rifle_hit', x:bullet.x, y:bullet.y, volume:1, pitch: 0.5 });
+			
+					let bullet_obj1 = new sdBullet({ x: bullet.x, y: bullet.y });
+								bullet_obj1.sx = 1;
+								bullet_obj1.sy = 1;
+			
+								bullet_obj1.explosion_radius = 5; 
+								bullet_obj1.model = 'sarronian_bolt';
+								bullet_obj1._damage = 8;
+								bullet_obj1.color ='#e16b00';
+								bullet_obj1._dirt_mult = 1;
+								bullet_obj1._hittable_by_bullets = false;
+								sdEntity.entities.push( bullet_obj1 );
+			
+					let bullet_obj2 = new sdBullet({ x: bullet.x, y: bullet.y });
+								bullet_obj2.sx = 1;
+								bullet_obj2.sy = -1;
+			
+								bullet_obj2.explosion_radius = 5; 
+								bullet_obj2.model = 'sarronian_bolt';
+								bullet_obj2._damage = 8;
+								bullet_obj2.color ='#00ff00';
+								bullet_obj2._dirt_mult = 1;
+								bullet_obj2._hittable_by_bullets = false;
+								sdEntity.entities.push( bullet_obj2 );
+			
+					let bullet_obj3 = new sdBullet({ x: bullet.x, y: bullet.y });
+								bullet_obj3.sx = -1;
+								bullet_obj3.sy = -1;
+			
+								bullet_obj3.explosion_radius = 5; 
+								bullet_obj3.model = 'sarronian_bolt';
+								bullet_obj3._damage = 8;
+								bullet_obj3.color ='#00ff00';
+								bullet_obj3._dirt_mult = 1;
+								bullet_obj3._hittable_by_bullets = false;
+								sdEntity.entities.push( bullet_obj3 );
+			
+					let bullet_obj4 = new sdBullet({ x: bullet.x, y: bullet.y });
+								bullet_obj4.sx = -1;
+								bullet_obj4.sy = 1;
+	
+								bullet_obj4.explosion_radius = 5; 
+								bullet_obj4.model = 'sarronian_bolt';
+								bullet_obj4._damage = 8;
+								bullet_obj4.color ='#00ff00';
+								bullet_obj4._dirt_mult = 1;
+								bullet_obj4._hittable_by_bullets = false;
+								sdEntity.entities.push( bullet_obj4 );
+				} };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				return obj;
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 20; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#00ff00', 15, 'main energy' ),
+				'#00c600', 15, 'secondary energy' ),
+				'#008700', 15, 'tertiary energy' ) )
+		};
+
+		sdGun.classes[ sdGun.CLASS_SARRONIAN_BIO_ENERGY_LAUNCHER = 124 ] = {
+			image: sdWorld.CreateImageFromFile( 'sarronian_bio_energy_launcher' ), // Sprite and gun concept by Gravel
+			sound: 'gun_spark',
+			sound_pitch: 0.34,
+			sound_volume: 1,
+			title: 'Sarronian Bio-Energy Launcher',
+			slot: 5,
+			count: 1,
+			projectile_velocity: 9,
+			reload_time: 40,
+			muzzle_x: null,
+			ammo_capacity: -1,
+			spread: 0.2,
+			spawnable: false,
+			projectile_properties: { _damage: 48, _dirt_mult: 1.4, model: 'sarronian_bio_blob', color: '#974800', explosion_radius: 52, },
+			projectile_properties_dynamic: ( gun )=>{ 
+				let obj = { _dirt_mult: 1.25, model: 'sarronian_bio_blob', color: '#974800', explosion_radius: 52,
+				_hittable_by_bullets: false,
+				is_grenade: true,
+				time_left: 75,
+				gravity_scale: 0.5,
+				_detonate_on_impact: false,
+
+				_custom_post_bounce_reaction:( bullet, vel=0, hit_entity=null )=> // Also reacts to overlap
+				{
+					if ( hit_entity )
+					{
+						if ( hit_entity.IsBGEntity() === bullet.IsBGEntity() )
+						if ( hit_entity._hard_collision )
+						if ( bullet._owner !== hit_entity )
+						if ( bullet._owner2 !== hit_entity )
+						{
+							bullet.sx = 0;
+							bullet.sy = 0;
+							bullet.gravity_scale = 0;
+						}
+					}
+					else
+					{
+						// From impact, entity is unknown
+						bullet.sx = 0;
+						bullet.sy = 0;
+						bullet.gravity_scale = 0;
+					}
+				},
+
+				_custom_extra_think_logic:( bullet, GSPEED )=>
+				{
+					let owner = ( bullet._owner || bullet._owner2 || null );
+				
+					GSPEED *= gun.extra[ ID_DAMAGE_MULT ];
+
+					let range = 48;
+
+					let nears = bullet.GetAnythingNearCache( bullet.x, bullet.y, range );
+					for ( let i = 0; i < nears.length; i++ )
+					{
+						let e = nears[ i ];
+						if ( !e._is_being_removed )
+						if ( e !== bullet && e !== owner )
+						if ( e.IsBGEntity() === bullet.IsBGEntity() )
+						if ( e.IsTargetable( owner ) )
+						if ( !e.is( sdGun ) )
+						if ( !e.is( sdBullet ) )
+						if ( !e.is( sdBlock ) )
+						if ( !e.is( sdCrystal ) ) // crashes upon breaking crystals apparently, temporary fix
+						if ( !e.is( sdJunk ) ) // crashes upon breaking junk entities apparently, temporary fix
+						{
+							let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
+							let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
+
+							if ( sdWorld.inDist2D_Boolean( bullet.x, bullet.y, xx, yy, range ) )
+							if ( sdWorld.CheckLineOfSight( bullet.x, bullet.y, xx, yy, e, null, sdCom.com_creature_attack_unignored_classes ) )
+							{
+								e.DamageWithEffect( GSPEED * 4, owner, false, false );
+
+								if ( e.is( sdBlock ) )
+								{
+									if ( e.material === sdBlock.MATERIAL_TRAPSHIELD )
+									if ( !e._shielded || e._shielded._is_being_removed )
+									e.remove();
+								}
+							}
+						}
+					}
+				},
+				
+				_custom_detonation_logic:( bullet )=> // when the mine projectile detonates, releases an AoE and an initial explosion.
+				{
+					sdSound.PlaySound({ name:'gun_anti_rifle_hit', x:bullet.x, y:bullet.y, volume:1, pitch: 0.3 });
+			
+					let bullet_obj1 = new sdBullet({ x: bullet.x, y: bullet.y });
+								bullet_obj1.sx = 1;
+								bullet_obj1.sy = 1;
+			
+								bullet_obj1.explosion_radius = 8; 
+								bullet_obj1._rail = true;
+								bullet_obj1._damage = 12;
+								bullet_obj1.color ='#e16b00';
+								bullet_obj1._dirt_mult = 1;
+								bullet_obj1._hittable_by_bullets = false;
+
+								sdEntity.entities.push( bullet_obj1 );
+			
+					let bullet_obj2 = new sdBullet({ x: bullet.x, y: bullet.y });
+								bullet_obj2.sx = 1;
+								bullet_obj2.sy = -1;
+			
+								bullet_obj2.explosion_radius = 8; 
+								bullet_obj2._rail = true;
+								bullet_obj2._damage = 12;
+								bullet_obj2.color ='#e16b00';
+								bullet_obj2._dirt_mult = 1;
+								bullet_obj2._hittable_by_bullets = false;
+
+								sdEntity.entities.push( bullet_obj2 );
+			
+					let bullet_obj3 = new sdBullet({ x: bullet.x, y: bullet.y });
+								bullet_obj3.sx = -1;
+								bullet_obj3.sy = -1;
+			
+								bullet_obj3.explosion_radius = 8; 
+								bullet_obj3._rail = true;
+								bullet_obj3._damage = 12;
+								bullet_obj3.color ='#e16b00';
+								bullet_obj3._dirt_mult = 1;
+								bullet_obj3._hittable_by_bullets = false;
+
+								sdEntity.entities.push( bullet_obj3 );
+			
+					let bullet_obj4 = new sdBullet({ x: bullet.x, y: bullet.y });
+								bullet_obj4.sx = -1;
+								bullet_obj4.sy = 1;
+	
+								bullet_obj4.explosion_radius = 8; 
+								bullet_obj4._rail = true;
+								bullet_obj4._damage = 12;
+								bullet_obj4.color ='#e16b00';
+								bullet_obj4._dirt_mult = 1;
+								bullet_obj4._hittable_by_bullets = false,
+								
+								sdEntity.entities.push( bullet_obj4 );
+
+					let bullet_obj5 = new sdBullet({ x: bullet.x, y: bullet.y }); // lingering damage over time AoE projectile
+								bullet_obj5.sx = 0;
+								bullet_obj5.sy = 0;
+
+								bullet_obj5.explosion_radius = 16;
+								bullet_obj5.model = 'sarronian_bio_gas';
+								bullet_obj5.model_is_big = true; // the bio gas is a 96 by 96 sprite, use this for 96 by 96 projectile sprites
+								bullet_obj5._damage = 8;
+								bullet_obj5.color ='#00ff00';
+								bullet_obj5._dirt_mult = 1;
+								bullet_obj5.projectile_velocity = 0;
+								bullet_obj5.time_left = 90;
+								bullet_obj5._hittable_by_bullets = false;
+								bullet_obj5._detonate_on_impact = false;
+								bullet_obj5.gravity_scale = 0;
+								
+								bullet_obj5._custom_extra_think_logic = ( bullet, GSPEED )=>
+								{
+									GSPEED *= gun.extra[ ID_DAMAGE_MULT ];
+				
+									let range = 64;
+				
+									let nears = bullet.GetAnythingNearCache( bullet.x, bullet.y, range );
+									for ( let i = 0; i < nears.length; i++ )
+									{
+										let e = nears[ i ];
+										if ( !e._is_being_removed )
+										if ( e !== bullet )
+										if ( e.IsBGEntity() === bullet.IsBGEntity() )
+										if ( e.IsTargetable() )
+										if ( !e.is( sdGun ) )
+										if ( !e.is( sdBullet ) )
+										if ( !e.is( sdBlock ) )
+										if ( !e.is( sdCrystal ) ) // crashes upon breaking crystals apparently, temporary fix
+										if ( !e.is( sdJunk ) ) // crashes upon breaking junk entities apparently, temporary fix
+										{
+											let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
+											let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
+				
+											if ( sdWorld.inDist2D_Boolean( bullet.x, bullet.y, xx, yy, range ) )
+											if ( sdWorld.CheckLineOfSight( bullet.x, bullet.y, xx, yy, e, null, sdCom.com_creature_attack_unignored_classes ) )
+											{
+												e.DamageWithEffect( GSPEED * 3, false, false ); // deadly if you stay in it for too long, don't overstay.
+											}
+										}
+									}
+								}
+								sdEntity.entities.push( bullet_obj5 );
+				} };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				return obj;
+			},
+
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 48; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#ff9300', 15, 'main energy' ),
+				'#e16b00', 15, 'secondary energy' ),
+				'#974800', 15, 'tertiary energy' ) )
+		};
+
+		sdGun.classes[ sdGun.CLASS_SARRONIAN_PLASMA_SPEAR = 125 ] = // Sprite and gun concept by Gravel
+		{
+			image: sdWorld.CreateImageFromFile( 'sarronian_spear1' ), // sprites by Gravel
+			image_alt: sdWorld.CreateImageFromFile( 'sarronian_spear2' ),
+			image_charging: sdWorld.CreateImageFromFile( 'sarronian_spear1_charging' ),
+			image_charging_alt: sdWorld.CreateImageFromFile( 'sarronian_spear2_charging' ),
+			image_no_matter: sdWorld.CreateImageFromFile( 'sarronian_spear_disabled' ),
+			is_long: true,
+			sound: 'saber_attack',
+			sound_volume: 1,
+			title: 'Sarronian Plasma Spear',
+			slot: 0,
+			time_left: 6,
+			reload_time: 12,
+			fire_mode: 1, // This gun has a special alternative fire mode
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			spread: 0.09,
+			is_sword: true,
+			has_alt_fire_mode: true,
+			spawnable: false,
+			projectile_properties: { _damage: 1, _dirt_mult: 1, color: '#aaffaa' },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				if ( gun.fire_mode !== 2 )
+				{ let obj = { explosion_radius: 28, model:'sarronian_energy_wave', color: '#00ff00', _dirt_mult: 1,
+					projectile_velocity: 2, time_left: 75, _hittable_by_bullets: false, gravity_scale: 0,
+					model_is_large: true } // the slash wave is a 64 by 64 sprite, use this for 64 by 64 projectile sprites}
+				
+					obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+					obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+					obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+					obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+
+					return obj;
+				}
+
+				if ( gun.fire_mode === 2 )
+				{ let obj2 = { color: '#00ff00', model:'sarronian_bolt', _dirt_mult: 1,
+					time_left: 45, _hittable_by_bullets: false, gravity_scale: 0.66, explosion_radius: 4, projectile_velocity: 6 }
+					
+					obj2._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+					obj2._damage = gun.extra[ ID_ALT_DAMAGE_VALUE ]; // Damage value is set onMade
+					obj2._damage *= gun.extra[ ID_DAMAGE_MULT ];
+					obj2._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+
+					return obj2; 
+				}
+			},
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				if ( gun._held_by._auto_shoot_in > 0 )
+				return 0;
+			
+				/*let dmg_scale = 1;
+
+				if ( gun._held_by )
+				if ( gun._held_by.power_ef > 0 )
+				dmg_scale *= 2.5;*/
+				if ( gun.fire_mode !== 1 )
+				return 15;// * dmg_scale;
+				else
+				return 25;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( !shoot_from_scenario )
+				{
+					if ( gun._held_by )
+					if ( gun._held_by._auto_shoot_in <= 0 )
+					{
+						if ( gun.fire_mode !== 1 )
+						{
+							gun._held_by._auto_shoot_in = 30;
+							gun._count = 4;
+							sdSound.PlaySound({ name: 'alien_charge2', x:gun.x, y:gun.y, volume: 1, pitch: 0.9 });
+						}
+						else
+						{
+							gun._held_by._auto_shoot_in = 32.5;
+							gun._count = 1;
+							sdSound.PlaySound({ name: 'alien_energy_power_charge1_fast', x:gun.x, y:gun.y, volume: 1.2, pitch: 0.9 });
+						}
+
+						//sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 2 });
+					}
+					return false;
+				}
+				else
+				{
+					if ( gun.fire_mode !== 1 )
+					if ( gun._held_by.matter >= 15 )
+					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					{
+						//if ( gun._held_by.stim_ef > 0 )
+						gun._held_by._auto_shoot_in = 30
+						sdSound.PlaySound({ name: 'alien_charge2', x:gun.x, y:gun.y, volume: 0.9, pitch: 0.9 });
+						//else
+						//gun._held_by._auto_shoot_in = 15;
+
+
+						/*let dmg_scale = 1;
+
+						if ( gun._held_by )
+						if ( gun._held_by.power_ef > 0 )
+						dmg_scale *= 2.5;*/
+
+						gun._held_by.matter -= 15;// * dmg_scale;
+					}
+					else
+					if ( gun.fire_mode === 1 )
+					if ( gun._held_by.matter >= 25 )
+					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					{
+						//if ( gun._held_by.stim_ef > 0 )
+						gun._held_by._auto_shoot_in = 25;
+						sdSound.PlaySound({ name: 'alien_energy_power_charge1_fast', x:gun.x, y:gun.y, volume: 1.1, pitch: 0.9 });
+						//else
+						//gun._held_by._auto_shoot_in = 15;
+
+
+						/*let dmg_scale = 1;
+
+						if ( gun._held_by )
+						if ( gun._held_by.power_ef > 0 )
+						dmg_scale *= 2.5;*/
+
+						gun._held_by.matter -= 25;// * dmg_scale;
+					}
+				}
+				return true;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 156; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_ALT_DAMAGE_VALUE ] = 22; // Damage value of the alternative firing mode bullet
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#00ff00', 15, 'main energy' ), // main form colors
+				'#00c600', 15, 'secondary energy' ),
+				'#008700', 15, 'tertiary energy' ),
+				'#ff9300', 15, 'alt energy' ), // alt form colors
+				'#e16b00', 15, 'alt secondary energy' ),
+				'#974800', 15, 'alt tertiary energy' ) )
+		};
+
+		sdGun.classes[ sdGun.CLASS_ZEKTA_COMBAT_RIFLE = 126 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'zekta_combat_rifle' ), // sprite by LordBored
+			sound: 'alien_laser1',
+			sound_pitch: 1.3,
+			title: 'Zekta Combat Rifle',
+			slot: 2,
+			reload_time: 1.4,
+			muzzle_x: 10,
+			ammo_capacity: 36,
+			burst: 3,
+			burst_reload: 18,
+			count: 1,
+			spawnable: false,
+			projectile_velocity: sdGun.default_projectile_velocity * 1.4,
+			projectile_properties: { _damage: 38, _dirt_mult: -0.5, color: '#cd1e1e' },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _dirt_mult: -0.5, color: '#cd1e1e' };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 38; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#ff0000', 15, 'main energy' ),
+				'#900000', 15, 'secondary energy' ),
+				'#620000', 15, 'tertiary energy' ) )
+		};
+
+		sdGun.classes[ sdGun.CLASS_ZEKTA_RAILGUN = 127 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'zekta_railgun' ), // sprite by Gravel
+			sound: 'alien_laser1',
+			sound_pitch: 0.7,
+			title: 'Zekta Railgun',
+			slot: 4,
+			reload_time: 40,
+			muzzle_x: 12,
+			ammo_capacity: 4,
+			count: 1,
+			spawnable: false,
+			projectile_properties: { _damage: 88, _dirt_mult: -0.5, color: '#cd1e1e' },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _dirt_mult: -0.5, _rail: true, color: '#cd1e1e', _rail_circled: true, explosion_radius: 4 };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 88; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#ff0000', 15, 'main energy' ),
+				'#900000', 15, 'secondary energy' ),
+				'#620000', 15, 'tertiary energy' ) )
+		};
+
+		sdGun.classes[ sdGun.CLASS_ZEKTA_PLASMA_CANNON = 128 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'zekta_plasma_cannon' ), // sprite by Gravel
+			sound: 'alien_laser1',
+			sound_pitch: 0.4,
+			title: 'Zekta Plasma Cannon',
+			slot: 3,
+			reload_time: 60,
+			muzzle_x: 8,
+			ammo_capacity: -1,
+			count: 5,
+			spread: 0.09,
+			spawnable: false,
+			projectile_properties: { _damage: 26, _dirt_mult: -0.5, color: '#cd1e1e' },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _dirt_mult: -0.5, model: 'ball_red', color: '#cd1e1e', explosion_radius: 8 };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 26; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#ff0000', 15, 'main energy' ),
+				'#900000', 15, 'secondary energy' ) )
+		};
+		sdGun.classes[ sdGun.CLASS_ZEKTA_PLASMA_REPEATER = 129 ] = 
+		{
+			image: sdWorld.CreateImageFromFile( 'zekta_plasma_repeater' ), // sprite by Gravel
+			sound: 'alien_laser1',
+			sound_pitch: 1.7,
+			title: 'Zekta Plasma Repeater',
+			slot: 8,
+			reload_time: 25,
+			muzzle_x: 8,
+			ammo_capacity: -1,
+			count: 1,
+			spread: 0.02,
+			spawnable: false,
+			projectile_properties: { _damage: 24, _dirt_mult: -0.5, color: '#cd1e1e' },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				let obj = { _damage: 24, _dirt_mult: -0.5, model: 'ball_red', color: '#cd1e1e', explosion_radius: 6 };
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+				
+				//obj.color = gun.extra[ ID_PROJECTILE_COLOR ];
+				
+				return obj;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 24; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#ff0000', 15, 'main energy' ),
+				'#900000', 15, 'secondary energy' ) )
+		};
+
+		sdGun.classes[ sdGun.CLASS_ZEKTA_ANTI_GRAV_SPEAR = 130 ] = // Sprite and gun concept by Gravel
+		{
+			image: sdWorld.CreateImageFromFile( 'zekta_spear1' ), // sprites by Gravel
+			image_alt: sdWorld.CreateImageFromFile( 'zekta_spear2' ),
+			image_charging: sdWorld.CreateImageFromFile( 'zekta_spear1_charging' ),
+			image_charging_alt: sdWorld.CreateImageFromFile( 'zekta_spear2_charging' ),
+			image_no_matter: sdWorld.CreateImageFromFile( 'zekta_spear_disabled' ),
+			is_long: true,
+			sound: 'saber_attack',
+			sound_volume: 1,
+			title: 'Zekta Anti-Grav Spear',
+			slot: 0,
+			time_left: 6,
+			reload_time: 12,
+			fire_mode: 1, // This gun has a special alternative fire mode
+			muzzle_x: null,
+			ammo_capacity: -1,
+			count: 1,
+			spread: 0.02,
+			is_sword: true,
+			has_alt_fire_mode: true,
+			spawnable: false,
+			projectile_properties: { _damage: 1, _dirt_mult: -0.5, color: '#aaffaa' },
+			projectile_properties_dynamic: ( gun )=>{ 
+				
+				if ( gun.fire_mode !== 2 )
+				{ let obj = { explosion_radius: 24, color: '#ff0000', _dirt_mult: 1, _rail: true,
+					_rail_circled: true, time_left: 75, _hittable_by_bullets: false } // the slash wave is a 64 by 64 sprite, use this for 64 by 64 projectile sprites}
+				
+					obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+					obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+					obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+					obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+
+					return obj;
+				}
+
+				if ( gun.fire_mode === 2 )
+				{ let obj = { explosion_radius: 24, color: '#ff0000', _dirt_mult: 1, _rail: true,
+				_rail_circled: true, time_left: 75, _hittable_by_bullets: false } // the slash wave is a 64 by 64 sprite, use this for 64 by 64 projectile sprites}
+			
+				obj._knock_scale = 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ];
+				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
+				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
+				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
+
+				return obj; }
+					
+			},
+			GetAmmoCost: ( gun, shoot_from_scenario )=>
+			{
+				if ( shoot_from_scenario )
+				return 0;
+			
+				if ( gun._held_by._auto_shoot_in > 0 )
+				return 0;
+			
+				/*let dmg_scale = 1;
+
+				if ( gun._held_by )
+				if ( gun._held_by.power_ef > 0 )
+				dmg_scale *= 2.5;*/
+				if ( gun.fire_mode !== 1 )
+				return 20;// * dmg_scale;
+				else
+				return 50;
+			},
+			onShootAttempt: ( gun, shoot_from_scenario )=>
+			{
+				if ( !shoot_from_scenario )
+				{
+					if ( gun._held_by )
+					if ( gun._held_by._auto_shoot_in <= 0 )
+					{
+						if ( gun.fire_mode !== 1 )
+						{
+							gun._held_by._auto_shoot_in = 110;
+							sdSound.PlaySound({ name: 'alien_energy_power_charge2', x:gun.x, y:gun.y, volume: 1.2, pitch: 0.9 });
+							
+							if ( Math.random() > 0.5 )
+							gun._held_by.Say( "Its powers are dormant." );
+							else
+							gun._held_by.Say( "Maybe I should try using this mode later." );
+						}
+						else
+						{
+							gun._held_by._auto_shoot_in = 45;
+							sdSound.PlaySound({ name: 'evil_alien_charge1', x:gun.x, y:gun.y, volume: 1.1, pitch: 0.8 });
+						}
+
+						//sdSound.PlaySound({ name: 'supercharge_combined2_part1', x:gun.x, y:gun.y, volume: 1.5, pitch: 2 });
+					}
+					return false;
+				}
+				else
+				{
+					if ( gun.fire_mode !== 1 )
+					if ( gun._held_by.matter >= 0 )
+					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					{
+						//if ( gun._held_by.stim_ef > 0 )
+						gun._held_by._auto_shoot_in = 110;
+						sdSound.PlaySound({ name: 'alien_energy_power_charge2', x:gun.x, y:gun.y, volume: 1.1, pitch: 0.9 });
+
+						// gun._held_by.matter -= 20; - Not usable yet. - Ghost581
+					}
+					else
+					if ( gun.fire_mode === 1 )
+					if ( gun._held_by.matter >= 50 )
+					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
+					{
+						//if ( gun._held_by.stim_ef > 0 )
+						gun._held_by._auto_shoot_in = 45;
+						sdSound.PlaySound({ name: 'evil_alien_charge1', x:gun.x, y:gun.y, volume: 1.1, pitch: 0.8 });
+						//else
+						//gun._held_by._auto_shoot_in = 15;
+
+
+						/*let dmg_scale = 1;
+
+						if ( gun._held_by )
+						if ( gun._held_by.power_ef > 0 )
+						dmg_scale *= 2.5;*/
+
+						gun._held_by.matter -= 50;// * dmg_scale;
+					}
+				}
+				return true;
+			},
+			onMade: ( gun, params )=> // Should not make new entities, assume gun might be instantly removed once made
+			{
+				if ( !gun.extra )
+				{
+					gun.extra = [];
+					gun.extra[ ID_DAMAGE_MULT ] = 1;
+					//gun.extra[ ID_FIRE_RATE ] = 1;
+					gun.extra[ ID_RECOIL_SCALE ] = 1;
+					//gun.extra[ ID_SLOT ] = 1;
+					gun.extra[ ID_DAMAGE_VALUE ] = 122; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					gun.extra[ ID_ALT_DAMAGE_VALUE ] = 282; // Damage value of the bullet, needs to be set here so it can be seen in weapon bench stats
+					//UpdateCusomizableGunProperties( gun );
+				}
+			},
+			upgrades: AddGunDefaultUpgrades( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost( AddRecolorsFromColorAndCost
+				( [], '#ff0000', 15, 'main energy' ),
+				'#900000', 15, 'secondary energy' ),
+				'#bc0000', 15, 'alt energy' ),
+				'#780000', 15, 'alt secondary energy' ) )
+		};
 		// Add new gun classes above this line //
 		
 		let index_to_const = [];
