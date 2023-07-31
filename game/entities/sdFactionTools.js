@@ -19,7 +19,7 @@ class sdFactionTools extends sdEntity
 		sdFactionTools.img_character_spawner = sdWorld.CreateImageFromFile( 'helmets/helmet_falkok' );
 		sdFactionTools.img_character_spawner2 = sdWorld.CreateImageFromFile( 'helmets/helmet_dino' );
 		sdFactionTools.img_character_spawner3 = sdWorld.CreateImageFromFile( 'helmets/helmet_council' );
-		sdFactionTools.img_character_spawner4 = sdWorld.CreateImageFromFile( 'helmets/helmet_mythic' );
+		sdFactionTools.img_character_spawner4 = sdWorld.CreateImageFromFile( 'helmets/helmet_duelist' );
 		sdFactionTools.img_character_spawner5 = sdWorld.CreateImageFromFile( 'helmets/helmet_velox' );
 		sdFactionTools.img_character_spawner6 = sdWorld.CreateImageFromFile( 'helmets/helmet_eyes' );
 		sdFactionTools.img_character_spawner7 = sdWorld.CreateImageFromFile( 'helmets/helmet_skeleton' );
