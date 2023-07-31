@@ -1446,6 +1446,58 @@ class sdCharacter extends sdEntity
 			if ( sdWorld.last_hit_entity.is( sdCharacter ) ||  sdWorld.last_hit_entity.GetClass() === 'sdDrone' || sdWorld.last_hit_entity.GetClass() === 'sdEnemyMech' || sdWorld.last_hit_entity.GetClass() === 'sdSpider' || sdWorld.last_hit_entity.GetClass() === 'sdSetrDestroyer' )
 			if ( sdWorld.last_hit_entity._ai_team !== this._ai_team )
 			found_enemy = true;
+		
+			if ( sdWorld.last_hit_entity.IsVehicle() )
+			{
+				if ( typeof sdWorld.last_hit_entity.driver0 !== 'undefined' ) // Workbench might crash servers otherwise
+				{
+					if ( sdWorld.last_hit_entity.driver0 )
+					if ( sdWorld.last_hit_entity.driver0._ai_team !== this._ai_team )
+					found_enemy = true;
+				}
+
+				if ( typeof sdWorld.last_hit_entity.driver1 !== 'undefined' )
+				{
+					if ( sdWorld.last_hit_entity.driver1 )
+					if ( sdWorld.last_hit_entity.driver1._ai_team !== this._ai_team )
+					found_enemy = true;
+				}
+				
+				if ( typeof sdWorld.last_hit_entity.driver2 !== 'undefined' )
+				{
+					if ( sdWorld.last_hit_entity.driver2 )
+					if ( sdWorld.last_hit_entity.driver2._ai_team !== this._ai_team )
+					found_enemy = true;
+				}
+				
+				if ( typeof sdWorld.last_hit_entity.driver3 !== 'undefined' )
+				{
+					if ( sdWorld.last_hit_entity.driver3 )
+					if ( sdWorld.last_hit_entity.driver3._ai_team !== this._ai_team )
+					found_enemy = true;
+				}
+				
+				if ( typeof sdWorld.last_hit_entity.driver3 !== 'undefined' )
+				{
+					if ( sdWorld.last_hit_entity.driver3 )
+					if ( sdWorld.last_hit_entity.driver3._ai_team !== this._ai_team )
+					found_enemy = true;
+				}
+				
+				if ( typeof sdWorld.last_hit_entity.driver4 !== 'undefined' )
+				{
+					if ( sdWorld.last_hit_entity.driver4 )
+					if ( sdWorld.last_hit_entity.driver4._ai_team !== this._ai_team )
+					found_enemy = true;
+				}
+				
+				if ( typeof sdWorld.last_hit_entity.driver5 !== 'undefined' )
+				{
+					if ( sdWorld.last_hit_entity.driver5 )
+					if ( sdWorld.last_hit_entity.driver5._ai_team !== this._ai_team )
+					found_enemy = true;
+				}
+			}
 
 			if ( sdWorld.last_hit_entity.GetClass() === 'sdPlayerDrone' || sdWorld.last_hit_entity.GetClass() === 'sdPlayerOverlord' )
 			if ( this._ai_team !== 0 )
@@ -2660,6 +2712,9 @@ class sdCharacter extends sdEntity
 						{
 							if ( sdWorld.CheckLineOfSight( this.x, this.y, this._ai.target.x, this._ai.target.y, this, sdCom.com_visibility_ignored_classes, null ) )
 							if ( sdWorld.CheckLineOfSight( this.x, this.y, this.look_x, this.look_y, this, sdCom.com_visibility_ignored_classes, null ) )
+							this._key_states.SetKey( 'Mouse1', 1 );
+						
+							if ( this._ai.target.IsVehicle() )
 							this._key_states.SetKey( 'Mouse1', 1 );
 						}
 						else
