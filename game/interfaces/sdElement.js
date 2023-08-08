@@ -13,6 +13,7 @@ class sdElement
 		sdElement.TEXT_BLOCK = 4; // Just a text, maybe clickable
 		sdElement.BUTTON = 5; // Just a button, possibly with a caption
 		sdElement.ROW = 6; // Vertical alignment block
+		sdElement.INPUT_TEXT = 7; // Input text, for sdChatInterface, but also for others too
 		// Drop lists, radio buttons, shop options, item previews etc will be there. Ideally we will redo all interfaces to work in this way
 		
 		sdElement.css_classnames = [
@@ -22,7 +23,8 @@ class sdElement
 			'sd_text',
 			'sd_text_block',
 			'sd_button',
-			'sd_row'
+			'sd_row',
+			'sd_chat'
 		];
 		sdElement.text_path = [
 			null,
@@ -31,7 +33,8 @@ class sdElement
 			'this.element.textContent',
 			'this.element.textContent',
 			'this.element.textContent', // 'this.element.value'
-			'this.element.textContent'
+			'this.element.textContent',
+			'this.element_inner_container.placeholder'
 		];
 		sdElement.children_container = [
 			'this.element',
@@ -40,7 +43,8 @@ class sdElement
 			'this.element',
 			'this.element',
 			'this.element',
-			'this.element'
+			'this.element',
+			'this.element_inner_container'
 		];
 		
 		if ( typeof window === 'undefined' )
@@ -168,6 +172,23 @@ class sdElement
 		if ( this.type === sdElement.ROOT_ELEMENT )
 		{
 			this.element = document.body;
+		}
+		else
+		if ( this.type === sdElement.INPUT_TEXT )
+		{
+			let element = document.createElement( 'div' );
+			let element_inner_container = document.createElement( 'input' );
+
+			this.element = element;
+			this.element_inner_container = element_inner_container;
+			element.className = sdElement.css_classnames[ this.type ];
+
+			element_inner_container.type = "text";
+			element_inner_container.className = sdElement.css_classnames[ this.type ];
+			element_inner_container.maxLength = sdChat.max_characters;
+
+			this.parent.GetChildrenContainer().append( element );
+			element.append( element_inner_container );
 		}
 		else
 		{
@@ -496,6 +517,21 @@ class sdElement
 		
 		eval( 'v = ' + sdElement.text_path[ this.type ] + ';' );
 		
+		return v;
+	}
+	set placeholder( v )
+	{
+		if ( this.translate )
+		v = T(v);
+
+		eval( sdElement.text_path[ this.type ] + ' = v;' );
+	}
+	get placeholder()
+	{
+		let v;
+
+		eval( 'v = ' + sdElement.text_path[ this.type ] + ';' );
+
 		return v;
 	}
 	set innerHTML( v )

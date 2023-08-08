@@ -10,6 +10,7 @@ import sdBlock from './sdBlock.js';
 import sdGun from './sdGun.js';
 import sdTask from './sdTask.js';
 import sdFactions from './sdFactions.js';
+import sdWeather from './sdWeather.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -302,7 +303,8 @@ class sdBeamProjector extends sdEntity
 				if ( this._regen_timeout <= 30 && this.has_players_nearby )
 				if ( Math.round( this._regen_timeout % 10 ) === 0 )
 				{
-					if ( sdWorld.CheckLineOfSight( this.x, this.y - 16, this.x, sdWorld.world_bounds.y1, this, sdCom.com_visibility_ignored_classes, null ) )
+					//if ( sdWorld.CheckLineOfSight( this.x, this.y - 16, this.x, sdWorld.world_bounds.y1, this, sdCom.com_visibility_ignored_classes, null ) || sdWorld.last_hit_entity === null )
+					if ( sdWeather.only_instance.TraceDamagePossibleHere( this.x, this.y - 16 ) )
 					{
 						sdWorld.SendEffect({ x: this.x, y:this.y - 16, x2:this.x , y2:sdWorld.world_bounds.y1, type:sdEffect.TYPE_BEAM, color:'#333333' });
 						this.no_obstacles = true;
@@ -310,7 +312,9 @@ class sdBeamProjector extends sdEntity
 					}
 					else
 					{
+						if ( sdWorld.last_hit_entity )
 						sdWorld.SendEffect({ x: this.x, y:this.y - 16, x2:this.x , y2:sdWorld.last_hit_entity.y, type:sdEffect.TYPE_BEAM, color:'#333333' });
+					
 						this.no_obstacles = false;
 						//this._update_version++;
 					}

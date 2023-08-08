@@ -458,6 +458,23 @@ div.sd_row
     display: flex;
     align-items: center;
 }
+div.sd_chat
+{
+    display: block;
+    bottom: 16px;
+    position: fixed;
+    width: 360px;
+    padding: 8px;
+    background-color: #00000080;
+    color: white;
+}
+input[type=text].sd_chat
+{
+    background-color: transparent;
+    width: 360px;
+    margin: 0;
+    user-select: text;
+}
 /*div.sd_button:hover
 {
     background-color: #0e7e0e;

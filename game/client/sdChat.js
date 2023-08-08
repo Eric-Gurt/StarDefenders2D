@@ -1,6 +1,7 @@
 
-/* global sdMobileKeyboard */
+/* global sdMobileKeyboard, sdChatInterface */
 
+//import sdChatInterface from '../interfaces/sdChatInterface.js';
 import sdRenderer from './sdRenderer.js';
 
 class sdChat
@@ -37,6 +38,8 @@ class sdChat
 		sdChat.last_message = '';
 		
 		sdChat.custom_destination_callback = callback;
+
+		//sdChatInterface.Open();
 		
 		sdChat.ShowMobileHints();
 	}
@@ -97,6 +100,7 @@ class sdChat
 			sdChat.HideMobileHints();
 			
 			do_not_allow_other_keys = true;
+			//sdChatInterface.Close();
 		}
 		else
 		if ( e.key === 'Enter' )
@@ -107,6 +111,7 @@ class sdChat
 			{
 				if ( sdChat.custom_destination_callback )
 				{
+					//sdChat.text = sdChatInterface.only_instance.chat.element_inner_container.value;
 					sdChat.custom_destination_callback( sdChat.text );
 					sdChat.custom_destination_callback = null;
 					
@@ -114,13 +119,16 @@ class sdChat
 				}
 				else
 				{
+					//if ( sdChatInterface.only_instance.chat.element_inner_container.value.length > 0 )
 					if ( sdChat.text.length > 0 )
 					{
+						//sdChat.text = sdChatInterface.only_instance.chat.element_inner_container.value;
 						globalThis.socket.emit( 'CHAT', sdChat.text );
 						sdChat.last_message = sdChat.text;
 					}
 				}
 				sdChat.open = false;
+				//sdChatInterface.Close();
 				sdChat.HideMobileHints();
 			}
 			else
@@ -131,6 +139,7 @@ class sdChat
 				sdChat.max_characters = 100;
 				sdChat.custom_destination_callback = null;
 				
+				//sdChatInterface.Open();
 				sdChat.ShowMobileHints();
 			}
 		}
