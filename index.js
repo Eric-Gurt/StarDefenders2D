@@ -956,14 +956,20 @@ let is_terminating = false;
 	
 	setInterval( ()=>{
 		
-		for ( var i = 0; i < sockets.length; i++ )
-		sockets[ i ].SDServiceMessage( 'Server: Backup is being done!' );
-
-		SaveSnapshot( snapshot_path_const, ( err )=>
+		if ( sdWorld.world_has_unsaved_changes )
 		{
+			sdWorld.world_has_unsaved_changes = false;
+			
 			for ( var i = 0; i < sockets.length; i++ )
-			sockets[ i ].SDServiceMessage( 'Server: Backup is complete ('+(err?'Error!':'successfully')+')!' );
-		});
+			sockets[ i ].SDServiceMessage( 'Server: Backup is being done!' );
+
+			SaveSnapshot( snapshot_path_const, ( err )=>
+			{
+				for ( var i = 0; i < sockets.length; i++ )
+				sockets[ i ].SDServiceMessage( 'Server: Backup is complete ('+(err?'Error!':'successfully')+')!' );
+			});
+		}
+		
 	}, 1000 * 60 * 15 ); // Once per 15 minutes
 	
 	
@@ -3389,6 +3395,8 @@ const ServerMainMethod = ()=>
 	
 	if ( IsGameActive() )
 	{
+		sdWorld.world_has_unsaved_changes = true;
+		
 		game_ttl--;
 		
 		sdWorld.HandleWorldLogic( frame );

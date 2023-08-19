@@ -699,6 +699,8 @@ class sdDatabase
 				if ( allowed_methods.has( method ) )
 				{
 					//trace( 'Executing database request: ', method_arguments );
+					
+					sdWorld.world_has_unsaved_changes = true;
 
 					let responses = [];
 
