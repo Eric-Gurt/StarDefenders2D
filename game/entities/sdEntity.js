@@ -3484,7 +3484,7 @@ class sdEntity
 					sdEntity.properties_by_class_public.set( this.__proto__.constructor, kinds );
 				}
 				
-				let current_kind = this.material || this.type || this.kind || this.class || 0;
+				let current_kind = this.material || this.type || this.kind || this.class || this.variation || 0;
 				
 				props = kinds[ current_kind ];
 				

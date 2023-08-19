@@ -519,14 +519,14 @@ class sdElement
 		
 		return v;
 	}
-	set placeholder( v )
+	set placeholder( v ) // EG: It does exactly the same thing as .text . Is it really needed?
 	{
 		if ( this.translate )
 		v = T(v);
 
 		eval( sdElement.text_path[ this.type ] + ' = v;' );
 	}
-	get placeholder()
+	get placeholder() // EG: It does exactly the same thing as .text . Is it really needed?
 	{
 		let v;
 

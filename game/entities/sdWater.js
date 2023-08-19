@@ -960,6 +960,21 @@ class sdWater extends sdEntity
 	}
 	onMovementInRange( from_entity )
 	{
+		if ( sdWorld.frame === 0 )
+		if ( from_entity.is( sdWater ) )
+		{
+			this.BlendWith( from_entity );
+			
+			if ( !this._is_being_removed )
+			if ( !from_entity._is_being_removed )
+			if ( this.type === from_entity.type )
+			{
+				this.remove();
+			}
+			
+			return;
+		}
+		
 		if ( from_entity.Damage !== sdEntity.prototype.Damage )
 		if ( !from_entity.is( sdWater ) )
 		if ( !from_entity.is( sdBG ) )
