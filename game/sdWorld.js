@@ -65,6 +65,8 @@ class sdWorld
 		
 		sdWorld.startup_hash = Math.floor( Math.random() * 9007199254740991 ); // Used to detect server restarts by notifier
 		
+		sdWorld.world_has_unsaved_changes = false;
+		
 		//sdWorld.max_update_rate = 64;
 		sdWorld.max_update_rate = 75; // For weaker servers (more like bandwidth-limited)
 		

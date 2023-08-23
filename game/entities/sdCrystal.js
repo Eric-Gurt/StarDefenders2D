@@ -292,6 +292,16 @@ class sdCrystal extends sdEntity
 
 		this._current_target = null; // For big crystal crabs
 	}
+	
+	onSnapshotApplied() // To override
+	{
+		if ( sdWorld.time < 1692486127166 + 1000 * 60 * 60 * 24 * 30 * 1 ) // 1 year for patch to be applied everywhere? Trying to prevent improper crystal attachment to trees
+		if ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON && ( this.held_by === null || this.held_by.crystal !== this ) )
+		{
+			this.remove();
+			this._broken = false;
+		}
+	}
 
 	GetIgnoredEntityClasses() // Null or array, will be used during motion if one is done by CanMoveWithoutOverlap or ApplyVelocityAndCollisions
 	{
