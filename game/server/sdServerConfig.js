@@ -1563,7 +1563,13 @@ class sdServerConfigFull extends sdServerConfigShort
 					one_by_one = true;
 				}
 			}
-
+			
+			if ( entities.length === 0 )
+			{
+				debugger;
+				throw new Error( '0 entities snapshot is about to be saved. This should not happen on regular/singleplayer servers!' );
+			}
+			
 			console.log('Made snapshots of all objects...');
 
 			let json_made_time = Date.now();
