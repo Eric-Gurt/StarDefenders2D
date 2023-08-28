@@ -234,10 +234,10 @@ class sdStorage extends sdEntity
 			if ( this._open_anim !== old_open )
 			{
 				if ( old_open === 0 )
-				sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:10, _server_allowed:true });
+				sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:10, _server_allowed:true });
 			
 				if ( this._open_anim === 0 )
-				sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:8, _server_allowed:true });
+				sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:8, _server_allowed:true });
 			}
 		}
 		
@@ -532,16 +532,16 @@ class sdStorage extends sdEntity
 						from_entity._broken = false;
 						
 						if ( this.type === sdStorage.TYPE_GUNS )
-						sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
+						sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
 
 						if ( this.type === sdStorage.TYPE_PORTAL )
 						sdSound.PlaySound({ name:'rift_feed3', x:this.x, y:this.y, volume: 1, pitch: 5 });
 
 						if ( this.type === sdStorage.TYPE_CRYSTALS )
-						sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
+						sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
 
 						if ( this.type === sdStorage.TYPE_CARGO )
-						sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:3 });
+						sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:3 });
 
 						return;
 					}
@@ -793,7 +793,7 @@ class sdStorage extends sdEntity
 						this.is_armable.splice( slot, 1 );
 						this.stored_names.splice( slot, 1 );
 						
-						sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
+						sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
 						
 						executer_socket.SDServiceMessage( 'Storage is trapped now. Anyone but you will trigger the trap' );
 						//this.disarm_until = sdWorld.time + 5000;

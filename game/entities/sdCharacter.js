@@ -2186,9 +2186,9 @@ class sdCharacter extends sdEntity
 					let a,s,x,y,k;
 
 					if ( this.GetBleedEffect() === sdEffect.TYPE_BLOOD || this.GetBleedEffect() === sdEffect.TYPE_BLOOD_GREEN )
-					sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:2 }); // 3 was fine
+					sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:2 }); // 3 was fine
 					else
-					sdSound.PlaySound({ name:'block4', 
+					sdSound.PlaySound({ name:'blockB4', 
 						x:this.x, y:this.y, 
 						volume: 0.25, 
 						pitch: 1 });
@@ -4428,7 +4428,7 @@ class sdCharacter extends sdEntity
 								from_entity.ttl = -1;
 
 								if ( this._socket )
-								sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:1.5 }, [ this._socket ] );
+								sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:1.5 }, [ this._socket ] );
 							}
 						}
 					}
@@ -5616,7 +5616,9 @@ class sdCharacter extends sdEntity
 					this.AddContextOption( 'Press "Mouse2"', 'ADMIN_PRESS', [ 'Mouse2' ], true, { color:'ff0000' } );
 					this.AddContextOption( 'Press "1"', 'ADMIN_PRESS', [ 'Digit1' ], true, { color:'ff0000' } );
 					this.AddContextOption( 'Press "2"', 'ADMIN_PRESS', [ 'Digit2' ], true, { color:'ff0000' } );
+					this.AddContextOption( 'Press "3"', 'ADMIN_PRESS', [ 'Digit3' ], true, { color:'ff0000' } );
 					this.AddContextOption( 'Press "5"', 'ADMIN_PRESS', [ 'Digit5' ], true, { color:'ff0000' } );
+					this.AddContextOption( 'Press "6"', 'ADMIN_PRESS', [ 'Digit6' ], true, { color:'ff0000' } );
 					this.AddContextOption( 'Toggle "W"', 'ADMIN_TOGGLE', [ 'KeyW' ], true, { color:'ff0000' } );
 					this.AddContextOption( 'Toggle "S"', 'ADMIN_TOGGLE', [ 'KeyS' ], true, { color:'ff0000' } );
 					this.AddContextOption( 'Toggle "X"', 'ADMIN_TOGGLE', [ 'KeyX' ], true, { color:'ff0000' } );

@@ -127,7 +127,7 @@ class sdBullet extends sdEntity
 		if ( vel > 3 )
 		{
 			if ( !sdWorld.is_server )
-			sdSound.PlaySound({ name:'world_hit', x:this.x, y:this.y, pitch:5, volume: Math.min( 0.25, 0.1 * vel ), _server_allowed:true });
+			sdSound.PlaySound({ name:'world_hit2', x:this.x, y:this.y, pitch:5, volume: Math.min( 0.25, 0.1 * vel ), _server_allowed:true });
 		}
 		
 		if ( this._custom_post_bounce_reaction )
@@ -309,7 +309,7 @@ class sdBullet extends sdEntity
 					this._owner.hook_relative_x = 0;
 					this._owner.hook_relative_y = 0;
 					
-					sdSound.PlaySound({ name:'world_hit', x:this._owner.x, y:this._owner.y, volume:0.5, pitch:2 });
+					sdSound.PlaySound({ name:'world_hit2', x:this._owner.x, y:this._owner.y, volume:0.5, pitch:2 });
 				}
 
 			}
@@ -379,6 +379,17 @@ class sdBullet extends sdEntity
 	{
 		//if ( from_entity.is( sdWorld.entity_classes.sdFaceCrab ) )
 		//debugger;
+		
+		if ( this._hook )
+		{
+			if ( from_entity.is( sdGun ) )
+			{
+				let known_class = sdGun.classes[ from_entity.class ];
+				if ( known_class )
+				if ( known_class.unhookable )
+				return false;
+			}
+		}
 		
 		
 		if ( this._can_hit_owner )
@@ -742,7 +753,7 @@ class sdBullet extends sdEntity
 								if ( from_entity._last_hit_time !== sdWorld.time ) // Prevent flood from splash damage bullets
 								{
 									from_entity._last_hit_time = sdWorld.time;
-									sdSound.PlaySound({ name:'player_hit', x:this.x, y:this.y, volume:0.5 });
+									sdSound.PlaySound({ name:'player_hit3', x:this.x, y:this.y, volume:0.5 });
 								}
 
 								if ( !this._soft )

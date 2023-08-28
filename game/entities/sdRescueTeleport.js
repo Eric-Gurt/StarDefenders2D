@@ -595,7 +595,7 @@ class sdRescueTeleport extends sdEntity
 			sdWorld.BasicEntityBreakEffect( this, 3 );
 				
 			/*
-			sdSound.PlaySound({ name:'block4', 
+			sdSound.PlaySound({ name:'blockB4', 
 				x:this.x + 32 / 2, 
 				y:this.y + 32 / 2, 
 				volume:( 32 / 32 ) * ( 16 / 32 ), 

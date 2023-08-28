@@ -1487,6 +1487,13 @@ class sdWorld
 				ent._ignore_collisions_with = ignore_collisions_with;
 				ent.follow = follow;
 				sdEntity.entities.push( ent );
+				
+				ent.tilt = Math.random() * Math.PI * 2 * sdGun.tilt_scale;
+				
+				if ( value_mult * sdWorld.crystal_shard_value >= 96 ) // Pink 1k crystal
+				{
+					ent.ttl *= 4;
+				}
 			}
 		}
 	}
@@ -3739,7 +3746,8 @@ class sdWorld
 			if ( !that._broken )
 			return;
 			
-			sdSound.PlaySound({ name:'block4', 
+			if ( volume > 0 )
+			sdSound.PlaySound({ name:'blockB4', 
 				x: that.x, 
 				y: that.y, 
 				volume: volume, 

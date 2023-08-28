@@ -356,7 +356,7 @@ class sdPlayerDrone extends sdCharacter
 			if ( old_gun_slot !== this.gun_slot )
 			{
 				if ( this._socket )
-				sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:0.7 }, [ this._socket ] );
+				sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:0.7 }, [ this._socket ] );
 			}
 			
 			

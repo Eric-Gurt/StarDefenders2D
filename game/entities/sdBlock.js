@@ -1585,9 +1585,9 @@ class sdBlock extends sdEntity
 			if ( this._broken )
 			{
 				if ( this.texture_id === sdBlock.TEXTURE_ID_GLASS )
-				sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.25, pitch: 0.6, _server_allowed:true });
+				sdSound.PlaySound({ name:'glass12', x:this.x, y:this.y, volume:0.25, pitch: 0.6, _server_allowed:true });
 				else
-				sdSound.PlaySound({ name:'block4', 
+				sdSound.PlaySound({ name:'blockB4', 
 					x:this.x + this.width / 2, 
 					y:this.y + this.height / 2, 
 					volume:( this.width / 32 ) * ( this.height / 32 ), 

@@ -477,7 +477,7 @@ class sdSandWorm extends sdEntity
 			{
 				if ( Math.random() < 0.003 )
 				{
-					sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, pitch: 0.2, volume: 0.25 });
+					sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, pitch: 0.2, volume: 0.25 });
 				}	
 			}
 			else
@@ -1102,7 +1102,7 @@ class sdSandWorm extends sdEntity
 		{
 			let a,s,x,y,k;
 			
-			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:2 }); // 3 was fine
+			sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:2 }); // 3 was fine
 			
 			for ( let i = 0; i < 6; i++ )
 			{

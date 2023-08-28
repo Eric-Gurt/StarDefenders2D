@@ -161,7 +161,7 @@ class sdAsp extends sdEntity
 				sdSound.PlaySound({ name:'crystal_crab_death', x:this.x, y:this.y, pitch: 1.2, volume:0.5 });
 			}
 			else
-			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
+			sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
 			
 			//sdSound.PlaySound({ name:'asp_death', x:this.x, y:this.y, volume: 0.5 });
 
@@ -517,12 +517,12 @@ class sdAsp extends sdEntity
 			if ( this._tier === 2 )
 			{
 				if ( this._crystal_worth > 0 )
-				sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.25 });
+				sdSound.PlaySound({ name:'glass12', x:this.x, y:this.y, volume:0.25 });
 				else
 				sdWorld.BasicEntityBreakEffect( this, 3, undefined, undefined, 1.4 );
 			}
 			else
-			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:2 }); // 3 was fine
+			sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:2 }); // 3 was fine
 			
 			for ( let i = 0; i < 6; i++ )
 			{
@@ -542,17 +542,17 @@ class sdAsp extends sdEntity
 				}
 				else
 				{
-					let value_mult = this._crystal_worth / 40;
-					
-					//if ( this._crystal_worth > 0 )
-					//{
-						//sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.25 });
-						sdWorld.DropShards( this.x,this.y,this.sx,this.sy, 3, value_mult, 3 );
-					//}
-					//else
-					//sdWorld.BasicEntityBreakEffect( this, 3, undefined, undefined, 1.4 );
 				}
 			}
+			
+			//let value_mult = this._crystal_worth / 40;
+			//sdWorld.DropShards( this.x,this.y,this.sx,this.sy, 3, value_mult, 3 );
+			
+			sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
+					Math.ceil( Math.max( 5, 1 * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
+					this._crystal_worth / 40,
+					5
+			);
 		}
 	}
 	MeasureMatterCost()

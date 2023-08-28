@@ -363,7 +363,7 @@ class sdJunk extends sdEntity
 			if ( this.type === sdJunk.TYPE_PLANETARY_MATTER_DRAINER ) // Large Anti-crystal degrades into a big Anti-crystal
 			{
 
-				sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.5 });
+				sdSound.PlaySound({ name:'glass12', x:this.x, y:this.y, volume:0.5 });
 
 				sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
 					Math.ceil( Math.max( 5, sdCrystal.anticrystal_value * 4 / sdCrystal.anticrystal_value * 40 / sdWorld.crystal_shard_value * 0.5 ) ),

@@ -216,7 +216,7 @@ class sdPlayerOverlord extends sdCharacter
 			{
 				let a,s,x,y,k;
 
-				sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:1.8 }); // 3 was fine
+				sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:1.8 }); // 3 was fine
 
 				for ( let i = 0; i < 17; i++ )
 				{

@@ -107,7 +107,7 @@ class sdRoach extends sdEntity
 			{
 				this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_EASY_MOB );
 				
-				sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
+				sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
 				
 				this._frame_time_left = 5;
 				this.fr = 3; // Death
@@ -150,7 +150,7 @@ class sdRoach extends sdEntity
 		{
 			let a,s,x,y,k;
 			
-			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:2 }); // 3 was fine
+			sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:2 }); // 3 was fine
 			
 			for ( let i = 0; i < 3; i++ )
 			{

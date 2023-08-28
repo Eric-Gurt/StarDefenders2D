@@ -1460,6 +1460,7 @@ class sdServerConfigFull extends sdServerConfigShort
 			promises.push( ...sdDeepSleep.SaveScheduledChunks() ); // Should really wait - saving updates properties responsible for file location & existence
 
 			if ( promises.length > 0 )
+			if ( !globalThis.fs.force_sync_mode ) // In else case promises will cause short delay... Which will cause singleplayer save right after world was erased if there are new chunks to be saved/deleted
 			{
 				await Promise.all( promises );
 			}

@@ -367,12 +367,12 @@ class sdCrystal extends sdEntity
 				if ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON )
 				{
 					sdSound.PlaySound({ name:'pop', x:this.x, y:this.y, volume:0.5, pitch:1.3 });
-					sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.1 });
+					sdSound.PlaySound({ name:'glass12', x:this.x, y:this.y, volume:0.1, pitch:0.95 + Math.random() * 0.2 });
 				}
 				else
 				{
 					//sdSound.PlaySound({ name:'crystal2', x:this.x, y:this.y, volume:1 });
-					sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.5 });
+					sdSound.PlaySound({ name:'glass12', x:this.x, y:this.y, volume:0.5, pitch:0.95 + Math.random() * 0.2 });
 				}
 				
 				if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB || this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
@@ -429,7 +429,7 @@ class sdCrystal extends sdEntity
 
 					
 					sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
-						Math.ceil( Math.max( 5, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
+						Math.ceil( Math.max( 5, this.matter / this.matter_max * 40 / sdWorld.crystal_shard_value * 0.5 ) ) * ( 4 - xx_tot * yy_tot ),
 						this.matter_max / 160,
 						8,
 						undefined,

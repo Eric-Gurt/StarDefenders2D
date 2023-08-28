@@ -527,7 +527,7 @@ class sdGun extends sdEntity
 	}
 	ReloadStart() // Can happen multiple times
 	{
-		sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.5 });
+		sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.5 });
 		this._held_by.reload_anim = 15;
 	}
 	ChangeFireModeStart() // Can happen multiple times
@@ -536,7 +536,7 @@ class sdGun extends sdEntity
 		if ( !sdGun.classes[ this.class ].is_build_gun )
 		// if ( !sdGun.classes[ this.class ].is_sword )
 		{
-			sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.5, pitch:1.5 });
+			sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.5, pitch:1.5 });
 			this._held_by.reload_anim = 15;
 
 			this.fire_mode = ( this.fire_mode === 1 ) ? 2 : 1;
@@ -1283,7 +1283,11 @@ class sdGun extends sdEntity
 			else
 			{
 				if ( sdWorld.last_hit_entity )
-				this.tilt += -Math.sin( this.tilt / sdGun.tilt_scale * 2 ) * 0.4 * sdGun.tilt_scale;
+				{
+					let tilt_snap_sides = ( known_class.tilt_snap_sides || 2 );
+					
+					this.tilt += -Math.sin( this.tilt / sdGun.tilt_scale * tilt_snap_sides ) * 0.4 * sdGun.tilt_scale;
+				}
 				else
 				this.tilt += this.sx * 20 * GSPEED_unscaled;
 			}
@@ -1652,6 +1656,17 @@ class sdGun extends sdEntity
 				if ( has_class.is_long )
 				{
 					ctx.drawImageFilterCache( image, - 32, - 16, 64,32 );
+				}
+				else
+				if ( has_class.image_variative )
+				{
+					if ( image.loaded )
+					{
+						let frame = this._net_id % ~~( image.width / image.height );
+						ctx.drawImageFilterCache( image, frame * image.height,0, image.height, image.height, - 16, - 16, 32,32 );
+					}
+					else
+					image.RequiredNow();
 				}
 				else
 				{

@@ -233,7 +233,7 @@ class sdWeaponBench extends sdEntity
 						from_entity._dangerous = false;
 						from_entity._dangerous_from = null;
 					}
-					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.25, pitch:5 });
+					sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.25, pitch:5 });
 					
 					this._current_category_stack = [];
 					

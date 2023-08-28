@@ -106,7 +106,7 @@ class sdEffect extends sdEntity
 			spritesheet: true,
 			apply_shading: false,
 			
-			sound_to_play: 'world_hit',
+			sound_to_play: 'world_hit2',
 			sound_to_play_volume: 0.25,
 		};
 		

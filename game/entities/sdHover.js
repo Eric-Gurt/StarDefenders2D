@@ -558,7 +558,7 @@ class sdHover extends sdEntity
 
 				if ( this._bullets <= 0 || ( this._bullets < 300 && this.driver0._key_states.GetKey( 'KeyR' ) ) )
 				{
-					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:1, pitch:0.6 });
+					sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:1, pitch:0.6 });
 					this._bullets = 100;
 					this._bullets_reload = 60;
 				}
@@ -674,7 +674,7 @@ class sdHover extends sdEntity
 
 				if ( this._bullets <= 0 || ( this._bullets < 300 && this.driver1._key_states.GetKey( 'KeyR' ) ) )
 				{
-					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:1, pitch:0.6 });
+					sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:1, pitch:0.6 });
 					this._bullets = 300;
 					this._bullets_reload = 60;
 				}
@@ -796,7 +796,7 @@ class sdHover extends sdEntity
 
 				if ( this._rockets <= 0 || ( this._rockets < 2 && this.driver2._key_states.GetKey( 'KeyR' ) ) )
 				{
-					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:1, pitch:0.3 });
+					sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:1, pitch:0.3 });
 					if ( this.type === 2 )
 					this._rockets = 1;
 					else
@@ -1104,7 +1104,7 @@ class sdHover extends sdEntity
 			if ( v !== this.doors_locked )
 			{
 				this.doors_locked = v;
-				sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.5, pitch:1.5 });
+				sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:0.5, pitch:1.5 });
 			}
 		}
 	}

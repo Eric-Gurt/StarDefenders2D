@@ -330,7 +330,7 @@ class sdLost extends sdEntity
 			{
 				if ( this.f === 0 )
 				{
-					sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.5 });
+					sdSound.PlaySound({ name:'glass12', x:this.x, y:this.y, volume:0.5 });
 
 					sdWorld.DropShards( this.x + ( this.x2 + this.x1 ) / 2, this.y + ( this.y2 + this.y1 ) / 2, this.sx, this.sy, 
 						Math.ceil( Math.min( 10, Math.max( 1, this._matter / sdWorld.crystal_shard_value ) ) ),

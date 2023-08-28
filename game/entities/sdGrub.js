@@ -116,7 +116,7 @@ class sdGrub extends sdEntity
 		
 		if ( this._hea <= 0 && was_alive )
 		{
-			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
+			sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
 			this.idle = 1;
 			//if ( initiator )
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_EASY_MOB );
@@ -407,7 +407,7 @@ class sdGrub extends sdEntity
 		{
 			let a,s,x,y,k;
 			
-			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:2 }); // 3 was fine
+			sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:2 }); // 3 was fine
 			
 			for ( let i = 0; i < 6; i++ )
 			{

@@ -60,7 +60,7 @@ class sdSunPanel extends sdEntity
 
 			if ( this._hea <= 0 )
 			{
-				sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.25, pitch: 0.6 });
+				sdSound.PlaySound({ name:'glass12', x:this.x, y:this.y, volume:0.25, pitch: 0.6 });
 				this.remove();
 			}
 			

@@ -92,7 +92,7 @@ class sdCamera extends sdEntity
 
 			if ( this._hea <= 0 )
 			{
-				sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.25, pitch: 1.3 });
+				sdSound.PlaySound({ name:'glass12', x:this.x, y:this.y, volume:0.25, pitch: 1.3 });
 				this.remove();
 			}
 			

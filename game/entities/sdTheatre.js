@@ -259,7 +259,7 @@ class sdTheatre extends sdEntity
 		
 		if ( this.hea <= 0 )
 		{
-			sdSound.PlaySound({ name:'glass10', x:this.x, y:this.y, volume:0.5, pitch: 0.5 });
+			sdSound.PlaySound({ name:'glass12', x:this.x, y:this.y, volume:0.5, pitch: 0.5 });
 			this.remove();
 		}
 		else

@@ -433,7 +433,7 @@ class sdConveyor extends sdEntity
 			if ( this._net_id !== undefined ) // Was ever synced rather than just temporarily object for shop
 			if ( this._broken )
 			{
-				sdSound.PlaySound({ name:'block4', 
+				sdSound.PlaySound({ name:'blockB4', 
 					x:this.x + 32 / 2, 
 					y:this.y + 8 / 2, 
 					volume:( 32 / 32 ) * ( 8 / 32 ), 

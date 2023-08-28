@@ -718,7 +718,7 @@ class sdGunClass
 			sound: 'gun_pistol',
 			title: 'Pistol',
 			slot: 1,
-			reload_time: 3,
+			reload_time: 5,
 			muzzle_x: 4,
 			ammo_capacity: 12,
 			spread: 0.01,
@@ -728,7 +728,7 @@ class sdGunClass
 			projectile_properties: { _damage: 1 }, // Set the damage value in onMade function ( gun.extra_ID_DAMAGE_VALUE )
 			projectile_properties_dynamic: ( gun )=>{ 
 				
-				let obj = { _dirt_mult: -0.5, _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ] }; // Default value for _knock_scale
+				let obj = { _dirt_mult: -0.5, _knock_scale: 0.03 * 8 * gun.extra[ ID_DAMAGE_MULT ] }; // Default value for _knock_scale
 				obj._damage = gun.extra[ ID_DAMAGE_VALUE ]; // Damage value is set onMade
 				obj._damage *= gun.extra[ ID_DAMAGE_MULT ];
 				obj._knock_scale *= gun.extra[ ID_RECOIL_SCALE ];
@@ -800,6 +800,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'shotgun' ),
 			sound: 'gun_shotgun',
+			sound_volume: 1,
 			title: 'Shotgun',
 			slot: 3,
 			reload_time: 20,
@@ -1036,14 +1037,17 @@ class sdGunClass
 		
 		sdGun.classes[ sdGun.CLASS_CRYSTAL_SHARD = 8 ] = 
 		{
-			image: sdWorld.CreateImageFromFile( 'crystal_shard' ),
+			image: sdWorld.CreateImageFromFile( 'crystal_shard_variative' ),
+			image_variative: true, // version depends on _net_id, can't be controlled manually
+			
 			title: 'Crystal shard',
 			title_dynamic: ( gun )=>
 			{
 				return 'Crystal shard ( ' + (~~gun.extra) + ' matter )';
 			},
 			hea: 5,
-			no_tilt: true,
+			//no_tilt: true,
+			tilt_snap_sides: 1,
 			slot: 0,
 			reload_time: 25,
 			muzzle_x: null,
@@ -1077,7 +1081,7 @@ class sdGunClass
 			{
 				const normal_ttl_seconds = 9;
 				
-				gun.ttl = 30 * normal_ttl_seconds * ( 0.7 + Math.random() * 0.3 ); // was 7 seconds, now 9
+				gun.ttl = 30 * normal_ttl_seconds * ( 0.7 + Math.random() * 0.3 ); // was 7 seconds, now 9. Will be later extended in case of high tier
 			}
 		};
 		
@@ -1361,7 +1365,13 @@ class sdGunClass
 					//if ( sdCom.com_creature_attack_unignored_classes.indexOf( target_entity.GetClass() ) !== -1 )
 					if ( target_entity.GetClass() !== 'sdCharacter' )
 					if ( target_entity.is_static || target_entity.GetBleedEffect() === sdEffect.TYPE_WALL_HIT )
-					if ( target_entity.GetClass() !== 'sdBlock' || target_entity.material !== sdBlock.MATERIAL_GROUND )
+					if ( target_entity.GetClass() !== 'sdBlock' || 
+						 ( 
+							target_entity.material !== sdBlock.MATERIAL_GROUND &&
+							target_entity.material !== sdBlock.MATERIAL_FLESH &&
+							target_entity.material !== sdBlock.MATERIAL_SAND 
+						)
+					)
 					//if ( target_entity.material !== ''
 					{
 						if ( !bullet._owner._is_being_removed )
@@ -1825,7 +1835,7 @@ class sdGunClass
 						gun.remove(); 
 
 						if ( character._socket )
-						sdSound.PlaySound({ name:'reload', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
+						sdSound.PlaySound({ name:'reload3', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
 					}
 					else
 					if ( gun.extra === 0 )
@@ -1840,7 +1850,7 @@ class sdGunClass
 						gun.remove(); 
 
 						if ( character._socket )
-						sdSound.PlaySound({ name:'reload', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
+						sdSound.PlaySound({ name:'reload3', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
 					}
 					else
 					if ( gun.extra === 1 )
@@ -1855,7 +1865,7 @@ class sdGunClass
 						gun.remove(); 
 
 						if ( character._socket )
-						sdSound.PlaySound({ name:'reload', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
+						sdSound.PlaySound({ name:'reload3', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
 					}
 					else
 					if ( gun.extra === 2 )
@@ -1870,7 +1880,7 @@ class sdGunClass
 						gun.remove(); 
 
 						if ( character._socket )
-						sdSound.PlaySound({ name:'reload', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
+						sdSound.PlaySound({ name:'reload3', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
 					}
 					
 					/*if ( character._acquired_bt_mech === false && gun.extra === 0 ) // Has the player found this upgrade before?
@@ -1884,7 +1894,7 @@ class sdGunClass
 						gun.remove(); 
 
 						if ( character._socket )
-						sdSound.PlaySound({ name:'reload', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
+						sdSound.PlaySound({ name:'reload3', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
 					}
 
 					if ( character._acquired_bt_rift === false && gun.extra === 1 ) // Has the player found this upgrade before?
@@ -1898,7 +1908,7 @@ class sdGunClass
 						gun.remove(); 
 
 						if ( character._socket )
-						sdSound.PlaySound({ name:'reload', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
+						sdSound.PlaySound({ name:'reload3', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
 					}
 
 					if ( character._acquired_bt_projector === false && gun.extra === 2 ) // Has the player found this upgrade before?
@@ -1912,7 +1922,7 @@ class sdGunClass
 						gun.remove(); 
 
 						if ( character._socket )
-						sdSound.PlaySound({ name:'reload', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
+						sdSound.PlaySound({ name:'reload3', x:character.x, y:character.y, volume:0.25, pitch:0.5 }, [ character._socket ] );
 					}*/
 				}
 
@@ -2023,6 +2033,7 @@ class sdGunClass
 		{
 			image: sdWorld.CreateImageFromFile( 'shotgun_mk2' ),
 			sound: 'gun_shotgun',
+			sound_volume: 1,
 			title: 'Shotgun MK2',
 			slot: 3,
 			reload_time: 6,
@@ -3443,7 +3454,7 @@ class sdGunClass
 			},
 			onThrownSwordReaction: ( gun, hit_entity, hit_entity_is_protected )=>
 			{
-				sdSound.PlaySound({ name:'block4', x:gun.x, y:gun.y, volume: 0.05, pitch:1 });
+				sdSound.PlaySound({ name:'blockB4', x:gun.x, y:gun.y, volume: 0.05, pitch:1 });
 			
 				for ( let i = 0; i < 6; i++ )
 				{
@@ -5705,6 +5716,7 @@ class sdGunClass
 			title: 'Score shard',
 			hea: 400,
 			no_tilt: true,
+			unhookable: true,
 			slot: 0,
 			reload_time: 25,
 			muzzle_x: null,

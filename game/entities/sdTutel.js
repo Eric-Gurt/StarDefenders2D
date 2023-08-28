@@ -131,7 +131,7 @@ class sdTutel extends sdEntity
 		{
 			sdSound.PlaySound({ name:'overlord_welcomeB', x:this.x, y:this.y, volume:0.75, pitch: 1.5 });
 				
-			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:6 });
+			sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:6 });
 
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_AVERAGE_MOB );
 	
@@ -402,7 +402,7 @@ class sdTutel extends sdEntity
 		{
 			let a,s,x,y,k;
 			
-			sdSound.PlaySound({ name:'block4', x:this.x, y:this.y, volume: 0.25, pitch:2 }); // 3 was fine
+			sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:2 }); // 3 was fine
 			
 			for ( let i = 0; i < 6; i++ )
 			{

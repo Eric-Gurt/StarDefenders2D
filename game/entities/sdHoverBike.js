@@ -374,7 +374,7 @@ class sdHoverBike extends sdEntity
 
 				if ( this._bullets <= 0 || ( this._bullets < 300 && this.driver0._key_states.GetKey( 'KeyR' ) ) )
 				{
-					sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:1, pitch:0.6 });
+					sdSound.PlaySound({ name:'reload3', x:this.x, y:this.y, volume:1, pitch:0.6 });
 					this._bullets = 100;
 					this._bullets_reload = 60;
 				}
