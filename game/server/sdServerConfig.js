@@ -42,6 +42,8 @@ class sdServerConfigShort
 	
 	static apply_censorship = true; // Censorship file is not included
 	
+	static backup_interval_seconds = 60 * 60; // One hour
+	
 	static supported_languages = [ 'en', 'ua', 'hr' ];
 		
 	// Check file sdServerConfig.js for more stuff to alter in server logic
@@ -290,6 +292,7 @@ class sdServerConfigFull extends sdServerConfigShort
 		
 		if ( ( character_entity.is( sdCharacter ) || character_entity.is( sdPlayerDrone ) ) &&
 			 sdWorld.server_config.new_player_delivery_hover && 
+			 !sdWorld.server_config.new_player_delivery_hover._is_being_removed &&
 			 sdWorld.server_config.new_player_delivery_hover.hea > 0 )
 		{
 			hover = sdWorld.server_config.new_player_delivery_hover;
@@ -808,7 +811,16 @@ class sdServerConfigFull extends sdServerConfigShort
 				sdWorld.ChangeWorldBounds( -16 * Math.round( sdDeepSleep.normal_cell_size / 16 ), -16 * Math.round( sdDeepSleep.normal_cell_size / 16 ), 16 * Math.round( sdDeepSleep.normal_cell_size / 16 ), 16 * Math.round( sdDeepSleep.normal_cell_size / 16 ) );
 			}
 			else
-			sdWorld.ChangeWorldBounds( -16 * Math.round( 4000 / 16 ), -16 * Math.round( 2000 / 16 ), 16 * Math.round( 4000 / 16 ), 16 * Math.round( 2000 / 16 ) );
+			{
+				if ( sdWorld.is_singleplayer )
+				{
+					let w = 25;
+					let h = 15;
+					sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 + 30 * 16 );
+				}
+				else
+				sdWorld.ChangeWorldBounds( -16 * Math.round( 4000 / 16 ), -16 * Math.round( 2000 / 16 ), 16 * Math.round( 4000 / 16 ), 16 * Math.round( 2000 / 16 ) );
+			}
 		}
 			
 		const world_edge_think_rate = 500;
@@ -1335,6 +1347,400 @@ class sdServerConfigFull extends sdServerConfigShort
 	}
 	static ModifyTerrainEntity( ent ) // ent can be sdBlock or sdBG
 	{
+	}
+	
+	static InitialSnapshotLoadAttempt()
+	{
+		try
+		{
+			const snapshot_path = sdWorld.snapshot_path_const;
+
+			let packed_snapshot = fs.readFileSync( snapshot_path );
+			let json = zlib.inflateSync( packed_snapshot );
+			let save_obj = JSON.parse( json );
+
+			/*
+				let save_obj = 
+				{
+					bounds: sdWorld.world_bounds,
+					entity_net_ids: sdEntity.entity_net_ids,
+					base_ground_level1: sdWorld.base_ground_level1,
+					base_ground_level2: sdWorld.base_ground_level2,
+					entities: entities
+				};
+			*/
+			sdWorld.world_bounds = save_obj.bounds;
+			sdEntity.entity_net_ids = save_obj.entity_net_ids;
+
+			if ( save_obj.seed !== undefined )
+			sdWorld.SeededRandomNumberGenerator.seed = save_obj.seed;
+
+			sdWorld.base_ground_level1 = save_obj.base_ground_level1;
+			sdWorld.base_ground_level2 = save_obj.base_ground_level2;
+
+			let i;
+
+			sdWorld.unresolved_entity_pointers = [];
+
+			let ent = null;
+
+			let strange_position_classes = {};
+
+			for ( i = 0; i < save_obj.entities.length; i++ )
+			{
+				try
+				{
+					ent = sdEntity.GetObjectFromSnapshot( save_obj.entities[ i ] );
+
+					if ( ent )
+					if ( isNaN( ent.x ) || isNaN( ent.y ) || ent.x === null || ent.y === null )
+					{
+						if ( typeof strange_position_classes[ ent.GetClass() ] === 'undefined' )
+						{
+							console.log( ent.GetClass() + ' has strange position during loading: ' + ent.x + ', ' + ent.y + ' (nulls could mean NaNs) - not reporting this class with same kind of error anymore...' );
+							strange_position_classes[ ent.GetClass() ] = 1;
+						}
+						ent.remove();
+					}
+
+					// This is done because some variable-size entities might end up having wrong hash areas occupied after reboot, for example sdArea. Possibly due to _hiberstate being not really set since it already had final target value
+					if ( ent )
+					if ( !ent._is_being_removed )
+					{
+						if ( ent._affected_hash_arrays.length > 0 ) // Easier than checking for hiberstates
+						sdWorld.UpdateHashPosition( ent, false, false );
+					}
+				}
+				catch( e )
+				{
+					console.warn('entity snapshot wasn\'t decoded because it contains errors: ', e, save_obj.entities[ i ] );
+				}
+			}
+
+			sdWorld.SolveUnresolvedEntityPointers();
+			sdWorld.unresolved_entity_pointers = null;
+
+			console.log('Continuing from where we\'ve stopped (snapshot decoded)!');
+			//fs.writeFile( 'sd2d_server_started_here.v', 'Continuing from where we\'ve stopped (snapshot decoded)!', ( err )=>{} );
+		}
+		catch( e )
+		{
+			console.log('Snapshot wasn\'t found or contains errors. Doing fresh start.');
+			//fs.writeFile( 'sd2d_server_started_here.v', 'Snapshot wasn\'t found or contains errors. Doing fresh start.' + JSON.stringify( e ), ( err )=>{} );
+		}
+	}
+	static InstallBackupAndServerShutdownLogic()
+	{
+		let is_terminating = false;
+		let strange_position_classes = {};
+
+		// World save test
+		let snapshot_save_busy = false;
+		async function SaveSnapshot( snapshot_path, callback )
+		{
+			if ( snapshot_save_busy || is_terminating )
+			return;
+
+			function RoundThousandSpaces( v )
+			{
+				return Math.ceil( v ).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+			}
+
+			console.log('Snapshot save started... Memory usage :: Current: ' + RoundThousandSpaces( ( os.totalmem() - os.freemem() ) / (1024 * 1024) ) + ' Mb / Total: ' + RoundThousandSpaces( os.totalmem() / (1024 * 1024) ) + ' Mb / Available: ' + RoundThousandSpaces( os.freemem() / (1024 * 1024) ) + ' Mb / Entities: ' + sdEntity.entities.length + ' / Active entities: ' + sdEntity.active_entities.length + ' / entities_by_net_id_cache_map: ' + sdEntity.entities_by_net_id_cache_map.size + ' / removed_entities_info: ' + sdEntity.removed_entities_info.size + ' / sockets: ' + sdWorld.sockets.length );
+
+			let start_time = Date.now();
+
+			snapshot_save_busy = true;
+
+			let promises = [];
+			
+			if ( typeof sdDatabase !== 'undefined' ) // Singleplayer case
+			promises.push( ...sdDatabase.Save() );
+		
+			promises.push( ...sdDeepSleep.SaveScheduledChunks() ); // Should really wait - saving updates properties responsible for file location & existence
+
+			if ( promises.length > 0 )
+			{
+				await Promise.all( promises );
+			}
+
+			console.log('sdDatabase/sdDeepSleep promises fulfilled...');
+
+			let entities = [];
+
+
+			let save_obj = 
+			{
+				bounds: sdWorld.world_bounds,
+				entity_net_ids: sdEntity.entity_net_ids,
+				seed: sdWorld.SeededRandomNumberGenerator.seed,
+				base_ground_level1: sdWorld.base_ground_level1,
+				base_ground_level2: sdWorld.base_ground_level2,
+				entities: entities
+			};
+
+			//let times_by_deep_sleep_type = {};
+
+			let json;
+
+			let one_by_one = false;
+			let snapshot_made_time;
+			
+			let frame = globalThis.GetFrame();
+
+			while ( true )
+			{
+				for ( var i = 0; i < sdEntity.entities.length; i++ )
+				if ( !sdEntity.entities[ i ]._is_being_removed )
+				if ( !sdWorld.server_config.EntitySaveAllowedTest || sdWorld.server_config.EntitySaveAllowedTest( sdEntity.entities[ i ] ) )
+				{
+					if ( isNaN( sdEntity.entities[ i ].x ) || isNaN( sdEntity.entities[ i ].y ) || sdEntity.entities[ i ].x === null || sdEntity.entities[ i ].y === null )
+					if ( typeof strange_position_classes[ sdEntity.entities[ i ].GetClass() ] === 'undefined' )
+					{
+						console.log( sdEntity.entities[ i ].GetClass() + ' has strange position during saving: ' + sdEntity.entities[ i ].x + ', ' + sdEntity.entities[ i ].y + ' (nulls could mean NaNs) - not reporting this class with same kind of error anymore...' );
+						strange_position_classes[ sdEntity.entities[ i ].GetClass() ] = 1;
+					}
+
+					//let _class = sdEntity.entities[ i ].GetClass();
+
+					//let t = Date.now();
+					let ent_snapshot = sdEntity.entities[ i ].GetSnapshot( frame, true );
+					//let t2 = Date.now();
+
+					// This is extremely expensive, especially for sdDeepSleep which already take a long time to get snapshot from
+					//if ( _class !== 'sdDeepSleep' )
+					if ( one_by_one )
+					{
+						try
+						{
+							let json_test = JSON.stringify( ent_snapshot );
+						}
+						catch ( e )
+						{
+							console.warn( 'Object can not be json-ed! Snapshot likely contains recursion. Error: ', e );
+
+							console.warn( ent_snapshot );
+							throw new Error( 'Stopping everything because saving is no longer possible...' );
+						}
+					}
+					//else
+					//{
+						//times_by_deep_sleep_type[ sdEntity.entities[ i ].type ] = ( times_by_deep_sleep_type[ sdEntity.entities[ i ].type ] || 0 ) + t2 - t;
+					//}
+
+					entities.push( ent_snapshot );
+				}
+
+				//trace( 'Times by sdDeepSleep.type: ', times_by_deep_sleep_type );
+
+
+				snapshot_made_time = Date.now();
+
+				if ( one_by_one )
+				{
+					debugger;
+					throw new Error( '...Did not find?' );
+				}
+
+				try
+				{
+					/*if ( globalThis.use_parallel_saving )
+					{
+						let result = await ExecuteParallelPromise({ command:WorkerServiceLogic.ACTION_STRINGIFY, data:save_obj });
+						if ( result )
+						json = result;
+						else
+						throw 'worker error';
+					}
+					else*/
+					json = JSON.stringify( save_obj ); // Backup timings report (ms): 755, 894, 2667, 3
+
+					break;
+				}
+				catch( e )
+				{
+					console.warn( 'Some object can not be JSON-ed... Redoing every object one by one to figure out which...' );
+					one_by_one = true;
+				}
+			}
+
+			console.log('Made snapshots of all objects...');
+
+			let json_made_time = Date.now();
+
+			let deflate_done_time = 0;
+			let save_done_time = 0;
+
+			function Report( err )
+			{
+				console.log('Backup timings report (ms): ' + [
+					snapshot_made_time - start_time,
+					json_made_time - snapshot_made_time,
+					deflate_done_time - json_made_time,
+					save_done_time - deflate_done_time
+				].join(', ') );
+
+				if ( callback )
+				callback( err );
+			}
+
+			// zlib.deflate(buffer
+			zlib.deflate( json, ( err, buffer )=>{
+
+				deflate_done_time = Date.now();
+
+				if ( err )
+				{
+					console.warn( 'Compression error: ', err );
+
+					Report( true );
+					snapshot_save_busy = false;
+				}
+				else
+				{
+
+					console.log('Snapshot compression operation complete...');
+
+					// This must run inside a function marked `async`:
+					//const file = await fs.readFile('filename.txt', 'utf8');
+
+					let snapshot_path_temp = snapshot_path.split('.');
+					snapshot_path_temp[ snapshot_path_temp.length - 1 ] = 'TEMP.' + snapshot_path_temp[ snapshot_path_temp.length - 1 ];
+					snapshot_path_temp = snapshot_path_temp.join('.');
+
+					fs.writeFile( snapshot_path_temp, buffer, ( err )=>
+					{
+						save_done_time = Date.now();
+
+						if ( err )
+						{
+							console.warn( 'Snapshot was not saved: ', err );
+
+							Report( false );
+							snapshot_save_busy = false;
+						}
+						else
+						{
+							console.log('Snapshot saved to TEMP file.');
+
+							fs.rename( snapshot_path_temp, snapshot_path, ( err )=>
+							{
+								if ( err )
+								console.warn( 'Unable to rename TEMP file into proper snapshot file: ' + err );
+								else
+								console.log( 'TEMP file renamed.' );
+
+								Report( false );
+								snapshot_save_busy = false;
+							});
+						}
+					});
+
+					if ( sdWorld.server_config.save_raw_version_of_snapshot )
+					fs.writeFile( snapshot_path + '.raw.v', json, ( err )=>
+					{
+					});
+				}
+
+			});
+		}
+
+		sdWorld.SaveSnapshot = SaveSnapshot;
+		sdWorld.PreventSnapshotSaving = () =>
+		{
+			snapshot_save_busy = true;
+		};
+
+		sdWorld.SaveSnapshotAutoPath = ()=> // This one exist for testing via DevTools console
+		{
+			SaveSnapshot( sdWorld.snapshot_path_const, ( err )=>
+			{
+				for ( var i = 0; i < sdWorld.sockets.length; i++ )
+				sdWorld.sockets[ i ].SDServiceMessage( 'Server: Manual backup is complete ('+(err?'Error!':'successfully')+')!' );
+			});
+		};
+
+		setInterval( ()=>{
+
+			if ( sdWorld.world_has_unsaved_changes )
+			{
+				sdWorld.world_has_unsaved_changes = false;
+
+				for ( var i = 0; i < sdWorld.sockets.length; i++ )
+				sdWorld.sockets[ i ].SDServiceMessage( 'Server: Backup is being done!' );
+
+				SaveSnapshot( sdWorld.snapshot_path_const, ( err )=>
+				{
+					for ( var i = 0; i < sdWorld.sockets.length; i++ )
+					sdWorld.sockets[ i ].SDServiceMessage( 'Server: Backup is complete ('+(err?'Error!':'successfully')+')!' );
+				});
+			}
+
+		}, 1000 * sdWorld.server_config.backup_interval_seconds ); // Once per 15 minutes
+
+
+
+		/*setInterval( ()=>{
+
+			if ( sdSnapPack.recent_worst_case_changed )
+			{
+				fs.writeFile( sync_debug_path + '.recent_worst.v', sdSnapPack.recent_worst_case, ( err )=>
+				{
+				});
+
+				sdSnapPack.recent_worst_case = '';
+			}
+
+			if ( sdSnapPack.all_time_worst_case_changed )
+			{
+				fs.writeFile( sync_debug_path + '.all_time_worst.v', sdSnapPack.all_time_worst_case, ( err )=>
+				{
+				});
+			}
+
+		}, 1000 * 60 * 5 ); // Once per 5 minutes
+		*/
+		let termination_initiated = false;
+		function onBeforeTurnOff()
+		{
+			if ( termination_initiated )
+			return;
+
+			termination_initiated = true;
+			console.warn('SIGTERM or SIGINT signal received. Backup time?');
+
+			for ( var i = 0; i < sockets.length; i++ )
+			sockets[ i ].SDServiceMessage( 'Server reboot: Game server got SIGTERM signal from operating system. Attempting to save world state...' );
+
+			const proceed = ( err )=>{
+				
+				// Make singleplayer save instantly
+				if ( fs.SDFlush )
+				fs.SDFlush();
+
+				console.warn('SaveSnapshot called callback (error='+err+'), saying goodbye to everyone and quiting process.');
+
+				is_terminating = true;
+
+				for ( var i = 0; i < sockets.length; i++ )
+				sockets[ i ].SDServiceMessage( err ? 'Server reboot: Unable to save world snapshot...' : 'Server reboot: World snapshot has been saved! See you soon!' );
+
+				setTimeout( ()=>
+				{
+					process.exit(1);
+				}, 500 );
+
+			};
+
+			if ( snapshot_save_busy )
+			setTimeout( proceed, 5000 ); // Let 5 seconds to complete saving
+			else
+			SaveSnapshot( sdWorld.snapshot_path_const, proceed );
+		}
+		sdWorld.onBeforeTurnOff = onBeforeTurnOff;
+		
+		process.on( 'SIGTERM', onBeforeTurnOff );
+		process.on( 'SIGINT', onBeforeTurnOff );
 	}
 };
 

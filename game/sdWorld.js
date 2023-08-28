@@ -48,6 +48,9 @@ import sdPresetEditor from './entities/sdPresetEditor.js';
 import sdRenderer from './client/sdRenderer.js';
 import { sdServerConfigShort, sdServerConfigFull } from './server/sdServerConfig.js';
 import sdBitmap from './client/sdBitmap.js';
+
+import sdModeration from './server/sdModeration.js';
+
 import sdSound from './sdSound.js';
 import sdKeyStates from './sdKeyStates.js';
 
@@ -77,6 +80,8 @@ class sdWorld
 		
 		sdWorld.time = Date.now(); // Can be important because some entities (sdCommandCentre) use sdWorld.time as default destruction time, which will be instantly without setting this value
 		sdWorld.frame = 0;
+		
+		sdWorld.paused = false; // Single-player only, prevents some global logic like sdDeepSleep spawns
 		
 		sdWorld.event_uid_counter = 0; // Will be used by clients to not re-apply same events
 		
@@ -126,23 +131,24 @@ class sdWorld
 		
 		sdWorld.client_side_censorship = false;
 		
-		//sdWorld.world_bounds = { x1: 0, y1: -400, x2: 800, y2: 0 };
-		sdWorld.world_bounds = { 
-			x1: 0, 
-			y1: 0, 
-			x2: 0, 
-			y2: 0
+		sdWorld.SeededRandomNumberGenerator_constructor = SeededRandomNumberGenerator;
+		
+		sdWorld.EraseWorldBounds = ()=>
+		{
+			sdWorld.world_bounds = { 
+				x1: 0, 
+				y1: 0, 
+				x2: 0, 
+				y2: 0
+			};
+			sdWorld.base_ground_level1 = {};
+			sdWorld.base_ground_level2 = {};
+			sdWorld.base_grass_level = {};
+			sdWorld.base_ground_level = 0;//-256;
+
+			sdWorld.SeededRandomNumberGenerator = new sdWorld.SeededRandomNumberGenerator_constructor( ~~( Math.random() * 500000 ) );
 		};
-		sdWorld.base_ground_level1 = {};
-		sdWorld.base_ground_level2 = {};
-		sdWorld.base_grass_level = {};
-		/*sdWorld.world_bounds = { 
-			x1: 0, 
-			y1: -2000, 
-			x2: 800 * 10, 
-			y2: 0
-		};*/
-		sdWorld.base_ground_level = 0;//-256;
+		sdWorld.EraseWorldBounds();
 		
 		sdWorld.fill_ground_quad_cache = null;//[];
 		
@@ -183,11 +189,6 @@ class sdWorld
 		sdWorld.outgoing_server_connections_obj = null;
 		
 		sdWorld.GSPEED = 0;
-		
-		//sdWorld.PerlinNoiseGenerator = new PerlinNoiseGenerator( 1337 );
-		sdWorld.SeededRandomNumberGenerator = new SeededRandomNumberGenerator( ~~( Math.random() * 500000 ) );
-		//sdWorld.SeededRandomNumberGenerator2 = new SeededRandomNumberGenerator( 612 );
-		sdWorld.SeededRandomNumberGenerator_constructor = SeededRandomNumberGenerator;
 		
 		sdWorld.el_hit_cache = [];
 		
@@ -493,6 +494,40 @@ class sdWorld
 	{
 		sdWorld.offscreen_behavior = sdWorld[ sdWorld.server_config.offscreen_behavior ];
 		sdWorld.offscreen_behavior_x_value = sdWorld.server_config.offscreen_behavior_x_value;
+	}
+	
+	static UpdateFilePaths( dirname, world_slot )
+	{
+		const server_config_path_const = dirname + '/server_config' + ( world_slot || '' ) + '.js';
+		const browser_fingerprinting_path_const = dirname + '/server_private/sdBrowserFingerPrint.js';
+
+		const snapshot_path_const = dirname + '/star_defenders_snapshot' + ( world_slot || '' ) + '.v';
+		const timewarp_path_const = dirname + '/star_defenders_timewarp' + ( world_slot || '' ) + '.v';
+		const moderation_data_path_const = dirname + '/moderation_data' + ( world_slot || '' ) + '.v';
+		const superuser_pass_path = dirname + '/superuser_pass' + ( world_slot || '' ) + '.txt'; // Used to be .v
+		const database_data_path_const = dirname + '/database_data' + ( world_slot || '' ) + '_<KEY>.v';
+		const censorship_file_path = dirname + '/star_defenders_censorship.v'; 
+		/* 
+			In censorship_file, each line is a new word/phrase, separated with " // " where right part is a baddness of a word/phrase. 
+			Right now right part is ignored and all words simply prevent messages from being sent. 
+			All tested messages have added spaces at the beginning and at the end.
+
+			Example:
+
+			amogus  // 0.1
+			uwu  // 0.1
+			:*  // 0.1
+
+		*/
+		sdWorld.server_config_path_const = server_config_path_const;
+		sdWorld.browser_fingerprinting_path_const = browser_fingerprinting_path_const;
+		
+		sdWorld.snapshot_path_const = snapshot_path_const;
+		sdWorld.timewarp_path_const = timewarp_path_const;
+		sdWorld.moderation_data_path_const = moderation_data_path_const;
+		sdWorld.database_data_path_const = database_data_path_const;
+		sdWorld.superuser_pass_path = superuser_pass_path;
+		sdWorld.censorship_file_path = censorship_file_path;
 	}
 	static FinalizeClasses() // isC optimization, also needed for sealing
 	{
@@ -901,7 +936,8 @@ class sdWorld
 				}
 			}
 			
-			let potential_crystal = ( y > 1500 ) ? 'sdCrystal.really_deep' : ( ( y > from_y + 256 ) ? 'sdCrystal.deep' : 'sdCrystal' );
+			//let potential_crystal = ( y > 1500 ) ? 'sdCrystal.really_deep' : ( ( y > from_y + 256 ) ? 'sdCrystal.deep' : 'sdCrystal' );
+			let potential_crystal = ( ( y > from_y + 256 ) ? 'sdCrystal.deep' : 'sdCrystal' );
 			
 			if ( Math.random() < 0.1 )
 			{
@@ -2604,8 +2640,8 @@ class sdWorld
 				new_affected_hash_arrays[ i ].arr.push( entity );
 				//new_affected_hash_arrays[ i ].RecreateWith( entity );
 				
-				//if ( new_affected_hash_arrays[ i ].length > 1000 ) // Dealing with NaN bounds?
-				if ( new_affected_hash_arrays[ i ].arr.length > 100 ) // Dealing with NaN bounds? Or just entity flood? Likely entity flood (is is bad for performance)
+				if ( new_affected_hash_arrays[ i ].length > 1000 ) // Dealing with NaN bounds?
+				//if ( new_affected_hash_arrays[ i ].arr.length > 100 ) // Dealing with NaN bounds? Or just entity flood? Likely entity flood (is is bad for performance)
 				debugger;
 			}
 			
@@ -2714,6 +2750,8 @@ class sdWorld
 	}
 	static HandleWorldLogic( frame )
 	{
+		sdWorld.world_has_unsaved_changes = true;
+		
 		const DEBUG_TIME_MODE = false;
 		
 		
@@ -2744,73 +2782,73 @@ class sdWorld
 				}
 			}
 		}
-		
-		//let substeps = sdWorld.is_server ? 2 : 2;
-		//let substeps = 2;
-		
-		//for ( var step = 0; step < substeps; step++ )
-		//{
-			let GSPEED = ( sdWorld.time - old_time ) / 1000 * 30; // / substeps;
-			
-			if ( GSPEED < 0 ) // Overflow? Probably would never happen normally
-			GSPEED = 0;
-			else
-			if ( sdWorld.is_server )
-			{
-				if ( GSPEED > 1 ) // Should be best for hitdetection
-				GSPEED = 1;
-			}
-			else
-			{
-				if ( GSPEED > 10 ) // Should be best for weaker devices, just so at least server would not initiate player teleportation back to where he thinks player is
-				GSPEED = 10;
-			}
-			
-			//GSPEED = 4;
 
-			sdWorld.GSPEED = GSPEED;
-			//console.log( GSPEED );
-			
-			let arr_i;
-			let arr;
-			let i;
-			let i2;
-			let best_warp;
-			let e;
-			let time_from;
-			let time_to;
-			let step;
-			let hiber_state;
-			let substeps;
-			let progress_until_removed;
-			
-			let gspeed_mult;
-			let substeps_mult;
-			let skip_frames;
-			
-			let timewarps = null;
-			let stop_motion_regions = null;
-			
-			if ( sdEntity.to_seal_list.length > 0 )
+		let GSPEED = ( sdWorld.time - old_time ) / 1000 * 30; // / substeps;
+
+		if ( GSPEED < 0 ) // Overflow? Probably would never happen normally
+		GSPEED = 0;
+		else
+		if ( sdWorld.is_server )
+		{
+			if ( GSPEED > 1 ) // Should be best for hitdetection
+			GSPEED = 1;
+		}
+		else
+		{
+			if ( GSPEED > 10 ) // Should be best for weaker devices, just so at least server would not initiate player teleportation back to where he thinks player is
+			GSPEED = 10;
+		}
+		
+		//if ( sdWorld.paused )
+		//GSPEED = 0;
+
+		//GSPEED = 4;
+
+		sdWorld.GSPEED = GSPEED;
+		//console.log( GSPEED );
+
+		let arr_i;
+		let arr;
+		let i;
+		let i2;
+		let best_warp;
+		let e;
+		let time_from;
+		let time_to;
+		let step;
+		let hiber_state;
+		let substeps;
+		let progress_until_removed;
+
+		let gspeed_mult;
+		let substeps_mult;
+		let skip_frames;
+
+		let timewarps = null;
+		let stop_motion_regions = null;
+
+		if ( sdEntity.to_seal_list.length > 0 )
+		{
+			//if ( false )
+			for ( i = 0; i < sdEntity.to_seal_list.length; i++ )
 			{
-				//if ( false )
-				for ( i = 0; i < sdEntity.to_seal_list.length; i++ )
+				let e = sdEntity.to_seal_list[ i ];
+
+				if ( !e._is_being_removed )
 				{
-					let e = sdEntity.to_seal_list[ i ];
-					
-					if ( !e._is_being_removed )
-					{
-						//sdEntity.to_seal_list[ i ].InitMatterMode();
-						e._has_matter_props = ( typeof e.matter !== 'undefined' || typeof e._matter !== 'undefined' );//sdWorld.FilterHasMatterProperties( e );
-				
-						e._has_liquid_props = ( typeof e.liquid !== 'undefined' || typeof e._liquid !== 'undefined' );//sdWorld.FilterHasMatterProperties( e );
-				
-						Object.seal( e );
-					}
+					//sdEntity.to_seal_list[ i ].InitMatterMode();
+					e._has_matter_props = ( typeof e.matter !== 'undefined' || typeof e._matter !== 'undefined' );//sdWorld.FilterHasMatterProperties( e );
+
+					e._has_liquid_props = ( typeof e.liquid !== 'undefined' || typeof e._liquid !== 'undefined' );//sdWorld.FilterHasMatterProperties( e );
+
+					Object.seal( e );
 				}
-				sdEntity.to_seal_list.length = 0;
 			}
-			
+			sdEntity.to_seal_list.length = 0;
+		}
+
+		//if ( !sdWorld.paused )
+		{
 			if ( sdWorld.is_server && !sdWorld.is_singleplayer )
 			{
 				for ( i = 0; i < sdWorld.sockets.length; i++ )
@@ -2841,7 +2879,7 @@ class sdWorld
 					}
 				}
 			}
-				
+
 			for ( i = 0; i < sdPresetEditor.regions.length; i++ )
 			if ( sdPresetEditor.regions[ i ].time_scale !== 1 )
 			{
@@ -2850,42 +2888,42 @@ class sdWorld
 
 				stop_motion_regions.push( sdPresetEditor.regions[ i ] );
 			}
-			
+
 			//sdCable.GlobalCableThink( GSPEED );
 
 			for ( i = 0; i < sdWorld.static_think_methods.length; i++ )
 			sdWorld.static_think_methods[ i ]( GSPEED );
-		
+
 			//const think_function_ptr_cache = [];
-			
+
 			//let skipper = 0;
-			
+
 			sdWorld.online_characters.length = 0;
 			if ( sdWorld.sockets ) // Server-side only thing
 			for ( let i = 0; i < sdWorld.sockets.length; i++ )
 			{
 				let socket = sdWorld.sockets[ i ];
-				
+
 				if ( socket.character && socket.post_death_spectate_ttl > 0 )
 				sdWorld.online_characters.push( socket.character );
 			}
-			
+
 			const debug_wake_up_sleep_refuse_reasons = sdDeepSleep.debug_wake_up_sleep_refuse_reasons;
-			
+
 			const bulk_exclude = [];
-			
+
 			for ( arr_i = 0; arr_i < 2; arr_i++ )
 			{
 				arr = ( arr_i === 0 ) ? sdEntity.active_entities : sdEntity.global_entities;
-				
+
 				loop1: for ( i = 0; i < arr.length; i++ )
 				{
 					e = arr[ i ];
-					
+
 					gspeed_mult = 1;
 					//substeps_mult = 1;
 					substeps = 1;
-					
+
 					if ( arr_i === 0 ) // Only for real in-world objects that have position
 					{
 						if ( sdWorld.offscreen_behavior === sdWorld.OFFSCREEN_BEHAVIOR_SIMULATE_PROPERLY )
@@ -2898,7 +2936,7 @@ class sdWorld
 							if ( !sdWorld.CanAnySocketSee( e ) )
 							{
 								skip_frames = sdWorld.offscreen_behavior_x_value;
-								
+
 								if ( e._net_id % skip_frames === frame % skip_frames )
 								{
 									// Simulate 1 step
@@ -2918,13 +2956,13 @@ class sdWorld
 							if ( !sdWorld.CanAnySocketSee( e ) )
 							{
 								skip_frames = sdWorld.offscreen_behavior_x_value;
-								
+
 								if ( e._net_id % skip_frames === frame % skip_frames )
 								{
 									// Simulate 30 steps
-									
+
 									gspeed_mult = sdWorld.offscreen_behavior_x_value;
-									
+
 									if ( e.onThink.has_ApplyVelocityAndCollisions )
 									substeps = sdWorld.offscreen_behavior_x_value;
 								}
@@ -2932,7 +2970,7 @@ class sdWorld
 								continue; // Ignore
 							}
 						}
-						
+
 						/*
 						if ( sdWorld.is_server )
 						if ( e._last_x !== undefined ) // sdEntity was never placed properly yet, can cause items to fall into each other after snapshot load
@@ -2954,7 +2992,7 @@ class sdWorld
 							if ( e._net_id % skip_frames === frame % skip_frames )
 							{
 								gspeed_mult = skip_frames;
-								
+
 								if ( typeof e._phys_sleep === 'undefined' || e._phys_sleep <= 0 )
 								//if ( e.is_static || typeof e.sy === 'undefined' )
 								{
@@ -2978,7 +3016,7 @@ class sdWorld
 									if ( !sdWorld.server_config.base_degradation )
 									if ( !sdWorld.CheckLineOfSight( timewarps[ i2 ].x, timewarps[ i2 ].y, ...e.GetClosestPointWithinCollision( timewarps[ i2 ].x, timewarps[ i2 ].y ), null, null, null, sdWorld.FilterShieldedWallsAndDoors ) )
 									continue;
-									
+
 									if ( e === timewarps[ i2 ].e || e === timewarps[ i2 ].e.driver_of || ( e.is( sdGun ) && e._held_by === timewarps[ i2 ].e ) )
 									{
 										best_warp = 0.5;
@@ -3017,19 +3055,19 @@ class sdWorld
 						}
 
 					}
-					
+
 					if ( DEBUG_TIME_MODE )
 					{
 						time_from = Date.now();
 					}
-					
+
 					//substeps = e.substeps * substeps_mult;
 					//substeps = substeps_mult;
 					progress_until_removed = e.ThinkUntilRemoved();
-					
+
 					//if ( !e._onThinkPtr )
 					//e._onThinkPtr = e.onThink;
-					
+
 					for ( step = 0; step < substeps || progress_until_removed; step++ )
 					{
 						if ( !e._is_being_removed )
@@ -3038,7 +3076,7 @@ class sdWorld
 							{
 								sdWorld.last_simulated_entity = e;
 							}
-							
+
 							if ( e._frozen >= 1 )
 							e.onThinkFrozen( GSPEED / substeps * gspeed_mult );
 							else
@@ -3048,33 +3086,33 @@ class sdWorld
 								//else
 								//e._onThinkPtr( GSPEED / substeps * gspeed_mult ); // Actually faster in v8... Has something to do with different objects having same property // UPD: Let's rollback it, maybe this was causing Booraz's server to lag?
 							}
-							
+
 							if ( debug_wake_up_sleep_refuse_reasons )
 							{
 								sdWorld.last_simulated_entity = null;
 							}
 						}
-						
+
 						if ( e._is_being_removed /*|| 
 							 e.Think( GSPEED / substeps * gspeed_mult )*/ )
 						{
 							hiber_state = e._hiberstate;
-							
+
 							e._remove();
-							
+
 							if ( DEBUG_TIME_MODE )
 							{
 								time_to = Date.now();
 								if ( time_to - time_from > 5 )
 								sdWorld.SendEffect({ x:e.x, y:e.y, type:sdEffect.TYPE_LAG, text:e.GetClass()+': '+(time_to - time_from)+'ms' });
 							}
-							
+
 							if ( arr_i === 0 )
 							{
 								//e._remove_from_entities_array( hiber_state );
 								bulk_exclude.push( e );
 							}
-							
+
 							if ( arr[ i ] === e ) // Removal did not happen?
 							{
 								arr.splice( i, 1 );
@@ -3082,7 +3120,7 @@ class sdWorld
 							}
 							continue loop1; // Or else it will try to get removed in each substep of a bullet
 						}
-						
+
 						if ( arr_i === 0 ) // Only for real in-world objects that have position
 						{
 							e.UpdateHitbox();
@@ -3093,7 +3131,7 @@ class sdWorld
 								if ( !e._is_being_removed )
 								{
 									sdWorld.UpdateHashPosition( e, false );
-									
+
 									e.ManageTrackedPhysWakeup();
 
 									if ( e._listeners ) // Should be faster than passing string
@@ -3102,7 +3140,7 @@ class sdWorld
 							}
 						}
 					}
-					
+
 					if ( DEBUG_TIME_MODE )
 					{
 						time_to = Date.now();
@@ -3113,9 +3151,9 @@ class sdWorld
 					}
 				}
 			}
-			
+
 			sdEntity.BulkRemoveEntitiesFromEntitiesArray( bulk_exclude );
-			
+
 			// Check for improperly removed entities. It fill falsely react to chained removals, for example in case of sdBG -> sdBloodDecal
 			/*if ( sdWorld.is_server || sdWorld.is_singleplayer )
 			{
@@ -3124,18 +3162,18 @@ class sdWorld
 				if ( e._is_being_removed )
 				{
 					trace( 'Entity was not removed properly. .remove() was likely called, _remove() was likely called too, but entity is still in sdEntity.entities array. Make sure to call ._remove_from_entities_array() at the time of removal too...', e );
-					
+
 					e._remove_from_entities_array();
 				}
 			}*/
-			
+
 			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 			{
 				//if ( sdShop.open || sdContextMenu.open )
 				//sdWorld.mouse_speed_morph = Math.max( sdWorld.mouse_speed_morph - GSPEED * 0.01, 0 );
 				//else
 				sdWorld.mouse_speed_morph = Math.min( sdWorld.mouse_speed_morph + GSPEED * 0.2, 1 );
-				
+
 				sdWorld.mouse_world_x = ( sdWorld.mouse_screen_x / sdWorld.camera.scale + sdWorld.camera.x - sdRenderer.screen_width / 2 / sdWorld.camera.scale );// * sdWorld.mouse_speed_morph + sdWorld.mouse_world_x * ( 1 - sdWorld.mouse_speed_morph );
 				sdWorld.mouse_world_y = ( sdWorld.mouse_screen_y / sdWorld.camera.scale + sdWorld.camera.y - sdRenderer.screen_height / 2 / sdWorld.camera.scale );// * sdWorld.mouse_speed_morph + sdWorld.mouse_world_y * ( 1 - sdWorld.mouse_speed_morph );
 
@@ -3164,13 +3202,13 @@ class sdWorld
 							}
 						}
 					}
-					
+
 					if ( sdWorld.mouse_speed_morph < 1 )
 					{
 						sdWorld.camera.x = sdWorld.camera.x * sdWorld.mouse_speed_morph + sdWorld.my_entity.x * ( 1 - sdWorld.mouse_speed_morph );
 						sdWorld.camera.y = sdWorld.camera.y * sdWorld.mouse_speed_morph + sdWorld.my_entity.y * ( 1 - sdWorld.mouse_speed_morph );
 					}
-					
+
 
 					sdWorld.camera.x = Math.round( sdWorld.camera.x * sdWorld.camera.scale ) / sdWorld.camera.scale;
 					sdWorld.camera.y = Math.round( sdWorld.camera.y * sdWorld.camera.scale ) / sdWorld.camera.scale;
@@ -3180,9 +3218,9 @@ class sdWorld
 					//sdWorld.camera.x = sdWorld.my_entity.x;
 					//sdWorld.camera.y = sdWorld.my_entity.y;
 					//sdWorld.camera.scale = 2;
-					
-					
-					
+
+
+
 					if ( sdWorld.camera.x < sdWorld.my_entity.x - 400 )
 					sdWorld.camera.x = sdWorld.my_entity.x - 400;
 					if ( sdWorld.camera.x > sdWorld.my_entity.x + 400 )
@@ -3213,131 +3251,131 @@ class sdWorld
 						sdWorld.my_entity.look_y = sdWorld.mouse_world_y;
 					}
 				}
-				
+
 				sdSound.HandleMatterChargeLoop( GSPEED );
 			}
-		//}
-		
-		let t3 = Date.now();
-		
-		if ( sdWorld.is_server )
-		{
-			let sockets = sdWorld.sockets;
-			for ( let i2 = 0; i2 < sockets.length; i2++ )
-			if ( sockets[ i2 ].ffa_warning > 0 )
-			{
-				sockets[ i2 ].ffa_warning -= GSPEED / ( 30 * 60 * 5 ); // .ffa_warning is decreased by 1 once in 5 minutes
 
-				if ( sockets[ i2 ].ffa_warning <= 0 )
-				{
-					sockets[ i2 ].ffa_warning = 0;
-					sockets[ i2 ].SDServiceMessage( 'Your respawn rate has been restored' );
-				}
-			}
-			
-			sdWorld.server_config.UpdateLeaderBoard();
+			let t3 = Date.now();
 
-			sdWorld.leaders_global = sdWorld.leaders.slice();
-			
-			if ( sdWorld.outgoing_server_connections_obj )
+			if ( sdWorld.is_server )
 			{
-				for ( let remote_server_url in sdWorld.outgoing_server_connections_obj )
+				let sockets = sdWorld.sockets;
+				for ( let i2 = 0; i2 < sockets.length; i2++ )
+				if ( sockets[ i2 ].ffa_warning > 0 )
 				{
-					let socket = sdServerToServerProtocol.outgoing_connections[ remote_server_url ];
-					/*
-					for ( let i = 0; i < socket.leaders.length; i++ )
+					sockets[ i2 ].ffa_warning -= GSPEED / ( 30 * 60 * 5 ); // .ffa_warning is decreased by 1 once in 5 minutes
+
+					if ( sockets[ i2 ].ffa_warning <= 0 )
 					{
-						socket.leaders[ i ].here = 0;
-						sdWorld.leaders_global.push( socket.leaders[ i ] );
-					}*/
-					
-					sdWorld.leaders_global.push( ...socket.leaders );
-				}
-			}
-			
-			sdWorld.leaders_global.sort((a,b)=>
-			{
-				/*if ( b.here > a.here )
-				return 1;
-			
-				if ( b.here < a.here )
-				return -1;
-				*/
-				return b.score - a.score;
-			});
-			
-			if ( sdWorld.leaders_global.length > 30 )
-			sdWorld.leaders_global = sdWorld.leaders_global.slice( 0, 30 );
-		}
-		
-		let t4 = Date.now();
-		IncludeTimeCost( 'leaders_and_warnings', t4 - t3 );
-		
-		//if ( sdWorld.world_hash_positions_recheck_keys.length > 0 )
-		if ( sdWorld.world_hash_positions_recheck_keys.size > 0 )
-		{
-			let s = Math.max( 32, sdWorld.world_hash_positions_recheck_keys.size * 0.1 );
-			
-			//for ( var s = Math.max( 32, sdWorld.world_hash_positions_recheck_keys.size * 0.1 ); s >= 0; s-- )
-			for ( const x of sdWorld.world_hash_positions_recheck_keys )
-			{
-				//let x = sdWorld.world_hash_positions_recheck_keys[ 0 ];
-
-				if ( sdWorld.world_hash_positions.has( x ) )
-				if ( sdWorld.world_hash_positions.get( x ).arr.length === 0 )
-				{
-					//sdWorld.world_hash_positions.get( x ).unlinked = globalThis.getStackTrace();
-					sdWorld.world_hash_positions.delete( x );
+						sockets[ i2 ].ffa_warning = 0;
+						sockets[ i2 ].SDServiceMessage( 'Your respawn rate has been restored' );
+					}
 				}
 
-				//sdWorld.world_hash_positions_recheck_keys.shift();
-				sdWorld.world_hash_positions_recheck_keys.delete( x );
-				
-				s--;
-				if ( s < 0 )
-				break;
-			}
-		}
-		
-		let t5 = Date.now();
-		IncludeTimeCost( 'world_hash_positions_recheck_keys', t5 - t4 );
-		
-		sdTimer.ThinkNow();
-		
-		
-		if ( sdWorld.server_config.onExtraWorldLogic )
-		sdWorld.server_config.onExtraWorldLogic( GSPEED );
-	
-		let t6 = Date.now();
-		IncludeTimeCost( 'onExtraWorldLogic', t6 - t5 );
-		
-		if ( sdWorld.is_server )
-		{
-			sdWorld.last_frame_time = t5 - t2;
-			//sdWorld.last_slowest_class = 'nothing';
-			
-			if ( sdEntity.snapshot_clear_crawler_i < sdEntity.entities.length )
-			{
-				if ( sdEntity.entities[ sdEntity.snapshot_clear_crawler_i ]._snapshot_cache_frame < sdWorld.frame - 10 )
+				sdWorld.server_config.UpdateLeaderBoard();
+
+				sdWorld.leaders_global = sdWorld.leaders.slice();
+
+				if ( sdWorld.outgoing_server_connections_obj )
 				{
-					sdEntity.entities[ sdEntity.snapshot_clear_crawler_i ]._snapshot_cache_frame = -1;
-					sdEntity.entities[ sdEntity.snapshot_clear_crawler_i ]._snapshot_cache = null;
+					for ( let remote_server_url in sdWorld.outgoing_server_connections_obj )
+					{
+						let socket = sdServerToServerProtocol.outgoing_connections[ remote_server_url ];
+						/*
+						for ( let i = 0; i < socket.leaders.length; i++ )
+						{
+							socket.leaders[ i ].here = 0;
+							sdWorld.leaders_global.push( socket.leaders[ i ] );
+						}*/
+
+						sdWorld.leaders_global.push( ...socket.leaders );
+					}
 				}
-				sdEntity.snapshot_clear_crawler_i++;
+
+				sdWorld.leaders_global.sort((a,b)=>
+				{
+					/*if ( b.here > a.here )
+					return 1;
+
+					if ( b.here < a.here )
+					return -1;
+					*/
+					return b.score - a.score;
+				});
+
+				if ( sdWorld.leaders_global.length > 30 )
+				sdWorld.leaders_global = sdWorld.leaders_global.slice( 0, 30 );
 			}
-			else
-			sdEntity.snapshot_clear_crawler_i = 0;
+
+			let t4 = Date.now();
+			IncludeTimeCost( 'leaders_and_warnings', t4 - t3 );
+
+			//if ( sdWorld.world_hash_positions_recheck_keys.length > 0 )
+			if ( sdWorld.world_hash_positions_recheck_keys.size > 0 )
+			{
+				let s = Math.max( 32, sdWorld.world_hash_positions_recheck_keys.size * 0.1 );
+
+				//for ( var s = Math.max( 32, sdWorld.world_hash_positions_recheck_keys.size * 0.1 ); s >= 0; s-- )
+				for ( const x of sdWorld.world_hash_positions_recheck_keys )
+				{
+					//let x = sdWorld.world_hash_positions_recheck_keys[ 0 ];
+
+					if ( sdWorld.world_hash_positions.has( x ) )
+					if ( sdWorld.world_hash_positions.get( x ).arr.length === 0 )
+					{
+						//sdWorld.world_hash_positions.get( x ).unlinked = globalThis.getStackTrace();
+						sdWorld.world_hash_positions.delete( x );
+					}
+
+					//sdWorld.world_hash_positions_recheck_keys.shift();
+					sdWorld.world_hash_positions_recheck_keys.delete( x );
+
+					s--;
+					if ( s < 0 )
+					break;
+				}
+			}
+
+			let t5 = Date.now();
+			IncludeTimeCost( 'world_hash_positions_recheck_keys', t5 - t4 );
+
+			sdTimer.ThinkNow();
+
+
+			if ( sdWorld.server_config.onExtraWorldLogic )
+			sdWorld.server_config.onExtraWorldLogic( GSPEED );
+
+			let t6 = Date.now();
+			IncludeTimeCost( 'onExtraWorldLogic', t6 - t5 );
+
+			if ( sdWorld.is_server )
+			{
+				sdWorld.last_frame_time = t5 - t2;
+				//sdWorld.last_slowest_class = 'nothing';
+
+				if ( sdEntity.snapshot_clear_crawler_i < sdEntity.entities.length )
+				{
+					if ( sdEntity.entities[ sdEntity.snapshot_clear_crawler_i ]._snapshot_cache_frame < sdWorld.frame - 10 )
+					{
+						sdEntity.entities[ sdEntity.snapshot_clear_crawler_i ]._snapshot_cache_frame = -1;
+						sdEntity.entities[ sdEntity.snapshot_clear_crawler_i ]._snapshot_cache = null;
+					}
+					sdEntity.snapshot_clear_crawler_i++;
+				}
+				else
+				sdEntity.snapshot_clear_crawler_i = 0;
+			}
+
+			sdDeepSleep.GlobalThink( GSPEED );
+
+			sdWater.GlobalThink( GSPEED );
+			sdRescueTeleport.GlobalThink( GSPEED );
+			sdBaseShieldingUnit.GlobalThink( GSPEED );
+			//sdSteeringWheel.GlobalThink( GSPEED );
+
+			// Keep it last:
+			sdWorld.frame++;
 		}
-		
-		sdDeepSleep.GlobalThink( GSPEED );
-		
-		sdWater.GlobalThink( GSPEED );
-		sdRescueTeleport.GlobalThink( GSPEED );
-		sdBaseShieldingUnit.GlobalThink( GSPEED );
-		//sdSteeringWheel.GlobalThink( GSPEED );
-		
-		// Keep it last:
-		sdWorld.frame++;
 	}
 	
 		
@@ -3698,6 +3736,9 @@ class sdWorld
 	{
 		if ( sdWorld.is_server )
 		{
+			if ( !that._broken )
+			return;
+			
 			sdSound.PlaySound({ name:'block4', 
 				x: that.x, 
 				y: that.y, 
@@ -4278,14 +4319,26 @@ class sdWorld
 	}
 	static StartOffline( player_settings, full_reset=false, retry=0 )
 	{
+		sdWorld.paused = false;
+		
+		/*if ( sdWorld.is_singleplayer )
+		{
+			sdWorld.Start( player_settings, full_reset, retry );
+			return;
+		}*/
+		
 		let offline_socket = {
 			
 			GetScore: ()=>
 			{
-				return 123;
+				sdWorld.my_score = offline_socket.character ? offline_socket.character._score : 0;
+				
+				return sdWorld.my_score;
 			},
 			
 			character: null,
+			
+			my_hash: 'singleplayer_hash',
 			
 			post_death_spectate_ttl: 12345,
 			
@@ -4311,10 +4364,21 @@ class sdWorld
 				sdRenderer.service_mesage_until = sdWorld.time + 6500;
 				sdRenderer.service_mesage = v;
 				sdRenderer.service_mesage_untranslateables = untranslateables;
+			},
+			
+			_SetCameraZoom: ()=>
+			{
+				
 			}
 		};
 		
-		sdWorld.server_config.ModifyTerrainEntity = ( v )=>v;
+		sdWorld.server_config = sdServerConfigFull;
+		sdWorld.server_config.enable_bounds_move = true;
+		sdWorld.server_config.aggressive_hibernation = true;
+		//sdWorld.server_config.ModifyTerrainEntity = ( v )=>v;
+		
+		globalThis.players_playing = 1;
+		//sdWorld.leaders = [];
 		
 		sdWorld.is_server = true; 
 		sdWorld.is_singleplayer = true; 
@@ -4341,6 +4405,25 @@ class sdWorld
 		let socket = globalThis.socket;
 		socket.close();
 		
+		let admin = { my_hash:'singleplayer_hash', access_level:0, pseudonym:'Local admin', promoter_hash:null };
+		
+		sdModeration.Load = ()=>{};
+		sdModeration.init_class();
+		sdModeration.data.admins[ 0 ] = admin;
+		sdModeration.ever_loaded = true;
+		
+		sdShop.init_class();
+		
+		sdWorld.UpdateFilePaths( 'fake_local_directory', 0 );
+		
+		sdWorld.onAfterConfigLoad();
+		
+		sdWorld.server_config.InstallBackupAndServerShutdownLogic();
+		
+		sdWorld.server_config.onBeforeSnapshotLoad();
+		
+		sdWorld.server_config.InitialSnapshotLoadAttempt();
+		
 		//let w = 20;
 		//let h = 10;
 		
@@ -4349,7 +4432,8 @@ class sdWorld
 		
 		//sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 );
 		//sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 + 100 * 16 );
-		sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 + 30 * 16 );
+		//sdWorld.ChangeWorldBounds( -w * 16, -h * 16, w * 16, h * 16 + 30 * 16 );
+		sdWorld.server_config.onAfterSnapshotLoad();
 		
 		// Hack
 		/*
@@ -4378,23 +4462,54 @@ class sdWorld
 				{
 					let player_settings = obj;
 					
-					let character_entity;
+					let character_entity = null;
 					
-					function SpawnNewPlayer()
+					if ( !player_settings.full_reset )
 					{
-						const allowed_classes = sdWorld.allowed_player_classes;
+						for ( let i = 0; i < sdCharacter.characters.length; i++ )
+						{
+							if ( sdCharacter.characters[ i ]._my_hash === 'singleplayer_hash' )
+							if ( sdCharacter.characters[ i ].hea > 0 )
+							{
+								character_entity = sdCharacter.characters[ i ];
 
-						let preferred_entity = sdWorld.ConvertPlayerDescriptionToEntity( player_settings );
-
-						if ( allowed_classes.indexOf( preferred_entity ) === -1 )
-						character_entity = new sdCharacter({ x:0, y:0 });
-						else
-						character_entity = new sdWorld.entity_classes[ preferred_entity ]({ x:0, y:0 });
-					
-						sdEntity.entities.push( character_entity );
+								if ( sdWorld.server_config.onReconnect )
+								sdWorld.server_config.onReconnect( character_entity, player_settings );
+								
+								break;
+							}
+						}
+						
+						if ( !character_entity )
+						player_settings.full_reset = true;
 					}
 					
-					SpawnNewPlayer();
+					if ( player_settings.full_reset )
+					{
+						function SpawnNewPlayer()
+						{
+							const allowed_classes = sdWorld.allowed_player_classes;
+
+							let preferred_entity = sdWorld.ConvertPlayerDescriptionToEntity( player_settings );
+
+							if ( allowed_classes.indexOf( preferred_entity ) === -1 )
+							character_entity = new sdCharacter({ x:0, y:0 });
+							else
+							character_entity = new sdWorld.entity_classes[ preferred_entity ]({ x:0, y:0 });
+						
+							character_entity._my_hash = 'singleplayer_hash';
+
+							if ( sdWorld.server_config.PlayerSpawnPointSeeker )
+							sdWorld.server_config.PlayerSpawnPointSeeker( character_entity, socket );
+
+							sdEntity.entities.push( character_entity );
+							
+							if ( sdWorld.server_config.onRespawn )
+							sdWorld.server_config.onRespawn( character_entity, player_settings );
+						}
+
+						SpawnNewPlayer();
+					}
 					
 					sdWorld.ApplyPlayerSettingsToPlayer( character_entity, player_settings, null );
 					
@@ -4404,32 +4519,52 @@ class sdWorld
 					offline_socket.character = sdWorld.my_entity;
 					offline_socket.character._socket = offline_socket;
 					
-					for ( let i = 0; i < sdShop.options.length; i++ )
+					/*for ( let i = 0; i < sdShop.options.length; i++ )
 					if ( sdShop.options[ i ]._class === 'sdGun' )
 					if ( sdShop.options[ i ]._min_build_tool_level === 0 )
 					if ( sdShop.options[ i ]._min_workbench_level === 0 )
 					{
 						let gun = new sdGun({ x: character_entity.x, y: character_entity.y, class: sdShop.options[ i ].class });
 						sdEntity.entities.push( gun );
-					}
+					}*/
 				}
 				else
 				if ( cmd === 'BUILD_SEL' )
 				{
-					trace( 'build selection', sdShop.options[ obj ], obj );
+					//trace( 'build selection', sdShop.options[ obj ], obj );
 					
 					socket.character._build_params = sdShop.options[ obj ] || null;
 				}
 				else
 				if ( cmd === 'CHAT' )
 				{
-					if ( obj === '/god 1' )
+					/*if ( obj === '/god 1' )
 					socket.character._god = 1;
 					else
 					if ( obj === '/god 0' )
 					socket.character._god = 0;
 					else
+					socket.character.Say( obj, false );*/
+							
+					if ( obj.charAt( 0 ) === '/' )
+					{
+						if ( obj === '/god 1' )
+						sdRenderer.line_of_sight_mode = false;
+					
+						if ( obj === '/god 0' )
+						sdRenderer.line_of_sight_mode = true;
+					
+						sdModeration.CommandReceived( socket, obj );
+					}
+					else
+					if ( socket.character )
+					if ( socket.character.hea > 0 || socket.character.death_anim < 30 ) // allow last words
 					socket.character.Say( obj, false );
+				}
+				else
+				if ( cmd === 'SELF_EXTRACT' )
+				{
+					// Do nothing
 				}
 				else
 				if ( cmd === 'ENTITY_CONTEXT_ACTION' )
@@ -4456,6 +4591,8 @@ class sdWorld
 		};
 		
 		sdWorld.Start( player_settings, full_reset, retry );
+		
+		admin.my_hash = offline_socket.character._my_hash;
 	}
 	static PlayAdAndStart( player_settings, button )
 	{
@@ -4509,6 +4646,8 @@ class sdWorld
 	}
 	static Start( player_settings, full_reset=false, retry=0 )
 	{
+		sdWorld.paused = false;
+		
 		sdSound.AllowSound();
 
 		sdWorld.my_entity_net_id = undefined; // Reset...
@@ -4617,6 +4756,15 @@ class sdWorld
 	}
 	static Stop()
 	{
+		if ( sdWorld.is_server ) // Singleplayer case
+		{
+			// Simulate server shutdown - it will case snapshot update
+			
+			fs.force_sync_mode = true;
+			sdWorld.onBeforeTurnOff();
+			fs.force_sync_mode = false;
+		}
+		
 		sdMobileKeyboard.Close();
 		
 		globalThis.ClearWorld();
@@ -4631,6 +4779,8 @@ class sdWorld
 		
 		globalThis.meSpeak.stop();
 		globalThis.socket.emit( 'SELF_EXTRACT' );
+		
+		sdWorld.paused = true;
 	}
 	static GetAny( arr )
 	{

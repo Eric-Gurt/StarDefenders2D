@@ -66,12 +66,13 @@ class sdTranslationManager
 				old_version.untranslateables,
 				old_version.stripped_tags
 			] = sdTranslationManager.DecodeAndReplaceTagsFromPhrase( text );
-			
-			old_version.GetTranslated = ()=>
-			{
-				return sdTranslationManager.TranslateConsideringTags( T( old_version.preformatted ), old_version.nested_translateables, old_version.untranslateables );
-			};
 		}
+			
+		if ( !old_version.GetTranslated ) // Will be missing on snapshot restore (singleplayer)
+		old_version.GetTranslated = ()=>
+		{
+			return sdTranslationManager.TranslateConsideringTags( T( old_version.preformatted ), old_version.nested_translateables, old_version.untranslateables );
+		};
 		
 		return old_version;
 	}

@@ -1,11 +1,11 @@
 <html>
     <head>
-	<title>Star Defenders - free multiplayer sandbox game</title>
+	<title>Star Defenders: Unite to Battle Alien Creatures in a Free Multiplayer Sandbox Game</title>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-	<meta name="title" content="Play Star Defenders">
-	<meta name="description" content="Star Defenders is a free multiplayer sandbox game. Fight alien creatures from unknown realms alongside friends you'll definitely make here!">
-	<meta name="keywords" content="game, play, sandbox, real-time, fast-paced, side-scrolling, Star Defenders, free, free-to-play, open-source, game like Minecraft, game like Terraria, game like Moonbase Alpha, game like Doom, host your own server, expedition, Mars, space, depressed astronauts, TTS, text-to-speech, multiplayer, HTML5, WebGL, creative, interesting">
+	<meta name="title" content="Star Defenders: Unite to Battle Alien Creatures in a Free Multiplayer Sandbox Game">
+	<meta name="description" content="Embark on an interstellar adventure in Star Defenders, a fast-paced multiplayer sandbox game. Join forces with friends to combat alien creatures from mysterious dimensions. Explore and contribute to project's open source nature, host your server, and experience thrilling real-time gameplay. Get ready for an expedition like no other, with a touch of TTS and creative fun. Play for free now!">
+	<meta name="keywords" content="Star Defenders, game, multiplayer, sandbox, alien creatures, friends, real-time, fast-paced, interstellar, space expedition, free-to-play, open-source, server hosting, TTS, text-to-speech, HTML5, WebGL, creative gameplay, side-scrolling, 2 players, no installation game">
 	<meta name="robots" content="index, follow">
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<meta name="language" content="English">
@@ -32,10 +32,10 @@
 		print_html = true;
 	    ?>
 	-->
-	<script async
+	<!--<script async
 	    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=<? print( sdWorld.server_config.adsense_client ) ?>"
 	    crossorigin="anonymous">
-	</script>
+	</script>-->
 	<!--data-adbreak-test="on"-->
 	<!--data-ad-frequency-hint="900s"-->
 	<script>
@@ -261,7 +261,7 @@
 		    <a class="server serverA" href="http://localhost:3000">localhost:3000<div>your local server will be here<br>(contact us to appear in list)</div></a>
 		    
 		    <a class="server serverB" href="https://www.gevanni.com:3000">gevanni.com:3000<div>Europe, Ukraine<br>Main test server, core game in its' raw unchanged state, small world</div></a>
-		    <a class="server serverB" href="https://www.plazmaburst2.com:2053">plazmaburst2.com:2053<div>USA, California<br>New expirimental game mode, fragile bases, no RTPs, no private storage, bans for dying after eliminating someone, open world but narrower<br>Hosted by Coolbuddy.com<br>since May 6, 2023</div></a>
+		    <!--<a class="server serverB" href="https://www.plazmaburst2.com:2053">plazmaburst2.com:2053<div>USA, California<br>New expirimental game mode, fragile bases, no RTPs, no private storage, bans for dying after eliminating someone, open world but narrower<br>Hosted by Coolbuddy.com<br>since May 6, 2023</div></a>-->
 		    <a class="server serverB" href="https://www.plazmaburst2.com:8443">plazmaburst2.com:8443<div>USA, California<br>Main test server, core game in its' raw unchanged state, open world<br>Hosted by Coolbuddy.com<br>since July 31, 2021</div></a>
 		    
 		    
@@ -671,7 +671,7 @@
 	    
 	    
 	    <input type="button" style="background-color:#2b7939; width: 300px;" id="start_btn" onclick="sdWorld.PlayAdAndStart( globalThis.GetPlayerSettings(), this );" value="Play with other players"> 
-	    <input type="button" style="background-color:#333333; width: 300px;" id="start_offline_btn" onclick="sdWorld.StartOffline( globalThis.GetPlayerSettings() );" value="Play offline (does not work)"> 
+	    <input type="button" style="background-color:#333333; width: 300px;" id="start_offline_btn" onclick="sdWorld.StartOffline( globalThis.GetPlayerSettings() );" value="Play offline (still very unreliable)"> 
 	    <input type="button" onclick="globalThis.ResetSkin();" value="Reset skin to default">
 	    
 	    </div>
@@ -901,10 +901,15 @@
 
 		ctx.scale( 4,4 );
 		ctx.translate( 16, 14 );
-
-		sdShop.isDrawing = true;
-		ent.Draw( ctx );
-		sdShop.isDrawing = false;
+		
+		let real_net_id = ent._net_id;
+		ent._net_id = 0;
+		{
+		    sdShop.isDrawing = true;
+		    ent.Draw( ctx );
+		    sdShop.isDrawing = false;
+		}
+		ent._net_id = real_net_id;
 		
 		if ( ent._ragdoll )
 		{

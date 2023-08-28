@@ -649,8 +649,20 @@ class sdSuperTexture
 				{
 					let e = sdRenderer.known_light_sources_previous[ i2 ];
 					
+					// Blinking bug? Check this
+					/*if ( 
+						isNaN( e.x ) ||
+						isNaN( e.y ) ||
+						isNaN( e._hitbox_x1 ) ||
+						isNaN( e._hitbox_x2 ) ||
+						isNaN( e._hitbox_y1 ) ||
+						isNaN( e._hitbox_y2 )
+					)
+					debugger;*/
+					
 					let range = e.is( sdLamp ) ? 200 : e.is( sdWater ) ? 100 : 50;
 					
+					if ( !fast_recalc )
 					if ( e.is( sdCharacter ) || e.is( sdEffect ) || e.is( sdBullet ) || e.is( sdHover ) )
 					if ( sdWorld.inDist2D_Boolean( x, y, e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2, e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2, range + 100 ) )
 					fast_recalc = true;
@@ -2055,6 +2067,11 @@ class sdAtlasMaterial
 		
 		let w = ( sdWorld.world_bounds.x2 - sdWorld.world_bounds.x1 ) / 16;
 		let h = ( sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1 ) / 16;
+		
+		if ( w < 400 )
+		w = 400;
+		if ( h < 200 )
+		h = 200;
 		
 		if ( sdAtlasMaterial.brightness_cache_buffer_width !== w ||
 			 sdAtlasMaterial.brightness_cache_buffer_height !== h )

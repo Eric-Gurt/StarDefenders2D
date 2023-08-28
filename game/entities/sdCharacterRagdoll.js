@@ -30,6 +30,10 @@ class sdCharacterRagdoll
 	
 		this._ignore_sounds_until = 0;
 		
+		this._ledge_holding_x = 0;
+		this._ledge_holding_y = 0;
+		this._ledge_holding_defined = false;
+		
 		this.character = character;
 		character._ragdoll = this;
 		
@@ -504,25 +508,34 @@ class sdCharacterRagdoll
 			dy += 0.4 * activation;
 		
 			this.MoveBoneRelative( this.hand1, 
-			this.chest._tx + dx * ( 9 + gun_offset_x - reload ) * scale, 
-			this.chest._ty + dy * ( 9 + gun_offset_x - reload ) * scale - breathe_rise );
+				this.chest._tx + dx * ( 9 + gun_offset_x - reload ) * scale, 
+				this.chest._ty + dy * ( 9 + gun_offset_x - reload ) * scale - breathe_rise );
 
 			this.MoveBoneRelative( this.hand2, 
-			this.chest._tx + dx * ( 9 + gun_offset_x - 3 + reload ) * scale, 
-			this.chest._ty + dy * ( 9 + gun_offset_x - 3 + reload ) * scale + 2 * scale - breathe_rise );
+				this.chest._tx + dx * ( 9 + gun_offset_x - 3 + reload ) * scale, 
+				this.chest._ty + dy * ( 9 + gun_offset_x - 3 + reload ) * scale + 2 * scale - breathe_rise );
 		}
 		else
 		{
 			this.MoveBoneRelative( this.hand1, 
-			this.chest._tx - _anim_walk_arms * scale, 
-			this.chest._ty + 6 * scale );
+				this.chest._tx - _anim_walk_arms * scale, 
+				this.chest._ty + 6 * scale );
 
 			this.MoveBoneRelative( this.hand2, 
-			this.chest._tx + _anim_walk_arms * scale, 
-			this.chest._ty + 6 * scale );
+				this.chest._tx + _anim_walk_arms * scale, 
+				this.chest._ty + 6 * scale );
 		}
 		
-		
+		if ( this.character._ledge_holding && this._ledge_holding_defined )
+		{
+			this.MoveBoneAbsolute( this.hand2, 
+				this._ledge_holding_x, 
+				this._ledge_holding_y - 2 );
+				
+			this.MoveBoneAbsolute( this.hand1, 
+				this._ledge_holding_x, 
+				this._ledge_holding_y );
+		}
 		
 		
 		
@@ -1265,10 +1278,10 @@ class sdSpring
 
 class sdBone extends sdEntity
 {
-	get hitbox_x1() { return -this.radius * ( this.ragdoll && this.ragdoll.character ? this.ragdoll.character.s / 100 : 1 ); }
-	get hitbox_x2() { return this.radius * ( this.ragdoll && this.ragdoll.character ? this.ragdoll.character.s / 100 : 1 ); }
-	get hitbox_y1() { return -this.radius * ( this.ragdoll && this.ragdoll.character ? this.ragdoll.character.s / 100 : 1 ); }
-	get hitbox_y2() { return this.radius * ( this.ragdoll && this.ragdoll.character ? this.ragdoll.character.s / 100 : 1 ); }
+	get hitbox_x1() { return -this.radius * ( this._ragdoll && this._ragdoll.character ? this._ragdoll.character.s / 100 : 1 ); }
+	get hitbox_x2() { return this.radius * ( this._ragdoll && this._ragdoll.character ? this._ragdoll.character.s / 100 : 1 ); }
+	get hitbox_y1() { return -this.radius * ( this._ragdoll && this._ragdoll.character ? this._ragdoll.character.s / 100 : 1 ); }
+	get hitbox_y2() { return this.radius * ( this._ragdoll && this._ragdoll.character ? this._ragdoll.character.s / 100 : 1 ); }
 	
 	get hard_collision()
 	{ return false; }
@@ -1300,15 +1313,15 @@ class sdBone extends sdEntity
 		{
 			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 			{
-				if ( sdWorld.time > this.ragdoll._ignore_sounds_until )
+				if ( sdWorld.time > this._ragdoll._ignore_sounds_until )
 				{
 					if ( this._can_make_sound >= 3 )
 					{
 						this._can_make_sound = 0;
 
-						this.ragdoll._ignore_sounds_until = sdWorld.time + 16;
+						this._ragdoll._ignore_sounds_until = sdWorld.time + 16;
 
-						if ( this.ragdoll.character._local_ragdoll_ever_synced ) // Mute when prethinking new ragdoll
+						if ( this._ragdoll.character._local_ragdoll_ever_synced ) // Mute when prethinking new ragdoll
 						sdSound.PlaySound({ name:'player_step', x:this.x, y:this.y, pitch:1.5, volume: Math.min( 0.5, 0.2 * vel ), _server_allowed:true });
 					}
 				}
@@ -1321,7 +1334,7 @@ class sdBone extends sdEntity
 	}
 	onPhysicallyStuck() // Called as a result of ApplyVelocityAndCollisions call. Return true if entity needs unstuck logic appleid, which can be performance-damaging too
 	{
-		this.ragdoll._ignore_sounds_until = sdWorld.time + 100;
+		this._ragdoll._ignore_sounds_until = sdWorld.time + 100;
 		
 		return true;
 	}
@@ -1333,7 +1346,7 @@ class sdBone extends sdEntity
 		this._bone_name = params.bone_name;
 		
 		this.radius = params.radius;
-		this.ragdoll = params.ragdoll;
+		this._ragdoll = params.ragdoll;
 		
 		this.sx = params.sx;
 		this.sy = params.sy;
@@ -1418,7 +1431,7 @@ class sdBone extends sdEntity
 	}
 	onRemove() // Class-specific, if needed
 	{
-		this.ragdoll.Delete();
+		this._ragdoll.Delete();
 	}
 	/*onBeforeRemove()
 	{

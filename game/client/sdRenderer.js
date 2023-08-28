@@ -1,5 +1,5 @@
 
-/* global FakeCanvasContext */
+/* global FakeCanvasContext, userAgent, globalThis, Infinity, sdMatterAmplifier, sdCrystal, Coloris, BROWSER_GECKO */
 
 import sdWorld from '../sdWorld.js';
 import sdShop from '../client/sdShop.js';
@@ -38,6 +38,8 @@ class sdRenderer
 		sdRenderer.ad_happens = false;
 		
 		sdRenderer.line_of_sight_mode = true;
+		
+		sdRenderer.single_player_visibles_array = [];
 	
 		sdRenderer.distance_scale_background = 1.4; // 1.2
 		sdRenderer.distance_scale_in_world = 1; // Can be altered with .CameraDistanceScale3D
@@ -531,111 +533,115 @@ class sdRenderer
 		
 			function GenerateDarkLands()
 			{
-				for ( let i = 0; i < sdRenderer.dark_lands_colors.length; i++ )
+				
+				let old_seed = sdWorld.SeededRandomNumberGenerator.seed;
+				sdWorld.SeededRandomNumberGenerator.seed = 5892489;
 				{
-					let c = document.createElement('canvas');
-					c.width = sdRenderer.dark_lands_width;
-					c.height = 400;
-					
-					let c2 = document.createElement('canvas');
-					c2.width = sdRenderer.dark_lands_width;
-					c2.height = 400;
 
-					let ctx = c.getContext("2d");
-					let ctx2 = c2.getContext("2d");
-					//
+					for ( let i = 0; i < sdRenderer.dark_lands_colors.length; i++ )
+					{
+						let c = document.createElement('canvas');
+						c.width = sdRenderer.dark_lands_width;
+						c.height = 400;
 
-					let scale = ( 1 / ( sdRenderer.dark_lands_colors.length - i ) );
+						let c2 = document.createElement('canvas');
+						c2.width = sdRenderer.dark_lands_width;
+						c2.height = 400;
 
-					sdWorld.SeededRandomNumberGenerator.seed = 5892489;
-					
-					
-					ctx2.save();
-					
-						let image_scale = scale * 2;
-					
-						ctx2.scale( image_scale, image_scale );
-						ctx2.filter = 'saturate(0) brightness(3)';
-						ctx2.fillStyle = ctx2.createPattern( img_ground88, "repeat" );
-						ctx2.fillRect( 0, 0, sdRenderer.dark_lands_width / image_scale, 400 / image_scale );
+						let ctx = c.getContext("2d");
+						let ctx2 = c2.getContext("2d");
+						//
 
-						ctx2.filter = 'none';
-						ctx2.globalCompositeOperation = 'multiply';
-						ctx2.fillStyle = sdRenderer.dark_lands_colors[ i ];
-						ctx2.fillRect( 0, 0, sdRenderer.dark_lands_width / image_scale, 400 / image_scale );
+						let scale = ( 1 / ( sdRenderer.dark_lands_colors.length - i ) );
 
-					ctx2.restore();
-					
-					ctx.drawImage( c2, 0,0 );
-					
-					
-					ctx.save();
-					
-						ctx.globalCompositeOperation = 'destination-atop';
-					
-						ctx.beginPath();
-						{
-							let h = 0;
+						ctx2.save();
 
-							let heights = [];
-							let iters = ~~( 300 * scale ); // 100 // Noise smooth
-							for ( let x = 0; x <= sdRenderer.dark_lands_width; x += 1 )
+							let image_scale = scale * 2;
+
+							ctx2.scale( image_scale, image_scale );
+							ctx2.filter = 'saturate(0) brightness(3)';
+							ctx2.fillStyle = ctx2.createPattern( img_ground88, "repeat" );
+							ctx2.fillRect( 0, 0, sdRenderer.dark_lands_width / image_scale, 400 / image_scale );
+
+							ctx2.filter = 'none';
+							ctx2.globalCompositeOperation = 'multiply';
+							ctx2.fillStyle = sdRenderer.dark_lands_colors[ i ];
+							ctx2.fillRect( 0, 0, sdRenderer.dark_lands_width / image_scale, 400 / image_scale );
+
+						ctx2.restore();
+
+						ctx.drawImage( c2, 0,0 );
+
+
+						ctx.save();
+
+							ctx.globalCompositeOperation = 'destination-atop';
+
+							ctx.beginPath();
 							{
-								let sum = 0;
-								for ( let xx = 0; xx < iters; xx++ )
-								sum += sdWorld.SeededRandomNumberGenerator.random( ( x + xx ) % sdRenderer.dark_lands_width, i );
+								let h = 0;
 
-								sum /= iters;
-
-								h = ( sum - 0.5 ) * scale * 800; // 400
-								heights.push( h );
-							}
-
-							let smoothness = ~~( 100 * scale ); // 160
-							for ( let s = 0; s < smoothness; s++ ) // Result smooth
-							{
-								let heights2 = heights.slice();
+								let heights = [];
+								let iters = ~~( 300 * scale ); // 100 // Noise smooth
 								for ( let x = 0; x <= sdRenderer.dark_lands_width; x += 1 )
 								{
-									let x0 = heights[ ( x - 1 + sdRenderer.dark_lands_width ) % sdRenderer.dark_lands_width ];
-									let x1 = heights[ x ];
-									let x2 = heights[ ( x + 1 ) % sdRenderer.dark_lands_width ];
+									let sum = 0;
+									for ( let xx = 0; xx < iters; xx++ )
+									sum += sdWorld.SeededRandomNumberGenerator.random( ( x + xx ) % sdRenderer.dark_lands_width, i );
 
-									heights2[ x ] = ( x0 + x1 + x2 ) / 3;
+									sum /= iters;
+
+									h = ( sum - 0.5 ) * scale * 800; // 400
+									heights.push( h );
 								}
-								heights = heights2;
+
+								let smoothness = ~~( 100 * scale ); // 160
+								for ( let s = 0; s < smoothness; s++ ) // Result smooth
+								{
+									let heights2 = heights.slice();
+									for ( let x = 0; x <= sdRenderer.dark_lands_width; x += 1 )
+									{
+										let x0 = heights[ ( x - 1 + sdRenderer.dark_lands_width ) % sdRenderer.dark_lands_width ];
+										let x1 = heights[ x ];
+										let x2 = heights[ ( x + 1 ) % sdRenderer.dark_lands_width ];
+
+										heights2[ x ] = ( x0 + x1 + x2 ) / 3;
+									}
+									heights = heights2;
+								}
+
+								for ( let x = 0; x <= sdRenderer.dark_lands_width; x += 1 )
+								{
+									h = heights[ x ];
+
+									if ( x === 0 )
+									ctx.moveTo( x, 200 + h );
+									else
+									ctx.lineTo( x, 200 + h );
+								}
+								ctx.lineTo( 800, 200 + h );
+								ctx.lineTo( 800, 400 );
+								ctx.lineTo( 0, 400 );
 							}
 
-							for ( let x = 0; x <= sdRenderer.dark_lands_width; x += 1 )
-							{
-								h = heights[ x ];
 
-								if ( x === 0 )
-								ctx.moveTo( x, 200 + h );
-								else
-								ctx.lineTo( x, 200 + h );
-							}
-							ctx.lineTo( 800, 200 + h );
-							ctx.lineTo( 800, 400 );
-							ctx.lineTo( 0, 400 );
-						}
+							//ctx.globalCompositeOperation = 'source-over';
+							//ctx.filter = 'none';
+							//ctx.fillStyle = sdRenderer.dark_lands_colors[ i ];
+							ctx.fill();
 
+							//ctx.clip();
 
-						//ctx.globalCompositeOperation = 'source-over';
-						//ctx.filter = 'none';
-						//ctx.fillStyle = sdRenderer.dark_lands_colors[ i ];
-						ctx.fill();
+							//ctx.globalCompositeOperation = 'luminosity';
+							//ctx.filter = 'grayscale(1) brightness(2)';
 
-						//ctx.clip();
+						ctx.restore();
 
-						//ctx.globalCompositeOperation = 'luminosity';
-						//ctx.filter = 'grayscale(1) brightness(2)';
-						
-					ctx.restore();
-
-					sdRenderer.dark_lands_canvases.push( c );
-					sdRenderer.dark_lands_canvases_fill.push( c2 );
+						sdRenderer.dark_lands_canvases.push( c );
+						sdRenderer.dark_lands_canvases_fill.push( c2 );
+					}
 				}
+				sdWorld.SeededRandomNumberGenerator.seed = old_seed;
 			}
 			
 			if ( !img_ground88.loaded )
@@ -752,6 +758,40 @@ class sdRenderer
 		/*if ( !document.hasFocus() ) Can be inaccurate
 		if ( Math.random() > 0.1 )
 		return;*/
+												
+		let visible_entities = sdEntity.entities;
+		
+		let min_x = sdWorld.camera.x - 800/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width - 64;
+		let max_x = sdWorld.camera.x + 800/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width + 64;
+
+		let min_y = sdWorld.camera.y - 400/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width - 64;
+		let max_y = sdWorld.camera.y + 400/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width + 64;
+
+		if ( sdWorld.is_singleplayer )
+		{
+			const mark_flag_reference = sdEntity.flag_counter++;
+			
+			visible_entities = sdRenderer.single_player_visibles_array = [];
+			
+			let tot = 0;
+			
+			for ( let yy = min_y; yy < max_y; yy += sdWorld.CHUNK_SIZE )
+			for ( let xx = min_x; xx < max_x; xx += sdWorld.CHUNK_SIZE )
+			{
+				let arr = sdWorld.RequireHashPosition( xx, yy ).arr;
+				
+				for ( let i = 0; i < arr.length; i++ )
+				{
+					let e = arr[ i ];
+					if ( e._flag !== mark_flag_reference )
+					{
+						e._flag = mark_flag_reference;
+						visible_entities[ tot++ ] = e;
+					}
+				}
+			}
+			visible_entities.length = tot;
+		}
 			
 		const show_hud = ( !sdWorld.my_entity || !sdWorld.my_entity.is( sdPlayerSpectator ) || sdChat.open || sdContextMenu.open );
 			
@@ -1087,12 +1127,6 @@ class sdRenderer
 			ctx.apply_shading = true;
 			
 
-			let min_x = sdWorld.camera.x - 800/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width - 64;
-			let max_x = sdWorld.camera.x + 800/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width + 64;
-
-			let min_y = sdWorld.camera.y - 400/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width - 64;
-			let max_y = sdWorld.camera.y + 400/2 / sdWorld.camera.scale / 800 * sdRenderer.screen_width + 64;
-			
 			//ctx.fillStyle = '#7b3219';
 			//ctx.fillRect( sdWorld.camera.x - sdRenderer.screen_width, 0, sdRenderer.screen_width * 2, sdRenderer.screen_height );
 			
@@ -1129,9 +1163,9 @@ class sdRenderer
 				let y = sdWorld.my_entity ? sdWorld.my_entity.y : 0;
 
 				let angles = sdRenderer.old_visibility_map ? sdRenderer.old_visibility_map.length : null;
-				for ( let i = 0; i < sdEntity.entities.length; i++ )
+				for ( let i = 0; i < visible_entities.length; i++ )
 				{
-					const e = sdEntity.entities[ i ];
+					const e = visible_entities[ i ];
 					
 					/*if (	e.is( sdEffect ) &&
 								( e._type === sdEffect.TYPE_BEAM || e._type === sdEffect.TYPE_BEAM_CIRCLED ) )
@@ -1224,9 +1258,9 @@ class sdRenderer
 			
 			const box_caps = sdRenderer.ctx.box_caps;
 		
-			for ( let i = 0; i < sdEntity.entities.length; i++ )
+			for ( let i = 0; i < visible_entities.length; i++ )
 			{
-				const e = sdEntity.entities[ i ];
+				const e = visible_entities[ i ];
 				
 				if ( e._flag === frame_flag_reference )
 				if ( e.DrawBG !== void_draw )
@@ -1277,9 +1311,9 @@ class sdRenderer
 			ctx.z_offset = -16 * sdWorld.camera.scale;
 			ctx.z_depth = 16 * sdWorld.camera.scale;
 			
-			for ( let i = 0; i < sdEntity.entities.length; i++ )
+			for ( let i = 0; i < visible_entities.length; i++ )
 			{
-				const e = sdEntity.entities[ i ];
+				const e = visible_entities[ i ];
 				
 				if ( e._flag === frame_flag_reference )
 				if ( ( e.x + e._hitbox_x2 > min_x &&
@@ -1341,9 +1375,9 @@ class sdRenderer
 			
 			//ctx.z_offset = 0 * sdWorld.camera.scale;
 			//ctx.z_depth = 16 * sdWorld.camera.scale;
-			for ( let i = 0; i < sdEntity.entities.length; i++ )
+			for ( let i = 0; i < visible_entities.length; i++ )
 			{
-				const e = sdEntity.entities[ i ];
+				const e = visible_entities[ i ];
 				
 				if ( e._flag === frame_flag_reference )
 				if ( e.DrawFG !== void_draw_fg )
@@ -1500,16 +1534,16 @@ class sdRenderer
 					else
 					{
 						if ( show_hud )
-						for ( var i = 0; i < sdEntity.entities.length; i++ )
-						if ( sdEntity.entities[ i ]._flag === frame_flag_reference )
-						if ( sdEntity.entities[ i ].DrawHUD !== sdEntity.prototype.DrawHUD )
+						for ( var i = 0; i < visible_entities.length; i++ )
+						if ( visible_entities[ i ]._flag === frame_flag_reference )
+						if ( visible_entities[ i ].DrawHUD !== sdEntity.prototype.DrawHUD )
 						{
-							//let cache = sdStatusEffect.line_of_sight_visibility_cache.get( sdEntity.entities[ i ] );
+							//let cache = sdStatusEffect.line_of_sight_visibility_cache.get( visible_entities[ i ] );
 
 							//if ( cache && ( cache.result > 0 || cache.result_soft > 0 ) ) // If client-side visible
 							{
 								// If cursor overlaps
-								var di = sdEntity.entities[ i ].GetAccurateDistance( sdWorld.mouse_world_x, sdWorld.mouse_world_y );
+								var di = visible_entities[ i ].GetAccurateDistance( sdWorld.mouse_world_x, sdWorld.mouse_world_y );
 
 								if ( di < 12 )
 								{
@@ -1519,12 +1553,12 @@ class sdRenderer
 									// Prioritize physical center
 									di += sdWorld.Dist2D( sdWorld.mouse_world_x, 
 														  sdWorld.mouse_world_y,
-														  sdEntity.entities[ i ].x + ( sdEntity.entities[ i ]._hitbox_x1 + sdEntity.entities[ i ]._hitbox_x2 ) / 2,
-														  sdEntity.entities[ i ].y + ( sdEntity.entities[ i ]._hitbox_y1 + sdEntity.entities[ i ]._hitbox_y2 ) / 2 ) * 0.001;
+														  visible_entities[ i ].x + ( visible_entities[ i ]._hitbox_x1 + visible_entities[ i ]._hitbox_x2 ) / 2,
+														  visible_entities[ i ].y + ( visible_entities[ i ]._hitbox_y1 + visible_entities[ i ]._hitbox_y2 ) / 2 ) * 0.001;
 
 									if ( di < best_di || best_ent === null )
 									{
-										best_ent = sdEntity.entities[ i ];
+										best_ent = visible_entities[ i ];
 										best_di = di;
 									}
 								}

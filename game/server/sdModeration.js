@@ -6,7 +6,8 @@
 
 */
 
-import fs from 'fs';
+//import fs from 'fs';
+//let fs = globalThis.fs;
 //import fs from 'fs-extra';
 
 import sdWorld from '../sdWorld.js';
@@ -16,8 +17,8 @@ import sdWater from '../entities/sdWater.js';
 import sdRescueTeleport from '../entities/sdRescueTeleport.js';
 import sdDeepSleep from '../entities/sdDeepSleep.js';
 
-
-import { spawn } from 'child_process';
+//import { spawn } from 'child_process';
+let spawn = globalThis.child_process_spawn;
 
 class sdModeration
 {
@@ -585,7 +586,7 @@ class sdModeration
 				{
 					// Skip arrival sequence
 					if ( socket.character.driver_of )
-					if ( socket.character.driver_of._doors_locked )
+					if ( ( socket.character.driver_of._doors_locked || socket.character.driver_of.doors_locked || false ) )
 					{
 						socket.character.driver_of.ExcludeDriver( socket.character, true );
 					}

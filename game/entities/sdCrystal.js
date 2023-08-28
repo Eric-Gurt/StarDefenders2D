@@ -177,7 +177,7 @@ class sdCrystal extends sdEntity
 	{
 		super( params );
 		
-		let is_really_deep = params.tag && params.tag.indexOf( 'really_deep' ) !== -1; // params.tag === 'deep' || params.tag === 'deep_crab';
+		//let is_really_deep = params.tag && params.tag.indexOf( 'really_deep' ) !== -1; // params.tag === 'deep' || params.tag === 'deep_crab';
 		
 		let is_deep = params.tag && params.tag.indexOf( 'deep' ) !== -1; // params.tag === 'deep' || params.tag === 'deep_crab';
 		
@@ -222,8 +222,12 @@ class sdCrystal extends sdEntity
 			this.attack_anim = 0; // For big crystal crabs
 		}
 		
-		if ( is_really_deep )
-		r *= 0.25;
+		//if ( is_really_deep )
+		//r *= 0.25;
+		
+		
+		let depth_tier = Math.max( 0, Math.floor( params.y / 1500 ) );
+		r /= Math.pow( 2, Math.random() * depth_tier );
 		
 		if ( r < 0.00390625 / 8 && is_deep ) // matter consuming crystal
 		this.matter_max *= 2048;
@@ -295,6 +299,8 @@ class sdCrystal extends sdEntity
 	
 	onSnapshotApplied() // To override
 	{
+		if ( sdWorld.is_server )
+		if ( !sdWorld.is_singleplayer )
 		if ( sdWorld.time < 1692486127166 + 1000 * 60 * 60 * 24 * 30 * 1 ) // 1 year for patch to be applied everywhere? Trying to prevent improper crystal attachment to trees
 		if ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON && ( this.held_by === null || this.held_by.crystal !== this ) )
 		{

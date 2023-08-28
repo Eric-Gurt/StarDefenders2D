@@ -270,6 +270,17 @@ class sdPresetEditor extends sdEntity
 		return ents_final;
 	}
 	
+	EraseEntitiesInEditor( initiator = null )
+	{
+		let ents_array = this.GetEntitiesInside( initiator );
+		
+		for ( let i = 0; i < ents_array.length; i++ )
+		{
+			ents_array[ i ].remove();
+			ents_array[ i ]._broken = false;
+		}
+	}
+	
 	SaveEntitiesInsidePreset( initiator = null )
 	{
 		if ( this.preset_name === '' ) // Just in case
@@ -726,6 +737,10 @@ class sdPresetEditor extends sdEntity
 				
 					this._update_version++;
 				}
+				if ( command_name === 'ERASE' )
+				{
+					this.EraseEntitiesInEditor( exectuter_character );
+				}
 				if ( command_name === 'CANCEL' )
 				{
 					this.remove();
@@ -763,6 +778,8 @@ class sdPresetEditor extends sdEntity
 				this.AddPromptContextOption( 'Remove author', 'REMOVEAUTHOR', [ undefined ], 'Enter author name', this.authors, 300 );
 				
 				this.AddPromptContextOption( 'Set timescale', 'TIMESCALE', [ undefined ], 'Enter new timescale', (this.time_scale/1000)+'', 300 );
+				
+				this.AddContextOption( 'Erase entities in region', 'ERASE', [] );
 				
 				this.AddContextOption( 'Cancel preset region', 'CANCEL', [] );
 			}

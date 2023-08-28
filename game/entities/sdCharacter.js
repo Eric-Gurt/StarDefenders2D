@@ -3651,9 +3651,31 @@ class sdCharacter extends sdEntity
 				if ( this.act_x !== 0 )
 				if ( !this.driver_of )
 				if ( sdWorld.CheckWallExistsBox( this.x + this.act_x * 7, this.y, this.x + this.act_x * 7, this.y + 10, null, null, sdCharacter.climb_filter ) )
-				if ( !sdWorld.CheckWallExists( this.x + this.act_x * 7, this.y + this._hitbox_y1, null, null, sdCharacter.climb_filter ) )
 				{
-					ledge_holding = true;
+					let ledge_target = sdWorld.last_hit_entity;
+					if ( !sdWorld.CheckWallExists( this.x + this.act_x * 7, this.y + this._hitbox_y1, null, null, sdCharacter.climb_filter ) )
+					{
+						ledge_holding = true;
+
+						if ( this._ragdoll )
+						{
+							if ( ledge_target )
+							{
+								if ( this.x < ledge_target.GetCenterX() )
+								this._ragdoll._ledge_holding_x = ledge_target.x + ledge_target._hitbox_x1;
+								else
+								this._ragdoll._ledge_holding_x = ledge_target.x + ledge_target._hitbox_x2;
+								
+								this._ragdoll._ledge_holding_y = ledge_target.y + ledge_target._hitbox_y1;
+								
+								this._ragdoll._ledge_holding_defined = true;
+							}
+							else
+							{
+								this._ragdoll._ledge_holding_defined = false;
+							}
+						}
+					}
 				}
 			}
 		}
@@ -5604,6 +5626,7 @@ class sdCharacter extends sdEntity
 					this.AddContextOption( 'Kill', 'ADMIN_KILL', [], true, { color:'ff0000' } );
 					this.AddContextOption( 'Remove', 'ADMIN_REMOVE', [], true, { color:'ff0000' } );
 
+					if ( this !== sdWorld.my_entity )
 					this.AddContextOption( 'Start controlling', 'ADMIN_CONTROL', [], { color:'ff0000' } );
 				}
 
@@ -5616,22 +5639,48 @@ class sdCharacter extends sdEntity
 				{
 					if ( this === exectuter_character )
 					{
-						this.AddClientSideActionContextOption( 'Quit and forget this character', ()=>
+						if ( sdWorld.is_singleplayer )
 						{
-							if ( sdWorld.my_score < 50 || confirm( 'Are you sure you want to forget this character?' ) )
+							this.AddClientSideActionContextOption( 'Quit to main menu', ()=>
 							{
 								sdWorld.Stop();
-							}
-						});
-						this.AddContextOption( 'Teleport to closest/cheapest claimed rescue teleport', 'RTP', [] );
-
-						this.AddClientSideActionContextOption( 'Copy character hash ID', ()=>
-						{
-							if( confirm( 'Sharing this with others, or not knowing how to use this properly can make you lose your character and progress. Are you sure?' ) )
+							});
+							
+							this.AddClientSideActionContextOption( 'Destroy this world', ()=>
 							{
-								prompt('This is your hash, keep it private and remember it to recover your character.', localStorage.my_hash /*+ "|" + localStorage.my_net_id*/ );
-							}
-						});
+								if ( sdWorld.my_score < 50 || confirm( 'Are you sure you want to destroy this world?' ) )
+								{
+									sdWorld.Stop();
+									
+									//sdWorld.PreventSnapshotSaving();
+									try
+									{
+										fs.unlinkSync( sdWorld.snapshot_path_const );
+										sdDeepSleep.DeleteAllFiles();
+
+									}catch(e){}
+								}
+							});
+						}
+						else
+						{
+							this.AddClientSideActionContextOption( 'Quit and forget this character', ()=>
+							{
+								if ( sdWorld.my_score < 50 || confirm( 'Are you sure you want to forget this character?' ) )
+								{
+									sdWorld.Stop();
+								}
+							});
+							this.AddContextOption( 'Teleport to closest/cheapest claimed rescue teleport', 'RTP', [] );
+
+							this.AddClientSideActionContextOption( 'Copy character hash ID', ()=>
+							{
+								if( confirm( 'Sharing this with others, or not knowing how to use this properly can make you lose your character and progress. Are you sure?' ) )
+								{
+									prompt('This is your hash, keep it private and remember it to recover your character.', localStorage.my_hash /*+ "|" + localStorage.my_net_id*/ );
+								}
+							});
+						}
 
 						if ( this.cc_id )
 						{

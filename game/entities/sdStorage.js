@@ -222,7 +222,7 @@ class sdStorage extends sdEntity
 		}
 		// End of patch
 		
-		if ( !sdWorld.is_server )
+		if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 		{
 			let old_open = this._open_anim;
 			

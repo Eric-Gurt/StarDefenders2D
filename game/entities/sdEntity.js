@@ -163,7 +163,7 @@ class sdEntity
 				arr.push( top_ent );
 
 				if ( sdWorld.is_server )
-				if ( arr.length > 100 )
+				if ( arr.length > 300 )
 				{
 					//console.warn( 'Too many objets lie on top of ',bottom_ent,'objects list:', arr );
 					debugger;
@@ -409,6 +409,14 @@ class sdEntity
 		}
 	}
 	
+	GetCenterX()
+	{
+		return this.x + ( this._hitbox_x1 + this._hitbox_x2 ) / 2;
+	}
+	GetCenterY()
+	{
+		return this.y + ( this._hitbox_y1 + this._hitbox_y2 ) / 2;
+	}
 	GetAccurateDistance( xx, yy ) // Used on client-side when right clicking on cables (also during cursor hovering for context menu and hint), also on server when distance between cable and player is measured
 	{
 		return sdWorld.Dist2D(	xx, 
@@ -3945,6 +3953,9 @@ class sdEntity
 		//if ( globalThis[ snapshot._class ] === undefined )
 		if ( typeof sdWorld.entity_classes[ snapshot._class ] === 'undefined' )
 		{
+			if ( snapshot._class === 'sdBone' )
+			return null;
+			
 			//console.log( 'Known entity classes: ', sdWorld.entity_classes );
 			throw new Error( 'Unknown entity class "'+snapshot._class+'". Download or it is missing?' );
 		}
@@ -4894,7 +4905,8 @@ class sdEntity
 				trace( 'Bullet is being removed' );
 				debugger;
 			}*/
-
+			
+			if ( !this.IsGlobalEntity() )
 			this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 
 			this._is_being_removed = true;
@@ -4933,9 +4945,11 @@ class sdEntity
 		
 		this.ManageTrackedPhysWakeup();
 		
-		this.SetHiberState( sdEntity.HIBERSTATE_REMOVED );
-		
-		sdWorld.UpdateHashPosition( this, false );
+		if ( !this.IsGlobalEntity() )
+		{
+			this.SetHiberState( sdEntity.HIBERSTATE_REMOVED );
+			sdWorld.UpdateHashPosition( this, false );
+		}
 		
 		// Some more memory leak preventing cleanup logic
 		{

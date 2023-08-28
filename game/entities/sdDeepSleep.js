@@ -21,7 +21,7 @@
 		for ( let i = 0; i < sdWorld.entity_classes.sdDeepSleep.cells.length; i++ )
 		sdWorld.entity_classes.sdDeepSleep.GlobalThink( 1 );
 
-		sdWorld.SaveSnapshotAuthoPath();
+		sdWorld.SaveSnapshotAutoPath();
 
 	TODO: Had weird bug that caused rift portal overcharge rollback as well as 5k crystal resapwn which I did put into rift... Reboots did not happen. I doubt another 5k would spawn? It could be just GSPEED-unscaled sdRift logic though.
 
@@ -241,6 +241,9 @@ class sdDeepSleep extends sdEntity
 	}
 	static GlobalThink( GSPEED )
 	{
+		if ( sdWorld.paused )
+		return;
+		
 		//return; // Hack
 		let iters = sdDeepSleep.debug ? sdDeepSleep.cells.length * 0.01 : 1;
 		

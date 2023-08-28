@@ -382,8 +382,8 @@ class sdStatusEffect extends sdEntity
 						
 						if ( di >= 0 )
 						{
-							ent.sx = sdWorld.MorphWithTimeScale( ent.sx, status_entity.for.sx, 0.95, GSPEED * ( range_affection - di ) );
-							ent.sy = sdWorld.MorphWithTimeScale( ent.sy, status_entity.for.sy + up_velocity, 0.95, GSPEED * ( range_affection - di ) );
+							ent.sx = sdWorld.MorphWithTimeScale( ent.sx, ( status_entity.for.sx || 0 ), 0.95, GSPEED * ( range_affection - di ) );
+							ent.sy = sdWorld.MorphWithTimeScale( ent.sy, ( status_entity.for.sy || 0 ) + up_velocity, 0.95, GSPEED * ( range_affection - di ) );
 						}
 
 						ent.sx = sdWorld.MorphWithTimeScale( ent.sx, 0, 0.95, GSPEED );

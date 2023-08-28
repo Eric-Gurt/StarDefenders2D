@@ -141,7 +141,7 @@ class sdWater extends sdEntity
 		
 		this._think_offset = ~~( Math.random() * 16 );
 		
-		this._stack_trace = globalThis.getStackTrace();
+		//this._stack_trace = globalThis.getStackTrace();
 		
 		if ( sdWorld.is_server )
 		//if ( 0 ) // Hack

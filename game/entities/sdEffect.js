@@ -399,6 +399,9 @@ class sdEffect extends sdEntity
 			throw new Error('Server should not spawn these ever - they will at very least be missing proper description');
 		}
 		
+		// Debugging NaN x/y of broken particles
+		//this._stack_trace = globalThis.getStackTrace();
+		
 		this._ani = 0;
 		this._type = params.type || 0;
 		
@@ -726,6 +729,12 @@ class sdEffect extends sdEntity
 		this.remove();
 		if ( this.y >= sdWorld.world_bounds.y2 )
 		this.remove();*/
+		
+		/*
+		EnforceChangeLog( this, 'x', false, true );
+		EnforceChangeLog( this, 'y', false, true );
+		EnforceChangeLog( this, 'sx', false, true );
+		EnforceChangeLog( this, 'sy', false, true );*/
 	}
 	static Transliterate( word )
 	{
