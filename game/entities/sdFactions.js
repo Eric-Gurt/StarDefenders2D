@@ -370,7 +370,7 @@ class sdFactions extends sdEntity
 			"legs51":true,
 			"voice10":true };
 
-			if ( character_entity._ai_gun_slot === 5 || 1 ) // If a regular Sarronian soldier
+			if ( character_entity._ai_gun_slot === 5 || character_entity._ai_gun_slot === 1 ) // If a regular Sarronian soldier
 			{
 				character_entity.matter = 350;
 				character_entity.matter_max = 350;

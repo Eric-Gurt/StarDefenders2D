@@ -57,6 +57,7 @@ class sdBullet extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
+	
 	get hitbox_x1()
 	{ if ( this.model_is_large ) // if bullet sprite model is 64 by 64
 		return -3
