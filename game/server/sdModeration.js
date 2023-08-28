@@ -470,8 +470,8 @@ class sdModeration
 
 						//console.log('CWD: ' + process.cwd() );
 
-						//require( "child_process" ).spawn( process.argv.shift(), process.argv, 
-						spawn( arg0, arg123, 
+						//require( "child_process" ).globalThis.child_process_spawn( process.argv.shift(), process.argv, 
+						globalThis.child_process_spawn( arg0, arg123, 
 						{
 							cwd: process.cwd(),
 							detached: true,
