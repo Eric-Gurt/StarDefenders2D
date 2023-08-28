@@ -4448,10 +4448,11 @@ class sdWorld
 		if ( sdEntity.global_entities.length === 0 )
 		sdEntity.entities.push( new sdWeather({}) );
 	
-		// Stop all events
 		sdWorld.server_config = sdServerConfigFull;
-		sdWorld.server_config.GetAllowedWorldEvents = ()=>[];
-		sdWorld.entity_classes.sdWeather.only_instance._daily_events = [];
+		
+		// Stop all events
+		//sdWorld.server_config.GetAllowedWorldEvents = ()=>[];
+		//sdWorld.entity_classes.sdWeather.only_instance._daily_events = [];
 		
 		globalThis.socket = {
 			emit: ( cmd, obj )=>
