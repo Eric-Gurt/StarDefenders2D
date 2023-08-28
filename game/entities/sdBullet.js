@@ -57,10 +57,38 @@ class sdBullet extends sdEntity
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
-	get hitbox_x1() { return this.is_grenade || this.ac > 0 ? -2 : -0.1; }
-	get hitbox_x2() { return this.is_grenade || this.ac > 0 ? 2 : 0.1; }
-	get hitbox_y1() { return this.is_grenade || this.ac > 0 ? -2 : -0.1; }
-	get hitbox_y2() { return this.is_grenade || this.ac > 0 ? 2 : 0.1; }
+	get hitbox_x1()
+	{ if ( this.model_is_large ) // if bullet sprite model is 64 by 64
+		return -3
+		else
+		if ( this.is_grenade || this.ac > 0 || this.model_is_medium ) 
+		return -2
+		else
+		return -0.1 }
+	get hitbox_x2()
+	{ if ( this.model_is_large ) // if bullet sprite model is 64 by 64
+	return 3
+	else
+	if ( this.is_grenade || this.ac > 0 || this.model_is_medium ) 
+	return 2
+	else
+	return 0.1 }
+	get hitbox_y1()
+	{ if ( this.model_is_large ) // if bullet sprite model is 64 by 64
+	return -18
+	else
+	if ( this.is_grenade || this.ac > 0 || this.model_is_medium ) 
+	return -2
+	else
+	return -0.1 }
+	get hitbox_y2()
+	{ if ( this.model_is_large ) // if bullet sprite model is 64 by 64
+	return 18
+	else
+	if ( this.is_grenade || this.ac > 0 || this.model_is_medium ) 
+	return 2
+	else
+	return 0.1 }
 	/*
 	get substeps() // Bullets will need more
 	{ return 6; } // 3 was generally fine expect for sniper
@@ -163,7 +191,10 @@ class sdBullet extends sdEntity
 		
 		this.explosion_radius = 0;
 		this.model = null; // Custom image model
-		
+		this.model_is_big = false; // set to true if projectile sprite is 96 by 96 sprite
+		this.model_is_large = false; // set to true if projectile sprite is 64 by 64 sprite
+		this.model_is_medium = false; // set to true if projectile sprite is 64 by 32 sprite
+
 		//this._knock_scale = 0.05 * 8; // Without * 8 in old mass model
 		this._knock_scale = 0.01 * 8; // Less and standartized now, except for swords
 		
@@ -1037,13 +1068,43 @@ class sdBullet extends sdEntity
 	{
 		ctx.apply_shading = false;
 		
+		if ( this.model_is_big )
+		{
+			ctx.rotate( Math.atan2( this.sy, this.sx ) );
+		
+			if ( !sdBullet.images[ this.model ] )
+			sdBullet.images[ this.model ] = sdWorld.CreateImageFromFile( this.model );
+			
+			ctx.drawImageFilterCache( sdBullet.images[ this.model ], - 48, - 48, 96,96 ); // used for 96 by 96 sprites
+		}
+		else
+		if ( this.model_is_large )
+		{
+			ctx.rotate( Math.atan2( this.sy, this.sx ) );
+		
+			if ( !sdBullet.images[ this.model ] )
+			sdBullet.images[ this.model ] = sdWorld.CreateImageFromFile( this.model );
+			
+			ctx.drawImageFilterCache( sdBullet.images[ this.model ], - 32, - 32, 64,64 ); // used for 64 by 64 sprites
+		}
+		else
+		if ( this.model_is_medium )
+		{
+			ctx.rotate( Math.atan2( this.sy, this.sx ) );
+		
+			if ( !sdBullet.images[ this.model ] )
+			sdBullet.images[ this.model ] = sdWorld.CreateImageFromFile( this.model );
+			
+			ctx.drawImageFilterCache( sdBullet.images[ this.model ], - 32, - 16, 64,32 ); // used for 64 by 64 sprites
+		}
+		else
 		if ( this.model )
 		{
 			ctx.rotate( Math.atan2( this.sy, this.sx ) );
 		
 			if ( !sdBullet.images[ this.model ] )
 			sdBullet.images[ this.model ] = sdWorld.CreateImageFromFile( this.model );
-		
+			
 			ctx.drawImageFilterCache( sdBullet.images[ this.model ], - 16, - 16, 32,32 );
 		}
 		else

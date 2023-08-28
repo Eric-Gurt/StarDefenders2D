@@ -534,7 +534,7 @@ class sdGun extends sdEntity
 	{
 		if ( sdGun.classes[ this.class ] )
 		if ( !sdGun.classes[ this.class ].is_build_gun )
-		if ( !sdGun.classes[ this.class ].is_sword )
+		// if ( !sdGun.classes[ this.class ].is_sword )
 		{
 			sdSound.PlaySound({ name:'reload', x:this.x, y:this.y, volume:0.5, pitch:1.5 });
 			this._held_by.reload_anim = 15;
@@ -1383,8 +1383,24 @@ class sdGun extends sdEntity
 			{
 				image = has_class.image;
 
+				if ( has_class.has_alt_fire_mode ) // change sprite when changing fire modes
+				{
+					if ( this.fire_mode !== 1 )
+					image = has_class.image_alt;
+				}
+				
 				if ( this._held_by )
 				{
+					if ( this._held_by._auto_shoot_in > 0 )
+					if ( has_class.image_charging )
+					if ( has_class.has_alt_fire_mode )
+					{
+						if ( this.fire_mode !== 1 )
+						image = has_class.image_charging_alt;
+						else
+						image = has_class.image_charging;
+					}
+					else
 					if ( this._held_by._auto_shoot_in > 0 )
 					if ( has_class.image_charging )
 					{

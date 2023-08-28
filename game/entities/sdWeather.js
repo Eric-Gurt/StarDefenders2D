@@ -107,7 +107,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_WATER_RAIN =				event_counter++; // 14
 		sdWeather.EVENT_SNOW =					event_counter++; // 15
 		sdWeather.EVENT_LARGE_ANTICRYSTAL =			event_counter++; // 16
-		sdWeather.EVENT_SARRORIANS =				event_counter++; // 17
+		sdWeather.EVENT_SARRONIANS =				event_counter++; // 17
 		sdWeather.EVENT_COUNCIL_BOMB =				event_counter++; // 18
 		sdWeather.EVENT_MATTER_RAIN =				event_counter++; // 19
 		sdWeather.EVENT_OVERLORD =				event_counter++; // 20
@@ -1570,7 +1570,7 @@ class sdWeather extends sdEntity
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
 		}
-		if ( r === sdWeather.EVENT_SARRORIANS ) // Sarrorian(?) faction spawn. Spawns humanoids and drones.
+		if ( r === sdWeather.EVENT_SARRONIANS ) // Sarronian faction spawn. Spawns humanoids and drones.
 		{
 			let ais = 0;
 			let percent = 0;
@@ -1616,7 +1616,7 @@ class sdWeather extends sdEntity
 						}
 						else
 						{
-							sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_SARRORIAN );
+							sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_SARRONIAN );
 							break;
 						}
 					}
@@ -1626,13 +1626,13 @@ class sdWeather extends sdEntity
 				}
 
 				let drones = 0;
-				let drones_tot = Math.min( 6 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
+				let drones_tot = Math.min( 8 ,Math.ceil( ( Math.random() * 2 * sdWorld.GetPlayingPlayersCount() ) ) );
 
 
 				while ( drones < drones_tot && sdDrone.drones_tot < this._max_drone_count )
 				{
 
-					let drone = new sdDrone({ x:0, y:0 , _ai_team: 4, type: ( Math.random() < 0.15 ) ? 4 : 3});
+					let drone = new sdDrone({ x:0, y:0 , _ai_team: 4, type: ( Math.random() < 0.15 ) ? 4 : ( Math.random() < 0.10 ) ? 12 : 3 });
 
 					sdEntity.entities.push( drone );
 

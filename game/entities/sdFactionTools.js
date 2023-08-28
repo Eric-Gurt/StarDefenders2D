@@ -19,7 +19,7 @@ class sdFactionTools extends sdEntity
 		sdFactionTools.img_character_spawner = sdWorld.CreateImageFromFile( 'helmets/helmet_falkok' );
 		sdFactionTools.img_character_spawner2 = sdWorld.CreateImageFromFile( 'helmets/helmet_dino' );
 		sdFactionTools.img_character_spawner3 = sdWorld.CreateImageFromFile( 'helmets/helmet_council' );
-		sdFactionTools.img_character_spawner4 = sdWorld.CreateImageFromFile( 'helmets/helmet_mythic' );
+		sdFactionTools.img_character_spawner4 = sdWorld.CreateImageFromFile( 'helmets/helmet_duelist' );
 		sdFactionTools.img_character_spawner5 = sdWorld.CreateImageFromFile( 'helmets/helmet_velox' );
 		sdFactionTools.img_character_spawner6 = sdWorld.CreateImageFromFile( 'helmets/helmet_eyes' );
 		sdFactionTools.img_character_spawner7 = sdWorld.CreateImageFromFile( 'helmets/helmet_skeleton' );
@@ -28,7 +28,7 @@ class sdFactionTools extends sdEntity
 		sdFactionTools.FACTIONTOOL_FALKOK = 1; // Falkoks
 		sdFactionTools.FACTIONTOOL_ERTHAL = 2; // Erthals
 		sdFactionTools.FACTIONTOOL_COUNCIL = 3; // Council
-		sdFactionTools.FACTIONTOOL_SARRORIAN = 4; // Sarrorian
+		sdFactionTools.FACTIONTOOL_SARRONIAN = 4; // Sarronian
 		sdFactionTools.FACTIONTOOL_VELOX = 5; // Velox
 		sdFactionTools.FACTIONTOOL_SETR = 6; // Setr
 		sdFactionTools.FACTIONTOOL_TZYRG = 7; // Tzyrg
@@ -58,7 +58,7 @@ class sdFactionTools extends sdEntity
 		{
 			ctx.drawImageFilterCache( sdFactionTools.img_character_spawner, - 16, - 16, 32,32 );
 		}
-		if ( this.type === sdFactionTools.FACTIONTOOL_SARRORIAN )
+		if ( this.type === sdFactionTools.FACTIONTOOL_SARRONIAN )
 		{
 			ctx.drawImageFilterCache( sdFactionTools.img_character_spawner4, - 16, - 16, 32,32 );
 		}
@@ -111,7 +111,7 @@ class sdFactionTools extends sdEntity
 				}
 			}
 			else
-			if ( this.type === sdFactionTools.FACTIONTOOL_SARRORIAN )
+			if ( this.type === sdFactionTools.FACTIONTOOL_SARRONIAN )
 			{
 				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
 				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
@@ -119,7 +119,7 @@ class sdFactionTools extends sdEntity
 				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 				sdEntity.entities.push( character_entity );
 				{
-					sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_SARRORIAN );
+					sdFactions.SetHumanoidProperties( character_entity, sdFactions.FACTION_SARRONIAN );
 				}
 			}
 			else
