@@ -4210,7 +4210,9 @@ class sdWorld
 	{
 		// For singleplayer lost effect
 		if ( typeof Image !== 'undefined' )
-		if ( filename instanceof Image )
+		if ( filename instanceof Image || 
+			 ( filename.__proto__ === Object.prototype && filename.filename !== undefined ) // If loaded from snapshot
+		)
 		{
 			filename = filename.filename;
 		}
