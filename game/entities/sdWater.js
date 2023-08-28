@@ -242,6 +242,7 @@ class sdWater extends sdEntity
 			{
 				e = sdWater.GetWaterObjectAt( this.x + x * 16, this.y + y * 16 );
 				if ( e )
+				if ( e._hiberstate !== sdEntity.HIBERSTATE_ACTIVE ) // Make sure it is not already active?
 				e.AwakeSelfAndNear( recursive_catcher );
 			}
 		}

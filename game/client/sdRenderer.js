@@ -939,8 +939,10 @@ class sdRenderer
 					
 					if ( yy < sdRenderer.screen_height )
 					{
-						while ( xx < 0 )
-						xx += w;
+						//while ( xx < 0 )
+						//xx += w;
+						
+						xx = xx % w; // Faster for "far lands" case
 
 						while ( xx > 0 )
 						xx -= w;
