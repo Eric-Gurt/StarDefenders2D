@@ -933,6 +933,8 @@ class sdRenderer
 					xx -= sdRenderer.screen_width / 2 * current_camera_scale;
 					yy -= sdRenderer.screen_height / 2 * current_camera_scale;
 					
+					yy = Math.max( yy, yy % h - h ); // Faster for "deep down" cases
+					
 					ctx.globalAlpha = 1; // Just in case
 					
 					ctx.sd_hue_rotation = ( sdWorld.mod( sdWorld.camera.x / 16, 360 ) );
