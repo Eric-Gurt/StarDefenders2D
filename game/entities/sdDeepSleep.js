@@ -263,6 +263,7 @@ class sdDeepSleep extends sdEntity
 
 					//if ( !e.is( sdDeepSleep ) )
 					if ( e.IsBGEntity() !== 10 )
+					if ( !e._is_being_removed )
 					{
 						let x = Math.floor( ( e.x + e._hitbox_x1 ) / sdDeepSleep.normal_cell_size ) * sdDeepSleep.normal_cell_size;
 						let y = Math.floor( ( e.y + e._hitbox_y1 ) / sdDeepSleep.normal_cell_size ) * sdDeepSleep.normal_cell_size;
@@ -380,7 +381,7 @@ class sdDeepSleep extends sdEntity
 				{
 					//if ( cell._snapshots_filename === null )
 					if ( !cell._file_exists )
-					if ( sdWorld.is_server && !sdWorld.is_singleplayer )
+					if ( sdWorld.is_server )//&& !sdWorld.is_singleplayer )
 					sdDeepSleep.scheduled_saves.add( cell );
 				}
 				
@@ -390,7 +391,7 @@ class sdDeepSleep extends sdEntity
 					cell._snapshots_objects = null;
 					cell._last_obj_str_reset_reason = 11;
 
-					if ( sdWorld.is_server && !sdWorld.is_singleplayer )
+					if ( sdWorld.is_server )//&& !sdWorld.is_singleplayer )
 					{
 						sdDeepSleep.scheduled_deletions.add( cell );
 						sdDeepSleep.scheduled_saves.delete( cell );
