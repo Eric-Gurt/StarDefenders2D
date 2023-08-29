@@ -484,6 +484,8 @@ class sdCharacter extends sdEntity
 		
 		sdCharacter.ghost_breath_delay = 10 * 30;
 		
+		sdCharacter.unique_discovery_indexes = [];
+		
 		
 		sdCharacter.img_jetpack = sdWorld.CreateImageFromFile( 'jetpack_sheet' ); // Sprite sheet by Molis
 
@@ -918,7 +920,15 @@ THING is cosmic mic drop!`;
 						options.push( chatGPT_options_lines[ i ].split( 'THING' ).join( t ) );
 					}
 					
-					this.Say( options[ ~~( Math.random() * options.length ) ], true, false, true );
+					if ( sdCharacter.unique_discovery_indexes.length === 0 )
+					{
+						for ( let i = 0; i < options.length; i++ )
+						sdCharacter.unique_discovery_indexes.push( i );
+					}
+					
+					let random_id = ~~( Math.random() * sdCharacter.unique_discovery_indexes.length );
+					this.Say( options[ sdCharacter.unique_discovery_indexes[ random_id ] ], true, false, true );
+					sdCharacter.unique_discovery_indexes.splice( random_id, 1 );
 
 					/*switch ( ~~( Math.random() * 38 ) )
 					{

@@ -532,12 +532,12 @@ class sdDrone extends sdEntity
 
 			this._anim_flap = sdWorld.MorphWithTimeScale( this._anim_flap, morph, 0.9, GSPEED );
 
-			if ( !sdWorld.is_server )
+			if ( !sdWorld.is_server || sdWorld.is_singleplayer )
 			{
 				this._anim_twist += this._anim_flap * GSPEED;
 				this._anim_twist -= Math.sin( this._anim_twist ) * ( 1 - this._anim_flap ) * 0.1;
 			}
-			else
+			if ( sdWorld.is_server )
 			if ( this._anim_flap > 0.5 )
 			{
 				let nears = this.GetAnythingNearCache( this.x, this.y, 15 + 64 );
