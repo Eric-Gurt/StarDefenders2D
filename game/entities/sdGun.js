@@ -1666,7 +1666,14 @@ class sdGun extends sdEntity
 						ctx.drawImageFilterCache( image, frame * image.height,0, image.height, image.height, - 16, - 16, 32,32 );
 					}
 					else
+					if ( image.RequiredNow ) // Server won't know it during lost effect
 					image.RequiredNow();
+					else
+					{
+						// Lost effect case
+						let frame = this._net_id % ~~( 10*32 / 32 );
+						ctx.drawImageFilterCache( image, frame * 32,0, 32, 32, - 16, - 16, 32,32 );
+					}
 				}
 				else
 				{

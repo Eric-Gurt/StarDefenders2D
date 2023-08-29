@@ -325,24 +325,154 @@ class sdCharacter extends sdEntity
 			str;
 		*/
 		
-		// x y rotation, for images below
-		/*sdCharacter.head_pos = {
-			img_body_idle: [ 14, 11, 0 ],
-			img_body_armed: [ 14, 11, 0 ],
-			img_body_fire1: [ 13, 11, 0 ],
-			img_body_fire2: [ 13, 11, 0 ],
-			img_body_melee1: [ 16, 12, 0 ],
-			img_body_melee2: [ 15, 11, 0 ],
-			img_body_reload1: [ 16, 13, 22 ], // 45
-			img_body_reload2: [ 15, 12, 0 ],
-			img_body_hurt: [ 12, 11, -15 ],
+		sdCharacter.voice_sound_effects = {
 			
-			// death
-			img_death1: [ 10, 13, -90 ],
-			img_death2: [ 9, 18, -90 ],
-			img_death3: [ 6, 28, -90 ],
-			img_death4: [ 6, 29, -90 ]
-		};*/
+			// Council
+			'croak':
+			{
+				death: [ 'council_death' ],
+				hurt: [ 'council_hurtA', 'council_hurtB' ],
+				
+				alert_tts: ( character, enemy )=>
+				{
+					if ( character._ai_team === 3 )
+					{
+						if ( Math.random() < 0.1 )
+						return sdWorld.AnyOf( [ 
+							'This universe is doomed. You cannot stop it.', 
+							'Give in. You are not to survive.', 
+							'You challenge me? You cannot contest character. ', 
+							'You will bring down the wrath by doing character.',
+							'I will stop character.',
+							'You can only delay your inevitable death.',
+							'You cannot harm me, you can only send me back.'
+							] );
+					}
+				}
+			},
+			
+			// No idea
+			'klatt3':
+			{
+				// These use TTS alternative
+				death_tts: [ 'Critical damage!', 'Shutting down', 'Structural integrity compromised!' ],
+				hurt_tts: [ 'Ouch!', 'Aaa!', 'Uh!' ]
+			},
+			
+			// Falkok
+			'whisperf':
+			{
+				volume: 0.4,
+		
+				death: [ 'f_death1', 'f_death2', 'f_death3' ],
+				hurt: [ 'f_pain2', 'f_pain3', 'f_pain4' ],
+				alert: [ 'f_welcome1' ]
+			},
+			
+			// No idea
+			'm2':
+			{
+			},
+			
+			// Fully silent
+			'silence':
+			{
+			},
+	
+			// Tzyrg
+			'tzyrg':
+			{
+				death: [ 'tzyrg_deathC2' ],
+				hurt: [ 'tzyrg_hurtC' ],
+				alert: [ 'tzyrg_alertC' ]
+			},
+	
+			// Erthal
+			'erthal':
+			{
+				death: [ 'erthal_death' ],
+				hurt: [ 'erthal_hurt' ],
+				alert: [ 'erthal_alert' ]
+			},
+	
+			// Star Defenders
+			'default':
+			{
+				death: [ 'sd_death' ],
+				death_scream: [ 'sd_death2' ],
+				hurt: [ 'sd_hurt1', 'sd_hurt2' ],
+				
+				alert_tts: ( character, enemy )=>
+				{
+					if ( character._ai_team === 0 )
+					{
+						// Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false )
+						return sdWorld.AnyOf( [ 
+							'Your presence makes me mad, but in a good way!', 
+							'I have no other choice but to attack!', 
+							character.title + ' attacks!', 
+							character._inventory[ character.gun_slot ] ? 'I will attack you with my gun because I actually have one!' : 'I will attack with my bare hands if I\'d have to!',
+							character._inventory[ character.gun_slot ] ? 'Peow-peow!' : 'Punchy-punchy!',
+							'*wild ' + character.title + ' noises*',
+							sdWorld.ClassNameToProperName( enemy.GetClass(), enemy, true ) + ', identify yourself!',
+							sdWorld.ClassNameToProperName( enemy.GetClass(), enemy, true ) + ' is attacking me!',
+							'Say hello to my little ' + ( character._inventory[ character.gun_slot ] ? sdWorld.ClassNameToProperName( character._inventory[ character.gun_slot ].GetClass(), character._inventory[ character.gun_slot ], true ) : 'fists' )
+						] );
+					}
+					
+					if ( character._ai_team === 6 ) // Criminal Star Defender
+					{
+						// Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false )
+						if ( enemy.is( sdCharacter ) )
+						if ( enemy._ai_team === 0 )
+						return sdWorld.AnyOf( [ 
+							'I refuse to answer for something I had not done!',
+							'Why would you bother with me anyway, I do not think I am worth the hassle.',
+							'You know, maybe I am just a clone.',
+							'Did they send you in here with nothing too?',
+							'Instructor laughed at me when I first got here.',
+							'The food on character planet is bad anyway.',
+							'It was just a little trolling.',
+							'My advice? Avoid the space mushrooms.',
+							'Were we not in the same platoon?',
+							'I was just following orders.',
+							'One day you will be in my place.',
+							'Responsibility comes.',
+							'They will eventually issue a warrant on you too.',
+							'We are replacable, so I ran.',
+							'Dying seems like a better option to me. Come, I am ready.',
+							'What exactly will you get by capturing me?'
+						] );
+					}
+					if ( character._ai_team === 7 ) // Setr faction
+					{
+						if ( Math.random() < 0.8 )
+						return sdWorld.AnyOf( [ 
+							'/Uytiuk mdmhjmye.', 
+							'/Toisv muke!', 
+							'/Jpbitp amlrn! ', 
+							'/Monmfig eiayyse.',
+							'/Smmems iiedyg.'
+							] );
+					}
+					if ( character._ai_team === 10 ) // Time Shifter
+					{
+						if ( character.hea > 1250 )
+						{
+							// Say( t, to_self=true, force_client_side=false, ignore_rate_limit=false )
+							return sdWorld.AnyOf( [ 
+								'I already killed you in the future. Might aswell have fun in the past.',
+								'I know how you die, but I will not tell you.',
+								'Are you ready?',
+								'If I kill you now, it might change future events.',
+								'Time is the most valuable resource. Something you do not have.'
+							] );
+						}
+					}
+					return null;
+				},
+			}
+		};
 		
 		sdCharacter.AI_MODEL_NONE = 0;
 		sdCharacter.AI_MODEL_FALKOK = 1;
@@ -583,8 +713,214 @@ class sdCharacter extends sdEntity
 				if ( this.hea > this.hmax * 0.75 )
 				{
 					this._last_discovery = sdWorld.time;
+					
+					let i_have_ = ( ent.is( sdGun ) && ent._held_by === this ) ? 'I have ' : '';
+					
+					let options =
+					[
+						'Huh, '+t+'? This is something new',
+						t+' looks interesting',
+						'I\'ve never seen '+t+' before',
+						t+' is new to me',
+						'I\'ve discovered '+t,
+						'That is '+t+' for sure',
+						t+'? Gonna note that',
+						t+'? Amazing',
+						t+'? I\'m shocked',
+						'So this is how '+t+' looks like',
+						'Wow, '+i_have_+'a real '+t,
+						'Gotta screenshot '+t,
+						'Wow, '+i_have_+'a '+t+'. I\'m literally shaking',
+						t+' looks cool',
+						'We\'ve met again, '+t,
+						'Ah, '+i_have_+'the '+t,
+						
+						'They have '+t+' here? Nice',
+						'I\'m excited to see you, '+t,
+						'I\'ve been missing you, '+t,
+						'It wasn\'t the same without you, '+t,
+						'Wow, the opportunity to see '+t,
+						'I wonder what are you good for, '+t,
+						'I\'m all ecstatic for '+t,
+						t+'? This is getting me upbeat',
+						'What are you doing there, little '+t+'?',
+						'Aha! I found '+t,
+						'Contact on '+t,
+						'Discovering '+t,
+						'Nice, a chance to experience '+t, 
+						'I don\'t know nothing about '+t+', don\'t I?',
+						'Gotta spend some time with '+t,
+						'Nice, '+i_have_+'a '+t+'. But can I exchange '+t+' for more matter?',
+						'Huh, '+i_have_+'a '+t+' is ['+Math.round(ent._hitbox_x2 - ent._hitbox_x1)+'] units wide',
+						'Huh, '+i_have_+'a '+t+' is ['+Math.round(ent._hitbox_y2 - ent._hitbox_y1)+'] units in height',
+						'This '+t+' '+i_have_+''+( ent._current_target === this ? 'looks threatening to me' : 'seems chill' ),
+						'This '+t+' '+i_have_+''+( ( ent._hea || ent.hea || 0 ) <= 0 ? 'looks rather dead' : 'looks rather healthy' ),
+						t+' is right there',
+						'This day can\'t get any better with '+t+', can\'t it?',
+					];
+					
+					// EG: I didn't even read them all.
+					let chatGPT_options = `Well, well, well, what do we have here? A wild THING appears!
+Hold onto your helmets, folks! THING sighting ahead!
+Oh, snap! Check out the latest addition to the alien fashion show - THING!
+Look alive, team! THING's dropping in, and it's a head-scratcher!
+Beam me up, THING-y! We've got a new star on the planet!
+New planet, new day, new... THING. Seriously, where do they come up with this stuff?
+Alert the space paparazzi! THING's making its red carpet debut right before our eyes!
+Captain, you won't believe it - we've got THING on the horizon and it's utterly peculiar!
+Step aside, ordinary discoveries! THING is about to steal the show!
+Gather 'round, explorers! THING's the latest gossip in the alien neighborhood.
+Well, blow me down! THING's like nothing we've encountered in this or any other galaxy!
+Attention, universe! THING just joined the party, and it's rewriting the guest list!
+Buckle up, crew! THING's giving us a one-of-a-kind welcome to this alien shindig!
+Check out the extraterrestrial oddity - THING! It's like a surprise package from the cosmos.
+Heads up, gang! THING's crash-landed in our midst, and it's a mind-boggler!
+Say cheese, THING! You're about to become the star of our otherworldly photo album!
+Move over, run-of-the-mill species! THING's rolling in, ready to rock our scientific socks off!
+Hold tight, everyone! THING's here to remind us that the universe is the ultimate prankster.
+Attention, fellow stargazers! THING's the main event in today's cosmic sideshow!
+Prepare for awe, crew! THING's dropping by unannounced, and it's a jaw-dropper!
+Calling all starship shutterbugs! THING's the newest subject for our alien photo collection!
+Brace yourselves, explorers! THING's crashed the party, and it's a game-changer!
+Time to dust off the thesaurus, folks, because THING defies description!
+I told the universe to surprise us, but THING's taken it to a whole new level!
+Huddle up, team! THING's here to remind us that predictability is overrated!
+Newsflash from the cosmos: THING's in town, and it's rewriting the rulebook!
+Someone pinch me - THING's the stuff dreams (or possibly nightmares) are made of!
+Break out the welcome wagon, crew! THING's the latest arrival in our cosmic neighborhood!
+Remember those "believe in the unbelievable" posters? Well, THING just embodied them!
+Incoming transmission: THING sighted! Prepare for maximum weirdness!
+Stop the space presses! THING's here to steal the extraterrestrial spotlight!
+Hold onto your helmets, crew! THING's crashing this alien party!
+Time to update the alien encyclopedia - THING's chapter has just begun!
+Well, paint me green and call me an alien! THING's a whole new level of strange.
+Hey there, THING! You've just become the star of our otherworldly safari!
+I've seen space oddities, but THING takes the cosmic cake!
+Buckle up, explorers! THING's here to show us the zaniest side of the universe.
+Alert the space geeks! THING's a front-row seat to an intergalactic sideshow!
+To infinity and THING-yond! This planet just got a whole lot stranger.
+What do you know? THING's making its grand entrance into the alien theater!
+Look alive, crew! THING's in town and it's rewriting the laws of weird.
+Ever wish upon a shooting star? Well, here's THING to grant your wish for oddity!
+Prepare for liftoff, because THING's a ticket to a whole new dimension of bizarre!
+And the award for "Most Unconventional Alien" goes to... you guessed it, THING!
+Brace for alien impact! THING's a one-of-a-kind collision with the unknown.
+Well, slap me with a tentacle! THING's like nothing even the holodeck could conjure.
+Fire up the curiosity engines, team! THING's here to put our imaginations to shame!
+Hold the starship phone! THING's a wakeup call to the cosmos' sense of humor.
+Quick, someone call the space paparazzi! THING's the latest sensation in the stars.
+To explore strange new worlds and seek out new life forms like THING – that's the mission!
+Commence operation "Figure Out THING"! Our scanners are in for a workout.
+What's weirder than an alien planet? Meeting THING, the embodiment of weirdness!
+Grab your space popcorn, folks! THING's the star of this otherworldly show.
+Warning: THING overload imminent! This planet's become an oddity hotspot.
+We've seen the sci-fi movies, but THING's a real-life enigma from beyond the stars.
+Alien bingo, anyone? THING's a new entry on our cosmic playing card.
+Mark this day in the space calendar! THING's like discovering a new color in the spectrum.
+Listen up, universe! THING's proof that the cosmos has a wild sense of creativity.
+Time to rewrite the textbooks, team! THING's a lesson in uncharted alien biology.
+Well, butter my space toast! THING's a breakfast surprise from the cosmos.
+What's that? It's not a bird, it's not a plane - it's THING, defying all expectations!
+Incoming transmission from the bizarre zone: THING's the new star of the show!
+Hold onto your helmets, explorers! THING's here to turn reality into science fiction.
+Attention, fellow star seekers! THING's the ultimate proof that weird knows no bounds.
+To THING or not to THING? That's the question we'll be pondering for light-years.
+Cue the alien fanfare! THING's our VIP guest in this cosmic extravaganza.
+Commander, you won't believe it! THING's a real-life emoji from the alien realm.
+Uncharted territory, meet THING - the poster child for the unexpected!
+Friendly reminder: THING's our daily dose of "what on earth... or not on earth"!
+Get your camera drones ready, crew! THING's an A-list celebrity in the alien realm.
+Well, blow me down and call me an asteroid! THING's like nothing we've seen before.
+Roll out the welcome hovercarpet, team! THING's the guest of honor at our alien soiree.
+Science fiction's got nothing on THING! This is the real deal, folks.
+Brace for cosmic oddity, explorers! THING's a walk on the wild side of the universe.
+It's official: THING's the latest sensation in the space tabloids. Move over, stars!
+Behold, the enigma known as THING! Prepare for an alien mind-bender.
+Ready for a space conundrum? THING's like an alien puzzle wrapped in mystery.
+Planet of the weird, meet THING - the crowned ruler of extraterrestrial oddities!
+Attention, starship log: THING's a remarkable entry in our cosmic chronicles.
+Greetings, THING! Your otherworldly antics have officially made our day.
+What's that, THING? The universe just hit us with a curveball of strangeness!
+Prepare for liftoff, crew! THING's our ticket to the ultimate alien rollercoaster.
+Quick, someone give THING a standing ovation for redefining the weird-o-meter!
+Hold tight, explorers! THING's here to give us a lesson in interstellar unpredictability.
+Say hello to the cosmos' favorite conversation starter: THING, the ultimate icebreaker.
+Space goggles on, crew! THING's an eye-popping spectacle from the outer realms.
+Calling all space detectives! THING's the newest case in our intergalactic mystery files.
+Well, color me intrigued! THING's a crayon outside the lines of normalcy.
+Attention, universe: THING's the cosmic cherry on top of this alien sundae!
+Break out the cosmic confetti, team! THING's a reason to celebrate the unknown.
+Ever seen a shooting star with tentacles? Say hello to THING, the galactic anomaly!
+Hold the starship phone, explorers! THING's a voice message from the far reaches of oddity.
+Brace yourselves, crew! THING's a whirlwind tour of the cosmos' creative genius.
+To boldly go where no one's gone before... and meet THING, the star attraction!
+Stop the starship! THING's here to prove that weirdness is the universal language.
+Well, slap me with a comet! THING's a cosmic curveball in the game of alien discoveries.
+Alert the cosmic art gallery! THING's a masterpiece straight from the imagination of aliens.
+Prepare for a close encounter of the THING kind! This is no ordinary rendezvous.
+Look alive, fellow star sailors! THING's the compass pointing toward the bizarre.
+Calling all explorers, code "Weird"! THING's the password to this alien wonderland.
+Quick, someone pinch me! THING's the real-life embodiment of our wildest dreams.
+Beam us up, THING! You're the star we've been waiting for in this interstellar play.
+Gather 'round, star gawkers! THING's the headline act in the cosmic circus.
+Well, space jellyfish and nebulae! THING's like a mashup of all things extraterrestrial.
+Incoming transmission from the unknown: THING's the latest message from the cosmos.
+Hold onto your helmets, crew! THING's the rollercoaster ride through alien imagination.
+Attention, starship crew: THING's the answer to the riddle of interstellar oddities.
+It's official: THING's the ultimate wild card in the deck of cosmic exploration.
+Prepare for liftoff, universe! THING's the rocket fuel for our intergalactic curiosity.
+Say hello to THING - the cosmic jigsaw puzzle piece we didn't even know was missing!
+Brace for interstellar impact, team! THING's a phenomenon from the farthest reaches.
+Well, orbit me around a star! THING's the ultimate reminder that normal's overrated.
+Get your alien dictionaries ready, folks! THING's the latest entry in the lexicon of weird.
+Incoming from the cosmos: THING's the new buzzword in the interstellar dictionary.
+Alien planet, meet THING - the visitor that puts the "extra" in extraterrestrial!
+Hold tight, explorers! THING's the invitation to a galactic masquerade of the unusual.
+Attention, star seekers! THING's the latest revelation in our quest for the cosmic unknown.
+Cue the cosmic drumroll! THING's the surprise package from the depths of space.
+What's that? It's not a meteor shower, it's not a comet - it's THING, the cosmic showstopper!
+Whoa, THING? New, right?
+Check THING out! Weird.
+Meet THING: an alien or an art?
+THING, you're unique!
+Blast! THING's here now.
+A THING! Surprise from the universe.
+THING? Never seen this.
+Look, THING's fascinating!
+Introducing THING, oddity extraordinaire!
+THING - cosmos' new face.
+Hold on, THING's unknown.
+THING? Cosmic mystery solved!
+THING: space's oddball addition.
+THING's uniqueness - astounding, huh?
+Behold THING: space's curveball!
+THING's entry: cosmic surprise.
+Explore, and find THING!
+What's up, THING? Unbelievable!
+THING's arrival: redefine weird.
+THING: space's wild card.
+Surprise, universe: THING's here!
+Encounter THING, redefine normal.
+THING: cosmic head-scratcher.
+Meet THING: space's novelty.
+THING's debut: interstellar delight!
+Whoa, THING alert! New?
+THING: space's showstopper.
+Unveiling THING: redefine strange.
+THING is cosmic mic drop!`;
+					
+					let chatGPT_options_lines = chatGPT_options.split('\n');
+					for ( let i = 0; i < chatGPT_options_lines.length; i++ )
+					{
+						if ( chatGPT_options_lines[ i ].charAt( chatGPT_options_lines[ i ].length - 1 ) === '.' )
+						options.push( chatGPT_options_lines[ i ].substring( 0, chatGPT_options_lines[ i ].length - 1 ).split( 'THING' ).join( t ) );
+						else
+						options.push( chatGPT_options_lines[ i ].split( 'THING' ).join( t ) );
+					}
+					
+					this.Say( options[ ~~( Math.random() * options.length ) ], true, false, true );
 
-					switch ( ~~( Math.random() * 38 ) )
+					/*switch ( ~~( Math.random() * 38 ) )
 					{
 						case 0: this.Say( 'Huh, '+t+'? This is something new', true, false, true ); break;
 						case 1: this.Say( t+' looks interesting', true, false, true ); break;
@@ -596,12 +932,12 @@ class sdCharacter extends sdEntity
 						case 7: this.Say( t+'? Amazing', true, false, true ); break;
 						case 8: this.Say( t+'? I\'m shocked', true, false, true ); break;
 						case 9: this.Say( 'So this is how '+t+' looks like', true, false, true ); break;
-						case 10: this.Say( 'Wow, a real '+t, true, false, true ); break;
+						case 10: this.Say( 'Wow, '+i_have_+'a real '+t, true, false, true ); break;
 						case 11: this.Say( 'Gotta screenshot '+t, true, false, true ); break;
-						case 12: this.Say( 'Wow, a '+t+'. I\'m literally shaking', true, false, true ); break;
+						case 12: this.Say( 'Wow, '+i_have_+'a '+t+'. I\'m literally shaking', true, false, true ); break;
 						case 13: this.Say( t+' looks cool', true, false, true ); break;
 						case 14: this.Say( 'We\'ve met again, '+t, true, false, true ); break;
-						case 15: this.Say( 'Ah, the '+t, true, false, true ); break;
+						case 15: this.Say( 'Ah, '+i_have_+'the '+t, true, false, true ); break;
 
 						case 16: this.Say( 'They have '+t+' here? Nice', true, false, true ); break;
 						case 17: this.Say( 'I\'m excited to see you, '+t, true, false, true ); break;
@@ -618,14 +954,16 @@ class sdCharacter extends sdEntity
 						case 28: this.Say( 'Nice, a chance to experience '+t, true, false, true ); break;
 						case 29: this.Say( 'I don\'t know nothing about '+t+', don\'t I?', true, false, true ); break;
 						case 30: this.Say( 'Gotta spend some time with '+t, true, false, true ); break;
-						case 31: this.Say( 'Nice, a '+t+'. But can I exchange '+t+' for more matter?', true, false, true ); break;
-						case 32: this.Say( 'Huh, a '+t+' is ['+Math.round(ent._hitbox_x2 - ent._hitbox_x1)+'] units wide', true, false, true ); break;
-						case 33: this.Say( 'Huh, a '+t+' is ['+Math.round(ent._hitbox_y2 - ent._hitbox_y1)+'] units in height', true, false, true ); break;
-						case 34: this.Say( 'This '+t+' '+( ent._current_target === this ? 'looks threatening to me' : 'seems chill' ) ); break;
-						case 35: this.Say( 'This '+t+' '+( ( ent._hea || ent.hea || 0 ) <= 0 ? 'looks rather dead' : 'looks rather healthy' ) ); break;
+						case 31: this.Say( 'Nice, '+i_have_+'a '+t+'. But can I exchange '+t+' for more matter?', true, false, true ); break;
+						case 32: this.Say( 'Huh, '+i_have_+'a '+t+' is ['+Math.round(ent._hitbox_x2 - ent._hitbox_x1)+'] units wide', true, false, true ); break;
+						case 33: this.Say( 'Huh, '+i_have_+'a '+t+' is ['+Math.round(ent._hitbox_y2 - ent._hitbox_y1)+'] units in height', true, false, true ); break;
+						case 34: this.Say( 'This '+t+' '+i_have_+''+( ent._current_target === this ? 'looks threatening to me' : 'seems chill' ) ); break;
+						case 35: this.Say( 'This '+t+' '+i_have_+''+( ( ent._hea || ent.hea || 0 ) <= 0 ? 'looks rather dead' : 'looks rather healthy' ) ); break;
 						case 36: this.Say( t+' is right there', true, false, true ); break;
 						case 37: this.Say( 'This day can\'t get any better with '+t+', can\'t it?', true, false, true ); break;
-					}
+							
+
+					}*/
 				}
 
 				this.GiveScore( 1, null, false );
@@ -2084,7 +2422,47 @@ class sdCharacter extends sdEntity
 			
 			if ( this.hea <= 0 && was_alive )
 			{
-				if ( this._voice.variant === 'croak' )
+				let voice_preset = sdCharacter.voice_sound_effects[ this._voice.variant ] || sdCharacter.voice_sound_effects[ 'default' ];
+				
+				if ( this.hea < -100 && voice_preset.death_scream )
+				{
+					let result = 
+							( voice_preset.death_scream instanceof Array ) ? 
+								sdWorld.AnyOf( voice_preset.death_scream ) :
+								voice_preset.death_scream();
+						
+					if ( result )
+					sdSound.PlaySound({ name:result, x:this.x, y:this.y, volume:voice_preset.volume || 1, pitch:voice_preset.pitch || this.GetVoicePitch(), channel:this._voice_channel });
+				}
+				else
+				if ( voice_preset.death )
+				{
+					let result = 
+							( voice_preset.death instanceof Array ) ? 
+								sdWorld.AnyOf( voice_preset.death ) :
+								voice_preset.death();
+						
+					if ( result )
+					sdSound.PlaySound({ name:result, x:this.x, y:this.y, volume:voice_preset.volume || 1, pitch:voice_preset.pitch || this.GetVoicePitch(), channel:this._voice_channel });
+				}
+				else
+				if ( voice_preset.death_tts )
+				{
+					let result = 
+							( voice_preset.death_tts instanceof Array ) ? 
+								sdWorld.AnyOf( voice_preset.death_tts ) :
+								voice_preset.death_tts();
+						
+					if ( result )
+					{
+						if ( result.charAt( 0 ) !== '/' ) // Slash to hide pop-up
+						this.Say( result, false, false, false );
+						else
+						this.Say( result.substring( 1 ), false, false, true, true );
+					}
+				}
+				
+				/*if ( this._voice.variant === 'croak' )
 				{
 					sdSound.PlaySound({ name:'council_death', x:this.x, y:this.y, volume:1, pitch:this.GetVoicePitch(), channel:this._voice_channel });
 				}
@@ -2105,7 +2483,7 @@ class sdCharacter extends sdEntity
 					sdSound.PlaySound({ name:'sd_death2', x:this.x, y:this.y, volume:1, pitch:this.GetVoicePitch(), channel:this._voice_channel });
 					else
 					sdSound.PlaySound({ name:'sd_death', x:this.x, y:this.y, volume:1, pitch:this.GetVoicePitch(), channel:this._voice_channel });
-				}
+				}*/
 			
 				//this._sickness /= 4;
 				this._sickness = 0;
@@ -2154,6 +2532,41 @@ class sdCharacter extends sdEntity
 				{
 					if ( this.pain_anim <= 0 )
 					{
+						let voice_preset = sdCharacter.voice_sound_effects[ this._voice.variant ] || sdCharacter.voice_sound_effects[ 'default' ];
+
+						if ( voice_preset.hurt )
+						{
+							let result = 
+									( voice_preset.hurt instanceof Array ) ? 
+										sdWorld.AnyOf( voice_preset.hurt ) :
+										voice_preset.hurt();
+
+							if ( result )
+							sdSound.PlaySound({ name:result, x:this.x, y:this.y, volume:voice_preset.volume || 1, pitch:voice_preset.pitch || this.GetVoicePitch(), channel:this._voice_channel });
+						}
+						else
+						if ( voice_preset.hurt_tts )
+						{
+							let result = 
+									( voice_preset.hurt_tts instanceof Array ) ? 
+										sdWorld.AnyOf( voice_preset.hurt_tts ) :
+										voice_preset.hurt_tts();
+
+							if ( result )
+							{
+								if ( result.charAt( 0 ) !== '/' ) // Slash to hide pop-up
+								this.Say( result, false, false, false );
+								else
+								this.Say( result.substring( 1 ), false, false, true, true );
+							}
+						}
+						
+						
+						
+						
+						
+						
+						/*
 						if ( this._voice.variant === 'croak' )
 						{
 							sdSound.PlaySound({ name: ( Math.random() < 0.5 ) ? 'council_hurtA' : 'council_hurtB', x:this.x, y:this.y, pitch:this.GetVoicePitch(), volume:( dmg > 1 )? 1 : 0.5, channel:this._voice_channel }); // less volume for bleeding
@@ -2169,7 +2582,7 @@ class sdCharacter extends sdEntity
 						else
 						if ( this._voice.variant !== 'm2' && this._voice.variant !== 'silence' )
 						sdSound.PlaySound({ name:'sd_hurt' + ~~(1+Math.random() * 2), x:this.x, y:this.y, pitch:this.GetVoicePitch(), volume:( dmg > 1 )? 1 : 0.5, channel:this._voice_channel }); // less volume for bleeding
-					
+						*/
 						this.pain_anim = 10;
 						
 						this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE ); // Can wake up hibernated players
@@ -2313,7 +2726,36 @@ class sdCharacter extends sdEntity
 						
 	PlayAIAlertedSound( closest )
 	{
-		if ( this._voice.variant === 'whisperf' )
+		let voice_preset = sdCharacter.voice_sound_effects[ this._voice.variant ] || sdCharacter.voice_sound_effects[ 'default' ];
+
+		if ( voice_preset.alert )
+		{
+			let result = 
+					( voice_preset.alert instanceof Array ) ? 
+						sdWorld.AnyOf( voice_preset.alert ) :
+						voice_preset.alert( this, closest );
+
+			if ( result )
+			sdSound.PlaySound({ name:result, x:this.x, y:this.y, volume:voice_preset.volume || 1, pitch:voice_preset.pitch || this.GetVoicePitch(), channel:this._voice_channel });
+		}
+		else
+		if ( voice_preset.alert_tts )
+		{
+			let result = 
+					( voice_preset.alert_tts instanceof Array ) ? 
+						sdWorld.AnyOf( voice_preset.alert_tts ) :
+						voice_preset.alert_tts( this, closest );
+
+			if ( result )
+			{
+				if ( result.charAt( 0 ) !== '/' ) // Slash to hide pop-up
+				this.Say( result, false, false, false );
+				else
+				this.Say( result.substring( 1 ), false, false, true, true );
+			}
+		}
+
+		/*if ( this._voice.variant === 'whisperf' )
 		sdSound.PlaySound({ name:'f_welcome1', x:this.x, y:this.y, volume:0.4 });
 		else
 		if ( this._ai_team === 0 )
@@ -2392,7 +2834,7 @@ class sdCharacter extends sdEntity
 					'Time is the most valuable resource. Something you do not have.'
 				][ ~~( Math.random() * 5 ) ], false, false, false );
 			}
-		}
+		}*/
 	}
 	AILogic( GSPEED ) // aithink
 	{
@@ -4709,7 +5151,9 @@ class sdCharacter extends sdEntity
 								 fake_ent.material === obstacle.material &&
 								 fake_ent._hmax === obstacle._hmax &&
 								 fake_ent._armor_protection_level >= obstacle._armor_protection_level &&
-								 ( obstacle._shielded === null || fake_ent._owner === obstacle._owner ) )
+								 ( obstacle._shielded === null || fake_ent._owner === obstacle._owner || obstacle._shielded._is_being_removed ) &&
+								 !fake_ent.IsInSafeArea()
+							)
 							{
 								if ( allow_erase )
 								{
@@ -4894,9 +5338,11 @@ class sdCharacter extends sdEntity
 		{
 			if ( !this.CheckBuildObjectPossibilityNow( fake_ent ) )
 			{
-				//fake_ent.onRemove = fake_ent.onRemoveAsFakeEntity; // Disable any removal logic
-				fake_ent.SetMethod( 'onRemove', fake_ent.onRemoveAsFakeEntity ); // Disable any removal logic
+				// So many bugs with this one
+				//fake_ent.SetMethod( 'onRemove', fake_ent.onRemoveAsFakeEntity ); // Disable any removal logic
+				
 				fake_ent.remove();
+				fake_ent._broken = false;
 				fake_ent._remove();
 				return null;
 			}
@@ -5643,7 +6089,7 @@ class sdCharacter extends sdEntity
 					{
 						if ( sdWorld.is_singleplayer )
 						{
-							this.AddClientSideActionContextOption( 'Quit to main menu', ()=>
+							this.AddClientSideActionContextOption( 'Save & quit to main menu', ()=>
 							{
 								sdWorld.Stop();
 							});

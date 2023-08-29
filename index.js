@@ -609,7 +609,7 @@ sdWorld.sockets = sockets;
 const chunks_folder = __dirname + '/chunks' + ( world_slot || '' );
 globalThis.chunks_folder = chunks_folder;
 
-const presets_folder = __dirname + '/presets'; // + ( world_slot || '' );
+const presets_folder = __dirname + '/presets';
 globalThis.presets_folder = presets_folder;
 
 if ( !fs.existsSync( globalThis.presets_folder ) )

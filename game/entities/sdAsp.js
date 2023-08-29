@@ -517,7 +517,19 @@ class sdAsp extends sdEntity
 			if ( this._tier === 2 )
 			{
 				if ( this._crystal_worth > 0 )
-				sdSound.PlaySound({ name:'glass12', x:this.x, y:this.y, volume:0.25 });
+				{
+					sdSound.PlaySound({ name:'glass12', x:this.x, y:this.y, volume:0.25 });
+					
+
+					//let value_mult = this._crystal_worth / 40;
+					//sdWorld.DropShards( this.x,this.y,this.sx,this.sy, 3, value_mult, 3 );
+
+					sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
+							Math.ceil( Math.max( 5, 1 * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
+							this._crystal_worth / 40,
+							5
+					);
+				}
 				else
 				sdWorld.BasicEntityBreakEffect( this, 3, undefined, undefined, 1.4 );
 			}
@@ -544,15 +556,6 @@ class sdAsp extends sdEntity
 				{
 				}
 			}
-			
-			//let value_mult = this._crystal_worth / 40;
-			//sdWorld.DropShards( this.x,this.y,this.sx,this.sy, 3, value_mult, 3 );
-			
-			sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
-					Math.ceil( Math.max( 5, 1 * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
-					this._crystal_worth / 40,
-					5
-			);
 		}
 	}
 	MeasureMatterCost()

@@ -1357,8 +1357,10 @@ class sdRenderer
 					sdStatusEffect.DrawEffectsFor( e, STATUS_EFFECT_LAYER_NORMAL, STATUS_EFFECT_AFTER, ctx, false );
 					
 					if ( sdWorld.is_singleplayer )
-					if ( e.SyncedToPlayer !== sdEntity.prototype.SyncedToPlayer )
-					e.SyncedToPlayer( sdWorld.my_entity );
+					{
+						if ( e.SyncedToPlayer !== sdEntity.prototype.SyncedToPlayer )
+						e.SyncedToPlayer( sdWorld.my_entity );
+					}
 				}
 			}
 			

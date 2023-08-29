@@ -498,6 +498,20 @@ class sdWorld
 	
 	static UpdateFilePaths( dirname, world_slot )
 	{
+		const chunks_folder = dirname + '/chunks' + ( world_slot || '' );
+		globalThis.chunks_folder = chunks_folder; // Old format
+		sdWorld.chunks_folder = chunks_folder;
+
+		const presets_folder = dirname + '/presets';
+		globalThis.presets_folder = presets_folder; // Old format
+		sdWorld.presets_folder = presets_folder;
+
+		if ( !globalThis.fs.existsSync( globalThis.presets_folder ) )
+		{
+			trace( 'Making directory: ' + globalThis.presets_folder );
+			globalThis.fs.mkdirSync( globalThis.presets_folder );
+		}
+
 		const server_config_path_const = dirname + '/server_config' + ( world_slot || '' ) + '.js';
 		const browser_fingerprinting_path_const = dirname + '/server_private/sdBrowserFingerPrint.js';
 
@@ -3390,6 +3404,10 @@ class sdWorld
 	{
 		return ((a%n)+n)%n;
 	}
+	static AnyOf( arr )
+	{
+		return arr[ Math.floor( Math.random() * arr.length ) ];
+	}
 	
 	// custom_filtering_method( another_entity ) should return true in case if surface can not be passed through
 	static CheckWallExistsBox( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null ) // under 32x32 boxes unless line with arr = sdWorld.RequireHashPosition( x1 + xx * 32, y1 + yy * 32 ); changed
@@ -3690,6 +3708,67 @@ class sdWorld
 	
 		return false;
 	}
+	static FindDeepSleepAreasAtRect( x1, y1, x2, y2, filtering_method=null, return_array=null, react_to_unspawned=true, react_to_hibernated=true, react_to_scheduled=false ) // Specifying filtering_method makes it go through all sdDeepSleep areas
+	{
+		let min_x = sdWorld.FastFloor(x1/CHUNK_SIZE);
+		let min_y = sdWorld.FastFloor(y1/CHUNK_SIZE);
+		let max_x = sdWorld.FastCeil(x2/CHUNK_SIZE);
+		let max_y = sdWorld.FastCeil(y2/CHUNK_SIZE);
+		
+		if ( max_x === min_x )
+		max_x++;
+		if ( max_y === min_y )
+		max_y++;
+	
+		let x, y, arr, i, e;
+		
+		for ( x = min_x; x < max_x; x++ )
+		for ( y = min_y; y < max_y; y++ )
+		{
+			arr = sdWorld.RequireHashPosition( x * CHUNK_SIZE, y * CHUNK_SIZE ).arr;
+			for ( i = 0; i < arr.length; i++ )
+			{
+				e = arr[ i ];
+				
+				if ( !e._is_being_removed )
+				{
+					const e_is_bg_entity = e.IsBGEntity();
+
+					if ( e_is_bg_entity === 10 ) // sdDeepSleep
+					{
+						if ( x2 <= e.x + e._hitbox_x1 ||
+							 x1 >= e.x + e._hitbox_x2 ||
+							 y2 <= e.y + e._hitbox_y1 ||
+							 y1 >= e.y + e._hitbox_y2 )
+						{
+						}
+						else
+						{
+							if ( 
+									( react_to_unspawned && e.type === sdDeepSleep.TYPE_UNSPAWNED_WORLD ) ||
+									( react_to_hibernated && e.type === sdDeepSleep.TYPE_HIBERNATED_WORLD ) ||
+									( react_to_scheduled && e.type === sdDeepSleep.TYPE_SCHEDULED_SLEEP )
+							   )
+							{
+								if ( filtering_method || return_array )
+								{
+									if ( filtering_method )
+									filtering_method( e );
+
+									if ( return_array )
+									return_array.push( e );
+								}
+								else
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		return return_array ? return_array : false;
+	}
 	
 	static GetCrystalHue( v, glow_radius_scale=1, glow_opacity_hex='' )
 	{
@@ -3971,7 +4050,7 @@ class sdWorld
 		if ( player_description['voice7'] ) // Robot voice
 		sdWorld.ReplaceColorInSDFilter( ret, '#800000', '#000000' ); // hue +73 deg
 
-		if ( player_description['voice10'] ) // Silence
+		if ( player_description['voice10'] || player_description['voice11'] || player_description['voice12'] ) // Silence, Erthal, Tzyrg
 		sdWorld.ReplaceColorInSDFilter( ret, '#800000', '#000000' ); // hue +73 deg
 
 		return ret;
@@ -4014,6 +4093,12 @@ class sdWorld
 		sdWorld.ReplaceColorInSDFilter_v2( ret, '#800000', '#3e5ede', false ); 
 
 		if ( player_description['voice10'] ) // Silence
+		sdWorld.ReplaceColorInSDFilter_v2( ret, '#800000', '#000000', false ); // hue +73 deg
+
+		if ( player_description['voice11'] ) // Erthal
+		sdWorld.ReplaceColorInSDFilter_v2( ret, '#800000', '#000000', false ); // hue +73 deg
+
+		if ( player_description['voice12'] ) // Tzyrg
 		sdWorld.ReplaceColorInSDFilter_v2( ret, '#800000', '#000000', false ); // hue +73 deg
 	
 		return ret;
@@ -4187,6 +4272,14 @@ class sdWorld
 			_voice.variant = 'silence';
 			_voice.pitch = 0;
 		}
+		if ( player_description['voice11'] )
+		{
+			_voice.variant = 'erthal';
+		}
+		if ( player_description['voice12'] )
+		{
+			_voice.variant = 'tzyrg';
+		}
 		
 		return _voice;
 	}
@@ -4348,6 +4441,8 @@ class sdWorld
 			
 			character: null,
 			
+			next_reaction_to_seen_entity_time: 0,
+			
 			my_hash: 'singleplayer_hash',
 			
 			post_death_spectate_ttl: 12345,
@@ -4381,6 +4476,26 @@ class sdWorld
 				
 			}
 		};
+		
+		setInterval( ()=>
+		{
+			let socket = offline_socket;
+			
+			if ( sdWorld.time > socket.next_reaction_to_seen_entity_time )
+			if ( socket.character )
+			{
+				let observed_entities = sdRenderer.single_player_visibles_array;
+				
+				socket.next_reaction_to_seen_entity_time = sdWorld.time + 100;
+
+				let i = ~~( Math.random() * observed_entities.length );
+				if ( i < observed_entities.length )
+				{
+					socket.character.onSeesEntity( observed_entities[ i ] );
+				}
+			}
+
+		}, 32 );
 		
 		sdWorld.server_config = sdServerConfigFull;
 		sdWorld.server_config.enable_bounds_move = true;

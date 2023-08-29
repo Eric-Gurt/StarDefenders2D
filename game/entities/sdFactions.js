@@ -213,7 +213,7 @@ class sdFactions extends sdEntity
 				"helmet4":true,
 				"body3":true,
 				"legs3":true,
-				"voice7":true };
+				"voice11":true };
 				if ( character_entity._ai_gun_slot === 2 || character_entity._ai_gun_slot === 1 )
 				{
 					character_entity.matter = 150;
@@ -572,7 +572,7 @@ class sdFactions extends sdEntity
 			"helmet69":true,
 			"body34":true,
 			"legs36":true,
-			"voice10":true };
+			"voice12":true };
 
 			if ( character_entity._ai_gun_slot === 3 || character_entity._ai_gun_slot === 2 ) // If a regular Tzyrg
 			{

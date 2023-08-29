@@ -274,7 +274,7 @@ class sdRift extends sdEntity
 						let spawn_type = Math.random();
 						if ( spawn_type < 0.333 )
 						{
-							if ( sdAsp.asps_tot < 25 ) // Same amount as in sdWeather
+							if ( sdAsp.asps_tot < 25 || sdWorld.server_config.aggressive_hibernation ) // Same amount as in sdWeather
 							{
 								let asp = new sdAsp({ 
 									x:this.x,
@@ -288,7 +288,7 @@ class sdRift extends sdEntity
 							}
 						}
 						else
-						if ( sdQuickie.quickies_tot < 25 )
+						if ( sdQuickie.quickies_tot < 25 || sdWorld.server_config.aggressive_hibernation )
 						{
 							let quickie = new sdQuickie({ 
 								x:this.x,
@@ -306,7 +306,7 @@ class sdRift extends sdEntity
 					}
 					if ( this.type === 2 ) // Cube portal
 					{
-						if ( sdCube.alive_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 0 ) ) // 20
+						if ( sdCube.alive_cube_counter < sdCube.GetMaxAllowedCubesOfKind( 0 ) || sdWorld.server_config.aggressive_hibernation ) // 20
 						{
 							let cube = new sdCube({ 
 								x:this.x,

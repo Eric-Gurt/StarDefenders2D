@@ -42,7 +42,7 @@ class sdServerConfigShort
 	
 	static apply_censorship = true; // Censorship file is not included
 	
-	static backup_interval_seconds = 60 * 60; // One hour
+	static backup_interval_seconds = 60 * 30; // 30 minutes
 	
 	static supported_languages = [ 'en', 'ua', 'hr' ];
 		
@@ -1169,6 +1169,11 @@ class sdServerConfigFull extends sdServerConfigShort
 		y1 = Math.max( y1, -1000 );
 		y2 = Math.min( y2, 1000 );
 		
+		const waking_up_method = ( e )=>
+		{
+			e.WakeUpArea( false, null, true );
+		};
+		
 		let x,y,bad_areas_near,i;
 		let tr = 0;
 		let max_tr = 10000;
@@ -1228,6 +1233,12 @@ class sdServerConfigFull extends sdServerConfigShort
 			}
 			
 			sdWorld.last_hit_entity = null;
+			
+			sdWorld.FindDeepSleepAreasAtRect(
+				x + (-26),
+				y + (-9), 
+				x + (26), 
+				y + (10) + 19, waking_up_method );
 
 			// It is good for hover-less version:
 			//let can_stand_here = character_entity.CanMoveWithoutOverlap( x, y, 0 ) && !character_entity.CanMoveWithoutOverlap( x, y + 32, 0 );
@@ -1300,9 +1311,14 @@ class sdServerConfigFull extends sdServerConfigShort
 			{
 				character_entity.x = x;
 				character_entity.y = y;
+				
+				//character_entity.x = 0;
+				//character_entity.y = -128;
 				break;
 			}
 		} while( true );
+		
+		//trace( tr + ' / ' + max_tr );
 	}
 	
 	static ModifyReconnectRestartAttempt( player_settings, socket ) // This happens after password/ban/JS challenge checks, though occasionally banned players will be able to join for a short period of time (especially if database is on a network resource or database server is not responding)
@@ -1608,12 +1624,18 @@ class sdServerConfigFull extends sdServerConfigShort
 
 					console.log('Snapshot compression operation complete...');
 
-					// This must run inside a function marked `async`:
-					//const file = await fs.readFile('filename.txt', 'utf8');
+					let snapshot_path_temp;
 
-					let snapshot_path_temp = snapshot_path.split('.');
-					snapshot_path_temp[ snapshot_path_temp.length - 1 ] = 'TEMP.' + snapshot_path_temp[ snapshot_path_temp.length - 1 ];
-					snapshot_path_temp = snapshot_path_temp.join('.');
+					if ( sdWorld.is_singleplayer )
+					{
+						snapshot_path_temp = snapshot_path;
+					}
+					else
+					{
+						let snapshot_path_temp = snapshot_path.split('.');
+						snapshot_path_temp[ snapshot_path_temp.length - 1 ] = 'TEMP.' + snapshot_path_temp[ snapshot_path_temp.length - 1 ];
+						snapshot_path_temp = snapshot_path_temp.join('.');
+					}
 
 					fs.writeFile( snapshot_path_temp, buffer, ( err )=>
 					{
@@ -1628,18 +1650,28 @@ class sdServerConfigFull extends sdServerConfigShort
 						}
 						else
 						{
-							console.log('Snapshot saved to TEMP file.');
-
-							fs.rename( snapshot_path_temp, snapshot_path, ( err )=>
+							if ( sdWorld.is_singleplayer )
 							{
-								if ( err )
-								console.warn( 'Unable to rename TEMP file into proper snapshot file: ' + err );
-								else
-								console.log( 'TEMP file renamed.' );
-
+								console.log('Snapshot saved to final file (skipped TEMP file due to singleplayer mode).');
+								
 								Report( false );
 								snapshot_save_busy = false;
-							});
+							}
+							else
+							{
+								console.log('Snapshot saved to TEMP file.');
+
+								fs.rename( snapshot_path_temp, snapshot_path, ( err )=>
+								{
+									if ( err )
+									console.warn( 'Unable to rename TEMP file into proper snapshot file: ' + err );
+									else
+									console.log( 'TEMP file renamed.' );
+
+									Report( false );
+									snapshot_save_busy = false;
+								});
+							}
 						}
 					});
 
@@ -1670,6 +1702,7 @@ class sdServerConfigFull extends sdServerConfigShort
 		setInterval( ()=>{
 
 			if ( sdWorld.world_has_unsaved_changes )
+			if ( !sdWorld.paused )
 			{
 				sdWorld.world_has_unsaved_changes = false;
 
@@ -1683,7 +1716,7 @@ class sdServerConfigFull extends sdServerConfigShort
 				});
 			}
 
-		}, 1000 * sdWorld.server_config.backup_interval_seconds ); // Once per 15 minutes
+		}, 1000 * sdWorld.server_config.backup_interval_seconds ); // Once per 30 minutes
 
 
 
@@ -1710,10 +1743,14 @@ class sdServerConfigFull extends sdServerConfigShort
 		let termination_initiated = false;
 		function onBeforeTurnOff()
 		{
-			if ( termination_initiated )
-			return;
+			if ( !sdWorld.is_singleplayer ) // Singleplayer can do this multiple times
+			{
+				if ( termination_initiated )
+				return;
 
-			termination_initiated = true;
+				termination_initiated = true;
+			}
+			
 			console.warn('SIGTERM or SIGINT signal received. Backup time?');
 
 			for ( var i = 0; i < sockets.length; i++ )

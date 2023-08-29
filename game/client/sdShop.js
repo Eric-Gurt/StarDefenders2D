@@ -562,6 +562,7 @@ class sdShop
 			{
 				sdShop.options.push({ _class: 'sdOctopus', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdQuickie', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdQuickie', tier:2, filter:'invert(1) sepia(1) saturate(100) hue-rotate(270deg) opacity(0.45)', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdVirus', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdFaceCrab', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdAmphid', _category:'Development tests' });

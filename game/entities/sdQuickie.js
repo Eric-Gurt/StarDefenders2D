@@ -51,7 +51,9 @@ class sdQuickie extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._tier = params._tier || 1; // Used determine it's HP and damage
+		this._tier = params.tier || params._tier || 1; // Used to determine its' HP and damage
+		
+		this._crystal_worth = params.crystal_worth || ( ( this._tier === 2 ) ? 160 : 0 );
 
 		if ( this._tier === 1 )
 		this._hmax = 50;
@@ -75,7 +77,7 @@ class sdQuickie extends sdEntity
 
 		sdQuickie.quickies_tot++;
 		//this.sd_filter = params.sd_filter || null; // Custom per-pixel filter
-		this.filter = null;
+		this.filter = params.filter || null;
 	}
 	SyncedToPlayer( character ) // Shortcut for enemies to react to players
 	{
@@ -362,29 +364,45 @@ class sdQuickie extends sdEntity
 		{
 			let a,s,x,y,k;
 			
-			sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:2 }); // 3 was fine
-			
-			for ( let i = 0; i < 6; i++ )
+			if ( this._crystal_worth > 0 )
 			{
-				a = Math.random() * 2 * Math.PI;
-				s = Math.random() * 4;
-				
-				k = Math.random();
-				
-				x = this.x + this._hitbox_x1 + Math.random() * ( this._hitbox_x2 - this._hitbox_x1 );
-				y = this.y + this._hitbox_y1 + Math.random() * ( this._hitbox_y2 - this._hitbox_y1 );
-				
-				//console.warn( { x: this.x, y: this.y, type:sdEffect.TYPE_GIB, sx: this.sx + Math.sin(a)*s, sy: this.sy + Math.cos(a)*s } )
-				if ( this._tier !== 2 )
+				sdSound.PlaySound({ name:'glass12', x:this.x, y:this.y, volume:0.25 });
+
+
+				//let value_mult = this._crystal_worth / 40;
+				//sdWorld.DropShards( this.x,this.y,this.sx,this.sy, 3, value_mult, 3 );
+
+				sdWorld.DropShards( this.x, this.y, this.sx, this.sy, 
+						Math.ceil( Math.max( 5, 1 * 40 / sdWorld.crystal_shard_value * 0.5 ) ),
+						this._crystal_worth / 40,
+						5
+				);
+			}
+			else
+			{
+				sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:2 }); // 3 was fine
+				for ( let i = 0; i < 6; i++ )
 				{
-					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
-					sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
-				}
-				else
-				{
-					let value_mult = 4;
-					
-					sdWorld.DropShards( this.x,this.y,this.sx,this.sy, 3, value_mult, 3 );
+					a = Math.random() * 2 * Math.PI;
+					s = Math.random() * 4;
+
+					k = Math.random();
+
+					x = this.x + this._hitbox_x1 + Math.random() * ( this._hitbox_x2 - this._hitbox_x1 );
+					y = this.y + this._hitbox_y1 + Math.random() * ( this._hitbox_y2 - this._hitbox_y1 );
+
+					//console.warn( { x: this.x, y: this.y, type:sdEffect.TYPE_GIB, sx: this.sx + Math.sin(a)*s, sy: this.sy + Math.cos(a)*s } )
+					//if ( this._tier !== 2 )
+					{
+						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_BLOOD_GREEN, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
+						sdWorld.SendEffect({ x: x, y: y, type:sdEffect.TYPE_GIB_GREEN, sx: this.sx*k + Math.sin(a)*s, sy: this.sy*k + Math.cos(a)*s, filter:this.GetBleedEffectFilter(), hue:this.GetBleedEffectHue() });
+					}
+					/*else
+					{
+						let value_mult = 4;
+
+						sdWorld.DropShards( this.x,this.y,this.sx,this.sy, 3, value_mult, 3 );
+					}*/
 				}
 			}
 		}

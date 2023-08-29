@@ -762,16 +762,12 @@ class sdDeepSleep extends sdEntity
 				this._snapshots_str = JSON.stringify( this._snapshots_objects );
 			}
 			
-			fs.writeFile( globalThis.chunks_folder + '/' + 'TEMP_' + this._snapshots_filename, this._snapshots_str, ( err )=> 
+			if ( sdWorld.is_singleplayer )
 			{
-				if ( err )
-				trace( 'Unable to save chunk data to temp file: ' + err );
-			
-				fs.rename( globalThis.chunks_folder + '/' + 'TEMP_' + this._snapshots_filename, globalThis.chunks_folder + '/' + this._snapshots_filename, ( err )=>
+				fs.writeFile( globalThis.chunks_folder + '/' + this._snapshots_filename, this._snapshots_str, ( err )=> 
 				{
 					if ( err )
-					trace( 'Unable to rename TEMP chunk data file into proper snapshot file: ' + err );
-
+					trace( 'Unable to save chunk data to final file: ' + err );
 
 					this._file_exists = true;
 
@@ -781,7 +777,29 @@ class sdDeepSleep extends sdEntity
 
 					resolve();
 				});
-			});
+			}
+			else
+			{
+				fs.writeFile( globalThis.chunks_folder + '/' + 'TEMP_' + this._snapshots_filename, this._snapshots_str, ( err )=> 
+				{
+					if ( err )
+					trace( 'Unable to save chunk data to temp file: ' + err );
+
+					fs.rename( globalThis.chunks_folder + '/' + 'TEMP_' + this._snapshots_filename, globalThis.chunks_folder + '/' + this._snapshots_filename, ( err )=>
+					{
+						if ( err )
+						trace( 'Unable to rename TEMP chunk data file into proper snapshot file: ' + err );
+
+						this._file_exists = true;
+
+						this._snapshots_str = '';
+						this._snapshots_objects = null;
+						this._last_obj_str_reset_reason = 33;
+
+						resolve();
+					});
+				});
+			}
 		});
 		
 		return promise;

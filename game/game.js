@@ -34,47 +34,98 @@ globalThis.os = {
 };
 
 globalThis.temporary_file_system = {};
-try
+//try
 {
+	localforage.getItem( 'temporary_file_system', ( err, value )=>
+	{
+		if ( err )
+		{
+			debugger;
+			alert( 'Error: Local file system could not be loaded...' );
+		}
+		
+		if ( value === null )
+		{
+			let str = localStorage.getItem( 'temporary_file_system' );
+
+			if ( str !== null )
+			{
+				globalThis.temporary_file_system = JSON.parse( str );
+			}
+		}
+		else
+		globalThis.temporary_file_system = value;
+	});
+	/*
 	let str = localStorage.getItem( 'temporary_file_system' );
 	
 	if ( str !== null )
 	{
 		globalThis.temporary_file_system = JSON.parse( str );
-	}
+	}*/
 }
-catch(e)
-{
-	sdWorld.sockets[ 0 ].SDServiceMessage( 'Warning! Snapshot save error: ' + e.toString() );
-}
+//catch(e)
+//{
+//	sdWorld.sockets[ 0 ].SDServiceMessage( 'Warning! Snapshot load error: ' + e.toString() );
+//}
 globalThis.fs = {
 	
 	force_sync_mode: false,
 	
 	next_real_save_scheduled: false,
 	
+	save_blocks: 0,
+	
 	// For singleplayer needs
 	SDFlush: ()=>
 	{
-		try
+		//try
 		{
-			localStorage.setItem( 'temporary_file_system', JSON.stringify( globalThis.temporary_file_system ) );
+			/*let json_str = JSON.stringify( globalThis.temporary_file_system );
+			
+			let old = localStorage.getItem( 'temporary_file_system' );
+			if ( old )
+			{
+				if ( old.length * 0.8 > json_str.length )
+				debugger;
+			}
+			
+			console.warn( 'Saving file system to localStorage ('+json_str.length+' bytes)' );
+			localStorage.setItem( 'temporary_file_system', json_str );*/
+			
+			console.warn( 'Saving file system locally (' + JSON.stringify( globalThis.temporary_file_system ).length + ' bytes)' );
+			
+			localforage.setItem( 'temporary_file_system', globalThis.temporary_file_system, ( err )=>
+			{
+				if ( err )
+				{
+					debugger;
+				}
+				else
+				{
+					console.warn( 'Save complete' );
+					
+					localStorage.removeItem( 'temporary_file_system' );
+				}
+			} );
 		}
-		catch(e)
-		{
-			debugger;
-		}
+		//catch(e)
+		//{
+			//debugger;
+		//}
 	},
 	
-	fixFolderNames: ( url )=>
+	SDScheduleSave: ()=>
 	{
-		let last = url.charAt( url.length - 1 );
-		if ( last === '/' || last === '\\' )
-		url = url.substring( 0, url.length - 1 );
+		if ( globalThis.fs.save_blocks < 0 )
+		throw new Error( 'Broken save counter' );
 	
-		if ( !globalThis.fs.next_real_save_scheduled || globalThis.fs.force_sync_mode )
+		if ( globalThis.fs.save_blocks === 0 )
+		//if ( !globalThis.fs.next_real_save_scheduled || globalThis.fs.force_sync_mode )
 		{
-			globalThis.fs.next_real_save_scheduled = true;
+			globalThis.fs.SDFlush();
+			
+			/*globalThis.fs.next_real_save_scheduled = true;
 			
 			let next = ()=>
 			{
@@ -82,28 +133,49 @@ globalThis.fs = {
 				globalThis.fs.next_real_save_scheduled = false;
 			};
 			
-			setTimeout( next, 5000 );
+			if ( globalThis.fs.force_sync_mode )
+			next();
+			else
+			setTimeout( next, 5000 );*/
 		}
+	},
+	
+	SDFixFolderNames: ( url )=>
+	{
+		if ( url.indexOf( 'undefined' ) !== -1 )
+		debugger;
+		
+		let last = url.charAt( url.length - 1 );
+		if ( last === '/' || last === '\\' )
+		url = url.substring( 0, url.length - 1 );
 	
 		return url;
 	},
 	
-	writeFile: ( url, data, callback )=>
+	writeFile: ( url, data, callback=null )=>
 	{
-		url = globalThis.fs.fixFolderNames( url );
-				
-		globalThis.temporary_file_system[ url ] = data;
+		globalThis.fs.save_blocks++;
+		{	
+			url = globalThis.fs.SDFixFolderNames( url );
+
+			globalThis.temporary_file_system[ url ] = data;
+		}
+		globalThis.fs.save_blocks--;
+		globalThis.fs.SDScheduleSave();
 		
-		if ( globalThis.fs.force_sync_mode )
-		callback( null );
-		else
-		setTimeout( ()=>{
+		if ( callback )
+		{
+			if ( globalThis.fs.force_sync_mode )
 			callback( null );
-		}, 0 );
+			else
+			setTimeout( ()=>{
+				callback( null );
+			}, 0 );
+		}
 	},
 	readFileSync: ( url, encoding )=>
 	{
-		url = globalThis.fs.fixFolderNames( url );
+		url = globalThis.fs.SDFixFolderNames( url );
 		
 		if ( globalThis.fs.existsSync( url ) )
 		return globalThis.temporary_file_system[ url ];
@@ -112,12 +184,15 @@ globalThis.fs = {
 	},
 	copyFile: ( url, url2, mode, callback )=>
 	{
-		url = globalThis.fs.fixFolderNames( url );
+		url = globalThis.fs.SDFixFolderNames( url );
 		
 		let err = null;
 		
 		if ( globalThis.fs.existsSync( url ) )
-		globalThis.temporary_file_system[ url2 ] = globalThis.temporary_file_system[ url ];
+		{
+			globalThis.temporary_file_system[ url2 ] = globalThis.temporary_file_system[ url ];
+			globalThis.fs.SDScheduleSave();
+		}
 		else
 		err = 'Temprary file system: File does not exist';
 		
@@ -130,7 +205,7 @@ globalThis.fs = {
 	},
 	rename: ( url, url2, callback )=>
 	{
-		url = globalThis.fs.fixFolderNames( url );
+		url = globalThis.fs.SDFixFolderNames( url );
 		
 		let err = null;
 		
@@ -140,6 +215,8 @@ globalThis.fs = {
 			
 			delete globalThis.temporary_file_system[ url ];
 			globalThis.temporary_file_system[ url2 ] = v;
+			
+			globalThis.fs.SDScheduleSave();
 		}
 		else
 		err = 'Temprary file system: File does not exist';
@@ -154,16 +231,20 @@ globalThis.fs = {
 
 	unlinkSync: ( url )=>
 	{
-		url = globalThis.fs.fixFolderNames( url );
+		url = globalThis.fs.SDFixFolderNames( url );
 		
 		if ( globalThis.fs.existsSync( url ) )
-		delete globalThis.temporary_file_system[ url ];
-	
+		{
+			delete globalThis.temporary_file_system[ url ];
+			
+			globalThis.fs.SDScheduleSave();
+		}
+		else
 		throw new Error( 'Temprary file system: File not found' );
 	},
 	unlink: ( url, callback )=>
 	{
-		url = globalThis.fs.fixFolderNames( url );
+		url = globalThis.fs.SDFixFolderNames( url );
 		
 		let err = null;
 		
@@ -180,26 +261,31 @@ globalThis.fs = {
 	},
 	existsSync: ( url )=>
 	{
-		url = globalThis.fs.fixFolderNames( url );
+		url = globalThis.fs.SDFixFolderNames( url );
 		
 		return ( globalThis.temporary_file_system.hasOwnProperty( url ) );
 	},
 	mkdirSync: ( url )=>
 	{
-		url = globalThis.fs.fixFolderNames( url );
+		url = globalThis.fs.SDFixFolderNames( url );
 		
 		globalThis.fs.writeFile( url, 'folder' );
 	},
 	rmSync: ( url, params )=>
 	{
-		url = globalThis.fs.fixFolderNames( url );
+		url = globalThis.fs.SDFixFolderNames( url );
 		
-		if ( params.recursive )
-		for ( let prop in globalThis.temporary_file_system )
+		globalThis.fs.save_blocks++;
 		{
-			if ( prop.indexOf( url ) === 0 )
-			globalThis.fs.unlinkSync( prop );
+			if ( params.recursive )
+			for ( let prop in globalThis.temporary_file_system )
+			{
+				if ( prop.indexOf( url ) === 0 )
+				globalThis.fs.unlinkSync( prop );
+			}
 		}
+		globalThis.fs.save_blocks--;
+		globalThis.fs.SDScheduleSave();
 	},
 	rmdirSync: (...args)=>{globalThis.fs.rmSync(...args);},
 	
@@ -209,15 +295,33 @@ globalThis.fs = {
 	}
 };
 globalThis.process = {
+	
+	SDSigtermAdded: false,
+	
 	on: ( command, action )=>
 	{
 		if ( command === 'SIGTERM' )
 		{
+			if ( globalThis.process.SDSigtermAdded )
+			return;
+		
+			globalThis.process.SDSigtermAdded = true;
+			
 			addEventListener( "beforeunload", ( e )=>
 			{
 				globalThis.fs.force_sync_mode = true;
 				action();
-			});
+				globalThis.fs.force_sync_mode = false;
+				
+				trace( sdWorld.paused, sdWorld.is_singleplayer );
+				
+				if ( !sdWorld.paused )
+				if ( sdWorld.is_singleplayer )
+				{
+					e.preventDefault();
+					return ( e.returnValue = "Quit without saving?" );
+				}
+			}, { capture: true } );
 		}
 		else
 		if ( command === 'SIGINT' )
@@ -234,12 +338,14 @@ globalThis.process = {
 globalThis.zlib = {
 	inflateSync: ( packed_snapshot )=>
 	{
+		//return packed_snapshot;
 		return LZW.lzw_decode( packed_snapshot );
 	},
 	deflate: ( str, err_and_compressed_buffer_callback )=>
 	{
 		// Skip compression when saved locally
 		
+		//err_and_compressed_buffer_callback( null, str );
 		err_and_compressed_buffer_callback( null, LZW.lzw_encode( str ) );
 	}
 };
