@@ -1632,7 +1632,7 @@ class sdServerConfigFull extends sdServerConfigShort
 					}
 					else
 					{
-						let snapshot_path_temp = snapshot_path.split('.');
+						snapshot_path_temp = snapshot_path.split('.');
 						snapshot_path_temp[ snapshot_path_temp.length - 1 ] = 'TEMP.' + snapshot_path_temp[ snapshot_path_temp.length - 1 ];
 						snapshot_path_temp = snapshot_path_temp.join('.');
 					}
