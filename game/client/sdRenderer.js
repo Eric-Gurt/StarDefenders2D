@@ -775,8 +775,8 @@ class sdRenderer
 			
 			let tot = 0;
 			
-			for ( let yy = min_y; yy < max_y; yy += sdWorld.CHUNK_SIZE )
-			for ( let xx = min_x; xx < max_x; xx += sdWorld.CHUNK_SIZE )
+			for ( let yy = Math.round( min_y ); yy < max_y; yy += sdWorld.CHUNK_SIZE )
+			for ( let xx = Math.round( min_x ); xx < max_x; xx += sdWorld.CHUNK_SIZE )
 			{
 				let arr = sdWorld.RequireHashPosition( xx, yy ).arr;
 				
