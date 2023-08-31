@@ -513,10 +513,10 @@ class sdCharacter extends sdEntity
 	
 	GetBleedEffect()
 	{
-		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' || this._voice.variant ==='m2' )
+		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' || this._voice.variant ==='m2' && this._voice.voice === 'hr' )
 		return sdEffect.TYPE_BLOOD_GREEN;
 		
-		if ( this._voice.variant === 'klatt3' || this._voice.variant === 'silence' )
+		if ( this._voice.variant === 'klatt3' || this._voice.variant === 'silence' || this._voice.variant ==='m2' && this._voice.voice !== 'hr' )
 		return sdEffect.TYPE_WALL_HIT;
 	
 		return sdEffect.TYPE_BLOOD;
@@ -529,7 +529,7 @@ class sdCharacter extends sdEntity
 		if ( this._voice.variant === 'whisperf' )
 		return 73;
 
-		if ( this._voice.variant === 'm2' )
+		if ( this._voice.variant === 'm2' && this._voice.voice === 'hr' )
 		return 133;
 	
 		return 0;
