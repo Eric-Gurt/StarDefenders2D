@@ -4274,11 +4274,11 @@ class sdWorld
 		}
 		if ( player_description['voice11'] )
 		{
-			_voice.variant = 'klatt3'; // erthal not in list ( mespeak.js )
+			_voice.variant = 'erthal';
 		}
 		if ( player_description['voice12'] )
 		{
-			_voice.variant = 'm2'; // tzyrg not in list ( mespeak.js )
+			_voice.variant = 'tzyrg';
 		}
 		
 		return _voice;
