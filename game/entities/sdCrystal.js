@@ -461,7 +461,7 @@ class sdCrystal extends sdEntity
 						reward_amount = Math.max( reward_amount, sdEntity.SCORE_REWARD_BROKEN_BIG_CRAB_CRYSTAL );
 					}
 					else
-					if ( this.is_anticrystal || this.matter_max >= 180000 || this.matter_regen >= 450 ) // Too high matter and regeneration will crash the server ( Present Editor )
+					if ( this.is_anticrystal || this.matter_max >= 180000 || this.matter_regen >= 450 ) // Too high matter and regeneration will crash the server ( Preset Editor )
 					{
 						reward_amount = 0;
 					}
