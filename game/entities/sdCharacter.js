@@ -380,15 +380,15 @@ class sdCharacter extends sdEntity
 			},
 	
 			// Tzyrg
-			'tzyrg':
+			'm4':
 			{
 				death: [ 'tzyrg_deathC2' ],
 				hurt: [ 'tzyrg_hurtC' ],
 				alert: [ 'tzyrg_alertC' ]
 			},
 	
-			// Erthal
-			'erthal':
+			// Erthal, this isn't for Falkok, whisper and whisperf.
+			'whisper':
 			{
 				death: [ 'erthal_death' ],
 				hurt: [ 'erthal_hurt' ],
@@ -516,9 +516,10 @@ class sdCharacter extends sdEntity
 		if ( this._voice.variant === 'whisperf' || this._voice.variant === 'croak' || this._voice.variant ==='m2' )
 		return sdEffect.TYPE_BLOOD_GREEN;
 		
-		if ( this._voice.variant === 'klatt3' || this._voice.variant === 'silence' || this._voice.variant ==='erthal' || this._voice.variant ==='tzyrg' )
+		if ( this._voice.variant === 'klatt3' || this._voice.variant === 'silence' || this._voice.variant ==='whisper' || this._voice.variant ==='m4' )
 		return sdEffect.TYPE_WALL_HIT;
-	
+  		// whisper = erthal, m4 = tzyrg,   Yeah,wrote in mespeak-core.js, I guess these two variants are default klatt.
+		
 		return sdEffect.TYPE_BLOOD;
 	}
 	GetBleedEffectHue()
@@ -529,7 +530,7 @@ class sdCharacter extends sdEntity
 		if ( this._voice.variant === 'whisperf' )
 		return 73;
 
-		if ( this._voice.variant === 'm2' && this._voice.voice === 'hr' )
+		if ( this._voice.variant === 'm2' )
 		return 133;
 	
 		return 0;
