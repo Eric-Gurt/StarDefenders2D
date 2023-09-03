@@ -4274,11 +4274,15 @@ class sdWorld
 		}
 		if ( player_description['voice11'] )
 		{
-			_voice.variant = 'erthal';
+			_voice.variant = 'whisper';
+			_voice.pitch = 30;
+			_voice.speed = 150;
 		}
 		if ( player_description['voice12'] )
 		{
-			_voice.variant = 'tzyrg';
+			_voice.variant = 'm4';
+			_voice.pitch = 60;
+			_voice.speed = 120;
 		}
 		
 		return _voice;
