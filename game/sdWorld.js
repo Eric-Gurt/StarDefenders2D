@@ -4290,12 +4290,15 @@ class sdWorld
 	
 	static ApplyPlayerSettingsToPlayer( character_entity, player_settings, socket ) 
 	{
+		if ( character_entity.skin_allowed )
+		{
 		character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( player_settings );
 		character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( player_settings );
 
 		character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( player_settings );
 		character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( player_settings );
 		character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( player_settings );
+		}
 
 		character_entity.title = player_settings.hero_name;
 		character_entity.title_censored = ( typeof sdModeration !== 'undefined' && socket ) ? sdModeration.IsPhraseBad( character_entity.title, socket ) : false;
