@@ -81,6 +81,7 @@ class sdShop
 
 			//if ( globalThis.isWin )
 			sdShop.options.push({ _class: 'sdVirus', _category:'root', _godmode_only: true, _opens_category:'Development tests' });
+			sdShop.options.push({ _class: 'sdGun', class: sdGun.CLASS_FALKOK_RIFLE, _category:'root', _godmode_only: true, _opens_category:'Humanoid Spawner' });
 
 			sdShop.options.push({ _class: 'sdBall', _category:'Other' });
 			sdShop.options.push({ _class: 'sdBall', type: 1, _category:'Other' });
@@ -753,14 +754,6 @@ class sdShop
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.SARRORIAN_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.COUNCIL_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.TZYRG_SPAWNER, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdFactionTools', _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdFactionTools', type:2, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdFactionTools', type:3, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdFactionTools', type:4, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdFactionTools', type:5, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdFactionTools', type:6, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdFactionTools', type:7, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdFactionTools', type:8, _category:'Development tests' });
 			}
 
 			sdShop.options.push({ _class: 'sdArea', type:sdArea.TYPE_PREVENT_DAMAGE, size:256, _category:'Admin tools' });
@@ -782,9 +775,49 @@ class sdShop
 			sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_ADMIN_DAMAGER, _category:'Admin tools' });
 			sdShop.options.push({ _class: 'sdLongRangeTeleport', is_server_teleport:1, _category:'Admin tools' });
 
+
+			sdShop.options.push({ _class: 'sdFactionTools', type:1, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:2, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:3, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:4, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:5, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:6, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:7, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:8, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:9, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:10, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:11, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:12, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:13, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:14, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:15, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:16, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:17, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:18, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:19, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:20, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:21, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:22, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:23, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:24, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:25, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:26, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:27, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:28, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:29, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:30, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:31, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:32, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:33, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:34, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:35, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:36, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:37, _category:'Humanoid Spawner' });
+			sdShop.options.push({ _class: 'sdFactionTools', type:38, _category:'Humanoid Spawner' });
+
 			// Make all admin tools have Infinite cost to prevent them from being build by non-admins
 			for ( let i = 0; i < sdShop.options.length; i++ )
-			if ( sdShop.options[ i ]._category === 'Admin tools' || sdShop.options[ i ]._category === 'Development tests' )
+			if ( sdShop.options[ i ]._category === 'Admin tools' || sdShop.options[ i ]._category === 'Development tests' || sdShop.options[ i ]._category === 'Humanoid Spawner' )
 			sdShop.options[ i ].matter_cost = Infinity;
 
 		}
