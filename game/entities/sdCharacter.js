@@ -518,8 +518,7 @@ class sdCharacter extends sdEntity
 		
 		if ( this._voice.variant === 'klatt3' || this._voice.variant === 'silence' || this._voice.variant ==='whisper' || this._voice.variant ==='m4' )
 		return sdEffect.TYPE_WALL_HIT;
-  		// whisper = erthal, m4 = tzyrg,   Yeah,wrote in mespeak-core.js, I guess these two variants are default klatt.
-		
+	
 		return sdEffect.TYPE_BLOOD;
 	}
 	GetBleedEffectHue()
@@ -530,7 +529,7 @@ class sdCharacter extends sdEntity
 		if ( this._voice.variant === 'whisperf' )
 		return 73;
 
-		if ( this._voice.variant === 'm2' )
+		if ( this._voice.variant === 'm2' && this._voice.voice === 'hr' )
 		return 133;
 	
 		return 0;
@@ -1084,6 +1083,7 @@ THING is cosmic mic drop!`;
 		this.lag = false;
 		
 		this._god = false;
+		this.skin_allowed = true;
 		
 		this._discovered = {}; // Entity classes with type hashes, makes player gain starter score
 		this._last_discovery = sdWorld.time; // Do not interrupt instructor as much
@@ -1577,6 +1577,9 @@ THING is cosmic mic drop!`;
 							{
 								let _class = sdGun.CLASS_FISTS;
 
+								if ( this.s >= 249 )
+								_class = sdGun.CLASS_SWORD;
+
 								if ( !offset )
 								offset = this.GetBulletSpawnOffset();
 
@@ -1597,13 +1600,12 @@ THING is cosmic mic drop!`;
 
 								bullet_obj._armor_penetration_level = 0;
 
-								bullet_obj.time_left *= ( this.s / 100 );
-
 								bullet_obj._damage *= ( this.s / 100 );
 
-								if ( this._ai_team === 1 )
-								if ( this.title === 'Falkonian Sword Bot' )
-								bullet_obj._damage = 250; // Falkonian sword bot should be lethal at close range.
+								bullet_obj.time_left *= ( this.s / 100 );
+
+								if ( this.s >= 249 )
+								bullet_obj._damage = 200; // Falkonian sword bot should be lethal at close range.
 
 								sdEntity.entities.push( bullet_obj );
 							}
@@ -5893,6 +5895,53 @@ THING is cosmic mic drop!`;
 							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
 						}
 					}
+					if ( command_name === 'ADMIN_CONTROLB' )
+					{
+						executer_socket;
+
+						if ( this._socket )
+						{
+							executer_socket.SDServiceMessage( 'Player has connected socket' );
+						}
+						else
+						{
+							if ( !this._my_hash )
+							{
+								exectuter_character._socket = null;
+
+								executer_socket.SDServiceMessage( 'Have a new start with other guy! :D' );
+
+								this._ai_team = 0;
+								this._ai_enabled = 0;
+								this._ai = 0;
+
+								this._socket = executer_socket;
+								executer_socket.character = this;
+								this.skin_allowed = false;
+
+								this.title_censored = exectuter_character.title_censored;
+
+								this._god = false;
+
+								sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_BUILD_TOOL }) );
+								sdEntity.entities.push( new sdGun({ x:this.x, y:this.y, class:sdGun.CLASS_LVL3_LIGHT_ARMOR }) );
+
+								this._my_hash = exectuter_character._my_hash;
+
+								this.GiveScore( 3000, null, false );
+
+								executer_socket.emit('SET sdWorld.my_entity', this._net_id, { reliable: true, runs: 100 } );
+
+								this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+								exectuter_character.remove();
+							}
+							else
+							{
+								executer_socket.SDServiceMessage( 'Controlling no AI player is not allowed.' );
+							}
+						}
+					}
 				}
 
 				//if ( exectuter_character ) 
@@ -6086,7 +6135,10 @@ THING is cosmic mic drop!`;
 					this.AddContextOption( 'Remove', 'ADMIN_REMOVE', [], true, { color:'ff0000' } );
 
 					if ( this !== sdWorld.my_entity )
+					{
 					this.AddContextOption( 'Start controlling', 'ADMIN_CONTROL', [], { color:'ff0000' } );
+					this.AddContextOption( 'Start controlling ( AI only )', 'ADMIN_CONTROLB', [], { color:'ff0000' } );
+					}
 				}
 
 
