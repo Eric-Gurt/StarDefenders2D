@@ -13,7 +13,7 @@ import sdChat from '../client/sdChat.js';
 
 class sdChatInterface extends sdInterface
 {
-	static init_class()
+	static
 	{
 		sdChatInterface.only_instance = null;
 

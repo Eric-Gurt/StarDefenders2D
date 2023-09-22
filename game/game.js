@@ -2,8 +2,8 @@
 /* global globalThis, sdTranslationManager, sdWorld, sdRenderer, sd_events, sdShop, sdGun */
 
 import sdTranslationManager from './client/sdTranslationManager.js';
-sdTranslationManager.init_class();
-sdMobileKeyboard.init_class();
+// sdTranslationManager.init_class();
+// sdMobileKeyboard.init_class();
 
 globalThis.sdTranslationManager;
 	
@@ -550,7 +550,7 @@ let class_names = ( await ( await fetch( '/get_classes.txt' ) ).text() ).split('
 	import sdPortal from './entities/sdPortal.js';*/
 
 
-	sdWorld.init_class();
+	// sdWorld.init_class();
 	sdAtlasMaterial.init_class();
 	sdRenderer.init_class();
 	LZW.init_class();
@@ -558,9 +558,9 @@ let class_names = ( await ( await fetch( '/get_classes.txt' ) ).text() ).split('
 	sdPathFinding.init_class();
 	
 	sdSound.init_class();
-	sdContextMenu.init_class();
+	// sdContextMenu.init_class();
 	
-	sdElement.init_class();
+	//sdElement.init_class();
 	//sdAdminPanel.init_class();
 	//sdDatabaseEditor.init_class();
 	//sdMotherShipStorageManager.init_class();
@@ -641,7 +641,7 @@ let class_names = ( await ( await fetch( '/get_classes.txt' ) ).text() ).split('
 	sdPortal.init_class();*/
 
 	sdShop.init_class();
-	sdChat.init_class();
+	// sdChat.init_class();
 	
 	/*globalThis.sdCharacter = sdCharacter; // for console access
 	globalThis.sdEntity = sdEntity;

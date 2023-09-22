@@ -5,7 +5,7 @@
 
 class FakeCanvasContext
 {
-	static init_class()
+	static
 	{	
 		FakeCanvasContext.DRAW_IN_3D_FLAT = 0;
 		FakeCanvasContext.DRAW_IN_3D_BOX = 1;
@@ -1459,6 +1459,6 @@ class FakeCanvasContext
 		}
 	}
 }
-FakeCanvasContext.init_class();
+// FakeCanvasContext.init_class();
 
 export default FakeCanvasContext;

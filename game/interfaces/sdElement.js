@@ -4,7 +4,7 @@
 
 class sdElement
 {
-	static init_class()
+	static
 	{
 		sdElement.ROOT_ELEMENT = 0; // Can be only one, automatically made
 		sdElement.OVERLAY = 1; // Transparent yet clickable, automatically fullyscreen. Usually sends click events towards first children that has .onCloseButton property, trying to close window basically

@@ -13,7 +13,7 @@ import { io } from "socket.io-client";
 
 class sdServerToServerProtocol
 {
-	static init_class()
+	static
 	{
 		sdServerToServerProtocol.outgoing_connections = {};
 		sdServerToServerProtocol.routes = 0;

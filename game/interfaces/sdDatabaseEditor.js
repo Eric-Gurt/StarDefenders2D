@@ -11,7 +11,7 @@ import sdInterface from './sdInterface.js';
 
 class sdDatabaseEditor extends sdInterface
 {
-	static init_class()
+	static
 	{
 		sdDatabaseEditor.only_instance = null;
 		

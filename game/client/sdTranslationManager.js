@@ -32,7 +32,7 @@
 
 class sdTranslationManager
 {
-	static init_class()
+	static
 	{
 		globalThis.T = sdTranslationManager.GetTranslationOrScheduleWithCalback;
 		

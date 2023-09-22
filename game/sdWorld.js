@@ -54,12 +54,69 @@ import sdModeration from './server/sdModeration.js';
 import sdSound from './sdSound.js';
 import sdKeyStates from './sdKeyStates.js';
 
+class SeededRandomNumberGenerator
+{
+	constructor( s=0 )
+	{
+		this.seed = s;
+	}
+	random( v1, v2 )
+	{		
+		v1 = Math.floor( v1 );
+		v2 = Math.floor( v2 );
+		
+		var seed = this.seed + v1 * 56221 + v2;
+		
+		seed = ((seed + 0x7ED55D16) + (seed << 12))  & 0xFFFFFFFF;
+		seed = ((seed ^ 0xC761C23C) ^ (seed >>> 19)) & 0xFFFFFFFF;
+		seed = ((seed + 0x165667B1) + (seed << 5))   & 0xFFFFFFFF;
+		seed = ((seed + 0xD3A2646C) ^ (seed << 9))   & 0xFFFFFFFF;
+		seed = ((seed + 0xFD7046C5) + (seed << 3))   & 0xFFFFFFFF;
+		seed = ((seed ^ 0xB55A4F09) ^ (seed >>> 16)) & 0xFFFFFFFF;
+
+		return (seed & 0xFFFFFFF) / 0x10000000;
+	}
+
+}
+
+class Cell
+{
+	constructor( hash )
+	{
+		this.arr = [];
+		this.hash = hash;
+		
+		//this.snapshot_scan_id = 0; // Used during snapshot scan to keep track of visited cells
+		
+		//this.length = null;
+		Object.seal( this );
+	}
+	/*get length()
+	{
+		throw new Error('Improper use of Cell, access elements through .arr property now');
+	}*/
+	/*RecreateWith( ent )
+	{
+		let arr = this.arr.slice();
+		arr.push( ent );
+		Object.freeze( arr );
+		this.arr = arr;
+	}
+	RecreateWithout( ind )
+	{
+		let arr = this.arr.slice();
+		arr.splice( ind, 1 );
+		Object.freeze( arr );
+		this.arr = arr;
+	}*/
+}
+
 const CHUNK_SIZE = 64; // 128 causes groups of 111 or so entities, it is probably too much // 32
 const CHUNK_SIZE_INV = 1 / 64;
 
 class sdWorld
 {
-	static init_class()
+	static
 	{
 		console.log('sdWorld class initiated');
 		sdWorld.logic_rate = 16; // for server
@@ -5180,7 +5237,7 @@ class sdWorld
 // When probability matters on a scale of N cases
 class ConsistentRandom
 {
-	static init_class()
+	static
 	{
 		ConsistentRandom.keys = {};
 	}
@@ -5194,63 +5251,6 @@ class ConsistentRandom
 }
 ConsistentRandom.init_class();
 */
-
-class SeededRandomNumberGenerator
-{
-	constructor( s=0 )
-	{
-		this.seed = s;
-	}
-	random( v1, v2 )
-	{		
-		v1 = Math.floor( v1 );
-		v2 = Math.floor( v2 );
-		
-		var seed = this.seed + v1 * 56221 + v2;
-		
-		seed = ((seed + 0x7ED55D16) + (seed << 12))  & 0xFFFFFFFF;
-		seed = ((seed ^ 0xC761C23C) ^ (seed >>> 19)) & 0xFFFFFFFF;
-		seed = ((seed + 0x165667B1) + (seed << 5))   & 0xFFFFFFFF;
-		seed = ((seed + 0xD3A2646C) ^ (seed << 9))   & 0xFFFFFFFF;
-		seed = ((seed + 0xFD7046C5) + (seed << 3))   & 0xFFFFFFFF;
-		seed = ((seed ^ 0xB55A4F09) ^ (seed >>> 16)) & 0xFFFFFFFF;
-
-		return (seed & 0xFFFFFFF) / 0x10000000;
-	}
-
-}
-
-class Cell
-{
-	constructor( hash )
-	{
-		this.arr = [];
-		this.hash = hash;
-		
-		//this.snapshot_scan_id = 0; // Used during snapshot scan to keep track of visited cells
-		
-		//this.length = null;
-		Object.seal( this );
-	}
-	/*get length()
-	{
-		throw new Error('Improper use of Cell, access elements through .arr property now');
-	}*/
-	/*RecreateWith( ent )
-	{
-		let arr = this.arr.slice();
-		arr.push( ent );
-		Object.freeze( arr );
-		this.arr = arr;
-	}
-	RecreateWithout( ind )
-	{
-		let arr = this.arr.slice();
-		arr.splice( ind, 1 );
-		Object.freeze( arr );
-		this.arr = arr;
-	}*/
-}
 
 export default sdWorld;
 	

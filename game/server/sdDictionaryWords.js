@@ -1,7 +1,7 @@
 
 class sdDictionaryWords
 {
-	static init_class()
+	static
 	{
 		sdDictionaryWords.words = [];
 		

@@ -9,7 +9,7 @@
 
 class sdMobileKeyboard
 {
-	static init_class()
+	static
 	{
 		sdMobileKeyboard.container = null;
 		sdMobileKeyboard.open = false;

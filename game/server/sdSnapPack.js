@@ -4,7 +4,7 @@ import LZUTF8 from './LZUTF8.js';
 
 class sdSnapPack
 {
-	static init_class()
+	static
 	{
 		sdSnapPack.all_time_worst_case = '';
 		sdSnapPack.recent_worst_case = '';
@@ -726,6 +726,6 @@ class sdSnapPack
 		}*/
 	}
 }
-sdSnapPack.init_class();
+// sdSnapPack.init_class();
 
 export default sdSnapPack;

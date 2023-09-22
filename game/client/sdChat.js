@@ -6,7 +6,7 @@ import sdRenderer from './sdRenderer.js';
 
 class sdChat
 {
-	static init_class()
+	static
 	{
 		sdChat.open = false;
 		sdChat.text = '';

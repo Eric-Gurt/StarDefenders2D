@@ -18,7 +18,7 @@ import sdWorld from '../sdWorld.js';
 
 class sdAdminPanel extends sdInterface
 {
-	static init_class()
+	static
 	{
 		sdAdminPanel.window_instances = [];
 

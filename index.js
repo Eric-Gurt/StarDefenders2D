@@ -518,9 +518,9 @@ globalThis.getStackTrace = ()=>
 	}
 };
 
-sdWorld.init_class();
+// sdWorld.init_class();
 sdEntity.init_class();
-sdInterface.init_class();
+// sdInterface.init_class();
 
 for ( let i = 0; i < all_imported_classes.length; i++ )
 if ( all_imported_classes[ i ].init_class )
@@ -528,14 +528,14 @@ all_imported_classes[ i ].init_class();
 
 sdEntity.AllEntityClassesLoadedAndInitiated();
 
-sdServerToServerProtocol.init_class();
+// sdServerToServerProtocol.init_class();
 
 sdPathFinding.init_class();
 
 
 LZW.init_class();
 sdSound.init_class();
-sdDictionaryWords.init_class();
+// sdDictionaryWords.init_class();
 
 globalThis.sdWorld = sdWorld;
 globalThis.sdShop = sdShop;
@@ -990,7 +990,7 @@ app.get('/*', function cb( req, res, repeated=false )
 
 sdDatabase.init_class();
 sdModeration.init_class();
-sdMemoryLeakSeeker.init_class();
+// sdMemoryLeakSeeker.init_class();
 
 globalThis.sdMemoryLeakSeeker = sdMemoryLeakSeeker;
 

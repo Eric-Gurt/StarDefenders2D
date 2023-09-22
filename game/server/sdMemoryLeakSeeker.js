@@ -24,7 +24,7 @@ import sdPathFinding from '../ai/sdPathFinding.js';
 
 class sdMemoryLeakSeeker
 {
-	static init_class()
+	static
 	{
 		sdMemoryLeakSeeker.enabled = false; // Can be used to disabled at any time
 		

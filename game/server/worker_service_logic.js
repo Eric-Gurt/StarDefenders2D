@@ -6,7 +6,7 @@ import LZUTF8 from './LZUTF8.js';
 
 class WorkerServiceLogic
 {
-	static init_class()
+	static
 	{
 		WorkerServiceLogic.ACTION_LZW = 0;
 		WorkerServiceLogic.ACTION_ECHO = 1;
@@ -52,5 +52,5 @@ class WorkerServiceLogic
 		throw new Error( 'Unknown worker command: ', command );
 	}
 }
-WorkerServiceLogic.init_class();
+// WorkerServiceLogic.init_class();
 export default WorkerServiceLogic;
