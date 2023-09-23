@@ -90,7 +90,7 @@ class sdSuperTexture
 				depthFunc: transparent ? THREE.LessDepth : THREE.LessEqualDepth,
 				depthWrite: !transparent,
 				transparent: transparent, 
-				flatShading: true,
+				flatShading: true, // FIXME: three.new.js breaks this as sdWater uses this to make blending effect
 				
 				blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending,
 
