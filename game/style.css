@@ -264,6 +264,18 @@ a:active
 {
     color: #58ea99;
 }
+.serverD, .serverD:link, .serverD:visited
+{
+    color: #66eaff;
+}
+.serverE, .serverE:link, .serverE:visited
+{
+    color: #d8c271;
+}
+.serverF, .serverF:link, .serverf:visited
+{
+    color: #9e9eff;
+}
 
 .server, .server:link, .server:visited
 {
@@ -280,7 +292,7 @@ a:active
 }
 .server div
 {
-    opacity: 0.3;
+    opacity: 0.4;
 }
 
 .r_container
