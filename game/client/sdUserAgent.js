@@ -4,7 +4,7 @@ const BROWSER_GECKO = 2;
 
 function getBrowser()
 {
-	const canvas = document.createElement("canvas");
+	// const canvas = document.createElement("canvas");
 
 	let browser = "Unknown";
 	let browserID = -1;
@@ -23,7 +23,7 @@ function getBrowser()
 
 	// Gecko
 	// In case if mozOpaque gets removed in Firefox, mozInnerScreenX will replace it
-	if ( canvas.mozOpaque !== undefined || window.mozInnerScreenX !== undefined )
+	if ( "mozOpaque" in HTMLCanvasElement.prototype || window.mozInnerScreenX !== undefined )
 	{
 		browser = "Gecko";
 		browserID = BROWSER_GECKO;

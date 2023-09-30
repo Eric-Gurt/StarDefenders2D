@@ -344,7 +344,6 @@ import sdBaseShieldingUnit from './game/entities/sdBaseShieldingUnit.js';
 import sdConveyor from './game/entities/sdConveyor.js';
 import sdBeamProjector from './game/entities/sdBeamProjector.js';
 import sdQuadro from './game/entities/sdQuadro.js';
-import sdHoverBike from './game/entities/sdHoverBike.js';
 import sdObelisk from './game/entities/sdObelisk.js';
 import sdSunPanel from './game/entities/sdSunPanel.js';
 import sdWeaponBench from './game/entities/sdWeaponBench.js';
