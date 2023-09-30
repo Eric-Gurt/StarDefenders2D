@@ -648,6 +648,23 @@
 			{
 				//let players_joined = 0;
 				let players_per_team = [ 0, 0 ];
+				
+				sdWeather.only_instance._quake_scheduled_amount = 0;
+				sdWeather.only_instance.quake_intensity = 0;
+				sdWeather.only_instance._asteroid_spam_amount = 0;
+				sdWeather.only_instance._invasion = false;
+				sdWeather.only_instance._rain_amount = 0;
+				sdWeather.only_instance.raining_intensity = 0;
+				sdWeather.only_instance.air = 1;
+				
+				for ( let i = 0; i < sdCharacter.characters.length; i++ )
+				{
+					var ent = sdCharacter.characters[ i ];
+					
+					if ( !ent._socket )
+					if ( ent.hea > 0 )
+					ent.Damage( ent.hea + 1, null, false, false );
+				}
 
 				for ( let i = 0; i < sockets.length; i++ )
 				{
