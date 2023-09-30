@@ -540,7 +540,6 @@ let class_names = ( await ( await fetch( '/get_classes.txt' ) ).text() ).split('
 	import sdConveyor from './entities/sdConveyor.js';	
 	import sdBeamProjector from './entities/sdBeamProjector.js';	
 	import sdQuadro from './entities/sdQuadro.js';	
-	import sdHoverBike from './entities/sdHoverBike.js';	
 	import sdObelisk from './entities/sdObelisk.js';
 	import sdSunPanel from './entities/sdSunPanel.js';
 	import sdWeaponBench from './entities/sdWeaponBench.js';
@@ -632,7 +631,6 @@ let class_names = ( await ( await fetch( '/get_classes.txt' ) ).text() ).split('
 	sdConveyor.init_class();
 	sdBeamProjector.init_class();
 	sdQuadro.init_class();
-	sdHoverBike.init_class();
 	sdObelisk.init_class();
 	sdSunPanel.init_class();
 	sdWeaponBench.init_class();
