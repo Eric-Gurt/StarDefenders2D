@@ -345,12 +345,15 @@ class sdCommandCentre extends sdEntity
 		{
 			if ( this.hea < this.hmax )
 			{
-				this.hea = Math.min( this.hea + GSPEED, this.hmax );
-				
-				//if ( sdWorld.is_server )
-				//this.hea = this.hmax; // Hack
-				
-				this._update_version++;
+				if ( sdWorld.is_server )
+				{
+					this.hea = Math.min( this.hea + GSPEED, this.hmax );
+
+					//if ( sdWorld.is_server )
+					//this.hea = this.hmax; // Hack
+
+					this._update_version++;
+				}
 			}
 			else
 			this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED_NO_COLLISION_WAKEUP );

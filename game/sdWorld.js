@@ -1315,6 +1315,7 @@ class sdWorld
 					{
 					}
 					else
+					if ( e !== sdWeather.only_instance )
 					{
 						// Should be pointless now
 						if ( e.is( sdBlock ) )
@@ -4483,6 +4484,8 @@ class sdWorld
 			
 			if ( sdWorld.time > socket.next_reaction_to_seen_entity_time )
 			if ( socket.character )
+			if ( !socket.character._is_being_removed )
+			if ( socket.character.hea > 0 )
 			{
 				let observed_entities = sdRenderer.single_player_visibles_array;
 				

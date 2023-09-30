@@ -3505,6 +3505,14 @@ const ServerMainMethod = ()=>
 											_broken: false
 										};
 									}
+									
+									/*for ( let i = 0; i < snapshot.length; i++ )
+									if ( snapshot[ i ]._net_id === snapshot_of_deletion._net_id )
+									throw new Error();
+									
+									for ( let i = 0; i < snapshot_only_statics.length; i++ )
+									if ( snapshot_only_statics[ i ]._net_id === snapshot_of_deletion._net_id )
+									throw new Error();*/
 
 									snapshot.push( snapshot_of_deletion );
 									snapshot_only_statics.push( snapshot_of_deletion );
@@ -3633,9 +3641,17 @@ const ServerMainMethod = ()=>
 									{
 										// Serious bug here: It resends outdated states AND one of these states might tell client that entity is being removed (for example due to looking away from it) BUT this info might arrive after entity already reappeared
 
-										//console.log('Dropped packet entity was readded: ' + socket.left_overs[ prop ]._class + '['+socket.left_overs[ prop ]._net_id+']' );
-										snapshot.push( socket.left_overs[ prop ] );
-										snapshot_only_statics.push( socket.left_overs[ prop ] );
+										if ( socket.left_overs[ prop ]._is_being_removed && socket.known_statics_versions_map2.has( socket.left_overs[ prop ]._net_id ) )
+										{
+											// Bug fix? Prevent remove packet for still visible blocks
+										}
+										else
+										{
+											//console.log('Dropped packet entity was readded: ' + socket.left_overs[ prop ]._class + '['+socket.left_overs[ prop ]._net_id+']' );
+											snapshot.push( socket.left_overs[ prop ] );
+											snapshot_only_statics.push( socket.left_overs[ prop ] );
+										}
+										
 										delete socket.left_overs[ prop ];
 
 										v++;
