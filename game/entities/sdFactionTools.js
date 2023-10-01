@@ -16,10 +16,10 @@ class sdFactionTools extends sdEntity
 {
 	static init_class()
 	{
-		sdFactionTools.img_character_sd = sdWorld.CreateImageFromFile( 'helmets/helmet_star_defender_icon' );
+		sdFactionTools.img_character_sd = sdWorld.CreateImageFromFile( 'helmets/helmet_star_defender' );
 		sdFactionTools.img_character_falkok = sdWorld.CreateImageFromFile( 'helmets/helmet_falkok' );
 		sdFactionTools.img_character_pfalkok = sdWorld.CreateImageFromFile( 'helmets/helmet_phfalkok' );
-		sdFactionTools.img_character_erthal = sdWorld.CreateImageFromFile( 'helmets/helmet_dino_icon' );
+		sdFactionTools.img_character_erthal = sdWorld.CreateImageFromFile( 'helmets/helmet_dino' );
 		sdFactionTools.img_character_council = sdWorld.CreateImageFromFile( 'helmets/helmet_council' );
 		sdFactionTools.img_character_council2 = sdWorld.CreateImageFromFile( 'helmets/helmet_scion' );
 		sdFactionTools.img_character_sarronian = sdWorld.CreateImageFromFile( 'helmets/helmet_biohazard' );
@@ -122,22 +122,22 @@ class sdFactionTools extends sdEntity
 		
 		if ( this.type === sdFactionTools.FT_SD_A || this.type === sdFactionTools.FT_SDR_A || this.type === sdFactionTools.FT_SDA_A )
 		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_sd, - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( sdFactionTools.img_character_sd, 0, 0, 32, 32, - 16, - 16, 32,32 );
 			ctx.drawImageFilterCache( sdFactionTools.img_gun_sd1, -8, - 16, 32,32 );
 		}
 		if ( this.type === sdFactionTools.FT_SD_B || this.type === sdFactionTools.FT_SDR_B || this.type === sdFactionTools.FT_SDA_B )
 		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_sd, - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( sdFactionTools.img_character_sd, 0, 0, 32, 32, - 16, - 16, 32,32 );
 			ctx.drawImageFilterCache( sdFactionTools.img_gun_sd2, -8, -16, 32,32 );
 		}
 		if ( this.type === sdFactionTools.FT_SD_C || this.type === sdFactionTools.FT_SDR_C || this.type === sdFactionTools.FT_SDA_C )
 		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_sd, - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( sdFactionTools.img_character_sd, 0, 0, 32, 32, - 16, - 16, 32,32 );
 			ctx.drawImageFilterCache( sdFactionTools.img_gun_sd3, -8, -16, 32,32 );
 		}
 		if ( this.type === sdFactionTools.FT_SD_D || this.type === sdFactionTools.FT_SDR_D || this.type === sdFactionTools.FT_SDA_D )
 		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_sd, - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( sdFactionTools.img_character_sd, 0, 0, 32, 32, - 16, - 16, 32,32 );
 			ctx.drawImageFilterCache( sdFactionTools.img_gun_sd4, -8, -16, 32,32 );
 		}
 		if ( this.type === sdFactionTools.FT_FALKOK_A )
@@ -212,12 +212,12 @@ class sdFactionTools extends sdEntity
 		}
 		if ( this.type === sdFactionTools.FT_ERTHAL_A )
 		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_erthal, - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( sdFactionTools.img_character_erthal, 0, 0, 32, 32, - 16, - 16, 32,32 );
 			ctx.drawImageFilterCache( sdFactionTools.img_gun_erthal1, -8, -16, 32,32 );
 		}
 		if ( this.type === sdFactionTools.FT_ERTHAL_B )
 		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_erthal, - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( sdFactionTools.img_character_erthal, 0, 0, 32, 32, - 16, - 16, 32,32 );
 			ctx.drawImageFilterCache( sdFactionTools.img_gun_erthal2, -8, -16, 32,32 );
 		}
 		if ( this.type === sdFactionTools.FT_SHURG_A )
@@ -256,12 +256,12 @@ class sdFactionTools extends sdEntity
 		}
 		if ( this.type === sdFactionTools.FT_IR_A )
 		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_sd, - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( sdFactionTools.img_character_sd, 0, 0, 32, 32, - 16, - 16, 32,32 );
 			ctx.drawImageFilterCache( sdFactionTools.img_gun_instructor1, -8, -16, 32,32 );
 		}
 		if ( this.type === sdFactionTools.FT_IR_B )
 		{
-			ctx.drawImageFilterCache( sdFactionTools.img_character_sd, - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( sdFactionTools.img_character_sd, 0, 0, 32, 32, - 16, - 16, 32,32 );
 			ctx.drawImageFilterCache( sdFactionTools.img_gun_instructor2, -8, -16, 32,32 );
 		}
 		if ( this.type === sdFactionTools.FT_PILOT )
