@@ -6,7 +6,7 @@ import LZUTF8 from './LZUTF8.js';
 
 class WorkerServiceLogic
 {
-	static
+	static // init_class()
 	{
 		WorkerServiceLogic.ACTION_LZW = 0;
 		WorkerServiceLogic.ACTION_ECHO = 1;

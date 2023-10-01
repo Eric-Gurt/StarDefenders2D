@@ -1,7 +1,7 @@
 
 class sdWords
 {
-	static
+	static // init_class()
 	{
 		sdWords.words = [];
 		

@@ -116,7 +116,7 @@ const CHUNK_SIZE_INV = 1 / 64;
 
 class sdWorld
 {
-	static
+	static // init_class()
 	{
 		console.log('sdWorld class initiated');
 		sdWorld.logic_rate = 16; // for server
@@ -5237,7 +5237,7 @@ class sdWorld
 // When probability matters on a scale of N cases
 class ConsistentRandom
 {
-	static
+	static // init_class()
 	{
 		ConsistentRandom.keys = {};
 	}

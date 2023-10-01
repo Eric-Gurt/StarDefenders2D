@@ -10,7 +10,7 @@ import sdStorage from '../entities/sdStorage.js';
 
 class sdContextMenu
 {
-	static
+	static // init_class()
 	{
 		sdContextMenu.open = false;
 		sdContextMenu.options = [];

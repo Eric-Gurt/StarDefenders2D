@@ -5,7 +5,7 @@
 
 class sdInterface
 {
-	static
+	static // init_class()
 	{
 		sdInterface.interface_classes = {};
 		

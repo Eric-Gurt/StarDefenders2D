@@ -11,7 +11,7 @@ import sdInterface from './sdInterface.js';
 
 class sdMotherShipStorageManager extends sdInterface
 {
-	static
+	static // init_class()
 	{
 		sdMotherShipStorageManager.only_instance = null;
 

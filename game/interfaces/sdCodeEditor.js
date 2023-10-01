@@ -13,7 +13,7 @@ import sdInterface from './sdInterface.js';
 
 class sdCodeEditor extends sdInterface
 {
-	static
+	static // init_class()
 	{
 		sdCodeEditor.window_instances = [];
 
