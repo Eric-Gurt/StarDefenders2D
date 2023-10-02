@@ -308,6 +308,9 @@ class sdCharacterRagdoll
 		
 		let breathe_rise = ( Math.round( Math.sin( ( sdWorld.time - 1000 * ( this.character._net_id || 0 ) ) * ( ( this.character.hea <= this.character.hmax / 2 ) ? 0.024 : 0.003 ) ) * 4 ) / 4 * 0.1 - 0.1 ) * scale;
 		
+		let morph_crouch = this.character._crouch_intens;
+		let morph_non_crouch = 1 - this.character._crouch_intens;
+
 		// Body & head
 		this.MoveBone( this.torso, 13, 22 + breathe_rise );
 		let dx = -( this.chest._ty - this.character.look_y ) * this.character._side;
@@ -318,6 +321,9 @@ class sdCharacterRagdoll
 			dx /= di;
 			dy /= di;
 		}
+		
+		dx += morph_crouch * 2 * this.character._side;
+		
 		dx += gun_offset_body_x * this.character._side + act_x;
 		dy -= 3;
 		if ( this.character.pain_anim > 0 )
@@ -420,27 +426,30 @@ class sdCharacterRagdoll
 		}
 		else
 		{
-			if ( this.character._crouch_intens > 0.25 )
+			walk_amplitude_x = 1.5;
+			_anim_walk_arms = 0;
+			
+			//if ( this.character._crouch_intens > 0.25 )
 			{
-				legs_x -= 1;
-				legs_y -= 4;
+				legs_x -= 1 * morph_crouch;
+				legs_y -= 6 * morph_crouch;
 				
 				if ( act_x !== 0 )
-				walk_amplitude_x = act_x * this.character._side * Math.sin( _anim_walk ) * 2 + 4;
+				walk_amplitude_x += ( act_x * this.character._side * Math.sin( _anim_walk ) * 2 + 4 ) * morph_crouch;
 				else
-				walk_amplitude_x = 4;
+				walk_amplitude_x += ( 4 ) * morph_crouch;
 			
-				_anim_walk_arms = 1;
+				_anim_walk_arms += ( 1 ) * morph_crouch;
 			}
-			else
+			//else
 			{
 				if ( act_x !== 0 )
 				{
-					walk_amplitude_x = act_x * this.character._side * Math.sin( _anim_walk ) * 5;
-					walk_amplitude_y = Math.cos( _anim_walk ) * 4;
-					legs_x -= 2.5;
+					walk_amplitude_x += ( act_x * this.character._side * Math.sin( _anim_walk ) * 5 ) * morph_non_crouch;
+					walk_amplitude_y += ( Math.cos( _anim_walk ) * 4 ) * morph_non_crouch;
+					legs_x -= 2.5 * morph_non_crouch;
 					
-					_anim_walk_arms = Math.sin( _anim_walk + 0.2 ) * 1;
+					_anim_walk_arms += Math.sin( _anim_walk + 0.2 ) * morph_non_crouch;
 				}
 			}
 		}

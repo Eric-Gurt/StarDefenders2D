@@ -752,6 +752,7 @@ class sdCrystal extends sdEntity
 		{
 			if ( this.held_by.is( sdGrass ) ) // On a tree
 			if ( from_entity.IsPlayerClass() )
+			if ( from_entity.hard_collision )
 			{
 				this.held_by.DropCrystal();
 				return;

@@ -237,7 +237,8 @@ class sdGrass extends sdEntity
 				
 		//trace( 'variation', this.variation, params.variation );
 				
-		if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_LARGE )
+		if ( this.variation === sdGrass.VARIATION_TREE || this.variation === sdGrass.VARIATION_TREE_LARGE ||
+			 this.variation === sdGrass.VARIATION_TREE_BARREN || this.variation === sdGrass.VARIATION_TREE_LARGE_BARREN )
 		{
 			this.crystal = null;
 			
@@ -245,7 +246,7 @@ class sdGrass extends sdEntity
 		
 			if ( sdWorld.is_server )
 			{
-				let mult = this.variation === sdGrass.VARIATION_TREE_LARGE ? 0.7 : 1; // Large trees spawn crystals faster?
+				let mult = ( this.variation === sdGrass.VARIATION_TREE_LARGE || this.variation === sdGrass.VARIATION_TREE_LARGE_BARREN ) ? 0.7 : 1; // Large trees spawn crystals faster?
 				this._balloon_crystal_spawn_timer = sdTimer.ExecuteWithDelay( ( timer )=>{
 
 					if ( this._is_being_removed )

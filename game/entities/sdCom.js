@@ -35,6 +35,8 @@ class sdCom extends sdEntity
 		sdCom.retransmit_range = 200; // Only used by GetComsNear/GetComsNearCache
 		sdCom.max_subscribers = 32;
 		
+		sdCom.all_nodes = [];
+		
 		//sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdMatterContainer', 'sdTeleport', 'sdCrystal', 'sdLamp', 'sdCube' ];
 
 		sdCom.com_visibility_ignored_classes = [ 'sdBG', 'sdWater', 'sdCom', 'sdDoor', 'sdTurret', 'sdCharacter', 'sdVirus', 'sdQuickie', 'sdOctopus', 'sdTeleport', 'sdCube', 'sdEnemyMech', 'sdBadDog', 'sdShark', 'sdDrone', 'sdBeamProjector', 'sdSandWorm', 'sdAmphid', 'sdAbomination', 'sdAsp', 'sdBiter', 'sdCouncilMachine', 'sdPlayerOverlord' ]; // Used for sdCube pathfinding now...
@@ -114,6 +116,7 @@ class sdCom extends sdEntity
 		this._regen_timeout = 0;
 
 		this.subscribers = []; // works with _net_ids but should use biometry now
+		this._cc_id = 0; // Not used as part of regular game
 		
 		this.through_walls = 0;
 		
@@ -129,6 +132,8 @@ class sdCom extends sdEntity
 		this.hacking_left = 0; // High tier node can try hacking other nodes?
 		this._hacker = null;
 		this._hacking_timer_total = 0;
+		
+		sdCom.all_nodes.push( this );
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
@@ -364,8 +369,17 @@ class sdCom extends sdEntity
 		}
 	}
 	
+	onRemoveAsFakeEntity()
+	{
+		let i = sdCom.all_nodes.indexOf( this );
+		if ( i !== -1 )
+		sdCom.all_nodes.splice( i, 1 );
+	}
 	onRemove()
 	{
+		let i = sdCom.all_nodes.indexOf( this );
+		if ( i !== -1 )
+		sdCom.all_nodes.splice( i, 1 );
 		// Just notify everything for sprite updates // Bad approach, something like teleports will still won't update
 		/*this.GetComWiredCache( ( ent )=>{
 			

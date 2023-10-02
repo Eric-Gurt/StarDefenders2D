@@ -163,7 +163,7 @@ class sdCube extends sdEntity
 		
 		return ( this.alpha > 0 );
 	}
-		
+	
 	constructor( params )
 	{
 		super( params );
@@ -230,6 +230,9 @@ class sdCube extends sdEntity
 		
 		this._time_amplification = 0;
 		
+		this._targets_raw_cache = [];
+		this._targets_raw_cache_until = 0;
+		
 		sdCube.alive_cube_counter++;
 		
 		if ( this.kind === sdCube.KIND_YELLOW )
@@ -242,6 +245,24 @@ class sdCube extends sdEntity
 		sdCube.alive_pink_cube_counter++;
 		
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
+	}
+	GetTargetsRawCache()
+	{
+		let targets_raw = this._targets_raw_cache;
+		
+		if ( sdWorld.time > this._targets_raw_cache_until )
+		{
+			targets_raw.length = 0;
+			
+			this._targets_raw_cache_until = sdWorld.time + 200 + Math.random() * 200;
+			
+			// One method can be faster than another, depending on how many active entities there are on server
+			if ( sdWorld.entity_classes.sdEntity.active_entities.length > 3933 * 0.28502415458937197 )
+			targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdCube.attack_range, targets_raw, null, sdCube.FilterCubeTargets );
+			else
+			targets_raw = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, sdCube.attack_range, targets_raw, null, sdCube.FilterCubeTargets );
+		}
+		return targets_raw;
 	}
 	SetTarget( ent )
 	{
@@ -954,10 +975,8 @@ class sdCube extends sdEntity
 				{
 					this._attack_timer = 3;
 
-					let targets_raw = 
-						//( this.kind === sdCube.KIND_MATTER_STEALER ) ? 
-						//	sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, sdCube.attack_range, null, null, sdCube.FilterCubeTargets ) : 
-							sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, sdCube.attack_range, null, null, sdCube.FilterCubeTargets );
+					let targets_raw = this.GetTargetsRawCache();
+							//sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, sdCube.attack_range, null, null, sdCube.FilterCubeTargets );
 
 					let targets = [];
 					
@@ -986,6 +1005,9 @@ class sdCube extends sdEntity
 					for ( let i = 0; i < targets_raw.length; i++ )
 					{
 						let target = targets_raw[ i ];
+						
+						if ( target._is_being_removed )
+						continue;
 						
 						if ( this.kind === sdCube.KIND_MATTER_STEALER ) // Pink cubes heal friendly entities
 						{

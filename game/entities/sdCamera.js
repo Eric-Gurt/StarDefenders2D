@@ -443,7 +443,7 @@ class sdCamera extends sdEntity
 		if ( exectuter_character.hea > 0 )
 		if ( sdWorld.inDist2D_Boolean( this.x, this.y, exectuter_character.x, exectuter_character.y, 46 ) )
 		{
-			//this.AddContextOption( 'Detect players connecting to world', 'GET_HOOK_URL', [ sdCamera.DETECT_PLAYER_CONNECTIONS ] );
+			this.AddContextOption( 'Detect players connecting to world', 'GET_HOOK_URL', [ sdCamera.DETECT_PLAYER_CONNECTIONS ] );
 			this.AddContextOption( 'Detect 3+ players connecting to world', 'GET_HOOK_URL', [ sdCamera.DETECT_PLAYER_CONNECTIONS_3 ] );
 			this.AddContextOption( 'Detect 6+ players connecting to world', 'GET_HOOK_URL', [ sdCamera.DETECT_PLAYER_CONNECTIONS_6 ] );
 			

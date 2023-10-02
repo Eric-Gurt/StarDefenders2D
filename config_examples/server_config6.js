@@ -15,10 +15,13 @@
 	};
 	let GameState_initial = Object.assign( {}, GameState );
 	
-	let base_health = 1000;
-	let respawn_cost = 10;
+	let base_health = 2000;
+	let respawn_cost = 20;
+	let warmup_end_duration = 5; // Seconds
+	
 	let time_until_shields_are_disabled = 60 * 2.5; // 2.5 minutes
 	let time_until_next_secret_storage = 0;
+	
 	
 	let welcome_caption1 = null;
 	let welcome_caption2 = null;
@@ -470,7 +473,8 @@
 			
 			target._last_attacker_until = sdWorld.time + 5000;
 			//target.GiveScoreToLastAttacker( Math.min( 3, target._score ) );
-			target.GiveScoreToLastAttacker( ~~( target._score * 0.1 ) );
+			target.GiveScoreToLastAttacker( ~~( target._score * 0.25 ) );
+			target._score = 0;
 		}
 		
 
@@ -738,10 +742,10 @@
 
 				if ( welcome_caption2 )
 				{
-					let t = 'Make sure to pick your side!';
+					let t = 'Make sure to pick your side! Middle area is for spectators';
 
 					if ( GameState.forced_start_timer_activated )
-					t = Math.max( 0, 3 - Math.floor( GameState.forced_start_timer / 1000 ) ) + '...';
+					t = 'Game starts in ' + Math.max( 0, warmup_end_duration - Math.floor( GameState.forced_start_timer / 1000 ) ) + '...';
 
 					if ( t !== welcome_caption2.text )
 					{
@@ -752,7 +756,7 @@
 					}
 				}
 
-				if ( GameState.forced_start_timer >= 3000 && ( players_per_team[ 0 ] > 0 || players_per_team[ 1 ] > 0 ) )
+				if ( GameState.forced_start_timer >= warmup_end_duration * 1000 && ( players_per_team[ 0 ] > 0 || players_per_team[ 1 ] > 0 ) )
 				{
 					sdWorld.SendSound({ name:'reload3', x:0, y:0, volume:0.5 });
 
@@ -921,6 +925,42 @@
 							}
 
 							break;
+						}
+					}
+					
+					for ( let i = 0; i < sdCom.all_nodes.length; i++ )
+					{
+						let e = sdCom.all_nodes[ i ];
+						
+						if ( e._cc_id === 0 )
+						{
+							if ( e.subscribers.length === 1 )
+							{
+								let biometry = e.subscribers[ 0 ];
+								
+								let team = 0;
+								
+								for ( let i2 = 0; i2 < sdCharacter.characters.length; i2++ )
+								if ( sdCharacter.characters[ i2 ].biometry === biometry )
+								{
+									team = sdCharacter.characters[ i2 ].cc_id;
+									break;
+								}
+								
+								e._cc_id = team;
+							}
+						}
+						else
+						{
+							let old_len = e.subscribers.length;
+							e.subscribers.length = 0;
+							for ( let i2 = 0; i2 < sdCharacter.characters.length; i2++ )
+							//if ( !sdCharacter.characters[ i2 ]._is_being_removed )
+							if ( sdCharacter.characters[ i2 ].cc_id === e._cc_id )
+							e.subscribers.push( sdCharacter.characters[ i2 ].biometry );
+					
+							if ( old_len !== e.subscribers.length )
+							e._update_version++;
 						}
 					}
 					

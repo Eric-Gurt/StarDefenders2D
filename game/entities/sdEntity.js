@@ -3101,7 +3101,7 @@ class sdEntity
 			{
 				debugger; // Inefficient range cache, separate cache needs to be kept for each range?
 			}
-			this._next_anything_near_rethink = next_anything_near_rethink = sdWorld.time + 200 + Math.random() * 32;
+			this._next_anything_near_rethink = next_anything_near_rethink = sdWorld.time + 200 + Math.random() * 32; // Can be extended due to extend_cache_duration
 			
 			if ( !GetAnythingNear )
 			GetAnythingNear = sdWorld.GetAnythingNear;
@@ -3110,9 +3110,7 @@ class sdEntity
 			//anything_near = this._anything_near = sdWorld.GetAnythingNear( _x, _y, range, append_to, specific_classes, filter_candidates_function );
 			//else
 			anything_near = this._anything_near = GetAnythingNear( _x, _y, range, append_to, specific_classes, filter_candidates_function );
-			
 			anything_near_range = this._anything_near_range = range;
-			
 
 			// Randomize array in-place using Durstenfeld shuffle algorithm. This should be more fair and also more relaxed for sdMatterContainers that exchange matter
 			/*function shuffleArray(array) 
@@ -3682,6 +3680,9 @@ class sdEntity
 						this[ prop ] = snapshot[ prop ];
 						else
 						{
+							//if ( prop === 'crystal' )
+							//debugger;
+							
 							traceOnce('[1]Rejecting creaton of ',prop,'on',this.GetClass(),'(probably an old version property)');
 							//trace( this );
 							//throw new Error();
@@ -4116,6 +4117,7 @@ class sdEntity
 	MatterGlow( how_much=0.01, radius=30, GSPEED ) // Set radius to 0 to only glow into cables. Make sure to call WakeUpMatterSources when matter drops or else some mid-way nodes might end up not being awaken
 	{
 		if ( !sdWorld.is_server )
+		if ( this.is_static )
 		return;
 	
 		let this_matter = ( this.matter || this._matter || 0 );
@@ -4241,8 +4243,17 @@ class sdEntity
 
 				for ( let i = 0; i < connected_ents.length; i++ )
 				{
+					let keep = false;
+					
 					if ( !connected_ents[ i ]._is_being_removed )
-					this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+					keep = this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+					
+					if ( !keep )
+					{
+						connected_ents.splice( i, 1 );
+						i--;
+						continue;
+					}
 				}
 			}
 			
@@ -4250,14 +4261,26 @@ class sdEntity
 			if ( radius > 0 )
 			if ( this_matter > 0.05 )
 			{
+				let old_rethink_time = this._next_anything_near_rethink;
+				
 				//var arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null, ( e )=>!e.is( sdWorld.entity_classes.sdBG ) );
 				let arr = this.GetAnythingNearCache( this.x, this.y, radius, null, null, true, sdWorld.FilterHasMatterProperties );
 
+				let extend_cache_duration = ( old_rethink_time !== this._next_anything_near_rethink );
+
 				for ( i = 0; i < arr.length; i++ )
 				{
+					let e = arr[ i ];
+					
 					//if ( ( typeof arr[ i ].matter !== 'undefined' || typeof arr[ i ]._matter !== 'undefined' ) && arr[ i ] !== this && !arr[ i ]._is_being_removed )
-					if ( arr[ i ]._has_matter_props && arr[ i ] !== this && !arr[ i ]._is_being_removed )
+					if ( e._has_matter_props && e !== this && !e._is_being_removed )
 					{
+						if ( extend_cache_duration )
+						{
+							if ( ( e.matter || e._matter || 0 ) < ( e.matter_max || e._matter_max || 0 ) )
+							extend_cache_duration = false;
+						}
+						
 						this.TransferMatter( arr[ i ], how_much, GSPEED * 4 ); // Mult by X because targets no longer take 4 cells
 					}
 					else
@@ -4266,6 +4289,11 @@ class sdEntity
 						arr.splice( i, 1 );
 						i--;
 					}
+				}
+				
+				if ( extend_cache_duration )
+				{
+					this._next_anything_near_rethink += 400;
 				}
 			}
 			
@@ -4431,13 +4459,16 @@ class sdEntity
 		if ( optimize )
 		{
 			if ( this_matter < 0.05 )
-			return;
+			return false;
 		}
 		
 		let to_matter = ( to.matter || to._matter || 0 );
 		//let to_matter = to.GetMatter();
 		
 		let to_matter_max = ( to.matter_max || to._matter_max || 0 );
+		
+		if ( to_matter >= to_matter_max )
+		return false;
 		
 		how_much = this_matter * how_much * GSPEED;
 		
@@ -4454,7 +4485,7 @@ class sdEntity
 		}
 		
 		if ( how_much <= 0 )
-		return;
+		return false;
 	
 		if ( typeof this.matter !== 'undefined' )
 		{
@@ -4500,6 +4531,8 @@ class sdEntity
 
 		if ( to.onMatterChanged !== sdEntity.prototype.onMatterChanged )
 		to.onMatterChanged( this );
+	
+		return true;
 	}
 	onMatterChanged( by=null ) // Something like sdRescueTeleport will leave hiberstate if this happens
 	{

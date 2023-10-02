@@ -32,12 +32,14 @@ class sdLost extends sdEntity
 		sdLost.filters = [
 			'contrast(0.8) sepia(1) hue-rotate(10deg) saturate(16)',
 			'saturate(0) brightness(2.5)',
-			'none'
+			'none',
+			'saturate(8) contrast(0.6) brightness(0.2) sepia(1) saturate(8) hue-rotate(-20deg) brightness(0.8)'
 		];
 		
 		sdLost.FILTER_GOLDEN = 0;
 		sdLost.FILTER_WHITE = 1;
 		sdLost.FILTER_NONE = 2;
+		sdLost.FILTER_RED = 3;
 		
 		sdWorld.static_think_methods.push( sdLost.StaticThink );
 		
