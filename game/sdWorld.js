@@ -1843,7 +1843,7 @@ class sdWorld
 					arr[ 1 ] = params_copy;
 				}
 				
-				socket.sd_events.push( arr );
+				socket.sd_events.push( arr.slice() );
 			}
 		}
 	}

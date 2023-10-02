@@ -1,3 +1,4 @@
+
 (()=> // This wrapping is needed to allow let variables
 {
 	
@@ -490,6 +491,16 @@
 		static onBeforeSnapshotLoad()
 		{
 			// Do something before shapshot is loaded. It is earliest available stage of logic - you can edit or alter shop contents here
+			
+			for ( let i = 0; i < sdShop.options.length; i++ )
+			{
+				if ( sdShop.options[ i ]._class === 'sdCommandCentre' ) // It currently bugs the cc_id of player...
+				{
+					sdShop.options.splice( i, 1 );
+					i--;
+					continue;
+				}
+			}
 
 			sdWorld.no_respawn_areas = [];
 		}
@@ -1019,7 +1030,7 @@
 					{
 						wish_to_abort_game += dt;
 						
-						if ( wish_to_abort_game > 7000 )
+						if ( wish_to_abort_game > 30000 )
 						{
 							wish_to_abort_game = 0;
 							

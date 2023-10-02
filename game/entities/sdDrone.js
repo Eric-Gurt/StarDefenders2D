@@ -18,14 +18,10 @@ import sdCrystal from './sdCrystal.js';
 
 import sdPathFinding from '../ai/sdPathFinding.js';
 
-let sdPlayerSpectator = null;
-
 class sdDrone extends sdEntity
 {
 	static init_class()
 	{
-		sdPlayerSpectator = sdWorld.entity_classes.sdPlayerSpectator;
-		
 		sdDrone.img_drone_falkok = sdWorld.CreateImageFromFile( 'drone_falkok_sprite2' ); // Sprite by gravel/flora/floor
 		sdDrone.img_drone_erthal = sdWorld.CreateImageFromFile( 'drone_erthal' );
 
@@ -728,7 +724,7 @@ class sdDrone extends sdEntity
 					if ( !sdWorld.sockets[ i ].character._is_being_removed )
 					if ( sdWorld.sockets[ i ].character.hea > 0 )
 					//if ( sdWorld.sockets[ i ].character.IsVisible( this ) )
-					if ( !sdWorld.sockets[ i ].character.is( sdPlayerSpectator ) )
+					if ( !sdWorld.sockets[ i ].character.is( sdWorld.entity_classes.sdPlayerSpectator ) )
 					{
 
 						let dx = ( sdWorld.sockets[ i ].character.x + Math.random() * 1000 - 500 - this.x );
