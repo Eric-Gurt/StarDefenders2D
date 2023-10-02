@@ -4119,6 +4119,15 @@ class sdEntity
 		if ( !sdWorld.is_server )
 		if ( this.is_static )
 		return;
+
+		/*if ( sdWorld.sockets )
+		if ( sdWorld.sockets[ 0 ] )
+		if ( sdWorld.sockets[ 0 ].character )
+		//if ( this === sdWorld.sockets[ 0 ].character.hook_relative_to )
+		if ( this === sdWorld.sockets[ 0 ].character._stands_on )
+		{
+			debugger;
+		}*/
 	
 		let this_matter = ( this.matter || this._matter || 0 );
 		
@@ -4243,12 +4252,14 @@ class sdEntity
 
 				for ( let i = 0; i < connected_ents.length; i++ )
 				{
-					let keep = false;
+					//let keep = false;
 					
 					if ( !connected_ents[ i ]._is_being_removed )
-					keep = this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
-					
-					if ( !keep )
+					{
+						/*keep = */this.TransferMatter( connected_ents[ i ], how_much, GSPEED * 4 ); // Maximum efficiency over cables? At least prioritizing it should make sense. Maximum efficiency can cause matter being transfered to just like 1 connected entity
+					}
+					else
+					//if ( !keep )
 					{
 						connected_ents.splice( i, 1 );
 						i--;
