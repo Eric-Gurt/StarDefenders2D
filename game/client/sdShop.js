@@ -744,6 +744,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdBot', kind:0, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBot', kind:1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGuanako', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdVeloxMiner', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdLandScanner', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.FALKOK_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.SARRORIAN_SPAWNER, _category:'Development tests' });
