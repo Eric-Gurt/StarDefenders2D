@@ -839,7 +839,7 @@ class sdDrone extends sdEntity
 				{
 					this._last_attack = sdWorld.time; // So it is not so much calc intensive
 
-					let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 240, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdDrone', 'sdEnemyMech', 'sdSpider', 'sdGuanako' ] );
+					let nears_raw = sdWorld.GetAnythingNear( this.x, this.y, 240, null, [ 'sdCharacter', 'sdPlayerDrone', 'sdDrone', 'sdEnemyMech', 'sdSpider', 'sdGuanako', 'sdShurgTurret', 'sdShurgExcavator', 'sdTzyrgDevice', 'sdVeloxMiner', 'sdSetrDestroyer' ] );
 					let from_entity;
 
 					let nears = [];
@@ -866,6 +866,26 @@ class sdDrone extends sdEntity
 							nears.push( { ent: from_entity, rank: rank, ignore_line_of_sight: false } );
 						}
 						if ( from_entity.GetClass() === 'sdGuanako' && from_entity._ai_team !== this._ai_team )
+						{
+							nears.push( { ent: from_entity, rank: rank, ignore_line_of_sight: false } );
+						}
+						if ( from_entity.GetClass() === 'sdTzyrgDevice' && from_entity._ai_team !== this._ai_team )
+						{
+							nears.push( { ent: from_entity, rank: rank, ignore_line_of_sight: false } );
+						}
+						if ( from_entity.GetClass() === 'sdShurgTurret' && from_entity._ai_team !== this._ai_team )
+						{
+							nears.push( { ent: from_entity, rank: rank, ignore_line_of_sight: false } );
+						}
+						if ( from_entity.GetClass() === 'sdShurgExcavator' && from_entity._ai_team !== this._ai_team )
+						{
+							nears.push( { ent: from_entity, rank: rank, ignore_line_of_sight: false } );
+						}
+						if ( from_entity.GetClass() === 'sdVeloxMiner' && from_entity._ai_team !== this._ai_team )
+						{
+							nears.push( { ent: from_entity, rank: rank, ignore_line_of_sight: false } );
+						}
+						if ( from_entity.GetClass() === 'sdSetrDestroyer' && from_entity._ai_team !== this._ai_team )
 						{
 							nears.push( { ent: from_entity, rank: rank, ignore_line_of_sight: false } );
 						}

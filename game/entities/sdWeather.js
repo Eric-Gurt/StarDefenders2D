@@ -2926,7 +2926,7 @@ class sdWeather extends sdEntity
 
 				sdWeather.SimpleSpawner({
 				
-					count: [ 2, 4 ],
+					count: [ 1, 3 ],
 					class: sdShurgExcavator
 				});
 
