@@ -2319,7 +2319,7 @@ THING is cosmic mic drop!`;
 				{
 					if ( initiator )
 					{
-						if ( !initiator._ai || ( initiator._ai && initiator._ai_team !== this._ai_team ) ) //Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for Falkoks, also reduced by their AI level
+						/*if ( !initiator._ai || ( initiator._ai && initiator._ai_team !== this._ai_team ) ) //Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for AI, also reduced by their AI level
 						{
 							if ( !this._ai.target )
 							this.PlayAIAlertedSound( initiator );
@@ -2331,8 +2331,19 @@ THING is cosmic mic drop!`;
 							this.AIWarnTeammates();
 						}
 						else
-						if ( initiator._ai_team === this._ai_team && Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for Falkoks, also reduced by their AI level
-						this._ai.target = initiator;
+						if ( initiator._ai_team === this._ai_team && Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for AI, also reduced by their AI level
+						this._ai.target = initiator;*/
+						if ( ( initiator._ai_team || -1 ) !== this._ai_team )
+						{
+							if ( !this._ai.target )
+							this.PlayAIAlertedSound( initiator );
+							
+							this._ai.target = initiator;
+							
+							
+							if ( Math.random() < 0.3 ) // 30% chance
+							this.AIWarnTeammates();
+						}
 
 					}
 				}

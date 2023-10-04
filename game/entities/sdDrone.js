@@ -291,7 +291,7 @@ class sdDrone extends sdEntity
 
 		if ( initiator )
 		{
-			if ( !initiator.is( sdDrone ) && initiator._ai_team !== this._ai_team )
+			/*if ( !initiator.is( sdDrone ) && initiator._ai_team !== this._ai_team )
 			if ( !initiator.IsPlayerClass() && initiator._ai_team !== this._ai_team )
 			{
 				//this._current_target = initiator;
@@ -302,7 +302,9 @@ class sdDrone extends sdEntity
 			{
 				//this._current_target = initiator;
 				this.SetTarget( initiator );
-			}
+			}*/
+			if ( ( initiator._ai_team || -1 ) !== this._ai_team )
+			this.SetTarget( initiator );
 		}
 
 		dmg = Math.abs( dmg );

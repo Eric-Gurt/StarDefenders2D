@@ -91,13 +91,7 @@ class sdShurgTurret extends sdEntity
 
 		if ( initiator )
 		{
-			if ( !initiator.is( sdDrone ) && initiator._ai_team !== this._ai_team )
-			if ( !initiator.IsPlayerClass() && initiator._ai_team !== this._ai_team )
-			{
-				this._target = initiator;
-			}
-			else
-			if ( ( initiator.is( sdDrone ) || initiator.IsPlayerClass() ) && initiator._ai_team !== this._ai_team )
+			if ( ( initiator._ai_team || -1 ) !== this._ai_team )
 			{
 				this._target = initiator;
 			}
