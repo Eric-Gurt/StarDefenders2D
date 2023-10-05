@@ -177,6 +177,17 @@ class sdGibClass
 			blood: 0 // 0 = wall_hit effect
 			
 		};
+		sdGib.classes[ sdGib.CLASS_LARGE_BITER_GIBS = 11 ] = 
+		{	// This one is a spritesheet. Make sure spritesheets are horizontal only.
+			image: sdWorld.CreateImageFromFile( 'gibs/biter_gibs2' ), // Make sure your gib image is in /gibs folder
+			hitbox_x1: -4,
+			hitbox_x2: 4,
+			hitbox_y1: -4,
+			hitbox_y2: 4,
+			mass: 16,
+			health: 60,
+			blood: 1 // 1 = green blood
+		};
 		// Add new gib classes above this line //
 		
 		let index_to_const = [];
