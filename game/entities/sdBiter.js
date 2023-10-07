@@ -17,6 +17,7 @@ class sdBiter extends sdEntity
 	static init_class()
 	{
 		sdBiter.img_biter_anim = sdWorld.CreateImageFromFile( 'sdBiter' );
+		sdBiter.img_biter_anim2 = sdWorld.CreateImageFromFile( 'sdBiter2' ); // Infectious biter
 		
 		sdBiter.frame_idle = 0;
 		sdBiter.frame_attack = 1;
@@ -29,13 +30,16 @@ class sdBiter extends sdEntity
 		
 		sdBiter.biters_counter = 0;
 		
+		sdBiter.TYPE_SMALL = 0; // Regular biter
+		sdBiter.TYPE_LARGE = 1; // Infectious biter
+		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
 	// 8 as max dimension so it can fit into one block
-	get hitbox_x1() { return -6; }
-	get hitbox_x2() { return 5; }
-	get hitbox_y1() { return -5; }
-	get hitbox_y2() { return 4; }
+	get hitbox_x1() { return this.type === sdBiter.TYPE_LARGE ? -12  : -6; }
+	get hitbox_x2() { return this.type === sdBiter.TYPE_LARGE ? 12  : 6; }
+	get hitbox_y1() { return this.type === sdBiter.TYPE_LARGE ? -10  : -5; }
+	get hitbox_y2() { return this.type === sdBiter.TYPE_LARGE ? 8  : 4; }
 	
 	get hard_collision() // For world geometry where players can walk
 	{ return this.death_anim === 0; }
@@ -47,7 +51,9 @@ class sdBiter extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
-		this._hmax = 60;
+		this.type = params.type || 0;
+		
+		this._hmax = this.type === sdBiter.TYPE_LARGE ? 180 : 60;
 		this._hea = this._hmax;
 		
 		this.death_anim = 0;
@@ -58,7 +64,6 @@ class sdBiter extends sdEntity
 		this._last_jump = sdWorld.time;
 		this._last_attack = sdWorld.time + 2000;
 		this._attacking = false;
-		
 		this.side = 1;
 		
 		this.attack_anim = 0;
@@ -121,13 +126,24 @@ class sdBiter extends sdEntity
 			sdSound.PlaySound({ name:'blockB4', x:this.x, y:this.y, volume: 0.25, pitch:4 });
 			
 			//sdSound.PlaySound({ name:'biter_death', x:this.x, y:this.y, volume: 0.5 });
-
+			if ( this.type === sdBiter.TYPE_SMALL )
 			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_EASY_MOB );
+		
+			if ( this.type === sdBiter.TYPE_LARGE )
+			this.GiveScoreToLastAttacker( sdEntity.SCORE_REWARD_CHALLENGING_MOB );
 
 			if ( dmg >= this._hmax * 0.5 ) // Instagib, gibs biter into 2 parts ( if you weapon deals enough damage )
 			{
-				sdWorld.SpawnGib( this.x + ( 3 * this.side ), this.y, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_BITER_GIBS , 'hue-rotate(' + this.hue + 'deg)', 'hue-rotate('+( this.hue + 150 )+'deg)', 100, this );
-				sdWorld.SpawnGib( this.x - ( 3 * this.side ), this.y, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_BITER_GIBS , 'hue-rotate(' + this.hue + 'deg)', 'hue-rotate('+( this.hue + 150 )+'deg)', 100, this, 1 );
+				if ( this.type === sdBiter.TYPE_SMALL )
+				{
+					sdWorld.SpawnGib( this.x + ( 3 * this.side ), this.y, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_BITER_GIBS , 'hue-rotate(' + this.hue + 'deg)', 'hue-rotate('+( this.hue + 150 )+'deg)', 100, this );
+					sdWorld.SpawnGib( this.x - ( 3 * this.side ), this.y, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_BITER_GIBS , 'hue-rotate(' + this.hue + 'deg)', 'hue-rotate('+( this.hue + 150 )+'deg)', 100, this, 1 );
+				}
+				if ( this.type === sdBiter.TYPE_LARGE )
+				{
+					sdWorld.SpawnGib( this.x + ( 6 * this.side ), this.y, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_LARGE_BITER_GIBS , 'hue-rotate(' + this.hue + 'deg)', 'hue-rotate('+( this.hue + 150 )+'deg)', 100, this );
+					sdWorld.SpawnGib( this.x - ( 6 * this.side ), this.y, this.sx + Math.random() * 1 - Math.random() * 1, this.sy - Math.random() * 1.5, -this.side, sdGib.CLASS_LARGE_BITER_GIBS , 'hue-rotate(' + this.hue + 'deg)', 'hue-rotate('+( this.hue + 150 )+'deg)', 100, this, 1 );
+				}
 				this.remove();
 			}
 	
@@ -136,7 +152,7 @@ class sdBiter extends sdEntity
 		if ( this._hea < -this._hmax / 80 * 100 )
 		this.remove();
 	}
-	get mass() { return 10; } // sdBiter is capable of crashing hovers with 50 kg mass
+	get mass() { return this.type === sdBiter.TYPE_LARGE ? 40 : 10; } // sdBiter is capable of crashing hovers with 50 kg mass
 	Impulse( x, y )
 	{
 		this.sx += x / this.mass;
@@ -183,6 +199,7 @@ class sdBiter extends sdEntity
 					let dx = ( this._current_target.x + ( this._current_target.sx || 0 ) * 10 - this.x - this.sx * 10 );
 					let dy = ( this._current_target.y + ( this._current_target.sy || 0 ) * 10 - this.y - this.sy * 10 );
 					
+					
 					if ( !this._attacking )
 					{
 						let limited_dx = Math.max( 1, Math.abs( dx ) ); // Because division by 0 causes NaN values and server reboots
@@ -206,6 +223,12 @@ class sdBiter extends sdEntity
 							dx *= -0.5;
 							dy -= GSPEED * 5;
 						}
+					}
+					
+					if ( this.type === sdBiter.TYPE_LARGE ) // Less speed
+					{
+						dx /= 2;
+						dy /= 2;
 					}
 					
 					this.sx += dx;
@@ -272,15 +295,18 @@ class sdBiter extends sdEntity
 			{
 				this._last_attack += 500;
 					this._attacking = true;
-					this._last_attack = sdWorld.time + ( Math.random() * 3000 + 4000 ); // So it is not so much calc intensive
+					let next_att_time = ( Math.random() * 3000 + 4000 );
+					if ( this.type === sdBiter.TYPE_LARGE )
+					next_att_time = Math.max( 500, next_att_time / 5 ); // Large biters attack 5 times the frequency. They are supposed to be very lethal since they will spawn in deep underground.
+					this._last_attack = sdWorld.time + next_att_time; // So it is not so much calc intensive
 			}
 			
 			let from_entity;
 			
 			if ( this._attacking )
 			{
-			
-				let nears = sdWorld.GetAnythingNear( this.x, this.y, 12 );
+				let att_range = sdBiter.TYPE_LARGE ? 30 : 12;
+				let nears = sdWorld.GetAnythingNear( this.x, this.y, att_range );
 				sdWorld.shuffleArray( nears );
 
 				//let hits_left = 4;
@@ -296,13 +322,14 @@ class sdBiter extends sdEntity
 					if ( from_entity.IsTargetable() )
 					{
 						this._attacking = false;
-
-						from_entity.DamageWithEffect( 12, this );
+						let dmg = this.type === sdBiter.TYPE_LARGE ? 48 : 12;
+						from_entity.DamageWithEffect( dmg, this );
 						from_entity.PlayDamageEffect( xx, yy );
 						
 						if ( from_entity.is( sdCharacter ) )
 						{
-							from_entity._sickness += 30;
+							let sickness = this.type === sdBiter.TYPE_LARGE ? 300 : 30;
+							from_entity._sickness += sickness;
 							from_entity._last_sickness_from_ent = this;
 						}
 						
@@ -333,7 +360,10 @@ class sdBiter extends sdEntity
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.death_anim === 0 )
-		sdEntity.Tooltip( ctx, "Biter" );
+		{
+			let tooltip = this.type === sdBiter.TYPE_LARGE ? "Infectious biter" : "Biter";
+			sdEntity.Tooltip( ctx, tooltip );
+		}
 	}
 	Draw( ctx, attached )
 	{
@@ -373,6 +403,9 @@ class sdBiter extends sdEntity
 		else
 		this.attack_anim > 0 ? frame = 1 : 0
 
+		if ( this.type === sdBiter.TYPE_LARGE )
+		ctx.drawImageFilterCache( sdBiter.img_biter_anim2, frame*32,0,32,32, - 16, - 16, 32,32 );
+		if ( this.type === sdBiter.TYPE_SMALL )
 		ctx.drawImageFilterCache( sdBiter.img_biter_anim, frame*32,0,32,32, - 16, - 16, 32,32 );
 		
 		ctx.globalAlpha = 1;

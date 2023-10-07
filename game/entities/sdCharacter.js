@@ -431,7 +431,7 @@ class sdCharacter extends sdEntity
 							'You know, maybe I am just a clone.',
 							'Did they send you in here with nothing too?',
 							'Instructor laughed at me when I first got here.',
-							'The food on character planet is bad anyway.',
+							'The food on this planet is bad anyway.',
 							'It was just a little trolling.',
 							'My advice? Avoid the space mushrooms.',
 							'Were we not in the same platoon?',
@@ -441,7 +441,8 @@ class sdCharacter extends sdEntity
 							'They will eventually issue a warrant on you too.',
 							'We are replacable, so I ran.',
 							'Dying seems like a better option to me. Come, I am ready.',
-							'What exactly will you get by capturing me?'
+							'What exactly will you get by capturing me?',
+							'There are federal agents outside my base'
 						] );
 					}
 					if ( character._ai_team === 7 ) // Setr faction
@@ -1783,16 +1784,17 @@ THING is cosmic mic drop!`;
 	
 	}
 	
-	GetRandomEntityNearby() // From sdOverlord but checks for classes for enemies instead of considering anything as a target
+	static GetRandomEntityNearby( from_entity ) // From sdOverlord but checks for classes for enemies instead of considering anything as a target ( from entity = from which entity you want to check potential target )
 	{
 		let an = Math.random() * Math.PI * 2;
 
-		if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.x + Math.sin( an ) * 900, this.y + Math.cos( an ) * 900, this ) )
+		if ( !sdWorld.CheckLineOfSight( from_entity.x, from_entity.y, from_entity.x + Math.sin( an ) * 900, from_entity.y + Math.cos( an ) * 900, from_entity ) )
 		if ( sdWorld.last_hit_entity )
 		{
 			let found_enemy = false;
-			if ( sdWorld.last_hit_entity.is( sdCharacter ) ||  sdWorld.last_hit_entity.GetClass() === 'sdDrone' || sdWorld.last_hit_entity.GetClass() === 'sdEnemyMech' || sdWorld.last_hit_entity.GetClass() === 'sdSpider' || sdWorld.last_hit_entity.GetClass() === 'sdSetrDestroyer' )
-			if ( sdWorld.last_hit_entity._ai_team !== this._ai_team )
+			if ( sdWorld.last_hit_entity.is( sdCharacter ) ||  sdWorld.last_hit_entity.GetClass() === 'sdDrone' || sdWorld.last_hit_entity.GetClass() === 'sdEnemyMech' || sdWorld.last_hit_entity.GetClass() === 'sdSpider' || sdWorld.last_hit_entity.GetClass() === 'sdSetrDestroyer'
+			|| sdWorld.last_hit_entity.GetClass() === 'sdVeloxMiner' || sdWorld.last_hit_entity.GetClass() === 'sdShurgExcavator' || sdWorld.last_hit_entity.GetClass() === 'sdShurgTurret' || sdWorld.last_hit_entity.GetClass() === 'sdTzyrgDevice' )
+			if ( sdWorld.last_hit_entity._ai_team !== from_entity._ai_team )
 			found_enemy = true;
 		
 			if ( sdWorld.last_hit_entity.IsVehicle() )
@@ -1800,55 +1802,55 @@ THING is cosmic mic drop!`;
 				if ( typeof sdWorld.last_hit_entity.driver0 !== 'undefined' ) // Workbench might crash servers otherwise
 				{
 					if ( sdWorld.last_hit_entity.driver0 )
-					if ( sdWorld.last_hit_entity.driver0._ai_team !== this._ai_team )
+					if ( sdWorld.last_hit_entity.driver0._ai_team !== from_entity._ai_team )
 					found_enemy = true;
 				}
 
 				if ( typeof sdWorld.last_hit_entity.driver1 !== 'undefined' )
 				{
 					if ( sdWorld.last_hit_entity.driver1 )
-					if ( sdWorld.last_hit_entity.driver1._ai_team !== this._ai_team )
+					if ( sdWorld.last_hit_entity.driver1._ai_team !== from_entity._ai_team )
 					found_enemy = true;
 				}
 				
 				if ( typeof sdWorld.last_hit_entity.driver2 !== 'undefined' )
 				{
 					if ( sdWorld.last_hit_entity.driver2 )
-					if ( sdWorld.last_hit_entity.driver2._ai_team !== this._ai_team )
+					if ( sdWorld.last_hit_entity.driver2._ai_team !== from_entity._ai_team )
 					found_enemy = true;
 				}
 				
 				if ( typeof sdWorld.last_hit_entity.driver3 !== 'undefined' )
 				{
 					if ( sdWorld.last_hit_entity.driver3 )
-					if ( sdWorld.last_hit_entity.driver3._ai_team !== this._ai_team )
+					if ( sdWorld.last_hit_entity.driver3._ai_team !== from_entity._ai_team )
 					found_enemy = true;
 				}
 				
 				if ( typeof sdWorld.last_hit_entity.driver3 !== 'undefined' )
 				{
 					if ( sdWorld.last_hit_entity.driver3 )
-					if ( sdWorld.last_hit_entity.driver3._ai_team !== this._ai_team )
+					if ( sdWorld.last_hit_entity.driver3._ai_team !== from_entity._ai_team )
 					found_enemy = true;
 				}
 				
 				if ( typeof sdWorld.last_hit_entity.driver4 !== 'undefined' )
 				{
 					if ( sdWorld.last_hit_entity.driver4 )
-					if ( sdWorld.last_hit_entity.driver4._ai_team !== this._ai_team )
+					if ( sdWorld.last_hit_entity.driver4._ai_team !== from_entity._ai_team )
 					found_enemy = true;
 				}
 				
 				if ( typeof sdWorld.last_hit_entity.driver5 !== 'undefined' )
 				{
 					if ( sdWorld.last_hit_entity.driver5 )
-					if ( sdWorld.last_hit_entity.driver5._ai_team !== this._ai_team )
+					if ( sdWorld.last_hit_entity.driver5._ai_team !== from_entity._ai_team )
 					found_enemy = true;
 				}
 			}
 
 			if ( sdWorld.last_hit_entity.GetClass() === 'sdPlayerDrone' || sdWorld.last_hit_entity.GetClass() === 'sdPlayerOverlord' )
-			if ( this._ai_team !== 0 )
+			if ( from_entity._ai_team !== 0 )
 			found_enemy = true;
 
 			if (	sdWorld.last_hit_entity.GetClass() === 'sdAmphid' || 
@@ -1862,12 +1864,12 @@ THING is cosmic mic drop!`;
 					sdWorld.last_hit_entity.GetClass() === 'sdFaceCrab' || 
 					sdWorld.last_hit_entity.GetClass() === 'sdBiter'  ||
 					sdWorld.last_hit_entity.GetClass() === 'sdAbomination' ||
-					( sdWorld.last_hit_entity.GetClass() === 'sdBomb' && sdWorld.inDist2D_Boolean( sdWorld.last_hit_entity.x, sdWorld.last_hit_entity.y, this.x, this.y, 150 ) ) ||
-					( sdWorld.last_hit_entity.GetClass() === 'sdBarrel' && sdWorld.inDist2D_Boolean( sdWorld.last_hit_entity.x, sdWorld.last_hit_entity.y, this.x, this.y, 150 ) && sdWorld.last_hit_entity.armed < 100 ) // Attack not yet armed barrels (for Councils?)
+					( sdWorld.last_hit_entity.GetClass() === 'sdBomb' && sdWorld.inDist2D_Boolean( sdWorld.last_hit_entity.x, sdWorld.last_hit_entity.y, from_entity.x, from_entity.y, 150 ) ) ||
+					( sdWorld.last_hit_entity.GetClass() === 'sdBarrel' && sdWorld.inDist2D_Boolean( sdWorld.last_hit_entity.x, sdWorld.last_hit_entity.y, from_entity.x, from_entity.y, 150 ) && sdWorld.last_hit_entity.armed < 100 ) // Attack not yet armed barrels (for Councils?)
 			) 
 			found_enemy = true;
 
-			if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && this._ai_team !== 0 )
+			if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && from_entity._ai_team !== 0 )
 			if ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_WALL || 
 					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 ||
 					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 ||
@@ -1876,7 +1878,7 @@ THING is cosmic mic drop!`;
 			found_enemy = true;
 
 			if ( sdWorld.last_hit_entity.is( sdCube ) ) // Only confront cubes when they want to attack AI
-			if ( this._nature_damage >= this._player_damage + 60 )
+			if ( from_entity._nature_damage >= from_entity._player_damage + 60 )
 			found_enemy = true;
 
 			if ( found_enemy === true )
@@ -2317,7 +2319,7 @@ THING is cosmic mic drop!`;
 				{
 					if ( initiator )
 					{
-						if ( !initiator._ai || ( initiator._ai && initiator._ai_team !== this._ai_team ) ) //Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for Falkoks, also reduced by their AI level
+						/*if ( !initiator._ai || ( initiator._ai && initiator._ai_team !== this._ai_team ) ) //Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for AI, also reduced by their AI level
 						{
 							if ( !this._ai.target )
 							this.PlayAIAlertedSound( initiator );
@@ -2329,8 +2331,19 @@ THING is cosmic mic drop!`;
 							this.AIWarnTeammates();
 						}
 						else
-						if ( initiator._ai_team === this._ai_team && Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for Falkoks, also reduced by their AI level
-						this._ai.target = initiator;
+						if ( initiator._ai_team === this._ai_team && Math.random() < ( 0.333 - Math.min( 0.33, ( 0.09 * this._ai_level ) ) ) ) // 3 times less friendly fire for AI, also reduced by their AI level
+						this._ai.target = initiator;*/
+						if ( ( initiator._ai_team || -1 ) !== this._ai_team )
+						{
+							if ( !this._ai.target )
+							this.PlayAIAlertedSound( initiator );
+							
+							this._ai.target = initiator;
+							
+							
+							if ( Math.random() < 0.3 ) // 30% chance
+							this.AIWarnTeammates();
+						}
 
 					}
 				}
@@ -2872,7 +2885,7 @@ THING is cosmic mic drop!`;
 			{
 				this._ai.target = null;
 				
-				this._ai.target = this.GetRandomEntityNearby();
+				this._ai.target = sdCharacter.GetRandomEntityNearby( this );
 				if ( this._ai.target)
 				this.PlayAIAlertedSound( this._ai.target );
 			}
@@ -3189,7 +3202,7 @@ THING is cosmic mic drop!`;
 							}
 							else
 							{
-								this._ai.target = this.GetRandomEntityNearby();
+								this._ai.target = sdCharacter.GetRandomEntityNearby( this );
 								//if ( this._ai.target )
 								//this.PlayAIAlertedSound( this._ai.target );
 							}

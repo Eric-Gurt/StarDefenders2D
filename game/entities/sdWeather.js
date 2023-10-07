@@ -67,6 +67,7 @@ import sdTzyrgAbsorber from './sdTzyrgAbsorber.js';
 import sdShurgConverter from './sdShurgConverter.js';
 import sdShurgTurret from './sdShurgTurret.js';
 import sdShurgExcavator from './sdShurgExcavator.js';
+import sdVeloxMiner from './sdVeloxMiner.js';
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdStatusEffect from './sdStatusEffect.js';
@@ -1921,6 +1922,11 @@ class sdWeather extends sdEntity
 					instances++;
 					ais++;
 				}
+				sdWeather.SimpleSpawner({
+				
+					count: [ 1, 2 ],
+					class: sdVeloxMiner
+				});
 			}
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
@@ -2920,7 +2926,7 @@ class sdWeather extends sdEntity
 
 				sdWeather.SimpleSpawner({
 				
-					count: [ 2, 4 ],
+					count: [ 1, 3 ],
 					class: sdShurgExcavator
 				});
 

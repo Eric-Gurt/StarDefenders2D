@@ -154,7 +154,7 @@ class sdEnemyMech extends sdEntity
 		
 		let e = sdEntity.GetRandomEntity();
 		
-		if ( [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret', 'sdManualTurret', 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdSetrDestroyer', 'sdOverlord', 'sdSpider' ].indexOf( e.GetClass() ) !== -1 )
+		if ( [ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret', 'sdManualTurret', 'sdCube', 'sdDrone', 'sdCommandCentre', 'sdSetrDestroyer', 'sdOverlord', 'sdSpider', 'sdShurgTurret', 'sdTzyrgAbsorber', 'sdVeloxMiner', 'sdShurgExcavator' ].indexOf( e.GetClass() ) !== -1 )
 		if ( e.IsVisible( this ) )
 		if ( e.IsTargetable( this ) )
 		{

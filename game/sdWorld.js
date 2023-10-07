@@ -887,7 +887,7 @@ class sdWorld
 
 		if ( y > from_y + 256 )
 		{
-			hp_mult = 1 + Math.ceil( ( y - from_y - 256 ) / 200 * 3 ) / 3;
+			hp_mult = Math.min( 10, (1 + Math.ceil( ( y - from_y - 256 ) / 200 * 3 ) / 3 ) );
 			//f += 'brightness(' + Math.max( 0.2, 1 / hp_mult ) + ') saturate(' + Math.max( 0.2, 1 / hp_mult ) + ')';
 			f = 'brightness(0.5) saturate(0.2)';
 		}

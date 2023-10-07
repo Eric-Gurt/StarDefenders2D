@@ -729,6 +729,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdGrub', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdAbomination', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBiter', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdBiter', type: 1, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdSensorArea', _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdBloodDecal', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBG', width: 16, height: 8, _category:'Development tests' });
@@ -744,6 +745,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdBot', kind:0, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdBot', kind:1, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGuanako', _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdVeloxMiner', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdLandScanner', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.FALKOK_SPAWNER, _category:'Development tests' });
 				//sdShop.options.push({ _class: 'sdFactionSpawner', type:sdFactionSpawner.SARRORIAN_SPAWNER, _category:'Development tests' });

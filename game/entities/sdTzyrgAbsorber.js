@@ -75,56 +75,6 @@ class sdTzyrgAbsorber extends sdEntity
 	{
 		return this.filter;
 	}*/
-
-	GetRandomEntityNearby() // From sdCharacter
-	{
-		let an = Math.random() * Math.PI * 2;
-
-		if ( !sdWorld.CheckLineOfSight( this.x, this.y, this.x + Math.sin( an ) * 900, this.y + Math.cos( an ) * 900, this ) )
-		if ( sdWorld.last_hit_entity )
-		{
-			let found_enemy = false;
-			if ( sdWorld.last_hit_entity.is( sdCharacter ) ||  sdWorld.last_hit_entity.GetClass() === 'sdDrone' || sdWorld.last_hit_entity.GetClass() === 'sdEnemyMech' || sdWorld.last_hit_entity.GetClass() === 'sdSpider' || sdWorld.last_hit_entity.GetClass() === 'sdSetrDestroyer' )
-			if ( sdWorld.last_hit_entity._ai_team !== this._ai_team )
-			found_enemy = true;
-
-			if ( sdWorld.last_hit_entity.GetClass() === 'sdPlayerDrone' || sdWorld.last_hit_entity.GetClass() === 'sdPlayerOverlord' )
-			if ( this._ai_team !== 0 )
-			found_enemy = true;
-
-			if (	sdWorld.last_hit_entity.GetClass() === 'sdAmphid' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdAsp' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdBadDog' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdOctopus' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdQuickie' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdSandWorm' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdVirus' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdTutel' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdFaceCrab' || 
-					sdWorld.last_hit_entity.GetClass() === 'sdBiter'  ||
-					sdWorld.last_hit_entity.GetClass() === 'sdAbomination' ||
-					( sdWorld.last_hit_entity.GetClass() === 'sdBomb' && sdWorld.inDist2D_Boolean( sdWorld.last_hit_entity.x, sdWorld.last_hit_entity.y, this.x, this.y, 150 ) ) ||
-					( sdWorld.last_hit_entity.GetClass() === 'sdBarrel' && sdWorld.inDist2D_Boolean( sdWorld.last_hit_entity.x, sdWorld.last_hit_entity.y, this.x, this.y, 150 ) && sdWorld.last_hit_entity.armed < 100 ) // Attack not yet armed barrels (for Councils?)
-			) 
-			found_enemy = true;
-
-			if ( sdWorld.last_hit_entity.GetClass() === 'sdBlock' && this._ai_team !== 0 )
-			if ( sdWorld.last_hit_entity.material === sdBlock.MATERIAL_WALL || 
-					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL1 ||
-					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_REINFORCED_WALL_LVL2 ||
-					sdWorld.last_hit_entity.material === sdBlock.MATERIAL_SHARP ) // Attack player built walls
-			if ( sdWorld.last_hit_entity._ai_team !== this._ai_team ) // Don't attack if it's own faction outpost walls
-			found_enemy = true;
-
-			if ( sdWorld.last_hit_entity.is( sdCube ) ) // Only confront cubes when they want to attack AI
-			if ( this._nature_damage >= this._player_damage + 60 )
-			found_enemy = true;
-
-			if ( found_enemy === true )
-			return sdWorld.last_hit_entity;
-		}
-		return null;
-	}
 	Damage( dmg, initiator=null )
 	{
 		if ( !sdWorld.is_server )
@@ -132,13 +82,7 @@ class sdTzyrgAbsorber extends sdEntity
 
 		if ( initiator )
 		{
-			if ( !initiator.is( sdDrone ) && initiator._ai_team !== this._ai_team )
-			if ( !initiator.IsPlayerClass() && initiator._ai_team !== this._ai_team )
-			{
-				this._target = initiator;
-			}
-			else
-			if ( ( initiator.is( sdDrone ) || initiator.IsPlayerClass() ) && initiator._ai_team !== this._ai_team )
+			if ( ( initiator._ai_team || -1 ) !== this._ai_team )
 			{
 				this._target = initiator;
 			}
@@ -208,7 +152,7 @@ class sdTzyrgAbsorber extends sdEntity
 				
 				if ( this._next_scan <= 0 )
 				{
-					this._target = this.GetRandomEntityNearby();
+					this._target = sdCharacter.GetRandomEntityNearby( this );
 					this._next_scan = 3;
 				}
 				else

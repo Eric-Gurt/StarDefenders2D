@@ -120,13 +120,7 @@ class sdShurgExcavator extends sdEntity
 
 		if ( initiator )
 		{
-			if ( !initiator.is( sdDrone ) && initiator._ai_team !== this._ai_team )
-			if ( !initiator.IsPlayerClass() && initiator._ai_team !== this._ai_team )
-			{
-				this.SetTarget( initiator );
-			}
-			else
-			if ( ( initiator.is( sdDrone ) || initiator.IsPlayerClass() ) && initiator._ai_team !== this._ai_team )
+			if ( ( initiator._ai_team || -1 ) !== this._ai_team )
 			{
 				this.SetTarget( initiator );
 			}
