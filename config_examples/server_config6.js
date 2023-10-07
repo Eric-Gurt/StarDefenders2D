@@ -16,8 +16,8 @@
 	};
 	let GameState_initial = Object.assign( {}, GameState );
 	
-	let base_health = 2000;
-	let respawn_cost = 20;
+	let base_health = 4000;
+	let respawn_cost = 40;
 	let warmup_end_duration = 5; // Seconds
 	
 	let time_until_shields_are_disabled = 60 * 2.5; // 2.5 minutes
@@ -877,6 +877,10 @@
 						let e = bases[ base_id ];
 						
 						e._regen_timeout = 99999; // Remove regen logic
+						
+						// Do not apply shielding as it messes up respawn counters
+						if ( e._shielded )
+						e._shielded = null;
 						
 						let title = ( ( base_id === 0 ) ? 'BLUE' : 'RED' ) + ', ' + Math.floor( e.hea / respawn_cost - 0.0001 ) + ' respawns left';
 						if ( title !== e.biometry )
