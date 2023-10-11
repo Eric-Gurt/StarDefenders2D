@@ -50,6 +50,10 @@ class sdNode extends sdEntity
 	
 		return 'Cable connection node';
 	}
+	get description()
+	{
+		return 'Cable connection nodes can be used to connect base equipment entities that are located far away from each other. Some types of cable connection nodes can have additional effect when used with buttons & sensors.';
+	}
 	
 	//IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
 	//{ return true; }

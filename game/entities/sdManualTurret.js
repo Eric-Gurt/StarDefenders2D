@@ -40,6 +40,10 @@ class sdManualTurret extends sdEntity
 		else
 		return 'Manual turret';
 	}
+	get description()
+	{
+		return 'These powerful turrets can be controlled by a driver of a steering wheel.';
+	}
 	
 	//IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
 	//{ return true; }

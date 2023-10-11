@@ -71,6 +71,10 @@ class sdCom extends sdEntity
 		//return 'Communication node';
 		return 'Access management node';
 	}
+	get description()
+	{
+		return `Access management nodes can be used to grant exclusive access for doors & teleports as well as make turrets not target specific Star Defenders.`;
+	}
 	
 	//IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
 	//{ return true; }

@@ -91,7 +91,11 @@ class sdWeaponBench extends sdEntity
 	}
 	get title()
 	{
-		return 'Weapon Modification Bench';
+		return 'Weapon modification bench';
+	}
+	get description()
+	{
+		return `Can be used to customize appearance and upgrade properties of your weapons. In order to drop weapon onto weapon modification bench - press V. Then right click on weapon modification bench for more options.`;
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{

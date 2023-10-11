@@ -71,6 +71,10 @@ class sdCamera extends sdEntity
 	{
 		return 'Security camera';
 	}
+	get description()
+	{
+		return 'Security cameras can be used to notify you about in-game events via desktop application that is available on game\'s start screen (Star Defenders notificator). It includes online player counters, someone being near your base etc.';
+	}
 	
 	//IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
 	//{ return true; }

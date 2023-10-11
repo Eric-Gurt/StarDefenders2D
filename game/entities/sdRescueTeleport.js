@@ -499,6 +499,17 @@ class sdRescueTeleport extends sdEntity
 		if ( this.type === sdRescueTeleport.TYPE_CLONER )
 		return 'Rescue cloner';
 	}
+	get description()
+	{
+		if ( this.type === sdRescueTeleport.TYPE_INFINITE_RANGE )
+		return 'Don\'t you hate dying? This rescue teleport can teleport you back to it when you are in critical state, essentially saving you in exchange for '+sdRescueTeleport.max_matter+' matter. Works on long ranges but still has limited range. It makes sense to wire this rescue teleport to matter amplifiers using cable management tool.';
+
+		if ( this.type === sdRescueTeleport.TYPE_SHORT_RANGE )
+		return 'Don\'t you hate dying? This rescue teleport can teleport you back to it when you are in critical state, essentially saving you in exchange for '+sdRescueTeleport.max_matter_short+' matter. Only works on short ranges, will be prioritized. It makes sense to wire this rescue teleport to matter amplifiers using cable management tool.';
+
+		if ( this.type === sdRescueTeleport.TYPE_CLONER )
+		return 'Prints a new you in case you die. Costs a lot of matter and 20 minutes to fully restore you. Your items won\'t be kept, only upgrades. It makes sense to wire this cloner to matter amplifiers using cable management tool.';
+	}
 	
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
 	{ return true; }

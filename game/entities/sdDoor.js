@@ -572,6 +572,10 @@ class sdDoor extends sdEntity
 	{
 		return 'Door';
 	}
+	get description()
+	{
+		return `Connect access management node to doors in order to configure which entities should trigger door opening.`;
+	}
 	DrawBG( ctx, attached )
 	{
 		if ( this.openness > 0 || typeof ctx.FakeStart !== 'undefined' )

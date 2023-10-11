@@ -1413,6 +1413,20 @@ class sdBaseShieldingUnit extends sdEntity
 		//return T('Base shielding unit');
 		return 'undefined';
 	}
+	get description()
+	{
+		if ( this.type === sdBaseShieldingUnit.TYPE_SCORE_TIMED )
+		return T('Reliably protects nearby walls, except for being time & location limited. Players can use score to charge these base shielding units. Use right click to configure & enable them.');
+	
+		if ( this.type === sdBaseShieldingUnit.TYPE_CRYSTAL_CONSUMER )
+		return T('Maximum value of crystals that are being put in these base shielding units is used to protect nearby walls. These base shielding units can attack other base shielding units of same kind. Use right click to configure & enable them.');
+	
+		if ( this.type === sdBaseShieldingUnit.TYPE_MATTER )
+		return T('Matter is used to charge these base shielding units and protect nearby walls as a result. These base shielding units can attack other base shielding units of same kind. Use right click to configure & enable them.');
+	
+		if ( this.type === sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE )
+		return T('Matter is used to increase protection percentage applied to nearby walls of this base shielding units. Leveling can be quite costly so you might want to use alternatives and not try to charge multiple of these at the same time. Use right click to configure & enable them.');
+	}
 	
 	DrawHUD( ctx, attached ) // foreground layer
 	{

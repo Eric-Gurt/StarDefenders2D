@@ -261,13 +261,27 @@ class sdStorage extends sdEntity
 		return 'Storage crate';
 
 		if ( this.type === sdStorage.TYPE_PORTAL )
-		return 'Portal Storage device';
+		return 'Portal storage device';
 
 		if ( this.type === sdStorage.TYPE_CRYSTALS )
-		return 'Crystal Storage crate';
+		return 'Crystal storage crate';
 
 		if ( this.type === sdStorage.TYPE_CARGO )
-		return 'Cargo Storage crate';
+		return 'Cargo storage crate';
+	}
+	get description()
+	{
+		if ( this.type === sdStorage.TYPE_GUNS )
+		return `${ this.title } can be used to store weapons and other held items.`;
+
+		if ( this.type === sdStorage.TYPE_PORTAL )
+		return `${ this.title } can be used to store weapons and other held items, but in more compact way.`;
+
+		if ( this.type === sdStorage.TYPE_CRYSTALS )
+		return `${ this.title } can be used to store and safely transport crystals as well as various types of barrels. These can be made trapped using items put into them.`;
+
+		if ( this.type === sdStorage.TYPE_CARGO )
+		return `${ this.title } can be used to store storage crates that hold guns & items.`;
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{

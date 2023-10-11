@@ -82,6 +82,14 @@ class sdBeacon extends sdEntity
 		if ( this._phys_sleep <= 0 )
 		this.SetHiberState( sdEntity.HIBERSTATE_HIBERNATED );
 	}
+	get title()
+	{
+		return 'Beacon';
+	}
+	get description()
+	{
+		return `You can right click on beacons in order to track them. You can stop tracking them by pressing Esc and removing them from the tracked list later.`;
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		let t = this.biometry;
@@ -89,7 +97,7 @@ class sdBeacon extends sdEntity
 		if ( sdWorld.client_side_censorship && this.biometry_censored )
 		t = sdWorld.CensoredText( t );
 
-		sdEntity.Tooltip( ctx, "Beacon", 0, -8 );
+		sdEntity.Tooltip( ctx, this.title, 0, -8 );
 		sdEntity.TooltipUntranslated( ctx, "ID: " + t, 0, 0, '#666666' );
 	}
 	Draw( ctx, attached )

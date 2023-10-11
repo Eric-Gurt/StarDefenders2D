@@ -364,6 +364,10 @@ class sdCommandCentre extends sdEntity
 	{
 		return 'Command Centre';
 	}
+	get description()
+	{
+		return 'Allows you to disable friendly fire with your friends as well as request tasks from Mothership.';
+	}
 	Draw( ctx, attached )
 	{
 		if ( sdShop.isDrawing )

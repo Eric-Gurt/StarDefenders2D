@@ -334,11 +334,11 @@ class sdShop
 			sdShop.options.push({ _class: 'sdTeleport', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdAntigravity', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdLamp', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdStorage', filter: 'saturate(0)', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdStorage', filter: 'none', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdStorage', filter: 'hue-rotate(205deg) saturate(10)', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdStorage', filter: 'hue-rotate(220deg)', _category:'Base equipment' });
-			sdShop.options.push({ _class: 'sdStorage', filter: 'hue-rotate(135deg)', _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'saturate(0)', _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'none', _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'hue-rotate(205deg) saturate(10)', _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'hue-rotate(220deg)', _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdStorage', type: 0, filter: 'hue-rotate(135deg)', _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'saturate(0)', _category:'Base equipment', _min_build_tool_level: 1 });
 			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'none', _category:'Base equipment', _min_build_tool_level: 1 });
 			sdShop.options.push({ _class: 'sdStorage', type: 1, filter: 'hue-rotate(205deg) saturate(10)', _category:'Base equipment', _min_build_tool_level: 1 });
@@ -354,7 +354,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'hue-rotate(205deg) saturate(10)', _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'hue-rotate(220deg)', _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdStorage', type: 3, filter: 'hue-rotate(135deg)', _category:'Base equipment', _min_build_tool_level: 2 });
-			sdShop.options.push({ _class: 'sdNode', _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdNode', type:0, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdNode', type:1, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdNode', type:2, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdNode', type:4, _category:'Base equipment', _min_build_tool_level:15 });
@@ -417,7 +417,7 @@ class sdShop
 			if ( sdWorld.server_config.allow_rescue_teleports )
 			{
 				sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_SHORT_RANGE, _category:'Base equipment'});
-				sdShop.options.push({ _class: 'sdRescueTeleport', _category:'Base equipment', _min_build_tool_level: 10 });
+				sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_INFINITE_RANGE, _category:'Base equipment', _min_build_tool_level: 10 });
 				sdShop.options.push({ _class: 'sdRescueTeleport', type: sdRescueTeleport.TYPE_CLONER, _category:'Base equipment', _min_build_tool_level: 20 });
 			}
 			if ( sdWorld.server_config.allowed_base_shielding_unit_types === null )
@@ -445,7 +445,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdThruster', filter: 'hue-rotate(270deg) saturate(2)', _category:'Base equipment', _min_build_tool_level: 2 });
 			sdShop.options.push({ _class: 'sdCamera', _category:'Base equipment', _min_build_tool_level: 1 });
 
-			sdShop.options.push({ _class: 'sdButton', _category:'Base equipment' });
+			sdShop.options.push({ _class: 'sdButton', type:0, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:1, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:2, _category:'Base equipment' });
 			sdShop.options.push({ _class: 'sdButton', type:3, _category:'Base equipment' });
@@ -1358,29 +1358,32 @@ class sdShop
 			delete simple_obj._cache;
 			delete simple_obj.image_obj;
 			
-			let t = T('No description for ') + JSON.stringify( simple_obj );
-			let desc = null; // Secondary description, used for upgrades
+			let item_title = null;
+			let description = null; // Secondary description, used for upgrades
+			let how_to_build_hint = 'No description for shop item #'+sdShop.potential_selection; //T('No description for ') + JSON.stringify( simple_obj );
 			
 			if ( sdShop.options[ sdShop.potential_selection ]._opens_category )
 			{
 				if ( sdShop.options[ sdShop.potential_selection ]._opens_category === 'root' )
-				t = T('Click to leave this category');
+				how_to_build_hint = T('Click to leave this category');
 				else
-				t = T('Click to enter category')+' "' + sdShop.options[ sdShop.potential_selection ]._opens_category + '"';
+				how_to_build_hint = T('Click to enter category')+' "' + sdShop.options[ sdShop.potential_selection ]._opens_category + '"';
 			}
 			else
 			{
 				let pseudo_entity = sdShop.options[ sdShop.potential_selection ];
 				
+				pseudo_entity = Object.assign( {}, pseudo_entity ); // Clone so title property can be set
+				
 				if ( pseudo_entity.dummy_item )
 				{
-					t = T( 'Unavailable item' );
-					desc = capitalize( pseudo_entity.description );
+					item_title = T( 'Unavailable item' );
+					how_to_build_hint = 'Item is unavailable yet';
+					description = capitalize( pseudo_entity.description );
 				}
 				else
 				if ( pseudo_entity._class !== null )
 				{
-					
 					let c = sdWorld.ClassNameToProperName( pseudo_entity._class, pseudo_entity );
 					
 					try
@@ -1389,31 +1392,120 @@ class sdShop
 						
 						if ( typeof title === 'string' && title.indexOf( 'undefined' ) === -1 )
 						c = title;
-					}
-					catch(e){};
-					
+					}catch(e){};
 					try
 					{
 						let title = Object.getOwnPropertyDescriptor( sdWorld.entity_classes[ pseudo_entity._class ].prototype, 'title' ).get.call( pseudo_entity );
 						
 						if ( typeof title === 'string' && title.indexOf( 'undefined' ) === -1 )
 						c = title;
-					}
-					catch(e){};
+					}catch(e){};
 					
-					t = T('Click to select')+' "' + c + '" '+T('as a build object. Then click to place this object in world.');
+					item_title = c;
+					
+					how_to_build_hint = T('Click to select')+' "' + c + '" '+T('as a build object. Then click to place this object in world.');
+					
+					pseudo_entity.title = c; // Storages' description won't know the title otherwise
+					
+					try
+					{
+						if ( sdWorld.entity_classes[ pseudo_entity._class ].prototype.description !== undefined )
+						description = sdWorld.entity_classes[ pseudo_entity._class ].prototype.description;
+					}catch(e){};
+					try
+					{
+						description = Object.getOwnPropertyDescriptor( sdWorld.entity_classes[ pseudo_entity._class ].prototype, 'description' ).get.call( pseudo_entity );
+					}catch(e){};
+					
+					if ( description === null )
+					if ( sdCable.attacheable_entities.indexOf( pseudo_entity._class ) !== -1 )
+					{
+						description = 'This entity can be connected to other entities via cable management tool (slot 7).';
+					}
 				}
 				else
 				if ( pseudo_entity.upgrade_name )
 				{
-					t = T('Click to select')+' "' + T(capitalize( pseudo_entity.upgrade_name.split('_').join(' ') )) + '" '+T('as an upgrade. Then click anywhere to upgrade.');
-					desc = capitalize( pseudo_entity.description );
+					item_title = T(capitalize( pseudo_entity.upgrade_name.split('_').join(' ') ));
+					
+					how_to_build_hint = T('Click to select')+' "' + item_title + '" '+T('as an upgrade. Then click anywhere to purchase upgrade.');
+					description = capitalize( pseudo_entity.description );
 				}
 				
 			}
 			
-			let d = ctx.measureText( t );
-			let d2 = ( desc !== null ) ? ctx.measureText( desc ) : null; // Secondary description, used for upgrades
+			let width = 0;/*Math.max( 
+				ctx.measureText( item_title || '' ).width,
+				ctx.measureText( description || '' ).width,
+				ctx.measureText( how_to_build_hint || '' ).width
+			);*/
+	
+			let offset_x = sdWorld.mouse_screen_x + 16;
+			
+			//if ( sdWorld.mouse_screen_x + 16 + width > sdRenderer.screen_width )
+			//offset_x = sdRenderer.screen_width - width - 16;
+			
+			ctx.textAlign = 'left';
+			for ( let layer = 0; layer < 3; layer++ ) // layer 0 is size measurement, 1st is drawing background, 2nd is drawing text
+			{
+				let offset_y = 0;
+				
+				const PrintText = ( color, text )=>
+				{
+					let text_lines = [ text ];
+					
+					let line_max_width = 100;
+					
+					for ( let i = 0; i < text_lines.length; i++ )
+					{
+						if ( text_lines[ i ].length > line_max_width )
+						{
+							let slice_at = text_lines[ i ].lastIndexOf( ' ', line_max_width );
+							
+							text_lines[ i + 1 ] = text_lines[ i ].substring( slice_at + 1 );
+							text_lines[ i ] = text_lines[ i ].substring( 0, slice_at );
+						}
+						
+						if ( layer === 2 )
+						{
+							ctx.fillStyle = color;
+							ctx.fillText( text_lines[ i ], offset_x + 5, sdWorld.mouse_screen_y + 32 + 12 + 5 + offset_y );
+						}
+						if ( layer === 0 )
+						{
+							width = Math.max( width, ctx.measureText( text_lines[ i ] ).width );
+						}
+						offset_y += 14;
+					}
+
+					offset_y += 14;
+				};
+			
+				if ( item_title )
+				PrintText( '#ffff00', item_title );
+			
+				if ( description )
+				PrintText( '#ffffff', description );
+			
+				if ( how_to_build_hint )
+				PrintText( '#aaffaa', how_to_build_hint );
+				
+				if ( layer === 0 )
+				{
+					if ( offset_x + width + 16 > sdRenderer.screen_width )
+					offset_x = sdRenderer.screen_width - width - 16;
+				}
+				if ( layer === 1 )
+				{
+					ctx.fillStyle = '#000000';
+					ctx.globalAlpha = 0.8;
+					ctx.fillRect( offset_x, sdWorld.mouse_screen_y + 32, width + 10, 25 + offset_y - 14 * 2 );
+					ctx.globalAlpha = 1;
+				}
+			}
+			
+			/*let d = ctx.measureText( how_to_build_hint );
+			let d2 = ( description !== null ) ? ctx.measureText( description ) : null; // Secondary description, used for upgrades
 			
 			let xx = sdWorld.mouse_screen_x + 16;
 			
@@ -1423,15 +1515,15 @@ class sdShop
 			ctx.fillStyle = '#000000';
 			ctx.globalAlpha = 0.8;
 			ctx.fillRect( xx, sdWorld.mouse_screen_y + 32, d.width + 10, 12 + 10 );
-			if ( desc !== null )
+			if ( description !== null )
 			ctx.fillRect( xx, sdWorld.mouse_screen_y + 32, d2.width + 10, 12 + 14 + 10 );
 			ctx.globalAlpha = 1;
 			
 			ctx.fillStyle = '#ffffff';
 			ctx.textAlign = 'left';
-			ctx.fillText( t, xx + 5, sdWorld.mouse_screen_y + 32 + 12 + 5 );
-			if ( desc !== null )
-			ctx.fillText( desc, xx + 5, sdWorld.mouse_screen_y + 32 + 12 + 14 + 5 );
+			ctx.fillText( how_to_build_hint, xx + 5, sdWorld.mouse_screen_y + 32 + 12 + 5 );
+			if ( description !== null )
+			ctx.fillText( description, xx + 5, sdWorld.mouse_screen_y + 32 + 12 + 14 + 5 );*/
 		}
 
 		

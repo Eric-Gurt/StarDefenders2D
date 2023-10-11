@@ -1272,6 +1272,20 @@ class sdBlock extends sdEntity
 			}
 		}
 	}
+	get description()
+	{
+		if ( this.material === sdBlock.MATERIAL_TRAPSHIELD )
+		return `High regeneration rate walls that are also happen to be shot through by entities that are close enough (such as turrets, Star Defenders).`;
+	
+		if ( this.texture_id === sdBlock.TEXTURE_ID_CAGE )
+		return `Nothing can go through these except for most projectiles.`;
+	
+		if ( this.material === sdBlock.MATERIAL_SHARP )
+		return `Entities can move through this trap wall, but they will take damage form it when they do so.`;
+	
+		return `All walls have same amount of hitpoints no matter how they look like. You can use base shielding units to apply additional protection to them.`;
+	}
+	
 	Draw( ctx, attached )
 	{
 		var w = this.width;

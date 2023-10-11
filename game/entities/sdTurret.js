@@ -114,35 +114,22 @@ class sdTurret extends sdEntity
 	
 	get title()
 	{
-		var prefix = ' ( level ' + this.lvl + ', '+ ~~(this.matter)+' / '+this._matter_max+' )';
-		if ( this.type === 0 )
-		{
-			if ( this.kind === sdTurret.KIND_LASER )
-			return T('Automatic laser turret') + prefix;
-			if ( this.kind === sdTurret.KIND_ROCKET )
-			return T('Automatic missile turret') + prefix;
-			if ( this.kind === sdTurret.KIND_RAPID_LASER )
-			return T('Automatic rapid laser turret') + prefix;
-			if ( this.kind === sdTurret.KIND_SNIPER )
-			return T('Automatic sniper turret') + prefix;
-			if ( this.kind === sdTurret.KIND_FREEZER )
-			return T('Automatic freezing turret') + prefix;
-		}
-		if ( this.type === 1 ) // AI faction base / outpost turrets.
-		{
-			if ( this.kind === sdTurret.KIND_LASER )
-			return T('Automatic laser turret');
-			if ( this.kind === sdTurret.KIND_ROCKET )
-			return T('Automatic missile turret');
-			if ( this.kind === sdTurret.KIND_RAPID_LASER )
-			return T('Automatic rapid laser turret');
-			if ( this.kind === sdTurret.KIND_SNIPER )
-			return T('Automatic sniper turret');
-			if ( this.kind === sdTurret.KIND_FREEZER )
-			return T('Automatic freezing turret');
-		}
-	
-		return 'Automatic turret' + prefix;
+		if ( this.kind === sdTurret.KIND_LASER )
+		return T('Automatic laser turret');
+		if ( this.kind === sdTurret.KIND_ROCKET )
+		return T('Automatic missile turret');
+		if ( this.kind === sdTurret.KIND_RAPID_LASER )
+		return T('Automatic rapid laser turret');
+		if ( this.kind === sdTurret.KIND_SNIPER )
+		return T('Automatic sniper turret');
+		if ( this.kind === sdTurret.KIND_FREEZER )
+		return T('Automatic freezing turret');
+
+		return T('Automatic turret');
+	}
+	get description()
+	{
+		return `Automatic turrets require matter and cable connection with access management node. Access management node specifies which entities turrets won't be attacking.`;
 	}
 	
 	//IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
@@ -659,6 +646,9 @@ class sdTurret extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
+		if ( this.type === 0 )
+		sdEntity.TooltipUntranslated( ctx, this.title + ' ( level ' + this.lvl + ', '+ ~~(this.matter)+' / '+this._matter_max+' )' );
+		else
 		sdEntity.TooltipUntranslated( ctx, this.title );
 
 		//this.DrawConnections( ctx );

@@ -1,7 +1,6 @@
 
 (()=> // This wrapping is needed to allow let variables
 {
-	
 	let GameState = {
 		warmup: true,
 		
@@ -23,6 +22,7 @@
 	let time_until_shields_are_disabled = 60 * 2.5; // 2.5 minutes
 	let time_until_next_secret_storage = 0;
 	
+	let next_turret_detection_logic = 0;
 	
 	let welcome_caption1 = null;
 	let welcome_caption2 = null;
@@ -179,7 +179,7 @@
 			
 			for ( let s = -1; s <= 1; s += 2 )
 			{
-				let t = new sdTheatre({ x: 200 * s, y: 16 })
+				let t = new sdTheatre({ x: 200 * s, y: 16 });
 				sdEntity.entities.push( t );
 
 				t.service = 'none';
@@ -218,23 +218,107 @@
 				}
 			}
 
-			for ( let i = 0; i < base_width; i += 2 )
+			let coms = [];
+			
+			// BSU platforms
 			{
-				for ( let y = 0; y <= 160; y += 16 )
-				if ( y === 0 || y === 160 || i === 0 || i === base_width - 2 )
+				let platforms = [];
+				platforms[ 0 ] = new sdBlock({ x: -w * 16 + 8 * 16, y: -16 - 80, width: 16, height: 8, material: sdBlock.MATERIAL_WALL, texture_id: sdBlock.TEXTURE_ID_WALL });
+				platforms[ 1 ] = new sdBlock({ x: w * 16 - ( 8 * 16 + 32 ), y: -16 - 80, width: 16, height: 8, material: sdBlock.MATERIAL_WALL, texture_id: sdBlock.TEXTURE_ID_WALL, hue: 140 });
+				
+				sdEntity.entities.push( platforms[ 0 ] );
+				sdEntity.entities.push( platforms[ 1 ] );
+				
+				for ( let i = 0; i < platforms.length; i++ )
 				{
-					let e = new sdBlock({ x: -w * 16 + i * 16, y: -16 - y, width: 32, height: 16, material: sdBlock.MATERIAL_WALL, texture_id: sdBlock.TEXTURE_ID_WALL });
-					sdEntity.entities.push( e );
+					let bsu = new sdBaseShieldingUnit({ x: platforms[ i ].x + 8, y: platforms[ i ].y - 8 + 1, type: sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE });
+					sdEntity.entities.push( bsu );
 					
-					let e2 = new sdBlock({ x: w * 16 - ( i + 2 ) * 16, y: -16 - y, width: 32, height: 16, material: sdBlock.MATERIAL_WALL, texture_id: sdBlock.TEXTURE_ID_WALL, hue: 145 });
-					sdEntity.entities.push( e2 );
+					let lamp = new sdLamp({ x: platforms[ i ].x + 8, y: platforms[ i ].y + 8 + 4 });
+					sdEntity.entities.push( lamp );
 					
-					e.Damage( e._hea - 1 );
-					e2.Damage( e2._hea - 1 );
+					let com = new sdCom({ x: platforms[ i ].x + 8 + ( i === 0 ? 16 : -16 ), y: platforms[ i ].y, type: sdBaseShieldingUnit.TYPE_DAMAGE_PERCENTAGE });
+					com._cc_id = i + 1;
+					sdEntity.entities.push( com );
+					
+					coms[ i ] = com;
+				}
+			}
+					
+			let nears = [];
+					
+			for ( let x = 0; x < base_width * 16; x += 32 )
+			{
+				for ( let y = 0; y <= 160; y += 32 )
+				{
+					let is_door = ( y === 64 && x === base_width * 16 - 32 ) || ( y === 96 && x === base_width * 16 - 32 ) ||
+									( x === base_width * 16 - 32 - 64 && y === 160 ) || ( x === base_width * 16 - 32 - 96 && y === 160 );
+
+					if ( y === 0 || y === 160 || x === 0 || x === base_width * 16 - 32 )
+					{
+						let e = 
+							is_door ?
+								new sdDoor({ x: -w * 16 + x + 16, y: -16 - y + 16, w: 32, h: 32, model: sdDoor.MODEL_BASIC }) :
+								new sdBlock({ x: -w * 16 + x, y: -16 - y, width: 32, height: 32, material: sdBlock.MATERIAL_WALL, texture_id: sdBlock.TEXTURE_ID_WALL });
+						sdEntity.entities.push( e );
+
+						let e2 = 
+							is_door ?
+								new sdDoor({ x: w * 16 - ( x + 32 ) + 16, y: -16 - y + 16, w: 32, h: 32, model: sdDoor.MODEL_BASIC, hue: 140 }) :
+								new sdBlock({ x: w * 16 - ( x + 32 ), y: -16 - y, width: 32, height: 32, material: sdBlock.MATERIAL_WALL, texture_id: sdBlock.TEXTURE_ID_WALL, hue: 140 });
+						sdEntity.entities.push( e2 );
+
+						e.Damage( e._hea - 1 );
+						e2.Damage( e2._hea - 1 );
+
+						// Delay regeneration by 0.5 minute
+						e._regen_timeout = - 30 * 30;
+						e2._regen_timeout = - 30 * 30;
+
+						sdWorld.GetAnythingNear( e.x + 16, e.y + 16, 16, nears, [ 'sdBlock' ] );
+						sdWorld.GetAnythingNear( e2.x + 16, e2.y + 16, 16, nears, [ 'sdBlock' ] );
+
+						if ( is_door )
+						{
+							sdEntity.entities.push( new sdCable({ 
+								x: coms[ 0 ].x, 
+								y: coms[ 0 ].y, 
+								parent: coms[ 0 ],
+								child: e,
+								offsets: [ 0,0, 0,0 ],
+								type: sdCable.TYPE_MATTER
+							}) );
+
+							sdEntity.entities.push( new sdCable({ 
+								x: coms[ 1 ].x, 
+								y: coms[ 1 ].y, 
+								parent: coms[ 1 ],
+								child: e2,
+								offsets: [ 0,0, 0,0 ],
+								type: sdCable.TYPE_MATTER
+							}) );
+						}
+					}
+					
+					if ( !is_door )
+					{
+						sdEntity.entities.push( new sdBG({ x: -w * 16 + x, y: -16 - y, width: 32, height: 32, material: sdBG.TEXTURE_PLATFORMS }) );
+						sdEntity.entities.push( new sdBG({ x: w * 16 - ( x + 32 ), y: -16 - y, width: 32, height: 32, material: sdBG.TEXTURE_PLATFORMS }) );
+					}
 				}
 				
 				//sdEntity.entities.push( new sdBlock({ x: -w * 16 + i * 16, y: -16 - 320, width: 32, height: 16, material: sdBlock.MATERIAL_WALL, texture_id: sdBlock.TEXTURE_ID_GLASS }) );
 				//sdEntity.entities.push( new sdBlock({ x: w * 16 - ( i + 2 ) * 16, y: -16 - 320, width: 32, height: 16, material: sdBlock.MATERIAL_WALL, texture_id: sdBlock.TEXTURE_ID_GLASS }) );
+			}
+			
+			for ( let i = 0; i < nears.length; i++ )
+			{
+				let e = nears[ i ];
+				if ( e._natural )
+				{
+					e.remove();
+					e._broken = false;
+				}
 			}
 			
 			let base_id = 0;
@@ -272,32 +356,40 @@
 				bases[ base_id ] = e;
 				rtps[ base_id ] = lost_ent;
 				
+				if ( side === -1 )
 				for ( let i = 0; i < 6; i++ )
 				{
-					let params = { x:e.x - (64+i*16) * side, y: e.y, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL, tag:'deep' };
+					let i_const = i;
 					
+					let r = Math.pow( Math.random(), 2 );
+							
 					setTimeout( ()=>
 					{
-						let e2 = new sdCrystal( params );
-						sdEntity.entities.push( e2 );
-						
-						let r = Math.pow( Math.random(), 2 );
-						
-						e2.matter_max = e2.matter = 40 * Math.pow( 2, Math.floor( r * 11 ) );
-						//e2.matter_max = e2.matter = 40 * Math.pow( 2, Math.floor( 11 ) );
-						
-						sdWorld.SendEffect({ x:e2.x, y:e2.y, type:sdEffect.TYPE_TELEPORT });
-						sdSound.PlaySound({ name:'teleport', x:e2.x, y:e2.y, volume:0.5 });
+						for ( let side2 = -1; side2 <= 1; side2 += 2 )
+						{
+							let params = { x:(w*16*side2 - base_width*16*0.2*side2) - (64+i_const*16) * side2, y: e.y, type:sdCrystal.TYPE_CRYSTAL_ARTIFICIAL, tag:'deep' };
+					
+							let e2 = new sdCrystal( params );
+							sdEntity.entities.push( e2 );
+
+							e2.matter_max = e2.matter = 40 * Math.pow( 2, Math.floor( r * 11 ) );
+							//e2.matter_max = e2.matter = 40 * Math.pow( 2, Math.floor( 11 ) );
+
+							sdWorld.SendEffect({ x:e2.x, y:e2.y, type:sdEffect.TYPE_TELEPORT });
+							sdSound.PlaySound({ name:'teleport', x:e2.x, y:e2.y, volume:0.5 });
+						}
 						
 					}, 1000 * i );
 				}
 			}
 			
-			preparation_shields.push( new sdBlock({ hue:78, x: 30*16 - 32, y: sdWorld.world_bounds.y1, width: 32, height: 32 - sdWorld.world_bounds.y1, material: sdBlock.MATERIAL_BUGGED_CHUNK }) );
-			preparation_shields.push( new sdBlock({ hue:78, x: 30*16 - 32, y: 0, width: sdWorld.world_bounds.x2 - ( 30*16 - 32 ), height: 32, material: sdBlock.MATERIAL_BUGGED_CHUNK }) );
+			//preparation_shields.push( new sdBlock({ hue:78, x: 30*16 - 32, y: sdWorld.world_bounds.y1, width: 32, height: 32 - sdWorld.world_bounds.y1, material: sdBlock.MATERIAL_BUGGED_CHUNK }) );
+			//preparation_shields.push( new sdBlock({ hue:78, x: 30*16 - 32, y: 0, width: sdWorld.world_bounds.x2 - ( 30*16 - 32 ), height: 32, material: sdBlock.MATERIAL_BUGGED_CHUNK }) );
 			
-			preparation_shields.push( new sdBlock({ hue:78, x: -30*16, y: sdWorld.world_bounds.y1, width: 32, height: 32 - sdWorld.world_bounds.y1, material: sdBlock.MATERIAL_BUGGED_CHUNK }) );
-			preparation_shields.push( new sdBlock({ hue:78, x: sdWorld.world_bounds.x1, y: 0, width: -30*16 - sdWorld.world_bounds.x1, height: 32, material: sdBlock.MATERIAL_BUGGED_CHUNK }) );
+			//preparation_shields.push( new sdBlock({ hue:78, x: -30*16, y: sdWorld.world_bounds.y1, width: 32, height: 32 - sdWorld.world_bounds.y1, material: sdBlock.MATERIAL_BUGGED_CHUNK }) );
+			//preparation_shields.push( new sdBlock({ hue:78, x: sdWorld.world_bounds.x1, y: 0, width: -30*16 - sdWorld.world_bounds.x1, height: 32, material: sdBlock.MATERIAL_BUGGED_CHUNK }) );
+			
+			preparation_shields.push( new sdBlock({ hue:78, x: -16, y: sdWorld.world_bounds.y1, width: 32, height: sdWorld.world_bounds.y2 - sdWorld.world_bounds.y1, material: sdBlock.MATERIAL_BUGGED_CHUNK }) );
 			
 			for ( let i = 0; i < preparation_shields.length; i++ )
 			{
@@ -388,13 +480,16 @@
 			// Prevent healing dead players without sockets on them
 			if ( target.is( sdCharacter ) )
 			{
+				if ( target.cc_id === 0 ) // AI
+				return true;
+				
 				if ( target.hea <= 0 )
-				if ( !target._socket )
+				if ( !target._socket || bullet_or_sword._owner.cc_id !== target.cc_id )
 				if ( bullet_or_sword.is( sdBullet ) )
 				if ( bullet_or_sword._owner )
 				{
 					if ( bullet_or_sword._damage <= 0 )
-					{
+					{		
 						if ( bullet_or_sword._owner.cc_id === target.cc_id )
 						{
 							sdWorld.SendEffect({ x:target.x, y:target.y, type:sdEffect.TYPE_TELEPORT });
@@ -835,7 +930,7 @@
 										}
 									}
 									else
-									socket.SDServiceMessage( 'It is time to build (B key) your base in order to protect your Command Centre! Time left until shields are disabled: ' + Math.floor( time_until_shields_are_disabled - GameState.time_since_started / 1000 ) + ' seconds' );
+									socket.SDServiceMessage( 'It is time to build (B key) your base in order to protect your Command Centre! Time left until shield between bases is disabled: ' + Math.floor( time_until_shields_are_disabled - GameState.time_since_started / 1000 ) + ' seconds' );
 								}
 								
 								if ( socket.character.is( sdPlayerSpectator ) )
@@ -981,6 +1076,7 @@
 					
 					time_until_next_secret_storage -= dt;
 					if ( time_until_next_secret_storage < 0 )
+					if ( preparation_shields.length === 0 ) // Do not spawn chests before game started
 					{
 						time_until_next_secret_storage = 1000 * 60 * 5;
 						
@@ -1013,11 +1109,71 @@
 							e._hmax = e._hea = 30;
 							
 							e.filter = 'invert(1) hue-rotate('+Math.round(Math.random()*360/30)*30+'deg)';
+							
+							for ( let i = 0; i < sdWorld.sockets.length; i++ )
+							{
+								let character = sdWorld.sockets[ i ].character;
+								
+								if ( character && !character._is_being_removed )
+								sdTask.MakeSureCharacterHasTask({ 
+									similarity_hash:'TRACK-CHEST'+e._net_id, 
+									executer: character,
+									target: e,
+									mission: sdTask.MISSION_TRACK_ENTITY,
+
+									title: 'Secret chest',
+									description: 'Secret chest has spawned. Get it before your enemy will.'
+								});
+							}
 						}
 						else
 						{
 							e.remove();
 							e._broken = false;
+						}
+					}
+					
+					// Warn about turrets nearby
+					if ( sdWorld.time > next_turret_detection_logic )
+					{
+						next_turret_detection_logic = sdWorld.time + 200;
+						
+						for ( let i = 0; i < sdEntity.active_entities.length; i++ )
+						{
+							let e = sdEntity.active_entities[ i ];
+
+							if ( e.is( sdTurret ) )
+							if ( e.matter >= e.GetShootCost() )
+							{
+								let com_near = e.GetComWiredCache();
+
+								if ( com_near )
+								{
+									let t = e.title.split(' ');
+
+									t[ 0 ] += ' enemy';
+
+									t = t.join(' ');
+
+									for ( let i = 0; i < sdWorld.sockets.length; i++ )
+									{
+										let character = sdWorld.sockets[ i ].character;
+
+										if ( character && !character._is_being_removed && character.hea > 0 )
+										if ( com_near._cc_id !== character.cc_id ) // Only enemy turrets
+										if ( sdWorld.inDist2D_Boolean( e.x, e.y, character.x, character.y, e.GetTurretRange() + 300 ) )
+										sdTask.MakeSureCharacterHasTask({ 
+											similarity_hash:'TRACK-TURRET'+e._net_id, 
+											executer: character,
+											target: e,
+											mission: sdTask.MISSION_DESTROY_ENTITY,
+
+											title: t,
+											description: 'Enemy turret has been detected. Be careful and use penetrating weapons like "Needle" if it is behind shields.'
+										});
+									}
+								}
+							}
 						}
 					}
 					

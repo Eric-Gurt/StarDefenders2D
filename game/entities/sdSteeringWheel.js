@@ -985,6 +985,10 @@ class sdSteeringWheel extends sdEntity
 	{
 		return 'Skybase steering wheel';
 	}
+	get description()
+	{
+		return 'Lets you move your whole base assuming it isn\'t insanely big. Base should have thrusters. Make sure to connect your base shielding units to this steering wheel via cable management tool.';
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		sdEntity.Tooltip( ctx, this.title + ' ( '+this.matter+' / '+this.matter_max+' )' );

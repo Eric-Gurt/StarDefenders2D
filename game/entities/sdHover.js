@@ -814,6 +814,13 @@ class sdHover extends sdEntity
 	get friction_remain()
 	{ return /*this.type === 3 ? 0.6 :*/ this.driver0 ? 0.95 : 0.8; } // I don't know if Hoverbike is needed in this case
 	
+	get description()
+	{
+		if ( this.type === 3 )
+		return `Flying vehicle, uses matter instead of fuel.`;
+		else
+		return `Flying vehicle, uses matter instead of fuel. Extra drivers grant the ability to shoot.`;
+	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.hea <= 0 )

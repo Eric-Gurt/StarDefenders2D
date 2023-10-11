@@ -159,6 +159,10 @@ class sdWorkbench extends sdEntity
 	{
 		return 'Workbench';
 	}
+	get description()
+	{
+		return `Can be used to build armor, guns and vehicles. You will have more build options available to you as long as you stand behind workbench. Drag metal shards into workbench and right click to upgrade it once you have enough. Upgrading results into more build options.`;
+	}
 	Draw( ctx, attached )
 	{
 		ctx.drawImageFilterCache( sdWorkbench.img_wb, -16, -16, 32, 32 );

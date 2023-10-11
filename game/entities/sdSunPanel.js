@@ -39,6 +39,10 @@ class sdSunPanel extends sdEntity
 		else
 		return 'Solar panel';
 	}
+	get description()
+	{
+		return `It is renewable unlike crystals and matter amplifiers. You can use these to provide small amount of matter to your base equipment by wiring them with cable management tool (slot 7).`;
+	}
 	
 	//IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
 	//{ return true; }

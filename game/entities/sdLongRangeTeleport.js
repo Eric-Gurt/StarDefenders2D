@@ -269,10 +269,11 @@ class sdLongRangeTeleport extends sdEntity
 	}
 	get title()
 	{
-		let postfix = this.is_server_teleport ? '' : "  ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + " )";
-		
-		return 'Long-range teleport' + postfix;
-
+		return 'Long-range teleport';
+	}
+	get description()
+	{
+		return 'Can be used to manage private storage on Mothership, complete tasks and receive rewards. Does require command centre to be wired to it via cable management tool. Requires matter in order to work.';
 	}
 	
 	IsEarlyThreat() // Used during entity build & placement logic - basically turrets, barrels, bombs should have IsEarlyThreat as true or else players would be able to spawn turrets through closed doors & walls. Coms considered as threat as well because their spawn can cause damage to other players
@@ -354,7 +355,9 @@ class sdLongRangeTeleport extends sdEntity
 	}
 	DrawHUD( ctx, attached ) // foreground layer
 	{
-		sdEntity.Tooltip( ctx, this.title, 0, -48 );
+		let postfix = this.is_server_teleport ? '' : "  ( " + ~~(this.matter) + " / " + ~~(this._matter_max) + " )";
+		
+		sdEntity.Tooltip( ctx, this.title + postfix, 0, -48 );
 		if ( this.is_server_teleport )
 		sdEntity.Tooltip( ctx, sdLongRangeTeleport.ShortenURL( this.remote_server_url ), 0, 32 + 5, '#33ff33' );
 	}

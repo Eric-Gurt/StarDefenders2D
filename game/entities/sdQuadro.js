@@ -727,6 +727,15 @@ class sdQuadro extends sdEntity
 	get friction_remain()
 	{ return 0.95; }
 	
+	get title()
+	{
+		return 'Quadro';
+	}
+	get description()
+	{
+		return `Is there really a point in making these? Prototype of a vehicle.`;
+	}
+	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		if ( this.part === 0 )
@@ -734,7 +743,7 @@ class sdQuadro extends sdEntity
 			if ( this.hea <= 0 )
 			return;
 	
-			sdEntity.Tooltip( ctx, "Quadro" );
+			sdEntity.Tooltip( ctx, this.title );
 
 			let w = 20;
 

@@ -216,6 +216,11 @@ class sdMatterAmplifier extends sdEntity
 	{
 		return ( this.width === 1 ) ? "Matter amplifier" : "Wide matter amplifier";
 	}
+	get description()
+	{
+		return `Matter amplifiers are used to hold, protect and amplify matter regeneration of crystals. Additionally, matter amplifiers are the main source of matter once crystal has been up into them. Right click on matter amplifiers to toggle shields for held crystals. You can drag crystals in/out of matter amplifiers with grappling hook (mouse wheel click) which is available in character upgrades category.`;
+	}
+	
 	DrawHUD( ctx, attached ) // foreground layer
 	{
 		/*if ( this.crystal )
