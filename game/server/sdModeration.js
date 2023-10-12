@@ -37,7 +37,7 @@ class sdModeration
 		
 		sdModeration.non_admin_commands = [ 'help', '?', 'commands', 'listadmins', 'selfpromote', 'connection', 'kill' ];
 		
-		sdModeration.admin_commands = [ 'commands', 'listadmins', 'announce', 'quit', 'restart', 'save', 'restore', 'fullreset', 'god', 'scale', 'admin', 'boundsmove', 'db', 'database' ];
+		sdModeration.admin_commands = [ 'commands', 'listadmins', 'announce', 'quit', 'restart', 'save', 'restore', 'fullreset', 'god', 'scale', 'admin', 'boundsmove', 'qs', 'quickstart', 'db', 'database' ];
 		
 		// Fake socket that can be passed instead of socket to force some commands from world logic
 		sdModeration.superuser_socket = {
@@ -773,6 +773,31 @@ class sdModeration
 		if ( parts[ 0 ] === 'admin' || parts[ 0 ] === 'a' || parts[ 0 ] === 'adm' )
 		{
 			socket.emit( 'OPEN_INTERFACE', 'sdAdminPanel' );
+		}
+		else
+		if ( parts[ 0 ] === 'quickstart' || parts[ 0 ] === 'qs' )
+		{
+			if ( socket.character )
+			if ( !socket.character._is_being_removed )
+			{
+				socket.character.GiveScore( 3000, null, false );
+				for ( var i = 0; i < sdShop.options.length; i++ )
+				{
+					if ( sdShop.options[ i ]._category === 'Upgrades' )
+					{
+						let max_level = sdShop.upgrades[ sdShop.options[ i ].upgrade_name ].max_level;
+						let cur_level = ( socket.character._upgrade_counters[ sdShop.options[ i ].upgrade_name ] || 0 );
+						if ( sdShop.options[ i ]._min_build_tool_level <= socket.character.build_tool_level )
+						{
+							for ( var j = cur_level; j < max_level; j++ )
+							{
+								socket.character.InstallUpgrade( sdShop.options[ i ].upgrade_name );
+							}
+						}
+					}
+				}
+				socket.character._matter_capacity_boosters = 900;
+			}
 		}
 		else
 		socket.SDServiceMessage( 'Server: Unknown command "' + parts[ 0 ] + '"' );

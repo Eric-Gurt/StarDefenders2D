@@ -4275,11 +4275,15 @@ class sdWorld
 		}
 		if ( player_description['voice11'] )
 		{
-			_voice.variant = 'erthal';
+			_voice.variant = 'whisper';
+			_voice.pitch = 30;
+			_voice.speed = 150;
 		}
 		if ( player_description['voice12'] )
 		{
-			_voice.variant = 'tzyrg';
+			_voice.variant = 'm4';
+			_voice.pitch = 60;
+			_voice.speed = 120;
 		}
 		
 		return _voice;
@@ -4287,12 +4291,15 @@ class sdWorld
 	
 	static ApplyPlayerSettingsToPlayer( character_entity, player_settings, socket ) 
 	{
+		if ( character_entity.skin_allowed )
+		{
 		character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( player_settings );
 		character_entity._voice = sdWorld.ConvertPlayerDescriptionToVoice( player_settings );
 
 		character_entity.helmet = sdWorld.ConvertPlayerDescriptionToHelmet( player_settings );
 		character_entity.body = sdWorld.ConvertPlayerDescriptionToBody( player_settings );
 		character_entity.legs = sdWorld.ConvertPlayerDescriptionToLegs( player_settings );
+		}
 
 		character_entity.title = player_settings.hero_name;
 		character_entity.title_censored = ( typeof sdModeration !== 'undefined' && socket ) ? sdModeration.IsPhraseBad( character_entity.title, socket ) : false;
