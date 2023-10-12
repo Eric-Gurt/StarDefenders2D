@@ -668,7 +668,10 @@ class sdRenderer
 			//sdRenderer.AddCacheDrawMethod( sdRenderer.ctx );
 
 			sdAtlasMaterial.super_texture_width = 1024;
+			if ( userAgent[ 0 ] !== "Gecko" && userAgent[ 1 ] !== BROWSER_GECKO )
 			sdAtlasMaterial.super_texture_height = Math.min( sdRenderer.ctx.renderer.capabilities.maxTextureSize, 16384 );
+			else // Firefox takes too long on the image if the super texture's height is greater than the value that Firefox expected
+			sdAtlasMaterial.super_texture_height = 1024;
 			
 			if ( sdRenderer.ctx.sky.parent );
 			sdRenderer.ctx.sky.parent.remove( sdRenderer.ctx.sky );

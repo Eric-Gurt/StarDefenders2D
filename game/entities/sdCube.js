@@ -56,6 +56,7 @@ class sdCube extends sdEntity
 		sdCube.KIND_GREEN = 4; // Hides cubes within range
 		sdCube.KIND_BLUE = 5; // Gives shields to other cubes
 		sdCube.KIND_MATTER_STEALER = 6; // Not a cube, but a mater consumer from the anti-crystal event
+		sdCube.KIND_ANCIENT = 7; // Dark yellow cube which acts like cyan, but it's beams deal lost damage
 		
 		sdCube.hitbox_scale_per_kind = [
 			1,
@@ -93,6 +94,9 @@ class sdCube extends sdEntity
 
 		sdCube.blue_filter = sdWorld.CreateSDFilter();
 		sdWorld.ReplaceColorInSDFilter_v2( sdCube.blue_filter, '#00fff6', '#007eff' );
+		
+		sdCube.ancient_filter = sdWorld.CreateSDFilter();
+		sdWorld.ReplaceColorInSDFilter_v2( sdCube.ancient_filter, '#00fff6', '#d6981e' );
 	
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -310,6 +314,11 @@ class sdCube extends sdEntity
 		{
 			gun.sd_filter = sdWorld.CreateSDFilter();
 			gun.sd_filter.s = sdCube.huge_filter.s;
+		}
+		if ( this.kind === sdCube.KIND_ANCIENT )
+		{
+			gun.sd_filter = sdWorld.CreateSDFilter();
+			gun.sd_filter.s = sdCube.ancient_filter.s;
 		}
 	}
 	
@@ -1187,6 +1196,23 @@ class sdCube extends sdEntity
 							
 							bullet_obj.color = ( this.kind === sdCube.KIND_PINK ) ? '#ff00ff' : '#ffffff'; // Cube healing rays are pink to distinguish them from damaging rails
 							
+							if ( this.kind === sdCube.KIND_ANCIENT ) // Ancient cube fires cyan rails but they deal lost damage instead of regular. Also different color
+							{
+								let custom_target_reaction = ( bullet, target_entity )=>
+								{
+									if ( target_entity.is( sdLost ) )
+									{
+										target_entity.DamageWithEffect( 10, bullet._owner );
+									}
+
+									sdLost.ApplyAffection( target_entity, 15, bullet, sdLost.FILTER_WHITE );
+								};
+								
+								bullet_obj._custom_target_reaction = custom_target_reaction;
+								bullet_obj._damage = 0;
+								bullet_obj.color = '#d6981e';
+							}
+							
 							if ( this.kind === sdCube.KIND_MATTER_STEALER )
 							{
 								bullet_obj._damage = 8;
@@ -1352,6 +1378,12 @@ class sdCube extends sdEntity
 		{
 			ctx.scale( scale, scale );
 			yy = 4;
+		}
+		if ( this.kind === sdCube.KIND_ANCIENT )
+		{
+			ctx.scale( scale, scale );
+			ctx.sd_filter = sdCube.ancient_filter;
+			yy = 5;
 		}
 		
 		if ( this.armor > 1000 )
