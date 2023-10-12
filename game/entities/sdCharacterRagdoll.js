@@ -879,6 +879,10 @@ class sdCharacterRagdoll
 		this._body_offset_sy += ( this.character.y - this._body_offset_y + ( this.character.sy - this._body_offset_sy ) * 4 ) * 0.1 * GSPEED;
 		this._body_offset_y += this._body_offset_sy * GSPEED;
 
+		// Better for repeated jumps visually
+		if ( this.character.act_y === -1 )
+		this._body_offset_sy = Math.min( 0, this._body_offset_sy );
+	
 		this._body_offset_y = sdWorld.limit( this.character.y, this._body_offset_y, this.character.y + 6 * ( 1 - this.character._crouch_intens * 0.5 ) );
 
 		if ( this.character.hea > 0 && this.character.stability >= 100 )
