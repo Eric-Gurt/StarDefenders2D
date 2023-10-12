@@ -8098,6 +8098,7 @@ class sdGunClass
 				( [], '#ff0000', 15, 'main energy' ),
 				'#900000', 15, 'secondary energy' ) )
 		};
+		
 		sdGun.classes[ sdGun.CLASS_ZEKTA_PLASMA_REPEATER = 129 ] = 
 		{
 			image: sdWorld.CreateImageFromFile( 'zekta_plasma_repeater' ), // sprite by Gravel
@@ -8299,6 +8300,32 @@ class sdGunClass
 				'#900000', 15, 'secondary energy' ),
 				'#bc0000', 15, 'alt energy' ),
 				'#780000', 15, 'alt secondary energy' ) )
+		};
+		
+		let ancient_cgun_target_reaction = ( bullet, target_entity )=>
+			{
+				if ( target_entity.is( sdLost ) )
+				{
+					target_entity.DamageWithEffect( 10, bullet._owner );
+				}
+				else
+				{
+					sdLost.ApplyAffection( target_entity, 15, bullet, sdLost.FILTER_GOLDEN );
+				}
+			};
+		sdGun.classes[ sdGun.CLASS_ANCIENT_TRIPLE_RAIL = 131 ] = // Cube gun but deals lost damage. Cannot be upgraded. Obtainable only via Ancient cubes.
+		{
+			image: sdWorld.CreateImageFromFile( 'triple_rail3' ),
+			sound: 'cube_attack',
+			title: 'Ancient Cube-gun',
+			slot: 4,
+			reload_time: 3,
+			muzzle_x: 7,
+			ammo_capacity: -1,// 10, // 3
+			count: 1,
+			projectile_properties: { _rail: true, _damage: 1, color: '#d6981e', _custom_target_reaction: ancient_cgun_target_reaction /*, _knock_scale:0.01 * 8*/ }, // 70
+			spawnable: false,
+			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
 		};
 		// Add new gun classes above this line //
 		

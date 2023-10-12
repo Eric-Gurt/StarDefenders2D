@@ -56,7 +56,7 @@ class sdCube extends sdEntity
 		sdCube.KIND_GREEN = 4; // Hides cubes within range
 		sdCube.KIND_BLUE = 5; // Gives shields to other cubes
 		sdCube.KIND_MATTER_STEALER = 6; // Not a cube, but a mater consumer from the anti-crystal event
-		sdCube.KIND_ANCIENT = 7; // Dark yellow cube which acts like cyan, but it's beams deal lost damage
+		sdCube.KIND_ANCIENT = 7; // Orange-ish? cube which acts like cyan, but it's beams deal lost damage
 		
 		sdCube.hitbox_scale_per_kind = [
 			1,
@@ -176,6 +176,14 @@ class sdCube extends sdEntity
 		this.sy = 0;
 		
 		this._dropped_items = new WeakSet(); // Just so they won't be lost by boss cube
+		
+		if ( params.tag )
+		{
+			if ( sdCube[ params.tag ] !== undefined )
+			params.kind = sdCube[ params.tag ];
+			else
+			debugger;
+		}
 		
 		this.regen_timeout = 0;
 		this.kind = params.kind || 0;
@@ -498,6 +506,7 @@ class sdCube extends sdEntity
 							const probability_shotgun = 0.1;
 							const probability_triple_rail = 0.233;
 							const probability_teleporter = 0.233;
+							const probability_lost_triple_rail = 0.1;
 
 							let total_drop_probability = 0; // In else case it is always pistol or healing ray gun
 
@@ -506,6 +515,9 @@ class sdCube extends sdEntity
 							else
 							if ( this.kind === sdCube.KIND_WHITE ) // white
 							total_drop_probability += probability_lost_converter + probability_shotgun + probability_triple_rail + probability_teleporter;
+							else
+							if ( this.kind === sdCube.KIND_ANCIENT ) // ancient
+							total_drop_probability += probability_lost_triple_rail;
 							else
 							total_drop_probability += probability_shotgun + probability_triple_rail;
 
@@ -535,6 +547,11 @@ class sdCube extends sdEntity
 									else
 									gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_TRIPLE_RAIL });
 								}
+								if ( this.kind === sdCube.KIND_ANCIENT )
+								{
+									if ( random_value < probability_lost_triple_rail )
+									gun = new sdGun({ x:x, y:y, class:sdGun.CLASS_ANCIENT_TRIPLE_RAIL });
+								}
 								else
 								{
 									if ( random_value < probability_shotgun )
@@ -544,7 +561,7 @@ class sdCube extends sdEntity
 								}
 							}
 							else
-							gun = new sdGun({ x:x, y:y, class:this.kind === sdCube.KIND_PINK ? sdGun.CLASS_HEALING_RAY : sdGun.CLASS_RAIL_PISTOL });
+							gun = new sdGun({ x:x, y:y, class:this.kind === sdCube.KIND_ANCIENT ? sdGun.CLASS_CUBE_SHARD : this.kind === sdCube.KIND_PINK ? sdGun.CLASS_HEALING_RAY : sdGun.CLASS_RAIL_PISTOL }); // Ancient cubes can drop additional shard instead of pistol
 
 							gun.sx = sx;
 							gun.sy = sy;
@@ -1095,7 +1112,8 @@ class sdCube extends sdEntity
 					for ( let i = 0; i < targets.length; i++ )
 					{
 						if ( this._alert_intensity < 45 || // Delay attack
-							 ( this.regen_timeout > 45 && !this.kind === sdCube.KIND_YELLOW && !this.kind === sdCube.KIND_WHITE ) ) // Hurt stun
+							 ( this.regen_timeout > 45 && !this.kind === sdCube.KIND_YELLOW && !this.kind === sdCube.KIND_WHITE ) || 
+							 ( this._alert_intensity < 20 && this.kind === sdCube.KIND_ANCIENT ) ) // Hurt stun
 						break;
 
 						this.attack_anim = 15;
@@ -1325,6 +1343,9 @@ class sdCube extends sdEntity
 		if ( this.kind === sdCube.KIND_MATTER_STEALER )
 		return "Matter stealer";
 		else
+		if ( this.kind === sdCube.KIND_ANCIENT )
+		return "Ancient Cube";
+		else
 		return "Cube";
 	}
 	
@@ -1386,7 +1407,7 @@ class sdCube extends sdEntity
 		{
 			ctx.scale( scale, scale );
 			ctx.sd_filter = sdCube.ancient_filter;
-			yy = 5;
+			//yy = 5; // Reserved for ancient shotgun cube
 		}
 		
 		if ( this.armor > 1000 )
