@@ -2536,7 +2536,7 @@ class sdWorld
 		if ( v <= min )
 		return min;
 		if ( v >= max )
-		return min;
+		return max;
 		return v;
 	}
 	static FastFloor( v ) // in case you need negative values, has 500000 as low limit.

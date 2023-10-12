@@ -1083,6 +1083,8 @@ THING is cosmic mic drop!`;
 		
 		this.lag = false;
 		
+		this._self_boost = 0;
+		
 		this._god = false;
 		
 		this._discovered = {}; // Entity classes with type hashes, makes player gain starter score
@@ -1386,7 +1388,9 @@ THING is cosmic mic drop!`;
 		if ( this.fire_anim > 0 )
 		this.fire_anim = Math.max( 0, this.fire_anim - GSPEED );
 
-
+		if ( this._self_boost < 15 )
+		if ( this.stands )
+		this._self_boost = Math.min( 15, this._self_boost + GSPEED );
 
 
 		let offset = null;
@@ -1544,6 +1548,21 @@ THING is cosmic mic drop!`;
 							{
 								if ( !offset )
 								offset = this.GetBulletSpawnOffset();
+							
+								if ( !this.stands )
+								if ( sdGun.classes[ this._inventory[ this.gun_slot ].class ] )
+								if ( sdGun.classes[ this._inventory[ this.gun_slot ].class ].is_sword )
+								{
+									let boost_waste = sdWorld.limit( 0, this._self_boost, GSPEED );
+									this._self_boost -= boost_waste;
+									
+									let an = this.GetLookAngle();
+									
+									boost_waste *= 0.2;
+
+									this.sx += Math.sin( an ) * boost_waste;
+									this.sy += Math.cos( an ) * boost_waste;
+								}
 
 								if ( this._inventory[ this.gun_slot ].Shoot( this._key_states.GetKey( 'ShiftLeft' ), offset, shoot_from_scenario ) )
 								{
@@ -4147,13 +4166,14 @@ THING is cosmic mic drop!`;
 
 
 		// Walljumps
-		if ( act_y_or_unstable === -1 )
+		/*if ( act_y_or_unstable === -1 )
 		if ( !this.stands )
 		if ( !this.driver_of )
 		if ( Math.abs( this.sy ) < 3 )
-		if ( Math.abs( this.sx ) < 3 )
+		if ( Math.abs( this.sx ) < 3 )*/
 		{
-			if ( this.act_x !== -1 )
+			// Too inconsistent and is rather annoying
+			/*if ( this.act_x !== -1 )
 			if ( sdWorld.CheckWallExists( this.x + this._hitbox_x1 - 5, this.y, this ) )
 			{
 				this.sy = -3;
@@ -4164,6 +4184,19 @@ THING is cosmic mic drop!`;
 			{
 				this.sy = -3;
 				this.sx = -2.5;
+			}*/
+			
+			
+			if ( !this.stands )
+			if ( this.act_y === -1 )
+			if ( Math.abs( this.sy ) <= 3 )
+			if ( Math.abs( this.sx ) <= 3 )
+			//if ( sdWorld.CheckWallExists( this.x + this._hitbox_x1 - 8, this.y, this ) )
+			//if ( sdWorld.CheckWallExists( this.x + this._hitbox_x2 + 8, this.y, this ) )
+			if ( !this.CanMoveWithoutOverlap( this.x - 8, this.y ) )
+			if ( !this.CanMoveWithoutOverlap( this.x + 8, this.y ) )
+			{
+				this.sy = -2;
 			}
 		}
 		
@@ -4933,9 +4966,15 @@ THING is cosmic mic drop!`;
 		{
 			let w = 20 * Math.max( 0.5, this.s / 100 );
 			
-			let raise = 5 + 15 * this.s / 100;
+			let raise = 0;/*5 + 15 * this.s / 100;
 			
 			raise -= this._crouch_intens * 6;
+			*/
+			
+			if ( this._ragdoll )
+			{
+				raise = ( this.y - this._ragdoll.chest.y + 20 * this.s / 100 );
+			}
 			
 			let show_air = false;
 			

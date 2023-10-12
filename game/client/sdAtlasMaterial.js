@@ -2021,10 +2021,24 @@ class sdAtlasMaterial
 	{
 		const w = sdAtlasMaterial.brightness_cache_buffer_width;
 		const h = sdAtlasMaterial.brightness_cache_buffer_height;
-		return ( 
+		
+		/*let i = ( 
 			sdWorld.limit( 0, sdWorld.FastFloor( ( y - sdWorld.world_bounds.y1 + 8 ) * 0.0625 ), h ) * w + 
 			sdWorld.limit( 0, sdWorld.FastFloor( ( x - sdWorld.world_bounds.x1 + 8 ) * 0.0625 ), w ) 
+		) * sdAtlasMaterial.brightness_cache_buffer_group_size;*/
+
+		let i = ( 
+			sdWorld.limit( 0, sdWorld.FastFloor( ( y - sdWorld.world_bounds.y1 + 8 ) * 0.0625 ), h-1 ) * w + 
+			sdWorld.limit( 0, sdWorld.FastFloor( ( x - sdWorld.world_bounds.x1 + 8 ) * 0.0625 ), w-1 ) 
 		) * sdAtlasMaterial.brightness_cache_buffer_group_size;
+		
+		/*if ( i >= sdAtlasMaterial.brightness_cache_buffer_dataView.byteLength )
+		{
+			debugger;
+			i = 0;
+		}*/
+		
+		return i;
 	}
 	
 	constructor()

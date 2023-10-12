@@ -38,6 +38,10 @@ class sdCharacterRagdoll
 		character._ragdoll = this;
 		
 		this.last_char_hea = this.character.hea;
+		
+		this._morph_act_x = 0;
+		this._body_offset_y = 0;
+		this._body_offset_sy = 0;
 	
 		this.bones = [];
 		
@@ -268,10 +272,10 @@ class sdCharacterRagdoll
 			this.bones[ i ].sy = 0;
 		}*/
 		
-		const offset_discretion = 2;
-		const movement_discretion = 10;
+		//const offset_discretion = 2;
+		//const movement_discretion = 10;
 		
-		let act_x = this.character.driver_of ? 0 : this.character.act_x;
+		let act_x = this._morph_act_x;//this.character.driver_of ? 0 : this.character.act_x;
 		
 		let gun_offset_x = 0;
 		let gun_offset_y = 0;
@@ -286,8 +290,10 @@ class sdCharacterRagdoll
 			gun_offset_x -= 1 - ( Math.cos( this.character.fire_anim / 5 * Math.PI ) * 0.5 + 0.5 );
 			gun_offset_body_x -= ( 1 - ( Math.cos( this.character.fire_anim / 5 * Math.PI ) * 0.5 + 0.5 ) ) * 0.333;
 		}
-		gun_offset_x = Math.ceil( Math.abs( gun_offset_x ) * offset_discretion ) * Math.sign( gun_offset_x ) / offset_discretion;
-		gun_offset_body_x = Math.ceil( Math.abs( gun_offset_body_x ) * offset_discretion ) * Math.sign( gun_offset_body_x ) / offset_discretion;
+		//gun_offset_x = Math.ceil( Math.abs( gun_offset_x ) * offset_discretion ) * Math.sign( gun_offset_x ) / offset_discretion;
+		//gun_offset_body_x = Math.ceil( Math.abs( gun_offset_body_x ) * offset_discretion ) * Math.sign( gun_offset_body_x ) / offset_discretion;
+		gun_offset_x = Math.abs( gun_offset_x ) * Math.sign( gun_offset_x );
+		gun_offset_body_x = Math.abs( gun_offset_body_x ) * Math.sign( gun_offset_body_x );
 		
 		
 		
@@ -306,7 +312,13 @@ class sdCharacterRagdoll
 			gun_offset_y += 2 + reload;
 		}
 		
-		let breathe_rise = ( Math.round( Math.sin( ( sdWorld.time - 1000 * ( this.character._net_id || 0 ) ) * ( ( this.character.hea <= this.character.hmax / 2 ) ? 0.024 : 0.003 ) ) * 4 ) / 4 * 0.1 - 0.1 ) * scale;
+		//let breathe_rise = ( Math.round( Math.sin( ( sdWorld.time - 1000 * ( this.character._net_id || 0 ) ) * ( ( this.character.hea <= this.character.hmax / 2 ) ? 0.024 : 0.003 ) ) * 4 ) / 4 * 0.1 - 0.1 ) * scale;
+		let breathe_rise = ( Math.sin( ( sdWorld.time - 1000 * ( this.character._net_id || 0 ) ) * ( ( this.character.hea <= this.character.hmax / 2 ) ? 0.024 : 0.003 ) ) * 0.1 - 0.1 ) * scale;
+		
+		if ( this.character.driver_of )
+		breathe_rise += sdWorld.limit( -2, this._body_offset_y - this.character.y, 2 );
+		else
+		breathe_rise += sdWorld.limit( 0, this._body_offset_y - this.character.y, 6 );
 		
 		let morph_crouch = this.character._crouch_intens;
 		let morph_non_crouch = 1 - this.character._crouch_intens;
@@ -404,7 +416,8 @@ class sdCharacterRagdoll
 		
 		
 		// Legs
-		let _anim_walk = Math.round( this.character._anim_walk / 10 * movement_discretion ) / movement_discretion * Math.PI * 2;
+		//let _anim_walk = Math.round( this.character._anim_walk / 10 * movement_discretion ) / movement_discretion * Math.PI * 2;
+		let _anim_walk = this.character._anim_walk / 10 * Math.PI * 2;
 		
 		let walk_amplitude_x = 1.5;
 		let walk_amplitude_y = 0;
@@ -434,37 +447,49 @@ class sdCharacterRagdoll
 				legs_x -= 1 * morph_crouch;
 				legs_y -= 6 * morph_crouch;
 				
-				if ( act_x !== 0 )
+				/*if ( act_x !== 0 )
 				walk_amplitude_x += ( act_x * this.character._side * Math.sin( _anim_walk ) * 2 + 4 ) * morph_crouch;
 				else
-				walk_amplitude_x += ( 4 ) * morph_crouch;
+				walk_amplitude_x += ( 4 ) * morph_crouch;*/
+				
+				walk_amplitude_x += ( act_x * this.character._side * Math.sin( _anim_walk ) * 2 + 4 ) * morph_crouch * Math.abs( act_x );
+				walk_amplitude_x += ( 4 ) * morph_crouch * ( 1 - Math.abs( act_x ) );
 			
 				_anim_walk_arms += ( 1 ) * morph_crouch;
 			}
 			//else
 			{
-				if ( act_x !== 0 )
-				{
+				//if ( act_x !== 0 )
+				//{
 					walk_amplitude_x += ( act_x * this.character._side * Math.sin( _anim_walk ) * 5 ) * morph_non_crouch;
-					walk_amplitude_y += ( Math.cos( _anim_walk ) * 4 ) * morph_non_crouch;
-					legs_x -= 2.5 * morph_non_crouch;
+					walk_amplitude_y += ( Math.cos( _anim_walk ) * 4 ) * morph_non_crouch * Math.abs( act_x );
+					legs_x -= 2.5 * morph_non_crouch * Math.abs( act_x );
 					
-					_anim_walk_arms += Math.sin( _anim_walk + 0.2 ) * morph_non_crouch;
-				}
+					_anim_walk_arms += Math.sin( _anim_walk + 0.2 ) * morph_non_crouch * Math.abs( act_x );
+				//}
 			}
 		}
 		
 		this.MoveBone( this.ankle1, legs_x + walk_amplitude_x, legs_y - Math.max( 0, walk_amplitude_y ) );
 		this.MoveBone( this.ankle2, legs_x - walk_amplitude_x, legs_y - Math.max( 0, -walk_amplitude_y ) );
-		this.MoveBone( this.toes1, legs_x + walk_amplitude_x + 2, legs_y - Math.max( 0, walk_amplitude_y ) );
-		this.MoveBone( this.toes2, legs_x - walk_amplitude_x + 2, legs_y - Math.max( 0, -walk_amplitude_y ) );
 		
+		//if ( this.character.stands )		
+		//{
+			this.MoveBone( this.toes1, legs_x + walk_amplitude_x + 2, legs_y - Math.max( 0, walk_amplitude_y ) );
+			this.MoveBone( this.toes2, legs_x - walk_amplitude_x + 2, legs_y - Math.max( 0, -walk_amplitude_y ) );
+		/*}
+		else
+		{
+			this.MoveBone( this.toes1, legs_x + walk_amplitude_x + 2, legs_y + 2 - Math.max( 0, walk_amplitude_y ) );
+			this.MoveBone( this.toes2, legs_x - walk_amplitude_x + 2, legs_y + 2 - Math.max( 0, -walk_amplitude_y ) );
+		}*/
+
 		let leg_len = 8;
 
 		this.RespectLength( this.torso, this.ankle1, 1, leg_len );
 		this.RespectLength( this.torso, this.ankle2, 1, leg_len );
 
-		if ( !this.character.stands || act_x !== 0 )
+		if ( !this.character.stands )//|| act_x !== 0 )
 		{
 			this.RespectLength( this.torso, this.toes1, 1, leg_len );
 			this.RespectLength( this.torso, this.toes2, 1, leg_len );
@@ -660,6 +685,10 @@ class sdCharacterRagdoll
 		}
 		else
 		{
+			
+			let cx = this.torso.x;
+			let cy = this.torso.y;
+			
 			for ( let i = 0; i < this.bones.length; i++ )
 			{
 				if ( this.bones[ i ]._soft_bone_of )
@@ -671,8 +700,18 @@ class sdCharacterRagdoll
 
 					let lx = bone.x;
 					let ly = bone.y;
+					
+					if ( p < 1 )
+					if ( Math.abs( act_x ) > 0.1 )
+					if ( bone !== this.torso )
+					{
+						let an = Math.atan2( lx - cx, ly - cy ) + Math.PI / 2;
+						let power = -sdWorld.limit( 0, sdWorld.Dist2D_Vector( lx - cx, ly - cy ), 10 ) * act_x * 0.055;
+						bone.sx += Math.sin( an ) * GSPEED * power;
+						bone.sy += Math.cos( an ) * GSPEED * power;
+					}
 
-					let di = sdWorld.Dist2D_Vector( lx - bone.x, ly - bone.y );
+					//let di = sdWorld.Dist2D_Vector( lx - bone.x, ly - bone.y );
 					
 					let range_strength = 1;// Math.min( 1, di / 15 );
 					
@@ -835,9 +874,16 @@ class sdCharacterRagdoll
 		}
 		this.last_char_hea = this.character.hea;
 		
+		this._morph_act_x = sdWorld.MorphWithTimeScale( this._morph_act_x, this.character.driver_of ? 0 : this.character.act_x, 0.2, GSPEED );
+		
+		this._body_offset_sy += ( this.character.y - this._body_offset_y + ( this.character.sy - this._body_offset_sy ) * 4 ) * 0.1 * GSPEED;
+		this._body_offset_y += this._body_offset_sy * GSPEED;
+
+		this._body_offset_y = sdWorld.limit( this.character.y, this._body_offset_y, this.character.y + 6 * ( 1 - this.character._crouch_intens * 0.5 ) );
+
 		if ( this.character.hea > 0 && this.character.stability >= 100 )
 		return;
-	
+		
 		let use_corrections = this.UseCorrections();
 			
 		//if ( !allow_alive_update )
