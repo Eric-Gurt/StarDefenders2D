@@ -858,7 +858,7 @@ class sdHover extends sdEntity
 		
 		if ( sdShop.isDrawing )
 		{
-			if ( this.type !== 3 )
+			if ( this.type !== sdHover.TYPE_BIKE )
 			ctx.scale( 0.5, 0.5 );
 		}
 		
@@ -921,7 +921,7 @@ class sdHover extends sdEntity
 			}
 		};
 		
-		if ( this.type !== 3 )
+		if ( this.type !== sdHover.TYPE_BIKE )
 		DrawDrivers();
 		
 		ctx.filter = this.filter;
@@ -936,13 +936,13 @@ class sdHover extends sdEntity
 			can_boost = false;
 		}
 		
-		let DelayedDrawGun = ()=>
+		/*let DelayedDrawGun = ()=>
 		{
-		};
+		};*/
 		
 		if ( this.hea > 0 )
 		{
-			if ( this.type === 2 )
+			if ( this.type === sdHover.TYPE_TANK )
 			xx = this.driver2 ? 3 : can_boost ? 1 : 0;
 			else
 			xx = can_boost ? 1 : 0;
@@ -957,72 +957,9 @@ class sdHover extends sdEntity
 			else
 			ctx.drawImageFilterCache( can_boost ? sdHover.img_hover_boost : sdHover.img_hover, - 32, - 16, 64,32 );*/
 			
-			if ( this.guns )
-			{
-				var i;
-
-				DelayedDrawGun = ()=>
-				{
-					let i = 0;
-					if ( this[ 'driver' + i ] && this.type === 3 )
-					{
-						ctx.save();
-
-						ctx.translate( -1, 7 );
-						ctx.scale( 1, -1 );
-
-						ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
-
-						ctx.drawImageFilterCache( sdHover.img_hover_mg, - 16, - 16, 32,32 );
-
-						ctx.restore();
-					}
-				};
-
-				i = 1;
-				if ( this[ 'driver' + i ] )
-				{
-					ctx.save();
-
-					ctx.translate( -1, 10 );
-					ctx.scale( 1, -1 );
-
-					ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
-
-					if ( this.type === 1 )
-					ctx.drawImageFilterCache( sdHover.img_f_hover_mg, - 16, - 16, 32,32 );
-					else
-					if ( this.type === 2 )
-					ctx.drawImageFilterCache( sdHover.img_tank_rl, - 16, - 16, 32,32 );
-					else
-					ctx.drawImageFilterCache( sdHover.img_hover_mg, - 16, - 16, 32,32 );
-
-					ctx.restore();
-				}
-				i = 2;
-				if ( this[ 'driver' + i ] )
-				{
-					ctx.save();
-
-					ctx.translate( 9, -11 );
-					ctx.scale( 1, -1 );
-
-					ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
-
-					if ( this.type === 1 )
-					ctx.drawImageFilterCache( sdHover.img_f_hover_rl, - 16, - 16, 32,32 );
-					else
-					if ( this.type === 2 )
-					ctx.drawImageFilterCache( sdHover.img_tank_turret, - 16, - 16, 64,32 );
-					else
-					ctx.drawImageFilterCache( sdHover.img_hover_rl, - 16, - 16, 32,32 );
-
-					ctx.restore();
-				}
-			}
 		}
 		else
-		if ( this.type !== -1 )
+		//if ( this.type !== -1 )
 		xx = 2;
 		/*if ( this.type === 1 )
 		ctx.drawImageFilterCache( sdHover.img_f_hover_broken, - 32, - 16, 64,32 );
@@ -1044,7 +981,72 @@ class sdHover extends sdEntity
 		if ( this.type === 3 )
 		DrawDrivers();
 		
-		DelayedDrawGun();
+		//DelayedDrawGun();
+		
+		if ( this.guns )
+		{
+			var i;
+
+			//DelayedDrawGun = ()=>
+			//{
+				//let i = 0;
+				i = 0;
+				if ( this[ 'driver' + i ] && this.type === sdHover.TYPE_BIKE )
+				{
+					ctx.save();
+
+					ctx.translate( -1, 7 );
+					ctx.scale( 1, -1 );
+
+					ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
+
+					ctx.drawImageFilterCache( sdHover.img_hover_mg, - 16, - 16, 32,32 );
+
+					ctx.restore();
+				}
+			//};
+
+			i = 1;
+			if ( this[ 'driver' + i ] )
+			{
+				ctx.save();
+
+				ctx.translate( -1, 10 );
+				ctx.scale( 1, -1 );
+
+				ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
+
+				if ( this.type === sdHover.TYPE_FIGHTER_HOVER )
+				ctx.drawImageFilterCache( sdHover.img_f_hover_mg, - 16, - 16, 32,32 );
+				else
+				if ( this.type === sdHover.TYPE_TANK )
+				ctx.drawImageFilterCache( sdHover.img_tank_rl, - 16, - 16, 32,32 );
+				else
+				ctx.drawImageFilterCache( sdHover.img_hover_mg, - 16, - 16, 32,32 );
+
+				ctx.restore();
+			}
+			i = 2;
+			if ( this[ 'driver' + i ] )
+			{
+				ctx.save();
+
+				ctx.translate( 9, -11 );
+				ctx.scale( 1, -1 );
+
+				ctx.rotate( ( ( this._tilt > 0 ) ? Math.PI : 0 ) + Math.sign( this._tilt ) * ( -this._tilt / 100 + Math.atan2( this[ 'driver' + i ].look_y - this.y, this[ 'driver' + i ].look_x - this.x ) ) );
+
+				if ( this.type === sdHover.TYPE_FIGHTER_HOVER )
+				ctx.drawImageFilterCache( sdHover.img_f_hover_rl, - 16, - 16, 32,32 );
+				else
+				if ( this.type === sdHover.TYPE_TANK )
+				ctx.drawImageFilterCache( sdHover.img_tank_turret, - 16, - 16, 64,32 );
+				else
+				ctx.drawImageFilterCache( sdHover.img_hover_rl, - 16, - 16, 32,32 );
+
+				ctx.restore();
+			}
+		}
 	
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
