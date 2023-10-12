@@ -4975,6 +4975,11 @@ THING is cosmic mic drop!`;
 			{
 				raise = ( this.y - this._ragdoll.chest.y + 20 * this.s / 100 );
 			}
+			else
+			{
+				// Drones, overlords
+				raise = 5 + 15 * this.s / 100
+			}
 			
 			let show_air = false;
 			

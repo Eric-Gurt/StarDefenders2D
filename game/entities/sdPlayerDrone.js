@@ -225,6 +225,12 @@ class sdPlayerDrone extends sdCharacter
 		const matter_cost_7 = 1;
 		const matter_cost_2 = 4;
 		
+		const matter_cost = [];
+		matter_cost[ 4 ] = matter_cost_4;
+		matter_cost[ 5 ] = matter_cost_5;
+		matter_cost[ 7 ] = matter_cost_7;
+		matter_cost[ 2 ] = matter_cost_2;
+		
 		let scale = this.s / 100;
 		
 		if ( this.matter >= matter_cost_5 && this.gun_slot === 5 && !this._inventory[ this.gun_slot ] && this.build_tool_level >= 1 )
@@ -376,23 +382,23 @@ class sdPlayerDrone extends sdCharacter
 					if ( this._key_states.GetKey( 'Mouse1' ) )
 					{	
 						let mode = 1;
-
-						if ( ( this.gun_slot === 2 ) && this.matter >= matter_cost_2 && this.build_tool_level >= 1 )
-						mode = 2;
-						else
-						if ( ( this.gun_slot === 4 ) && this.matter >= matter_cost_4 && this.build_tool_level >= 1 )
-						mode = 4;
-						else
-						if ( ( this.gun_slot === 5 ) && this.matter >= matter_cost_5 && this.build_tool_level >= 1 )
-						mode = 5;
-						else
-						if ( ( this.gun_slot === 7 ) && this.matter >= matter_cost_7 )
-						mode = 7;
+						
+						const ConsiderMode = ( slot, required_build_tool_level=0 )=>
+						{
+							if ( ( this.gun_slot === slot ) && this.matter >= matter_cost[ slot ] && this.build_tool_level >= required_build_tool_level )
+							mode = slot;
+						};
+						
+						ConsiderMode( 2, 1 );
+						ConsiderMode( 4, 1 );
+						ConsiderMode( 5, 1 );
+						ConsiderMode( 7 );
 
 						if ( mode === 5 )
 						{
 							if ( !this._is_being_removed )
 							if ( this._beep_charge >= 90 )
+							if ( this.matter > matter_cost[ mode ] )
 							{
 								this.DamageWithEffect( this.hea * scale + 1 );
 								return;
@@ -402,7 +408,7 @@ class sdPlayerDrone extends sdCharacter
 						let power = ( mode === 4 ) ? 10 : 1;
 
 						if ( mode !== 1 )
-						this.matter -= matter_cost_4;
+						this.matter -= matter_cost[ mode ];
 
 						if ( mode === 2 )
 						{
