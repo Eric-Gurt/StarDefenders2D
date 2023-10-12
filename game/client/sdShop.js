@@ -585,6 +585,7 @@ class sdShop
 				sdShop.options.push({ _class: 'sdCube', kind:4, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCube', kind:5, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdCube', kind:6, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdCube', kind:7, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_LAVA, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_WATER, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdWater', type: sdWater.TYPE_ACID, _category:'Development tests' });
