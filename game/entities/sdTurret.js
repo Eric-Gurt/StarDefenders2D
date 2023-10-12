@@ -38,7 +38,17 @@ import sdBiter from './sdBiter.js';
 import sdAbomination from './sdAbomination.js';
 import sdMimic from './sdMimic.js';
 import sdGuanako from './sdGuanako.js';
+import sdSensorArea from './sdSensorArea.js';
 
+import sdMatterContainer from './sdMatterContainer.js';
+import sdMatterAmplifier from './sdMatterAmplifier.js';
+import sdCommandCentre from './sdCommandCentre.js';
+import sdCrystalCombiner from './sdCrystalCombiner.js';
+import sdCrystal from './sdCrystal.js';
+import sdRescueTeleport from './sdRescueTeleport.js';
+import sdLongRangeTeleport from './sdLongRangeTeleport.js';
+import sdTzyrgAbsorber from './sdTzyrgAbsorber.js';
+import sdVeloxMiner from './sdVeloxMiner.js';
 
 class sdTurret extends sdEntity
 {
@@ -88,7 +98,10 @@ class sdTurret extends sdEntity
 			sdWorld.entity_classes.sdPlayerOverlord,
 			sdBiter,
 			sdAbomination,
-			sdMimic
+			sdMimic,
+			sdTzyrgAbsorber,
+			sdVeloxMiner,
+			sdWorld.entity_classes.sdShurgTurret
 		] ); // Module random load order that causes error prevention
 		
 		sdTurret.KIND_LASER = 0;
@@ -186,6 +199,9 @@ class sdTurret extends sdEntity
 		this.fire_timer = 0;
 		this._target = null;
 		
+		this._sensor_detected_entities = new Set();
+		this._sensor_area = null;
+		
 		this._considered_target = null; // What target is being considered. Used for filtering to allow attacking through unknown walls
 
 		this.disabled = false; // If hit by EMP, set the turret in sleep mode but allow hp regen
@@ -211,10 +227,102 @@ class sdTurret extends sdEntity
 	}
 	ExtraSerialzableFieldTest( prop )
 	{
-		if ( prop === '_auto_attack_reference' ) return true;
+		if ( prop === '_auto_attack_reference' || prop === '_sensor_area' ) return true;
 
 		return false;
 	}
+	
+	IsLegitimateTarget( e, com_near=null, skip_raycast=true )
+	{
+		//let com_near = this.GetComWiredCache();
+		
+		function RuleAllowedByNodes( c )
+		{
+			if ( !com_near ) // This can only happen on sensor callback when turret was just made and wasn't connected to com node
+			return true;
+			
+			if ( com_near.subscribers.indexOf( c ) !== -1 )
+			return false;
+
+			return true;
+		}
+
+		const targetable_classes = sdTurret.targetable_classes;
+						
+		const range = this.GetTurretRange();
+		
+		if ( sdWorld.inDist2D_Boolean( this.x, this.y, e.x, e.y, range ) )
+		if ( targetable_classes.has( e.constructor ) )
+		if ( 
+				( !e._is_being_removed ) &&
+				( e.hea || e._hea ) > 0 && 
+				( !e.is( sdSandWorm ) || e.death_anim === 0 ) && 
+				( !e.is( sdMimic ) || e.morph < 100 ) && 
+				( e._frozen < 10 || this.kind !== sdTurret.KIND_FREEZER ) 
+			)
+		{
+			if ( this.type === 1 )
+			{
+				if ( ( e.is( sdCharacter ) && e._ai_team === this._ai_team ) || ( e.is( sdDrone ) && e._ai_team === this._ai_team ) )
+				return false;
+				else
+				{
+					this._considered_target = e;
+					
+					if ( skip_raycast )
+					if ( !this._is_being_removed )
+					if ( this._hiberstate !== sdEntity.HIBERSTATE_ACTIVE )
+					this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+					//if ( skip_raycast || sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier', 'sdCommandCentre', 'sdCrystalCombiner', 'sdTurret', 'sdCrystal', 'sdRescueTeleport' ], this.ShootPossibilityFilter ) )
+					if ( skip_raycast || sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, null, this.ShootPossibilityFilter ) )
+					return true;
+				}
+			}
+			else
+			{
+				if ( !e.is( sdBadDog ) || !e.owned )
+				if ( e.IsPlayerClass() || e.IsVisible( this ) || ( e.driver_of && !e.driver_of._is_being_removed && e.driver_of.IsVisible( this ) ) )
+				{
+					var is_char = e.IsPlayerClass();
+
+					if ( ( is_char && e.IsHostileAI() ) || ( ( !is_char || ( RuleAllowedByNodes( e._net_id ) && RuleAllowedByNodes( e.biometry ) ) ) && RuleAllowedByNodes( e.GetClass() ) ) )
+					{
+						if ( is_char && is_char._god && !e.IsVisible() )
+						{
+						}
+						else
+						{
+							this._considered_target = e;
+					
+							if ( skip_raycast )
+							if ( !this._is_being_removed )
+							if ( this._hiberstate !== sdEntity.HIBERSTATE_ACTIVE )
+							this.SetHiberState( sdEntity.HIBERSTATE_ACTIVE );
+
+							//if ( skip_raycast || sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier', 'sdCommandCentre', 'sdCrystalCombiner', 'sdTurret', 'sdCrystal', 'sdRescueTeleport' ], this.ShootPossibilityFilter ) )
+							if ( skip_raycast || sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, null, this.ShootPossibilityFilter ) )
+							return true;
+						}
+					}
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	SensorAreaMovementCallback( from_entity )
+	{
+		let will_attack = this.IsLegitimateTarget( from_entity );
+		
+		if ( will_attack )
+		this._sensor_detected_entities.add( from_entity );
+		else
+		this._sensor_detected_entities.delete( from_entity );
+	}
+	
+	
 	GetShootCost()
 	{
 		var dmg = 1;
@@ -297,7 +405,27 @@ class sdTurret extends sdEntity
 		{
 			if ( this.matter > this.GetShootCost() || this.type === 1 )
 			{
-				can_hibernate = false;
+				//can_hibernate = false;
+				
+				let range = this.GetTurretRange();
+					
+				if ( this._sensor_area && !this._sensor_area._is_being_removed )
+				{
+					if ( this._sensor_area.x !== this.x - range || this._sensor_area.y !== this.y - range )
+					{
+						this._sensor_area.x = this.x - range;
+						this._sensor_area.y = this.y - range;
+						this._sensor_area._update_version++;
+						this._sensor_area.SetHiberState( sdEntity.HIBERSTATE_ACTIVE, false );
+					}
+				}
+				else
+				{
+					this._sensor_area = new sdSensorArea({ x: this.x-range, y: this.y-range, w: range*2, h: range*2, on_movement_target: this });
+					sdEntity.entities.push( this._sensor_area );
+				}
+				
+				
 				
 				if ( this._seek_timer <= 0 && this.disabled === false )
 				{
@@ -309,160 +437,27 @@ class sdTurret extends sdEntity
 
 					if ( this.auto_attack >= 0 )
 					{
+						can_hibernate = false;
 					}
 					else
-					if ( ( com_near && this.type === 0 ) )
+					if ( ( com_near && this.type === 0 ) || this.type === 1 )
 					{
-						function RuleAllowedByNodes( c )
-						{
-							if ( com_near.subscribers.indexOf( c ) !== -1 )
-							return false;
-						
-							return true;
-						}
+						let target_set = this._sensor_detected_entities;
 
-						const targetable_classes = sdTurret.targetable_classes;
-						
-						const range = this.GetTurretRange();
-						
-						const from_x = this.x - range;
-						const to_x = this.x + range;
-						const from_y = this.y - range;
-						const to_y = this.y + range;
-						
+						for ( let e of target_set )
 						{
-							//var arr = sdWorld.RequireHashPosition( x, y ).arr;
-							var arr = sdEntity.active_entities; // In many cases it is faster than running through 3D array, especially if we don't need hibernated targets
-
-							for ( var i2 = 0; i2 < arr.length; i2++ )
+							if ( this.IsLegitimateTarget( e, com_near, false ) )
 							{
-								var e = arr[ i2 ];
-								
-								if ( sdWorld.inDist2D_Boolean( e.x, e.y, this.x, this.y, range ) ) // Faster than class check
-								if ( targetable_classes.has( e.constructor ) )
-								if ( 
-										( e.hea || e._hea ) > 0 && 
-										( !e.is( sdSandWorm ) || e.death_anim === 0 ) && 
-										( !e.is( sdMimic ) || e.morph < 100 ) && 
-										( e._frozen < 10 || this.kind !== sdTurret.KIND_FREEZER ) 
-									)
-								if ( !e.is( sdBadDog ) || !e.owned )
-								if ( e.IsPlayerClass() || e.IsVisible( this ) || ( e.driver_of && !e.driver_of._is_being_removed && e.driver_of.IsVisible( this ) ) )
-								{
-									var is_char = e.IsPlayerClass();
-									
-									if ( ( is_char && e.IsHostileAI() ) || ( ( !is_char || ( RuleAllowedByNodes( e._net_id ) && RuleAllowedByNodes( e.biometry ) ) ) && RuleAllowedByNodes( e.GetClass() ) ) )
-									{
-										if ( is_char && is_char._god && !e.IsVisible() )
-										{
-										}
-										else
-										{
-											this._considered_target = e;
-
-											if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier', 'sdCommandCentre', 'sdCrystalCombiner', 'sdTurret', 'sdCrystal', 'sdRescueTeleport' ], this.ShootPossibilityFilter ) )
-											{
-												this._target = e;
-												break;
-											}
-										}
-									}
-								}
+								can_hibernate = false;
+								this._target = e;
+								break;
+							}
+							else
+							{
+								target_set.delete( e );
+								continue;
 							}
 						}
-						
-						//this._debug1 = ents_looked_through;
-					}
-					else
-					if ( this.type === 1 )
-					{
-
-						//let class_cache = {};
-						function RuleAllowedByNodes( c )
-						{
-							return true;
-						}
-
-
-						const targetable_classes = sdTurret.targetable_classes;
-						
-						const range = this.GetTurretRange();
-						
-						const from_x = this.x - range;
-						const to_x = this.x + range;
-						const from_y = this.y - range;
-						const to_y = this.y + range;
-						
-						//let ents_looked_through = 0;
-						
-						/*
-						
-							Console code to measure stuff
-
-							var counters = [];
-							for ( var i = 0; i < sdWorld.entity_classes.sdEntity.active_entities.length; i++ )
-							if ( sdWorld.entity_classes.sdEntity.active_entities[ i ].GetClass() === 'sdTurret' )
-							{
-								var e = sdWorld.entity_classes.sdEntity.active_entities[ i ];
-								counters.push( [ e.kind, e.lvl, e._debug1 ] );
-							}
-							counters;
-
-						*/
-					   
-
-						{
-							//var arr = sdWorld.RequireHashPosition( x, y ).arr;
-							var arr = sdEntity.active_entities; // In many cases it is faster than running through 3D array, especially if we don't need hibernated targets
-
-							//ents_looked_through += arr.length;
-								
-							for ( var i2 = 0; i2 < arr.length; i2++ )
-							{
-								var e = arr[ i2 ];
-								
-								/*if ( targetable_classes.has( e.constructor ) )
-								counterA++;
-							
-								if ( e._hiberstate === sdEntity.HIBERSTATE_ACTIVE )
-								counterB++;*/
-								
-								/*if ( targetable_classes.has( e.constructor ) )
-								counterA++;
-							
-								if ( sdWorld.inDist2D_Boolean( e.x, e.y, this.x, this.y, range ) )
-								counterB++;*/
-								
-								if ( sdWorld.inDist2D_Boolean( e.x, e.y, this.x, this.y, range ) ) // Faster than class check
-								//if ( e._hiberstate === sdEntity.HIBERSTATE_ACTIVE ) // Don't target dead bodies or anything else that is hibernated, actually a big optimization and is faster than class constructor checking for some reason by a lot
-								if ( targetable_classes.has( e.constructor ) )
-								//if ( e.is( sdCharacter ) || e.is( sdVirus ) || e.is( sdQuickie ) || e.is( sdOctopus ) || e.is( sdCube ) || e.is( sdBomb ) )
-								if ( 
-										( e.hea || e._hea ) > 0 && 
-										( !e.is( sdSandWorm ) || e.death_anim === 0 ) && 
-										( !e.is( sdMimic ) || e.morph < 100 ) && 
-										( e._frozen < 10 || this.kind !== sdTurret.KIND_FREEZER ) 
-									)
-								{
-									//var is_char = e.is( sdCharacter );
-									//var is_char = e.IsPlayerClass();
-
-									if ( ( e.is( sdCharacter ) && e._ai_team === this._ai_team ) || ( e.is( sdDrone ) && e._ai_team === this._ai_team ) )
-									{
-									}
-									else
-									{
-										if ( sdWorld.CheckLineOfSight( this.x, this.y, e.x, e.y, this, null, [ 'sdBlock', 'sdDoor', 'sdMatterContainer', 'sdMatterAmplifier', 'sdCommandCentre', 'sdCrystalCombiner', 'sdTurret', 'sdCrystal' ], this.ShootPossibilityFilter ) )
-										{
-											this._target = e;
-											break;
-										}
-									}
-								}
-							}
-						}
-						
-						//this._debug1 = ents_looked_through;
 					}
 					else
 					{
@@ -611,6 +606,30 @@ class sdTurret extends sdEntity
 		if ( ent.is( sdBlock ) )
 		if ( ( ent.material === sdBlock.MATERIAL_TRAPSHIELD && sdBullet.IsTrapShieldIgonred( this, ent ) ) || ent.texture_id === sdBlock.TEXTURE_ID_CAGE )
 		return false;
+
+		if ( ent.is( sdMatterContainer ) )
+		return false;
+
+		if ( ent.is( sdMatterAmplifier ) )
+		return false;
+
+		if ( ent.is( sdCommandCentre ) )
+		return false;
+
+		if ( ent.is( sdCrystalCombiner ) )
+		return false;
+
+		if ( ent.is( sdTurret ) )
+		return false;
+
+		if ( ent.is( sdCrystal ) )
+		return false;
+
+		if ( ent.is( sdRescueTeleport ) )
+		return false;
+
+		if ( ent.is( sdLongRangeTeleport ) )
+		return false;
 		
 		return true;
 	}
@@ -713,6 +732,18 @@ class sdTurret extends sdEntity
 	}
 	onRemove()
 	{
+		this._considered_target = null;
+		this._target = null;
+		
+		this._sensor_detected_entities = null;
+		
+		if ( this._sensor_area )
+		if ( sdWorld.is_server ) // Will break visibility for admin
+		{
+			this._sensor_area.remove();
+			this._sensor_area = null;
+		}
+		
 		if ( this._broken )
 		sdWorld.BasicEntityBreakEffect( this, 3 );
 	}

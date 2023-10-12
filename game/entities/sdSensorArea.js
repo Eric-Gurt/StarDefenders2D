@@ -23,6 +23,9 @@ class sdSensorArea extends sdEntity
 	get hitbox_y1() { return 0; }
 	get hitbox_y2() { return this.h; }
 	
+	IsHittableWithAdminTools() // Admin tool for removal
+	{ return false; }
+	
 	get hard_collision()
 	{ return false; }
 	
@@ -87,7 +90,7 @@ class sdSensorArea extends sdEntity
 		}
 		else
 		{
-			ctx.globalAlpha = 0.02;
+			ctx.globalAlpha = 0.01;
 		}
 		
 		ctx.fillStyle = '#00ff00';

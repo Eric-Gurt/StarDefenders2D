@@ -441,7 +441,7 @@ class sdJunk extends sdEntity
 					for ( let i = 0; i < nears.length; i++ )
 					{
 						if ( nears[ i ].IsTargetable( this ) )
-						if ( nears[ i ].IsBGEntity() === this.IsBGEntity() )
+						if ( nears[ i ]._is_bg_entity === this._is_bg_entity )
 						nears[ i ].ApplyStatusEffect({ type: sdStatusEffect.TYPE_TEMPERATURE, t: -250, initiator: this._owner }); // Freeze nearby objects
 					}
 				};

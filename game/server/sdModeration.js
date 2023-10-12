@@ -744,6 +744,55 @@ class sdModeration
 			}
 		}
 		else
+		if ( parts[ 0 ] === 'distinct' )
+		{
+			let counts = {};
+			
+			let type_fields = [ 'type', 'class', 'mission', 'kind', 'material', 'texture', 'tier', '_ai_enabled' ];
+			
+			let tot = 0;
+			
+			let ents = sdWorld.entity_classes.sdEntity.active_entities;
+			for ( let i = 0; i < ents.length; i++ )
+			if ( ents[ i ].GetClass() === parts[ 1 ] )
+			{
+				tot++;
+				
+				let e = ents[ i ];
+				let criterias = [];
+				
+				for ( let i2 = 0; i2 < type_fields.length; i2++ )
+				if ( e[ type_fields[i2] ] !== undefined )
+				criterias.push( type_fields[i2]+'='+e[ type_fields[i2] ] );
+				
+				if ( criterias.length === 0 )
+				criterias = [ 'no key criterias found' ];
+				
+				let key = criterias.join( '&' );
+				counts[ key ] = ( counts[ key ] || 0 ) + 1;
+			}
+			
+			if ( tot === 0 )
+			{
+				socket.SDServiceMessage( 'No active entities were found. Try following usage: /distinct sdCrystal' );
+			}
+			else
+			{
+				let all_options = [];
+				for ( let i in counts )
+				all_options.push({ title: i, value: counts[ i ] });
+
+				all_options = all_options.sort((a,b)=>{return b.value-a.value;});
+
+				let strings = [];
+
+				for ( let i = 0; i < all_options.length && i < 10; i++ )
+				strings.push( all_options[ i ].title + ': ' + all_options[ i ].value );
+
+				socket.SDServiceMessage( 'Most active entitites of class '+parts[ 1 ]+' by count and type: ' + strings.join(', ') );
+			}
+		}
+		else
 		if ( parts[ 0 ] === 'deepsleepinfo' || parts[ 0 ] === 'cells' || parts[ 0 ] === 'deepsleep' || parts[ 0 ] === 'ds' )
 		{
 			let counts = [ 0,0,0 ];

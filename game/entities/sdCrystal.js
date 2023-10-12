@@ -301,11 +301,14 @@ class sdCrystal extends sdEntity
 	{
 		if ( sdWorld.is_server )
 		if ( !sdWorld.is_singleplayer )
-		if ( sdWorld.time < 1692486127166 + 1000 * 60 * 60 * 24 * 30 * 1 ) // 1 year for patch to be applied everywhere? Trying to prevent improper crystal attachment to trees
-		if ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON && ( this.held_by === null || this.held_by.crystal !== this ) )
 		{
-			this.remove();
-			this._broken = false;
+			//if ( sdWorld.time < 1692486127166 + 1000 * 60 * 60 * 24 * 30 * 1 ) // 1 year for patch to be applied everywhere? Trying to prevent improper crystal attachment to trees
+			// Issue still kind of exists on one of servers... 1000 active balloon crystals just lying around
+			if ( this.type === sdCrystal.TYPE_CRYSTAL_BALLOON && ( this.held_by === null || this.held_by.crystal !== this ) )
+			{
+				this.remove();
+				this._broken = false;
+			}
 		}
 	}
 

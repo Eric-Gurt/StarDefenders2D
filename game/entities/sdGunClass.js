@@ -7279,7 +7279,7 @@ class sdGunClass
 					{
 						if ( hit_entity )
 						{
-							if ( hit_entity.IsBGEntity() === bullet.IsBGEntity() )
+							if ( hit_entity._is_bg_entity === bullet._is_bg_entity )
 							if ( hit_entity._hard_collision )
 							if ( bullet._owner !== hit_entity )
 							if ( bullet._owner2 !== hit_entity )
@@ -7313,7 +7313,7 @@ class sdGunClass
 							let e = nears[ i ];
 							if ( !e._is_being_removed )
 							if ( e !== bullet && e !== owner )
-							if ( e.IsBGEntity() === bullet.IsBGEntity() )
+							if ( e._is_bg_entity === bullet._is_bg_entity )
 							if ( e.IsTargetable( owner ) )
 							if ( !e.is( sdGun ) )
 							if ( !e.is( sdBullet ) )
@@ -7603,7 +7603,7 @@ class sdGunClass
 				{
 					if ( hit_entity )
 					{
-						if ( hit_entity.IsBGEntity() === bullet.IsBGEntity() )
+						if ( hit_entity._is_bg_entity === bullet._is_bg_entity )
 						if ( hit_entity._hard_collision )
 						if ( bullet._owner !== hit_entity )
 						if ( bullet._owner2 !== hit_entity )
@@ -7636,7 +7636,7 @@ class sdGunClass
 						let e = nears[ i ];
 						if ( !e._is_being_removed )
 						if ( e !== bullet && e !== owner )
-						if ( e.IsBGEntity() === bullet.IsBGEntity() )
+						if ( e._is_bg_entity === bullet._is_bg_entity )
 						if ( e.IsTargetable( owner ) )
 						if ( !e.is( sdGun ) )
 						if ( !e.is( sdBullet ) )
@@ -7747,7 +7747,7 @@ class sdGunClass
 										let e = nears[ i ];
 										if ( !e._is_being_removed )
 										if ( e !== bullet )
-										if ( e.IsBGEntity() === bullet.IsBGEntity() )
+										if ( e._is_bg_entity === bullet._is_bg_entity )
 										if ( e.IsTargetable() )
 										if ( !e.is( sdGun ) )
 										if ( !e.is( sdBullet ) )

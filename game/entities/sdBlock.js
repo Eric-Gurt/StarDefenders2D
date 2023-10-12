@@ -1194,7 +1194,7 @@ class sdBlock extends sdEntity
 		if ( sdWorld.is_server )
 		{
 			if ( this.material === sdBlock.MATERIAL_CORRUPTION || this.material === sdBlock.MATERIAL_SHARP )
-			if ( from_entity.IsBGEntity() === this.IsBGEntity() )
+			if ( from_entity._is_bg_entity === this._is_bg_entity )
 			if ( from_entity.GetClass() !== 'sdGun' || from_entity._held_by === null ) // Do not react to held guns
 			if ( !from_entity.driver_of )
 			{

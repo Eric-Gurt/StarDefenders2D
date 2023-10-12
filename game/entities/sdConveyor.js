@@ -275,7 +275,7 @@ class sdConveyor extends sdEntity
 	onMovementInRange( from_entity )
 	{
 		//if ( sdWorld.is_server )
-		if ( from_entity.IsBGEntity() === this.IsBGEntity() )
+		if ( from_entity._is_bg_entity === this._is_bg_entity )
 		{
 			if ( typeof from_entity.sx !== 'undefined' )
 			if ( typeof from_entity.sy !== 'undefined' )

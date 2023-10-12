@@ -53,13 +53,13 @@ class sdSteeringWheel extends sdEntity
 				
 				//if ( e.is_static ) // Anything that is static part of a base may fall down
 				if ( !e.onThink.has_ApplyVelocityAndCollisions )
-				if ( e.IsBGEntity() === 0 || e.IsBGEntity() === 1 )
+				if ( e._is_bg_entity === 0 || e._is_bg_entity === 1 )
 				if ( sdArea.CheckPointDamageAllowed( e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2, e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2 ) )
 				{
 					while ( sdWorld.CheckWallExistsBox( e.x + e._hitbox_x1, e.y + e._hitbox_y2, e.x + e._hitbox_x2, e.y + e._hitbox_y2 + 16, e ) &&
 							sdWorld.last_hit_entity &&
 							!sdWorld.last_hit_entity.onThink.has_ApplyVelocityAndCollisions &&
-							( sdWorld.last_hit_entity.IsBGEntity() === 0 || sdWorld.last_hit_entity.IsBGEntity() === 1 &&
+							( sdWorld.last_hit_entity._is_bg_entity === 0 || sdWorld.last_hit_entity._is_bg_entity === 1 &&
 							sdArea.CheckPointDamageAllowed( sdWorld.last_hit_entity.x + ( sdWorld.last_hit_entity._hitbox_x1 + sdWorld.last_hit_entity._hitbox_x2 ) / 2, sdWorld.last_hit_entity.y + ( sdWorld.last_hit_entity._hitbox_y1 + sdWorld.last_hit_entity._hitbox_y2 ) / 2 ) )
 					)
 					{
@@ -104,7 +104,7 @@ class sdSteeringWheel extends sdEntity
 										{
 											visited.add( ent2 );
 
-											if ( !ent2.onThink.has_ApplyVelocityAndCollisions && ( ent2.IsBGEntity() === 0 || ent2.IsBGEntity() === 1 ) ) // Ignore physical entities that will be pushed
+											if ( !ent2.onThink.has_ApplyVelocityAndCollisions && ( ent2._is_bg_entity === 0 || ent2._is_bg_entity === 1 ) ) // Ignore physical entities that will be pushed
 											{
 												active.push( ent2 );
 												collected.push( ent2 );
@@ -275,7 +275,7 @@ class sdSteeringWheel extends sdEntity
 									|| 
 
 									( 
-									   ent2.IsBGEntity() === 1 &&
+									   ent2._is_bg_entity === 1 &&
 									   
 									   ( !ent2.is( sdBlock ) || !ent2._natural ) &&
 									   
@@ -288,10 +288,10 @@ class sdSteeringWheel extends sdEntity
 
 									|| 
 
-									( !ent2.onThink.has_ApplyVelocityAndCollisions && ent2.IsBGEntity() === 0 && !ent2.is( sdBlock ) && !ent2.is( sdGrass ) ) // Ignore physical entities that will be pushed
+									( !ent2.onThink.has_ApplyVelocityAndCollisions && ent2._is_bg_entity === 0 && !ent2.is( sdBlock ) && !ent2.is( sdGrass ) ) // Ignore physical entities that will be pushed
 
 								)
-							//if ( !ent2.onThink.has_ApplyVelocityAndCollisions && ent2.IsBGEntity() === 0 ) // Ignore physical entities that will be pushed
+							//if ( !ent2.onThink.has_ApplyVelocityAndCollisions && ent2._is_bg_entity === 0 ) // Ignore physical entities that will be pushed
 							{
 								if ( ent2._shielded )
 								if ( !ent2._shielded._is_being_removed )

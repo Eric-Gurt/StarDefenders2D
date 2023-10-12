@@ -63,7 +63,7 @@ class sdWanderer extends sdEntity
 		this._far_hitbox_y1 = this._fake_ent.hitbox_y1;
 		this._far_hitbox_y2 = this._fake_ent.hitbox_y2;
 		
-		this._far_is_bg_entity = this._fake_ent.IsBGEntity();
+		this._far_is_bg_entity = this._fake_ent._is_bg_entity;
 		
 		if ( sdWorld.is_server )
 		{
@@ -91,7 +91,7 @@ class sdWanderer extends sdEntity
 	
 	SpawnDetector( from_entity )
 	{
-		let is_bg = from_entity.IsBGEntity();
+		let is_bg = from_entity._is_bg_entity;
 		if ( is_bg === 0 )
 		{
 			return true; // Always blocked by items and walls

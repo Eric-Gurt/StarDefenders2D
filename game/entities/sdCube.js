@@ -234,8 +234,8 @@ class sdCube extends sdEntity
 		
 		this._time_amplification = 0;
 		
-		this._targets_raw_cache = [];
-		this._targets_raw_cache_until = 0;
+		//this._targets_raw_cache = [];
+		//this._targets_raw_cache_until = 0;
 		
 		sdCube.alive_cube_counter++;
 		
@@ -250,7 +250,7 @@ class sdCube extends sdEntity
 		
 		//this.filter = 'hue-rotate(' + ~~( Math.random() * 360 ) + 'deg)';
 	}
-	GetTargetsRawCache()
+	/*GetActiveTargetsCache( range, filter_method=null )
 	{
 		let targets_raw = this._targets_raw_cache;
 		
@@ -262,12 +262,12 @@ class sdCube extends sdEntity
 			
 			// One method can be faster than another, depending on how many active entities there are on server
 			if ( sdWorld.entity_classes.sdEntity.active_entities.length > 3933 * 0.28502415458937197 )
-			targets_raw = sdWorld.GetAnythingNear( this.x, this.y, sdCube.attack_range, targets_raw, null, sdCube.FilterCubeTargets );
+			targets_raw = sdWorld.GetAnythingNear( this.x, this.y, range, targets_raw, null, filter_method );
 			else
-			targets_raw = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, sdCube.attack_range, targets_raw, null, sdCube.FilterCubeTargets );
+			targets_raw = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, range, targets_raw, null, filter_method );
 		}
 		return targets_raw;
-	}
+	}*/
 	SetTarget( ent )
 	{
 		if ( ent !== this._current_target )
@@ -755,6 +755,9 @@ class sdCube extends sdEntity
 	{
 		//[ 'sdCharacter', 'sdPlayerDrone', 'sdPlayerOverlord', 'sdTurret', 'sdEnemyMech', 'sdCube', 'sdDrone', 'sdSetrDestroyer', 'sdSpider', 'sdOverlord' ]
 		
+		if ( e._hiberstate !== sdEntity.HIBERSTATE_ACTIVE )
+		return false;
+		
 		if ( e.is( sdWorld.entity_classes.sdPlayerSpectator ) )
 		return false;
 		
@@ -984,7 +987,7 @@ class sdCube extends sdEntity
 				{
 					this._attack_timer = 3;
 
-					let targets_raw = this.GetTargetsRawCache();
+					let targets_raw = this.GetActiveTargetsCache( sdCube.attack_range, sdCube.FilterCubeTargets );
 							//sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, sdCube.attack_range, null, null, sdCube.FilterCubeTargets );
 
 					let targets = [];

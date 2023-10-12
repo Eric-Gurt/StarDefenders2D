@@ -975,7 +975,7 @@ class sdSandWorm extends sdEntity
 		if ( from_entity.is( sdSandWorm ) )
 		return;
 	
-		if ( from_entity.IsBGEntity() > 0 )
+		if ( from_entity._is_bg_entity > 0 )
 		return;
 	
 		if ( sdSandWorm.travel_in.indexOf( from_entity.GetClass() ) !== -1 )

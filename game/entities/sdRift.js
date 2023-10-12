@@ -157,7 +157,7 @@ class sdRift extends sdEntity
 					{
 						let xx = e.x + ( e._hitbox_x1 + e._hitbox_x2 ) / 2;
 						let yy = e.y + ( e._hitbox_y1 + e._hitbox_y2 ) / 2;
-						if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, e.IsBGEntity() !== 0 ? this : e ) ) // Ignored entity has effect on which layer raycast would be happening, so as fallback it will ignore portal
+						if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, e._is_bg_entity !== 0 ? this : e ) ) // Ignored entity has effect on which layer raycast would be happening, so as fallback it will ignore portal
 						{
 							let dx = ( xx - this.x );
 							let dy = ( yy - this.y );

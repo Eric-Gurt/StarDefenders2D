@@ -184,8 +184,8 @@ class sdPresetEditor extends sdEntity
 				if ( ent === this )
 				return false; // Don't save preset editor to it's snapshot
 				//else
-				//if ( ent.is_static || ent.IsBGEntity() !== 0 || ent._is_being_removed || ( ent.hea || ent._hea ) === undefined )
-				/*if ( typeof ent.sx === 'undefined' || typeof ent.sy === 'undefined' || ent.IsBGEntity() !== 0 || ent._is_being_removed || ( ent.hea || ent._hea ) === undefined ) // This will prevent tasks and status effects, but these will be caught later
+				//if ( ent.is_static || ent._is_bg_entity !== 0 || ent._is_being_removed || ( ent.hea || ent._hea ) === undefined )
+				/*if ( typeof ent.sx === 'undefined' || typeof ent.sy === 'undefined' || ent._is_bg_entity !== 0 || ent._is_being_removed || ( ent.hea || ent._hea ) === undefined ) // This will prevent tasks and status effects, but these will be caught later
 				{
 					return false;
 				}*/

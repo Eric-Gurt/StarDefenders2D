@@ -686,7 +686,7 @@ class sdQuadro extends sdEntity
 	{
 		if ( this.part === 0 )
 		{
-			if ( ent.IsBGEntity() !== this.IsBGEntity() )
+			if ( ent._is_bg_entity !== this._is_bg_entity )
 			return false;
 			
 			if ( !ent._hard_collision )

@@ -4862,7 +4862,7 @@ THING is cosmic mic drop!`;
 	{
 		//console.log( from_entity.GetClass(), from_entity.material, sdBlock.MATERIAL_SHARP, this.hea, sdWorld.is_server );
 		
-		if ( from_entity.IsBGEntity() === this.IsBGEntity() )
+		if ( from_entity._is_bg_entity === this._is_bg_entity )
 		if ( from_entity._hard_collision )
 		{
 			if ( this.y + this._hitbox_y2 >= from_entity.y + from_entity._hitbox_y1 - this.GetStepHeight() )
@@ -5253,7 +5253,7 @@ THING is cosmic mic drop!`;
 								}
 							}
 							else
-							if ( fake_ent.IsBGEntity() === 1 && obstacle.is( sdBG ) )
+							if ( fake_ent._is_bg_entity === 1 && obstacle.is( sdBG ) )
 							{
 								if ( allow_erase )
 								{

@@ -388,9 +388,9 @@ class sdMimic extends sdEntity
 							if ( !ent.is( sdGun ) || ent.class !== sdGun.CLASS_SCORE_SHARD )
 							if ( ent.GetClass() !== 'sdBone' )
 							//if ( ent.DrawIn3D() === FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT || ent.DrawIn3D() === FakeCanvasContext.DRAW_IN_3D_GRASS )
-							//if ( ent.IsBGEntity() === this.IsBGEntity() || ent.is( sdGrass ) )
+							//if ( ent._is_bg_entity === this._is_bg_entity || ent.is( sdGrass ) )
 							if ( ent.DrawIn3D() === FakeCanvasContext.DRAW_IN_3D_FLAT_TRANSPARENT )
-							if ( ent.IsBGEntity() === this.IsBGEntity() )
+							if ( ent._is_bg_entity === this._is_bg_entity )
 							if ( ent.IsVisible( this ) )
 							{
 								let d = sdWorld.GetDrawOperations( ent );
@@ -555,7 +555,7 @@ class sdMimic extends sdEntity
 						   !from_entity.is( sdAbomination ) && 
 						   !from_entity.is( sdFleshGrabber ) && 
 						   ( !from_entity.is( sdBlock ) || !from_entity._natural ) && 
-						   from_entity.IsBGEntity() === this.IsBGEntity() && 
+						   from_entity._is_bg_entity === this._is_bg_entity && 
 						   from_entity.IsTargetable( this ) 
 						 ) ||
 						 from_entity === this._current_target 

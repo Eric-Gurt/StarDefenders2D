@@ -177,11 +177,11 @@ class sdGun extends sdEntity
 
 				const is_unknown = ( sdGun.classes[ this.class ] === undefined ); // Detect unknown weapons from LRT teleports
 
-				if ( from_entity.IsBGEntity() === 0 || from_entity.IsBGEntity() === 1 )
+				if ( from_entity._is_bg_entity === 0 || from_entity._is_bg_entity === 1 )
 				{
 				}
 				else
-				if ( from_entity.IsBGEntity() === 2 )
+				if ( from_entity._is_bg_entity === 2 )
 				{
 					if ( from_entity.is( sdArea ) )
 					if ( from_entity.type === sdArea.TYPE_PREVENT_DAMAGE )
@@ -462,7 +462,7 @@ class sdGun extends sdEntity
 	
 	CollisionFiltering( from_entity )
 	{
-		if ( from_entity.IsBGEntity() !== this.IsBGEntity() || !from_entity._hard_collision )
+		if ( from_entity._is_bg_entity !== this._is_bg_entity || !from_entity._hard_collision )
 		return false;
 		
 		return ( this._ignore_collisions_with !== from_entity );

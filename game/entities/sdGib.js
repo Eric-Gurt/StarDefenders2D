@@ -168,7 +168,7 @@ class sdGib extends sdEntity
 	
 	CollisionFiltering( from_entity )
 	{
-		if ( from_entity.IsBGEntity() !== this.IsBGEntity() || !from_entity._hard_collision )
+		if ( from_entity._is_bg_entity !== this._is_bg_entity || !from_entity._hard_collision )
 		return false;
 		
 		return ( this._ignore_collisions_with !== from_entity );

@@ -168,7 +168,7 @@ class sdDrone extends sdEntity
 
 	CollisionFiltering( from_entity )
 	{
-		if ( from_entity.IsBGEntity() !== this.IsBGEntity() || !from_entity._hard_collision )
+		if ( from_entity._is_bg_entity !== this._is_bg_entity || !from_entity._hard_collision )
 		return false;
 		
 		return ( this._ignore_collisions_with !== from_entity );
@@ -561,7 +561,7 @@ class sdDrone extends sdEntity
 					//if ( this._anim_flap > 0.9 || sdWorld.inDist2D_Boolean( xx, yy, this.x, this.y, 15 + 64 * this._anim_flap ) )
 					if ( this._anim_flap > 0.9 || e.GetAccurateDistance( this.x, this.y ) < 15 + 64 * this._anim_flap )
 					if ( e.IsTargetable( this ) )
-					if ( e.IsBGEntity() === this.IsBGEntity() )
+					if ( e._is_bg_entity === this._is_bg_entity )
 					if ( sdWorld.CheckLineOfSight( this.x, this.y, xx, yy, e, null, sdCom.com_creature_attack_unignored_classes ) )
 					{
 						if ( e.is( sdCrystal ) )
@@ -1059,7 +1059,7 @@ class sdDrone extends sdEntity
 											let e = nears[ i ];
 											if ( !e._is_being_removed )
 											if ( e !== bullet && e !== owner )
-											if ( e.IsBGEntity() === bullet.IsBGEntity() )
+											if ( e._is_bg_entity === bullet._is_bg_entity )
 											if ( e.IsTargetable( owner ) )
 											if ( !e.is( sdGun ) )
 											if ( !e.is( sdBullet ) )
@@ -1107,7 +1107,7 @@ class sdDrone extends sdEntity
 													let e = nears[ i ];
 													if ( !e._is_being_removed )
 													if ( e !== bullet )
-													if ( e.IsBGEntity() === bullet.IsBGEntity() )
+													if ( e._is_bg_entity === bullet._is_bg_entity )
 													if ( e.IsTargetable() )
 													if ( !e.is( sdGun ) )
 													if ( !e.is( sdBullet ) )

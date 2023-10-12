@@ -563,8 +563,8 @@ class sdLongRangeTeleport extends sdEntity
 					return false;
 				}
 				else
-				//if ( ent.is_static || ent.IsBGEntity() !== 0 || ent._is_being_removed || ( ent.hea || ent._hea ) === undefined )
-				if ( typeof ent.sx === 'undefined' || typeof ent.sy === 'undefined' || ent.IsBGEntity() !== 0 || ent._is_being_removed || ( ent.hea || ent._hea ) === undefined ) // This will prevent tasks and status effects, but these will be caught later
+				//if ( ent.is_static || ent._is_bg_entity !== 0 || ent._is_being_removed || ( ent.hea || ent._hea ) === undefined )
+				if ( typeof ent.sx === 'undefined' || typeof ent.sy === 'undefined' || ent._is_bg_entity !== 0 || ent._is_being_removed || ( ent.hea || ent._hea ) === undefined ) // This will prevent tasks and status effects, but these will be caught later
 				{
 					return false;
 				}

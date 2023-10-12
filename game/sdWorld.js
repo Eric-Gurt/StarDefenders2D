@@ -170,6 +170,23 @@ class sdWorld
 		
 		//sdWorld.world_hash_positions = {};
 		sdWorld.world_hash_positions = new Map();
+		/*sdWorld.world_hash_positions = [];
+		sdWorld.world_hash_positions.has = ( x )=>
+		{
+			return sdWorld.world_hash_positions[ x ] !== undefined;
+		};
+		sdWorld.world_hash_positions.get = ( x )=>
+		{
+			return sdWorld.world_hash_positions[ x ];
+		};
+		sdWorld.world_hash_positions.delete = ( x )=>
+		{
+			sdWorld.world_hash_positions[ x ] = undefined;
+		};
+		sdWorld.world_hash_positions.set = ( x, v )=>
+		{
+			sdWorld.world_hash_positions[ x ] = v;
+		};*/
 		//sdWorld.world_hash_positions_recheck_keys = []; // Array for keys to slowly check and delete if they are empty (can happen as a result of requiring cells by world logic)
 		sdWorld.world_hash_positions_recheck_keys = new Set(); // Set of keys to slowly check and delete if they are empty (can happen as a result of requiring cells by world logic)
 		
@@ -1983,6 +2000,21 @@ class sdWorld
 		for ( x = min_x; x < max_x; x++ )
 		for ( y = min_y; y < max_y; y++ )
 		{
+			// Some optimizations can be applied for long-range searches
+			if ( range > CHUNK_SIZE * 3 )
+			{
+				let chunk_min_x = x * CHUNK_SIZE;
+				let chunk_min_y = y * CHUNK_SIZE;
+				let chunk_max_x = x * CHUNK_SIZE + CHUNK_SIZE;
+				let chunk_max_y = y * CHUNK_SIZE + CHUNK_SIZE;
+
+				cx = Math.max( chunk_min_x, Math.min( _x, chunk_max_x ) );
+				cy = Math.max( chunk_min_y, Math.min( _y, chunk_max_y ) );
+
+				if ( !sdWorld.inDist2D_Boolean( _x, _y, cx, cy, range ) )
+				continue;
+			}
+			
 			arr = sdWorld.RequireHashPosition( x * CHUNK_SIZE, y * CHUNK_SIZE ).arr;
 			for ( i = 0; i < arr.length; i++ )
 			{
@@ -1990,7 +2022,7 @@ class sdWorld
 				
 				if ( !e._is_being_removed )
 				{
-					const e_is_bg_entity = e.IsBGEntity();
+					const e_is_bg_entity = e._is_bg_entity;
 
 					if ( e_is_bg_entity === 10 ) // sdDeepSleep
 					{
@@ -3462,7 +3494,7 @@ class sdWorld
 						if ( y2 > arr_i_y + arr_i._hitbox_y1 )
 						if ( y1 < arr_i_y + arr_i._hitbox_y2 )
 						{
-							const arr_i_is_bg_entity = arr_i.IsBGEntity();
+							const arr_i_is_bg_entity = arr_i._is_bg_entity;
 							
 							//if ( arr_i.GetClass() === 'sdButton' )
 							//debugger;
@@ -3481,7 +3513,7 @@ class sdWorld
 								}
 							}
 							else
-							if ( ignore_entity === null || arr_i_is_bg_entity === ignore_entity.IsBGEntity() )
+							if ( ignore_entity === null || arr_i_is_bg_entity === ignore_entity._is_bg_entity )
 							//if ( include_only_specific_classes || arr_i._hard_collision )
 							if ( include_only_specific_classes || custom_filtering_method || arr_i._hard_collision ) // custom_filtering_method is needed here to prevent sdButton overlap during building
 							if ( !arr_i._is_being_removed )
@@ -3560,7 +3592,7 @@ class sdWorld
 						if ( y2 > arr_i_y + arr_i._hitbox_y1 )
 						if ( y1 < arr_i_y + arr_i._hitbox_y2 )
 						{
-							const arr_i_is_bg_entity = arr_i.IsBGEntity();
+							const arr_i_is_bg_entity = arr_i._is_bg_entity;
 							
 							//if ( arr_i.GetClass() === 'sdButton' )
 							//debugger;
@@ -3665,7 +3697,7 @@ class sdWorld
 						if ( y >= arr_i_y + arr_i._hitbox_y1 )
 						if ( y <= arr_i_y + arr_i._hitbox_y2 )
 						{
-							const arr_i_is_bg_entity = arr_i.IsBGEntity();
+							const arr_i_is_bg_entity = arr_i._is_bg_entity;
 							
 							if ( arr_i_is_bg_entity === 10 ) // sdDeepSleep
 							{
@@ -3681,7 +3713,7 @@ class sdWorld
 								}
 							}
 							else
-							if ( ignore_entity === null || arr_i_is_bg_entity === ignore_entity.IsBGEntity() )
+							if ( ignore_entity === null || arr_i_is_bg_entity === ignore_entity._is_bg_entity )
 							if ( include_only_specific_classes || arr_i._hard_collision )
 							{
 								if ( include_only_specific_classes || ignore_entity_classes )
@@ -3733,7 +3765,7 @@ class sdWorld
 				
 				if ( !e._is_being_removed )
 				{
-					const e_is_bg_entity = e.IsBGEntity();
+					const e_is_bg_entity = e._is_bg_entity;
 
 					if ( e_is_bg_entity === 10 ) // sdDeepSleep
 					{

@@ -273,7 +273,7 @@ class sdQuickie extends sdEntity
 					 ( !from_entity.is( sdQuickie ) && 
 					   !from_entity.is( sdAsp ) && 
 					   !from_entity.is( sdVirus ) && 
-					   from_entity.IsBGEntity() === this.IsBGEntity() && 
+					   from_entity._is_bg_entity === this._is_bg_entity && 
 					   from_entity.IsTargetable( this ) 
 					 ) ||
 					 from_entity === this._current_target 

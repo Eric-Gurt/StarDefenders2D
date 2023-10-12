@@ -119,7 +119,7 @@ class sdAntigravity extends sdEntity
 					
 					for ( var i = 0; i < arr.length; i++ )
 					if ( !arr[ i ]._is_being_removed )
-					if ( arr[ i ].IsBGEntity() === 0 && ( typeof arr[ i ].sy !== 'undefined' || arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) ) ) // Faster?
+					if ( arr[ i ]._is_bg_entity === 0 && ( typeof arr[ i ].sy !== 'undefined' || arr[ i ].is( sdBlock ) || arr[ i ].is( sdDoor ) ) ) // Faster?
 					if ( !non_recursive.has( arr[ i ] ) )
 					{
 						if ( x2 > arr[ i ].x + arr[ i ]._hitbox_x1 )

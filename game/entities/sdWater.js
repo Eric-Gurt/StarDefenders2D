@@ -196,7 +196,7 @@ class sdWater extends sdEntity
 		
 		for ( var i = 0; i < arr_under.length; i++ )
 		{
-			if ( arr_under[ i ].IsBGEntity() === 10 )
+			if ( arr_under[ i ]._is_bg_entity === 10 )
 			{
 				//arr_under[ i ].WakeUpArea();
 				return null; // Let's not wake up water from hibernated/no-existing cells...

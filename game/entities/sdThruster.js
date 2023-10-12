@@ -85,7 +85,7 @@ class sdThruster extends sdEntity
 			
 			for ( let i = 0; i < nears.length; i++ )
 			if ( nears[ i ] !== this )
-			if ( nears[ i ].IsBGEntity() === 0 )
+			if ( nears[ i ]._is_bg_entity === 0 )
 			if ( !nears[ i ].is( sdBlock ) )
 			if ( !nears[ i ].is( sdDoor ) )
 			if ( nears[ i ].IsTargetable( this ) )

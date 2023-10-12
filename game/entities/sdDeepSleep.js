@@ -262,7 +262,7 @@ class sdDeepSleep extends sdEntity
 					let e = sdEntity.entities[ i ];
 
 					//if ( !e.is( sdDeepSleep ) )
-					if ( e.IsBGEntity() !== 10 )
+					if ( e._is_bg_entity !== 10 )
 					if ( !e._is_being_removed )
 					{
 						let x = Math.floor( ( e.x + e._hitbox_x1 ) / sdDeepSleep.normal_cell_size ) * sdDeepSleep.normal_cell_size;

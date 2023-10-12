@@ -175,7 +175,7 @@ class sdRoach extends sdEntity
 		if ( this.fr < 2 )
 		{
 			if ( this._random_bite_timeout <= 0 )
-			if ( from_entity.IsBGEntity() === this.IsBGEntity() )
+			if ( from_entity._is_bg_entity === this._is_bg_entity )
 			if ( from_entity.IsTargetable( this ) )
 			if ( ( this.nick.length === 0 && !from_entity.is( sdRoach ) ) || ( this.nick.length > 0 && from_entity.is( sdRoach ) && from_entity.nick.length === 0 ) )
 			{

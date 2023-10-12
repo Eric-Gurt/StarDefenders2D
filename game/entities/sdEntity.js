@@ -1095,7 +1095,7 @@ class sdEntity
 			this._phys_last_rest_on = null;
 		}*/
 
-		const is_bg_entity = this.IsBGEntity();
+		const is_bg_entity = this._is_bg_entity;
 
 		const this_mass = this.mass;
 		
@@ -1202,7 +1202,7 @@ class sdEntity
 						
 		//CheckWallExistsBox( x1, y1, x2, y2, ignore_entity=null, ignore_entity_classes=null, include_only_specific_classes=null, custom_filtering_method=null )
 		
-						let arr_i_is_bg_entity = arr_i.IsBGEntity();
+						let arr_i_is_bg_entity = arr_i._is_bg_entity;
 						
 						if ( arr_i_is_bg_entity === 10 ) // Check if this is a sdDeepSleep
 						{
@@ -2722,6 +2722,8 @@ class sdEntity
 		this._is_being_removed = false;
 		this._broken = false; // Becomes true for statics (anything now) whenever they are really broken rather than just cut out by visibility. After removal you can set it to false to prevent particles spawned on client
 		
+		this._is_bg_entity = this.IsBGEntity();
+		
 		if ( sdWorld.is_server )
 		{
 			//if ( typeof params._net_id !== undefined )
@@ -2803,6 +2805,8 @@ class sdEntity
 				
 				this.onThink.has_GetComWiredCache = ( onThinkString.indexOf( 'GetComWiredCache' ) !== -1 || DrawString.indexOf( 'GetComWiredCache' ) !== -1 );
 				
+				this.onThink.has_GetActiveTargetsCache = ( onThinkString.indexOf( 'GetActiveTargetsCache' ) !== -1 );
+				
 				this.onThink.has_sdBlock_extras = false;
 				
 				if ( !sdCable )
@@ -2851,6 +2855,12 @@ class sdEntity
 				this._com_near_cache = null;
 				this._next_com_rethink = 0;
 				this.cio = 0;
+			}
+			
+			if ( this.onThink.has_GetActiveTargetsCache )
+			{
+				this._targets_raw_cache = [];
+				this._targets_raw_cache_until = 0;
 			}
 			
 			if ( this.onThink.has_sdBlock_extras )
@@ -3000,18 +3010,22 @@ class sdEntity
 			const sdCable = sdWorld.entity_classes.sdCable;
 			const SearchedClass = alternate_class_to_search;
 			
-			let worked_out_ents = [];
+			//let worked_out_ents = [];
+			const visited_ent_flag = sdEntity.GetUniqueFlagValue();
+			
 			let active_ents = [ this ];
 			while ( active_ents.length > 0 )
 			{
 				let connected_ents = sdCable.GetConnectedEntities( active_ents[ 0 ], sdCable.TYPE_ANY );
 
-				worked_out_ents.push( active_ents[ 0 ] );
+				//worked_out_ents.push( active_ents[ 0 ] );
+				active_ents[ 0 ]._flag = visited_ent_flag;
 				active_ents.shift();
 
 				for ( let i = 0; i < connected_ents.length; i++ )
 				{
-					if ( worked_out_ents.indexOf( connected_ents[ i ] ) === -1 )
+					//if ( worked_out_ents.indexOf( connected_ents[ i ] ) === -1 )
+					if ( connected_ents[ i ]._flag !== visited_ent_flag )
 					{
 						if ( accept_test_method )
 						{
@@ -3129,6 +3143,30 @@ class sdEntity
 		
 		return anything_near;
 	}
+	
+	static ActiveTargetsFilter( e )
+	{
+		return ( e._hiberstate === sdEntity.HIBERSTATE_ACTIVE );
+	}
+	GetActiveTargetsCache( range, filter_method=sdEntity.ActiveTargetsFilter ) // Used by cubes and turrets so far - looks up targets nearby using fastest approach considering current world state
+	{
+		let targets_raw = this._targets_raw_cache;
+		
+		if ( sdWorld.time > this._targets_raw_cache_until )
+		{
+			targets_raw.length = 0;
+			
+			this._targets_raw_cache_until = sdWorld.time + 200 + Math.random() * 200;
+			
+			// One method can be faster than another, depending on how many active entities there are on server
+			if ( sdWorld.entity_classes.sdEntity.active_entities.length > 3933 * 0.28502415458937197 )
+			targets_raw = sdWorld.GetAnythingNear( this.x, this.y, range, targets_raw, null, filter_method );
+			else
+			targets_raw = sdWorld.GetAnythingNearOnlyNonHibernated( this.x, this.y, range, targets_raw, null, filter_method );
+		}
+		return targets_raw;
+	}
+	
 	SetHiberState( v, allow_calling_movement_in_range=true )
 	{
 		if ( v !== this._hiberstate )
@@ -5002,6 +5040,9 @@ class sdEntity
 
 			if ( typeof this._com_near_cache !== 'undefined' )
 			this._com_near_cache = null;
+		
+			if ( typeof this._targets_raw_cache !== 'undefined' )
+			this._targets_raw_cache = null;
 
 			if ( typeof this._phys_last_touch !== 'undefined' )
 			{

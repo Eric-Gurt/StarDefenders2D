@@ -830,17 +830,17 @@ class sdBullet extends sdEntity
 				{
 					// Maybe more filtering logic had to be here
 					if ( this._custom_target_reaction_protected )
-					if ( from_entity.IsBGEntity() === 0 )
+					if ( from_entity._is_bg_entity === 0 )
 					if ( from_entity.IsTargetable( this, !this._hook ) )
 					this._custom_target_reaction_protected( this, from_entity );
 				}
 				else
 				//if ( typeof from_entity.hea !== 'undefined' || typeof from_entity._hea !== 'undefined' || ( this._bg_shooter && !this._bouncy && from_entity.GetClass() === 'sdBG' ) || ( this._admin_picker && ( this._bg_shooter || from_entity.GetClass() !== 'sdBG' ) ) )
-				//if ( typeof from_entity.hea !== 'undefined' || typeof from_entity._hea !== 'undefined' || ( this._bg_shooter && !this._bouncy && from_entity.IsBGEntity() === 1 ) || ( this._admin_picker && ( this._bg_shooter || from_entity.IsBGEntity() !== 1 ) ) )
+				//if ( typeof from_entity.hea !== 'undefined' || typeof from_entity._hea !== 'undefined' || ( this._bg_shooter && !this._bouncy && from_entity._is_bg_entity === 1 ) || ( this._admin_picker && ( this._bg_shooter || from_entity._is_bg_entity !== 1 ) ) )
 				if ( 
-						( from_entity.IsBGEntity() === 0 && ( typeof from_entity.hea !== 'undefined' || typeof from_entity._hea !== 'undefined' ) ) || 
-						( this._bg_shooter && !this._bouncy && from_entity.IsBGEntity() === 1 ) || 
-						( this._admin_picker && ( this._bg_shooter || from_entity.IsBGEntity() !== 1 ) && from_entity.IsBGEntity() !== 8 ) ) // 8 is blood decal
+						( from_entity._is_bg_entity === 0 && ( typeof from_entity.hea !== 'undefined' || typeof from_entity._hea !== 'undefined' ) ) || 
+						( this._bg_shooter && !this._bouncy && from_entity._is_bg_entity === 1 ) || 
+						( this._admin_picker && ( this._bg_shooter || from_entity._is_bg_entity !== 1 ) && from_entity._is_bg_entity !== 8 ) ) // 8 is blood decal
 				if ( from_entity.IsTargetable( this, !this._hook ) ) // Ignore safe areas only if not a hook
 				{
 					let will_bounce = false;

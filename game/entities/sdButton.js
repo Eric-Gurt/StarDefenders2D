@@ -167,7 +167,7 @@ class sdButton extends sdEntity
 	onMovementInRange( from_entity )
 	{
 		if ( this.type === sdButton.TYPE_FLOOR_SENSOR || this.type === sdButton.TYPE_WALL_SENSOR || this.type === sdButton.TYPE_WALL_MATTER_SENSOR )
-		if ( from_entity.IsBGEntity() === 0 )
+		if ( from_entity._is_bg_entity === 0 )
 		if ( this.react_to_doors || !from_entity.is( sdDoor ) )
 		if ( !from_entity.is( sdBlock ) )
 		{
