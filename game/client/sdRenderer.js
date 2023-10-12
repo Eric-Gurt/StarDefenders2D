@@ -1908,7 +1908,7 @@ class sdRenderer
 
 			const gun = sdWorld.my_entity._inventory[sdWorld.my_entity.gun_slot];
 			ctx.fillStyle = '#ffffff';
-			ctx.fillText( T("Ammo") + ": " +  ( !gun || gun.ammo_left === -1 ? "-" : gun.ammo_left + " / " + gun.GetAmmoCapacity() ), 5 + 450 * scale, 17 );
+			ctx.fillText( T("Ammo") + ": " +  ( !gun || gun.ammo_left === -1 ? "-" : gun.ammo_left + " / " + gun.GetAmmoCapacity() ), 5 + 345 * scale, 40 ); // Hey, don't close to my debug mode!  --- Alone Guitar
 
 			if ( globalThis.enable_debug_info )
 			{
