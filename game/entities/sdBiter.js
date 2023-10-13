@@ -51,9 +51,17 @@ class sdBiter extends sdEntity
 		this.sx = 0;
 		this.sy = 0;
 		
+		if ( params.tag )
+		{
+			if ( sdBiter[ params.tag ] !== undefined )
+			params.type = sdBiter[ params.tag ];
+			else
+			debugger;
+		}
+		
 		this.type = params.type || 0;
 		
-		this._hmax = this.type === sdBiter.TYPE_LARGE ? 180 : 60;
+		this._hmax = this.type === sdBiter.TYPE_LARGE ? 400 : 60;
 		this._hea = this._hmax;
 		
 		this.death_anim = 0;
@@ -62,7 +70,7 @@ class sdBiter extends sdEntity
 		
 		//this._last_stand_on = null;
 		this._last_jump = sdWorld.time;
-		this._last_attack = sdWorld.time + 2000;
+		this._last_attack = sdWorld.time + ( sdBiter.TYPE_LARGE ? 400 : 2000 );
 		this._attacking = false;
 		this.side = 1;
 		
@@ -297,7 +305,7 @@ class sdBiter extends sdEntity
 					this._attacking = true;
 					let next_att_time = ( Math.random() * 3000 + 4000 );
 					if ( this.type === sdBiter.TYPE_LARGE )
-					next_att_time = Math.max( 500, next_att_time / 5 ); // Large biters attack 5 times the frequency. They are supposed to be very lethal since they will spawn in deep underground.
+					next_att_time = Math.max( 300, next_att_time / 6 ); // Large biters attack 6 times the frequency. They are supposed to be very lethal since they will spawn in deep underground.
 					this._last_attack = sdWorld.time + next_att_time; // So it is not so much calc intensive
 			}
 			
@@ -305,7 +313,7 @@ class sdBiter extends sdEntity
 			
 			if ( this._attacking )
 			{
-				let att_range = sdBiter.TYPE_LARGE ? 30 : 12;
+				let att_range = sdBiter.TYPE_LARGE ? 24 : 12;
 				let nears = sdWorld.GetAnythingNear( this.x, this.y, att_range );
 				sdWorld.shuffleArray( nears );
 

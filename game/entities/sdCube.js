@@ -506,7 +506,7 @@ class sdCube extends sdEntity
 							const probability_shotgun = 0.1;
 							const probability_triple_rail = 0.233;
 							const probability_teleporter = 0.233;
-							const probability_lost_triple_rail = 0.1;
+							const probability_lost_triple_rail = 0.075;
 
 							let total_drop_probability = 0; // In else case it is always pistol or healing ray gun
 
