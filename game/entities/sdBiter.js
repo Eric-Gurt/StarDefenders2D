@@ -70,7 +70,7 @@ class sdBiter extends sdEntity
 		
 		//this._last_stand_on = null;
 		this._last_jump = sdWorld.time;
-		this._last_attack = sdWorld.time + ( sdBiter.TYPE_LARGE ? 400 : 2000 );
+		this._last_attack = sdWorld.time + ( this.type === sdBiter.TYPE_LARGE ? 400 : 2000 );
 		this._attacking = false;
 		this.side = 1;
 		
@@ -313,7 +313,7 @@ class sdBiter extends sdEntity
 			
 			if ( this._attacking )
 			{
-				let att_range = sdBiter.TYPE_LARGE ? 24 : 12;
+				let att_range = this.type === sdBiter.TYPE_LARGE ? 24 : 12;
 				let nears = sdWorld.GetAnythingNear( this.x, this.y, att_range );
 				sdWorld.shuffleArray( nears );
 
