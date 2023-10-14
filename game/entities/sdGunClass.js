@@ -8323,7 +8323,10 @@ class sdGunClass
 			muzzle_x: 7,
 			ammo_capacity: -1,// 10, // 3
 			count: 1,
-			matter_cost: 11,
+			GetAmmoCost: ()=>
+			{
+				return 11;
+			},
 			projectile_properties: { _rail: true, _damage: 1, color: '#d6981e', _custom_target_reaction: ancient_cgun_target_reaction /*, _knock_scale:0.01 * 8*/ }, // 70
 			spawnable: false,
 			upgrades: AppendBasicCubeGunRecolorUpgrades( [] )
