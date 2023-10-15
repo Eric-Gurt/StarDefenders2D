@@ -5194,6 +5194,10 @@ class sdGunClass
 			projectile_velocity: 16,
 			spawnable: false,
 			allow_aim_assist: false,
+			GetAmmoCost: ()=>
+			{
+				return 0;
+			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
 				if ( sdWorld.is_server )
