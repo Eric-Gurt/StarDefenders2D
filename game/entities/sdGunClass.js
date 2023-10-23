@@ -8310,7 +8310,7 @@ class sdGunClass
 				}
 				else
 				{
-					sdLost.ApplyAffection( target_entity, 15, bullet, sdLost.FILTER_GOLDEN );
+					sdLost.ApplyAffection( target_entity, 10, bullet, sdLost.FILTER_GOLDEN );
 				}
 			};
 		sdGun.classes[ sdGun.CLASS_ANCIENT_TRIPLE_RAIL = 131 ] = // Cube gun but deals lost damage. Cannot be upgraded. Obtainable only via Ancient cubes.
@@ -8325,7 +8325,7 @@ class sdGunClass
 			count: 1,
 			GetAmmoCost: ()=>
 			{
-				return 11;
+				return 12;
 			},
 			projectile_properties: { _rail: true, _damage: 1, color: '#d6981e', _custom_target_reaction: ancient_cgun_target_reaction /*, _knock_scale:0.01 * 8*/ }, // 70
 			spawnable: false,
