@@ -21,7 +21,7 @@ class sdFactionskin extends sdEntity
 		sdFactionskin.SKIN_COUNCIL = 4; // Council Acolyte
 		sdFactionskin.SKIN_COUNCIL_VANGUARD = 5; // Council Vanguard
 		sdFactionskin.SKIN_SARRONIAN = 6; // Sarronian E3 Unit
-		sdFactionskin.SKIN_SARRONIANE6 = 7; // Sarronian E6 Unit
+		sdFactionskin.SKIN_SARRONIAN_HEAVY = 7; // Sarronian E6 Unit
 		sdFactionskin.SKIN_VELOX = 8; // Velox Combat Pistol Class
 		sdFactionskin.SKIN_VELOX_RIFLE = 9; // Velox Combat Rifle Class
 		sdFactionskin.SKIN_VELOX_DEVASTATOR = 10; // Velox Devastator
@@ -36,6 +36,8 @@ class sdFactionskin extends sdEntity
 		sdFactionskin.SKIN_INSTRUCTOR = 19; // Instructor
 		sdFactionskin.SKIN_COMBAT_INSTRUCTOR = 20; // Combat Instructor
 		sdFactionskin.SKIN_EXTRACTION_PILOT = 21; // Extraction Pilot
+		sdFactionskin.SKIN_ZEKTARON_ASSAULT = 22; // Zektaron Assault Unit
+		sdFactionskin.SKIN_ZEKTARON_SEEKER = 23; // Zektaron Seeker Unit
 
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -293,11 +295,11 @@ class sdFactionskin extends sdEntity
 			character_entity._matter_regeneration = 10; // increased alongside matter regen multiplier to allow them to use the SMG.
 			character_entity._jetpack_allowed = true; // Jetpack
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-			character_entity._ai_team = 4; // AI team 4 is for Sarronian faction
+			character_entity._ai_team = 4; // AI team 4 is for Sarronian & Zektaron faction
 			character_entity._matter_regeneration_multiplier = 25; // Their matter regenerates 25 times faster than normal, unupgraded players
 		}
 
-		if ( skin_class === sdFactionskin.SKIN_SARRONIANE6 ) // Sarronian E6 Unit
+		if ( skin_class === sdFactionskin.SKIN_SARRONIAN_HEAVY ) // Sarronian E6 Unit
 		{
 			character_settings = { "hero_name":"Sarronian E6 Unit", // Name
 			"color_bright":"#2a2a2a", // Helmet bright color
@@ -328,7 +330,7 @@ class sdFactionskin extends sdEntity
 			character_entity._matter_regeneration = 10; // increased alongside matter regen multiplier to allow them to use the SMG.
 			character_entity._jetpack_allowed = true; // Jetpack
 			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
-			character_entity._ai_team = 4; // AI team 4 is for Sarronian faction
+			character_entity._ai_team = 4; // AI team 4 is for Sarronian & Zektaron faction
 			character_entity._matter_regeneration_multiplier = 25; // Their matter regenerates 25 times faster than normal, unupgraded players
 		}
 
@@ -797,21 +799,21 @@ class sdFactionskin extends sdEntity
 		if ( skin_class === sdFactionskin.SKIN_EXTRACTION_PILOT ) // Extraction Pilot, Feive
 		{
 			character_settings = {"hero_name":"Extraction Pilot", // Name
-					"color_bright":"#feeee1",
-					"color_dark":"#a38e7b",
-					"color_visor":"#58feb0",
-					"color_bright3":"#21180d",
-					"color_dark3":"#2d2824",
-					"color_suit":"#43382d",
-					"color_suit2":"#3c280b",
-					"color_dark2":"#000000",
-					"color_shoes":"#000000",
-					"color_skin":"#4c4224",
-					"color_extra1":"#000000",
-					"helmet19":true,
-					"body23":true,
-					"legs37":true,
-					"voice1":true};
+			"color_bright":"#feeee1",
+			"color_dark":"#a38e7b",
+			"color_visor":"#58feb0",
+			"color_bright3":"#21180d",
+			"color_dark3":"#2d2824",
+			"color_suit":"#43382d",
+			"color_suit2":"#3c280b",
+			"color_dark2":"#000000",
+			"color_shoes":"#000000",
+			"color_skin":"#4c4224",
+			"color_extra1":"#000000",
+			"helmet19":true,
+			"body23":true,
+			"legs37":true,
+			"voice1":true };
 
 			character_entity.matter = 50;
 			character_entity.matter_max = 50;
@@ -821,6 +823,76 @@ class sdFactionskin extends sdEntity
 
 			character_entity._ai_level = 1;
 			character_entity._ai_team = 0;
+		}
+
+		if ( skin_class === sdFactionskin.SKIN_ZEKTARON_ASSAULT ) // Zektaron Assault Unit
+		{
+			character_settings = { "hero_name":"Zektaron Assault Unit", // Name
+			"color_bright":"#484848", // Helmet bright color
+			"color_dark":"#c0c0c0", // Helmet dark color
+			"color_visor":"#ff1919", // Visor color
+			"color_bright3":"#c0c0c0", // Jetpack (bright shade) color
+			"color_dark3":"#5c5c5c", // Jetpack (dark shade) color
+			"color_suit":"#343434", // Upper suit color
+			"color_suit2":"#5c5c5c", // Lower suit color
+			"color_dark2":"#c0c0c0", // Lower suit plates color
+			"color_shoes":"#121212", // Shoes color
+			"color_skin":"#5c5c5c", // Gloves and neck color
+			"color_extra1":"#d20000", // Extra 1 color
+			"helmet10":true,
+			"body72":true,
+			"legs66":true,
+			"voice12":true };
+
+			character_entity.matter = 500;
+			character_entity.matter_max = 500;
+
+			character_entity.hea = 600;
+			character_entity.hmax = 600;
+
+			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+			character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
+
+			character_entity._matter_regeneration = 10; // increased alongside matter regen multiplier to allow them to use the SMG.
+			character_entity._jetpack_allowed = true; // Jetpack
+			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+			character_entity._ai_team = 4; // AI team 4 is for Sarronian & Zektaron faction
+			character_entity._matter_regeneration_multiplier = 25; // Their matter regenerates 25 times faster than normal, unupgraded players
+		}
+
+		if ( skin_class === sdFactionskin.SKIN_ZEKTARON_SEEKER ) // Zektaron Assault Unit
+		{
+			character_settings = { "hero_name":"Zektaron Seeker Unit", // Name
+			"color_bright":"#c0c0c0", // Helmet bright color
+			"color_dark":"#484848", // Helmet dark color
+			"color_visor":"#ff1919", // Visor color
+			"color_bright3":"#c0c0c0", // Jetpack (bright shade) color
+			"color_dark3":"#5c5c5c", // Jetpack (dark shade) color
+			"color_suit":"#343434", // Upper suit color
+			"color_suit2":"#5c5c5c", // Lower suit color
+			"color_dark2":"#c0c0c0", // Lower suit plates color
+			"color_shoes":"#121212", // Shoes color
+			"color_skin":"#5c5c5c", // Gloves and neck color
+			"color_extra1":"#d20000", // Extra 1 color
+			"helmet61":true,
+			"body8":true,
+			"legs69":true,
+			"voice12":true };
+
+			character_entity.matter = 500;
+			character_entity.matter_max = 500;
+
+			character_entity.hea = 600;
+			character_entity.hmax = 600;
+
+			character_entity._ai = { direction: ( character_entity.x > ( sdWorld.world_bounds.x1 + sdWorld.world_bounds.x2 ) / 2 ) ? -1 : 1 };
+			character_entity._ai_level = Math.floor( 2 + Math.random() * 3 ); // AI Levels
+
+			character_entity._matter_regeneration = 10; // increased alongside matter regen multiplier to allow them to use the SMG.
+			character_entity._jetpack_allowed = true; // Jetpack
+			character_entity._jetpack_fuel_multiplier = 0.25; // Less fuel usage when jetpacking
+			character_entity._ai_team = 4; // AI team 4 is for Sarronian & Zektaron faction
+			character_entity._matter_regeneration_multiplier = 25; // Their matter regenerates 25 times faster than normal, unupgraded players
 		}
 
 		character_entity.sd_filter = sdWorld.ConvertPlayerDescriptionToSDFilter_v2( character_settings );
