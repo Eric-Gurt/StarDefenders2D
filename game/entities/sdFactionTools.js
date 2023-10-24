@@ -456,7 +456,7 @@ class sdFactionTools extends sdEntity
 			if ( this.type === sdFactionTools.FT_ZEKTARON_A )
 			{
 				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
+				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
 
 				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 				sdEntity.entities.push( character_entity );
@@ -470,7 +470,7 @@ class sdFactionTools extends sdEntity
 			if ( this.type === sdFactionTools.FT_ZEKTARON_B )
 			{
 				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
-				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
+				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT, filter:'hue-rotate(140deg)' });
 
 				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
 				sdEntity.entities.push( character_entity );
