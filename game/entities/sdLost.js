@@ -33,14 +33,16 @@ class sdLost extends sdEntity
 			'contrast(0.8) sepia(1) hue-rotate(10deg) saturate(16)',
 			'saturate(0) brightness(2.5)',
 			'none',
+			'saturate(8) contrast(2) brightness(0.2) sepia(1) saturate(20) hue-rotate(-17deg) brightness(0.7)', // Glassed gives a red hue
 			'saturate(8) contrast(0.6) brightness(0.2) sepia(1) saturate(8) hue-rotate(-20deg) brightness(0.8)'
 		];
 		
 		sdLost.FILTER_GOLDEN = 0;
 		sdLost.FILTER_WHITE = 1;
 		sdLost.FILTER_NONE = 2;
-		sdLost.FILTER_RED = 3;
-		
+		sdLost.FILTER_GLASSED = 3;
+		sdLost.FILTER_RED = 4;
+
 		sdWorld.static_think_methods.push( sdLost.StaticThink );
 		
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
@@ -421,6 +423,9 @@ class sdLost extends sdEntity
 			if ( this.f === 1 )
 			sdEntity.Tooltip( ctx, 'Empty ' + this.t );
 			else
+			if ( this.f === 3 )
+			sdEntity.Tooltip( ctx, 'Glassed ' + this.t );
+			else
 			sdEntity.Tooltip( ctx, this.t );
 		}
 	}
@@ -453,8 +458,11 @@ class sdLost extends sdEntity
 		if ( this.f === 0 )
 		ctx.globalAlpha = 0.8;
 		else
+		if ( this.f === 1 )
 		ctx.globalAlpha = 1;
-		
+		else
+		if ( this.f === 3 )
+		ctx.globalAlpha = 1;
 		sdWorld.ApplyDrawOperations( ctx, this.d );
 		
 		ctx.globalAlpha = 1;

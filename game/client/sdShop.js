@@ -703,11 +703,18 @@ class sdShop
 				sdShop.options.push({ _class: 'sdCrystal', type:sdCrystal.TYPE_CRYSTAL_BALLOON, matter_max: 0.25 * sdCrystal.anticrystal_value, _category:'Development tests' });
 				
 				sdShop.options.push({ _class: 'sdDrone', _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDrone', _ai_team: 2, type: 2, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDrone', type: 3, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDrone', type: 4,_ai_team: 4, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDrone', type: 5,_ai_team: 4, _category:'Development tests' });
-				sdShop.options.push({ _class: 'sdDrone', type: 10, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', _ai_team: 1, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 10, _ai_team: 1, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 2, _ai_team: 2, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 3, _ai_team: 4,_category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 4, _ai_team: 4, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 5, _ai_team: 4, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 12, _ai_team: 4, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 13, _ai_team: 4, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 14, _ai_team: 4, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 15, _ai_team: 4, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdDrone', type: 16, _ai_team: 4, _category:'Development tests' });
+				sdShop.options.push({ _class: 'sdZektaronDreadnought', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdDrone', type: 11, _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdLost', _category:'Development tests' });
 				sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_LOST_CONVERTER, _category:'Development tests' });
@@ -775,7 +782,7 @@ class sdShop
 			sdShop.options.push({ _class: 'sdGun', class:sdGun.CLASS_ADMIN_DAMAGER, _category:'Admin tools' });
 			sdShop.options.push({ _class: 'sdLongRangeTeleport', is_server_teleport:1, _category:'Admin tools' });
 
-			for ( var i = 1; i <= 38; i++ )
+			for ( var i = 1; i <= 40; i++ ) // increment when you add new humanoids or else they won't show up in shop
 			{
 				sdShop.options.push({
 					_class: 'sdFactionTools',

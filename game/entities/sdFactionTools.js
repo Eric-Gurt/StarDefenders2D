@@ -30,6 +30,7 @@ class sdFactionTools extends sdEntity
 		sdFactionTools.img_character_fsb = sdWorld.CreateImageFromFile( 'helmets/helmet_omega' );
 		sdFactionTools.img_character_ts = sdWorld.CreateImageFromFile( 'helmets/helmet_forge' );
 		sdFactionTools.img_character_pilot = sdWorld.CreateImageFromFile( 'helmets/helmet_pilot' );
+		sdFactionTools.img_character_zektaron = sdWorld.CreateImageFromFile( 'helmets/helmet_biohazard' );
 
 		sdFactionTools.img_gun_sd1 = sdWorld.CreateImageFromFile( 'sniper' );
 		sdFactionTools.img_gun_sd2 = sdWorld.CreateImageFromFile( 'shotgun' );
@@ -60,6 +61,8 @@ class sdFactionTools extends sdEntity
 		sdFactionTools.img_gun_instructor1 = sdWorld.CreateImageFromFile( 'emergency_instructor' );
 		sdFactionTools.img_gun_instructor2 = sdWorld.CreateImageFromFile( 'emergency_instructor2' );
 		sdFactionTools.img_gun_pilot = sdWorld.CreateImageFromFile( 'smg' );
+		sdFactionTools.img_gun_zektaron1 = sdWorld.CreateImageFromFile( 'zektaron_combat_rifle' );
+		sdFactionTools.img_gun_zektaron2 = sdWorld.CreateImageFromFile( 'zektaron_railgun' );
 
 		sdFactionTools.FT_SD_A = 1; // Star Defender Sniper
 		sdFactionTools.FT_SD_B = 2; // Star Defender Shotgun
@@ -87,18 +90,20 @@ class sdFactionTools extends sdEntity
 		sdFactionTools.FT_COUNCIL_B = 24; // Council Acolyte Burst Rail Rifle
 		sdFactionTools.FT_COUNCIL_C = 25; // Council Acolyte Pistol
 		sdFactionTools.FT_FSB = 26; // Falkonian Sword Bot
-		sdFactionTools.FT_SDR_A = 27; // Rescue Star Defender Sniper
-		sdFactionTools.FT_SDR_B = 28; // Rescue Star Defender Shotgun
-		sdFactionTools.FT_SDR_C = 29; // Rescue Star Defender Light Machine Gunner
-		sdFactionTools.FT_SDR_D = 30; // Rescue Star Defender Assault Rifle
-		sdFactionTools.FT_SDA_A = 31; // Arrest Star Defender Sniper
-		sdFactionTools.FT_SDA_B = 32; // Arrest Star Defender Shotgun
-		sdFactionTools.FT_SDA_C = 33; // Arrest Star Defender Light Machine Gunner
-		sdFactionTools.FT_SDA_D = 34; // Arrest Star Defender Assault Rifle
+		sdFactionTools.FT_SDR_A = 27; // Star Defender Sniper
+		sdFactionTools.FT_SDR_B = 28; // Star Defender Shotgun
+		sdFactionTools.FT_SDR_C = 29; // Star Defender Light Machine Gunner
+		sdFactionTools.FT_SDR_D = 30; // Star Defender Assault Rifle
+		sdFactionTools.FT_SDA_A = 31; // Criminal Star Defender Sniper
+		sdFactionTools.FT_SDA_B = 32; // Criminal Star Defender Shotgun
+		sdFactionTools.FT_SDA_C = 33; // Criminal Star Defender Light Machine Gunner
+		sdFactionTools.FT_SDA_D = 34; // Criminal Star Defender Assault Rifle
 		sdFactionTools.FT_TS = 35; // Time Shifter
 		sdFactionTools.FT_IR_A = 36; // Instructor
 		sdFactionTools.FT_IR_B = 37; // Combat Instructor
 		sdFactionTools.FT_PILOT = 38; // Extraction Pilot
+		sdFactionTools.FT_ZEKTARON_A = 39; // Zektaron Assault Unit
+		sdFactionTools.FT_ZEKTARON_B = 40; // Zektaron Seeker Unit
 
 		sdWorld.entity_classes[ this.name ] = this; // Register for object spawn
 	}
@@ -269,6 +274,16 @@ class sdFactionTools extends sdEntity
 			ctx.drawImageFilterCache( sdFactionTools.img_character_pilot, - 16, - 16, 32,32 );
 			ctx.drawImageFilterCache( sdFactionTools.img_gun_pilot, -8, -16, 32,32 );
 		}
+		if ( this.type === sdFactionTools.FT_ZEKTARON_A )
+		{
+			ctx.drawImageFilterCache( sdFactionTools.img_character_zektaron, - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( sdFactionTools.img_gun_zektaron1, -8, -16, 32,32 );
+		}
+		if ( this.type === sdFactionTools.FT_ZEKTARON_B )
+		{
+			ctx.drawImageFilterCache( sdFactionTools.img_character_zektaron, - 16, - 16, 32,32 );
+			ctx.drawImageFilterCache( sdFactionTools.img_gun_zektaron2, -8, -16, 32,32 );
+		}
 
 		ctx.globalAlpha = 1;
 		ctx.filter = 'none';
@@ -420,7 +435,7 @@ class sdFactionTools extends sdEntity
 				{
 					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SARRONIAN_ENERGY_DISPLACER }) );
 					character_entity._ai_gun_slot = 5;
-					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SARRONIANE6 );
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SARRONIAN_HEAVY );
 				}
 			}
 			else
@@ -435,6 +450,34 @@ class sdFactionTools extends sdEntity
 					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_SARRONIAN_SMG }) );
 					character_entity._ai_gun_slot = 1;
 					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SARRONIAN );
+				}
+			}
+			else
+			if ( this.type === sdFactionTools.FT_ZEKTARON_A )
+			{
+				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
+				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
+
+				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				sdEntity.entities.push( character_entity );
+				{
+					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ZEKTARON_COMBAT_RIFLE }) );
+					character_entity._ai_gun_slot = 2;
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ZEKTARON_ASSAULT );
+				}
+			}
+			else
+			if ( this.type === sdFactionTools.FT_ZEKTARON_B )
+			{
+				sdSound.PlaySound({ name:'teleport', x:this.x, y:this.y, pitch: 1, volume:1 });
+				sdWorld.SendEffect({ x:this.x, y:this.y, type:sdEffect.TYPE_TELEPORT });
+
+				let character_entity = new sdCharacter({ x:this.x, y:this.y, _ai_enabled:sdCharacter.AI_MODEL_FALKOK });
+				sdEntity.entities.push( character_entity );
+				{
+					sdEntity.entities.push( new sdGun({ x:character_entity.x, y:character_entity.y, class:sdGun.CLASS_ZEKTARON_RAILGUN }) );
+					character_entity._ai_gun_slot = 4;
+					sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ZEKTARON_SEEKER );
 				}
 			}
 			else

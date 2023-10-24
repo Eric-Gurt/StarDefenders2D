@@ -71,6 +71,7 @@ import sdVeloxMiner from './sdVeloxMiner.js';
 import sdTask from './sdTask.js';
 import sdBaseShieldingUnit from './sdBaseShieldingUnit.js';
 import sdStatusEffect from './sdStatusEffect.js';
+import sdZektaronDreadnought from './sdZektaronDreadnought.js';
 
 
 import sdRenderer from '../client/sdRenderer.js';
@@ -133,6 +134,7 @@ class sdWeather extends sdEntity
 		sdWeather.EVENT_SHURG =					event_counter++; // 39
 		sdWeather.EVENT_SHURG_CONVERTER =			event_counter++; // 40
 		sdWeather.EVENT_TIME_SHIFTER =				event_counter++; // 41
+		sdWeather.EVENT_ZEKTARON_DREADNOUGHT =				event_counter++; // 42
 
 		
 		sdWeather.supported_events = [];
@@ -196,6 +198,7 @@ class sdWeather extends sdEntity
 		this._max_ai_count = 8; //  Can be altered with onAfterSnapshotLoad inside sdServerConfig
 		this._max_velox_mech_count = 3;
 		this._max_setr_destroyer_count = 3;
+		this._max_zektaron_dreadnought_count = 2; // Can spawn allot of drones and is tanky so it's best to limit it to 2
 		this._max_drone_count = 40;
 		this._max_portal_count = 4;
 
@@ -1588,7 +1591,7 @@ class sdWeather extends sdEntity
 				if ( sdCharacter.characters[ i ].hea > 0 )
 				if ( !sdCharacter.characters[ i ]._is_being_removed )
 				//if ( !sdCharacter.characters[ i ]._ai )
-				if ( sdCharacter.characters[ i ].build_tool_level > 5 )
+				if ( sdCharacter.characters[ i ].build_tool_level > 20 )
 				{
 					percent++;
 				}
@@ -1596,7 +1599,7 @@ class sdWeather extends sdEntity
 			if ( Math.random() < ( percent / sdWorld.GetPlayingPlayersCount() ) ) // Spawn chance depends on RNG, chances increase if more players ( or all ) have at least 5 levels
 			{
 				let instances = 0;
-				let instances_tot = 3 + ( ~~( Math.random() * 3 ) );
+				let instances_tot = 4 + ( ~~( Math.random() * 3 ) );
 
 				//let left_side = ( Math.random() < 0.5 );
 
@@ -1633,7 +1636,9 @@ class sdWeather extends sdEntity
 				while ( drones < drones_tot && sdDrone.drones_tot < this._max_drone_count )
 				{
 
-					let drone = new sdDrone({ x:0, y:0 , _ai_team: 4, type: ( Math.random() < 0.15 ) ? 4 : ( Math.random() < 0.10 ) ? 12 : 3 });
+					let drone = new sdDrone({ x:0, y:0 , _ai_team: 4, type: ( Math.random() < 0.075 ) ? 12 /*Sarronian Mender*/ : ( Math.random() < 0.175 ) ? 4 /*Sarronian Carrier*/
+						: ( Math.random() < 0.30 ) ? 12 /*Sarronian Gauss*/ : ( Math.random() < 0.50 ) ? 3 /*Sarronian*/ : ( Math.random() < 0.70 ) ? 15 /*Zektaron Corvette*/
+						: ( Math.random() < 0.95 ) ? 14 /*Zektaron*/ : 16 /*Zektaron Hunter*/});
 
 					sdEntity.entities.push( drone );
 
@@ -3088,6 +3093,18 @@ class sdWeather extends sdEntity
 			}
 			else
 			this._time_until_event = Math.random() * 30 * 60 * 0; // Quickly switch to another event
+		}
+		if ( r === sdWeather.EVENT_ZEKTARON_DREADNOUGHT ) // Zektaron Dreadnought, main boss of the Zektarons
+		{
+			if ( sdZektaronDreadnought.dreadnought_counter < this._max_zektaron_dreadnought_count )
+			sdWeather.SimpleSpawner({
+				
+				count: [ 1, 1 ],
+				class: sdZektaronDreadnought,
+				
+				aerial: true
+				
+			});
 		}
 	}
 	onThink( GSPEED ) // Class-specific, if needed
