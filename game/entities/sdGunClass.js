@@ -1234,22 +1234,23 @@ class sdGunClass
 			muzzle_x: null,
 			ammo_capacity: -1,
 			count: 1,
-			matter_cost: 300,
+			matter_cost: 250,
 			projectile_velocity: 16,
-			spawnable: false,
 			GetAmmoCost: ()=>
 			{
-				return 0;
+				return 100;
 			},
-			projectile_properties: { time_left: 2, _damage: 1, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
+			projectile_properties: { time_left: 2, _damage: 30, color: 'transparent', _return_damage_to_owner:true, _custom_target_reaction:( bullet, target_entity )=>
 				{
 					if ( target_entity.IsPlayerClass() )
 					{
+						//Stimpack effect increases sword attack speed by 2x (excludes Cube Speargun and Time Shifter Blade) and reload speed by 25% of magazine weaponry.
+						target_entity.ApplyStatusEffect({ type: sdStatusEffect.TYPE_STIMPACK_EFFECT, t: 30 * 20 }); // 20 seconds of stimpack effect
 						//target_entity.AnnounceTooManyEffectsIfNeeded();
 						//target_entity.stim_ef = 30 * 30;
 						
-						if ( bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_STIMPACK ].slot ] )
-						bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_STIMPACK ].slot ].remove();
+						//if ( bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_STIMPACK ].slot ] )
+						//bullet._owner._inventory[ sdGun.classes[ sdGun.CLASS_STIMPACK ].slot ].remove();
 					}
 				}
 			}
@@ -6709,7 +6710,7 @@ class sdGunClass
 								let t = 0;
 								
 								if ( e.is( sdGun ) )
-								t = 30 * 2;
+								t = 30 * 3;
 								else
 								t = 30 * 60;
 							

@@ -1298,7 +1298,7 @@ THING is cosmic mic drop!`;
 		this._matter_capacity_boosters = 0; // Cube shards are increasing this value
 		this._matter_capacity_boosters_max = 20 * 45;
 		
-		this.stim_ef = 0; // Stimpack effect
+		//this.stim_ef = 0; // Stimpack effect
 		this.power_ef = 0; // Damage multiplication effect
 		this.time_ef = 0; // GSPEED manipulations
 		
@@ -1405,7 +1405,15 @@ THING is cosmic mic drop!`;
 
 		if ( this.reload_anim > 0 )
 		{
-			this.reload_anim -= GSPEED * ( ( this.stim_ef > 0 ) ? 1.25 : 1 );
+			let is_stimmed = false;
+			let effects = sdStatusEffect.entity_to_status_effects.get( this );
+			if ( effects !== undefined )
+			for ( let i = 0; i < effects.length; i++ )
+			{
+				if ( effects[ i ].type === sdStatusEffect.TYPE_STIMPACK_EFFECT ) // Is the character under stimpack effect?
+				is_stimmed = true; // Increase reload speed by 25%
+			}
+			this.reload_anim -= GSPEED * ( ( is_stimmed ) ? 1.25 : 1 );
 
 			if ( this.reload_anim <= 0 )
 			{
@@ -4673,8 +4681,8 @@ THING is cosmic mic drop!`;
 
 	HandlePlayerPowerups( GSPEED )
 	{
-		if ( this.stim_ef > 0 )
-		this.stim_ef = Math.max( 0, this.stim_ef - GSPEED );
+		//if ( this.stim_ef > 0 )
+		//this.stim_ef = Math.max( 0, this.stim_ef - GSPEED );
 		if ( this.power_ef > 0 )
 		this.power_ef = Math.max( 0, this.power_ef - GSPEED );
 		if ( this.time_ef > 0 )
@@ -5428,7 +5436,7 @@ THING is cosmic mic drop!`;
 	}
 	AnnounceTooManyEffectsIfNeeded()
 	{
-		if ( this.stim_ef > 30 * 3 || this.power_ef > 30 * 3 || this.time_ef > 30 * 3 )
+		if ( this.power_ef > 30 * 3 || this.time_ef > 30 * 3 )
 		{
 			this.Say( [ 'I\'m in', 'That is a power', 'Make your bets', 'Check out this combo', 'Good luck' ][ ~~( Math.random() * 3 ) ], false, false, true );
 		}
@@ -5452,14 +5460,21 @@ THING is cosmic mic drop!`;
 		
 		//ctx.filter = this.filter;
 		ctx.sd_filter = this.sd_filter;
+		//if ( this.stim_ef > 0 && ( ( sdWorld.time ) % 1000 < 500 || this.stim_ef > 30 * 3 ) )
+		let effects = sdStatusEffect.entity_to_status_effects.get( this );
+		if ( effects !== undefined )
+		for ( let i = 0; i < effects.length; i++ )
+		{
+			if ( effects[ i ].type === sdStatusEffect.TYPE_STIMPACK_EFFECT ) // Is the character under stimpack effect?
+			ctx.filter = 'sepia(1) hue-rotate(-50deg) contrast(0.8) saturate(7) drop-shadow(0px 0px 1px #ff0000)'; // Give it the good old red outline
 		
-		if ( this.stim_ef > 0 && ( ( sdWorld.time ) % 1000 < 500 || this.stim_ef > 30 * 3 ) )
-		ctx.filter = 'sepia(1) hue-rotate(-50deg) contrast(0.8) saturate(7) drop-shadow(0px 0px 1px #ff0000)';
 	
-		if ( this.power_ef > 0 && ( ( sdWorld.time + 100 ) % 1000 < 500 || this.power_ef > 30 * 3 ) )
-		ctx.filter = 'sepia(1) hue-rotate(140deg) contrast(0.8) saturate(7) drop-shadow(0px 0px 1px #33ffff)';
+		}
+		
+		//if ( this.power_ef > 0 && ( ( sdWorld.time + 100 ) % 1000 < 500 || this.power_ef > 30 * 3 ) )
+		//ctx.filter = 'sepia(1) hue-rotate(140deg) contrast(0.8) saturate(7) drop-shadow(0px 0px 1px #33ffff)';
 	
-		if ( this.time_ef > 0 && ( ( sdWorld.time + 200 ) % 1000 < 500 || this.time_ef > 30 * 3 ) )
+		if ( this.time_ef > 0 && ( ( sdWorld.time + 200 ) % 1000 < 500 || this.time_ef > 30 * 3 ) ) // Time pack
 		ctx.filter = 'grayscale(1) brightness(0.5) contrast(1.5) drop-shadow(0px 0px 1px #000000)';
 		
 		const char_filter = ctx.filter;
@@ -6264,7 +6279,7 @@ THING is cosmic mic drop!`;
 						if ( this.armor > 0 )
 						this.AddContextOption( 'Lose armor', 'REMOVE_ARMOR', [] );
 
-						if ( this.stim_ef > 0 || this.power_ef > 0 || this.time_ef > 0 )
+						if ( this.power_ef > 0 || this.time_ef > 0 )
 						this.AddContextOption( 'Remove pack effects', 'REMOVE_EFFECTS', [] );
 
 						this.AddContextOption( 'Emote: Hearts', 'EMOTE', [ 'HEARTS' ] );

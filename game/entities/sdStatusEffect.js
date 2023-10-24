@@ -1029,6 +1029,63 @@ class sdStatusEffect extends sdEntity
 			}
 		};
 		
+		sdStatusEffect.types[ sdStatusEffect.TYPE_STIMPACK_EFFECT = 10 ] = 
+		{
+			remove_if_for_removed: true,
+	
+			is_emote: false,
+			
+			is_static: true,
+	
+			onMade: ( status_entity, params )=>
+			{
+				status_entity.t = params.t;
+			},
+			onStatusOfSameTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				status_entity.t = params.t;
+				status_entity._update_version++;
+
+				return true; // Cancel merge process
+			},
+			onStatusOfDifferentTypeApplied: ( status_entity, params )=> // status_entity is an existing status effect entity
+			{
+				return false; // Do not stop merge process
+			},
+			IsVisible: ( status_entity, observer_entity )=>
+			{
+				return status_entity.for.IsVisible( observer_entity );
+			},
+			onThink: ( status_entity, GSPEED )=>
+			{
+				status_entity.t -= GSPEED;
+				
+				if ( !sdWorld.is_server || sdWorld.is_singleplayer )
+				{
+				}
+			
+				return ( status_entity.t <= 0 ); // return true = delete
+			},
+			onBeforeRemove: ( status_entity )=>
+			{
+			},
+			onBeforeEntityRender: ( status_entity, ctx, attached )=>
+			{
+				//if ( !status_entity.for )
+				//return;
+				//ctx.sd_status_effect_tint_filter = [ sdGun.time_amplification_gspeed_scale, sdGun.time_amplification_gspeed_scale, sdGun.time_amplification_gspeed_scale ];
+			},
+			onAfterEntityRender: ( status_entity, ctx, attached )=>
+			{
+				//ctx.sd_status_effect_filter = null;
+				//ctx.sd_status_effect_tint_filter = null;
+				//ctx.filter = 'none';
+			},
+			DrawFG: ( status_entity, ctx, attached )=>
+			{
+			}
+		};
+		
 
 		sdStatusEffect.status_effects = [];
 		
