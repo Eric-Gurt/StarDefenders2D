@@ -456,18 +456,16 @@ class sdCrystal extends sdEntity
 
 					reward_amount *= this.matter_regen / 100;
 
-					if ( this.is_crab )
+					if ( this.is_crab ) // Give 40k large crab and 40k large crystal a love.
 					{
 						reward_amount = Math.max( reward_amount, sdEntity.SCORE_REWARD_BROKEN_CRAB_CRYSTAL );
 
 						if ( this.type === sdCrystal.TYPE_CRYSTAL_CRAB_BIG )
 						reward_amount = Math.max( reward_amount, sdEntity.SCORE_REWARD_BROKEN_BIG_CRAB_CRYSTAL );
 					}
-					else
-					if ( this.is_anticrystal || this.matter_max >= 180000 || this.matter_regen >= 450 ) // Too high matter and regeneration will crash the server ( Preset Editor )
-					{
-						reward_amount = 0;
-					}
+
+					if ( this.matter_max >= 90000 || this.matter_regen >= 401 || this.is_anticrystal ) // Too high matter and regeneration will crash the server ( Preset Editor ), also spamming for score shards is not good.
+					reward_amount = 0;
 
 					reward_amount = ~~( reward_amount );
 
