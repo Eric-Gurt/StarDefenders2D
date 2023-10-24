@@ -176,9 +176,9 @@ class sdFactions extends sdEntity
 			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_SARRONIAN_HEAVY );
 			else
 			if ( character_entity._ai_gun_slot === 2 )
-			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ZEKTARON_ASSAULT_UNIT );
+			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ZEKTARON_ASSAULT );
 			else
-			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ZEKTARON_SEEKER_UNIT );
+			sdFactionskin.SetHumanoidSkinClass( character_entity, sdFactionskin.SKIN_ZEKTARON_SEEKER );
 		}
 
 		if ( faction === sdFactions.FACTION_VELOX ) // Velox
