@@ -6547,7 +6547,7 @@ class sdGunClass
 				if ( gun._held_by._auto_shoot_in > 0 )
 				return 0;
 				
-				return 3;
+				return 6;
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
@@ -6571,11 +6571,11 @@ class sdGunClass
 					//sdSound.PlaySound({ name: 'gun_pistol', x:gun.x, y:gun.y });
 					sdSound.PlaySound({ name: 'alien_laser1', x:gun.x, y:gun.y, volume: 0.7, pitch: 1.42 });
 					
-					if ( gun._held_by.matter >= 4 )
+					if ( gun._held_by.matter >= 6 )
 					if ( gun._held_by._key_states.GetKey( 'Mouse1' ) )
 					{
 						gun._held_by._auto_shoot_in = ( gun._held_by.stim_ef > 0 ) ? ( 2 / ( 1 + gun._combo / 40 ) ) : ( 5 / ( 1 + gun._combo / 40 ) ); // Faster rate of fire when shooting more
-						gun._held_by.matter -= 2;
+						gun._held_by.matter -= 6;
 						gun._combo_timer = 75;
 						if ( gun._combo < 75 )
 						gun._combo++; // Speed up rate of fire, the longer it shoots
@@ -8247,7 +8247,7 @@ class sdGunClass
 				if ( gun.fire_mode !== 1 )
 				return 280;// * dmg_scale;
 				else
-				return 35;
+				return 45; //35
 			},
 			onShootAttempt: ( gun, shoot_from_scenario )=>
 			{
