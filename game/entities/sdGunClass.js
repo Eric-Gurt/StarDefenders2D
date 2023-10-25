@@ -1268,7 +1268,8 @@ class sdGunClass
 			spread: 0.02,
 			count: 1,
 			projectile_properties: { _damage: 25, color:'#afdfff', _dirt_mult: -0.5 },
-			spawnable: false,
+			min_build_tool_level: 2,
+			matter_cost: 35, // Are you sure tho Star Defenders couldn't build any Correction-9 weapons?
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color:'#afdfff', _dirt_mult: -0.5, _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ] }; // Default value for _knock_scale
@@ -1521,7 +1522,9 @@ class sdGunClass
 			projectile_velocity: 14 * 2,
 			spread: 0.11, // 0.15,
 			projectile_properties: { _damage: 40, color: '#DDDDDD', penetrating: true }, // I nerfed it's damage from 45 to 40 but that's up to balancing decisions - Booraz149
-			spawnable:false,
+			min_build_tool_level: 16,
+			matter_cost: 160, // Are you sure tho Star Defenders couldn't build any Correction-9 weapons?
+			min_workbench_level: 1,
 			projectile_properties_dynamic: ( gun )=>{ 
 				
 				let obj = { color: '#DDDDDD', penetrating: true, _knock_scale: 0.01 * 8 * gun.extra[ ID_DAMAGE_MULT ] }; // Default value for _knock_scale
