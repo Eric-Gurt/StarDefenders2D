@@ -1491,10 +1491,17 @@ io.on( 'connection', ( socket )=>
 		{
 			socket.my_hash = player_settings.my_hash;
 		}*/
+		
+		if ( player_settings.my_hash.length > 300 )
+		{
+			socket.SDServiceMessage( 'Connection Error: Your "my_hash" is {1} characters long, but 300 is a maximum allowed length. Contact us if this happens to you for no reason.', [ my_hash.length ] );
+			return;
+		}
+			
 		socket.my_hash = player_settings.my_hash;
 		
 		let my_hash = socket.my_hash; // To make sure it won't change
-			
+		
 		let ban = cached_bans[ ip_accurate ] || cached_bans[ my_hash ];
 
 		const options = {

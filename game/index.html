@@ -1048,7 +1048,20 @@
 		};
 	    };
 	    
-	    AcceptField( 'my_hash', [ Math.random(), Math.random(), Math.random(), Math.random(), Math.random() ].join('') );
+	    function GenerateHash( length )
+	    {
+		var result           = '';
+		var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-+:;[]{},.|!@#$%^&*() ';
+		var charactersLength = characters.length;
+
+		for ( var i = 0; i < length; i++ )
+		result += characters.charAt( ~~( Math.random() * charactersLength ) );
+
+		return result;
+	    }
+	    
+	    //AcceptField( 'my_hash', [ Math.random(), Math.random(), Math.random(), Math.random(), Math.random() ].join('') );
+	    AcceptField( 'my_hash', GenerateHash( 30 ) ); // document.getElementById('my_hash').value // 7.630759594789488e+57 possible unique combinations
 	    AcceptField( 'last_local_time_start', 0 );
 	    AcceptField( 'volume', 70 );
 	    AcceptField( 'password', '' );
