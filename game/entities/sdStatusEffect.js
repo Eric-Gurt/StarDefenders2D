@@ -1299,10 +1299,12 @@ class sdStatusEffect extends sdEntity
 		this.type = params.type || 0;
 		let status_type = sdStatusEffect.types[ this.type ];
 		
-		this._is_static = ( status_type.is_static !== undefined ) ? status_type.is_static : true;
+		this._is_static = status_type ? ( ( status_type.is_static !== undefined ) ? status_type.is_static : true ) : false;
 		
 		this.for = params.for || null; // Target. Who has this status effect
 		this._for_confirmed = false;
+		
+		this.remove_if_for_removed = true;
 		
 		if ( status_type )
 		{
